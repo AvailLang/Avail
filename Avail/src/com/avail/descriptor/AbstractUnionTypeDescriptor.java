@@ -285,7 +285,7 @@ extends AbstractTypeDescriptor
 
 	@Override
 	public boolean o_IsInstanceOf (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aType)
 	{
 		if (aType.isAbstractUnionType())
@@ -321,7 +321,9 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override
-	public boolean o_IsInstanceOfKind (final AvailObject object, final AvailObject aType)
+	public boolean o_IsInstanceOfKind (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aType)
 	{
 		return object.kind().isSubtypeOf(aType);
 	}
@@ -394,169 +396,222 @@ extends AbstractTypeDescriptor
 
 	@Override
 	public abstract boolean o_AcceptsArgTypesFromFunctionType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject functionType);
 
 	@Override
 	public abstract boolean o_AcceptsArgumentTypesFromContinuation (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject continuation,
 		final int stackp,
 		final int numArgs);
 
 	@Override
 	public abstract boolean o_AcceptsListOfArgTypes (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final List<AvailObject> argTypes);
 
 	@Override
 	public abstract boolean o_AcceptsListOfArgValues (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final List<AvailObject> argValues);
 
 	@Override
 	public abstract boolean o_AcceptsTupleOfArgTypes (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject argTypes);
 
 	@Override
 	public abstract boolean o_AcceptsTupleOfArguments (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject arguments);
 
 	@Override
 	public abstract AvailObject o_ArgsTupleType (
-		final AvailObject object);
+		final @NotNull AvailObject object);
 
 	@Override
 	public abstract AvailObject o_CheckedExceptions (
-		final AvailObject object);
+		final @NotNull AvailObject object);
 
 	@Override
 	public abstract AvailObject o_FunctionType (
-		final AvailObject object);
+		final @NotNull AvailObject object);
 
 	@Override
 	public abstract AvailObject o_ContentType (
-		final AvailObject object);
+		final @NotNull AvailObject object);
 
 	@Override
 	public abstract boolean o_CouldEverBeInvokedWith (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final List<AvailObject> argTypes);
 
 	@Override
-	public abstract boolean o_IsBetterRepresentationThan (
-		final AvailObject object,
-		final AvailObject anotherObject);
+	public boolean o_IsBetterRepresentationThan (
+		final @NotNull AvailObject object,
+		final AvailObject anotherObject)
+	{
+		return true;
+	}
 
 	@Override
-	public abstract boolean o_IsBetterRepresentationThanTupleType (
-		final AvailObject object,
-		final AvailObject aTupleType);
+	public final boolean o_IsBetterRepresentationThanTupleType (
+		final @NotNull AvailObject object,
+		final AvailObject aTupleType)
+	{
+		return true;
+	}
 
 	@Override
-	public abstract boolean o_IsSupertypeOfFunctionType (
-		final AvailObject object,
-		final AvailObject aFunctionType);
+	public final boolean o_IsSupertypeOfFunctionType (
+		final @NotNull AvailObject object,
+		final AvailObject aFunctionType)
+	{
+		return false;
+	}
 
 	@Override
-	public abstract boolean o_IsSupertypeOfContainerType (
-		final AvailObject object,
-		final AvailObject aContainerType);
+	public final boolean o_IsSupertypeOfContainerType (
+		final @NotNull AvailObject object,
+		final AvailObject aContainerType)
+	{
+		return false;
+	}
 
 	@Override
-	public abstract boolean o_IsSupertypeOfContinuationType (
-		final AvailObject object,
-		final AvailObject aContinuationType);
+	public final boolean o_IsSupertypeOfContinuationType (
+		final @NotNull AvailObject object,
+		final AvailObject aContinuationType)
+	{
+		return false;
+	}
 
 	@Override
-	public abstract boolean o_IsSupertypeOfCompiledCodeType (
-		final AvailObject object,
-		final AvailObject aCompiledCodeType);
+	public final boolean o_IsSupertypeOfCompiledCodeType (
+		final @NotNull AvailObject object,
+		final AvailObject aCompiledCodeType)
+	{
+		return false;
+	}
 
 	@Override
-	public abstract boolean o_IsSupertypeOfIntegerRangeType (
-		final AvailObject object,
-		final AvailObject anIntegerRangeType);
+	public final boolean o_IsSupertypeOfIntegerRangeType (
+		final @NotNull AvailObject object,
+		final AvailObject anIntegerRangeType)
+	{
+		return false;
+	}
 
 	@Override
-	public abstract boolean o_IsSupertypeOfMapType (
-		final AvailObject object,
-		final AvailObject aMapType);
+	public final boolean o_IsSupertypeOfMapType (
+		final @NotNull AvailObject object,
+		final AvailObject aMapType)
+	{
+		return false;
+	}
 
 	@Override
-	public abstract boolean o_IsSupertypeOfObjectType (
-		final AvailObject object,
-		final AvailObject aLazyObjectType);
+	public final boolean o_IsSupertypeOfObjectType (
+		final @NotNull AvailObject object,
+		final AvailObject aLazyObjectType)
+	{
+		return false;
+	}
 
 	@Override
-	public abstract boolean o_IsSupertypeOfPrimitiveType (
-		final AvailObject object,
-		final AvailObject aPrimitiveType);
+	public boolean o_IsSupertypeOfParseNodeType (
+		final @NotNull AvailObject object,
+		final AvailObject aParseNodeType)
+	{
+		return false;
+	}
 
 	@Override
-	public abstract boolean o_IsSupertypeOfSetType (
-		final AvailObject object,
-		final AvailObject aSetType);
+	public final boolean o_IsSupertypeOfPrimitiveType (
+		final @NotNull AvailObject object,
+		final AvailObject aPrimitiveType)
+	{
+		return false;
+	}
 
 	@Override
-	public abstract boolean o_IsSupertypeOfTupleType (
-		final AvailObject object,
-		final AvailObject aTupleType);
+	public final boolean o_IsSupertypeOfSetType (
+		final @NotNull AvailObject object,
+		final AvailObject aSetType)
+	{
+		return false;
+	}
 
 	@Override
-	public abstract boolean o_IsSupertypeOfUnionMeta (
-		final AvailObject object,
-		final AvailObject aTupleType);
+	public final boolean o_IsSupertypeOfTupleType (
+		final @NotNull AvailObject object,
+		final AvailObject aTupleType)
+	{
+		return false;
+	}
+
+	@Override
+	public final boolean o_IsSupertypeOfUnionMeta (
+		final @NotNull AvailObject object,
+		final AvailObject aTupleType)
+	{
+		return false;
+	}
 
 	@Override
 	public abstract AvailObject o_KeyType (
-		final AvailObject object);
-
-	@Override
-	public abstract AvailObject o_MyType (
-		final AvailObject object);
+		final @NotNull AvailObject object);
 
 	@Override
 	public abstract AvailObject o_Name (
-		final AvailObject object);
+		final @NotNull AvailObject object);
 
 	@Override
 	public abstract AvailObject o_Parent (
-		final AvailObject object);
+		final @NotNull AvailObject object);
 
 	@Override
 	public abstract AvailObject o_ReturnType (
-		final AvailObject object);
+		final @NotNull AvailObject object);
 
 	@Override
 	public abstract AvailObject o_TypeIntersectionOfContinuationType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aContinuationType);
 
 	@Override
 	public abstract AvailObject o_TypeIntersectionOfCompiledCodeType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aCompiledCodeType);
 
 	@Override
+	public abstract AvailObject o_TypeIntersectionOfParseNodeType (
+		final @NotNull AvailObject object,
+		final AvailObject aParseNodeType);
+
+	@Override
 	public abstract AvailObject o_TypeUnionOfContinuationType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aContinuationType);
 
 	@Override
 	public abstract AvailObject o_TypeUnionOfCompiledCodeType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aCompiledCodeType);
 
 	@Override
+	public abstract AvailObject o_TypeUnionOfParseNodeType (
+		final @NotNull AvailObject object,
+		final AvailObject aParseNodeType);
+
+	@Override
 	public abstract AvailObject o_ValueType (
-		final AvailObject object);
+		final @NotNull AvailObject object);
 
 	@Override
 	public abstract boolean o_AbstractUnionTypeIncludesInstance (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject potentialInstance);
 
 	/**

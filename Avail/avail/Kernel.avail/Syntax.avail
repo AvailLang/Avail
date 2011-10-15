@@ -35,6 +35,7 @@ Extends
 	"Tier-4"
 Uses
 Names
+	"_yielding_",
 	"Macro_is_",
 	"make assignment variable_expression_",
 	"_expression type",
@@ -50,6 +51,13 @@ Names
 Body
 
 
+
+/* Parse node type construction. */
+Method "_yielding_" is [
+		parseNodeType : parseNode type,
+		expressionType : type |
+	Primitive 355;
+] : parseNode type;
 
 
 Method "Macro_is_" is [name : string, block : [...]-> parseNode |

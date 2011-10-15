@@ -415,7 +415,7 @@ extends TupleDescriptor
 
 	@Override
 	public int o_EndSubtupleIndexInZone (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int zone)
 	{
 		// Answer the ending index into the subtuple for the given zone.

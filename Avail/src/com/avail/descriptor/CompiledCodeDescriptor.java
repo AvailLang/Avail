@@ -33,13 +33,41 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.CanAllocateObjects;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.interpreter.*;
 import com.avail.interpreter.levelOne.*;
 
+/**
+ * A {@link CompiledCodeDescriptor compiled code} object is created whenever a
+ * block is compiled.  It contains instructions and literals that encode how to
+ * perform the block.  In particular, its main feature is a {@linkplain
+ * NybbleTupleDescriptor tuple} of nybbles that encode {@linkplain L1Instruction
+ * level-one instructions}, which consist of {@linkplain L1Operation operations}
+ * and their {@linkplain L1OperandType operands}.
+ *
+ * <p>
+ * To refer to specific {@linkplain AvailObject Avail objects} from these
+ * instructions, some operands act as indices into the {@linkplain
+ * ObjectSlots#LITERAL_AT_ literals} that are stored within the compiled code
+ * object.  There are also slots that keep track of the number of arguments that
+ * this code expects to be invoked with, and the number of slots to allocate for
+ * {@linkplain ContinuationDescriptor continuations} that represent invocations
+ * of this code.
+ * </p>
+ *
+ * <p>
+ * Compiled code objects can not be directly invoked, as the block they
+ * represent may refer to "outer" variables.  When this is the case, a
+ * {@linkplain FunctionDescriptor function (closure)} must be constructed at
+ * runtime to hold this information.  When no such outer variables are needed,
+ * the function itself can be constructed at compile time and stored as a
+ * literal.
+ * </p>
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public class CompiledCodeDescriptor
 extends Descriptor
 {
@@ -450,7 +478,7 @@ extends Descriptor
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final StringBuilder builder,
 		final List<AvailObject> recursionList,
 		final int indent)

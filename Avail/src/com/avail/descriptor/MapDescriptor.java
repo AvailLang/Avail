@@ -94,7 +94,7 @@ extends Descriptor
 
 	@Override
 	public @NotNull AvailObject o_DataAtIndex (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int subscript)
 	{
 		return object.objectSlotAt(ObjectSlots.DATA_AT_INDEX_, subscript);
@@ -102,7 +102,7 @@ extends Descriptor
 
 	@Override
 	public void o_DataAtIndexPut (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int subscript,
 		final AvailObject value)
 	{
@@ -111,7 +111,7 @@ extends Descriptor
 
 	@Override
 	public void o_InternalHash (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int value)
 	{
 		object.integerSlotPut(IntegerSlots.INTERNAL_HASH, value);
@@ -119,7 +119,7 @@ extends Descriptor
 
 	@Override
 	public void o_MapSize (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int value)
 	{
 		object.integerSlotPut(IntegerSlots.MAP_SIZE, value);
@@ -127,7 +127,7 @@ extends Descriptor
 
 	@Override
 	public void o_NumBlanks (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int value)
 	{
 		object.integerSlotPut(IntegerSlots.NUM_BLANKS, value);
@@ -135,21 +135,21 @@ extends Descriptor
 
 	@Override
 	public int o_InternalHash (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.INTERNAL_HASH);
 	}
 
 	@Override
 	public int o_MapSize (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.MAP_SIZE);
 	}
 
 	@Override
 	public int o_NumBlanks (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.NUM_BLANKS);
 	}
@@ -279,7 +279,7 @@ extends Descriptor
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final StringBuilder aStream,
 		final List<AvailObject> recursionList,
 		final int indent)
@@ -320,7 +320,7 @@ extends Descriptor
 
 	@Override
 	public boolean o_Equals (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject another)
 	{
 		return another.equalsMap(object);
@@ -328,7 +328,7 @@ extends Descriptor
 
 	@Override
 	public boolean o_EqualsMap (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aMap)
 	{
 		if (object.internalHash() != aMap.internalHash())
@@ -359,7 +359,7 @@ extends Descriptor
 
 	@Override
 	public boolean o_IsInstanceOfKind (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aTypeObject)
 	{
 		//  Answer whether object is an instance of a subtype of aTypeObject.  Don't generate
@@ -411,7 +411,7 @@ extends Descriptor
 
 	@Override
 	public int o_Hash (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Take the internal hash, and twiddle it (so nested maps won't cause unwanted correlation).
 
@@ -420,7 +420,7 @@ extends Descriptor
 
 	@Override
 	public @NotNull AvailObject o_Kind (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		AvailObject keyType = BottomTypeDescriptor.bottom();
 		AvailObject valueType = BottomTypeDescriptor.bottom();
@@ -439,7 +439,7 @@ extends Descriptor
 
 	@Override
 	public boolean o_HasKey (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject keyObject)
 	{
 		//  Answer whether the map has the given key.  Note that we don't stop searching
@@ -464,7 +464,7 @@ extends Descriptor
 
 	@Override
 	public @NotNull AvailObject o_MapAt (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject keyObject)
 	{
 		//  Answer the value of the map at the specified key.  Fail if the key is not present.
@@ -489,7 +489,7 @@ extends Descriptor
 
 	@Override
 	public @NotNull AvailObject o_MapAtPuttingCanDestroy (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject keyObject,
 		final AvailObject newValueObject,
 		final boolean canDestroy)
@@ -521,7 +521,7 @@ extends Descriptor
 
 	@Override
 	public @NotNull AvailObject o_MapWithoutKeyCanDestroy (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject keyObject,
 		final boolean canDestroy)
 	{
@@ -557,7 +557,7 @@ extends Descriptor
 
 	@Override
 	public @NotNull AvailObject o_AsObject (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Convert the receiver into an object.
 
@@ -566,7 +566,7 @@ extends Descriptor
 
 	@Override
 	public int o_Capacity (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Answer the total number of slots reserved for holding keys.
 
@@ -575,14 +575,14 @@ extends Descriptor
 
 	@Override
 	public boolean o_IsMap (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return true;
 	}
 
 	@Override
 	public @NotNull AvailObject o_KeysAsSet (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Answer a set with all my keys.  Mark the keys as immutable because they'll be shared with the new set.
 
@@ -606,7 +606,7 @@ extends Descriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_ValuesAsTuple (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		final AvailObject result = ObjectTupleDescriptor.mutable().create(
 			object.mapSize());
@@ -632,7 +632,7 @@ extends Descriptor
 
 	@Override
 	public @NotNull AvailObject o_KeyAtIndex (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int index)
 	{
 		//  Answer the map's indexth key.
@@ -642,7 +642,7 @@ extends Descriptor
 
 	@Override
 	public void o_KeyAtIndexPut (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int index,
 		final AvailObject keyObject)
 	{
@@ -653,7 +653,7 @@ extends Descriptor
 
 	@Override
 	public @NotNull AvailObject o_PrivateExcludeKey (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject keyObject)
 	{
 		//  Remove keyObject from the map's keys if it's present.  The map must be mutable.
@@ -697,7 +697,7 @@ extends Descriptor
 
 	@Override
 	public @NotNull AvailObject o_PrivateMapAtPut (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject keyObject,
 		final AvailObject valueObject)
 	{
@@ -745,7 +745,7 @@ extends Descriptor
 
 	@Override
 	public @NotNull AvailObject o_ValueAtIndex (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int index)
 	{
 		//  Answer the map's indexth value.
@@ -755,7 +755,7 @@ extends Descriptor
 
 	@Override
 	public void o_ValueAtIndexPut (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int index,
 		final AvailObject valueObject)
 	{
@@ -766,7 +766,7 @@ extends Descriptor
 
 	@Override
 	public List<AvailObject> o_KeysAsArray (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Utility method - collect the object's keys into a Smalltalk Array.
 
@@ -788,7 +788,7 @@ extends Descriptor
 
 	@Override
 	public MapDescriptor.MapIterable o_MapIterable (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return new MapIterable(object);
 	}

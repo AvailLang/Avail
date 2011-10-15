@@ -37,6 +37,8 @@ import java.util.*;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.compiler.node.*;
+import com.avail.compiler.node.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.compiler.scanning.TokenDescriptor;
 import com.avail.descriptor.ProcessDescriptor.ExecutionState;
 import com.avail.exceptions.*;
@@ -575,6 +577,7 @@ implements Iterable<AvailObject>
 		L2ChunkDescriptor.clearWellKnownObjects();
 		ContainerTypeDescriptor.clearWellKnownObjects();
 		UnionMetaDescriptor.clearWellKnownObjects();
+		ParseNodeTypeDescriptor.clearWellKnownObjects();
 	}
 
 	/**
@@ -605,6 +608,7 @@ implements Iterable<AvailObject>
 		L2ChunkDescriptor.createWellKnownObjects();
 		ContainerTypeDescriptor.createWellKnownObjects();
 		UnionMetaDescriptor.createWellKnownObjects();
+		ParseNodeTypeDescriptor.createWellKnownObjects();
 	}
 
 	/**
@@ -2000,6 +2004,16 @@ implements Iterable<AvailObject>
 	}
 
 	/**
+	 * @param aParseNodeType
+	 * @return
+	 */
+	public boolean equalsParseNodeType (
+		final @NotNull AvailObject aParseNodeType)
+	{
+		return descriptor().o_EqualsParseNodeType(this, aParseNodeType);
+	}
+
+	/**
 	 * Dispatch to the descriptor.
 	 */
 	public boolean equalsPrimitiveType (
@@ -2693,15 +2707,6 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public boolean isSupertypeOfFunctionType (
-		final AvailObject aFunctionType)
-	{
-		return descriptor().o_IsSupertypeOfFunctionType(this, aFunctionType);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	public boolean isSupertypeOfContainerType (
 		final AvailObject aContainerType)
 	{
@@ -2715,6 +2720,15 @@ implements Iterable<AvailObject>
 		final AvailObject aContinuationType)
 	{
 		return descriptor().o_IsSupertypeOfContinuationType(this, aContinuationType);
+	}
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	public boolean isSupertypeOfFunctionType (
+		final AvailObject aFunctionType)
+	{
+		return descriptor().o_IsSupertypeOfFunctionType(this, aFunctionType);
 	}
 
 	/**
@@ -2742,6 +2756,16 @@ implements Iterable<AvailObject>
 		final AvailObject anObjectType)
 	{
 		return descriptor().o_IsSupertypeOfObjectType(this, anObjectType);
+	}
+
+	/**
+	 * @param aParseNodeType
+	 * @return
+	 */
+	public boolean isSupertypeOfParseNodeType (
+		final @NotNull AvailObject aParseNodeType)
+	{
+		return descriptor().o_IsSupertypeOfParseNodeType(this, aParseNodeType);
 	}
 
 	/**
@@ -2924,12 +2948,12 @@ implements Iterable<AvailObject>
 	 * Dispatch to the descriptor.
 	 */
 	public void levelTwoChunkOffset (
-		final AvailObject index,
+		final AvailObject chunk,
 		final int offset)
 	{
 		descriptor().o_LevelTwoChunkOffset(
 			this,
-			index,
+			chunk,
 			offset);
 	}
 
@@ -3345,14 +3369,6 @@ implements Iterable<AvailObject>
 		final AvailObject value)
 	{
 		descriptor().o_MyRestrictions(this, value);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public AvailObject myType ()
-	{
-		return descriptor().o_MyType(this);
 	}
 
 	/**
@@ -4694,6 +4710,19 @@ implements Iterable<AvailObject>
 	}
 
 	/**
+	 * @param aCompiledCodeType
+	 * @return
+	 */
+	public AvailObject typeIntersectionOfCompiledCodeType (
+		final AvailObject aCompiledCodeType)
+	{
+		return descriptor().o_TypeIntersectionOfCompiledCodeType(
+			this,
+			aCompiledCodeType);
+	}
+
+
+	/**
 	 * Dispatch to the descriptor.
 	 */
 	public AvailObject typeIntersectionOfContainerType (
@@ -4745,6 +4774,18 @@ implements Iterable<AvailObject>
 		final AvailObject anObjectType)
 	{
 		return descriptor().o_TypeIntersectionOfObjectType(this, anObjectType);
+	}
+
+	/**
+	 * @param aParseNodeType
+	 * @return
+	 */
+	public AvailObject typeIntersectionOfParseNodeType (
+		final AvailObject aParseNodeType)
+	{
+		return descriptor().o_TypeIntersectionOfParseNodeType(
+			this,
+			aParseNodeType);
 	}
 
 	/**
@@ -4822,7 +4863,7 @@ implements Iterable<AvailObject>
 	 * Dispatch to the descriptor.
 	 */
 	public AvailObject typeUnionOfMapType (
-		final AvailObject aMapType)
+		final @NotNull AvailObject aMapType)
 	{
 		return descriptor().o_TypeUnionOfMapType(this, aMapType);
 	}
@@ -4831,16 +4872,28 @@ implements Iterable<AvailObject>
 	 * Dispatch to the descriptor.
 	 */
 	public AvailObject typeUnionOfObjectType (
-		final AvailObject anObjectType)
+		final @NotNull AvailObject anObjectType)
 	{
 		return descriptor().o_TypeUnionOfObjectType(this, anObjectType);
+	}
+
+	/**
+	 * @param aParseNodeType
+	 * @return
+	 */
+	public AvailObject typeUnionOfParseNodeType (
+		final @NotNull AvailObject aParseNodeType)
+	{
+		return descriptor().o_TypeUnionOfParseNodeType(
+			this,
+			aParseNodeType);
 	}
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
 	public AvailObject typeUnionOfSetType (
-		final AvailObject aSetType)
+		final @NotNull AvailObject aSetType)
 	{
 		return descriptor().o_TypeUnionOfSetType(this, aSetType);
 	}
@@ -5164,29 +5217,11 @@ implements Iterable<AvailObject>
 
 
 	/**
-	 * @param declaredType
-	 */
-	public void declaredType (final AvailObject declaredType)
-	{
-		descriptor().o_DeclaredType(this, declaredType);
-	}
-
-
-	/**
 	 * @return
 	 */
 	public AvailObject declaredType ()
 	{
 		return descriptor().o_DeclaredType(this);
-	}
-
-
-	/**
-	 * @param declarationKind
-	 */
-	public void declarationKind (final DeclarationKind declarationKind)
-	{
-		descriptor().o_DeclarationKind(this, declarationKind);
 	}
 
 
@@ -5227,29 +5262,11 @@ implements Iterable<AvailObject>
 
 
 	/**
-	 * @param literalObject
-	 */
-	public void literalObject (final AvailObject literalObject)
-	{
-		descriptor().o_LiteralObject(this, literalObject);
-	}
-
-
-	/**
 	 * @return
 	 */
 	public AvailObject token ()
 	{
 		return descriptor().o_Token(this);
-	}
-
-
-	/**
-	 * @param token
-	 */
-	public void token (final AvailObject token)
-	{
-		descriptor().o_Token(this, token);
 	}
 
 
@@ -5367,15 +5384,6 @@ implements Iterable<AvailObject>
 	public AvailObject declaration ()
 	{
 		return descriptor().o_Declaration(this);
-	}
-
-
-	/**
-	 * @param declaration
-	 */
-	public void declaration (final AvailObject declaration)
-	{
-		descriptor().o_Declaration(this, declaration);
 	}
 
 
@@ -5826,19 +5834,6 @@ implements Iterable<AvailObject>
 	 * @param aCompiledCodeType
 	 * @return
 	 */
-	public AvailObject typeIntersectionOfCompiledCodeType (
-		final AvailObject aCompiledCodeType)
-	{
-		return descriptor().o_TypeIntersectionOfCompiledCodeType(
-			this,
-			aCompiledCodeType);
-	}
-
-
-	/**
-	 * @param aCompiledCodeType
-	 * @return
-	 */
 	public AvailObject typeUnionOfCompiledCodeType (
 		final AvailObject aCompiledCodeType)
 	{
@@ -5934,5 +5929,24 @@ implements Iterable<AvailObject>
 	public @NotNull AvailObject versions ()
 	{
 		return descriptor().o_Versions(this);
+	}
+
+
+	/**
+	 * @return
+	 */
+	public @NotNull ParseNodeKind parseNodeKind ()
+	{
+		return descriptor().o_ParseNodeKind(this);
+	}
+
+
+	/**
+	 * @return
+	 */
+	public boolean parseNodeKindIsUnder (
+		final @NotNull ParseNodeKind expectedParseNodeKind)
+	{
+		return descriptor().o_ParseNodeKindIsUnder(this, expectedParseNodeKind);
 	}
 }

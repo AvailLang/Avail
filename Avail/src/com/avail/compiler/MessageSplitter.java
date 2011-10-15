@@ -33,11 +33,11 @@
 package com.avail.compiler;
 
 import static com.avail.descriptor.AvailObject.error;
+import static com.avail.compiler.node.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import java.util.*;
 import com.avail.compiler.node.*;
 import com.avail.compiler.scanning.AvailScanner;
 import com.avail.descriptor.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
 
 /**
  * This class is used to split Avail message names into a sequence of
@@ -753,12 +753,12 @@ public class MessageSplitter
 			final Iterator<AvailObject> argumentsIterator;
 			if (doubleWrap)
 			{
-				assert availObject.isInstanceOfKind(TUPLE_NODE.o());
+				assert availObject.kind().parseNodeKindIsUnder(TUPLE_NODE);
 				argumentsIterator = availObject.expressionsTuple().iterator();
 			}
 			else
 			{
-				assert availObject.isInstanceOfKind(EXPRESSION_NODE.o());
+				assert availObject.kind().parseNodeKindIsUnder(EXPRESSION_NODE);
 				final List<AvailObject> argumentNodes =
 					Collections.singletonList(availObject);
 				argumentsIterator = argumentNodes.iterator();

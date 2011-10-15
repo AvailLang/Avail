@@ -32,7 +32,6 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.error;
 import java.util.List;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.TypeDescriptor.Types;
@@ -216,6 +215,7 @@ extends SignatureDescriptor
 	 *            this expected return type at runtime.
 	 * @return
 	 *            An abstract method signature.
+	 * @throws SignatureException If the signature would not be metacovariant.
 	 */
 	public static AvailObject create (
 		final @NotNull AvailObject bodySignature,

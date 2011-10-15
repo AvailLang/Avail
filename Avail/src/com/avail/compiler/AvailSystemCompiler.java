@@ -35,6 +35,7 @@ package com.avail.compiler;
 import static com.avail.compiler.AbstractAvailCompiler.ExpectedToken.*;
 import static com.avail.compiler.scanning.TokenDescriptor.TokenType.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.compiler.node.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import java.util.*;
 import com.avail.annotations.*;
 import com.avail.compiler.node.*;
@@ -891,7 +892,7 @@ extends AbstractAvailCompiler
 		if (statements.size() > 0)
 		{
 			final AvailObject stmt = statements.get(statements.size() - 1);
-			if (stmt.isInstanceOfKind(DECLARATION_NODE.o()))
+			if (stmt.kind().parseNodeKindIsUnder(DECLARATION_NODE))
 			{
 				lastStatementType.value = TOP.o();
 			}
@@ -917,7 +918,7 @@ extends AbstractAvailCompiler
 		}
 		boolean blockTypeGood = true;
 		if (statements.size() > 0
-				&& statements.get(0).isInstanceOfKind(LABEL_NODE.o()))
+			&& statements.get(0).kind().parseNodeKindIsUnder(LABEL_NODE))
 		{
 			final AvailObject labelNode = statements.get(0);
 			final AvailObject labelFunctionType =
@@ -1030,8 +1031,8 @@ extends AbstractAvailCompiler
 
 					boolean blockTypeGood2 = true;
 					if (statements.size() > 0
-						&& statements.get(0).isInstanceOfKind(
-							LABEL_NODE.o()))
+						&& statements.get(0).kind().parseNodeKindIsUnder(
+							LABEL_NODE))
 					{
 						final AvailObject labelNode = statements.get(0);
 						final AvailObject labelFunctionType =
@@ -2429,7 +2430,7 @@ extends AbstractAvailCompiler
 				return;
 			}
 			if (!lastStatement.expressionType().equals(TOP.o())
-				&& !lastStatement.isInstanceOfKind(ASSIGNMENT_NODE.o()))
+				&& !lastStatement.kind().parseNodeKindIsUnder(ASSIGNMENT_NODE))
 			{
 				start.expected(
 					new Generator<String>()
@@ -2515,10 +2516,9 @@ extends AbstractAvailCompiler
 				DeclarationNodeDescriptor.newModuleVariable(
 					token,
 					variableObject);
-			final AvailObject varUse =
-				VariableUseNodeDescriptor.mutable().create();
-			varUse.token(token);
-			varUse.declaration(moduleVarDecl);
+			final AvailObject varUse = VariableUseNodeDescriptor.newUse(
+				token,
+				moduleVarDecl);
 			attempt(afterVar, continuation, varUse);
 			return;
 		}
@@ -2529,9 +2529,7 @@ extends AbstractAvailCompiler
 			final AvailObject moduleConstDecl =
 				DeclarationNodeDescriptor.newModuleConstant(token, valueObject);
 			final AvailObject varUse =
-				VariableUseNodeDescriptor.mutable().create();
-			varUse.token(token);
-			varUse.declaration(moduleConstDecl);
+				VariableUseNodeDescriptor.newUse(token, moduleConstDecl);
 			attempt(afterVar, continuation, varUse);
 			return;
 		}

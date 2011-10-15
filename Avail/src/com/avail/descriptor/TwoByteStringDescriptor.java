@@ -33,8 +33,6 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static java.lang.Math.min;
 import java.util.List;
 import com.avail.annotations.NotNull;
 

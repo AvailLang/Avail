@@ -433,8 +433,12 @@ extends Descriptor
 		final AvailObject result = mutable().create(
 			object.variableObjectSlotsCount());
 		assert result.objectSlotsCount() == object.objectSlotsCount();
-		result.caller(object.caller());
-		result.function(object.function());
+		result.objectSlotPut(
+			ObjectSlots.CALLER,
+			object.objectSlot(ObjectSlots.CALLER));
+		result.objectSlotPut(
+			ObjectSlots.FUNCTION,
+			object.objectSlot(ObjectSlots.FUNCTION));
 		result.pc(object.pc());
 		result.stackp(object.stackp());
 		result.levelTwoChunkOffset(
@@ -517,8 +521,8 @@ extends Descriptor
 		final AvailObject code = function.code();
 		final AvailObject cont = descriptor.create(
 			code.numArgsAndLocalsAndStack());
-		cont.caller(caller);
-		cont.function(function);
+		cont.objectSlotPut(ObjectSlots.CALLER, caller);
+		cont.objectSlotPut(ObjectSlots.FUNCTION, function);
 		cont.pc(1);
 		cont.stackp(
 			cont.objectSlotsCount() + 1 - descriptor.numberOfFixedObjectSlots);

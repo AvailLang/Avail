@@ -37,6 +37,7 @@ import java.util.*;
 import com.avail.annotations.NotNull;
 import com.avail.compiler.*;
 import com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.compiler.node.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.compiler.scanning.TokenDescriptor;
 import com.avail.descriptor.ProcessDescriptor.ExecutionState;
 import com.avail.exceptions.*;
@@ -124,7 +125,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_ScanSubobjects (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailSubobjectVisitor visitor)
 	{
 		for (int i = object.objectSlotsCount(); i >= 1; i--)
@@ -139,7 +140,7 @@ extends AbstractDescriptor
 
 	@Override
 	public boolean o_AcceptsArgTypesFromFunctionType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject functionType)
 	{
 		unsupportedOperation();
@@ -154,7 +155,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_AcceptsArgumentTypesFromContinuation (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject continuation,
 		final int stackp,
 		final int numArgs)
@@ -170,7 +171,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_AcceptsListOfArgTypes (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final List<AvailObject> argTypes)
 	{
 		unsupportedOperation();
@@ -184,7 +185,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_AcceptsListOfArgValues (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final List<AvailObject> argValues)
 	{
 		unsupportedOperation();
@@ -198,7 +199,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_AcceptsTupleOfArgTypes (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject argTypes)
 	{
 		unsupportedOperation();
@@ -212,7 +213,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_AcceptsTupleOfArguments (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject arguments)
 	{
 		unsupportedOperation();
@@ -225,7 +226,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_AddDependentChunkIndex (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int aChunkIndex)
 	{
 		unsupportedOperation();
@@ -238,7 +239,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_AddImplementation (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject implementation)
 	{
 		unsupportedOperation();
@@ -251,7 +252,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_AddRestrictions (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject restrictions)
 	{
 		unsupportedOperation();
@@ -286,7 +287,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_AtAddMessageRestrictions (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject methodName,
 		final AvailObject illegalArgMsgs)
 	{
@@ -301,7 +302,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_AtAddMethodImplementation (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject methodName,
 		final AvailObject implementation)
 	{
@@ -316,7 +317,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_AtMessageAddBundle (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject message,
 		final AvailObject bundle)
 	{
@@ -331,7 +332,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_AtNameAdd (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject stringName,
 		final AvailObject trueName)
 	{
@@ -346,7 +347,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_AtNewNamePut (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject stringName,
 		final AvailObject trueName)
 	{
@@ -361,7 +362,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_AtPrivateNameAdd (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject stringName,
 		final AvailObject trueName)
 	{
@@ -376,7 +377,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_BinElementAt (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int index)
 	{
 		unsupportedOperation();
@@ -390,7 +391,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_BinElementAtPut (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int index,
 		final AvailObject value)
 	{
@@ -404,7 +405,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_BinHash (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int value)
 	{
 		unsupportedOperation();
@@ -417,7 +418,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_BinSize (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int value)
 	{
 		unsupportedOperation();
@@ -430,7 +431,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_BinUnionTypeOrTop (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject value)
 	{
 		unsupportedOperation();
@@ -443,7 +444,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_BitVector (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int value)
 	{
 		unsupportedOperation();
@@ -456,7 +457,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_BreakpointBlock (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject value)
 	{
 		unsupportedOperation();
@@ -469,7 +470,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_BuildFilteredBundleTreeFrom (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject bundleTree)
 	{
 		unsupportedOperation();
@@ -482,8 +483,8 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_Caller (
-		final AvailObject object,
-		final AvailObject value)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		unsupportedOperation();
 		return;
@@ -495,7 +496,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_Function (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject value)
 	{
 		unsupportedOperation();
@@ -508,7 +509,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_Code (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject value)
 	{
 		unsupportedOperation();
@@ -521,7 +522,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_CodePoint (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int value)
 	{
 		unsupportedOperation();
@@ -538,7 +539,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_CompareFromToWithStartingAt (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
 		final AvailObject anotherObject,
@@ -558,7 +559,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_CompareFromToWithAnyTupleStartingAt (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
 		final AvailObject aTuple,
@@ -578,7 +579,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_CompareFromToWithByteStringStartingAt (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
 		final AvailObject aByteString,
@@ -598,7 +599,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_CompareFromToWithByteTupleStartingAt (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
 		final AvailObject aByteTuple,
@@ -618,7 +619,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_CompareFromToWithNybbleTupleStartingAt (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
 		final AvailObject aNybbleTuple,
@@ -638,7 +639,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_CompareFromToWithObjectTupleStartingAt (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
 		final AvailObject anObjectTuple,
@@ -658,7 +659,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_CompareFromToWithTwoByteStringStartingAt (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
 		final AvailObject aTwoByteString,
@@ -674,7 +675,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_LazyComplete (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject value)
 	{
 		unsupportedOperation();
@@ -689,7 +690,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public int o_ComputeHashFromTo (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int start,
 		final int end)
 	{
@@ -705,7 +706,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_ComputeReturnTypeFromArgumentTypes (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final List<AvailObject> argTypes,
 		final @NotNull AvailObject impSet,
 		final Interpreter anAvailInterpreter,
@@ -722,7 +723,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_ConcatenateTuplesCanDestroy (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final boolean canDestroy)
 	{
 		unsupportedOperation();
@@ -735,7 +736,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_ConstantBindings (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject value)
 	{
 		unsupportedOperation();
@@ -748,7 +749,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_Continuation (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject value)
 	{
 		unsupportedOperation();
@@ -762,7 +763,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_CopyToRestrictedTo (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject filteredBundleTree,
 		final AvailObject visibleNames)
 	{
@@ -779,7 +780,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_CopyTupleFromToCanDestroy (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int start,
 		final int end,
 		final boolean canDestroy)
@@ -795,7 +796,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_CouldEverBeInvokedWith (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final List<AvailObject> argTypes)
 	{
 		unsupportedOperation();
@@ -809,7 +810,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_DataAtIndex (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int index)
 	{
 		unsupportedOperation();
@@ -823,7 +824,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_DataAtIndexPut (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int index,
 		final AvailObject value)
 	{
@@ -837,7 +838,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_ParsingPc (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int value)
 	{
 		unsupportedOperation();
@@ -884,7 +885,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_ElementAt (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int index)
 	{
 		unsupportedOperation();
@@ -898,7 +899,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_ElementAtPut (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int index,
 		final AvailObject value)
 	{
@@ -913,7 +914,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public int o_EndOfZone (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int zone)
 	{
 		unsupportedOperation();
@@ -927,7 +928,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public int o_EndSubtupleIndexInZone (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int zone)
 	{
 		unsupportedOperation();
@@ -940,7 +941,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_ExecutionState (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final ExecutionState value)
 	{
 		unsupportedOperation();
@@ -954,7 +955,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public byte o_ExtractNybbleFromTupleAt (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int index)
 	{
 		unsupportedOperation();
@@ -968,7 +969,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public List<AvailObject> o_FilterByTypes (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final List<AvailObject> argTypes)
 	{
 		unsupportedOperation();
@@ -981,7 +982,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_FilteredBundleTree (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject value)
 	{
 		unsupportedOperation();
@@ -998,7 +999,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_ForZoneSetSubtupleStartSubtupleIndexEndOfZone (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int zone,
 		final AvailObject newSubtuple,
 		final int startSubtupleIndex,
@@ -1015,7 +1016,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_GreaterThanInteger (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject another)
 	{
 		unsupportedOperation();
@@ -1029,7 +1030,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_GreaterThanSignedInfinity (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject another)
 	{
 		unsupportedOperation();
@@ -1043,7 +1044,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_HasElement (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject elementObject)
 	{
 		unsupportedOperation();
@@ -1056,7 +1057,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_Hash (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int value)
 	{
 		unsupportedOperation();
@@ -1071,7 +1072,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public int o_HashFromTo (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int startIndex,
 		final int endIndex)
 	{
@@ -1085,7 +1086,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_HashOrZero (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int value)
 	{
 		unsupportedOperation();
@@ -1099,7 +1100,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_HasKey (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject keyObject)
 	{
 		unsupportedOperation();
@@ -1113,7 +1114,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public List<AvailObject> o_ImplementationsAtOrBelow (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final List<AvailObject> argTypes)
 	{
 		unsupportedOperation();
@@ -1127,7 +1128,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_IncludeBundle (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject messageBundle)
 	{
 		unsupportedOperation();
@@ -1141,7 +1142,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_IncludesImplementation (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject imp)
 	{
 		unsupportedOperation();
@@ -1154,7 +1155,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_LazyIncomplete (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject value)
 	{
 		unsupportedOperation();
@@ -1167,7 +1168,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_Index (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int value)
 	{
 		unsupportedOperation();
@@ -1180,7 +1181,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_InternalHash (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int value)
 	{
 		unsupportedOperation();
@@ -1193,7 +1194,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_InterruptRequestFlag (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int value)
 	{
 		unsupportedOperation();
@@ -1206,7 +1207,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_InvocationCount (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int value)
 	{
 		unsupportedOperation();
@@ -1219,7 +1220,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_IsSaved (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final boolean aBoolean)
 	{
 		unsupportedOperation();
@@ -1233,7 +1234,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_IsSubsetOf (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject another)
 	{
 		unsupportedOperation();
@@ -1247,22 +1248,8 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_IsSubtypeOf (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aType)
-	{
-		unsupportedOperation();
-		return false;
-	}
-
-	/**
-	 * @param object
-	 * @param aFunctionType
-	 * @return
-	 */
-	@Override
-	public boolean o_IsSupertypeOfFunctionType (
-		final AvailObject object,
-		final AvailObject aFunctionType)
 	{
 		unsupportedOperation();
 		return false;
@@ -1275,7 +1262,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_IsSupertypeOfContainerType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aContainerType)
 	{
 		unsupportedOperation();
@@ -1289,7 +1276,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_IsSupertypeOfContinuationType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aContinuationType)
 	{
 		unsupportedOperation();
@@ -1303,8 +1290,22 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_IsSupertypeOfCompiledCodeType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aCompiledCodeType)
+	{
+		unsupportedOperation();
+		return false;
+	}
+
+	/**
+	 * @param object
+	 * @param aFunctionType
+	 * @return
+	 */
+	@Override
+	public boolean o_IsSupertypeOfFunctionType (
+		final @NotNull AvailObject object,
+		final AvailObject aFunctionType)
 	{
 		unsupportedOperation();
 		return false;
@@ -1317,7 +1318,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_IsSupertypeOfIntegerRangeType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject anIntegerRangeType)
 	{
 		unsupportedOperation();
@@ -1331,7 +1332,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_IsSupertypeOfMapType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aMapType)
 	{
 		unsupportedOperation();
@@ -1345,8 +1346,22 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_IsSupertypeOfObjectType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject anObjectType)
+	{
+		unsupportedOperation();
+		return false;
+	}
+
+	/**
+	 * @param object
+	 * @param aParseNodeType
+	 * @return
+	 */
+	@Override
+	public boolean o_IsSupertypeOfParseNodeType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aParseNodeType)
 	{
 		unsupportedOperation();
 		return false;
@@ -1359,7 +1374,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_IsSupertypeOfPrimitiveType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aPrimitiveType)
 	{
 		unsupportedOperation();
@@ -1373,7 +1388,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_IsSupertypeOfSetType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aSetType)
 	{
 		unsupportedOperation();
@@ -1387,7 +1402,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_IsSupertypeOfTupleType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aTupleType)
 	{
 		unsupportedOperation();
@@ -1416,7 +1431,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_IsValidForArgumentTypesInterpreter (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final List<AvailObject> argTypes,
 		final Interpreter interpreter)
 	{
@@ -1431,7 +1446,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_KeyAtIndex (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int index)
 	{
 		unsupportedOperation();
@@ -1445,7 +1460,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_KeyAtIndexPut (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int index,
 		final AvailObject keyObject)
 	{
@@ -1460,7 +1475,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_LessOrEqual (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject another)
 	{
 		unsupportedOperation();
@@ -1474,7 +1489,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_LessThan (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject another)
 	{
 		unsupportedOperation();
@@ -1488,7 +1503,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_LevelTwoChunkOffset (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject chunk,
 		final int offset)
 	{
@@ -1502,7 +1517,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_Literal (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject value)
 	{
 		unsupportedOperation();
@@ -1516,7 +1531,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_LiteralAt (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int index)
 	{
 		unsupportedOperation();
@@ -1530,7 +1545,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_ArgOrLocalOrStackAt (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int index)
 	{
 		unsupportedOperation();
@@ -1544,7 +1559,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_ArgOrLocalOrStackAtPut (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int index,
 		final AvailObject value)
 	{
@@ -1559,7 +1574,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_LocalTypeAt (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int index)
 	{
 		unsupportedOperation();
@@ -1573,7 +1588,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_LookupByTypesFromList (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final List<AvailObject> argumentTypeList)
 	{
 		unsupportedOperation();
@@ -1588,7 +1603,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_LookupByTypesFromContinuationStackp (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject continuation,
 		final int stackp)
 	{
@@ -1603,7 +1618,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_LookupByTypesFromTuple (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject argumentTypeTuple)
 	{
 		unsupportedOperation();
@@ -1617,7 +1632,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_LookupByValuesFromList (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final List<AvailObject> argumentList)
 	{
 		unsupportedOperation();
@@ -1631,7 +1646,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_LookupByValuesFromTuple (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject argumentTuple)
 	{
 		unsupportedOperation();
@@ -1645,7 +1660,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_MapAt (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject keyObject)
 	{
 		unsupportedOperation();
@@ -1661,7 +1676,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_MapAtPuttingCanDestroy (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject keyObject,
 		final AvailObject newValueObject,
 		final boolean canDestroy)
@@ -1676,7 +1691,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_MapSize (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int value)
 	{
 		unsupportedOperation();
@@ -1691,7 +1706,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_MapWithoutKeyCanDestroy (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject keyObject,
 		final boolean canDestroy)
 	{
@@ -1705,7 +1720,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_Message (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject value)
 	{
 		unsupportedOperation();
@@ -1718,7 +1733,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_MessageParts (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject value)
 	{
 		unsupportedOperation();
@@ -1731,7 +1746,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_Methods (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject value)
 	{
 		unsupportedOperation();
@@ -1777,7 +1792,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_MyRestrictions (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject value)
 	{
 		unsupportedOperation();
@@ -1790,7 +1805,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_MyType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject value)
 	{
 		unsupportedOperation();
@@ -1803,7 +1818,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_Name (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject value)
 	{
 		unsupportedOperation();
@@ -1816,7 +1831,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_Names (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject value)
 	{
 		unsupportedOperation();
@@ -1830,7 +1845,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_NameVisible (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject trueName)
 	{
 		unsupportedOperation();
@@ -1843,7 +1858,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_NewNames (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject value)
 	{
 		unsupportedOperation();
@@ -1856,7 +1871,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_NumBlanks (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int value)
 	{
 		unsupportedOperation();
@@ -1870,7 +1885,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_OptionallyNilOuterVar (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int index)
 	{
 		unsupportedOperation();
@@ -1884,7 +1899,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_OuterTypeAt (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int index)
 	{
 		unsupportedOperation();
@@ -1898,7 +1913,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_OuterVarAt (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int index)
 	{
 		unsupportedOperation();
@@ -1912,7 +1927,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_OuterVarAtPut (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int index,
 		final AvailObject value)
 	{
@@ -1926,7 +1941,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_Parent (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject value)
 	{
 		unsupportedOperation();
@@ -1939,7 +1954,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_Pc (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int value)
 	{
 		unsupportedOperation();
@@ -1963,7 +1978,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_Priority (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject value)
 	{
 		unsupportedOperation();
@@ -1977,7 +1992,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_PrivateAddElement (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject element)
 	{
 		unsupportedOperation();
@@ -1991,7 +2006,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_PrivateExcludeElement (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject element)
 	{
 		unsupportedOperation();
@@ -2006,7 +2021,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_PrivateExcludeElementKnownIndex (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject element,
 		final int knownIndex)
 	{
@@ -2021,7 +2036,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_PrivateExcludeKey (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject keyObject)
 	{
 		unsupportedOperation();
@@ -2036,7 +2051,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_PrivateMapAtPut (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject keyObject,
 		final AvailObject valueObject)
 	{
@@ -2050,7 +2065,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_PrivateNames (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject value)
 	{
 		unsupportedOperation();
@@ -2063,7 +2078,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_ProcessGlobals (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject value)
 	{
 		unsupportedOperation();
@@ -2077,7 +2092,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public short o_RawByteAt (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int index)
 	{
 		unsupportedOperation();
@@ -2091,7 +2106,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_RawByteAtPut (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int index,
 		final short anInteger)
 	{
@@ -2106,7 +2121,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public short o_RawByteForCharacterAt (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int index)
 	{
 		unsupportedOperation();
@@ -2120,7 +2135,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_RawByteForCharacterAtPut (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int index,
 		final short anInteger)
 	{
@@ -2135,7 +2150,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public byte o_RawNybbleAt (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int index)
 	{
 		unsupportedOperation();
@@ -2149,7 +2164,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_RawNybbleAtPut (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int index,
 		final byte aNybble)
 	{
@@ -2164,7 +2179,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public short o_RawShortForCharacterAt (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int index)
 	{
 		unsupportedOperation();
@@ -2178,7 +2193,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_RawShortForCharacterAtPut (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int index,
 		final short anInteger)
 	{
@@ -2193,7 +2208,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public int o_RawSignedIntegerAt (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int index)
 	{
 		unsupportedOperation();
@@ -2207,7 +2222,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_RawSignedIntegerAtPut (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int index,
 		final int value)
 	{
@@ -2222,7 +2237,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public long o_RawUnsignedIntegerAt (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int index)
 	{
 		unsupportedOperation();
@@ -2236,7 +2251,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_RawUnsignedIntegerAtPut (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int index,
 		final int value)
 	{
@@ -2250,7 +2265,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_RemoveDependentChunkIndex (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int aChunkIndex)
 	{
 		unsupportedOperation();
@@ -2263,7 +2278,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_RemoveFrom (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final L2Interpreter anInterpreter)
 	{
 		unsupportedOperation();
@@ -2276,7 +2291,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_RemoveImplementation (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject implementation)
 	{
 		unsupportedOperation();
@@ -2289,7 +2304,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_RemoveBundle (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject bundle)
 	{
 		unsupportedOperation();
@@ -2302,7 +2317,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_RemoveRestrictions (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject obsoleteRestrictions)
 	{
 		unsupportedOperation();
@@ -2316,7 +2331,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_ResolvedForwardWithName (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject forwardImplementation,
 		final AvailObject methodName)
 	{
@@ -2330,7 +2345,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_Restrictions (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject value)
 	{
 		unsupportedOperation();
@@ -2343,7 +2358,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_ReturnType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject value)
 	{
 		unsupportedOperation();
@@ -2356,7 +2371,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_RootBin (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject value)
 	{
 		unsupportedOperation();
@@ -2371,7 +2386,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_SetIntersectionCanDestroy (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject otherSet,
 		final boolean canDestroy)
 	{
@@ -2387,7 +2402,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_SetMinusCanDestroy (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject otherSet,
 		final boolean canDestroy)
 	{
@@ -2402,7 +2417,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_SetSubtupleForZoneTo (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int zoneIndex,
 		final AvailObject newTuple)
 	{
@@ -2418,7 +2433,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_SetUnionCanDestroy (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject otherSet,
 		final boolean canDestroy)
 	{
@@ -2432,7 +2447,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_SetValue (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject newValue)
 	{
 		unsupportedOperation();
@@ -2447,7 +2462,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_SetWithElementCanDestroy (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject newElementObject,
 		final boolean canDestroy)
 	{
@@ -2463,7 +2478,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_SetWithoutElementCanDestroy (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject elementObjectToExclude,
 		final boolean canDestroy)
 	{
@@ -2477,7 +2492,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_Size (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int value)
 	{
 		unsupportedOperation();
@@ -2491,7 +2506,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public int o_SizeOfZone (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int zone)
 	{
 		unsupportedOperation();
@@ -2504,7 +2519,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_LazySpecialActions (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject value)
 	{
 		unsupportedOperation();
@@ -2518,7 +2533,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_StackAt (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int slotIndex)
 	{
 		unsupportedOperation();
@@ -2532,7 +2547,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_StackAtPut (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int slotIndex,
 		final AvailObject anObject)
 	{
@@ -2546,7 +2561,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_Stackp (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int value)
 	{
 		unsupportedOperation();
@@ -2559,7 +2574,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_Start (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int value)
 	{
 		unsupportedOperation();
@@ -2572,7 +2587,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_StartingChunk (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject value)
 	{
 		unsupportedOperation();
@@ -2586,7 +2601,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public int o_StartOfZone (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int zone)
 	{
 		unsupportedOperation();
@@ -2600,7 +2615,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public int o_StartSubtupleIndexInZone (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int zone)
 	{
 		unsupportedOperation();
@@ -2613,7 +2628,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_String (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject value)
 	{
 		unsupportedOperation();
@@ -2639,7 +2654,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_SubtractFromIntegerCanDestroy (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject anInteger,
 		final boolean canDestroy)
 	{
@@ -2654,7 +2669,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_SubtupleForZone (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int zone)
 	{
 		unsupportedOperation();
@@ -2678,7 +2693,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_TokenType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final TokenDescriptor.TokenType value)
 	{
 		unsupportedOperation();
@@ -2693,7 +2708,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public int o_TranslateToZone (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int tupleIndex,
 		final int zoneIndex)
 	{
@@ -2708,7 +2723,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_TrueNamesForStringName (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject stringName)
 	{
 		unsupportedOperation();
@@ -2722,7 +2737,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_TruncateTo (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int newTupleSize)
 	{
 		unsupportedOperation();
@@ -2736,7 +2751,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_TupleAt (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int index)
 	{
 		unsupportedOperation();
@@ -2750,7 +2765,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_TupleAtPut (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int index,
 		final AvailObject aNybbleObject)
 	{
@@ -2767,7 +2782,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_TupleAtPuttingCanDestroy (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int index,
 		final AvailObject newValueObject,
 		final boolean canDestroy)
@@ -2783,7 +2798,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public int o_TupleIntAt (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int index)
 	{
 		unsupportedOperation();
@@ -2796,7 +2811,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_Type (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject value)
 	{
 		unsupportedOperation();
@@ -2810,7 +2825,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_TypeAtIndex (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int index)
 	{
 		unsupportedOperation();
@@ -2824,7 +2839,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_TypeIntersection (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject another)
 	{
 		unsupportedOperation();
@@ -2838,7 +2853,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_TypeIntersectionOfFunctionType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aFunctionType)
 	{
 		unsupportedOperation();
@@ -2852,7 +2867,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_TypeIntersectionOfContainerType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aContainerType)
 	{
 		unsupportedOperation();
@@ -2866,7 +2881,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_TypeIntersectionOfContinuationType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aContinuationType)
 	{
 		unsupportedOperation();
@@ -2880,7 +2895,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_TypeIntersectionOfCompiledCodeType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aCompiledCodeType)
 	{
 		unsupportedOperation();
@@ -2894,7 +2909,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_TypeIntersectionOfIntegerRangeType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject anIntegerRangeType)
 	{
 		unsupportedOperation();
@@ -2908,7 +2923,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_TypeIntersectionOfMapType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aMapType)
 	{
 		unsupportedOperation();
@@ -2922,7 +2937,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_TypeIntersectionOfMeta (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject someMeta)
 	{
 		//  GENERATED pure (abstract) method.
@@ -2938,8 +2953,22 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_TypeIntersectionOfObjectType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject anObjectType)
+	{
+		unsupportedOperation();
+		return NullDescriptor.nullObject();
+	}
+
+	/**
+	 * @param object
+	 * @param aCompiledCodeType
+	 * @return
+	 */
+	@Override
+	public @NotNull AvailObject o_TypeIntersectionOfParseNodeType (
+		final @NotNull AvailObject object,
+		final AvailObject aParseNodeType)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -2952,7 +2981,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_TypeIntersectionOfSetType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aSetType)
 	{
 		unsupportedOperation();
@@ -2966,7 +2995,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_TypeIntersectionOfTupleType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aTupleType)
 	{
 		unsupportedOperation();
@@ -2980,7 +3009,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_TypeUnion (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject another)
 	{
 		unsupportedOperation();
@@ -2994,7 +3023,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_TypeUnionOfFunctionType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aFunctionType)
 	{
 		unsupportedOperation();
@@ -3008,7 +3037,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_TypeUnionOfContainerType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aContainerType)
 	{
 		unsupportedOperation();
@@ -3022,7 +3051,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_TypeUnionOfContinuationType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aContinuationType)
 	{
 		unsupportedOperation();
@@ -3036,7 +3065,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_TypeUnionOfCompiledCodeType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aCompiledCodeType)
 	{
 		unsupportedOperation();
@@ -3050,7 +3079,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_TypeUnionOfIntegerRangeType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject anIntegerRangeType)
 	{
 		unsupportedOperation();
@@ -3064,7 +3093,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_TypeUnionOfMapType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aMapType)
 	{
 		unsupportedOperation();
@@ -3078,8 +3107,22 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_TypeUnionOfObjectType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject anObjectType)
+	{
+		unsupportedOperation();
+		return NullDescriptor.nullObject();
+	}
+
+	/**
+	 * @param object
+	 * @param aParseNodeType
+	 * @return
+	 */
+	@Override
+	public @NotNull AvailObject o_TypeUnionOfParseNodeType (
+		final @NotNull AvailObject object,
+		final AvailObject aParseNodeType)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -3092,7 +3135,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_TypeUnionOfSetType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aSetType)
 	{
 		unsupportedOperation();
@@ -3106,7 +3149,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_TypeUnionOfTupleType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aTupleType)
 	{
 		unsupportedOperation();
@@ -3119,7 +3162,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_Unclassified (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject value)
 	{
 		unsupportedOperation();
@@ -3134,7 +3177,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_UnionOfTypesAtThrough (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int startIndex,
 		final int endIndex)
 	{
@@ -3149,7 +3192,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public int o_UntranslatedDataAt (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int index)
 	{
 		unsupportedOperation();
@@ -3163,7 +3206,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_UntranslatedDataAtPut (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int index,
 		final int value)
 	{
@@ -3180,7 +3223,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_ValidateArgumentTypesInterpreterIfFail (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final List<AvailObject> argTypes,
 		final Interpreter anAvailInterpreter,
 		final Continuation1<Generator<String>> failBlock)
@@ -3195,7 +3238,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_Value (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject value)
 	{
 		unsupportedOperation();
@@ -3209,7 +3252,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_ValueAtIndex (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int index)
 	{
 		unsupportedOperation();
@@ -3223,7 +3266,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_ValueAtIndexPut (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int index,
 		final AvailObject valueObject)
 	{
@@ -3237,7 +3280,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_VariableBindings (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject value)
 	{
 		unsupportedOperation();
@@ -3250,7 +3293,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_VisibleNames (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject value)
 	{
 		unsupportedOperation();
@@ -3264,7 +3307,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public int o_ZoneForIndex (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int index)
 	{
 		unsupportedOperation();
@@ -3277,7 +3320,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public String o_AsNativeString (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return "";
@@ -3289,7 +3332,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_AsObject (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -3301,7 +3344,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_AsSet (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -3313,7 +3356,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_AsTuple (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -3325,7 +3368,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public int o_BitsPerEntry (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return 0;
@@ -3337,7 +3380,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public int o_BitVector (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return 0;
@@ -3349,7 +3392,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_BodyBlock (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -3361,7 +3404,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_BodySignature (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -3373,7 +3416,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_BreakpointBlock (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -3385,7 +3428,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_Caller (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -3397,7 +3440,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public int o_Capacity (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return 0;
@@ -3408,7 +3451,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_CleanUpAfterCompile (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return;
@@ -3419,7 +3462,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_ClearValue (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return;
@@ -3431,7 +3474,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_Function (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -3443,7 +3486,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_FunctionType (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -3455,7 +3498,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_Code (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -3467,7 +3510,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public int o_CodePoint (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return 0;
@@ -3479,7 +3522,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_LazyComplete (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -3491,7 +3534,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_ConstantBindings (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -3503,7 +3546,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_ContentType (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -3515,7 +3558,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_Continuation (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -3527,7 +3570,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_CopyAsMutableContinuation (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -3539,7 +3582,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_CopyAsMutableObjectTuple (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -3551,7 +3594,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_CopyAsMutableSpliceTuple (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -3563,7 +3606,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_DefaultType (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -3575,7 +3618,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_DependentChunkIndices (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -3587,7 +3630,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public int o_ParsingPc (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return 0;
@@ -3598,7 +3641,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_DisplayTestingTree (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return;
@@ -3609,7 +3652,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_EnsureMetacovariant (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	throws SignatureException
 	{
 		unsupportedOperation();
@@ -3622,7 +3665,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_EnsureMutable (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -3634,7 +3677,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public ExecutionState o_ExecutionState (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return null;
@@ -3646,7 +3689,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_Expand (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 	}
@@ -3657,7 +3700,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_ExtractBoolean (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return false;
@@ -3669,7 +3712,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public short o_ExtractByte (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return 0;
@@ -3681,7 +3724,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public double o_ExtractDouble (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return 0.0d;
@@ -3693,7 +3736,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public float o_ExtractFloat (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return 0.0f;
@@ -3705,7 +3748,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public int o_ExtractInt (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return 0;
@@ -3738,7 +3781,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public byte o_ExtractNybble (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return 0;
@@ -3750,7 +3793,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_FieldMap (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -3762,7 +3805,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_FieldTypeMap (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -3774,7 +3817,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_FilteredBundleTree (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -3786,7 +3829,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public int o_GetInteger (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return 0;
@@ -3798,7 +3841,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_GetValue (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -3810,7 +3853,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public int o_HashOrZero (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return 0;
@@ -3822,7 +3865,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_HasRestrictions (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return false;
@@ -3834,7 +3877,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_ImplementationsTuple (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -3846,7 +3889,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_LazyIncomplete (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -3858,7 +3901,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public int o_Index (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return 0;
@@ -3870,7 +3913,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public int o_InternalHash (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return 0;
@@ -3882,7 +3925,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public int o_InterruptRequestFlag (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return 0;
@@ -3894,7 +3937,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public int o_InvocationCount (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return 0;
@@ -3906,7 +3949,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_IsAbstract (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return false;
@@ -3918,7 +3961,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_IsFinite (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return false;
@@ -3930,7 +3973,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_IsForward (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return false;
@@ -3942,7 +3985,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_IsMethod (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return false;
@@ -3954,7 +3997,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_IsPositive (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return false;
@@ -3966,7 +4009,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_IsSaved (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return false;
@@ -3978,7 +4021,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_IsSplice (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return false;
@@ -3990,7 +4033,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_IsSupertypeOfBottom (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return false;
@@ -4002,7 +4045,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_IsValid (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return false;
@@ -4014,7 +4057,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public List<AvailObject> o_KeysAsArray (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return null;
@@ -4026,7 +4069,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_KeysAsSet (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -4038,7 +4081,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_KeyType (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -4050,7 +4093,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_LevelTwoChunk (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return null;
@@ -4062,7 +4105,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public int o_LevelTwoOffset (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return 0;
@@ -4074,7 +4117,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_Literal (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -4086,7 +4129,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_LowerBound (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -4098,7 +4141,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_LowerInclusive (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return false;
@@ -4110,7 +4153,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public int o_MapSize (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return 0;
@@ -4122,7 +4165,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public int o_MaxStackDepth (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return 0;
@@ -4134,7 +4177,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_Message (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -4146,7 +4189,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_MessageParts (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -4158,7 +4201,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_Methods (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -4170,19 +4213,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_MyRestrictions (
-		final AvailObject object)
-	{
-		unsupportedOperation();
-		return NullDescriptor.nullObject();
-	}
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	@Override
-	public @NotNull AvailObject o_MyType (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -4194,7 +4225,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_Name (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -4206,7 +4237,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_Names (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -4218,7 +4249,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_NewNames (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -4230,7 +4261,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public int o_NumArgs (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return 0;
@@ -4242,7 +4273,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public int o_NumArgsAndLocalsAndStack (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return 0;
@@ -4254,7 +4285,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public int o_NumberOfZones (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return 0;
@@ -4266,7 +4297,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public int o_NumBlanks (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return 0;
@@ -4278,7 +4309,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public int o_NumDoubles (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return 0;
@@ -4290,7 +4321,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public int o_NumIntegers (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return 0;
@@ -4302,7 +4333,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public int o_NumLiterals (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return 0;
@@ -4314,7 +4345,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public int o_NumLocals (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return 0;
@@ -4326,7 +4357,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public int o_NumObjects (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return 0;
@@ -4338,7 +4369,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public int o_NumOuters (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return 0;
@@ -4350,7 +4381,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public int o_NumOuterVars (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return 0;
@@ -4362,7 +4393,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_Nybbles (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -4374,7 +4405,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_Parent (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -4386,7 +4417,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public int o_Pc (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return 0;
@@ -4398,7 +4429,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public int o_PrimitiveNumber (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return 0;
@@ -4410,7 +4441,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject o_Priority (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return null;
@@ -4422,7 +4453,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_PrivateNames (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -4434,7 +4465,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_PrivateTestingTree (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -4446,7 +4477,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_ProcessGlobals (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -4457,7 +4488,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_ReleaseVariableOrMakeContentsImmutable (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return;
@@ -4468,7 +4499,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_RemoveRestrictions (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return;
@@ -4480,7 +4511,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_RequiresBlock (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -4492,7 +4523,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_Restrictions (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -4504,7 +4535,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_ReturnsBlock (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -4516,7 +4547,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_ReturnType (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -4528,7 +4559,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_RootBin (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -4540,7 +4571,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public int o_SetSize (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return 0;
@@ -4552,7 +4583,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_Signature (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -4564,7 +4595,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_SizeRange (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -4576,7 +4607,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_LazySpecialActions (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -4588,7 +4619,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public int o_Stackp (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return 0;
@@ -4600,7 +4631,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public int o_Start (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return 0;
@@ -4612,7 +4643,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public AvailObject o_StartingChunk (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return null;
@@ -4623,7 +4654,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_Step (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return;
@@ -4635,7 +4666,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_String (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -4647,7 +4678,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_TestingTree (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -4659,7 +4690,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public TokenDescriptor.TokenType o_TokenType (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return null;
@@ -4670,7 +4701,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_TrimExcessInts (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return;
@@ -4682,7 +4713,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public int o_TupleSize (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return 0;
@@ -4694,7 +4725,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_TypeTuple (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -4706,7 +4737,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_Unclassified (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -4718,7 +4749,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_UpperBound (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -4730,7 +4761,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_UpperInclusive (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return false;
@@ -4742,7 +4773,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_Value (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -4754,7 +4785,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_ValuesAsTuple (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -4766,7 +4797,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_ValueType (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -4778,7 +4809,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_VariableBindings (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -4790,7 +4821,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_Vectors (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -4801,7 +4832,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_Verify (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return;
@@ -4813,7 +4844,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_VisibleNames (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -4825,7 +4856,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public int o_InfinitySign (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return 0;
@@ -4837,7 +4868,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_Wordcodes (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -4854,7 +4885,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_Equals (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject another)
 	{
 		unsupportedOperation();
@@ -4868,7 +4899,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_EqualsAnyTuple (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aTuple)
 	{
 		return false;
@@ -4881,7 +4912,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_EqualsByteString (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aString)
 	{
 		return false;
@@ -4894,7 +4925,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_EqualsByteTuple (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aTuple)
 	{
 		return false;
@@ -4907,7 +4938,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_EqualsCharacterWithCodePoint (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int otherCodePoint)
 	{
 		return false;
@@ -4920,7 +4951,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_EqualsFunction (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aFunction)
 	{
 		return false;
@@ -4933,7 +4964,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_EqualsFunctionType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aFunctionType)
 	{
 		return false;
@@ -4946,7 +4977,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_EqualsCompiledCode (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aCompiledCode)
 	{
 		return false;
@@ -4959,7 +4990,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_EqualsContainer (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aContainer)
 	{
 		return false;
@@ -4972,7 +5003,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_EqualsContainerType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aType)
 	{
 		return false;
@@ -4985,7 +5016,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_EqualsContinuation (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aContinuation)
 	{
 		return false;
@@ -4998,7 +5029,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_EqualsContinuationType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aType)
 	{
 		return false;
@@ -5011,7 +5042,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_EqualsCompiledCodeType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aType)
 	{
 		return false;
@@ -5024,7 +5055,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_EqualsDouble (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aDoubleObject)
 	{
 		return false;
@@ -5037,7 +5068,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_EqualsFloat (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aFloatObject)
 	{
 		return false;
@@ -5050,7 +5081,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_EqualsInfinity (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject anInfinity)
 	{
 		return false;
@@ -5063,7 +5094,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_EqualsInteger (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject anAvailInteger)
 	{
 		return false;
@@ -5076,7 +5107,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_EqualsIntegerRangeType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject another)
 	{
 		return false;
@@ -5089,7 +5120,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_EqualsMap (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aMap)
 	{
 		return false;
@@ -5102,7 +5133,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_EqualsMapType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aMapType)
 	{
 		return false;
@@ -5115,7 +5146,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_EqualsNybbleTuple (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aTuple)
 	{
 		return false;
@@ -5128,7 +5159,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_EqualsObject (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject anObject)
 	{
 		return false;
@@ -5141,8 +5172,21 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_EqualsObjectTuple (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aTuple)
+	{
+		return false;
+	}
+
+	/**
+	 * @param object
+	 * @param aParseNodeType
+	 * @return
+	 */
+	@Override
+	public boolean o_EqualsParseNodeType (
+		final @NotNull AvailObject object,
+		final AvailObject aParseNodeType)
 	{
 		return false;
 	}
@@ -5154,7 +5198,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_EqualsPrimitiveType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aType)
 	{
 		return false;
@@ -5167,7 +5211,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_EqualsSet (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aSet)
 	{
 		return false;
@@ -5180,7 +5224,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_EqualsSetType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aSetType)
 	{
 		return false;
@@ -5193,7 +5237,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_EqualsTupleType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aTupleType)
 	{
 		return false;
@@ -5206,7 +5250,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_EqualsTwoByteString (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aString)
 	{
 		return false;
@@ -5219,7 +5263,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_HasObjectInstance (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject potentialInstance)
 	{
 		//  The potentialInstance is a user-defined object.  See if it is an instance of me.
@@ -5234,7 +5278,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_IsBetterRepresentationThan (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject anotherObject)
 	{
 		//  Given two objects that are known to be equal, is the first one in a better form (more
@@ -5250,7 +5294,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_IsBetterRepresentationThanTupleType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aTupleType)
 	{
 		//  Given two objects that are known to be equal, the second of which is in the form of
@@ -5270,7 +5314,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_IsInstanceOfKind (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aType)
 	{
 		return object.kind().isSubtypeOf(aType);
@@ -5282,7 +5326,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_EqualsBlank (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return false;
 	}
@@ -5293,7 +5337,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_EqualsNull (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return false;
 	}
@@ -5304,7 +5348,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_EqualsNullOrBlank (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return false;
 	}
@@ -5315,7 +5359,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public int o_Hash (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Answer a 32-bit long that is always the same for equal objects, but
 		//  statistically different for different objects.
@@ -5330,7 +5374,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_IsFunction (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return false;
 	}
@@ -5341,7 +5385,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_MakeImmutable (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Make the object immutable so it can be shared safely.  If I was mutable I have to scan
 		//  my children and make them immutable as well (recursively down to immutable descendants).
@@ -5372,7 +5416,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_MakeSubobjectsImmutable (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		object.scanSubobjects(beImmutableSubobjectVisitor);
 	}
@@ -5383,7 +5427,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_Kind (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Answer the object's type.
 
@@ -5399,7 +5443,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_IsBoolean (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return false;
 	}
@@ -5428,7 +5472,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_IsCharacter (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return false;
 	}
@@ -5459,7 +5503,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_ContainsBlock (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aFunction)
 	{
 		//  Answer true if either I am aFunction or I contain aFunction.  I only follow
@@ -5475,7 +5519,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_PostFault (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  The object was just scanned, and its pointers converted into valid ToSpace pointers.
 		//  Do any follow-up activities specific to the kind of object it is.
@@ -5490,7 +5534,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_ReadBarrierFault (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  The object is in ToSpace, and its fields already refer to ToSpace objects.  Do nothing,
 		//  as there is no read barrier.  See also implementation in GCReadBarrierDescriptor.
@@ -5506,7 +5550,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_Traversed (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Overridden in IndirectionDescriptor to skip over indirections.
 
@@ -5521,7 +5565,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_IsMap (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return false;
 	}
@@ -5534,7 +5578,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_IsByte (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return false;
 	}
@@ -5545,7 +5589,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_IsNybble (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return false;
 	}
@@ -5558,7 +5602,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_IsSet (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return false;
 	}
@@ -5575,7 +5619,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_BinAddingElementHashLevelCanDestroy (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject elementObject,
 		final int elementObjectHash,
 		final byte myLevel,
@@ -5612,7 +5656,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_BinHasElementHash (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject elementObject,
 		final int elementObjectHash)
 	{
@@ -5637,7 +5681,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_BinRemoveElementHashCanDestroy (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject elementObject,
 		final int elementObjectHash,
 		final boolean canDestroy)
@@ -5666,7 +5710,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_IsBinSubsetOf (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject potentialSuperset)
 	{
 		return potentialSuperset.hasElement(object);
@@ -5680,7 +5724,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public int o_PopulateTupleStartingAt (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject mutableTuple,
 		final int startingIndex)
 	{
@@ -5699,7 +5743,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public int o_BinHash (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  An object masquerading as a size one bin has a bin hash which is the sum of
 		//  the elements' hashes, which in this case is just the object's hash.
@@ -5713,7 +5757,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public int o_BinSize (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  Answer how many elements this bin contains.  I act as a bin of size one.
 
@@ -5726,7 +5770,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_BinUnionTypeOrTop (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return null;
@@ -5738,7 +5782,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_IsTuple (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return false;
 	}
@@ -5750,7 +5794,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_TypeEquals (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aType)
 	{
 		//  Answer whether object's type is equal to aType (known to be a type).
@@ -5768,7 +5812,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public int o_HashOfType (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		//  We are computing the hash value of some ApproximateType, and it has
 		//  delegated responsibility back to this descriptor, the one that created the
@@ -5787,7 +5831,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_IsAtom (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return false;
 	}
@@ -5798,7 +5842,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_IsExtendedInteger (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return false;
 	}
@@ -5809,7 +5853,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_IsIntegerRangeType (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return false;
 	}
@@ -5820,7 +5864,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_IsMapType (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return false;
 	}
@@ -5831,7 +5875,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_IsSetType (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return false;
 	}
@@ -5842,7 +5886,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_IsTupleType (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return false;
 	}
@@ -5853,7 +5897,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public boolean o_IsType (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return false;
 	}
@@ -5891,7 +5935,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_ParsingInstructions (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject instructionsTuple)
 	{
 		unsupportedOperation();
@@ -5910,7 +5954,7 @@ extends AbstractDescriptor
 
 	@Override
 	public void o_Expression (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject expression)
 	{
 		unsupportedOperation();
@@ -5925,7 +5969,7 @@ extends AbstractDescriptor
 
 	@Override
 	public void o_Variable (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject variable)
 	{
 		unsupportedOperation();
@@ -5981,7 +6025,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_NeededVariables (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject neededVariables)
 	{
 		unsupportedOperation();
@@ -6013,13 +6057,6 @@ extends AbstractDescriptor
 
 
 	@Override
-	public void o_DeclaredType (final AvailObject object, final AvailObject declaredType)
-	{
-		unsupportedOperation();
-	}
-
-
-	@Override
 	public @NotNull AvailObject o_DeclaredType (final AvailObject object)
 	{
 		unsupportedOperation();
@@ -6036,15 +6073,6 @@ extends AbstractDescriptor
 
 
 	@Override
-	public void o_DeclarationKind (
-		final AvailObject object,
-		final DeclarationKind declarationKind)
-	{
-		unsupportedOperation();
-	}
-
-
-	@Override
 	public @NotNull AvailObject o_InitializationExpression (final AvailObject object)
 	{
 		unsupportedOperation();
@@ -6054,7 +6082,7 @@ extends AbstractDescriptor
 
 	@Override
 	public void o_InitializationExpression (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject initializationExpression)
 	{
 		unsupportedOperation();
@@ -6070,24 +6098,10 @@ extends AbstractDescriptor
 
 
 	@Override
-	public void o_LiteralObject (final AvailObject object, final AvailObject literalObject)
-	{
-		unsupportedOperation();
-	}
-
-
-	@Override
 	public @NotNull AvailObject o_Token (final AvailObject object)
 	{
 		unsupportedOperation();
 		return null;
-	}
-
-
-	@Override
-	public void o_Token (final AvailObject object, final AvailObject token)
-	{
-		unsupportedOperation();
 	}
 
 
@@ -6100,7 +6114,7 @@ extends AbstractDescriptor
 
 
 	@Override
-	public void o_MarkerValue (final AvailObject object, final AvailObject markerValue)
+	public void o_MarkerValue (final @NotNull AvailObject object, final @NotNull AvailObject markerValue)
 	{
 		unsupportedOperation();
 	}
@@ -6115,7 +6129,9 @@ extends AbstractDescriptor
 
 
 	@Override
-	public void o_Arguments (final AvailObject object, final AvailObject arguments)
+	public void o_Arguments (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject arguments)
 	{
 		unsupportedOperation();
 	}
@@ -6131,7 +6147,7 @@ extends AbstractDescriptor
 
 	@Override
 	public void o_ImplementationSet (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject implementationSet)
 	{
 		unsupportedOperation();
@@ -6148,7 +6164,7 @@ extends AbstractDescriptor
 
 	@Override
 	public void o_SuperCastType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject superCastType)
 	{
 		unsupportedOperation();
@@ -6165,7 +6181,7 @@ extends AbstractDescriptor
 
 	@Override
 	public void o_ExpressionsTuple (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject expressionsTuple)
 	{
 		unsupportedOperation();
@@ -6173,7 +6189,9 @@ extends AbstractDescriptor
 
 
 	@Override
-	public void o_TupleType (final AvailObject object, final AvailObject tupleType)
+	public void o_TupleType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject tupleType)
 	{
 		unsupportedOperation();
 	}
@@ -6184,13 +6202,6 @@ extends AbstractDescriptor
 	{
 		unsupportedOperation();
 		return null;
-	}
-
-
-	@Override
-	public void o_Declaration (final AvailObject object, final AvailObject declaration)
-	{
-		unsupportedOperation();
 	}
 
 	@Override
@@ -6209,7 +6220,7 @@ extends AbstractDescriptor
 
 	@Override
 	public void o_EmitEffectOn (
-		 final AvailObject object,
+		 final @NotNull AvailObject object,
 		 final AvailCodeGenerator codeGenerator)
 	{
 		unsupportedOperation();
@@ -6218,7 +6229,7 @@ extends AbstractDescriptor
 
 	@Override
 	public void o_EmitValueOn (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
 		unsupportedOperation();
@@ -6231,7 +6242,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_ChildrenMap (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final Transformer1<AvailObject, AvailObject> aBlock)
 	{
 		unsupportedOperation();
@@ -6243,7 +6254,7 @@ extends AbstractDescriptor
 	 */
 	@Override
 	public void o_ChildrenDo (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final Continuation1<AvailObject> aBlock)
 	{
 		unsupportedOperation();
@@ -6252,7 +6263,7 @@ extends AbstractDescriptor
 
 	@Override
 	public void o_ValidateLocally (
-		 final AvailObject object,
+		 final @NotNull AvailObject object,
 		 final AvailObject parent,
 		 final List<AvailObject> outerBlocks,
 		 final L2Interpreter anAvailInterpreter)
@@ -6263,7 +6274,7 @@ extends AbstractDescriptor
 
 	@Override
 	public @NotNull AvailObject o_Generate (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
 		unsupportedOperation();
@@ -6273,7 +6284,7 @@ extends AbstractDescriptor
 
 	@Override
 	public @NotNull AvailObject o_CopyWith (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject newParseNode)
 	{
 		unsupportedOperation();
@@ -6283,7 +6294,7 @@ extends AbstractDescriptor
 
 	@Override
 	public void o_IsLastUse (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final boolean isLastUse)
 	{
 		unsupportedOperation();
@@ -6292,7 +6303,7 @@ extends AbstractDescriptor
 
 	@Override
 	public boolean o_IsLastUse (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return false;
@@ -6301,7 +6312,7 @@ extends AbstractDescriptor
 
 	@Override
 	public boolean o_IsMacro (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return false;
@@ -6310,7 +6321,7 @@ extends AbstractDescriptor
 
 	@Override
 	public void o_Macros (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject value)
 	{
 		unsupportedOperation();
@@ -6319,7 +6330,7 @@ extends AbstractDescriptor
 
 	@Override
 	public @NotNull AvailObject o_Macros (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return null;
@@ -6327,7 +6338,7 @@ extends AbstractDescriptor
 
 	@Override
 	public @NotNull AvailObject o_CopyMutableParseNode (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return null;
@@ -6344,7 +6355,7 @@ extends AbstractDescriptor
 
 	@Override
 	public void o_MacroName (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject value)
 	{
 		unsupportedOperation();
@@ -6353,7 +6364,7 @@ extends AbstractDescriptor
 
 	@Override
 	public @NotNull AvailObject o_MacroName (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return null;
@@ -6362,7 +6373,7 @@ extends AbstractDescriptor
 
 	@Override
 	public void o_OutputParseNode (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject value)
 	{
 		unsupportedOperation();
@@ -6371,7 +6382,7 @@ extends AbstractDescriptor
 
 	@Override
 	public @NotNull AvailObject o_OutputParseNode (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return null;
@@ -6380,7 +6391,7 @@ extends AbstractDescriptor
 
 	@Override
 	public @NotNull AvailObject o_ApparentSendName (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return null;
@@ -6389,7 +6400,7 @@ extends AbstractDescriptor
 
 	@Override
 	public void o_Statements (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject statementsTuple)
 	{
 		unsupportedOperation();
@@ -6398,7 +6409,7 @@ extends AbstractDescriptor
 
 	@Override
 	public AvailObject o_Statements (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return null;
@@ -6407,7 +6418,7 @@ extends AbstractDescriptor
 
 	@Override
 	public void o_FlattenStatementsInto (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final List<AvailObject> accumulatedStatements)
 	{
 		unsupportedOperation();
@@ -6430,7 +6441,9 @@ extends AbstractDescriptor
 
 
 	@Override
-	public void o_AllBundles (final AvailObject object, final AvailObject value)
+	public void o_AllBundles (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
 	{
 		unsupportedOperation();
 	}
@@ -6516,7 +6529,7 @@ extends AbstractDescriptor
 
 	@Override
 	public boolean o_EqualsInstanceTypeFor (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject anObject)
 	{
 		return false;
@@ -6525,7 +6538,7 @@ extends AbstractDescriptor
 
 	@Override
 	public AvailObject o_Instances (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return null;
@@ -6534,7 +6547,7 @@ extends AbstractDescriptor
 
 	@Override
 	public boolean o_EqualsUnionTypeWithSet (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject set)
 	{
 		return false;
@@ -6550,7 +6563,7 @@ extends AbstractDescriptor
 
 	@Override
 	public boolean o_IsInstanceOf (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aType)
 	{
 		if (aType.isAbstractUnionType())
@@ -6563,7 +6576,7 @@ extends AbstractDescriptor
 
 	@Override
 	public boolean o_AbstractUnionTypeIncludesInstance (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject potentialInstance)
 	{
 		unsupportedOperation();
@@ -6679,5 +6692,23 @@ extends AbstractDescriptor
 	{
 		unsupportedOperation();
 		return null;
+	}
+
+
+	@Override
+	public ParseNodeKind o_ParseNodeKind (final @NotNull AvailObject object)
+	{
+		unsupportedOperation();
+		return null;
+	}
+
+
+	@Override
+	public boolean o_ParseNodeKindIsUnder (
+		final @NotNull AvailObject object,
+		final @NotNull ParseNodeKind expectedParseNodeKind)
+	{
+		unsupportedOperation();
+		return false;
 	}
 }

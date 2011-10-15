@@ -33,7 +33,7 @@
 package com.avail.compiler.scanning;
 
 import static com.avail.descriptor.TypeDescriptor.Types.LITERAL_TOKEN;
-import com.avail.annotations.EnumField;
+import com.avail.annotations.*;
 import com.avail.descriptor.*;
 
 /**
@@ -98,7 +98,7 @@ extends TokenDescriptor
 
 	@Override
 	public void o_Literal (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.LITERAL, value);
@@ -106,7 +106,7 @@ extends TokenDescriptor
 
 	@Override
 	public AvailObject o_Literal (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.LITERAL);
 	}

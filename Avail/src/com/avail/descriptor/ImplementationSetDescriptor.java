@@ -977,7 +977,7 @@ extends Descriptor
 	 * @param object The implementation set that changed.
 	 */
 	private static void membershipChanged (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		// Invalidate any affected level two chunks.
 		final AvailObject chunkIndices = object.dependentChunkIndices();

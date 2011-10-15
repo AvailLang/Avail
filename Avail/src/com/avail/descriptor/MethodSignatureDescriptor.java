@@ -32,11 +32,9 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.TypeDescriptor.Types.METHOD_SIGNATURE;
 import java.util.List;
 import com.avail.annotations.NotNull;
-import com.avail.compiler.AvailCompilerException;
 import com.avail.exceptions.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.utility.*;

@@ -88,7 +88,7 @@ extends ExtendedNumberDescriptor
 
 	@Override
 	public int o_RawSignedIntegerAt (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int subscript)
 	{
 		return object.integerSlotAt(
@@ -98,7 +98,7 @@ extends ExtendedNumberDescriptor
 
 	@Override
 	public void o_RawSignedIntegerAtPut (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int subscript,
 		final int value)
 	{
@@ -110,7 +110,7 @@ extends ExtendedNumberDescriptor
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final StringBuilder aStream,
 		final List<AvailObject> recursionList,
 		final int indent)
@@ -140,7 +140,7 @@ extends ExtendedNumberDescriptor
 
 	@Override
 	public boolean o_Equals (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject another)
 	{
 		return another.equalsInteger(object);
@@ -151,7 +151,7 @@ extends ExtendedNumberDescriptor
 	 */
 	@Override
 	public boolean o_EqualsInteger (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject anAvailInteger)
 	{
 		final int slotsCount = object.integerSlotsCount();
@@ -175,7 +175,7 @@ extends ExtendedNumberDescriptor
 
 	@Override
 	public boolean o_GreaterThanInteger (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject another)
 	{
 		final int size1 = object.integerSlotsCount();
@@ -231,7 +231,7 @@ extends ExtendedNumberDescriptor
 
 	@Override
 	public boolean o_GreaterThanSignedInfinity (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject another)
 	{
 		return !another.isPositive();
@@ -244,7 +244,7 @@ extends ExtendedNumberDescriptor
 	 */
 	@Override
 	public boolean o_IsInstanceOfKind (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aType)
 	{
 		if (aType.equals(TOP.o()) || aType.equals(ANY.o()))
@@ -285,7 +285,7 @@ extends ExtendedNumberDescriptor
 
 	@Override
 	public boolean o_LessThan (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject another)
 	{
 		return another.greaterThanInteger(object);
@@ -293,7 +293,7 @@ extends ExtendedNumberDescriptor
 
 	@Override
 	public boolean o_TypeEquals (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aType)
 	{
 		//  Answer whether object's type is equal to aType (known to be a type).
@@ -326,7 +326,7 @@ extends ExtendedNumberDescriptor
 
 	@Override
 	public int o_Hash (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		if (object.isByte())
 		{
@@ -337,7 +337,7 @@ extends ExtendedNumberDescriptor
 
 	@Override
 	public int o_HashOfType (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		final int objectHash = object.hash();
 		return IntegerRangeTypeDescriptor.computeHash(
@@ -349,14 +349,14 @@ extends ExtendedNumberDescriptor
 
 	@Override
 	public boolean o_IsFinite (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return true;
 	}
 
 	@Override
 	public @NotNull AvailObject o_Kind (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		object.makeImmutable();
 		return IntegerRangeTypeDescriptor.singleInteger(object);
@@ -364,7 +364,7 @@ extends ExtendedNumberDescriptor
 
 	@Override
 	public @NotNull AvailObject o_DivideCanDestroy (
-			final AvailObject object,
+			final @NotNull AvailObject object,
 			final AvailObject aNumber,
 			final boolean canDestroy)
 		throws ArithmeticException
@@ -374,7 +374,7 @@ extends ExtendedNumberDescriptor
 
 	@Override
 	public @NotNull AvailObject o_MinusCanDestroy (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aNumber,
 		final boolean canDestroy)
 	{
@@ -403,21 +403,21 @@ extends ExtendedNumberDescriptor
 
 	@Override
 	public boolean o_IsInt (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.integerSlotsCount() == 1;
 	}
 
 	@Override
 	public boolean o_IsLong (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.integerSlotsCount() <= 2;
 	}
 
 	@Override
 	public short o_ExtractByte (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		assert object.integerSlotsCount() == 1;
 		final int value = object.rawSignedIntegerAt(1);
@@ -427,7 +427,7 @@ extends ExtendedNumberDescriptor
 
 	@Override
 	public int o_ExtractInt (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		assert object.integerSlotsCount() == 1 : "Integer value out of bounds";
 		return object.rawSignedIntegerAt(1);
@@ -455,7 +455,7 @@ extends ExtendedNumberDescriptor
 
 	@Override
 	public byte o_ExtractNybble (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		assert object.integerSlotsCount() == 1;
 		final int value = object.rawSignedIntegerAt(1);
@@ -465,7 +465,7 @@ extends ExtendedNumberDescriptor
 
 	@Override
 	public boolean o_IsByte (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		if (object.integerSlotsCount() > 1)
 		{
@@ -477,7 +477,7 @@ extends ExtendedNumberDescriptor
 
 	@Override
 	public boolean o_IsNybble (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		if (object.integerSlotsCount() > 1)
 		{
@@ -498,7 +498,7 @@ extends ExtendedNumberDescriptor
 	 */
 	@Override
 	public long o_RawUnsignedIntegerAt (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int subscript)
 	{
 		final int signedInt = object.integerSlotAt(
@@ -514,7 +514,7 @@ extends ExtendedNumberDescriptor
 	 */
 	@Override
 	public void o_RawUnsignedIntegerAtPut (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int subscript,
 		final int value)
 	{
@@ -526,7 +526,7 @@ extends ExtendedNumberDescriptor
 
 	@Override
 	public void o_TrimExcessInts (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		// Remove any redundant longs from my end.  Since I'm stored in Little
 		// Endian representation, I can simply be truncated with no need to
@@ -560,7 +560,7 @@ extends ExtendedNumberDescriptor
 
 	@Override
 	public @NotNull AvailObject o_AddToInfinityCanDestroy (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject anInfinity,
 		final boolean canDestroy)
 	{
@@ -569,7 +569,7 @@ extends ExtendedNumberDescriptor
 
 	@Override
 	public @NotNull AvailObject o_AddToIntegerCanDestroy (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject anInteger,
 		final boolean canDestroy)
 	{

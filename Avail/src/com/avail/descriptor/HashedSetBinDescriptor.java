@@ -182,7 +182,7 @@ extends SetBinDescriptor
 
 	@Override
 	public AvailObject o_BinUnionKind (
-			final AvailObject object)
+			final @NotNull AvailObject object)
 	{
 		AvailObject union = object.binUnionTypeOrTop();
 		if (union.equalsNull())

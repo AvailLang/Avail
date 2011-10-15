@@ -37,7 +37,6 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static java.lang.Math.*;
 import java.util.List;
 import com.avail.annotations.NotNull;
-import com.avail.descriptor.TypeDescriptor.Types;
 
 /**
  * My instances are called <em>instance types</em>, the types of individual
@@ -490,7 +489,7 @@ extends AbstractUnionTypeDescriptor
 
 	@Override
 	public boolean o_AbstractUnionTypeIncludesInstance (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject potentialInstance)
 	{
 		final AvailObject instance = getInstance(object);
@@ -507,7 +506,7 @@ extends AbstractUnionTypeDescriptor
 
 	@Override
 	public boolean o_AcceptsArgTypesFromFunctionType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject functionType)
 	{
 		return getSuperkind(object).acceptsArgTypesFromFunctionType(functionType);
@@ -515,7 +514,7 @@ extends AbstractUnionTypeDescriptor
 
 	@Override
 	public boolean o_AcceptsArgumentTypesFromContinuation (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject continuation,
 		final int stackp,
 		final int numArgs)
@@ -528,7 +527,7 @@ extends AbstractUnionTypeDescriptor
 
 	@Override
 	public boolean o_AcceptsListOfArgTypes (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final List<AvailObject> argTypes)
 	{
 		return getSuperkind(object).acceptsListOfArgTypes(argTypes);
@@ -536,7 +535,7 @@ extends AbstractUnionTypeDescriptor
 
 	@Override
 	public boolean o_AcceptsListOfArgValues (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final List<AvailObject> argValues)
 	{
 		return getSuperkind(object).acceptsListOfArgValues(argValues);
@@ -544,7 +543,7 @@ extends AbstractUnionTypeDescriptor
 
 	@Override
 	public boolean o_AcceptsTupleOfArgTypes (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject argTypes)
 	{
 		return getSuperkind(object).acceptsTupleOfArgTypes(argTypes);
@@ -552,7 +551,7 @@ extends AbstractUnionTypeDescriptor
 
 	@Override
 	public boolean o_AcceptsTupleOfArguments (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject arguments)
 	{
 		return getSuperkind(object).acceptsTupleOfArguments(arguments);
@@ -592,128 +591,16 @@ extends AbstractUnionTypeDescriptor
 
 	@Override
 	public boolean o_CouldEverBeInvokedWith (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final List<AvailObject> argTypes)
 	{
 		return getSuperkind(object).couldEverBeInvokedWith(argTypes);
 	}
 
 	@Override
-	public boolean o_IsBetterRepresentationThan (
-		final AvailObject object,
-		final AvailObject anotherObject)
-	{
-		// Instance types are pretty decent representations.
-		return true;
-	}
-
-	@Override
-	public boolean o_IsBetterRepresentationThanTupleType (
-		final AvailObject object,
-		final AvailObject aTupleType)
-	{
-		// Instance types are pretty decent representations.
-		return true;
-	}
-
-	@Override
-	public boolean o_IsSupertypeOfFunctionType (
-		final AvailObject object,
-		final AvailObject aFunctionType)
-	{
-		return false;
-	}
-
-	@Override
-	public boolean o_IsSupertypeOfContainerType (
-		final AvailObject object,
-		final AvailObject aContainerType)
-	{
-		return false;
-	}
-
-	@Override
-	public boolean o_IsSupertypeOfContinuationType (
-		final AvailObject object,
-		final AvailObject aContinuationType)
-	{
-		return false;
-	}
-
-	@Override
-	public boolean o_IsSupertypeOfCompiledCodeType (
-		final AvailObject object,
-		final AvailObject aCompiledCodeType)
-	{
-		return false;
-	}
-
-	@Override
-	public boolean o_IsSupertypeOfIntegerRangeType (
-		final AvailObject object,
-		final AvailObject anIntegerRangeType)
-	{
-		return false;
-	}
-
-	@Override
-	public boolean o_IsSupertypeOfMapType (
-		final AvailObject object,
-		final AvailObject aMapType)
-	{
-		return false;
-	}
-
-	@Override
-	public boolean o_IsSupertypeOfObjectType (
-		final AvailObject object,
-		final AvailObject aLazyObjectType)
-	{
-		return false;
-	}
-
-	@Override
-	public boolean o_IsSupertypeOfPrimitiveType (
-		final AvailObject object,
-		final AvailObject aPrimitiveType)
-	{
-		return false;
-	}
-
-	@Override
-	public boolean o_IsSupertypeOfSetType (
-		final AvailObject object,
-		final AvailObject aSetType)
-	{
-		return false;
-	}
-
-	@Override
-	public boolean o_IsSupertypeOfTupleType (
-		final AvailObject object,
-		final AvailObject aTupleType)
-	{
-		return false;
-	}
-
-	@Override
-	public boolean o_IsSupertypeOfUnionMeta (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aTupleType)
-	{
-		return false;
-	}
-
-	@Override
 	public AvailObject o_KeyType (final AvailObject object)
 	{
 		return getSuperkind(object).keyType();
-	}
-
-	@Override
-	public AvailObject o_MyType (final AvailObject object)
-	{
-		return getSuperkind(object).myType();
 	}
 
 	@Override
@@ -737,7 +624,7 @@ extends AbstractUnionTypeDescriptor
 
 	@Override
 	public AvailObject o_TypeIntersectionOfContinuationType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aContinuationType)
 	{
 		if (getInstance(object).isInstanceOf(aContinuationType))
@@ -749,7 +636,7 @@ extends AbstractUnionTypeDescriptor
 
 	@Override
 	public AvailObject o_TypeIntersectionOfCompiledCodeType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aCompiledCodeType)
 	{
 		if (getInstance(object).isInstanceOf(aCompiledCodeType))
@@ -760,8 +647,20 @@ extends AbstractUnionTypeDescriptor
 	}
 
 	@Override
+	public AvailObject o_TypeIntersectionOfParseNodeType (
+		final @NotNull AvailObject object,
+		final AvailObject aParseNodeType)
+	{
+		if (getInstance(object).isInstanceOf(aParseNodeType))
+		{
+			return object;
+		}
+		return BottomTypeDescriptor.bottom();
+	}
+
+	@Override
 	public AvailObject o_TypeUnionOfContinuationType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aContinuationType)
 	{
 		return getSuperkind(object).typeUnionOfContinuationType(
@@ -770,11 +669,20 @@ extends AbstractUnionTypeDescriptor
 
 	@Override
 	public AvailObject o_TypeUnionOfCompiledCodeType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aCompiledCodeType)
 	{
 		return getSuperkind(object).typeUnionOfContinuationType(
 			aCompiledCodeType);
+	}
+
+	@Override
+	public AvailObject o_TypeUnionOfParseNodeType (
+		final @NotNull AvailObject object,
+		final AvailObject aParseNodeType)
+	{
+		return getSuperkind(object).typeUnionOfParseNodeType(
+			aParseNodeType);
 	}
 
 	@Override

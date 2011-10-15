@@ -33,7 +33,7 @@
 package com.avail.compiler.node;
 
 import static com.avail.descriptor.AvailObject.error;
-import static com.avail.descriptor.TypeDescriptor.Types.REFERENCE_NODE;
+import static com.avail.compiler.node.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import java.util.List;
 import com.avail.annotations.NotNull;
 import com.avail.compiler.AvailCodeGenerator;
@@ -71,7 +71,7 @@ extends ParseNodeDescriptor
 	 */
 	@Override
 	public void o_Variable (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject variable)
 	{
 		object.objectSlotPut(ObjectSlots.VARIABLE, variable);
@@ -82,7 +82,7 @@ extends ParseNodeDescriptor
 	 */
 	@Override
 	public AvailObject o_Variable (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.VARIABLE);
 	}
@@ -101,7 +101,7 @@ extends ParseNodeDescriptor
 	@Override
 	public AvailObject o_Kind (final AvailObject object)
 	{
-		return REFERENCE_NODE.o();
+		return REFERENCE_NODE.create(object.expressionType());
 	}
 
 	@Override
@@ -113,7 +113,7 @@ extends ParseNodeDescriptor
 
 	@Override
 	public boolean o_Equals (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject another)
 	{
 		return object.kind().equals(another.kind())
@@ -122,7 +122,7 @@ extends ParseNodeDescriptor
 
 	@Override
 	public void o_EmitValueOn (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
 		final AvailObject declaration = object.variable().declaration();
@@ -133,7 +133,7 @@ extends ParseNodeDescriptor
 
 	@Override
 	public void o_ChildrenMap (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final Transformer1<AvailObject, AvailObject> aBlock)
 	{
 		object.variable(aBlock.value(object.variable()));
@@ -141,7 +141,7 @@ extends ParseNodeDescriptor
 
 	@Override
 	public void o_ChildrenDo (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final Continuation1<AvailObject> aBlock)
 	{
 		aBlock.value(object.variable());
@@ -150,7 +150,7 @@ extends ParseNodeDescriptor
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final StringBuilder builder,
 		final List<AvailObject> recursionList,
 		final int indent)

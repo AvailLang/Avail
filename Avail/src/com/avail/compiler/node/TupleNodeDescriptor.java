@@ -32,10 +32,11 @@
 
 package com.avail.compiler.node;
 
+import static com.avail.compiler.node.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import java.util.*;
+import com.avail.annotations.NotNull;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.*;
-import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
 
@@ -73,7 +74,7 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override
 	public void o_ExpressionsTuple (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject expressionsTuple)
 	{
 		object.objectSlotPut(ObjectSlots.EXPRESSIONS_TUPLE, expressionsTuple);
@@ -84,7 +85,7 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override
 	public AvailObject o_ExpressionsTuple (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.EXPRESSIONS_TUPLE);
 	}
@@ -94,7 +95,7 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override
 	public void o_TupleType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject tupleType)
 	{
 		object.objectSlotPut(ObjectSlots.TUPLE_TYPE, tupleType);
@@ -105,7 +106,7 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override
 	public AvailObject o_TupleType (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.TUPLE_TYPE);
 	}
@@ -144,7 +145,7 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 	@Override
 	public AvailObject o_Kind (final AvailObject object)
 	{
-		return Types.TUPLE_NODE.o();
+		return TUPLE_NODE.create(object.expressionType());
 	}
 
 	@Override
@@ -155,7 +156,7 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 
 	@Override
 	public boolean o_Equals (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject another)
 	{
 		return object.kind().equals(another.kind())
@@ -164,7 +165,7 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 
 	@Override
 	public void o_EmitValueOn (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
 		final AvailObject childNodes = object.expressionsTuple();
@@ -177,7 +178,7 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 
 	@Override
 	public void o_ChildrenMap (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final Transformer1<AvailObject, AvailObject> aBlock)
 	{
 		AvailObject expressions = object.expressionsTuple();
@@ -194,7 +195,7 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 
 	@Override
 	public void o_ChildrenDo (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final Continuation1<AvailObject> aBlock)
 	{
 		for (final AvailObject expression : object.expressionsTuple())
@@ -206,7 +207,7 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 
 	@Override
 	public void o_ValidateLocally (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject parent,
 		final List<AvailObject> outerBlocks,
 		final L2Interpreter anAvailInterpreter)
@@ -229,7 +230,7 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override
 	public AvailObject o_CopyWith (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject newParseNode)
 	{
 		final List<AvailObject> newNodes = new ArrayList<AvailObject>(

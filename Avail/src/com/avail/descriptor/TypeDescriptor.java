@@ -32,7 +32,6 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 import com.avail.annotations.NotNull;
@@ -52,26 +51,6 @@ extends AbstractTypeDescriptor
 		MESSAGE_BUNDLE(ANY),
 		MESSAGE_BUNDLE_TREE(ANY),
 
-		PARSE_NODE(ANY),
-		MARKER_NODE(PARSE_NODE),
-		EXPRESSION_NODE(PARSE_NODE),
-		ASSIGNMENT_NODE(EXPRESSION_NODE),
-		BLOCK_NODE(EXPRESSION_NODE),
-		LITERAL_NODE(EXPRESSION_NODE),
-		REFERENCE_NODE(EXPRESSION_NODE),
-		SEND_NODE(EXPRESSION_NODE),
-		SEQUENCE_NODE(EXPRESSION_NODE),
-		SUPER_CAST_NODE(EXPRESSION_NODE),
-		TUPLE_NODE(EXPRESSION_NODE),
-		VARIABLE_USE_NODE(EXPRESSION_NODE),
-		DECLARATION_NODE(EXPRESSION_NODE),
-		ARGUMENT_NODE(DECLARATION_NODE),
-		LABEL_NODE(DECLARATION_NODE),
-		LOCAL_VARIABLE_NODE(DECLARATION_NODE),
-		LOCAL_CONSTANT_NODE(DECLARATION_NODE),
-		MODULE_VARIABLE_NODE(DECLARATION_NODE),
-		MODULE_CONSTANT_NODE(DECLARATION_NODE),
-
 		TOKEN(ANY),
 		LITERAL_TOKEN(TOKEN),
 
@@ -88,7 +67,7 @@ extends AbstractTypeDescriptor
 
 		public final Types parent;
 		protected final String myTypeName;
-		protected final AbstractTypeDescriptor descriptor;
+		protected final PrimitiveTypeDescriptor descriptor;
 		private AvailObject o;
 
 
@@ -103,7 +82,7 @@ extends AbstractTypeDescriptor
 		Types (
 			final @NotNull Types parent,
 			final @NotNull String myTypeName,
-			final @NotNull AbstractTypeDescriptor descriptor)
+			final @NotNull PrimitiveTypeDescriptor descriptor)
 		{
 			this.parent = parent;
 			this.myTypeName = myTypeName;
@@ -177,7 +156,7 @@ extends AbstractTypeDescriptor
 
 	@Override
 	public boolean o_IsInstanceOfKind (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aType)
 	{
 		return object.kind().isSubtypeOf(aType);
@@ -258,6 +237,14 @@ extends AbstractTypeDescriptor
 		 * states otherwise.
 		 */
 
+		return false;
+	}
+
+	@Override
+	public boolean o_IsSupertypeOfParseNodeType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aParseNodeType)
+	{
 		return false;
 	}
 
@@ -369,6 +356,14 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override
+	public @NotNull AvailObject o_TypeIntersectionOfParseNodeType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aParseNodeType)
+	{
+		return BottomTypeDescriptor.bottom();
+	}
+
+	@Override
 	public @NotNull AvailObject o_TypeIntersectionOfSetType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aSetType)
@@ -436,6 +431,14 @@ extends AbstractTypeDescriptor
 	public @NotNull AvailObject o_TypeUnionOfObjectType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anEagerObjectType)
+	{
+		return object.typeUnion(ANY.o());
+	}
+
+	@Override
+	public @NotNull AvailObject o_TypeUnionOfParseNodeType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aParseNodeType)
 	{
 		return object.typeUnion(ANY.o());
 	}
@@ -649,14 +652,6 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_MyType (
-		final @NotNull AvailObject object)
-	{
-		unsupportedOperation();
-		return null;
-	}
-
-	@Override
 	public @NotNull AvailObject o_Name (
 		final @NotNull AvailObject object)
 	{
@@ -747,20 +742,15 @@ extends AbstractTypeDescriptor
 		return null;
 	}
 
+	/**
+	 * Create any cached {@link AvailObject}s.
+	 */
 	static void createWellKnownObjects ()
 	{
-		final AvailObject nullObject = NullDescriptor.nullObject();
-		assert nullObject != null;
-
-		// Build all the objects with top fields.
+		// Build all the objects with null fields.
 		for (final Types spec : Types.values())
 		{
-			final AvailObject o = spec.descriptor.create();
-			assert o.descriptorId() != 0;
-			o.name(nullObject);
-			o.parent(nullObject);
-			o.myType(nullObject);
-			o.hash(spec.name().hashCode());
+			final AvailObject o = spec.descriptor.createPrimitiveObjectNamed(spec.name());
 			spec.set_o(o);
 		}
 		// Connect and name the objects.
@@ -770,8 +760,8 @@ extends AbstractTypeDescriptor
 			o.name(ByteStringDescriptor.from(spec.name()));
 			o.parent(
 				spec.parent == null
-				? nullObject
-				: spec.parent.o());
+				? NullDescriptor.nullObject()
+					: spec.parent.o());
 			o.myType(
 				Types.valueOf(spec.myTypeName).o());
 		}
@@ -790,6 +780,9 @@ extends AbstractTypeDescriptor
 		}
 	}
 
+	/**
+	 * Release all references to {@link AvailObject}s held by this class.
+	 */
 	static void clearWellKnownObjects ()
 	{
 		for (final Types spec : Types.values())

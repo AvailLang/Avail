@@ -77,7 +77,7 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override
 	public void o_MacroName (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.MACRO_NAME, value);
@@ -88,7 +88,7 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override
 	public AvailObject o_MacroName (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.MACRO_NAME);
 	}
@@ -98,7 +98,7 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override
 	public void o_OutputParseNode (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.OUTPUT_PARSE_NODE, value);
@@ -109,7 +109,7 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override
 	public AvailObject o_OutputParseNode (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.OUTPUT_PARSE_NODE);
 	}
@@ -141,7 +141,7 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 
 	@Override
 	public boolean o_Equals (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject another)
 	{
 		return object.macroName().equals(another.macroName())
@@ -158,7 +158,7 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 
 	@Override
 	public void o_EmitEffectOn (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
 		object.outputParseNode().emitEffectOn(codeGenerator);
@@ -167,7 +167,7 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 
 	@Override
 	public void o_EmitValueOn (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
 		object.outputParseNode().emitValueOn(codeGenerator);
@@ -176,7 +176,7 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 
 	@Override
 	public void o_ChildrenMap (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final Transformer1<AvailObject, AvailObject> aBlock)
 	{
 		object.outputParseNode(aBlock.value(object.outputParseNode()));
@@ -185,7 +185,7 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 
 	@Override
 	public void o_ChildrenDo (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final Continuation1<AvailObject> aBlock)
 	{
 		aBlock.value(object.outputParseNode());
@@ -194,7 +194,7 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 
 	@Override
 	public void o_ValidateLocally (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject parent,
 		final List<AvailObject> outerBlocks,
 		final L2Interpreter anAvailInterpreter)
@@ -205,7 +205,7 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 
 	@Override
 	public void o_FlattenStatementsInto (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final List<AvailObject> accumulatedStatements)
 	{
 		object.outputParseNode().flattenStatementsInto(accumulatedStatements);
@@ -214,7 +214,7 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final StringBuilder builder,
 		final List<AvailObject> recursionList,
 		final int indent)

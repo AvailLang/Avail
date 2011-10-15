@@ -63,7 +63,9 @@ public enum L1Operation
 	 * operand is pushed.  This is the expected type of the send.  When the
 	 * invoked method eventually returns, the proposed return value is checked
 	 * against the pushed type, and if it agrees then this stack entry is
-	 * replaced by the returned value.
+	 * replaced by the returned value.  If it disagrees, some sort of runtime
+	 * exception should take place instead.
+	 * </p>
 	 */
 	L1_doCall(0, L1OperandType.LITERAL, L1OperandType.LITERAL)
 	{
@@ -73,7 +75,6 @@ public enum L1Operation
 			operationDispatcher.L1_doCall();
 		}
 	},
-
 
 	/**
 	 * Push the literal whose index is specified by the operand.
@@ -87,7 +88,6 @@ public enum L1Operation
 		}
 	},
 
-
 	/**
 	 * Push a local variable -- not its value, but the variable itself.  This
 	 * should be the last use of the variable, so erase it from the continuation
@@ -97,9 +97,11 @@ public enum L1Operation
 	 * so it may stay {@link AbstractDescriptor#isMutable() mutable} if it was
 	 * before.
 	 * <p>
-	 * If an argument or constant is specified then push the value, since there
-	 * is no actual {@link ContainerDescriptor variable} to operate on.  Clear
-	 * the slot of the continuation reserved for the argument or constant.
+	 * If an argument is specified then push the value, since there is no actual
+	 * {@link ContainerDescriptor variable} to operate on.  Clear the slot of
+	 * the continuation reserved for the argument.  Constants are treated like
+	 * ordinary local variables, except that they can not be assigned after
+	 * their definition, nor can a reference to the constant be taken.
 	 */
 	L1_doPushLastLocal(2, L1OperandType.LOCAL)
 	{
@@ -109,7 +111,6 @@ public enum L1Operation
 			operationDispatcher.L1_doPushLastLocal();
 		}
 	},
-
 
 	/**
 	 * Push a local variable -- not its value, but the variable itself.  If an
@@ -141,6 +142,11 @@ public enum L1Operation
 	},
 
 
+	/**
+	 * Create a function from the specified number of pushed outer variables and
+	 * the specified literal {@linkplain CompiledCodeDescriptor compiled code
+	 * object}.
+	 */
 	L1_doClose(5, L1OperandType.IMMEDIATE, L1OperandType.LITERAL)
 	{
 		@Override
@@ -151,6 +157,10 @@ public enum L1Operation
 	},
 
 
+	/**
+	 * Pop the stack and write the value into the specified local variable or
+	 * constant (the latter should only happen once).
+	 */
 	L1_doSetLocal(6, L1OperandType.LOCAL)
 	{
 		@Override
@@ -161,6 +171,11 @@ public enum L1Operation
 	},
 
 
+	/**
+	 * Extract the value from the specified local variable or constant.  If the
+	 * variable is mutable, null it out in the continuation.  Raised a suitable
+	 * runtime exception if the variable does not have a value.
+	 */
 	L1_doGetLocalClearing(7, L1OperandType.LOCAL)
 	{
 		@Override
@@ -171,6 +186,10 @@ public enum L1Operation
 	},
 
 
+	/**
+	 * Push the specified outer variable of the {@linkplain FunctionDescriptor
+	 * function}.
+	 */
 	L1_doPushOuter(8, L1OperandType.OUTER)
 	{
 		@Override
@@ -181,6 +200,9 @@ public enum L1Operation
 	},
 
 
+	/**
+	 * Discard the top element of the stack.
+	 */
 	L1_doPop(9)
 	{
 		@Override
@@ -191,6 +213,12 @@ public enum L1Operation
 	},
 
 
+	/**
+	 * Push the current value of the specified outer variable.  The outer
+	 * variable is part of the {@linkplain FunctionDescriptor function} being
+	 * executed.  Clear the slot holding this outer variable if the function is
+	 * mutable.
+	 */
 	L1_doGetOuterClearing(10, L1OperandType.OUTER)
 	{
 		@Override
@@ -201,6 +229,10 @@ public enum L1Operation
 	},
 
 
+	/**
+	 * Pop the stack and write it to the specified outer variable of the
+	 * {@linkplain FunctionDescriptor function}.
+	 */
 	L1_doSetOuter(11, L1OperandType.OUTER)
 	{
 		@Override
@@ -211,6 +243,10 @@ public enum L1Operation
 	},
 
 
+	/**
+	 * Push the value of the specified local variable or constant.  Make it
+	 * immutable, since it may still be needed by subsequent instructions.
+	 */
 	L1_doGetLocal(12, L1OperandType.LOCAL)
 	{
 		@Override
@@ -221,6 +257,10 @@ public enum L1Operation
 	},
 
 
+	/**
+	 * Pop the specified number of elements from the stack and assemble them
+	 * into a tuple.  Push the tuple.
+	 */
 	L1_doMakeTuple(13, L1OperandType.IMMEDIATE)
 	{
 		@Override
@@ -231,6 +271,10 @@ public enum L1Operation
 	},
 
 
+	/**
+	 * Push the current value of the specified outer variable of the {@linkplain
+	 * FunctionDescriptor function}.
+	 */
 	L1_doGetOuter(14, L1OperandType.OUTER)
 	{
 		@Override
@@ -241,6 +285,10 @@ public enum L1Operation
 	},
 
 
+	/**
+	 * Process an extension nybblecode, which involves consuming the next
+	 * nybble and dispatching it as though 16 were added to it.
+	 */
 	L1_doExtension(15, L1OperandType.EXTENSION)
 	{
 		@Override
@@ -251,6 +299,10 @@ public enum L1Operation
 	},
 
 
+	/**
+	 * Push a continuation just like the current one, such that if it is ever
+	 * resumed it will have the same effect as restarting the current one.
+	 */
 	L1Ext_doPushLabel(16)
 	{
 		@Override
@@ -261,6 +313,10 @@ public enum L1Operation
 	},
 
 
+	/**
+	 * Get the value of a {@linkplain ContainerDescriptor container} literal.
+	 * This is used only to read from module variables.
+	 */
 	L1Ext_doGetLiteral(17, L1OperandType.LITERAL)
 	{
 		@Override
@@ -271,6 +327,10 @@ public enum L1Operation
 	},
 
 
+	/**
+	 * Pop the stack and write the value into a {@linkplain ContainerDescriptor
+	 * container} literal.  This is used to write to module variables.
+	 */
 	L1Ext_doSetLiteral(18, L1OperandType.LITERAL)
 	{
 		@Override
@@ -281,6 +341,15 @@ public enum L1Operation
 	},
 
 
+	/**
+	 * Expect arguments to have pushed on the stack, followed by the argument
+	 * types with which to perform a method lookup.  The literal index of the
+	 * {@link ImplementationSetDescriptor implementation set} is the first
+	 * operand, and the second is the literal index of the type that this call
+	 * site is supposed to produce.  After popping the arguments and argument
+	 * types, push the expected type.  The callee will check its return result
+	 * against this pushed type, leading to a runtime error if they disagree.
+	 */
 	L1Ext_doSuperCall(19, L1OperandType.LITERAL, L1OperandType.LITERAL)
 	{
 		@Override
@@ -291,6 +360,11 @@ public enum L1Operation
 	},
 
 
+	/**
+	 * Compute the type of the object at the specified depth on the stack, and
+	 * push it.  Used only for arguments to a {@linkplain #L1Ext_doSuperCall
+	 * super call}.
+	 */
 	L1Ext_doGetType(20, L1OperandType.IMMEDIATE)
 	{
 		@Override
@@ -301,6 +375,11 @@ public enum L1Operation
 	},
 
 
+	/**
+	 * Duplicate the top stack element (i.e., push another occurrence of the top
+	 * of stack}.  Make the object immutable since it now has an additional
+	 * reference.
+	 */
 	L1Ext_doDuplicate(21)
 	{
 		@Override
@@ -310,6 +389,9 @@ public enum L1Operation
 		}
 	},
 
+	/**
+	 * An unsupported instruction was encountered.
+	 */
 	L1Ext_doReserved(22)
 	{
 		@Override
@@ -319,6 +401,10 @@ public enum L1Operation
 		}
 	},
 
+	/**
+	 * The nybblecode stream has been exhausted, and all that's left is to
+	 * perform an implicit return to the caller.
+	 */
 	L1Implied_Return(23)
 	{
 		@Override

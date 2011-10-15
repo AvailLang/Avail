@@ -33,8 +33,9 @@
 package com.avail.compiler.node;
 
 import static com.avail.descriptor.AvailObject.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.compiler.node.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import java.util.List;
+import com.avail.annotations.NotNull;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.L2Interpreter;
@@ -76,7 +77,7 @@ public class SuperCastNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override
 	public void o_Expression (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject expression)
 	{
 		object.objectSlotPut(ObjectSlots.EXPRESSION, expression);
@@ -87,7 +88,7 @@ public class SuperCastNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override
 	public AvailObject o_Expression (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.EXPRESSION);
 	}
@@ -98,7 +99,7 @@ public class SuperCastNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override
 	public void o_SuperCastType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject superCastType)
 	{
 		object.objectSlotPut(ObjectSlots.SUPER_CAST_TYPE, superCastType);
@@ -109,7 +110,7 @@ public class SuperCastNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override
 	public AvailObject o_SuperCastType (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.SUPER_CAST_TYPE);
 	}
@@ -118,13 +119,13 @@ public class SuperCastNodeDescriptor extends ParseNodeDescriptor
 	@Override
 	public AvailObject o_ExpressionType (final AvailObject object)
 	{
-		return object.superCastType();
+		return object.objectSlot(ObjectSlots.SUPER_CAST_TYPE);
 	}
 
 	@Override
 	public AvailObject o_Kind (final AvailObject object)
 	{
-		return SUPER_CAST_NODE.o();
+		return SUPER_CAST_NODE.create(object.expressionType());
 	}
 
 	@Override
@@ -138,7 +139,7 @@ public class SuperCastNodeDescriptor extends ParseNodeDescriptor
 
 	@Override
 	public boolean o_Equals (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject another)
 	{
 		return object.kind().equals(another.kind())
@@ -148,7 +149,7 @@ public class SuperCastNodeDescriptor extends ParseNodeDescriptor
 
 	@Override
 	public void o_EmitEffectOn (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
 		error("A superCast can only be done to an argument of a call.");
@@ -156,7 +157,7 @@ public class SuperCastNodeDescriptor extends ParseNodeDescriptor
 
 	@Override
 	public void o_EmitValueOn (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
 		// My parent (send) node deals with my altered semantics.
@@ -165,7 +166,7 @@ public class SuperCastNodeDescriptor extends ParseNodeDescriptor
 
 	@Override
 	public void o_ChildrenMap (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final Transformer1<AvailObject, AvailObject> aBlock)
 	{
 		object.expression(aBlock.value(object.expression()));
@@ -174,7 +175,7 @@ public class SuperCastNodeDescriptor extends ParseNodeDescriptor
 
 	@Override
 	public void o_ChildrenDo (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final Continuation1<AvailObject> aBlock)
 	{
 		aBlock.value(object.expression());
@@ -183,12 +184,12 @@ public class SuperCastNodeDescriptor extends ParseNodeDescriptor
 
 	@Override
 	public void o_ValidateLocally (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject parent,
 		final List<AvailObject> outerBlocks,
 		final L2Interpreter anAvailInterpreter)
 	{
-		if (!parent.kind().equals(SEND_NODE.o()))
+		if (!parent.kind().parseNodeKindIsUnder(SEND_NODE))
 		{
 			error("Only use superCast notation as a message argument");
 		}

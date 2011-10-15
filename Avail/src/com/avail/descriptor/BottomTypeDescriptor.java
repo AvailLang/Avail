@@ -34,7 +34,6 @@ package com.avail.descriptor;
 
 import java.util.List;
 import com.avail.annotations.NotNull;
-import com.avail.descriptor.ContainerTypeDescriptor.ObjectSlots;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 
 public class BottomTypeDescriptor
@@ -42,7 +41,7 @@ extends AbstractUnionTypeDescriptor
 {
 	@Override
 	public void printObjectOnAvoidingIndent (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final StringBuilder builder,
 		final List<AvailObject> recursionList,
 		final int indent)
@@ -73,12 +72,18 @@ extends AbstractUnionTypeDescriptor
 	}
 
 	/**
-	 * @param aSet
-	 * @return
+	 * {@inheritDoc}
+	 *
+	 * <p>
+	 * Determine if the object is a {@linkplain AbstractUnionTypeDescriptor
+	 * union type} over the given set of instances.  Since the object is the
+	 * {@linkplain BottomTypeDescriptor bottom type}, just check if the set of
+	 * instances is empty.
+	 * </p>
 	 */
 	@Override
 	public boolean o_EqualsUnionTypeWithSet (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aSet)
 	{
 		return aSet.setSize() == 0;
@@ -245,17 +250,6 @@ extends AbstractUnionTypeDescriptor
 	}
 
 	@Override
-	public boolean o_IsSupertypeOfPrimitiveType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aPrimitiveType)
-	{
-		//  Check if object (bottom) is a supertype of aPrimitiveType (a primitive type).
-		//  Never true, because bottom is the most specific type.
-
-		return false;
-	}
-
-	@Override
 	public boolean o_IsIntegerRangeType (
 		final @NotNull AvailObject object)
 	{
@@ -416,7 +410,7 @@ extends AbstractUnionTypeDescriptor
 
 	@Override
 	public boolean o_HasObjectInstance (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject potentialInstance)
 	{
 		return false;
@@ -430,7 +424,7 @@ extends AbstractUnionTypeDescriptor
 
 	@Override
 	public boolean o_AcceptsArgTypesFromFunctionType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject functionType)
 	{
 		return true;
@@ -438,7 +432,7 @@ extends AbstractUnionTypeDescriptor
 
 	@Override
 	public boolean o_AcceptsArgumentTypesFromContinuation (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject continuation,
 		final int stackp,
 		final int numArgs)
@@ -448,7 +442,7 @@ extends AbstractUnionTypeDescriptor
 
 	@Override
 	public boolean o_AcceptsListOfArgTypes (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final List<AvailObject> argTypes)
 	{
 		return true;
@@ -456,7 +450,7 @@ extends AbstractUnionTypeDescriptor
 
 	@Override
 	public boolean o_AcceptsListOfArgValues (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final List<AvailObject> argValues)
 	{
 		return true;
@@ -464,7 +458,7 @@ extends AbstractUnionTypeDescriptor
 
 	@Override
 	public boolean o_AcceptsTupleOfArgTypes (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject argTypes)
 	{
 		return true;
@@ -472,7 +466,7 @@ extends AbstractUnionTypeDescriptor
 
 	@Override
 	public boolean o_AcceptsTupleOfArguments (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject arguments)
 	{
 		return true;
@@ -498,32 +492,15 @@ extends AbstractUnionTypeDescriptor
 
 	@Override
 	public boolean o_CouldEverBeInvokedWith (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final List<AvailObject> argTypes)
 	{
 		return true;
 	}
 
 	@Override
-	public boolean o_IsBetterRepresentationThan (
-		final AvailObject object,
-		final AvailObject anotherObject)
-	{
-		return true;
-	}
-
-	@Override
-	public boolean o_IsBetterRepresentationThanTupleType (
-		final AvailObject object,
-		final AvailObject aTupleType)
-	{
-		return true;
-	}
-
-
-	@Override
 	public boolean o_IsInstanceOf (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aType)
 	{
 		// Bottom is an instance of every metatype except for itself.
@@ -545,8 +522,8 @@ extends AbstractUnionTypeDescriptor
 
 	@Override
 	public boolean o_IsInstanceOfKind (
-		final AvailObject object,
-		final AvailObject aType)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aType)
 	{
 		assert !aType.equals(bottom);
 		return aType.equals(TOP.o())
@@ -555,101 +532,14 @@ extends AbstractUnionTypeDescriptor
 	}
 
 	@Override
-	public boolean o_IsSupertypeOfFunctionType (
-		final AvailObject object,
-		final AvailObject aFunctionType)
-	{
-		return false;
-	}
-
-	@Override
-	public boolean o_IsSupertypeOfContainerType (
-		final AvailObject object,
-		final AvailObject aContainerType)
-	{
-		return false;
-	}
-
-	@Override
-	public boolean o_IsSupertypeOfContinuationType (
-		final AvailObject object,
-		final AvailObject aContinuationType)
-	{
-		return false;
-	}
-
-	@Override
-	public boolean o_IsSupertypeOfCompiledCodeType (
-		final AvailObject object,
-		final AvailObject aContinuationType)
-	{
-		return false;
-	}
-
-	@Override
-	public boolean o_IsSupertypeOfIntegerRangeType (
-		final AvailObject object,
-		final AvailObject anIntegerRangeType)
-	{
-		return false;
-	}
-
-	@Override
-	public boolean o_IsSupertypeOfMapType (
-		final AvailObject object,
-		final AvailObject aMapType)
-	{
-		return false;
-	}
-
-	@Override
-	public boolean o_IsSupertypeOfObjectType (
-		final AvailObject object,
-		final AvailObject aLazyObjectType)
-	{
-		return false;
-	}
-
-	@Override
-	public boolean o_IsSupertypeOfSetType (
-		final AvailObject object,
-		final AvailObject aSetType)
-	{
-		return false;
-	}
-
-	@Override
-	public boolean o_IsSupertypeOfTupleType (
-		final AvailObject object,
-		final AvailObject aTupleType)
-	{
-		return false;
-	}
-
-	@Override
-	public boolean o_IsSupertypeOfUnionMeta (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aTupleType)
-	{
-		return false;
-	}
-
-	@Override
-	public AvailObject o_MyType (final AvailObject object)
+	public AvailObject o_Name (final @NotNull AvailObject object)
 	{
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public AvailObject o_Name (final AvailObject object)
-	{
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public AvailObject o_Parent (final AvailObject object)
+	public AvailObject o_Parent (final @NotNull AvailObject object)
 	{
 		// TODO Auto-generated method stub
 		return null;
@@ -664,7 +554,7 @@ extends AbstractUnionTypeDescriptor
 
 	@Override
 	public AvailObject o_TypeIntersectionOfContinuationType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aContinuationType)
 	{
 		return object;
@@ -672,15 +562,23 @@ extends AbstractUnionTypeDescriptor
 
 	@Override
 	public AvailObject o_TypeIntersectionOfCompiledCodeType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aCompiledCodeType)
 	{
 		return object;
 	}
 
 	@Override
+	public AvailObject o_TypeIntersectionOfParseNodeType (
+		final @NotNull AvailObject object,
+		final AvailObject aParseNodeType)
+	{
+		return object;
+	}
+
+	@Override
 	public AvailObject o_TypeUnionOfContinuationType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aContinuationType)
 	{
 		return aContinuationType;
@@ -688,10 +586,18 @@ extends AbstractUnionTypeDescriptor
 
 	@Override
 	public AvailObject o_TypeUnionOfCompiledCodeType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aCompiledCodeType)
 	{
 		return aCompiledCodeType;
+	}
+
+	@Override
+	public AvailObject o_TypeUnionOfParseNodeType (
+		final @NotNull AvailObject object,
+		final AvailObject aParseNodeType)
+	{
+		return aParseNodeType;
 	}
 
 	/**
@@ -699,7 +605,7 @@ extends AbstractUnionTypeDescriptor
 	 */
 	@Override
 	public boolean o_AbstractUnionTypeIncludesInstance (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject potentialInstance)
 	{
 		return false;

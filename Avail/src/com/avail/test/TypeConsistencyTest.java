@@ -35,9 +35,10 @@ package com.avail.test;
 import static org.junit.Assert.*;
 import static com.avail.descriptor.TypeDescriptor.Types;
 import java.io.PrintStream;
-import java.lang.reflect.Type;
 import java.util.*;
 import org.junit.*;
+import com.avail.annotations.NotNull;
+import com.avail.compiler.node.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.*;
 
 
@@ -631,6 +632,113 @@ public class TypeConsistencyTest
 					BottomTypeDescriptor.bottom());
 			}
 		};
+
+		/**
+		 * A two tiered map from parse node kind to inner Node (or null) to
+		 * parse node type Node.  This is used to construct the lattice of
+		 * parse node type nodes incrementally.  A null indicates the inner
+		 * type should be {@link #BOTTOM}, even though it hasn't been defined
+		 * yet.
+		 */
+		static final Map<ParseNodeKind, Map<Node, Node>> parseNodeTypeMap =
+			new HashMap<ParseNodeKind, Map<Node, Node>>();
+
+		/**
+		 * Create a parse node type Node with the given name, parse node kind,
+		 * Node indicating the expressionType, and the array of Nodes that are
+		 * supertypes of the expressionType.  Passing null for the
+		 * expressionType causes {@linkplain BottomTypeDescriptor#bottom()
+		 * the bottom type} to be used.  We can't use the node {@link #BOTTOM}
+		 * because of circular dependency.
+		 *
+		 * @param nodeName
+		 *            A {@link String} naming this node for diagnostics.
+		 * @param parseNodeKind
+		 *            The {@linkplain ParseNodeKind kind} of parse node type.
+		 * @param innerNode
+		 *            The expressionType of the resulting parse node type, or
+		 *            null to indicate {@linkplain BottomTypeDescriptor#bottom()
+		 *            bottom}.
+		 * @param parentInnerNodes
+		 *            An array of parent nodes of the innerNode.
+		 */
+		static void addHelper (
+			final @NotNull String nodeName,
+			final @NotNull ParseNodeKind parseNodeKind,
+			final Node innerNode,
+			final @NotNull Node... parentInnerNodes)
+		{
+			final Map<Node, Node> submap;
+			if (parseNodeTypeMap.containsKey(parseNodeKind))
+			{
+				submap = parseNodeTypeMap.get(parseNodeKind);
+			}
+			else
+			{
+				submap = new HashMap<Node, Node>();
+				parseNodeTypeMap.put(parseNodeKind, submap);
+			}
+			final List<Node> parents = new ArrayList<Node>();
+			if (parseNodeKind.parentKind() == null)
+			{
+				parents.add(primitiveTypes.get(Types.ANY));
+			}
+			else
+			{
+				parents.add(parseNodeTypeMap.get(parseNodeKind.parentKind()).get(innerNode));
+			}
+			for (final Node parentInnerNode : parentInnerNodes)
+			{
+				parents.add(submap.get(parentInnerNode));
+			}
+			final Node newNode = new Node(
+				nodeName,
+				parents.toArray(new Node[parents.size()]))
+			{
+				@Override
+				AvailObject get ()
+				{
+					return parseNodeKind.create(
+						innerNode == null
+							? BottomTypeDescriptor.bottom()
+							: innerNode.t);
+				}
+			};
+			submap.put(innerNode, newNode);
+		}
+
+		static
+		{
+			// Include all parse node types.  Include a minimal diamond of types
+			// for each parse node kind.
+			final Node topNode = primitiveTypes.get(Types.TOP);
+			final Node atomNode = SOME_ATOM_TYPE;
+			final Node anotherAtomNode = ANOTHER_ATOM_TYPE;
+			for (final ParseNodeKind kind : ParseNodeKind.values())
+			{
+				addHelper(
+					kind.name() + "(TOP)",
+					kind,
+					topNode);
+				addHelper(
+					kind.name() + "(SOME_ATOM_TYPE)",
+					kind,
+					atomNode,
+					topNode);
+				addHelper(
+					kind.name() + "(ANOTHER_ATOM_TYPE)",
+					kind,
+					anotherAtomNode,
+					topNode);
+				addHelper(
+					kind.name() + "(BOTTOM)",
+					kind,
+					null,  // BOTTOM node is not available yet.
+					atomNode,
+					anotherAtomNode);
+			}
+		}
+
 
 		/**
 		 * The list of all {@link Node}s except BOTTOM.

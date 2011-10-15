@@ -36,8 +36,6 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
-import com.avail.descriptor.AtomWithPropertiesDescriptor.IntegerSlots;
-import com.avail.descriptor.AtomWithPropertiesDescriptor.ObjectSlots;
 
 /**
  * An {@code atom} is an object that has identity by fiat, i.e., it is
@@ -349,7 +347,7 @@ extends Descriptor
 	 */
 	@Override
 	public void o_SetAtomProperty (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject key,
 		final AvailObject value)
 	{

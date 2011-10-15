@@ -177,6 +177,11 @@ extends Descriptor
 		final @NotNull AvailObject aLazyObjectType);
 
 	@Override
+	public abstract boolean o_IsSupertypeOfParseNodeType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aParseNodeType);
+
+	@Override
 	public abstract boolean o_IsSupertypeOfPrimitiveType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aPrimitiveType);
@@ -219,10 +224,6 @@ extends Descriptor
 
 	@Override
 	public abstract boolean o_LowerInclusive (
-		final @NotNull AvailObject object);
-
-	@Override
-	public abstract @NotNull AvailObject o_MyType (
 		final @NotNull AvailObject object);
 
 	@Override
@@ -297,6 +298,11 @@ extends Descriptor
 		final @NotNull AvailObject anObjectType);
 
 	@Override
+	public abstract AvailObject o_TypeIntersectionOfParseNodeType (
+		final @NotNull AvailObject object,
+		final AvailObject aParseNodeType);
+
+	@Override
 	public abstract @NotNull AvailObject o_TypeIntersectionOfSetType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aSetType);
@@ -348,6 +354,11 @@ extends Descriptor
 	public abstract @NotNull AvailObject o_TypeUnionOfObjectType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anObjectType);
+
+	@Override
+	public abstract @NotNull AvailObject o_TypeUnionOfParseNodeType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aParseNodeType);
 
 	@Override
 	public abstract @NotNull AvailObject o_TypeUnionOfSetType (

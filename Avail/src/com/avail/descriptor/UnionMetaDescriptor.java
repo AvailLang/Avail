@@ -35,7 +35,6 @@ package com.avail.descriptor;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 import com.avail.annotations.NotNull;
-import com.avail.descriptor.PrimitiveTypeDescriptor.*;
 
 /**
  * My instances are called <em>instace union metatypes</em>, or just union

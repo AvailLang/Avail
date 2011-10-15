@@ -33,7 +33,8 @@
 package com.avail.compiler;
 
 import static com.avail.compiler.AbstractAvailCompiler.ExpectedToken.*;
-import static com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind.LOCAL_CONSTANT;
+import static com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind.*;
+import static com.avail.compiler.node.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.compiler.scanning.TokenDescriptor.TokenType.*;
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
@@ -975,7 +976,7 @@ public abstract class AbstractAvailCompiler
 				@Override
 				public AvailObject value (final AvailObject child)
 				{
-					assert child.isInstanceOfKind(PARSE_NODE.o());
+					assert child.isInstanceOfKind(PARSE_NODE.mostGeneralType());
 					return treeMapWithParent(
 						child,
 						aBlock,
@@ -1021,7 +1022,7 @@ public abstract class AbstractAvailCompiler
 				@Override
 				public void value (final AvailObject child)
 				{
-					assert child.isInstanceOfKind(PARSE_NODE.o());
+					assert child.isInstanceOfKind(PARSE_NODE.mostGeneralType());
 					treeDoWithParent(
 						child,
 						aBlock,
@@ -1416,7 +1417,7 @@ public abstract class AbstractAvailCompiler
 	 */
 	void evaluateModuleStatement (final @NotNull AvailObject expr)
 	{
-		if (!expr.isInstanceOfKind(DECLARATION_NODE.o()))
+		if (!expr.kind().parseNodeKindIsUnder(DECLARATION_NODE))
 		{
 			evaluate(expr);
 			return;

@@ -35,7 +35,6 @@ package com.avail.descriptor;
 import static java.lang.Math.min;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import com.avail.annotations.NotNull;
-import com.avail.interpreter.Primitive;
 
 /**
  * TODO: Document this type!

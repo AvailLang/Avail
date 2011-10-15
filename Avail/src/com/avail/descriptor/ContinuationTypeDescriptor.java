@@ -284,7 +284,11 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * @return
+	 * Answer the most general {@linkplain ContinuationTypeDescriptor
+	 * continuation type}.
+	 *
+	 * @return A {@linkplain ContinuationTypeDescriptor continuation type} which
+	 *         has no supertypes that are themselves continuation types.
 	 */
 	public static AvailObject mostGeneralType ()
 	{

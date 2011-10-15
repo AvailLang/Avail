@@ -37,7 +37,11 @@ import java.util.List;
 import com.avail.annotations.NotNull;
 
 /**
- * TODO: Document this type!
+ * A {@linkplain CompiledCodeTypeDescriptor compiled code type} is the type for
+ * a {@linkplain CompiledCodeDescriptor compiled code object}.  It contains a
+ * {@linkplain FunctionTypeDescriptor function type} with which it covaries.
+ * That is, a compiled code type is a subtype of another if and only if the
+ * first's related function type is a subtype of another's function type.
  *
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
@@ -233,7 +237,11 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * @return
+	 * Answer the most general {@linkplain CompiledCodeTypeDescriptor compiled
+	 * code type}.
+	 *
+	 * @return A {@linkplain CompiledCodeTypeDescriptor compiled code type}
+	 *         which has no supertypes that are themselves compiled code types.
 	 */
 	public static AvailObject mostGeneralType ()
 	{

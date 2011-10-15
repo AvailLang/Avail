@@ -37,6 +37,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.interpreter.Primitive.Result.CONTINUATION_CHANGED;
+import static com.avail.compiler.node.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static java.lang.Math.*;
 import java.io.*;
 import java.nio.ByteOrder;
@@ -5740,7 +5741,7 @@ public enum Primitive
 			final AvailObject tupleType = blockType.argsTupleType();
 			for (int i = block.code().numArgs(); i >= 1; i--)
 			{
-				if (!tupleType.typeAtIndex(i).isSubtypeOf(PARSE_NODE.o()))
+				if (!tupleType.typeAtIndex(i).parseNodeKindIsUnder(PARSE_NODE))
 				{
 					return interpreter.primitiveFailure(
 						E_MACRO_ARGUMENT_MUST_BE_A_PARSE_NODE);
@@ -5768,7 +5769,8 @@ public enum Primitive
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType(),
-					FunctionTypeDescriptor.forReturnType(PARSE_NODE.o())),
+					FunctionTypeDescriptor.forReturnType(
+						PARSE_NODE.mostGeneralType())),
 				TOP.o());
 		}
 	},
@@ -7515,8 +7517,8 @@ public enum Primitive
 			final AvailObject expression = args.get(1);
 			final AvailObject declarationType =
 				variable.declaration().kind();
-			if (!declarationType.equals(MODULE_VARIABLE_NODE.o())
-				&& !declarationType.equals(LOCAL_VARIABLE_NODE.o()))
+			if (!declarationType.parseNodeKindIsUnder(MODULE_VARIABLE_NODE)
+				&& !declarationType.parseNodeKindIsUnder(LOCAL_VARIABLE_NODE))
 			{
 				return interpreter.primitiveFailure(
 					E_DECLARATION_KIND_DOES_NOT_SUPPORT_ASSIGNMENT);
@@ -7539,9 +7541,9 @@ public enum Primitive
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					VARIABLE_USE_NODE.o(),
-					PARSE_NODE.o()),
-				ASSIGNMENT_NODE.o());
+					VARIABLE_USE_NODE.mostGeneralType(),
+					PARSE_NODE.mostGeneralType()),
+				ASSIGNMENT_NODE.mostGeneralType());
 		}
 	},
 
@@ -7566,7 +7568,7 @@ public enum Primitive
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					PARSE_NODE.o()),
+					PARSE_NODE.mostGeneralType()),
 				TYPE.o());
 		}
 	},
@@ -7600,8 +7602,16 @@ public enum Primitive
 	/**
 	 * <strong>Primitive 353:</strong> Transform a variable reference and an
 	 * expression into an {@linkplain AssignmentNodeDescriptor assignment}
-	 * statement. Such a node has type {@link TypeDescriptor.Types#TOP void} and
+	 * statement. Such a node has type {@link TypeDescriptor.Types#TOP top} and
 	 * cannot be embedded as a subexpression.
+	 *
+	 * <p>
+	 * Note that because we can have "inner" assignment nodes (i.e., assignments
+	 * used as subexpressions), we actually produce a {@linkplain
+	 * SequenceNodeDescriptor sequence node} here, consisting of the assignment
+	 * node proper (whose output is effectively discarded) and a literal
+	 * {@linkplain NullDescriptor#nullObject() null value}.
+	 * </p>
 	 */
 	prim353_MacroAssignmentStatement(353, 2, CanFold)
 	{
@@ -7615,8 +7625,8 @@ public enum Primitive
 			final AvailObject expression = args.get(1);
 			final AvailObject declarationType =
 				variable.declaration().kind();
-			if (!declarationType.equals(MODULE_VARIABLE_NODE.o())
-				&& !declarationType.equals(LOCAL_VARIABLE_NODE.o()))
+			if (!declarationType.parseNodeKindIsUnder(MODULE_VARIABLE_NODE)
+				&& !declarationType.parseNodeKindIsUnder(LOCAL_VARIABLE_NODE))
 			{
 				return interpreter.primitiveFailure(
 					E_DECLARATION_KIND_DOES_NOT_SUPPORT_ASSIGNMENT);
@@ -7634,9 +7644,10 @@ public enum Primitive
 			final List<AvailObject> statementsList =
 				new ArrayList<AvailObject>(2);
 			statementsList.add(assignment);
+			//TODO [MvG] Make the literal node a constant of LiteralTokenDescriptor.
 			final AvailObject token = LiteralTokenDescriptor.mutable().create();
 			token.tokenType(TokenType.LITERAL);
-			token.string(ByteStringDescriptor.from("TopAfterAssignment"));
+			token.string(ByteStringDescriptor.from("NullAfterAssignment"));
 			token.start(0);
 			token.lineNumber(0);
 			token.literal(NullDescriptor.nullObject());
@@ -7653,9 +7664,9 @@ public enum Primitive
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					VARIABLE_USE_NODE.o(),
-					PARSE_NODE.o()),
-				PARSE_NODE.o());
+					VARIABLE_USE_NODE.mostGeneralType(),
+					PARSE_NODE.mostGeneralType()),
+				SEQUENCE_NODE.mostGeneralType());
 		}
 	},
 
@@ -7678,8 +7689,8 @@ public enum Primitive
 			final AvailObject declaration = variable.declaration();
 			assert declaration != null;
 			final AvailObject declarationType = declaration.kind();
-			if (!declarationType.equals(MODULE_VARIABLE_NODE.o())
-				&& !declarationType.equals(LOCAL_VARIABLE_NODE.o()))
+			if (!declarationType.parseNodeKindIsUnder(MODULE_VARIABLE_NODE)
+				&& !declarationType.parseNodeKindIsUnder(LOCAL_VARIABLE_NODE))
 			{
 				return interpreter.primitiveFailure(
 					E_DECLARATION_KIND_DOES_NOT_SUPPORT_REFERENCE);
@@ -7695,8 +7706,46 @@ public enum Primitive
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					VARIABLE_USE_NODE.o()),
-				REFERENCE_NODE.o());
+					VARIABLE_USE_NODE.mostGeneralType()),
+				REFERENCE_NODE.create(
+					ContainerTypeDescriptor.mostGeneralType()));
+		}
+	},
+
+	/**
+	 * <strong>Primitive 355:</strong> Create a variation of a {@linkplain
+	 * ParseNodeTypeDescriptor parse node type}.  In particular, create a parse
+	 * node type of the same {@linkplain ParseNodeTypeDescriptor.ParseNodeKind
+	 * kind} but with the specified expression type.
+	 *
+	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+	 */
+	prim355_CreateParseNodeType(355, 2, CanFold, CannotFail)
+	{
+		@Override
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
+		{
+			assert args.size() == 2;
+			final AvailObject baseType = args.get(0);
+			final AvailObject expressionType = args.get(1);
+			if (baseType.equals(BottomTypeDescriptor.bottom()))
+			{
+				return interpreter.primitiveSuccess(baseType);
+			}
+			return interpreter.primitiveSuccess(
+				baseType.parseNodeKind().create(expressionType));
+		}
+
+		@Override
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
+		{
+			return FunctionTypeDescriptor.create(
+				TupleDescriptor.from(
+					InstanceTypeDescriptor.on(PARSE_NODE.mostGeneralType()),
+					TYPE.o()),
+				InstanceTypeDescriptor.on(PARSE_NODE.mostGeneralType()));
 		}
 	},
 
@@ -7939,9 +7988,9 @@ public enum Primitive
 
 	/**
 	 * A {@linkplain TypeDescriptor type} to constrain the {@linkplain
-	 * ContainerTypeDescriptor#o_InnerType(AvailObject) inner type} of the
+	 * ContainerTypeDescriptor#o_WriteType(AvailObject) content type} of the
 	 * variable declaration within the primitive declaration of a block.  The
-	 * actual variable must be this type or a supertype.
+	 * actual variable's inner type must this or a supertype.
 	 */
 	private AvailObject cachedFailureVariableType;
 

@@ -34,7 +34,7 @@ package com.avail.compiler.scanning;
 
 import static com.avail.descriptor.AvailObject.Multiplier;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
-import com.avail.annotations.EnumField;
+import com.avail.annotations.*;
 import com.avail.descriptor.*;
 
 
@@ -92,7 +92,7 @@ extends Descriptor
 	 */
 	@Override
 	public void o_String (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.STRING, value);
@@ -103,7 +103,7 @@ extends Descriptor
 	 */
 	@Override
 	public AvailObject o_String (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.STRING);
 	}
@@ -113,7 +113,7 @@ extends Descriptor
 	 */
 	@Override
 	public void o_Start (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int value)
 	{
 		object.integerSlotPut(IntegerSlots.START, value);
@@ -124,7 +124,7 @@ extends Descriptor
 	 */
 	@Override
 	public int o_Start (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.START);
 	}
@@ -134,7 +134,7 @@ extends Descriptor
 	 */
 	@Override
 	public void o_LineNumber (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int value)
 	{
 		object.integerSlotPut(IntegerSlots.LINE_NUMBER, value);
@@ -145,7 +145,7 @@ extends Descriptor
 	 */
 	@Override
 	public int o_LineNumber (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.LINE_NUMBER);
 	}
@@ -155,7 +155,7 @@ extends Descriptor
 	 */
 	@Override
 	public void o_TokenType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final TokenDescriptor.TokenType value)
 	{
 		object.integerSlotPut(IntegerSlots.TOKEN_TYPE_CODE, value.ordinal());
@@ -166,7 +166,7 @@ extends Descriptor
 	 */
 	@Override
 	public TokenDescriptor.TokenType o_TokenType (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		final int index = object.integerSlot(IntegerSlots.TOKEN_TYPE_CODE);
 		return TokenDescriptor.TokenType.values()[index];
@@ -190,7 +190,7 @@ extends Descriptor
 
 	@Override
 	public boolean o_Equals (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject another)
 	{
 		return object.kind().equals(another.kind())

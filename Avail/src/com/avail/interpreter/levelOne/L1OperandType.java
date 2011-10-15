@@ -32,10 +32,24 @@
 
 package com.avail.interpreter.levelOne;
 
+import com.avail.descriptor.*;
 
 
-enum L1OperandType
+
+/**
+ * An {@link L1Instruction} consists of an {@link L1Operation} and its
+ * operands, each implicitly described by the operation's {@link
+ * L1OperandType}s  These operand types say how to interpret some integer that
+ * occurs as the encoding of an actual operand of an instruction.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
+public enum L1OperandType
 {
+	/**
+	 * The integer in the nybblecode stream is to be treated as itself, a simple
+	 * integer.
+	 */
 	IMMEDIATE()
 	{
 		@Override
@@ -44,6 +58,12 @@ enum L1OperandType
 			dispatcher.doImmediate();
 		}
 	},
+	/**
+	 * The integer in the nybblecode stream is to be treated as an index into
+	 * the current {@linkplain CompiledCodeDescriptor compiled code} object's
+	 * {@linkplain CompiledCodeDescriptor.ObjectSlots#LITERAL_AT_ literals}.
+	 * This allows instructions to refer to arbitrary {@linkplain AvailObject}s.
+	 */
 	LITERAL()
 	{
 		@Override
@@ -52,6 +72,11 @@ enum L1OperandType
 			dispatcher.doLiteral();
 		}
 	},
+	/**
+	 * The integer in the nybblecode stream is to be treated as an index into
+	 * the arguments and local variables of the continuation.  The arguments
+	 * come first, numbered from 1, then the local variables.
+	 */
 	LOCAL()
 	{
 		@Override
@@ -60,6 +85,11 @@ enum L1OperandType
 			dispatcher.doLocal();
 		}
 	},
+	/**
+	 * The integer in the nybblecode stream is to be treated as an index into
+	 * the current {@linkplain FunctionDescriptor function}'s captured outer
+	 * variables.
+	 */
 	OUTER()
 	{
 		@Override
@@ -68,6 +98,11 @@ enum L1OperandType
 			dispatcher.doOuter();
 		}
 	},
+	/**
+	 * The next nybble from the nybblecode stream is to be treated as an
+	 * extended nybblecode.  For some purposes it can be treated as though the
+	 * value 16 has been added to it, bringing it into the range 16..31.
+	 */
 	EXTENSION()
 	{
 		@Override
@@ -77,6 +112,17 @@ enum L1OperandType
 		}
 	};
 
+	/**
+	 * Invoke an operation on the {@link L1OperandTypeDispatcher} which is
+	 * specific to which {@link L1OperandType} the receiver is.  Subclasses of
+	 * {@code L1OperandTypeDispatcher} will perform something suitable for that
+	 * subclass, perhaps consuming and interpreting an operand from a nybblecode
+	 * stream.
+	 *
+	 * @param dispatcher
+	 *            The {@link L1OperandTypeDispatcher} on which to invoke a
+	 *            method specific to this operand type.
+	 */
 	abstract void dispatch(L1OperandTypeDispatcher dispatcher);
 
 }

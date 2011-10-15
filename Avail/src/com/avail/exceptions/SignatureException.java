@@ -33,7 +33,6 @@
 package com.avail.exceptions;
 
 import com.avail.annotations.NotNull;
-import com.avail.descriptor.*;
 
 /**
  * An {@code SignatureException} is thrown when an attempt is

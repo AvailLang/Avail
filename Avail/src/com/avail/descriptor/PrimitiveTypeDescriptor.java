@@ -97,13 +97,6 @@ extends TypeDescriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_MyType (
-		final @NotNull AvailObject object)
-	{
-		return object.objectSlot(ObjectSlots.MY_TYPE);
-	}
-
-	@Override
 	public @NotNull AvailObject o_Name (
 		final @NotNull AvailObject object)
 	{
@@ -229,17 +222,33 @@ extends TypeDescriptor
 	}
 
 	@Override
+	public boolean o_IsSupertypeOfParseNodeType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aParseNodeType)
+	{
+		return ANY.o().isSubtypeOf(object);
+	}
+
+	@Override
 	public boolean o_IsSupertypeOfPrimitiveType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aPrimitiveType)
 	{
-		//  Check if object (a primitive type) is a supertype of aPrimitiveType (also a primitive type).
-
-		if (object.equals(aPrimitiveType))
+		// Check if object (a primitive type) is a supertype of aPrimitiveType
+		// (also a primitive type).
+		AvailObject type = aPrimitiveType;
+		while (true)
 		{
-			return true;
+			if (object.equals(type))
+			{
+				return true;
+			}
+			type = type.parent();
+			if (type.equalsNull())
+			{
+				return false;
+			}
 		}
-		return aPrimitiveType.parent().isSubtypeOf(object);
 	}
 
 	@Override
@@ -266,7 +275,7 @@ extends TypeDescriptor
 
 	@Override
 	public boolean o_IsSupertypeOfUnionMeta (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aUnionMeta)
 	{
 		if (aUnionMeta.innerKind().isSubtypeOf(TYPE.o()))
@@ -316,14 +325,36 @@ extends TypeDescriptor
 			assert !another.equals(BottomTypeDescriptor.bottom());
 			return another.computeSuperkind().typeUnion(object);
 		}
-		return object.parent().typeUnion(another);
+		return object.objectSlot(ObjectSlots.PARENT).typeUnion(another);
 	}
 
 	@Override
 	public @NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
-		return object.myType();
+		return object.objectSlot(ObjectSlots.MY_TYPE);
+	}
+
+	/**
+	 * Create a partially-initialized primitive type with the given name.  The
+	 * type's parent and the type's myType will be set later, to allow circular
+	 * constructions.  Set these fields to the {@linkplain NullDescriptor null
+	 * object} to ensure pointer safety.
+	 *
+	 * @param typeNameString
+	 *            The name to give the object being initialized.
+	 * @return    The partially initialized type.
+	 */
+	AvailObject createPrimitiveObjectNamed (
+		final String typeNameString)
+	{
+		final AvailObject name = ByteStringDescriptor.from(typeNameString);
+		final AvailObject object = create();
+		object.objectSlotPut(ObjectSlots.NAME, name);
+		object.objectSlotPut(ObjectSlots.PARENT, NullDescriptor.nullObject());
+		object.objectSlotPut(ObjectSlots.MY_TYPE, NullDescriptor.nullObject());
+		object.integerSlotPut(IntegerSlots.HASH, typeNameString.hashCode());
+		return object;
 	}
 
 	/**

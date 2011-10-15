@@ -33,8 +33,9 @@
 package com.avail.compiler.node;
 
 import static com.avail.descriptor.AvailObject.Multiplier;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.compiler.node.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import java.util.List;
+import com.avail.annotations.NotNull;
 import com.avail.compiler.*;
 import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.L2Interpreter;
@@ -79,7 +80,7 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override
 	public void o_Arguments (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject arguments)
 	{
 		object.objectSlotPut(ObjectSlots.ARGUMENTS, arguments);
@@ -90,7 +91,7 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override
 	public AvailObject o_Arguments (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.ARGUMENTS);
 	}
@@ -101,7 +102,7 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override
 	public void o_ImplementationSet (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject implementationSet)
 	{
 		object.objectSlotPut(ObjectSlots.IMPLEMENTATION_SET, implementationSet);
@@ -112,7 +113,7 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override
 	public AvailObject o_ImplementationSet (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.IMPLEMENTATION_SET);
 	}
@@ -123,7 +124,7 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override
 	public void o_ReturnType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject returnType)
 	{
 		object.objectSlotPut(ObjectSlots.RETURN_TYPE, returnType);
@@ -134,7 +135,7 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override
 	public AvailObject o_ReturnType (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.RETURN_TYPE);
 	}
@@ -149,7 +150,7 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 	@Override
 	public AvailObject o_Kind (final AvailObject object)
 	{
-		return SEND_NODE.o();
+		return SEND_NODE.create(object.expressionType());
 	}
 
 	@Override
@@ -164,7 +165,7 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 
 	@Override
 	public boolean o_Equals (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject another)
 	{
 		return object.kind().equals(another.kind())
@@ -181,7 +182,7 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 
 	@Override
 	public void o_EmitValueOn (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
 		boolean anyCasts;
@@ -190,7 +191,7 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 		for (final AvailObject argNode : arguments)
 		{
 			argNode.emitValueOn(codeGenerator);
-			if (argNode.isInstanceOfKind(SUPER_CAST_NODE.o()))
+			if (argNode.kind().parseNodeKindIsUnder(SUPER_CAST_NODE))
 			{
 				anyCasts = true;
 			}
@@ -201,7 +202,7 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 		{
 			for (final AvailObject argNode : arguments)
 			{
-				if (argNode.isInstanceOfKind(SUPER_CAST_NODE.o()))
+				if (argNode.kind().parseNodeKindIsUnder(SUPER_CAST_NODE))
 				{
 					codeGenerator.emitPushLiteral(argNode.expressionType());
 				}
@@ -228,7 +229,7 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 
 	@Override
 	public void o_ChildrenMap (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final Transformer1<AvailObject, AvailObject> aBlock)
 	{
 		AvailObject arguments = object.arguments();
@@ -244,7 +245,7 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 
 	@Override
 	public void o_ChildrenDo (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final Continuation1<AvailObject> aBlock)
 	{
 		for (final AvailObject argument : object.arguments())
@@ -255,7 +256,7 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 
 	@Override
 	public void o_ValidateLocally (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject parent,
 		final List<AvailObject> outerBlocks,
 		final L2Interpreter anAvailInterpreter)
@@ -272,7 +273,7 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final StringBuilder builder,
 		final List<AvailObject> recursionList,
 		final int indent)

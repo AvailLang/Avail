@@ -33,6 +33,7 @@
 package com.avail;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.compiler.node.ParseNodeTypeDescriptor.ParseNodeKind;
 import java.beans.MethodDescriptor;
 import java.io.RandomAccessFile;
 import java.util.*;
@@ -40,7 +41,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import com.avail.annotations.*;
 import com.avail.compiler.*;
 import com.avail.descriptor.*;
-import com.avail.interpreter.Primitive;
 
 /**
  * An {@code AvailRuntime} comprises the {@linkplain ModuleDescriptor
@@ -167,24 +167,24 @@ public final class AvailRuntime
 		specialObjects[46] = IMPLEMENTATION_SET.o();
 
 		// Parse nodes types
-		specialObjects[50] = PARSE_NODE.o();
-		specialObjects[51] = MARKER_NODE.o();
-		specialObjects[52] = EXPRESSION_NODE.o();
-		specialObjects[53] = ASSIGNMENT_NODE.o();
-		specialObjects[54] = BLOCK_NODE.o();
-		specialObjects[55] = LITERAL_NODE.o();
-		specialObjects[56] = REFERENCE_NODE.o();
-		specialObjects[57] = SEND_NODE.o();
-		specialObjects[58] = SUPER_CAST_NODE.o();
-		specialObjects[59] = TUPLE_NODE.o();
-		specialObjects[60] = VARIABLE_USE_NODE.o();
-		specialObjects[61] = DECLARATION_NODE.o();
-		specialObjects[62] = ARGUMENT_NODE.o();
-		specialObjects[63] = LABEL_NODE.o();
-		specialObjects[64] = LOCAL_VARIABLE_NODE.o();
-		specialObjects[65] = LOCAL_CONSTANT_NODE.o();
-		specialObjects[66] = MODULE_VARIABLE_NODE.o();
-		specialObjects[67] = MODULE_CONSTANT_NODE.o();
+		specialObjects[50] = ParseNodeKind.PARSE_NODE.mostGeneralType();
+		specialObjects[51] = ParseNodeKind.MARKER_NODE.mostGeneralType();
+		specialObjects[52] = ParseNodeKind.EXPRESSION_NODE.mostGeneralType();
+		specialObjects[53] = ParseNodeKind.ASSIGNMENT_NODE.mostGeneralType();
+		specialObjects[54] = ParseNodeKind.BLOCK_NODE.mostGeneralType();
+		specialObjects[55] = ParseNodeKind.LITERAL_NODE.mostGeneralType();
+		specialObjects[56] = ParseNodeKind.REFERENCE_NODE.mostGeneralType();
+		specialObjects[57] = ParseNodeKind.SEND_NODE.mostGeneralType();
+		specialObjects[58] = ParseNodeKind.SUPER_CAST_NODE.mostGeneralType();
+		specialObjects[59] = ParseNodeKind.TUPLE_NODE.mostGeneralType();
+		specialObjects[60] = ParseNodeKind.VARIABLE_USE_NODE.mostGeneralType();
+		specialObjects[61] = ParseNodeKind.DECLARATION_NODE.mostGeneralType();
+		specialObjects[62] = ParseNodeKind.ARGUMENT_NODE.mostGeneralType();
+		specialObjects[63] = ParseNodeKind.LABEL_NODE.mostGeneralType();
+		specialObjects[64] = ParseNodeKind.LOCAL_VARIABLE_NODE.mostGeneralType();
+		specialObjects[65] = ParseNodeKind.LOCAL_CONSTANT_NODE.mostGeneralType();
+		specialObjects[66] = ParseNodeKind.MODULE_VARIABLE_NODE.mostGeneralType();
+		specialObjects[67] = ParseNodeKind.MODULE_CONSTANT_NODE.mostGeneralType();
 
 		// Booleans
 		specialObjects[70] = AtomDescriptor.trueObject();

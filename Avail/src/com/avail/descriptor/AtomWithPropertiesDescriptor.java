@@ -32,10 +32,7 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import java.util.*;
 import com.avail.annotations.*;
-import com.avail.descriptor.AtomDescriptor.*;
 
 /**
  * An {@code atom} is an object that has identity by fiat, i.e., it is

@@ -85,7 +85,7 @@ extends Descriptor
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final StringBuilder aStream,
 		final List<AvailObject> recursionList,
 		final int indent)
@@ -135,7 +135,7 @@ extends Descriptor
 
 	@Override
 	public boolean o_EqualsAnyTuple (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aTuple)
 	{
 		// Compare this arbitrary Tuple and the given arbitrary tuple.
@@ -177,7 +177,7 @@ extends Descriptor
 
 	@Override
 	public boolean o_EqualsByteString (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aByteString)
 	{
 		// Default to generic tuple comparison.
@@ -187,7 +187,7 @@ extends Descriptor
 
 	@Override
 	public boolean o_EqualsByteTuple (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aTuple)
 	{
 		// Default to generic tuple comparison.
@@ -197,7 +197,7 @@ extends Descriptor
 
 	@Override
 	public boolean o_EqualsNybbleTuple (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aTuple)
 	{
 		// Default to generic comparison.
@@ -207,7 +207,7 @@ extends Descriptor
 
 	@Override
 	public boolean o_EqualsObjectTuple (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aTuple)
 	{
 		// Default to generic comparison.
@@ -217,7 +217,7 @@ extends Descriptor
 
 	@Override
 	public boolean o_EqualsTwoByteString (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aTwoByteString)
 	{
 		// Default to generic tuple comparison.
@@ -227,7 +227,7 @@ extends Descriptor
 
 	@Override
 	public boolean o_IsBetterRepresentationThan (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject anotherObject)
 	{
 		// Given two objects that are known to be equal, is the first one in a
@@ -239,7 +239,7 @@ extends Descriptor
 
 	@Override
 	public boolean o_IsInstanceOfKind (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aTypeObject)
 	{
 		// Answer whether object is an instance of a subtype of aTypeObject.
@@ -328,7 +328,7 @@ extends Descriptor
 
 	@Override
 	public boolean o_CompareFromToWithStartingAt (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
 		final AvailObject anotherObject,
@@ -342,7 +342,7 @@ extends Descriptor
 
 	@Override
 	public boolean o_CompareFromToWithAnyTupleStartingAt (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
 		final AvailObject aTuple,
@@ -364,7 +364,7 @@ extends Descriptor
 
 	@Override
 	public boolean o_CompareFromToWithByteStringStartingAt (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
 		final AvailObject aByteString,
@@ -382,7 +382,7 @@ extends Descriptor
 
 	@Override
 	public boolean o_CompareFromToWithByteTupleStartingAt (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
 		final AvailObject aByteTuple,
@@ -400,7 +400,7 @@ extends Descriptor
 
 	@Override
 	public boolean o_CompareFromToWithNybbleTupleStartingAt (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
 		final AvailObject aNybbleTuple,
@@ -418,7 +418,7 @@ extends Descriptor
 
 	@Override
 	public boolean o_CompareFromToWithObjectTupleStartingAt (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
 		final AvailObject anObjectTuple,
@@ -436,7 +436,7 @@ extends Descriptor
 
 	@Override
 	public boolean o_CompareFromToWithTwoByteStringStartingAt (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
 		final AvailObject aTwoByteString,
@@ -454,7 +454,7 @@ extends Descriptor
 
 	@Override
 	public @NotNull AvailObject o_ConcatenateTuplesCanDestroy (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final boolean canDestroy)
 	{
 		// Take a tuple of tuples and answer one big tuple constructed by
@@ -549,7 +549,7 @@ extends Descriptor
 
 	@Override
 	public @NotNull AvailObject o_CopyTupleFromToCanDestroy (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int start,
 		final int end,
 		final boolean canDestroy)
@@ -599,7 +599,7 @@ extends Descriptor
 
 	@Override
 	public byte o_ExtractNybbleFromTupleAt (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int index)
 	{
 		// Get the element at the given index in the tuple object, and extract a
@@ -617,7 +617,7 @@ extends Descriptor
 
 	@Override
 	public int o_HashFromTo (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int startIndex,
 		final int endIndex)
 	{
@@ -643,7 +643,7 @@ extends Descriptor
 
 	@Override
 	public @NotNull AvailObject o_TupleAtPuttingCanDestroy (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int index,
 		final AvailObject newValueObject,
 		final boolean canDestroy)
@@ -749,7 +749,7 @@ extends Descriptor
 
 	@Override
 	public int o_ComputeHashFromTo (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final int start,
 		final int end)
 	{
@@ -778,7 +778,7 @@ extends Descriptor
 
 	@Override
 	public String o_AsNativeString (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		// Only applicable to tuples that contain characters.
 
@@ -796,7 +796,7 @@ extends Descriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_CopyAsMutableObjectTuple (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		final int size = object.tupleSize();
 		final AvailObject result = ObjectTupleDescriptor.mutable().create(size);

@@ -295,7 +295,7 @@ extends Descriptor
 	 */
 	@Override
 	public @NotNull AvailObject o_IncludeBundle (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject newBundle)
 	{
 		final AvailObject allBundles = object.allBundles();

@@ -33,6 +33,7 @@
 package com.avail.compiler.node;
 
 import static com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind.*;
+import static com.avail.compiler.node.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.AvailObject.Multiplier;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
@@ -107,7 +108,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override
 	public AvailObject o_ArgumentsTuple (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.ARGUMENTS_TUPLE);
 	}
@@ -117,7 +118,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override
 	public AvailObject o_StatementsTuple (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.STATEMENTS_TUPLE);
 	}
@@ -127,7 +128,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override
 	public AvailObject o_ResultType (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.RESULT_TYPE);
 	}
@@ -137,7 +138,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override
 	public void o_NeededVariables (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject neededVariables)
 	{
 		object.objectSlotPut(ObjectSlots.NEEDED_VARIABLES, neededVariables);
@@ -148,7 +149,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override
 	public AvailObject o_NeededVariables (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.NEEDED_VARIABLES);
 	}
@@ -169,7 +170,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override
 	public int o_Primitive (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.PRIMITIVE);
 	}
@@ -186,7 +187,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	@Override
 	public AvailObject o_Kind (final AvailObject object)
 	{
-		return BLOCK_NODE.o();
+		return BLOCK_NODE.create(object.expressionType());
 	}
 
 
@@ -210,7 +211,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override
 	public void o_EmitEffectOn (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
 		return;
@@ -218,7 +219,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 
 	@Override
 	public void o_EmitValueOn (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
 		final AvailCodeGenerator newGenerator = new AvailCodeGenerator();
@@ -253,7 +254,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 
 	@Override
 	public boolean o_Equals (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject another)
 	{
 		return object.kind().equals(another.kind())
@@ -274,7 +275,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	 * @return The list of declarations.
 	 */
 	private static List<AvailObject> allLocallyDefinedVariables (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		final List<AvailObject> declarations = new ArrayList<AvailObject>(10);
 		for (final AvailObject argumentDeclaration : object.argumentsTuple())
@@ -299,7 +300,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 		final List<AvailObject> labels = new ArrayList<AvailObject>(1);
 		for (final AvailObject maybeLabel : object.statementsTuple())
 		{
-			if (maybeLabel.isInstanceOfKind(LABEL_NODE.o()))
+			if (maybeLabel.kind().parseNodeKindIsUnder(LABEL_NODE))
 			{
 				labels.add(maybeLabel);
 			}
@@ -320,8 +321,8 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 		final List<AvailObject> locals = new ArrayList<AvailObject>(5);
 		for (final AvailObject maybeLocal : object.statementsTuple())
 		{
-			if (maybeLocal.isInstanceOfKind(DECLARATION_NODE.o())
-				&& !maybeLocal.isInstanceOfKind(LABEL_NODE.o()))
+			if (maybeLocal.kind().parseNodeKindIsUnder(DECLARATION_NODE)
+				&& !maybeLocal.kind().parseNodeKindIsUnder(LABEL_NODE))
 			{
 				locals.add(maybeLocal);
 			}
@@ -332,7 +333,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 
 	@Override
 	public void o_ChildrenMap (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final Transformer1<AvailObject, AvailObject> aBlock)
 	{
 		AvailObject arguments = object.argumentsTuple();
@@ -358,7 +359,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 
 	@Override
 	public void o_ChildrenDo (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final Continuation1<AvailObject> aBlock)
 	{
 		for (final AvailObject argument : object.argumentsTuple())
@@ -374,7 +375,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 
 	@Override
 	public void o_ValidateLocally (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject parent,
 		final List<AvailObject> outerBlocks,
 		final L2Interpreter anAvailInterpreter)
@@ -398,7 +399,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override
 	public AvailObject o_Generate (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
 		codeGenerator.startBlock(
@@ -427,9 +428,9 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 			final AvailObject lastStatement =
 				statementsTuple.tupleAt(statementsCount);
 			final AvailObject lastStatementType = lastStatement.kind();
-			if (lastStatementType.isSubtypeOf(LABEL_NODE.o())
-				|| lastStatementType.isSubtypeOf(ASSIGNMENT_NODE.o())
-						&& object.resultType().equals(TOP.o()))
+			if (lastStatementType.parseNodeKindIsUnder(LABEL_NODE)
+				|| (lastStatementType.parseNodeKindIsUnder(ASSIGNMENT_NODE)
+					&& object.resultType().equals(TOP.o())))
 			{
 				// Either the block 1) ends with the label declaration or
 				// 2) is top-valued and ends with an assignment. Push the top
@@ -484,7 +485,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 		for (int index = flattenedStatements.size() - 2; index >= 0; index--)
 		{
 			final AvailObject statement = flattenedStatements.get(index);
-			if (statement.isInstanceOfKind(LITERAL_NODE.o()))
+			if (statement.kind().parseNodeKindIsUnder(LITERAL_NODE))
 			{
 				flattenedStatements.remove(index);
 			}
@@ -520,7 +521,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	 * @param object The current {@linkplain BlockNodeDescriptor block node}.
 	 */
 	private void collectNeededVariablesOfOuterBlocks (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		final Set<AvailObject> neededDeclarations = new HashSet<AvailObject>();
 		final Set<AvailObject> providedByMe = new HashSet<AvailObject>();
@@ -530,9 +531,9 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 			@Override
 			public void value (final AvailObject node)
 			{
-				assert !node.isInstanceOfKind(SEQUENCE_NODE.o())
+				assert !node.kind().parseNodeKindIsUnder(SEQUENCE_NODE)
 				: "Sequence nodes should have been eliminated by this point";
-				if (node.kind().equals(BLOCK_NODE.o()))
+				if (node.kind().parseNodeKindIsUnder(BLOCK_NODE))
 				{
 					for (final AvailObject declaration : node.neededVariables())
 					{
@@ -544,7 +545,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 					return;
 				}
 				node.childrenDo(this);
-				if (node.kind().equals(VARIABLE_USE_NODE.o()))
+				if (node.kind().parseNodeKindIsUnder(VARIABLE_USE_NODE))
 				{
 					final AvailObject declaration = node.declaration();
 					if (!providedByMe.contains(declaration)
@@ -563,7 +564,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final StringBuilder builder,
 		final List<AvailObject> recursionList,
 		final int indent)

@@ -1,6 +1,7 @@
 /**
- * descriptor/UnionTypeDescriptor.java Copyright (c) 2011, Mark van Gulik. All
- * rights reserved.
+ * descriptor/UnionTypeDescriptor.java
+ * Copyright (c) 2011, Mark van Gulik.
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -199,7 +200,7 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 
 	@Override
 	public boolean o_EqualsUnionTypeWithSet (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aSet)
 	{
 		return getInstances(object).equals(aSet);
@@ -366,7 +367,7 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 
 	@Override
 	public boolean o_AbstractUnionTypeIncludesInstance (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject potentialInstance)
 	{
 		if (object.instances().hasElement(potentialInstance))
@@ -507,7 +508,7 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 
 	@Override
 	public boolean o_AcceptsArgTypesFromFunctionType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject functionType)
 	{
 		return getSuperkind(object).acceptsArgTypesFromFunctionType(functionType);
@@ -515,7 +516,7 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 
 	@Override
 	public boolean o_AcceptsArgumentTypesFromContinuation (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject continuation,
 		final int stackp,
 		final int numArgs)
@@ -528,7 +529,7 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 
 	@Override
 	public boolean o_AcceptsListOfArgTypes (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final List<AvailObject> argTypes)
 	{
 		return getSuperkind(object).acceptsListOfArgTypes(argTypes);
@@ -536,7 +537,7 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 
 	@Override
 	public boolean o_AcceptsListOfArgValues (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final List<AvailObject> argValues)
 	{
 		return getSuperkind(object).acceptsListOfArgValues(argValues);
@@ -544,7 +545,7 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 
 	@Override
 	public boolean o_AcceptsTupleOfArgTypes (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject argTypes)
 	{
 		return getSuperkind(object).acceptsTupleOfArgTypes(argTypes);
@@ -552,7 +553,7 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 
 	@Override
 	public boolean o_AcceptsTupleOfArguments (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject arguments)
 	{
 		return getSuperkind(object).acceptsTupleOfArguments(arguments);
@@ -584,7 +585,7 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 
 	@Override
 	public boolean o_CouldEverBeInvokedWith (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final List<AvailObject> argTypes)
 	{
 		return getSuperkind(object).couldEverBeInvokedWith(argTypes);
@@ -592,119 +593,17 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 
 	@Override
 	public boolean o_IsBetterRepresentationThan (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject anotherObject)
 	{
 		// A union type with a cached superkind is pretty good.
 		return !object.objectSlot(ObjectSlots.CACHED_SUPERKIND).equalsNull();
 	}
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                	@Override
-	public boolean o_IsBetterRepresentationThanTupleType (
-		final AvailObject object,
-		final AvailObject aTupleType)
-	{
-		return true;
-	}
-
-	@Override
-	public boolean o_IsSupertypeOfFunctionType (
-		final AvailObject object,
-		final AvailObject aFunctionType)
-	{
-		return false;
-	}
-
-	@Override
-	public boolean o_IsSupertypeOfContainerType (
-		final AvailObject object,
-		final AvailObject aContainerType)
-	{
-		return false;
-	}
-
-	@Override
-	public boolean o_IsSupertypeOfContinuationType (
-		final AvailObject object,
-		final AvailObject aContinuationType)
-	{
-		return false;
-	}
-
-	@Override
-	public boolean o_IsSupertypeOfCompiledCodeType (
-		final AvailObject object,
-		final AvailObject aCompiledCodeType)
-	{
-		return false;
-	}
-
-	@Override
-	public boolean o_IsSupertypeOfIntegerRangeType (
-		final AvailObject object,
-		final AvailObject anIntegerRangeType)
-	{
-		return false;
-	}
-
-	@Override
-	public boolean o_IsSupertypeOfMapType (
-		final AvailObject object,
-		final AvailObject aMapType)
-	{
-		return false;
-	}
-
-	@Override
-	public boolean o_IsSupertypeOfObjectType (
-		final AvailObject object,
-		final AvailObject aLazyObjectType)
-	{
-		return false;
-	}
-
-	@Override
-	public boolean o_IsSupertypeOfPrimitiveType (
-		final AvailObject object,
-		final AvailObject aPrimitiveType)
-	{
-		return false;
-	}
-
-	@Override
-	public boolean o_IsSupertypeOfSetType (
-		final AvailObject object,
-		final AvailObject aSetType)
-	{
-		return false;
-	}
-
-	@Override
-	public boolean o_IsSupertypeOfTupleType (
-		final AvailObject object,
-		final AvailObject aTupleType)
-	{
-		return false;
-	}
-
-	@Override
-	public boolean o_IsSupertypeOfUnionMeta (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aTupleType)
-	{
-		return false;
-	}
-
 	@Override
 	public AvailObject o_KeyType (final AvailObject object)
 	{
 		return getSuperkind(object).keyType();
-	}
-
-	@Override
-	public AvailObject o_MyType (final AvailObject object)
-	{
-		return getSuperkind(object).myType();
 	}
 
 	@Override
@@ -726,27 +625,8 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeIntersectionOfContinuationType (
-		final AvailObject object,
-		final AvailObject aContinuationType)
-	{
-		AvailObject complyingInstances = SetDescriptor.empty();
-		for (final AvailObject instance : getInstances(object))
-		{
-			if (instance.isInstanceOf(aContinuationType))
-			{
-				complyingInstances =
-					complyingInstances.setWithElementCanDestroy(
-						instance,
-						true);
-			}
-		}
-		return AbstractUnionTypeDescriptor.withInstances(complyingInstances);
-	}
-
-	@Override
 	public AvailObject o_TypeIntersectionOfCompiledCodeType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aCompiledCodeType)
 	{
 		AvailObject complyingInstances = SetDescriptor.empty();
@@ -764,19 +644,67 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeUnionOfContinuationType (
-		final AvailObject object,
+	public AvailObject o_TypeIntersectionOfContinuationType (
+		final @NotNull AvailObject object,
 		final AvailObject aContinuationType)
 	{
-		return getSuperkind(object).typeUnionOfContinuationType(aContinuationType);
+		AvailObject complyingInstances = SetDescriptor.empty();
+		for (final AvailObject instance : getInstances(object))
+		{
+			if (instance.isInstanceOf(aContinuationType))
+			{
+				complyingInstances =
+					complyingInstances.setWithElementCanDestroy(
+						instance,
+						true);
+			}
+		}
+		return AbstractUnionTypeDescriptor.withInstances(complyingInstances);
+	}
+
+	@Override
+	public AvailObject o_TypeIntersectionOfParseNodeType (
+		final @NotNull AvailObject object,
+		final AvailObject aParseNodeType)
+	{
+		AvailObject complyingInstances = SetDescriptor.empty();
+		for (final AvailObject instance : getInstances(object))
+		{
+			if (instance.isInstanceOf(aParseNodeType))
+			{
+				complyingInstances =
+					complyingInstances.setWithElementCanDestroy(
+						instance,
+						true);
+			}
+		}
+		return AbstractUnionTypeDescriptor.withInstances(complyingInstances);
+	}
+
+	@Override
+	public AvailObject o_TypeUnionOfContinuationType (
+		final @NotNull AvailObject object,
+		final AvailObject aContinuationType)
+	{
+		return getSuperkind(object).typeUnionOfContinuationType(
+			aContinuationType);
 	}
 
 	@Override
 	public AvailObject o_TypeUnionOfCompiledCodeType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aCompiledCodeType)
 	{
-		return getSuperkind(object).typeUnionOfContinuationType(aCompiledCodeType);
+		return getSuperkind(object).typeUnionOfContinuationType(
+			aCompiledCodeType);
+	}
+
+	@Override
+	public AvailObject o_TypeUnionOfParseNodeType (
+		final @NotNull AvailObject object,
+		final AvailObject aParseNodeType)
+	{
+		return getSuperkind(object).typeUnionOfParseNodeType(aParseNodeType);
 	}
 
 	@Override
@@ -870,7 +798,7 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 	/**
 	 * The mutable {@link UnionTypeDescriptor}.
 	 */
-	private final static UnionTypeDescriptor mutable = new UnionTypeDescriptor(
+	private final static AbstractUnionTypeDescriptor mutable = new UnionTypeDescriptor(
 		true);
 
 	/**
@@ -878,7 +806,7 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 	 *
 	 * @return The mutable {@link UnionTypeDescriptor}.
 	 */
-	public static UnionTypeDescriptor mutable ()
+	public static AbstractUnionTypeDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -886,7 +814,7 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 	/**
 	 * The immutable {@link UnionTypeDescriptor}.
 	 */
-	private final static UnionTypeDescriptor immutable = new UnionTypeDescriptor(
+	private final static AbstractUnionTypeDescriptor immutable = new UnionTypeDescriptor(
 		false);
 
 	/**
@@ -894,7 +822,7 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 	 *
 	 * @return The immutable {@link UnionTypeDescriptor}.
 	 */
-	public static UnionTypeDescriptor immutable ()
+	public static AbstractUnionTypeDescriptor immutable ()
 	{
 		return immutable;
 	}

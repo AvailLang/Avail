@@ -33,6 +33,7 @@
 package com.avail.compiler.node;
 
 import java.util.List;
+import com.avail.annotations.NotNull;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.L2Interpreter;
@@ -93,7 +94,7 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	 */
 	@Override
 	public abstract boolean o_Equals (
-		AvailObject object,
+		final @NotNull AvailObject object,
 		AvailObject another);
 
 	/**
@@ -105,7 +106,7 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	 */
 	@Override
 	public void o_EmitEffectOn (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
 		object.emitValueOn(codeGenerator);
@@ -121,7 +122,7 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	 */
 	@Override
 	public abstract void o_EmitValueOn (
-		AvailObject object,
+		final @NotNull AvailObject object,
 		AvailCodeGenerator codeGenerator);
 
 
@@ -157,20 +158,20 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	 */
 	@Override
 	public AvailObject o_CopyMutableParseNode (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		if (isMutable())
 		{
 			return object;
 		}
-		int objectCount = object.objectSlotsCount();
-		int integerCount = object.integerSlotsCount();
+		final int objectCount = object.objectSlotsCount();
+		final int integerCount = object.integerSlotsCount();
 
-		short descriptorId = (short)(object.descriptorId() & ~1);
-		AbstractDescriptor mutableDescriptor = allDescriptors.get(descriptorId);
+		final short descriptorId = (short)(object.descriptorId() & ~1);
+		final AbstractDescriptor mutableDescriptor = allDescriptors.get(descriptorId);
 		assert mutableDescriptor.getClass() == object.descriptor().getClass();
 
-		AvailObject copy = AvailObject.newObjectIndexedIntegerIndexedDescriptor(
+		final AvailObject copy = AvailObject.newObjectIndexedIntegerIndexedDescriptor(
 			objectCount - numberOfFixedObjectSlots,
 			integerCount - numberOfFixedIntegerSlots,
 			mutableDescriptor);
@@ -209,7 +210,7 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	 */
 	@Override
 	public abstract void o_ChildrenMap (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final Transformer1<AvailObject, AvailObject> aBlock);
 
 	/**
@@ -224,7 +225,7 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	 */
 	@Override
 	public abstract void o_ChildrenDo (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final Continuation1<AvailObject> aBlock);
 
 	/**
@@ -243,14 +244,14 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	 */
 	@Override
 	public abstract void o_ValidateLocally (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject parent,
 		final List<AvailObject> outerBlocks,
 		final L2Interpreter anAvailInterpreter);
 
 	@Override
 	public void o_FlattenStatementsInto (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final List<AvailObject> accumulatedStatements)
 	{
 		accumulatedStatements.add(object);

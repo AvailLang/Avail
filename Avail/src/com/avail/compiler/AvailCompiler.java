@@ -34,11 +34,11 @@ package com.avail.compiler;
 
 import static com.avail.compiler.scanning.TokenDescriptor.TokenType.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.compiler.node.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import java.util.*;
 import com.avail.compiler.node.*;
 import com.avail.compiler.scanning.TokenDescriptor;
 import com.avail.descriptor.*;
-import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.levelOne.*;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
@@ -374,7 +374,7 @@ public class AvailCompiler extends AbstractAvailCompiler
 							newArgsSoFar.add(newArg);
 							final ParserState afterArgWithDeclaration =
 								newArg.isInstanceOfKind(
-										Types.DECLARATION_NODE.o())
+										DECLARATION_NODE.mostGeneralType())
 									? afterArg.withDeclaration(newArg)
 									: afterArg;
 							attempt(
@@ -720,7 +720,8 @@ public class AvailCompiler extends AbstractAvailCompiler
 		final ParserState stateAfterCall,
 		final List<AvailObject> argumentExpressions,
 		final List<List<AvailObject>> innerArgumentExpressions,
-		final AvailObject bundle, final Con<AvailObject> continuation)
+		final AvailObject bundle,
+		final Con<AvailObject> continuation)
 	{
 		final Mutable<Boolean> valid = new Mutable<Boolean>(true);
 		final AvailObject message = bundle.message();
@@ -733,103 +734,14 @@ public class AvailCompiler extends AbstractAvailCompiler
 		{
 			// Macro definitions and non-macro definitions are not allowed to
 			// mix within an implementation set.
-			final List<AvailObject> argumentNodeTypes = new ArrayList<AvailObject>(
-				argumentExpressions.size());
-			for (final AvailObject argExpr : argumentExpressions)
-			{
-				argumentNodeTypes.add(argExpr.kind());
-			}
-			impSet.validateArgumentTypesInterpreterIfFail(
-				argumentNodeTypes,
-				interpreter,
-				new Continuation1<Generator<String>>()
-				{
-					@Override
-					public void value (final Generator<String> arg)
-					{
-						stateAfterCall.expected(
-							"parse node types to agree with macro types");
-						valid.value = false;
-					}
-				});
-			if (!valid.value)
-			{
-				return;
-			}
-
-			// Check for excluded messages in arguments. Don't just forbid
-			// conflicting send nodes, but also forbid macro substitution nodes,
-			// depending on their macroName.
-			checkRestrictionsIfFail(
-				bundle,
+			completedSendNodeForMacro(
+				stateBeforeCall,
+				stateAfterCall,
+				argumentExpressions,
 				innerArgumentExpressions,
-				new Continuation1<Generator<String>>()
-				{
-					@Override
-					public void value (final Generator<String> errorGenerator)
-					{
-						valid.value = false;
-						stateAfterCall.expected(errorGenerator);
-					}
-				});
-			if (!valid.value)
-			{
-				return;
-			}
-
-			// Construct code to invoke the method, since it might be a
-			// primitive and we can't invoke that directly as the outermost
-			// function.
-			final L1InstructionWriter writer = new L1InstructionWriter();
-			for (final AvailObject arg : argumentExpressions)
-			{
-				writer.write(new L1Instruction(
-					L1Operation.L1_doPushLiteral,
-					writer.addLiteral(arg)));
-			}
-			writer.write(new L1Instruction(
-				L1Operation.L1_doCall,
-				writer.addLiteral(impSet),
-				writer.addLiteral(PARSE_NODE.o())));
-			writer.argumentTypes();
-			writer.primitiveNumber(0);
-			writer.returnType(PARSE_NODE.o());
-			final AvailObject newFunction = FunctionDescriptor.create(
-				writer.compiledCode(),
-				TupleDescriptor.empty());
-			newFunction.makeImmutable();
-			try
-			{
-				final AvailObject replacement = interpreter.runFunctionArguments(
-					newFunction,
-					Collections.<AvailObject> emptyList());
-				if (replacement.isInstanceOfKind(PARSE_NODE.o()))
-				{
-					final AvailObject substitution =
-						MacroSubstitutionNodeDescriptor.mutable().create();
-					substitution.macroName(message);
-					substitution.outputParseNode(replacement);
-					// Declarations introduced in the macro should now be moved
-					// out of scope.
-					attempt(
-						new ParserState(
-							stateAfterCall.position,
-							stateBeforeCall.scopeStack),
-						continuation,
-						replacement);
-				}
-				else
-				{
-					stateAfterCall.expected(
-						"macro body ("
-						+ impSet.name().name()
-						+ ") to produce a parse node");
-				}
-			}
-			catch (final AvailRejectedParseException e)
-			{
-				stateAfterCall.expected(e.rejectionString().asNativeString());
-			}
+				bundle,
+				impSet,
+				continuation);
 			return;
 		}
 		// It invokes a method (not a macro).
@@ -907,6 +819,141 @@ public class AvailCompiler extends AbstractAvailCompiler
 				continuation,
 				sendNode);
 		}
+	}
+
+	/**
+	 * A macro invocation has just been parsed.  Run it now.
+	 *
+	 * @param stateBeforeCall
+	 *            The initial parsing state, prior to parsing the entire
+	 *            message.
+	 * @param stateAfterCall
+	 *            The parsing state after the message.
+	 * @param argumentExpressions
+	 *            The {@linkplain ParseNodeDescriptor parse nodes} that will be
+	 *            arguments of the new send node.
+	 * @param innerArgumentExpressions
+	 *            The {@link List lists} of {@linkplain ParseNodeDescriptor
+	 *            parse nodes} that will correspond to restriction positions,
+	 *            which are at the non-backquoted underscores of the bundle's
+	 *            message name.
+	 * @param bundle
+	 *            The {@link MessageBundleDescriptor message bundle} that
+	 *            identifies the message to be sent.
+	 * @param impSet
+	 *            The {@link ImplementationSetDescriptor implementation set}
+	 *            that contains the macro signature to be invoked.
+	 * @param continuation
+	 *            What to do with the resulting send node.
+	 */
+	private void completedSendNodeForMacro (
+		final ParserState stateBeforeCall,
+		final ParserState stateAfterCall,
+		final List<AvailObject> argumentExpressions,
+		final List<List<AvailObject>> innerArgumentExpressions,
+		final AvailObject bundle,
+		final AvailObject impSet,
+		final Con<AvailObject> continuation)
+	{
+		final Mutable<Boolean> valid = new Mutable<Boolean>(true);
+		final List<AvailObject> argumentNodeTypes = new ArrayList<AvailObject>(
+			argumentExpressions.size());
+		for (final AvailObject argExpr : argumentExpressions)
+		{
+			argumentNodeTypes.add(argExpr.kind());
+		}
+		impSet.validateArgumentTypesInterpreterIfFail(
+			argumentNodeTypes,
+			interpreter,
+			new Continuation1<Generator<String>>()
+			{
+				@Override
+				public void value (final Generator<String> arg)
+				{
+					stateAfterCall.expected(
+						"parse node types to agree with macro types");
+					valid.value = false;
+				}
+			});
+		if (!valid.value)
+		{
+			return;
+		}
+
+		// Check for excluded messages in arguments. Don't just forbid
+		// conflicting send nodes, but also forbid macro substitution nodes,
+		// depending on their macroName.
+		checkRestrictionsIfFail(
+			bundle,
+			innerArgumentExpressions,
+			new Continuation1<Generator<String>>()
+			{
+				@Override
+				public void value (final Generator<String> errorGenerator)
+				{
+					valid.value = false;
+					stateAfterCall.expected(errorGenerator);
+				}
+			});
+		if (!valid.value)
+		{
+			return;
+		}
+
+		// Construct code to invoke the method, since it might be a
+		// primitive and we can't invoke that directly as the outermost
+		// function.
+		final L1InstructionWriter writer = new L1InstructionWriter();
+		for (final AvailObject arg : argumentExpressions)
+		{
+			writer.write(new L1Instruction(
+				L1Operation.L1_doPushLiteral,
+				writer.addLiteral(arg)));
+		}
+		writer.write(new L1Instruction(
+			L1Operation.L1_doCall,
+			writer.addLiteral(impSet),
+			writer.addLiteral(PARSE_NODE.mostGeneralType())));
+		writer.argumentTypes();
+		writer.primitiveNumber(0);
+		writer.returnType(PARSE_NODE.mostGeneralType());
+		final AvailObject newFunction = FunctionDescriptor.create(
+			writer.compiledCode(),
+			TupleDescriptor.empty());
+		newFunction.makeImmutable();
+		try
+		{
+			final AvailObject replacement = interpreter.runFunctionArguments(
+				newFunction,
+				Collections.<AvailObject> emptyList());
+			if (replacement.isInstanceOfKind(PARSE_NODE.mostGeneralType()))
+			{
+				final AvailObject substitution =
+					MacroSubstitutionNodeDescriptor.mutable().create();
+				substitution.macroName(bundle.message());
+				substitution.outputParseNode(replacement);
+				// Declarations introduced in the macro should now be moved
+				// out of scope.
+				attempt(
+					new ParserState(
+						stateAfterCall.position,
+						stateBeforeCall.scopeStack),
+					continuation,
+					replacement);
+			}
+			else
+			{
+				stateAfterCall.expected(
+					"macro body ("
+					+ impSet.name().name()
+					+ ") to produce a parse node");
+			}
+		}
+		catch (final AvailRejectedParseException e)
+		{
+			stateAfterCall.expected(e.rejectionString().asNativeString());
+		}
+		return;
 	}
 
 	/**

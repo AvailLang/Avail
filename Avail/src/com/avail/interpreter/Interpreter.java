@@ -350,13 +350,14 @@ public abstract class Interpreter
 	 * @param bodyBlock The {@linkplain FunctionDescriptor body block}.
 	 * @param requiresBlock The {@linkplain FunctionDescriptor requires block}.
 	 * @param returnsBlock The {@linkplain FunctionDescriptor returns block}.
+	 * @throws SignatureException If the signature is invalid.
 	 */
 	public void atAddMethodBodyRequiresBlockReturnsBlock (
 		final @NotNull AvailObject methodName,
 		final @NotNull AvailObject bodyBlock,
 		final @NotNull AvailObject requiresBlock,
 		final @NotNull AvailObject returnsBlock)
-	throws AvailRejectedParseException, SignatureException
+	throws SignatureException
 	{
 		assert methodName.isAtom();
 		assert bodyBlock.isFunction();
