@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
+import java.util.List;
 import com.avail.annotations.NotNull;
 
 public class ObjectDescriptor
@@ -43,7 +44,91 @@ extends Descriptor
 	 */
 	public enum ObjectSlots
 	{
+		/**
+		 * A map from attribute keys to their corresponding values.  Attribute
+		 * keys are {@linkplain AtomDescriptor atoms}, and the values can be
+		 * anything.  An object's type is derived from this map and the types of
+		 * the attribute values, so it's not quite right to say that the values
+		 * can be anything.
+		 */
 		FIELD_MAP
+	}
+
+	@Override
+	public void printObjectOnAvoidingIndent (
+		final AvailObject object,
+		final StringBuilder builder,
+		final List<AvailObject> recursionList,
+		final int indent)
+	{
+		final AvailObject pair =
+			ObjectTypeDescriptor.namesAndBaseTypesForType(object.kind());
+		final AvailObject names = pair.tupleAt(1);
+		final AvailObject baseTypes = pair.tupleAt(2);
+		boolean first = true;
+		builder.append("Instance of (");
+		for (final AvailObject name : names)
+		{
+			if (!first)
+			{
+				builder.append("+");
+			}
+			else
+			{
+				first = false;
+			}
+			builder.append(name.asNativeString());
+		}
+		if (first)
+		{
+			builder.append("unnamed object type)");
+		}
+		else
+		{
+			builder.append(")");
+		}
+		AvailObject ignoreKeys = SetDescriptor.empty();
+		for (final AvailObject baseType : baseTypes)
+		{
+			final AvailObject fieldTypes = baseType.fieldTypeMap();
+			for (final MapDescriptor.Entry entry : fieldTypes.mapIterable())
+			{
+				if (entry.key.equals(entry.value))
+				{
+					ignoreKeys = ignoreKeys.setWithElementCanDestroy(
+						entry.key,
+						true);
+				}
+			}
+		}
+		first = true;
+		for (final MapDescriptor.Entry entry
+			: object.fieldMap().mapIterable())
+		{
+			if (!ignoreKeys.hasElement(entry.key))
+			{
+				if (first)
+				{
+					builder.append(" with:");
+					first = false;
+				}
+				else
+				{
+					builder.append(",");
+				}
+				builder.append('\n');
+				for (int tab = 0; tab < indent; tab++)
+				{
+					builder.append('\t');
+				}
+				builder.append(entry.key.name().asNativeString());
+				builder.append(" = ");
+				entry.value.printOnAvoidingIndent(
+					builder,
+					recursionList,
+					indent + 1);
+			}
+		}
 	}
 
 	@Override

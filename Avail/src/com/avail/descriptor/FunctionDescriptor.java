@@ -163,7 +163,8 @@ extends Descriptor
 		// with 0 or something), it's ok because nobody could know what the hash
 		// value *used to be* for this function.
 
-		int hash = object.code().hash() ^ 0x1386D4F6;
+		final AvailObject code = object.objectSlot(ObjectSlots.CODE);
+		int hash = code.hash() ^ 0x1386D4F6;
 		for (int i = 1, end = object.numOuterVars(); i <= end; i++)
 		{
 			hash = hash * 13 + object.outerVarAt(i).hash();
@@ -187,7 +188,7 @@ extends Descriptor
 	public @NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
-		return object.code().functionType();
+		return object.objectSlot(ObjectSlots.CODE).functionType();
 	}
 
 	@Override
@@ -201,7 +202,7 @@ extends Descriptor
 		{
 			return true;
 		}
-		return object.code().containsBlock(aFunction);
+		return object.objectSlot(ObjectSlots.CODE).containsBlock(aFunction);
 	}
 
 	@Override

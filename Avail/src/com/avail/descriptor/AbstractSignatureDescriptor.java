@@ -59,7 +59,7 @@ extends SignatureDescriptor
 		 * The {@linkplain FunctionTypeDescriptor function type} for which this
 		 * signature is being specified.
 		 */
-		SIGNATURE,
+		BODY_SIGNATURE,
 
 		/**
 		 * A {@linkplain FunctionDescriptor function} that takes argument
@@ -164,7 +164,7 @@ extends SignatureDescriptor
 	public @NotNull AvailObject o_Signature (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.SIGNATURE);
+		return object.objectSlot(ObjectSlots.BODY_SIGNATURE);
 	}
 
 	@Override
@@ -224,7 +224,7 @@ extends SignatureDescriptor
 	throws SignatureException
 	{
 		final AvailObject instance = mutable().create();
-		instance.objectSlotPut(ObjectSlots.SIGNATURE, bodySignature);
+		instance.objectSlotPut(ObjectSlots.BODY_SIGNATURE, bodySignature);
 		instance.objectSlotPut(ObjectSlots.REQUIRES_BLOCK, requiresBlock);
 		instance.objectSlotPut(ObjectSlots.RETURNS_BLOCK, returnsBlock);
 		instance.makeImmutable();

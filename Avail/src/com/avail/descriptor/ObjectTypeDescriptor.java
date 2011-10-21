@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import static java.lang.Math.min;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
+import java.util.List;
 import com.avail.annotations.NotNull;
 
 /**
@@ -55,6 +56,82 @@ extends TypeDescriptor
 		 * TypeDescriptor types}.
 		 */
 		FIELD_TYPE_MAP
+	}
+
+	@Override
+	public void printObjectOnAvoidingIndent (
+		final AvailObject object,
+		final StringBuilder builder,
+		final List<AvailObject> recursionList,
+		final int indent)
+	{
+		final AvailObject pair = namesAndBaseTypesForType(object);
+		final AvailObject names = pair.tupleAt(1);
+		final AvailObject baseTypes = pair.tupleAt(2);
+		boolean first = true;
+		for (final AvailObject name : names)
+		{
+			if (!first)
+			{
+				builder.append("+");
+			}
+			else
+			{
+				builder.append("Type(");
+				first = false;
+			}
+			builder.append(name.asNativeString());
+		}
+		if (first)
+		{
+			builder.append("Unnamed object type");
+		}
+		else
+		{
+			builder.append(")");
+		}
+		AvailObject ignoreKeys = SetDescriptor.empty();
+		for (final AvailObject baseType : baseTypes)
+		{
+			final AvailObject fieldTypes = baseType.fieldTypeMap();
+			for (final MapDescriptor.Entry entry : fieldTypes.mapIterable())
+			{
+				if (InstanceTypeDescriptor.on(entry.key).equals(entry.value))
+				{
+					ignoreKeys = ignoreKeys.setWithElementCanDestroy(
+						entry.key,
+						true);
+				}
+			}
+		}
+		first = true;
+		for (final MapDescriptor.Entry entry
+			: object.fieldTypeMap().mapIterable())
+		{
+			if (!ignoreKeys.hasElement(entry.key))
+			{
+				if (first)
+				{
+					builder.append(" with:");
+					first = false;
+				}
+				else
+				{
+					builder.append(",");
+				}
+				builder.append('\n');
+				for (int tab = 0; tab < indent; tab++)
+				{
+					builder.append('\t');
+				}
+				builder.append(entry.key.name().asNativeString());
+				builder.append(" : ");
+				entry.value.printOnAvoidingIndent(
+					builder,
+					recursionList,
+					indent + 1);
+			}
+		}
 	}
 
 	@Override
@@ -300,16 +377,17 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Answer the user-assigned name of the specified {@linkplain
-	 * ObjectTypeDescriptor user-defined object type}.
+	 * Answer information about the user-assigned name of the specified
+	 * {@linkplain ObjectTypeDescriptor user-defined object type}.
 	 *
 	 * @param anObjectType A {@linkplain ObjectTypeDescriptor user-defined
 	 *                     object type}.
-	 * @return The possible names of the {@linkplain ObjectTypeDescriptor
-	 *         user-defined object type}, excluding names for which a strictly
-	 *         more specific named type is known.
+	 * @return A tuple with two elements:  (1) A set of names of the {@linkplain
+	 *         ObjectTypeDescriptor user-defined object type}, excluding names
+	 *         for which a strictly more specific named type is known, and (2)
+	 *         A set of object types corresponding to those names.
 	 */
-	public static AvailObject namesForType (
+	public static AvailObject namesAndBaseTypesForType (
 		final @NotNull AvailObject anObjectType)
 	{
 		final AvailObject propertyKey =
@@ -354,14 +432,48 @@ extends TypeDescriptor
 			}
 		}
 		AvailObject names = SetDescriptor.empty();
+		AvailObject baseTypes = SetDescriptor.empty();
 		for (final MapDescriptor.Entry entry : filtered.mapIterable())
 		{
 			names = names.setWithElementCanDestroy(entry.value, true);
+			baseTypes = baseTypes.setWithElementCanDestroy(entry.key, true);
 		}
-		return names;
+		return TupleDescriptor.from(names, baseTypes);
 	}
 
+	/**
+	 * Answer the user-assigned names of the specified {@linkplain
+	 * ObjectTypeDescriptor user-defined object type}.
+	 *
+	 * @param anObjectType A {@linkplain ObjectTypeDescriptor user-defined
+	 *                     object type}.
+	 * @return A {@linkplain SetDescriptor set} containing the names of the
+	 *         {@linkplain ObjectTypeDescriptor user-defined object type},
+	 *         excluding names for which a strictly more specific named type is
+	 *         known.
+	 */
+	public static AvailObject namesForType (
+		final @NotNull AvailObject anObjectType)
+	{
+		return namesAndBaseTypesForType(anObjectType).tupleAt(1);
+	}
 
+	/**
+	 * Answer the set of named base types for the specified {@linkplain
+	 * ObjectTypeDescriptor user-defined object type}.
+	 *
+	 * @param anObjectType A {@linkplain ObjectTypeDescriptor user-defined
+	 *                     object type}.
+	 * @return A {@linkplain SetDescriptor set} containing the named ancestors
+	 *         of the specified {@linkplain ObjectTypeDescriptor user-defined
+	 *         object type}, excluding named types for which a strictly more
+	 *         specific named type is known.
+	 */
+	public static AvailObject namedBaseTypesForType (
+		final @NotNull AvailObject anObjectType)
+	{
+		return namesAndBaseTypesForType(anObjectType).tupleAt(2);
+	}
 
 	/**
 	 * The most general {@linkplain ObjectTypeDescriptor object type}.

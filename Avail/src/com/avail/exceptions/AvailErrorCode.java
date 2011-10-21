@@ -278,6 +278,7 @@ public enum AvailErrorCode
 	 * clause arguments are not general enough.
 	 */
 	E_REQUIRES_CLAUSE_ARGUMENTS_ARE_NOT_METACOVARIANT (39),
+	//TODO: Rename this one to E_RESTRICTION_...
 
 	/**
 	 * A returns clause should accept all possible types of the arguments of
