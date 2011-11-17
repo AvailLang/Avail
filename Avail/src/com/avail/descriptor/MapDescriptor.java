@@ -509,13 +509,13 @@ extends Descriptor
 		}
 		final AvailObject result = MapDescriptor.newWithCapacity(object.mapSize() * 2 + 5);
 		//  Start new map just over 50% free (with no blanks).
-		CanAllocateObjects(false);
+//		canAllocateObjects(false);
 		for (final Entry entry : object.mapIterable())
 		{
 			result.privateMapAtPut(entry.key, entry.value);
 		}
 		result.privateMapAtPut(keyObject, newValueObject);
-		CanAllocateObjects(true);
+//		canAllocateObjects(true);
 		return result;
 	}
 
@@ -543,7 +543,7 @@ extends Descriptor
 		}
 		final AvailObject result =
 			MapDescriptor.newWithCapacity(object.capacity());
-		CanAllocateObjects(false);
+//		canAllocateObjects(false);
 		for (final Entry entry : object.mapIterable())
 		{
 			if (!entry.key.equals(keyObject))
@@ -551,7 +551,7 @@ extends Descriptor
 				result.privateMapAtPut(entry.key, entry.value);
 			}
 		}
-		CanAllocateObjects(true);
+//		canAllocateObjects(true);
 		return result;
 	}
 
@@ -586,7 +586,7 @@ extends Descriptor
 	{
 		//  Answer a set with all my keys.  Mark the keys as immutable because they'll be shared with the new set.
 
-		AvailObject.lock(object);
+//		AvailObject.lock(object);
 		AvailObject result = SetDescriptor.empty();
 		for (int i = 1, end = object.capacity(); i <= end; i++)
 		{
@@ -596,7 +596,7 @@ extends Descriptor
 				result = result.setWithElementCanDestroy(eachKeyObject.makeImmutable(), true);
 			}
 		}
-		AvailObject.unlock(object);
+//		AvailObject.unlock(object);
 		return result;
 	}
 
@@ -610,8 +610,8 @@ extends Descriptor
 	{
 		final AvailObject result = ObjectTupleDescriptor.mutable().create(
 			object.mapSize());
-		AvailObject.lock(result);
-		CanAllocateObjects(false);
+//		AvailObject.lock(result);
+//		canAllocateObjects(false);
 		for (int i = 1, end = object.mapSize(); i <= end; i++)
 		{
 			result.tupleAtPut(i, NullDescriptor.nullObject());
@@ -625,8 +625,8 @@ extends Descriptor
 			targetIndex++;
 		}
 		assert targetIndex == object.mapSize() + 1;
-		CanAllocateObjects(true);
-		AvailObject.unlock(result);
+//		canAllocateObjects(true);
+//		AvailObject.unlock(result);
 		return result;
 	}
 
@@ -663,13 +663,13 @@ extends Descriptor
 		final int h0 = keyObject.hash();
 		final int modulus = object.capacity();
 		int probe = (int)((h0 & 0xFFFFFFFFL) % modulus + 1);
-		AvailObject.lock(object);
+//		AvailObject.lock(object);
 		while (true)
 		{
 			final AvailObject slotValue = object.keyAtIndex(probe);
 			if (slotValue.equalsNull())
 			{
-				AvailObject.unlock(object);
+//				AvailObject.unlock(object);
 				return object;
 			}
 			if (slotValue.equals(keyObject))
@@ -681,7 +681,7 @@ extends Descriptor
 				object.valueAtIndexPut(probe, NullDescriptor.nullObject());
 				object.mapSize(object.mapSize() - 1);
 				object.numBlanks(object.numBlanks() + 1);
-				AvailObject.unlock(object);
+//				AvailObject.unlock(object);
 				return object;
 			}
 			if (probe == modulus)
@@ -710,7 +710,7 @@ extends Descriptor
 		final int h0 = keyObject.hash();
 		final int modulus = object.capacity();
 		int probe = (int)((h0 & 0xFFFFFFFFL) % modulus + 1);
-		AvailObject.lock(object);
+//		AvailObject.lock(object);
 		int tempHash;
 		while (true)
 		{
@@ -722,7 +722,7 @@ extends Descriptor
 				tempHash ^= h0 + valueObject.hash() * 23;
 				object.internalHash(tempHash);
 				object.valueAtIndexPut(probe, valueObject);
-				AvailObject.unlock(object);
+//				AvailObject.unlock(object);
 				return object;
 			}
 			if (slotValue.equalsNullOrBlank())
@@ -736,7 +736,7 @@ extends Descriptor
 				{
 					object.numBlanks(object.numBlanks() - 1);
 				}
-				AvailObject.unlock(object);
+//				AvailObject.unlock(object);
 				return object;
 			}
 			probe = probe == modulus ? 1 : probe + 1;
@@ -770,7 +770,7 @@ extends Descriptor
 	{
 		//  Utility method - collect the object's keys into a Smalltalk Array.
 
-		AvailObject.lock(object);
+//		AvailObject.lock(object);
 		List<AvailObject> result;
 		result = new ArrayList<AvailObject>(object.mapSize());
 		for (int i = 1, end = object.capacity(); i <= end; i++)
@@ -782,7 +782,7 @@ extends Descriptor
 			}
 		}
 		assert result.size() == object.mapSize();
-		AvailObject.unlock(object);
+//		AvailObject.unlock(object);
 		return result;
 	}
 

@@ -54,7 +54,7 @@ import com.avail.visitor.AvailSubobjectVisitor;
  * When some kinds of objects are compared to each other, say {@link
  * ByteStringDescriptor strings}, a check is first made to see if the objects
  * are at the same location in memory -- the same AvailObject in the current
- * version that uses {@link AvailObjectUsingArrays}.  If so, it immediately
+ * version that uses {@link AvailObjectRepresentation}.  If so, it immediately
  * returns true.  If not, a more detailed, potentially expensive comparison
  * takes place.  If the objects are found to be equal, one of them is mutated
  * into an indirection (by replacing its descriptor with an {@link

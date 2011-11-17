@@ -70,11 +70,11 @@ extends AvailSubobjectVisitor
 		final @NotNull AvailObject parentObject,
 		final @NotNull AvailObject childObject)
 	{
-		if (!CanDestroyObjects())
-		{
-			error("Don't invoke this if destructions are disallowed");
-			return;
-		}
+//		if (!canDestroyObjects())
+//		{
+//			error("Don't invoke this if destructions are disallowed");
+//			return;
+//		}
 		if (!childObject.descriptor().isMutable())
 		{
 			return;
@@ -89,6 +89,6 @@ extends AvailSubobjectVisitor
 		childObject.scanSubobjects(this);
 		// Indicate the object is no longer valid and should not ever be used
 		// again.
-		childObject.setToInvalidDescriptor();
+		childObject.destroy();
 	}
 }

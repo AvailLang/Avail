@@ -327,16 +327,7 @@ public abstract class AbstractDescriptor
 	 */
 	public final void checkWriteForField (final @NotNull Enum<?> e)
 	{
-		if (isMutable())
-		{
-			return;
-		}
-		if (allowsImmutableToMutableReferenceInField(e))
-		{
-			return;
-		}
-		error("Illegal write into immutable object");
-		return;
+		assert isMutable() || allowsImmutableToMutableReferenceInField(e);
 	}
 
 	/**

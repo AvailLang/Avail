@@ -38,7 +38,7 @@ import com.avail.descriptor.*;
 /**
  * {@code EnumField} annotation is used to indicate which enumeration should be
  * used to describe an integer value embedded in an {@linkplain
- * AvailObjectUsingArrays#integerSlot(Enum) integer slot} that has this
+ * AvailObjectRepresentation#integerSlot(Enum) integer slot} that has this
  * annotation.  This is used for pretty-printing {@linkplain AvailObject}s.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;

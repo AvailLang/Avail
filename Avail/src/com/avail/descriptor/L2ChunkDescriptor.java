@@ -614,7 +614,7 @@ extends Descriptor
 			TupleDescriptor.fromIntegerList(theWordcodes);
 		wordcodesTuple.makeImmutable();
 		final AvailObject chunk = mutable().create(listOfLiterals.size());
-		AvailObject.lock(chunk);
+//		AvailObject.lock(chunk);
 		// A new chunk starts out saved.
 		chunk.bitSlotPut(
 			IntegerSlots.NUM_OBJECTS_AND_FLAGS,
@@ -692,7 +692,7 @@ extends Descriptor
 		{
 			impSet.addDependentChunkIndex(index);
 		}
-		AvailObject.unlock(chunk);
+//		AvailObject.unlock(chunk);
 		chunk.makeImmutable();
 		moveToHead(chunk);
 		return chunk;

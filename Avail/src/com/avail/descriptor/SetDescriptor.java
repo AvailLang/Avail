@@ -32,7 +32,6 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.CanAllocateObjects;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
 import com.avail.annotations.NotNull;
@@ -530,12 +529,12 @@ public class SetDescriptor extends Descriptor
 	{
 		final AvailObject result = ObjectTupleDescriptor.mutable().create(
 			object.setSize());
-		CanAllocateObjects(false);
+//		canAllocateObjects(false);
 		result.hashOrZero(0);
 		final int pastEnd = object.rootBin().populateTupleStartingAt(result, 1);
 		assert pastEnd == object.setSize() + 1;
 		assert result.tupleSize() + 1 == pastEnd;
-		CanAllocateObjects(true);
+//		canAllocateObjects(true);
 		return result;
 	}
 

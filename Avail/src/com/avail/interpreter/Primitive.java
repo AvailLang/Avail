@@ -2321,7 +2321,7 @@ public enum Primitive
 			final AvailObject newTupleObject =
 				ObjectTupleDescriptor.mutable().create(aFunction.numOuterVars());
 			newTupleObject.hashOrZero(0);
-			CanAllocateObjects(false);
+//			canAllocateObjects(false);
 			for (int i = 1, end = aFunction.numOuterVars(); i <= end; i++)
 			{
 				final AvailObject outer = aFunction.outerVarAt(i);
@@ -2334,7 +2334,7 @@ public enum Primitive
 					newTupleObject.tupleAtPut(i, outer);
 				}
 			}
-			CanAllocateObjects(true);
+//			canAllocateObjects(true);
 			return interpreter.primitiveSuccess(newTupleObject);
 		}
 

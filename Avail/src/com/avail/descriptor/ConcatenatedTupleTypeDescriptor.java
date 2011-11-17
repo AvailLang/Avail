@@ -266,7 +266,7 @@ extends TypeDescriptor
 		final int total = limit1 + limit2;
 		final AvailObject typeTuple =
 			ObjectTupleDescriptor.mutable().create(total);
-		AvailObject.lock(typeTuple);
+//		AvailObject.lock(typeTuple);
 		for (int i = 1; i <= total; i++)
 		{
 			typeTuple.tupleAtPut(i, NullDescriptor.nullObject());
@@ -288,7 +288,7 @@ extends TypeDescriptor
 				object.sizeRange(),
 				typeTuple,
 				object.defaultType());
-		AvailObject.unlock(typeTuple);
+//		AvailObject.unlock(typeTuple);
 		object.becomeIndirectionTo(newObject);
 	}
 

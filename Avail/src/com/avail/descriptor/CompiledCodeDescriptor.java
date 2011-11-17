@@ -32,7 +32,6 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.CanAllocateObjects;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind;
@@ -552,7 +551,7 @@ extends Descriptor
 		final AvailObject code = mutable().create(
 			literalsSize + outersSize + locals);
 
-		CanAllocateObjects(false);
+//		canAllocateObjects(false);
 
 		code.bitSlotPut(
 			IntegerSlots.HI_NUM_LOCALS_LOW_NUM_ARGS,
@@ -621,7 +620,7 @@ extends Descriptor
 		code.integerSlotPut(IntegerSlots.HASH, hash);
 		code.makeImmutable();
 
-		CanAllocateObjects(true);
+//		canAllocateObjects(true);
 
 		return code;
 	}
