@@ -47,8 +47,9 @@ Body
 Method "*_:=_" is [var : container, arg : any |
 	Primitive 11 (failureCode : natural number);
 	Failed;
-] : void
-requires [varType : container type, argType : type |
+] : void;
+
+Restriction "*_:=_" is [varType : container type, argType : type |
 	/* varType should be a subclass of container.  This ensures the metatype
 	   will be containerType, so that the content type can be extracted (at link
 	   time). */
@@ -59,15 +60,16 @@ requires [varType : container type, argType : type |
 		*&varTypeAsTypedContainer ?:= varType;
 		argType <= varTypeAsTypedContainer writeType;
 	];
+	void;
 ];
 
 
-Method "*_"
-is [var : container |
+Method "*_" is [var : container |
 	Primitive 10 (failureCode : natural number);
 	Failed;
-] : any
-returns [varType : container type |
+] : any;
+
+Restriction "*_" is [varType : container type |
 	/* If at some call site we don't know anything except that we have a
 	   container, we must be careful to say the content type is any.  Otherwise
 	   use the content type. */
@@ -81,14 +83,14 @@ returns [varType : container type |
 	];
 ];
 
-Method "clearing*_"
-is [var : container |
+Method "clearing*_" is [var : container |
 	/* Extract the current value of the variable, then clear the variable.
 	   Answer the extracted value. */
 	Primitive 18 (failureCode : natural number);
 	Failed;
-] : any
-returns [varType : container type |
+] : any;
+
+Restriction "clearing*_" is [varType : container type |
 	/* If at some call site we don't know anything except that we have a
 	   container, we must be careful to say the content type is any.  Otherwise
 	   use the content type. */
@@ -128,11 +130,15 @@ Method "swap_and_" is [var1 : container, var2 : container |
 
 	Primitive 15 (failureCode : natural number);
 	Failed;
-] : void
-requires [t1 : type, t2 : type |
+] : void;
+
+Restriction "swap_and_" is [t1 : container type, t2 : container type |
 	/* The containers must be the same type, otherwise the swap could break
 	   the type constraints.  The container types must, therefore, be known at
 	   the call site. */
-	t1 = t2 & t1 not = container;
+	if t1 readType <= t2 writeType & t2 readType <= t1 writeType then [
+		void;
+	] else [
+		Fail parse "Container contents can not be swapped.";
+	];
 ];
-

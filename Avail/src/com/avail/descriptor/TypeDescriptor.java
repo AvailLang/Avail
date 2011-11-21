@@ -751,7 +751,8 @@ extends AbstractTypeDescriptor
 		// Build all the objects with null fields.
 		for (final Types spec : Types.values())
 		{
-			final AvailObject o = spec.descriptor.createPrimitiveObjectNamed(spec.name());
+			final AvailObject o =
+				spec.descriptor.createPrimitiveObjectNamed(spec.name());
 			spec.set_o(o);
 		}
 		// Connect and name the objects.
@@ -761,10 +762,9 @@ extends AbstractTypeDescriptor
 			o.name(ByteStringDescriptor.from(spec.name()));
 			o.parent(
 				spec.parent == null
-				? NullDescriptor.nullObject()
+					 ? NullDescriptor.nullObject()
 					: spec.parent.o());
-			o.myType(
-				Types.valueOf(spec.myTypeName).o());
+			o.myType(Types.valueOf(spec.myTypeName).o());
 		}
 		for (final Types spec : Types.values())
 		{

@@ -125,7 +125,7 @@ extends Descriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_Restrictions (
+	public @NotNull AvailObject o_GrammaticalRestrictions (
 		final @NotNull AvailObject object)
 	{
 		AvailObject restrictions = object.myRestrictions();

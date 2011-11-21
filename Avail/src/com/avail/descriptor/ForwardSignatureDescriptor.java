@@ -32,12 +32,8 @@
 
 package com.avail.descriptor;
 
-import java.util.List;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.TypeDescriptor.Types;
-import com.avail.exceptions.SignatureException;
-import com.avail.interpreter.Interpreter;
-import com.avail.utility.*;
 
 /**
  * This is a forward declaration of a method.  An actual method must be declared
@@ -67,43 +63,6 @@ extends SignatureDescriptor
 		 * FunctionTypeDescriptor function type}.
 		 */
 		BODY_SIGNATURE
-	}
-
-	/**
-	 * This is just a forward declaration, so just say the actual
-	 * implementation's result will agree with our signature's return type.
-	 * This will be replaced by a real implementation by the time the module has
-	 * finished loading, but calls encountered before the real declaration
-	 * occurs will not be able to use the returns clause to parameterize the
-	 * return type, and the basic return type of the signature will have to
-	 * suffice.
-	 */
-	@Override
-	public @NotNull AvailObject o_ComputeReturnTypeFromArgumentTypes (
-		final @NotNull AvailObject object,
-		final @NotNull List<AvailObject> argTypes,
-		final @NotNull AvailObject impSet,
-		final @NotNull Interpreter anAvailInterpreter,
-		final Continuation1<Generator<String>> failBlock)
-	{
-		return object.bodySignature().returnType();
-	}
-
-	/**
-	 * This is just a forward declaration, so just say our implementation
-	 * accepts the argument types.  There is an issue similar to that mentioned
-	 * in {@link #o_ComputeReturnTypeFromArgumentTypesInterpreter} in that all
-	 * call sites encountered before the actual method definition occurs will
-	 * not have a chance to test the requires clause.  This problem is local to
-	 * a method, and is a result of the one-pass parsing scheme.
-	 */
-	@Override
-	public boolean o_IsValidForArgumentTypesInterpreter (
-		final @NotNull AvailObject object,
-		final @NotNull List<AvailObject> argTypes,
-		final @NotNull Interpreter interpreter)
-	{
-		return true;
 	}
 
 	@Override
@@ -142,19 +101,6 @@ extends SignatureDescriptor
 		return true;
 	}
 
-	/**
-	 * Make sure my requires clauses and returns clauses are expecting the right
-	 * types, based on the declaration of the body.  Do nothing because a
-	 * forward declaration can't declare requires and returns clauses.
-	 */
-	@Override
-	public void o_EnsureMetacovariant (
-		final @NotNull AvailObject object)
-	throws SignatureException
-	{
-		return;
-	}
-
 
 	/**
 	 * Create a forward declaration signature for the given {@linkplain
@@ -168,12 +114,10 @@ extends SignatureDescriptor
 	 *            The new forward declaration signature.
 	 */
 	public static AvailObject create (final AvailObject bodySignature)
-	throws SignatureException
 	{
 		final AvailObject instance = mutable().create();
 		instance.objectSlotPut(ObjectSlots.BODY_SIGNATURE, bodySignature);
 		instance.makeImmutable();
-		instance.ensureMetacovariant();
 		return instance;
 	}
 

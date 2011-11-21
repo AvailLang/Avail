@@ -816,7 +816,10 @@ extends Descriptor
 	Iterator<AvailObject> o_Iterator (
 		final @NotNull AvailObject object)
 	{
-		final AvailObject selfSnapshot = object.copyAsMutableObjectTuple();
+		final AvailObject selfSnapshot =
+			isMutable
+				? object.copyAsMutableObjectTuple()
+				: object;
 		final int size = selfSnapshot.tupleSize();
 		return new Iterator<AvailObject>()
 		{
@@ -970,6 +973,79 @@ extends Descriptor
 			tuple.tupleAtPut(i, list.get(i - 1));
 		}
 		return tuple;
+	}
+
+	/**
+	 * Construct a new tuple of arbitrary {@linkplain AvailObject Avail objects}
+	 * based on the given tuple, but with an additional element appended.  The
+	 * elements may end up being shared between the original and the copy, so
+	 * the client must ensure that either the elements are marked immutable, or
+	 * one of the copies is not kept after the call.
+	 *
+	 * @param originalTuple
+	 *            The original tuple of {@linkplain AvailObject Avail objects}
+	 *            on which to base the new tuple.
+	 * @param newElement
+	 *            The new element that should be at the end of the new tuple.
+	 * @return
+	 *            The new mutable tuple of objects including all elements of the
+	 *            passed tuple plus the new element.
+	 */
+	public static @NotNull AvailObject append (
+		final @NotNull AvailObject originalTuple,
+		final @NotNull AvailObject newElement)
+	{
+		final int originalSize = originalTuple.tupleSize();
+		final AvailObject newTuple = ObjectTupleDescriptor.mutable().create(
+			originalSize + 1);
+		for (int i = 1; i <= originalSize; i++)
+		{
+			newTuple.tupleAtPut(i, originalTuple.tupleAt(i));
+		}
+		newTuple.tupleAtPut(originalSize + 1, newElement);
+		return newTuple;
+	}
+
+	/**
+	 * Construct a new tuple of arbitrary {@linkplain AvailObject Avail objects}
+	 * based on the given tuple, but with an occurrence of the specified element
+	 * missing, if it was present at all.  The elements may end up being shared
+	 * between the original and the copy, so the client must ensure that either
+	 * the elements are marked immutable, or one of the copies is not kept after
+	 * the call.  If the element is not found, then answer the original tuple.
+	 *
+	 * @param originalTuple
+	 *            The original tuple of {@linkplain AvailObject Avail objects}
+	 *            on which to base the new tuple.
+	 * @param elementToExclude
+	 *            The element that should should have an occurrence excluded
+	 *            from the new tuple, if it was present.
+	 * @return
+	 *            The new tuple.
+	 */
+	public static @NotNull AvailObject without (
+		final @NotNull AvailObject originalTuple,
+		final @NotNull AvailObject elementToExclude)
+	{
+		final int originalSize = originalTuple.tupleSize();
+		for (int seekIndex = 1; seekIndex <= originalSize; seekIndex++)
+		{
+			if (originalTuple.tupleAt(seekIndex).equals(elementToExclude))
+			{
+				final AvailObject newTuple =
+					ObjectTupleDescriptor.mutable().create(originalSize - 1);
+				for (int i = 1; i < seekIndex; i++)
+				{
+					newTuple.tupleAtPut(i, originalTuple.tupleAt(i));
+				}
+				for (int i = seekIndex + 1; i <= originalSize; i++)
+				{
+					newTuple.tupleAtPut(i - 1, originalTuple.tupleAt(i));
+				}
+				return newTuple;
+			}
+		}
+		return originalTuple;
 	}
 
 	/**

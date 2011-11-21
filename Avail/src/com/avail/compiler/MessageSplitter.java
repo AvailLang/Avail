@@ -955,7 +955,7 @@ public class MessageSplitter
 	/**
 	 * Decompose the message name into its constituent token strings.  These
 	 * can be subsequently parsed to generate the actual parse instructions.
-	 * Do not do any semantic analysis here, not even backquote processing --
+	 * Do not do any semantic analysis here, not even backquote processing –
 	 * that would lead to confusion over whether an operator was supposed to be
 	 * treated as a special token like open-chevron («) rather than like a
 	 * backquote-escaped token).
@@ -967,7 +967,8 @@ public class MessageSplitter
 			return;
 		}
 		int position = 1;
-		while (position <= messageName.tupleSize()) {
+		while (position <= messageName.tupleSize())
+		{
 			final char ch = (char) messageName.tupleAt(position).codePoint();
 			if (ch == ' ')
 			{

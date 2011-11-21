@@ -50,8 +50,9 @@ Body
  */
 Method "_(«_‡,»)" is [block : [...]->void, args : tuple |
 	block apply args;
-] : void
-requires [blkType : functionType, argsType : tupleType |
+] : void;
+
+Restriction "_(«_‡,»)" is [blkType : functionType, argsType : tupleType |
 	/* The arguments are a chevron group, so the exact count is known at the
 	 * call site.
 	 */
@@ -59,10 +60,11 @@ requires [blkType : functionType, argsType : tupleType |
 	Assert size = argsType sizes upper bound;
 	if blkType arguments type sizes not = argsType sizes then [
 		Fail parse "Argument count could not be determined statically.";];
-	1 to size all [i : natural number |
-		argsType[i] <= blkType[i];];
-] : boolean
-returns [blkType : functionType, argsType : tupleType |
+	1 to size do [i : natural number |
+		if not argsType[i] <= blkType[i] then [
+			Fail parse "Argument #"
+				then i as basic string
+				then " has the wrong type for this function invocation.";];];
 	blkType result;
 ];
 

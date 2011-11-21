@@ -57,8 +57,9 @@ Body
  */
 Method "_()" is [block : []->void |
 	block apply <>;
-]
-returns [bt : functionType |
+];
+
+Restriction "_()" is [bt : functionType |
 	bt result;
 ];
 
@@ -85,10 +86,8 @@ Method "_functionType" is [contType : continuationType |
 Method "Restart_" is [con : continuation |
 	Primitive 58 (failureCode : natural number);
 	Failed;
-] : terminates
-requires [conType : type |
-	conType not = continuation;
-];
+] : terminates;
+
 
 /**
  * Restart the passed continuation, using the given arguments in place of
@@ -99,9 +98,10 @@ requires [conType : type |
 Method "Restart_with_" is [con : continuation, args : tuple |
 	Primitive 56 (failureCode : natural number);
 	Failed;
-] : terminates
-requires [conType : type, argsType : tupleType |
-	cast conType into [conType2 : continuationType |
+] : terminates;
+
+Restriction "Restart_with_" is [conType : type, argsType : tupleType |
+	good ::= cast conType into [conType2 : continuationType |
 		closType ::= conType2 functionType;
 		numArgs ::= closType arguments type sizes lower bound;
 		Assert numArgs = closType arguments type sizes upper bound;
@@ -111,6 +111,9 @@ requires [conType : type, argsType : tupleType |
 				block type taking argsType[1..numArgs]
 				and returning void;
 	];
+	if not good then [
+		Fail parse "Restart_with_ to be provided arguments that conform to the continuation argument types";];
+	void;
 ];
 
 /**
@@ -122,12 +125,16 @@ requires [conType : type, argsType : tupleType |
 Method "Exit_with_" is [con : continuation, value : any |
 	Primitive 57 (failureCode : natural number);
 	Failed;
-] : terminates
-requires [conType : type, valueType : type |
-	cast conType into [conType2 : continuationType |
+] : terminates;
+
+Restriction "Exit_with_" is [conType : type, valueType : type |
+	good ::= cast conType into [conType2 : continuationType |
 		conType2 functionType result not = void
 			& valueType <= conType2 functionType result;
 	];
+	if not good then [
+		Fail parse "Exit_with_ to be supplied a value that conforms to the continuation result type";];
+	void;
 ];
 
 /**
@@ -139,12 +146,17 @@ Method "Exit_" is [con : continuation |
 		Primitive 57 (failureCode : natural number);
 		Failed;
 	] : terminates apply <con,123>;
-] : terminates
-requires [conType : type |
-	cast conType into [conType2 : continuationType |
+] : terminates;
+
+Restriction "Exit_" is [conType : type |
+	good ::= cast conType into [conType2 : continuationType |
 		conType2 functionType result = void;
 	];
+	if not good then [
+		Fail parse "Exit_ to be applied to a continuation with a void return type";];
+	void;
 ];
+
 
 /* Basic looping constructs */
 
@@ -193,17 +205,21 @@ Method "_to_do_" is [start : integer, end : (-INF..INF], blk : [terminates]->voi
 		blk apply <start>;
 		Restart body with <start + 1, end, blk>;
 	];
-] : void
-requires [startT : integerType, endT : integerType, blkT : functionType |
-	if startT lower bound > endT upper bound then [
-		/* Known statically to be zero iterations. */
-		true;
-	] else [
-		/* Make sure the block can accept all possible indices. */
+] : void;
+
+Restriction "_to_do_" is [
+		startT : integerType,
+		endT : integerType,
+		blkT : functionType |
+	if startT lower bound <= endT upper bound then [
+		/* At least one iteration.  Make sure the block can accept all possible
+		   indices. */
 		indices ::= range from startT lower bound
 			inclusive startT lower inclusive
 			to endT upper bound + 1
 			inclusive false;
-		indices <= blkT[1];
+		if not indices <= blkT[1] then [
+			Fail parse "block of _to_do_ to accept all integers in the range";];
 	];
+	void;
 ];

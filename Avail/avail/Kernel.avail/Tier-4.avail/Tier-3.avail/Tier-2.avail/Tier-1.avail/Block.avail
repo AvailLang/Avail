@@ -59,29 +59,15 @@ Method "[...]->_" is [result : type |
 	Primitive 39;
 ] : functionType;
 
-/**
- * Private method declaration helper (bootstrapping workaround).
- */
-Method "Method_is_requires_returns_"
-is [
-		name : string,
-		body : [...]-> void,
-		requires: [...]-> boolean,
-		returns : [...]-> type |
-	Primitive 254 (failureCode : natural number);
-	Failed;
-] : void;
 
 /**
  * Private tuple constructor (bootstrapping workaround)...
  */
 Method "<«_‡,»>" is [t : tuple |
 	t;
-] : tuple
-requires [tt : tupleType |
-	true;
-]
-returns [tt : tupleType |
+] : tuple;
+
+Restriction "<«_‡,»>" is [tt : tupleType |
 	tt;
 ];
 

@@ -80,7 +80,7 @@ public class L1InstructionWriter
 		assert argumentTypes != null : "Must declare argument types before allocating locals";
 		assert localType.isInstanceOfKind(TYPE.o());
 		localTypes.add(localType);
-		return localTypes.size();
+		return localTypes.size() + argumentTypes.size();
 	}
 
 	private final List<AvailObject> outerTypes = new ArrayList<AvailObject>();

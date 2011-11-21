@@ -282,7 +282,7 @@ public final class AvailRuntime
 							name,
 							messageParts,
 							instructions));
-				rootBundle.addRestrictions(bundle.restrictions());
+				rootBundle.addRestrictions(bundle.grammaticalRestrictions());
 			}
 
 			// Finally add the module to the map of loaded modules.
@@ -400,10 +400,13 @@ public final class AvailRuntime
 			}
 			else
 			{
-				implementationSet = ImplementationSetDescriptor
-					.newImplementationSetWithName(methodName);
+				implementationSet =
+					ImplementationSetDescriptor.newImplementationSetWithName(
+						methodName);
 				methods = methods.mapAtPuttingCanDestroy(
-					methodName, implementationSet, true);
+					methodName,
+					implementationSet,
+					true);
 			}
 			return implementationSet;
 		}
@@ -468,15 +471,22 @@ public final class AvailRuntime
 			assert methods.hasKey(selector);
 			final AvailObject implementationSet = methods.mapAt(selector);
 			implementationSet.removeImplementation(implementation);
-			if (implementationSet.implementationsTuple().tupleSize() == 0)
+			if (implementationSet.isImplementationSetEmpty())
 			{
 				methods = methods.mapWithoutKeyCanDestroy(selector, true);
-				final MessageSplitter splitter = new MessageSplitter(selector.name());
+				final MessageSplitter splitter =
+					new MessageSplitter(selector.name());
 				rootBundleTree.removeBundle(
 					MessageBundleDescriptor.newBundle(
 						selector,
 						splitter.messageParts(),
 						splitter.instructionsTuple()));
+			}
+			if (implementationSet.isImplementationSetEmpty())
+			{
+				methods = methods.mapWithoutKeyCanDestroy(
+					selector,
+					true);
 			}
 		}
 		finally
@@ -490,17 +500,18 @@ public final class AvailRuntime
 	 * TupleDescriptor tuple} of {@linkplain SetDescriptor sets} of {@linkplain
 	 * AtomDescriptor atoms} (the messages' true names).
 	 */
-	private @NotNull AvailObject restrictions = MapDescriptor.empty();
+	private @NotNull AvailObject grammaticalRestrictions =
+		MapDescriptor.empty();
 
 	/**
 	 * Answer the {@linkplain MapDescriptor map} of {@linkplain
-	 * MessageBundleDescriptor message bundle} restrictions.
+	 * MessageBundleDescriptor message bundle} grammatical restrictions.
 	 *
 	 * @return The restrictions map.
 	 */
-	private @NotNull AvailObject restrictions ()
+	private @NotNull AvailObject grammaticalRestrictions ()
 	{
-		return restrictions;
+		return grammaticalRestrictions;
 	}
 
 	/**
@@ -510,39 +521,49 @@ public final class AvailRuntime
 	 * @param messageBundle
 	 *            The message bundle to be restricted.
 	 * @param restrictionsToAdd
-	 *            The restrictions to associate with the message bundle.
+	 *            The grammatical restrictions to associate with the message
+	 *            bundle.
 	 */
-	private @NotNull void addRestriction (
+	private @NotNull void addGrammaticalRestriction (
 		final @NotNull AvailObject messageBundle,
 		final @NotNull AvailObject restrictionsToAdd)
 	{
-		AvailObject tuple;
-		if (restrictions.hasKey(messageBundle))
+		runtimeLock.writeLock().lock();
+		try
 		{
-			tuple = restrictions.mapAt(messageBundle);
-			assert tuple.tupleSize() == restrictionsToAdd.tupleSize();
-			for (int i = tuple.tupleSize(); i > 0; i--)
+			AvailObject tuple;
+			if (grammaticalRestrictions.hasKey(messageBundle))
 			{
-				tuple = tuple.tupleAtPuttingCanDestroy(
-					i,
-					tuple.tupleAt(i).setUnionCanDestroy(
-						restrictionsToAdd.tupleAt(i),
-						true),
-					true);
+				tuple = grammaticalRestrictions.mapAt(messageBundle);
+				assert tuple.tupleSize() == restrictionsToAdd.tupleSize();
+				for (int i = tuple.tupleSize(); i > 0; i--)
+				{
+					tuple = tuple.tupleAtPuttingCanDestroy(
+						i,
+						tuple.tupleAt(i).setUnionCanDestroy(
+							restrictionsToAdd.tupleAt(i),
+							true),
+						true);
+				}
 			}
+			else
+			{
+				tuple = restrictionsToAdd;
+			}
+			grammaticalRestrictions =
+				grammaticalRestrictions.mapAtPuttingCanDestroy(
+					messageBundle,
+					tuple,
+					true);
 		}
-		else
+		finally
 		{
-			tuple = restrictionsToAdd;
+			runtimeLock.writeLock().unlock();
 		}
-		restrictions = restrictions.mapAtPuttingCanDestroy(
-			messageBundle,
-			tuple,
-			true);
 	}
 
 	/**
-	 * Add the specified grammatical restrictions for the specified message
+	 * Remove the specified grammatical restrictions from the specified message
 	 * bundle.
 	 *
 	 * @param messageBundle
@@ -550,42 +571,119 @@ public final class AvailRuntime
 	 * @param restrictionsToRemove
 	 *            The restrictions to dissociate from the message bundle.
 	 */
-	private @NotNull void removeRestriction (
+	private @NotNull void removeGrammaticalRestriction (
 		final @NotNull AvailObject messageBundle,
 		final @NotNull AvailObject restrictionsToRemove)
 	{
-		if (!restrictions.hasKey(messageBundle))
+		runtimeLock.writeLock().lock();
+		try
 		{
-			return;
-		}
-		AvailObject tuple = restrictions.mapAt(messageBundle);
-		assert tuple.tupleSize() == restrictionsToRemove.tupleSize();
-		boolean allEmpty = true;
-		for (int i = tuple.tupleSize(); i > 0; i--)
-		{
-			final AvailObject difference = tuple.tupleAt(i).setMinusCanDestroy(
-				restrictionsToRemove.tupleAt(i),
-				true);
-			tuple = tuple.tupleAtPuttingCanDestroy(i, difference, true);
-			if (difference.setSize() != 0)
+			if (!grammaticalRestrictions.hasKey(messageBundle))
 			{
-				allEmpty = false;
+				return;
+			}
+			AvailObject tuple = grammaticalRestrictions.mapAt(messageBundle);
+			assert tuple.tupleSize() == restrictionsToRemove.tupleSize();
+			boolean allEmpty = true;
+			for (int i = tuple.tupleSize(); i > 0; i--)
+			{
+				final AvailObject difference = tuple.tupleAt(i).setMinusCanDestroy(
+					restrictionsToRemove.tupleAt(i),
+					true);
+				tuple = tuple.tupleAtPuttingCanDestroy(i, difference, true);
+				if (difference.setSize() != 0)
+				{
+					allEmpty = false;
+				}
+			}
+			if (allEmpty)
+			{
+				grammaticalRestrictions =
+					grammaticalRestrictions.mapWithoutKeyCanDestroy(
+						messageBundle,
+						true);
+			}
+			else
+			{
+				grammaticalRestrictions =
+					grammaticalRestrictions.mapAtPuttingCanDestroy(
+						messageBundle,
+						tuple,
+						true);
 			}
 		}
-		if (allEmpty)
+		finally
 		{
-			restrictions = restrictions.mapWithoutKeyCanDestroy(
-				messageBundle,
-				true);
-		}
-		else
-		{
-			restrictions = restrictions.mapAtPuttingCanDestroy(
-				messageBundle,
-				tuple,
-				true);
+			runtimeLock.writeLock().unlock();
 		}
 	}
+
+
+	/**
+	 * Add a type restriction to the implementation set associated with the
+	 * given method name.
+	 *
+	 * @param methodName
+	 *            The method name, an {@link AtomDescriptor atom}.
+	 * @param typeRestrictionFunction
+	 *            A {@link FunctionDescriptor function} that validates the
+	 *            static types of arguments at call sites.
+	 */
+	public void addTypeRestriction (
+		final AvailObject methodName,
+		final AvailObject typeRestrictionFunction)
+	{
+		assert methodName.isAtom();
+		assert typeRestrictionFunction.isFunction();
+
+		runtimeLock.writeLock().lock();
+		try
+		{
+			final AvailObject impSet = implementationSetFor(methodName);
+			impSet.addTypeRestriction(typeRestrictionFunction);
+		}
+		finally
+		{
+			runtimeLock.writeLock().unlock();
+		}
+	}
+
+
+	/**
+	 * Remove a type restriction from the implementation set associated with the
+	 * given method name.
+	 *
+	 * @param methodName
+	 *            The method name, an {@link AtomDescriptor atom}.
+	 * @param typeRestrictionFunction
+	 *            A {@link FunctionDescriptor function} that validates the
+	 *            static types of arguments at call sites.
+	 */
+	public void removeTypeRestriction (
+		final AvailObject methodName,
+		final AvailObject typeRestrictionFunction)
+	{
+		assert methodName.isAtom();
+		assert typeRestrictionFunction.isFunction();
+
+		runtimeLock.writeLock().lock();
+		try
+		{
+			final AvailObject impSet = implementationSetFor(methodName);
+			impSet.removeTypeRestriction(typeRestrictionFunction);
+			if (impSet.isImplementationSetEmpty())
+			{
+				methods = methods.mapWithoutKeyCanDestroy(methodName, true);
+			}
+		}
+		finally
+		{
+			runtimeLock.writeLock().unlock();
+		}
+	}
+
+
+
 
 	/**
 	 * The root {@linkplain MessageBundleTreeDescriptor message bundle tree}. It

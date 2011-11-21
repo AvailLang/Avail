@@ -95,8 +95,10 @@ Method "concatenate tuple type_and_" is [
 
 Method "«_‡then»" is [tuples : tuple of tuple |
 	Primitive 136;
-] : tuple
-returns [outerTupleType : tupleType |
+] : tuple;
+
+
+Restriction "«_‡then»" is [outerTupleType : tupleType |
 	output : tupleType := tuple like <>;
 	exactSize : whole number := outerTupleType sizes lower bound;
 	Assert exactSize = outerTupleType sizes upper bound;
@@ -113,7 +115,7 @@ returns [outerTupleType : tupleType |
 
 /* Iteration... */
 
-iterationRequiresBlock ::= [tType : tupleType, blkType : functionType |
+Method "check_accepts_" is [blkType : functionType, tType : tupleType |
 	union ::= type union of tType default type and
 		union of types in tType leading types;
 	if not union <= blkType[1] then [
@@ -121,16 +123,16 @@ iterationRequiresBlock ::= [tType : tupleType, blkType : functionType |
 			then blkType[1] as basic string
 			then ", but might be passed an instance of "
 			then union as basic string;];
-	true;
-] : boolean;
+] : void;
 
 Method "_do_" is [tup : tuple, blk : [terminates]->void |
 	1 to ||tup|| do [i : natural number |
 		blk apply <tup[i]>;
 	];
-] : void
-requires iterationRequiresBlock
-returns [tType : tupleType, blkType : functionType |
+] : void;
+
+Restriction "_do_" is [tType : tupleType, blkType : functionType |
+	check blkType accepts tType;
 	/* This is kind of neat.  Normally the result type is void (to indicate
 	   no return value).  In the case that the block always terminates
 	   *and* there is at least one item in the tuple for sure, the invocation
@@ -149,9 +151,10 @@ Method "_collect_" is [t : tuple, blk : [terminates]->any |
 		result := result then <blk apply <t[i]>>;
 	];
 	result;
-] : tuple
-requires iterationRequiresBlock
-returns [tType : tupleType, blkType : functionType |
+] : tuple;
+
+Restriction "_collect_" is [tType : tupleType, blkType : functionType |
+	check blkType accepts tType;
 	tuple tType sizes
 		like <>
 		default blkType result;
@@ -167,9 +170,10 @@ Method "_select_" is [t : tuple, blk : [terminates]->boolean |
 		];
 	];
 	result;
-] : tuple
-requires iterationRequiresBlock
-returns [tType : tupleType, blkType : functionType |
+] : tuple;
+
+Restriction "_select_" is [tType : tupleType, blkType : functionType |
+	check blkType accepts tType;
 	union ::= type union of tType default type and
 		union of types in tType leading types;
 	sizes ::=
@@ -191,9 +195,10 @@ Method "_reject_" is [t : tuple, blk : [terminates]->boolean |
 		];
 	];
 	result;
-] : tuple
-requires iterationRequiresBlock
-returns [tType : tupleType, blkType : functionType |
+] : tuple;
+
+Restriction "_reject_" is [tType : tupleType, blkType : functionType |
+	check blkType accepts tType;
 	union ::= type union of tType default type and
 		union of types in tType leading types;
 	sizes ::=
@@ -215,8 +220,12 @@ Method "_all_" is [t : tuple, blk : [terminates]->boolean |
 		index := index + 1;
 	];
 	index > ||t||;
-] : boolean
-requires iterationRequiresBlock;
+] : boolean;
+
+Restriction "_all_" is [tType : tupleType, blkType : functionType |
+	check blkType accepts tType;
+	void;
+];
 
 
 Method "_any_" is [t : tuple, blk : [terminates]->boolean |
@@ -227,17 +236,22 @@ Method "_any_" is [t : tuple, blk : [terminates]->boolean |
 		index := index + 1;
 	];
 	index <= ||t||;
-] : boolean
-requires iterationRequiresBlock;
+] : boolean;
+
+Restriction "_any_" is [tType : tupleType, blkType : functionType |
+	check blkType accepts tType;
+	void;
+];
 
 
 Method "_sum_" is [t : tuple, blk : [terminates]->extended integer |
 	sum : extended integer := 0;
 	t do [ element : any | sum := sum + blk apply <element>; ];
 	sum;
-] : extended integer
-requires iterationRequiresBlock
-returns [tType : tupleType, blkType : functionType |
+] : extended integer;
+
+Restriction "_sum_" is [tType : tupleType, blkType : functionType |
+	check blkType accepts tType;
 	blkResultType ::= cast blkType result into [intT : integerType | intT; ];
 	integer range tType sizes times blkResultType;
 ];
@@ -247,8 +261,9 @@ Method "_sum" is [t : tuple of extended integer |
 	sum : extended integer := 0;
 	t do [ element : extended integer | sum := sum + element; ];
 	sum;
-] : extended integer
-returns [tType : tupleType |
+] : extended integer;
+
+Restriction "_sum" is [tType : tupleType |
 	currentRange : integerType := [0..0];
 	1 to tType sizes lower bound do [i : natural number |
 		elementRange ::= cast tType[i] into [intT : integerType | intT; ];
@@ -276,14 +291,12 @@ Method "_[_]" is [t : tuple, i : natural number |
 	/* Get tuple entry with given index. */
 	Primitive 131 (failureCode : natural number);
 	Failed;
-] : any
-requires [tType : tupleType, iType : integerType |
+] : any;
+
+Restriction "_[_]" is [tType : tupleType, iType : integerType |
 	/* Require that it's at least possible that the subscript is in range. */
 	if iType lower bound > tType sizes upper bound then [
 		Fail parse "Tuple subscript is always out of bounds";];
-	true;
-] : boolean
-returns [tType : tupleType, iType : integerType |
 	/* Compute the type union of all the possible types it could be,
 	   depending on what indices could be applied. */
 	possible : type := terminates;
@@ -315,8 +328,9 @@ Method "_to_" is [a : integer, b : integer |
 	/* The "«_‡then»" operation is not yet refined with a returns clause.
 	   Cast the type downwards, as we know the entries are all integers. */
 	cast result into [x : tuple of integer | x;];
-] : tuple of integer
-returns [aRange : integerType, bRange : integerType |
+] : tuple of integer;
+
+Restriction "_to_" is [aRange : integerType, bRange : integerType |
 	if aRange lower bound > bRange upper bound then [
 		<> type;
 	] else [
@@ -406,8 +420,9 @@ Method "_[_->_]" is [t : tuple, i : natural number, v : any |
 	/* Answer new tuple with given index set to the given value. */
 	Primitive 132 (failureCode : natural number);
 	Failed;
-] : tuple
-returns [tType : tupleType, iType : integerType, vType : type |
+] : tuple;
+
+Restriction "_[_->_]" is [tType : tupleType, iType : integerType, vType : type |
 	leading : tuple of type := tType leading types;
 	default : type := tType default type;
 	/* Deal with replacement in leading types... */
@@ -447,9 +462,10 @@ Method "*_[_]:=_" is [tupleVar : &:tuple, i : natural number, v : any |
 	/* Make a new tuple like that in tupleVar, but with the given index set to
 	   the given value.  Set tupleVar to this new tuple.  */
 	*tupleVar ?:= clearing* tupleVar [i->v];
-] : void
-requires [tvt : containerType, it : integerType, vt : type |
-	tvt readType = tvt writeType &
+] : void;
+
+Restriction "*_[_]:=_" is [tvt : containerType, it : integerType, vt : type |
+	good ::= tvt readType = tvt writeType &
 		cast tvt readType into [tt : tupleType |
 			/* Make sure we can store back any possible result. */
 			vt <= union of types in
@@ -458,6 +474,9 @@ requires [tvt : containerType, it : integerType, vt : type |
 		] otherwise [
 			false;
 		];
+	if not good then [
+		Fail parse "tuple replacement expression to have appropriate types";];
+	void;
 ];
 
 
@@ -465,8 +484,9 @@ requires [tvt : containerType, it : integerType, vt : type |
 Method "splice_" is [tupleOfTuples : tuple of tuple |
 	/* Concatenate a tuple of tuples into one big tuple. */
 	Primitive 136;
-] : tuple
-returns [ttType : tupleType |
+] : tuple;
+
+Restriction "splice_" is [ttType : tupleType |
 	limit ::= if ttType sizes upper bound is infinite then [
 		ttType sizes lower bound max (||ttType leading types|| + 1);
 	] else [
@@ -498,8 +518,12 @@ Method "_[_.._]" is [t : tuple, start : natural number, end : whole number |
 	/* Extract a contiguous region from a tuple. */
 	Primitive 135 (failureCode : natural number);
 	Failed;
-] : tuple
-returns [tt : tupleType, startT : integerType, endT : integerType |
+] : tuple;
+
+Restriction "_[_.._]" is [
+		tt : tupleType,
+		startT : integerType,
+		endT : integerType |
 	type of subtuple tt
 	from range startT
 	to range endT;
@@ -509,8 +533,9 @@ returns [tt : tupleType, startT : integerType, endT : integerType |
 Method "_[.._]" is [t : tuple, end : whole number |
 	/* Extract a contiguous region from a tuple. */
 	t[1..end];
-] : tuple
-returns [tt : tupleType, endT : integerType |
+] : tuple;
+
+Restriction "_[.._]" is [tt : tupleType, endT : integerType |
 	type of subtuple tt
 	from range [1..1]
 	to range endT;
@@ -520,8 +545,9 @@ returns [tt : tupleType, endT : integerType |
 Method "_[_..]" is [t : tuple, start : natural number |
 	/* Extract a contiguous region from a tuple. */
 	t[start..||t||];
-] : tuple
-returns [tt : tupleType, startT : integerType |
+] : tuple;
+
+Restriction "_[_..]" is [tt : tupleType, startT : integerType |
 	type of subtuple tt
 	from range startT
 	to range tt sizes;
@@ -537,8 +563,9 @@ Method "_[_.._->_]" is [
 	/* Create a tuple with the given range replaced by replacement.  The
 	   range need not match the size of the replacement. */
 	splice <t[1..start-1], replacement, t[end+1..||t||]>;
-] : tuple
-returns [
+] : tuple;
+
+Restriction "_[_.._->_]" is [
 		tt : tupleType,
 		startT : integerType,
 		endT : integerType,

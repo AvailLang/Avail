@@ -129,7 +129,8 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	/**
 	 * A special enumeration used to visit all object slots for copying.
 	 */
-	enum FakeObjectSlots {
+	enum FakeObjectSlots
+	{
 		/**
 		 * An indexed object slot that makes it easy to visit all object slots.
 		 */
@@ -139,7 +140,8 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	/**
 	 * A special enumeration used to visit all integer slots for copying.
 	 */
-	enum FakeIntegerSlots {
+	enum FakeIntegerSlots
+	{
 		/**
 		 * An indexed integer slot that makes it easy to visit all integer
 		 * slots.

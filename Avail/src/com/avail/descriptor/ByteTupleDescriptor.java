@@ -93,7 +93,8 @@ extends TupleDescriptor
 		//  Round up to a multiple of four per row.
 		rowSize = rowSize + 3 & ~3;
 		int rowStart = 1;
-		while (rowStart <= object.tupleSize()) {
+		while (rowStart <= object.tupleSize())
+		{
 			aStream.append('\n');
 			for (int count = 1; count <= indent; count++)
 			{

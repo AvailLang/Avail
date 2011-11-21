@@ -143,8 +143,9 @@ Method "_new with_" is [
 		];
 	];
 	m as object;
-] : Object
-returns [oM : objectMeta, tT : tupleType |
+] : Object;
+
+Restriction "_new with_" is [oM : objectMeta, tT : tupleType |
 	mustMatch ::= oM instance as map;
 	m : fieldTypeMap := [->];
 	leading : tuple of type := tT leading types;
@@ -194,8 +195,9 @@ Method "_altered with_" is [o : Object, t : tuple of (tuple like <atom, any>) |
 		*&m[pair[1]] := pair[2];
 	];
 	m as object;
-] : Object
-returns [oT : objectType, tT : tupleType |
+] : Object;
+
+Restriction "_altered with_" is [oT : objectType, tT : tupleType |
 	m : fieldTypeMap := oT as map;
 	keysEncountered : set of atom := {};
 	leading : tuple of type := tT leading types;
@@ -239,9 +241,12 @@ Method "_altered with_" is [ot : Object type, t : tuple of (tuple like <atom, ty
 
 Method "Rule_" is [rule : [terminates]->boolean |
 	validationList := validationList then <rule>;
-] : void
-requires [ruleT : functionType |
-	ruleT[1] type <= objectType;
+] : void;
+
+Restriction "Rule_" is [ruleT : functionType |
+	if not ruleT[1] type <= objectType then [
+		Fail parse "construction validation rule to apply to an object type";];
+	void;
 ];
 
 
@@ -252,16 +257,17 @@ requires [ruleT : functionType |
 
 Method "_->_" is [ot : objectType, key : atom |
 	ot as map [key];
-] : type
-requires [om : objectMeta, keyT : atom type |
+] : type;
+
+Restriction "_->_" is [om : objectMeta, keyT : atom type |
 	/* Require that the atom's static type be at least a union type for which
 	   all instances can be looked up in the static object type. */
-	keyT type <= unionType & [
+	good ::= keyT type <= unionType & [
 		om instances as tuple all [ot : objectType |
 			keyT unsafe instances as tuple all [key : any |
 				ot as map [key]?;];];];
-]
-returns [om : objectMeta, keyT : atom type |
+	if not good then [
+		Fail parse "No such field in this object type";];
 	result : type := terminates;
 	om instances do [ot : objectType |
 		keyT unsafe instances do [key : any |
@@ -274,16 +280,17 @@ returns [om : objectMeta, keyT : atom type |
 
 Method "_->_result" is [ot : objectType, key : atom |
 	cast ot as map [key] into [x : functionType | x result;];
-] : type
-requires [om : objectMeta, keyT : atom type |
-	cast keyT
+] : type;
+
+Restriction "_->_result" is [om : objectMeta, keyT : atom type |
+	good ::= cast keyT
 		into [keyU : unionType |
 			||keyU instances|| = 1 & [
 				om instance as map [keyU instance]? & [
 					om instance as map [keyU instance] <= []->any;];];]
 		otherwise [false;];
-]
-returns [om : objectMeta, keyT : atom type |
+	if not good then [
+		Fail parse "No such field in this object type";];
 	cast om instance as map [keyT unsafe instance]
 		into [x : functionType | x result type;];
 ];
@@ -298,15 +305,16 @@ Method "_->_" is [o : Object, key : atom |
 	   being accessed by an invocation of "_->_".  Thus, we know from the
 	   objectType precisely the type of the attribute value.  */
 	o as map [key];
-] : any
-requires [ot : objectType, keyT : atom type |
-	keyT type <= unionType & [
+] : any;
+
+Restriction "_->_" is [ot : objectType, keyT : atom type |
+	$escape : $[objectType, atom type]->type;
+	good ::= keyT type <= unionType & [
 		keyT not = terminates & [
 			keyT unsafe instances as tuple all [shouldBeAtom : any |
 				shouldBeAtom type <= atom;];];];
-]
-returns [ot : objectType, keyT : atom type |
-	$escape : $[objectType, atom type]->type;
+	if not good then [
+		Fail parse "No such field in object";];
 	union : type := terminates;
 	cast keyT
 		into [keyU : unionType |
@@ -325,9 +333,10 @@ Method "_->_result" is [o : Object, key : atom |
 	   must define the same method here in case someone wants to
 	   use this particular pattern. */
 	cast o as map [key] into [x : functionType | x result;];
-] : any
-requires [ot : objectType, keyT : atom type |
-	cast keyT
+] : any;
+
+Restriction "_->_result" is [ot : objectType, keyT : atom type |
+	good ::= cast keyT
 		into [keyU : unionType |
 			atoms ::= keyU instances;
 			if || atoms || = 1 then [
@@ -340,8 +349,8 @@ requires [ot : objectType, keyT : atom type |
 				Fail parse "Expected type of second argument of ""_->_result"" to be a specific atom type";];]
 		otherwise [
 			Fail parse "Expected type of second argument of ""_->_result"" to be a specific atom's type";];
-]
-returns [ot : objectType, keyT : atom type |
+	if not good then [
+		Fail parse "No such field in object";];
 	cast keyT
 		into [keyU : unionType |
 			atoms ::= keyU instances;
@@ -373,7 +382,6 @@ Method "_is implicit subtype of«_‡,»«with«_->_‡,»»" is [
 		intersection := type intersection of intersection and each;
 	];
 	Method newName is stub block taking 0 arguments and returning intersection;
-/*	Method newName is [intersection;] returns [intersection type;];*/
 	Give type intersection the name newName;
 ] : void;
 
@@ -399,7 +407,6 @@ Method "_is explicit subtype of«_‡,»«with«_->_‡,»»" is [
 		intersection := type intersection of intersection and each;
 	];
 	Method newName is stub block taking 0 arguments and returning intersection;
-/*	Method newName is [intersection;] returns [intersection type;];*/
 	Give type intersection the name newName;
 ] : void;
 
@@ -426,8 +433,7 @@ Method "_has fields_" is [ot : Object type, fields : tuple of string |
 		* &strongerReturnsBlock ?:= newReturnsBlock;
 		
 		/* Define an instance-side getter... */
-		Method newMethodName
-		is newBody
-		returns strongerReturnsBlock;
+		Method newMethodName is newBody;
+		Restriction newMethodName is strongerReturnsBlock;
 	];
 ];

@@ -71,14 +71,6 @@ extends Descriptor
 	}
 
 	@Override
-	public void o_AllBundles (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		object.objectSlotPut(ObjectSlots.ALL_BUNDLES, value);
-	}
-
-	@Override
 	public void o_Unclassified (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
@@ -235,11 +227,12 @@ extends Descriptor
 		final @NotNull AvailObject message,
 		final @NotNull AvailObject bundle)
 	{
-		object.allBundles(
-			object.allBundles().mapAtPuttingCanDestroy(
-				message,
-				bundle,
-				true));
+		AvailObject allBundles = object.objectSlot(ObjectSlots.ALL_BUNDLES);
+		allBundles = allBundles.mapAtPuttingCanDestroy(
+			message,
+			bundle,
+			true);
+		object.objectSlotPut(ObjectSlots.ALL_BUNDLES, allBundles);
 		AvailObject unclassified = object.unclassified();
 		assert !unclassified.hasKey(message);
 		unclassified = unclassified.mapAtPuttingCanDestroy(
@@ -285,7 +278,7 @@ extends Descriptor
 						true);
 			}
 		}
-		filteredBundleTree.allBundles(filteredAllBundles);
+		filteredBundleTree.objectSlotPut(ObjectSlots.ALL_BUNDLES, filteredAllBundles);
 		filteredBundleTree.unclassified(filteredUnclassified);
 	}
 
@@ -298,22 +291,23 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final AvailObject newBundle)
 	{
-		final AvailObject allBundles = object.allBundles();
 		final AvailObject message = newBundle.message();
+		AvailObject allBundles = object.allBundles();
 		if (allBundles.hasKey(message))
 		{
 			return allBundles.mapAt(message);
 		}
-		object.allBundles(
-			object.allBundles().mapAtPuttingCanDestroy(
-				message,
-				newBundle,
-				true));
-		object.unclassified(
-			object.unclassified().mapAtPuttingCanDestroy(
-				message,
-				newBundle,
-				true));
+		allBundles = allBundles.mapAtPuttingCanDestroy(
+			message,
+			newBundle,
+			true);
+		object.objectSlotPut(ObjectSlots.ALL_BUNDLES, allBundles);
+		AvailObject unclassified = object.objectSlot(ObjectSlots.UNCLASSIFIED);
+		unclassified = unclassified.mapAtPuttingCanDestroy(
+			message,
+			newBundle,
+			true);
+		object.objectSlotPut(ObjectSlots.UNCLASSIFIED, unclassified);
 		return newBundle;
 	}
 
@@ -333,7 +327,7 @@ extends Descriptor
 			allBundles = allBundles.mapWithoutKeyCanDestroy(
 				message,
 				true);
-			object.allBundles(allBundles);
+			object.objectSlotPut(ObjectSlots.ALL_BUNDLES, allBundles);
 			AvailObject unclassified = object.unclassified();
 			if (unclassified.hasKey(message))
 			{
@@ -464,7 +458,7 @@ extends Descriptor
 	{
 		final AvailObject result = mutable().create();
 		result.parsingPc(pc);
-		result.allBundles(MapDescriptor.empty());
+		result.objectSlotPut(ObjectSlots.ALL_BUNDLES, MapDescriptor.empty());
 		result.unclassified(MapDescriptor.empty());
 		result.lazyComplete(MapDescriptor.empty());
 		result.lazyIncomplete(MapDescriptor.empty());

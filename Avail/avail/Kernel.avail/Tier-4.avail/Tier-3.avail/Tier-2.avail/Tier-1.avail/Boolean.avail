@@ -35,7 +35,6 @@ Extends
 Uses
 	"Tier-0",
 	"Block",
-	"Method",
 	"Set",
 	"Tuple",
 	"Type"
@@ -55,15 +54,18 @@ Body
 
 Forward "if_then_else_" for [boolean, []->void, []->void] -> void;
 
-Method "if_then_else_"
-is [
+Method "if_then_else_" is [
 		bool : boolean,
 		trueBlock : []->void,
 		falseBlock : []->void |
 	/* Conditionally evaluate either the trueBlock or the falseBlock. */
 	Primitive 43;
-] : void
-returns [bt : type, tbt : functionType, fbt : functionType |
+] : void;
+
+Restriction "if_then_else_" is [
+		bt : type,
+		tbt : functionType,
+		fbt : functionType |
 	/* We have to use a local variable (result) because at this point
 	   the definition of if_then_else_ does not exist, and we are linking
 	   to it.  The rule is that the forward definition's return type is what
@@ -115,8 +117,9 @@ Method "if_then_" is [bool : boolean, trueBlock : []->void |
 
 Method "_&_" is [a : boolean, b : boolean |
 	false;
-] : boolean
-returns [at : type, bt : type |
+] : boolean;
+
+Restriction "_&_" is [at : type, bt : type |
 	res : type := boolean;
 	if at = falseType then [res := falseType;];
 	if bt = falseType then [res := falseType;];
@@ -129,8 +132,9 @@ Method "_&_" is [a : trueType, b : trueType |
 ] :  trueType;
 
 
-Abstract method "_&_" for [boolean, []->boolean]->boolean
-returns [at : type, bt : functionType |
+Abstract method "_&_" for [boolean, []->boolean]->boolean;
+
+Restriction "_&_" is [at : type, bt : functionType |
 	res : type := boolean;
 	if at = trueType then [res := bt result;];
 	if at = falseType then [res := falseType;];
@@ -142,8 +146,9 @@ returns [at : type, bt : functionType |
 Method "_&_" is [a : trueType, b : []->boolean |
 	/* Evaluate b because a leaves it contingent. */
 	Primitive 45;
-] : boolean
-returns [at : type, bt : functionType |
+] : boolean;
+
+Restriction "_&_" is [at : type, bt : functionType |
 	bt result;
 ] : type;
 
@@ -156,8 +161,9 @@ Method "_&_" is [a : falseType, b : []->boolean |
 
 Method "_|_" is [a : boolean, b : boolean |
 	true;
-] : boolean
-returns [at : type, bt : type |
+] : boolean;
+
+Restriction "_|_" is [at : type, bt : type |
 	res : type := boolean;
 	if at = trueType then [res := trueType;];
 	if bt = trueType then [res := trueType;];
@@ -170,8 +176,9 @@ Method "_|_" is [a : falseType, b : falseType |
 ] : falseType;
 
 
-Abstract method "_|_" for [boolean,  []->boolean]->boolean
-returns [at : type, bt : functionType |
+Abstract method "_|_" for [boolean,  []->boolean]->boolean;
+
+Restriction "_|_" is [at : type, bt : functionType |
 	res : type := boolean;
 	if at = falseType then [res := bt result;];
 	if at = trueType then [res := trueType;];
@@ -188,8 +195,10 @@ Method "_|_" is [a : trueType, b :  []->boolean |
 Method "_|_" is [a : falseType, b :  []->boolean |
 	/* Evaluate b because a leaves it contingent. */
 	Primitive 45;
-] : boolean
-returns [at : type, bt : functionType |
+] : boolean;
+
+
+Restriction "_|_" is [at : type, bt : functionType |
 	bt result;
 ] : type;
 
@@ -209,8 +218,9 @@ Method "not_" is [a : falseType |
 
 Method "_xor_" is [a : boolean , b : boolean |
 	not (a = b);
-] : boolean
-returns [at : type, bt : type |
+] : boolean;
+
+Restriction "_xor_" is [at : type, bt : type |
 	if at = boolean | bt = boolean then [
 		boolean;
 	] else [
@@ -225,7 +235,3 @@ returns [at : type, bt : type |
 Method "_not=_" is [a : any, b : any |
 	not a = b;
 ] : boolean;
-
-
-
-

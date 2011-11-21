@@ -224,7 +224,8 @@ public class AvailScanner
 			{
 				int explicitExponent = 0;
 				final boolean negateExponent = peekFor('-');
-				while (peekIsDigit()) {
+				while (peekIsDigit())
+				{
 					explicitExponent = explicitExponent * 10 + nextDigitValue();
 					if (explicitExponent > 0x2710)
 					{
@@ -411,7 +412,7 @@ public class AvailScanner
 	 */
 	char next ()
 	{
-		char c = _inputString.charAt(_position);
+		final char c = _inputString.charAt(_position);
 		if (c == '\n')
 		{
 			_lineNumber++;

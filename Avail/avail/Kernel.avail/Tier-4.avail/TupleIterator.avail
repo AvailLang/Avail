@@ -76,8 +76,9 @@ Method "_as Iterator" is [t : tuple |
 		<position, &pos>,
 		<elementType, thingsThunk2>
 	>;
-] : Tuple Iterator
-returns [tt : tupleType |
+] : Tuple Iterator;
+
+Restriction "_as Iterator" is [tt : tupleType |
 	elemType ::= type union of (union of types in tt leading types)
 		and tt default type;
 	Tuple Iterator altered with <<elementType , []->elemType>>;
@@ -92,8 +93,9 @@ Method "next_" is [iter : Tuple Iterator |
 	result ::= iter -> tupleField [*iter -> position];
 	iter -> position ++;
 	result;
-]
-returns [iterType : Tuple Iterator type |
+];
+
+Restriction "next_" is [iterType : Tuple Iterator type |
 	iterType -> elementType result;
 ];
 

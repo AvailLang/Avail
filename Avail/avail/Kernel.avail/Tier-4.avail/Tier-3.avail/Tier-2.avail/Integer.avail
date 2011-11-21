@@ -66,7 +66,7 @@ Forward "_-_" for [extended integer, extended integer]->extended integer;
 Forward "-_" for [extended integer]->extended integer;
 Forward "_*_" for [extended integer, extended integer]->extended integer;
 Forward "_/_" for [extended integer, extended integer]->extended integer;
-Forward "_mod_" for [integer, [1..INF]]->integer;
+Forward "_mod_" for [integer, [1..INF]]->extended integer;
 Forward "_^_" for [extended integer, whole number]->extended integer;
 Forward "_max_" for [extended integer, extended integer]->extended integer;
 Forward "_min_" for [extended integer, extended integer]->extended integer;
@@ -141,8 +141,9 @@ setOfString ::= Special Object 75;
 
 Method "_U_" is [s1 : setOfString, s2 : setOfString |
 	Primitive 102;
-] : set
-returns [st : setType, st2 : setType |
+] : set;
+
+Restriction "_U_" is [st : setType, st2 : setType |
 	setOfString;
 ];
 
@@ -166,22 +167,81 @@ power	can't have	<sum U product U negation U power,	sum U product>;
 
 {"|_|"} can't have <{"|_|"}>;	/* disallow dangerous and redundant ||x|| for abs(abs(x)). */
 
-/* Helper methods to allow + and - to be used in the returns clauses... */
 
-Method "_private+_" is [a : extended integer, b : extended integer |
+Method "_+_" is [a : extended integer, b : extended integer |
 	Primitive 1 (failureCode : natural number);
-	Failed;
+	if a is infinite & b is infinite & a not = b then [
+		Crash "Can't add positive infinity to negative infinity";
+	] else [
+		Crash "Unknown problem in addition primitive";
+	];
 ] : extended integer;
 
-Method "_private-_" is [a : extended integer, b : extended integer |
+Method "_-_" is [a : extended integer, b : extended integer |
 	Primitive 2 (failureCode : natural number);
-	Failed;
+	if a is infinite & a = b then [
+		Crash "Can't subtract positive or negative infinity from itself";
+	] else [
+		Crash "Unknown problem in subtraction primitive";
+	];
 ] : extended integer;
 
-Method "_private*_" is [a : extended integer, b : extended integer |
-	Primitive 3 (failureCode : natural number);
-	Failed;
+Method "-_" is [a : extended integer |
+	/* Unary extended integer negation.  There are no negative integer
+	   constants in Avail.  Just use negation - it looks the same.  */
+	0 - a;
 ] : extended integer;
+
+Method "_*_" is [a : extended integer, b : extended integer |
+	Primitive 3 (failureCode : natural number);
+	if (a is infinite & b = 0) | (a = 0 & b is infinite) then [
+		Crash "Can't multiply zero by infinity";
+	] else [
+		Crash "Unknown problem in multiplication primitive";
+	];
+] : extended integer;
+
+Method "_/_" is [a : extended integer, b : extended integer |
+	Primitive 4 (failureCode : natural number);
+	if b = 0 then [
+		divisionByZeroHandler apply <>;
+	] else [
+		if a is infinite & b is infinite then [
+			Crash "Can't divide infinity by infinity";
+		] else [
+			Crash "Unknown problem in division primitive";
+		];
+	];
+] : extended integer;
+
+Method "_mod_" is [a : integer, b : [1..INF] |
+	/* If b is infinite, then the modulus is defined as just a. */
+	if b is finite then [a - (b*(a/b));] else [a;];
+] : extended integer;
+
+
+Method "_max_" is [first : extended integer, second : extended integer |
+	if first < second then [second;] else [first;];
+] : extended integer;
+
+Method "_min_" is [first : extended integer, second : extended integer |
+	if first < second then [first;] else [second;];
+] : extended integer;
+
+Method "_is odd" is [a : integer |
+	a mod 2 = 1;
+] : boolean;
+
+Method "_is even" is [a : integer |
+	a mod 2 = 0;
+] : boolean;
+
+Method "|_|" is [a : extended integer |
+	/* Compute the absolute value of the argument... */
+	if a < 0 then [0-a;] else [a;];
+] : extended integer;
+
+
 
 Method "integer range_plus_" is [a : integerType, b : integerType |
 	/* If one of these types is forced to be either INF or -INF, and
@@ -196,14 +256,15 @@ Method "integer range_plus_" is [a : integerType, b : integerType |
 	] else [
 		/* The range calculation below is ok with respect to infinite bounds,
 		   because a bound can only be exclusive if it is infinite. */
-		range from (a lower bound private+ b lower bound) private- 1
+		range from (a lower bound + b lower bound) - 1
 			inclusive (a lower inclusive & a lower bound is infinite)
 				| (b lower inclusive & b lower bound is infinite)
-			to (a upper bound private+ b upper bound) private+ 1
+			to (a upper bound + b upper bound) + 1
 			inclusive (a upper inclusive & a upper bound is infinite)
 				| (b upper inclusive & b upper bound is infinite);
 	];
 ] : integerType;
+
 
 Method "integer range_times_" is [aT : integerType, bT : integerType |
 	/* Deal with call sites that use this to compute the resulting range from
@@ -231,32 +292,32 @@ Method "integer range_times_" is [aT : integerType, bT : integerType |
 		if posAs not = terminates then [
 			if posBs not = terminates then [
 				range := type union of range and
-					range from posAs lower bound private* posBs lower bound
+					range from posAs lower bound * posBs lower bound
 					inclusive posAs lower inclusive & posBs lower inclusive
-					to posAs upper bound private* posBs upper bound
+					to posAs upper bound * posBs upper bound
 					inclusive posAs upper inclusive & posBs upper inclusive;
 			];
 			if negBs not = terminates then [
 				range := type union of range and
-					range from posAs upper bound private* negBs lower bound
+					range from posAs upper bound * negBs lower bound
 					inclusive posAs upper inclusive & negBs lower inclusive
-					to posAs lower bound private* negBs upper bound
+					to posAs lower bound * negBs upper bound
 					inclusive posAs lower inclusive & negBs upper inclusive;
 			];
 		];
 		if negAs not = terminates then [
 			if posBs not = terminates then [
 				range := type union of range and
-					range from negAs lower bound private* posBs upper bound
+					range from negAs lower bound * posBs upper bound
 					inclusive negAs lower inclusive & posBs upper inclusive
-					to negAs upper bound private* posBs lower bound
+					to negAs upper bound * posBs lower bound
 					inclusive negAs upper inclusive & posBs lower inclusive;
 			];
 			if negBs not = terminates then [
 				range := type union of range and
-					range from negAs upper bound private* negBs upper bound
+					range from negAs upper bound * negBs upper bound
 					inclusive negAs upper inclusive & negBs upper inclusive
-					to negAs lower bound private* negBs lower bound
+					to negAs lower bound * negBs lower bound
 					inclusive negAs lower inclusive & negBs lower inclusive;
 				];
 		];
@@ -268,153 +329,84 @@ Method "integer range_times_" is [aT : integerType, bT : integerType |
 	];
 ] : integerType;
 
+
 Method "_negated" is [a : integerType |
 	/* Negate an integer range. */
-	integer range a times [0 private- 1 .. 0 private- 1];
+	integer range a times [-1..-1];
 ] : integerType;
 
-Method "-_" is [a : extended integer |
-	/* Unary extended integer negation.  There are no negative integer
-	   constants in Avail.  Just use negation - it looks the same.  */
-	0 private- a;
-] : extended integer
-returns [aT : integerType |
+
+Restriction "-_" is [aT : integerType |
 	aT negated;
 ] : integerType;
 
-Method "_+_" is [a : extended integer, b : extended integer |
-	Primitive 1 (failureCode : natural number);
-	if a is infinite & b is infinite & a not = b then [
-		Crash "Can't add positive infinity to negative infinity";
-	] else [
-		Crash "Unknown problem in addition primitive";
-	];
-] : extended integer
-returns [aT : integerType, bT : integerType |
+Restriction "_+_" is [aT : integerType, bT : integerType |
 	integer range aT plus bT;
 ] : integerType;
 
-
-Method "_-_" is [a : extended integer, b : extended integer |
-	Primitive 2 (failureCode : natural number);
-	if a is infinite & a = b then [
-		Crash "Can't subtract positive or negative infinity from itself";
-	] else [
-		Crash "Unknown problem in subtraction primitive";
-	];
-] : extended integer
-returns [aT : integerType, bT : integerType |
+Restriction "_-_" is [aT : integerType, bT : integerType |
 	integer range aT plus (bT negated);
 ] : integerType;
 
-
-
-/* Look for obvious bugs (I was bitten once)... */
-Assert 1<2;
-Assert 1<=2;
-Assert 1<=1;
-Assert 2>1;
-Assert 2>=1;
-Assert 2>=2;
-Assert -1<1;
-Assert 1>-1;
-Assert -1=-1;
-Assert -1<=-1;
-Assert -1>=-1;
-Assert -3<=-1;
-Assert -1>=-2;
-
-
-
-
-
-
-Method "_*_" is [a : extended integer, b : extended integer |
-	Primitive 3 (failureCode : natural number);
-	if (a is infinite & b = 0) | (a = 0 & b is infinite) then [
-		Crash "Can't multiply zero by infinity";
-	] else [
-		Crash "Unknown problem in multiplication primitive";
-	];
-] : extended integer
-returns [aT : integerType, bT : integerType |
+Restriction "_*_" is [aT : integerType, bT : integerType |
 	integer range aT times bT;
 ] : integerType;
 
 
-/* Some sanity checks... */
-Assert [3*5;] type <= []->[15..15];
-Assert [x : [-3..11]; y : [-5..3]; x * y;] type <= []->[-55..33];
-Assert [x : [-11..3]; y : [-5..3]; x * y;] type <= []->[-33..55];
 
-
-Method "_/_" is [a : extended integer, b : extended integer |
-	Primitive 4 (failureCode : natural number);
-	if b = 0 then [
-		divisionByZeroHandler apply <>;
+Method "_divide range by_" is [
+		numeratorRange : integerType,
+		denominator : extended integer |
+	if numeratorRange = terminates | denominator = 0 then [
+		terminates;
 	] else [
-		if a is infinite & b is infinite then [
-			Crash "Can't divide infinity by infinity";
+		if denominator is infinite then [
+			/* Either infinity over ±INF is a runtime error, and therefore not
+			   of interest here, but finites over ±INF are always 0. */
+			[0..0];
 		] else [
-			Crash "Unknown problem in division primitive";
+			/* Finite non-zero denominator.  Just scale the numerator range. */
+			minNumerator ::= numeratorRange lower bound;
+			maxNumerator ::= numeratorRange upper bound;
+			if denominator < 0 then [
+				range from maxNumerator / denominator
+					inclusive numeratorRange upper inclusive
+					to minNumerator / denominator
+					inclusive numeratorRange lower inclusive;
+			] else [
+				range from minNumerator / denominator
+					inclusive numeratorRange lower inclusive
+					to maxNumerator / denominator
+					inclusive numeratorRange upper inclusive;
+			];
 		];
 	];
-] : extended integer
-returns [aT : integerType, bT : integerType |
-	/* If we didn't canonize finite range boundaries into inclusive form
-	   we would be in trouble below, as 16/3 -> 5, but if 16 was exclusive
-	   we wouldn't want to exclude 5 (because 15/3 also -> 5).  */
-	soFar : integerType := terminates;
-	tryDivisor ::= [divisor : extended integer |
-		soFar := type union of soFar and
-			if aT = terminates | divisor = 0 then [
-				terminates;
-			] else [
-				if divisor is infinite then [
-					/* Either infinity over +-INF is a runtime error, and therefore not
-					   of interest here, but finites over +-INF are always 0. */
-					[0..0];
-				] else [
-					/* Finite non-zero divisor:  Just scale the numerator range. */
-					if divisor < 0 then [
-						range from aT upper bound / divisor
-							inclusive aT upper inclusive
-							to aT lower bound / divisor
-							inclusive aT lower inclusive;
-					] else [
-						range from aT lower bound / divisor
-							inclusive aT lower inclusive
-							to aT upper bound / divisor
-							inclusive aT upper inclusive;
-					];
-				];
-			];
-	] : void;
+] : integerType;
+
+
+Restriction "_/_" is [aT : integerType, bT : integerType |
 	/* Ok, try the outer bounds of the denominator, but also the bounds as
 	   denominators approach 0 from above and from below (but excluding 0).
 	   We don't need to distinguish between including infinities and excluding
 	   infinities in the denominator, as either case approaches zero equally
 	   well.  Since all finite bounds are canonized into inclusive form, we can
-	   therefore treat these bounds as inclusive.  Eventually we should worry
-	   about truncation direction, as 0 might not be reachable by any negative
-	   actual divisions, even though this calculation may disagree.  Smalltalk
-	   (and therefore, for the moment, Avail) will round toward the infinity with
-	   the same sign as the denominator.  */
+	   therefore treat these bounds as inclusive.  */
+	soFar : integerType := terminates;
 	negativeDenominators ::= type intersection of bT and [-INF..-1];
-	tryDivisor apply <negativeDenominators lower bound>;
-	tryDivisor apply <negativeDenominators upper bound>;
 	positiveDenominators ::= type intersection of bT and [1..INF];
-	tryDivisor apply <positiveDenominators lower bound>;
-	tryDivisor apply <positiveDenominators upper bound>;
+	soFar := type union of soFar and
+		(aT divide range by negativeDenominators lower bound); 
+	soFar := type union of soFar and
+		(aT divide range by negativeDenominators upper bound); 
+	soFar := type union of soFar and
+		(aT divide range by positiveDenominators lower bound); 
+	soFar := type union of soFar and
+		(aT divide range by positiveDenominators upper bound); 
 	soFar;
 ] : integerType;
 
 
-Method "_mod_" is [a : integer, b : [1..INF] |
-	/* If b is infinite, then the modulus is defined as just a. */
-	if b is finite then [a - (b*(a/b));] else [a;];
-] : integer
-returns [aT : integerType, bT : integerType |
+Restriction "_mod_" is [aT : integerType, bT : integerType |
 	/* One would think the return type would be constrained
 	   to [0..bT upper bound), which it is, but we might be able
 	   to do better than that if aT is a small enough range. We
@@ -438,25 +430,44 @@ returns [aT : integerType, bT : integerType |
 ] : integerType;
 
 
-
-/* Convenient helper... */
-
-Method "_is odd" is [a : integer |
-	a mod 2 = 1;
-] : boolean;
-
-Method "_is even" is [a : integer |
-	a mod 2 = 0;
-] : boolean;
-
+Method "_^_" is [base : extended integer, power : whole number |
+	/*  Uses identities b^(2x) = (b^2)^x, and b^(2x+1) = (b^2)^x*b  */
+	if power = 0 then [
+		1;
+	] else [
+		temp ::= (base*base)^(power/2);
+		if power is odd then [temp * base;] else [temp;];
+	];
+] : extended integer;
 
 
-/* Define max and min operators (infix). */
 
-Method "_max_" is [first : extended integer, second : extended integer |
-	if first < second then [second;] else [first;];
-] : extended integer
-returns [aT : integerType, bT : integerType |
+
+/* Look for obvious bugs (I was bitten once)... */
+Assert 1<2;
+Assert 1<=2;
+Assert 1<=1;
+Assert 2>1;
+Assert 2>=1;
+Assert 2>=2;
+Assert -1<1;
+Assert 1>-1;
+Assert -1=-1;
+Assert -1<=-1;
+Assert -1>=-1;
+Assert -3<=-1;
+Assert -1>=-2;
+
+Assert [3*5;] type <= []->[15..15];
+Assert [x : [-3..11]; y : [-5..3]; x * y;] type <= []->[-55..33];
+Assert [x : [-11..3]; y : [-5..3]; x * y;] type <= []->[-33..55];
+
+
+
+
+
+
+Restriction "_max_" is [aT : integerType, bT : integerType |
 	/* If [a1..a2] and [b1..b2] are the ranges, then the max will be between
 	   max(a1,b1) and max(a2,b2).  Watch out for the inclusion / exclusion
 	   cases.  */
@@ -491,10 +502,7 @@ returns [aT : integerType, bT : integerType |
 ] : integerType;
 
 
-Method "_min_" is [first : extended integer, second : extended integer |
-	if first < second then [first;] else [second;];
-] : extended integer
-returns [aT : integerType, bT : integerType |
+Restriction "_min_" is [aT : integerType, bT : integerType |
 	/* If [a1..a2] and [b1..b2] are the ranges, then the min will be between
 	   min(a1,b1) and min(a2,b2).  Watch out for the inclusion / exclusion
 	   cases.  */
@@ -529,19 +537,7 @@ returns [aT : integerType, bT : integerType |
 ] : integerType;
 
 
-
-/* Define exponentiation (for non-negative finite powers). */
-
-Method "_^_" is [base : extended integer, power : whole number |
-	/*  Uses identities b^(2x) = (b^2)^x, and b^(2x+1) = (b^2)^x*b  */
-	if power = 0 then [
-		1;
-	] else [
-		temp ::= (base*base)^(power/2);
-		if power is odd then [temp * base;] else [temp;];
-	];
-] : extended integer
-returns [baseT : integerType, powerT : integerType |
+Restriction "_^_" is [baseT : integerType, powerT : integerType |
 	if baseT = terminates | powerT = terminates then [
 		terminates;
 	] else [
@@ -612,36 +608,39 @@ returns [baseT : integerType, powerT : integerType |
 ] : integerType;
 
 
-Method "|_|" is [a : extended integer |
-	/* Compute the absolute value of the argument... */
-	if a< 0 then [0-a;] else [a;];
-] : extended integer
-returns [aT : integerType |
-	type intersection of (type union of aT and (aT negated))
-		and [0..INF];
+Restriction "|_|" is [aT : integerType |
+	type intersection of (type union of aT and (aT negated)) and [0..INF];
 ] : integerType;
 
 
-/* Convenience methods.  Increment and decrement a la C.  Postfix ++ and -- provide
-   a convenient shorthand when used with a container of some integerType.  Note that
-   these operations are not statically bounds-checked (but they are dynamically).  */
+/* Convenience methods.  Increment and decrement à la C.  Postfix ++ and --
+   provide a convenient shorthand when used with a container of some
+   integerType.  Note that these operations are not statically bounds-checked
+   (but they are dynamically).  */
 
 Method "_++" is [intCon : container |
 	*intCon ?:= cast clearing* intCon into [i : extended integer | i + 1;];
-]
-requires [ct : containerType |
-	ct readType <= extended integer
-		& ct writeType <= extended integer;
+];
+
+Restriction "_++" is [ct : containerType |
+	if ct readType <= extended integer
+		& ct writeType <= extended integer
+	then [void;]
+	else [Fail parse "Don't apply ""_++"" to a non-integral container";];
 ];
 
 
 Method "_--" is [intCon : container |
 	*intCon ?:= cast clearing* intCon into [i : extended integer | i - 1;];
-]
-requires [ct : container type |
-	ct readType <= extended integer
-		& ct writeType <= extended integer;
 ];
+
+Restriction "_--" is [ct : containerType |
+	if ct readType <= extended integer
+		& ct writeType <= extended integer
+	then [void;]
+	else [Fail parse "Don't apply ""_--"" to a non-integral container";];
+];
+
 
 Method "nonpositive integer" is [
 	(-INF .. 0];

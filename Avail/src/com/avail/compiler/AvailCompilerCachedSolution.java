@@ -33,21 +33,48 @@
 package com.avail.compiler;
 
 import com.avail.compiler.AbstractAvailCompiler.ParserState;
+import com.avail.compiler.node.ParseNodeDescriptor;
 import com.avail.descriptor.AvailObject;
 
+/**
+ * An {@code AvailCompilerCachedSolution} is a record of having parsed some
+ * {@linkplain ParseNodeDescriptor parse node} from a stream of tokens,
+ * combined with the {@linkplain ParserState position and state} of the parser
+ * after the parse node was parsed.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public class AvailCompilerCachedSolution
 {
 
+	/**
+	 * The parse position after this solution.
+	 */
 	final ParserState endState;
 
+	/**
+	 * A parse node that ends at the specified ending position.
+	 */
 	final AvailObject parseNode;
 
 
+	/**
+	 * Answer the {@linkplain ParserState position} just after the parse node's
+	 * tokens.
+	 *
+	 * @return the position after which this solution ends.
+	 */
 	ParserState endState ()
 	{
 		return endState;
 	}
 
+	/**
+	 * The {@linkplain ParseNodeDescriptor parse node} that this solution
+	 * represents.
+	 *
+	 * @return a parse node.
+	 */
 	AvailObject parseNode ()
 	{
 		return parseNode;
@@ -73,6 +100,16 @@ public class AvailCompilerCachedSolution
 		return builder.toString();
 	}
 
+	/**
+	 * Construct a new {@link AvailCompilerCachedSolution}.
+	 *
+	 * @param endState
+	 *            The {@link ParserState} after the specified parse node's
+	 *            tokens.
+	 * @param parseNode
+	 *            The {@linkplain ParseNodeDescriptor parse node} that ends at
+	 *            the specified endState.
+	 */
 	AvailCompilerCachedSolution (
 		final ParserState endState,
 		final AvailObject parseNode)

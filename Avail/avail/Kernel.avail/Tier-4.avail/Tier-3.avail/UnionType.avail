@@ -52,8 +52,9 @@ Forward "_instances" for [unionType]->set;
 
 Method "_instances" is [u : unionType |
 	Primitive 29;
-] : set
-returns [uT : unionType type |
+] : set;
+
+Restriction "_instances" is [uT : unionType type |
 	cast uT into [uuT : unionType |
 		unionOfMembershipTypes : set type := terminates;
 		anyTypes : boolean := false;
@@ -115,8 +116,9 @@ Method "_instance" is [u : unionType |
 	instances ::= u instances;
 	if ||instances|| not = 1 then [Crash "Too many elements in union";];
 	instances as tuple [1];
-] : any
-returns [uT : unionType type |
+] : any;
+
+Restriction "_instance" is [uT : unionType type |
 	if uT = unionType then [
 		any;
 	] else [

@@ -55,7 +55,8 @@ Method "resultType" is [privateResultType;];
 "Factory" is explicit subtype of Object with
 	resultType->[]->any;
 
-Abstract method "_result" for [Factory]->any
-returns [factoryType : Factory type |
+Abstract method "_result" for [Factory]->any;
+
+Restriction "_result" is [factoryType : Factory type |
 	factoryType -> resultType result;
 ] : type;

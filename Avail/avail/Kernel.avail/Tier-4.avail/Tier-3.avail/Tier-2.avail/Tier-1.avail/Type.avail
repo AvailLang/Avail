@@ -34,10 +34,8 @@ System Module "Type"
 Extends
 Uses
 	"Tier-0",
-	"Block",
-	"Method"
+	"Block"
 Names
-	"_type",
 	"type union of_and_",
 	"type intersection of_and_"
 Body
@@ -46,41 +44,33 @@ Body
 /* Answer the type of the object. */
 
 
-Method "_type" is [a : any |
-	Primitive 30;
-] : type
-requires [aT : type |
-	true;
-]
-returns [aT : type |
-	/* This clause ensures metacovariant typing is always available.  Thus, if
-	   T1 and T2 are types with T1<=T2, then T1 type <= T2 type as well.  */
-	Primitive 30;
-] : type;
-
-
 /* Compute the nearest common ancestor of two types. */
 
-Forward "type union of_and_" for [type, type]->type;
-
-Method "type union of_and_" is [a : type, b : type |
+Method "type union of_and_" is [
+		a : type,
+		b : type |
 	Primitive 31;
-] : type
-returns [aT : meta, bT : meta |
-	/* Only holds if we ensure metacovariance is universal.  */
+] : type;
+
+Restriction "type union of_and_" is [
+		aT : meta,
+		bT : meta |
+	/* Metacovariance is guaranteed by the VM.  */
 	type union of aT and bT;
 ];
 
 
 /* Compute the nearest common descendant of two types. */
 
-Forward "type intersection of_and_" for [type,type]->type;
-
-Method "type intersection of_and_" is [a : type, b : type |
+Method "type intersection of_and_" is [
+		a : type,
+		b : type |
 	Primitive 32;
-] : type
-returns [aT : type, bT : type |
-	/* Only holds if we ensure metacovariance is universal.  */
+] : type;
+
+Restriction "type intersection of_and_" is [
+		aT : type,
+		bT : type |
+	/* Metacovariance is guaranteed by the VM.  */
 	type intersection of aT and bT;
 ];
-

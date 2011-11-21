@@ -107,8 +107,9 @@ Method "_valueType" is [mt : mapType |
 
 Method "||_||" is [m : map |
 	Primitive 80;
-] : integer
-returns [mt : mapType |
+] : integer;
+
+Restriction "||_||" is [mt : mapType |
 	mt sizes;
 ];
 
@@ -116,8 +117,9 @@ returns [mt : mapType |
 Method "_[_]?" is [m : map, k : any |
 	/* Test if the key is present */
 	Primitive 81;
-] : boolean
-returns [mt : mapType, kt : type |
+] : boolean;
+
+Restriction "_[_]?" is [mt : mapType, kt : type |
 	if type intersection of mt keyType and kt = terminates | [mt sizes upper bound = 0;] then [
 		/* No value of the k argument could ever be in the map. */
 		falseType;
@@ -130,16 +132,12 @@ returns [mt : mapType, kt : type |
 Method "_[_]" is [m : map, k : any |
 	Primitive 82 (failureCode : natural number);
 	Failed;
-] : any
-requires [mt : mapType, kt : type |
+] : any;
+
+Restriction "_[_]" is [mt : mapType, kt : type |
 	if type intersection of mt keyType and kt = terminates then [
 		/* No value of the k argument could ever be in the map. */
-		Fail parse "Argument type is not compatible with map's key type";]
-	else [
-		true;
-	];
-]
-returns [mt : mapType, kt : type |
+		Fail parse "Argument type is not compatible with map's key type";];
 	mt valueType;
 ];
 
@@ -147,8 +145,9 @@ returns [mt : mapType, kt : type |
 Method "_[_->_]" is [m : map, k : any, v : any |
 	/* Copy map but with k->v in it. */
 	Primitive 83;
-] : map
-returns [mt : mapType, kt : type, vt : type |
+] : map;
+
+Restriction "_[_->_]" is [mt : mapType, kt : type, vt : type |
 	map [mt sizes lower bound .. mt sizes upper bound + 2)
 		from (type union of mt keyType and kt)
 		to (type union of mt valueType and vt);
@@ -158,8 +157,9 @@ returns [mt : mapType, kt : type, vt : type |
 Method "_[_->nil]" is [m : map, k : any |
 	/* Copy map but without the given key. */
 	Primitive 84;
-] : map
-returns [mt : mapType, kt : type |
+] : map;
+
+Restriction "_[_->nil]" is [mt : mapType, kt : type |
 	/* Original map type but allowing one fewer element (dealing with possibly
 	   empty map). */
 	map [(mt sizes lower bound - 1) max 0 .. mt sizes upper bound + 1)
@@ -177,29 +177,37 @@ Method "*_[_]:=_" is [mapVar : container, key : any, value : any |
 		cast	
 			clearing* mapVar
 		into [m : map | m[key->value];];
-] : void
-requires [mvt : containerType, kt : type, vt : type |
-	mvt readType = mvt writeType &
+] : void;
+
+Restriction "*_[_]:=_" is [mvt : containerType, kt : type, vt : type |
+	good ::= mvt readType = mvt writeType &
 		cast mvt readType into [mt : mapType |
 			mt sizes upper bound = INF
 				& kt <= mt keyType
 				& vt <= mt valueType;]
 		otherwise [false;];
+	if not good then [
+		Fail parse "types to conform for map replacement";];
+	void;
 ];
 
 
 Method "*_[_]:=nil" is [mapVar : container, k : any |
 	/* Copy map but without the given key.  Store back in mv. */
 	*mapVar ?:= cast *mapVar into [m : map | m[k->nil];];
-] : void
-requires [mvt : containerType, kt : type |
+] : void;
+
+Restriction "*_[_]:=nil" is [mvt : containerType, kt : type |
 	/* Allow nonexistent keys to be excluded.  Hence, don't check key
 	   types here. */
-	mvt readType = mvt writeType &
+	good ::= mvt readType = mvt writeType &
 		cast mvt readType into [mt : mapType |
 			/* Make sure map can shrink arbitrarily small and still fit in variable. */
 			mt sizes lower bound = 0;]
 		otherwise [false;];
+	if not good then [
+		Fail parse "types to conform for map key removal";];
+	void;
 ];
 
 
@@ -215,8 +223,9 @@ Method "[->]" is [
 Method "[_->_]" is [k : any, v : any |
 	/* Answer a map with a single key and value. */
 	[->][k->v];
-] : map
-returns [kt : type, vt : type |
+] : map;
+
+Restriction "[_->_]" is [kt : type, vt : type |
 	map [1..1] from kt to vt;
 ];
 
@@ -225,28 +234,32 @@ returns [kt : type, vt : type |
 
 Method "_keys" is [m : map |
 	Primitive 86;
-] : set
-returns [mt : mapType |
+] : set;
+
+Restriction "_keys" is [mt : mapType |
 	set mt sizes of mt keyType;
 ];
 
 Method "_values" is [m : map |
 	Primitive 91;
-] : tuple
-returns [mt : mapType |
+] : tuple;
+
+Restriction "_values" is [mt : mapType |
 	tuple mt sizes of mt valueType;
 ];
+
 
 Method "_do_" is [m : map , blk : [terminates, terminates]->void |
 	m keys do [key : any |
 		blk apply <key, m[key]>;
 	];
-] : void
-requires [mt : mapType, bT : functionType |
+] : void;
+
+Restriction "_do_" is [mt : mapType, bT : functionType |
 	if not mt keyType <= bT[1] & mt valueType <= bT[2] then [
 		Fail parse "block requires an instance of "
 			then bT[1] as basic string
 			then ", but might be passed an instance of "
 			then mt keyType as basic string;];
-	true;		
+	void;
 ];

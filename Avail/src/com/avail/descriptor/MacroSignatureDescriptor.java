@@ -32,14 +32,9 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.TypeDescriptor.Types.MACRO_SIGNATURE;
-import java.util.List;
 import com.avail.annotations.NotNull;
 import com.avail.compiler.node.*;
-import com.avail.exceptions.SignatureException;
-import com.avail.interpreter.Interpreter;
-import com.avail.utility.*;
 
 /**
  * Macros are extremely hygienic in Avail.  They are defined almost exactly like
@@ -82,37 +77,6 @@ extends SignatureDescriptor
 		 * suitable replacement parse node.
 		 */
 		BODY_BLOCK,
-	}
-
-	/**
-	 * This operation is not appropriate for a macro.  Just return the null
-	 * object to keep things simple.
-	 */
-	@Override
-	public @NotNull AvailObject o_ComputeReturnTypeFromArgumentTypes (
-		final @NotNull AvailObject object,
-		final @NotNull List<AvailObject> argTypes,
-		final @NotNull AvailObject impSet,
-		final @NotNull Interpreter anAvailInterpreter,
-		final Continuation1<Generator<String>> failBlock)
-	{
-		return NullDescriptor.nullObject();
-	}
-
-	/**
-	 * While it may be considered appropriate for macros, don't actually invoke
-	 * this for macros.  Otherwise there could be confusion when methods and
-	 * macros are mixed within an {@link ImplementationSetDescriptor
-	 * implementation set}, causing inappropriate "inherited" validity checks.
-	 */
-	@Override
-	public boolean o_IsValidForArgumentTypesInterpreter (
-		final @NotNull AvailObject object,
-		final @NotNull List<AvailObject> argTypes,
-		final @NotNull Interpreter interpreter)
-	{
-		error("Do not check argument validity of a macro invocation.");
-		return false;
 	}
 
 	/**
@@ -164,12 +128,9 @@ extends SignatureDescriptor
 	 *            {@linkplain ParseNodeDescriptor parse nodes}) as arguments.
 	 * @return
 	 *            A macro signature.
-	 * @throws SignatureException
-	 *            If the signature is malformed.
 	 */
 	public static AvailObject create (
 		final @NotNull AvailObject bodyBlock)
-	throws SignatureException
 	{
 		final AvailObject instance = mutable().create();
 		instance.objectSlotPut(ObjectSlots.BODY_BLOCK, bodyBlock);

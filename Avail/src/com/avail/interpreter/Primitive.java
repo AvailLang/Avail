@@ -46,6 +46,7 @@ import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
 import com.avail.compiler.*;
 import com.avail.compiler.node.*;
+import com.avail.compiler.node.DeclarationNodeDescriptor.IntegerSlots;
 import com.avail.compiler.scanning.*;
 import com.avail.compiler.scanning.TokenDescriptor.TokenType;
 import com.avail.descriptor.*;
@@ -3605,7 +3606,8 @@ public enum Primitive
 	 * TupleTypeDescriptor tuple type} with the given parameters. Canonize the
 	 * data if necessary.
 	 */
-	prim137_CreateTupleType_sizeRange_typeTuple_defaultType(137, 3, CanFold, CannotFail)
+	prim137_CreateTupleType_sizeRange_typeTuple_defaultType(
+		137, 3, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -3900,6 +3902,55 @@ public enum Primitive
 					TupleTypeDescriptor.meta(),
 					TupleTypeDescriptor.meta()),
 				TupleTypeDescriptor.meta());
+		}
+	},
+
+	/**
+	 * <strong>Primitive 145:</strong> Given two {@linkplain
+	 * TupleTypeDescriptor tuple types}, ascertain whether each
+	 * {@linkplain AvailObject#typeAtIndex(int) element} of the first
+	 * {@linkplain AvailObject#isInstanceOf(AvailObject) is an instance
+	 * of} the corresponding element of the second. Whenever an element has no
+	 * corresponding counterpart (because of a difference in maximum sizes),
+	 * then {@linkplain BottomTypeDescriptor#bottom() bottom} is used as the
+	 * implicit counterpart.
+	 */
+	prim145_CompareTupleTypesForCorrespondingElementInstantiation(
+		145, 2, CanFold, CannotFail) // TODO Use this.
+	{
+		@Override
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
+		{
+			assert args.size() == 1;
+			final AvailObject first = args.get(0);
+			final AvailObject second = args.get(1);
+			// The upper bound cannot be positive infinity and inclusive, so
+			// it is legal to extract a real integer here.
+			final int firstSize = first.sizeRange().upperBound().extractInt();
+			final int secondSize = second.sizeRange().upperBound().extractInt();
+			final int maxSize = max(firstSize, secondSize);
+			for (int i = 1; i <= maxSize; i++)
+			{
+				if (!first.typeAtIndex(i).isInstanceOf(second.typeAtIndex(i)))
+				{
+					return interpreter.primitiveSuccess(
+						AtomDescriptor.falseObject());
+				}
+			}
+			return interpreter.primitiveSuccess(
+				AtomDescriptor.trueObject());
+		}
+
+		@Override
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
+		{
+			return FunctionTypeDescriptor.create(
+				TupleDescriptor.from(
+					TupleTypeDescriptor.meta(),
+					TupleTypeDescriptor.meta()),
+				UnionTypeDescriptor.booleanObject());
 		}
 	},
 
@@ -5135,7 +5186,8 @@ public enum Primitive
 			final @NotNull List<AvailObject> args,
 			final @NotNull Interpreter interpreter)
 		{
-			return interpreter.searchForExceptionHandler(args);
+			assert args.size() == 1;
+			return interpreter.searchForExceptionHandler(args.get(0));
 		}
 
 		@Override
@@ -5427,7 +5479,7 @@ public enum Primitive
 			assert args.size() == 1;
 			final AvailObject bundle = args.get(0);
 			return interpreter.primitiveSuccess(
-				bundle.restrictions().makeImmutable());
+				bundle.grammaticalRestrictions().makeImmutable());
 		}
 
 		@Override
@@ -5501,76 +5553,6 @@ public enum Primitive
 		}
 	},
 
-	/**
-	 * <strong>Primitive 218:</strong> Answer this {@linkplain
-	 * SignatureDescriptor signature}'s {@linkplain FunctionDescriptor requires
-	 * function}.
-	 */
-	prim218_SignatureRequiresBlock(218, 1, CanFold)
-	{
-		@Override
-		public @NotNull Result attempt (
-			final @NotNull List<AvailObject> args,
-			final @NotNull Interpreter interpreter)
-		{
-			assert args.size() == 1;
-			final AvailObject sig = args.get(0);
-			if (sig.isInstanceOfKind(METHOD_SIGNATURE.o())
-				|| sig.isInstanceOfKind(ABSTRACT_SIGNATURE.o()))
-			{
-				// Only method & abstract signatures have a requires block.
-				return interpreter.primitiveSuccess(
-					sig.requiresBlock().makeImmutable());
-			}
-			return interpreter.primitiveFailure(
-				E_SIGNATURE_DOES_NOT_SUPPORT_REQUIRES_FUNCTION);
-		}
-
-		@Override
-		protected @NotNull AvailObject privateBlockTypeRestriction ()
-		{
-			return FunctionTypeDescriptor.create(
-				TupleDescriptor.from(
-					SIGNATURE.o()),
-				FunctionTypeDescriptor.forReturnType(
-					UnionTypeDescriptor.booleanObject()));
-		}
-	},
-
-	/**
-	 * <strong>Primitive 219:</strong> Answer this {@linkplain
-	 * SignatureDescriptor signature}'s {@linkplain FunctionDescriptor returns
-	 * function}.
-	 */
-	prim219_SignatureReturnsBlock(219, 1, CanFold)
-	{
-		@Override
-		public @NotNull Result attempt (
-			final @NotNull List<AvailObject> args,
-			final @NotNull Interpreter interpreter)
-		{
-			assert args.size() == 1;
-			final AvailObject sig = args.get(0);
-			if (sig.isInstanceOfKind(METHOD_SIGNATURE.o())
-				|| sig.isInstanceOfKind(ABSTRACT_SIGNATURE.o()))
-			{
-				// Only method & abstract signatures have a returns block.
-				return interpreter.primitiveSuccess(
-					sig.returnsBlock().makeImmutable());
-			}
-			return interpreter.primitiveFailure(
-				E_SIGNATURE_DOES_NOT_SUPPORT_RETURNS_FUNCTION);
-		}
-
-		@Override
-		protected @NotNull AvailObject privateBlockTypeRestriction ()
-		{
-			return FunctionTypeDescriptor.create(
-				TupleDescriptor.from(
-					SIGNATURE.o()),
-				FunctionTypeDescriptor.forReturnType(TYPE.o()));
-		}
-	},
 
 	/**
 	 * <strong>Primitive 220:</strong> Answer the {@linkplain
@@ -5725,6 +5707,58 @@ public enum Primitive
 	},
 
 	/**
+	 * <strong>Primitive 248:</strong> Add a type restriction function.
+	 */
+	prim248_AddTypeRestriction(248, 2, Unknown)
+	{
+		@Override
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
+		{
+			assert args.size() == 2;
+			final AvailObject string = args.get(0);
+			final AvailObject function = args.get(1);
+			final AvailObject functionType = function.kind();
+			final AvailObject tupleType = functionType.argsTupleType();
+			for (int i = function.code().numArgs(); i >= 1; i--)
+			{
+				if (!tupleType.typeAtIndex(i).isInstanceOfKind(TYPE.o()))
+				{
+					return interpreter.primitiveFailure(
+						E_TYPE_RESTRICTION_MUST_ACCEPT_ONLY_TYPES);
+				}
+			}
+			try
+			{
+				interpreter.addTypeRestriction(
+					interpreter.lookupName(string),
+					function);
+			}
+			catch (final AmbiguousNameException e)
+			{
+				return interpreter.primitiveFailure(e);
+			}
+			catch (final SignatureException e)
+			{
+				return interpreter.primitiveFailure(e);
+			}
+			return interpreter.primitiveSuccess(NullDescriptor.nullObject());
+		}
+
+		@Override
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
+		{
+			return FunctionTypeDescriptor.create(
+				TupleDescriptor.from(
+					TupleTypeDescriptor.stringTupleType(),
+					FunctionTypeDescriptor.forReturnType(
+						TYPE.o())),
+				TOP.o());
+		}
+	},
+
+	/**
 	 * <strong>Primitive 249:</strong> Simple macro definition.
 	 */
 	prim249_SimpleMacroDeclaration(249, 2, Unknown)
@@ -5749,7 +5783,7 @@ public enum Primitive
 			}
 			try
 			{
-				interpreter.atAddMacroBody(
+				interpreter.addMacroBody(
 					interpreter.lookupName(string), block);
 			}
 			catch (final AmbiguousNameException e)
@@ -5810,60 +5844,7 @@ public enum Primitive
 	 * AbstractSignatureDescriptor abstract}. This identifies responsibility for
 	 * subclasses that want to be concrete.
 	 */
-	prim251_AbstractMethodDeclaration(251, 4, Unknown)
-	{
-		@Override
-		public @NotNull Result attempt (
-			final @NotNull List<AvailObject> args,
-			final @NotNull Interpreter interpreter)
-		{
-			assert args.size() == 4;
-			final AvailObject string = args.get(0);
-			final AvailObject blockSignature = args.get(1);
-			final AvailObject requiresBlock = args.get(2);
-			final AvailObject returnsBlock = args.get(3);
-
-			// TODO: [MvG] Check signature compatibility with requires and
-			// returns functions.
-			try
-			{
-				interpreter.atDeclareAbstractSignatureRequiresBlockReturnsBlock(
-					interpreter.lookupName(string),
-					blockSignature,
-					requiresBlock,
-					returnsBlock);
-			}
-			catch (final AmbiguousNameException e)
-			{
-				return interpreter.primitiveFailure(e);
-			}
-			catch (final SignatureException e)
-			{
-				return interpreter.primitiveFailure(e);
-			}
-			return interpreter.primitiveSuccess(NullDescriptor.nullObject());
-		}
-
-		@Override
-		protected @NotNull AvailObject privateBlockTypeRestriction ()
-		{
-			return FunctionTypeDescriptor.create(
-				TupleDescriptor.from(
-					TupleTypeDescriptor.stringTupleType(),
-					FunctionTypeDescriptor.meta(),
-					FunctionTypeDescriptor.forReturnType(
-						UnionTypeDescriptor.booleanObject()),
-					FunctionTypeDescriptor.forReturnType(
-						TYPE.o())),
-				TOP.o());
-		}
-	},
-
-	/**
-	 * <strong>Primitive 252:</strong> Forward declare a method (for recursion
-	 * or mutual recursion).
-	 */
-	prim252_ForwardMethodDeclaration(252, 2, Unknown)
+	prim251_AbstractMethodDeclaration(251, 2, Unknown)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -5873,12 +5854,9 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject string = args.get(0);
 			final AvailObject blockSignature = args.get(1);
-
-			// TODO: [MvG] Deal with errors more appropriately in
-			// atAddForwardStubFor(...).
 			try
 			{
-				interpreter.atAddForwardStubFor(
+				interpreter.addAbstractSignature(
 					interpreter.lookupName(string),
 					blockSignature);
 			}
@@ -5905,8 +5883,53 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 253:</strong> Method definition, without type
-	 * constraint or result type deduction).
+	 * <strong>Primitive 252:</strong> Forward declare a method (for recursion
+	 * or mutual recursion).
+	 */
+	prim252_ForwardMethodDeclaration(252, 2, Unknown)
+	{
+		@Override
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
+		{
+			assert args.size() == 2;
+			final AvailObject string = args.get(0);
+			final AvailObject blockSignature = args.get(1);
+
+			// TODO: [MvG] Deal with errors more appropriately in
+			// addForwardStubFor(...).
+			try
+			{
+				interpreter.addForwardStub(
+					interpreter.lookupName(string),
+					blockSignature);
+			}
+			catch (final AmbiguousNameException e)
+			{
+				return interpreter.primitiveFailure(e);
+			}
+			catch (final SignatureException e)
+			{
+				return interpreter.primitiveFailure(e);
+			}
+			return interpreter.primitiveSuccess(NullDescriptor.nullObject());
+		}
+
+		@Override
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
+		{
+			return FunctionTypeDescriptor.create(
+				TupleDescriptor.from(
+					TupleTypeDescriptor.stringTupleType(),
+					FunctionTypeDescriptor.meta()),
+				TOP.o());
+		}
+	},
+
+	/**
+	 * <strong>Primitive 253:</strong> Method definition, without a type
+	 * restriction function.
 	 */
 	prim253_SimpleMethodDeclaration(253, 2, Unknown)
 	{
@@ -5919,12 +5942,11 @@ public enum Primitive
 			final AvailObject string = args.get(0);
 			final AvailObject block = args.get(1);
 
-			// TODO:[MvG] Deal with errors more appropriately in lookupName(...)
-			// and atAddMethodBody(...).
 			try
 			{
-				interpreter.atAddMethodBody(
-					interpreter.lookupName(string), block);
+				interpreter.addMethodBody(
+					interpreter.lookupName(string),
+					block);
 			}
 			catch (final AmbiguousNameException e)
 			{
@@ -5944,56 +5966,6 @@ public enum Primitive
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType(),
 					FunctionTypeDescriptor.mostGeneralType()),
-				TOP.o());
-		}
-	},
-
-	/**
-	 * <strong>Primitive 254:</strong> Method definition with type constraint
-	 * and result type calculation.
-	 */
-	prim254_MethodDeclaration(254, 4, Unknown)
-	{
-		@Override
-		public @NotNull Result attempt (
-			final @NotNull List<AvailObject> args,
-			final @NotNull Interpreter interpreter)
-		{
-			assert args.size() == 4;
-			final AvailObject string = args.get(0);
-			final AvailObject block = args.get(1);
-			final AvailObject requiresBlock = args.get(2);
-			final AvailObject returnsBlock = args.get(3);
-			// TODO: [MvG] Deal with errors more appropriately
-			try
-			{
-				interpreter.atAddMethodBodyRequiresBlockReturnsBlock(
-					interpreter.lookupName(string),
-					block,
-					requiresBlock,
-					returnsBlock);
-			}
-			catch (final SignatureException e)
-			{
-				return interpreter.primitiveFailure(e);
-			}
-			catch (final AmbiguousNameException e)
-			{
-				return interpreter.primitiveFailure(e);
-			}
-			return interpreter.primitiveSuccess(NullDescriptor.nullObject());
-		}
-
-		@Override
-		protected @NotNull AvailObject privateBlockTypeRestriction ()
-		{
-			return FunctionTypeDescriptor.create(
-				TupleDescriptor.from(
-					TupleTypeDescriptor.stringTupleType(),
-					FunctionTypeDescriptor.mostGeneralType(),
-					FunctionTypeDescriptor.forReturnType(
-						UnionTypeDescriptor.booleanObject()),
-					FunctionTypeDescriptor.forReturnType(TYPE.o())),
 				TOP.o());
 		}
 	},

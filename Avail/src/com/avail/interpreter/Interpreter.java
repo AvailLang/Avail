@@ -35,7 +35,9 @@ package com.avail.interpreter;
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Result.*;
+import static com.avail.exceptions.AvailErrorCode.*;
 import java.util.*;
+import java.util.jar.Attributes.Name;
 import java.util.logging.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
@@ -46,7 +48,6 @@ import com.avail.exceptions.*;
 import com.avail.interpreter.Primitive.Flag;
 import com.avail.interpreter.Primitive.Result;
 import com.avail.interpreter.levelOne.*;
-import com.avail.utility.*;
 
 /**
  * This is the abstraction for execution Avail code.
@@ -181,162 +182,6 @@ public abstract class Interpreter
 		return expected == -1 || expected == argCount;
 	}
 
-	/**
-	 * This is a forward declaration of a method. Insert an appropriately
-	 * stubbed implementation in the module's method dictionary, and add it to
-	 * the list of methods needing to be declared later in this module.
-	 *
-	 * @param methodName A {@linkplain AtomDescriptor method name}.
-	 * @param bodySignature A {@linkplain MethodSignatureDescriptor method
-	 *                      signature}.
-	 * @throws SignatureException If the signature is malformed.
-	 */
-	public void atAddForwardStubFor (
-		final @NotNull AvailObject methodName,
-		final @NotNull AvailObject bodySignature)
-	throws SignatureException
-	{
-		methodName.makeImmutable();
-		bodySignature.makeImmutable();
-		//  Add the stubbed method implementation.
-		final AvailObject newImp = ForwardSignatureDescriptor.create(
-			bodySignature);
-		module.atAddMethodImplementation(methodName, newImp);
-		final AvailObject imps = runtime.implementationSetFor(methodName);
-		final AvailObject impsTuple = imps.implementationsTuple();
-		for (int i = 1, end = impsTuple.tupleSize(); i <= end; i++)
-		{
-			final AvailObject existingType =
-				impsTuple.tupleAt(i).bodySignature();
-			final boolean same = existingType.argsTupleType().equals(
-				bodySignature.argsTupleType());
-			if (same)
-			{
-				error(
-					"Attempted to redefine (as forward) a method with the same"
-					+ " argument types");
-				return;
-			}
-			if (existingType.acceptsArgTypesFromFunctionType(bodySignature))
-			{
-				if (!bodySignature.returnType().isSubtypeOf(
-					existingType.returnType()))
-				{
-					error(
-						"Specialized method should return at least as special a"
-						+ " result as more general method");
-					return;
-				}
-			}
-		}
-		imps.addImplementation(newImp);
-		pendingForwards = pendingForwards.setWithElementCanDestroy(
-			newImp,
-			true);
-		assert methodName.isAtom();
-		final AvailObject message = methodName.name();
-		final MessageSplitter splitter = new MessageSplitter(message);
-		module.filteredBundleTree().includeBundle(
-			MessageBundleDescriptor.newBundle(
-				methodName,
-				splitter.messageParts(),
-				splitter.instructionsTuple()));
-	}
-
-	/**
-	 * Add the method implementation.  The precedence rules can not change after
-	 * the first implementation is encountered, so set them to 'no restrictions'
-	 * if they're not set already.
-	 *
-	 * @param methodName The method's name, an {@link AtomDescriptor atom}.
-	 * @param method A {@link FunctionDescriptor method}.
-	 * @throws SignatureException If the signature is malformed.
-	 */
-	public void atAddMethodBody (
-		final AvailObject methodName,
-		final AvailObject method)
-	throws SignatureException
-	{
-		final int numArgs = method.code().numArgs();
-		final AvailObject returnsBlock =
-			FunctionDescriptor.createStubForNumArgsConstantResult(
-				numArgs,
-				method.kind().returnType());
-		final AvailObject requiresBlock =
-			FunctionDescriptor.createStubForNumArgsConstantResult(
-				numArgs,
-				AtomDescriptor.trueObject());
-		atAddMethodBodyRequiresBlockReturnsBlock(
-			methodName,
-			method,
-			requiresBlock,
-			returnsBlock);
-	}
-
-
-	/**
-	 * Add the macro implementation.  The precedence rules can not change after
-	 * the first implementation is encountered, so set them to 'no restrictions'
-	 * if they're not set already.
-	 *
-	 * @param methodName
-	 *            The macro's name, an {@link AtomDescriptor atom}.
-	 * @param macroBody
-	 *            A {@link FunctionDescriptor function} that manipulates parse
-	 *            nodes.
-	 * @throws SignatureException
-	 *            If the resulting signature is malformed.
-	 */
-	public void atAddMacroBody (
-		final AvailObject methodName,
-		final AvailObject macroBody)
-	throws SignatureException
-	{
-		assert methodName.isAtom();
-		assert macroBody.isFunction();
-
-		final MessageSplitter splitter = new MessageSplitter(methodName.name());
-		final int numArgs = splitter.numberOfArguments();
-		assert macroBody.code().numArgs() == numArgs
-		: "Wrong number of arguments in macro definition";
-		//  Make it so we can safely hold onto these things in the VM
-		methodName.makeImmutable();
-		macroBody.makeImmutable();
-		//  Add the macro implementation.
-		final AvailObject newImp = MacroSignatureDescriptor.create(macroBody);
-		module.atAddMethodImplementation(methodName, newImp);
-		final AvailObject imps = runtime.implementationSetFor(methodName);
-		final AvailObject macroBodyType = macroBody.kind();
-		for (final AvailObject existingImp : imps.implementationsTuple())
-		{
-			final AvailObject existingType = existingImp.bodySignature();
-			final boolean same = existingType.argsTupleType().equals(
-				macroBodyType.argsTupleType());
-			if (same)
-			{
-				error("Attempted to redefine macro with same argument types");
-			}
-			if (existingImp.bodySignature().acceptsArgTypesFromFunctionType(
-				macroBodyType))
-			{
-				if (!macroBodyType.returnType().isSubtypeOf(
-					existingImp.bodySignature().returnType()))
-				{
-					error(
-						"Specialized macro should return at least as special "
-						+ "a result as more general macro");
-					return;
-				}
-			}
-		}
-		imps.addImplementation(newImp);
-		module.filteredBundleTree().includeBundle(
-			MessageBundleDescriptor.newBundle(
-				methodName,
-				splitter.messageParts(),
-				splitter.instructionsTuple()));
-	}
-
 
 	/**
 	 * Add the method implementation. The precedence rules can change at any
@@ -348,41 +193,27 @@ public abstract class Interpreter
 	 *
 	 * @param methodName A {@linkplain AtomDescriptor method name}.
 	 * @param bodyBlock The {@linkplain FunctionDescriptor body block}.
-	 * @param requiresBlock The {@linkplain FunctionDescriptor requires block}.
-	 * @param returnsBlock The {@linkplain FunctionDescriptor returns block}.
 	 * @throws SignatureException If the signature is invalid.
 	 */
-	public void atAddMethodBodyRequiresBlockReturnsBlock (
+	public void addMethodBody (
 		final @NotNull AvailObject methodName,
-		final @NotNull AvailObject bodyBlock,
-		final @NotNull AvailObject requiresBlock,
-		final @NotNull AvailObject returnsBlock)
+		final @NotNull AvailObject bodyBlock)
 	throws SignatureException
 	{
 		assert methodName.isAtom();
 		assert bodyBlock.isFunction();
-		assert requiresBlock.isFunction();
-		assert returnsBlock.isFunction();
 
 		final MessageSplitter splitter = new MessageSplitter(methodName.name());
 		final int numArgs = splitter.numberOfArguments();
 		assert bodyBlock.code().numArgs() == numArgs
 		: "Wrong number of arguments in method definition";
-		assert requiresBlock.code().numArgs() == numArgs
-		: "Wrong number of arguments in method type verifier";
-		assert returnsBlock.code().numArgs() == numArgs
-		: "Wrong number of arguments in method result type generator";
 		//  Make it so we can safely hold onto these things in the VM
 		methodName.makeImmutable();
 		bodyBlock.makeImmutable();
-		requiresBlock.makeImmutable();
-		returnsBlock.makeImmutable();
 		//  Add the method implementation.
 		final AvailObject newImp = MethodSignatureDescriptor.create(
-			bodyBlock,
-			requiresBlock,
-			returnsBlock);
-		module.atAddMethodImplementation(methodName, newImp);
+			bodyBlock);
+		module.addMethodImplementation(methodName, newImp);
 		final AvailObject imps = runtime.implementationSetFor(methodName);
 		final AvailObject bodySignature = bodyBlock.kind();
 		AvailObject forward = null;
@@ -400,10 +231,8 @@ public abstract class Interpreter
 				}
 				else
 				{
-					error(
-						"Attempted to redefine method with same argument "
-						+ "types");
-					return;
+					throw new SignatureException(
+						E_REDEFINED_WITH_SAME_ARGUMENT_TYPES);
 				}
 			}
 			if (existingImp.bodySignature().acceptsArgTypesFromFunctionType(
@@ -412,10 +241,8 @@ public abstract class Interpreter
 				if (!bodySignature.returnType().isSubtypeOf(
 					existingImp.bodySignature().returnType()))
 				{
-					error(
-						"Specialized method should return at least as special "
-						+ "a result as more general method");
-					return;
+					throw new SignatureException(
+						E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS);
 				}
 			}
 		}
@@ -432,33 +259,83 @@ public abstract class Interpreter
 				splitter.instructionsTuple()));
 	}
 
+
+	/**
+	 * This is a forward declaration of a method. Insert an appropriately
+	 * stubbed implementation in the module's method dictionary, and add it to
+	 * the list of methods needing to be declared later in this module.
+	 *
+	 * @param methodName A {@linkplain AtomDescriptor method name}.
+	 * @param bodySignature A {@linkplain MethodSignatureDescriptor method
+	 *                      signature}.
+	 * @throws SignatureException If the signature is malformed.
+	 */
+	public void addForwardStub (
+		final @NotNull AvailObject methodName,
+		final @NotNull AvailObject bodySignature)
+	throws SignatureException
+	{
+		methodName.makeImmutable();
+		bodySignature.makeImmutable();
+		//  Add the stubbed method implementation.
+		final AvailObject newImp = ForwardSignatureDescriptor.create(
+			bodySignature);
+		module.addMethodImplementation(methodName, newImp);
+		final AvailObject imps = runtime.implementationSetFor(methodName);
+		final AvailObject impsTuple = imps.implementationsTuple();
+		for (int i = 1, end = impsTuple.tupleSize(); i <= end; i++)
+		{
+			final AvailObject existingType =
+				impsTuple.tupleAt(i).bodySignature();
+			final boolean same = existingType.argsTupleType().equals(
+				bodySignature.argsTupleType());
+			if (same)
+			{
+				throw new SignatureException(
+					E_REDEFINED_WITH_SAME_ARGUMENT_TYPES);
+			}
+			if (existingType.acceptsArgTypesFromFunctionType(bodySignature))
+			{
+				if (!bodySignature.returnType().isSubtypeOf(
+					existingType.returnType()))
+				{
+					throw new SignatureException(
+						E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS);
+				}
+			}
+		}
+		imps.addImplementation(newImp);
+		pendingForwards = pendingForwards.setWithElementCanDestroy(
+			newImp,
+			true);
+		assert methodName.isAtom();
+		final AvailObject message = methodName.name();
+		final MessageSplitter splitter = new MessageSplitter(message);
+		module.filteredBundleTree().includeBundle(
+			MessageBundleDescriptor.newBundle(
+				methodName,
+				splitter.messageParts(),
+				splitter.instructionsTuple()));
+	}
+
+
+
 	/**
 	 * Add the abstract method signature. A class is considered abstract if
 	 * there are any abstract methods that haven't been overridden with
-	 * implementations for it. The <em>requires block</em> is called at compile
-	 * time at each call site (i.e., link time) to ensure the method is being
-	 * used in an appropriate way. The <em>returns block</em> lets us home in on
-	 * the type returned by a general method by transforming the
-	 * call-site-specific argument type information into a return type for the
-	 * method.
+	 * implementations for it.
 	 *
 	 * @param methodName A {@linkplain AtomDescriptor method name}.
 	 * @param bodySignature The {@linkplain MethodSignatureDescriptor method
 	 *                      signature}.
-	 * @param requiresBlock The {@linkplain FunctionDescriptor requires block}.
-	 * @param returnsBlock The {@linkplain FunctionDescriptor returns block}.
 	 * @throws SignatureException If the signature is malformed.
 	 */
-	public void atDeclareAbstractSignatureRequiresBlockReturnsBlock (
+	public void addAbstractSignature (
 		final @NotNull AvailObject methodName,
-		final @NotNull AvailObject bodySignature,
-		final @NotNull AvailObject requiresBlock,
-		final @NotNull AvailObject returnsBlock)
+		final @NotNull AvailObject bodySignature)
 	throws SignatureException
 	{
 		assert methodName.isAtom();
-		assert requiresBlock.isFunction();
-		assert returnsBlock.isFunction();
 
 		final MessageSplitter splitter = new MessageSplitter(methodName.name());
 		final int numArgs = splitter.numberOfArguments();
@@ -470,22 +347,13 @@ public abstract class Interpreter
 		assert bodyArgsSizes.upperBound().equals(
 			IntegerDescriptor.fromInt(numArgs))
 		: "Wrong number of arguments in abstract method signature";
-		assert requiresBlock.code().numArgs() == numArgs
-		: "Wrong number of arguments in abstract method type verifier";
-		assert returnsBlock.code().numArgs() == numArgs
-		: "Wrong number of arguments in abstract method result type "
-			+ "specializer";
 		//  Make it so we can safely hold onto these things in the VM
 		methodName.makeImmutable();
 		bodySignature.makeImmutable();
-		requiresBlock.makeImmutable();
-		returnsBlock.makeImmutable();
 		//  Add the method implementation.
 		final AvailObject newImp = AbstractSignatureDescriptor.create(
-			bodySignature,
-			requiresBlock,
-			returnsBlock);
-		module.atAddMethodImplementation(methodName, newImp);
+			bodySignature);
+		module.addMethodImplementation(methodName, newImp);
 		final AvailObject imps = runtime.implementationSetFor(methodName);
 		AvailObject forward = null;
 		for (final AvailObject existingImp : imps.implementationsTuple())
@@ -501,10 +369,8 @@ public abstract class Interpreter
 				}
 				else
 				{
-					error(
-						"Attempted to redefine method with same argument "
-						+ "types");
-					return;
+					throw new SignatureException(
+						E_REDEFINED_WITH_SAME_ARGUMENT_TYPES);
 				}
 			}
 			// TODO: [MvG] Allow the definitions to appear bottom up while still
@@ -515,10 +381,8 @@ public abstract class Interpreter
 				if (!bodySignature.returnType().isSubtypeOf(
 					existingImp.bodySignature().returnType()))
 				{
-					error(
-						"Specialized method should return at least as special "
-						+ "a result as more general method");
-					return;
+					throw new SignatureException(
+						E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS);
 				}
 			}
 		}
@@ -533,6 +397,108 @@ public abstract class Interpreter
 				splitter.messageParts(),
 				splitter.instructionsTuple()));
 	}
+
+	/**
+	 * Add the macro implementation.  The precedence rules can not change after
+	 * the first implementation is encountered, so set them to 'no restrictions'
+	 * if they're not set already.
+	 *
+	 * @param methodName
+	 *            The macro's name, an {@link AtomDescriptor atom}.
+	 * @param macroBody
+	 *            A {@link FunctionDescriptor function} that manipulates parse
+	 *            nodes.
+	 * @throws SignatureException if the macro signature is invalid.
+	 */
+	public void addMacroBody (
+		final AvailObject methodName,
+		final AvailObject macroBody)
+	throws SignatureException
+	{
+		assert methodName.isAtom();
+		assert macroBody.isFunction();
+
+		final MessageSplitter splitter = new MessageSplitter(methodName.name());
+		final int numArgs = splitter.numberOfArguments();
+		assert macroBody.code().numArgs() == numArgs
+		: "Wrong number of arguments in macro definition";
+		//  Make it so we can safely hold onto these things in the VM
+		methodName.makeImmutable();
+		macroBody.makeImmutable();
+		//  Add the macro implementation.
+		final AvailObject newImp = MacroSignatureDescriptor.create(macroBody);
+		module.addMethodImplementation(methodName, newImp);
+		final AvailObject imps = runtime.implementationSetFor(methodName);
+		final AvailObject macroBodyType = macroBody.kind();
+		for (final AvailObject existingImp : imps.implementationsTuple())
+		{
+			final AvailObject existingType = existingImp.bodySignature();
+			final boolean same = existingType.argsTupleType().equals(
+				macroBodyType.argsTupleType());
+			if (same)
+			{
+				throw new SignatureException(
+					E_REDEFINED_WITH_SAME_ARGUMENT_TYPES);
+			}
+			if (existingImp.bodySignature().acceptsArgTypesFromFunctionType(
+				macroBodyType))
+			{
+				if (!macroBodyType.returnType().isSubtypeOf(
+					existingImp.bodySignature().returnType()))
+				{
+					throw new SignatureException(
+						E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS);
+				}
+			}
+		}
+		imps.addImplementation(newImp);
+		module.filteredBundleTree().includeBundle(
+			MessageBundleDescriptor.newBundle(
+				methodName,
+				splitter.messageParts(),
+				splitter.instructionsTuple()));
+	}
+
+
+
+	/**
+	 * Add a type restriction to the implementation set associated with the
+	 * given method name.
+	 *
+	 * @param methodName
+	 *            The method name, an {@link AtomDescriptor atom}.
+	 * @param typeRestrictionFunction
+	 *            A {@link FunctionDescriptor function} that validates the
+	 *            static types of arguments at call sites.
+	 * @throws SignatureException if the signature is invalid.
+	 */
+	public void addTypeRestriction (
+		final AvailObject methodName,
+		final AvailObject typeRestrictionFunction)
+	throws SignatureException
+	{
+		assert methodName.isAtom();
+		assert typeRestrictionFunction.isFunction();
+
+		final MessageSplitter splitter = new MessageSplitter(methodName.name());
+		final int numArgs = splitter.numberOfArguments();
+		if (typeRestrictionFunction.code().numArgs() != numArgs)
+		{
+			throw new SignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS);
+		}
+		//  Make it so we can safely hold onto these things in the VM
+		methodName.makeImmutable();
+		typeRestrictionFunction.makeImmutable();
+		runtime.addTypeRestriction(methodName, typeRestrictionFunction);
+		module.addTypeRestriction(methodName, typeRestrictionFunction);
+		module.filteredBundleTree().includeBundle(
+			MessageBundleDescriptor.newBundle(
+				methodName,
+				splitter.messageParts(),
+				splitter.instructionsTuple()));
+	}
+
+
 
 	/**
 	 * The modularity scheme should prevent all intermodular method conflicts.
@@ -565,18 +531,17 @@ public abstract class Interpreter
 					splitter.messageParts(),
 					splitter.instructionsTuple()));
 		bundle.addRestrictions(illegalArgMsgs);
-		module.atAddMessageRestrictions(methodName, illegalArgMsgs);
+		module.addGrammaticalRestrictions(methodName, illegalArgMsgs);
 	}
 
 	/**
-	 * Create the two-argument defining method. The first parameter of the
-	 * method is the name, the second parameter is the {@linkplain
-	 * FunctionDescriptor block}.
+	 * Create the one-argument failure reporting method. The only parameter is
+	 * an object that indicates why the VM should halt.
 	 *
-	 * @param defineMethodName The name of the defining method.
+	 * @param failureMethodName The name of the failure method.
 	 */
-	public void bootstrapDefiningMethod (
-		final @NotNull String defineMethodName)
+	public void bootstrapFailureMethod (
+		final @NotNull String failureMethodName)
 	{
 		assert module != null;
 		final L1InstructionWriter writer = new L1InstructionWriter();
@@ -585,10 +550,68 @@ public abstract class Interpreter
 				L1Operation.L1_doPushLiteral,
 				writer.addLiteral(NullDescriptor.nullObject())));
 		writer.argumentTypes(
+			ANY.o());
+		writer.primitiveNumber(
+			Primitive.prim256_EmergencyExit.primitiveNumber);
+		writer.returnType(BottomTypeDescriptor.bottom());
+		final AvailObject newFunction = FunctionDescriptor.create(
+			writer.compiledCode(),
+			TupleDescriptor.empty());
+		newFunction.makeImmutable();
+		final AvailObject nameTuple = ByteStringDescriptor.from(
+			failureMethodName);
+		final AvailObject realName = AtomDescriptor.create(nameTuple);
+		module.atNameAdd(nameTuple, realName);
+		module.atNewNamePut(nameTuple, realName);
+		try
+		{
+			addMethodBody(realName, newFunction);
+		}
+		catch (final SignatureException e)
+		{
+			assert false
+			: "This boostrap method should not interfere with anything";
+		}
+	}
+
+	/**
+	 * Create the two-argument defining method. The first parameter of the
+	 * method is the name, the second parameter is the {@linkplain
+	 * FunctionDescriptor block}.
+	 *
+	 * @param defineMethodName
+	 *            The name of the defining method.
+	 * @param failureMethodName
+	 *            The name of the failure method to invoke if necessary.
+	 */
+	public void bootstrapDefiningMethod (
+		final @NotNull String defineMethodName,
+		final @NotNull String failureMethodName)
+	{
+		assert module != null;
+		final L1InstructionWriter writer = new L1InstructionWriter();
+		writer.argumentTypes(
 			TupleTypeDescriptor.stringTupleType(),
 			FunctionTypeDescriptor.mostGeneralType());
 		writer.primitiveNumber(
 			Primitive.prim253_SimpleMethodDeclaration.primitiveNumber);
+		// Declare the local that holds primitive failure information.
+		final int failureLocal =
+			writer.createLocal(
+				ContainerTypeDescriptor.wrapInnerType(
+					IntegerRangeTypeDescriptor.naturalNumbers()));
+		writer.write(
+			new L1Instruction(
+				L1Operation.L1_doGetLocal,
+				failureLocal));
+		final AvailObject failureImpSet = runtime.methodsAt(
+			module.newNames().mapAt(
+				ByteStringDescriptor.from(failureMethodName)));
+		writer.write(
+			new L1Instruction(
+				L1Operation.L1_doCall,
+				writer.addLiteral(failureImpSet),
+				writer.addLiteral(BottomTypeDescriptor.bottom())));
 		writer.returnType(TOP.o());
 		final AvailObject newFunction = FunctionDescriptor.create(
 			writer.compiledCode(),
@@ -601,11 +624,12 @@ public abstract class Interpreter
 		module.atNewNamePut(nameTuple, realName);
 		try
 		{
-			atAddMethodBody(realName, newFunction);
+			addMethodBody(realName, newFunction);
 		}
 		catch (final SignatureException e)
 		{
-			error("Malformed signature during bootstrap");
+			assert false
+			: "This boostrap method should not interfere with anything";
 		}
 	}
 
@@ -620,22 +644,17 @@ public abstract class Interpreter
 	 */
 	public void bootstrapSpecialObject (
 		final @NotNull String specialObjectName)
-	throws SignatureException
 	{
 		//  Define the method for extracting special objects known to the VM.
 		assert module != null;
-		final AvailObject naturalNumbers =
-			IntegerRangeTypeDescriptor.create(
-				IntegerDescriptor.one(),
-				true,
-				InfinityDescriptor.positiveInfinity(),
-				false);
 		final L1InstructionWriter writer = new L1InstructionWriter();
 		writer.write(
 			new L1Instruction(
 				L1Operation.L1_doPushLiteral,
 				writer.addLiteral(NullDescriptor.nullObject())));
-		writer.argumentTypes(naturalNumbers);
+		writer.argumentTypes(IntegerRangeTypeDescriptor.naturalNumbers());
+		// Add the primitive failure value holder.
+		writer.createLocal(IntegerRangeTypeDescriptor.naturalNumbers());
 		writer.primitiveNumber(
 			Primitive.prim240_SpecialObject.primitiveNumber);
 		writer.returnType(ANY.o());
@@ -648,20 +667,27 @@ public abstract class Interpreter
 		final AvailObject realName = AtomDescriptor.create(nameTuple);
 		module.atNameAdd(nameTuple, realName);
 		module.atNewNamePut(nameTuple, realName);
-		atAddMethodBody(realName, newFunction);
+		try
+		{
+			addMethodBody(realName, newFunction);
+		}
+		catch (final SignatureException e)
+		{
+			assert false
+			: "This boostrap method should not interfere with anything";
+		}
 	}
 
 	/**
-	 * Ensure that all forward declarations have been resolved.
+	 * Answer the Avail {@linkplain SetDescriptor set} of outstanding unresolved
+	 * {@linkplain ForwardSignatureDescriptor forward declarations} within the
+	 * current module.
+	 *
+	 * @return The set of unresolved forward declarations.
 	 */
-	public void checkUnresolvedForwards ()
+	public AvailObject unresolvedForwards ()
 	{
-		if (pendingForwards.setSize() != 0)
-		{
-			error(
-				"Some forward declarations were not resolved within this "
-				+ "module.");
-		}
+		return pendingForwards;
 	}
 
 	/**
@@ -817,9 +843,9 @@ public abstract class Interpreter
 				implementation,
 				true);
 		}
-
 		runtime.removeMethod(methodName, implementation);
 	}
+
 
 	/**
 	 * Does the {@linkplain Interpreter interpreter} provide a {@linkplain
@@ -832,86 +858,6 @@ public abstract class Interpreter
 	public boolean supportsPrimitive (final int ordinal)
 	{
 		return Primitive.byPrimitiveNumber(ordinal) != null;
-	}
-
-	/**
-	 * Attempt to run the requires clauses applicable to this message send.
-	 * Return a {@link String} describing the problem, or null if there was no
-	 * problem.
-	 *
-	 * @param methodName A {@linkplain AtomDescriptor method name}.
-	 * @param argTypes The {@linkplain TypeDescriptor types} of the arguments
-	 *                 of the message send.
-	 * @return A message {@linkPlain String} or null if successful.
-	 */
-	public String validateRequiresClauses (
-		final @NotNull AvailObject methodName,
-		final @NotNull List<AvailObject> argTypes)
-	{
-		assert methodName.isAtom();
-		final AvailObject implementations = runtime.methodsAt(methodName);
-		assert !implementations.equalsNull();
-		final List<AvailObject> matching =
-			implementations.filterByTypes(argTypes);
-		if (matching.size() == 0)
-		{
-			return "matching implementations for method " + methodName;
-		}
-		for (final AvailObject imp : matching)
-		{
-			try
-			{
-				if (!imp.isValidForArgumentTypesInterpreter(argTypes, this))
-				{
-					return
-						"message send of "
-						+ methodName
-						+ " to pass its requires clause";
-				}
-			}
-			catch (final AvailRejectedParseException e)
-			{
-				final AvailObject problem = e.rejectionString();
-				return
-					problem.asNativeString()
-					+ " (while parsing send of "
-					+ methodName
-					+ ")";
-			}
-		}
-		return null;
-	}
-
-	/**
-	 * Answers the return type. Fails if no applicable implementation (or more
-	 * than one).
-	 *
-	 * @param methodName
-	 *        A {@linkplain AtomDescriptor method name}.
-	 * @param argumentExpressions
-	 *        The {@linkplain TypeDescriptor types} of the arguments of the
-	 *        message send.
-	 * @param failBlock
-	 *        A {@linkplain Continuation1 continuation} to invoke on failure.
-	 * @return The return {@linkplain TypeDescriptor type}.
-	 */
-	public @NotNull AvailObject validateSendArgumentExpressions (
-		final @NotNull AvailObject methodName,
-		final @NotNull List<AvailObject> argumentExpressions,
-		final @NotNull Continuation1<Generator<String>> failBlock)
-	{
-		final AvailObject impSet = runtime.methodsAt(methodName);
-		assert !impSet.equalsNull();
-		final List<AvailObject> argTypes =
-			new ArrayList<AvailObject>(argumentExpressions.size());
-		for (final AvailObject argumentExpression : argumentExpressions)
-		{
-			argTypes.add(argumentExpression.expressionType());
-		}
-		return impSet.validateArgumentTypesInterpreterIfFail(
-			argTypes,
-			this,
-			failBlock);
 	}
 
 	{
@@ -991,7 +937,7 @@ public abstract class Interpreter
 	/**
 	 * Answer the result that a primitive invocation has produced.
 	 *
-	 * @return The result that was {@link #primitiveResult(AvailObject)
+	 * @return The result that was {@link #primitiveSuccess(AvailObject)
 	 * recorded} during primitive execution.
 	 */
 	public AvailObject primitiveResult ()
@@ -1002,13 +948,13 @@ public abstract class Interpreter
 	/**
 	 * Invoke an Avail primitive.  The primitive number and arguments are
 	 * passed.  If the primitive fails, use {@link
-	 * Interpreter#primitiveResult(AvailObject)} to set the primitiveResult to
+	 * Interpreter#primitiveSuccess(AvailObject)} to set the primitiveResult to
 	 * some object indicating what the problem was, and return primitiveFailed
 	 * immediately.  If the primitive causes the continuation to change (e.g.,
 	 * through block invocation, continuation restart, exception throwing, etc),
 	 * answer continuationChanged.  Otherwise the primitive succeeded, and we
 	 * simply capture the resulting value with {@link
-	 * Interpreter#primitiveResult(AvailObject)} and return {@link
+	 * Interpreter#primitiveSuccess(AvailObject)} and return {@link
 	 * Result#SUCCESS}.
 	 *
 	 * @param primitiveNumber The number of the primitive to invoke.
@@ -1047,6 +993,20 @@ public abstract class Interpreter
 		return success;
 	}
 
+	/**
+	 * Start execution of the given {@linkplain FunctionDescriptor function}
+	 * with the given {@link List} of arguments.
+	 *
+	 * @param aFunction
+	 *            The function to begin executing.
+	 * @param args
+	 *            The arguments to pass to the function.
+	 * @return
+	 *            The success state indicating if the function was a primitive
+	 *            that succeeded or failed or replaced the current continuation.
+	 *            If the function was not a primitive, always indicate that the
+	 *            current continuation was replaced.
+	 */
 	public abstract Result invokeFunctionArguments (
 		AvailObject aFunction,
 		List<AvailObject> args);
@@ -1057,12 +1017,43 @@ public abstract class Interpreter
 	 */
 	public abstract void reifyContinuation ();
 
+	/**
+	 * Resume execution of the passed {@linkplain ContinuationDescriptor
+	 * continuation}.
+	 *
+	 * @param continuation The continuation to resume.
+	 */
 	public abstract void prepareToExecuteContinuation (
 		AvailObject continuation);
 
+	/**
+	 * Raise an exception. Scan the stack of continuations until one is found
+	 * for a function whose code specifies {@linkplain
+	 * Primitive#prim200_CatchException primitive 200}.
+	 * Get that continuation's second argument (a handler block of one
+	 * argument), and check if that handler block will accept the
+	 * exceptionValue. If not, keep looking. If it will accept it, unwind the
+	 * stack so that the primitive 200 method is the top entry, and invoke the
+	 * handler block with exceptionValue. If there is no suitable handler block,
+	 * fail the primitive.
+	 *
+	 * @param exceptionValue The exception object being raised.
+	 * @return An indication of success of the raising of the exception.
+	 */
 	public abstract Result searchForExceptionHandler (
-		List<AvailObject> args);
+		AvailObject exceptionValue);
 
+	/**
+	 * Prepare the interpreter to deal with executing the given function, using
+	 * the given arguments.  Also set up the new function's locals.  Assume the
+	 * current context has already been reified.  If the function is a
+	 * primitive, then it was already attempted and must have failed, so the
+	 * failure value must be in {@link #primitiveResult}.  The (Java) caller
+	 * will deal with that.
+	 *
+	 * @param aFunction The function to invoke.
+	 * @param args The arguments to pass to the function.
+	 */
 	public abstract void invokeWithoutPrimitiveFunctionArguments (
 		AvailObject aFunction,
 		List<AvailObject> args);

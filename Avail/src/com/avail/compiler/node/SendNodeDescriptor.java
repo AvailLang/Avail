@@ -127,6 +127,7 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 		final @NotNull AvailObject object,
 		final AvailObject returnType)
 	{
+		assert returnType.isType();
 		object.objectSlotPut(ObjectSlots.RETURN_TYPE, returnType);
 	}
 

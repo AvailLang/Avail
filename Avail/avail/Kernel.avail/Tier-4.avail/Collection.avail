@@ -52,9 +52,12 @@ Method "elementType" is [privateElementType;];
 "Collection" is explicit subtype of Object with
 	elementType->[]->any;
 
-Abstract method "_do_" for [Collection, [terminates]->void]->void
-requires [cType : Collection type, blkType : functionType |
-	cType -> elementType result <= blkType[1];
+Abstract method "_do_" for [Collection, [terminates]->void]->void;
+
+Restriction "_do_" is [cType : Collection type, blkType : functionType |
+	if not cType -> elementType result <= blkType[1] then [
+		Fail parse "collection element type to conform to block argument";];
+	void;
 ];
 
 
@@ -64,17 +67,25 @@ requires [cType : Collection type, blkType : functionType |
 "Collection Factory" is implicit subtype of Factory with
 	resultType->[]->Collection;
 
-Abstract method "_add_" for [Collection Factory, any]->void
-requires [cfType : Collection Factory type, itemType : type |
+Abstract method "_add_" for [Collection Factory, any]->void;
+
+Restriction "_add_" is [cfType : Collection Factory type, itemType : type |
 	collectionType ::= cfType -> resultType result;
 	elemType ::= collectionType -> elementType result;
-	itemType <= elemType;
+	if not itemType <= elemType then [
+		Fail parse "new element to conform to collection element type";];
+	void;
 ];
 
 Method "_add all_" is [cf : Collection Factory, c : Collection |
 	c do [item : any | cf add item;];
-] : void
-requires [cfType : Collection Factory type, cType : Collection type |
+] : void;
+
+Restriction "_add all_" is [
+		cfType : Collection Factory type,
+		cType : Collection type |
 	collectionType ::= cfType -> resultType result;
-	cType -> elementType <= collectionType -> elementType result;
+	if not cType -> elementType <= collectionType -> elementType result then [
+		Fail parse "new elements to conform to collection element type";];
+	void;
 ];

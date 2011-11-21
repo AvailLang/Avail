@@ -32,6 +32,7 @@
 
 package com.avail.exceptions;
 
+import static com.avail.descriptor.AvailObject.error;
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
 import com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind;
@@ -224,16 +225,23 @@ public enum AvailErrorCode
 	E_UNHANDLED_EXCEPTION (30),
 
 	/**
+	 * The specified type restriction function should expect types as arguments
+	 * in order to check the validity (and specialize the result) of a call
+	 * site.
+	 */
+	E_TYPE_RESTRICTION_MUST_ACCEPT_ONLY_TYPES (31),
+
+	/**
 	 * The specific kind of {@linkplain SignatureDescriptor signature} does not
 	 * support a {@linkplain FunctionDescriptor requires function}.
 	 */
-	E_SIGNATURE_DOES_NOT_SUPPORT_REQUIRES_FUNCTION (31),
+	//E_SIGNATURE_DOES_NOT_SUPPORT_REQUIRES_FUNCTION (**),
 
 	/**
 	 * The specific kind of {@linkplain SignatureDescriptor signature} does not
 	 * support a {@linkplain FunctionDescriptor returns function}.
 	 */
-	E_SIGNATURE_DOES_NOT_SUPPORT_RETURNS_FUNCTION (32),
+	//E_SIGNATURE_DOES_NOT_SUPPORT_RETURNS_FUNCTION (**),
 
 	/**
 	 * A {@linkplain AvailRuntime#specialObject(int) special object} number is
@@ -273,19 +281,18 @@ public enum AvailErrorCode
 	E_EXPECTED_PRIMITIVE_TYPE (38),
 
 	/**
-	 * A requires clause should accept all possible types of the arguments of
-	 * the corresponding body or signature.  This indicates that the requires
-	 * clause arguments are not general enough.
+	 * An attempt was made to add a signature with the same argument types as an
+	 * existing signature.
 	 */
-	E_REQUIRES_CLAUSE_ARGUMENTS_ARE_NOT_METACOVARIANT (39),
-	//TODO: Rename this one to E_RESTRICTION_...
+	E_REDEFINED_WITH_SAME_ARGUMENT_TYPES (39),
 
 	/**
-	 * A returns clause should accept all possible types of the arguments of
-	 * the corresponding body or signature.  This indicates that the returns
-	 * clause arguments are not general enough.
+	 * A signature was added that had stronger argument types, but the result
+	 * type was not correspondingly stronger.
 	 */
-	E_RETURNS_CLAUSE_ARGUMENTS_ARE_NOT_METACOVARIANT (40);
+	E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS (40),
+
+	;
 
 
 

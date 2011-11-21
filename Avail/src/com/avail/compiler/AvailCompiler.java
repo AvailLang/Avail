@@ -56,6 +56,8 @@ public class AvailCompiler extends AbstractAvailCompiler
 	 *
 	 * @param interpreter
 	 *            The interpreter used to execute code during compilation.
+	 * @param moduleName
+	 *            The {@link ModuleName} of the module being compiled.
 	 * @param source
 	 *            The {@link String} containing the module's source.
 	 * @param tokens
@@ -64,10 +66,11 @@ public class AvailCompiler extends AbstractAvailCompiler
 	 */
 	public AvailCompiler (
 		final L2Interpreter interpreter,
+		final ModuleName moduleName,
 		final String source,
 		final List<AvailObject> tokens)
 	{
-		super(interpreter, source, tokens);
+		super(interpreter, moduleName, source, tokens);
 	}
 
 	/**
@@ -687,166 +690,8 @@ public class AvailCompiler extends AbstractAvailCompiler
 		}
 	}
 
-	/**
-	 * A complete {@linkplain SendNodeDescriptor send node} has been parsed.
-	 * Create the send node and invoke the continuation.
-	 *
-	 * <p>
-	 * If this is a macro, invoke the body immediately with the argument
-	 * expressions to produce a parse node.
-	 * </p>
-	 *
-	 * @param stateBeforeCall
-	 *            The initial parsing state, prior to parsing the entire
-	 *            message.  TODO: deal correctly with leading argument.
-	 * @param stateAfterCall
-	 *            The parsing state after the message.
-	 * @param argumentExpressions
-	 *            The {@linkplain ParseNodeDescriptor parse nodes} that will be
-	 *            arguments of the new send node.
-	 * @param innerArgumentExpressions
-	 *            The {@link List lists} of {@linkplain ParseNodeDescriptor
-	 *            parse nodes} that will correspond to restriction positions,
-	 *            which are at the non-backquoted underscores of the bundle's
-	 *            message name.
-	 * @param bundle
-	 *            The {@link MessageBundleDescriptor message bundle} that
-	 *            identifies the message to be sent.
-	 * @param continuation
-	 *            What to do with the resulting send node.
-	 */
-	void completedSendNode (
-		final ParserState stateBeforeCall,
-		final ParserState stateAfterCall,
-		final List<AvailObject> argumentExpressions,
-		final List<List<AvailObject>> innerArgumentExpressions,
-		final AvailObject bundle,
-		final Con<AvailObject> continuation)
-	{
-		final Mutable<Boolean> valid = new Mutable<Boolean>(true);
-		final AvailObject message = bundle.message();
-		final AvailObject impSet = interpreter.runtime().methodsAt(message);
-		assert !impSet.equalsNull();
-		final AvailObject implementationsTuple = impSet.implementationsTuple();
-		assert implementationsTuple.tupleSize() > 0;
-
-		if (implementationsTuple.tupleAt(1).isMacro())
-		{
-			// Macro definitions and non-macro definitions are not allowed to
-			// mix within an implementation set.
-			completedSendNodeForMacro(
-				stateBeforeCall,
-				stateAfterCall,
-				argumentExpressions,
-				innerArgumentExpressions,
-				bundle,
-				impSet,
-				continuation);
-			return;
-		}
-		// It invokes a method (not a macro).
-		for (final AvailObject arg : argumentExpressions)
-		{
-			if (arg.expressionType().equals(BottomTypeDescriptor.bottom()))
-			{
-				stateAfterCall.expected(
-					"argument to have type other than bottom");
-				return;
-			}
-			if (arg.expressionType().equals(TOP.o()))
-			{
-				stateAfterCall.expected(
-					"argument to have type other than top");
-				return;
-			}
-		}
-		final AvailObject returnType =
-			interpreter.validateSendArgumentExpressions(
-				message,
-				argumentExpressions,
-				new Continuation1<Generator<String>>()
-				{
-					@Override
-					public void value (
-						final Generator<String> errorGenerator)
-					{
-						valid.value = false;
-						stateAfterCall.expected(errorGenerator);
-					}
-				});
-		if (valid.value)
-		{
-			checkRestrictionsIfFail(
-				bundle,
-				innerArgumentExpressions,
-				new Continuation1<Generator<String>>()
-				{
-					@Override
-					public void value (final Generator<String> errorGenerator)
-					{
-						valid.value = false;
-						stateAfterCall.expected(errorGenerator);
-					}
-				});
-		}
-		if (valid.value)
-		{
-			final List<AvailObject> argTypes = new ArrayList<AvailObject>(
-				argumentExpressions.size());
-			for (final AvailObject argumentExpression : argumentExpressions)
-			{
-				argTypes.add(argumentExpression.expressionType());
-			}
-			final String errorMessage = interpreter.validateRequiresClauses(
-				bundle.message(),
-				argTypes);
-			if (errorMessage != null)
-			{
-				valid.value = false;
-				stateAfterCall.expected(errorMessage);
-			}
-		}
-		if (valid.value)
-		{
-			final AvailObject sendNode = SendNodeDescriptor.mutable().create();
-			sendNode.implementationSet(impSet);
-			sendNode.arguments(TupleDescriptor.fromList(argumentExpressions));
-			sendNode.returnType(returnType);
-			attempt(
-				new ParserState(
-					stateAfterCall.position,
-					stateBeforeCall.scopeStack),
-				continuation,
-				sendNode);
-		}
-	}
-
-	/**
-	 * A macro invocation has just been parsed.  Run it now.
-	 *
-	 * @param stateBeforeCall
-	 *            The initial parsing state, prior to parsing the entire
-	 *            message.
-	 * @param stateAfterCall
-	 *            The parsing state after the message.
-	 * @param argumentExpressions
-	 *            The {@linkplain ParseNodeDescriptor parse nodes} that will be
-	 *            arguments of the new send node.
-	 * @param innerArgumentExpressions
-	 *            The {@link List lists} of {@linkplain ParseNodeDescriptor
-	 *            parse nodes} that will correspond to restriction positions,
-	 *            which are at the non-backquoted underscores of the bundle's
-	 *            message name.
-	 * @param bundle
-	 *            The {@link MessageBundleDescriptor message bundle} that
-	 *            identifies the message to be sent.
-	 * @param impSet
-	 *            The {@link ImplementationSetDescriptor implementation set}
-	 *            that contains the macro signature to be invoked.
-	 * @param continuation
-	 *            What to do with the resulting send node.
-	 */
-	private void completedSendNodeForMacro (
+	@Override
+	void completedSendNodeForMacro (
 		final ParserState stateBeforeCall,
 		final ParserState stateAfterCall,
 		final List<AvailObject> argumentExpressions,
@@ -954,55 +799,6 @@ public class AvailCompiler extends AbstractAvailCompiler
 			stateAfterCall.expected(e.rejectionString().asNativeString());
 		}
 		return;
-	}
-
-	/**
-	 * Make sure none of my arguments are message sends that have been
-	 * disallowed in that position by a negative precedence declaration.
-	 *
-	 * @param bundle
-	 *            The bundle for which a send node was just parsed. It contains
-	 *            information about any negative precedence restrictions.
-	 * @param innerArguments
-	 *            The inner argument expressions for the send that was just
-	 *            parsed. These correspond to all non-backquoted underscores
-	 *            anywhere in the message name.
-	 * @param ifFail
-	 *            What to do when a negative precedence rule inhibits a parse.
-	 */
-	void checkRestrictionsIfFail (
-		final AvailObject bundle,
-		final List<List<AvailObject>> innerArguments,
-		final Continuation1<Generator<String>> ifFail)
-	{
-		for (int i = 1; i <= innerArguments.size(); i++)
-		{
-			final List<AvailObject> argumentOccurrences = innerArguments.get(i - 1);
-			for (final AvailObject argument : argumentOccurrences)
-			{
-				final AvailObject argumentSendName =
-					argument.apparentSendName();
-				if (!argumentSendName.equalsNull())
-				{
-					final AvailObject restrictions =
-						bundle.restrictions().tupleAt(i);
-					if (restrictions.hasElement(argumentSendName))
-					{
-						final int index = i;
-						ifFail.value(new Generator<String>()
-						{
-							@Override
-							public String value ()
-							{
-								return "different nesting for argument #"
-									+ Integer.toString(index) + " in "
-									+ bundle.message().name().toString();
-							}
-						});
-					}
-				}
-			}
-		}
 	}
 
 	/**

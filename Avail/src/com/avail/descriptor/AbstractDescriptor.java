@@ -502,10 +502,12 @@ public abstract class AbstractDescriptor
 							value & 0xFFFFFFFFL));
 				}
 			}
-			catch (final NoSuchFieldException e) {
+			catch (final NoSuchFieldException e)
+			{
 				throw new RuntimeException(e);
 			}
-			catch (final IllegalAccessException e) {
+			catch (final IllegalAccessException e)
+			{
 				throw new RuntimeException(e);
 			}
 		}
@@ -735,7 +737,7 @@ public abstract class AbstractDescriptor
 	 * @param methodName
 	 * @param illegalArgMsgs
 	 */
-	public abstract void o_AtAddMessageRestrictions (
+	public abstract void o_AddGrammaticalMessageRestrictions (
 		final @NotNull AvailObject object,
 		final AvailObject methodName,
 		final AvailObject illegalArgMsgs);
@@ -745,7 +747,7 @@ public abstract class AbstractDescriptor
 	 * @param methodName
 	 * @param implementation
 	 */
-	public abstract void o_AtAddMethodImplementation (
+	public abstract void o_AddMethodImplementation (
 		final @NotNull AvailObject object,
 		final AvailObject methodName,
 		final AvailObject implementation);
@@ -1011,34 +1013,12 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param argTypes
-	 * @param anAvailInterpreter
-	 * @return
-	 */
-	public abstract AvailObject
-		o_ComputeReturnTypeFromArgumentTypes (
-			final @NotNull AvailObject object,
-			final List<AvailObject> argTypes,
-			final @NotNull AvailObject impSet,
-			final Interpreter anAvailInterpreter,
-			final Continuation1<Generator<String>> failBlock);
-
-	/**
-	 * @param object
 	 * @param canDestroy
 	 * @return
 	 */
 	public abstract AvailObject o_ConcatenateTuplesCanDestroy (
 		final @NotNull AvailObject object,
 		final boolean canDestroy);
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	public abstract void o_ConstantBindings (
-		final @NotNull AvailObject object,
-		final AvailObject value);
 
 	/**
 	 * @param object
@@ -1253,14 +1233,6 @@ public abstract class AbstractDescriptor
 	public abstract List<AvailObject> o_FilterByTypes (
 		final @NotNull AvailObject object,
 		final List<AvailObject> argTypes);
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	public abstract void o_FilteredBundleTree (
-		final @NotNull AvailObject object,
-		final AvailObject value);
 
 	/**
 	 * @param object
@@ -1544,17 +1516,6 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param argTypes
-	 * @param interpreter
-	 * @return
-	 */
-	public abstract boolean o_IsValidForArgumentTypesInterpreter (
-		final @NotNull AvailObject object,
-		final List<AvailObject> argTypes,
-		final Interpreter interpreter);
-
-	/**
-	 * @param object
 	 * @param index
 	 * @return
 	 */
@@ -1750,14 +1711,6 @@ public abstract class AbstractDescriptor
 		final AvailObject value);
 
 	/**
-	 * @param object
-	 * @param value
-	 */
-	public abstract void o_Methods (
-		final @NotNull AvailObject object,
-		final AvailObject value);
-
-	/**
 	 * Difference the {@linkplain AvailObject operands} and answer the result.
 	 *
 	 * <p>Implementations may double-dispatch to {@link
@@ -1869,28 +1822,12 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param value
-	 */
-	public abstract void o_Names (
-		final @NotNull AvailObject object,
-		final AvailObject value);
-
-	/**
-	 * @param object
 	 * @param trueName
 	 * @return
 	 */
 	public abstract boolean o_NameVisible (
 		final @NotNull AvailObject object,
 		final AvailObject trueName);
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	public abstract void o_NewNames (
-		final @NotNull AvailObject object,
-		final AvailObject value);
 
 	/**
 	 * @param object
@@ -2035,14 +1972,6 @@ public abstract class AbstractDescriptor
 		final @NotNull AvailObject object,
 		final AvailObject keyObject,
 		final AvailObject valueObject);
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	public abstract void o_PrivateNames (
-		final @NotNull AvailObject object,
-		final AvailObject value);
 
 	/**
 	 * @param object
@@ -2216,14 +2145,6 @@ public abstract class AbstractDescriptor
 		final @NotNull AvailObject object,
 		final AvailObject forwardImplementation,
 		final AvailObject methodName);
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	public abstract void o_Restrictions (
-		final @NotNull AvailObject object,
-		final AvailObject value);
 
 	/**
 	 * @param object
@@ -2871,22 +2792,6 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param value
-	 */
-	public abstract void o_VariableBindings (
-		final @NotNull AvailObject object,
-		final AvailObject value);
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	public abstract void o_VisibleNames (
-		final @NotNull AvailObject object,
-		final AvailObject value);
-
-	/**
-	 * @param object
 	 * @param index
 	 * @return
 	 */
@@ -3049,25 +2954,12 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_DependentChunkIndices (
-		final @NotNull AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
 	public abstract int o_ParsingPc (final AvailObject object);
 
 	/**
 	 * @param object
 	 */
 	public abstract void o_DisplayTestingTree (final AvailObject object);
-
-	/**
-	 * @param object
-	 */
-	public abstract void o_EnsureMetacovariant (final AvailObject object)
-	throws SignatureException;
 
 	/**
 	 * @param object
@@ -3479,12 +3371,6 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_PrivateTestingTree (final AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
 	public abstract AvailObject o_ProcessGlobals (final AvailObject object);
 
 	/**
@@ -3502,19 +3388,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_RequiresBlock (final AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	public abstract AvailObject o_Restrictions (final AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	public abstract AvailObject o_ReturnsBlock (final AvailObject object);
+	public abstract AvailObject o_GrammaticalRestrictions (final AvailObject object);
 
 	/**
 	 * @param object
@@ -4669,12 +4543,6 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param value
-	 */
-	public abstract void o_AllBundles (AvailObject object, AvailObject value);
-
-	/**
-	 * @param object
 	 * @return
 	 */
 	public abstract AvailObject o_AllBundles (AvailObject object);
@@ -4762,7 +4630,6 @@ public abstract class AbstractDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aSet)
 	{
-		// TODO Auto-generated method stub
 		return false;
 	}
 
@@ -4880,7 +4747,7 @@ public abstract class AbstractDescriptor
 	 * @param aParseNodeType
 	 * @return
 	 */
-	public abstract AvailObject o_TypeUnionOfParseNodeType (
+	public abstract @NotNull AvailObject o_TypeUnionOfParseNodeType (
 		final @NotNull AvailObject object,
 		AvailObject aParseNodeType);
 
@@ -4899,4 +4766,92 @@ public abstract class AbstractDescriptor
 	public abstract boolean o_ParseNodeKindIsUnder (
 		final @NotNull AvailObject object,
 		final @NotNull ParseNodeKind expectedParseNodeKind);
+
+	/**
+	 * @param object
+	 * @param restrictionSignature
+	 * @return
+	 */
+	public abstract void o_AddTypeRestriction (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject restrictionSignature);
+
+	/**
+	 * @param object
+	 * @param restrictionSignature
+	 * @return
+	 */
+	public abstract void o_RemoveTypeRestriction (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject restrictionSignature);
+
+	/**
+	 * Return the {@linkplain ImplementationSetDescriptor implementation set}'s
+	 * {@linkplain TupleDescriptor tuple} of {@linkplain FunctionDescriptor
+	 * functions} that statically restrict call sites by argument type.
+	 *
+	 * @param object The implementation set.
+	 */
+	public abstract @NotNull AvailObject o_TypeRestrictions (
+		final @NotNull AvailObject object);
+
+	/**
+	 * @param object
+	 * @param tupleType
+	 */
+	public abstract void o_AddSealedArgumentsType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject tupleType);
+
+	/**
+	 * @param object
+	 * @param tupleType
+	 */
+	public abstract void o_RemoveSealedArgumentsType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject tupleType);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	public abstract @NotNull AvailObject o_SealedArgumentsTypesTuple (
+		final @NotNull AvailObject object);
+
+	/**
+	 * @param availObject
+	 * @param methodNameAtom
+	 * @param typeRestrictionFunction
+	 */
+	public abstract void o_AddTypeRestriction (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject methodNameAtom,
+		final @NotNull AvailObject typeRestrictionFunction);
+
+	/**
+	 * @param object
+	 * @param name
+	 * @param constantBinding
+	 */
+	public abstract void o_AddConstantBinding (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject name,
+		final @NotNull AvailObject constantBinding);
+
+	/**
+	 * @param object
+	 * @param name
+	 * @param variableBinding
+	 */
+	public abstract void o_AddVariableBinding (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject name,
+		final @NotNull AvailObject variableBinding);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	public abstract boolean o_IsImplementationSetEmpty (
+		final @NotNull AvailObject object);
 }

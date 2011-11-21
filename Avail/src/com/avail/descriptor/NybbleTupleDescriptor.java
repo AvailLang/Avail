@@ -92,7 +92,8 @@ extends TupleDescriptor
 		//  Round up to a multiple of eight per row.
 		rowSize = (rowSize + 7) / 8 * 8;
 		int rowStart = 1;
-		while (rowStart <= object.tupleSize()) {
+		while (rowStart <= object.tupleSize())
+		{
 			aStream.append('\n');
 			for (int _count1 = 1; _count1 <= indent; _count1++)
 			{
@@ -560,7 +561,8 @@ extends TupleDescriptor
 	 * {@link #isMutableSize(boolean, int)} can find them by mutability and
 	 * number of unused nybbles in the last word.
 	 */
-	final static NybbleTupleDescriptor descriptors[] = {
+	final static NybbleTupleDescriptor descriptors[] =
+	{
 		new NybbleTupleDescriptor(true, 0),
 		new NybbleTupleDescriptor(false, 0),
 		new NybbleTupleDescriptor(true, 7),

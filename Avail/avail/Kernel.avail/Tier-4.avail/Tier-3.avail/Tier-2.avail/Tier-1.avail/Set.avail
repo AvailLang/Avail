@@ -36,7 +36,6 @@ Uses
 	"Tier-0",
 	"Container",
 	"Integer",
-	"Method",
 	"Tuple",
 	"Type"
 Names
@@ -77,8 +76,9 @@ Method "_sizes" is [st : setType |
 
 Method "||_||" is [s : set |
 	Primitive 100;
-] : whole number
-returns [st : setType |
+] : whole number;
+
+Restriction "||_||" is [st : setType |
 	st sizes;
 ] : integerType;
 
@@ -96,8 +96,9 @@ Method "_private plus_" is [a : extended integer, b : extended integer |
 Method "_as tuple" is [s : set |
 	/* Convert the set to a tuple, with arbitrary (and unstable) ordering. */
 	Primitive 110;
-] : tuple
-returns [st : setType |
+] : tuple;
+
+Restriction "_as tuple" is [st : setType |
 	tuple whole number
 		like <>
 		default st content type;
@@ -105,8 +106,9 @@ returns [st : setType |
 
 Method "_as set" is [t : tuple |
 	Primitive 109;
-] : set
-returns [tt : tupleType |
+] : set;
+
+Restriction "_as set" is [tt : tupleType |
 	sizes ::= tt sizes;
 	minSize ::= (type union of [1..sizes upper bound private plus 1) and sizes) lower bound;
 	maxSize ::= sizes upper bound;
@@ -138,8 +140,9 @@ Method "_sizes upper bound" is [st : setType |
 Method "{«_‡,»}" is [t : tuple |
 	/* Construct a set from the comma-separated tuple of values. */
 	t as set;
-] : set
-returns [tt : tupleType |
+] : set;
+
+Restriction "{«_‡,»}" is [tt : tupleType |
 	sizes ::= tt sizes;
 	minSize ::= (type union of [1..sizes upper bound private plus 1) and sizes) lower bound;
 	maxSize ::= sizes upper bound;

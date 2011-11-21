@@ -37,7 +37,6 @@ Uses
 	"Block",
 	"Container",
 	"Integer",
-	"Method",
 	"Type"
 Names
 	"tuple_like_default_",
@@ -62,29 +61,20 @@ Body
 
 Method "<«_‡,»>" is [t : tuple |
 	t;
-] : tuple
-returns [tType : tupleType |
+] : tuple;
+
+Restriction "<«_‡,»>" is [tType : tupleType |
 	tType;
 ] : tupleType;
 
 tupleOfType ::= Special Object 73;
 
-Method "private tuple type for sizes_like_default_" is [
-		sizeRange : whole number type,
-		typeTuple : tupleOfType,
-		defaultType : type |
-	/* Construct a new tuple type.  Defined here privately with weak input types... */
-	Primitive 137;
-] : tupleType;
-
-
 /* Tuple type constructor... */
 
 Method "tuple_like_default_" is [
 		sizeRange : whole number type,
-		typeTuple : (private tuple type for sizes whole number like <> default (type)),
+		typeTuple : tupleOfType,
 		defaultType : type |
-	/* Construct a new tuple type.  Redefined here publicly for stronger input types... */
 	Primitive 137;
 ] : tupleType;
 
@@ -120,8 +110,9 @@ setOfString ::= Special Object 75;
 
 Method "_private as set" is [t : tuple of string |
 	Primitive 109;
-] : set
-returns [t : tupleType |
+] : set;
+
+Restriction "_private as set" is [tt : (tuple of string) type |
 	setOfString;
 ];
 
@@ -155,8 +146,9 @@ Method "_sizes upper bound" is [tt : tupleType |
 Method "||_||" is [t : tuple |
 	/* Compute size of tuple. */
 	Primitive 130;
-] : whole number
-returns [tT : tupleType |
+] : whole number;
+
+Restriction "||_||" is [tT : tupleType |
 	tT sizes;
 ];
 

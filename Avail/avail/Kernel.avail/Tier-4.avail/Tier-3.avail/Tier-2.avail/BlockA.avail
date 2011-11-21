@@ -53,8 +53,9 @@ Body
 Method "_apply_" is [block : [...]->void, args : tuple |
 	Primitive 40 (failureCode : natural number);
 	Crash "Bad argument during function application.";
-] : void
-requires [functionT : functionType, argsT : tupleType |
+] : void;
+
+Restriction "_apply_" is [functionT : functionType, argsT : tupleType |
 	/* The function type is allowed to be too weak, so that this operation will
 	 * be useful as a kind of downcast mechanism.  If the function type is not
 	 * consistent with the argument types (i.e., it is known statically that the
@@ -73,11 +74,8 @@ requires [functionT : functionType, argsT : tupleType |
 	 * supplied at runtime that is broader for that (contravariant) argument --
 	 * in fact, any function argument type can be broadened up to an "any", which
 	 * will accept any argument.
-	 */  
-	true;
-] : boolean
-returns [ct : functionType, at : type |
-	ct result;
+	 */
+	functionT result;
 ];
 
 
@@ -92,15 +90,16 @@ Method "cast_into_otherwise_" is [
 	if value type <= blk1 type[1] then [
 		blk1 apply <value>;
 	] else blk2;
-] : void
-returns [valType : type, blk1Type : functionType, blk2Type : functionType |
-	type union of blk1Type result and blk2Type result;
-]
-requires [valType : type, blk1Type : functionType, blk2Type : functionType |
+] : void;
+
+Restriction "cast_into_otherwise_" is [
+		valType : type,
+		blk1Type : functionType,
+		blk2Type : functionType |
 	if valType <= blk1Type[1] then [
 		Fail parse "Warning - unnecessary cast expression";
 	];
-	true;
+	type union of blk1Type result and blk2Type result;
 ];
 
 
@@ -111,13 +110,11 @@ Method "cast_into_" is [value : any, block : [terminates]->void |
 	] else [
 		Crash <"Bad dynamic cast of a ", value type, " into a ", block type[1]>;
 	];
-] : void
-returns [valType : type, blockType : functionType |
-	blockType result;
-]
-requires [valType : type, blockType : functionType |
+] : void;
+
+Restriction "cast_into_" is [valType : type, blockType : functionType |
 	if valType <= blockType[1] then [
 		Fail parse "Warning - unnecessary cast expression";
 	];
-	true;
+	blockType result;
 ];

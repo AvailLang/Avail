@@ -66,6 +66,11 @@ public abstract class AbstractAvailCompiler
 	AvailObject module;
 
 	/**
+	 * The {@link ModuleName} of the module undergoing compilation.
+	 */
+	private final ModuleName moduleName;
+
+	/**
 	 * The {@linkplain L2Interpreter interpreter} to use when evaluating
 	 * top-level expressions.
 	 */
@@ -312,11 +317,19 @@ public abstract class AbstractAvailCompiler
 		if (!tokens.isEmpty()
 			&& tokens.get(0).string().equals(SYSTEM.lexeme()))
 		{
-			compiler = new AvailSystemCompiler(interpreter, source, tokens);
+			compiler = new AvailSystemCompiler(
+				interpreter,
+				qualifiedName,
+				source,
+				tokens);
 		}
 		else
 		{
-			compiler = new AvailCompiler(interpreter, source, tokens);
+			compiler = new AvailCompiler(
+				interpreter,
+				qualifiedName,
+				source,
+				tokens);
 		}
 		return compiler;
 	}
@@ -327,6 +340,8 @@ public abstract class AbstractAvailCompiler
 	 *
 	 * @param interpreter
 	 *        The interpreter to be used for evaluating expressions.
+	 * @param moduleName
+	 *        The {@link ModuleName} of the module being compiled.
 	 * @param source
 	 *        The source code {@linkplain ByteStringDescriptor string}.
 	 * @param tokens
@@ -334,10 +349,12 @@ public abstract class AbstractAvailCompiler
 	 */
 	public AbstractAvailCompiler (
 		final @NotNull L2Interpreter interpreter,
+		final @NotNull ModuleName moduleName,
 		final @NotNull String source,
 		final @NotNull List<AvailObject> tokens)
 	{
 		this.interpreter = interpreter;
+		this.moduleName = moduleName;
 		this.source = source;
 		this.tokens = tokens;
 	}
@@ -1114,8 +1131,8 @@ public abstract class AbstractAvailCompiler
 		final long charPos = token.start();
 		final String sourceUpToError = source.substring(0, (int) charPos);
 		final int startOfPreviousLine = sourceUpToError.lastIndexOf('\n') + 1;
-		final StringBuilder text = new StringBuilder(100);
-		text.append('\n');
+		final Formatter text = new Formatter();
+		text.format("%n");
 		int wedges = 3;
 		for (int i = startOfPreviousLine; i < charPos; i++)
 		{
@@ -1123,40 +1140,41 @@ public abstract class AbstractAvailCompiler
 			{
 				while (wedges > 0)
 				{
-					text.append('>');
+					text.format(">");
 					wedges--;
 				}
-				text.append('\t');
+				text.format("\t");
 			}
 			else
 			{
 				if (wedges > 0)
 				{
-					text.append('>');
+					text.format(">");
 					wedges--;
 				}
 				else
 				{
-					text.append(' ');
+					text.format(" ");
 				}
 			}
 		}
-		text.append(String.format("^-- %s", banner));
-		text.append("\n>>>---------------------------------------------------------------------");
-		final Set<String> alreadySeen = new HashSet<String>(
-			problems.size());
+		text.format("^-- %s", banner);
+		text.format("%n>>>---------------------------------------------------------------------");
+		final Set<String> alreadySeen = new HashSet<String>(problems.size());
 		for (final Generator<String> generator : problems)
 		{
 			final String str = generator.value();
 			if (!alreadySeen.contains(str))
 			{
-				text.append("\n");
 				alreadySeen.add(str);
-				text.append(">>>\t");
-				text.append(str.replace("\n", "\n>>>\t"));
+				text.format("\n>>>\t%s", str.replace("\n", "\n>>>\t"));
 			}
 		}
-		text.append("\n>>>---------------------------------------------------------------------");
+		text.format(
+			"%n(file=\"%s\", line=%d)",
+			moduleName.qualifiedName(),
+			token.lineNumber());
+		text.format("%n>>>---------------------------------------------------------------------");
 		int endOfLine = source.indexOf('\n', (int) charPos);
 		if (endOfLine == -1)
 		{
@@ -1427,11 +1445,9 @@ public abstract class AbstractAvailCompiler
 		if (expr.declarationKind() == LOCAL_CONSTANT)
 		{
 			final AvailObject val = evaluate(expr.initializationExpression());
-			module.constantBindings(
-				module.constantBindings().mapAtPuttingCanDestroy(
-					name,
-					val.makeImmutable(),
-					true));
+			module.addConstantBinding(
+				name,
+				val.makeImmutable());
 		}
 		else
 		{
@@ -1441,11 +1457,203 @@ public abstract class AbstractAvailCompiler
 			{
 				var.setValue(evaluate(expr.initializationExpression()));
 			}
-			module.variableBindings(
-				module.variableBindings().mapAtPuttingCanDestroy(
-					name,
-					var.makeImmutable(),
-					true));
+			module.addVariableBinding(
+				name,
+				var.makeImmutable());
+		}
+	}
+
+	/**
+	 * A complete {@linkplain SendNodeDescriptor send node} has been parsed.
+	 * Create the send node and invoke the continuation.
+	 *
+	 * <p>
+	 * If this is a macro, invoke the body immediately with the argument
+	 * expressions to produce a parse node.
+	 * </p>
+	 *
+	 * @param stateBeforeCall
+	 *            The initial parsing state, prior to parsing the entire
+	 *            message.  TODO: deal correctly with leading argument.
+	 * @param stateAfterCall
+	 *            The parsing state after the message.
+	 * @param argumentExpressions
+	 *            The {@linkplain ParseNodeDescriptor parse nodes} that will be
+	 *            arguments of the new send node.
+	 * @param innerArgumentExpressions
+	 *            The {@link List lists} of {@linkplain ParseNodeDescriptor
+	 *            parse nodes} that will correspond to restriction positions,
+	 *            which are at the non-backquoted underscores of the bundle's
+	 *            message name.
+	 * @param bundle
+	 *            The {@link MessageBundleDescriptor message bundle} that
+	 *            identifies the message to be sent.
+	 * @param continuation
+	 *            What to do with the resulting send node.
+	 */
+	void completedSendNode (
+		final ParserState stateBeforeCall,
+		final ParserState stateAfterCall,
+		final List<AvailObject> argumentExpressions,
+		final List<List<AvailObject>> innerArgumentExpressions,
+		final AvailObject bundle,
+		final Con<AvailObject> continuation)
+	{
+		final Mutable<Boolean> valid = new Mutable<Boolean>(true);
+		final AvailObject message = bundle.message();
+		final AvailObject impSet = interpreter.runtime().methodsAt(message);
+		assert !impSet.equalsNull();
+		final AvailObject implementationsTuple = impSet.implementationsTuple();
+		assert implementationsTuple.tupleSize() > 0;
+
+		if (implementationsTuple.tupleAt(1).isMacro())
+		{
+			// Macro definitions and non-macro definitions are not allowed to
+			// mix within an implementation set.
+			completedSendNodeForMacro(
+				stateBeforeCall,
+				stateAfterCall,
+				argumentExpressions,
+				innerArgumentExpressions,
+				bundle,
+				impSet,
+				continuation);
+			return;
+		}
+		// It invokes a method (not a macro).
+		final List<AvailObject> argTypes =
+			new ArrayList<AvailObject>(argumentExpressions.size());
+		for (final AvailObject argumentExpression : argumentExpressions)
+		{
+			argTypes.add(argumentExpression.expressionType());
+		}
+		final AvailObject returnType =
+			impSet.validateArgumentTypesInterpreterIfFail(
+				argTypes,
+				interpreter,
+				new Continuation1<Generator<String>>()
+				{
+					@Override
+					public void value (
+						final Generator<String> errorGenerator)
+					{
+						valid.value = false;
+						stateAfterCall.expected(errorGenerator);
+					}
+				});
+		if (valid.value)
+		{
+			checkRestrictionsIfFail(
+				bundle,
+				innerArgumentExpressions,
+				new Continuation1<Generator<String>>()
+				{
+					@Override
+					public void value (final Generator<String> errorGenerator)
+					{
+						valid.value = false;
+						stateAfterCall.expected(errorGenerator);
+					}
+				});
+		}
+		if (valid.value)
+		{
+			final AvailObject sendNode = SendNodeDescriptor.mutable().create();
+			sendNode.implementationSet(impSet);
+			sendNode.arguments(TupleDescriptor.fromList(argumentExpressions));
+			sendNode.returnType(returnType);
+			attempt(
+				new ParserState(
+					stateAfterCall.position,
+					stateBeforeCall.scopeStack),
+				continuation,
+				sendNode);
+		}
+	}
+
+	/**
+	 * A macro invocation has just been parsed.  Run it now if macro execution
+	 * is supported.
+	 *
+	 * @param stateBeforeCall
+	 *            The initial parsing state, prior to parsing the entire
+	 *            message.
+	 * @param stateAfterCall
+	 *            The parsing state after the message.
+	 * @param argumentExpressions
+	 *            The {@linkplain ParseNodeDescriptor parse nodes} that will be
+	 *            arguments of the new send node.
+	 * @param innerArgumentExpressions
+	 *            The {@link List lists} of {@linkplain ParseNodeDescriptor
+	 *            parse nodes} that will correspond to restriction positions,
+	 *            which are at the non-backquoted underscores of the bundle's
+	 *            message name.
+	 * @param bundle
+	 *            The {@link MessageBundleDescriptor message bundle} that
+	 *            identifies the message to be sent.
+	 * @param impSet
+	 *            The {@link ImplementationSetDescriptor implementation set}
+	 *            that contains the macro signature to be invoked.
+	 * @param continuation
+	 *            What to do with the resulting send node.
+	 */
+	abstract void completedSendNodeForMacro (
+		final ParserState stateBeforeCall,
+		final ParserState stateAfterCall,
+		final List<AvailObject> argumentExpressions,
+		final List<List<AvailObject>> innerArgumentExpressions,
+		final AvailObject bundle,
+		final AvailObject impSet,
+		final Con<AvailObject> continuation);
+
+	/**
+	 * Make sure none of my arguments are message sends that have been
+	 * disallowed in that position by a negative precedence declaration.
+	 *
+	 * @param bundle
+	 *            The bundle for which a send node was just parsed. It contains
+	 *            information about any negative precedence restrictions.
+	 * @param innerArguments
+	 *            The inner argument expressions for the send that was just
+	 *            parsed. These correspond to all non-backquoted underscores
+	 *            anywhere in the message name.
+	 * @param ifFail
+	 *            What to do when a negative precedence rule inhibits a parse.
+	 */
+	void checkRestrictionsIfFail (
+		final AvailObject bundle,
+		final List<List<AvailObject>> innerArguments,
+		final Continuation1<Generator<String>> ifFail)
+	{
+		for (int i = 1; i <= innerArguments.size(); i++)
+		{
+			final List<AvailObject> argumentOccurrences =
+				innerArguments.get(i - 1);
+			for (final AvailObject argument : argumentOccurrences)
+			{
+				final AvailObject argumentSendName =
+					argument.apparentSendName();
+				if (!argumentSendName.equalsNull())
+				{
+					final AvailObject restrictions =
+						bundle.grammaticalRestrictions().tupleAt(i);
+					if (restrictions.hasElement(argumentSendName))
+					{
+						final int index = i;
+						ifFail.value(
+							new Generator<String>()
+							{
+								@Override
+								public String value ()
+								{
+									return "different nesting for argument #"
+										+ Integer.toString(index) + " in "
+										+ bundle.message().name().toString();
+								}
+							});
+					}
+				}
+			}
 		}
 	}
 
@@ -1510,7 +1718,7 @@ public abstract class AbstractAvailCompiler
 		final long sourceLength = qualifiedName.fileReference().length();
 		final Mutable<AvailObject> interpretation = new Mutable<AvailObject>();
 		final Mutable<ParserState> state = new Mutable<ParserState>();
-		interpreter.checkUnresolvedForwards();
+		assert interpreter.unresolvedForwards().setSize() == 0;
 		greatestGuess = 0;
 		greatExpectations.clear();
 
@@ -1726,8 +1934,18 @@ public abstract class AbstractAvailCompiler
 					sourceLength);
 			}
 		}
-		interpreter.checkUnresolvedForwards();
 		assert state.value.atEnd();
+		if (interpreter.unresolvedForwards().setSize() != 0)
+		{
+			final Formatter formatter = new Formatter();
+			formatter.format("the following forwards to be resolved:");
+			for (final AvailObject forward : interpreter.unresolvedForwards())
+			{
+				formatter.format("%n\t%s", forward);
+			}
+			state.value.expected(formatter.toString());
+			reportError(qualifiedName);
+		}
 	}
 
 	/**
@@ -1836,6 +2054,7 @@ public abstract class AbstractAvailCompiler
 			}
 			if (!dependenciesOnly)
 			{
+				String failureMethodName = null;
 				for (int index = 0; index < strings.size(); index++)
 				{
 					final AvailObject pragmaString = strings.get(index);
@@ -1855,30 +2074,21 @@ public abstract class AbstractAvailCompiler
 							+ ") must not contain internal whitespace");
 						return null;
 					}
-					try
+					if (pragmaKey.equals("bootstrapFailureMethod"))
 					{
-						if (pragmaKey.equals("bootstrapDefiningMethod"))
-						{
-							interpreter.bootstrapDefiningMethod(pragmaValue);
-						}
-						else if (pragmaKey.equals("bootstrapSpecialObject"))
-						{
-							interpreter.bootstrapSpecialObject(pragmaValue);
-						}
+						failureMethodName = pragmaValue;
+						interpreter.bootstrapFailureMethod(pragmaValue);
 					}
-					catch (final SignatureException e)
+					else if (pragmaKey.equals("bootstrapDefiningMethod"))
 					{
-						state.expected(
-							new Generator<String>()
-							{
-								@Override
-								public String value ()
-								{
-									return "Malformed signature during bootstrap: "
-										+ e.getMessage();
-								}
-							});
-						return null;
+						assert failureMethodName != null;
+						interpreter.bootstrapDefiningMethod(
+							pragmaValue,
+							failureMethodName);
+					}
+					else if (pragmaKey.equals("bootstrapSpecialObject"))
+					{
+						interpreter.bootstrapSpecialObject(pragmaValue);
 					}
 				}
 			}

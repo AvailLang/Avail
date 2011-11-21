@@ -571,7 +571,8 @@ extends TupleDescriptor
 		int high = object.numberOfZones();
 		int low = 1;
 		int mid;
-		while (high != low) {
+		while (high != low)
+		{
 			mid = (high + low) / 2;
 			if (index <= object.endOfZone(mid))
 			{

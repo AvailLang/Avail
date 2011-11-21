@@ -73,10 +73,11 @@ Method "««cat»«dog»»" is [
 	t collect [y : tuple [2..2] of tuple |
 		if ||y[1]|| = 1 then [$"c";] else [$"d";];
 	];
-] : string
-requires [xT : tupleType |
+] : string;
+
+Restriction "««cat»«dog»»" is [xT : tupleType |
 	limit ::= cast xT sizes upper bound into [lim : [0..INF) | lim;];
-	(1 to limit) all [
+	good ::= (1 to limit) all [
 			subscript : natural number |
 		cast xT[subscript] into [pairT : tupleType |
 			catCount ::= cast pairT[1] into [catT : tupleType |
@@ -86,6 +87,9 @@ requires [xT : tupleType |
 			catCount + dogCount = 1;
 		];
 	];
+	if not good then [
+		Fail parse "Invalid cat/dog counts";];
+	void;
 ];
 
 Assert cat = "c";

@@ -49,8 +49,8 @@ extends AvailException
 	private static final long serialVersionUID = -2390483636801333298L;
 
 	/**
-	 * Construct a new {@link AvailException} with the specified {@linkplain
-	 * AvailErrorCode error code}.
+	 * Construct a new {@link ArithmeticException} with the specified
+	 * {@linkplain AvailErrorCode error code}.
 	 *
 	 * @param errorCode
 	 *        The {@linkplain AvailErrorCode error code}.
@@ -61,14 +61,14 @@ extends AvailException
 	}
 
 	/**
-	 * Construct a new {@link AvailException} with the specified {@linkplain
-	 * Throwable cause}.
+	 * Construct a new {@link ArithmeticException} with the specified
+	 * {@linkplain Throwable cause}.
 	 *
 	 * @param errorCode
 	 *        The {@linkplain AvailErrorCode error code}.
 	 * @param cause
 	 *        The proximal {@linkplain Throwable cause} of the {@linkplain
-	 *        AvailException exception}.
+	 *        ArithmeticException exception}.
 	 */
 	public ArithmeticException (
 		final @NotNull AvailErrorCode errorCode,

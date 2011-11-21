@@ -33,7 +33,7 @@
 System Module "Tier-0"
 Extends
 	"Pragmas",
-	"Syntax",
+	"Declaration",
 	"Basics"
 Uses
 Names

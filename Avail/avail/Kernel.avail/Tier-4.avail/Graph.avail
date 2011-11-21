@@ -65,8 +65,9 @@ predecessors ::= lookup "predecessors";
 
 Method "_nodes" is [g : Graph |
 	g -> nodes;
-]
-returns [gt : Graph type |
+];
+
+Restriction "_nodes" is [gt : Graph type |
 	gt -> nodes;
 ];
 
@@ -93,8 +94,9 @@ Method "Graph of_" is [nodeType : type |
 			<nodes, set of nodeType>,
 			<successors, map from nodeType to set of nodeType>,
 			<predecessors, map from nodeType to set of nodeType>>;
-]
-returns [ntt : meta |
+];
+
+Restriction "Graph of_" is [ntt : meta |
 	/* We can't be more specific, but we shouldn't need to be. */
 	Graph type;
 ];
@@ -111,8 +113,9 @@ Method "_Factory" is [graphType : Graph type |
 			<nodes, & : set>,
 			<successors, & : map from any to set>>;
 	cast gft into [ft : Factory type | ft;];
-] : Factory type
-returns [gtt : Graph type type |
+] : Factory type;
+
+Restriction "_Factory" is [gtt : Graph type type |
 	/* This is not a recursive invocation, as it only applies after
 	   the method definition has completed.  */
 	(gtt instance Factory) type;
@@ -133,17 +136,21 @@ Method "new_" is [gft : Graph Factory type |
 		<nodes, &nodesVar>,
 		<successors, &succVar>
 	>;
-]
-returns [gftt : Graph Factory type type |
+];
+
+Restriction "new_" is [gftt : Graph Factory type type |
 	gftt instance;
 ];
 
 Method "_add node_" is [gf : Graph Factory, node : any |
 	*gf -> nodes := *gf -> nodes with node;
 	* gf -> successors [node] := {};
-] : void
-requires [gft : Graph Factory type, nt : type |
-	nt <= gft -> resultType result -> nodes content type;
+] : void;
+
+Restriction "_add node_" is [gft : Graph Factory type, nt : type |
+	if not nt <= gft -> resultType result -> nodes content type then [
+		Fail parse "new node to conform to graph's node type";];
+	void;
 ];
 
 
@@ -152,10 +159,14 @@ Method "_add edge from_to_" is [gf : Graph Factory, source : any, destination : 
 	Assert *gf -> nodes includes destination;
 	s ::= gf -> successors;
 	*s := *s[source -> *s[source] with destination];
-] : void
-requires [gft : Graph Factory type, srcT : type, destT : type |
-	srcT <= gft -> resultType result -> nodes content type
-	& destT <= gft -> resultType result -> nodes content type;
+] : void;
+
+Restriction "_add edge from_to_" is [gft : Graph Factory type, srcT : type, destT : type |
+	if not srcT <= gft -> resultType result -> nodes content type then [
+		Fail parse "source node to conform to graph's node type";];
+	if not destT <= gft -> resultType result -> nodes content type then [
+		Fail parse "destination node to conform to graph's node type";];
+	void;
 ];
 
 
@@ -174,8 +185,9 @@ Method "_result" is [gf : Graph Factory |
 		<successors, *gf->successors>,
 		<predecessors, preds>
 	>;
-] : Graph
-returns [factoryType : Graph Factory type |
+] : Graph;
+
+Restriction "_result" is [factoryType : Graph Factory type |
 	factoryType -> resultType result;
 ] : Graph type;
 

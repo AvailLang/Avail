@@ -286,7 +286,7 @@ extends AbstractDescriptor
 	 * @param illegalArgMsgs
 	 */
 	@Override
-	public void o_AtAddMessageRestrictions (
+	public void o_AddGrammaticalMessageRestrictions (
 		final @NotNull AvailObject object,
 		final AvailObject methodName,
 		final AvailObject illegalArgMsgs)
@@ -301,7 +301,7 @@ extends AbstractDescriptor
 	 * @param implementation
 	 */
 	@Override
-	public void o_AtAddMethodImplementation (
+	public void o_AddMethodImplementation (
 		final @NotNull AvailObject object,
 		final AvailObject methodName,
 		final AvailObject implementation)
@@ -700,24 +700,6 @@ extends AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param argTypes
-	 * @param anAvailInterpreter
-	 * @return
-	 */
-	@Override
-	public @NotNull AvailObject o_ComputeReturnTypeFromArgumentTypes (
-		final @NotNull AvailObject object,
-		final List<AvailObject> argTypes,
-		final @NotNull AvailObject impSet,
-		final Interpreter anAvailInterpreter,
-		final Continuation1<Generator<String>> failBlock)
-	{
-		unsupportedOperation();
-		return NullDescriptor.nullObject();
-	}
-
-	/**
-	 * @param object
 	 * @param canDestroy
 	 * @return
 	 */
@@ -728,19 +710,6 @@ extends AbstractDescriptor
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
-	}
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	@Override
-	public void o_ConstantBindings (
-		final @NotNull AvailObject object,
-		final AvailObject value)
-	{
-		unsupportedOperation();
-		return;
 	}
 
 	/**
@@ -974,19 +943,6 @@ extends AbstractDescriptor
 	{
 		unsupportedOperation();
 		return null;
-	}
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	@Override
-	public void o_FilteredBundleTree (
-		final @NotNull AvailObject object,
-		final AvailObject value)
-	{
-		unsupportedOperation();
-		return;
 	}
 
 	/**
@@ -1425,22 +1381,6 @@ extends AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param argTypes
-	 * @param interpreter
-	 * @return
-	 */
-	@Override
-	public boolean o_IsValidForArgumentTypesInterpreter (
-		final @NotNull AvailObject object,
-		final List<AvailObject> argTypes,
-		final Interpreter interpreter)
-	{
-		unsupportedOperation();
-		return false;
-	}
-
-	/**
-	 * @param object
 	 * @param index
 	 * @return
 	 */
@@ -1740,19 +1680,6 @@ extends AbstractDescriptor
 		return;
 	}
 
-	/**
-	 * @param object
-	 * @param value
-	 */
-	@Override
-	public void o_Methods (
-		final @NotNull AvailObject object,
-		final AvailObject value)
-	{
-		unsupportedOperation();
-		return;
-	}
-
 	@Override
 	public @NotNull AvailObject o_MinusCanDestroy (
 			final @NotNull AvailObject object,
@@ -1827,19 +1754,6 @@ extends AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param value
-	 */
-	@Override
-	public void o_Names (
-		final @NotNull AvailObject object,
-		final AvailObject value)
-	{
-		unsupportedOperation();
-		return;
-	}
-
-	/**
-	 * @param object
 	 * @param trueName
 	 * @return
 	 */
@@ -1850,19 +1764,6 @@ extends AbstractDescriptor
 	{
 		unsupportedOperation();
 		return false;
-	}
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	@Override
-	public void o_NewNames (
-		final @NotNull AvailObject object,
-		final AvailObject value)
-	{
-		unsupportedOperation();
-		return;
 	}
 
 	/**
@@ -2057,19 +1958,6 @@ extends AbstractDescriptor
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
-	}
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	@Override
-	public void o_PrivateNames (
-		final @NotNull AvailObject object,
-		final AvailObject value)
-	{
-		unsupportedOperation();
-		return;
 	}
 
 	/**
@@ -2334,19 +2222,6 @@ extends AbstractDescriptor
 		final @NotNull AvailObject object,
 		final AvailObject forwardImplementation,
 		final AvailObject methodName)
-	{
-		unsupportedOperation();
-		return;
-	}
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	@Override
-	public void o_Restrictions (
-		final @NotNull AvailObject object,
-		final AvailObject value)
 	{
 		unsupportedOperation();
 		return;
@@ -3276,32 +3151,6 @@ extends AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param value
-	 */
-	@Override
-	public void o_VariableBindings (
-		final @NotNull AvailObject object,
-		final AvailObject value)
-	{
-		unsupportedOperation();
-		return;
-	}
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	@Override
-	public void o_VisibleNames (
-		final @NotNull AvailObject object,
-		final AvailObject value)
-	{
-		unsupportedOperation();
-		return;
-	}
-
-	/**
-	 * @param object
 	 * @param index
 	 * @return
 	 */
@@ -3617,18 +3466,6 @@ extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public @NotNull AvailObject o_DependentChunkIndices (
-		final @NotNull AvailObject object)
-	{
-		unsupportedOperation();
-		return NullDescriptor.nullObject();
-	}
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	@Override
 	public int o_ParsingPc (
 		final @NotNull AvailObject object)
 	{
@@ -3642,18 +3479,6 @@ extends AbstractDescriptor
 	@Override
 	public void o_DisplayTestingTree (
 		final @NotNull AvailObject object)
-	{
-		unsupportedOperation();
-		return;
-	}
-
-	/**
-	 * @param object
-	 */
-	@Override
-	public void o_EnsureMetacovariant (
-		final @NotNull AvailObject object)
-	throws SignatureException
 	{
 		unsupportedOperation();
 		return;
@@ -4464,18 +4289,6 @@ extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public @NotNull AvailObject o_PrivateTestingTree (
-		final @NotNull AvailObject object)
-	{
-		unsupportedOperation();
-		return NullDescriptor.nullObject();
-	}
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	@Override
 	public @NotNull AvailObject o_ProcessGlobals (
 		final @NotNull AvailObject object)
 	{
@@ -4510,31 +4323,7 @@ extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	public @NotNull AvailObject o_RequiresBlock (
-		final @NotNull AvailObject object)
-	{
-		unsupportedOperation();
-		return NullDescriptor.nullObject();
-	}
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	@Override
-	public @NotNull AvailObject o_Restrictions (
-		final @NotNull AvailObject object)
-	{
-		unsupportedOperation();
-		return NullDescriptor.nullObject();
-	}
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	@Override
-	public @NotNull AvailObject o_ReturnsBlock (
+	public @NotNull AvailObject o_GrammaticalRestrictions (
 		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
@@ -6441,15 +6230,6 @@ extends AbstractDescriptor
 
 
 	@Override
-	public void o_AllBundles (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		unsupportedOperation();
-	}
-
-
-	@Override
 	public AvailObject o_AllBundles (final AvailObject object)
 	{
 		unsupportedOperation();
@@ -6707,6 +6487,98 @@ extends AbstractDescriptor
 	public boolean o_ParseNodeKindIsUnder (
 		final @NotNull AvailObject object,
 		final @NotNull ParseNodeKind expectedParseNodeKind)
+	{
+		unsupportedOperation();
+		return false;
+	}
+
+
+	@Override
+	public void o_AddTypeRestriction (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject restrictionSignature)
+	{
+		unsupportedOperation();
+	}
+
+
+	@Override
+	public void o_RemoveTypeRestriction (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject restrictionSignature)
+	{
+		unsupportedOperation();
+	}
+
+
+	@Override
+	public @NotNull AvailObject o_TypeRestrictions (
+		final @NotNull AvailObject object)
+	{
+		unsupportedOperation();
+		return null;
+	}
+
+
+	@Override
+	public void o_AddSealedArgumentsType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject tupleType)
+	{
+		unsupportedOperation();
+	}
+
+
+	@Override
+	public void o_RemoveSealedArgumentsType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject tupleType)
+	{
+		unsupportedOperation();
+	}
+
+
+	@Override
+	public AvailObject o_SealedArgumentsTypesTuple (final AvailObject object)
+	{
+		unsupportedOperation();
+		return null;
+	}
+
+
+	@Override
+	public void o_AddTypeRestriction (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject methodNameAtom,
+		final @NotNull AvailObject typeRestrictionFunction)
+	{
+		unsupportedOperation();
+	}
+
+
+	@Override
+	public void o_AddConstantBinding (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject name,
+		final @NotNull AvailObject constantBinding)
+	{
+		unsupportedOperation();
+	}
+
+
+	@Override
+	public void o_AddVariableBinding (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject name,
+		final @NotNull AvailObject variableBinding)
+	{
+		unsupportedOperation();
+	}
+
+
+	@Override
+	public boolean o_IsImplementationSetEmpty (
+		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return false;

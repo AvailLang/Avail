@@ -38,6 +38,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.compiler.node.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import java.util.*;
 import com.avail.annotations.*;
+import com.avail.compiler.AbstractAvailCompiler.*;
 import com.avail.compiler.node.*;
 import com.avail.compiler.scanning.TokenDescriptor;
 import com.avail.descriptor.*;
@@ -59,6 +60,8 @@ extends AbstractAvailCompiler
 	 *
 	 * @param interpreter
 	 *            The interpreter used to execute code during compilation.
+	 * @param moduleName
+	 *            The {@link ModuleName} of the module being parsed.
 	 * @param source
 	 *            The {@link String} of source code to be parsed.
 	 * @param tokens
@@ -66,10 +69,11 @@ extends AbstractAvailCompiler
 	 */
 	public AvailSystemCompiler (
 		final L2Interpreter interpreter,
+		final ModuleName moduleName,
 		final String source,
 		final List<AvailObject> tokens)
 	{
-		super(interpreter, source, tokens);
+		super(interpreter, moduleName, source, tokens);
 	}
 
 	@Override
@@ -1245,8 +1249,9 @@ extends AbstractAvailCompiler
 		final boolean anySpecial = special.mapSize() > 0;
 		assert anyComplete || anyIncomplete || anySpecial
 		: "Expected a nonempty list of possible messages";
-		if (anyComplete && firstArgOrNull == null
-				&& start.position != initialTokenPosition.position)
+		if (anyComplete
+			&& firstArgOrNull == null
+			&& start.position != initialTokenPosition.position)
 		{
 			// There are complete messages, we didn't leave a leading argument
 			// stranded, and we made progress in the file (i.e., the message
@@ -1257,6 +1262,7 @@ extends AbstractAvailCompiler
 				if (interpreter.runtime().hasMethodsAt(entry.key))
 				{
 					completedSendNode(
+						initialTokenPosition,
 						start,
 						argsSoFar,
 						innerArgsSoFar,
@@ -1265,7 +1271,9 @@ extends AbstractAvailCompiler
 				}
 			}
 		}
-		if (anyIncomplete && firstArgOrNull == null && !start.atEnd())
+		if (anyIncomplete
+			&& firstArgOrNull == null
+			&& !start.atEnd())
 		{
 			final AvailObject keywordToken = start.peekToken();
 			if (keywordToken.tokenType() == KEYWORD
@@ -1666,181 +1674,27 @@ extends AbstractAvailCompiler
 		}
 	}
 
-	/**
-	 * A complete {@linkplain SendNodeDescriptor send node} has been parsed.
-	 * Create the send node and invoke the continuation.
-	 *
-	 * <p>
-	 * If this is a macro, fail immediately, since the system compiler isn't
-	 * supposed to process macros.
-	 * </p>
-	 *
-	 * @param start
-	 *            The initial parsing state.
-	 * @param argumentExpressions
-	 *            The {@linkplain ParseNodeDescriptor parse nodes} that will be
-	 *            arguments of the new send node.
-	 * @param innerArgumentExpressions
-	 *            The {@link List lists} of {@linkplain ParseNodeDescriptor
-	 *            parse nodes} that will correspond to restriction positions,
-	 *            which are at the non-backquoted underscores of the bundle's
-	 *            message name.
-	 * @param bundle
-	 *            The {@link MessageBundleDescriptor message bundle} that
-	 *            identifies the message to be sent.
-	 * @param continuation
-	 *            What to do with the resulting send node.
-	 */
-	void completedSendNode (
-		final ParserState start,
+	@Override
+	void completedSendNodeForMacro (
+		final ParserState stateBeforeCall,
+		final ParserState stateAfterCall,
 		final List<AvailObject> argumentExpressions,
 		final List<List<AvailObject>> innerArgumentExpressions,
 		final AvailObject bundle,
+		final AvailObject impSet,
 		final Con<AvailObject> continuation)
 	{
-		final Mutable<Boolean> valid = new Mutable<Boolean>(true);
-		final AvailObject message = bundle.message();
-		final AvailObject impSet = interpreter.runtime().methodsAt(message);
-		assert !impSet.equalsNull();
-		final AvailObject implementationsTuple = impSet.implementationsTuple();
-		assert implementationsTuple.tupleSize() > 0;
-
-		if (implementationsTuple.tupleAt(1).isMacro())
-		{
-			start.expected(
-				new Generator<String>()
+		stateAfterCall.expected(
+			new Generator<String>()
+			{
+				@Override
+				public String value ()
 				{
-					@Override
-					public String value ()
-					{
-						return
-							"something other than an invocation of the macro "
-							+ bundle.message().name();
-					}
-				});
-			return;
-		}
-
-		// It invokes a method (not a macro).
-		for (final AvailObject arg : argumentExpressions)
-		{
-			if (arg.expressionType().equals(
-				BottomTypeDescriptor.bottom()))
-			{
-				start.expected("argument to have type other than bottom");
-				return;
-			}
-			if (arg.expressionType().equals(TOP.o()))
-			{
-				start.expected("argument to have type other than top");
-				return;
-			}
-		}
-		final AvailObject returnType =
-			interpreter.validateSendArgumentExpressions(
-				message,
-				argumentExpressions,
-				new Continuation1<Generator<String>>()
-				{
-					@Override
-					public void value (
-						final Generator<String> errorGenerator)
-					{
-						valid.value = false;
-						start.expected(errorGenerator);
-					}
-				});
-		if (valid.value)
-		{
-			checkRestrictionsIfFail(
-				bundle,
-				innerArgumentExpressions,
-				new Continuation1<Generator<String>>()
-				{
-					@Override
-					public void value (final Generator<String> errorGenerator)
-					{
-						valid.value = false;
-						start.expected(errorGenerator);
-					}
-				});
-		}
-		if (valid.value)
-		{
-			final List<AvailObject> argTypes = new ArrayList<AvailObject>(
-				argumentExpressions.size());
-			for (final AvailObject argumentExpression : argumentExpressions)
-			{
-				argTypes.add(argumentExpression.expressionType());
-			}
-			final String errorMessage = interpreter.validateRequiresClauses(
-				bundle.message(),
-				argTypes);
-			if (errorMessage != null)
-			{
-				valid.value = false;
-				start.expected(errorMessage);
-			}
-		}
-		if (valid.value)
-		{
-			final AvailObject sendNode = SendNodeDescriptor.mutable().create();
-			sendNode.implementationSet(impSet);
-			sendNode.arguments(TupleDescriptor.fromList(argumentExpressions));
-			sendNode.returnType(returnType);
-			attempt(start, continuation, sendNode);
-		}
-	}
-
-	/**
-	 * Make sure none of my arguments are message sends that have been
-	 * disallowed in that position by a negative precedence declaration.
-	 *
-	 * @param bundle
-	 *            The bundle for which a send node was just parsed. It contains
-	 *            information about any negative precedence restrictions.
-	 * @param innerArguments
-	 *            The inner argument expressions for the send that was just
-	 *            parsed. These correspond to all non-backquoted underscores
-	 *            anywhere in the message name.
-	 * @param ifFail
-	 *            What to do when a negative precedence rule inhibits a parse.
-	 */
-	void checkRestrictionsIfFail (
-		final AvailObject bundle,
-		final List<List<AvailObject>> innerArguments,
-		final Continuation1<Generator<String>> ifFail)
-	{
-		for (int i = 1; i <= innerArguments.size(); i++)
-		{
-			final List<AvailObject> argumentOccurrences =
-				innerArguments.get(i - 1);
-			for (final AvailObject argument : argumentOccurrences)
-			{
-				final AvailObject argumentSendName =
-					argument.apparentSendName();
-				if (!argumentSendName.equalsNull())
-				{
-					final AvailObject restrictions =
-						bundle.restrictions().tupleAt(i);
-					if (restrictions.hasElement(argumentSendName))
-					{
-						final int index = i;
-						ifFail.value(
-							new Generator<String>()
-							{
-								@Override
-								public String value ()
-								{
-									return "different nesting for argument #"
-										+ Integer.toString(index) + " in "
-										+ bundle.message().name().toString();
-								}
-							});
-					}
+					return
+						"something other than an invocation of the macro "
+						+ bundle.message().name();
 				}
-			}
-		}
+			});
 	}
 
 	/**
@@ -2426,7 +2280,7 @@ extends AbstractAvailCompiler
 				BottomTypeDescriptor.bottom()))
 			{
 				start.expected(
-					"end of statements, since this one always bottom");
+					"end of statements, since this one never returns");
 				return;
 			}
 			if (!lastStatement.expressionType().equals(TOP.o())

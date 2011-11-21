@@ -518,7 +518,8 @@ extends SetBinDescriptor
 		super(isMutable, level);
 	}
 
-	final static HashedSetBinDescriptor descriptors[] = {
+	final static HashedSetBinDescriptor descriptors[] =
+	{
 		new HashedSetBinDescriptor(true, 0),
 		new HashedSetBinDescriptor(false, 0),
 		new HashedSetBinDescriptor(true, 1),

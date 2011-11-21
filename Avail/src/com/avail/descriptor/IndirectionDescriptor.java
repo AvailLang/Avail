@@ -322,22 +322,23 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public void o_AtAddMessageRestrictions (
+	public void o_AddGrammaticalMessageRestrictions (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject methodName,
 		final @NotNull AvailObject illegalArgMsgs)
 	{
-		o_Traversed(object)
-				.atAddMessageRestrictions(methodName, illegalArgMsgs);
+		o_Traversed(object).addGrammaticalRestrictions(
+			methodName,
+			illegalArgMsgs);
 	}
 
 	@Override
-	public void o_AtAddMethodImplementation (
+	public void o_AddMethodImplementation (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject methodName,
 		final @NotNull AvailObject implementation)
 	{
-		o_Traversed(object).atAddMethodImplementation(
+		o_Traversed(object).addMethodImplementation(
 			methodName,
 			implementation);
 	}
@@ -627,34 +628,11 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_ComputeReturnTypeFromArgumentTypes (
-		final @NotNull AvailObject object,
-		final @NotNull List<AvailObject> argTypes,
-		final @NotNull AvailObject impSet,
-		final @NotNull Interpreter anAvailInterpreter,
-		final Continuation1<Generator<String>> failBlock)
-	{
-		return o_Traversed(object).computeReturnTypeFromArgumentTypes(
-			argTypes,
-			impSet,
-			anAvailInterpreter,
-			failBlock);
-	}
-
-	@Override
 	public @NotNull AvailObject o_ConcatenateTuplesCanDestroy (
 		final @NotNull AvailObject object,
 		final boolean canDestroy)
 	{
 		return o_Traversed(object).concatenateTuplesCanDestroy(canDestroy);
-	}
-
-	@Override
-	public void o_ConstantBindings (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		o_Traversed(object).constantBindings(value);
 	}
 
 	@Override
@@ -1037,14 +1015,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public void o_FilteredBundleTree (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		o_Traversed(object).filteredBundleTree(value);
-	}
-
-	@Override
 	public @NotNull AvailObject o_ForZoneSetSubtupleStartSubtupleIndexEndOfZone (
 		final @NotNull AvailObject object,
 		final int zone,
@@ -1335,17 +1305,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public boolean o_IsValidForArgumentTypesInterpreter (
-		final @NotNull AvailObject object,
-		final @NotNull List<AvailObject> argTypes,
-		final @NotNull Interpreter interpreter)
-	{
-		return o_Traversed(object).isValidForArgumentTypesInterpreter(
-			argTypes,
-			interpreter);
-	}
-
-	@Override
 	public @NotNull AvailObject o_KeyAtIndex (final AvailObject object, final int index)
 	{
 		return o_Traversed(object).keyAtIndex(index);
@@ -1522,14 +1481,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public void o_Methods (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		o_Traversed(object).methods(value);
-	}
-
-	@Override
 	public @NotNull AvailObject o_MinusCanDestroy (
 			final @NotNull AvailObject object,
 			final @NotNull AvailObject aNumber,
@@ -1588,25 +1539,11 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public void o_Names (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		o_Traversed(object).names(value);
-	}
-
-	@Override
 	public boolean o_NameVisible (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject trueName)
 	{
 		return o_Traversed(object).nameVisible(trueName);
-	}
-
-	@Override
-	public void o_NewNames (final @NotNull AvailObject object, final @NotNull AvailObject value)
-	{
-		o_Traversed(object).newNames(value);
 	}
 
 	@Override
@@ -1729,14 +1666,6 @@ extends AbstractDescriptor
 		final @NotNull AvailObject valueObject)
 	{
 		return o_Traversed(object).privateMapAtPut(keyObject, valueObject);
-	}
-
-	@Override
-	public void o_PrivateNames (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		o_Traversed(object).privateNames(value);
 	}
 
 	@Override
@@ -1893,14 +1822,6 @@ extends AbstractDescriptor
 		o_Traversed(object).resolvedForwardWithName(
 			forwardImplementation,
 			methodName);
-	}
-
-	@Override
-	public void o_Restrictions (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		o_Traversed(object).restrictions(value);
 	}
 
 	@Override
@@ -2455,22 +2376,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public void o_VariableBindings (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		o_Traversed(object).variableBindings(value);
-	}
-
-	@Override
-	public void o_VisibleNames (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		o_Traversed(object).visibleNames(value);
-	}
-
-	@Override
 	public int o_ZoneForIndex (final AvailObject object, final int index)
 	{
 		return o_Traversed(object).zoneForIndex(index);
@@ -2645,13 +2550,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_DependentChunkIndices (
-		final @NotNull AvailObject object)
-	{
-		return o_Traversed(object).dependentChunkIndices();
-	}
-
-	@Override
 	public int o_ParsingPc (final AvailObject object)
 	{
 		return o_Traversed(object).parsingPc();
@@ -2661,13 +2559,6 @@ extends AbstractDescriptor
 	public void o_DisplayTestingTree (final AvailObject object)
 	{
 		o_Traversed(object).displayTestingTree();
-	}
-
-	@Override
-	public void o_EnsureMetacovariant (final AvailObject object)
-	throws SignatureException
-	{
-		o_Traversed(object).ensureMetacovariant();
 	}
 
 	@Override
@@ -3220,12 +3111,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_PrivateTestingTree (final AvailObject object)
-	{
-		return o_Traversed(object).privateTestingTree();
-	}
-
-	@Override
 	public @NotNull AvailObject o_ProcessGlobals (final AvailObject object)
 	{
 		return o_Traversed(object).processGlobals();
@@ -3251,21 +3136,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_RequiresBlock (final AvailObject object)
+	public @NotNull AvailObject o_GrammaticalRestrictions (final AvailObject object)
 	{
-		return o_Traversed(object).requiresBlock();
-	}
-
-	@Override
-	public @NotNull AvailObject o_Restrictions (final AvailObject object)
-	{
-		return o_Traversed(object).restrictions();
-	}
-
-	@Override
-	public @NotNull AvailObject o_ReturnsBlock (final AvailObject object)
-	{
-		return o_Traversed(object).returnsBlock();
+		return o_Traversed(object).grammaticalRestrictions();
 	}
 
 	@Override
@@ -3840,14 +3713,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public void o_AllBundles (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		o_Traversed(object).allBundles(value);
-	}
-
-	@Override
 	public AvailObject o_AllBundles (final AvailObject object)
 	{
 		return o_Traversed(object).allBundles();
@@ -4045,5 +3910,91 @@ extends AbstractDescriptor
 		final @NotNull ParseNodeKind expectedParseNodeKind)
 	{
 		return o_Traversed(object).parseNodeKindIsUnder(expectedParseNodeKind);
+	}
+
+	@Override
+	public void o_AddTypeRestriction (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject restrictionSignature)
+	{
+		o_Traversed(object).addTypeRestriction(restrictionSignature);
+	}
+
+	@Override
+	public void o_RemoveTypeRestriction (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject restrictionSignature)
+	{
+		o_Traversed(object).removeTypeRestriction(restrictionSignature);
+	}
+
+	@Override
+	public @NotNull AvailObject o_TypeRestrictions (
+		final @NotNull AvailObject object)
+	{
+		return o_Traversed(object).typeRestrictions();
+	}
+
+	@Override
+	public void o_AddSealedArgumentsType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject tupleType)
+	{
+		o_Traversed(object).addSealedArgumentsType(tupleType);
+	}
+
+	@Override
+	public void o_RemoveSealedArgumentsType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject tupleType)
+	{
+		o_Traversed(object).removeSealedArgumentsTup(tupleType);
+	}
+
+	@Override
+	public final AvailObject o_SealedArgumentsTypesTuple (
+		final @NotNull AvailObject object)
+	{
+		return o_Traversed(object).sealedArgumentsTypesTuple();
+	}
+
+	@Override
+	public void o_AddTypeRestriction (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject methodNameAtom,
+		final @NotNull AvailObject typeRestrictionFunction)
+	{
+		o_Traversed(object).addTypeRestriction(
+			methodNameAtom,
+			typeRestrictionFunction);
+	}
+
+	@Override
+	public void o_AddConstantBinding (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject name,
+		final @NotNull AvailObject constantBinding)
+	{
+		o_Traversed(object).addConstantBinding(
+			name,
+			constantBinding);
+	}
+
+	@Override
+	public void o_AddVariableBinding (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject name,
+		final @NotNull AvailObject variableBinding)
+	{
+		o_Traversed(object).addVariableBinding(
+			name,
+			variableBinding);
+	}
+
+	@Override
+	public boolean o_IsImplementationSetEmpty (
+		final @NotNull AvailObject object)
+	{
+		return o_Traversed(object).isImplementationSetEmpty();
 	}
 }

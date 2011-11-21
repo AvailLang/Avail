@@ -1065,28 +1065,10 @@ implements L2OperationDispatcher
 			this);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>
-	 * Raise an exception. Scan the stack of continuations until one is found
-	 * for a function whose code specifies {@linkplain
-	 * Primitive#prim200_CatchException primitive 200}.
-	 * Get that continuation's second argument (a handler block of one
-	 * argument), and check if that handler block will accept the
-	 * exceptionValue. If not, keep looking. If it will accept it, unwind the
-	 * stack so that the primitive 200 method is the top entry, and invoke the
-	 * handler block with exceptionValue. If there is no suitable handler block,
-	 * fail the primitive.
-	 * </p>
-	 */
 	@Override
 	public Result searchForExceptionHandler (
-		final List<AvailObject> arguments)
+		final @NotNull AvailObject exceptionValue)
 	{
-		assert arguments.size() == 1;
-
-		final AvailObject exceptionValue = arguments.get(0);
 		AvailObject continuation = pointerAt(callerRegister());
 		while (!continuation.equalsNull())
 		{
@@ -1119,11 +1101,7 @@ implements L2OperationDispatcher
 		if (primNum != 0)
 		{
 			final Result result = attemptPrimitive(primNum, code, args);
-			if (result == SUCCESS)
-			{
-				return result;
-			}
-			if (result == CONTINUATION_CHANGED)
+			if (result == SUCCESS || result == CONTINUATION_CHANGED)
 			{
 				return result;
 			}
@@ -1141,18 +1119,6 @@ implements L2OperationDispatcher
 		return CONTINUATION_CHANGED;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>
-	 * Prepare the L2Interpreter to deal with executing the given function, using
-	 * the given arguments.  Also set up the new function's locals.  Assume the
-	 * current context has already been reified.  If the function is a primitive,
-	 * then it was already attempted and must have failed, so the failure value
-	 * must be in {@link #primitiveResult}.  The (Java) caller will deal with
-	 * that.
-	 * </p>
-	 */
 	@Override
 	public void invokeWithoutPrimitiveFunctionArguments (
 		final AvailObject aFunction,

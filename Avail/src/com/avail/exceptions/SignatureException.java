@@ -33,42 +33,44 @@
 package com.avail.exceptions;
 
 import com.avail.annotations.NotNull;
+import com.avail.descriptor.*;
 
 /**
- * An {@code SignatureException} is thrown when an attempt is
- * made to define a method or other signature and the requires or returns clause
- * does not accept the correct argument types.
+ * An {@code SignatureException} is thrown when a {@linkplain
+ * SignatureDescriptor signature declaration} is invalid.  This might indicate
+ * a problem with the signature itself, or perhaps an inconsistency between it
+ * and other signatures already installed in the system.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @see SignatureDescriptor
  */
 public final class SignatureException
 extends AvailException
 {
 	/** The serial version identifier. */
-	private static final long serialVersionUID = -1087321640362108756L;
+	private static final long serialVersionUID = -1062035730137304902L;
 
 	/**
-	 * Construct a new {@link AvailException} with the
-	 * specified {@linkplain AvailErrorCode error code}.
+	 * Construct a new {@link SignatureException} with the specified {@linkplain
+	 * AvailErrorCode error code}.
 	 *
 	 * @param errorCode
 	 *        The {@linkplain AvailErrorCode error code}.
 	 */
-	public SignatureException (
-		final @NotNull AvailErrorCode errorCode)
+	public SignatureException (final @NotNull AvailErrorCode errorCode)
 	{
 		super(errorCode);
 	}
 
 	/**
-	 * Construct a new {@link AvailException} with the specified {@linkplain
+	 * Construct a new {@link SignatureException} with the specified {@linkplain
 	 * Throwable cause}.
 	 *
 	 * @param errorCode
 	 *        The {@linkplain AvailErrorCode error code}.
 	 * @param cause
 	 *        The proximal {@linkplain Throwable cause} of the {@linkplain
-	 *        AvailException exception}.
+	 *        SignatureException exception}.
 	 */
 	public SignatureException (
 		final @NotNull AvailErrorCode errorCode,

@@ -36,7 +36,8 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static java.lang.Math.max;
 import java.util.*;
 import com.avail.annotations.NotNull;
-import com.avail.interpreter.Interpreter;
+import com.avail.compiler.AvailRejectedParseException;
+import com.avail.interpreter.*;
 import com.avail.utility.*;
 
 /**
@@ -63,13 +64,10 @@ extends Descriptor
 	public enum ObjectSlots
 	{
 		/**
-		 * The {@linkplain SetDescriptor set} of {@linkplain
-		 * L2ChunkDescriptor.IntegerSlots#INDEX indices} of {@linkplain
-		 * L2ChunkDescriptor level two chunks} that depend on the membership of
-		 * this {@linkplain ImplementationSetDescriptor implementation set}.  A
-		 * change to the membership should cause these chunks to be invalidated.
+		 * The {@link AtomDescriptor atom} that acts as the true name of this
+		 * {@link ImplementationSetDescriptor implementation set}.
 		 */
-		DEPENDENT_CHUNK_INDICES,
+		NAME,
 
 		/**
 		 * The {@linkplain TupleDescriptor tuple} of {@link SignatureDescriptor
@@ -78,24 +76,37 @@ extends Descriptor
 		IMPLEMENTATIONS_TUPLE,
 
 		/**
-		 * The {@link AtomDescriptor atom} that acts as the true name of this
-		 * {@link ImplementationSetDescriptor implementation set}.
-		 */
-		NAME,
-
-		/**
 		 * A {@link TupleDescriptor tuple} of {@link IntegerDescriptor integers}
 		 * that encodes a decision tree for selecting the most specific
 		 * multimethod appropriate for the argument types.
 		 */
-		PRIVATE_TESTING_TREE
-	}
+		PRIVATE_TESTING_TREE,
 
-	@Override
-	public @NotNull AvailObject o_DependentChunkIndices (
-		final @NotNull AvailObject object)
-	{
-		return object.objectSlot(ObjectSlots.DEPENDENT_CHUNK_INDICES);
+		/**
+		 * A {@link TupleDescriptor tuple} of {@linkplain FunctionDescriptor
+		 * functions} which, when invoked with suitable {@linkplain
+		 * TypeDescriptor types} as arguments, will determine whether the call
+		 * arguments have mutually compatible types, and if so produce a type
+		 * to which the call's return value is expected to conform.  This type
+		 * strengthening is <em>assumed</em> to hold at compile time (of the
+		 * call) and <em>checked</em> at runtime.
+		 */
+		TYPE_RESTRICTIONS_TUPLE,
+
+		/**
+		 * A {@link TupleDescriptor tuple} of {@linkplain TupleTypeDescriptor
+		 * tuple types} below which new signatures may no longer be added.
+		 */
+		SEALED_ARGUMENTS_TYPES_TUPLE,
+
+		/**
+		 * The {@linkplain SetDescriptor set} of {@linkplain
+		 * L2ChunkDescriptor.IntegerSlots#INDEX indices} of {@linkplain
+		 * L2ChunkDescriptor level two chunks} that depend on the membership of
+		 * this {@linkplain ImplementationSetDescriptor implementation set}.  A
+		 * change to the membership should cause these chunks to be invalidated.
+		 */
+		DEPENDENT_CHUNK_INDICES
 	}
 
 	@Override
@@ -113,19 +124,14 @@ extends Descriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_PrivateTestingTree (
-		final @NotNull AvailObject object)
-	{
-		return object.objectSlot(ObjectSlots.PRIVATE_TESTING_TREE);
-	}
-
-	@Override
 	public boolean allowsImmutableToMutableReferenceInField (
 		final @NotNull Enum<?> e)
 	{
 		return e == ObjectSlots.IMPLEMENTATIONS_TUPLE
 			|| e == ObjectSlots.PRIVATE_TESTING_TREE
-			|| e == ObjectSlots.DEPENDENT_CHUNK_INDICES;
+			|| e == ObjectSlots.DEPENDENT_CHUNK_INDICES
+			|| e == ObjectSlots.TYPE_RESTRICTIONS_TUPLE
+			|| e == ObjectSlots.SEALED_ARGUMENTS_TYPES_TUPLE;
 	}
 
 	@Override
@@ -165,8 +171,7 @@ extends Descriptor
 	/**
 	 * Make the object immutable so it can be shared safely.  If I was mutable I
 	 * have to scan my children and make them immutable as well (recursively
-	 * down to immutable descendants).  Actually, I allow my
-	 * implementationsTuple, my privateTestingTree, and my dependentsChunks
+	 * down to immutable descendants).  Actually, I allow some of my
 	 * slots to be mutable even when I'm immutable.
 	 */
 	@Override
@@ -323,7 +328,8 @@ extends Descriptor
 		final AvailObject impsTuple = object.implementationsTuple();
 		final AvailObject tree = object.testingTree();
 		int index = 1;
-		while (true) {
+		while (true)
+		{
 			int test = tree.tupleAt(index).extractInt();
 			final int lowBit = test & 1;
 			test = test >>> 1;
@@ -402,7 +408,8 @@ extends Descriptor
 		final AvailObject impsTuple = object.implementationsTuple();
 		final AvailObject tree = object.testingTree();
 		int index = 1;
-		while (true) {
+		while (true)
+		{
 			int test = tree.tupleAt(index).extractInt();
 			final int lowBit = test & 1;
 			test = test >>> 1;
@@ -437,7 +444,8 @@ extends Descriptor
 		final AvailObject impsTuple = object.implementationsTuple();
 		final AvailObject tree = object.testingTree();
 		int index = 1;
-		while (true) {
+		while (true)
+		{
 			int test = tree.tupleAt(index).extractInt();
 			final int lowBit = test & 1;
 			test = test >>> 1;
@@ -474,7 +482,8 @@ extends Descriptor
 		final AvailObject impsTuple = object.implementationsTuple();
 		final AvailObject tree = object.testingTree();
 		int index = 1;
-		while (true) {
+		while (true)
+		{
 			int test = tree.tupleAt(index).extractInt();
 			final int lowBit = test & 1;
 			test = test >>> 1;
@@ -524,9 +533,13 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject implementation)
 	{
-		AvailObject set = object.implementationsTuple().asSet();
-		set = set.setWithoutElementCanDestroy(implementation, true);
-		object.objectSlotPut(ObjectSlots.IMPLEMENTATIONS_TUPLE, set.asTuple());
+		AvailObject implementationsTuple = object.implementationsTuple();
+		implementationsTuple = TupleDescriptor.without(
+			implementationsTuple,
+			implementation);
+		object.objectSlotPut(
+			ObjectSlots.IMPLEMENTATIONS_TUPLE,
+			implementationsTuple);
 		membershipChanged(object);
 	}
 
@@ -537,14 +550,25 @@ extends Descriptor
 	public int o_NumArgs (
 		final @NotNull AvailObject object)
 	{
-		assert object.implementationsTuple().tupleSize() >= 1;
-		final AvailObject first = object.implementationsTuple().tupleAt(1);
-		return first.bodySignature().argsTupleType()
-			.sizeRange().lowerBound().extractInt();
+		final AvailObject impsTuple = object.implementationsTuple();
+		assert impsTuple.tupleSize() >= 1;
+		final AvailObject first = impsTuple.tupleAt(1);
+		final AvailObject argsTupleType = first.bodySignature().argsTupleType();
+		return argsTupleType.sizeRange().lowerBound().extractInt();
 	}
 
+
 	/**
-	 * Answers the return type.  Fails if no (or >1) applicable implementation.
+	 * {@inheritDoc}
+	 *
+	 * <p>
+	 * Check the argument types for validity and return the result type of the
+	 * message send.  Use not only the applicable {@linkplain
+	 * MethodSignatureDescriptor method signatures}, but also any type
+	 * restriction functions.  The type restriction functions may choose to
+	 * {@linkplain Primitive#prim352_RejectParsing reject} the parse, indicating
+	 * that the argument types are mutually incompatible.
+	 * </p>
 	 */
 	@Override
 	public @NotNull AvailObject o_ValidateArgumentTypesInterpreterIfFail (
@@ -553,67 +577,60 @@ extends Descriptor
 		final @NotNull Interpreter anAvailInterpreter,
 		final @NotNull Continuation1<Generator<String>> failBlock)
 	{
-		final Mutable<List<AvailObject>> mostSpecific =
-			new Mutable<List<AvailObject>>();
-		for (int index = 1, end = argTypes.size(); index <= end; index++)
+		// Filter the implementations down to those that are locally most
+		// specific.  Fail if more than one survives.
+		final AvailObject implementationsTuple = object.implementationsTuple();
+		if (implementationsTuple.tupleSize() > 0
+			&& !implementationsTuple.tupleAt(1).isMacro())
 		{
-			final int finalIndex = index;
-			if (argTypes.get(finalIndex - 1).equals(
-				BottomTypeDescriptor.bottom()))
+			// This consists of method implementations.
+			for (int index = 1, end = argTypes.size(); index <= end; index++)
 			{
-				failBlock.value(new Generator<String> ()
+				final int finalIndex = index;
+				if (argTypes.get(finalIndex - 1).equals(
+					BottomTypeDescriptor.bottom()))
 				{
-					@Override
-					public String value()
+					failBlock.value(new Generator<String> ()
 					{
-						return "argument #"
-							+ Integer.toString(finalIndex)
-							+ " of message \""
-							+ object.name().name().asNativeString()
-							+ "\" to have a type other than bottom";
-					}
-				});
-				return NullDescriptor.nullObject();
+						@Override
+						public String value()
+						{
+							return "argument #"
+								+ Integer.toString(finalIndex)
+								+ " of message \""
+								+ object.name().name().asNativeString()
+								+ "\" to have a type other than bottom";
+						}
+					});
+					return NullDescriptor.nullObject();
+				}
+				if (argTypes.get(finalIndex - 1).equals(TOP.o()))
+				{
+					failBlock.value(new Generator<String> ()
+					{
+						@Override
+						public String value()
+						{
+							return "argument #"
+								+ Integer.toString(finalIndex)
+								+ " of message \""
+								+ object.name().name().asNativeString()
+								+ "\" to have a type other than top";
+						}
+					});
+					return NullDescriptor.nullObject();
+				}
 			}
 		}
-		//  Filter the implementations down to those that are locally most
-		//  specific.  Fail if more than one survives.
 		final List<AvailObject> satisfyingTypes =
 			object.filterByTypes(argTypes);
-		if (satisfyingTypes.size() == 1)
-		{
-			mostSpecific.value = satisfyingTypes;
-		}
-		else
-		{
-			mostSpecific.value = new ArrayList<AvailObject>(2);
-			outer:
-			for (final AvailObject imp : satisfyingTypes)
-			{
-				final AvailObject impType = imp.bodySignature();
-				for (final AvailObject other : satisfyingTypes)
-				{
-					if (!imp.equals(other))
-					{
-						final AvailObject otherType = other.bodySignature();
-						if (!otherType.acceptsArgTypesFromFunctionType(impType))
-						{
-							continue outer;
-						}
-					}
-				}
-				mostSpecific.value.add(imp);
-			}
-		}
-		if (mostSpecific.value.size() != 1)
+		if (satisfyingTypes.size() == 0)
 		{
 			failBlock.value(new Generator<String> ()
 			{
 				@Override
 				public String value()
 				{
-					final AvailObject implementationsTuple =
-						object.implementationsTuple();
 					final List<AvailObject> signatures =
 						new ArrayList<AvailObject>(2);
 					for (final AvailObject imp : implementationsTuple)
@@ -621,72 +638,62 @@ extends Descriptor
 						signatures.add(imp.bodySignature());
 					}
 					String string;
-					if (mostSpecific.value.size() == 0)
+					final List<Integer> allFailedIndices =
+						new ArrayList<Integer>(3);
+					each_arg:
+					for (int index = argTypes.size(); index >= 1; index--)
 					{
-						final List<Integer> allFailedIndices =
-							new ArrayList<Integer>(3);
-						each_arg:
-						for (int index = argTypes.size(); index >= 1; index--)
+						for (final AvailObject sig : signatures)
 						{
-							for (final AvailObject sig : signatures)
+							if (argTypes.get(index - 1).isSubtypeOf(
+								sig.argsTupleType().typeAtIndex(index)))
 							{
-								if (argTypes.get(index - 1).isSubtypeOf(
-									sig.argsTupleType().typeAtIndex(index)))
-								{
-									continue each_arg;
-								}
+								continue each_arg;
 							}
-							allFailedIndices.add(0, index);
 						}
-						if (allFailedIndices.size() >= 1
-								&& allFailedIndices.size()
-									<= argTypes.size() - 1)
-						{
-							string = "arguments at indices "
-								+ allFailedIndices.toString()
-								+ " of message "
-								+ object.name().name().asNativeString()
-								+ " to match a method.  I got: "
-								+ argTypes.toString();
-						}
-						else
-						{
-							string = "arguments of "
-								+ object.name().name().asNativeString()
-								+ " to have applicable types like {";
-							boolean first = true;
-							for (final AvailObject sig : signatures)
-							{
-								if (!first)
-								{
-									string += ", ";
-								}
-								first = false;
-								string += "[";
-								final AvailObject tupleType = sig.argsTupleType();
-								final int numArgs = tupleType
-									.sizeRange()
-									.lowerBound()
-									.extractInt();
-								for (int i = 1; i <= numArgs; i++)
-								{
-									if (i > 1)
-									{
-										string += ", ";
-									}
-									string += tupleType.typeAtIndex(i);
-								}
-								string += "]";
-							}
-							string += "}, ***not*** " + argTypes.toString();
-						}
+						allFailedIndices.add(0, index);
+					}
+					if (allFailedIndices.size() >= 1
+							&& allFailedIndices.size()
+								<= argTypes.size() - 1)
+					{
+						string = "arguments at indices "
+							+ allFailedIndices.toString()
+							+ " of message "
+							+ object.name().name().asNativeString()
+							+ " to match a method.  I got: "
+							+ argTypes.toString();
 					}
 					else
 					{
 						string = "arguments of "
 							+ object.name().name().asNativeString()
-							+ " to unambiguously select method.  Choices are: "
-							+ signatures.toString();
+							+ " to have applicable types like {";
+						boolean first = true;
+						for (final AvailObject sig : signatures)
+						{
+							if (!first)
+							{
+								string += ", ";
+							}
+							first = false;
+							string += "[";
+							final AvailObject tupleType = sig.argsTupleType();
+							final int numArgs = tupleType
+								.sizeRange()
+								.lowerBound()
+								.extractInt();
+							for (int i = 1; i <= numArgs; i++)
+							{
+								if (i > 1)
+								{
+									string += ", ";
+								}
+								string += tupleType.typeAtIndex(i);
+							}
+							string += "]";
+						}
+						string += "}, ***not*** " + argTypes.toString();
 					}
 					return string;
 				}
@@ -695,11 +702,54 @@ extends Descriptor
 		}
 		// The requires clauses are only checked after a top-level statement has
 		// been parsed and is being validated.
-		return mostSpecific.value.get(0).computeReturnTypeFromArgumentTypes(
-			argTypes,
-			object,
-			anAvailInterpreter,
-			failBlock);
+		AvailObject intersection =
+			satisfyingTypes.get(0).bodySignature().returnType();
+		for (int i = satisfyingTypes.size() - 1; i >= 1; i--)
+		{
+			intersection = intersection.typeIntersection(
+				satisfyingTypes.get(i).bodySignature().returnType());
+		}
+		final AvailObject restrictions = object.typeRestrictions();
+		final Mutable<Boolean> anyFailures = new Mutable<Boolean>(false);
+		for (int i = restrictions.tupleSize(); i >= 1; i--)
+		{
+			final AvailObject restriction = restrictions.tupleAt(i);
+			if (restriction.kind().acceptsListOfArgValues(argTypes))
+			{
+				try
+				{
+					final AvailObject restrictionType =
+						anAvailInterpreter.runFunctionArguments(
+							restriction,
+							argTypes);
+					intersection = intersection.typeIntersection(
+						restrictionType);
+				}
+				catch (final AvailRejectedParseException e)
+				{
+					final AvailObject problem = e.rejectionString();
+					failBlock.value(
+						new Generator<String>()
+						{
+							@Override
+							public String value ()
+							{
+								return
+									problem.asNativeString()
+									+ " (while parsing send of "
+									+ object.name().name().asNativeString()
+									+ ")";
+							}
+						});
+					anyFailures.value = true;
+				}
+			}
+		}
+		if (anyFailures.value)
+		{
+			return NullDescriptor.nullObject();
+		}
+		return intersection;
 	}
 
 	/**
@@ -713,7 +763,8 @@ extends Descriptor
 	public @NotNull AvailObject o_TestingTree (
 		final @NotNull AvailObject object)
 	{
-		AvailObject result = object.privateTestingTree();
+		AvailObject result =
+			object.objectSlot(ObjectSlots.PRIVATE_TESTING_TREE);
 		if (!result.equalsNull())
 		{
 			return result;
@@ -743,6 +794,104 @@ extends Descriptor
 		object.objectSlotPut(ObjectSlots.PRIVATE_TESTING_TREE, result);
 		return result;
 	}
+
+	@Override
+	public void o_AddTypeRestriction (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject function)
+	{
+		final AvailObject oldTuple =
+			object.objectSlot(ObjectSlots.TYPE_RESTRICTIONS_TUPLE);
+		final AvailObject newTuple =
+			TupleDescriptor.append(oldTuple, function);
+		object.objectSlotPut(
+			ObjectSlots.TYPE_RESTRICTIONS_TUPLE,
+			newTuple);
+	}
+
+	@Override
+	public void o_RemoveTypeRestriction (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject function)
+	{
+		final AvailObject oldTuple =
+			object.objectSlot(ObjectSlots.TYPE_RESTRICTIONS_TUPLE);
+		final AvailObject newTuple =
+			TupleDescriptor.without(oldTuple, function);
+		assert newTuple.tupleSize() == oldTuple.tupleSize() - 1;
+		object.objectSlotPut(
+			ObjectSlots.TYPE_RESTRICTIONS_TUPLE,
+			newTuple);
+	}
+
+	@Override
+	public @NotNull AvailObject o_TypeRestrictions (
+		final @NotNull AvailObject object)
+	{
+		return object.objectSlot(ObjectSlots.TYPE_RESTRICTIONS_TUPLE);
+	}
+
+	@Override
+	public void o_AddSealedArgumentsType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject tupleType)
+	{
+		final AvailObject oldTuple =
+			object.objectSlot(ObjectSlots.SEALED_ARGUMENTS_TYPES_TUPLE);
+		final AvailObject newTuple =
+			TupleDescriptor.append(oldTuple, tupleType);
+		object.objectSlotPut(
+			ObjectSlots.SEALED_ARGUMENTS_TYPES_TUPLE,
+			newTuple);
+	}
+
+	@Override
+	public void o_RemoveSealedArgumentsType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject tupleType)
+	{
+		final AvailObject oldTuple =
+			object.objectSlot(ObjectSlots.SEALED_ARGUMENTS_TYPES_TUPLE);
+		final AvailObject newTuple =
+			TupleDescriptor.without(oldTuple, tupleType);
+		assert newTuple.tupleSize() == oldTuple.tupleSize() - 1;
+		object.objectSlotPut(
+			ObjectSlots.SEALED_ARGUMENTS_TYPES_TUPLE,
+			newTuple);
+	}
+
+	@Override
+	public @NotNull AvailObject o_SealedArgumentsTypesTuple (
+		final @NotNull AvailObject object)
+	{
+		return object.objectSlot(ObjectSlots.SEALED_ARGUMENTS_TYPES_TUPLE);
+	}
+
+	@Override
+	public boolean o_IsImplementationSetEmpty (
+		final @NotNull AvailObject object)
+	{
+		final AvailObject implementationsTuple =
+			object.objectSlot(ObjectSlots.IMPLEMENTATIONS_TUPLE);
+		if (implementationsTuple.tupleSize() > 0)
+		{
+			return false;
+		}
+		final AvailObject typeRestrictionsTuple =
+			object.objectSlot(ObjectSlots.TYPE_RESTRICTIONS_TUPLE);
+		if (typeRestrictionsTuple.tupleSize() > 0)
+		{
+			return false;
+		}
+		final AvailObject sealedArgumentsTypesTuple =
+			object.objectSlot(ObjectSlots.SEALED_ARGUMENTS_TYPES_TUPLE);
+		if (sealedArgumentsTypesTuple.tupleSize() > 0)
+		{
+			return false;
+		}
+		return true;
+	}
+
 
 	/**
 	 * Create the testing tree for computing which implementation to invoke when
@@ -963,6 +1112,12 @@ extends Descriptor
 		result.objectSlotPut(
 			ObjectSlots.PRIVATE_TESTING_TREE,
 			TupleDescriptor.empty());
+		result.objectSlotPut(
+			ObjectSlots.TYPE_RESTRICTIONS_TUPLE,
+			TupleDescriptor.empty());
+		result.objectSlotPut(
+			ObjectSlots.SEALED_ARGUMENTS_TYPES_TUPLE,
+			TupleDescriptor.empty());
 		result.makeImmutable();
 		return result;
 	}
@@ -980,7 +1135,8 @@ extends Descriptor
 		final @NotNull AvailObject object)
 	{
 		// Invalidate any affected level two chunks.
-		final AvailObject chunkIndices = object.dependentChunkIndices();
+		final AvailObject chunkIndices =
+			object.objectSlot(ObjectSlots.DEPENDENT_CHUNK_INDICES);
 		if (chunkIndices.setSize() > 0)
 		{
 			for (final AvailObject chunkIndex : chunkIndices.asTuple())
@@ -988,7 +1144,10 @@ extends Descriptor
 				L2ChunkDescriptor.invalidateChunkAtIndex(
 					chunkIndex.extractInt());
 			}
-			assert object.dependentChunkIndices().setSize() == 0;
+			// The chunk invalidations should have removed all dependencies...
+			final AvailObject chunkIndicesAfter =
+				object.objectSlot(ObjectSlots.DEPENDENT_CHUNK_INDICES);
+			assert chunkIndicesAfter.setSize() == 0;
 		}
 		// Clear the privateTestingTree cache.
 		object.objectSlotPut(
