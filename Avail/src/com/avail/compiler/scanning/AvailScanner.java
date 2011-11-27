@@ -33,9 +33,8 @@
 package com.avail.compiler.scanning;
 
 import static com.avail.compiler.scanning.AvailScanner.ScannerAction.*;
-import static com.avail.descriptor.AvailObject.error;
 import java.util.*;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 import com.avail.compiler.scanning.TokenDescriptor.TokenType;
 import com.avail.descriptor.*;
 
@@ -85,8 +84,6 @@ public class AvailScanner
 	boolean _encounteredNamesToken;
 
 
-	// private
-
 	/**
 	 * Add the (uninitialized) token to my sequence of parsed tokens.  Also set
 	 * its:
@@ -102,6 +99,7 @@ public class AvailScanner
 	 * @param tokenType The {@link TokenDescriptor.TokenType enumeration value}
 	 *                  to set in the token.
 	 */
+	@InnerAccess
 	void addToken (
 			final AvailObject anAvailToken,
 			final TokenDescriptor.TokenType tokenType)
@@ -120,14 +118,16 @@ public class AvailScanner
 	 * and set its:
 	 * <ul>
 	 * <li>{@link TokenDescriptor#o_Start(AvailObject, int) start},
-	 * <li>{@link TokenDescriptor#o_String(AvailObject, AvailObject) string}, and
-	 * <li>{@link TokenDescriptor#o_TokenType(AvailObject, TokenType) token type}
-	 *     based on the passed {@link TokenDescriptor.TokenType}.
+	 * <li>{@link TokenDescriptor#o_String(AvailObject, AvailObject) string},
+	 *     and
+	 * <li>{@link TokenDescriptor#o_TokenType(AvailObject, TokenType) token
+	 *     type} based on the passed {@link TokenDescriptor.TokenType}.
 	 * </ul>
 	 *
 	 * @param tokenType The {@link TokenDescriptor.TokenType enumeration value}
 	 *                  to set in the token.
 	 */
+	@InnerAccess
 	void addToken (final TokenDescriptor.TokenType tokenType)
 	{
 		final AvailObject token = TokenDescriptor.mutable().create();
@@ -140,6 +140,7 @@ public class AvailScanner
 	 *
 	 * @param anAvailObject A {@link LiteralTokenDescriptor literal token}.
 	 */
+	@InnerAccess
 	void addTokenForLiteral (final AvailObject anAvailObject)
 	{
 		final AvailObject token = LiteralTokenDescriptor.mutable().create();
@@ -147,248 +148,12 @@ public class AvailScanner
 		addToken(token, TokenType.LITERAL);
 	}
 
-
-	/**
-	 * An alphabetic was encountered.  Scan a keyword.
-	 */
-	void scanAlpha ()
-	{
-		while (peekForLetterOrAlphaNumeric())
-		{
-			// no body
-		}
-		final AvailObject token = TokenDescriptor.mutable().create();
-		addToken(token, TokenType.KEYWORD);
-		if (_stopAfterNamesToken
-				&& token.string().asNativeString().equals("Names"))
-		{
-			_encounteredNamesToken = true;
-		}
-	}
-
-	/**
-	 * A digit was encountered.  Scan a (positive) numeric constant.  The
-	 * constant may be an integer, float, or double.
-	 */
-	void scanDigit ()
-	{
-		backUp();
-		assert _position == _startOfToken;
-		while (peekIsDigit())
-		{
-			next();
-		}
-		long mantissa;
-		boolean isDoublePrecision;
-		int decimalExponentPart1;
-		int decimalExponent;
-		int decimalExponentPart2;
-		AvailObject result;
-		long twoTo59;
-		_position = _startOfToken;
-		if (peekFor('d') || peekFor('e') || peekFor('.') && peekIsDigit())
-		{
-			mantissa = 0;
-			decimalExponent = 0;
-			twoTo59 = 0x800000000000000L;
-			isDoublePrecision = false;
-			while (peekIsDigit())
-			{
-				if (mantissa > twoTo59)
-				{
-					decimalExponent++;
-				}
-				else
-				{
-					mantissa = mantissa * 10 + nextDigitValue();
-				}
-			}
-			if (peekFor('.'))
-			{
-				next();
-				while (peekIsDigit())
-				{
-					if (mantissa <= twoTo59)
-					{
-						mantissa = mantissa * 10 + nextDigitValue();
-						decimalExponent--;
-					}
-					else
-					{
-						next();
-					}
-				}
-			}
-			isDoublePrecision = peekFor('d');
-			if (isDoublePrecision || peek() == 'e')
-			{
-				int explicitExponent = 0;
-				final boolean negateExponent = peekFor('-');
-				while (peekIsDigit())
-				{
-					explicitExponent = explicitExponent * 10 + nextDigitValue();
-					if (explicitExponent > 0x2710)
-					{
-						error("Literal exponent is (way) out of bounds");
-						return;
-					}
-				}
-				decimalExponent = negateExponent
-					? decimalExponent - explicitExponent
-					: decimalExponent + explicitExponent;
-			}
-			// The mantissa is in the range of a long, so even if 10**e would
-			// overflow we know that 10**(e/2) will not (unless the double we're
-			// parsing is way out of bounds.
-			decimalExponentPart1 = decimalExponent / 2;
-			decimalExponentPart2 = decimalExponent - decimalExponentPart1;
-			double d = mantissa;
-			d *= Math.pow(10, decimalExponentPart1);
-			d *= Math.pow(10, decimalExponentPart2);
-			result = isDoublePrecision
-				? DoubleDescriptor.objectFromDouble(d)
-				: FloatDescriptor.objectFromFloat((float)d);
-		}
-		else
-		{
-			result = IntegerDescriptor.zero();
-			final AvailObject ten = IntegerDescriptor.ten();
-			while (peekIsDigit())
-			{
-				result = result.noFailTimesCanDestroy(ten, true);
-				result = result.noFailPlusCanDestroy(
-					IntegerDescriptor.fromUnsignedByte(
-						nextDigitValue()), true);
-			}
-		}
-		addTokenForLiteral(result);
-	}
-
-	/**
-	 * Parse double-quoted string literal.
-	 */
-	void scanDoubleQuote ()
-	{
-
-		final StringBuilder stringBuilder = new StringBuilder(40);
-		while (true)
-		{
-			final char c = next();
-			if (c == '\"')
-			{
-				if (!peekFor('\"'))
-				{
-					final String string = stringBuilder.toString();
-					final AvailObject availValue = ByteStringDescriptor.from(string);
-					availValue.makeImmutable();
-					addTokenForLiteral(availValue);
-					return;
-				}
-			}
-			stringBuilder.append(c);
-		}
-	}
-
-	/**
-	 * Operator characters are never grouped.  Instead, method names treat a
-	 * string of operator characters as separate pseudo-keywords.
-	 */
-	void scanOperator ()
-	{
-
-		addToken(TokenType.OPERATOR);
-	}
-
-	/**
-	 * The semicolon is not considered an operator character and cannot be used
-	 * within operators.  Parse it by itself as a {@link TokenDescriptor token}
-	 * whose type is {@link TokenType#END_OF_STATEMENT}.
-	 */
-	void scanSemicolon ()
-	{
-		addToken(TokenType.END_OF_STATEMENT);
-	}
-
-	/**
-	 * A slash was encountered.  Check if it's the start of a comment, and if
-	 * so skip it.  If not, add the slash as a {@link TokenDescriptor token} of
-	 * type {@link TokenType#OPERATOR}.
-	 * <p>
-	 * Support nested comments.
-	 */
-	void scanSlash ()
-	{
-		if (!peekFor('*'))
-		{
-			addToken(TokenType.OPERATOR);
-			return;
-		}
-		int depth = 1;
-		while (true)
-		{
-			if (atEnd())
-			{
-				error("Expected close comment to correspond with open comment");
-				return;
-			}
-			if (peekFor('/') && peekFor('*'))
-			{
-				depth++;
-			}
-			else if (peekFor('*'))
-			{
-				if (peekFor('/'))
-				{
-					depth--;
-				}
-			}
-			else
-			{
-				next();
-			}
-			if (depth == 0)
-			{
-				break;
-			}
-		}
-	}
-
-	/**
-	 * Scan an unrecognized character.
-	 */
-	void scanUnknown ()
-	{
-		error("Unknown character");
-		return;
-	}
-
-	/**
-	 * A whitespace character was encountered.  Just skip it.
-	 */
-	void scanWhitespace ()
-	{
-		return;
-	}
-
-	/**
-	 * The zero-width-nonbreaking-space character was encountered.  This is also
-	 * known as the byte-order-mark and generally only appears at the start of
-	 * a file as an hint about the file's endianness.
-	 * <p>
-	 * Treat it as whitespace even though Unicode says it isn't.
-	 */
-	void scanZeroWidthNonbreakingWhitespace ()
-	{
-		return;
-	}
-
-
-
 	/**
 	 * Answer whether we have exhausted the input string.
 	 *
 	 * @return Whether we are finished scanning.
 	 */
+	@InnerAccess
 	boolean atEnd ()
 	{
 		return _position == _inputString.length();
@@ -400,7 +165,7 @@ public class AvailScanner
 	 *
 	 * @return A substring of the input.
 	 */
-	String currentTokenString ()
+	private String currentTokenString ()
 	{
 		return _inputString.substring(_startOfToken, _position);
 	}
@@ -410,8 +175,15 @@ public class AvailScanner
 	 *
 	 * @return The consumed character.
 	 */
+	@InnerAccess
 	char next ()
 	{
+		if (atEnd())
+		{
+			throw new AvailScannerException(
+				"Attempted to read past end of file",
+				this);
+		}
 		final char c = _inputString.charAt(_position);
 		if (c == '\n')
 		{
@@ -422,10 +194,11 @@ public class AvailScanner
 	}
 
 	/**
-	 * Extract the value of the next characater, which must be a digit.
+	 * Extract the value of the next character, which must be a digit.
 	 *
 	 * @return The digit's value.
 	 */
+	@InnerAccess
 	byte nextDigitValue ()
 	{
 		assert peekIsDigit();
@@ -437,6 +210,7 @@ public class AvailScanner
 	 *
 	 * @return The current character.
 	 */
+	@InnerAccess
 	char peek ()
 	{
 		return _inputString.charAt(_position);
@@ -449,6 +223,7 @@ public class AvailScanner
 	 * @param aCharacter The character to look for.
 	 * @return Whether the specified character was found and skipped.
 	 */
+	@InnerAccess
 	boolean peekFor (
 			final char aCharacter)
 	{
@@ -470,6 +245,7 @@ public class AvailScanner
 	 *
 	 * @return Whether an alphanumeric character was encountered and skipped.
 	 */
+	@InnerAccess
 	boolean peekForLetterOrAlphaNumeric ()
 	{
 		if (!atEnd())
@@ -488,6 +264,7 @@ public class AvailScanner
 	 *
 	 * @return Whether the current character is a digit.
 	 */
+	@InnerAccess
 	boolean peekIsDigit ()
 	{
 		if (!atEnd())
@@ -500,6 +277,7 @@ public class AvailScanner
 	/**
 	 * Move the current {@link #_position} back by one character.
 	 */
+	@InnerAccess
 	void backUp ()
 	{
 		_position--;
@@ -515,104 +293,400 @@ public class AvailScanner
 	enum ScannerAction
 	{
 		/**
-		 * A digit indicates a numeric constant.
+		 * A digit was encountered.  Scan a (positive) numeric constant.  The
+		 * constant may be an integer, float, or double.
 		 */
 		DIGIT ()
 		{
 			@Override
 			void scan (final AvailScanner scanner)
 			{
-				scanner.scanDigit();
+				scanner.backUp();
+				assert scanner._position == scanner._startOfToken;
+				while (scanner.peekIsDigit())
+				{
+					scanner.next();
+				}
+				long mantissa;
+				boolean isDoublePrecision;
+				int decimalExponentPart1;
+				int decimalExponent;
+				int decimalExponentPart2;
+				AvailObject result;
+				long twoTo59;
+				scanner._position = scanner._startOfToken;
+				if (scanner.peekFor('d')
+					|| scanner.peekFor('e')
+					|| (scanner.peekFor('.') && scanner.peekIsDigit()))
+				{
+					mantissa = 0;
+					decimalExponent = 0;
+					twoTo59 = 0x800000000000000L;
+					isDoublePrecision = false;
+					while (scanner.peekIsDigit())
+					{
+						if (mantissa > twoTo59)
+						{
+							decimalExponent++;
+						}
+						else
+						{
+							mantissa = mantissa * 10 + scanner.nextDigitValue();
+						}
+					}
+					if (scanner.peekFor('.'))
+					{
+						scanner.next();
+						while (scanner.peekIsDigit())
+						{
+							if (mantissa <= twoTo59)
+							{
+								mantissa = mantissa * 10
+									+ scanner.nextDigitValue();
+								decimalExponent--;
+							}
+							else
+							{
+								scanner.next();
+							}
+						}
+					}
+					isDoublePrecision = scanner.peekFor('d');
+					if (isDoublePrecision || scanner.peek() == 'e')
+					{
+						int explicitExponent = 0;
+						final boolean negateExponent = scanner.peekFor('-');
+						while (scanner.peekIsDigit())
+						{
+							explicitExponent = explicitExponent * 10
+								+ scanner.nextDigitValue();
+							if (explicitExponent > 0x2710)
+							{
+								throw new AvailScannerException(
+									"Literal exponent is (way) out of bounds",
+									scanner);
+							}
+						}
+						decimalExponent = negateExponent
+							? decimalExponent - explicitExponent
+							: decimalExponent + explicitExponent;
+					}
+					// The mantissa is in the range of a long, so even if 10**e
+					// would overflow we know that 10**(e/2) will not (unless
+					// the double we're parsing is way out of bounds.
+					decimalExponentPart1 = decimalExponent / 2;
+					decimalExponentPart2 =
+						decimalExponent - decimalExponentPart1;
+					double d = mantissa;
+					d *= Math.pow(10, decimalExponentPart1);
+					d *= Math.pow(10, decimalExponentPart2);
+					result = isDoublePrecision
+						? DoubleDescriptor.objectFromDouble(d)
+						: FloatDescriptor.objectFromFloat((float)d);
+				}
+				else
+				{
+					result = IntegerDescriptor.zero();
+					final AvailObject ten = IntegerDescriptor.ten();
+					while (scanner.peekIsDigit())
+					{
+						result = result.noFailTimesCanDestroy(ten, true);
+						result = result.noFailPlusCanDestroy(
+							IntegerDescriptor.fromUnsignedByte(
+								scanner.nextDigitValue()), true);
+					}
+				}
+				scanner.addTokenForLiteral(result);
 			}
 		},
+
+
 		/**
-		 * A double quote portends a string constant.
+		 * Parse double-quoted string literal.  This is an open-quote, followed
+		 * by zero or more items, and a close-quote.  An item is either a single
+		 * character that is neither backslash (\) nor quote ("), or a backslash
+		 * followed by:
+		 *    1) n, r, or t indicating newline (U+000A), return (U+000D) or tab
+		 *       {U+0009), respectively.
+		 *    2) a backslash (\) indicating a single literal backslash
+		 *       character.
+		 *    3) a quote (") indicating a single literal quote character.
+		 *    4) open parenthesis "(", one or more upper case hexadecimal
+		 *       sequences, one to six digits, separated by commas, and a close
+		 *       parenthesis.
+		 *    5) open bracket "[", an expression yielding a string, and "]".
 		 */
 		DOUBLE_QUOTE ()
 		{
 			@Override
 			void scan (final AvailScanner scanner)
 			{
-				scanner.scanDoubleQuote();
+				char c = scanner.next();
+				final StringBuilder stringBuilder = new StringBuilder(40);
+				while (c != '\"')
+				{
+					if (c == '\\')
+					{
+						if (scanner.atEnd())
+						{
+							throw new AvailScannerException(
+								"Encountered end of file after backslash"
+								+ " in string literal",
+								scanner);
+						}
+						switch (c = scanner.next())
+						{
+							case 'n':
+								stringBuilder.append('\n');
+								break;
+							case 'r':
+								stringBuilder.append('\r');
+								break;
+							case 't':
+								stringBuilder.append('\t');
+								break;
+							case '\\':
+								stringBuilder.append('\\');
+								break;
+							case '\"':
+								stringBuilder.append('\"');
+								break;
+							case '(':
+								c = scanner.next();
+								while (c != ')')
+								{
+									long value = 0;
+									int digitCount = 0;
+									while (c != ',' && c != ')')
+									{
+										if (c >= '0' && c <= '9')
+										{
+											value = (value << 4) + c - '0';
+											digitCount++;
+										}
+										else if (c >= 'A' && c <= 'F')
+										{
+											value = (value << 4) + c - 'A' + 10;
+											digitCount++;
+										}
+										else
+										{
+											throw new AvailScannerException(
+												"Expected an upper case hex"
+												+ " digit or comma or closing"
+												+ " parenthesis",
+												scanner);
+										}
+										if (digitCount > 6)
+										{
+											throw new AvailScannerException(
+												"Expected at most six hex"
+												+ " digits per comma-separated"
+												+ " Unicode entry",
+												scanner);
+										}
+										c = scanner.next();
+									}
+									if (digitCount == 0)
+									{
+										throw new AvailScannerException(
+											"Expected a comma-separated list"
+											+ " of Unicode code points, each"
+											+ " being one to six (upper case)"
+											+ " hexadecimal digits",
+											scanner);
+									}
+									assert digitCount >= 1 && digitCount <= 6;
+									if (value > 0xFFFF)
+									{
+										// TODO: Rewrite without using
+										// StringBuilder.
+										throw new AvailScannerException(
+											"Unicode characters above 65535"
+											+ " (U+FFFF) are not currently"
+											+ " supported in source text",
+											scanner);
+									}
+									stringBuilder.append((char)value);
+									assert c == ',' || c == ')';
+									if (c == ',')
+									{
+										c = scanner.next();
+									}
+								}
+								assert c == ')';
+								break;
+							case '[':
+								// TODO: Support power strings
+								throw new AvailScannerException(
+									"Power strings are not yet supported",
+									scanner);
+							default:
+								throw new AvailScannerException(
+									"Invalid escape sequence – must be one of:"
+									+ "\\n \\r \\t \\\\ \\\" \\( \\[",
+									scanner);
+						}
+					}
+					else
+					{
+						stringBuilder.append(c);
+					}
+					c = scanner.next();
+				}
+				final String string = stringBuilder.toString();
+				final AvailObject availValue =
+					ByteStringDescriptor.from(string);
+				availValue.makeImmutable();
+				scanner.addTokenForLiteral(availValue);
 			}
 		},
+
 		/**
-		 * Keywords start this way.
+		 * An alphabetic was encountered.  Scan a keyword.
 		 */
 		IDENTIFIER_START ()
 		{
 			@Override
 			void scan (final AvailScanner scanner)
 			{
-				scanner.scanAlpha();
+				while (scanner.peekForLetterOrAlphaNumeric())
+				{
+					// no body
+				}
+				final AvailObject token = TokenDescriptor.mutable().create();
+				scanner.addToken(token, TokenType.KEYWORD);
+				if (scanner._stopAfterNamesToken
+						&& token.string().asNativeString().equals("Names"))
+				{
+					scanner._encounteredNamesToken = true;
+				}
 			}
 		},
+
 		/**
-		 * This is the end of a statement.
+		 * The semicolon is not considered an operator character and cannot be
+		 * used within operators.  Parse it by itself as a {@link
+		 * TokenDescriptor token} whose type is {@link
+		 * TokenType#END_OF_STATEMENT}.
 		 */
 		SEMICOLON ()
 		{
 			@Override
 			void scan (final AvailScanner scanner)
 			{
-				scanner.scanSemicolon();
+				scanner.addToken(TokenType.END_OF_STATEMENT);
 			}
 		},
+
 		/**
-		 * A slash can act as an ordinary operator or may be the start of a
-		 * slash-star-content-star-slash comment.
+		 * A slash was encountered.  Check if it's the start of a comment, and
+		 * if so skip it.  If not, add the slash as a {@link TokenDescriptor
+		 * token} of type {@link TokenType#OPERATOR}.
+		 *
+		 * <p>
+		 * Support nested comments.
+		 * </p>
 		 */
 		SLASH ()
 		{
 			@Override
 			void scan (final AvailScanner scanner)
 			{
-				scanner.scanSlash();
+				if (!scanner.peekFor('*'))
+				{
+					scanner.addToken(TokenType.OPERATOR);
+				}
+				else
+				{
+					int depth = 1;
+					while (true)
+					{
+						if (scanner.atEnd())
+						{
+							throw new AvailScannerException(
+								"Expected a close comment (*/) to correspond"
+								+ " with the open comment (/*)",
+								scanner);
+						}
+						if (scanner.peekFor('/') && scanner.peekFor('*'))
+						{
+							depth++;
+						}
+						else if (scanner.peekFor('*'))
+						{
+							if (scanner.peekFor('/'))
+							{
+								depth--;
+							}
+						}
+						else
+						{
+							scanner.next();
+						}
+						if (depth == 0)
+						{
+							break;
+						}
+					}
+				}
 			}
 		},
+
 		/**
-		 * An unknown character.
+		 * Scan an unrecognized character.
 		 */
 		UNKNOWN ()
 		{
 			@Override
 			void scan (final AvailScanner scanner)
 			{
-				scanner.scanUnknown();
+				throw new AvailScannerException(
+				"Unknown character",
+				scanner);
 			}
 		},
+
 		/**
-		 * Whitespace can be ignored.
+		 * A whitespace character was encountered.  Just skip it.
 		 */
 		WHITESPACE ()
 		{
 			@Override
 			void scan (final AvailScanner scanner)
 			{
-				scanner.scanWhitespace();
+				// do nothing.
 			}
 		},
+
 		/**
-		 * We skip the zero-width-non-breaking-space (also known as the
-		 * byte-order-mark).
+		 * The zero-width non-breaking space character was encountered.  This is
+		 * also known as the byte-order-mark and generally only appears at the
+		 * start of a file as a hint about the file's endianness.
+		 *
+		 * <p>
+		 * Treat it as whitespace even though Unicode says it isn't.
+		 * </p>
 		 */
 		ZEROWIDTHWHITESPACE ()
 		{
 			@Override
 			void scan (final AvailScanner scanner)
 			{
-				scanner.scanZeroWidthNonbreakingWhitespace();
+				// do nothing
 			}
 		},
+
 		/**
-		 * An operator character, such a + or *.
+		 * Operator characters are never grouped.  Instead, method names treat a
+		 * string of operator characters as separate pseudo-keywords.
 		 */
 		OPERATOR ()
 		{
 			@Override
 			void scan (final AvailScanner scanner)
 			{
-				scanner.scanOperator();
+				scanner.addToken(TokenType.OPERATOR);
 			}
 		};
 
@@ -628,13 +702,14 @@ public class AvailScanner
 	 * Answer the {@linkplain List list} of {@linkplain TokenDescriptor tokens}
 	 * that comprise a {@linkplain ModuleDescriptor module}.
 	 *
-	 * @param string The text of an Avail {@linkplain ModuleDescriptor
-	 *               module} (or at least the prefix up to the <em>Names</em>
-	 *               token).
+	 * @param string
+	 *            The text of an Avail {@linkplain ModuleDescriptor module} (or
+	 *            at least the prefix up to the <em>Names</em> token).
 	 * @param stopAfterNamesToken
-	 *        Stop scanning after encountering the <em>Names</em> token?
-	 * @return A {@linkplain List list} of {@linkplain TokenDescriptor tokens}
-	 *         terminated by a token of type {@link TokenType#END_OF_FILE}.
+	 *            Stop scanning after encountering the <em>Names</em> token?
+	 * @return    A {@linkplain List list} of {@linkplain TokenDescriptor
+	 *            tokens} terminated by a token of type {@link
+	 *            TokenType#END_OF_FILE}.
 	 */
 	public @NotNull List<AvailObject> scanString (
 		final @NotNull String string,
@@ -687,25 +762,13 @@ public class AvailScanner
 			{
 				action = DIGIT;
 			}
-			else if (c == '\"')
-			{
-				action = DOUBLE_QUOTE;
-			}
 			else if (Character.isUnicodeIdentifierStart(c))
 			{
 				action = IDENTIFIER_START;
 			}
-			else if (c == ';')
-			{
-				action = SEMICOLON;
-			}
-			else if (c == '/')
-			{
-				action = SLASH;
-			}
 			else if (!Character.isSpaceChar(c)
 				&& !Character.isWhitespace(c)
-				&& (c < 32 || c > 126 && c < 160 || c >= 65534))
+				&& (c < 32 || (c > 126 && c < 160) || c >= 65534))
 			{
 				action = UNKNOWN;
 			}
@@ -713,15 +776,15 @@ public class AvailScanner
 			{
 				action = WHITESPACE;
 			}
-			else if (c == '\ufeff')
-			{
-				action = ZEROWIDTHWHITESPACE;
-			}
 			else
 			{
 				action = OPERATOR;
 			}
 			DispatchTable[i] = (byte)action.ordinal();
 		}
+		DispatchTable['"'] = (byte)DOUBLE_QUOTE.ordinal();
+		DispatchTable[';'] = (byte)SEMICOLON.ordinal();
+		DispatchTable['/'] = (byte)SLASH.ordinal();
+		DispatchTable['\uFEFF'] = (byte)ZEROWIDTHWHITESPACE.ordinal();
 	}
 }

@@ -37,6 +37,7 @@ import org.junit.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
 import com.avail.compiler.*;
+import com.avail.compiler.scanning.AvailScanner;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Primitive;
 import com.avail.utility.*;
@@ -223,8 +224,9 @@ public class AvailCompilerTest
 	{
 		final long startTime = System.currentTimeMillis();
 		compile(new ModuleName("/avail/Chevron-Test"));
+		System.out.flush();
 		System.err.printf(
-			"time elapsed = %d%n", System.currentTimeMillis() - startTime);
+			"%ntime elapsed = %dms", System.currentTimeMillis() - startTime);
 	}
 
 //	@Test

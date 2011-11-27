@@ -508,16 +508,16 @@ Method "_parse literal then_" is [
 		value ::= 10 r token;
 		c(new Literal Node value value);
 	] else [
-		if token[1] = $"""" then [
+		if token[1] = $"\"" then [
 			iter ::= token [2..(||token||-1) max 0] as Iterator;
 			str : string := "";
 			Until [
 				iter is at end;
 			] loop [
 				chr : character := next iter;
-				if chr = $"""" then [
+				if chr = $"\"" then [
 					other ::= next iter;
-					Assert other = $"""";
+					Assert other = $"\"";
 				];
 				str := str then <chr>;
 			];

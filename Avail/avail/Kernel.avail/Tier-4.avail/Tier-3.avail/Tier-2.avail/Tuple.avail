@@ -293,7 +293,7 @@ Method "_[_]" is [t : tuple, i : natural number |
 	Failed;
 ] : any;
 
-Restriction "_[_]" is [tType : tupleType, iType : integerType |
+Restriction "_[_]" is [tType : tupleType, iType : natural number type |
 	/* Require that it's at least possible that the subscript is in range. */
 	if iType lower bound > tType sizes upper bound then [
 		Fail parse "Tuple subscript is always out of bounds";];

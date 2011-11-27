@@ -60,9 +60,9 @@ Method "validate types for message_argument types_if fail_" is [
 		argTypes : tuple of type,
 		ifFail : [string]->terminates |
 	if argTypes any [argType : type | argType = terminates;] then [
-		ifFail("argument of """
+		ifFail("argument of \""
 			then bundle message name
-			then """ to be some type other  than terminates");
+			then "\" to be some type other  than terminates");
 	];
 	sigs ::= bundle signatures;
 	matching : tuple of signature := <>;

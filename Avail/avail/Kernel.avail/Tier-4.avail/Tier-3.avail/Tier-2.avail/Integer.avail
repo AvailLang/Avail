@@ -626,7 +626,7 @@ Restriction "_++" is [ct : containerType |
 	if ct readType <= extended integer
 		& ct writeType <= extended integer
 	then [void;]
-	else [Fail parse "Don't apply ""_++"" to a non-integral container";];
+	else [Fail parse "Don't apply \"_++\" to a non-integral container";];
 ];
 
 
@@ -638,7 +638,7 @@ Restriction "_--" is [ct : containerType |
 	if ct readType <= extended integer
 		& ct writeType <= extended integer
 	then [void;]
-	else [Fail parse "Don't apply ""_--"" to a non-integral container";];
+	else [Fail parse "Don't apply \"_--\" to a non-integral container";];
 ];
 
 

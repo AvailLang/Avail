@@ -1,6 +1,6 @@
 /**
- * Curry/Test.avail
- * Copyright (c) 2010, Mark van Gulik.
+ * .../Tier-2/Test-String.avail
+ * Copyright (c) 2011, Mark van Gulik.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,29 +30,48 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Test"
+System Module "Test-String"
 Extends
 Uses
-	"Kernel",
-	"Partial"
+	"Tier-1",
+	"Continuation",
+	"Tuple"
 Names
 Body
 
 
-/* Here we demonstrate two distinct forms of currying... */
-
-[
-	addThree ::= [a:integer, b:integer, c:integer | a + b + c;];
-	addTwo ::= addThree curry 1;
-	addOne ::= addTwo curry 10;
-	if addOne(100) not = 111 then [Crash "Function \"_curry_\" has failed.";];
-]();
+Method "_check_" is [str : string, ints : tuple of integer |
+	Assert ||str|| = ||ints||;
+	1 to ||str|| do [i : natural number |
+		Assert code point of str[i] = ints[i];
+	];
+];
 
 
-[
-	addThree ::= [a:integer, b:integer, c:integer | a + b + c;] curried;
-	addTwo ::= addThree(1);
-	addOne ::= addTwo(10);
-	if addOne(100) not = 111 then [Crash "Function \"_curried\" has failed.";];
-]();
+"a" check <97>;
+"ab" check <97, 98>;
+"\n" check <10>;
+"a\n" check <97, 10>;
+"\r" check <13>;
+"\r\n" check <13, 10>;
+"\t" check <9>;
+"\(61)" check <97>;
 
+Assert "c\(61)t" = "cat";
+Assert "\(63,61)t" = "cat";
+Assert "\(63)at" = "cat";
+Assert "\(63)\(61)\(74)" = "cat";
+Assert "\(63)a\(74)" = "cat";
+
+"\(F,EE,DDD,CCCC,0BBBB,00AAAA)" check
+	<16r"F", 16r"EE", 16r"DDD", 16r"CCCC", 16r"0BBBB", 16r"00AAAA">;
+"\(0,00,000,0000,00000,000000)" check <0, 0, 0, 0, 0, 0>;
+"\(FFFF,EEE,DD,C)" check <16r"FFFF", 16r"EEE", 16r"DD", 16r"C">;
+"\"" check <34>;
+"\\" check <92>;
+"\"a" check <34, 97>;
+"\\a" check <92, 97>;
+"\\\t" check <92, 9>;
+"\t \r\n" check <9, 32, 13, 10>;
+
+ 

@@ -131,8 +131,8 @@ Method "_scan quote" is [sc : Scanner |
 	Loop [
 		chr ::= next sc;
 		result := result then <chr>;
-		if chr = $"""" then [
-			if peek sc = $"""" then [
+		if chr = $"\"" then [
+			if peek sc = $"\"" then [
 				/* It's two internal quotes - keep both. */
 				result := result then <next sc>;
 			] else [
@@ -217,7 +217,7 @@ dispatch := [->];
 	*&dispatch [chr] := [sc : Scanner | sc scan operator;];
 ];
 
-*&dispatch [$""""] := [sc : Scanner | sc scan quote;];
+*&dispatch [$"\""] := [sc : Scanner | sc scan quote;];
 *&dispatch [$"/"] := [sc : Scanner | sc scan slash;];
 *&dispatch [$";"] := [sc : Scanner | sc scan semicolon;];
 

@@ -240,7 +240,8 @@ extends TupleDescriptor
 		// two-byte character.
 		assert index >= 1 && index <= object.tupleSize();
 		return CharacterDescriptor.newImmutableCharacterWithCodePoint(
-			object.shortSlotAt(IntegerSlots.RAW_QUAD_AT_, index));
+				object.shortSlotAt(IntegerSlots.RAW_QUAD_AT_, index)
+			& 0xFFFF);
 	}
 
 	@Override

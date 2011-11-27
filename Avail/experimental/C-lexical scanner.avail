@@ -125,7 +125,7 @@ identifierCharacters ::= identifierStarts union $"0" to $"9" as set;
 /** @returns The set of all valid initial C identifier characters. */
 Method "identifier start characters" is [ identifierStarts; ];
 
-/** @returns The set of all valid C noninitial identifier characters. */
+/** @returns The set of all valid C non-initial identifier characters. */
 Method "identifier characters" is [ identifierCharacters; ];
 
 /*------------------------------------------------------------------------------------------------------------------------*/

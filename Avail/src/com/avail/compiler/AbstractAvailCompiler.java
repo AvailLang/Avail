@@ -46,7 +46,6 @@ import com.avail.compiler.node.*;
 import com.avail.compiler.scanning.*;
 import com.avail.compiler.scanning.TokenDescriptor.TokenType;
 import com.avail.descriptor.*;
-import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;

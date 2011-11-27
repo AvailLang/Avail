@@ -991,9 +991,7 @@ public class MessageSplitter
 						+ " (problem after space)");
 				}
 			}
-			else if (ch == '_'
-				|| ch == '…'
-				|| AvailScanner.isOperatorCharacter(ch))
+			else if (isCharacterAnUnderscoreOrSpaceOrOperator(ch))
 			{
 				messageParts.add(messageName.copyTupleFromToCanDestroy(
 					position,
