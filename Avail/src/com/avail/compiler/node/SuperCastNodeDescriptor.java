@@ -56,7 +56,7 @@ public class SuperCastNodeDescriptor extends ParseNodeDescriptor
 	 *
 	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
 	 */
-	public enum ObjectSlots
+	public enum ObjectSlots implements ObjectSlotsEnum
 	{
 		/**
 		 * The expression that yields some multi-method argument.

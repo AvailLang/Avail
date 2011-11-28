@@ -75,7 +75,7 @@ extends AbstractUnionTypeDescriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots
+	public enum ObjectSlots implements ObjectSlotsEnum
 	{
 		/**
 		 * The {@linkplain AvailObject object} for which I am the {@linkplain

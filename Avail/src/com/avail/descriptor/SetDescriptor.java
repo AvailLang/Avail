@@ -59,7 +59,7 @@ public class SetDescriptor extends Descriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots
+	public enum ObjectSlots implements ObjectSlotsEnum
 	{
 		ROOT_BIN
 	}

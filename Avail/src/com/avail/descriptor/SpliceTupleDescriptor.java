@@ -48,7 +48,7 @@ extends TupleDescriptor
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots
+	public enum IntegerSlots implements IntegerSlotsEnum
 	{
 		/**
 		 * The hash value of this splice tuple, or zero.  If the hash value
@@ -66,7 +66,7 @@ extends TupleDescriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots
+	public enum ObjectSlots implements ObjectSlotsEnum
 	{
 		/**
 		 * TODO

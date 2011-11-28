@@ -188,28 +188,28 @@ abstract class AbstractAvailObject
 
 	/**
 	 * Extract the value of the {@link BitField} of the {@code int} located at
-	 * the {@linkplain Enum#ordinal() ordinal} of the given field {@code enum}
-	 * value.
+	 * the {@linkplain AbstractSlotsEnum#ordinal() ordinal} of the given field
+	 * {@code enum} value.
 	 *
 	 * @param field An enumeration value that defines the field ordering.
 	 * @param subfield A {@code BitField} that defines the subfield layout.
 	 * @return An {@code int} extracted from this object.
 	 */
 	public abstract int bitSlot (
-		final @NotNull Enum<?> field,
+		final @NotNull IntegerSlotsEnum field,
 		final @NotNull BitField subfield);
 
 	/**
 	 * Replace the value of the {@link BitField} of the {@code int} located at
-	 * the {@linkplain Enum#ordinal() ordinal} of the given field {@code enum}
-	 * value.
+	 * the {@linkplain AbstractSlotsEnum#ordinal() ordinal} of the given field
+	 * {@code enum} value.
 	 *
 	 * @param field An enumeration value that defines the field ordering.
 	 * @param subfield A {@code BitField} that defines the subfield layout.
 	 * @param anInteger An {@code int} to store in the indicated slot.
 	 */
 	public abstract void bitSlotPut (
-		final @NotNull Enum<?> field,
+		final @NotNull IntegerSlotsEnum field,
 		final @NotNull BitField subfield,
 		final int anInteger);
 
@@ -222,7 +222,7 @@ abstract class AbstractAvailObject
 	 * @return The unsigned byte as a short.
 	 */
 	public abstract short byteSlotAt (
-		final @NotNull Enum<?> e,
+		final @NotNull IntegerSlotsEnum e,
 		final int byteSubscript);
 
 	/**
@@ -234,7 +234,7 @@ abstract class AbstractAvailObject
 	 * @param aByte The unsigned byte to write, passed as a short.
 	 */
 	public abstract void byteSlotAtPut (
-		final @NotNull Enum<?> e,
+		final @NotNull IntegerSlotsEnum e,
 		final int byteSubscript,
 		final short aByte);
 
@@ -247,7 +247,7 @@ abstract class AbstractAvailObject
 	 * @return The {@code short} found at the given short-index.
 	 */
 	public abstract short shortSlotAt (
-		final @NotNull Enum<?> e,
+		final @NotNull IntegerSlotsEnum e,
 		final int shortIndex);
 
 	/**
@@ -259,7 +259,7 @@ abstract class AbstractAvailObject
 	 * @param aShort The {@code short} to store at the given short-index.
 	 */
 	public abstract void shortSlotAtPut (
-		final @NotNull Enum<?> e,
+		final @NotNull IntegerSlotsEnum e,
 		final int shortIndex,
 		final short aShort);
 
@@ -270,7 +270,8 @@ abstract class AbstractAvailObject
 	 * @param e An enumeration value that defines the field ordering.
 	 * @return An {@code int} extracted from this object.
 	 */
-	public abstract int integerSlot (final @NotNull Enum<?> e);
+	public abstract int integerSlot (
+		final @NotNull IntegerSlotsEnum e);
 
 	/**
 	 * Store the (signed 32-bit) integer in the four bytes starting at the
@@ -280,7 +281,7 @@ abstract class AbstractAvailObject
 	 * @param anInteger An {@code int} to store in the indicated slot.
 	 */
 	public abstract void integerSlotPut (
-		final @NotNull Enum<?> e,
+		final @NotNull IntegerSlotsEnum e,
 		final int anInteger);
 
 	/**
@@ -291,7 +292,7 @@ abstract class AbstractAvailObject
 	 * @return An {@code int} extracted from this object.
 	 */
 	public abstract int integerSlotAt (
-		final @NotNull Enum<?> e,
+		final @NotNull IntegerSlotsEnum e,
 		final int subscript);
 
 	/**
@@ -303,7 +304,7 @@ abstract class AbstractAvailObject
 	 * @param anInteger An {@code int} to store in the indicated slot.
 	 */
 	public abstract void integerSlotAtPut (
-		final @NotNull Enum<?> e,
+		final @NotNull IntegerSlotsEnum e,
 		final int subscript,
 		final int anInteger);
 
@@ -333,7 +334,8 @@ abstract class AbstractAvailObject
 	 * @param e An enumeration value that defines the field ordering.
 	 * @return The object found at the specified slot in the receiver.
 	 */
-	public abstract AvailObject objectSlot (final @NotNull Enum<?> e);
+	public abstract AvailObject objectSlot (
+		final @NotNull ObjectSlotsEnum e);
 
 	/**
 	 * Store the {@linkplain AvailObject object} in the specified slot of the
@@ -343,7 +345,7 @@ abstract class AbstractAvailObject
 	 * @param anAvailObject The object to store at the specified slot.
 	 */
 	public abstract void objectSlotPut (
-		final @NotNull Enum<?> e,
+		final @NotNull ObjectSlotsEnum e,
 		final @NotNull AvailObject anAvailObject);
 
 	/**
@@ -355,7 +357,7 @@ abstract class AbstractAvailObject
 	 * @return The object found at the specified slot in the receiver.
 	 */
 	public abstract AvailObject objectSlotAt (
-		final @NotNull Enum<?> e,
+		final @NotNull ObjectSlotsEnum e,
 		final int subscript);
 
 	/**
@@ -367,7 +369,7 @@ abstract class AbstractAvailObject
 	 * @param anAvailObject The object to store at the specified slot.
 	 */
 	public abstract void objectSlotAtPut (
-		final @NotNull Enum<?> e,
+		final @NotNull ObjectSlotsEnum e,
 		final int subscript,
 		final @NotNull AvailObject anAvailObject);
 
@@ -376,7 +378,8 @@ abstract class AbstractAvailObject
 	 *
 	 * @param e An {@code enum} value whose ordinal is the field position.
 	 */
-	public final void checkWriteForField (final @NotNull Enum<?> e)
+	public final void checkWriteForField (
+		final @NotNull AbstractSlotsEnum e)
 	{
 		descriptor.checkWriteForField(e);
 	}
@@ -417,7 +420,8 @@ abstract class AbstractAvailObject
 	 *        The {@linkplain AbstractDescriptor descriptor} that initially
 	 *        describes the format and behavior of this object.
 	 */
-	protected AbstractAvailObject (final @NotNull AbstractDescriptor descriptor)
+	protected AbstractAvailObject (
+		final @NotNull AbstractDescriptor descriptor)
 	{
 		this.descriptor = descriptor;
 	}

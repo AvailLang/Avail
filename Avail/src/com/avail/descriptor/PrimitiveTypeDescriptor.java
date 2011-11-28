@@ -42,7 +42,7 @@ extends TypeDescriptor
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots
+	public enum IntegerSlots implements IntegerSlotsEnum
 	{
 		HASH
 	}
@@ -50,7 +50,7 @@ extends TypeDescriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots
+	public enum ObjectSlots implements ObjectSlotsEnum
 	{
 		NAME,
 		PARENT,

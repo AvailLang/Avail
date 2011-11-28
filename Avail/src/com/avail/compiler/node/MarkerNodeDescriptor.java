@@ -56,7 +56,7 @@ public class MarkerNodeDescriptor extends ParseNodeDescriptor
 	 *
 	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
 	 */
-	public enum ObjectSlots
+	public enum ObjectSlots implements ObjectSlotsEnum
 	{
 		/**
 		 * The {@link MarkerNodeDescriptor marker} being wrapped in a form

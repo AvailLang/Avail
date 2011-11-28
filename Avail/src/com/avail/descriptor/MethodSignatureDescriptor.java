@@ -41,7 +41,7 @@ extends SignatureDescriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots
+	public enum ObjectSlots implements ObjectSlotsEnum
 	{
 		BODY_BLOCK
 	}

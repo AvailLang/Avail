@@ -42,7 +42,7 @@ extends Descriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots
+	public enum ObjectSlots implements ObjectSlotsEnum
 	{
 		MESSAGE,
 		MESSAGE_PARTS,
@@ -211,7 +211,7 @@ extends Descriptor
 
 	@Override
 	public boolean allowsImmutableToMutableReferenceInField (
-		final @NotNull Enum<?> e)
+		final @NotNull AbstractSlotsEnum e)
 	{
 		return e == ObjectSlots.MY_RESTRICTIONS;
 	}

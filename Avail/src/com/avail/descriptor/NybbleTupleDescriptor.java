@@ -44,7 +44,7 @@ extends TupleDescriptor
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots
+	public enum IntegerSlots implements IntegerSlotsEnum
 	{
 		/**
 		 * The hash of the tuple or zero.  In the rare case that the hash is

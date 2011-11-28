@@ -57,7 +57,7 @@ extends TypeDescriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots
+	public enum ObjectSlots implements ObjectSlotsEnum
 	{
 		/** The type of values that can be read from my object instances. */
 		READ_TYPE,

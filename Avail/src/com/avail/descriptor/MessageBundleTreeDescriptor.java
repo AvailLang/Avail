@@ -44,7 +44,7 @@ extends Descriptor
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots
+	public enum IntegerSlots implements IntegerSlotsEnum
 	{
 		PARSING_PC
 	}
@@ -52,7 +52,7 @@ extends Descriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots
+	public enum ObjectSlots implements ObjectSlotsEnum
 	{
 		ALL_BUNDLES,
 		UNCLASSIFIED,
@@ -138,7 +138,7 @@ extends Descriptor
 
 	@Override
 	public boolean allowsImmutableToMutableReferenceInField (
-		final @NotNull Enum<?> e)
+		final @NotNull AbstractSlotsEnum e)
 	{
 		return e == ObjectSlots.LAZY_COMPLETE
 			|| e == ObjectSlots.LAZY_INCOMPLETE

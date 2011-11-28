@@ -93,7 +93,7 @@ extends AbstractDescriptor
 	 *
 	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
 	 */
-	public enum ObjectSlots
+	public enum ObjectSlots implements ObjectSlotsEnum
 	{
 		/**
 		 * The target {@link AvailObject object} to which my instance is
@@ -103,7 +103,8 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public boolean allowsImmutableToMutableReferenceInField (final Enum<?> e)
+	public boolean allowsImmutableToMutableReferenceInField (
+		final AbstractSlotsEnum e)
 	{
 		return e == ObjectSlots.TARGET;
 	}

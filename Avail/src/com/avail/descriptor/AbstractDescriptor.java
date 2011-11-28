@@ -31,7 +31,6 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.error;
 import java.lang.reflect.Field;
 import java.util.*;
 import com.avail.annotations.*;
@@ -40,7 +39,6 @@ import com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.compiler.node.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.compiler.scanning.TokenDescriptor;
 import com.avail.descriptor.ProcessDescriptor.ExecutionState;
-import com.avail.exceptions.*;
 import com.avail.exceptions.ArithmeticException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Interpreter;
@@ -305,7 +303,8 @@ public abstract class AbstractDescriptor
 	 * @return Whether the specified field can be written even in an immutable
 	 *         object.
 	 */
-	public boolean allowsImmutableToMutableReferenceInField (final Enum<?> e)
+	public boolean allowsImmutableToMutableReferenceInField (
+		final AbstractSlotsEnum e)
 	{
 		return false;
 	}
@@ -325,7 +324,7 @@ public abstract class AbstractDescriptor
 	 *
 	 * @param e An {@code enum} value whose ordinal is the field position.
 	 */
-	public final void checkWriteForField (final @NotNull Enum<?> e)
+	public final void checkWriteForField (final @NotNull AbstractSlotsEnum e)
 	{
 		assert isMutable() || allowsImmutableToMutableReferenceInField(e);
 	}
@@ -428,7 +427,7 @@ public abstract class AbstractDescriptor
 			if (slotName.charAt(slotName.length() - 1) == '_')
 			{
 				final int subscript = i - instances.length + 1;
-				value = object.integerSlotAt(slot, subscript);
+				value = object.integerSlotAt((IntegerSlotsEnum)slot, subscript);
 				builder.append(slotName, 0, slotName.length() - 1);
 				builder.append('[');
 				builder.append(subscript);
@@ -436,7 +435,7 @@ public abstract class AbstractDescriptor
 			}
 			else
 			{
-				value = object.integerSlot(slot);
+				value = object.integerSlot((IntegerSlotsEnum)slot);
 				builder.append(slotName);
 			}
 			builder.append(" = ");
@@ -489,7 +488,8 @@ public abstract class AbstractDescriptor
 						builder.append("=");
 						BitField bitField;
 						bitField = (BitField)subfield.get(null);
-						final int subfieldValue = object.bitSlot(slot, bitField);
+						final int subfieldValue =
+							object.bitSlot((IntegerSlotsEnum)slot, bitField);
 						builder.append(subfieldValue);
 					}
 					builder.append(")");
@@ -542,16 +542,17 @@ public abstract class AbstractDescriptor
 				builder.append('[');
 				builder.append(subscript);
 				builder.append("] = ");
-				object.objectSlotAt(slot, subscript).printOnAvoidingIndent(
-					builder,
-					recursionList,
-					indent + 1);
+				object.objectSlotAt((ObjectSlotsEnum)slot, subscript)
+					.printOnAvoidingIndent(
+						builder,
+						recursionList,
+						indent + 1);
 			}
 			else
 			{
 				builder.append(slotName);
 				builder.append(" = ");
-				object.objectSlot(slot).printOnAvoidingIndent(
+				object.objectSlot((ObjectSlotsEnum)slot).printOnAvoidingIndent(
 					builder,
 					recursionList,
 					indent + 1);

@@ -37,7 +37,7 @@ import java.util.List;
 import com.avail.annotations.NotNull;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
 
@@ -54,7 +54,7 @@ extends ParseNodeDescriptor
 	 *
 	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
 	 */
-	public enum ObjectSlots
+	public enum ObjectSlots implements ObjectSlotsEnum
 	{
 		/**
 		 * The {@link VariableUseNodeDescriptor variable} being assigned.

@@ -41,7 +41,7 @@ extends TupleDescriptor
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots
+	public enum IntegerSlots implements IntegerSlotsEnum
 	{
 		HASH_OR_ZERO
 	}
@@ -49,7 +49,7 @@ extends TupleDescriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots
+	public enum ObjectSlots implements ObjectSlotsEnum
 	{
 		TUPLE_AT_
 	}

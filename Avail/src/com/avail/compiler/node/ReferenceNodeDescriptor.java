@@ -56,7 +56,7 @@ extends ParseNodeDescriptor
 	 *
 	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
 	 */
-	public enum ObjectSlots
+	public enum ObjectSlots implements ObjectSlotsEnum
 	{
 		/**
 		 * The {@linkplain VariableUseNodeDescriptor variable use node} for

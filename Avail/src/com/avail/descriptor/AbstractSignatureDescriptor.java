@@ -32,11 +32,8 @@
 
 package com.avail.descriptor;
 
-import java.util.List;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.TypeDescriptor.Types;
-import com.avail.interpreter.Interpreter;
-import com.avail.utility.*;
 
 
 /**
@@ -52,7 +49,7 @@ extends SignatureDescriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots
+	public enum ObjectSlots implements ObjectSlotsEnum
 	{
 		/**
 		 * The {@linkplain FunctionTypeDescriptor function type} for which this

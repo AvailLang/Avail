@@ -74,7 +74,7 @@ extends Descriptor
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots
+	public enum IntegerSlots implements IntegerSlotsEnum
 	{
 		/**
 		 * The hash value of this {@linkplain CompiledCodeDescriptor compiled
@@ -119,7 +119,7 @@ extends Descriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots
+	public enum ObjectSlots implements ObjectSlotsEnum
 	{
 		/**
 		 * The {@linkplain NybbleTupleDescriptor tuple of nybbles} that describe
@@ -257,7 +257,7 @@ extends Descriptor
 
 	@Override
 	public boolean allowsImmutableToMutableReferenceInField (
-		final @NotNull Enum<?> e)
+		final @NotNull AbstractSlotsEnum e)
 	{
 		return e == ObjectSlots.STARTING_CHUNK
 			|| e == IntegerSlots.INVOCATION_COUNT;

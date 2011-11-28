@@ -51,7 +51,7 @@ extends TypeDescriptor
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots
+	public enum IntegerSlots implements IntegerSlotsEnum
 	{
 		/**
 		 * An int field used to hold the {@linkplain #o_LowerInclusive lower
@@ -64,7 +64,7 @@ extends TypeDescriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots
+	public enum ObjectSlots implements ObjectSlotsEnum
 	{
 		/**
 		 * The extended integer which is the lower bound of this range.  It is

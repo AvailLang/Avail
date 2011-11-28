@@ -77,7 +77,7 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots
+	public enum ObjectSlots implements ObjectSlotsEnum
 	{
 		/**
 		 * The set of {@linkplain AvailObject objects} for which I am the
@@ -136,7 +136,8 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 	}
 
 	@Override
-	public boolean allowsImmutableToMutableReferenceInField (final Enum<?> e)
+	public boolean allowsImmutableToMutableReferenceInField (
+		final AbstractSlotsEnum e)
 	{
 		return e == ObjectSlots.CACHED_SUPERKIND;
 	}

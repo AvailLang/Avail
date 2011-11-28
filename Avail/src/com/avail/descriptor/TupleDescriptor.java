@@ -54,7 +54,7 @@ extends Descriptor
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots
+	public enum IntegerSlots implements IntegerSlotsEnum
 	{
 		/**
 		 * A slot to hold the cached hash value of a tuple.  If zero, then the
@@ -78,7 +78,8 @@ extends Descriptor
 	}
 
 	@Override
-	public boolean allowsImmutableToMutableReferenceInField (final Enum<?> e)
+	public boolean allowsImmutableToMutableReferenceInField (
+		final AbstractSlotsEnum e)
 	{
 		return e == IntegerSlots.HASH_OR_ZERO;
 	}

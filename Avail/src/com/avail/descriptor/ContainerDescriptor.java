@@ -51,7 +51,7 @@ extends Descriptor
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots
+	public enum IntegerSlots implements IntegerSlotsEnum
 	{
 		/**
 		 * The hash, or zero ({@code 0}) if the hash has not yet been computed.
@@ -62,7 +62,7 @@ extends Descriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots
+	public enum ObjectSlots implements ObjectSlotsEnum
 	{
 		/**
 		 * The {@linkplain AvailObject contents} of the {@linkplain
@@ -80,7 +80,7 @@ extends Descriptor
 
 	@Override
 	public boolean allowsImmutableToMutableReferenceInField (
-		final @NotNull Enum<?> e)
+		final @NotNull AbstractSlotsEnum e)
 	{
 		return e == ObjectSlots.VALUE
 			|| e == IntegerSlots.HASH_OR_ZERO;

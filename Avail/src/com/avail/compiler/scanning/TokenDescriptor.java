@@ -50,7 +50,7 @@ extends Descriptor
 	/**
 	 * My class's slots of type AvailObject.
 	 */
-	public enum ObjectSlots
+	public enum ObjectSlots implements ObjectSlotsEnum
 	{
 		/**
 		 * The {@link ByteStringDescriptor string}, exactly as I appeared in the
@@ -62,7 +62,7 @@ extends Descriptor
 	/**
 	 * My class's slots of type int.
 	 */
-	public enum IntegerSlots
+	public enum IntegerSlots implements IntegerSlotsEnum
 	{
 		/**
 		 * The starting position in the source file.  Currently signed 32 bits,

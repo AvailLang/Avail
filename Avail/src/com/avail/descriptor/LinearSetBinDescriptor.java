@@ -41,7 +41,7 @@ extends SetBinDescriptor
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots
+	public enum IntegerSlots implements IntegerSlotsEnum
 	{
 		BIN_HASH
 	}
@@ -49,7 +49,7 @@ extends SetBinDescriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots
+	public enum ObjectSlots implements ObjectSlotsEnum
 	{
 		BIN_ELEMENT_AT_
 	}

@@ -41,7 +41,7 @@ extends SetBinDescriptor
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots
+	public enum IntegerSlots implements IntegerSlotsEnum
 	{
 		/**
 		 * The sum of the hashes of the elements recursively within this bin.
@@ -63,7 +63,7 @@ extends SetBinDescriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots
+	public enum ObjectSlots implements ObjectSlotsEnum
 	{
 		/**
 		 * The union of the types of all elements recursively within this bin.
@@ -160,7 +160,7 @@ extends SetBinDescriptor
 
 	@Override
 	public boolean allowsImmutableToMutableReferenceInField (
-		final @NotNull Enum<?> e)
+		final @NotNull AbstractSlotsEnum e)
 	{
 		return e == ObjectSlots.BIN_UNION_TYPE_OR_VOID;
 	}

@@ -56,7 +56,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	 *
 	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
 	 */
-	public enum ObjectSlots
+	public enum ObjectSlots implements ObjectSlotsEnum
 	{
 		/**
 		 * The {@link TokenDescriptor token} containing the name of the entity
@@ -88,7 +88,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	 *
 	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
 	 */
-	public enum IntegerSlots
+	public enum IntegerSlots implements IntegerSlotsEnum
 	{
 		/**
 		 * Flags encoded as an {@code int}.

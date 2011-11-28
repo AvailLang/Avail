@@ -52,7 +52,7 @@ extends TypeDescriptor
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots
+	public enum IntegerSlots implements IntegerSlotsEnum
 	{
 		/**
 		 * The hash, or zero ({@code 0}) if the hash has not yet been computed.
@@ -63,7 +63,7 @@ extends TypeDescriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots
+	public enum ObjectSlots implements ObjectSlotsEnum
 	{
 		/**
 		 * The normalized {@linkplain SetDescriptor set} of checked exceptions
@@ -134,7 +134,7 @@ extends TypeDescriptor
 
 	@Override
 	public boolean allowsImmutableToMutableReferenceInField (
-		final @NotNull Enum<?> e)
+		final @NotNull AbstractSlotsEnum e)
 	{
 		return e == IntegerSlots.HASH_OR_ZERO;
 	}

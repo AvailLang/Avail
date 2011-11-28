@@ -42,7 +42,7 @@ extends TypeDescriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots
+	public enum ObjectSlots implements ObjectSlotsEnum
 	{
 		FIRST_TUPLE_TYPE,
 		SECOND_TUPLE_TYPE

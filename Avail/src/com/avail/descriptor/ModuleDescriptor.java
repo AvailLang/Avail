@@ -59,7 +59,7 @@ extends Descriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots
+	public enum ObjectSlots implements ObjectSlotsEnum
 	{
 		/**
 		 * A {@link ByteStringDescriptor string} that names the {@linkplain
@@ -502,7 +502,7 @@ extends Descriptor
 
 	@Override
 	public boolean allowsImmutableToMutableReferenceInField (
-		final @NotNull Enum<?> e)
+		final @NotNull AbstractSlotsEnum e)
 	{
 		return e == ObjectSlots.NEW_NAMES
 			|| e == ObjectSlots.NAMES

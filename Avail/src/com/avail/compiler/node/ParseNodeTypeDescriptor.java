@@ -52,7 +52,7 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 	 *
 	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
 	 */
-	public enum ObjectSlots
+	public enum ObjectSlots implements ObjectSlotsEnum
 	{
 		/**
 		 * The type of value that this expression would produce.
@@ -65,7 +65,7 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 	 *
 	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
 	 */
-	public enum IntegerSlots
+	public enum IntegerSlots implements IntegerSlotsEnum
 	{
 		/**
 		 * The {@linkplain ParseNodeKind kind} of parse node, encoded as an

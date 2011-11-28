@@ -101,7 +101,7 @@ extends AbstractAvailObject
 
 	@Override
 	public final int bitSlot (
-		final @NotNull Enum<?> field,
+		final @NotNull IntegerSlotsEnum field,
 		final @NotNull BitField bitField)
 	{
 //		verifyToSpaceAddress();
@@ -113,7 +113,7 @@ extends AbstractAvailObject
 
 	@Override
 	public final void bitSlotPut (
-		final @NotNull Enum<?> field,
+		final @NotNull IntegerSlotsEnum field,
 		final @NotNull BitField bitField,
 		final int anInteger)
 	{
@@ -136,7 +136,7 @@ extends AbstractAvailObject
 	 */
 	@Override
 	public final short byteSlotAt (
-		final @NotNull Enum<?> e,
+		final @NotNull IntegerSlotsEnum e,
 		final int byteSubscript)
 	{
 //		verifyToSpaceAddress();
@@ -154,7 +154,7 @@ extends AbstractAvailObject
 	 */
 	@Override
 	public final void byteSlotAtPut (
-		final @NotNull Enum<?> e,
+		final @NotNull IntegerSlotsEnum e,
 		final int byteSubscript,
 		final short aByte)
 	{
@@ -171,7 +171,7 @@ extends AbstractAvailObject
 
 	@Override
 	public final short shortSlotAt (
-		final @NotNull Enum<?> e,
+		final @NotNull IntegerSlotsEnum e,
 		final int shortIndex)
 	{
 //		verifyToSpaceAddress();
@@ -181,7 +181,7 @@ extends AbstractAvailObject
 
 	@Override
 	public final void shortSlotAtPut (
-		final @NotNull Enum<?> e,
+		final @NotNull IntegerSlotsEnum e,
 		final int shortIndex,
 		final short aShort)
 	{
@@ -203,7 +203,8 @@ extends AbstractAvailObject
 	}
 
 	@Override
-	public final int integerSlot (final @NotNull Enum<?> e)
+	public final int integerSlot (
+		final @NotNull IntegerSlotsEnum e)
 	{
 //		verifyToSpaceAddress();
 		return intSlots[e.ordinal()];
@@ -211,7 +212,7 @@ extends AbstractAvailObject
 
 	@Override
 	public final void integerSlotPut (
-		final @NotNull Enum<?> e,
+		final @NotNull IntegerSlotsEnum e,
 		final int anInteger)
 	{
 		checkWriteForField(e);
@@ -221,7 +222,7 @@ extends AbstractAvailObject
 
 	@Override
 	public final int integerSlotAt (
-		final @NotNull Enum<?> e,
+		final @NotNull IntegerSlotsEnum e,
 		final int subscript)
 	{
 //		verifyToSpaceAddress();
@@ -230,7 +231,7 @@ extends AbstractAvailObject
 
 	@Override
 	public final void integerSlotAtPut (
-		final @NotNull Enum<?> e,
+		final @NotNull IntegerSlotsEnum e,
 		final int subscript,
 		final int anInteger)
 	{
@@ -246,7 +247,8 @@ extends AbstractAvailObject
 	}
 
 	@Override
-	public final AvailObject objectSlot (final @NotNull Enum<?> e)
+	public final AvailObject objectSlot (
+		final @NotNull ObjectSlotsEnum e)
 	{
 //		verifyToSpaceAddress();
 		final AvailObject result = objectSlots[e.ordinal()];
@@ -256,7 +258,7 @@ extends AbstractAvailObject
 
 	@Override
 	public final void objectSlotPut (
-		final @NotNull Enum<?> e,
+		final @NotNull ObjectSlotsEnum e,
 		final @NotNull AvailObject anAvailObject)
 	{
 //		verifyToSpaceAddress();
@@ -266,7 +268,7 @@ extends AbstractAvailObject
 
 	@Override
 	public final AvailObject objectSlotAt (
-		final @NotNull Enum<?> e,
+		final @NotNull ObjectSlotsEnum e,
 		final int subscript)
 	{
 //		verifyToSpaceAddress();
@@ -277,7 +279,7 @@ extends AbstractAvailObject
 
 	@Override
 	public final void objectSlotAtPut (
-		final @NotNull Enum<?> e,
+		final @NotNull ObjectSlotsEnum e,
 		final int subscript,
 		final @NotNull AvailObject anAvailObject)
 	{

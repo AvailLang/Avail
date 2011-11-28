@@ -48,7 +48,7 @@ public final class UnionMetaDescriptor
 extends TypeDescriptor
 {
 	/** The layout of integer slots for my instances. */
-	public enum ObjectSlots
+	public enum ObjectSlots implements ObjectSlotsEnum
 	{
 		/**
 		 * The parametric kind of the {@linkplain AbstractTypeDescriptor union

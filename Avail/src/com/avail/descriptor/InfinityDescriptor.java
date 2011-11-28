@@ -55,7 +55,7 @@ extends ExtendedNumberDescriptor
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots
+	public enum IntegerSlots implements IntegerSlotsEnum
 	{
 		/**
 		 * A slot to indicate the sign of the infinity.

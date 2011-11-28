@@ -61,7 +61,7 @@ extends Descriptor
 	/**
 	 * The fields that are of type {@code AvailObject}.
 	 */
-	public enum ObjectSlots
+	public enum ObjectSlots implements ObjectSlotsEnum
 	{
 		/**
 		 * The {@link AtomDescriptor atom} that acts as the true name of this
@@ -125,7 +125,7 @@ extends Descriptor
 
 	@Override
 	public boolean allowsImmutableToMutableReferenceInField (
-		final @NotNull Enum<?> e)
+		final @NotNull AbstractSlotsEnum e)
 	{
 		return e == ObjectSlots.IMPLEMENTATIONS_TUPLE
 			|| e == ObjectSlots.PRIVATE_TESTING_TREE

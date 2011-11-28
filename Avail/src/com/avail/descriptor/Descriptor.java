@@ -107,7 +107,7 @@ extends AbstractDescriptor
 	 *
 	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
 	 */
-	enum FakeObjectSlotsForScanning
+	enum FakeObjectSlotsForScanning implements ObjectSlotsEnum
 	{
 		/**
 		 * An indexed object slot that makes it easy to visit all object slots.

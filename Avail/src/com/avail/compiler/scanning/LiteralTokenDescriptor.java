@@ -53,7 +53,7 @@ extends TokenDescriptor
 	 *
 	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
 	 */
-	public enum ObjectSlots
+	public enum ObjectSlots implements ObjectSlotsEnum
 	{
 		/**
 		 * The {@link ByteStringDescriptor string}, exactly as I appeared in the
@@ -70,7 +70,7 @@ extends TokenDescriptor
 	/**
 	 * My class's slots of type int.
 	 */
-	public enum IntegerSlots
+	public enum IntegerSlots implements IntegerSlotsEnum
 	{
 		/**
 		 * The starting position in the source file.  Currently signed 32 bits,

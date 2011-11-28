@@ -744,8 +744,9 @@ public class AvailScanner
 		 *
 		 * @param c
 		 *            The code point to analyze.
-		 * @return The ScannerAction to invoke when that code point is
-		 *         encountered.
+		 * @return
+		 *            The ScannerAction to invoke when that code point is
+		 *            encountered.
 		 */
 		public static ScannerAction forCodePoint (final int c)
 		{
