@@ -622,7 +622,7 @@ extends ExtendedNumberDescriptor
 				return output;
 			}
 			// Doesn't fit in 32 bits; use two 32-bit words.
-			return objectFromLong(sum);
+			return fromLong(sum);
 		}
 		// Set estimatedSize to the max of the input sizes. There will only
 		// rarely be an overflow and at most by one cell. Underflows should also
@@ -940,7 +940,7 @@ extends ExtendedNumberDescriptor
 			}
 			// Doesn't fit.  Worst case: -2^31 * -2^31 = +2^62, which fits in 64
 			// bits, even with the sign.
-			return objectFromLong(prod);
+			return fromLong(prod);
 		}
 		final int size1 = object.integerSlotsCount();
 		final int size2 = anInteger.integerSlotsCount();
@@ -1167,25 +1167,25 @@ extends ExtendedNumberDescriptor
 	 * Convert the specified Java {@code long} into an Avail {@linkplain
 	 * IntegerDescriptor integer}.
 	 *
-	 * @param anInteger A Java {@code long}.
+	 * @param aLong A Java {@code long}.
 	 * @return An {@link AvailObject}.
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
-	public static @NotNull AvailObject objectFromLong (final long anInteger)
+	public static @NotNull AvailObject fromLong (final long aLong)
 	{
-		if (anInteger >= 0 && anInteger <= 255)
+		if (aLong >= 0 && aLong <= 255)
 		{
-			return immutableByteObjects[(int) anInteger];
+			return immutableByteObjects[(int) aLong];
 		}
-		if (anInteger >= Integer.MIN_VALUE && anInteger <= Integer.MAX_VALUE)
+		if (aLong >= Integer.MIN_VALUE && aLong <= Integer.MAX_VALUE)
 		{
 			final AvailObject result = mutable().create(1);
-			result.rawSignedIntegerAtPut(1, (int) anInteger);
+			result.rawSignedIntegerAtPut(1, (int) aLong);
 			return result;
 		}
 		final AvailObject result = mutable().create(2);
-		result.rawSignedIntegerAtPut(1, (int) anInteger);
-		result.rawSignedIntegerAtPut(2, (int) (anInteger >> 32L));
+		result.rawSignedIntegerAtPut(1, (int) aLong);
+		result.rawSignedIntegerAtPut(2, (int) (aLong >> 32L));
 		return result;
 	}
 

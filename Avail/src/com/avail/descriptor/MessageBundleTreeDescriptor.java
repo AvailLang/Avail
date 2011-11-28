@@ -426,7 +426,7 @@ extends Descriptor
 						{
 							successorsList.add(newPc(nextPc));
 						}
-						successors = TupleDescriptor.fromList(
+						successors = TupleDescriptor.fromCollection(
 							successorsList);
 						specialMap = specialMap.mapAtPuttingCanDestroy(
 							instructionObject,

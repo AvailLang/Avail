@@ -95,6 +95,10 @@ implements Iterable<AvailObject>
 		ContainerTypeDescriptor.clearWellKnownObjects();
 		UnionMetaDescriptor.clearWellKnownObjects();
 		ParseNodeTypeDescriptor.clearWellKnownObjects();
+		RawPojoDescriptor.clearWellKnownObjects();
+		PojoTypeDescriptor.clearWellKnownObjects();
+		PojoSelfTypeDescriptor.clearWellKnownObjects();
+		PojoDescriptor.clearWellKnownObjects();
 	}
 
 	/**
@@ -126,6 +130,10 @@ implements Iterable<AvailObject>
 		ContainerTypeDescriptor.createWellKnownObjects();
 		UnionMetaDescriptor.createWellKnownObjects();
 		ParseNodeTypeDescriptor.createWellKnownObjects();
+		RawPojoDescriptor.createWellKnownObjects();
+		PojoTypeDescriptor.createWellKnownObjects();
+		PojoSelfTypeDescriptor.createWellKnownObjects();
+		PojoDescriptor.createWellKnownObjects();
 	}
 
 	public static void error (final Object... args)
@@ -1685,12 +1693,39 @@ implements Iterable<AvailObject>
 	}
 
 	/**
+	 * @param aPojo
+	 * @return
+	 */
+	public boolean equalsPojo (final @NotNull AvailObject aPojo)
+	{
+		return descriptor.o_EqualsPojo(this, aPojo);
+	}
+
+	/**
+	 * @param aPojoType
+	 * @return
+	 */
+	public boolean equalsPojoType (final @NotNull AvailObject aPojoType)
+	{
+		return descriptor.o_EqualsPojoType(this, aPojoType);
+	}
+
+	/**
 	 * Dispatch to the descriptor.
 	 */
 	public boolean equalsPrimitiveType (
 		final AvailObject aPrimitiveType)
 	{
 		return descriptor.o_EqualsPrimitiveType(this, aPrimitiveType);
+	}
+
+	/**
+	 * @param aRawPojo
+	 * @return
+	 */
+	public boolean equalsRawPojo (final @NotNull AvailObject aRawPojo)
+	{
+		return descriptor.o_EqualsRawPojo(this, aRawPojo);
 	}
 
 	/**
@@ -2428,6 +2463,15 @@ implements Iterable<AvailObject>
 		final @NotNull AvailObject aParseNodeType)
 	{
 		return descriptor.o_IsSupertypeOfParseNodeType(this, aParseNodeType);
+	}
+
+	/**
+	 * Dispatch to the descriptor
+	 */
+	public boolean isSupertypeOfPojoType (
+		final @NotNull AvailObject aPojoType)
+	{
+		return descriptor.o_IsSupertypeOfPojoType(this, aPojoType);
 	}
 
 	/**
@@ -4369,6 +4413,16 @@ implements Iterable<AvailObject>
 	}
 
 	/**
+	 * @param aPojoType
+	 * @return
+	 */
+	public @NotNull AvailObject typeIntersectionOfPojoType (
+		final AvailObject aPojoType)
+	{
+		return descriptor.o_TypeIntersectionOfPojoType(this, aPojoType);
+	}
+
+	/**
 	 * Dispatch to the descriptor.
 	 */
 	public AvailObject typeIntersectionOfSetType (
@@ -4467,6 +4521,16 @@ implements Iterable<AvailObject>
 		return descriptor.o_TypeUnionOfParseNodeType(
 			this,
 			aParseNodeType);
+	}
+
+	/**
+	 * @param aPojoType
+	 * @return
+	 */
+	public @NotNull AvailObject typeUnionOfPojoType (
+		final AvailObject aPojoType)
+	{
+		return descriptor.o_TypeUnionOfPojoType(this, aPojoType);
 	}
 
 	/**
@@ -5503,6 +5567,13 @@ implements Iterable<AvailObject>
 		return descriptor.o_ParseNodeKindIsUnder(this, expectedParseNodeKind);
 	}
 
+	/**
+	 * @return
+	 */
+	public boolean isRawPojo ()
+	{
+		return descriptor.o_IsRawPojo(this);
+	}
 
 	/**
 	 * @param restrictionSignature
@@ -5602,12 +5673,27 @@ implements Iterable<AvailObject>
 			variableBinding);
 	}
 
-
 	/**
 	 * @return
 	 */
 	public boolean isImplementationSetEmpty ()
 	{
 		return descriptor.o_IsImplementationSetEmpty(this);
+	}
+
+	/**
+	 * @return
+	 */
+	public boolean isPojoSelfType ()
+	{
+		return descriptor.o_IsPojoSelfType(this);
+	}
+
+	/**
+	 * @return
+	 */
+	public @NotNull AvailObject pojoSelfType ()
+	{
+		return descriptor.o_PojoSelfType(this);
 	}
 }

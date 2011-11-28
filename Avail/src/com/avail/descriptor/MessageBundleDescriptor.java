@@ -140,7 +140,7 @@ extends Descriptor
 					count++;
 				}
 			}
-			restrictions = TupleDescriptor.fromList(
+			restrictions = TupleDescriptor.fromCollection(
 				Collections.nCopies(count, SetDescriptor.empty()));
 			object.myRestrictions(restrictions.makeImmutable());
 		}

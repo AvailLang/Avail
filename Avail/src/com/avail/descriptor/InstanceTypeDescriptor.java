@@ -119,11 +119,12 @@ extends AbstractUnionTypeDescriptor
 		final @NotNull List<AvailObject> recursionList,
 		final int indent)
 	{
+		aStream.append("(");
 		getInstance(object).printOnAvoidingIndent(
 			aStream,
 			recursionList,
-			indent + 1);
-		aStream.append("'s type");
+			indent);
+		aStream.append(")'s type");
 	}
 
 	/**

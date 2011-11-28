@@ -40,6 +40,7 @@ import org.junit.*;
 import com.avail.annotations.NotNull;
 import com.avail.compiler.node.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.*;
+import com.avail.interpreter.Primitive;
 
 
 /**
@@ -445,6 +446,137 @@ public class TypeConsistencyTest
 						ANOTHER_ATOM_TYPE.t,
 						TypeDescriptor.Types.ANY.o(),
 						false));
+			}
+		};
+
+		final static Node MOST_GENERAL_POJO = new Node(
+			"MOST_GENERAL_POJO",
+			primitiveTypes.get(Types.ANY))
+		{
+			@Override
+			AvailObject get ()
+			{
+				return PojoTypeDescriptor.mostGeneralType();
+			}
+		};
+
+		final static Node COMPARABLE_OF_JAVA_OBJECT_POJO = new Node(
+			"COMPARABLE_OF_JAVA_OBJECT_POJO",
+			MOST_GENERAL_POJO)
+		{
+			@Override
+			AvailObject get ()
+			{
+				return PojoTypeDescriptor.create(
+					Comparable.class,
+					TupleDescriptor.from(PojoTypeDescriptor.create(
+						Object.class, TupleDescriptor.empty())));
+			}
+		};
+
+		final static Node COMPARABLE_OF_JAVA_INTEGER_POJO = new Node(
+			"COMPARABLE_OF_JAVA_INTEGER_POJO",
+			COMPARABLE_OF_JAVA_OBJECT_POJO)
+		{
+			@Override
+			AvailObject get ()
+			{
+				return PojoTypeDescriptor.create(
+					Comparable.class,
+					TupleDescriptor.from(PojoTypeDescriptor.create(
+						Integer.class, TupleDescriptor.empty())));
+			}
+		};
+
+		final static Node JAVA_INTEGER_POJO = new Node(
+			"JAVA_INTEGER_POJO",
+			COMPARABLE_OF_JAVA_INTEGER_POJO)
+		{
+			@Override
+			AvailObject get ()
+			{
+				return PojoTypeDescriptor.create(
+					Integer.class, TupleDescriptor.empty());
+			}
+		};
+
+		final static Node COMPARABLE_OF_JAVA_STRING_POJO = new Node(
+			"COMPARABLE_OF_JAVA_STRING_POJO",
+			COMPARABLE_OF_JAVA_OBJECT_POJO)
+		{
+			@Override
+			AvailObject get ()
+			{
+				return PojoTypeDescriptor.create(
+					Comparable.class,
+					TupleDescriptor.from(PojoTypeDescriptor.create(
+						String.class, TupleDescriptor.empty())));
+			}
+		};
+
+		final static Node JAVA_STRING_POJO = new Node(
+			"JAVA_STRING_POJO",
+			COMPARABLE_OF_JAVA_STRING_POJO)
+		{
+			@Override
+			AvailObject get ()
+			{
+				return PojoTypeDescriptor.create(
+					String.class, TupleDescriptor.empty());
+			}
+		};
+
+		final static Node JAVA_ENUM_POJO = new Node(
+			"JAVA_ENUM_POJO",
+			COMPARABLE_OF_JAVA_OBJECT_POJO)
+		{
+			@Override
+			AvailObject get ()
+			{
+				return PojoTypeDescriptor.create(
+					Enum.class,
+					TupleDescriptor.from(PojoSelfTypeDescriptor.create(
+						Enum.class)));
+			}
+		};
+
+		final static Node AVAIL_PRIMITIVE_ENUM_POJO = new Node(
+			"AVAIL_PRIMITIVE_ENUM_POJO",
+			JAVA_ENUM_POJO)
+		{
+			@Override
+			AvailObject get ()
+			{
+				return PojoTypeDescriptor.create(
+					Primitive.class, TupleDescriptor.empty());
+			}
+		};
+
+		final static Node COMPARABLE_OF_AVAIL_INTEGER_POJO = new Node(
+			"COMPARABLE_OF_AVAIL_INTEGER_POJO",
+			MOST_GENERAL_POJO)
+		{
+			@Override
+			AvailObject get ()
+			{
+				return PojoTypeDescriptor.create(
+					Comparable.class,
+					TupleDescriptor.from(
+						IntegerRangeTypeDescriptor.integers()));
+			}
+		};
+
+		final static Node MOST_SPECIFIC_POJO = new Node(
+			"MOST_SPECIFIC_POJO",
+			JAVA_INTEGER_POJO,
+			JAVA_STRING_POJO,
+			AVAIL_PRIMITIVE_ENUM_POJO,
+			COMPARABLE_OF_AVAIL_INTEGER_POJO)
+		{
+			@Override
+			AvailObject get ()
+			{
+				return PojoTypeDescriptor.mostSpecificType();
 			}
 		};
 
@@ -1346,13 +1478,23 @@ public class TypeConsistencyTest
 				final AvailObject xy = x.union(y);
 				for (final Node z : Node.values)
 				{
-					assertEQ(
-						xy.typeUnion(z.t),
-						x.t.typeUnion(y.union(z)),
-						"union associativity: %s, %s, %s",
-						x,
-						y,
-						z);
+					final AvailObject xyUz = xy.typeUnion(z.t);
+					final AvailObject yz = y.union(z);
+					final AvailObject xUyz = x.t.typeUnion(yz);
+					// TODO: [TLS] Remove guard after thorough debugging.
+					if (!xyUz.equals(xUyz))
+					{
+						xy.typeUnion(z.t);
+						x.t.typeUnion(yz);
+						xyUz.equals(xUyz);
+						assertEQ(
+							xyUz,
+							xUyz,
+							"union associativity: %s, %s, %s",
+							x,
+							y,
+							z);
+					}
 				}
 			}
 		}
@@ -1413,14 +1555,16 @@ public class TypeConsistencyTest
 		{
 			for (final Node y : Node.values)
 			{
+				final AvailObject xy = x.intersect(y);
+				final AvailObject yx = y.intersect(x);
 				// TODO: Remove this guard.
-				if (!x.intersect(y).equals(y.intersect(x)))
+				if (!xy.equals(yx))
 				{
 					x.t.typeIntersection(y.t);
 					y.t.typeIntersection(x.t);
 					assertEQ(
-						x.intersect(y),
-						y.intersect(x),
+						xy,
+						yx,
 						"intersection commutativity: %s, %s",
 						x,
 						y);
@@ -1445,15 +1589,18 @@ public class TypeConsistencyTest
 				final AvailObject xy = x.intersect(y);
 				for (final Node z : Node.values)
 				{
-					// TODO: [TLS] Remove this guard.
-					if (!xy.typeIntersection(z.t).equals(
-						x.t.typeIntersection(y.intersect(z))))
+					final AvailObject xyIz = xy.typeIntersection(z.t);
+					final AvailObject yz = y.intersect(z);
+					final AvailObject xIyz = x.t.typeIntersection(yz);
+					// TODO: [TLS] Remove this guard after thorough debugging.
+					if (!xyIz.equals(xIyz))
 					{
-						x.t.typeIntersection(y.t).typeIntersection(z.t);
-						x.t.typeIntersection(y.t.typeIntersection(z.t));
+						xy.typeIntersection(z.t);
+						x.t.typeIntersection(yz);
+						xyIz.equals(xIyz);
 						assertEQ(
-							xy.typeIntersection(z.t),
-							x.t.typeIntersection(y.intersect(z)),
+							xyIz,
+							xIyz,
 							"intersection associativity: %s, %s, %s",
 							x,
 							y,
@@ -1590,6 +1737,26 @@ public class TypeConsistencyTest
 					IntegerRangeTypeDescriptor.wholeNumbers(),
 					TupleDescriptor.empty(),
 					type);
+			}
+		});
+	}
+
+	/**
+	 * Test that the subtype relation covaries with type parameters.
+	 *
+	 * @see #checkCovariance(TypeRelation)
+	 */
+	@Test
+	public void testPojoTypeParametersCovariance ()
+	{
+		checkCovariance(new TypeRelation("pojo type parameters")
+		{
+			@Override
+			AvailObject transform (final AvailObject type)
+			{
+				return PojoTypeDescriptor.create(
+					Comparable.class,
+					TupleDescriptor.from(type));
 			}
 		});
 	}

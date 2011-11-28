@@ -196,7 +196,6 @@ extends TupleDescriptor
 		{
 			object.descriptor(
 				ByteStringDescriptor.isMutableSize(false, object.tupleSize()));
-			object.makeSubobjectsImmutable();
 		}
 		return object;
 	}

@@ -129,7 +129,7 @@ extends L2Instruction
 		final AvailObject tupleType =
 			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 				sizeRange,
-				TupleDescriptor.fromList(types),
+				TupleDescriptor.fromCollection(types),
 				BottomTypeDescriptor.bottom());
 		tupleType.makeImmutable();
 		translator.registerTypeAtPut(destinationRegister, tupleType);
@@ -141,7 +141,7 @@ extends L2Instruction
 			{
 				constants.add(translator.registerConstantAt(register));
 			}
-			final AvailObject tuple = TupleDescriptor.fromList(constants);
+			final AvailObject tuple = TupleDescriptor.fromCollection(constants);
 			tuple.makeImmutable();
 			assert tuple.isInstanceOf(tupleType);
 			translator.registerConstantAtPut(destinationRegister, tuple);

@@ -574,6 +574,25 @@ public class SetDescriptor extends Descriptor
 	}
 
 	/**
+	 * Construct a new {@linkplain SetDescriptor set} from the specified
+	 * {@linkplain Collection collection} of {@linkplain AvailObject objects}.
+	 * Neither the elements nor the resultant set are made immutable.
+	 *
+	 * @param collection A collection.
+	 * @return A new mutable set containing the elements of the collection.
+	 */
+	public static @NotNull AvailObject fromCollection (
+		final Collection<AvailObject> collection)
+	{
+		AvailObject set = empty();
+		for (final AvailObject element : collection)
+		{
+			set = set.setWithElementCanDestroy(element, true);
+		}
+		return set;
+	}
+
+	/**
 	 * Construct a new {@link SetDescriptor}.
 	 *
 	 * @param isMutable

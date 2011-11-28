@@ -202,7 +202,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 			argumentTypes.add(argDeclaration.declaredType());
 		}
 		return FunctionTypeDescriptor.create(
-			TupleDescriptor.fromList(argumentTypes),
+			TupleDescriptor.fromCollection(argumentTypes),
 			object.resultType());
 	}
 
@@ -493,13 +493,13 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject block = mutable().create();
 		block.objectSlotPut(
 			ObjectSlots.ARGUMENTS_TUPLE,
-			TupleDescriptor.fromList(argumentsList));
+			TupleDescriptor.fromCollection(argumentsList));
 		block.integerSlotPut(
 			IntegerSlots.PRIMITIVE,
 			primitive);
 		block.objectSlotPut(
 			ObjectSlots.STATEMENTS_TUPLE,
-			TupleDescriptor.fromList(flattenedStatements));
+			TupleDescriptor.fromCollection(flattenedStatements));
 		block.objectSlotPut(
 			ObjectSlots.RESULT_TYPE,
 			resultType);
@@ -558,7 +558,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 			}
 		});
 		object.neededVariables(
-			TupleDescriptor.fromList(
+			TupleDescriptor.fromCollection(
 				new ArrayList<AvailObject>(neededDeclarations)));
 	}
 

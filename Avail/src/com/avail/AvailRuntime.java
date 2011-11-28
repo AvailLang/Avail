@@ -33,7 +33,7 @@
 package com.avail;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.compiler.node.ParseNodeTypeDescriptor.ParseNodeKind;
+import static com.avail.compiler.node.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import java.beans.MethodDescriptor;
 import java.io.RandomAccessFile;
 import java.util.*;
@@ -84,7 +84,46 @@ public final class AvailRuntime
 	}
 
 	/**
+	 * The {@linkplain ClassLoader class loader} that should be used to locate
+	 * and load Java {@linkplain Class classes}.
+	 */
+	private final @NotNull ClassLoader classLoader;
+
+	/**
+	 * Answer the {@linkplain ClassLoader class loader} that should be used to
+	 * locate and load Java {@linkplain Class classes}.
+	 *
+	 * @return A class loader.
+	 */
+	public @NotNull ClassLoader classLoader ()
+	{
+		// For now, just use our own class's class loader. In the future, the
+		// AvailRuntime could be created with a specified class loader.
+		return getClass().getClassLoader();
+	}
+
+	/**
 	 * Construct a new {@link AvailRuntime}.
+	 *
+	 * @param moduleNameResolver
+	 *        The {@linkplain ModuleNameResolver module name resolver} that this
+	 *        {@linkplain AvailRuntime runtime} should use to resolve
+	 *        unqualified {@linkplain ModuleDescriptor module} names.
+	 * @param classLoader
+	 *        The {@linkplain ClassLoader class loader} that should be used to
+	 *        locate and dynamically load Java {@linkplain Class classes}.
+	 */
+	public AvailRuntime (
+		final @NotNull ModuleNameResolver moduleNameResolver,
+		final @NotNull ClassLoader classLoader)
+	{
+		this.moduleNameResolver = moduleNameResolver;
+		this.classLoader = classLoader;
+	}
+
+	/**
+	 * Construct a new {@link AvailRuntime}. Use the {@linkplain ClassLoader
+	 * class loader} that loaded this {@linkplain Class class}.
 	 *
 	 * @param moduleNameResolver
 	 *        The {@linkplain ModuleNameResolver module name resolver} that this
@@ -93,7 +132,7 @@ public final class AvailRuntime
 	 */
 	public AvailRuntime (final @NotNull ModuleNameResolver moduleNameResolver)
 	{
-		this.moduleNameResolver = moduleNameResolver;
+		this(moduleNameResolver, AvailRuntime.class.getClassLoader());
 	}
 
 	/**
@@ -167,24 +206,24 @@ public final class AvailRuntime
 		specialObjects[46] = IMPLEMENTATION_SET.o();
 
 		// Parse nodes types
-		specialObjects[50] = ParseNodeKind.PARSE_NODE.mostGeneralType();
-		specialObjects[51] = ParseNodeKind.MARKER_NODE.mostGeneralType();
-		specialObjects[52] = ParseNodeKind.EXPRESSION_NODE.mostGeneralType();
-		specialObjects[53] = ParseNodeKind.ASSIGNMENT_NODE.mostGeneralType();
-		specialObjects[54] = ParseNodeKind.BLOCK_NODE.mostGeneralType();
-		specialObjects[55] = ParseNodeKind.LITERAL_NODE.mostGeneralType();
-		specialObjects[56] = ParseNodeKind.REFERENCE_NODE.mostGeneralType();
-		specialObjects[57] = ParseNodeKind.SEND_NODE.mostGeneralType();
-		specialObjects[58] = ParseNodeKind.SUPER_CAST_NODE.mostGeneralType();
-		specialObjects[59] = ParseNodeKind.TUPLE_NODE.mostGeneralType();
-		specialObjects[60] = ParseNodeKind.VARIABLE_USE_NODE.mostGeneralType();
-		specialObjects[61] = ParseNodeKind.DECLARATION_NODE.mostGeneralType();
-		specialObjects[62] = ParseNodeKind.ARGUMENT_NODE.mostGeneralType();
-		specialObjects[63] = ParseNodeKind.LABEL_NODE.mostGeneralType();
-		specialObjects[64] = ParseNodeKind.LOCAL_VARIABLE_NODE.mostGeneralType();
-		specialObjects[65] = ParseNodeKind.LOCAL_CONSTANT_NODE.mostGeneralType();
-		specialObjects[66] = ParseNodeKind.MODULE_VARIABLE_NODE.mostGeneralType();
-		specialObjects[67] = ParseNodeKind.MODULE_CONSTANT_NODE.mostGeneralType();
+		specialObjects[50] = PARSE_NODE.mostGeneralType();
+		specialObjects[51] = MARKER_NODE.mostGeneralType();
+		specialObjects[52] = EXPRESSION_NODE.mostGeneralType();
+		specialObjects[53] = ASSIGNMENT_NODE.mostGeneralType();
+		specialObjects[54] = BLOCK_NODE.mostGeneralType();
+		specialObjects[55] = LITERAL_NODE.mostGeneralType();
+		specialObjects[56] = REFERENCE_NODE.mostGeneralType();
+		specialObjects[57] = SEND_NODE.mostGeneralType();
+		specialObjects[58] = SUPER_CAST_NODE.mostGeneralType();
+		specialObjects[59] = TUPLE_NODE.mostGeneralType();
+		specialObjects[60] = VARIABLE_USE_NODE.mostGeneralType();
+		specialObjects[61] = DECLARATION_NODE.mostGeneralType();
+		specialObjects[62] = ARGUMENT_NODE.mostGeneralType();
+		specialObjects[63] = LABEL_NODE.mostGeneralType();
+		specialObjects[64] = LOCAL_VARIABLE_NODE.mostGeneralType();
+		specialObjects[65] = LOCAL_CONSTANT_NODE.mostGeneralType();
+		specialObjects[66] = MODULE_VARIABLE_NODE.mostGeneralType();
+		specialObjects[67] = MODULE_CONSTANT_NODE.mostGeneralType();
 
 		// Booleans
 		specialObjects[70] = AtomDescriptor.trueObject();
@@ -216,6 +255,11 @@ public final class AvailRuntime
 			SetTypeDescriptor.setTypeForSizesContentType(
 				IntegerRangeTypeDescriptor.wholeNumbers(),
 				TupleTypeDescriptor.stringTupleType());
+
+		// Pojo support.
+		specialObjects[80] = PojoTypeDescriptor.mostGeneralType();
+		specialObjects[81] = PojoDescriptor.nullObject();
+		specialObjects[82] = PojoSelfTypeDescriptor.selfType();
 
 		for (final AvailObject object : specialObjects)
 		{

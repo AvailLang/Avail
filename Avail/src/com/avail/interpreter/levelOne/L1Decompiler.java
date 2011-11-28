@@ -248,7 +248,7 @@ public class L1Decompiler implements L1OperationDispatcher
 		}
 		final List<AvailObject> callArgs = popExpressions(nArgs);
 		final AvailObject sendNode = SendNodeDescriptor.mutable().create();
-		sendNode.arguments(TupleDescriptor.fromList(callArgs));
+		sendNode.arguments(TupleDescriptor.fromCollection(callArgs));
 		sendNode.implementationSet(impSet);
 		sendNode.returnType(type);
 
@@ -338,7 +338,7 @@ public class L1Decompiler implements L1OperationDispatcher
 		final int count = getInteger();
 		final List<AvailObject> expressions = popExpressions(count);
 		final AvailObject tupleNode = TupleNodeDescriptor.newExpressions(
-			TupleDescriptor.fromList(expressions));
+			TupleDescriptor.fromCollection(expressions));
 		pushExpression(tupleNode);
 	}
 
@@ -698,7 +698,7 @@ public class L1Decompiler implements L1OperationDispatcher
 			}
 		}
 		final AvailObject sendNode = SendNodeDescriptor.mutable().create();
-		sendNode.arguments(TupleDescriptor.fromList(callArgs));
+		sendNode.arguments(TupleDescriptor.fromCollection(callArgs));
 		sendNode.implementationSet(impSet);
 		sendNode.returnType(type);
 		pushExpression(sendNode);

@@ -958,20 +958,22 @@ extends Descriptor
 	 * passed in a list.  The elements are not made immutable first, nor is the
 	 * new tuple.
 	 *
-	 * @param list
-	 *            The list of {@linkplain AvailObject Avail objects} from which
-	 *            to construct a tuple.
-	 * @return
-	 *            The new mutable tuple of objects.
+	 * @param collection
+	 *        The list of {@linkplain AvailObject Avail objects} from which
+	 *        to construct a tuple.
+	 * @return The new mutable tuple of objects.
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
-	public static AvailObject fromList (
-		final List<AvailObject> list)
+	public static AvailObject fromCollection (
+		final List<AvailObject> collection)
 	{
-		AvailObject tuple;
-		tuple = ObjectTupleDescriptor.mutable().create(list.size());
-		for (int i = 1; i <= list.size(); i++)
+		final AvailObject tuple = ObjectTupleDescriptor.mutable().create(
+			collection.size());
+		int i = 1;
+		for (final AvailObject element : collection)
 		{
-			tuple.tupleAtPut(i, list.get(i - 1));
+			tuple.tupleAtPut(i, element);
+			i++;
 		}
 		return tuple;
 	}

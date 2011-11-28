@@ -134,7 +134,7 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 				types.size());
 			tupleType = TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 				sizes,
-				TupleDescriptor.fromList(types),
+				TupleDescriptor.fromCollection(types),
 				BottomTypeDescriptor.bottom());
 			tupleType.makeImmutable();
 			object.tupleType(tupleType);
@@ -241,7 +241,7 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 		}
 		newNodes.add(newParseNode);
 		final AvailObject newTupleNode = TupleNodeDescriptor.newExpressions(
-			TupleDescriptor.fromList(newNodes));
+			TupleDescriptor.fromCollection(newNodes));
 		return newTupleNode;
 	}
 

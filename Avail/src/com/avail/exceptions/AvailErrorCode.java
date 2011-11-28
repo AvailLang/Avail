@@ -32,7 +32,6 @@
 
 package com.avail.exceptions;
 
-import static com.avail.descriptor.AvailObject.error;
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
 import com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind;
@@ -292,7 +291,11 @@ public enum AvailErrorCode
 	 */
 	E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS (40),
 
-	;
+	/**
+	 * A Java {@linkplain Class class} specified by name was not found by the
+	 * runtime system.
+	 */
+	E_JAVA_CLASS_NOT_FOUND (500);
 
 
 

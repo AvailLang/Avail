@@ -863,8 +863,8 @@ public abstract class AbstractAvailCompiler
 
 			imports.add(TupleDescriptor.from(
 				moduleName,
-				TupleDescriptor.fromList(names).asSet(),
-				TupleDescriptor.fromList(versions).asSet()));
+				TupleDescriptor.fromCollection(names).asSet(),
+				TupleDescriptor.fromCollection(versions).asSet()));
 		}
 		while (state.peekToken(COMMA) && (state = state.afterToken()) != null);
 
@@ -1559,7 +1559,7 @@ public abstract class AbstractAvailCompiler
 		{
 			final AvailObject sendNode = SendNodeDescriptor.mutable().create();
 			sendNode.implementationSet(impSet);
-			sendNode.arguments(TupleDescriptor.fromList(argumentExpressions));
+			sendNode.arguments(TupleDescriptor.fromCollection(argumentExpressions));
 			sendNode.returnType(returnType);
 			attempt(
 				new ParserState(
@@ -1736,7 +1736,7 @@ public abstract class AbstractAvailCompiler
 				(long) token.start(),
 				sourceLength);
 		}
-		module.versions(TupleDescriptor.fromList(versions).asSet());
+		module.versions(TupleDescriptor.fromCollection(versions).asSet());
 		for (final AvailObject modImport : extendedModules)
 		{
 			assert modImport.isTuple();

@@ -197,6 +197,16 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override
+	public final @NotNull AvailObject o_TypeIntersectionOfPojoType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aPojoType)
+	{
+		// Answer the most general type that is still at least as specific as
+		// these.  Make it exact first.
+		return computeIntersectionWith(object, aPojoType);
+	}
+
+	@Override
 	public final @NotNull AvailObject o_TypeIntersectionOfSetType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aSetType)
@@ -263,6 +273,14 @@ extends AbstractTypeDescriptor
 		final @NotNull AvailObject anObjectType)
 	{
 		return computeUnionWith(object, anObjectType);
+	}
+
+	@Override
+	public final @NotNull AvailObject o_TypeUnionOfPojoType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aPojoType)
+	{
+		return computeUnionWith(object, aPojoType);
 	}
 
 	@Override
@@ -522,6 +540,14 @@ extends AbstractTypeDescriptor
 	public boolean o_IsSupertypeOfParseNodeType (
 		final @NotNull AvailObject object,
 		final AvailObject aParseNodeType)
+	{
+		return false;
+	}
+
+	@Override
+	public boolean o_IsSupertypeOfPojoType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aPojoType)
 	{
 		return false;
 	}

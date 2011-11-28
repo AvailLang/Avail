@@ -230,6 +230,14 @@ extends TypeDescriptor
 	}
 
 	@Override
+	public boolean o_IsSupertypeOfPojoType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aPojoType)
+	{
+		return ANY.o().isSubtypeOf(object);
+	}
+
+	@Override
 	public boolean o_IsSupertypeOfPrimitiveType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aPrimitiveType)

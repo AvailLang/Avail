@@ -928,7 +928,7 @@ extends AbstractAvailCompiler
 				labelNode.declaredType().functionType();
 			final AvailObject implicitBlockType =
 				FunctionTypeDescriptor.create(
-					TupleDescriptor.fromList(argumentTypesList),
+					TupleDescriptor.fromCollection(argumentTypesList),
 					lastStatementType.value,
 					SetDescriptor.empty());
 			blockTypeGood = labelFunctionType.equals(implicitBlockType);
@@ -984,7 +984,7 @@ extends AbstractAvailCompiler
 				{
 					final AvailObject explicitBlockType =
 						FunctionTypeDescriptor.create(
-							TupleDescriptor.fromList(argumentTypesList),
+							TupleDescriptor.fromCollection(argumentTypesList),
 							returnType);
 					if (thePrimitive != null)
 					{

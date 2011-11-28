@@ -301,7 +301,6 @@ extends TupleDescriptor
 		{
 			object.descriptor(
 				NybbleTupleDescriptor.isMutableSize(false, object.tupleSize()));
-			object.makeSubobjectsImmutable();
 		}
 		return object;
 	}

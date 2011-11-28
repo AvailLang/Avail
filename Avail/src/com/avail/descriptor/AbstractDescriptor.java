@@ -250,6 +250,7 @@ public abstract class AbstractDescriptor
 	protected AbstractDescriptor (final boolean isMutable)
 	{
 		this.myId = (short) allDescriptors.size();
+		assert (this.myId % 2 == 0) == isMutable;
 		allDescriptors.add(this);
 		this.isMutable = isMutable;
 
@@ -1473,6 +1474,15 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
+	 * @param aPojoType
+	 * @return
+	 */
+	public abstract boolean o_IsSupertypeOfPojoType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aPojoType);
+
+	/**
+	 * @param object
 	 * @param aPrimitiveType
 	 * @return
 	 */
@@ -2598,6 +2608,15 @@ public abstract class AbstractDescriptor
 		final AvailObject aParseNodeType);
 
 	/**
+	 * @param availObject
+	 * @param aPojoType
+	 * @return
+	 */
+	public abstract AvailObject o_TypeIntersectionOfPojoType (
+		final @NotNull AvailObject availObject,
+		final @NotNull AvailObject aPojoType);
+
+	/**
 	 * @param object
 	 * @param aSetType
 	 * @return
@@ -2686,6 +2705,15 @@ public abstract class AbstractDescriptor
 	public abstract AvailObject o_TypeUnionOfObjectType (
 		final @NotNull AvailObject object,
 		final AvailObject anObjectType);
+
+	/**
+	 * @param availObject
+	 * @param aPojoType
+	 * @return
+	 */
+	public abstract AvailObject o_TypeUnionOfPojoType (
+		final @NotNull AvailObject availObject,
+		final @NotNull AvailObject aPojoType);
 
 	/**
 	 * @param object
@@ -3757,12 +3785,48 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
+	 * @param aParseNodeType
+	 * @return
+	 */
+	public abstract boolean o_EqualsParseNodeType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aParseNodeType);
+
+	/**
+	 * @param object
+	 * @param aPojo
+	 * @return
+	 */
+	public abstract boolean o_EqualsPojo (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aPojo);
+
+	/**
+	 * @param availObject
+	 * @param aPojoType
+	 * @return
+	 */
+	public abstract boolean o_EqualsPojoType (
+		final @NotNull AvailObject availObject,
+		final @NotNull AvailObject aPojoType);
+
+	/**
+	 * @param object
 	 * @param aType
 	 * @return
 	 */
 	public abstract boolean o_EqualsPrimitiveType (
 		final @NotNull AvailObject object,
 		final AvailObject aType);
+
+	/**
+	 * @param object
+	 * @param aPojo
+	 * @return
+	 */
+	public abstract boolean o_EqualsRawPojo (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aPojo);
 
 	/**
 	 * @param object
@@ -4731,15 +4795,6 @@ public abstract class AbstractDescriptor
 	 * @param aParseNodeType
 	 * @return
 	 */
-	public abstract boolean o_EqualsParseNodeType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aParseNodeType);
-
-	/**
-	 * @param object
-	 * @param aParseNodeType
-	 * @return
-	 */
 	public abstract @NotNull AvailObject o_TypeUnionOfParseNodeType (
 		final @NotNull AvailObject object,
 		AvailObject aParseNodeType);
@@ -4759,6 +4814,12 @@ public abstract class AbstractDescriptor
 	public abstract boolean o_ParseNodeKindIsUnder (
 		final @NotNull AvailObject object,
 		final @NotNull ParseNodeKind expectedParseNodeKind);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	public abstract boolean o_IsRawPojo (final @NotNull AvailObject object);
 
 	/**
 	 * @param object
@@ -4846,5 +4907,19 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	public abstract boolean o_IsImplementationSetEmpty (
+		final @NotNull AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	public abstract boolean o_IsPojoSelfType (
+		final @NotNull AvailObject object);
+
+	/**
+	 * @param availObject
+	 * @return
+	 */
+	public abstract @NotNull AvailObject o_PojoSelfType (
 		final @NotNull AvailObject object);
 }

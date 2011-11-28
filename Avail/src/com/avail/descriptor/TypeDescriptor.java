@@ -62,7 +62,9 @@ extends AbstractTypeDescriptor
 		RESTRICTION_SIGNATURE(SIGNATURE),
 
 		OBJECT(ANY),
+
 		PROCESS(ANY),
+
 		TYPE(ANY, "META"),
 		META(TYPE, "META");
 
@@ -250,6 +252,14 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override
+	public boolean o_IsSupertypeOfPojoType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aPojoType)
+	{
+		return false;
+	}
+
+	@Override
 	public boolean o_IsSupertypeOfPrimitiveType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aPrimitiveType)
@@ -365,6 +375,14 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override
+	public @NotNull AvailObject o_TypeIntersectionOfPojoType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aPojoType)
+	{
+		return BottomTypeDescriptor.bottom();
+	}
+
+	@Override
 	public @NotNull AvailObject o_TypeIntersectionOfSetType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aSetType)
@@ -440,6 +458,14 @@ extends AbstractTypeDescriptor
 	public @NotNull AvailObject o_TypeUnionOfParseNodeType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aParseNodeType)
+	{
+		return object.typeUnion(ANY.o());
+	}
+
+	@Override
+	public @NotNull AvailObject o_TypeUnionOfPojoType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aPojoType)
 	{
 		return object.typeUnion(ANY.o());
 	}

@@ -37,7 +37,8 @@ Extends
 	"Factory",
 	"Graph",
 	"Iterator",
-	"TupleIterator"
+	"TupleIterator",
+	"Pojo"
 Uses
 	"Test"
 Names

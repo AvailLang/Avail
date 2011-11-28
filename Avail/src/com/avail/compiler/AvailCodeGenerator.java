@@ -233,7 +233,7 @@ public class AvailCodeGenerator
 				resultType,
 				exceptionSet),
 			primitive,
-			TupleDescriptor.fromList(literals),
+			TupleDescriptor.fromCollection(literals),
 			localsTuple,
 			outerTuple);
 		code.makeImmutable();

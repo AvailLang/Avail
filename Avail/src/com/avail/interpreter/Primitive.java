@@ -40,6 +40,7 @@ import static com.avail.interpreter.Primitive.Result.CONTINUATION_CHANGED;
 import static com.avail.compiler.node.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static java.lang.Math.*;
 import java.io.*;
+import java.lang.reflect.*;
 import java.nio.ByteOrder;
 import java.util.*;
 import com.avail.AvailRuntime;
@@ -4290,7 +4291,7 @@ public enum Primitive
 			}
 
 			return interpreter.primitiveSuccess(
-				IntegerDescriptor.objectFromLong(fileSize));
+				IntegerDescriptor.fromLong(fileSize));
 		}
 
 		@Override
@@ -4344,7 +4345,7 @@ public enum Primitive
 			}
 
 			return interpreter.primitiveSuccess(
-				IntegerDescriptor.objectFromLong(filePosition));
+				IntegerDescriptor.fromLong(filePosition));
 		}
 
 		@Override
@@ -7561,7 +7562,7 @@ public enum Primitive
 			token.literal(NullDescriptor.nullObject());
 			statementsList.add(LiteralNodeDescriptor.fromToken(token));
 			final AvailObject statementsTuple =
-				TupleDescriptor.fromList(statementsList);
+				TupleDescriptor.fromCollection(statementsList);
 			final AvailObject sequence =
 				SequenceNodeDescriptor.newStatements(statementsTuple);
 			return interpreter.primitiveSuccess(sequence);
@@ -7678,6 +7679,108 @@ public enum Primitive
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(TupleTypeDescriptor.stringTupleType()),
 				BottomTypeDescriptor.bottom());
+		}
+	},
+
+	/**
+	 * <strong>Primitive 500:</strong> Create a {@linkplain PojoTypeDescriptor
+	 * pojo type} for the specified {@linkplain Class Java class}, specifieid by
+	 * fully-qualified name, and type parameters.
+	 *
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 */
+	prim500_CreatePojoType(500, 2, CanFold)
+	{
+		@Override
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
+		{
+			assert args.size() == 2;
+			final AvailObject className = args.get(0);
+			final AvailObject classParameters = args.get(1);
+			try
+			{
+				// Look up the raw Java class using the interpreter's runtime's
+				// class loader.
+				final Class<?> rawClass = Class.forName(
+					className.asNativeString(),
+					true,
+					interpreter.runtime().classLoader());
+
+				// Check that the correct number of type parameters have been
+				// supplied.
+				final TypeVariable<?>[] typeVars = rawClass.getTypeParameters();
+				if (typeVars.length != classParameters.tupleSize())
+				{
+					return interpreter.primitiveFailure(
+						E_INCORRECT_NUMBER_OF_ARGUMENTS);
+				}
+
+				// Use real pojo self types in place of the special atom type.
+				AvailObject realParameters =
+					classParameters.copyAsMutableObjectTuple();
+				for (int i = 1; i <= classParameters.tupleSize(); i++)
+				{
+					final AvailObject originalParameter =
+						classParameters.tupleAt(i);
+					final AvailObject realParameter;
+					if (originalParameter.equals(
+						PojoSelfTypeDescriptor.selfType()))
+					{
+						realParameter = PojoSelfTypeDescriptor.create(rawClass);
+					}
+					else
+					{
+						realParameter = originalParameter.makeImmutable();
+					}
+					realParameters = realParameters.tupleAtPuttingCanDestroy(
+						i, realParameter, true);
+				}
+
+				// Ensure that each type parameter is a subtype of the
+				// corresponding type variable's computed upper bound, i.e. the
+				// intersection of its upper bounds as an Avail pojo type.
+				final Map<Class<?>, AvailObject> rawTypeMap =
+					new HashMap<Class<?>, AvailObject>(typeVars.length);
+				rawTypeMap.put(
+					Object.class, RawPojoDescriptor.rawObjectClass());
+				final Map<TypeVariable<?>, AvailObject> typeVarMap =
+					new HashMap<TypeVariable<?>, AvailObject>(typeVars.length);
+				for (int i = 0; i < typeVars.length; i++)
+				{
+					final TypeVariable<?> var = typeVars[i];
+					final AvailObject upperBound =
+						PojoTypeDescriptor.upperBoundFor(
+							var, typeVarMap, rawTypeMap);
+					final AvailObject param = realParameters.tupleAt(i + 1);
+					if (!param.isSubtypeOf(upperBound))
+					{
+						return interpreter.primitiveFailure(
+							E_INCORRECT_ARGUMENT_TYPE);
+					}
+				}
+				return interpreter.primitiveSuccess(
+					PojoTypeDescriptor.create(rawClass, realParameters));
+			}
+			catch (final ClassNotFoundException e)
+			{
+				return interpreter.primitiveFailure(E_JAVA_CLASS_NOT_FOUND);
+			}
+		}
+
+		@Override
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
+		{
+			return FunctionTypeDescriptor.create(
+				TupleDescriptor.from(
+					TupleTypeDescriptor.stringTupleType(),
+					TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+						IntegerRangeTypeDescriptor.wholeNumbers(),
+						TupleDescriptor.empty(),
+						TYPE.o())),
+				InstanceTypeDescriptor.on(
+					PojoTypeDescriptor.mostGeneralType()));
 		}
 	};
 

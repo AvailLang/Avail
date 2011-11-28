@@ -1312,6 +1312,20 @@ extends AbstractDescriptor
 
 	/**
 	 * @param object
+	 * @param aPojoType
+	 * @return
+	 */
+	@Override
+	public boolean o_IsSupertypeOfPojoType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aPojoType)
+	{
+		unsupportedOperation();
+		return false;
+	}
+
+	/**
+	 * @param object
 	 * @param aPrimitiveType
 	 * @return
 	 */
@@ -2802,8 +2816,6 @@ extends AbstractDescriptor
 		final @NotNull AvailObject object,
 		final AvailObject someMeta)
 	{
-		//  GENERATED pure (abstract) method.
-
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
 	}
@@ -2817,6 +2829,20 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_TypeIntersectionOfObjectType (
 		final @NotNull AvailObject object,
 		final AvailObject anObjectType)
+	{
+		unsupportedOperation();
+		return NullDescriptor.nullObject();
+	}
+
+	/**
+	 * @param availObject
+	 * @param aPojoType
+	 * @return
+	 */
+	@Override
+	public @NotNull AvailObject o_TypeIntersectionOfPojoType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aPojoType)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -2985,6 +3011,20 @@ extends AbstractDescriptor
 	public @NotNull AvailObject o_TypeUnionOfParseNodeType (
 		final @NotNull AvailObject object,
 		final AvailObject aParseNodeType)
+	{
+		unsupportedOperation();
+		return NullDescriptor.nullObject();
+	}
+
+	/**
+	 * @param availObject
+	 * @param aPojoType
+	 * @return
+	 */
+	@Override
+	public @NotNull AvailObject o_TypeUnionOfPojoType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aPojoType)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -4969,6 +5009,32 @@ extends AbstractDescriptor
 
 	/**
 	 * @param object
+	 * @param aPojo
+	 * @return
+	 */
+	@Override
+	public boolean o_EqualsPojo (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aPojo)
+	{
+		return false;
+	}
+
+	/**
+	 * @param object
+	 * @param aPojoType
+	 * @return
+	 */
+	@Override
+	public boolean o_EqualsPojoType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aPojoType)
+	{
+		return false;
+	}
+
+	/**
+	 * @param object
 	 * @param aType
 	 * @return
 	 */
@@ -4976,6 +5042,19 @@ extends AbstractDescriptor
 	public boolean o_EqualsPrimitiveType (
 		final @NotNull AvailObject object,
 		final AvailObject aType)
+	{
+		return false;
+	}
+
+	/**
+	 * @param object
+	 * @param aRawPojo
+	 * @return
+	 */
+	@Override
+	public boolean o_EqualsRawPojo (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aRawPojo)
 	{
 		return false;
 	}
@@ -6479,6 +6558,11 @@ extends AbstractDescriptor
 		return false;
 	}
 
+	@Override
+	public boolean o_IsRawPojo (final @NotNull AvailObject object)
+	{
+		return false;
+	}
 
 	@Override
 	public void o_AddTypeRestriction (
@@ -6569,5 +6653,19 @@ extends AbstractDescriptor
 	{
 		unsupportedOperation();
 		return false;
+	}
+
+	@Override
+	public boolean o_IsPojoSelfType (final @NotNull AvailObject object)
+	{
+		return false;
+	}
+
+	@Override
+	public @NotNull AvailObject o_PojoSelfType (
+		final @NotNull AvailObject object)
+	{
+		unsupportedOperation();
+		return null;
 	}
 }

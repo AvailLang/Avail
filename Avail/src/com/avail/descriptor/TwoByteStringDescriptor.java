@@ -205,7 +205,6 @@ extends TupleDescriptor
 				TwoByteStringDescriptor.isMutableSize(
 					false,
 					object.tupleSize()));
-			object.makeSubobjectsImmutable();
 		}
 		return object;
 	}

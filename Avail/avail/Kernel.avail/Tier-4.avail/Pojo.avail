@@ -1,0 +1,113 @@
+/**
+ * .../Tier-4/Pojo.avail
+ * Copyright (c) 2010, Mark van Gulik.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/**
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ */
+
+System Module "Pojo"
+Extends
+Uses
+	"Tier-3"
+Names
+Body
+
+privatePojo ::= Special Object 80;
+
+Method "pojo" is
+[
+	privatePojo;
+] : privatePojo type;
+
+privateNull ::= Special Object 81;
+
+Method "null" is
+[
+	privateNull;
+] : privateNull type;
+
+Assert pojo <= pojo;
+Assert null type <= pojo;
+Assert null type not = pojo;
+
+privateSelfObject ::= Special Object 82;
+
+Method "self type" is
+[
+	privateSelfObject;
+] : privateSelfObject type;
+
+Method "Java type_parameters_" is
+[
+	typeName : string,
+	typeParameters : tuple of type
+|
+	Primitive 500 (failureCode : whole number);
+	Crash "Yipe!";
+] : pojo type;
+
+Method "Java type_" is
+[
+	typeName : string
+|
+	Java type typeName parameters <>;
+] : pojo type;
+
+[
+	jObject ::= Java type "java.lang.Object";
+	Assert jObject = pojo;
+	jString ::= Java type "java.lang.String";
+	Assert jString <= jObject;
+	jInteger ::= Java type "java.lang.Integer";
+	Assert jInteger <= jObject;
+	jComparableOfObject ::= Java type "java.lang.Comparable" parameters <jObject>;
+	Assert jString <= jComparableOfObject;
+	Assert jInteger <= jComparableOfObject;
+	jSerializable ::= Java type "java.io.Serializable";
+	intersect ::= type intersection of
+		jObject and (type intersection of jComparableOfObject and jSerializable);
+	union ::= type union of jString and jInteger;
+	Assert union <= intersect;
+	jEnum ::= Java type "java.lang.Enum" parameters <self type>;
+	jPrimitiveEnum ::= Java type "com.avail.interpreter.Primitive";
+	Assert jPrimitiveEnum <= jEnum;
+	jEnum2 ::= Java type "java.lang.Enum" parameters <jPrimitiveEnum>;
+	Assert jPrimitiveEnum <= jEnum2;
+	jListOfObject ::= Java type "java.util.List" parameters <pojo>;
+	jArrayListOfInteger ::=
+		Java type "java.util.ArrayList" parameters <jInteger>;
+	Assert jArrayListOfInteger <= jListOfObject;
+]();
+
+/*
+Method "«…‡.»«<«_‡,»>»" is ...
+*/ 

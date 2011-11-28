@@ -608,7 +608,7 @@ extends Descriptor
 			vectorTuples.add(vectorTuple);
 		}
 		final AvailObject vectorTuplesTuple =
-			TupleDescriptor.fromList(vectorTuples);
+			TupleDescriptor.fromCollection(vectorTuples);
 		vectorTuplesTuple.makeImmutable();
 		final AvailObject wordcodesTuple =
 			TupleDescriptor.fromIntegerList(theWordcodes);
@@ -641,7 +641,8 @@ extends Descriptor
 		chunk.objectSlotPut(ObjectSlots.WORDCODES, wordcodesTuple);
 		for (int i = 1; i <= listOfLiterals.size(); i++)
 		{
-			chunk.objectSlotAtPut(ObjectSlots.LITERAL_AT_,
+			chunk.objectSlotAtPut(
+				ObjectSlots.LITERAL_AT_,
 				i,
 				listOfLiterals.get(i - 1));
 		}
@@ -751,7 +752,7 @@ extends Descriptor
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
 	 */
-	protected L2ChunkDescriptor (final boolean isMutable)
+	private L2ChunkDescriptor (final boolean isMutable)
 	{
 		super(isMutable);
 	}

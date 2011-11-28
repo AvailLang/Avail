@@ -39,7 +39,6 @@ import com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.compiler.node.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.compiler.scanning.TokenDescriptor;
 import com.avail.descriptor.ProcessDescriptor.ExecutionState;
-import com.avail.exceptions.*;
 import com.avail.exceptions.ArithmeticException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Interpreter;
@@ -946,11 +945,35 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	public boolean o_EqualsPojo (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aRawPojo)
+	{
+		return o_Traversed(object).equalsPojo(aRawPojo);
+	}
+
+	@Override
+	public boolean o_EqualsPojoType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aPojoType)
+	{
+		return o_Traversed(object).equalsPojoType(aPojoType);
+	}
+
+	@Override
 	public boolean o_EqualsPrimitiveType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aPrimitiveType)
 	{
 		return o_Traversed(object).equalsPrimitiveType(aPrimitiveType);
+	}
+
+	@Override
+	public boolean o_EqualsRawPojo (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aPojo)
+	{
+		return o_Traversed(object).equalsRawPojo(aPojo);
 	}
 
 	@Override
@@ -1265,6 +1288,14 @@ extends AbstractDescriptor
 		final @NotNull AvailObject aParseNodeType)
 	{
 		return o_Traversed(object).isSupertypeOfParseNodeType(aParseNodeType);
+	}
+
+	@Override
+	public boolean o_IsSupertypeOfPojoType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aPojoType)
+	{
+		return o_Traversed(object).isSupertypeOfPojoType(aPojoType);
 	}
 
 	@Override
@@ -2195,6 +2226,14 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	public @NotNull AvailObject o_TypeIntersectionOfPojoType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aPojoType)
+	{
+		return o_Traversed(object).typeIntersectionOfPojoType(aPojoType);
+	}
+
+	@Override
 	public @NotNull AvailObject o_TypeIntersectionOfSetType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aSetType)
@@ -2284,6 +2323,14 @@ extends AbstractDescriptor
 	{
 		return o_Traversed(object).typeUnionOfParseNodeType(
 			aParseNodeType);
+	}
+
+	@Override
+	public @NotNull AvailObject o_TypeUnionOfPojoType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aPojoType)
+	{
+		return o_Traversed(object).typeUnionOfPojoType(aPojoType);
 	}
 
 	@Override
@@ -3908,6 +3955,12 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	public boolean o_IsRawPojo (final @NotNull AvailObject object)
+	{
+		return o_Traversed(object).isRawPojo();
+	}
+
+	@Override
 	public void o_AddTypeRestriction (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject restrictionSignature)
@@ -3991,5 +4044,17 @@ extends AbstractDescriptor
 		final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).isImplementationSetEmpty();
+	}
+
+	@Override
+	public boolean o_IsPojoSelfType (final @NotNull AvailObject object)
+	{
+		return o_Traversed(object).isPojoSelfType();
+	}
+
+	@Override
+	public AvailObject o_PojoSelfType (final @NotNull AvailObject object)
+	{
+		return o_Traversed(object).pojoSelfType();
 	}
 }
