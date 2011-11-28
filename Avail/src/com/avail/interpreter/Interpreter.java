@@ -37,7 +37,6 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Result.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import java.util.*;
-import java.util.jar.Attributes.Name;
 import java.util.logging.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
@@ -160,8 +159,20 @@ public abstract class Interpreter
 	protected Interpreter (final @NotNull AvailRuntime runtime)
 	{
 		this.runtime = runtime;
-	}
 
+		// Also initialize the process field.
+		process = ProcessDescriptor.mutable().create();
+		process.name(ByteStringDescriptor.from(String.format(
+			"unnamed, creation time = %d, hash = %d",
+			System.currentTimeMillis(),
+			process.hash())));
+		process.priority(IntegerDescriptor.fromUnsignedByte((short)50));
+		process.continuation(NullDescriptor.nullObject());
+		process.executionState(ExecutionState.RUNNING);
+		process.interruptRequestFlag(0);
+		process.breakpointBlock(NullDescriptor.nullObject());
+		process.processGlobals(MapDescriptor.empty());
+	}
 
 	/**
 	 * Answer whether the specified primitive accepts the specified number of
@@ -325,10 +336,12 @@ public abstract class Interpreter
 	 * there are any abstract methods that haven't been overridden with
 	 * implementations for it.
 	 *
-	 * @param methodName A {@linkplain AtomDescriptor method name}.
-	 * @param bodySignature The {@linkplain MethodSignatureDescriptor method
-	 *                      signature}.
-	 * @throws SignatureException If the signature is malformed.
+	 * @param methodName
+	 *            A {@linkplain AtomDescriptor method name}.
+	 * @param bodySignature
+	 *            The {@linkplain MethodSignatureDescriptor method signature}.
+	 * @throws SignatureException
+	 *            If the signature is malformed.
 	 */
 	public void addAbstractSignature (
 		final @NotNull AvailObject methodName,
@@ -639,8 +652,8 @@ public abstract class Interpreter
 	 * IntegerDescriptor ordinal} of the special object.
 	 *
 	 * @param specialObjectName
-	 *        The name of the {@linkplain AvailRuntime#specialObject(int)
-	 *        special object} method.
+	 *            The name of the {@linkplain AvailRuntime#specialObject(int)
+	 *            special object} method.
 	 */
 	public void bootstrapSpecialObject (
 		final @NotNull String specialObjectName)
@@ -696,7 +709,7 @@ public abstract class Interpreter
 	 * visibility of names in the current module.
 	 *
 	 * @param firstPiece
-	 *        An Avail {@link ByteStringDescriptor string}.
+	 *            An Avail {@link ByteStringDescriptor string}.
 	 * @return A map from TODO
 	 */
 	public AvailObject completeBundlesStartingWith (
@@ -716,8 +729,8 @@ public abstract class Interpreter
 	 * on the visibility of names in the current module.
 	 *
 	 * @param firstPiece
-	 *        The first Avail {@link ByteStringDescriptor string} token by which
-	 *        to filter messages.
+	 *            The first Avail {@link ByteStringDescriptor string} token by
+	 *            which to filter messages.
 	 * @return A map from TODO
 	 */
 	public AvailObject incompleteBundlesStartingWith (
@@ -749,10 +762,12 @@ public abstract class Interpreter
 	 * creating the true name if necessary. A local true name always hides other
 	 * true names.
 	 *
-	 * @param stringName An Avail {@linkplain TupleDescriptor string}.
-	 * @return A {@linkplain AtomDescriptor true name}.
+	 * @param stringName
+	 *            An Avail {@linkplain TupleDescriptor string}.
+	 * @return
+	 *            A {@linkplain AtomDescriptor true name}.
 	 * @throws AmbiguousNameException
-	 *         If the string could represent several different true names.
+	 *            If the string could represent several different true names.
 	 */
 	public @NotNull AvailObject lookupName (
 			final @NotNull AvailObject stringName)
@@ -827,9 +842,10 @@ public abstract class Interpreter
 	 * Unbind the specified implementation from the {@linkplain
 	 * AtomDescriptor method name}.
 	 *
-	 * @param methodName The {@linkplain AtomDescriptor true name} of a
-	 *                   method.
-	 * @param implementation An {@link SignatureDescriptor implementation}.
+	 * @param methodName
+	 *            The {@linkplain AtomDescriptor true name} of a method.
+	 * @param implementation
+	 *            An {@link SignatureDescriptor implementation}.
 	 */
 	public void removeMethodNamedImplementation (
 		final @NotNull AvailObject methodName,
@@ -851,27 +867,15 @@ public abstract class Interpreter
 	 * Does the {@linkplain Interpreter interpreter} provide a {@linkplain
 	 * Primitive primitive} with the specified ordinal?
 	 *
-	 * @param ordinal An ordinal.
-	 * @return {@code true} if there is a {@linkplain Primitive primitive} with
-	 *         the specified ordinal, {@code false} otherwise.
+	 * @param ordinal
+	 *            An ordinal.
+	 * @return
+	 *            {@code true} if there is a {@linkplain Primitive primitive}
+	 *            with the specified ordinal, {@code false} otherwise.
 	 */
 	public boolean supportsPrimitive (final int ordinal)
 	{
 		return Primitive.byPrimitiveNumber(ordinal) != null;
-	}
-
-	{
-		process = ProcessDescriptor.mutable().create();
-		process.name(ByteStringDescriptor.from(String.format(
-			"unnamed, creation time = %d, hash = %d",
-			System.currentTimeMillis(),
-			process.hash())));
-		process.priority(IntegerDescriptor.fromUnsignedByte((short)50));
-		process.continuation(NullDescriptor.nullObject());
-		process.executionState(ExecutionState.RUNNING);
-		process.interruptRequestFlag(0);
-		process.breakpointBlock(NullDescriptor.nullObject());
-		process.processGlobals(MapDescriptor.empty());
 	}
 
 	/**

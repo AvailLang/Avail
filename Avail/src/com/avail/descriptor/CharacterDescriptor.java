@@ -63,7 +63,7 @@ extends Descriptor
 	/**
 	 * The maximum code point value as an {@code int}.
 	 */
-	public static final int maxCodePointInt = 0x10FFFF;
+	public static final int maxCodePointInt = Character.MAX_CODE_POINT;
 
 	static
 	{
@@ -298,7 +298,7 @@ extends Descriptor
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
 	 */
-	protected CharacterDescriptor (final boolean isMutable)
+	private CharacterDescriptor (final boolean isMutable)
 	{
 		super(isMutable);
 	}

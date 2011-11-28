@@ -698,12 +698,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public void o_ParsingPc (final AvailObject object, final int value)
-	{
-		o_Traversed(object).parsingPc(value);
-	}
-
-	@Override
 	public @NotNull AvailObject o_DivideCanDestroy (
 			final @NotNull AvailObject object,
 			final @NotNull AvailObject aNumber,

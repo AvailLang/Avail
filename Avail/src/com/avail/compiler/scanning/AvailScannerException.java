@@ -79,7 +79,7 @@ extends RuntimeException
 	 */
 	public long failurePosition ()
 	{
-		return failedScanner._position;
+		return failedScanner.position();
 	}
 
 	/**
@@ -89,7 +89,7 @@ extends RuntimeException
 	 */
 	public long failureLineNumber ()
 	{
-		return failedScanner._lineNumber;
+		return failedScanner.lineNumber;
 	}
 
 	/**

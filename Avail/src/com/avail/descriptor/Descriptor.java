@@ -801,19 +801,6 @@ extends AbstractDescriptor
 		return;
 	}
 
-	/**
-	 * @param object
-	 * @param value
-	 */
-	@Override
-	public void o_ParsingPc (
-		final @NotNull AvailObject object,
-		final int value)
-	{
-		unsupportedOperation();
-		return;
-	}
-
 	@Override
 	public @NotNull AvailObject o_DivideCanDestroy (
 			final @NotNull AvailObject object,

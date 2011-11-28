@@ -267,11 +267,11 @@ extends TypeDescriptor
 		final AvailObject typeTuple =
 			ObjectTupleDescriptor.mutable().create(total);
 //		AvailObject.lock(typeTuple);
+		//  Make it pointer-safe first.
 		for (int i = 1; i <= total; i++)
 		{
 			typeTuple.tupleAtPut(i, NullDescriptor.nullObject());
 		}
-		//  Make it pointer-safe first.
 		final int section1 = min(
 			part1.sizeRange().lowerBound().extractInt(),
 			limit1);

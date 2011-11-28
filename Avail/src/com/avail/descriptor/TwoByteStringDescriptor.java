@@ -455,7 +455,7 @@ extends TupleDescriptor
 	 * @param unusedShortsOfLastWord
 	 *        The number of unused shorts of the last word.
 	 */
-	protected TwoByteStringDescriptor (
+	private TwoByteStringDescriptor (
 		final boolean isMutable,
 		final int unusedShortsOfLastWord)
 	{

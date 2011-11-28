@@ -49,9 +49,9 @@ import com.avail.descriptor.*;
  *
  * <p>
  * Here are some things to test.  T is the set of types, T(x) means the type of
- * x, Co(x) is some relation that's supposed to be covariant, Con(x) is some
- * relation that's supposed to be contravariant, &cup; is type union, and &cap;
- * is type intersection.
+ * x, Co(x) is some relation between a type and its parameters that's supposed
+ * to be covariant, Con(x) is some relation that's supposed to be contravariant,
+ * &cup; is type union, and &cap; is type intersection.
  *
  * <table border=1 cellspacing=0>
  * <tr>
@@ -904,6 +904,8 @@ public class TypeConsistencyTest
 			if (union == null)
 			{
 				union = t.typeUnion(rightNode.t).makeImmutable();
+				assertTrue(t.isSubtypeOf(union));
+				assertTrue(rightNode.t.isSubtypeOf(union));
 				unionCache[rightIndex] = union;
 			}
 			return union;
@@ -928,6 +930,8 @@ public class TypeConsistencyTest
 			if (intersection == null)
 			{
 				intersection = t.typeIntersection(rightNode.t).makeImmutable();
+				assertTrue(intersection.isSubtypeOf(t));
+				assertTrue(intersection.isSubtypeOf(rightNode.t));
 				intersectionCache[rightIndex] = intersection;
 			}
 			return intersection;
@@ -1461,27 +1465,59 @@ public class TypeConsistencyTest
 	}
 
 	/**
-	 * Test that the subtype relation covaries with function return type.
+	 * A {@code TypeRelation} that relates a type to another type that should
+	 * either covary or contravary with respect to it, depending on the specific
+	 * {@code TypeRelation}.
+	 */
+	static abstract class TypeRelation
+	{
+		/**
+		 * Transform any {@linkplain TypeDescriptor type} into another type (in
+		 * a way specific to an implementation) that should either covary or
+		 * contravary with respect to it, depending on the specific class.
+		 *
+		 * @param type The type to transform.
+		 * @return The transformed type.
+		 */
+		abstract AvailObject transform(AvailObject type);
+
+		/**
+		 * The name of the {@code TypeRelation}.
+		 */
+		final String name;
+
+		/**
+		 * Construct a new {@link TypeRelation}, supplying the relation name.
+		 *
+		 * @param name What to call the new relation.
+		 */
+		TypeRelation (final String name)
+		{
+			this.name = name;
+		}
+	}
+
+	/**
+	 * Check the covariance of some {@link TypeRelation}.
 	 * <span style="border-width:thin; border-style:solid"><nobr>
 	 * &forall;<sub>x,y&isin;T</sub>&thinsp;(x&sube;y &rarr; Co(x)&sube;Co(y))
 	 * </nobr></span>
+	 *
+	 * @param relation The covariant {@linkplain TypeRelation} to check.
 	 */
-	@Test
-	public void testFunctionResultCovariance ()
+	public void checkCovariance (
+		final @NotNull TypeRelation relation)
 	{
 		for (final Node x : Node.values)
 		{
+			final AvailObject CoX = relation.transform(x.t);
 			for (final Node y : Node.values)
 			{
-				final AvailObject CoX = FunctionTypeDescriptor.create(
-					TupleDescriptor.empty(),
-					x.t);
-				final AvailObject CoY = FunctionTypeDescriptor.create(
-					TupleDescriptor.empty(),
-					y.t);
+				final AvailObject CoY = relation.transform(y.t);
 				assertT(
 					!x.subtype(y) || CoX.isSubtypeOf(CoY),
-					"covariance (function result): %s, %s",
+					"covariance (%s): %s, %s",
+					relation.name,
 					x,
 					y);
 			}
@@ -1489,36 +1525,73 @@ public class TypeConsistencyTest
 	}
 
 	/**
-	 * Test that the subtype relation covaries with (homogeneous) tuple element
-	 * type.
+	 * Check that the subtype relation <em>contravaries</em> with the given
+	 * {@link TypeRelation}.
 	 * <span style="border-width:thin; border-style:solid"><nobr>
-	 * &forall;<sub>x,y&isin;T</sub>&thinsp;(x&sube;y &rarr; Co(x)&sube;Co(y))
+	 * &forall;<sub>x,y&isin;T</sub>&thinsp;(x&sube;y &rarr; Con(y)&sube;Con(x))
 	 * </nobr></span>
+	 *
+	 * @param relation The contravariant {@linkplain TypeRelation} to check.
 	 */
-	@Test
-	public void testTupleEntryCovariance ()
+	public void checkContravariance (
+		final @NotNull TypeRelation relation)
 	{
 		for (final Node x : Node.values)
 		{
+			final AvailObject ConX = relation.transform(x.t);
 			for (final Node y : Node.values)
 			{
-				final AvailObject CoX =
-					TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-						IntegerRangeTypeDescriptor.wholeNumbers(),
-						TupleDescriptor.empty(),
-						x.t);
-				final AvailObject CoY =
-					TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-						IntegerRangeTypeDescriptor.wholeNumbers(),
-						TupleDescriptor.empty(),
-						y.t);
+				final AvailObject ConY = relation.transform(y.t);
 				assertT(
-					!x.subtype(y) || CoX.isSubtypeOf(CoY),
-					"covariance (tuple entries): %s, %s",
+					!x.subtype(y) || ConY.isSubtypeOf(ConX),
+					"contravariance (%s): %s, %s",
+					relation.name,
 					x,
 					y);
 			}
 		}
+	}
+
+	/**
+	 * Test that the subtype relation covaries with function return type.
+	 *
+	 * @see #checkCovariance(TypeRelation)
+	 */
+	@Test
+	public void testFunctionResultCovariance ()
+	{
+		checkCovariance(new TypeRelation("function result")
+		{
+			@Override
+			public AvailObject transform (final AvailObject type)
+			{
+				return FunctionTypeDescriptor.create(
+					TupleDescriptor.empty(),
+					type);
+			}
+		});
+	}
+
+	/**
+	 * Test that the subtype relation covaries with (homogeneous) tuple element
+	 * type.
+	 *
+	 * @see #checkCovariance(TypeRelation)
+	 */
+	@Test
+	public void testTupleEntryCovariance ()
+	{
+		checkCovariance(new TypeRelation("tuple entries")
+		{
+			@Override
+			AvailObject transform (final AvailObject type)
+			{
+				return TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+					IntegerRangeTypeDescriptor.wholeNumbers(),
+					TupleDescriptor.empty(),
+					type);
+			}
+		});
 	}
 
 	/**
@@ -1531,25 +1604,16 @@ public class TypeConsistencyTest
 	@Test
 	public void testFunctionArgumentContravariance ()
 	{
-		for (final Node x : Node.values)
+		checkContravariance(new TypeRelation("function argument")
 		{
-			for (final Node y : Node.values)
+			@Override
+			AvailObject transform (final AvailObject type)
 			{
-				final AvailObject ConX = FunctionTypeDescriptor.create(
-					TupleDescriptor.from(
-						x.t),
+				return FunctionTypeDescriptor.create(
+					TupleDescriptor.from(type),
 					Types.TOP.o());
-				final AvailObject ConY = FunctionTypeDescriptor.create(
-					TupleDescriptor.from(
-						y.t),
-					Types.TOP.o());
-				assertT(
-					!x.subtype(y) || ConY.isSubtypeOf(ConX),
-					"contravariance (function argument): %s, %s",
-					x,
-					y);
 			}
-		}
+		});
 	}
 
 	/**
@@ -1563,19 +1627,14 @@ public class TypeConsistencyTest
 	@Test
 	public void testMetacovariance ()
 	{
-		for (final Node x : Node.values)
+		checkCovariance(new TypeRelation("metacovariance")
 		{
-			for (final Node y : Node.values)
+			@Override
+			AvailObject transform (final AvailObject type)
 			{
-				final AvailObject Tx = InstanceTypeDescriptor.on(x.t);
-				final AvailObject Ty = InstanceTypeDescriptor.on(y.t);
-				assertT(
-					!x.subtype(y) || Tx.isSubtypeOf(Ty),
-					"metacovariance: %s, %s",
-					x,
-					y);
+				return InstanceTypeDescriptor.on(type);
 			}
-		}
+		});
 	}
 
 	/**

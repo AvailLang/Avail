@@ -510,6 +510,10 @@ extends AbstractUnionTypeDescriptor
 			// Bottom is not an instance of itself.
 			return false;
 		}
+		if (aType.isAbstractUnionType())
+		{
+			return aType.abstractUnionTypeIncludesInstance(object);
+		}
 		// Bottom is an instance of top and any.
 		if (aType.equals(TOP.o()) || aType.equals(ANY.o()))
 		{

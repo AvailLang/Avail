@@ -208,7 +208,7 @@ extends Descriptor
 		final @NotNull List<AvailObject> recursionList,
 		final int indent)
 	{
-		builder.append(">TOP<");
+		builder.append("Null");
 	}
 
 	/**

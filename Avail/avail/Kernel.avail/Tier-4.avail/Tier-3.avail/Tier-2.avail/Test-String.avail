@@ -63,10 +63,10 @@ Assert "\(63)at" = "cat";
 Assert "\(63)\(61)\(74)" = "cat";
 Assert "\(63)a\(74)" = "cat";
 
-"\(F,EE,DDD,CCCC,0BBBB,00AAAA)" check
-	<16r"F", 16r"EE", 16r"DDD", 16r"CCCC", 16r"0BBBB", 16r"00AAAA">;
+"\(F,EE,DDD,CCCC,BBBBB,10AAAA)" check
+	<16r"F", 16r"EE", 16r"DDD", 16r"CCCC", 16r"BBBBB", 16r"10AAAA">;
 "\(0,00,000,0000,00000,000000)" check <0, 0, 0, 0, 0, 0>;
-"\(FFFF,EEE,DD,C)" check <16r"FFFF", 16r"EEE", 16r"DD", 16r"C">;
+"\(10FFFF,FFFF,EEE,DD,C)" check <16r"10FFFF", 16r"FFFF", 16r"EEE", 16r"DD", 16r"C">;
 "\"" check <34>;
 "\\" check <92>;
 "\"a" check <34, 97>;
@@ -74,4 +74,8 @@ Assert "\(63)a\(74)" = "cat";
 "\\\t" check <92, 9>;
 "\t \r\n" check <9, 32, 13, 10>;
 
- 
+/* Check that characters beyond the Basic Multilingual Page work. */
+"𝄞" check <16r"1D11E">;
+
+Method "𝄞" is ["hello";];
+Assert 𝄞 = "hello"; 

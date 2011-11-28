@@ -63,14 +63,6 @@ extends Descriptor
 
 
 	@Override
-	public void o_ParsingPc (
-		final @NotNull AvailObject object,
-		final int value)
-	{
-		object.integerSlotPut(IntegerSlots.PARSING_PC, value);
-	}
-
-	@Override
 	public void o_Unclassified (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
@@ -278,7 +270,9 @@ extends Descriptor
 						true);
 			}
 		}
-		filteredBundleTree.objectSlotPut(ObjectSlots.ALL_BUNDLES, filteredAllBundles);
+		filteredBundleTree.objectSlotPut(
+			ObjectSlots.ALL_BUNDLES,
+			filteredAllBundles);
 		filteredBundleTree.unclassified(filteredUnclassified);
 	}
 
@@ -358,17 +352,23 @@ extends Descriptor
 	public void o_Expand (
 		final @NotNull AvailObject object)
 	{
-		final AvailObject unclassified = object.unclassified();
+		final AvailObject unclassified = object.objectSlot(
+			ObjectSlots.UNCLASSIFIED);
 		if (unclassified.mapSize() == 0)
 		{
 			return;
 		}
-		AvailObject complete = object.lazyComplete();
-		AvailObject incomplete = object.lazyIncomplete();
-		AvailObject specialMap = object.lazySpecialActions();
+		AvailObject complete = object.objectSlot(
+			ObjectSlots.LAZY_COMPLETE);
+		AvailObject incomplete = object.objectSlot(
+			ObjectSlots.LAZY_INCOMPLETE);
+		AvailObject specialMap = object.objectSlot(
+			ObjectSlots.LAZY_SPECIAL_ACTIONS);
 		final int pc = object.parsingPc();
 		// Fail fast if someone messes with this during iteration.
-		object.unclassified(NullDescriptor.nullObject());
+		object.objectSlotPut(
+			ObjectSlots.UNCLASSIFIED,
+			NullDescriptor.nullObject());
 		for (final MapDescriptor.Entry entry : unclassified.mapIterable())
 		{
 			final AvailObject message = entry.key;
@@ -457,8 +457,9 @@ extends Descriptor
 	public static AvailObject newPc(final int pc)
 	{
 		final AvailObject result = mutable().create();
-		result.parsingPc(pc);
+		result.integerSlotPut(IntegerSlots.PARSING_PC, pc);
 		result.objectSlotPut(ObjectSlots.ALL_BUNDLES, MapDescriptor.empty());
+
 		result.unclassified(MapDescriptor.empty());
 		result.lazyComplete(MapDescriptor.empty());
 		result.lazyIncomplete(MapDescriptor.empty());

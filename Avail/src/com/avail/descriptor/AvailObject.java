@@ -1251,15 +1251,6 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public void parsingPc (
-		final int value)
-	{
-		descriptor.o_ParsingPc(this, value);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	public void displayTestingTree ()
 	{
 		descriptor.o_DisplayTestingTree(this);

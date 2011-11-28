@@ -1080,14 +1080,6 @@ public abstract class AbstractDescriptor
 		final AvailObject value);
 
 	/**
-	 * @param object
-	 * @param value
-	 */
-	public abstract void o_ParsingPc (
-		final @NotNull AvailObject object,
-		final int value);
-
-	/**
 	 * Divide the {@linkplain AvailObject operands} and answer the result.
 	 *
 	 * <p>Implementations may double-dispatch to {@link

@@ -741,6 +741,29 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 		return kindUnion;
 	}
 
+
+	/**
+	 * Construct a union type from a set with at least two instances.  The set
+	 * must have already been normalized, such that at most one of the elements
+	 * is itself a type.
+	 *
+	 * @param normalizedSet The set of instances.
+	 * @return The resulting union type.
+	 */
+	static AvailObject fromNormalizedSet (
+		final AvailObject normalizedSet)
+	{
+		assert normalizedSet.setSize() > 1;
+		final AvailObject result = UnionTypeDescriptor.mutable().create();
+		result.objectSlotPut(
+			ObjectSlots.INSTANCES,
+			normalizedSet.makeImmutable());
+		result.objectSlotPut(
+			ObjectSlots.CACHED_SUPERKIND,
+			NullDescriptor.nullObject());
+		return result;
+	}
+
 	/**
 	 * Avail's <code>boolean</code> type, the equivalent of Java's primitive
 	 * <code>boolean</code> pseudo-type, and Java's other non-primitive boxed

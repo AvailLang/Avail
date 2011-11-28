@@ -370,7 +370,7 @@ extends TupleDescriptor
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
 	 */
-	protected ObjectTupleDescriptor (final boolean isMutable)
+	private ObjectTupleDescriptor (final boolean isMutable)
 	{
 		super(isMutable);
 	}

@@ -34,7 +34,6 @@ package com.avail.descriptor;
 
 import java.util.List;
 import com.avail.annotations.NotNull;
-import com.avail.descriptor.UnionTypeDescriptor.ObjectSlots;
 
 /**
  * I represent the abstract concept of instance and union types.  In particular,
@@ -615,10 +614,10 @@ extends AbstractTypeDescriptor
 		final AvailObject potentialInstance);
 
 	/**
-	 * Answer a new instance of this descriptor based on the set of objects that
-	 * will be considered instances of that type. Normalize the cases where the
-	 * set has zero or one elements to use {@link BottomTypeDescriptor} and
-	 * {@link InstanceTypeDescriptor}, respectively.
+	 * Answer a new object instance of this descriptor based on the set of
+	 * objects that will be considered instances of that type. Normalize the
+	 * cases where the set has zero or one elements to use {@link
+	 * BottomTypeDescriptor} and {@link InstanceTypeDescriptor}, respectively.
 	 *
 	 * <p>
 	 * Note that we also have to assure type union metainvariance, namely:
@@ -685,18 +684,10 @@ extends AbstractTypeDescriptor
 			}
 			return BottomTypeDescriptor.bottom();
 		}
-		assert instancesSet.setSize() > 1;
-		final AvailObject result = UnionTypeDescriptor.mutable().create();
-		result.objectSlotPut(
-			ObjectSlots.INSTANCES,
-			normalizedSet.makeImmutable());
-		result.objectSlotPut(
-			ObjectSlots.CACHED_SUPERKIND,
-			NullDescriptor.nullObject());
+		final AvailObject result = UnionTypeDescriptor.fromNormalizedSet(
+			normalizedSet);
 		return result;
 	}
-
-
 
 	/**
 	 * Construct a new {@link AbstractUnionTypeDescriptor}.

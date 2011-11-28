@@ -438,7 +438,7 @@ extends TupleDescriptor
 	 *        object?
 	 * @param unusedBytes The number of unused bytes of the last word.
 	 */
-	protected ByteStringDescriptor (
+	private ByteStringDescriptor (
 		final boolean isMutable,
 		final int unusedBytes)
 	{
@@ -498,15 +498,49 @@ extends TupleDescriptor
 	public static @NotNull AvailObject from (
 		final @NotNull String aNativeString)
 	{
-		for (int i = 0; i < aNativeString.length(); i++)
+		final int charCount = aNativeString.length();
+		int maxCodePoint = 0;
+		int count = 0;
+		int index = 0;
+		while (index < charCount)
 		{
-			if (aNativeString.codePointAt(i) > 255)
-			{
-				return TwoByteStringDescriptor
-					.mutableObjectFromNativeTwoByteString(aNativeString);
-			}
+			final int codePoint = aNativeString.codePointAt(index);
+			maxCodePoint = Math.max(maxCodePoint, codePoint);
+			count++;
+			index += Character.charCount(codePoint);
 		}
-		return ByteStringDescriptor.mutableObjectFromNativeByteString(
-			aNativeString);
+		if (maxCodePoint <= 255)
+		{
+			return ByteStringDescriptor.mutableObjectFromNativeByteString(
+				aNativeString);
+		}
+		else if (maxCodePoint <= 65535)
+		{
+			return TwoByteStringDescriptor.mutableObjectFromNativeTwoByteString(
+				aNativeString);
+		}
+		// Fall back to building a general object tuple containing Avail
+		// character objects.
+		final AvailObject tuple = ObjectTupleDescriptor.mutable().create(count);
+		// Make it pointer-safe first, since we'll be allocating character
+		// objects.
+		for (int i = 1; i <= count; i++)
+		{
+			tuple.tupleAtPut(i, NullDescriptor.nullObject());
+		}
+		index = 0;
+		count = 1;  // One-based tuple index
+		while (index < charCount)
+		{
+			final int codePoint = aNativeString.codePointAt(index);
+			tuple.tupleAtPut(
+				count,
+				CharacterDescriptor.newImmutableCharacterWithCodePoint(
+					codePoint));
+			count++;
+			index += Character.charCount(codePoint);
+		}
+		assert count == tuple.tupleSize() + 1;
+		return tuple;
 	}
 }

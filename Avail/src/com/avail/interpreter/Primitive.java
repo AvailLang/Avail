@@ -46,7 +46,6 @@ import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
 import com.avail.compiler.*;
 import com.avail.compiler.node.*;
-import com.avail.compiler.node.DeclarationNodeDescriptor.IntegerSlots;
 import com.avail.compiler.scanning.*;
 import com.avail.compiler.scanning.TokenDescriptor.TokenType;
 import com.avail.descriptor.*;
@@ -3458,69 +3457,6 @@ public enum Primitive
 					IntegerRangeTypeDescriptor.naturalNumbers(),
 					ANY.o()),
 				TupleTypeDescriptor.mostGeneralType());
-		}
-	},
-
-	/**
-	 * <strong>Primitive 133:</strong> Build a {@linkplain TupleDescriptor
-	 * tuple} with one element.
-	 */
-	prim133_CreateTupleSizeOne(133, 1, CanFold, CannotFail)
-	{
-		@Override
-		public @NotNull Result attempt (
-			final @NotNull List<AvailObject> args,
-			final @NotNull Interpreter interpreter)
-		{
-			assert args.size() == 1;
-			final AvailObject soleElement = args.get(0);
-			final AvailObject newTupleObject =
-				ObjectTupleDescriptor.mutable().create(1);
-			newTupleObject.hashOrZero(0);
-			newTupleObject.tupleAtPut(1, soleElement);
-			return interpreter.primitiveSuccess(newTupleObject);
-		}
-
-		@Override
-		protected @NotNull AvailObject privateBlockTypeRestriction ()
-		{
-			return FunctionTypeDescriptor.create(
-				TupleDescriptor.from(
-					ANY.o()),
-				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-					IntegerRangeTypeDescriptor.singleInteger(
-						IntegerDescriptor.one()),
-					TupleDescriptor.empty(),
-					ANY.o()));
-		}
-	},
-
-	/**
-	 * <strong>Primitive 134:</strong> Answer the empty {@linkplain
-	 * TupleDescriptor tuple}.
-	 */
-	prim134_CreateEmptyTuple(134, 0, CanFold, CannotFail)
-	{
-		@Override
-		public @NotNull Result attempt (
-			final @NotNull List<AvailObject> args,
-			final @NotNull Interpreter interpreter)
-		{
-			assert args.size() == 0;
-			return interpreter.primitiveSuccess(TupleDescriptor.empty());
-		}
-
-		@Override
-		protected @NotNull AvailObject privateBlockTypeRestriction ()
-		{
-			return FunctionTypeDescriptor.create(
-				TupleDescriptor.from(
-					ANY.o()),
-				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-					IntegerRangeTypeDescriptor.singleInteger(
-						IntegerDescriptor.zero()),
-					TupleDescriptor.empty(),
-					BottomTypeDescriptor.bottom()));
 		}
 	},
 
