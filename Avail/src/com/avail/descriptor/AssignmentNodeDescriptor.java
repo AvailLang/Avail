@@ -30,14 +30,13 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.compiler.node;
+package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.*;
 import java.util.List;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind;
-import com.avail.descriptor.*;
+import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
 
@@ -72,8 +71,8 @@ extends ParseNodeDescriptor
 	/**
 	 * Setter for field variable.
 	 */
-	@Override
-	public void o_Variable (
+	@Override @AvailMethod
+	void o_Variable (
 		final @NotNull AvailObject object,
 		final AvailObject value)
 	{
@@ -83,8 +82,8 @@ extends ParseNodeDescriptor
 	/**
 	 * Getter for field variable.
 	 */
-	@Override
-	public AvailObject o_Variable (
+	@Override @AvailMethod
+	AvailObject o_Variable (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.VARIABLE);
@@ -93,8 +92,8 @@ extends ParseNodeDescriptor
 	/**
 	 * Setter for field expression.
 	 */
-	@Override
-	public void o_Expression (
+	@Override @AvailMethod
+	void o_Expression (
 		final @NotNull AvailObject object,
 		final AvailObject value)
 	{
@@ -104,29 +103,29 @@ extends ParseNodeDescriptor
 	/**
 	 * Getter for field expression.
 	 */
-	@Override
-	public AvailObject o_Expression (
+	@Override @AvailMethod
+	AvailObject o_Expression (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.EXPRESSION);
 	}
 
 
-	@Override
-	public AvailObject o_ExpressionType (final AvailObject object)
+	@Override @AvailMethod
+	AvailObject o_ExpressionType (final AvailObject object)
 	{
 		return object.expression().expressionType();
 	}
 
-	@Override
-	public AvailObject o_Kind (final AvailObject object)
+	@Override @AvailMethod
+	AvailObject o_Kind (final AvailObject object)
 	{
 		return ParseNodeTypeDescriptor.ParseNodeKind.ASSIGNMENT_NODE.create(
 			object.expressionType());
 	}
 
-	@Override
-	public int o_Hash (final AvailObject object)
+	@Override @AvailMethod
+	int o_Hash (final AvailObject object)
 	{
 		return
 			object.variable().hash() * Multiplier
@@ -134,8 +133,8 @@ extends ParseNodeDescriptor
 			^ 0xA71EA854;
 	}
 
-	@Override
-	public boolean o_Equals (
+	@Override @AvailMethod
+	boolean o_Equals (
 		final @NotNull AvailObject object,
 		final AvailObject another)
 	{
@@ -144,8 +143,8 @@ extends ParseNodeDescriptor
 			&& object.expression().equals(another.expression());
 	}
 
-	@Override
-	public void o_EmitEffectOn (
+	@Override @AvailMethod
+	void o_EmitEffectOn (
 		final @NotNull AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
@@ -158,8 +157,8 @@ extends ParseNodeDescriptor
 			codeGenerator);
 	}
 
-	@Override
-	public void o_EmitValueOn (
+	@Override @AvailMethod
+	void o_EmitValueOn (
 		final @NotNull AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
@@ -173,8 +172,8 @@ extends ParseNodeDescriptor
 			codeGenerator);
 	}
 
-	@Override
-	public void o_ChildrenMap (
+	@Override @AvailMethod
+	void o_ChildrenMap (
 		final @NotNull AvailObject object,
 		final Transformer1<AvailObject, AvailObject> aBlock)
 	{
@@ -182,8 +181,8 @@ extends ParseNodeDescriptor
 		object.variable(aBlock.value(object.variable()));
 	}
 
-	@Override
-	public void o_ChildrenDo (
+	@Override @AvailMethod
+	void o_ChildrenDo (
 		final @NotNull AvailObject object,
 		final Continuation1<AvailObject> aBlock)
 	{
@@ -191,8 +190,8 @@ extends ParseNodeDescriptor
 		aBlock.value(object.variable());
 	}
 
-	@Override
-	public void o_ValidateLocally (
+	@Override @AvailMethod
+	void o_ValidateLocally (
 		final @NotNull AvailObject object,
 		final AvailObject parent,
 		final List<AvailObject> outerBlocks,

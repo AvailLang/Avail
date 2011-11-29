@@ -36,10 +36,8 @@ import java.io.*;
 import java.util.*;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind;
-import com.avail.compiler.node.*;
-import com.avail.compiler.node.ParseNodeTypeDescriptor.ParseNodeKind;
-import com.avail.compiler.scanning.TokenDescriptor;
+import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.ProcessDescriptor.ExecutionState;
 import com.avail.exceptions.ArithmeticException;
 import com.avail.interpreter.Interpreter;
@@ -233,7 +231,7 @@ implements Iterable<AvailObject>
 	 * @param descriptor A descriptor.
 	 * @return A new object.
 	 */
-	public static AvailObject newIndexedDescriptor (
+	static AvailObject newIndexedDescriptor (
 		final int size,
 		final @NotNull AbstractDescriptor descriptor)
 	{
@@ -265,7 +263,7 @@ implements Iterable<AvailObject>
 	 * @param descriptor A descriptor.
 	 * @return A new object.
 	 */
-	public static AvailObject newObjectIndexedIntegerIndexedDescriptor (
+	static AvailObject newObjectIndexedIntegerIndexedDescriptor (
 		final int variableObjectSlots,
 		final int variableIntegerSlots,
 		final @NotNull AbstractDescriptor descriptor)
@@ -281,12 +279,7 @@ implements Iterable<AvailObject>
 			descriptor.numberOfFixedIntegerSlots() + variableIntegerSlots);
 	}
 
-
-
-	// message redirection - translate
-
-	public boolean greaterThan (
-		final AvailObject another)
+	public boolean greaterThan (final @NotNull AvailObject another)
 	{
 		// Translate >= into an inverted lessThan:. This manual method
 		// simplifies renaming rules greatly, and avoids the need for an
@@ -295,8 +288,7 @@ implements Iterable<AvailObject>
 		return another.descriptor.o_LessThan(another, this);
 	}
 
-	public boolean greaterOrEqual (
-		final AvailObject another)
+	public boolean greaterOrEqual (final @NotNull AvailObject another)
 	{
 		// Translate >= into an inverted lessOrEqual:. This manual method
 		// simplifies renaming rules greatly, and avoids the need for an
@@ -306,17 +298,14 @@ implements Iterable<AvailObject>
 	}
 
 
-
-	// primitive accessing
-
-	public void assertObjectUnreachableIfMutable ()
+	void assertObjectUnreachableIfMutable ()
 	{
 		// Set up the object to report nice obvious errors if anyone ever
 		// accesses it again.
 		assertObjectUnreachableIfMutableExcept(NullDescriptor.nullObject());
 	}
 
-	public void assertObjectUnreachableIfMutableExcept (
+	void assertObjectUnreachableIfMutableExcept (
 		final @NotNull AvailObject exceptMe)
 	{
 		// Set up the object to report nice obvious errors if anyone ever
@@ -345,18 +334,15 @@ implements Iterable<AvailObject>
 
 
 	/**
-	 * Replace my descriptor field with a FillerDescriptor.  This blows up for
-	 * most messages, catching incorrect (all, by definition) further
+	 * Replace my descriptor field with a {@link FillerDescriptor}.  This blows
+	 * up for most messages, catching incorrect (all, by definition) further
 	 * accidental uses of this object.
 	 */
 	public void setToInvalidDescriptor ()
 	{
 		// verifyToSpaceAddress();
-		descriptor(FillerDescriptor.mutable());
+		descriptor = FillerDescriptor.mutable();
 	}
-
-
-
 
 	/**
 	 * Compute the 32-bit hash of the receiver.
@@ -368,14 +354,12 @@ implements Iterable<AvailObject>
 		return descriptor.o_Hash(this);
 	}
 
-
 	/**
 	 * Set the 32-bit hash in the receiver.
 	 *
 	 * @param value The {@code int} to store as the receiver's hash value.
 	 */
-	public final void hash (
-		final int value)
+	public final void hash (final int value)
 	{
 		descriptor.o_Hash(this, value);
 	}
@@ -390,7 +374,6 @@ implements Iterable<AvailObject>
 		return descriptor.o_Hash(this);
 	}
 
-
 	/**
 	 * A good multiplier for a multiplicative random generator.  This constant
 	 * is a primitive element of (Z[2^32],*), specifically 1664525, as taken
@@ -399,7 +382,6 @@ implements Iterable<AvailObject>
 	 * cycle based on this multiplicative generator is 2^30.
 	 */
 	public static final int Multiplier = 1664525;
-
 
 	/**
 	 * Construct a new {@link AvailObjectRepresentation}.

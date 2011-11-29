@@ -62,8 +62,8 @@ extends PrimitiveTypeDescriptor
 	}
 
 	@Override
-	@ThreadSafe
-	public boolean o_IsSubtypeOf (
+	@AvailMethod @ThreadSafe
+	boolean o_IsSubtypeOf (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
@@ -74,8 +74,8 @@ extends PrimitiveTypeDescriptor
 	}
 
 	@Override
-	@ThreadSafe
-	public boolean o_IsSupertypeOfPrimitiveType (
+	@AvailMethod @ThreadSafe
+	boolean o_IsSupertypeOfPrimitiveType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aPrimitiveType)
 	{
@@ -83,7 +83,6 @@ extends PrimitiveTypeDescriptor
 		// primitive type). Always true.
 		return true;
 	}
-
 
 	/**
 	 * Construct a new {@link TopTypeDescriptor}.
@@ -96,7 +95,6 @@ extends PrimitiveTypeDescriptor
 	{
 		super(isMutable);
 	}
-
 
 	/**
 	 * The mutable {@link TopTypeDescriptor}.

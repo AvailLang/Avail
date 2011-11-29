@@ -34,7 +34,7 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 
 public abstract class TypeDescriptor
 extends AbstractTypeDescriptor
@@ -141,8 +141,8 @@ extends AbstractTypeDescriptor
 		}
 	}
 
-	@Override
-	public boolean o_Equals (
+	@Override @AvailMethod
+	boolean o_Equals (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
@@ -157,16 +157,16 @@ extends AbstractTypeDescriptor
 			&& another.isSubtypeOf(object);
 	}
 
-	@Override
-	public boolean o_IsInstanceOfKind (
+	@Override @AvailMethod
+	boolean o_IsInstanceOfKind (
 		final @NotNull AvailObject object,
 		final AvailObject aType)
 	{
 		return object.kind().isSubtypeOf(aType);
 	}
 
-	@Override
-	public boolean o_IsSubtypeOf (
+	@Override @AvailMethod
+	boolean o_IsSubtypeOf (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
@@ -177,16 +177,16 @@ extends AbstractTypeDescriptor
 		return false;
 	}
 
-	@Override
-	public boolean o_IsSupertypeOfFunctionType (
+	@Override @AvailMethod
+	boolean o_IsSupertypeOfFunctionType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aFunctionType)
 	{
 		return false;
 	}
 
-	@Override
-	public boolean o_IsSupertypeOfContainerType (
+	@Override @AvailMethod
+	boolean o_IsSupertypeOfContainerType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aContainerType)
 	{
@@ -197,24 +197,24 @@ extends AbstractTypeDescriptor
 		return false;
 	}
 
-	@Override
-	public boolean o_IsSupertypeOfContinuationType (
+	@Override @AvailMethod
+	boolean o_IsSupertypeOfContinuationType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aContinuationType)
 	{
 		return false;
 	}
 
-	@Override
-	public boolean o_IsSupertypeOfCompiledCodeType (
+	@Override @AvailMethod
+	boolean o_IsSupertypeOfCompiledCodeType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aCompiledCodeType)
 	{
 		return false;
 	}
 
-	@Override
-	public boolean o_IsSupertypeOfIntegerRangeType (
+	@Override @AvailMethod
+	boolean o_IsSupertypeOfIntegerRangeType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anIntegerRangeType)
 	{
@@ -223,16 +223,16 @@ extends AbstractTypeDescriptor
 		return false;
 	}
 
-	@Override
-	public boolean o_IsSupertypeOfMapType (
+	@Override @AvailMethod
+	boolean o_IsSupertypeOfMapType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aMapType)
 	{
 		return false;
 	}
 
-	@Override
-	public boolean o_IsSupertypeOfObjectType (
+	@Override @AvailMethod
+	boolean o_IsSupertypeOfObjectType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aLazyObjectType)
 	{
@@ -243,24 +243,24 @@ extends AbstractTypeDescriptor
 		return false;
 	}
 
-	@Override
-	public boolean o_IsSupertypeOfParseNodeType (
+	@Override @AvailMethod
+	boolean o_IsSupertypeOfParseNodeType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aParseNodeType)
 	{
 		return false;
 	}
 
-	@Override
-	public boolean o_IsSupertypeOfPojoType (
+	@Override @AvailMethod
+	boolean o_IsSupertypeOfPojoType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aPojoType)
 	{
 		return false;
 	}
 
-	@Override
-	public boolean o_IsSupertypeOfPrimitiveType (
+	@Override @AvailMethod
+	boolean o_IsSupertypeOfPrimitiveType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aPrimitiveType)
 	{
@@ -274,80 +274,80 @@ extends AbstractTypeDescriptor
 		return false;
 	}
 
-	@Override
-	public boolean o_IsSupertypeOfSetType (
+	@Override @AvailMethod
+	boolean o_IsSupertypeOfSetType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aSetType)
 	{
 		return false;
 	}
 
-	@Override
-	public boolean o_IsSupertypeOfTupleType (
+	@Override @AvailMethod
+	boolean o_IsSupertypeOfTupleType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aTupleType)
 	{
 		return false;
 	}
 
-	@Override
-	public boolean o_IsSupertypeOfUnionMeta (
+	@Override @AvailMethod
+	boolean o_IsSupertypeOfUnionMeta (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aUnionMeta)
 	{
 		return false;
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeIntersectionOfFunctionType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeIntersectionOfFunctionType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aFunctionType)
 	{
 		return BottomTypeDescriptor.bottom();
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeIntersectionOfContainerType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeIntersectionOfContainerType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aContainerType)
 	{
 		return BottomTypeDescriptor.bottom();
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeIntersectionOfContinuationType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeIntersectionOfContinuationType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aContinuationType)
 	{
 		return BottomTypeDescriptor.bottom();
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeIntersectionOfCompiledCodeType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeIntersectionOfCompiledCodeType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aCompiledCodeType)
 	{
 		return BottomTypeDescriptor.bottom();
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeIntersectionOfIntegerRangeType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeIntersectionOfIntegerRangeType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anIntegerRangeType)
 	{
 		return BottomTypeDescriptor.bottom();
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeIntersectionOfMapType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeIntersectionOfMapType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aMapType)
 	{
 		return BottomTypeDescriptor.bottom();
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeIntersectionOfMeta (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeIntersectionOfMeta (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject someMeta)
 	{
@@ -358,128 +358,128 @@ extends AbstractTypeDescriptor
 		return BottomTypeDescriptor.bottom();
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeIntersectionOfObjectType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeIntersectionOfObjectType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anObjectType)
 	{
 		return BottomTypeDescriptor.bottom();
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeIntersectionOfParseNodeType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeIntersectionOfParseNodeType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aParseNodeType)
 	{
 		return BottomTypeDescriptor.bottom();
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeIntersectionOfPojoType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeIntersectionOfPojoType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aPojoType)
 	{
 		return BottomTypeDescriptor.bottom();
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeIntersectionOfSetType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeIntersectionOfSetType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aSetType)
 	{
 		return BottomTypeDescriptor.bottom();
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeIntersectionOfTupleType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeIntersectionOfTupleType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aTupleType)
 	{
 		return BottomTypeDescriptor.bottom();
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeUnionOfFunctionType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeUnionOfFunctionType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aFunctionType)
 	{
 		return object.typeUnion(ANY.o());
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeUnionOfContainerType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeUnionOfContainerType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aContainerType)
 	{
 		return object.typeUnion(ANY.o());
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeUnionOfContinuationType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeUnionOfContinuationType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aContinuationType)
 	{
 		return object.typeUnion(ANY.o());
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeUnionOfCompiledCodeType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeUnionOfCompiledCodeType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aCompiledCodeType)
 	{
 		return object.typeUnion(ANY.o());
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeUnionOfIntegerRangeType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeUnionOfIntegerRangeType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
 		return object.typeUnion(ANY.o());
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeUnionOfMapType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeUnionOfMapType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aMapType)
 	{
 		return object.typeUnion(ANY.o());
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeUnionOfObjectType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeUnionOfObjectType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anEagerObjectType)
 	{
 		return object.typeUnion(ANY.o());
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeUnionOfParseNodeType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeUnionOfParseNodeType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aParseNodeType)
 	{
 		return object.typeUnion(ANY.o());
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeUnionOfPojoType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeUnionOfPojoType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aPojoType)
 	{
 		return object.typeUnion(ANY.o());
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeUnionOfSetType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeUnionOfSetType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aSetType)
 	{
 		return object.typeUnion(ANY.o());
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeUnionOfTupleType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeUnionOfTupleType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aTupleType)
 	{
@@ -490,8 +490,8 @@ extends AbstractTypeDescriptor
 		return object.typeUnion(ANY.o());
 	}
 
-	@Override
-	public boolean o_AcceptsArgTypesFromFunctionType (
+	@Override @AvailMethod
+	boolean o_AcceptsArgTypesFromFunctionType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject functionType)
 	{
@@ -499,8 +499,8 @@ extends AbstractTypeDescriptor
 		return false;
 	}
 
-	@Override
-	public boolean o_AcceptsArgumentTypesFromContinuation (
+	@Override @AvailMethod
+	boolean o_AcceptsArgumentTypesFromContinuation (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject continuation,
 		final int stackp,
@@ -510,8 +510,8 @@ extends AbstractTypeDescriptor
 		return false;
 	}
 
-	@Override
-	public boolean o_AcceptsListOfArgTypes (
+	@Override @AvailMethod
+	boolean o_AcceptsListOfArgTypes (
 		final @NotNull AvailObject object,
 		final @NotNull List<AvailObject> argTypes)
 	{
@@ -519,8 +519,8 @@ extends AbstractTypeDescriptor
 		return false;
 	}
 
-	@Override
-	public boolean o_AcceptsListOfArgValues (
+	@Override @AvailMethod
+	boolean o_AcceptsListOfArgValues (
 		final @NotNull AvailObject object,
 		final @NotNull List<AvailObject> argValues)
 	{
@@ -528,8 +528,8 @@ extends AbstractTypeDescriptor
 		return false;
 	}
 
-	@Override
-	public boolean o_AcceptsTupleOfArgTypes (
+	@Override @AvailMethod
+	boolean o_AcceptsTupleOfArgTypes (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject argTypes)
 	{
@@ -537,8 +537,8 @@ extends AbstractTypeDescriptor
 		return false;
 	}
 
-	@Override
-	public boolean o_AcceptsTupleOfArguments (
+	@Override @AvailMethod
+	boolean o_AcceptsTupleOfArguments (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject arguments)
 	{
@@ -546,40 +546,40 @@ extends AbstractTypeDescriptor
 		return false;
 	}
 
-	@Override
-	public @NotNull AvailObject o_ArgsTupleType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_ArgsTupleType (
 		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return null;
 	}
 
-	@Override
-	public @NotNull AvailObject o_CheckedExceptions (
+	@Override @AvailMethod
+	@NotNull AvailObject o_CheckedExceptions (
 		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return null;
 	}
 
-	@Override
-	public @NotNull AvailObject o_FunctionType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_FunctionType (
 		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return null;
 	}
 
-	@Override
-	public @NotNull AvailObject o_ContentType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_ContentType (
 		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return null;
 	}
 
-	@Override
-	public boolean o_CouldEverBeInvokedWith (
+	@Override @AvailMethod
+	boolean o_CouldEverBeInvokedWith (
 		final @NotNull AvailObject object,
 		final @NotNull List<AvailObject> argTypes)
 	{
@@ -587,32 +587,32 @@ extends AbstractTypeDescriptor
 		return false;
 	}
 
-	@Override
-	public @NotNull AvailObject o_DefaultType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_DefaultType (
 		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return null;
 	}
 
-	@Override
-	public @NotNull AvailObject o_FieldTypeMap (
+	@Override @AvailMethod
+	@NotNull AvailObject o_FieldTypeMap (
 		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return null;
 	}
 
-	@Override
-	public boolean o_HasObjectInstance (
+	@Override @AvailMethod
+	boolean o_HasObjectInstance (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject potentialInstance)
 	{
 		return false;
 	}
 
-	@Override
-	public boolean o_IsBetterRepresentationThan (
+	@Override @AvailMethod
+	boolean o_IsBetterRepresentationThan (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anotherObject)
 	{
@@ -620,8 +620,8 @@ extends AbstractTypeDescriptor
 		return false;
 	}
 
-	@Override
-	public boolean o_IsBetterRepresentationThanTupleType (
+	@Override @AvailMethod
+	boolean o_IsBetterRepresentationThanTupleType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aTupleType)
 	{
@@ -629,97 +629,97 @@ extends AbstractTypeDescriptor
 		return false;
 	}
 
-	@Override
-	public boolean o_IsIntegerRangeType (
+	@Override @AvailMethod
+	boolean o_IsIntegerRangeType (
 		final @NotNull AvailObject object)
 	{
 		return false;
 	}
 
-	@Override
-	public boolean o_IsMapType (final @NotNull AvailObject object)
+	@Override @AvailMethod
+	boolean o_IsMapType (final @NotNull AvailObject object)
 	{
 		return false;
 	}
 
-	@Override
-	public boolean o_IsSetType (final @NotNull AvailObject object)
+	@Override @AvailMethod
+	boolean o_IsSetType (final @NotNull AvailObject object)
 	{
 		return false;
 	}
 
-	@Override
-	public boolean o_IsTupleType (final @NotNull AvailObject object)
+	@Override @AvailMethod
+	boolean o_IsTupleType (final @NotNull AvailObject object)
 	{
 		return false;
 	}
 
-	@Override
-	public @NotNull AvailObject o_KeyType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_KeyType (
 		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return null;
 	}
 
-	@Override
-	public @NotNull AvailObject o_LowerBound (
+	@Override @AvailMethod
+	@NotNull AvailObject o_LowerBound (
 		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return null;
 	}
 
-	@Override
-	public boolean o_LowerInclusive (
+	@Override @AvailMethod
+	boolean o_LowerInclusive (
 		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return false;
 	}
 
-	@Override
-	public @NotNull AvailObject o_Name (
+	@Override @AvailMethod
+	@NotNull AvailObject o_Name (
 		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return null;
 	}
 
-	@Override
-	public @NotNull AvailObject o_Kind (
+	@Override @AvailMethod
+	@NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return null;
 	}
 
-	@Override
-	public @NotNull AvailObject o_Parent (
+	@Override @AvailMethod
+	@NotNull AvailObject o_Parent (
 		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return null;
 	}
 
-	@Override
-	public @NotNull AvailObject o_ReturnType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_ReturnType (
 		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return null;
 	}
 
-	@Override
-	public @NotNull AvailObject o_SizeRange (
+	@Override @AvailMethod
+	@NotNull AvailObject o_SizeRange (
 		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return null;
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeAtIndex (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeAtIndex (
 		final @NotNull AvailObject object,
 		final int index)
 	{
@@ -727,16 +727,16 @@ extends AbstractTypeDescriptor
 		return null;
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeTuple (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeTuple (
 		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return null;
 	}
 
-	@Override
-	public @NotNull AvailObject o_UnionOfTypesAtThrough (
+	@Override @AvailMethod
+	@NotNull AvailObject o_UnionOfTypesAtThrough (
 		final @NotNull AvailObject object,
 		final int startIndex,
 		final int endIndex)
@@ -745,24 +745,24 @@ extends AbstractTypeDescriptor
 		return null;
 	}
 
-	@Override
-	public @NotNull AvailObject o_UpperBound (
+	@Override @AvailMethod
+	@NotNull AvailObject o_UpperBound (
 		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return null;
 	}
 
-	@Override
-	public boolean o_UpperInclusive (
+	@Override @AvailMethod
+	boolean o_UpperInclusive (
 		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return false;
 	}
 
-	@Override
-	public @NotNull AvailObject o_ValueType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_ValueType (
 		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
@@ -785,7 +785,8 @@ extends AbstractTypeDescriptor
 		for (final Types spec : Types.values())
 		{
 			final AvailObject o = spec.o();
-			o.name(ByteStringDescriptor.from(spec.name()));
+			o.name(ByteStringDescriptor.from(
+				spec == TOP ? "⊤" : spec.name()));
 			o.parent(
 				spec.parent == null
 					 ? NullDescriptor.nullObject()

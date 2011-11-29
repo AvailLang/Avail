@@ -32,13 +32,13 @@
 
 package com.avail.descriptor;
 
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 
 public abstract class SignatureDescriptor
 extends Descriptor
 {
-	@Override
-	public abstract @NotNull AvailObject o_BodySignature (
+	@Override @AvailMethod
+	abstract @NotNull AvailObject o_BodySignature (
 		final @NotNull AvailObject object);
 
 	/**
@@ -49,45 +49,45 @@ extends Descriptor
 	 * semantics.
 	 * </p>
 	 */
-	@Override
-	public boolean o_Equals (
+	@Override @AvailMethod
+	boolean o_Equals (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
 		return another.traversed().sameAddressAs(object);
 	}
 
-	@Override
-	public abstract int o_Hash (
+	@Override @AvailMethod
+	abstract int o_Hash (
 		final @NotNull AvailObject object);
 
-	@Override
-	public abstract @NotNull AvailObject o_Kind (
+	@Override @AvailMethod
+	abstract @NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object);
 
-	@Override
-	public boolean o_IsAbstract (
+	@Override @AvailMethod
+	boolean o_IsAbstract (
 		final @NotNull AvailObject object)
 	{
 		return false;
 	}
 
-	@Override
-	public boolean o_IsForward (
+	@Override @AvailMethod
+	boolean o_IsForward (
 		final @NotNull AvailObject object)
 	{
 		return false;
 	}
 
-	@Override
-	public boolean o_IsMethod (
+	@Override @AvailMethod
+	boolean o_IsMethod (
 		final @NotNull AvailObject object)
 	{
 		return false;
 	}
 
-	@Override
-	public boolean o_IsMacro (
+	@Override @AvailMethod
+	boolean o_IsMacro (
 		final @NotNull AvailObject object)
 	{
 		return false;

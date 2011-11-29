@@ -33,8 +33,7 @@
 package com.avail.compiler;
 
 import com.avail.compiler.AbstractAvailCompiler.ParserState;
-import com.avail.compiler.node.ParseNodeDescriptor;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.*;
 
 /**
  * An {@code AvailCompilerCachedSolution} is a record of having parsed some

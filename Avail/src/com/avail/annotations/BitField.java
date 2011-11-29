@@ -33,13 +33,11 @@
 package com.avail.annotations;
 
 import java.lang.annotation.*;
-import com.avail.descriptor.AvailObject;
 
 /**
  * A {@code BitField} annotates an Enum value.  This Enum value contains
- * information about how to extract its value from an {@linkplain
- * AvailObject#integerSlotAt(Enum, int) int slot}.  It may also include
- * information and behavior to assist in printing.
+ * information about how to extract its value from an integer slot.  It may also
+ * include information and behavior to assist in printing.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */

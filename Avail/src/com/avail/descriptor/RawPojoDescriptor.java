@@ -294,16 +294,16 @@ extends Descriptor
 		}
 	}
 
-	@Override
-	public boolean o_Equals (
+	@Override @AvailMethod
+	boolean o_Equals (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
 		return another.equalsRawPojo(object);
 	}
 
-	@Override
-	public boolean o_EqualsRawPojo (
+	@Override @AvailMethod
+	boolean o_EqualsRawPojo (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aRawPojo)
 	{
@@ -349,32 +349,32 @@ extends Descriptor
 		return true;
 	}
 
-	@Override
-	public int o_Hash (final @NotNull AvailObject object)
+	@Override @AvailMethod
+	int o_Hash (final @NotNull AvailObject object)
 	{
 		// This ensures that mutations of the wrapped pojo do not corrupt hashed
 		// Avail data structures.
 		return System.identityHashCode(getPojo(object));
 	}
 
-	@Override
-	public boolean o_IsRawPojo (final AvailObject object)
+	@Override @AvailMethod
+	boolean o_IsRawPojo (final AvailObject object)
 	{
 		return true;
 	}
 
-	@Override
-	public @NotNull AvailObject o_Kind (final @NotNull AvailObject object)
+	@Override @AvailMethod
+	@NotNull AvailObject o_Kind (final @NotNull AvailObject object)
 	{
 		AvailObject.error("Do not ask for the kind of a raw pojo!");
 		return null;
 	}
 
-	@Override
-	public @NotNull AvailObject o_MakeImmutable (
+	@Override @AvailMethod
+	@NotNull AvailObject o_MakeImmutable (
 		final @NotNull AvailObject object)
 	{
-		object.descriptor(RawPojoDescriptor.immutable());
+		object.descriptor = immutable();
 		return object;
 	}
 

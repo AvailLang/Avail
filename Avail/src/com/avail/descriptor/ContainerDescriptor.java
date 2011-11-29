@@ -34,7 +34,7 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.error;
 import java.util.Random;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 
 /**
  * My {@linkplain AvailObject object instances} are containers which can hold
@@ -86,22 +86,22 @@ extends Descriptor
 			|| e == IntegerSlots.HASH_OR_ZERO;
 	}
 
-	@Override
-	public @NotNull AvailObject o_Value (
+	@Override @AvailMethod
+	@NotNull AvailObject o_Value (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.VALUE);
 	}
 
-	@Override
-	public @NotNull AvailObject o_Kind (
+	@Override @AvailMethod
+	@NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.KIND);
 	}
 
-	@Override
-	public boolean o_Equals (
+	@Override @AvailMethod
+	boolean o_Equals (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
@@ -118,16 +118,16 @@ extends Descriptor
 	 * objects in either path.
 	 * </p>
 	 */
-	@Override
-	public boolean o_EqualsContainer (
+	@Override @AvailMethod
+	boolean o_EqualsContainer (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aContainer)
 	{
 		return object.sameAddressAs(aContainer);
 	}
 
-	@Override
-	public int o_Hash (
+	@Override @AvailMethod
+	int o_Hash (
 		final @NotNull AvailObject object)
 	{
 		int hash = object.integerSlot(IntegerSlots.HASH_OR_ZERO);
@@ -143,19 +143,19 @@ extends Descriptor
 		return hash;
 	}
 
-	@Override
-	public @NotNull AvailObject o_MakeImmutable (
+	@Override @AvailMethod
+	@NotNull AvailObject o_MakeImmutable (
 		final @NotNull AvailObject object)
 	{
 		// If I am being frozen (a container), I don't need to freeze my current
 		// value.  I do, on the other hand, have to freeze my kind object.
-		object.descriptor(ContainerDescriptor.immutable());
+		object.descriptor = immutable();
 		object.objectSlot(ObjectSlots.KIND).makeImmutable();
 		return object;
 	}
 
-	@Override
-	public void o_SetValue (
+	@Override @AvailMethod
+	void o_SetValue (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject newValue)
 	{
@@ -167,8 +167,8 @@ extends Descriptor
 		object.objectSlotPut(ObjectSlots.VALUE, newValue);
 	}
 
-	@Override
-	public void o_ClearValue (
+	@Override @AvailMethod
+	void o_ClearValue (
 		final @NotNull AvailObject object)
 	{
 		// Clear the container (make it have no current value).
@@ -176,8 +176,8 @@ extends Descriptor
 		object.objectSlotPut(ObjectSlots.VALUE, NullDescriptor.nullObject());
 	}
 
-	@Override
-	public @NotNull AvailObject o_GetValue (
+	@Override @AvailMethod
+	@NotNull AvailObject o_GetValue (
 		final @NotNull AvailObject object)
 	{
 		// Answer the current value of the container.  Fail if no value is
@@ -200,8 +200,8 @@ extends Descriptor
 	 * unknown whether the variable has already been shared.
 	 * </p>
 	 */
-	@Override
-	public void o_ReleaseVariableOrMakeContentsImmutable (
+	@Override @AvailMethod
+	void o_ReleaseVariableOrMakeContentsImmutable (
 		final @NotNull AvailObject object)
 	{
 		final AvailObject value = object.objectSlot(ObjectSlots.VALUE);

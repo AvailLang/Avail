@@ -38,8 +38,8 @@ import java.io.PrintStream;
 import java.util.*;
 import org.junit.*;
 import com.avail.annotations.NotNull;
-import com.avail.compiler.node.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.*;
+import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.interpreter.Primitive;
 
 

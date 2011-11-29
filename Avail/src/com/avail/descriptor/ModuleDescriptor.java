@@ -34,8 +34,7 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.TypeDescriptor.Types.FORWARD_SIGNATURE;
-import com.avail.annotations.NotNull;
-import com.avail.compiler.node.*;
+import com.avail.annotations.*;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 
 /**
@@ -172,8 +171,8 @@ extends Descriptor
 		TYPE_RESTRICTION_FUNCTIONS
 	}
 
-	@Override
-	public void o_AddGrammaticalMessageRestrictions (
+	@Override @AvailMethod
+	void o_AddGrammaticalMessageRestrictions (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject methodName,
 		final @NotNull AvailObject illegalArgMsgs)
@@ -193,8 +192,8 @@ extends Descriptor
 			grammaticalRestrictions);
 	}
 
-	@Override
-	public void o_AddMethodImplementation (
+	@Override @AvailMethod
+	void o_AddMethodImplementation (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject methodName,
 		final @NotNull AvailObject implementation)
@@ -217,8 +216,8 @@ extends Descriptor
 		object.objectSlotPut(ObjectSlots.METHODS, methods);
 	}
 
-	@Override
-	public void o_AddConstantBinding (
+	@Override @AvailMethod
+	void o_AddConstantBinding (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject name,
 		final @NotNull AvailObject constantBinding)
@@ -232,8 +231,8 @@ extends Descriptor
 		object.objectSlotPut(ObjectSlots.CONSTANT_BINDINGS, constantBindings);
 	}
 
-	@Override
-	public void o_AddVariableBinding (
+	@Override @AvailMethod
+	void o_AddVariableBinding (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject name,
 		final @NotNull AvailObject variableBinding)
@@ -247,8 +246,8 @@ extends Descriptor
 		object.objectSlotPut(ObjectSlots.VARIABLE_BINDINGS, variableBindings);
 	}
 
-	@Override
-	public void o_AtNameAdd (
+	@Override @AvailMethod
+	void o_AtNameAdd (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject stringName,
 		final @NotNull AvailObject trueName)
@@ -276,8 +275,8 @@ extends Descriptor
 		object.objectSlotPut(ObjectSlots.VISIBLE_NAMES, visibleNames);
 	}
 
-	@Override
-	public void o_AtNewNamePut (
+	@Override @AvailMethod
+	void o_AtNewNamePut (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject stringName,
 		final @NotNull AvailObject trueName)
@@ -297,8 +296,8 @@ extends Descriptor
 		object.objectSlotPut(ObjectSlots.VISIBLE_NAMES, visibleNames);
 	}
 
-	@Override
-	public void o_AtPrivateNameAdd (
+	@Override @AvailMethod
+	void o_AtPrivateNameAdd (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject stringName,
 		final @NotNull AvailObject trueName)
@@ -326,8 +325,8 @@ extends Descriptor
 		object.objectSlotPut(ObjectSlots.VISIBLE_NAMES, visibleNames);
 	}
 
-	@Override
-	public boolean o_NameVisible (
+	@Override @AvailMethod
+	boolean o_NameVisible (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject trueName)
 	{
@@ -351,8 +350,8 @@ extends Descriptor
 	 *        {@linkplain ForwardSignatureDescriptor forward declaration
 	 *        signature} being removed.
 	 */
-	@Override
-	public void o_ResolvedForwardWithName (
+	@Override @AvailMethod
+	void o_ResolvedForwardWithName (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject forwardImplementation,
 		final @NotNull AvailObject methodName)
@@ -382,8 +381,8 @@ extends Descriptor
 	 *         AtomDescriptor true names} that have the given stringName
 	 *         and are visible in this module.
 	 */
-	@Override
-	public AvailObject o_TrueNamesForStringName (
+	@Override @AvailMethod
+	AvailObject o_TrueNamesForStringName (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject stringName)
 	{
@@ -415,86 +414,86 @@ extends Descriptor
 		return publics.setUnionCanDestroy(privates, false);
 	}
 
-	@Override
-	public @NotNull AvailObject o_Name (
+	@Override @AvailMethod
+	@NotNull AvailObject o_Name (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.NAME);
 	}
 
-	@Override
-	public void o_Versions (
+	@Override @AvailMethod
+	void o_Versions (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.VERSIONS, value);
 	}
 
-	@Override
-	public @NotNull AvailObject o_ConstantBindings (
+	@Override @AvailMethod
+	@NotNull AvailObject o_ConstantBindings (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.CONSTANT_BINDINGS);
 	}
 
-	@Override
-	public @NotNull AvailObject o_FilteredBundleTree (
+	@Override @AvailMethod
+	@NotNull AvailObject o_FilteredBundleTree (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.FILTERED_BUNDLE_TREE);
 	}
 
-	@Override
-	public @NotNull AvailObject o_Methods (
+	@Override @AvailMethod
+	@NotNull AvailObject o_Methods (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.METHODS);
 	}
 
-	@Override
-	public @NotNull AvailObject o_Versions (
+	@Override @AvailMethod
+	@NotNull AvailObject o_Versions (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.VERSIONS);
 	}
 
-	@Override
-	public @NotNull AvailObject o_Names (
+	@Override @AvailMethod
+	@NotNull AvailObject o_Names (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.NAMES);
 	}
 
-	@Override
-	public @NotNull AvailObject o_NewNames (
+	@Override @AvailMethod
+	@NotNull AvailObject o_NewNames (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.NEW_NAMES);
 	}
 
-	@Override
-	public @NotNull AvailObject o_PrivateNames (
+	@Override @AvailMethod
+	@NotNull AvailObject o_PrivateNames (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.PRIVATE_NAMES);
 	}
 
-	@Override
-	public @NotNull AvailObject o_GrammaticalRestrictions (
+	@Override @AvailMethod
+	@NotNull AvailObject o_GrammaticalRestrictions (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.GRAMMATICAL_RESTRICTIONS);
 	}
 
-	@Override
-	public @NotNull AvailObject o_VariableBindings (
+	@Override @AvailMethod
+	@NotNull AvailObject o_VariableBindings (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.VARIABLE_BINDINGS);
 	}
 
-	@Override
-	public @NotNull AvailObject o_VisibleNames (
+	@Override @AvailMethod
+	@NotNull AvailObject o_VisibleNames (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.VISIBLE_NAMES);
@@ -528,8 +527,8 @@ extends Descriptor
 	 *        The root {@linkplain MessageBundleTreeDescriptor bundle tree} for
 	 *        which to make a filtered copy.
 	 */
-	@Override
-	public void o_BuildFilteredBundleTreeFrom (
+	@Override @AvailMethod
+	void o_BuildFilteredBundleTreeFrom (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject bundleTree)
 	{
@@ -543,8 +542,8 @@ extends Descriptor
 			object.visibleNames());
 	}
 
-	@Override
-	public void o_CleanUpAfterCompile (
+	@Override @AvailMethod
+	void o_CleanUpAfterCompile (
 		final @NotNull AvailObject object)
 	{
 		object.objectSlotPut(
@@ -567,8 +566,8 @@ extends Descriptor
 			NullDescriptor.nullObject());
 	}
 
-	@Override
-	public boolean o_Equals (
+	@Override @AvailMethod
+	boolean o_Equals (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
@@ -576,15 +575,15 @@ extends Descriptor
 		return another.traversed().sameAddressAs(object);
 	}
 
-	@Override
-	public int o_Hash (
+	@Override @AvailMethod
+	int o_Hash (
 		final @NotNull AvailObject object)
 	{
 		return object.name().hash() * 173 ^ 0xDF383F8C;
 	}
 
-	@Override
-	public void o_RemoveFrom (
+	@Override @AvailMethod
+	void o_RemoveFrom (
 		final @NotNull AvailObject object,
 		final @NotNull L2Interpreter anInterpreter)
 	{
@@ -612,8 +611,8 @@ extends Descriptor
 		}
 	}
 
-	@Override
-	public void o_AddTypeRestriction (
+	@Override @AvailMethod
+	void o_AddTypeRestriction (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject methodNameAtom,
 		final @NotNull AvailObject typeRestrictionFunction)

@@ -33,11 +33,13 @@
 package com.avail.annotations;
 
 import java.lang.annotation.*;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.*;
 
 /**
  * {@code AvailMethod} indicates that the annotated target is a method that
- * should be available for all {@link AvailObject}s.
+ * should be available for all {@link AvailObject}s, even if it is not
+ * meaningfully supported by a particular {@linkplain AbstractDescriptor
+ * descriptor}.
  *
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
@@ -49,7 +51,7 @@ public @interface AvailMethod
 	 * Answer the canonical name of the method. This is the name by which it
 	 * should be accessible from an {@link AvailObject}.
 	 *
-	 * @return The canonical name of the method, or {@code null} if the name
+	 * @return The canonical name of the method, or the empty string if the name
 	 *         should be inferred directly from the annotated method.
 	 */
 	public String value () default "";

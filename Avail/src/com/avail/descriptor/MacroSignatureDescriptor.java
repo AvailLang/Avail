@@ -33,8 +33,7 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.TypeDescriptor.Types.MACRO_SIGNATURE;
-import com.avail.annotations.NotNull;
-import com.avail.compiler.node.*;
+import com.avail.annotations.*;
 
 /**
  * Macros are extremely hygienic in Avail.  They are defined almost exactly like
@@ -82,37 +81,37 @@ extends SignatureDescriptor
 	/**
 	 * Answer my signature.
 	 */
-	@Override
-	public @NotNull AvailObject o_BodySignature (
+	@Override @AvailMethod
+	@NotNull AvailObject o_BodySignature (
 		final @NotNull AvailObject object)
 	{
 		return object.bodyBlock().kind();
 	}
 
-	@Override
-	public @NotNull AvailObject o_BodyBlock (
+	@Override @AvailMethod
+	@NotNull AvailObject o_BodyBlock (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.BODY_BLOCK);
 	}
 
-	@Override
-	public int o_Hash (
+	@Override @AvailMethod
+	int o_Hash (
 		final @NotNull AvailObject object)
 	{
 		final int hash = object.bodyBlock().hash() ^ 0x67f6ec56;
 		return hash;
 	}
 
-	@Override
-	public @NotNull AvailObject o_Kind (
+	@Override @AvailMethod
+	@NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
 		return MACRO_SIGNATURE.o();
 	}
 
-	@Override
-	public boolean o_IsMacro (
+	@Override @AvailMethod
+	boolean o_IsMacro (
 		final @NotNull AvailObject object)
 	{
 		return true;

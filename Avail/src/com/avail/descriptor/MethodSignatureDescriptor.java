@@ -33,7 +33,7 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.TypeDescriptor.Types.METHOD_SIGNATURE;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 
 public class MethodSignatureDescriptor
 extends SignatureDescriptor
@@ -46,29 +46,29 @@ extends SignatureDescriptor
 		BODY_BLOCK
 	}
 
-	@Override
-	public AvailObject o_BodySignature (
+	@Override @AvailMethod
+	AvailObject o_BodySignature (
 		final @NotNull AvailObject object)
 	{
 		return object.bodyBlock().kind();
 	}
 
-	@Override
-	public AvailObject o_BodyBlock (
+	@Override @AvailMethod
+	AvailObject o_BodyBlock (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.BODY_BLOCK);
 	}
 
-	@Override
-	public int o_Hash (
+	@Override @AvailMethod
+	int o_Hash (
 		final @NotNull AvailObject object)
 	{
 		return (object.bodyBlock().hash() * 19) ^ 0x70B2B1A9;
 	}
 
-	@Override
-	public AvailObject o_Kind (
+	@Override @AvailMethod
+	AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
 		//  Answer the object's type.
@@ -76,8 +76,8 @@ extends SignatureDescriptor
 		return METHOD_SIGNATURE.o();
 	}
 
-	@Override
-	public boolean o_IsMethod (
+	@Override @AvailMethod
+	boolean o_IsMethod (
 		final @NotNull AvailObject object)
 	{
 		return true;

@@ -30,14 +30,13 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.compiler.node;
+package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.error;
-import static com.avail.compiler.node.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import java.util.List;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
 
@@ -69,8 +68,8 @@ extends ParseNodeDescriptor
 	/**
 	 * Setter for field variable.
 	 */
-	@Override
-	public void o_Variable (
+	@Override @AvailMethod
+	void o_Variable (
 		final @NotNull AvailObject object,
 		final AvailObject variable)
 	{
@@ -80,8 +79,8 @@ extends ParseNodeDescriptor
 	/**
 	 * Getter for field variable.
 	 */
-	@Override
-	public AvailObject o_Variable (
+	@Override @AvailMethod
+	AvailObject o_Variable (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.VARIABLE);
@@ -91,28 +90,28 @@ extends ParseNodeDescriptor
 	 * The value I represent is a variable itself.  Answer an appropriate
 	 * variable type.
 	 */
-	@Override
-	public AvailObject o_ExpressionType (final AvailObject object)
+	@Override @AvailMethod
+	AvailObject o_ExpressionType (final AvailObject object)
 	{
 		return ContainerTypeDescriptor.wrapInnerType(
 			object.variable().expressionType());
 	}
 
-	@Override
-	public AvailObject o_Kind (final AvailObject object)
+	@Override @AvailMethod
+	AvailObject o_Kind (final AvailObject object)
 	{
 		return REFERENCE_NODE.create(object.expressionType());
 	}
 
-	@Override
-	public int o_Hash (final AvailObject object)
+	@Override @AvailMethod
+	int o_Hash (final AvailObject object)
 	{
 		return
 			object.variable().hash() ^ 0xE7FA9B3F;
 	}
 
-	@Override
-	public boolean o_Equals (
+	@Override @AvailMethod
+	boolean o_Equals (
 		final @NotNull AvailObject object,
 		final AvailObject another)
 	{
@@ -120,8 +119,8 @@ extends ParseNodeDescriptor
 			&& object.variable().equals(another.variable());
 	}
 
-	@Override
-	public void o_EmitValueOn (
+	@Override @AvailMethod
+	void o_EmitValueOn (
 		final @NotNull AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
@@ -131,16 +130,16 @@ extends ParseNodeDescriptor
 			codeGenerator);
 	}
 
-	@Override
-	public void o_ChildrenMap (
+	@Override @AvailMethod
+	void o_ChildrenMap (
 		final @NotNull AvailObject object,
 		final Transformer1<AvailObject, AvailObject> aBlock)
 	{
 		object.variable(aBlock.value(object.variable()));
 	}
 
-	@Override
-	public void o_ChildrenDo (
+	@Override @AvailMethod
+	void o_ChildrenDo (
 		final @NotNull AvailObject object,
 		final Continuation1<AvailObject> aBlock)
 	{
@@ -221,8 +220,8 @@ extends ParseNodeDescriptor
 		return immutable;
 	}
 
-	@Override
-	public void o_ValidateLocally (
+	@Override @AvailMethod
+	void o_ValidateLocally (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject parent,
 		final @NotNull List<AvailObject> outerBlocks,

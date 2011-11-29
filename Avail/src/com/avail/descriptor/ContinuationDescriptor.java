@@ -152,32 +152,32 @@ extends Descriptor
 	}
 
 
-	@Override
-	public void o_Caller (
+	@Override @AvailMethod
+	void o_Caller (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.CALLER, value);
 	}
 
-	@Override
-	public void o_Function (
+	@Override @AvailMethod
+	void o_Function (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.FUNCTION, value);
 	}
 
-	@Override
-	public @NotNull AvailObject o_ArgOrLocalOrStackAt (
+	@Override @AvailMethod
+	@NotNull AvailObject o_ArgOrLocalOrStackAt (
 		final @NotNull AvailObject object,
 		final int subscript)
 	{
 		return object.objectSlotAt(ObjectSlots.FRAME_AT_, subscript);
 	}
 
-	@Override
-	public void o_ArgOrLocalOrStackAtPut (
+	@Override @AvailMethod
+	void o_ArgOrLocalOrStackAtPut (
 		final @NotNull AvailObject object,
 		final int subscript,
 		final @NotNull AvailObject value)
@@ -188,8 +188,8 @@ extends Descriptor
 			value);
 	}
 
-	@Override
-	public void o_Pc (
+	@Override @AvailMethod
+	void o_Pc (
 		final @NotNull AvailObject object,
 		final int value)
 	{
@@ -199,8 +199,8 @@ extends Descriptor
 			value);
 	}
 
-	@Override
-	public void o_Stackp (
+	@Override @AvailMethod
+	void o_Stackp (
 		final @NotNull AvailObject object,
 		final int value)
 	{
@@ -210,22 +210,22 @@ extends Descriptor
 			value);
 	}
 
-	@Override
-	public @NotNull AvailObject o_Caller (
+	@Override @AvailMethod
+	@NotNull AvailObject o_Caller (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.CALLER);
 	}
 
-	@Override
-	public @NotNull AvailObject o_Function (
+	@Override @AvailMethod
+	@NotNull AvailObject o_Function (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.FUNCTION);
 	}
 
-	@Override
-	public int o_Pc (
+	@Override @AvailMethod
+	int o_Pc (
 		final @NotNull AvailObject object)
 	{
 		return object.bitSlot(
@@ -233,8 +233,8 @@ extends Descriptor
 			ProgramCounterAndStackPointer.PROGRAM_COUNTER);
 	}
 
-	@Override
-	public int o_Stackp (
+	@Override @AvailMethod
+	int o_Stackp (
 		final @NotNull AvailObject object)
 	{
 		return object.bitSlot(
@@ -242,16 +242,16 @@ extends Descriptor
 			ProgramCounterAndStackPointer.STACK_POINTER);
 	}
 
-	@Override
-	public boolean o_Equals (
+	@Override @AvailMethod
+	boolean o_Equals (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
 		return another.equalsContinuation(object);
 	}
 
-	@Override
-	public boolean o_EqualsContinuation (
+	@Override @AvailMethod
+	boolean o_EqualsContinuation (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aContinuation)
 	{
@@ -286,8 +286,8 @@ extends Descriptor
 		return true;
 	}
 
-	@Override
-	public int o_Hash (
+	@Override @AvailMethod
+	int o_Hash (
 		final @NotNull AvailObject object)
 	{
 		int h = 0x593599A;
@@ -300,8 +300,8 @@ extends Descriptor
 		return h;
 	}
 
-	@Override
-	public @NotNull AvailObject o_Kind (
+	@Override @AvailMethod
+	@NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
 		return ContinuationTypeDescriptor.forFunctionType(
@@ -311,8 +311,8 @@ extends Descriptor
 	/**
 	 * Set both my chunk index and the offset into it.
 	 */
-	@Override
-	public void o_LevelTwoChunkOffset (
+	@Override @AvailMethod
+	void o_LevelTwoChunkOffset (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject chunk,
 		final int offset)
@@ -325,8 +325,8 @@ extends Descriptor
 	 * Read from the stack at the given subscript, which is one-relative and
 	 * based on just the stack area.
 	 */
-	@Override
-	public @NotNull AvailObject o_StackAt (
+	@Override @AvailMethod
+	@NotNull AvailObject o_StackAt (
 		final @NotNull AvailObject object,
 		final int subscript)
 	{
@@ -339,8 +339,8 @@ extends Descriptor
 	 * Write to the stack at the given subscript, which is one-relative and
 	 * based on just the stack area.
 	 */
-	@Override
-	public void o_StackAtPut (
+	@Override @AvailMethod
+	void o_StackAtPut (
 		final @NotNull AvailObject object,
 		final int subscript,
 		final @NotNull AvailObject anObject)
@@ -358,22 +358,22 @@ extends Descriptor
 	 * interpreter} to ensure it is always executing a mutable continuation and
 	 * is therefore always able to directly modify it.
 	 */
-	@Override
-	public @NotNull AvailObject o_EnsureMutable (
+	@Override @AvailMethod
+	@NotNull AvailObject o_EnsureMutable (
 		final @NotNull AvailObject object)
 	{
 		return isMutable ? object : object.copyAsMutableContinuation();
 	}
 
-	@Override
-	public @NotNull AvailObject o_LevelTwoChunk (
+	@Override @AvailMethod
+	@NotNull AvailObject o_LevelTwoChunk (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.LEVEL_TWO_CHUNK);
 	}
 
-	@Override
-	public int o_LevelTwoOffset (
+	@Override @AvailMethod
+	int o_LevelTwoOffset (
 		final @NotNull AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.LEVEL_TWO_OFFSET);
@@ -383,8 +383,8 @@ extends Descriptor
 	 * Answer the number of slots allocated for arguments, locals, and stack
 	 * entries.
 	 */
-	@Override
-	public int o_NumArgsAndLocalsAndStack (
+	@Override @AvailMethod
+	int o_NumArgsAndLocalsAndStack (
 		final @NotNull AvailObject object)
 	{
 		return object.variableObjectSlotsCount();
@@ -402,8 +402,8 @@ extends Descriptor
 	 * reclaimed, at flip time.
 	 * </p>
 	 */
-	@Override
-	public void o_PostFault (
+	@Override @AvailMethod
+	void o_PostFault (
 		final @NotNull AvailObject object)
 	{
 		final AvailObject chunk = object.levelTwoChunk();
@@ -422,8 +422,8 @@ extends Descriptor
 	/**
 	 * Answer a fresh mutable copy of the given continuation object.
 	 */
-	@Override
-	public @NotNull AvailObject o_CopyAsMutableContinuation (
+	@Override @AvailMethod
+	@NotNull AvailObject o_CopyAsMutableContinuation (
 		final @NotNull AvailObject object)
 	{
 		if (isMutable)

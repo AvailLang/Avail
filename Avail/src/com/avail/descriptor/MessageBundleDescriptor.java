@@ -34,7 +34,7 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.TypeDescriptor.Types.MESSAGE_BUNDLE;
 import java.util.*;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 
 public class MessageBundleDescriptor
 extends Descriptor
@@ -50,8 +50,8 @@ extends Descriptor
 		PARSING_INSTRUCTIONS
 	}
 
-	@Override
-	public void o_AddRestrictions (
+	@Override @AvailMethod
+	void o_AddRestrictions (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject restrictions)
 	{
@@ -75,8 +75,8 @@ extends Descriptor
 		object.myRestrictions(merged);
 	}
 
-	@Override
-	public void o_RemoveRestrictions (
+	@Override @AvailMethod
+	void o_RemoveRestrictions (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject obsoleteRestrictions)
 	{
@@ -99,8 +99,8 @@ extends Descriptor
 		object.myRestrictions(reduced);
 	}
 
-	@Override
-	public boolean o_HasRestrictions (
+	@Override @AvailMethod
+	boolean o_HasRestrictions (
 		final @NotNull AvailObject object)
 	{
 		if (object.myRestrictions().equalsNull())
@@ -117,15 +117,15 @@ extends Descriptor
 		return false;
 	}
 
-	@Override
-	public void o_RemoveRestrictions (
+	@Override @AvailMethod
+	void o_RemoveRestrictions (
 		final @NotNull AvailObject object)
 	{
 		object.myRestrictions(NullDescriptor.nullObject());
 	}
 
-	@Override
-	public @NotNull AvailObject o_GrammaticalRestrictions (
+	@Override @AvailMethod
+	@NotNull AvailObject o_GrammaticalRestrictions (
 		final @NotNull AvailObject object)
 	{
 		AvailObject restrictions = object.myRestrictions();
@@ -147,53 +147,53 @@ extends Descriptor
 		return restrictions;
 	}
 
-	@Override
-	public void o_Message (
+	@Override @AvailMethod
+	void o_Message (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.MESSAGE, value);
 	}
 
-	@Override
-	public void o_MessageParts (
+	@Override @AvailMethod
+	void o_MessageParts (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.MESSAGE_PARTS, value);
 	}
 
-	@Override
-	public void o_MyRestrictions (
+	@Override @AvailMethod
+	void o_MyRestrictions (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.MY_RESTRICTIONS, value);
 	}
 
-	@Override
-	public @NotNull AvailObject o_Message (
+	@Override @AvailMethod
+	@NotNull AvailObject o_Message (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.MESSAGE);
 	}
 
-	@Override
-	public @NotNull AvailObject o_MessageParts (
+	@Override @AvailMethod
+	@NotNull AvailObject o_MessageParts (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.MESSAGE_PARTS);
 	}
 
-	@Override
-	public @NotNull AvailObject o_MyRestrictions (
+	@Override @AvailMethod
+	@NotNull AvailObject o_MyRestrictions (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.MY_RESTRICTIONS);
 	}
 
-	@Override
-	public void o_ParsingInstructions (
+	@Override @AvailMethod
+	void o_ParsingInstructions (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject instructionsTuple)
 	{
@@ -202,8 +202,8 @@ extends Descriptor
 			instructionsTuple);
 	}
 
-	@Override
-	public @NotNull AvailObject o_ParsingInstructions (
+	@Override @AvailMethod
+	@NotNull AvailObject o_ParsingInstructions (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.PARSING_INSTRUCTIONS);
@@ -235,23 +235,23 @@ extends Descriptor
 		aStream.append("\"");
 	}
 
-	@Override
-	public boolean o_Equals (
+	@Override @AvailMethod
+	boolean o_Equals (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
 		return another.traversed().sameAddressAs(object);
 	}
 
-	@Override
-	public int o_Hash (
+	@Override @AvailMethod
+	int o_Hash (
 		final @NotNull AvailObject object)
 	{
 		return object.message().hash() ^ 0x312CAB9;
 	}
 
-	@Override
-	public @NotNull AvailObject o_Kind (
+	@Override @AvailMethod
+	@NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
 		return MESSAGE_BUNDLE.o();

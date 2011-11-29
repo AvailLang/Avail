@@ -54,8 +54,8 @@ extends TypeDescriptor
 	public enum IntegerSlots implements IntegerSlotsEnum
 	{
 		/**
-		 * An int field used to hold the {@linkplain #o_LowerInclusive lower
-		 * inclusive} and {@linkplain #o_UpperInclusive upper inclusive} flags.
+		* An int field used to hold the {@linkplain #o_LowerInclusive lower
+		* inclusive} and {@linkplain #o_UpperInclusive upper inclusive} flags.
 		 */
 		@BitFields(describedBy = Flags.class)
 		INCLUSIVE_FLAGS
@@ -69,14 +69,14 @@ extends TypeDescriptor
 		/**
 		 * The extended integer which is the lower bound of this range.  It is
 		 * either inclusive or exclusive depending on the {@linkplain
-		 * IntegerRangeTypeDescriptor#o_LowerInclusive lowerInclusive} flag.
+		* IntegerRangeTypeDescriptor#o_LowerInclusive lowerInclusive} flag.
 		 */
 		LOWER_BOUND,
 
 		/**
 		 * The extended integer which is the upper bound of this range.  It is
 		 * either inclusive or exclusive depending on the {@linkplain
-		 * IntegerRangeTypeDescriptor#o_UpperInclusive upperInclusive} flag.
+		* IntegerRangeTypeDescriptor#o_UpperInclusive upperInclusive} flag.
 		 */
 		UPPER_BOUND
 	}
@@ -104,15 +104,15 @@ extends TypeDescriptor
 			bitField(Flags.class, "UpperInclusive");
 	}
 
-	@Override
-	public @NotNull AvailObject o_LowerBound (
+	@Override @AvailMethod
+	@NotNull AvailObject o_LowerBound (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.LOWER_BOUND);
 	}
 
-	@Override
-	public @NotNull AvailObject o_UpperBound (
+	@Override @AvailMethod
+	@NotNull AvailObject o_UpperBound (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.UPPER_BOUND);
@@ -138,16 +138,16 @@ extends TypeDescriptor
 		aStream.append(object.upperInclusive() ? ']' : ')');
 	}
 
-	@Override
-	public boolean o_Equals (
+	@Override @AvailMethod
+	boolean o_Equals (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
 		return another.equalsIntegerRangeType(object);
 	}
 
-	@Override
-	public boolean o_EqualsIntegerRangeType (
+	@Override @AvailMethod
+	boolean o_EqualsIntegerRangeType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
@@ -182,8 +182,8 @@ extends TypeDescriptor
 	 * outside depending on something that should not be observable (because it
 	 * serves to distinguish two representations of equal objects).
 	 */
-	@Override
-	public int o_Hash (
+	@Override @AvailMethod
+	int o_Hash (
 		final @NotNull AvailObject object)
 	{
 		return IntegerRangeTypeDescriptor.computeHash(
@@ -193,15 +193,15 @@ extends TypeDescriptor
 			object.upperInclusive());
 	}
 
-	@Override
-	public @NotNull AvailObject o_Kind (
+	@Override @AvailMethod
+	@NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
 		return TYPE.o();
 	}
 
-	@Override
-	public boolean o_LowerInclusive (
+	@Override @AvailMethod
+	boolean o_LowerInclusive (
 		final @NotNull AvailObject object)
 	{
 		return object.bitSlot(
@@ -209,8 +209,8 @@ extends TypeDescriptor
 			Flags.LowerInclusive) != 0;
 	}
 
-	@Override
-	public boolean o_UpperInclusive (
+	@Override @AvailMethod
+	boolean o_UpperInclusive (
 		final @NotNull AvailObject object)
 	{
 		return object.bitSlot(
@@ -218,8 +218,8 @@ extends TypeDescriptor
 			Flags.UpperInclusive) != 0;
 	}
 
-	@Override
-	public boolean o_IsSubtypeOf (
+	@Override @AvailMethod
+	boolean o_IsSubtypeOf (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
@@ -228,8 +228,8 @@ extends TypeDescriptor
 		return aType.isSupertypeOfIntegerRangeType(object);
 	}
 
-	@Override
-	public boolean o_IsSupertypeOfIntegerRangeType (
+	@Override @AvailMethod
+	boolean o_IsSupertypeOfIntegerRangeType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject possibleSub)
 	{
@@ -268,8 +268,8 @@ extends TypeDescriptor
 		return true;
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeIntersection (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeIntersection (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
@@ -284,8 +284,8 @@ extends TypeDescriptor
 		return another.typeIntersectionOfIntegerRangeType(object);
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeIntersectionOfIntegerRangeType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeIntersectionOfIntegerRangeType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
@@ -319,8 +319,8 @@ extends TypeDescriptor
 			isMaxInc);
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeUnion (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeUnion (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
@@ -335,8 +335,8 @@ extends TypeDescriptor
 		return another.typeUnionOfIntegerRangeType(object);
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeUnionOfIntegerRangeType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeUnionOfIntegerRangeType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
@@ -369,8 +369,8 @@ extends TypeDescriptor
 			isMaxInc);
 	}
 
-	@Override
-	public boolean o_IsIntegerRangeType (
+	@Override @AvailMethod
+	boolean o_IsIntegerRangeType (
 		final @NotNull AvailObject object)
 	{
 		return true;

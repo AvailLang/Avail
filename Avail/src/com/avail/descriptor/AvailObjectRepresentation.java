@@ -56,7 +56,7 @@ extends AbstractAvailObject
 	 *
 	 * @param anotherObject An object.
 	 */
-	public final void becomeIndirectionTo (
+	final void becomeIndirectionTo (
 		final @NotNull AvailObject anotherObject)
 	{
 		// Yes, this is really gross, but it's the simplest way to ensure that
@@ -84,13 +84,13 @@ extends AbstractAvailObject
 				me.scanSubobjects(
 					new AvailMarkUnreachableSubobjectVisitor(anotherObject));
 //			}
-			descriptor(IndirectionDescriptor.mutable());
+			descriptor = IndirectionDescriptor.mutable();
 			objectSlots[0] = anotherTraversed;
 		}
 		else
 		{
 			anotherObject.makeImmutable();
-			descriptor(IndirectionDescriptor.mutable());
+			descriptor = IndirectionDescriptor.mutable();
 			objectSlots[0] = anotherTraversed;
 			me.makeImmutable();
 		}
@@ -100,7 +100,7 @@ extends AbstractAvailObject
 	private @NotNull int[] intSlots;
 
 	@Override
-	public final int bitSlot (
+	final int bitSlot (
 		final @NotNull IntegerSlotsEnum field,
 		final @NotNull BitField bitField)
 	{
@@ -112,7 +112,7 @@ extends AbstractAvailObject
 	}
 
 	@Override
-	public final void bitSlotPut (
+	final void bitSlotPut (
 		final @NotNull IntegerSlotsEnum field,
 		final @NotNull BitField bitField,
 		final int anInteger)
@@ -135,7 +135,7 @@ extends AbstractAvailObject
 	 * @return The unsigned byte as a short.
 	 */
 	@Override
-	public final short byteSlotAt (
+	final short byteSlotAt (
 		final @NotNull IntegerSlotsEnum e,
 		final int byteSubscript)
 	{
@@ -153,7 +153,7 @@ extends AbstractAvailObject
 	 * @param aByte The unsigned byte to write, passed as a short.
 	 */
 	@Override
-	public final void byteSlotAtPut (
+	final void byteSlotAtPut (
 		final @NotNull IntegerSlotsEnum e,
 		final int byteSubscript,
 		final short aByte)
@@ -170,7 +170,7 @@ extends AbstractAvailObject
 	}
 
 	@Override
-	public final short shortSlotAt (
+	final short shortSlotAt (
 		final @NotNull IntegerSlotsEnum e,
 		final int shortIndex)
 	{
@@ -180,7 +180,7 @@ extends AbstractAvailObject
 	}
 
 	@Override
-	public final void shortSlotAtPut (
+	final void shortSlotAtPut (
 		final @NotNull IntegerSlotsEnum e,
 		final int shortIndex,
 		final short aShort)
@@ -195,7 +195,6 @@ extends AbstractAvailObject
 		intSlots[wordIndex] = word;
 	}
 
-
 	@Override
 	public final int integerSlotsCount ()
 	{
@@ -203,15 +202,14 @@ extends AbstractAvailObject
 	}
 
 	@Override
-	public final int integerSlot (
-		final @NotNull IntegerSlotsEnum e)
+	final int integerSlot (final @NotNull IntegerSlotsEnum e)
 	{
 //		verifyToSpaceAddress();
 		return intSlots[e.ordinal()];
 	}
 
 	@Override
-	public final void integerSlotPut (
+	final void integerSlotPut (
 		final @NotNull IntegerSlotsEnum e,
 		final int anInteger)
 	{
@@ -221,7 +219,7 @@ extends AbstractAvailObject
 	}
 
 	@Override
-	public final int integerSlotAt (
+	final int integerSlotAt (
 		final @NotNull IntegerSlotsEnum e,
 		final int subscript)
 	{
@@ -230,7 +228,7 @@ extends AbstractAvailObject
 	}
 
 	@Override
-	public final void integerSlotAtPut (
+	final void integerSlotAtPut (
 		final @NotNull IntegerSlotsEnum e,
 		final int subscript,
 		final int anInteger)
@@ -247,7 +245,7 @@ extends AbstractAvailObject
 	}
 
 	@Override
-	public final AvailObject objectSlot (
+	final AvailObject objectSlot (
 		final @NotNull ObjectSlotsEnum e)
 	{
 //		verifyToSpaceAddress();
@@ -257,7 +255,7 @@ extends AbstractAvailObject
 	}
 
 	@Override
-	public final void objectSlotPut (
+	final void objectSlotPut (
 		final @NotNull ObjectSlotsEnum e,
 		final @NotNull AvailObject anAvailObject)
 	{
@@ -267,7 +265,7 @@ extends AbstractAvailObject
 	}
 
 	@Override
-	public final AvailObject objectSlotAt (
+	final AvailObject objectSlotAt (
 		final @NotNull ObjectSlotsEnum e,
 		final int subscript)
 	{
@@ -278,7 +276,7 @@ extends AbstractAvailObject
 	}
 
 	@Override
-	public final void objectSlotAtPut (
+	final void objectSlotAtPut (
 		final @NotNull ObjectSlotsEnum e,
 		final int subscript,
 		final @NotNull AvailObject anAvailObject)
@@ -298,7 +296,7 @@ extends AbstractAvailObject
  	 * require at least one slot for the target pointer.
  	 */
 	@Override
-	public final void truncateWithFillerForNewIntegerSlotsCount (
+	final void truncateWithFillerForNewIntegerSlotsCount (
 		final int newIntegerSlotsCount)
 	{
 //		verifyToSpaceAddress();
@@ -327,7 +325,7 @@ extends AbstractAvailObject
  	 * require at least one slot for the target pointer.
  	 */
 	@Override
-	public final void truncateWithFillerForNewObjectSlotsCount (
+	final void truncateWithFillerForNewObjectSlotsCount (
 		final int newObjectSlotsCount)
 	{
 //		verifyToSpaceAddress();

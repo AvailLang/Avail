@@ -32,21 +32,21 @@
 
 package com.avail.descriptor;
 
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 
 public abstract class ExtendedNumberDescriptor
 extends Descriptor
 {
-	@Override
-	public boolean o_LessOrEqual (
+	@Override @AvailMethod
+	boolean o_LessOrEqual (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
 		return !another.lessThan(object);
 	}
 
-	@Override
-	public boolean o_IsExtendedInteger (
+	@Override @AvailMethod
+	boolean o_IsExtendedInteger (
 		final @NotNull AvailObject object)
 	{
 		return true;

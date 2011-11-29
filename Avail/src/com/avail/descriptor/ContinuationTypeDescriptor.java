@@ -33,7 +33,7 @@
 package com.avail.descriptor;
 
 import java.util.List;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 import com.avail.interpreter.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 
@@ -91,8 +91,8 @@ extends TypeDescriptor
 		FUNCTION_TYPE
 	}
 
-	@Override
-	public @NotNull AvailObject o_FunctionType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_FunctionType (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.FUNCTION_TYPE);
@@ -112,8 +112,8 @@ extends TypeDescriptor
 			(indent + 1));
 	}
 
-	@Override
-	public boolean o_Equals (
+	@Override @AvailMethod
+	boolean o_Equals (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
@@ -127,8 +127,8 @@ extends TypeDescriptor
 	 * Continuation types compare for equality by comparing their functionTypes.
 	 * </p>
 	 */
-	@Override
-	public boolean o_EqualsContinuationType (
+	@Override @AvailMethod
+	boolean o_EqualsContinuationType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
@@ -139,15 +139,15 @@ extends TypeDescriptor
 		return aType.functionType().equals(object.functionType());
 	}
 
-	@Override
-	public int o_Hash (
+	@Override @AvailMethod
+	int o_Hash (
 		final @NotNull AvailObject object)
 	{
 		return object.functionType().hash() * 11 ^ 0x3E20409;
 	}
 
-	@Override
-	public @NotNull AvailObject o_Kind (
+	@Override @AvailMethod
+	@NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
 		//  Answer the object's type.
@@ -155,8 +155,8 @@ extends TypeDescriptor
 		return TYPE.o();
 	}
 
-	@Override
-	public boolean o_IsSubtypeOf (
+	@Override @AvailMethod
+	boolean o_IsSubtypeOf (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
@@ -175,8 +175,8 @@ extends TypeDescriptor
 	 * the contained functionType's result type.
 	 * </p>
 	 */
-	@Override
-	public boolean o_IsSupertypeOfContinuationType (
+	@Override @AvailMethod
+	boolean o_IsSupertypeOfContinuationType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aContinuationType)
 	{
@@ -189,8 +189,8 @@ extends TypeDescriptor
 				subFunctionType.argsTupleType());
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeIntersection (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeIntersection (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
@@ -205,8 +205,8 @@ extends TypeDescriptor
 		return another.typeIntersectionOfContinuationType(object);
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeIntersectionOfContinuationType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeIntersectionOfContinuationType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aContinuationType)
 	{
@@ -226,8 +226,8 @@ extends TypeDescriptor
 		return forFunctionType(intersection);
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeUnion (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeUnion (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
@@ -242,8 +242,8 @@ extends TypeDescriptor
 		return another.typeUnionOfContinuationType(object);
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeUnionOfContinuationType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeUnionOfContinuationType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aContinuationType)
 	{

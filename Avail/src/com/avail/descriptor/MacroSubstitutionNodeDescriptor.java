@@ -30,13 +30,12 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.compiler.node;
+package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.Multiplier;
 import java.util.List;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
 
@@ -75,8 +74,8 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * Setter for field macroName.
 	 */
-	@Override
-	public void o_MacroName (
+	@Override @AvailMethod
+	void o_MacroName (
 		final @NotNull AvailObject object,
 		final AvailObject value)
 	{
@@ -86,8 +85,8 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * Getter for field macroName.
 	 */
-	@Override
-	public AvailObject o_MacroName (
+	@Override @AvailMethod
+	AvailObject o_MacroName (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.MACRO_NAME);
@@ -96,8 +95,8 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * Setter for field outputParseNode.
 	 */
-	@Override
-	public void o_OutputParseNode (
+	@Override @AvailMethod
+	void o_OutputParseNode (
 		final @NotNull AvailObject object,
 		final AvailObject value)
 	{
@@ -107,30 +106,30 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * Getter for field outputParseNode.
 	 */
-	@Override
-	public AvailObject o_OutputParseNode (
+	@Override @AvailMethod
+	AvailObject o_OutputParseNode (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.OUTPUT_PARSE_NODE);
 	}
 
 
-	@Override
-	public AvailObject o_ExpressionType (final AvailObject object)
+	@Override @AvailMethod
+	AvailObject o_ExpressionType (final AvailObject object)
 	{
 		return object.outputParseNode().expressionType();
 	}
 
 
-	@Override
-	public AvailObject o_Kind (final AvailObject object)
+	@Override @AvailMethod
+	AvailObject o_Kind (final AvailObject object)
 	{
 		return object.outputParseNode().kind();
 	}
 
 
-	@Override
-	public int o_Hash (final AvailObject object)
+	@Override @AvailMethod
+	int o_Hash (final AvailObject object)
 	{
 		return
 			object.macroName().hash() * Multiplier
@@ -139,8 +138,8 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 	}
 
 
-	@Override
-	public boolean o_Equals (
+	@Override @AvailMethod
+	boolean o_Equals (
 		final @NotNull AvailObject object,
 		final AvailObject another)
 	{
@@ -149,15 +148,15 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 	}
 
 
-	@Override
-	public AvailObject o_ApparentSendName (final AvailObject object)
+	@Override @AvailMethod
+	AvailObject o_ApparentSendName (final AvailObject object)
 	{
 		return object.macroName();
 	}
 
 
-	@Override
-	public void o_EmitEffectOn (
+	@Override @AvailMethod
+	void o_EmitEffectOn (
 		final @NotNull AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
@@ -165,8 +164,8 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 	}
 
 
-	@Override
-	public void o_EmitValueOn (
+	@Override @AvailMethod
+	void o_EmitValueOn (
 		final @NotNull AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
@@ -174,8 +173,8 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 	}
 
 
-	@Override
-	public void o_ChildrenMap (
+	@Override @AvailMethod
+	void o_ChildrenMap (
 		final @NotNull AvailObject object,
 		final Transformer1<AvailObject, AvailObject> aBlock)
 	{
@@ -183,8 +182,8 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 	}
 
 
-	@Override
-	public void o_ChildrenDo (
+	@Override @AvailMethod
+	void o_ChildrenDo (
 		final @NotNull AvailObject object,
 		final Continuation1<AvailObject> aBlock)
 	{
@@ -192,8 +191,8 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 	}
 
 
-	@Override
-	public void o_ValidateLocally (
+	@Override @AvailMethod
+	void o_ValidateLocally (
 		final @NotNull AvailObject object,
 		final AvailObject parent,
 		final List<AvailObject> outerBlocks,
@@ -203,8 +202,8 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 	}
 
 
-	@Override
-	public void o_FlattenStatementsInto (
+	@Override @AvailMethod
+	void o_FlattenStatementsInto (
 		final @NotNull AvailObject object,
 		final List<AvailObject> accumulatedStatements)
 	{

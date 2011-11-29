@@ -34,7 +34,7 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 
 public class SetTypeDescriptor
 extends TypeDescriptor
@@ -48,15 +48,15 @@ extends TypeDescriptor
 		CONTENT_TYPE
 	}
 
-	@Override
-	public @NotNull AvailObject o_ContentType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_ContentType (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.CONTENT_TYPE);
 	}
 
-	@Override
-	public @NotNull AvailObject o_SizeRange (
+	@Override @AvailMethod
+	@NotNull AvailObject o_SizeRange (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.SIZE_RANGE);
@@ -85,16 +85,16 @@ extends TypeDescriptor
 			(indent + 1));
 	}
 
-	@Override
-	public boolean o_Equals (
+	@Override @AvailMethod
+	boolean o_Equals (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
 		return another.equalsSetType(object);
 	}
 
-	@Override
-	public boolean o_EqualsSetType (
+	@Override @AvailMethod
+	boolean o_EqualsSetType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aSetType)
 	{
@@ -107,8 +107,8 @@ extends TypeDescriptor
 		return object.sizeRange().equals(aSetType.sizeRange()) && object.contentType().equals(aSetType.contentType());
 	}
 
-	@Override
-	public int o_Hash (
+	@Override @AvailMethod
+	int o_Hash (
 		final @NotNull AvailObject object)
 	{
 		//  Answer a 32-bit integer that is always the same for equal objects, but
@@ -117,8 +117,8 @@ extends TypeDescriptor
 		return object.sizeRange().hash() * 11 + object.contentType().hash() * 5;
 	}
 
-	@Override
-	public @NotNull AvailObject o_Kind (
+	@Override @AvailMethod
+	@NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
 		//  Answer the object's type.
@@ -126,8 +126,8 @@ extends TypeDescriptor
 		return TYPE.o();
 	}
 
-	@Override
-	public boolean o_IsSubtypeOf (
+	@Override @AvailMethod
+	boolean o_IsSubtypeOf (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
@@ -136,8 +136,8 @@ extends TypeDescriptor
 		return aType.isSupertypeOfSetType(object);
 	}
 
-	@Override
-	public boolean o_IsSupertypeOfSetType (
+	@Override @AvailMethod
+	boolean o_IsSupertypeOfSetType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aSetType)
 	{
@@ -147,8 +147,8 @@ extends TypeDescriptor
 		return aSetType.sizeRange().isSubtypeOf(object.sizeRange()) && aSetType.contentType().isSubtypeOf(object.contentType());
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeIntersection (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeIntersection (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
@@ -165,8 +165,8 @@ extends TypeDescriptor
 		return another.typeIntersectionOfSetType(object);
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeIntersectionOfSetType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeIntersectionOfSetType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aSetType)
 	{
@@ -175,8 +175,8 @@ extends TypeDescriptor
 			object.contentType().typeIntersection(aSetType.contentType()));
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeUnion (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeUnion (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
@@ -195,8 +195,8 @@ extends TypeDescriptor
 		return another.typeUnionOfSetType(object);
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeUnionOfSetType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeUnionOfSetType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aSetType)
 	{
@@ -205,8 +205,8 @@ extends TypeDescriptor
 			object.contentType().typeUnion(aSetType.contentType()));
 	}
 
-	@Override
-	public boolean o_IsSetType (
+	@Override @AvailMethod
+	boolean o_IsSetType (
 		final @NotNull AvailObject object)
 	{
 		return true;

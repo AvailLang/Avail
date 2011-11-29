@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.compiler.scanning;
+package com.avail.descriptor;
 
 import static com.avail.descriptor.TypeDescriptor.Types.LITERAL_TOKEN;
 import com.avail.annotations.*;
@@ -96,23 +96,23 @@ extends TokenDescriptor
 	}
 
 
-	@Override
-	public void o_Literal (
+	@Override @AvailMethod
+	void o_Literal (
 		final @NotNull AvailObject object,
 		final AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.LITERAL, value);
 	}
 
-	@Override
-	public AvailObject o_Literal (
+	@Override @AvailMethod
+	AvailObject o_Literal (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.LITERAL);
 	}
 
-	@Override
-	public AvailObject o_Kind (final AvailObject object)
+	@Override @AvailMethod
+	AvailObject o_Kind (final AvailObject object)
 	{
 		return LITERAL_TOKEN.o();
 	}

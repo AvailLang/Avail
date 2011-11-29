@@ -34,7 +34,7 @@ package com.avail.descriptor;
 
 import java.util.List;
 import com.avail.annotations.*;
-import com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.interpreter.*;
 import com.avail.interpreter.levelOne.*;
 
@@ -203,53 +203,53 @@ extends Descriptor
 	}
 
 
-	@Override
-	public void o_Hash (
+	@Override @AvailMethod
+	void o_Hash (
 		final @NotNull AvailObject object,
 		final int value)
 	{
 		object.integerSlotPut(IntegerSlots.HASH, value);
 	}
 
-	@Override
-	public void o_InvocationCount (
+	@Override @AvailMethod
+	void o_InvocationCount (
 		final @NotNull AvailObject object,
 		final int value)
 	{
 		object.integerSlotPut(IntegerSlots.INVOCATION_COUNT, value);
 	}
 
-	@Override
-	public @NotNull AvailObject o_LiteralAt (
+	@Override @AvailMethod
+	@NotNull AvailObject o_LiteralAt (
 		final @NotNull AvailObject object,
 		final int subscript)
 	{
 		return object.objectSlotAt(ObjectSlots.LITERAL_AT_, subscript);
 	}
 
-	@Override
-	public @NotNull AvailObject o_FunctionType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_FunctionType (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.FUNCTION_TYPE);
 	}
 
-	@Override
-	public int o_Hash (
+	@Override @AvailMethod
+	int o_Hash (
 		final @NotNull AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.HASH);
 	}
 
-	@Override
-	public int o_InvocationCount (
+	@Override @AvailMethod
+	int o_InvocationCount (
 		final @NotNull AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.INVOCATION_COUNT);
 	}
 
-	@Override
-	public @NotNull AvailObject o_Nybbles (
+	@Override @AvailMethod
+	@NotNull AvailObject o_Nybbles (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.NYBBLES);
@@ -263,16 +263,16 @@ extends Descriptor
 			|| e == IntegerSlots.INVOCATION_COUNT;
 	}
 
-	@Override
-	public boolean o_Equals (
+	@Override @AvailMethod
+	boolean o_Equals (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
 		return another.equalsCompiledCode(object);
 	}
 
-	@Override
-	public boolean o_EqualsCompiledCode (
+	@Override @AvailMethod
+	boolean o_EqualsCompiledCode (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aCompiledCode)
 	{
@@ -309,16 +309,16 @@ extends Descriptor
 		return true;
 	}
 
-	@Override
-	public @NotNull AvailObject o_Kind (
+	@Override @AvailMethod
+	@NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
 		return CompiledCodeTypeDescriptor.forFunctionType(
 			object.functionType());
 	}
 
-	@Override
-	public boolean o_ContainsBlock (
+	@Override @AvailMethod
+	boolean o_ContainsBlock (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aFunction)
 	{
@@ -338,8 +338,8 @@ extends Descriptor
 		return false;
 	}
 
-	@Override
-	public @NotNull AvailObject o_LocalTypeAt (
+	@Override @AvailMethod
+	@NotNull AvailObject o_LocalTypeAt (
 		final @NotNull AvailObject object,
 		final int index)
 	{
@@ -350,8 +350,8 @@ extends Descriptor
 			+ index);
 	}
 
-	@Override
-	public @NotNull AvailObject o_OuterTypeAt (
+	@Override @AvailMethod
+	@NotNull AvailObject o_OuterTypeAt (
 		final @NotNull AvailObject object,
 		final int index)
 	{
@@ -363,8 +363,8 @@ extends Descriptor
 			+ index);
 	}
 
-	@Override
-	public void o_StartingChunk (
+	@Override @AvailMethod
+	void o_StartingChunk (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
@@ -373,8 +373,8 @@ extends Descriptor
 			value);
 	}
 
-	@Override
-	public int o_MaxStackDepth (
+	@Override @AvailMethod
+	int o_MaxStackDepth (
 		final @NotNull AvailObject object)
 	{
 		return
@@ -383,8 +383,8 @@ extends Descriptor
 			- object.numLocals();
 	}
 
-	@Override
-	public int o_NumArgs (
+	@Override @AvailMethod
+	int o_NumArgs (
 		final @NotNull AvailObject object)
 	{
 		return (short)object.bitSlot(
@@ -400,8 +400,8 @@ extends Descriptor
 	 * continuations.
 	 * </p>
 	 */
-	@Override
-	public int o_NumArgsAndLocalsAndStack (
+	@Override @AvailMethod
+	int o_NumArgsAndLocalsAndStack (
 		final @NotNull AvailObject object)
 	{
 		return object.bitSlot(
@@ -409,15 +409,15 @@ extends Descriptor
 			HiNumOutersLowFrameSlots.FRAME_SLOTS);
 	}
 
-	@Override
-	public int o_NumLiterals (
+	@Override @AvailMethod
+	int o_NumLiterals (
 		final @NotNull AvailObject object)
 	{
 		return object.variableObjectSlotsCount();
 	}
 
-	@Override
-	public int o_NumLocals (
+	@Override @AvailMethod
+	int o_NumLocals (
 		final @NotNull AvailObject object)
 	{
 		return object.bitSlot(
@@ -425,8 +425,8 @@ extends Descriptor
 			HiNumLocalsLowNumArgs.NUM_LOCALS);
 	}
 
-	@Override
-	public int o_NumOuters (
+	@Override @AvailMethod
+	int o_NumOuters (
 		final @NotNull AvailObject object)
 	{
 		return object.bitSlot(
@@ -434,8 +434,8 @@ extends Descriptor
 			HiNumOutersLowFrameSlots.NUM_OUTERS);
 	}
 
-	@Override
-	public int o_PrimitiveNumber (
+	@Override @AvailMethod
+	int o_PrimitiveNumber (
 		final @NotNull AvailObject object)
 	{
 		//  Answer the primitive number I should try before falling back on
@@ -443,15 +443,15 @@ extends Descriptor
 		return object.integerSlot(IntegerSlots.PRIMITIVE_NUMBER);
 	}
 
-	@Override
-	public @NotNull AvailObject o_StartingChunk (
+	@Override @AvailMethod
+	@NotNull AvailObject o_StartingChunk (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.STARTING_CHUNK);
 	}
 
-	@Override
-	public void o_PostFault (
+	@Override @AvailMethod
+	void o_PostFault (
 		final @NotNull AvailObject object)
 	{
 		//  The object was just scanned, and its pointers converted into valid ToSpace pointers.

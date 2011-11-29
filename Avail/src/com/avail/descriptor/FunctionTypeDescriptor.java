@@ -34,7 +34,7 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 
 /**
  * Function types are the types of {@linkplain FunctionDescriptor functions}.
@@ -88,45 +88,45 @@ extends TypeDescriptor
 		ARGS_TUPLE_TYPE
 	}
 
-	@Override
-	public int o_HashOrZero (
+	@Override @AvailMethod
+	int o_HashOrZero (
 		final @NotNull AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.HASH_OR_ZERO);
 	}
 
-	@Override
-	public void o_HashOrZero (
+	@Override @AvailMethod
+	void o_HashOrZero (
 		final @NotNull AvailObject object,
 		final int value)
 	{
 		object.integerSlotPut(IntegerSlots.HASH_OR_ZERO, value);
 	}
 
-	@Override
-	public @NotNull AvailObject o_CheckedExceptions (
+	@Override @AvailMethod
+	@NotNull AvailObject o_CheckedExceptions (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.CHECKED_EXCEPTIONS);
 	}
 
-	@Override
-	public @NotNull AvailObject o_ReturnType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_ReturnType (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.RETURN_TYPE);
 	}
 
-	@Override
-	public void o_ReturnType (
+	@Override @AvailMethod
+	void o_ReturnType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.RETURN_TYPE, value);
 	}
 
-	@Override
-	public @NotNull AvailObject o_ArgsTupleType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_ArgsTupleType (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.ARGS_TUPLE_TYPE);
@@ -276,8 +276,8 @@ extends TypeDescriptor
 		}
 	}
 
-	@Override
-	public boolean o_Equals (
+	@Override @AvailMethod
+	boolean o_Equals (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
@@ -299,8 +299,8 @@ extends TypeDescriptor
 	 * correspond.</li>
 	 * </ul></p>
 	 */
-	@Override
-	public boolean o_EqualsFunctionType (
+	@Override @AvailMethod
+	boolean o_EqualsFunctionType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
@@ -338,8 +338,8 @@ extends TypeDescriptor
 	 * zero, in which case the hash must be computed on demand every time it is
 	 * requested. Answer the raw hash value.
 	 */
-	@Override
-	public int o_Hash (
+	@Override @AvailMethod
+	int o_Hash (
 		final @NotNull AvailObject object)
 	{
 		int hash = object.hashOrZero();
@@ -354,8 +354,8 @@ extends TypeDescriptor
 		return hash;
 	}
 
-	@Override
-	public @NotNull AvailObject o_Kind (
+	@Override @AvailMethod
+	@NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
 		return TYPE.o();
@@ -367,8 +367,8 @@ extends TypeDescriptor
 	 * function type} are acceptable argument types for invoking a {@linkplain
 	 * FunctionDescriptor function} whose type is the {@code object}.
 	 */
-	@Override
-	public boolean o_AcceptsArgTypesFromFunctionType (
+	@Override @AvailMethod
+	boolean o_AcceptsArgTypesFromFunctionType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject functionType)
 	{
@@ -381,8 +381,8 @@ extends TypeDescriptor
 	 * Answer whether these arguments are acceptable for invoking a {@linkplain
 	 * FunctionDescriptor function} whose type is the {@code object}.
 	 */
-	@Override
-	public boolean o_AcceptsArgumentTypesFromContinuation (
+	@Override @AvailMethod
+	boolean o_AcceptsArgumentTypesFromContinuation (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject continuation,
 		final int stackp,
@@ -406,8 +406,8 @@ extends TypeDescriptor
 	 * types} for invoking a {@linkplain FunctionDescriptor function} whose type
 	 * is the {@code object}.
 	 */
-	@Override
-	public boolean o_AcceptsListOfArgTypes (
+	@Override @AvailMethod
+	boolean o_AcceptsListOfArgTypes (
 		final @NotNull AvailObject object,
 		final @NotNull List<AvailObject> argTypes)
 	{
@@ -426,8 +426,8 @@ extends TypeDescriptor
 	 * Answer whether these are acceptable arguments for invoking a {@linkplain
 	 * FunctionDescriptor function} whose type is the {@code object}.
 	 */
-	@Override
-	public boolean o_AcceptsListOfArgValues (
+	@Override @AvailMethod
+	boolean o_AcceptsListOfArgValues (
 		final @NotNull AvailObject object,
 		final @NotNull List<AvailObject> argValues)
 	{
@@ -450,8 +450,8 @@ extends TypeDescriptor
 	 * TupleDescriptor tuple} than are required by the {@linkplain
 	 * FunctionTypeDescriptor function type}.
 	 */
-	@Override
-	public boolean o_AcceptsTupleOfArgTypes (
+	@Override @AvailMethod
+	boolean o_AcceptsTupleOfArgTypes (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject argTypes)
 	{
@@ -472,8 +472,8 @@ extends TypeDescriptor
 	 * may be more entries in the {@linkplain TupleDescriptor tuple} than are
 	 * required by the {@linkplain FunctionTypeDescriptor function type}.
 	 */
-	@Override
-	public boolean o_AcceptsTupleOfArguments (
+	@Override @AvailMethod
+	boolean o_AcceptsTupleOfArguments (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject arguments)
 	{
@@ -489,8 +489,8 @@ extends TypeDescriptor
 	 *
 	 * @see ImplementationSetDescriptor
 	 */
-	@Override
-	public boolean o_CouldEverBeInvokedWith (
+	@Override @AvailMethod
+	boolean o_CouldEverBeInvokedWith (
 		final @NotNull AvailObject object,
 		final @NotNull List<AvailObject> argTypes)
 	{
@@ -509,8 +509,8 @@ extends TypeDescriptor
 		return true;
 	}
 
-	@Override
-	public boolean o_IsSubtypeOf (
+	@Override @AvailMethod
+	boolean o_IsSubtypeOf (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
@@ -527,8 +527,8 @@ extends TypeDescriptor
 	 * {@linkplain AvailObject#numArgs() argument count} differs, they are
 	 * incomparable (i.e., not a subclass).
 	 */
-	@Override
-	public boolean o_IsSupertypeOfFunctionType (
+	@Override @AvailMethod
+	boolean o_IsSupertypeOfFunctionType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aFunctionType)
 	{
@@ -555,8 +555,8 @@ extends TypeDescriptor
 		return object.argsTupleType().isSubtypeOf(aFunctionType.argsTupleType());
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeIntersection (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeIntersection (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
@@ -571,8 +571,8 @@ extends TypeDescriptor
 		return another.typeIntersectionOfFunctionType(object);
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeIntersectionOfFunctionType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeIntersectionOfFunctionType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aFunctionType)
 	{
@@ -598,8 +598,8 @@ extends TypeDescriptor
 			exceptions);
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeUnion (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeUnion (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
@@ -614,8 +614,8 @@ extends TypeDescriptor
 		return another.typeUnionOfFunctionType(object);
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeUnionOfFunctionType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeUnionOfFunctionType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aFunctionType)
 	{

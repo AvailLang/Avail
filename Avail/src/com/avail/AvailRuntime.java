@@ -32,8 +32,8 @@
 
 package com.avail;
 
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.compiler.node.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import java.beans.MethodDescriptor;
 import java.io.RandomAccessFile;
 import java.util.*;

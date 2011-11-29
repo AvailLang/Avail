@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.compiler.scanning;
+package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.Multiplier;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
@@ -90,8 +90,8 @@ extends Descriptor
 	/**
 	 * Setter for field string.
 	 */
-	@Override
-	public void o_String (
+	@Override @AvailMethod
+	void o_String (
 		final @NotNull AvailObject object,
 		final AvailObject value)
 	{
@@ -101,8 +101,8 @@ extends Descriptor
 	/**
 	 * Getter for field string.
 	 */
-	@Override
-	public AvailObject o_String (
+	@Override @AvailMethod
+	AvailObject o_String (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.STRING);
@@ -111,8 +111,8 @@ extends Descriptor
 	/**
 	 * Setter for field start.
 	 */
-	@Override
-	public void o_Start (
+	@Override @AvailMethod
+	void o_Start (
 		final @NotNull AvailObject object,
 		final int value)
 	{
@@ -122,8 +122,8 @@ extends Descriptor
 	/**
 	 * Getter for field start.
 	 */
-	@Override
-	public int o_Start (
+	@Override @AvailMethod
+	int o_Start (
 		final @NotNull AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.START);
@@ -132,8 +132,8 @@ extends Descriptor
 	/**
 	 * Setter for field lineNumber.
 	 */
-	@Override
-	public void o_LineNumber (
+	@Override @AvailMethod
+	void o_LineNumber (
 		final @NotNull AvailObject object,
 		final int value)
 	{
@@ -143,8 +143,8 @@ extends Descriptor
 	/**
 	 * Getter for field lineNumber.
 	 */
-	@Override
-	public int o_LineNumber (
+	@Override @AvailMethod
+	int o_LineNumber (
 		final @NotNull AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.LINE_NUMBER);
@@ -153,8 +153,8 @@ extends Descriptor
 	/**
 	 * Setter for field tokenTypeCode.
 	 */
-	@Override
-	public void o_TokenType (
+	@Override @AvailMethod
+	void o_TokenType (
 		final @NotNull AvailObject object,
 		final TokenDescriptor.TokenType value)
 	{
@@ -164,22 +164,22 @@ extends Descriptor
 	/**
 	 * Getter for field tokenTypeCode.
 	 */
-	@Override
-	public TokenDescriptor.TokenType o_TokenType (
+	@Override @AvailMethod
+	TokenDescriptor.TokenType o_TokenType (
 		final @NotNull AvailObject object)
 	{
 		final int index = object.integerSlot(IntegerSlots.TOKEN_TYPE_CODE);
 		return TokenDescriptor.TokenType.values()[index];
 	}
 
-	@Override
-	public AvailObject o_Kind (final AvailObject object)
+	@Override @AvailMethod
+	AvailObject o_Kind (final AvailObject object)
 	{
 		return TOKEN.o();
 	}
 
-	@Override
-	public int o_Hash (final AvailObject object)
+	@Override @AvailMethod
+	int o_Hash (final AvailObject object)
 	{
 		return
 			(object.string().hash() * Multiplier
@@ -188,8 +188,8 @@ extends Descriptor
 			^ 0x62CE7BA2;
 	}
 
-	@Override
-	public boolean o_Equals (
+	@Override @AvailMethod
+	boolean o_Equals (
 		final @NotNull AvailObject object,
 		final AvailObject another)
 	{

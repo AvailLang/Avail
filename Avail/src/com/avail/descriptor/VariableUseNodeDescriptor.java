@@ -30,16 +30,14 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.compiler.node;
+package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.Multiplier;
-import static com.avail.compiler.node.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.compiler.scanning.TokenDescriptor;
-import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
 
@@ -102,8 +100,8 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * Getter for field token.
 	 */
-	@Override
-	public AvailObject o_Token (
+	@Override @AvailMethod
+	AvailObject o_Token (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.USE_TOKEN);
@@ -112,16 +110,16 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * Getter for field declaration.
 	 */
-	@Override
-	public AvailObject o_Declaration (
+	@Override @AvailMethod
+	AvailObject o_Declaration (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.DECLARATION);
 	}
 
 
-	@Override
-	public void o_IsLastUse (
+	@Override @AvailMethod
+	void o_IsLastUse (
 		final @NotNull AvailObject object,
 		final boolean isLastUse)
 	{
@@ -131,8 +129,8 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 			isLastUse ? 1 : 0);
 	}
 
-	@Override
-	public boolean o_IsLastUse (
+	@Override @AvailMethod
+	boolean o_IsLastUse (
 		final @NotNull AvailObject object)
 	{
 		return object.bitSlot(
@@ -141,20 +139,20 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 	}
 
 
-	@Override
-	public AvailObject o_ExpressionType (final AvailObject object)
+	@Override @AvailMethod
+	AvailObject o_ExpressionType (final AvailObject object)
 	{
 		return object.declaration().declaredType();
 	}
 
-	@Override
-	public AvailObject o_Kind (final AvailObject object)
+	@Override @AvailMethod
+	AvailObject o_Kind (final AvailObject object)
 	{
 		return VARIABLE_USE_NODE.create(object.expressionType());
 	}
 
-	@Override
-	public int o_Hash (final AvailObject object)
+	@Override @AvailMethod
+	int o_Hash (final AvailObject object)
 	{
 		return
 			((object.isLastUse() ? 1 : 0) * Multiplier
@@ -163,8 +161,8 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 			^ 0x62CE7BA2;
 	}
 
-	@Override
-	public boolean o_Equals (
+	@Override @AvailMethod
+	boolean o_Equals (
 		final @NotNull AvailObject object,
 		final AvailObject another)
 	{
@@ -174,8 +172,8 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 			&& object.isLastUse() == another.isLastUse();
 	}
 
-	@Override
-	public void o_EmitValueOn (
+	@Override @AvailMethod
+	void o_EmitValueOn (
 		final @NotNull AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
@@ -263,16 +261,16 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 		return immutable;
 	}
 
-	@Override
-	public void o_ChildrenMap (
+	@Override @AvailMethod
+	void o_ChildrenMap (
 		final @NotNull AvailObject object,
 		final Transformer1<AvailObject, AvailObject> aBlock)
 	{
 		// Do nothing.
 	}
 
-	@Override
-	public void o_ChildrenDo (
+	@Override @AvailMethod
+	void o_ChildrenDo (
 		final @NotNull AvailObject object,
 		final Continuation1<AvailObject> aBlock)
 	{
@@ -280,8 +278,8 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 	}
 
 
-	@Override
-	public void o_ValidateLocally (
+	@Override @AvailMethod
+	void o_ValidateLocally (
 		final @NotNull AvailObject object,
 		final AvailObject parent,
 		final List<AvailObject> outerBlocks,

@@ -33,9 +33,8 @@
 package com.avail.compiler;
 
 import static com.avail.descriptor.AvailObject.error;
-import static com.avail.compiler.node.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import java.util.*;
-import com.avail.compiler.node.*;
 import com.avail.compiler.scanning.AvailScanner;
 import com.avail.descriptor.*;
 

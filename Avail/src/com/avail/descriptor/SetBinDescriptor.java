@@ -32,6 +32,8 @@
 
 package com.avail.descriptor;
 
+import com.avail.annotations.AvailMethod;
+
 public abstract class SetBinDescriptor
 extends Descriptor
 {
@@ -47,8 +49,8 @@ extends Descriptor
 		return _level;
 	}
 
-	@Override
-	public boolean o_IsSetBin (final AvailObject object)
+	@Override @AvailMethod
+	boolean o_IsSetBin (final AvailObject object)
 	{
 		return true;
 	}

@@ -34,7 +34,7 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 
 /**
  * A {@code ContainerTypeDescriptor container type} is the {@link TypeDescriptor
@@ -61,15 +61,15 @@ extends TypeDescriptor
 		INNER_TYPE
 	}
 
-	@Override
-	public @NotNull AvailObject o_ReadType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_ReadType (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.INNER_TYPE);
 	}
 
-	@Override
-	public @NotNull AvailObject o_WriteType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_WriteType (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.INNER_TYPE);
@@ -89,16 +89,16 @@ extends TypeDescriptor
 			(indent + 1));
 	}
 
-	@Override
-	public boolean o_Equals (
+	@Override @AvailMethod
+	boolean o_Equals (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
 		return another.equalsContainerType(object);
 	}
 
-	@Override
-	public boolean o_EqualsContainerType (
+	@Override @AvailMethod
+	boolean o_EqualsContainerType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
@@ -117,31 +117,31 @@ extends TypeDescriptor
 		return false;
 	}
 
-	@Override
-	public int o_Hash (
+	@Override @AvailMethod
+	int o_Hash (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.INNER_TYPE).hash()
 			* 17 ^ 0x613E420;
 	}
 
-	@Override
-	public @NotNull AvailObject o_Kind (
+	@Override @AvailMethod
+	@NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
 		return TYPE.o();
 	}
 
-	@Override
-	public boolean o_IsSubtypeOf (
+	@Override @AvailMethod
+	boolean o_IsSubtypeOf (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
 		return aType.isSupertypeOfContainerType(object);
 	}
 
-	@Override
-	public boolean o_IsSupertypeOfContainerType (
+	@Override @AvailMethod
+	boolean o_IsSupertypeOfContainerType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aContainerType)
 	{
@@ -153,8 +153,8 @@ extends TypeDescriptor
 			&& innerType.isSubtypeOf(aContainerType.writeType());
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeIntersection (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeIntersection (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
@@ -169,8 +169,8 @@ extends TypeDescriptor
 		return another.typeIntersectionOfContainerType(object);
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeIntersectionOfContainerType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeIntersectionOfContainerType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aContainerType)
 	{
@@ -184,8 +184,8 @@ extends TypeDescriptor
 			innerType.typeUnion(aContainerType.writeType()));
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeUnion (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeUnion (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
@@ -200,8 +200,8 @@ extends TypeDescriptor
 		return another.typeUnionOfContainerType(object);
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeUnionOfContainerType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeUnionOfContainerType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aContainerType)
 	{

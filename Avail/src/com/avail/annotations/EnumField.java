@@ -37,8 +37,7 @@ import com.avail.descriptor.*;
 
 /**
  * {@code EnumField} annotation is used to indicate which enumeration should be
- * used to describe an integer value embedded in an {@linkplain
- * AvailObjectRepresentation#integerSlot(Enum) integer slot} that has this
+ * used to describe an integer value embedded in an integer slot that has this
  * annotation.  This is used for pretty-printing {@linkplain AvailObject}s.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
@@ -49,10 +48,9 @@ public @interface EnumField
 {
 	/**
 	 * This annotation field indicates the {@link Enum} responsible for
-	 * describing the {@link AvailObject#objectSlotAt(Enum, int) object slot} to
-	 * which the annotation is applied.  The value of the field (an {@code int})
-	 * should always equal an {@linkplain Enum#ordinal() ordinal} of a member
-	 * of the specified {@code enum}.
+	 * describing the object slot to which the annotation is applied.  The value
+	 * of the field (an {@code int}) should always equal an {@linkplain
+	 * Enum#ordinal() ordinal} of a member of the specified {@code enum}.
 	 */
 	public Class<? extends Enum<?>> describedBy();
 }

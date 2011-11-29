@@ -258,8 +258,8 @@ extends Descriptor
 	private static Random hashGenerator = new Random();
 
 
-	@Override
-	public void o_Name (
+	@Override @AvailMethod
+	void o_Name (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
@@ -267,16 +267,16 @@ extends Descriptor
 	}
 
 
-	@Override
-	public @NotNull AvailObject o_Name (
+	@Override @AvailMethod
+	@NotNull AvailObject o_Name (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.NAME);
 	}
 
 
-	@Override
-	public boolean o_Equals (
+	@Override @AvailMethod
+	boolean o_Equals (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
@@ -284,8 +284,8 @@ extends Descriptor
 	}
 
 
-	@Override
-	public int o_Hash (
+	@Override @AvailMethod
+	int o_Hash (
 		final @NotNull AvailObject object)
 	{
 		int hash = object.integerSlot(IntegerSlots.HASH_OR_ZERO);
@@ -301,15 +301,15 @@ extends Descriptor
 		return hash;
 	}
 
-	@Override
-	public @NotNull AvailObject o_Kind (
+	@Override @AvailMethod
+	@NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
 		return ATOM.o();
 	}
 
-	@Override
-	public boolean o_ExtractBoolean (
+	@Override @AvailMethod
+	boolean o_ExtractBoolean (
 		final @NotNull AvailObject object)
 	{
 		if (object.equals(TrueObject))
@@ -320,15 +320,15 @@ extends Descriptor
 		return false;
 	}
 
-	@Override
-	public boolean o_IsAtom (
+	@Override @AvailMethod
+	boolean o_IsAtom (
 		final @NotNull AvailObject object)
 	{
 		return true;
 	}
 
-	@Override
-	public boolean o_IsInstanceOfKind (
+	@Override @AvailMethod
+	boolean o_IsInstanceOfKind (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
@@ -345,8 +345,8 @@ extends Descriptor
 	 * atom with properties}, then add the property to it.
 	 * </p>
 	 */
-	@Override
-	public void o_SetAtomProperty (
+	@Override @AvailMethod
+	void o_SetAtomProperty (
 		final @NotNull AvailObject object,
 		final AvailObject key,
 		final AvailObject value)
@@ -411,8 +411,8 @@ extends Descriptor
 	 * NullDescriptor#nullObject() the null object}.
 	 * </p>
 	 */
-	@Override
-	public AvailObject o_GetAtomProperty (
+	@Override @AvailMethod
+	AvailObject o_GetAtomProperty (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject key)
 	{

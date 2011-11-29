@@ -89,12 +89,14 @@ Method "Java type_" is
 	Assert jString <= jObject;
 	jInteger ::= Java type "java.lang.Integer";
 	Assert jInteger <= jObject;
-	jComparableOfObject ::= Java type "java.lang.Comparable" parameters <jObject>;
+	jComparableOfObject ::=
+		Java type "java.lang.Comparable" parameters <jObject>;
 	Assert jString <= jComparableOfObject;
 	Assert jInteger <= jComparableOfObject;
 	jSerializable ::= Java type "java.io.Serializable";
-	intersect ::= type intersection of
-		jObject and (type intersection of jComparableOfObject and jSerializable);
+	intersect ::= type intersection
+		of jObject
+		and (type intersection of jComparableOfObject and jSerializable);
 	union ::= type union of jString and jInteger;
 	Assert union <= intersect;
 	jEnum ::= Java type "java.lang.Enum" parameters <self type>;
@@ -106,6 +108,10 @@ Method "Java type_" is
 	jArrayListOfInteger ::=
 		Java type "java.util.ArrayList" parameters <jInteger>;
 	Assert jArrayListOfInteger <= jListOfObject;
+	jComparableOfComparableOfObject ::=
+		Java type "java.lang.Comparable" parameters <jComparableOfObject>;
+	Assert jString <= jComparableOfComparableOfObject;
+	Assert jInteger <= jComparableOfComparableOfObject;
 ]();
 
 /*

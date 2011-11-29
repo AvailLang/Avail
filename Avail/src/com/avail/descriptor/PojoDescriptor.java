@@ -34,7 +34,7 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.PojoDescriptor.ObjectSlots.*;
 import com.avail.AvailRuntime;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 
 /**
  * A {@code PojoDescriptor} describes a plain-old Java object (pojo) that is
@@ -97,16 +97,16 @@ extends Descriptor
 		KIND
 	}
 
-	@Override
-	public boolean o_Equals (
+	@Override @AvailMethod
+	boolean o_Equals (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
 		return another.equalsPojo(object);
 	}
 
-	@Override
-	public boolean o_EqualsPojo (
+	@Override @AvailMethod
+	boolean o_EqualsPojo (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aPojo)
 	{
@@ -125,8 +125,8 @@ extends Descriptor
 		return true;
 	}
 
-	@Override
-	public int o_Hash (final @NotNull AvailObject object)
+	@Override @AvailMethod
+	int o_Hash (final @NotNull AvailObject object)
 	{
 		int hash = object.objectSlot(RAW_POJO).hash() ^ 0x749101DD;
 		hash *= AvailObject.Multiplier;
@@ -134,17 +134,17 @@ extends Descriptor
 		return hash;
 	}
 
-	@Override
-	public @NotNull AvailObject o_Kind (final @NotNull AvailObject object)
+	@Override @AvailMethod
+	@NotNull AvailObject o_Kind (final @NotNull AvailObject object)
 	{
 		return object.objectSlot(KIND);
 	}
 
-	@Override
-	public @NotNull AvailObject o_MakeImmutable (
+	@Override @AvailMethod
+	@NotNull AvailObject o_MakeImmutable (
 		final @NotNull AvailObject object)
 	{
-		object.descriptor(PojoDescriptor.immutable());
+		object.descriptor = immutable();
 		object.objectSlot(RAW_POJO).makeImmutable();
 		object.objectSlot(KIND).makeImmutable();
 		return object;

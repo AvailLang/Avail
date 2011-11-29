@@ -30,17 +30,15 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.compiler.node;
+package com.avail.descriptor;
 
-import static com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind.*;
-import static com.avail.compiler.node.ParseNodeTypeDescriptor.ParseNodeKind;
 import static com.avail.descriptor.AvailObject.*;
+import static com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind.*;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.compiler.scanning.TokenDescriptor;
-import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
 
@@ -485,8 +483,8 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * Getter for field name.
 	 */
-	@Override
-	public AvailObject o_Token (
+	@Override @AvailMethod
+	AvailObject o_Token (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.TOKEN);
@@ -495,8 +493,8 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * Getter for field declaredType.
 	 */
-	@Override
-	public AvailObject o_DeclaredType (
+	@Override @AvailMethod
+	AvailObject o_DeclaredType (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.DECLARED_TYPE);
@@ -505,8 +503,8 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * Setter for field initializationExpression.
 	 */
-	@Override
-	public void o_InitializationExpression (
+	@Override @AvailMethod
+	void o_InitializationExpression (
 		final @NotNull AvailObject object,
 		final AvailObject initializationExpression)
 	{
@@ -518,8 +516,8 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * Getter for field initializationExpression.
 	 */
-	@Override
-	public AvailObject o_InitializationExpression (
+	@Override @AvailMethod
+	AvailObject o_InitializationExpression (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.INITIALIZATION_EXPRESSION);
@@ -528,8 +526,8 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * Getter for field literalObject.
 	 */
-	@Override
-	public AvailObject o_LiteralObject (
+	@Override @AvailMethod
+	AvailObject o_LiteralObject (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.LITERAL_OBJECT);
@@ -538,8 +536,8 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * Getter for field declarationKind.
 	 */
-	@Override
-	public DeclarationKind o_DeclarationKind (
+	@Override @AvailMethod
+	DeclarationKind o_DeclarationKind (
 		final @NotNull AvailObject object)
 	{
 		return DeclarationKind.values()[object.integerSlot(
@@ -547,8 +545,8 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	}
 
 
-	@Override
-	public AvailObject o_ExpressionType (final AvailObject object)
+	@Override @AvailMethod
+	AvailObject o_ExpressionType (final AvailObject object)
 	{
 		return TOP.o();
 	}
@@ -559,8 +557,8 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	 *
 	 * @param codeGenerator Where to emit the declaration.
 	 */
-	@Override
-	public void o_EmitEffectOn (
+	@Override @AvailMethod
+	void o_EmitEffectOn (
 		final @NotNull AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
@@ -571,8 +569,8 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * This is a declaration, so it shouldn't generally produce a value.
 	 */
-	@Override
-	public void o_EmitValueOn (
+	@Override @AvailMethod
+	void o_EmitValueOn (
 		final @NotNull AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
@@ -580,8 +578,8 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		codeGenerator.emitPushLiteral(NullDescriptor.nullObject());
 	}
 
-	@Override
-	public AvailObject o_Kind (
+	@Override @AvailMethod
+	AvailObject o_Kind (
 			final @NotNull AvailObject object)
 	{
 		final DeclarationKind declarationKind =
@@ -590,8 +588,8 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		return declarationKind.parseNodeTypeFor(object.expressionType());
 	}
 
-	@Override
-	public int o_Hash (final AvailObject object)
+	@Override @AvailMethod
+	int o_Hash (final AvailObject object)
 	{
 		return
 			(((object.token().hash() * Multiplier
@@ -602,8 +600,8 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 			^ 0x4C27EB37;
 	}
 
-	@Override
-	public boolean o_Equals (
+	@Override @AvailMethod
+	boolean o_Equals (
 		final @NotNull AvailObject object,
 		final AvailObject another)
 	{
@@ -626,8 +624,8 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	}
 
 
-	@Override
-	public void o_ChildrenMap (
+	@Override @AvailMethod
+	void o_ChildrenMap (
 		final @NotNull AvailObject object,
 		final Transformer1<AvailObject, AvailObject> aBlock)
 	{
@@ -640,8 +638,8 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	}
 
 
-	@Override
-	public void o_ChildrenDo (
+	@Override @AvailMethod
+	void o_ChildrenDo (
 		final @NotNull AvailObject object,
 		final Continuation1<AvailObject> aBlock)
 	{
@@ -653,8 +651,8 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	}
 
 
-	@Override
-	public void o_ValidateLocally (
+	@Override @AvailMethod
+	void o_ValidateLocally (
 		final @NotNull AvailObject object,
 		final AvailObject parent,
 		final List<AvailObject> outerBlocks,

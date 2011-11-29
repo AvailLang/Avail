@@ -36,7 +36,6 @@ import static com.avail.interpreter.levelTwo.L2Operation.L2_doSetVariable_source
 import java.util.*;
 import com.avail.annotations.NotNull;
 import com.avail.compiler.AbstractAvailCompiler;
-import com.avail.compiler.node.AssignmentNodeDescriptor;
 import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.*;

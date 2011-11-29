@@ -34,7 +34,7 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 
 public class ObjectDescriptor
 extends Descriptor
@@ -131,23 +131,23 @@ extends Descriptor
 		}
 	}
 
-	@Override
-	public @NotNull AvailObject o_FieldMap (
+	@Override @AvailMethod
+	@NotNull AvailObject o_FieldMap (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.FIELD_MAP);
 	}
 
-	@Override
-	public boolean o_Equals (
+	@Override @AvailMethod
+	boolean o_Equals (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
 		return another.equalsObject(object);
 	}
 
-	@Override
-	public boolean o_EqualsObject (
+	@Override @AvailMethod
+	boolean o_EqualsObject (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anObject)
 	{
@@ -158,8 +158,8 @@ extends Descriptor
 		return object.fieldMap().equals(anObject.fieldMap());
 	}
 
-	@Override
-	public boolean o_IsInstanceOfKind (
+	@Override @AvailMethod
+	boolean o_IsInstanceOfKind (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aTypeObject)
 	{
@@ -178,8 +178,8 @@ extends Descriptor
 		return aTypeObject.hasObjectInstance(object);
 	}
 
-	@Override
-	public int o_Hash (
+	@Override @AvailMethod
+	int o_Hash (
 		final @NotNull AvailObject object)
 	{
 		// Answer the object's hash value.
@@ -187,8 +187,8 @@ extends Descriptor
 		return computeHashFromFieldMapHash(object.fieldMap().hash());
 	}
 
-	@Override
-	public @NotNull AvailObject o_Kind (
+	@Override @AvailMethod
+	@NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
 		object.makeImmutable();

@@ -34,7 +34,7 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.Multiplier;
 import java.util.List;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 
 /**
  * My instances are called <em>instance union types</em>, or just union types.
@@ -142,8 +142,8 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 		return e == ObjectSlots.CACHED_SUPERKIND;
 	}
 
-	@Override
-	public @NotNull AvailObject o_ComputeSuperkind (
+	@Override @AvailMethod
+	@NotNull AvailObject o_ComputeSuperkind (
 		final @NotNull AvailObject object)
 	{
 		return getSuperkind(object);
@@ -185,8 +185,8 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 	 * they refer to equal instances.
 	 * </p>
 	 */
-	@Override
-	public boolean o_Equals (
+	@Override @AvailMethod
+	boolean o_Equals (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
@@ -199,8 +199,8 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 		return equal;
 	}
 
-	@Override
-	public boolean o_EqualsUnionTypeWithSet (
+	@Override @AvailMethod
+	boolean o_EqualsUnionTypeWithSet (
 		final @NotNull AvailObject object,
 		final AvailObject aSet)
 	{
@@ -214,16 +214,16 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 	 * instances}, or if it is a subtype of any type that occurs in the set of
 	 * instances.
 	 */
-	@Override
-	public boolean o_HasObjectInstance (
+	@Override @AvailMethod
+	boolean o_HasObjectInstance (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject potentialInstance)
 	{
 		return getInstances(object).hasElement(potentialInstance);
 	}
 
-	@Override
-	public int o_Hash (final @NotNull AvailObject object)
+	@Override @AvailMethod
+	int o_Hash (final @NotNull AvailObject object)
 	{
 		return (object.instances().hash() ^ 0x15b5b059) * Multiplier;
 	}
@@ -347,8 +347,8 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 		return getSuperkind(object).lowerBound();
 	}
 
-	@Override
-	public boolean o_LowerInclusive (final @NotNull AvailObject object)
+	@Override @AvailMethod
+	boolean o_LowerInclusive (final @NotNull AvailObject object)
 	{
 		return getSuperkind(object).lowerInclusive();
 	}
@@ -360,14 +360,14 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 		return getSuperkind(object).upperBound();
 	}
 
-	@Override
-	public boolean o_UpperInclusive (final @NotNull AvailObject object)
+	@Override @AvailMethod
+	boolean o_UpperInclusive (final @NotNull AvailObject object)
 	{
 		return getSuperkind(object).upperInclusive();
 	}
 
-	@Override
-	public boolean o_AbstractUnionTypeIncludesInstance (
+	@Override @AvailMethod
+	boolean o_AbstractUnionTypeIncludesInstance (
 		final @NotNull AvailObject object,
 		final AvailObject potentialInstance)
 	{
@@ -438,8 +438,8 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 		return getSuperkind(object).typeTuple();
 	}
 
-	@Override
-	public boolean o_IsSubtypeOf (
+	@Override @AvailMethod
+	boolean o_IsSubtypeOf (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
@@ -455,8 +455,8 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 		return true;
 	}
 
-	@Override
-	public boolean o_IsIntegerRangeType (final @NotNull AvailObject object)
+	@Override @AvailMethod
+	boolean o_IsIntegerRangeType (final @NotNull AvailObject object)
 	{
 		for (final AvailObject instance : object.instances())
 		{
@@ -468,8 +468,8 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 		return true;
 	}
 
-	@Override
-	public boolean o_IsMapType (final @NotNull AvailObject object)
+	@Override @AvailMethod
+	boolean o_IsMapType (final @NotNull AvailObject object)
 	{
 		for (final AvailObject instance : object.instances())
 		{
@@ -481,8 +481,8 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 		return true;
 	}
 
-	@Override
-	public boolean o_IsSetType (final @NotNull AvailObject object)
+	@Override @AvailMethod
+	boolean o_IsSetType (final @NotNull AvailObject object)
 	{
 		for (final AvailObject instance : object.instances())
 		{
@@ -494,8 +494,8 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 		return true;
 	}
 
-	@Override
-	public boolean o_IsTupleType (final @NotNull AvailObject object)
+	@Override @AvailMethod
+	boolean o_IsTupleType (final @NotNull AvailObject object)
 	{
 		for (final AvailObject instance : object.instances())
 		{
@@ -507,16 +507,16 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 		return true;
 	}
 
-	@Override
-	public boolean o_AcceptsArgTypesFromFunctionType (
+	@Override @AvailMethod
+	boolean o_AcceptsArgTypesFromFunctionType (
 		final @NotNull AvailObject object,
 		final AvailObject functionType)
 	{
 		return getSuperkind(object).acceptsArgTypesFromFunctionType(functionType);
 	}
 
-	@Override
-	public boolean o_AcceptsArgumentTypesFromContinuation (
+	@Override @AvailMethod
+	boolean o_AcceptsArgumentTypesFromContinuation (
 		final @NotNull AvailObject object,
 		final AvailObject continuation,
 		final int stackp,
@@ -528,72 +528,72 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 			numArgs);
 	}
 
-	@Override
-	public boolean o_AcceptsListOfArgTypes (
+	@Override @AvailMethod
+	boolean o_AcceptsListOfArgTypes (
 		final @NotNull AvailObject object,
 		final List<AvailObject> argTypes)
 	{
 		return getSuperkind(object).acceptsListOfArgTypes(argTypes);
 	}
 
-	@Override
-	public boolean o_AcceptsListOfArgValues (
+	@Override @AvailMethod
+	boolean o_AcceptsListOfArgValues (
 		final @NotNull AvailObject object,
 		final List<AvailObject> argValues)
 	{
 		return getSuperkind(object).acceptsListOfArgValues(argValues);
 	}
 
-	@Override
-	public boolean o_AcceptsTupleOfArgTypes (
+	@Override @AvailMethod
+	boolean o_AcceptsTupleOfArgTypes (
 		final @NotNull AvailObject object,
 		final AvailObject argTypes)
 	{
 		return getSuperkind(object).acceptsTupleOfArgTypes(argTypes);
 	}
 
-	@Override
-	public boolean o_AcceptsTupleOfArguments (
+	@Override @AvailMethod
+	boolean o_AcceptsTupleOfArguments (
 		final @NotNull AvailObject object,
 		final AvailObject arguments)
 	{
 		return getSuperkind(object).acceptsTupleOfArguments(arguments);
 	}
 
-	@Override
-	public AvailObject o_ArgsTupleType (final AvailObject object)
+	@Override @AvailMethod
+	AvailObject o_ArgsTupleType (final AvailObject object)
 	{
 		return getSuperkind(object).argsTupleType();
 	}
 
-	@Override
-	public AvailObject o_CheckedExceptions (final AvailObject object)
+	@Override @AvailMethod
+	AvailObject o_CheckedExceptions (final AvailObject object)
 	{
 		return getSuperkind(object).checkedExceptions();
 	}
 
-	@Override
-	public AvailObject o_FunctionType (final AvailObject object)
+	@Override @AvailMethod
+	AvailObject o_FunctionType (final AvailObject object)
 	{
 		return getSuperkind(object).functionType();
 	}
 
-	@Override
-	public AvailObject o_ContentType (final AvailObject object)
+	@Override @AvailMethod
+	AvailObject o_ContentType (final AvailObject object)
 	{
 		return getSuperkind(object).contentType();
 	}
 
-	@Override
-	public boolean o_CouldEverBeInvokedWith (
+	@Override @AvailMethod
+	boolean o_CouldEverBeInvokedWith (
 		final @NotNull AvailObject object,
 		final List<AvailObject> argTypes)
 	{
 		return getSuperkind(object).couldEverBeInvokedWith(argTypes);
 	}
 
-	@Override
-	public boolean o_IsBetterRepresentationThan (
+	@Override @AvailMethod
+	boolean o_IsBetterRepresentationThan (
 		final @NotNull AvailObject object,
 		final AvailObject anotherObject)
 	{
@@ -601,32 +601,32 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 		return !object.objectSlot(ObjectSlots.CACHED_SUPERKIND).equalsNull();
 	}
 
-	@Override
-	public AvailObject o_KeyType (final AvailObject object)
+	@Override @AvailMethod
+	AvailObject o_KeyType (final AvailObject object)
 	{
 		return getSuperkind(object).keyType();
 	}
 
-	@Override
-	public AvailObject o_Name (final AvailObject object)
+	@Override @AvailMethod
+	AvailObject o_Name (final AvailObject object)
 	{
 		return getSuperkind(object).name();
 	}
 
-	@Override
-	public AvailObject o_Parent (final AvailObject object)
+	@Override @AvailMethod
+	AvailObject o_Parent (final AvailObject object)
 	{
 		return getSuperkind(object).parent();
 	}
 
-	@Override
-	public AvailObject o_ReturnType (final AvailObject object)
+	@Override @AvailMethod
+	AvailObject o_ReturnType (final AvailObject object)
 	{
 		return getSuperkind(object).returnType();
 	}
 
-	@Override
-	public AvailObject o_TypeIntersectionOfCompiledCodeType (
+	@Override @AvailMethod
+	AvailObject o_TypeIntersectionOfCompiledCodeType (
 		final @NotNull AvailObject object,
 		final AvailObject aCompiledCodeType)
 	{
@@ -644,8 +644,8 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 		return AbstractUnionTypeDescriptor.withInstances(complyingInstances);
 	}
 
-	@Override
-	public AvailObject o_TypeIntersectionOfContinuationType (
+	@Override @AvailMethod
+	AvailObject o_TypeIntersectionOfContinuationType (
 		final @NotNull AvailObject object,
 		final AvailObject aContinuationType)
 	{
@@ -663,8 +663,8 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 		return AbstractUnionTypeDescriptor.withInstances(complyingInstances);
 	}
 
-	@Override
-	public AvailObject o_TypeIntersectionOfParseNodeType (
+	@Override @AvailMethod
+	AvailObject o_TypeIntersectionOfParseNodeType (
 		final @NotNull AvailObject object,
 		final AvailObject aParseNodeType)
 	{
@@ -682,8 +682,8 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 		return AbstractUnionTypeDescriptor.withInstances(complyingInstances);
 	}
 
-	@Override
-	public AvailObject o_TypeUnionOfContinuationType (
+	@Override @AvailMethod
+	AvailObject o_TypeUnionOfContinuationType (
 		final @NotNull AvailObject object,
 		final AvailObject aContinuationType)
 	{
@@ -691,8 +691,8 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 			aContinuationType);
 	}
 
-	@Override
-	public AvailObject o_TypeUnionOfCompiledCodeType (
+	@Override @AvailMethod
+	AvailObject o_TypeUnionOfCompiledCodeType (
 		final @NotNull AvailObject object,
 		final AvailObject aCompiledCodeType)
 	{
@@ -700,22 +700,22 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 			aCompiledCodeType);
 	}
 
-	@Override
-	public AvailObject o_TypeUnionOfParseNodeType (
+	@Override @AvailMethod
+	AvailObject o_TypeUnionOfParseNodeType (
 		final @NotNull AvailObject object,
 		final AvailObject aParseNodeType)
 	{
 		return getSuperkind(object).typeUnionOfParseNodeType(aParseNodeType);
 	}
 
-	@Override
-	public AvailObject o_ValueType (final AvailObject object)
+	@Override @AvailMethod
+	AvailObject o_ValueType (final AvailObject object)
 	{
 		return getSuperkind(object).valueType();
 	}
 
-	@Override
-	public boolean o_IsUnionMeta (final @NotNull AvailObject object)
+	@Override @AvailMethod
+	boolean o_IsUnionMeta (final @NotNull AvailObject object)
 	{
 		for (final AvailObject element : getInstances(object))
 		{
@@ -727,8 +727,8 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 		return true;
 	}
 
-	@Override
-	public @NotNull AvailObject o_InnerKind (final @NotNull AvailObject object)
+	@Override @AvailMethod
+	@NotNull AvailObject o_InnerKind (final @NotNull AvailObject object)
 	{
 		assert object.isUnionMeta();
 		AvailObject kindUnion = BottomTypeDescriptor.bottom();
@@ -742,7 +742,6 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 		return kindUnion;
 	}
 
-
 	/**
 	 * Construct a union type from a set with at least two instances.  The set
 	 * must have already been normalized, such that at most one of the elements
@@ -751,8 +750,8 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 	 * @param normalizedSet The set of instances.
 	 * @return The resulting union type.
 	 */
-	static AvailObject fromNormalizedSet (
-		final AvailObject normalizedSet)
+	static @NotNull AvailObject fromNormalizedSet (
+		final @NotNull AvailObject normalizedSet)
 	{
 		assert normalizedSet.setSize() > 1;
 		final AvailObject result = UnionTypeDescriptor.mutable().create();
@@ -804,8 +803,6 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 	{
 		Boolean = null;
 	}
-
-
 
 	/**
 	 * Construct a new {@link UnionTypeDescriptor}.

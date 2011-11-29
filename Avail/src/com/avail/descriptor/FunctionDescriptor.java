@@ -64,7 +64,7 @@ extends Descriptor
 	}
 
 	@Override
-	public void o_Code (
+	void o_Code (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
@@ -72,7 +72,7 @@ extends Descriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_OuterVarAt (
+	@NotNull AvailObject o_OuterVarAt (
 		final @NotNull AvailObject object,
 		final int subscript)
 	{
@@ -80,7 +80,7 @@ extends Descriptor
 	}
 
 	@Override
-	public void o_OuterVarAtPut (
+	void o_OuterVarAtPut (
 		final @NotNull AvailObject object,
 		final int subscript,
 		final @NotNull AvailObject value)
@@ -89,7 +89,7 @@ extends Descriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_Code (
+	@NotNull AvailObject o_Code (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.CODE);
@@ -117,7 +117,7 @@ extends Descriptor
 	}
 
 	@Override
-	public boolean o_Equals (
+	boolean o_Equals (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
@@ -125,7 +125,7 @@ extends Descriptor
 	}
 
 	@Override
-	public boolean o_EqualsFunction (
+	boolean o_EqualsFunction (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aFunction)
 	{
@@ -154,7 +154,7 @@ extends Descriptor
 	}
 
 	@Override
-	public int o_Hash (
+	int o_Hash (
 		final @NotNull AvailObject object)
 	{
 		// Answer a 32-bit hash value. If outer vars of mutable functions can
@@ -173,7 +173,7 @@ extends Descriptor
 	}
 
 	@Override
-	public boolean o_IsFunction (
+	boolean o_IsFunction (
 		final @NotNull AvailObject object)
 	{
 		return true;
@@ -185,14 +185,14 @@ extends Descriptor
 	 * FunctionTypeDescriptor function type}.
 	 */
 	@Override
-	public @NotNull AvailObject o_Kind (
+	@NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.CODE).functionType();
 	}
 
 	@Override
-	public boolean o_ContainsBlock (
+	boolean o_ContainsBlock (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aFunction)
 	{
@@ -206,7 +206,7 @@ extends Descriptor
 	}
 
 	@Override
-	public boolean o_OptionallyNilOuterVar (
+	boolean o_OptionallyNilOuterVar (
 		final @NotNull AvailObject object,
 		final int index)
 	{
@@ -230,7 +230,7 @@ extends Descriptor
 	 * Answer how many outer vars I've copied.
 	 */
 	@Override
-	public int o_NumOuterVars (
+	int o_NumOuterVars (
 		final @NotNull AvailObject object)
 	{
 		return object.variableObjectSlotsCount();

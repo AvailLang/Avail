@@ -34,7 +34,7 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.TypeDescriptor.Types.MESSAGE_BUNDLE_TREE;
 import java.util.*;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 import com.avail.compiler.MessageSplitter;
 
 
@@ -62,75 +62,75 @@ extends Descriptor
 	}
 
 
-	@Override
-	public void o_Unclassified (
+	@Override @AvailMethod
+	void o_Unclassified (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.UNCLASSIFIED, value);
 	}
 
-	@Override
-	public void o_LazyComplete (
+	@Override @AvailMethod
+	void o_LazyComplete (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.LAZY_COMPLETE, value);
 	}
 
-	@Override
-	public void o_LazyIncomplete (
+	@Override @AvailMethod
+	void o_LazyIncomplete (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.LAZY_INCOMPLETE, value);
 	}
 
-	@Override
-	public void o_LazySpecialActions (
+	@Override @AvailMethod
+	void o_LazySpecialActions (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.LAZY_SPECIAL_ACTIONS, value);
 	}
 
-	@Override
-	public int o_ParsingPc (
+	@Override @AvailMethod
+	int o_ParsingPc (
 		final @NotNull AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.PARSING_PC);
 	}
 
-	@Override
-	public @NotNull AvailObject o_AllBundles (
+	@Override @AvailMethod
+	@NotNull AvailObject o_AllBundles (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.ALL_BUNDLES);
 	}
 
-	@Override
-	public @NotNull AvailObject o_Unclassified (
+	@Override @AvailMethod
+	@NotNull AvailObject o_Unclassified (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.UNCLASSIFIED);
 	}
 
-	@Override
-	public @NotNull AvailObject o_LazyComplete (
+	@Override @AvailMethod
+	@NotNull AvailObject o_LazyComplete (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.LAZY_COMPLETE);
 	}
 
-	@Override
-	public @NotNull AvailObject o_LazyIncomplete (
+	@Override @AvailMethod
+	@NotNull AvailObject o_LazyIncomplete (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.LAZY_INCOMPLETE);
 	}
 
-	@Override
-	public @NotNull AvailObject o_LazySpecialActions (
+	@Override @AvailMethod
+	@NotNull AvailObject o_LazySpecialActions (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.LAZY_SPECIAL_ACTIONS);
@@ -152,26 +152,26 @@ extends Descriptor
 	 * have to scan my children and make them immutable as well (recursively
 	 * down to immutable descendants).
 	 */
-	@Override
-	public @NotNull AvailObject o_MakeImmutable (
+	@Override @AvailMethod
+	@NotNull AvailObject o_MakeImmutable (
 		final @NotNull AvailObject object)
 	{
-		object.descriptor(immutable());
+		object.descriptor = immutable();
 		// Don't bother scanning subobjects. They're allowed to be mutable even
 		// when object is immutable.
 		return object;
 	}
 
-	@Override
-	public boolean o_Equals (
+	@Override @AvailMethod
+	boolean o_Equals (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
 		return another.traversed().sameAddressAs(object);
 	}
 
-	@Override
-	public int o_Hash (
+	@Override @AvailMethod
+	int o_Hash (
 		final @NotNull AvailObject object)
 	{
 		// Answer a 32-bit hash value.  Do something better than this
@@ -179,31 +179,31 @@ extends Descriptor
 		return 0;
 	}
 
-	@Override
-	public @NotNull AvailObject o_Kind (
+	@Override @AvailMethod
+	@NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
 		return MESSAGE_BUNDLE_TREE.o();
 	}
 
-	@Override
-	public AvailObject o_Complete (
+	@Override @AvailMethod
+	AvailObject o_Complete (
 		final @NotNull AvailObject object)
 	{
 		object.expand();
 		return object.lazyComplete();
 	}
 
-	@Override
-	public AvailObject o_Incomplete (
+	@Override @AvailMethod
+	AvailObject o_Incomplete (
 		final @NotNull AvailObject object)
 	{
 		object.expand();
 		return object.lazyIncomplete();
 	}
 
-	@Override
-	public AvailObject o_SpecialActions (
+	@Override @AvailMethod
+	AvailObject o_SpecialActions (
 		final @NotNull AvailObject object)
 	{
 		object.expand();
@@ -213,8 +213,8 @@ extends Descriptor
 	/**
 	 * Add the given message/bundle pair.
 	 */
-	@Override
-	public void o_AtMessageAddBundle (
+	@Override @AvailMethod
+	void o_AtMessageAddBundle (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject message,
 		final @NotNull AvailObject bundle)
@@ -239,8 +239,8 @@ extends Descriptor
 	 * {@linkplain SetDescriptor set} of visible names ({@linkplain
 	 * AtomDescriptor atoms}) is in {@code visibleNames}.
 	 */
-	@Override
-	public void o_CopyToRestrictedTo (
+	@Override @AvailMethod
+	void o_CopyToRestrictedTo (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject filteredBundleTree,
 		final @NotNull AvailObject visibleNames)
@@ -280,8 +280,8 @@ extends Descriptor
 	 * If there isn't one already, add a bundle to correspond to the given
 	 * message.  Answer the new or existing bundle.
 	 */
-	@Override
-	public @NotNull AvailObject o_IncludeBundle (
+	@Override @AvailMethod
+	@NotNull AvailObject o_IncludeBundle (
 		final @NotNull AvailObject object,
 		final AvailObject newBundle)
 	{
@@ -309,8 +309,8 @@ extends Descriptor
 	 * Remove the bundle with the given message name (expanded as parts).
 	 * Answer true if this tree is now empty and should be removed.
 	 */
-	@Override
-	public boolean o_RemoveBundle (
+	@Override @AvailMethod
+	boolean o_RemoveBundle (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject bundle)
 	{
@@ -348,8 +348,8 @@ extends Descriptor
 	/**
 	 * Expand the bundleTree if there's anything unclassified in it.
 	 */
-	@Override
-	public void o_Expand (
+	@Override @AvailMethod
+	void o_Expand (
 		final @NotNull AvailObject object)
 	{
 		final AvailObject unclassified = object.objectSlot(

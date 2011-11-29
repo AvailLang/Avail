@@ -34,7 +34,7 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 
 /**
  * My instances are called <em>instace union metatypes</em>, or just union
@@ -73,66 +73,66 @@ extends TypeDescriptor
 			aStream, recursionList, indent);
 	}
 
-	@Override
-	public int o_Hash (
+	@Override @AvailMethod
+	int o_Hash (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.INNER_KIND).hash() ^ 0xC5987B13;
 	}
 
-	@Override
-	public @NotNull AvailObject o_InnerKind (final @NotNull AvailObject object)
+	@Override @AvailMethod
+	@NotNull AvailObject o_InnerKind (final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.INNER_KIND);
 	}
 
-	@Override
-	public boolean o_Equals (
+	@Override @AvailMethod
+	boolean o_Equals (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
 		return another.equalsUnionMeta(object);
 	}
 
-	@Override
-	public boolean o_EqualsUnionMeta (
+	@Override @AvailMethod
+	boolean o_EqualsUnionMeta (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aUnionMeta)
 	{
 		return object.innerKind().equals(aUnionMeta.innerKind());
 	}
 
-	@Override
-	public boolean o_IsUnionMeta (final @NotNull AvailObject object)
+	@Override @AvailMethod
+	boolean o_IsUnionMeta (final @NotNull AvailObject object)
 	{
 		return true;
 	}
 
-	@Override
-	public boolean o_IsSubtypeOf (
+	@Override @AvailMethod
+	boolean o_IsSubtypeOf (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
 		return aType.isSupertypeOfUnionMeta(object);
 	}
 
-	@Override
-	public boolean o_IsSupertypeOfUnionMeta (
+	@Override @AvailMethod
+	boolean o_IsSupertypeOfUnionMeta (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aUnionMeta)
 	{
 		return aUnionMeta.innerKind().isSubtypeOf(object.innerKind());
 	}
 
-	@Override
-	public @NotNull AvailObject o_Kind (
+	@Override @AvailMethod
+	@NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
 		return META.o();
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeIntersection (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeIntersection (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
@@ -167,17 +167,17 @@ extends TypeDescriptor
 		return BottomTypeDescriptor.bottom();
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeIntersectionOfMeta (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeIntersectionOfMeta (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject meta)
+		final @NotNull AvailObject aMeta)
 	{
 		return UnionMetaDescriptor.over(
 			object.innerKind().typeIntersection(TYPE.o()));
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeUnion (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeUnion (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{

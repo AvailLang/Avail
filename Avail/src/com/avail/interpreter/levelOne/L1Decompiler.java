@@ -32,14 +32,13 @@
 
 package com.avail.interpreter.levelOne;
 
-import static com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind.LABEL;
-import static com.avail.compiler.node.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.AvailObject.error;
+import static com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind.LABEL;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import java.util.*;
-import com.avail.compiler.node.*;
 import com.avail.compiler.scanning.*;
-import com.avail.compiler.scanning.TokenDescriptor.TokenType;
 import com.avail.descriptor.*;
+import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.utility.Transformer1;
 
 /**

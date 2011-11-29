@@ -34,7 +34,7 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.*;
 import java.util.List;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 
 /**
  * A {@linkplain TupleDescriptor tuple} implementation that consists entirely of
@@ -95,8 +95,8 @@ extends TupleDescriptor
 	/**
 	 * Compare sections of two tuples.  My instance is a two-byte-string.
 	 */
-	@Override
-	public boolean o_CompareFromToWithStartingAt (
+	@Override @AvailMethod
+	boolean o_CompareFromToWithStartingAt (
 		final @NotNull AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -113,8 +113,8 @@ extends TupleDescriptor
 	/**
 	 * Compare sections of two two-byte strings.
 	 */
-	@Override
-	public boolean o_CompareFromToWithTwoByteStringStartingAt (
+	@Override @AvailMethod
+	boolean o_CompareFromToWithTwoByteStringStartingAt (
 		final @NotNull AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -139,16 +139,16 @@ extends TupleDescriptor
 		return true;
 	}
 
-	@Override
-	public boolean o_Equals (
+	@Override @AvailMethod
+	boolean o_Equals (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
 		return another.equalsTwoByteString(object);
 	}
 
-	@Override
-	public boolean o_EqualsTwoByteString (
+	@Override @AvailMethod
+	boolean o_EqualsTwoByteString (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aTwoByteString)
 	{
@@ -186,8 +186,8 @@ extends TupleDescriptor
 	/**
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
-	@Override
-	public boolean o_IsString (final @NotNull AvailObject object)
+	@Override @AvailMethod
+	boolean o_IsString (final @NotNull AvailObject object)
 	{
 		return true;
 	}
@@ -195,16 +195,13 @@ extends TupleDescriptor
 	/**
 	 * Make the object immutable so it can be shared safely.
 	 */
-	@Override
-	public @NotNull AvailObject o_MakeImmutable (
+	@Override @AvailMethod
+	@NotNull AvailObject o_MakeImmutable (
 		final @NotNull AvailObject object)
 	{
 		if (isMutable)
 		{
-			object.descriptor(
-				TwoByteStringDescriptor.isMutableSize(
-					false,
-					object.tupleSize()));
+			object.descriptor = isMutableSize(false, object.tupleSize());
 		}
 		return object;
 	}
@@ -212,16 +209,16 @@ extends TupleDescriptor
 	/**
 	 * Answer the byte that encodes the character at the given index.
 	 */
-	@Override
-	public short o_RawShortForCharacterAt (
+	@Override @AvailMethod
+	short o_RawShortForCharacterAt (
 		final @NotNull AvailObject object,
 		final int index)
 	{
 		return object.shortSlotAt(IntegerSlots.RAW_QUAD_AT_, index);
 	}
 
-	@Override
-	public void o_RawShortForCharacterAtPut (
+	@Override @AvailMethod
+	void o_RawShortForCharacterAtPut (
 		final @NotNull AvailObject object,
 		final int index,
 		final short anInteger)
@@ -230,8 +227,8 @@ extends TupleDescriptor
 		object.shortSlotAtPut(IntegerSlots.RAW_QUAD_AT_, index, anInteger);
 	}
 
-	@Override
-	public @NotNull AvailObject o_TupleAt (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TupleAt (
 		final @NotNull AvailObject object,
 		final int index)
 	{
@@ -243,8 +240,8 @@ extends TupleDescriptor
 			& 0xFFFF);
 	}
 
-	@Override
-	public void o_TupleAtPut (
+	@Override @AvailMethod
+	void o_TupleAtPut (
 		final @NotNull AvailObject object,
 		final int index,
 		final @NotNull AvailObject aCharacterObject)
@@ -258,8 +255,8 @@ extends TupleDescriptor
 			(short)aCharacterObject.codePoint());
 	}
 
-	@Override
-	public @NotNull AvailObject o_TupleAtPuttingCanDestroy (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TupleAtPuttingCanDestroy (
 		final @NotNull AvailObject object,
 		final int index,
 		final @NotNull AvailObject newValueObject,
@@ -294,8 +291,8 @@ extends TupleDescriptor
 			true);
 	}
 
-	@Override
-	public int o_TupleIntAt (
+	@Override @AvailMethod
+	int o_TupleIntAt (
 		final @NotNull AvailObject object,
 		final int index)
 	{
@@ -305,15 +302,15 @@ extends TupleDescriptor
 		return 0;
 	}
 
-	@Override
-	public int o_TupleSize (
+	@Override @AvailMethod
+	int o_TupleSize (
 		final @NotNull AvailObject object)
 	{
 		return object.variableIntegerSlotsCount() * 2 - unusedShortsOfLastWord;
 	}
 
-	@Override
-	public int o_BitsPerEntry (
+	@Override @AvailMethod
+	int o_BitsPerEntry (
 		final @NotNull AvailObject object)
 	{
 		// Answer approximately how many bits per entry are taken up by this
@@ -321,8 +318,8 @@ extends TupleDescriptor
 		return 16;
 	}
 
-	@Override
-	public int o_ComputeHashFromTo (
+	@Override @AvailMethod
+	int o_ComputeHashFromTo (
 		final @NotNull AvailObject object,
 		final int start,
 		final int end)

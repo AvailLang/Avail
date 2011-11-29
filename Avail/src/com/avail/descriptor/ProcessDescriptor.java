@@ -171,121 +171,121 @@ extends Descriptor
 			bitField(InterruptRequestFlag.class, "HIGHER_PRIORITY_READY");
 	}
 
-	@Override
-	public void o_BreakpointBlock (
+	@Override @AvailMethod
+	void o_BreakpointBlock (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.BREAKPOINT_BLOCK, value);
 	}
 
-	@Override
-	public void o_Continuation (
+	@Override @AvailMethod
+	void o_Continuation (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.CONTINUATION, value);
 	}
 
-	@Override
-	public void o_ExecutionState (
+	@Override @AvailMethod
+	void o_ExecutionState (
 		final @NotNull AvailObject object,
 		final @NotNull ExecutionState value)
 	{
 		object.integerSlotPut(IntegerSlots.EXECUTION_STATE, value.ordinal());
 	}
 
-	@Override
-	public void o_HashOrZero (
+	@Override @AvailMethod
+	void o_HashOrZero (
 		final @NotNull AvailObject object,
 		final int value)
 	{
 		object.integerSlotPut(IntegerSlots.HASH_OR_ZERO, value);
 	}
 
-	@Override
-	public void o_InterruptRequestFlag (
+	@Override @AvailMethod
+	void o_InterruptRequestFlag (
 		final @NotNull AvailObject object,
 		final int value)
 	{
 		object.integerSlotPut(IntegerSlots.INTERRUPT_REQUEST_FLAG, value);
 	}
 
-	@Override
-	public void o_Name (
+	@Override @AvailMethod
+	void o_Name (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.NAME, value);
 	}
 
-	@Override
-	public void o_Priority (
+	@Override @AvailMethod
+	void o_Priority (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.PRIORITY, value);
 	}
 
-	@Override
-	public void o_ProcessGlobals (
+	@Override @AvailMethod
+	void o_ProcessGlobals (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.PROCESS_GLOBALS, value);
 	}
 
-	@Override
-	public @NotNull AvailObject o_BreakpointBlock (
+	@Override @AvailMethod
+	@NotNull AvailObject o_BreakpointBlock (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.BREAKPOINT_BLOCK);
 	}
 
-	@Override
-	public @NotNull AvailObject o_Continuation (
+	@Override @AvailMethod
+	@NotNull AvailObject o_Continuation (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.CONTINUATION);
 	}
 
-	@Override
-	public ExecutionState o_ExecutionState (
+	@Override @AvailMethod
+	ExecutionState o_ExecutionState (
 		final @NotNull AvailObject object)
 	{
 		return ExecutionState.values()
 			[object.integerSlot(IntegerSlots.EXECUTION_STATE)];
 	}
 
-	@Override
-	public int o_HashOrZero (
+	@Override @AvailMethod
+	int o_HashOrZero (
 		final @NotNull AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.HASH_OR_ZERO);
 	}
 
-	@Override
-	public int o_InterruptRequestFlag (
+	@Override @AvailMethod
+	int o_InterruptRequestFlag (
 		final @NotNull AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.INTERRUPT_REQUEST_FLAG);
 	}
 
-	@Override
-	public AvailObject o_Name (final AvailObject object)
+	@Override @AvailMethod
+	AvailObject o_Name (final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.NAME);
 	}
 
-	@Override
-	public AvailObject o_Priority (
+	@Override @AvailMethod
+	AvailObject o_Priority (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.PRIORITY);
 	}
 
-	@Override
-	public @NotNull AvailObject o_ProcessGlobals (
+	@Override @AvailMethod
+	@NotNull AvailObject o_ProcessGlobals (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.PROCESS_GLOBALS);
@@ -306,8 +306,8 @@ extends Descriptor
 			|| e == IntegerSlots.INTERRUPT_REQUEST_FLAG;
 	}
 
-	@Override
-	public boolean o_Equals (
+	@Override @AvailMethod
+	boolean o_Equals (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
@@ -316,8 +316,8 @@ extends Descriptor
 		return another.traversed().sameAddressAs(object);
 	}
 
-	@Override
-	public int o_Hash (
+	@Override @AvailMethod
+	int o_Hash (
 		final @NotNull AvailObject object)
 	{
 		int hash = object.integerSlot(IntegerSlots.HASH_OR_ZERO);
@@ -333,8 +333,8 @@ extends Descriptor
 		return hash;
 	}
 
-	@Override
-	public @NotNull AvailObject o_MakeImmutable (
+	@Override @AvailMethod
+	@NotNull AvailObject o_MakeImmutable (
 		final @NotNull AvailObject object)
 	{
 		//  If I am being frozen (a container), I don't need to freeze my current value.
@@ -342,12 +342,12 @@ extends Descriptor
 		//
 		//  Do nothing.  My subobjects are all allowed to be mutable even if I'm immutable.
 
-		object.descriptor(ProcessDescriptor.immutable());
+		object.descriptor = immutable();
 		return object;
 	}
 
-	@Override
-	public @NotNull AvailObject o_Kind (
+	@Override @AvailMethod
+	@NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
 		return Types.PROCESS.o();
@@ -359,8 +359,8 @@ extends Descriptor
 	 * integer.  Use a totally naive implementation for now, with very little
 	 * caching.
 	 */
-	@Override
-	public int o_GetInteger (
+	@Override @AvailMethod
+	int o_GetInteger (
 		final @NotNull AvailObject object)
 	{
 		final AvailObject contObject = object.continuation();
@@ -386,8 +386,8 @@ extends Descriptor
 		return value;
 	}
 
-	@Override
-	public void o_Step (
+	@Override @AvailMethod
+	void o_Step (
 		final @NotNull AvailObject object)
 	{
 		//  Execute one step of the process.

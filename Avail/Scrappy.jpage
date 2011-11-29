@@ -105,3 +105,21 @@ X<hm>
 java.lang.Enum<self's type>;
 
 java.util.HashMap.class.getGenericSuperclass()
+
+
+
+
+
+String[].class.getSuperclass()
+
+
+
+class X
+{
+	public Object[] objectArray () { return new String[] { "foo " }; }
+	public String[] stringArray () { return new String[] { "foo " }; }
+	public void doObjectStuff (Object[] objectArray) { }
+	public void doStringStuff (String[] stringArray) { }
+	public void doOtherStuff () { doObjectStuff(stringArray()); }
+//	public void doWrongStuff () { doStringStuff(objectArray()); }
+}

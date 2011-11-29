@@ -199,15 +199,14 @@ extends Descriptor
 		return immutable;
 	}
 
-
-	@Override
-	public int o_CodePoint (final @NotNull AvailObject object)
+	@Override @AvailMethod
+	int o_CodePoint (final @NotNull AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.CODE_POINT);
 	}
 
-	@Override
-	public void o_CodePoint (
+	@Override @AvailMethod
+	void o_CodePoint (
 		final @NotNull AvailObject object,
 		final int value)
 	{
@@ -215,8 +214,8 @@ extends Descriptor
 	}
 
 	@Override
-	@ThreadSafe
-	public boolean o_Equals (
+	@AvailMethod @ThreadSafe
+	boolean o_Equals (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
@@ -224,8 +223,8 @@ extends Descriptor
 	}
 
 	@Override
-	@ThreadSafe
-	public boolean o_EqualsCharacterWithCodePoint (
+	@AvailMethod @ThreadSafe
+	boolean o_EqualsCharacterWithCodePoint (
 		final @NotNull AvailObject object,
 		final int otherCodePoint)
 	{
@@ -233,8 +232,8 @@ extends Descriptor
 	}
 
 	@Override
-	@ThreadSafe
-	public int o_Hash (final @NotNull AvailObject object)
+	@AvailMethod @ThreadSafe
+	int o_Hash (final @NotNull AvailObject object)
 	{
 		final int codePoint = object.codePoint();
 		if (codePoint >= 0 && codePoint <= 255)
@@ -245,15 +244,15 @@ extends Descriptor
 	}
 
 	@Override
-	@ThreadSafe
-	public boolean o_IsCharacter (final @NotNull AvailObject object)
+	@AvailMethod @ThreadSafe
+	boolean o_IsCharacter (final @NotNull AvailObject object)
 	{
 		return true;
 	}
 
 	@Override
-	@ThreadSafe
-	public @NotNull AvailObject o_Kind (final @NotNull AvailObject object)
+	@AvailMethod @ThreadSafe
+	@NotNull AvailObject o_Kind (final @NotNull AvailObject object)
 	{
 		return CHARACTER.o();
 	}
@@ -262,7 +261,6 @@ extends Descriptor
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
 	@Override
-	@ThreadSafe
 	public void printObjectOnAvoidingIndent (
 		final @NotNull AvailObject object,
 		final @NotNull StringBuilder aStream,

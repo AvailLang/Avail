@@ -33,19 +33,18 @@
 package com.avail.compiler;
 
 import static com.avail.compiler.AbstractAvailCompiler.ExpectedToken.*;
-import static com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind.*;
-import static com.avail.compiler.node.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.compiler.scanning.TokenDescriptor.TokenType.*;
 import static com.avail.descriptor.AvailObject.error;
+import static com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind.*;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.descriptor.TokenDescriptor.TokenType.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.io.*;
 import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
-import com.avail.compiler.node.*;
 import com.avail.compiler.scanning.*;
-import com.avail.compiler.scanning.TokenDescriptor.TokenType;
 import com.avail.descriptor.*;
+import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;

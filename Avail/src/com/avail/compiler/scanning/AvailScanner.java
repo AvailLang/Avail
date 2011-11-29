@@ -34,8 +34,8 @@ package com.avail.compiler.scanning;
 import static com.avail.compiler.scanning.AvailScanner.ScannerAction.*;
 import java.util.*;
 import com.avail.annotations.*;
-import com.avail.compiler.scanning.TokenDescriptor.TokenType;
 import com.avail.descriptor.*;
+import com.avail.descriptor.TokenDescriptor.TokenType;
 
 /**
  * An {@code AvailScanner} converts a stream of characters into a {@link List}

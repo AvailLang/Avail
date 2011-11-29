@@ -35,7 +35,7 @@ package com.avail.descriptor;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static java.lang.Math.max;
 import java.util.*;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 import com.avail.compiler.AvailRejectedParseException;
 import com.avail.interpreter.*;
 import com.avail.utility.*;
@@ -109,15 +109,15 @@ extends Descriptor
 		DEPENDENT_CHUNK_INDICES
 	}
 
-	@Override
-	public @NotNull AvailObject o_ImplementationsTuple (
+	@Override @AvailMethod
+	@NotNull AvailObject o_ImplementationsTuple (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.IMPLEMENTATIONS_TUPLE);
 	}
 
-	@Override
-	public @NotNull AvailObject o_Name (
+	@Override @AvailMethod
+	@NotNull AvailObject o_Name (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.NAME);
@@ -152,8 +152,8 @@ extends Descriptor
 		aStream.append(object.name().name().asNativeString());
 	}
 
-	@Override
-	public boolean o_Equals (
+	@Override @AvailMethod
+	boolean o_Equals (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
@@ -161,8 +161,8 @@ extends Descriptor
 		return another.traversed().sameAddressAs(object);
 	}
 
-	@Override
-	public int o_Hash (
+	@Override @AvailMethod
+	int o_Hash (
 		final @NotNull AvailObject object)
 	{
 		return object.name().hash() + 0x61AF3FC;
@@ -174,24 +174,24 @@ extends Descriptor
 	 * down to immutable descendants).  Actually, I allow some of my
 	 * slots to be mutable even when I'm immutable.
 	 */
-	@Override
-	public @NotNull AvailObject o_MakeImmutable (
+	@Override @AvailMethod
+	@NotNull AvailObject o_MakeImmutable (
 		final @NotNull AvailObject object)
 	{
-		object.descriptor(ImplementationSetDescriptor.immutable());
+		object.descriptor = immutable();
 		object.name().makeImmutable();
 		return object;
 	}
 
-	@Override
-	public @NotNull AvailObject o_Kind (
+	@Override @AvailMethod
+	@NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
 		return IMPLEMENTATION_SET.o();
 	}
 
-	@Override
-	public void o_AddDependentChunkIndex (
+	@Override @AvailMethod
+	void o_AddDependentChunkIndex (
 		final @NotNull AvailObject object,
 		final int aChunkIndex)
 	{
@@ -218,8 +218,8 @@ extends Descriptor
 	 * @param implementation A {@linkplain SignatureDescriptor signature} to be
 	 *
 	 */
-	@Override
-	public void o_AddImplementation (
+	@Override @AvailMethod
+	void o_AddImplementation (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject implementation)
 	{
@@ -244,8 +244,8 @@ extends Descriptor
 	 * types.  Answer a {@link List list} of {@link
 	 * MethodSignatureDescriptor method signatures}.
 	 */
-	@Override
-	public List<AvailObject> o_FilterByTypes (
+	@Override @AvailMethod
+	List<AvailObject> o_FilterByTypes (
 		final @NotNull AvailObject object,
 		final @NotNull List<AvailObject> argTypes)
 	{
@@ -278,8 +278,8 @@ extends Descriptor
 	 * always override a strictly more abstract method).  We can do that some
 	 * other day.
 	 */
-	@Override
-	public List<AvailObject> o_ImplementationsAtOrBelow (
+	@Override @AvailMethod
+	List<AvailObject> o_ImplementationsAtOrBelow (
 		final @NotNull AvailObject object,
 		final @NotNull List<AvailObject> argTypes)
 	{
@@ -300,8 +300,8 @@ extends Descriptor
 	/**
 	 * Test if the implementation is present.
 	 */
-	@Override
-	public boolean o_IncludesImplementation (
+	@Override @AvailMethod
+	boolean o_IncludesImplementation (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject imp)
 	{
@@ -320,8 +320,8 @@ extends Descriptor
 	 * Use the testingTree to find the implementation to invoke (answer void if
 	 * a lookup error occurs).
 	 */
-	@Override
-	public @NotNull AvailObject o_LookupByTypesFromList (
+	@Override @AvailMethod
+	@NotNull AvailObject o_LookupByTypesFromList (
 		final @NotNull AvailObject object,
 		final @NotNull List<AvailObject> argumentTypeList)
 	{
@@ -357,8 +357,8 @@ extends Descriptor
 	 * stackp + numArgs - 1} is the first.  Use the testingTree to find the
 	 * implementation to invoke (answer void if a lookup error occurs).
 	 */
-	@Override
-	public @NotNull AvailObject o_LookupByTypesFromContinuationStackp (
+	@Override @AvailMethod
+	@NotNull AvailObject o_LookupByTypesFromContinuationStackp (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject continuation,
 		final int stackp)
@@ -400,8 +400,8 @@ extends Descriptor
 	 * a lookup error occurs).  There may be more entries in the tuple of
 	 * argument types than we need, to allow the tuple to be a reusable buffer.
 	 */
-	@Override
-	public @NotNull AvailObject o_LookupByTypesFromTuple (
+	@Override @AvailMethod
+	@NotNull AvailObject o_LookupByTypesFromTuple (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject argumentTypeTuple)
 	{
@@ -436,8 +436,8 @@ extends Descriptor
 	 * Use the testingTree to find the implementation to invoke (answer void if
 	 * a lookup error occurs).
 	 */
-	@Override
-	public @NotNull AvailObject o_LookupByValuesFromList (
+	@Override @AvailMethod
+	@NotNull AvailObject o_LookupByValuesFromList (
 		final @NotNull AvailObject object,
 		final @NotNull List<AvailObject> argumentList)
 	{
@@ -474,8 +474,8 @@ extends Descriptor
 	 * arguments than we're interested in (to allow the tuple to be a reusable
 	 * buffer).
 	 */
-	@Override
-	public @NotNull AvailObject o_LookupByValuesFromTuple (
+	@Override @AvailMethod
+	@NotNull AvailObject o_LookupByValuesFromTuple (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject argumentTuple)
 	{
@@ -511,8 +511,8 @@ extends Descriptor
 	 * invalidated by a new implementation in either me or another
 	 * implementation set that the chunk is contingent on.
 	 */
-	@Override
-	public void o_RemoveDependentChunkIndex (
+	@Override @AvailMethod
+	void o_RemoveDependentChunkIndex (
 		final @NotNull AvailObject object,
 		final int aChunkIndex)
 	{
@@ -528,8 +528,8 @@ extends Descriptor
 	 * Remove the implementation from me.  Causes dependent chunks to be
 	 * invalidated.
 	 */
-	@Override
-	public void o_RemoveImplementation (
+	@Override @AvailMethod
+	void o_RemoveImplementation (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject implementation)
 	{
@@ -546,8 +546,8 @@ extends Descriptor
 	/**
 	 * Answer how many arguments my implementations require.
 	 */
-	@Override
-	public int o_NumArgs (
+	@Override @AvailMethod
+	int o_NumArgs (
 		final @NotNull AvailObject object)
 	{
 		final AvailObject impsTuple = object.implementationsTuple();
@@ -570,8 +570,8 @@ extends Descriptor
 	 * that the argument types are mutually incompatible.
 	 * </p>
 	 */
-	@Override
-	public @NotNull AvailObject o_ValidateArgumentTypesInterpreterIfFail (
+	@Override @AvailMethod
+	@NotNull AvailObject o_ValidateArgumentTypesInterpreterIfFail (
 		final @NotNull AvailObject object,
 		final @NotNull List<AvailObject> argTypes,
 		final @NotNull Interpreter anAvailInterpreter,
@@ -759,8 +759,8 @@ extends Descriptor
 	 * createTestingTree(...)} for an interpretation of the resulting tuple of
 	 * integers.
 	 */
-	@Override
-	public @NotNull AvailObject o_TestingTree (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TestingTree (
 		final @NotNull AvailObject object)
 	{
 		AvailObject result =
@@ -795,8 +795,8 @@ extends Descriptor
 		return result;
 	}
 
-	@Override
-	public void o_AddTypeRestriction (
+	@Override @AvailMethod
+	void o_AddTypeRestriction (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject function)
 	{
@@ -809,8 +809,8 @@ extends Descriptor
 			newTuple);
 	}
 
-	@Override
-	public void o_RemoveTypeRestriction (
+	@Override @AvailMethod
+	void o_RemoveTypeRestriction (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject function)
 	{
@@ -824,15 +824,15 @@ extends Descriptor
 			newTuple);
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeRestrictions (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeRestrictions (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.TYPE_RESTRICTIONS_TUPLE);
 	}
 
-	@Override
-	public void o_AddSealedArgumentsType (
+	@Override @AvailMethod
+	void o_AddSealedArgumentsType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject tupleType)
 	{
@@ -845,8 +845,8 @@ extends Descriptor
 			newTuple);
 	}
 
-	@Override
-	public void o_RemoveSealedArgumentsType (
+	@Override @AvailMethod
+	void o_RemoveSealedArgumentsType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject tupleType)
 	{
@@ -860,15 +860,15 @@ extends Descriptor
 			newTuple);
 	}
 
-	@Override
-	public @NotNull AvailObject o_SealedArgumentsTypesTuple (
+	@Override @AvailMethod
+	@NotNull AvailObject o_SealedArgumentsTypesTuple (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.SEALED_ARGUMENTS_TYPES_TUPLE);
 	}
 
-	@Override
-	public boolean o_IsImplementationSetEmpty (
+	@Override @AvailMethod
+	boolean o_IsImplementationSetEmpty (
 		final @NotNull AvailObject object)
 	{
 		final AvailObject implementationsTuple =

@@ -33,11 +33,11 @@
 package com.avail.interpreter;
 
 import static com.avail.descriptor.AvailObject.*;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.interpreter.Primitive.Result.CONTINUATION_CHANGED;
-import static com.avail.compiler.node.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static java.lang.Math.*;
 import java.io.*;
 import java.lang.reflect.*;
@@ -46,10 +46,9 @@ import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
 import com.avail.compiler.*;
-import com.avail.compiler.node.*;
 import com.avail.compiler.scanning.*;
-import com.avail.compiler.scanning.TokenDescriptor.TokenType;
 import com.avail.descriptor.*;
+import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.exceptions.*;
 import com.avail.exceptions.ArithmeticException;
 import com.avail.interpreter.levelTwo.*;

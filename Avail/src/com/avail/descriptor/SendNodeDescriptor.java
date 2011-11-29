@@ -30,14 +30,13 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.compiler.node;
+package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.Multiplier;
-import static com.avail.compiler.node.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import java.util.List;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 import com.avail.compiler.*;
-import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
 
@@ -78,8 +77,8 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * Setter for field arguments.
 	 */
-	@Override
-	public void o_Arguments (
+	@Override @AvailMethod
+	void o_Arguments (
 		final @NotNull AvailObject object,
 		final AvailObject arguments)
 	{
@@ -89,8 +88,8 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * Getter for field arguments.
 	 */
-	@Override
-	public AvailObject o_Arguments (
+	@Override @AvailMethod
+	AvailObject o_Arguments (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.ARGUMENTS);
@@ -100,8 +99,8 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * Setter for field implementationSet.
 	 */
-	@Override
-	public void o_ImplementationSet (
+	@Override @AvailMethod
+	void o_ImplementationSet (
 		final @NotNull AvailObject object,
 		final AvailObject implementationSet)
 	{
@@ -111,8 +110,8 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * Getter for field implementationSet.
 	 */
-	@Override
-	public AvailObject o_ImplementationSet (
+	@Override @AvailMethod
+	AvailObject o_ImplementationSet (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.IMPLEMENTATION_SET);
@@ -122,8 +121,8 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * Setter for field returnType.
 	 */
-	@Override
-	public void o_ReturnType (
+	@Override @AvailMethod
+	void o_ReturnType (
 		final @NotNull AvailObject object,
 		final AvailObject returnType)
 	{
@@ -134,28 +133,28 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * Getter for field arguments.
 	 */
-	@Override
-	public AvailObject o_ReturnType (
+	@Override @AvailMethod
+	AvailObject o_ReturnType (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.RETURN_TYPE);
 	}
 
 
-	@Override
-	public AvailObject o_ExpressionType (final AvailObject object)
+	@Override @AvailMethod
+	AvailObject o_ExpressionType (final AvailObject object)
 	{
 		return object.returnType();
 	}
 
-	@Override
-	public AvailObject o_Kind (final AvailObject object)
+	@Override @AvailMethod
+	AvailObject o_Kind (final AvailObject object)
 	{
 		return SEND_NODE.create(object.expressionType());
 	}
 
-	@Override
-	public int o_Hash (final AvailObject object)
+	@Override @AvailMethod
+	int o_Hash (final AvailObject object)
 	{
 		return
 			(object.arguments().hash() * Multiplier
@@ -164,8 +163,8 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 			^ 0x90E39B4D;
 	}
 
-	@Override
-	public boolean o_Equals (
+	@Override @AvailMethod
+	boolean o_Equals (
 		final @NotNull AvailObject object,
 		final AvailObject another)
 	{
@@ -175,14 +174,14 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 			&& object.returnType().equals(another.returnType());
 	}
 
-	@Override
-	public AvailObject o_ApparentSendName (final AvailObject object)
+	@Override @AvailMethod
+	AvailObject o_ApparentSendName (final AvailObject object)
 	{
 		return object.implementationSet().name();
 	}
 
-	@Override
-	public void o_EmitValueOn (
+	@Override @AvailMethod
+	void o_EmitValueOn (
 		final @NotNull AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
@@ -228,8 +227,8 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 		}
 	}
 
-	@Override
-	public void o_ChildrenMap (
+	@Override @AvailMethod
+	void o_ChildrenMap (
 		final @NotNull AvailObject object,
 		final Transformer1<AvailObject, AvailObject> aBlock)
 	{
@@ -244,8 +243,8 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 		object.arguments(arguments);
 	}
 
-	@Override
-	public void o_ChildrenDo (
+	@Override @AvailMethod
+	void o_ChildrenDo (
 		final @NotNull AvailObject object,
 		final Continuation1<AvailObject> aBlock)
 	{
@@ -255,8 +254,8 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 		}
 	}
 
-	@Override
-	public void o_ValidateLocally (
+	@Override @AvailMethod
+	void o_ValidateLocally (
 		final @NotNull AvailObject object,
 		final AvailObject parent,
 		final List<AvailObject> outerBlocks,

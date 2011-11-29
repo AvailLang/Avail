@@ -30,13 +30,12 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.compiler.node;
+package com.avail.descriptor;
 
-import static com.avail.compiler.node.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import java.util.*;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
 
@@ -72,8 +71,8 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * Setter for field expressionsTuple.
 	 */
-	@Override
-	public void o_ExpressionsTuple (
+	@Override @AvailMethod
+	void o_ExpressionsTuple (
 		final @NotNull AvailObject object,
 		final AvailObject expressionsTuple)
 	{
@@ -83,8 +82,8 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * Getter for field expressionsTuple.
 	 */
-	@Override
-	public AvailObject o_ExpressionsTuple (
+	@Override @AvailMethod
+	AvailObject o_ExpressionsTuple (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.EXPRESSIONS_TUPLE);
@@ -93,8 +92,8 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * Setter for field tupleType.
 	 */
-	@Override
-	public void o_TupleType (
+	@Override @AvailMethod
+	void o_TupleType (
 		final @NotNull AvailObject object,
 		final AvailObject tupleType)
 	{
@@ -104,16 +103,16 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * Getter for field tupleType.
 	 */
-	@Override
-	public AvailObject o_TupleType (
+	@Override @AvailMethod
+	AvailObject o_TupleType (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.TUPLE_TYPE);
 	}
 
 
-	@Override
-	public AvailObject o_ExpressionType (final AvailObject object)
+	@Override @AvailMethod
+	AvailObject o_ExpressionType (final AvailObject object)
 	{
 		AvailObject tupleType = object.tupleType();
 		if (tupleType.equalsNull())
@@ -142,20 +141,20 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 		return tupleType;
 	}
 
-	@Override
-	public AvailObject o_Kind (final AvailObject object)
+	@Override @AvailMethod
+	AvailObject o_Kind (final AvailObject object)
 	{
 		return TUPLE_NODE.create(object.expressionType());
 	}
 
-	@Override
-	public int o_Hash (final AvailObject object)
+	@Override @AvailMethod
+	int o_Hash (final AvailObject object)
 	{
 		return object.expressionsTuple().hash() ^ 0xC143E977;
 	}
 
-	@Override
-	public boolean o_Equals (
+	@Override @AvailMethod
+	boolean o_Equals (
 		final @NotNull AvailObject object,
 		final AvailObject another)
 	{
@@ -163,8 +162,8 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 			&& object.expressionsTuple().equals(another.expressionsTuple());
 	}
 
-	@Override
-	public void o_EmitValueOn (
+	@Override @AvailMethod
+	void o_EmitValueOn (
 		final @NotNull AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
@@ -176,8 +175,8 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 		codeGenerator.emitMakeTuple(childNodes.tupleSize());
 	}
 
-	@Override
-	public void o_ChildrenMap (
+	@Override @AvailMethod
+	void o_ChildrenMap (
 		final @NotNull AvailObject object,
 		final Transformer1<AvailObject, AvailObject> aBlock)
 	{
@@ -193,8 +192,8 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 	}
 
 
-	@Override
-	public void o_ChildrenDo (
+	@Override @AvailMethod
+	void o_ChildrenDo (
 		final @NotNull AvailObject object,
 		final Continuation1<AvailObject> aBlock)
 	{
@@ -205,8 +204,8 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 	}
 
 
-	@Override
-	public void o_ValidateLocally (
+	@Override @AvailMethod
+	void o_ValidateLocally (
 		final @NotNull AvailObject object,
 		final AvailObject parent,
 		final List<AvailObject> outerBlocks,
@@ -228,8 +227,8 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 	 *         A new {@code TupleNodeDescriptor tuple node} with the parse node
 	 *         appended.
 	 */
-	@Override
-	public AvailObject o_CopyWith (
+	@Override @AvailMethod
+	AvailObject o_CopyWith (
 		final @NotNull AvailObject object,
 		final AvailObject newParseNode)
 	{

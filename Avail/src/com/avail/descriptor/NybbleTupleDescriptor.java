@@ -36,7 +36,7 @@ import static com.avail.descriptor.AvailObject.Multiplier;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static java.lang.Math.*;
 import java.util.List;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 
 public class NybbleTupleDescriptor
 extends TupleDescriptor
@@ -119,8 +119,8 @@ extends TupleDescriptor
 		aStream.append(']');
 	}
 
-	@Override
-	public boolean o_CompareFromToWithStartingAt (
+	@Override @AvailMethod
+	boolean o_CompareFromToWithStartingAt (
 		final @NotNull AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -136,8 +136,8 @@ extends TupleDescriptor
 			startIndex1);
 	}
 
-	@Override
-	public boolean o_CompareFromToWithNybbleTupleStartingAt (
+	@Override @AvailMethod
+	boolean o_CompareFromToWithNybbleTupleStartingAt (
 		final @NotNull AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -167,16 +167,16 @@ extends TupleDescriptor
 		return true;
 	}
 
-	@Override
-	public boolean o_Equals (
+	@Override @AvailMethod
+	boolean o_Equals (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
 		return another.equalsNybbleTuple(object);
 	}
 
-	@Override
-	public boolean o_EqualsNybbleTuple (
+	@Override @AvailMethod
+	boolean o_EqualsNybbleTuple (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aNybbleTuple)
 	{
@@ -211,8 +211,8 @@ extends TupleDescriptor
 		return true;
 	}
 
-	@Override
-	public boolean o_IsBetterRepresentationThan (
+	@Override @AvailMethod
+	boolean o_IsBetterRepresentationThan (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anotherObject)
 	{
@@ -223,8 +223,8 @@ extends TupleDescriptor
 		return true;
 	}
 
-	@Override
-	public boolean o_IsInstanceOfKind (
+	@Override @AvailMethod
+	boolean o_IsInstanceOfKind (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
@@ -274,8 +274,8 @@ extends TupleDescriptor
 		return true;
 	}
 
-	@Override
-	public void o_RawNybbleAtPut (
+	@Override @AvailMethod
+	void o_RawNybbleAtPut (
 		final @NotNull AvailObject object,
 		final int nybbleIndex,
 		final byte aNybble)
@@ -293,20 +293,19 @@ extends TupleDescriptor
 		object.integerSlotAtPut(IntegerSlots.RAW_QUAD_AT_, wordIndex, word);
 	}
 
-	@Override
-	public @NotNull AvailObject o_MakeImmutable (
+	@Override @AvailMethod
+	@NotNull AvailObject o_MakeImmutable (
 		final @NotNull AvailObject object)
 	{
 		if (isMutable)
 		{
-			object.descriptor(
-				NybbleTupleDescriptor.isMutableSize(false, object.tupleSize()));
+			object.descriptor = isMutableSize(false, object.tupleSize());
 		}
 		return object;
 	}
 
-	@Override
-	public byte o_ExtractNybbleFromTupleAt (
+	@Override @AvailMethod
+	byte o_ExtractNybbleFromTupleAt (
 		final @NotNull AvailObject object,
 		final int nybbleIndex)
 	{
@@ -322,8 +321,8 @@ extends TupleDescriptor
 		return (byte) (word>>>shift & 0x0F);
 	}
 
-	@Override
-	public short o_RawByteAt (
+	@Override @AvailMethod
+	short o_RawByteAt (
 		final @NotNull AvailObject object,
 		final int byteIndex)
 	{
@@ -332,8 +331,8 @@ extends TupleDescriptor
 		return object.byteSlotAt(IntegerSlots.RAW_QUAD_AT_, byteIndex);
 	}
 
-	@Override
-	public void o_RawByteAtPut (
+	@Override @AvailMethod
+	void o_RawByteAtPut (
 		final @NotNull AvailObject object,
 		final int byteIndex,
 		final short anInteger)
@@ -343,8 +342,8 @@ extends TupleDescriptor
 		object.byteSlotAtPut(IntegerSlots.RAW_QUAD_AT_, byteIndex, anInteger);
 	}
 
-	@Override
-	public byte o_RawNybbleAt (
+	@Override @AvailMethod
+	byte o_RawNybbleAt (
 		final @NotNull AvailObject object,
 		final int nybbleIndex)
 	{
@@ -357,8 +356,8 @@ extends TupleDescriptor
 		return (byte) (word>>>shift & 0x0F);
 	}
 
-	@Override
-	public @NotNull AvailObject o_TupleAt (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TupleAt (
 		final @NotNull AvailObject object,
 		final int index)
 	{
@@ -367,8 +366,8 @@ extends TupleDescriptor
 		return IntegerDescriptor.fromUnsignedByte(object.rawNybbleAt(index));
 	}
 
-	@Override
-	public void o_TupleAtPut (
+	@Override @AvailMethod
+	void o_TupleAtPut (
 		final @NotNull AvailObject object,
 		final int index,
 		final @NotNull AvailObject aNybbleObject)
@@ -378,8 +377,8 @@ extends TupleDescriptor
 		object.rawNybbleAtPut(index, aNybbleObject.extractNybble());
 	}
 
-	@Override
-	public @NotNull AvailObject o_TupleAtPuttingCanDestroy (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TupleAtPuttingCanDestroy (
 		final @NotNull AvailObject object,
 		final int nybbleIndex,
 		final @NotNull AvailObject newValueObject,
@@ -418,8 +417,8 @@ extends TupleDescriptor
 		return object;
 	}
 
-	@Override
-	public int o_TupleIntAt (
+	@Override @AvailMethod
+	int o_TupleIntAt (
 		final @NotNull AvailObject object,
 		final int index)
 	{
@@ -428,15 +427,15 @@ extends TupleDescriptor
 		return object.rawNybbleAt(index);
 	}
 
-	@Override
-	public int o_TupleSize (
+	@Override @AvailMethod
+	int o_TupleSize (
 		final @NotNull AvailObject object)
 	{
 		return object.variableIntegerSlotsCount() * 8 - unusedNybblesOfLastWord;
 	}
 
-	@Override
-	public int o_BitsPerEntry (
+	@Override @AvailMethod
+	int o_BitsPerEntry (
 		final @NotNull AvailObject object)
 	{
 		//  Answer approximately how many bits per entry are taken up by this object.
@@ -457,8 +456,8 @@ extends TupleDescriptor
 		unusedNybblesOfLastWord = anInteger;
 	}
 
-	@Override
-	public int o_ComputeHashFromTo (
+	@Override @AvailMethod
+	int o_ComputeHashFromTo (
 		final @NotNull AvailObject object,
 		final int start,
 		final int end)

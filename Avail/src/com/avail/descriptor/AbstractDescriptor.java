@@ -35,9 +35,8 @@ import java.lang.reflect.Field;
 import java.util.*;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind;
-import com.avail.compiler.node.ParseNodeTypeDescriptor.ParseNodeKind;
-import com.avail.compiler.scanning.TokenDescriptor;
+import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.ProcessDescriptor.ExecutionState;
 import com.avail.exceptions.ArithmeticException;
 import com.avail.interpreter.Interpreter;
@@ -98,7 +97,7 @@ public abstract class AbstractDescriptor
 	 *
 	 * @return The {@linkplain AbstractDescriptor descriptor}'s identifier.
 	 */
-	public final short id ()
+	final short id ()
 	{
 		return myId;
 	}
@@ -607,7 +606,7 @@ public abstract class AbstractDescriptor
 	 * @param functionType
 	 * @return
 	 */
-	public abstract boolean o_AcceptsArgTypesFromFunctionType (
+	abstract boolean o_AcceptsArgTypesFromFunctionType (
 		final @NotNull AvailObject object,
 		final AvailObject functionType);
 
@@ -618,7 +617,7 @@ public abstract class AbstractDescriptor
 	 * @param numArgs
 	 * @return
 	 */
-	public abstract boolean o_AcceptsArgumentTypesFromContinuation (
+	abstract boolean o_AcceptsArgumentTypesFromContinuation (
 		final @NotNull AvailObject object,
 		final AvailObject continuation,
 		final int stackp,
@@ -629,7 +628,7 @@ public abstract class AbstractDescriptor
 	 * @param argTypes
 	 * @return
 	 */
-	public abstract boolean o_AcceptsListOfArgTypes (
+	abstract boolean o_AcceptsListOfArgTypes (
 		final @NotNull AvailObject object,
 		final List<AvailObject> argTypes);
 
@@ -638,7 +637,7 @@ public abstract class AbstractDescriptor
 	 * @param argValues
 	 * @return
 	 */
-	public abstract boolean o_AcceptsListOfArgValues (
+	abstract boolean o_AcceptsListOfArgValues (
 		final @NotNull AvailObject object,
 		final List<AvailObject> argValues);
 
@@ -647,7 +646,7 @@ public abstract class AbstractDescriptor
 	 * @param argTypes
 	 * @return
 	 */
-	public abstract boolean o_AcceptsTupleOfArgTypes (
+	abstract boolean o_AcceptsTupleOfArgTypes (
 		final @NotNull AvailObject object,
 		final AvailObject argTypes);
 
@@ -656,7 +655,7 @@ public abstract class AbstractDescriptor
 	 * @param arguments
 	 * @return
 	 */
-	public abstract boolean o_AcceptsTupleOfArguments (
+	abstract boolean o_AcceptsTupleOfArguments (
 		final @NotNull AvailObject object,
 		final AvailObject arguments);
 
@@ -664,7 +663,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param aChunkIndex
 	 */
-	public abstract void o_AddDependentChunkIndex (
+	abstract void o_AddDependentChunkIndex (
 		final @NotNull AvailObject object,
 		final int aChunkIndex);
 
@@ -672,7 +671,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param implementation
 	 */
-	public abstract void o_AddImplementation (
+	abstract void o_AddImplementation (
 		final @NotNull AvailObject object,
 		final AvailObject implementation);
 
@@ -680,7 +679,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param restrictions
 	 */
-	public abstract void o_AddRestrictions (
+	abstract void o_AddRestrictions (
 		final @NotNull AvailObject object,
 		final AvailObject restrictions);
 
@@ -739,7 +738,7 @@ public abstract class AbstractDescriptor
 	 * @param methodName
 	 * @param illegalArgMsgs
 	 */
-	public abstract void o_AddGrammaticalMessageRestrictions (
+	abstract void o_AddGrammaticalMessageRestrictions (
 		final @NotNull AvailObject object,
 		final AvailObject methodName,
 		final AvailObject illegalArgMsgs);
@@ -749,7 +748,7 @@ public abstract class AbstractDescriptor
 	 * @param methodName
 	 * @param implementation
 	 */
-	public abstract void o_AddMethodImplementation (
+	abstract void o_AddMethodImplementation (
 		final @NotNull AvailObject object,
 		final AvailObject methodName,
 		final AvailObject implementation);
@@ -759,7 +758,7 @@ public abstract class AbstractDescriptor
 	 * @param message
 	 * @param bundle
 	 */
-	public abstract void o_AtMessageAddBundle (
+	abstract void o_AtMessageAddBundle (
 		final @NotNull AvailObject object,
 		final AvailObject message,
 		final AvailObject bundle);
@@ -769,7 +768,7 @@ public abstract class AbstractDescriptor
 	 * @param stringName
 	 * @param trueName
 	 */
-	public abstract void o_AtNameAdd (
+	abstract void o_AtNameAdd (
 		final @NotNull AvailObject object,
 		final AvailObject stringName,
 		final AvailObject trueName);
@@ -779,7 +778,7 @@ public abstract class AbstractDescriptor
 	 * @param stringName
 	 * @param trueName
 	 */
-	public abstract void o_AtNewNamePut (
+	abstract void o_AtNewNamePut (
 		final @NotNull AvailObject object,
 		final AvailObject stringName,
 		final AvailObject trueName);
@@ -789,7 +788,7 @@ public abstract class AbstractDescriptor
 	 * @param stringName
 	 * @param trueName
 	 */
-	public abstract void o_AtPrivateNameAdd (
+	abstract void o_AtPrivateNameAdd (
 		final @NotNull AvailObject object,
 		final AvailObject stringName,
 		final AvailObject trueName);
@@ -799,7 +798,7 @@ public abstract class AbstractDescriptor
 	 * @param index
 	 * @return
 	 */
-	public abstract AvailObject o_BinElementAt (
+	abstract AvailObject o_BinElementAt (
 		final @NotNull AvailObject object,
 		final int index);
 
@@ -808,7 +807,7 @@ public abstract class AbstractDescriptor
 	 * @param index
 	 * @param value
 	 */
-	public abstract void o_BinElementAtPut (
+	abstract void o_BinElementAtPut (
 		final @NotNull AvailObject object,
 		final int index,
 		final AvailObject value);
@@ -817,19 +816,19 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_BinHash (final AvailObject object, final int value);
+	abstract void o_BinHash (final AvailObject object, final int value);
 
 	/**
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_BinSize (final AvailObject object, final int value);
+	abstract void o_BinSize (final AvailObject object, final int value);
 
 	/**
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_BinUnionTypeOrTop (
+	abstract void o_BinUnionTypeOrTop (
 		final @NotNull AvailObject object,
 		final AvailObject value);
 
@@ -837,7 +836,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_BitVector (
+	abstract void o_BitVector (
 		final @NotNull AvailObject object,
 		final int value);
 
@@ -845,7 +844,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_BreakpointBlock (
+	abstract void o_BreakpointBlock (
 		final @NotNull AvailObject object,
 		final AvailObject value);
 
@@ -853,7 +852,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param bundleTree
 	 */
-	public abstract void o_BuildFilteredBundleTreeFrom (
+	abstract void o_BuildFilteredBundleTreeFrom (
 		final @NotNull AvailObject object,
 		final AvailObject bundleTree);
 
@@ -861,7 +860,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_Caller (
+	abstract void o_Caller (
 		final @NotNull AvailObject object,
 		final AvailObject value);
 
@@ -869,7 +868,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_Function (
+	abstract void o_Function (
 		final @NotNull AvailObject object,
 		final AvailObject value);
 
@@ -877,7 +876,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_Code (
+	abstract void o_Code (
 		final @NotNull AvailObject object,
 		final AvailObject value);
 
@@ -885,7 +884,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_CodePoint (
+	abstract void o_CodePoint (
 		final @NotNull AvailObject object,
 		final int value);
 
@@ -897,7 +896,7 @@ public abstract class AbstractDescriptor
 	 * @param startIndex2
 	 * @return
 	 */
-	public abstract boolean o_CompareFromToWithStartingAt (
+	abstract boolean o_CompareFromToWithStartingAt (
 		final @NotNull AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -912,7 +911,7 @@ public abstract class AbstractDescriptor
 	 * @param startIndex2
 	 * @return
 	 */
-	public abstract boolean o_CompareFromToWithAnyTupleStartingAt (
+	abstract boolean o_CompareFromToWithAnyTupleStartingAt (
 		final @NotNull AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -927,7 +926,7 @@ public abstract class AbstractDescriptor
 	 * @param startIndex2
 	 * @return
 	 */
-	public abstract boolean o_CompareFromToWithByteStringStartingAt (
+	abstract boolean o_CompareFromToWithByteStringStartingAt (
 		final @NotNull AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -942,7 +941,7 @@ public abstract class AbstractDescriptor
 	 * @param startIndex2
 	 * @return
 	 */
-	public abstract boolean o_CompareFromToWithByteTupleStartingAt (
+	abstract boolean o_CompareFromToWithByteTupleStartingAt (
 		final @NotNull AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -957,7 +956,7 @@ public abstract class AbstractDescriptor
 	 * @param startIndex2
 	 * @return
 	 */
-	public abstract boolean o_CompareFromToWithNybbleTupleStartingAt (
+	abstract boolean o_CompareFromToWithNybbleTupleStartingAt (
 		final @NotNull AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -972,7 +971,7 @@ public abstract class AbstractDescriptor
 	 * @param startIndex2
 	 * @return
 	 */
-	public abstract boolean o_CompareFromToWithObjectTupleStartingAt (
+	abstract boolean o_CompareFromToWithObjectTupleStartingAt (
 		final @NotNull AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -987,7 +986,7 @@ public abstract class AbstractDescriptor
 	 * @param startIndex2
 	 * @return
 	 */
-	public abstract boolean o_CompareFromToWithTwoByteStringStartingAt (
+	abstract boolean o_CompareFromToWithTwoByteStringStartingAt (
 		final @NotNull AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -998,7 +997,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_LazyComplete (
+	abstract void o_LazyComplete (
 		final @NotNull AvailObject object,
 		final AvailObject value);
 
@@ -1008,7 +1007,7 @@ public abstract class AbstractDescriptor
 	 * @param end
 	 * @return
 	 */
-	public abstract int o_ComputeHashFromTo (
+	abstract int o_ComputeHashFromTo (
 		final @NotNull AvailObject object,
 		final int start,
 		final int end);
@@ -1018,7 +1017,7 @@ public abstract class AbstractDescriptor
 	 * @param canDestroy
 	 * @return
 	 */
-	public abstract AvailObject o_ConcatenateTuplesCanDestroy (
+	abstract AvailObject o_ConcatenateTuplesCanDestroy (
 		final @NotNull AvailObject object,
 		final boolean canDestroy);
 
@@ -1026,7 +1025,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_Continuation (
+	abstract void o_Continuation (
 		final @NotNull AvailObject object,
 		final AvailObject value);
 
@@ -1035,7 +1034,7 @@ public abstract class AbstractDescriptor
 	 * @param filteredBundleTree
 	 * @param visibleNames
 	 */
-	public abstract void o_CopyToRestrictedTo (
+	abstract void o_CopyToRestrictedTo (
 		final @NotNull AvailObject object,
 		final AvailObject filteredBundleTree,
 		final AvailObject visibleNames);
@@ -1047,7 +1046,7 @@ public abstract class AbstractDescriptor
 	 * @param canDestroy
 	 * @return
 	 */
-	public abstract AvailObject o_CopyTupleFromToCanDestroy (
+	abstract AvailObject o_CopyTupleFromToCanDestroy (
 		final @NotNull AvailObject object,
 		final int start,
 		final int end,
@@ -1058,7 +1057,7 @@ public abstract class AbstractDescriptor
 	 * @param argTypes
 	 * @return
 	 */
-	public abstract boolean o_CouldEverBeInvokedWith (
+	abstract boolean o_CouldEverBeInvokedWith (
 		final @NotNull AvailObject object,
 		final List<AvailObject> argTypes);
 
@@ -1067,7 +1066,7 @@ public abstract class AbstractDescriptor
 	 * @param index
 	 * @return
 	 */
-	public abstract AvailObject o_DataAtIndex (
+	abstract AvailObject o_DataAtIndex (
 		final @NotNull AvailObject object,
 		final int index);
 
@@ -1076,7 +1075,7 @@ public abstract class AbstractDescriptor
 	 * @param index
 	 * @param value
 	 */
-	public abstract void o_DataAtIndexPut (
+	abstract void o_DataAtIndexPut (
 		final @NotNull AvailObject object,
 		final int index,
 		final AvailObject value);
@@ -1105,7 +1104,7 @@ public abstract class AbstractDescriptor
 	 * @see IntegerDescriptor
 	 * @see InfinityDescriptor
 	 */
-	public abstract @NotNull AvailObject o_DivideCanDestroy (
+	abstract @NotNull AvailObject o_DivideCanDestroy (
 			final @NotNull AvailObject object,
 			final @NotNull AvailObject aNumber,
 			final boolean canDestroy)
@@ -1170,7 +1169,7 @@ public abstract class AbstractDescriptor
 	 * @param index
 	 * @return
 	 */
-	public abstract AvailObject o_ElementAt (
+	abstract AvailObject o_ElementAt (
 		final @NotNull AvailObject object,
 		final int index);
 
@@ -1179,7 +1178,7 @@ public abstract class AbstractDescriptor
 	 * @param index
 	 * @param value
 	 */
-	public abstract void o_ElementAtPut (
+	abstract void o_ElementAtPut (
 		final @NotNull AvailObject object,
 		final int index,
 		final AvailObject value);
@@ -1189,7 +1188,7 @@ public abstract class AbstractDescriptor
 	 * @param zone
 	 * @return
 	 */
-	public abstract int o_EndOfZone (
+	abstract int o_EndOfZone (
 		final @NotNull AvailObject object,
 		final int zone);
 
@@ -1198,7 +1197,7 @@ public abstract class AbstractDescriptor
 	 * @param zone
 	 * @return
 	 */
-	public abstract int o_EndSubtupleIndexInZone (
+	abstract int o_EndSubtupleIndexInZone (
 		final @NotNull AvailObject object,
 		final int zone);
 
@@ -1206,7 +1205,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_ExecutionState (
+	abstract void o_ExecutionState (
 		final @NotNull AvailObject object,
 		final ExecutionState value);
 
@@ -1215,7 +1214,7 @@ public abstract class AbstractDescriptor
 	 * @param index
 	 * @return
 	 */
-	public abstract byte o_ExtractNybbleFromTupleAt (
+	abstract byte o_ExtractNybbleFromTupleAt (
 		final @NotNull AvailObject object,
 		final int index);
 
@@ -1224,7 +1223,7 @@ public abstract class AbstractDescriptor
 	 * @param argTypes
 	 * @return
 	 */
-	public abstract List<AvailObject> o_FilterByTypes (
+	abstract List<AvailObject> o_FilterByTypes (
 		final @NotNull AvailObject object,
 		final List<AvailObject> argTypes);
 
@@ -1236,20 +1235,19 @@ public abstract class AbstractDescriptor
 	 * @param endOfZone
 	 * @return
 	 */
-	public abstract AvailObject
-		o_ForZoneSetSubtupleStartSubtupleIndexEndOfZone (
-			final @NotNull AvailObject object,
-			final int zone,
-			final AvailObject newSubtuple,
-			final int startSubtupleIndex,
-			final int endOfZone);
+	abstract AvailObject o_ForZoneSetSubtupleStartSubtupleIndexEndOfZone (
+		final @NotNull AvailObject object,
+		final int zone,
+		final AvailObject newSubtuple,
+		final int startSubtupleIndex,
+		final int endOfZone);
 
 	/**
 	 * @param object
 	 * @param another
 	 * @return
 	 */
-	public abstract boolean o_GreaterThanInteger (
+	abstract boolean o_GreaterThanInteger (
 		final @NotNull AvailObject object,
 		final AvailObject another);
 
@@ -1258,7 +1256,7 @@ public abstract class AbstractDescriptor
 	 * @param another
 	 * @return
 	 */
-	public abstract boolean o_GreaterThanSignedInfinity (
+	abstract boolean o_GreaterThanSignedInfinity (
 		final @NotNull AvailObject object,
 		final AvailObject another);
 
@@ -1267,7 +1265,7 @@ public abstract class AbstractDescriptor
 	 * @param elementObject
 	 * @return
 	 */
-	public abstract boolean o_HasElement (
+	abstract boolean o_HasElement (
 		final @NotNull AvailObject object,
 		final AvailObject elementObject);
 
@@ -1275,7 +1273,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_Hash (
+	abstract void o_Hash (
 		final @NotNull AvailObject object,
 		final int value);
 
@@ -1285,7 +1283,7 @@ public abstract class AbstractDescriptor
 	 * @param endIndex
 	 * @return
 	 */
-	public abstract int o_HashFromTo (
+	abstract int o_HashFromTo (
 		final @NotNull AvailObject object,
 		final int startIndex,
 		final int endIndex);
@@ -1294,7 +1292,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_HashOrZero (
+	abstract void o_HashOrZero (
 		final @NotNull AvailObject object,
 		final int value);
 
@@ -1303,7 +1301,7 @@ public abstract class AbstractDescriptor
 	 * @param keyObject
 	 * @return
 	 */
-	public abstract boolean o_HasKey (
+	abstract boolean o_HasKey (
 		final @NotNull AvailObject object,
 		final AvailObject keyObject);
 
@@ -1312,7 +1310,7 @@ public abstract class AbstractDescriptor
 	 * @param argTypes
 	 * @return
 	 */
-	public abstract List<AvailObject> o_ImplementationsAtOrBelow (
+	abstract List<AvailObject> o_ImplementationsAtOrBelow (
 		final @NotNull AvailObject object,
 		final List<AvailObject> argTypes);
 
@@ -1321,7 +1319,7 @@ public abstract class AbstractDescriptor
 	 * @param messageBundle
 	 * @return
 	 */
-	public abstract AvailObject o_IncludeBundle (
+	abstract AvailObject o_IncludeBundle (
 		final @NotNull AvailObject object,
 		final AvailObject messageBundle);
 
@@ -1330,7 +1328,7 @@ public abstract class AbstractDescriptor
 	 * @param imp
 	 * @return
 	 */
-	public abstract boolean o_IncludesImplementation (
+	abstract boolean o_IncludesImplementation (
 		final @NotNull AvailObject object,
 		final AvailObject imp);
 
@@ -1338,7 +1336,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_LazyIncomplete (
+	abstract void o_LazyIncomplete (
 		final @NotNull AvailObject object,
 		final AvailObject value);
 
@@ -1346,7 +1344,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_Index (
+	abstract void o_Index (
 		final @NotNull AvailObject object,
 		final int value);
 
@@ -1354,7 +1352,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_InternalHash (
+	abstract void o_InternalHash (
 		final @NotNull AvailObject object,
 		final int value);
 
@@ -1362,7 +1360,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_InterruptRequestFlag (
+	abstract void o_InterruptRequestFlag (
 		final @NotNull AvailObject object,
 		final int value);
 
@@ -1370,7 +1368,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_InvocationCount (
+	abstract void o_InvocationCount (
 		final @NotNull AvailObject object,
 		final int value);
 
@@ -1378,7 +1376,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param aBoolean
 	 */
-	public abstract void o_IsSaved (
+	abstract void o_IsSaved (
 		final @NotNull AvailObject object,
 		final boolean aBoolean);
 
@@ -1387,7 +1385,7 @@ public abstract class AbstractDescriptor
 	 * @param another
 	 * @return
 	 */
-	public abstract boolean o_IsSubsetOf (
+	abstract boolean o_IsSubsetOf (
 		final @NotNull AvailObject object,
 		final AvailObject another);
 
@@ -1396,7 +1394,7 @@ public abstract class AbstractDescriptor
 	 * @param aType
 	 * @return
 	 */
-	public abstract boolean o_IsSubtypeOf (
+	abstract boolean o_IsSubtypeOf (
 		final @NotNull AvailObject object,
 		final AvailObject aType);
 
@@ -1405,7 +1403,7 @@ public abstract class AbstractDescriptor
 	 * @param aContainerType
 	 * @return
 	 */
-	public abstract boolean o_IsSupertypeOfContainerType (
+	abstract boolean o_IsSupertypeOfContainerType (
 		final @NotNull AvailObject object,
 		final AvailObject aContainerType);
 
@@ -1414,7 +1412,7 @@ public abstract class AbstractDescriptor
 	 * @param aContinuationType
 	 * @return
 	 */
-	public abstract boolean o_IsSupertypeOfContinuationType (
+	abstract boolean o_IsSupertypeOfContinuationType (
 		final @NotNull AvailObject object,
 		final AvailObject aContinuationType);
 
@@ -1423,7 +1421,7 @@ public abstract class AbstractDescriptor
 	 * @param aCompiledCodeType
 	 * @return
 	 */
-	public abstract boolean o_IsSupertypeOfCompiledCodeType (
+	abstract boolean o_IsSupertypeOfCompiledCodeType (
 		final @NotNull AvailObject object,
 		final AvailObject aCompiledCodeType);
 
@@ -1432,7 +1430,7 @@ public abstract class AbstractDescriptor
 	 * @param aFunctionType
 	 * @return
 	 */
-	public abstract boolean o_IsSupertypeOfFunctionType (
+	abstract boolean o_IsSupertypeOfFunctionType (
 		final @NotNull AvailObject object,
 		final AvailObject aFunctionType);
 
@@ -1441,7 +1439,7 @@ public abstract class AbstractDescriptor
 	 * @param anIntegerRangeType
 	 * @return
 	 */
-	public abstract boolean o_IsSupertypeOfIntegerRangeType (
+	abstract boolean o_IsSupertypeOfIntegerRangeType (
 		final @NotNull AvailObject object,
 		final AvailObject anIntegerRangeType);
 
@@ -1450,7 +1448,7 @@ public abstract class AbstractDescriptor
 	 * @param aMapType
 	 * @return
 	 */
-	public abstract boolean o_IsSupertypeOfMapType (
+	abstract boolean o_IsSupertypeOfMapType (
 		final @NotNull AvailObject object,
 		final AvailObject aMapType);
 
@@ -1459,7 +1457,7 @@ public abstract class AbstractDescriptor
 	 * @param anObjectType
 	 * @return
 	 */
-	public abstract boolean o_IsSupertypeOfObjectType (
+	abstract boolean o_IsSupertypeOfObjectType (
 		final @NotNull AvailObject object,
 		final AvailObject anObjectType);
 
@@ -1468,7 +1466,7 @@ public abstract class AbstractDescriptor
 	 * @param aParseNodeType
 	 * @return
 	 */
-	public abstract boolean o_IsSupertypeOfParseNodeType (
+	abstract boolean o_IsSupertypeOfParseNodeType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aParseNodeType);
 
@@ -1477,7 +1475,7 @@ public abstract class AbstractDescriptor
 	 * @param aPojoType
 	 * @return
 	 */
-	public abstract boolean o_IsSupertypeOfPojoType (
+	abstract boolean o_IsSupertypeOfPojoType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aPojoType);
 
@@ -1486,7 +1484,7 @@ public abstract class AbstractDescriptor
 	 * @param aPrimitiveType
 	 * @return
 	 */
-	public abstract boolean o_IsSupertypeOfPrimitiveType (
+	abstract boolean o_IsSupertypeOfPrimitiveType (
 		final @NotNull AvailObject object,
 		final AvailObject aPrimitiveType);
 
@@ -1495,7 +1493,7 @@ public abstract class AbstractDescriptor
 	 * @param aSetType
 	 * @return
 	 */
-	public abstract boolean o_IsSupertypeOfSetType (
+	abstract boolean o_IsSupertypeOfSetType (
 		final @NotNull AvailObject object,
 		final AvailObject aSetType);
 
@@ -1504,7 +1502,7 @@ public abstract class AbstractDescriptor
 	 * @param aTupleType
 	 * @return
 	 */
-	public abstract boolean o_IsSupertypeOfTupleType (
+	abstract boolean o_IsSupertypeOfTupleType (
 		final @NotNull AvailObject object,
 		final AvailObject aTupleType);
 
@@ -1513,7 +1511,7 @@ public abstract class AbstractDescriptor
 	 * @param aUnionMeta
 	 * @return
 	 */
-	public abstract boolean o_IsSupertypeOfUnionMeta (
+	abstract boolean o_IsSupertypeOfUnionMeta (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aUnionMeta);
 
@@ -1522,7 +1520,7 @@ public abstract class AbstractDescriptor
 	 * @param index
 	 * @return
 	 */
-	public abstract AvailObject o_KeyAtIndex (
+	abstract AvailObject o_KeyAtIndex (
 		final @NotNull AvailObject object,
 		final int index);
 
@@ -1531,7 +1529,7 @@ public abstract class AbstractDescriptor
 	 * @param index
 	 * @param keyObject
 	 */
-	public abstract void o_KeyAtIndexPut (
+	abstract void o_KeyAtIndexPut (
 		final @NotNull AvailObject object,
 		final int index,
 		final AvailObject keyObject);
@@ -1541,7 +1539,7 @@ public abstract class AbstractDescriptor
 	 * @param another
 	 * @return
 	 */
-	public abstract boolean o_LessOrEqual (
+	abstract boolean o_LessOrEqual (
 		final @NotNull AvailObject object,
 		final AvailObject another);
 
@@ -1550,7 +1548,7 @@ public abstract class AbstractDescriptor
 	 * @param another
 	 * @return
 	 */
-	public abstract boolean o_LessThan (
+	abstract boolean o_LessThan (
 		final @NotNull AvailObject object,
 		final AvailObject another);
 
@@ -1559,7 +1557,7 @@ public abstract class AbstractDescriptor
 	 * @param chunk
 	 * @param offset
 	 */
-	public abstract void o_LevelTwoChunkOffset (
+	abstract void o_LevelTwoChunkOffset (
 		final @NotNull AvailObject object,
 		final AvailObject chunk,
 		final int offset);
@@ -1568,7 +1566,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_Literal (
+	abstract void o_Literal (
 		final @NotNull AvailObject object,
 		final AvailObject value);
 
@@ -1577,7 +1575,7 @@ public abstract class AbstractDescriptor
 	 * @param index
 	 * @return
 	 */
-	public abstract AvailObject o_LiteralAt (
+	abstract AvailObject o_LiteralAt (
 		final @NotNull AvailObject object,
 		final int index);
 
@@ -1586,7 +1584,7 @@ public abstract class AbstractDescriptor
 	 * @param index
 	 * @return
 	 */
-	public abstract AvailObject o_ArgOrLocalOrStackAt (
+	abstract AvailObject o_ArgOrLocalOrStackAt (
 		final @NotNull AvailObject object,
 		final int index);
 
@@ -1595,7 +1593,7 @@ public abstract class AbstractDescriptor
 	 * @param index
 	 * @param value
 	 */
-	public abstract void o_ArgOrLocalOrStackAtPut (
+	abstract void o_ArgOrLocalOrStackAtPut (
 		final @NotNull AvailObject object,
 		final int index,
 		final AvailObject value);
@@ -1605,7 +1603,7 @@ public abstract class AbstractDescriptor
 	 * @param index
 	 * @return
 	 */
-	public abstract AvailObject o_LocalTypeAt (
+	abstract AvailObject o_LocalTypeAt (
 		final @NotNull AvailObject object,
 		final int index);
 
@@ -1614,7 +1612,7 @@ public abstract class AbstractDescriptor
 	 * @param argumentTypeList
 	 * @return
 	 */
-	public abstract AvailObject o_LookupByTypesFromList (
+	abstract AvailObject o_LookupByTypesFromList (
 		final @NotNull AvailObject object,
 		final List<AvailObject> argumentTypeList);
 
@@ -1624,7 +1622,7 @@ public abstract class AbstractDescriptor
 	 * @param stackp
 	 * @return
 	 */
-	public abstract AvailObject o_LookupByTypesFromContinuationStackp (
+	abstract AvailObject o_LookupByTypesFromContinuationStackp (
 		final @NotNull AvailObject object,
 		final AvailObject continuation,
 		final int stackp);
@@ -1634,7 +1632,7 @@ public abstract class AbstractDescriptor
 	 * @param argumentTypeTuple
 	 * @return
 	 */
-	public abstract AvailObject o_LookupByTypesFromTuple (
+	abstract AvailObject o_LookupByTypesFromTuple (
 		final @NotNull AvailObject object,
 		final AvailObject argumentTypeTuple);
 
@@ -1643,7 +1641,7 @@ public abstract class AbstractDescriptor
 	 * @param argumentList
 	 * @return
 	 */
-	public abstract AvailObject o_LookupByValuesFromList (
+	abstract AvailObject o_LookupByValuesFromList (
 		final @NotNull AvailObject object,
 		final List<AvailObject> argumentList);
 
@@ -1652,7 +1650,7 @@ public abstract class AbstractDescriptor
 	 * @param argumentTuple
 	 * @return
 	 */
-	public abstract AvailObject o_LookupByValuesFromTuple (
+	abstract AvailObject o_LookupByValuesFromTuple (
 		final @NotNull AvailObject object,
 		final AvailObject argumentTuple);
 
@@ -1661,7 +1659,7 @@ public abstract class AbstractDescriptor
 	 * @param keyObject
 	 * @return
 	 */
-	public abstract AvailObject o_MapAt (
+	abstract AvailObject o_MapAt (
 		final @NotNull AvailObject object,
 		final AvailObject keyObject);
 
@@ -1672,7 +1670,7 @@ public abstract class AbstractDescriptor
 	 * @param canDestroy
 	 * @return
 	 */
-	public abstract AvailObject o_MapAtPuttingCanDestroy (
+	abstract AvailObject o_MapAtPuttingCanDestroy (
 		final @NotNull AvailObject object,
 		final AvailObject keyObject,
 		final AvailObject newValueObject,
@@ -1682,7 +1680,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_MapSize (
+	abstract void o_MapSize (
 		final @NotNull AvailObject object,
 		final int value);
 
@@ -1692,7 +1690,7 @@ public abstract class AbstractDescriptor
 	 * @param canDestroy
 	 * @return
 	 */
-	public abstract AvailObject o_MapWithoutKeyCanDestroy (
+	abstract AvailObject o_MapWithoutKeyCanDestroy (
 		final @NotNull AvailObject object,
 		final AvailObject keyObject,
 		final boolean canDestroy);
@@ -1701,7 +1699,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_Message (
+	abstract void o_Message (
 		final @NotNull AvailObject object,
 		final AvailObject value);
 
@@ -1709,7 +1707,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_MessageParts (
+	abstract void o_MessageParts (
 		final @NotNull AvailObject object,
 		final AvailObject value);
 
@@ -1737,7 +1735,7 @@ public abstract class AbstractDescriptor
 	 * @see IntegerDescriptor
 	 * @see InfinityDescriptor
 	 */
-	public abstract AvailObject o_MinusCanDestroy (
+	abstract AvailObject o_MinusCanDestroy (
 			final @NotNull AvailObject object,
 			final AvailObject aNumber,
 			final boolean canDestroy)
@@ -1803,7 +1801,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_MyRestrictions (
+	abstract void o_MyRestrictions (
 		final @NotNull AvailObject object,
 		final AvailObject value);
 
@@ -1811,7 +1809,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_MyType (
+	abstract void o_MyType (
 		final @NotNull AvailObject object,
 		final AvailObject value);
 
@@ -1819,7 +1817,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_Name (
+	abstract void o_Name (
 		final @NotNull AvailObject object,
 		final AvailObject value);
 
@@ -1828,7 +1826,7 @@ public abstract class AbstractDescriptor
 	 * @param trueName
 	 * @return
 	 */
-	public abstract boolean o_NameVisible (
+	abstract boolean o_NameVisible (
 		final @NotNull AvailObject object,
 		final AvailObject trueName);
 
@@ -1836,7 +1834,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_NumBlanks (
+	abstract void o_NumBlanks (
 		final @NotNull AvailObject object,
 		final int value);
 
@@ -1845,7 +1843,7 @@ public abstract class AbstractDescriptor
 	 * @param index
 	 * @return
 	 */
-	public abstract boolean o_OptionallyNilOuterVar (
+	abstract boolean o_OptionallyNilOuterVar (
 		final @NotNull AvailObject object,
 		final int index);
 
@@ -1854,7 +1852,7 @@ public abstract class AbstractDescriptor
 	 * @param index
 	 * @return
 	 */
-	public abstract AvailObject o_OuterTypeAt (
+	abstract AvailObject o_OuterTypeAt (
 		final @NotNull AvailObject object,
 		final int index);
 
@@ -1863,7 +1861,7 @@ public abstract class AbstractDescriptor
 	 * @param index
 	 * @return
 	 */
-	public abstract AvailObject o_OuterVarAt (
+	abstract AvailObject o_OuterVarAt (
 		final @NotNull AvailObject object,
 		final int index);
 
@@ -1872,7 +1870,7 @@ public abstract class AbstractDescriptor
 	 * @param index
 	 * @param value
 	 */
-	public abstract void o_OuterVarAtPut (
+	abstract void o_OuterVarAtPut (
 		final @NotNull AvailObject object,
 		final int index,
 		final AvailObject value);
@@ -1881,7 +1879,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_Parent (
+	abstract void o_Parent (
 		final @NotNull AvailObject object,
 		final AvailObject value);
 
@@ -1889,7 +1887,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_Pc (final AvailObject object, final int value);
+	abstract void o_Pc (final AvailObject object, final int value);
 
 	/**
 	 * Add the {@linkplain AvailObject operands} and answer the result.
@@ -1913,7 +1911,7 @@ public abstract class AbstractDescriptor
 	 *         If the {@linkplain AvailObject operands} were {@linkplain
 	 *         InfinityDescriptor infinities} of differing signs.
 	 */
-	public abstract AvailObject o_PlusCanDestroy (
+	abstract AvailObject o_PlusCanDestroy (
 			final @NotNull AvailObject object,
 			final AvailObject aNumber,
 			final boolean canDestroy)
@@ -1923,7 +1921,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_Priority (
+	abstract void o_Priority (
 		final @NotNull AvailObject object,
 		final AvailObject value);
 
@@ -1932,7 +1930,7 @@ public abstract class AbstractDescriptor
 	 * @param element
 	 * @return
 	 */
-	public abstract AvailObject o_PrivateAddElement (
+	abstract AvailObject o_PrivateAddElement (
 		final @NotNull AvailObject object,
 		final AvailObject element);
 
@@ -1941,7 +1939,7 @@ public abstract class AbstractDescriptor
 	 * @param element
 	 * @return
 	 */
-	public abstract AvailObject o_PrivateExcludeElement (
+	abstract AvailObject o_PrivateExcludeElement (
 		final @NotNull AvailObject object,
 		final AvailObject element);
 
@@ -1951,7 +1949,7 @@ public abstract class AbstractDescriptor
 	 * @param knownIndex
 	 * @return
 	 */
-	public abstract AvailObject o_PrivateExcludeElementKnownIndex (
+	abstract AvailObject o_PrivateExcludeElementKnownIndex (
 		final @NotNull AvailObject object,
 		final AvailObject element,
 		final int knownIndex);
@@ -1961,7 +1959,7 @@ public abstract class AbstractDescriptor
 	 * @param keyObject
 	 * @return
 	 */
-	public abstract AvailObject o_PrivateExcludeKey (
+	abstract AvailObject o_PrivateExcludeKey (
 		final @NotNull AvailObject object,
 		final AvailObject keyObject);
 
@@ -1971,7 +1969,7 @@ public abstract class AbstractDescriptor
 	 * @param valueObject
 	 * @return
 	 */
-	public abstract AvailObject o_PrivateMapAtPut (
+	abstract AvailObject o_PrivateMapAtPut (
 		final @NotNull AvailObject object,
 		final AvailObject keyObject,
 		final AvailObject valueObject);
@@ -1980,7 +1978,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_ProcessGlobals (
+	abstract void o_ProcessGlobals (
 		final @NotNull AvailObject object,
 		final AvailObject value);
 
@@ -1989,7 +1987,7 @@ public abstract class AbstractDescriptor
 	 * @param index
 	 * @return
 	 */
-	public abstract short o_RawByteAt (
+	abstract short o_RawByteAt (
 		final @NotNull AvailObject object,
 		final int index);
 
@@ -1998,7 +1996,7 @@ public abstract class AbstractDescriptor
 	 * @param index
 	 * @param anInteger
 	 */
-	public abstract void o_RawByteAtPut (
+	abstract void o_RawByteAtPut (
 		final @NotNull AvailObject object,
 		final int index,
 		final short anInteger);
@@ -2008,7 +2006,7 @@ public abstract class AbstractDescriptor
 	 * @param index
 	 * @return
 	 */
-	public abstract short o_RawByteForCharacterAt (
+	abstract short o_RawByteForCharacterAt (
 		final @NotNull AvailObject object,
 		final int index);
 
@@ -2017,7 +2015,7 @@ public abstract class AbstractDescriptor
 	 * @param index
 	 * @param anInteger
 	 */
-	public abstract void o_RawByteForCharacterAtPut (
+	abstract void o_RawByteForCharacterAtPut (
 		final @NotNull AvailObject object,
 		final int index,
 		final short anInteger);
@@ -2027,7 +2025,7 @@ public abstract class AbstractDescriptor
 	 * @param index
 	 * @return
 	 */
-	public abstract byte o_RawNybbleAt (
+	abstract byte o_RawNybbleAt (
 		final @NotNull AvailObject object,
 		final int index);
 
@@ -2036,7 +2034,7 @@ public abstract class AbstractDescriptor
 	 * @param index
 	 * @param aNybble
 	 */
-	public abstract void o_RawNybbleAtPut (
+	abstract void o_RawNybbleAtPut (
 		final @NotNull AvailObject object,
 		final int index,
 		final byte aNybble);
@@ -2046,7 +2044,7 @@ public abstract class AbstractDescriptor
 	 * @param index
 	 * @return
 	 */
-	public abstract short o_RawShortForCharacterAt (
+	abstract short o_RawShortForCharacterAt (
 		final @NotNull AvailObject object,
 		final int index);
 
@@ -2055,7 +2053,7 @@ public abstract class AbstractDescriptor
 	 * @param index
 	 * @param anInteger
 	 */
-	public abstract void o_RawShortForCharacterAtPut (
+	abstract void o_RawShortForCharacterAtPut (
 		final @NotNull AvailObject object,
 		final int index,
 		final short anInteger);
@@ -2065,7 +2063,7 @@ public abstract class AbstractDescriptor
 	 * @param index
 	 * @return
 	 */
-	public abstract int o_RawSignedIntegerAt (
+	abstract int o_RawSignedIntegerAt (
 		final @NotNull AvailObject object,
 		final int index);
 
@@ -2074,7 +2072,7 @@ public abstract class AbstractDescriptor
 	 * @param index
 	 * @param value
 	 */
-	public abstract void o_RawSignedIntegerAtPut (
+	abstract void o_RawSignedIntegerAtPut (
 		final @NotNull AvailObject object,
 		final int index,
 		final int value);
@@ -2084,7 +2082,7 @@ public abstract class AbstractDescriptor
 	 * @param index
 	 * @return
 	 */
-	public abstract long o_RawUnsignedIntegerAt (
+	abstract long o_RawUnsignedIntegerAt (
 		final @NotNull AvailObject object,
 		final int index);
 
@@ -2093,7 +2091,7 @@ public abstract class AbstractDescriptor
 	 * @param index
 	 * @param value
 	 */
-	public abstract void o_RawUnsignedIntegerAtPut (
+	abstract void o_RawUnsignedIntegerAtPut (
 		final @NotNull AvailObject object,
 		final int index,
 		final int value);
@@ -2102,7 +2100,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param aChunkIndex
 	 */
-	public abstract void o_RemoveDependentChunkIndex (
+	abstract void o_RemoveDependentChunkIndex (
 		final @NotNull AvailObject object,
 		final int aChunkIndex);
 
@@ -2110,7 +2108,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param anInterpreter
 	 */
-	public abstract void o_RemoveFrom (
+	abstract void o_RemoveFrom (
 		final @NotNull AvailObject object,
 		final L2Interpreter anInterpreter);
 
@@ -2118,7 +2116,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param implementation
 	 */
-	public abstract void o_RemoveImplementation (
+	abstract void o_RemoveImplementation (
 		final @NotNull AvailObject object,
 		final AvailObject implementation);
 
@@ -2127,7 +2125,7 @@ public abstract class AbstractDescriptor
 	 * @param bundle
 	 * @return
 	 */
-	public abstract boolean o_RemoveBundle (
+	abstract boolean o_RemoveBundle (
 		final @NotNull AvailObject object,
 		AvailObject bundle);
 
@@ -2135,7 +2133,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param obsoleteRestrictions
 	 */
-	public abstract void o_RemoveRestrictions (
+	abstract void o_RemoveRestrictions (
 		final @NotNull AvailObject object,
 		final AvailObject obsoleteRestrictions);
 
@@ -2144,7 +2142,7 @@ public abstract class AbstractDescriptor
 	 * @param forwardImplementation
 	 * @param methodName
 	 */
-	public abstract void o_ResolvedForwardWithName (
+	abstract void o_ResolvedForwardWithName (
 		final @NotNull AvailObject object,
 		final AvailObject forwardImplementation,
 		final AvailObject methodName);
@@ -2153,7 +2151,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_ReturnType (
+	abstract void o_ReturnType (
 		final @NotNull AvailObject object,
 		final AvailObject value);
 
@@ -2161,7 +2159,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_RootBin (
+	abstract void o_RootBin (
 		final @NotNull AvailObject object,
 		final AvailObject value);
 
@@ -2171,7 +2169,7 @@ public abstract class AbstractDescriptor
 	 * @param canDestroy
 	 * @return
 	 */
-	public abstract AvailObject o_SetIntersectionCanDestroy (
+	abstract AvailObject o_SetIntersectionCanDestroy (
 		final @NotNull AvailObject object,
 		final AvailObject otherSet,
 		final boolean canDestroy);
@@ -2182,7 +2180,7 @@ public abstract class AbstractDescriptor
 	 * @param canDestroy
 	 * @return
 	 */
-	public abstract AvailObject o_SetMinusCanDestroy (
+	abstract AvailObject o_SetMinusCanDestroy (
 		final @NotNull AvailObject object,
 		final AvailObject otherSet,
 		final boolean canDestroy);
@@ -2192,7 +2190,7 @@ public abstract class AbstractDescriptor
 	 * @param zoneIndex
 	 * @param newTuple
 	 */
-	public abstract void o_SetSubtupleForZoneTo (
+	abstract void o_SetSubtupleForZoneTo (
 		final @NotNull AvailObject object,
 		final int zoneIndex,
 		final AvailObject newTuple);
@@ -2203,7 +2201,7 @@ public abstract class AbstractDescriptor
 	 * @param canDestroy
 	 * @return
 	 */
-	public abstract AvailObject o_SetUnionCanDestroy (
+	abstract AvailObject o_SetUnionCanDestroy (
 		final @NotNull AvailObject object,
 		final AvailObject otherSet,
 		final boolean canDestroy);
@@ -2212,7 +2210,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param newValue
 	 */
-	public abstract void o_SetValue (
+	abstract void o_SetValue (
 		final @NotNull AvailObject object,
 		final AvailObject newValue);
 
@@ -2222,7 +2220,7 @@ public abstract class AbstractDescriptor
 	 * @param canDestroy
 	 * @return
 	 */
-	public abstract AvailObject o_SetWithElementCanDestroy (
+	abstract AvailObject o_SetWithElementCanDestroy (
 		final @NotNull AvailObject object,
 		final AvailObject newElementObject,
 		final boolean canDestroy);
@@ -2233,7 +2231,7 @@ public abstract class AbstractDescriptor
 	 * @param canDestroy
 	 * @return
 	 */
-	public abstract AvailObject o_SetWithoutElementCanDestroy (
+	abstract AvailObject o_SetWithoutElementCanDestroy (
 		final @NotNull AvailObject object,
 		final AvailObject elementObjectToExclude,
 		final boolean canDestroy);
@@ -2242,20 +2240,20 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_Size (final AvailObject object, final int value);
+	abstract void o_Size (final AvailObject object, final int value);
 
 	/**
 	 * @param object
 	 * @param zone
 	 * @return
 	 */
-	public abstract int o_SizeOfZone (final AvailObject object, final int zone);
+	abstract int o_SizeOfZone (final AvailObject object, final int zone);
 
 	/**
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_LazySpecialActions (
+	abstract void o_LazySpecialActions (
 		final @NotNull AvailObject object,
 		final AvailObject value);
 
@@ -2264,7 +2262,7 @@ public abstract class AbstractDescriptor
 	 * @param slotIndex
 	 * @return
 	 */
-	public abstract AvailObject o_StackAt (
+	abstract AvailObject o_StackAt (
 		final @NotNull AvailObject object,
 		final int slotIndex);
 
@@ -2273,7 +2271,7 @@ public abstract class AbstractDescriptor
 	 * @param slotIndex
 	 * @param anObject
 	 */
-	public abstract void o_StackAtPut (
+	abstract void o_StackAtPut (
 		final @NotNull AvailObject object,
 		final int slotIndex,
 		final AvailObject anObject);
@@ -2282,13 +2280,13 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_Stackp (final AvailObject object, final int value);
+	abstract void o_Stackp (final AvailObject object, final int value);
 
 	/**
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_Start (
+	abstract void o_Start (
 		final @NotNull AvailObject object,
 		final int value);
 
@@ -2296,7 +2294,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_StartingChunk (
+	abstract void o_StartingChunk (
 		final @NotNull AvailObject object,
 		final AvailObject value);
 
@@ -2305,7 +2303,7 @@ public abstract class AbstractDescriptor
 	 * @param zone
 	 * @return
 	 */
-	public abstract int o_StartOfZone (
+	abstract int o_StartOfZone (
 		final @NotNull AvailObject object,
 		final int zone);
 
@@ -2314,7 +2312,7 @@ public abstract class AbstractDescriptor
 	 * @param zone
 	 * @return
 	 */
-	public abstract int o_StartSubtupleIndexInZone (
+	abstract int o_StartSubtupleIndexInZone (
 		final @NotNull AvailObject object,
 		final int zone);
 
@@ -2322,7 +2320,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_String (
+	abstract void o_String (
 		final @NotNull AvailObject object,
 		final AvailObject value);
 
@@ -2387,7 +2385,7 @@ public abstract class AbstractDescriptor
 	 * @param zone
 	 * @return
 	 */
-	public abstract AvailObject o_SubtupleForZone (
+	abstract AvailObject o_SubtupleForZone (
 		final @NotNull AvailObject object,
 		final int zone);
 
@@ -2416,7 +2414,7 @@ public abstract class AbstractDescriptor
 	 * @see IntegerDescriptor
 	 * @see InfinityDescriptor
 	 */
-	public abstract @NotNull AvailObject o_TimesCanDestroy (
+	abstract @NotNull AvailObject o_TimesCanDestroy (
 			final @NotNull AvailObject object,
 			final @NotNull AvailObject aNumber,
 			final boolean canDestroy)
@@ -2426,7 +2424,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_TokenType (
+	abstract void o_TokenType (
 		final @NotNull AvailObject object,
 		final TokenDescriptor.TokenType value);
 
@@ -2436,7 +2434,7 @@ public abstract class AbstractDescriptor
 	 * @param zoneIndex
 	 * @return
 	 */
-	public abstract int o_TranslateToZone (
+	abstract int o_TranslateToZone (
 		final @NotNull AvailObject object,
 		final int tupleIndex,
 		final int zoneIndex);
@@ -2446,7 +2444,7 @@ public abstract class AbstractDescriptor
 	 * @param stringName
 	 * @return
 	 */
-	public abstract AvailObject o_TrueNamesForStringName (
+	abstract AvailObject o_TrueNamesForStringName (
 		final @NotNull AvailObject object,
 		final AvailObject stringName);
 
@@ -2455,7 +2453,7 @@ public abstract class AbstractDescriptor
 	 * @param newTupleSize
 	 * @return
 	 */
-	public abstract AvailObject o_TruncateTo (
+	abstract AvailObject o_TruncateTo (
 		final @NotNull AvailObject object,
 		final int newTupleSize);
 
@@ -2464,7 +2462,7 @@ public abstract class AbstractDescriptor
 	 * @param index
 	 * @return
 	 */
-	public abstract AvailObject o_TupleAt (
+	abstract AvailObject o_TupleAt (
 		final @NotNull AvailObject object,
 		final int index);
 
@@ -2473,7 +2471,7 @@ public abstract class AbstractDescriptor
 	 * @param index
 	 * @param aNybbleObject
 	 */
-	public abstract void o_TupleAtPut (
+	abstract void o_TupleAtPut (
 		final @NotNull AvailObject object,
 		final int index,
 		final AvailObject aNybbleObject);
@@ -2485,7 +2483,7 @@ public abstract class AbstractDescriptor
 	 * @param canDestroy
 	 * @return
 	 */
-	public abstract AvailObject o_TupleAtPuttingCanDestroy (
+	abstract AvailObject o_TupleAtPuttingCanDestroy (
 		final @NotNull AvailObject object,
 		final int index,
 		final AvailObject newValueObject,
@@ -2496,7 +2494,7 @@ public abstract class AbstractDescriptor
 	 * @param index
 	 * @return
 	 */
-	public abstract int o_TupleIntAt (
+	abstract int o_TupleIntAt (
 		final @NotNull AvailObject object,
 		final int index);
 
@@ -2504,7 +2502,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_Type (
+	abstract void o_Type (
 		final @NotNull AvailObject object,
 		final AvailObject value);
 
@@ -2513,7 +2511,7 @@ public abstract class AbstractDescriptor
 	 * @param index
 	 * @return
 	 */
-	public abstract AvailObject o_TypeAtIndex (
+	abstract AvailObject o_TypeAtIndex (
 		final @NotNull AvailObject object,
 		final int index);
 
@@ -2522,7 +2520,7 @@ public abstract class AbstractDescriptor
 	 * @param another
 	 * @return
 	 */
-	public abstract AvailObject o_TypeIntersection (
+	abstract AvailObject o_TypeIntersection (
 		final @NotNull AvailObject object,
 		final AvailObject another);
 
@@ -2531,7 +2529,7 @@ public abstract class AbstractDescriptor
 	 * @param aFunctionType
 	 * @return
 	 */
-	public abstract AvailObject o_TypeIntersectionOfFunctionType (
+	abstract AvailObject o_TypeIntersectionOfFunctionType (
 		final @NotNull AvailObject object,
 		final AvailObject aFunctionType);
 
@@ -2540,7 +2538,7 @@ public abstract class AbstractDescriptor
 	 * @param aContainerType
 	 * @return
 	 */
-	public abstract AvailObject o_TypeIntersectionOfContainerType (
+	abstract AvailObject o_TypeIntersectionOfContainerType (
 		final @NotNull AvailObject object,
 		final AvailObject aContainerType);
 
@@ -2549,7 +2547,7 @@ public abstract class AbstractDescriptor
 	 * @param aContinuationType
 	 * @return
 	 */
-	public abstract AvailObject o_TypeIntersectionOfContinuationType (
+	abstract AvailObject o_TypeIntersectionOfContinuationType (
 		final @NotNull AvailObject object,
 		final AvailObject aContinuationType);
 
@@ -2558,7 +2556,7 @@ public abstract class AbstractDescriptor
 	 * @param aCompiledCodeType
 	 * @return
 	 */
-	public abstract AvailObject o_TypeIntersectionOfCompiledCodeType (
+	abstract AvailObject o_TypeIntersectionOfCompiledCodeType (
 		final @NotNull AvailObject object,
 		final AvailObject aCompiledCodeType);
 
@@ -2567,7 +2565,7 @@ public abstract class AbstractDescriptor
 	 * @param anIntegerRangeType
 	 * @return
 	 */
-	public abstract AvailObject o_TypeIntersectionOfIntegerRangeType (
+	abstract AvailObject o_TypeIntersectionOfIntegerRangeType (
 		final @NotNull AvailObject object,
 		final AvailObject anIntegerRangeType);
 
@@ -2576,7 +2574,7 @@ public abstract class AbstractDescriptor
 	 * @param aMapType
 	 * @return
 	 */
-	public abstract AvailObject o_TypeIntersectionOfMapType (
+	abstract AvailObject o_TypeIntersectionOfMapType (
 		final @NotNull AvailObject object,
 		final AvailObject aMapType);
 
@@ -2585,7 +2583,7 @@ public abstract class AbstractDescriptor
 	 * @param someMeta
 	 * @return
 	 */
-	public abstract AvailObject o_TypeIntersectionOfMeta (
+	abstract AvailObject o_TypeIntersectionOfMeta (
 		final @NotNull AvailObject object,
 		final AvailObject someMeta);
 
@@ -2594,7 +2592,7 @@ public abstract class AbstractDescriptor
 	 * @param anObjectType
 	 * @return
 	 */
-	public abstract AvailObject o_TypeIntersectionOfObjectType (
+	abstract AvailObject o_TypeIntersectionOfObjectType (
 		final @NotNull AvailObject object,
 		final AvailObject anObjectType);
 
@@ -2603,7 +2601,7 @@ public abstract class AbstractDescriptor
 	 * @param aCompiledCodeType
 	 * @return
 	 */
-	public abstract AvailObject o_TypeIntersectionOfParseNodeType (
+	abstract AvailObject o_TypeIntersectionOfParseNodeType (
 		final @NotNull AvailObject object,
 		final AvailObject aParseNodeType);
 
@@ -2612,7 +2610,7 @@ public abstract class AbstractDescriptor
 	 * @param aPojoType
 	 * @return
 	 */
-	public abstract AvailObject o_TypeIntersectionOfPojoType (
+	abstract AvailObject o_TypeIntersectionOfPojoType (
 		final @NotNull AvailObject availObject,
 		final @NotNull AvailObject aPojoType);
 
@@ -2621,7 +2619,7 @@ public abstract class AbstractDescriptor
 	 * @param aSetType
 	 * @return
 	 */
-	public abstract AvailObject o_TypeIntersectionOfSetType (
+	abstract AvailObject o_TypeIntersectionOfSetType (
 		final @NotNull AvailObject object,
 		final AvailObject aSetType);
 
@@ -2630,7 +2628,7 @@ public abstract class AbstractDescriptor
 	 * @param aTupleType
 	 * @return
 	 */
-	public abstract AvailObject o_TypeIntersectionOfTupleType (
+	abstract AvailObject o_TypeIntersectionOfTupleType (
 		final @NotNull AvailObject object,
 		final AvailObject aTupleType);
 
@@ -2639,7 +2637,7 @@ public abstract class AbstractDescriptor
 	 * @param another
 	 * @return
 	 */
-	public abstract AvailObject o_TypeUnion (
+	abstract AvailObject o_TypeUnion (
 		final @NotNull AvailObject object,
 		final AvailObject another);
 
@@ -2648,7 +2646,7 @@ public abstract class AbstractDescriptor
 	 * @param aFunctionType
 	 * @return
 	 */
-	public abstract AvailObject o_TypeUnionOfFunctionType (
+	abstract AvailObject o_TypeUnionOfFunctionType (
 		final @NotNull AvailObject object,
 		final AvailObject aFunctionType);
 
@@ -2657,7 +2655,7 @@ public abstract class AbstractDescriptor
 	 * @param aContainerType
 	 * @return
 	 */
-	public abstract AvailObject o_TypeUnionOfContainerType (
+	abstract AvailObject o_TypeUnionOfContainerType (
 		final @NotNull AvailObject object,
 		final AvailObject aContainerType);
 
@@ -2666,7 +2664,7 @@ public abstract class AbstractDescriptor
 	 * @param aContinuationType
 	 * @return
 	 */
-	public abstract AvailObject o_TypeUnionOfContinuationType (
+	abstract AvailObject o_TypeUnionOfContinuationType (
 		final @NotNull AvailObject object,
 		final AvailObject aContinuationType);
 
@@ -2675,7 +2673,7 @@ public abstract class AbstractDescriptor
 	 * @param aCompiledCodeType
 	 * @return
 	 */
-	public abstract AvailObject o_TypeUnionOfCompiledCodeType (
+	abstract AvailObject o_TypeUnionOfCompiledCodeType (
 		final @NotNull AvailObject object,
 		final AvailObject aCompiledCodeType);
 
@@ -2684,7 +2682,7 @@ public abstract class AbstractDescriptor
 	 * @param anIntegerRangeType
 	 * @return
 	 */
-	public abstract AvailObject o_TypeUnionOfIntegerRangeType (
+	abstract AvailObject o_TypeUnionOfIntegerRangeType (
 		final @NotNull AvailObject object,
 		final AvailObject anIntegerRangeType);
 
@@ -2693,7 +2691,7 @@ public abstract class AbstractDescriptor
 	 * @param aMapType
 	 * @return
 	 */
-	public abstract AvailObject o_TypeUnionOfMapType (
+	abstract AvailObject o_TypeUnionOfMapType (
 		final @NotNull AvailObject object,
 		final AvailObject aMapType);
 
@@ -2702,7 +2700,7 @@ public abstract class AbstractDescriptor
 	 * @param anObjectType
 	 * @return
 	 */
-	public abstract AvailObject o_TypeUnionOfObjectType (
+	abstract AvailObject o_TypeUnionOfObjectType (
 		final @NotNull AvailObject object,
 		final AvailObject anObjectType);
 
@@ -2711,7 +2709,7 @@ public abstract class AbstractDescriptor
 	 * @param aPojoType
 	 * @return
 	 */
-	public abstract AvailObject o_TypeUnionOfPojoType (
+	abstract AvailObject o_TypeUnionOfPojoType (
 		final @NotNull AvailObject availObject,
 		final @NotNull AvailObject aPojoType);
 
@@ -2720,7 +2718,7 @@ public abstract class AbstractDescriptor
 	 * @param aSetType
 	 * @return
 	 */
-	public abstract AvailObject o_TypeUnionOfSetType (
+	abstract AvailObject o_TypeUnionOfSetType (
 		final @NotNull AvailObject object,
 		final AvailObject aSetType);
 
@@ -2729,7 +2727,7 @@ public abstract class AbstractDescriptor
 	 * @param aTupleType
 	 * @return
 	 */
-	public abstract AvailObject o_TypeUnionOfTupleType (
+	abstract AvailObject o_TypeUnionOfTupleType (
 		final @NotNull AvailObject object,
 		final AvailObject aTupleType);
 
@@ -2737,7 +2735,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_Unclassified (
+	abstract void o_Unclassified (
 		final @NotNull AvailObject object,
 		final AvailObject value);
 
@@ -2747,7 +2745,7 @@ public abstract class AbstractDescriptor
 	 * @param endIndex
 	 * @return
 	 */
-	public abstract AvailObject o_UnionOfTypesAtThrough (
+	abstract AvailObject o_UnionOfTypesAtThrough (
 		final @NotNull AvailObject object,
 		final int startIndex,
 		final int endIndex);
@@ -2757,7 +2755,7 @@ public abstract class AbstractDescriptor
 	 * @param index
 	 * @return
 	 */
-	public abstract int o_UntranslatedDataAt (
+	abstract int o_UntranslatedDataAt (
 		final @NotNull AvailObject object,
 		final int index);
 
@@ -2766,7 +2764,7 @@ public abstract class AbstractDescriptor
 	 * @param index
 	 * @param value
 	 */
-	public abstract void o_UntranslatedDataAtPut (
+	abstract void o_UntranslatedDataAtPut (
 		final @NotNull AvailObject object,
 		final int index,
 		final int value);
@@ -2778,7 +2776,7 @@ public abstract class AbstractDescriptor
 	 * @param failBlock
 	 * @return
 	 */
-	public abstract AvailObject o_ValidateArgumentTypesInterpreterIfFail (
+	abstract AvailObject o_ValidateArgumentTypesInterpreterIfFail (
 		final @NotNull AvailObject object,
 		final List<AvailObject> argTypes,
 		final Interpreter anAvailInterpreter,
@@ -2788,7 +2786,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_Value (
+	abstract void o_Value (
 		final @NotNull AvailObject object,
 		final AvailObject value);
 
@@ -2797,7 +2795,7 @@ public abstract class AbstractDescriptor
 	 * @param index
 	 * @return
 	 */
-	public abstract AvailObject o_ValueAtIndex (
+	abstract AvailObject o_ValueAtIndex (
 		final @NotNull AvailObject object,
 		final int index);
 
@@ -2806,7 +2804,7 @@ public abstract class AbstractDescriptor
 	 * @param index
 	 * @param valueObject
 	 */
-	public abstract void o_ValueAtIndexPut (
+	abstract void o_ValueAtIndexPut (
 		final @NotNull AvailObject object,
 		final int index,
 		final AvailObject valueObject);
@@ -2816,7 +2814,7 @@ public abstract class AbstractDescriptor
 	 * @param index
 	 * @return
 	 */
-	public abstract int o_ZoneForIndex (
+	abstract int o_ZoneForIndex (
 		final @NotNull AvailObject object,
 		final int index);
 
@@ -2824,211 +2822,211 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract String o_AsNativeString (final AvailObject object);
+	abstract String o_AsNativeString (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_AsObject (final AvailObject object);
+	abstract AvailObject o_AsObject (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_AsSet (final AvailObject object);
+	abstract AvailObject o_AsSet (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_AsTuple (final AvailObject object);
+	abstract AvailObject o_AsTuple (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract int o_BitsPerEntry (final AvailObject object);
+	abstract int o_BitsPerEntry (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract int o_BitVector (final AvailObject object);
+	abstract int o_BitVector (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_BodyBlock (final AvailObject object);
+	abstract AvailObject o_BodyBlock (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_BodySignature (final AvailObject object);
+	abstract AvailObject o_BodySignature (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_BreakpointBlock (final AvailObject object);
+	abstract AvailObject o_BreakpointBlock (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_Caller (final AvailObject object);
+	abstract AvailObject o_Caller (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract int o_Capacity (final AvailObject object);
+	abstract int o_Capacity (final AvailObject object);
 
 	/**
 	 * @param object
 	 */
-	public abstract void o_CleanUpAfterCompile (final AvailObject object);
+	abstract void o_CleanUpAfterCompile (final AvailObject object);
 
 	/**
 	 * @param object
 	 */
-	public abstract void o_ClearValue (final AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	public abstract AvailObject o_Function (final AvailObject object);
+	abstract void o_ClearValue (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_FunctionType (final AvailObject object);
+	abstract AvailObject o_Function (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_Code (final AvailObject object);
+	abstract AvailObject o_FunctionType (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract int o_CodePoint (final AvailObject object);
+	abstract AvailObject o_Code (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_LazyComplete (final AvailObject object);
+	abstract int o_CodePoint (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_ConstantBindings (final AvailObject object);
+	abstract AvailObject o_LazyComplete (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_ContentType (final AvailObject object);
+	abstract AvailObject o_ConstantBindings (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_Continuation (final AvailObject object);
+	abstract AvailObject o_ContentType (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_CopyAsMutableContinuation (
+	abstract AvailObject o_Continuation (final AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract AvailObject o_CopyAsMutableContinuation (
 		final @NotNull AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_CopyAsMutableObjectTuple (
+	abstract AvailObject o_CopyAsMutableObjectTuple (
 		final @NotNull AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_CopyAsMutableSpliceTuple (
+	abstract AvailObject o_CopyAsMutableSpliceTuple (
 		final @NotNull AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_DefaultType (final AvailObject object);
+	abstract AvailObject o_DefaultType (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract int o_ParsingPc (final AvailObject object);
+	abstract int o_ParsingPc (final AvailObject object);
 
 	/**
 	 * @param object
 	 */
-	public abstract void o_DisplayTestingTree (final AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	public abstract AvailObject o_EnsureMutable (final AvailObject object);
+	abstract void o_DisplayTestingTree (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract ExecutionState o_ExecutionState (final AvailObject object);
+	abstract AvailObject o_EnsureMutable (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract void o_Expand (final AvailObject object);
+	abstract ExecutionState o_ExecutionState (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract boolean o_ExtractBoolean (final AvailObject object);
+	abstract void o_Expand (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract short o_ExtractByte (final AvailObject object);
+	abstract boolean o_ExtractBoolean (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract double o_ExtractDouble (final AvailObject object);
+	abstract short o_ExtractByte (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract float o_ExtractFloat (final AvailObject object);
+	abstract double o_ExtractDouble (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract int o_ExtractInt (final AvailObject object);
+	abstract float o_ExtractFloat (final AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract int o_ExtractInt (final AvailObject object);
 
 	/**
 	 * Extract a 64-bit signed Java {@code long} from the specified Avail
@@ -3042,546 +3040,546 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract long o_ExtractLong (final @NotNull AvailObject object);
+	abstract long o_ExtractLong (final @NotNull AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract byte o_ExtractNybble (final AvailObject object);
+	abstract byte o_ExtractNybble (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_FieldMap (final AvailObject object);
+	abstract AvailObject o_FieldMap (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_FieldTypeMap (final AvailObject object);
+	abstract AvailObject o_FieldTypeMap (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_FilteredBundleTree (final AvailObject object);
+	abstract AvailObject o_FilteredBundleTree (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract int o_GetInteger (final AvailObject object);
+	abstract int o_GetInteger (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_GetValue (final AvailObject object);
+	abstract AvailObject o_GetValue (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract int o_HashOrZero (final AvailObject object);
+	abstract int o_HashOrZero (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract boolean o_HasRestrictions (final AvailObject object);
+	abstract boolean o_HasRestrictions (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_ImplementationsTuple (
+	abstract AvailObject o_ImplementationsTuple (
 		final @NotNull AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_LazyIncomplete (final AvailObject object);
+	abstract AvailObject o_LazyIncomplete (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract int o_Index (final AvailObject object);
+	abstract int o_Index (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract int o_InternalHash (final AvailObject object);
+	abstract int o_InternalHash (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract int o_InterruptRequestFlag (final AvailObject object);
+	abstract int o_InterruptRequestFlag (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract int o_InvocationCount (final AvailObject object);
+	abstract int o_InvocationCount (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract boolean o_IsAbstract (final AvailObject object);
+	abstract boolean o_IsAbstract (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract boolean o_IsFinite (final AvailObject object);
+	abstract boolean o_IsFinite (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract boolean o_IsForward (final AvailObject object);
+	abstract boolean o_IsForward (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract boolean o_IsMethod (final AvailObject object);
+	abstract boolean o_IsMethod (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract boolean o_IsPositive (final AvailObject object);
+	abstract boolean o_IsPositive (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract boolean o_IsSaved (final AvailObject object);
+	abstract boolean o_IsSaved (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract boolean o_IsSplice (final AvailObject object);
+	abstract boolean o_IsSplice (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract boolean o_IsSupertypeOfBottom (
+	abstract boolean o_IsSupertypeOfBottom (
 		final @NotNull AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract boolean o_IsValid (final AvailObject object);
+	abstract boolean o_IsValid (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract List<AvailObject> o_KeysAsArray (final AvailObject object);
+	abstract List<AvailObject> o_KeysAsArray (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_KeysAsSet (final AvailObject object);
+	abstract AvailObject o_KeysAsSet (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_KeyType (final AvailObject object);
+	abstract AvailObject o_KeyType (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_LevelTwoChunk (final AvailObject object);
+	abstract AvailObject o_LevelTwoChunk (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract int o_LevelTwoOffset (final AvailObject object);
+	abstract int o_LevelTwoOffset (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_Literal (final AvailObject object);
+	abstract AvailObject o_Literal (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_LowerBound (final AvailObject object);
+	abstract AvailObject o_LowerBound (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract boolean o_LowerInclusive (final AvailObject object);
+	abstract boolean o_LowerInclusive (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract int o_MapSize (final AvailObject object);
+	abstract int o_MapSize (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract int o_MaxStackDepth (final AvailObject object);
+	abstract int o_MaxStackDepth (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_Message (final AvailObject object);
+	abstract AvailObject o_Message (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_MessageParts (final AvailObject object);
+	abstract AvailObject o_MessageParts (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_Methods (final AvailObject object);
+	abstract AvailObject o_Methods (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_MyRestrictions (final AvailObject object);
+	abstract AvailObject o_MyRestrictions (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_Name (final AvailObject object);
+	abstract AvailObject o_Name (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_Names (final AvailObject object);
+	abstract AvailObject o_Names (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_NewNames (final AvailObject object);
+	abstract AvailObject o_NewNames (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract int o_NumArgs (final AvailObject object);
+	abstract int o_NumArgs (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract int o_NumArgsAndLocalsAndStack (final AvailObject object);
+	abstract int o_NumArgsAndLocalsAndStack (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract int o_NumberOfZones (final AvailObject object);
+	abstract int o_NumberOfZones (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract int o_NumBlanks (final AvailObject object);
+	abstract int o_NumBlanks (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract int o_NumDoubles (final AvailObject object);
+	abstract int o_NumDoubles (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract int o_NumIntegers (final AvailObject object);
+	abstract int o_NumIntegers (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract int o_NumLiterals (final AvailObject object);
+	abstract int o_NumLiterals (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract int o_NumLocals (final AvailObject object);
+	abstract int o_NumLocals (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract int o_NumObjects (final AvailObject object);
+	abstract int o_NumObjects (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract int o_NumOuters (final AvailObject object);
+	abstract int o_NumOuters (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract int o_NumOuterVars (final AvailObject object);
+	abstract int o_NumOuterVars (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_Nybbles (final AvailObject object);
+	abstract AvailObject o_Nybbles (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_Parent (final AvailObject object);
+	abstract AvailObject o_Parent (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract int o_Pc (final AvailObject object);
+	abstract int o_Pc (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract int o_PrimitiveNumber (final AvailObject object);
+	abstract int o_PrimitiveNumber (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_Priority (final AvailObject object);
+	abstract AvailObject o_Priority (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_PrivateNames (final AvailObject object);
+	abstract AvailObject o_PrivateNames (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_ProcessGlobals (final AvailObject object);
+	abstract AvailObject o_ProcessGlobals (final AvailObject object);
 
 	/**
 	 * @param object
 	 */
-	public abstract void o_ReleaseVariableOrMakeContentsImmutable (
+	abstract void o_ReleaseVariableOrMakeContentsImmutable (
 		final @NotNull AvailObject object);
 
 	/**
 	 * @param object
 	 */
-	public abstract void o_RemoveRestrictions (final AvailObject object);
+	abstract void o_RemoveRestrictions (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_GrammaticalRestrictions (final AvailObject object);
+	abstract AvailObject o_GrammaticalRestrictions (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_ReturnType (final AvailObject object);
+	abstract AvailObject o_ReturnType (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_RootBin (final AvailObject object);
+	abstract AvailObject o_RootBin (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract int o_SetSize (final AvailObject object);
+	abstract int o_SetSize (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_Signature (final AvailObject object);
+	abstract AvailObject o_Signature (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_SizeRange (final AvailObject object);
+	abstract AvailObject o_SizeRange (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_LazySpecialActions (final AvailObject object);
+	abstract AvailObject o_LazySpecialActions (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract int o_Stackp (final AvailObject object);
+	abstract int o_Stackp (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract int o_Start (final AvailObject object);
+	abstract int o_Start (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_StartingChunk (final AvailObject object);
+	abstract AvailObject o_StartingChunk (final AvailObject object);
 
 	/**
 	 * @param object
 	 */
-	public abstract void o_Step (final AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	public abstract AvailObject o_String (final AvailObject object);
+	abstract void o_Step (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_TestingTree (final AvailObject object);
+	abstract AvailObject o_String (final AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract AvailObject o_TestingTree (final AvailObject object);
 
 	/**
 	 * @param object
 	 */
-	public abstract TokenDescriptor.TokenType o_TokenType (
+	abstract TokenDescriptor.TokenType o_TokenType (
 		final @NotNull AvailObject object);
 
 	/**
 	 * @param object
 	 */
-	public abstract void o_TrimExcessInts (final AvailObject object);
+	abstract void o_TrimExcessInts (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract int o_TupleSize (final AvailObject object);
+	abstract int o_TupleSize (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_TypeTuple (final AvailObject object);
+	abstract AvailObject o_TypeTuple (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_Unclassified (final AvailObject object);
+	abstract AvailObject o_Unclassified (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_UpperBound (final AvailObject object);
+	abstract AvailObject o_UpperBound (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract boolean o_UpperInclusive (final AvailObject object);
+	abstract boolean o_UpperInclusive (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_Value (final AvailObject object);
+	abstract AvailObject o_Value (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_ValuesAsTuple (final AvailObject object);
+	abstract AvailObject o_ValuesAsTuple (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_ValueType (final AvailObject object);
+	abstract AvailObject o_ValueType (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_VariableBindings (final AvailObject object);
+	abstract AvailObject o_VariableBindings (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_Vectors (final AvailObject object);
+	abstract AvailObject o_Vectors (final AvailObject object);
 
 	/**
 	 * @param object
 	 */
-	public abstract void o_Verify (final AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	public abstract AvailObject o_VisibleNames (final AvailObject object);
+	abstract void o_Verify (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract int o_InfinitySign (final AvailObject object);
+	abstract AvailObject o_VisibleNames (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_Wordcodes (final AvailObject object);
+	abstract int o_InfinitySign (final AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract AvailObject o_Wordcodes (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @param another
 	 * @return
 	 */
-	public abstract boolean o_Equals (
+	abstract boolean o_Equals (
 		final @NotNull AvailObject object,
 		final AvailObject another);
 
@@ -3590,7 +3588,7 @@ public abstract class AbstractDescriptor
 	 * @param aTuple
 	 * @return
 	 */
-	public abstract boolean o_EqualsAnyTuple (
+	abstract boolean o_EqualsAnyTuple (
 		final @NotNull AvailObject object,
 		final AvailObject aTuple);
 
@@ -3599,7 +3597,7 @@ public abstract class AbstractDescriptor
 	 * @param aString
 	 * @return
 	 */
-	public abstract boolean o_EqualsByteString (
+	abstract boolean o_EqualsByteString (
 		final @NotNull AvailObject object,
 		final AvailObject aString);
 
@@ -3608,7 +3606,7 @@ public abstract class AbstractDescriptor
 	 * @param aTuple
 	 * @return
 	 */
-	public abstract boolean o_EqualsByteTuple (
+	abstract boolean o_EqualsByteTuple (
 		final @NotNull AvailObject object,
 		final AvailObject aTuple);
 
@@ -3617,7 +3615,7 @@ public abstract class AbstractDescriptor
 	 * @param otherCodePoint
 	 * @return
 	 */
-	public abstract boolean o_EqualsCharacterWithCodePoint (
+	abstract boolean o_EqualsCharacterWithCodePoint (
 		final @NotNull AvailObject object,
 		final int otherCodePoint);
 
@@ -3626,7 +3624,7 @@ public abstract class AbstractDescriptor
 	 * @param aFunction
 	 * @return
 	 */
-	public abstract boolean o_EqualsFunction (
+	abstract boolean o_EqualsFunction (
 		final @NotNull AvailObject object,
 		final AvailObject aFunction);
 
@@ -3635,7 +3633,7 @@ public abstract class AbstractDescriptor
 	 * @param aFunctionType
 	 * @return
 	 */
-	public abstract boolean o_EqualsFunctionType (
+	abstract boolean o_EqualsFunctionType (
 		final @NotNull AvailObject object,
 		final AvailObject aFunctionType);
 
@@ -3644,7 +3642,7 @@ public abstract class AbstractDescriptor
 	 * @param aCompiledCode
 	 * @return
 	 */
-	public abstract boolean o_EqualsCompiledCode (
+	abstract boolean o_EqualsCompiledCode (
 		final @NotNull AvailObject object,
 		final AvailObject aCompiledCode);
 
@@ -3653,7 +3651,7 @@ public abstract class AbstractDescriptor
 	 * @param aContainer
 	 * @return
 	 */
-	public abstract boolean o_EqualsContainer (
+	abstract boolean o_EqualsContainer (
 		final @NotNull AvailObject object,
 		final AvailObject aContainer);
 
@@ -3662,7 +3660,7 @@ public abstract class AbstractDescriptor
 	 * @param aType
 	 * @return
 	 */
-	public abstract boolean o_EqualsContainerType (
+	abstract boolean o_EqualsContainerType (
 		final @NotNull AvailObject object,
 		final AvailObject aType);
 
@@ -3671,7 +3669,7 @@ public abstract class AbstractDescriptor
 	 * @param aContinuation
 	 * @return
 	 */
-	public abstract boolean o_EqualsContinuation (
+	abstract boolean o_EqualsContinuation (
 		final @NotNull AvailObject object,
 		final AvailObject aContinuation);
 
@@ -3680,7 +3678,7 @@ public abstract class AbstractDescriptor
 	 * @param aType
 	 * @return
 	 */
-	public abstract boolean o_EqualsContinuationType (
+	abstract boolean o_EqualsContinuationType (
 		final @NotNull AvailObject object,
 		final AvailObject aContinuationType);
 
@@ -3689,7 +3687,7 @@ public abstract class AbstractDescriptor
 	 * @param aType
 	 * @return
 	 */
-	public abstract boolean o_EqualsCompiledCodeType (
+	abstract boolean o_EqualsCompiledCodeType (
 		final @NotNull AvailObject object,
 		final AvailObject aCompiledCodeType);
 
@@ -3698,7 +3696,7 @@ public abstract class AbstractDescriptor
 	 * @param aDoubleObject
 	 * @return
 	 */
-	public abstract boolean o_EqualsDouble (
+	abstract boolean o_EqualsDouble (
 		final @NotNull AvailObject object,
 		final AvailObject aDoubleObject);
 
@@ -3707,7 +3705,7 @@ public abstract class AbstractDescriptor
 	 * @param aFloatObject
 	 * @return
 	 */
-	public abstract boolean o_EqualsFloat (
+	abstract boolean o_EqualsFloat (
 		final @NotNull AvailObject object,
 		final AvailObject aFloatObject);
 
@@ -3716,7 +3714,7 @@ public abstract class AbstractDescriptor
 	 * @param anInfinity
 	 * @return
 	 */
-	public abstract boolean o_EqualsInfinity (
+	abstract boolean o_EqualsInfinity (
 		final @NotNull AvailObject object,
 		final AvailObject anInfinity);
 
@@ -3725,7 +3723,7 @@ public abstract class AbstractDescriptor
 	 * @param anAvailInteger
 	 * @return
 	 */
-	public abstract boolean o_EqualsInteger (
+	abstract boolean o_EqualsInteger (
 		final @NotNull AvailObject object,
 		final AvailObject anAvailInteger);
 
@@ -3734,7 +3732,7 @@ public abstract class AbstractDescriptor
 	 * @param another
 	 * @return
 	 */
-	public abstract boolean o_EqualsIntegerRangeType (
+	abstract boolean o_EqualsIntegerRangeType (
 		final @NotNull AvailObject object,
 		final AvailObject another);
 
@@ -3743,7 +3741,7 @@ public abstract class AbstractDescriptor
 	 * @param aMap
 	 * @return
 	 */
-	public abstract boolean o_EqualsMap (
+	abstract boolean o_EqualsMap (
 		final @NotNull AvailObject object,
 		final AvailObject aMap);
 
@@ -3752,7 +3750,7 @@ public abstract class AbstractDescriptor
 	 * @param aMapType
 	 * @return
 	 */
-	public abstract boolean o_EqualsMapType (
+	abstract boolean o_EqualsMapType (
 		final @NotNull AvailObject object,
 		final AvailObject aMapType);
 
@@ -3761,7 +3759,7 @@ public abstract class AbstractDescriptor
 	 * @param aTuple
 	 * @return
 	 */
-	public abstract boolean o_EqualsNybbleTuple (
+	abstract boolean o_EqualsNybbleTuple (
 		final @NotNull AvailObject object,
 		final AvailObject aTuple);
 
@@ -3770,7 +3768,7 @@ public abstract class AbstractDescriptor
 	 * @param anObject
 	 * @return
 	 */
-	public abstract boolean o_EqualsObject (
+	abstract boolean o_EqualsObject (
 		final @NotNull AvailObject object,
 		final AvailObject anObject);
 
@@ -3779,7 +3777,7 @@ public abstract class AbstractDescriptor
 	 * @param aTuple
 	 * @return
 	 */
-	public abstract boolean o_EqualsObjectTuple (
+	abstract boolean o_EqualsObjectTuple (
 		final @NotNull AvailObject object,
 		final AvailObject aTuple);
 
@@ -3788,7 +3786,7 @@ public abstract class AbstractDescriptor
 	 * @param aParseNodeType
 	 * @return
 	 */
-	public abstract boolean o_EqualsParseNodeType (
+	abstract boolean o_EqualsParseNodeType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aParseNodeType);
 
@@ -3797,7 +3795,7 @@ public abstract class AbstractDescriptor
 	 * @param aPojo
 	 * @return
 	 */
-	public abstract boolean o_EqualsPojo (
+	abstract boolean o_EqualsPojo (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aPojo);
 
@@ -3806,7 +3804,7 @@ public abstract class AbstractDescriptor
 	 * @param aPojoType
 	 * @return
 	 */
-	public abstract boolean o_EqualsPojoType (
+	abstract boolean o_EqualsPojoType (
 		final @NotNull AvailObject availObject,
 		final @NotNull AvailObject aPojoType);
 
@@ -3815,7 +3813,7 @@ public abstract class AbstractDescriptor
 	 * @param aType
 	 * @return
 	 */
-	public abstract boolean o_EqualsPrimitiveType (
+	abstract boolean o_EqualsPrimitiveType (
 		final @NotNull AvailObject object,
 		final AvailObject aType);
 
@@ -3824,7 +3822,7 @@ public abstract class AbstractDescriptor
 	 * @param aPojo
 	 * @return
 	 */
-	public abstract boolean o_EqualsRawPojo (
+	abstract boolean o_EqualsRawPojo (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aPojo);
 
@@ -3833,7 +3831,7 @@ public abstract class AbstractDescriptor
 	 * @param aSet
 	 * @return
 	 */
-	public abstract boolean o_EqualsSet (
+	abstract boolean o_EqualsSet (
 		final @NotNull AvailObject object,
 		final AvailObject aSet);
 
@@ -3842,7 +3840,7 @@ public abstract class AbstractDescriptor
 	 * @param aSetType
 	 * @return
 	 */
-	public abstract boolean o_EqualsSetType (
+	abstract boolean o_EqualsSetType (
 		final @NotNull AvailObject object,
 		final AvailObject aSetType);
 
@@ -3851,7 +3849,7 @@ public abstract class AbstractDescriptor
 	 * @param aTupleType
 	 * @return
 	 */
-	public abstract boolean o_EqualsTupleType (
+	abstract boolean o_EqualsTupleType (
 		final @NotNull AvailObject object,
 		final AvailObject aTupleType);
 
@@ -3860,7 +3858,7 @@ public abstract class AbstractDescriptor
 	 * @param aString
 	 * @return
 	 */
-	public abstract boolean o_EqualsTwoByteString (
+	abstract boolean o_EqualsTwoByteString (
 		final @NotNull AvailObject object,
 		final AvailObject aString);
 
@@ -3869,7 +3867,7 @@ public abstract class AbstractDescriptor
 	 * @param potentialInstance
 	 * @return
 	 */
-	public abstract boolean o_HasObjectInstance (
+	abstract boolean o_HasObjectInstance (
 		final @NotNull AvailObject object,
 		final AvailObject potentialInstance);
 
@@ -3878,7 +3876,7 @@ public abstract class AbstractDescriptor
 	 * @param anotherObject
 	 * @return
 	 */
-	public abstract boolean o_IsBetterRepresentationThan (
+	abstract boolean o_IsBetterRepresentationThan (
 		final @NotNull AvailObject object,
 		final AvailObject anotherObject);
 
@@ -3887,7 +3885,7 @@ public abstract class AbstractDescriptor
 	 * @param aTupleType
 	 * @return
 	 */
-	public abstract boolean o_IsBetterRepresentationThanTupleType (
+	abstract boolean o_IsBetterRepresentationThanTupleType (
 		final @NotNull AvailObject object,
 		final AvailObject aTupleType);
 
@@ -3896,7 +3894,7 @@ public abstract class AbstractDescriptor
 	 * @param aType
 	 * @return
 	 */
-	public abstract boolean o_IsInstanceOfKind (
+	abstract boolean o_IsInstanceOfKind (
 		final @NotNull AvailObject object,
 		final AvailObject aType);
 
@@ -3904,54 +3902,54 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract boolean o_EqualsBlank (final AvailObject object);
+	abstract boolean o_EqualsBlank (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract boolean o_EqualsNull (final AvailObject object);
+	abstract boolean o_EqualsNull (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract boolean o_EqualsNullOrBlank (final AvailObject object);
+	abstract boolean o_EqualsNullOrBlank (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract int o_Hash (final AvailObject object);
+	abstract int o_Hash (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract boolean o_IsFunction (final AvailObject object);
+	abstract boolean o_IsFunction (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_MakeImmutable (final AvailObject object);
+	abstract AvailObject o_MakeImmutable (final AvailObject object);
 
 	/**
 	 * @param object
 	 */
-	public abstract void o_MakeSubobjectsImmutable (final AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	public abstract AvailObject o_Kind (final AvailObject object);
+	abstract void o_MakeSubobjectsImmutable (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract boolean o_IsBoolean (final AvailObject object);
+	abstract AvailObject o_Kind (final AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract boolean o_IsBoolean (final AvailObject object);
 
 	/**
 	 * Is the specified {@link AvailObject} an Avail byte tuple?
@@ -3965,13 +3963,13 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract boolean o_IsByteTuple (final @NotNull AvailObject object);
+	abstract boolean o_IsByteTuple (final @NotNull AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract boolean o_IsCharacter (final AvailObject object);
+	abstract boolean o_IsCharacter (final AvailObject object);
 
 	/**
 	 * Is the specified {@link AvailObject} an Avail string?
@@ -3985,56 +3983,56 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract boolean o_IsString (final @NotNull AvailObject object);
+	abstract boolean o_IsString (final @NotNull AvailObject object);
 
 	/**
 	 * @param object
 	 * @param aFunction
 	 * @return
 	 */
-	public abstract boolean o_ContainsBlock (
+	abstract boolean o_ContainsBlock (
 		final @NotNull AvailObject object,
 		final AvailObject aFunction);
 
 	/**
 	 * @param object
 	 */
-	public abstract void o_PostFault (final AvailObject object);
+	abstract void o_PostFault (final AvailObject object);
 
 	/**
 	 * @param object
 	 */
-	public abstract void o_ReadBarrierFault (final AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	public abstract AvailObject o_Traversed (final AvailObject object);
+	abstract void o_ReadBarrierFault (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract boolean o_IsMap (final AvailObject object);
+	abstract AvailObject o_Traversed (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract boolean o_IsByte (final AvailObject object);
+	abstract boolean o_IsMap (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract boolean o_IsNybble (final AvailObject object);
+	abstract boolean o_IsByte (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract boolean o_IsSet (final AvailObject object);
+	abstract boolean o_IsNybble (final AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract boolean o_IsSet (final AvailObject object);
 
 	/**
 	 * @param object
@@ -4044,7 +4042,7 @@ public abstract class AbstractDescriptor
 	 * @param canDestroy
 	 * @return
 	 */
-	public abstract AvailObject o_BinAddingElementHashLevelCanDestroy (
+	abstract AvailObject o_BinAddingElementHashLevelCanDestroy (
 		final @NotNull AvailObject object,
 		final AvailObject elementObject,
 		final int elementObjectHash,
@@ -4057,7 +4055,7 @@ public abstract class AbstractDescriptor
 	 * @param elementObjectHash
 	 * @return
 	 */
-	public abstract boolean o_BinHasElementHash (
+	abstract boolean o_BinHasElementHash (
 		final @NotNull AvailObject object,
 		final AvailObject elementObject,
 		final int elementObjectHash);
@@ -4069,7 +4067,7 @@ public abstract class AbstractDescriptor
 	 * @param canDestroy
 	 * @return
 	 */
-	public abstract AvailObject o_BinRemoveElementHashCanDestroy (
+	abstract AvailObject o_BinRemoveElementHashCanDestroy (
 		final @NotNull AvailObject object,
 		final AvailObject elementObject,
 		final int elementObjectHash,
@@ -4080,7 +4078,7 @@ public abstract class AbstractDescriptor
 	 * @param potentialSuperset
 	 * @return
 	 */
-	public abstract boolean o_IsBinSubsetOf (
+	abstract boolean o_IsBinSubsetOf (
 		final @NotNull AvailObject object,
 		final AvailObject potentialSuperset);
 
@@ -4090,7 +4088,7 @@ public abstract class AbstractDescriptor
 	 * @param startingIndex
 	 * @return
 	 */
-	public abstract int o_PopulateTupleStartingAt (
+	abstract int o_PopulateTupleStartingAt (
 		final @NotNull AvailObject object,
 		final AvailObject mutableTuple,
 		final int startingIndex);
@@ -4099,32 +4097,32 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract int o_BinHash (final AvailObject object);
+	abstract int o_BinHash (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract int o_BinSize (final AvailObject object);
+	abstract int o_BinSize (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_BinUnionTypeOrTop (final AvailObject object);
+	abstract AvailObject o_BinUnionTypeOrTop (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract boolean o_IsTuple (final AvailObject object);
+	abstract boolean o_IsTuple (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @param aType
 	 * @return
 	 */
-	public abstract boolean o_TypeEquals (
+	abstract boolean o_TypeEquals (
 		final @NotNull AvailObject object,
 		final AvailObject aType);
 
@@ -4132,55 +4130,55 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract int o_HashOfType (final AvailObject object);
+	abstract int o_HashOfType (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract boolean o_IsAtom (final AvailObject object);
+	abstract boolean o_IsAtom (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract boolean o_IsExtendedInteger (final AvailObject object);
+	abstract boolean o_IsExtendedInteger (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract boolean o_IsIntegerRangeType (final AvailObject object);
+	abstract boolean o_IsIntegerRangeType (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract boolean o_IsMapType (final AvailObject object);
+	abstract boolean o_IsMapType (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract boolean o_IsSetType (final AvailObject object);
+	abstract boolean o_IsSetType (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract boolean o_IsTupleType (final AvailObject object);
+	abstract boolean o_IsTupleType (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract boolean o_IsType (final AvailObject object);
+	abstract boolean o_IsType (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @param visitor
 	 */
-	public abstract void o_ScanSubobjects (
+	abstract void o_ScanSubobjects (
 		final @NotNull AvailObject object,
 		final AvailSubobjectVisitor visitor);
 
@@ -4197,14 +4195,14 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract @NotNull
-	Iterator<AvailObject> o_Iterator (final @NotNull AvailObject object);
+	abstract @NotNull Iterator<AvailObject> o_Iterator (
+		final @NotNull AvailObject object);
 
 	/**
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_ParsingInstructions (
+	abstract void o_ParsingInstructions (
 		final @NotNull AvailObject object,
 		AvailObject instructionsTuple);
 
@@ -4212,7 +4210,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	public abstract AvailObject o_ParsingInstructions (
+	abstract AvailObject o_ParsingInstructions (
 		final @NotNull AvailObject object);
 
 	/**
@@ -4220,7 +4218,7 @@ public abstract class AbstractDescriptor
 	 * @param expression
 	 * @return
 	 */
-	public abstract void o_Expression (
+	abstract void o_Expression (
 		final @NotNull AvailObject object,
 		final AvailObject expression);
 
@@ -4228,13 +4226,13 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_Expression (final AvailObject object);
+	abstract AvailObject o_Expression (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @param variable
 	 */
-	public abstract void o_Variable (
+	abstract void o_Variable (
 		final @NotNull AvailObject object,
 		final AvailObject variable);
 
@@ -4242,31 +4240,31 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_Variable (final AvailObject object);
+	abstract AvailObject o_Variable (final AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_ArgumentsTuple (AvailObject object);
+	abstract AvailObject o_ArgumentsTuple (AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_StatementsTuple (AvailObject object);
+	abstract AvailObject o_StatementsTuple (AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_ResultType (AvailObject object);
+	abstract AvailObject o_ResultType (AvailObject object);
 
 	/**
 	 * @param object
 	 * @param neededVariables
 	 */
-	public abstract void o_NeededVariables (
+	abstract void o_NeededVariables (
 		final @NotNull AvailObject object,
 		AvailObject neededVariables);
 
@@ -4274,32 +4272,32 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_NeededVariables (AvailObject object);
+	abstract AvailObject o_NeededVariables (AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract int o_Primitive (AvailObject object);
+	abstract int o_Primitive (AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_DeclaredType (AvailObject object);
+	abstract AvailObject o_DeclaredType (AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract DeclarationKind o_DeclarationKind (
+	abstract DeclarationKind o_DeclarationKind (
 		final @NotNull AvailObject object);
 
 	/**
 	 * @param object
 	 * @param initializationExpression
 	 */
-	public abstract void o_InitializationExpression (
+	abstract void o_InitializationExpression (
 		final @NotNull AvailObject object,
 		AvailObject initializationExpression);
 
@@ -4307,25 +4305,25 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_InitializationExpression (AvailObject object);
+	abstract AvailObject o_InitializationExpression (AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_LiteralObject (AvailObject object);
+	abstract AvailObject o_LiteralObject (AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_Token (AvailObject object);
+	abstract AvailObject o_Token (AvailObject object);
 
 	/**
 	 * @param object
 	 * @param markerValue
 	 */
-	public abstract void o_MarkerValue (
+	abstract void o_MarkerValue (
 		final @NotNull AvailObject object,
 		AvailObject markerValue);
 
@@ -4333,13 +4331,13 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_MarkerValue (AvailObject object);
+	abstract AvailObject o_MarkerValue (AvailObject object);
 
 	/**
 	 * @param object
 	 * @param arguments
 	 */
-	public abstract void o_Arguments (
+	abstract void o_Arguments (
 		final @NotNull AvailObject object,
 		AvailObject arguments);
 
@@ -4347,13 +4345,13 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_Arguments (AvailObject object);
+	abstract AvailObject o_Arguments (AvailObject object);
 
 	/**
 	 * @param object
 	 * @param implementationSet
 	 */
-	public abstract void o_ImplementationSet (
+	abstract void o_ImplementationSet (
 		final @NotNull AvailObject object,
 		AvailObject implementationSet);
 
@@ -4361,13 +4359,13 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_ImplementationSet (AvailObject object);
+	abstract AvailObject o_ImplementationSet (AvailObject object);
 
 	/**
 	 * @param object
 	 * @param superCastType
 	 */
-	public abstract void o_SuperCastType (
+	abstract void o_SuperCastType (
 		final @NotNull AvailObject object,
 		AvailObject superCastType);
 
@@ -4375,13 +4373,13 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_SuperCastType (AvailObject object);
+	abstract AvailObject o_SuperCastType (AvailObject object);
 
 	/**
 	 * @param object
 	 * @param expressionsTuple
 	 */
-	public abstract void o_ExpressionsTuple (
+	abstract void o_ExpressionsTuple (
 		final @NotNull AvailObject object,
 		AvailObject expressionsTuple);
 
@@ -4389,13 +4387,13 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_ExpressionsTuple (AvailObject object);
+	abstract AvailObject o_ExpressionsTuple (AvailObject object);
 
 	/**
 	 * @param object
 	 * @param tupleType
 	 */
-	public abstract void o_TupleType (
+	abstract void o_TupleType (
 		final @NotNull AvailObject object,
 		AvailObject tupleType);
 
@@ -4403,24 +4401,24 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_TupleType (AvailObject object);
+	abstract AvailObject o_TupleType (AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_Declaration (AvailObject object);
+	abstract AvailObject o_Declaration (AvailObject object);
 
 	/**
 	 * @return
 	 */
-	public abstract AvailObject o_ExpressionType (AvailObject object);
+	abstract AvailObject o_ExpressionType (AvailObject object);
 
 	/**
 	 * @param object
 	 * @param codeGenerator
 	 */
-	public abstract void o_EmitEffectOn (
+	abstract void o_EmitEffectOn (
 		final @NotNull AvailObject object,
 		AvailCodeGenerator codeGenerator);
 
@@ -4428,7 +4426,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param codeGenerator
 	 */
-	public abstract void o_EmitValueOn (
+	abstract void o_EmitValueOn (
 		final @NotNull AvailObject object,
 		AvailCodeGenerator codeGenerator);
 
@@ -4436,14 +4434,14 @@ public abstract class AbstractDescriptor
 	 * Map my children through the (destructive) transformation specified by
 	 * aBlock.
 	 */
-	public abstract void o_ChildrenMap (
+	abstract void o_ChildrenMap (
 		final @NotNull AvailObject object,
 		Transformer1<AvailObject, AvailObject> aBlock);
 
 	/**
 	 * Visit my child parse nodes with aBlock.
 	 */
-	public abstract void o_ChildrenDo (
+	abstract void o_ChildrenDo (
 		final @NotNull AvailObject object,
 		Continuation1<AvailObject> aBlock);
 
@@ -4453,7 +4451,7 @@ public abstract class AbstractDescriptor
 	 * @param outerBlocks
 	 * @param anAvailInterpreter
 	 */
-	public abstract void o_ValidateLocally (
+	abstract void o_ValidateLocally (
 		 final @NotNull AvailObject object,
 		 AvailObject parent,
 		 List<AvailObject> outerBlocks,
@@ -4464,7 +4462,7 @@ public abstract class AbstractDescriptor
 	 * @param codeGenerator
 	 * @return
 	 */
-	public abstract AvailObject o_Generate (
+	abstract AvailObject o_Generate (
 		final @NotNull AvailObject object,
 		final AvailCodeGenerator codeGenerator);
 
@@ -4473,7 +4471,7 @@ public abstract class AbstractDescriptor
 	 * @param newParseNode
 	 * @return
 	 */
-	public abstract AvailObject o_CopyWith (
+	abstract AvailObject o_CopyWith (
 		final @NotNull AvailObject object,
 		AvailObject newParseNode);
 
@@ -4481,7 +4479,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param isLastUse
 	 */
-	public abstract void o_IsLastUse (
+	abstract void o_IsLastUse (
 		final @NotNull AvailObject object,
 		final boolean isLastUse);
 
@@ -4489,21 +4487,21 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract boolean o_IsLastUse (
+	abstract boolean o_IsLastUse (
 		final @NotNull AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract boolean o_IsMacro (
+	abstract boolean o_IsMacro (
 		final @NotNull AvailObject object);
 
 	/**
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_Macros (
+	abstract void o_Macros (
 		final @NotNull AvailObject object,
 		AvailObject value);
 
@@ -4511,27 +4509,27 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_Macros (
+	abstract AvailObject o_Macros (
 		final @NotNull AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_CopyMutableParseNode (
+	abstract AvailObject o_CopyMutableParseNode (
 		final @NotNull AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_BinUnionKind (AvailObject object);
+	abstract AvailObject o_BinUnionKind (AvailObject object);
 
 	/**
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_MacroName (
+	abstract void o_MacroName (
 		final @NotNull AvailObject object,
 		AvailObject value);
 
@@ -4539,14 +4537,14 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_MacroName (
+	abstract AvailObject o_MacroName (
 		final @NotNull AvailObject object);
 
 	/**
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_OutputParseNode (
+	abstract void o_OutputParseNode (
 		final @NotNull AvailObject object,
 		AvailObject value);
 
@@ -4554,35 +4552,35 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_OutputParseNode (
+	abstract AvailObject o_OutputParseNode (
 		final @NotNull AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_ApparentSendName (
+	abstract AvailObject o_ApparentSendName (
 		final @NotNull AvailObject object);
 
 	/**
 	 * @param object
 	 * @param statementsTuple
 	 */
-	public abstract void o_Statements (
+	abstract void o_Statements (
 		final @NotNull AvailObject object, AvailObject statementsTuple);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_Statements (
+	abstract AvailObject o_Statements (
 		final @NotNull AvailObject object);
 
 	/**
 	 * @param object
 	 * @param accumulatedStatements
 	 */
-	public abstract void o_FlattenStatementsInto (
+	abstract void o_FlattenStatementsInto (
 		final @NotNull AvailObject object,
 		List<AvailObject> accumulatedStatements);
 
@@ -4590,84 +4588,84 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_LineNumber (AvailObject object, int value);
+	abstract void o_LineNumber (AvailObject object, int value);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract int o_LineNumber (AvailObject object);
+	abstract int o_LineNumber (AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_AllBundles (AvailObject object);
+	abstract AvailObject o_AllBundles (AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract boolean o_IsSetBin (AvailObject object);
+	abstract boolean o_IsSetBin (AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract MapDescriptor.MapIterable o_MapIterable (
+	abstract MapDescriptor.MapIterable o_MapIterable (
 		final @NotNull AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_Complete (
+	abstract AvailObject o_Complete (
 		final @NotNull AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_Incomplete (
+	abstract AvailObject o_Incomplete (
 		final @NotNull AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_SpecialActions (
+	abstract AvailObject o_SpecialActions (
 		final @NotNull AvailObject object);
 
 	/**
 	 * @param object
 	 */
-	public abstract @NotNull AvailObject o_CheckedExceptions (
+	abstract @NotNull AvailObject o_CheckedExceptions (
 		final @NotNull AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract boolean o_IsInt (AvailObject object);
+	abstract boolean o_IsInt (AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract boolean o_IsLong (AvailObject object);
+	abstract boolean o_IsLong (AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_ArgsTupleType (AvailObject object);
+	abstract AvailObject o_ArgsTupleType (AvailObject object);
 
 	/**
 	 * @param object
 	 * @param anInstanceType
 	 * @return
 	 */
-	public abstract boolean o_EqualsInstanceTypeFor (
+	abstract boolean o_EqualsInstanceTypeFor (
 		final @NotNull AvailObject object,
 		AvailObject anObject);
 
@@ -4675,7 +4673,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract @NotNull AvailObject o_Instances (
+	abstract @NotNull AvailObject o_Instances (
 		final @NotNull AvailObject object);
 
 	/**
@@ -4683,7 +4681,7 @@ public abstract class AbstractDescriptor
 	 * @param aSet
 	 * @return
 	 */
-	public boolean o_EqualsUnionTypeWithSet (
+	boolean o_EqualsUnionTypeWithSet (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aSet)
 	{
@@ -4694,7 +4692,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract boolean o_IsAbstractUnionType (
+	abstract boolean o_IsAbstractUnionType (
 		final @NotNull AvailObject object);
 
 	/**
@@ -4702,7 +4700,7 @@ public abstract class AbstractDescriptor
 	 * @param aType
 	 * @return
 	 */
-	public abstract boolean o_IsInstanceOf (
+	abstract boolean o_IsInstanceOf (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType);
 
@@ -4711,7 +4709,7 @@ public abstract class AbstractDescriptor
 	 * @param potentialInstance
 	 * @return
 	 */
-	public abstract boolean o_AbstractUnionTypeIncludesInstance (
+	abstract boolean o_AbstractUnionTypeIncludesInstance (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject potentialInstance);
 
@@ -4719,7 +4717,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_ComputeSuperkind (
+	abstract AvailObject o_ComputeSuperkind (
 		final @NotNull AvailObject object);
 
 	/**
@@ -4727,7 +4725,7 @@ public abstract class AbstractDescriptor
 	 * @param key
 	 * @param value
 	 */
-	public abstract void o_SetAtomProperty (
+	abstract void o_SetAtomProperty (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject key,
 		final @NotNull AvailObject value);
@@ -4737,7 +4735,7 @@ public abstract class AbstractDescriptor
 	 * @param key
 	 * @return
 	 */
-	public abstract @NotNull AvailObject o_GetAtomProperty (
+	abstract @NotNull AvailObject o_GetAtomProperty (
 		final @NotNull AvailObject object,
 		AvailObject key);
 
@@ -4745,14 +4743,14 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_InnerKind (final @NotNull AvailObject object);
+	abstract AvailObject o_InnerKind (final @NotNull AvailObject object);
 
 	/**
 	 * @param object
 	 * @param another
 	 * @return
 	 */
-	public abstract boolean o_EqualsUnionMeta (
+	abstract boolean o_EqualsUnionMeta (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another);
 
@@ -4760,27 +4758,27 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract boolean o_IsUnionMeta (final @NotNull AvailObject object);
+	abstract boolean o_IsUnionMeta (final @NotNull AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract @NotNull AvailObject o_ReadType (
+	abstract @NotNull AvailObject o_ReadType (
 		final @NotNull AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract @NotNull AvailObject o_WriteType (
+	abstract @NotNull AvailObject o_WriteType (
 		final @NotNull AvailObject object);
 
 	/**
 	 * @param object
 	 * @param value
 	 */
-	public abstract void o_Versions (
+	abstract void o_Versions (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value);
 
@@ -4788,14 +4786,14 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_Versions (final @NotNull AvailObject object);
+	abstract AvailObject o_Versions (final @NotNull AvailObject object);
 
 	/**
 	 * @param object
 	 * @param aParseNodeType
 	 * @return
 	 */
-	public abstract @NotNull AvailObject o_TypeUnionOfParseNodeType (
+	abstract @NotNull AvailObject o_TypeUnionOfParseNodeType (
 		final @NotNull AvailObject object,
 		AvailObject aParseNodeType);
 
@@ -4803,7 +4801,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract @NotNull ParseNodeKind o_ParseNodeKind (
+	abstract @NotNull ParseNodeKind o_ParseNodeKind (
 		final @NotNull AvailObject object);
 
 	/**
@@ -4811,7 +4809,7 @@ public abstract class AbstractDescriptor
 	 * @param expectedParseNodeKind
 	 * @return
 	 */
-	public abstract boolean o_ParseNodeKindIsUnder (
+	abstract boolean o_ParseNodeKindIsUnder (
 		final @NotNull AvailObject object,
 		final @NotNull ParseNodeKind expectedParseNodeKind);
 
@@ -4819,14 +4817,14 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract boolean o_IsRawPojo (final @NotNull AvailObject object);
+	abstract boolean o_IsRawPojo (final @NotNull AvailObject object);
 
 	/**
 	 * @param object
 	 * @param restrictionSignature
 	 * @return
 	 */
-	public abstract void o_AddTypeRestriction (
+	abstract void o_AddTypeRestriction (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject restrictionSignature);
 
@@ -4835,7 +4833,7 @@ public abstract class AbstractDescriptor
 	 * @param restrictionSignature
 	 * @return
 	 */
-	public abstract void o_RemoveTypeRestriction (
+	abstract void o_RemoveTypeRestriction (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject restrictionSignature);
 
@@ -4846,14 +4844,14 @@ public abstract class AbstractDescriptor
 	 *
 	 * @param object The implementation set.
 	 */
-	public abstract @NotNull AvailObject o_TypeRestrictions (
+	abstract @NotNull AvailObject o_TypeRestrictions (
 		final @NotNull AvailObject object);
 
 	/**
 	 * @param object
 	 * @param tupleType
 	 */
-	public abstract void o_AddSealedArgumentsType (
+	abstract void o_AddSealedArgumentsType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject tupleType);
 
@@ -4861,7 +4859,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param tupleType
 	 */
-	public abstract void o_RemoveSealedArgumentsType (
+	abstract void o_RemoveSealedArgumentsType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject tupleType);
 
@@ -4869,7 +4867,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract @NotNull AvailObject o_SealedArgumentsTypesTuple (
+	abstract @NotNull AvailObject o_SealedArgumentsTypesTuple (
 		final @NotNull AvailObject object);
 
 	/**
@@ -4877,7 +4875,7 @@ public abstract class AbstractDescriptor
 	 * @param methodNameAtom
 	 * @param typeRestrictionFunction
 	 */
-	public abstract void o_AddTypeRestriction (
+	abstract void o_AddTypeRestriction (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject methodNameAtom,
 		final @NotNull AvailObject typeRestrictionFunction);
@@ -4887,7 +4885,7 @@ public abstract class AbstractDescriptor
 	 * @param name
 	 * @param constantBinding
 	 */
-	public abstract void o_AddConstantBinding (
+	abstract void o_AddConstantBinding (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject name,
 		final @NotNull AvailObject constantBinding);
@@ -4897,7 +4895,7 @@ public abstract class AbstractDescriptor
 	 * @param name
 	 * @param variableBinding
 	 */
-	public abstract void o_AddVariableBinding (
+	abstract void o_AddVariableBinding (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject name,
 		final @NotNull AvailObject variableBinding);
@@ -4906,20 +4904,20 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract boolean o_IsImplementationSetEmpty (
+	abstract boolean o_IsImplementationSetEmpty (
 		final @NotNull AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	public abstract boolean o_IsPojoSelfType (
+	abstract boolean o_IsPojoSelfType (
 		final @NotNull AvailObject object);
 
 	/**
 	 * @param availObject
 	 * @return
 	 */
-	public abstract @NotNull AvailObject o_PojoSelfType (
+	abstract @NotNull AvailObject o_PojoSelfType (
 		final @NotNull AvailObject object);
 }

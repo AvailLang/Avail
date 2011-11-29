@@ -34,7 +34,7 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 
 /**
  * An Avail {@linkplain SetDescriptor set} refers to the root of a Bagwell Ideal
@@ -64,16 +64,16 @@ public class SetDescriptor extends Descriptor
 		ROOT_BIN
 	}
 
-	@Override
-	public void o_RootBin (
+	@Override @AvailMethod
+	void o_RootBin (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.ROOT_BIN, value);
 	}
 
-	@Override
-	public @NotNull AvailObject o_RootBin (
+	@Override @AvailMethod
+	@NotNull AvailObject o_RootBin (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.ROOT_BIN);
@@ -100,16 +100,16 @@ public class SetDescriptor extends Descriptor
 		aStream.append('}');
 	}
 
-	@Override
-	public boolean o_Equals (
+	@Override @AvailMethod
+	boolean o_Equals (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
 		return another.equalsSet(object);
 	}
 
-	@Override
-	public boolean o_EqualsSet (
+	@Override @AvailMethod
+	boolean o_EqualsSet (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aSet)
 	{
@@ -131,8 +131,8 @@ public class SetDescriptor extends Descriptor
 		return object.rootBin().isBinSubsetOf(aSet);
 	}
 
-	@Override
-	public boolean o_IsInstanceOfKind (
+	@Override @AvailMethod
+	boolean o_IsInstanceOfKind (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aTypeObject)
 	{
@@ -170,8 +170,8 @@ public class SetDescriptor extends Descriptor
 		return object.rootBin().binUnionKind().isSubtypeOf(expectedContentType);
 	}
 
-	@Override
-	public int o_Hash (
+	@Override @AvailMethod
+	int o_Hash (
 		final @NotNull AvailObject object)
 	{
 		//  A set's hash is a simple function of its rootBin's binHash, which is always the sum
@@ -180,15 +180,15 @@ public class SetDescriptor extends Descriptor
 		return object.rootBin().binHash() ^ 0xCD9EFC6;
 	}
 
-	@Override
-	public boolean o_IsSet (
+	@Override @AvailMethod
+	boolean o_IsSet (
 		final @NotNull AvailObject object)
 	{
 		return true;
 	}
 
-	@Override
-	public @NotNull AvailObject o_Kind (
+	@Override @AvailMethod
+	@NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
 		final int size = object.setSize();
@@ -199,16 +199,16 @@ public class SetDescriptor extends Descriptor
 			AbstractUnionTypeDescriptor.withInstances(object));
 	}
 
-	@Override
-	public boolean o_HasElement (
+	@Override @AvailMethod
+	boolean o_HasElement (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject elementObject)
 	{
 		return object.rootBin().binHasElementHash(elementObject, elementObject.hash());
 	}
 
-	@Override
-	public boolean o_IsSubsetOf (
+	@Override @AvailMethod
+	boolean o_IsSubsetOf (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
@@ -221,8 +221,8 @@ public class SetDescriptor extends Descriptor
 		return object.rootBin().isBinSubsetOf(another);
 	}
 
-	@Override
-	public @NotNull AvailObject o_SetIntersectionCanDestroy (
+	@Override @AvailMethod
+	@NotNull AvailObject o_SetIntersectionCanDestroy (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject otherSet,
 		final boolean canDestroy)
@@ -260,8 +260,8 @@ public class SetDescriptor extends Descriptor
 		return result;
 	}
 
-	@Override
-	public @NotNull AvailObject o_SetMinusCanDestroy (
+	@Override @AvailMethod
+	@NotNull AvailObject o_SetMinusCanDestroy (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject otherSet,
 		final boolean canDestroy)
@@ -288,8 +288,8 @@ public class SetDescriptor extends Descriptor
 		return result;
 	}
 
-	@Override
-	public @NotNull AvailObject o_SetUnionCanDestroy (
+	@Override @AvailMethod
+	@NotNull AvailObject o_SetUnionCanDestroy (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject otherSet,
 		final boolean canDestroy)
@@ -338,8 +338,8 @@ public class SetDescriptor extends Descriptor
 		return toModify;
 	}
 
-	@Override
-	public @NotNull AvailObject o_SetWithElementCanDestroy (
+	@Override @AvailMethod
+	@NotNull AvailObject o_SetWithElementCanDestroy (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject newElementObject,
 		final boolean canDestroy)
@@ -376,8 +376,8 @@ public class SetDescriptor extends Descriptor
 		return result;
 	}
 
-	@Override
-	public @NotNull AvailObject o_SetWithoutElementCanDestroy (
+	@Override @AvailMethod
+	@NotNull AvailObject o_SetWithoutElementCanDestroy (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject elementObjectToExclude,
 		final boolean canDestroy)
@@ -513,8 +513,8 @@ public class SetDescriptor extends Descriptor
 	/**
 	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
 	 */
-	@Override
-	public @NotNull Iterator<AvailObject> o_Iterator (
+	@Override @AvailMethod
+	@NotNull Iterator<AvailObject> o_Iterator (
 		final @NotNull AvailObject object)
 	{
 		return new SetIterator(object.rootBin());
@@ -523,8 +523,8 @@ public class SetDescriptor extends Descriptor
 	/**
 	 * Convert me to a tuple.  The ordering will be arbitrary and unstable.
 	 */
-	@Override
-	public @NotNull AvailObject o_AsTuple (
+	@Override @AvailMethod
+	@NotNull AvailObject o_AsTuple (
 		final @NotNull AvailObject object)
 	{
 		final AvailObject result = ObjectTupleDescriptor.mutable().create(
@@ -538,8 +538,8 @@ public class SetDescriptor extends Descriptor
 		return result;
 	}
 
-	@Override
-	public int o_SetSize (
+	@Override @AvailMethod
+	int o_SetSize (
 		final @NotNull AvailObject object)
 	{
 		//  Answer how many elements are in the set.  Delegate to the rootBin.

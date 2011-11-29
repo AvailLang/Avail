@@ -30,14 +30,13 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.compiler.node;
+package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.*;
-import static com.avail.compiler.node.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import java.util.List;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
 
@@ -75,8 +74,8 @@ public class SuperCastNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * Setter for field expression.
 	 */
-	@Override
-	public void o_Expression (
+	@Override @AvailMethod
+	void o_Expression (
 		final @NotNull AvailObject object,
 		final AvailObject expression)
 	{
@@ -86,8 +85,8 @@ public class SuperCastNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * Getter for field expression.
 	 */
-	@Override
-	public AvailObject o_Expression (
+	@Override @AvailMethod
+	AvailObject o_Expression (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.EXPRESSION);
@@ -97,8 +96,8 @@ public class SuperCastNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * Setter for field superCastType.
 	 */
-	@Override
-	public void o_SuperCastType (
+	@Override @AvailMethod
+	void o_SuperCastType (
 		final @NotNull AvailObject object,
 		final AvailObject superCastType)
 	{
@@ -108,28 +107,28 @@ public class SuperCastNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * Getter for field superCastType.
 	 */
-	@Override
-	public AvailObject o_SuperCastType (
+	@Override @AvailMethod
+	AvailObject o_SuperCastType (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.SUPER_CAST_TYPE);
 	}
 
 
-	@Override
-	public AvailObject o_ExpressionType (final AvailObject object)
+	@Override @AvailMethod
+	AvailObject o_ExpressionType (final AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.SUPER_CAST_TYPE);
 	}
 
-	@Override
-	public AvailObject o_Kind (final AvailObject object)
+	@Override @AvailMethod
+	AvailObject o_Kind (final AvailObject object)
 	{
 		return SUPER_CAST_NODE.create(object.expressionType());
 	}
 
-	@Override
-	public int o_Hash (final AvailObject object)
+	@Override @AvailMethod
+	int o_Hash (final AvailObject object)
 	{
 		return
 			object.expression().hash() * Multiplier
@@ -137,8 +136,8 @@ public class SuperCastNodeDescriptor extends ParseNodeDescriptor
 			^ 0xD8CCD162;
 	}
 
-	@Override
-	public boolean o_Equals (
+	@Override @AvailMethod
+	boolean o_Equals (
 		final @NotNull AvailObject object,
 		final AvailObject another)
 	{
@@ -147,16 +146,16 @@ public class SuperCastNodeDescriptor extends ParseNodeDescriptor
 			&& object.superCastType().equals(another.superCastType());
 	}
 
-	@Override
-	public void o_EmitEffectOn (
+	@Override @AvailMethod
+	void o_EmitEffectOn (
 		final @NotNull AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
 		error("A superCast can only be done to an argument of a call.");
 	}
 
-	@Override
-	public void o_EmitValueOn (
+	@Override @AvailMethod
+	void o_EmitValueOn (
 		final @NotNull AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
@@ -164,8 +163,8 @@ public class SuperCastNodeDescriptor extends ParseNodeDescriptor
 		object.expression().emitValueOn(codeGenerator);
 	}
 
-	@Override
-	public void o_ChildrenMap (
+	@Override @AvailMethod
+	void o_ChildrenMap (
 		final @NotNull AvailObject object,
 		final Transformer1<AvailObject, AvailObject> aBlock)
 	{
@@ -173,8 +172,8 @@ public class SuperCastNodeDescriptor extends ParseNodeDescriptor
 	}
 
 
-	@Override
-	public void o_ChildrenDo (
+	@Override @AvailMethod
+	void o_ChildrenDo (
 		final @NotNull AvailObject object,
 		final Continuation1<AvailObject> aBlock)
 	{
@@ -182,8 +181,8 @@ public class SuperCastNodeDescriptor extends ParseNodeDescriptor
 	}
 
 
-	@Override
-	public void o_ValidateLocally (
+	@Override @AvailMethod
+	void o_ValidateLocally (
 		final @NotNull AvailObject object,
 		final AvailObject parent,
 		final List<AvailObject> outerBlocks,

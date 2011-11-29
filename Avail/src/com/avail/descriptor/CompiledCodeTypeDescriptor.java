@@ -34,7 +34,7 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.TypeDescriptor.Types.TYPE;
 import java.util.List;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 
 /**
  * A {@linkplain CompiledCodeTypeDescriptor compiled code type} is the type for
@@ -62,8 +62,8 @@ extends TypeDescriptor
 		FUNCTION_TYPE
 	}
 
-	@Override
-	public @NotNull AvailObject o_FunctionType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_FunctionType (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.FUNCTION_TYPE);
@@ -90,8 +90,8 @@ extends TypeDescriptor
 	 * Compiled code types compare for equality by comparing their functionTypes.
 	 * </p>
 	 */
-	@Override
-	public boolean o_EqualsCompiledCodeType (
+	@Override @AvailMethod
+	boolean o_EqualsCompiledCodeType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
@@ -102,14 +102,14 @@ extends TypeDescriptor
 		return aType.functionType().equals(object.functionType());
 	}
 
-	@Override
-	public int o_Hash (final @NotNull AvailObject object)
+	@Override @AvailMethod
+	int o_Hash (final @NotNull AvailObject object)
 	{
 		return object.functionType().hash() * 71 ^ 0xA78B01C3;
 	}
 
-	@Override
-	public @NotNull AvailObject o_Kind (
+	@Override @AvailMethod
+	@NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
 		//  Answer the object's type.
@@ -117,8 +117,8 @@ extends TypeDescriptor
 		return TYPE.o();
 	}
 
-	@Override
-	public boolean o_IsSubtypeOf (
+	@Override @AvailMethod
+	boolean o_IsSubtypeOf (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
@@ -132,8 +132,8 @@ extends TypeDescriptor
 	 * Compiled code types exactly covary with their function types.
 	 * </p>
 	 */
-	@Override
-	public boolean o_IsSupertypeOfCompiledCodeType (
+	@Override @AvailMethod
+	boolean o_IsSupertypeOfCompiledCodeType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aCompiledCodeType)
 	{
@@ -142,8 +142,8 @@ extends TypeDescriptor
 		return subFunctionType.isSubtypeOf(superFunctionType);
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeIntersection (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeIntersection (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
@@ -158,8 +158,8 @@ extends TypeDescriptor
 		return another.typeIntersectionOfCompiledCodeType(object);
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeIntersectionOfCompiledCodeType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeIntersectionOfCompiledCodeType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aCompiledCodeType)
 	{
@@ -179,8 +179,8 @@ extends TypeDescriptor
 		return forFunctionType(intersection);
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeUnion (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeUnion (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
@@ -195,8 +195,8 @@ extends TypeDescriptor
 		return another.typeUnionOfCompiledCodeType(object);
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeUnionOfCompiledCodeType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeUnionOfCompiledCodeType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aCompiledCodeType)
 	{

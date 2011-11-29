@@ -35,7 +35,7 @@ package com.avail.descriptor;
 import static java.lang.Math.min;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 
 /**
  * TODO: Document this type!
@@ -134,8 +134,8 @@ extends TypeDescriptor
 		}
 	}
 
-	@Override
-	public boolean o_HasObjectInstance (
+	@Override @AvailMethod
+	boolean o_HasObjectInstance (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject potentialInstance)
 	{
@@ -161,37 +161,37 @@ extends TypeDescriptor
 		return true;
 	}
 
-	@Override
-	public @NotNull AvailObject o_FieldTypeMap (
+	@Override @AvailMethod
+	@NotNull AvailObject o_FieldTypeMap (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.FIELD_TYPE_MAP);
 	}
 
-	@Override
-	public int o_Hash (
+	@Override @AvailMethod
+	int o_Hash (
 		final @NotNull AvailObject object)
 	{
 		return object.fieldTypeMap().hash() * 11 ^ 0xE3561F16;
 	}
 
-	@Override
-	public @NotNull AvailObject o_Kind (
+	@Override @AvailMethod
+	@NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
 		return TYPE.o();
 	}
 
-	@Override
-	public boolean o_IsSubtypeOf (
+	@Override @AvailMethod
+	boolean o_IsSubtypeOf (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
 		return aType.isSupertypeOfObjectType(object);
 	}
 
-	@Override
-	public boolean o_IsSupertypeOfObjectType (
+	@Override @AvailMethod
+	boolean o_IsSupertypeOfObjectType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anObjectType)
 	{
@@ -217,8 +217,8 @@ extends TypeDescriptor
 		return true;
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeIntersection (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeIntersection (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
@@ -238,8 +238,8 @@ extends TypeDescriptor
 	 * Here we're finding the nearest common descendant of two eager object
 	 * types.
 	 */
-	@Override
-	public @NotNull AvailObject o_TypeIntersectionOfObjectType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeIntersectionOfObjectType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anObjectType)
 	{
@@ -279,8 +279,8 @@ extends TypeDescriptor
 		return objectTypeFromMap(resultMap);
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeUnion (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeUnion (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
@@ -300,8 +300,8 @@ extends TypeDescriptor
 	 * Answer the most specific type that is still at least as general as these.
 	 * Here we're finding the nearest common ancestor of two eager object types.
 	 */
-	@Override
-	public @NotNull AvailObject o_TypeUnionOfObjectType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeUnionOfObjectType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anObjectType)
 	{

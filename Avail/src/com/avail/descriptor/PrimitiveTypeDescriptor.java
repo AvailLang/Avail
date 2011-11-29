@@ -34,7 +34,7 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 
 public class PrimitiveTypeDescriptor
 extends TypeDescriptor
@@ -57,54 +57,54 @@ extends TypeDescriptor
 		MY_TYPE
 	}
 
-	@Override
-	public void o_Hash (
+	@Override @AvailMethod
+	void o_Hash (
 		final @NotNull AvailObject object,
 		final int value)
 	{
 		object.integerSlotPut(IntegerSlots.HASH, value);
 	}
 
-	@Override
-	public void o_MyType (
+	@Override @AvailMethod
+	void o_MyType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.MY_TYPE, value);
 	}
 
-	@Override
-	public void o_Name (
+	@Override @AvailMethod
+	void o_Name (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.NAME, value);
 	}
 
-	@Override
-	public void o_Parent (
+	@Override @AvailMethod
+	void o_Parent (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
 		object.objectSlotPut(ObjectSlots.PARENT, value);
 	}
 
-	@Override
-	public int o_Hash (
+	@Override @AvailMethod
+	int o_Hash (
 		final @NotNull AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.HASH);
 	}
 
-	@Override
-	public @NotNull AvailObject o_Name (
+	@Override @AvailMethod
+	@NotNull AvailObject o_Name (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.NAME);
 	}
 
-	@Override
-	public @NotNull AvailObject o_Parent (
+	@Override @AvailMethod
+	@NotNull AvailObject o_Parent (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.PARENT);
@@ -120,16 +120,16 @@ extends TypeDescriptor
 		aStream.append(object.name().asNativeString());
 	}
 
-	@Override
-	public boolean o_Equals (
+	@Override @AvailMethod
+	boolean o_Equals (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
 		return another.equalsPrimitiveType(object);
 	}
 
-	@Override
-	public boolean o_EqualsPrimitiveType (
+	@Override @AvailMethod
+	boolean o_EqualsPrimitiveType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
@@ -138,8 +138,8 @@ extends TypeDescriptor
 		return object.sameAddressAs(aType);
 	}
 
-	@Override
-	public boolean o_IsSubtypeOf (
+	@Override @AvailMethod
+	boolean o_IsSubtypeOf (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
@@ -148,8 +148,8 @@ extends TypeDescriptor
 		return aType.isSupertypeOfPrimitiveType(object);
 	}
 
-	@Override
-	public boolean o_IsSupertypeOfFunctionType (
+	@Override @AvailMethod
+	boolean o_IsSupertypeOfFunctionType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aFunctionType)
 	{
@@ -159,8 +159,8 @@ extends TypeDescriptor
 		return ANY.o().isSubtypeOf(object);
 	}
 
-	@Override
-	public boolean o_IsSupertypeOfContainerType (
+	@Override @AvailMethod
+	boolean o_IsSupertypeOfContainerType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aContainerType)
 	{
@@ -169,8 +169,8 @@ extends TypeDescriptor
 		return ANY.o().isSubtypeOf(object);
 	}
 
-	@Override
-	public boolean o_IsSupertypeOfContinuationType (
+	@Override @AvailMethod
+	boolean o_IsSupertypeOfContinuationType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aContinuationType)
 	{
@@ -179,8 +179,8 @@ extends TypeDescriptor
 		return ANY.o().isSubtypeOf(object);
 	}
 
-	@Override
-	public boolean o_IsSupertypeOfCompiledCodeType (
+	@Override @AvailMethod
+	boolean o_IsSupertypeOfCompiledCodeType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aCompiledCodeType)
 	{
@@ -189,8 +189,8 @@ extends TypeDescriptor
 		return ANY.o().isSubtypeOf(object);
 	}
 
-	@Override
-	public boolean o_IsSupertypeOfIntegerRangeType (
+	@Override @AvailMethod
+	boolean o_IsSupertypeOfIntegerRangeType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anIntegerRangeType)
 	{
@@ -199,8 +199,8 @@ extends TypeDescriptor
 		return ANY.o().isSubtypeOf(object);
 	}
 
-	@Override
-	public boolean o_IsSupertypeOfMapType (
+	@Override @AvailMethod
+	boolean o_IsSupertypeOfMapType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aMapType)
 	{
@@ -210,8 +210,8 @@ extends TypeDescriptor
 		return ANY.o().isSubtypeOf(object);
 	}
 
-	@Override
-	public boolean o_IsSupertypeOfObjectType (
+	@Override @AvailMethod
+	boolean o_IsSupertypeOfObjectType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anEagerObjectType)
 	{
@@ -221,24 +221,24 @@ extends TypeDescriptor
 		return ANY.o().isSubtypeOf(object);
 	}
 
-	@Override
-	public boolean o_IsSupertypeOfParseNodeType (
+	@Override @AvailMethod
+	boolean o_IsSupertypeOfParseNodeType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aParseNodeType)
 	{
 		return ANY.o().isSubtypeOf(object);
 	}
 
-	@Override
-	public boolean o_IsSupertypeOfPojoType (
+	@Override @AvailMethod
+	boolean o_IsSupertypeOfPojoType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aPojoType)
 	{
 		return ANY.o().isSubtypeOf(object);
 	}
 
-	@Override
-	public boolean o_IsSupertypeOfPrimitiveType (
+	@Override @AvailMethod
+	boolean o_IsSupertypeOfPrimitiveType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aPrimitiveType)
 	{
@@ -259,8 +259,8 @@ extends TypeDescriptor
 		}
 	}
 
-	@Override
-	public boolean o_IsSupertypeOfSetType (
+	@Override @AvailMethod
+	boolean o_IsSupertypeOfSetType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aSetType)
 	{
@@ -270,8 +270,8 @@ extends TypeDescriptor
 		return ANY.o().isSubtypeOf(object);
 	}
 
-	@Override
-	public boolean o_IsSupertypeOfTupleType (
+	@Override @AvailMethod
+	boolean o_IsSupertypeOfTupleType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aTupleType)
 	{
@@ -281,8 +281,8 @@ extends TypeDescriptor
 		return ANY.o().isSubtypeOf(object);
 	}
 
-	@Override
-	public boolean o_IsSupertypeOfUnionMeta (
+	@Override @AvailMethod
+	boolean o_IsSupertypeOfUnionMeta (
 		final @NotNull AvailObject object,
 		final AvailObject aUnionMeta)
 	{
@@ -293,8 +293,8 @@ extends TypeDescriptor
 		return TYPE.o().isSubtypeOf(object);
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeIntersection (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeIntersection (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
@@ -313,8 +313,8 @@ extends TypeDescriptor
 		return BottomTypeDescriptor.bottom();
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeUnion (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeUnion (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
@@ -336,8 +336,8 @@ extends TypeDescriptor
 		return object.objectSlot(ObjectSlots.PARENT).typeUnion(another);
 	}
 
-	@Override
-	public @NotNull AvailObject o_Kind (
+	@Override @AvailMethod
+	@NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.MY_TYPE);

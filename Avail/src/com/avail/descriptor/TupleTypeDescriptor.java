@@ -35,7 +35,7 @@ package com.avail.descriptor;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static java.lang.Math.*;
 import java.util.List;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 
 /**
  * A tuple type can be the {@linkplain AvailObject#kind() type} of a {@linkplain
@@ -65,7 +65,7 @@ extends TypeDescriptor
 		/**
 		 * An {@linkplain IntegerRangeTypeDescriptor integer range type} that
 		 * contains all allowed {@linkplain
-		 * TupleDescriptor#o_TupleSize(AvailObject) tuple sizes} for instances
+		* TupleDescriptor#o_TupleSize(AvailObject) tuple sizes} for instances
 		 * of this type.
 		 */
 		SIZE_RANGE,
@@ -87,22 +87,22 @@ extends TypeDescriptor
 		DEFAULT_TYPE
 	}
 
-	@Override
-	public @NotNull AvailObject o_DefaultType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_DefaultType (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.DEFAULT_TYPE);
 	}
 
-	@Override
-	public @NotNull AvailObject o_SizeRange (
+	@Override @AvailMethod
+	@NotNull AvailObject o_SizeRange (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.SIZE_RANGE);
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeTuple (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeTuple (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.TYPE_TUPLE);
@@ -187,8 +187,8 @@ extends TypeDescriptor
 		aStream.append(")");
 	}
 
-	@Override
-	public boolean o_Equals (
+	@Override @AvailMethod
+	boolean o_Equals (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
@@ -203,8 +203,8 @@ extends TypeDescriptor
 	 * defaultType match.
 	 * </p>
 	 */
-	@Override
-	public boolean o_EqualsTupleType (
+	@Override @AvailMethod
+	boolean o_EqualsTupleType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aTupleType)
 	{
@@ -223,24 +223,24 @@ extends TypeDescriptor
 		return object.typeTuple().equals(aTupleType.typeTuple());
 	}
 
-	@Override
-	public boolean o_IsBetterRepresentationThan (
+	@Override @AvailMethod
+	boolean o_IsBetterRepresentationThan (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anotherObject)
 	{
 		return !anotherObject.isBetterRepresentationThanTupleType(object);
 	}
 
-	@Override
-	public boolean o_IsBetterRepresentationThanTupleType (
+	@Override @AvailMethod
+	boolean o_IsBetterRepresentationThanTupleType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aTupleType)
 	{
 		return true;
 	}
 
-	@Override
-	public int o_Hash (
+	@Override @AvailMethod
+	int o_Hash (
 		final @NotNull AvailObject object)
 	{
 		return TupleTypeDescriptor
@@ -250,15 +250,15 @@ extends TypeDescriptor
 				object.defaultType().hash());
 	}
 
-	@Override
-	public @NotNull AvailObject o_Kind (
+	@Override @AvailMethod
+	@NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
 		return TYPE.o();
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeAtIndex (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeAtIndex (
 		final @NotNull AvailObject object,
 		final int index)
 	{
@@ -290,8 +290,8 @@ extends TypeDescriptor
 	 * which don't affect the union (unless all indices are out of range).
 	 * </p>
 	 */
-	@Override
-	public @NotNull AvailObject o_UnionOfTypesAtThrough (
+	@Override @AvailMethod
+	@NotNull AvailObject o_UnionOfTypesAtThrough (
 		final @NotNull AvailObject object,
 		final int startIndex,
 		final int endIndex)
@@ -322,8 +322,8 @@ extends TypeDescriptor
 		return unionType;
 	}
 
-	@Override
-	public boolean o_IsSubtypeOf (
+	@Override @AvailMethod
+	boolean o_IsSubtypeOf (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
@@ -339,8 +339,8 @@ extends TypeDescriptor
 	 * indistinguishable under this condition are considered the same type.
 	 * </p>
 	 */
-	@Override
-	public boolean o_IsSupertypeOfTupleType (
+	@Override @AvailMethod
+	boolean o_IsSupertypeOfTupleType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aTupleType)
 	{
@@ -389,8 +389,8 @@ extends TypeDescriptor
 		return true;
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeIntersection (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeIntersection (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
@@ -405,8 +405,8 @@ extends TypeDescriptor
 		return another.typeIntersectionOfTupleType(object);
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeIntersectionOfTupleType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeIntersectionOfTupleType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aTupleType)
 	{
@@ -470,8 +470,8 @@ extends TypeDescriptor
 			newDefault.makeImmutable());
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeUnion (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeUnion (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
@@ -486,8 +486,8 @@ extends TypeDescriptor
 		return another.typeUnionOfTupleType(object);
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeUnionOfTupleType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeUnionOfTupleType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aTupleType)
 	{
@@ -530,8 +530,8 @@ extends TypeDescriptor
 			newDefault);
 	}
 
-	@Override
-	public boolean o_IsTupleType (
+	@Override @AvailMethod
+	boolean o_IsTupleType (
 		final @NotNull AvailObject object)
 	{
 		//  I am a tupleType, so answer true.

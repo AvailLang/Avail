@@ -37,9 +37,8 @@ import static com.avail.descriptor.TypeDescriptor.Types.TYPE;
 import java.io.ByteArrayOutputStream;
 import java.util.*;
 import com.avail.compiler.instruction.*;
-import com.avail.compiler.node.*;
-import com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.*;
+import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.interpreter.Primitive;
 
 /**

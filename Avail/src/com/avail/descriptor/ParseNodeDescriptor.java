@@ -30,12 +30,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.compiler.node;
+package com.avail.descriptor;
 
 import java.util.List;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
 
@@ -66,34 +65,34 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	 * @return The {@link TypeDescriptor type} of the {@link AvailObject} that
 	 *         will be produced by this parse node.
 	 */
-	@Override
-	public abstract AvailObject o_ExpressionType (final AvailObject object);
+	@Override @AvailMethod
+	abstract AvailObject o_ExpressionType (final AvailObject object);
 
 	/**
-	 * The {@link #o_ApparentSendName(AvailObject) apparentSendName} of
+	* The {@link #o_ApparentSendName(AvailObject) apparentSendName} of
 	 * something that isn't a {@linkplain SendNodeDescriptor send node} or
 	 * {@linkplain MacroSubstitutionNodeDescriptor macro substitution node} is
 	 * always the {@link NullDescriptor#nullObject() void} object.
 	 */
-	@Override
-	public AvailObject o_ApparentSendName (final AvailObject object)
+	@Override @AvailMethod
+	AvailObject o_ApparentSendName (final AvailObject object)
 	{
 		return NullDescriptor.nullObject();
 	}
 
 	/**
 	 * {@link ParseNodeDescriptor parse nodes} must implement {@link
-	 * AbstractDescriptor#o_Hash(AvailObject) hash}.
+	* AbstractDescriptor#o_Hash(AvailObject) hash}.
 	 */
-	@Override
-	public abstract int o_Hash (AvailObject object);
+	@Override @AvailMethod
+	abstract int o_Hash (AvailObject object);
 
 	/**
 	 * {@link ParseNodeDescriptor parse nodes} must implement {@link
-	 * AbstractDescriptor#o_Equals(AvailObject, AvailObject) equals}.
+	* AbstractDescriptor#o_Equals(AvailObject, AvailObject) equals}.
 	 */
-	@Override
-	public abstract boolean o_Equals (
+	@Override @AvailMethod
+	abstract boolean o_Equals (
 		final @NotNull AvailObject object,
 		AvailObject another);
 
@@ -104,8 +103,8 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	 * @param object The parse node.
 	 * @param codeGenerator Where to emit the code.
 	 */
-	@Override
-	public void o_EmitEffectOn (
+	@Override @AvailMethod
+	void o_EmitEffectOn (
 		final @NotNull AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
@@ -120,8 +119,8 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	 * @param object The parse node.
 	 * @param codeGenerator Where to emit the code.
 	 */
-	@Override
-	public abstract void o_EmitValueOn (
+	@Override @AvailMethod
+	abstract void o_EmitValueOn (
 		final @NotNull AvailObject object,
 		AvailCodeGenerator codeGenerator);
 
@@ -158,8 +157,8 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	 * @return A mutable {@linkplain ParseNodeDescriptor parse node} equivalent
 	 *         to the passed parse node, possibly the same object.
 	 */
-	@Override
-	public AvailObject o_CopyMutableParseNode (
+	@Override @AvailMethod
+	AvailObject o_CopyMutableParseNode (
 		final @NotNull AvailObject object)
 	{
 		if (isMutable())
@@ -210,8 +209,8 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	 * @param aBlock The {@link Transformer1 transformation} through which to
 	 *               map this parse node's children.
 	 */
-	@Override
-	public abstract void o_ChildrenMap (
+	@Override @AvailMethod
+	abstract void o_ChildrenMap (
 		final @NotNull AvailObject object,
 		final Transformer1<AvailObject, AvailObject> aBlock);
 
@@ -225,8 +224,8 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	 *            The {@link Continuation1 action} to perform with each of this
 	 *            parse node's children.
 	 */
-	@Override
-	public abstract void o_ChildrenDo (
+	@Override @AvailMethod
+	abstract void o_ChildrenDo (
 		final @NotNull AvailObject object,
 		final Continuation1<AvailObject> aBlock);
 
@@ -244,15 +243,15 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	 * @param anAvailInterpreter
 	 *        An {@linkplain L2Interpreter interpreter} to use for validation.
 	 */
-	@Override
-	public abstract void o_ValidateLocally (
+	@Override @AvailMethod
+	abstract void o_ValidateLocally (
 		final @NotNull AvailObject object,
 		final AvailObject parent,
 		final List<AvailObject> outerBlocks,
 		final L2Interpreter anAvailInterpreter);
 
-	@Override
-	public void o_FlattenStatementsInto (
+	@Override @AvailMethod
+	void o_FlattenStatementsInto (
 		final @NotNull AvailObject object,
 		final List<AvailObject> accumulatedStatements)
 	{

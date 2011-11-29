@@ -36,7 +36,7 @@ import static com.avail.descriptor.PojoSelfTypeDescriptor.ObjectSlots.*;
 import java.lang.reflect.*;
 import java.util.*;
 import com.avail.AvailRuntime;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 
 /**
  * A {@code PojoSelfTypeDescriptor} occurs only in a {@linkplain
@@ -117,16 +117,16 @@ extends TypeDescriptor
 		RAW_TYPES
 	}
 
-	@Override
-	public boolean o_Equals (
+	@Override @AvailMethod
+	boolean o_Equals (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
 		return another.equalsPojoType(object);
 	}
 
-	@Override
-	public boolean o_EqualsPojoType (
+	@Override @AvailMethod
+	boolean o_EqualsPojoType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aPojoType)
 	{
@@ -134,8 +134,8 @@ extends TypeDescriptor
 			aPojoType.pojoSelfType().traversed().objectSlot(RAW_TYPES));
 	}
 
-	@Override
-	public int o_Hash (final @NotNull AvailObject object)
+	@Override @AvailMethod
+	int o_Hash (final @NotNull AvailObject object)
 	{
 		// Note that this definition produces a value compatible with a pojo
 		// type; this is necessary to permit comparison between a pojo type and
@@ -143,16 +143,16 @@ extends TypeDescriptor
 		return object.objectSlot(RAW_TYPES).hash() ^ 0xA015BC44;
 	}
 
-	@Override
-	public boolean o_IsSubtypeOf (
+	@Override @AvailMethod
+	boolean o_IsSubtypeOf (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
 		return aType.isSupertypeOfPojoType(object);
 	}
 
-	@Override
-	public boolean o_IsSupertypeOfPojoType (
+	@Override @AvailMethod
+	boolean o_IsSupertypeOfPojoType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aPojoType)
 	{
@@ -175,37 +175,37 @@ extends TypeDescriptor
 		return objectTypes.equals(intersection);
 	}
 
-	@Override
-	public @NotNull AvailObject o_Kind (final @NotNull AvailObject object)
+	@Override @AvailMethod
+	@NotNull AvailObject o_Kind (final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return null;
 	}
 
-	@Override
-	public @NotNull AvailObject o_MakeImmutable (
+	@Override @AvailMethod
+	@NotNull AvailObject o_MakeImmutable (
 		final @NotNull AvailObject object)
 	{
-		object.descriptor(PojoSelfTypeDescriptor.immutable());
+		object.descriptor = immutable();
 		object.objectSlot(RAW_TYPES).makeImmutable();
 		return object;
 	}
 
-	@Override
-	public boolean o_IsPojoSelfType (final @NotNull AvailObject object)
+	@Override @AvailMethod
+	boolean o_IsPojoSelfType (final @NotNull AvailObject object)
 	{
 		return true;
 	}
 
-	@Override
-	public @NotNull AvailObject o_PojoSelfType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_PojoSelfType (
 		final @NotNull AvailObject object)
 	{
 		return object;
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeIntersection (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeIntersection (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
@@ -220,8 +220,8 @@ extends TypeDescriptor
 		return another.typeIntersectionOfPojoType(object);
 	}
 
-	@Override
-	public AvailObject o_TypeIntersectionOfPojoType (
+	@Override @AvailMethod
+	AvailObject o_TypeIntersectionOfPojoType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
@@ -257,8 +257,8 @@ extends TypeDescriptor
 			objectTypes.setUnionCanDestroy(aPojoTypeTypes, false));
 	}
 
-	@Override
-	public AvailObject o_TypeUnion (
+	@Override @AvailMethod
+	AvailObject o_TypeUnion (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
@@ -273,8 +273,8 @@ extends TypeDescriptor
 		return another.typeUnionOfPojoType(object);
 	}
 
-	@Override
-	public AvailObject o_TypeUnionOfPojoType (
+	@Override @AvailMethod
+	AvailObject o_TypeUnionOfPojoType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{

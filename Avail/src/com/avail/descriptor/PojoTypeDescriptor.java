@@ -444,7 +444,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	public boolean o_IsAbstract (final @NotNull AvailObject object)
+	boolean o_IsAbstract (final @NotNull AvailObject object)
 	{
 		if (object.equals(mostSpecificType))
 		{
@@ -470,7 +470,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	public boolean o_Equals (
+	boolean o_Equals (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
@@ -478,7 +478,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	public boolean o_EqualsPojoType (
+	boolean o_EqualsPojoType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aPojoType)
 	{
@@ -507,7 +507,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	public boolean o_IsSubtypeOf (
+	boolean o_IsSubtypeOf (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
@@ -515,7 +515,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	public boolean o_IsSupertypeOfPojoType (
+	boolean o_IsSupertypeOfPojoType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aPojoType)
 	{
@@ -582,7 +582,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	public int o_Hash (final @NotNull AvailObject object)
+	int o_Hash (final @NotNull AvailObject object)
 	{
 		// Note that this definition produces a value compatible with a pojo
 		// self type; this is necessary to permit comparison between a pojo type
@@ -593,24 +593,24 @@ extends TypeDescriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_Kind (
+	@NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
 		return TYPE.o();
 	}
 
 	@Override
-	public @NotNull AvailObject o_MakeImmutable (
+	@NotNull AvailObject o_MakeImmutable (
 		final @NotNull AvailObject object)
 	{
-		object.descriptor(PojoTypeDescriptor.immutable());
+		object.descriptor = immutable();
 		object.objectSlot(MOST_SPECIFIC_CLASS).makeImmutable();
 		object.objectSlot(PARAMETERIZATION_MAP).makeImmutable();
 		return object;
 	}
 
 	@Override
-	public @NotNull AvailObject o_PojoSelfType (
+	@NotNull AvailObject o_PojoSelfType (
 		final @NotNull AvailObject object)
 	{
 		if (object.equals(mostSpecificType))
@@ -626,7 +626,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_TypeIntersection (
+	@NotNull AvailObject o_TypeIntersection (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
@@ -642,7 +642,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_TypeIntersectionOfPojoType (
+	@NotNull AvailObject o_TypeIntersectionOfPojoType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aPojoType)
 	{
@@ -723,7 +723,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	public AvailObject o_TypeUnion (
+	AvailObject o_TypeUnion (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
@@ -739,7 +739,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	public @NotNull AvailObject o_TypeUnionOfPojoType (
+	@NotNull AvailObject o_TypeUnionOfPojoType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aPojoType)
 	{

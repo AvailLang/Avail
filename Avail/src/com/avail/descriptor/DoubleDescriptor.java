@@ -34,7 +34,7 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.TypeDescriptor.Types.DOUBLE;
 import java.util.List;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 
 /**
  * A boxed, identityless Avail representation of IEEE-754 double-precision
@@ -72,16 +72,16 @@ extends Descriptor
 		aStream.append(object.extractDouble());
 	}
 
-	@Override
-	public boolean o_Equals (
+	@Override @AvailMethod
+	boolean o_Equals (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
 		return another.equalsDouble(object);
 	}
 
-	@Override
-	public boolean o_EqualsDouble (
+	@Override @AvailMethod
+	boolean o_EqualsDouble (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aDoubleObject)
 	{
@@ -97,8 +97,8 @@ extends Descriptor
 		return true;
 	}
 
-	@Override
-	public int o_Hash (
+	@Override @AvailMethod
+	int o_Hash (
 		final @NotNull AvailObject object)
 	{
 		final int low = object.integerSlot(IntegerSlots.LOW_INT);
@@ -106,15 +106,15 @@ extends Descriptor
 		return (low ^ 0x29F2EAB8) - (high ^ 0x07C453FD);
 	}
 
-	@Override
-	public @NotNull AvailObject o_Kind (
+	@Override @AvailMethod
+	@NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
 		return DOUBLE.o();
 	}
 
-	@Override
-	public double o_ExtractDouble (
+	@Override @AvailMethod
+	double o_ExtractDouble (
 		final @NotNull AvailObject object)
 	{
 		final int low = object.integerSlot(IntegerSlots.LOW_INT);

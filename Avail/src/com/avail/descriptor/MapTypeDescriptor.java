@@ -34,7 +34,7 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 
 public class MapTypeDescriptor
 extends TypeDescriptor
@@ -49,22 +49,22 @@ extends TypeDescriptor
 		VALUE_TYPE
 	}
 
-	@Override
-	public @NotNull AvailObject o_KeyType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_KeyType (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.KEY_TYPE);
 	}
 
-	@Override
-	public @NotNull AvailObject o_SizeRange (
+	@Override @AvailMethod
+	@NotNull AvailObject o_SizeRange (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.SIZE_RANGE);
 	}
 
-	@Override
-	public @NotNull AvailObject o_ValueType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_ValueType (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.VALUE_TYPE);
@@ -94,16 +94,16 @@ extends TypeDescriptor
 			(indent + 1));
 	}
 
-	@Override
-	public boolean o_Equals (
+	@Override @AvailMethod
+	boolean o_Equals (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
 		return another.equalsMapType(object);
 	}
 
-	@Override
-	public boolean o_EqualsMapType (
+	@Override @AvailMethod
+	boolean o_EqualsMapType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aMapType)
 	{
@@ -116,8 +116,8 @@ extends TypeDescriptor
 		return object.sizeRange().equals(aMapType.sizeRange()) && object.keyType().equals(aMapType.keyType()) && object.valueType().equals(aMapType.valueType());
 	}
 
-	@Override
-	public int o_Hash (
+	@Override @AvailMethod
+	int o_Hash (
 		final @NotNull AvailObject object)
 	{
 		//  Answer a 32-bit integer that is always the same for equal objects, but
@@ -129,15 +129,15 @@ extends TypeDescriptor
 			object.valueType().hash());
 	}
 
-	@Override
-	public boolean o_IsMapType (
+	@Override @AvailMethod
+	boolean o_IsMapType (
 		final @NotNull AvailObject object)
 	{
 		return true;
 	}
 
-	@Override
-	public @NotNull AvailObject o_Kind (
+	@Override @AvailMethod
+	@NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
 		//  Answer the object's type.
@@ -145,8 +145,8 @@ extends TypeDescriptor
 		return TYPE.o();
 	}
 
-	@Override
-	public boolean o_IsSubtypeOf (
+	@Override @AvailMethod
+	boolean o_IsSubtypeOf (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
@@ -155,8 +155,8 @@ extends TypeDescriptor
 		return aType.isSupertypeOfMapType(object);
 	}
 
-	@Override
-	public boolean o_IsSupertypeOfMapType (
+	@Override @AvailMethod
+	boolean o_IsSupertypeOfMapType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aMapType)
 	{
@@ -166,8 +166,8 @@ extends TypeDescriptor
 		return aMapType.sizeRange().isSubtypeOf(object.sizeRange()) && aMapType.keyType().isSubtypeOf(object.keyType()) && aMapType.valueType().isSubtypeOf(object.valueType());
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeIntersection (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeIntersection (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
@@ -184,8 +184,8 @@ extends TypeDescriptor
 		return another.typeIntersectionOfMapType(object);
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeIntersectionOfMapType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeIntersectionOfMapType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aMapType)
 	{
@@ -201,8 +201,8 @@ extends TypeDescriptor
 			object.valueType().typeIntersection(aMapType.valueType()).makeImmutable());
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeUnion (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeUnion (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
@@ -223,8 +223,8 @@ extends TypeDescriptor
 		return another.typeUnionOfMapType(object);
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeUnionOfMapType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeUnionOfMapType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aMapType)
 	{

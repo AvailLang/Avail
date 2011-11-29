@@ -105,8 +105,8 @@ extends AtomDescriptor
 	 * properties}.
 	 * </p>
 	 */
-	@Override
-	public void o_SetAtomProperty (
+	@Override @AvailMethod
+	void o_SetAtomProperty (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject key,
 		final @NotNull AvailObject value)
@@ -134,8 +134,8 @@ extends AtomDescriptor
 	 * property exists.
 	 * </p>
 	 */
-	@Override
-	public @NotNull AvailObject o_GetAtomProperty (
+	@Override @AvailMethod
+	@NotNull AvailObject o_GetAtomProperty (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject key)
 	{

@@ -38,7 +38,8 @@ import com.avail.annotations.*;
 
 /**
  * {@code NullDescriptor} implements the Avail {@linkplain #nullObject() null
- * object}, the sole instance of the invisible and uninstantiable root type.
+ * object}, the sole instance of the invisible and uninstantiable root type, ⊤
+ * (pronounced top).
  *
  * @author Mark van Gulik &lt;ghoul6@gmail.com&gt;
  */
@@ -76,8 +77,8 @@ extends Descriptor
 	}
 
 	@Override
-	@ThreadSafe
-	public boolean o_Equals (
+	@AvailMethod @ThreadSafe
+	boolean o_Equals (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
@@ -85,24 +86,24 @@ extends Descriptor
 	}
 
 	@Override
-	@ThreadSafe
-	public boolean o_EqualsNull (final @NotNull AvailObject object)
+	@AvailMethod @ThreadSafe
+	boolean o_EqualsNull (final @NotNull AvailObject object)
 	{
 		//  There is only one top.
 		return true;
 	}
 
 	@Override
-	@ThreadSafe
-	public boolean o_EqualsNullOrBlank (final @NotNull AvailObject object)
+	@AvailMethod @ThreadSafe
+	boolean o_EqualsNullOrBlank (final @NotNull AvailObject object)
 	{
 		// There is only one top.
 		return true;
 	}
 
 	@Override
-	@ThreadSafe
-	public int o_Hash (final @NotNull AvailObject object)
+	@AvailMethod @ThreadSafe
+	int o_Hash (final @NotNull AvailObject object)
 	{
 		// The null object should hash to zero, because the only place it can
 		// appear in a data structure is as a filler object.  This currently
@@ -112,14 +113,14 @@ extends Descriptor
 	}
 
 	@Override
-	@ThreadSafe
-	public @NotNull AvailObject o_Kind (final @NotNull AvailObject object)
+	@AvailMethod @ThreadSafe
+	@NotNull AvailObject o_Kind (final @NotNull AvailObject object)
 	{
 		return TOP.o();
 	}
 
-	@Override
-	public @NotNull AvailObject o_BinAddingElementHashLevelCanDestroy (
+	@Override @AvailMethod
+	@NotNull AvailObject o_BinAddingElementHashLevelCanDestroy (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject elementObject,
 		final int elementObjectHash,
@@ -138,8 +139,8 @@ extends Descriptor
 	}
 
 	@Override
-	@ThreadSafe
-	public boolean o_IsBinSubsetOf (
+	@AvailMethod @ThreadSafe
+	boolean o_IsBinSubsetOf (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject potentialSuperset)
 	{
@@ -150,8 +151,8 @@ extends Descriptor
 	}
 
 	@Override
-	@ThreadSafe
-	public @NotNull AvailObject o_BinRemoveElementHashCanDestroy (
+	@AvailMethod @ThreadSafe
+	@NotNull AvailObject o_BinRemoveElementHashCanDestroy (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject elementObject,
 		final int elementObjectHash,
@@ -163,8 +164,8 @@ extends Descriptor
 	}
 
 	@Override
-	@ThreadSafe
-	public int o_PopulateTupleStartingAt (
+	@AvailMethod @ThreadSafe
+	int o_PopulateTupleStartingAt (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject mutableTuple,
 		final int startingIndex)
@@ -175,8 +176,8 @@ extends Descriptor
 	}
 
 	@Override
-	@ThreadSafe
-	public int o_BinHash (final @NotNull AvailObject object)
+	@AvailMethod @ThreadSafe
+	int o_BinHash (final @NotNull AvailObject object)
 	{
 		// The null object acting as a size-zero bin has a bin hash which is the
 		// sum of the elements' hashes, which in this case is zero.
@@ -184,16 +185,16 @@ extends Descriptor
 	}
 
 	@Override
-	@ThreadSafe
-	public int o_BinSize (final @NotNull AvailObject object)
+	@AvailMethod @ThreadSafe
+	int o_BinSize (final @NotNull AvailObject object)
 	{
 		// The null object acts as an empty bin.
 		return 0;
 	}
 
 	@Override
-	@ThreadSafe
-	public @NotNull AvailObject o_BinUnionKind (
+	@AvailMethod @ThreadSafe
+	@NotNull AvailObject o_BinUnionKind (
 		final @NotNull AvailObject object)
 	{
 		// The null object acts as an empty bin.

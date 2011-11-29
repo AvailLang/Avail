@@ -200,31 +200,31 @@ extends Descriptor
 			bitField(NumIntegersAndDoubles.class, "NUM_DOUBLES");
 	}
 
-	@Override
-	public void o_Index (
+	@Override @AvailMethod
+	void o_Index (
 		final @NotNull AvailObject object,
 		final int value)
 	{
 		object.integerSlotPut(IntegerSlots.INDEX, value);
 	}
 
-	@Override
-	public @NotNull AvailObject o_LiteralAt (
+	@Override @AvailMethod
+	@NotNull AvailObject o_LiteralAt (
 		final @NotNull AvailObject object,
 		final int subscript)
 	{
 		return object.objectSlotAt(ObjectSlots.LITERAL_AT_, subscript);
 	}
 
-	@Override
-	public int o_Index (
+	@Override @AvailMethod
+	int o_Index (
 		final @NotNull AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.INDEX);
 	}
 
-	@Override
-	public int o_NumDoubles (
+	@Override @AvailMethod
+	int o_NumDoubles (
 		final @NotNull AvailObject object)
 	{
 		return object.bitSlot(
@@ -232,8 +232,8 @@ extends Descriptor
 			NumIntegersAndDoubles.NUM_DOUBLES);
 	}
 
-	@Override
-	public int o_NumIntegers (
+	@Override @AvailMethod
+	int o_NumIntegers (
 		final @NotNull AvailObject object)
 	{
 		return object.bitSlot(
@@ -241,8 +241,8 @@ extends Descriptor
 			NumIntegersAndDoubles.NUM_INTEGERS);
 	}
 
-	@Override
-	public int o_NumObjects (
+	@Override @AvailMethod
+	int o_NumObjects (
 		final @NotNull AvailObject object)
 	{
 		return object.bitSlot(
@@ -250,15 +250,15 @@ extends Descriptor
 			NumObjectsAndFlags.NUM_OBJECTS);
 	}
 
-	@Override
-	public @NotNull AvailObject o_Vectors (
+	@Override @AvailMethod
+	@NotNull AvailObject o_Vectors (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.VECTORS);
 	}
 
-	@Override
-	public @NotNull AvailObject o_Wordcodes (
+	@Override @AvailMethod
+	@NotNull AvailObject o_Wordcodes (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.WORDCODES);
@@ -321,16 +321,16 @@ extends Descriptor
 		}
 	}
 
-	@Override
-	public boolean o_Equals (
+	@Override @AvailMethod
+	boolean o_Equals (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
 		return another.traversed().sameAddressAs(object);
 	}
 
-	@Override
-	public void o_IsSaved (
+	@Override @AvailMethod
+	void o_IsSaved (
 		final @NotNull AvailObject object,
 		final boolean aBoolean)
 	{
@@ -340,15 +340,15 @@ extends Descriptor
 			aBoolean ? 1 : 0);
 	}
 
-	@Override
-	public int o_Hash (
+	@Override @AvailMethod
+	int o_Hash (
 		final @NotNull AvailObject object)
 	{
 		return IntegerDescriptor.computeHashOfInt(object.index());
 	}
 
-	@Override
-	public boolean o_IsSaved (
+	@Override @AvailMethod
+	boolean o_IsSaved (
 		final @NotNull AvailObject object)
 	{
 		return object.bitSlot(
@@ -356,8 +356,8 @@ extends Descriptor
 			NumObjectsAndFlags.SAVED) != 0;
 	}
 
-	@Override
-	public boolean o_IsValid (
+	@Override @AvailMethod
+	boolean o_IsValid (
 		final @NotNull AvailObject object)
 	{
 		return object.bitSlot(

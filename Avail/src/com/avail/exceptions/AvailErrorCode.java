@@ -34,9 +34,8 @@ package com.avail.exceptions;
 
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
-import com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind;
-import com.avail.compiler.node.*;
 import com.avail.descriptor.*;
+import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 
 /**
  * {@code AvailErrorCode} is an enumeration of all possible failures of

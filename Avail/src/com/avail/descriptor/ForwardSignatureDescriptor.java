@@ -32,7 +32,7 @@
 
 package com.avail.descriptor;
 
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 import com.avail.descriptor.TypeDescriptor.Types;
 
 /**
@@ -65,37 +65,37 @@ extends SignatureDescriptor
 		BODY_SIGNATURE
 	}
 
-	@Override
-	public @NotNull AvailObject o_BodySignature (
+	@Override @AvailMethod
+	@NotNull AvailObject o_BodySignature (
 		final @NotNull AvailObject object)
 	{
 		return object.signature();
 	}
 
-	@Override
-	public @NotNull AvailObject o_Signature (
+	@Override @AvailMethod
+	@NotNull AvailObject o_Signature (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.BODY_SIGNATURE);
 	}
 
-	@Override
-	public int o_Hash (
+	@Override @AvailMethod
+	int o_Hash (
 		final @NotNull AvailObject object)
 	{
 		final int hash = object.signature().hash() * 19;
 		return hash;
 	}
 
-	@Override
-	public @NotNull AvailObject o_Kind (
+	@Override @AvailMethod
+	@NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
 		return Types.FORWARD_SIGNATURE.o();
 	}
 
-	@Override
-	public boolean o_IsForward (
+	@Override @AvailMethod
+	boolean o_IsForward (
 		final @NotNull AvailObject object)
 	{
 		return true;

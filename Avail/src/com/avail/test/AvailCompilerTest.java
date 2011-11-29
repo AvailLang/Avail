@@ -37,7 +37,6 @@ import org.junit.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
 import com.avail.compiler.*;
-import com.avail.compiler.scanning.AvailScanner;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Primitive;
 import com.avail.utility.*;

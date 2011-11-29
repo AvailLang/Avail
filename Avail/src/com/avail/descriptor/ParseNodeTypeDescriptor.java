@@ -30,13 +30,12 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.compiler.node;
+package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.Multiplier;
 import static com.avail.descriptor.TypeDescriptor.Types.TYPE;
 import java.util.List;
 import com.avail.annotations.*;
-import com.avail.descriptor.*;
 
 /**
  * Define the structure and behavior of parse node types.  The parse node types
@@ -281,8 +280,8 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 	 * @return The {@link TypeDescriptor type} of the {@link AvailObject} that
 	 *         will be produced by a parse node of this type.
 	 */
-	@Override
-	public @NotNull AvailObject o_ExpressionType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_ExpressionType (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.EXPRESSION_TYPE);
@@ -294,8 +293,8 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 	 *
 	 * @return The {@link ParseNodeKind kind} of parse node that the object is.
 	 */
-	@Override
-	public @NotNull ParseNodeKind o_ParseNodeKind (
+	@Override @AvailMethod
+	@NotNull ParseNodeKind o_ParseNodeKind (
 		final @NotNull AvailObject object)
 	{
 		final int ordinal = object.integerSlot(IntegerSlots.KIND);
@@ -304,10 +303,10 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 
 	/**
 	 * {@link ParseNodeTypeDescriptor parse nodes} must implement {@link
-	 * AbstractDescriptor#o_Hash(AvailObject) hash}.
+	* AbstractDescriptor#o_Hash(AvailObject) hash}.
 	 */
-	@Override
-	public int o_Hash (final @NotNull AvailObject object)
+	@Override @AvailMethod
+	int o_Hash (final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.EXPRESSION_TYPE).hash()
 			^ (object.integerSlot(IntegerSlots.KIND) * Multiplier);
@@ -321,8 +320,8 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 	 * of the same kind and have the same expression type.
 	 * </p>
 	 */
-	@Override
-	public boolean o_Equals (
+	@Override @AvailMethod
+	boolean o_Equals (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
@@ -337,8 +336,8 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 	 * of the same kind and have the same expression type.
 	 * </p>
 	 */
-	@Override
-	public boolean o_EqualsParseNodeType (
+	@Override @AvailMethod
+	boolean o_EqualsParseNodeType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aParseNodeType)
 	{
@@ -348,23 +347,23 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 				aParseNodeType.expressionType());
  	}
 
-	@Override
-	public @NotNull AvailObject o_Kind (
+	@Override @AvailMethod
+	@NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
 		return TYPE.o();
 	}
 
-	@Override
-	public boolean o_IsSubtypeOf (
+	@Override @AvailMethod
+	boolean o_IsSubtypeOf (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
 		return aType.isSupertypeOfParseNodeType(object);
 	}
 
-	@Override
-	public @NotNull boolean o_IsSupertypeOfParseNodeType (
+	@Override @AvailMethod
+	@NotNull boolean o_IsSupertypeOfParseNodeType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aParseNodeType)
 	{
@@ -381,8 +380,8 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 		return false;
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeIntersection (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeIntersection (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
@@ -397,8 +396,8 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 		return another.typeIntersectionOfParseNodeType(object);
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeIntersectionOfParseNodeType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeIntersectionOfParseNodeType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aParseNodeType)
 	{
@@ -429,16 +428,16 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 		return BottomTypeDescriptor.bottom();
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeUnion (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeUnion (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
 		return another.typeUnionOfParseNodeType(object);
 	}
 
-	@Override
-	public @NotNull AvailObject o_TypeUnionOfParseNodeType (
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeUnionOfParseNodeType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aParseNodeType)
 	{
@@ -459,8 +458,8 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 			object.expressionType().typeUnion(aParseNodeType.expressionType()));
 	}
 
-	@Override
-	public boolean o_ParseNodeKindIsUnder (
+	@Override @AvailMethod
+	boolean o_ParseNodeKindIsUnder (
 		final @NotNull AvailObject object,
 		final @NotNull ParseNodeKind expectedParseNodeKind)
 	{

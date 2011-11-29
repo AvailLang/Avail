@@ -34,7 +34,7 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
 import java.util.List;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 
 /**
  * A boxed, identityless Avail representation of IEEE-754 floating point values.
@@ -66,16 +66,16 @@ extends Descriptor
 		aStream.append(object.extractFloat());
 	}
 
-	@Override
-	public boolean o_Equals (
+	@Override @AvailMethod
+	boolean o_Equals (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
 		return another.equalsFloat(object);
 	}
 
-	@Override
-	public boolean o_EqualsFloat (
+	@Override @AvailMethod
+	boolean o_EqualsFloat (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aFloatObject)
 	{
@@ -91,22 +91,22 @@ extends Descriptor
 		return true;
 	}
 
-	@Override
-	public int o_Hash (
+	@Override @AvailMethod
+	int o_Hash (
 		final @NotNull AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.RAW_INT) ^ 0x16AE2BFD;
 	}
 
-	@Override
-	public @NotNull AvailObject o_Kind (
+	@Override @AvailMethod
+	@NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
 		return FLOAT.o();
 	}
 
-	@Override
-	public float o_ExtractFloat (
+	@Override @AvailMethod
+	float o_ExtractFloat (
 		final @NotNull AvailObject object)
 	{
 		//  Extract a Smalltalk Float from object.

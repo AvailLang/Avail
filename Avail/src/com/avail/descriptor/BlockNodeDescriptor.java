@@ -30,16 +30,15 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.compiler.node;
+package com.avail.descriptor;
 
-import static com.avail.compiler.node.DeclarationNodeDescriptor.DeclarationKind.*;
-import static com.avail.compiler.node.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.AvailObject.Multiplier;
+import static com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind.*;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
@@ -106,8 +105,8 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * Getter for field argumentsTuple.
 	 */
-	@Override
-	public AvailObject o_ArgumentsTuple (
+	@Override @AvailMethod
+	AvailObject o_ArgumentsTuple (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.ARGUMENTS_TUPLE);
@@ -116,8 +115,8 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * Getter for field statementsTuple.
 	 */
-	@Override
-	public AvailObject o_StatementsTuple (
+	@Override @AvailMethod
+	AvailObject o_StatementsTuple (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.STATEMENTS_TUPLE);
@@ -126,8 +125,8 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * Getter for field resultType.
 	 */
-	@Override
-	public AvailObject o_ResultType (
+	@Override @AvailMethod
+	AvailObject o_ResultType (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.RESULT_TYPE);
@@ -136,8 +135,8 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * Setter for field neededVariables.
 	 */
-	@Override
-	public void o_NeededVariables (
+	@Override @AvailMethod
+	void o_NeededVariables (
 		final @NotNull AvailObject object,
 		final AvailObject neededVariables)
 	{
@@ -147,8 +146,8 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * Getter for field neededVariables.
 	 */
-	@Override
-	public AvailObject o_NeededVariables (
+	@Override @AvailMethod
+	AvailObject o_NeededVariables (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.NEEDED_VARIABLES);
@@ -157,8 +156,8 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * Getter for field checkedExceptions.
 	 */
-	@Override
-	public @NotNull AvailObject o_CheckedExceptions (
+	@Override @AvailMethod
+	@NotNull AvailObject o_CheckedExceptions (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.CHECKED_EXCEPTIONS);
@@ -168,8 +167,8 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * Getter for field primitive.
 	 */
-	@Override
-	public int o_Primitive (
+	@Override @AvailMethod
+	int o_Primitive (
 		final @NotNull AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.PRIMITIVE);
@@ -184,15 +183,15 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	}
 
 
-	@Override
-	public AvailObject o_Kind (final AvailObject object)
+	@Override @AvailMethod
+	AvailObject o_Kind (final AvailObject object)
 	{
 		return BLOCK_NODE.create(object.expressionType());
 	}
 
 
-	@Override
-	public AvailObject o_ExpressionType (final AvailObject object)
+	@Override @AvailMethod
+	AvailObject o_ExpressionType (final AvailObject object)
 	{
 		List<AvailObject> argumentTypes;
 		argumentTypes = new ArrayList<AvailObject>(
@@ -209,16 +208,16 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * The expression '[expr]' has no effect, only a value.
 	 */
-	@Override
-	public void o_EmitEffectOn (
+	@Override @AvailMethod
+	void o_EmitEffectOn (
 		final @NotNull AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
 		return;
 	}
 
-	@Override
-	public void o_EmitValueOn (
+	@Override @AvailMethod
+	void o_EmitValueOn (
 		final @NotNull AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
@@ -240,8 +239,8 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 		}
 	}
 
-	@Override
-	public int o_Hash (final AvailObject object)
+	@Override @AvailMethod
+	int o_Hash (final AvailObject object)
 	{
 		return
 			(((object.argumentsTuple().hash() * Multiplier
@@ -252,8 +251,8 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 			^ 0x05E6A04A;
 	}
 
-	@Override
-	public boolean o_Equals (
+	@Override @AvailMethod
+	boolean o_Equals (
 		final @NotNull AvailObject object,
 		final AvailObject another)
 	{
@@ -331,8 +330,8 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	}
 
 
-	@Override
-	public void o_ChildrenMap (
+	@Override @AvailMethod
+	void o_ChildrenMap (
 		final @NotNull AvailObject object,
 		final Transformer1<AvailObject, AvailObject> aBlock)
 	{
@@ -357,8 +356,8 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	}
 
 
-	@Override
-	public void o_ChildrenDo (
+	@Override @AvailMethod
+	void o_ChildrenDo (
 		final @NotNull AvailObject object,
 		final Continuation1<AvailObject> aBlock)
 	{
@@ -373,8 +372,8 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	}
 
 
-	@Override
-	public void o_ValidateLocally (
+	@Override @AvailMethod
+	void o_ValidateLocally (
 		final @NotNull AvailObject object,
 		final AvailObject parent,
 		final List<AvailObject> outerBlocks,
@@ -397,8 +396,8 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	 *            A {@link AvailCodeGenerator code generator}
 	 * @return An {@link AvailObject} of type {@link FunctionDescriptor function}.
 	 */
-	@Override
-	public AvailObject o_Generate (
+	@Override @AvailMethod
+	AvailObject o_Generate (
 		final @NotNull AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{

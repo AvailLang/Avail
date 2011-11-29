@@ -30,14 +30,13 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.compiler.node;
+package com.avail.descriptor;
 
 import java.util.List;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.compiler.scanning.*;
-import com.avail.compiler.scanning.TokenDescriptor.TokenType;
-import com.avail.descriptor.*;
+import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
@@ -67,16 +66,16 @@ public class LiteralNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * Getter for field token.
 	 */
-	@Override
-	public AvailObject o_Token (
+	@Override @AvailMethod
+	AvailObject o_Token (
 		final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.TOKEN);
 	}
 
 
-	@Override
-	public AvailObject o_ExpressionType (final AvailObject object)
+	@Override @AvailMethod
+	AvailObject o_ExpressionType (final AvailObject object)
 	{
 		final AvailObject token = object.token();
 		assert token.tokenType() == TokenType.LITERAL;
@@ -84,22 +83,22 @@ public class LiteralNodeDescriptor extends ParseNodeDescriptor
 		return InstanceTypeDescriptor.on(literal).makeImmutable();
 	}
 
-	@Override
-	public AvailObject o_Kind (final AvailObject object)
+	@Override @AvailMethod
+	AvailObject o_Kind (final AvailObject object)
 	{
 		return ParseNodeTypeDescriptor.ParseNodeKind.LITERAL_NODE.create(
 			object.expressionType());
 	}
 
-	@Override
-	public int o_Hash (final AvailObject object)
+	@Override @AvailMethod
+	int o_Hash (final AvailObject object)
 	{
 		return
 			object.token().hash() ^ 0x9C860C0D;
 	}
 
-	@Override
-	public boolean o_Equals (
+	@Override @AvailMethod
+	boolean o_Equals (
 		final @NotNull AvailObject object,
 		final AvailObject another)
 	{
@@ -107,40 +106,40 @@ public class LiteralNodeDescriptor extends ParseNodeDescriptor
 			&& object.token().equals(another.token());
 	}
 
-	@Override
-	public void o_EmitEffectOn (
+	@Override @AvailMethod
+	void o_EmitEffectOn (
 		final @NotNull AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
 		// Do nothing.
 	}
 
-	@Override
-	public void o_EmitValueOn (
+	@Override @AvailMethod
+	void o_EmitValueOn (
 		final @NotNull AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
 		codeGenerator.emitPushLiteral(object.token().literal());
 	}
 
-	@Override
-	public void o_ChildrenMap (
+	@Override @AvailMethod
+	void o_ChildrenMap (
 		final @NotNull AvailObject object,
 		final Transformer1<AvailObject, AvailObject> aBlock)
 	{
 		// Do nothing.
 	}
 
-	@Override
-	public void o_ChildrenDo (
+	@Override @AvailMethod
+	void o_ChildrenDo (
 		final @NotNull AvailObject object,
 		final Continuation1<AvailObject> aBlock)
 	{
 		// Do nothing.
 	}
 
-	@Override
-	public void o_ValidateLocally (
+	@Override @AvailMethod
+	void o_ValidateLocally (
 		final @NotNull AvailObject object,
 		final AvailObject parent,
 		final List<AvailObject> outerBlocks,

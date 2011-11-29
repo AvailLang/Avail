@@ -34,7 +34,7 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.error;
 import java.util.List;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 
 /**
  * My instance is used as a place-holder in {@link MapDescriptor maps} to
@@ -56,16 +56,16 @@ extends Descriptor
 		aStream.append("Blank");
 	}
 
-	@Override
-	public boolean o_Equals (
+	@Override @AvailMethod
+	boolean o_Equals (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
 		return another.equalsBlank();
 	}
 
-	@Override
-	public boolean o_EqualsBlank (
+	@Override @AvailMethod
+	boolean o_EqualsBlank (
 		final @NotNull AvailObject object)
 	{
 		//  There is only one blank.
@@ -73,15 +73,15 @@ extends Descriptor
 		return true;
 	}
 
-	@Override
-	public boolean o_EqualsNullOrBlank (
+	@Override @AvailMethod
+	boolean o_EqualsNullOrBlank (
 		final @NotNull AvailObject object)
 	{
 		return true;
 	}
 
-	@Override
-	public int o_Hash (
+	@Override @AvailMethod
+	int o_Hash (
 		final @NotNull AvailObject object)
 	{
 		//  Answer the object's hash.  The blank object should hash to zero, because the
@@ -91,8 +91,8 @@ extends Descriptor
 		return 0;
 	}
 
-	@Override
-	public @NotNull AvailObject o_Kind (
+	@Override @AvailMethod
+	@NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
 		//  Answer the object's type.
