@@ -93,6 +93,10 @@ Method "Java type_" is
 		Java type "java.lang.Comparable" parameters <jObject>;
 	Assert jString <= jComparableOfObject;
 	Assert jInteger <= jComparableOfObject;
+/*
+	Halt;
+	Assert type intersection of jString and jInteger = null type;
+*/
 	jSerializable ::= Java type "java.io.Serializable";
 	intersect ::= type intersection
 		of jObject
@@ -104,10 +108,14 @@ Method "Java type_" is
 	Assert jPrimitiveEnum <= jEnum;
 	jEnum2 ::= Java type "java.lang.Enum" parameters <jPrimitiveEnum>;
 	Assert jPrimitiveEnum <= jEnum2;
-	jListOfObject ::= Java type "java.util.List" parameters <pojo>;
+	jListOfAny ::= Java type "java.util.List" parameters <any>;
 	jArrayListOfInteger ::=
 		Java type "java.util.ArrayList" parameters <jInteger>;
-	Assert jArrayListOfInteger <= jListOfObject;
+	Assert jArrayListOfInteger <= jListOfAny;
+	jDequeOfTuple ::= Java type "java.util.Deque" parameters <tuple>;
+	jLinkedListOfTupleOfString ::=
+		Java type "java.util.LinkedList" parameters <tuple of string>;
+	Assert jLinkedListOfTupleOfString <= jDequeOfTuple;
 	jComparableOfComparableOfObject ::=
 		Java type "java.lang.Comparable" parameters <jComparableOfObject>;
 	Assert jString <= jComparableOfComparableOfObject;

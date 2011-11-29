@@ -355,8 +355,17 @@ extends TypeDescriptor
 			if (upperBound instanceof Class<?>)
 			{
 				final Class<?> rawType = (Class<?>) upperBound;
-				canonize(rawTypeMap, rawType);
-				pojoType = create(rawType, TupleDescriptor.empty());
+				// If the upper bound is Object, then pretend that it was the
+				// Avail type "any" instead.
+				if (rawType.equals(Object.class))
+				{
+					pojoType = ANY.o();
+				}
+				else
+				{
+					canonize(rawTypeMap, rawType);
+					pojoType = create(rawType, TupleDescriptor.empty());
+				}
 			}
 			else if (upperBound instanceof ParameterizedType)
 			{
@@ -667,8 +676,20 @@ extends TypeDescriptor
 			// as a subtype of the other.
 			assert objectMSCClass != null;
 			assert aPojoTypeMSCClass != null;
-			if (!objectMSCClass.isInterface()
-				&& !aPojoTypeMSCClass.isInterface())
+			// If neither class is an interface, then the intersection is the
+			// most specific pojo type (because Java does not support multiple
+			// inheritance of classes).
+			final int objectModifiers = objectMSCClass.getModifiers();
+			final int aPojoTypeModifiers = aPojoTypeMSCClass.getModifiers();
+			if (!Modifier.isInterface(objectModifiers)
+				&& !Modifier.isInterface(aPojoTypeModifiers))
+			{
+				return mostSpecificType;
+			}
+			// If either class is declared final, then the intersection is the
+			// most specific pojo type.
+			if (Modifier.isFinal(objectModifiers)
+				|| Modifier.isFinal(aPojoTypeModifiers))
 			{
 				return mostSpecificType;
 			}

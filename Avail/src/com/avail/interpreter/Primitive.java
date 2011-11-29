@@ -6025,9 +6025,9 @@ public enum Primitive
 			// to pause on caught RuntimeExceptions.
 			try
 			{
-				throw new RuntimeException("Breakpoint");
+				throw new AvailBreakpointException();
 			}
-			catch (final RuntimeException e)
+			catch (final AvailBreakpointException e)
 			{
 				return interpreter.primitiveSuccess(
 					NullDescriptor.nullObject());

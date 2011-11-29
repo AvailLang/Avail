@@ -75,6 +75,18 @@ extends TypeDescriptor
 	}
 
 	/**
+	 * Answer the {@linkplain PojoSelfTypeDescriptor self type} of the
+	 * {@linkplain PojoTypeDescriptor#mostSpecificType() most specific pojo
+	 * type}.
+	 *
+	 * @return The self type of the most specific pojo type.
+	 */
+	private static @NotNull AvailObject mostSpecificSelfType ()
+	{
+		return PojoTypeDescriptor.mostSpecificType().pojoSelfType();
+	}
+
+	/**
 	 * Create any instances statically well-known to the {@linkplain
 	 * AvailRuntime Avail runtime system}.
 	 */
@@ -243,10 +255,22 @@ extends TypeDescriptor
 			// as a subtype of the other.
 			assert objectMSCClass != null;
 			assert aPojoTypeMSCClass != null;
-			if (!objectMSCClass.isInterface()
-				&& !aPojoTypeMSCClass.isInterface())
+			// If neither class is an interface, then the intersection is the
+			// most specific pojo type (because Java does not support multiple
+			// inheritance of classes).
+			final int objectModifiers = objectMSCClass.getModifiers();
+			final int aPojoTypeModifiers = aPojoTypeMSCClass.getModifiers();
+			if (!Modifier.isInterface(objectModifiers)
+				&& !Modifier.isInterface(aPojoTypeModifiers))
 			{
-				return PojoTypeDescriptor.mostSpecificType().pojoSelfType();
+				return mostSpecificSelfType();
+			}
+			// If either class is declared final, then the intersection is the
+			// most specific pojo type.
+			if (Modifier.isFinal(objectModifiers)
+				|| Modifier.isFinal(aPojoTypeModifiers))
+			{
+				return mostSpecificSelfType();
 			}
 		}
 

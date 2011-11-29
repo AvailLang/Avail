@@ -62,6 +62,7 @@ extends AbstractTypeDescriptor
 		RESTRICTION_SIGNATURE(SIGNATURE),
 
 		OBJECT(ANY),
+		RAW_POJO(ANY),
 
 		PROCESS(ANY),
 

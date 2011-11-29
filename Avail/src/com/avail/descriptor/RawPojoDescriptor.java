@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.RawPojoDescriptor.IntegerSlots.INDEX;
+import static com.avail.descriptor.TypeDescriptor.Types.RAW_POJO;
 import java.lang.ref.*;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
@@ -366,8 +367,7 @@ extends Descriptor
 	@Override @AvailMethod
 	@NotNull AvailObject o_Kind (final @NotNull AvailObject object)
 	{
-		AvailObject.error("Do not ask for the kind of a raw pojo!");
-		return null;
+		return RAW_POJO.o();
 	}
 
 	@Override @AvailMethod
