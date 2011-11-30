@@ -48,18 +48,29 @@ Method "pojo" is
 	privatePojo;
 ] : privatePojo type;
 
-privateNull ::= Special Object 81;
+privateNullType ::= Special Object 81;
+
+Method "null type" is
+[
+	privateNullType;
+] : privateNullType type;
+
+privateNull ::= Special Object 82;
 
 Method "null" is
 [
 	privateNull;
 ] : privateNull type;
 
+{"_type"} can't have <{"null"}>;
+
 Assert pojo <= pojo;
 Assert null type <= pojo;
 Assert null type not = pojo;
+Assert null type not = (null) type;
+Assert (null) type <= null type;
 
-privateSelfObject ::= Special Object 82;
+privateSelfObject ::= Special Object 83;
 
 Method "self type" is
 [
@@ -93,10 +104,9 @@ Method "Java type_" is
 		Java type "java.lang.Comparable" parameters <jObject>;
 	Assert jString <= jComparableOfObject;
 	Assert jInteger <= jComparableOfObject;
-/*
-	Halt;
 	Assert type intersection of jString and jInteger = null type;
-*/
+	jCloneable ::= Java type "java.lang.Cloneable";
+	Assert type intersection of jString and jCloneable = null type;
 	jSerializable ::= Java type "java.io.Serializable";
 	intersect ::= type intersection
 		of jObject

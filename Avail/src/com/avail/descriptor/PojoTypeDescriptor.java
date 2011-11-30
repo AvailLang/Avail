@@ -660,39 +660,39 @@ extends TypeDescriptor
 			return aPojoType.typeIntersectionOfPojoType(object);
 		}
 
-		// If the most specific class of each pojo type is a real Java class,
-		// then their nearest common descendant is the synthetic null type.
 		final AvailObject objectMSC = object.objectSlot(MOST_SPECIFIC_CLASS);
 		final AvailObject aPojoTypeMSC = aPojoType.traversed().objectSlot(
 			MOST_SPECIFIC_CLASS);
-		if (!objectMSC.equalsNull() && !aPojoTypeMSC.equalsNull())
+		final Class<?> objectMSCClass =
+			!objectMSC.equalsNull()
+			? (Class<?>) RawPojoDescriptor.getPojo(objectMSC)
+			: null;
+		final Class<?> aPojoTypeMSCClass =
+			!aPojoTypeMSC.equalsNull()
+			? (Class<?>) RawPojoDescriptor.getPojo(aPojoTypeMSC)
+			: null;
+		final int objectModifiers = objectMSCClass != null
+			? objectMSCClass.getModifiers()
+			: 0;
+		final int aPojoTypeModifiers = aPojoTypeMSCClass != null
+			? aPojoTypeMSCClass.getModifiers()
+			: 0;
+		// If either class is declared final, then the intersection is the
+		// most specific pojo type.
+		if (Modifier.isFinal(objectModifiers)
+			|| Modifier.isFinal(aPojoTypeModifiers))
 		{
-			final Class<?> objectMSCClass =
-				(Class<?>) RawPojoDescriptor.getPojo(objectMSC);
-			final Class<?> aPojoTypeMSCClass =
-				(Class<?>) RawPojoDescriptor.getPojo(aPojoTypeMSC);
-			// It was ensured that these values could not be null by before the
-			// double dispatch happened; one of the types would have been seen
-			// as a subtype of the other.
-			assert objectMSCClass != null;
-			assert aPojoTypeMSCClass != null;
-			// If neither class is an interface, then the intersection is the
-			// most specific pojo type (because Java does not support multiple
-			// inheritance of classes).
-			final int objectModifiers = objectMSCClass.getModifiers();
-			final int aPojoTypeModifiers = aPojoTypeMSCClass.getModifiers();
-			if (!Modifier.isInterface(objectModifiers)
-				&& !Modifier.isInterface(aPojoTypeModifiers))
-			{
-				return mostSpecificType;
-			}
-			// If either class is declared final, then the intersection is the
-			// most specific pojo type.
-			if (Modifier.isFinal(objectModifiers)
-				|| Modifier.isFinal(aPojoTypeModifiers))
-			{
-				return mostSpecificType;
-			}
+			return mostSpecificType;
+		}
+		// If neither class is an interface, then the intersection is the
+		// most specific pojo type (because Java does not support multiple
+		// inheritance of classes).
+		if (!objectMSC.equalsNull()
+			&& !Modifier.isInterface(objectModifiers)
+			&& !aPojoTypeMSC.equalsNull()
+			&& !Modifier.isInterface(aPojoTypeModifiers))
+		{
+			return mostSpecificType;
 		}
 
 		// Find the union of the key sets and the intersection of their

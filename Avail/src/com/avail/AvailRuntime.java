@@ -258,8 +258,9 @@ public final class AvailRuntime
 
 		// Pojo support.
 		specialObjects[80] = PojoTypeDescriptor.mostGeneralType();
-		specialObjects[81] = PojoDescriptor.nullObject();
-		specialObjects[82] = PojoSelfTypeDescriptor.selfType();
+		specialObjects[81] = PojoTypeDescriptor.mostSpecificType();
+		specialObjects[82] = PojoDescriptor.nullObject();
+		specialObjects[83] = PojoSelfTypeDescriptor.selfType();
 
 		for (final AvailObject object : specialObjects)
 		{

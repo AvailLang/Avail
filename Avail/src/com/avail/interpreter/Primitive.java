@@ -7683,7 +7683,7 @@ public enum Primitive
 
 	/**
 	 * <strong>Primitive 500:</strong> Create a {@linkplain PojoTypeDescriptor
-	 * pojo type} for the specified {@linkplain Class Java class}, specifieid by
+	 * pojo type} for the specified {@linkplain Class Java class}, specified by
 	 * fully-qualified name, and type parameters.
 	 *
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;

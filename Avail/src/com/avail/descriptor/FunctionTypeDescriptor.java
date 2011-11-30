@@ -259,7 +259,7 @@ extends TypeDescriptor
 				aStream.append("?");
 			}
 		}
-		aStream.append("]->");
+		aStream.append("]→");
 		object.returnType().printOnAvoidingIndent(
 			aStream,
 			recursionList,
