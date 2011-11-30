@@ -32,23 +32,31 @@
 
 package com.avail.compiler.instruction;
 
+import com.avail.descriptor.ContinuationDescriptor;
 import com.avail.interpreter.levelOne.L1Operation;
 import java.io.ByteArrayOutputStream;
 
+/**
+ * {@code AvailPushLiteral} is an instruction that represents pushing a
+ * particular object (known at code generation time, undoubtedly earlier) onto a
+ * {@link ContinuationDescriptor continuation}'s stack.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public class AvailPushLiteral extends AvailInstructionWithIndex
 {
 
 	/**
 	 * Construct a new {@link AvailPushLiteral}.
-	 * 
+	 *
 	 * @param literalIndex The index of the literal being pushed.
 	 */
-	public AvailPushLiteral (int literalIndex)
+	public AvailPushLiteral (final int literalIndex)
 	{
 		super(literalIndex);
 	}
 
-	
+
 	@Override
 	public void writeNybblesOn (
 			final ByteArrayOutputStream aStream)

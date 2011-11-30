@@ -32,33 +32,77 @@
 
 package com.avail.compiler.instruction;
 
+import com.avail.descriptor.BlockNodeDescriptor;
 
+
+/**
+ * An {@code AvailVariableAccessNote} is a helper class used during data flow
+ * analysis.  As it progresses forward through a {@link BlockNodeDescriptor
+ * block}'s {@link AvailInstruction}s, it tracks, for a particular variable, the
+ * most recent instruction which pushes that variable itself on the stack.  It
+ * also tracks the most recent instruction which pushes that variable's
+ * <em>value</em> on the stack.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public class AvailVariableAccessNote
 {
+	/**
+	 * The most recently encountered instruction, if any, that pushes the
+	 * variable itself onto the stack.
+	 */
 	AvailPushVariable _previousPush;
+
+	/**
+	 * The most recently encountered instruction, if any, that pushes the
+	 * variable's value onto the stack.
+	 */
 	AvailGetVariable _previousGet;
 
 
-	// accessing
-
+	/**
+	 * Answer the most recently encountered get instruction for the variable
+	 * being tracked by this {@code AvailVariableAccessNote}.
+	 *
+	 * @return The most recently encountered {@link AvailGetVariable} for the
+	 *         variable being analyzed.
+	 */
 	public AvailGetVariable previousGet ()
 	{
 		return _previousGet;
 	}
 
-	public void previousGet (
-			final AvailGetVariable aGetInstruction)
+	/**
+	 * Record a get instruction for the variable being tracked by this {@code
+	 * AvailVariableAccessNote}.
+	 *
+	 * @param aGetInstruction The {@link AvailGetVariable} that was encountered.
+	 */
+	public void previousGet (final AvailGetVariable aGetInstruction)
 	{
 		_previousGet = aGetInstruction;
 	}
 
+	/**
+	 * Answer the most recently encountered push instruction for the variable
+	 * being tracked by this {@code AvailVariableAccessNote}.
+	 *
+	 * @return The most recently encountered {@link AvailPushVariable} for the
+	 *         variable being analyzed.
+	 */
 	public AvailPushVariable previousPush ()
 	{
 		return _previousPush;
 	}
 
-	public void previousPush (
-			final AvailPushVariable aPushInstruction)
+	/**
+	 * Record a push instruction for the variable being tracked by this {@code
+	 * AvailVariableAccessNote}.
+	 *
+	 * @param aPushInstruction
+	 *            The {@link AvailPushVariable} that was encountered.
+	 */
+	public void previousPush (final AvailPushVariable aPushInstruction)
 	{
 		_previousPush = aPushInstruction;
 	}

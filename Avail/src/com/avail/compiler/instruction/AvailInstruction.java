@@ -38,20 +38,26 @@ import java.io.ByteArrayOutputStream;
 import java.util.List;
 import static com.avail.descriptor.AvailObject.*;
 
+/**
+ * {@code AvailInstruction} implements an abstract instruction set that doesn't
+ * have to agree precisely with the actual implemented Level One nybblecode
+ * instruction set.  The mapping is approximately one-to-one, however, other
+ * than providing the ability to defer certain analyses, such as last-use of
+ * variables, until after selection of AvailInstructions.  This allows the
+ * analysis to simply mark the already abstractly-emitted instructions with
+ * information that affects the precise nybblecodes that will ultimately be
+ * emitted.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public abstract class AvailInstruction
 {
-
-	public void initialize ()
-	{
-		//  Do nothing
-	}
-
 
 	/**
 	 * Write a nybble-coded int in a variable-sized format to the {@link
 	 * ByteArrayOutputStream stream}.  Small values take only one nybble,
 	 * and we can represent any int up to {@link Integer#MAX_VALUE}.
-	 * 
+	 *
 	 * @param anInteger The integer to write.
 	 * @param aStream The stream on which to write the integer.
 	 */
@@ -111,7 +117,7 @@ public abstract class AvailInstruction
 	/**
 	 * Write nybbles representing this instruction to the {@link
 	 * ByteArrayOutputStream stream}.
-	 * 
+	 *
 	 * @param aStream Where to write the nybbles.
 	 */
 	public abstract void writeNybblesOn (
@@ -129,7 +135,7 @@ public abstract class AvailInstruction
 	 * The data lists are keyed by local or outer index.  Each entry is an
 	 * {@link AvailVariableAccessNote}, which keeps track of the immediately
 	 * previous use of the variable.
-	 * 
+	 *
 	 * @param localData A list of {@linkplain AvailVariableAccessNote}s, one for
 	 *                  each local variable.
 	 * @param outerData A list of {@linkplain AvailVariableAccessNote}s, one for
@@ -147,7 +153,7 @@ public abstract class AvailInstruction
 
 	/**
 	 * Answer whether this instruction is a use of a local variable.
-	 * 
+	 *
 	 * @return False for this class, possibly true in a subclass.
 	 */
 	public boolean isLocalUse ()
@@ -157,7 +163,7 @@ public abstract class AvailInstruction
 
 	/**
 	 * Answer whether this instruction is a use of an outer variable.
-	 * 
+	 *
 	 * @return False for this class, possibly true in a subclass.
 	 */
 	public boolean isOuterUse ()
@@ -167,7 +173,7 @@ public abstract class AvailInstruction
 
 	/**
 	 * Answer whether this instruction is a use of a label variable.
-	 * 
+	 *
 	 * @return False for this class, possibly true in a subclass.
 	 */
 	public boolean isPushLabel ()

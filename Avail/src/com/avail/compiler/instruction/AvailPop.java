@@ -33,9 +33,16 @@
 package com.avail.compiler.instruction;
 
 import com.avail.compiler.instruction.AvailInstruction;
+import com.avail.descriptor.ContinuationDescriptor;
 import com.avail.interpreter.levelOne.L1Operation;
 import java.io.ByteArrayOutputStream;
 
+/**
+ * The {@code AvailPop} instruction represents the removal of one element from
+ * a {@linkplain ContinuationDescriptor continuation}'s stack of values.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public class AvailPop extends AvailInstruction
 {
 
