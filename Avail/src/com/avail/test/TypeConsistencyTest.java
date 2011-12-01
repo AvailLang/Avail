@@ -566,12 +566,40 @@ public class TypeConsistencyTest
 			}
 		};
 
+		final static Node JAVA_OBJECT_ARRAY_POJO = new Node(
+			"JAVA_OBJECT_ARRAY_POJO",
+			MOST_GENERAL_POJO)
+		{
+			@Override
+			AvailObject get ()
+			{
+				return PojoTypeDescriptor.create(
+					PojoTypeDescriptor.pojoArrayClass(),
+					TupleDescriptor.from(
+						PojoTypeDescriptor.mostGeneralType()));
+			}
+		};
+
+		final static Node JAVA_STRING_ARRAY_POJO = new Node(
+			"JAVA_STRING_ARRAY_POJO",
+			JAVA_OBJECT_ARRAY_POJO)
+		{
+			@Override
+			AvailObject get ()
+			{
+				return PojoTypeDescriptor.create(
+					PojoTypeDescriptor.pojoArrayClass(),
+					TupleDescriptor.from(JAVA_STRING_POJO.t));
+			}
+		};
+
 		final static Node MOST_SPECIFIC_POJO = new Node(
 			"MOST_SPECIFIC_POJO",
 			JAVA_INTEGER_POJO,
 			JAVA_STRING_POJO,
 			AVAIL_PRIMITIVE_ENUM_POJO,
-			COMPARABLE_OF_AVAIL_INTEGER_POJO)
+			COMPARABLE_OF_AVAIL_INTEGER_POJO,
+			JAVA_STRING_ARRAY_POJO)
 		{
 			@Override
 			AvailObject get ()

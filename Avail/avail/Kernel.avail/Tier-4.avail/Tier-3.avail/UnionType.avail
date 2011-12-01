@@ -38,7 +38,8 @@ Names
 	"_instances",
 	"_instance",
 	"_unsafe instances",
-	"_unsafe instance"
+	"_unsafe instance",
+	"unionType of_"
 Body
 
 
@@ -142,3 +143,11 @@ Method "_unsafe instance" is [t : type |
 	cast t into [u : unionType |
 		u instance;];
 ] : any;
+
+
+Method "unionType of_" is
+[
+	aType : type
+|
+	Primitive 66;
+] : unionType type;

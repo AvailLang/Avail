@@ -631,19 +631,19 @@ extends Descriptor
 				@Override
 				public String value()
 				{
-					final List<AvailObject> signatures =
+					final List<AvailObject> functionTypes =
 						new ArrayList<AvailObject>(2);
 					for (final AvailObject imp : implementationsTuple)
 					{
-						signatures.add(imp.bodySignature());
+						functionTypes.add(imp.bodySignature());
 					}
-					String string;
+					final Formatter builder = new Formatter();
 					final List<Integer> allFailedIndices =
 						new ArrayList<Integer>(3);
 					each_arg:
 					for (int index = argTypes.size(); index >= 1; index--)
 					{
-						for (final AvailObject sig : signatures)
+						for (final AvailObject sig : functionTypes)
 						{
 							if (argTypes.get(index - 1).isSubtypeOf(
 								sig.argsTupleType().typeAtIndex(index)))
@@ -653,49 +653,22 @@ extends Descriptor
 						}
 						allFailedIndices.add(0, index);
 					}
-					if (allFailedIndices.size() >= 1
-							&& allFailedIndices.size()
-								<= argTypes.size() - 1)
+					builder.format(
+						"arguments at indices %s of message %s to match a "
+						+ "method implementation.%n",
+						allFailedIndices,
+						object.name().name().asNativeString());
+					builder.format(
+						"\tI got:%n\t\t%s%n",
+						argTypes);
+					builder.format(
+						"\tI expected%s:",
+						functionTypes.size() > 1 ? " one of" : "");
+					for (final AvailObject sig : functionTypes)
 					{
-						string = "arguments at indices "
-							+ allFailedIndices.toString()
-							+ " of message "
-							+ object.name().name().asNativeString()
-							+ " to match a method.  I got: "
-							+ argTypes.toString();
+						builder.format("%n\t\t%s", sig);
 					}
-					else
-					{
-						string = "arguments of "
-							+ object.name().name().asNativeString()
-							+ " to have applicable types like {";
-						boolean first = true;
-						for (final AvailObject sig : signatures)
-						{
-							if (!first)
-							{
-								string += ", ";
-							}
-							first = false;
-							string += "[";
-							final AvailObject tupleType = sig.argsTupleType();
-							final int numArgs = tupleType
-								.sizeRange()
-								.lowerBound()
-								.extractInt();
-							for (int i = 1; i <= numArgs; i++)
-							{
-								if (i > 1)
-								{
-									string += ", ";
-								}
-								string += tupleType.typeAtIndex(i);
-							}
-							string += "]";
-						}
-						string += "}, ***not*** " + argTypes.toString();
-					}
-					return string;
+					return builder.toString();
 				}
 			});
 			return NullDescriptor.nullObject();

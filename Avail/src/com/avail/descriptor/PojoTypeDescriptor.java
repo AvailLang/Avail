@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.descriptor.PojoTypeDescriptor.ObjectSlots.*;
+import java.io.Serializable;
 import java.lang.reflect.*;
 import java.util.*;
 import com.avail.AvailRuntime;
@@ -425,6 +426,82 @@ extends TypeDescriptor
 				intersectionBound.typeIntersection(upperBound);
 		}
 		return intersectionBound;
+	}
+
+	/**
+	 * {@code PojoArray} mimics the reflective properties of a Java array
+	 * {@linkplain Class class}. It implements the same interfaces and professes
+	 * that {@link Object} is its superclass. Array {@linkplain
+	 * PojoTypeDescriptor pojo types} use {@code PojoArray} as their most
+	 * specific class and represent the array's component type using the sole
+	 * type parameter.
+	 *
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 * @param <T> The component type of the represented array.
+	 */
+	private static class PojoArray<T> implements Cloneable, Serializable
+	{
+		/** The serial version identifier. */
+		private static final long serialVersionUID = 6632261359267941627L;
+
+		/** An array. */
+		private final Object array;
+
+		/**
+		 * Answer the length of the array.
+		 *
+		 * @return The length of the array.
+		 */
+		public int length ()
+		{
+			return Array.getLength(array);
+		}
+
+		/**
+		 * Get the element at the specified index of the array.
+		 *
+		 * @param index An index.
+		 * @return An element.
+		 */
+		@SuppressWarnings("unchecked")
+		public T get (final int index)
+		{
+			return (T) Array.get(array, index);
+		}
+
+		/**
+		 * Store the element at the specified index of the array.
+		 *
+		 * @param index An index.
+		 * @param value A value.
+		 */
+		private void set (final int index, final T value)
+		{
+			Array.set(array, index, value);
+		}
+
+		/**
+		 * Construct a new {@link PojoArray}.
+		 *
+		 * @param array An array.
+		 */
+		public PojoArray (final @NotNull Object array)
+		{
+			assert array.getClass().isArray();
+			this.array = array;
+		}
+	}
+
+	/**
+	 * Answer the {@linkplain Class Java class} corresponding to the array
+	 * {@linkplain PojoTypeDescriptor pojo type}.
+	 *
+	 * @return A Java class.
+	 */
+	@SuppressWarnings("rawtypes")
+	public static Class<PojoArray> pojoArrayClass ()
+	{
+		return PojoArray.class;
 	}
 
 	/** The layout of the object slots. */

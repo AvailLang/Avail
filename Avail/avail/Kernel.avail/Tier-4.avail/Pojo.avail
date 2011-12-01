@@ -132,6 +132,21 @@ Method "Java type_" is
 	Assert jInteger <= jComparableOfComparableOfObject;
 ]();
 
-/*
-Method "«…‡.»«<«_‡,»>»" is ...
-*/ 
+Method "Java_[]" is
+[
+	aType : type
+|
+	Primitive 501;
+] : pojo type;
+
+[
+	jArrayOfAny ::= Java any[];
+	jArrayOfObject ::= Java pojo[];
+	Assert jArrayOfObject <= pojo;
+	Assert jArrayOfObject <= jArrayOfAny;
+	jString ::= Java type "java.lang.String";
+	jArrayOfString ::= Java jString[];
+	Assert jArrayOfString <= jArrayOfObject;
+	jArrayOfTupleOfString ::= Java tuple of string[];
+	Assert jArrayOfTupleOfString <= jArrayOfAny;
+]();

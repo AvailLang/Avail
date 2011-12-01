@@ -37,7 +37,7 @@ import java.util.List;
 import com.avail.annotations.*;
 
 /**
- * My instances are called <em>instace union metatypes</em>, or just union
+ * My instances are called <em>instance union metatypes</em>, or just union
  * metatypes. Instances are parameterized on the kinds of their instances'
  * instances. For example, a union metatype over extended integer has instances
  * union type of (1, 2, 3), union type of (1, 3, 7), etc.

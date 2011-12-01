@@ -7781,6 +7781,38 @@ public enum Primitive
 				InstanceTypeDescriptor.on(
 					PojoTypeDescriptor.mostGeneralType()));
 		}
+	},
+
+	/**
+	 * <strong>Primitive 501:</strong> Create a {@linkplain PojoTypeDescriptor
+	 * pojo array type} for the specified {@linkplain TypeDescriptor type}.
+	 *
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 */
+	prim501_CreatePojoArrayType(501, 1, CanFold, CannotFail)
+	{
+		@Override
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
+		{
+			assert args.size() == 1;
+			final AvailObject type = args.get(0);
+			return interpreter.primitiveSuccess(PojoTypeDescriptor.create(
+				PojoTypeDescriptor.pojoArrayClass(),
+				TupleDescriptor.from(type)));
+		}
+
+		@Override
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
+		{
+			return FunctionTypeDescriptor.create(
+				TupleDescriptor.from(TYPE.o()),
+				InstanceTypeDescriptor.on(
+					PojoTypeDescriptor.create(
+						PojoTypeDescriptor.pojoArrayClass(),
+						TupleDescriptor.from(TYPE.o()))));
+		}
 	};
 
 	/**
