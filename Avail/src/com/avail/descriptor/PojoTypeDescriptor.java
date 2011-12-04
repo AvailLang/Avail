@@ -38,7 +38,7 @@ import java.io.Serializable;
 import java.lang.reflect.*;
 import java.util.*;
 import com.avail.AvailRuntime;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 
 /**
  * A {@code PojoTypeDescriptor} describes the type of a plaid-old Java object
@@ -76,6 +76,19 @@ extends TypeDescriptor
 	public static @NotNull AvailObject mostGeneralType ()
 	{
 		return mostGeneralType;
+	}
+
+	/** The most general {@linkplain PojoTypeDescriptor pojo array type}. */
+	private static AvailObject mostGeneralArrayType;
+
+	/**
+	 * Answer the most general {@linkplain PojoTypeDescriptor pojo array type}.
+	 *
+	 * @return The most general pojo array type.
+	 */
+	public static @NotNull AvailObject mostGeneralArrayType ()
+	{
+		return mostGeneralArrayType;
 	}
 
 	/**
@@ -187,6 +200,9 @@ extends TypeDescriptor
 	public static void createWellKnownObjects ()
 	{
 		mostGeneralType = create(Object.class, TupleDescriptor.empty());
+		mostGeneralArrayType = create(
+			pojoArrayClass(),
+			TupleDescriptor.from(TYPE.o()));
 		mostSpecificType = create((Class<?>) null, TupleDescriptor.empty());
 		byteRange = IntegerRangeTypeDescriptor.create(
 			IntegerDescriptor.fromInt(Byte.MIN_VALUE),
@@ -222,6 +238,7 @@ extends TypeDescriptor
 	public static void clearWellKnownObjects ()
 	{
 		mostGeneralType = null;
+		mostGeneralArrayType = null;
 		mostSpecificType = null;
 		byteRange = null;
 		shortRange = null;
@@ -445,7 +462,7 @@ extends TypeDescriptor
 		private static final long serialVersionUID = 6632261359267941627L;
 
 		/** An array. */
-		private final Object array;
+		final Object array;
 
 		/**
 		 * Answer the length of the array.
@@ -504,6 +521,290 @@ extends TypeDescriptor
 		return PojoArray.class;
 	}
 
+	/**
+	 * Marshal the {@linkplain TupleDescriptor tuple} of {@linkplain AvailObject
+	 * Avail objects} to an array of Java {@linkplain Object counterparts}.
+	 *
+	 * @param availObjects
+	 *        The Avail objects to be marshaled.
+	 * @param counterpartClassPojos
+	 *        The counterpart raw {@linkplain Class Java class} {@linkplain
+	 *        RawPojoDescriptor pojos}. Each object to be marshaled will be
+	 *        converted to an instance of its Java counterpart.
+	 * @return The marshaled Java objects.
+	 */
+	public static @NotNull Object[] marshal (
+		final @NotNull AvailObject availObjects,
+		final @NotNull AvailObject counterpartClassPojos)
+	{
+		assert availObjects.isTuple();
+		final Object[] javaObjects = new Object[availObjects.tupleSize()];
+		for (int i = 0; i < javaObjects.length; i++)
+		{
+			final AvailObject availObject = availObjects.tupleAt(i + 1);
+			final Class<?> javaClass = (Class<?>) RawPojoDescriptor.getPojo(
+				counterpartClassPojos.tupleAt(i + 1));
+			final Object object;
+			if (javaClass.isPrimitive())
+			{
+				// Deliberately avoid autoboxing here so that we have explicit
+				// control over the boxing conversions.
+				// TODO: [TLS] Consider allowing Avail to box/unbox the way that
+				// Java does. i.e. It might be worthwhile to accept either Avail
+				// objects or pojos (Boolean, Byte, Short, etc.).
+				if (javaClass.equals(Boolean.TYPE))
+				{
+					assert availObject.isBoolean();
+					object = new Boolean(availObject.extractBoolean());
+				}
+				else if (javaClass.equals(Byte.TYPE))
+				{
+					assert availObject.isByte();
+					object = new Byte((byte) availObject.extractByte());
+				}
+				else if (javaClass.equals(Short.TYPE))
+				{
+					assert availObject.isShort();
+					object = new Short((short) availObject.extractShort());
+				}
+				else if (javaClass.equals(Integer.TYPE))
+				{
+					assert availObject.isInt();
+					object = new Integer(availObject.extractInt());
+				}
+				else if (javaClass.equals(Long.TYPE))
+				{
+					assert availObject.isLong();
+					object = new Long(availObject.extractLong());
+				}
+				else if (javaClass.equals(Float.TYPE))
+				{
+					assert availObject.isFloat();
+					object = new Float(availObject.extractFloat());
+				}
+				else if (javaClass.equals(Double.TYPE))
+				{
+					assert availObject.isDouble();
+					object = new Double(availObject.extractDouble());
+				}
+				else if (javaClass.equals(Character.TYPE))
+				{
+					if (availObject.isCharacter())
+					{
+						final int codePoint = availObject.codePoint();
+						assert codePoint >= Character.MIN_VALUE
+							&& codePoint <= Character.MAX_VALUE;
+						object = new Character((char) codePoint);
+					}
+					else
+					{
+						object = new Character(
+							(char) availObject.extractShort());
+					}
+				}
+				else
+				{
+					assert false
+						: "There are only the eight primitive Java types";
+					object = null;
+				}
+			}
+			else if (javaClass.equals(String.class))
+			{
+				assert availObject.isString();
+				object = availObject.asNativeString();
+			}
+			else if (availObject.isPojo())
+			{
+				final Object rawPojo = RawPojoDescriptor.getPojo(
+					availObject.rawPojo());
+				if (rawPojo instanceof PojoArray<?>)
+				{
+					object = ((PojoArray<?>) rawPojo).array;
+				}
+				else
+				{
+					object = rawPojo;
+				}
+			}
+			else
+			{
+				// Pass other Avail objects through unmarshaled.
+				object = availObject;
+			}
+			javaObjects[i] = object;
+		}
+		return javaObjects;
+	}
+
+	/**
+	 * Marshal the {@linkplain TupleDescriptor tuple} of {@linkplain AvailObject
+	 * Avail types} to an array of Java {@linkplain Class counterparts}.
+	 *
+	 * @param availTypes
+	 *        The Avail types to be marshaled.
+	 * @return The marshaled Java types.
+	 */
+	public static @NotNull Class<?>[] marshalTypes (
+		final @NotNull AvailObject availTypes)
+	{
+		assert availTypes.isTuple();
+		final Class<?>[] javaClasses = new Class<?>[availTypes.tupleSize()];
+		for (int i = 0; i < javaClasses.length; i++)
+		{
+			final AvailObject availType = availTypes.tupleAt(i + 1);
+			final Class<?> javaClass;
+			// Marshal integer range types to Java primitive classes.
+			if (availType.isIntegerRangeType())
+			{
+				if (availType.isSubtypeOf(byteRange))
+				{
+					javaClass = Byte.TYPE;
+				}
+				else if (availType.isSubtypeOf(shortRange))
+				{
+					javaClass = Short.TYPE;
+				}
+				else if (availType.isSubtypeOf(intRange))
+				{
+					javaClass = Integer.TYPE;
+				}
+				else if (availType.isSubtypeOf(longRange))
+				{
+					javaClass = Long.TYPE;
+				}
+				// If the integer range type is too general, then treat the
+				// type as opaque.
+				else
+				{
+					javaClass = AvailObject.class;
+				}
+			}
+			else if (availType.isSubtypeOf(EnumerationTypeDescriptor.booleanObject()))
+			{
+				javaClass = Boolean.TYPE;
+			}
+			else if (availType.isSubtypeOf(CHARACTER.o()))
+			{
+				javaClass = Character.TYPE;
+			}
+			else if (availType.isSubtypeOf(FLOAT.o()))
+			{
+				javaClass = Float.TYPE;
+			}
+			else if (availType.isSubtypeOf(DOUBLE.o()))
+			{
+				javaClass = Double.TYPE;
+			}
+			else if (availType.isSubtypeOf(
+				TupleTypeDescriptor.stringTupleType()))
+			{
+				javaClass = String.class;
+			}
+			else if (availType.isSubtypeOf(mostGeneralType))
+			{
+				Class<?> tempClass = (Class<?>) RawPojoDescriptor.getPojo(
+					availType.traversed().objectSlot(MOST_SPECIFIC_CLASS));
+				// Recursively resolve a pojo array type.
+				if (tempClass.equals(PojoArray.class))
+				{
+					tempClass = marshalTypes(availType.traversed().objectSlot(
+						PARAMETERIZATION_MAP).mapAt(RawPojoDescriptor.create(
+							PojoArray.class)))[0];
+					tempClass = Array.newInstance(tempClass, 0).getClass();
+				}
+				javaClass = tempClass;
+			}
+			else
+			{
+				// Treat other Avail types (tuple, set, map, etc.) as opaque.
+				javaClass = AvailObject.class;
+			}
+			javaClasses[i] = javaClass;
+		}
+		return javaClasses;
+	}
+
+	/**
+	 * Marshal the arbitrary {@linkplain Object Java object} to its counterpart
+	 * {@linkplain AvailObject Avail object}.
+	 *
+	 * @param object
+	 *        A Java object.
+	 * @param type
+	 *        A {@linkplain TypeDescriptor type} to which the resultant Avail
+	 *        object must conform.
+	 * @return An Avail Object.
+	 */
+	public static @NotNull AvailObject unmarshal (
+		final @NotNull Object object,
+		final @NotNull AvailObject type)
+	{
+		final Class<?> javaClass = object.getClass();
+		final AvailObject availObject;
+		if (javaClass.isPrimitive())
+		{
+			if (javaClass.equals(Boolean.TYPE))
+			{
+				availObject = (Boolean) object
+					? AtomDescriptor.trueObject()
+					: AtomDescriptor.falseObject();
+			}
+			else if (javaClass.equals(Byte.TYPE))
+			{
+				availObject = IntegerDescriptor.fromInt((Byte) object);
+			}
+			else if (javaClass.equals(Short.TYPE))
+			{
+				availObject = IntegerDescriptor.fromInt((Short) object);
+			}
+			else if (javaClass.equals(Integer.TYPE))
+			{
+				availObject = IntegerDescriptor.fromInt((Integer) object);
+			}
+			else if (javaClass.equals(Long.TYPE))
+			{
+				availObject = IntegerDescriptor.fromLong((Long) object);
+			}
+			else if (javaClass.equals(Float.TYPE))
+			{
+				availObject = FloatDescriptor.fromFloat((Float) object);
+			}
+			else if (javaClass.equals(Double.TYPE))
+			{
+				availObject = DoubleDescriptor.fromDouble((Double) object);
+			}
+			else if (javaClass.equals(Character.TYPE))
+			{
+				availObject = CharacterDescriptor.fromCodePoint(
+					((Character) object).charValue());
+			}
+			else
+			{
+				assert false
+					: "There are only the eight primitive Java types";
+				availObject = null;
+			}
+		}
+		else if (javaClass.equals(String.class))
+		{
+			availObject = ByteStringDescriptor.from((String) object);
+		}
+		else if (!(object instanceof AvailObject))
+		{
+			availObject = PojoDescriptor.create(
+				RawPojoDescriptor.create(object),
+				type);
+		}
+		else
+		{
+			availObject = (AvailObject) object;
+		}
+		assert availObject != null;
+		assert availObject.isInstanceOfKind(type);
+		return availObject;
+	}
+
 	/** The layout of the object slots. */
 	public enum ObjectSlots implements ObjectSlotsEnum
 	{
@@ -529,14 +830,9 @@ extends TypeDescriptor
 		PARAMETERIZATION_MAP,
 	}
 
-	@Override
+	@Override @AvailMethod
 	boolean o_IsAbstract (final @NotNull AvailObject object)
 	{
-		if (object.equals(mostSpecificType))
-		{
-			return true;
-		}
-
 		final AvailObject rawType = object.objectSlot(MOST_SPECIFIC_CLASS);
 
 		// If the most specific class is the Avail null object, then this type
@@ -549,13 +845,19 @@ extends TypeDescriptor
 
 		final Class<?> javaClass =
 			(Class<?>) RawPojoDescriptor.getPojo(rawType);
-		assert javaClass != null;
+
+		// This handles the most specific type.
+		if (javaClass == null)
+		{
+			return true;
+		}
+
 		final int modifiers = javaClass.getModifiers();
 		return Modifier.isAbstract(modifiers)
 			|| Modifier.isInterface(modifiers);
 	}
 
-	@Override
+	@Override @AvailMethod
 	boolean o_Equals (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
@@ -563,7 +865,7 @@ extends TypeDescriptor
 		return another.equalsPojoType(object);
 	}
 
-	@Override
+	@Override @AvailMethod
 	boolean o_EqualsPojoType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aPojoType)
@@ -592,7 +894,7 @@ extends TypeDescriptor
 		return true;
 	}
 
-	@Override
+	@Override @AvailMethod
 	boolean o_IsSubtypeOf (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
@@ -600,7 +902,7 @@ extends TypeDescriptor
 		return aType.isSupertypeOfPojoType(object);
 	}
 
-	@Override
+	@Override @AvailMethod
 	boolean o_IsSupertypeOfPojoType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aPojoType)
@@ -667,7 +969,7 @@ extends TypeDescriptor
 		return true;
 	}
 
-	@Override
+	@Override @AvailMethod
 	int o_Hash (final @NotNull AvailObject object)
 	{
 		// Note that this definition produces a value compatible with a pojo
@@ -678,14 +980,19 @@ extends TypeDescriptor
 			^ 0xA015BC44;
 	}
 
-	@Override
-	@NotNull AvailObject o_Kind (
-		final @NotNull AvailObject object)
+	@Override @AvailMethod
+	@NotNull AvailObject o_JavaClass (final @NotNull AvailObject object)
+	{
+		return object.objectSlot(MOST_SPECIFIC_CLASS);
+	}
+
+	@Override @AvailMethod
+	@NotNull AvailObject o_Kind (final @NotNull AvailObject object)
 	{
 		return TYPE.o();
 	}
 
-	@Override
+	@Override @AvailMethod
 	@NotNull AvailObject o_MakeImmutable (
 		final @NotNull AvailObject object)
 	{
@@ -695,7 +1002,7 @@ extends TypeDescriptor
 		return object;
 	}
 
-	@Override
+	@Override @AvailMethod
 	@NotNull AvailObject o_PojoSelfType (
 		final @NotNull AvailObject object)
 	{
@@ -711,7 +1018,7 @@ extends TypeDescriptor
 			object.objectSlot(PARAMETERIZATION_MAP).keysAsSet());
 	}
 
-	@Override
+	@Override @AvailMethod
 	@NotNull AvailObject o_TypeIntersection (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
@@ -727,7 +1034,7 @@ extends TypeDescriptor
 		return another.typeIntersectionOfPojoType(object);
 	}
 
-	@Override
+	@Override @AvailMethod
 	@NotNull AvailObject o_TypeIntersectionOfPojoType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aPojoType)
@@ -820,7 +1127,7 @@ extends TypeDescriptor
 		return create(NullDescriptor.nullObject(), newParamMap);
 	}
 
-	@Override
+	@Override @AvailMethod
 	AvailObject o_TypeUnion (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
@@ -836,7 +1143,7 @@ extends TypeDescriptor
 		return another.typeUnionOfPojoType(object);
 	}
 
-	@Override
+	@Override @AvailMethod
 	@NotNull AvailObject o_TypeUnionOfPojoType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aPojoType)
@@ -919,6 +1226,44 @@ extends TypeDescriptor
 		}
 
 		return create(mostSpecificClass, newParamMap);
+	}
+
+	@Override
+	public void printObjectOnAvoidingIndent (
+		final @NotNull AvailObject object,
+		final @NotNull StringBuilder builder,
+		final @NotNull List<AvailObject> recursionList,
+		final int indent)
+	{
+		final AvailObject classPojo = object.objectSlot(MOST_SPECIFIC_CLASS);
+		if (classPojo.equalsNull())
+		{
+			super.printObjectOnAvoidingIndent(
+				object, builder, recursionList, indent);
+			return;
+		}
+
+		final Class<?> javaClass =
+			(Class<?>) RawPojoDescriptor.getPojo(classPojo);
+		builder.append("pojo type: ");
+		if (javaClass == null)
+		{
+			builder.append(String.valueOf(javaClass));
+			return;
+		}
+
+		builder.append(javaClass.getName());
+		final AvailObject typeParams =
+			object.objectSlot(PARAMETERIZATION_MAP).mapAt(classPojo);
+		if (typeParams.tupleSize() > 0)
+		{
+			builder.append('<');
+			for (final AvailObject type : typeParams)
+			{
+				type.printOnAvoidingIndent(builder, recursionList, indent);
+			}
+			builder.append('>');
+		}
 	}
 
 	/**

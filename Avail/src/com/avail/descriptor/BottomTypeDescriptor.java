@@ -46,7 +46,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
 public class BottomTypeDescriptor
-extends AbstractUnionTypeDescriptor
+extends AbstractEnumerationTypeDescriptor
 {
 	@Override
 	public void printObjectOnAvoidingIndent (
@@ -71,7 +71,7 @@ extends AbstractUnionTypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
-		final boolean equal = another.equalsUnionTypeWithSet(
+		final boolean equal = another.equalsEnumerationWithSet(
 			SetDescriptor.empty());
 		if (equal)
 		{
@@ -84,16 +84,17 @@ extends AbstractUnionTypeDescriptor
 	 * {@inheritDoc}
 	 *
 	 * <p>
-	 * Determine if the object is a {@linkplain AbstractUnionTypeDescriptor
-	 * union type} over the given set of instances.  Since the object is the
-	 * {@linkplain BottomTypeDescriptor bottom type}, just check if the set of
-	 * instances is empty.
+	 * Determine if the object is an {@linkplain
+	 * AbstractEnumerationTypeDescriptor enumeration} over the given {@linkplain
+	 * SetDescriptor set} of instances.  Since the object is the {@linkplain
+	 * BottomTypeDescriptor bottom type}, just check if the set of instances is
+	 * empty.
 	 * </p>
 	 */
 	@Override @AvailMethod
-	boolean o_EqualsUnionTypeWithSet (
+	boolean o_EqualsEnumerationWithSet (
 		final @NotNull AvailObject object,
-		final AvailObject aSet)
+		final @NotNull AvailObject aSet)
 	{
 		return aSet.setSize() == 0;
 	}
@@ -519,9 +520,9 @@ extends AbstractUnionTypeDescriptor
 			// Bottom is not an instance of itself.
 			return false;
 		}
-		if (aType.isAbstractUnionType())
+		if (aType.isEnumeration())
 		{
-			return aType.abstractUnionTypeIncludesInstance(object);
+			return aType.enumerationIncludesInstance(object);
 		}
 		// Bottom is an instance of top and any.
 		if (aType.equals(TOP.o()) || aType.equals(ANY.o()))
@@ -614,10 +615,11 @@ extends AbstractUnionTypeDescriptor
 	}
 
 	/**
-	 * Bottom is an empty union type, so the answer is no.
+	 * Bottom is an empty {@linkplain AbstractEnumerationTypeDescriptor
+	 * enumeration}, so the answer is {@code false}.
 	 */
 	@Override @AvailMethod
-	boolean o_AbstractUnionTypeIncludesInstance (
+	boolean o_EnumerationIncludesInstance (
 		final @NotNull AvailObject object,
 		final AvailObject potentialInstance)
 	{
@@ -631,7 +633,7 @@ extends AbstractUnionTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsUnionMeta (final @NotNull AvailObject object)
+	boolean o_IsEnumerationType (final @NotNull AvailObject object)
 	{
 		return true;
 	}

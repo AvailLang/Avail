@@ -33,7 +33,6 @@
 System Module "Pragmas"
 Versions "dev"
 Pragma
-	"bootstrapFailureMethod = Crash During Bootstrap_",
 	"bootstrapDefiningMethod = Method_is_",
 	"bootstrapSpecialObject = Special Object_"
 Extends

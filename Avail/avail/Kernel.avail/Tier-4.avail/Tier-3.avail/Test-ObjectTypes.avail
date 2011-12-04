@@ -35,7 +35,7 @@ Extends
 Uses
 	"Tier-2",
 	"Object",
-	"UnionType"
+	"Enum"
 Names
 Body
 

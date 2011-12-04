@@ -235,7 +235,7 @@ extends TupleDescriptor
 		// Answer the element at the given index in the tuple object.  It's a
 		// two-byte character.
 		assert index >= 1 && index <= object.tupleSize();
-		return CharacterDescriptor.newImmutableCharacterWithCodePoint(
+		return CharacterDescriptor.fromCodePoint(
 				object.shortSlotAt(IntegerSlots.RAW_QUAD_AT_, index)
 			& 0xFFFF);
 	}

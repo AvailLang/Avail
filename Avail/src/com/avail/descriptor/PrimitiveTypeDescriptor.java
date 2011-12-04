@@ -282,11 +282,11 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSupertypeOfUnionMeta (
+	boolean o_IsSupertypeOfEnumerationType (
 		final @NotNull AvailObject object,
-		final AvailObject aUnionMeta)
+		final @NotNull AvailObject anEnumerationType)
 	{
-		if (aUnionMeta.innerKind().isSubtypeOf(TYPE.o()))
+		if (anEnumerationType.innerKind().isSubtypeOf(TYPE.o()))
 		{
 			return META.o().isSubtypeOf(object);
 		}
@@ -326,7 +326,7 @@ extends TypeDescriptor
 		{
 			return object;
 		}
-		if (another.isAbstractUnionType())
+		if (another.isEnumeration())
 		{
 			// Note that at this point neither one can be bottom, since that
 			// would always have been detected as a subtype of the other.

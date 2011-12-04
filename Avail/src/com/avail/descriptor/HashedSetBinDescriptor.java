@@ -220,7 +220,7 @@ extends SetBinDescriptor
 		final int masked = vector & bitShift(1,logicalIndex) - 1;
 		final int physicalIndex = bitCount(masked) + 1;
 		AvailObject objectToModify;
-		AvailObject unionType;
+		AvailObject typeUnion;
 		if ((vector & bitShift(1,logicalIndex)) != 0)
 		{
 			AvailObject entry = object.binElementAt(physicalIndex);
@@ -270,16 +270,16 @@ extends SetBinDescriptor
 		{
 			object.makeSubobjectsImmutable();
 		}
-		unionType = object.binUnionTypeOrTop();
-		if (!unionType.equalsNull())
+		typeUnion = object.binUnionTypeOrTop();
+		if (!typeUnion.equalsNull())
 		{
-			unionType = unionType.typeUnion(elementObject.kind());
+			typeUnion = typeUnion.typeUnion(elementObject.kind());
 		}
 		objectToModify = HashedSetBinDescriptor.isMutableLevel(true, _level)
 			.create(objectEntryCount + 1);
 		objectToModify.binHash(object.binHash() + elementObjectHash);
 		objectToModify.binSize(object.binSize() + 1);
-		objectToModify.binUnionTypeOrTop(unionType);
+		objectToModify.binUnionTypeOrTop(typeUnion);
 		objectToModify.bitVector(vector | bitShift(1,logicalIndex));
 		for (int i = 1, end = physicalIndex - 1; i <= end; i++)
 		{
@@ -358,15 +358,15 @@ extends SetBinDescriptor
 			{
 				return NullDescriptor.nullObject();
 			}
-			// Calculate the union type before allocating the new bin, so we
+			// Calculate the type union before allocating the new bin, so we
 			// don't have to worry about a partially initialized object during a
 			// type computation which may require memory allocation.
-			AvailObject newUnionType = BottomTypeDescriptor.bottom();
+			AvailObject newTypeUnion = BottomTypeDescriptor.bottom();
 			for (int index = 1; index <= objectEntryCount; index++)
 			{
 				if (index != physicalIndex)
 				{
-					newUnionType = newUnionType.typeUnion(
+					newTypeUnion = newTypeUnion.typeUnion(
 						object.binElementAt(index).binUnionKind());
 				}
 			}
@@ -374,7 +374,7 @@ extends SetBinDescriptor
 				objectEntryCount - 1);
 			result.binHash(object.binHash() + deltaHash);
 			result.binSize(object.binSize() + deltaSize);
-			result.binUnionTypeOrTop(newUnionType);
+			result.binUnionTypeOrTop(newTypeUnion);
 			result.bitVector(vector ^ bitShift(1,logicalIndex));
 			for (int index = objectEntryCount - 1; index >= 1; index--)
 			{

@@ -233,9 +233,9 @@ public class L1Decompiler implements L1OperationDispatcher
 	{
 		final AvailObject impSet = code.literalAt(getInteger());
 		final AvailObject type = code.literalAt(getInteger());
-		final AvailObject cyclicType = impSet.name();
+		final AvailObject atom = impSet.name();
 		int nArgs = 0;
-		final AvailObject str = cyclicType.name();
+		final AvailObject str = atom.name();
 		final AvailObject underscore =
 			TupleDescriptor.underscoreTuple().tupleAt(1);
 		for (int i = 1, end = str.tupleSize(); i <= end; i++)
@@ -669,9 +669,9 @@ public class L1Decompiler implements L1OperationDispatcher
 	{
 		final AvailObject impSet = code.literalAt(getInteger());
 		final AvailObject type = code.literalAt(getInteger());
-		final AvailObject cyclicType = impSet.name();
+		final AvailObject atom = impSet.name();
 		int nArgs = 0;
-		final AvailObject str = cyclicType.name();
+		final AvailObject str = atom.name();
 		final AvailObject underscore =
 			TupleDescriptor.underscoreTuple().tupleAt(1);
 		for (int i = 1, end = str.tupleSize(); i <= end; i++)

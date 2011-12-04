@@ -533,7 +533,7 @@ extends TupleDescriptor
 			final int codePoint = aNativeString.codePointAt(index);
 			tuple.tupleAtPut(
 				count,
-				CharacterDescriptor.newImmutableCharacterWithCodePoint(
+				CharacterDescriptor.fromCodePoint(
 					codePoint));
 			count++;
 			index += Character.charCount(codePoint);

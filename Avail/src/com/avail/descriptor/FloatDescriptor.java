@@ -92,25 +92,26 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (
-		final @NotNull AvailObject object)
+	int o_Hash (final @NotNull AvailObject object)
 	{
 		return object.integerSlot(IntegerSlots.RAW_INT) ^ 0x16AE2BFD;
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_Kind (
-		final @NotNull AvailObject object)
+	@NotNull AvailObject o_Kind (final @NotNull AvailObject object)
 	{
 		return FLOAT.o();
 	}
 
 	@Override @AvailMethod
-	float o_ExtractFloat (
-		final @NotNull AvailObject object)
+	boolean o_IsFloat (final @NotNull AvailObject object)
 	{
-		//  Extract a Smalltalk Float from object.
+		return true;
+	}
 
+	@Override @AvailMethod
+	float o_ExtractFloat (final @NotNull AvailObject object)
+	{
 		final int castAsInt = object.integerSlot(IntegerSlots.RAW_INT);
 		return Float.intBitsToFloat(castAsInt);
 	}
@@ -122,7 +123,7 @@ extends Descriptor
 	 * @param aFloat The Java {@code float} to box.
 	 * @return The boxed Avail {@code FloatDescriptor floating point object}.
 	 */
-	public static AvailObject objectFromFloat (final float aFloat)
+	public static AvailObject fromFloat (final float aFloat)
 	{
 		final AvailObject result = mutable().create();
 		result.integerSlotPut(

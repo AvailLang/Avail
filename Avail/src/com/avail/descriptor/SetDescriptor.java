@@ -155,7 +155,7 @@ public class SetDescriptor extends Descriptor
 			return false;
 		}
 		final AvailObject expectedContentType = aTypeObject.contentType();
-		if (expectedContentType.isAbstractUnionType())
+		if (expectedContentType.isEnumeration())
 		{
 			// Check the complete membership.
 			for (final AvailObject member : object)
@@ -196,7 +196,7 @@ public class SetDescriptor extends Descriptor
 			IntegerDescriptor.fromInt(size));
 		return SetTypeDescriptor.setTypeForSizesContentType(
 			sizeRange,
-			AbstractUnionTypeDescriptor.withInstances(object));
+			AbstractEnumerationTypeDescriptor.withInstances(object));
 	}
 
 	@Override @AvailMethod

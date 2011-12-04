@@ -80,7 +80,7 @@ import com.avail.visitor.AvailSubobjectVisitor;
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
-public class IndirectionDescriptor
+public final class IndirectionDescriptor
 extends AbstractDescriptor
 {
 
@@ -1322,11 +1322,12 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_IsSupertypeOfUnionMeta (
+	boolean o_IsSupertypeOfEnumerationType (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aUnionMeta)
+		final @NotNull AvailObject anEnumerationType)
 	{
-		return o_Traversed(object).isSupertypeOfUnionMeta(aUnionMeta);
+		return o_Traversed(object).isSupertypeOfEnumerationType(
+			anEnumerationType);
 	}
 
 	@Override
@@ -3537,28 +3538,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_ExpressionsTuple (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject expressionsTuple)
-	{
-		o_Traversed(object).expressionsTuple(expressionsTuple);
-	}
-
-	@Override
-	@NotNull AvailObject o_TupleType (final AvailObject object)
-	{
-		return o_Traversed(object).tupleType();
-	}
-
-	@Override
-	void o_TupleType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject tupleType)
-	{
-		o_Traversed(object).tupleType(tupleType);
-	}
-
-	@Override
 	@NotNull AvailObject o_Declaration (final AvailObject object)
 	{
 		return o_Traversed(object).declaration();
@@ -3832,17 +3811,17 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_EqualsUnionTypeWithSet (
+	boolean o_EqualsEnumerationWithSet (
 		final @NotNull AvailObject object,
 		final AvailObject aSet)
 	{
-		return o_Traversed(object).equalsUnionTypeWithSet(aSet);
+		return o_Traversed(object).equalsEnumerationWithSet(aSet);
 	}
 
 	@Override
-	boolean o_IsAbstractUnionType (final AvailObject object)
+	boolean o_IsEnumeration (final AvailObject object)
 	{
-		return o_Traversed(object).isAbstractUnionType();
+		return o_Traversed(object).isEnumeration();
 	}
 
 	@Override
@@ -3854,11 +3833,11 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_AbstractUnionTypeIncludesInstance (
+	boolean o_EnumerationIncludesInstance (
 		final @NotNull AvailObject object,
 		final AvailObject potentialInstance)
 	{
-		return o_Traversed(object).abstractUnionTypeIncludesInstance(
+		return o_Traversed(object).enumerationIncludesInstance(
 			potentialInstance);
 	}
 
@@ -3892,17 +3871,17 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_EqualsUnionMeta (
+	boolean o_EqualsEnumerationType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
-		return o_Traversed(object).equalsUnionMeta(another);
+		return o_Traversed(object).equalsEnumerationType(another);
 	}
 
 	@Override
-	boolean o_IsUnionMeta (final @NotNull AvailObject object)
+	boolean o_IsEnumerationType (final @NotNull AvailObject object)
 	{
-		return o_Traversed(object).isUnionMeta();
+		return o_Traversed(object).isEnumerationType();
 	}
 
 	@Override
@@ -4052,8 +4031,50 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_PojoSelfType (final @NotNull AvailObject object)
+	@NotNull AvailObject o_PojoSelfType (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).pojoSelfType();
+	}
+
+	@Override
+	@NotNull AvailObject o_JavaClass (final @NotNull AvailObject object)
+	{
+		return o_Traversed(object).javaClass();
+	}
+
+	@Override
+	boolean o_IsShort (final @NotNull AvailObject object)
+	{
+		return o_Traversed(object).isShort();
+	}
+
+	@Override
+	int o_ExtractShort (final @NotNull AvailObject object)
+	{
+		return o_Traversed(object).extractShort();
+	}
+
+	@Override
+	boolean o_IsFloat (final @NotNull AvailObject object)
+	{
+		return o_Traversed(object).isFloat();
+	}
+
+	@Override
+	boolean o_IsDouble (final @NotNull AvailObject object)
+	{
+		return o_Traversed(object).isDouble();
+	}
+
+	@Override
+	@NotNull AvailObject o_RawPojo (final @NotNull AvailObject object)
+	{
+		return o_Traversed(object).rawPojo();
+	}
+
+	@Override
+	boolean o_IsPojo (final @NotNull AvailObject object)
+	{
+		return o_Traversed(object).isPojo();
 	}
 }

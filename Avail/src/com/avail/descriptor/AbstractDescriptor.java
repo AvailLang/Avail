@@ -1508,12 +1508,12 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param aUnionMeta
+	 * @param anEnumerationType
 	 * @return
 	 */
-	abstract boolean o_IsSupertypeOfUnionMeta (
+	abstract boolean o_IsSupertypeOfEnumerationType (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aUnionMeta);
+		final @NotNull AvailObject anEnumerationType);
 
 	/**
 	 * @param object
@@ -4377,31 +4377,9 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param expressionsTuple
-	 */
-	abstract void o_ExpressionsTuple (
-		final @NotNull AvailObject object,
-		AvailObject expressionsTuple);
-
-	/**
-	 * @param object
 	 * @return
 	 */
 	abstract AvailObject o_ExpressionsTuple (AvailObject object);
-
-	/**
-	 * @param object
-	 * @param tupleType
-	 */
-	abstract void o_TupleType (
-		final @NotNull AvailObject object,
-		AvailObject tupleType);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	abstract AvailObject o_TupleType (AvailObject object);
 
 	/**
 	 * @param object
@@ -4681,7 +4659,7 @@ public abstract class AbstractDescriptor
 	 * @param aSet
 	 * @return
 	 */
-	boolean o_EqualsUnionTypeWithSet (
+	boolean o_EqualsEnumerationWithSet (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aSet)
 	{
@@ -4692,7 +4670,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract boolean o_IsAbstractUnionType (
+	abstract boolean o_IsEnumeration (
 		final @NotNull AvailObject object);
 
 	/**
@@ -4709,7 +4687,7 @@ public abstract class AbstractDescriptor
 	 * @param potentialInstance
 	 * @return
 	 */
-	abstract boolean o_AbstractUnionTypeIncludesInstance (
+	abstract boolean o_EnumerationIncludesInstance (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject potentialInstance);
 
@@ -4750,7 +4728,7 @@ public abstract class AbstractDescriptor
 	 * @param another
 	 * @return
 	 */
-	abstract boolean o_EqualsUnionMeta (
+	abstract boolean o_EqualsEnumerationType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another);
 
@@ -4758,7 +4736,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract boolean o_IsUnionMeta (final @NotNull AvailObject object);
+	abstract boolean o_IsEnumerationType (final @NotNull AvailObject object);
 
 	/**
 	 * @param object
@@ -4920,4 +4898,47 @@ public abstract class AbstractDescriptor
 	 */
 	abstract @NotNull AvailObject o_PojoSelfType (
 		final @NotNull AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract @NotNull AvailObject o_JavaClass (
+		final @NotNull AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract boolean o_IsShort (final @NotNull AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract int o_ExtractShort (final @NotNull AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract boolean o_IsFloat (final @NotNull AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract boolean o_IsDouble (final @NotNull AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract @NotNull AvailObject o_RawPojo (final @NotNull AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract boolean o_IsPojo (final @NotNull AvailObject object);
 }

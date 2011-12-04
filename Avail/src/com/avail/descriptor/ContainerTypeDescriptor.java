@@ -302,17 +302,17 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * The most general {@linkplain ReadWriteContainerTypeDescriptor union
-	 * metatype}.
+	 * The most general {@linkplain ReadWriteContainerTypeDescriptor container
+	 * type}.
 	 */
 	private static AvailObject mostGeneralType;
 
 	/**
 	 * Answer the most general {@linkplain ReadWriteContainerTypeDescriptor
-	 * union metatype}.
+	 * container type}.
 	 *
 	 * @return The most general {@linkplain ReadWriteContainerTypeDescriptor
-	 *         union metatype}.
+	 *         container type}.
 	 */
 	public static @NotNull AvailObject mostGeneralType ()
 	{

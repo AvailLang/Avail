@@ -32,6 +32,7 @@
 
 package com.avail.exceptions;
 
+import java.lang.reflect.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
@@ -291,12 +292,29 @@ public enum AvailErrorCode
 	E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS (40),
 
 	/**
-	 * A Java {@linkplain Class class} specified by name was not found by the
-	 * runtime system.
+	 * A Java {@linkplain Class class} specified by name was either not found by
+	 * the runtime system or not available for reflection.
 	 */
-	E_JAVA_CLASS_NOT_FOUND (500);
+	E_JAVA_CLASS_NOT_AVAILABLE (500),
 
+	/**
+	 * A {@linkplain PojoTypeDescriptor pojo type} is abstract and therefore
+	 * cannot be instantiated or have a {@linkplain Constructor constructor}
+	 * bound to a {@linkplain FunctionDescriptor function}.
+	 */
+	E_POJO_TYPE_IS_ABSTRACT (501),
 
+	/**
+	 * The indicated Java {@linkplain Method method} or {@linkplain Constructor
+	 * constructor} does not exist.
+	 */
+	E_JAVA_METHOD_DOES_NOT_EXIST (503),
+
+	/**
+	 * A reflected Java {@linkplain Constructor constructor} failed to produce
+	 * a new instance for some reason.
+	 */
+	E_JAVA_CONSTRUCTOR_FAILED (503);
 
 	/** The numeric error code. */
 	private final int code;

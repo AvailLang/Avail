@@ -548,84 +548,38 @@ public abstract class Interpreter
 	}
 
 	/**
-	 * Create the one-argument failure reporting method. The only parameter is
-	 * an object that indicates why the VM should halt.
-	 *
-	 * @param failureMethodName The name of the failure method.
-	 */
-	public void bootstrapFailureMethod (
-		final @NotNull String failureMethodName)
-	{
-		assert module != null;
-		final L1InstructionWriter writer = new L1InstructionWriter();
-		writer.write(
-			new L1Instruction(
-				L1Operation.L1_doPushLiteral,
-				writer.addLiteral(NullDescriptor.nullObject())));
-		writer.argumentTypes(
-			ANY.o());
-		writer.primitiveNumber(
-			Primitive.prim256_EmergencyExit.primitiveNumber);
-		writer.returnType(BottomTypeDescriptor.bottom());
-		final AvailObject newFunction = FunctionDescriptor.create(
-			writer.compiledCode(),
-			TupleDescriptor.empty());
-		newFunction.makeImmutable();
-		final AvailObject nameTuple = ByteStringDescriptor.from(
-			failureMethodName);
-		final AvailObject realName = AtomDescriptor.create(nameTuple);
-		module.atNameAdd(nameTuple, realName);
-		module.atNewNamePut(nameTuple, realName);
-		try
-		{
-			addMethodBody(realName, newFunction);
-		}
-		catch (final SignatureException e)
-		{
-			assert false
-			: "This boostrap method should not interfere with anything";
-		}
-	}
-
-	/**
 	 * Create the two-argument defining method. The first parameter of the
 	 * method is the name, the second parameter is the {@linkplain
 	 * FunctionDescriptor block}.
 	 *
 	 * @param defineMethodName
 	 *            The name of the defining method.
-	 * @param failureMethodName
-	 *            The name of the failure method to invoke if necessary.
 	 */
 	public void bootstrapDefiningMethod (
-		final @NotNull String defineMethodName,
-		final @NotNull String failureMethodName)
+		final @NotNull String defineMethodName)
 	{
 		assert module != null;
 		final L1InstructionWriter writer = new L1InstructionWriter();
+		writer.primitiveNumber(
+			Primitive.prim253_SimpleMethodDeclaration.primitiveNumber);
 		writer.argumentTypes(
 			TupleTypeDescriptor.stringTupleType(),
 			FunctionTypeDescriptor.mostGeneralType());
-		writer.primitiveNumber(
-			Primitive.prim253_SimpleMethodDeclaration.primitiveNumber);
+		writer.returnType(TOP.o());
 		// Declare the local that holds primitive failure information.
-		final int failureLocal =
-			writer.createLocal(
-				ContainerTypeDescriptor.wrapInnerType(
-					IntegerRangeTypeDescriptor.naturalNumbers()));
+		final int failureLocal = writer.createLocal(
+			ContainerTypeDescriptor.wrapInnerType(
+				IntegerRangeTypeDescriptor.naturalNumbers()));
 		writer.write(
 			new L1Instruction(
 				L1Operation.L1_doGetLocal,
 				failureLocal));
-		final AvailObject failureImpSet = runtime.methodsAt(
-			module.newNames().mapAt(
-				ByteStringDescriptor.from(failureMethodName)));
 		writer.write(
 			new L1Instruction(
 				L1Operation.L1_doCall,
-				writer.addLiteral(failureImpSet),
+				writer.addLiteral(
+					ImplementationSetDescriptor.vmCrashImplementationSet()),
 				writer.addLiteral(BottomTypeDescriptor.bottom())));
-		writer.returnType(TOP.o());
 		final AvailObject newFunction = FunctionDescriptor.create(
 			writer.compiledCode(),
 			TupleDescriptor.empty());
@@ -661,16 +615,16 @@ public abstract class Interpreter
 		//  Define the method for extracting special objects known to the VM.
 		assert module != null;
 		final L1InstructionWriter writer = new L1InstructionWriter();
+		writer.primitiveNumber(
+			Primitive.prim240_SpecialObject.primitiveNumber);
+		writer.argumentTypes(IntegerRangeTypeDescriptor.naturalNumbers());
+		writer.returnType(ANY.o());
 		writer.write(
 			new L1Instruction(
 				L1Operation.L1_doPushLiteral,
 				writer.addLiteral(NullDescriptor.nullObject())));
-		writer.argumentTypes(IntegerRangeTypeDescriptor.naturalNumbers());
 		// Add the primitive failure value holder.
 		writer.createLocal(IntegerRangeTypeDescriptor.naturalNumbers());
-		writer.primitiveNumber(
-			Primitive.prim240_SpecialObject.primitiveNumber);
-		writer.returnType(ANY.o());
 		final AvailObject newFunction = FunctionDescriptor.create(
 			writer.compiledCode(),
 			TupleDescriptor.empty());
@@ -705,7 +659,7 @@ public abstract class Interpreter
 
 	/**
 	 * Answer the map whose sole token-component is firstPiece.  The map is from
-	 * message (cyclicType) to messageBundle.  Filter selectors based on the
+	 * message to messageBundle.  Filter selectors based on the
 	 * visibility of names in the current module.
 	 *
 	 * @param firstPiece
@@ -875,7 +829,8 @@ public abstract class Interpreter
 	 */
 	public boolean supportsPrimitive (final int ordinal)
 	{
-		return Primitive.byPrimitiveNumber(ordinal) != null;
+		final Primitive primitive = Primitive.byPrimitiveNumber(ordinal);
+		return primitive != null && !primitive.hasFlag(Flag.Private);
 	}
 
 	/**

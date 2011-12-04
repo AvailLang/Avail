@@ -2052,7 +2052,6 @@ public abstract class AbstractAvailCompiler
 			}
 			if (!dependenciesOnly)
 			{
-				String failureMethodName = null;
 				for (int index = 0; index < strings.size(); index++)
 				{
 					final AvailObject pragmaString = strings.get(index);
@@ -2072,17 +2071,9 @@ public abstract class AbstractAvailCompiler
 							+ ") must not contain internal whitespace");
 						return null;
 					}
-					if (pragmaKey.equals("bootstrapFailureMethod"))
+					if (pragmaKey.equals("bootstrapDefiningMethod"))
 					{
-						failureMethodName = pragmaValue;
-						interpreter.bootstrapFailureMethod(pragmaValue);
-					}
-					else if (pragmaKey.equals("bootstrapDefiningMethod"))
-					{
-						assert failureMethodName != null;
-						interpreter.bootstrapDefiningMethod(
-							pragmaValue,
-							failureMethodName);
+						interpreter.bootstrapDefiningMethod(pragmaValue);
 					}
 					else if (pragmaKey.equals("bootstrapSpecialObject"))
 					{

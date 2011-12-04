@@ -278,7 +278,7 @@ extends Descriptor
 	 * @param object An object.
 	 * @return A pojo.
 	 */
-	static final @NotNull Object getPojo (
+	public static final @NotNull Object getPojo (
 		final @NotNull AvailObject object)
 	{
 		pojosLock.lock();

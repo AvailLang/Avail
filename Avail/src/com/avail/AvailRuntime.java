@@ -155,7 +155,7 @@ public final class AvailRuntime
 	{
 		// Basic types
 		specialObjects[1] = ANY.o();
-		specialObjects[2] = UnionTypeDescriptor.booleanObject();
+		specialObjects[2] = EnumerationTypeDescriptor.booleanObject();
 		specialObjects[3] = CHARACTER.o();
 		specialObjects[4] = FunctionTypeDescriptor.mostGeneralType();
 		specialObjects[5] = FunctionTypeDescriptor.meta();
@@ -175,7 +175,7 @@ public final class AvailRuntime
 		specialObjects[18] = IntegerRangeTypeDescriptor.meta();
 		specialObjects[19] = MapTypeDescriptor.meta();
 		specialObjects[20] = META.o();
-		specialObjects[21] = UnionMetaDescriptor.mostGeneralType();
+		specialObjects[21] = EnumerationMetaDescriptor.mostGeneralType();
 		specialObjects[22] = ObjectTypeDescriptor.mostGeneralType();
 		specialObjects[23] = ObjectTypeDescriptor.meta();
 		//24 (PRIMITIVE_TYPE)

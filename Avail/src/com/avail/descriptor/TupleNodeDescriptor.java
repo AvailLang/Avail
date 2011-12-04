@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.descriptor.TupleNodeDescriptor.ObjectSlots.*;
 import java.util.*;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
@@ -67,54 +68,26 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 		TUPLE_TYPE
 	}
 
-
-	/**
-	 * Setter for field expressionsTuple.
-	 */
-	@Override @AvailMethod
-	void o_ExpressionsTuple (
-		final @NotNull AvailObject object,
-		final AvailObject expressionsTuple)
+	@Override
+	public boolean allowsImmutableToMutableReferenceInField (
+		final @NotNull AbstractSlotsEnum e)
 	{
-		object.objectSlotPut(ObjectSlots.EXPRESSIONS_TUPLE, expressionsTuple);
+		return e == TUPLE_TYPE;
 	}
 
 	/**
 	 * Getter for field expressionsTuple.
 	 */
 	@Override @AvailMethod
-	AvailObject o_ExpressionsTuple (
-		final @NotNull AvailObject object)
+	AvailObject o_ExpressionsTuple (final @NotNull AvailObject object)
 	{
 		return object.objectSlot(ObjectSlots.EXPRESSIONS_TUPLE);
 	}
 
-	/**
-	 * Setter for field tupleType.
-	 */
-	@Override @AvailMethod
-	void o_TupleType (
-		final @NotNull AvailObject object,
-		final AvailObject tupleType)
-	{
-		object.objectSlotPut(ObjectSlots.TUPLE_TYPE, tupleType);
-	}
-
-	/**
-	 * Getter for field tupleType.
-	 */
-	@Override @AvailMethod
-	AvailObject o_TupleType (
-		final @NotNull AvailObject object)
-	{
-		return object.objectSlot(ObjectSlots.TUPLE_TYPE);
-	}
-
-
 	@Override @AvailMethod
 	AvailObject o_ExpressionType (final AvailObject object)
 	{
-		AvailObject tupleType = object.tupleType();
+		AvailObject tupleType = object.objectSlot(TUPLE_TYPE);
 		if (tupleType.equalsNull())
 		{
 			final AvailObject expressionsTuple = object.expressionsTuple();
@@ -136,7 +109,7 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 				TupleDescriptor.fromCollection(types),
 				BottomTypeDescriptor.bottom());
 			tupleType.makeImmutable();
-			object.tupleType(tupleType);
+			object.objectSlotPut(TUPLE_TYPE, tupleType);
 		}
 		return tupleType;
 	}
@@ -188,7 +161,7 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 				aBlock.value(expressions.tupleAt(i)),
 				true);
 		}
-		object.expressionsTuple(expressions);
+		object.objectSlotPut(EXPRESSIONS_TUPLE, expressions);
 	}
 
 
@@ -257,8 +230,8 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 	public static AvailObject newExpressions (final AvailObject expressions)
 	{
 		final AvailObject instance = mutable().create();
-		instance.expressionsTuple(expressions);
-		instance.tupleType(NullDescriptor.nullObject());
+		instance.objectSlotPut(EXPRESSIONS_TUPLE, expressions);
+		instance.objectSlotPut(TUPLE_TYPE, NullDescriptor.nullObject());
 		return instance;
 	}
 

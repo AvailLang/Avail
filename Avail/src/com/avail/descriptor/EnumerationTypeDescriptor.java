@@ -1,5 +1,5 @@
 /**
- * descriptor/UnionTypeDescriptor.java
+ * descriptor/EnumerationTypeDescriptor.java
  * Copyright (c) 2011, Mark van Gulik.
  * All rights reserved.
  *
@@ -37,42 +37,42 @@ import java.util.List;
 import com.avail.annotations.*;
 
 /**
- * My instances are called <em>instance union types</em>, or just union types.
- * This descriptor family is used for union types with two or more instances
- * (i.e., union types for which two or more elements survive canonicalization).
- * For the case of one instance, see {@link InstanceTypeDescriptor}, and for the
- * case of zero instances, see {@link BottomTypeDescriptor}.
+ * My instances are called <em>enumerations</em>. This descriptor family is
+ * used for enumerations with two or more instances (i.e., enumerations for
+ * which two or more elements survive canonicalization). For the case of one
+ * instance, see {@link InstanceTypeDescriptor}, and for the case of zero
+ * instances, see {@link BottomTypeDescriptor}.
  *
  * <p>
- * A union type is created from a set of objects that are considered instances
- * of the resulting type.  For example, Avail {@linkplain #booleanObject()
- * booleans} are simply a union type for the instances representing {@linkplain
- * AtomDescriptor#trueObject() true} and {@linkplain
- * AtomDescriptor#falseObject() false}.  This flexibility allows an
- * enumeration mechanism simply not available in other programming languages.
- * In particular, it allows one to define an enumeration (a union type), then
- * define another enumeration with a membership that overlaps the first
- * enumeration.  The subtype relationship mimics the subset relationship of the
- * union types' membership sets.
+ * An enumeration is created from a set of objects that are considered instances
+ * of the resulting type.  For example, Avail's {@linkplain #booleanObject()
+ * boolean type} is simply an enumeration whose instances are {@linkplain
+ * AtomDescriptor atoms} representing {@linkplain AtomDescriptor#trueObject()
+ * true} and {@linkplain AtomDescriptor#falseObject() false}.  This flexibility
+ * allows an enumeration mechanism simply not available in other programming
+ * languages. In particular, it allows one to define enumerations whose
+ * memberships overlap.  The subtype relationship mimics the subset relationship
+ * of the enumerations' membership sets.
  * </p>
  *
  * <p>
- * Because of metacovariance and the useful properties it bestows, unions that
- * contain a type as a member (i.e., that type is an instance of the union) also
- * automatically include all subtypes as members.  Thus, a union type whose
- * instances are {5, cheese, {@linkplain
- * TupleTypeDescriptor#mostGeneralType() tuple}} also has the type
- * {@linkplain TupleTypeDescriptor#stringTupleType() string} as a member (string
- * being one of the many subtypes of tuple).  This condition ensures that union
- * types satisfy metacovariance, which states that types' types vary the same
- * way as the types: <span style="border-width:thin; border-style:solid"><nobr>
+ * Because of metacovariance and the useful properties it bestows, enumerations
+ * that contain a type as a member (i.e., that type is an instance of the union)
+ * also automatically include all subtypes as members.  Thus, an enumeration
+ * whose instances are {5, "cheese", {@linkplain
+ * TupleTypeDescriptor#mostGeneralType() tuple}} also has the type {@linkplain
+ * TupleTypeDescriptor#stringTupleType() string} as a member (string being one
+ * of the many subtypes of tuple).  This condition ensures that enumerations
+ * satisfy metacovariance, which states that types' types vary the same way as
+ * the types: <span style="border-width:thin; border-style:solid"><nobr>
  * &forall;<sub>x,y&isin;T</sub>&thinsp;(x&sube;y &rarr;
  * T(x)&sube;T(y))</nobr></span>.
  * </p>
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
-public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
+public class EnumerationTypeDescriptor
+extends AbstractEnumerationTypeDescriptor
 {
 	/**
 	 * The layout of object slots for my instances.
@@ -81,15 +81,15 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 	{
 		/**
 		 * The set of {@linkplain AvailObject objects} for which I am the
-		 * {@linkplain InstanceTypeDescriptor instance type}. If any of the
-		 * objects are types, then their subtypes are also automatically members
-		 * of this union type.
+		 * {@linkplain EnumerationTypeDescriptor enumeration}. If any of the
+		 * objects are {@linkplain TypeDescriptor types}, then their subtypes
+		 * are also automatically members of this enumeration.
 		 */
 		INSTANCES,
 
 		/**
 		 * Either {@linkplain NullDescriptor#nullObject() the null object} or
-		 * this union type's nearest superkind (i.e., the nearest type that
+		 * this enumeration's nearest superkind (i.e., the nearest type that
 		 * isn't a union}.
 		 */
 		CACHED_SUPERKIND
@@ -99,11 +99,11 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 	 * Extract my set of instances. If any object is itself a type then all of
 	 * its subtypes are automatically instances, but they're not returned by
 	 * this method. Also, any object that's a type and has a supertype in this
-	 * set will have been removed during creation of this union type.
+	 * set will have been removed during creation of this enumeration.
 	 *
 	 * @param object
-	 *            The union type for which to extract the instances.
-	 * @return The instances of this union type.
+	 *            The enumeration for which to extract the instances.
+	 * @return The instances of this enumeration.
 	 */
 	static final @NotNull
 	AvailObject getInstances (final @NotNull AvailObject object)
@@ -113,11 +113,11 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 
 	/**
 	 * Answer my nearest superkind (the most specific supertype of me that isn't
-	 * also a union type).
+	 * also an {@linkplain AbstractEnumerationTypeDescriptor enumeration}).
 	 *
 	 * @param object
-	 *            A union type.
-	 * @return The kind closest to the given union type.
+	 *            An enumeration.
+	 * @return The kind closest to the given enumeration.
 	 */
 	static final @NotNull
 	AvailObject getSuperkind (final @NotNull AvailObject object)
@@ -170,7 +170,7 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 			return;
 		}
 		// Default printing.
-		aStream.append("UnionType of ");
+		aStream.append("enum of ");
 		object.instances().printOnAvoidingIndent(
 			aStream,
 			recursionList,
@@ -191,7 +191,7 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 		final @NotNull AvailObject another)
 	{
 		final boolean equal = another
-			.equalsUnionTypeWithSet(getInstances(object));
+			.equalsEnumerationWithSet(getInstances(object));
 		if (equal)
 		{
 			another.becomeIndirectionTo(object);
@@ -200,7 +200,7 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsUnionTypeWithSet (
+	boolean o_EqualsEnumerationWithSet (
 		final @NotNull AvailObject object,
 		final AvailObject aSet)
 	{
@@ -229,15 +229,17 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 	}
 
 	/**
-	 * Compute the type intersection of the object which is a union type, and
-	 * the argument, which may or may not be a union type (but must be a type).
+	 * Compute the type intersection of the object, which is an {@linkplain
+	 * EnumerationTypeDescriptor enumeration}, and
+	 * the argument, which may or may not be an enumeration (but must be a
+	 * {@linkplain TypeDescriptor type}).
 	 *
 	 * @param object
-	 *            A union type.
+	 *            An enumeration.
 	 * @param another
 	 *            Another type.
-	 * @return The most general type that is a subtype of both object and
-	 *         another.
+	 * @return The most general type that is a subtype of both {@code object}
+	 *         and {@code another}.
 	 */
 	final @NotNull
 	AvailObject computeIntersectionWith (
@@ -247,10 +249,10 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 		assert another.isType();
 		AvailObject set = SetDescriptor.empty();
 		final AvailObject elements = object.instances();
-		if (another.isAbstractUnionType())
+		if (another.isEnumeration())
 		{
-			// Create a new union type containing all non-type elements that are
-			// simultaneously present in object and another, plus the type
+			// Create a new enumeration containing all non-type elements that
+			// are simultaneously present in object and another, plus the type
 			// intersections of all pairs of types in the product of the sets.
 			// This should even correctly deal with bottom as an element.
 			final AvailObject otherElements = another.instances();
@@ -296,30 +298,32 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 				}
 			}
 		}
-		return AbstractUnionTypeDescriptor.withInstances(set);
+		return AbstractEnumerationTypeDescriptor.withInstances(set);
 	}
 
 	/**
-	 * Compute the type union of the object which is a union type, and the
-	 * argument, which may or may not be a union type (but must be a type).
+	 * Compute the type union of the object, which is an {@linkplain
+	 * EnumerationTypeDescriptor enumeration}, and the argument, which may or
+	 * may not be an enumeration (but must be a {@linkplain TypeDescriptor
+	 * type}).
 	 *
 	 * @param object
-	 *            A union type.
+	 *            An enumeration.
 	 * @param another
 	 *            Another type.
-	 * @return The most specific type that is a supertype of both object and
-	 *         another.
+	 * @return The most general type that is a subtype of both {@code object}
+	 *         and {@code another}.
 	 */
 	final @NotNull
 	AvailObject computeUnionWith (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
-		if (another.isAbstractUnionType())
+		if (another.isEnumeration())
 		{
-			// Create a new union type containing all elements from both union
-			// types.
-			return AbstractUnionTypeDescriptor.withInstances(
+			// Create a new enumeration containing all elements from both
+			// enumerations.
+			return AbstractEnumerationTypeDescriptor.withInstances(
 				object.instances().setUnionCanDestroy(
 					another.instances(),
 					false));
@@ -367,7 +371,7 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_AbstractUnionTypeIncludesInstance (
+	boolean o_EnumerationIncludesInstance (
 		final @NotNull AvailObject object,
 		final AvailObject potentialInstance)
 	{
@@ -443,8 +447,8 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
-		// Check if object (a union type) is a subtype of aType (should also be
-		// a type).  All members of me must also be instances of aType.
+		// Check if object (an enumeration) is a subtype of aType (should also
+		// be a type).  All members of me must also be instances of aType.
 		for (final AvailObject instance : object.instances())
 		{
 			if (!instance.isInstanceOf(aType))
@@ -597,7 +601,7 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 		final @NotNull AvailObject object,
 		final AvailObject anotherObject)
 	{
-		// A union type with a cached superkind is pretty good.
+		// An enumeration with a cached superkind is pretty good.
 		return !object.objectSlot(ObjectSlots.CACHED_SUPERKIND).equalsNull();
 	}
 
@@ -641,7 +645,7 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 						true);
 			}
 		}
-		return AbstractUnionTypeDescriptor.withInstances(complyingInstances);
+		return AbstractEnumerationTypeDescriptor.withInstances(complyingInstances);
 	}
 
 	@Override @AvailMethod
@@ -660,7 +664,7 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 						true);
 			}
 		}
-		return AbstractUnionTypeDescriptor.withInstances(complyingInstances);
+		return AbstractEnumerationTypeDescriptor.withInstances(complyingInstances);
 	}
 
 	@Override @AvailMethod
@@ -679,7 +683,7 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 						true);
 			}
 		}
-		return AbstractUnionTypeDescriptor.withInstances(complyingInstances);
+		return AbstractEnumerationTypeDescriptor.withInstances(complyingInstances);
 	}
 
 	@Override @AvailMethod
@@ -715,11 +719,11 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsUnionMeta (final @NotNull AvailObject object)
+	boolean o_IsEnumerationType (final @NotNull AvailObject object)
 	{
 		for (final AvailObject element : getInstances(object))
 		{
-			if (!element.isAbstractUnionType())
+			if (!element.isEnumeration())
 			{
 				return false;
 			}
@@ -730,12 +734,12 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 	@Override @AvailMethod
 	@NotNull AvailObject o_InnerKind (final @NotNull AvailObject object)
 	{
-		assert object.isUnionMeta();
+		assert object.isEnumerationType();
 		AvailObject kindUnion = BottomTypeDescriptor.bottom();
 		for (final AvailObject instance : getInstances(object))
 		{
 			kindUnion = kindUnion.typeUnion(
-				instance.isAbstractUnionType()
+				instance.isEnumeration()
 					? instance.computeSuperkind()
 					: instance);
 		}
@@ -743,18 +747,19 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 	}
 
 	/**
-	 * Construct a union type from a set with at least two instances.  The set
+	 * Construct an {@linkplain EnumerationTypeDescriptor enumeration} from a
+	 * {@linkplain SetDescriptor set} with at least two instances.  The set
 	 * must have already been normalized, such that at most one of the elements
-	 * is itself a type.
+	 * is itself a {@linkplain TypeDescriptor type}.
 	 *
 	 * @param normalizedSet The set of instances.
-	 * @return The resulting union type.
+	 * @return The resulting enumeration.
 	 */
 	static @NotNull AvailObject fromNormalizedSet (
 		final @NotNull AvailObject normalizedSet)
 	{
 		assert normalizedSet.setSize() > 1;
-		final AvailObject result = UnionTypeDescriptor.mutable().create();
+		final AvailObject result = EnumerationTypeDescriptor.mutable().create();
 		result.objectSlotPut(
 			ObjectSlots.INSTANCES,
 			normalizedSet.makeImmutable());
@@ -765,17 +770,16 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 	}
 
 	/**
-	 * Avail's <code>boolean</code> type, the equivalent of Java's primitive
-	 * <code>boolean</code> pseudo-type, and Java's other non-primitive boxed
-	 * {@link Boolean} class.
+	 * Avail's boolean type, the equivalent of Java's primitive {@code boolean}
+	 * pseudo-type, and Java's other non-primitive boxed {@link Boolean} class.
 	 */
 	private static AvailObject Boolean;
 
 	/**
 	 * Return Avail's boolean type.
 	 *
-	 * @return The {@linkplain UnionTypeDescriptor instance union type} that
-	 *         acts as Avail's <code>boolean</code> type.
+	 * @return The {@linkplain EnumerationTypeDescriptor enumeration} that
+	 *         acts as Avail's boolean type.
 	 */
 	public static AvailObject booleanObject ()
 	{
@@ -784,7 +788,7 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 
 	/**
 	 * Create the boolean type, which is simply an {@linkplain
-	 * UnionTypeDescriptor instance union} of {@linkplain
+	 * EnumerationTypeDescriptor instance union} of {@linkplain
 	 * AtomDescriptor#trueObject()} and {@linkplain
 	 * AtomDescriptor#falseObject()}.
 	 */
@@ -805,45 +809,45 @@ public class UnionTypeDescriptor extends AbstractUnionTypeDescriptor
 	}
 
 	/**
-	 * Construct a new {@link UnionTypeDescriptor}.
+	 * Construct a new {@link EnumerationTypeDescriptor}.
 	 *
 	 * @param isMutable
 	 *            Does the {@linkplain Descriptor descriptor} represent a
 	 *            mutable object?
 	 */
-	protected UnionTypeDescriptor (final boolean isMutable)
+	protected EnumerationTypeDescriptor (final boolean isMutable)
 	{
 		super(isMutable);
 	}
 
 	/**
-	 * The mutable {@link UnionTypeDescriptor}.
+	 * The mutable {@link EnumerationTypeDescriptor}.
 	 */
-	private final static AbstractUnionTypeDescriptor mutable = new UnionTypeDescriptor(
+	private final static AbstractEnumerationTypeDescriptor mutable = new EnumerationTypeDescriptor(
 		true);
 
 	/**
-	 * Answer the mutable {@link UnionTypeDescriptor}.
+	 * Answer the mutable {@link EnumerationTypeDescriptor}.
 	 *
-	 * @return The mutable {@link UnionTypeDescriptor}.
+	 * @return The mutable {@link EnumerationTypeDescriptor}.
 	 */
-	public static AbstractUnionTypeDescriptor mutable ()
+	public static AbstractEnumerationTypeDescriptor mutable ()
 	{
 		return mutable;
 	}
 
 	/**
-	 * The immutable {@link UnionTypeDescriptor}.
+	 * The immutable {@link EnumerationTypeDescriptor}.
 	 */
-	private final static AbstractUnionTypeDescriptor immutable = new UnionTypeDescriptor(
+	private final static AbstractEnumerationTypeDescriptor immutable = new EnumerationTypeDescriptor(
 		false);
 
 	/**
-	 * Answer the immutable {@link UnionTypeDescriptor}.
+	 * Answer the immutable {@link EnumerationTypeDescriptor}.
 	 *
-	 * @return The immutable {@link UnionTypeDescriptor}.
+	 * @return The immutable {@link EnumerationTypeDescriptor}.
 	 */
-	public static AbstractUnionTypeDescriptor immutable ()
+	public static AbstractEnumerationTypeDescriptor immutable ()
 	{
 		return immutable;
 	}

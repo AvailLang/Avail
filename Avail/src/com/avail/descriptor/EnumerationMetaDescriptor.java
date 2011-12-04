@@ -1,5 +1,5 @@
 /**
- * com.avail.descriptor/UnionMetaDescriptor.java
+ * com.avail.descriptor/EnumerationMetaDescriptor.java
  * Copyright (c) 2011, Mark van Gulik.
  * All rights reserved.
  *
@@ -37,26 +37,29 @@ import java.util.List;
 import com.avail.annotations.*;
 
 /**
- * My instances are called <em>instance union metatypes</em>, or just union
- * metatypes. Instances are parameterized on the kinds of their instances'
- * instances. For example, a union metatype over extended integer has instances
- * union type of (1, 2, 3), union type of (1, 3, 7), etc.
+ * {@code EnumerationMetaDescriptor} represents the type of {@linkplain
+ * AbstractEnumerationTypeDescriptor enumerations} (and is therefore a
+ * metatype). Instances are called <em>enumeration types</em>. Instances are
+ * parameterized on the kinds of their instances' instances. For example, an
+ * {@code enumeration type over extended integer} has instances
+ * <code>enumeration of {1, 2, 3}</code>, <code>enumeration of {1, 3, 7}</code>,
+ * etc.
  *
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
-public final class UnionMetaDescriptor
+public final class EnumerationMetaDescriptor
 extends TypeDescriptor
 {
 	/** The layout of integer slots for my instances. */
 	public enum ObjectSlots implements ObjectSlotsEnum
 	{
 		/**
-		 * The parametric kind of the {@linkplain AbstractTypeDescriptor union
-		 * metatype}. This is a kind that includes all instances of this
-		 * metatype's object instances. For example, if I am a union metatype of
-		 * [1..7], some of my instances are the union type of (1, 3, 7), the
-		 * union type of (1, 2, 3), the instance type of 7, etc.; the kind
-		 * [1..7] therefore includes all instances of these union types.
+		 * The parametric kind of the {@linkplain AbstractTypeDescriptor
+		 * enumeration type}. This is a kind that includes all instance's
+		 * instances. For example, given {@code enumeration type over [1..7]},
+		 * instances are <code>enumeration of {1, 3, 7}</code>,
+		 * <code>enumeration of {1, 2, 3}</code>, {@code 7's type}, etc.; the kind
+		 * {@code [1..7]} includes all instances of these enumerations.
 		 */
 		INNER_KIND
 	}
@@ -68,7 +71,7 @@ extends TypeDescriptor
 		final @NotNull List<AvailObject> recursionList,
 		final int indent)
 	{
-		aStream.append("UnionMeta over ");
+		aStream.append("enum type of ");
 		object.innerKind().printOnAvoidingIndent(
 			aStream, recursionList, indent);
 	}
@@ -91,19 +94,19 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
-		return another.equalsUnionMeta(object);
+		return another.equalsEnumerationType(object);
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsUnionMeta (
+	boolean o_EqualsEnumerationType (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aUnionMeta)
+		final @NotNull AvailObject anEnumerationType)
 	{
-		return object.innerKind().equals(aUnionMeta.innerKind());
+		return object.innerKind().equals(anEnumerationType.innerKind());
 	}
 
 	@Override @AvailMethod
-	boolean o_IsUnionMeta (final @NotNull AvailObject object)
+	boolean o_IsEnumerationType (final @NotNull AvailObject object)
 	{
 		return true;
 	}
@@ -113,15 +116,15 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
-		return aType.isSupertypeOfUnionMeta(object);
+		return aType.isSupertypeOfEnumerationType(object);
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSupertypeOfUnionMeta (
+	boolean o_IsSupertypeOfEnumerationType (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aUnionMeta)
+		final @NotNull AvailObject anEnumerationType)
 	{
-		return aUnionMeta.innerKind().isSubtypeOf(object.innerKind());
+		return anEnumerationType.innerKind().isSubtypeOf(object.innerKind());
 	}
 
 	@Override @AvailMethod
@@ -146,17 +149,17 @@ extends TypeDescriptor
 		}
 		if (another.equals(META.o()))
 		{
-			return UnionMetaDescriptor.over(
+			return EnumerationMetaDescriptor.of(
 				object.innerKind().typeIntersection(TYPE.o()));
 		}
-		if (another.isUnionMeta())
+		if (another.isEnumerationType())
 		{
-			if (another.isAbstractUnionType())
+			if (another.isEnumeration())
 			{
 				return InstanceTypeDescriptor.on(
 					object.innerKind().typeIntersection(another.innerKind()));
 			}
-			return UnionMetaDescriptor.over(
+			return EnumerationMetaDescriptor.of(
 				object.innerKind().typeIntersection(another.innerKind()));
 		}
 		if (another.isSubtypeOf(TYPE.o()))
@@ -172,7 +175,7 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aMeta)
 	{
-		return UnionMetaDescriptor.over(
+		return EnumerationMetaDescriptor.of(
 			object.innerKind().typeIntersection(TYPE.o()));
 	}
 
@@ -189,79 +192,78 @@ extends TypeDescriptor
 		{
 			return object;
 		}
-		if (another.isUnionMeta())
+		if (another.isEnumerationType())
 		{
-			return UnionMetaDescriptor.over(
+			return EnumerationMetaDescriptor.of(
 				object.innerKind().typeUnion(another.innerKind()));
 		}
 		return another.typeUnion(object.innerKind().kind());
 	}
 
 	/**
-	 * Construct a new {@link UnionMetaDescriptor}.
+	 * Construct a new {@link EnumerationMetaDescriptor}.
 	 *
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
 	 */
-	protected UnionMetaDescriptor (final boolean isMutable)
+	protected EnumerationMetaDescriptor (final boolean isMutable)
 	{
 		super(isMutable);
 	}
 
 	/**
 	 * The {@linkplain Descriptor descriptor} instance that describes a
-	 * mutable {@link UnionMetaDescriptor}.
+	 * mutable {@link EnumerationMetaDescriptor}.
 	 */
-	final private static @NotNull UnionMetaDescriptor mutable =
-		new UnionMetaDescriptor(true);
+	final private static @NotNull EnumerationMetaDescriptor mutable =
+		new EnumerationMetaDescriptor(true);
 
 	/**
 	 * Answer the {@linkplain Descriptor descriptor} instance that describes a
-	 * mutable union metatype.
+	 * mutable enumeration type.
 	 *
-	 * @return A {@link UnionMetaDescriptor} for mutable objects.
+	 * @return A {@link EnumerationMetaDescriptor} for mutable objects.
 	 */
-	public static @NotNull UnionMetaDescriptor mutable ()
+	public static @NotNull EnumerationMetaDescriptor mutable ()
 	{
 		return mutable;
 	}
 
 	/**
 	 * The {@linkplain Descriptor descriptor} instance that describes
-	 * an immutable {@link UnionMetaDescriptor}.
+	 * an immutable {@link EnumerationMetaDescriptor}.
 	 */
-	final private static @NotNull UnionMetaDescriptor immutable =
-		new UnionMetaDescriptor(false);
+	final private static @NotNull EnumerationMetaDescriptor immutable =
+		new EnumerationMetaDescriptor(false);
 
 	/**
 	 * Answer the {@linkplain Descriptor descriptor} instance that describes an
-	 * immutable  union metatype.
+	 * immutable enumeration type.
 	 *
-	 * @return A {@link UnionMetaDescriptor} for immutable objects.
+	 * @return A {@link EnumerationMetaDescriptor} for immutable objects.
 	 */
-	public static UnionMetaDescriptor immutable ()
+	public static EnumerationMetaDescriptor immutable ()
 	{
 		return immutable;
 	}
 
 	/**
-	 * Answer a new {@linkplain UnionMetaDescriptor union metatype} based on
-	 * the specified {@linkplain TypeDescriptor type}.
+	 * Answer a new {@linkplain EnumerationMetaDescriptor enumeration type}
+	 * based on the specified {@linkplain TypeDescriptor type}.
 	 *
 	 * @param type
 	 *        The type of the result's instances' instances. {@linkplain
-	 *        AbstractUnionTypeDescriptor Union types} are normalized to their
-	 *        superkinds.
-	 * @return A new {@linkplain UnionMetaDescriptor union metatype} over the
-	 *         specified kind.
+	 *        AbstractEnumerationTypeDescriptor Enumerations} are normalized to
+	 *        their superkinds.
+	 * @return A new enumeration type over the specified kind.
 	 */
-	public static @NotNull AvailObject over (
+	public static @NotNull AvailObject of (
 		final @NotNull AvailObject type)
 	{
 		assert type.isType();
 		type.makeImmutable();
-		final AvailObject kind = type.isAbstractUnionType()
+		final AvailObject kind = type.isEnumeration()
 			? type.computeSuperkind()
 			: type;
 		final AvailObject result = mutable().create();
@@ -269,29 +271,35 @@ extends TypeDescriptor
 		return result;
 	}
 
-	/** The most general {@linkplain UnionMetaDescriptor union metatype}. */
+	/**
+	 * The most general {@linkplain EnumerationMetaDescriptor enumeration type}.
+	 */
 	private static AvailObject mostGeneralType;
 
 	/**
-	 * Answer the most general {@linkplain UnionMetaDescriptor union metatype}.
+	 * Answer the most general {@linkplain EnumerationMetaDescriptor enumeration
+	 * type}.
 	 *
-	 * @return The most general {@linkplain UnionMetaDescriptor union metatype}.
+	 * @return The most general enumeration type.
 	 */
 	public static @NotNull AvailObject mostGeneralType ()
 	{
 		return mostGeneralType;
 	}
 
-	/** The (instance) type of the most general union metatype. */
+	/**
+	 * The {@linkplain InstanceTypeDescriptor type} of the most general
+	 * {@linkplain EnumerationMetaDescriptor enumeration type}.
+	 */
 	private static AvailObject meta;
 
 	/**
-	 * Answer the (instance) type of the most general {@linkplain
-	 * UnionMetaDescriptor union metatype}.
+	 * Answer the {@linkplain InstanceTypeDescriptor type} of the most general
+	 * {@linkplain EnumerationMetaDescriptor enumeration type}.
 	 *
 	 * @return
 	 *         The instance type containing the most general {@linkplain
-	 *         UnionMetaDescriptor union metatype}.
+	 *         EnumerationMetaDescriptor enumeration type}.
 	 */
 	public static @NotNull AvailObject meta ()
 	{
@@ -312,7 +320,7 @@ extends TypeDescriptor
 	 */
 	public static void createWellKnownObjects ()
 	{
-		mostGeneralType = over(ANY.o());
+		mostGeneralType = of(ANY.o());
 		mostGeneralType.makeImmutable();
 		meta = InstanceTypeDescriptor.on(mostGeneralType);
 		meta.makeImmutable();

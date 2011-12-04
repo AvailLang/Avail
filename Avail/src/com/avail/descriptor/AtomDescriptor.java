@@ -53,25 +53,25 @@ import com.avail.annotations.*;
  * <p>
  * Atoms fill the role of enumerations commonly found in other languages.
  * They're not the only things that can fill that role, but they're a simple way
- * to do so.  In particular, {@linkplain AbstractUnionTypeDescriptor instance
- * union types} and multi-method dispatch provide a phenomenally powerful
- * enumeration technique, when combined with atoms.  A collection of atoms, say
- * named red, green, and blue, are added to a set from which an instance union
- * type is then constructed.  Such a type has exactly three instances, the three
- * atoms.  Unlike the vast majority of languages that support enumerations,
- * Avail allows one to define another union type containing the same three
- * values plus yellow, cyan, and magenta.  The atom representing red is a member
- * of both enumerations, for example.
+ * to do so.  In particular, {@linkplain AbstractEnumerationTypeDescriptor
+ * enumerations} and multiply polymorphic method dispatch provide a phenomenally
+ * powerful technique when combined with atoms.  A collection of atoms, say
+ * named {@code red}, {@code green}, and {@code blue}, are added to a
+ * {@linkplain SetDescriptor set} from which an enumeration is then constructed.
+ * Such a type has exactly three instances: the three atoms.  Unlike the vast
+ * majority of languages that support enumerations, Avail allows one to define
+ * another enumeration containing the same three values plus {@code yellow},
+ * {@code cyan}, and {@code magenta}.  {@code red} is a member of both
+ * enumerations, for example.
  * </p>
  *
  * <p>
  * Booleans are implemented with exactly this technique, with an atom
  * representing <code>true</code> and another representing <code>false</code>.
- * The boolean type itself is merely as instance union type over these two
- * values.  The only thing special about booleans is that they are referred to
- * by the Avail virtual machine.  In fact, this very class, {@code
- * AtomDescriptor}, contains these references in {@link #TrueObject} and {@link
- * #FalseObject}.
+ * The boolean type itself is merely an enumeration of these two values.  The
+ * only thing special about booleans is that they are referenced by the Avail
+ * virtual machine.  In fact, this very class, {@code AtomDescriptor}, contains
+ * these references in {@link #TrueObject} and {@link #FalseObject}.
  * </p>
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;

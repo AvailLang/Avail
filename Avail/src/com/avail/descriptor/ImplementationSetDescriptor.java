@@ -35,9 +35,11 @@ package com.avail.descriptor;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static java.lang.Math.max;
 import java.util.*;
+import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailRejectedParseException;
 import com.avail.interpreter.*;
+import com.avail.interpreter.levelOne.*;
 import com.avail.utility.*;
 
 /**
@@ -58,6 +60,147 @@ import com.avail.utility.*;
 public class ImplementationSetDescriptor
 extends Descriptor
 {
+	/**
+	 * An {@linkplain ImplementationSetDescriptor implementation set} containing
+	 * a {@linkplain MethodSignatureDescriptor function} that invokes
+	 * {@linkplain Primitive#prim256_EmergencyExit primitive 256} (emergency
+	 * exit). Needed by some hand-built bootstrap functions.
+	 */
+	private static AvailObject vmCrashImplementationSet;
+
+	/**
+	 * Answer an {@linkplain ImplementationSetDescriptor implementation set}
+	 * containing a {@linkplain MethodSignatureDescriptor function} that
+	 * invokes {@linkplain Primitive#prim256_EmergencyExit primitive 256}
+	 * (emergency exit). Needed by some hand-built bootstrap functions.
+	 *
+	 * @return An implementation set.
+	 */
+	public static @NotNull AvailObject vmCrashImplementationSet ()
+	{
+		return vmCrashImplementationSet;
+	}
+
+	/**
+	 * Construct the {@linkplain ImplementationSetDescriptor implementation set}
+	 * for bootstrap emergency exit.
+	 *
+	 * @return An implementation set.
+	 */
+	private static @NotNull AvailObject newVMCrashImplementationSet ()
+	{
+		// Generate a function with linkage to primitive 256.
+		final L1InstructionWriter writer = new L1InstructionWriter();
+		writer.primitiveNumber(Primitive.prim256_EmergencyExit.primitiveNumber);
+		writer.argumentTypes(ANY.o());
+		writer.returnType(BottomTypeDescriptor.bottom());
+		writer.write(
+			new L1Instruction(
+				L1Operation.L1_doPushLiteral,
+				writer.addLiteral(NullDescriptor.nullObject())));
+		final AvailObject newFunction = FunctionDescriptor.create(
+			writer.compiledCode(),
+			TupleDescriptor.empty());
+		newFunction.makeImmutable();
+
+		// Create the new implementation set. Note that the underscore is
+		// essential here, as certain parts of the virtual machine (like the
+		// decompiler) use the name to figure out how many arguments a method
+		// accepts.
+		final AvailObject implSet = newImplementationSetWithName(
+			AtomDescriptor.create(ByteStringDescriptor.from("vm crash_")));
+		implSet.addImplementation(
+			MethodSignatureDescriptor.create(newFunction));
+
+		return implSet;
+	}
+
+	/**
+	 * An {@linkplain ImplementationSetDescriptor implementation set} containing
+	 * a {@linkplain MethodSignatureDescriptor function} that invokes
+	 * {@linkplain Primitive#prim256_EmergencyExit primitive 40} (function
+	 * application). Needed by some hand-built functions.
+	 */
+	private static AvailObject vmFunctionApplyImplementationSet;
+
+	/**
+	 * An {@linkplain ImplementationSetDescriptor implementation set} containing
+	 * a {@linkplain MethodSignatureDescriptor function} that invokes
+	 * {@linkplain Primitive#prim256_EmergencyExit primitive 40} (function
+	 * application). Needed by some hand-built functions.
+	 *
+	 * @return An implementation set.
+	 */
+	public static @NotNull AvailObject vmFunctionApplyImplementationSet ()
+	{
+		return vmFunctionApplyImplementationSet;
+	}
+
+	/**
+	 * Construct the {@linkplain ImplementationSetDescriptor implementation set}
+	 * for bootstrap emergency exit.
+	 *
+	 * @return An implementation set.
+	 */
+	private static @NotNull AvailObject newVMFunctionApplyImplementationSet ()
+	{
+		// Generate a function with linkage to primitive 256.
+		final L1InstructionWriter writer = new L1InstructionWriter();
+		writer.primitiveNumber(
+			Primitive.prim40_InvokeWithTuple.primitiveNumber);
+		writer.argumentTypes(
+			FunctionTypeDescriptor.mostGeneralType(),
+			TupleTypeDescriptor.mostGeneralType());
+		writer.returnType(TOP.o());
+		// Create the local for the primitive failure code.
+		final int failureLocal = writer.createLocal(
+			ContainerTypeDescriptor.wrapInnerType(
+				IntegerRangeTypeDescriptor.naturalNumbers()));
+		writer.write(
+			new L1Instruction(
+				L1Operation.L1_doGetLocal,
+				failureLocal));
+		writer.write(
+			new L1Instruction(
+				L1Operation.L1_doCall,
+				writer.addLiteral(vmCrashImplementationSet),
+				writer.addLiteral(BottomTypeDescriptor.bottom())));
+		final AvailObject newFunction = FunctionDescriptor.create(
+			writer.compiledCode(),
+			TupleDescriptor.empty());
+		newFunction.makeImmutable();
+
+		// Create the new implementation set.
+		final AvailObject implSet = newImplementationSetWithName(
+			AtomDescriptor.create(ByteStringDescriptor.from(
+				"vm function apply_(«_‡,»)")));
+		implSet.addImplementation(
+			MethodSignatureDescriptor.create(newFunction));
+
+		return implSet;
+	}
+
+	/**
+	 * Create any instances statically well-known to the {@linkplain
+	 * AvailRuntime Avail runtime system}.
+	 */
+	public static void createWellKnownObjects ()
+	{
+		vmCrashImplementationSet = newVMCrashImplementationSet();
+		vmFunctionApplyImplementationSet =
+			newVMFunctionApplyImplementationSet();
+	}
+
+	/**
+	 * Destroy or reset any instances statically well-known to the {@linkplain
+	 * AvailRuntime Avail runtime system}.
+	 */
+	public static void clearWellKnownObjects ()
+	{
+		vmCrashImplementationSet = null;
+		vmFunctionApplyImplementationSet = null;
+	}
+
 	/**
 	 * The fields that are of type {@code AvailObject}.
 	 */
@@ -1059,14 +1202,15 @@ extends Descriptor
 	}
 
 	/**
-	 * Answer a new implementation set.  Use the passed cyclicType as its name.
-	 * An implementation set is always immutable, but its implementationsTuple,
+	 * Answer a new {@linkplain ImplementationSetDescriptor implementation set}.
+	 * Use the passed {@linkplain AtomDescriptor atom} as its name. An
+	 * implementation set is always immutable, but its implementationsTuple,
 	 * privateTestingTree, and dependentsChunks can all be assigned to.
 	 *
 	 * @param messageName
-	 *            The {@link AtomDescriptor atom} acting as the message name.
+	 *            The atom acting as the message name.
 	 * @return
-	 *            A new {@link ImplementationSetDescriptor implementation set}.
+	 *            A new implementation set.
 	 */
 	public static AvailObject newImplementationSetWithName (
 		final AvailObject messageName)

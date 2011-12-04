@@ -317,7 +317,7 @@ extends TypeDescriptor
 		assert IntegerDescriptor.zero().lessOrEqual(sizeRange.lowerBound());
 		assert sizeRange.upperBound().isFinite() || !sizeRange.upperInclusive();
 
-		final AvailObject sizeRangeKind = sizeRange.isAbstractUnionType()
+		final AvailObject sizeRangeKind = sizeRange.isEnumeration()
 			? sizeRange.computeSuperkind()
 			: sizeRange;
 

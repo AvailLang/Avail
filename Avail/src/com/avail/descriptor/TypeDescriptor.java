@@ -292,9 +292,9 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSupertypeOfUnionMeta (
+	boolean o_IsSupertypeOfEnumerationType (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aUnionMeta)
+		final @NotNull AvailObject anEnumerationType)
 	{
 		return false;
 	}

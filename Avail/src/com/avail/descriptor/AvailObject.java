@@ -40,7 +40,7 @@ import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.ProcessDescriptor.ExecutionState;
 import com.avail.exceptions.ArithmeticException;
-import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.*;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
 import com.avail.visitor.*;
@@ -64,42 +64,6 @@ extends AvailObjectRepresentation
 implements Iterable<AvailObject>
 {
 	/**
-	 * Release all {@linkplain AvailObject Avail objects} statically known to
-	 * the VM.
-	 */
-	public static void clearAllWellKnownObjects ()
-	{
-		NullDescriptor.clearWellKnownObjects();
-		BottomTypeDescriptor.clearWellKnownObjects();
-		TupleDescriptor.clearWellKnownObjects();
-		BlankDescriptor.clearWellKnownObjects();
-		TypeDescriptor.clearWellKnownObjects();
-		MapDescriptor.clearWellKnownObjects();
-		ObjectTypeDescriptor.clearWellKnownObjects();
-		CharacterDescriptor.clearWellKnownObjects();
-		SetDescriptor.clearWellKnownObjects();
-		AtomDescriptor.clearWellKnownObjects();
-		UnionTypeDescriptor.clearWellKnownObjects();
-		InfinityDescriptor.clearWellKnownObjects();
-		IntegerDescriptor.clearWellKnownObjects();
-		IntegerRangeTypeDescriptor.clearWellKnownObjects();
-		FunctionTypeDescriptor.clearWellKnownObjects();
-		ContinuationTypeDescriptor.clearWellKnownObjects();
-		CompiledCodeTypeDescriptor.clearWellKnownObjects();
-		MapTypeDescriptor.clearWellKnownObjects();
-		SetTypeDescriptor.clearWellKnownObjects();
-		TupleTypeDescriptor.clearWellKnownObjects();
-		L2ChunkDescriptor.clearWellKnownObjects();
-		ContainerTypeDescriptor.clearWellKnownObjects();
-		UnionMetaDescriptor.clearWellKnownObjects();
-		ParseNodeTypeDescriptor.clearWellKnownObjects();
-		RawPojoDescriptor.clearWellKnownObjects();
-		PojoTypeDescriptor.clearWellKnownObjects();
-		PojoSelfTypeDescriptor.clearWellKnownObjects();
-		PojoDescriptor.clearWellKnownObjects();
-	}
-
-	/**
 	 * Create all Avail objects statically known to the VM.
 	 */
 	public static void createAllWellKnownObjects ()
@@ -114,7 +78,7 @@ implements Iterable<AvailObject>
 		CharacterDescriptor.createWellKnownObjects();
 		SetDescriptor.createWellKnownObjects();
 		AtomDescriptor.createWellKnownObjects();
-		UnionTypeDescriptor.createWellKnownObjects();
+		EnumerationTypeDescriptor.createWellKnownObjects();
 		InfinityDescriptor.createWellKnownObjects();
 		IntegerDescriptor.createWellKnownObjects();
 		IntegerRangeTypeDescriptor.createWellKnownObjects();
@@ -126,12 +90,51 @@ implements Iterable<AvailObject>
 		TupleTypeDescriptor.createWellKnownObjects();
 		L2ChunkDescriptor.createWellKnownObjects();
 		ContainerTypeDescriptor.createWellKnownObjects();
-		UnionMetaDescriptor.createWellKnownObjects();
+		EnumerationMetaDescriptor.createWellKnownObjects();
 		ParseNodeTypeDescriptor.createWellKnownObjects();
 		RawPojoDescriptor.createWellKnownObjects();
 		PojoTypeDescriptor.createWellKnownObjects();
 		PojoSelfTypeDescriptor.createWellKnownObjects();
 		PojoDescriptor.createWellKnownObjects();
+		ImplementationSetDescriptor.createWellKnownObjects();
+	}
+
+	/**
+	 * Release all {@linkplain AvailObject Avail objects} statically known to
+	 * the VM.
+	 */
+	public static void clearAllWellKnownObjects ()
+	{
+		Primitive.clearCachedData();
+		NullDescriptor.clearWellKnownObjects();
+		BottomTypeDescriptor.clearWellKnownObjects();
+		TupleDescriptor.clearWellKnownObjects();
+		BlankDescriptor.clearWellKnownObjects();
+		TypeDescriptor.clearWellKnownObjects();
+		MapDescriptor.clearWellKnownObjects();
+		ObjectTypeDescriptor.clearWellKnownObjects();
+		CharacterDescriptor.clearWellKnownObjects();
+		SetDescriptor.clearWellKnownObjects();
+		AtomDescriptor.clearWellKnownObjects();
+		EnumerationTypeDescriptor.clearWellKnownObjects();
+		InfinityDescriptor.clearWellKnownObjects();
+		IntegerDescriptor.clearWellKnownObjects();
+		IntegerRangeTypeDescriptor.clearWellKnownObjects();
+		FunctionTypeDescriptor.clearWellKnownObjects();
+		ContinuationTypeDescriptor.clearWellKnownObjects();
+		CompiledCodeTypeDescriptor.clearWellKnownObjects();
+		MapTypeDescriptor.clearWellKnownObjects();
+		SetTypeDescriptor.clearWellKnownObjects();
+		TupleTypeDescriptor.clearWellKnownObjects();
+		L2ChunkDescriptor.clearWellKnownObjects();
+		ContainerTypeDescriptor.clearWellKnownObjects();
+		EnumerationMetaDescriptor.clearWellKnownObjects();
+		ParseNodeTypeDescriptor.clearWellKnownObjects();
+		RawPojoDescriptor.clearWellKnownObjects();
+		PojoTypeDescriptor.clearWellKnownObjects();
+		PojoSelfTypeDescriptor.clearWellKnownObjects();
+		PojoDescriptor.clearWellKnownObjects();
+		ImplementationSetDescriptor.clearWellKnownObjects();
 	}
 
 	public static void error (final Object... args)
@@ -1311,10 +1314,9 @@ implements Iterable<AvailObject>
 			// This had better not happen, otherwise the caller has violated the
 			// intention of this method.
 			assert false;
+			error("noFailDivideCanDestroy failed!");
+			return NullDescriptor.nullObject();
 		}
-
-		error("noFailDivideCanDestroy failed!");
-		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -2492,13 +2494,14 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * @param aUnionMeta
+	 * @param anEnumerationType
 	 * @return
 	 */
-	public boolean isSupertypeOfUnionMeta (
-		final @NotNull AvailObject aUnionMeta)
+	public boolean isSupertypeOfEnumerationType (
+		final @NotNull AvailObject anEnumerationType)
 	{
-		return descriptor.o_IsSupertypeOfUnionMeta(this, aUnionMeta);
+		return descriptor.o_IsSupertypeOfEnumerationType(
+			this, anEnumerationType);
 	}
 
 	/**
@@ -2950,10 +2953,9 @@ implements Iterable<AvailObject>
 			// This had better not happen, otherwise the caller has violated the
 			// intention of this method.
 			assert false;
+			error("noFailMinusCanDestroy failed!");
+			return NullDescriptor.nullObject();
 		}
-
-		error("noFailMinusCanDestroy failed!");
-		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -3333,10 +3335,9 @@ implements Iterable<AvailObject>
 			// This had better not happen, otherwise the caller has violated the
 			// intention of this method.
 			assert false;
+			error("noFailPlusCanDestroy failed!");
+			return NullDescriptor.nullObject();
 		}
-
-		error("noFailPlusCanDestroy failed!");
-		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -4136,10 +4137,9 @@ implements Iterable<AvailObject>
 			// This had better not happen, otherwise the caller has violated the
 			// intention of this method.
 			assert false;
+			error("noFailTimesCanDestroy failed!");
+			return NullDescriptor.nullObject();
 		}
-
-		error("noFailTimesCanDestroy failed!");
-		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -4960,33 +4960,6 @@ implements Iterable<AvailObject>
 
 
 	/**
-	 * @param expressionsTuple
-	 */
-	public void expressionsTuple (final AvailObject expressionsTuple)
-	{
-		descriptor.o_ExpressionsTuple(this, expressionsTuple);
-	}
-
-
-	/**
-	 * @return
-	 */
-	public AvailObject tupleType ()
-	{
-		return descriptor.o_TupleType(this);
-	}
-
-
-	/**
-	 * @param tupleType
-	 */
-	public void tupleType (final AvailObject tupleType)
-	{
-		descriptor.o_TupleType(this, tupleType);
-	}
-
-
-	/**
 	 * @return
 	 */
 	public AvailObject declaration ()
@@ -5347,25 +5320,26 @@ implements Iterable<AvailObject>
 
 
 	/**
-	 * Determine whether the receiver is a {@linkplain
-	 * AbstractUnionTypeDescriptor union type} with the given {@linkplain
+	 * Determine whether the receiver is an {@linkplain
+	 * AbstractEnumerationTypeDescriptor enumeration} with the given {@linkplain
 	 * SetDescriptor set} of instances.
 	 *
 	 * @param aSet A set of objects.
-	 * @return Whether the receiver is a union type with the given membership.
+	 * @return Whether the receiver is an enumeration with the given
+	 *         membership.
 	 */
-	public boolean equalsUnionTypeWithSet (final AvailObject aSet)
+	public boolean equalsEnumerationWithSet (final AvailObject aSet)
 	{
-		return descriptor.o_EqualsUnionTypeWithSet(this, aSet);
+		return descriptor.o_EqualsEnumerationWithSet(this, aSet);
 	}
 
 
 	/**
 	 * @return
 	 */
-	public boolean isAbstractUnionType ()
+	public boolean isEnumeration ()
 	{
-		return descriptor.o_IsAbstractUnionType(this);
+		return descriptor.o_IsEnumeration(this);
 	}
 
 
@@ -5373,10 +5347,10 @@ implements Iterable<AvailObject>
 	 * @param availObject
 	 * @return
 	 */
-	public boolean abstractUnionTypeIncludesInstance (
+	public boolean enumerationIncludesInstance (
 		final AvailObject potentialInstance)
 	{
-		return descriptor.o_AbstractUnionTypeIncludesInstance(
+		return descriptor.o_EnumerationIncludesInstance(
 			this,
 			potentialInstance);
 	}
@@ -5393,9 +5367,9 @@ implements Iterable<AvailObject>
 
 	/**
 	 * Compute a {@linkplain TypeDescriptor type} that is an ancestor of the
-	 * receiver, but is not an {@linkplain AbstractUnionTypeDescriptor abstract
-	 * union type}.  Choose the most specific such type.  Fail if the receiver
-	 * is not itself an abstract union type.  Also fail if the receiver is
+	 * receiver, but is not an {@linkplain AbstractEnumerationTypeDescriptor
+	 * enumeration}.  Choose the most specific such type.  Fail if the
+	 * receiver is not itself an enumeration.  Also fail if the receiver is
 	 * {@linkplain BottomTypeDescriptor bottom}.
 	 *
 	 * @return The must specific non-union supertype.
@@ -5479,18 +5453,19 @@ implements Iterable<AvailObject>
 	 * @param object
 	 * @return
 	 */
-	public @NotNull boolean equalsUnionMeta (final @NotNull AvailObject object)
+	public @NotNull boolean equalsEnumerationType (
+		final @NotNull AvailObject object)
 	{
-		return descriptor.o_EqualsUnionMeta(this, object);
+		return descriptor.o_EqualsEnumerationType(this, object);
 	}
 
 
 	/**
 	 * @return
 	 */
-	public boolean isUnionMeta ()
+	public boolean isEnumerationType ()
 	{
-		return descriptor.o_IsUnionMeta(this);
+		return descriptor.o_IsEnumerationType(this);
 	}
 
 
@@ -5677,5 +5652,61 @@ implements Iterable<AvailObject>
 	public @NotNull AvailObject pojoSelfType ()
 	{
 		return descriptor.o_PojoSelfType(this);
+	}
+
+	/**
+	 * @return
+	 */
+	public @NotNull AvailObject javaClass ()
+	{
+		return descriptor.o_JavaClass(this);
+	}
+
+	/**
+	 * @return
+	 */
+	public boolean isShort ()
+	{
+		return descriptor.o_IsShort(this);
+	}
+
+	/**
+	 * @return
+	 */
+	public int extractShort ()
+	{
+		return descriptor.o_ExtractShort(this);
+	}
+
+	/**
+	 * @return
+	 */
+	public boolean isFloat ()
+	{
+		return descriptor.o_IsFloat(this);
+	}
+
+	/**
+	 * @return
+	 */
+	public boolean isDouble ()
+	{
+		return descriptor.o_IsDouble(this);
+	}
+
+	/**
+	 * @return
+	 */
+	public @NotNull AvailObject rawPojo ()
+	{
+		return descriptor.o_RawPojo(this);
+	}
+
+	/**
+	 * @return
+	 */
+	public boolean isPojo ()
+	{
+		return descriptor.o_IsPojo(this);
 	}
 }

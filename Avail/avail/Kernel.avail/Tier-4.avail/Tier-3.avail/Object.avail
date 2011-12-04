@@ -34,7 +34,7 @@ System Module "Object"
 Extends
 Uses
 	"Tier-2",
-	"UnionType"
+	"Enum"
 Names
 	"objectType", "objectMeta",
 	"Object",
@@ -262,7 +262,7 @@ Method "_->_" is [ot : objectType, key : atom |
 Restriction "_->_" is [om : objectMeta, keyT : atom type |
 	/* Require that the atom's static type be at least a union type for which
 	   all instances can be looked up in the static object type. */
-	good ::= keyT type <= unionType & [
+	good ::= keyT type <= enum & [
 		om instances as tuple all [ot : objectType |
 			keyT unsafe instances as tuple all [key : any |
 				ot as map [key]?;];];];
@@ -284,7 +284,7 @@ Method "_->_result" is [ot : objectType, key : atom |
 
 Restriction "_->_result" is [om : objectMeta, keyT : atom type |
 	good ::= cast keyT
-		into [keyU : unionType |
+		into [keyU : enum |
 			||keyU instances|| = 1 & [
 				om instance as map [keyU instance]? & [
 					om instance as map [keyU instance] <= []->any;];];]
@@ -309,7 +309,7 @@ Method "_->_" is [o : Object, key : atom |
 
 Restriction "_->_" is [ot : objectType, keyT : atom type |
 	$escape : $[objectType, atom type]->type;
-	good ::= keyT type <= unionType & [
+	good ::= keyT type <= enum & [
 		keyT not = terminates & [
 			keyT unsafe instances as tuple all [shouldBeAtom : any |
 				shouldBeAtom type <= atom;];];];
@@ -317,7 +317,7 @@ Restriction "_->_" is [ot : objectType, keyT : atom type |
 		Fail parse "No such field in object";];
 	union : type := terminates;
 	cast keyT
-		into [keyU : unionType |
+		into [keyU : enum |
 			map ::= ot as map;
 			keyU instances do [shouldBeAtom : any |
 				if map[shouldBeAtom]? then [
@@ -337,7 +337,7 @@ Method "_->_result" is [o : Object, key : atom |
 
 Restriction "_->_result" is [ot : objectType, keyT : atom type |
 	good ::= cast keyT
-		into [keyU : unionType |
+		into [keyU : enum |
 			atoms ::= keyU instances;
 			if || atoms || = 1 then [
 				exactAtom ::= atoms as tuple [1];
@@ -352,7 +352,7 @@ Restriction "_->_result" is [ot : objectType, keyT : atom type |
 	if not good then [
 		Fail parse "No such field in object";];
 	cast keyT
-		into [keyU : unionType |
+		into [keyU : enum |
 			atoms ::= keyU instances;
 			if || atoms || = 1 then [
 				exactAtom ::= atoms as tuple [1];

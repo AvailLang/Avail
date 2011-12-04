@@ -160,7 +160,7 @@ extends TypeDescriptor
 		// the index might represent a range of possible indices of the
 		// secondTupleType, depending on the spread between the first tuple
 		// type's lower and upper bounds. Compute the union of these types.
-		final AvailObject unionType =
+		final AvailObject typeUnion =
 			object.objectSlot(ObjectSlots.FIRST_TUPLE_TYPE).typeAtIndex(index);
 		int startIndex;
 		if (firstUpper.isFinite())
@@ -173,7 +173,7 @@ extends TypeDescriptor
 		}
 		final int endIndex = index - firstLower.extractInt();
 		assert endIndex >= startIndex;
-		return unionType.typeUnion(
+		return typeUnion.typeUnion(
 			object.objectSlot(ObjectSlots.SECOND_TUPLE_TYPE).unionOfTypesAtThrough(
 				startIndex, endIndex));
 	}
@@ -213,17 +213,17 @@ extends TypeDescriptor
 				return BottomTypeDescriptor.bottom();
 			}
 		}
-		AvailObject unionType =
+		AvailObject typeUnion =
 			object.objectSlot(ObjectSlots.FIRST_TUPLE_TYPE)
 				.unionOfTypesAtThrough(startIndex, endIndex);
 		final int startInSecond = startIndex - firstUpper.extractInt();
 		final int endInSecond = endIndex
 			- object.objectSlot(ObjectSlots.FIRST_TUPLE_TYPE)
 				.sizeRange().lowerBound().extractInt();
-		unionType = unionType.typeUnion(
+		typeUnion = typeUnion.typeUnion(
 			object.objectSlot(ObjectSlots.SECOND_TUPLE_TYPE)
 				.unionOfTypesAtThrough(startInSecond, endInSecond));
-		return unionType;
+		return typeUnion;
 	}
 
 	/**
@@ -320,9 +320,9 @@ extends TypeDescriptor
 		{
 			highIndexInB = b.typeTuple().tupleSize() + 1;
 		}
-		final AvailObject unionType = a.defaultType().typeUnion(
+		final AvailObject typeUnion = a.defaultType().typeUnion(
 			b.unionOfTypesAtThrough(1, highIndexInB));
-		return unionType;
+		return typeUnion;
 	}
 
 	@Override @AvailMethod

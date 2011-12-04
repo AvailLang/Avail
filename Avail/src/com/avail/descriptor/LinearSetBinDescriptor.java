@@ -130,20 +130,20 @@ extends SetBinDescriptor
 		{
 			int bitPosition = bitShift(elementObjectHash, -5 * myLevel) & 31;
 			int bitVector = bitShift(1,bitPosition);
-			AvailObject unionType = elementObject.kind();
+			AvailObject typeUnion = elementObject.kind();
 			for (int i = 1; i <= oldSize; i++)
 			{
 				final AvailObject element = object.binElementAt(i);
 				bitPosition = bitShift(element.hash(), -5 * myLevel) & 31;
 				bitVector |= bitShift(1,bitPosition);
-				unionType = unionType.typeUnion(element.kind());
+				typeUnion = typeUnion.typeUnion(element.kind());
 			}
 		final int newSize = bitCount(bitVector);
 			result = HashedSetBinDescriptor.isMutableLevel(true, myLevel)
 				.create(newSize);
 			result.binHash(0);
 			result.binSize(0);
-			result.binUnionTypeOrTop(unionType);
+			result.binUnionTypeOrTop(typeUnion);
 			result.bitVector(bitVector);
 			for (int i = 1; i <= newSize; i++)
 			{

@@ -314,12 +314,12 @@ extends TypeDescriptor
 		final int interestingLimit = leading.tupleSize() + 1;
 		final int clipStart = max(min(startIndex, interestingLimit), 1);
 		final int clipEnd = max(min(endIndex, interestingLimit), 1);
-		AvailObject unionType = object.typeAtIndex(clipStart);
+		AvailObject typeUnion = object.typeAtIndex(clipStart);
 		for (int i = clipStart + 1; i <= clipEnd; i++)
 		{
-			unionType = unionType.typeUnion(object.typeAtIndex(i));
+			typeUnion = typeUnion.typeUnion(object.typeAtIndex(i));
 		}
-		return unionType;
+		return typeUnion;
 	}
 
 	@Override @AvailMethod
@@ -701,7 +701,7 @@ extends TypeDescriptor
 		assert sizeRange.upperBound().isFinite() || !sizeRange.upperInclusive();
 		assert sizeRange.lowerBound().extractInt() >= 0;
 
-		final AvailObject sizeRangeKind = sizeRange.isAbstractUnionType()
+		final AvailObject sizeRangeKind = sizeRange.isEnumeration()
 			? sizeRange.computeSuperkind()
 			: sizeRange;
 		final int limit = min(

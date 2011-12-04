@@ -1,5 +1,5 @@
 /**
- * .../Tier-3/UnionType.avail
+ * .../Tier-3/Enum.avail
  * Copyright (c) 2011, Mark van Gulik.
  * All rights reserved.
  *
@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "UnionType"
+System Module "Enum"
 Extends
 Uses
 	"Tier-2"
@@ -39,30 +39,30 @@ Names
 	"_instance",
 	"_unsafe instances",
 	"_unsafe instance",
-	"unionType of_"
+	"enum of_"
 Body
 
 
-Method "_weak instances" is [u : unionType |
+Method "_weak instances" is [e : enum |
 	Primitive 29;
 ] : set;
 
 
-Forward "_instances" for [unionType]->set;
+Forward "_instances" for [enum]->set;
 
 
-Method "_instances" is [u : unionType |
+Method "_instances" is [e : enum |
 	Primitive 29;
 ] : set;
 
-Restriction "_instances" is [uT : unionType type |
-	cast uT into [uuT : unionType |
+Restriction "_instances" is [eT : enum type |
+	cast eT into [uuT : enum |
 		unionOfMembershipTypes : set type := terminates;
 		anyTypes : boolean := false;
 		anyNonTypes : boolean := false;
 		commonElementType : type := terminates;
 		uuT instances do [weakMembershipType : any |
-			membershipType ::= cast weakMembershipType into [t : unionType | t;];
+			membershipType ::= cast weakMembershipType into [t : enum | t;];
 			membershipType instances do [member : any |
 				cast member into [memberAsType : type |
 					commonElementType := type union of commonElementType and memberAsType;
@@ -87,7 +87,7 @@ Restriction "_instances" is [uT : unionType type |
 
 
 /*
-P29 ::= [u : unionType | Primitive 29; ] :set;
+P29 ::= [u : enum | Primitive 29; ] :set;
 A ::= any type;
 B ::= tuple type;
 C ::= new atom "C";
@@ -113,20 +113,20 @@ Print (if B then [X;] else [Y;]) instances as basic string;
 
 
 
-Method "_instance" is [u : unionType |
-	instances ::= u instances;
+Method "_instance" is [e : enum |
+	instances ::= e instances;
 	if ||instances|| not = 1 then [Crash "Too many elements in union";];
 	instances as tuple [1];
 ] : any;
 
-Restriction "_instance" is [uT : unionType type |
-	if uT = unionType then [
+Restriction "_instance" is [eT : enum type |
+	if eT = enum then [
 		any;
 	] else [
-		union : unionType := terminates;
-		cast uT into [uuT : unionType |
+		union : enum := terminates;
+		cast eT into [uuT : enum |
 			uuT instances do [weakMembershipType : any |
-				membershipType ::= cast weakMembershipType into [t : unionType | t;];
+				membershipType ::= cast weakMembershipType into [t : enum | t;];
 				union := type union of union and membershipType;];
 			union;];
 	];
@@ -134,20 +134,20 @@ Restriction "_instance" is [uT : unionType type |
 
 
 Method "_unsafe instances" is [t : type |
-	cast t into [u : unionType |
-		u instances;];
+	cast t into [e : enum |
+		e instances;];
 ] : set;
 
 
 Method "_unsafe instance" is [t : type |
-	cast t into [u : unionType |
-		u instance;];
+	cast t into [e : enum |
+		e instance;];
 ] : any;
 
 
-Method "unionType of_" is
+Method "enum of_" is
 [
 	aType : type
 |
 	Primitive 66;
-] : unionType type;
+] : enum type;

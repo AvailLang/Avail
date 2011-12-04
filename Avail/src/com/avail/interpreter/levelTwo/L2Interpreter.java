@@ -2407,7 +2407,7 @@ implements L2OperationDispatcher
 		final AvailObject expectedType = pointerAt(callerStackpIndex);
 		if (!valueObject.isInstanceOf(expectedType))
 		{
-
+			valueObject.isInstanceOf(expectedType);
 			error("Return value does not agree with expected type");
 		}
 		pointerAtPut(callerStackpIndex, valueObject);

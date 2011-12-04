@@ -98,8 +98,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (
-		final @NotNull AvailObject object)
+	int o_Hash (final @NotNull AvailObject object)
 	{
 		final int low = object.integerSlot(IntegerSlots.LOW_INT);
 		final int high = object.integerSlot(IntegerSlots.HIGH_INT);
@@ -107,15 +106,19 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_Kind (
-		final @NotNull AvailObject object)
+	@NotNull AvailObject o_Kind (final @NotNull AvailObject object)
 	{
 		return DOUBLE.o();
 	}
 
 	@Override @AvailMethod
-	double o_ExtractDouble (
-		final @NotNull AvailObject object)
+	boolean o_IsDouble (final @NotNull AvailObject object)
+	{
+		return true;
+	}
+
+	@Override @AvailMethod
+	double o_ExtractDouble (final @NotNull AvailObject object)
 	{
 		final int low = object.integerSlot(IntegerSlots.LOW_INT);
 		final int high = object.integerSlot(IntegerSlots.HIGH_INT);
@@ -133,7 +136,7 @@ extends Descriptor
 	 *            The boxed Avail {@code DoubleDescriptor double-precision
 	 *            floating point object}.
 	 */
-	public static AvailObject objectFromDouble (
+	public static AvailObject fromDouble (
 		final double aDouble)
 	{
 		final AvailObject result = mutable().create();

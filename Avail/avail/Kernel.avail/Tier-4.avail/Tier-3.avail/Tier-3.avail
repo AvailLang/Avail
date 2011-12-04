@@ -35,7 +35,7 @@ Extends
 	"Tier-2",
 	"Exception",
 	"Object",
-	"UnionType"
+	"Enum"
 Uses
 	"Test"
 Names

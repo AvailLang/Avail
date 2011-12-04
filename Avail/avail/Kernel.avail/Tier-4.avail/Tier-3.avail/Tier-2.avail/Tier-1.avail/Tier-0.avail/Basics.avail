@@ -51,7 +51,7 @@ Names
 	"set", "setType", "string",
 	"terminates", "terminatesType", "trueType", "tuple",
 	"tupleType", "type",
-	"unionType",
+	"enum",
 	"void",
 	"whole number", "natural number",
 
@@ -108,7 +108,7 @@ privateInteger                     ::= Special Object 17;
 privateIntegerType                 ::= Special Object 18;
 privateMapType                     ::= Special Object 19;
 privateMeta                        ::= Special Object 20;
-privateUnionType                   ::= Special Object 21;
+privateEnum                        ::= Special Object 21;
 privateProcess                     ::= Special Object 25;
 privateSet                         ::= Special Object 26;
 privateSetType                     ::= Special Object 27;
@@ -184,7 +184,7 @@ Method "containerType"          is [privateContainerType;];
 Method "continuationType"       is [privateContinuationType;];
 Method "terminatesType"         is [privateTerminatesType;];
 Method "type"                   is [privateType;];
-Method "unionType"              is [privateUnionType;];
+Method "enum"                   is [privateEnum;];
 
 /* And the meta-meta-types... */
 Method "meta"                   is [privateMeta;];

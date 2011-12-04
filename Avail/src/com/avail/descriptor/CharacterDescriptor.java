@@ -104,8 +104,7 @@ extends Descriptor
 	 * @return An {@link AvailObject}.
 	 */
 	@ThreadSafe
-	public static @NotNull AvailObject newImmutableCharacterWithCodePoint (
-		final int codePoint)
+	public static @NotNull AvailObject fromCodePoint (final int codePoint)
 	{
 		if (codePoint >= 0 && codePoint <= 255)
 		{

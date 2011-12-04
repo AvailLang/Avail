@@ -32,6 +32,7 @@
 
 package com.avail.interpreter.levelOne;
 
+import java.util.Arrays;
 import com.avail.annotations.NotNull;
 
 /**
@@ -81,5 +82,11 @@ public class L1Instruction
 
 		this.operation = operation;
 		this.operands = operands;
+	}
+
+	@Override
+	public String toString ()
+	{
+		return String.format("%s %s", operation, Arrays.toString(operands));
 	}
 }

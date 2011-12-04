@@ -51,6 +51,7 @@ import com.avail.descriptor.*;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.exceptions.*;
 import com.avail.exceptions.ArithmeticException;
+import com.avail.interpreter.levelOne.*;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.instruction.L2AttemptPrimitiveInstruction;
 
@@ -216,7 +217,7 @@ public enum Primitive
 	/**
 	 * <strong>Primitive 5:</strong> Compare {@linkplain
 	 * ExtendedNumberDescriptor extended integers} {@code a < b}. Answer
-	 * a {@linkplain UnionTypeDescriptor#booleanObject() boolean}.
+	 * a {@linkplain EnumerationTypeDescriptor#booleanObject() boolean}.
 	 */
 	prim5_LessThan(5, 2, CanFold, CannotFail)
 	{
@@ -239,14 +240,14 @@ public enum Primitive
 				TupleDescriptor.from(
 					IntegerRangeTypeDescriptor.extendedIntegers(),
 					IntegerRangeTypeDescriptor.extendedIntegers()),
-				UnionTypeDescriptor.booleanObject());
+				EnumerationTypeDescriptor.booleanObject());
 		}
 	},
 
 	/**
 	 * <strong>Primitive 6:</strong> Compare {@linkplain
 	 * ExtendedNumberDescriptor extended integers} {@code a <= b}. Answer
-	 * a {@linkplain UnionTypeDescriptor#booleanObject() boolean}.
+	 * a {@linkplain EnumerationTypeDescriptor#booleanObject() boolean}.
 	 */
 	prim6_LessOrEqual(6, 2, CanFold, CannotFail)
 	{
@@ -269,7 +270,7 @@ public enum Primitive
 				TupleDescriptor.from(
 					IntegerRangeTypeDescriptor.extendedIntegers(),
 					IntegerRangeTypeDescriptor.extendedIntegers()),
-				UnionTypeDescriptor.booleanObject());
+				EnumerationTypeDescriptor.booleanObject());
 		}
 	},
 
@@ -277,7 +278,7 @@ public enum Primitive
 	 * <strong>Primitive 7:</strong> Answer the {@linkplain
 	 * IntegerRangeTypeDescriptor integer range} constrained by the specified
 	 * {@linkplain ExtendedNumberDescriptor upper and lower bounds}. The
-	 * provided {@linkplain UnionTypeDescriptor#booleanObject() booleans}
+	 * provided {@linkplain EnumerationTypeDescriptor#booleanObject() booleans}
 	 * indicate whether their corresponding bounds are inclusive ({@code true})
 	 * or exclusive ({@code false}).
 	 */
@@ -307,9 +308,9 @@ public enum Primitive
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					IntegerRangeTypeDescriptor.extendedIntegers(),
-					UnionTypeDescriptor.booleanObject(),
+					EnumerationTypeDescriptor.booleanObject(),
 					IntegerRangeTypeDescriptor.extendedIntegers(),
-					UnionTypeDescriptor.booleanObject()),
+					EnumerationTypeDescriptor.booleanObject()),
 				IntegerRangeTypeDescriptor.meta());
 		}
 	},
@@ -613,7 +614,7 @@ public enum Primitive
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					ContainerTypeDescriptor.mostGeneralType()),
-				UnionTypeDescriptor.booleanObject());
+				EnumerationTypeDescriptor.booleanObject());
 		}
 	},
 
@@ -918,7 +919,7 @@ public enum Primitive
 
 	/**
 	 * <strong>Primitive 29:</strong> Obtain the instances of the specified
-	 * {@linkplain AbstractUnionTypeDescriptor union type}.
+	 * {@linkplain AbstractEnumerationTypeDescriptor enumeration}.
 	 */
 	prim29_Instances(29, 1, CanFold, CannotFail)
 	{
@@ -928,9 +929,9 @@ public enum Primitive
 			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
-			final AvailObject unionType = args.get(0);
+			final AvailObject enumeration = args.get(0);
 			return interpreter.primitiveSuccess(
-				unionType.instances());
+				enumeration.instances());
 		}
 
 		@Override
@@ -938,7 +939,7 @@ public enum Primitive
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					UnionMetaDescriptor.mostGeneralType()),
+					EnumerationMetaDescriptor.mostGeneralType()),
 				SetTypeDescriptor.mostGeneralType());
 		}
 	},
@@ -965,7 +966,7 @@ public enum Primitive
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					ANY.o()),
-				UnionMetaDescriptor.mostGeneralType());
+				EnumerationMetaDescriptor.mostGeneralType());
 		}
 	},
 
@@ -1053,7 +1054,7 @@ public enum Primitive
 				TupleDescriptor.from(
 					TYPE.o(),
 					TYPE.o()),
-				UnionTypeDescriptor.booleanObject());
+				EnumerationTypeDescriptor.booleanObject());
 		}
 	},
 
@@ -1302,7 +1303,7 @@ public enum Primitive
 	/**
 	 * <strong>Primitive 43:</strong> Invoke either the {@link
 	 * FunctionDescriptor trueBlock} or the {@code falseBlock}, depending on
-	 * {@linkplain UnionTypeDescriptor#booleanObject() aBoolean}.
+	 * {@linkplain EnumerationTypeDescriptor#booleanObject() aBoolean}.
 	 */
 	prim43_IfThenElse(43, 3, Invokes, CannotFail)
 	{
@@ -1333,7 +1334,7 @@ public enum Primitive
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					UnionTypeDescriptor.booleanObject(),
+					EnumerationTypeDescriptor.booleanObject(),
 					FunctionTypeDescriptor.create(
 						TupleDescriptor.from(),
 						TOP.o()),
@@ -1346,7 +1347,7 @@ public enum Primitive
 
 	/**
 	 * <strong>Primitive 44:</strong> Invoke the {@link FunctionDescriptor
-	 * trueBlock} if {@linkplain UnionTypeDescriptor#booleanObject() aBoolean}
+	 * trueBlock} if {@linkplain EnumerationTypeDescriptor#booleanObject() aBoolean}
 	 * is true, otherwise just answer {@linkplain NullDescriptor#nullObject()
 	 * void}.
 	 */
@@ -1375,7 +1376,7 @@ public enum Primitive
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					UnionTypeDescriptor.booleanObject(),
+					EnumerationTypeDescriptor.booleanObject(),
 					FunctionTypeDescriptor.create(
 						TupleDescriptor.from(),
 						TOP.o())),
@@ -1386,7 +1387,7 @@ public enum Primitive
 	/**
 	 * <strong>Primitive 45:</strong> Run the zero-argument {@linkplain
 	 * FunctionDescriptor function}, ignoring the leading {@linkplain
-	 * UnionTypeDescriptor#booleanObject() boolean} argument. This is used for
+	 * EnumerationTypeDescriptor#booleanObject() boolean} argument. This is used for
 	 * short-circuit evaluation.
 	 */
 	prim45_ShortCircuitHelper(45, 2, Invokes, CannotFail)
@@ -1411,11 +1412,11 @@ public enum Primitive
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					UnionTypeDescriptor.booleanObject(),
+					EnumerationTypeDescriptor.booleanObject(),
 					FunctionTypeDescriptor.create(
 						TupleDescriptor.from(),
-						UnionTypeDescriptor.booleanObject())),
-				UnionTypeDescriptor.booleanObject());
+						EnumerationTypeDescriptor.booleanObject())),
+				EnumerationTypeDescriptor.booleanObject());
 		}
 	},
 
@@ -1884,7 +1885,7 @@ public enum Primitive
 
 	/**
 	 * <strong>Primitive 60:</strong> Compare for equality. Answer a {@linkplain
-	 * UnionTypeDescriptor#booleanObject() boolean}.
+	 * EnumerationTypeDescriptor#booleanObject() boolean}.
 	 */
 	prim60_Equality(60, 2, CanFold, CannotFail)
 	{
@@ -1907,7 +1908,7 @@ public enum Primitive
 				TupleDescriptor.from(
 					ANY.o(),
 					ANY.o()),
-				UnionTypeDescriptor.booleanObject());
+				EnumerationTypeDescriptor.booleanObject());
 		}
 	},
 
@@ -2034,10 +2035,10 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 65:</strong> Create a union type from the given set
-	 * of instances.
+	 * <strong>Primitive 65:</strong> Create an {@linkplain Enumeration
+	 * enumeration} from the given {@linkplain SetDescriptor set} of instances.
 	 */
-	prim65_CreateUnionType(65, 1, CanFold, CannotFail)
+	prim65_CreateEnumeration(65, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -2046,9 +2047,9 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject instanceSet = args.get(0);
-			final AvailObject unionType =
-				AbstractUnionTypeDescriptor.withInstances(instanceSet);
-			return interpreter.primitiveSuccess(unionType);
+			final AvailObject enumeration =
+				AbstractEnumerationTypeDescriptor.withInstances(instanceSet);
+			return interpreter.primitiveSuccess(enumeration);
 		}
 
 		@Override
@@ -2057,7 +2058,7 @@ public enum Primitive
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					SetTypeDescriptor.mostGeneralType()),
-				UnionMetaDescriptor.mostGeneralType());
+				EnumerationMetaDescriptor.mostGeneralType());
 		};
 	},
 
@@ -2065,7 +2066,7 @@ public enum Primitive
 	 * <strong>Primitive 66:</strong> Create a union meta from the given inner
 	 * type.  The type will be canonized to the nearest kind.
 	 */
-	prim66_CreateUnionMeta(66, 1, CanFold, CannotFail)
+	prim66_CreateEnumerationType(66, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -2074,8 +2075,9 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject innerType = args.get(0);
-			final AvailObject unionMeta = UnionMetaDescriptor.over(innerType);
-			return interpreter.primitiveSuccess(unionMeta);
+			final AvailObject enumerationType =
+				EnumerationMetaDescriptor.of(innerType);
+			return interpreter.primitiveSuccess(enumerationType);
 		}
 
 		@Override
@@ -2084,7 +2086,7 @@ public enum Primitive
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					TYPE.o()),
-				UnionMetaDescriptor.meta());
+				EnumerationMetaDescriptor.meta());
 		};
 	},
 
@@ -2442,7 +2444,7 @@ public enum Primitive
 						ANY.o(),
 						ANY.o()),
 					ANY.o()),
-				UnionTypeDescriptor.booleanObject());
+				EnumerationTypeDescriptor.booleanObject());
 		}
 	},
 
@@ -2820,7 +2822,7 @@ public enum Primitive
 				TupleDescriptor.from(
 					SetTypeDescriptor.mostGeneralType(),
 					ANY.o()),
-				UnionTypeDescriptor.booleanObject());
+				EnumerationTypeDescriptor.booleanObject());
 		}
 	},
 
@@ -2999,7 +3001,7 @@ public enum Primitive
 				TupleDescriptor.from(
 					SetTypeDescriptor.mostGeneralType(),
 					SetTypeDescriptor.mostGeneralType()),
-				UnionTypeDescriptor.booleanObject());
+				EnumerationTypeDescriptor.booleanObject());
 		}
 	},
 
@@ -3212,8 +3214,8 @@ public enum Primitive
 			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
-			final AvailObject cyclicType = args.get(0);
-			return interpreter.primitiveSuccess(cyclicType.name());
+			final AvailObject atom = args.get(0);
+			return interpreter.primitiveSuccess(atom.name());
 		}
 
 		@Override
@@ -3253,7 +3255,7 @@ public enum Primitive
 				TupleDescriptor.from(
 					ATOM.o(),
 					ATOM.o()),
-				UnionTypeDescriptor.booleanObject());
+				EnumerationTypeDescriptor.booleanObject());
 		}
 	},
 
@@ -3886,7 +3888,7 @@ public enum Primitive
 				TupleDescriptor.from(
 					TupleTypeDescriptor.meta(),
 					TupleTypeDescriptor.meta()),
-				UnionTypeDescriptor.booleanObject());
+				EnumerationTypeDescriptor.booleanObject());
 		}
 	},
 
@@ -3987,7 +3989,7 @@ public enum Primitive
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType(),
-					UnionTypeDescriptor.booleanObject()),
+					EnumerationTypeDescriptor.booleanObject()),
 				ATOM.o());
 		}
 	},
@@ -4502,7 +4504,7 @@ public enum Primitive
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType()),
-				UnionTypeDescriptor.booleanObject());
+				EnumerationTypeDescriptor.booleanObject());
 		}
 	},
 
@@ -4541,7 +4543,7 @@ public enum Primitive
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType()),
-				UnionTypeDescriptor.booleanObject());
+				EnumerationTypeDescriptor.booleanObject());
 		}
 	},
 
@@ -4580,7 +4582,7 @@ public enum Primitive
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType()),
-				UnionTypeDescriptor.booleanObject());
+				EnumerationTypeDescriptor.booleanObject());
 		}
 	},
 
@@ -4619,7 +4621,7 @@ public enum Primitive
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType()),
-				UnionTypeDescriptor.booleanObject());
+				EnumerationTypeDescriptor.booleanObject());
 		}
 	},
 
@@ -4982,8 +4984,9 @@ public enum Primitive
 
 			if (primitiveInt != 0)
 			{
-				final Primitive prim = Primitive.byPrimitiveNumber(primitiveInt);
-				if (prim == null)
+				final Primitive prim = Primitive.byPrimitiveNumber(
+					primitiveInt);
+				if (prim == null || prim.hasFlag(Private))
 				{
 					return interpreter.primitiveFailure(
 						E_INVALID_PRIMITIVE_NUMBER);
@@ -5397,7 +5400,7 @@ public enum Primitive
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					MESSAGE_BUNDLE.o()),
-				UnionTypeDescriptor.booleanObject());
+				EnumerationTypeDescriptor.booleanObject());
 		}
 	},
 
@@ -5771,7 +5774,7 @@ public enum Primitive
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					IntegerRangeTypeDescriptor.unsignedShorts()),
-				UnionTypeDescriptor.booleanObject());
+				EnumerationTypeDescriptor.booleanObject());
 		}
 	},
 
@@ -5930,16 +5933,16 @@ public enum Primitive
 				AvailObject disallowed = exclusionsTuple;
 				for (int i = disallowed.tupleSize(); i >= 1; i--)
 				{
-					AvailObject setOfCyclics = SetDescriptor.empty();
+					AvailObject setOfAtoms = SetDescriptor.empty();
 					for (final AvailObject string : exclusionsTuple.tupleAt(i))
 					{
-						setOfCyclics = setOfCyclics.setWithElementCanDestroy(
+						setOfAtoms = setOfAtoms.setWithElementCanDestroy(
 							interpreter.lookupName(string),
 							true);
 					}
 					disallowed = disallowed.tupleAtPuttingCanDestroy(
 						i,
-						setOfCyclics,
+						setOfAtoms,
 						true);
 				}
 				disallowed.makeImmutable();
@@ -6452,7 +6455,7 @@ public enum Primitive
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(),
-				UnionTypeDescriptor.booleanObject());
+				EnumerationTypeDescriptor.booleanObject());
 		}
 	},
 
@@ -6591,7 +6594,7 @@ public enum Primitive
 	/**
 	 * <strong>Primitive 284:</strong> Compare {@linkplain FloatDescriptor
 	 * float} {@code a} < float {@code b}. Answers a {@linkplain
-	 * UnionTypeDescriptor#booleanObject() boolean}.
+	 * EnumerationTypeDescriptor#booleanObject() boolean}.
 	 */
 	prim284_FloatLessThan(284, 2, CanFold, CannotFail)
 	{
@@ -6615,14 +6618,14 @@ public enum Primitive
 				TupleDescriptor.from(
 					FLOAT.o(),
 					FLOAT.o()),
-				UnionTypeDescriptor.booleanObject());
+				EnumerationTypeDescriptor.booleanObject());
 		}
 	},
 
 	/**
 	 * <strong>Primitive 285:</strong> Compare {@linkplain FloatDescriptor
 	 * float} {@code a} <= float {@code b}. Answers a {@linkplain
-	 * UnionTypeDescriptor#booleanObject() boolean}.
+	 * EnumerationTypeDescriptor#booleanObject() boolean}.
 	 */
 	prim285_FloatLessOrEqual(285, 2, CanFold, CannotFail)
 	{
@@ -6646,7 +6649,7 @@ public enum Primitive
 				TupleDescriptor.from(
 					FLOAT.o(),
 					FLOAT.o()),
-				UnionTypeDescriptor.booleanObject());
+				EnumerationTypeDescriptor.booleanObject());
 		}
 	},
 
@@ -6842,7 +6845,7 @@ public enum Primitive
 				}
 			}
 			return interpreter.primitiveSuccess(
-				FloatDescriptor.objectFromFloat(f));
+				FloatDescriptor.fromFloat(f));
 		}
 
 		@Override
@@ -7024,7 +7027,7 @@ public enum Primitive
 	/**
 	 * <strong>Primitive 314:</strong> Compare {@linkplain DoubleDescriptor
 	 * double} {@code a < b}. Answers a {@linkplain
-	 * UnionTypeDescriptor#booleanObject() boolean}.
+	 * EnumerationTypeDescriptor#booleanObject() boolean}.
 	 */
 	prim314_DoubleLessThan(314, 2, CanFold, CannotFail)
 	{
@@ -7048,14 +7051,14 @@ public enum Primitive
 				TupleDescriptor.from(
 					DOUBLE.o(),
 					DOUBLE.o()),
-				UnionTypeDescriptor.booleanObject());
+				EnumerationTypeDescriptor.booleanObject());
 		}
 	},
 
 	/**
 	 * <strong>Primitive 315:</strong> Compare {@linkplain DoubleDescriptor
 	 * double} {@code a <= b}. Answers a {@linkplain
-	 * UnionTypeDescriptor#booleanObject() boolean}.
+	 * EnumerationTypeDescriptor#booleanObject() boolean}.
 	 */
 	prim315_DoubleLessOrEqual(315, 2, CanFold, CannotFail)
 	{
@@ -7079,7 +7082,7 @@ public enum Primitive
 				TupleDescriptor.from(
 					DOUBLE.o(),
 					DOUBLE.o()),
-				UnionTypeDescriptor.booleanObject());
+				EnumerationTypeDescriptor.booleanObject());
 		}
 	},
 
@@ -7280,7 +7283,7 @@ public enum Primitive
 				d = neg ? -d : d;
 			}
 			return interpreter.primitiveSuccess(
-				DoubleDescriptor.objectFromDouble(d));
+				DoubleDescriptor.fromDouble(d));
 		}
 
 		@Override
@@ -7369,7 +7372,7 @@ public enum Primitive
 			assert args.size() == 1;
 			final AvailObject codePoint = args.get(0);
 			return interpreter.primitiveSuccess(
-				CharacterDescriptor.newImmutableCharacterWithCodePoint(
+				CharacterDescriptor.fromCodePoint(
 					codePoint.extractInt()));
 		}
 
@@ -7388,7 +7391,7 @@ public enum Primitive
 	 * Extract the first literal from the {@linkplain CompiledCodeDescriptor
 	 * compiled code} that the interpreter has squirreled away for this purpose.
 	 */
-	prim340_PushConstant(340, -1, SpecialReturnConstant, CannotFail)
+	prim340_PushConstant(340, -1, SpecialReturnConstant, Private, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -7698,74 +7701,82 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject className = args.get(0);
 			final AvailObject classParameters = args.get(1);
+
+			final String nativeClassName = className.asNativeString();
+			if (nativeClassName.startsWith("com.avail"))
+			{
+				return interpreter.primitiveFailure(E_JAVA_CLASS_NOT_AVAILABLE);
+			}
+
+			final Class<?> rawClass;
 			try
 			{
 				// Look up the raw Java class using the interpreter's runtime's
 				// class loader.
-				final Class<?> rawClass = Class.forName(
+				rawClass = Class.forName(
 					className.asNativeString(),
 					true,
 					interpreter.runtime().classLoader());
-
-				// Check that the correct number of type parameters have been
-				// supplied.
-				final TypeVariable<?>[] typeVars = rawClass.getTypeParameters();
-				if (typeVars.length != classParameters.tupleSize())
-				{
-					return interpreter.primitiveFailure(
-						E_INCORRECT_NUMBER_OF_ARGUMENTS);
-				}
-
-				// Use real pojo self types in place of the special atom type.
-				AvailObject realParameters =
-					classParameters.copyAsMutableObjectTuple();
-				for (int i = 1; i <= classParameters.tupleSize(); i++)
-				{
-					final AvailObject originalParameter =
-						classParameters.tupleAt(i);
-					final AvailObject realParameter;
-					if (originalParameter.equals(
-						PojoSelfTypeDescriptor.selfType()))
-					{
-						realParameter = PojoSelfTypeDescriptor.create(rawClass);
-					}
-					else
-					{
-						realParameter = originalParameter.makeImmutable();
-					}
-					realParameters = realParameters.tupleAtPuttingCanDestroy(
-						i, realParameter, true);
-				}
-
-				// Ensure that each type parameter is a subtype of the
-				// corresponding type variable's computed upper bound, i.e. the
-				// intersection of its upper bounds as an Avail pojo type.
-				final Map<Class<?>, AvailObject> rawTypeMap =
-					new HashMap<Class<?>, AvailObject>(typeVars.length);
-				rawTypeMap.put(
-					Object.class, RawPojoDescriptor.rawObjectClass());
-				final Map<TypeVariable<?>, AvailObject> typeVarMap =
-					new HashMap<TypeVariable<?>, AvailObject>(typeVars.length);
-				for (int i = 0; i < typeVars.length; i++)
-				{
-					final TypeVariable<?> var = typeVars[i];
-					final AvailObject upperBound =
-						PojoTypeDescriptor.upperBoundFor(
-							var, typeVarMap, rawTypeMap);
-					final AvailObject param = realParameters.tupleAt(i + 1);
-					if (!param.isSubtypeOf(upperBound))
-					{
-						return interpreter.primitiveFailure(
-							E_INCORRECT_ARGUMENT_TYPE);
-					}
-				}
-				return interpreter.primitiveSuccess(
-					PojoTypeDescriptor.create(rawClass, realParameters));
 			}
 			catch (final ClassNotFoundException e)
 			{
-				return interpreter.primitiveFailure(E_JAVA_CLASS_NOT_FOUND);
+				return interpreter.primitiveFailure(E_JAVA_CLASS_NOT_AVAILABLE);
 			}
+
+			// Check that the correct number of type parameters have been
+			// supplied.
+			final TypeVariable<?>[] typeVars = rawClass.getTypeParameters();
+			if (typeVars.length != classParameters.tupleSize())
+			{
+				return interpreter.primitiveFailure(
+					E_INCORRECT_NUMBER_OF_ARGUMENTS);
+			}
+
+			// Use real pojo self types in place of the special atom type.
+			AvailObject realParameters =
+				classParameters.copyAsMutableObjectTuple();
+			for (int i = 1; i <= classParameters.tupleSize(); i++)
+			{
+				final AvailObject originalParameter =
+					classParameters.tupleAt(i);
+				final AvailObject realParameter;
+				if (originalParameter.equals(
+					PojoSelfTypeDescriptor.selfType()))
+				{
+					realParameter = PojoSelfTypeDescriptor.create(rawClass);
+				}
+				else
+				{
+					realParameter = originalParameter.makeImmutable();
+				}
+				realParameters = realParameters.tupleAtPuttingCanDestroy(
+					i, realParameter, true);
+			}
+
+			// Ensure that each type parameter is a subtype of the
+			// corresponding type variable's computed upper bound, i.e. the
+			// intersection of its upper bounds as an Avail pojo type.
+			final Map<Class<?>, AvailObject> rawTypeMap =
+				new HashMap<Class<?>, AvailObject>(typeVars.length);
+			rawTypeMap.put(
+				Object.class, RawPojoDescriptor.rawObjectClass());
+			final Map<TypeVariable<?>, AvailObject> typeVarMap =
+				new HashMap<TypeVariable<?>, AvailObject>(typeVars.length);
+			for (int i = 0; i < typeVars.length; i++)
+			{
+				final TypeVariable<?> var = typeVars[i];
+				final AvailObject upperBound =
+					PojoTypeDescriptor.upperBoundFor(
+						var, typeVarMap, rawTypeMap);
+				final AvailObject param = realParameters.tupleAt(i + 1);
+				if (!param.isSubtypeOf(upperBound))
+				{
+					return interpreter.primitiveFailure(
+						E_INCORRECT_ARGUMENT_TYPE);
+				}
+			}
+			return interpreter.primitiveSuccess(
+				PojoTypeDescriptor.create(rawClass, realParameters));
 		}
 
 		@Override
@@ -7809,9 +7820,222 @@ public enum Primitive
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(TYPE.o()),
 				InstanceTypeDescriptor.on(
-					PojoTypeDescriptor.create(
-						PojoTypeDescriptor.pojoArrayClass(),
-						TupleDescriptor.from(TYPE.o()))));
+					PojoTypeDescriptor.mostGeneralArrayType()));
+		}
+	},
+
+	/**
+	 * <strong>Primitive 502:</strong> Given the specified {@linkplain
+	 * PojoTypeDescriptor pojo type} and {@linkplain TupleDescriptor tuple} of
+	 * {@linkplain TypeDescriptor types}, create a {@linkplain
+	 * FunctionDescriptor function} that when applied will produce a new
+	 * instance of the pojo type by invoking a reflected Java {@linkplain
+	 * Constructor constructor} with arguments conforming to the specified
+	 * types.
+	 */
+	prim502_CreatePojoConstructorFunction(502, 2, CanFold)
+	{
+		@Override
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
+		{
+			assert args.size() == 2;
+			final AvailObject pojoType = args.get(0);
+			final AvailObject paramTypes = args.get(1);
+
+			// Do not attempt to bind a constructor to an abstract pojo type.
+			if (pojoType.isAbstract())
+			{
+				return interpreter.primitiveFailure(E_POJO_TYPE_IS_ABSTRACT);
+			}
+
+			final Class<?> javaClass =
+				(Class<?>) RawPojoDescriptor.getPojo(pojoType.javaClass());
+			assert javaClass != null;
+			final Class<?>[] marshaledTypes = PojoTypeDescriptor.marshalTypes(
+				paramTypes);
+			final Constructor<?> constructor;
+			try
+			{
+				constructor = javaClass.getConstructor(
+					marshaledTypes);
+			}
+			catch (final Exception e)
+			{
+				return interpreter.primitiveFailure(
+					E_JAVA_METHOD_DOES_NOT_EXIST);
+			}
+			assert constructor != null;
+
+			// TODO: [TLS] Must handle generic types.
+
+			final List<AvailObject> marshaledTypePojos =
+				new ArrayList<AvailObject>(marshaledTypes.length);
+			for (final Class<?> paramClass : marshaledTypes)
+			{
+				marshaledTypePojos.add(RawPojoDescriptor.create(paramClass));
+			}
+			final AvailObject marshaledTypesTuple =
+				TupleDescriptor.fromCollection(marshaledTypePojos);
+
+			// Create the function wrapper for the pojo constructor invocation
+			// primitive. This function will be embedded as a literal into
+			// an outer function that holds the (unexposed) constructor pojo.
+			L1InstructionWriter writer = new L1InstructionWriter();
+			writer.primitiveNumber(
+				prim503_InvokePojoConstructor.primitiveNumber);
+			writer.argumentTypes(
+				RAW_POJO.o(),
+				TupleTypeDescriptor.mostGeneralType(),
+				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+					IntegerRangeTypeDescriptor.wholeNumbers(),
+					TupleDescriptor.empty(),
+					RAW_POJO.o()),
+				InstanceTypeDescriptor.on(pojoType));
+			writer.returnType(pojoType);
+			writer.write(new L1Instruction(
+				L1Operation.L1_doGetLocal,
+				writer.createLocal(ContainerTypeDescriptor.wrapInnerType(
+					IntegerRangeTypeDescriptor.naturalNumbers()))));
+			writer.write(new L1Instruction(
+				L1Operation.L1_doCall,
+				writer.addLiteral(ImplementationSetDescriptor
+					.vmCrashImplementationSet()),
+				writer.addLiteral(BottomTypeDescriptor.bottom())));
+			final AvailObject innerFunction = FunctionDescriptor.create(
+				writer.compiledCode(),
+				TupleDescriptor.empty()).makeImmutable();
+
+			// Create the outer function that pushes the arguments expected by
+			// the constructor invocation primitive. Various objects that we do
+			// not want to expose to the Avail program are embedded in this
+			// function as literals.
+			// TODO: [TLS] When functions can be made non-reflective, then make
+			// both these functions non-reflective for safety.
+			writer = new L1InstructionWriter();
+			writer.argumentTypesTuple(paramTypes);
+			writer.returnType(pojoType);
+			writer.write(new L1Instruction(
+				L1Operation.L1_doPushLiteral,
+				writer.addLiteral(innerFunction)));
+			writer.write(new L1Instruction(
+				L1Operation.L1_doPushLiteral,
+				writer.addLiteral(RawPojoDescriptor.create(constructor))));
+			for (int i = 1; i <= paramTypes.tupleSize(); i++)
+			{
+				writer.write(new L1Instruction(
+					L1Operation.L1_doGetLocal, i));
+			}
+			writer.write(new L1Instruction(
+				L1Operation.L1_doMakeTuple,
+				paramTypes.tupleSize()));
+			writer.write(new L1Instruction(
+				L1Operation.L1_doPushLiteral,
+				writer.addLiteral(marshaledTypesTuple)));
+			writer.write(new L1Instruction(
+				L1Operation.L1_doPushLiteral,
+				writer.addLiteral(pojoType)));
+			writer.write(new L1Instruction(
+				L1Operation.L1_doMakeTuple,
+				4));
+			writer.write(new L1Instruction(
+				L1Operation.L1_doCall,
+				writer.addLiteral(ImplementationSetDescriptor
+					.vmFunctionApplyImplementationSet()),
+				writer.addLiteral(pojoType)));
+			final AvailObject outerFunction = FunctionDescriptor.create(
+				writer.compiledCode(),
+				TupleDescriptor.empty()).makeImmutable();
+
+			return interpreter.primitiveSuccess(outerFunction);
+		}
+
+		@Override
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
+		{
+			return FunctionTypeDescriptor.create(
+				TupleDescriptor.from(
+					InstanceTypeDescriptor.on(
+						PojoTypeDescriptor.mostGeneralType()),
+					TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+						IntegerRangeTypeDescriptor.wholeNumbers(),
+						TupleDescriptor.empty(),
+						TYPE.o())),
+				FunctionTypeDescriptor.forReturnType(
+					PojoTypeDescriptor.mostGeneralType()));
+		}
+	},
+
+	/**
+	 * <strong>Primitive 503:</strong> Given a {@linkplain RawPojoDescriptor raw
+	 * pojo} that references a reflected {@linkplain Constructor Java
+	 * constructor}, a {@linkplain TupleDescriptor tuple} of arguments, a
+	 * tuple of raw pojos that reference the reflected {@linkplain Class Java
+	 * classes} of the marshaled arguments, and an expected {@linkplain
+	 * TypeDescriptor type} of the new instance, invoke the constructor and
+	 * answer the new instance.
+	 */
+	prim503_InvokePojoConstructor(503, 4, Private)
+	{
+		@Override
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
+		{
+			assert args.size() == 4;
+			final AvailObject constructorPojo = args.get(0);
+			final AvailObject constructorArgs = args.get(1);
+			final AvailObject constructorArgTypePojos = args.get(2);
+			final AvailObject expectedType = args.get(3);
+
+			final Constructor<?> constructor = (Constructor<?>)
+				RawPojoDescriptor.getPojo(constructorPojo);
+			assert constructor != null;
+
+			// Marshal the arguments and invoke the constructor.
+			final Object newObject;
+			try
+			{
+				final Object[] marshaledArgs = PojoTypeDescriptor.marshal(
+					constructorArgs, constructorArgTypePojos);
+				newObject = constructor.newInstance(marshaledArgs);
+			}
+			catch (final Exception e)
+			{
+				return interpreter.primitiveFailure(E_JAVA_CONSTRUCTOR_FAILED);
+			}
+
+			// Unmarshal the arguments, checking the object produced against the
+			// expected type.
+			assert newObject != null;
+			final AvailObject newPojo;
+			try
+			{
+				newPojo = PojoTypeDescriptor.unmarshal(newObject, expectedType);
+			}
+			catch (final Exception e)
+			{
+				return interpreter.primitiveFailure(E_JAVA_CONSTRUCTOR_FAILED);
+			}
+
+			return interpreter.primitiveSuccess(newPojo);
+		}
+
+		@Override
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
+		{
+			return FunctionTypeDescriptor.create(
+				TupleDescriptor.from(
+					RAW_POJO.o(),
+					TupleTypeDescriptor.mostGeneralType(),
+					TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+						IntegerRangeTypeDescriptor.wholeNumbers(),
+						TupleDescriptor.empty(),
+						RAW_POJO.o()),
+					InstanceTypeDescriptor.on(
+						PojoTypeDescriptor.mostGeneralType())),
+				PojoTypeDescriptor.mostGeneralType());
 		}
 	};
 
@@ -7882,16 +8106,12 @@ public enum Primitive
 		CanInline,
 
 		/**
-		 * UNUSED
-		 *
 		 * The primitive has a side-effect, such as writing to a file, modifying
 		 * a variable, or defining a new method.
 		 */
 		HasSideEffect,
 
 		/**
-		 * UNUSED
-		 *
 		 * The primitive can invoke a function.  If the function is a
 		 * non-primitive (or a primitive that fails), the current continuation
 		 * must be reified before the call.
@@ -7899,8 +8119,6 @@ public enum Primitive
 		Invokes,
 
 		/**
-		 * UNUSED
-		 *
 		 * The primitive can replace the current continuation, and care should
 		 * be taken to ensure the current continuation is fully reified prior to
 		 * attempting this primitive.
@@ -7921,6 +8139,15 @@ public enum Primitive
 		 * forbidden (because it would be unreachable).
 		 */
 		CannotFail,
+
+		/**
+		 * The primitive is not exposed to an Avail program. The compiler
+		 * forbids direct compilation of primitive linkages to such primitives.
+		 * {@linkplain Primitive#prim188_CreateCompiledCode primitive 188} also
+		 * forbids creation of {@linkplain CompiledCodeDescriptor compiled code}
+		 * that links a {@code Private} primitive.
+		 */
+		Private,
 
 		/**
 		 * The semantics of the primitive fall outside the usual capacity of the

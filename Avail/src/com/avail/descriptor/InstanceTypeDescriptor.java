@@ -70,7 +70,7 @@ import com.avail.annotations.*;
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
 public class InstanceTypeDescriptor
-extends AbstractUnionTypeDescriptor
+extends AbstractEnumerationTypeDescriptor
 {
 	/**
 	 * The layout of object slots for my instances.
@@ -98,13 +98,15 @@ extends AbstractUnionTypeDescriptor
 
 
 	/**
-	 * Answer the kind that is nearest to the given object, an instance type.
+	 * Answer the kind that is nearest to the given object, an {@linkplain
+	 * InstanceTypeDescriptor instance type}.
 	 *
 	 * @param object
 	 *            An instance type.
 	 * @return
-	 *            The kind (a type but not a union type) that is nearest the
-	 *            specified instance type.
+	 *            The kind (a {@linkplain TypeDescriptor type} but not an
+	 *            {@linkplain AbstractEnumerationTypeDescriptor enumeration})
+	 *            that is nearest the specified instance type.
 	 */
 	private static @NotNull AvailObject getSuperkind (
 		final @NotNull AvailObject object)
@@ -146,10 +148,10 @@ extends AbstractUnionTypeDescriptor
 	{
 		AvailObject set = SetDescriptor.empty();
 		final AvailObject instance = getInstance(object);
-		if (another.isAbstractUnionType())
+		if (another.isEnumeration())
 		{
-			// Create a new union type containing all non-type elements that are
-			// simultaneously present in object and another, plus the type
+			// Create a new enumeration containing all non-type elements that
+			// are simultaneously present in object and another, plus the type
 			// intersections of all pairs of types in the product of the sets.
 			// This should even correctly deal with bottom as an element.
 			if (instance.isType())
@@ -171,8 +173,8 @@ extends AbstractUnionTypeDescriptor
 		}
 		else
 		{
-			// Keep the instance if it complies with another, which is not a
-			// union type.
+			// Keep the instance if it complies with another, which is not an
+			// enumeration.
 			if (instance.isInstanceOfKind(another))
 			{
 				set = set.setWithElementCanDestroy(instance, true);
@@ -194,30 +196,32 @@ extends AbstractUnionTypeDescriptor
 					BottomTypeDescriptor.bottom());
 			}
 		}
-		return AbstractUnionTypeDescriptor.withInstances(set);
+		return AbstractEnumerationTypeDescriptor.withInstances(set);
 	}
 
 	/**
-	 * Compute the type union of the object which is a union type, and
-	 * the argument, which may or may not be a union type (but must be a type).
+	 * Compute the type union of the object, which is an {@linkplain
+	 * InstanceTypeDescriptor instance type}, and the argument, which may or may
+	 * not be an {@linkplain AbstractEnumerationTypeDescriptor enumeration} (but
+	 * must be a {@linkplain TypeDescriptor type}).
 	 *
 	 * @param object
 	 *            An instance type.
 	 * @param another
 	 *            Another type.
 	 * @return
-	 *            The most specific type that is a supertype of both object and
-	 *            another.
+	 *            The most specific type that is a supertype of both {@code
+	 *            object} and {@code another}.
 	 */
 	@NotNull AvailObject computeUnionWith (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
-		if (another.isAbstractUnionType())
+		if (another.isEnumeration())
 		{
-			// Create a new union type containing all elements from both union
-			// types.
-			return AbstractUnionTypeDescriptor.withInstances(
+			// Create a new enumeration containing all elements from both
+			// enumerations.
+			return AbstractEnumerationTypeDescriptor.withInstances(
 				another.instances().setWithElementCanDestroy(
 					getInstance(object),
 					false));
@@ -230,7 +234,7 @@ extends AbstractUnionTypeDescriptor
 		{
 			return object;
 		}
-		// Another isn't a union type or instance type or bottom, so reverse
+		// Another isn't an enumeration or instance type or bottom, so reverse
 		// the arguments.
 		return getSuperkind(object).typeUnion(another);
 	}
@@ -394,7 +398,7 @@ extends AbstractUnionTypeDescriptor
 				tuple.tupleAt(i),
 				true);
 		}
-		return AbstractUnionTypeDescriptor.withInstances(set);
+		return AbstractEnumerationTypeDescriptor.withInstances(set);
 	}
 
 	@Override @AvailMethod
@@ -488,7 +492,7 @@ extends AbstractUnionTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_AbstractUnionTypeIncludesInstance (
+	boolean o_EnumerationIncludesInstance (
 		final @NotNull AvailObject object,
 		final AvailObject potentialInstance)
 	{
@@ -581,12 +585,12 @@ extends AbstractUnionTypeDescriptor
 		/*
 		 * Wow, this is weird.  Ask a set for its type and you get an instance
 		 * type that refers back to the set.  Ask that type for its contentType
-		 * (since it's technically a set type) and it reports a union type
-		 * whose set of instances is this set again.
+		 * (since it's technically a set type) and it reports an enumeration
+		 * whose sole instance is this set again.
 		 */
 		final AvailObject set = getInstance(object);
 		assert set.isSet();
-		return AbstractUnionTypeDescriptor.withInstances(set);
+		return AbstractEnumerationTypeDescriptor.withInstances(set);
 	}
 
 	@Override @AvailMethod
@@ -693,17 +697,17 @@ extends AbstractUnionTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsUnionMeta (final @NotNull AvailObject object)
+	boolean o_IsEnumerationType (final @NotNull AvailObject object)
 	{
-		return getInstance(object).isAbstractUnionType();
+		return getInstance(object).isEnumeration();
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_InnerKind (final @NotNull AvailObject object)
 	{
-		assert object.isUnionMeta();
+		assert object.isEnumerationType();
 		final AvailObject instance = getInstance(object);
-		return instance.isAbstractUnionType()
+		return instance.isEnumeration()
 			? instance.computeSuperkind()
 			: instance;
 	}
@@ -741,7 +745,7 @@ extends AbstractUnionTypeDescriptor
 	/**
 	 * The mutable {@link InstanceTypeDescriptor}.
 	 */
-	private final static AbstractUnionTypeDescriptor mutable =
+	private final static AbstractEnumerationTypeDescriptor mutable =
 		new InstanceTypeDescriptor(true);
 
 	/**
@@ -749,7 +753,7 @@ extends AbstractUnionTypeDescriptor
 	 *
 	 * @return The mutable {@link InstanceTypeDescriptor}.
 	 */
-	public static AbstractUnionTypeDescriptor mutable ()
+	public static AbstractEnumerationTypeDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -757,7 +761,7 @@ extends AbstractUnionTypeDescriptor
 	/**
 	 * The immutable {@link InstanceTypeDescriptor}.
 	 */
-	private final static AbstractUnionTypeDescriptor immutable =
+	private final static AbstractEnumerationTypeDescriptor immutable =
 		new InstanceTypeDescriptor(false);
 
 	/**
@@ -765,7 +769,7 @@ extends AbstractUnionTypeDescriptor
 	 *
 	 * @return The immutable {@link InstanceTypeDescriptor}.
 	 */
-	public static AbstractUnionTypeDescriptor immutable ()
+	public static AbstractEnumerationTypeDescriptor immutable ()
 	{
 		return immutable;
 	}

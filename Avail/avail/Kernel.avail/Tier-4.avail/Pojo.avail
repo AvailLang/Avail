@@ -113,11 +113,6 @@ Method "Java type_" is
 		and (type intersection of jComparableOfObject and jSerializable);
 	union ::= type union of jString and jInteger;
 	Assert union <= intersect;
-	jEnum ::= Java type "java.lang.Enum" parameters <self type>;
-	jPrimitiveEnum ::= Java type "com.avail.interpreter.Primitive";
-	Assert jPrimitiveEnum <= jEnum;
-	jEnum2 ::= Java type "java.lang.Enum" parameters <jPrimitiveEnum>;
-	Assert jPrimitiveEnum <= jEnum2;
 	jListOfAny ::= Java type "java.util.List" parameters <any>;
 	jArrayListOfInteger ::=
 		Java type "java.util.ArrayList" parameters <jInteger>;
@@ -150,3 +145,49 @@ Method "Java_[]" is
 	jArrayOfTupleOfString ::= Java tuple of string[];
 	Assert jArrayOfTupleOfString <= jArrayOfAny;
 ]();
+
+Method "constructor of_given_" is
+[
+	aPojoType : pojo type,
+	argTypes : tuple of type
+|
+	Primitive 502 (failureCode : whole number);
+	Crash "Yikes!";
+] : [...]->pojo;
+
+/*
+Restriction "constructor of_given_" is
+[
+	aPojoTypeType : pojo type type,
+	argTypesType : (tuple of type) type
+|
+	fT ::= block type taking argTypesType and returning aPojoTypeType instance;
+	Print fT as basic string;
+	fT;
+];
+
+Method "jbyte" is [ [-2^7..2^7); ];
+Print jbyte as basic string;
+Method "jshort" is [ [-2^15..2^15); ];
+Print jshort as basic string;
+Halt;
+Method "jint" is [ [-2^31..2^31); ];
+Print jint as basic string;
+Method "jlong" is [ [-2^63..2^63); ];
+Print jlong as basic string;
+*/
+
+[
+	jObjectC ::= constructor of pojo given <>;
+	o ::= jObjectC apply <>;
+	Print o as basic string;
+]();
+
+/*
+[
+	jList ::= Java type "java.util.ArrayList" parameters <string>;
+	jListC ::= constructor of jList given <jint>;
+	o ::= jListC apply <100>;
+	Print o as basic string;
+]();
+*/

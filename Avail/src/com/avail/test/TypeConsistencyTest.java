@@ -225,30 +225,39 @@ public class TypeConsistencyTest
 			}
 		};
 
-		/** The most general union metatype. */
+		/**
+		 * The most general {@linkplain EnumerationMetaDescriptor enumeration
+		 * type}.
+		 */
 		final static Node UNION_META = new Node(
 			"UNION_META",
 			primitiveTypes.get(Types.TYPE))
 		{
 			@Override AvailObject get ()
 			{
-				return UnionMetaDescriptor.mostGeneralType();
+				return EnumerationMetaDescriptor.mostGeneralType();
 			}
 		};
 
-		/** A union metatype parameterized over integers. */
+		/**
+		 * An {@linkplain EnumerationMetaDescriptor enumeration type}
+		 * parameterized over integers.
+		 */
 		final static Node UNION_OF_INTEGER_META = new Node(
 			"UNION_OF_INTEGER_META",
 			UNION_META)
 		{
 			@Override AvailObject get ()
 			{
-				return UnionMetaDescriptor.over(
+				return EnumerationMetaDescriptor.of(
 					IntegerRangeTypeDescriptor.integers());
 			}
 		};
 
-		/** A union metatype parameterized over types. */
+		/**
+		 * A {@linkplain EnumerationMetaDescriptor enumeration type}
+		 * parameterized over types.
+		 */
 		final static Node UNION_OF_TYPE_META = new Node(
 			"UNION_OF_TYPE_META",
 			UNION_META,
@@ -256,7 +265,7 @@ public class TypeConsistencyTest
 		{
 			@Override AvailObject get ()
 			{
-				return UnionMetaDescriptor.over(Types.TYPE.o());
+				return EnumerationMetaDescriptor.of(Types.TYPE.o());
 			}
 		};
 
@@ -1317,6 +1326,25 @@ public class TypeConsistencyTest
 		{
 			fail(String.format(messagePattern, messageArguments));
 		}
+	}
+
+	@Test
+	public void testAdHoc ()
+	{
+		AvailObject a, b;
+		boolean result;
+
+		a = InstanceTypeDescriptor.on(
+			IntegerDescriptor.fromInt(3));
+		b = EnumerationMetaDescriptor.mostGeneralType();
+		result = a.isInstanceOf(b);
+		assert result;
+
+		a = InstanceTypeDescriptor.on(
+			TupleTypeDescriptor.mostGeneralType());
+		b = EnumerationMetaDescriptor.mostGeneralType();
+		result = a.isInstanceOf(b);
+		assert result;
 	}
 
 	/**

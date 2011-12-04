@@ -135,19 +135,30 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
+	boolean o_IsPojo (final @NotNull AvailObject object)
+	{
+		return true;
+	}
+
+	@Override @AvailMethod
 	@NotNull AvailObject o_Kind (final @NotNull AvailObject object)
 	{
 		return object.objectSlot(KIND);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_MakeImmutable (
-		final @NotNull AvailObject object)
+	@NotNull AvailObject o_MakeImmutable (final @NotNull AvailObject object)
 	{
 		object.descriptor = immutable();
 		object.objectSlot(RAW_POJO).makeImmutable();
 		object.objectSlot(KIND).makeImmutable();
 		return object;
+	}
+
+	@Override @AvailMethod
+	@NotNull AvailObject o_RawPojo (final @NotNull AvailObject object)
+	{
+		return object.objectSlot(RAW_POJO);
 	}
 
 	/**

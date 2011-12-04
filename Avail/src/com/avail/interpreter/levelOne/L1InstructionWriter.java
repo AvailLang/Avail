@@ -66,6 +66,18 @@ public class L1InstructionWriter
 		this.argumentTypes = Arrays.asList(argTypes);
 	}
 
+	public void argumentTypesTuple (final AvailObject argTypes)
+	{
+		assert localTypes.size() == 0: "Must declare argument types before allocating locals";
+		final List<AvailObject> types = new ArrayList<AvailObject>(
+			argTypes.tupleSize());
+		for (final AvailObject type : argTypes)
+		{
+			types.add(type);
+		}
+		this.argumentTypes = types;
+	}
+
 	private AvailObject returnType;
 
 	public void returnType (final AvailObject retType)

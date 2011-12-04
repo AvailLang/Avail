@@ -59,6 +59,7 @@ Body
 	if not {} <= x then [Crash "Problem in <=.";];
 ]();
 
+/*
 [
 	s : set of integer := {};
 	1 to 10000 do [x : integer |
@@ -66,3 +67,4 @@ Body
 	];
 	Assert || s || = 10000;
 ]();
+*/

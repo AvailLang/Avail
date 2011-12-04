@@ -402,22 +402,19 @@ extends ExtendedNumberDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsInt (
-		final @NotNull AvailObject object)
+	boolean o_IsInt (final @NotNull AvailObject object)
 	{
 		return object.integerSlotsCount() == 1;
 	}
 
 	@Override @AvailMethod
-	boolean o_IsLong (
-		final @NotNull AvailObject object)
+	boolean o_IsLong (final @NotNull AvailObject object)
 	{
 		return object.integerSlotsCount() <= 2;
 	}
 
 	@Override @AvailMethod
-	short o_ExtractByte (
-		final @NotNull AvailObject object)
+	short o_ExtractByte (final @NotNull AvailObject object)
 	{
 		assert object.integerSlotsCount() == 1;
 		final int value = object.rawSignedIntegerAt(1);
@@ -426,8 +423,27 @@ extends ExtendedNumberDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_ExtractInt (
-		final @NotNull AvailObject object)
+	boolean o_IsShort (final @NotNull AvailObject object)
+	{
+		if (object.integerSlotsCount() > 1)
+		{
+			return false;
+		}
+		final int value = object.extractInt();
+		return value >= 0 && value <= 65535;
+	}
+
+	@Override @AvailMethod
+	int o_ExtractShort (final @NotNull AvailObject object)
+	{
+		assert object.integerSlotsCount() == 1;
+		final int value = object.rawSignedIntegerAt(1);
+		assert value == (value & 65535) : "Value is out of range for a short";
+		return value;
+	}
+
+	@Override @AvailMethod
+	int o_ExtractInt (final @NotNull AvailObject object)
 	{
 		assert object.integerSlotsCount() == 1 : "Integer value out of bounds";
 		return object.rawSignedIntegerAt(1);
@@ -448,8 +464,8 @@ extends ExtendedNumberDescriptor
 			return object.rawSignedIntegerAt(1);
 		}
 
-		long value = object.rawSignedIntegerAt(1);
-		value |= object.rawSignedIntegerAt(2) << 32L;
+		long value = object.rawSignedIntegerAt(1) & 0xffffffffL;
+		value |= ((long) object.rawSignedIntegerAt(2)) << 32L;
 		return value;
 	}
 
@@ -528,7 +544,7 @@ extends ExtendedNumberDescriptor
 	void o_TrimExcessInts (
 		final @NotNull AvailObject object)
 	{
-		// Remove any redundant longs from my end.  Since I'm stored in Little
+		// Remove any redundant ints from my end.  Since I'm stored in Little
 		// Endian representation, I can simply be truncated with no need to
 		// shift data around.
 		assert isMutable;

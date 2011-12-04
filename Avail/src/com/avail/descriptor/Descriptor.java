@@ -1366,13 +1366,13 @@ extends AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param aUnionMeta
+	 * @param anEnumerationType
 	 * @return
 	 */
 	@Override
-	boolean o_IsSupertypeOfUnionMeta (
+	boolean o_IsSupertypeOfEnumerationType (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aUnionMeta)
+		final @NotNull AvailObject anEnumerationType)
 	{
 		unsupportedOperation();
 		return false;
@@ -6033,31 +6033,6 @@ extends AbstractDescriptor
 
 
 	@Override
-	void o_ExpressionsTuple (
-		final @NotNull AvailObject object,
-		final AvailObject expressionsTuple)
-	{
-		unsupportedOperation();
-	}
-
-
-	@Override
-	void o_TupleType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject tupleType)
-	{
-		unsupportedOperation();
-	}
-
-
-	@Override
-	@NotNull AvailObject o_TupleType (final AvailObject object)
-	{
-		unsupportedOperation();
-		return null;
-	}
-
-	@Override
 	@NotNull AvailObject o_Declaration (final AvailObject object)
 	{
 		unsupportedOperation();
@@ -6390,7 +6365,7 @@ extends AbstractDescriptor
 
 
 	@Override
-	boolean o_EqualsUnionTypeWithSet (
+	boolean o_EqualsEnumerationWithSet (
 		final @NotNull AvailObject object,
 		final AvailObject set)
 	{
@@ -6399,7 +6374,7 @@ extends AbstractDescriptor
 
 
 	@Override
-	boolean o_IsAbstractUnionType (final AvailObject object)
+	boolean o_IsEnumeration (final AvailObject object)
 	{
 		return false;
 	}
@@ -6410,16 +6385,16 @@ extends AbstractDescriptor
 		final @NotNull AvailObject object,
 		final AvailObject aType)
 	{
-		if (aType.isAbstractUnionType())
+		if (aType.isEnumeration())
 		{
-			return aType.abstractUnionTypeIncludesInstance(object);
+			return aType.enumerationIncludesInstance(object);
 		}
 		return object.isInstanceOfKind(aType);
 	}
 
 
 	@Override
-	boolean o_AbstractUnionTypeIncludesInstance (
+	boolean o_EnumerationIncludesInstance (
 		final @NotNull AvailObject object,
 		final AvailObject potentialInstance)
 	{
@@ -6472,7 +6447,7 @@ extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	boolean o_EqualsUnionMeta (
+	boolean o_EqualsEnumerationType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
@@ -6484,7 +6459,7 @@ extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	boolean o_IsUnionMeta (final @NotNull AvailObject object)
+	boolean o_IsEnumerationType (final @NotNull AvailObject object)
 	{
 		return false;
 	}
@@ -6660,10 +6635,54 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	@NotNull AvailObject o_PojoSelfType (
-		final @NotNull AvailObject object)
+	@NotNull AvailObject o_PojoSelfType (final @NotNull AvailObject object)
 	{
 		unsupportedOperation();
 		return null;
+	}
+
+	@Override
+	@NotNull AvailObject o_JavaClass (final @NotNull AvailObject object)
+	{
+		unsupportedOperation();
+		return null;
+	}
+
+	@Override
+	boolean o_IsShort (final @NotNull AvailObject object)
+	{
+		return false;
+	}
+
+	@Override
+	int o_ExtractShort (final @NotNull AvailObject object)
+	{
+		unsupportedOperation();
+		return 0;
+	}
+
+	@Override
+	boolean o_IsFloat (final @NotNull AvailObject object)
+	{
+		return false;
+	}
+
+	@Override
+	boolean o_IsDouble (final @NotNull AvailObject object)
+	{
+		return false;
+	}
+
+	@Override
+	@NotNull AvailObject o_RawPojo (final @NotNull AvailObject object)
+	{
+		unsupportedOperation();
+		return null;
+	}
+
+	@Override
+	boolean o_IsPojo (final @NotNull AvailObject object)
+	{
+		return false;
 	}
 }

@@ -429,8 +429,8 @@ public class AvailScanner
 					d *= Math.pow(10, decimalExponentPart1);
 					d *= Math.pow(10, decimalExponentPart2);
 					result = isDoublePrecision ? DoubleDescriptor
-						.objectFromDouble(d) : FloatDescriptor
-						.objectFromFloat((float) d);
+						.fromDouble(d) : FloatDescriptor
+						.fromFloat((float) d);
 				}
 				else
 				{
