@@ -1386,13 +1386,13 @@ public abstract class AbstractAvailCompiler
 	 * rules defined between the transaction start and the rollback (or commit).
 	 * Committing simply clears this information.
 	 *
-	 * @param moduleName
+	 * @param moduleNameString
 	 *        The name of the {@linkplain ModuleDescriptor module}.
 	 */
-	void startModuleTransaction (final @NotNull AvailObject moduleName)
+	void startModuleTransaction (final @NotNull AvailObject moduleNameString)
 	{
 		assert module == null;
-		module = ModuleDescriptor.newModule(moduleName);
+		module = ModuleDescriptor.newModule(moduleNameString);
 		interpreter.setModule(module);
 	}
 

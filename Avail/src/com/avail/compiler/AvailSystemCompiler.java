@@ -816,10 +816,9 @@ extends AbstractAvailCompiler
 									primitive == 0,
 									primitive == 0
 										? Collections.<AvailObject>emptyList()
-										: Collections.<AvailObject>
-											singletonList(
-												afterOptionalPrimitive
-													.scopeStack.declaration()),
+										: Collections.singletonList(
+											afterOptionalPrimitive
+												.scopeStack.declaration()),
 									new Con<List<AvailObject>>(
 										"Block statements")
 									{
@@ -2346,7 +2345,9 @@ extends AbstractAvailCompiler
 		}
 		final ParserState afterVar = start.afterToken();
 		// First check if it's in a block scope...
-		final AvailObject localDecl = lookupDeclaration(start, token.string());
+		final AvailObject localDecl = AvailCompilerScopeStack.lookupDeclaration(
+			start.scopeStack,
+			token.string());
 		if (localDecl != null)
 		{
 			final AvailObject varUse = VariableUseNodeDescriptor.newUse(

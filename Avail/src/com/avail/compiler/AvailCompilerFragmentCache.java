@@ -35,47 +35,91 @@ package com.avail.compiler;
 import java.util.*;
 import com.avail.compiler.AbstractAvailCompiler.ParserState;
 
+/**
+ * An {@code AvailCompilerFragmentCache} implements a memoization mechanism for
+ * a {@linkplain AbstractAvailCompiler compiler}.  The purpose is to ensure that
+ * the effort to parse a subexpression starting at a specific token is reused
+ * when backtracking.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public class AvailCompilerFragmentCache
 {
-	Map<ParserState, List<AvailCompilerCachedSolution>> solutions =
-		new HashMap<ParserState, List<AvailCompilerCachedSolution>>(100);
+	/**
+	 * Keeps track of the {@link AvailCompilerCachedSolution solutions} that
+	 * have been found at various positions.  Technically at various {@linkplain
+	 * ParserState parser states}, since we must take into account which
+	 * variable declarations are in scope when looking for subexpressions.
+	 */
+	private final Map<ParserState, List<AvailCompilerCachedSolution>>
+		solutions =
+			new HashMap<ParserState, List<AvailCompilerCachedSolution>>(100);
 
 
+	/**
+	 * Answer a {@link List} of {@linkplain AvailCompilerCachedSolution
+	 * solutions} that have been previously parsed at the specified position.
+	 *
+	 * @param state The {@link ParserState} at which parsing is to take place.
+	 * @return The list of solutions.  Do not modify the list.
+	 */
 	List<AvailCompilerCachedSolution> solutionsAt (
 		final ParserState state)
 	{
-		// Answer the previously recorded solution for the recursive ascent
-		// optimization.
 		return solutions.get(state);
 	}
 
+	/**
+	 * Add one more parse solution at the specified position.
+	 *
+	 * @param state The {@link ParserState} at which parsing took place.
+	 * @param solution The solution found starting at that position.
+	 */
 	void addSolution (
 			final ParserState state,
 			final AvailCompilerCachedSolution solution)
 	{
-		//  Record a solution for the recursive ascent optimization.
-
 		solutions.get(state).add(solution);
 	}
 
+	/**
+	 * Clear all cached solutions.  This should be invoked between top level
+	 * module statements, since their execution may add new methods, thereby
+	 * invalidating previous parse results.
+	 */
 	void clear ()
 	{
 		solutions.clear();
 	}
 
+	/**
+	 * Answer whether an attempt has already been made to parse solutions at the
+	 * specified {@linkplain ParserState parse position}.
+	 *
+	 * @param state
+	 *            The state starting at which subexpression parsing may have
+	 *            already taken place.
+	 * @return
+	 *            Whether a previous parse attempt has taken place starting at
+	 *            the specified state, the results having been cached.
+	 */
 	boolean hasComputedForState (
 			final ParserState state)
 	{
-		//  Answer whether a parse has already occurred at the specified position.
-
 		return solutions.containsKey(state);
 	}
 
+	/**
+	 * Record the fact that no solutions have yet been found starting at the
+	 * specified {@link ParserState}.  Subsequent successful parses of
+	 * subexpressions starting there may be added to this list via {@link
+	 * #addSolution(ParserState, AvailCompilerCachedSolution)}.
+	 *
+	 * @param state The state at which parsing solutions will be attempted.
+	 */
 	void startComputingForState (
 			final ParserState state)
 	{
-		//  Indicate that a parse at the given position has started.
-
 		assert !hasComputedForState(state);
 		solutions.put(state, new ArrayList<AvailCompilerCachedSolution>(3));
 	}

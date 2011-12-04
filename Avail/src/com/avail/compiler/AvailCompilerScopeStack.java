@@ -32,69 +32,128 @@
 
 package com.avail.compiler;
 
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.*;
 
+/**
+ * An {@code AvailCompilerScopeStack} is an immutable collection of bindings
+ * that are in scope at some point during the parsing of an Avail {@link
+ * ParseNodeDescriptor expression}.  This collection can be nondestructively
+ * extended simply by invoking the {@linkplain
+ * AvailCompilerScopeStack#AvailCompilerScopeStack(AvailObject,
+ * AvailCompilerScopeStack) constructor} with suitable arguments.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public class AvailCompilerScopeStack
 {
-	AvailObject _name;
-	AvailObject _declaration;
-	AvailCompilerScopeStack _next;
+	/**
+	 * The {@linkplain ByteStringDescriptor name} of the most recent
+	 * declaration.
+	 */
+	private AvailObject name;
+
+	/**
+	 * The most recent {@linkplain DeclarationNodeDescriptor declaration node}.
+	 */
+	private AvailObject declaration;
+
+	/**
+	 * The previous scope, i.e., the declarations that were in scope before the
+	 * current one was added.
+	 */
+	private final AvailCompilerScopeStack next;
 
 
-	// accessing
-
+	/**
+	 * Answer the most recently added {@linkplain DeclarationNodeDescriptor
+	 * declaration}.
+	 *
+	 * @return The must recently added declaration.
+	 */
 	AvailObject declaration ()
 	{
-		return _declaration;
+		return declaration;
 	}
 
-	void declaration (final AvailObject anAvailVariableDeclarationNode)
-	{
-
-		_declaration = anAvailVariableDeclarationNode;
-	}
-
+	/**
+	 * Answer the {@linkplain ByteStringDescriptor name} of the most recently
+	 * added {@linkplain DeclarationNodeDescriptor declaration}.
+	 *
+	 * @return A string naming the most recently encountered declaration.
+	 */
 	AvailObject name ()
 	{
-		return _name;
+		return name;
 	}
 
-	void name (final AvailObject availString)
-	{
-
-		_name = availString;
-	}
-
+	/**
+	 * Answer the remainder of the {@linkplain AvailCompilerScopeStack scope
+	 * stack} to be searched.
+	 *
+	 * @return The next AvailCompilerScopeStack to search.
+	 */
 	AvailCompilerScopeStack next ()
 	{
-		return _next;
+		return next;
 	}
 
-	void next (
-			final AvailCompilerScopeStack anAvailCompilerScopeStack)
+	/**
+	 * Look up the given {@linkplain ByteStringDescriptor Avail string} to
+	 * locate the {@linkplain DeclarationNodeDescriptor declaration} with the
+	 * same name, or {@code null} if there is no such declaration.
+	 *
+	 * @param stack
+	 *            The {@link AvailCompilerScopeStack} in which to look up the
+	 *            name.
+	 * @param nameToLookUp
+	 *            The name of the declaration to look up.
+	 * @return
+	 *            The specified declaration node or null.
+	 */
+	static final AvailObject lookupDeclaration (
+		final AvailCompilerScopeStack stack,
+		final AvailObject nameToLookUp)
 	{
-
-		_next = anAvailCompilerScopeStack;
-	}
-
-
-
-	AvailCompilerScopeStack (
-		final AvailObject declaration,
-		final AvailCompilerScopeStack next)
-	{
-		if (declaration == null)
+		AvailCompilerScopeStack here = stack;
+		while (here.name != null)
 		{
-			_declaration = null;
-			_name = null;
+			if (here.name().equals(nameToLookUp))
+			{
+				return here.declaration;
+			}
+			here = here.next;
+		}
+		return null;
+	}
+
+
+
+	/**
+	 * Construct a new {@link AvailCompilerScopeStack} without affecting the
+	 * existing declarations.
+	 *
+	 * @param newDeclaration
+	 *            The {@linkplain DeclarationNodeDescriptor declaration} to
+	 *            push.
+	 * @param previousStack
+	 *            The existing {@code AvailCompilerScopeStack} to extend.
+	 */
+	AvailCompilerScopeStack (
+		final AvailObject newDeclaration,
+		final AvailCompilerScopeStack previousStack)
+	{
+		if (newDeclaration == null)
+		{
+			declaration = null;
+			name = null;
 		}
 		else
 		{
-			_declaration = declaration;
-			_name = declaration.token().string();
-			assert _name.isString();
+			declaration = newDeclaration;
+			name = newDeclaration.token().string();
+			assert name.isString();
 		}
-		_next = next;
+		next = previousStack;
 	}
 
 	/**
@@ -106,12 +165,12 @@ public class AvailCompilerScopeStack
 		final StringBuilder builder = new StringBuilder();
 		builder.append(getClass().getSimpleName());
 		builder.append(" [");
-		AvailCompilerScopeStack next = this;
-		while (next != null)
+		AvailCompilerScopeStack here = this;
+		while (here != null)
 		{
-			builder.append(next._name != null ? next._name : "(null)");
-			next = next._next;
-			if (next != null)
+			builder.append(here.name != null ? here.name : "(null)");
+			here = here.next;
+			if (here != null)
 			{
 				builder.append(", ");
 			}

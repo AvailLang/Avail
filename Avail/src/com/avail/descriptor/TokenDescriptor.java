@@ -35,7 +35,7 @@ package com.avail.descriptor;
 import static com.avail.descriptor.AvailObject.Multiplier;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
 import com.avail.annotations.*;
-import com.avail.descriptor.*;
+import com.avail.descriptor.Descriptor;
 
 
 /**
@@ -53,8 +53,8 @@ extends Descriptor
 	public enum ObjectSlots implements ObjectSlotsEnum
 	{
 		/**
-		 * The {@linkplain StringDescriptor string}, exactly as I appeared in the
-		 * source.
+		 * The {@linkplain StringDescriptor string}, exactly as it appeared in
+		 * the source.
 		 */
 		STRING
 	}
@@ -73,7 +73,7 @@ extends Descriptor
 		START,
 
 		/**
-		 * The line number in the source file.  Currently signed 32bits, which
+		 * The line number in the source file.  Currently signed 32 bits, which
 		 * should be plenty.
 		 */
 		LINE_NUMBER,

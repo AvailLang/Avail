@@ -294,27 +294,20 @@ Method "_[_]" is [t : tuple, i : natural number |
 ] : any;
 
 Restriction "_[_]" is [tType : tupleType, iType : natural number type |
+	Assert iType not = terminates;
 	/* Require that it's at least possible that the subscript is in range. */
 	if iType lower bound > tType sizes upper bound then [
 		Fail parse "Tuple subscript is always out of bounds";];
 	/* Compute the type union of all the possible types it could be,
 	   depending on what indices could be applied. */
 	possible : type := terminates;
-	if iType not = terminates then [
-		cast iType lower bound into [low : natural number |
-			cast iType upper bound into [high : [1..INF] |
-				(low min (|| tType leading types || + 1))
-					to high min (|| tType leading types || + 1)
-					do [x : natural number |
-						possible := type union of tType[x] and possible;
-					];
-			] otherwise [
-				Crash "Tuple subscript type isn't strict enough at top - see _[_]";
-			];
-		] otherwise [
-			Crash "Tuple subscript type isn't strict enough at bottom - see _[_]";
+	low ::= cast iType lower bound into [x : natural number | x;];
+	high ::= cast iType upper bound into [x : [1..INF] | x;];
+	low min (|| tType leading types || + 1)
+		to high min (|| tType leading types || + 1)
+		do [x : natural number |
+			possible := type union of tType[x] and possible;
 		];
-	];
 	possible;
 ] : type;
 

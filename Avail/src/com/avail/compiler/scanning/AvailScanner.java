@@ -130,11 +130,11 @@ public class AvailScanner
 	 * Add the (uninitialized) token to my sequence of parsed tokens. Also set
 	 * its:
 	 * <ul>
-	 * <li>{@link TokenDescriptor#o_Start(AvailObject, int) start},
-	 * <li>{@link TokenDescriptor#o_String(AvailObject, AvailObject) string},
+	 * <li>{@link TokenDescriptor.IntegerSlots#START start},
+	 * <li>{@link TokenDescriptor.ObjectSlots#STRING string},
 	 * and
-	 * <li>{@link TokenDescriptor#o_TokenType(AvailObject, TokenType) token
-	 * type} based on the passed {@link TokenDescriptor.TokenType}.
+	 * <li>{@link TokenDescriptor.IntegerSlots#TOKEN_TYPE_CODE token type}
+	 * based on the passed {@link TokenDescriptor.TokenType}.
 	 * </ul>
 	 *
 	 * @param anAvailToken
@@ -161,11 +161,10 @@ public class AvailScanner
 	 * it to my sequence of parsed tokens. In particular, create the token and
 	 * set its:
 	 * <ul>
-	 * <li>{@link TokenDescriptor#o_Start(AvailObject, int) start},
-	 * <li>{@link TokenDescriptor#o_String(AvailObject, AvailObject) string},
-	 * and
-	 * <li>{@link TokenDescriptor#o_TokenType(AvailObject, TokenType) token
-	 * type} based on the passed {@link TokenDescriptor.TokenType}.
+	 * <li>{@link TokenDescriptor.IntegerSlots#START start},
+	 * <li>{@link TokenDescriptor.ObjectSlots#STRING string}, and
+	 * <li>{@link TokenDescriptor.IntegerSlots#TOKEN_TYPE_CODE token type} based
+	 * on the passed {@link TokenDescriptor.TokenType}.
 	 * </ul>
 	 *
 	 * @param tokenType
