@@ -6076,7 +6076,7 @@ public enum Primitive
 
 	/**
 	 * <strong>Primitive 259:</strong> Produce a {@linkplain
-	 * ByteStringDescriptor string} description of the sole argument.
+	 * StringDescriptor string} description of the sole argument.
 	 */
 	prim259_ToString(259, 1, Unknown, CannotFail)
 	{

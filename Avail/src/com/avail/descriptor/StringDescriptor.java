@@ -184,7 +184,7 @@ extends TupleDescriptor
 
 	/**
 	 * Convert the specified Java {@link String} to an Avail {@linkplain
-	 * ByteStringDescriptor string}.
+	 * StringDescriptor string}.
 	 *
 	 * <p>NB: The {@linkplain AbstractDescriptor descriptor} type of the actual
 	 * instance returned varies with the contents of the Java {@code String}. If

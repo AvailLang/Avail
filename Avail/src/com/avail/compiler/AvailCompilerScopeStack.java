@@ -47,7 +47,7 @@ import com.avail.descriptor.*;
 public class AvailCompilerScopeStack
 {
 	/**
-	 * The {@linkplain ByteStringDescriptor name} of the most recent
+	 * The {@linkplain StringDescriptor name} of the most recent
 	 * declaration.
 	 */
 	private AvailObject name;
@@ -76,7 +76,7 @@ public class AvailCompilerScopeStack
 	}
 
 	/**
-	 * Answer the {@linkplain ByteStringDescriptor name} of the most recently
+	 * Answer the {@linkplain StringDescriptor name} of the most recently
 	 * added {@linkplain DeclarationNodeDescriptor declaration}.
 	 *
 	 * @return A string naming the most recently encountered declaration.
@@ -98,7 +98,7 @@ public class AvailCompilerScopeStack
 	}
 
 	/**
-	 * Look up the given {@linkplain ByteStringDescriptor Avail string} to
+	 * Look up the given {@linkplain StringDescriptor Avail string} to
 	 * locate the {@linkplain DeclarationNodeDescriptor declaration} with the
 	 * same name, or {@code null} if there is no such declaration.
 	 *

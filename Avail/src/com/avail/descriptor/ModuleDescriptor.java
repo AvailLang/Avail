@@ -68,13 +68,13 @@ extends Descriptor
 
 		/**
 		 * The {@linkplain SetDescriptor set} of {@linkplain
-		 * ByteStringDescriptor versions} that this module alleges to support.
+		 * StringDescriptor versions} that this module alleges to support.
 		 */
 		VERSIONS,
 
 		/**
 		 * A {@linkplain MapDescriptor map} from {@linkplain
-		 * ByteStringDescriptor strings} to {@linkplain AtomDescriptor atoms} which
+		 * StringDescriptor strings} to {@linkplain AtomDescriptor atoms} which
 		 * act as true names.  The true names are identity-based identifiers
 		 * that prevent or at least clarify name conflicts.  This field holds
 		 * only those names that are newly added by this module.
@@ -83,7 +83,7 @@ extends Descriptor
 
 		/**
 		 * A {@linkplain MapDescriptor map} from {@linkplain
-		 * ByteStringDescriptor strings} to {@linkplain AtomDescriptor atoms} which
+		 * StringDescriptor strings} to {@linkplain AtomDescriptor atoms} which
 		 * act as true names.  The true names are identity-based identifiers
 		 * that prevent or at least clarify name conflicts.  This field holds
 		 * only those names that have been imported from other modules.
@@ -92,7 +92,7 @@ extends Descriptor
 
 		/**
 		 * A {@linkplain MapDescriptor map} from {@linkplain
-		 * ByteStringDescriptor strings} to {@linkplain AtomDescriptor atoms} which
+		 * StringDescriptor strings} to {@linkplain AtomDescriptor atoms} which
 		 * act as true names.  The true names are identity-based identifiers
 		 * that prevent or at least clarify name conflicts.  This field holds
 		 * only those names that are neither imported from another module nor
@@ -126,7 +126,7 @@ extends Descriptor
 
 		/**
 		 * A {@linkplain MapDescriptor map} from {@linkplain
-		 * ByteStringDescriptor string} to a {@linkplain ContainerDescriptor
+		 * StringDescriptor string} to a {@linkplain ContainerDescriptor
 		 * container (variable)}.  Since {@linkplain
 		 * DeclarationNodeDescriptor.DeclarationKind#MODULE_VARIABLE module
 		 * variables} are never accessible outside the module in which they are
@@ -138,7 +138,7 @@ extends Descriptor
 
 		/**
 		 * A {@linkplain MapDescriptor map} from {@linkplain
-		 * ByteStringDescriptor string} to an {@linkplain AvailObject}.  Since a
+		 * StringDescriptor string} to an {@linkplain AvailObject}.  Since a
 		 * {@linkplain DeclarationNodeDescriptor.DeclarationKind#MODULE_CONSTANT
 		 * module constants} are never accessible outside the module in which
 		 * they are defined, this slot is overwritten with {@linkplain

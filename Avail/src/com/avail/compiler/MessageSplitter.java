@@ -897,7 +897,7 @@ public class MessageSplitter
 
 	/**
 	 * Answer a {@linkplain TupleDescriptor tuple} of Avail {@linkplain
-	 * ByteStringDescriptor strings} comprising this message.
+	 * StringDescriptor strings} comprising this message.
 	 *
 	 * @return A tuple of strings.
 	 */

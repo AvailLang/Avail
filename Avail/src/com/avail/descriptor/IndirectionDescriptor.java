@@ -50,7 +50,7 @@ import com.avail.visitor.AvailSubobjectVisitor;
  * routed to the target, making it an ideal proxy.
  * <p>
  * When some kinds of objects are compared to each other, say {@linkplain
- * ByteStringDescriptor strings}, a check is first made to see if the objects
+ * StringDescriptor strings}, a check is first made to see if the objects
  * are at the same location in memory -- the same AvailObject in the current
  * version that uses {@link AvailObjectRepresentation}.  If so, it immediately
  * returns true.  If not, a more detailed, potentially expensive comparison
