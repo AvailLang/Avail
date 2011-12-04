@@ -201,7 +201,7 @@ public class TypeConsistencyTest
 		{
 			@Override AvailObject get ()
 			{
-				return ByteStringDescriptor.from("x").kind();
+				return StringDescriptor.from("x").kind();
 			}
 		};
 
@@ -374,7 +374,7 @@ public class TypeConsistencyTest
 			{
 				return InstanceTypeDescriptor.on(
 					AtomDescriptor.create(
-						ByteStringDescriptor.from("something")));
+						StringDescriptor.from("something")));
 			}
 		};
 
@@ -390,7 +390,7 @@ public class TypeConsistencyTest
 			{
 				return InstanceTypeDescriptor.on(
 					AtomDescriptor.create(
-						ByteStringDescriptor.from("another")));
+						StringDescriptor.from("another")));
 			}
 		};
 
@@ -940,7 +940,7 @@ public class TypeConsistencyTest
 		/** The name of this type node, used for error diagnostics. */
 		final String name;
 
-		/** The Avail {@link TypeDescriptor type} I represent in the graph. */
+		/** The Avail {@linkplain TypeDescriptor type} I represent in the graph. */
 		AvailObject t;
 
 		/** A unique 0-based index for this {@code Node}. */

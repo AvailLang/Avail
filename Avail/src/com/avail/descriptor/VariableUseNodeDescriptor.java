@@ -42,7 +42,7 @@ import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
 
 /**
- * My instances represent the use of some {@link DeclarationNodeDescriptor
+ * My instances represent the use of some {@linkplain DeclarationNodeDescriptor
  * declared entity}.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
@@ -57,20 +57,20 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 	public enum ObjectSlots implements ObjectSlotsEnum
 	{
 		/**
-		 * The {@link TokenDescriptor token} that is a mention of the entity
+		 * The {@linkplain TokenDescriptor token} that is a mention of the entity
 		 * in question.
 		 */
 		USE_TOKEN,
 
 		/**
-		 * The {@link DeclarationNodeDescriptor declaration} of the entity that
+		 * The {@linkplain DeclarationNodeDescriptor declaration} of the entity that
 		 * is being mentioned.
 		 */
 		DECLARATION
 	}
 
 	/**
-	 * My slots of type {@link Integer int}.
+	 * My slots of type {@linkplain Integer int}.
 	 *
 	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
 	 */
@@ -196,7 +196,7 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 
 
 	/**
-	 * Construct a new {@link VariableUseNodeDescriptor variable use node}.
+	 * Construct a new {@linkplain VariableUseNodeDescriptor variable use node}.
 	 *
 	 * @param theToken The token which is the use of the variable in the source.
 	 * @param declaration The declaration which is being used.

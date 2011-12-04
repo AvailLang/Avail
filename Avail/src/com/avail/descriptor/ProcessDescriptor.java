@@ -64,7 +64,7 @@ extends Descriptor
 		HASH_OR_ZERO,
 
 		/**
-		 * The {@link ExecutionState execution state} of the process, indicating
+		 * The {@linkplain ExecutionState execution state} of the process, indicating
 		 * whether the process is {@linkplain ExecutionState#RUNNING running},
 		 * {@linkplain ExecutionState#SUSPENDED suspended} or {@linkplain
 		 * ExecutionState#TERMINATED terminated}.
@@ -121,7 +121,7 @@ extends Descriptor
 	}
 
 	/**
-	 * These are the possible execution states of a {@link ProcessDescriptor
+	 * These are the possible execution states of a {@linkplain ProcessDescriptor
 	 * process}.
 	 */
 	public enum ExecutionState

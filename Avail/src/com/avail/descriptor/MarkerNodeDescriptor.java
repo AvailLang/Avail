@@ -43,7 +43,7 @@ import com.avail.utility.*;
 
 /**
  * My instances represent a parsing marker that can be pushed onto the parse
- * stack.  It should never occur as part of a composite {@link
+ * stack.  It should never occur as part of a composite {@linkplain
  * ParseNodeDescriptor parse node}, and is not capable of emitting code.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
@@ -58,7 +58,7 @@ public class MarkerNodeDescriptor extends ParseNodeDescriptor
 	public enum ObjectSlots implements ObjectSlotsEnum
 	{
 		/**
-		 * The {@link MarkerNodeDescriptor marker} being wrapped in a form
+		 * The {@linkplain MarkerNodeDescriptor marker} being wrapped in a form
 		 * suitable for the parse stack.
 		 */
 		MARKER_VALUE

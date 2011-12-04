@@ -108,7 +108,7 @@ extends Descriptor
 		// decompiler) use the name to figure out how many arguments a method
 		// accepts.
 		final AvailObject implSet = newImplementationSetWithName(
-			AtomDescriptor.create(ByteStringDescriptor.from("vm crash_")));
+			AtomDescriptor.create(StringDescriptor.from("vm crash_")));
 		implSet.addImplementation(
 			MethodSignatureDescriptor.create(newFunction));
 
@@ -172,7 +172,7 @@ extends Descriptor
 
 		// Create the new implementation set.
 		final AvailObject implSet = newImplementationSetWithName(
-			AtomDescriptor.create(ByteStringDescriptor.from(
+			AtomDescriptor.create(StringDescriptor.from(
 				"vm function apply_(«_‡,»)")));
 		implSet.addImplementation(
 			MethodSignatureDescriptor.create(newFunction));
@@ -207,26 +207,26 @@ extends Descriptor
 	public enum ObjectSlots implements ObjectSlotsEnum
 	{
 		/**
-		 * The {@link AtomDescriptor atom} that acts as the true name of this
-		 * {@link ImplementationSetDescriptor implementation set}.
+		 * The {@linkplain AtomDescriptor atom} that acts as the true name of this
+		 * {@linkplain ImplementationSetDescriptor implementation set}.
 		 */
 		NAME,
 
 		/**
-		 * The {@linkplain TupleDescriptor tuple} of {@link SignatureDescriptor
+		 * The {@linkplain TupleDescriptor tuple} of {@linkplain SignatureDescriptor
 		 * signatures} that constitute this multimethod (or multimacro).
 		 */
 		IMPLEMENTATIONS_TUPLE,
 
 		/**
-		 * A {@link TupleDescriptor tuple} of {@link IntegerDescriptor integers}
+		 * A {@linkplain TupleDescriptor tuple} of {@linkplain IntegerDescriptor integers}
 		 * that encodes a decision tree for selecting the most specific
 		 * multimethod appropriate for the argument types.
 		 */
 		PRIVATE_TESTING_TREE,
 
 		/**
-		 * A {@link TupleDescriptor tuple} of {@linkplain FunctionDescriptor
+		 * A {@linkplain TupleDescriptor tuple} of {@linkplain FunctionDescriptor
 		 * functions} which, when invoked with suitable {@linkplain
 		 * TypeDescriptor types} as arguments, will determine whether the call
 		 * arguments have mutually compatible types, and if so produce a type
@@ -237,7 +237,7 @@ extends Descriptor
 		TYPE_RESTRICTIONS_TUPLE,
 
 		/**
-		 * A {@link TupleDescriptor tuple} of {@linkplain TupleTypeDescriptor
+		 * A {@linkplain TupleDescriptor tuple} of {@linkplain TupleTypeDescriptor
 		 * tuple types} below which new signatures may no longer be added.
 		 */
 		SEALED_ARGUMENTS_TYPES_TUPLE,
@@ -384,7 +384,7 @@ extends Descriptor
 
 	/**
 	 * Look up all method implementations that could match the given argument
-	 * types.  Answer a {@link List list} of {@link
+	 * types.  Answer a {@linkplain List list} of {@linkplain
 	 * MethodSignatureDescriptor method signatures}.
 	 */
 	@Override @AvailMethod
@@ -414,7 +414,7 @@ extends Descriptor
 	 * types are created.  If an argType and the corresponding argument type of
 	 * an implementation have no possible descendant except bottom, then
 	 * disallow the implementation (it could never actually be invoked because
-	 * bottom is uninstantiable).  Answer a {@link List list} of {@link
+	 * bottom is uninstantiable).  Answer a {@linkplain List list} of {@linkplain
 	 * MethodSignatureDescriptor method signatures}.
 	 * <p>
 	 * Don't do coverage analysis yet (i.e., determining if one method would

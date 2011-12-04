@@ -54,7 +54,7 @@ public abstract class AvailInstruction
 {
 
 	/**
-	 * Write a nybble-coded int in a variable-sized format to the {@link
+	 * Write a nybble-coded int in a variable-sized format to the {@linkplain
 	 * ByteArrayOutputStream stream}.  Small values take only one nybble,
 	 * and we can represent any int up to {@link Integer#MAX_VALUE}.
 	 *
@@ -115,7 +115,7 @@ public abstract class AvailInstruction
 	}
 
 	/**
-	 * Write nybbles representing this instruction to the {@link
+	 * Write nybbles representing this instruction to the {@linkplain
 	 * ByteArrayOutputStream stream}.
 	 *
 	 * @param aStream Where to write the nybbles.
@@ -127,7 +127,7 @@ public abstract class AvailInstruction
 	/**
 	 * The instructions of a block are being iterated over.  Coordinate
 	 * optimizations between instructions using localData and outerData, two
-	 * {@link List lists} manipulated by overrides of this method.  Treat each
+	 * {@linkplain List lists} manipulated by overrides of this method.  Treat each
 	 * instruction as though it is the last one in the block, and save enough
 	 * information in the lists to be able to undo consequences of this
 	 * assumption when a later instruction shows it to be unwarranted.

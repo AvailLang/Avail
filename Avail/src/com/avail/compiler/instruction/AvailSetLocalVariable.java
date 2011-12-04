@@ -50,7 +50,7 @@ public class AvailSetLocalVariable extends AvailInstructionWithIndex
 	/**
 	 * Construct a new {@link AvailSetLocalVariable}.
 	 *
-	 * @param index The variable's index within a {@link ContinuationDescriptor
+	 * @param index The variable's index within a {@linkplain ContinuationDescriptor
 	 *              continuation}.
 	 */
 	public AvailSetLocalVariable (int index)
@@ -71,7 +71,7 @@ public class AvailSetLocalVariable extends AvailInstructionWithIndex
 	/**
 	 * The instructions of a block are being iterated over.  Coordinate
 	 * optimizations between instructions using localData and outerData, two
-	 * {@link List lists} manipulated by overrides of this method.  Treat each
+	 * {@linkplain List lists} manipulated by overrides of this method.  Treat each
 	 * instruction as though it is the last one in the block, and save enough
 	 * information in the lists to be able to undo consequences of this
 	 * assumption when a later instruction shows it to be unwarranted.

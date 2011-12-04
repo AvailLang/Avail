@@ -42,8 +42,8 @@ import com.avail.annotations.*;
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
-public class TwoByteStringDescriptor
-extends TupleDescriptor
+class TwoByteStringDescriptor
+extends StringDescriptor
 {
 	/**
 	 * The layout of integer slots for my instances.
@@ -389,7 +389,7 @@ extends TupleDescriptor
 	}
 
 	/**
-	 * Create a new mutable {@link TwoByteStringDescriptor two-byte string} with
+	 * Create a new mutable {@linkplain TwoByteStringDescriptor two-byte string} with
 	 * the specified number of elements.
 	 *
 	 * @param size The number of elements in the new tuple.
@@ -424,7 +424,7 @@ extends TupleDescriptor
 	}
 
 	/**
-	 * Create a mutable {@link TwoByteStringDescriptor two-byte string} with the
+	 * Create a mutable {@linkplain TwoByteStringDescriptor two-byte string} with the
 	 * specified Java {@linkplain String}'s characters.
 	 *
 	 * @param aNativeTwoByteString
@@ -433,7 +433,7 @@ extends TupleDescriptor
 	 * @return
 	 *            A two-byte string with the given content.
 	 */
-	public static AvailObject mutableObjectFromNativeTwoByteString (
+	static AvailObject mutableObjectFromNativeTwoByteString (
 		final String aNativeTwoByteString)
 	{
 		final TwoByteStringDescriptor descriptor =

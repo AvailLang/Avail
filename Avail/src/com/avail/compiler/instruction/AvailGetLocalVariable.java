@@ -51,7 +51,7 @@ public class AvailGetLocalVariable extends AvailGetVariable
 	 * Construct a new {@link AvailGetLocalVariable}.
 	 *
 	 * @param variableIndex The index of the argument or local at runtime in a
-	 *                      {@link ContinuationDescriptor continuation}.
+	 *                      {@linkplain ContinuationDescriptor continuation}.
 	 */
 	public AvailGetLocalVariable (int variableIndex)
 	{
@@ -80,7 +80,7 @@ public class AvailGetLocalVariable extends AvailGetVariable
 	/**
 	 * The instructions of a block are being iterated over.  Coordinate
 	 * optimizations between instructions using localData and outerData, two
-	 * {@link List lists} manipulated by overrides of this method.  Treat each
+	 * {@linkplain List lists} manipulated by overrides of this method.  Treat each
 	 * instruction as though it is the last one in the block, and save enough
 	 * information in the lists to be able to undo consequences of this
 	 * assumption when a later instruction shows it to be unwarranted.

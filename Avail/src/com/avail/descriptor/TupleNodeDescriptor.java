@@ -41,7 +41,7 @@ import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
 
 /**
- * My instances represent {@link ParseNodeDescriptor parse nodes} which will
+ * My instances represent {@linkplain ParseNodeDescriptor parse nodes} which will
  * generate tuples directly at runtime.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
@@ -56,7 +56,7 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 	public enum ObjectSlots implements ObjectSlotsEnum
 	{
 		/**
-		 * The {@link TupleDescriptor tuple} of {@link ParseNodeDescriptor
+		 * The {@linkplain TupleDescriptor tuple} of {@linkplain ParseNodeDescriptor
 		 * parse nodes} that produce the values that will be aggregated into a
 		 * tuple at runtime.
 		 */
@@ -219,11 +219,11 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 
 
 	/**
-	 * Create a new {@link TupleNodeDescriptor tuple node} from the given {@link
-	 * TupleDescriptor tuple} of {@link ParseNodeDescriptor expressions}.
+	 * Create a new {@linkplain TupleNodeDescriptor tuple node} from the given {@linkplain
+	 * TupleDescriptor tuple} of {@linkplain ParseNodeDescriptor expressions}.
 	 *
 	 * @param expressions
-	 *        The expressions to assemble into a {@link TupleNodeDescriptor
+	 *        The expressions to assemble into a {@linkplain TupleNodeDescriptor
 	 *        tuple node}.
 	 * @return The resulting tuple node.
 	 */

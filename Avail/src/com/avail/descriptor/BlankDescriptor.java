@@ -37,7 +37,7 @@ import java.util.List;
 import com.avail.annotations.*;
 
 /**
- * My instance is used as a place-holder in {@link MapDescriptor maps} to
+ * My instance is used as a place-holder in {@linkplain MapDescriptor maps} to
  * indicate where a key has been removed, postponing a rehash of the map until
  * a sufficient percentage of entries are blank.
  *

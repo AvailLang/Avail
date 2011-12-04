@@ -356,7 +356,7 @@ extends TypeDescriptor
 	AvailObject createPrimitiveObjectNamed (
 		final String typeNameString)
 	{
-		final AvailObject name = ByteStringDescriptor.from(typeNameString);
+		final AvailObject name = StringDescriptor.from(typeNameString);
 		final AvailObject object = create();
 		object.objectSlotPut(ObjectSlots.NAME, name);
 		object.objectSlotPut(ObjectSlots.PARENT, NullDescriptor.nullObject());

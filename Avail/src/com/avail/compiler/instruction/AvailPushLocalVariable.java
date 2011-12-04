@@ -51,7 +51,7 @@ public class AvailPushLocalVariable extends AvailPushVariable
 	 * Construct a new {@link AvailPushLocalVariable}.
 	 * 
 	 * @param variableIndex The index that the local variable will occupy at
-	 *                      runtime within a {@link ContinuationDescriptor
+	 *                      runtime within a {@linkplain ContinuationDescriptor
 	 *                      continuation}.
 	 */
 	public AvailPushLocalVariable (int variableIndex)
@@ -78,7 +78,7 @@ public class AvailPushLocalVariable extends AvailPushVariable
 	/**
 	 * The instructions of a block are being iterated over.  Coordinate
 	 * optimizations between instructions using localData and outerData, two
-	 * {@link List lists} manipulated by overrides of this method.  Treat each
+	 * {@linkplain List lists} manipulated by overrides of this method.  Treat each
 	 * instruction as though it is the last one in the block, and save enough
 	 * information in the lists to be able to undo consequences of this
 	 * assumption when a later instruction shows it to be unwarranted.

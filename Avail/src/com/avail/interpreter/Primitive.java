@@ -64,7 +64,7 @@ import com.avail.interpreter.levelTwo.instruction.L2AttemptPrimitiveInstruction;
  * must provide these primitives with equivalent semantics.
  *
  * <p>The enumeration defines an {@link #attempt(List, Interpreter)
- * attempt} operation that takes a {@link List list} of arguments of type {@link
+ * attempt} operation that takes a {@linkplain List list} of arguments of type {@link
  * AvailObject}, as well as the {@link Interpreter} on whose behalf the
  * primitive attempt is being made.  The specific enumeration values override
  * the {@code attempt} method with behavior specific to that primitive.</p>
@@ -1301,7 +1301,7 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 43:</strong> Invoke either the {@link
+	 * <strong>Primitive 43:</strong> Invoke either the {@linkplain
 	 * FunctionDescriptor trueBlock} or the {@code falseBlock}, depending on
 	 * {@linkplain EnumerationTypeDescriptor#booleanObject() aBoolean}.
 	 */
@@ -1346,7 +1346,7 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 44:</strong> Invoke the {@link FunctionDescriptor
+	 * <strong>Primitive 44:</strong> Invoke the {@linkplain FunctionDescriptor
 	 * trueBlock} if {@linkplain EnumerationTypeDescriptor#booleanObject() aBoolean}
 	 * is true, otherwise just answer {@linkplain NullDescriptor#nullObject()
 	 * void}.
@@ -2191,7 +2191,7 @@ public enum Primitive
 
 	/**
 	 * <strong>Primitive 70:</strong> Construct a {@linkplain FunctionDescriptor
-	 * function} accepting {@code numArgs} arguments (each of type {@link
+	 * function} accepting {@code numArgs} arguments (each of type {@linkplain
 	 * PrimitiveTypeDescriptor all}) and returning {@code constantResult}.
 	 */
 	prim70_CreateConstantBlock(70, 2, CanFold, CannotFail)
@@ -2976,7 +2976,7 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 107:</strong> Check if {@link SetDescriptor set1} is a
+	 * <strong>Primitive 107:</strong> Check if {@linkplain SetDescriptor set1} is a
 	 * subset of {@code set2}.
 	 */
 	prim107_SetIsSubset(107, 2, CanFold, CannotFail)
@@ -3672,7 +3672,7 @@ public enum Primitive
 	 * <strong>Primitive 141:</strong> Answer the {@linkplain TypeDescriptor
 	 * type} for the given element of {@linkplain TupleDescriptor instances} of
 	 * the given {@linkplain TupleTypeDescriptor tuple type}. Answer
-	 * {@link BottomTypeDescriptor bottom} if out of range.
+	 * {@linkplain BottomTypeDescriptor bottom} if out of range.
 	 */
 	prim141_TupleTypeAt(141, 2, CanFold, CannotFail)
 	{
@@ -3708,7 +3708,7 @@ public enum Primitive
 	 * <strong>Primitive 142:</strong> Answer a {@linkplain TupleDescriptor
 	 * tuple} of {@linkplain TypeDescriptor types} representing the types of the
 	 * given range of indices within the {@linkplain TupleTypeDescriptor tuple
-	 * type}. Use {@link BottomTypeDescriptor bottom} for indices out of
+	 * type}. Use {@linkplain BottomTypeDescriptor bottom} for indices out of
 	 * range.
 	 */
 	prim142_TupleTypeSequenceOfTypes(142, 3, CanFold)
@@ -3768,7 +3768,7 @@ public enum Primitive
 	/**
 	 * <strong>Primitive 143:</strong> Answer the {@linkplain TypeDescriptor
 	 * type} that is the union of the types within the given range of indices of
-	 * the given {@linkplain TupleTypeDescriptor tuple type}. Answer {@link
+	 * the given {@linkplain TupleTypeDescriptor tuple type}. Answer {@linkplain
 	 * BottomTypeDescriptor bottom} if all the indices are out of range.
 	 */
 	prim143_TupleTypeAtThrough(143, 3, CanFold)
@@ -4098,7 +4098,7 @@ public enum Primitive
 
 	/**
 	 * <strong>Primitive 164:</strong> Read the requested number of bytes from
-	 * the {@link RandomAccessFile file} associated with the specified
+	 * the {@linkplain RandomAccessFile file} associated with the specified
 	 * {@linkplain AtomDescriptor handle} and answer them as a {@linkplain
 	 * ByteTupleDescriptor tuple} of bytes. If fewer bytes are available, then
 	 * simply return a shorter tuple. If the request amount is infinite, then
@@ -6088,7 +6088,7 @@ public enum Primitive
 			assert args.size() == 1;
 			final AvailObject objectToPrint = args.get(0);
 			final String string = objectToPrint.toString();
-			final AvailObject availString = ByteStringDescriptor.from(string);
+			final AvailObject availString = StringDescriptor.from(string);
 			return interpreter.primitiveSuccess(availString);
 		}
 
@@ -7558,7 +7558,7 @@ public enum Primitive
 			//TODO [MvG] Make the literal node a constant of LiteralTokenDescriptor.
 			final AvailObject token = LiteralTokenDescriptor.mutable().create();
 			token.tokenType(TokenType.LITERAL);
-			token.string(ByteStringDescriptor.from("NullAfterAssignment"));
+			token.string(StringDescriptor.from("NullAfterAssignment"));
 			token.start(0);
 			token.lineNumber(0);
 			token.literal(NullDescriptor.nullObject());
@@ -8068,7 +8068,7 @@ public enum Primitive
 
 		/**
 		 * The current process has been suspended as a consequence of this
-		 * primitive executing, so the {@link Interpreter interpreter}
+		 * primitive executing, so the {@linkplain Interpreter interpreter}
 		 * should switch processes now.
 		 */
 		SUSPENDED;
@@ -8095,12 +8095,12 @@ public enum Primitive
 		 * The primitive can be safely inlined.  In particular, it simply
 		 * computes a value or changes the state of something and does not
 		 * replace the current continuation in unusual ways.  Thus, it is
-		 * suitable for directly embedding in {@link L2Interpreter Level Two}
-		 * code by the {@link L2Translator Level Two translator}, without the
+		 * suitable for directly embedding in {@linkplain L2Interpreter Level Two}
+		 * code by the {@linkplain L2Translator Level Two translator}, without the
 		 * need to reify the current continuation.
 		 *
 		 * <p>The primitive may still fail at runtime, but that's dealt with by
-		 * a conditional branch in the {@link L2AttemptPrimitiveInstruction
+		 * a conditional branch in the {@linkplain L2AttemptPrimitiveInstruction
 		 * attempt-primitive wordcode} itself.
 		 */
 		CanInline,
@@ -8128,7 +8128,7 @@ public enum Primitive
 		/**
 		 * The primitive returns some constant.  Currently this is only used for
 		 * {@link Primitive#prim340_PushConstant primitive 340},
-		 * which always returns the first literal of the {@link
+		 * which always returns the first literal of the {@linkplain
 		 * CompiledCodeDescriptor compiled code}.
 		 */
 		SpecialReturnConstant,
@@ -8151,7 +8151,7 @@ public enum Primitive
 
 		/**
 		 * The semantics of the primitive fall outside the usual capacity of the
-		 * {@link L2Translator Level Two translator}.  The current continuation
+		 * {@linkplain L2Translator Level Two translator}.  The current continuation
 		 * should be reified prior to attempting the primitive.  Do not attempt
 		 * to fold or inline this primitive.
 		 */
@@ -8160,7 +8160,7 @@ public enum Primitive
 
 
 	/**
-	 * Attempt this primitive with the given arguments, and the {@link
+	 * Attempt this primitive with the given arguments, and the {@linkplain
 	 * Interpreter interpreter} on whose behalf to attempt the primitive.
 	 * If the primitive fails, it should set the primitive failure code by
 	 * calling {@link Interpreter#primitiveFailure(AvailObject)} and returning
@@ -8172,7 +8172,7 @@ public enum Primitive
 	 * and the primitiveResult need not be set.  For primitives that need to
 	 * cause a context switch, {@link Result#SUSPENDED} should be returned.
 	 *
-	 * @param args The {@link List list} of arguments to the primitive.
+	 * @param args The {@linkplain List list} of arguments to the primitive.
 	 * @param interpreter The {@link Interpreter} that is executing.
 	 * @return The {@link Result} code indicating success or failure (or special
 	 *         circumstance).
@@ -8394,7 +8394,7 @@ public enum Primitive
 	/**
 	 * Construct a new {@link Primitive}.  The first argument is a primitive
 	 * number, the second is the number of arguments with which the primitive
-	 * expects to be invoked, and the remaining arguments are {@link Flag
+	 * expects to be invoked, and the remaining arguments are {@linkplain Flag
 	 * flags}.
 	 *
 	 * @param primitiveNumber The primitive number being defined.

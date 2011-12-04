@@ -60,7 +60,7 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 	}
 
 	/**
-	 * My slots of type {@link Integer int}.
+	 * My slots of type {@linkplain Integer int}.
 	 *
 	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
 	 */
@@ -195,7 +195,7 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 		}
 
 		/**
-		 * Create a {@link ParseNodeTypeDescriptor parse node type} given the
+		 * Create a {@linkplain ParseNodeTypeDescriptor parse node type} given the
 		 * expression type (the type of object produced by the expression).
 		 *
 		 * @param expressionType
@@ -232,7 +232,7 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 		}
 
 		/**
-		 * Answer a {@link ParseNodeTypeDescriptor parse node type} whose kind
+		 * Answer a {@linkplain ParseNodeTypeDescriptor parse node type} whose kind
 		 * is the receiver and whose expression type is {@linkplain
 		 * TypeDescriptor.Types#TOP top}.  This is the most general parse node
 		 * type of that kind.
@@ -277,7 +277,7 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 	 * Return the type of object that would be produced by a parse node of this
 	 * type.
 	 *
-	 * @return The {@link TypeDescriptor type} of the {@link AvailObject} that
+	 * @return The {@linkplain TypeDescriptor type} of the {@link AvailObject} that
 	 *         will be produced by a parse node of this type.
 	 */
 	@Override @AvailMethod
@@ -291,7 +291,7 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 	 * Return the {@linkplain ParseNodeKind parse node kind} that this parse
 	 * node type implements.
 	 *
-	 * @return The {@link ParseNodeKind kind} of parse node that the object is.
+	 * @return The {@linkplain ParseNodeKind kind} of parse node that the object is.
 	 */
 	@Override @AvailMethod
 	@NotNull ParseNodeKind o_ParseNodeKind (
@@ -302,7 +302,7 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 	}
 
 	/**
-	 * {@link ParseNodeTypeDescriptor parse nodes} must implement {@link
+	 * {@linkplain ParseNodeTypeDescriptor parse nodes} must implement {@link
 	* AbstractDescriptor#o_Hash(AvailObject) hash}.
 	 */
 	@Override @AvailMethod
@@ -316,7 +316,7 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 	 * {@inheritDoc}
 	 *
 	 * <p>
-	 * {@link ParseNodeTypeDescriptor parse node types} are equal when they are
+	 * {@linkplain ParseNodeTypeDescriptor parse node types} are equal when they are
 	 * of the same kind and have the same expression type.
 	 * </p>
 	 */
@@ -332,7 +332,7 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 	 * {@inheritDoc}
 	 *
 	 * <p>
-	 * {@link ParseNodeTypeDescriptor parse node types} are equal when they are
+	 * {@linkplain ParseNodeTypeDescriptor parse node types} are equal when they are
 	 * of the same kind and have the same expression type.
 	 * </p>
 	 */

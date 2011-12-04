@@ -37,7 +37,7 @@ import com.avail.descriptor.BlockNodeDescriptor;
 
 /**
  * An {@code AvailVariableAccessNote} is a helper class used during data flow
- * analysis.  As it progresses forward through a {@link BlockNodeDescriptor
+ * analysis.  As it progresses forward through a {@linkplain BlockNodeDescriptor
  * block}'s {@link AvailInstruction}s, it tracks, for a particular variable, the
  * most recent instruction which pushes that variable itself on the stack.  It
  * also tracks the most recent instruction which pushes that variable's

@@ -71,6 +71,7 @@ implements Iterable<AvailObject>
 		NullDescriptor.createWellKnownObjects();
 		BottomTypeDescriptor.createWellKnownObjects();
 		TupleDescriptor.createWellKnownObjects();
+		StringDescriptor.createWellKnownObjects();
 		BlankDescriptor.createWellKnownObjects();
 		TypeDescriptor.createWellKnownObjects();
 		MapDescriptor.createWellKnownObjects();
@@ -109,6 +110,7 @@ implements Iterable<AvailObject>
 		NullDescriptor.clearWellKnownObjects();
 		BottomTypeDescriptor.clearWellKnownObjects();
 		TupleDescriptor.clearWellKnownObjects();
+		StringDescriptor.clearWellKnownObjects();
 		BlankDescriptor.clearWellKnownObjects();
 		TypeDescriptor.clearWellKnownObjects();
 		MapDescriptor.clearWellKnownObjects();
@@ -1442,7 +1444,7 @@ implements Iterable<AvailObject>
 	 * with a <strike>strike-out</strike>.  That's a convenient warning for the
 	 * programmer, but we also fail if this method actually gets invoked AND
 	 * the argument is not an {@code AvailObject}.  That means we don't allow
-	 * AvailObjects to be added to Java {@link Set sets} and such intermixed
+	 * AvailObjects to be added to Java {@linkplain Set sets} and such intermixed
 	 * with things that are not AvailObjects.
 	 * </p>
 	 */
@@ -2189,7 +2191,7 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Is the {@link AvailObject receiver} an Avail byte tuple?
+	 * Is the {@linkplain AvailObject receiver} an Avail byte tuple?
 	 *
 	 * @return {@code true} if the receiver is an Avail byte tuple, {@code
 	 *         false} otherwise.
@@ -2365,7 +2367,7 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Is the {@link AvailObject receiver} an Avail string?
+	 * Is the {@linkplain AvailObject receiver} an Avail string?
 	 *
 	 * @return {@code true} if the receiver is an Avail string, {@code false}
 	 *         otherwise.

@@ -43,7 +43,7 @@ import java.io.ByteArrayOutputStream;
  * (one for each argument), then this instruction is invoked.
  * <p>
  * The super call instruction is followed by an index to the literal holding
- * the message (an {@link ImplementationSetDescriptor implementation set}), then
+ * the message (an {@linkplain ImplementationSetDescriptor implementation set}), then
  * the index of the literal holding the return type for this call site.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
@@ -61,7 +61,7 @@ public class AvailSuperCall extends AvailInstructionWithIndex
 	 * Construct a new {@link AvailSuperCall}.
 	 *
 	 * @param messageIndex The index of the literal that holds the message (an
-	 *                     {@link ImplementationSetDescriptor implementation
+	 *                     {@linkplain ImplementationSetDescriptor implementation
 	 *                     set}.
 	 * @param verifyIndex The index of the literal that holds the return type.
 	 */

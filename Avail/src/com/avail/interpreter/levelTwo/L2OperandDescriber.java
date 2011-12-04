@@ -49,7 +49,7 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 	private int _operand;
 
 	/**
-	 * The {@link L2ChunkDescriptor level two chunk} containing the operation
+	 * The {@linkplain L2ChunkDescriptor level two chunk} containing the operation
 	 * and the operand to be described.
 	 */
 	private AvailObject _chunk;
@@ -62,15 +62,15 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 
 	/**
 	 * Output a description of the given operand to the stream, given its
-	 * numeric encoding, its {@link L2OperandType operand type}, and the current
-	 * {@link L2ChunkDescriptor chunk}.
+	 * numeric encoding, its {@linkplain L2OperandType operand type}, and the current
+	 * {@linkplain L2ChunkDescriptor chunk}.
 	 *
 	 * @param operandType
 	 *            The {@link L2OperandType} used to interpret the operand.
 	 * @param operand
 	 *            The numeric operand itself, an {@code int}.
 	 * @param chunk
-	 *            The current {@link L2ChunkDescriptor level two chunk} within
+	 *            The current {@linkplain L2ChunkDescriptor level two chunk} within
 	 *            which the description is to occur.
 	 * @param stream
 	 *            The {@link StringBuilder} that will have a suitable operand

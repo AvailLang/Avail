@@ -127,7 +127,7 @@ extends Descriptor
 	}
 
 	/**
-	 * Construct an Avail boxed {@link DoubleDescriptor double-precision
+	 * Construct an Avail boxed {@linkplain DoubleDescriptor double-precision
 	 * floating point object} from the passed {@code double}.
 	 *
 	 * @param aDouble
@@ -151,13 +151,13 @@ extends Descriptor
 	}
 
 	/**
-	 * Construct an Avail boxed {@link DoubleDescriptor double-precision
+	 * Construct an Avail boxed {@linkplain DoubleDescriptor double-precision
 	 * floating point object} from the passed {@code double}.
 	 *
 	 * @param aDouble
 	 *            The Java {@code double} to box.
 	 * @param recyclable1
-	 *            A {@link DoubleDescriptor boxed Avail double} that may be
+	 *            A {@linkplain DoubleDescriptor boxed Avail double} that may be
 	 *            reused if it's mutable.
 	 * @return
 	 *            The boxed Avail {@code DoubleDescriptor double-precision
@@ -187,16 +187,16 @@ extends Descriptor
 	}
 
 	/**
-	 * Construct an Avail boxed {@link DoubleDescriptor double-precision
+	 * Construct an Avail boxed {@linkplain DoubleDescriptor double-precision
 	 * floating point object} from the passed {@code double}.
 	 *
 	 * @param aDouble
 	 *            The Java {@code double} to box.
 	 * @param recyclable1
-	 *            A {@link DoubleDescriptor boxed Avail double} that may be
+	 *            A {@linkplain DoubleDescriptor boxed Avail double} that may be
 	 *            reused if it's mutable.
 	 * @param recyclable2
-	 *            Another {@link DoubleDescriptor boxed Avail double} that may
+	 *            Another {@linkplain DoubleDescriptor boxed Avail double} that may
 	 *            be reused if it's mutable.
 	 * @return
 	 *            The boxed Avail {@code DoubleDescriptor double-precision

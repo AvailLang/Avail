@@ -43,8 +43,8 @@ import java.util.List;
 
 /**
  * I represent the use of a label.  When a label is used, it causes the current
- * {@link ContinuationDescriptor continuation} to be copied.  The copy is then
- * reset to the state that existed when the current {@link FunctionDescriptor
+ * {@linkplain ContinuationDescriptor continuation} to be copied.  The copy is then
+ * reset to the state that existed when the current {@linkplain FunctionDescriptor
  * function} started running, resetting the program counter, stack pointer, and
  * stack slots, and creating new local variables.
  * <p>
@@ -68,7 +68,7 @@ public class AvailPushLabel extends AvailInstruction
 	/**
 	 * The instructions of a block are being iterated over.  Coordinate
 	 * optimizations between instructions using localData and outerData, two
-	 * {@link List lists} manipulated by overrides of this method.  Treat each
+	 * {@linkplain List lists} manipulated by overrides of this method.  Treat each
 	 * instruction as though it is the last one in the block, and save enough
 	 * information in the lists to be able to undo consequences of this
 	 * assumption when a later instruction shows it to be unwarranted.
@@ -77,7 +77,7 @@ public class AvailPushLabel extends AvailInstruction
 	 * null or a {@link AvailVariableAccessNote}, which keeps track of the
 	 * previous time a get or push happened.
 	 * <p>
-	 * I push a label, which is a {@link ContinuationDescriptor continuation}.
+	 * I push a label, which is a {@linkplain ContinuationDescriptor continuation}.
 	 * Since the label can be restarted (which constructs new locals while
 	 * reusing the arguments), or exited (which has no static effect on
 	 * optimizations), I only have an effect on arguments and outer variables.

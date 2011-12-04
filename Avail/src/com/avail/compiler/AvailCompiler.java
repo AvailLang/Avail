@@ -42,7 +42,7 @@ import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
 
 /**
- * I parse a source file to create a {@link ModuleDescriptor module}.
+ * I parse a source file to create a {@linkplain ModuleDescriptor module}.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
@@ -317,7 +317,7 @@ public class AvailCompiler extends AbstractAvailCompiler
 	 * @param start
 	 *            Where to start parsing.
 	 * @param instruction
-	 *            The {@link MessageSplitter instruction} to execute.
+	 *            The {@linkplain MessageSplitter instruction} to execute.
 	 * @param firstArgOrNull
 	 *            Either the already-parsed first argument or null. If we're
 	 *            looking for leading-argument message sends to wrap an
@@ -336,10 +336,10 @@ public class AvailCompiler extends AbstractAvailCompiler
 	 *            started out non-null) then the position is of the token
 	 *            following the first argument.
 	 * @param successorTrees
-	 *            The {@link MessageBundleTreeDescriptor bundle trees} at which
+	 *            The {@linkplain MessageBundleTreeDescriptor bundle trees} at which
 	 *            to continue parsing.
 	 * @param continuation
-	 *            What to do with a complete {@link SendNodeDescriptor message
+	 *            What to do with a complete {@linkplain SendNodeDescriptor message
 	 *            send}.
 	 */
 	void runParsingInstructionThen (
@@ -801,7 +801,7 @@ public class AvailCompiler extends AbstractAvailCompiler
 
 	/**
 	 * Report that the parser was expecting one of several keywords. The
-	 * keywords are keys of the {@link MapDescriptor map} argument
+	 * keywords are keys of the {@linkplain MapDescriptor map} argument
 	 * {@code incomplete}.
 	 *
 	 * @param where

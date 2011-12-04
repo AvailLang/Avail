@@ -39,7 +39,7 @@ import com.avail.exceptions.*;
 import com.avail.exceptions.ArithmeticException;
 
 /**
- * I represent the {@link ExtendedNumberDescriptor extended integers} positive
+ * I represent the {@linkplain ExtendedNumberDescriptor extended integers} positive
  * infinity and negative infinity.  By supporting these as first-class values in
  * Avail we eliminate arbitrary limits, awkward duplication of effort,
  * and a host of other dangling singularities.  For example, it makes sense to

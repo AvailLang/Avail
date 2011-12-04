@@ -57,18 +57,18 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	public enum ObjectSlots implements ObjectSlotsEnum
 	{
 		/**
-		 * The {@link TokenDescriptor token} containing the name of the entity
+		 * The {@linkplain TokenDescriptor token} containing the name of the entity
 		 * being declared.
 		 */
 		TOKEN,
 
 		/**
-		 * The {@link TypeDescriptor type} of the variable being declared.
+		 * The {@linkplain TypeDescriptor type} of the variable being declared.
 		 */
 		DECLARED_TYPE,
 
 		/**
-		 * The optional {@link ParseNodeDescriptor initialization expression},
+		 * The optional {@linkplain ParseNodeDescriptor initialization expression},
 		 * or the {@link NullDescriptor#nullObject() null object} otherwise. Not
 		 * applicable to all kinds of declarations.
 		 */
@@ -82,7 +82,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	/**
-	 * My slots of type {@link Integer int}.
+	 * My slots of type {@linkplain Integer int}.
 	 *
 	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
 	 */
@@ -396,13 +396,13 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		}
 
 		/**
-		 * Return the {@link PrimitiveTypeDescriptor primitive type} associated
+		 * Return the {@linkplain PrimitiveTypeDescriptor primitive type} associated
 		 * with this kind of entity.
 		 *
 		 * @param expressionType
 		 *            The type of object produced by some parse node's
 		 *            expression.
-		 * @return The Avail {@link TypeDescriptor type} associated with this
+		 * @return The Avail {@linkplain TypeDescriptor type} associated with this
 		 *         kind of entity.
 		 */
 		public AvailObject parseNodeTypeFor (

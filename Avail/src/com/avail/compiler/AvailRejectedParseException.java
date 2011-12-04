@@ -50,13 +50,13 @@ extends RuntimeException
 	private static final long serialVersionUID = -5638050952579212324L;
 
 	/**
-	 * The {@linkplain ByteStringDescriptor error message} indicating why a
+	 * The {@linkplain StringDescriptor error message} indicating why a
 	 * particular parse was rejected.
 	 */
 	final AvailObject rejectionString;
 
 	/**
-	 * Return the {@linkplain ByteStringDescriptor error mesasge} indicating why
+	 * Return the {@linkplain StringDescriptor error mesasge} indicating why
 	 * a particular parse was rejected.
 	 *
 	 * @return The reason the parse was rejected.
@@ -70,7 +70,7 @@ extends RuntimeException
 	 * Construct a new {@link AvailRejectedParseException}.
 	 *
 	 * @param rejectionString
-	 *        The {@linkplain ByteStringDescriptor error message} indicating why
+	 *        The {@linkplain StringDescriptor error message} indicating why
 	 *        a particular parse was rejected.
 	 */
 	public AvailRejectedParseException (

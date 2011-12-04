@@ -62,7 +62,7 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	 * Return the parse node's expression type, which is the type of object that
 	 * will be produced by this parse node.
 	 *
-	 * @return The {@link TypeDescriptor type} of the {@link AvailObject} that
+	 * @return The {@linkplain TypeDescriptor type} of the {@link AvailObject} that
 	 *         will be produced by this parse node.
 	 */
 	@Override @AvailMethod
@@ -81,14 +81,14 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	}
 
 	/**
-	 * {@link ParseNodeDescriptor parse nodes} must implement {@link
+	 * {@linkplain ParseNodeDescriptor parse nodes} must implement {@link
 	* AbstractDescriptor#o_Hash(AvailObject) hash}.
 	 */
 	@Override @AvailMethod
 	abstract int o_Hash (AvailObject object);
 
 	/**
-	 * {@link ParseNodeDescriptor parse nodes} must implement {@link
+	 * {@linkplain ParseNodeDescriptor parse nodes} must implement {@link
 	* AbstractDescriptor#o_Equals(AvailObject, AvailObject) equals}.
 	 */
 	@Override @AvailMethod
@@ -206,7 +206,7 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	 *
 	 * @param object The {@linkplain ParseNodeDescriptor parse node} to
 	 *               transform.
-	 * @param aBlock The {@link Transformer1 transformation} through which to
+	 * @param aBlock The {@linkplain Transformer1 transformation} through which to
 	 *               map this parse node's children.
 	 */
 	@Override @AvailMethod
@@ -221,7 +221,7 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	 * @param object
 	 *            The {@linkplain ParseNodeDescriptor parse node} to traverse.
 	 * @param aBlock
-	 *            The {@link Continuation1 action} to perform with each of this
+	 *            The {@linkplain Continuation1 action} to perform with each of this
 	 *            parse node's children.
 	 */
 	@Override @AvailMethod

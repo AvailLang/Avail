@@ -86,7 +86,7 @@ extends Descriptor
 		INDEX,
 
 		/**
-		 * A compound field that contains information about how many {@link
+		 * A compound field that contains information about how many {@linkplain
 		 * L2ObjectRegister object registers} are needed by this
 		 * chunk, as well as some flags.  Having the number of needed object
 		 * registers stored separately allows the register list to be
@@ -97,8 +97,8 @@ extends Descriptor
 		NUM_OBJECTS_AND_FLAGS,
 
 		/**
-		 * A compound field containing the number of {@link L2IntegerRegister
-		 * integer registers} and the number of {@link L2FloatRegister floating
+		 * A compound field containing the number of {@linkplain L2IntegerRegister
+		 * integer registers} and the number of {@linkplain L2FloatRegister floating
 		 * point registers} that are used by this chunk.  Having this recorded
 		 * separately allows the register list to be dynamically expanded as
 		 * needed only when starting or resuming a continuation.
@@ -180,7 +180,7 @@ extends Descriptor
 	static class NumIntegersAndDoubles
 	{
 		/**
-		 * The number of {@link L2IntegerRegister integer registers} that are
+		 * The number of {@linkplain L2IntegerRegister integer registers} that are
 		 * used by this chunk.  Having this recorded separately allows the
 		 * register list to be dynamically expanded as needed only when starting
 		 * or resuming a continuation.
@@ -190,7 +190,7 @@ extends Descriptor
 			bitField(NumIntegersAndDoubles.class, "NUM_INTEGERS");
 
 		/**
-		 * The number of {@link L2FloatRegister floating point registers} that
+		 * The number of {@linkplain L2FloatRegister floating point registers} that
 		 * are used by this chunk.  Having this recorded separately allows the
 		 * register list to be dynamically expanded as needed only when starting
 		 * or resuming a continuation.
@@ -418,7 +418,7 @@ extends Descriptor
 		 * @param chunk
 		 *            The chunk to be wrapped with a weak reference.
 		 * @param contingentImplementationSets
-		 *            The {@link ImplementationSetDescriptor implementation
+		 *            The {@linkplain ImplementationSetDescriptor implementation
 		 *            sets} on which this chunk depends.
 		 */
 		public WeakChunkReference (
@@ -570,13 +570,13 @@ extends Descriptor
 	 *            The {@link List} of vectors, each of which is a list of
 	 *            {@linkplain Integer}s denoting an {@link L2ObjectRegister}.
 	 * @param numObjects
-	 *            The number of {@link L2ObjectRegister object registers} that
+	 *            The number of {@linkplain L2ObjectRegister object registers} that
 	 *            this chunk will require.
 	 * @param numIntegers
-	 *            The number of {@link L2IntegerRegister integer registers} that
+	 *            The number of {@linkplain L2IntegerRegister integer registers} that
 	 *            this chunk will require.
 	 * @param numFloats
-	 *            The number of {@link L2FloatRegister floating point registers}
+	 *            The number of {@linkplain L2FloatRegister floating point registers}
 	 *            that this chunk will require.
 	 * @param theWordcodes
 	 *            A {@link List} of {@linkplain Integer}s that encode the

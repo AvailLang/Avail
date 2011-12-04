@@ -50,13 +50,13 @@ extends RuntimeException
 	private static final long serialVersionUID = -3945878927329358120L;
 
 	/**
-	 * The {@linkplain ByteStringDescriptor error message} describing the
+	 * The {@linkplain StringDescriptor error message} describing the
 	 * assertion.
 	 */
 	final AvailObject assertionString;
 
 	/**
-	 * Return the {@linkplain ByteStringDescriptor error message} describing the
+	 * Return the {@linkplain StringDescriptor error message} describing the
 	 * assertion.
 	 *
 	 * @return The interpretation of the assertion.
@@ -70,7 +70,7 @@ extends RuntimeException
 	 * Construct a new {@link AvailAssertionFailedException}.
 	 *
 	 * @param assertionString
-	 *        The {@linkplain ByteStringDescriptor error message} describing the
+	 *        The {@linkplain StringDescriptor error message} describing the
 	 *        assertion.
 	 */
 	public AvailAssertionFailedException (

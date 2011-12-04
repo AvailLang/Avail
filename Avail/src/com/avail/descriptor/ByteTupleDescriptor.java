@@ -421,7 +421,7 @@ extends TupleDescriptor
 	}
 
 	/**
-	 * Build a mutable {@link ByteTupleDescriptor byte tuple} with room for the
+	 * Build a mutable {@linkplain ByteTupleDescriptor byte tuple} with room for the
 	 * specified number of elements.
 	 *
 	 * @param size The number of bytes in the resulting tuple.

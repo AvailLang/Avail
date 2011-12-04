@@ -88,14 +88,14 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	/**
-	 * My slots of type {@link Integer int}.
+	 * My slots of type {@linkplain Integer int}.
 	 *
 	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
 	 */
 	public enum IntegerSlots implements IntegerSlotsEnum
 	{
 		/**
-		 * The {@link Primitive primitive} number to invoke for this block.
+		 * The {@linkplain Primitive primitive} number to invoke for this block.
 		 * This is not the {@link Enum#ordinal()} of the primitive, but rather
 		 * its {@link Primitive#primitiveNumber}.
 		 */
@@ -391,10 +391,10 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	 * Answer an Avail compiled block compiled from the given block node, using
 	 * the given {@link AvailCodeGenerator}.
 	 *
-	 * @param object The {@link BlockNodeDescriptor block node}.
+	 * @param object The {@linkplain BlockNodeDescriptor block node}.
 	 * @param codeGenerator
-	 *            A {@link AvailCodeGenerator code generator}
-	 * @return An {@link AvailObject} of type {@link FunctionDescriptor function}.
+	 *            A {@linkplain AvailCodeGenerator code generator}
+	 * @return An {@link AvailObject} of type {@linkplain FunctionDescriptor function}.
 	 */
 	@Override @AvailMethod
 	AvailObject o_Generate (

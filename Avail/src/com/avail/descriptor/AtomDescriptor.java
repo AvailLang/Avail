@@ -222,10 +222,10 @@ extends Descriptor
 	 */
 	static void createWellKnownObjects ()
 	{
-		TrueObject = create(ByteStringDescriptor.from("true"));
-		FalseObject = create(ByteStringDescriptor.from("false"));
+		TrueObject = create(StringDescriptor.from("true"));
+		FalseObject = create(StringDescriptor.from("false"));
 		ObjectTypeNamePropertyKey = create(
-			ByteStringDescriptor.from("objectNames"));
+			StringDescriptor.from("objectNames"));
 	}
 
 	/**

@@ -229,7 +229,7 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 
 
 	/**
-	 * Construct a new {@link MacroSubstitutionNodeDescriptor macro substitution
+	 * Construct a new {@linkplain MacroSubstitutionNodeDescriptor macro substitution
 	 * node}.
 	 *
 	 * @param macroName

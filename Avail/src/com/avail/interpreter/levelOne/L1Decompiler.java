@@ -42,23 +42,23 @@ import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.utility.Transformer1;
 
 /**
- * The {@link L1Decompiler} converts a {@link CompiledCodeDescriptor compiled
- * code} object into an equivalent {@link ParseNodeDescriptor parse tree}.
+ * The {@link L1Decompiler} converts a {@linkplain CompiledCodeDescriptor compiled
+ * code} object into an equivalent {@linkplain ParseNodeDescriptor parse tree}.
  *
  * @author Mark van Gulik &lt;anarakul@gmail.com&gt;
  */
 public class L1Decompiler implements L1OperationDispatcher
 {
 	/**
-	 * The {@link CompiledCodeDescriptor compiled code} which is being
+	 * The {@linkplain CompiledCodeDescriptor compiled code} which is being
 	 * decompiled.
 	 */
 	AvailObject code;
 
 	/**
-	 * {@link ParseNodeDescriptor Parse nodes} which correspond with the
-	 * lexically captured variables.  These can be {@link
-	 * DeclarationNodeDescriptor declaration nodes} or {@link
+	 * {@linkplain ParseNodeDescriptor Parse nodes} which correspond with the
+	 * lexically captured variables.  These can be {@linkplain
+	 * DeclarationNodeDescriptor declaration nodes} or {@linkplain
 	 * LiteralNodeDescriptor literal nodes}, but the latter may be phased out
 	 * in favor of module constants and module variables.
 	 */
@@ -99,7 +99,7 @@ public class L1Decompiler implements L1OperationDispatcher
 	List<AvailObject> expressionStack = new ArrayList<AvailObject>();
 
 	/**
-	 * The list of completely decompiled {@link ParseNodeDescriptor statements}.
+	 * The list of completely decompiled {@linkplain ParseNodeDescriptor statements}.
 	 */
 	List<AvailObject> statements = new ArrayList<AvailObject>();
 
@@ -112,13 +112,13 @@ public class L1Decompiler implements L1OperationDispatcher
 	 * locals, and labels.  Answer the resulting AvailBlockNode.
 	 *
 	 * @param aCodeObject
-	 *        The {@link CompiledCodeDescriptor code} to decompile.
+	 *        The {@linkplain CompiledCodeDescriptor code} to decompile.
 	 * @param outerVars
 	 *        The list of outer variable declarations and literal nodes.
 	 * @param tempBlock
-	 *        A {@link Transformer1 transformer} that takes a prefix and
+	 *        A {@linkplain Transformer1 transformer} that takes a prefix and
 	 *        generates a suitably unique temporary variable name.
-	 * @return The {@link BlockNodeDescriptor block node} that is the
+	 * @return The {@linkplain BlockNodeDescriptor block node} that is the
 	 *         decompilation of the code.
 	 */
 	public AvailObject parseWithOuterVarsTempGenerator (
@@ -187,7 +187,7 @@ public class L1Decompiler implements L1OperationDispatcher
 	}
 
 	/**
-	 * Pop one {@link ParseNodeDescriptor parse node} off the expression stack
+	 * Pop one {@linkplain ParseNodeDescriptor parse node} off the expression stack
 	 * and return it.
 	 *
 	 * @return The parse node popped off the stack.
@@ -198,8 +198,8 @@ public class L1Decompiler implements L1OperationDispatcher
 	}
 
 	/**
-	 * Pop some {@link ParseNodeDescriptor parse nodes} off the expression stack
-	 * and return them in a {@link List list}.
+	 * Pop some {@linkplain ParseNodeDescriptor parse nodes} off the expression stack
+	 * and return them in a {@linkplain List list}.
 	 *
 	 * @param count The number of parse nodes to pop.
 	 * @return The list of {@code #count} parse nodes, in the order they were
@@ -217,7 +217,7 @@ public class L1Decompiler implements L1OperationDispatcher
 	}
 
 	/**
-	 * Push the given {@link ParseNodeDescriptor parse node} onto the expression
+	 * Push the given {@linkplain ParseNodeDescriptor parse node} onto the expression
 	 * stack.
 	 *
 	 * @param expression The expression to push.
@@ -237,7 +237,7 @@ public class L1Decompiler implements L1OperationDispatcher
 		int nArgs = 0;
 		final AvailObject str = atom.name();
 		final AvailObject underscore =
-			TupleDescriptor.underscoreTuple().tupleAt(1);
+			StringDescriptor.underscore().tupleAt(1);
 		for (int i = 1, end = str.tupleSize(); i <= end; i++)
 		{
 			if (str.tupleAt(i).equals(underscore))
@@ -395,7 +395,7 @@ public class L1Decompiler implements L1OperationDispatcher
 				final AvailObject token =
 					LiteralTokenDescriptor.mutable().create();
 				token.tokenType(TokenType.LITERAL);
-				token.string(ByteStringDescriptor.from(
+				token.string(StringDescriptor.from(
 					"OuterOfUncleanConstantFunction#" + i));
 				token.start(0);
 				token.lineNumber(0);
@@ -415,7 +415,7 @@ public class L1Decompiler implements L1OperationDispatcher
 		{
 			final AvailObject token = LiteralTokenDescriptor.mutable().create();
 			token.tokenType(TokenType.LITERAL);
-			token.string(ByteStringDescriptor.from(value.toString()));
+			token.string(StringDescriptor.from(value.toString()));
 			token.start(0);
 			token.lineNumber(0);
 			token.literal(value);
@@ -559,7 +559,7 @@ public class L1Decompiler implements L1OperationDispatcher
 	{
 		final AvailObject globalToken = TokenDescriptor.mutable().create();
 		globalToken.tokenType(TokenType.KEYWORD);
-		globalToken.string(ByteStringDescriptor.from("SomeGlobal"));
+		globalToken.string(StringDescriptor.from("SomeGlobal"));
 		globalToken.start(0);
 		final AvailObject globalVar = code.literalAt(getInteger());
 
@@ -598,7 +598,7 @@ public class L1Decompiler implements L1OperationDispatcher
 			final AvailObject labelToken = TokenDescriptor.mutable().create();
 			labelToken.tokenType(TokenType.KEYWORD);
 			labelToken.string(
-				ByteStringDescriptor.from(
+				StringDescriptor.from(
 					tempGenerator.value("label")));
 			labelToken.start(0);
 
@@ -631,7 +631,7 @@ public class L1Decompiler implements L1OperationDispatcher
 	{
 		final AvailObject globalToken = TokenDescriptor.mutable().create();
 		globalToken.tokenType(TokenType.KEYWORD);
-		globalToken.string(ByteStringDescriptor.from("SomeGlobal"));
+		globalToken.string(StringDescriptor.from("SomeGlobal"));
 		globalToken.start(0);
 		final AvailObject globalVar = code.literalAt(getInteger());
 
@@ -673,7 +673,7 @@ public class L1Decompiler implements L1OperationDispatcher
 		int nArgs = 0;
 		final AvailObject str = atom.name();
 		final AvailObject underscore =
-			TupleDescriptor.underscoreTuple().tupleAt(1);
+			StringDescriptor.underscore().tupleAt(1);
 		for (int i = 1, end = str.tupleSize(); i <= end; i++)
 		{
 			if (str.tupleAt(i).equals(underscore))
@@ -729,7 +729,7 @@ public class L1Decompiler implements L1OperationDispatcher
 			final String argName = tempGenerator.value("arg");
 			final AvailObject token = TokenDescriptor.mutable().create();
 			token.tokenType(TokenType.KEYWORD);
-			token.string(ByteStringDescriptor.from(argName));
+			token.string(StringDescriptor.from(argName));
 			token.start(0);
 			final AvailObject decl = DeclarationNodeDescriptor.newArgument(
 				token,
@@ -741,7 +741,7 @@ public class L1Decompiler implements L1OperationDispatcher
 			final String localName = tempGenerator.value("local");
 			final AvailObject token = TokenDescriptor.mutable().create();
 			token.tokenType(TokenType.KEYWORD);
-			token.string(ByteStringDescriptor.from(localName));
+			token.string(StringDescriptor.from(localName));
 			token.start(0);
 			final AvailObject decl = DeclarationNodeDescriptor.newVariable(
 				token,
@@ -754,11 +754,11 @@ public class L1Decompiler implements L1OperationDispatcher
 
 	/**
 	 * Parse the given statically constructed function.  It treats outer
-	 * variables as literals.  Answer the resulting {@link BlockNodeDescriptor
+	 * variables as literals.  Answer the resulting {@linkplain BlockNodeDescriptor
 	 * block}.
 	 *
 	 * @param aFunction The function to decompile.
-	 * @return The {@link BlockNodeDescriptor block} that is the decompilation
+	 * @return The {@linkplain BlockNodeDescriptor block} that is the decompilation
 	 *         of the provided function.
 	 */
 	public static AvailObject parse (final AvailObject aFunction)
@@ -785,7 +785,7 @@ public class L1Decompiler implements L1OperationDispatcher
 
 			final AvailObject token = LiteralTokenDescriptor.mutable().create();
 			token.tokenType(TokenType.LITERAL);
-			token.string(ByteStringDescriptor.from("Outer#" + i));
+			token.string(StringDescriptor.from("Outer#" + i));
 			token.start(0);
 			token.lineNumber(0);
 			token.literal(varObject);

@@ -38,7 +38,7 @@ import com.avail.annotations.*;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 
 /**
- * A [@linkplain {@link ModuleDescriptor module} is the mechanism by which Avail
+ * A [@linkplain {@linkplain ModuleDescriptor module} is the mechanism by which Avail
  * code is organized.  Modules are parsed from files with the extension ".avail"
  * which contain information about
  * <ul>
@@ -61,7 +61,7 @@ extends Descriptor
 	public enum ObjectSlots implements ObjectSlotsEnum
 	{
 		/**
-		 * A {@link ByteStringDescriptor string} that names the {@linkplain
+		 * A {@linkplain StringDescriptor string} that names the {@linkplain
 		 * ModuleDescriptor module}.
 		 */
 		NAME,
@@ -74,7 +74,7 @@ extends Descriptor
 
 		/**
 		 * A {@linkplain MapDescriptor map} from {@linkplain
-		 * ByteStringDescriptor strings} to {@link AtomDescriptor atoms} which
+		 * ByteStringDescriptor strings} to {@linkplain AtomDescriptor atoms} which
 		 * act as true names.  The true names are identity-based identifiers
 		 * that prevent or at least clarify name conflicts.  This field holds
 		 * only those names that are newly added by this module.
@@ -83,7 +83,7 @@ extends Descriptor
 
 		/**
 		 * A {@linkplain MapDescriptor map} from {@linkplain
-		 * ByteStringDescriptor strings} to {@link AtomDescriptor atoms} which
+		 * ByteStringDescriptor strings} to {@linkplain AtomDescriptor atoms} which
 		 * act as true names.  The true names are identity-based identifiers
 		 * that prevent or at least clarify name conflicts.  This field holds
 		 * only those names that have been imported from other modules.
@@ -92,7 +92,7 @@ extends Descriptor
 
 		/**
 		 * A {@linkplain MapDescriptor map} from {@linkplain
-		 * ByteStringDescriptor strings} to {@link AtomDescriptor atoms} which
+		 * ByteStringDescriptor strings} to {@linkplain AtomDescriptor atoms} which
 		 * act as true names.  The true names are identity-based identifiers
 		 * that prevent or at least clarify name conflicts.  This field holds
 		 * only those names that are neither imported from another module nor
@@ -642,7 +642,7 @@ extends Descriptor
 	 * Construct a new empty {@linkplain ModuleDescriptor module}.
 	 *
 	 * @param moduleName
-	 *        The {@linkplain ByteStringDescriptor name} of the module.
+	 *        The {@linkplain StringDescriptor name} of the module.
 	 * @return The new module.
 	 */
 	public static @NotNull AvailObject newModule (

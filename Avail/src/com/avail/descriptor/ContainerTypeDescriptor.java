@@ -37,8 +37,8 @@ import java.util.List;
 import com.avail.annotations.*;
 
 /**
- * A {@code ContainerTypeDescriptor container type} is the {@link TypeDescriptor
- * type} of any {@link ContainerDescriptor container} that can only hold objects
+ * A {@code ContainerTypeDescriptor container type} is the {@linkplain TypeDescriptor
+ * type} of any {@linkplain ContainerDescriptor container} that can only hold objects
  * having the specified {@linkplain ObjectSlots#INNER_TYPE inner type}. The
  * read and write capabilities of the object instances are equivalent, therefore
  * the inner type is invariant.

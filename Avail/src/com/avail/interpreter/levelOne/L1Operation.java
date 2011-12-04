@@ -56,8 +56,8 @@ public enum L1Operation
 	 * <p>
 	 * The first operand is an index into the current code's {@link
 	 * CompiledCodeDescriptor.ObjectSlots#LITERAL_AT_ literals}, which
-	 * specifies an {@link ImplementationSetDescriptor implementation set} that
-	 * contains a collection of {@link MethodSignatureDescriptor methods} that
+	 * specifies an {@linkplain ImplementationSetDescriptor implementation set} that
+	 * contains a collection of {@linkplain MethodSignatureDescriptor methods} that
 	 * may be invoked.  The arguments are expected to already have been pushed.
 	 * They are popped from the stack and the literal specified by the second
 	 * operand is pushed.  This is the expected type of the send.  When the
@@ -98,7 +98,7 @@ public enum L1Operation
 	 * before.
 	 * <p>
 	 * If an argument is specified then push the value, since there is no actual
-	 * {@link ContainerDescriptor variable} to operate on.  Clear the slot of
+	 * {@linkplain ContainerDescriptor variable} to operate on.  Clear the slot of
 	 * the continuation reserved for the argument.  Constants are treated like
 	 * ordinary local variables, except that they can not be assigned after
 	 * their definition, nor can a reference to the constant be taken.
@@ -115,7 +115,7 @@ public enum L1Operation
 	/**
 	 * Push a local variable -- not its value, but the variable itself.  If an
 	 * argument or constant is specified then push the value, since there is no
-	 * actual {@link ContainerDescriptor variable} to operate on.
+	 * actual {@linkplain ContainerDescriptor variable} to operate on.
 	 */
 	L1_doPushLocal(3, L1OperandType.LOCAL)
 	{
@@ -344,7 +344,7 @@ public enum L1Operation
 	/**
 	 * Expect arguments to have pushed on the stack, followed by the argument
 	 * types with which to perform a method lookup.  The literal index of the
-	 * {@link ImplementationSetDescriptor implementation set} is the first
+	 * {@linkplain ImplementationSetDescriptor implementation set} is the first
 	 * operand, and the second is the literal index of the type that this call
 	 * site is supposed to produce.  After popping the arguments and argument
 	 * types, push the expected type.  The callee will check its return result
@@ -423,13 +423,13 @@ public enum L1Operation
 
 
 	/**
-	 * This operation's collection of {@link L1OperandType operand types}.
+	 * This operation's collection of {@linkplain L1OperandType operand types}.
 	 */
 	private final L1OperandType [] operandTypes;
 
 
 	/**
-	 * Return this operation's collection of {@link L1OperandType operand
+	 * Return this operation's collection of {@linkplain L1OperandType operand
 	 * types}.
 	 *
 	 * @return The kinds of operands this operation expects.
@@ -443,11 +443,11 @@ public enum L1Operation
 	/**
 	 * Construct a new {@link L1Operation}.  The expected {@link Enum#ordinal()
 	 * ordinal} is passed as a cross-check so that each operation's definition
-	 * shows the ordinal.  The rest of the arguments are the {@link
+	 * shows the ordinal.  The rest of the arguments are the {@linkplain
 	 * L1OperandType operand types} that this operation expects.
 	 *
 	 * @param ordinalCheck This operation's ordinal.
-	 * @param operandTypes This operation's list of {@link L1OperandType operand
+	 * @param operandTypes This operation's list of {@linkplain L1OperandType operand
 	 *                     types}.
 	 */
 	L1Operation (

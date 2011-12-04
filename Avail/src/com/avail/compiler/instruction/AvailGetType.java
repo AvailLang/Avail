@@ -37,7 +37,7 @@ import com.avail.interpreter.levelOne.L1Operation;
 
 /**
  * Push the type of the value that's N levels deep on the stack.  This is only
- * used to assist in the implementation of multimethod {@link AvailSuperCall
+ * used to assist in the implementation of multimethod {@linkplain AvailSuperCall
  * super calls}.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;

@@ -120,7 +120,7 @@ public class MessageSplitter
 
 		/**
 		 * Write instructions for parsing me to the given list.
-		 * @param list The list of integers {@link MessageSplitter encoding}
+		 * @param list The list of integers {@linkplain MessageSplitter encoding}
 		 * parsing instructions.
 		 */
 		abstract void emitOn (final List<Integer> list);
@@ -166,11 +166,11 @@ public class MessageSplitter
 		 * [2..3].</p>
 		 *
 		 * <p>Note that the outermost (pseudo)group represents the entire
-		 * message, so the caller should synthesize a fixed-length {@link
+		 * message, so the caller should synthesize a fixed-length {@linkplain
 		 * TupleTypeDescriptor tuple type} for the outermost check.</p>
 		 *
 		 * @param argumentType
-		 *        A {@link TupleTypeDescriptor tuple type} describing the types
+		 *        A {@linkplain TupleTypeDescriptor tuple type} describing the types
 		 *        of arguments that a method being added will accept.
 		 */
 		public abstract void checkType (final AvailObject argumentType);
@@ -718,11 +718,11 @@ public class MessageSplitter
 
 		/**
 		 * Pretty-print this part of the message, using the provided argument
-		 * {@link ParseNodeDescriptor nodes}.
+		 * {@linkplain ParseNodeDescriptor nodes}.
 		 *
 		 * @param availObject
 		 *        The arguments to this {@link Group}, organized as either a
-		 *        single {@link ParseNodeDescriptor parse node} or a {@link
+		 *        single {@linkplain ParseNodeDescriptor parse node} or a {@linkplain
 		 *        TupleNodeDescriptor tuple node} of parse nodes, depending on
 		 *        {@code doubleWrap}.  The root group always has doubleWrap
 		 *        true, and passes a synthetic {@linkplain TupleNodeDescriptor
@@ -835,7 +835,7 @@ public class MessageSplitter
 	 * into token strings and generating parsing instructions for parsing
 	 * occurrences of this message.
 	 *
-	 * @param messageName An Avail {@link ByteStringDescriptor string}
+	 * @param messageName An Avail {@linkplain StringDescriptor string}
 	 *                    specifying the keywords and arguments of some message
 	 *                    being defined.
 	 */
@@ -913,7 +913,7 @@ public class MessageSplitter
 	 * Pretty-print a send of this message with given argument nodes.
 	 *
 	 * @param sendNode
-	 *        The {@link SendNodeDescriptor send node} that is being printed.
+	 *        The {@linkplain SendNodeDescriptor send node} that is being printed.
 	 * @param aStream
 	 *        A {@link StringBuilder} on which to pretty-print the send of my
 	 *        message with the given arguments.
@@ -1042,21 +1042,21 @@ public class MessageSplitter
 				return group;
 			}
 			AvailObject token = messageParts.get(messagePartPosition - 1);
-			if (token.equals(TupleDescriptor.closeChevronTuple()))
+			if (token.equals(StringDescriptor.closeChevron()))
 			{
 				return group;
 			}
-			else if (token.equals(TupleDescriptor.underscoreTuple()))
+			else if (token.equals(StringDescriptor.underscore()))
 			{
 				group.addExpression(new Argument());
 				messagePartPosition++;
 			}
-			else if (token.equals(TupleDescriptor.ellipsisTuple()))
+			else if (token.equals(StringDescriptor.ellipsis()))
 			{
 				group.addExpression(new RawTokenArgument());
 				messagePartPosition++;
 			}
-			else if (token.equals(TupleDescriptor.doubleDaggerTuple()))
+			else if (token.equals(StringDescriptor.doubleDagger()))
 			{
 				if (group.hasDagger)
 				{
@@ -1065,7 +1065,7 @@ public class MessageSplitter
 				group.hasDagger = true;
 				messagePartPosition++;
 			}
-			else if (token.equals(TupleDescriptor.openChevronTuple()))
+			else if (token.equals(StringDescriptor.openChevron()))
 			{
 				// Eat the open chevron, parse a subgroup, eat the (mandatory)
 				// close chevron, and add the group.
@@ -1076,7 +1076,7 @@ public class MessageSplitter
 					token = messageParts.get(messagePartPosition - 1);
 				}
 				// Otherwise token stays an open chevron, hence not a close...
-				if (!token.equals(TupleDescriptor.closeChevronTuple()))
+				if (!token.equals(StringDescriptor.closeChevron()))
 				{
 					error(
 						"Expected matching close chevron in method name",
@@ -1088,7 +1088,7 @@ public class MessageSplitter
 			else
 			{
 				// Parse a backquote or regular keyword or operator
-				if (token.equals(TupleDescriptor.backQuoteTuple()))
+				if (token.equals(StringDescriptor.backQuote()))
 				{
 					messagePartPosition++;  // eat the backquote
 					if (messagePartPosition > messageParts.size())
@@ -1117,7 +1117,7 @@ public class MessageSplitter
 
 
 	/**
-	 * Return the number of arguments a {@link MethodSignatureDescriptor method}
+	 * Return the number of arguments a {@linkplain MethodSignatureDescriptor method}
 	 * implementing this name would accept.  Note that this is not necessarily
 	 * the number of underscores and ellipses, as a chevron group may contain
 	 * zero or more underscores/ellipses (and other chevron groups) but count as

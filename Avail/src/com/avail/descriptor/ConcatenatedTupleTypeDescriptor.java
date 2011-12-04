@@ -231,7 +231,7 @@ extends TypeDescriptor
 	 * an indirection object to the actual tupleType.  Answer void.
 	 *
 	 * @param object
-	 *            The {@link ConcatenatedTupleTypeDescriptor concatenated tuple
+	 *            The {@linkplain ConcatenatedTupleTypeDescriptor concatenated tuple
 	 *            type} to transform
 	 */
 	private void becomeRealTupleType (

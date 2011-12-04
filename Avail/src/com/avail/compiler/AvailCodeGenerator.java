@@ -57,7 +57,7 @@ public class AvailCodeGenerator
 	List<AvailInstruction> instructions = new ArrayList<AvailInstruction>(10);
 
 	/**
-	 * The number of arguments with which the resulting {@link
+	 * The number of arguments with which the resulting {@linkplain
 	 * CompiledCodeDescriptor compiled code} will be invoked.
 	 */
 	int numArgs;
@@ -109,7 +109,7 @@ public class AvailCodeGenerator
 	AvailObject exceptionSet;
 
 	/**
-	 * Which {@link Primitive primitive VM operation} should be invoked, or zero
+	 * Which {@linkplain Primitive primitive VM operation} should be invoked, or zero
 	 * if none.
 	 */
 	int primitive = 0;
@@ -152,7 +152,7 @@ public class AvailCodeGenerator
 	 * Finish compilation of the block, answering the resulting compiledCode
 	 * object.
 	 *
-	 * @return A {@link CompiledCodeDescriptor compiled code} object.
+	 * @return A {@linkplain CompiledCodeDescriptor compiled code} object.
 	 */
 	public AvailObject endBlock ()
 	{
@@ -244,21 +244,21 @@ public class AvailCodeGenerator
 	 * Start generation of a block.
 	 *
 	 * @param arguments
-	 *        The {@link TupleDescriptor tuple} of
-	 *        {@link DeclarationKind#ARGUMENT argument} {@link
+	 *        The {@linkplain TupleDescriptor tuple} of
+	 *        {@link DeclarationKind#ARGUMENT argument} {@linkplain
 	 *        DeclarationNodeDescriptor declaration nodes}.
 	 * @param locals
 	 *        The {@link List} of {@link DeclarationKind#LOCAL_VARIABLE local
 	 *        variable} and {@link DeclarationKind#LOCAL_CONSTANT local
-	 *        constant} {@link DeclarationNodeDescriptor declaration nodes}.
+	 *        constant} {@linkplain DeclarationNodeDescriptor declaration nodes}.
 	 * @param labels
-	 *        The {@link List} of {@link DeclarationKind#LABEL label} {@link
+	 *        The {@link List} of {@link DeclarationKind#LABEL label} {@linkplain
 	 *        DeclarationNodeDescriptor declaration nodes}.
 	 * @param outerVars
-	 *        The {@link TupleDescriptor tuple} of lexically captured (outer)
-	 *        {@link DeclarationNodeDescriptor declarations}.
+	 *        The {@linkplain TupleDescriptor tuple} of lexically captured (outer)
+	 *        {@linkplain DeclarationNodeDescriptor declarations}.
 	 * @param theResultType
-	 *        A {@link CompiledCodeDescriptor compiled code} object.
+	 *        A {@linkplain CompiledCodeDescriptor compiled code} object.
 	 * @param theExceptionSet
 	 *        A {@linkplain SetDescriptor set} of {@linkplain
 	 *        ObjectTypeDescriptor exception types} that the block is permitted
@@ -397,7 +397,7 @@ public class AvailCodeGenerator
 	 * @param compiledCode
 	 *        The code from which to make a function.
 	 * @param neededVariables
-	 *        A {@link TupleDescriptor tuple} of {@link
+	 *        A {@linkplain TupleDescriptor tuple} of {@linkplain
 	 *        DeclarationNodeDescriptor declarations} of variables that the code
 	 *        needs to access.
 	 */
@@ -422,7 +422,7 @@ public class AvailCodeGenerator
 	/**
 	 * Emit code to get the value of a literal variable.
 	 *
-	 * @param aLiteral The {@link ContainerDescriptor variable} that should have
+	 * @param aLiteral The {@linkplain ContainerDescriptor variable} that should have
 	 *                 its value extracted.
 	 */
 	public void emitGetLiteral (
@@ -447,7 +447,7 @@ public class AvailCodeGenerator
 	 * Emit code to get the value of a local or outer (captured) variable.
 	 *
 	 * @param localOrOuter
-	 *        The {@link DeclarationNodeDescriptor declaration} of the variable
+	 *        The {@linkplain DeclarationNodeDescriptor declaration} of the variable
 	 *        that should have its value extracted.
 	 */
 	public void emitGetLocalOrOuter (
@@ -497,7 +497,7 @@ public class AvailCodeGenerator
 	}
 
 	/**
-	 * Emit a {@link DeclarationNodeDescriptor declaration} of a {@link
+	 * Emit a {@linkplain DeclarationNodeDescriptor declaration} of a {@link
 	 * DeclarationKind#LABEL label} for the current block.
 	 *
 	 * @param labelNode The label declaration.
@@ -511,7 +511,7 @@ public class AvailCodeGenerator
 	}
 
 	/**
-	 * Emit code to create a {@link TupleDescriptor tuple} from the top N items
+	 * Emit code to create a {@linkplain TupleDescriptor tuple} from the top N items
 	 * on the stack.
 	 *
 	 * @param count How many pushed items to pop for the new tuple.
@@ -600,7 +600,7 @@ public class AvailCodeGenerator
 	 * Emit code to pop the stack and write into a local or outer variable.
 	 *
 	 * @param localOrOuter
-	 *        The {@link DeclarationNodeDescriptor declaration} of the {@link
+	 *        The {@linkplain DeclarationNodeDescriptor declaration} of the {@link
 	 *        DeclarationKind#LOCAL_VARIABLE local} or outer variable in which
 	 *        to write.
 	 */

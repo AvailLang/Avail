@@ -55,7 +55,7 @@ public class SequenceNodeDescriptor extends ParseNodeDescriptor
 	public enum ObjectSlots implements ObjectSlotsEnum
 	{
 		/**
-		 * The {@link ParseNodeDescriptor statements} that should be considered
+		 * The {@linkplain ParseNodeDescriptor statements} that should be considered
 		 * to execute sequentially, discarding each result except possibly for
 		 * that of the last statement.
 		 */
@@ -193,11 +193,11 @@ public class SequenceNodeDescriptor extends ParseNodeDescriptor
 
 
 	/**
-	 * Create a new {@link SequenceNodeDescriptor sequence node} from the given
-	 * {@link TupleDescriptor tuple} of {@link ParseNodeDescriptor statements}.
+	 * Create a new {@linkplain SequenceNodeDescriptor sequence node} from the given
+	 * {@linkplain TupleDescriptor tuple} of {@linkplain ParseNodeDescriptor statements}.
 	 *
 	 * @param statements
-	 *        The expressions to assemble into a {@link SequenceNodeDescriptor
+	 *        The expressions to assemble into a {@linkplain SequenceNodeDescriptor
 	 *        sequence node}.
 	 * @return The resulting sequence node.
 	 */

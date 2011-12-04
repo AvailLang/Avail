@@ -68,9 +68,9 @@ public abstract class AvailPushVariable extends AvailInstructionWithIndex
 	 *
 	 * @param variableIndex
 	 *        The index that the variable will occupy at runtime, either within
-	 *        a {@link ContinuationDescriptor continuation} for arguments and
-	 *        locals, or in the outer variables of a {@link FunctionDescriptor
-	 *        function}, or as a literal stored directly in {@link
+	 *        a {@linkplain ContinuationDescriptor continuation} for arguments and
+	 *        locals, or in the outer variables of a {@linkplain FunctionDescriptor
+	 *        function}, or as a literal stored directly in {@linkplain
 	 *        CompiledCodeDescriptor compiled code}.
 	 */
 	public AvailPushVariable (int variableIndex)

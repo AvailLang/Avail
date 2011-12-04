@@ -135,7 +135,7 @@ extends Descriptor
 			int count = 0;
 			for (final AvailObject part : parts)
 			{
-				if (part.equals(TupleDescriptor.underscoreTuple()))
+				if (part.equals(StringDescriptor.underscore()))
 				{
 					count++;
 				}
@@ -258,14 +258,14 @@ extends Descriptor
 	}
 
 	/**
-	 * Create a new {@link MessageBundleDescriptor message bundle} for the
+	 * Create a new {@linkplain MessageBundleDescriptor message bundle} for the
 	 * given message.  Also use the provided tuple of message parts and parsing
 	 * instructions.
 	 *
-	 * @param message The message name, an {@link AtomDescriptor atom}.
+	 * @param message The message name, an {@linkplain AtomDescriptor atom}.
 	 * @param parts A tuple of strings constituting the message name.
 	 * @param instructions A tuple of integers encoding parsing instructions.
-	 * @return A new {@link MessageBundleDescriptor message bundle}.
+	 * @return A new {@linkplain MessageBundleDescriptor message bundle}.
 	 */
 	public static AvailObject newBundle (
 		final AvailObject message,

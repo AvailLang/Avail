@@ -42,8 +42,8 @@ import com.avail.annotations.*;
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
-public class ByteStringDescriptor
-extends TupleDescriptor
+class ByteStringDescriptor
+extends StringDescriptor
 {
 	/**
 	 * The layout of integer slots for my instances.
@@ -464,7 +464,7 @@ extends TupleDescriptor
 	 * @param aNativeByteString A Java {@link String}.
 	 * @return A corresponding Avail {@linkplain ByteStringDescriptor string}.
 	 */
-	private static @NotNull AvailObject mutableObjectFromNativeByteString(
+	static @NotNull AvailObject mutableObjectFromNativeByteString(
 		final @NotNull String aNativeByteString)
 	{
 		final ByteStringDescriptor descriptor =
@@ -478,67 +478,5 @@ extends TupleDescriptor
 			result.rawByteForCharacterAtPut(index, (short) c);
 		}
 		return result;
-	}
-
-	/**
-	 * Convert the specified Java {@link String} to an Avail {@linkplain
-	 * ByteStringDescriptor string}.
-	 *
-	 * <p>NB: The {@linkplain AbstractDescriptor descriptor} type of the actual
-	 * instance returned varies with the contents of the Java {@code String}. If
-	 * the Java {@code String} contains only Latin-1 characters, then the
-	 * descriptor will be {@link ByteStringDescriptor}; otherwise it will be
-	 * {@link TwoByteStringDescriptor}.</p>
-	 *
-	 * @param aNativeString A Java {@link String}.
-	 * @return A corresponding Avail {@linkplain ByteStringDescriptor string}.
-	 */
-	public static @NotNull AvailObject from (
-		final @NotNull String aNativeString)
-	{
-		final int charCount = aNativeString.length();
-		int maxCodePoint = 0;
-		int count = 0;
-		int index = 0;
-		while (index < charCount)
-		{
-			final int codePoint = aNativeString.codePointAt(index);
-			maxCodePoint = Math.max(maxCodePoint, codePoint);
-			count++;
-			index += Character.charCount(codePoint);
-		}
-		if (maxCodePoint <= 255)
-		{
-			return ByteStringDescriptor.mutableObjectFromNativeByteString(
-				aNativeString);
-		}
-		else if (maxCodePoint <= 65535)
-		{
-			return TwoByteStringDescriptor.mutableObjectFromNativeTwoByteString(
-				aNativeString);
-		}
-		// Fall back to building a general object tuple containing Avail
-		// character objects.
-		final AvailObject tuple = ObjectTupleDescriptor.mutable().create(count);
-		// Make it pointer-safe first, since we'll be allocating character
-		// objects.
-		for (int i = 1; i <= count; i++)
-		{
-			tuple.tupleAtPut(i, NullDescriptor.nullObject());
-		}
-		index = 0;
-		count = 1;  // One-based tuple index
-		while (index < charCount)
-		{
-			final int codePoint = aNativeString.codePointAt(index);
-			tuple.tupleAtPut(
-				count,
-				CharacterDescriptor.fromCodePoint(
-					codePoint));
-			count++;
-			index += Character.charCount(codePoint);
-		}
-		assert count == tuple.tupleSize() + 1;
-		return tuple;
 	}
 }

@@ -47,8 +47,8 @@ import com.avail.interpreter.Primitive.Result;
 import com.avail.interpreter.levelOne.*;
 
 /**
- * This class is used to execute {@link L2ChunkDescriptor level two code}, which
- * is a translation of the level one nybblecodes found in {@link
+ * This class is used to execute {@linkplain L2ChunkDescriptor level two code}, which
+ * is a translation of the level one nybblecodes found in {@linkplain
  * CompiledCodeDescriptor compiled code}.
  *
  * <p>
@@ -219,7 +219,7 @@ implements L2OperationDispatcher
 	private AvailObject chunkVectors;
 
 	/**
-	 * The registers that hold {@link AvailObject Avail objects}.
+	 * The registers that hold {@linkplain AvailObject Avail objects}.
 	 */
 	private AvailObject[] pointers = new AvailObject[10];
 
@@ -1013,7 +1013,7 @@ implements L2OperationDispatcher
 	 * Increase the number of registers if necessary to accommodate the new
 	 * chunk/code.
 	 *
-	 * @param theChunk The {@link L2ChunkDescriptor L2Chunk} about to be
+	 * @param theChunk The {@linkplain L2ChunkDescriptor L2Chunk} about to be
 	 *                 invoked.
 	 * @param theCode The code about to be invoked.
 	 */
@@ -2407,6 +2407,7 @@ implements L2OperationDispatcher
 		final AvailObject expectedType = pointerAt(callerStackpIndex);
 		if (!valueObject.isInstanceOf(expectedType))
 		{
+			// TODO: [TLS] Remove this after debugging.
 			valueObject.isInstanceOf(expectedType);
 			error("Return value does not agree with expected type");
 		}

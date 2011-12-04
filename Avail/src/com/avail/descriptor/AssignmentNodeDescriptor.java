@@ -56,12 +56,12 @@ extends ParseNodeDescriptor
 	public enum ObjectSlots implements ObjectSlotsEnum
 	{
 		/**
-		 * The {@link VariableUseNodeDescriptor variable} being assigned.
+		 * The {@linkplain VariableUseNodeDescriptor variable} being assigned.
 		 */
 		VARIABLE,
 
 		/**
-		 * The actual {@link ParseNodeDescriptor expression} providing the value
+		 * The actual {@linkplain ParseNodeDescriptor expression} providing the value
 		 * to assign.
 		 */
 		EXPRESSION
@@ -218,7 +218,7 @@ extends ParseNodeDescriptor
 	}
 
 	@Override
-	public void printObjectOnAvoidingIndent (
+	void printObjectOnAvoidingIndent (
 		final @NotNull AvailObject object,
 		final StringBuilder builder,
 		final List<AvailObject> recursionList,
@@ -234,8 +234,8 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Create a new {@link AssignmentNodeDescriptor assignment node} using the
-	 * given {@link VariableUseNodeDescriptor variable use} and {@link
+	 * Create a new {@linkplain AssignmentNodeDescriptor assignment node} using the
+	 * given {@linkplain VariableUseNodeDescriptor variable use} and {@linkplain
 	 * ParseNodeDescriptor expression}.
 	 *
 	 * @param variableUse

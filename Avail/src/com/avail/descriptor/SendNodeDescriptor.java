@@ -61,13 +61,13 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 		ARGUMENTS,
 
 		/**
-		 * The {@link ImplementationSetDescriptor implementation set} containing
+		 * The {@linkplain ImplementationSetDescriptor implementation set} containing
 		 * the multi-methods to be invoked.
 		 */
 		IMPLEMENTATION_SET,
 
 		/**
-		 * What {@link TypeDescriptor type} of {@link AvailObject object}
+		 * What {@linkplain TypeDescriptor type} of {@linkplain AvailObject object}
 		 * this multi-method invocation must return.
 		 */
 		RETURN_TYPE

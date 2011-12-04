@@ -161,8 +161,8 @@ extends ParseNodeDescriptor
 
 
 	/**
-	 * Create a new {@link ReferenceNodeDescriptor reference node} from the
-	 * given {@link VariableUseNodeDescriptor variable use node}.
+	 * Create a new {@linkplain ReferenceNodeDescriptor reference node} from the
+	 * given {@linkplain VariableUseNodeDescriptor variable use node}.
 	 *
 	 * @param variableUse
 	 *            A variable use node for which to construct a reference node.

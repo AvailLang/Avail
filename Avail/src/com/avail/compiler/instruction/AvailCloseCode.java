@@ -39,7 +39,7 @@ import com.avail.interpreter.levelOne.L1Operation;
 import java.io.ByteArrayOutputStream;
 
 /**
- * This instruction build a {@link FunctionDescriptor function} from {@link
+ * This instruction build a {@linkplain FunctionDescriptor function} from {@linkplain
  * CompiledCodeDescriptor compiled code} and some pushed variables.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
@@ -48,7 +48,7 @@ public class AvailCloseCode extends AvailInstructionWithIndex
 {
 	/**
 	 * The number of variables that have been pushed on the stack to be
-	 * captured as outer variables of the resulting {@link FunctionDescriptor
+	 * captured as outer variables of the resulting {@linkplain FunctionDescriptor
 	 * function}.  
 	 */
 	int numCopiedVars;

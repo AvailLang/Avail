@@ -267,7 +267,7 @@ public class L2Translator implements L1OperationDispatcher
 	}
 
 	/**
-	 * Create a {@link L2RegisterVector vector register} that represents the
+	 * Create a {@linkplain L2RegisterVector vector register} that represents the
 	 * given {@linkplain List list} of {@linkplain L2ObjectRegister object
 	 * registers}.  Answer an existing vector if an equivalent one is already
 	 * defined.
@@ -355,9 +355,9 @@ public class L2Translator implements L1OperationDispatcher
 	 * unambiguous and can be inlined (or is a {@code
 	 * Primitive.Flag#SpecialReturnConstant}), otherwise return null.
 	 *
-	 * @param impSet The {@link ImplementationSetDescriptor implementation set}
+	 * @param impSet The {@linkplain ImplementationSetDescriptor implementation set}
 	 *               containing the method(s) that may be inlined or invoked.
-	 * @param args A {@link List} of {@link L2ObjectRegister registers} holding
+	 * @param args A {@link List} of {@linkplain L2ObjectRegister registers} holding
 	 *             the actual constant values used to look up the implementation
 	 *             for the call.
 	 * @return A method body (a {@code FunctionDescriptor function}) that
@@ -384,9 +384,9 @@ public class L2Translator implements L1OperationDispatcher
 	 * unambiguous and can be inlined (or is a {@code
 	 * Primitive.Flag#SpecialReturnConstant}), otherwise return null.
 	 *
-	 * @param impSet The {@link ImplementationSetDescriptor implementation set}
+	 * @param impSet The {@linkplain ImplementationSetDescriptor implementation set}
 	 *               containing the method(s) that may be inlined or invoked.
-	 * @param argTypeRegisters A {@link List} of {@link L2ObjectRegister
+	 * @param argTypeRegisters A {@link List} of {@linkplain L2ObjectRegister
 	 *                         registers} holding the types used to look up the
 	 *                         implementation for the call.
 	 * @return A method body (a {@code FunctionDescriptor function}) that
@@ -419,7 +419,7 @@ public class L2Translator implements L1OperationDispatcher
 	 * number.  Return the primitive number if it's unambiguous and can be
 	 * inlined, otherwise zero.
 	 *
-	 * @param impSet The {@link ImplementationSetDescriptor implementation set}
+	 * @param impSet The {@linkplain ImplementationSetDescriptor implementation set}
 	 *               containing the method(s) that may be inlined or invoked.
 	 * @param argTypes The types of the arguments to the call.
 	 * @return One of the (equivalent) primitive method bodies, or null.
@@ -493,7 +493,7 @@ public class L2Translator implements L1OperationDispatcher
 	 * the given index.
 	 *
 	 * @param stackIndex A stack position, for example stackp.
-	 * @return A {@link L2ObjectRegister register} representing the stack at the
+	 * @return A {@linkplain L2ObjectRegister register} representing the stack at the
 	 *         given position.
 	 */
 	private L2ObjectRegister stackRegister (
@@ -511,7 +511,7 @@ public class L2Translator implements L1OperationDispatcher
 	 * Answer the register representing the slot of the stack associated with
 	 * the current value of stackp.
 	 *
-	 * @return A {@link L2ObjectRegister register} representing the top of the
+	 * @return A {@linkplain L2ObjectRegister register} representing the top of the
 	 *         stack right now.
 	 */
 	private L2ObjectRegister topOfStackRegister ()
@@ -531,14 +531,14 @@ public class L2Translator implements L1OperationDispatcher
 	 * is specified:  Always fold it, since it's just a constant.</p>
 	 *
 	 * @param primitiveFunction
-	 *            A {@link FunctionDescriptor function} for which its primitive
+	 *            A {@linkplain FunctionDescriptor function} for which its primitive
 	 *            might be inlined, or even folded if possible.
 	 * @param impSet
 	 *            The implementation set containing the primitive to be invoked.
 	 * @param args
 	 *            The {@link List} of arguments to the primitive function.
 	 * @param expectedType
-	 *            The {@link TypeDescriptor type} of object that this primitive
+	 *            The {@linkplain TypeDescriptor type} of object that this primitive
 	 *            call site was expected to produce.
 	 * @param failureValueRegister
 	 *            The {@linkplain L2ObjectRegister register} into which to write
@@ -1263,10 +1263,10 @@ public class L2Translator implements L1OperationDispatcher
 	}
 
 	/**
-	 * Generate a {@link L2ChunkDescriptor Level Two chunk} from the already
+	 * Generate a {@linkplain L2ChunkDescriptor Level Two chunk} from the already
 	 * written instructions.
 	 *
-	 * @return The new {@link L2ChunkDescriptor Level Two chunk}.
+	 * @return The new {@linkplain L2ChunkDescriptor Level Two chunk}.
 	 */
 	private AvailObject createChunk ()
 	{

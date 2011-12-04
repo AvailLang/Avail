@@ -49,7 +49,7 @@ import com.avail.visitor.AvailSubobjectVisitor;
  * its target, that which it is pretending to be.  Almost all messages are
  * routed to the target, making it an ideal proxy.
  * <p>
- * When some kinds of objects are compared to each other, say {@link
+ * When some kinds of objects are compared to each other, say {@linkplain
  * ByteStringDescriptor strings}, a check is first made to see if the objects
  * are at the same location in memory -- the same AvailObject in the current
  * version that uses {@link AvailObjectRepresentation}.  If so, it immediately
@@ -94,7 +94,7 @@ extends AbstractDescriptor
 	public enum ObjectSlots implements ObjectSlotsEnum
 	{
 		/**
-		 * The target {@link AvailObject object} to which my instance is
+		 * The target {@linkplain AvailObject object} to which my instance is
 		 * delegating all behavior.
 		 */
 		TARGET

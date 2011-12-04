@@ -104,7 +104,7 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * A flag indicating whether instances of me can be modified in place.
-	 * Generally, as soon as there are two references from {@link AvailObject
+	 * Generally, as soon as there are two references from {@linkplain AvailObject
 	 * Avail objects}.
 	 */
 	protected final boolean isMutable;
@@ -240,7 +240,7 @@ public abstract class AbstractDescriptor
 	}
 
 	/**
-	 * Construct a new {@link AbstractDescriptor descriptor}.
+	 * Construct a new {@linkplain AbstractDescriptor descriptor}.
 	 *
 	 * @param isMutable Does the {@linkplain AbstractDescriptor descriptor}
 	 *                  represent a mutable object?
@@ -369,7 +369,7 @@ public abstract class AbstractDescriptor
 	 */
 	@SuppressWarnings("unchecked")
 	@ThreadSafe
-	public void printObjectOnAvoidingIndent (
+	void printObjectOnAvoidingIndent (
 		final @NotNull AvailObject object,
 		final @NotNull StringBuilder builder,
 		final @NotNull List<AvailObject> recursionList,
@@ -569,7 +569,7 @@ public abstract class AbstractDescriptor
 	 *
 	 * @param theClass
 	 *            The class which defines one or more {@code BitField}s as
-	 *            static members having the {@link BitField @BitField}
+	 *            static members having the {@linkplain BitField @BitField}
 	 *            annotation.
 	 * @param fieldName
 	 *            The name of the static member for which to extract the {@code

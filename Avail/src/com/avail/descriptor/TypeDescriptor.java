@@ -786,7 +786,7 @@ extends AbstractTypeDescriptor
 		for (final Types spec : Types.values())
 		{
 			final AvailObject o = spec.o();
-			o.name(ByteStringDescriptor.from(
+			o.name(StringDescriptor.from(
 				spec == TOP ? "⊤" : spec.name()));
 			o.parent(
 				spec.parent == null

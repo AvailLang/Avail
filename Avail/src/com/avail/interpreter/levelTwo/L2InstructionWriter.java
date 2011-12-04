@@ -86,7 +86,7 @@ public class L2InstructionWriter
 	 * of integers.  Use a compact representation if the result can be expressed
 	 * as a {@linkplain ByteTupleDescriptor tuple of bytes}.
 	 *
-	 * @return The {@link TupleDescriptor tuple} of integers representing the
+	 * @return The {@linkplain TupleDescriptor tuple} of integers representing the
 	 *         operations and operands of the {@link L2RawInstruction}s
 	 *         previously {@link #write(L2RawInstruction) written} to the
 	 *         receiver.

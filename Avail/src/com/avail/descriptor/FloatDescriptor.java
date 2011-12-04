@@ -117,7 +117,7 @@ extends Descriptor
 	}
 
 	/**
-	 * Construct an Avail boxed {@link FloatDescriptor floating point object}
+	 * Construct an Avail boxed {@linkplain FloatDescriptor floating point object}
 	 * from the passed {@code float}.
 	 *
 	 * @param aFloat The Java {@code float} to box.
@@ -133,7 +133,7 @@ extends Descriptor
 	}
 
 	/**
-	 * Construct an Avail boxed {@link FloatDescriptor floating point object}
+	 * Construct an Avail boxed {@linkplain FloatDescriptor floating point object}
 	 * from the passed {@code float}.
 	 *
 	 * @param aFloat
@@ -163,7 +163,7 @@ extends Descriptor
 	}
 
 	/**
-	 * Construct an Avail boxed {@link FloatDescriptor floating point object}
+	 * Construct an Avail boxed {@linkplain FloatDescriptor floating point object}
 	 * from the passed {@code float}.
 	 *
 	 * @param aFloat

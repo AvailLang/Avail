@@ -669,9 +669,9 @@ public final class AvailRuntime
 	 * given method name.
 	 *
 	 * @param methodName
-	 *            The method name, an {@link AtomDescriptor atom}.
+	 *            The method name, an {@linkplain AtomDescriptor atom}.
 	 * @param typeRestrictionFunction
-	 *            A {@link FunctionDescriptor function} that validates the
+	 *            A {@linkplain FunctionDescriptor function} that validates the
 	 *            static types of arguments at call sites.
 	 */
 	public void addTypeRestriction (
@@ -699,9 +699,9 @@ public final class AvailRuntime
 	 * given method name.
 	 *
 	 * @param methodName
-	 *            The method name, an {@link AtomDescriptor atom}.
+	 *            The method name, an {@linkplain AtomDescriptor atom}.
 	 * @param typeRestrictionFunction
-	 *            A {@link FunctionDescriptor function} that validates the
+	 *            A {@linkplain FunctionDescriptor function} that validates the
 	 *            static types of arguments at call sites.
 	 */
 	public void removeTypeRestriction (

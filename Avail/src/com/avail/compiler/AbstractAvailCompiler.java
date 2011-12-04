@@ -112,7 +112,7 @@ public abstract class AbstractAvailCompiler
 	/**
 	 * The {@linkplain ModuleDescriptor modules} extended by the module
 	 * undergoing compilation. Each element is a {@linkplain TupleDescriptor
-	 * 3-tuple} whose first element is a module {@linkplain ByteStringDescriptor
+	 * 3-tuple} whose first element is a module {@linkplain StringDescriptor
 	 * name}, whose second element is the {@linkplain SetDescriptor set} of
 	 * {@linkplain MethodSignatureDescriptor method}, names to import (and
 	 * re-export), and whose third element is the set of conformant versions.
@@ -122,7 +122,7 @@ public abstract class AbstractAvailCompiler
 	/**
 	 * The {@linkplain ModuleDescriptor modules} used by the module undergoing
 	 * compilation. Each element is a {@linkplain TupleDescriptor 3-tuple} whose
-	 * first element is a module {@linkplain ByteStringDescriptor name}, whose
+	 * first element is a module {@linkplain StringDescriptor name}, whose
 	 * second element is the {@linkplain SetDescriptor set} of {@linkplain
 	 * MethodSignatureDescriptor method} names to import, and whose third
 	 * element is the set of conformant versions.
@@ -240,14 +240,14 @@ public abstract class AbstractAvailCompiler
 		/** End of statement. */
 		SEMICOLON(";", END_OF_STATEMENT);
 
-		/** The {@linkplain ByteStringDescriptor lexeme}. */
+		/** The {@linkplain StringDescriptor lexeme}. */
 		private final @NotNull AvailObject lexeme;
 
 		/** The {@linkplain TokenType token type}. */
 		private final @NotNull TokenType tokenType;
 
 		/**
-		 * Answer the {@linkplain ByteStringDescriptor lexeme}.
+		 * Answer the {@linkplain StringDescriptor lexeme}.
 		 *
 		 * @return The lexeme.
 		 */
@@ -270,7 +270,7 @@ public abstract class AbstractAvailCompiler
 		 * Construct a new {@link ExpectedToken}.
 		 *
 		 * @param lexeme
-		 *        The {@linkplain ByteStringDescriptor lexeme}, i.e. the text
+		 *        The {@linkplain StringDescriptor lexeme}, i.e. the text
 		 *        of the token.
 		 * @param tokenType
 		 *        The {@linkplain TokenType token type}.
@@ -279,7 +279,7 @@ public abstract class AbstractAvailCompiler
 			final @NotNull String lexeme,
 			final @NotNull TokenType tokenType)
 		{
-			this.lexeme = ByteStringDescriptor.from(lexeme);
+			this.lexeme = StringDescriptor.from(lexeme);
 			this.tokenType = tokenType;
 		}
 	}
@@ -297,7 +297,7 @@ public abstract class AbstractAvailCompiler
 	 * @param stopAfterNamesToken
 	 *        Whether to stop parsing at the occurrence of the "NAMES"
 	 *        token.  This is an optimization for faster build analysis.
-	 * @return The new {@link AbstractAvailCompiler compiler}.
+	 * @return The new {@linkplain AbstractAvailCompiler compiler}.
 	 */
 	static @NotNull AbstractAvailCompiler create (
 		final @NotNull ModuleName qualifiedName,
@@ -341,7 +341,7 @@ public abstract class AbstractAvailCompiler
 	 * @param moduleName
 	 *        The {@link ModuleName} of the module being compiled.
 	 * @param source
-	 *        The source code {@linkplain ByteStringDescriptor string}.
+	 *        The source code {@linkplain StringDescriptor string}.
 	 * @param tokens
 	 *        The list of {@linkplain TokenDescriptor tokens}.
 	 */
@@ -510,7 +510,7 @@ public abstract class AbstractAvailCompiler
 		final int position;
 
 		/**
-		 * The {@link AvailCompilerScopeStack scope stack}. This is a
+		 * The {@linkplain AvailCompilerScopeStack scope stack}. This is a
 		 * non-destructive singly-linked list of bindings. They're searched
 		 * sequentially to resolve variables, but that's not likely to ever be a
 		 * bottleneck.
@@ -633,7 +633,7 @@ public abstract class AbstractAvailCompiler
 		 * Answer whether the current token has the specified type and content.
 		 *
 		 * @param expectedToken
-		 *        The {@link ExpectedToken expected token} to look for.
+		 *        The {@linkplain ExpectedToken expected token} to look for.
 		 * @param expected
 		 *        A message to record if the specified token is not present.
 		 * @return Whether the specified token is present.
@@ -658,10 +658,10 @@ public abstract class AbstractAvailCompiler
 		}
 
 		/**
-		 * Parse a string literal. Answer the {@link LiteralTokenDescriptor
+		 * Parse a string literal. Answer the {@linkplain LiteralTokenDescriptor
 		 * string literal token} if found, otherwise answer {@code null}.
 		 *
-		 * @return The actual {@link LiteralTokenDescriptor literal token} or
+		 * @return The actual {@linkplain LiteralTokenDescriptor literal token} or
 		 *         {@code null}.
 		 */
 		AvailObject peekStringLiteral ()
@@ -679,8 +679,8 @@ public abstract class AbstractAvailCompiler
 		 * with the given declaration added.
 		 *
 		 * @param declaration
-		 *        The {@link DeclarationNodeDescriptor declaration} to add to
-		 *        the resulting {@link AvailCompilerScopeStack scope stack}.
+		 *        The {@linkplain DeclarationNodeDescriptor declaration} to add to
+		 *        the resulting {@linkplain AvailCompilerScopeStack scope stack}.
 		 * @return The new parser state including the declaration.
 		 */
 		@NotNull ParserState withDeclaration (
@@ -699,7 +699,7 @@ public abstract class AbstractAvailCompiler
 		 * in case the parse fails.
 		 *
 		 * <p>
-		 * The expectation is a {@link Generator Generator<String>}, in case
+		 * The expectation is a {@linkplain Generator Generator<String>}, in case
 		 * constructing a {@link String} would be prohibitive. There is also
 		 * {@link #expected(String) another} version of this method that accepts
 		 * a String directly.
@@ -745,7 +745,7 @@ public abstract class AbstractAvailCompiler
 	 * <p>
 	 * Return the {@link ParserState} after the strings if successful, otherwise
 	 * null. Populate the passed {@link List} with the
-	 * {@link ByteStringDescriptor actual Avail strings}.
+	 * {@linkplain StringDescriptor actual Avail strings}.
 	 * </p>
 	 *
 	 * @param start
@@ -793,7 +793,7 @@ public abstract class AbstractAvailCompiler
 	 * Return the {@link ParserState} after the imports if successful, otherwise
 	 * {@code null}. Populate the passed {@linkplain List list} with {@linkplain
 	 * TupleDescriptor 2-tuples}. Each tuple's first element is a module
-	 * {@linkplain ByteStringDescriptor name} and second element is the
+	 * {@linkplain StringDescriptor name} and second element is the
 	 * collection of {@linkplain MethodSignatureDescriptor method} names to
 	 * import.
 	 * </p>
@@ -1010,7 +1010,7 @@ public abstract class AbstractAvailCompiler
 	}
 
 	/**
-	 * Visit the entire tree with the given {@link Continuation3 block},
+	 * Visit the entire tree with the given {@linkplain Continuation3 block},
 	 * children before parents.  The block takes three arguments: the
 	 * node, its parent, and the list of enclosing block nodes.
 	 *
@@ -1193,10 +1193,10 @@ public abstract class AbstractAvailCompiler
 	 * @param where
 	 *        Where the expressions were parsed from.
 	 * @param interpretation1
-	 *        The first interpretation as a {@link ParseNodeDescriptor parse
+	 *        The first interpretation as a {@linkplain ParseNodeDescriptor parse
 	 *        node}.
 	 * @param interpretation2
-	 *        The second interpretation as a {@link ParseNodeDescriptor parse
+	 *        The second interpretation as a {@linkplain ParseNodeDescriptor parse
 	 *        node}.
 	 */
 	private void ambiguousInterpretationsAnd (
@@ -1280,13 +1280,13 @@ public abstract class AbstractAvailCompiler
 	}
 
 	/**
-	 * Evaluate a {@link ParseNodeDescriptor parse node} in the module's
+	 * Evaluate a {@linkplain ParseNodeDescriptor parse node} in the module's
 	 * context; lexically enclosing variables are not considered in scope, but
 	 * module variables and constants are in scope.
 	 *
 	 * @param expressionNode
-	 *        A {@link ParseNodeDescriptor parse node}.
-	 * @return The result of generating a {@link FunctionDescriptor function}
+	 *        A {@linkplain ParseNodeDescriptor parse node}.
+	 * @return The result of generating a {@linkplain FunctionDescriptor function}
 	 *         from the argument and evaluating it.
 	 */
 	@NotNull AvailObject evaluate (final @NotNull AvailObject expressionNode)
@@ -1317,7 +1317,7 @@ public abstract class AbstractAvailCompiler
 	}
 
 	/**
-	 * Ensure that the {@link BlockNodeDescriptor block node} is valid. Throw an
+	 * Ensure that the {@linkplain BlockNodeDescriptor block node} is valid. Throw an
 	 * appropriate exception if it is not.
 	 *
 	 * @param blockNode
@@ -1479,12 +1479,12 @@ public abstract class AbstractAvailCompiler
 	 *            The {@linkplain ParseNodeDescriptor parse nodes} that will be
 	 *            arguments of the new send node.
 	 * @param innerArgumentExpressions
-	 *            The {@link List lists} of {@linkplain ParseNodeDescriptor
+	 *            The {@linkplain List lists} of {@linkplain ParseNodeDescriptor
 	 *            parse nodes} that will correspond to restriction positions,
 	 *            which are at the non-backquoted underscores of the bundle's
 	 *            message name.
 	 * @param bundle
-	 *            The {@link MessageBundleDescriptor message bundle} that
+	 *            The {@linkplain MessageBundleDescriptor message bundle} that
 	 *            identifies the message to be sent.
 	 * @param continuation
 	 *            What to do with the resulting send node.
@@ -1582,15 +1582,15 @@ public abstract class AbstractAvailCompiler
 	 *            The {@linkplain ParseNodeDescriptor parse nodes} that will be
 	 *            arguments of the new send node.
 	 * @param innerArgumentExpressions
-	 *            The {@link List lists} of {@linkplain ParseNodeDescriptor
+	 *            The {@linkplain List lists} of {@linkplain ParseNodeDescriptor
 	 *            parse nodes} that will correspond to restriction positions,
 	 *            which are at the non-backquoted underscores of the bundle's
 	 *            message name.
 	 * @param bundle
-	 *            The {@link MessageBundleDescriptor message bundle} that
+	 *            The {@linkplain MessageBundleDescriptor message bundle} that
 	 *            identifies the message to be sent.
 	 * @param impSet
-	 *            The {@link ImplementationSetDescriptor implementation set}
+	 *            The {@linkplain ImplementationSetDescriptor implementation set}
 	 *            that contains the macro signature to be invoked.
 	 * @param continuation
 	 *            What to do with the resulting send node.
@@ -1684,7 +1684,7 @@ public abstract class AbstractAvailCompiler
 		source = extractSource(qualifiedName, resolvedName);
 		tokens = tokenize(source, false);
 		startModuleTransaction(
-			ByteStringDescriptor.from(qualifiedName.qualifiedName()));
+			StringDescriptor.from(qualifiedName.qualifiedName()));
 		try
 		{
 			parseModule(resolvedName);
@@ -1744,7 +1744,7 @@ public abstract class AbstractAvailCompiler
 			final ModuleName ref = resolver.canonicalNameFor(
 				qualifiedName.asSibling(
 					modImport.tupleAt(1).asNativeString()));
-			final AvailObject availRef = ByteStringDescriptor.from(
+			final AvailObject availRef = StringDescriptor.from(
 				ref.qualifiedName());
 			if (!runtime.includesModuleNamed(availRef))
 			{
@@ -1802,7 +1802,7 @@ public abstract class AbstractAvailCompiler
 			final ModuleName ref = resolver.canonicalNameFor(
 				qualifiedName.asSibling(
 					modImport.tupleAt(1).asNativeString()));
-			final AvailObject availRef = ByteStringDescriptor.from(
+			final AvailObject availRef = StringDescriptor.from(
 				ref.qualifiedName());
 			if (!runtime.includesModuleNamed(availRef))
 			{

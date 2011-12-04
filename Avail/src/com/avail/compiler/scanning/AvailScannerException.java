@@ -51,7 +51,7 @@ extends RuntimeException
 	private static final long serialVersionUID = 8191896822852052633L;
 
 	/**
-	 * The {@linkplain ByteStringDescriptor error message} indicating why the
+	 * The {@linkplain StringDescriptor error message} indicating why the
 	 * scanner failed.
 	 */
 	final String failureString;

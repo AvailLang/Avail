@@ -56,7 +56,7 @@ extends TokenDescriptor
 	public enum ObjectSlots implements ObjectSlotsEnum
 	{
 		/**
-		 * The {@link ByteStringDescriptor string}, exactly as I appeared in the
+		 * The {@linkplain StringDescriptor string}, exactly as I appeared in the
 		 * source.
 		 */
 		STRING,

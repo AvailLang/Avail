@@ -39,7 +39,7 @@ import com.avail.descriptor.TokenDescriptor.TokenType;
 
 /**
  * An {@code AvailScanner} converts a stream of characters into a {@link List}
- * of {@link TokenDescriptor tokens}, which are tastier for the compiler.
+ * of {@linkplain TokenDescriptor tokens}, which are tastier for the compiler.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
@@ -151,13 +151,13 @@ public class AvailScanner
 		anAvailToken.tokenType(tokenType);
 		anAvailToken.start(startOfToken);
 		anAvailToken.lineNumber(lineNumber);
-		anAvailToken.string(ByteStringDescriptor.from(currentTokenString()));
+		anAvailToken.string(StringDescriptor.from(currentTokenString()));
 		anAvailToken.makeImmutable();
 		outputTokens.add(anAvailToken);
 	}
 
 	/**
-	 * Create an ordinary {@link TokenDescriptor token}, initialize it, and add
+	 * Create an ordinary {@linkplain TokenDescriptor token}, initialize it, and add
 	 * it to my sequence of parsed tokens. In particular, create the token and
 	 * set its:
 	 * <ul>
@@ -180,11 +180,11 @@ public class AvailScanner
 	}
 
 	/**
-	 * Add the provided uninitialized {@link LiteralTokenDescriptor literal
+	 * Add the provided uninitialized {@linkplain LiteralTokenDescriptor literal
 	 * token}.
 	 *
 	 * @param anAvailObject
-	 *            A {@link LiteralTokenDescriptor literal token}.
+	 *            A {@linkplain LiteralTokenDescriptor literal token}.
 	 */
 	@InnerAccess
 	void addTokenForLiteral (final AvailObject anAvailObject)
@@ -576,8 +576,7 @@ public class AvailScanner
 					c = scanner.next();
 				}
 				final String string = stringBuilder.toString();
-				final AvailObject availValue = ByteStringDescriptor
-					.from(string);
+				final AvailObject availValue = StringDescriptor.from(string);
 				availValue.makeImmutable();
 				scanner.addTokenForLiteral(availValue);
 			}
@@ -608,7 +607,7 @@ public class AvailScanner
 		/**
 		 * The semicolon is not considered an operator character and cannot be
 		 * used within operators. Parse it by itself as a
-		 * {@link TokenDescriptor token} whose type is
+		 * {@linkplain TokenDescriptor token} whose type is
 		 * {@link TokenType#END_OF_STATEMENT}.
 		 */
 		SEMICOLON()
@@ -622,7 +621,7 @@ public class AvailScanner
 
 		/**
 		 * A slash was encountered. Check if it's the start of a comment, and if
-		 * so skip it. If not, add the slash as a {@link TokenDescriptor token}
+		 * so skip it. If not, add the slash as a {@linkplain TokenDescriptor token}
 		 * of type {@link TokenType#OPERATOR}.
 		 *
 		 * <p>

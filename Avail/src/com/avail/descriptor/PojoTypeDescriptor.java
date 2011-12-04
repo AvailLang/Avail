@@ -788,7 +788,7 @@ extends TypeDescriptor
 		}
 		else if (javaClass.equals(String.class))
 		{
-			availObject = ByteStringDescriptor.from((String) object);
+			availObject = StringDescriptor.from((String) object);
 		}
 		else if (!(object instanceof AvailObject))
 		{

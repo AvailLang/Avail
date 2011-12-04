@@ -39,7 +39,7 @@ import com.avail.interpreter.*;
 import com.avail.interpreter.levelOne.*;
 
 /**
- * A {@link CompiledCodeDescriptor compiled code} object is created whenever a
+ * A {@linkplain CompiledCodeDescriptor compiled code} object is created whenever a
  * block is compiled.  It contains instructions and literals that encode how to
  * perform the block.  In particular, its main feature is a {@linkplain
  * NybbleTupleDescriptor tuple} of nybbles that encode {@linkplain L1Instruction

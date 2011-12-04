@@ -94,7 +94,7 @@ extends TypeDescriptor
 	{
 		selfType =
 			InstanceTypeDescriptor.on(AtomDescriptor.create(
-				ByteStringDescriptor.from("self type")));
+				StringDescriptor.from("self type")));
 	}
 
 	/**

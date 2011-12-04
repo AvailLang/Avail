@@ -162,7 +162,7 @@ public abstract class Interpreter
 
 		// Also initialize the process field.
 		process = ProcessDescriptor.mutable().create();
-		process.name(ByteStringDescriptor.from(String.format(
+		process.name(StringDescriptor.from(String.format(
 			"unnamed, creation time = %d, hash = %d",
 			System.currentTimeMillis(),
 			process.hash())));
@@ -417,9 +417,9 @@ public abstract class Interpreter
 	 * if they're not set already.
 	 *
 	 * @param methodName
-	 *            The macro's name, an {@link AtomDescriptor atom}.
+	 *            The macro's name, an {@linkplain AtomDescriptor atom}.
 	 * @param macroBody
-	 *            A {@link FunctionDescriptor function} that manipulates parse
+	 *            A {@linkplain FunctionDescriptor function} that manipulates parse
 	 *            nodes.
 	 * @throws SignatureException if the macro signature is invalid.
 	 */
@@ -479,9 +479,9 @@ public abstract class Interpreter
 	 * given method name.
 	 *
 	 * @param methodName
-	 *            The method name, an {@link AtomDescriptor atom}.
+	 *            The method name, an {@linkplain AtomDescriptor atom}.
 	 * @param typeRestrictionFunction
-	 *            A {@link FunctionDescriptor function} that validates the
+	 *            A {@linkplain FunctionDescriptor function} that validates the
 	 *            static types of arguments at call sites.
 	 * @throws SignatureException if the signature is invalid.
 	 */
@@ -584,7 +584,7 @@ public abstract class Interpreter
 			writer.compiledCode(),
 			TupleDescriptor.empty());
 		newFunction.makeImmutable();
-		final AvailObject nameTuple = ByteStringDescriptor.from(
+		final AvailObject nameTuple = StringDescriptor.from(
 			defineMethodName);
 		final AvailObject realName = AtomDescriptor.create(nameTuple);
 		module.atNameAdd(nameTuple, realName);
@@ -630,7 +630,7 @@ public abstract class Interpreter
 			TupleDescriptor.empty());
 		newFunction.makeImmutable();
 		final AvailObject nameTuple =
-			ByteStringDescriptor.from(specialObjectName);
+			StringDescriptor.from(specialObjectName);
 		final AvailObject realName = AtomDescriptor.create(nameTuple);
 		module.atNameAdd(nameTuple, realName);
 		module.atNewNamePut(nameTuple, realName);
@@ -663,7 +663,7 @@ public abstract class Interpreter
 	 * visibility of names in the current module.
 	 *
 	 * @param firstPiece
-	 *            An Avail {@link ByteStringDescriptor string}.
+	 *            An Avail {@linkplain StringDescriptor string}.
 	 * @return A map from TODO
 	 */
 	public AvailObject completeBundlesStartingWith (
@@ -683,7 +683,7 @@ public abstract class Interpreter
 	 * on the visibility of names in the current module.
 	 *
 	 * @param firstPiece
-	 *            The first Avail {@link ByteStringDescriptor string} token by
+	 *            The first Avail {@linkplain StringDescriptor string} token by
 	 *            which to filter messages.
 	 * @return A map from TODO
 	 */
@@ -746,7 +746,7 @@ public abstract class Interpreter
 	}
 
 	/**
-	 * Return the current {@link ProcessDescriptor process}.
+	 * Return the current {@linkplain ProcessDescriptor process}.
 	 *
 	 * @return The current executing process.
 	 */
@@ -799,7 +799,7 @@ public abstract class Interpreter
 	 * @param methodName
 	 *            The {@linkplain AtomDescriptor true name} of a method.
 	 * @param implementation
-	 *            An {@link SignatureDescriptor implementation}.
+	 *            An {@linkplain SignatureDescriptor implementation}.
 	 */
 	public void removeMethodNamedImplementation (
 		final @NotNull AvailObject methodName,

@@ -41,7 +41,7 @@ import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
 
 /**
- * My instances represent a weakening of the type of an argument of a {@link
+ * My instances represent a weakening of the type of an argument of a {@linkplain
  * SendNodeDescriptor message send}, in order to invoke a more general
  * implementation.  Multiple arguments of the same message send may be weakened
  * in this way.
@@ -63,7 +63,7 @@ public class SuperCastNodeDescriptor extends ParseNodeDescriptor
 		EXPRESSION,
 
 		/**
-		 * The {@link TypeDescriptor type} to consider the expression to be for
+		 * The {@linkplain TypeDescriptor type} to consider the expression to be for
 		 * the purpose of multi-method lookup.
 		 */
 		SUPER_CAST_TYPE
@@ -196,18 +196,18 @@ public class SuperCastNodeDescriptor extends ParseNodeDescriptor
 
 
 	/**
-	 * Create a new {@link SuperCastNodeDescriptor supercast node} representing
+	 * Create a new {@linkplain SuperCastNodeDescriptor supercast node} representing
 	 * the specified expression weakened to the specified type for the purpose
-	 * of acting as an argument of a {@link SendNodeDescriptor send node}.
+	 * of acting as an argument of a {@linkplain SendNodeDescriptor send node}.
 	 *
 	 * @param expression
 	 *            The expression that will provide a value to use as an argument
 	 *            to a send at runtime.
 	 * @param superCastType
-	 *            The {@link TypeDescriptor type} to treat the argument as at
+	 *            The {@linkplain TypeDescriptor type} to treat the argument as at
 	 *            runtime, for the purpose of deciding which method to invoke.
 	 * @return
-	 *            The resulting {@link SuperCastNodeDescriptor supercast node}
+	 *            The resulting {@linkplain SuperCastNodeDescriptor supercast node}
 	 */
 	public static AvailObject create (
 		final AvailObject expression,

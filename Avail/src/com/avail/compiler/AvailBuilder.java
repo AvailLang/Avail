@@ -283,7 +283,7 @@ public final class AvailBuilder
 				globalPosition.value,
 				globalCodeSize);
 			if (!runtime.includesModuleNamed(
-				ByteStringDescriptor.from(moduleName.qualifiedName())))
+				StringDescriptor.from(moduleName.qualifiedName())))
 			{
 				final AbstractAvailCompiler compiler =
 					AbstractAvailCompiler.create(

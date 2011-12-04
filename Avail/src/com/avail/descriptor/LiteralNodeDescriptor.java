@@ -163,7 +163,7 @@ public class LiteralNodeDescriptor extends ParseNodeDescriptor
 
 
 	/**
-	 * Create a {@link LiteralNodeDescriptor literal node} from a {@link
+	 * Create a {@linkplain LiteralNodeDescriptor literal node} from a {@linkplain
 	 * LiteralTokenDescriptor literal token}.
 	 *
 	 * @param token The token that describes the literal.

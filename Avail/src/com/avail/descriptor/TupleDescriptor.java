@@ -41,8 +41,8 @@ import com.avail.annotations.*;
 
 /**
  * {@code TupleDescriptor} is an abstract descriptor class under which all tuple
- * representations are defined (not counting {@link BottomTypeDescriptor
- * bottom} and {@link IndirectionDescriptor transparent indirections}).  It
+ * representations are defined (not counting {@linkplain BottomTypeDescriptor
+ * bottom} and {@linkplain IndirectionDescriptor transparent indirections}).  It
  * defines a {@link IntegerSlots#HASH_OR_ZERO HASH_OR_ZERO} integer slot which
  * must be defined in all subclasses.
  *
@@ -860,36 +860,6 @@ extends Descriptor
 	static AvailObject EmptyTuple;
 
 	/**
-	 * A tuple containing just the underscore character.
-	 */
-	static AvailObject UnderscoreTuple;
-
-	/**
-	 * A tuple containing just the open-chevron character.
-	 */
-	static AvailObject OpenChevronTuple;
-
-	/**
-	 * A tuple containing just the close-chevron character.
-	 */
-	static AvailObject CloseChevronTuple;
-
-	/**
-	 * A tuple containing just the double-dagger character.
-	 */
-	static AvailObject DoubleDaggerTuple;
-
-	/**
-	 * A tuple containing just the back-quote character.
-	 */
-	static AvailObject BackQuoteTuple;
-
-	/**
-	 * A tuple containing just the ellipsis character.
-	 */
-	static AvailObject EllipsisTuple;
-
-	/**
 	 * Create my cached empty tuple and various well known strings.
 	 */
 	static void createWellKnownObjects ()
@@ -897,24 +867,6 @@ extends Descriptor
 		EmptyTuple = NybbleTupleDescriptor.mutableObjectOfSize(0);
 		EmptyTuple.hashOrZero(0);
 		EmptyTuple.makeImmutable();
-
-		UnderscoreTuple = ByteStringDescriptor.from("_");
-		UnderscoreTuple.makeImmutable();
-
-		OpenChevronTuple = ByteStringDescriptor.from("«");
-		OpenChevronTuple.makeImmutable();
-
-		CloseChevronTuple = ByteStringDescriptor.from("»");
-		CloseChevronTuple.makeImmutable();
-
-		DoubleDaggerTuple = ByteStringDescriptor.from("‡");
-		DoubleDaggerTuple.makeImmutable();
-
-		BackQuoteTuple = ByteStringDescriptor.from("`");
-		BackQuoteTuple.makeImmutable();
-
-		EllipsisTuple = ByteStringDescriptor.from("…");
-		EllipsisTuple.makeImmutable();
 }
 
 	/**
@@ -923,12 +875,6 @@ extends Descriptor
 	static void clearWellKnownObjects ()
 	{
 		EmptyTuple = null;
-		UnderscoreTuple = null;
-		OpenChevronTuple = null;
-		CloseChevronTuple = null;
-		DoubleDaggerTuple = null;
-		BackQuoteTuple = null;
-		EllipsisTuple = null;
 	}
 
 	/**
@@ -1132,73 +1078,6 @@ extends Descriptor
 	{
 		return EmptyTuple;
 	}
-
-	/**
-	 * Return an Avail {@linkplain ByteStringDescriptor string} of size one,
-	 * consisting of just the underscore character ("_").
-	 *
-	 * @return A tuple containing just the underscore character.
-	 */
-	public static AvailObject underscoreTuple ()
-	{
-		return UnderscoreTuple;
-	}
-
-	/**
-	 * Return an Avail {@linkplain ByteStringDescriptor string} of size one,
-	 * consisting of just the open-chevron character ("«").
-	 *
-	 * @return A tuple containing just the open-chevron character.
-	 */
-	public static AvailObject openChevronTuple ()
-	{
-		return OpenChevronTuple;
-	}
-
-	/**
-	 * Return an Avail {@linkplain ByteStringDescriptor string} of size one,
-	 * consisting of just the close-chevron character ("»").
-	 *
-	 * @return A tuple containing just the close-chevron character.
-	 */
-	public static AvailObject closeChevronTuple ()
-	{
-		return CloseChevronTuple;
-	}
-
-	/**
-	 * Return an Avail {@linkplain ByteStringDescriptor string} of size one,
-	 * consisting of just the double dagger character ("‡").
-	 *
-	 * @return A tuple containing just the double dagger character.
-	 */
-	public static AvailObject doubleDaggerTuple ()
-	{
-		return DoubleDaggerTuple;
-	}
-
-	/**
-	 * Return an Avail {@linkplain ByteStringDescriptor string} of size one,
-	 * consisting of just the back-quote character ("`").
-	 *
-	 * @return A tuple containing just the back-quote character.
-	 */
-	public static AvailObject backQuoteTuple ()
-	{
-		return BackQuoteTuple;
-	}
-
-	/**
-	 * Return an Avail {@linkplain ByteStringDescriptor string} of size one,
-	 * consisting of just the ellipsis character ("…").
-	 *
-	 * @return A tuple containing just the ellipsis character.
-	 */
-	public static AvailObject ellipsisTuple ()
-	{
-		return EllipsisTuple;
-	}
-
 
 	/**
 	 * The constant by which each element's hash should be XORed prior to

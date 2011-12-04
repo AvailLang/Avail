@@ -98,7 +98,7 @@ public class L1Disassembler
 	 * printing them on the provided stream.
 	 *
 	 * @param theCode
-	 *        The {@link CompiledCodeDescriptor code} to decompile.
+	 *        The {@linkplain CompiledCodeDescriptor code} to decompile.
 	 * @param theBuilder
 	 *        Where to write the decompilation.
 	 * @param theRecursionList
