@@ -114,7 +114,7 @@ public abstract class AbstractAvailCompiler
 	 * undergoing compilation. Each element is a {@linkplain TupleDescriptor
 	 * 3-tuple} whose first element is a module {@linkplain StringDescriptor
 	 * name}, whose second element is the {@linkplain SetDescriptor set} of
-	 * {@linkplain MethodSignatureDescriptor method}, names to import (and
+	 * {@linkplain MethodSignatureDescriptor method} names to import (and
 	 * re-export), and whose third element is the set of conformant versions.
 	 */
 	@InnerAccess List<AvailObject> extendedModules;

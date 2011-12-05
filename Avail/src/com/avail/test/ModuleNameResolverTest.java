@@ -74,7 +74,7 @@ public final class ModuleNameResolverTest
 		{
 			{ "/avail/Happy-happy", "/experimental/Joy-Joy" },
 			{ "/avail/Input-Output", "/avail/IO" },
-			{ "/avail/Kernel/Tier-4/Tier-3/Effort", "/avail/Process/Process" }
+			{ "/avail/Kernel/Tier-3/Effort", "/avail/Process/Process" }
 		};
 
 		final String[][] cases =
@@ -90,7 +90,7 @@ public final class ModuleNameResolverTest
 				libraryPath
 			},
 			{
-				"/Kernel/Tier-4/Tier-3/Effort",
+				"/Kernel/Tier-3/Effort",
 				"Process.avail/Process.avail",
 				libraryPath
 			},
@@ -100,22 +100,22 @@ public final class ModuleNameResolverTest
 				libraryPath
 			},
 			{
-				"/Kernel/Tier-4/Tier-3",
-				"Kernel.avail/Tier-4.avail/Tier-3.avail/Tier-3.avail",
+				"/Kernel/Tier-3",
+				"Kernel.avail/Tier-3.avail/Tier-3.avail",
 				libraryPath
 			},
 			{
-				"/Kernel/Tier-4/Tier-3/Factory",
-				"Kernel.avail/Tier-4.avail/Factory.avail",
+				"/Kernel/Tier-3/Syntax",
+				"Kernel.avail/Syntax.avail",
 				libraryPath
 			},
 			{
-				"/Kernel/Tier-4/Tier-3/Tier-2/Tier-1/Tier-0/Joy-Joy",
+				"/Kernel/Tier-0/Joy-Joy",
 				"Joy-Joy.avail",
 				experimentalPath
 			},
 			{
-				"/Kernel/Tier-4/Tier-3/Tier-2/Tier-1/Tier-0/IO",
+				"/Kernel/Tier-0/IO",
 				"IO.avail/IO.avail",
 				libraryPath
 			}
@@ -134,8 +134,13 @@ public final class ModuleNameResolverTest
 			final String localName = aCase[0].substring(index + 1);
 
 			final File expected = new File(aCase[2], aCase[1]);
-			final File actual   = renames.resolve(new ModuleName(
-				"/avail" + moduleGroup, localName)).fileReference();
+			final ResolvedModuleName modName = renames.resolve(
+				new ModuleName(
+					"/avail" + moduleGroup, localName));
+if (modName == null) {  //TODO debug only.  Delete.
+renames.resolve(new ModuleName("/avail" + moduleGroup, localName));
+}
+			final File actual = modName.fileReference();
 			assertEquals(expected, actual);
 		}
 	}

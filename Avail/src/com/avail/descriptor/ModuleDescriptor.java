@@ -38,15 +38,18 @@ import com.avail.annotations.*;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 
 /**
- * A [@linkplain {@linkplain ModuleDescriptor module} is the mechanism by which Avail
- * code is organized.  Modules are parsed from files with the extension ".avail"
- * which contain information about
+ * A {@linkplain ModuleDescriptor module} is the mechanism by which Avail code
+ * is organized.  Modules are parsed from files with the extension ".avail"
+ * which contain information about:
  * <ul>
+ * <li>the module's name,</li>
+ * <li>the set of version strings for which this module claims to be
+ *     compatible,</li>
  * <li>the module's prerequisites,</li>
  * <li>the names to be exported from the module,</li>
  * <li>methods and macros defined in this module,</li>
  * <li>negative-precedence rules to help disambiguate complex expressions,</li>
- * <li>variables and constants private to the module</li>
+ * <li>variables and constants private to the module.</li>
  * </ul>
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;

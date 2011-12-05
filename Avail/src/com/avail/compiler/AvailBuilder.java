@@ -92,8 +92,15 @@ public final class AvailBuilder
 	 * The path maintained by the {@linkplain #traceModuleImports(ModuleName)
 	 * tracer} to prevent recursive tracing.
 	 */
-	private final @NotNull Set<ModuleName> recursionSet =
-		new LinkedHashSet<ModuleName>();
+	private final @NotNull Set<ResolvedModuleName> recursionSet =
+		new HashSet<ResolvedModuleName>();
+
+	/**
+	 * The set of module names that have already been encountered and completely
+	 * recursed through.
+	 */
+	private final @NotNull Set<ResolvedModuleName> completionSet =
+		new HashSet<ResolvedModuleName>();
 
 	/**
 	 * A {@linkplain Map map} from {@linkplain ModuleName module names} to their
@@ -120,72 +127,93 @@ public final class AvailBuilder
 	 * Trace the imports of the {@linkplain ModuleDescriptor module} specified
 	 * by the given {@linkplain ModuleName module name}.
 	 *
+	 * @param resolvedParent
+	 *            The resolved named of the module using or extending this
+	 *            module, or null if this module is the start of the recursive
+	 *            resolution (i.e., it will be the last one compiled).
 	 * @param qualifiedName
 	 *            A fully-qualified {@linkplain ModuleName module name}.
 	 * @throws AvailCompilerException
-	 *             If the {@linkplain AbstractAvailCompiler compiler} is unable
-	 *             to process a module declaration for this
-	 *             {@linkplain ModuleDescriptor module}.
+	 *            If the {@linkplain AbstractAvailCompiler compiler} is unable
+	 *            to process a module declaration for this
+	 *            {@linkplain ModuleDescriptor module}.
 	 * @throws RecursiveDependencyException
-	 *             If the specified {@linkplain ModuleDescriptor module}
-	 *             recursively depends upon itself.
+	 *            If the specified {@linkplain ModuleDescriptor module}
+	 *            recursively depends upon itself.
 	 */
 	private void traceModuleImports (
+		final ResolvedModuleName resolvedParent,
 		final @NotNull ModuleName qualifiedName)
 	throws AvailCompilerException, RecursiveDependencyException
 	{
+		final ResolvedModuleName resolution =
+			runtime.moduleNameResolver().resolve(qualifiedName);
+
 		// Detect recursion into this module.
-		if (recursionSet.contains(qualifiedName))
+		if (recursionSet.contains(resolution))
 		{
-			final List<ModuleName> recursionList = new ArrayList<ModuleName>(
-				recursionSet);
-			recursionList.add(qualifiedName);
-			throw new RecursiveDependencyException(recursionList);
+			throw new RecursiveDependencyException(resolution);
 		}
 
 		// Prevent recursion into this module.
-		recursionSet.add(qualifiedName);
+		recursionSet.add(resolution);
 
-		assert !successors.containsKey(qualifiedName);
-		assert !predecessors.containsKey(qualifiedName);
-		successors.put(qualifiedName, new HashSet<ModuleName>());
-		predecessors.put(qualifiedName, new HashSet<ModuleName>());
-
-		final ResolvedModuleName resolution = runtime.moduleNameResolver()
-				.resolve(qualifiedName);
-
-		// Build the set of names of imported modules.
-		final AbstractAvailCompiler compiler = AbstractAvailCompiler.create(
-			qualifiedName,
-			interpreter,
-			true);
-		compiler.parseModuleHeader(qualifiedName);
-		final Set<ModuleName> importedModules = new HashSet<ModuleName>(
-			compiler.extendedModules.size() + compiler.usedModules.size());
-		for (final AvailObject extendedModule : compiler.extendedModules)
+		if (completionSet.contains(resolution))
 		{
-			importedModules.add(resolution.asSibling(
-				extendedModule.tupleAt(1).asNativeString()));
+			assert successors.containsKey(qualifiedName);
+			assert predecessors.containsKey(qualifiedName);
 		}
-		for (final AvailObject usedModule : compiler.usedModules)
+		else
 		{
-			importedModules.add(resolution.asSibling(
-				usedModule.tupleAt(1).asNativeString()));
-		}
+			assert !successors.containsKey(qualifiedName);
+			assert !predecessors.containsKey(qualifiedName);
+			successors.put(qualifiedName, new HashSet<ModuleName>());
+			predecessors.put(qualifiedName, new HashSet<ModuleName>());
 
-		// Recurse into each previously unseen import.
-		for (final ModuleName moduleName : importedModules)
-		{
-			if (!successors.containsKey(moduleName))
+			// Build the set of names of imported modules.
+			final AbstractAvailCompiler compiler = AbstractAvailCompiler.create(
+				qualifiedName,
+				interpreter,
+				true);
+			compiler.parseModuleHeader(qualifiedName);
+			final Set<ModuleName> importedModules = new HashSet<ModuleName>(
+				compiler.extendedModules.size() + compiler.usedModules.size());
+			for (final AvailObject extendedModule : compiler.extendedModules)
 			{
-				traceModuleImports(moduleName);
+				importedModules.add(resolution.asSibling(
+					extendedModule.tupleAt(1).asNativeString()));
 			}
-			successors.get(moduleName).add(qualifiedName);
-			predecessors.get(qualifiedName).add(moduleName);
-		}
+			for (final AvailObject usedModule : compiler.usedModules)
+			{
+				importedModules.add(resolution.asSibling(
+					usedModule.tupleAt(1).asNativeString()));
+			}
 
-		// Permit visitation of this module again.
-		recursionSet.remove(qualifiedName);
+			// Recurse into each import.
+			for (final ModuleName moduleName : importedModules)
+			{
+				if (!successors.containsKey(moduleName))
+				{
+					try
+					{
+						traceModuleImports(resolution, moduleName);
+					}
+					catch (final RecursiveDependencyException e)
+					{
+						e.prependModule(resolution);
+						throw e;
+					}
+				}
+			}
+
+			// Prevent subsequent unnecessary visits.
+			completionSet.add(resolution);
+		}
+		successors.get(resolution).add(resolvedParent);
+		predecessors.get(resolvedParent).add(resolution);
+
+		// Permit reaching (but not scanning) this module again.
+		recursionSet.remove(resolution);
 	}
 
 	/**
@@ -271,7 +299,7 @@ public final class AvailBuilder
 			throws AvailCompilerException, RecursiveDependencyException
 	{
 		final ModuleNameResolver resolver = runtime.moduleNameResolver();
-		traceModuleImports(target);
+		traceModuleImports(null, target);
 		linearizeModuleImports();
 		final long globalCodeSize = globalCodeSize();
 		final Mutable<Long> globalPosition = new Mutable<Long>();

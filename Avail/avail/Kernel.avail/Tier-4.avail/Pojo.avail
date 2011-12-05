@@ -170,8 +170,10 @@ Method "jbyte" is [ [-2^7..2^7); ];
 Print jbyte as basic string;
 Method "jshort" is [ [-2^15..2^15); ];
 Print jshort as basic string;
-Halt;
-Method "jint" is [ [-2^31..2^31); ];
+[
+	Halt;
+	Method "jint" is [ [-2^31..2^31); ];
+]();
 Print jint as basic string;
 Method "jlong" is [ [-2^63..2^63); ];
 Print jlong as basic string;

@@ -32,8 +32,7 @@
 
 package com.avail.compiler;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.ModuleDescriptor;
 
@@ -51,48 +50,62 @@ extends Exception
 	private static final long serialVersionUID = 6654397420941119005L;
 
 	/**
-	 * The path that the {@linkplain AvailBuilder builder} followed to identify
+	 * The path that the {@linkplain AvailBuilder builder} followed to encounter
 	 * the dependency recursion.
 	 */
-	private final @NotNull List<ModuleName> recursionPath;
+	private final @NotNull List<ResolvedModuleName> recursionPath =
+		new ArrayList<ResolvedModuleName>(10);
 
 	/**
-	 * Answer the {@linkplain ModuleName module name} of the [@linkplain
-	 * ModuleDescriptor module} that recursively depends upon itself.
+	 * Answer the {@linkplain ResolvedModuleName resolved module name} of the
+	 * {@linkplain ModuleDescriptor module} that recursively depends upon
+	 * itself.
 	 *
-	 * @return A {@linkplain ModuleName module name}.
+	 * @return A {@linkplain ResolvedModuleName module name}.
 	 */
-	public @NotNull ModuleName recursiveDependent ()
+	public @NotNull ResolvedModuleName recursiveDependent ()
 	{
 		return recursionPath.get(recursionPath.size() - 1);
 	}
 
 	/**
 	 * Answer the path that the {@linkplain AvailBuilder builder} followed to
-	 * identify the dependency recursion.
+	 * encounter the dependency recursion.
 	 *
 	 * @return The path that the {@linkplain AvailBuilder builder} followed to
-	 *         identify the dependency recursion.
+	 *         reach the dependency recursion.
 	 */
-	public @NotNull List<ModuleName> recursionPath ()
+	public @NotNull List<ResolvedModuleName> recursionPath ()
 	{
 		return Collections.unmodifiableList(recursionPath);
 	}
 
 	/**
+	 * Add a {@link ResolvedModuleName} to the beginning of my list of module
+	 * dependencies (that end with a circularity).
+	 *
+	 * @param previousResolvedModuleName
+	 *            The {@code ResolvedModuleName} to prepend.
+	 */
+	void prependModule (
+		final @NotNull ResolvedModuleName previousResolvedModuleName)
+	{
+		recursionPath.add(0, previousResolvedModuleName);
+	}
+
+	/**
 	 * Construct a new {@link RecursiveDependencyException}.
 	 *
-	 * @param recursionPath
-	 *        The path that the {@linkplain AvailBuilder builder} followed to
-	 *        identify the dependency recursion.
+	 * @param circularModuleName
+	 *            The module for which a circular dependency was detected.
 	 */
 	RecursiveDependencyException (
-		final @NotNull List<ModuleName> recursionPath)
+		final @NotNull ResolvedModuleName circularModuleName)
 	{
 		super(
 			"module \""
-			+ recursionPath.get(recursionPath.size() - 1).qualifiedName()
+			+ circularModuleName.qualifiedName()
 			+ "\" recursively depends upon itself");
-		this.recursionPath = recursionPath;
+		prependModule(circularModuleName);
 	}
 }
