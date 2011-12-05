@@ -1328,25 +1328,6 @@ public class TypeConsistencyTest
 		}
 	}
 
-	@Test
-	public void testAdHoc ()
-	{
-		AvailObject a, b;
-		boolean result;
-
-		a = InstanceTypeDescriptor.on(
-			IntegerDescriptor.fromInt(3));
-		b = EnumerationMetaDescriptor.mostGeneralType();
-		result = a.isInstanceOf(b);
-		assert result;
-
-		a = InstanceTypeDescriptor.on(
-			TupleTypeDescriptor.mostGeneralType());
-		b = EnumerationMetaDescriptor.mostGeneralType();
-		result = a.isInstanceOf(b);
-		assert result;
-	}
-
 	/**
 	 * Test that the {@linkplain Node#supernodes declared} subtype relations
 	 * actually hold the way the graph says they should.

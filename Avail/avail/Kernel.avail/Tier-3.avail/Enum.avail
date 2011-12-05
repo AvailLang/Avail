@@ -119,7 +119,7 @@ Method "_instance" is [e : enum |
 	instances as tuple [1];
 ] : any;
 
-Restriction "_instance" is [eT : enum type |
+Restriction "_instance" is [eT : meta |
 	if eT = enum then [
 		any;
 	] else [

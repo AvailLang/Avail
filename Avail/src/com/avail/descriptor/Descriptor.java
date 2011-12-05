@@ -6685,4 +6685,10 @@ extends AbstractDescriptor
 	{
 		return false;
 	}
+
+	@Override
+	boolean o_IsPojoType (final @NotNull AvailObject object)
+	{
+		return false;
+	}
 }

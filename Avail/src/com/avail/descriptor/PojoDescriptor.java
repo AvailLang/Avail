@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.PojoDescriptor.ObjectSlots.*;
+import java.util.List;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 
@@ -159,6 +160,20 @@ extends Descriptor
 	@NotNull AvailObject o_RawPojo (final @NotNull AvailObject object)
 	{
 		return object.objectSlot(RAW_POJO);
+	}
+
+	@Override
+	void printObjectOnAvoidingIndent (
+		final @NotNull AvailObject object,
+		final @NotNull StringBuilder builder,
+		final @NotNull List<AvailObject> recursionList,
+		final int indent)
+	{
+		builder.append(String.valueOf(RawPojoDescriptor.getPojo(
+			object.objectSlot(RAW_POJO))));
+		builder.append(" ∈ ");
+		object.objectSlot(KIND).printOnAvoidingIndent(
+			builder, recursionList, indent);
 	}
 
 	/**

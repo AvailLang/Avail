@@ -4077,4 +4077,10 @@ extends AbstractDescriptor
 	{
 		return o_Traversed(object).isPojo();
 	}
+
+	@Override
+	boolean o_IsPojoType (final @NotNull AvailObject object)
+	{
+		return o_Traversed(object).isPojoType();
+	}
 }

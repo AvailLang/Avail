@@ -7892,8 +7892,9 @@ public enum Primitive
 					IntegerRangeTypeDescriptor.wholeNumbers(),
 					TupleDescriptor.empty(),
 					RAW_POJO.o()),
-				InstanceTypeDescriptor.on(pojoType));
-			writer.returnType(pojoType);
+				InstanceTypeDescriptor.on(
+					PojoTypeDescriptor.mostGeneralType()));
+			writer.returnType(PojoTypeDescriptor.mostGeneralType());
 			writer.write(new L1Instruction(
 				L1Operation.L1_doGetLocal,
 				writer.createLocal(ContainerTypeDescriptor.wrapInnerType(
@@ -7925,7 +7926,7 @@ public enum Primitive
 			for (int i = 1; i <= paramTypes.tupleSize(); i++)
 			{
 				writer.write(new L1Instruction(
-					L1Operation.L1_doGetLocal, i));
+					L1Operation.L1_doPushLocal, i));
 			}
 			writer.write(new L1Instruction(
 				L1Operation.L1_doMakeTuple,

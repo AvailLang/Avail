@@ -657,30 +657,31 @@ extends TypeDescriptor
 			// Marshal integer range types to Java primitive classes.
 			if (availType.isIntegerRangeType())
 			{
-				if (availType.isSubtypeOf(byteRange))
+				if (availType.equals(byteRange))
 				{
 					javaClass = Byte.TYPE;
 				}
-				else if (availType.isSubtypeOf(shortRange))
+				else if (availType.equals(shortRange))
 				{
 					javaClass = Short.TYPE;
 				}
-				else if (availType.isSubtypeOf(intRange))
+				else if (availType.equals(intRange))
 				{
 					javaClass = Integer.TYPE;
 				}
-				else if (availType.isSubtypeOf(longRange))
+				else if (availType.equals(longRange))
 				{
 					javaClass = Long.TYPE;
 				}
-				// If the integer range type is too general, then treat the
+				// If the integer range type is something else, then treat the
 				// type as opaque.
 				else
 				{
 					javaClass = AvailObject.class;
 				}
 			}
-			else if (availType.isSubtypeOf(EnumerationTypeDescriptor.booleanObject()))
+			else if (availType.isSubtypeOf(
+				EnumerationTypeDescriptor.booleanObject()))
 			{
 				javaClass = Boolean.TYPE;
 			}
@@ -742,7 +743,18 @@ extends TypeDescriptor
 	{
 		final Class<?> javaClass = object.getClass();
 		final AvailObject availObject;
-		if (javaClass.isPrimitive())
+		// If the type is explicitly a pojo type, then make sure that the result
+		// does not undergo conversion to a semantically corresponding Avail
+		// object.
+		if (type.isPojoType())
+		{
+			availObject = PojoDescriptor.create(
+				RawPojoDescriptor.create(object),
+				type);
+		}
+		// Otherwise attempt to convert the object into a semantically
+		// corresponding Avail object.
+		else if (javaClass.isPrimitive())
 		{
 			if (javaClass.equals(Boolean.TYPE))
 			{
@@ -790,12 +802,6 @@ extends TypeDescriptor
 		{
 			availObject = StringDescriptor.from((String) object);
 		}
-		else if (!(object instanceof AvailObject))
-		{
-			availObject = PojoDescriptor.create(
-				RawPojoDescriptor.create(object),
-				type);
-		}
 		else
 		{
 			availObject = (AvailObject) object;
@@ -828,33 +834,6 @@ extends TypeDescriptor
 		 * superinterfaces.
 		 */
 		PARAMETERIZATION_MAP,
-	}
-
-	@Override @AvailMethod
-	boolean o_IsAbstract (final @NotNull AvailObject object)
-	{
-		final AvailObject rawType = object.objectSlot(MOST_SPECIFIC_CLASS);
-
-		// If the most specific class is the Avail null object, then this type
-		// does not represent a Java class; it represents either an interface,
-		// or a fusion type. It must therefore be abstract.
-		if (rawType.equalsNull())
-		{
-			return true;
-		}
-
-		final Class<?> javaClass =
-			(Class<?>) RawPojoDescriptor.getPojo(rawType);
-
-		// This handles the most specific type.
-		if (javaClass == null)
-		{
-			return true;
-		}
-
-		final int modifiers = javaClass.getModifiers();
-		return Modifier.isAbstract(modifiers)
-			|| Modifier.isInterface(modifiers);
 	}
 
 	@Override @AvailMethod
@@ -891,6 +870,39 @@ extends TypeDescriptor
 			aPojoType.makeImmutable();
 		}
 
+		return true;
+	}
+
+	@Override @AvailMethod
+	boolean o_IsAbstract (final @NotNull AvailObject object)
+	{
+		final AvailObject rawType = object.objectSlot(MOST_SPECIFIC_CLASS);
+
+		// If the most specific class is the Avail null object, then this type
+		// does not represent a Java class; it represents either an interface,
+		// or a fusion type. It must therefore be abstract.
+		if (rawType.equalsNull())
+		{
+			return true;
+		}
+
+		final Class<?> javaClass =
+			(Class<?>) RawPojoDescriptor.getPojo(rawType);
+
+		// This handles the most specific type.
+		if (javaClass == null)
+		{
+			return true;
+		}
+
+		final int modifiers = javaClass.getModifiers();
+		return Modifier.isAbstract(modifiers)
+			|| Modifier.isInterface(modifiers);
+	}
+
+	@Override @AvailMethod
+	boolean o_IsPojoType (final @NotNull AvailObject object)
+	{
 		return true;
 	}
 
@@ -1245,7 +1257,6 @@ extends TypeDescriptor
 
 		final Class<?> javaClass =
 			(Class<?>) RawPojoDescriptor.getPojo(classPojo);
-		builder.append("pojo type: ");
 		if (javaClass == null)
 		{
 			builder.append(String.valueOf(javaClass));

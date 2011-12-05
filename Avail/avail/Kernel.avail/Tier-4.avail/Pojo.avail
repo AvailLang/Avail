@@ -39,6 +39,21 @@ Extends
 Uses
 	"Tier-3"
 Names
+	"pojo",
+	"null type",
+	"null",
+	"self type",
+	
+	"Java type_parameters_",
+	"Java type_",
+	"Java_[]",
+	
+	"jbyte",
+	"jshort",
+	"jint",
+	"jlong",
+	
+	"constructor of_given_"
 Body
 
 privatePojo ::= Special Object 80;
@@ -77,21 +92,94 @@ Method "self type" is
 	privateSelfObject;
 ] : privateSelfObject type;
 
-Method "Java type_parameters_" is
+"Java Class Not Available" is explicit subtype of Exception;
+"Incorrect Number of Java Type Parameters" is explicit subtype of Exception;
+"Incorrect Java Type Parameter" is explicit subtype of Exception;
+
+Method "⊶Java type_parameters_" is
 [
 	typeName : string,
 	typeParameters : tuple of type
 |
 	Primitive 500 (failureCode : whole number);
-	Crash "Yipe!";
+	if failureCode = 500 then
+	[
+		Raise Java Class Not Available with typeName;
+	];
+	if failureCode = 11 then
+	[
+		Raise Incorrect Number of Java Type Parameters with ||typeParameters||;
+	];
+	Assert failureCode = 12;
+	Raise Incorrect Java Type Parameter with terminates;
 ] : pojo type;
+
+Method "Java type_parameters_" is
+[
+	typeName : string,
+	typeParameters : tuple of type
+|
+	⊶Java type typeName parameters typeParameters;
+] : pojo type;
+
+Restriction "Java type_parameters_" is
+[
+	typeNameType : string type,
+	typeParametersType : (tuple of type) type
+|
+	typeNameEnum ::= cast typeNameType into [ e : enum | e; ]
+		otherwise [
+			Fail parse "Java type name is not statically known"; ];
+	typeName ::= cast typeNameEnum instance into [ s : string | s; ];
+	
+	typeParametersTypeBounds ::= typeParametersType sizes;
+	if
+		typeParametersTypeBounds lower bound
+		not = typeParametersTypeBounds upper bound
+	then [
+		Fail parse "argument tuple size must be statically known"; ];
+	
+	typeParametersSize ::= cast typeParametersTypeBounds upper bound into
+		[ b : whole number | b; ];  
+	args : tuple of type := <>;
+	1 to typeParametersSize do [i : natural number |
+		argType ::= cast typeParametersType[i] into [ e : enum | e; ]
+			otherwise [
+				Fail parse
+					"argument type "
+					then i as basic string
+					then " is not statically known"; ];
+		arg ::= cast argType instance into [ t : type | t; ];
+		args := args then <arg>;
+	];
+	
+	(⊶Java type typeName parameters args) type;
+];
 
 Method "Java type_" is
 [
 	typeName : string
 |
-	Java type typeName parameters <>;
+	⊶Java type typeName parameters <>;
 ] : pojo type;
+
+Restriction "Java type_" is
+[
+	typeNameType : string type
+|
+	typeNameEnum ::= cast typeNameType into [ e : enum | e; ]
+		otherwise [
+			Fail parse "Java type name is not statically known"; ];
+	typeName ::= cast typeNameEnum instance into [ s : string | s; ];
+	
+	result : pojo type type;
+	catch [ e : Incorrect Number of Java Type Parameters |
+		Fail parse
+			"incorrect number of Java type parameters for "
+			then typeName; ]
+	in [ result := (⊶Java type typeName parameters <>) type; ];
+	result;
+];
 
 [
 	jObject ::= Java type "java.lang.Object";
@@ -134,6 +222,16 @@ Method "Java_[]" is
 	Primitive 501;
 ] : pojo type;
 
+Restriction "Java_[]" is
+[
+	aTypeType : type type
+|
+	cast aTypeType into [ e : enum |
+		(Java (cast e instance into [ t : type | t; ]) []) type; ]
+	otherwise [
+		Fail parse "pojo type is not statically known"; ];
+];
+
 [
 	jArrayOfAny ::= Java any[];
 	jArrayOfObject ::= Java pojo[];
@@ -155,34 +253,48 @@ Method "constructor of_given_" is
 	Crash "Yikes!";
 ] : [...]->pojo;
 
-/*
 Restriction "constructor of_given_" is
 [
 	aPojoTypeType : pojo type type,
 	argTypesType : (tuple of type) type
 |
-	fT ::= block type taking argTypesType and returning aPojoTypeType instance;
-	Print fT as basic string;
+	argTypesTypeBounds ::= argTypesType sizes;
+	if argTypesTypeBounds lower bound not = argTypesTypeBounds upper bound then
+	[
+		Fail parse "argument tuple size must be statically known";
+	];
+	
+	argTypesSize ::= cast argTypesTypeBounds upper bound into
+		[ b : whole number | b; ];  
+	args : tuple of type := <>;
+	1 to argTypesSize do [i : natural number |
+		argType ::= cast argTypesType[i] into [ e : enum | e; ]
+			otherwise [
+				Fail parse
+					"argument type "
+					then i as basic string
+					then " is not statically known"; ];
+		arg ::= cast argType instance into [ t : type | t; ];
+		args := args then <arg>;
+	];
+	
+	fT ::= block type taking args and returning aPojoTypeType instance;
+	Print fT;
 	fT;
 ];
 
 Method "jbyte" is [ [-2^7..2^7); ];
-Print jbyte as basic string;
 Method "jshort" is [ [-2^15..2^15); ];
-Print jshort as basic string;
-[
-	Halt;
-	Method "jint" is [ [-2^31..2^31); ];
-]();
-Print jint as basic string;
+Method "jint" is [ [-2^31..2^31); ];
 Method "jlong" is [ [-2^63..2^63); ];
-Print jlong as basic string;
-*/
 
 [
 	jObjectC ::= constructor of pojo given <>;
-	o ::= jObjectC apply <>;
-	Print o as basic string;
+	o ::= jObjectC();
+	Print o;
+	jStringC ::= constructor of Java type "java.lang.String" given <string>;
+	s ::= jStringC("Hello, Java!");
+	Print s;
 ]();
 
 /*
@@ -190,6 +302,6 @@ Print jlong as basic string;
 	jList ::= Java type "java.util.ArrayList" parameters <string>;
 	jListC ::= constructor of jList given <jint>;
 	o ::= jListC apply <100>;
-	Print o as basic string;
+	Print o;
 ]();
 */

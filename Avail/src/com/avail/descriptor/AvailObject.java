@@ -5711,4 +5711,12 @@ implements Iterable<AvailObject>
 	{
 		return descriptor.o_IsPojo(this);
 	}
+
+	/**
+	 * @return
+	 */
+	public boolean isPojoType ()
+	{
+		return descriptor.o_IsPojoType(this);
+	}
 }
