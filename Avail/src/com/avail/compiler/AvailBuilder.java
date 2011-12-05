@@ -89,8 +89,8 @@ public final class AvailBuilder
 	}
 
 	/**
-	 * The path maintained by the {@linkplain #traceModuleImports(ModuleName)
-	 * tracer} to prevent recursive tracing.
+	 * The path maintained by the {@linkplain #traceModuleImports(
+	 * ResolvedModuleName, ModuleName) tracer} to prevent recursive tracing.
 	 */
 	private final @NotNull Set<ResolvedModuleName> recursionSet =
 		new HashSet<ResolvedModuleName>();
@@ -224,18 +224,6 @@ public final class AvailBuilder
 	 */
 	private void linearizeModuleImports ()
 	{
-		{
-			//TODO Debug only
-			for (final Map.Entry<ResolvedModuleName, Set<ResolvedModuleName>> entry
-				: predecessors.entrySet())
-			{
-				System.out.printf("%s%n", entry.getKey().toString());
-				for (final ResolvedModuleName successor : entry.getValue())
-				{
-					System.out.printf("\t%s%n", successor.toString());
-				}
-			}
-		}
 		while (!predecessors.isEmpty())
 		{
 			for (final Map.Entry<ResolvedModuleName, Set<ResolvedModuleName>>

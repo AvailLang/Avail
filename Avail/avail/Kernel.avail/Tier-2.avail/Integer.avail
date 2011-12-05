@@ -470,7 +470,7 @@ Assert [x : [-11..3]; y : [-5..3]; x * y;] type <= []->[-33..55];
 Restriction "_max_" is [aT : integerType, bT : integerType |
 	/* If [a1..a2] and [b1..b2] are the ranges, then the max will be between
 	   max(a1,b1) and max(a2,b2).  Watch out for the inclusion / exclusion
-	   cases.  */
+	   cases. */
 	min : extended integer;
 	minInclusive : boolean;
 	if (bT lower bound > aT lower bound) then [

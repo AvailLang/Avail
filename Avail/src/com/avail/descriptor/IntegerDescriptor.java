@@ -737,6 +737,39 @@ extends ExtendedNumberDescriptor
 					canDestroy)
 				.subtractFromIntegerCanDestroy(zero(), canDestroy);
 		}
+		if (object.isInt() && anInteger.isInt())
+		{
+			final long quotient = ((long)anInteger.extractInt())
+				/ ((long)object.extractInt());
+			// NOTE:  This test can ONLY fail for -2^31/-1 (which is a *long*).
+			if (quotient == (int)quotient)
+			{
+				// Yes, it fits.  Clobber one of the inputs, or create a new
+				// int-sized object if they were both immutable...
+				AvailObject output = null;
+				if (canDestroy)
+				{
+					if (isMutable)
+					{
+						output = object;
+					}
+					else if (anInteger.descriptor().isMutable())
+					{
+						output = anInteger;
+					}
+				}
+				if (output == null)
+				{
+					output = mutable().create(1);
+				}
+				assert output.integerSlotsCount() == 1;
+				output.rawSignedIntegerAtPut(1, (int)quotient);
+				return output;
+			}
+			// Doesn't fit.  Worst case: -2^31 / -1 = 2^31, which easily fits in
+			// 64 bits, even with the sign.
+			return fromLong(quotient);
+		}
 		// Both integers are now positive, and the divisor is not zero. That
 		// simplifies things quite a bit. Ok, we need to keep estimating the
 		// quotient and reverse multiplying until our remainder is in
@@ -930,7 +963,8 @@ extends ExtendedNumberDescriptor
 		{
 			// See if the (signed) product will fit in 32 bits, the most common
 			// case by far.
-			final long prod = object.extractInt() * anInteger.extractInt();
+			final long prod = ((long)object.extractInt())
+				* ((long)anInteger.extractInt());
 			if (prod == (int)prod)
 			{
 				// Yes, it fits.  Clobber one of the inputs, or create a new
@@ -963,8 +997,10 @@ extends ExtendedNumberDescriptor
 		// The following is a safe upper bound.  See below.
 		final int targetSize = size1 + size2;
 		output = mutable().create(targetSize);
-		final long extension1 = object.rawSignedIntegerAt(size1) >> 31;
-		final long extension2 = anInteger.rawSignedIntegerAt(size2) >> 31;
+		final long extension1 =
+			(object.rawSignedIntegerAt(size1) >> 31) & 0xFFFFFFFFL;
+		final long extension2 =
+			(anInteger.rawSignedIntegerAt(size2) >> 31) & 0xFFFFFFFFL;
 
 		// We can't recycle storage quite as easily here as we did for addition
 		// and subtraction, because the intermediate sum would be clobbering one
@@ -999,13 +1035,13 @@ extends ExtendedNumberDescriptor
 		{
 			for (int k = 1, m = i; k <= i; k++, m--)
 			{
-				long prod = k > size1
+				final long multiplicand1 = k > size1
 					? extension1
 					: object.rawUnsignedIntegerAt(k);
-				prod *= m > size2
+				final long multiplicand2 = m > size2
 					? extension2
 					: anInteger.rawUnsignedIntegerAt(m);
-				low += prod;
+				low += multiplicand1 * multiplicand2;
 				// Add upper of low to high.
 				high += low >>> 32;
 				// Subtract the same amount from low (clear upper word).
@@ -1097,9 +1133,9 @@ extends ExtendedNumberDescriptor
 		}
 		final int outputSize = output.integerSlotsCount();
 		final long extendedObject =
-			object.rawSignedIntegerAt(objectSize) >> 31 & 0xFFFFFFFFL;
+			(object.rawSignedIntegerAt(objectSize) >> 31) & 0xFFFFFFFFL;
 		final long extendedAnInteger =
-			anInteger.rawSignedIntegerAt(anIntegerSize) >> 31 & 0xFFFFFFFFL;
+			(anInteger.rawSignedIntegerAt(anIntegerSize) >> 31) & 0xFFFFFFFFL;
 		long partial = 1;
 		int lastInt = 0;
 		// The object is always big enough to store the max of the number of
@@ -1189,11 +1225,11 @@ extends ExtendedNumberDescriptor
 	 */
 	public static @NotNull AvailObject fromLong (final long aLong)
 	{
-		if (aLong >= 0 && aLong <= 255)
+		if (aLong == (aLong & 255))
 		{
 			return immutableByteObjects[(int) aLong];
 		}
-		if (aLong >= Integer.MIN_VALUE && aLong <= Integer.MAX_VALUE)
+		if (aLong == (int)aLong)
 		{
 			final AvailObject result = mutable().create(1);
 			result.rawSignedIntegerAtPut(1, (int) aLong);
@@ -1214,7 +1250,7 @@ extends ExtendedNumberDescriptor
 	 */
 	public static AvailObject fromInt (final int anInteger)
 	{
-		if (anInteger >= 0 && anInteger <= 255)
+		if (anInteger == (anInteger & 255))
 		{
 			return immutableByteObjects[anInteger];
 		}
