@@ -1684,7 +1684,7 @@ public abstract class AbstractAvailCompiler
 		source = extractSource(qualifiedName, resolvedName);
 		tokens = tokenize(source, false);
 		startModuleTransaction(
-			StringDescriptor.from(qualifiedName.qualifiedName()));
+			StringDescriptor.from(resolvedName.qualifiedName()));
 		try
 		{
 			parseModule(resolvedName);
@@ -1741,7 +1741,7 @@ public abstract class AbstractAvailCompiler
 			assert modImport.isTuple();
 			assert modImport.tupleSize() == 3;
 
-			final ModuleName ref = resolver.canonicalNameFor(
+			final ResolvedModuleName ref = resolver.resolve(
 				qualifiedName.asSibling(
 					modImport.tupleAt(1).asNativeString()));
 			final AvailObject availRef = StringDescriptor.from(
@@ -1799,7 +1799,7 @@ public abstract class AbstractAvailCompiler
 			assert modImport.isTuple();
 			assert modImport.tupleSize() == 3;
 
-			final ModuleName ref = resolver.canonicalNameFor(
+			final ResolvedModuleName ref = resolver.resolve(
 				qualifiedName.asSibling(
 					modImport.tupleAt(1).asNativeString()));
 			final AvailObject availRef = StringDescriptor.from(

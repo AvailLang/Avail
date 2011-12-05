@@ -103,18 +103,20 @@ public final class AvailBuilder
 		new HashSet<ResolvedModuleName>();
 
 	/**
-	 * A {@linkplain Map map} from {@linkplain ModuleName module names} to their
-	 * predecessors.
+	 * A {@linkplain Map map} from {@linkplain ResolvedModuleName resolved
+	 * module names} to their predecessors.
 	 */
-	private final @NotNull Map<ModuleName, Set<ModuleName>> predecessors =
-		new HashMap<ModuleName, Set<ModuleName>>();
+	private final @NotNull Map<ResolvedModuleName, Set<ResolvedModuleName>>
+		predecessors =
+			new HashMap<ResolvedModuleName, Set<ResolvedModuleName>>();
 
 	/**
-	 * A {@linkplain Map map} from {@linkplain ModuleName module names} to their
-	 * successors.
+	 * A {@linkplain Map map} from {@linkplain ResolvedModuleName resolved
+	 * module names} to their successors.
 	 */
-	private final @NotNull Map<ModuleName, Set<ModuleName>> successors =
-		new HashMap<ModuleName, Set<ModuleName>>();
+	private final @NotNull Map<ResolvedModuleName, Set<ResolvedModuleName>>
+		successors =
+			new HashMap<ResolvedModuleName, Set<ResolvedModuleName>>();
 
 	/**
 	 * The {@linkplain ModuleName dependencies} of the {@linkplain #target
@@ -127,7 +129,7 @@ public final class AvailBuilder
 	 * Trace the imports of the {@linkplain ModuleDescriptor module} specified
 	 * by the given {@linkplain ModuleName module name}.
 	 *
-	 * @param resolvedParent
+	 * @param resolvedSuccessor
 	 *            The resolved named of the module using or extending this
 	 *            module, or null if this module is the start of the recursive
 	 *            resolution (i.e., it will be the last one compiled).
@@ -142,12 +144,13 @@ public final class AvailBuilder
 	 *            recursively depends upon itself.
 	 */
 	private void traceModuleImports (
-		final ResolvedModuleName resolvedParent,
+		final ResolvedModuleName resolvedSuccessor,
 		final @NotNull ModuleName qualifiedName)
 	throws AvailCompilerException, RecursiveDependencyException
 	{
 		final ResolvedModuleName resolution =
 			runtime.moduleNameResolver().resolve(qualifiedName);
+		assert resolution != null;
 
 		// Detect recursion into this module.
 		if (recursionSet.contains(resolution))
@@ -158,18 +161,21 @@ public final class AvailBuilder
 		// Prevent recursion into this module.
 		recursionSet.add(resolution);
 
-		if (completionSet.contains(resolution))
+		if (!completionSet.contains(resolution))
 		{
-			assert successors.containsKey(qualifiedName);
-			assert predecessors.containsKey(qualifiedName);
+			assert !predecessors.containsKey(resolution);
+			assert !successors.containsKey(resolution);
+			predecessors.put(resolution, new HashSet<ResolvedModuleName>());
+			successors.put(resolution, new HashSet<ResolvedModuleName>());
 		}
-		else
+		if (resolvedSuccessor != null)
 		{
-			assert !successors.containsKey(qualifiedName);
-			assert !predecessors.containsKey(qualifiedName);
-			successors.put(qualifiedName, new HashSet<ModuleName>());
-			predecessors.put(qualifiedName, new HashSet<ModuleName>());
+			predecessors.get(resolvedSuccessor).add(resolution);
+			successors.get(resolution).add(resolvedSuccessor);
+		}
 
+		if (!completionSet.contains(resolution))
+		{
 			// Build the set of names of imported modules.
 			final AbstractAvailCompiler compiler = AbstractAvailCompiler.create(
 				qualifiedName,
@@ -192,25 +198,20 @@ public final class AvailBuilder
 			// Recurse into each import.
 			for (final ModuleName moduleName : importedModules)
 			{
-				if (!successors.containsKey(moduleName))
+				try
 				{
-					try
-					{
-						traceModuleImports(resolution, moduleName);
-					}
-					catch (final RecursiveDependencyException e)
-					{
-						e.prependModule(resolution);
-						throw e;
-					}
+					traceModuleImports(resolution, moduleName);
+				}
+				catch (final RecursiveDependencyException e)
+				{
+					e.prependModule(resolution);
+					throw e;
 				}
 			}
 
 			// Prevent subsequent unnecessary visits.
 			completionSet.add(resolution);
 		}
-		successors.get(resolution).add(resolvedParent);
-		predecessors.get(resolvedParent).add(resolution);
 
 		// Permit reaching (but not scanning) this module again.
 		recursionSet.remove(resolution);
@@ -223,18 +224,33 @@ public final class AvailBuilder
 	 */
 	private void linearizeModuleImports ()
 	{
+		{
+			//TODO Debug only
+			for (final Map.Entry<ResolvedModuleName, Set<ResolvedModuleName>> entry
+				: predecessors.entrySet())
+			{
+				System.out.printf("%s%n", entry.getKey().toString());
+				for (final ResolvedModuleName successor : entry.getValue())
+				{
+					System.out.printf("\t%s%n", successor.toString());
+				}
+			}
+		}
 		while (!predecessors.isEmpty())
 		{
-			for (final Map.Entry<ModuleName, Set<ModuleName>> entry
-				: new ArrayList<Map.Entry<ModuleName, Set<ModuleName>>>(
+			for (final Map.Entry<ResolvedModuleName, Set<ResolvedModuleName>>
+					entry
+				: new ArrayList<
+						Map.Entry<ResolvedModuleName, Set<ResolvedModuleName>>>(
 					predecessors.entrySet()))
 			{
-				final ModuleName key = entry.getKey();
+				final ResolvedModuleName key = entry.getKey();
 				if (entry.getValue().isEmpty())
 				{
 					dependencies.add(key);
 					predecessors.remove(key);
-					for (final ModuleName successor : successors.get(key))
+					for (final ResolvedModuleName successor
+						: successors.get(key))
 					{
 						predecessors.get(successor).remove(key);
 					}
@@ -310,8 +326,9 @@ public final class AvailBuilder
 				moduleName,
 				globalPosition.value,
 				globalCodeSize);
+			final ResolvedModuleName resolved = resolver.resolve(moduleName);
 			if (!runtime.includesModuleNamed(
-				StringDescriptor.from(moduleName.qualifiedName())))
+				StringDescriptor.from(resolved.qualifiedName())))
 			{
 				final AbstractAvailCompiler compiler =
 					AbstractAvailCompiler.create(
@@ -342,7 +359,6 @@ public final class AvailBuilder
 						}
 					});
 			}
-			final ResolvedModuleName resolved = resolver.resolve(moduleName);
 			globalPosition.value += resolved.fileReference().length();
 		}
 		assert globalPosition.value == globalCodeSize;

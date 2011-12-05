@@ -166,8 +166,8 @@ public final class ModuleNameResolver
 	 * @return The canonical name that should be used in place of the
 	 *         fully-qualified {@linkplain ModuleName module name}.
 	 */
-	public @NotNull ModuleName canonicalNameFor (
-		@NotNull ModuleName qualifiedName)
+	private @NotNull ModuleName canonicalNameFor (
+		@NotNull final ModuleName qualifiedName)
 	{
 		final String substitute = renames.get(qualifiedName.qualifiedName());
 		if (substitute != null)
@@ -187,7 +187,7 @@ public final class ModuleNameResolver
 	 *        A fully-qualified {@linkplain ModuleName module name}.
 	 * @return A {@linkplain ResolvedModuleName resolved module name}.
 	 */
-	public ResolvedModuleName resolve (@NotNull ModuleName qualifiedName)
+	public ResolvedModuleName resolve (@NotNull final ModuleName qualifiedName)
 	{
 		File resolution = null;
 
@@ -257,7 +257,7 @@ public final class ModuleNameResolver
 
 		if (resolution != null)
 		{
-			boolean isModuleGroup = resolution.isDirectory();
+			final boolean isModuleGroup = resolution.isDirectory();
 
 			// We found a candidate. If it is a module group, then substitute
 			// the module group representative.
