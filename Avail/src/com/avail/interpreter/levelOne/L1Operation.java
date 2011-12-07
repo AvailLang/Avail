@@ -33,19 +33,20 @@
 package com.avail.interpreter.levelOne;
 
 import java.io.ByteArrayOutputStream;
+import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 
 /**
- * An {@link L1Operation} is encoded within a {@link
- * CompiledCodeDescriptor.ObjectSlots#NYBBLES nybblecode stream} as an opcode
- * followed by operands.  Opcodes less than 16 are encoded as a single nybble,
- * and the others are represented as the {@link #L1_doExtension extension}
- * nybble followed by the opcode minus 16.  The {@link #L1Implied_Return
- * return} instruction does not actually occur, and is implied immediately after
- * the end of a stream of nybblecodes.
- * <p>
- * The operands are encoded in such a way that very small values occupy a single
- * nybble, but values up to {@link Integer#MAX_VALUE} are supported efficiently.
+ * An {@link L1Operation} is encoded within a {@linkplain AvailObject#nybbles()
+ * nybblecode stream} as an opcode followed by operands.  Opcodes less than 16
+ * are encoded as a single nybble, and the others are represented as the
+ * {@linkplain #L1_doExtension extension} nybble followed by the opcode minus
+ * 16.  The {@linkplain #L1Implied_Return return} instruction does not actually
+ * occur, and is implied immediately after the end of a stream of nybblecodes.
+ *
+ * <p>The operands are encoded in such a way that very small values occupy a
+ * single nybble, but values up to {@link Integer#MAX_VALUE} are supported
+ * efficiently.</p>
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
@@ -53,19 +54,18 @@ public enum L1Operation
 {
 	/**
 	 * Invoke a method.
-	 * <p>
-	 * The first operand is an index into the current code's {@link
-	 * CompiledCodeDescriptor.ObjectSlots#LITERAL_AT_ literals}, which
-	 * specifies an {@linkplain ImplementationSetDescriptor implementation set} that
-	 * contains a collection of {@linkplain MethodSignatureDescriptor methods} that
-	 * may be invoked.  The arguments are expected to already have been pushed.
-	 * They are popped from the stack and the literal specified by the second
-	 * operand is pushed.  This is the expected type of the send.  When the
-	 * invoked method eventually returns, the proposed return value is checked
+	 *
+	 * <p>The first operand is an index into the current code's {@link
+	 * AvailObject#literalAt(int) literals}, which specifies an {@linkplain
+	 * ImplementationSetDescriptor implementation set} that contains a
+	 * collection of {@linkplain MethodSignatureDescriptor methods} that may be
+	 * invoked.  The arguments are expected to already have been pushed. They
+	 * are popped from the stack and the literal specified by the second operand
+	 * is pushed.  This is the expected type of the send.  When the invoked
+	 * method eventually returns, the proposed return value is checked
 	 * against the pushed type, and if it agrees then this stack entry is
 	 * replaced by the returned value.  If it disagrees, some sort of runtime
-	 * exception should take place instead.
-	 * </p>
+	 * exception should take place instead.</p>
 	 */
 	L1_doCall(0, L1OperandType.LITERAL, L1OperandType.LITERAL)
 	{
@@ -92,16 +92,17 @@ public enum L1Operation
 	 * Push a local variable -- not its value, but the variable itself.  This
 	 * should be the last use of the variable, so erase it from the continuation
 	 * at the same time.
-	 * <p>
-	 * Clearing the variable keeps the variable's reference count from changing,
-	 * so it may stay {@link AbstractDescriptor#isMutable() mutable} if it was
-	 * before.
-	 * <p>
-	 * If an argument is specified then push the value, since there is no actual
-	 * {@linkplain ContainerDescriptor variable} to operate on.  Clear the slot of
-	 * the continuation reserved for the argument.  Constants are treated like
-	 * ordinary local variables, except that they can not be assigned after
-	 * their definition, nor can a reference to the constant be taken.
+	 *
+	 * <p>Clearing the variable keeps the variable's reference count from
+	 * changing, so it may stay {@link AbstractDescriptor#isMutable() mutable}
+	 * if it was before.</p>
+	 *
+	 * <p>If an argument is specified then push the value, since there is no
+	 * actual {@linkplain ContainerDescriptor variable} to operate on.  Clear
+	 * the slot of the continuation reserved for the argument.  Constants are
+	 * treated like ordinary local variables, except that they can not be
+	 * assigned after their definition, nor can a reference to the constant be
+	 * taken.</p>
 	 */
 	L1_doPushLastLocal(2, L1OperandType.LOCAL)
 	{
@@ -126,7 +127,6 @@ public enum L1Operation
 		}
 	},
 
-
 	/**
 	 * Push an outer variable, i.e. a variable lexically captured by the current
 	 * function.  This should be the last use of the variable, so clear it from
@@ -140,7 +140,6 @@ public enum L1Operation
 			operationDispatcher.L1_doPushLastOuter();
 		}
 	},
-
 
 	/**
 	 * Create a function from the specified number of pushed outer variables and
@@ -156,7 +155,6 @@ public enum L1Operation
 		}
 	},
 
-
 	/**
 	 * Pop the stack and write the value into the specified local variable or
 	 * constant (the latter should only happen once).
@@ -169,7 +167,6 @@ public enum L1Operation
 			operationDispatcher.L1_doSetLocal();
 		}
 	},
-
 
 	/**
 	 * Extract the value from the specified local variable or constant.  If the
@@ -185,7 +182,6 @@ public enum L1Operation
 		}
 	},
 
-
 	/**
 	 * Push the specified outer variable of the {@linkplain FunctionDescriptor
 	 * function}.
@@ -199,7 +195,6 @@ public enum L1Operation
 		}
 	},
 
-
 	/**
 	 * Discard the top element of the stack.
 	 */
@@ -211,7 +206,6 @@ public enum L1Operation
 			operationDispatcher.L1_doPop();
 		}
 	},
-
 
 	/**
 	 * Push the current value of the specified outer variable.  The outer
@@ -228,7 +222,6 @@ public enum L1Operation
 		}
 	},
 
-
 	/**
 	 * Pop the stack and write it to the specified outer variable of the
 	 * {@linkplain FunctionDescriptor function}.
@@ -241,7 +234,6 @@ public enum L1Operation
 			operationDispatcher.L1_doSetOuter();
 		}
 	},
-
 
 	/**
 	 * Push the value of the specified local variable or constant.  Make it
@@ -256,7 +248,6 @@ public enum L1Operation
 		}
 	},
 
-
 	/**
 	 * Pop the specified number of elements from the stack and assemble them
 	 * into a tuple.  Push the tuple.
@@ -269,7 +260,6 @@ public enum L1Operation
 			operationDispatcher.L1_doMakeTuple();
 		}
 	},
-
 
 	/**
 	 * Push the current value of the specified outer variable of the {@linkplain
@@ -284,7 +274,6 @@ public enum L1Operation
 		}
 	},
 
-
 	/**
 	 * Process an extension nybblecode, which involves consuming the next
 	 * nybble and dispatching it as though 16 were added to it.
@@ -297,7 +286,6 @@ public enum L1Operation
 			operationDispatcher.L1_doExtension();
 		}
 	},
-
 
 	/**
 	 * Push a continuation just like the current one, such that if it is ever
@@ -312,7 +300,6 @@ public enum L1Operation
 		}
 	},
 
-
 	/**
 	 * Get the value of a {@linkplain ContainerDescriptor container} literal.
 	 * This is used only to read from module variables.
@@ -326,7 +313,6 @@ public enum L1Operation
 		}
 	},
 
-
 	/**
 	 * Pop the stack and write the value into a {@linkplain ContainerDescriptor
 	 * container} literal.  This is used to write to module variables.
@@ -339,7 +325,6 @@ public enum L1Operation
 			operationDispatcher.L1Ext_doSetLiteral();
 		}
 	},
-
 
 	/**
 	 * Expect arguments to have pushed on the stack, followed by the argument
@@ -359,7 +344,6 @@ public enum L1Operation
 		}
 	},
 
-
 	/**
 	 * Compute the type of the object at the specified depth on the stack, and
 	 * push it.  Used only for arguments to a {@linkplain #L1Ext_doSuperCall
@@ -373,7 +357,6 @@ public enum L1Operation
 			operationDispatcher.L1Ext_doGetType();
 		}
 	},
-
 
 	/**
 	 * Duplicate the top stack element (i.e., push another occurrence of the top
@@ -421,12 +404,10 @@ public enum L1Operation
 		}
 	};
 
-
 	/**
 	 * This operation's collection of {@linkplain L1OperandType operand types}.
 	 */
-	private final L1OperandType [] operandTypes;
-
+	private final @NotNull L1OperandType [] operandTypes;
 
 	/**
 	 * Return this operation's collection of {@linkplain L1OperandType operand
@@ -439,20 +420,20 @@ public enum L1Operation
 		return operandTypes;
 	}
 
-
 	/**
 	 * Construct a new {@link L1Operation}.  The expected {@link Enum#ordinal()
 	 * ordinal} is passed as a cross-check so that each operation's definition
 	 * shows the ordinal.  The rest of the arguments are the {@linkplain
 	 * L1OperandType operand types} that this operation expects.
 	 *
-	 * @param ordinalCheck This operation's ordinal.
-	 * @param operandTypes This operation's list of {@linkplain L1OperandType operand
-	 *                     types}.
+	 * @param ordinalCheck
+	 *        This operation's ordinal.
+	 * @param operandTypes
+	 *        This operation's list of {@linkplain L1OperandType operand types}.
 	 */
 	L1Operation (
 		final int ordinalCheck,
-		final L1OperandType ... operandTypes)
+		final @NotNull L1OperandType ... operandTypes)
 	{
 		assert ordinalCheck == ordinal();
 		this.operandTypes = operandTypes;
@@ -473,7 +454,7 @@ public enum L1Operation
 	 * @param stream The {@link ByteArrayOutputStream} on which to write the
 	 *               nybble(s) representing this operation.
 	 */
-	public void writeTo (final ByteArrayOutputStream stream)
+	public void writeTo (final @NotNull ByteArrayOutputStream stream)
 	{
 		final int nybble = ordinal();
 		if (nybble < 16)

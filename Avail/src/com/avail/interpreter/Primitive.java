@@ -1619,10 +1619,8 @@ public enum Primitive
 	/**
 	 * <strong>Primitive 55:</strong> Answer a {@linkplain
 	 * ContinuationDescriptor continuation}'s stack pointer. This is the index
-	 * of the top-of-stack within the {@link
-	 * ContinuationDescriptor.ObjectSlots#FRAME_AT_ frame slots} of the
-	 * continuation. For an empty stack its value equals the number of frame
-	 * slots plus one.
+	 * of the top-of-stack within the frame slots of the continuation. For an
+	 * empty stack its value equals the number of frame slots plus one.
 	 */
 	prim55_ContinuationStackPointer(55, 1, CanFold, CannotFail)
 	{

@@ -295,13 +295,8 @@ Method "jlong" is [ [-2^63..2^63); ];
 	jStringC ::= constructor of Java type "java.lang.String" given <string>;
 	s ::= jStringC("Hello, Java!");
 	Print s;
-]();
-
-/*
-[
-	jList ::= Java type "java.util.ArrayList" parameters <string>;
+	jList ::= Java type "java.util.ArrayList" parameters <jint>;
 	jListC ::= constructor of jList given <jint>;
-	o ::= jListC apply <100>;
+	o ::= jListC(100);
 	Print o;
 ]();
-*/

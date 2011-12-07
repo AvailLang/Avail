@@ -34,6 +34,7 @@ package com.avail.interpreter.levelOne;
 
 import static com.avail.descriptor.AvailObject.error;
 import java.util.List;
+import com.avail.annotations.*;
 import com.avail.descriptor.*;
 
 public class L1Disassembler
@@ -107,9 +108,9 @@ public class L1Disassembler
 	 *        The indentation level.
 	 */
 	public void disassemble (
-		final AvailObject theCode,
-		final StringBuilder theBuilder,
-		final List<AvailObject> theRecursionList,
+		final @NotNull AvailObject theCode,
+		final @NotNull StringBuilder theBuilder,
+		final @NotNull List<AvailObject> theRecursionList,
 		final int theIndent)
 	{
 		this.code = theCode;
@@ -156,18 +157,15 @@ public class L1Disassembler
 		}
 	}
 
-
-
 	/**
 	 * Extract an encoded integer from the nybblecode instruction stream.  The
 	 * encoding uses only a nybble for very small operands, and can still
-	 * represent up to {@link Integer#MAX_VALUE} if necessary.
-	 * <p>
-	 * Adjust the {@link #pc program counter} to skip the integer.
+	 * represent up to {@link Integer#MAX_VALUE} if necessary. Adjust the
+	 * {@link #pc program counter} to skip the integer.
 	 *
 	 * @return The integer extracted from the nybblecode stream.
 	 */
-	public int getInteger ()
+	@InnerAccess int getInteger ()
 	{
 		final byte firstNybble = nybbles.extractNybbleFromTupleAt(pc);
 		pc++;

@@ -61,7 +61,7 @@ public enum L1OperandType
 	/**
 	 * The integer in the nybblecode stream is to be treated as an index into
 	 * the current {@linkplain CompiledCodeDescriptor compiled code} object's
-	 * {@linkplain CompiledCodeDescriptor.ObjectSlots#LITERAL_AT_ literals}.
+	 * {@linkplain AvailObject#literalAt(int) literals}.
 	 * This allows instructions to refer to arbitrary {@linkplain AvailObject}s.
 	 */
 	LITERAL()

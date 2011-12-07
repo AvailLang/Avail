@@ -223,6 +223,4 @@ abstract class L1StackTracker implements L1OperationDispatcher
 		currentDepth = 0;
 		reachable = false;
 	}
-
-
 }
