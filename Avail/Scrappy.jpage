@@ -133,3 +133,5 @@ list.add(2);
 list.add(3);
 (Integer[]) list.toArray()
 
+
+class X<A, B extends X<A, B>> { }

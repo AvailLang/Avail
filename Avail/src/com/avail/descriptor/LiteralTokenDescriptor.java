@@ -34,13 +34,12 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.TypeDescriptor.Types.LITERAL_TOKEN;
 import com.avail.annotations.*;
-import com.avail.descriptor.*;
 
 /**
  * I represent a token that's a literal representation of some object.
- * <p>
- * In addition to the state inherited from {@link TokenDescriptor}, I add a
- * field to hold the literal value itself.
+ *
+ * <p>In addition to the state inherited from {@link TokenDescriptor}, I add a
+ * field to hold the literal value itself.</p>
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
@@ -53,11 +52,12 @@ extends TokenDescriptor
 	 *
 	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	public enum ObjectSlots
+	implements ObjectSlotsEnum
 	{
 		/**
-		 * The {@linkplain StringDescriptor string}, exactly as I appeared in the
-		 * source.
+		 * The {@linkplain StringDescriptor string}, exactly as I appeared in
+		 * the source.
 		 */
 		STRING,
 
@@ -70,7 +70,8 @@ extends TokenDescriptor
 	/**
 	 * My class's slots of type int.
 	 */
-	public enum IntegerSlots implements IntegerSlotsEnum
+	public enum IntegerSlots
+	implements IntegerSlotsEnum
 	{
 		/**
 		 * The starting position in the source file.  Currently signed 32 bits,
@@ -117,7 +118,6 @@ extends TokenDescriptor
 		return LITERAL_TOKEN.o();
 	}
 
-
 	/**
 	 * Construct a new {@link LiteralTokenDescriptor}.
 	 *
@@ -133,7 +133,8 @@ extends TokenDescriptor
 	/**
 	 * The mutable {@link LiteralTokenDescriptor}.
 	 */
-	private final static LiteralTokenDescriptor mutable = new LiteralTokenDescriptor(true);
+	private final static LiteralTokenDescriptor mutable =
+		new LiteralTokenDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link LiteralTokenDescriptor}.
@@ -148,7 +149,8 @@ extends TokenDescriptor
 	/**
 	 * The immutable {@link LiteralTokenDescriptor}.
 	 */
-	private final static LiteralTokenDescriptor immutable = new LiteralTokenDescriptor(false);
+	private final static LiteralTokenDescriptor immutable =
+		new LiteralTokenDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link LiteralTokenDescriptor}.

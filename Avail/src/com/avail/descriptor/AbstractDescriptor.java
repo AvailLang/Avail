@@ -4945,4 +4945,18 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract boolean o_IsPojoType (@NotNull AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract public AvailObject o_UpperBoundMap (@NotNull AvailObject object);
+
+	/**
+	 * @param object
+	 * @param aMap
+	 */
+	abstract public void o_UpperBoundMap (
+		@NotNull AvailObject object,
+		@NotNull AvailObject aMap);
 }

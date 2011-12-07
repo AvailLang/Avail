@@ -93,6 +93,7 @@ implements Iterable<AvailObject>
 		ContainerTypeDescriptor.createWellKnownObjects();
 		EnumerationMetaDescriptor.createWellKnownObjects();
 		ParseNodeTypeDescriptor.createWellKnownObjects();
+		LiteralNodeDescriptor.createWellKnownObjects();
 		RawPojoDescriptor.createWellKnownObjects();
 		PojoTypeDescriptor.createWellKnownObjects();
 		PojoSelfTypeDescriptor.createWellKnownObjects();
@@ -132,6 +133,7 @@ implements Iterable<AvailObject>
 		ContainerTypeDescriptor.clearWellKnownObjects();
 		EnumerationMetaDescriptor.clearWellKnownObjects();
 		ParseNodeTypeDescriptor.clearWellKnownObjects();
+		LiteralNodeDescriptor.clearWellKnownObjects();
 		RawPojoDescriptor.clearWellKnownObjects();
 		PojoTypeDescriptor.clearWellKnownObjects();
 		PojoSelfTypeDescriptor.clearWellKnownObjects();
@@ -5718,5 +5720,22 @@ implements Iterable<AvailObject>
 	public boolean isPojoType ()
 	{
 		return descriptor.o_IsPojoType(this);
+	}
+
+	/**
+	 * @return
+	 */
+	public @NotNull AvailObject upperBoundMap ()
+	{
+		return descriptor.o_UpperBoundMap(this);
+	}
+
+	/**
+	 * @param aMap
+	 * @return
+	 */
+	public void upperBoundMap (final @NotNull AvailObject aMap)
+	{
+		descriptor.o_UpperBoundMap(this, aMap);
 	}
 }

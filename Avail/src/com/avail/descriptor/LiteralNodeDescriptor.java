@@ -33,9 +33,9 @@
 package com.avail.descriptor;
 
 import java.util.List;
+import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.compiler.scanning.*;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.levelTwo.L2Interpreter;
@@ -47,8 +47,53 @@ import com.avail.utility.*;
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
-public class LiteralNodeDescriptor extends ParseNodeDescriptor
+public class LiteralNodeDescriptor
+extends ParseNodeDescriptor
 {
+	/**
+	 * A synthetic {@linkplain LiteralNodeDescriptor literal node} that
+	 * represents a literal {@linkplain NullDescriptor#nullObject() null
+	 * object}. Note that the literal null object is not available to an Avail
+	 * programmer.
+	 */
+	private static AvailObject literalNullObject;
+
+	/**
+	 * Answer a synthetic {@linkplain LiteralNodeDescriptor literal node} that
+	 * represents a literal {@linkplain NullDescriptor#nullObject() null
+	 * object}. Note that the literal null object is not available to an Avail
+	 * programmer
+	 * .
+	 * @return A literal node representing null.
+	 */
+	public static @NotNull AvailObject literalNullObject ()
+	{
+		return literalNullObject;
+	}
+
+	/**
+	 * Create any instances statically well-known to the {@linkplain
+	 * AvailRuntime Avail runtime system}.
+	 */
+	public static void createWellKnownObjects ()
+	{
+		final AvailObject token = LiteralTokenDescriptor.mutable().create();
+		token.tokenType(TokenType.LITERAL);
+		token.string(StringDescriptor.from("nil"));
+		token.start(0);
+		token.lineNumber(0);
+		token.literal(NullDescriptor.nullObject());
+		literalNullObject = fromToken(token).makeImmutable();
+	}
+
+	/**
+	 * Destroy or reset any instances statically well-known to the {@linkplain
+	 * AvailRuntime Avail runtime system}.
+	 */
+	public static void clearWellKnownObjects ()
+	{
+		literalNullObject = null;
+	}
 
 	/**
 	 * My slots of type {@link AvailObject}.

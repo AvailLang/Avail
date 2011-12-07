@@ -6691,4 +6691,19 @@ extends AbstractDescriptor
 	{
 		return false;
 	}
+
+	@Override
+	public AvailObject o_UpperBoundMap (final @NotNull AvailObject object)
+	{
+		unsupportedOperation();
+		return null;
+	}
+
+	@Override
+	public void o_UpperBoundMap (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aMap)
+	{
+		unsupportedOperation();
+	}
 }

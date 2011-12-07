@@ -200,10 +200,13 @@ extends TypeDescriptor
 	public static void createWellKnownObjects ()
 	{
 		mostGeneralType = create(Object.class, TupleDescriptor.empty());
+		mostGeneralType.upperBoundMap(MapDescriptor.empty());
 		mostGeneralArrayType = create(
-			pojoArrayClass(),
-			TupleDescriptor.from(TYPE.o()));
+			pojoArrayClass(), TupleDescriptor.from(TYPE.o()));
+		mostGeneralArrayType.upperBoundMap(createUpperBoundMap(
+			pojoArrayClass()));
 		mostSpecificType = create((Class<?>) null, TupleDescriptor.empty());
+		mostSpecificType.upperBoundMap(MapDescriptor.empty());
 		byteRange = IntegerRangeTypeDescriptor.create(
 			IntegerDescriptor.fromInt(Byte.MIN_VALUE),
 			true,
@@ -279,20 +282,21 @@ extends TypeDescriptor
 	 *        A parameterized type.
 	 * @param currentTypeVar
 	 *        The {@linkplain TypeVariable type variable} whose {@linkplain
-	 *        #resolveUpperBounds(TypeVariable, Map, Map) upper bounds are
-	 *        currently being computed}.
+	 *        #resolveAllUpperBounds(TypeVariable, AvailObject, Map) upper bounds
+	 *        are currently being computed}.
 	 * @param typeVarMap
-	 *        A {@linkplain Map map} from type variables to their resolved pojo
-	 *        types.
+	 *        A {@linkplain MapDescriptor map} from type variable {@linkplain
+	 *        StringDescriptor names} to their resolved {@linkplain
+	 *        TypeDescriptor upper bounds}.
 	 * @param rawTypeMap
-	 *        A map from {@linkplain Class Java classes} to {@linkplain
+	 *        A map from raw {@linkplain Class Java types} to {@linkplain
 	 *        RawPojoDescriptor raw pojos}.
 	 * @return A pojo type.
 	 */
 	private static @NotNull AvailObject resolveParameterizedType (
 		final @NotNull ParameterizedType parameterizedType,
 		final @NotNull TypeVariable<?> currentTypeVar,
-		final @NotNull Map<TypeVariable<?>, AvailObject> typeVarMap,
+		final @NotNull AvailObject typeVarMap,
 		final @NotNull Map<Class<?>, AvailObject> rawTypeMap)
 	{
 		final Class<?> rawType =
@@ -324,17 +328,15 @@ extends TypeDescriptor
 			// curtail the recursion.
 			else if (type instanceof TypeVariable<?>)
 			{
-				final TypeVariable<?> var = (TypeVariable<?>) type;
-				assert typeVarMap.containsKey(var)
-					|| var.equals(currentTypeVar);
+				final TypeVariable<?> typeVar = (TypeVariable<?>) type;
 				final AvailObject pojoType;
-				if (var.equals(currentTypeVar))
+				if (typeVar.equals(currentTypeVar))
 				{
 					pojoType = PojoSelfTypeDescriptor.create(rawType);
 				}
 				else
 				{
-					pojoType = typeVarMap.get(var);
+					pojoType = typeVarMap.mapAt(typeVariableName(typeVar));
 				}
 				params.add(pojoType);
 			}
@@ -343,6 +345,7 @@ extends TypeDescriptor
 				assert false : "This should not happen.";
 			}
 		}
+
 		return create(rawType, TupleDescriptor.fromCollection(params));
 	}
 
@@ -353,19 +356,19 @@ extends TypeDescriptor
 	 * @param typeVar
 	 *        A type variable.
 	 * @param typeVarMap
-	 *        A {@linkplain Map map} from type variables to their resolved pojo
-	 *        types.
+	 *        A {@linkplain MapDescriptor map} from type variable {@linkplain
+	 *        StringDescriptor names} to their resolved {@linkplain
+	 *        TypeDescriptor upper bounds}.
 	 * @param rawTypeMap
-	 *        A map from {@linkplain Class Java classes} to {@linkplain
+	 *        A map from raw {@linkplain Class Java types} to {@linkplain
 	 *        RawPojoDescriptor raw pojos}.
 	 * @return The resolved upper bounds.
 	 */
-	private static @NotNull List<AvailObject> resolveUpperBounds (
+	private static @NotNull List<AvailObject> resolveAllUpperBounds (
 		final @NotNull TypeVariable<?> typeVar,
-		final @NotNull Map<TypeVariable<?>, AvailObject> typeVarMap,
+		final @NotNull AvailObject typeVarMap,
 		final @NotNull Map<Class<?>, AvailObject> rawTypeMap)
 	{
-		assert !typeVarMap.containsKey(typeVar);
 		final List<AvailObject> resolved = new ArrayList<AvailObject>();
 		for (final Type upperBound : typeVar.getBounds())
 		{
@@ -387,17 +390,19 @@ extends TypeDescriptor
 			}
 			else if (upperBound instanceof ParameterizedType)
 			{
-				assert !typeVarMap.containsKey(typeVar);
 				final ParameterizedType parameterizedType =
 					(ParameterizedType) upperBound;
 				pojoType = resolveParameterizedType(
 					parameterizedType, typeVar, typeVarMap, rawTypeMap);
 			}
+			// Any type variable encountered at this point must have already
+			// been completely resolved (i.e. it had to occur lexically before
+			// the type variable undergoing upper bound computation).
 			else if (upperBound instanceof TypeVariable<?>)
 			{
 				final TypeVariable<?> resolvedTypeVar =
 					(TypeVariable<?>) upperBound;
-				pojoType = typeVarMap.get(resolvedTypeVar);
+				pojoType = typeVarMap.mapAt(typeVariableName(resolvedTypeVar));
 			}
 			// This should not happen.
 			else
@@ -405,10 +410,9 @@ extends TypeDescriptor
 				assert false : "This should not happen.";
 				pojoType = null;
 			}
-			// Canonize the raw type to a raw pojo, record the resolved raw type
-			// of the type variable, and add the raw type to the output.
+			// Canonize the raw type to a raw pojo and add the raw type to the
+			// output.
 			assert pojoType != null;
-			typeVarMap.put(typeVar, pojoType);
 			resolved.add(pojoType);
 		}
 		return resolved;
@@ -422,19 +426,19 @@ extends TypeDescriptor
 	 * @param typeVar
 	 *        A type variable.
 	 * @param typeVarMap
-	 *        A {@linkplain Map map} from type variables to their resolved pojo
-	 *        types.
+	 *        A {@linkplain MapDescriptor map} from type variable {@linkplain
+	 *        StringDescriptor names} to their resolved upper bounds.
 	 * @param rawTypeMap
-	 *        A map from {@linkplain Class Java classes} to {@linkplain
-	 *        PojoTypeDescriptor pojo types}.
+	 *        A map from raw {@linkplain Class Java types} to {@linkplain
+	 *        RawPojoDescriptor raw pojos}.
 	 * @return The upper bound.
 	 */
-	public static @NotNull AvailObject upperBoundFor (
+	private static @NotNull AvailObject upperBound (
 		final @NotNull TypeVariable<?> typeVar,
-		final @NotNull Map<TypeVariable<?>, AvailObject> typeVarMap,
+		final @NotNull AvailObject typeVarMap,
 		final @NotNull Map<Class<?>, AvailObject> rawTypeMap)
 	{
-		final List<AvailObject> upperBounds = resolveUpperBounds(
+		final List<AvailObject> upperBounds = resolveAllUpperBounds(
 			typeVar, typeVarMap, rawTypeMap);
 		AvailObject intersectionBound = ANY.o();
 		for (final AvailObject upperBound : upperBounds)
@@ -443,6 +447,63 @@ extends TypeDescriptor
 				intersectionBound.typeIntersection(upperBound);
 		}
 		return intersectionBound;
+	}
+
+	/**
+	 * Answer the fully-qualified name of the specified {@linkplain TypeVariable
+	 * type variable}.
+	 *
+	 * @param typeVar A type variable.
+	 * @return The fully-qualified name of the declarer, then a ".", then the
+	 *         lexical name of the type variable.
+	 */
+	public static @NotNull AvailObject typeVariableName (
+		final @NotNull TypeVariable<?> typeVar)
+	{
+		final GenericDeclaration declarer = typeVar.getGenericDeclaration();
+		final String typeName;
+		// TODO: [TLS] Implement the other cases (if there are any).
+		if (declarer instanceof Class<?>)
+		{
+			typeName =
+				((Class<?>) declarer).getName() + "." + typeVar.getName();
+		}
+		else
+		{
+			assert false : "This should never happen";
+			typeName = null;
+		}
+		return StringDescriptor.from(typeName);
+	}
+
+	/**
+	 * Create the {@linkplain MapDescriptor map} from the fully-qualified
+	 * {@linkplain TypeVariable type variable} {@linkplain StringDescriptor
+	 * names} to their {@linkplain TypeDescriptor upper bounds}.
+	 *
+	 * @param rawType
+	 *        A raw {@linkplain Class Java type}.
+	 * @return A new {@linkplain ObjectSlots#UPPER_BOUND_MAP upper bound map}.
+	 */
+	public static @NotNull AvailObject createUpperBoundMap (
+		final @NotNull Class<?> rawType)
+	{
+		AvailObject typeVarMap = MapDescriptor.empty();
+		final TypeVariable<?>[] typeVars = rawType.getTypeParameters();
+		if (typeVars.length > 0)
+		{
+			final Map<Class<?>, AvailObject> rawTypeMap =
+				new HashMap<Class<?>, AvailObject>(5);
+			typeVarMap = MapDescriptor.newWithCapacity(typeVars.length);
+			for (final TypeVariable<?> typeVar : typeVars)
+			{
+				final AvailObject upperBound = upperBound(
+					typeVar, typeVarMap, rawTypeMap);
+				typeVarMap = typeVarMap.mapAtPuttingCanDestroy(
+					typeVariableName(typeVar), upperBound, true);
+			}
+		}
+		return typeVarMap.makeImmutable();
 	}
 
 	/**
@@ -549,9 +610,6 @@ extends TypeDescriptor
 			{
 				// Deliberately avoid autoboxing here so that we have explicit
 				// control over the boxing conversions.
-				// TODO: [TLS] Consider allowing Avail to box/unbox the way that
-				// Java does. i.e. It might be worthwhile to accept either Avail
-				// objects or pojos (Boolean, Byte, Short, etc.).
 				if (javaClass.equals(Boolean.TYPE))
 				{
 					assert availObject.isBoolean();
@@ -812,7 +870,8 @@ extends TypeDescriptor
 	}
 
 	/** The layout of the object slots. */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	@InnerAccess enum ObjectSlots
+	implements ObjectSlotsEnum
 	{
 		/**
 		 * A {@linkplain RawPojoDescriptor raw pojo} that represents the most
@@ -834,6 +893,20 @@ extends TypeDescriptor
 		 * superinterfaces.
 		 */
 		PARAMETERIZATION_MAP,
+
+		/**
+		 * A {@linkplain MapDescriptor map} of {@linkplain StringDescriptor
+		 * type variable names} to their {@linkplain TypeDescriptor upper
+		 * bounds}.
+		 */
+		UPPER_BOUND_MAP
+	}
+
+	@Override
+	public boolean allowsImmutableToMutableReferenceInField (
+		final @NotNull AbstractSlotsEnum e)
+	{
+		return e == UPPER_BOUND_MAP;
 	}
 
 	@Override @AvailMethod
@@ -857,14 +930,20 @@ extends TypeDescriptor
 		// Two pojo types with equal parameterization maps must have equal
 		// most specific classes, so don't bother doing that comparison
 		// explicitly.
-		if (
-			!object.objectSlot(PARAMETERIZATION_MAP).equals(
-			aPojoType.objectSlot(PARAMETERIZATION_MAP)))
+		if (!object.objectSlot(PARAMETERIZATION_MAP).equals(
+				aPojoType.objectSlot(PARAMETERIZATION_MAP)))
 		{
 			return false;
 		}
 
-		if (!object.sameAddressAs(aPojoType))
+		assert object.objectSlot(MOST_SPECIFIC_CLASS).equals(
+			aPojoType.objectSlot(MOST_SPECIFIC_CLASS));
+
+		// Only if the upper bound maps match (and the objects are not reference
+		// identical) are we allowed to coalesce them.
+		if (object.objectSlot(UPPER_BOUND_MAP).equals(
+				aPojoType.objectSlot(UPPER_BOUND_MAP))
+			&& !object.sameAddressAs(aPojoType))
 		{
 			object.becomeIndirectionTo(aPojoType);
 			aPojoType.makeImmutable();
@@ -1136,6 +1215,9 @@ extends TypeDescriptor
 		// Use the Avail null object for the most specific class here. Since
 		// the pojo types had no lineal relation, then the result of the
 		// intersection is certainly abstract.
+		// TODO: [TLS] Consider computing the upper bound map here. It would be
+		// the "union map" of the upper bound maps of the pojo types being
+		// intersected.
 		return create(NullDescriptor.nullObject(), newParamMap);
 	}
 
@@ -1237,7 +1319,26 @@ extends TypeDescriptor
 			mostSpecificClass = rawTypeMap.get(mostSpecificRawType);
 		}
 
+		// TODO: [TLS] Consider creating the upper bound map. It must include
+		// all most specific classes and interfaces (we are currently not
+		// computing them).
 		return create(mostSpecificClass, newParamMap);
+	}
+
+	@Override @AvailMethod
+	public @NotNull AvailObject o_UpperBoundMap (
+		final @NotNull AvailObject object)
+	{
+		return object.objectSlot(UPPER_BOUND_MAP);
+	}
+
+	@Override @AvailMethod
+	public void o_UpperBoundMap (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aMap)
+	{
+		assert object.objectSlot(UPPER_BOUND_MAP).equalsNull();
+		object.objectSlotPut(UPPER_BOUND_MAP, aMap);
 	}
 
 	@Override
@@ -1268,10 +1369,25 @@ extends TypeDescriptor
 			object.objectSlot(PARAMETERIZATION_MAP).mapAt(classPojo);
 		if (typeParams.tupleSize() > 0)
 		{
+			final TypeVariable<?>[] typeVars = javaClass.getTypeParameters();
+			final AvailObject upperBoundMap =
+				object.objectSlot(UPPER_BOUND_MAP);
+			boolean first = true;
 			builder.append('<');
-			for (final AvailObject type : typeParams)
+			for (int i = 1; i <= typeParams.tupleSize(); i++)
 			{
-				type.printOnAvoidingIndent(builder, recursionList, indent);
+				if (!first)
+				{
+					builder.append(", ");
+					first = true;
+				}
+				typeParams.tupleAt(i).printOnAvoidingIndent(
+					builder, recursionList, indent);
+				builder.append(" ≤ ");
+				final AvailObject typeVarName =
+					typeVariableName(typeVars[i - 1]);
+				upperBoundMap.mapAt(typeVarName).printOnAvoidingIndent(
+					builder, recursionList, indent);
 			}
 			builder.append('>');
 		}
@@ -1384,7 +1500,9 @@ extends TypeDescriptor
 
 	/**
 	 * Create a new {@link AvailObject} that represents a {@linkplain
-	 * PojoTypeDescriptor pojo type}.
+	 * PojoTypeDescriptor pojo type}. The {@linkplain
+	 * AvailObject#upperBoundMap() upper bound map} is set to the {@linkplain
+	 * NullDescriptor#nullObject() null object}.
 	 *
 	 * @param mostSpecificClass
 	 *        The most specific {@linkplain Class Java class} included by this
@@ -1407,6 +1525,7 @@ extends TypeDescriptor
 		final AvailObject newObject = mutable.create();
 		newObject.objectSlotPut(MOST_SPECIFIC_CLASS, mostSpecificClass);
 		newObject.objectSlotPut(PARAMETERIZATION_MAP, parameterizationMap);
+		newObject.objectSlotPut(UPPER_BOUND_MAP, NullDescriptor.nullObject());
 		return newObject.makeImmutable();
 	}
 
@@ -1590,7 +1709,8 @@ extends TypeDescriptor
 		if (rawType == null)
 		{
 			return create(
-				RawPojoDescriptor.rawNullObject(), NullDescriptor.nullObject());
+				RawPojoDescriptor.rawNullObject(),
+				NullDescriptor.nullObject());
 		}
 
 		// Explicitly seed the parameterization map with Object. From an Avail
@@ -1599,8 +1719,7 @@ extends TypeDescriptor
 		// Object's class from being created repeatedly.
 		final Map<Class<?>, AvailObject> rawTypeMap =
 			new HashMap<Class<?>, AvailObject>(5);
-		final AvailObject rawObjectClass = RawPojoDescriptor.rawObjectClass();
-		rawTypeMap.put(Object.class, rawObjectClass);
+		final AvailObject rawObjectClass = canonize(rawTypeMap, Object.class);
 		AvailObject parameterizationMap = MapDescriptor.newWithCapacity(5);
 		parameterizationMap = parameterizationMap.mapAtPuttingCanDestroy(
 			rawObjectClass, TupleDescriptor.empty(), true);

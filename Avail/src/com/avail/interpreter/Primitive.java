@@ -7511,16 +7511,15 @@ public enum Primitive
 	/**
 	 * <strong>Primitive 353:</strong> Transform a variable reference and an
 	 * expression into an {@linkplain AssignmentNodeDescriptor assignment}
-	 * statement. Such a node has type {@link TypeDescriptor.Types#TOP top} and
-	 * cannot be embedded as a subexpression.
+	 * statement. Such a node has type {@linkplain
+	 * com.avail.descriptor.TypeDescriptor.Types#TOP top} and cannot be embedded
+	 * as a subexpression.
 	 *
-	 * <p>
-	 * Note that because we can have "inner" assignment nodes (i.e., assignments
-	 * used as subexpressions), we actually produce a {@linkplain
+	 * <p>Note that because we can have "inner" assignment nodes (i.e.,
+	 * assignments used as subexpressions), we actually produce a {@linkplain
 	 * SequenceNodeDescriptor sequence node} here, consisting of the assignment
 	 * node proper (whose output is effectively discarded) and a literal
-	 * {@linkplain NullDescriptor#nullObject() null value}.
-	 * </p>
+	 * {@linkplain NullDescriptor#nullObject() null value}.</p>
 	 */
 	prim353_MacroAssignmentStatement(353, 2, CanFold)
 	{
@@ -7553,14 +7552,7 @@ public enum Primitive
 			final List<AvailObject> statementsList =
 				new ArrayList<AvailObject>(2);
 			statementsList.add(assignment);
-			//TODO [MvG] Make the literal node a constant of LiteralTokenDescriptor.
-			final AvailObject token = LiteralTokenDescriptor.mutable().create();
-			token.tokenType(TokenType.LITERAL);
-			token.string(StringDescriptor.from("NullAfterAssignment"));
-			token.start(0);
-			token.lineNumber(0);
-			token.literal(NullDescriptor.nullObject());
-			statementsList.add(LiteralNodeDescriptor.fromToken(token));
+			statementsList.add(LiteralNodeDescriptor.literalNullObject());
 			final AvailObject statementsTuple =
 				TupleDescriptor.fromCollection(statementsList);
 			final AvailObject sequence =
@@ -7624,8 +7616,9 @@ public enum Primitive
 	/**
 	 * <strong>Primitive 355:</strong> Create a variation of a {@linkplain
 	 * ParseNodeTypeDescriptor parse node type}.  In particular, create a parse
-	 * node type of the same {@linkplain ParseNodeTypeDescriptor.ParseNodeKind
-	 * kind} but with the specified expression type.
+	 * node type of the same {@linkplain
+	 * com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind kind} but with
+	 * the specified expression type.
 	 *
 	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
 	 */
@@ -7751,21 +7744,18 @@ public enum Primitive
 					i, realParameter, true);
 			}
 
+			final AvailObject upperBoundMap =
+				PojoTypeDescriptor.createUpperBoundMap(rawClass);
+
 			// Ensure that each type parameter is a subtype of the
 			// corresponding type variable's computed upper bound, i.e. the
 			// intersection of its upper bounds as an Avail pojo type.
-			final Map<Class<?>, AvailObject> rawTypeMap =
-				new HashMap<Class<?>, AvailObject>(typeVars.length);
-			rawTypeMap.put(
-				Object.class, RawPojoDescriptor.rawObjectClass());
-			final Map<TypeVariable<?>, AvailObject> typeVarMap =
-				new HashMap<TypeVariable<?>, AvailObject>(typeVars.length);
 			for (int i = 0; i < typeVars.length; i++)
 			{
 				final TypeVariable<?> var = typeVars[i];
-				final AvailObject upperBound =
-					PojoTypeDescriptor.upperBoundFor(
-						var, typeVarMap, rawTypeMap);
+				final AvailObject varName =
+					PojoTypeDescriptor.typeVariableName(var);
+				final AvailObject upperBound = upperBoundMap.mapAt(varName);
 				final AvailObject param = realParameters.tupleAt(i + 1);
 				if (!param.isSubtypeOf(upperBound))
 				{
@@ -7773,8 +7763,11 @@ public enum Primitive
 						E_INCORRECT_ARGUMENT_TYPE);
 				}
 			}
-			return interpreter.primitiveSuccess(
-				PojoTypeDescriptor.create(rawClass, realParameters));
+
+			final AvailObject newPojoType = PojoTypeDescriptor.create(
+				rawClass, realParameters);
+			newPojoType.upperBoundMap(upperBoundMap);
+			return interpreter.primitiveSuccess(newPojoType);
 		}
 
 		@Override
@@ -8256,9 +8249,9 @@ public enum Primitive
 
 	/**
 	 * A {@linkplain TypeDescriptor type} to constrain the {@linkplain
-	 * ContainerTypeDescriptor#o_WriteType(AvailObject) content type} of the
-	 * variable declaration within the primitive declaration of a block.  The
-	 * actual variable's inner type must this or a supertype.
+	 * AvailObject#writeType() content type} of the variable declaration within
+	 * the primitive declaration of a block.  The actual variable's inner type
+	 * must this or a supertype.
 	 */
 	private AvailObject cachedFailureVariableType;
 

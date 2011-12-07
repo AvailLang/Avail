@@ -278,9 +278,7 @@ Restriction "constructor of_given_" is
 		args := args then <arg>;
 	];
 	
-	fT ::= block type taking args and returning aPojoTypeType instance;
-	Print fT;
-	fT;
+	block type taking args and returning aPojoTypeType instance;
 ];
 
 Method "jbyte" is [ [-2^7..2^7); ];
@@ -293,10 +291,12 @@ Method "jlong" is [ [-2^63..2^63); ];
 	o ::= jObjectC();
 	Print o;
 	jStringC ::= constructor of Java type "java.lang.String" given <string>;
-	s ::= jStringC("Hello, Java!");
-	Print s;
+	o ::= jStringC("Hello, Java!");
+	Print o;
 	jList ::= Java type "java.util.ArrayList" parameters <jint>;
 	jListC ::= constructor of jList given <jint>;
 	o ::= jListC(100);
 	Print o;
+	jEnum ::= Java type "java.lang.Enum" parameters <self type>;
+	Print jEnum;
 ]();

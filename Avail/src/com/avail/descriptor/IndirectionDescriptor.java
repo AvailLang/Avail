@@ -4083,4 +4083,18 @@ extends AbstractDescriptor
 	{
 		return o_Traversed(object).isPojoType();
 	}
+
+	@Override
+	public AvailObject o_UpperBoundMap (final @NotNull AvailObject object)
+	{
+		return o_Traversed(object).upperBoundMap();
+	}
+
+	@Override
+	public void o_UpperBoundMap (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aMap)
+	{
+		o_Traversed(object).upperBoundMap(aMap);
+	}
 }
