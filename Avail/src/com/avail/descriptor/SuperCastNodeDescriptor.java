@@ -188,7 +188,7 @@ public class SuperCastNodeDescriptor extends ParseNodeDescriptor
 		final List<AvailObject> outerBlocks,
 		final L2Interpreter anAvailInterpreter)
 	{
-		if (!parent.kind().parseNodeKindIsUnder(SEND_NODE))
+		if (!parent.isInstanceOfKind(SEND_NODE.mostGeneralType()))
 		{
 			error("Only use superCast notation as a message argument");
 		}

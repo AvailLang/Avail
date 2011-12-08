@@ -199,6 +199,10 @@ extends TupleDescriptor
 		final @NotNull String aNativeString)
 	{
 		final int charCount = aNativeString.length();
+		if (charCount == 0)
+		{
+			return empty();
+		}
 		int maxCodePoint = 0;
 		int count = 0;
 		int index = 0;

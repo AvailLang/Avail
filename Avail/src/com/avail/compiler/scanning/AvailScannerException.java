@@ -50,6 +50,12 @@ extends RuntimeException
 	 */
 	private static final long serialVersionUID = 8191896822852052633L;
 
+	@Override
+	public String getMessage()
+	{
+		return super.getMessage() + ": " + failureString();
+	}
+
 	/**
 	 * The {@linkplain StringDescriptor error message} indicating why the
 	 * scanner failed.
@@ -57,7 +63,7 @@ extends RuntimeException
 	final String failureString;
 
 	/**
-	 * Return the error mesasge {@link String} indicating why the {@link
+	 * Return the error message {@link String} indicating why the {@link
 	 * AvailScanner} failed.
 	 *
 	 * @return The reason the scanner could not complete its work.

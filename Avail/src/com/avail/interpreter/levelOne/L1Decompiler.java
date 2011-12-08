@@ -33,7 +33,6 @@
 package com.avail.interpreter.levelOne;
 
 import static com.avail.descriptor.AvailObject.error;
-import static com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import java.util.*;
 import com.avail.annotations.InnerAccess;
@@ -270,9 +269,9 @@ public class L1Decompiler
 			for (final AvailObject outer : theOuters)
 			{
 				assert
-					outer.kind().parseNodeKindIsUnder(REFERENCE_NODE)
-					|| outer.kind().parseNodeKindIsUnder(VARIABLE_USE_NODE)
-					|| outer.kind().parseNodeKindIsUnder(LITERAL_NODE);
+					outer.isInstanceOfKind(VARIABLE_USE_NODE.mostGeneralType())
+					|| outer.isInstanceOfKind(REFERENCE_NODE.mostGeneralType())
+					|| outer.isInstanceOfKind(LITERAL_NODE.mostGeneralType());
 			}
 			final AvailObject blockNode =
 				new L1Decompiler().parseWithOuterVarsTempGenerator(
@@ -477,8 +476,8 @@ public class L1Decompiler
 				// bogus marker and replace it with the (embedded) assignment
 				// node itself.
 				final AvailObject duplicateExpression = popExpression();
-				assert duplicateExpression.kind().parseNodeKindIsUnder(
-					MARKER_NODE);
+				assert duplicateExpression.isInstanceOfKind(
+					MARKER_NODE.mostGeneralType());
 				assert duplicateExpression.markerValue().equalsNull();
 				expressionStack.add(assignmentNode);
 			}
@@ -490,7 +489,7 @@ public class L1Decompiler
 			final AvailObject variableUse;
 			final AvailObject outerExpr = outers.get(getInteger() - 1);
 			final AvailObject outerDecl;
-			if (outerExpr.kind().parseNodeKindIsUnder(LITERAL_NODE))
+			if (outerExpr.isInstanceOfKind(LITERAL_NODE.mostGeneralType()))
 			{
 				// Writing into a synthetic literal (a byproduct of decompiling
 				// a block without decompiling its outer scopes).
@@ -504,7 +503,8 @@ public class L1Decompiler
 			}
 			else
 			{
-				assert outerExpr.kind().parseNodeKindIsUnder(REFERENCE_NODE);
+				assert outerExpr.isInstanceOfKind(
+					REFERENCE_NODE.mostGeneralType());
 				outerDecl = outerExpr.variable().declaration();
 			}
 			variableUse = VariableUseNodeDescriptor.newUse(
@@ -526,8 +526,8 @@ public class L1Decompiler
 				// bogus marker and replace it with the (embedded) assignment
 				// node itself.
 				final AvailObject duplicateExpression = popExpression();
-				assert duplicateExpression.kind().parseNodeKindIsUnder(
-					MARKER_NODE);
+				assert duplicateExpression.isInstanceOfKind(
+					MARKER_NODE.mostGeneralType());
 				assert duplicateExpression.markerValue().equalsNull();
 				expressionStack.add(assignmentNode);
 			}
@@ -585,9 +585,8 @@ public class L1Decompiler
 		{
 			AvailObject label;
 			if (statements.size() > 0
-				&& statements.get(0).kind().parseNodeKindIsUnder(
-					DECLARATION_NODE)
-				&& statements.get(0).declarationKind() == LABEL)
+				&& statements.get(0).isInstanceOfKind(
+					LABEL_NODE.mostGeneralType()))
 			{
 				label = statements.get(0);
 			}
@@ -652,8 +651,8 @@ public class L1Decompiler
 				// bogus marker and replace it with the (embedded) assignment
 				// node itself.
 				final AvailObject duplicateExpression = popExpression();
-				assert duplicateExpression.kind().parseNodeKindIsUnder(
-					MARKER_NODE);
+				assert duplicateExpression.isInstanceOfKind(
+					MARKER_NODE.mostGeneralType());
 				assert duplicateExpression.markerValue().equalsNull();
 				expressionStack.add(assignmentNode);
 			}
@@ -683,8 +682,8 @@ public class L1Decompiler
 				final AvailObject typeLiteralNode = types.get(i);
 				if (typeLiteralNode != null)
 				{
-					assert typeLiteralNode.kind().parseNodeKindIsUnder(
-						LITERAL_NODE);
+					assert typeLiteralNode.isInstanceOfKind(
+						LITERAL_NODE.mostGeneralType());
 					final AvailObject superCast =
 						SuperCastNodeDescriptor.mutable().create();
 					superCast.expression(callArgs.get(i));

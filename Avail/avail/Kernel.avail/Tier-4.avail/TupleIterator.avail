@@ -68,7 +68,7 @@ Method "_as Iterator" is [t : tuple |
 	   something with a more opaque encapsulation... */
 	thingsThunk ::= stub block taking <>
 		and applying name of block invoker
-		to [t : tuple | Halt;]
+		to [t1 : tuple | Halt;]
 		and argument tuple returning things;
 	thingsThunk2 ::= cast thingsThunk into [c : []->any | c;];
 	Tuple Iterator new with <

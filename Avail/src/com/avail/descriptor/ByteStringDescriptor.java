@@ -471,7 +471,27 @@ extends StringDescriptor
 			isMutableSize(true, aNativeByteString.length());
 		final AvailObject result = descriptor.mutableObjectOfSize(
 			aNativeByteString.length());
-		for (int index = 1; index <= aNativeByteString.length(); index++)
+		// Aggregate four writes at a time for the bulk of the string.
+		int index;
+		for (index = 1; index <= aNativeByteString.length() - 3; index += 4)
+		{
+			final char c1 = aNativeByteString.charAt(index - 1);
+			assert (c1 & 255) == c1;
+			final char c2 = aNativeByteString.charAt(index);
+			assert (c2 & 255) == c2;
+			final char c3 = aNativeByteString.charAt(index + 1);
+			assert (c3 & 255) == c3;
+			final char c4 = aNativeByteString.charAt(index + 2);
+			assert (c4 & 255) == c4;
+			// Use little-endian, since that's what byteSlotAtPut(...) uses.
+			final int combined = c1 + (c2 << 8) + (c3 << 16) + (c4 << 24);
+			result.integerSlotAtPut(
+				IntegerSlots.RAW_QUAD_AT_,
+				(index + 3) >> 2,
+				combined);
+		}
+		// Do the last 0-3 writes the slow way.
+		for (; index <= aNativeByteString.length(); index++)
 		{
 			final char c = aNativeByteString.charAt(index - 1);
 			assert 0 <= c && c <= 255;

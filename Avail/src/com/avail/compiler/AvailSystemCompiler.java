@@ -135,8 +135,7 @@ extends AbstractAvailCompiler
 									{
 										afterSemicolon = new ParserState(
 											afterSemicolon.position,
-											new AvailCompilerScopeStack(
-												null, null));
+											MapDescriptor.empty());
 									}
 									whenFoundStatement.value(
 										afterSemicolon,
@@ -282,6 +281,7 @@ extends AbstractAvailCompiler
 								break;
 							case LOCAL_CONSTANT:
 							case MODULE_CONSTANT:
+							case PRIMITIVE_FAILURE_REASON:
 								errorSuffix = "not to be a constant";
 								break;
 							case MODULE_VARIABLE:
@@ -403,6 +403,16 @@ extends AbstractAvailCompiler
 									DeclarationNodeDescriptor.newLabel(
 										token,
 										contType);
+								if (lookupDeclaration(
+										afterExpression,
+										token.string())
+									!= null)
+								{
+									afterExpression.expected(
+										"label name not to shadow"
+										+ " another declaration");
+									return;
+								}
 								final ParserState afterDeclaration =
 									afterExpression.withDeclaration(label);
 								attempt(afterDeclaration, continuation, label);
@@ -468,6 +478,16 @@ extends AbstractAvailCompiler
 								DeclarationNodeDescriptor.newConstant(
 									localName,
 									initExpression);
+							if (lookupDeclaration(
+									afterInitExpression,
+									localName.string())
+								!= null)
+							{
+								afterInitExpression.expected(
+									"constant name not to shadow another"
+									+ " declaration");
+								return;
+							}
 							attempt(
 								afterInitExpression.withDeclaration(
 									constantDeclaration),
@@ -496,12 +516,23 @@ extends AbstractAvailCompiler
 						return;
 					}
 					// Try the simple declaration... var : type;
-					final AvailObject simpleDeclaration =
-						DeclarationNodeDescriptor.newVariable(localName, type);
-					attempt(
-						afterType.withDeclaration(simpleDeclaration),
-						continuation,
-						simpleDeclaration);
+					if (lookupDeclaration(afterType, localName.string())
+						!= null)
+					{
+						afterType.expected(
+							"variable name not to shadow another declaration");
+					}
+					else
+					{
+						final AvailObject simpleDeclaration =
+							DeclarationNodeDescriptor.newVariable(
+								localName,
+								type);
+						attempt(
+							afterType.withDeclaration(simpleDeclaration),
+							continuation,
+							simpleDeclaration);
+					}
 
 					// Also try for var : type := init.
 					if (!afterType.peekToken(
@@ -536,6 +567,16 @@ extends AbstractAvailCompiler
 											localName,
 											type,
 											initExpr);
+									if (lookupDeclaration(
+											afterInit,
+											localName.string())
+										!= null)
+									{
+										afterInit.expected(
+											"variable name not to shadow"
+											+ " another declaration");
+										return;
+									}
 									attempt(
 										afterInit.withDeclaration(initDecl),
 										continuation,
@@ -609,8 +650,18 @@ extends AbstractAvailCompiler
 							+ " top or bottom");
 						return;
 					}
+					if (lookupDeclaration(afterType, localName.string())
+						!= null)
+					{
+						afterType.expected(
+							"primitive failure variable not to shadow"
+							+ " another declaration");
+						return;
+					}
 					final AvailObject declaration =
-						DeclarationNodeDescriptor.newVariable(localName, type);
+						DeclarationNodeDescriptor.newPrimitiveFailureVariable(
+							localName,
+							type);
 					attempt(
 						afterType.withDeclaration(declaration),
 						continuation,
@@ -746,6 +797,16 @@ extends AbstractAvailCompiler
 					}
 					else
 					{
+						if (lookupDeclaration(
+								afterArgType,
+								localName.string())
+							!= null)
+						{
+							afterArgType.expected(
+								"block argument name not to shadow another"
+								+ " declaration");
+							return;
+						}
 						final AvailObject decl =
 							DeclarationNodeDescriptor.newArgument(
 								localName,
@@ -777,7 +838,7 @@ extends AbstractAvailCompiler
 			// was present.
 			return;
 		}
-		final AvailCompilerScopeStack scopeOutsideBlock = start.scopeStack;
+		final AvailObject scopeOutsideBlock = start.scopeMap;
 		parseBlockArgumentsThen(
 			start.afterToken(),
 			new Con<List<AvailObject>>("Block arguments")
@@ -790,18 +851,26 @@ extends AbstractAvailCompiler
 					parseOptionalPrimitiveForArgCountThen(
 						afterArguments,
 						arguments.size(),
-						new Con<Integer>("Optional primitive declaration")
+						new Con<AvailObject>("Optional primitive declaration")
 						{
 							@Override
 							public void value (
 								final ParserState afterOptionalPrimitive,
-								final Integer primitive)
+								final AvailObject primitiveAndFailure)
 							{
+								// The primitiveAndFailure is either a 1-tuple
+								// with the (CannotFail) primitive number, or a
+								// 2-tuple with the primitive number and the
+								// declaration of the primitive failure
+								// variable.
+								final int primitive =
+									primitiveAndFailure.tupleAt(1).extractInt();
 								final Primitive thePrimitive =
 									Primitive.byPrimitiveNumber(primitive);
 								if (thePrimitive != null
 									&& thePrimitive.hasFlag(Flag.CannotFail))
 								{
+									assert primitiveAndFailure.tupleSize() == 1;
 									finishBlockThen(
 										afterOptionalPrimitive,
 										arguments,
@@ -811,14 +880,15 @@ extends AbstractAvailCompiler
 										continuation);
 									return;
 								}
+								assert primitive == 0
+									|| primitiveAndFailure.tupleSize() == 2;
 								parseStatementsThen(
 									afterOptionalPrimitive,
 									primitive == 0,
 									primitive == 0
 										? Collections.<AvailObject>emptyList()
 										: Collections.singletonList(
-											afterOptionalPrimitive
-												.scopeStack.declaration()),
+											primitiveAndFailure.tupleAt(2)),
 									new Con<List<AvailObject>>(
 										"Block statements")
 									{
@@ -864,7 +934,7 @@ extends AbstractAvailCompiler
 		final List<AvailObject> arguments,
 		final int primitiveNumber,
 		final List<AvailObject> statements,
-		final AvailCompilerScopeStack scopeOutsideBlock,
+		final AvailObject scopeOutsideBlock,
 		final Con<AvailObject> continuation)
 	{
 		if (!afterStatements.peekToken(
@@ -892,7 +962,7 @@ extends AbstractAvailCompiler
 		if (statements.size() > 0)
 		{
 			final AvailObject stmt = statements.get(statements.size() - 1);
-			if (stmt.kind().parseNodeKindIsUnder(DECLARATION_NODE))
+			if (stmt.isInstanceOfKind(DECLARATION_NODE.mostGeneralType()))
 			{
 				lastStatementType.value = TOP.o();
 			}
@@ -918,7 +988,7 @@ extends AbstractAvailCompiler
 		}
 		boolean blockTypeGood = true;
 		if (statements.size() > 0
-			&& statements.get(0).kind().parseNodeKindIsUnder(LABEL_NODE))
+			&& statements.get(0).isInstanceOfKind(LABEL_NODE.mostGeneralType()))
 		{
 			final AvailObject labelNode = statements.get(0);
 			final AvailObject labelFunctionType =
@@ -1872,15 +1942,20 @@ extends AbstractAvailCompiler
 	 * @param argCount
 	 *            The number of arguments accepted by the block being parsed.
 	 * @param continuation
-	 *            What to do with the parsed primitive number.
+	 *            What to do with a tuple consisting of the parsed primitive
+	 *            number and the failure declaration (or a tuple with just the
+	 *            parsed primitive number if the primitive can't fail).
 	 */
 	void parseOptionalPrimitiveForArgCountThen (
 		final ParserState start,
 		final int argCount,
-		final Con<Integer> continuation)
+		final Con<AvailObject> continuation)
 	{
 		// Try it first without looking for the primitive declaration.
-		attempt(start, continuation, 0);
+		attempt(
+			start,
+			continuation,
+			TupleDescriptor.from(IntegerDescriptor.zero()));
 
 		// Now look for the declaration.
 		if (!start.peekToken(
@@ -1950,7 +2025,8 @@ extends AbstractAvailCompiler
 			attempt(
 				afterPrimitiveNumber.afterToken(),
 				continuation,
-				primitiveNumber);
+				TupleDescriptor.from(
+					IntegerDescriptor.fromInt(primitiveNumber)));
 		}
 
 		if (!afterPrimitiveNumber.peekToken(
@@ -2003,7 +2079,9 @@ extends AbstractAvailCompiler
 					attempt(
 						afterCloseParenthesis.afterToken(),
 						continuation,
-						primitiveNumber);
+						TupleDescriptor.from(
+							IntegerDescriptor.fromInt(primitiveNumber),
+							declaration));
 				}
 			});
 	}
@@ -2220,6 +2298,7 @@ extends AbstractAvailCompiler
 							{
 								case LOCAL_CONSTANT:
 								case MODULE_CONSTANT:
+								case PRIMITIVE_FAILURE_REASON:
 									suffix = " not to be a constant";
 									break;
 								case ARGUMENT:
@@ -2280,7 +2359,7 @@ extends AbstractAvailCompiler
 				return;
 			}
 			if (!lastStatement.expressionType().equals(TOP.o())
-				&& !lastStatement.kind().parseNodeKindIsUnder(ASSIGNMENT_NODE))
+				&& !lastStatement.isInstanceOfKind(ASSIGNMENT_NODE.mostGeneralType()))
 			{
 				start.expected(
 					new Generator<String>()
@@ -2311,6 +2390,22 @@ extends AbstractAvailCompiler
 					final ParserState afterStatement,
 					final AvailObject newStatement)
 				{
+					if (newStatement.kind().parseNodeKindIsUnder(
+						DECLARATION_NODE))
+					{
+						// Check for name collisions with declarations from the
+						// same block.
+						final AvailObject newName =
+							newStatement.token().string();
+						if (lookupDeclaration(start, newName) != null)
+						{
+							afterStatement.expected(
+								"new declaration (\""
+								+ newName.toString()
+								+ "\") not to shadow an existing declaration");
+							return;
+						}
+					}
 					final List<AvailObject> newStatements =
 						new ArrayList<AvailObject>(statements);
 					newStatements.add(newStatement);
@@ -2345,8 +2440,8 @@ extends AbstractAvailCompiler
 		}
 		final ParserState afterVar = start.afterToken();
 		// First check if it's in a block scope...
-		final AvailObject localDecl = AvailCompilerScopeStack.lookupDeclaration(
-			start.scopeStack,
+		final AvailObject localDecl = lookupDeclaration(
+			start,
 			token.string());
 		if (localDecl != null)
 		{

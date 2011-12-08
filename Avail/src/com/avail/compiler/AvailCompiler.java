@@ -373,11 +373,27 @@ public class AvailCompiler extends AbstractAvailCompiler
 							final List<AvailObject> newArgsSoFar =
 								new ArrayList<AvailObject>(argsSoFar);
 							newArgsSoFar.add(newArg);
-							final ParserState afterArgWithDeclaration =
-								newArg.isInstanceOfKind(
-										DECLARATION_NODE.mostGeneralType())
-									? afterArg.withDeclaration(newArg)
-									: afterArg;
+							final ParserState afterArgWithDeclaration;
+							if (newArg.isInstanceOfKind(
+								DECLARATION_NODE.mostGeneralType()))
+							{
+								if (lookupDeclaration(
+										afterArg,
+										newArg.token().string())
+									!= null)
+								{
+									afterArg.expected(
+										"macro argument that's a declaration"
+										+ " not to shadow another declaration");
+									return;
+								}
+								afterArgWithDeclaration =
+									afterArg.withDeclaration(newArg);
+							}
+							else
+							{
+								afterArgWithDeclaration = afterArg;
+							}
 							attempt(
 								new Continuation0()
 								{
@@ -780,7 +796,7 @@ public class AvailCompiler extends AbstractAvailCompiler
 				attempt(
 					new ParserState(
 						stateAfterCall.position,
-						stateBeforeCall.scopeStack),
+						stateBeforeCall.scopeMap),
 					continuation,
 					replacement);
 			}

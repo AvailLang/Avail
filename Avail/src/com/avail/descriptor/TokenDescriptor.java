@@ -201,6 +201,32 @@ extends Descriptor
 
 
 	/**
+	 * Create and initialize a new {@linkplain TokenDescriptor token}.
+	 *
+	 * @param string The token text.
+	 * @param start The token's starting character position in the file.
+	 * @param lineNumber The line number on which the token occurred.
+	 * @param tokenType The type of token to create.
+	 * @return The new token.
+	 */
+	public AvailObject create(
+		final @NotNull AvailObject string,
+		final int start,
+		final int lineNumber,
+		final @NotNull TokenType tokenType)
+	{
+		assert isMutable();
+		final AvailObject instance = create();
+		instance.objectSlotPut(ObjectSlots.STRING, string);
+		instance.integerSlotPut(IntegerSlots.START, start);
+		instance.integerSlotPut(IntegerSlots.LINE_NUMBER, lineNumber);
+		instance.integerSlotPut(
+			IntegerSlots.TOKEN_TYPE_CODE,
+			tokenType.ordinal());
+		return instance;
+	}
+
+	/**
 	 * Construct a new {@link TokenDescriptor}.
 	 *
 	 * @param isMutable

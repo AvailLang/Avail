@@ -299,7 +299,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 		final List<AvailObject> labels = new ArrayList<AvailObject>(1);
 		for (final AvailObject maybeLabel : object.statementsTuple())
 		{
-			if (maybeLabel.kind().parseNodeKindIsUnder(LABEL_NODE))
+			if (maybeLabel.isInstanceOfKind(LABEL_NODE.mostGeneralType()))
 			{
 				labels.add(maybeLabel);
 			}
@@ -320,8 +320,8 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 		final List<AvailObject> locals = new ArrayList<AvailObject>(5);
 		for (final AvailObject maybeLocal : object.statementsTuple())
 		{
-			if (maybeLocal.kind().parseNodeKindIsUnder(DECLARATION_NODE)
-				&& !maybeLocal.kind().parseNodeKindIsUnder(LABEL_NODE))
+			if (maybeLocal.isInstanceOfKind(DECLARATION_NODE.mostGeneralType())
+				&& !maybeLocal.isInstanceOfKind(LABEL_NODE.mostGeneralType()))
 			{
 				locals.add(maybeLocal);
 			}
@@ -484,7 +484,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 		for (int index = flattenedStatements.size() - 2; index >= 0; index--)
 		{
 			final AvailObject statement = flattenedStatements.get(index);
-			if (statement.kind().parseNodeKindIsUnder(LITERAL_NODE))
+			if (statement.isInstanceOfKind(LITERAL_NODE.mostGeneralType()))
 			{
 				flattenedStatements.remove(index);
 			}
@@ -530,9 +530,9 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 			@Override
 			public void value (final AvailObject node)
 			{
-				assert !node.kind().parseNodeKindIsUnder(SEQUENCE_NODE)
+				assert !node.isInstanceOfKind(SEQUENCE_NODE.mostGeneralType())
 				: "Sequence nodes should have been eliminated by this point";
-				if (node.kind().parseNodeKindIsUnder(BLOCK_NODE))
+				if (node.isInstanceOfKind(BLOCK_NODE.mostGeneralType()))
 				{
 					for (final AvailObject declaration : node.neededVariables())
 					{
@@ -544,7 +544,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 					return;
 				}
 				node.childrenDo(this);
-				if (node.kind().parseNodeKindIsUnder(VARIABLE_USE_NODE))
+				if (node.isInstanceOfKind(VARIABLE_USE_NODE.mostGeneralType()))
 				{
 					final AvailObject declaration = node.declaration();
 					if (!providedByMe.contains(declaration)

@@ -752,12 +752,12 @@ public class MessageSplitter
 			final Iterator<AvailObject> argumentsIterator;
 			if (doubleWrap)
 			{
-				assert availObject.kind().parseNodeKindIsUnder(TUPLE_NODE);
+				assert availObject.isInstanceOfKind(TUPLE_NODE.mostGeneralType());
 				argumentsIterator = availObject.expressionsTuple().iterator();
 			}
 			else
 			{
-				assert availObject.kind().parseNodeKindIsUnder(EXPRESSION_NODE);
+				assert availObject.isInstanceOfKind(EXPRESSION_NODE.mostGeneralType());
 				final List<AvailObject> argumentNodes =
 					Collections.singletonList(availObject);
 				argumentsIterator = argumentNodes.iterator();

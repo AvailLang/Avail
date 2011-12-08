@@ -435,7 +435,7 @@ Restriction "_[_->_]" is [tType : tupleType, iType : integerType, vType : type |
 		/* Finite extension - countably many indices are weakened to vType... */
 		if upper > || leading || & not vType <= default then [
 			weaker ::= type union of default and vType;
-			leading ::= leading then
+			leading := leading then
 				(|| leading || + 1 to upper collect [x : integer | weaker;]);
 		];
 	] otherwise [

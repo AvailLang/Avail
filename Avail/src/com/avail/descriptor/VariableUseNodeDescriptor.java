@@ -207,7 +207,7 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject declaration)
 	{
 		assert theToken.isInstanceOfKind(TOKEN.o());
-		assert declaration.kind().parseNodeKindIsUnder(DECLARATION_NODE);
+		assert declaration.isInstanceOfKind(DECLARATION_NODE.mostGeneralType());
 
 		final AvailObject newUse = mutable().create();
 		newUse.objectSlotPut(ObjectSlots.USE_TOKEN, theToken);

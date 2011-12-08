@@ -209,6 +209,7 @@ extends ParseNodeDescriptor
 				break;
 			case LOCAL_CONSTANT:
 			case MODULE_CONSTANT:
+			case PRIMITIVE_FAILURE_REASON:
 				error("Can't assign to constant");
 				break;
 			case LOCAL_VARIABLE:

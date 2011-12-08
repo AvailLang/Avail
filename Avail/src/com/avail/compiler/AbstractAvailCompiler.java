@@ -403,13 +403,14 @@ public abstract class AbstractAvailCompiler
 
 		@Override
 		public abstract void value (
-			@NotNull ParserState state, @NotNull AnswerType answer);
+			@NotNull ParserState state,
+			AnswerType answer);
 	}
 
 	/**
 	 * Execute the block, passing a continuation that it should run upon finding
 	 * a local solution. If exactly one solution is found, unwrap the stack (but
-	 * not the token stream position or scopeStack), and pass the result to the
+	 * not the token stream position or scopeMap), and pass the result to the
 	 * continuation. Otherwise report that an unambiguous statement was
 	 * expected.
 	 *
@@ -482,14 +483,14 @@ public abstract class AbstractAvailCompiler
 			ambiguousInterpretationsAnd(
 				new ParserState(
 					where.value.position - 1,
-					where.value.scopeStack),
+					where.value.scopeMap),
 				solution.value,
 				another.value);
 			return;
 		}
 		assert count.value == 1;
 		// We found exactly one solution. Advance the token stream just past it,
-		// and redo any side-effects to the scopeStack, then invoke the
+		// and redo any side-effects to the scopeMap, then invoke the
 		// continuation with the solution.
 
 		attempt(where.value, continuation, solution.value);
@@ -497,7 +498,7 @@ public abstract class AbstractAvailCompiler
 
 	/**
 	 * {@link ParserState} instances are immutable and keep track of a current
-	 * {@link #position} and {@link #scopeStack} during parsing.
+	 * {@link #position} and {@link #scopeMap} during parsing.
 	 *
 	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
 	 */
@@ -510,35 +511,42 @@ public abstract class AbstractAvailCompiler
 		final int position;
 
 		/**
-		 * The {@linkplain AvailCompilerScopeStack scope stack}. This is a
-		 * non-destructive singly-linked list of bindings. They're searched
-		 * sequentially to resolve variables, but that's not likely to ever be a
-		 * bottleneck.
+		 * A {@linkplain MapDescriptor map} from each name that is in scope to
+		 * the {@linkplain DeclarationNodeDescriptor declaration} with that
+		 * name.  The names are {@linkplain StringDescriptor strings}.
+		 *
+		 * <p>
+		 * The map should be immutable, as each new declaration must create a
+		 * fresh map.  Backtracking (or closing a block scope) causes some
+		 * previous version of the map to be used, so its state must never be
+		 * destroyed.  Note that this is especially important since the parser
+		 * is both continuation-passing and potentially breadth-first.
+		 * </p>
 		 */
-		final @NotNull AvailCompilerScopeStack scopeStack;
+		final @NotNull AvailObject scopeMap;
 
 		/**
 		 * Construct a new immutable {@link ParserState}.
 		 *
 		 * @param position
 		 *            The index of the current token.
-		 * @param scopeStack
-		 *            The {@link AvailCompilerScopeStack}.
+		 * @param scopeMap
+		 *            The {@link MapDescriptor map} of bindings.
 		 */
 		ParserState (
 			final int position,
-			final @NotNull AvailCompilerScopeStack scopeStack)
+			final @NotNull AvailObject scopeMap)
 		{
-			assert scopeStack != null;
+			assert scopeMap != null;
 
 			this.position = position;
-			this.scopeStack = scopeStack;
+			this.scopeMap = scopeMap;
 		}
 
 		@Override
 		public int hashCode ()
 		{
-			return position * 473897843 ^ scopeStack.hashCode();
+			return position * 473897843 ^ scopeMap.hashCode();
 		}
 
 		@Override
@@ -550,7 +558,7 @@ public abstract class AbstractAvailCompiler
 			}
 			final ParserState anotherState = (ParserState) another;
 			return position == anotherState.position
-					&& scopeStack.equals(anotherState.scopeStack);
+					&& scopeMap.equals(anotherState.scopeMap);
 		}
 
 		@Override
@@ -560,7 +568,7 @@ public abstract class AbstractAvailCompiler
 				"%s%n" + "\tPOSITION=%d%n" + "\tSCOPE_STACK = %s",
 				getClass().getSimpleName(),
 				position,
-				scopeStack);
+				scopeMap);
 		}
 
 		/**
@@ -654,7 +662,7 @@ public abstract class AbstractAvailCompiler
 		@NotNull ParserState afterToken ()
 		{
 			assert !atEnd();
-			return new ParserState(position + 1, scopeStack);
+			return new ParserState(position + 1, scopeMap);
 		}
 
 		/**
@@ -679,18 +687,21 @@ public abstract class AbstractAvailCompiler
 		 * with the given declaration added.
 		 *
 		 * @param declaration
-		 *        The {@linkplain DeclarationNodeDescriptor declaration} to add to
-		 *        the resulting {@linkplain AvailCompilerScopeStack scope stack}.
+		 *        The {@linkplain DeclarationNodeDescriptor declaration} to add
+		 *        to the map of visible bindings.
 		 * @return The new parser state including the declaration.
 		 */
 		@NotNull ParserState withDeclaration (
 			final @NotNull AvailObject declaration)
 		{
+			final AvailObject name = declaration.token().string();
+			assert !scopeMap.hasKey(name);
 			return new ParserState(
 				position,
-				new AvailCompilerScopeStack(
+				scopeMap.mapAtPuttingCanDestroy(
+					name,
 					declaration,
-					scopeStack));
+					false));
 		}
 
 		/**
@@ -1367,14 +1378,9 @@ public abstract class AbstractAvailCompiler
 		final @NotNull ParserState start,
 		final @NotNull AvailObject name)
 	{
-		AvailCompilerScopeStack scope = start.scopeStack;
-		while (scope.name() != null)
+		if (start.scopeMap.hasKey(name))
 		{
-			if (scope.name().equals(name))
-			{
-				return scope.declaration();
-			}
-			scope = scope.next();
+			return start.scopeMap.mapAt(name);
 		}
 		return null;
 	}
@@ -1433,7 +1439,7 @@ public abstract class AbstractAvailCompiler
 	 */
 	void evaluateModuleStatement (final @NotNull AvailObject expr)
 	{
-		if (!expr.kind().parseNodeKindIsUnder(DECLARATION_NODE))
+		if (!expr.isInstanceOfKind(DECLARATION_NODE.mostGeneralType()))
 		{
 			evaluate(expr);
 			return;
@@ -1563,7 +1569,7 @@ public abstract class AbstractAvailCompiler
 			attempt(
 				new ParserState(
 					stateAfterCall.position,
-					stateBeforeCall.scopeStack),
+					stateBeforeCall.scopeMap),
 				continuation,
 				sendNode);
 		}
@@ -2000,7 +2006,7 @@ public abstract class AbstractAvailCompiler
 		exportedNames = new ArrayList<AvailObject>();
 		ParserState state = new ParserState(
 			0,
-			new AvailCompilerScopeStack(null, null));
+			MapDescriptor.empty());
 
 		if (isSystemCompiler())
 		{
@@ -2064,7 +2070,7 @@ public abstract class AbstractAvailCompiler
 					{
 						final ParserState badStringState = new ParserState(
 							state.position + (index - strings.size()) * 2 + 1,
-							state.scopeStack);
+							state.scopeMap);
 						badStringState.expected(
 							"pragma key ("
 							+ pragmaKey
@@ -2194,7 +2200,7 @@ public abstract class AbstractAvailCompiler
 		}
 		// Deja vu! We were asked to parse an expression starting at this point
 		// before. Luckily we had the foresight to record what those resulting
-		// expressions were (as well as the scopeStack just after parsing each).
+		// expressions were (as well as the scopeMap just after parsing each).
 		// Replay just these solutions to the passed continuation. This has the
 		// effect of eliminating each 'local' misparsing exactly once. I'm not
 		// sure what happens to the order of the algorithm, but it might go from
@@ -2231,7 +2237,7 @@ public abstract class AbstractAvailCompiler
 	{
 		final ParserState startWithoutScope = new ParserState(
 			start.position,
-			new AvailCompilerScopeStack(null, null));
+			MapDescriptor.empty());
 		parseExpressionThen(startWithoutScope, new Con<AvailObject>(
 			"Evaluate expression")
 		{
@@ -2246,8 +2252,8 @@ public abstract class AbstractAvailCompiler
 					final AvailObject value = evaluate(expression);
 					if (value.isInstanceOf(someType))
 					{
-						assert afterExpression.scopeStack ==
-							startWithoutScope.scopeStack
+						assert afterExpression.scopeMap ==
+							startWithoutScope.scopeMap
 						: "Subexpression should not have been able "
 							+ "to cause declaration";
 						// Make sure we continue with the position after the
@@ -2259,7 +2265,7 @@ public abstract class AbstractAvailCompiler
 						attempt(
 							new ParserState(
 								afterExpression.position,
-								start.scopeStack),
+								start.scopeMap),
 							continuation,
 							value);
 					}

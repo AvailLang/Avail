@@ -224,6 +224,7 @@ public final class AvailRuntime
 		specialObjects[65] = LOCAL_CONSTANT_NODE.mostGeneralType();
 		specialObjects[66] = MODULE_VARIABLE_NODE.mostGeneralType();
 		specialObjects[67] = MODULE_CONSTANT_NODE.mostGeneralType();
+		specialObjects[68] = PRIMITIVE_FAILURE_REASON_NODE.mostGeneralType();
 
 		// Booleans
 		specialObjects[70] = AtomDescriptor.trueObject();

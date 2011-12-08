@@ -191,7 +191,7 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 		for (final AvailObject argNode : arguments)
 		{
 			argNode.emitValueOn(codeGenerator);
-			if (argNode.kind().parseNodeKindIsUnder(SUPER_CAST_NODE))
+			if (argNode.isInstanceOfKind(SUPER_CAST_NODE.mostGeneralType()))
 			{
 				anyCasts = true;
 			}
@@ -202,7 +202,7 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 		{
 			for (final AvailObject argNode : arguments)
 			{
-				if (argNode.kind().parseNodeKindIsUnder(SUPER_CAST_NODE))
+				if (argNode.isInstanceOfKind(SUPER_CAST_NODE.mostGeneralType()))
 				{
 					codeGenerator.emitPushLiteral(argNode.expressionType());
 				}

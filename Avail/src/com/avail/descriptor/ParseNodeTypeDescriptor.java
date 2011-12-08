@@ -149,7 +149,10 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 		MODULE_VARIABLE_NODE(DECLARATION_NODE),
 
 		/** The kind of a module constant node. */
-		MODULE_CONSTANT_NODE(DECLARATION_NODE);
+		MODULE_CONSTANT_NODE(DECLARATION_NODE),
+
+		/** The kind of a primitive failure reason variable */
+		PRIMITIVE_FAILURE_REASON_NODE(DECLARATION_NODE);
 
 		/**
 		 * The kind of parse node that this kind is a child of.

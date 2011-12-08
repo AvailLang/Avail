@@ -353,6 +353,45 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 					recursionList,
 					indent + 1);
 			}
+		},
+
+		/**
+		 * This is a local constant, declared within a block.
+		 */
+		PRIMITIVE_FAILURE_REASON(
+			false,
+			ParseNodeKind.PRIMITIVE_FAILURE_REASON_NODE)
+		{
+			@Override
+			public void emitEffectForOn (
+				final AvailObject declarationNode,
+				final AvailCodeGenerator codeGenerator)
+			{
+				// Handled automatically by the primitive attempt.
+			}
+
+			@Override
+			public void emitVariableValueForOn (
+				final AvailObject declarationNode,
+				final AvailCodeGenerator codeGenerator)
+			{
+				codeGenerator.emitGetLocalOrOuter(declarationNode);
+			}
+
+			@Override
+			public void print (
+				final @NotNull AvailObject object,
+				final StringBuilder builder,
+				final List<AvailObject> recursionList,
+				final int indent)
+			{
+				builder.append(object.token().string().asNativeString());
+				builder.append(" : ");
+				object.declaredType().printOnAvoidingIndent(
+					builder,
+					recursionList,
+					indent + 1);
+			}
 		};
 
 
@@ -818,6 +857,33 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 			token,
 			initializationExpression.expressionType(),
 			initializationExpression,
+			NullDescriptor.nullObject());
+	}
+
+	/**
+	 * Construct a new {@linkplain DeclarationNodeDescriptor declaration} of a
+	 * {@linkplain DeclarationKind#PRIMITIVE_FAILURE_REASON primitive failure
+	 * variable}.  This is set up automatically when a primitive fails, and the
+	 * statements of the block should not be allowed to write to it.
+	 *
+	 * @param token
+	 *        The {@linkplain TokenDescriptor token} that is the defining
+	 *        occurrence of the name of the local constant being declared.
+	 * @param type
+	 *        The type
+	 *        An {@linkplain ParseNodeDescriptor expression} used to
+	 *        provide the value of the local constant.
+	 * @return The new local constant declaration.
+	 */
+	public static AvailObject newPrimitiveFailureVariable (
+		final AvailObject token,
+		final AvailObject type)
+	{
+		return newDeclaration(
+			PRIMITIVE_FAILURE_REASON,
+			token,
+			type,
+			NullDescriptor.nullObject(),
 			NullDescriptor.nullObject());
 	}
 

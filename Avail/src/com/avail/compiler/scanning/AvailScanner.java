@@ -106,17 +106,6 @@ public class AvailScanner
 	}
 
 	/**
-	 * Set the index to the character that is the start of the current token.
-	 *
-	 * @param newStartOfToken
-	 *            The index of the character that starts the current token.
-	 */
-	void startOfToken (final int newStartOfToken)
-	{
-		this.startOfToken = newStartOfToken;
-	}
-
-	/**
 	 * Answer the index into the input String at which the current token starts.
 	 *
 	 * @return The position of the current token in the input String.
@@ -127,39 +116,9 @@ public class AvailScanner
 	}
 
 	/**
-	 * Add the (uninitialized) token to my sequence of parsed tokens. Also set
-	 * its:
-	 * <ul>
-	 * <li>{@link TokenDescriptor.IntegerSlots#START start},
-	 * <li>{@link TokenDescriptor.ObjectSlots#STRING string},
-	 * and
-	 * <li>{@link TokenDescriptor.IntegerSlots#TOKEN_TYPE_CODE token type}
-	 * based on the passed {@link TokenDescriptor.TokenType}.
-	 * </ul>
-	 *
-	 * @param anAvailToken
-	 *            The token to initialize and add.
-	 * @param tokenType
-	 *            The {@link TokenDescriptor.TokenType enumeration value} to set
-	 *            in the token.
-	 */
-	@InnerAccess
-	void addToken (
-		final AvailObject anAvailToken,
-		final TokenDescriptor.TokenType tokenType)
-	{
-		anAvailToken.tokenType(tokenType);
-		anAvailToken.start(startOfToken);
-		anAvailToken.lineNumber(lineNumber);
-		anAvailToken.string(StringDescriptor.from(currentTokenString()));
-		anAvailToken.makeImmutable();
-		outputTokens.add(anAvailToken);
-	}
-
-	/**
-	 * Create an ordinary {@linkplain TokenDescriptor token}, initialize it, and add
-	 * it to my sequence of parsed tokens. In particular, create the token and
-	 * set its:
+	 * Create an ordinary {@linkplain TokenDescriptor token}, initialize it, and
+	 * add it to my sequence of parsed tokens. In particular, create the token
+	 * and set its:
 	 * <ul>
 	 * <li>{@link TokenDescriptor.IntegerSlots#START start},
 	 * <li>{@link TokenDescriptor.ObjectSlots#STRING string}, and
@@ -170,12 +129,20 @@ public class AvailScanner
 	 * @param tokenType
 	 *            The {@link TokenDescriptor.TokenType enumeration value} to set
 	 *            in the token.
+	 * @return The newly added token.
 	 */
 	@InnerAccess
-	void addToken (final TokenDescriptor.TokenType tokenType)
+	@NotNull AvailObject addCurrentToken (
+		final TokenDescriptor.TokenType tokenType)
 	{
-		final AvailObject token = TokenDescriptor.mutable().create();
-		addToken(token, tokenType);
+		final AvailObject token = TokenDescriptor.mutable().create(
+			StringDescriptor.from(currentTokenString()),
+			startOfToken,
+			lineNumber,
+			tokenType);
+		token.makeImmutable();
+		outputTokens.add(token);
+		return token;
 	}
 
 	/**
@@ -184,13 +151,21 @@ public class AvailScanner
 	 *
 	 * @param anAvailObject
 	 *            A {@linkplain LiteralTokenDescriptor literal token}.
+	 * @return The newly added token.
 	 */
 	@InnerAccess
-	void addTokenForLiteral (final AvailObject anAvailObject)
+	@NotNull AvailObject addCurrentLiteralToken (
+		final AvailObject anAvailObject)
 	{
-		final AvailObject token = LiteralTokenDescriptor.mutable().create();
+		final AvailObject token = LiteralTokenDescriptor.mutable().create(
+			StringDescriptor.from(currentTokenString()),
+			startOfToken,
+			lineNumber,
+			TokenType.LITERAL);
 		token.literal(anAvailObject);
-		addToken(token, TokenType.LITERAL);
+		token.makeImmutable();
+		outputTokens.add(token);
+		return token;
 	}
 
 	/**
@@ -362,10 +337,13 @@ public class AvailScanner
 				int decimalExponentPart2;
 				AvailObject result;
 				long twoTo59;
-				scanner.position(scanner.startOfToken());
-				if (scanner.peekFor('d') || scanner.peekFor('e')
-					|| (scanner.peekFor('.') && scanner.peekIsDigit()))
+				final boolean isDot = scanner.peekFor('.')
+					&& scanner.peekIsDigit();
+				if (isDot
+						|| scanner.peekFor('e')
+						|| scanner.peekFor('d'))
 				{
+					scanner.position(scanner.startOfToken());
 					mantissa = 0;
 					decimalExponent = 0;
 					twoTo59 = 0x800000000000000L;
@@ -383,7 +361,8 @@ public class AvailScanner
 					}
 					if (scanner.peekFor('.'))
 					{
-						scanner.next(); // TODO Is this right?
+						assert isDot;
+						assert scanner.peekIsDigit();
 						while (scanner.peekIsDigit())
 						{
 							if (mantissa <= twoTo59)
@@ -399,10 +378,17 @@ public class AvailScanner
 						}
 					}
 					isDoublePrecision = scanner.peekFor('d');
-					if (isDoublePrecision || scanner.peek() == 'e')
+					if (isDoublePrecision || scanner.peekFor('e'))
 					{
 						int explicitExponent = 0;
 						final boolean negateExponent = scanner.peekFor('-');
+						if (negateExponent && !scanner.peekIsDigit())
+						{
+							throw new AvailScannerException(
+								"Expected digit after negative sign in"
+								+ " exponent",
+								scanner);
+						}
 						while (scanner.peekIsDigit())
 						{
 							explicitExponent = explicitExponent * 10
@@ -433,16 +419,19 @@ public class AvailScanner
 				}
 				else
 				{
+					scanner.position(scanner.startOfToken());
 					result = IntegerDescriptor.zero();
 					final AvailObject ten = IntegerDescriptor.ten();
 					while (scanner.peekIsDigit())
 					{
 						result = result.noFailTimesCanDestroy(ten, true);
-						result = result.noFailPlusCanDestroy(IntegerDescriptor
-							.fromUnsignedByte(scanner.nextDigitValue()), true);
+						result = result.noFailPlusCanDestroy(
+							IntegerDescriptor.fromUnsignedByte(
+								scanner.nextDigitValue()),
+							true);
 					}
 				}
-				scanner.addTokenForLiteral(result);
+				scanner.addCurrentLiteralToken(result);
 			}
 		},
 
@@ -577,7 +566,7 @@ public class AvailScanner
 				final String string = stringBuilder.toString();
 				final AvailObject availValue = StringDescriptor.from(string);
 				availValue.makeImmutable();
-				scanner.addTokenForLiteral(availValue);
+				scanner.addCurrentLiteralToken(availValue);
 			}
 		},
 
@@ -593,8 +582,8 @@ public class AvailScanner
 				{
 					// no body
 				}
-				final AvailObject token = TokenDescriptor.mutable().create();
-				scanner.addToken(token, TokenType.KEYWORD);
+				final AvailObject token =
+					scanner.addCurrentToken(TokenType.KEYWORD);
 				if (scanner.stopAfterNamesToken
 					&& token.string().asNativeString().equals("Names"))
 				{
@@ -614,7 +603,7 @@ public class AvailScanner
 			@Override
 			void scan (final AvailScanner scanner)
 			{
-				scanner.addToken(TokenType.END_OF_STATEMENT);
+				scanner.addCurrentToken(TokenType.END_OF_STATEMENT);
 			}
 		},
 
@@ -634,7 +623,7 @@ public class AvailScanner
 			{
 				if (!scanner.peekFor('*'))
 				{
-					scanner.addToken(TokenType.OPERATOR);
+					scanner.addCurrentToken(TokenType.OPERATOR);
 				}
 				else
 				{
@@ -723,7 +712,7 @@ public class AvailScanner
 			@Override
 			void scan (final AvailScanner scanner)
 			{
-				scanner.addToken(TokenType.OPERATOR);
+				scanner.addCurrentToken(TokenType.OPERATOR);
 			}
 		};
 
@@ -803,7 +792,8 @@ public class AvailScanner
 			final int c = next();
 			ScannerAction.forCodePoint(c).scan(this);
 		}
-		addToken(TokenType.END_OF_FILE);
+		startOfToken = position;
+		addCurrentToken(TokenType.END_OF_FILE);
 		return outputTokens;
 	}
 

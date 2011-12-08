@@ -53,7 +53,7 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	 * @param isMutable Whether the descriptor being constructed represents
 	 *                  mutable objects or not.
 	 */
-	public ParseNodeDescriptor (final boolean isMutable)
+	protected ParseNodeDescriptor (final boolean isMutable)
 	{
 		super(isMutable);
 	}
