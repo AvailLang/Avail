@@ -1,5 +1,5 @@
 /**
- * interpreter/levelTwo/register/L2RegisterVector.java
+ * L2RegisterVector.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *

@@ -1,5 +1,5 @@
 /**
- * descriptor/FloatDescriptor.java
+ * FloatDescriptor.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -121,7 +121,7 @@ extends Descriptor
 	 * from the passed {@code float}.
 	 *
 	 * @param aFloat The Java {@code float} to box.
-	 * @return The boxed Avail {@code FloatDescriptor floating point object}.
+	 * @return The boxed Avail {@linkplain FloatDescriptor float}.
 	 */
 	public static AvailObject fromFloat (final float aFloat)
 	{

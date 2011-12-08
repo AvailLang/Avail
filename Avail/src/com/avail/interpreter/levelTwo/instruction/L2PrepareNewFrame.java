@@ -1,5 +1,5 @@
 /**
- * interpreter/levelTwo/instruction/L2PrepareNewFrame.java
+ * L2PrepareNewFrame.java
  * Copyright (c) 2011, Mark van Gulik.
  * All rights reserved.
  *

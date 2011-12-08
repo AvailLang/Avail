@@ -1,5 +1,5 @@
 /**
- * descriptor/AtomWithPropertiesDescriptor.java
+ * AtomWithPropertiesDescriptor.java
  * Copyright (c) 2011, Mark van Gulik.
  * All rights reserved.
  *

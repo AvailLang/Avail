@@ -1,5 +1,5 @@
 /**
- * compiler/scanner/AvailScannerException.java
+ * AvailScannerException.java
  * Copyright (c) 2011, Mark van Gulik.
  * All rights reserved.
  *

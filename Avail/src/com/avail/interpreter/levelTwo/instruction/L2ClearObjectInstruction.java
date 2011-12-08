@@ -1,5 +1,5 @@
 /**
- * interpreter/levelTwo/instruction/L2ClearObjectInstruction.java
+ * L2ClearObjectInstruction.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *

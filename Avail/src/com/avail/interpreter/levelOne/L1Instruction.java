@@ -1,5 +1,5 @@
 /**
- * interpreter/levelOne/L1Instruction.java
+ * L1Instruction.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *

@@ -1,5 +1,5 @@
 /**
- * interpreter/levelOne/L1Disassembler.java
+ * L1Disassembler.java
  * Copyright (c) 2011, Mark van Gulik.
  * All rights reserved.
  *

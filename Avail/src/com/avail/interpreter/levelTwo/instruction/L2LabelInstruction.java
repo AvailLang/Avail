@@ -1,5 +1,5 @@
 /**
- * interpreter/levelTwo/instruction/L2LabelInstruction.java
+ * L2LabelInstruction.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *

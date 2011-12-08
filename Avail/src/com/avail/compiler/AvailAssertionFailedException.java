@@ -1,5 +1,5 @@
 /**
- * com.avail.compiler/AvailAssertionFailedException.java
+ * AvailAssertionFailedException.java
  * Copyright (c) 2011, Mark van Gulik.
  * All rights reserved.
  *

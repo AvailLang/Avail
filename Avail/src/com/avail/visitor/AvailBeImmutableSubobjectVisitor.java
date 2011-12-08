@@ -1,5 +1,5 @@
 /**
- * visitor/AvailBeImmutableSubobjectVisitor.java
+ * AvailBeImmutableSubobjectVisitor.java
  * Copyright (c) 2010-2011, Mark van Gulik.
  * All rights reserved.
  *

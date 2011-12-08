@@ -1,5 +1,5 @@
 /**
- * descriptor/ByteStringDescriptor.java
+ * ByteStringDescriptor.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *

@@ -1,5 +1,5 @@
 /**
- * interpreter/levelTwo/instruction/L2JumpInstruction.java
+ * L2JumpInstruction.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *

@@ -1,5 +1,5 @@
 /**
- * interpreter/levelTwo/instruction/L2CreateContinuationNoPrimitiveInstruction.java
+ * L2CreateContinuationInstruction.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *

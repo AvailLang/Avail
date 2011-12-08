@@ -1,5 +1,5 @@
 /**
- * descriptor/AtomDescriptor.java
+ * AtomDescriptor.java
  * Copyright (c) 2011, Mark van Gulik.
  * All rights reserved.
  *

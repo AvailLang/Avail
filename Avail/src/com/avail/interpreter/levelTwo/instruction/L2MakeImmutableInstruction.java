@@ -1,5 +1,5 @@
 /**
- * interpreter/levelTwo/instruction/L2MakeImmutableInstruction.java
+ * L2MakeImmutableInstruction.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *

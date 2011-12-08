@@ -1,5 +1,5 @@
 /**
- * compiler/instruction/AvailSetLocalVariable.java
+ * AvailSetLocalVariable.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *

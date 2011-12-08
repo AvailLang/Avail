@@ -1,5 +1,5 @@
 /**
- * descriptor/InstanceTypeDescriptor.java
+ * InstanceTypeDescriptor.java
  * Copyright (c) 2011, Mark van Gulik.
  * All rights reserved.
  *

@@ -1,5 +1,5 @@
 /**
- * compiler/instruction/AvailGetLiteralVariable.java
+ * AvailGetLiteralVariable.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *

@@ -1,5 +1,5 @@
 /**
- * com.avail.compiler/MacroSubstitutionNodeDescriptor.java
+ * MacroSubstitutionNodeDescriptor.java
  * Copyright (c) 2011, Mark van Gulik.
  * All rights reserved.
  *

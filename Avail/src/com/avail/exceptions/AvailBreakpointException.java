@@ -1,5 +1,5 @@
 /**
- * com.avail.exceptions/AvailBreakpointException.java
+ * AvailBreakpointException.java
  * Copyright (c) 2011, Mark van Gulik.
  * All rights reserved.
  *

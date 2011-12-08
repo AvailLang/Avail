@@ -1,5 +1,5 @@
 /**
- * interpreter/levelOne/L1OperationDispatcher.java
+ * L1OperationDispatcher.java
  * Copyright (c) 2010-2011, Mark van Gulik.
  * All rights reserved.
  *

@@ -1,5 +1,5 @@
 /**
- * interpreter/levelTwo/instruction/L2DecrementToZeroThenOptimizeInstruction.java
+ * L2DecrementToZeroThenOptimizeInstruction.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *

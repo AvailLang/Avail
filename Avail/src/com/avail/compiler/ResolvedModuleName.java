@@ -1,5 +1,5 @@
 /**
- * com.avail.oldcompiler/ResolvedModuleName.java
+ * ResolvedModuleName.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *

@@ -1,5 +1,5 @@
 /**
- * interpreter/levelTwo/instruction/L2CreateVariableInstruction.java
+ * L2CreateVariableInstruction.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *

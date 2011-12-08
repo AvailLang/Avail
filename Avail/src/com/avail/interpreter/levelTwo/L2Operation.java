@@ -1,5 +1,5 @@
 /**
- * interpreter/levelTwo/L2Operation.java
+ * L2Operation.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *

@@ -1,5 +1,5 @@
 /**
- * com.avail.descriptor/IntegerSlotsEnum.java
+ * IntegerSlotsEnum.java
  * Copyright (c) 2011, Mark van Gulik.
  * All rights reserved.
  *

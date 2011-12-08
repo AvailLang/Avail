@@ -1,5 +1,5 @@
 /**
- * descriptor/AvailObjectRepresentation.java
+ * AvailObjectRepresentation.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -347,6 +347,17 @@ extends AbstractAvailObject
 	}
 
 	/**
+	 * A reusable empty array of AvailObjects for objects that have no object
+	 * slots.
+	 */
+	private final static AvailObject[] emptyObjectSlots = new AvailObject[0];
+
+	/**
+	 * A reusable empty array of ints for objects that have no int slots.
+	 */
+	private final static int[] emptyIntegerSlots = new int[0];
+
+	/**
 	 * Construct a new {@link AvailObjectRepresentation}.
 	 *
 	 * @param descriptor This object's {@link AbstractDescriptor}.
@@ -359,7 +370,22 @@ extends AbstractAvailObject
 		final int intSlotsCount)
 	{
 		super(descriptor);
-		objectSlots = new AvailObject[objectSlotsSize];
-		intSlots = new int[intSlotsCount];
+		if (objectSlotsSize == 0)
+		{
+			objectSlots = emptyObjectSlots;
+		}
+		else
+		{
+			objectSlots = new AvailObject[objectSlotsSize];
+		}
+
+		if (intSlotsCount == 0)
+		{
+			intSlots = emptyIntegerSlots;
+		}
+		else
+		{
+			intSlots = new int[intSlotsCount];
+		}
 	}
 }

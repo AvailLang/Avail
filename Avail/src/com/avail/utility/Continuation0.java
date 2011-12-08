@@ -1,5 +1,5 @@
 /**
- * compiler/Continuation0.java
+ * Continuation0.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *

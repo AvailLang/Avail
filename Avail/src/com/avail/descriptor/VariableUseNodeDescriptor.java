@@ -1,5 +1,5 @@
 /**
- * com.avail.compiler/VariableUseNodeDescriptor.java
+ * VariableUseNodeDescriptor.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *

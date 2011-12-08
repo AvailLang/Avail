@@ -1,5 +1,5 @@
 /**
- * compiler/instruction/AvailInstruction.java
+ * AvailInstruction.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *

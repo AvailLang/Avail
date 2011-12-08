@@ -1,5 +1,5 @@
 /**
- * interpreter/levelTwo/L2CodeGenerator.java
+ * L2CodeGenerator.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *

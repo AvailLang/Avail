@@ -1,5 +1,5 @@
 /**
- * compiler/TokenDescriptor.java
+ * TokenDescriptor.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *

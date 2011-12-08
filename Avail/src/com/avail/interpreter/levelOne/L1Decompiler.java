@@ -1,5 +1,5 @@
 /**
- * interpreter/levelOne/L1Decompiler.java
+ * L1Decompiler.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -41,8 +41,9 @@ import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.utility.Transformer1;
 
 /**
- * The {@link L1Decompiler} converts a {@linkplain CompiledCodeDescriptor compiled
- * code} object into an equivalent {@linkplain ParseNodeDescriptor parse tree}.
+ * The {@link L1Decompiler} converts a {@linkplain CompiledCodeDescriptor
+ * compiled code} object into an equivalent {@linkplain ParseNodeDescriptor
+ * parse tree}.
  *
  * @author Mark van Gulik &lt;anarakul@gmail.com&gt;
  */

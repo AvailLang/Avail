@@ -1,5 +1,5 @@
 /**
- * compiler/Transformer3.java
+ * Transformer3.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *

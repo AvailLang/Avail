@@ -1,5 +1,5 @@
 /**
- * interpreter/levelTwo/L2OperandDescriber.java
+ * L2OperandDescriber.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *

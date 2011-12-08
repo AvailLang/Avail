@@ -1,5 +1,5 @@
 /**
- * interpreter/levelTwo/instruction/L2ExplodeInstruction.java
+ * L2ExplodeInstruction.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *

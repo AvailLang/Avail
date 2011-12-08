@@ -1,5 +1,5 @@
 /**
- * interpreter/levelTwo/instruction/L2InterpretOneInstruction.java
+ * L2InterpretOneInstructionAndBranchBackIfNoInterrupt.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *

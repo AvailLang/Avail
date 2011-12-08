@@ -1,5 +1,5 @@
 /**
- * com.avail.descriptor.parser/ParseNodeTypeDescriptor.java
+ * ParseNodeTypeDescriptor.java
  * Copyright (c) 2011, Mark van Gulik.
  * All rights reserved.
  *

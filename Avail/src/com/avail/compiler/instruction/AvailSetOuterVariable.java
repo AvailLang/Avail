@@ -1,5 +1,5 @@
 /**
- * compiler/instruction/AvailSetOuterVariable.java
+ * AvailSetOuterVariable.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *

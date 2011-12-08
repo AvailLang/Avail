@@ -1,5 +1,5 @@
 /**
- * interpreter/levelTwo/L2OperandTypeDispatcher.java
+ * L2OperandTypeDispatcher.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *

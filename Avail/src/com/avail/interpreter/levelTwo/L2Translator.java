@@ -1,5 +1,5 @@
 /**
- * interpreter/levelTwo/L2Translator.java
+ * L2Translator.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *

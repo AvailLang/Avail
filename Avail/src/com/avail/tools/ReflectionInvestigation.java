@@ -1,5 +1,5 @@
 /**
- * com.avail.test/ReflectionInvestigation.java
+ * ReflectionInvestigation.java
  * Copyright (c) 2011, Mark van Gulik.
  * All rights reserved.
  *

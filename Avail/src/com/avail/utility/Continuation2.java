@@ -1,5 +1,5 @@
 /**
- * compiler/Continuation2.java
+ * Continuation2.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *

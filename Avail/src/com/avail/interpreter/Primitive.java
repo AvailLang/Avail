@@ -1,5 +1,5 @@
 /**
- * interpreter/Primitive.java
+ * Primitive.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *

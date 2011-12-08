@@ -1,5 +1,5 @@
 /**
- * compiler/instruction/AvailCall.java
+ * AvailCall.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *

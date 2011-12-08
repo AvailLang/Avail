@@ -1,5 +1,5 @@
 /**
- * interpreter/levelOne/L1Operation.java
+ * L1Operation.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *

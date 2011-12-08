@@ -1,5 +1,5 @@
 /**
- * interpreter/levelTwo/register/L2IntegerRegister.java
+ * L2IntegerRegister.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *

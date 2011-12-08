@@ -1,5 +1,5 @@
 /**
- * descriptor/FunctionDescriptor.java
+ * FunctionDescriptor.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *

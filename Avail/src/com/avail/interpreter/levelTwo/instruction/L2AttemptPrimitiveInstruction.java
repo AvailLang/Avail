@@ -1,5 +1,5 @@
 /**
- * interpreter/levelTwo/instruction/L2AttemptPrimitiveInstruction.java
+ * L2AttemptPrimitiveInstruction.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *

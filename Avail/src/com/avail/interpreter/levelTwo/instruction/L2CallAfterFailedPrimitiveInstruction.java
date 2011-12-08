@@ -1,5 +1,5 @@
 /**
- * interpreter/levelTwo/instruction/L2CallInstruction.java
+ * L2CallAfterFailedPrimitiveInstruction.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -88,7 +88,7 @@ extends L2CallInstruction
 	@Override
 	public @NotNull List<L2Register> sourceRegisters ()
 	{
-		List<L2Register> result = new ArrayList<L2Register>(
+		final List<L2Register> result = new ArrayList<L2Register>(
 			super.sourceRegisters());
 		result.add(failureObjectReg);
 		return result;

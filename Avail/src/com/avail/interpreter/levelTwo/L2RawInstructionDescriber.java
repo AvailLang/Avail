@@ -1,5 +1,5 @@
 /**
- * interpreter/levelTwo/L2RawInstructionDescriber.java
+ * L2RawInstructionDescriber.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *

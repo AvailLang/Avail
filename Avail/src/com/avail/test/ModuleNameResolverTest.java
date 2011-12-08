@@ -1,5 +1,5 @@
 /**
- * com.avail.test/ModuleNameResolverTest.java
+ * ModuleNameResolverTest.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *

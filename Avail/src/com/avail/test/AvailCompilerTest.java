@@ -1,5 +1,5 @@
 /**
- * test/AvailCompilerTest.java
+ * AvailCompilerTest.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -38,7 +38,6 @@ import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
 import com.avail.compiler.*;
 import com.avail.descriptor.*;
-import com.avail.interpreter.Primitive;
 import com.avail.utility.*;
 
 /**

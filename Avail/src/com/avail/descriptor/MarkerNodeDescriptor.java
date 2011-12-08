@@ -1,5 +1,5 @@
 /**
- * com.avail.compiler/MarkerNodeDescriptor.java
+ * MarkerNodeDescriptor.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *

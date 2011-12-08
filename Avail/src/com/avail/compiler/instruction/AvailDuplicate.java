@@ -1,5 +1,5 @@
 /**
- * com.avail.compiler.instruction/AvailDuplicate.java
+ * AvailDuplicate.java
  * Copyright (c) 2011, Mark van Gulik.
  * All rights reserved.
  *

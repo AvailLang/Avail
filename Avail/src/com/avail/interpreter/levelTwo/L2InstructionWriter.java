@@ -1,5 +1,5 @@
 /**
- * interpreter/levelTwo/L2InstructionWriter.java
+ * L2InstructionWriter.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *

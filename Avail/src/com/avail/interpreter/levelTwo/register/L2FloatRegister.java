@@ -1,5 +1,5 @@
 /**
- * interpreter/levelTwo/register/L2FloatRegister.java
+ * L2FloatRegister.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *

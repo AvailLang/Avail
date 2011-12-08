@@ -1,5 +1,5 @@
 /**
- * com.avail.annotations/BitFields.java
+ * BitFields.java
  * Copyright (c) 2011, Mark van Gulik.
  * All rights reserved.
  *

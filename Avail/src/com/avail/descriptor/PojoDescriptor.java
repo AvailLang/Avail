@@ -1,5 +1,5 @@
 /**
- * com.avail.descriptor/PojoDescriptor.java
+ * PojoDescriptor.java
  * Copyright (c) 2011, Mark van Gulik.
  * All rights reserved.
  *
