@@ -46,9 +46,7 @@ import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
 import com.avail.compiler.*;
-import com.avail.compiler.scanning.*;
 import com.avail.descriptor.*;
-import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.exceptions.*;
 import com.avail.exceptions.ArithmeticException;
 import com.avail.interpreter.levelOne.*;
@@ -64,8 +62,8 @@ import com.avail.interpreter.levelTwo.instruction.L2AttemptPrimitiveInstruction;
  * must provide these primitives with equivalent semantics.
  *
  * <p>The enumeration defines an {@link #attempt(List, Interpreter)
- * attempt} operation that takes a {@linkplain List list} of arguments of type {@link
- * AvailObject}, as well as the {@link Interpreter} on whose behalf the
+ * attempt} operation that takes a {@linkplain List list} of arguments of type
+ * {@link AvailObject}, as well as the {@link Interpreter} on whose behalf the
  * primitive attempt is being made.  The specific enumeration values override
  * the {@code attempt} method with behavior specific to that primitive.</p>
  *

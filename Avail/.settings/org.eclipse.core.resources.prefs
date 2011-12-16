@@ -1,4 +1,6 @@
-#Tue Nov 09 08:12:00 CST 2010
+#Fri Dec 16 14:42:15 CST 2011
 eclipse.preferences.version=1
+encoding//src/com/avail/interpreter/PrimitiveResources_en.properties=UTF-8
+encoding//src/com/avail/tools/bootstrap/Preamble.properties=UTF-8
 encoding/<project>=UTF-8
 encoding/src=UTF-8

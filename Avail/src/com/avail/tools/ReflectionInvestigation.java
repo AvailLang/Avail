@@ -44,6 +44,7 @@ import java.util.*;
  *
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
+@SuppressWarnings("all")
 public final class ReflectionInvestigation
 {
 	private static void printClassPreamble (
@@ -243,9 +244,6 @@ public final class ReflectionInvestigation
 	{
 		printer.print("Enter a fully-qualified class name: ");
 	}
-
-	private static class IntMap extends HashMap<Integer, Integer> {}
-	private static class InvertedMap<V, K> extends HashMap<K, V> {}
 
 	public static void main (final String[] args)
 	{
