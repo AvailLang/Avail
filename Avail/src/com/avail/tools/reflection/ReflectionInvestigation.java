@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.tools;
+package com.avail.tools.reflection;
 
 import java.io.PrintStream;
 import java.lang.annotation.Annotation;
