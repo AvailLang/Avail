@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2011.12.17 16:15:24.853 -0600
+ * * Last Generated On: 2011.12.17 17:05:16.970 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -118,4 +118,437 @@ Names
 	/* 29 */ "⊥",
 	/* 30 */ "⊥ meta"
 Body
+
+_any                           ::= special object 1;
+_boolean                       ::= special object 2;
+_character                     ::= special object 3;
+_function                      ::= special object 4;
+_function_meta                 ::= special object 5;
+_compiled_code                 ::= special object 6;
+_variable                      ::= special object 7;
+_variable_meta                 ::= special object 8;
+_continuation                  ::= special object 9;
+_continuation_meta             ::= special object 10;
+_atom                          ::= special object 11;
+_double                        ::= special object 12;
+_extended_integer              ::= special object 13;
+_false_type                    ::= special object 14;
+_float                         ::= special object 15;
+_integer                       ::= special object 17;
+_extended_integer_meta         ::= special object 18;
+_map_meta                      ::= special object 19;
+_meta                          ::= special object 20;
+_enum_meta                     ::= special object 21;
+_object                        ::= special object 22;
+_object_meta                   ::= special object 23;
+_effort                        ::= special object 25;
+_set                           ::= special object 26;
+_set_meta                      ::= special object 27;
+_string                        ::= special object 28;
+_⊥                             ::= special object 29;
+_⊥_meta                        ::= special object 30;
+_true_type                     ::= special object 31;
+_tuple                         ::= special object 32;
+_tuple_meta                    ::= special object 33;
+_type                          ::= special object 34;
+_⊤                             ::= special object 35;
+_whole_number                  ::= special object 36;
+_natural_number                ::= special object 37;
+_code_point                    ::= special object 38;
+_message_bundle                ::= special object 40;
+_signature                     ::= special object 41;
+_abstract_signature            ::= special object 42;
+_forward_signature             ::= special object 43;
+_method_signature              ::= special object 44;
+_message_bundle_tree           ::= special object 45;
+_implementation_set            ::= special object 46;
+_parse_node                    ::= special object 50;
+_marker_node                   ::= special object 51;
+_expression_node               ::= special object 52;
+_assignment_node               ::= special object 53;
+_block_node                    ::= special object 54;
+_literal_node                  ::= special object 55;
+_reference_node                ::= special object 56;
+_send_node                     ::= special object 57;
+_super_cast_node               ::= special object 58;
+_tuple_node                    ::= special object 59;
+_variable_use_node             ::= special object 60;
+_declaration_node              ::= special object 61;
+_argument_node                 ::= special object 62;
+_label_node                    ::= special object 63;
+_local_variable_node           ::= special object 64;
+_local_constant_node           ::= special object 65;
+_module_variable_node          ::= special object 66;
+_module_constant_node          ::= special object 67;
+_primitive_failure_reason_node ::= special object 68;
+_true                          ::= special object 70;
+_false                         ::= special object 71;
+_tuple_of_string               ::= special object 72;
+_tuple_of_type                 ::= special object 73;
+_tuple_of_set_of_string        ::= special object 74;
+_set_of_string                 ::= special object 75;
+_pojo                          ::= special object 80;
+_null                          ::= special object 81;
+_null_type                     ::= special object 82;
+_self_type                     ::= special object 83;
+
+Method "any" is 
+[
+	_any;
+];
+
+Method "boolean" is 
+[
+	_boolean;
+];
+
+Method "character" is 
+[
+	_character;
+];
+
+Method "function" is 
+[
+	_function;
+];
+
+Method "function meta" is 
+[
+	_function_meta;
+];
+
+Method "compiled code" is 
+[
+	_compiled_code;
+];
+
+Method "variable" is 
+[
+	_variable;
+];
+
+Method "variable meta" is 
+[
+	_variable_meta;
+];
+
+Method "continuation" is 
+[
+	_continuation;
+];
+
+Method "continuation meta" is 
+[
+	_continuation_meta;
+];
+
+Method "atom" is 
+[
+	_atom;
+];
+
+Method "double" is 
+[
+	_double;
+];
+
+Method "extended integer" is 
+[
+	_extended_integer;
+];
+
+Method "false type" is 
+[
+	_false_type;
+];
+
+Method "float" is 
+[
+	_float;
+];
+
+Method "integer" is 
+[
+	_integer;
+];
+
+Method "extended integer meta" is 
+[
+	_extended_integer_meta;
+];
+
+Method "map meta" is 
+[
+	_map_meta;
+];
+
+Method "meta" is 
+[
+	_meta;
+];
+
+Method "enum meta" is 
+[
+	_enum_meta;
+];
+
+Method "object" is 
+[
+	_object;
+];
+
+Method "object meta" is 
+[
+	_object_meta;
+];
+
+Method "effort" is 
+[
+	_effort;
+];
+
+Method "set" is 
+[
+	_set;
+];
+
+Method "set meta" is 
+[
+	_set_meta;
+];
+
+Method "string" is 
+[
+	_string;
+];
+
+Method "⊥" is 
+[
+	_⊥;
+];
+
+Method "⊥ meta" is 
+[
+	_⊥_meta;
+];
+
+Method "true type" is 
+[
+	_true_type;
+];
+
+Method "tuple" is 
+[
+	_tuple;
+];
+
+Method "tuple meta" is 
+[
+	_tuple_meta;
+];
+
+Method "type" is 
+[
+	_type;
+];
+
+Method "⊤" is 
+[
+	_⊤;
+];
+
+Method "whole number" is 
+[
+	_whole_number;
+];
+
+Method "natural number" is 
+[
+	_natural_number;
+];
+
+Method "code point" is 
+[
+	_code_point;
+];
+
+Method "message bundle" is 
+[
+	_message_bundle;
+];
+
+Method "signature" is 
+[
+	_signature;
+];
+
+Method "abstract signature" is 
+[
+	_abstract_signature;
+];
+
+Method "forward signature" is 
+[
+	_forward_signature;
+];
+
+Method "method signature" is 
+[
+	_method_signature;
+];
+
+Method "message bundle tree" is 
+[
+	_message_bundle_tree;
+];
+
+Method "implementation set" is 
+[
+	_implementation_set;
+];
+
+Method "parse node" is 
+[
+	_parse_node;
+];
+
+Method "marker node" is 
+[
+	_marker_node;
+];
+
+Method "expression node" is 
+[
+	_expression_node;
+];
+
+Method "assignment node" is 
+[
+	_assignment_node;
+];
+
+Method "block node" is 
+[
+	_block_node;
+];
+
+Method "literal node" is 
+[
+	_literal_node;
+];
+
+Method "reference node" is 
+[
+	_reference_node;
+];
+
+Method "send node" is 
+[
+	_send_node;
+];
+
+Method "super cast node" is 
+[
+	_super_cast_node;
+];
+
+Method "tuple node" is 
+[
+	_tuple_node;
+];
+
+Method "variable use node" is 
+[
+	_variable_use_node;
+];
+
+Method "declaration node" is 
+[
+	_declaration_node;
+];
+
+Method "argument node" is 
+[
+	_argument_node;
+];
+
+Method "label node" is 
+[
+	_label_node;
+];
+
+Method "local variable node" is 
+[
+	_local_variable_node;
+];
+
+Method "local constant node" is 
+[
+	_local_constant_node;
+];
+
+Method "module variable node" is 
+[
+	_module_variable_node;
+];
+
+Method "module constant node" is 
+[
+	_module_constant_node;
+];
+
+Method "primitive failure reason node" is 
+[
+	_primitive_failure_reason_node;
+];
+
+Method "true" is 
+[
+	_true;
+];
+
+Method "false" is 
+[
+	_false;
+];
+
+Method "tuple of string" is 
+[
+	_tuple_of_string;
+];
+
+Method "tuple of type" is 
+[
+	_tuple_of_type;
+];
+
+Method "tuple of set of string" is 
+[
+	_tuple_of_set_of_string;
+];
+
+Method "set of string" is 
+[
+	_set_of_string;
+];
+
+Method "pojo" is 
+[
+	_pojo;
+];
+
+Method "null" is 
+[
+	_null;
+];
+
+Method "null type" is 
+[
+	_null_type;
+];
+
+Method "self type" is 
+[
+	_self_type;
+];
 

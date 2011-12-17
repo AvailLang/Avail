@@ -213,6 +213,78 @@ public final class BootstrapGenerator
 	}
 
 	/**
+	 * Answer the key for the special object given by index.
+	 *
+	 * @param index
+	 *        The special object index.
+	 * @return A key that may be used to access the Avail name of the special
+	 *         object in the appropriate {@linkplain ResourceBundle resource
+	 *         bundle}.
+	 */
+	private @NotNull String specialObjectKey (final int index)
+	{
+		return "specialObject" + index;
+	}
+
+	/**
+	 * Generate the body of the special object linking {@linkplain
+	 * ModuleDescriptor module}.
+	 *
+	 * @param writer
+	 *        The {@linkplain PrintWriter output stream}.
+	 */
+	private void generateSpecialObjectModuleBody (
+		final @NotNull PrintWriter writer)
+	{
+		// Find the length of the longest name.
+		int length = 0;
+		for (final String name : specialObjectNameMap.keySet())
+		{
+			length = Math.max(length, name.length() + 1);
+		}
+
+		// Emit the module constants that capture the special objects.
+		for (int i = 0; i < specialObjects.size(); i++)
+		{
+			// TODO: [TLS] Prevent emission of non-identifier characters in
+			// constant names, e.g. ⊤, ⊥. Might need to introduce new names in
+			// the properties file (and make arrangements not to lose them when
+			// the file is regenerated).
+			if (specialObjects.get(i) != null)
+			{
+				final String key = specialObjectKey(i);
+				final String constantName =
+					"_" + specialObjectNames.getString(key).replace(' ', '_');
+				final int pad = length - constantName.length();
+				final String format = pad > 0
+					? "%s%" + pad + "s ::= %s;\n"
+					: "%s%s ::= %s;\n";
+				writer.printf(
+					format,
+					constantName,
+					"",
+					MessageFormat.format(
+						preamble.getString(specialObjectUse.name()), i));
+			}
+		}
+
+		writer.println();
+		for (int i = 0; i < specialObjects.size(); i++)
+		{
+			if (specialObjects.get(i) != null)
+			{
+				final String key = specialObjectKey(i);
+				final String constantName =
+					"_" + specialObjectNames.getString(key).replace(' ', '_');
+				writer.println(MessageFormat.format(
+					preamble.getString(definingMethodUse.name()),
+					String.format("\"%s\"", specialObjectNames.getString(key)),
+					String.format("\n[\n\t%s;\n];\n", constantName)));
+			}
+		}
+	}
+
+	/**
 	 * Answer the selected {@linkplain Primitive primitives}.
 	 *
 	 * @param fallible
@@ -234,6 +306,13 @@ public final class BootstrapGenerator
 	}
 
 	/**
+	 * A {@linkplain Map map} from localized names to Avail {@linkplain
+	 * Primitive primitives}.
+	 */
+	private final @NotNull Map<String, Primitive> primitiveNameMap =
+		new HashMap<String, Primitive>(specialObjects.size());
+
+	/**
 	 * Answer a textual representation of the specified {@linkplain Primitive
 	 * primitive} names {@linkplain List list} that is satisfactory for use in
 	 * an Avail {@linkplain ModuleDescriptor module} header.
@@ -244,11 +323,18 @@ public final class BootstrapGenerator
 	private @NotNull String primitivesNamesString (
 		final @NotNull List<Primitive> primitives)
 	{
+		final List<String> names = new ArrayList<String>(
+			new ArrayList<String>(primitiveNameMap.keySet()));
+		Collections.sort(names);
 		final StringBuilder builder = new StringBuilder();
-		for (final Primitive primitive : primitives)
+		for (final String name : names)
 		{
-			builder.append("\n\t\"");
-			builder.append(primitiveNames.getString(primitive.name()));
+			final Primitive primitive = primitiveNameMap.get(name);
+			builder.append("\n\t");
+			builder.append(String.format(
+				"/* %3d */", primitive.primitiveNumber));
+			builder.append(" \"");
+			builder.append(name);
 			builder.append("\",");
 		}
 		final String namesString = builder.toString();
@@ -338,7 +424,7 @@ public final class BootstrapGenerator
 		assert fileName.getPath().endsWith(".avail");
 		final PrintWriter writer = new PrintWriter(fileName, "UTF-8");
 		generateSpecialObjectModulePreamble(versions, writer);
-		// TODO: [TLS] Finish this!
+		generateSpecialObjectModuleBody(writer);
 		writer.close();
 	}
 
@@ -428,10 +514,17 @@ public final class BootstrapGenerator
 			final AvailObject specialObject = specialObjects.get(i);
 			if (specialObject != null)
 			{
-				final String key = "specialObject" + i;
+				final String key = specialObjectKey(i);
 				specialObjectNameMap.put(
 					specialObjectNames.getString(key), specialObject);
 			}
+		}
+
+		// Map localized names to the primitives.
+		for (final Primitive primitive : Primitive.values())
+		{
+			primitiveNameMap.put(
+				primitiveNames.getString(primitive.name()), primitive);
 		}
 	}
 
