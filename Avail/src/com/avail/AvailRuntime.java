@@ -149,6 +149,18 @@ public final class AvailRuntime
 	 */
 	private final @NotNull AvailObject[] specialObjects = new AvailObject[100];
 
+	/**
+	 * Answer the {@linkplain AvailObject special objects} of the {@linkplain
+	 * AvailRuntime runtime} as an {@linkplain
+	 * Collections#unmodifiableList(List) immutable} {@linkplain List list}.
+	 *
+	 * @return The special objects.
+	 */
+	public @NotNull List<AvailObject> specialObjects ()
+	{
+		return Collections.unmodifiableList(Arrays.asList(specialObjects));
+	}
+
 	/*
 	 * Set up the special objects.
 	 */

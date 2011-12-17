@@ -1,0 +1,121 @@
+/*
+ * Special Objects.avail
+ * Copyright (c) 2011, Mark van Gulik.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/*
+ * GENERATED FILE
+ * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
+ * * Last Generated On: 2011.12.17 16:15:24.853 -0600
+ *
+ * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
+ */
+
+System Module "Special Objects"
+Versions
+	"dev"
+Extends
+	"Origin"
+Uses
+Names
+	/* 42 */ "abstract signature",
+	/*  1 */ "any",
+	/* 62 */ "argument node",
+	/* 53 */ "assignment node",
+	/* 11 */ "atom",
+	/* 54 */ "block node",
+	/*  2 */ "boolean",
+	/*  3 */ "character",
+	/* 38 */ "code point",
+	/*  6 */ "compiled code",
+	/*  9 */ "continuation",
+	/* 10 */ "continuation meta",
+	/* 61 */ "declaration node",
+	/* 12 */ "double",
+	/* 25 */ "effort",
+	/* 21 */ "enum meta",
+	/* 52 */ "expression node",
+	/* 13 */ "extended integer",
+	/* 18 */ "extended integer meta",
+	/* 71 */ "false",
+	/* 14 */ "false type",
+	/* 15 */ "float",
+	/* 43 */ "forward signature",
+	/*  4 */ "function",
+	/*  5 */ "function meta",
+	/* 46 */ "implementation set",
+	/* 17 */ "integer",
+	/* 63 */ "label node",
+	/* 55 */ "literal node",
+	/* 65 */ "local constant node",
+	/* 64 */ "local variable node",
+	/* 19 */ "map meta",
+	/* 51 */ "marker node",
+	/* 40 */ "message bundle",
+	/* 45 */ "message bundle tree",
+	/* 20 */ "meta",
+	/* 44 */ "method signature",
+	/* 67 */ "module constant node",
+	/* 66 */ "module variable node",
+	/* 37 */ "natural number",
+	/* 81 */ "null",
+	/* 82 */ "null type",
+	/* 22 */ "object",
+	/* 23 */ "object meta",
+	/* 50 */ "parse node",
+	/* 80 */ "pojo",
+	/* 68 */ "primitive failure reason node",
+	/* 56 */ "reference node",
+	/* 83 */ "self type",
+	/* 57 */ "send node",
+	/* 26 */ "set",
+	/* 27 */ "set meta",
+	/* 75 */ "set of string",
+	/* 41 */ "signature",
+	/* 28 */ "string",
+	/* 58 */ "super cast node",
+	/* 70 */ "true",
+	/* 31 */ "true type",
+	/* 32 */ "tuple",
+	/* 33 */ "tuple meta",
+	/* 59 */ "tuple node",
+	/* 74 */ "tuple of set of string",
+	/* 72 */ "tuple of string",
+	/* 73 */ "tuple of type",
+	/* 34 */ "type",
+	/*  7 */ "variable",
+	/*  8 */ "variable meta",
+	/* 60 */ "variable use node",
+	/* 36 */ "whole number",
+	/* 35 */ "⊤",
+	/* 29 */ "⊥",
+	/* 30 */ "⊥ meta"
+Body
+

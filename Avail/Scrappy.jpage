@@ -151,3 +151,19 @@ X.class.getConstructor()
 
 
 
+
+
+
+
+
+
+([ i : integer, s : string | Crash "Yipe!"; ] : ⊤)'s type ≤ [integer, string]→⊤
+
+([integer, string]→⊤)'s arguments' type = <integer, string..|2..2>
+([integer, string]→⊤)'s return type = ⊤
+
+
+
+
+
+

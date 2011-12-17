@@ -1,5 +1,5 @@
 /**
- * PrimitiveResourcesGenerator.java
+ * PrimitiveNamesGenerator.java
  * Copyright (c) 2011, Mark van Gulik.
  * All rights reserved.
  *
@@ -32,6 +32,8 @@
 
 package com.avail.tools.bootstrap;
 
+import static com.avail.tools.bootstrap.Resources.*;
+import static com.avail.tools.bootstrap.Resources.Key.*;
 import java.io.*;
 import java.text.MessageFormat;
 import java.util.*;
@@ -45,63 +47,16 @@ import com.avail.interpreter.Primitive;
  *
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
-public final class PrimitiveResourcesGenerator
+public final class PrimitiveNamesGenerator
 {
-	/**
-	 * The base name of the {@linkplain ResourceBundle resource bundle} that
-	 * contains the preamble.
-	 */
-	private static final @NotNull String bundleName =
-		PrimitiveResourcesGenerator.class.getPackage().getName() + ".Preamble";
+	/** The target {@linkplain Locale locale}. */
+	private final @NotNull Locale locale;
 
 	/**
-	 * The {@linkplain ResourceBundle resource bundle} that contains preamble
-	 * information.
+	 * The {@linkplain ResourceBundle resource bundle} that contains file
+	 * preamble information.
 	 */
-	private final @NotNull ResourceBundle bundle;
-
-	/**
-	 * The existing {@linkplain Properties properties}. These should be copied
-	 * into the resultant {@linkplain ResourceBundle properties resource
-	 * bundle}.
-	 */
-	private final @NotNull Properties properties;
-
-	/**
-	 * The unqualified base name of the target {@linkplain ResourceBundle
-	 * resource bundle}.
-	 */
-	private static final @NotNull String targetName = "PrimitiveResources";
-
-	/**
-	 * The qualified base name of the target {@linkplain ResourceBundle resource
-	 * bundle}.
-	 */
-	private static final @NotNull String qualifiedTargetName =
-		Primitive.class.getPackage().getName() + "." + targetName;
-
-	/**
-	 * The keys for the "Preamble" {@linkplain ResourceBundle resource bundle}.
-	 */
-	@SuppressWarnings("all")
-	static enum Key
-	{
-		copyright (targetName),
-		notice (PrimitiveResourcesGenerator.class.getName());
-
-		/** A file name. */
-		final @NotNull String fileName;
-
-		/**
-		 * Construct a new {@link Key}.
-		 *
-		 * @param fileName A file name.
-		 */
-		private Key (final String fileName)
-		{
-			this.fileName = fileName;
-		}
-	}
+	private final @NotNull ResourceBundle preambleBundle;
 
 	/**
 	 * Generate the preamble for the properties file. This includes the
@@ -113,11 +68,11 @@ public final class PrimitiveResourcesGenerator
 	private void generatePreamble (final @NotNull PrintWriter writer)
 	{
 		writer.println(MessageFormat.format(
-			bundle.getString(Key.copyright.name()),
-			Key.copyright.fileName));
+			preambleBundle.getString(propertiesCopyright.name()),
+			localName(primitivesBaseName) + "_" + locale.getLanguage()));
 		writer.println(MessageFormat.format(
-			bundle.getString(Key.notice.name()),
-			Key.notice.fileName,
+			preambleBundle.getString(generatedPropertiesNotice.name()),
+			PrimitiveNamesGenerator.class.getName(),
 			new Date()));
 	}
 
@@ -125,10 +80,16 @@ public final class PrimitiveResourcesGenerator
 	 * Write the names of the properties, whose unspecified values should be
 	 * the Avail names of the corresponding {@linkplain Primitive primitives}.
 	 *
+	 * @param properties
+	 *        The existing {@linkplain Properties properties}. These should be
+	 *        copied into the resultant {@linkplain ResourceBundle properties
+	 *        resource bundle}.
 	 * @param writer
 	 *        The {@linkplain PrintWriter output stream}.
 	 */
-	private void generateProperties (final @NotNull PrintWriter writer)
+	private void generateProperties (
+		final @NotNull Properties properties,
+		final @NotNull PrintWriter writer)
 	{
 		for (final Primitive primitive : Primitive.values())
 		{
@@ -144,23 +105,48 @@ public final class PrimitiveResourcesGenerator
 	}
 
 	/**
-	 * Construct a new {@link PrimitiveResourcesGenerator}.
+	 * Generate the target {@linkplain Properties properties} file.
+	 *
+	 * @throws IOException
+	 *         If an exceptional situation arises while reading properties.
+	 */
+	public void generate () throws IOException
+	{
+		final File fileName = new File(String.format(
+			"src/%s_%s.properties",
+			primitivesBaseName.replace('.', '/'),
+			locale.getLanguage()));
+		assert fileName.getPath().endsWith(".properties");
+		final Properties properties = new Properties();
+		try
+		{
+			properties.load(new InputStreamReader(
+				new FileInputStream(fileName), "UTF-8"));
+		}
+		catch (final FileNotFoundException e)
+		{
+			// Ignore. It's okay if the file doesn't already exist.
+		}
+		final PrintWriter writer = new PrintWriter(fileName, "UTF-8");
+		generatePreamble(writer);
+		generateProperties(properties, writer);
+		writer.close();
+	}
+
+	/**
+	 * Construct a new {@link PrimitiveNamesGenerator}.
 	 *
 	 * @param locale
 	 *        The target {@linkplain Locale locale}.
-	 * @param existingProperties
-	 *        Any properties that already exist for the target {@linkplain
-	 *        ResourceBundle resource bundle}.
 	 */
-	private PrimitiveResourcesGenerator (
-		final @NotNull Locale locale,
-		final @NotNull Properties existingProperties)
+	public PrimitiveNamesGenerator (final @NotNull Locale locale)
 	{
-		bundle = ResourceBundle.getBundle(
-			bundleName,
+		this.locale = locale;
+		this.preambleBundle = ResourceBundle.getBundle(
+			preambleBaseName,
 			locale,
-			PrimitiveResourcesGenerator.class.getClassLoader());
-		properties = existingProperties;
+			Resources.class.getClassLoader(),
+			new UTF8ResourceBundleControl());
 	}
 
 	/**
@@ -188,28 +174,9 @@ public final class PrimitiveResourcesGenerator
 
 		for (final String language : languages)
 		{
-			final File fileName = new File(String.format(
-				"src/%s_%s.properties",
-				qualifiedTargetName.replace('.', '/'),
-				language));
-			assert fileName.getPath().endsWith(".properties");
-			final Properties properties = new Properties();
-			try
-			{
-				properties.load(new InputStreamReader(
-					new FileInputStream(fileName), "UTF-8"));
-			}
-			catch (final FileNotFoundException e)
-			{
-				// Ignore. It's okay if the file doesn't already exist.
-			}
-			final PrimitiveResourcesGenerator generator =
-				new PrimitiveResourcesGenerator(
-					new Locale(language), properties);
-			final PrintWriter writer = new PrintWriter(fileName, "UTF-8");
-			generator.generatePreamble(writer);
-			generator.generateProperties(writer);
-			writer.close();
+			final PrimitiveNamesGenerator generator =
+				new PrimitiveNamesGenerator(new Locale(language));
+			generator.generate();
 		}
 	}
 }
