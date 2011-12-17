@@ -1092,9 +1092,9 @@ public enum Primitive
 
 	/**
 	 * <strong>Primitive 35:</strong> Answer a tuple type describing the
-	 * arguments accepted by the function type.
+	 * parameters accepted by the function type.
 	 */
-	prim35_FunctionTypeNumArgs(35, 1, CanFold, CannotFail)
+	prim35_ParamType(35, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -1118,10 +1118,10 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 36:</strong> Answer the type of the argument at the
+	 * <strong>Primitive 36:</strong> Answer the type of the parameter at the
 	 * given index within the given functionType.
 	 */
-	prim36_ArgTypeAt(36, 2, CanFold)
+	prim36_ParamTypeAt(36, 2, CanFold)
 	{
 		@Override
 		public @NotNull Result attempt (
