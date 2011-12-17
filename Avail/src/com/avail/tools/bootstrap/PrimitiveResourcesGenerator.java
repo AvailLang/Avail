@@ -132,6 +132,7 @@ public final class PrimitiveResourcesGenerator
 	{
 		for (final Primitive primitive : Primitive.values())
 		{
+			writer.format("# _=%d%n", primitive.argCount());
 			writer.print(primitive.name());
 			writer.print('=');
 			if (properties.containsKey(primitive.name()))

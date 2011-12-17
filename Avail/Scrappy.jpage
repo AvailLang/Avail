@@ -5,6 +5,12 @@ abstract class A<X extends Integer, Y>
 	public abstract void S (A<? extends X, Y> b);
 }
 
+((java.lang.reflect.WildcardType)
+	((java.lang.reflect.ParameterizedType)
+		A.class.getMethod("Q", A.class)
+			.getGenericParameterTypes()[0]).getActualTypeArguments()[0])
+		.getLowerBounds()
+
 
 class IntMap extends java.util.HashMap<Integer, Integer> { }
 class XIntMap<X extends Integer, Y extends X, Z extends Comparable<Y>> extends IntMap { }
@@ -16,6 +22,9 @@ java.lang.reflect.TypeVariable varX = (java.lang.reflect.TypeVariable)
 	varY.getBounds()[0];
 varX.getBounds()
 
+class A<X> { }
+class B<X> extends A<X> { }
+class C<X> extends B<A<C<X>>> { }
 
 class QQ
 {
@@ -134,4 +143,11 @@ list.add(3);
 (Integer[]) list.toArray()
 
 
-class X<A, B extends X<A, B>> { }
+class X<A, B>
+{
+	public X () { }
+}
+X.class.getConstructor()
+
+
+

@@ -479,17 +479,18 @@ extends TypeDescriptor
 	/**
 	 * Create the {@linkplain MapDescriptor map} from the fully-qualified
 	 * {@linkplain TypeVariable type variable} {@linkplain StringDescriptor
-	 * names} to their {@linkplain TypeDescriptor upper bounds}.
+	 * names} declared by the specified {@linkplain GenericDeclaration Java
+	 * element} to their {@linkplain TypeDescriptor upper bounds}.
 	 *
-	 * @param rawType
-	 *        A raw {@linkplain Class Java type}.
+	 * @param javaElement
+	 *        A Java element.
 	 * @return A new {@linkplain ObjectSlots#UPPER_BOUND_MAP upper bound map}.
 	 */
 	public static @NotNull AvailObject createUpperBoundMap (
-		final @NotNull Class<?> rawType)
+		final @NotNull GenericDeclaration javaElement)
 	{
 		AvailObject typeVarMap = MapDescriptor.empty();
-		final TypeVariable<?>[] typeVars = rawType.getTypeParameters();
+		final TypeVariable<?>[] typeVars = javaElement.getTypeParameters();
 		if (typeVars.length > 0)
 		{
 			final Map<Class<?>, AvailObject> rawTypeMap =
@@ -1570,9 +1571,9 @@ extends TypeDescriptor
 			final Type[] superVars = supertype.getActualTypeArguments();
 			for (final Type weakSuperVar : superVars)
 			{
-				// If weakSuperVar is a Class, then it is fully specified.
-				// Adjust rawTypeMap if necessary and append the appropriate
-				// raw pojo to the propagation list.
+				// If weakSuperVar is a Class (e.g. String), then it is fully
+				// specified. Adjust rawTypeMap if necessary and append the
+				// appropriate raw pojo to the propagation list.
 				if (weakSuperVar instanceof Class<?>)
 				{
 					final AvailObject pojoType =
@@ -1598,6 +1599,13 @@ extends TypeDescriptor
 						}
 					}
 					assert propagationSucceeded;
+				}
+				// If weakSuperVar is a ParameterizedType (e.g. List<String>),
+				// then it may be recursively specified in terms of Classes and
+				// already encountered TypeVariables.
+				else if (weakSuperVar instanceof ParameterizedType)
+				{
+					// TODO: [TLS] Implement this!
 				}
 				// This probably shouldn't happen ...
 				else

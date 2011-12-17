@@ -7857,7 +7857,12 @@ public enum Primitive
 			}
 			assert constructor != null;
 
-			// TODO: [TLS] Must handle generic types.
+			// TODO: [TLS] Must finish handling generic types!
+			final AvailObject upperBoundMap =
+				MapDescriptor.combineMapsCanDestroy(
+					pojoType.upperBoundMap(),
+					PojoTypeDescriptor.createUpperBoundMap(constructor),
+					false);
 
 			final List<AvailObject> marshaledTypePojos =
 				new ArrayList<AvailObject>(marshaledTypes.length);

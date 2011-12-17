@@ -848,6 +848,48 @@ extends Descriptor
 	}
 
 	/**
+	 * Combine the two {@linkplain MapDescriptor maps} into a single map,
+	 * destroying the destination if possible and appropriate.
+	 *
+	 * @param destination
+	 *        The destination map.
+	 * @param source
+	 *        The source map.
+	 * @param canDestroy
+	 *        {@code true} if the operation is permitted to modify the
+	 *        destination map in situ (if it is mutable), {@code false}
+	 *        otherwise.
+	 * @return The resultant map.
+	 */
+	public static @NotNull AvailObject combineMapsCanDestroy (
+		final @NotNull AvailObject destination,
+		final @NotNull AvailObject source,
+		final boolean canDestroy)
+	{
+		assert destination.isMap();
+		assert source.isMap();
+
+		AvailObject target =
+			canDestroy && destination.descriptor.isMutable()
+			? destination
+			: empty();
+		if (target != destination)
+		{
+			for (final AvailObject key : destination.keysAsSet())
+			{
+				target = target.mapAtPuttingCanDestroy(
+					key, destination.mapAt(key), true);
+			}
+		}
+		for (final AvailObject key : source.keysAsSet())
+		{
+			target = target.mapAtPuttingCanDestroy(
+				key, source.mapAt(key), canDestroy);
+		}
+		return target;
+	}
+
+	/**
 	 * Construct a new {@link MapDescriptor}.
 	 *
 	 * @param isMutable
