@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2011.12.17 17:05:16.998 -0600
+ * * Last Generated On: 2011.12.20 17:16:42.485 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -45,11 +45,8 @@ Extends
 	"Origin"
 Uses
 Names
-	/* 503 */ "",
 	/*  51 */ "$_",
 	/*  13 */ "&:=_",
-	/*  10 */ "*_",
-	/*  11 */ "*_:=_",
 	/*  12 */ "*_:=nil",
 	/*  17 */ "*_=nil",
 	/*  72 */ "_'s compiled code",
@@ -59,48 +56,336 @@ Names
 	/*  67 */ "_'s name",
 	/*  69 */ "_'s names",
 	/*  73 */ "_'s outer variables",
-	/*  36 */ "_'s parameter_'s type",
 	/*  35 */ "_'s parameters' type",
 	/*  20 */ "_'s priority",
-	/*  26 */ "_'s process variable_",
 	/*  14 */ "_'s read type",
 	/*  37 */ "_'s return type",
 	/*  30 */ "_'s type",
 	/*   9 */ "_'s upper bound",
 	/*  19 */ "_'s write type",
-	/*   1 */ "_+_",
-	/*   2 */ "_-_",
 	/*   5 */ "_<_",
 	/*  60 */ "_=_",
 	/*  64 */ "_as map",
 	/*  63 */ "_as object type",
 	/*  61 */ "_as private unvalidated object",
-	/*   3 */ "_×_",
-	/*   4 */ "_÷_",
 	/*  32 */ "_∩_",
 	/*  31 */ "_∪_",
 	/*  33 */ "_≤_",
 	/*  34 */ "block type taking_and returning_",
 	/*  25 */ "current process",
-	/*  18 */ "eject_",
 	/*  66 */ "enum of_",
-	/*  57 */ "exit_with_",
 	/*  68 */ "give type_the name_",
 	/*  44 */ "if_then_",
 	/*  43 */ "if_then_else_",
 	/*  45 */ "ignore_and evaluate_",
-	/*  40 */ "invoke_with_",
 	/*  16 */ "new container of_",
 	/*   7 */ "range from_inclusive_to_inclusive_",
-	/*  58 */ "restart_",
-	/*  56 */ "restart_with_",
-	/*  23 */ "resume_",
 	/*  21 */ "set_'s priority to_",
 	/*  27 */ "set_'s process variable_to_",
-	/*  22 */ "suspend_",
-	/*  15 */ "swap_and_",
-	/*  24 */ "terminate_",
 	/*  38 */ "union of types in_",
 	/*  39 */ "⊶[…]→_"
 Body
+
+Method "_<_" is 
+[
+	arg1 : extended integer,
+	arg2 : extended integer
+|
+	Primitive 5;
+] : boolean;
+
+Method "_≤_" is 
+[
+	arg1 : extended integer,
+	arg2 : extended integer
+|
+	Primitive 6;
+] : boolean;
+
+Method "range from_inclusive_to_inclusive_" is 
+[
+	arg1 : extended integer,
+	arg2 : boolean,
+	arg3 : extended integer,
+	arg4 : boolean
+|
+	Primitive 7;
+] : extended integer meta;
+
+Method "_'s lower bound" is 
+[
+	arg1 : extended integer meta
+|
+	Primitive 8;
+] : extended integer;
+
+Method "_'s upper bound" is 
+[
+	arg1 : extended integer meta
+|
+	Primitive 9;
+] : extended integer;
+
+Method "*_:=nil" is 
+[
+	arg1 : variable
+|
+	Primitive 12;
+] : ⊤;
+
+Method "&:=_" is 
+[
+	arg1 : type
+|
+	Primitive 13;
+] : variable meta;
+
+Method "_'s read type" is 
+[
+	arg1 : variable meta
+|
+	Primitive 14;
+] : type;
+
+Method "new container of_" is 
+[
+	arg1 : type
+|
+	Primitive 16;
+] : variable;
+
+Method "*_=nil" is 
+[
+	arg1 : variable
+|
+	Primitive 17;
+] : boolean;
+
+Method "_'s write type" is 
+[
+	arg1 : variable meta
+|
+	Primitive 19;
+] : type;
+
+Method "_'s priority" is 
+[
+	arg1 : narrative
+|
+	Primitive 20;
+] : extended integer;
+
+Method "set_'s priority to_" is 
+[
+	arg1 : narrative,
+	arg2 : extended integer
+|
+	Primitive 21;
+] : ⊤;
+
+Method "current process" is 
+[
+	Primitive 25;
+] : narrative;
+
+Method "set_'s process variable_to_" is 
+[
+	arg1 : narrative,
+	arg2 : atom,
+	arg3 : any
+|
+	Primitive 27;
+] : ⊤;
+
+Method "_'s instances" is 
+[
+	arg1 : enum meta
+|
+	Primitive 29;
+] : set;
+
+Method "_'s type" is 
+[
+	arg1 : any
+|
+	Primitive 30;
+] : enum meta;
+
+Method "_∪_" is 
+[
+	arg1 : type,
+	arg2 : type
+|
+	Primitive 31;
+] : type;
+
+Method "_∩_" is 
+[
+	arg1 : type,
+	arg2 : type
+|
+	Primitive 32;
+] : type;
+
+Method "_≤_" is 
+[
+	arg1 : type,
+	arg2 : type
+|
+	Primitive 33;
+] : boolean;
+
+Method "block type taking_and returning_" is 
+[
+	arg1 : tuple of type,
+	arg2 : type
+|
+	Primitive 34;
+] : function meta;
+
+Method "_'s parameters' type" is 
+[
+	arg1 : function meta
+|
+	Primitive 35;
+] : tuple meta;
+
+Method "_'s return type" is 
+[
+	arg1 : function meta
+|
+	Primitive 37;
+] : type;
+
+Method "union of types in_" is 
+[
+	arg1 : tuple of type
+|
+	Primitive 38;
+] : type;
+
+Method "⊶[…]→_" is 
+[
+	arg1 : type
+|
+	Primitive 39;
+] : function meta;
+
+Method "if_then_else_" is 
+[
+	arg1 : boolean,
+	arg2 : null,
+	arg3 : null
+|
+	Primitive 43;
+] : ⊤;
+
+Method "if_then_" is 
+[
+	arg1 : boolean,
+	arg2 : null
+|
+	Primitive 44;
+] : ⊤;
+
+Method "ignore_and evaluate_" is 
+[
+	arg1 : boolean,
+	arg2 : null
+|
+	Primitive 45;
+] : boolean;
+
+Method "_'s function type" is 
+[
+	arg1 : continuation meta
+|
+	Primitive 50;
+] : function meta;
+
+Method "$_" is 
+[
+	arg1 : function meta
+|
+	Primitive 51;
+] : continuation meta;
+
+Method "_=_" is 
+[
+	arg1 : any,
+	arg2 : any
+|
+	Primitive 60;
+] : boolean;
+
+Method "_as private unvalidated object" is 
+[
+	arg1 : null
+|
+	Primitive 61;
+] : object;
+
+Method "_as map" is 
+[
+	arg1 : object
+|
+	Primitive 62;
+] : null;
+
+Method "_as object type" is 
+[
+	arg1 : null
+|
+	Primitive 63;
+] : object meta;
+
+Method "_as map" is 
+[
+	arg1 : object meta
+|
+	Primitive 64;
+] : null;
+
+Method "enum of_" is 
+[
+	arg1 : type
+|
+	Primitive 66;
+] : null;
+
+Method "_'s name" is 
+[
+	arg1 : type
+|
+	Primitive 67;
+] : string;
+
+Method "give type_the name_" is 
+[
+	arg1 : object meta,
+	arg2 : string
+|
+	Primitive 68;
+] : ⊤;
+
+Method "_'s names" is 
+[
+	arg1 : object meta
+|
+	Primitive 69;
+] : set of string;
+
+Method "_'s compiled code" is 
+[
+	arg1 : function
+|
+	Primitive 72;
+] : compiled code;
+
+Method "_'s outer variables" is 
+[
+	arg1 : function
+|
+	Primitive 73;
+] : tuple;
 

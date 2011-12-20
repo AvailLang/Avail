@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2011.12.17 17:05:16.970 -0600
+ * * Last Generated On: 2011.12.20 17:16:42.466 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -45,6 +45,7 @@ Extends
 	"Origin"
 Uses
 Names
+	/* 78 */ "-∞",
 	/* 42 */ "abstract signature",
 	/*  1 */ "any",
 	/* 62 */ "argument node",
@@ -59,7 +60,6 @@ Names
 	/* 10 */ "continuation meta",
 	/* 61 */ "declaration node",
 	/* 12 */ "double",
-	/* 25 */ "effort",
 	/* 21 */ "enum meta",
 	/* 52 */ "expression node",
 	/* 13 */ "extended integer",
@@ -84,6 +84,7 @@ Names
 	/* 44 */ "method signature",
 	/* 67 */ "module constant node",
 	/* 66 */ "module variable node",
+	/* 25 */ "narrative",
 	/* 37 */ "natural number",
 	/* 81 */ "null",
 	/* 82 */ "null type",
@@ -91,6 +92,7 @@ Names
 	/* 23 */ "object meta",
 	/* 50 */ "parse node",
 	/* 80 */ "pojo",
+	/* 76 */ "primitive failure function",
 	/* 68 */ "primitive failure reason node",
 	/* 56 */ "reference node",
 	/* 83 */ "self type",
@@ -114,6 +116,7 @@ Names
 	/*  8 */ "variable meta",
 	/* 60 */ "variable use node",
 	/* 36 */ "whole number",
+	/* 79 */ "∞",
 	/* 35 */ "⊤",
 	/* 29 */ "⊥",
 	/* 30 */ "⊥ meta"
@@ -141,17 +144,17 @@ _meta                          ::= special object 20;
 _enum_meta                     ::= special object 21;
 _object                        ::= special object 22;
 _object_meta                   ::= special object 23;
-_effort                        ::= special object 25;
+_narrative                     ::= special object 25;
 _set                           ::= special object 26;
 _set_meta                      ::= special object 27;
 _string                        ::= special object 28;
-_⊥                             ::= special object 29;
-_⊥_meta                        ::= special object 30;
+_bottom                        ::= special object 29;
+_bottom_meta                   ::= special object 30;
 _true_type                     ::= special object 31;
 _tuple                         ::= special object 32;
 _tuple_meta                    ::= special object 33;
 _type                          ::= special object 34;
-_⊤                             ::= special object 35;
+_top                           ::= special object 35;
 _whole_number                  ::= special object 36;
 _natural_number                ::= special object 37;
 _code_point                    ::= special object 38;
@@ -187,6 +190,9 @@ _tuple_of_string               ::= special object 72;
 _tuple_of_type                 ::= special object 73;
 _tuple_of_set_of_string        ::= special object 74;
 _set_of_string                 ::= special object 75;
+_primitive_failure_function    ::= special object 76;
+_negative_infinity             ::= special object 78;
+_positive_infinity             ::= special object 79;
 _pojo                          ::= special object 80;
 _null                          ::= special object 81;
 _null_type                     ::= special object 82;
@@ -302,9 +308,9 @@ Method "object meta" is
 	_object_meta;
 ];
 
-Method "effort" is 
+Method "narrative" is 
 [
-	_effort;
+	_narrative;
 ];
 
 Method "set" is 
@@ -324,12 +330,12 @@ Method "string" is
 
 Method "⊥" is 
 [
-	_⊥;
+	_bottom;
 ];
 
 Method "⊥ meta" is 
 [
-	_⊥_meta;
+	_bottom_meta;
 ];
 
 Method "true type" is 
@@ -352,9 +358,15 @@ Method "type" is
 	_type;
 ];
 
+/**
+ * The abstract root of the Avail type lattice. Pronounced "top".
+ *
+ * Returns:
+ *    The root type.
+ */
 Method "⊤" is 
 [
-	_⊤;
+	_top;
 ];
 
 Method "whole number" is 
@@ -530,6 +542,21 @@ Method "tuple of set of string" is
 Method "set of string" is 
 [
 	_set_of_string;
+];
+
+Method "primitive failure function" is 
+[
+	_primitive_failure_function;
+];
+
+Method "-∞" is 
+[
+	_negative_infinity;
+];
+
+Method "∞" is 
+[
+	_positive_infinity;
 ];
 
 Method "pojo" is 

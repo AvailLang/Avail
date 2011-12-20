@@ -95,6 +95,7 @@ public final class SpecialObjectNamesGenerator
 		AvailObject.createAllWellKnownObjects();
 		final List<AvailObject> specialObjects =
 			new AvailRuntime(null).specialObjects();
+		final Set<String> keys = new HashSet<String>();
 		for (int i = 0; i < specialObjects.size(); i++)
 		{
 			final AvailObject specialObject = specialObjects.get(i);
@@ -105,14 +106,43 @@ public final class SpecialObjectNamesGenerator
 				writer.print("# ");
 				writer.print(text);
 				writer.println();
-				final String key = "specialObject" + i;
+				final String key = specialObjectKey(i);
+				keys.add(key);
 				writer.print(key);
 				writer.print('=');
 				if (properties.containsKey(key))
 				{
-					writer.print(properties.getProperty(key));
+					writer.print(escape(properties.getProperty(key)));
 				}
 				writer.println();
+				final String alphabeticKey = specialObjectAlphabeticKey(i);
+				if (properties.containsKey(alphabeticKey))
+				{
+					keys.add(alphabeticKey);
+					writer.print(alphabeticKey);
+					writer.print('=');
+					writer.println(
+						escape(properties.getProperty(alphabeticKey)));
+				}
+				final String commentKey = specialObjectCommentKey(i);
+				if (properties.containsKey(commentKey))
+				{
+					keys.add(commentKey);
+					writer.print(commentKey);
+					writer.print('=');
+					writer.println(escape(properties.getProperty(commentKey)));
+				}
+			}
+		}
+		for (final Object property : properties.keySet())
+		{
+			final String key = (String) property;
+			if (!keys.contains(key))
+			{
+				keys.add(key);
+				writer.print(key);
+				writer.print('=');
+				writer.println(escape(properties.getProperty(key)));
 			}
 		}
 	}

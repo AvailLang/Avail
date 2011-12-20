@@ -34,6 +34,7 @@ package com.avail.tools.bootstrap;
 
 import static com.avail.tools.bootstrap.Resources.*;
 import static com.avail.tools.bootstrap.Resources.Key.*;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.io.*;
 import java.text.MessageFormat;
 import java.util.*;
@@ -91,13 +92,13 @@ public final class BootstrapGenerator
 	 * The {@linkplain ResourceBundle resource bundle} that contains the Avail
 	 * names of the special objects.
 	 */
-	private final @NotNull ResourceBundle specialObjectNames;
+	private final @NotNull ResourceBundle specialObjectBundle;
 
 	/**
 	 * The {@linkplain ResourceBundle resource bundle} that contains the Avail
 	 * names of the {@linkplain Primitive primitives}.
 	 */
-	private final @NotNull ResourceBundle primitiveNames;
+	private final @NotNull ResourceBundle primitiveBundle;
 
 	/**
 	 * Answer a textual representation of the specified version {@linkplain
@@ -152,8 +153,14 @@ public final class BootstrapGenerator
 	/**
 	 * A {@linkplain Map map} from localized names to Avail special objects.
 	 */
-	private final @NotNull Map<String, AvailObject> specialObjectNameMap =
+	private final @NotNull Map<String, AvailObject> specialObjectsByName =
 		new HashMap<String, AvailObject>(specialObjects.size());
+
+	/**
+	 * A {@linkplain Map map} from Avail special objects to localized names.
+	 */
+	private final @NotNull Map<AvailObject, String> namesBySpecialObject =
+		new HashMap<AvailObject, String>(specialObjects.size());
 
 	/**
 	 * Answer a textual representation of the special objects that is
@@ -165,12 +172,12 @@ public final class BootstrapGenerator
 	private @NotNull String specialObjectsNamesString ()
 	{
 		final List<String> names = new ArrayList<String>(
-			new ArrayList<String>(specialObjectNameMap.keySet()));
+			new ArrayList<String>(specialObjectsByName.keySet()));
 		Collections.sort(names);
 		final StringBuilder builder = new StringBuilder();
 		for (final String name : names)
 		{
-			final AvailObject specialObject = specialObjectNameMap.get(name);
+			final AvailObject specialObject = specialObjectsByName.get(name);
 			builder.append("\n\t");
 			builder.append(String.format(
 				"/* %2d */", specialObjectIndexMap.get(specialObject)));
@@ -213,20 +220,6 @@ public final class BootstrapGenerator
 	}
 
 	/**
-	 * Answer the key for the special object given by index.
-	 *
-	 * @param index
-	 *        The special object index.
-	 * @return A key that may be used to access the Avail name of the special
-	 *         object in the appropriate {@linkplain ResourceBundle resource
-	 *         bundle}.
-	 */
-	private @NotNull String specialObjectKey (final int index)
-	{
-		return "specialObject" + index;
-	}
-
-	/**
 	 * Generate the body of the special object linking {@linkplain
 	 * ModuleDescriptor module}.
 	 *
@@ -238,7 +231,7 @@ public final class BootstrapGenerator
 	{
 		// Find the length of the longest name.
 		int length = 0;
-		for (final String name : specialObjectNameMap.keySet())
+		for (final String name : specialObjectsByName.keySet())
 		{
 			length = Math.max(length, name.length() + 1);
 		}
@@ -246,15 +239,15 @@ public final class BootstrapGenerator
 		// Emit the module constants that capture the special objects.
 		for (int i = 0; i < specialObjects.size(); i++)
 		{
-			// TODO: [TLS] Prevent emission of non-identifier characters in
-			// constant names, e.g. ⊤, ⊥. Might need to introduce new names in
-			// the properties file (and make arrangements not to lose them when
-			// the file is regenerated).
 			if (specialObjects.get(i) != null)
 			{
-				final String key = specialObjectKey(i);
+				final String key =
+					specialObjectBundle.containsKey(
+						specialObjectAlphabeticKey(i))
+					? specialObjectAlphabeticKey(i)
+					: specialObjectKey(i);
 				final String constantName =
-					"_" + specialObjectNames.getString(key).replace(' ', '_');
+					"_" + specialObjectBundle.getString(key).replace(' ', '_');
 				final int pad = length - constantName.length();
 				final String format = pad > 0
 					? "%s%" + pad + "s ::= %s;\n"
@@ -273,12 +266,22 @@ public final class BootstrapGenerator
 		{
 			if (specialObjects.get(i) != null)
 			{
-				final String key = specialObjectKey(i);
+				final String commentKey = specialObjectCommentKey(i);
+				if (specialObjectBundle.containsKey(commentKey))
+				{
+					writer.print(specialObjectBundle.getString(commentKey));
+				}
+				final String key =
+					specialObjectBundle.containsKey(
+						specialObjectAlphabeticKey(i))
+					? specialObjectAlphabeticKey(i)
+					: specialObjectKey(i);
 				final String constantName =
-					"_" + specialObjectNames.getString(key).replace(' ', '_');
+					"_" + specialObjectBundle.getString(key).replace(' ', '_');
 				writer.println(MessageFormat.format(
 					preamble.getString(definingMethodUse.name()),
-					String.format("\"%s\"", specialObjectNames.getString(key)),
+					stringify(
+						specialObjectBundle.getString(specialObjectKey(i))),
 					String.format("\n[\n\t%s;\n];\n", constantName)));
 			}
 		}
@@ -323,6 +326,7 @@ public final class BootstrapGenerator
 	private @NotNull String primitivesNamesString (
 		final @NotNull List<Primitive> primitives)
 	{
+		final Set<Primitive> wanted = new HashSet<Primitive>(primitives);
 		final List<String> names = new ArrayList<String>(
 			new ArrayList<String>(primitiveNameMap.keySet()));
 		Collections.sort(names);
@@ -330,12 +334,15 @@ public final class BootstrapGenerator
 		for (final String name : names)
 		{
 			final Primitive primitive = primitiveNameMap.get(name);
-			builder.append("\n\t");
-			builder.append(String.format(
-				"/* %3d */", primitive.primitiveNumber));
-			builder.append(" \"");
-			builder.append(name);
-			builder.append("\",");
+			if (wanted.contains(primitive))
+			{
+				builder.append("\n\t");
+				builder.append(String.format(
+					"/* %3d */", primitive.primitiveNumber));
+				builder.append(" \"");
+				builder.append(name);
+				builder.append("\",");
+			}
 		}
 		final String namesString = builder.toString();
 		return namesString.substring(0, namesString.length() - 1);
@@ -377,6 +384,350 @@ public final class BootstrapGenerator
 				"\n\t\"%s\"",
 				preamble.getString(originModuleName.name())),
 			primitivesNamesString(primitives(fallible))));
+	}
+
+	/**
+	 * Answer the method parameter declarations for the specified {@linkplain
+	 * Primitive primitive}.
+	 *
+	 * @param primitive
+	 *        A primitive.
+	 * @return The textual representation of the primitive method's parameters
+	 *         (indent=1).
+	 */
+	private @NotNull String primitiveMethodParameterDeclarations (
+		final @NotNull Primitive primitive)
+	{
+		final StringBuilder builder = new StringBuilder();
+		final AvailObject functionType = primitive.blockTypeRestriction();
+		final AvailObject parameterTypes = functionType.argsTupleType();
+		final AvailObject parameterCount = parameterTypes.sizeRange();
+		assert parameterCount.lowerBound().equals(
+				parameterCount.upperBound())
+			: String.format(
+				"Expected %s to have a fixed parameter count",
+				primitive.name());
+		for (
+			int i = 1, end = parameterCount.lowerBound().extractInt();
+			i <= end;
+			i++)
+		{
+			final String argNameKey = primitiveParameterNameKey(primitive, i);
+			final String argName = primitiveBundle.containsKey(argNameKey)
+				? primitiveBundle.getString(argNameKey)
+				: preamble.getString(parameterPrefix.name()) + i;
+			final AvailObject type = parameterTypes.typeAtIndex(i);
+			final String typeName = namesBySpecialObject.get(type);
+			assert typeName != null
+				: String.format("no special object for %s", type);
+			builder.append('\t');
+			builder.append(argName);
+			builder.append(" : ");
+			builder.append(typeName);
+			if (i != end)
+			{
+				builder.append(',');
+			}
+			builder.append('\n');
+		}
+		return builder.toString();
+	}
+
+	/**
+	 * Answer the method statements for the specified {@linkplain Primitive
+	 * primitive}.
+	 *
+	 * @param primitive
+	 *        A primitive.
+	 * @return The textual representation of the primitive's statements
+	 *         (indent=1).
+	 */
+	private @NotNull String primitiveMethodStatements (
+		final @NotNull Primitive primitive)
+	{
+		final StringBuilder builder = new StringBuilder();
+		builder.append('\t');
+		builder.append(preamble.getString(primitiveKeyword.name()));
+		builder.append(' ');
+		builder.append(primitive.primitiveNumber);
+		if (!primitive.hasFlag(Flag.CannotFail))
+		{
+			final String varTypeName = namesBySpecialObject.get(
+				primitive.failureVariableType());
+			assert varTypeName != null
+				: String.format("no special object for %s", varTypeName);
+			builder.append(" (");
+			builder.append(
+				preamble.getString(primitiveFailureVariableName.name()));
+			builder.append(" : ");
+			builder.append(varTypeName);
+			builder.append(')');
+		}
+		builder.append(";\n");
+		if (!primitive.hasFlag(Flag.CannotFail))
+		{
+			builder.append('\t');
+			builder.append(MessageFormat.format(
+				preamble.getString(
+					invokePrimitiveFailureFunctionMethodUse.name()),
+				preamble.getString(primitiveFailureFunctionName.name()),
+				preamble.getString(primitiveFailureVariableName.name())));
+			builder.append(";\n");
+		}
+		return builder.toString();
+	}
+
+	/**
+	 * Answer a block that contains the specified (already formatted) parameter
+	 * declarations and (already formatted) statements.
+	 *
+	 * @param declarations
+	 *        The parameter declarations.
+	 * @param statements
+	 *        The block's statements.
+	 * @param returnType
+	 *        The return type.
+	 * @return A textual representation of the block (indent=0).
+	 */
+	private @NotNull String block (
+		final @NotNull String declarations,
+		final @NotNull String statements,
+		final @NotNull AvailObject returnType)
+	{
+		final StringBuilder builder = new StringBuilder();
+		builder.append("\n[\n");
+		builder.append(declarations);
+		if (!declarations.isEmpty())
+		{
+			builder.append("|\n");
+		}
+		builder.append(statements);
+		builder.append("] : ");
+		final String returnTypeName = namesBySpecialObject.get(returnType);
+		assert returnTypeName != null
+			: String.format("no special object for %s", returnTypeName);
+		builder.append(returnTypeName);
+		return builder.toString();
+	}
+
+	/**
+	 * Answer a comment for the specified {@linkplain Primitive primitive}.
+	 *
+	 * @param primitive
+	 *        A primitive.
+	 * @return A textual representation of the comment (indent=0).
+	 */
+	private @NotNull String primitiveComment (
+		final @NotNull Primitive primitive)
+	{
+		final StringBuilder builder = new StringBuilder();
+		final String commentKey = primitiveCommentKey(primitive);
+		if (primitiveBundle.containsKey(commentKey))
+		{
+			final Object[] formatArgs = new Object[primitive.argCount()];
+			for (int i = 1; i <= formatArgs.length; i++)
+			{
+				final String argNameKey =
+					primitiveParameterNameKey(primitive, i);
+				formatArgs[i - 1] = primitiveBundle.containsKey(argNameKey)
+					? primitiveBundle.getString(argNameKey)
+					: preamble.getString(parameterPrefix.name()) + i;
+			}
+			builder.append(MessageFormat.format(
+				primitiveBundle.getString(commentKey),
+				formatArgs));
+		}
+		return builder.toString();
+	}
+
+	/**
+	 * Generate a method from the specified name and block.
+	 *
+	 * @param name
+	 *        The (already localized) method name.
+	 * @param block
+	 *        The textual block (indent=0).
+	 * @param writer
+	 *        The {@linkplain PrintWriter output stream}.
+	 */
+	private void generateMethod (
+		final @NotNull String name,
+		final @NotNull String block,
+		final @NotNull PrintWriter writer)
+	{
+		writer.print(MessageFormat.format(
+			preamble.getString(definingMethodUse.name()),
+			stringify(name),
+			block));
+		writer.println(';');
+		writer.println();
+	}
+
+	/**
+	 * Generate the bootstrap {@linkplain Primitive primitive} failure method.
+	 * This will be invoked if any primitive fails during the compilation of the
+	 * bootstrap modules.
+	 *
+	 * @param writer
+	 *        The {@linkplain PrintWriter output stream}.
+	 */
+	private void generatePrimitiveFailureMethod (
+		final @NotNull PrintWriter writer)
+	{
+		final Primitive primitive = Primitive.prim256_EmergencyExit;
+		final StringBuilder statements = new StringBuilder();
+		statements.append('\t');
+		statements.append(preamble.getString(primitiveKeyword.name()));
+		statements.append(' ');
+		statements.append(primitive.primitiveNumber);
+		statements.append(";\n");
+		final String block = block(
+			primitiveMethodParameterDeclarations(primitive),
+			statements.toString(),
+			primitive.blockTypeRestriction().returnType());
+		generateMethod(
+			preamble.getString(primitiveFailureMethod.name()),
+			block,
+			writer);
+	}
+
+	/**
+	 * Generate the {@linkplain Primitive primitive} failure function.
+	 *
+	 * @param writer
+	 *        The {@linkplain PrintWriter output stream}.
+	 */
+	private void generatePrimitiveFailureFunction (final PrintWriter writer)
+	{
+		final AvailObject functionType = FunctionTypeDescriptor.create(
+			TupleDescriptor.from(
+				IntegerRangeTypeDescriptor.naturalNumbers()),
+			BottomTypeDescriptor.bottom());
+		writer.print(
+			preamble.getString(primitiveFailureFunctionName.name()));
+		writer.print(" : ");
+		writer.print(namesBySpecialObject.get(functionType));
+		writer.println(" :=");
+		writer.println("\t[");
+		writer.print("\t\t");
+		writer.print(preamble.getString(parameterPrefix.name()));
+		writer.print(1);
+		writer.print(" : ");
+		writer.println(namesBySpecialObject.get(ANY.o()));
+		writer.println("\t|");
+		writer.print("\t\t");
+		writer.print(MessageFormat.format(
+			preamble.getString(primitiveFailureMethodUse.name()),
+			preamble.getString(parameterPrefix.name()) + 1));
+		writer.println(";");
+		writer.print("\t] : ");
+		writer.print(
+			namesBySpecialObject.get(BottomTypeDescriptor.bottom()));
+		writer.println(';');
+		writer.println();
+	}
+
+	/**
+	 * Generate the bootstrap function application method that the exported
+	 * {@linkplain Primitive primitives} use to invoke the primitive failure
+	 * function.
+	 *
+	 * @param writer
+	 *        The {@linkplain PrintWriter output stream}.
+	 */
+	private void generateInvokePrimitiveFailureFunctionMethod (
+		final @NotNull PrintWriter writer)
+	{
+		final Primitive primitive = Primitive.prim40_InvokeWithTuple;
+		final StringBuilder statements = new StringBuilder();
+		statements.append('\t');
+		statements.append(preamble.getString(primitiveKeyword.name()));
+		statements.append(' ');
+		statements.append(primitive.primitiveNumber);
+		statements.append(" (");
+		statements.append(
+			preamble.getString(primitiveFailureVariableName.name()));
+		statements.append(" : ");
+		final String varTypeName = namesBySpecialObject.get(
+			primitive.failureVariableType());
+		assert varTypeName != null
+			: String.format("no special object for %s", varTypeName);
+		statements.append(varTypeName);
+		statements.append(')');
+		statements.append(";\n");
+		statements.append('\t');
+		statements.append(MessageFormat.format(
+			preamble.getString(primitiveFailureMethodUse.name()),
+			preamble.getString(primitiveFailureVariableName.name())));
+		statements.append(";\n");
+		final String block = block(
+			primitiveMethodParameterDeclarations(primitive),
+			statements.toString(),
+			BottomTypeDescriptor.bottom());
+		generateMethod(
+			preamble.getString(invokePrimitiveFailureFunctionMethod.name()),
+			block,
+			writer);
+	}
+
+	/**
+	 * Generate a linkage method for the specified {@linkplain Primitive
+	 * primitive}.
+	 *
+	 * @param primitive
+	 *        A primitive.
+	 * @param writer
+	 *        The {@linkplain PrintWriter output stream}.
+	 */
+	private void generatePrimitiveMethod (
+		final @NotNull Primitive primitive,
+		final @NotNull PrintWriter writer)
+	{
+		final String name = primitive.name();
+		if (!primitiveBundle.containsKey(name)
+			|| primitiveBundle.getString(name).isEmpty())
+		{
+			System.err.println("missing key/value: " + name);
+			return;
+		}
+
+		final String comment = primitiveComment(primitive);
+		final String block = block(
+			primitiveMethodParameterDeclarations(primitive),
+			primitiveMethodStatements(primitive),
+			primitive.blockTypeRestriction().returnType());
+		writer.print(comment);
+		generateMethod(primitiveBundle.getString(name), block, writer);
+	}
+
+	/**
+	 * Generate the body of the specified {@linkplain Primitive primitive}
+	 * module.
+	 *
+	 * @param fallible
+	 *        {@code true} to indicate the fallible primitives module, {@code
+	 *        false} to indicate the infallible primitives module.
+	 * @param writer
+	 *        The {@linkplain PrintWriter output stream}.
+	 */
+	private void generatePrimitiveModuleBody (
+		final boolean fallible,
+		final @NotNull PrintWriter writer)
+	{
+		// Generate the module variable that holds the primitive failure
+		// function.
+		if (fallible)
+		{
+			generatePrimitiveFailureMethod(writer);
+			generatePrimitiveFailureFunction(writer);
+			generateInvokePrimitiveFailureFunctionMethod(writer);
+		}
+
+		final List<Primitive> primitives = primitives(fallible);
+		for (final Primitive primitive : primitives)
+		{
+			generatePrimitiveMethod(primitive, writer);
+		}
 	}
 
 	/**
@@ -456,7 +807,7 @@ public final class BootstrapGenerator
 		assert fileName.getPath().endsWith(".avail");
 		final PrintWriter writer = new PrintWriter(fileName, "UTF-8");
 		generatePrimitiveModulePreamble(fallible, versions, writer);
-		// TODO: [TLS] Finish this!
+		generatePrimitiveModuleBody(fallible, writer);
 		writer.close();
 	}
 
@@ -497,12 +848,12 @@ public final class BootstrapGenerator
 			locale,
 			BootstrapGenerator.class.getClassLoader(),
 			control);
-		this.specialObjectNames = ResourceBundle.getBundle(
+		this.specialObjectBundle = ResourceBundle.getBundle(
 			specialObjectsBaseName,
 			locale,
 			BootstrapGenerator.class.getClassLoader(),
 			control);
-		this.primitiveNames = ResourceBundle.getBundle(
+		this.primitiveBundle = ResourceBundle.getBundle(
 			primitivesBaseName,
 			locale,
 			BootstrapGenerator.class.getClassLoader(),
@@ -515,16 +866,23 @@ public final class BootstrapGenerator
 			if (specialObject != null)
 			{
 				final String key = specialObjectKey(i);
-				specialObjectNameMap.put(
-					specialObjectNames.getString(key), specialObject);
+				final String value = specialObjectBundle.getString(key);
+				if (value != null && !value.isEmpty())
+				{
+					specialObjectsByName.put(value, specialObject);
+					namesBySpecialObject.put(specialObject, value);
+				}
 			}
 		}
 
 		// Map localized names to the primitives.
 		for (final Primitive primitive : Primitive.values())
 		{
-			primitiveNameMap.put(
-				primitiveNames.getString(primitive.name()), primitive);
+			final String value = primitiveBundle.getString(primitive.name());
+			if (value != null && !value.isEmpty())
+			{
+				primitiveNameMap.put(value, primitive);
+			}
 		}
 	}
 

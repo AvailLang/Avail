@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2011.12.17 17:05:17.002 -0600
+ * * Last Generated On: 2011.12.20 17:16:42.499 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -45,62 +45,201 @@ Extends
 	"Origin"
 Uses
 Names
-	/* 503 */ "",
-	/*  51 */ "$_",
-	/*  13 */ "&:=_",
 	/*  10 */ "*_",
 	/*  11 */ "*_:=_",
-	/*  12 */ "*_:=nil",
-	/*  17 */ "*_=nil",
-	/*  72 */ "_'s compiled code",
-	/*  50 */ "_'s function type",
-	/*  29 */ "_'s instances",
-	/*   8 */ "_'s lower bound",
-	/*  67 */ "_'s name",
-	/*  69 */ "_'s names",
-	/*  73 */ "_'s outer variables",
 	/*  36 */ "_'s parameter_'s type",
-	/*  35 */ "_'s parameters' type",
-	/*  20 */ "_'s priority",
 	/*  26 */ "_'s process variable_",
-	/*  14 */ "_'s read type",
-	/*  37 */ "_'s return type",
-	/*  30 */ "_'s type",
-	/*   9 */ "_'s upper bound",
-	/*  19 */ "_'s write type",
 	/*   1 */ "_+_",
 	/*   2 */ "_-_",
-	/*   5 */ "_<_",
-	/*  60 */ "_=_",
-	/*  64 */ "_as map",
-	/*  63 */ "_as object type",
-	/*  61 */ "_as private unvalidated object",
 	/*   3 */ "_×_",
 	/*   4 */ "_÷_",
-	/*  32 */ "_∩_",
-	/*  31 */ "_∪_",
-	/*  33 */ "_≤_",
-	/*  34 */ "block type taking_and returning_",
-	/*  25 */ "current process",
 	/*  18 */ "eject_",
-	/*  66 */ "enum of_",
 	/*  57 */ "exit_with_",
-	/*  68 */ "give type_the name_",
-	/*  44 */ "if_then_",
-	/*  43 */ "if_then_else_",
-	/*  45 */ "ignore_and evaluate_",
 	/*  40 */ "invoke_with_",
-	/*  16 */ "new container of_",
-	/*   7 */ "range from_inclusive_to_inclusive_",
 	/*  58 */ "restart_",
 	/*  56 */ "restart_with_",
 	/*  23 */ "resume_",
-	/*  21 */ "set_'s priority to_",
-	/*  27 */ "set_'s process variable_to_",
 	/*  22 */ "suspend_",
 	/*  15 */ "swap_and_",
-	/*  24 */ "terminate_",
-	/*  38 */ "union of types in_",
-	/*  39 */ "⊶[…]→_"
+	/*  24 */ "terminate_"
 Body
+
+Method "Private fail primitive with_" is 
+[
+	arg1 : any
+|
+	Primitive 256;
+] : ⊥;
+
+_fail_primitive : primitive failure function :=
+	[
+		arg1 : any
+	|
+		Private fail primitive with arg1;
+	] : ⊥;
+
+Method "Private invoke_with«_‡,»" is 
+[
+	arg1 : function,
+	arg2 : tuple
+|
+	Primitive 40 (failureCode : natural number);
+	Private fail primitive with failureCode;
+] : ⊥;
+
+/**
+ * Compute and answer the sum of the arguments.
+ *
+ * Parameters:
+ *    augend - The augend.
+ *    addend - The addend.
+ * Returns:
+ *    The sum of the augend and the addend.
+ */
+Method "_+_" is 
+[
+	augend : extended integer,
+	addend : extended integer
+|
+	Primitive 1 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode;
+] : extended integer;
+
+Method "_-_" is 
+[
+	arg1 : extended integer,
+	arg2 : extended integer
+|
+	Primitive 2 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode;
+] : extended integer;
+
+Method "_×_" is 
+[
+	arg1 : extended integer,
+	arg2 : extended integer
+|
+	Primitive 3 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode;
+] : extended integer;
+
+Method "_÷_" is 
+[
+	arg1 : extended integer,
+	arg2 : extended integer
+|
+	Primitive 4 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode;
+] : extended integer;
+
+Method "*_" is 
+[
+	arg1 : variable
+|
+	Primitive 10 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode;
+] : any;
+
+Method "*_:=_" is 
+[
+	arg1 : variable,
+	arg2 : any
+|
+	Primitive 11 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode;
+] : ⊤;
+
+Method "swap_and_" is 
+[
+	arg1 : variable,
+	arg2 : variable
+|
+	Primitive 15 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode;
+] : ⊤;
+
+Method "eject_" is 
+[
+	arg1 : variable
+|
+	Primitive 18 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode;
+] : any;
+
+Method "suspend_" is 
+[
+	arg1 : narrative
+|
+	Primitive 22 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode;
+] : ⊤;
+
+Method "resume_" is 
+[
+	arg1 : narrative
+|
+	Primitive 23 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode;
+] : ⊤;
+
+Method "terminate_" is 
+[
+	arg1 : narrative
+|
+	Primitive 24 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode;
+] : ⊤;
+
+Method "_'s process variable_" is 
+[
+	arg1 : narrative,
+	arg2 : atom
+|
+	Primitive 26 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode;
+] : any;
+
+Method "_'s parameter_'s type" is 
+[
+	arg1 : function meta,
+	arg2 : natural number
+|
+	Primitive 36 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode;
+] : type;
+
+Method "invoke_with_" is 
+[
+	arg1 : function,
+	arg2 : tuple
+|
+	Primitive 40 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode;
+] : ⊤;
+
+Method "restart_with_" is 
+[
+	arg1 : continuation,
+	arg2 : tuple
+|
+	Primitive 56 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode;
+] : ⊥;
+
+Method "exit_with_" is 
+[
+	arg1 : continuation,
+	arg2 : any
+|
+	Primitive 57 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode;
+] : ⊥;
+
+Method "restart_" is 
+[
+	arg1 : continuation
+|
+	Primitive 58 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode;
+] : ⊥;
 

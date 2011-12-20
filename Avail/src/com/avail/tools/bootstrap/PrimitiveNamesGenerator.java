@@ -91,16 +91,50 @@ public final class PrimitiveNamesGenerator
 		final @NotNull Properties properties,
 		final @NotNull PrintWriter writer)
 	{
+		final Set<String> keys = new HashSet<String>();
 		for (final Primitive primitive : Primitive.values())
 		{
+			keys.add(primitive.name());
 			writer.format("# _=%d%n", primitive.argCount());
 			writer.print(primitive.name());
 			writer.print('=');
 			if (properties.containsKey(primitive.name()))
 			{
-				writer.print(properties.getProperty(primitive.name()));
+				writer.print(escape(properties.getProperty(primitive.name())));
 			}
 			writer.println();
+			for (int i = 1; i <= primitive.argCount(); i++)
+			{
+				final String argNameKey =
+					primitiveParameterNameKey(primitive, i);
+				if (properties.containsKey(argNameKey))
+				{
+					keys.add(argNameKey);
+					writer.print(argNameKey);
+					writer.print('=');
+					writer.println(escape(properties.getProperty(argNameKey)));
+				}
+			}
+			final String commentKey = primitiveCommentKey(primitive);
+			if (properties.containsKey(commentKey))
+			{
+				keys.add(commentKey);
+				writer.print(commentKey);
+				writer.print('=');
+				writer.println(escape(properties.getProperty(commentKey)));
+			}
+
+		}
+		for (final Object property : properties.keySet())
+		{
+			final String key = (String) property;
+			if (!keys.contains(key))
+			{
+				keys.add(key);
+				writer.print(key);
+				writer.print('=');
+				writer.println(escape(properties.getProperty(key)));
+			}
 		}
 	}
 

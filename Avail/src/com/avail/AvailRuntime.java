@@ -238,7 +238,7 @@ public final class AvailRuntime
 		specialObjects[67] = MODULE_CONSTANT_NODE.mostGeneralType();
 		specialObjects[68] = PRIMITIVE_FAILURE_REASON_NODE.mostGeneralType();
 
-		// Booleans
+		// Special values.
 		specialObjects[70] = AtomDescriptor.trueObject();
 		specialObjects[71] = AtomDescriptor.falseObject();
 
@@ -268,6 +268,17 @@ public final class AvailRuntime
 			SetTypeDescriptor.setTypeForSizesContentType(
 				IntegerRangeTypeDescriptor.wholeNumbers(),
 				TupleTypeDescriptor.stringTupleType());
+		// function taking natural number and returning bottom...
+		specialObjects[76] =
+			FunctionTypeDescriptor.create(
+				TupleDescriptor.from(
+					IntegerRangeTypeDescriptor.naturalNumbers()),
+				BottomTypeDescriptor.bottom());
+
+
+		// Special values.
+		specialObjects[78] = InfinityDescriptor.negativeInfinity();
+		specialObjects[79] = InfinityDescriptor.positiveInfinity();
 
 		// Pojo support.
 		specialObjects[80] = PojoTypeDescriptor.mostGeneralType();

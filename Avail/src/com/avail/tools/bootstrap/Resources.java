@@ -34,6 +34,7 @@ package com.avail.tools.bootstrap;
 
 import java.util.ResourceBundle;
 import com.avail.annotations.NotNull;
+import com.avail.interpreter.Primitive;
 
 /**
  * {@code Resources} centralizes {@linkplain ResourceBundle resource bundle}
@@ -82,6 +83,117 @@ final class Resources
 		return bundleName.substring(bundleName.lastIndexOf('.') + 1);
 	}
 
+	/**
+	 * Answer the argument, but embedded in double quotes (").
+	 *
+	 * @param string
+	 *        A {@linkplain String string}.
+	 * @return The argument embedded in double quotes (").
+	 */
+	public static @NotNull String stringify (final @NotNull String string)
+	{
+		return "\"" + string + "\"";
+	}
+
+	/**
+	 * Answer the key for the special object name given by {@code index}.
+	 *
+	 * @param index
+	 *        The special object index.
+	 * @return A key that may be used to access the Avail name of the special
+	 *         object in the appropriate {@linkplain ResourceBundle resource
+	 *         bundle}.
+	 */
+	public static @NotNull String specialObjectKey (final int index)
+	{
+		return "specialObject" + index;
+	}
+
+	/**
+	 * Answer the key for the purely alphabetic name of the special object given
+	 * by {@code index}.
+	 *
+	 * @param index
+	 *        The special object index.
+	 * @return A key that may be used to access a purely alphabetic Avail name
+	 *         of the special object in the appropriate {@linkplain
+	 *         ResourceBundle resource bundle}. This name should be suitable for
+	 *         use as a variable name in a system module.
+	 */
+	public static @NotNull String specialObjectAlphabeticKey (final int index)
+	{
+		return specialObjectKey(index) + "_alphabetic";
+	}
+
+	/**
+	 * Answer the key for the specified special object's comment.
+	 *
+	 * @param index
+	 *        The special object index.
+	 * @return A key that may be used to access the special object's comment in
+	 *         the appropriate {@linkplain ResourceBundle resource bundle}.
+	 */
+	public static @NotNull String specialObjectCommentKey (final int index)
+	{
+		return specialObjectKey(index) + "_comment";
+	}
+
+	/**
+	 * Answer the key for the {@code index}-th parameter name of the specified
+	 * {@linkplain Primitive primitive}.
+	 *
+	 * @param primitive
+	 *        A primitive.
+	 * @param index
+	 *        The parameter ordinal.
+	 * @return A key that may be used to access the name of the primitive's
+	 *         {@code index}-th parameter in the appropriate {@linkplain
+	 *         ResourceBundle resource bundle}.
+	 */
+	public static @NotNull String primitiveParameterNameKey (
+		final @NotNull Primitive primitive,
+		final int index)
+	{
+		return primitive.name() + "_" + index;
+	}
+
+	/**
+	 * Answer the key for the specified {@linkplain Primitive primitive}'s
+	 * comment.
+	 *
+	 * @param primitive
+	 *        A primitive.
+	 * @return A key that may be used to access the primitive method's comment
+	 *         in the appropriate {@linkplain ResourceBundle resource bundle}.
+	 */
+	public static @NotNull String primitiveCommentKey (
+		final @NotNull Primitive primitive)
+	{
+		return primitive.name() + "_comment";
+	}
+
+	/**
+	 * Escape line feed characters in the argument.
+	 *
+	 * @param propertyValue
+	 *        A property value that will be written to a properties file.
+	 * @return An appropriately escaped property value.
+	 */
+	public static @NotNull String escape (final @NotNull String propertyValue)
+	{
+		String newValue = propertyValue.replace("\n", "\\n\\\n");
+		if (newValue.indexOf('\n') != newValue.lastIndexOf('\n'))
+		{
+			newValue = "\\\n" + newValue;
+		}
+		if (newValue.endsWith("\\n\\\n"))
+		{
+			newValue = newValue.substring(0, newValue.length() - 2);
+		}
+		newValue = newValue.replace("\n ", "\n\\ ");
+		return newValue;
+	}
+
 	@SuppressWarnings("all")
 	public static enum Key
 	{
@@ -98,6 +210,14 @@ final class Resources
 		bootstrapDefiningMethod,
 		bootstrapSpecialObject,
 		definingMethodUse,
-		specialObjectUse
+		specialObjectUse,
+		parameterPrefix,
+		primitiveKeyword,
+		primitiveFailureMethod,
+		primitiveFailureMethodUse,
+		primitiveFailureVariableName,
+		primitiveFailureFunctionName,
+		invokePrimitiveFailureFunctionMethod,
+		invokePrimitiveFailureFunctionMethodUse
 	}
 }
