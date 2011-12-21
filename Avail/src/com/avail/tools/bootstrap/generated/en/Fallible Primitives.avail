@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2011.12.21 14:09:33.060 -0600
+ * * Last Generated On: 2011.12.21 16:02:44.387 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -46,8 +46,6 @@ Extends
 Uses
 Names
 	"Set primitive failure function to_",
-	/*  10 */ "*_",
-	/*  11 */ "*_:=_",
 	/*  36 */ "_'s parameter_'s type",
 	/*  26 */ "_'s process variable_",
 	/*   1 */ "_+_",
@@ -57,12 +55,13 @@ Names
 	/*  18 */ "eject_",
 	/*  57 */ "exit_with_",
 	/*  40 */ "invoke_with_",
+	/*  24 */ "request termination of_",
 	/*  58 */ "restart_",
 	/*  56 */ "restart_with_",
-	/*  23 */ "resume_",
-	/*  22 */ "suspend_",
 	/*  15 */ "swap_and_",
-	/*  24 */ "terminate_"
+	/*  23 */ "termination requested",
+	/*  10 */ "↓_",
+	/*  11 */ "↓_:=_"
 Body
 
 Method "Private fail primitive with_" is 
@@ -167,23 +166,47 @@ Method "_÷_" is
 	Private invoke _fail_primitive with failureCode;
 ] : extended integer;
 
-Method "*_" is 
+/**
+ * Answer the value contained within the specified variable.
+ *
+ * Parameters:
+ *    var - A variable.
+ * Returns:
+ *    The value contained within the specified variable.
+ */
+Method "↓_" is 
 [
-	arg1 : variable
+	var : variable
 |
 	Primitive 10 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode;
 ] : any;
 
-Method "*_:=_" is 
+/**
+ * Store `value` into the specified variable.
+ *
+ * Parameters:
+ *    var - A variable.
+ *    value - The value that should be stored into `var`.
+ */
+Method "↓_:=_" is 
 [
-	arg1 : variable,
-	arg2 : any
+	var : variable,
+	value : any
 |
 	Primitive 11 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode;
 ] : ⊤;
 
+/**
+ * Exchange the contents of the two variables. This is more efficient than
+ * using an intermediate variable, and permits additional optimizations by the
+ * virtual machine.
+ *
+ * Parameters:
+ *    arg1 - A variable.
+ *    arg2 - A variable.
+ */
 Method "swap_and_" is 
 [
 	arg1 : variable,
@@ -193,33 +216,46 @@ Method "swap_and_" is
 	Private invoke _fail_primitive with failureCode;
 ] : ⊤;
 
+/**
+ * Eject and answer the contents of the specified variable. The variable is
+ * in the unassigned state after the primitive completes.
+ *
+ * Parameters:
+ *    var - A variable.
+ * Returns:
+ *    The value ejected from the variable.
+ */
 Method "eject_" is 
 [
-	arg1 : variable
+	var : variable
 |
 	Primitive 18 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode;
 ] : any;
 
-Method "suspend_" is 
+/**
+ * Has termination of the current fiber been requested?
+ *
+ * Returns:
+ *    `true` if termination of the current fiber has been requested, `false`
+ *    otherwise.
+ */
+Method "termination requested" is 
 [
-	arg1 : narrative
-|
-	Primitive 22 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode;
-] : ⊤;
-
-Method "resume_" is 
-[
-	arg1 : narrative
-|
 	Primitive 23 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode;
-] : ⊤;
+] : boolean;
 
-Method "terminate_" is 
+/**
+ * Request termination of the specified fiber. Termination is consensual only;
+ * cooperation of the fiber is required to affect termination. 
+ *
+ * Parameters:
+ *    arg1 - A fiber.
+ */
+Method "request termination of_" is 
 [
-	arg1 : narrative
+	arg1 : fiber
 |
 	Primitive 24 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode;
@@ -227,7 +263,7 @@ Method "terminate_" is
 
 Method "_'s process variable_" is 
 [
-	arg1 : narrative,
+	arg1 : fiber,
 	arg2 : atom
 |
 	Primitive 26 (failureCode : natural number);

@@ -681,120 +681,35 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 20:</strong> Get the priority of the given {@linkplain
-	 * ProcessDescriptor process}.
+	 * <strong>Primitive 23:</strong> Has termination been requested for the
+	 * current {@linkplain ProcessDescriptor process}?
 	 */
-	prim20_GetPriority(20, 1, CanInline, CannotFail)
+	prim23_IsTerminationRequested(23, 0, Unknown)
 	{
 		@Override
 		public @NotNull Result attempt (
 			final @NotNull List<AvailObject> args,
 			final @NotNull Interpreter interpreter)
 		{
-			assert args.size() == 1;
-			final AvailObject processObject = args.get(0);
-			return interpreter.primitiveSuccess(
-				processObject.priority());
-		}
-
-		@Override
-		protected @NotNull AvailObject privateBlockTypeRestriction ()
-		{
-			return FunctionTypeDescriptor.create(
-				TupleDescriptor.from(
-					PROCESS.o()),
-				IntegerRangeTypeDescriptor.extendedIntegers());
-		}
-	},
-
-	/**
-	 * <strong>Primitive 21:</strong> Set the priority of the given {@linkplain
-	 * ProcessDescriptor process}.
-	 */
-	prim21_SetPriority(21, 2, Unknown, CannotFail)
-	{
-		@Override
-		public @NotNull Result attempt (
-			final @NotNull List<AvailObject> args,
-			final @NotNull Interpreter interpreter)
-		{
-			assert args.size() == 2;
-			final AvailObject processObject = args.get(0);
-			final AvailObject newPriority = args.get(1);
-			processObject.priority(newPriority);
-			return interpreter.primitiveSuccess(NullDescriptor.nullObject());
-		}
-
-		@Override
-		protected @NotNull AvailObject privateBlockTypeRestriction ()
-		{
-			return FunctionTypeDescriptor.create(
-				TupleDescriptor.from(
-					PROCESS.o(),
-					IntegerRangeTypeDescriptor.extendedIntegers()),
-				TOP.o());
-		}
-	},
-
-	/**
-	 * <strong>Primitive 22:</strong> Suspend the given {@linkplain
-	 * ProcessDescriptor process}. Ignore if the process is already suspended.
-	 */
-	prim22_Suspend(22, 1, Unknown)
-	{
-		@Override
-		public @NotNull Result attempt (
-			final @NotNull List<AvailObject> args,
-			final @NotNull Interpreter interpreter)
-		{
-			assert args.size() == 1;
-			@SuppressWarnings("unused")
-			final AvailObject processObject = args.get(0);
+			assert args.size() == 0;
 			return interpreter.primitiveFailure(E_NO_IMPLEMENTATION);
 		}
 
 		@Override
-		protected @NotNull AvailObject privateBlockTypeRestriction ()
+		protected AvailObject privateBlockTypeRestriction ()
 		{
 			return FunctionTypeDescriptor.create(
-				TupleDescriptor.from(
-					PROCESS.o()),
-				TOP.o());
+				TupleDescriptor.from(),
+				EnumerationTypeDescriptor.booleanObject());
 		}
 	},
 
 	/**
-	 * <strong>Primitive 23:</strong> Resume the given {@linkplain
-	 * ProcessDescriptor process}. Ignore if the process is already running.
+	 * <strong>Primitive 24:</strong> Request termination of the given
+	 * {@linkplain ProcessDescriptor process}. Ignore if the process is already
+	 * terminated.
 	 */
-	prim23_Resume(23, 1, Unknown)
-	{
-		@Override
-		public @NotNull Result attempt (
-			final @NotNull List<AvailObject> args,
-			final @NotNull Interpreter interpreter)
-		{
-			assert args.size() == 1;
-			@SuppressWarnings("unused")
-			final AvailObject processObject = args.get(0);
-			return interpreter.primitiveFailure(E_NO_IMPLEMENTATION);
-		}
-
-		@Override
-		protected @NotNull AvailObject privateBlockTypeRestriction ()
-		{
-			return FunctionTypeDescriptor.create(
-				TupleDescriptor.from(
-					PROCESS.o()),
-				TOP.o());
-		}
-	},
-
-	/**
-	 * <strong>Primitive 24:</strong> Terminate the given {@linkplain
-	 * ProcessDescriptor process}. Ignore if the process is already terminated.
-	 */
-	prim24_Terminate(24, 1, Unknown)
+	prim24_RequestTermination(24, 1, Unknown)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -6055,8 +5970,8 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 
-			final AvailObject objectToPrint = args.get(0);
-			System.out.println(objectToPrint);
+			final AvailObject string = args.get(0);
+			System.out.println(string.asNativeString());
 			return interpreter.primitiveSuccess(NullDescriptor.nullObject());
 		}
 
@@ -6065,7 +5980,7 @@ public enum Primitive
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					ANY.o()),
+					TupleTypeDescriptor.stringTupleType()),
 				TOP.o());
 		}
 	},

@@ -39,7 +39,7 @@ Names
 	"[_.._]", "[_.._)", "(_.._]", "(_.._)",
 	"_lower inclusive", "_lower bound",
 	"_upper inclusive", "_upper bound",
-	"INF", "_is finite", "_is infinite",
+	"∞", "INF", "_is finite", "_is infinite",
 	"byte",
 	"_as range"
 Body
@@ -167,14 +167,9 @@ Restriction "(_.._)" is [
 
 privateInfinity ::= extended integer upper bound;
 
-/* TODO: delete these diagnostics. */
-Print 123;
-Print [123;];
-Print range from 5 inclusive true to 6 inclusive true;
-Print [7..8];
-Print [privateInfinity..privateInfinity];
-t : [privateInfinity..privateInfinity];
-t := privateInfinity;
+Method "∞" is [
+	privateInfinity;
+] : [privateInfinity..privateInfinity];
 
 Method "INF" is [
 	privateInfinity;

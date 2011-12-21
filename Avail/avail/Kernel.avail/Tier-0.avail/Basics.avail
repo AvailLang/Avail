@@ -256,7 +256,7 @@ Method "_can't have_" is [names : setOfString, except : tupleOfSetOfString |
 ] : void;
 
 
-Method "Print_" is [something : any |
+Method "Print_" is [something : string |
 	Primitive 258;
 ] : void;
 
@@ -307,3 +307,7 @@ Method "Assert_:_" is [b : falseType, message : string |
 Method "_as basic string" is [o : any |
 	Primitive 259;
 ] : string;
+
+Method "Print_" is [something : any |
+	Print something as basic string;
+] : void;

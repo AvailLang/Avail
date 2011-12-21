@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2011.12.21 14:09:33.035 -0600
+ * * Last Generated On: 2011.12.21 16:02:44.363 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -46,9 +46,6 @@ Extends
 Uses
 Names
 	/*  51 */ "$_",
-	/*  13 */ "&:=_",
-	/*  12 */ "*_:=nil",
-	/*  17 */ "*_=nil",
 	/*  72 */ "_'s compiled code",
 	/*  50 */ "_'s function type",
 	/*  29 */ "_'s instances",
@@ -57,7 +54,6 @@ Names
 	/*  69 */ "_'s names",
 	/*  73 */ "_'s outer variables",
 	/*  35 */ "_'s parameters' type",
-	/*  20 */ "_'s priority",
 	/*  14 */ "_'s read type",
 	/*  37 */ "_'s return type",
 	/*  30 */ "_'s type",
@@ -68,21 +64,23 @@ Names
 	/*  64 */ "_as map",
 	/*  63 */ "_as object type",
 	/*  61 */ "_as private unvalidated object",
+	/*  17 */ "_is unassigned",
 	/*  32 */ "_∩_",
 	/*  31 */ "_∪_",
 	/*  33 */ "_≤_",
 	/*  34 */ "block type taking_and returning_",
-	/*  25 */ "current process",
+	/*  12 */ "clear_",
+	/*  25 */ "current fiber",
 	/*  66 */ "enum of_",
 	/*  68 */ "give type_the name_",
 	/*  44 */ "if_then_",
 	/*  43 */ "if_then_else_",
 	/*  45 */ "ignore_and evaluate_",
 	/*   7 */ "integer range from_(inclusive=_)to_(inclusive=_)",
-	/*  16 */ "new Variable of_",
-	/*  21 */ "set_'s priority to_",
+	/*  16 */ "new ↑_",
 	/*  27 */ "set_'s process variable_to_",
 	/*  38 */ "union of types in_",
+	/*  13 */ "↑_",
 	/*  39 */ "⊶[…]→_"
 Body
 
@@ -178,71 +176,108 @@ Method "_'s upper bound" is
 	Primitive 9;
 ] : extended integer;
 
-Method "*_:=nil" is 
+/**
+ * Clear the specified variable. This resets it to the unassigned state.
+ *
+ * Parameters:
+ *    var - A variable.
+ */
+Method "clear_" is 
 [
-	arg1 : variable
+	var : variable
 |
 	Primitive 12;
 ] : ⊤;
 
-Method "&:=_" is 
+/**
+ * Construct and answer a variable type with the specified containment type.
+ *
+ * Parameters:
+ *    containmentType - The containment type.
+ * Returns:
+ *    The requested variable type.
+ */
+Method "↑_" is 
 [
-	arg1 : type
+	containmentType : type
 |
 	Primitive 13;
 ] : variable meta;
 
+/**
+ * Answer the read type of the specified variable type. All values read from
+ * instances of the variable type are at least as specific as the answer.
+ *
+ * Parameters:
+ *    varType - A variable type.
+ * Returns:
+ *    The most general type that describes values that can be read from
+ *    instances of `varType`.
+ */
 Method "_'s read type" is 
 [
-	arg1 : variable meta
+	varType : variable meta
 |
 	Primitive 14;
 ] : type;
 
-Method "new Variable of_" is 
+/**
+ * Construct and answer a new variable with the specified containment type.
+ *
+ * Parameters:
+ *    containmentType - The containment type.
+ * Returns:
+ *    A new variable capable of retrieving and storing values of the specified
+ *    containment type.
+ */
+Method "new ↑_" is 
 [
-	arg1 : type
+	containmentType : type
 |
 	Primitive 16;
 ] : variable;
 
-Method "*_=nil" is 
+/**
+ * Does the specified variable contain a value?
+ *
+ * Parameters:
+ *    var - A variable.
+ * Returns:
+ *    `true` if the variable contains a value (i.e. because it has previously
+ *    been assigned), `false` otherwise.
+ */
+Method "_is unassigned" is 
 [
-	arg1 : variable
+	var : variable
 |
 	Primitive 17;
 ] : boolean;
 
+/**
+ * Answer the write type of the specified variable type. All values written to
+ * instances of the variable type are at least as specific as the answer.
+ *
+ * Parameters:
+ *    varType - A variable type.
+ * Returns:
+ *    The most general type that describes values that can be written to
+ *    instances of `varType`.
+ */
 Method "_'s write type" is 
 [
-	arg1 : variable meta
+	varType : variable meta
 |
 	Primitive 19;
 ] : type;
 
-Method "_'s priority" is 
-[
-	arg1 : narrative
-|
-	Primitive 20;
-] : extended integer;
-
-Method "set_'s priority to_" is 
-[
-	arg1 : narrative,
-	arg2 : extended integer
-|
-	Primitive 21;
-] : ⊤;
-
-Method "current process" is 
+Method "current fiber" is 
 [
 	Primitive 25;
-] : narrative;
+] : fiber;
 
 Method "set_'s process variable_to_" is 
 [
-	arg1 : narrative,
+	arg1 : fiber,
 	arg2 : atom,
 	arg3 : any
 |
