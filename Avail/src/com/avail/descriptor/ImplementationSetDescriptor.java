@@ -256,18 +256,17 @@ extends Descriptor
 	@NotNull AvailObject o_ImplementationsTuple (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.IMPLEMENTATIONS_TUPLE);
+		return object.slot(ObjectSlots.IMPLEMENTATIONS_TUPLE);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_Name (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.NAME);
+		return object.slot(ObjectSlots.NAME);
 	}
 
-	@Override
-	public boolean allowsImmutableToMutableReferenceInField (
+	@Override boolean allowsImmutableToMutableReferenceInField (
 		final @NotNull AbstractSlotsEnum e)
 	{
 		return e == ObjectSlots.IMPLEMENTATIONS_TUPLE
@@ -341,11 +340,11 @@ extends Descriptor
 		// Record the fact that the chunk indexed by aChunkIndex depends on
 		// this implementationSet not changing.
 		AvailObject indices =
-			object.objectSlot(ObjectSlots.DEPENDENT_CHUNK_INDICES);
+			object.slot(ObjectSlots.DEPENDENT_CHUNK_INDICES);
 		indices = indices.setWithElementCanDestroy(
 			IntegerDescriptor.fromInt(aChunkIndex),
 			true);
-		object.objectSlotPut(
+		object.setSlot(
 			ObjectSlots.DEPENDENT_CHUNK_INDICES,
 			indices);
 	}
@@ -376,7 +375,7 @@ extends Descriptor
 		set = set.setWithElementCanDestroy(
 			implementation,
 			true);
-		object.objectSlotPut(
+		object.setSlot(
 			ObjectSlots.IMPLEMENTATIONS_TUPLE,
 			set.asTuple());
 		membershipChanged(object);
@@ -660,11 +659,11 @@ extends Descriptor
 		final int aChunkIndex)
 	{
 		AvailObject indices =
-			object.objectSlot(ObjectSlots.DEPENDENT_CHUNK_INDICES);
+			object.slot(ObjectSlots.DEPENDENT_CHUNK_INDICES);
 		indices = indices.setWithoutElementCanDestroy(
 			IntegerDescriptor.fromInt(aChunkIndex),
 			true);
-		object.objectSlotPut(ObjectSlots.DEPENDENT_CHUNK_INDICES, indices);
+		object.setSlot(ObjectSlots.DEPENDENT_CHUNK_INDICES, indices);
 	}
 
 	/**
@@ -680,7 +679,7 @@ extends Descriptor
 		implementationsTuple = TupleDescriptor.without(
 			implementationsTuple,
 			implementation);
-		object.objectSlotPut(
+		object.setSlot(
 			ObjectSlots.IMPLEMENTATIONS_TUPLE,
 			implementationsTuple);
 		membershipChanged(object);
@@ -880,7 +879,7 @@ extends Descriptor
 		final @NotNull AvailObject object)
 	{
 		AvailObject result =
-			object.objectSlot(ObjectSlots.PRIVATE_TESTING_TREE);
+			object.slot(ObjectSlots.PRIVATE_TESTING_TREE);
 		if (!result.equalsNull())
 		{
 			return result;
@@ -907,7 +906,7 @@ extends Descriptor
 			allIndices,
 			instructions);
 		result = TupleDescriptor.fromIntegerList(instructions);
-		object.objectSlotPut(ObjectSlots.PRIVATE_TESTING_TREE, result);
+		object.setSlot(ObjectSlots.PRIVATE_TESTING_TREE, result);
 		return result;
 	}
 
@@ -917,10 +916,10 @@ extends Descriptor
 		final @NotNull AvailObject function)
 	{
 		final AvailObject oldTuple =
-			object.objectSlot(ObjectSlots.TYPE_RESTRICTIONS_TUPLE);
+			object.slot(ObjectSlots.TYPE_RESTRICTIONS_TUPLE);
 		final AvailObject newTuple =
 			TupleDescriptor.append(oldTuple, function);
-		object.objectSlotPut(
+		object.setSlot(
 			ObjectSlots.TYPE_RESTRICTIONS_TUPLE,
 			newTuple);
 	}
@@ -931,11 +930,11 @@ extends Descriptor
 		final @NotNull AvailObject function)
 	{
 		final AvailObject oldTuple =
-			object.objectSlot(ObjectSlots.TYPE_RESTRICTIONS_TUPLE);
+			object.slot(ObjectSlots.TYPE_RESTRICTIONS_TUPLE);
 		final AvailObject newTuple =
 			TupleDescriptor.without(oldTuple, function);
 		assert newTuple.tupleSize() == oldTuple.tupleSize() - 1;
-		object.objectSlotPut(
+		object.setSlot(
 			ObjectSlots.TYPE_RESTRICTIONS_TUPLE,
 			newTuple);
 	}
@@ -944,7 +943,7 @@ extends Descriptor
 	@NotNull AvailObject o_TypeRestrictions (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.TYPE_RESTRICTIONS_TUPLE);
+		return object.slot(ObjectSlots.TYPE_RESTRICTIONS_TUPLE);
 	}
 
 	@Override @AvailMethod
@@ -953,10 +952,10 @@ extends Descriptor
 		final @NotNull AvailObject tupleType)
 	{
 		final AvailObject oldTuple =
-			object.objectSlot(ObjectSlots.SEALED_ARGUMENTS_TYPES_TUPLE);
+			object.slot(ObjectSlots.SEALED_ARGUMENTS_TYPES_TUPLE);
 		final AvailObject newTuple =
 			TupleDescriptor.append(oldTuple, tupleType);
-		object.objectSlotPut(
+		object.setSlot(
 			ObjectSlots.SEALED_ARGUMENTS_TYPES_TUPLE,
 			newTuple);
 	}
@@ -967,11 +966,11 @@ extends Descriptor
 		final @NotNull AvailObject tupleType)
 	{
 		final AvailObject oldTuple =
-			object.objectSlot(ObjectSlots.SEALED_ARGUMENTS_TYPES_TUPLE);
+			object.slot(ObjectSlots.SEALED_ARGUMENTS_TYPES_TUPLE);
 		final AvailObject newTuple =
 			TupleDescriptor.without(oldTuple, tupleType);
 		assert newTuple.tupleSize() == oldTuple.tupleSize() - 1;
-		object.objectSlotPut(
+		object.setSlot(
 			ObjectSlots.SEALED_ARGUMENTS_TYPES_TUPLE,
 			newTuple);
 	}
@@ -980,7 +979,7 @@ extends Descriptor
 	@NotNull AvailObject o_SealedArgumentsTypesTuple (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.SEALED_ARGUMENTS_TYPES_TUPLE);
+		return object.slot(ObjectSlots.SEALED_ARGUMENTS_TYPES_TUPLE);
 	}
 
 	@Override @AvailMethod
@@ -988,19 +987,19 @@ extends Descriptor
 		final @NotNull AvailObject object)
 	{
 		final AvailObject implementationsTuple =
-			object.objectSlot(ObjectSlots.IMPLEMENTATIONS_TUPLE);
+			object.slot(ObjectSlots.IMPLEMENTATIONS_TUPLE);
 		if (implementationsTuple.tupleSize() > 0)
 		{
 			return false;
 		}
 		final AvailObject typeRestrictionsTuple =
-			object.objectSlot(ObjectSlots.TYPE_RESTRICTIONS_TUPLE);
+			object.slot(ObjectSlots.TYPE_RESTRICTIONS_TUPLE);
 		if (typeRestrictionsTuple.tupleSize() > 0)
 		{
 			return false;
 		}
 		final AvailObject sealedArgumentsTypesTuple =
-			object.objectSlot(ObjectSlots.SEALED_ARGUMENTS_TYPES_TUPLE);
+			object.slot(ObjectSlots.SEALED_ARGUMENTS_TYPES_TUPLE);
 		if (sealedArgumentsTypesTuple.tupleSize() > 0)
 		{
 			return false;
@@ -1217,22 +1216,22 @@ extends Descriptor
 	{
 		assert messageName.isAtom();
 		final AvailObject result = mutable().create();
-		result.objectSlotPut(
+		result.setSlot(
 			ObjectSlots.IMPLEMENTATIONS_TUPLE,
 			TupleDescriptor.empty());
-		result.objectSlotPut(
+		result.setSlot(
 			ObjectSlots.DEPENDENT_CHUNK_INDICES,
 			SetDescriptor.empty());
-		result.objectSlotPut(
+		result.setSlot(
 			ObjectSlots.NAME,
 			messageName);
-		result.objectSlotPut(
+		result.setSlot(
 			ObjectSlots.PRIVATE_TESTING_TREE,
 			TupleDescriptor.empty());
-		result.objectSlotPut(
+		result.setSlot(
 			ObjectSlots.TYPE_RESTRICTIONS_TUPLE,
 			TupleDescriptor.empty());
-		result.objectSlotPut(
+		result.setSlot(
 			ObjectSlots.SEALED_ARGUMENTS_TYPES_TUPLE,
 			TupleDescriptor.empty());
 		result.makeImmutable();
@@ -1253,7 +1252,7 @@ extends Descriptor
 	{
 		// Invalidate any affected level two chunks.
 		final AvailObject chunkIndices =
-			object.objectSlot(ObjectSlots.DEPENDENT_CHUNK_INDICES);
+			object.slot(ObjectSlots.DEPENDENT_CHUNK_INDICES);
 		if (chunkIndices.setSize() > 0)
 		{
 			for (final AvailObject chunkIndex : chunkIndices.asTuple())
@@ -1263,11 +1262,11 @@ extends Descriptor
 			}
 			// The chunk invalidations should have removed all dependencies...
 			final AvailObject chunkIndicesAfter =
-				object.objectSlot(ObjectSlots.DEPENDENT_CHUNK_INDICES);
+				object.slot(ObjectSlots.DEPENDENT_CHUNK_INDICES);
 			assert chunkIndicesAfter.setSize() == 0;
 		}
 		// Clear the privateTestingTree cache.
-		object.objectSlotPut(
+		object.setSlot(
 			ObjectSlots.PRIVATE_TESTING_TREE,
 			NullDescriptor.nullObject());
 	}

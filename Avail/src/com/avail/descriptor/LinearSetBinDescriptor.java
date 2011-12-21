@@ -35,6 +35,14 @@ package com.avail.descriptor;
 import static java.lang.Integer.bitCount;
 import com.avail.annotations.*;
 
+/**
+ * A {@code LinearSetBinDescriptor} is a leaf bin in a {@link SetDescriptor
+ * set}'s hierarchy of bins.  It consists of a small number of distinct elements
+ * in no particular order.  If more elements need to be stored, a {@linkplain
+ * HashedSetBinDescriptor hashed bin} will be used instead.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public class LinearSetBinDescriptor
 extends SetBinDescriptor
 {
@@ -43,7 +51,16 @@ extends SetBinDescriptor
 	 */
 	public enum IntegerSlots implements IntegerSlotsEnum
 	{
-		BIN_HASH
+		/**
+		 * The sum of the hashes of the elements within this bin.
+		 */
+		BIN_HASH;
+
+		static
+		{
+			assert SetBinDescriptor.IntegerSlots.BIN_HASH.ordinal()
+				== BIN_HASH.ordinal();
+		}
 	}
 
 	/**
@@ -51,6 +68,10 @@ extends SetBinDescriptor
 	 */
 	public enum ObjectSlots implements ObjectSlotsEnum
 	{
+		/**
+		 * The elements of this bin.  The elements are never sub-bins, since
+		 * this is a {@linkplain LinearSetBinDescriptor linear bin}, a leaf bin.
+		 */
 		BIN_ELEMENT_AT_
 	}
 
@@ -59,7 +80,7 @@ extends SetBinDescriptor
 		final @NotNull AvailObject object,
 		final int subscript)
 	{
-		return object.objectSlotAt(ObjectSlots.BIN_ELEMENT_AT_, subscript);
+		return object.slot(ObjectSlots.BIN_ELEMENT_AT_, subscript);
 	}
 
 	@Override @AvailMethod
@@ -70,22 +91,7 @@ extends SetBinDescriptor
 	{
 		//  GENERATED setter method (indexed).
 
-		object.objectSlotAtPut(ObjectSlots.BIN_ELEMENT_AT_, subscript, value);
-	}
-
-	@Override @AvailMethod
-	void o_BinHash (
-		final @NotNull AvailObject object,
-		final int value)
-	{
-		object.integerSlotPut(IntegerSlots.BIN_HASH, value);
-	}
-
-	@Override @AvailMethod
-	int o_BinHash (
-		final @NotNull AvailObject object)
-	{
-		return object.integerSlot(IntegerSlots.BIN_HASH);
+		object.setSlot(ObjectSlots.BIN_ELEMENT_AT_, subscript, value);
 	}
 
 	@Override @AvailMethod
@@ -96,7 +102,7 @@ extends SetBinDescriptor
 
 		if (isMutable)
 		{
-			object.descriptor = isMutableLevel(false, _level);
+			object.descriptor = isMutableLevel(false, level);
 			object.makeSubobjectsImmutable();
 		}
 		return object;
@@ -114,7 +120,7 @@ extends SetBinDescriptor
 		//  mutable.  Answer the new bin.  Note that the client is responsible for marking
 		//  elementObject as immutable if another reference exists.
 
-		assert myLevel == _level;
+		assert myLevel == level;
 		if (object.binHasElementHash(elementObject, elementObjectHash))
 		{
 			if (!canDestroy || !isMutable)
@@ -253,7 +259,7 @@ extends SetBinDescriptor
 					}
 					return result;
 				}
-				result = LinearSetBinDescriptor.isMutableLevel(true, _level)
+				result = LinearSetBinDescriptor.isMutableLevel(true, level)
 					.create(oldSize - 1);
 				result.binHash(object.binHash() - elementObjectHash);
 				for (int initIndex = 1; initIndex < oldSize; initIndex++)
@@ -362,17 +368,26 @@ extends SetBinDescriptor
 		return unionKind;
 	}
 
-	static byte numberOfLevels ()
-	{
-		return 8;
-	}
+	/**
+	 * The number of distinct levels at which {@linkplain LinearSetBinDescriptor
+	 * linear bins} may occur.
+	 */
+	static final byte numberOfLevels = 8;
 
+	/**
+	 * Answer a suitable descriptor for a linear bin with the specified
+	 * mutability and at the specified level.
+	 *
+	 * @param flag Whether the bins using the descriptor will be mutable.
+	 * @param level The level for the bins using the descriptor.
+	 * @return The descriptor with the requested properties.
+	 */
 	static LinearSetBinDescriptor isMutableLevel (
 		final boolean flag,
 		final byte level)
 	{
-		assert 0 <= level && level <= numberOfLevels();
-		return descriptors [level * 2 + (flag ? 0 : 1)];
+		assert 0 <= level && level < numberOfLevels;
+		return descriptors[level * 2 + (flag ? 0 : 1)];
 	}
 
 	/**
@@ -383,32 +398,26 @@ extends SetBinDescriptor
 	 *        object?
 	 * @param level The depth of the bin in the hash tree.
 	 */
-	protected LinearSetBinDescriptor (
+	LinearSetBinDescriptor (
 		final boolean isMutable,
 		final int level)
 	{
-		super(
-			isMutable,
-			level);
+		super(isMutable, level);
 	}
 
-	final static LinearSetBinDescriptor[] descriptors =
+	/**
+	 * The array of {@link LinearSetBinDescriptor}s.
+	 */
+	final static LinearSetBinDescriptor[] descriptors;
+
+	static
 	{
-		new LinearSetBinDescriptor(true, 0),
-		new LinearSetBinDescriptor(false, 0),
-		new LinearSetBinDescriptor(true, 1),
-		new LinearSetBinDescriptor(false, 1),
-		new LinearSetBinDescriptor(true, 2),
-		new LinearSetBinDescriptor(false, 2),
-		new LinearSetBinDescriptor(true, 3),
-		new LinearSetBinDescriptor(false, 3),
-		new LinearSetBinDescriptor(true, 4),
-		new LinearSetBinDescriptor(false, 4),
-		new LinearSetBinDescriptor(true, 5),
-		new LinearSetBinDescriptor(false, 5),
-		new LinearSetBinDescriptor(true, 6),
-		new LinearSetBinDescriptor(false, 6),
-		new LinearSetBinDescriptor(true, 7),
-		new LinearSetBinDescriptor(false, 7)
+		descriptors = new LinearSetBinDescriptor[numberOfLevels * 2];
+		int target = 0;
+		for (int level = 0; level < numberOfLevels; level++)
+		{
+			descriptors[target++] = new LinearSetBinDescriptor(true, level);
+			descriptors[target++] = new LinearSetBinDescriptor(false, level);
+		}
 	};
 }

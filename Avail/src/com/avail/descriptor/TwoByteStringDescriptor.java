@@ -62,7 +62,13 @@ extends StringDescriptor
 		 * string.  Each int stores two two-byte characters, in Little Endian
 		 * order.
 		 */
-		RAW_QUAD_AT_
+		RAW_QUAD_AT_;
+
+		static
+		{
+			assert TupleDescriptor.IntegerSlots.HASH_OR_ZERO.ordinal()
+				== HASH_OR_ZERO.ordinal();
+		}
 	}
 
 	/**
@@ -356,10 +362,10 @@ extends StringDescriptor
 		result.hashOrZero(object.hashOrZero());
 		for (int i = 1, end = object.variableIntegerSlotsCount(); i <= end; i++)
 		{
-			result.integerSlotAtPut(
+			result.setSlot(
 				IntegerSlots.RAW_QUAD_AT_,
 				i,
-				object.integerSlotAt(IntegerSlots.RAW_QUAD_AT_, i));
+				object.slot(IntegerSlots.RAW_QUAD_AT_, i));
 		}
 		return result;
 	}

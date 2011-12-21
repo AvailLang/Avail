@@ -36,6 +36,15 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 import com.avail.annotations.*;
 
+/**
+ * A {@code SetTypeDescriptor} object instance is a type that some {@linkplain
+ * SetDescriptor sets} may conform to.  It is built up from a {@linkplain
+ * ObjectSlots#SIZE_RANGE range of sizes} that the sets may be, and the
+ * {@linkplain ObjectSlots#CONTENT_TYPE content type} that the set's elements
+ * would have to conform to.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public class SetTypeDescriptor
 extends TypeDescriptor
 {
@@ -44,7 +53,18 @@ extends TypeDescriptor
 	 */
 	public enum ObjectSlots implements ObjectSlotsEnum
 	{
+		/**
+		 * An {@linkplain IntegerRangeTypeDescriptor integer range type} which
+		 * limits the sizes of {@linkplain SetDescriptor set}s that may be
+		 * instances of this type.
+		 */
 		SIZE_RANGE,
+
+		/**
+		 * A {@linkplain TypeDescriptor type} which limits the objects which may
+		 * be members of {@linkplain SetDescriptor set}s if they purport to be
+		 * of this set type.
+		 */
 		CONTENT_TYPE
 	}
 
@@ -52,14 +72,14 @@ extends TypeDescriptor
 	@NotNull AvailObject o_ContentType (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.CONTENT_TYPE);
+		return object.slot(ObjectSlots.CONTENT_TYPE);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_SizeRange (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.SIZE_RANGE);
+		return object.slot(ObjectSlots.SIZE_RANGE);
 	}
 
 	@Override
@@ -317,8 +337,8 @@ extends TypeDescriptor
 			newContentType = contentType;
 		}
 		final AvailObject result = mutable().create();
-		result.objectSlotPut(ObjectSlots.SIZE_RANGE, newSizeRange);
-		result.objectSlotPut(ObjectSlots.CONTENT_TYPE, newContentType);
+		result.setSlot(ObjectSlots.SIZE_RANGE, newSizeRange);
+		result.setSlot(ObjectSlots.CONTENT_TYPE, newContentType);
 		result.makeImmutable();
 		return result;
 	}

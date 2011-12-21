@@ -135,7 +135,7 @@ extends Descriptor
 	@NotNull AvailObject o_FieldMap (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.FIELD_MAP);
+		return object.slot(ObjectSlots.FIELD_MAP);
 	}
 
 	@Override @AvailMethod
@@ -163,10 +163,6 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aTypeObject)
 	{
-		//  Answer whether object is an instance of a subtype of aTypeObject.  Don't generate
-		//  an approximate type and do the comparison, because the approximate type
-		//  will just send this message recursively.
-
 		if (aTypeObject.equals(TOP.o()))
 		{
 			return true;
@@ -208,7 +204,7 @@ extends Descriptor
 	public static AvailObject objectFromMap (final AvailObject map)
 	{
 		final AvailObject result = mutable().create();
-		result.objectSlotPut(ObjectSlots.FIELD_MAP, map);
+		result.setSlot(ObjectSlots.FIELD_MAP, map);
 		return result;
 	}
 

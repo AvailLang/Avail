@@ -111,8 +111,8 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aPojo)
 	{
-		if (!object.objectSlot(RAW_POJO).equals(aPojo.objectSlot(RAW_POJO))
-			|| !object.objectSlot(KIND).equals(aPojo.objectSlot(KIND)))
+		if (!object.slot(RAW_POJO).equals(aPojo.slot(RAW_POJO))
+			|| !object.slot(KIND).equals(aPojo.slot(KIND)))
 		{
 			return false;
 		}
@@ -129,9 +129,9 @@ extends Descriptor
 	@Override @AvailMethod
 	int o_Hash (final @NotNull AvailObject object)
 	{
-		int hash = object.objectSlot(RAW_POJO).hash() ^ 0x749101DD;
+		int hash = object.slot(RAW_POJO).hash() ^ 0x749101DD;
 		hash *= AvailObject.Multiplier;
-		hash += object.objectSlot(KIND).hash();
+		hash += object.slot(KIND).hash();
 		return hash;
 	}
 
@@ -144,22 +144,22 @@ extends Descriptor
 	@Override @AvailMethod
 	@NotNull AvailObject o_Kind (final @NotNull AvailObject object)
 	{
-		return object.objectSlot(KIND);
+		return object.slot(KIND);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_MakeImmutable (final @NotNull AvailObject object)
 	{
 		object.descriptor = immutable();
-		object.objectSlot(RAW_POJO).makeImmutable();
-		object.objectSlot(KIND).makeImmutable();
+		object.slot(RAW_POJO).makeImmutable();
+		object.slot(KIND).makeImmutable();
 		return object;
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_RawPojo (final @NotNull AvailObject object)
 	{
-		return object.objectSlot(RAW_POJO);
+		return object.slot(RAW_POJO);
 	}
 
 	@Override
@@ -170,9 +170,9 @@ extends Descriptor
 		final int indent)
 	{
 		builder.append(String.valueOf(RawPojoDescriptor.getPojo(
-			object.objectSlot(RAW_POJO))));
+			object.slot(RAW_POJO))));
 		builder.append(" ∈ ");
-		object.objectSlot(KIND).printOnAvoidingIndent(
+		object.slot(KIND).printOnAvoidingIndent(
 			builder, recursionList, indent);
 	}
 
@@ -232,8 +232,8 @@ extends Descriptor
 		assert rawPojo.isRawPojo();
 		assert pojoKind.isSubtypeOf(PojoTypeDescriptor.mostGeneralType());
 		final AvailObject newObject = mutable.create();
-		newObject.objectSlotPut(RAW_POJO, rawPojo);
-		newObject.objectSlotPut(KIND, pojoKind);
+		newObject.setSlot(RAW_POJO, rawPojo);
+		newObject.setSlot(KIND, pojoKind);
 		return newObject.makeImmutable();
 	}
 }

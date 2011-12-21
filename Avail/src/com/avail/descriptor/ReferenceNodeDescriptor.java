@@ -73,7 +73,7 @@ extends ParseNodeDescriptor
 		final @NotNull AvailObject object,
 		final AvailObject variable)
 	{
-		object.objectSlotPut(ObjectSlots.VARIABLE, variable);
+		object.setSlot(ObjectSlots.VARIABLE, variable);
 	}
 
 	/**
@@ -83,7 +83,7 @@ extends ParseNodeDescriptor
 	AvailObject o_Variable (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.VARIABLE);
+		return object.slot(ObjectSlots.VARIABLE);
 	}
 
 	/**

@@ -48,7 +48,16 @@ extends PrimitiveTypeDescriptor
 	 */
 	public enum IntegerSlots implements IntegerSlotsEnum
 	{
-		HASH
+		/**
+		 * The hash of this primitive type, computed at construction time.
+		 */
+		HASH;
+
+		static
+		{
+			assert PrimitiveTypeDescriptor.IntegerSlots.HASH.ordinal()
+				== HASH.ordinal();
+		}
 	}
 
 	/**
@@ -56,9 +65,30 @@ extends PrimitiveTypeDescriptor
 	 */
 	public enum ObjectSlots implements ObjectSlotsEnum
 	{
+		/**
+		 * The {@linkplain StringDescriptor name} of this primitive type.
+		 */
 		NAME,
+
+		/**
+		 * The parent type of this primitive type.
+		 */
 		PARENT,
-		MY_TYPE
+
+		/**
+		 * The type (i.e., a meta-type) of this primitive type.
+		 */
+		MY_TYPE;
+
+		static
+		{
+			assert PrimitiveTypeDescriptor.ObjectSlots.NAME.ordinal()
+				== NAME.ordinal();
+			assert PrimitiveTypeDescriptor.ObjectSlots.PARENT.ordinal()
+			== PARENT.ordinal();
+			assert PrimitiveTypeDescriptor.ObjectSlots.MY_TYPE.ordinal()
+			== MY_TYPE.ordinal();
+		}
 	}
 
 	@Override

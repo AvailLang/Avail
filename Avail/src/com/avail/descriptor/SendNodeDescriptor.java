@@ -82,7 +82,7 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 		final @NotNull AvailObject object,
 		final AvailObject arguments)
 	{
-		object.objectSlotPut(ObjectSlots.ARGUMENTS, arguments);
+		object.setSlot(ObjectSlots.ARGUMENTS, arguments);
 	}
 
 	/**
@@ -92,7 +92,7 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 	AvailObject o_Arguments (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.ARGUMENTS);
+		return object.slot(ObjectSlots.ARGUMENTS);
 	}
 
 
@@ -104,7 +104,7 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 		final @NotNull AvailObject object,
 		final AvailObject implementationSet)
 	{
-		object.objectSlotPut(ObjectSlots.IMPLEMENTATION_SET, implementationSet);
+		object.setSlot(ObjectSlots.IMPLEMENTATION_SET, implementationSet);
 	}
 
 	/**
@@ -114,7 +114,7 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 	AvailObject o_ImplementationSet (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.IMPLEMENTATION_SET);
+		return object.slot(ObjectSlots.IMPLEMENTATION_SET);
 	}
 
 
@@ -127,7 +127,7 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject returnType)
 	{
 		assert returnType.isType();
-		object.objectSlotPut(ObjectSlots.RETURN_TYPE, returnType);
+		object.setSlot(ObjectSlots.RETURN_TYPE, returnType);
 	}
 
 	/**
@@ -137,7 +137,7 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 	AvailObject o_ReturnType (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.RETURN_TYPE);
+		return object.slot(ObjectSlots.RETURN_TYPE);
 	}
 
 

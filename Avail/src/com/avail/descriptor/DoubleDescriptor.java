@@ -32,9 +32,10 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.TypeDescriptor.Types.DOUBLE;
+import static com.avail.descriptor.TypeDescriptor.Types;
 import java.util.List;
 import com.avail.annotations.*;
+import com.avail.descriptor.AbstractNumberDescriptor.*;
 
 /**
  * A boxed, identityless Avail representation of IEEE-754 double-precision
@@ -43,7 +44,7 @@ import com.avail.annotations.*;
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
 public class DoubleDescriptor
-extends Descriptor
+extends AbstractNumberDescriptor
 {
 	/**
 	 * The layout of integer slots for my instances.
@@ -62,6 +63,154 @@ extends Descriptor
 	}
 
 
+	/**
+	 * Extract the Java {@code double} from the argument, an {@link
+	 * DoubleDescriptor Avail double}.
+	 *
+	 * @param object An Avail double-precision floating point number.
+	 * @return The corresponding Java double.
+	 */
+	private static double getDouble (
+		final @NotNull AvailObject object)
+	{
+		final int low = object.slot(IntegerSlots.LOW_INT);
+		final int high = object.slot(IntegerSlots.HIGH_INT);
+		final long castAsLong = (low & 0xFFFFFFFFL) + (high << 32L);
+		return Double.longBitsToDouble(castAsLong);
+	}
+
+	/**
+	 * Compare two Java double-precision floating point numbers.
+	 *
+	 * @param double1 The first double.
+	 * @param double2 The second double.
+	 * @return An {@link Order} describing how double1 compares to double2.
+	 */
+	static @NotNull Order compareDoubles (
+		final double double1,
+		final double double2)
+	{
+		if (double1 == double2)
+		{
+			return Order.EQUAL;
+		}
+		if (double1 < double2)
+		{
+			return Order.LESS;
+		}
+		if (double1 > double2)
+		{
+			return Order.MORE;
+		}
+		return Order.INCOMPARABLE;
+	}
+
+	/**
+	 * @param aDouble
+	 * @param anInteger
+	 * @return
+	 */
+	static @NotNull Order compareDoubleAndInteger (
+		final double aDouble,
+		final AvailObject anInteger)
+	{
+		if (Double.isNaN(aDouble))
+		{
+			return Order.INCOMPARABLE;
+		}
+		if (Double.isInfinite(aDouble))
+		{
+			// Compare double precision infinity to a finite integer.  Easy, as
+			// negative double infinity is below all integers and positive
+			// double infinity is above them all.
+			return compareDoubles(aDouble, 0.0d);
+		}
+		if (anInteger.isInt())
+		{
+			// Doubles can exactly represent every int (but not every long).
+			return compareDoubles(aDouble, anInteger.extractInt());
+		}
+		if (aDouble == 0.0)
+		{
+			// Zeros are easy.
+			return IntegerDescriptor.zero().numericCompare(anInteger);
+		}
+		// The integer is beyond an int's range.  Perhaps even beyond a double.
+		// For boundary purposes, check now if it's exactly integral.
+		final double floorD = Math.floor(aDouble);
+		final boolean isIntegral = aDouble == floorD;
+		// Produce an Avail integer with the exact value from floorD.  If it's
+		// more than about 2^60, scale it down to have about 60 bits of data.
+		// Since the mantissa is only 53 bits, this will be exact.  Since floorD
+		// is an integer, it also can't lose any information if it's *not*
+		// scaled before being converted to a long.
+		final int exponent = Math.getExponent(aDouble);
+		int exponentAdjustment = Math.max(exponent - 60, 0);
+		final double normalD = Math.scalb(floorD, -exponentAdjustment);
+		assert Long.MIN_VALUE < normalD && normalD < Long.MAX_VALUE;
+		final AvailObject normalInteger =
+			IntegerDescriptor.fromLong((long)normalD);
+		AvailObject integer = normalInteger;
+		while (exponentAdjustment > 60)
+		{
+			final int shift = Math.min(exponentAdjustment, 60);
+			integer = integer.timesCanDestroy(
+				IntegerDescriptor.fromLong(1L<<shift),
+				true) ;
+			exponentAdjustment--;
+		}
+		// We now have an Avail integer representing the exact same quantity as
+		// floorD.
+		final Order integerOrder = integer.numericCompare(anInteger);
+		if (!isIntegral && integerOrder == Order.EQUAL)
+		{
+			// d is actually a fraction of a unit bigger than the integer we
+			// built, so if that integer and another happen to be equal, the
+			// double argument must be considered bigger.
+			return Order.MORE;
+		}
+		return integerOrder;
+	}
+
+	/**
+	 * Compute the sum of a Java {@code double} and an Avail {@linkplain
+	 * IntegerDescriptor integer}.  Answer the double nearest this ideal value.
+	 *
+	 * @param aDouble A {@code double} value.
+	 * @param anInteger An Avail integer to add.
+	 * @param canDestroy Whether anInteger can be destroyed (if it's mutable).
+	 * @return The sum as a {@code double}.
+	 */
+	static double addDoubleAndIntegerCanDestroy (
+		final double aDouble,
+		final @NotNull AvailObject anInteger,
+		final boolean canDestroy)
+	{
+		if (Double.isInfinite(aDouble))
+		{
+			// The other value is finite, so it doesn't affect the sum.
+			return aDouble;
+		}
+		final double anIntegerAsDouble = anInteger.extractDouble();
+		if (!Double.isInfinite(anIntegerAsDouble))
+		{
+			// Both values are representable as finite doubles.  Easy.
+			return anIntegerAsDouble + aDouble;
+		}
+		// The integer is too big for a double, but the sum isn't
+		// necessarily.  Split the double operand into truncation toward
+		// zero and residue,  Add the truncation (as an integer) to the
+		// integer, convert to double, and add the residue (-1<r<1).
+		final double adjustment = Math.floor(aDouble);
+		final AvailObject adjustmentAsInteger =
+			IntegerDescriptor.truncatedFromDouble(adjustment);
+		final AvailObject adjustedInteger =
+			anInteger.minusCanDestroy(adjustmentAsInteger, canDestroy);
+		final double adjustedIntegerAsDouble =
+			adjustedInteger.extractDouble();
+		return (aDouble - adjustment) + adjustedIntegerAsDouble;
+	}
+
 	@Override
 	public void printObjectOnAvoidingIndent (
 		final @NotNull AvailObject object,
@@ -69,7 +218,7 @@ extends Descriptor
 		final @NotNull List<AvailObject> recursionList,
 		final int indent)
 	{
-		aStream.append(object.extractDouble());
+		aStream.append(getDouble(object));
 	}
 
 	@Override @AvailMethod
@@ -77,38 +226,38 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
-		return another.equalsDouble(object);
+		final boolean same = another.equalsDouble(getDouble(object));
+		if (same)
+		{
+			object.becomeIndirectionTo(another);
+		}
+		return same;
 	}
 
 	@Override @AvailMethod
 	boolean o_EqualsDouble (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aDoubleObject)
+		final double aDouble)
 	{
 		// Java double equality is irreflexive, and therefore useless to us,
 		// since Avail sets (at least) require reflexive equality.  Compare the
 		// exact bits instead.
-		if (Double.doubleToRawLongBits(object.extractDouble())
-			!= Double.doubleToRawLongBits(aDoubleObject.extractDouble()))
-		{
-			return false;
-		}
-		object.becomeIndirectionTo(aDoubleObject);
-		return true;
+		return Double.doubleToRawLongBits(getDouble(object))
+			== Double.doubleToRawLongBits(aDouble);
 	}
 
 	@Override @AvailMethod
 	int o_Hash (final @NotNull AvailObject object)
 	{
-		final int low = object.integerSlot(IntegerSlots.LOW_INT);
-		final int high = object.integerSlot(IntegerSlots.HIGH_INT);
+		final int low = object.slot(IntegerSlots.LOW_INT);
+		final int high = object.slot(IntegerSlots.HIGH_INT);
 		return (low ^ 0x29F2EAB8) - (high ^ 0x07C453FD);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_Kind (final @NotNull AvailObject object)
 	{
-		return DOUBLE.o();
+		return Types.DOUBLE.o();
 	}
 
 	@Override @AvailMethod
@@ -120,10 +269,326 @@ extends Descriptor
 	@Override @AvailMethod
 	double o_ExtractDouble (final @NotNull AvailObject object)
 	{
-		final int low = object.integerSlot(IntegerSlots.LOW_INT);
-		final int high = object.integerSlot(IntegerSlots.HIGH_INT);
-		final long castAsLong = (low & 0xFFFFFFFFL) + (high << 32L);
-		return Double.longBitsToDouble(castAsLong);
+		return getDouble(object);
+	}
+
+	@Override
+	Order o_NumericCompare (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
+	{
+		return another.numericCompareToDouble(getDouble(object)).reverse();
+	}
+
+	@Override
+	boolean o_IsInstanceOfKind (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aType)
+	{
+		return Types.DOUBLE.o().isSubtypeOf(aType);
+	}
+
+	@Override
+	AvailObject o_DivideCanDestroy (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aNumber,
+		final boolean canDestroy)
+	{
+		return aNumber.divideIntoDoubleCanDestroy(
+			object,
+			canDestroy);
+	}
+
+	@Override
+	AvailObject o_MinusCanDestroy (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aNumber,
+		final boolean canDestroy)
+	{
+		return aNumber.subtractFromDoubleCanDestroy(
+			object,
+			canDestroy);
+	}
+
+	@Override
+	AvailObject o_PlusCanDestroy (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aNumber,
+		final boolean canDestroy)
+	{
+		return aNumber.addToDoubleCanDestroy(
+			object,
+			canDestroy);
+	}
+
+	@Override
+	AvailObject o_TimesCanDestroy (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aNumber,
+		final boolean canDestroy)
+	{
+		return aNumber.multiplyByDoubleCanDestroy(
+			object,
+			canDestroy);
+	}
+
+	@Override
+	AvailObject o_AddToInfinityCanDestroy (
+		final @NotNull AvailObject object,
+		final @NotNull Sign sign,
+		final boolean canDestroy)
+	{
+		return objectFromDoubleRecycling(
+			sign.limitDouble() + getDouble(object),
+			object,
+			canDestroy);
+	}
+
+	@Override
+	AvailObject o_AddToIntegerCanDestroy (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anInteger,
+		final boolean canDestroy)
+	{
+		final double sum = addDoubleAndIntegerCanDestroy(
+			getDouble(object),
+			anInteger,
+			canDestroy);
+		return objectFromDoubleRecycling(sum, object, canDestroy);
+	}
+
+	@Override
+	AvailObject o_AddToDoubleCanDestroy (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject doubleObject,
+		final boolean canDestroy)
+	{
+		return objectFromDoubleRecycling(
+			getDouble(object) + doubleObject.extractDouble(),
+			object,
+			doubleObject,
+			canDestroy);
+	}
+
+	@Override
+	AvailObject o_AddToFloatCanDestroy (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject floatObject,
+		final boolean canDestroy)
+	{
+		return objectFromDoubleRecycling(
+			getDouble(object) + floatObject.extractDouble(),
+			object,
+			canDestroy);
+	}
+
+	@Override
+	AvailObject o_DivideIntoInfinityCanDestroy (
+		final @NotNull AvailObject object,
+		final @NotNull Sign sign,
+		final boolean canDestroy)
+	{
+		return objectFromDoubleRecycling(
+			sign.limitDouble() / getDouble(object),
+			object,
+			canDestroy);
+	}
+
+	@Override
+	AvailObject o_DivideIntoIntegerCanDestroy (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anInteger,
+		final boolean canDestroy)
+	{
+		return objectFromDoubleRecycling(
+			anInteger.extractDouble() / getDouble(object),
+			object,
+			canDestroy);
+	}
+
+	@Override
+	public AvailObject o_DivideIntoDoubleCanDestroy (
+		final AvailObject object,
+		final AvailObject doubleObject,
+		final boolean canDestroy)
+	{
+		return objectFromDoubleRecycling(
+			doubleObject.extractDouble() / getDouble(object),
+			object,
+			doubleObject,
+			canDestroy);
+	}
+
+	@Override
+	public AvailObject o_DivideIntoFloatCanDestroy (
+		final AvailObject object,
+		final AvailObject floatObject,
+		final boolean canDestroy)
+	{
+		return objectFromDoubleRecycling(
+			floatObject.extractDouble() / getDouble(object),
+			object,
+			canDestroy);
+	}
+
+	@Override
+	AvailObject o_MultiplyByInfinityCanDestroy (
+		final @NotNull AvailObject object,
+		final @NotNull Sign sign,
+		final boolean canDestroy)
+	{
+		return objectFromDoubleRecycling(
+			sign.limitDouble() * getDouble(object),
+			object,
+			canDestroy);
+	}
+
+	@Override
+	AvailObject o_MultiplyByIntegerCanDestroy (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anInteger,
+		final boolean canDestroy)
+	{
+		return objectFromDoubleRecycling(
+			anInteger.extractDouble() * getDouble(object),
+			object,
+			canDestroy);
+	}
+
+	@Override
+	public AvailObject o_MultiplyByDoubleCanDestroy (
+		final AvailObject object,
+		final AvailObject doubleObject,
+		final boolean canDestroy)
+	{
+		return objectFromDoubleRecycling(
+			doubleObject.extractDouble() * getDouble(object),
+			object,
+			doubleObject,
+			canDestroy);
+	}
+
+	@Override
+	public AvailObject o_MultiplyByFloatCanDestroy (
+		final AvailObject object,
+		final AvailObject floatObject,
+		final boolean canDestroy)
+	{
+		return objectFromDoubleRecycling(
+			floatObject.extractDouble() * getDouble(object),
+			object,
+			canDestroy);
+	}
+
+	@Override
+	AvailObject o_SubtractFromInfinityCanDestroy (
+		final @NotNull AvailObject object,
+		final @NotNull Sign sign,
+		final boolean canDestroy)
+	{
+		return objectFromDoubleRecycling(
+			sign.limitDouble() - getDouble(object),
+			object,
+			canDestroy);
+	}
+
+	@Override
+	AvailObject o_SubtractFromIntegerCanDestroy (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anInteger,
+		final boolean canDestroy)
+	{
+		return objectFromDoubleRecycling(
+			addDoubleAndIntegerCanDestroy(
+				0.0d - getDouble(object),
+				anInteger,
+				canDestroy),
+			object,
+			canDestroy);
+	}
+
+	@Override
+	public AvailObject o_SubtractFromDoubleCanDestroy (
+		final AvailObject object,
+		final AvailObject doubleObject,
+		final boolean canDestroy)
+	{
+		return objectFromDoubleRecycling(
+			doubleObject.extractDouble() - getDouble(object),
+			object,
+			doubleObject,
+			canDestroy);
+	}
+
+	@Override
+	public AvailObject o_SubtractFromFloatCanDestroy (
+		final AvailObject object,
+		final AvailObject floatObject,
+		final boolean canDestroy)
+	{
+		return objectFromDoubleRecycling(
+			floatObject.extractDouble() - getDouble(object),
+			object,
+			canDestroy);
+	}
+
+	@Override
+	@NotNull Order o_NumericCompareToInfinity (
+		final @NotNull AvailObject object,
+		final @NotNull Sign sign)
+	{
+		final double thisDouble = getDouble(object);
+		if (Double.isNaN(thisDouble))
+		{
+			return Order.INCOMPARABLE;
+		}
+		final int comparison = Double.compare(thisDouble, sign.limitDouble());
+		if (comparison < 0)
+		{
+			return Order.LESS;
+		}
+		if (comparison > 0)
+		{
+			return Order.MORE;
+		}
+		return Order.EQUAL;
+	}
+
+	@Override
+	@NotNull Order o_NumericCompareToInteger (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anInteger)
+	{
+		return compareDoubleAndInteger(getDouble(object), anInteger);
+	}
+
+	@Override
+	Order o_NumericCompareToDouble (
+		final @NotNull AvailObject object,
+		final double aDouble)
+	{
+		return compareDoubles(getDouble(object), aDouble);
+	}
+
+	/**
+	 * Construct an Avail boxed {@linkplain DoubleDescriptor double-precision
+	 * floating point object} from the passed {@code double}.  Do not answer an
+	 * existing object.
+	 *
+	 * @param aDouble
+	 *            The Java {@code double} to box.
+	 * @return
+	 *            The boxed Avail {@code DoubleDescriptor double-precision
+	 *            floating point object}.
+	 */
+	private static AvailObject privateDouble (
+		final double aDouble)
+	{
+		final AvailObject result = mutable().create();
+		final long castAsLong = Double.doubleToRawLongBits(aDouble);
+		result.setSlot(IntegerSlots.LOW_INT, (int)castAsLong);
+		result.setSlot(IntegerSlots.HIGH_INT, (int)(castAsLong >> 32));
+		return result;
 	}
 
 	/**
@@ -139,15 +604,15 @@ extends Descriptor
 	public static AvailObject fromDouble (
 		final double aDouble)
 	{
-		final AvailObject result = mutable().create();
-		final long castAsLong = Double.doubleToRawLongBits(aDouble);
-		result.integerSlotPut(
-			IntegerSlots.LOW_INT,
-			(int)castAsLong);
-		result.integerSlotPut(
-			IntegerSlots.HIGH_INT,
-			(int)(castAsLong >> 32));
-		return result;
+		if (Double.isNaN(aDouble))
+		{
+			return notANumber();
+		}
+		if (Double.isInfinite(aDouble))
+		{
+			return aDouble > 0.0d ? positiveInfinity() : negativeInfinity();
+		}
+		return privateDouble(aDouble);
 	}
 
 	/**
@@ -159,16 +624,19 @@ extends Descriptor
 	 * @param recyclable1
 	 *            A {@linkplain DoubleDescriptor boxed Avail double} that may be
 	 *            reused if it's mutable.
+	 * @param canDestroy
+	 *            Whether the passed recyclable can be replaced if it's mutable.
 	 * @return
 	 *            The boxed Avail {@code DoubleDescriptor double-precision
 	 *            floating point object}.
 	 */
 	public static AvailObject objectFromDoubleRecycling (
 		final double aDouble,
-		final AvailObject recyclable1)
+		final @NotNull AvailObject recyclable1,
+		final boolean canDestroy)
 	{
 		AvailObject result;
-		if (recyclable1.descriptor() == mutable())
+		if (canDestroy && recyclable1.descriptor() == mutable())
 		{
 			result = recyclable1;
 		}
@@ -177,12 +645,8 @@ extends Descriptor
 			result = mutable().create();
 		}
 		final long castAsLong = Double.doubleToRawLongBits(aDouble);
-		result.integerSlotPut(
-			IntegerSlots.LOW_INT,
-			(int)castAsLong);
-		result.integerSlotPut(
-			IntegerSlots.HIGH_INT,
-			(int)(castAsLong >> 32));
+		result.setSlot(IntegerSlots.LOW_INT, (int)castAsLong);
+		result.setSlot(IntegerSlots.HIGH_INT, (int)(castAsLong >> 32));
 		return result;
 	}
 
@@ -196,23 +660,27 @@ extends Descriptor
 	 *            A {@linkplain DoubleDescriptor boxed Avail double} that may be
 	 *            reused if it's mutable.
 	 * @param recyclable2
-	 *            Another {@linkplain DoubleDescriptor boxed Avail double} that may
-	 *            be reused if it's mutable.
+	 *            Another {@linkplain DoubleDescriptor boxed Avail double} that
+	 *            may be reused if it's mutable.
+	 * @param canDestroy
+	 *            Whether one of the passed recyclables can be replaced if it's
+	 *            mutable.
 	 * @return
 	 *            The boxed Avail {@code DoubleDescriptor double-precision
 	 *            floating point object}.
 	 */
 	public static AvailObject objectFromDoubleRecycling (
 		final double aDouble,
-		final AvailObject recyclable1,
-		final AvailObject recyclable2)
+		final @NotNull AvailObject recyclable1,
+		final @NotNull AvailObject recyclable2,
+		final boolean canDestroy)
 	{
 		AvailObject result;
-		if (recyclable1.descriptor() == mutable())
+		if (canDestroy && recyclable1.descriptor() == mutable())
 		{
 			result = recyclable1;
 		}
-		else if (recyclable2.descriptor() == mutable())
+		else if (canDestroy && recyclable2.descriptor() == mutable())
 		{
 			result = recyclable2;
 		}
@@ -221,14 +689,78 @@ extends Descriptor
 			result = mutable().create();
 		}
 		final long castAsLong = Double.doubleToRawLongBits(aDouble);
-		result.integerSlotPut(
-			IntegerSlots.LOW_INT,
-			(int)castAsLong);
-		result.integerSlotPut(
-			IntegerSlots.HIGH_INT,
-			(int)(castAsLong >> 32));
+		result.setSlot(IntegerSlots.LOW_INT, (int)castAsLong);
+		result.setSlot(IntegerSlots.HIGH_INT, (int)(castAsLong >> 32));
 		return result;
 	}
+
+
+	/**
+	 * Answer the Avail object representing {@code Double#POSITIVE_INFINITY}.
+	 *
+	 * @return The Avail object for double-precision positive infinity.
+	 */
+	static AvailObject positiveInfinity ()
+	{
+		return Sign.POSITIVE.limitDoubleObject;
+	}
+
+	/**
+	 * Answer the Avail object representing {@code Double#NEGATIVE_INFINITY}.
+	 *
+	 * @return The Avail object for double-precision negative infinity.
+	 */
+	static AvailObject negativeInfinity ()
+	{
+		return Sign.NEGATIVE.limitDoubleObject;
+	}
+
+	/**
+	 * Answer the Avail object representing {@code Double#NaN}.
+	 *
+	 * @return The Avail object for double-precision not-a-number.
+	 */
+	static AvailObject notANumber ()
+	{
+		return Sign.INDETERMINATE.limitDoubleObject;
+	}
+
+	/**
+	 * Answer the Avail object representing {@code 0.0d}.
+	 *
+	 * @return The Avail object for double-precision (positive) zero.
+	 */
+	static AvailObject zero ()
+	{
+		return Sign.ZERO.limitDoubleObject;
+	}
+
+	/**
+	 * Create the {@code double} special values.
+	 */
+	static void createWellKnownObjects ()
+	{
+		Sign.POSITIVE.limitDoubleObject =
+			privateDouble(Double.POSITIVE_INFINITY).makeImmutable();
+		Sign.NEGATIVE.limitDoubleObject =
+			privateDouble(Double.NEGATIVE_INFINITY).makeImmutable();
+		Sign.INDETERMINATE.limitDoubleObject =
+			privateDouble(Double.NaN).makeImmutable();
+		Sign.ZERO.limitDoubleObject =
+			privateDouble(0.0d).makeImmutable();
+	}
+
+	/**
+	 * Release the special {@code double} values.
+	 */
+	static void clearWellKnownObjects ()
+	{
+		Sign.POSITIVE.limitDoubleObject = null;
+		Sign.NEGATIVE.limitDoubleObject = null;
+		Sign.INDETERMINATE.limitDoubleObject = null;
+		Sign.ZERO.limitDoubleObject = null;
+	}
+
 
 	/**
 	 * Construct a new {@link DoubleDescriptor}.

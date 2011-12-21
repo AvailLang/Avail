@@ -47,6 +47,9 @@ extends AbstractAvailObject
 	/** An array of all my references to other {@link AvailObject}s. */
 	private @NotNull AvailObject[] objectSlots;
 
+	/** An {@code int} array encoding all of my digital state. */
+	private @NotNull int[] intSlots;
+
 	/**
 	 * Turn the receiver into an {@linkplain IndirectionDescriptor indirection}
 	 * to the specified {@linkplain AvailObject object}.
@@ -95,9 +98,6 @@ extends AbstractAvailObject
 			me.makeImmutable();
 		}
 	}
-
-	/** An {@code int} array encoding all of my digital state. */
-	private @NotNull int[] intSlots;
 
 	@Override
 	final int bitSlot (
@@ -202,14 +202,14 @@ extends AbstractAvailObject
 	}
 
 	@Override
-	final int integerSlot (final @NotNull IntegerSlotsEnum e)
+	final int slot (final @NotNull IntegerSlotsEnum e)
 	{
 //		verifyToSpaceAddress();
 		return intSlots[e.ordinal()];
 	}
 
 	@Override
-	final void integerSlotPut (
+	final void setSlot (
 		final @NotNull IntegerSlotsEnum e,
 		final int anInteger)
 	{
@@ -219,7 +219,7 @@ extends AbstractAvailObject
 	}
 
 	@Override
-	final int integerSlotAt (
+	final int slot (
 		final @NotNull IntegerSlotsEnum e,
 		final int subscript)
 	{
@@ -228,7 +228,7 @@ extends AbstractAvailObject
 	}
 
 	@Override
-	final void integerSlotAtPut (
+	final void setSlot (
 		final @NotNull IntegerSlotsEnum e,
 		final int subscript,
 		final int anInteger)
@@ -245,7 +245,7 @@ extends AbstractAvailObject
 	}
 
 	@Override
-	final AvailObject objectSlot (
+	final AvailObject slot (
 		final @NotNull ObjectSlotsEnum e)
 	{
 //		verifyToSpaceAddress();
@@ -255,7 +255,7 @@ extends AbstractAvailObject
 	}
 
 	@Override
-	final void objectSlotPut (
+	final void setSlot (
 		final @NotNull ObjectSlotsEnum e,
 		final @NotNull AvailObject anAvailObject)
 	{
@@ -265,7 +265,7 @@ extends AbstractAvailObject
 	}
 
 	@Override
-	final AvailObject objectSlotAt (
+	final AvailObject slot (
 		final @NotNull ObjectSlotsEnum e,
 		final int subscript)
 	{
@@ -276,7 +276,7 @@ extends AbstractAvailObject
 	}
 
 	@Override
-	final void objectSlotAtPut (
+	final void setSlot (
 		final @NotNull ObjectSlotsEnum e,
 		final int subscript,
 		final @NotNull AvailObject anAvailObject)
@@ -347,13 +347,14 @@ extends AbstractAvailObject
 	}
 
 	/**
-	 * A reusable empty array of AvailObjects for objects that have no object
-	 * slots.
+	 * A reusable empty array of {@link AvailObject}s for objects that have no
+	 * object slots.
 	 */
 	private final static AvailObject[] emptyObjectSlots = new AvailObject[0];
 
 	/**
-	 * A reusable empty array of ints for objects that have no int slots.
+	 * A reusable empty array of {@code int}s for objects that have no int
+	 * slots.
 	 */
 	private final static int[] emptyIntegerSlots = new int[0];
 

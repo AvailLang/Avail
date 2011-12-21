@@ -34,7 +34,6 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
-import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 
 /**
@@ -104,8 +103,7 @@ extends Descriptor
 		NAME
 	}
 
-	@Override
-	public boolean allowsImmutableToMutableReferenceInField (
+	@Override boolean allowsImmutableToMutableReferenceInField (
 		final @NotNull AbstractSlotsEnum e)
 	{
 		return e == IntegerSlots.HASH_OR_ZERO;
@@ -162,8 +160,8 @@ extends Descriptor
 		final @NotNull AvailObject name)
 	{
 		final AvailObject instance = mutable().create();
-		instance.objectSlotPut(ObjectSlots.NAME, name);
-		instance.integerSlotPut(IntegerSlots.HASH_OR_ZERO, 0);
+		instance.setSlot(ObjectSlots.NAME, name);
+		instance.setSlot(IntegerSlots.HASH_OR_ZERO, 0);
 		instance.makeImmutable();
 		return instance;
 	}
@@ -206,8 +204,11 @@ extends Descriptor
 	}
 
 	/**
-	 * Answer the atom used as a property key to hold a map of information
-	 * about {@linkplain AvailRuntime#setNameForType object type names}.
+	 * Answer the atom used as a property key to name {@linkplain
+	 * ObjectTypeDescriptor object types}.  This property occurs within each
+	 * atom which occurs as a field type key of the object type.  The value is a
+	 * map from object type to name.  The naming information is set up via
+	 * {@link ObjectTypeDescriptor#setNameForType(AvailObject, AvailObject)}.
 	 *
 	 * @return An atom that's special because it's known by the virtual machine.
 	 */
@@ -263,7 +264,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.NAME, value);
+		object.setSlot(ObjectSlots.NAME, value);
 	}
 
 
@@ -271,7 +272,7 @@ extends Descriptor
 	@NotNull AvailObject o_Name (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.NAME);
+		return object.slot(ObjectSlots.NAME);
 	}
 
 
@@ -288,7 +289,7 @@ extends Descriptor
 	int o_Hash (
 		final @NotNull AvailObject object)
 	{
-		int hash = object.integerSlot(IntegerSlots.HASH_OR_ZERO);
+		int hash = object.slot(IntegerSlots.HASH_OR_ZERO);
 		if (hash == 0)
 		{
 			do
@@ -296,7 +297,7 @@ extends Descriptor
 				hash = hashGenerator.nextInt();
 			}
 			while (hash == 0);
-			object.integerSlotPut(IntegerSlots.HASH_OR_ZERO, hash);
+			object.setSlot(IntegerSlots.HASH_OR_ZERO, hash);
 		}
 		return hash;
 	}
@@ -353,10 +354,26 @@ extends Descriptor
 	{
 		final AvailObject substituteAtom =
 			AtomWithPropertiesDescriptor.createWithNameAndHash(
-				object.objectSlot(ObjectSlots.NAME),
-				object.integerSlot(IntegerSlots.HASH_OR_ZERO));
+				object.slot(ObjectSlots.NAME),
+				object.slot(IntegerSlots.HASH_OR_ZERO));
 		object.becomeIndirectionTo(substituteAtom);
 		substituteAtom.setAtomProperty(key, value);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>
+	 * This atom has no properties, so always answer {@linkplain
+	 * NullDescriptor#nullObject() the null object}.
+	 * </p>
+	 */
+	@Override @AvailMethod
+	AvailObject o_GetAtomProperty (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject key)
+	{
+		return NullDescriptor.nullObject();
 	}
 
 	/**
@@ -401,21 +418,5 @@ extends Descriptor
 	public static AtomDescriptor immutable ()
 	{
 		return immutable;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>
-	 * This atom has no properties, so always answer {@linkplain
-	 * NullDescriptor#nullObject() the null object}.
-	 * </p>
-	 */
-	@Override @AvailMethod
-	AvailObject o_GetAtomProperty (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject key)
-	{
-		return NullDescriptor.nullObject();
 	}
 }

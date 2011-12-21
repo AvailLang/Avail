@@ -389,7 +389,7 @@ public abstract class AbstractAvailCompiler
 		 * @param description
 		 *            The provided description.
 		 */
-		public Con (final @NotNull String description)
+		Con (final @NotNull String description)
 		{
 			this.description = description;
 		}
@@ -1203,11 +1203,11 @@ public abstract class AbstractAvailCompiler
 	 * @param where
 	 *        Where the expressions were parsed from.
 	 * @param interpretation1
-	 *        The first interpretation as a {@linkplain ParseNodeDescriptor parse
-	 *        node}.
+	 *        The first interpretation as a {@linkplain ParseNodeDescriptor
+	 *        parse node}.
 	 * @param interpretation2
-	 *        The second interpretation as a {@linkplain ParseNodeDescriptor parse
-	 *        node}.
+	 *        The second interpretation as a {@linkplain ParseNodeDescriptor
+	 *        parse node}.
 	 */
 	private void ambiguousInterpretationsAnd (
 		final @NotNull ParserState where,

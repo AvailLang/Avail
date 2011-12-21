@@ -92,7 +92,7 @@ extends SignatureDescriptor
 	@NotNull AvailObject o_BodyBlock (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.BODY_BLOCK);
+		return object.slot(ObjectSlots.BODY_BLOCK);
 	}
 
 	@Override @AvailMethod
@@ -132,7 +132,7 @@ extends SignatureDescriptor
 		final @NotNull AvailObject bodyBlock)
 	{
 		final AvailObject instance = mutable().create();
-		instance.objectSlotPut(ObjectSlots.BODY_BLOCK, bodyBlock);
+		instance.setSlot(ObjectSlots.BODY_BLOCK, bodyBlock);
 		instance.makeImmutable();
 		return instance;
 	}

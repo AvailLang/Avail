@@ -36,6 +36,14 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static java.lang.Math.*;
 import com.avail.annotations.*;
 
+/**
+ * An object instance of {@code ConcatenatedTupleTypeDescriptor} is an
+ * optimization that postpones (or ideally avoids) the creation of a {@linkplain
+ * TupleTypeDescriptor tuple type} when computing the static type of the
+ * concatenation of two tuples.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public class ConcatenatedTupleTypeDescriptor
 extends TypeDescriptor
 {
@@ -44,7 +52,14 @@ extends TypeDescriptor
 	 */
 	public enum ObjectSlots implements ObjectSlotsEnum
 	{
+		/**
+		 * The type of the left tuple being concatenated.
+		 */
 		FIRST_TUPLE_TYPE,
+
+		/**
+		 * The type of the right tuple being concatenated.
+		 */
 		SECOND_TUPLE_TYPE
 	}
 
@@ -137,9 +152,9 @@ extends TypeDescriptor
 		}
 
 		final AvailObject firstUpper =
-			object.objectSlot(ObjectSlots.FIRST_TUPLE_TYPE).sizeRange().upperBound();
+			object.slot(ObjectSlots.FIRST_TUPLE_TYPE).sizeRange().upperBound();
 		final AvailObject secondUpper =
-			object.objectSlot(ObjectSlots.SECOND_TUPLE_TYPE).sizeRange().upperBound();
+			object.slot(ObjectSlots.SECOND_TUPLE_TYPE).sizeRange().upperBound();
 		final AvailObject totalUpper = firstUpper.noFailPlusCanDestroy(
 			secondUpper, false);
 		if (totalUpper.isFinite())
@@ -151,17 +166,17 @@ extends TypeDescriptor
 			}
 		}
 		final AvailObject firstLower =
-			object.objectSlot(ObjectSlots.FIRST_TUPLE_TYPE).sizeRange().lowerBound();
+			object.slot(ObjectSlots.FIRST_TUPLE_TYPE).sizeRange().lowerBound();
 		if (index <= firstLower.extractInt())
 		{
-			return object.objectSlot(ObjectSlots.FIRST_TUPLE_TYPE).typeAtIndex(index);
+			return object.slot(ObjectSlots.FIRST_TUPLE_TYPE).typeAtIndex(index);
 		}
 		// Besides possibly being at a fixed offset within the firstTupleType,
 		// the index might represent a range of possible indices of the
 		// secondTupleType, depending on the spread between the first tuple
 		// type's lower and upper bounds. Compute the union of these types.
 		final AvailObject typeUnion =
-			object.objectSlot(ObjectSlots.FIRST_TUPLE_TYPE).typeAtIndex(index);
+			object.slot(ObjectSlots.FIRST_TUPLE_TYPE).typeAtIndex(index);
 		int startIndex;
 		if (firstUpper.isFinite())
 		{
@@ -174,7 +189,7 @@ extends TypeDescriptor
 		final int endIndex = index - firstLower.extractInt();
 		assert endIndex >= startIndex;
 		return typeUnion.typeUnion(
-			object.objectSlot(ObjectSlots.SECOND_TUPLE_TYPE).unionOfTypesAtThrough(
+			object.slot(ObjectSlots.SECOND_TUPLE_TYPE).unionOfTypesAtThrough(
 				startIndex, endIndex));
 	}
 
@@ -199,10 +214,10 @@ extends TypeDescriptor
 			return BottomTypeDescriptor.bottom();
 		}
 		final AvailObject firstUpper =
-			object.objectSlot(ObjectSlots.FIRST_TUPLE_TYPE)
+			object.slot(ObjectSlots.FIRST_TUPLE_TYPE)
 				.sizeRange().upperBound();
 		final AvailObject secondUpper =
-			object.objectSlot(ObjectSlots.SECOND_TUPLE_TYPE)
+			object.slot(ObjectSlots.SECOND_TUPLE_TYPE)
 				.sizeRange().upperBound();
 		final AvailObject totalUpper = firstUpper.noFailPlusCanDestroy(
 			secondUpper, false);
@@ -214,14 +229,14 @@ extends TypeDescriptor
 			}
 		}
 		AvailObject typeUnion =
-			object.objectSlot(ObjectSlots.FIRST_TUPLE_TYPE)
+			object.slot(ObjectSlots.FIRST_TUPLE_TYPE)
 				.unionOfTypesAtThrough(startIndex, endIndex);
 		final int startInSecond = startIndex - firstUpper.extractInt();
 		final int endInSecond = endIndex
-			- object.objectSlot(ObjectSlots.FIRST_TUPLE_TYPE)
+			- object.slot(ObjectSlots.FIRST_TUPLE_TYPE)
 				.sizeRange().lowerBound().extractInt();
 		typeUnion = typeUnion.typeUnion(
-			object.objectSlot(ObjectSlots.SECOND_TUPLE_TYPE)
+			object.slot(ObjectSlots.SECOND_TUPLE_TYPE)
 				.unionOfTypesAtThrough(startInSecond, endInSecond));
 		return typeUnion;
 	}
@@ -237,7 +252,7 @@ extends TypeDescriptor
 	private void becomeRealTupleType (
 		final @NotNull AvailObject object)
 	{
-		final AvailObject part1 = object.objectSlot(
+		final AvailObject part1 = object.slot(
 			ObjectSlots.FIRST_TUPLE_TYPE);
 		final AvailObject size1 = part1.sizeRange().upperBound();
 		int limit1;
@@ -251,7 +266,7 @@ extends TypeDescriptor
 				part1.typeTuple().tupleSize() + 1,
 				part1.sizeRange().lowerBound().extractInt());
 		}
-		final AvailObject part2 = object.objectSlot(
+		final AvailObject part2 = object.slot(
 			ObjectSlots.SECOND_TUPLE_TYPE);
 		final AvailObject size2 = part2.sizeRange().upperBound();
 		int limit2;
@@ -300,8 +315,8 @@ extends TypeDescriptor
 		//  this from within a garbage collection, as it may need to allocate space
 		//  for computing a type union.
 
-		final AvailObject a = object.objectSlot(ObjectSlots.FIRST_TUPLE_TYPE);
-		final AvailObject b = object.objectSlot(ObjectSlots.SECOND_TUPLE_TYPE);
+		final AvailObject a = object.slot(ObjectSlots.FIRST_TUPLE_TYPE);
+		final AvailObject b = object.slot(ObjectSlots.SECOND_TUPLE_TYPE);
 		final AvailObject bRange = b.sizeRange();
 		if (bRange.upperBound().equals(IntegerDescriptor.zero()))
 		{
@@ -333,8 +348,8 @@ extends TypeDescriptor
 		// this can not be asked during a garbage collection because it
 		// allocates space for its answer.
 
-		final AvailObject a = object.objectSlot(ObjectSlots.FIRST_TUPLE_TYPE).sizeRange();
-		final AvailObject b = object.objectSlot(ObjectSlots.SECOND_TUPLE_TYPE).sizeRange();
+		final AvailObject a = object.slot(ObjectSlots.FIRST_TUPLE_TYPE).sizeRange();
+		final AvailObject b = object.slot(ObjectSlots.SECOND_TUPLE_TYPE).sizeRange();
 		final AvailObject upper = a.upperBound().noFailPlusCanDestroy(
 			b.upperBound(), false);
 		return IntegerRangeTypeDescriptor.create(
@@ -571,10 +586,10 @@ extends TypeDescriptor
 	{
 		assert firstObject.isTupleType() && secondObject.isTupleType();
 		final AvailObject result = mutable().create();
-		result.objectSlotPut(
+		result.setSlot(
 			ObjectSlots.FIRST_TUPLE_TYPE,
 			firstObject.makeImmutable());
-		result.objectSlotPut(
+		result.setSlot(
 			ObjectSlots.SECOND_TUPLE_TYPE,
 			secondObject.makeImmutable());
 		return result;

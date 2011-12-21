@@ -152,7 +152,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.MESSAGE, value);
+		object.setSlot(ObjectSlots.MESSAGE, value);
 	}
 
 	@Override @AvailMethod
@@ -160,7 +160,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.MESSAGE_PARTS, value);
+		object.setSlot(ObjectSlots.MESSAGE_PARTS, value);
 	}
 
 	@Override @AvailMethod
@@ -168,28 +168,28 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.MY_RESTRICTIONS, value);
+		object.setSlot(ObjectSlots.MY_RESTRICTIONS, value);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_Message (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.MESSAGE);
+		return object.slot(ObjectSlots.MESSAGE);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_MessageParts (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.MESSAGE_PARTS);
+		return object.slot(ObjectSlots.MESSAGE_PARTS);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_MyRestrictions (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.MY_RESTRICTIONS);
+		return object.slot(ObjectSlots.MY_RESTRICTIONS);
 	}
 
 	@Override @AvailMethod
@@ -197,7 +197,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject instructionsTuple)
 	{
-		object.objectSlotPut(
+		object.setSlot(
 			ObjectSlots.PARSING_INSTRUCTIONS,
 			instructionsTuple);
 	}
@@ -206,11 +206,10 @@ extends Descriptor
 	@NotNull AvailObject o_ParsingInstructions (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.PARSING_INSTRUCTIONS);
+		return object.slot(ObjectSlots.PARSING_INSTRUCTIONS);
 	}
 
-	@Override
-	public boolean allowsImmutableToMutableReferenceInField (
+	@Override boolean allowsImmutableToMutableReferenceInField (
 		final @NotNull AbstractSlotsEnum e)
 	{
 		return e == ObjectSlots.MY_RESTRICTIONS;

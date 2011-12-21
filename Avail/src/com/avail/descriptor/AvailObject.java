@@ -36,6 +36,8 @@ import java.io.*;
 import java.util.*;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
+import com.avail.descriptor.AbstractNumberDescriptor.Order;
+import com.avail.descriptor.AbstractNumberDescriptor.Sign;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.ProcessDescriptor.ExecutionState;
@@ -99,6 +101,8 @@ implements Iterable<AvailObject>
 		PojoSelfTypeDescriptor.createWellKnownObjects();
 		PojoDescriptor.createWellKnownObjects();
 		ImplementationSetDescriptor.createWellKnownObjects();
+		FloatDescriptor.createWellKnownObjects();
+		DoubleDescriptor.createWellKnownObjects();
 	}
 
 	/**
@@ -139,11 +143,21 @@ implements Iterable<AvailObject>
 		PojoSelfTypeDescriptor.clearWellKnownObjects();
 		PojoDescriptor.clearWellKnownObjects();
 		ImplementationSetDescriptor.clearWellKnownObjects();
+		FloatDescriptor.clearWellKnownObjects();
+		DoubleDescriptor.clearWellKnownObjects();
 	}
 
-	public static void error (final Object... args)
+	/**
+	 * Report a virtual machine problem.
+	 *
+	 * @param messagePattern A {@link String} describing the problem.
+	 * @param arguments The arguments to insert into the {@code messagePattern}.
+	 */
+	public static void error (
+		final String messagePattern,
+		final Object... arguments)
 	{
-		throw new RuntimeException((String)args[0]);
+		throw new RuntimeException(String.format(messagePattern, arguments));
 	}
 
 	/**
@@ -275,48 +289,85 @@ implements Iterable<AvailObject>
 		final int variableIntegerSlots,
 		final @NotNull AbstractDescriptor descriptor)
 	{
-//		assert canAllocateObjects();
-		assert descriptor.hasVariableObjectSlots()
-			|| variableObjectSlots == 0;
-		assert descriptor.hasVariableIntegerSlots()
-			|| variableIntegerSlots == 0;
+		// assert canAllocateObjects();
+		assert descriptor.hasVariableObjectSlots || variableObjectSlots == 0;
+		assert descriptor.hasVariableIntegerSlots || variableIntegerSlots == 0;
 		return new AvailObject(
 			descriptor,
 			descriptor.numberOfFixedObjectSlots() + variableObjectSlots,
 			descriptor.numberOfFixedIntegerSlots() + variableIntegerSlots);
 	}
 
-	public boolean greaterThan (final @NotNull AvailObject another)
+	/**
+	 * Answer whether the receiver is numerically greater than the argument.
+	 *
+	 * @param another A {@linkplain AbstractNumberDescriptor numeric object}.
+	 * @return Whether the receiver is strictly greater than the argument.
+	 */
+	public final boolean greaterThan (
+		final @NotNull AvailObject another)
 	{
-		// Translate >= into an inverted lessThan:. This manual method
-		// simplifies renaming rules greatly, and avoids the need for an
-		// Object:greaterThan: in the Descriptors. Reverse the arguments and
-		// dispatch to the argument's descriptor.
-		return another.descriptor.o_LessThan(another, this);
+		return numericCompare(another).isMore();
 	}
 
-	public boolean greaterOrEqual (final @NotNull AvailObject another)
+	/**
+	 * Answer whether the receiver is numerically greater than or equivalent to
+	 * the argument.
+	 *
+	 * @param another A {@linkplain AbstractNumberDescriptor numeric object}.
+	 * @return Whether the receiver is greater than or equivalent to the
+	 *         argument.
+	 */
+	public final boolean greaterOrEqual (
+		final @NotNull AvailObject another)
 	{
-		// Translate >= into an inverted lessOrEqual:. This manual method
-		// simplifies renaming rules greatly, and avoids the need for an
-		// Object:greaterOrEqual: in the Descriptors.
-		// Reverse the arguments and dispatch to the argument's descriptor.
-		return another.descriptor.o_LessOrEqual(another, this);
+		return numericCompare(another).isMoreOrEqual();
 	}
 
+	/**
+	 * Answer whether the receiver is numerically less than the argument.
+	 *
+	 * @param another A {@linkplain AbstractNumberDescriptor numeric object}.
+	 * @return Whether the receiver is strictly less than the argument.
+	 */
+	public final boolean lessThan (
+		final @NotNull AvailObject another)
+	{
+		return numericCompare(another).isLess();
+	}
 
+	/**
+	 * Answer whether the receiver is numerically less than or equivalent to
+	 * the argument.
+	 *
+	 * @param another A {@linkplain AbstractNumberDescriptor numeric object}.
+	 * @return Whether the receiver is less than or equivalent to the argument.
+	 */
+	public final boolean lessOrEqual (
+		final @NotNull AvailObject another)
+	{
+		return numericCompare(another).isLessOrEqual();
+	}
+
+	/**
+	 * Set up the object to report nice obvious errors if anyone ever accesses
+	 * it again.
+	 */
 	void assertObjectUnreachableIfMutable ()
 	{
-		// Set up the object to report nice obvious errors if anyone ever
-		// accesses it again.
 		assertObjectUnreachableIfMutableExcept(NullDescriptor.nullObject());
 	}
 
+	/**
+	 * Set up the object to report nice obvious errors if anyone ever accesses
+	 * it again.
+	 *
+	 * @param exceptMe
+	 *            An optional sub-object not to destroy even if it's mutable.
+	 */
 	void assertObjectUnreachableIfMutableExcept (
 		final @NotNull AvailObject exceptMe)
 	{
-		// Set up the object to report nice obvious errors if anyone ever
-		// accesses it again.
 
 		checkValidAddress();
 		if (!descriptor().isMutable())
@@ -333,7 +384,8 @@ implements Iterable<AvailObject>
 		}
 
 		// Recursively invoke the iterator on the subobjects of self...
-		final AvailSubobjectVisitor vis = new AvailMarkUnreachableSubobjectVisitor(exceptMe);
+		final AvailSubobjectVisitor vis =
+			new AvailMarkUnreachableSubobjectVisitor(exceptMe);
 		scanSubobjects(vis);
 		destroy();
 		return;
@@ -507,20 +559,16 @@ implements Iterable<AvailObject>
 	 *        {@code true} if the operation may modify either {@linkplain
 	 *        AvailObject operand}, {@code false} otherwise.
 	 * @return The {@linkplain AvailObject result} of adding the operands.
-	 * @throws ArithmeticException
-	 *         If the {@linkplain AvailObject operands} were {@linkplain
-	 *         InfinityDescriptor infinities} of differing signs.
 	 * @see IntegerDescriptor
 	 * @see InfinityDescriptor
 	 */
 	@NotNull AvailObject addToInfinityCanDestroy (
-			final @NotNull AvailObject anInfinity,
-			final boolean canDestroy)
-		throws ArithmeticException
+		final @NotNull Sign sign,
+		final boolean canDestroy)
 	{
 		return descriptor.o_AddToInfinityCanDestroy(
 			this,
-			anInfinity,
+			sign,
 			canDestroy);
 	}
 
@@ -1270,16 +1318,12 @@ implements Iterable<AvailObject>
 	 *        {@code true} if the operation may modify either {@linkplain
 	 *        AvailObject operand}, {@code false} otherwise.
 	 * @return The {@linkplain AvailObject result} of dividing the operands.
-	 * @throws ArithmeticException
-	 *         If the {@linkplain AvailObject divisor} was {@linkplain
-	 *         IntegerDescriptor#zero() zero}.
 	 * @see IntegerDescriptor
 	 * @see InfinityDescriptor
 	 */
 	public @NotNull AvailObject divideCanDestroy (
-			final @NotNull AvailObject aNumber,
-			final boolean canDestroy)
-		throws ArithmeticException
+		final @NotNull AvailObject aNumber,
+		final boolean canDestroy)
 	{
 		return descriptor.o_DivideCanDestroy(
 			this,
@@ -1337,21 +1381,16 @@ implements Iterable<AvailObject>
 	 *        {@code true} if the operation may modify either {@linkplain
 	 *        AvailObject operand}, {@code false} otherwise.
 	 * @return The {@linkplain AvailObject result} of dividing the operands.
-	 * @throws ArithmeticException
-	 *         If the {@linkplain AvailObject dividend} was {@linkplain
-	 *         InfinityDescriptor infinity} or the divisor was {@linkplain
-	 *         IntegerDescriptor#zero() zero}.
 	 * @see IntegerDescriptor
 	 * @see InfinityDescriptor
 	 */
 	@NotNull AvailObject divideIntoInfinityCanDestroy (
-			final @NotNull AvailObject anInfinity,
-			final boolean canDestroy)
-		throws ArithmeticException
+		final @NotNull Sign sign,
+		final boolean canDestroy)
 	{
 		return descriptor.o_DivideIntoInfinityCanDestroy(
 			this,
-			anInfinity,
+			sign,
 			canDestroy);
 	}
 
@@ -1369,16 +1408,12 @@ implements Iterable<AvailObject>
 	 *        {@code true} if the operation may modify either {@linkplain
 	 *        AvailObject operand}, {@code false} otherwise.
 	 * @return The {@linkplain AvailObject result} of dividing the operands.
-	 * @throws ArithmeticException
-	 *         If the {@linkplain AvailObject divisor} was {@linkplain
-	 *         IntegerDescriptor#zero() zero}.
 	 * @see IntegerDescriptor
 	 * @see InfinityDescriptor
 	 */
 	@NotNull AvailObject divideIntoIntegerCanDestroy (
-			final @NotNull AvailObject anInteger,
-			final boolean canDestroy)
-		throws ArithmeticException
+		final @NotNull AvailObject anInteger,
+		final boolean canDestroy)
 	{
 		return descriptor.o_DivideIntoIntegerCanDestroy(
 			this,
@@ -1584,27 +1619,27 @@ implements Iterable<AvailObject>
 	 * Dispatch to the descriptor.
 	 */
 	public boolean equalsDouble (
-		final AvailObject aDoubleObject)
+		final double aDouble)
 	{
-		return descriptor.o_EqualsDouble(this, aDoubleObject);
+		return descriptor.o_EqualsDouble(this, aDouble);
 	}
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
 	public boolean equalsFloat (
-		final AvailObject aFloatObject)
+		final float aFloat)
 	{
-		return descriptor.o_EqualsFloat(this, aFloatObject);
+		return descriptor.o_EqualsFloat(this, aFloat);
 	}
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
 	public boolean equalsInfinity (
-		final AvailObject anInfinity)
+		final @NotNull Sign sign)
 	{
-		return descriptor.o_EqualsInfinity(this, anInfinity);
+		return descriptor.o_EqualsInfinity(this, sign);
 	}
 
 	/**
@@ -1926,24 +1961,6 @@ implements Iterable<AvailObject>
 	public AvailObject getValue ()
 	{
 		return descriptor.o_GetValue(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public boolean greaterThanInteger (
-		final AvailObject another)
-	{
-		return descriptor.o_GreaterThanInteger(this, another);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public boolean greaterThanSignedInfinity (
-		final AvailObject another)
-	{
-		return descriptor.o_GreaterThanSignedInfinity(this, another);
 	}
 
 	/**
@@ -2328,6 +2345,7 @@ implements Iterable<AvailObject>
 
 	/**
 	 * Dispatch to the descriptor.
+	 * @param aBoolean
 	 */
 	public void isSaved (
 		final boolean aBoolean)
@@ -2598,24 +2616,6 @@ implements Iterable<AvailObject>
 	public AvailObject keyType ()
 	{
 		return descriptor.o_KeyType(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public boolean lessOrEqual (
-		final AvailObject another)
-	{
-		return descriptor.o_LessOrEqual(this, another);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public boolean lessThan (
-		final AvailObject another)
-	{
-		return descriptor.o_LessThan(this, another);
 	}
 
 	/**
@@ -2906,16 +2906,12 @@ implements Iterable<AvailObject>
 	 *        {@code true} if the operation may modify either {@linkplain
 	 *        AvailObject operand}, {@code false} otherwise.
 	 * @return The {@linkplain AvailObject result} of differencing the operands.
-	 * @throws ArithmeticException
-	 *         If the {@linkplain AvailObject operands} were {@linkplain
-	 *         InfinityDescriptor infinities} of like signs.
 	 * @see IntegerDescriptor
 	 * @see InfinityDescriptor
 	 */
 	public @NotNull AvailObject minusCanDestroy (
-			final @NotNull AvailObject aNumber,
-			final boolean canDestroy)
-		throws ArithmeticException
+		final @NotNull AvailObject aNumber,
+		final boolean canDestroy)
 	{
 		return descriptor.o_MinusCanDestroy(
 			this,
@@ -2935,9 +2931,6 @@ implements Iterable<AvailObject>
 	 *        {@code true} if the operation may modify either {@linkplain
 	 *        AvailObject operand}, {@code false} otherwise.
 	 * @return The {@linkplain AvailObject result} of differencing the operands.
-	 * @throws ArithmeticException
-	 *         If the {@linkplain AvailObject operands} were {@linkplain
-	 *         InfinityDescriptor infinities} of like signs.
 	 * @see IntegerDescriptor
 	 * @see InfinityDescriptor
 	 */
@@ -2970,27 +2963,22 @@ implements Iterable<AvailObject>
 	 * #timesCanDestroy(AvailObject, boolean) timesCanDestroy}. It exists for
 	 * double-dispatch only.</p>
 	 *
-	 * @param anInfinity
-	 *        An {@linkplain InfinityDescriptor infinity}.
+	 * @param sign
+	 *        The {@link Sign} of an {@linkplain InfinityDescriptor infinity}.
 	 * @param canDestroy
 	 *        {@code true} if the operation may modify either {@linkplain
 	 *        AvailObject operand}, {@code false} otherwise.
 	 * @return The {@linkplain AvailObject result} of multiplying the operands.
-	 * @throws ArithmeticException
-	 *         If the {@linkplain AvailObject operands} were {@linkplain
-	 *         IntegerDescriptor#zero() zero} and {@linkplain InfinityDescriptor
-	 *         infinity}.
 	 * @see IntegerDescriptor
 	 * @see InfinityDescriptor
 	 */
 	@NotNull AvailObject multiplyByInfinityCanDestroy (
-			final @NotNull AvailObject anInfinity,
-			final boolean canDestroy)
-		throws ArithmeticException
+		final @NotNull Sign sign,
+		final boolean canDestroy)
 	{
 		return descriptor.o_MultiplyByInfinityCanDestroy(
 			this,
-			anInfinity,
+			sign,
 			canDestroy);
 	}
 
@@ -3008,17 +2996,12 @@ implements Iterable<AvailObject>
 	 *        {@code true} if the operation may modify either {@linkplain
 	 *        AvailObject operand}, {@code false} otherwise.
 	 * @return The {@linkplain AvailObject result} of multiplying the operands.
-	 * @throws ArithmeticException
-	 *         If the {@linkplain AvailObject operands} were {@linkplain
-	 *         IntegerDescriptor#zero() zero} and {@linkplain InfinityDescriptor
-	 *         infinity}.
 	 * @see IntegerDescriptor
 	 * @see InfinityDescriptor
 	 */
 	@NotNull AvailObject multiplyByIntegerCanDestroy (
-			final @NotNull AvailObject anInteger,
-			final boolean canDestroy)
-		throws ArithmeticException
+		final @NotNull AvailObject anInteger,
+		final boolean canDestroy)
 	{
 		return descriptor.o_MultiplyByIntegerCanDestroy(
 			this,
@@ -3288,16 +3271,12 @@ implements Iterable<AvailObject>
 	 *        {@code true} if the operation may modify either {@linkplain
 	 *        AvailObject operand}, {@code false} otherwise.
 	 * @return The {@linkplain AvailObject result} of adding the operands.
-	 * @throws ArithmeticException
-	 *         If the {@linkplain AvailObject operands} were {@linkplain
-	 *         InfinityDescriptor infinities} of differing signs.
 	 * @see IntegerDescriptor
 	 * @see InfinityDescriptor
 	 */
 	public @NotNull AvailObject plusCanDestroy (
-			final @NotNull AvailObject aNumber,
-			final boolean canDestroy)
-		throws ArithmeticException
+		final @NotNull AvailObject aNumber,
+		final boolean canDestroy)
 	{
 		return descriptor.o_PlusCanDestroy(
 			this,
@@ -3317,9 +3296,6 @@ implements Iterable<AvailObject>
 	 *        {@code true} if the operation may modify either {@linkplain
 	 *        AvailObject operand}, {@code false} otherwise.
 	 * @return The {@linkplain AvailObject result} of adding the operands.
-	 * @throws ArithmeticException
-	 *         If the {@linkplain AvailObject operands} were {@linkplain
-	 *         InfinityDescriptor infinities} of differing signs.
 	 * @see IntegerDescriptor
 	 * @see InfinityDescriptor
 	 */
@@ -4012,20 +3988,16 @@ implements Iterable<AvailObject>
 	 *        {@code true} if the operation may modify either {@linkplain
 	 *        AvailObject operand}, {@code false} otherwise.
 	 * @return The {@linkplain AvailObject result} of differencing the operands.
-	 * @throws ArithmeticException
-	 *         If the {@linkplain AvailObject operands} were {@linkplain
-	 *         InfinityDescriptor infinities} of like signs.
 	 * @see IntegerDescriptor
 	 * @see InfinityDescriptor
 	 */
 	@NotNull AvailObject subtractFromInfinityCanDestroy (
-			final @NotNull AvailObject anInfinity,
-			final boolean canDestroy)
-		throws ArithmeticException
+		final @NotNull Sign sign,
+		final boolean canDestroy)
 	{
 		return descriptor.o_SubtractFromInfinityCanDestroy(
 			this,
-			anInfinity,
+			sign,
 			canDestroy);
 	}
 
@@ -4091,17 +4063,12 @@ implements Iterable<AvailObject>
 	 *        {@code true} if the operation may modify either {@linkplain
 	 *        AvailObject operand}, {@code false} otherwise.
 	 * @return The {@linkplain AvailObject result} of multiplying the operands.
-	 * @throws ArithmeticException
-	 *         If the {@linkplain AvailObject operands} were {@linkplain
-	 *         IntegerDescriptor#zero() zero} and {@linkplain InfinityDescriptor
-	 *         infinity}.
 	 * @see IntegerDescriptor
 	 * @see InfinityDescriptor
 	 */
 	public @NotNull AvailObject timesCanDestroy (
-			final @NotNull AvailObject aNumber,
-			final boolean canDestroy)
-		throws ArithmeticException
+		final @NotNull AvailObject aNumber,
+		final boolean canDestroy)
 	{
 		return descriptor.o_TimesCanDestroy(
 			this,
@@ -4288,15 +4255,6 @@ implements Iterable<AvailObject>
 		final int index)
 	{
 		return descriptor.o_TypeAtIndex(this, index);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public boolean typeEquals (
-		final AvailObject aType)
-	{
-		return descriptor.o_TypeEquals(this, aType);
 	}
 
 	/**
@@ -4697,14 +4655,6 @@ implements Iterable<AvailObject>
 	public AvailObject visibleNames ()
 	{
 		return descriptor.o_VisibleNames(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public int infinitySign ()
-	{
-		return descriptor.o_InfinitySign(this);
 	}
 
 	/**
@@ -5348,7 +5298,7 @@ implements Iterable<AvailObject>
 
 
 	/**
-	 * @param availObject
+	 * @param potentialInstance
 	 * @return
 	 */
 	public boolean enumerationIncludesInstance (
@@ -5737,5 +5687,162 @@ implements Iterable<AvailObject>
 	public void upperBoundMap (final @NotNull AvailObject aMap)
 	{
 		descriptor.o_UpperBoundMap(this, aMap);
+	}
+
+	/**
+	 * @param another
+	 * @return
+	 */
+	public @NotNull Order numericCompare (final @NotNull AvailObject another)
+	{
+		return  descriptor.o_NumericCompare(this, another);
+	}
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	public @NotNull Order numericCompareToInfinity (
+		final @NotNull Sign sign)
+	{
+		return descriptor.o_NumericCompareToInfinity(this, sign);
+	}
+
+	/**
+	 * @param double1
+	 * @return
+	 */
+	public @NotNull Order numericCompareToDouble (final double aDouble)
+	{
+		return descriptor.o_NumericCompareToDouble(this, aDouble);
+	}
+
+	/**
+	 * @param anInteger
+	 * @return
+	 */
+	public @NotNull Order numericCompareToInteger (final AvailObject anInteger)
+	{
+		return descriptor.o_NumericCompareToInteger(this, anInteger);
+	}
+
+	/**
+	 * @param doubleObject
+	 * @param canDestroy
+	 * @return
+	 */
+	public AvailObject addToDoubleCanDestroy (
+		final @NotNull AvailObject doubleObject,
+		final boolean canDestroy)
+	{
+		return descriptor.o_AddToDoubleCanDestroy (
+			this,
+			doubleObject,
+			canDestroy);
+	}
+
+	/**
+	 * @param floatObject
+	 * @param canDestroy
+	 * @return
+	 */
+	public AvailObject addToFloatCanDestroy (
+		final @NotNull AvailObject floatObject,
+		final boolean canDestroy)
+	{
+		return descriptor.o_AddToFloatCanDestroy (
+			this,
+			floatObject,
+			canDestroy);
+	}
+
+	/**
+	 * @param doubleObject
+	 * @param canDestroy
+	 * @return
+	 */
+	public AvailObject subtractFromDoubleCanDestroy (
+		final @NotNull AvailObject doubleObject,
+		final boolean canDestroy)
+	{
+		return descriptor.o_SubtractFromDoubleCanDestroy (
+			this,
+			doubleObject,
+			canDestroy);
+	}
+
+	/**
+	 * @param floatObject
+	 * @param canDestroy
+	 * @return
+	 */
+	public AvailObject subtractFromFloatCanDestroy (
+		final @NotNull AvailObject floatObject,
+		final boolean canDestroy)
+	{
+		return descriptor.o_SubtractFromFloatCanDestroy (
+			this,
+			floatObject,
+			canDestroy);
+	}
+
+	/**
+	 * @param doubleObject
+	 * @param canDestroy
+	 * @return
+	 */
+	public AvailObject multiplyByDoubleCanDestroy (
+		final @NotNull AvailObject doubleObject,
+		final boolean canDestroy)
+	{
+		return descriptor .o_MultiplyByDoubleCanDestroy (
+			this,
+			doubleObject,
+			canDestroy);
+	}
+
+	/**
+	 * @param floatObject
+	 * @param canDestroy
+	 * @return
+	 */
+	public AvailObject multiplyByFloatCanDestroy (
+		final @NotNull AvailObject floatObject,
+		final boolean canDestroy)
+	{
+		return descriptor.o_MultiplyByFloatCanDestroy (
+			this,
+			floatObject,
+			canDestroy);
+	}
+
+	/**
+	 * @param doubleObject
+	 * @param canDestroy
+	 * @return
+	 */
+	public AvailObject divideIntoDoubleCanDestroy (
+		final @NotNull AvailObject doubleObject,
+		final boolean canDestroy)
+	{
+		return descriptor.o_DivideIntoDoubleCanDestroy (
+			this,
+			doubleObject,
+			canDestroy);
+	}
+
+	/**
+	 * @param floatObject
+	 * @param canDestroy
+	 * @return
+	 */
+	public AvailObject divideIntoFloatCanDestroy (
+		final @NotNull AvailObject floatObject,
+		final boolean canDestroy)
+	{
+		return descriptor.o_DivideIntoFloatCanDestroy (
+			this,
+			floatObject,
+			canDestroy);
 	}
 }

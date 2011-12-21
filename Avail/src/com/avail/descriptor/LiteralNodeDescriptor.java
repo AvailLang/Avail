@@ -115,7 +115,7 @@ extends ParseNodeDescriptor
 	AvailObject o_Token (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.TOKEN);
+		return object.slot(ObjectSlots.TOKEN);
 	}
 
 
@@ -218,7 +218,7 @@ extends ParseNodeDescriptor
 	{
 		assert token.isInstanceOfKind(Types.LITERAL_TOKEN.o());
 		final AvailObject node = mutable().create();
-		node.objectSlotPut(ObjectSlots.TOKEN, token);
+		node.setSlot(ObjectSlots.TOKEN, token);
 		node.makeImmutable();
 		return node;
 	}

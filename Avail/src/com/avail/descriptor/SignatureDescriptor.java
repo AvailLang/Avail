@@ -34,6 +34,22 @@ package com.avail.descriptor;
 
 import com.avail.annotations.*;
 
+/**
+ * {@code SignatureDescriptor} is an abstraction for things placed into an
+ * {@linkplain ImplementationSetDescriptor implementation set}.  They can be:
+ * <ul>
+ * <li>{@linkplain AbstractSignatureDescriptor abstract declarations},</li>
+ * <li>{@linkplain ForwardSignatureDescriptor forward declarations},</li>
+ * <li>{@linkplain MethodSignatureDescriptor method implementations}, or</li>
+ * <li>{@linkplain MacroSignatureDescriptor macro definitions}.</li>
+ * </ul>
+ *
+ * <p>
+ * If a macro definition is present, it must be the only signature.
+ * </p>
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public abstract class SignatureDescriptor
 extends Descriptor
 {

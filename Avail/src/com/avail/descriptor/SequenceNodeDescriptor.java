@@ -72,7 +72,7 @@ public class SequenceNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject statementsTuple)
 	{
 		assert statementsTuple.tupleSize() > 0;
-		object.objectSlotPut(ObjectSlots.STATEMENTS, statementsTuple);
+		object.setSlot(ObjectSlots.STATEMENTS, statementsTuple);
 	}
 
 	/**
@@ -82,7 +82,7 @@ public class SequenceNodeDescriptor extends ParseNodeDescriptor
 	AvailObject o_Statements (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.STATEMENTS);
+		return object.slot(ObjectSlots.STATEMENTS);
 	}
 
 	@Override @AvailMethod

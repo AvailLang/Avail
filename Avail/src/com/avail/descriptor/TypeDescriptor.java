@@ -45,8 +45,9 @@ extends AbstractTypeDescriptor
 		ANY(TOP, "TYPE"),
 		ATOM(ANY),
 		CHARACTER(ANY),
-		DOUBLE(ANY),
-		FLOAT(ANY),
+		NUMBER(ANY),
+		DOUBLE(NUMBER),
+		FLOAT(NUMBER),
 		IMPLEMENTATION_SET(ANY),
 		MESSAGE_BUNDLE(ANY),
 		MESSAGE_BUNDLE_TREE(ANY),
@@ -69,9 +70,25 @@ extends AbstractTypeDescriptor
 		TYPE(ANY, "META"),
 		META(TYPE, "META");
 
+		/**
+		 * The {@link Types} object representing this type's supertype.
+		 */
 		public final Types parent;
+
+		/**
+		 * The {@link Types} object representing this type's own type (a
+		 * metatype).
+		 */
 		protected final String myTypeName;
+
+		/**
+		 *
+		 */
 		protected final PrimitiveTypeDescriptor descriptor;
+
+		/**
+		 * The {@link AvailObject} itself that this
+		 */
 		private AvailObject o;
 
 
@@ -95,8 +112,8 @@ extends AbstractTypeDescriptor
 
 		/**
 		 * Construct a new {@linkplain Types} instance with the specified
-		 * parent and the name of the new type's type.  Use a
-		 * {@link PrimitiveTypeDescriptor} for the new type's descriptor.
+		 * parent and the name of the new type's type.  Use a {@link
+		 * PrimitiveTypeDescriptor} for the new type's descriptor.
 		 *
 		 * @param parent The new type's parent.
 		 * @param myTypeName The new type's type's name.

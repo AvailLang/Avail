@@ -142,8 +142,8 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aPojoType)
 	{
-		return object.objectSlot(RAW_TYPES).equals(
-			aPojoType.pojoSelfType().traversed().objectSlot(RAW_TYPES));
+		return object.slot(RAW_TYPES).equals(
+			aPojoType.pojoSelfType().traversed().slot(RAW_TYPES));
 	}
 
 	@Override @AvailMethod
@@ -152,7 +152,7 @@ extends TypeDescriptor
 		// Note that this definition produces a value compatible with a pojo
 		// type; this is necessary to permit comparison between a pojo type and
 		// its self type.
-		return object.objectSlot(RAW_TYPES).hash() ^ 0xA015BC44;
+		return object.slot(RAW_TYPES).hash() ^ 0xA015BC44;
 	}
 
 	@Override @AvailMethod
@@ -174,14 +174,14 @@ extends TypeDescriptor
 			return true;
 		}
 
-		final AvailObject objectTypes = object.objectSlot(RAW_TYPES);
+		final AvailObject objectTypes = object.slot(RAW_TYPES);
 		if (objectTypes.equalsNull())
 		{
 			return false;
 		}
 
 		final AvailObject aPojoTypeTypes =
-			aPojoType.pojoSelfType().traversed().objectSlot(RAW_TYPES);
+			aPojoType.pojoSelfType().traversed().slot(RAW_TYPES);
 		final AvailObject intersection =
 			objectTypes.setIntersectionCanDestroy(aPojoTypeTypes, false);
 		return objectTypes.equals(intersection);
@@ -199,7 +199,7 @@ extends TypeDescriptor
 		final @NotNull AvailObject object)
 	{
 		object.descriptor = immutable();
-		object.objectSlot(RAW_TYPES).makeImmutable();
+		object.slot(RAW_TYPES).makeImmutable();
 		return object;
 	}
 
@@ -238,8 +238,8 @@ extends TypeDescriptor
 		final @NotNull AvailObject aPojoType)
 	{
 		final AvailObject aPojoSelfType = aPojoType.pojoSelfType().traversed();
-		final AvailObject objectMSC = object.objectSlot(MOST_SPECIFIC_CLASS);
-		final AvailObject aPojoTypeMSC = aPojoSelfType.traversed().objectSlot(
+		final AvailObject objectMSC = object.slot(MOST_SPECIFIC_CLASS);
+		final AvailObject aPojoTypeMSC = aPojoSelfType.traversed().slot(
 			MOST_SPECIFIC_CLASS);
 		final Class<?> objectMSCClass =
 			!objectMSC.equalsNull()
@@ -273,8 +273,8 @@ extends TypeDescriptor
 			return mostSpecificSelfType();
 		}
 
-		final AvailObject objectTypes = object.objectSlot(RAW_TYPES);
-		final AvailObject aPojoTypeTypes = aPojoSelfType.objectSlot(RAW_TYPES);
+		final AvailObject objectTypes = object.slot(RAW_TYPES);
+		final AvailObject aPojoTypeTypes = aPojoSelfType.slot(RAW_TYPES);
 		return create(
 			NullDescriptor.nullObject(),
 			objectTypes.setUnionCanDestroy(aPojoTypeTypes, false));
@@ -301,9 +301,9 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
-		final AvailObject objectTypes = object.objectSlot(RAW_TYPES);
+		final AvailObject objectTypes = object.slot(RAW_TYPES);
 		final AvailObject aPojoTypeTypes =
-			another.pojoSelfType().traversed().objectSlot(RAW_TYPES);
+			another.pojoSelfType().traversed().slot(RAW_TYPES);
 		final AvailObject intersection =
 			objectTypes.setIntersectionCanDestroy(aPojoTypeTypes, false);
 
@@ -356,7 +356,7 @@ extends TypeDescriptor
 		final int indent)
 	{
 		builder.append("pojo self type = ");
-		object.objectSlot(RAW_TYPES).printOnAvoidingIndent(
+		object.slot(RAW_TYPES).printOnAvoidingIndent(
 			builder, recursionList, indent);
 	}
 
@@ -425,8 +425,8 @@ extends TypeDescriptor
 	{
 		assert rawTypes.isSet() || rawTypes.equalsNull();
 		final AvailObject newObject = mutable.create();
-		newObject.objectSlotPut(MOST_SPECIFIC_CLASS, mostSpecificClass);
-		newObject.objectSlotPut(RAW_TYPES, rawTypes);
+		newObject.setSlot(MOST_SPECIFIC_CLASS, mostSpecificClass);
+		newObject.setSlot(RAW_TYPES, rawTypes);
 		return newObject.makeImmutable();
 	}
 

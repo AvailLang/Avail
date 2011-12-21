@@ -62,7 +62,7 @@ Method "Pointer to_" is [
 	>;
 ] returns [ttT : meta |
 	Pointer type;
-];;
+];
 
 
 

@@ -208,7 +208,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final int value)
 	{
-		object.integerSlotPut(IntegerSlots.HASH, value);
+		object.setSlot(IntegerSlots.HASH, value);
 	}
 
 	@Override @AvailMethod
@@ -216,7 +216,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final int value)
 	{
-		object.integerSlotPut(IntegerSlots.INVOCATION_COUNT, value);
+		object.setSlot(IntegerSlots.INVOCATION_COUNT, value);
 	}
 
 	@Override @AvailMethod
@@ -224,39 +224,38 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final int subscript)
 	{
-		return object.objectSlotAt(ObjectSlots.LITERAL_AT_, subscript);
+		return object.slot(ObjectSlots.LITERAL_AT_, subscript);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_FunctionType (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.FUNCTION_TYPE);
+		return object.slot(ObjectSlots.FUNCTION_TYPE);
 	}
 
 	@Override @AvailMethod
 	int o_Hash (
 		final @NotNull AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.HASH);
+		return object.slot(IntegerSlots.HASH);
 	}
 
 	@Override @AvailMethod
 	int o_InvocationCount (
 		final @NotNull AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.INVOCATION_COUNT);
+		return object.slot(IntegerSlots.INVOCATION_COUNT);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_Nybbles (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.NYBBLES);
+		return object.slot(ObjectSlots.NYBBLES);
 	}
 
-	@Override
-	public boolean allowsImmutableToMutableReferenceInField (
+	@Override boolean allowsImmutableToMutableReferenceInField (
 		final @NotNull AbstractSlotsEnum e)
 	{
 		return e == ObjectSlots.STARTING_CHUNK
@@ -368,7 +367,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
-		object.objectSlotPut(
+		object.setSlot(
 			ObjectSlots.STARTING_CHUNK,
 			value);
 	}
@@ -440,14 +439,14 @@ extends Descriptor
 	{
 		//  Answer the primitive number I should try before falling back on
 		//  the Avail code.  Zero indicates not-a-primitive.
-		return object.integerSlot(IntegerSlots.PRIMITIVE_NUMBER);
+		return object.slot(IntegerSlots.PRIMITIVE_NUMBER);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_StartingChunk (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.STARTING_CHUNK);
+		return object.slot(ObjectSlots.STARTING_CHUNK);
 	}
 
 	@Override @AvailMethod
@@ -569,9 +568,9 @@ extends Descriptor
 			IntegerSlots.HI_NUM_OUTERS_LOW_FRAME_SLOTS,
 			HiNumOutersLowFrameSlots.NUM_OUTERS,
 			outersSize);
-		code.integerSlotPut(IntegerSlots.PRIMITIVE_NUMBER, primitive);
-		code.objectSlotPut(ObjectSlots.NYBBLES, nybbles);
-		code.objectSlotPut(ObjectSlots.FUNCTION_TYPE, functionType);
+		code.setSlot(IntegerSlots.PRIMITIVE_NUMBER, primitive);
+		code.setSlot(ObjectSlots.NYBBLES, nybbles);
+		code.setSlot(ObjectSlots.FUNCTION_TYPE, functionType);
 		code.startingChunk(L2ChunkDescriptor.unoptimizedChunk());
 		code.invocationCount(L2ChunkDescriptor.countdownForNewCode());
 
@@ -579,21 +578,21 @@ extends Descriptor
 		int dest;
 		for (dest = 1; dest <= literalsSize; dest++)
 		{
-			code.objectSlotAtPut(
+			code.setSlot(
 				ObjectSlots.LITERAL_AT_,
 				dest,
 				literals.tupleAt(dest));
 		}
 		for (int i = 1; i <= outersSize; i++)
 		{
-			code.objectSlotAtPut(
+			code.setSlot(
 				ObjectSlots.LITERAL_AT_,
 				dest++,
 				outerTypes.tupleAt(i));
 		}
 		for (int i = 1; i <= locals; i++)
 		{
-			code.objectSlotAtPut(
+			code.setSlot(
 				ObjectSlots.LITERAL_AT_,
 				dest++,
 				localTypes.tupleAt(i));
@@ -617,7 +616,7 @@ extends Descriptor
 		{
 			hash = hash * 5 + localTypes.tupleAt(i).hash() ^ 0x01E37808;
 		}
-		code.integerSlotPut(IntegerSlots.HASH, hash);
+		code.setSlot(IntegerSlots.HASH, hash);
 		code.makeImmutable();
 
 //		canAllocateObjects(true);

@@ -48,9 +48,9 @@ public @interface EnumField
 {
 	/**
 	 * This annotation field indicates the {@link Enum} responsible for
-	 * describing the object slot to which the annotation is applied.  The value
-	 * of the field (an {@code int}) should always equal an {@linkplain
+	 * describing the integer slot to which the annotation is applied.  The
+	 * value of the field (an {@code int}) should always equal an {@linkplain
 	 * Enum#ordinal() ordinal} of a member of the specified {@code enum}.
 	 */
-	public Class<? extends Enum<?>> describedBy();
+	public Class<? extends IntegerEnumSlotDescriptionEnum> describedBy ();
 }

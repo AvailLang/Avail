@@ -79,18 +79,23 @@ extends AtomDescriptor
 	{
 		/**
 		 * A string (non-uniquely) roughly identifying this atom.  It need not
-		 * be unique among atoms.
+		 * be unique among atoms.  Must have the same ordinal as {@link
+		 * AtomDescriptor.ObjectSlots#NAME}.
 		 */
 		NAME,
 
 		/**
 		 * A map from this atom's property keys (atoms) to property values.
 		 */
-		PROPERTY_MAP
+		PROPERTY_MAP;
+
+		static
+		{
+			assert AtomDescriptor.ObjectSlots.NAME.ordinal() == NAME.ordinal();
+		}
 	}
 
-	@Override
-	public boolean allowsImmutableToMutableReferenceInField (
+	@Override boolean allowsImmutableToMutableReferenceInField (
 		final @NotNull AbstractSlotsEnum e)
 	{
 		return e == IntegerSlots.HASH_OR_ZERO
@@ -112,7 +117,7 @@ extends AtomDescriptor
 		final @NotNull AvailObject value)
 	{
 		assert key.isAtom();
-		AvailObject map = object.objectSlot(ObjectSlots.PROPERTY_MAP);
+		AvailObject map = object.slot(ObjectSlots.PROPERTY_MAP);
 		if (value.equalsNull())
 		{
 			map = map.mapWithoutKeyCanDestroy(key, true);
@@ -121,7 +126,7 @@ extends AtomDescriptor
 		{
 			map = map.mapAtPuttingCanDestroy(key, value, true);
 		}
-		object.objectSlotPut(ObjectSlots.PROPERTY_MAP, map);
+		object.setSlot(ObjectSlots.PROPERTY_MAP, map);
 	}
 
 
@@ -140,7 +145,7 @@ extends AtomDescriptor
 		final @NotNull AvailObject key)
 	{
 		assert key.isAtom();
-		final AvailObject map = object.objectSlot(ObjectSlots.PROPERTY_MAP);
+		final AvailObject map = object.slot(ObjectSlots.PROPERTY_MAP);
 		if (map.hasKey(key))
 		{
 			return map.mapAt(key);
@@ -162,9 +167,9 @@ extends AtomDescriptor
 		final @NotNull AvailObject name)
 	{
 		final AvailObject instance = mutable().create();
-		instance.objectSlotPut(ObjectSlots.NAME, name);
-		instance.objectSlotPut(ObjectSlots.PROPERTY_MAP, MapDescriptor.empty());
-		instance.integerSlotPut(IntegerSlots.HASH_OR_ZERO, 0);
+		instance.setSlot(ObjectSlots.NAME, name);
+		instance.setSlot(ObjectSlots.PROPERTY_MAP, MapDescriptor.empty());
+		instance.setSlot(IntegerSlots.HASH_OR_ZERO, 0);
 		instance.makeImmutable();
 		return instance;
 	}
@@ -192,9 +197,9 @@ extends AtomDescriptor
 		final int originalHash)
 	{
 		final AvailObject instance = mutable().create();
-		instance.objectSlotPut(ObjectSlots.NAME, name);
-		instance.objectSlotPut(ObjectSlots.PROPERTY_MAP, MapDescriptor.empty());
-		instance.integerSlotPut( IntegerSlots.HASH_OR_ZERO, originalHash);
+		instance.setSlot(ObjectSlots.NAME, name);
+		instance.setSlot(ObjectSlots.PROPERTY_MAP, MapDescriptor.empty());
+		instance.setSlot( IntegerSlots.HASH_OR_ZERO, originalHash);
 		instance.makeImmutable();
 		return instance;
 	}

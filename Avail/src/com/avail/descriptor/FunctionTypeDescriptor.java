@@ -92,7 +92,7 @@ extends TypeDescriptor
 	int o_HashOrZero (
 		final @NotNull AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.HASH_OR_ZERO);
+		return object.slot(IntegerSlots.HASH_OR_ZERO);
 	}
 
 	@Override @AvailMethod
@@ -100,21 +100,21 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final int value)
 	{
-		object.integerSlotPut(IntegerSlots.HASH_OR_ZERO, value);
+		object.setSlot(IntegerSlots.HASH_OR_ZERO, value);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_CheckedExceptions (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.CHECKED_EXCEPTIONS);
+		return object.slot(ObjectSlots.CHECKED_EXCEPTIONS);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_ReturnType (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.RETURN_TYPE);
+		return object.slot(ObjectSlots.RETURN_TYPE);
 	}
 
 	@Override @AvailMethod
@@ -122,18 +122,17 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.RETURN_TYPE, value);
+		object.setSlot(ObjectSlots.RETURN_TYPE, value);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_ArgsTupleType (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.ARGS_TUPLE_TYPE);
+		return object.slot(ObjectSlots.ARGS_TUPLE_TYPE);
 	}
 
-	@Override
-	public boolean allowsImmutableToMutableReferenceInField (
+	@Override boolean allowsImmutableToMutableReferenceInField (
 		final @NotNull AbstractSlotsEnum e)
 	{
 		return e == IntegerSlots.HASH_OR_ZERO;
@@ -577,8 +576,8 @@ extends TypeDescriptor
 		final @NotNull AvailObject aFunctionType)
 	{
 		final AvailObject tupleTypeUnion =
-			object.objectSlot(ObjectSlots.ARGS_TUPLE_TYPE).typeUnion(
-				aFunctionType.objectSlot(ObjectSlots.ARGS_TUPLE_TYPE));
+			object.slot(ObjectSlots.ARGS_TUPLE_TYPE).typeUnion(
+				aFunctionType.slot(ObjectSlots.ARGS_TUPLE_TYPE));
 		final AvailObject returnType =
 			object.returnType().typeIntersection(aFunctionType.returnType());
 		AvailObject exceptions = SetDescriptor.empty();
@@ -622,8 +621,8 @@ extends TypeDescriptor
 		// Subobjects may be shared with result.
 		object.makeSubobjectsImmutable();
 		final AvailObject tupleTypeIntersection =
-			object.objectSlot(ObjectSlots.ARGS_TUPLE_TYPE).typeIntersection(
-				aFunctionType.objectSlot(ObjectSlots.ARGS_TUPLE_TYPE));
+			object.slot(ObjectSlots.ARGS_TUPLE_TYPE).typeIntersection(
+				aFunctionType.slot(ObjectSlots.ARGS_TUPLE_TYPE));
 		final AvailObject returnType =
 			object.returnType().typeUnion(aFunctionType.returnType());
 		final AvailObject exceptions = normalizeExceptionSet(
@@ -721,9 +720,9 @@ extends TypeDescriptor
 		final AvailObject exceptionsReduced =
 			normalizeExceptionSet(exceptionSet);
 		final AvailObject type = mutable().create();
-		type.objectSlotPut(ObjectSlots.ARGS_TUPLE_TYPE, argsTupleType);
-		type.objectSlotPut(ObjectSlots.CHECKED_EXCEPTIONS, exceptionsReduced);
-		type.objectSlotPut(ObjectSlots.RETURN_TYPE, returnType);
+		type.setSlot(ObjectSlots.ARGS_TUPLE_TYPE, argsTupleType);
+		type.setSlot(ObjectSlots.CHECKED_EXCEPTIONS, exceptionsReduced);
+		type.setSlot(ObjectSlots.RETURN_TYPE, returnType);
 		type.hashOrZero(0);
 		type.makeImmutable();
 		return type;

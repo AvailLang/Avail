@@ -80,13 +80,13 @@ extends TypeDescriptor
 	int o_Hash (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.INNER_KIND).hash() ^ 0xC5987B13;
+		return object.slot(ObjectSlots.INNER_KIND).hash() ^ 0xC5987B13;
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_InnerKind (final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.INNER_KIND);
+		return object.slot(ObjectSlots.INNER_KIND);
 	}
 
 	@Override @AvailMethod
@@ -267,7 +267,7 @@ extends TypeDescriptor
 			? type.computeSuperkind()
 			: type;
 		final AvailObject result = mutable().create();
-		result.objectSlotPut(ObjectSlots.INNER_KIND, kind);
+		result.setSlot(ObjectSlots.INNER_KIND, kind);
 		return result;
 	}
 

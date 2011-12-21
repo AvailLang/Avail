@@ -88,6 +88,49 @@ extends Descriptor
 
 
 	/**
+	 * An enumeration that lists the basic kinds of tokens that can be
+	 * encountered.
+	 *
+	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+	 */
+	public enum TokenType implements IntegerEnumSlotDescriptionEnum
+	{
+		/**
+		 * A special type of token that is appended to the actual tokens of the
+		 * file to simplify end-of-file processing.
+		 */
+		END_OF_FILE,
+	
+		/**
+		 * The semicolon character may not (at least on 2010.12.28) be used as
+		 * an operator character.  This token type is used to prevent seeing a
+		 * semicolon as an operator.
+		 */
+		END_OF_STATEMENT,
+	
+		/**
+		 * A sequence of characters suitable for an Avail identifier, which
+		 * roughly corresponds to characters in a Java identifier.
+		 */
+		KEYWORD,
+	
+		/**
+		 * A literal token, detected at lexical scanning time.  At the moment
+		 * this includes non-negative numeric tokens and strings.
+		 */
+		LITERAL,
+	
+		/**
+		 * A single operator character, which is anything that isn't whitespace,
+		 * a keyword character, or an Avail reserved character such as
+		 * semicolon.
+		 */
+		OPERATOR;
+	}
+
+
+
+	/**
 	 * Setter for field string.
 	 */
 	@Override @AvailMethod
@@ -95,7 +138,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.STRING, value);
+		object.setSlot(ObjectSlots.STRING, value);
 	}
 
 	/**
@@ -105,7 +148,7 @@ extends Descriptor
 	AvailObject o_String (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.STRING);
+		return object.slot(ObjectSlots.STRING);
 	}
 
 	/**
@@ -116,7 +159,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final int value)
 	{
-		object.integerSlotPut(IntegerSlots.START, value);
+		object.setSlot(IntegerSlots.START, value);
 	}
 
 	/**
@@ -126,7 +169,7 @@ extends Descriptor
 	int o_Start (
 		final @NotNull AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.START);
+		return object.slot(IntegerSlots.START);
 	}
 
 	/**
@@ -137,7 +180,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final int value)
 	{
-		object.integerSlotPut(IntegerSlots.LINE_NUMBER, value);
+		object.setSlot(IntegerSlots.LINE_NUMBER, value);
 	}
 
 	/**
@@ -147,7 +190,7 @@ extends Descriptor
 	int o_LineNumber (
 		final @NotNull AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.LINE_NUMBER);
+		return object.slot(IntegerSlots.LINE_NUMBER);
 	}
 
 	/**
@@ -158,7 +201,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final TokenDescriptor.TokenType value)
 	{
-		object.integerSlotPut(IntegerSlots.TOKEN_TYPE_CODE, value.ordinal());
+		object.setSlot(IntegerSlots.TOKEN_TYPE_CODE, value.ordinal());
 	}
 
 	/**
@@ -168,7 +211,7 @@ extends Descriptor
 	TokenDescriptor.TokenType o_TokenType (
 		final @NotNull AvailObject object)
 	{
-		final int index = object.integerSlot(IntegerSlots.TOKEN_TYPE_CODE);
+		final int index = object.slot(IntegerSlots.TOKEN_TYPE_CODE);
 		return TokenDescriptor.TokenType.values()[index];
 	}
 
@@ -217,10 +260,10 @@ extends Descriptor
 	{
 		assert isMutable();
 		final AvailObject instance = create();
-		instance.objectSlotPut(ObjectSlots.STRING, string);
-		instance.integerSlotPut(IntegerSlots.START, start);
-		instance.integerSlotPut(IntegerSlots.LINE_NUMBER, lineNumber);
-		instance.integerSlotPut(
+		instance.setSlot(ObjectSlots.STRING, string);
+		instance.setSlot(IntegerSlots.START, start);
+		instance.setSlot(IntegerSlots.LINE_NUMBER, lineNumber);
+		instance.setSlot(
 			IntegerSlots.TOKEN_TYPE_CODE,
 			tokenType.ordinal());
 		return instance;
@@ -266,48 +309,5 @@ extends Descriptor
 	public static TokenDescriptor immutable ()
 	{
 		return immutable;
-	}
-
-
-
-	/**
-	 * An enumeration that lists the basic kinds of tokens that can be
-	 * encountered.
-	 *
-	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
-	 */
-	public enum TokenType
-	{
-		/**
-		 * A special type of token that is appended to the actual tokens of the
-		 * file to simplify end-of-file processing.
-		 */
-		END_OF_FILE,
-
-		/**
-		 * The semicolon character may not (at least on 2010.12.28) be used as
-		 * an operator character.  This token type is used to prevent seeing a
-		 * semicolon as an operator.
-		 */
-		END_OF_STATEMENT,
-
-		/**
-		 * A sequence of characters suitable for an Avail identifier, which
-		 * roughly corresponds to characters in a Java identifier.
-		 */
-		KEYWORD,
-
-		/**
-		 * A literal token, detected at lexical scanning time.  At the moment
-		 * this includes non-negative numeric tokens and strings.
-		 */
-		LITERAL,
-
-		/**
-		 * A single operator character, which is anything that isn't whitespace,
-		 * a keyword character, or an Avail reserved character such as
-		 * semicolon.
-		 */
-		OPERATOR;
 	}
 }

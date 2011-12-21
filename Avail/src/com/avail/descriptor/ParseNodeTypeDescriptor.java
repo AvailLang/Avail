@@ -80,7 +80,7 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 	 *
 	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
 	 */
-	public enum ParseNodeKind
+	public enum ParseNodeKind implements IntegerEnumSlotDescriptionEnum
 	{
 		/** The root parse node kind. */
 		PARSE_NODE(null),
@@ -211,8 +211,8 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 		{
 			expressionType.makeImmutable();
 			final AvailObject type = mutable().create();
-			type.objectSlotPut(ObjectSlots.EXPRESSION_TYPE, expressionType);
-			type.integerSlotPut(IntegerSlots.KIND, ordinal());
+			type.setSlot(ObjectSlots.EXPRESSION_TYPE, expressionType);
+			type.setSlot(IntegerSlots.KIND, ordinal());
 			return type;
 		}
 
@@ -287,7 +287,7 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 	@NotNull AvailObject o_ExpressionType (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.EXPRESSION_TYPE);
+		return object.slot(ObjectSlots.EXPRESSION_TYPE);
 	}
 
 	/**
@@ -300,7 +300,7 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 	@NotNull ParseNodeKind o_ParseNodeKind (
 		final @NotNull AvailObject object)
 	{
-		final int ordinal = object.integerSlot(IntegerSlots.KIND);
+		final int ordinal = object.slot(IntegerSlots.KIND);
 		return ParseNodeKind.values()[ordinal];
 	}
 
@@ -311,8 +311,8 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 	@Override @AvailMethod
 	int o_Hash (final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.EXPRESSION_TYPE).hash()
-			^ (object.integerSlot(IntegerSlots.KIND) * Multiplier);
+		return object.slot(ObjectSlots.EXPRESSION_TYPE).hash()
+			^ (object.slot(IntegerSlots.KIND) * Multiplier);
 	}
 
 	/**
@@ -344,8 +344,8 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aParseNodeType)
 	{
-		return object.integerSlot(IntegerSlots.KIND)
-				== aParseNodeType.integerSlot(IntegerSlots.KIND)
+		return object.slot(IntegerSlots.KIND)
+				== aParseNodeType.slot(IntegerSlots.KIND)
 			&& object.expressionType().equals(
 				aParseNodeType.expressionType());
  	}
@@ -371,9 +371,9 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 		final @NotNull AvailObject aParseNodeType)
 	{
 		final ParseNodeKind myKind =
-			ParseNodeKind.values()[object.integerSlot(IntegerSlots.KIND)];
+			ParseNodeKind.values()[object.slot(IntegerSlots.KIND)];
 		final ParseNodeKind otherKind =
-			ParseNodeKind.values()[aParseNodeType.integerSlot(IntegerSlots.KIND)];
+			ParseNodeKind.values()[aParseNodeType.slot(IntegerSlots.KIND)];
 		final ParseNodeKind ancestor = myKind.commonAncestorWith(otherKind);
 		if (ancestor == myKind)
 		{
@@ -413,9 +413,9 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 			return aParseNodeType;
 		}
 		final ParseNodeKind myKind = ParseNodeKind
-			.values()[object.integerSlot(IntegerSlots.KIND)];
+			.values()[object.slot(IntegerSlots.KIND)];
 		final ParseNodeKind otherKind = ParseNodeKind
-			.values()[aParseNodeType.integerSlot(IntegerSlots.KIND)];
+			.values()[aParseNodeType.slot(IntegerSlots.KIND)];
 		final ParseNodeKind ancestor = myKind.commonAncestorWith(otherKind);
 		if (ancestor == myKind || ancestor == otherKind)
 		{
@@ -453,9 +453,9 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 			return object;
 		}
 		final ParseNodeKind myKind = ParseNodeKind
-			.values()[object.integerSlot(IntegerSlots.KIND)];
+			.values()[object.slot(IntegerSlots.KIND)];
 		final ParseNodeKind otherKind = ParseNodeKind
-			.values()[aParseNodeType.integerSlot(IntegerSlots.KIND)];
+			.values()[aParseNodeType.slot(IntegerSlots.KIND)];
 		final ParseNodeKind ancestor = myKind.commonAncestorWith(otherKind);
 		return ancestor.create(
 			object.expressionType().typeUnion(aParseNodeType.expressionType()));
@@ -466,7 +466,7 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull ParseNodeKind expectedParseNodeKind)
 	{
-		final int ordinal = object.integerSlot(IntegerSlots.KIND);
+		final int ordinal = object.slot(IntegerSlots.KIND);
 		final ParseNodeKind myKind = ParseNodeKind.values()[ordinal];
 		final ParseNodeKind commonAncestor =
 			myKind.commonAncestorWith(expectedParseNodeKind);
@@ -480,7 +480,7 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 		final @NotNull List<AvailObject> recursionList,
 		final int indent)
 	{
-		final int kindOrdinal = object.integerSlot(IntegerSlots.KIND);
+		final int kindOrdinal = object.slot(IntegerSlots.KIND);
 		final ParseNodeKind kind = ParseNodeKind.values()[kindOrdinal];
 		builder.append(kind.name());
 		builder.append("(");

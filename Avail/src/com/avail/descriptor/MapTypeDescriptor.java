@@ -36,6 +36,16 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 import com.avail.annotations.*;
 
+/**
+ * An object instance of {@code MapTypeDescriptor} is a type which maps may
+ * conform to.  The map type has a {@linkplain ObjectSlots#SIZE_RANGE size
+ * range}, and {@linkplain ObjectSlots#KEY_TYPE key} and {@linkplain
+ * ObjectSlots#VALUE_TYPE value} types.  For a map to conform to a map type, it
+ * must be within the indicates size range and have keys and values of the
+ * specified {@linkplain TypeDescriptor types}.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public class MapTypeDescriptor
 extends TypeDescriptor
 {
@@ -44,8 +54,22 @@ extends TypeDescriptor
 	 */
 	public enum ObjectSlots implements ObjectSlotsEnum
 	{
+		/**
+		 * The number of elements that a map can have while conforming to this
+		 * map type.
+		 */
 		SIZE_RANGE,
+
+		/**
+		 * The types of keys that a map can have while conforming to this map
+		 * type.
+		 */
 		KEY_TYPE,
+
+		/**
+		 * The types of values that a map can have while conforming to this map
+		 * type.
+		 */
 		VALUE_TYPE
 	}
 
@@ -53,21 +77,21 @@ extends TypeDescriptor
 	@NotNull AvailObject o_KeyType (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.KEY_TYPE);
+		return object.slot(ObjectSlots.KEY_TYPE);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_SizeRange (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.SIZE_RANGE);
+		return object.slot(ObjectSlots.SIZE_RANGE);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_ValueType (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.VALUE_TYPE);
+		return object.slot(ObjectSlots.VALUE_TYPE);
 	}
 
 	@Override
@@ -346,9 +370,9 @@ extends TypeDescriptor
 		}
 
 		final AvailObject result = mutable().create();
-		result.objectSlotPut(ObjectSlots.SIZE_RANGE, newSizeRange);
-		result.objectSlotPut(ObjectSlots.KEY_TYPE, newKeyType);
-		result.objectSlotPut(ObjectSlots.VALUE_TYPE, newValueType);
+		result.setSlot(ObjectSlots.SIZE_RANGE, newSizeRange);
+		result.setSlot(ObjectSlots.KEY_TYPE, newKeyType);
+		result.setSlot(ObjectSlots.VALUE_TYPE, newValueType);
 		return result;
 	}
 

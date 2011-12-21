@@ -1,6 +1,6 @@
 /**
- * ExtendedNumberDescriptor.java
- * Copyright (c) 2010, Mark van Gulik.
+ * EnvironmentConfigurationTest.java
+ * Copyright (c) 2011, Mark van Gulik.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,37 +30,32 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.descriptor;
+package com.avail.test;
 
-import com.avail.annotations.*;
+import static org.junit.Assert.*;
+import org.junit.Test;
 
-public abstract class ExtendedNumberDescriptor
-extends Descriptor
+
+/**
+ * Check that the development environment is configured correctly.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
+public class EnvironmentConfigurationTest
 {
-	@Override @AvailMethod
-	boolean o_LessOrEqual (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
-	{
-		return !another.lessThan(object);
-	}
-
-	@Override @AvailMethod
-	boolean o_IsExtendedInteger (
-		final @NotNull AvailObject object)
-	{
-		return true;
-	}
-
 	/**
-	 * Construct a new {@link ExtendedNumberDescriptor}.
-	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
+	 * Make sure assertions are enabled.  Eclipse has the habit of disabling
+	 * assertion checking by default, so detect this nonsense before trusting
+	 * test cases that didn't really test the code correctly.
 	 */
-	protected ExtendedNumberDescriptor (final boolean isMutable)
+	@Test
+	public void testAssertionsEnabled ()
 	{
-		super(isMutable);
+		int x = 123;
+		assert ((x = 456) == 456);
+		if (x != 456)
+		{
+			fail("Assertion checking was not enabled");
+		}
 	}
 }

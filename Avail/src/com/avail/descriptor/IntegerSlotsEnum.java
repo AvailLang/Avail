@@ -35,9 +35,10 @@ package com.avail.descriptor;
 /**
  * The {@code IntegerSlotsEnum} is an interface that helps ensure that object
  * representations and access are consistent and correct.  In particular, some
- * operations in AvailObject (such as {@link AvailObject#integerSlot(Enum)})
- * are expected to operate on enumerations defined as inner classes within the
- * {@link Descriptor} class for which the slot layout is specified.
+ * operations in AvailObject (such as {@link
+ * AvailObject#slot(IntegerSlotsEnum)}) are expected to operate on enumerations
+ * defined as inner classes within the {@link Descriptor} class for which the
+ * slot layout is specified.
  *
  * <p>
  * Additionally, AvailObject is implemented with both object slots and integer

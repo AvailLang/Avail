@@ -1,0 +1,131 @@
+/**
+ * Rich-Test.avail
+ * Copyright (c) 2010, Mark van Gulik.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Rich-Test"
+Extends
+Uses
+	"Kernel"
+Names
+Body
+
+/*
+ * Reference:
+ *
+ * opt+5       = ∞ (called INF in the library)
+ * opt+\       = «
+ * shift+opt+\ = »
+ * shift+opt+7 = ‡
+ */
+
+/* Code goes after here. */
+
+Print "\n\n*** RICH ***\n\n\n";
+
+Method "∞" is [ INF; ];
+Method "⊤" is [ void; ];
+Method "_'s type" is [ a : any | a type; ];
+Method "_'s lower bound" is [ a : integer's type | a lower bound; ];
+Method "_'s upper bound" is [ a : integer's type | a upper bound; ];
+Method "Fail parse with_" is [ a: string | Fail parse a; ];
+
+
+/* Home Work Control Structures */
+Method "From_to_by_do_" is
+[
+startCount : integer,
+endCount : integer,
+incrementer : integer,
+action : [integer]->⊤
+|
+   counter : integer := startCount;
+   guard : [] -> boolean := if incrementer > 0 /* Problem Here */
+   		then [ [counter <= endCount;]; ]
+   		else [ [counter >= endCount;]; ];
+   [
+        $here : $[]->⊤;
+
+        if guard() then
+        [
+           action(counter);
+           counter := counter + incrementer;
+           Restart here;
+        ];
+   ]();
+] : ⊤;
+
+Restriction "From_to_by_do_" is
+[
+   startCountType : integer's type,
+   endCountType : integer's type,
+   incrementerType : integer's type,
+   actionType : ([integer]->⊤)'s type
+|
+   startCountTypeLower :: = startCountType's lower bound;
+   endCountTypeLower ::= endCountType's lower bound;
+   startCountTypeUpper :: = startCountType's upper bound;
+   endCountTypeUpper ::= endCountType's upper bound;
+   if incrementerType <= 0's type's type then
+   [
+        Fail parse with "The incrementing value must be a non-zero value.";
+   ];
+   if incrementerType <= (-∞..-1]'s type then
+   [
+     if startCountTypeLower < endCountTypeLower then
+     [
+        Fail parse with "The starting count's lowest potential value cannot be lower than the ending count's lowest         
+        potential value for a decrementing counter";
+     ];
+     if startCountTypeUpper < endCountTypeUpper then
+     [
+       Fail parse with "The starting count's largest potential value cannot be lower than the ending count's largest potential 
+       value for a decrementing counter";
+     ];
+  ];
+  if incrementerType <= [1..∞)'s type then
+  [
+     if startCountTypeLower > endCountTypeLower then
+     [
+        Fail parse with "The starting count's lowest potential value cannot be greater than the ending count's lowest potential 
+        value for an incrementing counter";
+     ];
+     if startCountTypeUpper > endCountTypeUpper then
+     [
+        Fail parse with "The starting count's largest potential value cannot be greater than the ending count's largest 
+        potential value for an incrementing counter";
+     ];
+  ];
+  ⊤'s type;
+] : type;
+
+[
+	From 1 to 5 by 1 do [ a : integer | Print a; Print "\n"; ];
+] : ⊤ ();

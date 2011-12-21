@@ -73,7 +73,7 @@ public enum Primitive
 {
 	/**
 	 * <strong>Primitive 1:</strong> Add two {@linkplain
-	 * ExtendedNumberDescriptor extended integers}.
+	 * AbstractNumberDescriptor numbers}.
 	 */
 	prim1_Addition(1, 2, CanFold)
 	{
@@ -108,7 +108,7 @@ public enum Primitive
 
 	/**
 	 * <strong>Primitive 2:</strong> Subtract {@linkplain
-	 * ExtendedNumberDescriptor extended integer} b from a.
+	 * AbstractNumberDescriptor number} b from a.
 	 */
 	prim2_Subtraction(2, 2, CanFold)
 	{
@@ -143,7 +143,7 @@ public enum Primitive
 
 	/**
 	 * <strong>Primitive 3:</strong> Multiply {@linkplain
-	 * ExtendedNumberDescriptor extended integers} a and b.
+	 * ExtendedIntegerDescriptor extended integers} a and b.
 	 */
 	prim3_Multiplication(3, 2, CanFold)
 	{
@@ -178,7 +178,7 @@ public enum Primitive
 
 	/**
 	 * <strong>Primitive 4:</strong> Compute {@linkplain
-	 * ExtendedNumberDescriptor extended integer} a divided by b.
+	 * ExtendedIntegerDescriptor extended integer} a divided by b.
 	 */
 	prim4_Division(4, 2, CanFold)
 	{
@@ -214,7 +214,7 @@ public enum Primitive
 
 	/**
 	 * <strong>Primitive 5:</strong> Compare {@linkplain
-	 * ExtendedNumberDescriptor extended integers} {@code a < b}. Answer
+	 * ExtendedIntegerDescriptor extended integers} {@code a < b}. Answer
 	 * a {@linkplain EnumerationTypeDescriptor#booleanObject() boolean}.
 	 */
 	prim5_LessThan(5, 2, CanFold, CannotFail)
@@ -244,7 +244,7 @@ public enum Primitive
 
 	/**
 	 * <strong>Primitive 6:</strong> Compare {@linkplain
-	 * ExtendedNumberDescriptor extended integers} {@code a <= b}. Answer
+	 * ExtendedIntegerDescriptor extended integers} {@code a <= b}. Answer
 	 * a {@linkplain EnumerationTypeDescriptor#booleanObject() boolean}.
 	 */
 	prim6_LessOrEqual(6, 2, CanFold, CannotFail)
@@ -275,7 +275,7 @@ public enum Primitive
 	/**
 	 * <strong>Primitive 7:</strong> Answer the {@linkplain
 	 * IntegerRangeTypeDescriptor integer range} constrained by the specified
-	 * {@linkplain ExtendedNumberDescriptor upper and lower bounds}. The
+	 * {@linkplain ExtendedIntegerDescriptor upper and lower bounds}. The
 	 * provided {@linkplain EnumerationTypeDescriptor#booleanObject() booleans}
 	 * indicate whether their corresponding bounds are inclusive ({@code true})
 	 * or exclusive ({@code false}).
@@ -315,7 +315,7 @@ public enum Primitive
 
 	/**
 	 * <strong>Primitive 8:</strong> Answer the {@linkplain
-	 * ExtendedNumberDescriptor lower bound}. The client can ask the
+	 * ExtendedIntegerDescriptor lower bound}. The client can ask the
 	 * {@linkplain IntegerRangeTypeDescriptor integer range} if it includes the
 	 * answer to determine whether it is inclusive or exclusive.
 	 */
@@ -343,7 +343,7 @@ public enum Primitive
 
 	/**
 	 * <strong>Primitive 9:</strong> Answer the {@linkplain
-	 * ExtendedNumberDescriptor upper bound}. The client can ask the
+	 * ExtendedIntegerDescriptor upper bound}. The client can ask the
 	 * {@linkplain IntegerRangeTypeDescriptor integer range} if it includes the
 	 * answer to determine whether it is inclusive or exclusive.
 	 */
@@ -1385,8 +1385,8 @@ public enum Primitive
 	/**
 	 * <strong>Primitive 45:</strong> Run the zero-argument {@linkplain
 	 * FunctionDescriptor function}, ignoring the leading {@linkplain
-	 * EnumerationTypeDescriptor#booleanObject() boolean} argument. This is used for
-	 * short-circuit evaluation.
+	 * EnumerationTypeDescriptor#booleanObject() boolean} argument. This is used
+	 * for short-circuit evaluation.
 	 */
 	prim45_ShortCircuitHelper(45, 2, Invokes, CannotFail)
 	{
@@ -6473,7 +6473,8 @@ public enum Primitive
 				FloatDescriptor.objectFromFloatRecycling(
 					a.extractFloat() + b.extractFloat(),
 					a,
-					b));
+					b,
+					true));
 		}
 
 		@Override
@@ -6505,7 +6506,8 @@ public enum Primitive
 				FloatDescriptor.objectFromFloatRecycling(
 					a.extractFloat() - b.extractFloat(),
 					a,
-					b));
+					b,
+					true));
 		}
 
 		@Override
@@ -6537,7 +6539,8 @@ public enum Primitive
 				FloatDescriptor.objectFromFloatRecycling(
 					a.extractFloat() * b.extractFloat(),
 					a,
-					b));
+					b,
+					true));
 		}
 
 		@Override
@@ -6573,7 +6576,8 @@ public enum Primitive
 				FloatDescriptor.objectFromFloatRecycling(
 					a.extractFloat() / b.extractFloat(),
 					a,
-					b));
+					b,
+					true));
 		}
 
 		@Override
@@ -6665,7 +6669,8 @@ public enum Primitive
 			return interpreter.primitiveSuccess(
 				FloatDescriptor.objectFromFloatRecycling(
 					(float) log(a.extractFloat()),
-					a));
+					a,
+					true));
 		}
 
 		@Override
@@ -6694,7 +6699,8 @@ public enum Primitive
 			return interpreter.primitiveSuccess(
 				FloatDescriptor.objectFromFloatRecycling(
 					(float) exp(a.extractFloat()),
-					a));
+					a,
+					true));
 		}
 
 		@Override
@@ -6730,7 +6736,7 @@ public enum Primitive
 			final float div = fa / fb;
 			final float mod = fa - (float)floor(div) * fb;
 			return interpreter.primitiveSuccess(
-				FloatDescriptor.objectFromFloatRecycling(mod, a, b));
+				FloatDescriptor.objectFromFloatRecycling(mod, a, b, true));
 		}
 
 		@Override
@@ -6874,7 +6880,7 @@ public enum Primitive
 			scale = min(scale, 0x7FFFFFFFL);
 			final float f = scalb(a.extractFloat(), (int)scale);
 			return interpreter.primitiveSuccess(
-				FloatDescriptor.objectFromFloatRecycling(f, a));
+				FloatDescriptor.objectFromFloatRecycling(f, a, true));
 		}
 
 		@Override
@@ -6906,7 +6912,8 @@ public enum Primitive
 				DoubleDescriptor.objectFromDoubleRecycling(
 					(a.extractDouble() + b.extractDouble()),
 					a,
-					b));
+					b,
+					true));
 		}
 
 		@Override
@@ -6938,7 +6945,8 @@ public enum Primitive
 				DoubleDescriptor.objectFromDoubleRecycling(
 					(a.extractDouble() - b.extractDouble()),
 					a,
-					b));
+					b,
+					true));
 		}
 
 		@Override
@@ -6970,7 +6978,8 @@ public enum Primitive
 				DoubleDescriptor.objectFromDoubleRecycling(
 					(a.extractDouble() * b.extractDouble()),
 					a,
-					b));
+					b,
+					true));
 		}
 
 		@Override
@@ -7006,7 +7015,8 @@ public enum Primitive
 				DoubleDescriptor.objectFromDoubleRecycling(
 					(a.extractDouble() / b.extractDouble()),
 					a,
-					b));
+					b,
+					true));
 		}
 
 		@Override
@@ -7097,7 +7107,7 @@ public enum Primitive
 			final AvailObject a = args.get(0);
 			return interpreter.primitiveSuccess(
 				DoubleDescriptor.objectFromDoubleRecycling(
-					log(a.extractDouble()), a));
+					log(a.extractDouble()), a, true));
 		}
 
 		@Override
@@ -7125,7 +7135,7 @@ public enum Primitive
 			final AvailObject a = args.get(0);
 			return interpreter.primitiveSuccess(
 				DoubleDescriptor.objectFromDoubleRecycling(
-					exp(a.extractDouble()), a));
+					exp(a.extractDouble()), a, true));
 		}
 
 		@Override
@@ -7161,7 +7171,7 @@ public enum Primitive
 			final double div = da / db;
 			final double mod = da - floor(div) * db;
 			return interpreter.primitiveSuccess(
-				DoubleDescriptor.objectFromDoubleRecycling(mod, a, b));
+				DoubleDescriptor.objectFromDoubleRecycling(mod, a, b, true));
 		}
 
 		@Override
@@ -7192,7 +7202,7 @@ public enum Primitive
 			// Extract the top three 32-bit sections.  That guarantees 65 bits
 			// of mantissa, which is more than a double actually captures.
 			double d = a.extractDouble();
-			if (d >= -0x80000000L && d <= 0x7FFFFFFFL)
+			if (d >= Integer.MIN_VALUE && d <= Integer.MAX_VALUE)
 			{
 				// Common case -- it fits in an int.
 				return interpreter.primitiveSuccess(
@@ -7312,7 +7322,7 @@ public enum Primitive
 			scale = min(scale, 0x7FFFFFFFL);
 			final double d = scalb(a.extractDouble(), (int)scale);
 			return interpreter.primitiveSuccess(
-				DoubleDescriptor.objectFromDoubleRecycling(d, a));
+				DoubleDescriptor.objectFromDoubleRecycling(d, a, true));
 		}
 
 		@Override
@@ -8397,7 +8407,7 @@ public enum Primitive
 	 * @param flags The flags that describe how the {@link L2Translator} should
 	 *              deal with this primitive.
 	 */
-	private Primitive (
+	Primitive (
 		final int primitiveNumber,
 		final int argCount,
 		final Flag ... flags)

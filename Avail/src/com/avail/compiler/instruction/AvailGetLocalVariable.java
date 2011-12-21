@@ -53,7 +53,7 @@ public class AvailGetLocalVariable extends AvailGetVariable
 	 * @param variableIndex The index of the argument or local at runtime in a
 	 *                      {@linkplain ContinuationDescriptor continuation}.
 	 */
-	public AvailGetLocalVariable (int variableIndex)
+	public AvailGetLocalVariable (final int variableIndex)
 	{
 		super(variableIndex);
 	}
@@ -76,13 +76,13 @@ public class AvailGetLocalVariable extends AvailGetVariable
 		writeIntegerOn(index, aStream);
 	}
 
-	
+
 	/**
 	 * The instructions of a block are being iterated over.  Coordinate
 	 * optimizations between instructions using localData and outerData, two
-	 * {@linkplain List lists} manipulated by overrides of this method.  Treat each
-	 * instruction as though it is the last one in the block, and save enough
-	 * information in the lists to be able to undo consequences of this
+	 * {@linkplain List lists} manipulated by overrides of this method.  Treat
+	 * each instruction as though it is the last one in the block, and save
+	 * enough information in the lists to be able to undo consequences of this
 	 * assumption when a later instruction shows it to be unwarranted.
 	 * <p>
 	 * The data lists are keyed by local or outer index.  Each entry is either

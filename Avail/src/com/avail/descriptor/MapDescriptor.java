@@ -97,7 +97,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final int subscript)
 	{
-		return object.objectSlotAt(ObjectSlots.DATA_AT_INDEX_, subscript);
+		return object.slot(ObjectSlots.DATA_AT_INDEX_, subscript);
 	}
 
 	@Override @AvailMethod
@@ -106,7 +106,7 @@ extends Descriptor
 		final int subscript,
 		final AvailObject value)
 	{
-		object.objectSlotAtPut(ObjectSlots.DATA_AT_INDEX_, subscript, value);
+		object.setSlot(ObjectSlots.DATA_AT_INDEX_, subscript, value);
 	}
 
 	@Override @AvailMethod
@@ -114,7 +114,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final int value)
 	{
-		object.integerSlotPut(IntegerSlots.INTERNAL_HASH, value);
+		object.setSlot(IntegerSlots.INTERNAL_HASH, value);
 	}
 
 	@Override @AvailMethod
@@ -122,7 +122,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final int value)
 	{
-		object.integerSlotPut(IntegerSlots.MAP_SIZE, value);
+		object.setSlot(IntegerSlots.MAP_SIZE, value);
 	}
 
 	@Override @AvailMethod
@@ -130,28 +130,28 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final int value)
 	{
-		object.integerSlotPut(IntegerSlots.NUM_BLANKS, value);
+		object.setSlot(IntegerSlots.NUM_BLANKS, value);
 	}
 
 	@Override @AvailMethod
 	int o_InternalHash (
 		final @NotNull AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.INTERNAL_HASH);
+		return object.slot(IntegerSlots.INTERNAL_HASH);
 	}
 
 	@Override @AvailMethod
 	int o_MapSize (
 		final @NotNull AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.MAP_SIZE);
+		return object.slot(IntegerSlots.MAP_SIZE);
 	}
 
 	@Override @AvailMethod
 	int o_NumBlanks (
 		final @NotNull AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.NUM_BLANKS);
+		return object.slot(IntegerSlots.NUM_BLANKS);
 	}
 
 
@@ -362,10 +362,6 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final AvailObject aTypeObject)
 	{
-		//  Answer whether object is an instance of a subtype of aTypeObject.  Don't generate
-		//  an approximate type and do the comparison, because the approximate type
-		//  will just send this message recursively.
-
 		if (aTypeObject.equals(TOP.o()))
 		{
 			return true;

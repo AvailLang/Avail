@@ -73,7 +73,7 @@ public class MarkerNodeDescriptor extends ParseNodeDescriptor
 		final @NotNull AvailObject object,
 		final AvailObject markerValue)
 	{
-		object.objectSlotPut(ObjectSlots.MARKER_VALUE, markerValue);
+		object.setSlot(ObjectSlots.MARKER_VALUE, markerValue);
 	}
 
 	/**
@@ -83,7 +83,7 @@ public class MarkerNodeDescriptor extends ParseNodeDescriptor
 	AvailObject o_MarkerValue (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.MARKER_VALUE);
+		return object.slot(ObjectSlots.MARKER_VALUE);
 	}
 
 

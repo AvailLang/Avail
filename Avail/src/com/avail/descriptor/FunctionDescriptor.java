@@ -68,7 +68,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.CODE, value);
+		object.setSlot(ObjectSlots.CODE, value);
 	}
 
 	@Override
@@ -76,7 +76,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final int subscript)
 	{
-		return object.objectSlotAt(ObjectSlots.OUTER_VAR_AT_, subscript);
+		return object.slot(ObjectSlots.OUTER_VAR_AT_, subscript);
 	}
 
 	@Override
@@ -85,14 +85,14 @@ extends Descriptor
 		final int subscript,
 		final @NotNull AvailObject value)
 	{
-		object.objectSlotAtPut(ObjectSlots.OUTER_VAR_AT_, subscript, value);
+		object.setSlot(ObjectSlots.OUTER_VAR_AT_, subscript, value);
 	}
 
 	@Override
 	@NotNull AvailObject o_Code (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.CODE);
+		return object.slot(ObjectSlots.CODE);
 	}
 
 	@Override
@@ -163,7 +163,7 @@ extends Descriptor
 		// with 0 or something), it's ok because nobody could know what the hash
 		// value *used to be* for this function.
 
-		final AvailObject code = object.objectSlot(ObjectSlots.CODE);
+		final AvailObject code = object.slot(ObjectSlots.CODE);
 		int hash = code.hash() ^ 0x1386D4F6;
 		for (int i = 1, end = object.numOuterVars(); i <= end; i++)
 		{
@@ -188,7 +188,7 @@ extends Descriptor
 	@NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.CODE).functionType();
+		return object.slot(ObjectSlots.CODE).functionType();
 	}
 
 	@Override
@@ -202,7 +202,7 @@ extends Descriptor
 		{
 			return true;
 		}
-		return object.objectSlot(ObjectSlots.CODE).containsBlock(aFunction);
+		return object.slot(ObjectSlots.CODE).containsBlock(aFunction);
 	}
 
 	@Override

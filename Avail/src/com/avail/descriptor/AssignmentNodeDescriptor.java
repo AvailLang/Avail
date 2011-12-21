@@ -76,7 +76,7 @@ extends ParseNodeDescriptor
 		final @NotNull AvailObject object,
 		final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.VARIABLE, value);
+		object.setSlot(ObjectSlots.VARIABLE, value);
 	}
 
 	/**
@@ -86,7 +86,7 @@ extends ParseNodeDescriptor
 	AvailObject o_Variable (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.VARIABLE);
+		return object.slot(ObjectSlots.VARIABLE);
 	}
 
 	/**
@@ -97,7 +97,7 @@ extends ParseNodeDescriptor
 		final @NotNull AvailObject object,
 		final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.EXPRESSION, value);
+		object.setSlot(ObjectSlots.EXPRESSION, value);
 	}
 
 	/**
@@ -107,7 +107,7 @@ extends ParseNodeDescriptor
 	AvailObject o_Expression (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.EXPRESSION);
+		return object.slot(ObjectSlots.EXPRESSION);
 	}
 
 
@@ -250,8 +250,8 @@ extends ParseNodeDescriptor
 		final AvailObject expression)
 	{
 		final AvailObject assignment = mutable().create();
-		assignment.objectSlotPut(ObjectSlots.VARIABLE, variableUse);
-		assignment.objectSlotPut(ObjectSlots.EXPRESSION, expression);
+		assignment.setSlot(ObjectSlots.VARIABLE, variableUse);
+		assignment.setSlot(ObjectSlots.EXPRESSION, expression);
 		assignment.makeImmutable();
 		return assignment;
 	}

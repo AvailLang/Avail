@@ -32,21 +32,65 @@
 
 package com.avail.descriptor;
 
-import com.avail.annotations.AvailMethod;
+import com.avail.annotations.*;
 
+/**
+ * This abstract class
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Todd Smith &lt;anarakul@gmail.com&gt;
+ */
 public abstract class SetBinDescriptor
 extends Descriptor
 {
-	final byte _level;
+	/**
+	 * The layout of integer slots for my instances.
+	 */
+	public enum IntegerSlots implements IntegerSlotsEnum
+	{
+		/**
+		 * The sum of the hashes of the elements recursively within this bin.
+		 */
+		BIN_HASH
+	}
 
+
+	@Override @AvailMethod
+	void o_BinHash (
+		final @NotNull AvailObject object,
+		final int value)
+	{
+		object.setSlot(IntegerSlots.BIN_HASH, value);
+	}
+
+	@Override @AvailMethod
+	int o_BinHash (
+		final @NotNull AvailObject object)
+	{
+		return object.slot(IntegerSlots.BIN_HASH);
+	}
+
+
+	/**
+	 * The level of my objects in their enclosing bin trees.
+	 *
+	 * @see #level()
+	 */
+	final byte level;
+
+	/**
+	 * Answer what level this descriptor's objects occupy in their hierarchy.
+	 * The top node is level 0 (using hash bits 0..4), and the bottom hashed
+	 * node is level 6 (using hash bits 30..34, the top three of which are
+	 * always zero).  There can be a level 7 {@linkplain LinearSetBinDescriptor
+	 * linear bin}, but it represents elements which all have the same hash
+	 * value, so it should never be hashed.
+	 *
+	 * @return The descriptor's level in a bin tree.
+	 */
 	byte level ()
 	{
-		//  Answer what level I am in the hash trie.  The top node is level 0 (using hash bits 0..4),
-		//  and the bottom hashed node is level 6 (using hash bits 30..34, the top three of which
-		//  are always zero).  There can be a level 7 linear bin, but it represents elements which
-		//  all have the same hash value, so it should never be hashed.
-
-		return _level;
+		return level;
 	}
 
 	@Override @AvailMethod
@@ -68,6 +112,6 @@ extends Descriptor
 		final int level)
 	{
 		super(isMutable);
-		_level = (byte) level;
+		this.level = (byte) level;
 	}
 }

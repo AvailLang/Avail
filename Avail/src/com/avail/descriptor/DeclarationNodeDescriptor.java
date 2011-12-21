@@ -103,7 +103,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	 *
 	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
 	 */
-	public enum DeclarationKind
+	public enum DeclarationKind implements IntegerEnumSlotDescriptionEnum
 	{
 		/**
 		 * This is an argument to a block.
@@ -526,7 +526,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	AvailObject o_Token (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.TOKEN);
+		return object.slot(ObjectSlots.TOKEN);
 	}
 
 	/**
@@ -536,7 +536,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	AvailObject o_DeclaredType (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.DECLARED_TYPE);
+		return object.slot(ObjectSlots.DECLARED_TYPE);
 	}
 
 	/**
@@ -547,7 +547,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		final @NotNull AvailObject object,
 		final AvailObject initializationExpression)
 	{
-		object.objectSlotPut(
+		object.setSlot(
 			ObjectSlots.INITIALIZATION_EXPRESSION,
 			initializationExpression);
 	}
@@ -559,7 +559,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	AvailObject o_InitializationExpression (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.INITIALIZATION_EXPRESSION);
+		return object.slot(ObjectSlots.INITIALIZATION_EXPRESSION);
 	}
 
 	/**
@@ -569,7 +569,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	AvailObject o_LiteralObject (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.LITERAL_OBJECT);
+		return object.slot(ObjectSlots.LITERAL_OBJECT);
 	}
 
 	/**
@@ -579,7 +579,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	DeclarationKind o_DeclarationKind (
 		final @NotNull AvailObject object)
 	{
-		return DeclarationKind.values()[object.integerSlot(
+		return DeclarationKind.values()[object.slot(
 			IntegerSlots.DECLARATION_KIND)];
 	}
 
@@ -622,7 +622,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 			final @NotNull AvailObject object)
 	{
 		final DeclarationKind declarationKind =
-			DeclarationKind.values()[object.integerSlot(
+			DeclarationKind.values()[object.slot(
 				IntegerSlots.DECLARATION_KIND)];
 		return declarationKind.parseNodeTypeFor(object.expressionType());
 	}
@@ -746,15 +746,15 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject literalObject)
 	{
 		final AvailObject declaration = mutable().create();
-		declaration.integerSlotPut(
+		declaration.setSlot(
 			IntegerSlots.DECLARATION_KIND,
 			declarationKind.ordinal());
-		declaration.objectSlotPut(ObjectSlots.TOKEN, token);
-		declaration.objectSlotPut(ObjectSlots.DECLARED_TYPE, declaredType);
-		declaration.objectSlotPut(
+		declaration.setSlot(ObjectSlots.TOKEN, token);
+		declaration.setSlot(ObjectSlots.DECLARED_TYPE, declaredType);
+		declaration.setSlot(
 			ObjectSlots.INITIALIZATION_EXPRESSION,
 			initializationExpression);
-		declaration.objectSlotPut(ObjectSlots.LITERAL_OBJECT, literalObject);
+		declaration.setSlot(ObjectSlots.LITERAL_OBJECT, literalObject);
 		declaration.makeImmutable();
 		return declaration;
 	}

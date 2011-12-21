@@ -93,7 +93,7 @@ extends AbstractEnumerationTypeDescriptor
 	private static @NotNull AvailObject getInstance (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.INSTANCE);
+		return object.slot(ObjectSlots.INSTANCE);
 	}
 
 
@@ -723,7 +723,7 @@ extends AbstractEnumerationTypeDescriptor
 	public static @NotNull AvailObject on (final @NotNull AvailObject instance)
 	{
 		final AvailObject result = mutable().create();
-		result.objectSlotPut(
+		result.setSlot(
 			ObjectSlots.INSTANCE,
 			instance.makeImmutable());
 		return result;

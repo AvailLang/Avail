@@ -78,8 +78,7 @@ extends Descriptor
 		KIND
 	}
 
-	@Override
-	public boolean allowsImmutableToMutableReferenceInField (
+	@Override boolean allowsImmutableToMutableReferenceInField (
 		final @NotNull AbstractSlotsEnum e)
 	{
 		return e == ObjectSlots.VALUE
@@ -90,14 +89,14 @@ extends Descriptor
 	@NotNull AvailObject o_Value (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.VALUE);
+		return object.slot(ObjectSlots.VALUE);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.KIND);
+		return object.slot(ObjectSlots.KIND);
 	}
 
 	@Override @AvailMethod
@@ -130,7 +129,7 @@ extends Descriptor
 	int o_Hash (
 		final @NotNull AvailObject object)
 	{
-		int hash = object.integerSlot(IntegerSlots.HASH_OR_ZERO);
+		int hash = object.slot(IntegerSlots.HASH_OR_ZERO);
 		if (hash == 0)
 		{
 			do
@@ -138,7 +137,7 @@ extends Descriptor
 				hash = hashGenerator.nextInt();
 			}
 			while (hash == 0);
-			object.integerSlotPut(IntegerSlots.HASH_OR_ZERO, hash);
+			object.setSlot(IntegerSlots.HASH_OR_ZERO, hash);
 		}
 		return hash;
 	}
@@ -150,7 +149,7 @@ extends Descriptor
 		// If I am being frozen (a container), I don't need to freeze my current
 		// value.  I do, on the other hand, have to freeze my kind object.
 		object.descriptor = immutable();
-		object.objectSlot(ObjectSlots.KIND).makeImmutable();
+		object.slot(ObjectSlots.KIND).makeImmutable();
 		return object;
 	}
 
@@ -159,12 +158,12 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject newValue)
 	{
-		final AvailObject outerKind = object.objectSlot(ObjectSlots.KIND);
+		final AvailObject outerKind = object.slot(ObjectSlots.KIND);
 		if (!newValue.isInstanceOf(outerKind.writeType()))
 		{
 			error("container can't hold that value (wrong type)");
 		}
-		object.objectSlotPut(ObjectSlots.VALUE, newValue);
+		object.setSlot(ObjectSlots.VALUE, newValue);
 	}
 
 	@Override @AvailMethod
@@ -173,7 +172,7 @@ extends Descriptor
 	{
 		// Clear the container (make it have no current value).
 		// Eventually, the previous contents should drop a reference.
-		object.objectSlotPut(ObjectSlots.VALUE, NullDescriptor.nullObject());
+		object.setSlot(ObjectSlots.VALUE, NullDescriptor.nullObject());
 	}
 
 	@Override @AvailMethod
@@ -182,7 +181,7 @@ extends Descriptor
 	{
 		// Answer the current value of the container.  Fail if no value is
 		// currently assigned.
-		final AvailObject value = object.objectSlot(ObjectSlots.VALUE);
+		final AvailObject value = object.slot(ObjectSlots.VALUE);
 		if (value.equalsNull())
 		{
 			error("container has no value yet");
@@ -204,7 +203,7 @@ extends Descriptor
 	void o_ReleaseVariableOrMakeContentsImmutable (
 		final @NotNull AvailObject object)
 	{
-		final AvailObject value = object.objectSlot(ObjectSlots.VALUE);
+		final AvailObject value = object.slot(ObjectSlots.VALUE);
 		if (isMutable)
 		{
 			object.assertObjectUnreachableIfMutableExcept(value);
@@ -246,9 +245,9 @@ extends Descriptor
 		final @NotNull AvailObject outerType)
 	{
 		final AvailObject result = mutable().create();
-		result.objectSlotPut(ObjectSlots.KIND, outerType);
-		result.integerSlotPut(IntegerSlots.HASH_OR_ZERO, 0);
-		result.objectSlotPut(ObjectSlots.VALUE, NullDescriptor.nullObject());
+		result.setSlot(ObjectSlots.KIND, outerType);
+		result.setSlot(IntegerSlots.HASH_OR_ZERO, 0);
+		result.setSlot(ObjectSlots.VALUE, NullDescriptor.nullObject());
 		return result;
 	}
 

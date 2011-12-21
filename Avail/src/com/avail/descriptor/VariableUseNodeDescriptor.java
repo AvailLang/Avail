@@ -104,7 +104,7 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 	AvailObject o_Token (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.USE_TOKEN);
+		return object.slot(ObjectSlots.USE_TOKEN);
 	}
 
 	/**
@@ -114,7 +114,7 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 	AvailObject o_Declaration (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.DECLARATION);
+		return object.slot(ObjectSlots.DECLARATION);
 	}
 
 
@@ -210,8 +210,8 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 		assert declaration.isInstanceOfKind(DECLARATION_NODE.mostGeneralType());
 
 		final AvailObject newUse = mutable().create();
-		newUse.objectSlotPut(ObjectSlots.USE_TOKEN, theToken);
-		newUse.objectSlotPut(ObjectSlots.DECLARATION, declaration);
+		newUse.setSlot(ObjectSlots.USE_TOKEN, theToken);
+		newUse.setSlot(ObjectSlots.DECLARATION, declaration);
 		newUse.isLastUse(false);
 		return newUse;
 	}

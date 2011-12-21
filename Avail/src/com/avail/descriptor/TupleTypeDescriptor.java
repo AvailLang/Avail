@@ -91,21 +91,21 @@ extends TypeDescriptor
 	@NotNull AvailObject o_DefaultType (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.DEFAULT_TYPE);
+		return object.slot(ObjectSlots.DEFAULT_TYPE);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_SizeRange (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.SIZE_RANGE);
+		return object.slot(ObjectSlots.SIZE_RANGE);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_TypeTuple (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.TYPE_TUPLE);
+		return object.slot(ObjectSlots.TYPE_TUPLE);
 	}
 
 	@Override
@@ -148,12 +148,9 @@ extends TypeDescriptor
 				object.sizeRange().lowerBound()))
 			{
 				aStream.append("tuple like <");
-				for (
-						int
-							i = 1,
-							end = object.sizeRange().upperBound().extractInt();
-						i <= end;
-						i++)
+				final int end =
+					object.sizeRange().upperBound().extractInt();
+				for (int i = 1; i <= end; i++)
 				{
 					if (i > 1)
 					{
@@ -712,9 +709,9 @@ extends TypeDescriptor
 			assert typeTuple.tupleAt(i).isInstanceOfKind(TYPE.o());
 		}
 		final AvailObject result = mutable().create();
-		result.objectSlotPut(ObjectSlots.SIZE_RANGE, sizeRangeKind);
-		result.objectSlotPut(ObjectSlots.TYPE_TUPLE, typeTuple);
-		result.objectSlotPut(ObjectSlots.DEFAULT_TYPE, defaultType);
+		result.setSlot(ObjectSlots.SIZE_RANGE, sizeRangeKind);
+		result.setSlot(ObjectSlots.TYPE_TUPLE, typeTuple);
+		result.setSlot(ObjectSlots.DEFAULT_TYPE, defaultType);
 		return result;
 	}
 

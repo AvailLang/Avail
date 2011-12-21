@@ -35,10 +35,11 @@ import java.lang.reflect.Field;
 import java.util.*;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
+import com.avail.descriptor.AbstractNumberDescriptor.Order;
+import com.avail.descriptor.AbstractNumberDescriptor.Sign;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.ProcessDescriptor.ExecutionState;
-import com.avail.exceptions.ArithmeticException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
@@ -303,7 +304,7 @@ public abstract class AbstractDescriptor
 	 * @return Whether the specified field can be written even in an immutable
 	 *         object.
 	 */
-	public boolean allowsImmutableToMutableReferenceInField (
+	boolean allowsImmutableToMutableReferenceInField (
 		final @NotNull AbstractSlotsEnum e)
 	{
 		return false;
@@ -314,7 +315,7 @@ public abstract class AbstractDescriptor
 	 *
 	 * @return The number of levels.
 	 */
-	public int maximumIndent ()
+	int maximumIndent ()
 	{
 		return 12;
 	}
@@ -324,7 +325,7 @@ public abstract class AbstractDescriptor
 	 *
 	 * @param e An {@code enum} value whose ordinal is the field position.
 	 */
-	public final void checkWriteForField (final @NotNull AbstractSlotsEnum e)
+	final void checkWriteForField (final @NotNull AbstractSlotsEnum e)
 	{
 		assert isMutable() || allowsImmutableToMutableReferenceInField(e);
 	}
@@ -337,7 +338,7 @@ public abstract class AbstractDescriptor
 	 * @param indexedSlotCount The number of variable slots to include.
 	 * @return The new uninitialized {@linkplain AvailObject object}.
 	 */
-	public @NotNull AvailObject create (final int indexedSlotCount)
+	public final @NotNull AvailObject create (final int indexedSlotCount)
 	{
 		return AvailObject.newIndexedDescriptor(indexedSlotCount, this);
 	}
@@ -349,9 +350,9 @@ public abstract class AbstractDescriptor
 	 *
 	 * @return The new uninitialized {@linkplain AvailObject object}.
 	 */
-	public @NotNull AvailObject create ()
+	public final @NotNull AvailObject create ()
 	{
-		return create(0);
+		return AvailObject.newIndexedDescriptor(0, this);
 	}
 
 	/**
@@ -397,21 +398,20 @@ public abstract class AbstractDescriptor
 
 		final Class<Descriptor> cls = (Class<Descriptor>) this.getClass();
 		final ClassLoader loader = cls.getClassLoader();
-		Class<Enum<?>> enumClass;
-		Enum<?>[] instances;
+		Class<IntegerSlotsEnum> intEnumClass;
 
 		try
 		{
-			enumClass = (Class<Enum<?>>) loader.loadClass(
+			intEnumClass = (Class<IntegerSlotsEnum>) loader.loadClass(
 				cls.getCanonicalName() + "$IntegerSlots");
 		}
 		catch (final ClassNotFoundException e)
 		{
-			enumClass = null;
+			intEnumClass = null;
 		}
-		instances = enumClass != null
-			? enumClass.getEnumConstants()
-			: new Enum<?>[0];
+		final IntegerSlotsEnum[] intSlots = intEnumClass != null
+			? (IntegerSlotsEnum[])intEnumClass.getEnumConstants()
+			: new IntegerSlotsEnum[0];
 
 		for (int i = 1, limit = object.integerSlotsCount(); i <= limit; i++)
 		{
@@ -420,14 +420,14 @@ public abstract class AbstractDescriptor
 			{
 				builder.append('\t');
 			}
-			final int ordinal = Math.min(i, instances.length) - 1;
-			final Enum<?> slot = instances[ordinal];
+			final int ordinal = Math.min(i, intSlots.length) - 1;
+			final IntegerSlotsEnum slot = intSlots[ordinal];
 			final String slotName = slot.name();
 			int value;
 			if (slotName.charAt(slotName.length() - 1) == '_')
 			{
-				final int subscript = i - instances.length + 1;
-				value = object.integerSlotAt((IntegerSlotsEnum)slot, subscript);
+				final int subscript = i - intSlots.length + 1;
+				value = object.slot(slot, subscript);
 				builder.append(slotName, 0, slotName.length() - 1);
 				builder.append('[');
 				builder.append(subscript);
@@ -435,7 +435,7 @@ public abstract class AbstractDescriptor
 			}
 			else
 			{
-				value = object.integerSlot((IntegerSlotsEnum)slot);
+				value = object.slot(slot);
 				builder.append(slotName);
 			}
 			builder.append(" = ");
@@ -449,9 +449,9 @@ public abstract class AbstractDescriptor
 					slotMirror.getAnnotation(BitFields.class);
 				if (enumAnnotation != null)
 				{
-					final Class<? extends Enum<?>> describingClass =
-						enumAnnotation.describedBy();
-					final Enum<?>[] allValues =
+					final Class<? extends IntegerEnumSlotDescriptionEnum>
+						describingClass = enumAnnotation.describedBy();
+					final IntegerEnumSlotDescriptionEnum[] allValues =
 						describingClass.getEnumConstants();
 					if (0 <= value && value < allValues.length)
 					{
@@ -489,7 +489,7 @@ public abstract class AbstractDescriptor
 						BitField bitField;
 						bitField = (BitField)subfield.get(null);
 						final int subfieldValue =
-							object.bitSlot((IntegerSlotsEnum)slot, bitField);
+							object.bitSlot(slot, bitField);
 						builder.append(subfieldValue);
 					}
 					builder.append(")");
@@ -512,18 +512,19 @@ public abstract class AbstractDescriptor
 			}
 		}
 
+		Class<ObjectSlotsEnum> objectEnumClass;
 		try
 		{
-			enumClass = (Class<Enum<?>>) loader.loadClass(
+			objectEnumClass = (Class<ObjectSlotsEnum>) loader.loadClass(
 				cls.getCanonicalName() + "$ObjectSlots");
 		}
 		catch (final ClassNotFoundException e)
 		{
-			enumClass = null;
+			objectEnumClass = null;
 		}
-		instances = enumClass != null
-		? enumClass.getEnumConstants()
-				: new Enum<?>[0];
+		final ObjectSlotsEnum[] objectSlots = objectEnumClass != null
+			? (ObjectSlotsEnum[])objectEnumClass.getEnumConstants()
+			: new ObjectSlotsEnum[0];
 
 		for (int i = 1, limit = object.objectSlotsCount(); i <= limit; i++)
 		{
@@ -532,27 +533,26 @@ public abstract class AbstractDescriptor
 			{
 				builder.append('\t');
 			}
-			final int ordinal = Math.min(i, instances.length) - 1;
-			final Enum<?> slot = instances[ordinal];
+			final int ordinal = Math.min(i, objectSlots.length) - 1;
+			final ObjectSlotsEnum slot = objectSlots[ordinal];
 			final String slotName = slot.name();
 			if (slotName.charAt(slotName.length() - 1) == '_')
 			{
-				final int subscript = i - instances.length + 1;
+				final int subscript = i - objectSlots.length + 1;
 				builder.append(slotName, 0, slotName.length() - 1);
 				builder.append('[');
 				builder.append(subscript);
 				builder.append("] = ");
-				object.objectSlotAt((ObjectSlotsEnum)slot, subscript)
-					.printOnAvoidingIndent(
-						builder,
-						recursionList,
-						indent + 1);
+				object.slot(slot, subscript).printOnAvoidingIndent(
+					builder,
+					recursionList,
+					indent + 1);
 			}
 			else
 			{
 				builder.append(slotName);
 				builder.append(" = ");
-				object.objectSlot((ObjectSlotsEnum)slot).printOnAvoidingIndent(
+				object.slot(slot).printOnAvoidingIndent(
 					builder,
 					recursionList,
 					indent + 1);
@@ -578,7 +578,7 @@ public abstract class AbstractDescriptor
 	 *            The {@code BitField} that the specified static member was
 	 *            annotated with.
 	 */
-	public static BitField bitField (
+	static BitField bitField (
 		final @NotNull Class<?> theClass,
 		final @NotNull String fieldName)
 	{
@@ -690,23 +690,19 @@ public abstract class AbstractDescriptor
 	 *
 	 * @param object
 	 *        An integral numeric.
-	 * @param anInfinity
-	 *        An {@linkplain InfinityDescriptor infinity}.
+	 * @param sign
+	 *        The {@linkplain Sign sign} of the infinity.
 	 * @param canDestroy
 	 *        {@code true} if the operation may modify either {@linkplain
 	 *        AvailObject operand}, {@code false} otherwise.
 	 * @return The {@linkplain AvailObject result} of adding the operands.
-	 * @throws ArithmeticException
-	 *         If the {@linkplain AvailObject operands} were {@linkplain
-	 *         InfinityDescriptor infinities} of differing signs.
 	 * @see IntegerDescriptor
 	 * @see InfinityDescriptor
 	 */
 	abstract @NotNull AvailObject o_AddToInfinityCanDestroy (
-			@NotNull AvailObject object,
-			@NotNull AvailObject anInfinity,
-			boolean canDestroy)
-		throws ArithmeticException;
+		@NotNull AvailObject object,
+		@NotNull Sign sign,
+		boolean canDestroy);
 
 	/**
 	 * Add the {@linkplain AvailObject operands} and answer the result.
@@ -1084,7 +1080,7 @@ public abstract class AbstractDescriptor
 	 * <p>Implementations may double-dispatch to {@link
 	 * AvailObject#divideIntoIntegerCanDestroy(AvailObject, boolean)
 	 * divideIntoIntegerCanDestroy} or {@link
-	 * AvailObject#divideIntoInfinityCanDestroy(AvailObject, boolean)
+	 * AvailObject#divideIntoInfinityCanDestroy(Sign, boolean)
 	 * divideIntoInfinityCanDestroy}, where actual implementations of the
 	 * division operation should reside.</p>
 	 *
@@ -1096,17 +1092,13 @@ public abstract class AbstractDescriptor
 	 *        {@code true} if the operation may modify either {@linkplain
 	 *        AvailObject operand}, {@code false} otherwise.
 	 * @return The {@linkplain AvailObject result} of dividing the operands.
-	 * @throws ArithmeticException
-	 *         If the {@linkplain AvailObject divisor} was {@linkplain
-	 *         IntegerDescriptor#zero() zero}.
 	 * @see IntegerDescriptor
 	 * @see InfinityDescriptor
 	 */
 	abstract @NotNull AvailObject o_DivideCanDestroy (
-			@NotNull AvailObject object,
-			@NotNull AvailObject aNumber,
-			boolean canDestroy)
-		throws ArithmeticException;
+		@NotNull AvailObject object,
+		@NotNull AvailObject aNumber,
+		boolean canDestroy);
 
 	/**
 	 * Divide the {@linkplain AvailObject operands} and answer the result.
@@ -1117,23 +1109,19 @@ public abstract class AbstractDescriptor
 
 	 * @param object
 	 *        The divisor, an integral numeric.
-	 * @param anInfinity
+	 * @param sign
 	 *        The dividend, an {@linkplain InfinityDescriptor infinity}.
 	 * @param canDestroy
 	 *        {@code true} if the operation may modify either {@linkplain
 	 *        AvailObject operand}, {@code false} otherwise.
 	 * @return The {@linkplain AvailObject result} of dividing the operands.
-	 * @throws ArithmeticException
-	 *         If the {@linkplain AvailObject divisor} was {@linkplain
-	 *         IntegerDescriptor#zero() zero}.
 	 * @see IntegerDescriptor
 	 * @see InfinityDescriptor
 	 */
 	abstract AvailObject o_DivideIntoInfinityCanDestroy (
-			@NotNull AvailObject object,
-			AvailObject anInfinity,
-			boolean canDestroy)
-		throws ArithmeticException;
+		@NotNull AvailObject object,
+		@NotNull Sign sign,
+		boolean canDestroy);
 
 	/**
 	 * Divide the {@linkplain AvailObject operands} and answer the result.
@@ -1144,23 +1132,19 @@ public abstract class AbstractDescriptor
 
 	 * @param object
 	 *        The divisor, an integral numeric.
-	 * @param anInfinity
+	 * @param anInteger
 	 *        The dividend, an {@linkplain IntegerDescriptor integer}.
 	 * @param canDestroy
 	 *        {@code true} if the operation may modify either {@linkplain
 	 *        AvailObject operand}, {@code false} otherwise.
 	 * @return The {@linkplain AvailObject result} of dividing the operands.
-	 * @throws ArithmeticException
-	 *         If the {@linkplain AvailObject divisor} was {@linkplain
-	 *         IntegerDescriptor#zero() zero}.
 	 * @see IntegerDescriptor
 	 * @see InfinityDescriptor
 	 */
 	abstract AvailObject o_DivideIntoIntegerCanDestroy (
-			@NotNull AvailObject object,
-			AvailObject anInteger,
-			boolean canDestroy)
-		throws ArithmeticException;
+		@NotNull AvailObject object,
+		AvailObject anInteger,
+		boolean canDestroy);
 
 	/**
 	 * @param object
@@ -1239,24 +1223,6 @@ public abstract class AbstractDescriptor
 		AvailObject newSubtuple,
 		int startSubtupleIndex,
 		int endOfZone);
-
-	/**
-	 * @param object
-	 * @param another
-	 * @return
-	 */
-	abstract boolean o_GreaterThanInteger (
-		@NotNull AvailObject object,
-		AvailObject another);
-
-	/**
-	 * @param object
-	 * @param another
-	 * @return
-	 */
-	abstract boolean o_GreaterThanSignedInfinity (
-		@NotNull AvailObject object,
-		AvailObject another);
 
 	/**
 	 * @param object
@@ -1534,24 +1500,6 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param another
-	 * @return
-	 */
-	abstract boolean o_LessOrEqual (
-		@NotNull AvailObject object,
-		AvailObject another);
-
-	/**
-	 * @param object
-	 * @param another
-	 * @return
-	 */
-	abstract boolean o_LessThan (
-		@NotNull AvailObject object,
-		AvailObject another);
-
-	/**
-	 * @param object
 	 * @param chunk
 	 * @param offset
 	 */
@@ -1715,7 +1663,7 @@ public abstract class AbstractDescriptor
 	 * <p>Implementations may double-dispatch to {@link
 	 * AvailObject#subtractFromIntegerCanDestroy(AvailObject, boolean)
 	 * subtractFromIntegerCanDestroy} or {@link
-	 * AvailObject#subtractFromInfinityCanDestroy(AvailObject, boolean)
+	 * AvailObject#subtractFromInfinityCanDestroy(Sign, boolean)
 	 * subtractFromInfinityCanDestroy}, where actual implementations of the
 	 * subtraction operation should reside.</p>
 	 *
@@ -1727,17 +1675,13 @@ public abstract class AbstractDescriptor
 	 *        {@code true} if the operation may modify either {@linkplain
 	 *        AvailObject operand}, {@code false} otherwise.
 	 * @return The {@linkplain AvailObject result} of differencing the operands.
-	 * @throws ArithmeticException
-	 *         If the {@linkplain AvailObject operands} were {@linkplain
-	 *         InfinityDescriptor infinities} of like signs.
 	 * @see IntegerDescriptor
 	 * @see InfinityDescriptor
 	 */
 	abstract AvailObject o_MinusCanDestroy (
-			@NotNull AvailObject object,
-			AvailObject aNumber,
-			boolean canDestroy)
-		throws ArithmeticException;
+		@NotNull AvailObject object,
+		AvailObject aNumber,
+		boolean canDestroy);
 
 	/**
 	 * Multiply the {@linkplain AvailObject operands} and answer the result.
@@ -1748,13 +1692,12 @@ public abstract class AbstractDescriptor
 	 *
 	 * @param object
 	 *        An integral numeric.
-	 * @param anInfinity
-	 *        An {@linkplain InfinityDescriptor infinity}.
+	 * @param sign
+	 *        The {@link Sign} of the {@linkplain InfinityDescriptor infinity}.
 	 * @param canDestroy
 	 *        {@code true} if the operation may modify either {@linkplain
 	 *        AvailObject operand}, {@code false} otherwise.
 	 * @return The {@linkplain AvailObject result} of multiplying the operands.
-	 * @throws ArithmeticException
 	 *         If the {@linkplain AvailObject operands} were {@linkplain
 	 *         IntegerDescriptor#zero() zero} and {@linkplain InfinityDescriptor
 	 *         infinity}.
@@ -1762,10 +1705,9 @@ public abstract class AbstractDescriptor
 	 * @see InfinityDescriptor
 	 */
 	abstract @NotNull AvailObject o_MultiplyByInfinityCanDestroy (
-			@NotNull AvailObject object,
-			@NotNull AvailObject anInfinity,
-			boolean canDestroy)
-		throws ArithmeticException;
+		@NotNull AvailObject object,
+		@NotNull Sign sign,
+		boolean canDestroy);
 
 	/**
 	 * Multiply the {@linkplain AvailObject operands} and answer the result.
@@ -1782,18 +1724,13 @@ public abstract class AbstractDescriptor
 	 *        {@code true} if the operation may modify either {@linkplain
 	 *        AvailObject operand}, {@code false} otherwise.
 	 * @return The {@linkplain AvailObject result} of multiplying the operands.
-	 * @throws ArithmeticException
-	 *         If the {@linkplain AvailObject operands} were {@linkplain
-	 *         IntegerDescriptor#zero() zero} and {@linkplain InfinityDescriptor
-	 *         infinity}.
 	 * @see IntegerDescriptor
 	 * @see InfinityDescriptor
 	 */
 	abstract @NotNull AvailObject o_MultiplyByIntegerCanDestroy (
-			@NotNull AvailObject object,
-			@NotNull AvailObject anInteger,
-			boolean canDestroy)
-		throws ArithmeticException;
+		@NotNull AvailObject object,
+		@NotNull AvailObject anInteger,
+		boolean canDestroy);
 
 	/**
 	 * @param object
@@ -1893,7 +1830,7 @@ public abstract class AbstractDescriptor
 	 * <p>Implementations may double-dispatch to {@link
 	 * AvailObject#addToIntegerCanDestroy(AvailObject, boolean)
 	 * addToIntegerCanDestroy} or {@link
-	 * AvailObject#addToInfinityCanDestroy(AvailObject, boolean)
+	 * AvailObject#addToInfinityCanDestroy(Sign, boolean)
 	 * addToInfinityCanDestroy}, where actual implementations of the addition
 	 * operation should reside.</p>
 	 *
@@ -1905,15 +1842,11 @@ public abstract class AbstractDescriptor
 	 *        {@code true} if the operation may modify either {@linkplain
 	 *        AvailObject operand}, {@code false} otherwise.
 	 * @return The {@linkplain AvailObject result} of adding the operands.
-	 * @throws ArithmeticException
-	 *         If the {@linkplain AvailObject operands} were {@linkplain
-	 *         InfinityDescriptor infinities} of differing signs.
 	 */
 	abstract AvailObject o_PlusCanDestroy (
-			@NotNull AvailObject object,
-			AvailObject aNumber,
-			boolean canDestroy)
-		throws ArithmeticException;
+		@NotNull AvailObject object,
+		AvailObject aNumber,
+		boolean canDestroy);
 
 	/**
 	 * @param object
@@ -2328,29 +2261,25 @@ public abstract class AbstractDescriptor
 	 * <p>Implementations may double-dispatch to {@link
 	 * AvailObject#subtractFromIntegerCanDestroy(AvailObject, boolean)
 	 * subtractFromIntegerCanDestroy} or {@link
-	 * AvailObject#subtractFromInfinityCanDestroy(AvailObject, boolean)
+	 * AvailObject#subtractFromInfinityCanDestroy(Sign, boolean)
 	 * subtractFromInfinityCanDestroy}, where actual implementations of the
 	 * subtraction operation should reside.</p>
 	 *
 	 * @param object
 	 *        An integral numeric.
-	 * @param anInfinity
-	 *        An {@linkplain InfinityDescriptor infinity}.
+	 * @param sign
+	 *        The {@link Sign} of the {@linkplain InfinityDescriptor infinity}.
 	 * @param canDestroy
 	 *        {@code true} if the operation may modify either {@linkplain
 	 *        AvailObject operand}, {@code false} otherwise.
 	 * @return The {@linkplain AvailObject result} of differencing the operands.
-	 * @throws ArithmeticException
-	 *         If the {@linkplain AvailObject operands} were {@linkplain
-	 *         InfinityDescriptor infinities} of like signs.
 	 * @see IntegerDescriptor
 	 * @see InfinityDescriptor
 	 */
 	abstract @NotNull AvailObject o_SubtractFromInfinityCanDestroy (
-			@NotNull AvailObject object,
-			@NotNull AvailObject anInfinity,
-			boolean canDestroy)
-		throws ArithmeticException;
+		@NotNull AvailObject object,
+		@NotNull Sign sign,
+		boolean canDestroy);
 
 	/**
 	 * Difference the {@linkplain AvailObject operands} and answer the result.
@@ -2358,7 +2287,7 @@ public abstract class AbstractDescriptor
 	 * <p>Implementations may double-dispatch to {@link
 	 * AvailObject#subtractFromIntegerCanDestroy(AvailObject, boolean)
 	 * subtractFromIntegerCanDestroy} or {@link
-	 * AvailObject#subtractFromInfinityCanDestroy(AvailObject, boolean)
+	 * AvailObject#subtractFromInfinityCanDestroy(Sign, boolean)
 	 * subtractFromInfinityCanDestroy}, where actual implementations of the
 	 * subtraction operation should reside.</p>
 	 *
@@ -2390,33 +2319,31 @@ public abstract class AbstractDescriptor
 	/**
 	 * Multiply the {@linkplain AvailObject operands} and answer the result.
 	 *
-	 * <p>Implementations may double-dispatch to {@link
+	 * <p>
+	 * Implementations may double-dispatch to {@link
 	 * AvailObject#multiplyByIntegerCanDestroy(AvailObject, boolean)
 	 * multiplyByIntegerCanDestroy} or {@link
-	 * AvailObject#multiplyByInfinityCanDestroy(AvailObject, boolean)
+	 * AvailObject#multiplyByInfinityCanDestroy(Sign, boolean)
 	 * multiplyByInfinityCanDestroy}, where actual implementations of the
-	 * multiplication operation should reside.</p>
+	 * multiplication operation should reside.  Other implementations may exist
+	 * for other type families (e.g., floating point).
+	 * </p>
 	 *
 	 * @param object
-	 *        An integral numeric.
+	 *        A {@linkplain AbstractNumberDescriptor numeric} value.
 	 * @param aNumber
-	 *        An integral numeric.
+	 *        Another {@linkplain AbstractNumberDescriptor numeric} value.
 	 * @param canDestroy
-	 *        {@code true} if the operation may modify either {@linkplain
-	 *        AvailObject operand}, {@code false} otherwise.
+	 *        {@code true} if the operation may modify either operand,
+	 *        {@code false} otherwise.
 	 * @return The {@linkplain AvailObject result} of multiplying the operands.
-	 * @throws ArithmeticException
-	 *         If the {@linkplain AvailObject operands} were {@linkplain
-	 *         IntegerDescriptor#zero() zero} and {@linkplain InfinityDescriptor
-	 *         infinity}.
 	 * @see IntegerDescriptor
 	 * @see InfinityDescriptor
 	 */
 	abstract @NotNull AvailObject o_TimesCanDestroy (
-			@NotNull AvailObject object,
-			@NotNull AvailObject aNumber,
-			boolean canDestroy)
-		throws ArithmeticException;
+		@NotNull AvailObject object,
+		@NotNull AvailObject aNumber,
+		boolean canDestroy);
 
 	/**
 	 * @param object
@@ -2596,7 +2523,7 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param aCompiledCodeType
+	 * @param aParseNodeType
 	 * @return
 	 */
 	abstract AvailObject o_TypeIntersectionOfParseNodeType (
@@ -2604,12 +2531,12 @@ public abstract class AbstractDescriptor
 		AvailObject aParseNodeType);
 
 	/**
-	 * @param availObject
+	 * @param object
 	 * @param aPojoType
 	 * @return
 	 */
 	abstract AvailObject o_TypeIntersectionOfPojoType (
-		@NotNull AvailObject availObject,
+		@NotNull AvailObject object,
 		@NotNull AvailObject aPojoType);
 
 	/**
@@ -2703,12 +2630,12 @@ public abstract class AbstractDescriptor
 		AvailObject anObjectType);
 
 	/**
-	 * @param availObject
+	 * @param object
 	 * @param aPojoType
 	 * @return
 	 */
 	abstract AvailObject o_TypeUnionOfPojoType (
-		@NotNull AvailObject availObject,
+		@NotNull AvailObject object,
 		@NotNull AvailObject aPojoType);
 
 	/**
@@ -2992,7 +2919,6 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @return
 	 */
 	abstract void o_Expand (AvailObject object);
 
@@ -3480,6 +3406,7 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
+	 * @return
 	 */
 	abstract TokenDescriptor.TokenType o_TokenType (
 		@NotNull AvailObject object);
@@ -3559,12 +3486,6 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract AvailObject o_VisibleNames (AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	abstract int o_InfinitySign (AvailObject object);
 
 	/**
 	 * @param object
@@ -3673,7 +3594,7 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param aType
+	 * @param aContinuationType
 	 * @return
 	 */
 	abstract boolean o_EqualsContinuationType (
@@ -3682,7 +3603,7 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param aType
+	 * @param aCompiledCodeType
 	 * @return
 	 */
 	abstract boolean o_EqualsCompiledCodeType (
@@ -3691,30 +3612,30 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param aDoubleObject
+	 * @param aDouble
 	 * @return
 	 */
 	abstract boolean o_EqualsDouble (
-		@NotNull AvailObject object,
-		AvailObject aDoubleObject);
+		final @NotNull AvailObject object,
+		final double aDouble);
 
 	/**
 	 * @param object
-	 * @param aFloatObject
+	 * @param aFloat
 	 * @return
 	 */
 	abstract boolean o_EqualsFloat (
-		@NotNull AvailObject object,
-		AvailObject aFloatObject);
+		final @NotNull AvailObject object,
+		final float aFloat);
 
 	/**
 	 * @param object
-	 * @param anInfinity
+	 * @param sign
 	 * @return
 	 */
 	abstract boolean o_EqualsInfinity (
-		@NotNull AvailObject object,
-		AvailObject anInfinity);
+		final @NotNull AvailObject object,
+		final @NotNull Sign sign);
 
 	/**
 	 * @param object
@@ -3798,12 +3719,12 @@ public abstract class AbstractDescriptor
 		@NotNull AvailObject aPojo);
 
 	/**
-	 * @param availObject
+	 * @param object
 	 * @param aPojoType
 	 * @return
 	 */
 	abstract boolean o_EqualsPojoType (
-		@NotNull AvailObject availObject,
+		@NotNull AvailObject object,
 		@NotNull AvailObject aPojoType);
 
 	/**
@@ -4117,15 +4038,6 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param aType
-	 * @return
-	 */
-	abstract boolean o_TypeEquals (
-		@NotNull AvailObject object,
-		AvailObject aType);
-
-	/**
-	 * @param object
 	 * @return
 	 */
 	abstract int o_HashOfType (AvailObject object);
@@ -4198,7 +4110,7 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param value
+	 * @param instructionsTuple
 	 */
 	abstract void o_ParsingInstructions (
 		@NotNull AvailObject object,
@@ -4206,7 +4118,7 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param value
+	 * @return
 	 */
 	abstract AvailObject o_ParsingInstructions (
 		@NotNull AvailObject object);
@@ -4214,7 +4126,6 @@ public abstract class AbstractDescriptor
 	/**
 	 * @param object
 	 * @param expression
-	 * @return
 	 */
 	abstract void o_Expression (
 		@NotNull AvailObject object,
@@ -4386,6 +4297,7 @@ public abstract class AbstractDescriptor
 	abstract AvailObject o_Declaration (AvailObject object);
 
 	/**
+	 * @param object
 	 * @return
 	 */
 	abstract AvailObject o_ExpressionType (AvailObject object);
@@ -4409,6 +4321,9 @@ public abstract class AbstractDescriptor
 	/**
 	 * Map my children through the (destructive) transformation specified by
 	 * aBlock.
+	 *
+	 * @param object
+	 * @param aBlock
 	 */
 	abstract void o_ChildrenMap (
 		@NotNull AvailObject object,
@@ -4416,6 +4331,9 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * Visit my child parse nodes with aBlock.
+	 *
+	 * @param object
+	 * @param aBlock
 	 */
 	abstract void o_ChildrenDo (
 		@NotNull AvailObject object,
@@ -4614,6 +4532,7 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
+	 * @return
 	 */
 	abstract @NotNull AvailObject o_CheckedExceptions (
 		@NotNull AvailObject object);
@@ -4638,7 +4557,7 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param anInstanceType
+	 * @param anObject
 	 * @return
 	 */
 	abstract boolean o_EqualsInstanceTypeFor (
@@ -4781,7 +4700,7 @@ public abstract class AbstractDescriptor
 		@NotNull AvailObject object);
 
 	/**
-	 * @param availObject
+	 * @param object
 	 * @param expectedParseNodeKind
 	 * @return
 	 */
@@ -4798,7 +4717,6 @@ public abstract class AbstractDescriptor
 	/**
 	 * @param object
 	 * @param restrictionSignature
-	 * @return
 	 */
 	abstract void o_AddTypeRestriction (
 		@NotNull AvailObject object,
@@ -4807,7 +4725,6 @@ public abstract class AbstractDescriptor
 	/**
 	 * @param object
 	 * @param restrictionSignature
-	 * @return
 	 */
 	abstract void o_RemoveTypeRestriction (
 		@NotNull AvailObject object,
@@ -4819,6 +4736,7 @@ public abstract class AbstractDescriptor
 	 * functions} that statically restrict call sites by argument type.
 	 *
 	 * @param object The implementation set.
+	 * @return
 	 */
 	abstract @NotNull AvailObject o_TypeRestrictions (
 		@NotNull AvailObject object);
@@ -4847,7 +4765,7 @@ public abstract class AbstractDescriptor
 		@NotNull AvailObject object);
 
 	/**
-	 * @param availObject
+	 * @param object
 	 * @param methodNameAtom
 	 * @param typeRestrictionFunction
 	 */
@@ -4891,7 +4809,7 @@ public abstract class AbstractDescriptor
 		@NotNull AvailObject object);
 
 	/**
-	 * @param availObject
+	 * @param object
 	 * @return
 	 */
 	abstract @NotNull AvailObject o_PojoSelfType (
@@ -4950,13 +4868,138 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract public AvailObject o_UpperBoundMap (@NotNull AvailObject object);
+	abstract AvailObject o_UpperBoundMap (@NotNull AvailObject object);
 
 	/**
 	 * @param object
 	 * @param aMap
 	 */
-	abstract public void o_UpperBoundMap (
+	abstract void o_UpperBoundMap (
 		@NotNull AvailObject object,
 		@NotNull AvailObject aMap);
+
+	/**
+	 * @param object
+	 * @param another
+	 * @return
+	 */
+	abstract @NotNull Order o_NumericCompare (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another);
+
+	/**
+	 * @param object
+	 * @param aDouble
+	 * @return
+	 */
+	abstract @NotNull Order o_NumericCompareToDouble (
+		final @NotNull AvailObject object,
+		double aDouble);
+
+	/**
+	 * @param object
+	 * @param anInteger
+	 * @return
+	 */
+	abstract @NotNull Order o_NumericCompareToInteger (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anInteger);
+
+	/**
+	 * @param object
+	 * @param sign
+	 * @return
+	 */
+	abstract @NotNull Order o_NumericCompareToInfinity (
+		final @NotNull AvailObject object,
+		final @NotNull Sign sign);
+
+	/**
+	 * @param object
+	 * @param doubleObject
+	 * @param canDestroy
+	 * @return
+	 */
+	abstract @NotNull AvailObject o_AddToDoubleCanDestroy (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject doubleObject,
+		final boolean canDestroy);
+
+	/**
+	 * @param object
+	 * @param floatObject
+	 * @param canDestroy
+	 * @return
+	 */
+	abstract @NotNull AvailObject o_AddToFloatCanDestroy (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject floatObject,
+		boolean canDestroy);
+
+	/**
+	 * @param object
+	 * @param doubleObject
+	 * @param canDestroy
+	 * @return
+	 */
+	abstract @NotNull AvailObject o_SubtractFromDoubleCanDestroy (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject doubleObject,
+		final boolean canDestroy);
+
+	/**
+	 * @param object
+	 * @param floatObject
+	 * @param canDestroy
+	 * @return
+	 */
+	abstract @NotNull AvailObject o_SubtractFromFloatCanDestroy (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject floatObject,
+		final boolean canDestroy);
+
+	/**
+	 * @param object
+	 * @param doubleObject
+	 * @param canDestroy
+	 * @return
+	 */
+	abstract @NotNull AvailObject o_MultiplyByDoubleCanDestroy (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject doubleObject,
+		final boolean canDestroy);
+
+	/**
+	 * @param object
+	 * @param floatObject
+	 * @param canDestroy
+	 * @return
+	 */
+	abstract @NotNull AvailObject o_MultiplyByFloatCanDestroy (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject floatObject,
+		final boolean canDestroy);
+
+	/**
+	 * @param object
+	 * @param doubleObject
+	 * @param canDestroy
+	 * @return
+	 */
+	abstract @NotNull AvailObject o_DivideIntoDoubleCanDestroy (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject doubleObject,
+		final boolean canDestroy);
+
+	/**
+	 * @param object
+	 * @param floatObject
+	 * @param canDestroy
+	 * @return
+	 */
+	abstract @NotNull AvailObject o_DivideIntoFloatCanDestroy (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject floatObject,
+		final boolean canDestroy);
+
 }

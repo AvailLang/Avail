@@ -1,5 +1,5 @@
 /**
- * AbstractSlotsEnum.java
+ * IntegerEnumSlotDescriptionEnum.java
  * Copyright (c) 2011, Mark van Gulik.
  * All rights reserved.
  *
@@ -33,22 +33,19 @@
 package com.avail.descriptor;
 
 /**
- * The {@code AbstractSlotsEnum} is an interface that helps ensure that object
- * representations and access are consistent and correct.  In particular, some
- * operations in AvailObject (such as {@link AvailObject#slot(ObjectSlotsEnum)})
- * are expected to operate on enumerations defined as inner classes within the
- * {@link Descriptor} class for which the slot layout is specified.
+ * The {@code IntegerEnumSlotDescriptionEnum} is an interface that constrains an
+ * enumeration used to describe the values that can occur in a particular
+ * {@link IntegerSlotsEnum integer slot}.
  *
  * <p>
- * There are two subinterfaces, {@link ObjectSlotsEnum} and {@link
- * IntegerSlotsEnum}, and the representation access methods defined in {@link
- * AbstractAvailObject} typically restrict the passed enumerations to be of the
- * appropriate kind.
+ * It includes the {@link #name()} and {@link #ordinal()} operations to ensure
+ * they are statically available in the actual implementations, which are really
+ * intended to be enums, but Java doesn't provide a way to subcategorize enums.
  * </p>
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
-public interface AbstractSlotsEnum
+public interface IntegerEnumSlotDescriptionEnum
 {
 	/**
 	 * Answer the name of this enumeration value.

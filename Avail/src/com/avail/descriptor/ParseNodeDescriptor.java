@@ -178,22 +178,22 @@ public abstract class ParseNodeDescriptor extends Descriptor
 			mutableDescriptor);
 		for (int i = 1; i <= objectCount; i++)
 		{
-			final AvailObject slotValue = object.objectSlotAt(
+			final AvailObject slotValue = object.slot(
 				FakeObjectSlots.ALL_OBJECT_SLOTS_,
 				i);
 			// Potentially share the object.
 			slotValue.makeImmutable();
-			copy.objectSlotAtPut(
+			copy.setSlot(
 				FakeObjectSlots.ALL_OBJECT_SLOTS_,
 				i,
 				slotValue);
 		}
 		for (int i = 1; i <= integerCount; i++)
 		{
-			copy.integerSlotAtPut(
+			copy.setSlot(
 				FakeIntegerSlots.ALL_INTEGER_SLOTS_,
 				i,
-				object.integerSlotAt(FakeIntegerSlots.ALL_INTEGER_SLOTS_, i));
+				object.slot(FakeIntegerSlots.ALL_INTEGER_SLOTS_, i));
 		}
 		return copy;
 	}
@@ -258,8 +258,7 @@ public abstract class ParseNodeDescriptor extends Descriptor
 		accumulatedStatements.add(object);
 	}
 
-	@Override
-	public int maximumIndent ()
+	@Override int maximumIndent ()
 	{
 		return Integer.MAX_VALUE;
 	}

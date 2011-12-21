@@ -33,15 +33,17 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
-import java.util.*;
+import static com.avail.descriptor.AbstractNumberDescriptor.Order.*;
+import java.util.List;
 import com.avail.annotations.*;
+import com.avail.descriptor.AbstractNumberDescriptor.Sign;
 import com.avail.exceptions.*;
 import com.avail.exceptions.ArithmeticException;
 
 /**
- * I represent the {@linkplain ExtendedNumberDescriptor extended integers} positive
- * infinity and negative infinity.  By supporting these as first-class values in
- * Avail we eliminate arbitrary limits, awkward duplication of effort,
+ * I represent the {@linkplain ExtendedIntegerDescriptor extended integers}
+ * positive infinity and negative infinity.  By supporting these as first-class
+ * values in Avail we eliminate arbitrary limits, awkward duplication of effort,
  * and a host of other dangling singularities.  For example, it makes sense to
  * talk about iterating from 1 to infinity.  Infinities also play a key role in
  * {@linkplain IntegerRangeTypeDescriptor integer range types}, specifically by
@@ -50,7 +52,7 @@ import com.avail.exceptions.ArithmeticException;
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
 public class InfinityDescriptor
-extends ExtendedNumberDescriptor
+extends ExtendedIntegerDescriptor
 {
 	/**
 	 * The layout of integer slots for my instances.
@@ -65,26 +67,17 @@ extends ExtendedNumberDescriptor
 	}
 
 	/**
-	 * An enumeration used to distinguish the two signed infinities.
+	 * Compute the {@linkplain AbstractNumberDescriptor.Sign sign} of the given
+	 * {@linkplain InfinityDescriptor infinity}.
+	 *
+	 * @param anInfinity The infinity to examine.
+	 * @return The {@code Sign} of the infinity.
 	 */
-	public enum Sign
+	private static Sign getSign (final @NotNull AvailObject anInfinity)
 	{
-		/**
-		 * The value used to indicate the infinity is positive.
-		 */
-		POSITIVE,
-
-		/**
-		 * The value used to indicate the infinity is negative.
-		 */
-		NEGATIVE
-	}
-
-	@Override @AvailMethod
-	int o_InfinitySign (
-		final @NotNull AvailObject object)
-	{
-		return object.integerSlot(IntegerSlots.SIGN);
+		return anInfinity.slot(IntegerSlots.SIGN) == Sign.POSITIVE.ordinal()
+			? Sign.POSITIVE
+			: Sign.NEGATIVE;
 	}
 
 	@Override
@@ -106,7 +99,7 @@ extends ExtendedNumberDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
-		return another.equalsInfinity(object);
+		return another.equalsInfinity(getSign(object));
 	}
 
 	/**
@@ -119,25 +112,28 @@ extends ExtendedNumberDescriptor
 	@Override @AvailMethod
 	boolean o_EqualsInfinity (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject anInfinity)
+		final @NotNull Sign sign)
 	{
-		return object.infinitySign() == anInfinity.infinitySign();
+		return object.slot(IntegerSlots.SIGN) == sign.ordinal();
 	}
 
 	@Override @AvailMethod
-	boolean o_GreaterThanInteger (
+	@NotNull Order o_NumericCompareToInteger (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+		final @NotNull AvailObject anInteger)
 	{
-		return object.isPositive();
+		// Infinities are either above or below all integer, depending on sign.
+		return getSign(object) == Sign.POSITIVE ? MORE : LESS;
 	}
 
 	@Override @AvailMethod
-	boolean o_GreaterThanSignedInfinity (
+	@NotNull Order o_NumericCompareToInfinity (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+		final @NotNull Sign sign)
 	{
-		return object.isPositive() && !another.isPositive();
+		return DoubleDescriptor.compareDoubles(
+			getSign(object).limitDouble(),
+			sign.limitDouble());
 	}
 
 	@Override @AvailMethod
@@ -145,11 +141,7 @@ extends ExtendedNumberDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
-		if (aType.equals(TOP.o()))
-		{
-			return true;
-		}
-		if (aType.equals(ANY.o()))
+		if (NUMBER.o().isSubtypeOf(aType))
 		{
 			return true;
 		}
@@ -162,46 +154,6 @@ extends ExtendedNumberDescriptor
 			return aType.upperBound().equals(object) && aType.upperInclusive();
 		}
 		return aType.lowerBound().equals(object) && aType.lowerInclusive();
-	}
-
-	@Override @AvailMethod
-	boolean o_LessThan (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
-	{
-		return another.greaterThanSignedInfinity(object);
-	}
-
-	@Override @AvailMethod
-	boolean o_TypeEquals (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aType)
-	{
-		// Answer whether object's type is equal to aType (known to be a type).
-		// Since my implementation of o_CanComputeHashOfType: answers
-		// true, I'm not allowed to allocate objects to figure this out.
-		if (!aType.isIntegerRangeType())
-		{
-			return false;
-		}
-		if (!aType.lowerBound().equals(object))
-		{
-			return false;
-		}
-		if (!aType.lowerInclusive())
-		{
-			return false;
-		}
-		if (!aType.upperBound().equals(object))
-		{
-			return false;
-		}
-		if (!aType.upperInclusive())
-		{
-			return false;
-		}
-		//  ...(inclusive).
-		return true;
 	}
 
 	@Override @AvailMethod
@@ -240,60 +192,70 @@ extends ExtendedNumberDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_DivideCanDestroy (
-			final @NotNull AvailObject object,
-			final @NotNull AvailObject aNumber,
-			final boolean canDestroy)
-		throws ArithmeticException
+	double o_ExtractDouble (
+		final @NotNull AvailObject object)
 	{
-		return aNumber.divideIntoInfinityCanDestroy(object, canDestroy);
+		return object.isPositive()
+			? Double.POSITIVE_INFINITY
+			: Double.NEGATIVE_INFINITY;
+	}
+
+	@Override @AvailMethod
+	AvailObject o_DivideCanDestroy (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aNumber,
+		final boolean canDestroy)
+	{
+		return aNumber.divideIntoInfinityCanDestroy(
+			getSign(object),
+			canDestroy);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_MinusCanDestroy (
-			final @NotNull AvailObject object,
-			final @NotNull AvailObject aNumber,
-			final boolean canDestroy)
-		throws ArithmeticException
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aNumber,
+		final boolean canDestroy)
 	{
-		return aNumber.subtractFromInfinityCanDestroy(object, canDestroy);
+		return aNumber.subtractFromInfinityCanDestroy(
+			getSign(object),
+			canDestroy);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_PlusCanDestroy (
-			final @NotNull AvailObject object,
-			final @NotNull AvailObject aNumber,
-			final boolean canDestroy)
-		throws ArithmeticException
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aNumber,
+		final boolean canDestroy)
 	{
-		return aNumber.addToInfinityCanDestroy(object, canDestroy);
+		return aNumber.addToInfinityCanDestroy(getSign(object), canDestroy);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_TimesCanDestroy (
-			final @NotNull AvailObject object,
-			final @NotNull AvailObject aNumber,
-			final boolean canDestroy)
-		throws ArithmeticException
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aNumber,
+		final boolean canDestroy)
 	{
-		return aNumber.multiplyByInfinityCanDestroy(object, canDestroy);
+		return aNumber.multiplyByInfinityCanDestroy(
+			getSign(object),
+			canDestroy);
 	}
 
 	@Override @AvailMethod
 	boolean o_IsPositive (
 		final @NotNull AvailObject object)
 	{
-		return object.infinitySign() == Sign.POSITIVE.ordinal();
+		return object.slot(IntegerSlots.SIGN) == Sign.POSITIVE.ordinal();
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_AddToInfinityCanDestroy (
-			final @NotNull AvailObject object,
-			final @NotNull AvailObject anInfinity,
-			final boolean canDestroy)
-		throws ArithmeticException
+		final @NotNull AvailObject object,
+		final @NotNull Sign sign,
+		final boolean canDestroy)
 	{
-		if (anInfinity.isPositive() == object.isPositive())
+		if (sign == getSign(object))
 		{
 			return object;
 		}
@@ -311,11 +273,34 @@ extends ExtendedNumberDescriptor
 	}
 
 	@Override @AvailMethod
+	AvailObject o_AddToDoubleCanDestroy (
+		final AvailObject object,
+		final AvailObject doubleObject,
+		final boolean canDestroy)
+	{
+		return DoubleDescriptor.objectFromDoubleRecycling(
+			doubleObject.extractDouble() + getSign(object).limitDouble(),
+			doubleObject,
+			canDestroy);
+	}
+
+	@Override @AvailMethod
+	AvailObject o_AddToFloatCanDestroy (
+		final AvailObject object,
+		final AvailObject floatObject,
+		final boolean canDestroy)
+	{
+		return FloatDescriptor.objectFromFloatRecycling(
+			floatObject.extractFloat() + getSign(object).limitFloat(),
+			floatObject,
+			canDestroy);
+	}
+
+	@Override @AvailMethod
 	@NotNull AvailObject o_DivideIntoInfinityCanDestroy (
-			final @NotNull AvailObject object,
-			final @NotNull AvailObject anInfinity,
-			final boolean canDestroy)
-		throws ArithmeticException
+		final @NotNull AvailObject object,
+		final @NotNull Sign sign,
+		final boolean canDestroy)
 	{
 		throw new ArithmeticException(
 			AvailErrorCode.E_CANNOT_DIVIDE_INFINITIES);
@@ -331,22 +316,45 @@ extends ExtendedNumberDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_MultiplyByInfinityCanDestroy (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject anInfinity,
+	public AvailObject o_DivideIntoDoubleCanDestroy (
+		final AvailObject object,
+		final AvailObject doubleObject,
 		final boolean canDestroy)
 	{
-		return anInfinity.isPositive() == object.isPositive()
+		return DoubleDescriptor.objectFromDoubleRecycling(
+			doubleObject.extractDouble() / getSign(object).limitDouble(),
+			doubleObject,
+			canDestroy);
+	}
+
+	@Override @AvailMethod
+	public AvailObject o_DivideIntoFloatCanDestroy (
+		final AvailObject object,
+		final AvailObject floatObject,
+		final boolean canDestroy)
+	{
+		return FloatDescriptor.objectFromFloatRecycling(
+			floatObject.extractFloat() / getSign(object).limitFloat(),
+			floatObject,
+			canDestroy);
+	}
+
+	@Override @AvailMethod
+	AvailObject o_MultiplyByInfinityCanDestroy (
+		final @NotNull AvailObject object,
+		final @NotNull Sign sign,
+		final boolean canDestroy)
+	{
+		return (sign == Sign.POSITIVE) == object.isPositive()
 			? InfinityDescriptor.positiveInfinity()
 			: InfinityDescriptor.negativeInfinity();
 	}
 
 	@Override @AvailMethod
 	AvailObject o_MultiplyByIntegerCanDestroy (
-			final @NotNull AvailObject object,
-			final @NotNull AvailObject anInteger,
-			final boolean canDestroy)
-		throws ArithmeticException
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anInteger,
+		final boolean canDestroy)
 	{
 		if (anInteger.equals(IntegerDescriptor.zero()))
 		{
@@ -360,15 +368,40 @@ extends ExtendedNumberDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_SubtractFromInfinityCanDestroy (
-			final @NotNull AvailObject object,
-			final @NotNull AvailObject anInfinity,
-			final boolean canDestroy)
-		throws ArithmeticException
+	public AvailObject o_MultiplyByDoubleCanDestroy (
+		final AvailObject object,
+		final AvailObject doubleObject,
+		final boolean canDestroy)
 	{
-		if (anInfinity.isPositive() ^ object.isPositive())
+		return DoubleDescriptor.objectFromDoubleRecycling(
+			doubleObject.extractDouble() * getSign(object).limitDouble(),
+			doubleObject,
+			canDestroy);
+	}
+
+	@Override @AvailMethod
+	public AvailObject o_MultiplyByFloatCanDestroy (
+		final AvailObject object,
+		final AvailObject floatObject,
+		final boolean canDestroy)
+	{
+		return FloatDescriptor.objectFromFloatRecycling(
+			floatObject.extractFloat() * getSign(object).limitFloat(),
+			floatObject,
+			canDestroy);
+	}
+
+	@Override @AvailMethod
+	@NotNull AvailObject o_SubtractFromInfinityCanDestroy (
+		final @NotNull AvailObject object,
+		final @NotNull Sign sign,
+		final boolean canDestroy)
+	{
+		if (sign != getSign(object))
 		{
-			return anInfinity;
+			return sign == Sign.POSITIVE
+				? positiveInfinity()
+				: negativeInfinity();
 		}
 		throw new ArithmeticException(
 			AvailErrorCode.E_CANNOT_SUBTRACT_LIKE_INFINITIES);
@@ -385,12 +418,59 @@ extends ExtendedNumberDescriptor
 			: InfinityDescriptor.positiveInfinity();
 	}
 
+	@Override @AvailMethod
+	public AvailObject o_SubtractFromDoubleCanDestroy (
+		final AvailObject object,
+		final AvailObject doubleObject,
+		final boolean canDestroy)
+	{
+		return DoubleDescriptor.objectFromDoubleRecycling(
+			doubleObject.extractDouble() - getSign(object).limitDouble(),
+			doubleObject,
+			canDestroy);
+	}
+
+	@Override @AvailMethod
+	public AvailObject o_SubtractFromFloatCanDestroy (
+		final AvailObject object,
+		final AvailObject floatObject,
+		final boolean canDestroy)
+	{
+		return FloatDescriptor.objectFromFloatRecycling(
+			floatObject.extractFloat() - getSign(object).limitFloat(),
+			floatObject,
+			canDestroy);
+	}
+
+	@Override @AvailMethod
+	@NotNull Order o_NumericCompare (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
+	{
+		return another.numericCompareToInfinity(getSign(object)).reverse();
+	}
+
+	@Override @AvailMethod
+	@NotNull Order o_NumericCompareToDouble (
+		final @NotNull AvailObject object,
+		final double double1)
+	{
+		return DoubleDescriptor.compareDoubles(
+			getSign(object).limitDouble(),
+			double1);
+	}
+
 	/**
-	 * The {@link EnumMap} from {@link Sign} to {@linkplain
-	 * InfinityDescriptor actual Avail object} representing that infinity.
+	 * The Avail {@linkplain ExtendedIntegerDescriptor extended integer}
+	 * representing positive infinity.
 	 */
-	static final EnumMap<Sign, AvailObject> infinities =
-		new EnumMap<Sign, AvailObject>(Sign.class);
+	private static AvailObject positiveInfinity;
+
+	/**
+	 * The Avail {@linkplain ExtendedIntegerDescriptor extended integer}
+	 * representing negative infinity.
+	 */
+	private static AvailObject negativeInfinity;
 
 	/**
 	 * Create the positive and negative infinities.
@@ -398,16 +478,16 @@ extends ExtendedNumberDescriptor
 	static void createWellKnownObjects ()
 	{
 		final AvailObject positive = mutable().create();
-		positive.integerSlotPut(
+		positive.setSlot(
 			IntegerSlots.SIGN,
 			Sign.POSITIVE.ordinal());
-		infinities.put(Sign.POSITIVE, positive);
+		positiveInfinity = positive;
 
 		final AvailObject negative = mutable().create();
-		negative.integerSlotPut(
+		negative.setSlot(
 			IntegerSlots.SIGN,
 			Sign.NEGATIVE.ordinal());
-		infinities.put(Sign.NEGATIVE, negative);
+		negativeInfinity = negative;
 	}
 
 	/**
@@ -415,8 +495,8 @@ extends ExtendedNumberDescriptor
 	 */
 	static void clearWellKnownObjects ()
 	{
-		infinities.put(Sign.POSITIVE, null);
-		infinities.put(Sign.NEGATIVE, null);
+		positiveInfinity = null;
+		negativeInfinity = null;
 	}
 
 	/**
@@ -426,7 +506,7 @@ extends ExtendedNumberDescriptor
 	 */
 	public static AvailObject positiveInfinity ()
 	{
-		return infinities.get(Sign.POSITIVE);
+		return positiveInfinity;
 	}
 
 	/**
@@ -436,7 +516,27 @@ extends ExtendedNumberDescriptor
 	 */
 	public static AvailObject negativeInfinity ()
 	{
-		return infinities.get(Sign.NEGATIVE);
+		return negativeInfinity;
+	}
+
+	/**
+	 * Return an infinity with the given sign.  Only valid for {@link
+	 * Sign#POSITIVE} and {@link Sign#NEGATIVE}.
+	 *
+	 * @param sign
+	 * @return
+	 */
+	public static AvailObject fromSign (final Sign sign)
+	{
+		if (sign == Sign.POSITIVE)
+		{
+			return positiveInfinity;
+		}
+		if (sign == Sign.NEGATIVE)
+		{
+			return negativeInfinity;
+		}
+		throw new RuntimeException("Invalid sign for infinity");
 	}
 
 	/**

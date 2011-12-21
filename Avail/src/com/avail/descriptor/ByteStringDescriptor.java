@@ -60,7 +60,13 @@ extends StringDescriptor
 		 * representation of the {@linkplain ByteStringDescriptor byte string}.
 		 * The bytes occur in Little Endian order within each int.
 		 */
-		RAW_QUAD_AT_
+		RAW_QUAD_AT_;
+
+		static
+		{
+			assert TupleDescriptor.IntegerSlots.HASH_OR_ZERO.ordinal()
+				== HASH_OR_ZERO.ordinal();
+		}
 	}
 
 	/**
@@ -359,10 +365,10 @@ extends StringDescriptor
 		// Copy four bytes at a time.
 		for (int i = 1, end = object.variableIntegerSlotsCount(); i <= end; i++)
 		{
-			result.integerSlotAtPut(
+			result.setSlot(
 				IntegerSlots.RAW_QUAD_AT_,
 				i,
-				object.integerSlotAt(IntegerSlots.RAW_QUAD_AT_, i));
+				object.slot(IntegerSlots.RAW_QUAD_AT_, i));
 		}
 		return result;
 	}
@@ -485,7 +491,7 @@ extends StringDescriptor
 			assert (c4 & 255) == c4;
 			// Use little-endian, since that's what byteSlotAtPut(...) uses.
 			final int combined = c1 + (c2 << 8) + (c3 << 16) + (c4 << 24);
-			result.integerSlotAtPut(
+			result.setSlot(
 				IntegerSlots.RAW_QUAD_AT_,
 				(index + 3) >> 2,
 				combined);

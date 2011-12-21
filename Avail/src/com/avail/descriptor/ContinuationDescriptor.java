@@ -157,7 +157,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.CALLER, value);
+		object.setSlot(ObjectSlots.CALLER, value);
 	}
 
 	@Override @AvailMethod
@@ -165,7 +165,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.FUNCTION, value);
+		object.setSlot(ObjectSlots.FUNCTION, value);
 	}
 
 	@Override @AvailMethod
@@ -173,7 +173,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final int subscript)
 	{
-		return object.objectSlotAt(ObjectSlots.FRAME_AT_, subscript);
+		return object.slot(ObjectSlots.FRAME_AT_, subscript);
 	}
 
 	@Override @AvailMethod
@@ -182,7 +182,7 @@ extends Descriptor
 		final int subscript,
 		final @NotNull AvailObject value)
 	{
-		object.objectSlotAtPut(
+		object.setSlot(
 			ObjectSlots.FRAME_AT_,
 			subscript,
 			value);
@@ -214,14 +214,14 @@ extends Descriptor
 	@NotNull AvailObject o_Caller (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.CALLER);
+		return object.slot(ObjectSlots.CALLER);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_Function (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.FUNCTION);
+		return object.slot(ObjectSlots.FUNCTION);
 	}
 
 	@Override @AvailMethod
@@ -317,8 +317,8 @@ extends Descriptor
 		final @NotNull AvailObject chunk,
 		final int offset)
 	{
-		object.objectSlotPut(ObjectSlots.LEVEL_TWO_CHUNK, chunk);
-		object.integerSlotPut(IntegerSlots.LEVEL_TWO_OFFSET, offset);
+		object.setSlot(ObjectSlots.LEVEL_TWO_CHUNK, chunk);
+		object.setSlot(IntegerSlots.LEVEL_TWO_OFFSET, offset);
 	}
 
 	/**
@@ -330,7 +330,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final int subscript)
 	{
-		return object.objectSlotAt(
+		return object.slot(
 			ObjectSlots.FRAME_AT_,
 			subscript);
 	}
@@ -345,7 +345,7 @@ extends Descriptor
 		final int subscript,
 		final @NotNull AvailObject anObject)
 	{
-		object.objectSlotAtPut(
+		object.setSlot(
 			ObjectSlots.FRAME_AT_,
 			subscript,
 			anObject);
@@ -369,14 +369,14 @@ extends Descriptor
 	@NotNull AvailObject o_LevelTwoChunk (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.LEVEL_TWO_CHUNK);
+		return object.slot(ObjectSlots.LEVEL_TWO_CHUNK);
 	}
 
 	@Override @AvailMethod
 	int o_LevelTwoOffset (
 		final @NotNull AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.LEVEL_TWO_OFFSET);
+		return object.slot(IntegerSlots.LEVEL_TWO_OFFSET);
 	}
 
 	/**
@@ -433,12 +433,12 @@ extends Descriptor
 		final AvailObject result = mutable().create(
 			object.variableObjectSlotsCount());
 		assert result.objectSlotsCount() == object.objectSlotsCount();
-		result.objectSlotPut(
+		result.setSlot(
 			ObjectSlots.CALLER,
-			object.objectSlot(ObjectSlots.CALLER));
-		result.objectSlotPut(
+			object.slot(ObjectSlots.CALLER));
+		result.setSlot(
 			ObjectSlots.FUNCTION,
-			object.objectSlot(ObjectSlots.FUNCTION));
+			object.slot(ObjectSlots.FUNCTION));
 		result.pc(object.pc());
 		result.stackp(object.stackp());
 		result.levelTwoChunkOffset(
@@ -451,8 +451,7 @@ extends Descriptor
 		return result;
 	}
 
-	@Override
-	public boolean allowsImmutableToMutableReferenceInField (
+	@Override boolean allowsImmutableToMutableReferenceInField (
 		final @NotNull AbstractSlotsEnum e)
 	{
 		return e == IntegerSlots.LEVEL_TWO_OFFSET
@@ -521,8 +520,8 @@ extends Descriptor
 		final AvailObject code = function.code();
 		final AvailObject cont = descriptor.create(
 			code.numArgsAndLocalsAndStack());
-		cont.objectSlotPut(ObjectSlots.CALLER, caller);
-		cont.objectSlotPut(ObjectSlots.FUNCTION, function);
+		cont.setSlot(ObjectSlots.CALLER, caller);
+		cont.setSlot(ObjectSlots.FUNCTION, function);
 		cont.pc(1);
 		cont.stackp(
 			cont.objectSlotsCount() + 1 - descriptor.numberOfFixedObjectSlots);

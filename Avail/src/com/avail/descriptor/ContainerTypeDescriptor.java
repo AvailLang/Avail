@@ -65,14 +65,14 @@ extends TypeDescriptor
 	@NotNull AvailObject o_ReadType (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.INNER_TYPE);
+		return object.slot(ObjectSlots.INNER_TYPE);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_WriteType (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.INNER_TYPE);
+		return object.slot(ObjectSlots.INNER_TYPE);
 	}
 
 	@Override
@@ -83,7 +83,7 @@ extends TypeDescriptor
 		final int indent)
 	{
 		aStream.append("& : ");
-		object.objectSlot(ObjectSlots.INNER_TYPE).printOnAvoidingIndent(
+		object.slot(ObjectSlots.INNER_TYPE).printOnAvoidingIndent(
 			aStream,
 			recursionList,
 			(indent + 1));
@@ -107,9 +107,9 @@ extends TypeDescriptor
 			return true;
 		}
 		if (aType.readType().equals(
-				object.objectSlot(ObjectSlots.INNER_TYPE))
+				object.slot(ObjectSlots.INNER_TYPE))
 			&& aType.writeType().equals(
-				object.objectSlot(ObjectSlots.INNER_TYPE)))
+				object.slot(ObjectSlots.INNER_TYPE)))
 		{
 			aType.becomeIndirectionTo(object);
 			return true;
@@ -121,7 +121,7 @@ extends TypeDescriptor
 	int o_Hash (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.INNER_TYPE).hash()
+		return object.slot(ObjectSlots.INNER_TYPE).hash()
 			* 17 ^ 0x613E420;
 	}
 
@@ -145,7 +145,7 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aContainerType)
 	{
-		final AvailObject innerType = object.objectSlot(ObjectSlots.INNER_TYPE);
+		final AvailObject innerType = object.slot(ObjectSlots.INNER_TYPE);
 
 		// Container types are covariant by read capability and contravariant by
 		// write capability.
@@ -174,7 +174,7 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aContainerType)
 	{
-		final AvailObject innerType = object.objectSlot(ObjectSlots.INNER_TYPE);
+		final AvailObject innerType = object.slot(ObjectSlots.INNER_TYPE);
 
 		// The intersection of two container types is a container type whose
 		// read type is the type intersection of the two incoming read types and
@@ -205,7 +205,7 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aContainerType)
 	{
-		final AvailObject innerType = object.objectSlot(ObjectSlots.INNER_TYPE);
+		final AvailObject innerType = object.slot(ObjectSlots.INNER_TYPE);
 
 		// The union of two container types is a container type whose
 		// read type is the type union of the two incoming read types and whose
@@ -228,7 +228,7 @@ extends TypeDescriptor
 		final @NotNull AvailObject innerType)
 	{
 		final AvailObject result = mutable().create();
-		result.objectSlotPut(
+		result.setSlot(
 			ObjectSlots.INNER_TYPE,
 			innerType.makeImmutable());
 		result.makeImmutable();

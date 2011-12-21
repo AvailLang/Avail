@@ -109,7 +109,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	AvailObject o_ArgumentsTuple (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.ARGUMENTS_TUPLE);
+		return object.slot(ObjectSlots.ARGUMENTS_TUPLE);
 	}
 
 	/**
@@ -119,7 +119,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	AvailObject o_StatementsTuple (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.STATEMENTS_TUPLE);
+		return object.slot(ObjectSlots.STATEMENTS_TUPLE);
 	}
 
 	/**
@@ -129,7 +129,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	AvailObject o_ResultType (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.RESULT_TYPE);
+		return object.slot(ObjectSlots.RESULT_TYPE);
 	}
 
 	/**
@@ -140,7 +140,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 		final @NotNull AvailObject object,
 		final AvailObject neededVariables)
 	{
-		object.objectSlotPut(ObjectSlots.NEEDED_VARIABLES, neededVariables);
+		object.setSlot(ObjectSlots.NEEDED_VARIABLES, neededVariables);
 	}
 
 	/**
@@ -150,7 +150,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	AvailObject o_NeededVariables (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.NEEDED_VARIABLES);
+		return object.slot(ObjectSlots.NEEDED_VARIABLES);
 	}
 
 	/**
@@ -160,7 +160,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	@NotNull AvailObject o_CheckedExceptions (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.CHECKED_EXCEPTIONS);
+		return object.slot(ObjectSlots.CHECKED_EXCEPTIONS);
 	}
 
 
@@ -171,12 +171,11 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	int o_Primitive (
 		final @NotNull AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.PRIMITIVE);
+		return object.slot(IntegerSlots.PRIMITIVE);
 	}
 
 
-	@Override
-	public boolean allowsImmutableToMutableReferenceInField (
+	@Override boolean allowsImmutableToMutableReferenceInField (
 		final @NotNull AbstractSlotsEnum e)
 	{
 		return e == ObjectSlots.NEEDED_VARIABLES;
@@ -343,7 +342,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 				aBlock.value(arguments.tupleAt(i)),
 				true);
 		}
-		object.objectSlotPut(ObjectSlots.ARGUMENTS_TUPLE, arguments);
+		object.setSlot(ObjectSlots.ARGUMENTS_TUPLE, arguments);
 		AvailObject statements = object.statementsTuple();
 		for (int i = 1; i <= statements.tupleSize(); i++)
 		{
@@ -352,7 +351,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 				aBlock.value(statements.tupleAt(i)),
 				true);
 		}
-		object.objectSlotPut(ObjectSlots.STATEMENTS_TUPLE, statements);
+		object.setSlot(ObjectSlots.STATEMENTS_TUPLE, statements);
 	}
 
 
@@ -490,22 +489,22 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 			}
 		}
 		final AvailObject block = mutable().create();
-		block.objectSlotPut(
+		block.setSlot(
 			ObjectSlots.ARGUMENTS_TUPLE,
 			TupleDescriptor.fromCollection(argumentsList));
-		block.integerSlotPut(
+		block.setSlot(
 			IntegerSlots.PRIMITIVE,
 			primitive);
-		block.objectSlotPut(
+		block.setSlot(
 			ObjectSlots.STATEMENTS_TUPLE,
 			TupleDescriptor.fromCollection(flattenedStatements));
-		block.objectSlotPut(
+		block.setSlot(
 			ObjectSlots.RESULT_TYPE,
 			resultType);
-		block.objectSlotPut(
+		block.setSlot(
 			ObjectSlots.NEEDED_VARIABLES,
 			NullDescriptor.nullObject());
-		block.objectSlotPut(
+		block.setSlot(
 			ObjectSlots.CHECKED_EXCEPTIONS,
 			checkedExceptions);
 		block.makeImmutable();

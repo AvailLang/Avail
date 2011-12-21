@@ -258,7 +258,7 @@ abstract class AbstractAvailObject
 	 * @param e An enumeration value that defines the field ordering.
 	 * @return An {@code int} extracted from this object.
 	 */
-	abstract int integerSlot (final @NotNull IntegerSlotsEnum e);
+	abstract int slot (final @NotNull IntegerSlotsEnum e);
 
 	/**
 	 * Store the (signed 32-bit) integer in the four bytes starting at the
@@ -267,7 +267,7 @@ abstract class AbstractAvailObject
 	 * @param e An enumeration value that defines the field ordering.
 	 * @param anInteger An {@code int} to store in the indicated slot.
 	 */
-	abstract void integerSlotPut (
+	abstract void setSlot (
 		final @NotNull IntegerSlotsEnum e,
 		final int anInteger);
 
@@ -278,7 +278,7 @@ abstract class AbstractAvailObject
 	 * @param subscript The positive one-based subscript to apply.
 	 * @return An {@code int} extracted from this object.
 	 */
-	abstract int integerSlotAt (
+	abstract int slot (
 		final @NotNull IntegerSlotsEnum e,
 		final int subscript);
 
@@ -290,7 +290,7 @@ abstract class AbstractAvailObject
 	 * @param subscript The positive one-based subscript to apply.
 	 * @param anInteger An {@code int} to store in the indicated slot.
 	 */
-	abstract void integerSlotAtPut (
+	abstract void setSlot (
 		final @NotNull IntegerSlotsEnum e,
 		final int subscript,
 		final int anInteger);
@@ -321,7 +321,7 @@ abstract class AbstractAvailObject
 	 * @param e An enumeration value that defines the field ordering.
 	 * @return The object found at the specified slot in the receiver.
 	 */
-	abstract AvailObject objectSlot (final @NotNull ObjectSlotsEnum e);
+	abstract AvailObject slot (final @NotNull ObjectSlotsEnum e);
 
 	/**
 	 * Store the {@linkplain AvailObject object} in the specified slot of the
@@ -330,7 +330,7 @@ abstract class AbstractAvailObject
 	 * @param e An enumeration value that defines the field ordering.
 	 * @param anAvailObject The object to store at the specified slot.
 	 */
-	abstract void objectSlotPut (
+	abstract void setSlot (
 		final @NotNull ObjectSlotsEnum e,
 		final @NotNull AvailObject anAvailObject);
 
@@ -342,7 +342,7 @@ abstract class AbstractAvailObject
 	 * @param subscript The positive one-based subscript to apply.
 	 * @return The object found at the specified slot in the receiver.
 	 */
-	abstract AvailObject objectSlotAt (
+	abstract AvailObject slot (
 		final @NotNull ObjectSlotsEnum e,
 		final int subscript);
 
@@ -354,7 +354,7 @@ abstract class AbstractAvailObject
 	 * @param subscript The positive one-based subscript to apply.
 	 * @param anAvailObject The object to store at the specified slot.
 	 */
-	abstract void objectSlotAtPut (
+	abstract void setSlot (
 		final @NotNull ObjectSlotsEnum e,
 		final int subscript,
 		final @NotNull AvailObject anAvailObject);

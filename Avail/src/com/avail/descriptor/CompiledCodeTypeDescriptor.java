@@ -66,7 +66,7 @@ extends TypeDescriptor
 	@NotNull AvailObject o_FunctionType (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.FUNCTION_TYPE);
+		return object.slot(ObjectSlots.FUNCTION_TYPE);
 	}
 
 	@Override
@@ -231,7 +231,7 @@ extends TypeDescriptor
 	{
 		functionType.makeImmutable();
 		final AvailObject result = mutable().create();
-		result.objectSlotPut(ObjectSlots.FUNCTION_TYPE, functionType);
+		result.setSlot(ObjectSlots.FUNCTION_TYPE, functionType);
 		result.makeImmutable();
 		return result;
 	}

@@ -205,7 +205,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final int value)
 	{
-		object.integerSlotPut(IntegerSlots.INDEX, value);
+		object.setSlot(IntegerSlots.INDEX, value);
 	}
 
 	@Override @AvailMethod
@@ -213,14 +213,14 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final int subscript)
 	{
-		return object.objectSlotAt(ObjectSlots.LITERAL_AT_, subscript);
+		return object.slot(ObjectSlots.LITERAL_AT_, subscript);
 	}
 
 	@Override @AvailMethod
 	int o_Index (
 		final @NotNull AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.INDEX);
+		return object.slot(IntegerSlots.INDEX);
 	}
 
 	@Override @AvailMethod
@@ -254,18 +254,17 @@ extends Descriptor
 	@NotNull AvailObject o_Vectors (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.VECTORS);
+		return object.slot(ObjectSlots.VECTORS);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_Wordcodes (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.WORDCODES);
+		return object.slot(ObjectSlots.WORDCODES);
 	}
 
-	@Override
-	public boolean allowsImmutableToMutableReferenceInField (
+	@Override boolean allowsImmutableToMutableReferenceInField (
 		final @NotNull AbstractSlotsEnum e)
 	{
 		return e == ObjectSlots.WORDCODES
@@ -625,7 +624,7 @@ extends Descriptor
 			IntegerSlots.NUM_OBJECTS_AND_FLAGS,
 			NumObjectsAndFlags.VALID,
 			1);
-		chunk.objectSlotPut(ObjectSlots.VECTORS, vectorTuplesTuple);
+		chunk.setSlot(ObjectSlots.VECTORS, vectorTuplesTuple);
 		chunk.bitSlotPut(
 			IntegerSlots.NUM_OBJECTS_AND_FLAGS,
 			NumObjectsAndFlags.NUM_OBJECTS,
@@ -638,10 +637,10 @@ extends Descriptor
 			IntegerSlots.NUM_INTEGERS_AND_DOUBLES,
 			NumIntegersAndDoubles.NUM_DOUBLES,
 			numFloats);
-		chunk.objectSlotPut(ObjectSlots.WORDCODES, wordcodesTuple);
+		chunk.setSlot(ObjectSlots.WORDCODES, wordcodesTuple);
 		for (int i = 1; i <= listOfLiterals.size(); i++)
 		{
-			chunk.objectSlotAtPut(
+			chunk.setSlot(
 				ObjectSlots.LITERAL_AT_,
 				i,
 				listOfLiterals.get(i - 1));
@@ -727,11 +726,11 @@ extends Descriptor
 				IntegerSlots.NUM_OBJECTS_AND_FLAGS,
 				NumObjectsAndFlags.VALID,
 				0);
-			chunk.objectSlotPut(ObjectSlots.WORDCODES, TupleDescriptor.empty());
-			chunk.objectSlotPut(ObjectSlots.VECTORS, TupleDescriptor.empty());
+			chunk.setSlot(ObjectSlots.WORDCODES, TupleDescriptor.empty());
+			chunk.setSlot(ObjectSlots.VECTORS, TupleDescriptor.empty());
 			for (int i = chunk.variableObjectSlotsCount(); i >= 1; i--)
 			{
-				chunk.objectSlotAtPut(
+				chunk.setSlot(
 					ObjectSlots.LITERAL_AT_,
 					i,
 					NullDescriptor.nullObject());

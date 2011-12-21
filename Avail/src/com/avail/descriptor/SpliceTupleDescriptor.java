@@ -60,7 +60,13 @@ extends TupleDescriptor
 		/**
 		 * TODO
 		 */
-		INTEGER_ZONE_DATA_AT_
+		INTEGER_ZONE_DATA_AT_;
+
+		static
+		{
+			assert TupleDescriptor.IntegerSlots.HASH_OR_ZERO.ordinal()
+				== HASH_OR_ZERO.ordinal();
+		}
 	}
 
 	/**
@@ -408,7 +414,7 @@ extends TupleDescriptor
 	{
 		// Answer the ending index for the given zone.
 
-		return object.integerSlotAt(
+		return object.slot(
 			IntegerSlots.INTEGER_ZONE_DATA_AT_,
 			zone * 2);
 	}
@@ -421,7 +427,7 @@ extends TupleDescriptor
 		// Answer the ending index into the subtuple for the given zone.
 
 		return
-			object.integerSlotAt(
+			object.slot(
 				IntegerSlots.INTEGER_ZONE_DATA_AT_,
 				zone * 2 - 1)
 			+ object.sizeOfZone(zone)
@@ -443,15 +449,15 @@ extends TupleDescriptor
 			final int endOfZone)
 	{
 		assert isMutable;
-		object.objectSlotAtPut(
+		object.setSlot(
 			ObjectSlots.OBJECT_ZONE_DATA_AT_,
 			zone,
 			newSubtuple);
-		object.integerSlotAtPut(
+		object.setSlot(
 			IntegerSlots.INTEGER_ZONE_DATA_AT_,
 			zone * 2 - 1,
 			startSubtupleIndex);
-		object.integerSlotAtPut(
+		object.setSlot(
 			IntegerSlots.INTEGER_ZONE_DATA_AT_,
 			zone * 2,
 			endOfZone);
@@ -469,7 +475,7 @@ extends TupleDescriptor
 		final @NotNull AvailObject newTuple)
 	{
 		assert isMutable;
-		object.objectSlotAtPut(
+		object.setSlot(
 			ObjectSlots.OBJECT_ZONE_DATA_AT_,
 			zoneIndex,
 			newTuple);
@@ -485,15 +491,15 @@ extends TupleDescriptor
 	{
 		if (zone == 1)
 		{
-			return object.integerSlotAt(
+			return object.slot(
 				IntegerSlots.INTEGER_ZONE_DATA_AT_,
 				2);
 		}
 		return
-			object.integerSlotAt(
+			object.slot(
 				IntegerSlots.INTEGER_ZONE_DATA_AT_,
 				zone * 2)
-			- object.integerSlotAt(
+			- object.slot(
 				IntegerSlots.INTEGER_ZONE_DATA_AT_,
 				zone * 2 - 2);
 	}
@@ -511,7 +517,7 @@ extends TupleDescriptor
 			return 1;
 		}
 		return
-			object.integerSlotAt(
+			object.slot(
 				IntegerSlots.INTEGER_ZONE_DATA_AT_,
 				zone * 2 - 2)
 			+ 1;
@@ -525,7 +531,7 @@ extends TupleDescriptor
 		final @NotNull AvailObject object,
 		final int zone)
 	{
-		return object.integerSlotAt(
+		return object.slot(
 			IntegerSlots.INTEGER_ZONE_DATA_AT_,
 			zone * 2 - 1);
 	}
@@ -539,7 +545,7 @@ extends TupleDescriptor
 		final @NotNull AvailObject object,
 		final int zone)
 	{
-		return object.objectSlotAt(
+		return object.slot(
 			ObjectSlots.OBJECT_ZONE_DATA_AT_,
 			zone);
 	}
@@ -833,19 +839,19 @@ extends TupleDescriptor
 		assert result.integerSlotsCount() == object.integerSlotsCount();
 		for (int subscript = 1; subscript <= numberOfZones; subscript++)
 		{
-			result.objectSlotAtPut(
+			result.setSlot(
 				ObjectSlots.OBJECT_ZONE_DATA_AT_,
 				subscript,
-				object.objectSlotAt(
+				object.slot(
 					ObjectSlots.OBJECT_ZONE_DATA_AT_,
 					subscript));
 		}
 		for (int subscript = 1; subscript <= numberOfZones * 2; subscript++)
 		{
-			result.integerSlotAtPut(
+			result.setSlot(
 				IntegerSlots.INTEGER_ZONE_DATA_AT_,
 				subscript,
-				object.integerSlotAt(
+				object.slot(
 					IntegerSlots.INTEGER_ZONE_DATA_AT_,
 					subscript));
 		}

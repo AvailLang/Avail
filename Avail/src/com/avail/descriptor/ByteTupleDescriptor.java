@@ -62,7 +62,13 @@ extends TupleDescriptor
 		 * The raw 32-bit machine words that constitute the representation of
 		 * the {@linkplain ByteTupleDescriptor byte tuple}.
 		 */
-		RAW_QUAD_AT_
+		RAW_QUAD_AT_;
+
+		static
+		{
+			assert TupleDescriptor.IntegerSlots.HASH_OR_ZERO.ordinal()
+				== HASH_OR_ZERO.ordinal();
+		}
 	}
 
 	/**
@@ -405,10 +411,10 @@ extends TupleDescriptor
 		// Copy four bytes at a time.
 		for (int i = 1, end = object.tupleSize() + 3 >> 2; i <= end; i++)
 		{
-			result.integerSlotAtPut(
+			result.setSlot(
 				IntegerSlots.RAW_QUAD_AT_,
 				i,
-				object.integerSlotAt(IntegerSlots.RAW_QUAD_AT_, i));
+				object.slot(IntegerSlots.RAW_QUAD_AT_, i));
 		}
 		return result;
 	}

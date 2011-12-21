@@ -100,7 +100,7 @@ extends Descriptor
 		{
 			super(referent, recyclingQueue);
 			assert referent.isRawPojo();
-			this.index = referent.integerSlot(INDEX);
+			this.index = referent.slot(INDEX);
 		}
 
 		@Override
@@ -236,7 +236,7 @@ extends Descriptor
 					if (object != null)
 					{
 						assert object.descriptor() instanceof RawPojoDescriptor;
-						object.integerSlotPut(INDEX, destinationIndex);
+						object.setSlot(INDEX, destinationIndex);
 					}
 				}
 				allPojosStrongly.remove(sourceIndex);
@@ -262,8 +262,7 @@ extends Descriptor
 		INDEX
 	}
 
-	@Override
-	public boolean allowsImmutableToMutableReferenceInField (
+	@Override boolean allowsImmutableToMutableReferenceInField (
 		final @NotNull AbstractSlotsEnum e)
 	{
 		// Indices are allowed to move because of compaction (triggered by the
@@ -286,7 +285,7 @@ extends Descriptor
 		{
 			assert object.isRawPojo();
 			final Object pojo = allPojosStrongly.get(
-				object.traversed().integerSlot(INDEX));
+				object.traversed().slot(INDEX));
 			return pojo;
 		}
 		finally
@@ -323,7 +322,7 @@ extends Descriptor
 			{
 				final AvailObject keeper;
 				final AvailObject loser;
-				if (object.integerSlot(INDEX) < aRawPojo.integerSlot(INDEX))
+				if (object.slot(INDEX) < aRawPojo.slot(INDEX))
 				{
 					keeper = object;
 					loser = aRawPojo;
@@ -333,7 +332,7 @@ extends Descriptor
 					keeper = aRawPojo;
 					loser = object;
 				}
-				final int index = loser.integerSlot(INDEX);
+				final int index = loser.slot(INDEX);
 				allPojosStrongly.set(index, null);
 				final WeakPojoReference ref = allPojosWeakly.get(index);
 				ref.clear();
@@ -386,7 +385,7 @@ extends Descriptor
 		final int indent)
 	{
 		builder.append("raw pojo@");
-		builder.append(object.integerSlot(INDEX));
+		builder.append(object.slot(INDEX));
 		builder.append(" = ");
 		builder.append(String.valueOf(getPojo(object)));
 	}
@@ -448,7 +447,7 @@ extends Descriptor
 
 			final AvailObject newObject = mutable.create();
 			final int newIndex = allPojosStrongly.size();
-			newObject.integerSlotPut(INDEX, newIndex);
+			newObject.setSlot(INDEX, newIndex);
 			allPojosStrongly.add(pojo);
 			allPojosWeakly.add(new WeakPojoReference(newObject));
 			return newObject.makeImmutable();

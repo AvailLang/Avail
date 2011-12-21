@@ -35,10 +35,11 @@ package com.avail.descriptor;
 import java.util.*;
 import com.avail.annotations.NotNull;
 import com.avail.compiler.AvailCodeGenerator;
+import com.avail.descriptor.AbstractNumberDescriptor.Order;
+import com.avail.descriptor.AbstractNumberDescriptor.Sign;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.ProcessDescriptor.ExecutionState;
-import com.avail.exceptions.ArithmeticException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
@@ -91,7 +92,7 @@ extends AbstractDescriptor
 	 *
 	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	enum ObjectSlots implements ObjectSlotsEnum
 	{
 		/**
 		 * The target {@linkplain AvailObject object} to which my instance is
@@ -100,15 +101,14 @@ extends AbstractDescriptor
 		TARGET
 	}
 
-	@Override
-	public boolean allowsImmutableToMutableReferenceInField (
+	@Override boolean allowsImmutableToMutableReferenceInField (
 		final AbstractSlotsEnum e)
 	{
 		return e == ObjectSlots.TARGET;
 	}
 
 	@Override
-	public void printObjectOnAvoidingIndent (
+	void printObjectOnAvoidingIndent (
 		final @NotNull AvailObject object,
 		final @NotNull StringBuilder aStream,
 		final @NotNull List<AvailObject> recursionList,
@@ -127,7 +127,7 @@ extends AbstractDescriptor
 	{
 		// Manually constructed scanning method.
 
-		visitor.invoke(object, object.objectSlot(ObjectSlots.TARGET));
+		visitor.invoke(object, object.slot(ObjectSlots.TARGET));
 	}
 
 	/**
@@ -145,7 +145,7 @@ extends AbstractDescriptor
 		if (isMutable)
 		{
 			object.descriptor = immutable();
-			object.objectSlot(ObjectSlots.TARGET).makeImmutable();
+			object.slot(ObjectSlots.TARGET).makeImmutable();
 		}
 		return object;
 	}
@@ -162,9 +162,9 @@ extends AbstractDescriptor
 	@Override
 	@NotNull AvailObject o_Traversed (final AvailObject object)
 	{
-		final AvailObject next = object.objectSlot(ObjectSlots.TARGET);
+		final AvailObject next = object.slot(ObjectSlots.TARGET);
 		final AvailObject finalObject = next.traversed();
-		object.objectSlotPut(ObjectSlots.TARGET, finalObject);
+		object.setSlot(ObjectSlots.TARGET, finalObject);
 		return finalObject;
 	}
 
@@ -300,13 +300,12 @@ extends AbstractDescriptor
 
 	@Override
 	@NotNull AvailObject o_AddToInfinityCanDestroy (
-			final @NotNull AvailObject object,
-			final @NotNull AvailObject anInfinity,
-			final boolean canDestroy)
-		throws ArithmeticException
+		final @NotNull AvailObject object,
+		final @NotNull Sign sign,
+		final boolean canDestroy)
 	{
 		return o_Traversed(object).addToInfinityCanDestroy(
-			anInfinity,
+			sign,
 			canDestroy);
 	}
 
@@ -698,32 +697,29 @@ extends AbstractDescriptor
 
 	@Override
 	@NotNull AvailObject o_DivideCanDestroy (
-			final @NotNull AvailObject object,
-			final @NotNull AvailObject aNumber,
-			final boolean canDestroy)
-		throws ArithmeticException
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aNumber,
+		final boolean canDestroy)
 	{
 		return o_Traversed(object).divideCanDestroy(aNumber, canDestroy);
 	}
 
 	@Override
 	@NotNull AvailObject o_DivideIntoInfinityCanDestroy (
-			final @NotNull AvailObject object,
-			final @NotNull AvailObject anInfinity,
-			final boolean canDestroy)
-		throws ArithmeticException
+		final @NotNull AvailObject object,
+		final @NotNull Sign sign,
+		final boolean canDestroy)
 	{
 		return o_Traversed(object).divideIntoInfinityCanDestroy(
-			anInfinity,
+			sign,
 			canDestroy);
 	}
 
 	@Override
 	@NotNull AvailObject o_DivideIntoIntegerCanDestroy (
-			final @NotNull AvailObject object,
-			final @NotNull AvailObject anInteger,
-			final boolean canDestroy)
-		throws ArithmeticException
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anInteger,
+		final boolean canDestroy)
 	{
 		return o_Traversed(object).divideIntoIntegerCanDestroy(
 			anInteger,
@@ -866,25 +862,25 @@ extends AbstractDescriptor
 	@Override
 	boolean o_EqualsDouble (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aDoubleObject)
+		final double aDouble)
 	{
-		return o_Traversed(object).equalsDouble(aDoubleObject);
+		return o_Traversed(object).equalsDouble(aDouble);
 	}
 
 	@Override
 	boolean o_EqualsFloat (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aFloatObject)
+		final float aFloat)
 	{
-		return o_Traversed(object).equalsFloat(aFloatObject);
+		return o_Traversed(object).equalsFloat(aFloat);
 	}
 
 	@Override
 	boolean o_EqualsInfinity (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject anInfinity)
+		final @NotNull Sign sign)
 	{
-		return o_Traversed(object).equalsInfinity(anInfinity);
+		return o_Traversed(object).equalsInfinity(sign);
 	}
 
 	@Override
@@ -1048,19 +1044,19 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_GreaterThanInteger (
+	@NotNull Order o_NumericCompareToInteger (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+		final @NotNull AvailObject anInteger)
 	{
-		return o_Traversed(object).greaterThanInteger(another);
+		return o_Traversed(object).numericCompareToInteger(anInteger);
 	}
 
 	@Override
-	boolean o_GreaterThanSignedInfinity (
+	@NotNull Order o_NumericCompareToInfinity (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+		final Sign sign)
 	{
-		return o_Traversed(object).greaterThanSignedInfinity(another);
+		return o_Traversed(object).numericCompareToInfinity(sign);
 	}
 
 	@Override
@@ -1346,22 +1342,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_LessOrEqual (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
-	{
-		return o_Traversed(object).lessOrEqual(another);
-	}
-
-	@Override
-	boolean o_LessThan (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
-	{
-		return o_Traversed(object).lessThan(another);
-	}
-
-	@Override
 	void o_LevelTwoChunkOffset (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject chunk,
@@ -1508,32 +1488,29 @@ extends AbstractDescriptor
 
 	@Override
 	@NotNull AvailObject o_MinusCanDestroy (
-			final @NotNull AvailObject object,
-			final @NotNull AvailObject aNumber,
-			final boolean canDestroy)
-		throws ArithmeticException
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aNumber,
+		final boolean canDestroy)
 	{
 		return o_Traversed(object).minusCanDestroy(aNumber, canDestroy);
 	}
 
 	@Override
 	@NotNull AvailObject o_MultiplyByInfinityCanDestroy (
-			final @NotNull AvailObject object,
-			final @NotNull AvailObject anInfinity,
-			final boolean canDestroy)
-		throws ArithmeticException
+		final @NotNull AvailObject object,
+		final @NotNull Sign sign,
+		final boolean canDestroy)
 	{
 		return o_Traversed(object).multiplyByInfinityCanDestroy(
-			anInfinity,
+			sign,
 			canDestroy);
 	}
 
 	@Override
 	@NotNull AvailObject o_MultiplyByIntegerCanDestroy (
-			final @NotNull AvailObject object,
-			final @NotNull AvailObject anInteger,
-			final boolean canDestroy)
-		throws ArithmeticException
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anInteger,
+		final boolean canDestroy)
 	{
 		return o_Traversed(object).multiplyByIntegerCanDestroy(
 			anInteger,
@@ -1623,10 +1600,9 @@ extends AbstractDescriptor
 
 	@Override
 	@NotNull AvailObject o_PlusCanDestroy (
-			final @NotNull AvailObject object,
-			final @NotNull AvailObject aNumber,
-			final boolean canDestroy)
-		throws ArithmeticException
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aNumber,
+		final boolean canDestroy)
 	{
 		return o_Traversed(object).plusCanDestroy(aNumber, canDestroy);
 	}
@@ -2013,13 +1989,12 @@ extends AbstractDescriptor
 
 	@Override
 	@NotNull AvailObject o_SubtractFromInfinityCanDestroy (
-			final @NotNull AvailObject object,
-			final @NotNull AvailObject anInfinity,
-			final boolean canDestroy)
-		throws ArithmeticException
+		final @NotNull AvailObject object,
+		final @NotNull Sign sign,
+		final boolean canDestroy)
 	{
 		return o_Traversed(object).subtractFromInfinityCanDestroy(
-			anInfinity,
+			sign,
 			canDestroy);
 	}
 
@@ -2044,10 +2019,9 @@ extends AbstractDescriptor
 
 	@Override
 	@NotNull AvailObject o_TimesCanDestroy (
-			final @NotNull AvailObject object,
-			final @NotNull AvailObject aNumber,
-			final boolean canDestroy)
-		throws ArithmeticException
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aNumber,
+		final boolean canDestroy)
 	{
 		return o_Traversed(object).timesCanDestroy(aNumber, canDestroy);
 	}
@@ -2129,14 +2103,6 @@ extends AbstractDescriptor
 	@NotNull AvailObject o_TypeAtIndex (final AvailObject object, final int index)
 	{
 		return o_Traversed(object).typeAtIndex(index);
-	}
-
-	@Override
-	boolean o_TypeEquals (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aType)
-	{
-		return o_Traversed(object).typeEquals(aType);
 	}
 
 	@Override
@@ -3346,12 +3312,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	int o_InfinitySign (final AvailObject object)
-	{
-		return o_Traversed(object).infinitySign();
-	}
-
-	@Override
 	@NotNull AvailObject o_Wordcodes (final AvailObject object)
 	{
 		return o_Traversed(object).wordcodes();
@@ -4096,5 +4056,109 @@ extends AbstractDescriptor
 		final @NotNull AvailObject aMap)
 	{
 		o_Traversed(object).upperBoundMap(aMap);
+	}
+
+	@Override
+	@NotNull Order o_NumericCompare (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
+	{
+		return o_Traversed(object).numericCompare(another);
+	}
+
+	@Override
+	@NotNull Order o_NumericCompareToDouble (
+		final @NotNull AvailObject object,
+		final double aDouble)
+	{
+		return o_Traversed(object).numericCompareToDouble(aDouble);
+	}
+
+	@Override
+	@NotNull AvailObject o_AddToDoubleCanDestroy (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject doubleObject,
+		final boolean canDestroy)
+	{
+		return o_Traversed(object).addToDoubleCanDestroy(
+			doubleObject,
+			canDestroy);
+	}
+
+	@Override
+	@NotNull AvailObject o_AddToFloatCanDestroy (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject floatObject,
+		final boolean canDestroy)
+	{
+		return o_Traversed(object).addToFloatCanDestroy(
+			floatObject,
+			canDestroy);
+	}
+
+	@Override
+	AvailObject o_SubtractFromDoubleCanDestroy (
+		@NotNull final AvailObject object,
+		@NotNull final AvailObject doubleObject,
+		final boolean canDestroy)
+	{
+		return o_Traversed(object).subtractFromDoubleCanDestroy(
+			doubleObject,
+			canDestroy);
+	}
+
+	@Override
+	AvailObject o_SubtractFromFloatCanDestroy (
+		@NotNull final AvailObject object,
+		@NotNull final AvailObject floatObject,
+		final boolean canDestroy)
+	{
+		return o_Traversed(object).subtractFromFloatCanDestroy(
+			floatObject,
+			canDestroy);
+	}
+
+	@Override
+	AvailObject o_MultiplyByDoubleCanDestroy (
+		@NotNull final AvailObject object,
+		@NotNull final AvailObject doubleObject,
+		final boolean canDestroy)
+	{
+		return o_Traversed(object).multiplyByDoubleCanDestroy(
+			doubleObject,
+			canDestroy);
+	}
+
+	@Override
+	AvailObject o_MultiplyByFloatCanDestroy (
+		@NotNull final AvailObject object,
+		@NotNull final AvailObject floatObject,
+		final boolean canDestroy)
+	{
+		return o_Traversed(object).multiplyByFloatCanDestroy(
+			floatObject,
+			canDestroy);
+	}
+
+	@Override
+	AvailObject o_DivideIntoDoubleCanDestroy (
+		@NotNull final AvailObject object,
+		@NotNull final AvailObject doubleObject,
+		final boolean canDestroy)
+	{
+		return o_Traversed(object).divideIntoDoubleCanDestroy(
+			doubleObject,
+			canDestroy);
+	}
+
+	@Override
+	AvailObject o_DivideIntoFloatCanDestroy (
+		@NotNull final AvailObject object,
+		@NotNull final AvailObject floatObject,
+		final boolean canDestroy)
+	{
+		return o_Traversed(object).divideIntoFloatCanDestroy(
+			floatObject,
+			canDestroy);
 	}
 }

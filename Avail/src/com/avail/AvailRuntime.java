@@ -182,6 +182,7 @@ public final class AvailRuntime
 		specialObjects[14] = InstanceTypeDescriptor.on(
 			AtomDescriptor.falseObject());
 		specialObjects[15] = FLOAT.o();
+		specialObjects[16] = NUMBER.o();
 		//16
 		specialObjects[17] = IntegerRangeTypeDescriptor.integers();
 		specialObjects[18] = IntegerRangeTypeDescriptor.meta();

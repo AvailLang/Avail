@@ -35,6 +35,12 @@ package com.avail.descriptor;
 import static com.avail.descriptor.TypeDescriptor.Types.METHOD_SIGNATURE;
 import com.avail.annotations.*;
 
+/**
+ * An object instance of {@code MethodSignatureDescriptor} represents a function
+ * in the collection of available functions for this method hierarchy.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public class MethodSignatureDescriptor
 extends SignatureDescriptor
 {
@@ -43,6 +49,9 @@ extends SignatureDescriptor
 	 */
 	public enum ObjectSlots implements ObjectSlotsEnum
 	{
+		/**
+		 * A function to execute this signature is selected during a call.
+		 */
 		BODY_BLOCK
 	}
 
@@ -57,7 +66,7 @@ extends SignatureDescriptor
 	AvailObject o_BodyBlock (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.BODY_BLOCK);
+		return object.slot(ObjectSlots.BODY_BLOCK);
 	}
 
 	@Override @AvailMethod
@@ -98,7 +107,7 @@ extends SignatureDescriptor
 		final @NotNull AvailObject bodyBlock)
 	{
 		final AvailObject instance = mutable().create();
-		instance.objectSlotPut(ObjectSlots.BODY_BLOCK, bodyBlock);
+		instance.setSlot(ObjectSlots.BODY_BLOCK, bodyBlock);
 		instance.makeImmutable();
 		return instance;
 	}

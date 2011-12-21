@@ -1,5 +1,5 @@
 /**
- * ArithmeticException.java
+ * AvailRuntimeException.java
  * Copyright (c) 2011, Mark van Gulik.
  * All rights reserved.
  *
@@ -33,47 +33,72 @@
 package com.avail.exceptions;
 
 import com.avail.annotations.NotNull;
-import com.avail.descriptor.*;
+import com.avail.descriptor.AvailObject;
 
 /**
- * An {@code ArithmeticException} is thrown by arithmetic operations.
+ * {@code AvailRuntimeException} is the root of the hierarchy of {@linkplain
+ * RuntimeException runtime exceptions} that are specific to the implementation
+ * of {@link AvailObject} and its numerous primitive operations.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
- * @see InfinityDescriptor
- * @see IntegerDescriptor
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
-public final class ArithmeticException
-extends AvailRuntimeException
+public abstract class AvailRuntimeException
+extends RuntimeException
 {
 	/** The serial version identifier. */
-	private static final long serialVersionUID = -2390483636801333298L;
+	private static final long serialVersionUID = -8826389456392434347L;
+
+	/** The {@linkplain AvailErrorCode error code}. */
+	private final @NotNull AvailErrorCode errorCode;
 
 	/**
-	 * Construct a new {@link ArithmeticException} with the specified
+	 * Answer the {@linkplain AvailErrorCode error code}.
+	 *
+	 * @return The {@linkplain AvailErrorCode error code}.
+	 */
+	public @NotNull AvailErrorCode errorCode ()
+	{
+		return errorCode;
+	}
+
+	/**
+	 * Answer the numeric error code as an {@linkplain AvailObject Avail
+	 * object}.
+	 *
+	 * @return The {@linkplain AvailObject numeric error code}.
+	 */
+	public @NotNull AvailObject numericCode ()
+	{
+		return errorCode.numericCode();
+	}
+
+	/**
+	 * Construct a new {@link AvailRuntimeException} with the specified
 	 * {@linkplain AvailErrorCode error code}.
 	 *
 	 * @param errorCode
 	 *        The {@linkplain AvailErrorCode error code}.
 	 */
-	public ArithmeticException (final @NotNull AvailErrorCode errorCode)
+	protected AvailRuntimeException (final @NotNull AvailErrorCode errorCode)
 	{
-		super(errorCode);
+		this.errorCode = errorCode;
 	}
 
 	/**
-	 * Construct a new {@link ArithmeticException} with the specified
+	 * Construct a new {@link AvailRuntimeException} with the specified
 	 * {@linkplain Throwable cause}.
 	 *
 	 * @param errorCode
 	 *        The {@linkplain AvailErrorCode error code}.
 	 * @param cause
 	 *        The proximal {@linkplain Throwable cause} of the {@linkplain
-	 *        ArithmeticException exception}.
+	 *        AvailRuntimeException exception}.
 	 */
-	public ArithmeticException (
+	protected AvailRuntimeException (
 		final @NotNull AvailErrorCode errorCode,
 		final @NotNull Throwable cause)
 	{
-		super(errorCode, cause);
+		super(cause);
+		this.errorCode = errorCode;
 	}
 }

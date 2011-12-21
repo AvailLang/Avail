@@ -108,14 +108,14 @@ extends TypeDescriptor
 	@NotNull AvailObject o_LowerBound (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.LOWER_BOUND);
+		return object.slot(ObjectSlots.LOWER_BOUND);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_UpperBound (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.UPPER_BOUND);
+		return object.slot(ObjectSlots.UPPER_BOUND);
 	}
 
 	@Override
@@ -228,19 +228,22 @@ extends TypeDescriptor
 		return aType.isSupertypeOfIntegerRangeType(object);
 	}
 
+	/**
+	 * Integer range types compare like the subsets they represent.  The only
+	 * elements that matter in the comparisons are within one unit of the four
+	 * boundary conditions (because these are the only places where the type
+	 * memberships can change), so just use these.  In particular, use the value
+	 * just inside and the value just outside each boundary.  If the subtype's
+	 * constraints don't logically imply the supertype's constraints then the
+	 * subtype is not actually a subtype.  Make use of the fact that integer
+	 * range types have their bounds canonized into inclusive form, if finite,
+	 * at range type creation time.
+	 */
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfIntegerRangeType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject possibleSub)
 	{
-		//  Integer range types compare like the subsets they represent.  The only elements that
-		//  matter in the comparisons are within one unit of the four boundary conditions (because
-		//  these are the only places where the type memberships can change), so just use these.
-		//  In particular, use the value just inside and the value just outside each boundary.  If
-		//  the subtype's constraints don't logically imply the supertype's constraints then the
-		//  subtype is not actually a subtype.  Make use of the fact that integer range types have
-		//  their bounds canonized into inclusive form, if finite, at range type creation time.
-
 		final AvailObject subMinObject = possibleSub.lowerBound();
 		final AvailObject superMinObject = object.lowerBound();
 		if (subMinObject.lessThan(superMinObject))
@@ -689,8 +692,8 @@ extends TypeDescriptor
 			return BottomTypeDescriptor.bottom();
 		}
 		final AvailObject result = mutable().create();
-		result.objectSlotPut(ObjectSlots.LOWER_BOUND, low);
-		result.objectSlotPut(ObjectSlots.UPPER_BOUND, high);
+		result.setSlot(ObjectSlots.LOWER_BOUND, low);
+		result.setSlot(ObjectSlots.UPPER_BOUND, high);
 		result.bitSlotPut(
 			IntegerSlots.INCLUSIVE_FLAGS,
 			Flags.LowerInclusive,

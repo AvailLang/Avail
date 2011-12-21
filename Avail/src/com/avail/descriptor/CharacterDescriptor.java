@@ -201,7 +201,7 @@ extends Descriptor
 	@Override @AvailMethod
 	int o_CodePoint (final @NotNull AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.CODE_POINT);
+		return object.slot(IntegerSlots.CODE_POINT);
 	}
 
 	@Override @AvailMethod
@@ -209,7 +209,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final int value)
 	{
-		object.integerSlotPut(IntegerSlots.CODE_POINT, value);
+		object.setSlot(IntegerSlots.CODE_POINT, value);
 	}
 
 	@Override

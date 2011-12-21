@@ -35,6 +35,8 @@ package com.avail.descriptor;
 import static com.avail.descriptor.AvailObject.Multiplier;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static java.lang.Math.*;
+import static com.avail.descriptor.AbstractNumberDescriptor.Order.*;
+import static com.avail.descriptor.IntegerDescriptor.IntegerSlots.*;
 import java.math.BigInteger;
 import java.util.List;
 import com.avail.annotations.*;
@@ -58,7 +60,7 @@ import com.avail.exceptions.ArithmeticException;
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
 public class IntegerDescriptor
-extends ExtendedNumberDescriptor
+extends ExtendedIntegerDescriptor
 {
 	/**
 	 * The layout of integer slots for my instances.
@@ -91,9 +93,7 @@ extends ExtendedNumberDescriptor
 		final @NotNull AvailObject object,
 		final int subscript)
 	{
-		return object.integerSlotAt(
-			IntegerSlots.RAW_SIGNED_INT_AT_,
-			subscript);
+		return object.slot(RAW_SIGNED_INT_AT_, subscript);
 	}
 
 	@Override @AvailMethod
@@ -102,10 +102,7 @@ extends ExtendedNumberDescriptor
 		final int subscript,
 		final int value)
 	{
-		object.integerSlotAtPut(
-			IntegerSlots.RAW_SIGNED_INT_AT_,
-			subscript,
-			value);
+		object.setSlot(RAW_SIGNED_INT_AT_, subscript, value);
 	}
 
 	@Override
@@ -125,9 +122,7 @@ extends ExtendedNumberDescriptor
 			final byte[] bytes = new byte[integerCount << 2];
 			for (int i = integerCount, b = 0; i > 0; i--)
 			{
-				final int integer = object.integerSlotAt(
-					IntegerSlots.RAW_SIGNED_INT_AT_,
-					i);
+				final int integer = object.slot(RAW_SIGNED_INT_AT_, i);
 				bytes[b++] = (byte) (integer >> 24);
 				bytes[b++] = (byte) (integer >> 16);
 				bytes[b++] = (byte) (integer >> 8);
@@ -161,10 +156,8 @@ extends ExtendedNumberDescriptor
 		}
 		for (int i = 1; i <= slotsCount; i++)
 		{
-			final int a = object.integerSlotAt(IntegerSlots.RAW_SIGNED_INT_AT_, i);
-			final int b = anAvailInteger.integerSlotAt(
-				IntegerSlots.RAW_SIGNED_INT_AT_,
-				i);
+			final int a = object.slot(RAW_SIGNED_INT_AT_, i);
+			final int b = anAvailInteger.slot(RAW_SIGNED_INT_AT_, i);
 			if (a != b)
 			{
 				return false;
@@ -173,75 +166,6 @@ extends ExtendedNumberDescriptor
 		return true;
 	}
 
-	@Override @AvailMethod
-	boolean o_GreaterThanInteger (
-		final @NotNull AvailObject object,
-		final AvailObject another)
-	{
-		final int size1 = object.integerSlotsCount();
-		final int size2 = another.integerSlotsCount();
-		final int high1 =
-			object.integerSlotAt(IntegerSlots.RAW_SIGNED_INT_AT_, size1);
-		final int high2 =
-			another.integerSlotAt(IntegerSlots.RAW_SIGNED_INT_AT_, size2);
-		if (high1 >= 0)
-		{
-			if (high2 >= 0)
-			{
-				if (size1 != size2)
-				{
-					return size1 > size2;
-				}
-			}
-			else
-			{
-				return true;
-			}
-		}
-		else
-		{
-			if (high2 >= 0)
-			{
-				return false;
-			}
-			if (size1 != size2)
-			{
-				return size1 < size2;
-			}
-		}
-		assert size1 == size2;
-		assert high1 >= 0 == high2 >= 0;
-		if (high1 != high2)
-		{
-			return high1 > high2;
-		}
-		for (int i = size1 - 1; i >= 1; i--)
-		{
-			final int a =
-				object.integerSlotAt(IntegerSlots.RAW_SIGNED_INT_AT_, i);
-			final int b =
-				another.integerSlotAt(IntegerSlots.RAW_SIGNED_INT_AT_, i);
-			if (a != b)
-			{
-				return (a & 0xFFFFFFFFL) > (b & 0xFFFFFFFFL);
-			}
-		}
-		return false;
-	}
-
-	@Override @AvailMethod
-	boolean o_GreaterThanSignedInfinity (
-		final @NotNull AvailObject object,
-		final AvailObject another)
-	{
-		return !another.isPositive();
-	}
-
-	/**
-	 * Answer whether object is an instance of a subtype of aType.  Don't
-	 * generate an approximate type and do the comparison, because the
-	 * approximate type will just send this message recursively.
-	 */
 	@Override @AvailMethod
 	boolean o_IsInstanceOfKind (
 		final @NotNull AvailObject object,
@@ -255,7 +179,6 @@ extends ExtendedNumberDescriptor
 		{
 			return false;
 		}
-
 		if (aType.upperInclusive())
 		{
 			if (!object.lessOrEqual(aType.upperBound()))
@@ -279,49 +202,15 @@ extends ExtendedNumberDescriptor
 		{
 			return false;
 		}
-
 		return true;
 	}
 
 	@Override @AvailMethod
-	boolean o_LessThan (
+	Order o_NumericCompare (
 		final @NotNull AvailObject object,
 		final AvailObject another)
 	{
-		return another.greaterThanInteger(object);
-	}
-
-	@Override @AvailMethod
-	boolean o_TypeEquals (
-		final @NotNull AvailObject object,
-		final AvailObject aType)
-	{
-		//  Answer whether object's type is equal to aType (known to be a type).
-		//  Since my implementation of o_CanComputeHashOfType: answers
-		//  true, I'm not allowed to allocate objects to figure this out.
-
-		if (!aType.isIntegerRangeType())
-		{
-			return false;
-		}
-		if (!aType.lowerBound().equals(object))
-		{
-			return false;
-		}
-		if (!aType.lowerInclusive())
-		{
-			return false;
-		}
-		if (!aType.upperBound().equals(object))
-		{
-			return false;
-		}
-		if (!aType.upperInclusive())
-		{
-			return false;
-		}
-
-		return true;
+		return another.numericCompareToInteger(object).reverse();
 	}
 
 	@Override @AvailMethod
@@ -364,10 +253,9 @@ extends ExtendedNumberDescriptor
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_DivideCanDestroy (
-			final @NotNull AvailObject object,
-			final AvailObject aNumber,
-			final boolean canDestroy)
-		throws ArithmeticException
+		final @NotNull AvailObject object,
+		final AvailObject aNumber,
+		final boolean canDestroy)
 	{
 		return aNumber.divideIntoIntegerCanDestroy(object, canDestroy);
 	}
@@ -383,20 +271,18 @@ extends ExtendedNumberDescriptor
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_PlusCanDestroy (
-			final @NotNull AvailObject object,
-			final @NotNull AvailObject aNumber,
-			final boolean canDestroy)
-		throws ArithmeticException
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aNumber,
+		final boolean canDestroy)
 	{
 		return aNumber.addToIntegerCanDestroy(object, canDestroy);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_TimesCanDestroy (
-			final @NotNull AvailObject object,
-			final @NotNull AvailObject aNumber,
-			final boolean canDestroy)
-		throws ArithmeticException
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aNumber,
+		final boolean canDestroy)
 	{
 		return aNumber.multiplyByIntegerCanDestroy(object, canDestroy);
 	}
@@ -480,6 +366,13 @@ extends ExtendedNumberDescriptor
 	}
 
 	@Override @AvailMethod
+	double o_ExtractDouble (
+		final @NotNull AvailObject object)
+	{
+		return extractDoubleScaled(object, 0);
+	}
+
+	@Override @AvailMethod
 	boolean o_IsByte (
 		final @NotNull AvailObject object)
 	{
@@ -517,9 +410,7 @@ extends ExtendedNumberDescriptor
 		final @NotNull AvailObject object,
 		final int subscript)
 	{
-		final int signedInt = object.integerSlotAt(
-			IntegerSlots.RAW_SIGNED_INT_AT_,
-			subscript);
+		final int signedInt = object.slot(RAW_SIGNED_INT_AT_, subscript);
 		return signedInt & 0xFFFFFFFFL;
 	}
 
@@ -534,10 +425,7 @@ extends ExtendedNumberDescriptor
 		final int subscript,
 		final int value)
 	{
-		object.integerSlotAtPut(
-			IntegerSlots.RAW_SIGNED_INT_AT_,
-			subscript,
-			value);
+		object.setSlot(RAW_SIGNED_INT_AT_, subscript, value);
 	}
 
 	@Override @AvailMethod
@@ -577,10 +465,12 @@ extends ExtendedNumberDescriptor
 	@Override @AvailMethod
 	@NotNull AvailObject o_AddToInfinityCanDestroy (
 		final @NotNull AvailObject object,
-		final AvailObject anInfinity,
+		final Sign sign,
 		final boolean canDestroy)
 	{
-		return anInfinity;
+		return sign == Sign.POSITIVE
+			? InfinityDescriptor.positiveInfinity()
+			: InfinityDescriptor.negativeInfinity();
 	}
 
 	@Override @AvailMethod
@@ -688,29 +578,59 @@ extends ExtendedNumberDescriptor
 		return output;
 	}
 
+	@Override
+	AvailObject o_AddToDoubleCanDestroy (
+		final AvailObject object,
+		final AvailObject doubleObject,
+		final boolean canDestroy)
+	{
+		final double d = DoubleDescriptor.addDoubleAndIntegerCanDestroy(
+			doubleObject.extractDouble(),
+			object,
+			canDestroy);
+		return DoubleDescriptor.objectFromDoubleRecycling(
+			d,
+			doubleObject,
+			canDestroy);
+	}
+
+	@Override
+	AvailObject o_AddToFloatCanDestroy (
+		final AvailObject object,
+		final AvailObject floatObject,
+		final boolean canDestroy)
+	{
+		final double d = DoubleDescriptor.addDoubleAndIntegerCanDestroy(
+			floatObject.extractDouble(),
+			object,
+			canDestroy);
+		return FloatDescriptor.objectFromFloatRecycling(
+			(float)d,
+			floatObject,
+			canDestroy);
+	}
+
 	@Override @AvailMethod
 	@NotNull AvailObject o_DivideIntoInfinityCanDestroy (
-			final @NotNull AvailObject object,
-			final @NotNull AvailObject anInfinity,
-			final boolean canDestroy)
-		throws ArithmeticException
+		final @NotNull AvailObject object,
+		final @NotNull Sign sign,
+		final boolean canDestroy)
 	{
 		if (object.equals(zero()))
 		{
 			throw new ArithmeticException(
 				AvailErrorCode.E_CANNOT_DIVIDE_BY_ZERO);
 		}
-		return object.greaterThan(zero()) ^ anInfinity.isPositive()
+		return object.greaterThan(zero()) ^ (sign == Sign.POSITIVE)
 			? InfinityDescriptor.negativeInfinity()
 			: InfinityDescriptor.positiveInfinity();
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_DivideIntoIntegerCanDestroy (
-			final @NotNull AvailObject object,
-			final @NotNull AvailObject anInteger,
-			final boolean canDestroy)
-		throws ArithmeticException
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anInteger,
+		final boolean canDestroy)
 	{
 		// Compute anInteger / object. Round towards ZERO. Expect the division
 		// to take a lot of time, as I haven't optimized it much.
@@ -935,19 +855,65 @@ extends ExtendedNumberDescriptor
 		return fullQuotient;
 	}
 
+	@Override
+	public AvailObject o_DivideIntoDoubleCanDestroy (
+		final AvailObject object,
+		final AvailObject doubleObject,
+		final boolean canDestroy)
+	{
+		// This one is tricky.  The integer might be bigger than the maximum
+		// double, but the product with a very small double may produce a value
+		// that is still in range.  Avoid the overflow in that case by working
+		// with a scaled down version of the integer: target a "significand"
+		// below about 2^96.
+		final int scale = Math.max(object.integerSlotsCount() - 4, 0) * 32;
+		final double scaledIntAsDouble = extractDoubleScaled(object, scale);
+		assert !Double.isInfinite(scaledIntAsDouble);
+		final double scaledQuotient =
+			doubleObject.extractDouble() / scaledIntAsDouble;
+		final double quotient = Math.scalb(scaledQuotient, scale);
+		return DoubleDescriptor.objectFromDoubleRecycling(
+			quotient,
+			doubleObject,
+			canDestroy);
+	}
+
+	@Override
+	public AvailObject o_DivideIntoFloatCanDestroy (
+		final AvailObject object,
+		final AvailObject floatObject,
+		final boolean canDestroy)
+	{
+		// This one is tricky.  The integer might be bigger than the maximum
+		// double, but the product with a very small double may produce a value
+		// that is still in range of a float.  Actually, I doubt this is
+		// possible, but it's easier to just make it match the double case.
+		// Avoid the overflow by working with a scaled down version of the
+		// integer: target a "significand" below about 2^96.
+		final int scale = Math.max(object.integerSlotsCount() - 4, 0) * 32;
+		final double scaledIntAsDouble = extractDoubleScaled(object, scale);
+		assert !Double.isInfinite(scaledIntAsDouble);
+		final double scaledQuotient =
+			floatObject.extractDouble() / scaledIntAsDouble;
+		final double quotient = Math.scalb(scaledQuotient, scale);
+		return FloatDescriptor.objectFromFloatRecycling(
+			(float)quotient,
+			floatObject,
+			canDestroy);
+	}
+
 	@Override @AvailMethod
 	@NotNull AvailObject o_MultiplyByInfinityCanDestroy (
-			final @NotNull AvailObject object,
-			final @NotNull AvailObject anInfinity,
-			final boolean canDestroy)
-		throws ArithmeticException
+		final @NotNull AvailObject object,
+		final @NotNull Sign sign,
+		final boolean canDestroy)
 	{
 		if (object.equals(zero()))
 		{
 			throw new ArithmeticException(
 				AvailErrorCode.E_CANNOT_MULTIPLY_ZERO_AND_INFINITY);
 		}
-		return object.greaterThan(zero()) ^ anInfinity.isPositive()
+		return object.greaterThan(zero()) ^ (sign == Sign.POSITIVE)
 			? InfinityDescriptor.negativeInfinity()
 			: InfinityDescriptor.positiveInfinity();
 	}
@@ -1056,13 +1022,62 @@ extends ExtendedNumberDescriptor
 		return output;
 	}
 
+	@Override
+	public AvailObject o_MultiplyByDoubleCanDestroy (
+		final AvailObject object,
+		final AvailObject doubleObject,
+		final boolean canDestroy)
+	{
+		// This one is tricky.  The integer might be bigger than the maximum
+		// double, but the product with a very small double may produce a value
+		// that is still in range.  Avoid the overflow in that case by working
+		// with a scaled down version of the integer: target a "significand"
+		// below about 2^96.
+		final int scale = Math.max(object.integerSlotsCount() - 4, 0) * 32;
+		final double scaledIntAsDouble = extractDoubleScaled(object, scale);
+		assert !Double.isInfinite(scaledIntAsDouble);
+		final double scaledProduct =
+			doubleObject.extractDouble() * scaledIntAsDouble;
+		final double product = Math.scalb(scaledProduct, scale);
+		return DoubleDescriptor.objectFromDoubleRecycling(
+			product,
+			doubleObject,
+			canDestroy);
+	}
+
+	@Override
+	public AvailObject o_MultiplyByFloatCanDestroy (
+		final AvailObject object,
+		final AvailObject floatObject,
+		final boolean canDestroy)
+	{
+		// This one is tricky.  The integer might be bigger than the maximum
+		// double, but the product with a very small double may produce a value
+		// that is still in range of a float.  Actually, I doubt this is
+		// possible, but it's easier to just make it match the double case.
+		// Avoid the overflow by working with a scaled down version of the
+		// integer: target a "significand" below about 2^96.
+		final int scale = Math.max(object.integerSlotsCount() - 4, 0) * 32;
+		final double scaledIntAsDouble = extractDoubleScaled(object, scale);
+		assert !Double.isInfinite(scaledIntAsDouble);
+		final double scaledProduct =
+			floatObject.extractDouble() * scaledIntAsDouble;
+		final double product = Math.scalb(scaledProduct, scale);
+		return FloatDescriptor.objectFromFloatRecycling(
+			(float)product,
+			floatObject,
+			canDestroy);
+	}
+
 	@Override @AvailMethod
 	@NotNull AvailObject o_SubtractFromInfinityCanDestroy (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject anInfinity,
+		final @NotNull Sign sign,
 		final boolean canDestroy)
 	{
-		return anInfinity;
+		return sign == Sign.POSITIVE
+			? InfinityDescriptor.positiveInfinity()
+			: InfinityDescriptor.negativeInfinity();
 	}
 
 	@Override @AvailMethod
@@ -1172,6 +1187,93 @@ extends ExtendedNumberDescriptor
 		return output;
 	}
 
+	@Override
+	public AvailObject o_SubtractFromDoubleCanDestroy (
+		final AvailObject object,
+		final AvailObject doubleObject,
+		final boolean canDestroy)
+	{
+		// Compute the negative (i.e., int-double)
+		final double d = DoubleDescriptor.addDoubleAndIntegerCanDestroy(
+			-doubleObject.extractDouble(),
+			object,
+			canDestroy);
+		// Negate it to produce (double-int).
+		return DoubleDescriptor.objectFromDoubleRecycling(
+			-d,
+			doubleObject,
+			canDestroy);
+	}
+
+	@Override
+	public AvailObject o_SubtractFromFloatCanDestroy (
+		final AvailObject object,
+		final AvailObject floatObject,
+		final boolean canDestroy)
+	{
+		// Compute the negative (i.e., int-float)
+		final double d = DoubleDescriptor.addDoubleAndIntegerCanDestroy(
+			-floatObject.extractDouble(),
+			object,
+			canDestroy);
+		// Negate it to produce (float-int).
+		return FloatDescriptor.objectFromFloatRecycling(
+			(float)-d,
+			floatObject,
+			canDestroy);
+	}
+
+	@Override @AvailMethod
+	Order o_NumericCompareToInteger (
+		final @NotNull AvailObject object,
+		final AvailObject anInteger)
+	{
+		final int size1 = object.integerSlotsCount();
+		final int size2 = anInteger.integerSlotsCount();
+		final int high1 = object.slot(RAW_SIGNED_INT_AT_, size1);
+		final int high2 = anInteger.slot(RAW_SIGNED_INT_AT_, size2);
+		final int composite1 = high1 >= 0 ? size1 : -size1;
+		final int composite2 = high2 >= 0 ? size2 : -size2;
+		if (composite1 != composite2)
+		{
+			return composite1 < composite2 ? LESS : MORE;
+		}
+		// The sizes and signs are the same.
+		assert size1 == size2;
+		assert high1 >= 0 == high2 >= 0;
+		if (high1 != high2)
+		{
+			return high1 < high2 ? LESS : MORE;
+		}
+		for (int i = size1 - 1; i >= 1; i--)
+		{
+			final int a = object.slot(RAW_SIGNED_INT_AT_, i);
+			final int b = anInteger.slot(RAW_SIGNED_INT_AT_, i);
+			if (a != b)
+			{
+				return (a & 0xFFFFFFFFL) < (b & 0xFFFFFFFFL) ? LESS : MORE;
+			}
+		}
+		return EQUAL;
+	}
+
+	@Override @AvailMethod
+	@NotNull Order o_NumericCompareToInfinity (
+		final @NotNull AvailObject object,
+		final @NotNull Sign sign)
+	{
+		return sign == Sign.POSITIVE ? LESS : MORE;
+	}
+
+	@Override
+	@NotNull Order o_NumericCompareToDouble (
+		final @NotNull AvailObject object,
+		final double aDouble)
+	{
+		return
+			DoubleDescriptor.compareDoubleAndInteger(aDouble, object).reverse();
+	}
+
 	/**
 	 * The maximum code point of a character, as an Avail {@linkplain
 	 * IntegerDescriptor integer}.
@@ -1242,6 +1344,48 @@ extends ExtendedNumberDescriptor
 	}
 
 	/**
+	 * Answer an Avail {@linkplain IntegerDescriptor integer} that holds the
+	 * truncation of the {@code double} argument, rounded towards zero.
+	 *
+	 * @param aDouble
+	 *            The object whose truncation should be encoded as an Avail
+	 *            integer.
+	 * @return An Avail integer.
+	 */
+	public static @NotNull AvailObject truncatedFromDouble (
+		final double aDouble)
+	{
+		// Extract the top three 32-bit sections.  That guarantees 65 bits
+		// of mantissa, which is more than a double actually captures.
+		double truncated = aDouble;
+		if (truncated >= Long.MIN_VALUE && truncated <= Long.MAX_VALUE)
+		{
+			// Common case -- it fits in a long.
+			return IntegerDescriptor.fromLong((long)truncated);
+		}
+		final boolean neg = truncated < 0.0d;
+		truncated = abs(truncated);
+		final int exponent = getExponent(truncated);
+		final int slots = exponent + 31 / 32;  // probably needs work
+		AvailObject out = IntegerDescriptor.mutable().create(slots);
+		truncated = scalb(truncated, (1 - slots) * 32);
+		for (int i = slots; i >= 1; --i)
+		{
+			final long intSlice = (int) truncated;
+			out.rawUnsignedIntegerAtPut(i, (int)intSlice);
+			truncated -= intSlice;
+			truncated = scalb(truncated, 32);
+		}
+		out.trimExcessInts();
+		if (neg)
+		{
+			out = IntegerDescriptor.zero().noFailMinusCanDestroy(out, true);
+		}
+		return out;
+	}
+
+
+	/**
 	 * Convert the specified Java {@code int} into an Avail {@linkplain
 	 * IntegerDescriptor integer}.
 	 *
@@ -1270,6 +1414,45 @@ extends ExtendedNumberDescriptor
 	{
 		assert anInteger >= 0 && anInteger <= 255;
 		return immutableByteObjects[anInteger];
+	}
+
+	/**
+	 * Extract a {@code double} from this integer, but scale it down by the
+	 * specified power of two in the process.  If the integer is beyond the
+	 * scale of a double but the scale would bring it in range, don't overflow.
+	 *
+	 * @param object
+	 *            The integer to convert to a double.
+	 * @param exponentBias
+	 *            The scale by which the result's exponent should be adjusted
+	 *            (a positive number scales the result downward).
+	 * @return
+	 *            The integer times 2^-exponentBias, as a double.
+	 */
+	public static double extractDoubleScaled (
+		final @NotNull AvailObject object,
+		final int exponentBias)
+	{
+		// Extract and scale the top three ints from anInteger, if available.
+		// This guarantees at least 64 correct upper bits were extracted (if
+		// available), which is better than a double can represent.
+		final int slotsCount = object.integerSlotsCount();
+		final long high = object.rawSignedIntegerAt(slotsCount);
+		double d = Math.scalb(high, ((slotsCount - 1) << 5) - exponentBias);
+		if (slotsCount > 1)
+		{
+			final long med = (high & ~0xFFFFFFFFL)
+				+ object.rawUnsignedIntegerAt(slotsCount - 1);
+			d += Math.scalb(med, ((slotsCount - 2) << 5) - exponentBias);
+			if (slotsCount > 2)
+			{
+				final long low = (high & ~0xFFFFFFFFL)
+					+ object.rawUnsignedIntegerAt(slotsCount - 2);
+				d += Math.scalb(low, ((slotsCount - 3) << 5) - exponentBias);
+			}
+		}
+		return d;
+
 	}
 
 	/**

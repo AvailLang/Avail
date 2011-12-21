@@ -764,11 +764,11 @@ extends TypeDescriptor
 			else if (availType.isSubtypeOf(mostGeneralType))
 			{
 				Class<?> tempClass = (Class<?>) RawPojoDescriptor.getPojo(
-					availType.traversed().objectSlot(MOST_SPECIFIC_CLASS));
+					availType.traversed().slot(MOST_SPECIFIC_CLASS));
 				// Recursively resolve a pojo array type.
 				if (tempClass.equals(PojoArray.class))
 				{
-					tempClass = marshalTypes(availType.traversed().objectSlot(
+					tempClass = marshalTypes(availType.traversed().slot(
 						PARAMETERIZATION_MAP).mapAt(RawPojoDescriptor.create(
 							PojoArray.class)))[0];
 					tempClass = Array.newInstance(tempClass, 0).getClass();
@@ -903,8 +903,7 @@ extends TypeDescriptor
 		UPPER_BOUND_MAP
 	}
 
-	@Override
-	public boolean allowsImmutableToMutableReferenceInField (
+	@Override boolean allowsImmutableToMutableReferenceInField (
 		final @NotNull AbstractSlotsEnum e)
 	{
 		return e == UPPER_BOUND_MAP;
@@ -931,19 +930,19 @@ extends TypeDescriptor
 		// Two pojo types with equal parameterization maps must have equal
 		// most specific classes, so don't bother doing that comparison
 		// explicitly.
-		if (!object.objectSlot(PARAMETERIZATION_MAP).equals(
-				aPojoType.objectSlot(PARAMETERIZATION_MAP)))
+		if (!object.slot(PARAMETERIZATION_MAP).equals(
+				aPojoType.slot(PARAMETERIZATION_MAP)))
 		{
 			return false;
 		}
 
-		assert object.objectSlot(MOST_SPECIFIC_CLASS).equals(
-			aPojoType.objectSlot(MOST_SPECIFIC_CLASS));
+		assert object.slot(MOST_SPECIFIC_CLASS).equals(
+			aPojoType.slot(MOST_SPECIFIC_CLASS));
 
 		// Only if the upper bound maps match (and the objects are not reference
 		// identical) are we allowed to coalesce them.
-		if (object.objectSlot(UPPER_BOUND_MAP).equals(
-				aPojoType.objectSlot(UPPER_BOUND_MAP))
+		if (object.slot(UPPER_BOUND_MAP).equals(
+				aPojoType.slot(UPPER_BOUND_MAP))
 			&& !object.sameAddressAs(aPojoType))
 		{
 			object.becomeIndirectionTo(aPojoType);
@@ -956,7 +955,7 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsAbstract (final @NotNull AvailObject object)
 	{
-		final AvailObject rawType = object.objectSlot(MOST_SPECIFIC_CLASS);
+		final AvailObject rawType = object.slot(MOST_SPECIFIC_CLASS);
 
 		// If the most specific class is the Avail null object, then this type
 		// does not represent a Java class; it represents either an interface,
@@ -1018,9 +1017,9 @@ extends TypeDescriptor
 		// raw types of the arguments. If the result is equal to the raw types
 		// of object, then object is a supertype of aPojoType.
 		final AvailObject objectParamMap =
-			object.objectSlot(PARAMETERIZATION_MAP);
+			object.slot(PARAMETERIZATION_MAP);
 		final AvailObject aPojoTypeParamMap =
-			aPojoType.objectSlot(PARAMETERIZATION_MAP);
+			aPojoType.slot(PARAMETERIZATION_MAP);
 		final AvailObject objectTypes = objectParamMap.keysAsSet();
 		final AvailObject aPojoTypeTypes = aPojoTypeParamMap.keysAsSet();
 		final AvailObject intersection =
@@ -1067,7 +1066,7 @@ extends TypeDescriptor
 		// Note that this definition produces a value compatible with a pojo
 		// self type; this is necessary to permit comparison between a pojo type
 		// and its self type.
-		final AvailObject map = object.objectSlot(PARAMETERIZATION_MAP);
+		final AvailObject map = object.slot(PARAMETERIZATION_MAP);
 		return (map.equalsNull() ? map.hash() : map.keysAsSet().hash())
 			^ 0xA015BC44;
 	}
@@ -1075,7 +1074,7 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	@NotNull AvailObject o_JavaClass (final @NotNull AvailObject object)
 	{
-		return object.objectSlot(MOST_SPECIFIC_CLASS);
+		return object.slot(MOST_SPECIFIC_CLASS);
 	}
 
 	@Override @AvailMethod
@@ -1089,8 +1088,8 @@ extends TypeDescriptor
 		final @NotNull AvailObject object)
 	{
 		object.descriptor = immutable();
-		object.objectSlot(MOST_SPECIFIC_CLASS).makeImmutable();
-		object.objectSlot(PARAMETERIZATION_MAP).makeImmutable();
+		object.slot(MOST_SPECIFIC_CLASS).makeImmutable();
+		object.slot(PARAMETERIZATION_MAP).makeImmutable();
 		return object;
 	}
 
@@ -1106,8 +1105,8 @@ extends TypeDescriptor
 		}
 
 		return PojoSelfTypeDescriptor.create(
-			object.objectSlot(MOST_SPECIFIC_CLASS),
-			object.objectSlot(PARAMETERIZATION_MAP).keysAsSet());
+			object.slot(MOST_SPECIFIC_CLASS),
+			object.slot(PARAMETERIZATION_MAP).keysAsSet());
 	}
 
 	@Override @AvailMethod
@@ -1136,8 +1135,8 @@ extends TypeDescriptor
 			return aPojoType.typeIntersectionOfPojoType(object);
 		}
 
-		final AvailObject objectMSC = object.objectSlot(MOST_SPECIFIC_CLASS);
-		final AvailObject aPojoTypeMSC = aPojoType.traversed().objectSlot(
+		final AvailObject objectMSC = object.slot(MOST_SPECIFIC_CLASS);
+		final AvailObject aPojoTypeMSC = aPojoType.traversed().slot(
 			MOST_SPECIFIC_CLASS);
 		final Class<?> objectMSCClass =
 			!objectMSC.equalsNull()
@@ -1174,9 +1173,9 @@ extends TypeDescriptor
 		// Find the union of the key sets and the intersection of their
 		// parameterizations.
 		final AvailObject objectParamMap =
-			object.objectSlot(PARAMETERIZATION_MAP);
+			object.slot(PARAMETERIZATION_MAP);
 		final AvailObject aPojoTypeParamMap =
-			aPojoType.objectSlot(PARAMETERIZATION_MAP);
+			aPojoType.slot(PARAMETERIZATION_MAP);
 		final AvailObject objectTypes = objectParamMap.keysAsSet();
 		final AvailObject aPojoTypeTypes = aPojoTypeParamMap.keysAsSet();
 		final AvailObject union = objectTypes.setUnionCanDestroy(
@@ -1251,9 +1250,9 @@ extends TypeDescriptor
 		// Find the intersection of the key sets and the union of their
 		// parameterizations.
 		final AvailObject objectParamMap =
-			object.objectSlot(PARAMETERIZATION_MAP);
+			object.slot(PARAMETERIZATION_MAP);
 		final AvailObject aPojoTypeParamMap =
-			aPojoType.traversed().objectSlot(PARAMETERIZATION_MAP);
+			aPojoType.traversed().slot(PARAMETERIZATION_MAP);
 		final AvailObject objectTypes = objectParamMap.keysAsSet();
 		final AvailObject aPojoTypeTypes = aPojoTypeParamMap.keysAsSet();
 		final AvailObject intersection = objectTypes.setIntersectionCanDestroy(
@@ -1330,7 +1329,7 @@ extends TypeDescriptor
 	public @NotNull AvailObject o_UpperBoundMap (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(UPPER_BOUND_MAP);
+		return object.slot(UPPER_BOUND_MAP);
 	}
 
 	@Override @AvailMethod
@@ -1338,8 +1337,8 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aMap)
 	{
-		assert object.objectSlot(UPPER_BOUND_MAP).equalsNull();
-		object.objectSlotPut(UPPER_BOUND_MAP, aMap);
+		assert object.slot(UPPER_BOUND_MAP).equalsNull();
+		object.setSlot(UPPER_BOUND_MAP, aMap);
 	}
 
 	@Override
@@ -1349,7 +1348,7 @@ extends TypeDescriptor
 		final @NotNull List<AvailObject> recursionList,
 		final int indent)
 	{
-		final AvailObject classPojo = object.objectSlot(MOST_SPECIFIC_CLASS);
+		final AvailObject classPojo = object.slot(MOST_SPECIFIC_CLASS);
 		if (classPojo.equalsNull())
 		{
 			super.printObjectOnAvoidingIndent(
@@ -1367,12 +1366,12 @@ extends TypeDescriptor
 
 		builder.append(javaClass.getName());
 		final AvailObject typeParams =
-			object.objectSlot(PARAMETERIZATION_MAP).mapAt(classPojo);
+			object.slot(PARAMETERIZATION_MAP).mapAt(classPojo);
 		if (typeParams.tupleSize() > 0)
 		{
 			final TypeVariable<?>[] typeVars = javaClass.getTypeParameters();
 			final AvailObject upperBoundMap =
-				object.objectSlot(UPPER_BOUND_MAP);
+				object.slot(UPPER_BOUND_MAP);
 			boolean first = true;
 			builder.append('<');
 			for (int i = 1; i <= typeParams.tupleSize(); i++)
@@ -1524,9 +1523,9 @@ extends TypeDescriptor
 	{
 		assert createPreconditionsHold(mostSpecificClass, parameterizationMap);
 		final AvailObject newObject = mutable.create();
-		newObject.objectSlotPut(MOST_SPECIFIC_CLASS, mostSpecificClass);
-		newObject.objectSlotPut(PARAMETERIZATION_MAP, parameterizationMap);
-		newObject.objectSlotPut(UPPER_BOUND_MAP, NullDescriptor.nullObject());
+		newObject.setSlot(MOST_SPECIFIC_CLASS, mostSpecificClass);
+		newObject.setSlot(PARAMETERIZATION_MAP, parameterizationMap);
+		newObject.setSlot(UPPER_BOUND_MAP, NullDescriptor.nullObject());
 		return newObject.makeImmutable();
 	}
 

@@ -1,6 +1,6 @@
 /**
- * AbstractSlotsEnum.java
- * Copyright (c) 2011, Mark van Gulik.
+ * ExtendedIntegerDescriptor.java
+ * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,38 +32,36 @@
 
 package com.avail.descriptor;
 
+import com.avail.annotations.*;
+
 /**
- * The {@code AbstractSlotsEnum} is an interface that helps ensure that object
- * representations and access are consistent and correct.  In particular, some
- * operations in AvailObject (such as {@link AvailObject#slot(ObjectSlotsEnum)})
- * are expected to operate on enumerations defined as inner classes within the
- * {@link Descriptor} class for which the slot layout is specified.
- *
- * <p>
- * There are two subinterfaces, {@link ObjectSlotsEnum} and {@link
- * IntegerSlotsEnum}, and the representation access methods defined in {@link
- * AbstractAvailObject} typically restrict the passed enumerations to be of the
- * appropriate kind.
- * </p>
+ * The abstract class {@code ExtendedIntegerDescriptor} represents instances
+ * that are extended integers.  That includes all integers and positive and
+ * negative infinity.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Todd Smith &lt;anarakul@gmail.com&gt;
  */
-public interface AbstractSlotsEnum
+public abstract class ExtendedIntegerDescriptor
+extends AbstractNumberDescriptor
 {
-	/**
-	 * Answer the name of this enumeration value.
-	 *
-	 * @return A string that names this enumeration value.
-	 */
-	public String name();
+
+	@Override @AvailMethod
+	boolean o_IsExtendedInteger (
+		final @NotNull AvailObject object)
+	{
+		return true;
+	}
 
 	/**
-	 * Answer an integer that identifies this enumeration value uniquely within
-	 * this enumeration subclass (i.e., any enumeration class implementing this
-	 * interface).  These values are allocated sequentially to the enumeration
-	 * values, starting at zero.
+	 * Construct a new {@link ExtendedIntegerDescriptor}.
 	 *
-	 * @return The enumeration value's ordinal number.
+	 * @param isMutable
+	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
+	 *        object?
 	 */
-	public int ordinal();
+	protected ExtendedIntegerDescriptor (final boolean isMutable)
+	{
+		super(isMutable);
+	}
 }

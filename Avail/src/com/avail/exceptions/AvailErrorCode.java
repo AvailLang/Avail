@@ -140,10 +140,11 @@ public enum AvailErrorCode
 	E_PRIMITIVE_NOT_SUPPORTED (15),
 
 	/**
-	 * Cannot uniquely determine instance of metatype smear that includes first
-	 * level metatype.
+	 * A {@link Double} {@linkplain Double#NaN not-a-number} or {@link Float}
+	 * {@linkplain Float#NaN not-a-number} can not be ordered with respect to
+	 * other numbers.
 	 */
-//	E_AMBIGUOUS_INSTANCE_OF_METATYPE_SMEAR (16),
+	E_CANNOT_ORDER_NOT_A_NUMBER (16),
 
 	/**
 	 * Metatypes must only have positive levels (>=1).

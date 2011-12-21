@@ -67,7 +67,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.UNCLASSIFIED, value);
+		object.setSlot(ObjectSlots.UNCLASSIFIED, value);
 	}
 
 	@Override @AvailMethod
@@ -75,7 +75,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.LAZY_COMPLETE, value);
+		object.setSlot(ObjectSlots.LAZY_COMPLETE, value);
 	}
 
 	@Override @AvailMethod
@@ -83,7 +83,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.LAZY_INCOMPLETE, value);
+		object.setSlot(ObjectSlots.LAZY_INCOMPLETE, value);
 	}
 
 	@Override @AvailMethod
@@ -91,53 +91,52 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.LAZY_SPECIAL_ACTIONS, value);
+		object.setSlot(ObjectSlots.LAZY_SPECIAL_ACTIONS, value);
 	}
 
 	@Override @AvailMethod
 	int o_ParsingPc (
 		final @NotNull AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.PARSING_PC);
+		return object.slot(IntegerSlots.PARSING_PC);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_AllBundles (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.ALL_BUNDLES);
+		return object.slot(ObjectSlots.ALL_BUNDLES);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_Unclassified (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.UNCLASSIFIED);
+		return object.slot(ObjectSlots.UNCLASSIFIED);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_LazyComplete (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.LAZY_COMPLETE);
+		return object.slot(ObjectSlots.LAZY_COMPLETE);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_LazyIncomplete (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.LAZY_INCOMPLETE);
+		return object.slot(ObjectSlots.LAZY_INCOMPLETE);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_LazySpecialActions (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.LAZY_SPECIAL_ACTIONS);
+		return object.slot(ObjectSlots.LAZY_SPECIAL_ACTIONS);
 	}
 
-	@Override
-	public boolean allowsImmutableToMutableReferenceInField (
+	@Override boolean allowsImmutableToMutableReferenceInField (
 		final @NotNull AbstractSlotsEnum e)
 	{
 		return e == ObjectSlots.LAZY_COMPLETE
@@ -219,12 +218,12 @@ extends Descriptor
 		final @NotNull AvailObject message,
 		final @NotNull AvailObject bundle)
 	{
-		AvailObject allBundles = object.objectSlot(ObjectSlots.ALL_BUNDLES);
+		AvailObject allBundles = object.slot(ObjectSlots.ALL_BUNDLES);
 		allBundles = allBundles.mapAtPuttingCanDestroy(
 			message,
 			bundle,
 			true);
-		object.objectSlotPut(ObjectSlots.ALL_BUNDLES, allBundles);
+		object.setSlot(ObjectSlots.ALL_BUNDLES, allBundles);
 		AvailObject unclassified = object.unclassified();
 		assert !unclassified.hasKey(message);
 		unclassified = unclassified.mapAtPuttingCanDestroy(
@@ -270,7 +269,7 @@ extends Descriptor
 						true);
 			}
 		}
-		filteredBundleTree.objectSlotPut(
+		filteredBundleTree.setSlot(
 			ObjectSlots.ALL_BUNDLES,
 			filteredAllBundles);
 		filteredBundleTree.unclassified(filteredUnclassified);
@@ -295,13 +294,13 @@ extends Descriptor
 			message,
 			newBundle,
 			true);
-		object.objectSlotPut(ObjectSlots.ALL_BUNDLES, allBundles);
-		AvailObject unclassified = object.objectSlot(ObjectSlots.UNCLASSIFIED);
+		object.setSlot(ObjectSlots.ALL_BUNDLES, allBundles);
+		AvailObject unclassified = object.slot(ObjectSlots.UNCLASSIFIED);
 		unclassified = unclassified.mapAtPuttingCanDestroy(
 			message,
 			newBundle,
 			true);
-		object.objectSlotPut(ObjectSlots.UNCLASSIFIED, unclassified);
+		object.setSlot(ObjectSlots.UNCLASSIFIED, unclassified);
 		return newBundle;
 	}
 
@@ -321,7 +320,7 @@ extends Descriptor
 			allBundles = allBundles.mapWithoutKeyCanDestroy(
 				message,
 				true);
-			object.objectSlotPut(ObjectSlots.ALL_BUNDLES, allBundles);
+			object.setSlot(ObjectSlots.ALL_BUNDLES, allBundles);
 			AvailObject unclassified = object.unclassified();
 			if (unclassified.hasKey(message))
 			{
@@ -352,21 +351,21 @@ extends Descriptor
 	void o_Expand (
 		final @NotNull AvailObject object)
 	{
-		final AvailObject unclassified = object.objectSlot(
+		final AvailObject unclassified = object.slot(
 			ObjectSlots.UNCLASSIFIED);
 		if (unclassified.mapSize() == 0)
 		{
 			return;
 		}
-		AvailObject complete = object.objectSlot(
+		AvailObject complete = object.slot(
 			ObjectSlots.LAZY_COMPLETE);
-		AvailObject incomplete = object.objectSlot(
+		AvailObject incomplete = object.slot(
 			ObjectSlots.LAZY_INCOMPLETE);
-		AvailObject specialMap = object.objectSlot(
+		AvailObject specialMap = object.slot(
 			ObjectSlots.LAZY_SPECIAL_ACTIONS);
 		final int pc = object.parsingPc();
 		// Fail fast if someone messes with this during iteration.
-		object.objectSlotPut(
+		object.setSlot(
 			ObjectSlots.UNCLASSIFIED,
 			NullDescriptor.nullObject());
 		for (final MapDescriptor.Entry entry : unclassified.mapIterable())
@@ -457,8 +456,8 @@ extends Descriptor
 	public static AvailObject newPc(final int pc)
 	{
 		final AvailObject result = mutable().create();
-		result.integerSlotPut(IntegerSlots.PARSING_PC, pc);
-		result.objectSlotPut(ObjectSlots.ALL_BUNDLES, MapDescriptor.empty());
+		result.setSlot(IntegerSlots.PARSING_PC, pc);
+		result.setSlot(ObjectSlots.ALL_BUNDLES, MapDescriptor.empty());
 
 		result.unclassified(MapDescriptor.empty());
 		result.lazyComplete(MapDescriptor.empty());

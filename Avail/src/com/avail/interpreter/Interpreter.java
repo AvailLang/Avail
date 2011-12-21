@@ -880,6 +880,24 @@ public abstract class Interpreter
 	}
 
 	/**
+	 * Set the resulting value of a primitive invocation to the {@linkplain
+	 * AvailErrorCode#numericCode() numeric code} of the {@link AvailErrorCode}
+	 * embedded within the specified {@linkplain AvailRuntimeException
+	 * runtime exception}.  Answer primitive {@linkplain Result#FAILURE
+	 * failure}.
+	 *
+	 * @param exception
+	 *        A {@linkplain AvailRuntimeException runtime exception}.
+	 * @return Primitive {@linkplain Result#FAILURE failure}.
+	 */
+	public @NotNull Result primitiveFailure (
+		final @NotNull AvailRuntimeException exception)
+	{
+		primitiveResult = exception.numericCode();
+		return FAILURE;
+	}
+
+	/**
 	 * Set the resulting value of a primitive invocation. Answer primitive
 	 * {@linkplain Result#FAILURE failure}.
 	 *

@@ -58,7 +58,13 @@ extends TupleDescriptor
 		 * per slot (except the last one which may be less), in Little Endian
 		 * order.
 		 */
-		RAW_QUAD_AT_
+		RAW_QUAD_AT_;
+
+		static
+		{
+			assert TupleDescriptor.IntegerSlots.HASH_OR_ZERO.ordinal()
+				== HASH_OR_ZERO.ordinal();
+		}
 	}
 
 	/**
@@ -228,9 +234,6 @@ extends TupleDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
-		// Answer whether object is an instance of a subtype of aType.  Don't
-		// generate an approximate type and do the comparison, because the
-		// approximate type will just send this message recursively.
 		if (aType.equals(TOP.o()))
 		{
 			return true;
@@ -286,11 +289,11 @@ extends TupleDescriptor
 		object.checkWriteForField(IntegerSlots.RAW_QUAD_AT_);
 		// object.verifyToSpaceAddress();
 		final int wordIndex = (nybbleIndex + 7) / 8;
-		int word = object.integerSlotAt(IntegerSlots.RAW_QUAD_AT_, wordIndex);
+		int word = object.slot(IntegerSlots.RAW_QUAD_AT_, wordIndex);
 		final int leftShift = (nybbleIndex - 1 & 7) * 4;
 		word &= ~(0x0F << leftShift);
 		word |= aNybble << leftShift;
-		object.integerSlotAtPut(IntegerSlots.RAW_QUAD_AT_, wordIndex, word);
+		object.setSlot(IntegerSlots.RAW_QUAD_AT_, wordIndex, word);
 	}
 
 	@Override @AvailMethod
@@ -314,7 +317,7 @@ extends TupleDescriptor
 		assert nybbleIndex >= 1 && nybbleIndex <= object.tupleSize();
 		// object.verifyToSpaceAddress();
 		final int wordIndex = (nybbleIndex + 7) / 8;
-		final int word = object.integerSlotAt(
+		final int word = object.slot(
 			IntegerSlots.RAW_QUAD_AT_,
 			wordIndex);
 		final int shift = (nybbleIndex - 1 & 7) * 4;
@@ -351,7 +354,7 @@ extends TupleDescriptor
 		assert nybbleIndex >= 1 && nybbleIndex <= object.tupleSize();
 		// object.verifyToSpaceAddress();
 		final int wordIndex = (nybbleIndex + 7) / 8;
-		final int word = object.integerSlotAt(IntegerSlots.RAW_QUAD_AT_, wordIndex);
+		final int word = object.slot(IntegerSlots.RAW_QUAD_AT_, wordIndex);
 		final int shift = (nybbleIndex - 1 & 7) * 4;
 		return (byte) (word>>>shift & 0x0F);
 	}

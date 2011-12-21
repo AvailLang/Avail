@@ -79,7 +79,7 @@ public class SuperCastNodeDescriptor extends ParseNodeDescriptor
 		final @NotNull AvailObject object,
 		final AvailObject expression)
 	{
-		object.objectSlotPut(ObjectSlots.EXPRESSION, expression);
+		object.setSlot(ObjectSlots.EXPRESSION, expression);
 	}
 
 	/**
@@ -89,7 +89,7 @@ public class SuperCastNodeDescriptor extends ParseNodeDescriptor
 	AvailObject o_Expression (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.EXPRESSION);
+		return object.slot(ObjectSlots.EXPRESSION);
 	}
 
 
@@ -101,7 +101,7 @@ public class SuperCastNodeDescriptor extends ParseNodeDescriptor
 		final @NotNull AvailObject object,
 		final AvailObject superCastType)
 	{
-		object.objectSlotPut(ObjectSlots.SUPER_CAST_TYPE, superCastType);
+		object.setSlot(ObjectSlots.SUPER_CAST_TYPE, superCastType);
 	}
 
 	/**
@@ -111,14 +111,14 @@ public class SuperCastNodeDescriptor extends ParseNodeDescriptor
 	AvailObject o_SuperCastType (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.SUPER_CAST_TYPE);
+		return object.slot(ObjectSlots.SUPER_CAST_TYPE);
 	}
 
 
 	@Override @AvailMethod
 	AvailObject o_ExpressionType (final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.SUPER_CAST_TYPE);
+		return object.slot(ObjectSlots.SUPER_CAST_TYPE);
 	}
 
 	@Override @AvailMethod

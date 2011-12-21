@@ -79,7 +79,7 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 		final @NotNull AvailObject object,
 		final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.MACRO_NAME, value);
+		object.setSlot(ObjectSlots.MACRO_NAME, value);
 	}
 
 	/**
@@ -89,7 +89,7 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 	AvailObject o_MacroName (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.MACRO_NAME);
+		return object.slot(ObjectSlots.MACRO_NAME);
 	}
 
 	/**
@@ -100,7 +100,7 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 		final @NotNull AvailObject object,
 		final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.OUTPUT_PARSE_NODE, value);
+		object.setSlot(ObjectSlots.OUTPUT_PARSE_NODE, value);
 	}
 
 	/**
@@ -110,7 +110,7 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 	AvailObject o_OutputParseNode (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.OUTPUT_PARSE_NODE);
+		return object.slot(ObjectSlots.OUTPUT_PARSE_NODE);
 	}
 
 

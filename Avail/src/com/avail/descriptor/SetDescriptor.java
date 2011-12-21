@@ -61,6 +61,12 @@ public class SetDescriptor extends Descriptor
 	 */
 	public enum ObjectSlots implements ObjectSlotsEnum
 	{
+		/**
+		 * The topmost bin of this set.  If it's {@link NullDescriptor null},
+		 * the set is empty.  If it's a {@link SetBinDescriptor set bin} then
+		 * the bin contains the elements.  Otherwise the set contains one
+		 * element, the object in this field.
+		 */
 		ROOT_BIN
 	}
 
@@ -69,14 +75,14 @@ public class SetDescriptor extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.ROOT_BIN, value);
+		object.setSlot(ObjectSlots.ROOT_BIN, value);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_RootBin (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.ROOT_BIN);
+		return object.slot(ObjectSlots.ROOT_BIN);
 	}
 
 	@Override
@@ -433,9 +439,11 @@ public class SetDescriptor extends Descriptor
 		final Deque<Integer> subscriptStack = new ArrayDeque<Integer>();
 
 		/**
-		 * Construct a new {@link SetIterator}.
+		 * Construct a new {@link SetIterator} over the elements recursively
+		 * contained in the given bin / null / single object.
 		 *
-		 * @param root
+		 * @see ObjectSlots#ROOT_BIN
+		 * @param root The root bin over which to iterate.
 		 */
 		SetIterator (final AvailObject root)
 		{
@@ -443,9 +451,12 @@ public class SetDescriptor extends Descriptor
 		}
 
 		/**
-		 * @param binOrElement
+		 * Visit this bin or element.  In particular, travel down its left spine
+		 * so that it's positioned at the leftmost descendant.
+		 *
+		 * @param binOrElement The bin or element to begin enumerating.
 		 */
-		private void followLeftmost (AvailObject binOrElement)
+		private void followLeftmost (final AvailObject binOrElement)
 		{
 			if (binOrElement.equalsNull())
 			{
@@ -455,11 +466,12 @@ public class SetDescriptor extends Descriptor
 			else
 			{
 				binStack.addLast(binOrElement);
-				while (binOrElement.isSetBin())
+				AvailObject currentBinOrElement = binOrElement;
+				while (currentBinOrElement.isSetBin())
 				{
 					subscriptStack.addLast(1);
-					binOrElement = binOrElement.binElementAt(1);
-					binStack.addLast(binOrElement);
+					currentBinOrElement = currentBinOrElement.binElementAt(1);
+					binStack.addLast(currentBinOrElement);
 				}
 				assert binStack.size() == subscriptStack.size() + 1;
 			}
@@ -549,25 +561,34 @@ public class SetDescriptor extends Descriptor
 
 	// Startup/shutdown
 
+	/**
+	 * The empty set (immutable).
+	 */
 	static AvailObject EmptySet;
 
+	/**
+	 * Initialize the {@link #EmptySet} static in addition to the usual statics.
+	 */
 	static void createWellKnownObjects ()
 	{
-		//  Initialize my EmptySet class variable in addition to the usual classInstVars.
-
 		EmptySet = mutable().create();
 		EmptySet.rootBin(NullDescriptor.nullObject());
 		EmptySet.makeImmutable();
 	}
 
+	/**
+	 * Clear the {@link #EmptySet} static in addition to the usual statics.
+	 */
 	static void clearWellKnownObjects ()
 	{
-		//  Initialize my EmptySet class variable in addition to the usual classInstVars.
-
 		EmptySet = null;
 	}
 
-	/* Object creation */
+	/**
+	 * Answer the (immutable) empty set.
+	 *
+	 * @return The empty set.
+	 */
 	public static AvailObject empty ()
 	{
 		return EmptySet;

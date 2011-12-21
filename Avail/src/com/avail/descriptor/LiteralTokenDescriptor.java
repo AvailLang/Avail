@@ -64,7 +64,13 @@ extends TokenDescriptor
 		/**
 		 * The actual {@link AvailObject} wrapped by this token.
 		 */
-		LITERAL
+		LITERAL;
+
+		static
+		{
+			assert TokenDescriptor.ObjectSlots.STRING.ordinal()
+				== STRING.ordinal();
+		}
 	}
 
 	/**
@@ -93,7 +99,18 @@ extends TokenDescriptor
 		 * this is.
 		 */
 		@EnumField(describedBy=TokenType.class)
-		TOKEN_TYPE_CODE
+		TOKEN_TYPE_CODE;
+
+		static
+		{
+			assert TokenDescriptor.IntegerSlots.START.ordinal()
+				== START.ordinal();
+			assert TokenDescriptor.IntegerSlots.LINE_NUMBER.ordinal()
+				== LINE_NUMBER.ordinal();
+			assert TokenDescriptor.IntegerSlots.TOKEN_TYPE_CODE.ordinal()
+				== TOKEN_TYPE_CODE.ordinal();
+		}
+
 	}
 
 
@@ -102,14 +119,14 @@ extends TokenDescriptor
 		final @NotNull AvailObject object,
 		final AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.LITERAL, value);
+		object.setSlot(ObjectSlots.LITERAL, value);
 	}
 
 	@Override @AvailMethod
 	AvailObject o_Literal (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.LITERAL);
+		return object.slot(ObjectSlots.LITERAL);
 	}
 
 	@Override @AvailMethod

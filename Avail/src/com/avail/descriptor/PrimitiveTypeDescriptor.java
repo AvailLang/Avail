@@ -44,6 +44,9 @@ extends TypeDescriptor
 	 */
 	public enum IntegerSlots implements IntegerSlotsEnum
 	{
+		/**
+		 * The hash of this primitive type, computed at construction time.
+		 */
 		HASH
 	}
 
@@ -52,8 +55,19 @@ extends TypeDescriptor
 	 */
 	public enum ObjectSlots implements ObjectSlotsEnum
 	{
+		/**
+		 * The {@linkplain StringDescriptor name} of this primitive type.
+		 */
 		NAME,
+
+		/**
+		 * The parent type of this primitive type.
+		 */
 		PARENT,
+
+		/**
+		 * The type (i.e., a meta-type) of this primitive type.
+		 */
 		MY_TYPE
 	}
 
@@ -62,7 +76,7 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final int value)
 	{
-		object.integerSlotPut(IntegerSlots.HASH, value);
+		object.setSlot(IntegerSlots.HASH, value);
 	}
 
 	@Override @AvailMethod
@@ -70,7 +84,7 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.MY_TYPE, value);
+		object.setSlot(ObjectSlots.MY_TYPE, value);
 	}
 
 	@Override @AvailMethod
@@ -78,7 +92,7 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.NAME, value);
+		object.setSlot(ObjectSlots.NAME, value);
 	}
 
 	@Override @AvailMethod
@@ -86,28 +100,28 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.PARENT, value);
+		object.setSlot(ObjectSlots.PARENT, value);
 	}
 
 	@Override @AvailMethod
 	int o_Hash (
 		final @NotNull AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.HASH);
+		return object.slot(IntegerSlots.HASH);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_Name (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.NAME);
+		return object.slot(ObjectSlots.NAME);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_Parent (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.PARENT);
+		return object.slot(ObjectSlots.PARENT);
 	}
 
 	@Override
@@ -333,14 +347,14 @@ extends TypeDescriptor
 			assert !another.equals(BottomTypeDescriptor.bottom());
 			return another.computeSuperkind().typeUnion(object);
 		}
-		return object.objectSlot(ObjectSlots.PARENT).typeUnion(another);
+		return object.slot(ObjectSlots.PARENT).typeUnion(another);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.MY_TYPE);
+		return object.slot(ObjectSlots.MY_TYPE);
 	}
 
 	/**
@@ -358,10 +372,10 @@ extends TypeDescriptor
 	{
 		final AvailObject name = StringDescriptor.from(typeNameString);
 		final AvailObject object = create();
-		object.objectSlotPut(ObjectSlots.NAME, name);
-		object.objectSlotPut(ObjectSlots.PARENT, NullDescriptor.nullObject());
-		object.objectSlotPut(ObjectSlots.MY_TYPE, NullDescriptor.nullObject());
-		object.integerSlotPut(IntegerSlots.HASH, typeNameString.hashCode());
+		object.setSlot(ObjectSlots.NAME, name);
+		object.setSlot(ObjectSlots.PARENT, NullDescriptor.nullObject());
+		object.setSlot(ObjectSlots.MY_TYPE, NullDescriptor.nullObject());
+		object.setSlot(IntegerSlots.HASH, typeNameString.hashCode());
 		return object;
 	}
 

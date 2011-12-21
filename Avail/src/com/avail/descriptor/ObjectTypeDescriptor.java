@@ -165,7 +165,7 @@ extends TypeDescriptor
 	@NotNull AvailObject o_FieldTypeMap (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.FIELD_TYPE_MAP);
+		return object.slot(ObjectSlots.FIELD_TYPE_MAP);
 	}
 
 	@Override @AvailMethod
@@ -340,7 +340,7 @@ extends TypeDescriptor
 		final @NotNull AvailObject map)
 	{
 		final AvailObject result = mutable().create();
-		result.objectSlotPut(ObjectSlots.FIELD_TYPE_MAP, map);
+		result.setSlot(ObjectSlots.FIELD_TYPE_MAP, map);
 		return result;
 	}
 

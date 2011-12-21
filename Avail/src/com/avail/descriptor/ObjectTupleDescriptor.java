@@ -43,7 +43,13 @@ extends TupleDescriptor
 	 */
 	public enum IntegerSlots implements IntegerSlotsEnum
 	{
-		HASH_OR_ZERO
+		HASH_OR_ZERO;
+
+		static
+		{
+			assert TupleDescriptor.IntegerSlots.HASH_OR_ZERO.ordinal()
+				== HASH_OR_ZERO.ordinal();
+		}
 	}
 
 	/**
@@ -59,7 +65,7 @@ extends TupleDescriptor
 		final @NotNull AvailObject object,
 		final int subscript)
 	{
-		return object.objectSlotAt(ObjectSlots.TUPLE_AT_, subscript);
+		return object.slot(ObjectSlots.TUPLE_AT_, subscript);
 	}
 
 	@Override @AvailMethod
@@ -68,7 +74,7 @@ extends TupleDescriptor
 		final int subscript,
 		final @NotNull AvailObject value)
 	{
-		object.objectSlotAtPut(ObjectSlots.TUPLE_AT_, subscript, value);
+		object.setSlot(ObjectSlots.TUPLE_AT_, subscript, value);
 	}
 
 	@Override @AvailMethod

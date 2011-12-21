@@ -68,17 +68,16 @@ extends Descriptor
 	@Override @AvailMethod
 	void o_HashOrZero (final AvailObject object, final int value)
 	{
-		object.integerSlotPut(IntegerSlots.HASH_OR_ZERO, value);
+		object.setSlot(IntegerSlots.HASH_OR_ZERO, value);
 	}
 
 	@Override @AvailMethod
 	int o_HashOrZero (final AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.HASH_OR_ZERO);
+		return object.slot(IntegerSlots.HASH_OR_ZERO);
 	}
 
-	@Override
-	public boolean allowsImmutableToMutableReferenceInField (
+	@Override boolean allowsImmutableToMutableReferenceInField (
 		final AbstractSlotsEnum e)
 	{
 		return e == IntegerSlots.HASH_OR_ZERO;
@@ -243,10 +242,6 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final AvailObject aTypeObject)
 	{
-		// Answer whether object is an instance of a subtype of aTypeObject.
-		// Don't generate an approximate type and do the comparison, because the
-		// approximate type will defer to this very method.
-
 		if (aTypeObject.equals(TOP.o()))
 		{
 			return true;

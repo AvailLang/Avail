@@ -124,7 +124,7 @@ extends Descriptor
 	 * These are the possible execution states of a {@linkplain ProcessDescriptor
 	 * process}.
 	 */
-	public enum ExecutionState
+	public enum ExecutionState implements IntegerEnumSlotDescriptionEnum
 	{
 		/**
 		 * The process is running or waiting for another process to yield.
@@ -176,7 +176,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.BREAKPOINT_BLOCK, value);
+		object.setSlot(ObjectSlots.BREAKPOINT_BLOCK, value);
 	}
 
 	@Override @AvailMethod
@@ -184,7 +184,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.CONTINUATION, value);
+		object.setSlot(ObjectSlots.CONTINUATION, value);
 	}
 
 	@Override @AvailMethod
@@ -192,7 +192,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull ExecutionState value)
 	{
-		object.integerSlotPut(IntegerSlots.EXECUTION_STATE, value.ordinal());
+		object.setSlot(IntegerSlots.EXECUTION_STATE, value.ordinal());
 	}
 
 	@Override @AvailMethod
@@ -200,7 +200,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final int value)
 	{
-		object.integerSlotPut(IntegerSlots.HASH_OR_ZERO, value);
+		object.setSlot(IntegerSlots.HASH_OR_ZERO, value);
 	}
 
 	@Override @AvailMethod
@@ -208,7 +208,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final int value)
 	{
-		object.integerSlotPut(IntegerSlots.INTERRUPT_REQUEST_FLAG, value);
+		object.setSlot(IntegerSlots.INTERRUPT_REQUEST_FLAG, value);
 	}
 
 	@Override @AvailMethod
@@ -216,7 +216,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.NAME, value);
+		object.setSlot(ObjectSlots.NAME, value);
 	}
 
 	@Override @AvailMethod
@@ -224,7 +224,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.PRIORITY, value);
+		object.setSlot(ObjectSlots.PRIORITY, value);
 	}
 
 	@Override @AvailMethod
@@ -232,21 +232,21 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
-		object.objectSlotPut(ObjectSlots.PROCESS_GLOBALS, value);
+		object.setSlot(ObjectSlots.PROCESS_GLOBALS, value);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_BreakpointBlock (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.BREAKPOINT_BLOCK);
+		return object.slot(ObjectSlots.BREAKPOINT_BLOCK);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_Continuation (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.CONTINUATION);
+		return object.slot(ObjectSlots.CONTINUATION);
 	}
 
 	@Override @AvailMethod
@@ -254,45 +254,44 @@ extends Descriptor
 		final @NotNull AvailObject object)
 	{
 		return ExecutionState.values()
-			[object.integerSlot(IntegerSlots.EXECUTION_STATE)];
+			[object.slot(IntegerSlots.EXECUTION_STATE)];
 	}
 
 	@Override @AvailMethod
 	int o_HashOrZero (
 		final @NotNull AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.HASH_OR_ZERO);
+		return object.slot(IntegerSlots.HASH_OR_ZERO);
 	}
 
 	@Override @AvailMethod
 	int o_InterruptRequestFlag (
 		final @NotNull AvailObject object)
 	{
-		return object.integerSlot(IntegerSlots.INTERRUPT_REQUEST_FLAG);
+		return object.slot(IntegerSlots.INTERRUPT_REQUEST_FLAG);
 	}
 
 	@Override @AvailMethod
 	AvailObject o_Name (final AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.NAME);
+		return object.slot(ObjectSlots.NAME);
 	}
 
 	@Override @AvailMethod
 	AvailObject o_Priority (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.PRIORITY);
+		return object.slot(ObjectSlots.PRIORITY);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_ProcessGlobals (
 		final @NotNull AvailObject object)
 	{
-		return object.objectSlot(ObjectSlots.PROCESS_GLOBALS);
+		return object.slot(ObjectSlots.PROCESS_GLOBALS);
 	}
 
-	@Override
-	public boolean allowsImmutableToMutableReferenceInField (
+	@Override boolean allowsImmutableToMutableReferenceInField (
 		final @NotNull AbstractSlotsEnum e)
 	{
 		return
@@ -320,7 +319,7 @@ extends Descriptor
 	int o_Hash (
 		final @NotNull AvailObject object)
 	{
-		int hash = object.integerSlot(IntegerSlots.HASH_OR_ZERO);
+		int hash = object.slot(IntegerSlots.HASH_OR_ZERO);
 		if (hash == 0)
 		{
 			do
@@ -328,7 +327,7 @@ extends Descriptor
 				hash = hashGenerator.nextInt();
 			}
 			while (hash == 0);
-			object.integerSlotPut(IntegerSlots.HASH_OR_ZERO, hash);
+			object.setSlot(IntegerSlots.HASH_OR_ZERO, hash);
 		}
 		return hash;
 	}

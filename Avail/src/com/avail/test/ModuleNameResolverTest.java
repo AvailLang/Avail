@@ -137,9 +137,6 @@ public final class ModuleNameResolverTest
 			final ResolvedModuleName modName = renames.resolve(
 				new ModuleName(
 					"/avail" + moduleGroup, localName));
-if (modName == null) {  //TODO debug only.  Delete.
-renames.resolve(new ModuleName("/avail" + moduleGroup, localName));
-}
 			final File actual = modName.fileReference();
 			assertEquals(expected, actual);
 		}
