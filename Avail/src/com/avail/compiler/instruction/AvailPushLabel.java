@@ -59,7 +59,7 @@ public class AvailPushLabel extends AvailInstruction
 
 	@Override
 	public void writeNybblesOn (
-			final ByteArrayOutputStream aStream)
+		final ByteArrayOutputStream aStream)
 	{
 		L1Operation.L1Ext_doPushLabel.writeTo(aStream);
 	}
@@ -86,9 +86,9 @@ public class AvailPushLabel extends AvailInstruction
 	 */
 	@Override
 	public void fixFlagsUsingLocalDataOuterDataCodeGenerator (
-			final List<AvailVariableAccessNote> localData,
-			final List<AvailVariableAccessNote> outerData,
-			final AvailCodeGenerator codeGenerator)
+		final List<AvailVariableAccessNote> localData,
+		final List<AvailVariableAccessNote> outerData,
+		final AvailCodeGenerator codeGenerator)
 	{
 		for (int index = 0; index < codeGenerator.numArgs(); index++)
 		{
@@ -101,23 +101,30 @@ public class AvailPushLabel extends AvailInstruction
 			// If any argument was pushed before this pushLabel, set its
 			// isLastAccess to false, as a restart will need to have these
 			// arguments intact.
-			AvailPushVariable previousPush = note.previousPush();
+			final AvailPushVariable previousPush = note.previousPush();
 			if (previousPush != null)
 			{
 				previousPush.isLastAccess(false);
 			}
 		}
 
-		for (AvailVariableAccessNote outerNote : outerData)
+		for (final AvailVariableAccessNote outerNote : outerData)
 		{
 			if (outerNote != null)
 			{
-				AvailPushVariable previousPush = outerNote.previousPush();
+				final AvailPushVariable previousPush = outerNote.previousPush();
 				if (previousPush != null)
 				{
 					// Make sure the previous outer push is not considered the
 					// last access.
 					previousPush.isLastAccess(false);
+				}
+				final AvailGetVariable previousGet = outerNote.previousGet();
+				if (previousGet != null)
+				{
+					// Make sure the previous outer get is not considered the
+					// last use of the value.
+					previousGet.canClear(false);
 				}
 			}
 		}
