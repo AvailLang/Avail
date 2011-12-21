@@ -174,11 +174,11 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSupertypeOfContainerType (
+	boolean o_IsSupertypeOfVariableType (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aContainerType)
+		final @NotNull AvailObject aVariableType)
 	{
-		// A primitive type is a supertype of a container type if it is a
+		// A primitive type is a supertype of a variable type if it is a
 		// supertype of ANY.
 		return ANY.o().isSubtypeOf(object);
 	}

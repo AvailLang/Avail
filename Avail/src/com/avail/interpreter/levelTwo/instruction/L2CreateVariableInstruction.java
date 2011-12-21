@@ -41,7 +41,7 @@ import com.avail.interpreter.levelTwo.register.*;
 
 /**
  * {@code L2CreateVariableInstruction} creates a new {@linkplain
- * ContainerDescriptor container} given a statically determined {@linkplain
+ * VariableDescriptor variable} given a statically determined {@linkplain
  * TypeDescriptor type}.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
@@ -52,13 +52,13 @@ extends L2Instruction
 {
 	/**
 	 * The constant {@linkplain TypeDescriptor type} with which the {@linkplain
-	 * ContainerDescriptor container} should be created.
+	 * VariableDescriptor variable} should be created.
 	 */
 	private final @NotNull AvailObject constantType;
 
 	/**
 	 * The {@linkplain L2ObjectRegister register} into which the new {@linkplain
-	 * ContainerDescriptor container} will be written.
+	 * VariableDescriptor variable} will be written.
 	 */
 	private final @NotNull L2ObjectRegister destinationRegister;
 
@@ -67,10 +67,10 @@ extends L2Instruction
 	 *
 	 * @param constantType
 	 *        The constant {@linkplain TypeDescriptor type} with which the
-	 *        {@linkplain ContainerDescriptor variable} should be created.
+	 *        {@linkplain VariableDescriptor variable} should be created.
 	 * @param destinationRegister
 	 *        The {@linkplain L2ObjectRegister register} into which the new
-	 *        {@linkplain ContainerDescriptor variable} will be written.
+	 *        {@linkplain VariableDescriptor variable} will be written.
 	 */
 	public L2CreateVariableInstruction (
 		final @NotNull AvailObject constantType,

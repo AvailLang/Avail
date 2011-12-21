@@ -1,5 +1,5 @@
 /**
- * ContainerTypeDescriptor.java
+ * VariableTypeDescriptor.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -37,17 +37,17 @@ import java.util.List;
 import com.avail.annotations.*;
 
 /**
- * A {@code ContainerTypeDescriptor container type} is the {@linkplain TypeDescriptor
- * type} of any {@linkplain ContainerDescriptor container} that can only hold objects
+ * A {@code VariableTypeDescriptor variable type} is the {@linkplain TypeDescriptor
+ * type} of any {@linkplain VariableDescriptor variable} that can only hold objects
  * having the specified {@linkplain ObjectSlots#INNER_TYPE inner type}. The
  * read and write capabilities of the object instances are equivalent, therefore
  * the inner type is invariant.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  * @author Todd Smith &lt;anarakul@gmail.com&gt;
- * @see ReadWriteContainerTypeDescriptor
+ * @see ReadWriteVariableTypeDescriptor
  */
-public class ContainerTypeDescriptor
+public class VariableTypeDescriptor
 extends TypeDescriptor
 {
 	/**
@@ -94,11 +94,11 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
-		return another.equalsContainerType(object);
+		return another.equalsVariableType(object);
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsContainerType (
+	boolean o_EqualsVariableType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
@@ -137,20 +137,20 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
-		return aType.isSupertypeOfContainerType(object);
+		return aType.isSupertypeOfVariableType(object);
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSupertypeOfContainerType (
+	boolean o_IsSupertypeOfVariableType (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aContainerType)
+		final @NotNull AvailObject aVariableType)
 	{
 		final AvailObject innerType = object.slot(ObjectSlots.INNER_TYPE);
 
-		// Container types are covariant by read capability and contravariant by
+		// Variable types are covariant by read capability and contravariant by
 		// write capability.
-		return aContainerType.readType().isSubtypeOf(innerType)
-			&& innerType.isSubtypeOf(aContainerType.writeType());
+		return aVariableType.readType().isSubtypeOf(innerType)
+			&& innerType.isSubtypeOf(aVariableType.writeType());
 	}
 
 	@Override @AvailMethod
@@ -166,22 +166,22 @@ extends TypeDescriptor
 		{
 			return another;
 		}
-		return another.typeIntersectionOfContainerType(object);
+		return another.typeIntersectionOfVariableType(object);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeIntersectionOfContainerType (
+	@NotNull AvailObject o_TypeIntersectionOfVariableType (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aContainerType)
+		final @NotNull AvailObject aVariableType)
 	{
 		final AvailObject innerType = object.slot(ObjectSlots.INNER_TYPE);
 
-		// The intersection of two container types is a container type whose
+		// The intersection of two variable types is a variable type whose
 		// read type is the type intersection of the two incoming read types and
 		// whose write type is the type union of the two incoming write types.
-		return ContainerTypeDescriptor.fromReadAndWriteTypes(
-			innerType.typeIntersection(aContainerType.readType()),
-			innerType.typeUnion(aContainerType.writeType()));
+		return VariableTypeDescriptor.fromReadAndWriteTypes(
+			innerType.typeIntersection(aVariableType.readType()),
+			innerType.typeUnion(aVariableType.writeType()));
 	}
 
 	@Override @AvailMethod
@@ -197,32 +197,32 @@ extends TypeDescriptor
 		{
 			return object;
 		}
-		return another.typeUnionOfContainerType(object);
+		return another.typeUnionOfVariableType(object);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeUnionOfContainerType (
+	@NotNull AvailObject o_TypeUnionOfVariableType (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aContainerType)
+		final @NotNull AvailObject aVariableType)
 	{
 		final AvailObject innerType = object.slot(ObjectSlots.INNER_TYPE);
 
-		// The union of two container types is a container type whose
+		// The union of two variable types is a variable type whose
 		// read type is the type union of the two incoming read types and whose
 		// write type is the type intersection of the two incoming write types.
-		return ContainerTypeDescriptor.fromReadAndWriteTypes(
-			innerType.typeUnion(aContainerType.readType()),
-			innerType.typeIntersection(aContainerType.writeType()));
+		return VariableTypeDescriptor.fromReadAndWriteTypes(
+			innerType.typeUnion(aVariableType.readType()),
+			innerType.typeIntersection(aVariableType.writeType()));
 	}
 
 	/**
-	 * Create a {@linkplain ContainerTypeDescriptor container type} based on
+	 * Create a {@linkplain VariableTypeDescriptor variable type} based on
 	 * the given content {@linkplain TypeDescriptor type}.
 	 *
 	 * @param innerType
-	 *            The content type on which to base the container type.
+	 *            The content type on which to base the variable type.
 	 * @return
-	 *            The new container type.
+	 *            The new variable type.
 	 */
 	public static @NotNull AvailObject wrapInnerType (
 		final @NotNull AvailObject innerType)
@@ -236,14 +236,14 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Create a {@linkplain ContainerTypeDescriptor container type} based on the
+	 * Create a {@linkplain VariableTypeDescriptor variable type} based on the
 	 * given read and write {@linkplain TypeDescriptor types}.
 	 *
 	 * @param readType
 	 *        The read type.
 	 * @param writeType
 	 *        The write type.
-	 * @return The new container type.
+	 * @return The new variable type.
 	 */
 	public static @NotNull AvailObject fromReadAndWriteTypes (
 		final @NotNull AvailObject readType,
@@ -253,66 +253,66 @@ extends TypeDescriptor
 		{
 			return wrapInnerType(readType);
 		}
-		return ReadWriteContainerTypeDescriptor.fromReadAndWriteTypes(
+		return ReadWriteVariableTypeDescriptor.fromReadAndWriteTypes(
 			readType, writeType);
 	}
 
 	/**
-	 * Construct a new {@link ContainerTypeDescriptor}.
+	 * Construct a new {@link VariableTypeDescriptor}.
 	 *
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
 	 */
-	protected ContainerTypeDescriptor (final boolean isMutable)
+	protected VariableTypeDescriptor (final boolean isMutable)
 	{
 		super(isMutable);
 	}
 
 	/**
-	 * The mutable {@link ContainerTypeDescriptor}.
+	 * The mutable {@link VariableTypeDescriptor}.
 	 */
-	private final static @NotNull ContainerTypeDescriptor mutable =
-		new ContainerTypeDescriptor(true);
+	private final static @NotNull VariableTypeDescriptor mutable =
+		new VariableTypeDescriptor(true);
 
 	/**
-	 * Answer the mutable {@link ContainerTypeDescriptor}.
+	 * Answer the mutable {@link VariableTypeDescriptor}.
 	 *
-	 * @return The mutable {@link ContainerTypeDescriptor}.
+	 * @return The mutable {@link VariableTypeDescriptor}.
 	 */
-	public static @NotNull ContainerTypeDescriptor mutable ()
+	public static @NotNull VariableTypeDescriptor mutable ()
 	{
 		return mutable;
 	}
 
 	/**
-	 * The immutable {@link ContainerTypeDescriptor}.
+	 * The immutable {@link VariableTypeDescriptor}.
 	 */
-	private final static @NotNull ContainerTypeDescriptor immutable =
-		new ContainerTypeDescriptor(false);
+	private final static @NotNull VariableTypeDescriptor immutable =
+		new VariableTypeDescriptor(false);
 
 	/**
-	 * Answer the immutable {@link ContainerTypeDescriptor}.
+	 * Answer the immutable {@link VariableTypeDescriptor}.
 	 *
-	 * @return The immutable {@link ContainerTypeDescriptor}.
+	 * @return The immutable {@link VariableTypeDescriptor}.
 	 */
-	public static @NotNull ContainerTypeDescriptor immutable ()
+	public static @NotNull VariableTypeDescriptor immutable ()
 	{
 		return immutable;
 	}
 
 	/**
-	 * The most general {@linkplain ReadWriteContainerTypeDescriptor container
+	 * The most general {@linkplain ReadWriteVariableTypeDescriptor variable
 	 * type}.
 	 */
 	private static AvailObject mostGeneralType;
 
 	/**
-	 * Answer the most general {@linkplain ReadWriteContainerTypeDescriptor
-	 * container type}.
+	 * Answer the most general {@linkplain ReadWriteVariableTypeDescriptor
+	 * variable type}.
 	 *
-	 * @return The most general {@linkplain ReadWriteContainerTypeDescriptor
-	 *         container type}.
+	 * @return The most general {@linkplain ReadWriteVariableTypeDescriptor
+	 *         variable type}.
 	 */
 	public static @NotNull AvailObject mostGeneralType ()
 	{
@@ -321,17 +321,17 @@ extends TypeDescriptor
 
 	/**
 	 * The (instance) type of the most general {@linkplain
-	 * ReadWriteContainerTypeDescriptor container} metatype.
+	 * ReadWriteVariableTypeDescriptor variable} metatype.
 	 */
 	private static AvailObject meta;
 
 	/**
 	 * Answer the (instance) type of the most general {@linkplain
-	 * ReadWriteContainerTypeDescriptor container} metatype.
+	 * ReadWriteVariableTypeDescriptor variable} metatype.
 	 *
 	 * @return
 	 *         The instance type containing the most general {@linkplain
-	 *         ReadWriteContainerTypeDescriptor container} metatype.
+	 *         ReadWriteVariableTypeDescriptor variable} metatype.
 	 */
 	public static @NotNull AvailObject meta ()
 	{

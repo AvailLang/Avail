@@ -154,7 +154,7 @@ extends Descriptor
 		writer.returnType(TOP.o());
 		// Create the local for the primitive failure code.
 		final int failureLocal = writer.createLocal(
-			ContainerTypeDescriptor.wrapInnerType(
+			VariableTypeDescriptor.wrapInnerType(
 				IntegerRangeTypeDescriptor.naturalNumbers()));
 		writer.write(
 			new L1Instruction(

@@ -371,7 +371,7 @@ public enum Primitive
 
 	/**
 	 * <strong>Primitive 10:</strong> There are two possibilities.  The
-	 * {@linkplain ContainerDescriptor variable} is mutable, in which case we
+	 * {@linkplain VariableDescriptor variable} is mutable, in which case we
 	 * want to destroy it, or the variable is immutable, in which case we want
 	 * to make sure the extracted value becomes immutable (in case the variable
 	 * is being held onto by something). Since the primitive invocation code is
@@ -404,14 +404,14 @@ public enum Primitive
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return FunctionTypeDescriptor.create(
-				TupleDescriptor.from(ContainerTypeDescriptor.mostGeneralType()),
+				TupleDescriptor.from(VariableTypeDescriptor.mostGeneralType()),
 				ANY.o());
 		}
 	},
 
 	/**
 	 * <strong>Primitive 11:</strong> Assign the {@linkplain AvailObject value}
-	 * to the {@linkplain ContainerDescriptor variable}.
+	 * to the {@linkplain VariableDescriptor variable}.
 	 */
 	prim11_SetValue(11, 2, CanInline, HasSideEffect)
 	{
@@ -437,14 +437,14 @@ public enum Primitive
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					ContainerTypeDescriptor.mostGeneralType(),
+					VariableTypeDescriptor.mostGeneralType(),
 					ANY.o()),
 				TOP.o());
 		}
 	},
 
 	/**
-	 * <strong>Primitive 12:</strong> Clear the {@linkplain ContainerDescriptor
+	 * <strong>Primitive 12:</strong> Clear the {@linkplain VariableDescriptor
 	 * variable}.
 	 */
 	prim12_ClearValue(12, 1, CanInline, HasSideEffect, CannotFail)
@@ -464,16 +464,16 @@ public enum Primitive
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return FunctionTypeDescriptor.create(
-				TupleDescriptor.from(ContainerTypeDescriptor.mostGeneralType()),
+				TupleDescriptor.from(VariableTypeDescriptor.mostGeneralType()),
 				TOP.o());
 		}
 	},
 
 	/**
 	 * <strong>Primitive 13:</strong> Create a {@linkplain
-	 * ContainerTypeDescriptor variable type} using the given inner type.
+	 * VariableTypeDescriptor variable type} using the given inner type.
 	 */
-	prim13_CreateContainerType(13, 1, CanFold, CannotFail)
+	prim13_CreateVariableType(13, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -483,7 +483,7 @@ public enum Primitive
 			assert args.size() == 1;
 			final AvailObject type = args.get(0);
 			return interpreter.primitiveSuccess(
-				ContainerTypeDescriptor.wrapInnerType(type));
+				VariableTypeDescriptor.wrapInnerType(type));
 		}
 
 		@Override
@@ -492,15 +492,15 @@ public enum Primitive
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					TYPE.o()),
-				ContainerTypeDescriptor.meta());
+				VariableTypeDescriptor.meta());
 		}
 	},
 
 	/**
 	 * <strong>Primitive 14:</strong> Extract the read type of a {@linkplain
-	 * ContainerTypeDescriptor variable type}.
+	 * VariableTypeDescriptor variable type}.
 	 */
-	prim14_ContainerReadType(14, 1, CanFold, CannotFail)
+	prim14_VariableReadType(14, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -517,14 +517,14 @@ public enum Primitive
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					ContainerTypeDescriptor.meta()),
+					VariableTypeDescriptor.meta()),
 				TYPE.o());
 		}
 	},
 
 	/**
 	 * <strong>Primitive 15:</strong> Swap the contents of two {@linkplain
-	 * ContainerDescriptor variables}.
+	 * VariableDescriptor variables}.
 	 */
 	prim15_Swap(15, 2, CanInline, HasSideEffect)
 	{
@@ -553,18 +553,18 @@ public enum Primitive
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					ContainerTypeDescriptor.mostGeneralType(),
-					ContainerTypeDescriptor.mostGeneralType()),
+					VariableTypeDescriptor.mostGeneralType(),
+					VariableTypeDescriptor.mostGeneralType()),
 				TOP.o());
 		}
 	},
 
 	/**
 	 * <strong>Primitive 16:</strong> Create a {@linkplain
-	 * ContainerDescriptor variable} with the given inner
+	 * VariableDescriptor variable} with the given inner
 	 * type.
 	 */
-	prim16_CreateContainer(16, 1, CanInline, CannotFail)
+	prim16_CreateVariable(16, 1, CanInline, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -574,7 +574,7 @@ public enum Primitive
 			assert args.size() == 1;
 			final AvailObject innerType = args.get(0);
 			return interpreter.primitiveSuccess(
-				ContainerDescriptor.forInnerType(innerType));
+				VariableDescriptor.forInnerType(innerType));
 		}
 
 		@Override
@@ -583,13 +583,13 @@ public enum Primitive
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					TYPE.o()),
-				ContainerTypeDescriptor.mostGeneralType());
+				VariableTypeDescriptor.mostGeneralType());
 		}
 	},
 
 	/**
 	 * <strong>Primitive 17:</strong> Answer {@linkplain
-	 * AtomDescriptor#trueObject() true} if the {@linkplain ContainerDescriptor
+	 * AtomDescriptor#trueObject() true} if the {@linkplain VariableDescriptor
 	 * variable} is unassigned (has no value).
 	 */
 	prim17_HasNoValue(17, 1, CanInline, CannotFail)
@@ -611,14 +611,14 @@ public enum Primitive
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					ContainerTypeDescriptor.mostGeneralType()),
+					VariableTypeDescriptor.mostGeneralType()),
 				EnumerationTypeDescriptor.booleanObject());
 		}
 	},
 
 	/**
 	 * <strong>Primitive 18:</strong> Get the value of the {@linkplain
-	 * ContainerDescriptor variable}, clear the variable, then answer the
+	 * VariableDescriptor variable}, clear the variable, then answer the
 	 * previously extracted {@linkplain AvailObject value}. This operation
 	 * allows store-back patterns to be efficiently implemented in Level One
 	 * code while keeping the interpreter itself thread-safe and debugger-safe.
@@ -648,7 +648,7 @@ public enum Primitive
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					ContainerTypeDescriptor.mostGeneralType()),
+					VariableTypeDescriptor.mostGeneralType()),
 				ANY.o());
 		}
 
@@ -656,9 +656,9 @@ public enum Primitive
 
 	/**
 	 * <strong>Primitive 19:</strong> Extract the write type of a {@linkplain
-	 * ContainerTypeDescriptor variable type}.
+	 * VariableTypeDescriptor variable type}.
 	 */
-	prim19_ContainerWriteType(19, 1, CanFold, CannotFail)
+	prim19_VariableWriteType(19, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -675,7 +675,7 @@ public enum Primitive
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					ContainerTypeDescriptor.meta()),
+					VariableTypeDescriptor.meta()),
 				TYPE.o());
 		}
 	},
@@ -1459,7 +1459,7 @@ public enum Primitive
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					ContainerTypeDescriptor.wrapInnerType(
+					VariableTypeDescriptor.wrapInnerType(
 						ContinuationTypeDescriptor.mostGeneralType()),
 					FunctionTypeDescriptor.mostGeneralType(),
 					IntegerRangeTypeDescriptor.naturalNumbers(),
@@ -1700,7 +1700,7 @@ public enum Primitive
 			{
 				conCopy.argOrLocalOrStackAtPut(
 					numArgs + i,
-					ContainerDescriptor.forOuterType(itsCode.localTypeAt(i)));
+					VariableDescriptor.forOuterType(itsCode.localTypeAt(i)));
 			}
 			interpreter.prepareToExecuteContinuation(conCopy);
 			return CONTINUATION_CHANGED;
@@ -1821,7 +1821,7 @@ public enum Primitive
 			{
 				conCopy.argOrLocalOrStackAtPut(
 					itsCode.numArgs() + i,
-					ContainerDescriptor.forOuterType(
+					VariableDescriptor.forOuterType(
 						itsCode.localTypeAt(i)));
 			}
 			interpreter.prepareToExecuteContinuation(conCopy);
@@ -7617,7 +7617,7 @@ public enum Primitive
 				TupleDescriptor.from(
 					VARIABLE_USE_NODE.mostGeneralType()),
 				REFERENCE_NODE.create(
-					ContainerTypeDescriptor.mostGeneralType()));
+					VariableTypeDescriptor.mostGeneralType()));
 		}
 	},
 
@@ -7901,7 +7901,7 @@ public enum Primitive
 			writer.returnType(PojoTypeDescriptor.mostGeneralType());
 			writer.write(new L1Instruction(
 				L1Operation.L1_doGetLocal,
-				writer.createLocal(ContainerTypeDescriptor.wrapInnerType(
+				writer.createLocal(VariableTypeDescriptor.wrapInnerType(
 					IntegerRangeTypeDescriptor.naturalNumbers()))));
 			writer.write(new L1Instruction(
 				L1Operation.L1_doCall,

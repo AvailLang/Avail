@@ -1454,7 +1454,7 @@ public abstract class AbstractAvailCompiler
 		}
 		else
 		{
-			final AvailObject var = ContainerDescriptor.forInnerType(
+			final AvailObject var = VariableDescriptor.forInnerType(
 				expr.declaredType());
 			if (!expr.initializationExpression().equalsNull())
 			{

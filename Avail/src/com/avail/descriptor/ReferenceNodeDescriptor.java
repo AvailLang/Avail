@@ -93,7 +93,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	AvailObject o_ExpressionType (final AvailObject object)
 	{
-		return ContainerTypeDescriptor.wrapInnerType(
+		return VariableTypeDescriptor.wrapInnerType(
 			object.variable().expressionType());
 	}
 

@@ -820,19 +820,19 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_EqualsContainer (
+	boolean o_EqualsVariable (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aContainer)
+		final @NotNull AvailObject aVariable)
 	{
-		return o_Traversed(object).equalsContainer(aContainer);
+		return o_Traversed(object).equalsVariable(aVariable);
 	}
 
 	@Override
-	boolean o_EqualsContainerType (
+	boolean o_EqualsVariableType (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aContainerType)
+		final @NotNull AvailObject aVariableType)
 	{
-		return o_Traversed(object).equalsContainerType(aContainerType);
+		return o_Traversed(object).equalsVariableType(aVariableType);
 	}
 
 	@Override
@@ -1219,11 +1219,11 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_IsSupertypeOfContainerType (
+	boolean o_IsSupertypeOfVariableType (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aContainerType)
+		final @NotNull AvailObject aVariableType)
 	{
-		return o_Traversed(object).isSupertypeOfContainerType(aContainerType);
+		return o_Traversed(object).isSupertypeOfVariableType(aVariableType);
 	}
 
 	@Override
@@ -2123,12 +2123,12 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	@NotNull AvailObject o_TypeIntersectionOfContainerType (
+	@NotNull AvailObject o_TypeIntersectionOfVariableType (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aContainerType)
+		final @NotNull AvailObject aVariableType)
 	{
-		return o_Traversed(object).typeIntersectionOfContainerType(
-			aContainerType);
+		return o_Traversed(object).typeIntersectionOfVariableType(
+			aVariableType);
 	}
 
 	@Override
@@ -2232,11 +2232,11 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	@NotNull AvailObject o_TypeUnionOfContainerType (
+	@NotNull AvailObject o_TypeUnionOfVariableType (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aContainerType)
+		final @NotNull AvailObject aVariableType)
 	{
-		return o_Traversed(object).typeUnionOfContainerType(aContainerType);
+		return o_Traversed(object).typeUnionOfVariableType(aVariableType);
 	}
 
 	@Override

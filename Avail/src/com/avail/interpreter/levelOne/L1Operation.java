@@ -98,7 +98,7 @@ public enum L1Operation
 	 * if it was before.</p>
 	 *
 	 * <p>If an argument is specified then push the value, since there is no
-	 * actual {@linkplain ContainerDescriptor variable} to operate on.  Clear
+	 * actual {@linkplain VariableDescriptor variable} to operate on.  Clear
 	 * the slot of the continuation reserved for the argument.  Constants are
 	 * treated like ordinary local variables, except that they can not be
 	 * assigned after their definition, nor can a reference to the constant be
@@ -116,7 +116,7 @@ public enum L1Operation
 	/**
 	 * Push a local variable -- not its value, but the variable itself.  If an
 	 * argument or constant is specified then push the value, since there is no
-	 * actual {@linkplain ContainerDescriptor variable} to operate on.
+	 * actual {@linkplain VariableDescriptor variable} to operate on.
 	 */
 	L1_doPushLocal(3, L1OperandType.LOCAL)
 	{
@@ -301,7 +301,7 @@ public enum L1Operation
 	},
 
 	/**
-	 * Get the value of a {@linkplain ContainerDescriptor container} literal.
+	 * Get the value of a {@linkplain VariableDescriptor variable} literal.
 	 * This is used only to read from module variables.
 	 */
 	L1Ext_doGetLiteral(17, L1OperandType.LITERAL)
@@ -314,8 +314,8 @@ public enum L1Operation
 	},
 
 	/**
-	 * Pop the stack and write the value into a {@linkplain ContainerDescriptor
-	 * container} literal.  This is used to write to module variables.
+	 * Pop the stack and write the value into a {@linkplain VariableDescriptor
+	 * variable} literal.  This is used to write to module variables.
 	 */
 	L1Ext_doSetLiteral(18, L1OperandType.LITERAL)
 	{

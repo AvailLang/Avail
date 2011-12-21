@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2011.12.21 11:16:17.456 -0600
+ * * Last Generated On: 2011.12.21 14:09:33.035 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -78,14 +78,24 @@ Names
 	/*  44 */ "if_then_",
 	/*  43 */ "if_then_else_",
 	/*  45 */ "ignore_and evaluate_",
-	/*  16 */ "new container of_",
-	/*   7 */ "range from_inclusive_to_inclusive_",
+	/*   7 */ "integer range from_(inclusive=_)to_(inclusive=_)",
+	/*  16 */ "new Variable of_",
 	/*  21 */ "set_'s priority to_",
 	/*  27 */ "set_'s process variable_to_",
 	/*  38 */ "union of types in_",
 	/*  39 */ "⊶[…]→_"
 Body
 
+/**
+ * Is the first argument strictly less than the second argument?
+ *
+ * Parameters:
+ *    arg1 - A number.
+ *    arg2 - A number.
+ * Returns:
+ *    `true` if the first argument is strictly less than the second argument,
+ *    `false` otherwise.
+ */
 Method "_<_" is 
 [
 	arg1 : extended integer,
@@ -94,6 +104,16 @@ Method "_<_" is
 	Primitive 5;
 ] : boolean;
 
+/**
+ * Is the first argument less than or equal to the second argument?
+ *
+ * Parameters:
+ *    arg1 - A number.
+ *    arg2 - A number.
+ * Returns:
+ *    `true` if the first argument is less than or equal to the second
+ *    argument, `false` otherwise.
+ */
 Method "_≤_" is 
 [
 	arg1 : extended integer,
@@ -102,26 +122,58 @@ Method "_≤_" is
 	Primitive 6;
 ] : boolean;
 
-Method "range from_inclusive_to_inclusive_" is 
+/**
+ * Construct and answer an integral range type whose lower bound is `lowerBound`
+ * and whose upper bound is `upperBound`.
+ *
+ * Parameters:
+ *    lowerBound - The lower bound.
+ *    lowerBoundInclusive -
+ *       `true` if the lower bound should be adjudged inclusive, `false`
+ *       otherwise.
+ *    upperBound - The upper bound.
+ *    upperBoundInclusive -
+ *       `true` if the upper bound should be adjudged inclusive, `false`
+ *       otherwise.
+ * Returns:
+ *    The requested integral range type.
+ */
+Method "integer range from_(inclusive=_)to_(inclusive=_)" is 
 [
-	arg1 : extended integer,
-	arg2 : boolean,
-	arg3 : extended integer,
-	arg4 : boolean
+	lowerBound : extended integer,
+	lowerBoundInclusive : boolean,
+	upperBound : extended integer,
+	upperBoundInclusive : boolean
 |
 	Primitive 7;
 ] : extended integer meta;
 
+/**
+ * Answer the lower bound of the specified integral range type.
+ *
+ * Parameters:
+ *    range - An integral range type.
+ * Returns:
+ *    The lower bound of the argument.
+ */
 Method "_'s lower bound" is 
 [
-	arg1 : extended integer meta
+	range : extended integer meta
 |
 	Primitive 8;
 ] : extended integer;
 
+/**
+ * Answer the upper bound of the specified integral range type.
+ *
+ * Parameters:
+ *    range - An integral range type.
+ * Returns:
+ *    The upper  bound of the argument.
+ */
 Method "_'s upper bound" is 
 [
-	arg1 : extended integer meta
+	range : extended integer meta
 |
 	Primitive 9;
 ] : extended integer;
@@ -147,7 +199,7 @@ Method "_'s read type" is
 	Primitive 14;
 ] : type;
 
-Method "new container of_" is 
+Method "new Variable of_" is 
 [
 	arg1 : type
 |

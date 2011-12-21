@@ -107,7 +107,7 @@ extends Descriptor
 	{
 		// The null object should hash to zero, because the only place it can
 		// appear in a data structure is as a filler object.  This currently
-		// (as of July 1998) applies to sets, maps, containers, and
+		// (as of July 1998) applies to sets, maps, variables, and
 		// continuations.
 		return 0;
 	}

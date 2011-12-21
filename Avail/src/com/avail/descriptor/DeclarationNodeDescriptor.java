@@ -923,7 +923,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	 *        The {@linkplain TokenDescriptor token} that is the defining
 	 *        occurrence of the name of the module variable being declared.
 	 * @param literalObject
-	 *        The actual {@linkplain ContainerDescriptor container} to be used
+	 *        The actual {@linkplain VariableDescriptor variable} to be used
 	 *        as a module variable.
 	 * @return The new module variable declaration.
 	 */

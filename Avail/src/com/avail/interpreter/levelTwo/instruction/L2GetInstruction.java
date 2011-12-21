@@ -41,7 +41,7 @@ import com.avail.interpreter.levelTwo.register.*;
 
 /**
  * {@code L2GetInstruction} reads the {@linkplain AvailObject value} of the
- * {@linkplain ContainerDescriptor container} specified in the source
+ * {@linkplain VariableDescriptor variable} specified in the source
  * {@linkplain L2ObjectRegister register}.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
@@ -100,7 +100,7 @@ extends L2Instruction
 		{
 			final AvailObject varType =
 				translator.registerTypeAt(sourceRegister).typeIntersection(
-					ContainerTypeDescriptor.mostGeneralType());
+					VariableTypeDescriptor.mostGeneralType());
 			translator.registerTypeAtPut(sourceRegister, varType);
 			translator.registerTypeAtPut(
 				destinationRegister, varType.readType());

@@ -204,11 +204,11 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSupertypeOfContainerType (
+	boolean o_IsSupertypeOfVariableType (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aContainerType)
+		final @NotNull AvailObject aVariableType)
 	{
-		/* By default, nothing is a supertype of a container type unless it
+		/* By default, nothing is a supertype of a variable type unless it
 		 * states otherwise.
 		 */
 
@@ -325,9 +325,9 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeIntersectionOfContainerType (
+	@NotNull AvailObject o_TypeIntersectionOfVariableType (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aContainerType)
+		final @NotNull AvailObject aVariableType)
 	{
 		return BottomTypeDescriptor.bottom();
 	}
@@ -425,9 +425,9 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeUnionOfContainerType (
+	@NotNull AvailObject o_TypeUnionOfVariableType (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aContainerType)
+		final @NotNull AvailObject aVariableType)
 	{
 		return object.typeUnion(ANY.o());
 	}

@@ -157,9 +157,9 @@ extends Descriptor
 		final @NotNull AvailObject aFunctionType);
 
 	@Override @AvailMethod
-	abstract boolean o_IsSupertypeOfContainerType (
+	abstract boolean o_IsSupertypeOfVariableType (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aContainerType);
+		final @NotNull AvailObject aVariableType);
 
 	@Override @AvailMethod
 	abstract boolean o_IsSupertypeOfContinuationType (
@@ -272,9 +272,9 @@ extends Descriptor
 		final @NotNull AvailObject aFunctionType);
 
 	@Override @AvailMethod
-	abstract @NotNull AvailObject o_TypeIntersectionOfContainerType (
+	abstract @NotNull AvailObject o_TypeIntersectionOfVariableType (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aContainerType);
+		final @NotNull AvailObject aVariableType);
 
 	@Override @AvailMethod
 	abstract @NotNull AvailObject o_TypeIntersectionOfContinuationType (
@@ -335,9 +335,9 @@ extends Descriptor
 		final @NotNull AvailObject aFunctionType);
 
 	@Override @AvailMethod
-	abstract @NotNull AvailObject o_TypeUnionOfContainerType (
+	abstract @NotNull AvailObject o_TypeUnionOfVariableType (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aContainerType);
+		final @NotNull AvailObject aVariableType);
 
 	@Override @AvailMethod
 	abstract @NotNull AvailObject o_TypeUnionOfContinuationType (

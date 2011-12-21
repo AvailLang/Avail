@@ -485,7 +485,7 @@ extends Descriptor
 		for (int i = 1; i <= nLocals; i++)
 		{
 			locals.add(
-				ContainerDescriptor.forOuterType(
+				VariableDescriptor.forOuterType(
 					code.localTypeAt(i)));
 		}
 		return create(

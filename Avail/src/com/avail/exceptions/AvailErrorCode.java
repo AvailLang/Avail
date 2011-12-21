@@ -86,20 +86,20 @@ public enum AvailErrorCode
 	E_CANNOT_DIVIDE_INFINITIES (5),
 
 	/**
-	 * Cannot read from an unassigned {@linkplain ContainerDescriptor
+	 * Cannot read from an unassigned {@linkplain VariableDescriptor
 	 * variable}.
 	 */
 	E_CANNOT_READ_UNASSIGNED_VARIABLE (6),
 
 	/**
 	 * Cannot write an incorrectly typed value into a {@linkplain
-	 * ContainerDescriptor variable}.
+	 * VariableDescriptor variable}.
 	 */
 	E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE_INTO_VARIABLE (7),
 
 	/**
 	 * Cannot swap the contents of two differently typed {@linkplain
-	 * ContainerDescriptor variables}.
+	 * VariableDescriptor variables}.
 	 */
 	E_CANNOT_SWAP_CONTENTS_OF_DIFFERENTLY_TYPED_VARIABLES (8),
 

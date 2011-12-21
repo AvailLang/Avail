@@ -172,8 +172,8 @@ public final class AvailRuntime
 		specialObjects[4] = FunctionTypeDescriptor.mostGeneralType();
 		specialObjects[5] = FunctionTypeDescriptor.meta();
 		specialObjects[6] = CompiledCodeTypeDescriptor.mostGeneralType();
-		specialObjects[7] = ContainerTypeDescriptor.mostGeneralType();
-		specialObjects[8] = ContainerTypeDescriptor.meta();
+		specialObjects[7] = VariableTypeDescriptor.mostGeneralType();
+		specialObjects[8] = VariableTypeDescriptor.meta();
 		specialObjects[9] = ContinuationTypeDescriptor.mostGeneralType();
 		specialObjects[10] = ContinuationTypeDescriptor.meta();
 		specialObjects[11] = ATOM.o();

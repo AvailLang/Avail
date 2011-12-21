@@ -42,7 +42,7 @@ import com.avail.interpreter.levelTwo.register.*;
 
 /**
  * {@code L2SetInstruction} stores an {@linkplain AvailObject object} into a
- * {@linkplain ContainerDescriptor container}.
+ * {@linkplain VariableDescriptor variable}.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
@@ -52,35 +52,35 @@ extends L2Instruction
 {
 	/**
 	 * The source {@linkplain L2ObjectRegister register} holding the {@linkplain
-	 * ContainerDescriptor container} into which the {@linkplain AvailObject
+	 * VariableDescriptor variable} into which the {@linkplain AvailObject
 	 * object} will be written.
 	 */
-	private final @NotNull L2ObjectRegister container;
+	private final @NotNull L2ObjectRegister variable;
 
 	/**
 	 * The source {@linkplain L2ObjectRegister register} containing the
 	 * {@linkplain AvailObject object} that should be written into the
-	 * {@linkplain ContainerDescriptor container}.
+	 * {@linkplain VariableDescriptor variable}.
 	 */
 	private final @NotNull L2ObjectRegister value;
 
 	/**
 	 * Construct a new {@link L2SetInstruction}.
 	 *
-	 * @param container
+	 * @param variable
 	 *        The source {@linkplain L2ObjectRegister register} holding the
-	 *        {@linkplain ContainerDescriptor container} into which the
+	 *        {@linkplain VariableDescriptor variable} into which the
 	 *        {@linkplain AvailObject object} will be written.
 	 * @param value
 	 *        The source {@linkplain L2ObjectRegister register} containing the
 	 *        {@linkplain AvailObject object} that should be written into the
-	 *        {@linkplain ContainerDescriptor container}.
+	 *        {@linkplain VariableDescriptor variable}.
 	 */
 	public L2SetInstruction (
-		final @NotNull L2ObjectRegister container,
+		final @NotNull L2ObjectRegister variable,
 		final @NotNull L2ObjectRegister value)
 	{
-		this.container = container;
+		this.variable = variable;
 		this.value = value;
 	}
 
@@ -88,7 +88,7 @@ extends L2Instruction
 	public List<L2Register> sourceRegisters ()
 	{
 		final List<L2Register> result = new ArrayList<L2Register>(2);
-		result.add(container);
+		result.add(variable);
 		result.add(value);
 		return result;
 	}
@@ -104,7 +104,7 @@ extends L2Instruction
 	{
 		codeGenerator.emitL2Operation(
 			L2_doSetVariable_sourceObject_);
-		codeGenerator.emitObjectRegister(container);
+		codeGenerator.emitObjectRegister(variable);
 		codeGenerator.emitObjectRegister(value);
 	}
 
@@ -115,7 +115,7 @@ extends L2Instruction
 	 * information, we use the fact that the {@linkplain AbstractAvailCompiler
 	 * compiler} set up an {@linkplain AssignmentNodeDescriptor assignment} to a
 	 * variable to indicate that the variable really is a {@linkplain
-	 * ContainerDescriptor variable}.</p>
+	 * VariableDescriptor variable}.</p>
 	 */
 	@Override
 	public void propagateTypeInfoFor (final @NotNull L2Translator translator)
@@ -127,15 +127,15 @@ extends L2Instruction
 		//  variable really is a variable.
 
 		final AvailObject varType;
-		if (translator.registerHasTypeAt(container))
+		if (translator.registerHasTypeAt(variable))
 		{
-			varType = translator.registerTypeAt(container).typeIntersection(
-				ContainerTypeDescriptor.mostGeneralType());
+			varType = translator.registerTypeAt(variable).typeIntersection(
+				VariableTypeDescriptor.mostGeneralType());
 		}
 		else
 		{
-			varType = ContainerTypeDescriptor.mostGeneralType();
+			varType = VariableTypeDescriptor.mostGeneralType();
 		}
-		translator.registerTypeAtPut(container, varType);
+		translator.registerTypeAtPut(variable, varType);
 	}
 }

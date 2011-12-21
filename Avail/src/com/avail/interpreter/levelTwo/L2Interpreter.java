@@ -1156,7 +1156,7 @@ implements L2OperationDispatcher
 		{
 			pointerAtPut(
 				dest,
-				ContainerDescriptor.forOuterType(code.localTypeAt(i)));
+				VariableDescriptor.forOuterType(code.localTypeAt(i)));
 			dest++;
 		}
 		// Void the stack slots (by filling them with the null object)...
@@ -1444,7 +1444,7 @@ implements L2OperationDispatcher
 		final int destIndex = nextWord();
 		pointerAtPut(
 			destIndex,
-			ContainerDescriptor.forOuterType(chunk().literalAt(typeIndex)));
+			VariableDescriptor.forOuterType(chunk().literalAt(typeIndex)));
 	}
 
 	@Override

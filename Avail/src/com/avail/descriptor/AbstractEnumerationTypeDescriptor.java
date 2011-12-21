@@ -148,13 +148,13 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	final @NotNull AvailObject o_TypeIntersectionOfContainerType (
+	final @NotNull AvailObject o_TypeIntersectionOfVariableType (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aContainerType)
+		final @NotNull AvailObject aVariableType)
 	{
 		// Answer the most general type that is still at least as specific as
 		// these.  Make it exact first.
-		return computeIntersectionWith(object, aContainerType);
+		return computeIntersectionWith(object, aVariableType);
 	}
 
 	@Override @AvailMethod
@@ -246,11 +246,11 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	final @NotNull AvailObject o_TypeUnionOfContainerType (
+	final @NotNull AvailObject o_TypeUnionOfVariableType (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aContainerType)
+		final @NotNull AvailObject aVariableType)
 	{
-		return computeUnionWith(object, aContainerType);
+		return computeUnionWith(object, aVariableType);
 	}
 
 	@Override @AvailMethod
@@ -490,9 +490,9 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	final boolean o_IsSupertypeOfContainerType (
+	final boolean o_IsSupertypeOfVariableType (
 		final @NotNull AvailObject object,
-		final AvailObject aContainerType)
+		final AvailObject aVariableType)
 	{
 		return false;
 	}

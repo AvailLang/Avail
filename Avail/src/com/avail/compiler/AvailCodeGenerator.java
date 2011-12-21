@@ -199,7 +199,7 @@ public class AvailCodeGenerator
 			else
 			{
 				localsArray[i - numArgs - 1] =
-					ContainerTypeDescriptor.wrapInnerType(argDeclType);
+					VariableTypeDescriptor.wrapInnerType(argDeclType);
 			}
 		}
 		final AvailObject argsTuple = TupleDescriptor.from(argsArray);
@@ -219,7 +219,7 @@ public class AvailCodeGenerator
 			else
 			{
 				outerArray[i - 1] =
-					ContainerTypeDescriptor.wrapInnerType(argDeclType);
+					VariableTypeDescriptor.wrapInnerType(argDeclType);
 			}
 		}
 		final AvailObject outerTuple = TupleDescriptor.from(outerArray);
@@ -422,7 +422,7 @@ public class AvailCodeGenerator
 	/**
 	 * Emit code to get the value of a literal variable.
 	 *
-	 * @param aLiteral The {@linkplain ContainerDescriptor variable} that should have
+	 * @param aLiteral The {@linkplain VariableDescriptor variable} that should have
 	 *                 its value extracted.
 	 */
 	public void emitGetLiteral (

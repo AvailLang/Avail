@@ -1,5 +1,5 @@
 /**
- * ContainerDescriptor.java
+ * VariableDescriptor.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -37,15 +37,15 @@ import java.util.Random;
 import com.avail.annotations.*;
 
 /**
- * My {@linkplain AvailObject object instances} are containers which can hold
+ * My {@linkplain AvailObject object instances} are variables which can hold
  * any object that agrees with my {@linkplain #forInnerType(AvailObject) inner
- * type}.  A container may also hold no value at all.  Any attempt to read the
- * {@linkplain #o_GetValue(AvailObject) current value} of a container that holds
+ * type}.  A variable may also hold no value at all.  Any attempt to read the
+ * {@linkplain #o_GetValue(AvailObject) current value} of a variable that holds
  * no value will fail immediately.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
-public class ContainerDescriptor
+public class VariableDescriptor
 extends Descriptor
 {
 	/**
@@ -66,14 +66,14 @@ extends Descriptor
 	{
 		/**
 		 * The {@linkplain AvailObject contents} of the {@linkplain
-		 * ContainerDescriptor container}.
+		 * VariableDescriptor variable}.
 		 */
 		VALUE,
 
 		/**
 		 * The {@linkplain AvailObject kind} of the {@linkplain
-		 * ContainerDescriptor container}.  Note that this is always a
-		 * {@linkplain ContainerTypeDescriptor container type}.
+		 * VariableDescriptor variable}.  Note that this is always a
+		 * {@linkplain VariableTypeDescriptor variable type}.
 		 */
 		KIND
 	}
@@ -104,25 +104,25 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
-		return another.equalsContainer(object);
+		return another.equalsVariable(object);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>
-	 * Containers compare by address (Java object identity).  There's no need to
+	 * Variables compare by address (Java object identity).  There's no need to
 	 * traverse the objects before comparing addresses, because this message was
 	 * a double-dispatch that would have skipped (and stripped) the indirection
 	 * objects in either path.
 	 * </p>
 	 */
 	@Override @AvailMethod
-	boolean o_EqualsContainer (
+	boolean o_EqualsVariable (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aContainer)
+		final @NotNull AvailObject aVariable)
 	{
-		return object.sameAddressAs(aContainer);
+		return object.sameAddressAs(aVariable);
 	}
 
 	@Override @AvailMethod
@@ -146,7 +146,7 @@ extends Descriptor
 	@NotNull AvailObject o_MakeImmutable (
 		final @NotNull AvailObject object)
 	{
-		// If I am being frozen (a container), I don't need to freeze my current
+		// If I am being frozen (a variable), I don't need to freeze my current
 		// value.  I do, on the other hand, have to freeze my kind object.
 		object.descriptor = immutable();
 		object.slot(ObjectSlots.KIND).makeImmutable();
@@ -161,7 +161,7 @@ extends Descriptor
 		final AvailObject outerKind = object.slot(ObjectSlots.KIND);
 		if (!newValue.isInstanceOf(outerKind.writeType()))
 		{
-			error("container can't hold that value (wrong type)");
+			error("variable can't hold that value (wrong type)");
 		}
 		object.setSlot(ObjectSlots.VALUE, newValue);
 	}
@@ -170,7 +170,7 @@ extends Descriptor
 	void o_ClearValue (
 		final @NotNull AvailObject object)
 	{
-		// Clear the container (make it have no current value).
+		// Clear the variable (make it have no current value).
 		// Eventually, the previous contents should drop a reference.
 		object.setSlot(ObjectSlots.VALUE, NullDescriptor.nullObject());
 	}
@@ -179,12 +179,12 @@ extends Descriptor
 	@NotNull AvailObject o_GetValue (
 		final @NotNull AvailObject object)
 	{
-		// Answer the current value of the container.  Fail if no value is
+		// Answer the current value of the variable.  Fail if no value is
 		// currently assigned.
 		final AvailObject value = object.slot(ObjectSlots.VALUE);
 		if (value.equalsNull())
 		{
-			error("container has no value yet");
+			error("variable has no value yet");
 			return NullDescriptor.nullObject();
 		}
 		return value;
@@ -215,31 +215,31 @@ extends Descriptor
 	}
 
 	/**
-	 * Create a {@linkplain ContainerDescriptor container} which can only
-	 * contain values of the specified type.  The new container initially holds
+	 * Create a {@linkplain VariableDescriptor variable} which can only
+	 * contain values of the specified type.  The new variable initially holds
 	 * no value.
 	 *
 	 * @param innerType
-	 *            The type of objects the new container can contain.
+	 *            The type of objects the new variable can contain.
 	 * @return
-	 *            A new container able to hold the specified type of objects.
+	 *            A new variable able to hold the specified type of objects.
 	 */
 	public static @NotNull AvailObject forInnerType (
 		final @NotNull AvailObject innerType)
 	{
-		return ContainerDescriptor.forOuterType(
-			ContainerTypeDescriptor.wrapInnerType(innerType));
+		return VariableDescriptor.forOuterType(
+			VariableTypeDescriptor.wrapInnerType(innerType));
 	}
 
 	/**
-	 * Create a {@linkplain ContainerDescriptor container} of the specified
-	 * {@linkplain ContainerTypeDescriptor container type}.  The new container
+	 * Create a {@linkplain VariableDescriptor variable} of the specified
+	 * {@linkplain VariableTypeDescriptor variable type}.  The new variable
 	 * initially holds no value.
 	 *
 	 * @param outerType
-	 *            The container type to instantiate.
+	 *            The variable type to instantiate.
 	 * @return
-	 *            A new container of the given type.
+	 *            A new variable of the given type.
 	 */
 	public static @NotNull AvailObject forOuterType (
 		final @NotNull AvailObject outerType)
@@ -257,45 +257,45 @@ extends Descriptor
 	private static Random hashGenerator = new Random();
 
 	/**
-	 * Construct a new {@link ContainerDescriptor}.
+	 * Construct a new {@link VariableDescriptor}.
 	 *
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
 	 */
-	protected ContainerDescriptor (final boolean isMutable)
+	protected VariableDescriptor (final boolean isMutable)
 	{
 		super(isMutable);
 	}
 
 	/**
-	 * The mutable {@link ContainerDescriptor}.
+	 * The mutable {@link VariableDescriptor}.
 	 */
-	private final static ContainerDescriptor mutable =
-		new ContainerDescriptor(true);
+	private final static VariableDescriptor mutable =
+		new VariableDescriptor(true);
 
 	/**
-	 * Answer the mutable {@link ContainerDescriptor}.
+	 * Answer the mutable {@link VariableDescriptor}.
 	 *
-	 * @return The mutable {@link ContainerDescriptor}.
+	 * @return The mutable {@link VariableDescriptor}.
 	 */
-	public static ContainerDescriptor mutable ()
+	public static VariableDescriptor mutable ()
 	{
 		return mutable;
 	}
 
 	/**
-	 * The immutable {@link ContainerDescriptor}.
+	 * The immutable {@link VariableDescriptor}.
 	 */
-	private final static ContainerDescriptor immutable =
-		new ContainerDescriptor(false);
+	private final static VariableDescriptor immutable =
+		new VariableDescriptor(false);
 
 	/**
-	 * Answer the immutable {@link ContainerDescriptor}.
+	 * Answer the immutable {@link VariableDescriptor}.
 	 *
-	 * @return The immutable {@link ContainerDescriptor}.
+	 * @return The immutable {@link VariableDescriptor}.
 	 */
-	public static ContainerDescriptor immutable ()
+	public static VariableDescriptor immutable ()
 	{
 		return immutable;
 	}

@@ -336,11 +336,6 @@ extends Descriptor
 	@NotNull AvailObject o_MakeImmutable (
 		final @NotNull AvailObject object)
 	{
-		//  If I am being frozen (a container), I don't need to freeze my current value.
-		//  I do, on the other hand, have to freeze my type object.
-		//
-		//  Do nothing.  My subobjects are all allowed to be mutable even if I'm immutable.
-
 		object.descriptor = immutable();
 		return object;
 	}

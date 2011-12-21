@@ -497,7 +497,7 @@ public class L1Decompiler
 				final AvailObject token = outerExpr.token();
 				final AvailObject variableObject = token.literal();
 				assert variableObject.isInstanceOfKind(
-					ContainerTypeDescriptor.mostGeneralType());
+					VariableTypeDescriptor.mostGeneralType());
 				outerDecl = DeclarationNodeDescriptor.newModuleVariable(
 					token,
 					variableObject);

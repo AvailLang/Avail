@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2011.12.21 11:16:17.479 -0600
+ * * Last Generated On: 2011.12.21 14:09:33.060 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -113,28 +113,55 @@ Method "_+_" is
 	Private invoke _fail_primitive with failureCode;
 ] : extended integer;
 
+/**
+ * Compute and answer the difference of the arguments.
+ *
+ * Parameters:
+ *    minuend - The minuend.
+ *    subtrahend - The subtrahend.
+ * Returns:
+ *    The difference of the minuend and the subtrahend.
+ */
 Method "_-_" is 
 [
-	arg1 : extended integer,
-	arg2 : extended integer
+	minuend : extended integer,
+	subtrahend : extended integer
 |
 	Primitive 2 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode;
 ] : extended integer;
 
+/**
+ * Compute and answer the product of the arguments.
+ *
+ * Parameters:
+ *    multiplicand - The multiplicand.
+ *    multiplier - The multiplier.
+ * Returns:
+ *    The product of the multiplicand and the multiplier.
+ */
 Method "_×_" is 
 [
-	arg1 : extended integer,
-	arg2 : extended integer
+	multiplicand : extended integer,
+	multiplier : extended integer
 |
 	Primitive 3 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode;
 ] : extended integer;
 
+/**
+ * Compute and answer the quotient of the arguments.
+ *
+ * Parameters:
+ *    dividend - The dividend.
+ *    divisor - The divisor.
+ * Returns:
+ *    The quotient of the dividend and the divisor.
+ */
 Method "_÷_" is 
 [
-	arg1 : extended integer,
-	arg2 : extended integer
+	dividend : extended integer,
+	divisor : extended integer
 |
 	Primitive 4 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode;

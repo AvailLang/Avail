@@ -129,8 +129,8 @@ extends Descriptor
 
 		/**
 		 * A {@linkplain MapDescriptor map} from {@linkplain
-		 * StringDescriptor string} to a {@linkplain ContainerDescriptor
-		 * container (variable)}.  Since {@linkplain
+		 * StringDescriptor string} to a {@linkplain VariableDescriptor
+		 * variable}.  Since {@linkplain
 		 * DeclarationNodeDescriptor.DeclarationKind#MODULE_VARIABLE module
 		 * variables} are never accessible outside the module in which they are
 		 * defined, this slot is overwritten with {@linkplain

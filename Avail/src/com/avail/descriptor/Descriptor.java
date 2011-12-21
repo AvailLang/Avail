@@ -831,9 +831,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_IsSupertypeOfContainerType (
+	boolean o_IsSupertypeOfVariableType (
 		final @NotNull AvailObject object,
-		final AvailObject aContainerType)
+		final AvailObject aVariableType)
 	{
 		unsupportedOperation();
 		return false;
@@ -1838,9 +1838,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	@NotNull AvailObject o_TypeIntersectionOfContainerType (
+	@NotNull AvailObject o_TypeIntersectionOfVariableType (
 		final @NotNull AvailObject object,
-		final AvailObject aContainerType)
+		final AvailObject aVariableType)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -1955,9 +1955,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	@NotNull AvailObject o_TypeUnionOfContainerType (
+	@NotNull AvailObject o_TypeUnionOfVariableType (
 		final @NotNull AvailObject object,
-		final AvailObject aContainerType)
+		final AvailObject aVariableType)
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
@@ -3200,15 +3200,15 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_EqualsContainer (
+	boolean o_EqualsVariable (
 		final @NotNull AvailObject object,
-		final AvailObject aContainer)
+		final AvailObject aVariable)
 	{
 		return false;
 	}
 
 	@Override
-	boolean o_EqualsContainerType (
+	boolean o_EqualsVariableType (
 		final @NotNull AvailObject object,
 		final AvailObject aType)
 	{

@@ -41,7 +41,7 @@ import com.avail.interpreter.levelTwo.register.*;
 
 /**
  * {@code L2GetClearingInstruction} atomically reads and clears the source
- * {@linkplain ContainerDescriptor container}.
+ * {@linkplain VariableDescriptor variable}.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;

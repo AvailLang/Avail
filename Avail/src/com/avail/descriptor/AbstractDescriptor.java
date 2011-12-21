@@ -1364,12 +1364,12 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param aContainerType
+	 * @param aVariableType
 	 * @return
 	 */
-	abstract boolean o_IsSupertypeOfContainerType (
+	abstract boolean o_IsSupertypeOfVariableType (
 		@NotNull AvailObject object,
-		AvailObject aContainerType);
+		AvailObject aVariableType);
 
 	/**
 	 * @param object
@@ -2460,12 +2460,12 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param aContainerType
+	 * @param aVariableType
 	 * @return
 	 */
-	abstract AvailObject o_TypeIntersectionOfContainerType (
+	abstract AvailObject o_TypeIntersectionOfVariableType (
 		@NotNull AvailObject object,
-		AvailObject aContainerType);
+		AvailObject aVariableType);
 
 	/**
 	 * @param object
@@ -2577,12 +2577,12 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param aContainerType
+	 * @param aVariableType
 	 * @return
 	 */
-	abstract AvailObject o_TypeUnionOfContainerType (
+	abstract AvailObject o_TypeUnionOfVariableType (
 		@NotNull AvailObject object,
-		AvailObject aContainerType);
+		AvailObject aVariableType);
 
 	/**
 	 * @param object
@@ -3567,19 +3567,19 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param aContainer
+	 * @param aVariable
 	 * @return
 	 */
-	abstract boolean o_EqualsContainer (
+	abstract boolean o_EqualsVariable (
 		@NotNull AvailObject object,
-		AvailObject aContainer);
+		AvailObject aVariable);
 
 	/**
 	 * @param object
 	 * @param aType
 	 * @return
 	 */
-	abstract boolean o_EqualsContainerType (
+	abstract boolean o_EqualsVariableType (
 		@NotNull AvailObject object,
 		AvailObject aType);
 

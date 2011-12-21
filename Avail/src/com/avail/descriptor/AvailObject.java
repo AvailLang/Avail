@@ -92,7 +92,7 @@ implements Iterable<AvailObject>
 		SetTypeDescriptor.createWellKnownObjects();
 		TupleTypeDescriptor.createWellKnownObjects();
 		L2ChunkDescriptor.createWellKnownObjects();
-		ContainerTypeDescriptor.createWellKnownObjects();
+		VariableTypeDescriptor.createWellKnownObjects();
 		EnumerationMetaDescriptor.createWellKnownObjects();
 		ParseNodeTypeDescriptor.createWellKnownObjects();
 		LiteralNodeDescriptor.createWellKnownObjects();
@@ -134,7 +134,7 @@ implements Iterable<AvailObject>
 		SetTypeDescriptor.clearWellKnownObjects();
 		TupleTypeDescriptor.clearWellKnownObjects();
 		L2ChunkDescriptor.clearWellKnownObjects();
-		ContainerTypeDescriptor.clearWellKnownObjects();
+		VariableTypeDescriptor.clearWellKnownObjects();
 		EnumerationMetaDescriptor.clearWellKnownObjects();
 		ParseNodeTypeDescriptor.clearWellKnownObjects();
 		LiteralNodeDescriptor.clearWellKnownObjects();
@@ -1582,19 +1582,19 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public boolean equalsContainer (
-		final AvailObject aContainer)
+	public boolean equalsVariable (
+		final AvailObject aVariable)
 	{
-		return descriptor.o_EqualsContainer(this, aContainer);
+		return descriptor.o_EqualsVariable(this, aVariable);
 	}
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public boolean equalsContainerType (
-		final AvailObject aContainerType)
+	public boolean equalsVariableType (
+		final AvailObject aVariableType)
 	{
-		return descriptor.o_EqualsContainerType(this, aContainerType);
+		return descriptor.o_EqualsVariableType(this, aVariableType);
 	}
 
 	/**
@@ -2410,10 +2410,10 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public boolean isSupertypeOfContainerType (
-		final AvailObject aContainerType)
+	public boolean isSupertypeOfVariableType (
+		final AvailObject aVariableType)
 	{
-		return descriptor.o_IsSupertypeOfContainerType(this, aContainerType);
+		return descriptor.o_IsSupertypeOfVariableType(this, aVariableType);
 	}
 
 	/**
@@ -4293,10 +4293,10 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public AvailObject typeIntersectionOfContainerType (
-		final AvailObject aContainerType)
+	public AvailObject typeIntersectionOfVariableType (
+		final AvailObject aVariableType)
 	{
-		return descriptor.o_TypeIntersectionOfContainerType(this, aContainerType);
+		return descriptor.o_TypeIntersectionOfVariableType(this, aVariableType);
 	}
 
 	/**
@@ -4413,10 +4413,10 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public AvailObject typeUnionOfContainerType (
-		final AvailObject aContainerType)
+	public AvailObject typeUnionOfVariableType (
+		final AvailObject aVariableType)
 	{
-		return descriptor.o_TypeUnionOfContainerType(this, aContainerType);
+		return descriptor.o_TypeUnionOfVariableType(this, aVariableType);
 	}
 
 	/**

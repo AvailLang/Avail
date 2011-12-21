@@ -568,7 +568,7 @@ public abstract class Interpreter
 		writer.returnType(TOP.o());
 		// Declare the local that holds primitive failure information.
 		final int failureLocal = writer.createLocal(
-			ContainerTypeDescriptor.wrapInnerType(
+			VariableTypeDescriptor.wrapInnerType(
 				IntegerRangeTypeDescriptor.naturalNumbers()));
 		writer.write(
 			new L1Instruction(

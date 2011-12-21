@@ -684,59 +684,59 @@ public class TypeConsistencyTest
 		};
 
 		/**
-		 * The most general {@linkplain ContainerTypeDescriptor container type}.
+		 * The most general {@linkplain VariableTypeDescriptor variable type}.
 		 */
-		final static Node ROOT_CONTAINER = new Node(
-			"ROOT_CONTAINER",
+		final static Node ROOT_VARIABLE = new Node(
+			"ROOT_VARIABLE",
 			primitiveTypes.get(Types.ANY))
 		{
 			@Override AvailObject get ()
 			{
-				return ContainerTypeDescriptor.mostGeneralType();
+				return VariableTypeDescriptor.mostGeneralType();
 			}
 		};
 
 		/**
-		 * The {@linkplain ContainerTypeDescriptor type of container} which
+		 * The {@linkplain VariableTypeDescriptor type of variable} which
 		 * holds {@linkplain IntegerDescriptor integers}.
 		 */
-		final static Node INT_CONTAINER = new Node(
-			"INT_CONTAINER",
-			ROOT_CONTAINER)
+		final static Node INT_VARIABLE = new Node(
+			"INT_VARIABLE",
+			ROOT_VARIABLE)
 		{
 			@Override AvailObject get ()
 			{
-				return ContainerTypeDescriptor.wrapInnerType(
+				return VariableTypeDescriptor.wrapInnerType(
 					IntegerRangeTypeDescriptor.integers());
 			}
 		};
 
 		/**
-		 * The {@linkplain ContainerTypeDescriptor type of container} which
+		 * The {@linkplain VariableTypeDescriptor type of variable} which
 		 * holds only a particular atom.
 		 */
-		final static Node SOME_ATOM_CONTAINER = new Node(
-			"SOME_ATOM_CONTAINER",
-			ROOT_CONTAINER)
+		final static Node SOME_ATOM_VARIABLE = new Node(
+			"SOME_ATOM_VARIABLE",
+			ROOT_VARIABLE)
 		{
 			@Override AvailObject get ()
 			{
-				return ContainerTypeDescriptor.wrapInnerType(SOME_ATOM_TYPE.t);
+				return VariableTypeDescriptor.wrapInnerType(SOME_ATOM_TYPE.t);
 			}
 		};
 
 		/**
-		 * The most specific {@linkplain ContainerTypeDescriptor type of
-		 * container}, other than {@linkplain BottomTypeDescriptor bottom}.
+		 * The most specific {@linkplain VariableTypeDescriptor type of
+		 * variable}, other than {@linkplain BottomTypeDescriptor bottom}.
 		 */
-		final static Node BOTTOM_CONTAINER = new Node(
-			"BOTTOM_CONTAINER",
-			INT_CONTAINER,
-			SOME_ATOM_CONTAINER)
+		final static Node BOTTOM_VARIABLE = new Node(
+			"BOTTOM_VARIABLE",
+			INT_VARIABLE,
+			SOME_ATOM_VARIABLE)
 		{
 			@Override AvailObject get ()
 			{
-				return ContainerTypeDescriptor.fromReadAndWriteTypes(
+				return VariableTypeDescriptor.fromReadAndWriteTypes(
 					BottomTypeDescriptor.bottom(),
 					Types.TOP.o());
 			}
