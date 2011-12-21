@@ -154,7 +154,7 @@ final class Resources
 		final @NotNull Primitive primitive,
 		final int index)
 	{
-		return primitive.name() + "_" + index;
+		return primitive.name() + "_" + (index - 1);
 	}
 
 	/**
@@ -217,6 +217,7 @@ final class Resources
 		primitiveFailureMethodUse,
 		primitiveFailureVariableName,
 		primitiveFailureFunctionName,
+		primitiveFailureFunctionSetterMethod,
 		invokePrimitiveFailureFunctionMethod,
 		invokePrimitiveFailureFunctionMethodUse
 	}

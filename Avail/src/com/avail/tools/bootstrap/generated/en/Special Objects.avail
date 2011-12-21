@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2011.12.20 17:16:42.466 -0600
+ * * Last Generated On: 2011.12.21 11:16:17.430 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -88,6 +88,7 @@ Names
 	/* 37 */ "natural number",
 	/* 81 */ "null",
 	/* 82 */ "null type",
+	/* 16 */ "number",
 	/* 22 */ "object",
 	/* 23 */ "object meta",
 	/* 50 */ "parse node",
@@ -137,6 +138,7 @@ _double                        ::= special object 12;
 _extended_integer              ::= special object 13;
 _false_type                    ::= special object 14;
 _float                         ::= special object 15;
+_number                        ::= special object 16;
 _integer                       ::= special object 17;
 _extended_integer_meta         ::= special object 18;
 _map_meta                      ::= special object 19;
@@ -271,6 +273,11 @@ Method "false type" is
 Method "float" is 
 [
 	_float;
+];
+
+Method "number" is 
+[
+	_number;
 ];
 
 Method "integer" is 

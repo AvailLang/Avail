@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2011.12.20 17:16:42.499 -0600
+ * * Last Generated On: 2011.12.21 11:16:17.479 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -45,6 +45,7 @@ Extends
 	"Origin"
 Uses
 Names
+	"Set primitive failure function to_",
 	/*  10 */ "*_",
 	/*  11 */ "*_:=_",
 	/*  36 */ "_'s parameter_'s type",
@@ -77,6 +78,13 @@ _fail_primitive : primitive failure function :=
 	|
 		Private fail primitive with arg1;
 	] : ⊥;
+
+Method "Set primitive failure function to_" is 
+[
+	arg1 : primitive failure function
+|
+	_fail_primitive := arg1;
+] : ⊤;
 
 Method "Private invoke_with«_‡,»" is 
 [

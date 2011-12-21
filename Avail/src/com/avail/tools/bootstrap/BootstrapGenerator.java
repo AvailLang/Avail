@@ -376,6 +376,15 @@ public final class BootstrapGenerator
 			preamble.getString(generatedModuleNotice.name()),
 			BootstrapGenerator.class.getName(),
 			new Date()));
+		final StringBuilder builder = new StringBuilder();
+		if (fallible)
+		{
+			builder.append("\n\t");
+			builder.append(stringify(preamble.getString(
+				primitiveFailureFunctionSetterMethod.name())));
+			builder.append(',');
+		}
+		builder.append(primitivesNamesString(primitives(fallible)));
 		writer.println(MessageFormat.format(
 			preamble.getString(primitivesModuleHeader.name()),
 			preamble.getString(key.name()),
@@ -383,7 +392,7 @@ public final class BootstrapGenerator
 			String.format(
 				"\n\t\"%s\"",
 				preamble.getString(originModuleName.name())),
-			primitivesNamesString(primitives(fallible))));
+			builder.toString()));
 	}
 
 	/**
@@ -597,7 +606,8 @@ public final class BootstrapGenerator
 	 * @param writer
 	 *        The {@linkplain PrintWriter output stream}.
 	 */
-	private void generatePrimitiveFailureFunction (final PrintWriter writer)
+	private void generatePrimitiveFailureFunction (
+		final @NotNull PrintWriter writer)
 	{
 		final AvailObject functionType = FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
@@ -625,6 +635,43 @@ public final class BootstrapGenerator
 			namesBySpecialObject.get(BottomTypeDescriptor.bottom()));
 		writer.println(';');
 		writer.println();
+	}
+
+	/**
+	 * Generate the {@linkplain Primitive primitive} failure function setter.
+	 *
+	 * @param writer
+	 *        The {@linkplain PrintWriter output stream}.
+	 */
+	private void generatePrimitiveFailureFunctionSetter (
+		final @NotNull PrintWriter writer)
+	{
+		final String argName = preamble.getString(parameterPrefix.name()) + 1;
+		final StringBuilder declarations = new StringBuilder();
+		declarations.append('\t');
+		declarations.append(argName);
+		declarations.append(" : ");
+		final AvailObject functionType = FunctionTypeDescriptor.create(
+			TupleDescriptor.from(
+				IntegerRangeTypeDescriptor.naturalNumbers()),
+			BottomTypeDescriptor.bottom());
+		declarations.append(namesBySpecialObject.get(functionType));
+		declarations.append('\n');
+		final StringBuilder statements = new StringBuilder();
+		statements.append('\t');
+		statements.append(
+			preamble.getString(primitiveFailureFunctionName.name()));
+		statements.append(" := ");
+		statements.append(argName);
+		statements.append(";\n");
+		final String block = block(
+			declarations.toString(),
+			statements.toString(),
+			TOP.o());
+		generateMethod(
+			preamble.getString(primitiveFailureFunctionSetterMethod.name()),
+			block,
+			writer);
 	}
 
 	/**
@@ -720,6 +767,7 @@ public final class BootstrapGenerator
 		{
 			generatePrimitiveFailureMethod(writer);
 			generatePrimitiveFailureFunction(writer);
+			generatePrimitiveFailureFunctionSetter(writer);
 			generateInvokePrimitiveFailureFunctionMethod(writer);
 		}
 
