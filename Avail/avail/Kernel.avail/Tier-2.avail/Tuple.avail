@@ -65,7 +65,8 @@ Names
 	"code point of_",
 	"#_",
 	"$_",
-	"_r_"
+	"_r_",
+	"<«_‡,»`…|_.._>"
 Body
 
 /* Forward declarations of the remainder of this module... */
@@ -660,3 +661,13 @@ Method "_to_" is [a : character, b : character |
 	result;
 ] : string;
 
+Method "<«_‡,»`…|_.._>" is
+[
+	aTupleOfTypes : tuple [1..∞) like <> default type,
+	cardinalityLower : whole number,
+	cardinalityUpper : [0..∞]
+ |
+ 	tuple [cardinalityLower..cardinalityUpper+1)
+ 		like aTupleOfTypes[1..||aTupleOfTypes||-1]
+ 		default aTupleOfTypes[||aTupleOfTypes||];
+] : tupleType;
