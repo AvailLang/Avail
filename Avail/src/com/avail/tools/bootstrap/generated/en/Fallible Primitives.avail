@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2011.12.21 16:02:44.387 -0600
+ * * Last Generated On: 2011.12.21 18:22:44.614 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -47,9 +47,9 @@ Uses
 Names
 	"Set primitive failure function to_",
 	/*  36 */ "_'s parameter_'s type",
-	/*  26 */ "_'s process variable_",
 	/*   1 */ "_+_",
 	/*   2 */ "_-_",
+	/*  26 */ "_[_]",
 	/*   3 */ "_×_",
 	/*   4 */ "_÷_",
 	/*  18 */ "eject_",
@@ -248,23 +248,35 @@ Method "termination requested" is
 
 /**
  * Request termination of the specified fiber. Termination is consensual only;
- * cooperation of the fiber is required to affect termination. 
+ * cooperation of the fiber is required to affect termination.
  *
  * Parameters:
- *    arg1 - A fiber.
+ *    victim - A fiber.
  */
 Method "request termination of_" is 
 [
-	arg1 : fiber
+	victim : fiber
 |
 	Primitive 24 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode;
 ] : ⊤;
 
-Method "_'s process variable_" is 
+/**
+ * Answer the value bound to `key` in the specified fiber's environment. Since
+ * the fiber's environment essentially contains fiber-local variables (i.e.
+ * bindings from atoms to arbitrary values), this operation effectively reads a
+ * fiber-local variable.
+ *
+ * Parameters:
+ *    aFiber - The fiber whose environment should be consulted.
+ *    key - The key whose value should be obtained.
+ * Returns:
+ *    The value bound to `key` within the fibers environment.
+ */
+Method "_[_]" is 
 [
-	arg1 : fiber,
-	arg2 : atom
+	aFiber : fiber,
+	key : atom
 |
 	Primitive 26 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode;

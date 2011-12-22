@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2011.12.21 16:02:44.363 -0600
+ * * Last Generated On: 2011.12.21 18:22:44.589 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -61,6 +61,7 @@ Names
 	/*  19 */ "_'s write type",
 	/*   5 */ "_<_",
 	/*  60 */ "_=_",
+	/*  27 */ "_[_]:=_",
 	/*  64 */ "_as map",
 	/*  63 */ "_as object type",
 	/*  61 */ "_as private unvalidated object",
@@ -68,17 +69,16 @@ Names
 	/*  32 */ "_∩_",
 	/*  31 */ "_∪_",
 	/*  33 */ "_≤_",
-	/*  34 */ "block type taking_and returning_",
 	/*  12 */ "clear_",
 	/*  25 */ "current fiber",
 	/*  66 */ "enum of_",
+	/*  34 */ "function type accepting_and returning_",
 	/*  68 */ "give type_the name_",
 	/*  44 */ "if_then_",
 	/*  43 */ "if_then_else_",
 	/*  45 */ "ignore_and evaluate_",
 	/*   7 */ "integer range from_(inclusive=_)to_(inclusive=_)",
 	/*  16 */ "new ↑_",
-	/*  27 */ "set_'s process variable_to_",
 	/*  38 */ "union of types in_",
 	/*  13 */ "↑_",
 	/*  39 */ "⊶[…]→_"
@@ -270,34 +270,78 @@ Method "_'s write type" is
 	Primitive 19;
 ] : type;
 
+/**
+ * Answer the current fiber.
+ *
+ * Returns:
+ *    The current fiber.
+ */
 Method "current fiber" is 
 [
 	Primitive 25;
 ] : fiber;
 
-Method "set_'s process variable_to_" is 
+/**
+ * Set the value bound to `key` in the specified fiber's environment,
+ * overwriting any previous value. Since the fiber's environment essentially
+ * contains fiber-local variables (i.e. bindings from atoms to arbitrary
+ * values), this operation effectively writes a fiber-local variable.
+ *
+ * Parameters:
+ *    aFiber - The fiber whose environment should be consulted.
+ *    key - The key whose value should be (over)written.
+ *    value - The new value.
+ */
+Method "_[_]:=_" is 
 [
-	arg1 : fiber,
-	arg2 : atom,
-	arg3 : any
+	aFiber : fiber,
+	key : atom,
+	value : any
 |
 	Primitive 27;
 ] : ⊤;
 
+/**
+ * Answer the instances of the enumeration.
+ *
+ * Parameters:
+ *    enum - An enumeration.
+ * Returns:
+ *    A set whose members are the instances of the enumeration.
+ */
 Method "_'s instances" is 
 [
-	arg1 : enum meta
+	enum : enumeration meta
 |
 	Primitive 29;
 ] : set;
 
+/**
+ * Answer the precise instance type of the supplied value. This is the most
+ * specific possible type that describes the value.
+ *
+ * Parameters:
+ *    value - An arbitrary value.
+ * Returns:
+ *    The precise instance type of the supplied value.
+ */
 Method "_'s type" is 
 [
-	arg1 : any
+	value : any
 |
 	Primitive 30;
-] : enum meta;
+] : enumeration meta;
 
+/**
+ * Compute and answer the type union of the two types. This is the most
+ * specific type that is a supertype of both types.
+ *
+ * Parameters:
+ *    arg1 - A type.
+ *    arg2 - A type.
+ * Returns:
+ *    The type union of the arguments.
+ */
 Method "_∪_" is 
 [
 	arg1 : type,
@@ -306,6 +350,16 @@ Method "_∪_" is
 	Primitive 31;
 ] : type;
 
+/**
+ * Compute and answer the type intersection of the two types. This is the most
+ * general type that is a subtype of both types.
+ *
+ * Parameters:
+ *    arg1 - A type.
+ *    arg2 - A type.
+ * Returns:
+ *    The type intersection of the arguments.
+ */
 Method "_∩_" is 
 [
 	arg1 : type,
@@ -314,6 +368,18 @@ Method "_∩_" is
 	Primitive 32;
 ] : type;
 
+/**
+ * Is the first argument a subtype of the second argument? This does not
+ * implement the proper subtype relation, so the first argument is considered
+ * a subtype of the second argument also if it is equal to the second argument.
+ *
+ * Parameters:
+ *    arg1 - A type.
+ *    arg2 - A type.
+ * Returns:
+ *    `true` if the first argument is a subtype of, or the same type as, the
+ *    second argument, `false` otherwise.
+ */
 Method "_≤_" is 
 [
 	arg1 : type,
@@ -322,10 +388,22 @@ Method "_≤_" is
 	Primitive 33;
 ] : boolean;
 
-Method "block type taking_and returning_" is 
+/**
+ * Construct and answer a function type with the specified parameter types and
+ * return type.
+ *
+ * Parameters:
+ *    parameterTypes - The parameter types.
+ *    returnType - The return type.
+ * Returns:
+ *    The requested function type. Instances of this type accept arguments
+ *    whose types conform to the parameter types and whose return value
+ *    conforms to the return type.
+ */
+Method "function type accepting_and returning_" is 
 [
-	arg1 : tuple of type,
-	arg2 : type
+	parameterTypes : tuple of type,
+	returnType : type
 |
 	Primitive 34;
 ] : function meta;
