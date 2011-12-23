@@ -53,13 +53,14 @@ Restriction "*_:=_" is [varType : container type, argType : type |
 	/* varType should be a subclass of container.  This ensures the metatype
 	   will be containerType, so that the content type can be extracted (at link
 	   time). */
-	if varType = container
+	ok ::= if varType = container
 	then [false;]
 	else [
 		varTypeAsTypedContainer : containerType;
 		*&varTypeAsTypedContainer ?:= varType;
 		argType <= varTypeAsTypedContainer writeType;
 	];
+	if not ok then [ Fail parse "cannot assign to variable"; ];
 	void;
 ];
 

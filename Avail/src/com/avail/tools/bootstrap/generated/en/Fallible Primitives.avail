@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2011.12.21 18:22:44.614 -0600
+ * * Last Generated On: 2011.12.22 20:24:14.700 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -105,12 +105,12 @@ Method "Private invoke_with«_‡,»" is
  */
 Method "_+_" is 
 [
-	augend : extended integer,
-	addend : extended integer
+	augend : number,
+	addend : number
 |
 	Primitive 1 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode;
-] : extended integer;
+] : number;
 
 /**
  * Compute and answer the difference of the arguments.
@@ -123,12 +123,12 @@ Method "_+_" is
  */
 Method "_-_" is 
 [
-	minuend : extended integer,
-	subtrahend : extended integer
+	minuend : number,
+	subtrahend : number
 |
 	Primitive 2 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode;
-] : extended integer;
+] : number;
 
 /**
  * Compute and answer the product of the arguments.
@@ -141,12 +141,12 @@ Method "_-_" is
  */
 Method "_×_" is 
 [
-	multiplicand : extended integer,
-	multiplier : extended integer
+	multiplicand : number,
+	multiplier : number
 |
 	Primitive 3 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode;
-] : extended integer;
+] : number;
 
 /**
  * Compute and answer the quotient of the arguments.
@@ -159,12 +159,12 @@ Method "_×_" is
  */
 Method "_÷_" is 
 [
-	dividend : extended integer,
-	divisor : extended integer
+	dividend : number,
+	divisor : number
 |
 	Primitive 4 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode;
-] : extended integer;
+] : number;
 
 /**
  * Answer the value contained within the specified variable.

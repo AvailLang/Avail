@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2011.12.21 18:22:44.589 -0600
+ * * Last Generated On: 2011.12.22 20:24:14.675 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -96,8 +96,8 @@ Body
  */
 Method "_<_" is 
 [
-	arg1 : extended integer,
-	arg2 : extended integer
+	arg1 : number,
+	arg2 : number
 |
 	Primitive 5;
 ] : boolean;
@@ -114,8 +114,8 @@ Method "_<_" is
  */
 Method "_≤_" is 
 [
-	arg1 : extended integer,
-	arg2 : extended integer
+	arg1 : number,
+	arg2 : number
 |
 	Primitive 6;
 ] : boolean;

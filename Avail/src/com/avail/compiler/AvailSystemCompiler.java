@@ -322,7 +322,7 @@ extends AbstractAvailCompiler
 								{
 									final AvailObject assignment =
 										AssignmentNodeDescriptor.from(
-											varUse, expr);
+											varUse, expr, false);
 									attempt(
 										afterExpr,
 										continuation,
@@ -2355,7 +2355,7 @@ extends AbstractAvailCompiler
 				BottomTypeDescriptor.bottom()))
 			{
 				start.expected(
-					"end of statements, since this one never returns");
+					"end of statements, since the previous one has type bottom");
 				return;
 			}
 			if (!lastStatement.expressionType().equals(TOP.o())
@@ -2374,6 +2374,7 @@ extends AbstractAvailCompiler
 								lastStatement.expressionType());
 						}
 					});
+				return;
 			}
 		}
 		start.expected("more statements");

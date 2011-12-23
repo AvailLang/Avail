@@ -37,6 +37,7 @@ import java.util.List;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
 
@@ -49,11 +50,23 @@ public class AssignmentNodeDescriptor
 extends ParseNodeDescriptor
 {
 	/**
-	 * My slots of type {@link AvailObject}.
-	 *
-	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+	 * My integer slots.
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	public enum IntegerSlots
+	implements IntegerSlotsEnum
+	{
+		/**
+		 * The {@linkplain AssignmentNodeDescriptor assignment node}'s flags.
+		 */
+		@BitFields(describedBy=Flags.class)
+		FLAGS
+	}
+
+	/**
+	 * My slots of type {@link AvailObject}.
+	 */
+	public enum ObjectSlots
+	implements ObjectSlotsEnum
 	{
 		/**
 		 * The {@linkplain VariableUseNodeDescriptor variable} being assigned.
@@ -61,12 +74,24 @@ extends ParseNodeDescriptor
 		VARIABLE,
 
 		/**
-		 * The actual {@linkplain ParseNodeDescriptor expression} providing the value
-		 * to assign.
+		 * The actual {@linkplain ParseNodeDescriptor expression} providing the
+		 * value to assign.
 		 */
 		EXPRESSION
 	}
 
+	/**
+	 * Bit fields for the {@link IntegerSlots#FLAGS FLAGS} integer slot.
+	 */
+	public static final class Flags
+	{
+		/**
+		 * Is this an inline {@linkplain AssignmentNodeDescriptor assignment}?
+		 */
+		@BitField(shift=0, bits=1)
+		static final BitField IS_INLINE =
+			bitField(Flags.class, "IS_INLINE");
+	}
 
 	/**
 	 * Setter for field variable.
@@ -110,10 +135,25 @@ extends ParseNodeDescriptor
 		return object.slot(ObjectSlots.EXPRESSION);
 	}
 
+	/**
+	 * Does the {@linkplain AvailObject object} represent an inline assignment?
+	 *
+	 * @param object An object.
+	 * @return {@code true} if the object represents an inline assignment,
+	 *         {@code false} otherwise.
+	 */
+	private boolean isInline (final @NotNull AvailObject object)
+	{
+		return object.bitSlot(IntegerSlots.FLAGS, Flags.IS_INLINE) == 1;
+	}
 
 	@Override @AvailMethod
 	AvailObject o_ExpressionType (final AvailObject object)
 	{
+		if (!isInline(object))
+		{
+			return Types.TOP.o();
+		}
 		return object.expression().expressionType();
 	}
 
@@ -235,27 +275,32 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Create a new {@linkplain AssignmentNodeDescriptor assignment node} using the
-	 * given {@linkplain VariableUseNodeDescriptor variable use} and {@linkplain
-	 * ParseNodeDescriptor expression}.
+	 * Create a new {@linkplain AssignmentNodeDescriptor assignment node} using
+	 * the given {@linkplain VariableUseNodeDescriptor variable use} and
+	 * {@linkplain ParseNodeDescriptor expression}.
 	 *
 	 * @param variableUse
-	 *            A use of the variable into which to assign.
+	 *        A use of the variable into which to assign.
 	 * @param expression
-	 *            The expression whose value should be assigned to the variable.
+	 *        The expression whose value should be assigned to the variable.
+	 * @param isInline
+	 *        {@code true} to create an inline assignment, {@code false}
+	 *        otherwise.
 	 * @return The new assignment node.
 	 */
 	public static AvailObject from (
 		final AvailObject variableUse,
-		final AvailObject expression)
+		final AvailObject expression,
+		final boolean isInline)
 	{
 		final AvailObject assignment = mutable().create();
 		assignment.setSlot(ObjectSlots.VARIABLE, variableUse);
 		assignment.setSlot(ObjectSlots.EXPRESSION, expression);
+		assignment.bitSlotPut(
+			IntegerSlots.FLAGS, Flags.IS_INLINE, isInline ? 1 : 0);
 		assignment.makeImmutable();
 		return assignment;
 	}
-
 
 	/**
 	 * Construct a new {@link AssignmentNodeDescriptor}.
