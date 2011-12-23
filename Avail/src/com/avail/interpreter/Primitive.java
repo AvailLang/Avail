@@ -1233,11 +1233,11 @@ public enum Primitive
 			assert falseBlock.code().numArgs() == 0;
 			if (aBoolean.extractBoolean())
 			{
-				return interpreter.invokeFunctionArguments (
+				return interpreter.invokeFunctionArguments(
 					trueBlock,
 					Collections.<AvailObject>emptyList());
 			}
-			return interpreter.invokeFunctionArguments (
+			return interpreter.invokeFunctionArguments(
 				falseBlock,
 				Collections.<AvailObject>emptyList());
 		}
