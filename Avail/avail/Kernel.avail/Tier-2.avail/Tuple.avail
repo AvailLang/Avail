@@ -650,6 +650,18 @@ Method "_r_" is [radix : [2..36], digits : string |
 	result;
 ];
 
+Restriction "_r_" is [radixType : [2..36] type, digitsType : string type |
+	maxStringSize ::= digitsType sizes upper bound;
+	if maxStringSize is finite then [
+		/* Compute a rough bound based on the string size and radix. */
+		finiteMaxStringSize ::= cast maxStringSize into [w : whole number | w;];
+		maxRadix ::= radixType upper bound;
+		[0..maxRadix ^ finiteMaxStringSize);
+	] else [
+		whole number;
+	];
+];
+
 Method "_to_" is [a : character, b : character |
 	result : string := "";
 	start : whole number := code point of a;
