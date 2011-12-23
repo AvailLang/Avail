@@ -45,7 +45,8 @@ Names
 	"_|_",
 	"not_",
 	"_xor_",
-	"_not=_"
+	"_not=_",
+	"_implies_"
 Body
 
 
@@ -79,11 +80,8 @@ Restriction "if_then_else_" is [
 		if bt = trueType then [
 			result := tbt result;
 		] else [
-			if bt = falseType then [
-				result := fbt result;
-			] else [
-				Crash "Conditional's type is unknown in if_then_else_";
-			];
+			Assert bt = falseType;
+			result := fbt result;
 		];
 	];
 	result;
@@ -216,7 +214,7 @@ Method "not_" is [a : falseType |
 
 
 
-Method "_xor_" is [a : boolean , b : boolean |
+Method "_xor_" is [a : boolean, b : boolean |
 	not (a = b);
 ] : boolean;
 
@@ -226,6 +224,43 @@ Restriction "_xor_" is [at : type, bt : type |
 	] else [
 		if at = bt then [falseType;] else [trueType;];
 	];
+];
+
+
+
+Method "_implies_" is [a : boolean, b : boolean |
+	true;
+] : boolean;
+
+Method "_implies_" is [a : trueType, b : falseType |
+	false;
+] : falseType;
+
+Restriction "_implies_" is [at : boolean type, bt : boolean type |
+	res : type := boolean;
+	if at = trueType then [res := bt;];
+	if at = falseType then [res := trueType;];
+	if bt = trueType then [res := trueType;];
+	res;
+];
+
+Abstract method "_implies_" for [boolean, []->boolean]->boolean;
+
+Method "_implies_" is [a : falseType, b : []->boolean |
+	true;
+] : trueType;
+
+Method "_implies_" is [a : trueType, b : []->boolean |
+	/* Evaluate b because a leaves it contingent. */
+	Primitive 45;
+] : boolean;
+
+Restriction "_implies_" is [at : boolean type, bt : ([]->boolean) type |
+	res : type := boolean;
+	if at = trueType then [res := bt result;];
+	if at = falseType then [res := trueType;];
+	if bt result = trueType then [res := trueType;];
+	res;
 ];
 
 

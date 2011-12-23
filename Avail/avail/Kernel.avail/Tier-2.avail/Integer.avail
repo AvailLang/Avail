@@ -428,13 +428,13 @@ Restriction "_mod_" is [aT : integerType, bT : integerType |
 ] : integerType;
 
 
-Method "_^_" is [base : extended integer, power : whole number |
+Method "_^_" is [base : extended integer, exponent : whole number |
 	/*  Uses identities b^(2x) = (b^2)^x, and b^(2x+1) = (b^2)^x*b  */
-	if power = 0 then [
+	if exponent = 0 then [
 		1;
 	] else [
-		temp ::= (base*base)^(power/2);
-		if power is odd then [temp * base;] else [temp;];
+		temp ::= (base*base)^(exponent/2);
+		if exponent is odd then [temp*base;] else [temp;];
 	];
 ] : extended integer;
 
@@ -535,74 +535,108 @@ Restriction "_min_" is [aT : integerType, bT : integerType |
 ] : integerType;
 
 
-Restriction "_^_" is [baseT : integerType, powerT : integerType |
-	if baseT = terminates | powerT = terminates then [
-		terminates;
-	] else [
-		/* powerT represents at least one value.  The values must all be >= 0.  */
-		if type intersection of baseT and [-INF..0) not = terminates then [
-			/* There is a possible negative base.  Use the top exponent and
-			   the second-to-top exponent to determine the range.  */
-			if powerT upper bound is finite then [
-				/* A finite upper bound on the exponent - use the top exponent
-				   and the top exponent minus one (if in range) to determine the
-				   result range.  Of those exponents, the odd one will give the min
-				   result when applied to the base's lower bound, but the even one
-				   will give the max result when applied to either the base's upper
-				   bound or lower bound (choose one with largest magnitude).  */
-				cast powerT upper bound into [top : [0..INF) |
-					second ::= (top - 1) max powerT lower bound;
-					cast (if top is even then [top;] else [second;]) into [topEven : [0..INF) |
-						cast (if top is odd then [top;] else [second;]) into [topOdd : [0..INF) |
-							range from baseT lower bound ^ topOdd
-								inclusive true
-								to ((-baseT lower bound) max baseT upper bound) ^ topEven
-								inclusive true;
+Restriction "_^_" is [
+		baseT : extended integer type,
+		exponentT : whole number type |
+	low : extended integer := INF;
+	high : extended integer := -INF;
+	includeMinusINF : boolean := false;
+	includeINF : boolean := false;
+	tryBase ::= [base : extended integer |
+		if base is finite then [
+			tryExponent ::= [exponent : [0..INF] |
+				cast exponent into [finiteExponent : whole number |
+					/* finite ^ bounded case */
+					value ::= base ^ finiteExponent;
+					low := low min value;
+					high := high max value;
+				] otherwise [
+					/* finite ^ unbounded case */
+					if base < -1 then [
+						/* -2^n produces arbitrarily large positives and
+						   negatives (as can -3^n, etc). */
+						low := -INF;
+						high := INF;
+					] else [
+						if base = -1 then [
+							low := low min -1;
+							high := high max 1;
+						] else [
+							if base <= 1 then [
+								/* 0^n and 1^n are 0 and 1 respectively. */
+								low := low min base;
+								high := high max base;
+							] else [
+								/* 2^n can be arbitrarily large (as can 3^n,
+								   etc). */
+								high := INF;
+							];
 						];
 					];
 				];
-			] else [
-				/* Base may be negative, but exponent is unbounded.  Check
-				   for specially restricted base range cases.  */
-				if type intersection of baseT and [-INF..-2] not = terminates then [
-					/* We have a value < -1 possible in the base.  It has unlimited
-					   finite range when raised to an unlimited finite power.  */
-					(-INF..INF);
-				] else [
-					/* -1 is the only negative possible for the base, so the lower
-					   bound is -1, but the upper bound still depends...  */
-					if type intersection of baseT and [2..INF] not = terminates then [
-						/* Potential growth in the positive direction... */
-						[-1..INF);
-					] else [
-						/* Largest base is either 0 or 1.  Range is either [-1..0] or [-1..1]. */
-						[-1..baseT upper bound];
-					];
+			];
+			tryExponent apply <exponentT lower bound>;
+			tryExponent apply <exponentT upper bound>;
+			if exponentT upper bound > exponentT lower bound then [
+				/* At least two exponents are possible. */
+				if exponentT upper bound is finite then [
+					/* Consider the top two (legal) exponents, since odd and
+					   even can produce differently signed results. */
+					tryExponent apply <exponentT upper bound - 1>;
+				];
+				if exponentT lower bound is finite then [
+					/* And just for giggles, use the second-lowest bound. */
+					tryExponent apply <exponentT lower bound + 1>;
 				];
 			];
 		] else [
-			/* The base range is entirely non-negative. */
-			if powerT upper bound is finite then [
-				/* Finite upper bound on exponent - upper bound is the upper
-				   bound of base raised to the upper bound of exponent.  */
-				cast powerT lower bound into [lowExp : whole number |
-					cast powerT upper bound into [highExp : whole number |
-						[baseT lower bound ^ lowExp .. baseT upper bound ^ highExp];
+			/* unbounded or infinite base */
+			inclusive ::= [base..base] <= baseT;
+			if base = -INF then [
+				if exponentT lower bound = exponentT upper bound then [
+					/* Only one exponent is possible, so it only needs to be
+					   extended to one of the infinities. */
+					cast exponentT lower bound into [exponent : whole number |
+						value ::= if exponent is odd then [-INF;] else [INF;];
+						high := high max value;
+						low := low min value;
+						includeMinusINF := includeMinusINF
+							| (inclusive & value = -INF);
+						includeINF := includeINF | (inclusive & value = INF);
 					];
+				] else [
+					/* At least two exponents are possible (one odd, one even),
+					   so extend to both infinities. */ 
+					low := -INF;
+					high := INF;
+					includeINF := includeINF | inclusive;
+					includeMinusINF := includeMinusINF | inclusive;
 				];
 			] else [
-				/* Exponent may be arbitrarily large.  Check for special cases for base.  */
-				if baseT <= [0..1] then [     /* <= is subtype relation */
-					baseT;
-				] else [
-					/* Base contains at least one value >= 2.  Unlimited expansion.  */
-					cast powerT lower bound into [lowExp : whole number |
-						[baseT lower bound ^ lowExp .. INF);
-					];
-				];
+				/* Positive unbounded base. */
+				high := INF;
+				includeINF := includeINF |  inclusive;
 			];
 		];
 	];
+	tryBase apply<baseT lower bound>;
+	tryBase apply<baseT upper bound>;
+	if [-1..-1] <= baseT then [
+		tryBase apply <-1>;
+	];
+	if [0..0] <= baseT then [
+		tryBase apply <0>;
+	];
+	if [1..1] <= baseT then [
+		tryBase apply <1>;
+	];
+	Assert includeMinusINF implies low = -INF;
+	Assert includeINF implies high = INF;
+	range
+		from low
+		inclusive low not = -INF | includeMinusINF
+		to high
+		inclusive high not = INF | includeINF;
 ] : integerType;
 
 

@@ -2917,33 +2917,6 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 108:</strong> Answer the empty {@linkplain
-	 * SetDescriptor set}.
-	 */
-	prim108_CreateEmptySet(108, 0, CanFold, CannotFail)
-	{
-		@Override
-		public @NotNull Result attempt (
-			final @NotNull List<AvailObject> args,
-			final @NotNull Interpreter interpreter)
-		{
-			assert args.size() == 0;
-			return interpreter.primitiveSuccess(SetDescriptor.empty());
-		}
-
-		@Override
-		protected @NotNull AvailObject privateBlockTypeRestriction ()
-		{
-			return FunctionTypeDescriptor.create(
-				TupleDescriptor.from(),
-				SetTypeDescriptor.setTypeForSizesContentType(
-					IntegerRangeTypeDescriptor.singleInteger(
-						IntegerDescriptor.zero()),
-					ANY.o()));
-		}
-	},
-
-	/**
 	 * <strong>Primitive 109:</strong> Convert a {@linkplain TupleDescriptor
 	 * tuple} into a {@linkplain SetDescriptor set}.
 	 */

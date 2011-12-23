@@ -97,3 +97,23 @@ Print [0 - two31;] type result;
 Print 0 - two31;
 bigNeg ::= -two31;
 Print two31;
+
+/* Test that restrictions on "_^_" are as precise as possible. */
+/****
+bases ::= <-INF, -2, -1, 0, 1, 2, INF>;
+exponents ::= <0, 1, 2, 3, 4, INF>;
+
+1 to ||bases|| do [lowerSubscript : natural number |
+	lowerSubscript to ||bases|| do [upperSubscript : natural number |
+		baseType : extended integer := terminates;
+		lowerSubscript to upperSubscript do [subscript : natural number |
+			baseType := type union of baseType and bases[subscript];
+		];
+		
+
+		
+		bases ::= bases[lowerSubscript..upperSubscript]
+**/
+
+Assert [x : extended integer, y : whole number | x ^ y;] type result = extended integer;
+Assert [x : integer, y : whole number | x ^ y;] type result = integer;

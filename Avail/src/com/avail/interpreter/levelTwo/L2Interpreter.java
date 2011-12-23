@@ -2409,7 +2409,11 @@ implements L2OperationDispatcher
 		{
 			// TODO: [TLS] Remove this after debugging.
 			valueObject.isInstanceOf(expectedType);
-			error("Return value does not agree with expected type");
+			error(
+				"Return value does not agree with expected type.%n"
+				+ "Actual object = %s%nExpected type = %s",
+				valueObject,
+				expectedType);
 		}
 		pointerAtPut(callerStackpIndex, valueObject);
 	}
