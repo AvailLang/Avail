@@ -5821,6 +5821,47 @@ public enum Primitive
 	},
 
 	/**
+	 * <strong>Primitive 254:</strong> Read the requested number of characters
+	 * from the console. Answers a tuple containing at most the requested
+	 * number of characters; the tuple will only be shorter if the console
+	 * input stream reached end-of-file during the read.
+	 */
+	prim254_ReadFromConsole(254, 1, Unknown)
+	{
+		@Override
+		public Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
+		{
+			assert args.size() == 1;
+			final AvailObject aNaturalNumber = args.get(0);
+			final int charactersToRead = aNaturalNumber.extractInt();
+			final char[] buffer = new char[charactersToRead];
+			final Reader reader = new InputStreamReader(System.in);
+			final int charactersRead;
+			try
+			{
+				charactersRead = reader.read(buffer, 0, charactersToRead);
+			}
+			catch (final IOException e)
+			{
+				return interpreter.primitiveFailure(E_IO_ERROR);
+			}
+			return interpreter.primitiveSuccess(StringDescriptor.from(
+				new String(buffer, 0, charactersRead)));
+		}
+
+		@Override
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
+		{
+			return FunctionTypeDescriptor.create(
+				TupleDescriptor.from(
+					IntegerRangeTypeDescriptor.wholeNumbers()),
+				TupleTypeDescriptor.stringTupleType());
+		}
+	},
+
+	/**
 	 * <strong>Primitive 255:</strong> Message precedence declaration with
 	 * {@linkplain TupleDescriptor tuple} of {@linkplain SetDescriptor sets} of
 	 * messages to exclude for each argument position. Note that the tuple's
@@ -8242,7 +8283,7 @@ public enum Primitive
 	 * @param flag The {@code Flag} to test.
 	 * @return Whether that {@code Flag} is set for this primitive.
 	 */
-	public final boolean hasFlag(final Flag flag)
+	public final boolean hasFlag (final Flag flag)
 	{
 		return primitiveFlags.contains(flag);
 	}

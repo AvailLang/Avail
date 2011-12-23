@@ -82,8 +82,8 @@ Names
 
 	"Assert_",
 
-	"_as basic string"
-	
+	"_as basic string",
+	"read_characters from console"
 Body
 
 /* Define the private module variables.  These are here simply to allow the
@@ -258,6 +258,13 @@ Method "_can't have_" is [names : setOfString, except : tupleOfSetOfString |
 	Failed;
 ] : void;
 
+Method "read_characters from console" is
+[
+	charactersRequested : whole number
+|
+	Primitive 254 (failureCode : natural number);
+	Crash "read from console failed";
+] : string;
 
 Method "Print_" is [something : string |
 	Primitive 258;
@@ -282,7 +289,6 @@ Method "Halt" is [
 Method "_=_" is [a : any, b : any |
 	Primitive 60;
 ] : boolean;
-
 
 /* The subtype relation... */
 Method "_<=_" is [a : type, b : type |
