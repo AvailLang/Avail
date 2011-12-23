@@ -47,6 +47,7 @@ Names
 	"falseType", "float",
 	"integer", "integerType",
 	"mapType", "meta",
+	"number",
 	"process",
 	"set", "setType", "string",
 	"terminates", "terminatesType", "trueType", "tuple",
@@ -92,8 +93,8 @@ Body
 privateAll                         ::= Special Object 1;
 privateBoolean                     ::= Special Object 2;
 privateCharacter                   ::= Special Object 3;
-privateFunction                     ::= Special Object 4;
-privateFunctionType                 ::= Special Object 5;
+privateFunction                    ::= Special Object 4;
+privateFunctionType                ::= Special Object 5;
 privateCompiledCode                ::= Special Object 6;
 privateContainer                   ::= Special Object 7;
 privateContainerType               ::= Special Object 8;
@@ -104,6 +105,7 @@ privateDouble                      ::= Special Object 12;
 privateExtendedInteger             ::= Special Object 13;
 privateFalseType                   ::= Special Object 14;
 privateFloat                       ::= Special Object 15;
+privateNumber                      ::= Special Object 16;
 privateInteger                     ::= Special Object 17;
 privateIntegerType                 ::= Special Object 18;
 privateMapType                     ::= Special Object 19;
@@ -153,7 +155,7 @@ Method "any"                    is [privateAll;];
 Method "atom"                   is [privateAtom;];
 Method "boolean"                is [privateBoolean;];
 Method "character"              is [privateCharacter;];
-Method "function"                is [privateFunction;];
+Method "function"               is [privateFunction;];
 Method "compiledCode"           is [privateCompiledCode;];
 Method "container"              is [privateContainer;];
 Method "continuation"           is [privateContinuation;];
@@ -162,6 +164,7 @@ Method "extended integer"       is [privateExtendedInteger;];
 Method "falseType"              is [privateFalseType;];
 Method "float"                  is [privateFloat;];
 Method "integer"                is [privateInteger;];
+Method "number"                 is [privateNumber;];
 Method "process"                is [privateProcess;];
 Method "set"                    is [privateSet;];
 Method "string"                 is [privateString;];

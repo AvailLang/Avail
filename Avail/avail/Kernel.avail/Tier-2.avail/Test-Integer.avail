@@ -63,14 +63,14 @@ Assert integer range 0 type times INF type EQ terminates;
 
 Method "phony_+_" is
 [
-	a : extended integer,
-	b : extended integer
+	a : number,
+	b : number
 |
 	Primitive 1 (failureReason : natural number);
 	/* Print failureReason; */
 	/* Print "Answering 666 instead."; */
 	666;
-] : extended integer;
+] : number;
 
 Assert phony 1 + 2 = 3;
 Assert phony 2 + 2 = 4;

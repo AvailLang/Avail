@@ -100,9 +100,9 @@ public enum Primitive
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					IntegerRangeTypeDescriptor.extendedIntegers(),
-					IntegerRangeTypeDescriptor.extendedIntegers()),
-				IntegerRangeTypeDescriptor.extendedIntegers());
+					NUMBER.o(),
+					NUMBER.o()),
+				NUMBER.o());
 		}
 	},
 
@@ -135,9 +135,9 @@ public enum Primitive
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					IntegerRangeTypeDescriptor.extendedIntegers(),
-					IntegerRangeTypeDescriptor.extendedIntegers()),
-				IntegerRangeTypeDescriptor.extendedIntegers());
+					NUMBER.o(),
+					NUMBER.o()),
+				NUMBER.o());
 		}
 	},
 
@@ -170,9 +170,9 @@ public enum Primitive
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					IntegerRangeTypeDescriptor.extendedIntegers(),
-					IntegerRangeTypeDescriptor.extendedIntegers()),
-				IntegerRangeTypeDescriptor.extendedIntegers());
+					NUMBER.o(),
+					NUMBER.o()),
+				NUMBER.o());
 		}
 	},
 
@@ -206,9 +206,9 @@ public enum Primitive
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					IntegerRangeTypeDescriptor.extendedIntegers(),
-					IntegerRangeTypeDescriptor.extendedIntegers()),
-				IntegerRangeTypeDescriptor.extendedIntegers());
+					NUMBER.o(),
+					NUMBER.o()),
+				NUMBER.o());
 		}
 	},
 
@@ -236,8 +236,8 @@ public enum Primitive
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					IntegerRangeTypeDescriptor.extendedIntegers(),
-					IntegerRangeTypeDescriptor.extendedIntegers()),
+					NUMBER.o(),
+					NUMBER.o()),
 				EnumerationTypeDescriptor.booleanObject());
 		}
 	},
@@ -266,8 +266,8 @@ public enum Primitive
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					IntegerRangeTypeDescriptor.extendedIntegers(),
-					IntegerRangeTypeDescriptor.extendedIntegers()),
+					NUMBER.o(),
+					NUMBER.o()),
 				EnumerationTypeDescriptor.booleanObject());
 		}
 	},

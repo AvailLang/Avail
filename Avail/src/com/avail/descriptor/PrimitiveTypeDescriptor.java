@@ -208,9 +208,9 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anIntegerRangeType)
 	{
-		//  Parent of the top integer range type is all, so continue searching there.
-
-		return ANY.o().isSubtypeOf(object);
+		// Parent of the top integer range type is number, so continue
+		// searching there.
+		return NUMBER.o().isSubtypeOf(object);
 	}
 
 	@Override @AvailMethod

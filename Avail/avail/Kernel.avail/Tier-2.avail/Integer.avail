@@ -61,76 +61,66 @@ Body
    methods until link time after a definition point for the method, so apparent
    circularities are easily avoided by the forward declaration mechanism. */
 
-Forward "_+_" for [extended integer, extended integer]->extended integer;
-Forward "_-_" for [extended integer, extended integer]->extended integer;
-Forward "-_" for [extended integer]->extended integer;
-Forward "_*_" for [extended integer, extended integer]->extended integer;
-Forward "_/_" for [extended integer, extended integer]->extended integer;
+Forward "_+_" for [number, number]->number;
+Forward "_-_" for [number, number]->number;
+Forward "-_" for [number]->number;
+Forward "_*_" for [number, number]->number;
+Forward "_/_" for [number, number]->number;
 Forward "_mod_" for [integer, [1..INF]]->extended integer;
 Forward "_^_" for [extended integer, whole number]->extended integer;
-Forward "_max_" for [extended integer, extended integer]->extended integer;
-Forward "_min_" for [extended integer, extended integer]->extended integer;
-
-
-
-/* Integer division error handler */
-
-divisionByZeroHandler : [] -> extended integer := [
-	Crash "Division by zero";
-] : terminates;
-
-
+Forward "_max_" for [number, number]->number;
+Forward "_min_" for [number, number]->number;
 
 /* Integer comparison operations... */
 
-Method "_<_" is [a : extended integer, b : extended integer |
+Method "_<_" is [a : number, b : number |
 	Primitive 5;
 ] : boolean;
 
-Method "_>_" is [a : extended integer, b : extended integer |
+Method "_>_" is [a : number, b : number |
 	b < a;
 ] : boolean;
 
-Method "_<=_" is [a : extended integer, b : extended integer |
+Method "_<=_" is [a : number, b : number |
 	Primitive 6;
 ] : boolean;
 
-Method "_>=_" is [a : extended integer, b : extended integer |
+Method "_>=_" is [a : number, b : number |
 	b <= a;
 ] : boolean;
 
 
 /* Define the tertiary comparators.  Very handy, syntactically. */
 
-Method "_<_<_" is [a : extended integer, b : extended integer, c : extended integer |
+Method "_<_<_" is [a : number, b : number, c : number |
 	a < b & [b < c;];
 ] : boolean;
 
-Method "_<_<=_" is [a : extended integer, b : extended integer, c : extended integer |
+Method "_<_<=_" is [a : number, b : number, c : number |
 	a < b & [b <= c;];
 ] : boolean;
 
-Method "_<=_<_" is [a : extended integer, b : extended integer, c : extended integer |
+Method "_<=_<_" is [a : number, b : number, c : number |
 	a <= b & [b < c;];
 ] : boolean;
 
-Method "_<=_<=_" is [a : extended integer, b : extended integer, c : extended integer |
+Method "_<=_<=_" is [a : number, b : number, c : number |
 	a <= b & [b <= c;];
 ] : boolean;
 
-Method "_>_>_" is [a : extended integer, b : extended integer, c : extended integer |
+Method "_>_>_" is [a : number, b : number, c : number |
 	a > b & [b > c;];
 ] : boolean;
 
-Method "_>_>=_" is [a : extended integer, b : extended integer, c : extended integer |
+Method "_>_>=_" is [a : number, b : number, c : number |
 	a > b & [b >= c;];
 ] : boolean;
 
-Method "_>=_>_" is [a : extended integer, b : extended integer, c : extended integer |
+Method "_>=_>_" is [a : number, b : number, c : number |
 	a >= b & [b > c;];
 ] : boolean;
 
-Method "_>=_>=_" is [a : extended integer, b : extended integer, c : extended integer |
+Method "_>=_>=_" is [a : number, b : number, c : number |
 	a >= b & [b >= c;];
 ] : boolean;
 
@@ -149,6 +139,18 @@ Restriction "_U_" is [st : setType, st2 : setType |
 
 {"_U_"} can't have <{},{"_U_"}>;
 
+numberRestrictionFunction ::=
+	[
+		aT : number type,
+		bT : number type
+	|
+		if aT = double | bT = double then [ double; ]
+		else
+		[
+			if aT = float | bT = float then [ float; ]
+			else [ extended integer; ];
+		];
+	];
 
 /* Integer primitives, including precedence rules... */
 
@@ -168,51 +170,46 @@ power	can't have	<sum U product U negation U power,	sum U product>;
 {"|_|"} can't have <{"|_|"}>;	/* disallow dangerous and redundant ||x|| for abs(abs(x)). */
 
 
-Method "_+_" is [a : extended integer, b : extended integer |
+Method "_+_" is [a : number, b : number |
 	Primitive 1 (failureCode : natural number);
-	if a is infinite & b is infinite & a not = b then [
-		Crash "Can't add positive infinity to negative infinity";
-	] else [
-		Crash "Unknown problem in addition primitive";
-	];
-] : extended integer;
+	Crash "addition failed";
+] : number;
 
-Method "_-_" is [a : extended integer, b : extended integer |
+Method "_-_" is [a : number, b : number |
 	Primitive 2 (failureCode : natural number);
-	if a is infinite & a = b then [
-		Crash "Can't subtract positive or negative infinity from itself";
-	] else [
-		Crash "Unknown problem in subtraction primitive";
-	];
-] : extended integer;
+	Crash "subtraction failed";
+] : number;
 
-Method "-_" is [a : extended integer |
-	/* Unary extended integer negation.  There are no negative integer
-	   constants in Avail.  Just use negation - it looks the same.  */
-	0 - a;
-] : extended integer;
-
-Method "_*_" is [a : extended integer, b : extended integer |
+Method "_*_" is [a : number, b : number |
 	Primitive 3 (failureCode : natural number);
-	if (a is infinite & b = 0) | (a = 0 & b is infinite) then [
-		Crash "Can't multiply zero by infinity";
-	] else [
-		Crash "Unknown problem in multiplication primitive";
-	];
-] : extended integer;
+	Crash "multiplication failed";
+] : number;
 
-Method "_/_" is [a : extended integer, b : extended integer |
+Method "_/_" is [a : number, b : number |
 	Primitive 4 (failureCode : natural number);
-	if b = 0 then [
-		divisionByZeroHandler apply <>;
-	] else [
-		if a is infinite & b is infinite then [
-			Crash "Can't divide infinity by infinity";
-		] else [
-			Crash "Unknown problem in division primitive";
-		];
-	];
-] : extended integer;
+	Crash "division failed";
+] : number;
+
+Restriction "_+_" is numberRestrictionFunction;
+Restriction "_-_" is numberRestrictionFunction;
+Restriction "_*_" is numberRestrictionFunction;
+Restriction "_/_" is numberRestrictionFunction;
+
+Method "-_" is [a : number |
+	/* Unary negation.  There are no negative numeric constants in Avail.
+	   Just use negation - it looks the same.  */
+	0 - a;
+] : number;
+
+Restriction "-_" is
+[
+	aT : number type
+|
+	resultType : number type := extended integer;
+	if aT = double then [ resultType := double; ];
+	if aT = float then [ resultType := float; ];
+	resultType;
+];
 
 Method "_mod_" is [a : integer, b : [1..INF] |
 	/* If b is infinite, then the modulus is defined as just a. */
@@ -220,13 +217,13 @@ Method "_mod_" is [a : integer, b : [1..INF] |
 ] : extended integer;
 
 
-Method "_max_" is [first : extended integer, second : extended integer |
+Method "_max_" is [first : number, second : number |
 	if first < second then [second;] else [first;];
-] : extended integer;
+] : number;
 
-Method "_min_" is [first : extended integer, second : extended integer |
+Method "_min_" is [first : number, second : number |
 	if first < second then [first;] else [second;];
-] : extended integer;
+] : number;
 
 Method "_is odd" is [a : integer |
 	a mod 2 = 1;
@@ -236,11 +233,12 @@ Method "_is even" is [a : integer |
 	a mod 2 = 0;
 ] : boolean;
 
-Method "|_|" is [a : extended integer |
+Method "|_|" is [a : number |
 	/* Compute the absolute value of the argument... */
 	if a < 0 then [0-a;] else [a;];
-] : extended integer;
+] : number;
 
+Restriction "|_|" is [ aT : number type | aT; ];
 
 
 Method "integer range_plus_" is [a : integerType, b : integerType |

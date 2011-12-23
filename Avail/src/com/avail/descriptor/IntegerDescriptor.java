@@ -171,7 +171,7 @@ extends ExtendedIntegerDescriptor
 		final @NotNull AvailObject object,
 		final AvailObject aType)
 	{
-		if (aType.equals(TOP.o()) || aType.equals(ANY.o()))
+		if (NUMBER.o().isSubtypeOf(aType))
 		{
 			return true;
 		}

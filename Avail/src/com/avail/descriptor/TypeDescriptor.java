@@ -451,9 +451,9 @@ extends AbstractTypeDescriptor
 	@Override @AvailMethod
 	@NotNull AvailObject o_TypeUnionOfIntegerRangeType (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+		final @NotNull AvailObject anIntegerRangeType)
 	{
-		return object.typeUnion(ANY.o());
+		return object.typeUnion(NUMBER.o());
 	}
 
 	@Override @AvailMethod

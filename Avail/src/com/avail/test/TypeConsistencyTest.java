@@ -346,7 +346,7 @@ public class TypeConsistencyTest
 		/** The primitive type representing the extended integers [-∞..∞]. */
 		final static Node EXTENDED_INTEGER = new Node(
 			"EXTENDED_INTEGER",
-			primitiveTypes.get(Types.ANY))
+			primitiveTypes.get(Types.NUMBER))
 		{
 			@Override AvailObject get ()
 			{

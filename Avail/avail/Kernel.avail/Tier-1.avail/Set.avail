@@ -85,10 +85,14 @@ Restriction "||_||" is [st : setType |
 
 /* Helper arithmetic... */
 
-Method "_private plus_" is [a : extended integer, b : extended integer |
+Method "_private plus_" is [a : number, b : number |
 	Primitive 1 (failureCode : natural number);
 	Failed;
-] : extended integer;
+] : number;
+
+Restriction "_private plus_" is [aT : integerType, bT : integerType |
+	extended integer;
+];
 
 
 /* Conversion operations... */
