@@ -681,6 +681,31 @@ public enum Primitive
 	},
 
 	/**
+	 * <strong>Primitive 20:</strong> Get the current time as milliseconds since
+	 * the Unix Epoch.<
+	 */
+	prim20_CurrentTimeMilliseconds(20, 0, CannotFail)
+	{
+		@Override
+		public Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
+		{
+			assert args.size() == 0;
+			return interpreter.primitiveSuccess(
+				IntegerDescriptor.fromLong(System.currentTimeMillis()));
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return FunctionTypeDescriptor.create(
+				TupleDescriptor.from(),
+				IntegerRangeTypeDescriptor.wholeNumbers());
+		}
+	},
+
+	/**
 	 * <strong>Primitive 23:</strong> Has termination been requested for the
 	 * current {@linkplain ProcessDescriptor process}?
 	 */
