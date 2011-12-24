@@ -142,7 +142,7 @@ Restriction "Java type_parameters_" is
 	typeParametersSize ::= cast typeParametersTypeBounds upper bound into
 		[ b : whole number | b; ];  
 	args : tuple of type := <>;
-	1 to typeParametersSize do [i : natural number |
+	From 1 to typeParametersSize do [i : natural number |
 		argType ::= cast typeParametersType[i] into [ e : enum | e; ]
 			otherwise [
 				Fail parse
@@ -267,7 +267,7 @@ Restriction "constructor of_given_" is
 	argTypesSize ::= cast argTypesTypeBounds upper bound into
 		[ b : whole number | b; ];  
 	args : tuple of type := <>;
-	1 to argTypesSize do [i : natural number |
+	From 1 to argTypesSize do [i : natural number |
 		argType ::= cast argTypesType[i] into [ e : enum | e; ]
 			otherwise [
 				Fail parse

@@ -103,10 +103,10 @@ Print two31;
 bases ::= <-INF, -2, -1, 0, 1, 2, INF>;
 exponents ::= <0, 1, 2, 3, 4, INF>;
 
-1 to ||bases|| do [lowerSubscript : natural number |
-	lowerSubscript to ||bases|| do [upperSubscript : natural number |
+From 1 to ||bases|| do [lowerSubscript : natural number |
+	From lowerSubscript to ||bases|| do [upperSubscript : natural number |
 		baseType : extended integer := terminates;
-		lowerSubscript to upperSubscript do [subscript : natural number |
+		From lowerSubscript to upperSubscript do [subscript : natural number |
 			baseType := type union of baseType and bases[subscript];
 		];
 		

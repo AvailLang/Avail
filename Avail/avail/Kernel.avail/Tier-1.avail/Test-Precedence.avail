@@ -70,7 +70,7 @@ Method "_+_*_" is [a : integer, b : integer, c : integer |
 	| x a |
 	[	x := (1 to: 7) each.
 		a := Array new: x.
-		1 to: x do: [:i | a at: i put: #(' + 1' ' * 1') each].
+		From 1 to: x do: [:i | a at: i put: #(' + 1' ' * 1') each].
 		a inject: 'Discard 1' into: [:s1 :s2 | s1 , s2]
 	] captureAll
 */

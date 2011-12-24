@@ -127,7 +127,7 @@ Method "check_accepts_" is [blkType : functionType, tType : tupleType |
 ] : void;
 
 Method "_do_" is [tup : tuple, blk : [terminates]->void |
-	1 to ||tup|| do [i : natural number |
+	From 1 to ||tup|| do [i : natural number |
 		blk apply <tup[i]>;
 	];
 ] : void;
@@ -148,7 +148,7 @@ Restriction "_do_" is [tType : tupleType, blkType : functionType |
 
 Method "_collect_" is [t : tuple, blk : [terminates]->any |
 	result : tuple := <>;
-	1 to ||t|| do [i : natural number |
+	From 1 to ||t|| do [i : natural number |
 		result := result then <blk apply <t[i]>>;
 	];
 	result;
@@ -165,7 +165,7 @@ Restriction "_collect_" is [tType : tupleType, blkType : functionType |
 
 Method "_select_" is [t : tuple, blk : [terminates]->boolean |
 	result : tuple := <>;
-	1 to ||t|| do [i : natural number |
+	From 1 to ||t|| do [i : natural number |
 		if blk apply <t[i]> then [
 			result := result then <t[i]>;
 		];
@@ -190,7 +190,7 @@ Restriction "_select_" is [tType : tupleType, blkType : functionType |
 
 Method "_reject_" is [t : tuple, blk : [terminates]->boolean |
 	result : tuple := <>;
-	1 to ||t|| do [i : natural number |
+	From 1 to ||t|| do [i : natural number |
 		if not blk apply <t[i]> then [
 			result := result then <t[i]>;
 		];
@@ -266,12 +266,12 @@ Method "_sum" is [t : tuple of extended integer |
 
 Restriction "_sum" is [tType : tupleType |
 	currentRange : integerType := [0..0];
-	1 to tType sizes lower bound do [i : natural number |
+	From 1 to tType sizes lower bound do [i : natural number |
 		elementRange ::= cast tType[i] into [intT : integerType | intT; ];
 		currentRange := integer range currentRange plus elementRange;];
 	broadRange : integerType := currentRange;
 	endOfVariation ::= tType sizes upper bound min (||tType leading types|| + 1);
-	tType sizes lower bound + 1 to endOfVariation do [i : natural number |
+	From tType sizes lower bound + 1 to endOfVariation do [i : natural number |
 		elementRange ::= cast tType[i] into [intT : integerType | intT; ];
 		currentRange := integer range currentRange plus elementRange;
 		broadRange := type union of broadRange and currentRange;];
@@ -304,7 +304,7 @@ Restriction "_[_]" is [tType : tupleType, iType : natural number type |
 	possible : type := terminates;
 	low ::= cast iType lower bound into [x : natural number | x;];
 	high ::= cast iType upper bound into [x : [1..INF] | x;];
-	low min (|| tType leading types || + 1)
+	From low min (|| tType leading types || + 1)
 		to high min (|| tType leading types || + 1)
 		do [x : natural number |
 			possible := type union of tType[x] and possible;
@@ -318,7 +318,7 @@ Restriction "_[_]" is [tType : tupleType, iType : natural number type |
 Method "_to_" is [a : integer, b : integer |
 	/* Use a weak type so result of unrefined "«_‡then»" operation will fit. */
 	result : tuple := <>;   
-	a to b do [i : integer | result := result then <i>;];
+	From a to b do [i : integer | result := result then <i>;];
 	/* The "«_‡then»" operation is not yet refined with a returns clause.
 	   Cast the type downwards, as we know the entries are all integers. */
 	cast result into [x : tuple of integer | x;];
@@ -384,7 +384,7 @@ Method "type of subtuple_from range_to range_" is [
 		variance ::= maxTrimmedStart - minTrimmedStart;
 		resultPattern ::= minTrimmedStart to limit collect [index : [1..INF) |
 			u : type := terminates;
-			index to (index + variance) min limit do [subindex : [1..INF) |
+			From index to (index + variance) min limit do [subindex : [1..INF) |
 				u := type union of u and tt[subindex];
 			];
 			u;
@@ -422,7 +422,7 @@ Restriction "_[_->_]" is [tType : tupleType, iType : integerType, vType : type |
 	/* Deal with replacement in leading types... */
 	if iType lower bound <= || leading || then [
 		cast iType lower bound into [low : natural number |
-			low max 1 to || leading || do [x : natural number |
+			From low max 1 to || leading || do [x : natural number |
 				newLeading ::= leading[x -> type union of leading[x] and vType];
 				/* Since we haven't defined "_[_->_]" with a strong enough
 				   returns clause yet (that's what we're in the middle of
@@ -487,7 +487,7 @@ Restriction "splice_" is [ttType : tupleType |
 		ttType sizes upper bound;
 	];
 	result : tupleType := <> type;
-	1 to limit do [i : natural number |
+	From 1 to limit do [i : natural number |
 		result := concatenate tuple type result
 			and cast ttType[i] into [x : tupleType | x;];
 	];
@@ -666,7 +666,7 @@ Method "_to_" is [a : character, b : character |
 	result : string := "";
 	start : whole number := code point of a;
 	end : whole number := code point of b;
-	start to end do [i : whole number |
+	From start to end do [i : whole number |
 		cp ::= cast i into [narrow : character code points | narrow;];
 		result := result then <code point cp>;
 	];

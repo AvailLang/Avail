@@ -85,7 +85,7 @@ Method "_emit value on_" is [node : Block Node, gen : Instruction Generator |
 			] else [<>;]
 		outers outers
 		result type (node result type result);
-	1 to ||stats|| do [i : natural number |
+	From 1 to ||stats|| do [i : natural number |
 		if i = ||stats|| then [
 			/* Final statement leaves result on stack. */
 			if stats[i] type <= Declaration Node

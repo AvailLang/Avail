@@ -52,6 +52,11 @@ Assert result = 123;
 
 
 x : integer := 0;
-1 to 1000 do [i : integer |
+From 1 to 1000 do [i : integer |
 	x := x + 1;];
 Assert x = 1000;
+
+y : integer := 0;
+From 2 to 1000 by 2 do [i : integer |
+	y := y + 2;];
+Assert y = 1000;

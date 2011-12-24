@@ -62,7 +62,7 @@ Body
 /*
 [
 	s : set of integer := {};
-	1 to 10000 do [x : integer |
+	From 1 to 10000 do [x : integer |
 		s := s with x;
 	];
 	Assert || s || = 10000;

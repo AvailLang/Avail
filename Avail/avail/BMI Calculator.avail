@@ -1,0 +1,94 @@
+/**
+ * BMI Calculator.avail
+ * Copyright (c) 2011, Richard Arriaga.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "BMI Calculator"
+Extends
+Uses
+	"Kernel"
+Names
+Body
+
+
+Method "⊤" is [ void; ];
+
+/* The BMI Calculator is take from the assignment 2.33 in Java How to Program 
+ * 
+ * This program utilizes x methods to run:
+ * 	1) "Print_" - prints a string to the console
+ *	2) "_r_" - converts a string to a number.  The first argument is the base, 
+ * 		the second argument is the string.  For example:
+ *			10 r "24"; 
+ *		results in the string "24" being converted into the number 24 using
+ *		10 base counting.
+ *	3) "read_characters from console" - the initial Avail console input method.
+ *		This is the a primitive input functionality that reads a series of 
+ *		characters from the console input by the user.  The method expects the 
+ *		number of characters listed as the argument.  For example:
+ *			read 3 characters from console;
+ *		will expect a 3 character string before accept the carriage return.
+ *		Acceptable inputs:
+ * 			"123", "090", "The", etc.
+ */
+ 
+Method "Calculate BMI" is
+[
+
+	Print "Enter Weight (in pounds): ";
+	/* Prompt user for weight input.  Must be 3 digits */
+	weightInPounds : [0..999] := 10 r read 3 characters from console;
+	Print "\n";
+
+/* Loop until_do_ once created can be used here */
+	heightInInches : [0..99];
+	
+	Loop [
+		Print "Enter Height (in inches): ";
+		/*Prompt user for height input.  Must be 2 digits.*/
+		heightInInches := 10 r read 2 characters from console;
+		Print "\n";
+	] until [ 
+		heightInInches > 0;
+	] do [
+		Print "Height must be a positive integer";
+	];
+	
+	bmi :  integer := (weightInPounds * 703) / (heightInInches^2);
+	
+	Print "Body Mass Index (BMI) = "; Print bmi;
+	Print "\n";
+	Print "Underweight: less than 18.5\n";
+	Print "Normal:      between 18.5 and 24.9\n";
+	Print "Overweight:  between 25 and 29.9\n";
+	Print "Obese:       30 or greater\n";
+]:⊤;
+
+Calculate BMI;

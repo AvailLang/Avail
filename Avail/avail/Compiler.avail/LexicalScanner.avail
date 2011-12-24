@@ -195,15 +195,15 @@ dispatch := [->];
 	*&dispatch [code point codePoint] := [sc : Scanner | sc scan whitespace;];
 ];
 
-#"a" to #"z" do [codePoint : whole number |
+From #"a" to #"z" do [codePoint : whole number |
 	*&dispatch [code point codePoint] := [sc : Scanner | sc scan alpha;];
 ];
 
-#"A" to #"Z" do [codePoint : whole number |
+From #"A" to #"Z" do [codePoint : whole number |
 	*&dispatch [code point codePoint] := [sc : Scanner | sc scan alpha;];
 ];
 
-#"0" to #"9" do [codePoint : whole number |
+From #"0" to #"9" do [codePoint : whole number |
 	*&dispatch [code point codePoint] := [sc : Scanner | sc scan digit;];
 ];
 

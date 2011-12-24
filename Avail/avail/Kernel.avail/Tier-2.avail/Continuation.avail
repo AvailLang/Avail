@@ -49,7 +49,7 @@ Names
 	"Loop_while_",
 	"Until_loop_",
 	"While_loop_",
-	"_to_do_",
+	"From_to_do_",
 	"From_to_by_do_"
 Body
 
@@ -203,7 +203,7 @@ Method "While_loop_" is [predicate : []->boolean, block : []->void |
 
 /* Counting... */
 
-Method "_to_do_" is [start : integer, end : (-INF..INF], blk : [terminates]->void |
+Method "From_to_do_" is [start : integer, end : (-INF..INF], blk : [terminates]->void |
 	$body : $[integer,(-INF..INF], [terminates]->void]->void;
 	if start <= end then [
 		blk apply <start>;
@@ -211,7 +211,7 @@ Method "_to_do_" is [start : integer, end : (-INF..INF], blk : [terminates]->voi
 	];
 ] : void;
 
-Restriction "_to_do_" is [
+Restriction "From_to_do_" is [
 		startT : integerType,
 		endT : integerType,
 		blkT : functionType |

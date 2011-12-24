@@ -148,7 +148,7 @@ returns [nT : integerType, blkT : functionType |
 
 Method "each_" is [t : tuple |
 	$there : $[tuple]->any;
-	1 to ||t|| do [i : natural number |
+	From 1 to ||t|| do [i : natural number |
 		if maybe then [
 			Exit there with t[i];
 		];

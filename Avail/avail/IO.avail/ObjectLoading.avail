@@ -71,7 +71,7 @@ Method "Load from_" is [file : Input File |
 	objects : tuple := <>;
 	delayedAssignments : tuple of tuple like <[1..INF), [0..INF)> := <>;
 
-	1 to n do [i : [1..INF) |
+	From 1 to n do [i : [1..INF) |
 		size ::= Read integer from file;
 		ints : tuple of [0..INF) := 1 to size collect [k : [1..INF) |
 			Read integer from file;

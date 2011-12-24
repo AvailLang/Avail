@@ -42,7 +42,7 @@ Body
 
 Method "_check_" is [str : string, ints : tuple of integer |
 	Assert ||str|| = ||ints||;
-	1 to ||str|| do [i : natural number |
+	From 1 to ||str|| do [i : natural number |
 		Assert code point of str[i] = ints[i];
 	];
 ];
