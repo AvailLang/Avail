@@ -144,10 +144,10 @@ numberRestrictionFunction ::=
 		aT : number type,
 		bT : number type
 	|
-		if aT = double | bT = double then [ double; ]
+		if aT <= double | bT <= double then [ double; ]
 		else
 		[
-			if aT = float | bT = float then [ float; ]
+			if aT <= float | bT <= float then [ float; ]
 			else [ extended integer; ];
 		];
 	];
@@ -206,8 +206,8 @@ Restriction "-_" is
 	aT : number type
 |
 	resultType : number type := extended integer;
-	if aT = double then [ resultType := double; ];
-	if aT = float then [ resultType := float; ];
+	if aT <= double then [ resultType := double; ];
+	if aT <= float then [ resultType := float; ];
 	resultType;
 ];
 
