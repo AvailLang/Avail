@@ -45,10 +45,12 @@ Names
 	"Exit_with_",
 	"Loop_",
 	"Loop_until_",
+	"Loop_until_do_",
 	"Loop_while_",
 	"Until_loop_",
 	"While_loop_",
-	"_to_do_"
+	"_to_do_",
+	"From_to_by_do_"
 Body
 
 
@@ -163,6 +165,17 @@ Method "Loop_until_" is [block : []->void, predicate : []->boolean |
 	if not predicate() then [Restart body;];
 ] : void;
 
+Method "Loop_until_do_" is 
+[
+	block : []->void, 
+	predicate : []->boolean,
+	alternateBlock : []->void
+|
+	$body : $[[]->void, []->boolean, []->void]->void;
+	block();
+	if not predicate() then [alternateBlock(); Restart body;];
+] : void;
+
 Method "Loop_while_" is [block : []->void, predicate : []->boolean |
 	$body : $[[]->void, []->boolean]->void;
 	block();
@@ -213,4 +226,74 @@ Restriction "_to_do_" is [
 			Fail parse "block of _to_do_ to accept all integers in the range";];
 	];
 	void;
+];
+
+Method "From_to_by_do_" is
+[
+start : integer,
+end : extended integer,
+incrementer : integer,
+action : [integer]->void
+|
+   counter : integer := start;
+   if incrementer = 0 then [
+   		Crash "Cannot increment by 0.";
+   ];
+   guard : [] -> boolean := if incrementer > 0 
+   		then [ [counter <= end;]; ]
+   		else [ [counter >= end;]; ];
+   [
+        $body : $[]->void;
+
+        if guard() then
+        [
+           action apply <counter>;
+           counter := counter + incrementer;
+           Restart body;
+        ];
+   ]();
+] : void;
+
+Restriction "From_to_by_do_" is
+[
+   startType : integer type,
+   endType : extended integer type,
+   incrementerType : integer type,
+   actionType : ([integer]->void) type
+|
+   startTypeLower :: = startType lower bound;
+   endTypeLower ::= endType lower bound;
+   startTypeUpper :: = startType upper bound;
+   endTypeUpper ::= endType upper bound;
+   if incrementerType <= [0..0] then
+   [
+        Fail parse "The incrementing value must be a non-zero value.";
+   ];
+   if incrementerType <= (-∞..-1] then
+   [
+     if startTypeLower < endTypeLower - 1 then
+     [
+        Fail parse "The starting count's lowest potential value cannot be lower than the ending count's lowest         
+        potential value for a decrementing counter";
+     ];
+     if startTypeUpper < endTypeUpper then
+     [
+       Fail parse "The starting count's largest potential value cannot be lower than the ending count's largest potential 
+       value for a decrementing counter";
+     ];
+  ];
+  if incrementerType <= [1..∞) then
+  [
+     if startTypeLower > endTypeLower then
+     [
+        Fail parse "The starting count's lowest potential value cannot be greater than the ending count's lowest potential 
+        value for an incrementing counter";
+     ];
+     if startTypeUpper > endTypeUpper then
+     [
+        Fail parse "The starting count's largest potential value cannot be greater than the ending count's largest 
+        potential value for an incrementing counter";
+     ];
+  ];
+  void;
 ];
