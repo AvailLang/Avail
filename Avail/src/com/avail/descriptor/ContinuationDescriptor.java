@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import java.util.*;
+import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.L1Operation;
@@ -456,6 +457,42 @@ extends Descriptor
 	{
 		return e == IntegerSlots.LEVEL_TWO_OFFSET
 			|| e == ObjectSlots.LEVEL_TWO_CHUNK;
+	}
+
+	/**
+	 * A substitute for the {@linkplain AvailObject null object}, for use by
+	 * {@link Primitive#prim59_ContinuationStackData}.
+	 */
+	private static AvailObject nullSubstitute;
+
+	/**
+	 * Answer a substitute for the {@linkplain AvailObject null object}. This is
+	 * primarily for use by {@link Primitive#prim59_ContinuationStackData}.
+	 *
+	 * @return An immutable bottom-typed variable.
+	 */
+	public static @NotNull AvailObject nullSubstitute ()
+	{
+		return nullSubstitute;
+	}
+
+	/**
+	 * Create any instances statically well-known to the {@linkplain
+	 * AvailRuntime Avail runtime system}.
+	 */
+	public static void createWellKnownObjects ()
+	{
+		nullSubstitute = VariableDescriptor.forInnerType(
+			BottomTypeDescriptor.bottom()).makeImmutable();
+	}
+
+	/**
+	 * Destroy or reset any instances statically well-known to the {@linkplain
+	 * AvailRuntime Avail runtime system}.
+	 */
+	public static void clearWellKnownObjects ()
+	{
+		nullSubstitute = null;
 	}
 
 	/**

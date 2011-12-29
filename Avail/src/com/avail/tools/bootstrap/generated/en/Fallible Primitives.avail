@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2011.12.22 23:55:53.164 -0600
+ * * Last Generated On: 2011.12.28 22:02:52.957 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -317,27 +317,59 @@ Method "invoke_with_" is
 	Private invoke _fail_primitive with failureCode;
 ] : ⊤;
 
+/**
+ * Restart the continuation with the specified arguments. Execution proceeds as
+ * though the continuation's caller had just invoked the continuation's current
+ * function with the given arguments instead of the original arguments. The
+ * current continuation (in which this primitive was invoked) is completely
+ * replaced by the restarted continuation.
+ *
+ * Parameters:
+ *    aContinuation - The continuation to restart.
+ *    arguments - The new arguments with which to restart `aContinuation`.
+ */
 Method "restart_with_" is 
 [
-	arg1 : continuation,
-	arg2 : tuple
+	aContinuation : continuation,
+	arguments : tuple
 |
 	Primitive 56 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode;
 ] : ⊥;
 
+/**
+ * Exit the continuation and answer the specified value to the continuation's
+ * caller. Execution proceeds as though the continuation's had just returned
+ * from its current function with the supplied value. The current continuation
+ * (in which this primitive was invoked) is completely replaced by the specified
+ * continuation's resumed caller.
+ *
+ * Parameters:
+ *    aContinuation - The continuation to exit.
+ *    value - The value with which to exit `aContinuation`.
+ */
 Method "exit_with_" is 
 [
-	arg1 : continuation,
-	arg2 : any
+	aContinuation : continuation,
+	value : any
 |
 	Primitive 57 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode;
 ] : ⊥;
 
+/**
+ * Restart the continuation with its original arguments. Execution proceeds as
+ * though the continuation's caller had just invoked the continuation's current
+ * function with its original arguments. The current continuation (in which
+ * this primitive was invoked) is completely replaced by the restarted
+ * continuation.
+ *
+ * Parameters:
+ *    aContinuation - The continuation to restart.
+ */
 Method "restart_" is 
 [
-	arg1 : continuation
+	aContinuation : continuation
 |
 	Primitive 58 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode;

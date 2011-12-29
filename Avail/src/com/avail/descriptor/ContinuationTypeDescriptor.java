@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import java.util.List;
+import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.interpreter.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
@@ -292,7 +293,7 @@ extends TypeDescriptor
 	 */
 	public static AvailObject mostGeneralType ()
 	{
-		return MostGeneralType;
+		return mostGeneralType;
 	}
 
 	/**
@@ -302,14 +303,14 @@ extends TypeDescriptor
 	 * (i.e., not specific enough to be able to call it), and having the return
 	 * type bottom.
 	 */
-	private static AvailObject MostGeneralType;
+	private static AvailObject mostGeneralType;
 
 	/**
 	 * The metatype for all continuation types.  In particular, it's just the
 	 * {@linkplain InstanceTypeDescriptor instance type} for the {@linkplain
-	 * #MostGeneralType most general continuation type}.
+	 * #mostGeneralType most general continuation type}.
 	 */
-	private static AvailObject Meta;
+	private static AvailObject meta;
 
 	/**
 	 * Answer the metatype for all continuation types.
@@ -318,23 +319,31 @@ extends TypeDescriptor
 	 */
 	public static AvailObject meta ()
 	{
-		return Meta;
+		return meta;
 	}
 
-	public static void clearWellKnownObjects ()
-	{
-		MostGeneralType = null;
-		Meta = null;
-	}
-
+	/**
+	 * Create any instances statically well-known to the {@linkplain
+	 * AvailRuntime Avail runtime system}.
+	 */
 	public static void createWellKnownObjects ()
 	{
-		MostGeneralType = forFunctionType(
+		mostGeneralType = forFunctionType(
 			FunctionTypeDescriptor.forReturnType(
 				BottomTypeDescriptor.bottom()));
-		MostGeneralType.makeImmutable();
-		Meta = InstanceTypeDescriptor.on(MostGeneralType);
-		Meta.makeImmutable();
+		mostGeneralType.makeImmutable();
+		meta = InstanceTypeDescriptor.on(mostGeneralType);
+		meta.makeImmutable();
+	}
+
+	/**
+	 * Destroy or reset any instances statically well-known to the {@linkplain
+	 * AvailRuntime Avail runtime system}.
+	 */
+	public static void clearWellKnownObjects ()
+	{
+		mostGeneralType = null;
+		meta = null;
 	}
 
 	/**

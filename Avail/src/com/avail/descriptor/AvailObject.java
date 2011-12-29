@@ -87,6 +87,7 @@ implements Iterable<AvailObject>
 		IntegerRangeTypeDescriptor.createWellKnownObjects();
 		FunctionTypeDescriptor.createWellKnownObjects();
 		ContinuationTypeDescriptor.createWellKnownObjects();
+		ContinuationDescriptor.createWellKnownObjects();
 		CompiledCodeTypeDescriptor.createWellKnownObjects();
 		MapTypeDescriptor.createWellKnownObjects();
 		SetTypeDescriptor.createWellKnownObjects();
@@ -129,6 +130,7 @@ implements Iterable<AvailObject>
 		IntegerRangeTypeDescriptor.clearWellKnownObjects();
 		FunctionTypeDescriptor.clearWellKnownObjects();
 		ContinuationTypeDescriptor.clearWellKnownObjects();
+		ContinuationDescriptor.clearWellKnownObjects();
 		CompiledCodeTypeDescriptor.clearWellKnownObjects();
 		MapTypeDescriptor.clearWellKnownObjects();
 		SetTypeDescriptor.clearWellKnownObjects();

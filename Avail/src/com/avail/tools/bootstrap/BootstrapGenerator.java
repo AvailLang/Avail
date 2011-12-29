@@ -163,6 +163,21 @@ public final class BootstrapGenerator
 		new HashMap<AvailObject, String>(specialObjects.size());
 
 	/**
+	 * Answer the name of the specified special object.
+	 *
+	 * @param specialObject A special object.
+	 * @return The localized name of the special object.
+	 */
+	private @NotNull String specialObjectName (
+		final @NotNull AvailObject specialObject)
+	{
+		final String name = namesBySpecialObject.get(specialObject);
+		assert name != null :
+			String.format("no special object for %s", specialObject);
+		return name;
+	}
+
+	/**
 	 * Answer a textual representation of the special objects that is
 	 * satisfactory for use in an Avail {@linkplain ModuleDescriptor module}
 	 * header.
@@ -426,9 +441,7 @@ public final class BootstrapGenerator
 				? primitiveBundle.getString(argNameKey)
 				: preamble.getString(parameterPrefix.name()) + i;
 			final AvailObject type = parameterTypes.typeAtIndex(i);
-			final String typeName = namesBySpecialObject.get(type);
-			assert typeName != null
-				: String.format("no special object for %s", type);
+			final String typeName = specialObjectName(type);
 			builder.append('\t');
 			builder.append(argName);
 			builder.append(" : ");
@@ -461,10 +474,8 @@ public final class BootstrapGenerator
 		builder.append(primitive.primitiveNumber);
 		if (!primitive.hasFlag(Flag.CannotFail))
 		{
-			final String varTypeName = namesBySpecialObject.get(
+			final String varTypeName = specialObjectName(
 				primitive.failureVariableType());
-			assert varTypeName != null
-				: String.format("no special object for %s", varTypeName);
 			builder.append(" (");
 			builder.append(
 				preamble.getString(primitiveFailureVariableName.name()));
@@ -512,10 +523,7 @@ public final class BootstrapGenerator
 		}
 		builder.append(statements);
 		builder.append("] : ");
-		final String returnTypeName = namesBySpecialObject.get(returnType);
-		assert returnTypeName != null
-			: String.format("no special object for %s", returnTypeName);
-		builder.append(returnTypeName);
+		builder.append(specialObjectName(returnType));
 		return builder.toString();
 	}
 
@@ -616,14 +624,14 @@ public final class BootstrapGenerator
 		writer.print(
 			preamble.getString(primitiveFailureFunctionName.name()));
 		writer.print(" : ");
-		writer.print(namesBySpecialObject.get(functionType));
+		writer.print(specialObjectName(functionType));
 		writer.println(" :=");
 		writer.println("\t[");
 		writer.print("\t\t");
 		writer.print(preamble.getString(parameterPrefix.name()));
 		writer.print(1);
 		writer.print(" : ");
-		writer.println(namesBySpecialObject.get(ANY.o()));
+		writer.println(specialObjectName(ANY.o()));
 		writer.println("\t|");
 		writer.print("\t\t");
 		writer.print(MessageFormat.format(
@@ -631,8 +639,7 @@ public final class BootstrapGenerator
 			preamble.getString(parameterPrefix.name()) + 1));
 		writer.println(";");
 		writer.print("\t] : ");
-		writer.print(
-			namesBySpecialObject.get(BottomTypeDescriptor.bottom()));
+		writer.print(specialObjectName(BottomTypeDescriptor.bottom()));
 		writer.println(';');
 		writer.println();
 	}
@@ -655,7 +662,7 @@ public final class BootstrapGenerator
 			TupleDescriptor.from(
 				IntegerRangeTypeDescriptor.naturalNumbers()),
 			BottomTypeDescriptor.bottom());
-		declarations.append(namesBySpecialObject.get(functionType));
+		declarations.append(specialObjectName(functionType));
 		declarations.append('\n');
 		final StringBuilder statements = new StringBuilder();
 		statements.append('\t');
@@ -695,11 +702,7 @@ public final class BootstrapGenerator
 		statements.append(
 			preamble.getString(primitiveFailureVariableName.name()));
 		statements.append(" : ");
-		final String varTypeName = namesBySpecialObject.get(
-			primitive.failureVariableType());
-		assert varTypeName != null
-			: String.format("no special object for %s", varTypeName);
-		statements.append(varTypeName);
+		statements.append(specialObjectName(primitive.failureVariableType()));
 		statements.append(')');
 		statements.append(";\n");
 		statements.append('\t');

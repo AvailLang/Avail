@@ -191,7 +191,7 @@ public final class AvailRuntime
 		specialObjects[21] = EnumerationMetaDescriptor.mostGeneralType();
 		specialObjects[22] = ObjectTypeDescriptor.mostGeneralType();
 		specialObjects[23] = ObjectTypeDescriptor.meta();
-		//24 (PRIMITIVE_TYPE)
+		specialObjects[24] = EnumerationMetaDescriptor.meta();
 		specialObjects[25] = PROCESS.o();
 		specialObjects[26] = SetTypeDescriptor.mostGeneralType();
 		specialObjects[27] = SetTypeDescriptor.meta();
@@ -276,8 +276,8 @@ public final class AvailRuntime
 					IntegerRangeTypeDescriptor.naturalNumbers()),
 				BottomTypeDescriptor.bottom());
 
-
 		// Special values.
+		specialObjects[77] = SetDescriptor.empty();
 		specialObjects[78] = InfinityDescriptor.negativeInfinity();
 		specialObjects[79] = InfinityDescriptor.positiveInfinity();
 
@@ -286,6 +286,24 @@ public final class AvailRuntime
 		specialObjects[81] = PojoTypeDescriptor.mostSpecificType();
 		specialObjects[82] = PojoDescriptor.nullObject();
 		specialObjects[83] = PojoSelfTypeDescriptor.selfType();
+
+		// More bootstrap helpers.
+		specialObjects[90] = FunctionTypeDescriptor.create(
+			TupleDescriptor.from(),
+			TOP.o());
+		specialObjects[91] = FunctionTypeDescriptor.create(
+			TupleDescriptor.from(),
+			EnumerationTypeDescriptor.booleanObject());
+		specialObjects[92] = VariableTypeDescriptor.wrapInnerType(
+			ContinuationTypeDescriptor.mostGeneralType());
+		specialObjects[93] = MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
+			IntegerRangeTypeDescriptor.wholeNumbers(),
+			ATOM.o(),
+			ANY.o());
+		specialObjects[94] = MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
+			IntegerRangeTypeDescriptor.wholeNumbers(),
+			ATOM.o(),
+			TYPE.o());
 
 		for (final AvailObject object : specialObjects)
 		{

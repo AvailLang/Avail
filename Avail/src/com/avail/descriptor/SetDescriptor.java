@@ -93,17 +93,24 @@ public class SetDescriptor extends Descriptor
 		final int indent)
 	{
 		final AvailObject tuple = object.asTuple();
-		aStream.append('{');
-		for (int i = 1, limit = tuple.tupleSize(); i <= limit; i++)
+		if (tuple.tupleSize() == 0)
 		{
-			if (i != 1)
-			{
-				aStream.append(", ");
-			}
-			tuple.tupleAt(i).printOnAvoidingIndent(
-				aStream, recursionList, indent + 1);
+			aStream.append('∅');
 		}
-		aStream.append('}');
+		else
+		{
+			aStream.append('{');
+			for (int i = 1, limit = tuple.tupleSize(); i <= limit; i++)
+			{
+				if (i != 1)
+				{
+					aStream.append(", ");
+				}
+				tuple.tupleAt(i).printOnAvoidingIndent(
+					aStream, recursionList, indent + 1);
+			}
+			aStream.append('}');
+		}
 	}
 
 	@Override @AvailMethod

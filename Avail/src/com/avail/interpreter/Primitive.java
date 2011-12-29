@@ -1372,11 +1372,11 @@ public enum Primitive
 			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 5;
-			final AvailObject callerHolder = args.get(0);
-			final AvailObject function = args.get(1);
-			final AvailObject pc = args.get(2);
-			final AvailObject stackp = args.get(3);
-			final AvailObject stack = args.get(4);
+			final AvailObject function = args.get(0);
+			final AvailObject pc = args.get(1);
+			final AvailObject stack = args.get(3);
+			final AvailObject stackp = args.get(2);
+			final AvailObject callerHolder = args.get(4);
 			final AvailObject theCode = function.code();
 			final AvailObject cont = ContinuationDescriptor.mutable().create(
 				theCode.numArgsAndLocalsAndStack());
@@ -1399,12 +1399,12 @@ public enum Primitive
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					VariableTypeDescriptor.wrapInnerType(
-						ContinuationTypeDescriptor.mostGeneralType()),
 					FunctionTypeDescriptor.mostGeneralType(),
 					IntegerRangeTypeDescriptor.naturalNumbers(),
+					TupleTypeDescriptor.mostGeneralType(),
 					IntegerRangeTypeDescriptor.naturalNumbers(),
-					TupleTypeDescriptor.mostGeneralType()),
+					VariableTypeDescriptor.wrapInnerType(
+						ContinuationTypeDescriptor.mostGeneralType())),
 				ContinuationTypeDescriptor.mostGeneralType());
 		}
 	},
@@ -1467,10 +1467,12 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 52:</strong> Answer the caller of a {@linkplain
-	 * ContinuationDescriptor continuation}. Fail if there is no caller.
+	 * <strong>Primitive 52:</strong> Answer a {@linkplain VariableDescriptor
+	 * variable} containing the caller of the specified {@linkplain
+	 * ContinuationDescriptor continuation}. The variable will be unassigned if
+	 * the continuation has no caller.
 	 */
-	prim52_ContinuationCaller(52, 1, CanFold)
+	prim52_ContinuationCaller(52, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -1480,10 +1482,11 @@ public enum Primitive
 			assert args.size() == 1;
 			final AvailObject con = args.get(0);
 			final AvailObject caller = con.caller();
-			if (caller.equalsNull())
+			final AvailObject callerHolder = VariableDescriptor.forInnerType(
+				ContinuationTypeDescriptor.mostGeneralType());
+			if (!caller.equalsNull())
 			{
-				return interpreter.primitiveFailure(
-					E_CONTINUATION_HAS_NO_CALLER);
+				callerHolder.setValue(caller);
 			}
 			return interpreter.primitiveSuccess(caller);
 		}
@@ -1494,7 +1497,8 @@ public enum Primitive
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					ContinuationTypeDescriptor.mostGeneralType()),
-				ContinuationTypeDescriptor.mostGeneralType());
+				VariableTypeDescriptor.wrapInnerType(
+					ContinuationTypeDescriptor.mostGeneralType()));
 		}
 	},
 
@@ -1781,8 +1785,9 @@ public enum Primitive
 	/**
 	 * <strong>Primitive 59:</strong> Answer a {@linkplain TupleDescriptor
 	 * tuple} containing the {@linkplain ContinuationDescriptor continuation}'s
-	 * stack data. Substitute the integer {@linkplain IntegerDescriptor#zero()
-	 * zero} for any {@linkplain NullDescriptor#nullObject() null} values.
+	 * stack data. Substitute an unassigned {@linkplain BottomTypeDescriptor
+	 * bottom}-typed {@linkplain VariableDescriptor variable} (unconstructable
+	 * from Avail) for any {@linkplain NullDescriptor#nullObject() null} values.
 	 */
 	prim59_ContinuationStackData(59, 1, CanFold, CannotFail)
 	{
@@ -1801,7 +1806,9 @@ public enum Primitive
 				AvailObject entry = con.argOrLocalOrStackAt(i);
 				if (entry.equalsNull())
 				{
-					entry = IntegerDescriptor.zero();
+					// Objects of this kind cannot be constructed from Avail
+					// code.
+					entry = ContinuationDescriptor.nullSubstitute();
 				}
 				tuple.tupleAtPut(i, entry);
 			}
@@ -2027,38 +2034,6 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 67:</strong> Answer the name of a {@linkplain
-	 * PrimitiveTypeDescriptor primitive type}.  If the argument isn't actually
-	 * a primitive type then fail.
-	 */
-	prim67_NameOfPrimitiveType(67, 1, CanFold, CannotFail)
-	{
-		@Override
-		public @NotNull Result attempt (
-			final @NotNull List<AvailObject> args,
-			final @NotNull Interpreter interpreter)
-		{
-			assert args.size() == 1;
-			final AvailObject primType = args.get(0);
-			if (primType.traversed().descriptor()
-				instanceof PrimitiveTypeDescriptor)
-			{
-				return interpreter.primitiveSuccess(primType.name());
-			}
-			return interpreter.primitiveFailure(E_EXPECTED_PRIMITIVE_TYPE);
-		}
-
-		@Override
-		protected @NotNull AvailObject privateBlockTypeRestriction ()
-		{
-			return FunctionTypeDescriptor.create(
-				TupleDescriptor.from(
-					TYPE.o()),
-				TupleTypeDescriptor.stringTupleType());
-		}
-	},
-
-	/**
 	 * <strong>Primitive 68:</strong> Assign a name to a {@linkplain
 	 * ObjectTypeDescriptor user-defined object type}. This can be useful for
 	 * debugging.
@@ -2170,7 +2145,8 @@ public enum Primitive
 	 * each applicable {@code requiresBlock}, and that the result type agrees
 	 * with each {@code returnsBlock}.
 	 */
-	prim71_CreateStubInvokingWithFirstArgAndCallArgsAsTuple(71, 4, CanFold)
+	prim71_CreateStubInvokingWithFirstArgAndCallArgsAsTuple(
+		71, 4, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -2182,12 +2158,8 @@ public enum Primitive
 			final AvailObject message = args.get(1);
 			final AvailObject firstArg = args.get(2);
 			final AvailObject resultType = args.get(3);
-			final AvailObject impSet = interpreter.runtime().methodsAt(message);
-			if (impSet.equalsNull())
-			{
-				return interpreter.primitiveFailure(
-					E_NO_IMPLEMENTATION_SET);
-			}
+			final AvailObject impSet =
+				ImplementationSetDescriptor.vmFunctionApplyImplementationSet();
 			return interpreter.primitiveSuccess(
 				FunctionDescriptor.createStubWithArgTypes(
 					argTypes,
@@ -6387,7 +6359,7 @@ public enum Primitive
 	 * <strong>Primitive 268:</strong> Answer a boolean indicating if the
 	 * current platform is big-endian.
 	 */
-	prim268_BigEndian(268, 0, CanInline, CannotFail)
+	prim268_BigEndian(268, 0, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (

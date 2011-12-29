@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2011.12.22 23:55:53.138 -0600
+ * * Last Generated On: 2011.12.28 22:02:52.934 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -46,17 +46,22 @@ Extends
 Uses
 Names
 	/*  51 */ "$_",
+	/*  49 */ "$_@pc=_stack=_[_]caller=_",
 	/*  39 */ "[…]→_",
+	/*  52 */ "_'s caller",
 	/*  72 */ "_'s compiled code",
+	/*  53 */ "_'s function",
 	/*  50 */ "_'s function type",
 	/*  29 */ "_'s instances",
 	/*   8 */ "_'s lower bound",
-	/*  67 */ "_'s name",
 	/*  69 */ "_'s names",
 	/*  73 */ "_'s outer variables",
 	/*  35 */ "_'s parameters' type",
+	/*  54 */ "_'s program counter",
 	/*  14 */ "_'s read type",
 	/*  37 */ "_'s return type",
+	/*  59 */ "_'s stack",
+	/*  55 */ "_'s stack pointer",
 	/*  30 */ "_'s type",
 	/*   9 */ "_'s upper bound",
 	/*  19 */ "_'s write type",
@@ -64,21 +69,22 @@ Names
 	/*  60 */ "_=_",
 	/*  27 */ "_[_]:=_",
 	/*  64 */ "_as map",
+	/*  61 */ "_as object",
 	/*  63 */ "_as object type",
-	/*  61 */ "_as private unvalidated object",
 	/*  17 */ "_is unassigned",
 	/*  32 */ "_∩_",
 	/*  31 */ "_∪_",
 	/*  33 */ "_≤_",
 	/*  12 */ "clear_",
 	/*  25 */ "current fiber",
-	/*  66 */ "enum of_",
+	/*  66 */ "enumeration of_",
 	/*  34 */ "function type accepting_and returning_",
 	/*  68 */ "give type_the name_",
 	/*  44 */ "if_then_",
 	/*  43 */ "if_then_else_",
 	/*  45 */ "ignore_and evaluate_",
 	/*   7 */ "integer range from_(inclusive=_)to_(inclusive=_)",
+	/*  20 */ "milliseconds since the Epoch",
 	/*  16 */ "new ↑_",
 	/*  13 */ "↑_",
 	/*  38 */ "∪_"
@@ -269,6 +275,20 @@ Method "_'s write type" is
 |
 	Primitive 19;
 ] : type;
+
+/**
+ * Answer the number of milliseconds which have elapsed since midnight
+ * Coordinated Universal Time (UTC) of Thursday, January 1, 1970 (i.e. the Unix
+ * Epoch).
+ *
+ * Returns:
+ *    The current time as the number of milliseconds which have elapsed since
+ *    the Unix Epoch.
+ */
+Method "milliseconds since the Epoch" is 
+[
+	Primitive 20;
+] : whole number;
 
 /**
  * Answer the current fiber.
@@ -463,7 +483,7 @@ Method "∪_" is
  * Parameters:
  *    returnType - A type.
  * Returns:
- *    The desired function type. Instances of this type answer values of the
+ *    The requested function type. Instances of this type answer values of the
  *    specified return type.
  */
 Method "[…]→_" is 
@@ -482,14 +502,14 @@ Method "[…]→_" is
  *    trueFunction - The function to invoke if `predicate` is `true`.
  *    falseFunction - The function to invoke if `trueFunction` is `false`.
  * Returns:
- *    If `predicate` is `true`, then the value produced by invoking `trueFunction`; otherwise,
- *    the value produced by invoking `falseFunction`.
+ *    If `predicate` is `true`, then the value produced by invoking
+ *    `trueFunction`; otherwise, the value produced by invoking `falseFunction`.
  */
 Method "if_then_else_" is 
 [
 	predicate : boolean,
-	trueFunction : null,
-	falseFunction : null
+	trueFunction : nullary procedure,
+	falseFunction : nullary procedure
 |
 	Primitive 43;
 ] : ⊤;
@@ -505,7 +525,7 @@ Method "if_then_else_" is
 Method "if_then_" is 
 [
 	predicate : boolean,
-	trueBlock : null
+	trueBlock : nullary procedure
 |
 	Primitive 44;
 ] : ⊤;
@@ -513,25 +533,170 @@ Method "if_then_" is
 Method "ignore_and evaluate_" is 
 [
 	arg1 : boolean,
-	arg2 : null
+	arg2 : predicate function
 |
 	Primitive 45;
 ] : boolean;
 
+/**
+ * Construct and answer a continuation whose current function, Level One
+ * program counter, local stack, local stack pointer, and calling continuation
+ * are specified by the arguments.
+ *
+ * Parameters:
+ *    aFunction - The new continuation's current function.
+ *    programCounter - `aFunction`'s program counter. This is the index of the
+ *       next Level One instruction to execute when the new continuation is
+ *       resumed.
+ *    stack - `aFunction`'s stack. This tuple contains the arguments, local
+ *       variables, and temporaries.
+ *    stackPointer - `aFunction`'s stack pointer. This is the index of the
+ *       top of the stack.
+ *    caller - A variable holding the new continuation's calling continuation.
+ *       If the variable is unassigned, then create a root continuation (i.e.
+ *       one without a caller).
+ * Returns:
+ *    The requested continuation.
+ */
+Method "$_@pc=_stack=_[_]caller=_" is 
+[
+	aFunction : function,
+	programCounter : natural number,
+	stack : tuple,
+	stackPointer : natural number,
+	caller : continuation variable
+|
+	Primitive 49;
+] : continuation;
+
+/**
+ * Answer the type of the function represented by the specified continuation.
+ *
+ * Parameters:
+ *    aContinuation - A continuation.
+ * Returns:
+ *    The argument's current function's type.
+ */
 Method "_'s function type" is 
 [
-	arg1 : continuation meta
+	aContinuation : continuation meta
 |
 	Primitive 50;
 ] : function meta;
 
+/**
+ * Compute and answer a continuation type capable of representing a current
+ * function of the specified type.
+ *
+ * Parameters:
+ *    functionType - A function type.
+ * Returns:
+ *    The requested continuation type.
+ */
 Method "$_" is 
 [
-	arg1 : function meta
+	functionType : function meta
 |
 	Primitive 51;
 ] : continuation meta;
 
+/**
+ * Construct and answer a variable that holds the caller of the specified
+ * continuation. This variable will be unassigned if the continuation has no
+ * caller.
+ *
+ * Parameters:
+ *    aContinuation - A continuation.
+ * Returns:
+ *    A variable that, if assigned, holds the argument's caller. If unassigned,
+ *    then the argument has no caller.
+ */
+Method "_'s caller" is 
+[
+	aContinuation : continuation
+|
+	Primitive 52;
+] : continuation variable;
+
+/**
+ * Answer the current function of the specified continuation.
+ *
+ * Parameters:
+ *    aContinuation - A continuation.
+ * Returns:
+ *    The argument's current function. This is the function whose execution
+ *    will be resumed if the continuation is resumed.
+ */
+Method "_'s function" is 
+[
+	aContinuation : continuation
+|
+	Primitive 53;
+] : function;
+
+/**
+ * Answer the program counter of the specified continuation. Using the current
+ * function's tuple of Level One nybblecodes, this is the index of the next
+ * instruction to be performed (if the continuation is resumed).
+ *
+ * Parameters:
+ *    aContinuation - A continuation.
+ * Returns:
+ *    The argument's Level One program counter.
+ */
+Method "_'s program counter" is 
+[
+	aContinuation : continuation
+|
+	Primitive 54;
+] : natural number;
+
+/**
+ * Answer the stack pointer of the specified continuation. This is the index of
+ * the top of the local stack. For an empty stack, this value equals the size of
+ * the stack plus one. The stack grows downward.
+ *
+ * Parameters:
+ *    aContinuation - A continuation.
+ * Returns:
+ *    The argument's stack pointer.
+ */
+Method "_'s stack pointer" is 
+[
+	aContinuation : continuation
+|
+	Primitive 55;
+] : natural number;
+
+/**
+ * Answer the stack of the specified continuation. This tuple contains the
+ * arguments, local variables, and temporaries. Any null values, forbidden to
+ * leak through into observable Avail macrostate, are replaced with an
+ * unassigned variable whose containment type is ⊥. Note that such a variable
+ * cannot be constructed either syntactically nor through a variable
+ * construction primitive.
+ *
+ * Parameters:
+ *    aContinuation - A continuation.
+ * Returns:
+ *    The argument's stack.
+ */
+Method "_'s stack" is 
+[
+	aContinuation : continuation
+|
+	Primitive 59;
+] : tuple;
+
+/**
+ * Are the arguments equal?
+ *
+ * Parameters:
+ *    arg1 - A value.
+ *    arg2 - A value.
+ * Returns:
+ *    `true` if the arguments are equal, `false` otherwise.
+ */
 Method "_=_" is 
 [
 	arg1 : any,
@@ -540,47 +705,101 @@ Method "_=_" is
 	Primitive 60;
 ] : boolean;
 
-Method "_as private unvalidated object" is 
+/**
+ * Construct and answer an object based on the supplied map.
+ *
+ * Parameters:
+ *    fieldsToValues - A map whose keys are the fields of the new object and whose values
+ *       are the corresponding field values.
+ * Returns:
+ *    The requested object.
+ */
+Method "_as object" is 
 [
-	arg1 : null
+	fieldsToValues : field map
 |
 	Primitive 61;
 ] : object;
 
+/**
+ * Construct and answer a map based on the supplied object.
+ *
+ * Parameters:
+ *    anObject - An object whose fields should be the keys of the new map and whose
+ *       values are the corresponding values.
+ * Returns:
+ *    The requested map.
+ */
 Method "_as map" is 
 [
-	arg1 : object
+	anObject : object
 |
 	Primitive 62;
-] : null;
+] : field map;
 
+/**
+ * Construct and answer an object type based on the supplied map.
+ *
+ * Parameters:
+ *    fieldsToTypes - A map whose keys are the fields of the new object and whose values
+ *       are the corresponding field types.
+ * Returns:
+ *    The requested object type.
+ */
 Method "_as object type" is 
 [
-	arg1 : null
+	fieldsToTypes : field map
 |
 	Primitive 63;
 ] : object meta;
 
+/**
+ * Construct and answer a map based on the supplied object type.
+ *
+ * Parameters:
+ *    anObjectType - An object type whose fields should be the keys of the new map and
+ *       whose values are the corresponding values.
+ * Returns:
+ *    The requested map.
+ */
 Method "_as map" is 
 [
-	arg1 : object meta
+	anObjectType : object meta
 |
 	Primitive 64;
-] : null;
+] : field type map;
 
-Method "enum of_" is 
+/**
+ * Construct and answer an enumeration whose instances are fully determined by
+ * the membership of the specified set.
+ *
+ * Parameters:
+ *    instances - The complete set of instances of the enumeration.
+ * Returns:
+ *    The requested enumeration.
+ */
+Method "enumeration of_" is 
 [
-	arg1 : type
+	instances : set
+|
+	Primitive 65;
+] : enumeration meta;
+
+/**
+ * Construct and answer an enumeration meta whose instances instances are
+ * universally subtypes of `{0}`.
+ *
+ * Parameters:
+ *    {0} - The complete set of instances of the enumeration.
+ * Returns:
+ *    The requested enumeration meta.
+ */
+Method "enumeration of_" is 
+[
+	instanceType : type
 |
 	Primitive 66;
-] : null;
-
-Method "_'s name" is 
-[
-	arg1 : type
-|
-	Primitive 67;
-] : string;
+] : enumeration meta meta;
 
 Method "give type_the name_" is 
 [

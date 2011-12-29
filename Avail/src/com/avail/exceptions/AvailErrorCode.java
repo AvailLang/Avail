@@ -126,7 +126,7 @@ public enum AvailErrorCode
 	/**
 	 * {@linkplain ContinuationDescriptor Continuation} has no caller.
 	 */
-	E_CONTINUATION_HAS_NO_CALLER (13),
+//	E_CONTINUATION_HAS_NO_CALLER (**),
 
 	/**
 	 * {@linkplain ContinuationDescriptor Continuation} expected a stronger
@@ -149,7 +149,7 @@ public enum AvailErrorCode
 	/**
 	 * Metatypes must only have positive levels (>=1).
 	 */
-//	E_NONPOSITIVE_METATYPE_LEVEL (17),
+//	E_NONPOSITIVE_METATYPE_LEVEL (**),
 
 	/**
 	 * A user-defined {@linkplain ObjectTypeDescriptor object type} has no
@@ -235,13 +235,13 @@ public enum AvailErrorCode
 	 * The specific kind of {@linkplain SignatureDescriptor signature} does not
 	 * support a {@linkplain FunctionDescriptor requires function}.
 	 */
-	//E_SIGNATURE_DOES_NOT_SUPPORT_REQUIRES_FUNCTION (**),
+//	E_SIGNATURE_DOES_NOT_SUPPORT_REQUIRES_FUNCTION (**),
 
 	/**
 	 * The specific kind of {@linkplain SignatureDescriptor signature} does not
 	 * support a {@linkplain FunctionDescriptor returns function}.
 	 */
-	//E_SIGNATURE_DOES_NOT_SUPPORT_RETURNS_FUNCTION (**),
+//	E_SIGNATURE_DOES_NOT_SUPPORT_RETURNS_FUNCTION (**),
 
 	/**
 	 * A {@linkplain AvailRuntime#specialObject(int) special object} number is
