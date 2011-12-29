@@ -48,8 +48,6 @@ Body
    definitions of range type operations, starting with some helpers... */
 
 
-tupleOfType ::= Special Object 73;
-
 Method "⊶block type taking_and returning_" is [args : tupleOfType, ret : type |
 	Primitive 34;
 ] : functionType;
@@ -65,9 +63,13 @@ Method "_lower bound" is [range : integerType |
 	Primitive 8;
 ] : extended integer;
 
+
+
 Method "_upper bound" is [range : integerType |
 	Primitive 9;
 ] : extended integer;
+
+
 
 Method "_lower inclusive" is [range : integerType |
 	/* The <= is the subtype relation. */

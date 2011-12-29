@@ -139,10 +139,9 @@ Restriction "Java type_parameters_" is
 	then [
 		Fail parse "argument tuple size must be statically known"; ];
 	
-	typeParametersSize ::= cast typeParametersTypeBounds upper bound into
-		[ b : whole number | b; ];  
+	typeParametersSize ::= typeParametersTypeBounds upper bound;
 	args : tuple of type := <>;
-	From 1 to typeParametersSize do [i : natural number |
+	From 1 to typeParametersSize do [ i : natural number |
 		argType ::= cast typeParametersType[i] into [ e : enum | e; ]
 			otherwise [
 				Fail parse

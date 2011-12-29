@@ -78,6 +78,11 @@ Restriction "_apply_" is [functionT : functionType, argsT : tupleType |
 	functionT result;
 ];
 
+Method "«_‡++»" is [tuples : tuple of tuple |
+	Primitive 136;
+] : tuple;
+
+{"«_‡++»"} can't have <{"«_‡++»"}>;
 
 /* Type downcasting operation... */
 
@@ -92,12 +97,19 @@ Method "cast_into_otherwise_" is [
 	] else blk2;
 ] : void;
 
+Forward "cast_into_" for [any, [terminates]->void]->void;
+
 Restriction "cast_into_otherwise_" is [
 		valType : type,
 		blk1Type : functionType,
 		blk2Type : functionType |
 	if valType <= blk1Type[1] then [
-		Fail parse "Warning - unnecessary cast expression";
+		message : tuple :=
+			"Warning - unnecessary cast expression: "
+			++ valType as basic string
+			++ " <= "
+			++ blk1Type[1] as basic string;
+		cast message into [ s : string | Fail parse s; ];
 	];
 	type union of blk1Type result and blk2Type result;
 ];
@@ -114,7 +126,12 @@ Method "cast_into_" is [value : any, block : [terminates]->void |
 
 Restriction "cast_into_" is [valType : type, blockType : functionType |
 	if valType <= blockType[1] then [
-		Fail parse "Warning - unnecessary cast expression";
+		message : tuple :=
+			"Warning - unnecessary cast expression: "
+			++ valType as basic string
+			++ " <= "
+			++ blockType[1] as basic string;
+		cast message into [ s : string | Fail parse s; ];
 	];
 	blockType result;
 ];

@@ -37,7 +37,6 @@ Uses
 	"Integer"
 Names
 	"_arguments type",
-	"_[_]",
 	"_result",
 	"block type taking_and returning_",
 	"[«_‡,»]->_",
@@ -90,8 +89,6 @@ Method "_[_]" is [ct : functionType, index : natural number |
 Method "_result" is [ct : functionType |
 	Primitive 37;
 ] : type;
-
-tupleOfType ::= Special Object 73;
 
 Method "block type taking_and returning_" is [args : tupleOfType, ret : type |
 	Primitive 34;

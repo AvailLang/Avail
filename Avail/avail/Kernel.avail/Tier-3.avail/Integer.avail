@@ -1,5 +1,5 @@
 /**
- * .../Tier-0/Tier-0.avail
+ * .../Tier-1/Integer.avail
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -30,24 +30,38 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Tier-0"
+System Module "Integer"
 Extends
-	"Pragmas",
-	"Declaration",
-	"Basics"
 Uses
+	"Tier-2",
+	"Enum"
 Names
-	"_[_]"
 Body
 
-Method "private block type taking_and returning_" is [args : tupleOfType, ret : type |
-	Primitive 34;
-] : functionType;
 
-Method "<«_‡,»>" is [t : tuple |
-	t;
-] : tuple;
+Restriction "_lower bound" is 
+[
+	rangeType : integerType type
+|
+	r ::= rangeType instance;
+	[r lower bound..r upper bound];
+];
 
-tupleOfAny2 ::= <any, any>;
+Restriction "_upper bound" is 
+[
+	rangeType : integerType type
+|
+	r ::= rangeType instance;
+	[r lower bound..r upper bound];
+];
 
-Abstract method "_[_]" for private block type taking tupleOfAny2 and returning any;
+/* Testing */
+[
+	x : [5..7] := [5..7] lower bound;
+	y : [5..7] := [5..7] upper bound;
+	r : [5..7] type := [5..7];
+	x := r lower bound;
+	y := r upper bound;
+	z : [3..3] := 3 type lower bound;
+	z := 3 type upper bound;
+]();

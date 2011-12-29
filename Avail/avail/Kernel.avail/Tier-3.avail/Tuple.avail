@@ -1,5 +1,5 @@
 /**
- * .../Tier-0/Tier-0.avail
+ * .../Tier-1/Integer.avail
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -30,24 +30,46 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Tier-0"
+System Module "Tuple"
 Extends
-	"Pragmas",
-	"Declaration",
-	"Basics"
 Uses
+	"Tier-2",
+	"Enum"
 Names
-	"_[_]"
 Body
 
-Method "private block type taking_and returning_" is [args : tupleOfType, ret : type |
-	Primitive 34;
-] : functionType;
+Restriction "_[_]" is
+[
+	ttt : tupleType type,
+	i : natural number type
+|
+	tt ::= ttt instance;
+	Print "_[_] (tt, i): " then tt as basic string then ", " then i as basic string;
+	/* Compute the type union of all the possible types it could be,
+	   depending on what indices could be applied. */
+	possible : type := terminates;
+	low ::= i lower bound;
+	Print "_[_] (low): " then low as basic string;
+	high ::= i upper bound;
+	Print "_[_] (high): " then high as basic string;
+	From low min (|| tt leading types || + 1)
+		to high min (|| tt leading types || + 1)
+		do [ x : natural number |
+			possible := type union of tt[x] type and possible;
+		];
+	possible;
+];
 
-Method "<«_‡,»>" is [t : tuple |
-	t;
-] : tuple;
+[
+	t : tuple [1..3] like <"frog" type, 5 type> default 1 type type := <"frog", 5, 1 type>;
+	x : "frog" type := t[1];
+	y : 5 type := t[2];
+	z : 1 type type := t[3];
+]();
 
-tupleOfAny2 ::= <any, any>;
-
-Abstract method "_[_]" for private block type taking tupleOfAny2 and returning any;
+[
+	tt : (tuple [1..3] like <"frog" type, 5 type> default 1 type) type := <"frog", 5, 1> type;
+	x : "frog" type type := tt[1];
+	y : 5 type type := tt[2];
+	z : 1 type type := tt[3];
+]();

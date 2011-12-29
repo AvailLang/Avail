@@ -51,7 +51,7 @@ Names
 	"process",
 	"set", "setType", "string",
 	"terminates", "terminatesType", "trueType", "tuple",
-	"tupleType", "type",
+	"tupleType", "tupleOfType", "type",
 	"enum",
 	"void",
 	"whole number", "natural number",
@@ -118,6 +118,7 @@ privateTerminates                  ::= Special Object 29;
 privateTerminatesType              ::= Special Object 30;
 privateTrueType                    ::= Special Object 31;
 privateTuple                       ::= Special Object 32;
+privateTupleOfType                 ::= Special Object 73;
 privateTupleType                   ::= Special Object 33;
 privateType                        ::= Special Object 34;
 privateVoid                        ::= Special Object 35;
@@ -170,6 +171,7 @@ Method "string"                 is [privateString;];
 Method "terminates"             is [privateTerminates;];
 Method "trueType"               is [privateTrueType;];
 Method "tuple"                  is [privateTuple;];
+Method "tupleOfType"            is [privateTupleOfType;];
 Method "void"                   is [privateVoid;];
 
 Method "whole number"           is [privateWholeNumber;];

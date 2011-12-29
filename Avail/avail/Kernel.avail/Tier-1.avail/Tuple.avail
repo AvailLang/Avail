@@ -50,7 +50,6 @@ Names
 	"_sizes lower bound",
 	"_sizes upper bound",
 	"||_||",
-	"_[_]",
 	"_[_.._]",
 	"union of types in_",
 	"union of types in_at indices_through_"
@@ -66,8 +65,6 @@ Method "<«_‡,»>" is [t : tuple |
 Restriction "<«_‡,»>" is [tType : tupleType |
 	tType;
 ] : tupleType;
-
-tupleOfType ::= Special Object 73;
 
 /* Tuple type constructor... */
 
@@ -170,6 +167,8 @@ Method "_[_]" is [
 	/* Indices out of range are simply the type terminates. */
 	Primitive 141;
 ] : type;
+
+
 
 Method "_[_.._]" is [
 		tt : tupleType,
