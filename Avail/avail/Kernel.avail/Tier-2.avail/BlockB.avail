@@ -79,8 +79,7 @@ Method "stub block taking_and applying_to_and argument tuple returning_" is [
 		message : atom,
 		clientArg : any,
 		resultType : type |
-	Primitive 71 (failureCode : natural number);
-	Failed;
+	Primitive 71;
 ] : [...]-> void;
 
 privateInvoker ::= lookup "_apply_";
