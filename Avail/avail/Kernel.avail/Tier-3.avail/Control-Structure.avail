@@ -1,0 +1,141 @@
+/**
+ * .../Tier-3/Continuation.avail
+ * Copyright (c) 2010, Mark van Gulik.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Control-Structure"
+Extends
+Uses
+	"Tier-2",
+	"Exception",
+	"Object",
+	"Enum",
+	"Tuple"
+
+Names
+	"«if_then_‡else»else_",
+	"Switch_«case_do_:»default_"
+Body
+
+Method "«if_then_‡else»else_" is
+[
+	repeatCondition : <<boolean,[]->void…|2..2>…|2..∞>,
+	actionFinal : []->void
+|
+	numRepeatConditions : natural number := ||repeatCondition||;
+	ultimateAction : []->void;
+	actionChosen : boolean := false;
+	
+	From 1 to numRepeatConditions do
+	[
+		i : natural number
+	|
+		if repeatCondition[i][1] then 
+		[
+			ultimateAction := (repeatCondition[i])[2];
+			actionChosen := true;
+		];
+	];
+
+	if not actionChosen then [ultimateAction := actionFinal;];
+
+	ultimateAction();
+]:void;
+
+/* Currently the Switch-case statement has the following functionality:
+ *
+ *	1) Can use any type for comparison (e.g. boolean, any primitive, function
+ *		comparison, etc).
+ *	2) The result of a switch statement can be stored in a variable
+ *
+ * Current Deficiencies: 
+ *	1)  Cannot account for repeated cases.  Potential issues with enum prevents
+ *		this.  Code to handle this commented out.
+ *	2)  Enum Switch-case - needs a new restriction for this to be functional.
+ */
+Method "Switch_«case_do_:»default_" is
+[
+	compareTo : any,
+	repeatCondition : <<any,[]->void…|2..2>…|1..∞>,
+	actionFinal : []->void
+|
+	numRepeatConditions ::= ||repeatCondition||;
+	ultimateAction : []->void;
+	actionChosen : boolean := false;
+	
+	From 1 to numRepeatConditions do
+	[
+		i : natural number
+	|
+		if repeatCondition[i][1] = compareTo then 
+		[
+			ultimateAction := repeatCondition[i][2];
+			actionChosen := true;
+		];
+	];
+
+	if not actionChosen then [ultimateAction := actionFinal;];
+
+	ultimateAction();
+]:void;
+
+Restriction "Switch_«case_do_:»default_" is 
+[
+	compareToType : any type,
+	repeatConditionType : (<<any,[]->void…|2..2>…|1..∞>) type,
+	actionFinalType : ([]->void) type
+|
+	repeatConditionTypeUpperBound ::= (repeatConditionType sizes) upper bound;
+	functionResult : type := actionFinalType result;
+	
+	/* Make sure all cases are different - Needs Work */
+/*	repeatConditionTypeEnum ::= cast repeatConditionType into [ e : enum | e; ];
+	repeatConditionTupleSize : whole number := ||<repeatConditionTypeEnum instance>||;
+	caseTypeSet : set := {};
+	*/
+	
+	/* Find the type union of all the do blocks */
+	From 1 to 
+			repeatConditionTypeUpperBound do
+	[
+		i : natural number
+	|
+		functionResult := type union of functionResult and 
+							repeatConditionType[i][2] result;
+							
+		/*caseTypeSet := caseTypeSet union {repeatConditionType[i][1]};*/
+	];
+
+	/*if ||caseTypeSet|| not = repeatConditionTupleSize then
+	[
+		Fail parse "Cases cannot be repeated in a Switch case statement.";
+	];*/
+	functionResult;
+] : type;

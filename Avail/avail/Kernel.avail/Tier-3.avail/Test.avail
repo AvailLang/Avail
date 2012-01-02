@@ -33,6 +33,7 @@
 System Module "Test"
 Extends
 Uses
+	"Test-Control-Structure",
 	"Test-ObjectTypes",
 	"Test-Objects",
 	"Test-Exceptions"
