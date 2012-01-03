@@ -75,3 +75,20 @@ if false then [ifThenElseRepeat2 := 1;]
  	else [ifThenElseRepeat2 := 4;];
 
  Assert ifThenElseRepeat2 = 2;	
+ 
+ifThenElseRepeat3 : integer :=
+	if false then [1;] 
+		else if false then [2;]
+		else if false then [3;]  
+	 	else [4;];
+
+ Assert ifThenElseRepeat3 = 4;
+ 
+ ifThenElseRepeat4 : integer :=
+	if false then [1;] 
+		else if false then [2;]
+		else if true then [3;]  
+	 	else [4;];
+
+ Assert ifThenElseRepeat4 = 3;
+ 	

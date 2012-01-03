@@ -69,6 +69,44 @@ Method "«if_then_‡else»else_" is
 	ultimateAction();
 ]:void;
 
+/* Allows for the setting of the outcome to a variable.
+ * Does not currently account for repeats for same reason as Switch-case
+ * deficiency described below.
+ */
+
+Restriction "«if_then_‡else»else_" is 
+[	
+	repeatConditionType : (<<boolean,[]->void…|2..2>…|2..∞>) type,
+	actionFinalType : ([]->void) type
+|
+	repeatConditionTypeUpperBound ::= (repeatConditionType sizes) upper bound;
+	functionResult : type := actionFinalType result;
+	
+	/* Make sure all cases are different - Needs Work */
+/*	repeatConditionTypeEnum ::= cast repeatConditionType into [ e : enum | e; ];
+	repeatConditionTupleSize : whole number := ||<repeatConditionTypeEnum instance>||;
+	caseTypeSet : set := {};
+	*/
+	
+	/* Find the type union of all the then blocks */
+	From 1 to 
+			repeatConditionTypeUpperBound do
+	[
+		i : natural number
+	|
+		functionResult := type union of functionResult and 
+							repeatConditionType[i][2] result;
+							
+		/*caseTypeSet := caseTypeSet union {repeatConditionType[i][1]};*/
+	];
+
+	/*if ||caseTypeSet|| not = repeatConditionTupleSize then
+	[
+		Fail parse "Cases cannot be repeated in a Switch case statement.";
+	];*/
+	functionResult;
+] : type;
+
 /* Currently the Switch-case statement has the following functionality:
  *
  *	1) Can use any type for comparison (e.g. boolean, any primitive, function
