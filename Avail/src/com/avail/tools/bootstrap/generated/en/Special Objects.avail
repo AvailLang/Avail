@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2011.12.28 22:02:52.907 -0600
+ * * Last Generated On: 2012.01.04 17:34:06.947 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -214,117 +214,117 @@ _continuation_variable         ::= special object 92;
 _field_map                     ::= special object 93;
 _field_type_map                ::= special object 94;
 
-Method "any" is
+Method "any" is 
 [
 	_any;
 ];
 
-Method "boolean" is
+Method "boolean" is 
 [
 	_boolean;
 ];
 
-Method "character" is
+Method "character" is 
 [
 	_character;
 ];
 
-Method "function" is
+Method "function" is 
 [
 	_function;
 ];
 
-Method "function meta" is
+Method "function meta" is 
 [
 	_function_meta;
 ];
 
-Method "compiled code" is
+Method "compiled code" is 
 [
 	_compiled_code;
 ];
 
-Method "variable" is
+Method "variable" is 
 [
 	_variable;
 ];
 
-Method "variable meta" is
+Method "variable meta" is 
 [
 	_variable_meta;
 ];
 
-Method "continuation" is
+Method "continuation" is 
 [
 	_continuation;
 ];
 
-Method "continuation meta" is
+Method "continuation meta" is 
 [
 	_continuation_meta;
 ];
 
-Method "atom" is
+Method "atom" is 
 [
 	_atom;
 ];
 
-Method "double" is
+Method "double" is 
 [
 	_double;
 ];
 
-Method "extended integer" is
+Method "extended integer" is 
 [
 	_extended_integer;
 ];
 
-Method "false type" is
+Method "false type" is 
 [
 	_false_type;
 ];
 
-Method "float" is
+Method "float" is 
 [
 	_float;
 ];
 
-Method "number" is
+Method "number" is 
 [
 	_number;
 ];
 
-Method "integer" is
+Method "integer" is 
 [
 	_integer;
 ];
 
-Method "extended integer meta" is
+Method "extended integer meta" is 
 [
 	_extended_integer_meta;
 ];
 
-Method "map meta" is
+Method "map meta" is 
 [
 	_map_meta;
 ];
 
-Method "meta" is
+Method "meta" is 
 [
 	_meta;
 ];
 
-Method "enumeration meta" is
+Method "enumeration meta" is 
 [
 	_enumeration_meta;
 ];
 
-Method "object" is
+Method "object" is 
 [
 	_object;
 ];
 
-Method "object meta" is
+Method "object meta" is 
 [
 	_object_meta;
 ];
@@ -339,47 +339,47 @@ Method "fiber" is
 	_fiber;
 ];
 
-Method "set" is
+Method "set" is 
 [
 	_set;
 ];
 
-Method "set meta" is
+Method "set meta" is 
 [
 	_set_meta;
 ];
 
-Method "string" is
+Method "string" is 
 [
 	_string;
 ];
 
-Method "⊥" is
+Method "⊥" is 
 [
 	_bottom;
 ];
 
-Method "⊥ meta" is
+Method "⊥ meta" is 
 [
 	_bottom_meta;
 ];
 
-Method "true type" is
+Method "true type" is 
 [
 	_true_type;
 ];
 
-Method "tuple" is
+Method "tuple" is 
 [
 	_tuple;
 ];
 
-Method "tuple meta" is
+Method "tuple meta" is 
 [
 	_tuple_meta;
 ];
 
-Method "type" is
+Method "type" is 
 [
 	_type;
 ];
@@ -392,182 +392,182 @@ Method "type" is
 	_top;
 ];
 
-Method "whole number" is
+Method "whole number" is 
 [
 	_whole_number;
 ];
 
-Method "natural number" is
+Method "natural number" is 
 [
 	_natural_number;
 ];
 
-Method "code point" is
+Method "code point" is 
 [
 	_code_point;
 ];
 
-Method "message bundle" is
+Method "message bundle" is 
 [
 	_message_bundle;
 ];
 
-Method "signature" is
+Method "signature" is 
 [
 	_signature;
 ];
 
-Method "abstract signature" is
+Method "abstract signature" is 
 [
 	_abstract_signature;
 ];
 
-Method "forward signature" is
+Method "forward signature" is 
 [
 	_forward_signature;
 ];
 
-Method "method signature" is
+Method "method signature" is 
 [
 	_method_signature;
 ];
 
-Method "message bundle tree" is
+Method "message bundle tree" is 
 [
 	_message_bundle_tree;
 ];
 
-Method "implementation set" is
+Method "implementation set" is 
 [
 	_implementation_set;
 ];
 
-Method "parse node" is
+Method "parse node" is 
 [
 	_parse_node;
 ];
 
-Method "marker node" is
+Method "marker node" is 
 [
 	_marker_node;
 ];
 
-Method "expression node" is
+Method "expression node" is 
 [
 	_expression_node;
 ];
 
-Method "assignment node" is
+Method "assignment node" is 
 [
 	_assignment_node;
 ];
 
-Method "block node" is
+Method "block node" is 
 [
 	_block_node;
 ];
 
-Method "literal node" is
+Method "literal node" is 
 [
 	_literal_node;
 ];
 
-Method "reference node" is
+Method "reference node" is 
 [
 	_reference_node;
 ];
 
-Method "send node" is
+Method "send node" is 
 [
 	_send_node;
 ];
 
-Method "super cast node" is
+Method "super cast node" is 
 [
 	_super_cast_node;
 ];
 
-Method "tuple node" is
+Method "tuple node" is 
 [
 	_tuple_node;
 ];
 
-Method "variable use node" is
+Method "variable use node" is 
 [
 	_variable_use_node;
 ];
 
-Method "declaration node" is
+Method "declaration node" is 
 [
 	_declaration_node;
 ];
 
-Method "argument node" is
+Method "argument node" is 
 [
 	_argument_node;
 ];
 
-Method "label node" is
+Method "label node" is 
 [
 	_label_node;
 ];
 
-Method "local variable node" is
+Method "local variable node" is 
 [
 	_local_variable_node;
 ];
 
-Method "local constant node" is
+Method "local constant node" is 
 [
 	_local_constant_node;
 ];
 
-Method "module variable node" is
+Method "module variable node" is 
 [
 	_module_variable_node;
 ];
 
-Method "module constant node" is
+Method "module constant node" is 
 [
 	_module_constant_node;
 ];
 
-Method "primitive failure reason node" is
+Method "primitive failure reason node" is 
 [
 	_primitive_failure_reason_node;
 ];
 
-Method "true" is
+Method "true" is 
 [
 	_true;
 ];
 
-Method "false" is
+Method "false" is 
 [
 	_false;
 ];
 
-Method "tuple of string" is
+Method "tuple of string" is 
 [
 	_tuple_of_string;
 ];
 
-Method "tuple of type" is
+Method "tuple of type" is 
 [
 	_tuple_of_type;
 ];
 
-Method "tuple of set of string" is
+Method "tuple of set of string" is 
 [
 	_tuple_of_set_of_string;
 ];
 
-Method "set of string" is
+Method "set of string" is 
 [
 	_set_of_string;
 ];
 
-Method "primitive failure function" is
+Method "primitive failure function" is 
 [
 	_primitive_failure_function;
 ];
@@ -582,27 +582,27 @@ Method "-∞" is
 	_negative_infinity;
 ];
 
-Method "∞" is
+Method "∞" is 
 [
 	_positive_infinity;
 ];
 
-Method "pojo" is
+Method "pojo" is 
 [
 	_pojo;
 ];
 
-Method "null" is
+Method "null" is 
 [
 	_null;
 ];
 
-Method "null type" is
+Method "null type" is 
 [
 	_null_type;
 ];
 
-Method "self type" is
+Method "self type" is 
 [
 	_self_type;
 ];

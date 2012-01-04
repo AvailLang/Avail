@@ -382,7 +382,11 @@ Method "_is implicit subtype of«_‡,»«with«_->_‡,»»" is [
 	superTypes do [each : objectType |
 		intersection := type intersection of intersection and each;
 	];
-	Method newName is stub block taking 0 arguments and returning intersection;
+	bodyType ::= block type taking <> and returning (intersection type);
+	bodyBlock ::= stub block
+		with function type bodyType
+		invoking [ intersection; ];
+	Method newName is bodyBlock;
 	Give type intersection the name newName;
 ] : void;
 
@@ -407,7 +411,11 @@ Method "_is explicit subtype of«_‡,»«with«_->_‡,»»" is [
 	superTypes do [each : objectType |
 		intersection := type intersection of intersection and each;
 	];
-	Method newName is stub block taking 0 arguments and returning intersection;
+	bodyType ::= block type taking <> and returning (intersection type);
+	bodyBlock ::= stub block
+		with function type bodyType
+		invoking [ intersection; ];
+	Method newName is bodyBlock;
 	Give type intersection the name newName;
 ] : void;
 
@@ -418,23 +426,20 @@ Method "_is explicit subtype of«_‡,»«with«_->_‡,»»" is [
 Method "_has fields_" is [ot : Object type, fields : tuple of string |
 	fields do [fieldString : string |
 		fieldKey ::= lookup fieldString;
-
+		bodyType ::= block type taking <ot> and returning ot as map [fieldKey];
+		restrictionType ::= block type taking <ot type> and returning type;
 		newMethodName ::= "_" then fieldString;
-		newBody ::=
-			stub block taking <ot>
-			and applying name of block invoker
-			to [o : Object | o as map [fieldKey];]
-			and argument tuple returning (ot as map [fieldKey]);
-		newReturnsBlock ::=
-			stub block taking <ot type>
-			and applying name of block invoker
-			to [oT : objectType | oT as map [fieldKey];]
-			and argument tuple returning type;
-		strongerReturnsBlock : [...]-> type;
-		* &strongerReturnsBlock ?:= newReturnsBlock;
+		newBody ::= stub block
+			with function type bodyType
+			invoking [o : Object | o as map [fieldKey];];
+		newRestriction ::= stub block
+			with function type restrictionType
+			invoking [oT : objectType | oT as map [fieldKey];];
+		strongerRestriction : [...]-> type;
+		* &strongerRestriction ?:= newRestriction;
 
 		/* Define an instance-side getter... */
 		Method newMethodName is newBody;
-		Restriction newMethodName is strongerReturnsBlock;
+		Restriction newMethodName is strongerRestriction;
 	];
 ];

@@ -126,10 +126,10 @@ Method "new_" is [gft : Graph Factory type |
 	nodeType ::= graphType -> nodes content type;
 	nodesVar : set := {};
 	succVar : map from any to set := [->];
-	graphTypeThunk ::= stub block taking <>
-		and applying name of block invoker
-		to [t : tuple | Halt;]
-		and argument tuple returning graphType;
+	thunkType ::= block type taking <> and returning graphType;
+	graphTypeThunk ::= stub block
+		with function type thunkType
+		invoking [t : tuple | Halt;];
 	gtt ::= cast graphTypeThunk into [gtt2 : []->Graph | gtt2;];
 	gft new with <
 		<resultType, gtt>,

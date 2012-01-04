@@ -2101,11 +2101,12 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 70:</strong> Construct a {@linkplain FunctionDescriptor
-	 * function} accepting {@code numArgs} arguments (each of type {@linkplain
-	 * PrimitiveTypeDescriptor all}) and returning {@code constantResult}.
+	 * <strong>Primitive 71:</strong> Construct a {@linkplain FunctionDescriptor
+	 * function} that conforms to the specified {@linkplain
+	 * FunctionTypeDescriptor function type}. When applied, it applies the
+	 * specified function and answers that function's result.
 	 */
-	prim70_CreateConstantBlock(70, 2, CanFold, CannotFail)
+	prim71_CreateStubFunction(71, 2, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -2113,59 +2114,11 @@ public enum Primitive
 			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
-			final AvailObject numArgs = args.get(0);
-			final AvailObject constantResult = args.get(1);
-			return interpreter.primitiveSuccess(
-				FunctionDescriptor.createStubForNumArgsConstantResult(
-					numArgs.extractInt(),
-					constantResult));
-		}
-
-		@Override
-		protected @NotNull AvailObject privateBlockTypeRestriction ()
-		{
-			return FunctionTypeDescriptor.create(
-				TupleDescriptor.from(
-					IntegerRangeTypeDescriptor.wholeNumbers(),
-					ANY.o()),
-				FunctionTypeDescriptor.createWithArgumentTupleType(
-					BottomTypeDescriptor.bottom(),
-					ANY.o(),
-					SetDescriptor.empty()));
-		}
-	},
-
-	/**
-	 * <strong>Primitive 71:</strong> Construct a {@linkplain FunctionDescriptor
-	 * function} that takes arguments whose {@linkplain TypeDescriptor types} are
-	 * specified in {@code argTypes}, and returns the result of invoking the
-	 * given {@linkplain AtomDescriptor message} with {@code firstArg} as the
-	 * first argument and the {@linkplain TupleDescriptor tuple} of arguments as
-	 * the second argument. Assume the argument types have already been tried in
-	 * each applicable {@code requiresBlock}, and that the result type agrees
-	 * with each {@code returnsBlock}.
-	 */
-	prim71_CreateStubInvokingWithFirstArgAndCallArgsAsTuple(
-		71, 4, CanFold, CannotFail)
-	{
-		@Override
-		public @NotNull Result attempt (
-			final @NotNull List<AvailObject> args,
-			final @NotNull Interpreter interpreter)
-		{
-			assert args.size() == 4;
-			final AvailObject argTypes = args.get(0);
-			final AvailObject message = args.get(1);
-			final AvailObject firstArg = args.get(2);
-			final AvailObject resultType = args.get(3);
-			final AvailObject impSet =
-				ImplementationSetDescriptor.vmFunctionApplyImplementationSet();
+			final AvailObject newFunctionType = args.get(0);
+			final AvailObject function = args.get(1);
 			return interpreter.primitiveSuccess(
 				FunctionDescriptor.createStubWithArgTypes(
-					argTypes,
-					impSet,
-					firstArg,
-					resultType));
+					newFunctionType, function));
 		}
 
 		@Override
@@ -2173,17 +2126,9 @@ public enum Primitive
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-						IntegerRangeTypeDescriptor.wholeNumbers(),
-						TupleDescriptor.empty(),
-						TYPE.o()),
-					ATOM.o(),
-					ANY.o(),
-					TYPE.o()),
-				FunctionTypeDescriptor.createWithArgumentTupleType(
-					BottomTypeDescriptor.bottom(),
-					TOP.o(),
-					SetDescriptor.empty()));
+					FunctionTypeDescriptor.meta(),
+					FunctionTypeDescriptor.mostGeneralType()),
+				FunctionTypeDescriptor.mostGeneralType());
 		}
 	},
 

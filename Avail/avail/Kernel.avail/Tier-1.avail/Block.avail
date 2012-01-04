@@ -41,7 +41,6 @@ Names
 	"block type taking_and returning_",
 	"[«_‡,»]->_",
 	"[...]->_",
-	"stub block taking_arguments and returning_",
 	"_compiledCode",
 	"_outerVars",
 	"_argument count",
@@ -100,15 +99,6 @@ Method "block type taking_and returning_" is [args : tupleOfType, ret : type |
 Method "[«_‡,»]->_" is [types : tupleOfType, result : type |
 	block type taking types and returning result;
 ] : functionType;
-
-
-/* Simple block stub construction... */
-
-Method "stub block taking_arguments and returning_" is [
-		n : whole number,
-		a : any |
-	Primitive 70;
-] : [...]-> any;
 
 
 /* Detailed accessing (for object dumping / loading). */

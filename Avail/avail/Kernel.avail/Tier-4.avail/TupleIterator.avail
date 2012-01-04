@@ -66,10 +66,10 @@ Method "_as Iterator" is [t : tuple |
 	t do [each : any | things := type union of things and each type;];
 	/* The following code is experimental, and should be replaced by
 	   something with a more opaque encapsulation... */
-	thingsThunk ::= stub block taking <>
-		and applying name of block invoker
-		to [t1 : tuple | Halt;]
-		and argument tuple returning things;
+	thunkType ::= block type taking <> and returning things;
+	thingsThunk ::= stub block
+		with function type thunkType
+		invoking [t1 : tuple | Halt;];
 	thingsThunk2 ::= cast thingsThunk into [c : []->any | c;];
 	Tuple Iterator new with <
 		<tupleField, t>,

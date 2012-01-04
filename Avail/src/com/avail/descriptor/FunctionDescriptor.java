@@ -278,55 +278,48 @@ extends Descriptor
 	 * arguments supplied to the function we're creating.  Ensure the send
 	 * returns a value that complies with resultType.
 	 *
-	 * @param argTypes The types of arguments the new function should accept.
-	 * @param implementationSet The two-argument message the new function should
-	 *                          invoke.
-	 * @param firstArg The first argument to send to the two-argument message.
-	 * @param resultType The type that the invocation (and the new function)
-	 *                   should return.
-	 * @return A function which accepts arguments of the given types and
-	 *         produces a value of the specified type.
+	 * @param functionType
+	 *        The type to which the resultant function should conform.
+	 * @param function
+	 *        The function which the new function should invoked when itself
+	 *        invoked.
+	 * @return Any appropriate function.
 	 */
 	public static AvailObject createStubWithArgTypes (
-		final @NotNull AvailObject argTypes,
-		final @NotNull AvailObject implementationSet,
-		final @NotNull AvailObject firstArg,
-		final @NotNull AvailObject resultType)
+		final @NotNull AvailObject functionType,
+		final @NotNull AvailObject function)
 	{
-		final int numArgs = argTypes.tupleSize();
-		final AvailObject [] argTypesArray = new AvailObject[numArgs];
+		final AvailObject argTypes = functionType.argsTupleType();
+		final int numArgs = argTypes.sizeRange().lowerBound().extractInt();
+		final AvailObject[] argTypesArray = new AvailObject[numArgs];
 		for (int i = 1; i <= numArgs; i++)
 		{
-			assert argTypes.tupleAt(i).isInstanceOfKind(TYPE.o());
-			argTypesArray[i - 1] = argTypes.tupleAt(i);
+			argTypesArray[i - 1] = argTypes.typeAtIndex(i);
 		}
-
+		final AvailObject returnType = functionType.returnType();
 		final L1InstructionWriter writer = new L1InstructionWriter();
 		writer.argumentTypes(argTypesArray);
-		writer.returnType(resultType);
+		writer.returnType(returnType);
 		writer.write(
 			new L1Instruction(
 				L1Operation.L1_doPushLiteral,
-				writer.addLiteral(firstArg)));
+				writer.addLiteral(function)));
 		for (int i = 1; i <= numArgs; i++)
 		{
 			writer.write(new L1Instruction(L1Operation.L1_doPushLastLocal, i));
 		}
 		writer.write(new L1Instruction(L1Operation.L1_doMakeTuple, numArgs));
+		final AvailObject implementationSet =
+			ImplementationSetDescriptor.vmFunctionApplyImplementationSet();
 		writer.write(
 			new L1Instruction(
 				L1Operation.L1_doCall,
 				writer.addLiteral(implementationSet),
-				writer.addLiteral(resultType)));
-
+				writer.addLiteral(returnType)));
 		final AvailObject code = writer.compiledCode();
-
-		final AvailObject function =
-			FunctionDescriptor.create (
+		return FunctionDescriptor.create(
 				code,
-				TupleDescriptor.empty());
-		function.makeImmutable();
-		return function;
+				TupleDescriptor.empty()).makeImmutable();
 	}
 
 	/**

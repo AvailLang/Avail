@@ -39,8 +39,7 @@ Uses
 	"Number",
 	"Tuple"
 Names
-	"stub block taking_and applying_to_and argument tuple returning_",
-	"name of block invoker",
+	"stub block with function type_invoking_",
 	"_(«_‡,»)"
 Body
 
@@ -74,14 +73,8 @@ Restriction "_(«_‡,»)" is [blkType : functionType, argsType : tupleType |
  * a particular signature, and it must invoke some code with the
  * arguments bundled in a tuple.
  */
-Method "stub block taking_and applying_to_and argument tuple returning_" is [
-		argTypes : tuple of type,
-		message : atom,
-		clientArg : any,
-		resultType : type |
+Method "stub block with function type_invoking_" is [
+	newFunctionType : functionType,
+	functionToInvoke : function |
 	Primitive 71;
 ] : [...]-> void;
-
-privateInvoker ::= lookup "_apply_";
-
-Method "name of block invoker" is [privateInvoker;];
