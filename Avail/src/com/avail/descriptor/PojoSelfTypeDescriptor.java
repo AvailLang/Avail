@@ -180,10 +180,10 @@ extends TypeDescriptor
 			return false;
 		}
 
-		final AvailObject aPojoTypeTypes =
+		final AvailObject otherTypes =
 			aPojoType.pojoSelfType().traversed().slot(RAW_TYPES);
 		final AvailObject intersection =
-			objectTypes.setIntersectionCanDestroy(aPojoTypeTypes, false);
+			objectTypes.setIntersectionCanDestroy(otherTypes, false);
 		return objectTypes.equals(intersection);
 	}
 
@@ -237,47 +237,19 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aPojoType)
 	{
-		final AvailObject aPojoSelfType = aPojoType.pojoSelfType().traversed();
-		final AvailObject objectMSC = object.slot(MOST_SPECIFIC_CLASS);
-		final AvailObject aPojoTypeMSC = aPojoSelfType.traversed().slot(
-			MOST_SPECIFIC_CLASS);
-		final Class<?> objectMSCClass =
-			!objectMSC.equalsNull()
-			? (Class<?>) RawPojoDescriptor.getPojo(objectMSC)
-			: null;
-		final Class<?> aPojoTypeMSCClass =
-			!aPojoTypeMSC.equalsNull()
-			? (Class<?>) RawPojoDescriptor.getPojo(aPojoTypeMSC)
-			: null;
-		final int objectModifiers = objectMSCClass != null
-			? objectMSCClass.getModifiers()
-			: 0;
-		final int aPojoTypeModifiers = aPojoTypeMSCClass != null
-			? aPojoTypeMSCClass.getModifiers()
-			: 0;
-		// If either class is declared final, then the intersection is the
-		// most specific pojo type.
-		if (Modifier.isFinal(objectModifiers)
-			|| Modifier.isFinal(aPojoTypeModifiers))
-		{
-			return mostSpecificSelfType();
-		}
-		// If neither class is an interface, then the intersection is the
-		// most specific pojo type (because Java does not support multiple
-		// inheritance of classes).
-		if (!objectMSC.equalsNull()
-			&& !Modifier.isInterface(objectModifiers)
-			&& !aPojoTypeMSC.equalsNull()
-			&& !Modifier.isInterface(aPojoTypeModifiers))
+		final AvailObject otherSelfType = aPojoType.pojoSelfType().traversed();
+		if (PojoTypeDescriptor.isTypeIntersectionMostSpecificType(
+			object.slot(MOST_SPECIFIC_CLASS),
+			otherSelfType.traversed().slot(MOST_SPECIFIC_CLASS)))
 		{
 			return mostSpecificSelfType();
 		}
 
 		final AvailObject objectTypes = object.slot(RAW_TYPES);
-		final AvailObject aPojoTypeTypes = aPojoSelfType.slot(RAW_TYPES);
+		final AvailObject otherTypes = otherSelfType.slot(RAW_TYPES);
 		return create(
 			NullDescriptor.nullObject(),
-			objectTypes.setUnionCanDestroy(aPojoTypeTypes, false));
+			objectTypes.setUnionCanDestroy(otherTypes, false));
 	}
 
 	@Override @AvailMethod
@@ -302,34 +274,14 @@ extends TypeDescriptor
 		final @NotNull AvailObject another)
 	{
 		final AvailObject objectTypes = object.slot(RAW_TYPES);
-		final AvailObject aPojoTypeTypes =
+		final AvailObject otherTypes =
 			another.pojoSelfType().traversed().slot(RAW_TYPES);
 		final AvailObject intersection =
-			objectTypes.setIntersectionCanDestroy(aPojoTypeTypes, false);
-
-		// Build a map of raw types to pojos.
+			objectTypes.setIntersectionCanDestroy(otherTypes, false);
 		final Map<Class<?>, AvailObject> rawTypeMap =
 			new HashMap<Class<?>, AvailObject>(intersection.setSize());
-		for (final AvailObject javaClass : intersection)
-		{
-			assert javaClass.isRawPojo();
-			rawTypeMap.put(
-				(Class<?>) RawPojoDescriptor.getPojo(javaClass), javaClass);
-		}
-
-		// Find the most specific raw type. Note that there may be several most
-		// specific interfaces. If the result is a class, however, then it must
-		// be strictly more specific than any other raw types in the
-		// intersection.
-		Class<?> mostSpecificRawType = Object.class;
-		for (final Class<?> rawType : rawTypeMap.keySet())
-		{
-			if (mostSpecificRawType.isAssignableFrom(rawType))
-			{
-				mostSpecificRawType = rawType;
-			}
-		}
-
+		final Class<?> mostSpecificRawType =
+			PojoTypeDescriptor.mostSpecificRawType(intersection, rawTypeMap);
 		final int modifiers = mostSpecificRawType.getModifiers();
 		final AvailObject mostSpecificClass;
 		// If the most specific raw type is an interface or an abstract class,
@@ -355,7 +307,23 @@ extends TypeDescriptor
 		final @NotNull List<AvailObject> recursionList,
 		final int indent)
 	{
-		builder.append("pojo self type = ");
+		final AvailObject classPojo = object.slot(MOST_SPECIFIC_CLASS);
+		if (classPojo.equalsNull())
+		{
+			builder.append("null's self type");
+			return;
+		}
+
+		final Class<?> javaClass =
+			(Class<?>) RawPojoDescriptor.getPojo(classPojo);
+		if (javaClass == null)
+		{
+			builder.append(String.valueOf(javaClass));
+			builder.append("'s self type");
+			return;
+		}
+
+		builder.append("self type = ");
 		object.slot(RAW_TYPES).printOnAvoidingIndent(
 			builder, recursionList, indent);
 	}

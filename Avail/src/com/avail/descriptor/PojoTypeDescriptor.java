@@ -205,7 +205,8 @@ extends TypeDescriptor
 			pojoArrayClass(), TupleDescriptor.from(TYPE.o()));
 		mostGeneralArrayType.upperBoundMap(createUpperBoundMap(
 			pojoArrayClass()));
-		mostSpecificType = create((Class<?>) null, TupleDescriptor.empty());
+		mostSpecificType = create(
+			RawPojoDescriptor.rawNullObject(), NullDescriptor.nullObject());
 		mostSpecificType.upperBoundMap(MapDescriptor.empty());
 		byteRange = IntegerRangeTypeDescriptor.create(
 			IntegerDescriptor.fromInt(Byte.MIN_VALUE),
@@ -1018,12 +1019,12 @@ extends TypeDescriptor
 		// of object, then object is a supertype of aPojoType.
 		final AvailObject objectParamMap =
 			object.slot(PARAMETERIZATION_MAP);
-		final AvailObject aPojoTypeParamMap =
+		final AvailObject otherParamMap =
 			aPojoType.slot(PARAMETERIZATION_MAP);
 		final AvailObject objectTypes = objectParamMap.keysAsSet();
-		final AvailObject aPojoTypeTypes = aPojoTypeParamMap.keysAsSet();
+		final AvailObject otherTypes = otherParamMap.keysAsSet();
 		final AvailObject intersection =
-			objectTypes.setIntersectionCanDestroy(aPojoTypeTypes, false);
+			objectTypes.setIntersectionCanDestroy(otherTypes, false);
 		if (!objectTypes.equals(intersection))
 		{
 			return false;
@@ -1038,13 +1039,13 @@ extends TypeDescriptor
 		{
 			final AvailObject objectParamTuple =
 				objectParamMap.mapAt(rawTypePojo);
-			final AvailObject aPojoTypeParamTuple =
-				aPojoTypeParamMap.mapAt(rawTypePojo);
+			final AvailObject otherParamTuple =
+				otherParamMap.mapAt(rawTypePojo);
 			final int limit = objectParamTuple.tupleSize();
 			for (int i = 1; i <= limit; i++)
 			{
 				final AvailObject x = objectParamTuple.tupleAt(i);
-				final AvailObject y = aPojoTypeParamTuple.tupleAt(i);
+				final AvailObject y = otherParamTuple.tupleAt(i);
 				if (!y.isSubtypeOf(x))
 				{
 					return false;
@@ -1125,26 +1126,28 @@ extends TypeDescriptor
 		return another.typeIntersectionOfPojoType(object);
 	}
 
-	@Override @AvailMethod
-	@NotNull AvailObject o_TypeIntersectionOfPojoType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aPojoType)
+	/**
+	 * Is the {@linkplain AvailObject#typeIntersection(AvailObject) type
+	 * intersection} of the specified {@linkplain RawPojoDescriptor raw}
+	 * {@linkplain Class Java types} the {@linkplain #mostSpecificType() most
+	 * specific pojo type}?
+	 *
+	 * @param objectMSC A raw Java type.
+	 * @param otherMSC A raw Java type.
+	 * @return {@code true} if the type intersection of the specified raw Java
+	 *         types is the most specific pojo type, {@code false} otherwise.
+	 */
+	static boolean isTypeIntersectionMostSpecificType (
+		final @NotNull AvailObject objectMSC,
+		final @NotNull AvailObject otherMSC)
 	{
-		if (aPojoType.isPojoSelfType())
-		{
-			return aPojoType.typeIntersectionOfPojoType(object);
-		}
-
-		final AvailObject objectMSC = object.slot(MOST_SPECIFIC_CLASS);
-		final AvailObject aPojoTypeMSC = aPojoType.traversed().slot(
-			MOST_SPECIFIC_CLASS);
 		final Class<?> objectMSCClass =
 			!objectMSC.equalsNull()
 			? (Class<?>) RawPojoDescriptor.getPojo(objectMSC)
 			: null;
 		final Class<?> aPojoTypeMSCClass =
-			!aPojoTypeMSC.equalsNull()
-			? (Class<?>) RawPojoDescriptor.getPojo(aPojoTypeMSC)
+			!otherMSC.equalsNull()
+			? (Class<?>) RawPojoDescriptor.getPojo(otherMSC)
 			: null;
 		final int objectModifiers = objectMSCClass != null
 			? objectMSCClass.getModifiers()
@@ -1157,15 +1160,30 @@ extends TypeDescriptor
 		if (Modifier.isFinal(objectModifiers)
 			|| Modifier.isFinal(aPojoTypeModifiers))
 		{
-			return mostSpecificType;
+			return true;
 		}
 		// If neither class is an interface, then the intersection is the
 		// most specific pojo type (because Java does not support multiple
 		// inheritance of classes).
-		if (!objectMSC.equalsNull()
+		return !objectMSC.equalsNull()
 			&& !Modifier.isInterface(objectModifiers)
-			&& !aPojoTypeMSC.equalsNull()
-			&& !Modifier.isInterface(aPojoTypeModifiers))
+			&& !otherMSC.equalsNull()
+			&& !Modifier.isInterface(aPojoTypeModifiers);
+	}
+
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeIntersectionOfPojoType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aPojoType)
+	{
+		if (aPojoType.isPojoSelfType())
+		{
+			return aPojoType.typeIntersectionOfPojoType(object);
+		}
+
+		if (isTypeIntersectionMostSpecificType(
+			object.slot(MOST_SPECIFIC_CLASS),
+			aPojoType.traversed().slot(MOST_SPECIFIC_CLASS)))
 		{
 			return mostSpecificType;
 		}
@@ -1237,6 +1255,50 @@ extends TypeDescriptor
 		return another.typeUnionOfPojoType(object);
 	}
 
+	/**
+	 * Answer the most specific {@linkplain Class raw type} present in the
+	 * specified {@linkplain SetDescriptor set}.
+	 *
+	 * @param set
+	 *        A set of {@linkplain RawPojoDescriptor raw pojos} that represent
+	 *        raw Java types. This must be the set intersection of the keys of
+	 *        two pojo types (probably computed by a type union of two
+	 *        {@linkplain PojoTypeDescriptor pojo types}).
+	 * @param rawTypeMap
+	 *        A {@linkplain Map map} from raw Java types to the raw pojos that
+	 *        represent them. This should be initially empty, and will be
+	 *        populated by this method.
+	 * @return The most specific raw type present in the set. Note that there
+	 *         may be several most specific interfaces, in which case one of
+	 *         them will be answered arbitrarily. There can only be one most
+	 *         specific class, however, and it must be strictly more specific
+	 *         than any other types in the set.
+	 */
+	static @NotNull Class<?> mostSpecificRawType (
+		final @NotNull AvailObject set,
+		final @NotNull Map<Class<?>, AvailObject> rawTypeMap)
+	{
+		// Build a map of raw types to pojos.
+		for (final AvailObject javaClass : set)
+		{
+			assert javaClass.isRawPojo();
+			rawTypeMap.put(
+				(Class<?>) RawPojoDescriptor.getPojo(javaClass), javaClass);
+		}
+
+		// Find the most specific raw type.
+		Class<?> mostSpecificRawType = Object.class;
+		for (final Class<?> rawType : rawTypeMap.keySet())
+		{
+			if (mostSpecificRawType.isAssignableFrom(rawType))
+			{
+				mostSpecificRawType = rawType;
+			}
+		}
+
+		return mostSpecificRawType;
+	}
+
 	@Override @AvailMethod
 	@NotNull AvailObject o_TypeUnionOfPojoType (
 		final @NotNull AvailObject object,
@@ -1251,27 +1313,27 @@ extends TypeDescriptor
 		// parameterizations.
 		final AvailObject objectParamMap =
 			object.slot(PARAMETERIZATION_MAP);
-		final AvailObject aPojoTypeParamMap =
+		final AvailObject otherParamMap =
 			aPojoType.traversed().slot(PARAMETERIZATION_MAP);
 		final AvailObject objectTypes = objectParamMap.keysAsSet();
-		final AvailObject aPojoTypeTypes = aPojoTypeParamMap.keysAsSet();
+		final AvailObject otherTypes = otherParamMap.keysAsSet();
 		final AvailObject intersection = objectTypes.setIntersectionCanDestroy(
-			aPojoTypeTypes, false);
+			otherTypes, false);
 		AvailObject newParamMap =
 			MapDescriptor.newWithCapacity(intersection.setSize());
 		for (final AvailObject rawTypePojo : intersection)
 		{
 			final AvailObject objectParamTuple =
 				objectParamMap.mapAt(rawTypePojo);
-			final AvailObject aPojoTypeParamTuple =
-				aPojoTypeParamMap.mapAt(rawTypePojo);
+			final AvailObject otherParamTuple =
+				otherParamMap.mapAt(rawTypePojo);
 			final int limit = objectParamTuple.tupleSize();
 			final List<AvailObject> unionParams = new ArrayList<AvailObject>(
 				limit);
 			for (int i = 1; i <= limit; i++)
 			{
 				final AvailObject x = objectParamTuple.tupleAt(i);
-				final AvailObject y = aPojoTypeParamTuple.tupleAt(i);
+				final AvailObject y = otherParamTuple.tupleAt(i);
 				final AvailObject union = x.typeUnion(y);
 				unionParams.add(union);
 			}
@@ -1281,29 +1343,10 @@ extends TypeDescriptor
 				true);
 		}
 
-		// Build a map of raw types to pojos.
 		final Map<Class<?>, AvailObject> rawTypeMap =
 			new HashMap<Class<?>, AvailObject>(intersection.setSize());
-		for (final AvailObject javaClass : newParamMap.keysAsSet())
-		{
-			assert javaClass.isRawPojo();
-			rawTypeMap.put(
-				(Class<?>) RawPojoDescriptor.getPojo(javaClass), javaClass);
-		}
-
-		// Find the most specific raw type. Note that there may be several most
-		// specific interfaces. If the result is a class, however, then it must
-		// be strictly more specific than any other raw types in the
-		// intersection.
-		Class<?> mostSpecificRawType = Object.class;
-		for (final Class<?> rawType : rawTypeMap.keySet())
-		{
-			if (mostSpecificRawType.isAssignableFrom(rawType))
-			{
-				mostSpecificRawType = rawType;
-			}
-		}
-
+		final Class<?> mostSpecificRawType = mostSpecificRawType(
+			intersection, rawTypeMap);
 		final int modifiers = mostSpecificRawType.getModifiers();
 		final AvailObject mostSpecificClass;
 		// If the most specific raw type is an interface or an abstract class,
@@ -1351,8 +1394,7 @@ extends TypeDescriptor
 		final AvailObject classPojo = object.slot(MOST_SPECIFIC_CLASS);
 		if (classPojo.equalsNull())
 		{
-			super.printObjectOnAvoidingIndent(
-				object, builder, recursionList, indent);
+			builder.append("null's type");
 			return;
 		}
 
@@ -1712,13 +1754,7 @@ extends TypeDescriptor
 		final Class<?> rawType,
 		final @NotNull AvailObject parameters)
 	{
-		// Construct the most specific pojo type specially.
-		if (rawType == null)
-		{
-			return create(
-				RawPojoDescriptor.rawNullObject(),
-				NullDescriptor.nullObject());
-		}
+		assert rawType != null;
 
 		// Explicitly seed the parameterization map with Object. From an Avail
 		// programmer's point of view, a Java interface seems to inherit from

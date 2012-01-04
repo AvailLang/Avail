@@ -44,14 +44,11 @@ Restriction "_[_]" is
 	i : natural number type
 |
 	tt ::= ttt instance;
-	Print "_[_] (tt, i): " then tt as basic string then ", " then i as basic string;
 	/* Compute the type union of all the possible types it could be,
 	   depending on what indices could be applied. */
 	possible : type := terminates;
 	low ::= i lower bound;
-	Print "_[_] (low): " then low as basic string;
 	high ::= i upper bound;
-	Print "_[_] (high): " then high as basic string;
 	From low min (|| tt leading types || + 1)
 		to high min (|| tt leading types || + 1)
 		do [ x : natural number |
