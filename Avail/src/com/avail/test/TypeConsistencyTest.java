@@ -35,6 +35,7 @@ package com.avail.test;
 import static org.junit.Assert.*;
 import static com.avail.descriptor.TypeDescriptor.Types;
 import java.io.PrintStream;
+import java.lang.reflect.Array;
 import java.util.*;
 import org.junit.*;
 import com.avail.annotations.NotNull;
@@ -458,6 +459,9 @@ public class TypeConsistencyTest
 			}
 		};
 
+		/**
+		 * The most general {@linkplain PojoTypeDescriptor pojo type}.
+		 */
 		final static Node MOST_GENERAL_POJO = new Node(
 			"MOST_GENERAL_POJO",
 			primitiveTypes.get(Types.ANY))
@@ -469,6 +473,9 @@ public class TypeConsistencyTest
 			}
 		};
 
+		/**
+		 * The pojo type representing {@link Comparable}&lt;{@link Object}&gt;.
+		 */
 		final static Node COMPARABLE_OF_JAVA_OBJECT_POJO = new Node(
 			"COMPARABLE_OF_JAVA_OBJECT_POJO",
 			MOST_GENERAL_POJO)
@@ -483,6 +490,9 @@ public class TypeConsistencyTest
 			}
 		};
 
+		/**
+		 * The pojo type representing {@link Comparable}&lt;{@link Integer}&gt;.
+		 */
 		final static Node COMPARABLE_OF_JAVA_INTEGER_POJO = new Node(
 			"COMPARABLE_OF_JAVA_INTEGER_POJO",
 			COMPARABLE_OF_JAVA_OBJECT_POJO)
@@ -497,6 +507,9 @@ public class TypeConsistencyTest
 			}
 		};
 
+		/**
+		 * The pojo type representing {@link Integer}.
+		 */
 		final static Node JAVA_INTEGER_POJO = new Node(
 			"JAVA_INTEGER_POJO",
 			COMPARABLE_OF_JAVA_INTEGER_POJO)
@@ -509,6 +522,9 @@ public class TypeConsistencyTest
 			}
 		};
 
+		/**
+		 * The pojo type representing {@link Comparable}&lt;{@link String}&gt;.
+		 */
 		final static Node COMPARABLE_OF_JAVA_STRING_POJO = new Node(
 			"COMPARABLE_OF_JAVA_STRING_POJO",
 			COMPARABLE_OF_JAVA_OBJECT_POJO)
@@ -523,6 +539,9 @@ public class TypeConsistencyTest
 			}
 		};
 
+		/**
+		 * The pojo type representing {@link String}.
+		 */
 		final static Node JAVA_STRING_POJO = new Node(
 			"JAVA_STRING_POJO",
 			COMPARABLE_OF_JAVA_STRING_POJO)
@@ -535,6 +554,14 @@ public class TypeConsistencyTest
 			}
 		};
 
+		/**
+		 * The pojo type representing {@link Enum}&lt;<em>self type</em>&gt;.
+		 * Note that this type isn't actually supported by Java directly, since
+		 * it would look like
+		 * Enum&lt;Enum&lt;Enum&lt;Enum&lt;...&gt;&gt;&gt;&gt;, which cannot
+		 * actually be written as a Java type expression.  This pojo type is the
+		 * most general Java enumeration type.
+		 */
 		final static Node JAVA_ENUM_POJO = new Node(
 			"JAVA_ENUM_POJO",
 			COMPARABLE_OF_JAVA_OBJECT_POJO)
@@ -549,6 +576,10 @@ public class TypeConsistencyTest
 			}
 		};
 
+		/**
+		 * The pojo type representing the Java enumeration {@link
+		 * com.avail.interpreter.Primitive}.
+		 */
 		final static Node AVAIL_PRIMITIVE_ENUM_POJO = new Node(
 			"AVAIL_PRIMITIVE_ENUM_POJO",
 			JAVA_ENUM_POJO)
@@ -561,6 +592,11 @@ public class TypeConsistencyTest
 			}
 		};
 
+		/**
+		 * The pojo type representing {@link Comparable}&lt;<em>Avail's integer
+		 * type</em>&gt;.  Note that this is a Java type parameterized by an
+		 * Avail type.
+		 */
 		final static Node COMPARABLE_OF_AVAIL_INTEGER_POJO = new Node(
 			"COMPARABLE_OF_AVAIL_INTEGER_POJO",
 			MOST_GENERAL_POJO)
@@ -575,6 +611,10 @@ public class TypeConsistencyTest
 			}
 		};
 
+		/**
+		 * The pojo type representing the Java {@link Array} type {@link
+		 * Object}[].
+		 */
 		final static Node JAVA_OBJECT_ARRAY_POJO = new Node(
 			"JAVA_OBJECT_ARRAY_POJO",
 			MOST_GENERAL_POJO)
@@ -589,6 +629,10 @@ public class TypeConsistencyTest
 			}
 		};
 
+		/**
+		 * The pojo type representing the Java {@link Array} type {@link
+		 * String}[].
+		 */
 		final static Node JAVA_STRING_ARRAY_POJO = new Node(
 			"JAVA_STRING_ARRAY_POJO",
 			JAVA_OBJECT_ARRAY_POJO)
@@ -602,6 +646,10 @@ public class TypeConsistencyTest
 			}
 		};
 
+		/**
+		 * The special {@link PojoTypeDescriptor#mostSpecificType() most
+		 * specific pojo type},
+		 */
 		final static Node MOST_SPECIFIC_POJO = new Node(
 			"MOST_SPECIFIC_POJO",
 			JAVA_INTEGER_POJO,

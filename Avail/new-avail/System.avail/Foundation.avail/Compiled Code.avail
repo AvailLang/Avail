@@ -50,15 +50,15 @@ Names
 	/* Kind aliases. */
 	"compiled code",
 	"primitive number",
-	
+
 	/* Metakind alias. */
 	"compiled code metakind",
-	
+
 	/* Kind constructors. */
 	"compiled code kind accepting type_and returning type_",
 	"¢[`…]→_",
 	"¢[«_‡,»]→_",
-	
+
 	/* Queries. */
 	"_'s argument count",
 	"_'s locals count",

@@ -74,7 +74,7 @@ public class AvailGetOuterVariable extends AvailGetVariable
 		writeIntegerOn(index, aStream);
 	}
 
-	
+
 	/**
 	 * The instructions of a block are being iterated over.  Coordinate
 	 * optimizations between instructions using localData and outerData, two

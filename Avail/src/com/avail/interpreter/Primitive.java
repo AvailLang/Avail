@@ -684,7 +684,7 @@ public enum Primitive
 	 * <strong>Primitive 20:</strong> Get the current time as milliseconds since
 	 * the Unix Epoch.<
 	 */
-	prim20_CurrentTimeMilliseconds(20, 0, CannotFail)
+	prim20_CurrentTimeMilliseconds(20, 0, CannotFail, HasSideEffect)
 	{
 		@Override
 		public Result attempt (
@@ -2006,8 +2006,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 66:</strong> Create a union meta from the given inner
-	 * type.  The type will be canonized to the nearest kind.
+	 * <strong>Primitive 66:</strong> Create an enumeration meta from the given
+	 * inner type.  The type will be canonized to the nearest kind.
 	 */
 	prim66_CreateEnumerationType(66, 1, CanFold, CannotFail)
 	{
@@ -6382,128 +6382,25 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 280:</strong> Add two {@linkplain FloatDescriptor
-	 * floats}.
+	 * <strong>Primitive 280:</strong> Convert the numeric argument to a
+	 * {@linkplain FloatDescriptor float}.
 	 */
-	prim280_FloatAddition(280, 2, CanFold, CannotFail)
+	prim280_AsFloat(280, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
 			final @NotNull List<AvailObject> args,
 			final @NotNull Interpreter interpreter)
 		{
-			assert args.size() == 2;
-			final AvailObject a = args.get(0);
-			final AvailObject b = args.get(1);
-			return interpreter.primitiveSuccess(
-				FloatDescriptor.objectFromFloatRecycling(
-					a.extractFloat() + b.extractFloat(),
-					a,
-					b,
-					true));
-		}
-
-		@Override
-		protected @NotNull AvailObject privateBlockTypeRestriction ()
-		{
-			return FunctionTypeDescriptor.create(
-				TupleDescriptor.from(
-					FLOAT.o(),
-					FLOAT.o()),
-				FLOAT.o());
-		}
-	},
-
-	/**
-	 * <strong>Primitive 281:</strong> Subtract {@linkplain FloatDescriptor
-	 * float} {@code b} from float {@code a}.
-	 */
-	prim281_FloatSubtraction(281, 2, CanFold, CannotFail)
-	{
-		@Override
-		public @NotNull Result attempt (
-			final @NotNull List<AvailObject> args,
-			final @NotNull Interpreter interpreter)
-		{
-			assert args.size() == 2;
-			final AvailObject a = args.get(0);
-			final AvailObject b = args.get(1);
-			return interpreter.primitiveSuccess(
-				FloatDescriptor.objectFromFloatRecycling(
-					a.extractFloat() - b.extractFloat(),
-					a,
-					b,
-					true));
-		}
-
-		@Override
-		protected @NotNull AvailObject privateBlockTypeRestriction ()
-		{
-			return FunctionTypeDescriptor.create(
-				TupleDescriptor.from(
-					FLOAT.o(),
-					FLOAT.o()),
-				FLOAT.o());
-		}
-	},
-
-	/**
-	 * <strong>Primitive 282:</strong> Multiply {@linkplain FloatDescriptor
-	 * float} {@code a} and float {@code b}.
-	 */
-	prim282_FloatMultiplication(282, 2, CanFold, CannotFail)
-	{
-		@Override
-		public @NotNull Result attempt (
-			final @NotNull List<AvailObject> args,
-			final @NotNull Interpreter interpreter)
-		{
-			assert args.size() == 2;
-			final AvailObject a = args.get(0);
-			final AvailObject b = args.get(1);
-			return interpreter.primitiveSuccess(
-				FloatDescriptor.objectFromFloatRecycling(
-					a.extractFloat() * b.extractFloat(),
-					a,
-					b,
-					true));
-		}
-
-		@Override
-		protected @NotNull AvailObject privateBlockTypeRestriction ()
-		{
-			return FunctionTypeDescriptor.create(
-				TupleDescriptor.from(
-					FLOAT.o(),
-					FLOAT.o()),
-				FLOAT.o());
-		}
-	},
-
-	/**
-	 * <strong>Primitive 283:</strong> Divide {@linkplain FloatDescriptor float}
-	 * {@code a} by float {@code b}.
-	 */
-	prim283_FloatDivision(283, 2, CanFold)
-	{
-		@Override
-		public @NotNull Result attempt (
-			final @NotNull List<AvailObject> args,
-			final @NotNull Interpreter interpreter)
-		{
-			assert args.size() == 2;
-			final AvailObject a = args.get(0);
-			final AvailObject b = args.get(1);
-			if (b.extractFloat() == 0.0)
+			assert args.size() == 1;
+			final AvailObject number = args.get(0);
+			if (number.isFloat())
 			{
-				return interpreter.primitiveFailure(E_CANNOT_DIVIDE_BY_ZERO);
+				return interpreter.primitiveSuccess(number);
 			}
 			return interpreter.primitiveSuccess(
-				FloatDescriptor.objectFromFloatRecycling(
-					a.extractFloat() / b.extractFloat(),
-					a,
-					b,
-					true));
+				FloatDescriptor.fromFloat(
+					number.extractFloat()));
 		}
 
 		@Override
@@ -6511,30 +6408,31 @@ public enum Primitive
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					FLOAT.o(),
-					FLOAT.o()),
+					NUMBER.o()),
 				FLOAT.o());
 		}
 	},
 
 	/**
-	 * <strong>Primitive 284:</strong> Compare {@linkplain FloatDescriptor
-	 * float} {@code a} < float {@code b}. Answers a {@linkplain
-	 * EnumerationTypeDescriptor#booleanObject() boolean}.
+	 * <strong>Primitive 281:</strong> Convert the numeric argument to a
+	 * {@linkplain DoubleDescriptor double}.
 	 */
-	prim284_FloatLessThan(284, 2, CanFold, CannotFail)
+	prim281_AsDouble(281, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
 			final @NotNull List<AvailObject> args,
 			final @NotNull Interpreter interpreter)
 		{
-			assert args.size() == 2;
-			final AvailObject a = args.get(0);
-			final AvailObject b = args.get(1);
+			assert args.size() == 1;
+			final AvailObject number = args.get(0);
+			if (number.isDouble())
+			{
+				return interpreter.primitiveSuccess(number);
+			}
 			return interpreter.primitiveSuccess(
-				AtomDescriptor.objectFromBoolean(
-					(a.extractFloat() < b.extractFloat())));
+				DoubleDescriptor.fromDouble(
+					number.extractDouble()));
 		}
 
 		@Override
@@ -6542,40 +6440,8 @@ public enum Primitive
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					FLOAT.o(),
-					FLOAT.o()),
-				EnumerationTypeDescriptor.booleanObject());
-		}
-	},
-
-	/**
-	 * <strong>Primitive 285:</strong> Compare {@linkplain FloatDescriptor
-	 * float} {@code a} <= float {@code b}. Answers a {@linkplain
-	 * EnumerationTypeDescriptor#booleanObject() boolean}.
-	 */
-	prim285_FloatLessOrEqual(285, 2, CanFold, CannotFail)
-	{
-		@Override
-		public @NotNull Result attempt (
-			final @NotNull List<AvailObject> args,
-			final @NotNull Interpreter interpreter)
-		{
-			assert args.size() == 2;
-			final AvailObject a = args.get(0);
-			final AvailObject b = args.get(1);
-			return interpreter.primitiveSuccess(
-				AtomDescriptor.objectFromBoolean(
-					(a.extractFloat() <= b.extractFloat())));
-		}
-
-		@Override
-		protected @NotNull AvailObject privateBlockTypeRestriction ()
-		{
-			return FunctionTypeDescriptor.create(
-				TupleDescriptor.from(
-					FLOAT.o(),
-					FLOAT.o()),
-				EnumerationTypeDescriptor.booleanObject());
+					NUMBER.o()),
+				DOUBLE.o());
 		}
 	},
 
@@ -6819,6 +6685,37 @@ public enum Primitive
 				FLOAT.o());
 		}
 	},
+
+	/**
+	 * <strong>Primitive 292:</strong> Answer the largest integral {@linkplain
+	 * FloatDescriptor float} less than or equal to the given float.  If the
+	 * float is ±INF or NaN then answer the argument.
+	 */
+	prim292_FloatFloor(292, 1, CanFold, CannotFail)
+	{
+		@Override
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
+		{
+			assert args.size() == 1;
+			final AvailObject a = args.get(0);
+			final float f = a.extractFloat();
+			final float floor = (float)Math.floor(f);
+			return interpreter.primitiveSuccess(
+				FloatDescriptor.objectFromFloatRecycling(floor, a, true));
+		}
+
+		@Override
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
+		{
+			return FunctionTypeDescriptor.create(
+				TupleDescriptor.from(
+					FLOAT.o()),
+				FLOAT.o());
+		}
+	},
+
 
 	/**
 	 * <strong>Primitive 310:</strong> Add two {@linkplain DoubleDescriptor
@@ -7261,6 +7158,38 @@ public enum Primitive
 				DOUBLE.o());
 		}
 	},
+
+	/**
+	 * <strong>Primitive 322:</strong> Answer the largest integral {@linkplain
+	 * DoubleDescriptor double} less than or equal to the given double.  If the
+	 * double is ±INF or NaN then answer the argument.
+	 */
+	prim322_FloatFloor(322, 1, CanFold, CannotFail)
+	{
+		@Override
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
+		{
+			assert args.size() == 1;
+			final AvailObject a = args.get(0);
+			final double d = a.extractDouble();
+			final double floor = Math.floor(d);
+			return interpreter.primitiveSuccess(
+				DoubleDescriptor.objectFromDoubleRecycling(floor, a, true));
+		}
+
+		@Override
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
+		{
+			return FunctionTypeDescriptor.create(
+				TupleDescriptor.from(
+					DOUBLE.o()),
+				DOUBLE.o());
+		}
+	},
+
+
 
 	/**
 	 * <strong>Primitive 330:</strong> Extract the {@linkplain IntegerDescriptor

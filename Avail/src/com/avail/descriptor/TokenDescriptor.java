@@ -100,26 +100,26 @@ extends Descriptor
 		 * file to simplify end-of-file processing.
 		 */
 		END_OF_FILE,
-	
+
 		/**
 		 * The semicolon character may not (at least on 2010.12.28) be used as
 		 * an operator character.  This token type is used to prevent seeing a
 		 * semicolon as an operator.
 		 */
 		END_OF_STATEMENT,
-	
+
 		/**
 		 * A sequence of characters suitable for an Avail identifier, which
 		 * roughly corresponds to characters in a Java identifier.
 		 */
 		KEYWORD,
-	
+
 		/**
 		 * A literal token, detected at lexical scanning time.  At the moment
 		 * this includes non-negative numeric tokens and strings.
 		 */
 		LITERAL,
-	
+
 		/**
 		 * A single operator character, which is anything that isn't whitespace,
 		 * a keyword character, or an Avail reserved character such as

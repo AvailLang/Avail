@@ -385,7 +385,7 @@ Method "_parse block argument then_" is [
 Method "_parse primitive then_" is [
 		p : Avail Parser,
 		c : [[0..65535]]->void |
-	c(0);	/* Try it without a primitive first. */
+	c(0);  /* Try it without a primitive first. */
 	p skip "Primitive" then [
 		p parse literal then [literalNode : Literal Node |
 			cast literalNode value into [num : [0..65535] |
@@ -492,7 +492,7 @@ Method "_parse variable use then_" is [
 		if found then [
 			c(new Variable Use Node from declaration innerDecl);
 		] else [
-/*			Crash "Globals are not yet supported"; */
+			/* Crash "Globals are not yet supported"; */
 		];
 	];
 ];
@@ -792,7 +792,7 @@ Method "_parse and execute outer statement" is [
 	if *&solution = nil then [
 		Crash "Couldn't parse outer statement.";
 	] else [
-	/*	*<&statement, p->position, p->scope> := solution;    */
+		/*  *<&statement, p->position, p->scope> := solution;    */
 		statement := solution[1];
 		*p->position := solution[2];
 		*p->scope := solution[3];

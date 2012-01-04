@@ -35,7 +35,7 @@ Extends
 Uses
 	"BlockA",
 	"BlockB",
-	"Integer"
+	"Number"
 Names
 Body
 

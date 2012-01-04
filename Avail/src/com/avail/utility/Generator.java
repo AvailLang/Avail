@@ -45,7 +45,7 @@ public abstract class Generator <X>
 {
 	/**
 	 * Request that the value be produced.
-	 * 
+	 *
 	 * @return The generated value.
 	 */
 	public abstract X value ();

@@ -44,23 +44,23 @@ Uses
 Names
 	/* Kind aliases. */
 	"tuple",
-	
+
 	/* Metakind aliases. */
 	"tuple metakind",
-	
+
 	/* Kind constructors. */
 	"tuple kind with_elements of leading types_and default type_",
 	"tuple of_",
 	"<«_‡,»..|_.._>",
 	"<«_‡,»|>",
-	
+
 	/* Tuple constructors. */
 	"⊶«_‡++»",							/* Concatenation */
 	"_[_.._]",							/* Slicing */
-	
+
 	/* Tuple kind queries. */
 	"_'s allowed sizes",
-	
+
 	/* Tuple queries. */
 	"‖_‖",								/* Size */
 Body
@@ -227,7 +227,7 @@ Method "<«_‡,»|>" is
 			to ‖elementTypes‖ (inclusive if true)) elements
 		of leading types elementTypes
 		and default type ⊥;
-] : tuple metakind;	
+] : tuple metakind;
 
 /**
  * Answer the requested subtuple/slice.

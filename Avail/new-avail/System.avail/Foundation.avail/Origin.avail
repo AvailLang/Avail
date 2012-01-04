@@ -55,7 +55,7 @@ Pragma
 	 * @see com.avail.interpreter.Interpreter#bootstrapSpecialObject(String)
 	 */
 	"bootstrapSpecialObject = special object_",
-	
+
 	/**
 	 * This is the primary defining method. It enables a developer to bind a
 	 * module local name to a function.

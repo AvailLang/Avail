@@ -45,15 +45,15 @@ public abstract class AvailPushVariable extends AvailInstructionWithIndex
 {
 
 	/**
-	 * Whether this instruction is the last use of its variable. 
+	 * Whether this instruction is the last use of its variable.
 	 */
 	protected boolean isLastAccess = false;
 
-	
+
 	/**
 	 * Set the flag indicating whether this instruction is the last use of its
 	 * variable.
-	 * 
+	 *
 	 * @param newFlag The new value for {@link #isLastAccess}.
 	 */
 	public void isLastAccess (
@@ -61,8 +61,8 @@ public abstract class AvailPushVariable extends AvailInstructionWithIndex
 	{
 		this.isLastAccess = newFlag;
 	}
-	
-	
+
+
 	/**
 	 * Construct a new {@link AvailPushVariable}.
 	 *

@@ -264,6 +264,20 @@ extends TypeDescriptor
 			object.valueType().typeUnion(aMapType.valueType()).makeImmutable());
 	}
 
+	/**
+	 * Compute what the map type's hash would be, given the hashes of its
+	 * constituent parts.
+	 *
+	 * @param sizesHash
+	 *            The hash of the {@linkplain IntegerRangeTypeDescriptor integer
+	 *            range type} that constrains the map size.
+	 * @param keyTypeHash
+	 *            The hash of the key type.
+	 * @param valueTypeHash
+	 *            The hash of the value type.
+	 * @return
+	 *            The hash of the resulting map type.
+	 */
 	private static int computeHashForSizeRangeHashKeyTypeHashValueTypeHash (
 		final int sizesHash,
 		final int keyTypeHash,

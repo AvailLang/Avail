@@ -39,15 +39,15 @@ Names
 Body
 
 
-/*	s ::= "Print 100;" as Iterator as tokens; */
-/*	s ::= "[Halt; ww : integer := 9; [ww := ww + 8;]();]();" as Iterator as tokens; */
-	s ::= "[ww : integer := 9; [ww := ww + 8;]();]();" as Iterator as tokens;
-/*	s ::= "[ww ::= 1; [ww := ww + 1; Print ww + 2;]();]();" as Iterator as tokens;  */
+/* s ::= "Print 100;" as Iterator as tokens; */
+/* s ::= "[Halt; ww : integer := 9; [ww := ww + 8;]();]();" as Iterator as tokens; */
+   s ::= "[ww : integer := 9; [ww := ww + 8;]();]();" as Iterator as tokens;
+/* s ::= "[ww ::= 1; [ww := ww + 1; Print ww + 2;]();]();" as Iterator as tokens;  */
 
 p ::= Avail Parser on s;
 
 [
-/*	Halt; */
+	/* Halt; */
 	p parse and execute outer statement;
 ]();
 

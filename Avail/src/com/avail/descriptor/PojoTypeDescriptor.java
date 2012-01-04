@@ -41,7 +41,7 @@ import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 
 /**
- * A {@code PojoTypeDescriptor} describes the type of a plaid-old Java object
+ * A {@code PojoTypeDescriptor} describes the type of a plain-old Java object
  * (pojo) that is accessible to an Avail programmer as an {@linkplain
  * AvailObject Avail object}.
  *

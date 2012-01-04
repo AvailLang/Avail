@@ -49,7 +49,7 @@ public class AvailPushLocalVariable extends AvailPushVariable
 
 	/**
 	 * Construct a new {@link AvailPushLocalVariable}.
-	 * 
+	 *
 	 * @param variableIndex The index that the local variable will occupy at
 	 *                      runtime within a {@linkplain ContinuationDescriptor
 	 *                      continuation}.
@@ -58,7 +58,7 @@ public class AvailPushLocalVariable extends AvailPushVariable
 	{
 		super(variableIndex);
 	}
-	
+
 	@Override
 	public void writeNybblesOn (
 			final ByteArrayOutputStream aStream)

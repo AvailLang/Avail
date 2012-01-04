@@ -100,7 +100,7 @@ Body
  *    `true` if the first argument is strictly less than the second argument,
  *    `false` otherwise.
  */
-Method "_<_" is 
+Method "_<_" is
 [
 	arg1 : number,
 	arg2 : number
@@ -118,7 +118,7 @@ Method "_<_" is
  *    `true` if the first argument is less than or equal to the second
  *    argument, `false` otherwise.
  */
-Method "_≤_" is 
+Method "_≤_" is
 [
 	arg1 : number,
 	arg2 : number
@@ -142,7 +142,7 @@ Method "_≤_" is
  * Returns:
  *    The requested integral range type.
  */
-Method "integer range from_(inclusive=_)to_(inclusive=_)" is 
+Method "integer range from_(inclusive=_)to_(inclusive=_)" is
 [
 	lowerBound : extended integer,
 	lowerBoundInclusive : boolean,
@@ -160,7 +160,7 @@ Method "integer range from_(inclusive=_)to_(inclusive=_)" is
  * Returns:
  *    The lower bound of the argument.
  */
-Method "_'s lower bound" is 
+Method "_'s lower bound" is
 [
 	range : extended integer meta
 |
@@ -175,7 +175,7 @@ Method "_'s lower bound" is
  * Returns:
  *    The upper  bound of the argument.
  */
-Method "_'s upper bound" is 
+Method "_'s upper bound" is
 [
 	range : extended integer meta
 |
@@ -188,7 +188,7 @@ Method "_'s upper bound" is
  * Parameters:
  *    var - A variable.
  */
-Method "clear_" is 
+Method "clear_" is
 [
 	var : variable
 |
@@ -203,7 +203,7 @@ Method "clear_" is
  * Returns:
  *    The requested variable type.
  */
-Method "↑_" is 
+Method "↑_" is
 [
 	containmentType : type
 |
@@ -220,7 +220,7 @@ Method "↑_" is
  *    The most general type that describes values that can be read from
  *    instances of `varType`.
  */
-Method "_'s read type" is 
+Method "_'s read type" is
 [
 	varType : variable meta
 |
@@ -236,7 +236,7 @@ Method "_'s read type" is
  *    A new variable capable of retrieving and storing values of the specified
  *    containment type.
  */
-Method "new ↑_" is 
+Method "new ↑_" is
 [
 	containmentType : type
 |
@@ -252,7 +252,7 @@ Method "new ↑_" is
  *    `true` if the variable contains a value (i.e. because it has previously
  *    been assigned), `false` otherwise.
  */
-Method "_is unassigned" is 
+Method "_is unassigned" is
 [
 	var : variable
 |
@@ -269,7 +269,7 @@ Method "_is unassigned" is
  *    The most general type that describes values that can be written to
  *    instances of `varType`.
  */
-Method "_'s write type" is 
+Method "_'s write type" is
 [
 	varType : variable meta
 |
@@ -296,7 +296,7 @@ Method "milliseconds since the Epoch" is
  * Returns:
  *    The current fiber.
  */
-Method "current fiber" is 
+Method "current fiber" is
 [
 	Primitive 25;
 ] : fiber;
@@ -312,7 +312,7 @@ Method "current fiber" is
  *    key - The key whose value should be (over)written.
  *    value - The new value.
  */
-Method "_[_]:=_" is 
+Method "_[_]:=_" is
 [
 	aFiber : fiber,
 	key : atom,
@@ -329,7 +329,7 @@ Method "_[_]:=_" is
  * Returns:
  *    A set whose members are the instances of the enumeration.
  */
-Method "_'s instances" is 
+Method "_'s instances" is
 [
 	enum : enumeration meta
 |
@@ -345,7 +345,7 @@ Method "_'s instances" is
  * Returns:
  *    The precise instance type of the supplied value.
  */
-Method "_'s type" is 
+Method "_'s type" is
 [
 	value : any
 |
@@ -362,7 +362,7 @@ Method "_'s type" is
  * Returns:
  *    The type union of the arguments.
  */
-Method "_∪_" is 
+Method "_∪_" is
 [
 	arg1 : type,
 	arg2 : type
@@ -380,7 +380,7 @@ Method "_∪_" is
  * Returns:
  *    The type intersection of the arguments.
  */
-Method "_∩_" is 
+Method "_∩_" is
 [
 	arg1 : type,
 	arg2 : type
@@ -400,7 +400,7 @@ Method "_∩_" is
  *    `true` if the first argument is a subtype of, or the same type as, the
  *    second argument, `false` otherwise.
  */
-Method "_≤_" is 
+Method "_≤_" is
 [
 	arg1 : type,
 	arg2 : type
@@ -420,7 +420,7 @@ Method "_≤_" is
  *    whose types conform to the parameter types and whose return value
  *    conforms to the return type.
  */
-Method "function type accepting_and returning_" is 
+Method "function type accepting_and returning_" is
 [
 	parameterTypes : tuple of type,
 	returnType : type
@@ -438,7 +438,7 @@ Method "function type accepting_and returning_" is
  *    A fixed-size tuple type whose element types correspond to the parameter
  *    types of the argument.
  */
-Method "_'s parameters' type" is 
+Method "_'s parameters' type" is
 [
 	functionType : function meta
 |
@@ -453,7 +453,7 @@ Method "_'s parameters' type" is
  * Returns:
  *    The return type of the argument.
  */
-Method "_'s return type" is 
+Method "_'s return type" is
 [
 	functionType : function meta
 |
@@ -468,7 +468,7 @@ Method "_'s return type" is
  *    tupleOfTypes - A tuple of types.
  * Returns:
  *    The type union of the elements of the argument.
-Method "∪_" is 
+Method "∪_" is
 [
 	tupleOfTypes : tuple of type
 |
@@ -486,7 +486,7 @@ Method "∪_" is
  *    The requested function type. Instances of this type answer values of the
  *    specified return type.
  */
-Method "[…]→_" is 
+Method "[…]→_" is
 [
 	returnType : type
 |
@@ -505,7 +505,7 @@ Method "[…]→_" is
  *    If `predicate` is `true`, then the value produced by invoking
  *    `trueFunction`; otherwise, the value produced by invoking `falseFunction`.
  */
-Method "if_then_else_" is 
+Method "if_then_else_" is
 [
 	predicate : boolean,
 	trueFunction : nullary procedure,
@@ -522,7 +522,7 @@ Method "if_then_else_" is
  *    predicate - A predicate value.
  *    trueBlock - The function to invoke if `predicate` is `true`.
  */
-Method "if_then_" is 
+Method "if_then_" is
 [
 	predicate : boolean,
 	trueBlock : nullary procedure
@@ -530,7 +530,7 @@ Method "if_then_" is
 	Primitive 44;
 ] : ⊤;
 
-Method "ignore_and evaluate_" is 
+Method "ignore_and evaluate_" is
 [
 	arg1 : boolean,
 	arg2 : predicate function
@@ -801,7 +801,7 @@ Method "enumeration of_" is
 	Primitive 66;
 ] : enumeration meta meta;
 
-Method "give type_the name_" is 
+Method "give type_the name_" is
 [
 	arg1 : object meta,
 	arg2 : string
@@ -809,21 +809,21 @@ Method "give type_the name_" is
 	Primitive 68;
 ] : ⊤;
 
-Method "_'s names" is 
+Method "_'s names" is
 [
 	arg1 : object meta
 |
 	Primitive 69;
 ] : set of string;
 
-Method "_'s compiled code" is 
+Method "_'s compiled code" is
 [
 	arg1 : function
 |
 	Primitive 72;
 ] : compiled code;
 
-Method "_'s outer variables" is 
+Method "_'s outer variables" is
 [
 	arg1 : function
 |

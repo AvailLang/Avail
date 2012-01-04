@@ -36,7 +36,7 @@ Uses
 	"Tier-1",
 	"BlockA",
 	"Container",
-	"Integer",
+	"Number",
 	"Set",
 	"Tuple"
 Names
@@ -173,7 +173,7 @@ Restriction "_[_->nil]" is [mt : mapType, kt : type |
 Method "*_[_]:=_" is [mapVar : container, key : any, value : any |
 	/* Copy map but with k->v in it.  Store back in mapVar. */
 	*mapVar ?:=
-		cast	
+		cast
 			clearing* mapVar
 		into [m : map | m[key->value];];
 ] : void;

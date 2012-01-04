@@ -36,6 +36,31 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 import com.avail.annotations.*;
 
+/**
+ * The primitive types of Avail are different from the notion of primitive types
+ * in other object-oriented languages.  Traditionally, a compiler or virtual
+ * machine encodes representation knowledge about and makes other special
+ * provisions about its primitive types.  Since <em>all</em> types are in a
+ * sense provided by the Avail system, it has no special primitive types that
+ * fill that role – they're <em>all</em> special.
+ *
+ * <p>
+ * Instead, the term "primitive type" in Avail refers to the top section of the
+ * type lattice which partitions the rest of the lattice into broad categories
+ * of essential disjoint subgraphs.  This includes the ultimate type {@linkplain
+ * TypeDescriptor.Types#TOP top (⊤)}, the penultimate type {@linkplain
+ * TypeDescriptor.Types#ANY any}, and various specialties such as {@linkplain
+ * TypeDescriptor.Types#ATOM atom} and {@linkplain TypeDescriptor.Types#NUMBER
+ * number}.  Type hierarchies that have a natural root don't bother with a
+ * primitive type to delimit the hierarchy, using the natural root itself.  For
+ * example, the tuple type whose instances include all tuples is a natural root
+ * of the tuple types.
+ * </p>
+ *
+ * @see TypeDescriptor.Types all primitive types
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public class PrimitiveTypeDescriptor
 extends TypeDescriptor
 {
@@ -66,7 +91,7 @@ extends TypeDescriptor
 		PARENT,
 
 		/**
-		 * The type (i.e., a meta-type) of this primitive type.
+		 * The type (i.e., a metatype) of this primitive type.
 		 */
 		MY_TYPE
 	}

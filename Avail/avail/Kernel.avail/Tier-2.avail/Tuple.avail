@@ -37,7 +37,7 @@ Uses
 	"BlockA",
 	"Container",
 	"Continuation",
-	"Integer"
+	"Number"
 Names
 	"«_‡then»",
 	"splice_",
@@ -109,7 +109,7 @@ Restriction "«_‡then»" is [outerTupleType : tupleType |
 		index := index + 1;
 	];
 	output;
-]; 
+];
 
 
 
@@ -143,7 +143,7 @@ Restriction "_do_" is [tType : tupleType, blkType : functionType |
 		void;
 	];
 ];
-	   
+	
 
 Method "_collect_" is [t : tuple, blk : [terminates]->any |
 	result : tuple := <>;
@@ -316,7 +316,7 @@ Restriction "_[_]" is [tType : tupleType, iType : natural number type |
 
 Method "_to_" is [a : integer, b : integer |
 	/* Use a weak type so result of unrefined "«_‡then»" operation will fit. */
-	result : tuple := <>;   
+	result : tuple := <>;
 	From a to b do [i : integer | result := result then <i>;];
 	/* The "«_‡then»" operation is not yet refined with a returns clause.
 	   Cast the type downwards, as we know the entries are all integers. */

@@ -53,24 +53,24 @@ Names
 	/* Extreme sanction. */
 	"Exit:_",
 	"Reject parse:_",
-	
+
 	/* Assertions. */
 	"Assert:_",
-	
+
 	/* Kind constructors. */
 	"<«_‡,»>",
 	"⊶{«_‡,»}",
-	
+
 	/* Negative precedence. */
 	"⊶_doesn't allow_",
-	
+
 	/* Explicit grouping. */
 	"(_)",
-	
+
 	/* Strong type extraction. */
 	"_'s type",
 	"_'s expression type",
-	
+
 	/* Security (and completeness). */
 	"Seal_at_"
 Body
@@ -419,4 +419,4 @@ Method "Seal_at_" is
 |
 	Primitive ??? (unusedFailureCode : ⊶[1..∞));
 	Exit: "system error: primitive ??? failed";
-] : nothing; 
+] : nothing;

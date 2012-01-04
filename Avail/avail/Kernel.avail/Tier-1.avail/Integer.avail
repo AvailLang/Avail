@@ -73,7 +73,7 @@ Method "_upper bound" is [range : integerType |
 
 Method "_lower inclusive" is [range : integerType |
 	/* The <= is the subtype relation. */
-	range lower bound type <= range;   
+	range lower bound type <= range;
 ] : boolean;
 
 Method "_upper inclusive" is [range : integerType |
@@ -213,4 +213,4 @@ Method "_as range" is [inputRange : integerType |
 		inclusive inputRange lower inclusive
 		to inputRange upper bound
 		inclusive inputRange upper inclusive;
-]; 
+];

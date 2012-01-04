@@ -76,7 +76,7 @@ extends PrimitiveTypeDescriptor
 		PARENT,
 
 		/**
-		 * The type (i.e., a meta-type) of this primitive type.
+		 * The type (i.e., a metatype) of this primitive type.
 		 */
 		MY_TYPE;
 
@@ -85,9 +85,9 @@ extends PrimitiveTypeDescriptor
 			assert PrimitiveTypeDescriptor.ObjectSlots.NAME.ordinal()
 				== NAME.ordinal();
 			assert PrimitiveTypeDescriptor.ObjectSlots.PARENT.ordinal()
-			== PARENT.ordinal();
+				== PARENT.ordinal();
 			assert PrimitiveTypeDescriptor.ObjectSlots.MY_TYPE.ordinal()
-			== MY_TYPE.ordinal();
+				== MY_TYPE.ordinal();
 		}
 	}
 

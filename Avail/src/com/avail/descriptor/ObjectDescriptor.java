@@ -36,6 +36,41 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 import com.avail.annotations.*;
 
+/**
+ * Avail {@linkplain ObjectTypeDescriptor user-defined object types} are novel.
+ * They consist of a {@linkplain MapDescriptor map} of keys (field name
+ * {@linkplain AtomDescriptor atoms}) and their associated field {@linkplain
+ * TypeDescriptor types}.  Similarly, user-defined objects consist of a map from
+ * field names to field values.  An object instance conforms to an object type
+ * if and only the instance's field keys are a superset of the type's field
+ * keys, and for each field key in common the field value is an instance of the
+ * field type.
+ *
+ * <p>
+ * That suggests a simple strategy for representing user-defined objects:  Wrap
+ * a map.  That's what we've done here.  It's not the only strategy, since there
+ * are plenty of ways of accomplishing the same semantics.  But it's good enough
+ * for now.
+ * </p>
+ *
+ * <p>Once we start implementing receiver-type-specific code splitting we'll
+ * need to introduce a multiple-dispatch mechanism to deal with multimethods.
+ * At that point we'll probably introduce a new representation where objects
+ * contain a map from field names to slot numbers, plus a tuple holding those
+ * slots (or just a variable number of slots in the object itself).  Then two
+ * objects with the same layout can use the same type-specific optimized code to
+ * access the object's fields.  Conversely, objects with different field layouts
+ * would be considered incompatible for the purpose of sharing optimized code,
+ * even if the objects themselves were equal.  Technically, this would be
+ * receiver-layout-specific optimization, but since there isn't a single
+ * receiver it would have to depend on the combined layouts of any user-defined
+ * objects for which the optimized code needs fast access to state variables.
+ * </p>
+ *
+ * @see ObjectTypeDescriptor
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public class ObjectDescriptor
 extends Descriptor
 {
@@ -201,6 +236,16 @@ extends Descriptor
 		return ObjectTypeDescriptor.objectTypeFromMap(typeMap);
 	}
 
+	/**
+	 * Construct a user-defined object with attribute keys and values taken from
+	 * the provided map.
+	 *
+	 * @param map
+	 *            A map from {@link AtomDescriptor atom} keys to their
+	 *            corresponding values.
+	 * @return
+	 *            A user-defined object with the specified fields.
+	 */
 	public static AvailObject objectFromMap (final AvailObject map)
 	{
 		final AvailObject result = mutable().create();
@@ -208,6 +253,15 @@ extends Descriptor
 		return result;
 	}
 
+	/**
+	 * Compute the hash of a user-defined object that would be {@linkplain
+	 * #objectFromMap(AvailObject) constructed} from a map with the given hash
+	 * value.
+	 *
+	 * @param fieldMapHash The hash of some map.
+	 * @return The hash of the user-defined object that would be constructed
+	 *         from a map whose hash was provided.
+	 */
 	private static int computeHashFromFieldMapHash (final int fieldMapHash)
 	{
 		return fieldMapHash + 0x1099BE88 ^ 0x38547ADE;

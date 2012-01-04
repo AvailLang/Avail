@@ -63,7 +63,7 @@ Names
 	/*  11 */ "↓_:=_"
 Body
 
-Method "Private fail primitive with_" is 
+Method "Private fail primitive with_" is
 [
 	arg1 : any
 |
@@ -77,14 +77,14 @@ _fail_primitive : primitive failure function :=
 		Private fail primitive with arg1;
 	] : ⊥;
 
-Method "Set primitive failure function to_" is 
+Method "Set primitive failure function to_" is
 [
 	arg1 : primitive failure function
 |
 	_fail_primitive := arg1;
 ] : ⊤;
 
-Method "Private invoke_with«_‡,»" is 
+Method "Private invoke_with«_‡,»" is
 [
 	aFunction : function,
 	arguments : tuple
@@ -102,7 +102,7 @@ Method "Private invoke_with«_‡,»" is
  * Returns:
  *    The sum of the augend and the addend.
  */
-Method "_+_" is 
+Method "_+_" is
 [
 	augend : number,
 	addend : number
@@ -120,7 +120,7 @@ Method "_+_" is
  * Returns:
  *    The difference of the minuend and the subtrahend.
  */
-Method "_-_" is 
+Method "_-_" is
 [
 	minuend : number,
 	subtrahend : number
@@ -138,7 +138,7 @@ Method "_-_" is
  * Returns:
  *    The product of the multiplicand and the multiplier.
  */
-Method "_×_" is 
+Method "_×_" is
 [
 	multiplicand : number,
 	multiplier : number
@@ -156,7 +156,7 @@ Method "_×_" is
  * Returns:
  *    The quotient of the dividend and the divisor.
  */
-Method "_÷_" is 
+Method "_÷_" is
 [
 	dividend : number,
 	divisor : number
@@ -173,7 +173,7 @@ Method "_÷_" is
  * Returns:
  *    The value contained within the specified variable.
  */
-Method "↓_" is 
+Method "↓_" is
 [
 	var : variable
 |
@@ -188,7 +188,7 @@ Method "↓_" is
  *    var - A variable.
  *    value - The value that should be stored into `var`.
  */
-Method "↓_:=_" is 
+Method "↓_:=_" is
 [
 	var : variable,
 	value : any
@@ -206,7 +206,7 @@ Method "↓_:=_" is
  *    arg1 - A variable.
  *    arg2 - A variable.
  */
-Method "swap_and_" is 
+Method "swap_and_" is
 [
 	arg1 : variable,
 	arg2 : variable
@@ -224,7 +224,7 @@ Method "swap_and_" is
  * Returns:
  *    The value ejected from the variable.
  */
-Method "eject_" is 
+Method "eject_" is
 [
 	var : variable
 |
@@ -239,7 +239,7 @@ Method "eject_" is
  *    `true` if termination of the current fiber has been requested, `false`
  *    otherwise.
  */
-Method "termination requested" is 
+Method "termination requested" is
 [
 	Primitive 23 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode;
@@ -252,7 +252,7 @@ Method "termination requested" is
  * Parameters:
  *    victim - A fiber.
  */
-Method "request termination of_" is 
+Method "request termination of_" is
 [
 	victim : fiber
 |
@@ -272,7 +272,7 @@ Method "request termination of_" is
  * Returns:
  *    The value bound to `key` within the fibers environment.
  */
-Method "_[_]" is 
+Method "_[_]" is
 [
 	aFiber : fiber,
 	key : atom
@@ -290,7 +290,7 @@ Method "_[_]" is
  * Returns:
  *    The `index`-th parameter type of the argument.
  */
-Method "_[_]" is 
+Method "_[_]" is
 [
 	functionType : function meta,
 	index : natural number
@@ -308,7 +308,7 @@ Method "_[_]" is
  * Returns:
  *    The value produced by applying the arguments to the function.
  */
-Method "invoke_with_" is 
+Method "invoke_with_" is
 [
 	aFunction : function,
 	arguments : tuple

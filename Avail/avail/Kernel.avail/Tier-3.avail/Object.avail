@@ -213,7 +213,7 @@ Restriction "_altered with_" is [oT : objectType, tT : tupleType |
 					Fail parse "Keys for \"_altered with_\" must be statically known and proper subtypes of atom.";];
 				if ||keyType unsafe instances|| > 1 then [
 					Fail parse "Key for \"_altered with_\" must be statically known and an instance type (not union) of atom.";];
-				key ::= cast keyType unsafe instance into [x : atom | x;]; 
+				key ::= cast keyType unsafe instance into [x : atom | x;];
 				if keysEncountered includes key then [
 					Crash "Duplicate key encountered in tuple of pairs in \"_altered with_\".";];
 				keysEncountered := keysEncountered with key;
@@ -226,7 +226,7 @@ Restriction "_altered with_" is [oT : objectType, tT : tupleType |
 
 /* Incrementally constructing an objectType from another with changes.  Note that using this
     incremental type constructor produces a type at the call site that is known to be an objectType,
-    but nothing more specific.  That's because the meta-types available at compile time at the
+    but nothing more specific.  That's because the metatypes available at compile time at the
     call site do not provide enough information to step downwards to actual types.  Since these
     objectTypes will tend to be used in type declarations (and therefore executed at compile time
     to produce actual strong types), this is probably good enough. */
@@ -420,7 +420,7 @@ Method "_has fields_" is [ot : Object type, fields : tuple of string |
 		fieldKey ::= lookup fieldString;
 
 		newMethodName ::= "_" then fieldString;
-		newBody ::= 
+		newBody ::=
 			stub block taking <ot>
 			and applying name of block invoker
 			to [o : Object | o as map [fieldKey];]
@@ -432,7 +432,7 @@ Method "_has fields_" is [ot : Object type, fields : tuple of string |
 			and argument tuple returning type;
 		strongerReturnsBlock : [...]-> type;
 		* &strongerReturnsBlock ?:= newReturnsBlock;
-		
+
 		/* Define an instance-side getter... */
 		Method newMethodName is newBody;
 		Restriction newMethodName is strongerReturnsBlock;

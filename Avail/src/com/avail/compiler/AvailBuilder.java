@@ -142,15 +142,26 @@ public final class AvailBuilder
 	 * @throws RecursiveDependencyException
 	 *            If the specified {@linkplain ModuleDescriptor module}
 	 *            recursively depends upon itself.
+	 * @throws UnresolvedDependencyException
+	 *            If the specified {@linkplain ModuleDescriptor module} name
+	 *            could not be resolved to a module.
 	 */
 	private void traceModuleImports (
 		final ResolvedModuleName resolvedSuccessor,
 		final @NotNull ModuleName qualifiedName)
-	throws AvailCompilerException, RecursiveDependencyException
+	throws
+		AvailCompilerException,
+		RecursiveDependencyException,
+		UnresolvedDependencyException
 	{
 		final ResolvedModuleName resolution =
 			runtime.moduleNameResolver().resolve(qualifiedName);
-		assert resolution != null;
+		if (resolution == null)
+		{
+			throw new UnresolvedDependencyException(
+				resolvedSuccessor,
+				qualifiedName.localName());
+		}
 
 		// Detect recursion into this module.
 		if (recursionSet.contains(resolution))
@@ -296,11 +307,16 @@ public final class AvailBuilder
 	 * @throws RecursiveDependencyException
 	 *             If an encountered {@linkplain ModuleDescriptor module}
 	 *             recursively depends upon itself.
+	 * @throws UnresolvedDependencyException
+	 *             If a module name could not be resolved.
 	 */
 	public void buildTarget (
 		final @NotNull Continuation4<ModuleName, Long, Long, Long> localTracker,
 		final @NotNull Continuation3<ModuleName, Long, Long> globalTracker)
-			throws AvailCompilerException, RecursiveDependencyException
+	throws
+		AvailCompilerException,
+		RecursiveDependencyException,
+		UnresolvedDependencyException
 	{
 		final ModuleNameResolver resolver = runtime.moduleNameResolver();
 		traceModuleImports(null, target);

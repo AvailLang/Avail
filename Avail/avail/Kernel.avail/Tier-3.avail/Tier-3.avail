@@ -33,6 +33,7 @@
 System Module "Tier-3"
 Extends
 	"Tier-2",
+	"Enum",
 	"Control-Structure",
 	"Exception",
 	"Object",

@@ -47,27 +47,27 @@ Uses
 Names
 	/* Kind aliases. */
 	"function",
-	
+
 	/* Metakind aliases. */
 	"function metakind",
-	
+
 	/* Kind constructors. */
 	"function kind accepting types_and returning type_",
 	"[`…]→_",
 	"[«_‡,»]→_",
-	
+
 	/* Constructors. */
 	"compiled code from locals count_,outers count_,stack depth_,nybblecodes_,function type_,primitive number_,and literals_",
-	
+
 	/* Type queries. */
 	"_'s parameters type",
 	"_'s parameters type[_]",
 	"_'s return type",
-	
+
 	/* Function queries. */
 	"_'s compiled code",
 	"_'s outers",
-	
+
 	/* Compiled code queries. */
 	"_'s corresponding function type"
 Body
@@ -128,7 +128,7 @@ Method "_'s parameters type[_]" is
  *
  * @param functionKind
  *        A function kind.
- * @return The function kind's return type. 
+ * @return The function kind's return type.
  */
 Method "_'s return type" is
 [

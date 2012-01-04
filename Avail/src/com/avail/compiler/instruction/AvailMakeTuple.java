@@ -37,7 +37,7 @@ import com.avail.interpreter.levelOne.L1Operation;
 
 /**
  * Construct a tuple from some number of objects already pushed on the stack.
- * 
+ *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
 public class AvailMakeTuple extends AvailInstruction

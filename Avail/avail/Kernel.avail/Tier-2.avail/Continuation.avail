@@ -35,7 +35,7 @@ Extends
 Uses
 	"Tier-1",
 	"BlockA",
-	"Integer"
+	"Number"
 Names
 	"$_",
 	"_functionType",
@@ -165,9 +165,9 @@ Method "Loop_until_" is [block : []->void, predicate : []->boolean |
 	if not predicate() then [Restart body;];
 ] : void;
 
-Method "Loop_until_do_" is 
+Method "Loop_until_do_" is
 [
-	block : []->void, 
+	block : []->void,
 	predicate : []->boolean,
 	alternateBlock : []->void
 |
@@ -239,7 +239,7 @@ action : [integer]->void
    if incrementer = 0 then [
    		Crash "Cannot increment by 0.";
    ];
-   guard : [] -> boolean := if incrementer > 0 
+   guard : [] -> boolean := if incrementer > 0
    		then [ [counter <= end;]; ]
    		else [ [counter >= end;]; ];
    [
@@ -273,12 +273,12 @@ Restriction "From_to_by_do_" is
    [
      if startTypeLower < endTypeLower - 1 then
      [
-        Fail parse "The starting count's lowest potential value cannot be lower than the ending count's lowest         
+        Fail parse "The starting count's lowest potential value cannot be lower than the ending count's lowest
         potential value for a decrementing counter";
      ];
      if startTypeUpper < endTypeUpper then
      [
-       Fail parse "The starting count's largest potential value cannot be lower than the ending count's largest potential 
+       Fail parse "The starting count's largest potential value cannot be lower than the ending count's largest potential
        value for a decrementing counter";
      ];
   ];
@@ -286,12 +286,12 @@ Restriction "From_to_by_do_" is
   [
      if startTypeLower > endTypeLower then
      [
-        Fail parse "The starting count's lowest potential value cannot be greater than the ending count's lowest potential 
+        Fail parse "The starting count's lowest potential value cannot be greater than the ending count's lowest potential
         value for an incrementing counter";
      ];
      if startTypeUpper > endTypeUpper then
      [
-        Fail parse "The starting count's largest potential value cannot be greater than the ending count's largest 
+        Fail parse "The starting count's largest potential value cannot be greater than the ending count's largest
         potential value for an incrementing counter";
      ];
   ];

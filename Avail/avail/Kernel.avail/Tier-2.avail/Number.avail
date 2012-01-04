@@ -1,6 +1,6 @@
 /**
- * .../Tier-2/Integer.avail
- * Copyright (c) 2010, Mark van Gulik.
+ * .../Tier-2/Number.avail
+ * Copyright (c) 2011, Mark van Gulik.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,22 +30,26 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Integer"
+System Module "Number"
 Extends
 Uses
 	"Tier-1",
 	"BlockA",
 	"Container"
 Names
-	"_<_",		"_>_",		"_<=_",		"_>=_",
-	"_<_<_",	"_<_<=_",	"_<=_<_",	"_<=_<=_",
-	"_>_>_",	"_>_>=_",	"_>=_>_",	"_>=_>=_",
+	"_<_", "_>_", "_<=_", "_>=_",
+	"_<_<_", "_<_<=_", "_<=_<_", "_<=_<=_",
+	"_>_>_", "_>_>=_", "_>=_>_", "_>=_>=_",
 
-	"_+_" ,		"_-_",		"-_",		"_*_" ,
-	"_/_",		"_mod_",	"_is odd",	"_is even",
-	"_max_",	"_min_",	"_^_",		"|_|",
+	"_+_" , "_-_", "-_", "_*_" ,
+	"_/_", "_mod_", "_is odd", "_is even",
+	"_max_", "_min_", "_^_", "|_|",
 
-	"_++",		"_--",
+	"_++", "_--",
+
+	"_as float", "_as double",
+	"floor(_)",
+	"exp(_)", "ln(_)",
 
 	"nonpositive integer",
 	"negative integer",
@@ -66,8 +70,8 @@ Forward "_-_" for [number, number]->number;
 Forward "-_" for [number]->number;
 Forward "_*_" for [number, number]->number;
 Forward "_/_" for [number, number]->number;
-Forward "_mod_" for [integer, [1..INF]]->extended integer;
-Forward "_^_" for [extended integer, whole number]->extended integer;
+Forward "_mod_" for [number, number]->number;
+Forward "_^_" for [number, number]->number;
 Forward "_max_" for [number, number]->number;
 Forward "_min_" for [number, number]->number;
 
@@ -139,35 +143,95 @@ Restriction "_U_" is [st : setType, st2 : setType |
 
 {"_U_"} can't have <{},{"_U_"}>;
 
-numberRestrictionFunction ::=
+
+/* Tuple subscript for bootstrapping. */
+Method "private_[_]" is [t : tuple, i : natural number |
+	Primitive 131 (failureCode : natural number);
+	Failed;
+] : any;
+
+Restriction "private_[_]" is [tT : tuple type, iT : natural number type |
+	number;
+];
+
+/* Utility for computing "type promotions" for dyadic math operators. */
+Method "numberRestrictionFunction_" is
+[
+	operator : [number, number] -> number
+|
 	[
 		aT : number type,
 		bT : number type
 	|
-		if aT <= double | bT <= double then [ double; ]
+		aE : enum of number;
+		bE : enum of number;
+		if aT <= enum of number
+			& bT <= enum of number
+			& [
+				aE := cast aT into [x : enum of number | x;];
+				bE := cast bT into [x : enum of number | x;];
+				||aE instances|| = 1 & ||bE instances|| = 1;]
+		then
+		[
+			/* The exact values are known statically.  Calculate it exactly. */
+			aValue ::= private aE instances as tuple [1];
+			bValue ::= private bE instances as tuple [1];
+			(operator apply <aValue, bValue>) type;
+		]
 		else
 		[
-			if aT <= float | bT <= float then [ float; ]
-			else [ extended integer; ];
+			if aT <= double | bT <= double then
+			[
+				/* At least one is known to be double, which forces the result
+				   to be a double. */
+				double;
+			]
+			else
+			[
+				if aT = number | bT = number then
+				[
+					/* Neither is known to be a double, and at least one is as
+					   weak as a number.  The weak one might be a double at run
+					   time, so we can't limit the output type any more. */
+					number;
+				]
+				else
+				[
+					/* Neither one is as weak as number. */
+					if aT <= float | bT <= float then
+					[
+						/* Either {float,float} or {float,int}, which each
+						   produce a float. */
+						float;
+					]
+					else
+					[
+						if aT <= extended integer & bT <= extended integer
+						then [ extended integer; ] 
+						else [ number; ];
+					];
+				];
+			];
 		];
 	];
+];
 
 /* Integer primitives, including precedence rules... */
 
-sum			::= {"_+_" , "_-_"};
-product		::= {"_*_" , "_/_", "_mod_"};
-negation		::= {"-_"};
-power		::= {"_^_"};
+sum      ::= {"_+_" , "_-_"};
+product  ::= {"_*_" , "_/_", "_mod_"};
+negation ::= {"-_"};
+power    ::= {"_^_"};
 
-sum		can't have	<{},							sum>;
-product	can't have	<sum,						sum U product>;
-negation	can't have	<							sum U product>;
-power	can't have	<sum U product U negation U power,	sum U product>;
+sum      can't have <{}, sum>;
+product  can't have <sum, sum U product>;
+negation can't have <sum U product>;
+power    can't have <sum U product U negation U power, sum U product>;
 
-{"_min_"} can't have <{},{"_min_"}>;		/* group min expressions on the left. */
-{"_max_"} can't have <{},{"_max_"}>;	/* group max expressions on the left. */
+{"_min_"} can't have <{},{"_min_"}>;  /* group min expressions on the left. */
+{"_max_"} can't have <{},{"_max_"}>;  /* group max expressions on the left. */
 
-{"|_|"} can't have <{"|_|"}>;	/* disallow dangerous and redundant ||x|| for abs(abs(x)). */
+{"|_|"} can't have <{"|_|"}>;  /* disallow dangerous and redundant ||x|| for abs(abs(x)). */
 
 
 Method "_+_" is [a : number, b : number |
@@ -190,10 +254,17 @@ Method "_/_" is [a : number, b : number |
 	Crash "division failed";
 ] : number;
 
-Restriction "_+_" is numberRestrictionFunction;
-Restriction "_-_" is numberRestrictionFunction;
-Restriction "_*_" is numberRestrictionFunction;
-Restriction "_/_" is numberRestrictionFunction;
+
+Restriction "_+_" is
+	numberRestrictionFunction [a : number, b : number | a + b;];
+Restriction "_-_" is
+	numberRestrictionFunction [a : number, b : number | a - b;];
+Restriction "_*_" is
+	numberRestrictionFunction [a : number, b : number | a * b;];
+Restriction "_/_" is
+	numberRestrictionFunction [a : number, b : number | a / b;];
+Restriction "_mod_" is
+	numberRestrictionFunction [a : number, b : number | a mod b;];
 
 Method "-_" is [a : number |
 	/* Unary negation.  There are no negative numeric constants in Avail.
@@ -205,15 +276,56 @@ Restriction "-_" is
 [
 	aT : number type
 |
-	resultType : number type := extended integer;
+	resultType : number type := number;
+	if aT <= extended integer then [ resultType := extended integer; ];
 	if aT <= double then [ resultType := double; ];
 	if aT <= float then [ resultType := float; ];
 	resultType;
 ];
 
-Method "_mod_" is [a : integer, b : [1..INF] |
+
+Abstract method "floor(_)" for [number]->number;
+
+Method "floor(_)" is [value : extended integer |
+	value;
+] : extended integer;
+
+Method "floor(_)" is [value : float |
+	Primitive 292;
+] : float;
+
+Method "floor(_)" is [value : double |
+	Primitive 322;
+] : double;
+
+Restriction "floor(_)" is [valueT : enum of number |
+	if ||valueT instances|| = 1 then
+	[
+		/* The exact value is known statically.  Calculate it exactly. */
+		value ::= private valueT instances as tuple [1];
+		valueFloor ::= floor(value);
+		valueFloor type;
+	]
+	else
+	[
+		void;
+	];
+];
+
+Restriction "floor(_)" is [valueT : integerType |
+	/* Integers and infinities are their own floors. */
+	valueT;
+];
+
+
+Method "_mod_" is [a : number, b : number |
+	/* General case. */
+	a - (b * floor(a / b));
+] : number;
+
+Method "_mod_" is [a : integer, b : [INF..INF] |
 	/* If b is infinite, then the modulus is defined as just a. */
-	if b is finite then [a - (b*(a/b));] else [a;];
+	a;
 ] : extended integer;
 
 
@@ -232,13 +344,6 @@ Method "_is odd" is [a : integer |
 Method "_is even" is [a : integer |
 	a mod 2 = 0;
 ] : boolean;
-
-Method "|_|" is [a : number |
-	/* Compute the absolute value of the argument... */
-	if a < 0 then [0-a;] else [a;];
-] : number;
-
-Restriction "|_|" is [ aT : number type | aT; ];
 
 
 Method "integer range_plus_" is [a : integerType, b : integerType |
@@ -393,13 +498,13 @@ Restriction "_/_" is [aT : integerType, bT : integerType |
 	negativeDenominators ::= type intersection of bT and [-INF..-1];
 	positiveDenominators ::= type intersection of bT and [1..INF];
 	soFar := type union of soFar and
-		(aT divide range by negativeDenominators lower bound); 
+		(aT divide range by negativeDenominators lower bound);
 	soFar := type union of soFar and
-		(aT divide range by negativeDenominators upper bound); 
+		(aT divide range by negativeDenominators upper bound);
 	soFar := type union of soFar and
-		(aT divide range by positiveDenominators lower bound); 
+		(aT divide range by positiveDenominators lower bound);
 	soFar := type union of soFar and
-		(aT divide range by positiveDenominators upper bound); 
+		(aT divide range by positiveDenominators upper bound);
 	soFar;
 ] : integerType;
 
@@ -428,6 +533,41 @@ Restriction "_mod_" is [aT : integerType, bT : integerType |
 ] : integerType;
 
 
+
+Method "_as float" is [n : number |
+	Primitive 280;
+] : float;
+
+Method "_as double" is [n : number |
+	Primitive 281;
+] : double;
+
+Method "ln(_)" is [exponent : float |
+	Primitive 286;
+] : float;
+
+Method "ln(_)" is [exponent : double |
+	Primitive 316;
+] : double;
+
+Method "exp(_)" is [exponent : float |
+	Primitive 287;
+] : float;
+
+Method "exp(_)" is [exponent : double |
+	Primitive 317;
+] : double;
+
+
+Method "_^_" is [base : number, exponent : number |
+	/* Uses identity a^b = exp(ln(a^b)) = exp(b*ln(a)). */
+	exp(exponent * ln(base as double));
+] : number;
+
+Forward "_^_" for [extended integer, whole number] -> extended integer;
+Forward "_^_" for [float, whole number] -> float;
+Forward "_^_" for [double, whole number] -> double;
+
 Method "_^_" is [base : extended integer, exponent : whole number |
 	/*  Uses identities b^(2x) = (b^2)^x, and b^(2x+1) = (b^2)^x*b  */
 	if exponent = 0 then [
@@ -437,6 +577,26 @@ Method "_^_" is [base : extended integer, exponent : whole number |
 		if exponent is odd then [temp*base;] else [temp;];
 	];
 ] : extended integer;
+
+Method "_^_" is [base : float, exponent : whole number |
+	/*  Uses identities b^(2x) = (b^2)^x, and b^(2x+1) = (b^2)^x*b  */
+	if exponent = 0 then [
+		1.0;
+	] else [
+		temp ::= (base*base)^(exponent/2);
+		if exponent is odd then [temp*base;] else [temp;];
+	];
+] : float;
+
+Method "_^_" is [base : double, exponent : whole number |
+	/*  Uses identities b^(2x) = (b^2)^x, and b^(2x+1) = (b^2)^x*b  */
+	if exponent = 0 then [
+		1.0d;
+	] else [
+		temp ::= (base*base)^(exponent/2);
+		if exponent is odd then [temp*base;] else [temp;];
+	];
+] : double;
 
 
 
@@ -606,7 +766,7 @@ Restriction "_^_" is [
 					];
 				] else [
 					/* At least two exponents are possible (one odd, one even),
-					   so extend to both infinities. */ 
+					   so extend to both infinities. */
 					low := -INF;
 					high := INF;
 					includeINF := includeINF | inclusive;
@@ -639,6 +799,15 @@ Restriction "_^_" is [
 		inclusive high not = INF | includeINF;
 ] : integerType;
 
+
+Method "|_|" is [a : number |
+	/* Compute the absolute value of the argument... */
+	if a < 0 then [0-a;] else [a;];
+] : number;
+
+Restriction "|_|" is [ aT : double type | aT; ];
+
+Restriction "|_|" is [ aT : float type | aT; ];
 
 Restriction "|_|" is [aT : integerType |
 	type intersection of (type union of aT and (aT negated)) and [0..INF];

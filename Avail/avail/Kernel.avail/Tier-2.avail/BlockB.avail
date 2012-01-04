@@ -36,7 +36,7 @@ Uses
 	"Tier-1",
 	"BlockA",
 	"Continuation",
-	"Integer",
+	"Number",
 	"Tuple"
 Names
 	"stub block taking_and applying_to_and argument tuple returning_",

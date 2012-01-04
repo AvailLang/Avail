@@ -31,7 +31,7 @@
  */
 
 System Module "Tuple"
-Extends 
+Extends
 Uses
 	"Tier-0",
 	"Block",

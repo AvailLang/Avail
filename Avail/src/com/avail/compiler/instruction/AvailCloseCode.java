@@ -49,7 +49,7 @@ public class AvailCloseCode extends AvailInstructionWithIndex
 	/**
 	 * The number of variables that have been pushed on the stack to be
 	 * captured as outer variables of the resulting {@linkplain FunctionDescriptor
-	 * function}.  
+	 * function}.
 	 */
 	int numCopiedVars;
 

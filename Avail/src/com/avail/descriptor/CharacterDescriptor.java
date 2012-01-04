@@ -38,7 +38,16 @@ import com.avail.annotations.*;
 
 /**
  * {@code CharacterDescriptor} implements an Avail character. Avail characters
- * are Unicode characters, and their code points fall in the range 0..0x10FFFF.
+ * are Unicode characters, and their code points fall in the range 0..0x10FFFF,
+ * which includes the supplementary multilingual planes.
+ *
+ * <p>
+ * Unlike their use in some languages, characters in Avail are not themselves
+ * considered numeric.  They are not a subrange of {@linkplain IntegerDescriptor
+ * integers}, and are intended to be treated as different sorts of entities than
+ * integers, despite there being simple ways to translate between characters and
+ * integers.
+ * </p>
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */

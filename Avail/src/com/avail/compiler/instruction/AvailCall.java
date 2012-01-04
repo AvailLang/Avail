@@ -39,7 +39,7 @@ import java.io.ByteArrayOutputStream;
 /**
  * This is a multi-method call instruction.  The opcode is followed by the index
  * of the message (an {@linkplain ImplementationSetDescriptor implementation set}),
- * then the index of the literal that holds the return type for this call site. 
+ * then the index of the literal that holds the return type for this call site.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
@@ -47,11 +47,11 @@ public class AvailCall extends AvailInstructionWithIndex
 {
 
 	/**
-	 * The index of the literal that holds the call-site specific return type. 
+	 * The index of the literal that holds the call-site specific return type.
 	 */
 	int verifyIndex;
 
-	
+
 	/**
 	 * Construct a new {@link AvailCall}.
 	 *
@@ -65,8 +65,8 @@ public class AvailCall extends AvailInstructionWithIndex
 		super(messageIndex);
 		this.verifyIndex = verifyIndex;
 	}
-	
-	
+
+
 	@Override
 	public void writeNybblesOn (
 			final ByteArrayOutputStream aStream)

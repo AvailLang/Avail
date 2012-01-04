@@ -43,16 +43,16 @@ Names
 	"null type",
 	"null",
 	"self type",
-	
+
 	"Java type_parameters_",
 	"Java type_",
 	"Java_[]",
-	
+
 	"jbyte",
 	"jshort",
 	"jint",
 	"jlong",
-	
+
 	"constructor of_given_"
 Body
 
@@ -131,14 +131,14 @@ Restriction "Java type_parameters_" is
 		otherwise [
 			Fail parse "Java type name is not statically known"; ];
 	typeName ::= cast typeNameEnum instance into [ s : string | s; ];
-	
+
 	typeParametersTypeBounds ::= typeParametersType sizes;
 	if
 		typeParametersTypeBounds lower bound
 		not = typeParametersTypeBounds upper bound
 	then [
 		Fail parse "argument tuple size must be statically known"; ];
-	
+
 	typeParametersSize ::= typeParametersTypeBounds upper bound;
 	args : tuple of type := <>;
 	From 1 to typeParametersSize do [ i : natural number |
@@ -151,7 +151,7 @@ Restriction "Java type_parameters_" is
 		arg ::= cast argType instance into [ t : type | t; ];
 		args := args then <arg>;
 	];
-	
+
 	(⊶Java type typeName parameters args) type;
 ];
 
@@ -170,7 +170,7 @@ Restriction "Java type_" is
 		otherwise [
 			Fail parse "Java type name is not statically known"; ];
 	typeName ::= cast typeNameEnum instance into [ s : string | s; ];
-	
+
 	result : pojo type type;
 	catch [ e : Incorrect Number of Java Type Parameters |
 		Fail parse
@@ -262,9 +262,9 @@ Restriction "constructor of_given_" is
 	[
 		Fail parse "argument tuple size must be statically known";
 	];
-	
+
 	argTypesSize ::= cast argTypesTypeBounds upper bound into
-		[ b : whole number | b; ];  
+		[ b : whole number | b; ];
 	args : tuple of type := <>;
 	From 1 to argTypesSize do [i : natural number |
 		argType ::= cast argTypesType[i] into [ e : enum | e; ]
@@ -276,7 +276,7 @@ Restriction "constructor of_given_" is
 		arg ::= cast argType instance into [ t : type | t; ];
 		args := args then <arg>;
 	];
-	
+
 	block type taking args and returning aPojoTypeType instance;
 ];
 

@@ -54,7 +54,7 @@ public class AvailGetLiteralVariable extends AvailInstructionWithIndex
 		super(index);
 	}
 
-	
+
 	@Override
 	public void writeNybblesOn (
 			final ByteArrayOutputStream aStream)

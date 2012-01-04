@@ -47,31 +47,31 @@ Names
 	/* Special values. */
 	"∞",
 	"-∞",
-	
+
 	/* Kind aliases. */
 	"extended integer",					/* ⊶[-∞..∞] */
 	"integer",							/* ⊶(-∞..∞) */
 	"whole number",						/* ⊶[0..∞) */
 	"natural number",					/* ⊶[1..∞) */
-	
+
 	/* Metakind alias. */
 	"integral metakind",				/* extended integer's type */
-	
+
 	/* Kind constructors. */
 	"integral range from_(inclusive if_)to_(inclusive if_)",
 	"[_.._]",							/* Inclusive, inclusive */
 	"[_.._)",							/* Inclusive, exclusive */
 	"(_.._]",							/* Exclusive, inclusive */
 	"(_.._)",							/* Exclusive, exclusive */
-	
+
 	/* Bounds extraction. */
 	"_'s lower bound",
 	"_'s upper bound",
-	
+
 	/* Type queries. */
 	"_'s lower bound is inclusive",
 	"_'s upper bound is inclusive",
-	
+
 	/* Instance queries. */
 	"_is finite",
 	"_is infinite"
@@ -173,7 +173,7 @@ Method "_'s lower bound is inclusive" is
 	integralKind : integral metakind
 |
 	integralKind's lower bound's type ≤ integralKind;
-]; 
+];
 
 /**
  * Is the argument's upper bound inclusive?
@@ -188,7 +188,7 @@ Method "_'s upper bound is inclusive" is
 	integralKind : integral metakind
 |
 	integralKind's upper bound's type ≤ integralKind;
-]; 
+];
 
 /**
  * Answer {@code ∞}.

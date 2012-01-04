@@ -51,7 +51,7 @@ Names
 				"⊶(-∞..∞)",				/* Most general integer */
 					"⊶[0..∞)",			/* Bootstrap: whole numbers */
 						"⊶[1..∞)",		/* Bootstrap: natural numbers */
-			"⊶<any..|0..∞>",				/* Most general tuple */
+			"⊶<any..|0..∞>",			/* Most general tuple */
 				"string",				/* Bootstrap: string */
 				"⊶<type..|0..∞>",		/* Bootstrap: tuple of type */
 				"⊶<{string|0..∞}|0..∞>",/* Bootstrap: tuple of set of string */
@@ -68,7 +68,7 @@ Names
 			"container",				/* Most general container */
 			"float",					/* Single-precision float */
 			"double",					/* Double-precision float */
-			"parse node",				/* Most general parse node */			
+			"parse node",				/* Most general parse node */
 				"expression node",
 					"assignment node",
 					"block node",
@@ -88,14 +88,14 @@ Names
 				"marker node",
 			"union",					/* Most general union */
 	"⊥",								/* Most specific kind, i.e. bottom */
-	
+
 	/* Primitive metakinds. */
 	"type",								/* Most general metakind */
-	
+
 	/* Built-in atoms. */
 	"false",
 	"true",
-	
+
 	/* Type operations. */
 	"⊶_'s type"
 Body

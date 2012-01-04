@@ -44,7 +44,7 @@ public abstract class AvailGetVariable extends AvailInstructionWithIndex
 	 * Whether this instruction should be the clearing form of get or the
 	 * non-clearing form.  The clearing form is used only when this is the last
 	 * use of the variable before the next write.
-	 * 
+	 *
 	 */
 	boolean canClear;
 
@@ -68,7 +68,7 @@ public abstract class AvailGetVariable extends AvailInstructionWithIndex
 	 * increasing the value's reference count unnecessarily.
 	 * <p>
 	 * This must be set correctly prior to final code generation.
-	 *   
+	 *
 	 * @param newFlag The new value of the flag.
 	 */
 	public void canClear (

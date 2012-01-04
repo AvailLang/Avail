@@ -52,7 +52,7 @@ public class AvailSuperCall extends AvailInstructionWithIndex
 {
 
 	/**
-	 * The index of the literal that holds the call-site specific return type. 
+	 * The index of the literal that holds the call-site specific return type.
 	 */
 	int verifyIndex;
 

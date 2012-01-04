@@ -35,40 +35,222 @@ package com.avail.descriptor;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 import com.avail.annotations.*;
+import com.avail.compiler.*;
+import com.avail.compiler.scanning.AvailScanner;
+import com.avail.test.TypeConsistencyTest;
 
+/**
+ * Every object in Avail has a type.  Types are also Avail objects.  The types
+ * are related to each other by the {@linkplain
+ * AvailObject#isSubtypeOf(AvailObject) subtype} relation in such a way that
+ * they form a lattice.  The top of the lattice is {@linkplain Types#TOP ⊤
+ * (pronounced "top")}, which is the most general type.  Every object conforms
+ * with this type, and every subtype is a subtype of it.  The bottom of the
+ * lattice is {@linkplain BottomTypeDescriptor ⊥ (pronounced "bottom")}, which
+ * is the most specific type.  It has no instances, and it is a subtype of all
+ * other types.
+ *
+ * <p>
+ * The type lattice has a number of {@linkplain TypeConsistencyTest useful
+ * properties}, such as closure under type union.
+ * </p>
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public abstract class TypeDescriptor
 extends AbstractTypeDescriptor
 {
+	/**
+	 * The {@code TypeDescriptor.Types} enumeration provides a place and a way
+	 * to statically declare the upper stratum of Avail's type lattice,
+	 * specifically all {@linkplain PrimitiveTypeDescriptor primitive types}.
+	 *
+	 * <p>
+	 * Since Java classes are loaded on first use, we postpone creation of the
+	 * actual AvailObjects until an explicit call to {@linkplain
+	 * TypeDescriptor#createWellKnownObjects()}.  The Avail objects are
+	 * extracted from the {@code Types} objects via the {@linkplain #o()}
+	 * method.
+	 * </p>
+	 *
+	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+	 */
 	public enum Types
 	{
+		/**
+		 * The {@linkplain TopTypeDescriptor most general type} of the type
+		 * lattice, also written ⊤ and pronounced "top".  All types are
+		 * subtypes of this, and all objects are instances of it.  However, this
+		 * top type has an additional role:  No variable or argument may be of
+		 * this type, so the only thing that can be done with the result
+		 * of a function call of type ⊤ is to implicitly discard it.  This is a
+		 * precise way of making the traditional distinction between functions
+		 * and procedures.  In fact, Avail requires all statements except the
+		 * last one in a block to be of type ⊤, to ensure that functions are
+		 * not accidentally used as procedures – and to ensure that the reader
+		 * of the code knows it.
+		 */
 		TOP(null, "TYPE", TopTypeDescriptor.mutable()),
-		ANY(TOP, "TYPE"),
+
+		/**
+		 * This is the second-most general type in Avail's type lattice.  It is
+		 * the only direct descendant of {@linkplain #TOP top (⊤)}, and all
+		 * types except ⊤ are subtypes of it.  Like ⊤, all Avail objects are
+		 * instances of {@code ANY}.  Technically there is also a {@linkplain
+		 * NullDescriptor#nullObject() null object}, but that is only used
+		 * internally by the Avail machinery (e.g., the value of an unassigned
+		 * {@linkplain VariableDescriptor variable}) and can never be
+		 * manipulated by an Avail program.
+		 */
+		ANY(TOP),
+
+		/**
+		 * This is the kind of all {@linkplain AtomDescriptor atoms}.  Atoms
+		 * have fiat identity and their corresponding type structure is trivial.
+		 */
 		ATOM(ANY),
+
+		/**
+		 * This is the kind of all {@linkplain CharacterDescriptor characters},
+		 * as defined by the <a href="http://www.unicode.org">Unicode</a>
+		 * standard.  Note that all characters in the supplementary multilingual
+		 * planes are explicitly supported.
+		 */
 		CHARACTER(ANY),
+
+		/**
+		 * {@code Number} is the generalization of all numeric types, which
+		 * includes {@linkplain #FLOAT float}, {@linkplain #DOUBLE double}, and
+		 * the {@linkplain IntegerRangeTypeDescriptor integer types} (which can
+		 * contain both {@linkplain IntegerDescriptor integers} and the signed
+		 * {@linkplain InfinityDescriptor integral infinities}),
+		 */
 		NUMBER(ANY),
+
+		/**
+		 * The type of all double-precision floating point numbers.  This
+		 * includes the double precision {@linkplain
+		 * DoubleDescriptor#positiveInfinity() positive} and {@linkplain
+		 * DoubleDescriptor#negativeInfinity() negative} infinities and
+		 * {@linkplain DoubleDescriptor#notANumber() Not-a-Number}.
+		 */
 		DOUBLE(NUMBER),
+
+		/**
+		 * The type of all single-precision floating point numbers.  This
+		 * includes the single precision {@linkplain
+		 * FloatDescriptor#positiveInfinity() positive} and {@linkplain
+		 * FloatDescriptor#negativeInfinity() negative} infinities and
+		 * {@linkplain FloatDescriptor#notANumber() Not-a-Number}.
+		 */
 		FLOAT(NUMBER),
+
+		/**
+		 * All {@linkplain ImplementationSetDescriptor implementation sets} are
+		 * of this kind.
+		 */
 		IMPLEMENTATION_SET(ANY),
+
+		/**
+		 * This is the kind of all {@linkplain MessageBundleDescriptor message
+		 * bundles}, which are used during parsing of Avail code.
+		 */
 		MESSAGE_BUNDLE(ANY),
+
+		/**
+		 * This is the kind of all {@linkplain MessageBundleTreeDescriptor
+		 * message bundle trees}, which are lazily expanded during parallel
+		 * parsing of Avail expressions.  They collapse together the cost of
+		 * parsing method or macro invocations that start with the same tokens
+		 * and arguments.
+		 */
 		MESSAGE_BUNDLE_TREE(ANY),
 
+		/**
+		 * {@linkplain TokenDescriptor Tokens} all have the same kind, except
+		 * for {@linkplain #LITERAL_TOKEN literal tokens}.  They are produced by
+		 * a {@linkplain AvailScanner lexical scanner} and are consumed by the
+		 * {@linkplain AbstractAvailCompiler parser}.
+		 */
 		TOKEN(ANY),
+
+		/**
+		 * This type is the kind of all {@linkplain LiteralTokenDescriptor
+		 * literal tokens}, which represent occurrences of values directly
+		 * embedded in Avail text which are extracted during {@linkplain
+		 * AvailScanner lexical scanning}.
+		 */
 		LITERAL_TOKEN(TOKEN),
 
+		/**
+		 * The general kind of {@linkplain SignatureDescriptor method
+		 * signatures}.
+		 */
 		SIGNATURE(ANY),
-		ABSTRACT_SIGNATURE(SIGNATURE),
-		FORWARD_SIGNATURE(SIGNATURE),
-		METHOD_SIGNATURE(SIGNATURE),
-		MACRO_SIGNATURE(SIGNATURE),
-		RESTRICTION_SIGNATURE(SIGNATURE),
 
-		OBJECT(ANY),
+		/**
+		 * The specific kind of a signature which is an {@linkplain
+		 * AbstractSignatureDescriptor abstract declaration}.
+		 */
+		ABSTRACT_SIGNATURE(SIGNATURE),
+
+		/**
+		 * The specific kind of signature which is a {@linkplain
+		 * ForwardSignatureDescriptor forward declaration}.  Such declarations
+		 * must be resolved by the end of the module in which they occur.
+		 */
+		FORWARD_SIGNATURE(SIGNATURE),
+
+		/**
+		 * The specific kind of signature which is an actual {@linkplain
+		 * MethodSignatureDescriptor method function}, by far the most common
+		 * case.
+		 */
+		METHOD_SIGNATURE(SIGNATURE),
+
+		/**
+		 * The specific kind of signature which is an actual {@linkplain
+		 * MacroSignatureDescriptor macro definition}.  An {@linkplain
+		 * ImplementationSetDescriptor implementation set} may not contain
+		 * multiple macro signatures, nor may it mix macro signatures and any
+		 * other type of signature.
+		 */
+		MACRO_SIGNATURE(SIGNATURE),
+
+		/**
+		 * A {@linkplain PojoDescriptor POJO} is a Plain Old Java {@linkplain
+		 * Object}.  Avail is able to interface to arbitrary Java code via its
+		 * implementation of POJOs.  POJOs contain (and conform to) their own
+		 * POJO types, but that requires a separate concept of <em>raw</em>
+		 * POJOs.  Avail code only works with the typed POJOs, but the Avail
+		 * machinery has to be able to use the raw POJOs, placing them in sets
+		 * and doing other things that occasionally require their kind to be
+		 * extracted.
+		 */
 		RAW_POJO(ANY),
 
+		/**
+		 * {@linkplain ProcessDescriptor Processes} are the way Avail represents
+		 * independent execution.
+		 */
 		PROCESS(ANY),
 
+		/**
+		 * Types are objects too, so they have to have their own types.  This is
+		 * the most general kind of all types.  Since it's a type's type, it can
+		 * also be called a metatype (or often just {@linkplain #META meta} for
+		 * short).
+		 */
 		TYPE(ANY, "META"),
+
+		/**
+		 * Metatypes are special cases of both types and objects.  This is the
+		 * most general kind for objects that are themselves metatypes.  That
+		 * makes this a meta-metatype (i.e., a type of a type of a type of an
+		 * object).
+		 */
 		META(TYPE, "META");
+
 
 		/**
 		 * The {@link Types} object representing this type's supertype.
@@ -82,7 +264,9 @@ extends AbstractTypeDescriptor
 		protected final String myTypeName;
 
 		/**
-		 *
+		 * The descriptor to instantiate.  This allows {@link TopTypeDescriptor}
+		 * to be used in place of {@link PrimitiveTypeDescriptor} for the top
+		 * type.
 		 */
 		protected final PrimitiveTypeDescriptor descriptor;
 

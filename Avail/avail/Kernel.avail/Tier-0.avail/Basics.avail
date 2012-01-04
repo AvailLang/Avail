@@ -43,18 +43,17 @@ Names
 	"compiledCode", "container", "containerType", "continuation",
 	"continuationType",
 	"double",
-	"extended integer",
+	"enum", "extended integer",
 	"falseType", "float",
 	"integer", "integerType",
 	"mapType", "meta",
-	"number",
+	"natural number", "number",
 	"process",
 	"set", "setType", "string",
 	"terminates", "terminatesType", "trueType", "tuple",
 	"tupleType", "tupleOfType", "type",
-	"enum",
 	"void",
-	"whole number", "natural number",
+	"whole number",
 
 	"parseNode",
 	"markerNode",
@@ -224,7 +223,7 @@ Method "false"                  is [privateFalse;];
 
 Method "Crash_" is [finalClue : any |
 	Primitive 256;
-	
+
 	/*
 	 * Special case - primitive 256 does not require failure code.  If it did,
 	 * we could never build the primitive methods, because there is no direct

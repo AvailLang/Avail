@@ -35,7 +35,7 @@ Extends
 Uses
 	"Tier-1",
 	"BlockA",
-	"Integer",
+	"Number",
 	"Tuple"
 Names
 	"_includes_",

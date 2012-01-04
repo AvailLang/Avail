@@ -34,7 +34,7 @@ System Module "Test-Integer"
 Extends
 Uses
 	"Tier-1",
-	"Integer"
+	"Number"
 Names
 Body
 
@@ -109,9 +109,9 @@ From 1 to ||bases|| do [lowerSubscript : natural number |
 		From lowerSubscript to upperSubscript do [subscript : natural number |
 			baseType := type union of baseType and bases[subscript];
 		];
-		
 
-		
+
+
 		bases ::= bases[lowerSubscript..upperSubscript]
 **/
 

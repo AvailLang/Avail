@@ -35,26 +35,15 @@ Extends
 Uses
 	"Tier-2"
 Names
-	"_instances",
 	"_instance",
 	"_unsafe instances",
-	"_unsafe instance",
-	"enum of_"
+	"_unsafe instance"
 Body
 
 
-Method "_weak instances" is [e : enum |
-	Primitive 29;
-] : set;
 
-
-Forward "_instances" for [enum]->set;
-
-
-Method "_instances" is [e : enum |
-	Primitive 29;
-] : set;
-
+/* This method was defined earlier, but we couldn't add the restriction until
+   now. */
 Restriction "_instances" is [eT : enum type |
 	cast eT into [uuT : enum |
 		unionOfMembershipTypes : set type := terminates;
@@ -144,10 +133,3 @@ Method "_unsafe instance" is [t : type |
 		e instance;];
 ] : any;
 
-
-Method "enum of_" is
-[
-	aType : type
-|
-	Primitive 66;
-] : enum type;

@@ -50,7 +50,7 @@ public abstract class AvailInstructionWithIndex extends AvailInstruction
 
 	/**
 	 * Answer the generic index recorded at construction time.
-	 * 
+	 *
 	 * @return The index.
 	 */
 	public int index ()
@@ -58,7 +58,7 @@ public abstract class AvailInstructionWithIndex extends AvailInstruction
 		return index;
 	}
 
-	
+
 	/**
 	 * Construct a new {@link AvailInstructionWithIndex}.
 	 *

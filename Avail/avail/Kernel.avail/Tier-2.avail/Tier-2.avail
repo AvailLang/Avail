@@ -35,15 +35,15 @@ Extends
 	"Tier-1",
 	"BlockA",
 	"BlockB",
-	"Container",
-	"Continuation",
-	"Integer",
-	"Map",
-	"Set",
-	"Tuple",
 	"Character",
 	"Console",
-	"Time"
+	"Container",
+	"Continuation",
+	"Map",
+	"Number",
+	"Set",
+	"Time",
+	"Tuple"
 Uses
 	"Test"
 Names
