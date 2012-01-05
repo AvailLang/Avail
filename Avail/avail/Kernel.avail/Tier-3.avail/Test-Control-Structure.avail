@@ -58,7 +58,32 @@ switchCase3: string := Switch 2.2
 	case 2.2 do ["Makes Sense";]: 
 	default ["meh";];
 
-Assert switchCase2 = "Makes Sense";
+Assert switchCase3 = "Makes Sense";
+
+switchCase4 : []->string :=  [Switch true
+	case true do
+	[ 
+		c : integer := 1;
+		c as basic string;
+	]:
+	default
+	[ 
+		Switch true
+			case true do
+			[
+				c : integer := 2;
+				c as basic string;
+			]:
+			default 
+			[
+				c : integer := 3;
+				c as basic string;
+			];
+	];
+];
+
+Assert switchCase4() = "1";
+Assert switchCase4 type result = string;
 
 ifThenElseRepeat1 : integer;
 if false then [ifThenElseRepeat1 := 1;] 
