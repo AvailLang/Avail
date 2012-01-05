@@ -983,7 +983,7 @@ Method "Subtract_from_«in_»" is
 		daysIntoSubtractYear : integer :=
 			Date subtractingDate transformed into number of days into the year;
 		
-		timePassed : []->integer := [Switch unitOfTime[1]
+		Switch unitOfTime[1]
 			case "days" do
 			[		 
 				days since unix epoch from date baseDate -
@@ -1025,8 +1025,6 @@ Method "Subtract_from_«in_»" is
 				];
 				baseDate->year - subtractingDate->year - yearShift;
 			];
-		];
-		timePassed();
 	] else
 	[	
 		if  baseMDgreaterSubtractingMD then 

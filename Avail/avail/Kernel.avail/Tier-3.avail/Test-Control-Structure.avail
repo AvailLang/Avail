@@ -60,7 +60,7 @@ switchCase3: string := Switch 2.2
 
 Assert switchCase3 = "Makes Sense";
 
-switchCase4 : []->string :=  [Switch true
+switchCase4 : string :=  Switch true
 	case true do
 	[ 
 		c : integer := 1;
@@ -80,10 +80,9 @@ switchCase4 : []->string :=  [Switch true
 				c as basic string;
 			];
 	];
-];
 
-Assert switchCase4() = "1";
-Assert switchCase4 type result = string;
+Assert switchCase4 = "1";
+Assert switchCase4 type <= string;
 
 ifThenElseRepeat1 : integer;
 if false then [ifThenElseRepeat1 := 1;] 
