@@ -34,7 +34,8 @@ System Module "Test"
 Extends
 Uses
 	"Test-TupleIterator",
-	"Test-Graph"
+	"Test-Graph",
+	"Test-Date-Time"
 Names
 Body
 
