@@ -980,13 +980,12 @@ Method "Subtract_from_«in_»" is
 		timePassed : []->integer := [Switch unitOfTime[1]
 			case "days" do
 			[		 
-				dys : []->integer := [days since unix epoch from date baseDate -
-					days since unix epoch from date subtractingDate;]:integer;
-				dys();
+				days since unix epoch from date baseDate -
+					days since unix epoch from date subtractingDate;
 			]:
 			case "months" do
 			[
-				cumulativeMonths : []->integer := [Switch true
+				Switch true
 					case baseMDgreaterSubtractingMD & 
 						baseDDgreaterSubtractingDD do 
 					[ 
@@ -1010,20 +1009,15 @@ Method "Subtract_from_«in_»" is
 						(baseDate->year - subtractingDate->year - 1) * 12 +
 						  ((365 + daysIntoBaseYear - daysIntoSubtractYear) / 30);
 					];
-				]:integer;
-				cumulativeMonths();
 			]:
 			default
 			[
-				d : []->integer := [ 
-					yearShift : integer := 0;
-					if  baseMDgreaterSubtractingMD then 
-					[
-						yearShift := 1;
-					];
-					baseDate->year - subtractingDate->year - yearShift;
-				]:integer;
-				d();
+				yearShift : integer := 0;
+				if  baseMDgreaterSubtractingMD then 
+				[
+					yearShift := 1;
+				];
+				baseDate->year - subtractingDate->year - yearShift;
 			];
 		];
 		timePassed();
