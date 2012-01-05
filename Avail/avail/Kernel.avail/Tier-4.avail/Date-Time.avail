@@ -778,18 +778,21 @@ Method "today's date«in_»" is
      
      /* leap year cycles since 2008 */
      lpc : integer := rt / 126230400000;
-     
+ 
      /* milliseconds since last leap year*/
      mllp : integer := rt mod 126230400000;
-     
+
      /* Calculate date if currently in Leap Year. */
      if mllp > 94608000000 then
      [
-        /* days passed in current leap year */
+        /* days fully passed in current leap year */
         dily : integer := (mllp - 94608000000)/(1000*60*60*24);
-    	
+
+		/* Add 1 to dily as current date is day not fully passed
+		 * E.g. 4.29 days into the year is not Jan 4th, but Jan 5th. 
+		 */
     	currentMonthAndDay: date := 
-    		Date dily days into the year ((lpc + 1) * 4 + 2008);
+    		Date (dily + 1) days into the year ((lpc + 1) * 4 + 2008);
     			
 		date new with <<month,currentMonthAndDay->month>,
         	<day,currentMonthAndDay->day>,
@@ -802,9 +805,12 @@ Method "today's date«in_»" is
 		 
         /* Days progressed in current nonleap year */
         dty : integer := (mllp mod 31536000000)/ (1000*60*60*24);
-
+        
+		/* Add 1 to dty as current date is day not fully passed
+		 * E.g. 4.29 days into the year is not Jan 4th, but Jan 5th. 
+		 */
     	currentMonthAndDay: date := 
-    		Date dty days into the year (lpc * 4 + ysly + 2009);
+    		Date (dty + 1) days into the year (lpc * 4 + ysly + 2009);
 		
 		date new with <<month,currentMonthAndDay->month>,
         	<day,currentMonthAndDay->day>,
