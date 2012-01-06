@@ -36,7 +36,6 @@ Extends
 	"BlockA",
 	"BlockB",
 	"Character",
-	"Console",
 	"Container",
 	"Continuation",
 	"Map",

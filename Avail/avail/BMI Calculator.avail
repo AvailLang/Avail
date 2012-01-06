@@ -60,21 +60,25 @@ Method "⊤" is [ void; ];
  */
 
 Method "Calculate BMI" is
-[
+[	
+	weightInPounds : integer;
+	heightInInches : integer;
 
-	Print "Enter Weight (in pounds): ";
-	/* Prompt user for weight input.  Must be 3 digits */
-	weightInPounds : [0..999] := 10 r read 3 characters from console;
-	Print "\n";
+	Loop 
+	[
+		weightInPounds := 
+			Ask for an integer with the question, "Enter Weight (in pounds): ";
+	] until [
+		weightInPounds > 0;
+	] do [
+		Print "Weight must be a positive integer";
+	];
 
-/* Loop until_do_ once created can be used here */
-	heightInInches : [0..99];
 
-	Loop [
-		Print "Enter Height (in inches): ";
-		/*Prompt user for height input.  Must be 2 digits.*/
-		heightInInches := 10 r read 2 characters from console;
-		Print "\n";
+	Loop 
+	[
+		heightInInches := 
+			Ask for an integer with the question, "Enter Height (in inches): ";	
 	] until [
 		heightInInches > 0;
 	] do [

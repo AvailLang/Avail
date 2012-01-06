@@ -1,5 +1,5 @@
 /**
- * .../Tier-2/Console.avail
+ * .../Tier-3/Console.avail
  * Copyright (c) 2011, Mark van Gulik.
  * All rights reserved.
  *
@@ -32,15 +32,19 @@
 
 System Module "Console"
 Extends
-	"Tier-1",
-	"Tuple",
-	"Continuation"
 Uses
+	"Tier-2",
+	"Number",
+	"Control-Structure",
+	"Enum"
 Names
+	"a string",
 	"input character from console",
-	"get user input"
+	"get user input",
+	"Ask for_with the question,_"
 Body
 
+Method "a string" is [string;];
 
 Method "input character from console" is
 [
@@ -66,3 +70,50 @@ Method "get user input" is [
  	
  	stream;
  ]:string;
+
+/** A function that queries a user for an input of a specific type.
+ *  Currently the function can handle integers, floats, strings and defaults
+ *  to a string.  Syntax to obtain:
+ *		1) integer - integer or an integer
+ *			ex: Ask for an integer with the question "give me integer:";
+ *		2) float - float or a float
+ *			ex: Ask for an integer with the question "give me float:";
+ *		3) string - string or a string
+ *			ex: Ask for a string with the question "give me string:"; 
+ */
+Method "Ask for_with the question,_" is
+[
+	inputType : type,
+	question : string
+|
+	Print question;
+	
+	stream : string := get user input;
+	
+	Switch inputType
+		case string do
+		[
+			stream;
+		]:
+		case integer do
+		[
+			
+			convert stream to integer;
+		]:
+		case float do
+		[
+			convert stream to float;
+		]:
+		default
+		[
+			stream;
+		];
+]:any;
+
+Restriction "Ask for_with the question,_" is
+[
+	inputTypeType : any type type,
+	questionType : string type
+|
+	inputTypeType instance;
+];

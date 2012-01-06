@@ -1,6 +1,6 @@
 /**
- * .../Tier-3/Tier-3.avail
- * Copyright (c) 2010, Mark van Gulik.
+ * .../Tier-3/Number.avail
+ * Copyright (c) 2011, Mark van Gulik.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,20 +30,71 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Tier-3"
+System Module "Number"
 Extends
-	"Tier-2",
-	"Enum",
-	"Console",
-	"Control-Structure",
-	"Exception",
-	"Object",
-	"Enum",
-	"Integer",
-	"Tuple",
-	"Number"
 Uses
-	"Test"
+	"Tier-2"
+	
 Names
+	"an integer",
+	"a float",
+	"convert_to integer",
+	"convert_to float"
+
 Body
 
+Method "an integer" is [integer;];
+Method "a float" is [float;];
+
+/** Conversions **/
+
+/* Convert string to integer */
+Method "convert_to integer" is
+[
+	str : string
+|
+	if str[1] = $"-" then 
+	[
+		stream : string := "";
+		
+		stream := stream then (str[2..||str||]);
+		
+		(-1) * (10 r stream);
+	] else 
+	[
+		10 r str;
+	];
+]: integer;
+
+/* Convert string to float */
+Method "convert_to float" is
+[
+	str : string
+|
+	decimalLocation : natural number := 1;
+	wholeNumStream : string := "";
+	decimalStream : string := "";
+	
+	Until [ str[decimalLocation] = $"."; ]
+	loop
+	[
+		decimalLocation := decimalLocation + 1;
+	];
+
+	wholeNumStream := wholeNumStream then (str[1..(decimalLocation - 1)]);	
+
+	decimalStream := decimalStream then (str[(decimalLocation + 1)..||str||]);	
+
+	wholeNum : integer := convert wholeNumStream to integer;
+
+	decimalUnit : float := 
+		((convert decimalStream to integer) as float) / (10^||decimalStream||);
+
+	if wholeNum < 0 then
+	[
+		wholeNum - decimalUnit;
+	] else
+	[
+		wholeNum + decimalUnit;
+	];
+]: float;
