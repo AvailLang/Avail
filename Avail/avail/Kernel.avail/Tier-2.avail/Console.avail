@@ -33,10 +33,12 @@
 System Module "Console"
 Extends
 	"Tier-1",
-	"Tuple"
+	"Tuple",
+	"Continuation"
 Uses
 Names
-	"input character from console"
+	"input character from console",
+	"get user input"
 Body
 
 
@@ -46,3 +48,21 @@ Method "input character from console" is
 	Crash "read from console failed";
 ] : character;
 
+
+Method "get user input" is [
+ 
+ 	stream : string := "";
+ 	charInput : character;
+ 	
+ 	Loop 
+ 	[
+ 		charInput := input character from console;
+
+ 		if charInput not = $"\n" then [ stream := stream then <charInput>;];
+ 	] until
+ 	[
+ 		charInput = $"\n";
+ 	];
+ 	
+ 	stream;
+ ]:string;
