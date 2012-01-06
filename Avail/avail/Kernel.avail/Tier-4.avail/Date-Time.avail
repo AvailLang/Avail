@@ -191,10 +191,10 @@ Rule
 /* Create a time object h:min:sec:milliseconds «time zone» */
 Method "_:_:_:_«_»" is 
 [
-	hr : [0..23],
-	min : [0..59],
-	sec : [0..59],
-	mil : [0..999],
+	hr : integer,
+	min : integer,
+	sec : integer,
+	mil : integer,
 	tz : <time zone…|0..1>
 |
 	timezn : string;
@@ -212,9 +212,9 @@ Method "_:_:_:_«_»" is
  */
 Method "_:_:_«_»" is 
 [
-	hr : [0..23],
-	min : [0..59],
-	sec : [0..59],
+	hr : integer,
+	min : integer,
+	sec : integer,
 	tz : <time zone…|0..1>
 |
 	timezn : time zone;
@@ -229,8 +229,8 @@ Method "_:_:_«_»" is
  */
 Method "_:_«_»" is 
 [
-	hr : [0..23],
-	min : [0..59],
+	hr : integer,
+	min : integer,
 	tz : <time zone…|0..1>
 |
 	timezn : time zone;
@@ -406,8 +406,8 @@ Rule
 Method "year_month_day_«time zone_»" is
 [
 	yr : integer,
-	mth : [1..12],
-	dy : [1..31],
+	mth : integer,
+	dy : integer,
 	tz : <time zone…|0..1>
 |
 	timezn : string;
@@ -468,11 +468,11 @@ Rule
 Method "year_month_day_hour_minute_second_«time zone_»" is
 [
 	yr : integer,
-	mth : [1..12],
-	dy : [1..31],
-	hr : [0..23],
-	min : [0..59],
-	sec : [0..59],
+	mth : integer,
+	dy : integer,
+	hr : integer,
+	min : integer,
+	sec : integer,
 	tz : <time zone…|0..1>
 |
 	timezn : string;

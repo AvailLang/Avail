@@ -98,11 +98,11 @@ Method "Ask for_with the question,_" is
 		case integer do
 		[
 			
-			convert stream to integer;
+			convert stream to an integer;
 		]:
 		case float do
 		[
-			convert stream to float;
+			convert stream to a float;
 		]:
 		default
 		[
