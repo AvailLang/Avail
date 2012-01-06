@@ -39,6 +39,7 @@ Uses
 	"Integer",
 	"Type"
 Names
+	"<_,_`…|_>",
 	"tuple_like_default_",
 	"tuple_of_",
 	"tuple of_",
@@ -68,11 +69,18 @@ Restriction "<«_‡,»>" is [tType : tupleType |
 
 /* Tuple type constructor... */
 
+Method "<_,_`…|_>" is [
+		typeTuple : tupleOfType,
+		defaultType : type,
+		sizeRange : whole number type |
+	Primitive 137;
+] : tupleType;
+
 Method "tuple_like_default_" is [
 		sizeRange : whole number type,
 		typeTuple : tupleOfType,
 		defaultType : type |
-	Primitive 137;
+	<typeTuple, defaultType…|sizeRange>;
 ] : tupleType;
 
 Method "tuple_of_" is [sizeRange : whole number type, elementType : type |

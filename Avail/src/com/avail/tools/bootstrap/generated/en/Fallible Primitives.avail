@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.01.05 22:07:48.536 -0600
+ * * Last Generated On: 2012.01.06 15:19:19.888 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -42,12 +42,13 @@ System Module "Fallible Primitives"
 Versions
 	"dev"
 Extends
-	"Origin"
 Uses
+	"Origin",
+	"Primitives"
 Names
 	"Set primitive failure function to_",
-	/*   1 */ "_+_",
-	/*  82 */ "_[_]",
+	/* 131 */ "_[_]",
+	/* 132 */ "_[_]:=_",
 	/*   3 */ "_×_",
 	/*   4 */ "_÷_",
 	/*  18 */ "eject_",
@@ -411,4 +412,63 @@ Method "_[_]" is
 	Primitive 82 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode;
 ] : any;
+
+/**
+ * Assuming that `anAtom` has a property whose key is `key`, then answer
+ * the property value associated with the `key`.
+ *
+ * Parameters:
+ *    anAtom - An atom.
+ *    key - The property key.
+ * Returns:
+ *    The property value bound to the key.
+ */
+Method "_[_]" is 
+[
+	anAtom : atom,
+	key : atom
+|
+	Primitive 123 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode;
+] : any;
+
+/**
+ * Answer the `index`-th element of `aTuple`.
+ *
+ * Parameters:
+ *    aTuple - A tuple.
+ *    index - The index of the desired element.
+ * Returns:
+ *    The requested element.
+ */
+Method "_[_]" is 
+[
+	aTuple : tuple,
+	index : natural number
+|
+	Primitive 131 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode;
+] : any;
+
+/**
+ * Construct and answer a tuple based on the one provided but such that its
+ * `index`-th element is `value`.
+ *
+ * Parameters:
+ *    aTuple - A tuple.
+ *    index - The index of the element that should (potentially) differ in the
+ *       resultant tuple.
+ *    value - The "replacement" value.
+ * Returns:
+ *    The requested tuple.
+ */
+Method "_[_]:=_" is 
+[
+	aTuple : tuple,
+	index : natural number,
+	value : any
+|
+	Primitive 132 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode;
+] : tuple;
 

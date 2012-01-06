@@ -33,6 +33,7 @@
 package com.avail.tools.bootstrap;
 
 import java.util.ResourceBundle;
+import java.util.regex.Matcher;
 import com.avail.annotations.NotNull;
 import com.avail.interpreter.Primitive;
 
@@ -191,6 +192,8 @@ final class Resources
 			newValue = newValue.substring(0, newValue.length() - 2);
 		}
 		newValue = newValue.replace("\n ", "\n\\ ");
+		newValue = newValue.replaceAll(
+			"\\\\(?!n|\\n| )", Matcher.quoteReplacement("\\\\"));
 		return newValue;
 	}
 
@@ -200,10 +203,15 @@ final class Resources
 		propertiesCopyright,
 		generatedPropertiesNotice,
 		availCopyright,
+		methodCommentTemplate,
+		methodCommentParametersTemplate,
+		methodCommentParameterTemplate,
+		methodCommentReturnsTemplate,
 		generatedModuleNotice,
 		originModuleName,
 		originModuleHeader,
 		specialObjectsModuleName,
+		primitivesModuleName,
 		infalliblePrimitivesModuleName,
 		falliblePrimitivesModuleName,
 		primitivesModuleHeader,

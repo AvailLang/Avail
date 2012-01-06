@@ -110,9 +110,10 @@ public final class SpecialObjectNamesGenerator
 				keys.add(key);
 				writer.print(key);
 				writer.print('=');
-				if (properties.containsKey(key))
+				final String specialObjectName = properties.getProperty(key);
+				if (specialObjectName != null)
 				{
-					writer.print(escape(properties.getProperty(key)));
+					writer.print(escape(specialObjectName));
 				}
 				writer.println();
 				final String alphabeticKey = specialObjectAlphabeticKey(i);
@@ -121,17 +122,23 @@ public final class SpecialObjectNamesGenerator
 					keys.add(alphabeticKey);
 					writer.print(alphabeticKey);
 					writer.print('=');
-					writer.println(
-						escape(properties.getProperty(alphabeticKey)));
+					final String alphabetic =
+						properties.getProperty(alphabeticKey);
+					if (!alphabetic.isEmpty())
+					{
+						writer.println(escape(alphabetic));
+					}
 				}
 				final String commentKey = specialObjectCommentKey(i);
-				if (properties.containsKey(commentKey))
+				keys.add(commentKey);
+				writer.print(commentKey);
+				writer.print('=');
+				final String comment = properties.getProperty(commentKey);
+				if (comment != null)
 				{
-					keys.add(commentKey);
-					writer.print(commentKey);
-					writer.print('=');
-					writer.println(escape(properties.getProperty(commentKey)));
+					writer.print(escape(comment));
 				}
+				writer.println();
 			}
 		}
 		for (final Object property : properties.keySet())

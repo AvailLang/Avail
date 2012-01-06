@@ -39,6 +39,7 @@ Uses
 	"Tuple",
 	"Type"
 Names
+	"{_|_}",
 	"set_of_",
 	"set of_",
 	"_content type",
@@ -54,9 +55,12 @@ Body
 
 /* Set type construction / accessing */
 
+Method "{_|_}" is [contentType : type , sizes : whole number type |
+	Primitive 111;
+] : setType;
+
 Method "set_of_" is [sizes : whole number type, contentType : type |
-	Primitive 111 (failureCode : natural number);
-	Failed;
+	{contentType|sizes};
 ] : setType;
 
 Method "set of_" is [elementType : type |

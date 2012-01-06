@@ -38,6 +38,7 @@ Uses
 	"Number",
 	"Tuple"
 Names
+	"_∈_",
 	"_includes_",
 	"_union_",
 	"_U_",
@@ -51,9 +52,12 @@ Body
 
 /* Set manipulation primitives... */
 
+Method "_∈_" is [elem : any, s : set |
+	Primitive 101;
+] : boolean;
 
 Method "_includes_" is [s : set, elem : any |
-	Primitive 101;
+	elem ∈ s;
 ] : boolean;
 
 Method "_union_" is [s1 : set, s2 : set |

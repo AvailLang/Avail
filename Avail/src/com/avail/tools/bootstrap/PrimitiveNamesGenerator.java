@@ -38,7 +38,9 @@ import java.io.*;
 import java.text.MessageFormat;
 import java.util.*;
 import com.avail.annotations.NotNull;
+import com.avail.descriptor.*;
 import com.avail.interpreter.Primitive;
+import com.avail.interpreter.Primitive.Flag;
 
 /**
  * Generate a {@linkplain PropertyResourceBundle property resource bundle} that
@@ -49,6 +51,13 @@ import com.avail.interpreter.Primitive;
  */
 public final class PrimitiveNamesGenerator
 {
+	/* Initialize Avail. */
+	static
+	{
+		AvailObject.clearAllWellKnownObjects();
+		AvailObject.createAllWellKnownObjects();
+	}
+
 	/** The target {@linkplain Locale locale}. */
 	private final @NotNull Locale locale;
 
@@ -94,36 +103,87 @@ public final class PrimitiveNamesGenerator
 		final Set<String> keys = new HashSet<String>();
 		for (final Primitive primitive : Primitive.values())
 		{
-			keys.add(primitive.name());
-			writer.format("# _=%d%n", primitive.argCount());
-			writer.print(primitive.name());
-			writer.print('=');
-			if (properties.containsKey(primitive.name()))
+			if (!primitive.hasFlag(Flag.Private))
 			{
-				writer.print(escape(properties.getProperty(primitive.name())));
-			}
-			writer.println();
-			for (int i = 1; i <= primitive.argCount(); i++)
-			{
-				final String argNameKey =
-					primitiveParameterNameKey(primitive, i);
-				if (properties.containsKey(argNameKey))
+				keys.add(primitive.name());
+				writer.format(
+					"# %3d : _=%d%n",
+					primitive.primitiveNumber,
+					primitive.argCount());
+				writer.print(primitive.name());
+				writer.print('=');
+				final String primitiveName =
+					properties.getProperty(primitive.name());
+				if (primitiveName != null)
 				{
+					writer.print(escape(primitiveName));
+				}
+				writer.println();
+				for (int i = 1; i <= primitive.argCount(); i++)
+				{
+					final String argNameKey =
+						primitiveParameterNameKey(primitive, i);
 					keys.add(argNameKey);
 					writer.print(argNameKey);
 					writer.print('=');
-					writer.println(escape(properties.getProperty(argNameKey)));
+					final String argName = properties.getProperty(argNameKey);
+					if (argName != null)
+					{
+						writer.print(escape(argName));
+					}
+					writer.println();
 				}
-			}
-			final String commentKey = primitiveCommentKey(primitive);
-			if (properties.containsKey(commentKey))
-			{
+				final String commentKey = primitiveCommentKey(primitive);
 				keys.add(commentKey);
 				writer.print(commentKey);
 				writer.print('=');
-				writer.println(escape(properties.getProperty(commentKey)));
+				final String comment = properties.getProperty(commentKey);
+				if (comment != null && !comment.isEmpty())
+				{
+					writer.print(escape(comment));
+				}
+				else
+				{
+					final String commentTemplate =
+						preambleBundle.getString(methodCommentTemplate.name());
+					final String parameters;
+					if (primitive.argCount() > 0)
+					{
+						final String parametersTemplate =
+							preambleBundle.getString(
+								methodCommentParametersTemplate.name());
+						final String parameterTemplate =
+							preambleBundle.getString(
+								methodCommentParameterTemplate.name());
+						final StringBuilder builder = new StringBuilder(500);
+						for (int i = 0; i < primitive.argCount(); i++)
+						{
+							builder.append(MessageFormat.format(
+								parameterTemplate, i));
+						}
+						parameters = MessageFormat.format(
+							parametersTemplate, builder.toString());
+					}
+					else
+					{
+						parameters = "";
+					}
+					final String returns;
+					if (!primitive.blockTypeRestriction().returnType().equals(
+						TypeDescriptor.Types.TOP.o()))
+					{
+						returns = preambleBundle.getString(
+							methodCommentReturnsTemplate.name());
+					}
+					else
+					{
+						returns = "";
+					}
+					writer.print(escape(MessageFormat.format(
+						commentTemplate, parameters, returns)));
+				}
+				writer.println();
 			}
-
 		}
 		for (final Object property : properties.keySet())
 		{
@@ -133,7 +193,8 @@ public final class PrimitiveNamesGenerator
 				keys.add(key);
 				writer.print(key);
 				writer.print('=');
-				writer.println(escape(properties.getProperty(key)));
+				final String value = properties.getProperty(key);
+				writer.println(escape(value));
 			}
 		}
 	}

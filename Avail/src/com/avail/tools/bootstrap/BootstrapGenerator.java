@@ -307,15 +307,18 @@ public final class BootstrapGenerator
 	 *
 	 * @param fallible
 	 *        {@code true} if the fallible primitives should be answered, {@code
-	 *        false} if the infallible primitives should be answered.
+	 *        false} if the infallible primitives should be answered, {@code
+	 *        null} if all primitives should be answered.
 	 * @return The selected primitives.
 	 */
-	private @NotNull List<Primitive> primitives (final boolean fallible)
+	private @NotNull List<Primitive> primitives (final Boolean fallible)
 	{
 		final List<Primitive> primitives = new ArrayList<Primitive>();
 		for (final Primitive primitive : Primitive.values())
 		{
-			if (primitive.hasFlag(Flag.CannotFail) == !fallible)
+			if (!primitive.hasFlag(Flag.Private) &&
+				(fallible == null
+				|| primitive.hasFlag(Flag.CannotFail) == !fallible))
 			{
 				primitives.add(primitive);
 			}
@@ -369,7 +372,8 @@ public final class BootstrapGenerator
 	 *
 	 * @param fallible
 	 *        {@code true} to indicate the fallible primitives module, {@code
-	 *        false} to indicate the infallible primitives module.
+	 *        false} to indicate the infallible primitives module, {@code null}
+	 *        to indicate the introductory primitives module.
 	 * @param versions
 	 *        The {@linkplain List list} of version strings supported by the
 	 *        module.
@@ -377,13 +381,21 @@ public final class BootstrapGenerator
 	 *        The {@linkplain PrintWriter output stream}.
 	 */
 	private void generatePrimitiveModulePreamble (
-		final boolean fallible,
+		final Boolean fallible,
 		final @NotNull List<String> versions,
 		final @NotNull PrintWriter writer)
 	{
-		final Key key = fallible
-			? falliblePrimitivesModuleName
-			: infalliblePrimitivesModuleName;
+		final Key key;
+		if (fallible == null)
+		{
+			key = primitivesModuleName;
+		}
+		else
+		{
+			key = fallible
+				? falliblePrimitivesModuleName
+				: infalliblePrimitivesModuleName;
+		}
 		writer.println(MessageFormat.format(
 			preamble.getString(availCopyright.name()),
 			preamble.getString(key.name())));
@@ -391,23 +403,32 @@ public final class BootstrapGenerator
 			preamble.getString(generatedModuleNotice.name()),
 			BootstrapGenerator.class.getName(),
 			new Date()));
-		final StringBuilder builder = new StringBuilder();
-		if (fallible)
+		final StringBuilder uses = new StringBuilder();
+		uses.append("\n\t\"");
+		uses.append(preamble.getString(originModuleName.name()));
+		uses.append('"');
+		if (fallible != null)
 		{
-			builder.append("\n\t");
-			builder.append(stringify(preamble.getString(
-				primitiveFailureFunctionSetterMethod.name())));
-			builder.append(',');
+			uses.append(",\n\t\"");
+			uses.append(preamble.getString(primitivesModuleName.name()));
+			uses.append('"');
 		}
-		builder.append(primitivesNamesString(primitives(fallible)));
+		final StringBuilder names = new StringBuilder();
+		if (Boolean.TRUE.equals(fallible))
+		{
+			names.append("\n\t");
+			names.append(stringify(preamble.getString(
+				primitiveFailureFunctionSetterMethod.name())));
+			names.append(',');
+		}
+		names.append(primitivesNamesString(primitives(fallible)));
 		writer.println(MessageFormat.format(
 			preamble.getString(primitivesModuleHeader.name()),
 			preamble.getString(key.name()),
 			versionString(versions),
-			String.format(
-				"\n\t\"%s\"",
-				preamble.getString(originModuleName.name())),
-			builder.toString()));
+			"",
+			uses.toString(),
+			names.toString()));
 	}
 
 	/**
@@ -437,9 +458,18 @@ public final class BootstrapGenerator
 			i++)
 		{
 			final String argNameKey = primitiveParameterNameKey(primitive, i);
-			final String argName = primitiveBundle.containsKey(argNameKey)
-				? primitiveBundle.getString(argNameKey)
-				: preamble.getString(parameterPrefix.name()) + i;
+			final String argName;
+			if (primitiveBundle.containsKey(argNameKey))
+			{
+				final String localized = primitiveBundle.getString(argNameKey);
+				argName = !localized.isEmpty()
+					? localized
+					: preamble.getString(parameterPrefix.name()) + i;
+			}
+			else
+			{
+				argName = preamble.getString(parameterPrefix.name()) + i;
+			}
 			final AvailObject type = parameterTypes.typeAtIndex(i);
 			final String typeName = specialObjectName(type);
 			builder.append('\t');
@@ -546,9 +576,19 @@ public final class BootstrapGenerator
 			{
 				final String argNameKey =
 					primitiveParameterNameKey(primitive, i);
-				formatArgs[i - 1] = primitiveBundle.containsKey(argNameKey)
-					? primitiveBundle.getString(argNameKey)
-					: preamble.getString(parameterPrefix.name()) + i;
+				final String argName;
+				if (primitiveBundle.containsKey(argNameKey))
+				{
+					final String localized = primitiveBundle.getString(argNameKey);
+					argName = !localized.isEmpty()
+						? localized
+						: preamble.getString(parameterPrefix.name()) + i;
+				}
+				else
+				{
+					argName = preamble.getString(parameterPrefix.name()) + i;
+				}
+				formatArgs[i - 1] = argName;
 			}
 			builder.append(MessageFormat.format(
 				primitiveBundle.getString(commentKey),
@@ -761,12 +801,12 @@ public final class BootstrapGenerator
 	 *        The {@linkplain PrintWriter output stream}.
 	 */
 	private void generatePrimitiveModuleBody (
-		final boolean fallible,
+		final Boolean fallible,
 		final @NotNull PrintWriter writer)
 	{
 		// Generate the module variable that holds the primitive failure
 		// function.
-		if (fallible)
+		if (Boolean.TRUE.equals(fallible))
 		{
 			generatePrimitiveFailureMethod(writer);
 			generatePrimitiveFailureFunction(writer);
@@ -774,10 +814,17 @@ public final class BootstrapGenerator
 			generateInvokePrimitiveFailureFunctionMethod(writer);
 		}
 
-		final List<Primitive> primitives = primitives(fallible);
-		for (final Primitive primitive : primitives)
+		// Generate the primitive methods.
+		if (fallible != null)
 		{
-			generatePrimitiveMethod(primitive, writer);
+			final List<Primitive> primitives = primitives(fallible);
+			for (final Primitive primitive : primitives)
+			{
+				if (!primitive.hasFlag(Flag.Private))
+				{
+					generatePrimitiveMethod(primitive, writer);
+				}
+			}
 		}
 	}
 
@@ -835,7 +882,8 @@ public final class BootstrapGenerator
 	 *
 	 * @param fallible
 	 *        {@code true} to indicate the fallible primitives module, {@code
-	 *        false} to indicate the infallible primitives module.
+	 *        false} to indicate the infallible primitives module, {@code null}
+	 *        to indicate the introductory primitives module.
 	 * @param versions
 	 *        The {@linkplain List list} of version strings supported by the
 	 *        module.
@@ -843,13 +891,21 @@ public final class BootstrapGenerator
 	 *         If the source module could not be written.
 	 */
 	private void generatePrimitiveModule (
-			final boolean fallible,
+			final Boolean fallible,
 			final @NotNull List<String> versions)
 		throws IOException
 	{
-		final Key key = fallible
-			? falliblePrimitivesModuleName
-			: infalliblePrimitivesModuleName;
+		final Key key;
+		if (fallible == null)
+		{
+			key = primitivesModuleName;
+		}
+		else
+		{
+			key = fallible
+				? falliblePrimitivesModuleName
+				: infalliblePrimitivesModuleName;
+		}
 		final File fileName = new File(String.format(
 			"src/%s/%s/%s.avail",
 			generatedPackageName.replace('.', '/'),
@@ -880,6 +936,7 @@ public final class BootstrapGenerator
 		packageName.mkdir();
 		generateOriginModule(versions);
 		generateSpecialObjectsModule(versions);
+		generatePrimitiveModule(null, versions);
 		generatePrimitiveModule(false, versions);
 		generatePrimitiveModule(true, versions);
 	}
@@ -929,10 +986,13 @@ public final class BootstrapGenerator
 		// Map localized names to the primitives.
 		for (final Primitive primitive : Primitive.values())
 		{
-			final String value = primitiveBundle.getString(primitive.name());
-			if (value != null && !value.isEmpty())
+			if (!primitive.hasFlag(Flag.Private))
 			{
-				primitiveNameMap.put(value, primitive);
+				final String value = primitiveBundle.getString(primitive.name());
+				if (value != null && !value.isEmpty())
+				{
+					primitiveNameMap.put(value, primitive);
+				}
 			}
 		}
 	}

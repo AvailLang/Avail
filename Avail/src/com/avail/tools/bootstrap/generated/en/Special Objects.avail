@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.01.05 22:07:48.478 -0600
+ * * Last Generated On: 2012.01.06 17:00:29.515 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -44,7 +44,6 @@ Versions
 Extends
 	"Origin"
 Uses
-Names
 	/* 78 */ "-∞",
 	/* 42 */ "abstract signature",
 	/*  1 */ "any",
@@ -94,6 +93,7 @@ Names
 	/* 66 */ "module variable node",
 	/* 37 */ "natural number",
 	/* 97 */ "non-empty map",
+	/* 99 */ "non-empty set",
 	/* 81 */ "null",
 	/* 82 */ "null type",
 	/* 90 */ "nullary procedure",
@@ -133,6 +133,7 @@ Names
 	/* 35 */ "⊤",
 	/* 29 */ "⊥",
 	/* 30 */ "⊥ meta"
+Names{4}
 Body
 
 _any                           ::= special object 1;
@@ -223,6 +224,7 @@ _key_value_tuple               ::= special object 95;
 _empty_map                     ::= special object 96;
 _non_empty_map                 ::= special object 97;
 _whole_number_meta             ::= special object 98;
+_non-empty_set                 ::= special object 99;
 
 Method "any" is 
 [
@@ -670,5 +672,10 @@ Method "non-empty map" is
 Method "whole number meta" is 
 [
 	_whole_number_meta;
+];
+
+Method "non-empty set" is 
+[
+	_non-empty_set;
 ];
 

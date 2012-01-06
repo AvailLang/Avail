@@ -147,7 +147,7 @@ public final class AvailRuntime
 	 * The {@linkplain AvailObject special objects} of the {@linkplain
 	 * AvailRuntime runtime}.
 	 */
-	private final @NotNull AvailObject[] specialObjects = new AvailObject[100];
+	private final @NotNull AvailObject[] specialObjects = new AvailObject[120];
 
 	/**
 	 * Answer the {@linkplain AvailObject special objects} of the {@linkplain
@@ -310,6 +310,9 @@ public final class AvailRuntime
 			ANY.o());
 		specialObjects[98] = InstanceTypeDescriptor.on(
 			IntegerRangeTypeDescriptor.wholeNumbers());
+		specialObjects[99] = SetTypeDescriptor.setTypeForSizesContentType(
+			IntegerRangeTypeDescriptor.naturalNumbers(),
+			ANY.o());
 
 		for (final AvailObject object : specialObjects)
 		{

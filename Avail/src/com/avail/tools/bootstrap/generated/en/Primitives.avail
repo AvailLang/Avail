@@ -1,0 +1,130 @@
+/*
+ * Primitives.avail
+ * Copyright (c) 2011, Mark van Gulik.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/*
+ * GENERATED FILE
+ * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
+ * * Last Generated On: 2012.01.06 17:00:29.536 -0600
+ *
+ * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
+ */
+
+System Module "Primitives"
+Versions
+	"dev"
+Extends
+Uses
+	"Origin"
+Names
+	/*  51 */ "$_",
+	/*  49 */ "$_@pc=_stack=_[_]caller=_",
+	/* 137 */ "<_,_`…|_>",
+	/*  39 */ "[`…]→_",
+	/*  92 */ "_'s bindings",
+	/*  52 */ "_'s caller",
+	/* 140 */ "_'s default type",
+	/* 113 */ "_'s element type",
+	/*  53 */ "_'s function",
+	/*  50 */ "_'s function type",
+	/*  72 */ "_'s implementation",
+	/*  29 */ "_'s instances",
+	/*  89 */ "_'s key type",
+	/*  86 */ "_'s keys",
+	/* 139 */ "_'s leading types",
+	/*   8 */ "_'s lower bound",
+	/* 121 */ "_'s name",
+	/*  68 */ "_'s name:=_",
+	/*  69 */ "_'s names",
+	/*  73 */ "_'s outer variables",
+	/*  35 */ "_'s parameters' type",
+	/*  54 */ "_'s program counter",
+	/*  14 */ "_'s read type",
+	/*  37 */ "_'s return type",
+	/*  59 */ "_'s stack",
+	/*  55 */ "_'s stack pointer",
+	/*  30 */ "_'s type",
+	/*   9 */ "_'s upper bound",
+	/*  90 */ "_'s value type",
+	/*  91 */ "_'s values",
+	/*  19 */ "_'s write type",
+	/* 105 */ "_+_",
+	/* 125 */ "_-_",
+	/*   5 */ "_<_",
+	/*  60 */ "_=_",
+	/* 142 */ "_[_.._]",
+	/* 141 */ "_[_]",
+	/* 132 */ "_[_]:=_",
+	/* 104 */ "_\\_",
+	/*  85 */ "_as map",
+	/*  61 */ "_as object",
+	/*  63 */ "_as object type",
+	/* 109 */ "_as set",
+	/* 110 */ "_as tuple",
+	/*  17 */ "_is unassigned",
+	/*   3 */ "_×_",
+	/*   4 */ "_÷_",
+	/* 122 */ "_∈_",
+	/* 103 */ "_∩_",
+	/* 102 */ "_∪_",
+	/*  33 */ "_≤_",
+	/* 107 */ "_⊆_",
+	/*  12 */ "clear_",
+	/* 136 */ "concatenate_",
+	/*  25 */ "current fiber",
+	/*  18 */ "eject_",
+	/*  66 */ "enumeration of_",
+	/*  57 */ "exit_with_",
+	/*  74 */ "function from_and_",
+	/*  34 */ "function type accepting_and returning_",
+	/*  44 */ "if_then_",
+	/*  43 */ "if_then_else_",
+	/*  45 */ "ignore_and evaluate_",
+	/*   7 */ "integer range from_(inclusive=_)to_(inclusive=_)",
+	/*  40 */ "invoke_with_",
+	/*  20 */ "milliseconds since the Epoch",
+	/* 120 */ "new atom_",
+	/*  16 */ "new ↑_",
+	/*  71 */ "new_applying_",
+	/*  24 */ "request termination of_",
+	/*  58 */ "restart_",
+	/*  56 */ "restart_with_",
+	/*  15 */ "swap_and_",
+	/*  23 */ "termination requested",
+	/* 111 */ "{_|_}",
+	/*  87 */ "{_→_|_}",
+	/* 138 */ "|_|",
+	/*  13 */ "↑_",
+	/*  10 */ "↓_",
+	/*  11 */ "↓_:=_",
+	/*  38 */ "∪_"
+Body
+

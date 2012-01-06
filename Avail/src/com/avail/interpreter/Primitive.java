@@ -2679,7 +2679,7 @@ public enum Primitive
 	 * <strong>Primitive 101:</strong> Check if the {@linkplain AvailObject
 	 * object} is an element of the {@linkplain SetDescriptor set}.
 	 */
-	prim101_SetHasElement(101, 2, CanFold, CannotFail)
+	prim101_ElementInSet(101, 2, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -2687,8 +2687,8 @@ public enum Primitive
 			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
-			final AvailObject set = args.get(0);
-			final AvailObject element = args.get(1);
+			final AvailObject element = args.get(0);
+			final AvailObject set = args.get(1);
 			return interpreter.primitiveSuccess(
 				AtomDescriptor.objectFromBoolean(
 					set.hasElement(element)));
@@ -2699,8 +2699,8 @@ public enum Primitive
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					SetTypeDescriptor.mostGeneralType(),
-					ANY.o()),
+					ANY.o(),
+					SetTypeDescriptor.mostGeneralType()),
 				EnumerationTypeDescriptor.booleanObject());
 		}
 	},
@@ -2941,7 +2941,7 @@ public enum Primitive
 	 * <strong>Primitive 111:</strong> Create a {@linkplain SetTypeDescriptor
 	 * set type}.
 	 */
-	prim111_CreateSetType(111, 2, CanFold)
+	prim111_CreateSetType(111, 2, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -2949,10 +2949,8 @@ public enum Primitive
 			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
-			final AvailObject sizeRange = args.get(0);
-			final AvailObject contentType = args.get(1);
-			assert sizeRange.lowerBound().greaterOrEqual(
-				IntegerDescriptor.zero());
+			final AvailObject contentType = args.get(0);
+			final AvailObject sizeRange = args.get(1);
 			return interpreter.primitiveSuccess(
 				SetTypeDescriptor.setTypeForSizesContentType(
 					sizeRange,
@@ -2964,9 +2962,9 @@ public enum Primitive
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
+					TYPE.o(),
 					InstanceTypeDescriptor.on(
-						IntegerRangeTypeDescriptor.wholeNumbers()),
-					TYPE.o()),
+						IntegerRangeTypeDescriptor.wholeNumbers())),
 				SetTypeDescriptor.meta());
 		}
 	},
@@ -3396,7 +3394,7 @@ public enum Primitive
 	 * TupleTypeDescriptor tuple type} with the given parameters. Canonize the
 	 * data if necessary.
 	 */
-	prim137_CreateTupleType_sizeRange_typeTuple_defaultType(
+	prim137_CreateTupleType(
 		137, 3, CanFold, CannotFail)
 	{
 		@Override
@@ -3405,11 +3403,9 @@ public enum Primitive
 			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 3;
-			final AvailObject sizeRange = args.get(0);
-			final AvailObject typeTuple = args.get(1);
-			final AvailObject defaultType = args.get(2);
-			assert sizeRange.lowerBound().greaterOrEqual(
-				IntegerDescriptor.zero());
+			final AvailObject typeTuple = args.get(0);
+			final AvailObject defaultType = args.get(1);
+			final AvailObject sizeRange = args.get(2);
 			return interpreter.primitiveSuccess(
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 					sizeRange,
@@ -3422,13 +3418,13 @@ public enum Primitive
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					InstanceTypeDescriptor.on(
-						IntegerRangeTypeDescriptor.wholeNumbers()),
 					TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 						IntegerRangeTypeDescriptor.wholeNumbers(),
 						TupleDescriptor.empty(),
 						TYPE.o()),
-					TYPE.o()),
+					TYPE.o(),
+					InstanceTypeDescriptor.on(
+						IntegerRangeTypeDescriptor.wholeNumbers())),
 				TupleTypeDescriptor.meta());
 		}
 	},
