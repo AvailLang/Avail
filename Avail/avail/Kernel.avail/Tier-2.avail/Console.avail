@@ -36,21 +36,13 @@ Extends
 	"Tuple"
 Uses
 Names
-	"read_characters from console"
+	"input character from console"
 Body
 
 
-Method "read_characters from console" is
+Method "input character from console" is
 [
-	charactersRequested : whole number
-|
 	Primitive 254 (failureCode : natural number);
 	Crash "read from console failed";
-] : string;
+] : character;
 
-Restriction "read_characters from console" is
-[
-	charactersRequested : whole number type
-|
-	tuple charactersRequested of character;
-];

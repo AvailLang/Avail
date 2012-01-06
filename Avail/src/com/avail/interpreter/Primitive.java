@@ -5736,43 +5736,45 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 254:</strong> Read the requested number of characters
-	 * from the console. Answers a tuple containing at most the requested
-	 * number of characters; the tuple will only be shorter if the console
-	 * input stream reached end-of-file during the read.
+	 * <strong>Primitive 254:</strong> Read one character
+	 * from the console.
 	 */
-	prim254_ReadFromConsole(254, 1, Unknown)
+	prim254_ReadFromConsole(254, 0, Unknown)
 	{
+		/** The console reader */
+		private final @NotNull InputStreamReader reader =
+			new InputStreamReader(System.in);
+
 		@Override
 		public Result attempt (
 			final @NotNull List<AvailObject> args,
 			final @NotNull Interpreter interpreter)
 		{
-			assert args.size() == 1;
-			final AvailObject aNaturalNumber = args.get(0);
-			final int charactersToRead = aNaturalNumber.extractInt();
-			final char[] buffer = new char[charactersToRead];
-			final Reader reader = new InputStreamReader(System.in);
+			assert args.size() == 0;
+			final char[] buffer = new char[1];
 			final int charactersRead;
 			try
 			{
-				charactersRead = reader.read(buffer, 0, charactersToRead);
+				charactersRead = reader.read(buffer, 0, 1);
+				if ( charactersRead != 1)
+				{
+					return interpreter.primitiveFailure(E_IO_ERROR);
+				}
 			}
 			catch (final IOException e)
 			{
 				return interpreter.primitiveFailure(E_IO_ERROR);
 			}
-			return interpreter.primitiveSuccess(StringDescriptor.from(
-				new String(buffer, 0, charactersRead)));
+			return interpreter.primitiveSuccess(
+				CharacterDescriptor.fromCodePoint(buffer[0]));
 		}
 
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return FunctionTypeDescriptor.create(
-				TupleDescriptor.from(
-					IntegerRangeTypeDescriptor.wholeNumbers()),
-				TupleTypeDescriptor.stringTupleType());
+				TupleDescriptor.from(),
+				CHARACTER.o());
 		}
 	},
 
