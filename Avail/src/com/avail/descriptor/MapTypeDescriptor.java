@@ -290,12 +290,22 @@ extends TypeDescriptor
 	/**
 	 * The most general map type.
 	 */
-	private static AvailObject MostGeneralType;
+	private static AvailObject mostGeneralType;
+
+	/**
+	 * Answer the most general {@linkplain MapTypeDescriptor map type}.
+	 *
+	 * @return The most general map type.
+	 */
+	public static AvailObject mostGeneralType ()
+	{
+		return mostGeneralType;
+	}
 
 	/**
 	 * The metatype for all map types.
 	 */
-	private static AvailObject Meta;
+	private static AvailObject meta;
 
 	/**
 	 * Answer the metatype for all map types.
@@ -304,24 +314,24 @@ extends TypeDescriptor
 	 */
 	public static AvailObject meta ()
 	{
-		return Meta;
+		return meta;
 	}
 
 	public static void clearWellKnownObjects ()
 	{
-		MostGeneralType = null;
-		Meta = null;
+		mostGeneralType = null;
+		meta = null;
 	}
 
 	public static void createWellKnownObjects ()
 	{
-		MostGeneralType = mapTypeForSizesKeyTypeValueType(
+		mostGeneralType = mapTypeForSizesKeyTypeValueType(
 			IntegerRangeTypeDescriptor.wholeNumbers(),
 			ANY.o(),
 			ANY.o());
-		MostGeneralType.makeImmutable();
-		Meta = InstanceTypeDescriptor.on(MostGeneralType);
-		Meta.makeImmutable();
+		mostGeneralType.makeImmutable();
+		meta = InstanceTypeDescriptor.on(mostGeneralType);
+		meta.makeImmutable();
 	}
 
 

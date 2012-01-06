@@ -2261,10 +2261,7 @@ public enum Primitive
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
-						IntegerRangeTypeDescriptor.wholeNumbers(),
-						ANY.o(),
-						ANY.o())),
+					MapTypeDescriptor.mostGeneralType()),
 				IntegerRangeTypeDescriptor.wholeNumbers());
 		}
 	},
@@ -2273,7 +2270,7 @@ public enum Primitive
 	 * <strong>Primitive 81:</strong> Check if the key is present in the
 	 * {@linkplain MapDescriptor map}.
 	 */
-	prim81_MapHasKey(81, 2, CanFold, CannotFail)
+	prim81_KeyInMap(81, 2, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -2281,8 +2278,8 @@ public enum Primitive
 			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 2;
-			final AvailObject map = args.get(0);
-			final AvailObject key = args.get(1);
+			final AvailObject key = args.get(0);
+			final AvailObject map = args.get(1);
 			return interpreter.primitiveSuccess(
 				AtomDescriptor.objectFromBoolean(map.hasKey(key)));
 		}
@@ -2292,11 +2289,8 @@ public enum Primitive
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
-						IntegerRangeTypeDescriptor.wholeNumbers(),
-						ANY.o(),
-						ANY.o()),
-					ANY.o()),
+					ANY.o(),
+					MapTypeDescriptor.mostGeneralType()),
 				EnumerationTypeDescriptor.booleanObject());
 		}
 	},
@@ -2327,10 +2321,7 @@ public enum Primitive
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
-						IntegerRangeTypeDescriptor.wholeNumbers(),
-						ANY.o(),
-						ANY.o()),
+					MapTypeDescriptor.mostGeneralType(),
 					ANY.o()),
 				ANY.o());
 		}
@@ -2364,10 +2355,7 @@ public enum Primitive
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
-						IntegerRangeTypeDescriptor.wholeNumbers(),
-						ANY.o(),
-						ANY.o()),
+					MapTypeDescriptor.mostGeneralType(),
 					ANY.o(),
 					ANY.o()),
 				MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
@@ -2401,43 +2389,47 @@ public enum Primitive
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
-						IntegerRangeTypeDescriptor.wholeNumbers(),
-						ANY.o(),
-						ANY.o()),
+					MapTypeDescriptor.mostGeneralType(),
 					ANY.o()),
-				MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
-					IntegerRangeTypeDescriptor.wholeNumbers(),
-					ANY.o(),
-					ANY.o()));
+				MapTypeDescriptor.mostGeneralType());
 		}
 	},
 
 	/**
-	 * <strong>Primitive 85:</strong> Answer an empty {@linkplain MapDescriptor
-	 * map}.
+	 * <strong>Primitive 85:</strong> Answer a {@linkplain MapDescriptor map}
+	 * whose contents are determined by the argument {@linkplain TupleDescriptor
+	 * tuple} of key-value bindings, i.e. 2-element tuples.
 	 */
-	prim85_CreateEmptyMap(85, 0, CanFold, CannotFail)
+	prim85_CreateMap(85, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
 			final @NotNull List<AvailObject> args,
 			final @NotNull Interpreter interpreter)
 		{
-			assert args.size() == 0;
-			return interpreter.primitiveSuccess(MapDescriptor.empty());
+			assert args.size() == 1;
+			final AvailObject tupleOfBindings = args.get(0);
+			return interpreter.primitiveSuccess(
+				MapDescriptor.newWithBindings(tupleOfBindings));
 		}
 
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return FunctionTypeDescriptor.create(
-				TupleDescriptor.from(),
-				MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
-					IntegerRangeTypeDescriptor.singleInteger(
-						IntegerDescriptor.zero()),
-					BottomTypeDescriptor.bottom(),
-					BottomTypeDescriptor.bottom()));
+				TupleDescriptor.from(
+					TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+						IntegerRangeTypeDescriptor.wholeNumbers(),
+						TupleDescriptor.from(),
+						TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+							IntegerRangeTypeDescriptor.create(
+								IntegerDescriptor.fromInt(2),
+								true,
+								IntegerDescriptor.fromInt(2),
+								true),
+							TupleDescriptor.from(),
+							ANY.o()))),
+				MapTypeDescriptor.mostGeneralType());
 		}
 	},
 
@@ -2462,10 +2454,7 @@ public enum Primitive
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
-						IntegerRangeTypeDescriptor.wholeNumbers(),
-						ANY.o(),
-						ANY.o())),
+					MapTypeDescriptor.mostGeneralType()),
 				SetTypeDescriptor.mostGeneralType());
 		}
 	},
@@ -2474,7 +2463,7 @@ public enum Primitive
 	 * <strong>Primitive 87:</strong> Answer a {@linkplain MapTypeDescriptor map
 	 * type} with the given type constraints.
 	 */
-	prim87_CreateMapType(87, 3, CanFold)
+	prim87_CreateMapType(87, 3, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -2482,14 +2471,9 @@ public enum Primitive
 			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 3;
-			final AvailObject sizes = args.get(0);
-			final AvailObject keyType = args.get(1);
-			final AvailObject valueType = args.get(2);
-			if (sizes.lowerBound().lessThan(IntegerDescriptor.zero()))
-			{
-				return interpreter.primitiveFailure(
-					E_NEGATIVE_SIZE);
-			}
+			final AvailObject keyType = args.get(0);
+			final AvailObject valueType = args.get(1);
+			final AvailObject sizes = args.get(2);
 			return interpreter.primitiveSuccess(
 				MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
 					sizes,
@@ -2502,9 +2486,10 @@ public enum Primitive
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					IntegerRangeTypeDescriptor.meta(),
 					TYPE.o(),
-					TYPE.o()),
+					TYPE.o(),
+					InstanceTypeDescriptor.on(
+						IntegerRangeTypeDescriptor.wholeNumbers())),
 				MapTypeDescriptor.meta());
 		}
 	},
@@ -2614,11 +2599,52 @@ public enum Primitive
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
-						IntegerRangeTypeDescriptor.wholeNumbers(),
-						ANY.o(),
-						ANY.o())),
+					MapTypeDescriptor.mostGeneralType()),
 				TupleTypeDescriptor.mostGeneralType());
+		}
+	},
+
+	/**
+	 * <strong>Primitive 92:</strong> Answer the bindings of this {@linkplain
+	 * MapDescriptor map} as a {@linkplain TupleDescriptor tuple} of 2-tuples of
+	 * key and value.
+	 */
+	prim92_MapBindings(92, 1, CanFold, CannotFail)
+	{
+		@Override
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
+		{
+			assert args.size() == 1;
+			final AvailObject map = args.get(0);
+			final AvailObject[] bindings = new AvailObject[map.mapSize()];
+			int index = 0;
+			for (final MapDescriptor.Entry entry : map.mapIterable())
+			{
+				bindings[index++] = TupleDescriptor.from(
+					entry.key, entry.value);
+			}
+			return interpreter.primitiveSuccess(TupleDescriptor.from(bindings));
+		}
+
+		@Override
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
+		{
+			return FunctionTypeDescriptor.create(
+				TupleDescriptor.from(
+					MapTypeDescriptor.mostGeneralType()),
+				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+					IntegerRangeTypeDescriptor.wholeNumbers(),
+					TupleDescriptor.from(),
+					TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+						IntegerRangeTypeDescriptor.create(
+							IntegerDescriptor.fromInt(2),
+							true,
+							IntegerDescriptor.fromInt(2),
+							true),
+						TupleDescriptor.from(),
+						ANY.o())));
 		}
 	},
 
@@ -5488,7 +5514,7 @@ public enum Primitive
 			final AvailObject tupleType = functionType.argsTupleType();
 			for (int i = function.code().numArgs(); i >= 1; i--)
 			{
-				if (!tupleType.typeAtIndex(i).isInstanceOfKind(TYPE.o()))
+				if (!tupleType.typeAtIndex(i).isInstanceOfKind(META.o()))
 				{
 					return interpreter.primitiveFailure(
 						E_TYPE_RESTRICTION_MUST_ACCEPT_ONLY_TYPES);

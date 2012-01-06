@@ -168,7 +168,11 @@ Method "_[_]" is [
 	Primitive 141;
 ] : type;
 
-
+Restriction "_[_]" is [
+	ttt : tupleType type,
+	it : natural number type |
+	type;
+];
 
 Method "_[_.._]" is [
 		tt : tupleType,

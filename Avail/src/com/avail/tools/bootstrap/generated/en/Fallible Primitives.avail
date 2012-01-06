@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.01.04 18:34:57.379 -0600
+ * * Last Generated On: 2012.01.05 22:07:48.536 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -47,12 +47,12 @@ Uses
 Names
 	"Set primitive failure function to_",
 	/*   1 */ "_+_",
-	/*   2 */ "_-_",
-	/*  36 */ "_[_]",
+	/*  82 */ "_[_]",
 	/*   3 */ "_×_",
 	/*   4 */ "_÷_",
 	/*  18 */ "eject_",
 	/*  57 */ "exit_with_",
+	/*  74 */ "function from_and_",
 	/*  40 */ "invoke_with_",
 	/*  24 */ "request termination of_",
 	/*  58 */ "restart_",
@@ -374,4 +374,41 @@ Method "restart_" is
 	Primitive 58 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode;
 ] : ⊥;
+
+/**
+ * Construct and answer a function given the specified compiled code and tuple
+ * of captured variables.
+ *
+ * Parameters:
+ *    implementation - The compiled code that describes the algorithm.
+ *    outerVariables - The tuple of outer variables.
+ * Returns:
+ *    The requested function.
+ */
+Method "function from_and_" is 
+[
+	implementation : function implementation,
+	outerVariables : tuple
+|
+	Primitive 74 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode;
+] : function;
+
+/**
+ * Answer the value bound to `aMap` in `key`.
+ *
+ * Parameters:
+ *    aMap - A map.
+ *    key - The key whose bound value should be obtained.
+ * Returns:
+ *    The value bound to `key` in `aMap`.
+ */
+Method "_[_]" is 
+[
+	aMap : map,
+	key : any
+|
+	Primitive 82 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode;
+] : any;
 

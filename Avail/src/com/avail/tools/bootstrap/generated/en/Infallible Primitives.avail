@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.01.04 18:34:57.357 -0600
+ * * Last Generated On: 2012.01.05 22:07:48.506 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -48,11 +48,14 @@ Names
 	/*  51 */ "$_",
 	/*  49 */ "$_@pc=_stack=_[_]caller=_",
 	/*  39 */ "[…]→_",
+	/*  92 */ "_'s bindings",
 	/*  52 */ "_'s caller",
-	/*  72 */ "_'s compiled code",
 	/*  53 */ "_'s function",
 	/*  50 */ "_'s function type",
+	/*  72 */ "_'s implementation",
 	/*  29 */ "_'s instances",
+	/*  89 */ "_'s key type",
+	/*  86 */ "_'s keys",
 	/*   8 */ "_'s lower bound",
 	/*  68 */ "_'s name:=_",
 	/*  69 */ "_'s names",
@@ -65,14 +68,18 @@ Names
 	/*  55 */ "_'s stack pointer",
 	/*  30 */ "_'s type",
 	/*   9 */ "_'s upper bound",
+	/*  90 */ "_'s value type",
+	/*  91 */ "_'s values",
 	/*  19 */ "_'s write type",
+	/*  84 */ "_-_",
 	/*   5 */ "_<_",
 	/*  60 */ "_=_",
-	/*  27 */ "_[_]:=_",
+	/*  83 */ "_[_]:=_",
 	/*  64 */ "_as map",
 	/*  61 */ "_as object",
 	/*  63 */ "_as object type",
 	/*  17 */ "_is unassigned",
+	/*  81 */ "_∈_",
 	/*  32 */ "_∩_",
 	/*  31 */ "_∪_",
 	/*  33 */ "_≤_",
@@ -87,6 +94,9 @@ Names
 	/*  20 */ "milliseconds since the Epoch",
 	/*  16 */ "new ↑_",
 	/*  71 */ "new_applying_",
+	/*  87 */ "{_→_|_}",
+	/*  85 */ "{«_→_‡,»}",
+	/*  88 */ "|_|",
 	/*  13 */ "↑_",
 	/*  38 */ "∪_"
 Body
@@ -858,28 +868,243 @@ Method "new_applying_" is
 ] : function;
 
 /**
- * Answer the compiled code of the specified function.
+ * Answer the implementation of the specified function. A function's
+ * implementation comprises its nybblecodes, its literals, its primitive
+ * linkage (if any)
+, its function type, and various statistics.
  *
  * Parameters:
  *    aFunction - A function.
  * Returns:
- *    The argument's compiled code.
+ *    The argument's implementation.
  */
-Method "_'s compiled code" is 
+Method "_'s implementation" is 
 [
 	aFunction : function
 |
 	Primitive 72;
-] : compiled code;
+] : function implementation;
 
 /**
  * Answer all variables captured by the specified function. For functions
  * compiled directly from source code (i.e. the vast majority of them), these
  * variables are lexically captured.
- Method "_'s outer variables" is 
+ *
+ * Parameters:
+ *    aFunction - A function.
+ * Returns:
+ *    The argument's outer variables.
+ */
+Method "_'s outer variables" is 
 [
 	aFunction : function
 |
 	Primitive 73;
 ] : tuple;
+
+/**
+ * Answer the cardinality of the specified map.
+ *
+ * Parameters:
+ *    aMap - A map.
+ * Returns:
+ *    The cardinality of `aMap`.
+ */
+Method "|_|" is 
+[
+	aMap : map
+|
+	Primitive 80;
+] : whole number;
+
+/**
+ * Is `key` a member of the set of keys of `aMap`?
+ *
+ * Parameters:
+ *    key - The key whose membership should be queried.
+ *    aMap - A map.
+ * Returns:
+ *    `true` if `key` if a key of `aMap`, `false` otherwise.
+ */
+Method "_∈_" is 
+[
+	key : any,
+	aMap : map
+|
+	Primitive 81;
+] : boolean;
+
+/**
+ * Construct and answer a map that is based on the supplied map. The answer
+ * (potentially) differs from the argument in that it contains a binding from
+ * `key` to `value`; any value previously bound to `key` is "forgotten" in the
+ * new map.
+ *
+ * Parameters:
+ *    aMap - A map.
+ *    key - A key.
+ *    value - The new value for the key.
+ * Returns:
+ *    The requested map.
+ */
+Method "_[_]:=_" is 
+[
+	aMap : map,
+	key : any,
+	value : any
+|
+	Primitive 83;
+] : non-empty map;
+
+/**
+ * Construct and answer a map that is based on the supplied map. The answer
+ * (potentially) differs from the argument in that it does not contain a
+ * binding for `key`; any such previous binding is "forgotten" in the new map.
+ *
+ * Parameters:
+ *    aMap - A map.
+ *    key - A key whose binding should be omitted.
+ * Returns:
+ *    The requested map.
+ */
+Method "_-_" is 
+[
+	aMap : map,
+	key : any
+|
+	Primitive 84;
+] : map;
+
+/**
+ * Construct and answer a map from the supplied tuple of bindings.
+ *
+ * Parameters:
+ *    bindings - A tuple of bindings. Each element of the argument is a
+ *       2-tuple that represents a binding. The first element of each 2-tuple is
+ *       a key, the second element is the value that should be bound to that key
+ *       in the resultant map.
+ * Returns:
+ *    The requested map.
+ */
+Method "{«_→_‡,»}" is 
+[
+	bindings : key-value tuple
+|
+	Primitive 85;
+] : map;
+
+/**
+ * Answer the set of keys of the specified map.
+ *
+ * Parameters:
+ *    aMap - A map.
+ * Returns:
+ *    The argument's keys.
+ */
+Method "_'s keys" is 
+[
+	aMap : map
+|
+	Primitive 86;
+] : set;
+
+/**
+ * Construct and answer a map type with the specified key type, value type, and
+ * range of cardinalities.
+ *
+ * Parameters:
+ *    keyType - A type to which all keys of instances must conform.
+ *    valueType - A type to which all values of instances must conform.
+ *    cardinalityType - The range of cardinalities to which all instances must conform.
+ * Returns:
+ *    The requested map type.
+ */
+Method "{_→_|_}" is 
+[
+	keyType : type,
+	valueType : type,
+	cardinalityType : whole number meta
+|
+	Primitive 87;
+] : map meta;
+
+/**
+ * Answer the acceptable range of cardinalities for instances of the specified
+ * map type.
+ *
+ * Parameters:
+ *    aMapType - A map type.
+ * Returns:
+ *    The argument's cardinality requirement.
+ */
+Method "|_|" is 
+[
+	aMapType : map meta
+|
+	Primitive 88;
+] : whole number meta;
+
+/**
+ * Answer the most specific type to which the keys of all instances must
+ * conform.
+ *
+ * Parameters:
+ *    aMapType - A map type.
+ * Returns:
+ *    The argument's key type.
+ */
+Method "_'s key type" is 
+[
+	aMapType : map meta
+|
+	Primitive 89;
+] : type;
+
+/**
+ * Answer the most specific type to which the values of all instances must
+ * conform.
+ *
+ * Parameters:
+ *    aMapType - A map type.
+ * Returns:
+ *    The argument's value type.
+ */
+Method "_'s value type" is 
+[
+	aMapType : map meta
+|
+	Primitive 90;
+] : type;
+
+/**
+ * Answer a tuple containing the values of the specified map. The values are
+ * arranged in no particular order.
+ *
+ * Parameters:
+ *    aMapType - A map.
+ * Returns:
+ *    The argument's values.
+ */
+Method "_'s values" is 
+[
+	aMapType : map
+|
+	Primitive 91;
+] : tuple;
+
+/**
+ * Answer a tuple containing the bindings of the specified map. A binding is a
+ * 2-tuple of key and value.
+ *
+ * Parameters:
+ *    aMapType - A map.
+ * Returns:
+ *    The argument's bindings.
+ */
+Method "_'s bindings" is 
+[
+	aMapType : map
+|
+	Primitive 92;
+] : key-value tuple;
 

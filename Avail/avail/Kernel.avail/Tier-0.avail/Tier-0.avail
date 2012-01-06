@@ -39,15 +39,3 @@ Uses
 Names
 	"_[_]"
 Body
-
-Method "private block type taking_and returning_" is [args : tupleOfType, ret : type |
-	Primitive 34;
-] : functionType;
-
-Method "<«_‡,»>" is [t : tuple |
-	t;
-] : tuple;
-
-tupleOfAny2 ::= <any, any>;
-
-Abstract method "_[_]" for private block type taking tupleOfAny2 and returning any;

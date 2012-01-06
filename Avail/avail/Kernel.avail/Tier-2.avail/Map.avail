@@ -38,8 +38,10 @@ Uses
 	"Container",
 	"Number",
 	"Set",
-	"Tuple"
+	"Tuple",
+	"Continuation"
 Names
+	"{_->_|_}",
 	"map_from_to_",
 	"map from_to_",
 	"map",
@@ -53,7 +55,7 @@ Names
 	"*_[_]:=_",
 	"*_[_]:=nil",
 	"[->]",
-	"[_->_]",
+	"«[_->_]»",
 	"_keys",
 	"_values"
 Body
@@ -68,12 +70,18 @@ Body
 
 /* mapType construction and manipulation primitives... */
 
+Method "{_->_|_}" is [
+		keyType : type,
+		valueType : type,
+		sizes : whole number type |
+	Primitive 87;
+] : mapType;
+
 Method "map_from_to_" is [
-		sizes : integerType,
+		sizes : whole number type,
 		keyType : type,
 		valueType : type |
-	Primitive 87 (failureCode : natural number);
-	Failed;
+	{keyType->valueType|sizes};
 ] : mapType;
 
 
@@ -112,10 +120,13 @@ Restriction "||_||" is [mt : mapType |
 	mt sizes;
 ];
 
-
-Method "_[_]?" is [m : map, k : any |
+Method "_∈_keys" is [k : any, m : map |
 	/* Test if the key is present */
 	Primitive 81;
+] : boolean;	
+
+Method "_[_]?" is [m : map, k : any |
+	k ∈ m keys;
 ] : boolean;
 
 Restriction "_[_]?" is [mt : mapType, kt : type |
@@ -147,7 +158,9 @@ Method "_[_->_]" is [m : map, k : any, v : any |
 ] : map;
 
 Restriction "_[_->_]" is [mt : mapType, kt : type, vt : type |
-	map [mt sizes lower bound .. mt sizes upper bound + 2)
+	sizes ::= cast [mt sizes lower bound .. mt sizes upper bound + 2)
+		into [ i : whole number type | i; ];
+	map sizes
 		from (type union of mt keyType and kt)
 		to (type union of mt valueType and vt);
 ];
@@ -213,19 +226,25 @@ Restriction "*_[_]:=nil" is [mvt : containerType, kt : type |
 
 /* Map constructors... */
 
-Method "[->]" is [
-	/* Answer the empty map. */
+emptyMap ::= ([t : <terminates…|0..0> | Primitive 85; ] : map) apply <<>>;
+Method "[->]" is [emptyMap;];
+
+Method "«[_->_]»" is [t : <<any…|2..2>…|1..∞> |
 	Primitive 85;
-] : map [0..0] from terminates to terminates;
-
-
-Method "[_->_]" is [k : any, v : any |
-	/* Answer a map with a single key and value. */
-	[->][k->v];
 ] : map;
 
-Restriction "[_->_]" is [kt : type, vt : type |
-	map [1..1] from kt to vt;
+{"_[_->_]"} can't have <{"«[_->_]»"}, {}, {}>;
+
+Restriction "«[_->_]»" is [tt : <<any…|2..2>…|0..∞> type |
+	sizes ::= tt sizes;
+	limit ::= cast sizes upper bound into [ i : natural number | i; ];
+	keyType : type := terminates;
+	valueType : type := terminates;
+	From 1 to limit do [ i : natural number |
+		strongType ::= cast tt[i] into [ t : tupleType | t; ];
+		keyType := type union of keyType and (strongType[1]);
+		valueType := type union of valueType and (strongType[2]); ];
+	map sizes from keyType to valueType;
 ];
 
 

@@ -764,8 +764,6 @@ extends Descriptor
 	List<AvailObject> o_KeysAsArray (
 		final @NotNull AvailObject object)
 	{
-		//  Utility method - collect the object's keys into a Smalltalk Array.
-
 //		AvailObject.lock(object);
 		List<AvailObject> result;
 		result = new ArrayList<AvailObject>(object.mapSize());
@@ -792,23 +790,33 @@ extends Descriptor
 	/**
 	 * An immutable empty map.
 	 */
-	static AvailObject EmptyMap;
+	static AvailObject emptyMap;
 
 	/**
-	 * Initialize my EmptyMap static field.
+	 * Initialize my emptyMap static field.
 	 */
 	static void createWellKnownObjects ()
 	{
-		EmptyMap = newWithCapacity(3);
-		EmptyMap.makeImmutable();
+		emptyMap = newWithCapacity(3);
+		emptyMap.makeImmutable();
 	}
 
 	/**
-	 * Clear my EmptyMap static field.
+	 * Clear my emptyMap static field.
 	 */
 	static void clearWellKnownObjects ()
 	{
-		EmptyMap = null;
+		emptyMap = null;
+	}
+
+	/**
+	 * Return the (immutable) empty map.
+	 *
+	 * @return An empty, immutable map.
+	 */
+	public static AvailObject empty ()
+	{
+		return emptyMap;
 	}
 
 	/**
@@ -820,7 +828,7 @@ extends Descriptor
 	 * @param capacity The number of key/value slot pairs to reserve.
 	 * @return A new map.
 	 */
-	public static AvailObject newWithCapacity (final int capacity)
+	public static @NotNull AvailObject newWithCapacity (final int capacity)
 	{
 		final AvailObject result = mutable().create(capacity * 2);
 		result.internalHash(0);
@@ -834,13 +842,30 @@ extends Descriptor
 	}
 
 	/**
-	 * Return the (immutable) empty map.
+	 * Create a new {@linkplain MapDescriptor map} whose contents correspond to
+	 * the specified {@linkplain TupleDescriptor tuple} of key-value bindings.
 	 *
-	 * @return An empty, immutable map.
+	 * @param tupleOfBindings
+	 *        A tuple of key-value bindings, i.e. 2-element tuples.
+	 * @return A new map.
 	 */
-	public static AvailObject empty ()
+	public static @NotNull AvailObject newWithBindings (
+		final @NotNull AvailObject tupleOfBindings)
 	{
-		return EmptyMap;
+		assert tupleOfBindings.isTuple();
+		// The adjustment supports empty maps.
+		AvailObject newMap = newWithCapacity(
+			tupleOfBindings.tupleSize() * 2 + 1);
+		 for (final AvailObject binding : tupleOfBindings)
+		 {
+			 assert binding.isTuple();
+			 assert binding.tupleSize() == 2;
+			 newMap = newMap.mapAtPuttingCanDestroy(
+				 binding.tupleAt(1),
+				 binding.tupleAt(2),
+				 true);
+		 }
+		 return newMap;
 	}
 
 	/**

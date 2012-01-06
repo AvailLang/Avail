@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.01.04 18:34:57.328 -0600
+ * * Last Generated On: 2012.01.05 22:07:48.478 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -55,12 +55,12 @@ Names
 	/*  2 */ "boolean",
 	/*  3 */ "character",
 	/* 38 */ "code point",
-	/*  6 */ "compiled code",
 	/*  9 */ "continuation",
 	/* 10 */ "continuation meta",
 	/* 92 */ "continuation variable",
 	/* 61 */ "declaration node",
 	/* 12 */ "double",
+	/* 96 */ "empty map",
 	/* 21 */ "enumeration meta",
 	/* 24 */ "enumeration meta meta",
 	/* 52 */ "expression node",
@@ -74,13 +74,16 @@ Names
 	/* 15 */ "float",
 	/* 43 */ "forward signature",
 	/*  4 */ "function",
+	/*  6 */ "function implementation",
 	/*  5 */ "function meta",
 	/* 46 */ "implementation set",
 	/* 17 */ "integer",
+	/* 95 */ "key-value tuple",
 	/* 63 */ "label node",
 	/* 55 */ "literal node",
 	/* 65 */ "local constant node",
 	/* 64 */ "local variable node",
+	/* 39 */ "map",
 	/* 19 */ "map meta",
 	/* 51 */ "marker node",
 	/* 40 */ "message bundle",
@@ -90,6 +93,7 @@ Names
 	/* 67 */ "module constant node",
 	/* 66 */ "module variable node",
 	/* 37 */ "natural number",
+	/* 97 */ "non-empty map",
 	/* 81 */ "null",
 	/* 82 */ "null type",
 	/* 90 */ "nullary procedure",
@@ -123,6 +127,7 @@ Names
 	/*  8 */ "variable meta",
 	/* 60 */ "variable use node",
 	/* 36 */ "whole number",
+	/* 98 */ "whole number meta",
 	/* 77 */ "∅",
 	/* 79 */ "∞",
 	/* 35 */ "⊤",
@@ -135,7 +140,7 @@ _boolean                       ::= special object 2;
 _character                     ::= special object 3;
 _function                      ::= special object 4;
 _function_meta                 ::= special object 5;
-_compiled_code                 ::= special object 6;
+_function_implementation       ::= special object 6;
 _variable                      ::= special object 7;
 _variable_meta                 ::= special object 8;
 _continuation                  ::= special object 9;
@@ -168,6 +173,7 @@ _top                           ::= special object 35;
 _whole_number                  ::= special object 36;
 _natural_number                ::= special object 37;
 _code_point                    ::= special object 38;
+_map                           ::= special object 39;
 _message_bundle                ::= special object 40;
 _signature                     ::= special object 41;
 _abstract_signature            ::= special object 42;
@@ -213,6 +219,10 @@ _predicate_function            ::= special object 91;
 _continuation_variable         ::= special object 92;
 _field_map                     ::= special object 93;
 _field_type_map                ::= special object 94;
+_key_value_tuple               ::= special object 95;
+_empty_map                     ::= special object 96;
+_non_empty_map                 ::= special object 97;
+_whole_number_meta             ::= special object 98;
 
 Method "any" is 
 [
@@ -239,9 +249,9 @@ Method "function meta" is
 	_function_meta;
 ];
 
-Method "compiled code" is 
+Method "function implementation" is 
 [
-	_compiled_code;
+	_function_implementation;
 ];
 
 Method "variable" is 
@@ -387,7 +397,12 @@ Method "type" is
 /**
  * The abstract root of the Avail type lattice, pronounced "top". When
  * appearing as the return type of a function type, it indicates that the
- * function is a procedure (i.e. it does not produce a value).Method "⊤" is 
+ * function is a procedure (i.e. it does not produce a value).
+ *
+ * Returns:
+ *    The root type.
+ */
+Method "⊤" is 
 [
 	_top;
 ];
@@ -405,6 +420,11 @@ Method "natural number" is
 Method "code point" is 
 [
 	_code_point;
+];
+
+Method "map" is 
+[
+	_map;
 ];
 
 Method "message bundle" is 
@@ -630,5 +650,25 @@ Method "field map" is
 Method "field type map" is 
 [
 	_field_type_map;
+];
+
+Method "key-value tuple" is 
+[
+	_key_value_tuple;
+];
+
+Method "empty map" is 
+[
+	_empty_map;
+];
+
+Method "non-empty map" is 
+[
+	_non_empty_map;
+];
+
+Method "whole number meta" is 
+[
+	_whole_number_meta;
 ];
 

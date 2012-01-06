@@ -165,7 +165,6 @@ public final class AvailRuntime
 	 * Set up the special objects.
 	 */
 	{
-		// Basic types
 		specialObjects[1] = ANY.o();
 		specialObjects[2] = EnumerationTypeDescriptor.booleanObject();
 		specialObjects[3] = CHARACTER.o();
@@ -183,7 +182,6 @@ public final class AvailRuntime
 			AtomDescriptor.falseObject());
 		specialObjects[15] = FLOAT.o();
 		specialObjects[16] = NUMBER.o();
-		//16
 		specialObjects[17] = IntegerRangeTypeDescriptor.integers();
 		specialObjects[18] = IntegerRangeTypeDescriptor.meta();
 		specialObjects[19] = MapTypeDescriptor.meta();
@@ -208,8 +206,7 @@ public final class AvailRuntime
 		specialObjects[36] = IntegerRangeTypeDescriptor.wholeNumbers();
 		specialObjects[37] = IntegerRangeTypeDescriptor.naturalNumbers();
 		specialObjects[38] = IntegerRangeTypeDescriptor.characterCodePoints();
-
-		// Code reflection
+		specialObjects[39] = MapTypeDescriptor.mostGeneralType();
 		specialObjects[40] = MESSAGE_BUNDLE.o();
 		specialObjects[41] = SIGNATURE.o();
 		specialObjects[42] = ABSTRACT_SIGNATURE.o();
@@ -217,8 +214,6 @@ public final class AvailRuntime
 		specialObjects[44] = METHOD_SIGNATURE.o();
 		specialObjects[45] = MESSAGE_BUNDLE_TREE.o();
 		specialObjects[46] = IMPLEMENTATION_SET.o();
-
-		// Parse nodes types
 		specialObjects[50] = PARSE_NODE.mostGeneralType();
 		specialObjects[51] = MARKER_NODE.mostGeneralType();
 		specialObjects[52] = EXPRESSION_NODE.mostGeneralType();
@@ -238,25 +233,19 @@ public final class AvailRuntime
 		specialObjects[66] = MODULE_VARIABLE_NODE.mostGeneralType();
 		specialObjects[67] = MODULE_CONSTANT_NODE.mostGeneralType();
 		specialObjects[68] = PRIMITIVE_FAILURE_REASON_NODE.mostGeneralType();
-
-		// Special values.
+		// 69
 		specialObjects[70] = AtomDescriptor.trueObject();
 		specialObjects[71] = AtomDescriptor.falseObject();
-
-		// Bootstrap helpers
-		// tuple of string...
 		specialObjects[72] =
 			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 				IntegerRangeTypeDescriptor.wholeNumbers(),
 				TupleDescriptor.empty(),
 				TupleTypeDescriptor.stringTupleType());
-		// tuple of type...
 		specialObjects[73] =
 			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 				IntegerRangeTypeDescriptor.wholeNumbers(),
 				TupleDescriptor.empty(),
 				TYPE.o());
-		// tuple of set of string...
 		specialObjects[74] =
 			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 				IntegerRangeTypeDescriptor.wholeNumbers(),
@@ -264,30 +253,28 @@ public final class AvailRuntime
 				SetTypeDescriptor.setTypeForSizesContentType(
 					IntegerRangeTypeDescriptor.wholeNumbers(),
 					TupleTypeDescriptor.stringTupleType()));
-		// set of string...
 		specialObjects[75] =
 			SetTypeDescriptor.setTypeForSizesContentType(
 				IntegerRangeTypeDescriptor.wholeNumbers(),
 				TupleTypeDescriptor.stringTupleType());
-		// function taking natural number and returning bottom...
 		specialObjects[76] =
 			FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					IntegerRangeTypeDescriptor.naturalNumbers()),
 				BottomTypeDescriptor.bottom());
-
-		// Special values.
 		specialObjects[77] = SetDescriptor.empty();
 		specialObjects[78] = InfinityDescriptor.negativeInfinity();
 		specialObjects[79] = InfinityDescriptor.positiveInfinity();
-
-		// Pojo support.
 		specialObjects[80] = PojoTypeDescriptor.mostGeneralType();
 		specialObjects[81] = PojoTypeDescriptor.mostSpecificType();
 		specialObjects[82] = PojoDescriptor.nullObject();
 		specialObjects[83] = PojoSelfTypeDescriptor.selfType();
-
-		// More bootstrap helpers.
+		// 84
+		// 85
+		// 86
+		// 87
+		// 88
+		// 89
 		specialObjects[90] = FunctionTypeDescriptor.create(
 			TupleDescriptor.from(),
 			TOP.o());
@@ -304,6 +291,25 @@ public final class AvailRuntime
 			IntegerRangeTypeDescriptor.wholeNumbers(),
 			ATOM.o(),
 			TYPE.o());
+		specialObjects[95] =
+			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+				IntegerRangeTypeDescriptor.wholeNumbers(),
+				TupleDescriptor.from(),
+				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+					IntegerRangeTypeDescriptor.create(
+						IntegerDescriptor.fromInt(2),
+						true,
+						IntegerDescriptor.fromInt(2),
+						true),
+					TupleDescriptor.from(),
+					ANY.o()));
+		specialObjects[96] = MapDescriptor.empty();
+		specialObjects[97] = MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
+			IntegerRangeTypeDescriptor.naturalNumbers(),
+			ANY.o(),
+			ANY.o());
+		specialObjects[98] = InstanceTypeDescriptor.on(
+			IntegerRangeTypeDescriptor.wholeNumbers());
 
 		for (final AvailObject object : specialObjects)
 		{
