@@ -366,6 +366,13 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
+	float o_ExtractFloat (
+		final @NotNull AvailObject object)
+	{
+		return (float)extractDoubleScaled(object, 0);
+	}
+
+	@Override @AvailMethod
 	double o_ExtractDouble (
 		final @NotNull AvailObject object)
 	{

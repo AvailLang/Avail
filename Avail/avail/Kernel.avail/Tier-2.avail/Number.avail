@@ -48,8 +48,8 @@ Names
 	"_++", "_--",
 
 	"_as float", "_as double",
-	"floor(_)",
-	"exp(_)", "ln(_)",
+	"floor_",
+	"exp_", "ln_",
 
 	"nonpositive integer",
 	"negative integer",
@@ -284,21 +284,21 @@ Restriction "-_" is
 ];
 
 
-Abstract method "floor(_)" for [number]->number;
+Abstract method "floor_" for [number]->number;
 
-Method "floor(_)" is [value : extended integer |
+Method "floor_" is [value : extended integer |
 	value;
 ] : extended integer;
 
-Method "floor(_)" is [value : float |
+Method "floor_" is [value : float |
 	Primitive 292;
 ] : float;
 
-Method "floor(_)" is [value : double |
+Method "floor_" is [value : double |
 	Primitive 322;
 ] : double;
 
-Restriction "floor(_)" is [valueT : enum of number |
+Restriction "floor_" is [valueT : enum of number |
 	if ||valueT instances|| = 1 then
 	[
 		/* The exact value is known statically.  Calculate it exactly. */
@@ -312,7 +312,7 @@ Restriction "floor(_)" is [valueT : enum of number |
 	];
 ];
 
-Restriction "floor(_)" is [valueT : integerType |
+Restriction "floor_" is [valueT : integerType |
 	/* Integers and infinities are their own floors. */
 	valueT;
 ];
@@ -542,19 +542,19 @@ Method "_as double" is [n : number |
 	Primitive 281;
 ] : double;
 
-Method "ln(_)" is [exponent : float |
+Method "ln_" is [exponent : float |
 	Primitive 286;
 ] : float;
 
-Method "ln(_)" is [exponent : double |
+Method "ln_" is [exponent : double |
 	Primitive 316;
 ] : double;
 
-Method "exp(_)" is [exponent : float |
+Method "exp_" is [exponent : float |
 	Primitive 287;
 ] : float;
 
-Method "exp(_)" is [exponent : double |
+Method "exp_" is [exponent : double |
 	Primitive 317;
 ] : double;
 

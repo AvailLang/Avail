@@ -373,40 +373,46 @@ extends Descriptor
 		final boolean canDestroy);
 
 	@Override @AvailMethod
-	abstract public AvailObject o_SubtractFromDoubleCanDestroy (
+	abstract AvailObject o_SubtractFromDoubleCanDestroy (
 		final AvailObject object,
 		final AvailObject doubleObject,
 		final boolean canDestroy);
 
 	@Override @AvailMethod
-	abstract public AvailObject o_SubtractFromFloatCanDestroy (
+	abstract AvailObject o_SubtractFromFloatCanDestroy (
 		final AvailObject object,
 		final AvailObject floatObject,
 		final boolean canDestroy);
 
 	@Override @AvailMethod
-	abstract public AvailObject o_MultiplyByDoubleCanDestroy (
+	abstract AvailObject o_MultiplyByDoubleCanDestroy (
 		final AvailObject object,
 		final AvailObject doubleObject,
 		final boolean canDestroy);
 
 	@Override @AvailMethod
-	abstract public AvailObject o_MultiplyByFloatCanDestroy (
+	abstract AvailObject o_MultiplyByFloatCanDestroy (
 		final AvailObject object,
 		final AvailObject floatObject,
 		final boolean canDestroy);
 
 	@Override @AvailMethod
-	abstract public AvailObject o_DivideIntoDoubleCanDestroy (
+	abstract AvailObject o_DivideIntoDoubleCanDestroy (
 		final AvailObject object,
 		final AvailObject doubleObject,
 		final boolean canDestroy);
 
 	@Override @AvailMethod
-	abstract public AvailObject o_DivideIntoFloatCanDestroy (
+	abstract AvailObject o_DivideIntoFloatCanDestroy (
 		final AvailObject object,
 		final AvailObject floatObject,
 		final boolean canDestroy);
+
+	@Override @AvailMethod
+	abstract float o_ExtractFloat (AvailObject object);
+
+	@Override @AvailMethod
+	abstract double o_ExtractDouble (AvailObject object);
 
 
 	/**

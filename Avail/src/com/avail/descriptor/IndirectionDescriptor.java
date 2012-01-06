@@ -1471,22 +1471,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_Message (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		o_Traversed(object).message(value);
-	}
-
-	@Override
-	void o_MessageParts (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		o_Traversed(object).messageParts(value);
-	}
-
-	@Override
 	@NotNull AvailObject o_MinusCanDestroy (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aNumber,
@@ -1515,14 +1499,6 @@ extends AbstractDescriptor
 		return o_Traversed(object).multiplyByIntegerCanDestroy(
 			anInteger,
 			canDestroy);
-	}
-
-	@Override
-	void o_MyRestrictions (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		o_Traversed(object).myRestrictions(value);
 	}
 
 	@Override
@@ -3315,14 +3291,6 @@ extends AbstractDescriptor
 	@NotNull AvailObject o_Wordcodes (final AvailObject object)
 	{
 		return o_Traversed(object).wordcodes();
-	}
-
-	@Override
-	void o_ParsingInstructions (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject instructionsTuple)
-	{
-		o_Traversed(object).parsingInstructions(instructionsTuple);
 	}
 
 	@Override

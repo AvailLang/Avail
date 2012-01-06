@@ -34,7 +34,10 @@ System Module "Test-Integer"
 Extends
 Uses
 	"Tier-1",
-	"Number"
+	"BlockA",
+	"Continuation",
+	"Number",
+	"Tuple"
 Names
 Body
 
@@ -99,21 +102,24 @@ bigNeg ::= -two31;
 Print two31;
 
 /* Test that restrictions on "_^_" are as precise as possible. */
-/****
+
 bases ::= <-INF, -2, -1, 0, 1, 2, INF>;
 exponents ::= <0, 1, 2, 3, 4, INF>;
 
 From 1 to ||bases|| do [lowerSubscript : natural number |
+	baseType : extended integer type := terminates;
 	From lowerSubscript to ||bases|| do [upperSubscript : natural number |
-		baseType : extended integer := terminates;
-		From lowerSubscript to upperSubscript do [subscript : natural number |
-			baseType := type union of baseType and bases[subscript];
+		baseType := type union of baseType and (bases[upperSubscript] type);
+		From 1 to ||exponents|| do [lowerExponent : natural number |
+			expType : extended integer type := terminates;
+			From lowerExponent to ||exponents|| do [upperExponent : natural number |
+				expType := type union of expType and (exponents[upperExponent] type);
+				/* power ::= base ^ exp; */
+				/* Should check static types here too. TODO */
+			];
 		];
-
-
-
-		bases ::= bases[lowerSubscript..upperSubscript]
-**/
+	];
+];
 
 Assert [x : extended integer, y : whole number | x ^ y;] type result = extended integer;
 Assert [x : integer, y : whole number | x ^ y;] type result = integer;

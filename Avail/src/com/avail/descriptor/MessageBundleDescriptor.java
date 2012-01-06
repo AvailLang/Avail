@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import static com.avail.descriptor.TypeDescriptor.Types.MESSAGE_BUNDLE;
 import java.util.*;
 import com.avail.annotations.*;
+import com.avail.compiler.MessageSplitter;
 
 public class MessageBundleDescriptor
 extends Descriptor
@@ -60,7 +61,7 @@ extends Descriptor
 		AvailObject merged = object.myRestrictions();
 		if (merged.equalsNull())
 		{
-			object.myRestrictions(restrictions);
+			object.setSlot(ObjectSlots.MY_RESTRICTIONS, restrictions);
 			return;
 		}
 		for (int i = merged.tupleSize(); i >= 1; i--)
@@ -72,7 +73,7 @@ extends Descriptor
 					true),
 				true);
 		}
-		object.myRestrictions(merged);
+		object.setSlot(ObjectSlots.MY_RESTRICTIONS, merged);
 	}
 
 	@Override @AvailMethod
@@ -84,7 +85,9 @@ extends Descriptor
 		AvailObject reduced = object.myRestrictions();
 		if (reduced.equals(obsoleteRestrictions))
 		{
-			object.myRestrictions(NullDescriptor.nullObject());
+			object.setSlot(
+				ObjectSlots.MY_RESTRICTIONS,
+				NullDescriptor.nullObject());
 			return;
 		}
 		for (int i = reduced.tupleSize(); i >= 1; i--)
@@ -96,7 +99,7 @@ extends Descriptor
 					true),
 				true);
 		}
-		object.myRestrictions(reduced);
+		object.setSlot(ObjectSlots.MY_RESTRICTIONS, reduced);
 	}
 
 	@Override @AvailMethod
@@ -121,7 +124,9 @@ extends Descriptor
 	void o_RemoveRestrictions (
 		final @NotNull AvailObject object)
 	{
-		object.myRestrictions(NullDescriptor.nullObject());
+		object.setSlot(
+			ObjectSlots.MY_RESTRICTIONS,
+			NullDescriptor.nullObject());
 	}
 
 	@Override @AvailMethod
@@ -142,33 +147,10 @@ extends Descriptor
 			}
 			restrictions = TupleDescriptor.fromCollection(
 				Collections.nCopies(count, SetDescriptor.empty()));
-			object.myRestrictions(restrictions.makeImmutable());
+			restrictions.makeImmutable();
+			object.setSlot(ObjectSlots.MY_RESTRICTIONS, restrictions);
 		}
 		return restrictions;
-	}
-
-	@Override @AvailMethod
-	void o_Message (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		object.setSlot(ObjectSlots.MESSAGE, value);
-	}
-
-	@Override @AvailMethod
-	void o_MessageParts (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		object.setSlot(ObjectSlots.MESSAGE_PARTS, value);
-	}
-
-	@Override @AvailMethod
-	void o_MyRestrictions (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		object.setSlot(ObjectSlots.MY_RESTRICTIONS, value);
 	}
 
 	@Override @AvailMethod
@@ -190,16 +172,6 @@ extends Descriptor
 		final @NotNull AvailObject object)
 	{
 		return object.slot(ObjectSlots.MY_RESTRICTIONS);
-	}
-
-	@Override @AvailMethod
-	void o_ParsingInstructions (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject instructionsTuple)
-	{
-		object.setSlot(
-			ObjectSlots.PARSING_INSTRUCTIONS,
-			instructionsTuple);
 	}
 
 	@Override @AvailMethod
@@ -262,21 +234,22 @@ extends Descriptor
 	 * instructions.
 	 *
 	 * @param message The message name, an {@linkplain AtomDescriptor atom}.
-	 * @param parts A tuple of strings constituting the message name.
-	 * @param instructions A tuple of integers encoding parsing instructions.
 	 * @return A new {@linkplain MessageBundleDescriptor message bundle}.
 	 */
 	public static AvailObject newBundle (
-		final AvailObject message,
-		final AvailObject parts,
-		final AvailObject instructions)
+		final AvailObject message)
 	{
-		final AvailObject result = mutable().create();
 		assert message.isAtom();
-		result.message(message);
-		result.messageParts(parts);
-		result.myRestrictions(NullDescriptor.nullObject());
-		result.parsingInstructions(instructions);
+		final MessageSplitter splitter = new MessageSplitter(message.name());
+		final AvailObject result = mutable().create();
+		result.setSlot(ObjectSlots.MESSAGE, message);
+		result.setSlot(ObjectSlots.MESSAGE_PARTS, splitter.messageParts());
+		result.setSlot(
+			ObjectSlots.MY_RESTRICTIONS,
+			NullDescriptor.nullObject());
+		result.setSlot(
+			ObjectSlots.PARSING_INSTRUCTIONS,
+			splitter.instructionsTuple());
 		result.makeImmutable();
 		return result;
 	}

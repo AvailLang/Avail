@@ -35,7 +35,6 @@ Extends
 Uses
 	"Kernel"
 Names
-	"_call with one tuple(_)",
 	"_taking arguments tupled",
 	"_curry_",
 	"_curried"

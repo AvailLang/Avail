@@ -1108,24 +1108,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_Message (
-		final @NotNull AvailObject object,
-		final AvailObject value)
-	{
-		unsupportedOperation();
-		return;
-	}
-
-	@Override
-	void o_MessageParts (
-		final @NotNull AvailObject object,
-		final AvailObject value)
-	{
-		unsupportedOperation();
-		return;
-	}
-
-	@Override
 	@NotNull AvailObject o_MinusCanDestroy (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aNumber,
@@ -1153,15 +1135,6 @@ extends AbstractDescriptor
 	{
 		unsupportedOperation();
 		return NullDescriptor.nullObject();
-	}
-
-	@Override
-	void o_MyRestrictions (
-		final @NotNull AvailObject object,
-		final AvailObject value)
-	{
-		unsupportedOperation();
-		return;
 	}
 
 	@Override
@@ -3875,15 +3848,6 @@ extends AbstractDescriptor
 			+ getClass().getCanonicalName(),
 			object);
 		return null;
-	}
-
-
-	@Override
-	void o_ParsingInstructions (
-		final @NotNull AvailObject object,
-		final AvailObject instructionsTuple)
-	{
-		unsupportedOperation();
 	}
 
 	@Override

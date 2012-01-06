@@ -201,6 +201,15 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
+	float o_ExtractFloat (
+		final @NotNull AvailObject object)
+	{
+		return object.isPositive()
+			? Float.POSITIVE_INFINITY
+			: Float.NEGATIVE_INFINITY;
+	}
+
+	@Override @AvailMethod
 	AvailObject o_DivideCanDestroy (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aNumber,

@@ -475,7 +475,7 @@ extends Descriptor
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
 	 */
-	protected MessageBundleTreeDescriptor (final boolean isMutable)
+	private MessageBundleTreeDescriptor (final boolean isMutable)
 	{
 		super(isMutable);
 	}

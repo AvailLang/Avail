@@ -729,8 +729,9 @@ extends Descriptor
 			for (int index = 1, end = argTypes.size(); index <= end; index++)
 			{
 				final int finalIndex = index;
-				if (argTypes.get(finalIndex - 1).equals(
-					BottomTypeDescriptor.bottom()))
+				final AvailObject finalType = argTypes.get(finalIndex - 1);
+				if (finalType.equals(BottomTypeDescriptor.bottom())
+					|| finalType.equals(TOP.o()))
 				{
 					failBlock.value(new Generator<String> ()
 					{
@@ -741,23 +742,8 @@ extends Descriptor
 								+ Integer.toString(finalIndex)
 								+ " of message \""
 								+ object.name().name().asNativeString()
-								+ "\" to have a type other than bottom";
-						}
-					});
-					return NullDescriptor.nullObject();
-				}
-				if (argTypes.get(finalIndex - 1).equals(TOP.o()))
-				{
-					failBlock.value(new Generator<String> ()
-					{
-						@Override
-						public String value()
-						{
-							return "argument #"
-								+ Integer.toString(finalIndex)
-								+ " of message \""
-								+ object.name().name().asNativeString()
-								+ "\" to have a type other than top";
+								+ "\" to have a type other than "
+								+ argTypes.get(finalIndex - 1);
 						}
 					});
 					return NullDescriptor.nullObject();

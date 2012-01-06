@@ -144,6 +144,12 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override @AvailMethod
+	double o_ExtractDouble (final @NotNull AvailObject object)
+	{
+		return getDouble(object);
+	}
+
+	@Override @AvailMethod
 	boolean o_IsInstanceOfKind (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)

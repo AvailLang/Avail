@@ -1642,22 +1642,6 @@ public abstract class AbstractDescriptor
 		boolean canDestroy);
 
 	/**
-	 * @param object
-	 * @param value
-	 */
-	abstract void o_Message (
-		@NotNull AvailObject object,
-		AvailObject value);
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	abstract void o_MessageParts (
-		@NotNull AvailObject object,
-		AvailObject value);
-
-	/**
 	 * Difference the {@linkplain AvailObject operands} and answer the result.
 	 *
 	 * <p>Implementations may double-dispatch to {@link
@@ -1731,14 +1715,6 @@ public abstract class AbstractDescriptor
 		@NotNull AvailObject object,
 		@NotNull AvailObject anInteger,
 		boolean canDestroy);
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	abstract void o_MyRestrictions (
-		@NotNull AvailObject object,
-		AvailObject value);
 
 	/**
 	 * @param object
@@ -4107,14 +4083,6 @@ public abstract class AbstractDescriptor
 	 */
 	abstract @NotNull Iterator<AvailObject> o_Iterator (
 		@NotNull AvailObject object);
-
-	/**
-	 * @param object
-	 * @param instructionsTuple
-	 */
-	abstract void o_ParsingInstructions (
-		@NotNull AvailObject object,
-		AvailObject instructionsTuple);
 
 	/**
 	 * @param object

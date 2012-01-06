@@ -57,8 +57,9 @@ import com.avail.annotations.*;
  * (rather than a tuple of tuples).  Macros expect tuples in a similar way, but
  * the bottom-level pieces being passed are parse nodes rather than values.
  * Thus, a macro operates on parse nodes, and tuples of tuples and parse nodes.
- * Note how this is different from operating on {@linkplain TupleNodeDescriptor tuple
- * <em>nodes</em>}, which are parse nodes which produce tuples of values.</p>
+ * Note how this is different from operating on {@linkplain TupleNodeDescriptor
+ * tuple <em>nodes</em>}, which are parse nodes which produce tuples of
+ * values.</p>
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */

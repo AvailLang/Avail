@@ -361,21 +361,11 @@ public final class AvailRuntime
 			for (final AvailObject name : aModule.visibleNames())
 			{
 				assert name.isAtom();
-				final MessageSplitter splitter =
-					new MessageSplitter(name.name());
-				final AvailObject messageParts = splitter.messageParts();
-				final AvailObject instructions = splitter.instructionsTuple();
 				final AvailObject rootBundle = rootBundleTree.includeBundle(
-					MessageBundleDescriptor.newBundle(
-						name,
-						messageParts,
-						instructions));
+					MessageBundleDescriptor.newBundle(name));
 				final AvailObject bundle =
 					aModule.filteredBundleTree().includeBundle(
-						MessageBundleDescriptor.newBundle(
-							name,
-							messageParts,
-							instructions));
+						MessageBundleDescriptor.newBundle(name));
 				rootBundle.addRestrictions(bundle.grammaticalRestrictions());
 			}
 
@@ -568,13 +558,8 @@ public final class AvailRuntime
 			if (implementationSet.isImplementationSetEmpty())
 			{
 				methods = methods.mapWithoutKeyCanDestroy(selector, true);
-				final MessageSplitter splitter =
-					new MessageSplitter(selector.name());
 				rootBundleTree.removeBundle(
-					MessageBundleDescriptor.newBundle(
-						selector,
-						splitter.messageParts(),
-						splitter.instructionsTuple()));
+					MessageBundleDescriptor.newBundle(selector));
 			}
 			if (implementationSet.isImplementationSetEmpty())
 			{

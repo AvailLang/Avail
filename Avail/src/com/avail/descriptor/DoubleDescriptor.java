@@ -212,7 +212,7 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override
-	public void printObjectOnAvoidingIndent (
+	void printObjectOnAvoidingIndent (
 		final @NotNull AvailObject object,
 		final @NotNull StringBuilder aStream,
 		final @NotNull List<AvailObject> recursionList,
@@ -270,6 +270,12 @@ extends AbstractNumberDescriptor
 	double o_ExtractDouble (final @NotNull AvailObject object)
 	{
 		return getDouble(object);
+	}
+
+	@Override @AvailMethod
+	float o_ExtractFloat (final @NotNull AvailObject object)
+	{
+		return (float)getDouble(object);
 	}
 
 	@Override
@@ -407,7 +413,7 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override
-	public AvailObject o_DivideIntoDoubleCanDestroy (
+	AvailObject o_DivideIntoDoubleCanDestroy (
 		final AvailObject object,
 		final AvailObject doubleObject,
 		final boolean canDestroy)
@@ -420,7 +426,7 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override
-	public AvailObject o_DivideIntoFloatCanDestroy (
+	AvailObject o_DivideIntoFloatCanDestroy (
 		final AvailObject object,
 		final AvailObject floatObject,
 		final boolean canDestroy)
@@ -456,7 +462,7 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override
-	public AvailObject o_MultiplyByDoubleCanDestroy (
+	AvailObject o_MultiplyByDoubleCanDestroy (
 		final AvailObject object,
 		final AvailObject doubleObject,
 		final boolean canDestroy)
@@ -469,7 +475,7 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override
-	public AvailObject o_MultiplyByFloatCanDestroy (
+	AvailObject o_MultiplyByFloatCanDestroy (
 		final AvailObject object,
 		final AvailObject floatObject,
 		final boolean canDestroy)
@@ -508,7 +514,7 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override
-	public AvailObject o_SubtractFromDoubleCanDestroy (
+	AvailObject o_SubtractFromDoubleCanDestroy (
 		final AvailObject object,
 		final AvailObject doubleObject,
 		final boolean canDestroy)
@@ -521,7 +527,7 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override
-	public AvailObject o_SubtractFromFloatCanDestroy (
+	AvailObject o_SubtractFromFloatCanDestroy (
 		final AvailObject object,
 		final AvailObject floatObject,
 		final boolean canDestroy)

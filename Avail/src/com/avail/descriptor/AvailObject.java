@@ -2860,27 +2860,9 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public void message (
-		final AvailObject value)
-	{
-		descriptor.o_Message(this, value);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	public AvailObject messageParts ()
 	{
 		return descriptor.o_MessageParts(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public void messageParts (
-		final AvailObject value)
-	{
-		descriptor.o_MessageParts(this, value);
 	}
 
 	/**
@@ -3017,15 +2999,6 @@ implements Iterable<AvailObject>
 	public AvailObject myRestrictions ()
 	{
 		return descriptor.o_MyRestrictions(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public void myRestrictions (
-		final AvailObject value)
-	{
-		descriptor.o_MyRestrictions(this, value);
 	}
 
 	/**
@@ -4674,15 +4647,6 @@ implements Iterable<AvailObject>
 		final int index)
 	{
 		return descriptor.o_ZoneForIndex(this, index);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public void parsingInstructions (
-		final AvailObject instructionsTuple)
-	{
-		descriptor.o_ParsingInstructions(this, instructionsTuple);
 	}
 
 	/**

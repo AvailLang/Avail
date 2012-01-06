@@ -264,10 +264,7 @@ public abstract class Interpreter
 		imps.addImplementation(newImp);
 		assert methodName.isAtom();
 		module.filteredBundleTree().includeBundle(
-			MessageBundleDescriptor.newBundle(
-				methodName,
-				splitter.messageParts(),
-				splitter.instructionsTuple()));
+			MessageBundleDescriptor.newBundle(methodName));
 	}
 
 
@@ -320,13 +317,8 @@ public abstract class Interpreter
 			newImp,
 			true);
 		assert methodName.isAtom();
-		final AvailObject message = methodName.name();
-		final MessageSplitter splitter = new MessageSplitter(message);
 		module.filteredBundleTree().includeBundle(
-			MessageBundleDescriptor.newBundle(
-				methodName,
-				splitter.messageParts(),
-				splitter.instructionsTuple()));
+			MessageBundleDescriptor.newBundle(methodName));
 	}
 
 
@@ -405,10 +397,7 @@ public abstract class Interpreter
 		}
 		imps.addImplementation(newImp);
 		module.filteredBundleTree().includeBundle(
-			MessageBundleDescriptor.newBundle(
-				methodName,
-				splitter.messageParts(),
-				splitter.instructionsTuple()));
+			MessageBundleDescriptor.newBundle(methodName));
 	}
 
 	/**
@@ -466,10 +455,7 @@ public abstract class Interpreter
 		}
 		imps.addImplementation(newImp);
 		module.filteredBundleTree().includeBundle(
-			MessageBundleDescriptor.newBundle(
-				methodName,
-				splitter.messageParts(),
-				splitter.instructionsTuple()));
+			MessageBundleDescriptor.newBundle(methodName));
 	}
 
 
@@ -505,10 +491,7 @@ public abstract class Interpreter
 		runtime.addTypeRestriction(methodName, typeRestrictionFunction);
 		module.addTypeRestriction(methodName, typeRestrictionFunction);
 		module.filteredBundleTree().includeBundle(
-			MessageBundleDescriptor.newBundle(
-				methodName,
-				splitter.messageParts(),
-				splitter.instructionsTuple()));
+			MessageBundleDescriptor.newBundle(methodName));
 	}
 
 
@@ -539,10 +522,7 @@ public abstract class Interpreter
 		// Fix precedence.
 		final AvailObject bundle =
 			module.filteredBundleTree().includeBundle(
-				MessageBundleDescriptor.newBundle(
-					methodName,
-					splitter.messageParts(),
-					splitter.instructionsTuple()));
+				MessageBundleDescriptor.newBundle(methodName));
 		bundle.addRestrictions(illegalArgMsgs);
 		module.addGrammaticalRestrictions(methodName, illegalArgMsgs);
 	}
