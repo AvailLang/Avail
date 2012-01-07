@@ -101,7 +101,7 @@ implements Iterable<AvailObject>
 		PojoTypeDescriptor.createWellKnownObjects();
 		PojoSelfTypeDescriptor.createWellKnownObjects();
 		PojoDescriptor.createWellKnownObjects();
-		ImplementationSetDescriptor.createWellKnownObjects();
+		MethodDescriptor.createWellKnownObjects();
 		FloatDescriptor.createWellKnownObjects();
 		DoubleDescriptor.createWellKnownObjects();
 	}
@@ -144,7 +144,7 @@ implements Iterable<AvailObject>
 		PojoTypeDescriptor.clearWellKnownObjects();
 		PojoSelfTypeDescriptor.clearWellKnownObjects();
 		PojoDescriptor.clearWellKnownObjects();
-		ImplementationSetDescriptor.clearWellKnownObjects();
+		MethodDescriptor.clearWellKnownObjects();
 		FloatDescriptor.clearWellKnownObjects();
 		DoubleDescriptor.clearWellKnownObjects();
 	}
@@ -4837,18 +4837,18 @@ implements Iterable<AvailObject>
 	/**
 	 * @return
 	 */
-	public AvailObject implementationSet ()
+	public AvailObject method ()
 	{
-		return descriptor.o_ImplementationSet(this);
+		return descriptor.o_Method(this);
 	}
 
 
 	/**
-	 * @param implementationSet
+	 * @param method
 	 */
-	public void implementationSet (final AvailObject implementationSet)
+	public void method (final AvailObject method)
 	{
-		descriptor.o_ImplementationSet(this, implementationSet);
+		descriptor.o_Method(this, method);
 	}
 
 
@@ -5553,9 +5553,9 @@ implements Iterable<AvailObject>
 	/**
 	 * @return
 	 */
-	public boolean isImplementationSetEmpty ()
+	public boolean isMethodEmpty ()
 	{
-		return descriptor.o_IsImplementationSetEmpty(this);
+		return descriptor.o_IsMethodEmpty(this);
 	}
 
 	/**

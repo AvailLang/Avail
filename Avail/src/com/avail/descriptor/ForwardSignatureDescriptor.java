@@ -108,8 +108,7 @@ extends SignatureDescriptor
 	 *
 	 * @param bodySignature
 	 *            The function type at which this signature should occur within
-	 *            an {@linkplain ImplementationSetDescriptor implementation
-	 *            set}.
+	 *            an {@linkplain MethodDescriptor method}.
 	 * @return
 	 *            The new forward declaration signature.
 	 */

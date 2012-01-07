@@ -32,7 +32,7 @@
 
 package com.avail.compiler.instruction;
 
-import com.avail.descriptor.ImplementationSetDescriptor;
+import com.avail.descriptor.MethodDescriptor;
 import com.avail.interpreter.levelOne.L1Operation;
 import java.io.ByteArrayOutputStream;
 
@@ -43,7 +43,7 @@ import java.io.ByteArrayOutputStream;
  * (one for each argument), then this instruction is invoked.
  * <p>
  * The super call instruction is followed by an index to the literal holding
- * the message (an {@linkplain ImplementationSetDescriptor implementation set}), then
+ * the message (an {@linkplain MethodDescriptor method}), then
  * the index of the literal holding the return type for this call site.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
@@ -61,8 +61,7 @@ public class AvailSuperCall extends AvailInstructionWithIndex
 	 * Construct a new {@link AvailSuperCall}.
 	 *
 	 * @param messageIndex The index of the literal that holds the message (an
-	 *                     {@linkplain ImplementationSetDescriptor implementation
-	 *                     set}.
+	 *                     {@linkplain MethodDescriptor method}.
 	 * @param verifyIndex The index of the literal that holds the return type.
 	 */
 	public AvailSuperCall (int messageIndex, int verifyIndex)

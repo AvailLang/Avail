@@ -225,7 +225,7 @@ public abstract class Interpreter
 		final AvailObject newImp = MethodSignatureDescriptor.create(
 			bodyBlock);
 		module.addMethodImplementation(methodName, newImp);
-		final AvailObject imps = runtime.implementationSetFor(methodName);
+		final AvailObject imps = runtime.methodFor(methodName);
 		final AvailObject bodySignature = bodyBlock.kind();
 		AvailObject forward = null;
 		final AvailObject impsTuple = imps.implementationsTuple();
@@ -289,7 +289,7 @@ public abstract class Interpreter
 		final AvailObject newImp = ForwardSignatureDescriptor.create(
 			bodySignature);
 		module.addMethodImplementation(methodName, newImp);
-		final AvailObject imps = runtime.implementationSetFor(methodName);
+		final AvailObject imps = runtime.methodFor(methodName);
 		final AvailObject impsTuple = imps.implementationsTuple();
 		for (int i = 1, end = impsTuple.tupleSize(); i <= end; i++)
 		{
@@ -359,7 +359,7 @@ public abstract class Interpreter
 		final AvailObject newImp = AbstractSignatureDescriptor.create(
 			bodySignature);
 		module.addMethodImplementation(methodName, newImp);
-		final AvailObject imps = runtime.implementationSetFor(methodName);
+		final AvailObject imps = runtime.methodFor(methodName);
 		AvailObject forward = null;
 		for (final AvailObject existingImp : imps.implementationsTuple())
 		{
@@ -430,7 +430,7 @@ public abstract class Interpreter
 		//  Add the macro implementation.
 		final AvailObject newImp = MacroSignatureDescriptor.create(macroBody);
 		module.addMethodImplementation(methodName, newImp);
-		final AvailObject imps = runtime.implementationSetFor(methodName);
+		final AvailObject imps = runtime.methodFor(methodName);
 		final AvailObject macroBodyType = macroBody.kind();
 		for (final AvailObject existingImp : imps.implementationsTuple())
 		{
@@ -461,7 +461,7 @@ public abstract class Interpreter
 
 
 	/**
-	 * Add a type restriction to the implementation set associated with the
+	 * Add a type restriction to the method associated with the
 	 * given method name.
 	 *
 	 * @param methodName
@@ -558,7 +558,7 @@ public abstract class Interpreter
 			new L1Instruction(
 				L1Operation.L1_doCall,
 				writer.addLiteral(
-					ImplementationSetDescriptor.vmCrashImplementationSet()),
+					MethodDescriptor.vmCrashMethod()),
 				writer.addLiteral(BottomTypeDescriptor.bottom())));
 		final AvailObject newFunction = FunctionDescriptor.create(
 			writer.compiledCode(),

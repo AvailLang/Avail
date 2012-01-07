@@ -350,12 +350,12 @@ public class L2Translator implements L1OperationDispatcher
 
 	/**
 	 * Only inline effectively monomorphic messages for now -- i.e., method
-	 * implementation sets where every possible method uses the same primitive
+	 * methods where every possible method uses the same primitive
 	 * number.  Return one of the method implementation bodies if it's
 	 * unambiguous and can be inlined (or is a {@code
 	 * Primitive.Flag#SpecialReturnConstant}), otherwise return null.
 	 *
-	 * @param impSet The {@linkplain ImplementationSetDescriptor implementation set}
+	 * @param impSet The {@linkplain MethodDescriptor method}
 	 *               containing the method(s) that may be inlined or invoked.
 	 * @param args A {@link List} of {@linkplain L2ObjectRegister registers} holding
 	 *             the actual constant values used to look up the implementation
@@ -379,12 +379,12 @@ public class L2Translator implements L1OperationDispatcher
 
 	/**
 	 * Only inline effectively monomorphic messages for now -- i.e., method
-	 * implementation sets where every possible method uses the same primitive
+	 * methods where every possible method uses the same primitive
 	 * number.  Return one of the method implementation bodies if it's
 	 * unambiguous and can be inlined (or is a {@code
 	 * Primitive.Flag#SpecialReturnConstant}), otherwise return null.
 	 *
-	 * @param impSet The {@linkplain ImplementationSetDescriptor implementation set}
+	 * @param impSet The {@linkplain MethodDescriptor method}
 	 *               containing the method(s) that may be inlined or invoked.
 	 * @param argTypeRegisters A {@link List} of {@linkplain L2ObjectRegister
 	 *                         registers} holding the types used to look up the
@@ -415,11 +415,11 @@ public class L2Translator implements L1OperationDispatcher
 
 	/**
 	 * Only inline effectively monomorphic messages for now -- i.e., method
-	 * implementation sets where every possible method uses the same primitive
+	 * methods where every possible method uses the same primitive
 	 * number.  Return the primitive number if it's unambiguous and can be
 	 * inlined, otherwise zero.
 	 *
-	 * @param impSet The {@linkplain ImplementationSetDescriptor implementation set}
+	 * @param impSet The {@linkplain MethodDescriptor method}
 	 *               containing the method(s) that may be inlined or invoked.
 	 * @param argTypes The types of the arguments to the call.
 	 * @return One of the (equivalent) primitive method bodies, or null.
@@ -534,7 +534,7 @@ public class L2Translator implements L1OperationDispatcher
 	 *            A {@linkplain FunctionDescriptor function} for which its primitive
 	 *            might be inlined, or even folded if possible.
 	 * @param impSet
-	 *            The implementation set containing the primitive to be invoked.
+	 *            The method containing the primitive to be invoked.
 	 * @param args
 	 *            The {@link List} of arguments to the primitive function.
 	 * @param expectedType
@@ -1272,7 +1272,7 @@ public class L2Translator implements L1OperationDispatcher
 	{
 		final L2CodeGenerator codeGen = new L2CodeGenerator();
 		codeGen.setInstructions(instructions);
-		codeGen.addContingentImplementationSets(contingentImpSets);
+		codeGen.addContingentMethods(contingentImpSets);
 		final AvailObject chunk = codeGen.createChunkFor(code);
 		return chunk;
 	}

@@ -3693,61 +3693,13 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 145:</strong> Given two {@linkplain
-	 * TupleTypeDescriptor tuple types}, ascertain whether each
-	 * {@linkplain AvailObject#typeAtIndex(int) element} of the first
-	 * {@linkplain AvailObject#isInstanceOf(AvailObject) is an instance
-	 * of} the corresponding element of the second. Whenever an element has no
-	 * corresponding counterpart (because of a difference in maximum sizes),
-	 * then {@linkplain BottomTypeDescriptor#bottom() bottom} is used as the
-	 * implicit counterpart.
-	 */
-	prim145_CompareTupleTypesForCorrespondingElementInstantiation(
-		145, 2, CanFold, CannotFail) // TODO Use this.
-	{
-		@Override
-		public @NotNull Result attempt (
-			final @NotNull List<AvailObject> args,
-			final @NotNull Interpreter interpreter)
-		{
-			assert args.size() == 1;
-			final AvailObject first = args.get(0);
-			final AvailObject second = args.get(1);
-			// The upper bound cannot be positive infinity and inclusive, so
-			// it is legal to extract a real integer here.
-			final int firstSize = first.sizeRange().upperBound().extractInt();
-			final int secondSize = second.sizeRange().upperBound().extractInt();
-			final int maxSize = max(firstSize, secondSize);
-			for (int i = 1; i <= maxSize; i++)
-			{
-				if (!first.typeAtIndex(i).isInstanceOf(second.typeAtIndex(i)))
-				{
-					return interpreter.primitiveSuccess(
-						AtomDescriptor.falseObject());
-				}
-			}
-			return interpreter.primitiveSuccess(
-				AtomDescriptor.trueObject());
-		}
-
-		@Override
-		protected @NotNull AvailObject privateBlockTypeRestriction ()
-		{
-			return FunctionTypeDescriptor.create(
-				TupleDescriptor.from(
-					TupleTypeDescriptor.meta(),
-					TupleTypeDescriptor.meta()),
-				EnumerationTypeDescriptor.booleanObject());
-		}
-	},
-
-	/**
 	 * <strong>Primitive 160:</strong> Open a {@linkplain RandomAccessFile file}
 	 * for reading. Answer a {@linkplain AtomDescriptor handle} that uniquely
 	 * identifies the file.
 	 *
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
+	@Deprecated
 	prim160_FileOpenRead(160, 1, CanInline, HasSideEffect)
 	{
 		@Override
@@ -3794,6 +3746,7 @@ public enum Primitive
 	 *
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
+	@Deprecated
 	prim161_FileOpenWrite(161, 2, CanInline, HasSideEffect)
 	{
 		@Override
@@ -3850,6 +3803,7 @@ public enum Primitive
 	 *
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
+	@Deprecated
 	prim162_FileOpenReadWrite(162, 1, CanInline, HasSideEffect)
 	{
 		@Override
@@ -3897,6 +3851,7 @@ public enum Primitive
 	 *
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
+	@Deprecated
 	prim163_FileClose(163, 1, CanInline, HasSideEffect)
 	{
 		@Override
@@ -3956,6 +3911,7 @@ public enum Primitive
 	 *
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
+	@Deprecated
 	prim164_FileRead(164, 2, CanInline, HasSideEffect)
 	{
 		@Override
@@ -4041,6 +3997,7 @@ public enum Primitive
 	 *
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
+	@Deprecated
 	prim165_FileWrite(165, 2, CanInline, HasSideEffect)
 	{
 		@Override
@@ -4108,6 +4065,7 @@ public enum Primitive
 	 *
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
+	@Deprecated
 	prim166_FileSize(166, 1, CanInline)
 	{
 		@Override
@@ -4162,6 +4120,7 @@ public enum Primitive
 	 *
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
+	@Deprecated
 	prim167_FilePosition(167, 1, CanInline)
 	{
 		@Override
@@ -4216,6 +4175,7 @@ public enum Primitive
 	 *
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
+	@Deprecated
 	prim168_FileSetPosition(168, 2, CanInline, HasSideEffect)
 	{
 		@Override
@@ -4274,6 +4234,7 @@ public enum Primitive
 	 *
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
+	@Deprecated
 	prim169_FileSync(169, 1, CanInline, HasSideEffect)
 	{
 		@Override
@@ -4322,6 +4283,7 @@ public enum Primitive
 	 * <strong>Primitive 170:</strong> Does a {@linkplain File file} exists with
 	 * the specified filename?
 	 */
+	@Deprecated
 	prim170_FileExists(170, 1, CanInline)
 	{
 		@Override
@@ -4361,6 +4323,7 @@ public enum Primitive
 	 * <strong>Primitive 171:</strong> Is the {@linkplain File file} with the
 	 * specified filename readable by the OS process?
 	 */
+	@Deprecated
 	prim171_FileCanRead(171, 1, CanInline)
 	{
 		@Override
@@ -4400,6 +4363,7 @@ public enum Primitive
 	 * <strong>Primitive 172:</strong> Is the {@linkplain File file} with the
 	 * specified filename writable by the OS process?
 	 */
+	@Deprecated
 	prim172_FileCanWrite(172, 1, CanInline)
 	{
 		@Override
@@ -4439,6 +4403,7 @@ public enum Primitive
 	 * <strong>Primitive 173:</strong> Is the {@linkplain File file} with the
 	 * specified filename executable by the OS process?
 	 */
+	@Deprecated
 	prim173_FileCanExecute(173, 1, CanInline)
 	{
 		@Override
@@ -4478,6 +4443,7 @@ public enum Primitive
 	 * <strong>Primitive 174:</strong> Rename the {@linkplain File file} with
 	 * the specified source filename.
 	 */
+	@Deprecated
 	prim174_FileRename(174, 2, CanInline, HasSideEffect)
 	{
 		@Override
@@ -4523,6 +4489,7 @@ public enum Primitive
 	 * <strong>Primitive 175:</strong> Unlink the {@linkplain File file} with
 	 * the specified filename from the filesystem.
 	 */
+	@Deprecated
 	prim175_FileUnlink(175, 1, CanInline, HasSideEffect)
 	{
 		@Override
@@ -5200,14 +5167,14 @@ public enum Primitive
 		{
 			assert args.size() == 1;
 			final AvailObject bundle = args.get(0);
-			final AvailObject implementationSet =
+			final AvailObject method =
 				interpreter.runtime().methodsAt(bundle.message());
-			if (implementationSet.equalsNull())
+			if (method.equalsNull())
 			{
-				return interpreter.primitiveFailure(E_NO_IMPLEMENTATION_SET);
+				return interpreter.primitiveFailure(E_NO_METHOD);
 			}
 			final AvailObject implementations =
-				implementationSet.implementationsTuple().asSet();
+				method.implementationsTuple().asSet();
 			implementations.makeImmutable();
 			return interpreter.primitiveSuccess(implementations);
 		}
@@ -5344,11 +5311,11 @@ public enum Primitive
 
 	/**
 	 * <strong>Primitive 220:</strong> Answer the {@linkplain
-	 * ImplementationSetDescriptor implementation set} associated with the given
+	 * MethodDescriptor method} associated with the given
 	 * {@linkplain AtomDescriptor true name}. This is generally only used when
 	 * Avail code is constructing Avail code in the metacircular compiler.
 	 */
-	prim220_ImplementationSetFromName(220, 1, CanInline)
+	prim220_MethodFromName(220, 1, CanInline)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -5361,7 +5328,7 @@ public enum Primitive
 				interpreter.runtime().methodsAt(trueName);
 			if (impSet.equalsNull())
 			{
-				return interpreter.primitiveFailure(E_NO_IMPLEMENTATION_SET);
+				return interpreter.primitiveFailure(E_NO_METHOD);
 			}
 			impSet.makeImmutable();
 			return interpreter.primitiveSuccess(impSet);
@@ -5373,18 +5340,18 @@ public enum Primitive
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					ATOM.o()),
-				IMPLEMENTATION_SET.o());
+				METHOD.o());
 		}
 	},
 
 	/**
 	 * <strong>Primitive 221:</strong> Answer the {@linkplain
 	 * AtomDescriptor true name} associated with the given {@linkplain
-	 * ImplementationSetDescriptor implementation set}. This is generally only
+	 * MethodDescriptor method}. This is generally only
 	 * used when Avail code is saving or loading Avail code in the object dumper
 	 * / loader.
 	 */
-	prim221_ImplementationSetName(221, 1, CanFold, CannotFail)
+	prim221_MethodName(221, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -5392,8 +5359,8 @@ public enum Primitive
 			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
-			final AvailObject anImplementationSet = args.get(0);
-			return interpreter.primitiveSuccess(anImplementationSet.name());
+			final AvailObject anMethod = args.get(0);
+			return interpreter.primitiveSuccess(anMethod.name());
 		}
 
 		@Override
@@ -5401,7 +5368,7 @@ public enum Primitive
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					IMPLEMENTATION_SET.o()),
+					METHOD.o()),
 				ATOM.o());
 		}
 	},
@@ -5498,8 +5465,7 @@ public enum Primitive
 	 * <strong>Primitive 247:</strong> Answer a {@linkplain TupleDescriptor
 	 * tuple} of restriction {@linkplain FunctionDescriptor functions} that
 	 * would run for a call site for the specified {@linkplain
-	 * ImplementationSetDescriptor implementation set} and tuple of argument
-	 * types.
+	 * MethodDescriptor method} and tuple of argument types.
 	 */
 	prim247_ApplicableRestrictions(247, 2, Unknown)
 	{
@@ -5530,7 +5496,7 @@ public enum Primitive
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					IMPLEMENTATION_SET.o(),
+					METHOD.o(),
 					TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 						IntegerRangeTypeDescriptor.wholeNumbers(),
 						TupleDescriptor.empty(),
@@ -7779,8 +7745,8 @@ public enum Primitive
 					IntegerRangeTypeDescriptor.naturalNumbers()))));
 			writer.write(new L1Instruction(
 				L1Operation.L1_doCall,
-				writer.addLiteral(ImplementationSetDescriptor
-					.vmCrashImplementationSet()),
+				writer.addLiteral(MethodDescriptor
+					.vmCrashMethod()),
 				writer.addLiteral(BottomTypeDescriptor.bottom())));
 			final AvailObject innerFunction = FunctionDescriptor.create(
 				writer.compiledCode(),
@@ -7820,8 +7786,8 @@ public enum Primitive
 				4));
 			writer.write(new L1Instruction(
 				L1Operation.L1_doCall,
-				writer.addLiteral(ImplementationSetDescriptor
-					.vmFunctionApplyImplementationSet()),
+				writer.addLiteral(MethodDescriptor
+					.vmFunctionApplyMethod()),
 				writer.addLiteral(pojoType)));
 			final AvailObject outerFunction = FunctionDescriptor.create(
 				writer.compiledCode(),

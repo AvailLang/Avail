@@ -3432,17 +3432,17 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	@NotNull AvailObject o_ImplementationSet (final AvailObject object)
+	@NotNull AvailObject o_Method (final AvailObject object)
 	{
-		return o_Traversed(object).implementationSet();
+		return o_Traversed(object).method();
 	}
 
 	@Override
-	void o_ImplementationSet (
+	void o_Method (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject implementationSet)
+		final @NotNull AvailObject method)
 	{
-		o_Traversed(object).implementationSet(implementationSet);
+		o_Traversed(object).method(method);
 	}
 
 	@Override
@@ -3946,10 +3946,10 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_IsImplementationSetEmpty (
+	boolean o_IsMethodEmpty (
 		final @NotNull AvailObject object)
 	{
-		return o_Traversed(object).isImplementationSetEmpty();
+		return o_Traversed(object).isMethodEmpty();
 	}
 
 	@Override

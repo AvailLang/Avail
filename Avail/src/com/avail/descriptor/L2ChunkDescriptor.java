@@ -48,9 +48,9 @@ import com.avail.interpreter.levelTwo.register.*;
  * When a chunk expires due to not being referred to by any code or
  * continuations, its weak reference is added to a queue from which chunk index
  * recycling takes place.  The weak references also keep track of the contingent
- * implementation sets.  The implementation sets maintain the reverse relation
+ * methods.  The methods maintain the reverse relation
  * by keeping track of the indices of all chunks that depend on them.  When an
- * implementation set changes (due to a method being added or removed), the
+ * method changes (due to a method being added or removed), the
  * dependent chunks can be marked as invalid and eviscerated (to reclaim
  * memory).  When an attempt is made to use an invalidated chunk by invoking a
  * compiled code object or returning into a continuation, the reference to the
@@ -403,30 +403,28 @@ extends Descriptor
 		final int index;
 
 		/**
-		 * The list of {@linkplain ImplementationSetDescriptor implementation
-		 * sets} on which the referent chunk depends.  If one of these
-		 * implementation sets changes (due to adding or removing a
+		 * The list of {@linkplain MethodDescriptor methods} on which the referent chunk depends.  If one of these
+		 * methods changes (due to adding or removing a
 		 * {@linkplain SignatureDescriptor method implementation}), this chunk
 		 * will be immediately invalidated.
 		 */
-		final Set<AvailObject> contingentImplementationSets;
+		final Set<AvailObject> contingentMethods;
 
 		/**
 		 * Construct a new {@link WeakChunkReference}.
 		 *
 		 * @param chunk
 		 *            The chunk to be wrapped with a weak reference.
-		 * @param contingentImplementationSets
-		 *            The {@linkplain ImplementationSetDescriptor implementation
-		 *            sets} on which this chunk depends.
+		 * @param contingentMethods
+		 *            The {@linkplain MethodDescriptor methods} on which this chunk depends.
 		 */
 		public WeakChunkReference (
 			final AvailObject chunk,
-			final Set<AvailObject> contingentImplementationSets)
+			final Set<AvailObject> contingentMethods)
 		{
 			super(chunk, RecyclingQueue);
 			this.index = chunk.index();
-			this.contingentImplementationSets = contingentImplementationSets;
+			this.contingentMethods = contingentMethods;
 		}
 	}
 
@@ -582,8 +580,8 @@ extends Descriptor
 	 *            {@linkplain L2Instruction}s to execute in place of the level
 	 *            one nybblecodes.
 	 * @param contingentSets
-	 *            A {@link Set} of {@linkplain ImplementationSetDescriptor
-	 *            implementation sets} on which the level two chunk depends.
+	 *            A {@link Set} of {@linkplain MethodDescriptor
+	 *            methods} on which the level two chunk depends.
 	 * @return
 	 *            The new level two chunk.
 	 */
@@ -658,11 +656,11 @@ extends Descriptor
 			final WeakChunkReference oldReference =
 				(WeakChunkReference)weaklyTypedRecycledReference;
 			for (final AvailObject impSet
-				: oldReference.contingentImplementationSets)
+				: oldReference.contingentMethods)
 			{
 				impSet.removeDependentChunkIndex(oldReference.index);
 			}
-			oldReference.contingentImplementationSets.clear();
+			oldReference.contingentMethods.clear();
 			index = oldReference.index;
 		}
 		else
@@ -699,16 +697,16 @@ extends Descriptor
 	}
 
 	/**
-	 * An implementation set has changed.  This means a method definition (or a
+	 * A method has changed.  This means a method definition (or a
 	 * forward or an abstract declaration) has been added or removed from the
-	 * implementation set, and the specified chunk previously expressed an
+	 * method, and the specified chunk previously expressed an
 	 * interest in change notifications.  This must have been because it was
 	 * optimized in a way that relied on some aspect of the available
 	 * implementations (e.g., monomorphic inlining), so we need to invalidate
 	 * the chunk now, so that an attempt to invoke it or return into it will be
 	 * detected and converted into using the {@linkplain #UnoptimizedChunk
 	 * unoptimized chunk}.  Also remove this chunk's index from all
-	 * implementation sets on which it was depending.  Do not add the chunk's
+	 * methods on which it was depending.  Do not add the chunk's
 	 * reference to the reference queue, since it may still be referenced by
 	 * code or continuations that need to detect that it is now invalid.
 	 *
@@ -736,12 +734,12 @@ extends Descriptor
 					NullDescriptor.nullObject());
 			}
 		}
-		final Set<AvailObject> impSets = ref.contingentImplementationSets;
+		final Set<AvailObject> impSets = ref.contingentMethods;
 		for (final AvailObject impSet : impSets)
 		{
 			impSet.removeDependentChunkIndex(chunkIndex);
 		}
-		ref.contingentImplementationSets.clear();
+		ref.contingentMethods.clear();
 	}
 
 	/**

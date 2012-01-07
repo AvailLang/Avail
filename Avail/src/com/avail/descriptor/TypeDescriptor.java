@@ -146,10 +146,10 @@ extends AbstractTypeDescriptor
 		FLOAT(NUMBER),
 
 		/**
-		 * All {@linkplain ImplementationSetDescriptor implementation sets} are
+		 * All {@linkplain MethodDescriptor methods} are
 		 * of this kind.
 		 */
-		IMPLEMENTATION_SET(ANY),
+		METHOD(ANY),
 
 		/**
 		 * This is the kind of all {@linkplain MessageBundleDescriptor message
@@ -211,7 +211,7 @@ extends AbstractTypeDescriptor
 		/**
 		 * The specific kind of signature which is an actual {@linkplain
 		 * MacroSignatureDescriptor macro definition}.  An {@linkplain
-		 * ImplementationSetDescriptor implementation set} may not contain
+		 * MethodDescriptor method} may not contain
 		 * multiple macro signatures, nor may it mix macro signatures and any
 		 * other type of signature.
 		 */

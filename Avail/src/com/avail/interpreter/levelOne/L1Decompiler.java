@@ -255,7 +255,7 @@ public class L1Decompiler
 			final List<AvailObject> callArgs = popExpressions(nArgs);
 			final AvailObject sendNode = SendNodeDescriptor.mutable().create();
 			sendNode.arguments(TupleDescriptor.fromCollection(callArgs));
-			sendNode.implementationSet(impSet);
+			sendNode.method(impSet);
 			sendNode.returnType(type);
 
 			pushExpression(sendNode);
@@ -694,7 +694,7 @@ public class L1Decompiler
 			}
 			final AvailObject sendNode = SendNodeDescriptor.mutable().create();
 			sendNode.arguments(TupleDescriptor.fromCollection(callArgs));
-			sendNode.implementationSet(impSet);
+			sendNode.method(impSet);
 			sendNode.returnType(type);
 			pushExpression(sendNode);
 		}

@@ -309,12 +309,12 @@ extends Descriptor
 			writer.write(new L1Instruction(L1Operation.L1_doPushLastLocal, i));
 		}
 		writer.write(new L1Instruction(L1Operation.L1_doMakeTuple, numArgs));
-		final AvailObject implementationSet =
-			ImplementationSetDescriptor.vmFunctionApplyImplementationSet();
+		final AvailObject method =
+			MethodDescriptor.vmFunctionApplyMethod();
 		writer.write(
 			new L1Instruction(
 				L1Operation.L1_doCall,
-				writer.addLiteral(implementationSet),
+				writer.addLiteral(method),
 				writer.addLiteral(returnType)));
 		final AvailObject code = writer.compiledCode();
 		return FunctionDescriptor.create(

@@ -61,10 +61,10 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 		ARGUMENTS,
 
 		/**
-		 * The {@linkplain ImplementationSetDescriptor implementation set} containing
-		 * the multi-methods to be invoked.
+		 * The {@linkplain MethodDescriptor method} containing
+		 * the multimethods to be invoked.
 		 */
-		IMPLEMENTATION_SET,
+		METHOD,
 
 		/**
 		 * What {@linkplain TypeDescriptor type} of {@linkplain AvailObject object}
@@ -97,24 +97,24 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 
 
 	/**
-	 * Setter for field implementationSet.
+	 * Setter for field method.
 	 */
 	@Override @AvailMethod
-	void o_ImplementationSet (
+	void o_Method (
 		final @NotNull AvailObject object,
-		final AvailObject implementationSet)
+		final AvailObject method)
 	{
-		object.setSlot(ObjectSlots.IMPLEMENTATION_SET, implementationSet);
+		object.setSlot(ObjectSlots.METHOD, method);
 	}
 
 	/**
-	 * Getter for field implementationSet.
+	 * Getter for field method.
 	 */
 	@Override @AvailMethod
-	AvailObject o_ImplementationSet (
+	AvailObject o_Method (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.IMPLEMENTATION_SET);
+		return object.slot(ObjectSlots.METHOD);
 	}
 
 
@@ -158,7 +158,7 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 	{
 		return
 			(object.arguments().hash() * Multiplier
-				+ object.implementationSet().hash()) * Multiplier
+				+ object.method().hash()) * Multiplier
 				+ object.returnType().hash()
 			^ 0x90E39B4D;
 	}
@@ -170,14 +170,14 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 	{
 		return object.kind().equals(another.kind())
 			&& object.arguments().equals(another.arguments())
-			&& object.implementationSet().equals(another.implementationSet())
+			&& object.method().equals(another.method())
 			&& object.returnType().equals(another.returnType());
 	}
 
 	@Override @AvailMethod
 	AvailObject o_ApparentSendName (final AvailObject object)
 	{
-		return object.implementationSet().name();
+		return object.method().name();
 	}
 
 	@Override @AvailMethod
@@ -196,8 +196,8 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 				anyCasts = true;
 			}
 		}
-		final AvailObject implementationSet = object.implementationSet();
-		implementationSet.makeImmutable();
+		final AvailObject method = object.method();
+		method.makeImmutable();
 		if (anyCasts)
 		{
 			for (final AvailObject argNode : arguments)
@@ -215,14 +215,14 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 			// stack.
 			codeGenerator.emitSuperCall(
 				arguments.tupleSize(),
-				implementationSet,
+				method,
 				object.returnType());
 		}
 		else
 		{
 			codeGenerator.emitCall(
 				arguments.tupleSize(),
-				implementationSet,
+				method,
 				object.returnType());
 		}
 	}
@@ -281,7 +281,7 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 		if (nicePrinting)
 		{
 			final MessageSplitter splitter = new MessageSplitter(
-				object.implementationSet().name().name());
+				object.method().name().name());
 			splitter.printSendNodeOnIndent(
 				object,
 				builder,
@@ -290,7 +290,7 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 		else
 		{
 			builder.append("SendNode[");
-			builder.append(object.implementationSet()
+			builder.append(object.method()
 				.name().name().asNativeString());
 			builder.append("](");
 			boolean isFirst = true;

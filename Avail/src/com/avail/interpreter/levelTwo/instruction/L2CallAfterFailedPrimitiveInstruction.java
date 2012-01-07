@@ -43,8 +43,8 @@ import com.avail.interpreter.levelTwo.register.*;
 /**
  * {@code L2CallInstruction} attempts to execute a specific {@linkplain
  * MethodSignatureDescriptor method} by matching the actual {@linkplain
- * AvailObject arguments} against an {@linkplain ImplementationSetDescriptor
- * implementation set}.
+ * AvailObject arguments} against an {@linkplain MethodDescriptor
+ * method}.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
@@ -62,8 +62,8 @@ extends L2CallInstruction
 	/**
 	 * Construct a new {@link L2CallAfterFailedPrimitiveInstruction}.
 	 *
-	 * @param implementationSet
-	 *        The {@linkplain ImplementationSetDescriptor implementation set}
+	 * @param method
+	 *        The {@linkplain MethodDescriptor method}
 	 *        from which a {@linkplain MethodSignatureDescriptor method} should
 	 *        be selected and called based on the exact {@linkplain #arguments
 	 *        arguments}.
@@ -77,11 +77,11 @@ extends L2CallInstruction
 	 *        code} object.
 	 */
 	public L2CallAfterFailedPrimitiveInstruction (
-		final @NotNull AvailObject implementationSet,
+		final @NotNull AvailObject method,
 		final @NotNull L2RegisterVector arguments,
 		final @NotNull L2ObjectRegister failureObjectReg)
 	{
-		super(implementationSet, arguments);
+		super(method, arguments);
 		this.failureObjectReg = failureObjectReg;
 	}
 
@@ -99,7 +99,7 @@ extends L2CallInstruction
 	{
 		codeGenerator.emitL2Operation(
 			L2_doSendAfterFailedPrimitive_argumentsVector_);
-		codeGenerator.emitLiteral(implementationSet);
+		codeGenerator.emitLiteral(method);
 		codeGenerator.emitVector(arguments);
 		codeGenerator.emitObjectRegister(failureObjectReg);
 	}

@@ -43,7 +43,7 @@ import com.avail.interpreter.levelTwo.register.*;
  * {@code L2SuperCallInstruction} attempts to execute a super call by construing
  * the actual {@linkplain AvailObject arguments} to have the specified
  * {@linkplain TypeDescriptor types} and then querying the {@linkplain
- * ImplementationSetDescriptor implementation set} to find the best matching
+ * MethodDescriptor method} to find the best matching
  * {@linkplain MethodSignatureDescriptor method}.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
@@ -53,12 +53,12 @@ public final class L2SuperCallInstruction
 extends L2Instruction
 {
 	/**
-	 * The {@linkplain ImplementationSetDescriptor implementation set} from
+	 * The {@linkplain MethodDescriptor method} from
 	 * which a {@linkplain MethodSignatureDescriptor method} should be selected
 	 * and called based on the {@linkplain #argumentsVector arguments} and
 	 * {@linkplain #typesVector types}.
 	 */
-	private final @NotNull AvailObject implementationSet;
+	private final @NotNull AvailObject method;
 
 	/**
 	 * The {@linkplain AvailObject arguments} of the {@linkplain
@@ -76,8 +76,8 @@ extends L2Instruction
 	 *
 	 * Construct a new {@link L2SuperCallInstruction}.
 	 *
-	 * @param implementationSet
-	 *        The {@linkplain ImplementationSetDescriptor implementation set}
+	 * @param method
+	 *        The {@linkplain MethodDescriptor method}
 	 *        from which a {@linkplain MethodSignatureDescriptor method} should
 	 *        be selected and called based on the {@linkplain #argumentsVector
 	 *        arguments} and {@linkplain #typesVector types}.
@@ -89,11 +89,11 @@ extends L2Instruction
 	 *        #argumentsVector arguments} should be construed to have.
 	 */
 	public L2SuperCallInstruction (
-		final @NotNull AvailObject implementationSet,
+		final @NotNull AvailObject method,
 		final @NotNull L2RegisterVector argumentsVector,
 		final @NotNull L2RegisterVector typesVector)
 	{
-		this.implementationSet = implementationSet;
+		this.method = method;
 		this.argumentsVector = argumentsVector;
 		this.typesVector = typesVector;
 	}
@@ -126,7 +126,7 @@ extends L2Instruction
 	{
 		codeGenerator.emitL2Operation(
 			L2_doSuperSend_argumentsVector_argumentTypesVector_);
-		codeGenerator.emitLiteral(implementationSet);
+		codeGenerator.emitLiteral(method);
 		codeGenerator.emitVector(argumentsVector);
 		codeGenerator.emitVector(typesVector);
 	}

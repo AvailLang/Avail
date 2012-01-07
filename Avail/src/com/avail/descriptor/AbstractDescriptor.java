@@ -4226,17 +4226,17 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param implementationSet
+	 * @param method
 	 */
-	abstract void o_ImplementationSet (
+	abstract void o_Method (
 		@NotNull AvailObject object,
-		AvailObject implementationSet);
+		AvailObject method);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	abstract AvailObject o_ImplementationSet (AvailObject object);
+	abstract AvailObject o_Method (AvailObject object);
 
 	/**
 	 * @param object
@@ -4699,11 +4699,11 @@ public abstract class AbstractDescriptor
 		@NotNull AvailObject restrictionSignature);
 
 	/**
-	 * Return the {@linkplain ImplementationSetDescriptor implementation set}'s
+	 * Return the {@linkplain MethodDescriptor method}'s
 	 * {@linkplain TupleDescriptor tuple} of {@linkplain FunctionDescriptor
 	 * functions} that statically restrict call sites by argument type.
 	 *
-	 * @param object The implementation set.
+	 * @param object The method.
 	 * @return
 	 */
 	abstract @NotNull AvailObject o_TypeRestrictions (
@@ -4766,7 +4766,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract boolean o_IsImplementationSetEmpty (
+	abstract boolean o_IsMethodEmpty (
 		@NotNull AvailObject object);
 
 	/**

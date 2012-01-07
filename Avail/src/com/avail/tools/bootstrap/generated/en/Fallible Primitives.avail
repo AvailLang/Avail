@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.01.06 15:19:19.888 -0600
+ * * Last Generated On: 2012.01.06 20:07:26.507 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -47,7 +47,7 @@ Uses
 	"Primitives"
 Names
 	"Set primitive failure function to_",
-	/* 131 */ "_[_]",
+	/* 142 */ "_[_.._]",
 	/* 132 */ "_[_]:=_",
 	/*   3 */ "_×_",
 	/*   4 */ "_÷_",
@@ -61,7 +61,8 @@ Names
 	/*  15 */ "swap_and_",
 	/*  23 */ "termination requested",
 	/*  10 */ "↓_",
-	/*  11 */ "↓_:=_"
+	/*  11 */ "↓_:=_",
+	/* 143 */ "∪_[_.._]"
 Body
 
 Method "Private fail primitive with_" is 
@@ -456,8 +457,8 @@ Method "_[_]" is
  *
  * Parameters:
  *    aTuple - A tuple.
- *    index - The index of the element that should (potentially) differ in the
- *       resultant tuple.
+ *    index - The one-based index of the element that should (potentially) differ
+ *       in the resultant tuple.
  *    value - The "replacement" value.
  * Returns:
  *    The requested tuple.
@@ -471,4 +472,65 @@ Method "_[_]:=_" is
 	Primitive 132 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode;
 ] : tuple;
+
+/**
+ * Construct and answer a slice (i.e. subtuple) of the specified tuple.
+ *
+ * Parameters:
+ *    aTuple - A tuple.
+ *    sliceStart - The one-based start index (inclusive) of the desired slice.
+ *    sliceEnd - The one-based end index (inclusive) of the desired slice.
+ * Returns:
+ *    The requested tuple.
+ */
+Method "_[_.._]" is 
+[
+	aTuple : tuple,
+	sliceStart : natural number,
+	sliceEnd : whole number
+|
+	Primitive 135 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode;
+] : tuple;
+
+/**
+ * Compute and answer a tuple containing the requested element types. Indices
+ * that are out of bounds report ⊥ as their element type.
+ *
+ * Parameters:
+ *    aTupleType - A tuple type.
+ *    sliceStart - The one-based index (inclusive) of the start of the slice.
+ *    sliceEnd - The one-based index (inclusive) of the end of the slice.
+ * Returns:
+ *    The requested slice of element types.
+ */
+Method "_[_.._]" is 
+[
+	aTupleType : tuple meta,
+	sliceStart : natural number,
+	sliceEnd : whole number
+|
+	Primitive 142 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode;
+] : tuple of type;
+
+/**
+ * Compute and answer the type union of the indicated range of element types.
+ *
+ * Parameters:
+ *    aTupleType - A tuple type.
+ *    startIndex - The one-based index (inclusive) of the start of the range.
+ *    endIndex - The one-based index (inclusive) of the end of the range.
+ * Returns:
+ *    The type union of all element types in the specified range.
+ */
+Method "∪_[_.._]" is 
+[
+	aTupleType : tuple meta,
+	startIndex : natural number,
+	endIndex : whole number
+|
+	Primitive 143 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode;
+] : type;
 

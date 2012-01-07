@@ -349,16 +349,16 @@ public class AvailCodeGenerator
 	 * for the purpose of lookup.
 	 *
 	 * @param nArgs The number of arguments that the method accepts.
-	 * @param implementationSet The implementation set in which to look up the
+	 * @param method The method in which to look up the
 	 *                          method being invoked.
 	 * @param returnType The expected return type of the call.
 	 */
 	public void emitSuperCall (
 		final int nArgs,
-		final AvailObject implementationSet,
+		final AvailObject method,
 		final AvailObject returnType)
 	{
-		final int messageIndex = indexOfLiteral(implementationSet);
+		final int messageIndex = indexOfLiteral(method);
 		final int returnIndex = indexOfLiteral(returnType);
 		instructions.add(new AvailSuperCall(messageIndex, returnIndex));
 		// Pops off all types then all values.
@@ -372,16 +372,16 @@ public class AvailCodeGenerator
 	 * pushed already.
 	 *
 	 * @param nArgs The number of arguments that the method accepts.
-	 * @param implementationSet The implementation set in which to look up the
+	 * @param method The method in which to look up the
 	 *                          method being invoked.
 	 * @param returnType The expected return type of the call.
 	 */
 	public void emitCall (
 		final int nArgs,
-		final AvailObject implementationSet,
+		final AvailObject method,
 		final AvailObject returnType)
 	{
-		final int messageIndex = indexOfLiteral(implementationSet);
+		final int messageIndex = indexOfLiteral(method);
 		final int returnIndex = indexOfLiteral(returnType);
 		instructions.add(new AvailCall(messageIndex, returnIndex));
 		// Pops off arguments.

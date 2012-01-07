@@ -4019,7 +4019,7 @@ extends AbstractDescriptor
 
 
 	@Override
-	@NotNull AvailObject o_ImplementationSet(final AvailObject object)
+	@NotNull AvailObject o_Method(final AvailObject object)
 	{
 		unsupportedOperation();
 		return null;
@@ -4027,9 +4027,9 @@ extends AbstractDescriptor
 
 
 	@Override
-	void o_ImplementationSet (
+	void o_Method (
 		final @NotNull AvailObject object,
-		final AvailObject implementationSet)
+		final AvailObject method)
 	{
 		unsupportedOperation();
 	}
@@ -4620,7 +4620,7 @@ extends AbstractDescriptor
 
 
 	@Override
-	boolean o_IsImplementationSetEmpty (
+	boolean o_IsMethodEmpty (
 		final @NotNull AvailObject object)
 	{
 		unsupportedOperation();

@@ -210,8 +210,8 @@ public final class L2CodeGenerator
 	}
 
 	/**
-	 * A Java {@link Set} of {@linkplain ImplementationSetDescriptor
-	 * implementation sets} upon which the {@linkplain L2ChunkDescriptor chunk}
+	 * A Java {@link Set} of {@linkplain MethodDescriptor
+	 * methods} upon which the {@linkplain L2ChunkDescriptor chunk}
 	 * is dependent.
 	 */
 	private @NotNull
@@ -219,15 +219,15 @@ public final class L2CodeGenerator
 
 	/**
 	 * Merge the specified {@link Set} of {@linkplain
-	 * ImplementationSetDescriptor implementation sets} with those already
+	 * MethodDescriptor methods} with those already
 	 * upon which the {@linkplain L2ChunkDescriptor chunk} undergoing code
 	 * generation is already dependent.
 	 *
 	 * @param setOfImpSets
-	 *            A Java {@link Set} of {@linkplain ImplementationSetDescriptor
-	 *            implementation sets}.
+	 *            A Java {@link Set} of {@linkplain MethodDescriptor
+	 *            methods}.
 	 */
-	public void addContingentImplementationSets (
+	public void addContingentMethods (
 		final @NotNull Set<AvailObject> setOfImpSets)
 	{
 		contingentImpSets.addAll(setOfImpSets);

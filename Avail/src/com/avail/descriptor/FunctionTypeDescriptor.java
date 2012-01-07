@@ -486,7 +486,7 @@ extends TypeDescriptor
 	 * case, no legal object could be passed that would cause the method to be
 	 * invoked. Don't check the number of arguments here.
 	 *
-	 * @see ImplementationSetDescriptor
+	 * @see MethodDescriptor
 	 */
 	@Override @AvailMethod
 	boolean o_CouldEverBeInvokedWith (

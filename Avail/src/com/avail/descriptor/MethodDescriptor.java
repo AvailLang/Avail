@@ -1,5 +1,5 @@
 /**
- * ImplementationSetDescriptor.java
+ * MethodDescriptor.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -43,51 +43,51 @@ import com.avail.interpreter.levelOne.*;
 import com.avail.utility.*;
 
 /**
- * An implementation set maintains all methods that have the same name.  At
- * compile time a name is looked up and the corresponding implementation set is
- * stored as a literal in the object code.  At runtime the actual method is
- * located within the implementation set and then invoked.  The implementation
- * sets also keep track of bidirectional dependencies, so that a change of
- * membership causes an immediate invalidation of optimized level two code that
- * depends on the previous membership.
+ * A method maintains all implementations that have the same name.  At
+ * compile time a name is looked up and the corresponding method is
+ * stored as a literal in the object code.  At runtime the actual function is
+ * located within the method and then invoked.  The methods also keep track of
+ * bidirectional dependencies, so that a change of membership causes an
+ * immediate invalidation of optimized level two code that depends on the
+ * previous membership.
  *
- * <p>To support macros safely, an implementation set must contain either all
+ * <p>To support macros safely, a method must contain either all
  * {@linkplain MacroSignatureDescriptor macro signatures} or all non-macro
  * {@linkplain SignatureDescriptor signatures}, but not both.</p>
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
-public class ImplementationSetDescriptor
+public class MethodDescriptor
 extends Descriptor
 {
 	/**
-	 * An {@linkplain ImplementationSetDescriptor implementation set} containing
+	 * An {@linkplain MethodDescriptor method} containing
 	 * a {@linkplain MethodSignatureDescriptor function} that invokes
 	 * {@linkplain Primitive#prim256_EmergencyExit primitive 256} (emergency
 	 * exit). Needed by some hand-built bootstrap functions.
 	 */
-	private static AvailObject vmCrashImplementationSet;
+	private static AvailObject vmCrashMethod;
 
 	/**
-	 * Answer an {@linkplain ImplementationSetDescriptor implementation set}
+	 * Answer an {@linkplain MethodDescriptor method}
 	 * containing a {@linkplain MethodSignatureDescriptor function} that
 	 * invokes {@linkplain Primitive#prim256_EmergencyExit primitive 256}
 	 * (emergency exit). Needed by some hand-built bootstrap functions.
 	 *
-	 * @return An implementation set.
+	 * @return A method.
 	 */
-	public static @NotNull AvailObject vmCrashImplementationSet ()
+	public static @NotNull AvailObject vmCrashMethod ()
 	{
-		return vmCrashImplementationSet;
+		return vmCrashMethod;
 	}
 
 	/**
-	 * Construct the {@linkplain ImplementationSetDescriptor implementation set}
+	 * Construct the {@linkplain MethodDescriptor method}
 	 * for bootstrap emergency exit.
 	 *
-	 * @return An implementation set.
+	 * @return A method.
 	 */
-	private static @NotNull AvailObject newVMCrashImplementationSet ()
+	private static @NotNull AvailObject newVMCrashMethod ()
 	{
 		// Generate a function with linkage to primitive 256.
 		final L1InstructionWriter writer = new L1InstructionWriter();
@@ -103,11 +103,11 @@ extends Descriptor
 			TupleDescriptor.empty());
 		newFunction.makeImmutable();
 
-		// Create the new implementation set. Note that the underscore is
+		// Create the new method. Note that the underscore is
 		// essential here, as certain parts of the virtual machine (like the
 		// decompiler) use the name to figure out how many arguments a method
 		// accepts.
-		final AvailObject implSet = newImplementationSetWithName(
+		final AvailObject implSet = newMethodWithName(
 			AtomDescriptor.create(StringDescriptor.from("vm crash_")));
 		implSet.addImplementation(
 			MethodSignatureDescriptor.create(newFunction));
@@ -116,33 +116,33 @@ extends Descriptor
 	}
 
 	/**
-	 * An {@linkplain ImplementationSetDescriptor implementation set} containing
+	 * An {@linkplain MethodDescriptor method} containing
 	 * a {@linkplain MethodSignatureDescriptor function} that invokes
 	 * {@linkplain Primitive#prim256_EmergencyExit primitive 40} (function
 	 * application). Needed by some hand-built functions.
 	 */
-	private static AvailObject vmFunctionApplyImplementationSet;
+	private static AvailObject vmFunctionApplyMethod;
 
 	/**
-	 * An {@linkplain ImplementationSetDescriptor implementation set} containing
+	 * An {@linkplain MethodDescriptor method} containing
 	 * a {@linkplain MethodSignatureDescriptor function} that invokes
 	 * {@linkplain Primitive#prim256_EmergencyExit primitive 40} (function
 	 * application). Needed by some hand-built functions.
 	 *
-	 * @return An implementation set.
+	 * @return A method.
 	 */
-	public static @NotNull AvailObject vmFunctionApplyImplementationSet ()
+	public static @NotNull AvailObject vmFunctionApplyMethod ()
 	{
-		return vmFunctionApplyImplementationSet;
+		return vmFunctionApplyMethod;
 	}
 
 	/**
-	 * Construct the {@linkplain ImplementationSetDescriptor implementation set}
+	 * Construct the {@linkplain MethodDescriptor method}
 	 * for bootstrap emergency exit.
 	 *
-	 * @return An implementation set.
+	 * @return A method.
 	 */
-	private static @NotNull AvailObject newVMFunctionApplyImplementationSet ()
+	private static @NotNull AvailObject newVMFunctionApplyMethod ()
 	{
 		// Generate a function with linkage to primitive 256.
 		final L1InstructionWriter writer = new L1InstructionWriter();
@@ -163,15 +163,15 @@ extends Descriptor
 		writer.write(
 			new L1Instruction(
 				L1Operation.L1_doCall,
-				writer.addLiteral(vmCrashImplementationSet),
+				writer.addLiteral(vmCrashMethod),
 				writer.addLiteral(BottomTypeDescriptor.bottom())));
 		final AvailObject newFunction = FunctionDescriptor.create(
 			writer.compiledCode(),
 			TupleDescriptor.empty());
 		newFunction.makeImmutable();
 
-		// Create the new implementation set.
-		final AvailObject implSet = newImplementationSetWithName(
+		// Create the new method.
+		final AvailObject implSet = newMethodWithName(
 			AtomDescriptor.create(StringDescriptor.from(
 				"vm function apply_(«_‡,»)")));
 		implSet.addImplementation(
@@ -186,9 +186,9 @@ extends Descriptor
 	 */
 	public static void createWellKnownObjects ()
 	{
-		vmCrashImplementationSet = newVMCrashImplementationSet();
-		vmFunctionApplyImplementationSet =
-			newVMFunctionApplyImplementationSet();
+		vmCrashMethod = newVMCrashMethod();
+		vmFunctionApplyMethod =
+			newVMFunctionApplyMethod();
 	}
 
 	/**
@@ -197,8 +197,8 @@ extends Descriptor
 	 */
 	public static void clearWellKnownObjects ()
 	{
-		vmCrashImplementationSet = null;
-		vmFunctionApplyImplementationSet = null;
+		vmCrashMethod = null;
+		vmFunctionApplyMethod = null;
 	}
 
 	/**
@@ -208,7 +208,7 @@ extends Descriptor
 	{
 		/**
 		 * The {@linkplain AtomDescriptor atom} that acts as the true name of this
-		 * {@linkplain ImplementationSetDescriptor implementation set}.
+		 * {@linkplain MethodDescriptor method}.
 		 */
 		NAME,
 
@@ -246,7 +246,7 @@ extends Descriptor
 		 * The {@linkplain SetDescriptor set} of {@linkplain
 		 * L2ChunkDescriptor.IntegerSlots#INDEX indices} of {@linkplain
 		 * L2ChunkDescriptor level two chunks} that depend on the membership of
-		 * this {@linkplain ImplementationSetDescriptor implementation set}.  A
+		 * this {@linkplain MethodDescriptor method}.  A
 		 * change to the membership should cause these chunks to be invalidated.
 		 */
 		DEPENDENT_CHUNK_INDICES
@@ -299,7 +299,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
-		// ImplementationSets compare by identity.
+		// Methods compare by identity.
 		return another.traversed().sameAddressAs(object);
 	}
 
@@ -329,7 +329,7 @@ extends Descriptor
 	@NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
-		return IMPLEMENTATION_SET.o();
+		return METHOD.o();
 	}
 
 	@Override @AvailMethod
@@ -338,7 +338,7 @@ extends Descriptor
 		final int aChunkIndex)
 	{
 		// Record the fact that the chunk indexed by aChunkIndex depends on
-		// this implementationSet not changing.
+		// this method not changing.
 		AvailObject indices =
 			object.slot(ObjectSlots.DEPENDENT_CHUNK_INDICES);
 		indices = indices.setWithElementCanDestroy(
@@ -354,9 +354,9 @@ extends Descriptor
 	 * Causes dependent chunks to be invalidated.
 	 *
 	 * <p>Macro signatures and non-macro signatures should not be combined in
-	 * the same implementation set.
+	 * the same method.
 	 *
-	 * @param object The implementation set.
+	 * @param object The method.
 	 * @param implementation A {@linkplain SignatureDescriptor signature} to be
 	 *
 	 */
@@ -651,7 +651,7 @@ extends Descriptor
 	 * Remove the chunk from my set of dependent chunks.  This is probably
 	 * because the chunk has been (A) removed by the garbage collector, or (B)
 	 * invalidated by a new implementation in either me or another
-	 * implementation set that the chunk is contingent on.
+	 * method that the chunk is contingent on.
 	 */
 	@Override @AvailMethod
 	void o_RemoveDependentChunkIndex (
@@ -969,7 +969,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsImplementationSetEmpty (
+	boolean o_IsMethodEmpty (
 		final @NotNull AvailObject object)
 	{
 		final AvailObject implementationsTuple =
@@ -1187,17 +1187,17 @@ extends Descriptor
 	}
 
 	/**
-	 * Answer a new {@linkplain ImplementationSetDescriptor implementation set}.
+	 * Answer a new {@linkplain MethodDescriptor method}.
 	 * Use the passed {@linkplain AtomDescriptor atom} as its name. An
-	 * implementation set is always immutable, but its implementationsTuple,
+	 * method is always immutable, but its implementationsTuple,
 	 * privateTestingTree, and dependentsChunks can all be assigned to.
 	 *
 	 * @param messageName
 	 *            The atom acting as the message name.
 	 * @return
-	 *            A new implementation set.
+	 *            A new method.
 	 */
-	public static AvailObject newImplementationSetWithName (
+	public static AvailObject newMethodWithName (
 		final AvailObject messageName)
 	{
 		assert messageName.isAtom();
@@ -1225,13 +1225,13 @@ extends Descriptor
 	}
 
 	/**
-	 * The membership of this {@linkplain ImplementationSetDescriptor
-	 * implementation set} has changed.  Invalidate anything that depended on
+	 * The membership of this {@linkplain MethodDescriptor
+	 * method} has changed.  Invalidate anything that depended on
 	 * the previous membership, including the {@linkplain
 	 * ObjectSlots#PRIVATE_TESTING_TREE testing tree} and any dependent level
 	 * two chunks.
 	 *
-	 * @param object The implementation set that changed.
+	 * @param object The method that changed.
 	 */
 	private static void membershipChanged (
 		final @NotNull AvailObject object)
@@ -1258,45 +1258,45 @@ extends Descriptor
 	}
 
 	/**
-	 * Construct a new {@link ImplementationSetDescriptor}.
+	 * Construct a new {@link MethodDescriptor}.
 	 *
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
 	 */
-	protected ImplementationSetDescriptor (final boolean isMutable)
+	protected MethodDescriptor (final boolean isMutable)
 	{
 		super(isMutable);
 	}
 
 	/**
-	 * The mutable {@link ImplementationSetDescriptor}.
+	 * The mutable {@link MethodDescriptor}.
 	 */
-	private final static ImplementationSetDescriptor mutable =
-		new ImplementationSetDescriptor(true);
+	private final static MethodDescriptor mutable =
+		new MethodDescriptor(true);
 
 	/**
-	 * Answer the mutable {@link ImplementationSetDescriptor}.
+	 * Answer the mutable {@link MethodDescriptor}.
 	 *
-	 * @return The mutable {@link ImplementationSetDescriptor}.
+	 * @return The mutable {@link MethodDescriptor}.
 	 */
-	public static ImplementationSetDescriptor mutable ()
+	public static MethodDescriptor mutable ()
 	{
 		return mutable;
 	}
 
 	/**
-	 * The immutable {@link ImplementationSetDescriptor}.
+	 * The immutable {@link MethodDescriptor}.
 	 */
-	private final static ImplementationSetDescriptor immutable =
-		new ImplementationSetDescriptor(false);
+	private final static MethodDescriptor immutable =
+		new MethodDescriptor(false);
 
 	/**
-	 * Answer the immutable {@link ImplementationSetDescriptor}.
+	 * Answer the immutable {@link MethodDescriptor}.
 	 *
-	 * @return The immutable {@link ImplementationSetDescriptor}.
+	 * @return The immutable {@link MethodDescriptor}.
 	 */
-	public static ImplementationSetDescriptor immutable ()
+	public static MethodDescriptor immutable ()
 	{
 		return immutable;
 	}

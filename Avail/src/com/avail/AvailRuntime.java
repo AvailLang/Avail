@@ -34,7 +34,6 @@ package com.avail;
 
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
-import java.beans.MethodDescriptor;
 import java.io.RandomAccessFile;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -213,7 +212,7 @@ public final class AvailRuntime
 		specialObjects[43] = FORWARD_SIGNATURE.o();
 		specialObjects[44] = METHOD_SIGNATURE.o();
 		specialObjects[45] = MESSAGE_BUNDLE_TREE.o();
-		specialObjects[46] = IMPLEMENTATION_SET.o();
+		specialObjects[46] = METHOD.o();
 		specialObjects[50] = PARSE_NODE.mostGeneralType();
 		specialObjects[51] = MARKER_NODE.mostGeneralType();
 		specialObjects[52] = EXPRESSION_NODE.mostGeneralType();
@@ -313,6 +312,11 @@ public final class AvailRuntime
 		specialObjects[99] = SetTypeDescriptor.setTypeForSizesContentType(
 			IntegerRangeTypeDescriptor.naturalNumbers(),
 			ANY.o());
+		specialObjects[100] =
+			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+				IntegerRangeTypeDescriptor.wholeNumbers(),
+				TupleDescriptor.from(),
+				TupleTypeDescriptor.mostGeneralType());
 
 		for (final AvailObject object : specialObjects)
 		{
@@ -436,16 +440,16 @@ public final class AvailRuntime
 	 * The {@linkplain MethodDescriptor methods} currently known to the
 	 * {@linkplain AvailRuntime runtime}: a {@linkplain MapDescriptor map} from
 	 * {@linkplain AtomDescriptor method name} to {@linkplain
-	 * ImplementationSetDescriptor implementation set}.
+	 * MethodDescriptor method}.
 	 */
 	private @NotNull AvailObject methods = MapDescriptor.empty();
 
 	/**
-	 * Are there any {@linkplain ImplementationSetDescriptor methods} bound to
+	 * Are there any {@linkplain MethodDescriptor methods} bound to
 	 * the specified {@linkplain AtomDescriptor selector}?
 	 *
 	 * @param selector A {@linkplain AtomDescriptor selector}.
-	 * @return {@code true} if there are {@linkplain ImplementationSetDescriptor
+	 * @return {@code true} if there are {@linkplain MethodDescriptor
 	 *         methods} bound to the specified {@linkplain
 	 *         AtomDescriptor selector}, {@code false} otherwise.
 	 */
@@ -466,36 +470,36 @@ public final class AvailRuntime
 	}
 
 	/**
-	 * Answer the {@linkplain ImplementationSetDescriptor implementation set}
+	 * Answer the {@linkplain MethodDescriptor method}
 	 * bound to the specified {@linkplain AtomDescriptor method name}.
-	 * If necessary, then create a new implementation set and bind it.
+	 * If necessary, then create a new method and bind it.
 	 *
 	 * @param methodName A {@linkplain AtomDescriptor method name}.
-	 * @return An {@linkplain ImplementationSetDescriptor implementation set}.
+	 * @return An {@linkplain MethodDescriptor method}.
 	 */
 	@ThreadSafe
-	public @NotNull AvailObject implementationSetFor (
+	public @NotNull AvailObject methodFor (
 		final @NotNull AvailObject methodName)
 	{
 		runtimeLock.writeLock().lock();
 		try
 		{
-			final AvailObject implementationSet;
+			final AvailObject method;
 			if (methods.hasKey(methodName))
 			{
-				implementationSet = methods.mapAt(methodName);
+				method = methods.mapAt(methodName);
 			}
 			else
 			{
-				implementationSet =
-					ImplementationSetDescriptor.newImplementationSetWithName(
+				method =
+					MethodDescriptor.newMethodWithName(
 						methodName);
 				methods = methods.mapAtPuttingCanDestroy(
 					methodName,
-					implementationSet,
+					method,
 					true);
 			}
-			return implementationSet;
+			return method;
 		}
 		finally
 		{
@@ -504,15 +508,15 @@ public final class AvailRuntime
 	}
 
 	/**
-	 * Answer the {@linkplain ImplementationSetDescriptor implementation set}
+	 * Answer the {@linkplain MethodDescriptor method}
 	 * bound to the specified {@linkplain AtomDescriptor selector}.  If
-	 * there is no implementation set with that selector, answer {@linkplain
+	 * there is no method with that selector, answer {@linkplain
 	 * NullDescriptor the null object}.
 	 *
 	 * @param selector
 	 *            A {@linkplain AtomDescriptor selector}.
 	 * @return
-	 *            An {@linkplain ImplementationSetDescriptor implementation set}
+	 *            An {@linkplain MethodDescriptor method}
 	 *            or {@linkplain NullDescriptor the null object}.
 	 */
 	@ThreadSafe
@@ -538,7 +542,7 @@ public final class AvailRuntime
 	/**
 	 * Unbind the specified implementation from the {@linkplain
 	 * AtomDescriptor selector}. If no implementations remain in the
-	 * {@linkplain ImplementationSetDescriptor implementation set}, then
+	 * {@linkplain MethodDescriptor method}, then
 	 * forget the selector from the method dictionary and the {@linkplain
 	 * #rootBundleTree() root message bundle tree}.
 	 *
@@ -556,15 +560,15 @@ public final class AvailRuntime
 		try
 		{
 			assert methods.hasKey(selector);
-			final AvailObject implementationSet = methods.mapAt(selector);
-			implementationSet.removeImplementation(implementation);
-			if (implementationSet.isImplementationSetEmpty())
+			final AvailObject method = methods.mapAt(selector);
+			method.removeImplementation(implementation);
+			if (method.isMethodEmpty())
 			{
 				methods = methods.mapWithoutKeyCanDestroy(selector, true);
 				rootBundleTree.removeBundle(
 					MessageBundleDescriptor.newBundle(selector));
 			}
-			if (implementationSet.isImplementationSetEmpty())
+			if (method.isMethodEmpty())
 			{
 				methods = methods.mapWithoutKeyCanDestroy(
 					selector,
@@ -702,7 +706,7 @@ public final class AvailRuntime
 
 
 	/**
-	 * Add a type restriction to the implementation set associated with the
+	 * Add a type restriction to the method associated with the
 	 * given method name.
 	 *
 	 * @param methodName
@@ -721,7 +725,7 @@ public final class AvailRuntime
 		runtimeLock.writeLock().lock();
 		try
 		{
-			final AvailObject impSet = implementationSetFor(methodName);
+			final AvailObject impSet = methodFor(methodName);
 			impSet.addTypeRestriction(typeRestrictionFunction);
 		}
 		finally
@@ -732,7 +736,7 @@ public final class AvailRuntime
 
 
 	/**
-	 * Remove a type restriction from the implementation set associated with the
+	 * Remove a type restriction from the method associated with the
 	 * given method name.
 	 *
 	 * @param methodName
@@ -751,9 +755,9 @@ public final class AvailRuntime
 		runtimeLock.writeLock().lock();
 		try
 		{
-			final AvailObject impSet = implementationSetFor(methodName);
+			final AvailObject impSet = methodFor(methodName);
 			impSet.removeTypeRestriction(typeRestrictionFunction);
-			if (impSet.isImplementationSetEmpty())
+			if (impSet.isMethodEmpty())
 			{
 				methods = methods.mapWithoutKeyCanDestroy(methodName, true);
 			}

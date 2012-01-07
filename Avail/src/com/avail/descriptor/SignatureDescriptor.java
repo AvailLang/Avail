@@ -36,7 +36,7 @@ import com.avail.annotations.*;
 
 /**
  * {@code SignatureDescriptor} is an abstraction for things placed into an
- * {@linkplain ImplementationSetDescriptor implementation set}.  They can be:
+ * {@linkplain MethodDescriptor method}.  They can be:
  * <ul>
  * <li>{@linkplain AbstractSignatureDescriptor abstract declarations},</li>
  * <li>{@linkplain ForwardSignatureDescriptor forward declarations},</li>

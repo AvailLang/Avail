@@ -1512,7 +1512,7 @@ public abstract class AbstractAvailCompiler
 		if (implementationsTuple.tupleAt(1).isMacro())
 		{
 			// Macro definitions and non-macro definitions are not allowed to
-			// mix within an implementation set.
+			// mix within a method.
 			completedSendNodeForMacro(
 				stateBeforeCall,
 				stateAfterCall,
@@ -1562,7 +1562,7 @@ public abstract class AbstractAvailCompiler
 		if (valid.value)
 		{
 			final AvailObject sendNode = SendNodeDescriptor.mutable().create();
-			sendNode.implementationSet(impSet);
+			sendNode.method(impSet);
 			sendNode.arguments(TupleDescriptor.fromCollection(argumentExpressions));
 			sendNode.returnType(returnType);
 			attempt(
@@ -1595,7 +1595,7 @@ public abstract class AbstractAvailCompiler
 	 *            The {@linkplain MessageBundleDescriptor message bundle} that
 	 *            identifies the message to be sent.
 	 * @param impSet
-	 *            The {@linkplain ImplementationSetDescriptor implementation set}
+	 *            The {@linkplain MethodDescriptor method}
 	 *            that contains the macro signature to be invoked.
 	 * @param continuation
 	 *            What to do with the resulting send node.

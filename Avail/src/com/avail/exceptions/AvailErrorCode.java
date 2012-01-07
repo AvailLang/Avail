@@ -158,10 +158,10 @@ public enum AvailErrorCode
 	E_OBJECT_TYPE_HAS_NO_USER_DEFINED_NAME (18),
 
 	/**
-	 * No {@linkplain ImplementationSetDescriptor implementation set} exists for
+	 * No {@linkplain MethodDescriptor method} exists for
 	 * the specified {@linkplain AtomDescriptor name}.
 	 */
-	E_NO_IMPLEMENTATION_SET (19),
+	E_NO_METHOD (19),
 
 	/**
 	 * The wrong number of outers were specified for creation of a {@linkplain

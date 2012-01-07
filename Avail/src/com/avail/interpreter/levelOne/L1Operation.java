@@ -57,7 +57,7 @@ public enum L1Operation
 	 *
 	 * <p>The first operand is an index into the current code's {@link
 	 * AvailObject#literalAt(int) literals}, which specifies an {@linkplain
-	 * ImplementationSetDescriptor implementation set} that contains a
+	 * MethodDescriptor method} that contains a
 	 * collection of {@linkplain MethodSignatureDescriptor methods} that may be
 	 * invoked.  The arguments are expected to already have been pushed. They
 	 * are popped from the stack and the literal specified by the second operand
@@ -329,7 +329,7 @@ public enum L1Operation
 	/**
 	 * Expect arguments to have pushed on the stack, followed by the argument
 	 * types with which to perform a method lookup.  The literal index of the
-	 * {@linkplain ImplementationSetDescriptor implementation set} is the first
+	 * {@linkplain MethodDescriptor method} is the first
 	 * operand, and the second is the literal index of the type that this call
 	 * site is supposed to produce.  After popping the arguments and argument
 	 * types, push the expected type.  The callee will check its return result

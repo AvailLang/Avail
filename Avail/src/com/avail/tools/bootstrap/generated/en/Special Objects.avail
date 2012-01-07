@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.01.06 17:00:29.515 -0600
+ * * Last Generated On: 2012.01.06 20:07:26.427 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -75,7 +75,6 @@ Uses
 	/*  4 */ "function",
 	/*  6 */ "function implementation",
 	/*  5 */ "function meta",
-	/* 46 */ "implementation set",
 	/* 17 */ "integer",
 	/* 95 */ "key-value tuple",
 	/* 63 */ "label node",
@@ -88,6 +87,7 @@ Uses
 	/* 40 */ "message bundle",
 	/* 45 */ "message bundle tree",
 	/* 20 */ "meta",
+	/* 46 */ "method",
 	/* 44 */ "method signature",
 	/* 67 */ "module constant node",
 	/* 66 */ "module variable node",
@@ -121,6 +121,7 @@ Uses
 	/* 59 */ "tuple node",
 	/* 74 */ "tuple of set of string",
 	/* 72 */ "tuple of string",
+	/* 100 */ "tuple of tuple",
 	/* 73 */ "tuple of type",
 	/* 34 */ "type",
 	/*  7 */ "variable",
@@ -181,7 +182,7 @@ _abstract_signature            ::= special object 42;
 _forward_signature             ::= special object 43;
 _method_signature              ::= special object 44;
 _message_bundle_tree           ::= special object 45;
-_implementation_set            ::= special object 46;
+_method                        ::= special object 46;
 _parse_node                    ::= special object 50;
 _marker_node                   ::= special object 51;
 _expression_node               ::= special object 52;
@@ -225,6 +226,7 @@ _empty_map                     ::= special object 96;
 _non_empty_map                 ::= special object 97;
 _whole_number_meta             ::= special object 98;
 _non-empty_set                 ::= special object 99;
+_tuple_of_tuple                ::= special object 100;
 
 Method "any" is 
 [
@@ -459,9 +461,9 @@ Method "message bundle tree" is
 	_message_bundle_tree;
 ];
 
-Method "implementation set" is 
+Method "method" is 
 [
-	_implementation_set;
+	_method;
 ];
 
 Method "parse node" is 
@@ -677,5 +679,10 @@ Method "whole number meta" is
 Method "non-empty set" is 
 [
 	_non-empty_set;
+];
+
+Method "tuple of tuple" is 
+[
+	_tuple_of_tuple;
 ];
 

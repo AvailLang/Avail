@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.01.06 17:00:29.540 -0600
+ * * Last Generated On: 2012.01.06 20:07:26.460 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -50,6 +50,7 @@ Names
 	/*  49 */ "$_@pc=_stack=_[_]caller=_",
 	/* 137 */ "<_,_`…|_>",
 	/*  39 */ "[`…]→_",
+	/* 180 */ "_'s arity",
 	/*  92 */ "_'s bindings",
 	/*  52 */ "_'s caller",
 	/* 140 */ "_'s default type",
@@ -95,7 +96,7 @@ Names
 	/*  33 */ "_≤_",
 	/* 107 */ "_⊆_",
 	/*  12 */ "clear_",
-	/* 136 */ "concatenate_",
+	/* 144 */ "concatenate_",
 	/*  25 */ "current fiber",
 	/*  66 */ "enumeration of_",
 	/*  34 */ "function type accepting_and returning_",
@@ -1046,4 +1047,550 @@ Method "{_→_|_}" is
 [
 	keyType : type,
 	valueType : type,
-	cardinalityType : 
+	cardinalityType : whole number meta
+|
+	Primitive 87;
+] : map meta;
+
+/**
+ * Answer the acceptable range of cardinalities for instances of the specified
+ * map type.
+ *
+ * Parameters:
+ *    aMapType - A map type.
+ * Returns:
+ *    The argument's cardinality requirement.
+ */
+Method "|_|" is 
+[
+	aMapType : map meta
+|
+	Primitive 88;
+] : whole number meta;
+
+/**
+ * Answer the most specific type to which the keys of all instances must
+ * conform.
+ *
+ * Parameters:
+ *    aMapType - A map type.
+ * Returns:
+ *    The argument's key type.
+ */
+Method "_'s key type" is 
+[
+	aMapType : map meta
+|
+	Primitive 89;
+] : type;
+
+/**
+ * Answer the most specific type to which the values of all instances must
+ * conform.
+ *
+ * Parameters:
+ *    aMapType - A map type.
+ * Returns:
+ *    The argument's value type.
+ */
+Method "_'s value type" is 
+[
+	aMapType : map meta
+|
+	Primitive 90;
+] : type;
+
+/**
+ * Answer a tuple containing the values of the specified map. The values are
+ * arranged in no particular order.
+ *
+ * Parameters:
+ *    aMapType - A map.
+ * Returns:
+ *    The argument's values.
+ */
+Method "_'s values" is 
+[
+	aMapType : map
+|
+	Primitive 91;
+] : tuple;
+
+/**
+ * Answer a tuple containing the bindings of the specified map. A binding is a
+ * 2-tuple of key and value.
+ *
+ * Parameters:
+ *    aMapType - A map.
+ * Returns:
+ *    The argument's bindings.
+ */
+Method "_'s bindings" is 
+[
+	aMapType : map
+|
+	Primitive 92;
+] : key-value tuple;
+
+/**
+ * Answer the cardinality of the specified set.
+ *
+ * Parameters:
+ *    aSet - A set.
+ * Returns:
+ *    The argument's cardinality.
+ */
+Method "|_|" is 
+[
+	aSet : set
+|
+	Primitive 100;
+] : whole number;
+
+/**
+ * Is `element` an element of `aSet`?
+ *
+ * Parameters:
+ *    element - An arbitrary value.
+ *    aSet - A set.
+ * Returns:
+ *    `true` if `element` is an element of `aSet`, `false` otherwise.
+ */
+Method "_∈_" is 
+[
+	element : any,
+	aSet : set
+|
+	Primitive 101;
+] : boolean;
+
+/**
+ * Compute and answer the set union of the arguments. This is a set that contains
+ * the elements of both sets.
+ *
+ * Parameters:
+ *    arg1 - A set.
+ *    arg2 - A set.
+ * Returns:
+ *    The set union of the arguments.
+ */
+Method "_∪_" is 
+[
+	arg1 : set,
+	arg2 : set
+|
+	Primitive 102;
+] : set;
+
+/**
+ * Compute and answer the set intersection of the arguments. This is a set that
+ * contains only those elements present in each set.
+ *
+ * Parameters:
+ *    arg1 - A set.
+ *    arg2 - A set.
+ * Returns:
+ *    The set intersection of the arguments.
+ */
+Method "_∩_" is 
+[
+	arg1 : set,
+	arg2 : set
+|
+	Primitive 103;
+] : set;
+
+/**
+ * Compute and answer the asymmetric set difference of `minuend` and
+ * `subtrahend` (also the relative complement of `subtrahend` in `minuend`). This
+ * is a set that contains only those elements present in `minuend`
+ * but not in `subtrahend`.
+ *
+ * Parameters:
+ *    minuend - The minuend.
+ *    subtrahend - The subtrahend.
+ * Returns:
+ *    The asymmetric set difference of `minuend` and `subtrahend`.
+ */
+Method "_\\_" is 
+[
+	minuend : set,
+	subtrahend : set
+|
+	Primitive 104;
+] : set;
+
+/**
+ * Compute and answer the set union of the specified set and a set containing
+ * the supplied element.
+ *
+ * Parameters:
+ *    aSet - A set.
+ *    newElement - The element that must be present in the resultant set.
+ * Returns:
+ *    A set that contains the same elements as `aSet` but also contains
+ *    `newElement`.
+ */
+Method "_+_" is 
+[
+	aSet : set,
+	newElement : any
+|
+	Primitive 105;
+] : non-empty set;
+
+/**
+ * Compute and answer the asymmetric set difference of the specified set and a
+ * set containing the supplied element.
+ *
+ * Parameters:
+ *    aSet - A set.
+ *    oldElement - The element that must not be present in the resultant set.
+ * Returns:
+ *    A set that contains the same elements as `aSet` except that it does
+ *    not contain `oldElement`.
+ */
+Method "_-_" is 
+[
+	aSet : set,
+	oldElement : any
+|
+	Primitive 106;
+] : set;
+
+/**
+ * Is `arg1` a subset of or equal to `arg2`?
+ *
+ * Parameters:
+ *    arg1 - A set.
+ *    arg2 - A set.
+ * Returns:
+ *    `true` if `arg1` is a subset of or equal to `arg2`, `false` otherwise.
+ */
+Method "_⊆_" is 
+[
+	arg1 : set,
+	arg2 : set
+|
+	Primitive 107;
+] : boolean;
+
+/**
+ * Construct and answer a set that uniquely (by definition) contains the same
+ * elements as the specified tuple.
+ *
+ * Parameters:
+ *    aTuple - A tuple.
+ * Returns:
+ *    The requested set.
+ */
+Method "_as set" is 
+[
+	aTuple : tuple
+|
+	Primitive 109;
+] : set;
+
+/**
+ * Construct and answer a tuple that arbitrarily orders the elements of the
+ * specified set. The conversion is unstable, and thus different calls given
+ * the same argument may produce different orderings.
+ *
+ * Parameters:
+ *    aSet - A set.
+ * Returns:
+ *    The requested tuple.
+ */
+Method "_as tuple" is 
+[
+	aSet : set
+|
+	Primitive 110;
+] : tuple;
+
+/**
+ * Construct and answer a set type with the specified element type and range of
+ * cardinalities.
+ *
+ * Parameters:
+ *    elementType - The element type.
+ *    cardinalityType - The range of allowed cardinalities.
+ * Returns:
+ *    The requested set type. Instances have elements that conform to `elementType` and
+ *    cardinalities that conform to `cardinalityType`.
+ */
+Method "{_|_}" is 
+[
+	elementType : type,
+	cardinalityType : whole number meta
+|
+	Primitive 111;
+] : set meta;
+
+/**
+ * Answer the acceptable range of cardinalities for instances of the specified
+ * set type.
+ *
+ * Parameters:
+ *    aSetType - A set type.
+ * Returns:
+ *    The argument's cardinality requirement.
+ */
+Method "|_|" is 
+[
+	aSetType : set meta
+|
+	Primitive 112;
+] : whole number meta;
+
+/**
+ * Answer the element type of the specified set type. This is the most specific
+ * type to which all elements of instances must conform.
+ *
+ * Parameters:
+ *    aSetType - A set type.
+ * Returns:
+ *    The argument's element type.
+ */
+Method "_'s element type" is 
+[
+	aSetType : set meta
+|
+	Primitive 113;
+] : type;
+
+/**
+ * Construct and answer a new atom. Associate with the atom the supplied string,
+ * which should be a name used for debugging purposes only. Atoms have identity
+ * and all atoms are distinct, regardless of whether their debug names are
+ * equal.
+ *
+ * Parameters:
+ *    debugName - A name to associate with the atom for debugging purposes.
+ *       This name does not participate in atom comparison.
+ * Returns:
+ *    A new atom, distinct from every other atom answered by a different
+ *    invocation of this primitive.
+ */
+Method "new atom_" is 
+[
+	debugName : string
+|
+	Primitive 120;
+] : atom;
+
+/**
+ * Answer the debug name of the specified atom.
+ *
+ * Parameters:
+ *    anAtom - An atom.
+ * Returns:
+ *    The argument's debug name.
+ */
+Method "_'s name" is 
+[
+	anAtom : atom
+|
+	Primitive 121;
+] : string;
+
+/**
+ * Does `anAtom` have a property whose key is `key`?
+ *
+ * Parameters:
+ *    anAtom - An atom.
+ *    key - The property key.
+ * Returns:
+ *    `true` if `anAtom` has a property whose key is `key`, `false` otherwise.
+ */
+Method "_∈_" is 
+[
+	anAtom : atom,
+	key : atom
+|
+	Primitive 122;
+] : boolean;
+
+/**
+ * For `anAtom`, establish a property binding from `key` to `value`.
+ * Any previous property binding for `key` is replaced.
+ *
+ * Parameters:
+ *    anAtom - An atom.
+ *    key - The property key.
+ *    value - The property value.
+ */
+Method "_[_]:=_" is 
+[
+	anAtom : atom,
+	key : atom,
+	value : any
+|
+	Primitive 124;
+] : ⊤;
+
+/**
+ * If `anAtom` has a property whose key is `key`, then remove the property.
+ * Otherwise do nothing.
+ *
+ * Parameters:
+ *    anAtom - An atom.
+ *    key - A property key.
+ */
+Method "_-_" is 
+[
+	anAtom : atom,
+	key : atom
+|
+	Primitive 125;
+] : ⊤;
+
+/**
+ * Answer the cardinality of the specified tuple.
+ *
+ * Parameters:
+ *    aTuple - A tuple.
+ * Returns:
+ *    The argument's cardinality.
+ */
+Method "|_|" is 
+[
+	aTuple : tuple
+|
+	Primitive 130;
+] : whole number;
+
+/**
+ * Construct and answer a tuple that is the left-to-right concatenation of all
+ * elements (i.e. tuples) of the specified tuple.
+ *
+ * Parameters:
+ *    tupleOfTuples - A tuple of tuples.
+ * Returns:
+ *    The requested tuple.
+ */
+Method "concatenate_" is 
+[
+	tupleOfTuples : tuple of tuple
+|
+	Primitive 136;
+] : tuple;
+
+/**
+ * Construct and answer a tuple type with the specified leading element types,
+ * default element type, and range of cardinalities.
+ *
+ * Parameters:
+ *    leadingTypes - The leading types.
+ *    defaultType - The default type.
+ *    cardinalityType - The range of allowed cardinalities.
+ * Returns:
+ *    The requested tuple type.
+ */
+Method "<_,_`…|_>" is 
+[
+	leadingTypes : tuple of type,
+	defaultType : type,
+	cardinalityType : whole number meta
+|
+	Primitive 137;
+] : tuple meta;
+
+/**
+ * Answer the range of allowed cardinalities of instances of the specified type.
+ *
+ * Parameters:
+ *    aTupleType - A tuple type.
+ * Returns:
+ *    The argument's cardinality requirement.
+ */
+Method "|_|" is 
+[
+	aTupleType : tuple meta
+|
+	Primitive 138;
+] : whole number meta;
+
+/**
+ * Answer a tuple containing the leading element types of instances of the
+ * specified type.
+ *
+ * Parameters:
+ *    aTupleType - A tuple type.
+ * Returns:
+ *    The argument's leading element types.
+ */
+Method "_'s leading types" is 
+[
+	aTupleType : tuple meta
+|
+	Primitive 139;
+] : tuple of type;
+
+/**
+ * Answer the default element type of instances of the specified type.
+ *
+ * Parameters:
+ *    aTupleType - A tuple type.
+ * Returns:
+ *    The argument's default element type.
+ */
+Method "_'s default type" is 
+[
+	aTupleType : tuple meta
+|
+	Primitive 140;
+] : type;
+
+/**
+ * Answer the element type of the `index`-th element of instances of the
+ * specified type. If `index` is out of bounds, then answer ⊥.
+ *
+ * Parameters:
+ *    aTupleType - A tuple type.
+ *    index - The index of the desired element type.
+ * Returns:
+ *    The requested element type, or ⊥ if `index` is out of bounds.
+ */
+Method "_[_]" is 
+[
+	aTupleType : tuple meta,
+	index : natural number
+|
+	Primitive 141;
+] : type;
+
+/**
+ * Compute and answer the concatenation of the specified tuple types. This is
+ * the most specific type that encompasses all possible concatenations of the
+ * instances of the two types.
+ *
+ * Parameters:
+ *    arg1 - A tuple type.
+ *    arg2 - A tuple type.
+ * Returns:
+ *    The requested tuple type.
+ */
+Method "concatenate_" is 
+[
+	arg1 : tuple meta,
+	arg2 : tuple meta
+|
+	Primitive 144;
+] : tuple meta;
+
+/**
+ * TODO: Method description goes here.
+ *
+ * Parameters:
+ *    aFunctionImplementation -
+ * Returns:
+ *    TODO
+ */
+Method "_'s arity" is 
+[
+	aFunctionImplementation : function implementation
+|
+	Primitive 180;
+] : whole number;
+

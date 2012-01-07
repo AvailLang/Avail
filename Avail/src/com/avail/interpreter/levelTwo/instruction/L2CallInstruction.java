@@ -42,8 +42,8 @@ import com.avail.interpreter.levelTwo.register.*;
 /**
  * {@code L2CallInstruction} attempts to execute a specific {@linkplain
  * MethodSignatureDescriptor method} by matching the actual {@linkplain
- * AvailObject arguments} against an {@linkplain ImplementationSetDescriptor
- * implementation set}.
+ * AvailObject arguments} against an {@linkplain MethodDescriptor
+ * method}.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
@@ -52,11 +52,11 @@ public class L2CallInstruction
 extends L2Instruction
 {
 	/**
-	 * The {@linkplain ImplementationSetDescriptor implementation set} from
+	 * The {@linkplain MethodDescriptor method} from
 	 * which a {@linkplain MethodSignatureDescriptor method} should be selected
 	 * and called based on the exact {@linkplain #arguments arguments}.
 	 */
-	protected final @NotNull AvailObject implementationSet;
+	protected final @NotNull AvailObject method;
 
 	/**
 	 * The {@linkplain AvailObject arguments} of the {@linkplain
@@ -67,8 +67,8 @@ extends L2Instruction
 	/**
 	 * Construct a new {@link L2CallInstruction}.
 	 *
-	 * @param implementationSet
-	 *        The {@linkplain ImplementationSetDescriptor implementation set}
+	 * @param method
+	 *        The {@linkplain MethodDescriptor method}
 	 *        from which a {@linkplain MethodSignatureDescriptor method} should
 	 *        be selected and called based on the exact {@linkplain #arguments
 	 *        arguments}.
@@ -77,10 +77,10 @@ extends L2Instruction
 	 *        MethodSignatureDescriptor method} call.
 	 */
 	public L2CallInstruction (
-		final @NotNull AvailObject implementationSet,
+		final @NotNull AvailObject method,
 		final @NotNull L2RegisterVector arguments)
 	{
-		this.implementationSet = implementationSet;
+		this.method = method;
 		this.arguments = arguments;
 	}
 
@@ -111,7 +111,7 @@ extends L2Instruction
 	{
 		codeGenerator.emitL2Operation(
 			L2_doSend_argumentsVector_);
-		codeGenerator.emitLiteral(implementationSet);
+		codeGenerator.emitLiteral(method);
 		codeGenerator.emitVector(arguments);
 	}
 

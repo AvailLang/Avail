@@ -162,7 +162,7 @@ extends Descriptor
 		/**
 		 * A {@linkplain MapDescriptor map} from {@linkplain AtomDescriptor true
 		 * names} to {@linkplain TupleDescriptor tuples} of {@linkplain
-		 * ImplementationSetDescriptor.ObjectSlots#TYPE_RESTRICTIONS_TUPLE type
+		 * MethodDescriptor.ObjectSlots#TYPE_RESTRICTIONS_TUPLE type
 		 * restriction} {@linkplain FunctionDescriptor functions}.  At any call
 		 * site for the given message name, any applicable functions are
 		 * executed to determine if the input types are acceptable, and if so
