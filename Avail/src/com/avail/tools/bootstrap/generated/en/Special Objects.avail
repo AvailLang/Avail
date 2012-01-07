@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.01.06 20:07:26.427 -0600
+ * * Last Generated On: 2012.01.06 22:44:53.252 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -98,6 +98,7 @@ Uses
 	/* 82 */ "null type",
 	/* 90 */ "nullary procedure",
 	/* 16 */ "number",
+	/* 101 */ "nybble",
 	/* 22 */ "object",
 	/* 23 */ "object meta",
 	/* 50 */ "parse node",
@@ -119,11 +120,13 @@ Uses
 	/* 32 */ "tuple",
 	/* 33 */ "tuple meta",
 	/* 59 */ "tuple node",
+	/* 102 */ "tuple of nybble",
 	/* 74 */ "tuple of set of string",
 	/* 72 */ "tuple of string",
 	/* 100 */ "tuple of tuple",
 	/* 73 */ "tuple of type",
 	/* 34 */ "type",
+	/* 103 */ "unsigned short",
 	/*  7 */ "variable",
 	/*  8 */ "variable meta",
 	/* 60 */ "variable use node",
@@ -227,6 +230,9 @@ _non_empty_map                 ::= special object 97;
 _whole_number_meta             ::= special object 98;
 _non-empty_set                 ::= special object 99;
 _tuple_of_tuple                ::= special object 100;
+_nybble                        ::= special object 101;
+_tuple_of_nybble               ::= special object 102;
+_unsigned_short                ::= special object 103;
 
 Method "any" is 
 [
@@ -684,5 +690,20 @@ Method "non-empty set" is
 Method "tuple of tuple" is 
 [
 	_tuple_of_tuple;
+];
+
+Method "nybble" is 
+[
+	_nybble;
+];
+
+Method "tuple of nybble" is 
+[
+	_tuple_of_nybble;
+];
+
+Method "unsigned short" is 
+[
+	_unsigned_short;
 ];
 

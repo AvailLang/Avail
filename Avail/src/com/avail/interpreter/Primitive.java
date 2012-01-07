@@ -52,7 +52,6 @@ import com.avail.exceptions.ArithmeticException;
 import com.avail.interpreter.levelOne.*;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.instruction.L2AttemptPrimitiveInstruction;
-import com.avail.utility.*;
 
 
 /**
@@ -4785,13 +4784,13 @@ public enum Primitive
 			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 7;
-			final AvailObject locals = args.get(0);
-			final AvailObject outers = args.get(1);
-			final AvailObject stack = args.get(2);
-			final AvailObject nybs = args.get(3);
-			final AvailObject functionType = args.get(4);
-			final AvailObject primitive = args.get(5);
-			final AvailObject allLiterals = args.get(6);
+			final AvailObject nybs = args.get(0);
+			final AvailObject primitive = args.get(1);
+			final AvailObject functionType = args.get(2);
+			final AvailObject allLiterals = args.get(3);
+			final AvailObject locals = args.get(4);
+			final AvailObject outers = args.get(5);
+			final AvailObject stack = args.get(6);
 
 			final int nLocals = locals.extractInt();
 			final int nOuters = outers.extractInt();
@@ -4864,16 +4863,16 @@ public enum Primitive
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					IntegerRangeTypeDescriptor.wholeNumbers(),
-					IntegerRangeTypeDescriptor.wholeNumbers(),
-					IntegerRangeTypeDescriptor.wholeNumbers(),
 					TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 						IntegerRangeTypeDescriptor.wholeNumbers(),
 						TupleDescriptor.empty(),
 						IntegerRangeTypeDescriptor.nybbles()),
-					FunctionTypeDescriptor.meta(),
 					IntegerRangeTypeDescriptor.unsignedShorts(),
-					TupleTypeDescriptor.mostGeneralType()),
+					FunctionTypeDescriptor.meta(),
+					TupleTypeDescriptor.mostGeneralType(),
+					IntegerRangeTypeDescriptor.wholeNumbers(),
+					IntegerRangeTypeDescriptor.wholeNumbers(),
+					IntegerRangeTypeDescriptor.wholeNumbers()),
 				CompiledCodeTypeDescriptor.mostGeneralType());
 		}
 	},

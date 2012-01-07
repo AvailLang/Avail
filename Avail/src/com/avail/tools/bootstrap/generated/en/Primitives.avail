@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.01.06 20:07:26.454 -0600
+ * * Last Generated On: 2012.01.06 22:44:53.282 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -49,24 +49,29 @@ Names
 	/*  49 */ "$_@pc=_stack=_[_]caller=_",
 	/* 137 */ "<_,_`…|_>",
 	/*  39 */ "[`…]→_",
+	/* 188 */ "_#_:_(literals=_,#locals_,#outers_,stack depth=_)",
 	/* 180 */ "_'s arity",
 	/*  92 */ "_'s bindings",
 	/*  52 */ "_'s caller",
 	/* 140 */ "_'s default type",
 	/* 113 */ "_'s element type",
 	/*  53 */ "_'s function",
-	/*  50 */ "_'s function type",
+	/* 185 */ "_'s function type",
 	/*  72 */ "_'s implementation",
 	/*  29 */ "_'s instances",
 	/*  89 */ "_'s key type",
 	/*  86 */ "_'s keys",
 	/* 139 */ "_'s leading types",
+	/* 187 */ "_'s literals",
 	/*   8 */ "_'s lower bound",
+	/* 183 */ "_'s maximum stack depth",
 	/* 121 */ "_'s name",
 	/*  68 */ "_'s name:=_",
 	/*  69 */ "_'s names",
+	/* 184 */ "_'s nybblecodes",
 	/*  73 */ "_'s outer variables",
 	/*  35 */ "_'s parameters' type",
+	/* 186 */ "_'s primitive number",
 	/*  54 */ "_'s program counter",
 	/*  14 */ "_'s read type",
 	/*  37 */ "_'s return type",
@@ -122,6 +127,8 @@ Names
 	/*  23 */ "termination requested",
 	/* 111 */ "{_|_}",
 	/*  87 */ "{_→_|_}",
+	/* 181 */ "|_'s local variables|",
+	/* 182 */ "|_'s outer variables|",
 	/* 138 */ "|_|",
 	/*  13 */ "↑_",
 	/*  10 */ "↓_",

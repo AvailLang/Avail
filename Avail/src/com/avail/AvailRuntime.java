@@ -317,6 +317,13 @@ public final class AvailRuntime
 				IntegerRangeTypeDescriptor.wholeNumbers(),
 				TupleDescriptor.from(),
 				TupleTypeDescriptor.mostGeneralType());
+		specialObjects[101] = IntegerRangeTypeDescriptor.nybbles();
+		specialObjects[102] =
+			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+				IntegerRangeTypeDescriptor.wholeNumbers(),
+				TupleDescriptor.empty(),
+				IntegerRangeTypeDescriptor.nybbles());
+		specialObjects[103] = IntegerRangeTypeDescriptor.unsignedShorts();
 
 		for (final AvailObject object : specialObjects)
 		{

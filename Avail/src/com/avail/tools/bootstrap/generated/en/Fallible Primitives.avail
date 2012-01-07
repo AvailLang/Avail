@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.01.06 20:07:26.507 -0600
+ * * Last Generated On: 2012.01.06 22:44:53.317 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -47,6 +47,7 @@ Uses
 	"Primitives"
 Names
 	"Set primitive failure function to_",
+	/* 188 */ "_#_:_(literals=_,#locals_,#outers_,stack depth=_)",
 	/* 142 */ "_[_.._]",
 	/* 132 */ "_[_]:=_",
 	/*   3 */ "_×_",
@@ -533,4 +534,34 @@ Method "∪_[_.._]" is
 	Primitive 143 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode;
 ] : type;
+
+/**
+ * Construct and answer a function implementation from the specified arguments.
+ *
+ * Parameters:
+ *    nybblecodes - The Level One instructions as a tuple of nybblecodes.
+ *    primitiveNumber - The primitive number, or `0` if the result should
+ *       not have primitive linkage.
+ *    aFunctionType - The function type of any function able to close the
+ *       result.
+ *    literals - The literals used by the algorithm.
+ *    localsCount - The number of local variables used by the algorithm.
+ *    outersCount - The number of outer variables used by the algorithm.
+ *    maximumStackDepth - The maximum stack depth.
+ * Returns:
+ *    The requested function implementation.
+ */
+Method "_#_:_(literals=_,#locals_,#outers_,stack depth=_)" is 
+[
+	nybblecodes : tuple of nybble,
+	primitiveNumber : unsigned short,
+	aFunctionType : function meta,
+	literals : tuple,
+	localsCount : whole number,
+	outersCount : whole number,
+	maximumStackDepth : whole number
+|
+	Primitive 188 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode;
+] : function implementation;
 

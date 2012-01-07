@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.01.06 20:07:26.460 -0600
+ * * Last Generated On: 2012.01.06 22:44:53.289 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -56,18 +56,22 @@ Names
 	/* 140 */ "_'s default type",
 	/* 113 */ "_'s element type",
 	/*  53 */ "_'s function",
-	/*  50 */ "_'s function type",
+	/* 185 */ "_'s function type",
 	/*  72 */ "_'s implementation",
 	/*  29 */ "_'s instances",
 	/*  89 */ "_'s key type",
 	/*  86 */ "_'s keys",
 	/* 139 */ "_'s leading types",
+	/* 187 */ "_'s literals",
 	/*   8 */ "_'s lower bound",
+	/* 183 */ "_'s maximum stack depth",
 	/* 121 */ "_'s name",
 	/*  68 */ "_'s name:=_",
 	/*  69 */ "_'s names",
+	/* 184 */ "_'s nybblecodes",
 	/*  73 */ "_'s outer variables",
 	/*  35 */ "_'s parameters' type",
+	/* 186 */ "_'s primitive number",
 	/*  54 */ "_'s program counter",
 	/*  14 */ "_'s read type",
 	/*  37 */ "_'s return type",
@@ -110,6 +114,8 @@ Names
 	/*  71 */ "new_applying_",
 	/* 111 */ "{_|_}",
 	/*  87 */ "{_→_|_}",
+	/* 181 */ "|_'s local variables|",
+	/* 182 */ "|_'s outer variables|",
 	/* 138 */ "|_|",
 	/*  13 */ "↑_",
 	/*  38 */ "∪_"
@@ -1580,12 +1586,13 @@ Method "concatenate_" is
 ] : tuple meta;
 
 /**
- * TODO: Method description goes here.
+ * Answer the arity of a function implementation. This is the number of
+ * parameters accepted by the function implementation.
  *
  * Parameters:
- *    aFunctionImplementation -
+ *    aFunctionImplementation - A function implementation.
  * Returns:
- *    TODO
+ *    The argument's arity.
  */
 Method "_'s arity" is 
 [
@@ -1593,4 +1600,116 @@ Method "_'s arity" is
 |
 	Primitive 180;
 ] : whole number;
+
+/**
+ * Answer the number of local variables used by a function implementation.
+ *
+ * Parameters:
+ *    aFunctionImplementation - A function implementation.
+ * Returns:
+ *    The number of locals used by the argument.
+ */
+Method "|_'s local variables|" is 
+[
+	aFunctionImplementation : function implementation
+|
+	Primitive 181;
+] : whole number;
+
+/**
+ * Answer the number of outer variables used by a function implementation.
+ *
+ * Parameters:
+ *    aFunction Implementation - A function implementation.
+ * Returns:
+ *    The number of outers used by the argument.
+ */
+Method "|_'s outer variables|" is 
+[
+	aFunction Implementation : function implementation
+|
+	Primitive 182;
+] : whole number;
+
+/**
+ * Answer the maximum stack depth of a function implementation. This does not
+ * account for arguments and local variables (which occupy the "bottom" stack
+ * slots).
+ *
+ * Parameters:
+ *    aFunctionImplementation - A function implementation.
+ * Returns:
+ *    The argument's maximum stack depth.
+ */
+Method "_'s maximum stack depth" is 
+[
+	aFunctionImplementation : function implementation
+|
+	Primitive 183;
+] : whole number;
+
+/**
+ * Answer the Level One instructions that describe a function implementation's
+ * algorithm as a tuple of nybblecodes.
+ *
+ * Parameters:
+ *    aFunctionImplementation - A function implementation.
+ * Returns:
+ *    The argument's nybblecodes.
+ */
+Method "_'s nybblecodes" is 
+[
+	aFunctionImplementation : function implementation
+|
+	Primitive 184;
+] : tuple of nybble;
+
+/**
+ * Answer the function type of any function that could close the specified
+ * function implementation.
+ *
+ * Parameters:
+ *    aFunctionImplementation - A function implementation.
+ * Returns:
+ *    The argument's function type.
+ */
+Method "_'s function type" is 
+[
+	aFunctionImplementation : function implementation
+|
+	Primitive 185;
+] : function meta;
+
+/**
+ * Answer the primitive number of the primitive linked to the specified
+ * function implementation. If the function implementation does not have
+ * primitive linkage, then answer `0`.
+ *
+ * Parameters:
+ *    aFunctionImplementation - A function implementation.
+ * Returns:
+ *    The argument's primitive number, or `0` if the argument does not have
+ *    primitive linkage.
+ */
+Method "_'s primitive number" is 
+[
+	aFunctionImplementation : function implementation
+|
+	Primitive 186;
+] : unsigned short;
+
+/**
+ * Answer the literals that support a function implementation's algorithm.
+ *
+ * Parameters:
+ *    aFunctionImplementation - A function implementation.
+ * Returns:
+ *    A tuple containing the argument's supporting literals.
+ */
+Method "_'s literals" is 
+[
+	aFunctionImplementation : function implementation
+|
+	Primitive 187;
+] : tuple;
 
