@@ -897,19 +897,23 @@ extends Descriptor
 	/**
 	 * Construct a new tuple of arbitrary {@linkplain AvailObject Avail objects}
 	 * passed in a list.  The elements are not made immutable first, nor is the
-	 * new tuple.
+	 * new tuple necessarily made immutable.
 	 *
 	 * @param collection
 	 *        The list of {@linkplain AvailObject Avail objects} from which
 	 *        to construct a tuple.
-	 * @return The new mutable tuple of objects.
+	 * @return The corresponding tuple of objects.
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
 	public static AvailObject fromCollection (
 		final List<AvailObject> collection)
 	{
-		final AvailObject tuple = ObjectTupleDescriptor.mutable().create(
-			collection.size());
+		final int size = collection.size();
+		if (size == 0)
+		{
+			return TupleDescriptor.empty();
+		}
+		final AvailObject tuple = ObjectTupleDescriptor.mutable().create(size);
 		int i = 1;
 		for (final AvailObject element : collection)
 		{

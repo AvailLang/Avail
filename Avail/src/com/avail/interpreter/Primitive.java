@@ -52,6 +52,7 @@ import com.avail.exceptions.ArithmeticException;
 import com.avail.interpreter.levelOne.*;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.instruction.L2AttemptPrimitiveInstruction;
+import com.avail.utility.*;
 
 
 /**
@@ -5490,6 +5491,55 @@ public enum Primitive
 				TupleDescriptor.from(
 					TupleTypeDescriptor.stringTupleType()),
 				ATOM.o());
+		}
+	},
+
+	/**
+	 * <strong>Primitive 247:</strong> Answer a {@linkplain TupleDescriptor
+	 * tuple} of restriction {@linkplain FunctionDescriptor functions} that
+	 * would run for a call site for the specified {@linkplain
+	 * ImplementationSetDescriptor implementation set} and tuple of argument
+	 * types.
+	 */
+	prim247_ApplicableRestrictions(247, 2, Unknown)
+	{
+		@Override
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
+		{
+			assert args.size() == 2;
+			final AvailObject impSet = args.get(0);
+			final AvailObject argTypes = args.get(1);
+			final AvailObject restrictions = impSet.typeRestrictions();
+			final List<AvailObject> applicable = new ArrayList<AvailObject>();
+			for (int i = restrictions.tupleSize(); i >= 1; i--)
+			{
+				final AvailObject restriction = restrictions.tupleAt(i);
+				if (restriction.kind().acceptsTupleOfArguments(argTypes))
+				{
+					applicable.add(restriction);
+				}
+			}
+			return interpreter.primitiveSuccess(
+				TupleDescriptor.fromCollection(applicable));
+		}
+
+		@Override
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
+		{
+			return FunctionTypeDescriptor.create(
+				TupleDescriptor.from(
+					IMPLEMENTATION_SET.o(),
+					TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+						IntegerRangeTypeDescriptor.wholeNumbers(),
+						TupleDescriptor.empty(),
+						TYPE.o())),
+				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+					IntegerRangeTypeDescriptor.wholeNumbers(),
+					TupleDescriptor.empty(),
+					FunctionTypeDescriptor.forReturnType(
+						TYPE.o())));
 		}
 	},
 
