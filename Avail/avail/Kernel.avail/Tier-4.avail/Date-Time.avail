@@ -50,6 +50,7 @@ Names
 	
 	/* Date */
 	"date",
+	"a date",
 	"year_month_day_«time zone_»",
 	"_size",
 	"_is a leap year",
@@ -59,6 +60,7 @@ Names
 	"days since unix epoch from date_",
 	"number of leap years between_and_",
 	"Subtract_from_«in_»",
+	"convert_of form YYYY-MM-DD to a date",
 	
 	/* Timestamp */
 	"timestamp",
@@ -401,6 +403,9 @@ Rule
 	d->day < 32 & d->day > 0 &
 	d->year < ∞ & d->year > -∞;
 ];
+
+/* Create a date type */
+Method "a date" is [date;];
 
 /* Create a date */
 Method "year_month_day_«time zone_»" is
@@ -1036,3 +1041,14 @@ Method "Subtract_from_«in_»" is
 		];
 	];	
 ]:integer;
+
+/* Convert a string to a date.  Requires form YYYY-MM-DD */
+Method "convert_of form YYYY-MM-DD to a date" is
+[
+	dtString : string
+|
+
+	year (convert dtString[1..4] to an integer)
+	month (convert dtString[6..7] to an integer)
+	day (convert dtString[9..10] to an integer);
+]:date;

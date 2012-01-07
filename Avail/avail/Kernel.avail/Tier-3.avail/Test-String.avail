@@ -1,5 +1,5 @@
 /**
- * .../Tier-2/Test-String.avail
+ * .../Tier-3/Test-String.avail
  * Copyright (c) 2011, Mark van Gulik.
  * All rights reserved.
  *
@@ -33,9 +33,8 @@
 System Module "Test-String"
 Extends
 Uses
-	"Tier-1",
-	"Continuation",
-	"Tuple"
+	"Tier-2",
+	"Number"
 Names
 Body
 

@@ -64,7 +64,6 @@ Names
 	"code point of_",
 	"#_",
 	"$_",
-	"_r_",
 	"<«_‡,»`…|_.._>"
 Body
 
@@ -622,43 +621,6 @@ lettera ::= #"a";
 letterz ::= #"z";
 letterA ::= #"A";
 letterZ ::= #"Z";
-
-Method "_r_" is [radix : [2..36], digits : string |
-	/* Variable-radix string to integer conversion.
-	   For example, 16r"ff" is 255. */
-	result : whole number := 0;
-	digits do [char : character |
-		dig ::= code point of char;
-		digValue ::= cast dig into [numericDig : [digitZero..digitNine] |
-			numericDig - digitZero;
-		] otherwise [
-			cast dig into [lowercaseDig : [lettera..letterz] |
-				lowercaseDig - lettera + 10;
-			] otherwise [
-				cast dig into [uppercaseDig : [letterA..letterZ] |
-					uppercaseDig - letterA + 10;
-				] otherwise [
-					Crash "Unknown digit during radix conversion: " then <dig>;
-				];
-			];
-		];
-		Assert 0 <= digValue < radix;
-		result := result * radix + digValue;
-	];
-	result;
-];
-
-Restriction "_r_" is [radixType : [2..36] type, digitsType : string type |
-	maxStringSize ::= digitsType sizes upper bound;
-	if maxStringSize is finite then [
-		/* Compute a rough bound based on the string size and radix. */
-		finiteMaxStringSize ::= cast maxStringSize into [w : whole number | w;];
-		maxRadix ::= radixType upper bound;
-		[0..maxRadix ^ finiteMaxStringSize);
-	] else [
-		whole number;
-	];
-];
 
 Method "_to_" is [a : character, b : character |
 	result : string := "";

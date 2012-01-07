@@ -39,7 +39,6 @@ Uses
 	"Test-Map",
 	"Test-Parser",
 	"Test-Set",
-	"Test-String",
 	"Test-Tuple"
 Names
 Body

@@ -33,10 +33,8 @@
 System Module "Console"
 Extends
 Uses
-	"Tier-2",
-	"Number",
-	"Control-Structure",
-	"Enum"
+	"Tier-3",
+	"Date-Time"
 Names
 	"a string",
 	"input character from console",
@@ -78,9 +76,13 @@ Method "get user input" is [
  *			ex: Ask for an integer with the question "give me integer:";
  *		2) float - float or a float
  *			ex: Ask for an integer with the question "give me float:";
- *		3) string - string or a string
+ *		3) date - date or a date (must be of form YYYY-MM-DD)
+ *			ex: Ask for a date with the question "give me date:";
+ *		4) string - string or a string
  *			ex: Ask for a string with the question "give me string:"; 
  */
+Forward "Ask for_with the question,_" for [ type, string] -> any;
+ 
 Method "Ask for_with the question,_" is
 [
 	inputType : type,
@@ -97,12 +99,40 @@ Method "Ask for_with the question,_" is
 		]:
 		case integer do
 		[
-			
-			convert stream to an integer;
+			catch 
+			[ 
+				e: Invalid Numeral 
+			|
+				Print stream then 
+					" is not an integer.";  
+				Ask for an integer with the question, 
+					"Please enter a valid integer: ";
+				
+			] in
+			[
+				convert stream to an integer;
+			];
 		]:
 		case float do
 		[
-			convert stream to a float;
+			catch 
+			[ 
+				e : Invalid Numeral 
+			|
+				Print stream then 
+					" is not an integer.";  
+				Ask for a float with the question, 
+					"Please enter a valid float: ";
+				
+			] in
+			[
+				convert stream to a float;
+			];
+
+		]:
+		case date do
+		[
+			convert stream of form YYYY-MM-DD to a date;
 		]:
 		default
 		[

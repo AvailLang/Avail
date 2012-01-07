@@ -36,7 +36,9 @@ Uses
 	"Test-Control-Structure",
 	"Test-ObjectTypes",
 	"Test-Objects",
-	"Test-Exceptions"
+	"Test-Exceptions",
+	"Test-Number",
+	"Test-String"
 Names
 Body
 

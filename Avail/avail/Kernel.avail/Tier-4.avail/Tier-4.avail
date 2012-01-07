@@ -37,6 +37,7 @@ Extends
 	"Factory",
 	"Graph",
 	"Iterator",
+	"Console",
 	"TupleIterator",
 	"Pojo",
 	"Date-Time"
