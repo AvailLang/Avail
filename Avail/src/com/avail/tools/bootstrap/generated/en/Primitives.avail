@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.01.06 22:44:53.282 -0600
+ * * Last Generated On: 2012.01.08 12:38:40.713 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -120,11 +120,13 @@ Names
 	/* 120 */ "new atom_",
 	/*  16 */ "new ↑_",
 	/*  71 */ "new_applying_",
+	/* 201 */ "raise_",
 	/*  24 */ "request termination of_",
 	/*  58 */ "restart_",
 	/*  56 */ "restart_with_",
 	/*  15 */ "swap_and_",
 	/*  23 */ "termination requested",
+	/* 200 */ "try_catch_",
 	/* 111 */ "{_|_}",
 	/*  87 */ "{_→_|_}",
 	/* 181 */ "|_'s local variables|",

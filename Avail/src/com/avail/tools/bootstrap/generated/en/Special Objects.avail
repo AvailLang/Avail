@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.01.06 22:44:53.252 -0600
+ * * Last Generated On: 2012.01.08 12:38:40.685 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -60,6 +60,7 @@ Uses
 	/* 61 */ "declaration node",
 	/* 12 */ "double",
 	/* 96 */ "empty map",
+	/* 104 */ "empty tuple",
 	/* 21 */ "enumeration meta",
 	/* 24 */ "enumeration meta meta",
 	/* 52 */ "expression node",
@@ -126,12 +127,14 @@ Uses
 	/* 100 */ "tuple of tuple",
 	/* 73 */ "tuple of type",
 	/* 34 */ "type",
+	/* 105 */ "unary procedure",
 	/* 103 */ "unsigned short",
 	/*  7 */ "variable",
 	/*  8 */ "variable meta",
 	/* 60 */ "variable use node",
 	/* 36 */ "whole number",
 	/* 98 */ "whole number meta",
+	/* 106 */ "zero's type",
 	/* 77 */ "∅",
 	/* 79 */ "∞",
 	/* 35 */ "⊤",
@@ -233,6 +236,9 @@ _tuple_of_tuple                ::= special object 100;
 _nybble                        ::= special object 101;
 _tuple_of_nybble               ::= special object 102;
 _unsigned_short                ::= special object 103;
+_empty_tuple                   ::= special object 104;
+_unary_procedure               ::= special object 105;
+_zero's_type                   ::= special object 106;
 
 Method "any" is 
 [
@@ -705,5 +711,20 @@ Method "tuple of nybble" is
 Method "unsigned short" is 
 [
 	_unsigned_short;
+];
+
+Method "empty tuple" is 
+[
+	_empty_tuple;
+];
+
+Method "unary procedure" is 
+[
+	_unary_procedure;
+];
+
+Method "zero's type" is 
+[
+	_zero's_type;
 ];
 

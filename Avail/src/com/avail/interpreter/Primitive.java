@@ -4882,7 +4882,7 @@ public enum Primitive
 	 * invokes the {@linkplain FunctionDescriptor body block}. The handler block
 	 * is only invoked when an exception is raised.
 	 */
-	prim200_CatchException(200, 2, Unknown)
+	prim200_CatchException(200, 2, CatchException, Unknown)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -5377,7 +5377,7 @@ public enum Primitive
 	 * AvailRuntime#specialObject(int) special object} with the specified
 	 * ordinal.
 	 */
-	prim240_SpecialObject(240, 1, CanFold)
+	prim240_SpecialObject(240, 1, Private, CanFold)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -5733,7 +5733,7 @@ public enum Primitive
 	 * <strong>Primitive 253:</strong> Method definition, without a type
 	 * restriction function.
 	 */
-	prim253_SimpleMethodDeclaration(253, 2, Unknown)
+	prim253_SimpleMethodDeclaration(253, 2, Private, Unknown)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -6005,271 +6005,6 @@ public enum Primitive
 				TupleDescriptor.from(
 					ANY.o()),
 				TupleTypeDescriptor.stringTupleType());
-		}
-	},
-
-	/**
-	 * <strong>Primitive 260:</strong> Create an opaque library object into
-	 * which we can load declarations.  We may also open it later (load the
-	 * actual DLL) via {@link #prim261_OpenLibrary primitive
-	 * 261}.  Answer the handle (an integer).  Associated with the handle is:
-	 * <ol>
-	 * <li>an ExternalDictionary for accumulating declarations,</li>
-	 * <li>a place to store an ExternalLibrary if it is subsequently opened.
-	 * </li>
-	 * </ol>
-	 */
-	prim260_CreateLibrarySpec(260, 0, CanInline)
-	{
-		@Override
-		public @NotNull Result attempt (
-			final @NotNull List<AvailObject> args,
-			final @NotNull Interpreter interpreter)
-		{
-			return interpreter.primitiveFailure(E_PRIMITIVE_NOT_SUPPORTED);
-			/* From Smalltalk:
-				| lib handle |
-				lib := Array with: ExternalDictionary new with: nil.
-				openLibraries add: lib.
-				handle := openLibraries size.
-				^IntegerDescriptor objectFromSmalltalkInteger: handle
-			 */
-		}
-
-		@Override
-		protected @NotNull AvailObject privateBlockTypeRestriction ()
-		{
-			return FunctionTypeDescriptor.create(
-				TupleDescriptor.from(),
-				ATOM.o());
-		}
-	},
-
-	/**
-	 * <strong>Primitive 261:</strong> Open a previously constructed library.
-	 * Its handle (into openLibraries) is passed.
-	 */
-	prim261_OpenLibrary(261, 2, CanInline, HasSideEffect)
-	{
-		@Override
-		public @NotNull Result attempt (
-			final @NotNull List<AvailObject> args,
-			final @NotNull Interpreter interpreter)
-		{
-			return interpreter.primitiveFailure(E_PRIMITIVE_NOT_SUPPORTED);
-			/* From Smalltalk:
-				| opaqueLib externalLib |
-				opaqueLib := openLibraries at: libraryHandle extractInt.
-				(opaqueLib at: 2) isNil assert.
-				externalLib := ExternalLibrary
-					named: libraryFileName asNativeString
-					owner: nil.
-				opaqueLib at: 2 put: externalLib.
-				^VoidDescriptor voidObject
-			 */
-		}
-
-		@Override
-		protected @NotNull AvailObject privateBlockTypeRestriction ()
-		{
-			return FunctionTypeDescriptor.create(
-				TupleDescriptor.from(
-					ATOM.o(),
-					TupleTypeDescriptor.stringTupleType()),
-				TOP.o());
-		}
-	},
-
-	/**
-	 * <strong>Primitive 262:</strong> Declare a function for the given library.
-	 * Don't look for the entry point yet, that's actually the job of {@link
-	 * #prim263_ExtractEntryPoint primitive 263}.
-	 * Instead, parse the declaration to produce an ExternalMethod.  Create an
-	 * opaque handle that secretly contains:
-	 * <ol>
-	 * <li>the library's handle,</li>
-	 * <li>the functionType,</li>
-	 * <li>an ExternalProcedure (which can cache the function address when
-	 * invoked), and</li>
-	 * <li>Java code that accepts and returns Avail objects but invokes
-	 * the underlying C function.</li>
-	 * </ol>
-	 */
-	prim262_ParseDeclarations(262, 2, CanInline, HasSideEffect)
-	{
-		@Override
-		public @NotNull Result attempt (
-			final @NotNull List<AvailObject> args,
-			final @NotNull Interpreter interpreter)
-		{
-			return interpreter.primitiveFailure(E_PRIMITIVE_NOT_SUPPORTED);
-			/* From Smalltalk:
-				| privateLib externalDictionary |
-				privateLib := openLibraries at: libraryHandle extractInt.
-				externalDictionary := privateLib at: 1.
-				externalDictionary notNil assert.
-				CDeclarationParser
-					parseWithPreprocess: declaration asNativeString readStream
-					as: #Cfile
-					declarations: externalDictionary
-					includeDirectories: #()
-					requestor: nil.
-				^VoidDescriptor voidObject
-			 */
-		}
-
-		@Override
-		protected @NotNull AvailObject privateBlockTypeRestriction ()
-		{
-			return FunctionTypeDescriptor.create(
-				TupleDescriptor.from(
-					ATOM.o(),
-					TupleTypeDescriptor.stringTupleType()),
-				TOP.o());
-		}
-	},
-
-	/**
-	 * <strong>Primitive 263:</strong> Create an entry point handle to deal with
-	 * subsequent invocations of the already declared function with given name.
-	 * The library does not yet have to be opened.  The resulting entry point
-	 * handle encapsulates:
-	 * <ol>
-	 * <li>an ExternalProcedure</li>
-	 * <li>a functionType</li>
-	 * <li>the construct that encapsulates the library handle.</li>
-	 * </ol>
-	 */
-	prim263_ExtractEntryPoint(263, 2, CanInline, HasSideEffect)
-	{
-		@Override
-		public @NotNull Result attempt (
-			final @NotNull List<AvailObject> args,
-			final @NotNull Interpreter interpreter)
-		{
-			return interpreter.primitiveFailure(E_PRIMITIVE_NOT_SUPPORTED);
-			/* From Smalltalk:
-				| opaqueLibrary externals external argTypes argTypesTuple returnType opaqueEntryPoint |
-				opaqueLibrary := openLibraries at: libraryHandle extractInt.
-				externals := opaqueLibrary at: 1.
-				external := externals at: functionName asNativeString asSymbol.
-				external owner: ExternalInterface.
-				argTypes := external type argumentTypes collect: [:argType |
-					self convertExternalArgumentType: argType baseType].
-				argTypesTuple := TupleDescriptor mutableObjectFromArray: argTypes.
-				returnType := self
-					convertExternalResultType: external type resultType baseType.
-				opaqueEntryPoint := Array
-					with: external
-					with: (FunctionTypeDescriptor
-						functionTypeForArgumentTypes: argTypesTuple
-						returnType: returnType)
-					with: opaqueLibrary.
-				entryPoints add: opaqueEntryPoint.
-				^IntegerDescriptor objectFromSmalltalkInteger: entryPoints size
-			 */
-		}
-
-		@Override
-		protected @NotNull AvailObject privateBlockTypeRestriction ()
-		{
-			return FunctionTypeDescriptor.create(
-				TupleDescriptor.from(
-					ATOM.o(),
-					TupleTypeDescriptor.stringTupleType()),
-				ATOM.o());
-		}
-	},
-
-	/**
-	 * <strong>Primitive 264:</strong> Answer the function type associated with
-	 * the given entry point.
-	 */
-	prim264_EntryPointFunctionType(264, 1, CanInline)
-	{
-		@Override
-		public @NotNull Result attempt (
-			final @NotNull List<AvailObject> args,
-			final @NotNull Interpreter interpreter)
-		{
-			return interpreter.primitiveFailure(E_PRIMITIVE_NOT_SUPPORTED);
-			/* From Smalltalk:
-				| privateEntryPoint |
-				privateEntryPoint := entryPoints at: entryPointHandle extractInt.
-				^privateEntryPoint at: 2
-			 */
-		}
-
-		@Override
-		protected @NotNull AvailObject privateBlockTypeRestriction ()
-		{
-			return FunctionTypeDescriptor.create(
-				TupleDescriptor.from(
-					ATOM.o()),
-				FunctionTypeDescriptor.meta());
-		}
-	},
-
-	/**
-	 * <strong>Primitive 265:</strong> Invoke the entry point associated with
-	 * the given handle, using the specified arguments.
-	 */
-	prim265_InvokeEntryPoint(265, 2, CanInline, HasSideEffect)
-	{
-		@Override
-		public @NotNull Result attempt (
-			final @NotNull List<AvailObject> args,
-			final @NotNull Interpreter interpreter)
-		{
-			return interpreter.primitiveFailure(E_PRIMITIVE_NOT_SUPPORTED);
-			/* From Smalltalk:
-				| privateEntryPoint external externalType args result proc libraryArray externalLibrary procType resultType |
-				privateEntryPoint := entryPoints at: entryPointHandle extractInt.
-				external := privateEntryPoint at: 1.
-				externalType := external type.
-				args := (1 to: argumentsTuple tupleSize) collect: [:index |
-					self
-						convertArgument: (argumentsTuple tupleAt: index)
-						toExternalArgumentType: (externalType argumentTypes at: index)].
-				proc := privateEntryPoint at: 1.
-				libraryArray := privateEntryPoint at: 3.
-				externalLibrary := libraryArray at: 2.
-				proc referentAddress isNil ifTrue: [
-					| address |
-					address := ExternalMethod mapAddressFor: external library: externalLibrary.
-					address isNil ifTrue: [
-						self error: 'No such entry point in library'].
-					external referentAddress: address].
-				procType := proc type baseType.
-				resultType := procType resultType.
-				result := ExternalMethod
-					primCallC: external referentAddress
-					specifierCallFlags: procType specifierCallFlags
-					arguments: args
-					argumentKinds: procType argumentKinds
-					structArgSize: procType structArgumentSize
-					structReturnSize: (resultType isComposite
-						ifTrue: [
-							resultType dataSize]
-						ifFalse: [0])
-					datumClass: (resultType isPointer
-						ifTrue: [
-							resultType referentType defaultPointerClass]
-						ifFalse: [
-							resultType defaultDatumClass])
-					resultType: resultType.	"plus varargs when supported"
-				^self convertExternalResult: result ofType: externalType resultType
-			 */
-		}
-
-		@Override
-		protected @NotNull AvailObject privateBlockTypeRestriction ()
-		{
-			return FunctionTypeDescriptor.create(
-				TupleDescriptor.from(
-					ATOM.o(),
-					TupleTypeDescriptor.mostGeneralType()),
-				ANY.o());
 		}
 	},
 
@@ -6700,204 +6435,6 @@ public enum Primitive
 		}
 	},
 
-
-	/**
-	 * <strong>Primitive 310:</strong> Add two {@linkplain DoubleDescriptor
-	 * doubles}.
-	 */
-	prim310_DoubleAddition(310, 2, CanFold, CannotFail)
-	{
-		@Override
-		public @NotNull Result attempt (
-			final @NotNull List<AvailObject> args,
-			final @NotNull Interpreter interpreter)
-		{
-			assert args.size() == 2;
-			final AvailObject a = args.get(0);
-			final AvailObject b = args.get(1);
-			return interpreter.primitiveSuccess(
-				DoubleDescriptor.objectFromDoubleRecycling(
-					(a.extractDouble() + b.extractDouble()),
-					a,
-					b,
-					true));
-		}
-
-		@Override
-		protected @NotNull AvailObject privateBlockTypeRestriction ()
-		{
-			return FunctionTypeDescriptor.create(
-				TupleDescriptor.from(
-					DOUBLE.o(),
-					DOUBLE.o()),
-				DOUBLE.o());
-		}
-	},
-
-	/**
-	 * <strong>Primitive 311:</strong> Subtract {@linkplain DoubleDescriptor
-	 * double} {@code b} from double {@code a}.
-	 */
-	prim311_DoubleSubtraction(311, 2, CanFold, CannotFail)
-	{
-		@Override
-		public @NotNull Result attempt (
-			final @NotNull List<AvailObject> args,
-			final @NotNull Interpreter interpreter)
-		{
-			assert args.size() == 2;
-			final AvailObject a = args.get(0);
-			final AvailObject b = args.get(1);
-			return interpreter.primitiveSuccess(
-				DoubleDescriptor.objectFromDoubleRecycling(
-					(a.extractDouble() - b.extractDouble()),
-					a,
-					b,
-					true));
-		}
-
-		@Override
-		protected @NotNull AvailObject privateBlockTypeRestriction ()
-		{
-			return FunctionTypeDescriptor.create(
-				TupleDescriptor.from(
-					DOUBLE.o(),
-					DOUBLE.o()),
-				DOUBLE.o());
-		}
-	},
-
-	/**
-	 * <strong>Primitive 312:</strong> Multiply {@linkplain DoubleDescriptor
-	 * double} {@code a} and double {@code b}.
-	 */
-	prim312_DoubleMultiplication(312, 2, CanFold, CannotFail)
-	{
-		@Override
-		public @NotNull Result attempt (
-			final @NotNull List<AvailObject> args,
-			final @NotNull Interpreter interpreter)
-		{
-			assert args.size() == 2;
-			final AvailObject a = args.get(0);
-			final AvailObject b = args.get(1);
-			return interpreter.primitiveSuccess(
-				DoubleDescriptor.objectFromDoubleRecycling(
-					(a.extractDouble() * b.extractDouble()),
-					a,
-					b,
-					true));
-		}
-
-		@Override
-		protected @NotNull AvailObject privateBlockTypeRestriction ()
-		{
-			return FunctionTypeDescriptor.create(
-				TupleDescriptor.from(
-					DOUBLE.o(),
-					DOUBLE.o()),
-				DOUBLE.o());
-		}
-	},
-
-	/**
-	 * <strong>Primitive 313:</strong> Divide {@linkplain DoubleDescriptor
-	 * double} {@code a} by double {@code b}.
-	 */
-	prim313_DoubleDivision(313, 2, CanFold)
-	{
-		@Override
-		public @NotNull Result attempt (
-			final @NotNull List<AvailObject> args,
-			final @NotNull Interpreter interpreter)
-		{
-			assert args.size() == 2;
-			final AvailObject a = args.get(0);
-			final AvailObject b = args.get(1);
-			if (b.extractDouble() == 0.0d)
-			{
-				return interpreter.primitiveFailure(E_CANNOT_DIVIDE_BY_ZERO);
-			}
-			return interpreter.primitiveSuccess(
-				DoubleDescriptor.objectFromDoubleRecycling(
-					(a.extractDouble() / b.extractDouble()),
-					a,
-					b,
-					true));
-		}
-
-		@Override
-		protected @NotNull AvailObject privateBlockTypeRestriction ()
-		{
-			return FunctionTypeDescriptor.create(
-				TupleDescriptor.from(
-					DOUBLE.o(),
-					DOUBLE.o()),
-				DOUBLE.o());
-		}
-	},
-
-	/**
-	 * <strong>Primitive 314:</strong> Compare {@linkplain DoubleDescriptor
-	 * double} {@code a < b}. Answers a {@linkplain
-	 * EnumerationTypeDescriptor#booleanObject() boolean}.
-	 */
-	prim314_DoubleLessThan(314, 2, CanFold, CannotFail)
-	{
-		@Override
-		public @NotNull Result attempt (
-			final @NotNull List<AvailObject> args,
-			final @NotNull Interpreter interpreter)
-		{
-			assert args.size() == 2;
-			final AvailObject a = args.get(0);
-			final AvailObject b = args.get(1);
-			return interpreter.primitiveSuccess(
-				AtomDescriptor.objectFromBoolean(
-					a.extractDouble() < b.extractDouble()));
-		}
-
-		@Override
-		protected @NotNull AvailObject privateBlockTypeRestriction ()
-		{
-			return FunctionTypeDescriptor.create(
-				TupleDescriptor.from(
-					DOUBLE.o(),
-					DOUBLE.o()),
-				EnumerationTypeDescriptor.booleanObject());
-		}
-	},
-
-	/**
-	 * <strong>Primitive 315:</strong> Compare {@linkplain DoubleDescriptor
-	 * double} {@code a <= b}. Answers a {@linkplain
-	 * EnumerationTypeDescriptor#booleanObject() boolean}.
-	 */
-	prim315_DoubleLessOrEqual(315, 2, CanFold, CannotFail)
-	{
-		@Override
-		public @NotNull Result attempt (
-			final @NotNull List<AvailObject> args,
-			final @NotNull Interpreter interpreter)
-		{
-			assert args.size() == 2;
-			final AvailObject a = args.get(0);
-			final AvailObject b = args.get(1);
-			return interpreter.primitiveSuccess(
-				AtomDescriptor.objectFromBoolean(
-					a.extractDouble() <= b.extractDouble()));
-		}
-
-		@Override
-		protected @NotNull AvailObject privateBlockTypeRestriction ()
-		{
-			return FunctionTypeDescriptor.create(
-				TupleDescriptor.from(
-					DOUBLE.o(),
-					DOUBLE.o()),
-				EnumerationTypeDescriptor.booleanObject());
-		}
-	},
 
 	/**
 	 * <strong>Primitive 316:</strong> Compute the natural logarithm of the
@@ -7992,6 +7529,14 @@ public enum Primitive
 		 * that links a {@code Private} primitive.
 		 */
 		Private,
+
+		/**
+		 * The primitive is the special exception catching primitive. Its sole
+		 * purpose is to fail, causing an actual continuation to be built. The
+		 * exception raising mechanism searches for such a continuation to find
+		 * a suitable handler function.
+		 */
+		CatchException,
 
 		/**
 		 * The semantics of the primitive fall outside the usual capacity of the

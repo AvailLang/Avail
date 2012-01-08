@@ -324,6 +324,13 @@ public final class AvailRuntime
 				TupleDescriptor.empty(),
 				IntegerRangeTypeDescriptor.nybbles());
 		specialObjects[103] = IntegerRangeTypeDescriptor.unsignedShorts();
+		specialObjects[104] = TupleDescriptor.empty();
+		specialObjects[105] = FunctionTypeDescriptor.create(
+			TupleDescriptor.from(
+				BottomTypeDescriptor.bottom()),
+			TOP.o());
+		specialObjects[106] = InstanceTypeDescriptor.on(
+			IntegerDescriptor.zero());
 
 		for (final AvailObject object : specialObjects)
 		{

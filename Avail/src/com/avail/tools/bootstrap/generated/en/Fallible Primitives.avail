@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.01.06 22:44:53.317 -0600
+ * * Last Generated On: 2012.01.08 12:38:40.750 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -56,11 +56,13 @@ Names
 	/*  57 */ "exit_with_",
 	/*  74 */ "function from_and_",
 	/*  40 */ "invoke_with_",
+	/* 201 */ "raise_",
 	/*  24 */ "request termination of_",
 	/*  58 */ "restart_",
 	/*  56 */ "restart_with_",
 	/*  15 */ "swap_and_",
 	/*  23 */ "termination requested",
+	/* 200 */ "try_catch_",
 	/*  10 */ "↓_",
 	/*  11 */ "↓_:=_",
 	/* 143 */ "∪_[_.._]"
@@ -564,4 +566,50 @@ Method "_#_:_(literals=_,#locals_,#outers_,stack depth=_)" is
 	Primitive 188 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode;
 ] : function implementation;
+
+/**
+ * Execute `body`. If an exception is raised, the virtual machine will scan the
+ * current fiber's chain of continuations to identify invocations of this
+ * primitive. The handler nearest to the end of the continuation chain, i.e.
+ * closest to the raise of the exception, that accepts an argument of the
+ * correct type is invoked with the exception. So `handler` will potentially
+ * run if code run (directly or indirectly) by `body` throws an exception of
+ * the correct type.
+ *
+ * Parameters:
+ *    body - The protected function.
+ *    handler - The exception handler.
+ */
+Method "try_catch_" is 
+[
+	body : nullary procedure,
+	handler : unary procedure
+|
+	Primitive 200 (failureCode : zero's type);
+	Private invoke body with empty tuple;
+] : ⊤;
+
+/**
+ * Raise `exception` as an exception. The virtual machine scans the current
+ * fiber's chain of continuations to identify an invocation of `try_catch_`
+ * (primitive 200). Extract the second argument from that continuation. This is
+ * an arity-one exception handling function. If it accepts `exception`, then
+ * discard all continuations after this one and then invoke the handler with
+ * `exception`. If the handler does not accept the argument, then the
+ * virtual machine continues scanning the chain of continuations for correctly
+ * typed exception handling functions. If no suitable exception handling
+ * function is found, then the primitive fails.
+ *
+ * Parameters:
+ *    exception - An exception.
+ * Returns:
+ *    ⊥.
+ */
+Method "raise_" is 
+[
+	exception : any
+|
+	Primitive 201 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode;
+] : ⊥;
 

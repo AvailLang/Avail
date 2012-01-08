@@ -517,11 +517,37 @@ public final class BootstrapGenerator
 		if (!primitive.hasFlag(Flag.CannotFail))
 		{
 			builder.append('\t');
-			builder.append(MessageFormat.format(
-				preamble.getString(
-					invokePrimitiveFailureFunctionMethodUse.name()),
-				preamble.getString(primitiveFailureFunctionName.name()),
-				preamble.getString(primitiveFailureVariableName.name())));
+			if (primitive.hasFlag(Flag.CatchException))
+			{
+				final String argNameKey = primitiveParameterNameKey(
+					primitive, 1);
+				final String argName;
+				if (primitiveBundle.containsKey(argNameKey))
+				{
+					final String localized =
+						primitiveBundle.getString(argNameKey);
+					argName = !localized.isEmpty()
+						? localized
+						: preamble.getString(parameterPrefix.name()) + 1;
+				}
+				else
+				{
+					argName = preamble.getString(parameterPrefix.name()) + 1;
+				}
+				builder.append(MessageFormat.format(
+					preamble.getString(
+						invokePrimitiveFailureFunctionMethodUse.name()),
+					argName,
+					namesBySpecialObject.get(TupleDescriptor.empty())));
+			}
+			else
+			{
+				builder.append(MessageFormat.format(
+					preamble.getString(
+						invokePrimitiveFailureFunctionMethodUse.name()),
+					preamble.getString(primitiveFailureFunctionName.name()),
+					preamble.getString(primitiveFailureVariableName.name())));
+			}
 			builder.append(";\n");
 		}
 		return builder.toString();
