@@ -61,6 +61,10 @@ Names
 	"number of leap years between_and_",
 	"Subtract_from_«in_»",
 	"convert_of form YYYY-MM-DD to a date",
+	"valid date month_day_year_",
+	"Invalid Date Format",
+	"Invalid Day",
+	"Invalid Month",
 	
 	/* Timestamp */
 	"timestamp",
@@ -81,6 +85,18 @@ Names
 	"PDT"
 
 Body
+
+/** Date-Time Exceptions **/
+result ::= lookup "result";
+
+"Invalid Date Format" is explicit subtype of Exception with
+	result -> string;
+
+"Invalid Day" is explicit subtype of Exception with
+	result -> integer;
+	
+"Invalid Month" is explicit subtype of Exception with
+	result -> integer;
 
 /** Time Zone Object - accounts for time difference from UTC **/
 hourDifference ::= new atom "hourDifference";
@@ -407,23 +423,6 @@ Rule
 /* Create a date type */
 Method "a date" is [date;];
 
-/* Create a date */
-Method "year_month_day_«time zone_»" is
-[
-	yr : integer,
-	mth : integer,
-	dy : integer,
-	tz : <time zone…|0..1>
-|
-	timezn : string;
-	if ||tz|| = 0 then [timezn := "UTC";] else [timezn := tz[1]->timeZoneName;];
-	
-	date new with <<month,mth>,
-        <day,dy>,
-        <year,yr>,
-        <timeZoneName,timezn>>;
-]:date;
-
 /* Creates a string of a date in the form YYYY-MM-DD */
 Method "_as string" is
 [
@@ -575,6 +574,132 @@ Method "_is a leap year" is
 	];
 ]:boolean;
 
+/* Checks to see if a valid date */
+
+Method "valid date month_day_year_" is
+[
+	mth : integer,
+	dy : integer,
+	yr : integer
+|
+	outcome : boolean := false;
+
+	if 0 >= mth | mth > 12 then 
+	[
+		Invalid Month with mth;
+	]
+	else 
+	[
+		Switch mth
+		case 1 do
+		[
+			if 0 < dy < 32 then [outcome := true;] else 
+				[Invalid Day with dy;];
+		]:
+		case 2 do
+		[
+			ld : integer := 0;
+			if yr is a leap year then [ld := 1;];
+			if 0 < dy < 29 + ld then [outcome := true;] else 
+				[Invalid Day with dy;];
+		]:
+		case 3 do
+		[
+			if 0 < dy < 32 then [outcome := true;] else 
+				[Invalid Day with dy;];
+		]:
+		case 4 do
+		[
+			if 0 < dy < 31 then [outcome := true;] else 
+				[Invalid Day with dy;];
+		]:
+		case 5 do
+		[
+			if 0 < dy < 32 then [outcome := true;] else 
+				[Invalid Day with dy;];
+		]:
+		case 6 do
+		[
+			if 0 < dy < 31 then [outcome := true;] else 
+				[Invalid Day with dy;];
+		]:
+		case 7 do
+		[
+			if 0 < dy < 32 then [outcome := true;] else 
+				[Invalid Day with dy;];
+		]:
+		case 8 do
+		[
+			if 0 < dy < 32 then [outcome := true;] else 
+				[Invalid Day with dy;];
+		]:
+		case 9 do
+		[
+			if 0 < dy < 31 then [outcome := true;] else 
+				[Invalid Day with dy;];
+		]:
+		case 10 do
+		[
+			if 0 < dy < 32 then [outcome := true;] else 
+				[Invalid Day with dy;];
+		]:
+		case 11 do
+		[
+			if 0 < dy < 31 then [outcome := true;] else 
+				[Invalid Day with dy;];
+		]:
+		default
+		[
+			if 0 < dy < 32 then [outcome := true;] else 
+				[Invalid Day with dy;];
+		];
+	];
+	outcome;
+]:boolean;
+
+/* Create a date */
+Method "year_month_day_«time zone_»" is
+[
+	yr : integer,
+	mth : integer,
+	dy : integer,
+	tz : <time zone…|0..1>
+|
+
+
+	catch
+	[
+		e : Invalid Month
+	|
+		Crash "Received an invalid month while attempting to construct a date";
+	],
+	[
+		e : Invalid Day
+	|
+		Crash "Received an invalid day while attempting to construct a date";
+	] in
+	[
+		boo : boolean := valid date month mth day dy year yr;
+		
+		timezn : string;
+		if ||tz|| = 0 then [timezn := "UTC";] 
+			else [timezn := tz[1]->timeZoneName;];
+		date new with <<month,mth>,
+        <day,dy>,
+        <year,yr>,
+        <timeZoneName,timezn>>;
+	];
+]:any;
+
+Restriction "year_month_day_«time zone_»" is
+[
+	yrType : integer type,
+	mthType : integer type,
+	dyType : integer type,
+	tzType : (<time zone…|0..1>) type
+|
+	date;
+];
 /* Given a number of days, calculate the month and day in the year */
 Method "Date_days into the year_" is
 [
@@ -1047,8 +1172,41 @@ Method "convert_of form YYYY-MM-DD to a date" is
 [
 	dtString : string
 |
+	if ||dtString|| not = 10  then
+	[  
+		Raise Invalid Date Format with dtString;
+	];
+	
+	if dtString[5] not = $"-" | dtString[5] not = $"-" then
+	[  
+		Raise Invalid Date Format with dtString;
+	];
+	
+	yr : integer;
+	mth : integer;
+	dy : integer;
+	
+	catch
+	[
+		e : Invalid Numeral
+	|
+		Raise Invalid Date Format with dtString;
+	] in
+	[
+		yr := convert dtString[1..4] to an integer;
+		mth := convert dtString[6..7] to an integer;
+		dy := convert dtString[9..10] to an integer;
+		
+		if not valid date month mth day dy year yr then 
+		[Raise Invalid Date Format with dtString;];
+		
+		year yr month mth day dy;
+	]; 
+]:any;
 
-	year (convert dtString[1..4] to an integer)
-	month (convert dtString[6..7] to an integer)
-	day (convert dtString[9..10] to an integer);
-]:date;
+Restriction "convert_of form YYYY-MM-DD to a date" is
+[
+	dtStringType : string type
+|
+	date;
+];

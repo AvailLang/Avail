@@ -103,10 +103,9 @@ Method "Ask for_with the question,_" is
 			[ 
 				e: Invalid Numeral 
 			|
-				Print stream then 
+				Print "The prompt requires an integer input. " then stream then 
 					" is not an integer.";  
-				Ask for an integer with the question, 
-					"Please enter a valid integer: ";
+				Ask for an integer with the question, question;
 				
 			] in
 			[
@@ -119,10 +118,9 @@ Method "Ask for_with the question,_" is
 			[ 
 				e : Invalid Numeral 
 			|
-				Print stream then 
-					" is not an integer.";  
-				Ask for a float with the question, 
-					"Please enter a valid float: ";
+				Print "The prompt requires a decimal number input. " then 
+				stream then " is not a decimal number.";  
+				Ask for a float with the question, question;
 				
 			] in
 			[
@@ -132,7 +130,24 @@ Method "Ask for_with the question,_" is
 		]:
 		case date do
 		[
-			convert stream of form YYYY-MM-DD to a date;
+			catch 
+			[ 
+				e : Invalid Date Format 
+			|
+				Print "The prompt requires an input of a date of" then
+				" the format YYYY-MM-DD, where:\n" then 
+				"	YYYY is a four digit year integer\n" then
+				"	MM is a two digit month integr from 01 through 12\n" then
+				"	DD is a two digit day integer from 01 through 31";
+				 
+				Print stream then " is not a properly formated date.";  
+				
+				Ask for a date with the question, question;
+				
+			] in
+			[
+				convert stream of form YYYY-MM-DD to a date;
+			];
 		]:
 		default
 		[

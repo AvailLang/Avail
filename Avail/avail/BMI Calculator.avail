@@ -42,7 +42,7 @@ Method "⊤" is [ void; ];
 
 /* The BMI Calculator is take from the assignment 2.33 in Java How to Program
  *
- * This program utilizes x methods to run:
+ * This program utilizes 5 methods to run:
  * 	1) "Print_" - prints a string to the console
  *
  *	2) "Ask for_with the question,_" - Prompts a user with a question (2nd arg)
@@ -56,7 +56,9 @@ Method "⊤" is [ void; ];
  *		will prompt the user on the console with the question:
  *			"Please enter an integer: "
  * 		The response entered by the user will then be converted into an integer.
- *		10 base counting.
+ *		If the user does not provide the required type as indicated in the
+ *		the method, the user will automatically be prompted for a new input
+ *		after clarification of the input requirement.
  *
  *	3) "Loop_until_do" - An Avail continuation that loops through a block
  *		(first argument - a function) until a condition is met (second argument, 

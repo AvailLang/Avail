@@ -40,7 +40,7 @@ Body
 Method "⊤" is [ void; ];
 
 /**
- * An example program that accepts a user's name (first & last) and birth date
+ * An example program that accepts a user's name (first & last) and birthdate
  * then calculates the maximum exercise heart rate and  the ideal heart rate 
  * range for for exercise.
  */
@@ -50,16 +50,9 @@ Method "Heart Rate Calculator" is
 [
 	name: string := Ask for a string with the question, "What is your name?";
 	
-	birthYear: integer := 
-		Ask for an integer with the question, "what is your year of birth";
-	
-	birthMonth: integer := 
-		Ask for an integer with the question, "what is your month of birth";
-
-	birthDay: integer := 
-		Ask for an integer with the question, "what is your day of birth";
-	
-	dob : date := year birthYear month birthMonth day birthDay;
+	dob: date := 
+		Ask for a date with the question, 
+		"what is your date of birth? (YYYY-MM-DD):";
 
 	age : integer := Subtract dob from today's date;
 	
@@ -67,7 +60,9 @@ Method "Heart Rate Calculator" is
 	
 	Print "Name: " then name;
 
-	Print "DOB: " then dob as string; 
+	Print "DOB: " then dob as string;
+	
+	Print "Age: " then age as basic string; 
 	
 	Print "Maximum Heart Rate: " then maxHeartRate as basic string;
 	 

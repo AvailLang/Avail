@@ -98,7 +98,7 @@ Method "_r_" is
 				Raise Invalid Character with digits;
 			];
 	
-		if digValue > radix | digValue < 0 then [Raise Invalid Numeral with digits;];
+		if digValue >= radix | digValue < 0 then [Raise Invalid Numeral with digits;];
 		
 		answer := answer * radix + digValue;
 	];
