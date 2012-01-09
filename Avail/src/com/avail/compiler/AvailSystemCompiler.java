@@ -1015,7 +1015,7 @@ extends AbstractAvailCompiler
 				{
 					@Override
 					public void value(
-						final ParserState state,
+						final ParserState afterExceptions,
 						final AvailObject checkedExceptions)
 					{
 						final AvailObject blockNode =
@@ -1025,7 +1025,7 @@ extends AbstractAvailCompiler
 								statements,
 								lastStatementType.value,
 								checkedExceptions);
-						attempt(stateOutsideBlock, continuation, blockNode);
+						attempt(afterExceptions, continuation, blockNode);
 					};
 				});
 		}
@@ -1159,17 +1159,16 @@ extends AbstractAvailCompiler
 	{
 		attempt(start, continuation, SetDescriptor.empty());
 
-		if (!start.peekToken(
+		if (start.peekToken(
 			CARET,
 			"optional block exceptions declaration"))
 		{
-			return;
+			final ParserState afterColon = start.afterToken();
+			parseMoreExceptionClausesThen (
+				afterColon,
+				SetDescriptor.empty(),
+				continuation);
 		}
-		final ParserState afterColon = start.afterToken();
-		parseMoreExceptionClausesThen (
-			afterColon,
-			SetDescriptor.empty(),
-			continuation);
 	}
 
 	/**
@@ -1435,8 +1434,8 @@ extends AbstractAvailCompiler
 	 *            MessageBundleTreeDescriptor bundle trees} at which to continue
 	 *            parsing.
 	 * @param continuation
-	 *            What to do with a complete {@linkplain SendNodeDescriptor message
-	 *            send}.
+	 *            What to do with a complete {@linkplain SendNodeDescriptor
+	 *            message send}.
 	 */
 	void runParsingInstructionThen (
 		final ParserState start,

@@ -123,8 +123,7 @@ public class MessageSplitterTest
 		for (final String[] splitCase : Arrays.asList(splitCases))
 		{
 			final String msgString = splitCase[0];
-			final AvailObject message =
-				StringDescriptor.from(msgString);
+			final AvailObject message = StringDescriptor.from(msgString);
 			final MessageSplitter splitter = new MessageSplitter(message);
 			final AvailObject parts = splitter.messageParts();
 			assert splitCase.length == parts.tupleSize() + 2;

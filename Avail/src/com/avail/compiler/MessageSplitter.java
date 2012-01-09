@@ -829,6 +829,30 @@ public class MessageSplitter
 		}
 	}
 
+	//TODO: Implement parsing instruction class.
+	/*
+	 * <li>0     - parseArgument</li>
+	 * <li>1     - pushEmptyList</li>
+	 * <li>2     - append (pop A, append A to list on top of stack)</li>
+	 * <li>3     - push current parse position</li>
+	 * <li>4     - under-pop parse position (should be 2nd-to-top of stack)</li>
+	 * <li>5     - check that progress has been made relative to the parse position
+	 *             found at 2nd-to-top of stack.  Also replace with new parse
+	 *             position.</li>
+	 * <li>6     - parseRawToken</li>
+	 * <li>7     - (reserved)</li>
+	 * <li>8*N   - branch to instruction N (attempt to continue parsing at both
+	 *             the next instruction and N)</li>
+	 * <li>8*N+1 - jump to instruction N (do not attempt to continue at the next
+	 *             instruction)</li>
+	 * <li>8*N+2 - parseKeyword at part N</li>
+	 * <li>8*N+3 - copyArgumentForCheck for Nth leaf argument (position corresponds
+	 *             with negative precedence restrictions</li>
+	 * <li>8*N+4 - (reserved)</li>
+	 * <li>8*N+5 - (reserved)</li>
+	 * <li>8*N+6 - (reserved)</li>
+	 * <li>8*N+7 - (reserved)</li>
+	 */
 
 	/**
 	 * Construct a new {@link MessageSplitter}, parsing the provided message
@@ -1181,7 +1205,7 @@ public class MessageSplitter
 	 */
 	public static int keywordIndexFromInstruction (final int instruction)
 	{
-		if (instruction >= 8 && instruction % 8 == 2)
+		if (instruction >= 8 && (instruction & 7) == 2)
 		{
 			return instruction >> 3;
 		}

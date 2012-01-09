@@ -329,18 +329,24 @@ implements L2OperationDispatcher
 				implementations.lookupByValuesFromList(argsBuffer);
 			if (matching.equalsNull())
 			{
-				error("Ambiguous or invalid lookup");
+				error(
+					"Ambiguous or invalid lookup of %s",
+					implementations.name().name());
 				return;
 			}
 			if (matching.isForward())
 			{
-				error("Attempted to execute forward method " +
-					"before it was defined.");
+				error(
+					"Attempted to execute forward method %s "
+					+ "before it was defined.",
+					implementations.name().name());
 				return;
 			}
 			if (matching.isAbstract())
 			{
-				error("Attempted to execute an abstract method.");
+				error(
+					"Attempted to execute an abstract method %s.",
+					implementations.name().name());
 				return;
 			}
 			// Leave the expected return type pushed on the stack.  This will be
@@ -765,8 +771,8 @@ implements L2OperationDispatcher
 
 	/**
 	 * Answer the subscript of the integer register reserved for holding the
-	 * current (virtualized) continuation's {@linkplain
-	 * ContinuationDescriptor#o_Pc(AvailObject) pc} (program counter).
+	 * current (virtualized) continuation's {@linkplain AvailObject#pc() pc}
+	 * (program counter).
 	 *
 	 * @return The subscript to use with {@link L2Interpreter#integerAt(int)}.
 	 */
@@ -779,12 +785,11 @@ implements L2OperationDispatcher
 
 	/**
 	 * Answer the subscript of the integer register reserved for holding the
-	 * current (virtualized) continuation's {@linkplain
-	 * ContinuationDescriptor#o_Stackp(AvailObject) stackp} (stack pointer).
-	 * While in this register, the value refers to the exact pointer register
-	 * number rather than the value that would be stored in a continuation's
-	 * stackp slot, so adjustments must be made during reification and
-	 * explosion of continuations.
+	 * current (virtualized) continuation's {@linkplain AvailObject#stackp()
+	 * stackp} (stack pointer).  While in this register, the value refers to
+	 * the exact pointer register number rather than the value that would be
+	 * stored in a continuation's stackp slot, so adjustments must be made
+	 * during reification and explosion of continuations.
 	 *
 	 * @return The subscript to use with {@link L2Interpreter#pointerAt(int)}.
 	 */
