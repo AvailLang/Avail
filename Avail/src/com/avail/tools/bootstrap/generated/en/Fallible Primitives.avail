@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.01.08 12:38:40.750 -0600
+ * * Last Generated On: 2012.01.08 21:41:59.634 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -47,19 +47,26 @@ Uses
 	"Primitives"
 Names
 	"Set primitive failure function to_",
+	/* 251 */ "Abstract method_is_",
+	/* 252 */ "Forward method_is_",
+	/* 255 */ "Grammatical restriction_is_",
+	/* 249 */ "Macro_is_",
+	/* 201 */ "Raise_",
+	/* 248 */ "Semantic restriction_is_",
 	/* 188 */ "_#_:_(literals=_,#locals_,#outers_,stack depth=_)",
 	/* 142 */ "_[_.._]",
-	/* 132 */ "_[_]:=_",
+	/* 132 */ "_[_]→_",
 	/*   3 */ "_×_",
 	/*   4 */ "_÷_",
 	/*  18 */ "eject_",
 	/*  57 */ "exit_with_",
 	/*  74 */ "function from_and_",
 	/*  40 */ "invoke_with_",
-	/* 201 */ "raise_",
+	/* 254 */ "read character",
 	/*  24 */ "request termination of_",
 	/*  58 */ "restart_",
 	/*  56 */ "restart_with_",
+	/* 247 */ "semantic restrictions for_given_",
 	/*  15 */ "swap_and_",
 	/*  23 */ "termination requested",
 	/* 200 */ "try_catch_",
@@ -466,7 +473,7 @@ Method "_[_]" is
  * Returns:
  *    The requested tuple.
  */
-Method "_[_]:=_" is 
+Method "_[_]→_" is 
 [
 	aTuple : tuple,
 	index : natural number,
@@ -605,11 +612,163 @@ Method "try_catch_" is
  * Returns:
  *    ⊥.
  */
-Method "raise_" is 
+Method "Raise_" is 
 [
-	exception : any
+	exception : object
 |
 	Primitive 201 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode;
 ] : ⊥;
+
+/**
+ * Compute and answer the semantic restrictions that would run at a call site
+ * of `aMethod` applied with the specified tuple of arguments.
+ *
+ * Parameters:
+ *    aMethod - A method.
+ *    arguments - The tuple of arguments that should be used to filter the
+ *       semantic restrictions.
+ * Returns:
+ *    The requested semantic restrictions.
+ */
+Method "semantic restrictions for_given_" is 
+[
+	aMethod : method,
+	arguments : tuple of type
+|
+	Primitive 247 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode;
+] : tuple of semantic restriction function;
+
+/**
+ * Define the specified semantic restriction. Henceforth whenever the method
+ * named by `methodName` is invoked with arguments accepted by `restriction`, then
+ * apply `restriction` with the most specific available types of the actual
+ * arguments. This is determined by the compiler at the method's call site.
+ *
+ * A semantic restriction has two responsibilities. First, it may reject a
+ * method invocation on any appropriate semantic grounds by calling
+ * `Fail parse saying_`. Second, it may strengthen the type of value produced
+ * at the call site by answering a subtype of the method's declared return
+ * type.
+ *
+ * Parameters:
+ *    methodName - The name of the method to which the semantic restriction
+ *       applies.
+ *    restriction - The restriction function.
+ */
+Method "Semantic restriction_is_" is 
+[
+	methodName : string,
+	restriction : semantic restriction function
+|
+	Primitive 248 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode;
+] : ⊤;
+
+/**
+ * Define a macro with the specified name and body. A macro is a method invoked
+ * directly by the compiler as a consequence of parsing a sequence of tokens.
+ * The arguments of a macro are parse nodes that structurally represent the
+ * corresponding lexical expressions. The result of a macro is a parse node that
+ * completely replaces the macro invocation; the compiler proceeds as if it had
+ * built this parse node from the original tokens instead of the macro
+ * invocation parse node.
+ *
+ * Macro definitions are parametric by parameter types. They participate in
+ * multiply polymorphic dispatch just as do methods.
+ *
+ * Parameters:
+ *    macroName - The name of the macro to define.
+ *    body - The function that implements the macro.
+ */
+Method "Macro_is_" is 
+[
+	macroName : string,
+	body : macro function
+|
+	Primitive 249 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode;
+] : ⊤;
+
+/**
+ * Declare an abstract method with the specified name and signature. A concrete
+ * implementation is one whose parameter types and return type are strictly more
+ * specific than the corresponding types of the abstract signature.
+ *
+ * Parameters:
+ *    methodName - The name of the abstract method to declare.
+ *    aFunctionType - The signature.
+ */
+Method "Abstract method_is_" is 
+[
+	methodName : string,
+	aFunctionType : function meta
+|
+	Primitive 251 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode;
+] : ⊤;
+
+/**
+ * Declare the intention to locally define a method with the specified name and
+ * signature. If no such method is defined before compilation of the containing
+ * module completes, then the compiler will emit an appropriate error message.
+ *
+ * Recursive methods must be forward declared. Mutually recursive methods must
+ * forward declare all but the lexically first participant in the recursion.
+ *
+ * Parameters:
+ *    methodName - The name of the method to forward declare.
+ *    aFunctionType - The signature.
+ */
+Method "Forward method_is_" is 
+[
+	methodName : string,
+	aFunctionType : function meta
+|
+	Primitive 252 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode;
+] : ⊤;
+
+/**
+ * Read the next character from the console.
+ *
+ * Returns:
+ *    The next character from the console.
+ */
+Method "read character" is 
+[
+	Primitive 254 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode;
+] : character;
+
+/**
+ * Define the indicated grammatical restrictions. Each method name in
+ * `methodsToRestrict` must accept the same number of arguments, though not
+ * necessarily the same types (or the same order of types). Each element `e` of
+ * `exclusions`, itself a set of method names, corresponds to an argument
+ * position `n` of any method name in `methodsToRestrict`. The compiler rejects
+ * parses of source text that invoke methods named in `e` when they occur
+ * grammatically at argument position `n` of an invocation of any method named
+ * in `methodsToRestrict`.
+ *
+ * Note that "argument position" corresponds to a blank, not to a top-level
+ * repeating sequence (indicated by guillemet notation).
+ *
+ * Parameters:
+ *    methodsToRestrict - A set of method names, each of which should be
+ *       restricted.
+ *    exclusions - A tuple of sets of method names. The method names in the
+ *       `n`-th set are restricted from occurring grammatically at the `n`-th
+ *       argument position of any invocation of a method named in
+ *       `methodsToRestrict`.
+ */
+Method "Grammatical restriction_is_" is 
+[
+	methodsToRestrict : set of string,
+	exclusions : tuple of set of string
+|
+	Primitive 255 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode;
+] : ⊤;
 

@@ -111,7 +111,7 @@ extends Descriptor
 
 		/**
 		 * A {@linkplain MapDescriptor map} from {@linkplain AtomDescriptor true
-		 * names} to {@linkplain SignatureDescriptor signatures} which implement
+		 * names} to {@linkplain ImplementationDescriptor signatures} which implement
 		 * (or forward or declare abstract or declare as a macro} that true
 		 * name.
 		 */
@@ -169,7 +169,7 @@ extends Descriptor
 		 * the expected return type is produced.  The actual expected return
 		 * type for the call site is the intersection of types provided by
 		 * applicable type restriction functions and the types indicated by the
-		 * applicable {@linkplain SignatureDescriptor method signatures}.
+		 * applicable {@linkplain ImplementationDescriptor method signatures}.
 		 */
 		TYPE_RESTRICTION_FUNCTIONS
 	}
@@ -346,11 +346,11 @@ extends Descriptor
 	 * @param object
 	 *        The module.
 	 * @param forwardImplementation
-	 *        The {@linkplain ForwardSignatureDescriptor forward declaration
+	 *        The {@linkplain ForwardDeclarationDescriptor forward declaration
 	 *        signature} to be removed.
 	 * @param methodName
 	 *        The {@linkplain AtomDescriptor true name} of the
-	 *        {@linkplain ForwardSignatureDescriptor forward declaration
+	 *        {@linkplain ForwardDeclarationDescriptor forward declaration
 	 *        signature} being removed.
 	 */
 	@Override @AvailMethod

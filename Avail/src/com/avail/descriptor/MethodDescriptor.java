@@ -52,8 +52,8 @@ import com.avail.utility.*;
  * previous membership.
  *
  * <p>To support macros safely, a method must contain either all
- * {@linkplain MacroSignatureDescriptor macro signatures} or all non-macro
- * {@linkplain SignatureDescriptor signatures}, but not both.</p>
+ * {@linkplain MacroImplementationDescriptor macro signatures} or all non-macro
+ * {@linkplain ImplementationDescriptor signatures}, but not both.</p>
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
@@ -62,7 +62,7 @@ extends Descriptor
 {
 	/**
 	 * An {@linkplain MethodDescriptor method} containing
-	 * a {@linkplain MethodSignatureDescriptor function} that invokes
+	 * a {@linkplain MethodImplementationDescriptor function} that invokes
 	 * {@linkplain Primitive#prim256_EmergencyExit primitive 256} (emergency
 	 * exit). Needed by some hand-built bootstrap functions.
 	 */
@@ -70,7 +70,7 @@ extends Descriptor
 
 	/**
 	 * Answer an {@linkplain MethodDescriptor method}
-	 * containing a {@linkplain MethodSignatureDescriptor function} that
+	 * containing a {@linkplain MethodImplementationDescriptor function} that
 	 * invokes {@linkplain Primitive#prim256_EmergencyExit primitive 256}
 	 * (emergency exit). Needed by some hand-built bootstrap functions.
 	 *
@@ -110,14 +110,14 @@ extends Descriptor
 		final AvailObject implSet = newMethodWithName(
 			AtomDescriptor.create(StringDescriptor.from("vm crash_")));
 		implSet.addImplementation(
-			MethodSignatureDescriptor.create(newFunction));
+			MethodImplementationDescriptor.create(newFunction));
 
 		return implSet;
 	}
 
 	/**
 	 * An {@linkplain MethodDescriptor method} containing
-	 * a {@linkplain MethodSignatureDescriptor function} that invokes
+	 * a {@linkplain MethodImplementationDescriptor function} that invokes
 	 * {@linkplain Primitive#prim256_EmergencyExit primitive 40} (function
 	 * application). Needed by some hand-built functions.
 	 */
@@ -125,7 +125,7 @@ extends Descriptor
 
 	/**
 	 * An {@linkplain MethodDescriptor method} containing
-	 * a {@linkplain MethodSignatureDescriptor function} that invokes
+	 * a {@linkplain MethodImplementationDescriptor function} that invokes
 	 * {@linkplain Primitive#prim256_EmergencyExit primitive 40} (function
 	 * application). Needed by some hand-built functions.
 	 *
@@ -175,7 +175,7 @@ extends Descriptor
 			AtomDescriptor.create(StringDescriptor.from(
 				"vm function apply_(«_‡,»)")));
 		implSet.addImplementation(
-			MethodSignatureDescriptor.create(newFunction));
+			MethodImplementationDescriptor.create(newFunction));
 
 		return implSet;
 	}
@@ -213,7 +213,7 @@ extends Descriptor
 		NAME,
 
 		/**
-		 * The {@linkplain TupleDescriptor tuple} of {@linkplain SignatureDescriptor
+		 * The {@linkplain TupleDescriptor tuple} of {@linkplain ImplementationDescriptor
 		 * signatures} that constitute this multimethod (or multimacro).
 		 */
 		IMPLEMENTATIONS_TUPLE,
@@ -350,14 +350,14 @@ extends Descriptor
 	}
 
 	/**
-	 * Add the {@linkplain SignatureDescriptor signature implementation} to me.
+	 * Add the {@linkplain ImplementationDescriptor signature implementation} to me.
 	 * Causes dependent chunks to be invalidated.
 	 *
 	 * <p>Macro signatures and non-macro signatures should not be combined in
 	 * the same method.
 	 *
 	 * @param object The method.
-	 * @param implementation A {@linkplain SignatureDescriptor signature} to be
+	 * @param implementation A {@linkplain ImplementationDescriptor signature} to be
 	 *
 	 */
 	@Override @AvailMethod
@@ -384,7 +384,7 @@ extends Descriptor
 	/**
 	 * Look up all method implementations that could match the given argument
 	 * types.  Answer a {@linkplain List list} of {@linkplain
-	 * MethodSignatureDescriptor method signatures}.
+	 * MethodImplementationDescriptor method signatures}.
 	 */
 	@Override @AvailMethod
 	List<AvailObject> o_FilterByTypes (
@@ -414,7 +414,7 @@ extends Descriptor
 	 * an implementation have no possible descendant except bottom, then
 	 * disallow the implementation (it could never actually be invoked because
 	 * bottom is uninstantiable).  Answer a {@linkplain List list} of {@linkplain
-	 * MethodSignatureDescriptor method signatures}.
+	 * MethodImplementationDescriptor method signatures}.
 	 * <p>
 	 * Don't do coverage analysis yet (i.e., determining if one method would
 	 * always override a strictly more abstract method).  We can do that some
@@ -706,7 +706,7 @@ extends Descriptor
 	 * <p>
 	 * Check the argument types for validity and return the result type of the
 	 * message send.  Use not only the applicable {@linkplain
-	 * MethodSignatureDescriptor method signatures}, but also any type
+	 * MethodImplementationDescriptor method signatures}, but also any type
 	 * restriction functions.  The type restriction functions may choose to
 	 * {@linkplain Primitive#prim352_RejectParsing reject} the parse, indicating
 	 * that the argument types are mutually incompatible.

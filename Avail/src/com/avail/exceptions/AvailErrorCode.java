@@ -232,13 +232,13 @@ public enum AvailErrorCode
 	E_TYPE_RESTRICTION_MUST_ACCEPT_ONLY_TYPES (31),
 
 	/**
-	 * The specific kind of {@linkplain SignatureDescriptor signature} does not
+	 * The specific kind of {@linkplain ImplementationDescriptor signature} does not
 	 * support a {@linkplain FunctionDescriptor requires function}.
 	 */
 //	E_SIGNATURE_DOES_NOT_SUPPORT_REQUIRES_FUNCTION (**),
 
 	/**
-	 * The specific kind of {@linkplain SignatureDescriptor signature} does not
+	 * The specific kind of {@linkplain ImplementationDescriptor signature} does not
 	 * support a {@linkplain FunctionDescriptor returns function}.
 	 */
 //	E_SIGNATURE_DOES_NOT_SUPPORT_RETURNS_FUNCTION (**),
@@ -250,7 +250,7 @@ public enum AvailErrorCode
 	E_INVALID_SPECIAL_OBJECT_NUMBER (33),
 
 	/**
-	 * A {@linkplain MacroSignatureDescriptor macro} {@linkplain
+	 * A {@linkplain MacroImplementationDescriptor macro} {@linkplain
 	 * FunctionDescriptor body} must restrict each parameter to be at least as
 	 * specific as a {@linkplain ParseNodeDescriptor parse node}.
 	 */

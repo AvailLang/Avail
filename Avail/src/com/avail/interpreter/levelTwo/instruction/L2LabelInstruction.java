@@ -41,7 +41,7 @@ import com.avail.interpreter.levelTwo.register.L2Register;
 /**
  * {@code L2LabelInstruction} is a placeholder for the {@linkplain L2Translator
  * translator} to use while dynamically translating {@linkplain
- * MethodSignatureDescriptor level one Avail methods} to {@linkplain
+ * MethodImplementationDescriptor level one Avail methods} to {@linkplain
  * L2ChunkDescriptor level two Avail chunks}. Instances represent {@linkplain
  * L2AbstractJumpInstruction jump} targets.
  *

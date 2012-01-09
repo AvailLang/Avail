@@ -1,5 +1,5 @@
 /**
- * ForwardSignatureDescriptor.java
+ * AbstractDeclarationDescriptor.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -35,35 +35,29 @@ package com.avail.descriptor;
 import com.avail.annotations.*;
 import com.avail.descriptor.TypeDescriptor.Types;
 
+
 /**
- * This is a forward declaration of a method.  An actual method must be declared
- * with the same signature before the end of the current module.
- *
- * <p>While a call to this method signature can be compiled after the forward
- * declaration, an attempt to actually call the method will result in an error
- * indicating this problem.</p>
- *
- * <p>Because of the nature of forward declarations, it is meaningless to
- * forward declare a macro, so this facility is not provided.  It's
- * meaningless because a "call-site" for a macro causes the body to execute
- * immediately.</p>
+ * This is a specialization of {@link ImplementationDescriptor} that is an abstract
+ * declaration of an Avail method (i.e., no implementation).
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
-public class ForwardSignatureDescriptor
-extends SignatureDescriptor
+public class AbstractDeclarationDescriptor
+extends ImplementationDescriptor
 {
+
 	/**
 	 * The layout of object slots for my instances.
 	 */
 	public enum ObjectSlots implements ObjectSlotsEnum
 	{
 		/**
-		 * The signature being forward-declared.  This is a {@linkplain
-		 * FunctionTypeDescriptor function type}.
+		 * The {@linkplain FunctionTypeDescriptor function type} for which this
+		 * signature is being specified.
 		 */
-		BODY_SIGNATURE
+		BODY_SIGNATURE,
 	}
+
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_BodySignature (
@@ -83,19 +77,19 @@ extends SignatureDescriptor
 	int o_Hash (
 		final @NotNull AvailObject object)
 	{
-		final int hash = object.signature().hash() * 19;
-		return hash;
+		return (object.signature().hash() * 19) ^ 0x201FE782;
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
-		return Types.FORWARD_SIGNATURE.o();
+		return Types.ABSTRACT_SIGNATURE.o();
 	}
 
+
 	@Override @AvailMethod
-	boolean o_IsForward (
+	boolean o_IsAbstract (
 		final @NotNull AvailObject object)
 	{
 		return true;
@@ -103,16 +97,16 @@ extends SignatureDescriptor
 
 
 	/**
-	 * Create a forward declaration signature for the given {@linkplain
-	 * FunctionTypeDescriptor function type}.
+	 * Create a new abstract method signature from the provided arguments.
 	 *
 	 * @param bodySignature
-	 *            The function type at which this signature should occur within
-	 *            an {@linkplain MethodDescriptor method}.
+	 *            The function type at which this abstract method signature will
+	 *            be stored in the hierarchy of multimethods.
 	 * @return
-	 *            The new forward declaration signature.
+	 *            An abstract method signature.
 	 */
-	public static AvailObject create (final AvailObject bodySignature)
+	public static AvailObject create (
+		final @NotNull AvailObject bodySignature)
 	{
 		final AvailObject instance = mutable().create();
 		instance.setSlot(ObjectSlots.BODY_SIGNATURE, bodySignature);
@@ -122,45 +116,41 @@ extends SignatureDescriptor
 
 
 	/**
-	 * Construct a new {@link ForwardSignatureDescriptor}.
+	 * Construct a new {@link AbstractDeclarationDescriptor}.
 	 *
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
 	 */
-	protected ForwardSignatureDescriptor (final boolean isMutable)
+	protected AbstractDeclarationDescriptor (final boolean isMutable)
 	{
 		super(isMutable);
 	}
 
 	/**
-	 * The mutable {@link ForwardSignatureDescriptor}.
+	 * The mutable {@link AbstractDeclarationDescriptor}.
 	 */
-	private final static ForwardSignatureDescriptor mutable =
-		new ForwardSignatureDescriptor(true);
+	private final static AbstractDeclarationDescriptor mutable =
+		new AbstractDeclarationDescriptor(true);
 
 	/**
-	 * Answer the mutable {@link ForwardSignatureDescriptor}.
-	 *
-	 * @return The mutable {@link ForwardSignatureDescriptor}.
+	 * @return The mutable {@link AbstractDeclarationDescriptor}.
 	 */
-	public static ForwardSignatureDescriptor mutable ()
+	public static AbstractDeclarationDescriptor mutable ()
 	{
 		return mutable;
 	}
 
 	/**
-	 * The immutable {@link ForwardSignatureDescriptor}.
+	 * The immutable {@link AbstractDeclarationDescriptor}.
 	 */
-	private final static ForwardSignatureDescriptor immutable =
-		new ForwardSignatureDescriptor(false);
+	private final static AbstractDeclarationDescriptor immutable =
+		new AbstractDeclarationDescriptor(false);
 
 	/**
-	 * Answer the immutable {@link ForwardSignatureDescriptor}.
-	 *
-	 * @return The immutable {@link ForwardSignatureDescriptor}.
+	 * @return The mutable {@link AbstractDeclarationDescriptor}.
 	 */
-	public static ForwardSignatureDescriptor immutable ()
+	public static AbstractDeclarationDescriptor immutable ()
 	{
 		return immutable;
 	}

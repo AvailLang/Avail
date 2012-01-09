@@ -1,5 +1,5 @@
 /**
- * AbstractSignatureDescriptor.java
+ * MethodImplementationDescriptor.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -32,64 +32,61 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.TypeDescriptor.Types.METHOD_SIGNATURE;
 import com.avail.annotations.*;
-import com.avail.descriptor.TypeDescriptor.Types;
-
 
 /**
- * This is a specialization of {@link SignatureDescriptor} that is an abstract
- * declaration of an Avail method (i.e., no implementation).
+ * An object instance of {@code MethodImplementationDescriptor} represents a
+ * function in the collection of available functions for this method hierarchy.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
-public class AbstractSignatureDescriptor
-extends SignatureDescriptor
+public class MethodImplementationDescriptor
+extends ImplementationDescriptor
 {
-
 	/**
 	 * The layout of object slots for my instances.
 	 */
 	public enum ObjectSlots implements ObjectSlotsEnum
 	{
 		/**
-		 * The {@linkplain FunctionTypeDescriptor function type} for which this
-		 * signature is being specified.
+		 * A function to execute this signature is selected during a call.
 		 */
-		BODY_SIGNATURE,
-	}
-
-
-	@Override @AvailMethod
-	@NotNull AvailObject o_BodySignature (
-		final @NotNull AvailObject object)
-	{
-		return object.signature();
+		BODY_BLOCK
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_Signature (
+	AvailObject o_BodySignature (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.BODY_SIGNATURE);
+		return object.bodyBlock().kind();
+	}
+
+	@Override @AvailMethod
+	AvailObject o_BodyBlock (
+		final @NotNull AvailObject object)
+	{
+		return object.slot(ObjectSlots.BODY_BLOCK);
 	}
 
 	@Override @AvailMethod
 	int o_Hash (
 		final @NotNull AvailObject object)
 	{
-		return (object.signature().hash() * 19) ^ 0x201FE782;
+		return (object.bodyBlock().hash() * 19) ^ 0x70B2B1A9;
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_Kind (
+	AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
-		return Types.ABSTRACT_SIGNATURE.o();
+		//  Answer the object's type.
+
+		return METHOD_SIGNATURE.o();
 	}
 
-
 	@Override @AvailMethod
-	boolean o_IsAbstract (
+	boolean o_IsMethod (
 		final @NotNull AvailObject object)
 	{
 		return true;
@@ -97,60 +94,65 @@ extends SignatureDescriptor
 
 
 	/**
-	 * Create a new abstract method signature from the provided arguments.
+	 * Create a new method signature from the provided arguments.
 	 *
-	 * @param bodySignature
-	 *            The function type at which this abstract method signature will
-	 *            be stored in the hierarchy of multimethods.
+	 * @param bodyBlock
+	 *            The body of the signature.  This will be invoked when the
+	 *            message is sent, assuming the argument types match and there
+	 *            is no more specific version.
 	 * @return
-	 *            An abstract method signature.
+	 *            A method signature.
 	 */
 	public static AvailObject create (
-		final @NotNull AvailObject bodySignature)
+		final @NotNull AvailObject bodyBlock)
 	{
 		final AvailObject instance = mutable().create();
-		instance.setSlot(ObjectSlots.BODY_SIGNATURE, bodySignature);
+		instance.setSlot(ObjectSlots.BODY_BLOCK, bodyBlock);
 		instance.makeImmutable();
 		return instance;
 	}
 
 
 	/**
-	 * Construct a new {@link AbstractSignatureDescriptor}.
+	 * Construct a new {@link MethodImplementationDescriptor}.
 	 *
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
 	 */
-	protected AbstractSignatureDescriptor (final boolean isMutable)
+	protected MethodImplementationDescriptor (final boolean isMutable)
 	{
 		super(isMutable);
 	}
 
 	/**
-	 * The mutable {@link AbstractSignatureDescriptor}.
+	 * The mutable {@link MethodImplementationDescriptor}.
 	 */
-	private final static AbstractSignatureDescriptor mutable =
-		new AbstractSignatureDescriptor(true);
+	private final static MethodImplementationDescriptor mutable =
+		new MethodImplementationDescriptor(true);
 
 	/**
-	 * @return The mutable {@link AbstractSignatureDescriptor}.
+	 * Answer the mutable {@link MethodImplementationDescriptor}.
+	 *
+	 * @return The mutable {@link MethodImplementationDescriptor}.
 	 */
-	public static AbstractSignatureDescriptor mutable ()
+	public static MethodImplementationDescriptor mutable ()
 	{
 		return mutable;
 	}
 
 	/**
-	 * The immutable {@link AbstractSignatureDescriptor}.
+	 * The immutable {@link MethodImplementationDescriptor}.
 	 */
-	private final static AbstractSignatureDescriptor immutable =
-		new AbstractSignatureDescriptor(false);
+	private final static MethodImplementationDescriptor immutable =
+		new MethodImplementationDescriptor(false);
 
 	/**
-	 * @return The mutable {@link AbstractSignatureDescriptor}.
+	 * Answer the immutable {@link MethodImplementationDescriptor}.
+	 *
+	 * @return The immutable {@link MethodImplementationDescriptor}.
 	 */
-	public static AbstractSignatureDescriptor immutable ()
+	public static MethodImplementationDescriptor immutable ()
 	{
 		return immutable;
 	}

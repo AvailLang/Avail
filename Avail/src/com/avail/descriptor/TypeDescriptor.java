@@ -183,34 +183,34 @@ extends AbstractTypeDescriptor
 		LITERAL_TOKEN(TOKEN),
 
 		/**
-		 * The general kind of {@linkplain SignatureDescriptor method
+		 * The general kind of {@linkplain ImplementationDescriptor method
 		 * signatures}.
 		 */
 		SIGNATURE(ANY),
 
 		/**
 		 * The specific kind of a signature which is an {@linkplain
-		 * AbstractSignatureDescriptor abstract declaration}.
+		 * AbstractDeclarationDescriptor abstract declaration}.
 		 */
 		ABSTRACT_SIGNATURE(SIGNATURE),
 
 		/**
 		 * The specific kind of signature which is a {@linkplain
-		 * ForwardSignatureDescriptor forward declaration}.  Such declarations
+		 * ForwardDeclarationDescriptor forward declaration}.  Such declarations
 		 * must be resolved by the end of the module in which they occur.
 		 */
 		FORWARD_SIGNATURE(SIGNATURE),
 
 		/**
 		 * The specific kind of signature which is an actual {@linkplain
-		 * MethodSignatureDescriptor method function}, by far the most common
+		 * MethodImplementationDescriptor method function}, by far the most common
 		 * case.
 		 */
 		METHOD_SIGNATURE(SIGNATURE),
 
 		/**
 		 * The specific kind of signature which is an actual {@linkplain
-		 * MacroSignatureDescriptor macro definition}.  An {@linkplain
+		 * MacroImplementationDescriptor macro definition}.  An {@linkplain
 		 * MethodDescriptor method} may not contain
 		 * multiple macro signatures, nor may it mix macro signatures and any
 		 * other type of signature.

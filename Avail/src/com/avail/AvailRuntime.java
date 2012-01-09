@@ -331,6 +331,14 @@ public final class AvailRuntime
 			TOP.o());
 		specialObjects[106] = InstanceTypeDescriptor.on(
 			IntegerDescriptor.zero());
+		specialObjects[107] = FunctionTypeDescriptor.forReturnType(TYPE.o());
+		specialObjects[108] =
+			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+				IntegerRangeTypeDescriptor.wholeNumbers(),
+				TupleDescriptor.from(),
+				FunctionTypeDescriptor.forReturnType(TYPE.o()));
+		specialObjects[109] = FunctionTypeDescriptor.forReturnType(
+			PARSE_NODE.mostGeneralType());
 
 		for (final AvailObject object : specialObjects)
 		{

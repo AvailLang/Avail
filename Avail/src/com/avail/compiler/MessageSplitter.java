@@ -1141,7 +1141,7 @@ public class MessageSplitter
 
 
 	/**
-	 * Return the number of arguments a {@linkplain MethodSignatureDescriptor method}
+	 * Return the number of arguments a {@linkplain MethodImplementationDescriptor method}
 	 * implementing this name would accept.  Note that this is not necessarily
 	 * the number of underscores and ellipses, as a chevron group may contain
 	 * zero or more underscores/ellipses (and other chevron groups) but count as

@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.01.08 12:38:40.685 -0600
+ * * Last Generated On: 2012.01.08 21:41:59.557 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -82,6 +82,7 @@ Uses
 	/* 55 */ "literal node",
 	/* 65 */ "local constant node",
 	/* 64 */ "local variable node",
+	/* 109 */ "macro function",
 	/* 39 */ "map",
 	/* 19 */ "map meta",
 	/* 51 */ "marker node",
@@ -109,6 +110,7 @@ Uses
 	/* 68 */ "primitive failure reason node",
 	/* 56 */ "reference node",
 	/* 83 */ "self type",
+	/* 107 */ "semantic restriction function",
 	/* 57 */ "send node",
 	/* 26 */ "set",
 	/* 27 */ "set meta",
@@ -122,6 +124,7 @@ Uses
 	/* 33 */ "tuple meta",
 	/* 59 */ "tuple node",
 	/* 102 */ "tuple of nybble",
+	/* 108 */ "tuple of semantic restriction function",
 	/* 74 */ "tuple of set of string",
 	/* 72 */ "tuple of string",
 	/* 100 */ "tuple of tuple",
@@ -143,102 +146,105 @@ Uses
 Names{4}
 Body
 
-_any                           ::= special object 1;
-_boolean                       ::= special object 2;
-_character                     ::= special object 3;
-_function                      ::= special object 4;
-_function_meta                 ::= special object 5;
-_function_implementation       ::= special object 6;
-_variable                      ::= special object 7;
-_variable_meta                 ::= special object 8;
-_continuation                  ::= special object 9;
-_continuation_meta             ::= special object 10;
-_atom                          ::= special object 11;
-_double                        ::= special object 12;
-_extended_integer              ::= special object 13;
-_false_type                    ::= special object 14;
-_float                         ::= special object 15;
-_number                        ::= special object 16;
-_integer                       ::= special object 17;
-_extended_integer_meta         ::= special object 18;
-_map_meta                      ::= special object 19;
-_meta                          ::= special object 20;
-_enumeration_meta              ::= special object 21;
-_object                        ::= special object 22;
-_object_meta                   ::= special object 23;
-_enumeration_meta_meta         ::= special object 24;
-_fiber                         ::= special object 25;
-_set                           ::= special object 26;
-_set_meta                      ::= special object 27;
-_string                        ::= special object 28;
-_bottom                        ::= special object 29;
-_bottom_meta                   ::= special object 30;
-_true_type                     ::= special object 31;
-_tuple                         ::= special object 32;
-_tuple_meta                    ::= special object 33;
-_type                          ::= special object 34;
-_top                           ::= special object 35;
-_whole_number                  ::= special object 36;
-_natural_number                ::= special object 37;
-_code_point                    ::= special object 38;
-_map                           ::= special object 39;
-_message_bundle                ::= special object 40;
-_signature                     ::= special object 41;
-_abstract_signature            ::= special object 42;
-_forward_signature             ::= special object 43;
-_method_signature              ::= special object 44;
-_message_bundle_tree           ::= special object 45;
-_method                        ::= special object 46;
-_parse_node                    ::= special object 50;
-_marker_node                   ::= special object 51;
-_expression_node               ::= special object 52;
-_assignment_node               ::= special object 53;
-_block_node                    ::= special object 54;
-_literal_node                  ::= special object 55;
-_reference_node                ::= special object 56;
-_send_node                     ::= special object 57;
-_super_cast_node               ::= special object 58;
-_tuple_node                    ::= special object 59;
-_variable_use_node             ::= special object 60;
-_declaration_node              ::= special object 61;
-_argument_node                 ::= special object 62;
-_label_node                    ::= special object 63;
-_local_variable_node           ::= special object 64;
-_local_constant_node           ::= special object 65;
-_module_variable_node          ::= special object 66;
-_module_constant_node          ::= special object 67;
-_primitive_failure_reason_node ::= special object 68;
-_true                          ::= special object 70;
-_false                         ::= special object 71;
-_tuple_of_string               ::= special object 72;
-_tuple_of_type                 ::= special object 73;
-_tuple_of_set_of_string        ::= special object 74;
-_set_of_string                 ::= special object 75;
-_primitive_failure_function    ::= special object 76;
-_empty_set                     ::= special object 77;
-_negative_infinity             ::= special object 78;
-_positive_infinity             ::= special object 79;
-_pojo                          ::= special object 80;
-_null                          ::= special object 81;
-_null_type                     ::= special object 82;
-_self_type                     ::= special object 83;
-_nullary_procedure             ::= special object 90;
-_predicate_function            ::= special object 91;
-_continuation_variable         ::= special object 92;
-_field_map                     ::= special object 93;
-_field_type_map                ::= special object 94;
-_key_value_tuple               ::= special object 95;
-_empty_map                     ::= special object 96;
-_non_empty_map                 ::= special object 97;
-_whole_number_meta             ::= special object 98;
-_non-empty_set                 ::= special object 99;
-_tuple_of_tuple                ::= special object 100;
-_nybble                        ::= special object 101;
-_tuple_of_nybble               ::= special object 102;
-_unsigned_short                ::= special object 103;
-_empty_tuple                   ::= special object 104;
-_unary_procedure               ::= special object 105;
-_zero's_type                   ::= special object 106;
+_any                                    ::= special object 1;
+_boolean                                ::= special object 2;
+_character                              ::= special object 3;
+_function                               ::= special object 4;
+_function_meta                          ::= special object 5;
+_function_implementation                ::= special object 6;
+_variable                               ::= special object 7;
+_variable_meta                          ::= special object 8;
+_continuation                           ::= special object 9;
+_continuation_meta                      ::= special object 10;
+_atom                                   ::= special object 11;
+_double                                 ::= special object 12;
+_extended_integer                       ::= special object 13;
+_false_type                             ::= special object 14;
+_float                                  ::= special object 15;
+_number                                 ::= special object 16;
+_integer                                ::= special object 17;
+_extended_integer_meta                  ::= special object 18;
+_map_meta                               ::= special object 19;
+_meta                                   ::= special object 20;
+_enumeration_meta                       ::= special object 21;
+_object                                 ::= special object 22;
+_object_meta                            ::= special object 23;
+_enumeration_meta_meta                  ::= special object 24;
+_fiber                                  ::= special object 25;
+_set                                    ::= special object 26;
+_set_meta                               ::= special object 27;
+_string                                 ::= special object 28;
+_bottom                                 ::= special object 29;
+_bottom_meta                            ::= special object 30;
+_true_type                              ::= special object 31;
+_tuple                                  ::= special object 32;
+_tuple_meta                             ::= special object 33;
+_type                                   ::= special object 34;
+_top                                    ::= special object 35;
+_whole_number                           ::= special object 36;
+_natural_number                         ::= special object 37;
+_code_point                             ::= special object 38;
+_map                                    ::= special object 39;
+_message_bundle                         ::= special object 40;
+_signature                              ::= special object 41;
+_abstract_signature                     ::= special object 42;
+_forward_signature                      ::= special object 43;
+_method_signature                       ::= special object 44;
+_message_bundle_tree                    ::= special object 45;
+_method                                 ::= special object 46;
+_parse_node                             ::= special object 50;
+_marker_node                            ::= special object 51;
+_expression_node                        ::= special object 52;
+_assignment_node                        ::= special object 53;
+_block_node                             ::= special object 54;
+_literal_node                           ::= special object 55;
+_reference_node                         ::= special object 56;
+_send_node                              ::= special object 57;
+_super_cast_node                        ::= special object 58;
+_tuple_node                             ::= special object 59;
+_variable_use_node                      ::= special object 60;
+_declaration_node                       ::= special object 61;
+_argument_node                          ::= special object 62;
+_label_node                             ::= special object 63;
+_local_variable_node                    ::= special object 64;
+_local_constant_node                    ::= special object 65;
+_module_variable_node                   ::= special object 66;
+_module_constant_node                   ::= special object 67;
+_primitive_failure_reason_node          ::= special object 68;
+_true                                   ::= special object 70;
+_false                                  ::= special object 71;
+_tuple_of_string                        ::= special object 72;
+_tuple_of_type                          ::= special object 73;
+_tuple_of_set_of_string                 ::= special object 74;
+_set_of_string                          ::= special object 75;
+_primitive_failure_function             ::= special object 76;
+_empty_set                              ::= special object 77;
+_negative_infinity                      ::= special object 78;
+_positive_infinity                      ::= special object 79;
+_pojo                                   ::= special object 80;
+_null                                   ::= special object 81;
+_null_type                              ::= special object 82;
+_self_type                              ::= special object 83;
+_nullary_procedure                      ::= special object 90;
+_predicate_function                     ::= special object 91;
+_continuation_variable                  ::= special object 92;
+_field_map                              ::= special object 93;
+_field_type_map                         ::= special object 94;
+_key_value_tuple                        ::= special object 95;
+_empty_map                              ::= special object 96;
+_non_empty_map                          ::= special object 97;
+_whole_number_meta                      ::= special object 98;
+_non-empty_set                          ::= special object 99;
+_tuple_of_tuple                         ::= special object 100;
+_nybble                                 ::= special object 101;
+_tuple_of_nybble                        ::= special object 102;
+_unsigned_short                         ::= special object 103;
+_empty_tuple                            ::= special object 104;
+_unary_procedure                        ::= special object 105;
+_zero's_type                            ::= special object 106;
+_semantic_restriction_function          ::= special object 107;
+_tuple_of_semantic_restriction_function ::= special object 108;
+_macro_function                         ::= special object 109;
 
 Method "any" is 
 [
@@ -726,5 +732,20 @@ Method "unary procedure" is
 Method "zero's type" is 
 [
 	_zero's_type;
+];
+
+Method "semantic restriction function" is 
+[
+	_semantic_restriction_function;
+];
+
+Method "tuple of semantic restriction function" is 
+[
+	_tuple_of_semantic_restriction_function;
+];
+
+Method "macro function" is 
+[
+	_macro_function;
 ];
 

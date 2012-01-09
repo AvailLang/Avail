@@ -1,5 +1,5 @@
 /**
- * MacroSignatureDescriptor.java
+ * MacroImplementationDescriptor.java
  * Copyright (c) 2011, Mark van Gulik.
  * All rights reserved.
  *
@@ -63,8 +63,8 @@ import com.avail.annotations.*;
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
-public class MacroSignatureDescriptor
-extends SignatureDescriptor
+public class MacroImplementationDescriptor
+extends ImplementationDescriptor
 {
 	/**
 	 * The layout of object slots for my instances.
@@ -140,45 +140,45 @@ extends SignatureDescriptor
 
 
 	/**
-	 * Construct a new {@link MacroSignatureDescriptor}.
+	 * Construct a new {@link MacroImplementationDescriptor}.
 	 *
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
 	 */
-	protected MacroSignatureDescriptor (final boolean isMutable)
+	protected MacroImplementationDescriptor (final boolean isMutable)
 	{
 		super(isMutable);
 	}
 
 	/**
-	 * The mutable {@link MacroSignatureDescriptor}.
+	 * The mutable {@link MacroImplementationDescriptor}.
 	 */
-	private final static MacroSignatureDescriptor mutable =
-		new MacroSignatureDescriptor(true);
+	private final static MacroImplementationDescriptor mutable =
+		new MacroImplementationDescriptor(true);
 
 	/**
-	 * Answer the mutable {@link MacroSignatureDescriptor}.
+	 * Answer the mutable {@link MacroImplementationDescriptor}.
 	 *
-	 * @return The mutable {@link MacroSignatureDescriptor}.
+	 * @return The mutable {@link MacroImplementationDescriptor}.
 	 */
-	public static MacroSignatureDescriptor mutable ()
+	public static MacroImplementationDescriptor mutable ()
 	{
 		return mutable;
 	}
 
 	/**
-	 * The immutable {@link MacroSignatureDescriptor}.
+	 * The immutable {@link MacroImplementationDescriptor}.
 	 */
-	private final static MacroSignatureDescriptor immutable =
-		new MacroSignatureDescriptor(false);
+	private final static MacroImplementationDescriptor immutable =
+		new MacroImplementationDescriptor(false);
 
 	/**
-	 * Answer the immutable {@link MacroSignatureDescriptor}.
+	 * Answer the immutable {@link MacroImplementationDescriptor}.
 	 *
-	 * @return The immutable {@link MacroSignatureDescriptor}.
+	 * @return The immutable {@link MacroImplementationDescriptor}.
 	 */
-	public static MacroSignatureDescriptor immutable ()
+	public static MacroImplementationDescriptor immutable ()
 	{
 		return immutable;
 	}

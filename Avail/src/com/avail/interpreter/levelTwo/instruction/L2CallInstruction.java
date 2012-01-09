@@ -41,7 +41,7 @@ import com.avail.interpreter.levelTwo.register.*;
 
 /**
  * {@code L2CallInstruction} attempts to execute a specific {@linkplain
- * MethodSignatureDescriptor method} by matching the actual {@linkplain
+ * MethodImplementationDescriptor method} by matching the actual {@linkplain
  * AvailObject arguments} against an {@linkplain MethodDescriptor
  * method}.
  *
@@ -53,14 +53,14 @@ extends L2Instruction
 {
 	/**
 	 * The {@linkplain MethodDescriptor method} from
-	 * which a {@linkplain MethodSignatureDescriptor method} should be selected
+	 * which a {@linkplain MethodImplementationDescriptor method} should be selected
 	 * and called based on the exact {@linkplain #arguments arguments}.
 	 */
 	protected final @NotNull AvailObject method;
 
 	/**
 	 * The {@linkplain AvailObject arguments} of the {@linkplain
-	 * MethodSignatureDescriptor method} call.
+	 * MethodImplementationDescriptor method} call.
 	 */
 	protected final @NotNull L2RegisterVector arguments;
 
@@ -69,12 +69,12 @@ extends L2Instruction
 	 *
 	 * @param method
 	 *        The {@linkplain MethodDescriptor method}
-	 *        from which a {@linkplain MethodSignatureDescriptor method} should
+	 *        from which a {@linkplain MethodImplementationDescriptor method} should
 	 *        be selected and called based on the exact {@linkplain #arguments
 	 *        arguments}.
 	 * @param arguments
 	 *        The {@linkplain AvailObject arguments} of the {@linkplain
-	 *        MethodSignatureDescriptor method} call.
+	 *        MethodImplementationDescriptor method} call.
 	 */
 	public L2CallInstruction (
 		final @NotNull AvailObject method,

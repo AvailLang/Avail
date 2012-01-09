@@ -41,7 +41,7 @@ import com.avail.utility.*;
 
 /**
  * A {@linkplain MacroSubstitutionNodeDescriptor macro substitution node}
- * represents the result of applying a {@linkplain MacroSignatureDescriptor
+ * represents the result of applying a {@linkplain MacroImplementationDescriptor
  * macro} to its argument {@linkplain ParseNodeDescriptor expressions} to
  * produce an {@linkplain ObjectSlots#OUTPUT_PARSE_NODE output parse node}.
  *
@@ -66,7 +66,7 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 		/**
 		 * The {@linkplain ParseNodeDescriptor parse node} that is the result of
 		 * transforming the input parse node through a {@linkplain
-		 * MacroSignatureDescriptor macro substitution}.
+		 * MacroImplementationDescriptor macro substitution}.
 		 */
 		OUTPUT_PARSE_NODE
 	}

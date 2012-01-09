@@ -113,7 +113,7 @@ public abstract class AbstractAvailCompiler
 	 * undergoing compilation. Each element is a {@linkplain TupleDescriptor
 	 * 3-tuple} whose first element is a module {@linkplain StringDescriptor
 	 * name}, whose second element is the {@linkplain SetDescriptor set} of
-	 * {@linkplain MethodSignatureDescriptor method} names to import (and
+	 * {@linkplain MethodImplementationDescriptor method} names to import (and
 	 * re-export), and whose third element is the set of conformant versions.
 	 */
 	@InnerAccess List<AvailObject> extendedModules;
@@ -123,7 +123,7 @@ public abstract class AbstractAvailCompiler
 	 * compilation. Each element is a {@linkplain TupleDescriptor 3-tuple} whose
 	 * first element is a module {@linkplain StringDescriptor name}, whose
 	 * second element is the {@linkplain SetDescriptor set} of {@linkplain
-	 * MethodSignatureDescriptor method} names to import, and whose third
+	 * MethodImplementationDescriptor method} names to import, and whose third
 	 * element is the set of conformant versions.
 	 */
 	@InnerAccess List<AvailObject> usedModules;
@@ -804,7 +804,7 @@ public abstract class AbstractAvailCompiler
 	 * {@code null}. Populate the passed {@linkplain List list} with {@linkplain
 	 * TupleDescriptor 2-tuples}. Each tuple's first element is a module
 	 * {@linkplain StringDescriptor name} and second element is the
-	 * collection of {@linkplain MethodSignatureDescriptor method} names to
+	 * collection of {@linkplain MethodImplementationDescriptor method} names to
 	 * import.
 	 * </p>
 	 *

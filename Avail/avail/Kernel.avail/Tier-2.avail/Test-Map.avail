@@ -39,8 +39,8 @@ Names
 Body
 
 
-x ::= lookup "x";
-y ::= lookup "y";
+x ::= new atom "x";
+y ::= new atom "y";
 
 w : map [1..2] from atom to [10..20];
 w := [x->10][y->20];

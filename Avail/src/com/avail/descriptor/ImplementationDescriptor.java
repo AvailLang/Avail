@@ -1,5 +1,5 @@
 /**
- * SignatureDescriptor.java
+ * ImplementationDescriptor.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -35,13 +35,13 @@ package com.avail.descriptor;
 import com.avail.annotations.*;
 
 /**
- * {@code SignatureDescriptor} is an abstraction for things placed into an
+ * {@code ImplementationDescriptor} is an abstraction for things placed into a
  * {@linkplain MethodDescriptor method}.  They can be:
  * <ul>
- * <li>{@linkplain AbstractSignatureDescriptor abstract declarations},</li>
- * <li>{@linkplain ForwardSignatureDescriptor forward declarations},</li>
- * <li>{@linkplain MethodSignatureDescriptor method implementations}, or</li>
- * <li>{@linkplain MacroSignatureDescriptor macro definitions}.</li>
+ * <li>{@linkplain AbstractDeclarationDescriptor abstract declarations},</li>
+ * <li>{@linkplain ForwardDeclarationDescriptor forward declarations},</li>
+ * <li>{@linkplain MethodImplementationDescriptor method implementations}, or</li>
+ * <li>{@linkplain MacroImplementationDescriptor macro definitions}.</li>
  * </ul>
  *
  * <p>
@@ -50,7 +50,7 @@ import com.avail.annotations.*;
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
-public abstract class SignatureDescriptor
+public abstract class ImplementationDescriptor
 extends Descriptor
 {
 	@Override @AvailMethod
@@ -110,13 +110,13 @@ extends Descriptor
 	}
 
 	/**
-	 * Construct a new {@link SignatureDescriptor}.
+	 * Construct a new {@link ImplementationDescriptor}.
 	 *
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
 	 */
-	protected SignatureDescriptor (final boolean isMutable)
+	protected ImplementationDescriptor (final boolean isMutable)
 	{
 		super(isMutable);
 	}

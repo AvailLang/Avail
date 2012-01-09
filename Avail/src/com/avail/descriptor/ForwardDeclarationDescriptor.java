@@ -1,5 +1,5 @@
 /**
- * MethodSignatureDescriptor.java
+ * ForwardDeclarationDescriptor.java
  * Copyright (c) 2010, Mark van Gulik.
  * All rights reserved.
  *
@@ -32,17 +32,26 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.TypeDescriptor.Types.METHOD_SIGNATURE;
 import com.avail.annotations.*;
+import com.avail.descriptor.TypeDescriptor.Types;
 
 /**
- * An object instance of {@code MethodSignatureDescriptor} represents a function
- * in the collection of available functions for this method hierarchy.
+ * This is a forward declaration of a method.  An actual method must be declared
+ * with the same signature before the end of the current module.
+ *
+ * <p>While a call to this method signature can be compiled after the forward
+ * declaration, an attempt to actually call the method will result in an error
+ * indicating this problem.</p>
+ *
+ * <p>Because of the nature of forward declarations, it is meaningless to
+ * forward declare a macro, so this facility is not provided.  It's
+ * meaningless because a "call-site" for a macro causes the body to execute
+ * immediately.</p>
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
-public class MethodSignatureDescriptor
-extends SignatureDescriptor
+public class ForwardDeclarationDescriptor
+extends ImplementationDescriptor
 {
 	/**
 	 * The layout of object slots for my instances.
@@ -50,43 +59,43 @@ extends SignatureDescriptor
 	public enum ObjectSlots implements ObjectSlotsEnum
 	{
 		/**
-		 * A function to execute this signature is selected during a call.
+		 * The signature being forward-declared.  This is a {@linkplain
+		 * FunctionTypeDescriptor function type}.
 		 */
-		BODY_BLOCK
+		BODY_SIGNATURE
 	}
 
 	@Override @AvailMethod
-	AvailObject o_BodySignature (
+	@NotNull AvailObject o_BodySignature (
 		final @NotNull AvailObject object)
 	{
-		return object.bodyBlock().kind();
+		return object.signature();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_BodyBlock (
+	@NotNull AvailObject o_Signature (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.BODY_BLOCK);
+		return object.slot(ObjectSlots.BODY_SIGNATURE);
 	}
 
 	@Override @AvailMethod
 	int o_Hash (
 		final @NotNull AvailObject object)
 	{
-		return (object.bodyBlock().hash() * 19) ^ 0x70B2B1A9;
+		final int hash = object.signature().hash() * 19;
+		return hash;
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Kind (
+	@NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
-		//  Answer the object's type.
-
-		return METHOD_SIGNATURE.o();
+		return Types.FORWARD_SIGNATURE.o();
 	}
 
 	@Override @AvailMethod
-	boolean o_IsMethod (
+	boolean o_IsForward (
 		final @NotNull AvailObject object)
 	{
 		return true;
@@ -94,63 +103,64 @@ extends SignatureDescriptor
 
 
 	/**
-	 * Create a new method signature from the provided arguments.
+	 * Create a forward declaration signature for the given {@linkplain
+	 * FunctionTypeDescriptor function type}.
 	 *
-	 * @param bodyBlock
-	 *            The body of the signature.  This will be invoked when the
-	 *            message is sent, assuming the argument types match and there
-	 *            is no more specific version.
+	 * @param bodySignature
+	 *            The function type at which this signature should occur within
+	 *            an {@linkplain MethodDescriptor method}.
 	 * @return
-	 *            A method signature.
+	 *            The new forward declaration signature.
 	 */
-	public static AvailObject create (
-		final @NotNull AvailObject bodyBlock)
+	public static AvailObject create (final AvailObject bodySignature)
 	{
 		final AvailObject instance = mutable().create();
-		instance.setSlot(ObjectSlots.BODY_BLOCK, bodyBlock);
+		instance.setSlot(ObjectSlots.BODY_SIGNATURE, bodySignature);
 		instance.makeImmutable();
 		return instance;
 	}
 
 
 	/**
-	 * Construct a new {@link MethodSignatureDescriptor}.
+	 * Construct a new {@link ForwardDeclarationDescriptor}.
 	 *
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
 	 */
-	protected MethodSignatureDescriptor (final boolean isMutable)
+	protected ForwardDeclarationDescriptor (final boolean isMutable)
 	{
 		super(isMutable);
 	}
 
 	/**
-	 * The mutable {@link MethodSignatureDescriptor}.
+	 * The mutable {@link ForwardDeclarationDescriptor}.
 	 */
-	private final static MethodSignatureDescriptor mutable = new MethodSignatureDescriptor(true);
+	private final static ForwardDeclarationDescriptor mutable =
+		new ForwardDeclarationDescriptor(true);
 
 	/**
-	 * Answer the mutable {@link MethodSignatureDescriptor}.
+	 * Answer the mutable {@link ForwardDeclarationDescriptor}.
 	 *
-	 * @return The mutable {@link MethodSignatureDescriptor}.
+	 * @return The mutable {@link ForwardDeclarationDescriptor}.
 	 */
-	public static MethodSignatureDescriptor mutable ()
+	public static ForwardDeclarationDescriptor mutable ()
 	{
 		return mutable;
 	}
 
 	/**
-	 * The immutable {@link MethodSignatureDescriptor}.
+	 * The immutable {@link ForwardDeclarationDescriptor}.
 	 */
-	private final static MethodSignatureDescriptor immutable = new MethodSignatureDescriptor(false);
+	private final static ForwardDeclarationDescriptor immutable =
+		new ForwardDeclarationDescriptor(false);
 
 	/**
-	 * Answer the immutable {@link MethodSignatureDescriptor}.
+	 * Answer the immutable {@link ForwardDeclarationDescriptor}.
 	 *
-	 * @return The immutable {@link MethodSignatureDescriptor}.
+	 * @return The immutable {@link ForwardDeclarationDescriptor}.
 	 */
-	public static MethodSignatureDescriptor immutable ()
+	public static ForwardDeclarationDescriptor immutable ()
 	{
 		return immutable;
 	}

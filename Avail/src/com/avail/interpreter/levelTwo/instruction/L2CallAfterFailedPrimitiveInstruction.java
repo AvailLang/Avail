@@ -42,7 +42,7 @@ import com.avail.interpreter.levelTwo.register.*;
 
 /**
  * {@code L2CallInstruction} attempts to execute a specific {@linkplain
- * MethodSignatureDescriptor method} by matching the actual {@linkplain
+ * MethodImplementationDescriptor method} by matching the actual {@linkplain
  * AvailObject arguments} against an {@linkplain MethodDescriptor
  * method}.
  *
@@ -64,12 +64,12 @@ extends L2CallInstruction
 	 *
 	 * @param method
 	 *        The {@linkplain MethodDescriptor method}
-	 *        from which a {@linkplain MethodSignatureDescriptor method} should
+	 *        from which a {@linkplain MethodImplementationDescriptor method} should
 	 *        be selected and called based on the exact {@linkplain #arguments
 	 *        arguments}.
 	 * @param arguments
 	 *        The {@linkplain AvailObject arguments} of the {@linkplain
-	 *        MethodSignatureDescriptor method} call.
+	 *        MethodImplementationDescriptor method} call.
 	 * @param failureObjectReg
 	 *        The {@linkplain L2ObjectRegister register} which holds the most
 	 *        recent primitive failure value, specifically an attempt at the

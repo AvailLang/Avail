@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.01.08 12:38:40.719 -0600
+ * * Last Generated On: 2012.01.08 21:41:59.597 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -87,12 +87,14 @@ Names
 	/*   5 */ "_<_",
 	/*  60 */ "_=_",
 	/* 141 */ "_[_]",
+	/* 124 */ "_[_]:=_",
 	/* 104 */ "_\\_",
 	/*  85 */ "_as map",
 	/*  61 */ "_as object",
 	/*  63 */ "_as object type",
 	/* 109 */ "_as set",
 	/* 110 */ "_as tuple",
+	/* 250 */ "_is a primitive",
 	/*  17 */ "_is unassigned",
 	/* 122 */ "_∈_",
 	/* 103 */ "_∩_",
@@ -977,7 +979,7 @@ Method "_∈_" is
  * Returns:
  *    The requested map.
  */
-Method "_[_]:=_" is 
+Method "_[_]→_" is 
 [
 	aMap : map,
 	key : any,
@@ -1712,4 +1714,19 @@ Method "_'s literals" is
 |
 	Primitive 187;
 ] : tuple;
+
+/**
+ * Does the argument denote a valid primitive?
+ *
+ * Parameters:
+ *    primitiveNumber - A potential primitive number.
+ * Returns:
+ *    `true` if the argument denotes a valid primitive, `false` otherwise.
+ */
+Method "_is a primitive" is 
+[
+	primitiveNumber : unsigned short
+|
+	Primitive 250;
+] : boolean;
 

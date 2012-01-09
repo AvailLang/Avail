@@ -405,7 +405,7 @@ extends Descriptor
 		/**
 		 * The list of {@linkplain MethodDescriptor methods} on which the referent chunk depends.  If one of these
 		 * methods changes (due to adding or removing a
-		 * {@linkplain SignatureDescriptor method implementation}), this chunk
+		 * {@linkplain ImplementationDescriptor method implementation}), this chunk
 		 * will be immediately invalidated.
 		 */
 		final Set<AvailObject> contingentMethods;

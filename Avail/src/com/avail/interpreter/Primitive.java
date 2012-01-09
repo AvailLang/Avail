@@ -4949,7 +4949,7 @@ public enum Primitive
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					ANY.o()),
+					ObjectTypeDescriptor.mostGeneralType()),
 				BottomTypeDescriptor.bottom());
 		}
 	},
@@ -5152,7 +5152,7 @@ public enum Primitive
 
 	/**
 	 * <strong>Primitive 213:</strong> Answer a {@linkplain SetDescriptor set}
-	 * of all currently defined {@linkplain SignatureDescriptor signatures} for
+	 * of all currently defined {@linkplain ImplementationDescriptor signatures} for
 	 * the {@linkplain AtomDescriptor true message name} represented by
 	 * {@linkplain MessageBundleDescriptor bundle}. This includes abstract
 	 * signatures and forward signatures.
@@ -5253,7 +5253,7 @@ public enum Primitive
 
 	/**
 	 * <strong>Primitive 216:</strong> Answer this {@linkplain
-	 * SignatureDescriptor signature}'s {@linkplain FunctionDescriptor body}'s
+	 * ImplementationDescriptor signature}'s {@linkplain FunctionDescriptor body}'s
 	 * {@linkplain FunctionTypeDescriptor type}.
 	 */
 	prim216_SignatureBodyType(216, 1, CanFold, CannotFail)
@@ -5281,7 +5281,7 @@ public enum Primitive
 
 	/**
 	 * <strong>Primitive 217:</strong> Answer this {@linkplain
-	 * MethodSignatureDescriptor method signature}'s {@linkplain
+	 * MethodImplementationDescriptor method signature}'s {@linkplain
 	 * FunctionDescriptor body}.
 	 */
 	prim217_SignatureBodyBlock(217, 1, CanFold, CannotFail)
@@ -5441,6 +5441,7 @@ public enum Primitive
 			final AvailObject name = args.get(0);
 			try
 			{
+				// TODO: This really ought to extend the Avail grammar.
 				return interpreter.primitiveSuccess(
 					interpreter.lookupName(name));
 			}
@@ -5466,7 +5467,7 @@ public enum Primitive
 	 * would run for a call site for the specified {@linkplain
 	 * MethodDescriptor method} and tuple of argument types.
 	 */
-	prim247_ApplicableRestrictions(247, 2, Unknown)
+	prim247_SemanticRestrictions(247, 2, Unknown)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -5511,7 +5512,7 @@ public enum Primitive
 	/**
 	 * <strong>Primitive 248:</strong> Add a type restriction function.
 	 */
-	prim248_AddTypeRestriction(248, 2, Unknown)
+	prim248_AddSemanticRestriction(248, 2, Unknown)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -5643,8 +5644,8 @@ public enum Primitive
 
 	/**
 	 * <strong>Primitive 251:</strong> Declare method as {@linkplain
-	 * AbstractSignatureDescriptor abstract}. This identifies responsibility for
-	 * subclasses that want to be concrete.
+	 * AbstractDeclarationDescriptor abstract}. This identifies responsibility for
+	 * implementations that want to be concrete.
 	 */
 	prim251_AbstractMethodDeclaration(251, 2, Unknown)
 	{
@@ -5824,7 +5825,7 @@ public enum Primitive
 	 * distinction is only apparent when chevron notation is used to accept
 	 * tuples of arguments.
 	 */
-	prim255_PrecedenceDeclaration(255, 2, Unknown)
+	prim255_GrammaticalRestriction(255, 2, Unknown)
 	{
 		@Override
 		public @NotNull Result attempt (

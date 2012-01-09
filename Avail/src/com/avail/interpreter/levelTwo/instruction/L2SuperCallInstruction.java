@@ -44,7 +44,7 @@ import com.avail.interpreter.levelTwo.register.*;
  * the actual {@linkplain AvailObject arguments} to have the specified
  * {@linkplain TypeDescriptor types} and then querying the {@linkplain
  * MethodDescriptor method} to find the best matching
- * {@linkplain MethodSignatureDescriptor method}.
+ * {@linkplain MethodImplementationDescriptor method}.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
@@ -54,7 +54,7 @@ extends L2Instruction
 {
 	/**
 	 * The {@linkplain MethodDescriptor method} from
-	 * which a {@linkplain MethodSignatureDescriptor method} should be selected
+	 * which a {@linkplain MethodImplementationDescriptor method} should be selected
 	 * and called based on the {@linkplain #argumentsVector arguments} and
 	 * {@linkplain #typesVector types}.
 	 */
@@ -62,7 +62,7 @@ extends L2Instruction
 
 	/**
 	 * The {@linkplain AvailObject arguments} of the {@linkplain
-	 * MethodSignatureDescriptor method} call.
+	 * MethodImplementationDescriptor method} call.
 	 */
 	private final @NotNull L2RegisterVector argumentsVector;
 
@@ -78,12 +78,12 @@ extends L2Instruction
 	 *
 	 * @param method
 	 *        The {@linkplain MethodDescriptor method}
-	 *        from which a {@linkplain MethodSignatureDescriptor method} should
+	 *        from which a {@linkplain MethodImplementationDescriptor method} should
 	 *        be selected and called based on the {@linkplain #argumentsVector
 	 *        arguments} and {@linkplain #typesVector types}.
 	 * @param argumentsVector
 	 *        The {@linkplain AvailObject arguments} of the {@linkplain
-	 *        MethodSignatureDescriptor method} call.
+	 *        MethodImplementationDescriptor method} call.
 	 * @param typesVector
 	 *        The {@linkplain TypeDescriptor types} which the exact {@linkplain
 	 *        #argumentsVector arguments} should be construed to have.

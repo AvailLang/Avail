@@ -222,7 +222,7 @@ public abstract class Interpreter
 		methodName.makeImmutable();
 		bodyBlock.makeImmutable();
 		//  Add the method implementation.
-		final AvailObject newImp = MethodSignatureDescriptor.create(
+		final AvailObject newImp = MethodImplementationDescriptor.create(
 			bodyBlock);
 		module.addMethodImplementation(methodName, newImp);
 		final AvailObject imps = runtime.methodFor(methodName);
@@ -274,7 +274,7 @@ public abstract class Interpreter
 	 * the list of methods needing to be declared later in this module.
 	 *
 	 * @param methodName A {@linkplain AtomDescriptor method name}.
-	 * @param bodySignature A {@linkplain MethodSignatureDescriptor method
+	 * @param bodySignature A {@linkplain MethodImplementationDescriptor method
 	 *                      signature}.
 	 * @throws SignatureException If the signature is malformed.
 	 */
@@ -286,7 +286,7 @@ public abstract class Interpreter
 		methodName.makeImmutable();
 		bodySignature.makeImmutable();
 		//  Add the stubbed method implementation.
-		final AvailObject newImp = ForwardSignatureDescriptor.create(
+		final AvailObject newImp = ForwardDeclarationDescriptor.create(
 			bodySignature);
 		module.addMethodImplementation(methodName, newImp);
 		final AvailObject imps = runtime.methodFor(methodName);
@@ -331,7 +331,7 @@ public abstract class Interpreter
 	 * @param methodName
 	 *            A {@linkplain AtomDescriptor method name}.
 	 * @param bodySignature
-	 *            The {@linkplain MethodSignatureDescriptor method signature}.
+	 *            The {@linkplain MethodImplementationDescriptor method signature}.
 	 * @throws SignatureException
 	 *            If the signature is malformed.
 	 */
@@ -356,7 +356,7 @@ public abstract class Interpreter
 		methodName.makeImmutable();
 		bodySignature.makeImmutable();
 		//  Add the method implementation.
-		final AvailObject newImp = AbstractSignatureDescriptor.create(
+		final AvailObject newImp = AbstractDeclarationDescriptor.create(
 			bodySignature);
 		module.addMethodImplementation(methodName, newImp);
 		final AvailObject imps = runtime.methodFor(methodName);
@@ -428,7 +428,7 @@ public abstract class Interpreter
 		methodName.makeImmutable();
 		macroBody.makeImmutable();
 		//  Add the macro implementation.
-		final AvailObject newImp = MacroSignatureDescriptor.create(macroBody);
+		final AvailObject newImp = MacroImplementationDescriptor.create(macroBody);
 		module.addMethodImplementation(methodName, newImp);
 		final AvailObject imps = runtime.methodFor(methodName);
 		final AvailObject macroBodyType = macroBody.kind();
@@ -627,7 +627,7 @@ public abstract class Interpreter
 
 	/**
 	 * Answer the Avail {@linkplain SetDescriptor set} of outstanding unresolved
-	 * {@linkplain ForwardSignatureDescriptor forward declarations} within the
+	 * {@linkplain ForwardDeclarationDescriptor forward declarations} within the
 	 * current module.
 	 *
 	 * @return The set of unresolved forward declarations.
@@ -779,7 +779,7 @@ public abstract class Interpreter
 	 * @param methodName
 	 *            The {@linkplain AtomDescriptor true name} of a method.
 	 * @param implementation
-	 *            An {@linkplain SignatureDescriptor implementation}.
+	 *            An {@linkplain ImplementationDescriptor implementation}.
 	 */
 	public void removeMethodNamedImplementation (
 		final @NotNull AvailObject methodName,
