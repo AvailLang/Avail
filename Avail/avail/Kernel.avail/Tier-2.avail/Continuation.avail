@@ -54,14 +54,7 @@ Names
 Body
 
 
-/**
- * Private zero-argument block evaluation (bootstrap workaround)...
- */
-Method "_()" is [block : []->void |
-	block apply <>;
-];
-
-Restriction "_()" is [bt : functionType |
+Restriction "_(«_‡,»)" is [bt : functionType, argsType : tupleType |
 	bt result;
 ];
 

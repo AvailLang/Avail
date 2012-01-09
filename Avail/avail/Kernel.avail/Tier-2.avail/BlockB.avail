@@ -39,17 +39,8 @@ Uses
 	"Number",
 	"Tuple"
 Names
-	"stub block with function type_invoking_",
-	"_(«_‡,»)"
+	"stub block with function type_invoking_"
 Body
-
-
-/**
- * Block evaluation with a (chevron-group) tuple of arguments...
- */
-Method "_(«_‡,»)" is [block : [...]->void, args : tuple |
-	block apply args;
-] : void;
 
 Restriction "_(«_‡,»)" is [blkType : functionType, argsType : tupleType |
 	/* The arguments are a chevron group, so the exact count is known at the

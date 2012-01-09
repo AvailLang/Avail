@@ -39,7 +39,8 @@ Names
 	"a string",
 	"input character from console",
 	"get user input",
-	"Ask for_with the question,_"
+	"Ask for_with the question,_",
+	"Ask for a number between_and_with the question,_"
 Body
 
 Method "a string" is [string;];
@@ -101,12 +102,19 @@ Method "Ask for_with the question,_" is
 		[
 			catch 
 			[ 
-				e: Invalid Numeral 
+				e : Invalid Numeral 
 			|
 				Print "The prompt requires an integer input. " then stream then 
 					" is not an integer.";  
 				Ask for an integer with the question, question;
-				
+			],
+			[
+				e : Invalid Character
+			|
+				Print "The input received, " 
+					then stream then 
+					" contains invalid characters.";
+				Ask for an integer with the question, question;
 			] in
 			[
 				convert stream to an integer;
@@ -121,7 +129,14 @@ Method "Ask for_with the question,_" is
 				Print "The prompt requires a decimal number input. " then 
 				stream then " is not a decimal number.";  
 				Ask for a float with the question, question;
-				
+			],
+			[
+				e : Invalid Character
+			|
+				Print "The input received, " 
+					then stream then 
+					" contains invalid characters.";
+				Ask for an integer with the question, question;	
 			] in
 			[
 				convert stream to a float;
@@ -143,7 +158,14 @@ Method "Ask for_with the question,_" is
 				Print stream then " is not a properly formated date.";  
 				
 				Ask for a date with the question, question;
-				
+			],
+			[
+				e : Invalid Character
+			|
+				Print "The input received, " 
+					then stream then 
+					" contains invalid characters.";
+				Ask for an integer with the question, question;
 			] in
 			[
 				convert stream of form YYYY-MM-DD to a date;
@@ -151,7 +173,7 @@ Method "Ask for_with the question,_" is
 		]:
 		default
 		[
-			stream;
+			Crash "Invalid type.  Can't ever get here.";
 		];
 ]:any;
 
@@ -160,5 +182,45 @@ Restriction "Ask for_with the question,_" is
 	inputTypeType : any type type,
 	questionType : string type
 |
+	availableTypes : set := {string,integer type,float,date};
+
+	if not (availableTypes includes inputTypeType)
+	then [Fail parse "The method, 'Ask for_with the question,_', does " then
+				"not support the type" then inputTypeType as basic string;];
+
 	inputTypeType instance;
 ];
+
+Method "Ask for a number between_and_with the question,_" is
+[
+	bound1 : integer,
+	bound2 : integer,
+	question : string
+|
+	upperBound : integer;
+	lowerBound : integer;
+	userInput : integer;
+	
+	if bound1 < bound2 then 
+	[
+		upperBound := bound2;
+		lowerBound := bound1;
+	] else
+	[
+		upperBound := bound1;
+		lowerBound := bound2;
+	];
+
+	Loop 
+	[
+		userInput := Ask for an integer with the question, question;
+	] until
+	[
+		lowerBound <= userInput <= upperBound;
+	] do
+	[
+		Print userInput as basic string then " is not a valid response";
+	];
+	
+	userInput;
+]:integer;

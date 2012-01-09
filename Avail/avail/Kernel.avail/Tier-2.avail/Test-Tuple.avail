@@ -134,3 +134,16 @@ Assert [splice <t1,t2,t3,t4,t5>;] type result
 		[1..1],[2..2],[3..3],[4..4],
 		[4..5],[4..6],[4..7],[5..7],[6..8],[7..9],[7..10],[7..12],
 		[8..13],[9..14],[10..15],[11..15]> default [11..15];
+
+Assert (<1,2,3> includes 2) = true;
+Assert (<1,2,3> includes 5) = false;
+
+Assert (first index of <1,5,2,3> where [ x : any | x = 2;]) = 3;
+Assert (first index of <1,5,2,3> where [ x : any | x = 9;]) = 0;
+Assert (first index of <1,2,3,2,5> where [ x : any | x = 2;]) = 2;
+
+Assert (last index of <1,2,3,2,5> where [ x : any | x = 2;]) = 4;
+Assert (last index of <1,2,3,2,5> where [ x : any | x = 9;]) = 0;
+
+Assert (all indexes of <1,2,2,3> where [ x : any | x = 2;]) = <2,3>;
+Assert (all indexes of <1,2,2,3> where [ x : any | x = 9;]) = <>;

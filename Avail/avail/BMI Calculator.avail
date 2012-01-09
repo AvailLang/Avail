@@ -88,12 +88,14 @@ Method "Calculate BMI" is
 		/* Prompt user for integer input with provided question */
 		weightInPounds := 
 			Ask for an integer with the question, "Enter Weight (in pounds): ";
-	] until [
+	] until 
+	[
 		/* Condition to be met for loop to end.  We want the user to have a
 		 * positive weight. 
 		 */
 		weightInPounds >= 0;
-	] do [
+	] do 
+	[
 		/* Print in the event the user enters a negative or 0 weight. */
 		Print "Weight must be a positive integer";
 	];

@@ -1092,7 +1092,7 @@ Method "Subtract_from_«in_»" is
 	/* Confirm date order is correct */
 	if subtractingDate size > baseDate size then
 	[
-		Fail parse "The subtracting date must be lesser than the base date";
+		Crash "The subtracting date must be lesser than the base date";
 	];
 	
 	/* Check to see which MMDD is larger */

@@ -50,9 +50,19 @@ Method "Heart Rate Calculator" is
 [
 	name: string := Ask for a string with the question, "What is your name?";
 	
-	dob: date := 
-		Ask for a date with the question, 
-		"what is your date of birth? (YYYY-MM-DD):";
+	dob: date;
+	
+	Loop
+	[
+		dob := Ask for a date with the question, 
+			"what is your date of birth? (YYYY-MM-DD):";
+	] until
+	[
+		dob size <= today's date size;
+	] do
+	[
+		Print "Birthdate cannot be in the future";
+	];
 
 	age : integer := Subtract dob from today's date;
 	

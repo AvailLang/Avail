@@ -45,7 +45,8 @@ Names
 	"_r_",
 	"convert_to an integer",
 	"convert_to a float",
-	"Invalid Numeral"
+	"Invalid Numeral",
+	"Invalid Character"
 
 Body
 
@@ -85,20 +86,21 @@ Method "_r_" is
 		dig ::= code point of char;
 		
 		digValue ::= if digitZero <= dig <= digitNine then 
-			[		
-		 		dig - digitZero;
-			] else if lettera <= dig <= letterz then
-			[
-				dig - lettera + 10;
-			] else if letterA <= dig <= letterZ then 
-			[
-				dig - letterA + 10;
-			] else 
-			[
-				Raise Invalid Character with digits;
-			];
+		[		
+	 		dig - digitZero;
+		] else if lettera <= dig <= letterz then
+		[
+			dig - lettera + 10;
+		] else if letterA <= dig <= letterZ then 
+		[
+			dig - letterA + 10;
+		] else 
+		[
+			Raise Invalid Character with digits;
+		];
 	
-		if digValue >= radix | digValue < 0 then [Raise Invalid Numeral with digits;];
+		if digValue >= radix | digValue < 0 then 
+			[Raise Invalid Numeral with digits;];
 		
 		answer := answer * radix + digValue;
 	];

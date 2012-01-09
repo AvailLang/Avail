@@ -37,7 +37,8 @@ Uses
 Names
 	"_apply_",
 	"cast_into_otherwise_",
-	"cast_into_"
+	"cast_into_",
+	"_(«_‡,»)"
 Body
 
 
@@ -77,6 +78,13 @@ Restriction "_apply_" is [functionT : functionType, argsT : tupleType |
 	 */
 	functionT result;
 ];
+
+/**
+ * Block evaluation with a (chevron-group) tuple of arguments...
+ */
+Method "_(«_‡,»)" is [block : [...]->void, args : tuple |
+	block apply args;
+] : void;
 
 Method "«_‡++»" is [tuples : tuple of tuple |
 	Primitive 136;

@@ -1187,7 +1187,7 @@ extends AbstractAvailCompiler
 	{
 		parseAndEvaluateExpressionYieldingInstanceOfThen(
 			atNextException,
-			ObjectDescriptor.objectFromMap(MapDescriptor.empty()),
+			ObjectTypeDescriptor.meta(),
 			new Con<AvailObject>("Exception declaration entry for block")
 			{
 				@Override
