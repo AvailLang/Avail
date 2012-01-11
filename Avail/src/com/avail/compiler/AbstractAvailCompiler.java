@@ -668,8 +668,8 @@ public abstract class AbstractAvailCompiler
 		 * Parse a string literal. Answer the {@linkplain LiteralTokenDescriptor
 		 * string literal token} if found, otherwise answer {@code null}.
 		 *
-		 * @return The actual {@linkplain LiteralTokenDescriptor literal token} or
-		 *         {@code null}.
+		 * @return The actual {@linkplain LiteralTokenDescriptor literal token}
+		 *         or {@code null}.
 		 */
 		AvailObject peekStringLiteral ()
 		{
@@ -709,10 +709,10 @@ public abstract class AbstractAvailCompiler
 		 * in case the parse fails.
 		 *
 		 * <p>
-		 * The expectation is a {@linkplain Generator Generator<String>}, in case
-		 * constructing a {@link String} would be prohibitive. There is also
-		 * {@link #expected(String) another} version of this method that accepts
-		 * a String directly.
+		 * The expectation is a {@linkplain Generator Generator<String>}, in
+		 * case constructing a {@link String} would be prohibitive. There is
+		 * also {@link #expected(String) another} version of this method that
+		 * accepts a String directly.
 		 * </p>
 		 *
 		 * @param stringGenerator
@@ -1106,6 +1106,14 @@ public abstract class AbstractAvailCompiler
 			greatExpectations);
 	}
 
+	static final String rowOfDashes;
+	static
+	{
+		final char[] chars = new char[70];
+		Arrays.fill(chars, '-');
+		rowOfDashes = new String(chars);
+	}
+
 	/**
 	 * Report an error by throwing an {@link AvailCompilerException}. The
 	 * exception encapsulates the {@linkplain ModuleName module name} of the
@@ -1167,7 +1175,7 @@ public abstract class AbstractAvailCompiler
 			}
 		}
 		text.format("^-- %s", banner);
-		text.format("%n>>>---------------------------------------------------------------------");
+		text.format("%n>>>%s", rowOfDashes);
 		final Set<String> alreadySeen = new HashSet<String>(problems.size());
 		for (final Generator<String> generator : problems)
 		{
@@ -1182,7 +1190,7 @@ public abstract class AbstractAvailCompiler
 			"%n(file=\"%s\", line=%d)",
 			moduleName.qualifiedName(),
 			token.lineNumber());
-		text.format("%n>>>---------------------------------------------------------------------");
+		text.format("%n>>>%s", rowOfDashes);
 		int endOfLine = source.indexOf('\n', (int) charPos);
 		if (endOfLine == -1)
 		{
@@ -1295,9 +1303,9 @@ public abstract class AbstractAvailCompiler
 	 * module variables and constants are in scope.
 	 *
 	 * @param expressionNode
-	 *        A {@linkplain ParseNodeDescriptor parse node}.
-	 * @return The result of generating a {@linkplain FunctionDescriptor function}
-	 *         from the argument and evaluating it.
+	 *            A {@linkplain ParseNodeDescriptor parse node}.
+	 * @return The result of generating a {@linkplain FunctionDescriptor
+	 *         function} from the argument and evaluating it.
 	 */
 	@NotNull AvailObject evaluate (final @NotNull AvailObject expressionNode)
 	{
@@ -1327,11 +1335,11 @@ public abstract class AbstractAvailCompiler
 	}
 
 	/**
-	 * Ensure that the {@linkplain BlockNodeDescriptor block node} is valid. Throw an
-	 * appropriate exception if it is not.
+	 * Ensure that the {@linkplain BlockNodeDescriptor block node} is valid.
+	 * Throw an appropriate exception if it is not.
 	 *
 	 * @param blockNode
-	 *        The {@linkplain BlockNodeDescriptor block node} to validate.
+	 *            The {@linkplain BlockNodeDescriptor block node} to validate.
 	 */
 	public void validate (final @NotNull AvailObject blockNode)
 	{
@@ -1563,7 +1571,8 @@ public abstract class AbstractAvailCompiler
 		{
 			final AvailObject sendNode = SendNodeDescriptor.mutable().create();
 			sendNode.method(impSet);
-			sendNode.arguments(TupleDescriptor.fromCollection(argumentExpressions));
+			sendNode.arguments(
+				TupleDescriptor.fromCollection(argumentExpressions));
 			sendNode.returnType(returnType);
 			attempt(
 				new ParserState(

@@ -615,11 +615,11 @@ public class AvailScanner
 
 		/**
 		 * A slash was encountered. Check if it's the start of a comment, and if
-		 * so skip it. If not, add the slash as a {@linkplain TokenDescriptor token}
-		 * of type {@link TokenType#OPERATOR}.
+		 * so skip it. If not, add the slash as a {@linkplain TokenDescriptor
+		 * token} of type {@link TokenType#OPERATOR}.
 		 *
 		 * <p>
-		 * Support nested comments.
+		 * Nested comments are supported.
 		 * </p>
 		 */
 		SLASH()

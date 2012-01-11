@@ -120,8 +120,8 @@ public class MessageSplitter
 
 		/**
 		 * Write instructions for parsing me to the given list.
-		 * @param list The list of integers {@linkplain MessageSplitter encoding}
-		 * parsing instructions.
+		 * @param list The list of integers {@linkplain MessageSplitter
+		 * encoding} parsing instructions.
 		 */
 		abstract void emitOn (final List<Integer> list);
 
@@ -170,8 +170,8 @@ public class MessageSplitter
 		 * TupleTypeDescriptor tuple type} for the outermost check.</p>
 		 *
 		 * @param argumentType
-		 *        A {@linkplain TupleTypeDescriptor tuple type} describing the types
-		 *        of arguments that a method being added will accept.
+		 *        A {@linkplain TupleTypeDescriptor tuple type} describing the
+		 *        types of arguments that a method being added will accept.
 		 */
 		public abstract void checkType (final AvailObject argumentType);
 
@@ -331,9 +331,9 @@ public class MessageSplitter
 			// restrictions.  In particular, it will be recorded at position N
 			// if this argument is for the Nth non-backquoted underscore or
 			// ellipsis of this message.  This is done with two instructions
-			// to simplify processing of the recursive expression parse, as well
-			// as to make a completely non-recursive parallel-shift-reduce
-			// parsing engine easier to build eventually.
+			// to simplify processing of the recursive expression parse,
+			// especially as it relates to the non-recursive parallel
+			// shift-reduce parsing engine.
 			list.add(6);
 			list.add(absoluteUnderscoreIndex * 8 + 3);
 		}
@@ -722,11 +722,11 @@ public class MessageSplitter
 		 *
 		 * @param availObject
 		 *        The arguments to this {@link Group}, organized as either a
-		 *        single {@linkplain ParseNodeDescriptor parse node} or a {@linkplain
-		 *        TupleNodeDescriptor tuple node} of parse nodes, depending on
-		 *        {@code doubleWrap}.  The root group always has doubleWrap
-		 *        true, and passes a synthetic {@linkplain TupleNodeDescriptor
-		 *        tuple node}.
+		 *        single {@linkplain ParseNodeDescriptor parse node} or a
+		 *        {@linkplain TupleNodeDescriptor tuple node} of parse nodes,
+		 *        depending on {@code doubleWrap}.  The root group always has
+		 *        doubleWrap true, and passes a synthetic {@linkplain
+		 *        TupleNodeDescriptor tuple node}.
 		 * @param aStream
 		 *        The {@link StringBuilder} on which to print.
 		 * @param indent

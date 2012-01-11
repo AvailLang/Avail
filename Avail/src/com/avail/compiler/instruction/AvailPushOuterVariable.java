@@ -52,10 +52,10 @@ public class AvailPushOuterVariable extends AvailPushVariable
 	 * Construct a new {@link AvailPushOuterVariable}.
 	 *
 	 * @param variableIndex
-	 *        The index of the variable in a {@linkplain FunctionDescriptor function's}
-	 *        captured outer variable.
+	 *            The index of the variable in a {@linkplain FunctionDescriptor
+	 *            function}'s captured outer variable.
 	 */
-	public AvailPushOuterVariable (int variableIndex)
+	public AvailPushOuterVariable (final int variableIndex)
 	{
 		super(variableIndex);
 	}
@@ -80,17 +80,21 @@ public class AvailPushOuterVariable extends AvailPushVariable
 	/**
 	 * The instructions of a block are being iterated over.  Coordinate
 	 * optimizations between instructions using localData and outerData, two
-	 * {@linkplain List lists} manipulated by overrides of this method.  Treat each
-	 * instruction as though it is the last one in the block, and save enough
-	 * information in the lists to be able to undo consequences of this
+	 * {@linkplain List lists} manipulated by overrides of this method.  Treat
+	 * each instruction as though it is the last one in the block, and save
+	 * enough information in the lists to be able to undo consequences of this
 	 * assumption when a later instruction shows it to be unwarranted.
+	 *
 	 * <p>
 	 * The data lists are keyed by local or outer index.  Each entry is either
 	 * null or a {@link AvailVariableAccessNote}, which keeps track of the
 	 * previous time a get or push happened.
+	 * </p>
+	 *
 	 * <p>
-	 * I push an outer variable, which is an outer reference to either a local
-	 * or an argument.
+	 * The receiver pushes an outer variable, which is an outer reference to
+	 * either a local or an argument.
+	 * </p>
 	 */
 	@Override
 	public void fixFlagsUsingLocalDataOuterDataCodeGenerator (

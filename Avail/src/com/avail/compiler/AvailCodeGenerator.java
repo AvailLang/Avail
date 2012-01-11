@@ -109,8 +109,8 @@ public class AvailCodeGenerator
 	AvailObject exceptionSet;
 
 	/**
-	 * Which {@linkplain Primitive primitive VM operation} should be invoked, or zero
-	 * if none.
+	 * Which {@linkplain Primitive primitive VM operation} should be invoked, or
+	 * zero if none.
 	 */
 	int primitive = 0;
 
@@ -250,13 +250,14 @@ public class AvailCodeGenerator
 	 * @param locals
 	 *        The {@link List} of {@link DeclarationKind#LOCAL_VARIABLE local
 	 *        variable} and {@link DeclarationKind#LOCAL_CONSTANT local
-	 *        constant} {@linkplain DeclarationNodeDescriptor declaration nodes}.
+	 *        constant} {@linkplain DeclarationNodeDescriptor declaration
+	 *        nodes}.
 	 * @param labels
-	 *        The {@link List} of {@link DeclarationKind#LABEL label} {@linkplain
-	 *        DeclarationNodeDescriptor declaration nodes}.
+	 *        The {@link List} of {@link DeclarationKind#LABEL label}
+	 *        {@linkplain DeclarationNodeDescriptor declaration nodes}.
 	 * @param outerVars
-	 *        The {@linkplain TupleDescriptor tuple} of lexically captured (outer)
-	 *        {@linkplain DeclarationNodeDescriptor declarations}.
+	 *        The {@linkplain TupleDescriptor tuple} of lexically captured
+	 *        (outer) {@linkplain DeclarationNodeDescriptor declarations}.
 	 * @param theResultType
 	 *        A {@linkplain CompiledCodeDescriptor compiled code} object.
 	 * @param theExceptionSet
@@ -422,8 +423,9 @@ public class AvailCodeGenerator
 	/**
 	 * Emit code to get the value of a literal variable.
 	 *
-	 * @param aLiteral The {@linkplain VariableDescriptor variable} that should have
-	 *                 its value extracted.
+	 * @param aLiteral
+	 *            The {@linkplain VariableDescriptor variable} that should have
+	 *            its value extracted.
 	 */
 	public void emitGetLiteral (
 		final AvailObject aLiteral)
@@ -447,8 +449,8 @@ public class AvailCodeGenerator
 	 * Emit code to get the value of a local or outer (captured) variable.
 	 *
 	 * @param localOrOuter
-	 *        The {@linkplain DeclarationNodeDescriptor declaration} of the variable
-	 *        that should have its value extracted.
+	 *            The {@linkplain DeclarationNodeDescriptor declaration} of the
+	 *            variable that should have its value extracted.
 	 */
 	public void emitGetLocalOrOuter (
 		final AvailObject localOrOuter)
@@ -488,11 +490,12 @@ public class AvailCodeGenerator
 	{
 		instructions.add(new AvailGetType(stackDepth));
 		decreaseDepth(stackDepth + 1);
-		//  make sure there are sufficient elements on the stack by 'testing the water'.
+		// make sure there are sufficient elements on the stack by 'testing the
+		// water'.
 		increaseDepth(stackDepth + 1);
 		//  undo the effect of 'testing the water'.
-		//
-		//  push type
+
+		//  push the type
 		increaseDepth(1);
 	}
 
@@ -505,14 +508,15 @@ public class AvailCodeGenerator
 	public void emitLabelDeclaration (
 		final AvailObject labelNode)
 	{
-		assert instructions.isEmpty() : "Label must be first statement in block";
-		//  stack is unaffected.
+		assert instructions.isEmpty()
+		: "Label must be first statement in block";
+		// stack is unaffected.
 		instructions.add(labelInstructions.get(labelNode));
 	}
 
 	/**
-	 * Emit code to create a {@linkplain TupleDescriptor tuple} from the top N items
-	 * on the stack.
+	 * Emit code to create a {@linkplain TupleDescriptor tuple} from the top N
+	 * items on the stack.
 	 *
 	 * @param count How many pushed items to pop for the new tuple.
 	 */
@@ -600,9 +604,9 @@ public class AvailCodeGenerator
 	 * Emit code to pop the stack and write into a local or outer variable.
 	 *
 	 * @param localOrOuter
-	 *        The {@linkplain DeclarationNodeDescriptor declaration} of the {@link
-	 *        DeclarationKind#LOCAL_VARIABLE local} or outer variable in which
-	 *        to write.
+	 *            The {@linkplain DeclarationNodeDescriptor declaration} of the
+	 *            {@link DeclarationKind#LOCAL_VARIABLE local} or outer variable
+	 *            in which to write.
 	 */
 	public void emitSetLocalOrOuter (
 		final AvailObject localOrOuter)
@@ -612,12 +616,14 @@ public class AvailCodeGenerator
 		decreaseDepth(1);
 		if (varMap.containsKey(localOrOuter))
 		{
-			instructions.add(new AvailSetLocalVariable(varMap.get(localOrOuter)));
+			instructions.add(
+				new AvailSetLocalVariable(varMap.get(localOrOuter)));
 			return;
 		}
 		if (outerMap.containsKey(localOrOuter))
 		{
-			instructions.add(new AvailSetOuterVariable(outerMap.get(localOrOuter)));
+			instructions.add(
+				new AvailSetOuterVariable(outerMap.get(localOrOuter)));
 			return;
 		}
 		if (labelInstructions.containsKey(localOrOuter))

@@ -42,15 +42,17 @@ import java.io.ByteArrayOutputStream;
 import java.util.List;
 
 /**
- * I represent the use of a label.  When a label is used, it causes the current
- * {@linkplain ContinuationDescriptor continuation} to be copied.  The copy is then
- * reset to the state that existed when the current {@linkplain FunctionDescriptor
- * function} started running, resetting the program counter, stack pointer, and
- * stack slots, and creating new local variables.
+ * I represent the use of a label.  When a label is <em>used</em>, it causes the
+ * current {@linkplain ContinuationDescriptor continuation} to be copied.  The
+ * copy is then reset to the state that existed when the current {@linkplain
+ * FunctionDescriptor function} started running, resetting the program counter,
+ * stack pointer, and stack slots, and creating new local variables.
+ *
  * <p>
  * The new continuation can subsequently be {@link
  * Primitive#prim56_RestartContinuationWithArguments restarted} or
  * {@link Primitive#prim57_ExitContinuationWithResult exited}.
+ * </p>
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
@@ -68,21 +70,21 @@ public class AvailPushLabel extends AvailInstruction
 	/**
 	 * The instructions of a block are being iterated over.  Coordinate
 	 * optimizations between instructions using localData and outerData, two
-	 * {@linkplain List lists} manipulated by overrides of this method.  Treat each
-	 * instruction as though it is the last one in the block, and save enough
-	 * information in the lists to be able to undo consequences of this
+	 * {@linkplain List lists} manipulated by overrides of this method.  Treat
+	 * each instruction as though it is the last one in the block, and save
+	 * enough information in the lists to be able to undo consequences of this
 	 * assumption when a later instruction shows it to be unwarranted.
 	 * <p>
 	 * The data lists are keyed by local or outer index.  Each entry is either
 	 * null or a {@link AvailVariableAccessNote}, which keeps track of the
 	 * previous time a get or push happened.
 	 * <p>
-	 * I push a label, which is a {@linkplain ContinuationDescriptor continuation}.
-	 * Since the label can be restarted (which constructs new locals while
-	 * reusing the arguments), or exited (which has no static effect on
-	 * optimizations), I only have an effect on arguments and outer variables.
-	 * Scan all arguments and outer variables and ensure the most recent pushes
-	 * are reset so that isLastAccess is false.
+	 * I push a label, which is a {@linkplain ContinuationDescriptor
+	 * continuation}.  Since the label can be restarted (which constructs new
+	 * locals while reusing the arguments), or exited (which has no static
+	 * effect on optimizations), I only have an effect on arguments and outer
+	 * variables.  Scan all arguments and outer variables and ensure the most
+	 * recent pushes are reset so that isLastAccess is false.
 	 */
 	@Override
 	public void fixFlagsUsingLocalDataOuterDataCodeGenerator (
