@@ -714,7 +714,17 @@ Method "_includes_" is
 	$method : $[tuple,any]->boolean;
 	
 	if first index of t where [ x : any | x = element;] > 0 then
-	[Exit method with true;];
+		[Exit method with true;];
 	false;
 	
 ]:boolean;
+
+Restriction "_includes_" is
+[
+	tType : tuple type,
+	element : type
+|
+	tupleOftTypes : <type…|0..∞> := tType leading types then <tType default type>;
+	if first index of tupleOftTypes where [ x : any | x = element;] = 0 then
+		[false type;] else [boolean;];
+]:boolean type;
