@@ -667,6 +667,16 @@ Method "first index of_where_" is
 	0;
 ]:whole number;
 
+Restriction "first index of_where_" is
+[
+	tType : tuple type,
+	predicateType : ([terminates]->boolean) type
+|
+	check predicateType accepts tType;
+	void;
+];
+
+
 Method "last index of_where_" is
 [
 	t : tuple,
@@ -685,13 +695,23 @@ Method "last index of_where_" is
 	0;
 ]:whole number;
 
+Restriction "last index of_where_" is
+[
+	tType : tuple type,
+	predicateType : ([terminates]->boolean) type
+|
+	check predicateType accepts tType;
+	void;
+];
+
+
 Method "all indexes of_where_" is
 [
 	t : tuple,
 	predicate : [terminates]->boolean
 |
-	i : whole number := 1;
-	indexes : <whole number…|0..∞> := <>;
+	i : natural number := 1;
+	indexes : <natural number…|0..∞> := <>;
 	
 	t do
 	[
@@ -704,7 +724,17 @@ Method "all indexes of_where_" is
 		i := i + 1;
 	];
 	indexes;
-]:<whole number…|0..∞>;
+]:<natural number…|0..∞>;
+
+Restriction "all indexes of_where_" is
+[
+	tType : tuple type,
+	predicateType : ([terminates]->boolean) type
+|
+	check predicateType accepts tType;
+	void;
+];
+
 
 Method "_includes_" is
 [
@@ -722,9 +752,11 @@ Method "_includes_" is
 Restriction "_includes_" is
 [
 	tType : tuple type,
-	element : type
+	elementType : type
 |
 	tupleOftTypes : <type…|0..∞> := tType leading types then <tType default type>;
-	if first index of tupleOftTypes where [ x : any | x = element;] = 0 then
-		[false type;] else [boolean;];
+	if first index of tupleOftTypes where [ x : type |
+		type intersection of x and elementType not = terminates;] = 0
+	then [false type;]
+	else [boolean;];
 ]:boolean type;

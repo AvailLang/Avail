@@ -40,7 +40,8 @@ Names
 	"input character from console",
 	"get user input",
 	"Ask for_with the question,_",
-	"Ask for a number between_and_with the question,_"
+	"Ask for a number between_and_with the question,_",
+	"Ask for a tuple of integers with the question,_"
 Body
 
 Method "a string" is [string;];
@@ -224,3 +225,133 @@ Method "Ask for a number between_and_with the question,_" is
 	
 	userInput;
 ]:integer;
+
+Forward "Ask for a tuple of integers with the question,_" for 
+	[string] -> <integer…|0..∞>;
+
+Method "Ask for a tuple of integers with the question,_" is
+[
+	question : string
+|
+	$method : $[string] -> <integer…|0..∞>;
+	Print question;
+	
+	stream : string := get user input;
+	strmSize : whole number := ||stream||;
+	tempTupleResult : <integer…|0..∞> := <>;
+	
+	if strmSize > 1 then
+	[
+
+		blanks : <natural number…|0..∞> := 
+			all indexes of stream where [ ch : character | ch = $" ";];
+		if ||blanks|| = 0 then 
+		[
+			input : integer;
+			catch 
+			[ 
+				e : Invalid Numeral 
+			|
+				Print "The prompt requires a set of integers as input. " then
+					stream then " contains a non-integer.";
+				Restart method;
+			],
+			[
+				e : Invalid Character
+			|
+				Print "The input received, " 
+					then stream then 
+					" contains invalid characters.";
+				Restart method;
+			] in
+			[
+				input := convert stream to an integer;
+				tempTupleResult := tempTupleResult then <input>; 
+			];
+			<input>;
+		]
+		else 
+		[
+			start : natural number := 1;
+			lastInput : integer;
+			input : integer;
+			
+		
+			blanks do
+			[
+				b : natural number
+			|
+				catch 
+				[ 
+					e : Invalid Numeral 
+				|
+					Print "The prompt requires a set of integers as input. " then
+						stream then " contains a non-integer.";
+					Restart method;
+				],
+				[
+					e : Invalid Character
+				|
+					Print "The input received, " 
+						then stream then 
+						" contains invalid characters.";
+					Restart method;
+				] in
+				[
+					input := convert (stream[start..b-1]) to an integer;
+				];
+				tempTupleResult := tempTupleResult then <input>;
+				start := b + 1;
+			];
+			lastLower : natural number := 
+				blanks[cast ||blanks|| into [n : natural number | n;]] + 1;
+			lastUpper : natural number := 
+				cast strmSize into [n : natural number | n;];
+
+			catch 
+			[ 
+				e : Invalid Numeral 
+			|
+				Print "The prompt requires a set of integers as input. " then
+					stream then " contains a non-integer.";
+				Restart method;
+			],
+			[
+				e : Invalid Character
+			|
+				Print "The input received, " 
+					then stream then 
+					" contains invalid characters.";
+				Restart method;
+			] in
+			[			
+				lastInput := 
+					convert (stream[lastLower..lastUpper]) to an integer;
+			];
+			tempTupleResult := tempTupleResult then <lastInput>;
+		];
+	] else
+	[
+		catch 
+			[ 
+				e : Invalid Numeral 
+			|
+				Print "The prompt requires a set of integers as input. " then
+					stream then " contains a non-integer.";
+				Restart method;
+			],
+			[
+				e : Invalid Character
+			|
+				Print "The input received, " 
+					then stream then 
+					" contains invalid characters.";
+				Restart method;
+			] in
+			[
+				input : integer := convert stream to an integer;
+				tempTupleResult := tempTupleResult then <input>;
+			];
+	];
+	tempTupleResult;
+]:<integer…|0..∞>;
