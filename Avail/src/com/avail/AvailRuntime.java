@@ -214,7 +214,7 @@ public final class AvailRuntime
 		specialObjects[45] = MESSAGE_BUNDLE_TREE.o();
 		specialObjects[46] = METHOD.o();
 		specialObjects[50] = PARSE_NODE.mostGeneralType();
-		specialObjects[51] = MARKER_NODE.mostGeneralType();
+		// 51 MARKER_NODE(⊤)
 		specialObjects[52] = EXPRESSION_NODE.mostGeneralType();
 		specialObjects[53] = ASSIGNMENT_NODE.mostGeneralType();
 		specialObjects[54] = BLOCK_NODE.mostGeneralType();
@@ -268,9 +268,11 @@ public final class AvailRuntime
 		specialObjects[81] = PojoTypeDescriptor.mostSpecificType();
 		specialObjects[82] = PojoDescriptor.nullObject();
 		specialObjects[83] = PojoSelfTypeDescriptor.selfType();
-		// 84
-		// 85
-		// 86
+		specialObjects[84] = PojoTypeDescriptor.meta();
+		specialObjects[85] = InstanceTypeDescriptor.on(
+			PojoTypeDescriptor.mostGeneralArrayType());
+		specialObjects[86] = FunctionTypeDescriptor.forReturnType(
+			PojoTypeDescriptor.mostGeneralType());
 		// 87
 		// 88
 		// 89
@@ -338,6 +340,13 @@ public final class AvailRuntime
 				TupleDescriptor.from(),
 				FunctionTypeDescriptor.forReturnType(TYPE.o()));
 		specialObjects[109] = FunctionTypeDescriptor.forReturnType(
+			PARSE_NODE.mostGeneralType());
+		specialObjects[110] = InstanceTypeDescriptor.on(
+			IntegerDescriptor.fromInt(2));
+		specialObjects[111] = DoubleDescriptor.fromDouble(Math.E);
+		specialObjects[112] = InstanceTypeDescriptor.on(
+			DoubleDescriptor.fromDouble(Math.E));
+		specialObjects[113] = InstanceTypeDescriptor.on(
 			PARSE_NODE.mostGeneralType());
 
 		for (final AvailObject object : specialObjects)

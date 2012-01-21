@@ -108,6 +108,19 @@ extends TypeDescriptor
 		return mostSpecificType;
 	}
 
+	/** The {@linkplain PojoTypeDescriptor pojo metatype}. */
+	private static AvailObject meta;
+
+	/**
+	 * Answer the {@linkplain PojoTypeDescriptor pojo metatype}.
+	 *
+	 * @return The pojo metatype.
+	 */
+	public static @NotNull AvailObject meta ()
+	{
+		return meta;
+	}
+
 	/**
 	 * The {@linkplain IntegerRangeTypeDescriptor integer range type} that
 	 * corresponds to Java {@code byte}.
@@ -208,6 +221,7 @@ extends TypeDescriptor
 		mostSpecificType = create(
 			RawPojoDescriptor.rawNullObject(), NullDescriptor.nullObject());
 		mostSpecificType.upperBoundMap(MapDescriptor.empty());
+		meta = InstanceTypeDescriptor.on(mostGeneralType);
 		byteRange = IntegerRangeTypeDescriptor.create(
 			IntegerDescriptor.fromInt(Byte.MIN_VALUE),
 			true,
@@ -244,6 +258,7 @@ extends TypeDescriptor
 		mostGeneralType = null;
 		mostGeneralArrayType = null;
 		mostSpecificType = null;
+		meta = null;
 		byteRange = null;
 		shortRange = null;
 		intRange = null;
@@ -1394,7 +1409,8 @@ extends TypeDescriptor
 		final AvailObject classPojo = object.slot(MOST_SPECIFIC_CLASS);
 		if (classPojo.equalsNull())
 		{
-			builder.append("null's type");
+			super.printObjectOnAvoidingIndent(
+				object, builder, recursionList, indent);
 			return;
 		}
 
@@ -1402,18 +1418,26 @@ extends TypeDescriptor
 			(Class<?>) RawPojoDescriptor.getPojo(classPojo);
 		if (javaClass == null)
 		{
-			builder.append(String.valueOf(javaClass));
+			builder.append("null's type");
+			return;
+		}
+
+		final AvailObject typeParams =
+			object.slot(PARAMETERIZATION_MAP).mapAt(classPojo);
+		if (javaClass.equals(PojoArray.class))
+		{
+			builder.append("[]<");
+			typeParams.tupleAt(1).printOnAvoidingIndent(
+				builder, recursionList, indent);
+			builder.append('>');
 			return;
 		}
 
 		builder.append(javaClass.getName());
-		final AvailObject typeParams =
-			object.slot(PARAMETERIZATION_MAP).mapAt(classPojo);
 		if (typeParams.tupleSize() > 0)
 		{
 			final TypeVariable<?>[] typeVars = javaClass.getTypeParameters();
-			final AvailObject upperBoundMap =
-				object.slot(UPPER_BOUND_MAP);
+			final AvailObject upperBoundMap = object.slot(UPPER_BOUND_MAP);
 			boolean first = true;
 			builder.append('<');
 			for (int i = 1; i <= typeParams.tupleSize(); i++)
@@ -1425,11 +1449,14 @@ extends TypeDescriptor
 				}
 				typeParams.tupleAt(i).printOnAvoidingIndent(
 					builder, recursionList, indent);
-				builder.append(" ≤ ");
-				final AvailObject typeVarName =
-					typeVariableName(typeVars[i - 1]);
-				upperBoundMap.mapAt(typeVarName).printOnAvoidingIndent(
-					builder, recursionList, indent);
+				if (!upperBoundMap.equalsNull())
+				{
+					builder.append(" ≤ ");
+					final AvailObject typeVarName =
+						typeVariableName(typeVars[i - 1]);
+					upperBoundMap.mapAt(typeVarName).printOnAvoidingIndent(
+						builder, recursionList, indent);
+				}
 			}
 			builder.append('>');
 		}

@@ -47,9 +47,10 @@ Names
 
 	"_++", "_--",
 
+	"e",
 	"_as float", "_as double",
 	"floor_",
-	"exp_", "ln_",
+	"ln_",
 
 	"nonpositive integer",
 	"negative integer",
@@ -283,6 +284,9 @@ Restriction "-_" is
 	resultType;
 ];
 
+eulerNumber ::= Special Object 111;
+
+Method "e" is [eulerNumber;];
 
 Abstract method "floor_" for [number]->number;
 
@@ -550,18 +554,17 @@ Method "ln_" is [exponent : double |
 	Primitive 316;
 ] : double;
 
-Method "exp_" is [exponent : float |
+Method "_^_" is [base : e type, exponent : float |
 	Primitive 287;
 ] : float;
 
-Method "exp_" is [exponent : double |
+Method "_^_" is [base : e type, exponent : double |
 	Primitive 317;
 ] : double;
 
-
 Method "_^_" is [base : number, exponent : number |
 	/* Uses identity a^b = exp(ln(a^b)) = exp(b*ln(a)). */
-	exp(exponent * ln(base as double));
+	e^(exponent * ln(base as double));
 ] : number;
 
 Forward "_^_" for [extended integer, whole number] -> extended integer;

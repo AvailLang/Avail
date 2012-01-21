@@ -168,9 +168,11 @@ public final class PrimitiveNamesGenerator
 					{
 						parameters = "";
 					}
+					final AvailObject returnType =
+						primitive.blockTypeRestriction().returnType();
 					final String returns;
-					if (!primitive.blockTypeRestriction().returnType().equals(
-						TypeDescriptor.Types.TOP.o()))
+					if (!returnType.equals(TypeDescriptor.Types.TOP.o())
+						&& !returnType.equals(BottomTypeDescriptor.bottom()))
 					{
 						returns = preambleBundle.getString(
 							methodCommentReturnsTemplate.name());

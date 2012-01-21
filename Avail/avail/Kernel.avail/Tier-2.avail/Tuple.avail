@@ -76,7 +76,7 @@ Body
 Forward "_[_]" for [tuple, natural number]->any;
 Forward "«_‡then»" for [tuple of tuple]->tuple;
 Forward "splice_" for [tuple of tuple]->tuple;
-Forward "_to_" for [integer, integer]->tuple;
+Forward "_to_" for [integer, integer]->tuple of integer;
 Forward "_[_->_]" for [tuple, natural number, any]->tuple;
 
 /* Set up precedence rules to avoid ambiguity of _to_, _do_, and _to_do_... */

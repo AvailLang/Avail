@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.01.12 15:19:17.860 -0600
+ * * Last Generated On: 2012.01.20 17:58:08.065 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -47,23 +47,25 @@ Uses
 	/* 78 */ "-∞",
 	/* 42 */ "abstract signature",
 	/*  1 */ "any",
-	/* 62 */ "argument node",
-	/* 53 */ "assignment node",
+	/* 62 */ "argument",
+	/* 53 */ "assignment",
 	/* 11 */ "atom",
-	/* 54 */ "block node",
+	/* 54 */ "block",
 	/*  2 */ "boolean",
 	/*  3 */ "character",
 	/* 38 */ "code point",
 	/*  9 */ "continuation",
 	/* 10 */ "continuation meta",
 	/* 92 */ "continuation variable",
-	/* 61 */ "declaration node",
+	/* 61 */ "declaration",
 	/* 12 */ "double",
+	/* 111 */ "e",
+	/* 112 */ "e's type",
 	/* 96 */ "empty map",
 	/* 104 */ "empty tuple",
 	/* 21 */ "enumeration meta",
 	/* 24 */ "enumeration meta meta",
-	/* 52 */ "expression node",
+	/* 52 */ "expression",
 	/* 13 */ "extended integer",
 	/* 18 */ "extended integer meta",
 	/* 71 */ "false",
@@ -78,21 +80,21 @@ Uses
 	/*  5 */ "function meta",
 	/* 17 */ "integer",
 	/* 95 */ "key-value tuple",
-	/* 63 */ "label node",
-	/* 55 */ "literal node",
-	/* 65 */ "local constant node",
-	/* 64 */ "local variable node",
+	/* 63 */ "label",
+	/* 59 */ "list",
+	/* 55 */ "literal",
+	/* 65 */ "local constant",
+	/* 64 */ "local variable",
 	/* 109 */ "macro function",
 	/* 39 */ "map",
 	/* 19 */ "map meta",
-	/* 51 */ "marker node",
 	/* 40 */ "message bundle",
 	/* 45 */ "message bundle tree",
 	/* 20 */ "meta",
 	/* 46 */ "method",
 	/* 44 */ "method signature",
-	/* 67 */ "module constant node",
-	/* 66 */ "module variable node",
+	/* 67 */ "module constant",
+	/* 66 */ "module variable",
 	/* 37 */ "natural number",
 	/* 97 */ "non-empty map",
 	/* 99 */ "non-empty set",
@@ -103,38 +105,42 @@ Uses
 	/* 101 */ "nybble",
 	/* 22 */ "object",
 	/* 23 */ "object meta",
-	/* 50 */ "parse node",
+	/* 50 */ "phrase",
+	/* 113 */ "phrase meta",
 	/* 80 */ "pojo",
+	/* 86 */ "pojo constructor",
+	/* 84 */ "pojo meta",
+	/* 85 */ "pojo[] meta",
 	/* 91 */ "predicate function",
 	/* 76 */ "primitive failure function",
-	/* 68 */ "primitive failure reason node",
-	/* 56 */ "reference node",
+	/* 68 */ "primitive failure reason",
 	/* 83 */ "self type",
 	/* 107 */ "semantic restriction function",
-	/* 57 */ "send node",
+	/* 57 */ "send",
 	/* 26 */ "set",
 	/* 27 */ "set meta",
 	/* 75 */ "set of string",
 	/* 41 */ "signature",
 	/* 28 */ "string",
-	/* 58 */ "super cast node",
+	/* 58 */ "super cast",
 	/* 70 */ "true",
 	/* 31 */ "true type",
 	/* 32 */ "tuple",
 	/* 33 */ "tuple meta",
-	/* 59 */ "tuple node",
 	/* 102 */ "tuple of nybble",
 	/* 108 */ "tuple of semantic restriction function",
 	/* 74 */ "tuple of set of string",
 	/* 72 */ "tuple of string",
 	/* 100 */ "tuple of tuple",
 	/* 73 */ "tuple of type",
+	/* 110 */ "two's type",
 	/* 34 */ "type",
 	/* 105 */ "unary procedure",
 	/* 103 */ "unsigned short",
 	/*  7 */ "variable",
 	/*  8 */ "variable meta",
-	/* 60 */ "variable use node",
+	/* 56 */ "variable reference",
+	/* 60 */ "variable use",
 	/* 36 */ "whole number",
 	/* 98 */ "whole number meta",
 	/* 106 */ "zero's type",
@@ -192,25 +198,24 @@ _forward_signature                      ::= special object 43;
 _method_signature                       ::= special object 44;
 _message_bundle_tree                    ::= special object 45;
 _method                                 ::= special object 46;
-_parse_node                             ::= special object 50;
-_marker_node                            ::= special object 51;
-_expression_node                        ::= special object 52;
-_assignment_node                        ::= special object 53;
-_block_node                             ::= special object 54;
-_literal_node                           ::= special object 55;
-_reference_node                         ::= special object 56;
-_send_node                              ::= special object 57;
-_super_cast_node                        ::= special object 58;
-_tuple_node                             ::= special object 59;
-_variable_use_node                      ::= special object 60;
-_declaration_node                       ::= special object 61;
-_argument_node                          ::= special object 62;
-_label_node                             ::= special object 63;
-_local_variable_node                    ::= special object 64;
-_local_constant_node                    ::= special object 65;
-_module_variable_node                   ::= special object 66;
-_module_constant_node                   ::= special object 67;
-_primitive_failure_reason_node          ::= special object 68;
+_phrase                                 ::= special object 50;
+_expression                             ::= special object 52;
+_assignment                             ::= special object 53;
+_block                                  ::= special object 54;
+_literal                                ::= special object 55;
+_variable_reference                     ::= special object 56;
+_send                                   ::= special object 57;
+_super_cast                             ::= special object 58;
+_list                                   ::= special object 59;
+_variable_use                           ::= special object 60;
+_declaration                            ::= special object 61;
+_argument                               ::= special object 62;
+_label                                  ::= special object 63;
+_local_variable                         ::= special object 64;
+_local_constant                         ::= special object 65;
+_module_variable                        ::= special object 66;
+_module_constant                        ::= special object 67;
+_primitive_failure_reason               ::= special object 68;
 _true                                   ::= special object 70;
 _false                                  ::= special object 71;
 _tuple_of_string                        ::= special object 72;
@@ -225,6 +230,9 @@ _pojo                                   ::= special object 80;
 _null                                   ::= special object 81;
 _null_type                              ::= special object 82;
 _self_type                              ::= special object 83;
+_pojo_meta                              ::= special object 84;
+_pojo_array_meta                        ::= special object 85;
+_pojo_constructor                       ::= special object 86;
 _nullary_procedure                      ::= special object 90;
 _predicate_function                     ::= special object 91;
 _continuation_variable                  ::= special object 92;
@@ -241,10 +249,14 @@ _tuple_of_nybble                        ::= special object 102;
 _unsigned_short                         ::= special object 103;
 _empty_tuple                            ::= special object 104;
 _unary_procedure                        ::= special object 105;
-_zero's_type                            ::= special object 106;
+_type_of_zero                           ::= special object 106;
 _semantic_restriction_function          ::= special object 107;
 _tuple_of_semantic_restriction_function ::= special object 108;
 _macro_function                         ::= special object 109;
+_type_of_two                            ::= special object 110;
+_e                                      ::= special object 111;
+_type_of_e                              ::= special object 112;
+_phrase_meta                            ::= special object 113;
 
 Method "any" is 
 [
@@ -484,99 +496,94 @@ Method "method" is
 	_method;
 ];
 
-Method "parse node" is 
+Method "phrase" is 
 [
-	_parse_node;
+	_phrase;
 ];
 
-Method "marker node" is 
+Method "expression" is 
 [
-	_marker_node;
+	_expression;
 ];
 
-Method "expression node" is 
+Method "assignment" is 
 [
-	_expression_node;
+	_assignment;
 ];
 
-Method "assignment node" is 
+Method "block" is 
 [
-	_assignment_node;
+	_block;
 ];
 
-Method "block node" is 
+Method "literal" is 
 [
-	_block_node;
+	_literal;
 ];
 
-Method "literal node" is 
+Method "variable reference" is 
 [
-	_literal_node;
+	_variable_reference;
 ];
 
-Method "reference node" is 
+Method "send" is 
 [
-	_reference_node;
+	_send;
 ];
 
-Method "send node" is 
+Method "super cast" is 
 [
-	_send_node;
+	_super_cast;
 ];
 
-Method "super cast node" is 
+Method "list" is 
 [
-	_super_cast_node;
+	_list;
 ];
 
-Method "tuple node" is 
+Method "variable use" is 
 [
-	_tuple_node;
+	_variable_use;
 ];
 
-Method "variable use node" is 
+Method "declaration" is 
 [
-	_variable_use_node;
+	_declaration;
 ];
 
-Method "declaration node" is 
+Method "argument" is 
 [
-	_declaration_node;
+	_argument;
 ];
 
-Method "argument node" is 
+Method "label" is 
 [
-	_argument_node;
+	_label;
 ];
 
-Method "label node" is 
+Method "local variable" is 
 [
-	_label_node;
+	_local_variable;
 ];
 
-Method "local variable node" is 
+Method "local constant" is 
 [
-	_local_variable_node;
+	_local_constant;
 ];
 
-Method "local constant node" is 
+Method "module variable" is 
 [
-	_local_constant_node;
+	_module_variable;
 ];
 
-Method "module variable node" is 
+Method "module constant" is 
 [
-	_module_variable_node;
+	_module_constant;
 ];
 
-Method "module constant node" is 
+Method "primitive failure reason" is 
 [
-	_module_constant_node;
-];
-
-Method "primitive failure reason node" is 
-[
-	_primitive_failure_reason_node;
+	_primitive_failure_reason;
 ];
 
 Method "true" is 
@@ -647,6 +654,21 @@ Method "null type" is
 Method "self type" is 
 [
 	_self_type;
+];
+
+Method "pojo meta" is 
+[
+	_pojo_meta;
+];
+
+Method "pojo[] meta" is 
+[
+	_pojo_array_meta;
+];
+
+Method "pojo constructor" is 
+[
+	_pojo_constructor;
 ];
 
 Method "nullary procedure" is 
@@ -731,7 +753,7 @@ Method "unary procedure" is
 
 Method "zero's type" is 
 [
-	_zero's_type;
+	_type_of_zero;
 ];
 
 Method "semantic restriction function" is 
@@ -747,5 +769,25 @@ Method "tuple of semantic restriction function" is
 Method "macro function" is 
 [
 	_macro_function;
+];
+
+Method "two's type" is 
+[
+	_type_of_two;
+];
+
+Method "e" is 
+[
+	_e;
+];
+
+Method "e's type" is 
+[
+	_type_of_e;
+];
+
+Method "phrase meta" is 
+[
+	_phrase_meta;
 ];
 

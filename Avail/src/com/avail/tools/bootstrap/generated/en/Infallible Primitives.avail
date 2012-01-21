@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.01.12 15:19:17.887 -0600
+ * * Last Generated On: 2012.01.20 17:58:08.123 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -49,6 +49,10 @@ Names
 	/*  51 */ "$_",
 	/*  49 */ "$_@pc=_stack=_[_]caller=_",
 	/* 137 */ "<_,_`…|_>",
+	/* 257 */ "Breakpoint",
+	/* 258 */ "Print:_",
+	/* 352 */ "Reject parse, expected:_",
+	/* 256 */ "Terminate:_",
 	/*  39 */ "[`…]→_",
 	/* 180 */ "_'s arity",
 	/*  92 */ "_'s bindings",
@@ -75,6 +79,7 @@ Names
 	/*  54 */ "_'s program counter",
 	/*  14 */ "_'s read type",
 	/*  37 */ "_'s return type",
+	/* 351 */ "_'s semantic type",
 	/*  59 */ "_'s stack",
 	/*  55 */ "_'s stack pointer",
 	/*  30 */ "_'s type",
@@ -86,9 +91,11 @@ Names
 	/* 125 */ "_-_",
 	/*   5 */ "_<_",
 	/*  60 */ "_=_",
+	/* 501 */ "_[]",
 	/* 141 */ "_[_]",
 	/* 124 */ "_[_]:=_",
 	/* 104 */ "_\\_",
+	/* 317 */ "_^_",
 	/*  85 */ "_as map",
 	/*  61 */ "_as object",
 	/*  63 */ "_as object type",
@@ -96,11 +103,18 @@ Names
 	/* 110 */ "_as tuple",
 	/* 250 */ "_is a primitive",
 	/*  17 */ "_is unassigned",
+	/* 355 */ "_→_",
+	/* 331 */ "_→character",
+	/* 330 */ "_→code point",
+	/* 281 */ "_→double",
+	/* 319 */ "_→extended integer",
+	/* 280 */ "_→float",
 	/* 122 */ "_∈_",
 	/* 103 */ "_∩_",
 	/* 102 */ "_∪_",
 	/*  33 */ "_≤_",
 	/* 107 */ "_⊆_",
+	/* 321 */ "_⨉_^_",
 	/*  12 */ "clear_",
 	/* 144 */ "concatenate_",
 	/*  25 */ "current fiber",
@@ -110,17 +124,21 @@ Names
 	/*  43 */ "if_then_else_",
 	/*  45 */ "ignore_and evaluate_",
 	/*   7 */ "integer range from_(inclusive=_)to_(inclusive=_)",
+	/* 316 */ "ln_",
 	/*  20 */ "milliseconds since the Epoch",
 	/* 120 */ "new atom_",
 	/*  16 */ "new ↑_",
 	/*  71 */ "new_applying_",
+	/* 259 */ "primitive description of_",
 	/* 111 */ "{_|_}",
 	/*  87 */ "{_→_|_}",
 	/* 181 */ "|_'s local variables|",
 	/* 182 */ "|_'s outer variables|",
 	/* 138 */ "|_|",
 	/*  13 */ "↑_",
-	/*  38 */ "∪_"
+	/*  38 */ "∪_",
+	/* 323 */ "⌈_⌉",
+	/* 322 */ "⌊_⌋"
 Body
 
 /**
@@ -565,7 +583,7 @@ Method "if_then_" is
 ] : ⊤;
 
 /**
- * TODO: Method description goes here.
+ * DEPRECATED.
  *
  * Parameters:
  *    arg1 -
@@ -1729,4 +1747,423 @@ Method "_is a primitive" is
 |
 	Primitive 250;
 ] : boolean;
+
+/**
+ * Terminate the current fiber. Use the specified value to provide contextual
+ * debugging information.
+ *
+ * This method must not leak beyond the bootstrap package. Termination of
+ * fibers is dangerous because it avoids cleaning up active continuations and
+ * ergo promotes deadlock (by failing to relinquish held locks). Only
+ * cooperative termination, e.g. interrupt queues, is supported in ordinary
+ * system or application code. This method is provided only for early detection
+ * of serious failures in bootstrap code. Real failures in system code outside
+ * of the bootstrap package use Avails usual exception handling machinery.
+ *
+ * Parameters:
+ *    {0} - A value, provided to establish context for debugging.
+ */
+Method "Terminate:_" is 
+[
+	value : any
+|
+	Primitive 256;
+] : ⊥;
+
+/**
+ * Cause the Avail virtual machine to raise an
+ * `org.availlang.exceptions.AvailBreakpointException` that a Java debugger
+ * can trap upon raise.
+ * 
+ * This method exists to facilitate debugging of the Avail virtual machine, and
+ * will be withdrawn once the implementation is considered sufficiently stable.
+ */
+Method "Breakpoint" is 
+[
+	Primitive 257;
+] : ⊤;
+
+/**
+ * Print the argument to the application's standard output stream.
+ *
+ * Parameters:
+ *    text - A string.
+ */
+Method "Print:_" is 
+[
+	text : string
+|
+	Primitive 258;
+] : ⊤;
+
+/**
+ * Produce a primitive description of the argument. This description is
+ * mechanically constructed by the Avail virtual machine. It may not contain
+ * appropriately localized text, and is intended to provide
+ * implementation-specific information that serves only to assist the
+ * Avail virtual machine developers in debugging the implementation.
+ *
+ * Parameters:
+ *    value - A value.
+ * Returns:
+ *    A mechanically constructed, possibly non-localized,
+ *    implementation-specific description of the argument.
+ */
+Method "primitive description of_" is 
+[
+	value : any
+|
+	Primitive 259;
+] : string;
+
+/**
+ * Compute and answer the numeric argument as a single-precision floating point
+ * number.
+ *
+ * Parameters:
+ *    aNumber - A number.
+ * Returns:
+ *    A `float` whose value approximates the argument.
+ */
+Method "_→float" is 
+[
+	aNumber : number
+|
+	Primitive 280;
+] : float;
+
+/**
+ * Compute and answer the numeric argument as a double-precision floating point
+ * number.
+ *
+ * Parameters:
+ *    aNumeric - A number.
+ * Returns:
+ *    A `double` whose value approximates the argument.
+ */
+Method "_→double" is 
+[
+	aNumeric : number
+|
+	Primitive 281;
+] : double;
+
+/**
+ * Compute and answer an approximation of the natural logarithm of the argument,
+ * i.e., ln `x`.
+ *
+ * Parameters:
+ *    x - A single-precision floating point number.
+ * Returns:
+ *    An approximation of ln `x`.
+ */
+Method "ln_" is 
+[
+	x : float
+|
+	Primitive 286;
+] : float;
+
+/**
+ * Compute and answer an approximation of the natural exponential function for
+ * the given exponent, i.e., e^`x`.
+ *
+ * Parameters:
+ *    eulerNumber - Euler's number.
+ *    x - The exponent.
+ * Returns:
+ *    An approximation of e^`x`.
+ */
+Method "_^_" is 
+[
+	eulerNumber : e's type,
+	x : float
+|
+	Primitive 287;
+] : float;
+
+/**
+ * Compute and answer an `extended integer` by rounding the argument toward
+ * zero (`0`).
+ *
+ * Parameters:
+ *    aFloat - A single-precision floating point number.
+ * Returns:
+ *    The requested value.
+ */
+Method "_→extended integer" is 
+[
+	aFloat : float
+|
+	Primitive 289;
+] : extended integer;
+
+/**
+ * Compute and answer `a`⨉(2^`two`) without loss of precision or
+ * intermediate overflow. This scales `a` by a power of two (`2`).
+ *
+ * Parameters:
+ *    a - A single-precision floating point number.
+ *    two - The number two (`2`).
+ *    b - The scaling factor.
+ * Returns:
+ *    The requested value.
+ */
+Method "_⨉_^_" is 
+[
+	a : float,
+	two : two's type,
+	b : integer
+|
+	Primitive 291;
+] : float;
+
+/**
+ * Compute and answer the largest integral single-precision floating point
+ * number less than or equal to the argument, i.e., the floor of `x`.
+ *
+ * Parameters:
+ *    x - A single-precision floating point number.
+ * Returns:
+ *    If the `0` is ±∞ or not-a-number, then `x`, otherwise the floor of
+ *    `x`.
+ */
+Method "⌊_⌋" is 
+[
+	x : float
+|
+	Primitive 292;
+] : float;
+
+/**
+ * Compute and answer the smallest integral single-precision floating point
+ * number greater than or equal to the argument, i.e., the ceiling of `x`.
+ *
+ * Parameters:
+ *    x - A single-precision floating point number.
+ * Returns:
+ *    If the `0` is ±∞ or not-a-number, then `x`, otherwise the ceiling of
+ *    `x`.
+ */
+Method "⌈_⌉" is 
+[
+	x : float
+|
+	Primitive 293;
+] : float;
+
+/**
+ * Compute and answer an approximation of the natural logarithm of the argument,
+ * i.e., ln `x`.
+ *
+ * Parameters:
+ *    x - A double-precision floating point number.
+ * Returns:
+ *    An approximation of ln `x`.
+ */
+Method "ln_" is 
+[
+	x : double
+|
+	Primitive 316;
+] : double;
+
+/**
+ * Compute and answer an approximation of the natural exponential function for
+ * the given exponent, i.e., e^`x`.
+ *
+ * Parameters:
+ *    eulerNumber - Euler's number.
+ *    x - The exponent.
+ * Returns:
+ *    An approximation of e^`x`.
+ */
+Method "_^_" is 
+[
+	eulerNumber : e's type,
+	x : double
+|
+	Primitive 317;
+] : double;
+
+/**
+ * Compute and answer an `extended integer` by rounding the argument toward
+ * zero (`0`).
+ *
+ * Parameters:
+ *    aDouble - A double-precision floating point number.
+ * Returns:
+ *    The requested value.
+ */
+Method "_→extended integer" is 
+[
+	aDouble : double
+|
+	Primitive 319;
+] : extended integer;
+
+/**
+ * Compute and answer `a`⨉(2^`two`) without loss of precision or
+ * intermediate overflow. This scales `a` by a power of two (`2`).
+ *
+ * Parameters:
+ *    a - A single-precision floating point number.
+ *    two - The number two (`2`).
+ *    b - The scaling factor.
+ * Returns:
+ *    The requested value.
+ */
+Method "_⨉_^_" is 
+[
+	a : double,
+	two : two's type,
+	b : integer
+|
+	Primitive 321;
+] : double;
+
+/**
+ * Compute and answer the largest integral double-precision floating point
+ * number less than or equal to the argument, i.e., the floor of `x`.
+ *
+ * Parameters:
+ *    x - A double-precision floating point number.
+ * Returns:
+ *    If the `0` is ±∞ or not-a-number, then `x`, otherwise the floor of
+ *    `x`.
+ */
+Method "⌊_⌋" is 
+[
+	x : double
+|
+	Primitive 322;
+] : double;
+
+/**
+ * Compute and answer the smallest integral double-precision floating point
+ * number greater than or equal to the argument, i.e., the ceiling of `x`.
+ *
+ * Parameters:
+ *    x - A double-precision floating point number.
+ * Returns:
+ *    If the `0` is ±∞ or not-a-number, then `x`, otherwise the ceiling of
+ *    `x`.
+ */
+Method "⌈_⌉" is 
+[
+	x : double
+|
+	Primitive 323;
+] : double;
+
+/**
+ * Answer the argument as a Unicode code point.
+ *
+ * Parameters:
+ *    aCharacter - A character.
+ * Returns:
+ *    The Unicode code point that encodes the argument.
+ */
+Method "_→code point" is 
+[
+	aCharacter : character
+|
+	Primitive 330;
+] : code point;
+
+/**
+ * Answer the argument as a character.
+ *
+ * Parameters:
+ *    codePoint - A Unicode code point.
+ * Returns:
+ *    The character encoded by the argument.
+ */
+Method "_→character" is 
+[
+	codePoint : code point
+|
+	Primitive 331;
+] : character;
+
+/**
+ * Answer the semantic type of the specified phrase. This is the type of value
+ * produced when the content of the phrase is evaluated (by the compiler and/or
+ * runtime).
+ *
+ * Parameters:
+ *    node - A phrase.
+ * Returns:
+ *    A type that describes all values producible by evaluations of the
+ *    argument.
+ */
+Method "_'s semantic type" is 
+[
+	node : phrase
+|
+	Primitive 351;
+] : type;
+
+/**
+ * Reject the current parse. This causes the compiler to reject the
+ * interpretation of the program text that resulted in execution of the code
+ * that invoked this method. The argument is a description of the parse
+ * rejection, but in positive terms that primarily assert what the caller was
+ * expecting (on the compiler's behalf). It is, of course, also useful to state
+ * what was actually discovered.
+ *
+ * Note that the Avail compiler attempts, in parallel, many different parses of
+ * a statement. If the only parses syntactically accepted by the compiler are
+ * semantically rejected by callers of this method, then and only then is the
+ * statement deemed invalid and the arguments of such calls emitted by the
+ * compiler as error messages to assist the programmer in correcting the
+ * rejected statement.
+ *
+ * This method may only be invoked from the body of a macro function or a
+ * semantic restriction function: it should only be invoked by the Avail
+ * compiler, never by a semantically valid Avail program.
+ *
+ * Parameters:
+ *    expected - A description of the cause of rejection, worded to sound good after
+ *       "Expected...".
+ */
+Method "Reject parse, expected:_" is 
+[
+	expected : string
+|
+	Primitive 352;
+] : ⊥;
+
+/**
+ * Construct and answer a phrase type with the specified semantic type.
+ *
+ * Parameters:
+ *    aPhrase - A phrase type.
+ *    semanticType - The semantic type of values producible by phrases that
+ *       are instances of the answer.
+ * Returns:
+ *    The requested phrase type.
+ */
+Method "_→_" is 
+[
+	aPhrase : phrase meta,
+	semanticType : type
+|
+	Primitive 355;
+] : phrase meta;
+
+/**
+ * Construct and answer a pojo array type parameterized by the argument.
+ *
+ * Parameters:
+ *    aType - A type.
+ * Returns:
+ *    The requested pojo array type.
+ */
+Method "_[]" is 
+[
+	aType : type
+|
+	Primitive 501;
+] : pojo[] meta;
 

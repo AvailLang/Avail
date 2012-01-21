@@ -124,9 +124,11 @@ public enum AvailErrorCode
 	E_INCORRECT_ARGUMENT_TYPE (12),
 
 	/**
-	 * {@linkplain ContinuationDescriptor Continuation} has no caller.
+	 * A {@linkplain MethodDescriptor method implementation} does not declare
+	 * the same return type as its {@linkplain ForwardDeclarationDescriptor
+	 * forward declaration}.
 	 */
-//	E_CONTINUATION_HAS_NO_CALLER (**),
+	E_METHOD_RETURN_TYPE_NOT_AS_FORWARD_DECLARED (13),
 
 	/**
 	 * {@linkplain ContinuationDescriptor Continuation} expected a stronger

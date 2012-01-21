@@ -83,7 +83,7 @@ Restriction "«if_then_‡else»else_" is
 	functionResult : type := actionFinalType result;
 	
 	/* Make sure all cases are different - Needs Work */
-/*	repeatConditionTypeEnum ::= cast repeatConditionType into [ e : enum | e; ];
+/*	repeatConditionTypeEnum ::= cast repeatConditionType into [ x : enum | x; ];
 	repeatConditionTupleSize : whole number := ||<repeatConditionTypeEnum instance>||;
 	caseTypeSet : set := {};
 	*/
@@ -154,7 +154,7 @@ Restriction "Switch_«case_do_:»default_" is
 	functionResult : type := actionFinalType result;
 	
 	/* Make sure all cases are different - Needs Work */
-/*	repeatConditionTypeEnum ::= cast repeatConditionType into [ e : enum | e; ];
+/*	repeatConditionTypeEnum ::= cast repeatConditionType into [ x : enum | x; ];
 	repeatConditionTupleSize : whole number := ||<repeatConditionTypeEnum instance>||;
 	caseTypeSet : set := {};
 	*/

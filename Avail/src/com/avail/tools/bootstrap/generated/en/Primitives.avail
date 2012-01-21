@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.01.12 15:19:17.882 -0600
+ * * Last Generated On: 2012.01.20 17:58:08.112 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -49,11 +49,15 @@ Names
 	/*  49 */ "$_@pc=_stack=_[_]caller=_",
 	/* 137 */ "<_,_`…|_>",
 	/* 251 */ "Abstract method_is_",
+	/* 257 */ "Breakpoint",
 	/* 252 */ "Forward method_is_",
 	/* 255 */ "Grammatical restriction_is_",
 	/* 249 */ "Macro_is_",
+	/* 258 */ "Print:_",
 	/* 201 */ "Raise_",
+	/* 352 */ "Reject parse, expected:_",
 	/* 248 */ "Semantic restriction_is_",
+	/* 256 */ "Terminate:_",
 	/*  39 */ "[`…]→_",
 	/* 188 */ "_#_:_(literals=_,#locals_,#outers_,stack depth=_)",
 	/* 180 */ "_'s arity",
@@ -81,6 +85,7 @@ Names
 	/*  54 */ "_'s program counter",
 	/*  14 */ "_'s read type",
 	/*  37 */ "_'s return type",
+	/* 351 */ "_'s semantic type",
 	/*  59 */ "_'s stack",
 	/*  55 */ "_'s stack pointer",
 	/*  30 */ "_'s type",
@@ -92,11 +97,13 @@ Names
 	/* 125 */ "_-_",
 	/*   5 */ "_<_",
 	/*  60 */ "_=_",
+	/* 501 */ "_[]",
 	/* 142 */ "_[_.._]",
 	/* 141 */ "_[_]",
 	/* 124 */ "_[_]:=_",
 	/* 132 */ "_[_]→_",
 	/* 104 */ "_\\_",
+	/* 317 */ "_^_",
 	/*  85 */ "_as map",
 	/*  61 */ "_as object",
 	/*  63 */ "_as object type",
@@ -104,15 +111,24 @@ Names
 	/* 110 */ "_as tuple",
 	/* 250 */ "_is a primitive",
 	/*  17 */ "_is unassigned",
+	/* 318 */ "_mod_",
 	/*   3 */ "_×_",
 	/*   4 */ "_÷_",
+	/* 355 */ "_→_",
+	/* 331 */ "_→character",
+	/* 330 */ "_→code point",
+	/* 281 */ "_→double",
+	/* 319 */ "_→extended integer",
+	/* 280 */ "_→float",
 	/* 122 */ "_∈_",
 	/* 103 */ "_∩_",
 	/* 102 */ "_∪_",
 	/*  33 */ "_≤_",
 	/* 107 */ "_⊆_",
+	/* 321 */ "_⨉_^_",
 	/*  12 */ "clear_",
 	/* 144 */ "concatenate_",
+	/* 502 */ "constructor of_given_",
 	/*  25 */ "current fiber",
 	/*  18 */ "eject_",
 	/*  66 */ "enumeration of_",
@@ -124,10 +140,13 @@ Names
 	/*  45 */ "ignore_and evaluate_",
 	/*   7 */ "integer range from_(inclusive=_)to_(inclusive=_)",
 	/*  40 */ "invoke_with_",
+	/* 316 */ "ln_",
 	/*  20 */ "milliseconds since the Epoch",
 	/* 120 */ "new atom_",
 	/*  16 */ "new ↑_",
 	/*  71 */ "new_applying_",
+	/* 500 */ "pojo_with_",
+	/* 259 */ "primitive description of_",
 	/* 254 */ "read character",
 	/*  24 */ "request termination of_",
 	/*  58 */ "restart_",
@@ -145,6 +164,8 @@ Names
 	/*  10 */ "↓_",
 	/*  11 */ "↓_:=_",
 	/*  38 */ "∪_",
-	/* 143 */ "∪_[_.._]"
+	/* 143 */ "∪_[_.._]",
+	/* 323 */ "⌈_⌉",
+	/* 322 */ "⌊_⌋"
 Body
 

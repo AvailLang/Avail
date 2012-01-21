@@ -217,7 +217,7 @@ public abstract class Interpreter
 		final MessageSplitter splitter = new MessageSplitter(methodName.name());
 		final int numArgs = splitter.numberOfArguments();
 		assert bodyBlock.code().numArgs() == numArgs
-		: "Wrong number of arguments in method definition";
+			: "Wrong number of arguments in method definition";
 		//  Make it so we can safely hold onto these things in the VM
 		methodName.makeImmutable();
 		bodyBlock.makeImmutable();
@@ -238,7 +238,16 @@ public abstract class Interpreter
 			{
 				if (existingImp.isForward())
 				{
-					forward = existingImp;
+					if (existingType.returnType().equals(
+						bodySignature.returnType()))
+					{
+						forward = existingImp;
+					}
+					else
+					{
+						throw new SignatureException(
+							E_METHOD_RETURN_TYPE_NOT_AS_FORWARD_DECLARED);
+					}
 				}
 				else
 				{
@@ -246,11 +255,19 @@ public abstract class Interpreter
 						E_REDEFINED_WITH_SAME_ARGUMENT_TYPES);
 				}
 			}
-			if (existingImp.bodySignature().acceptsArgTypesFromFunctionType(
-				bodySignature))
+			if (existingType.acceptsArgTypesFromFunctionType(bodySignature))
 			{
 				if (!bodySignature.returnType().isSubtypeOf(
-					existingImp.bodySignature().returnType()))
+					existingType.returnType()))
+				{
+					throw new SignatureException(
+						E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS);
+				}
+			}
+			if (bodySignature.acceptsArgTypesFromFunctionType(existingType))
+			{
+				if (!existingType.returnType().isSubtypeOf(
+					bodySignature.returnType()))
 				{
 					throw new SignatureException(
 						E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS);
@@ -311,6 +328,15 @@ public abstract class Interpreter
 						E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS);
 				}
 			}
+			if (bodySignature.acceptsArgTypesFromFunctionType(existingType))
+			{
+				if (!existingType.returnType().isSubtypeOf(
+					bodySignature.returnType()))
+				{
+					throw new SignatureException(
+						E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS);
+				}
+			}
 		}
 		imps.addImplementation(newImp);
 		pendingForwards = pendingForwards.setWithElementCanDestroy(
@@ -320,8 +346,6 @@ public abstract class Interpreter
 		module.filteredBundleTree().includeBundle(
 			MessageBundleDescriptor.newBundle(methodName));
 	}
-
-
 
 	/**
 	 * Add the abstract method signature. A class is considered abstract if
@@ -347,11 +371,11 @@ public abstract class Interpreter
 		final AvailObject bodyArgsSizes =
 			bodySignature.argsTupleType().sizeRange();
 		assert bodyArgsSizes.lowerBound().equals(
-			IntegerDescriptor.fromInt(numArgs))
-		: "Wrong number of arguments in abstract method signature";
+				IntegerDescriptor.fromInt(numArgs))
+			: "Wrong number of arguments in abstract method signature";
 		assert bodyArgsSizes.upperBound().equals(
-			IntegerDescriptor.fromInt(numArgs))
-		: "Wrong number of arguments in abstract method signature";
+				IntegerDescriptor.fromInt(numArgs))
+			: "Wrong number of arguments in abstract method signature";
 		//  Make it so we can safely hold onto these things in the VM
 		methodName.makeImmutable();
 		bodySignature.makeImmutable();
@@ -378,13 +402,19 @@ public abstract class Interpreter
 						E_REDEFINED_WITH_SAME_ARGUMENT_TYPES);
 				}
 			}
-			// TODO: [MvG] Allow the definitions to appear bottom up while still
-			// preserving covariance.
-			if (existingImp.bodySignature().acceptsArgTypesFromFunctionType(
-				bodySignature))
+			if (existingType.acceptsArgTypesFromFunctionType(bodySignature))
 			{
 				if (!bodySignature.returnType().isSubtypeOf(
-					existingImp.bodySignature().returnType()))
+					existingType.returnType()))
+				{
+					throw new SignatureException(
+						E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS);
+				}
+			}
+			if (bodySignature.acceptsArgTypesFromFunctionType(existingType))
+			{
+				if (!existingType.returnType().isSubtypeOf(
+					bodySignature.returnType()))
 				{
 					throw new SignatureException(
 						E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS);
@@ -423,12 +453,13 @@ public abstract class Interpreter
 		final MessageSplitter splitter = new MessageSplitter(methodName.name());
 		final int numArgs = splitter.numberOfArguments();
 		assert macroBody.code().numArgs() == numArgs
-		: "Wrong number of arguments in macro definition";
+			: "Wrong number of arguments in macro definition";
 		//  Make it so we can safely hold onto these things in the VM
 		methodName.makeImmutable();
 		macroBody.makeImmutable();
 		//  Add the macro implementation.
-		final AvailObject newImp = MacroImplementationDescriptor.create(macroBody);
+		final AvailObject newImp =
+			MacroImplementationDescriptor.create(macroBody);
 		module.addMethodImplementation(methodName, newImp);
 		final AvailObject imps = runtime.methodFor(methodName);
 		final AvailObject macroBodyType = macroBody.kind();
@@ -442,11 +473,19 @@ public abstract class Interpreter
 				throw new SignatureException(
 					E_REDEFINED_WITH_SAME_ARGUMENT_TYPES);
 			}
-			if (existingImp.bodySignature().acceptsArgTypesFromFunctionType(
-				macroBodyType))
+			if (existingType.acceptsArgTypesFromFunctionType(macroBodyType))
 			{
 				if (!macroBodyType.returnType().isSubtypeOf(
-					existingImp.bodySignature().returnType()))
+					existingType.returnType()))
+				{
+					throw new SignatureException(
+						E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS);
+				}
+			}
+			if (macroBodyType.acceptsArgTypesFromFunctionType(existingType))
+			{
+				if (!existingType.returnType().isSubtypeOf(
+					macroBodyType.returnType()))
 				{
 					throw new SignatureException(
 						E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS);
@@ -599,12 +638,30 @@ public abstract class Interpreter
 			Primitive.prim240_SpecialObject.primitiveNumber);
 		writer.argumentTypes(IntegerRangeTypeDescriptor.naturalNumbers());
 		writer.returnType(ANY.o());
+		// Declare the local that holds primitive failure information.
+		writer.createLocal(
+			VariableTypeDescriptor.wrapInnerType(
+				IntegerRangeTypeDescriptor.naturalNumbers()));
 		writer.write(
 			new L1Instruction(
 				L1Operation.L1_doPushLiteral,
-				writer.addLiteral(NullDescriptor.nullObject())));
-		// Add the primitive failure value holder.
-		writer.createLocal(IntegerRangeTypeDescriptor.naturalNumbers());
+				writer.addLiteral(
+					StringDescriptor.from("no such special object"))));
+		// Push the argument.
+		writer.write(
+			new L1Instruction(
+				L1Operation.L1_doPushLocal,
+				1));
+		writer.write(
+			new L1Instruction(
+				L1Operation.L1_doMakeTuple,
+				2));
+		writer.write(
+			new L1Instruction(
+				L1Operation.L1_doCall,
+				writer.addLiteral(
+					MethodDescriptor.vmCrashMethod()),
+				writer.addLiteral(BottomTypeDescriptor.bottom())));
 		final AvailObject newFunction = FunctionDescriptor.create(
 			writer.compiledCode(),
 			TupleDescriptor.empty());

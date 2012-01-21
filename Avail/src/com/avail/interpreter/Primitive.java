@@ -41,7 +41,6 @@ import static com.avail.interpreter.Primitive.Result.CONTINUATION_CHANGED;
 import static java.lang.Math.*;
 import java.io.*;
 import java.lang.reflect.*;
-import java.nio.ByteOrder;
 import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
@@ -5954,8 +5953,8 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 258:</strong> Print an {@linkplain AvailObject object}
-	 * to standard output.
+	 * <strong>Primitive 258:</strong> Print the specified {@linkplain
+	 * StringDescriptor string} to standard output.
 	 */
 	prim258_PrintToConsole(258, 1, Unknown, CannotFail)
 	{
@@ -6006,32 +6005,6 @@ public enum Primitive
 				TupleDescriptor.from(
 					ANY.o()),
 				TupleTypeDescriptor.stringTupleType());
-		}
-	},
-
-	/**
-	 * <strong>Primitive 268:</strong> Answer a boolean indicating if the
-	 * current platform is big-endian.
-	 */
-	prim268_BigEndian(268, 0, CanFold, CannotFail)
-	{
-		@Override
-		public @NotNull Result attempt (
-			final @NotNull List<AvailObject> args,
-			final @NotNull Interpreter interpreter)
-		{
-			assert args.size() == 0;
-			return interpreter.primitiveSuccess(
-				AtomDescriptor.objectFromBoolean(
-					ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)));
-		}
-
-		@Override
-		protected @NotNull AvailObject privateBlockTypeRestriction ()
-		{
-			return FunctionTypeDescriptor.create(
-				TupleDescriptor.from(),
-				EnumerationTypeDescriptor.booleanObject());
 		}
 	},
 
@@ -6133,7 +6106,7 @@ public enum Primitive
 	 * <strong>Primitive 287:</strong> Compute {@code e^a}, the natural
 	 * exponential of the {@linkplain FloatDescriptor float} {@code a}.
 	 */
-	prim287_FloatExp(287, 1, CanFold, CannotFail)
+	prim287_FloatExp(287, 2, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -6154,6 +6127,8 @@ public enum Primitive
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
+					InstanceTypeDescriptor.on(
+						DoubleDescriptor.fromDouble(Math.E)),
 					FLOAT.o()),
 				FLOAT.o());
 		}
@@ -6252,66 +6227,11 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 290:</strong> Convert an {@linkplain IntegerDescriptor
-	 * integer} to a {@linkplain FloatDescriptor float}, failing if out of
-	 * range.
-	 */
-	prim290_FloatFromInteger(290, 1, CanFold, CannotFail)
-	{
-		@Override
-		public @NotNull Result attempt (
-			final @NotNull List<AvailObject> args,
-			final @NotNull Interpreter interpreter)
-		{
-			assert args.size() == 1;
-			final AvailObject a = args.get(0);
-			// Extract the top 32 bits and the next-to-top 32 bits.  That
-			// guarantees 33 bits of mantissa, which is more than a float
-			// actually captures.
-			float f;
-			final int size = a.integerSlotsCount();
-			if (a.isLong())
-			{
-				f = a.extractLong();
-			}
-			else
-			{
-				long highInt = a.rawUnsignedIntegerAt(size);
-				long lowInt = a.rawUnsignedIntegerAt(size - 1);
-				final boolean neg = (highInt & 0x80000000L) != 0;
-				highInt = ~highInt;
-				lowInt = ~lowInt;
-				if ((int)++lowInt == 0)
-				{
-					highInt++;
-				}
-				f = scalb(lowInt, (size - 2) * 32);
-				f += scalb(highInt, (size - 1) * 32);
-				if (neg)
-				{
-					f = -f;
-				}
-			}
-			return interpreter.primitiveSuccess(
-				FloatDescriptor.fromFloat(f));
-		}
-
-		@Override
-		protected @NotNull AvailObject privateBlockTypeRestriction ()
-		{
-			return FunctionTypeDescriptor.create(
-				TupleDescriptor.from(
-					IntegerRangeTypeDescriptor.extendedIntegers()),
-				FLOAT.o());
-		}
-	},
-
-	/**
 	 * <strong>Primitive 291:</strong> Compute {@linkplain FloatDescriptor
 	 * float} {@code a*(2**b)} without intermediate overflow or any precision
 	 * loss.
 	 */
-	prim291_FloatTimesTwoPower(291, 2, CanFold, CannotFail)
+	prim291_FloatTimesTwoPower(291, 3, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -6321,10 +6241,22 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
 			final AvailObject b = args.get(1);
-			long scale = b.extractInt();
-			scale = max(scale, -0x80000000L);
-			scale = min(scale, 0x7FFFFFFFL);
-			final float f = scalb(a.extractFloat(), (int)scale);
+			final AvailObject tenK = IntegerDescriptor.fromInt(10000);
+			final AvailObject minusTenK = IntegerDescriptor.fromInt(-10000);
+			final int scale;
+			if (b.greaterOrEqual(tenK))
+			{
+				scale = tenK.extractInt();
+			}
+			else if (b.lessOrEqual(minusTenK))
+			{
+				scale = minusTenK.extractInt();
+			}
+			else
+			{
+				scale = b.extractInt();
+			}
+			final float f = scalb(a.extractFloat(), scale);
 			return interpreter.primitiveSuccess(
 				FloatDescriptor.objectFromFloatRecycling(f, a, true));
 		}
@@ -6335,6 +6267,7 @@ public enum Primitive
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					FLOAT.o(),
+					InstanceTypeDescriptor.on(IntegerDescriptor.fromInt(2)),
 					IntegerRangeTypeDescriptor.integers()),
 				FLOAT.o());
 		}
@@ -6355,7 +6288,7 @@ public enum Primitive
 			assert args.size() == 1;
 			final AvailObject a = args.get(0);
 			final float f = a.extractFloat();
-			final float floor = (float)Math.floor(f);
+			final float floor = (float) Math.floor(f);
 			return interpreter.primitiveSuccess(
 				FloatDescriptor.objectFromFloatRecycling(floor, a, true));
 		}
@@ -6370,6 +6303,35 @@ public enum Primitive
 		}
 	},
 
+	/**
+	 * <strong>Primitive 293:</strong> Answer the smallest integral {@linkplain
+	 * FloatDescriptor float} greater than or equal to the given float.  If the
+	 * float is ±INF or NaN then answer the argument.
+	 */
+	prim293_FloatCeiling(293, 1, CanFold, CannotFail)
+	{
+		@Override
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
+		{
+			assert args.size() == 1;
+			final AvailObject a = args.get(0);
+			final float f = a.extractFloat();
+			final float floor = (float) Math.ceil(f);
+			return interpreter.primitiveSuccess(
+				FloatDescriptor.objectFromFloatRecycling(floor, a, true));
+		}
+
+		@Override
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
+		{
+			return FunctionTypeDescriptor.create(
+				TupleDescriptor.from(
+					FLOAT.o()),
+				FLOAT.o());
+		}
+	},
 
 	/**
 	 * <strong>Primitive 316:</strong> Compute the natural logarithm of the
@@ -6403,7 +6365,7 @@ public enum Primitive
 	 * <strong>Primitive 317:</strong> Compute {@code e^a}, the natural
 	 * exponential of the {@linkplain DoubleDescriptor double} {@code a}.
 	 */
-	prim317_DoubleExp(317, 1, CanFold, CannotFail)
+	prim317_DoubleExp(317, 2, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -6422,6 +6384,8 @@ public enum Primitive
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
+					InstanceTypeDescriptor.on(
+						DoubleDescriptor.fromDouble(Math.E)),
 					DOUBLE.o()),
 				DOUBLE.o());
 		}
@@ -6520,73 +6484,11 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 320:</strong> Convert an {@linkplain IntegerDescriptor
-	 * integer} to a {@linkplain DoubleDescriptor double}, failing if out of
-	 * range.
-	 */
-	prim320_DoubleFromInteger(320, 1, CanFold, CannotFail)
-	{
-		@Override
-		public @NotNull Result attempt (
-			final @NotNull List<AvailObject> args,
-			final @NotNull Interpreter interpreter)
-		{
-			assert args.size() == 1;
-			final AvailObject a = args.get(0).traversed();
-			// Extract the top three 32-bit pieces.  That guarantees 65 bits
-			// of mantissa, which is more than a double actually captures.
-			double d;
-			if (a.isLong())
-			{
-				d = a.extractLong();
-			}
-			else
-			{
-				final int size = a.integerSlotsCount();
-				long highInt = a.rawUnsignedIntegerAt(size);
-				long nextInt = a.rawUnsignedIntegerAt(size - 1);
-				long lowInt = size >= 3 ? a.rawUnsignedIntegerAt(size - 2) : 0;
-				final boolean neg = (highInt & 0x80000000L) != 0;
-				if (neg)
-				{
-					highInt = ~highInt;
-					nextInt = ~nextInt;
-					lowInt = ~lowInt;
-					lowInt++;
-					if ((int)lowInt == 0)
-					{
-						nextInt++;
-						if ((int)nextInt == 0)
-						{
-							highInt++;
-						}
-					}
-				}
-				d = scalb(lowInt, (size - 3) * 32);
-				d += scalb(nextInt, (size - 2) * 32);
-				d += scalb(highInt, (size-1) * 32);
-				d = neg ? -d : d;
-			}
-			return interpreter.primitiveSuccess(
-				DoubleDescriptor.fromDouble(d));
-		}
-
-		@Override
-		protected @NotNull AvailObject privateBlockTypeRestriction ()
-		{
-			return FunctionTypeDescriptor.create(
-				TupleDescriptor.from(
-					IntegerRangeTypeDescriptor.extendedIntegers()),
-				DOUBLE.o());
-		}
-	},
-
-	/**
 	 * <strong>Primitive 321:</strong> Compute the {@linkplain DoubleDescriptor
 	 * double} {@code a*(2**b)} without intermediate overflow or any precision
 	 * loss.
 	 */
-	prim321_DoubleTimesTwoPower(321, 2, CanFold, CannotFail)
+	prim321_DoubleTimesTwoPower(321, 3, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -6596,10 +6498,22 @@ public enum Primitive
 			assert args.size() == 2;
 			final AvailObject a = args.get(0);
 			final AvailObject b = args.get(1);
-			long scale = b.extractInt();
-			scale = max(scale, -0x80000000L);
-			scale = min(scale, 0x7FFFFFFFL);
-			final double d = scalb(a.extractDouble(), (int)scale);
+			final AvailObject tenK = IntegerDescriptor.fromInt(10000);
+			final AvailObject minusTenK = IntegerDescriptor.fromInt(-10000);
+			final int scale;
+			if (b.greaterOrEqual(tenK))
+			{
+				scale = tenK.extractInt();
+			}
+			else if (b.lessOrEqual(minusTenK))
+			{
+				scale = minusTenK.extractInt();
+			}
+			else
+			{
+				scale = b.extractInt();
+			}
+			final double d = scalb(a.extractDouble(), scale);
 			return interpreter.primitiveSuccess(
 				DoubleDescriptor.objectFromDoubleRecycling(d, a, true));
 		}
@@ -6610,6 +6524,7 @@ public enum Primitive
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					DOUBLE.o(),
+					InstanceTypeDescriptor.on(IntegerDescriptor.fromInt(2)),
 					IntegerRangeTypeDescriptor.integers()),
 				DOUBLE.o());
 		}
@@ -6620,7 +6535,7 @@ public enum Primitive
 	 * DoubleDescriptor double} less than or equal to the given double.  If the
 	 * double is ±INF or NaN then answer the argument.
 	 */
-	prim322_FloatFloor(322, 1, CanFold, CannotFail)
+	prim322_DoubleFloor(322, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -6645,7 +6560,35 @@ public enum Primitive
 		}
 	},
 
+	/**
+	 * <strong>Primitive 323:</strong> Answer the smallest integral {@linkplain
+	 * DoubleDescriptor double} greater than or equal to the given double. If
+	 * the double is ±INF or NaN then answer the argument.
+	 */
+	prim323_DoubleCeiling(323, 1, CanFold, CannotFail)
+	{
+		@Override
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
+		{
+			assert args.size() == 1;
+			final AvailObject a = args.get(0);
+			final double d = a.extractDouble();
+			final double ceil = Math.ceil(d);
+			return interpreter.primitiveSuccess(
+				DoubleDescriptor.objectFromDoubleRecycling(ceil, a, true));
+		}
 
+		@Override
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
+		{
+			return FunctionTypeDescriptor.create(
+				TupleDescriptor.from(
+					DOUBLE.o()),
+				DOUBLE.o());
+		}
+	},
 
 	/**
 	 * <strong>Primitive 330:</strong> Extract the {@linkplain IntegerDescriptor
@@ -6967,30 +6910,6 @@ public enum Primitive
 					InstanceTypeDescriptor.on(PARSE_NODE.mostGeneralType()),
 					TYPE.o()),
 				InstanceTypeDescriptor.on(PARSE_NODE.mostGeneralType()));
-		}
-	},
-
-	/**
-	 * <strong>Primitive 360:</strong> Raise an assertion failure.
-	 */
-	prim360_AssertionFailed(360, 1, Unknown, CannotFail)
-	{
-		@Override
-		public @NotNull Result attempt (
-			final @NotNull List<AvailObject> args,
-			final @NotNull Interpreter interpreter)
-		{
-			assert args.size() == 1;
-			final AvailObject failureString = args.get(0);
-			throw new AvailAssertionFailedException(failureString);
-		}
-
-		@Override
-		protected AvailObject privateBlockTypeRestriction ()
-		{
-			return FunctionTypeDescriptor.create(
-				TupleDescriptor.from(TupleTypeDescriptor.stringTupleType()),
-				BottomTypeDescriptor.bottom());
 		}
 	},
 

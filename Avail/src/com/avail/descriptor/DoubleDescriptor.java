@@ -75,7 +75,7 @@ extends AbstractNumberDescriptor
 	{
 		final int low = object.slot(IntegerSlots.LOW_INT);
 		final int high = object.slot(IntegerSlots.HIGH_INT);
-		final long castAsLong = (low & 0xFFFFFFFFL) + (high << 32L);
+		final long castAsLong = (low & 0xFFFFFFFFL) | (((long) high) << 32L);
 		return Double.longBitsToDouble(castAsLong);
 	}
 

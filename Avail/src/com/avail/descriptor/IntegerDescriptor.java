@@ -795,7 +795,7 @@ extends ExtendedIntegerDescriptor
 				(int)((quotientScale + 2 >> 5) + 1));
 
 			final long bitShift = quotientScale
-				- ((long) partialQuotient.integerSlotsCount() - 1 << 5L);
+				- (((long) partialQuotient.integerSlotsCount() - 1) << 5L);
 			assert -100L < bitShift && bitShift < 100L;
 			double scaledDoubleQuotient = scalb(doubleQuotient, (int)bitShift);
 			for (int i = partialQuotient.integerSlotsCount(); i >= 1; --i)

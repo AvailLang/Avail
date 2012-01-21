@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.01.12 15:19:17.908 -0600
+ * * Last Generated On: 2012.01.20 17:58:08.159 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -56,12 +56,15 @@ Names
 	/* 188 */ "_#_:_(literals=_,#locals_,#outers_,stack depth=_)",
 	/* 142 */ "_[_.._]",
 	/* 132 */ "_[_]→_",
+	/* 318 */ "_mod_",
 	/*   3 */ "_×_",
 	/*   4 */ "_÷_",
+	/* 502 */ "constructor of_given_",
 	/*  18 */ "eject_",
 	/*  57 */ "exit_with_",
 	/*  74 */ "function from_and_",
 	/*  40 */ "invoke_with_",
+	/* 500 */ "pojo_with_",
 	/* 254 */ "read character",
 	/*  24 */ "request termination of_",
 	/*  58 */ "restart_",
@@ -77,7 +80,7 @@ Body
 
 Method "Private fail primitive with_" is 
 [
-	arg1 : any
+	value : any
 |
 	Primitive 256;
 ] : ⊥;
@@ -648,9 +651,9 @@ Method "semantic restrictions for_given_" is
  *
  * A semantic restriction has two responsibilities. First, it may reject a
  * method invocation on any appropriate semantic grounds by calling
- * `Fail parse saying_`. Second, it may strengthen the type of value produced
- * at the call site by answering a subtype of the method's declared return
- * type.
+ * `Reject parse, expected:_`. Second, it may strengthen the type of value
+ * produced at the call site by answering a subtype of the method's declared
+ * return type.
  *
  * Parameters:
  *    methodName - The name of the method to which the semantic restriction
@@ -771,4 +774,101 @@ Method "Grammatical restriction_is_" is
 	Primitive 255 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode;
 ] : ⊤;
+
+/**
+ * Compute and answer an approximation of `dividend` modulo `divisor`, i.e. the
+ * remainder produced by dividing the arguments.
+ *
+ * Parameters:
+ *    dividend - The dividend.
+ *    divisor - The divisor.
+ * Returns:
+ *    An approximation of `0` mod `divisor`.
+ */
+Method "_mod_" is 
+[
+	dividend : float,
+	divisor : float
+|
+	Primitive 288 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode;
+] : float;
+
+/**
+ * Compute and answer an approximation of `dividend` modulo `divisor`, i.e. the
+ * remainder produced by dividing the arguments.
+ *
+ * Parameters:
+ *    dividend - The dividend.
+ *    divisor - The divisor.
+ * Returns:
+ *    An approximation of `0` mod `divisor`.
+ */
+Method "_mod_" is 
+[
+	dividend : double,
+	divisor : double
+|
+	Primitive 318 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode;
+] : double;
+
+/**
+ * Construct and answer a fully parameterized pojo type.
+ *
+ * Parameters:
+ *    javaName - The fully qualified name of the Java class or interface.
+ *    typeParameters - The type arguments. The cardinality of this tuple
+ *       must agree with the number of type parameters required by the Java
+ *       class or interface.
+ * Returns:
+ *    The requested pojo type.
+ */
+Method "pojo_with_" is 
+[
+	javaName : string,
+	typeParameters : tuple of type
+|
+	Primitive 500 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode;
+] : pojo meta;
+
+/**
+ * Construct and answer a function that, when applied with arguments
+ * corresponding to the specified parameter types, constructs a new pojo of
+ * the specified type.
+ *
+ * The answered function adapts a reflective invocation of the Java constructor,
+ * if any, that accepts the specified number and types of arguments. To
+ * establish type conformance between Avail types and Java types for the purpose
+ * of reflective constructor lookup and invocation, the following marshaling
+ * rules are applied:
+ *
+ *    - `[-128..127]` is marshaled to Java byte (java.lang.Byte.TYPE).
+ *    - `[-32768..32767]` is marshaled to Java short (java.lang.Short.TYPE).
+ *    - `[-2^31..2^31-1]` is marshaled to Java int (java.lang.Integer.TYPE).
+ *    - `[-2^63..2^63-1]` is marshaled to Java long (java.lang.Long.TYPE).
+ *    - `boolean` is marshaled to Java boolean (java.lang.Boolean.TYPE).
+ *    - `character` is marshaled to Java char (java.lang.Character.TYPE).
+ *    - `float` is marshaled to Java float (java.lang.Float.TYPE).
+ *    - `double` is marshaled to Java double (java.lang.Double.TYPE).
+ *    - `string` is marshaled to java.lang.String.
+ *    - `_[]` is marshaled to java.lang.reflect.Array.newInstance().getClass().
+ *    - `pojo_with_` is marshaled to the reflected Java class or interface.
+ *    - All other values are marshaled to org.availlang.descriptor.AvailObject.
+ *
+ * Parameters:
+ *    aPojoType - A pojo type.
+ *    parameterTypes - The parameter types accepted by the desired constructor.
+ * Returns:
+ *    The requested constructor function.
+ */
+Method "constructor of_given_" is 
+[
+	aPojoType : pojo meta,
+	parameterTypes : tuple of type
+|
+	Primitive 502 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode;
+] : pojo constructor;
 

@@ -149,21 +149,5 @@ class X<A, B>
 }
 X.class.getConstructor()
 
-
-
-
-
-
-
-
-
-([ i : integer, s : string | Crash "Yipe!"; ] : ⊤)'s type ≤ [integer, string]→⊤
-
-([integer, string]→⊤)'s arguments' type = <integer, string..|2..2>
-([integer, string]→⊤)'s return type = ⊤
-
-
-
-3.1d*2.1d
-
-
+Math.scalb(5.0f, 10000);
+Float.MIN_EXPONENT

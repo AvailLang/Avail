@@ -56,7 +56,6 @@ Names
 	"whole number",
 
 	"parseNode",
-	"markerNode",
 	"expressionNode",
 	"assignmentNode",
 	"blockNode",
@@ -127,7 +126,6 @@ privateNaturalNumber               ::= Special Object 37;
 privateCharacterCodePoints         ::= Special Object 38;
 
 privateParseNode                   ::= Special Object 50;
-privateMarkerNode                  ::= Special Object 51;
 privateExpressionNode              ::= Special Object 52;
 privateAssignmentNode              ::= Special Object 53;
 privateBlockNode                   ::= Special Object 54;
@@ -195,7 +193,6 @@ Method "meta"                   is [privateMeta;];
 
 /* Parse node types... */
 Method "parseNode"              is [privateParseNode;];
-Method "markerNode"             is [privateMarkerNode;];
 Method "expressionNode"         is [privateExpressionNode;];
 Method "assignmentNode"         is [privateAssignmentNode;];
 Method "blockNode"              is [privateBlockNode;];
@@ -237,10 +234,6 @@ Method "Crash_" is [finalClue : any |
 
 Method "Failed" is [
 	Crash "An Avail primitive has failed";
-] : terminates;
-
-Method "Assertion Failed:_" is [message : string |
-	Primitive 360;
 ] : terminates;
 
 tupleOfSetOfString ::= Special Object 74;
@@ -294,7 +287,7 @@ Method "Assert_" is [b : boolean |
 ] : void;
 
 Method "Assert_" is [b : falseType |
-	Assertion Failed : "A runtime assertion has failed";
+	Crash "A runtime assertion has failed";
 ] : terminates;
 
 Method "Assert_:_" is [b : boolean, message : string |
@@ -302,7 +295,7 @@ Method "Assert_:_" is [b : boolean, message : string |
 ] : void;
 
 Method "Assert_:_" is [b : falseType, message : string |
-	Assertion Failed : message;
+	Crash message;
 ] : terminates;
 
 Method "_as basic string" is [o : any |

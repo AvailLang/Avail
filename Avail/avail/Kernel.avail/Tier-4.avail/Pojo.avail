@@ -127,7 +127,7 @@ Restriction "Java type_parameters_" is
 	typeNameType : string type,
 	typeParametersType : (tuple of type) type
 |
-	typeNameEnum ::= cast typeNameType into [ e : enum | e; ]
+	typeNameEnum ::= cast typeNameType into [ x : enum | x; ]
 		otherwise [
 			Fail parse "Java type name is not statically known"; ];
 	typeName ::= cast typeNameEnum instance into [ s : string | s; ];
@@ -142,7 +142,7 @@ Restriction "Java type_parameters_" is
 	typeParametersSize ::= typeParametersTypeBounds upper bound;
 	args : tuple of type := <>;
 	From 1 to typeParametersSize do [ i : natural number |
-		argType ::= cast typeParametersType[i] into [ e : enum | e; ]
+		argType ::= cast typeParametersType[i] into [ x : enum | x; ]
 			otherwise [
 				Fail parse
 					"argument type "
@@ -166,7 +166,7 @@ Restriction "Java type_" is
 [
 	typeNameType : string type
 |
-	typeNameEnum ::= cast typeNameType into [ e : enum | e; ]
+	typeNameEnum ::= cast typeNameType into [ x : enum | x; ]
 		otherwise [
 			Fail parse "Java type name is not statically known"; ];
 	typeName ::= cast typeNameEnum instance into [ s : string | s; ];
@@ -267,7 +267,7 @@ Restriction "constructor of_given_" is
 		[ b : whole number | b; ];
 	args : tuple of type := <>;
 	From 1 to argTypesSize do [i : natural number |
-		argType ::= cast argTypesType[i] into [ e : enum | e; ]
+		argType ::= cast argTypesType[i] into [ x : enum | x; ]
 			otherwise [
 				Fail parse
 					"argument type "
