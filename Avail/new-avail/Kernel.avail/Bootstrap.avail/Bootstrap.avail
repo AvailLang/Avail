@@ -1,5 +1,5 @@
-/**
- * .../Tier-0/Pragmas.avail
+/*
+ * Bootstrap.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,13 +30,24 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Pragmas"
+/*
+ * GENERATED FILE
+ * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
+ * * Last Generated On: 2012.01.21 00:16:19.376 -0600
+ *
+ * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
+ */
+
+System Module "Bootstrap"
+Versions
+	"dev"
 Extends
+	"Origin",
+	"Special Objects",
+	"Primitives",
+	"Infallible Primitives",
+	"Fallible Primitives"
 Uses
 Names
-	"Method_is_",
-	"Special Object_"
-Pragma
-	"bootstrapDefiningMethod = Method_is_",
-	"bootstrapSpecialObject = Special Object_"
 Body
+

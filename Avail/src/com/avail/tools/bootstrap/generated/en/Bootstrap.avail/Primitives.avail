@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.01.20 21:22:06.609 -0600
+ * * Last Generated On: 2012.01.21 00:16:19.316 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -55,7 +55,7 @@ Names
 	/* 249 */ "Macro_is_",
 	/* 258 */ "Print:_",
 	/* 201 */ "Raise_",
-	/* 352 */ "Reject parse, expected:_",
+	/* 352 */ "Reject parse,expected:_",
 	/* 248 */ "Semantic restriction_is_",
 	/* 256 */ "Terminate:_",
 	/*  39 */ "[`…]→_",
@@ -80,7 +80,7 @@ Names
 	/*  69 */ "_'s names",
 	/* 184 */ "_'s nybblecodes",
 	/*  73 */ "_'s outer variables",
-	/*  35 */ "_'s parameters' type",
+	/*  35 */ "_'s parameters'type",
 	/* 186 */ "_'s primitive number",
 	/*  54 */ "_'s program counter",
 	/*  14 */ "_'s read type",
@@ -143,8 +143,8 @@ Names
 	/* 316 */ "ln_",
 	/*  20 */ "milliseconds since the Epoch",
 	/* 120 */ "new atom_",
-	/*  16 */ "new ↑_",
 	/*  71 */ "new_applying_",
+	/*  16 */ "new↑_",
 	/* 500 */ "pojo_with_",
 	/* 259 */ "primitive description of_",
 	/* 254 */ "read character",

@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.01.20 21:22:06.659 -0600
+ * * Last Generated On: 2012.01.21 00:16:19.364 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -44,6 +44,7 @@ Versions
 Extends
 Uses
 	"Origin",
+	"Special Objects",
 	"Primitives"
 Names
 	"Set primitive failure function to_",
@@ -106,7 +107,7 @@ Method "Private invoke_with«_‡,»" is
 |
 	Primitive 40 (failureCode : natural number);
 	Private fail primitive with failureCode;
-] : ⊥;
+] : ⊤;
 
 /**
  * Compute and answer the sum of the arguments.
@@ -651,7 +652,7 @@ Method "semantic restrictions for_given_" is
  *
  * A semantic restriction has two responsibilities. First, it may reject a
  * method invocation on any appropriate semantic grounds by calling
- * `Reject parse, expected:_`. Second, it may strengthen the type of value
+ * `Reject parse,expected:_`. Second, it may strengthen the type of value
  * produced at the call site by answering a subtype of the method's declared
  * return type.
  *

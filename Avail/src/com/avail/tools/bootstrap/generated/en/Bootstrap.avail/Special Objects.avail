@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.01.20 21:22:06.574 -0600
+ * * Last Generated On: 2012.01.21 00:16:19.281 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -44,6 +44,7 @@ Versions
 Extends
 	"Origin"
 Uses
+Names
 	/* 78 */ "-∞",
 	/* 42 */ "abstract signature",
 	/*  1 */ "any",
@@ -110,7 +111,7 @@ Uses
 	/* 80 */ "pojo",
 	/* 86 */ "pojo constructor",
 	/* 84 */ "pojo meta",
-	/* 85 */ "pojo[] meta",
+	/* 85 */ "pojo[]meta",
 	/* 91 */ "predicate function",
 	/* 76 */ "primitive failure function",
 	/* 68 */ "primitive failure reason",
@@ -148,8 +149,7 @@ Uses
 	/* 79 */ "∞",
 	/* 35 */ "⊤",
 	/* 29 */ "⊥",
-	/* 30 */ "⊥ meta"
-Names{4}
+	/* 30 */ "⊥meta"
 Body
 
 _any                                    ::= special object 1;
@@ -242,7 +242,7 @@ _key_value_tuple                        ::= special object 95;
 _empty_map                              ::= special object 96;
 _non_empty_map                          ::= special object 97;
 _whole_number_meta                      ::= special object 98;
-_non-empty_set                          ::= special object 99;
+_non_empty_set                          ::= special object 99;
 _tuple_of_tuple                         ::= special object 100;
 _nybble                                 ::= special object 101;
 _tuple_of_nybble                        ::= special object 102;
@@ -403,7 +403,7 @@ Method "⊥" is
 	_bottom;
 ];
 
-Method "⊥ meta" is 
+Method "⊥meta" is 
 [
 	_bottom_meta;
 ];
@@ -661,7 +661,7 @@ Method "pojo meta" is
 	_pojo_meta;
 ];
 
-Method "pojo[] meta" is 
+Method "pojo[]meta" is 
 [
 	_pojo_array_meta;
 ];
@@ -718,7 +718,7 @@ Method "whole number meta" is
 
 Method "non-empty set" is 
 [
-	_non-empty_set;
+	_non_empty_set;
 ];
 
 Method "tuple of tuple" is 

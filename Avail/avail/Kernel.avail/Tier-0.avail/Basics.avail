@@ -31,11 +31,9 @@
  */
 
 System Module "Basics"
-Versions "dev"
 Extends
-	"Pragmas" ("dev") = ("Method_is_")
-Uses
 	"Pragmas"
+Uses
 Names
 	"any", "atom",
 	"boolean",

@@ -1,5 +1,5 @@
-/*
- * Origin.avail
+/**
+ * OldAvailTest.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,24 +30,84 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * GENERATED FILE
- * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.01.20 21:22:06.572 -0600
+package com.avail.test;
+
+import java.io.*;
+import org.junit.*;
+import com.avail.compiler.*;
+
+/**
+ * Broad test suite for the Avail compiler, interpreter, and library.
  *
- * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
+public class OldAvailTest
+extends AbstractAvailTest
+{
+	static
+	{
+		roots = new ModuleRoots("avail=" + new File("avail").getAbsolutePath());
+	}
 
-System Module "Origin"
-Versions
-	"dev"
-Pragma
-	"bootstrapDefiningMethod=Method_is_",
-	"bootstrapSpecialObject=special object_",
-Extends
-Uses
-Names
-	"Method_is_",
-	"special object_"
-Body
+	/**
+	 * Test: Compile the Chevron-Test module.
+	 *
+	 * @throws Exception
+	 *         If an {@linkplain Exception exception} occurs.
+	 */
+	@Test
+	public void chevronTest () throws Exception
+	{
+		final long startTime = System.currentTimeMillis();
+		compile(new ModuleName("/avail/Chevron-Test"));
+		System.out.flush();
+		System.err.printf(
+			"%ntime elapsed = %dms", System.currentTimeMillis() - startTime);
+	}
 
+//	@Test
+//	public void chevronTest2 () throws Exception
+//	{
+//		chevronTest();
+//	}
+//	@Test
+//	public void chevronTest3 () throws Exception
+//	{
+//		chevronTest();
+//	}
+//	@Test
+//	public void chevronTest4 () throws Exception
+//	{
+//		chevronTest();
+//	}
+//	@Test
+//	public void chevronTest5 () throws Exception
+//	{
+//		chevronTest();
+//	}
+//	@Test
+//	public void chevronTest6 () throws Exception
+//	{
+//		chevronTest();
+//	}
+//	@Test
+//	public void chevronTest7 () throws Exception
+//	{
+//		chevronTest();
+//	}
+//	@Test
+//	public void chevronTest8 () throws Exception
+//	{
+//		chevronTest();
+//	}
+//	@Test
+//	public void chevronTest9 () throws Exception
+//	{
+//		chevronTest();
+//	}
+//	@Test
+//	public void chevronTest10 () throws Exception
+//	{
+//		chevronTest();
+//	}
+}

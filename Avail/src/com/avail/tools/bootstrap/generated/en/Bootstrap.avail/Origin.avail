@@ -1,5 +1,5 @@
-/**
- * .../Tier-0/Pragmas.avail
+/*
+ * Origin.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,13 +30,24 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Pragmas"
+/*
+ * GENERATED FILE
+ * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
+ * * Last Generated On: 2012.01.21 00:16:19.280 -0600
+ *
+ * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
+ */
+
+System Module "Origin"
+Versions
+	"dev"
 Extends
 Uses
 Names
 	"Method_is_",
-	"Special Object_"
+	"special object_"
 Pragma
-	"bootstrapDefiningMethod = Method_is_",
-	"bootstrapSpecialObject = Special Object_"
+	"bootstrapDefiningMethod=Method_is_",
+	"bootstrapSpecialObject=special object_"
 Body
+

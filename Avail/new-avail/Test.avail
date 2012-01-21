@@ -1,5 +1,5 @@
 /*
- * Origin.avail
+ * Test.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,24 +30,12 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * GENERATED FILE
- * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.01.20 21:22:06.572 -0600
- *
- * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
- */
-
-System Module "Origin"
+System Module "Test"
 Versions
 	"dev"
-Pragma
-	"bootstrapDefiningMethod=Method_is_",
-	"bootstrapSpecialObject=special object_",
 Extends
 Uses
+	"Kernel"
 Names
-	"Method_is_",
-	"special object_"
 Body
 

@@ -1,5 +1,5 @@
 /**
- * AvailCompilerTest.java
+ * AbstractAvailTest.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -33,7 +33,7 @@
 package com.avail.test;
 
 import java.io.*;
-import org.junit.*;
+import org.junit.Before;
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
 import com.avail.compiler.*;
@@ -41,11 +41,12 @@ import com.avail.descriptor.*;
 import com.avail.utility.*;
 
 /**
- * Broad test suite for the Avail compiler, interpreter, and library.
+ * {@code AbstractAvailTest} defines state and behavior common to actual Avail
+ * library test classes.
  *
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
-public class AvailCompilerTest
+public class AbstractAvailTest
 {
 	/**
 	 * Read and answer the text of the specified {@linkplain ModuleDescriptor
@@ -82,11 +83,11 @@ public class AvailCompilerTest
 		}
 	}
 
-	/** The {@linkplain ModuleRoots Avail module roots}. */
-	private static final @NotNull ModuleRoots roots =
-		new ModuleRoots(
-			"avail=" + new File("avail").getAbsolutePath()
-			+ ";new-avail=" + new File("new-avail").getAbsolutePath());
+	/**
+	 * The {@linkplain ModuleRoots Avail module roots}. This should be set by a
+	 * static initializer in each subclass.
+	 */
+	protected static @NotNull ModuleRoots roots;
 
 	/** The {@linkplain ModuleNameResolver module name resolver}. */
 	private ModuleNameResolver resolver;
@@ -103,7 +104,7 @@ public class AvailCompilerTest
 	 */
 	@Before
 	public void initializeAllWellKnownObjects ()
-	throws RenamesFileParserException
+		throws RenamesFileParserException
 	{
 		AvailObject.clearAllWellKnownObjects();
 		AvailObject.createAllWellKnownObjects();
@@ -120,8 +121,8 @@ public class AvailCompilerTest
 	 * @throws Exception
 	 *         If an {@linkplain Exception exception} occurs.
 	 */
-	private void compile (final @NotNull ModuleName target)
-	throws Exception
+	protected void compile (final @NotNull ModuleName target)
+		throws Exception
 	{
 		try
 		{
@@ -194,97 +195,4 @@ public class AvailCompilerTest
 			throw e;
 		}
 	}
-
-	//	/**
-	//	 * Test: Compile all non-experimental modules.
-	//	 *
-	//	 * @throws Exception
-	//	 *         If an {@linkplain Exception exception} occurs.
-	//	 */
-	//	@Test
-	//	public void everything () throws Exception
-	//	{
-	//		long startTime = System.currentTimeMillis();
-	//		compile(new ModuleName("/avail/Test-Everything"));
-	//		System.err.printf(
-	//			"time elapsed = %d%n", System.currentTimeMillis() - startTime);
-	//	}
-
-	/**
-	 * Test: Compile the Chevron-Test module.
-	 *
-	 * @throws Exception
-	 *         If an {@linkplain Exception exception} occurs.
-	 */
-	@Test
-	public void chevronTest () throws Exception
-	{
-		final long startTime = System.currentTimeMillis();
-		compile(new ModuleName("/avail/Chevron-Test"));
-		System.out.flush();
-		System.err.printf(
-			"%ntime elapsed = %dms", System.currentTimeMillis() - startTime);
-	}
-
-//	@Test
-//	public void chevronTest2 () throws Exception
-//	{
-//		chevronTest();
-//	}
-//	@Test
-//	public void chevronTest3 () throws Exception
-//	{
-//		chevronTest();
-//	}
-//	@Test
-//	public void chevronTest4 () throws Exception
-//	{
-//		chevronTest();
-//	}
-//	@Test
-//	public void chevronTest5 () throws Exception
-//	{
-//		chevronTest();
-//	}
-//	@Test
-//	public void chevronTest6 () throws Exception
-//	{
-//		chevronTest();
-//	}
-//	@Test
-//	public void chevronTest7 () throws Exception
-//	{
-//		chevronTest();
-//	}
-//	@Test
-//	public void chevronTest8 () throws Exception
-//	{
-//		chevronTest();
-//	}
-//	@Test
-//	public void chevronTest9 () throws Exception
-//	{
-//		chevronTest();
-//	}
-//	@Test
-//	public void chevronTest10 () throws Exception
-//	{
-//		chevronTest();
-//	}
-
-
-//	/**
-//	 * Test: Compile the Test module (of the new Avail library).
-//	 *
-//	 * @throws Exception
-//	 *         If an {@linkplain Exception exception} occurs.
-//	 */
-//	@Test
-//	public void newAvailTest () throws Exception
-//	{
-//		final long startTime = System.currentTimeMillis();
-//		compile(new ModuleName("/new-avail/Test"));
-//		System.err.printf(
-//			"time elapsed = %d%n", System.currentTimeMillis() - startTime);
-//	}
 }

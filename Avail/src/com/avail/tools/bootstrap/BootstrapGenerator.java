@@ -101,6 +101,23 @@ public final class BootstrapGenerator
 	private final @NotNull ResourceBundle primitiveBundle;
 
 	/**
+	 * Answer the correct {@linkplain File file name} for the {@linkplain
+	 * ModuleDescriptor module} specified by the {@linkplain Key key}.
+	 *
+	 * @param key The module name key.
+	 * @return The file name.
+	 */
+	private final @NotNull File moduleFileName (final @NotNull Key key)
+	{
+		return new File(String.format(
+			"src/%s/%s/%s.avail/%s.avail",
+			generatedPackageName.replace('.', '/'),
+			locale.getLanguage(),
+			preamble.getString(representativeModuleName.name()),
+			preamble.getString(key.name())));
+	}
+
+	/**
 	 * Answer a textual representation of the specified version {@linkplain
 	 * List list} that is satisfactory for use in an Avail {@linkplain
 	 * ModuleDescriptor module} header.
@@ -227,12 +244,13 @@ public final class BootstrapGenerator
 			BootstrapGenerator.class.getName(),
 			new Date()));
 		writer.println(MessageFormat.format(
-			preamble.getString(primitivesModuleHeader.name()),
+			preamble.getString(generalModuleHeader.name()),
 			preamble.getString(specialObjectsModuleName.name()),
 			versionString(versions),
 			String.format(
 				"\n\t\"%s\"",
 				preamble.getString(originModuleName.name())),
+			"",
 			specialObjectsNamesString()));
 	}
 
@@ -413,6 +431,8 @@ public final class BootstrapGenerator
 		if (fallible != null)
 		{
 			uses.append(",\n\t\"");
+			uses.append(preamble.getString(specialObjectsModuleName.name()));
+			uses.append("\",\n\t\"");
 			uses.append(preamble.getString(primitivesModuleName.name()));
 			uses.append('"');
 		}
@@ -426,7 +446,7 @@ public final class BootstrapGenerator
 		}
 		names.append(primitivesNamesString(primitives(fallible)));
 		writer.println(MessageFormat.format(
-			preamble.getString(primitivesModuleHeader.name()),
+			preamble.getString(generalModuleHeader.name()),
 			preamble.getString(key.name()),
 			versionString(versions),
 			"",
@@ -782,7 +802,7 @@ public final class BootstrapGenerator
 		final String block = block(
 			primitiveMethodParameterDeclarations(primitive),
 			statements.toString(),
-			BottomTypeDescriptor.bottom());
+			TOP.o());
 		generateMethod(
 			preamble.getString(invokePrimitiveFailureFunctionMethod.name()),
 			block,
@@ -858,6 +878,55 @@ public final class BootstrapGenerator
 	}
 
 	/**
+	 * Generate the preamble for the representative {@linkplain
+	 * ModuleDescriptor module}.
+	 *
+	 * @param versions
+	 *        The {@linkplain List list} of version strings supported by the
+	 *        module.
+	 * @param writer
+	 *        The {@linkplain PrintWriter output stream}.
+	 */
+	private void generateRepresentativeModulePreamble (
+		final @NotNull List<String> versions,
+		final @NotNull PrintWriter writer)
+	{
+		writer.println(MessageFormat.format(
+			preamble.getString(availCopyright.name()),
+			preamble.getString(representativeModuleName.name()),
+			new Date()));
+		writer.println(MessageFormat.format(
+			preamble.getString(generatedModuleNotice.name()),
+			BootstrapGenerator.class.getName(),
+			new Date()));
+		final Key[] keys =
+		{
+			originModuleName,
+			specialObjectsModuleName,
+			primitivesModuleName,
+			infalliblePrimitivesModuleName,
+			falliblePrimitivesModuleName
+		};
+		final StringBuilder extended = new StringBuilder();
+		for (final Key key : keys)
+		{
+			extended.append("\n\t\"");
+			extended.append(preamble.getString(key.name()));
+			extended.append("\",");
+		}
+		String extendedString = extended.toString();
+		extendedString = extendedString.substring(
+			0, extendedString.length() - 1);
+		writer.println(MessageFormat.format(
+			preamble.getString(generalModuleHeader.name()),
+			preamble.getString(representativeModuleName.name()),
+			versionString(versions),
+			extendedString,
+			"",
+			""));
+	}
+
+	/**
 	 * Generate the {@linkplain ModuleDescriptor module} that contains the
 	 * pragmas.
 	 *
@@ -870,11 +939,7 @@ public final class BootstrapGenerator
 			final @NotNull List<String> versions)
 		throws IOException
 	{
-		final File fileName = new File(String.format(
-			"src/%s/%s/%s.avail",
-			generatedPackageName.replace('.', '/'),
-			locale.getLanguage(),
-			preamble.getString(originModuleName.name())));
+		final File fileName = moduleFileName(originModuleName);
 		assert fileName.getPath().endsWith(".avail");
 		final PrintWriter writer = new PrintWriter(fileName, "UTF-8");
 		generateOriginModulePreamble(versions, writer);
@@ -894,11 +959,7 @@ public final class BootstrapGenerator
 			final @NotNull List<String> versions)
 		throws IOException
 	{
-		final File fileName = new File(String.format(
-			"src/%s/%s/%s.avail",
-			generatedPackageName.replace('.', '/'),
-			locale.getLanguage(),
-			preamble.getString(specialObjectsModuleName.name())));
+		final File fileName = moduleFileName(specialObjectsModuleName);
 		assert fileName.getPath().endsWith(".avail");
 		final PrintWriter writer = new PrintWriter(fileName, "UTF-8");
 		generateSpecialObjectModulePreamble(versions, writer);
@@ -935,15 +996,31 @@ public final class BootstrapGenerator
 				? falliblePrimitivesModuleName
 				: infalliblePrimitivesModuleName;
 		}
-		final File fileName = new File(String.format(
-			"src/%s/%s/%s.avail",
-			generatedPackageName.replace('.', '/'),
-			locale.getLanguage(),
-			preamble.getString(key.name())));
+		final File fileName = moduleFileName(key);
 		assert fileName.getPath().endsWith(".avail");
 		final PrintWriter writer = new PrintWriter(fileName, "UTF-8");
 		generatePrimitiveModulePreamble(fallible, versions, writer);
 		generatePrimitiveModuleBody(fallible, writer);
+		writer.close();
+	}
+
+	/**
+	 * Generate the {@linkplain ModuleDescriptor module} that represents the
+	 * bootstrap package.
+	 *
+	 * @param versions
+	 *        The supported versions.
+	 * @throws IOException
+	 *         If the source module could not be written.
+	 */
+	private void generateRepresentativeModule (
+			final @NotNull List<String> versions)
+		throws IOException
+	{
+		final File fileName = moduleFileName(representativeModuleName);
+		assert fileName.getPath().endsWith(".avail");
+		final PrintWriter writer = new PrintWriter(fileName, "UTF-8");
+		generateRepresentativeModulePreamble(versions, writer);
 		writer.close();
 	}
 
@@ -958,16 +1035,23 @@ public final class BootstrapGenerator
 	public void generate (final @NotNull List<String> versions)
 		throws IOException
 	{
-		final File packageName = new File(String.format(
+		final File languagePath = new File(String.format(
 			"src/%s/%s",
 			generatedPackageName.replace('.', '/'),
 			locale.getLanguage()));
+		languagePath.mkdir();
+		final File packageName = new File(String.format(
+			"src/%s/%s/%s.avail",
+			generatedPackageName.replace('.', '/'),
+			locale.getLanguage(),
+			preamble.getString(representativeModuleName.name())));
 		packageName.mkdir();
 		generateOriginModule(versions);
 		generateSpecialObjectsModule(versions);
 		generatePrimitiveModule(null, versions);
 		generatePrimitiveModule(false, versions);
 		generatePrimitiveModule(true, versions);
+		generateRepresentativeModule(versions);
 	}
 
 	/**

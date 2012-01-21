@@ -1,5 +1,5 @@
 /**
- * .../Tier-0/Pragmas.avail
+ * NewAvailTest.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,13 +30,38 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Pragmas"
-Extends
-Uses
-Names
-	"Method_is_",
-	"Special Object_"
-Pragma
-	"bootstrapDefiningMethod = Method_is_",
-	"bootstrapSpecialObject = Special Object_"
-Body
+package com.avail.test;
+
+import java.io.*;
+import org.junit.*;
+import com.avail.compiler.*;
+
+/**
+ * Broad test suite for the Avail compiler, interpreter, and (new) library.
+ *
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ */
+public class NewAvailTest
+extends AbstractAvailTest
+{
+	static
+	{
+		roots = new ModuleRoots(
+			"avail=" + new File("new-avail").getAbsolutePath());
+	}
+
+	/**
+	 * Test: Compile the Test module of the (new) Avail library.
+	 *
+	 * @throws Exception
+	 *         If an {@linkplain Exception exception} occurs.
+	 */
+	@Test
+	public void newAvailTest () throws Exception
+	{
+		final long startTime = System.currentTimeMillis();
+		compile(new ModuleName("/avail/Test"));
+		System.err.printf(
+			"time elapsed = %d%n", System.currentTimeMillis() - startTime);
+	}
+}

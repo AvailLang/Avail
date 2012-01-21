@@ -287,7 +287,7 @@ extends Descriptor
 		final int size = object.mapSize();
 		if (size == 0)
 		{
-			aStream.append("[→]");
+			aStream.append("{→}");
 			return;
 		}
 		if (size > 1)

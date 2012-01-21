@@ -605,17 +605,19 @@ public abstract class Interpreter
 		newFunction.makeImmutable();
 		final AvailObject nameTuple = StringDescriptor.from(
 			defineMethodName);
-		final AvailObject realName = AtomDescriptor.create(nameTuple);
-		module.atNameAdd(nameTuple, realName);
-		module.atNewNamePut(nameTuple, realName);
 		try
 		{
-			addMethodBody(realName, newFunction);
+			addMethodBody(lookupName(nameTuple), newFunction);
+		}
+		catch (final AmbiguousNameException e)
+		{
+			assert false
+				: "This bootstrap method should not interfere with anything";
 		}
 		catch (final SignatureException e)
 		{
 			assert false
-			: "This boostrap method should not interfere with anything";
+				: "This boostrap method should not interfere with anything";
 		}
 	}
 
@@ -668,17 +670,19 @@ public abstract class Interpreter
 		newFunction.makeImmutable();
 		final AvailObject nameTuple =
 			StringDescriptor.from(specialObjectName);
-		final AvailObject realName = AtomDescriptor.create(nameTuple);
-		module.atNameAdd(nameTuple, realName);
-		module.atNewNamePut(nameTuple, realName);
 		try
 		{
-			addMethodBody(realName, newFunction);
+			addMethodBody(lookupName(nameTuple), newFunction);
+		}
+		catch (final AmbiguousNameException e)
+		{
+			assert false
+				: "This bootstrap method should not interfere with anything";
 		}
 		catch (final SignatureException e)
 		{
 			assert false
-			: "This boostrap method should not interfere with anything";
+				: "This boostrap method should not interfere with anything";
 		}
 	}
 

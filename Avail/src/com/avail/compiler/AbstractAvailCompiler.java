@@ -135,6 +135,11 @@ public abstract class AbstractAvailCompiler
 	@InnerAccess List<AvailObject> exportedNames;
 
 	/**
+	 * The {@linkplain String pragma strings}.
+	 */
+	@InnerAccess List<AvailObject> pragmas;
+
+	/**
 	 * The {@linkplain Continuation3 action} that should be performed repeatedly
 	 * by the {@linkplain AbstractAvailCompiler compiler} to report compilation
 	 * progress.
@@ -1866,6 +1871,7 @@ public abstract class AbstractAvailCompiler
 				}
 			}
 		}
+
 		for (final AvailObject stringObject : exportedNames)
 		{
 			assert stringObject.isString();
@@ -1874,6 +1880,33 @@ public abstract class AbstractAvailCompiler
 			module.atNameAdd(stringObject, trueNameObject);
 			module.atNewNamePut(stringObject, trueNameObject);
 		}
+
+		for (final AvailObject pragmaString : pragmas)
+		{
+			final String nativeString = pragmaString.asNativeString();
+			final String[] parts = nativeString.split("=", 2);
+			assert parts.length == 2;
+			final String pragmaKey = parts[0].trim();
+			final String pragmaValue = parts[1].trim();
+			if (!pragmaKey.matches("\\w+"))
+			{
+				state.value.expected(
+					"pragma key ("
+					+ pragmaKey
+					+ ") must not contain internal whitespace");
+				reportError(qualifiedName);
+				assert false;
+			}
+			if (pragmaKey.equals("bootstrapDefiningMethod"))
+			{
+				interpreter.bootstrapDefiningMethod(pragmaValue);
+			}
+			else if (pragmaKey.equals("bootstrapSpecialObject"))
+			{
+				interpreter.bootstrapSpecialObject(pragmaValue);
+			}
+		}
+
 		module.buildFilteredBundleTreeFrom(
 			interpreter.runtime().rootBundleTree());
 		fragmentCache = new AvailCompilerFragmentCache();
@@ -2012,6 +2045,7 @@ public abstract class AbstractAvailCompiler
 		extendedModules = new ArrayList<AvailObject>();
 		usedModules = new ArrayList<AvailObject>();
 		exportedNames = new ArrayList<AvailObject>();
+		pragmas = new ArrayList<AvailObject>();
 		ParserState state = new ParserState(
 			0,
 			MapDescriptor.empty());
@@ -2054,49 +2088,6 @@ public abstract class AbstractAvailCompiler
 				return null;
 			}
 		}
-
-		if (state.peekToken(PRAGMA))
-		{
-			state = state.afterToken();
-			final List<AvailObject> strings = new ArrayList<AvailObject>();
-			state = parseStringLiterals(state, strings);
-			if (state == null)
-			{
-				return null;
-			}
-			if (!dependenciesOnly)
-			{
-				for (int index = 0; index < strings.size(); index++)
-				{
-					final AvailObject pragmaString = strings.get(index);
-					final String nativeString = pragmaString.asNativeString();
-					final String[] parts = nativeString.split("=", 2);
-					assert parts.length == 2;
-					final String pragmaKey = parts[0].trim();
-					final String pragmaValue = parts[1].trim();
-					if (!pragmaKey.matches("\\w+"))
-					{
-						final ParserState badStringState = new ParserState(
-							state.position + (index - strings.size()) * 2 + 1,
-							state.scopeMap);
-						badStringState.expected(
-							"pragma key ("
-							+ pragmaKey
-							+ ") must not contain internal whitespace");
-						return null;
-					}
-					if (pragmaKey.equals("bootstrapDefiningMethod"))
-					{
-						interpreter.bootstrapDefiningMethod(pragmaValue);
-					}
-					else if (pragmaKey.equals("bootstrapSpecialObject"))
-					{
-						interpreter.bootstrapSpecialObject(pragmaValue);
-					}
-				}
-			}
-		}
-
 		if (!state.peekToken(EXTENDS, "Extends keyword"))
 		{
 			return null;
@@ -2107,7 +2098,6 @@ public abstract class AbstractAvailCompiler
 		{
 			return null;
 		}
-
 		if (!state.peekToken(USES, "Uses keyword"))
 		{
 			return null;
@@ -2118,7 +2108,6 @@ public abstract class AbstractAvailCompiler
 		{
 			return null;
 		}
-
 		if (!state.peekToken(NAMES, "Names keyword"))
 		{
 			return null;
@@ -2134,13 +2123,20 @@ public abstract class AbstractAvailCompiler
 		{
 			return null;
 		}
-
+		if (state.peekToken(PRAGMA))
+		{
+			state = state.afterToken();
+			state = parseStringLiterals(state, pragmas);
+			if (state == null)
+			{
+				return null;
+			}
+		}
 		if (!state.peekToken(BODY, "Body keyword"))
 		{
 			return null;
 		}
 		state = state.afterToken();
-
 		assert workStack.isEmpty();
 		return state;
 	}

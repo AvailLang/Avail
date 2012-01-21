@@ -745,7 +745,7 @@ public class AvailScanner
 		{
 			if (c <= 65536)
 			{
-				return values()[DispatchTable[c]];
+				return values()[dispatchTable[c]];
 			}
 			else if (Character.isDigit(c))
 			{
@@ -812,17 +812,17 @@ public class AvailScanner
 	 */
 	public static boolean isOperatorCharacter (final char c)
 	{
-		return DispatchTable[c] == (byte) OPERATOR.ordinal();
+		return dispatchTable[c] == (byte) OPERATOR.ordinal();
 	}
 
 	/**
 	 * A table whose indices are Unicode characters (up to 65535) and whose
 	 * values are {@link AvailScanner.ScannerAction scanner actions}.
 	 */
-	static byte[] DispatchTable = new byte[65536];
+	static byte[] dispatchTable = new byte[65536];
 
 	/**
-	 * Statically initialize the {@link DispatchTable} with suitable
+	 * Statically initialize the {@link dispatchTable} with suitable
 	 * {@link AvailScanner.ScannerAction scanner actions}. Note that this
 	 * happens as part of class loading.
 	 */
@@ -852,11 +852,12 @@ public class AvailScanner
 			{
 				action = OPERATOR;
 			}
-			DispatchTable[i] = (byte) action.ordinal();
+			dispatchTable[i] = (byte) action.ordinal();
 		}
-		DispatchTable['"'] = (byte) DOUBLE_QUOTE.ordinal();
-		DispatchTable[';'] = (byte) SEMICOLON.ordinal();
-		DispatchTable['/'] = (byte) SLASH.ordinal();
-		DispatchTable['\uFEFF'] = (byte) ZEROWIDTHWHITESPACE.ordinal();
+		dispatchTable['_'] = (byte) IDENTIFIER_START.ordinal();
+		dispatchTable['"'] = (byte) DOUBLE_QUOTE.ordinal();
+		dispatchTable[';'] = (byte) SEMICOLON.ordinal();
+		dispatchTable['/'] = (byte) SLASH.ordinal();
+		dispatchTable['\uFEFF'] = (byte) ZEROWIDTHWHITESPACE.ordinal();
 	}
 }
