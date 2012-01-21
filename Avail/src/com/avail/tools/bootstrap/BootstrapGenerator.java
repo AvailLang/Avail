@@ -1,6 +1,6 @@
 /**
  * BootstrapGenerator.java
- * Copyright (c) 2011, Mark van Gulik.
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -137,7 +137,8 @@ public final class BootstrapGenerator
 	{
 		writer.println(MessageFormat.format(
 			preamble.getString(availCopyright.name()),
-			preamble.getString(originModuleName.name())));
+			preamble.getString(originModuleName.name()),
+			new Date()));
 		writer.println(MessageFormat.format(
 			preamble.getString(generatedModuleNotice.name()),
 			BootstrapGenerator.class.getName(),
@@ -219,7 +220,8 @@ public final class BootstrapGenerator
 	{
 		writer.println(MessageFormat.format(
 			preamble.getString(availCopyright.name()),
-			preamble.getString(specialObjectsModuleName.name())));
+			preamble.getString(specialObjectsModuleName.name()),
+			new Date()));
 		writer.println(MessageFormat.format(
 			preamble.getString(generatedModuleNotice.name()),
 			BootstrapGenerator.class.getName(),
@@ -398,7 +400,8 @@ public final class BootstrapGenerator
 		}
 		writer.println(MessageFormat.format(
 			preamble.getString(availCopyright.name()),
-			preamble.getString(key.name())));
+			preamble.getString(key.name()),
+			new Date()));
 		writer.println(MessageFormat.format(
 			preamble.getString(generatedModuleNotice.name()),
 			BootstrapGenerator.class.getName(),

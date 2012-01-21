@@ -1,6 +1,6 @@
 /**
  * BitField.java
- * Copyright (c) 2011, Mark van Gulik.
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

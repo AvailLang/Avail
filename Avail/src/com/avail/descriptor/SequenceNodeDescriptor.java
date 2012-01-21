@@ -1,6 +1,6 @@
 /**
  * SequenceNodeDescriptor.java
- * Copyright (c) 2011, Mark van Gulik.
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * modification, are permitted provided that the following conditions are met:

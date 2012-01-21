@@ -1,5 +1,5 @@
 /**
- * AbstractTypeDescriptor.java Copyright (c) 2010, Mark van Gulik.
+ * AbstractTypeDescriptor.java Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

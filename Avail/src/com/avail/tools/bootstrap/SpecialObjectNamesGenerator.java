@@ -1,6 +1,6 @@
 /**
  * SpecialObjectNamesGenerator.java
- * Copyright (c) 2011, Mark van Gulik.
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -69,7 +69,8 @@ public final class SpecialObjectNamesGenerator
 	{
 		writer.println(MessageFormat.format(
 			preambleBundle.getString(propertiesCopyright.name()),
-			localName(specialObjectsBaseName) + "_" + locale.getLanguage()));
+			localName(specialObjectsBaseName) + "_" + locale.getLanguage(),
+			new Date()));
 		writer.println(MessageFormat.format(
 			preambleBundle.getString(generatedPropertiesNotice.name()),
 			SpecialObjectNamesGenerator.class.getName(),
