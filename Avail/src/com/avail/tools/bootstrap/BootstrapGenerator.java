@@ -460,11 +460,15 @@ public final class BootstrapGenerator
 	 *
 	 * @param primitive
 	 *        A primitive.
+	 * @param forSemanticRestriction
+	 *        {@code true} if the parameters should be shifted out one type
+	 *        level for use by a semantic restriction, {@code false} otherwise.
 	 * @return The textual representation of the primitive method's parameters
 	 *         (indent=1).
 	 */
 	private @NotNull String primitiveMethodParameterDeclarations (
-		final @NotNull Primitive primitive)
+		final @NotNull Primitive primitive,
+		final boolean forSemanticRestriction)
 	{
 		final StringBuilder builder = new StringBuilder();
 		final AvailObject functionType = primitive.blockTypeRestriction();
@@ -494,7 +498,10 @@ public final class BootstrapGenerator
 				argName = preamble.getString(parameterPrefix.name()) + i;
 			}
 			final AvailObject type = parameterTypes.typeAtIndex(i);
-			final String typeName = specialObjectName(type);
+			final AvailObject paramType = forSemanticRestriction
+				? InstanceTypeDescriptor.on(type)
+				: type;
+			final String typeName = specialObjectName(paramType);
 			builder.append('\t');
 			builder.append(argName);
 			builder.append(" : ");
@@ -591,7 +598,7 @@ public final class BootstrapGenerator
 	private @NotNull String block (
 		final @NotNull String declarations,
 		final @NotNull String statements,
-		final @NotNull AvailObject returnType)
+		final AvailObject returnType)
 	{
 		final StringBuilder builder = new StringBuilder();
 		builder.append("\n[\n");
@@ -601,8 +608,12 @@ public final class BootstrapGenerator
 			builder.append("|\n");
 		}
 		builder.append(statements);
-		builder.append("] : ");
-		builder.append(specialObjectName(returnType));
+		builder.append(']');
+		if (returnType != null)
+		{
+			builder.append(" : ");
+			builder.append(specialObjectName(returnType));
+		}
 		return builder.toString();
 	}
 
@@ -688,7 +699,7 @@ public final class BootstrapGenerator
 		statements.append(primitive.primitiveNumber);
 		statements.append(";\n");
 		final String block = block(
-			primitiveMethodParameterDeclarations(primitive),
+			primitiveMethodParameterDeclarations(primitive, false),
 			statements.toString(),
 			primitive.blockTypeRestriction().returnType());
 		generateMethod(
@@ -800,13 +811,68 @@ public final class BootstrapGenerator
 			preamble.getString(primitiveFailureVariableName.name())));
 		statements.append(";\n");
 		final String block = block(
-			primitiveMethodParameterDeclarations(primitive),
+			primitiveMethodParameterDeclarations(primitive, false),
 			statements.toString(),
 			TOP.o());
 		generateMethod(
 			preamble.getString(invokePrimitiveFailureFunctionMethod.name()),
 			block,
 			writer);
+	}
+
+	/**
+	 * Generate the bootstrap semantic restriction application method that the
+	 * bootstrap code uses to provide type-safe usage of the bootstrap function
+	 * application method. Also generate the actual application of the semantic
+	 * restriction.
+	 *
+	 * @param writer
+	 *        The {@linkplain PrintWriter output stream}.
+	 */
+	private void generatePrivateSemanticRestrictionMethod (
+		final @NotNull PrintWriter writer)
+	{
+		final Primitive primitive = Primitive.prim248_AddSemanticRestriction;
+		StringBuilder statements = new StringBuilder();
+		statements.append('\t');
+		statements.append(preamble.getString(primitiveKeyword.name()));
+		statements.append(' ');
+		statements.append(primitive.primitiveNumber);
+		statements.append(" (");
+		statements.append(
+			preamble.getString(primitiveFailureVariableName.name()));
+		statements.append(" : ");
+		statements.append(specialObjectName(primitive.failureVariableType()));
+		statements.append(')');
+		statements.append(";\n");
+		statements.append('\t');
+		statements.append(MessageFormat.format(
+			preamble.getString(primitiveFailureMethodUse.name()),
+			preamble.getString(primitiveFailureVariableName.name())));
+		statements.append(";\n");
+		String block = block(
+			primitiveMethodParameterDeclarations(primitive, false),
+			statements.toString(),
+			TOP.o());
+		generateMethod(
+			preamble.getString(primitiveSemanticRestriction.name()),
+			block,
+			writer);
+		statements = new StringBuilder();
+		statements.append('\t');
+		statements.append(specialObjectName(BottomTypeDescriptor.bottom()));
+		statements.append(";\n");
+		block = block(
+			primitiveMethodParameterDeclarations(
+				Primitive.prim40_InvokeWithTuple, true),
+			statements.toString(),
+			null);
+		writer.append(MessageFormat.format(
+			preamble.getString(primitiveSemanticRestrictionUse.name()),
+			stringify(preamble.getString(
+				invokePrimitiveFailureFunctionMethod.name())),
+			block));
+		writer.println(";\n");
 	}
 
 	/**
@@ -832,7 +898,7 @@ public final class BootstrapGenerator
 
 		final String comment = primitiveComment(primitive);
 		final String block = block(
-			primitiveMethodParameterDeclarations(primitive),
+			primitiveMethodParameterDeclarations(primitive, false),
 			primitiveMethodStatements(primitive),
 			primitive.blockTypeRestriction().returnType());
 		writer.print(comment);
@@ -861,6 +927,7 @@ public final class BootstrapGenerator
 			generatePrimitiveFailureFunction(writer);
 			generatePrimitiveFailureFunctionSetter(writer);
 			generateInvokePrimitiveFailureFunctionMethod(writer);
+			generatePrivateSemanticRestrictionMethod(writer);
 		}
 
 		// Generate the primitive methods.

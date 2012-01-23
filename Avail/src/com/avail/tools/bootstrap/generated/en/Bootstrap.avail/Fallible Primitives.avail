@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.01.21 00:16:19.364 -0600
+ * * Last Generated On: 2012.01.23 12:14:28.447 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -108,6 +108,23 @@ Method "Private invoke_with«_‡,»" is
 	Primitive 40 (failureCode : natural number);
 	Private fail primitive with failureCode;
 ] : ⊤;
+
+Method "Private semantic restriction_is_" is 
+[
+	methodName : string,
+	restriction : semantic restriction function
+|
+	Primitive 248 (failureCode : natural number);
+	Private fail primitive with failureCode;
+] : ⊤;
+
+Private semantic restriction "Private invoke_with«_‡,»" is 
+[
+	aFunction : function meta,
+	arguments : tuple meta
+|
+	⊥;
+];
 
 /**
  * Compute and answer the sum of the arguments.
@@ -471,8 +488,8 @@ Method "_[_]" is
  *
  * Parameters:
  *    aTuple - A tuple.
- *    index - The one-based index of the element that should (potentially) differ
- *       in the resultant tuple.
+ *    index - The one-based index of the element that should (potentially)
+ *       differ in the resultant tuple.
  *    value - The "replacement" value.
  * Returns:
  *    The requested tuple.
@@ -596,7 +613,7 @@ Method "try_catch_" is
 	body : nullary procedure,
 	handler : unary procedure
 |
-	Primitive 200 (failureCode : zero's type);
+	Primitive 200 (failureCode : type of zero);
 	Private invoke body with empty tuple;
 ] : ⊤;
 
@@ -646,8 +663,8 @@ Method "semantic restrictions for_given_" is
 
 /**
  * Define the specified semantic restriction. Henceforth whenever the method
- * named by `methodName` is invoked with arguments accepted by `restriction`, then
- * apply `restriction` with the most specific available types of the actual
+ * named by `methodName` is invoked with arguments accepted by `restriction`,
+ * then apply `restriction` with the most specific available types of the actual
  * arguments. This is determined by the compiler at the method's call site.
  *
  * A semantic restriction has two responsibilities. First, it may reject a

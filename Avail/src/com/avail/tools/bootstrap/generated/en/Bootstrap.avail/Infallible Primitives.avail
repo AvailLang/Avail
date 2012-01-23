@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.01.21 00:16:19.325 -0600
+ * * Last Generated On: 2012.01.23 12:14:28.408 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -88,6 +88,7 @@ Names
 	/*  90 */ "_'s value type",
 	/*  91 */ "_'s values",
 	/*  19 */ "_'s write type",
+	/* 144 */ "_++_",
 	/* 105 */ "_+_",
 	/* 125 */ "_-_",
 	/*   5 */ "_<_",
@@ -117,7 +118,7 @@ Names
 	/* 107 */ "_⊆_",
 	/* 321 */ "_⨉_^_",
 	/*  12 */ "clear_",
-	/* 144 */ "concatenate_",
+	/* 136 */ "concatenate_",
 	/*  25 */ "current fiber",
 	/*  66 */ "enumeration of_",
 	/*  34 */ "function type accepting_and returning_",
@@ -771,8 +772,8 @@ Method "_=_" is
  * Construct and answer an object based on the supplied map.
  *
  * Parameters:
- *    fieldsToValues - A map whose keys are the fields of the new object and whose values
- *       are the corresponding field values.
+ *    fieldsToValues - A map whose keys are the fields of the new object and
+ *       whose values are the corresponding field values.
  * Returns:
  *    The requested object.
  */
@@ -787,8 +788,8 @@ Method "_as object" is
  * Construct and answer a map based on the supplied object.
  *
  * Parameters:
- *    anObject - An object whose fields should be the keys of the new map and whose
- *       values are the corresponding values.
+ *    anObject - An object whose fields should be the keys of the new map and
+ *       whose values are the corresponding values.
  * Returns:
  *    The requested map.
  */
@@ -803,8 +804,8 @@ Method "_as map" is
  * Construct and answer an object type based on the supplied map.
  *
  * Parameters:
- *    fieldsToTypes - A map whose keys are the fields of the new object and whose values
- *       are the corresponding field types.
+ *    fieldsToTypes - A map whose keys are the fields of the new object and
+ *       whose values are the corresponding field types.
  * Returns:
  *    The requested object type.
  */
@@ -819,8 +820,8 @@ Method "_as object type" is
  * Construct and answer a map based on the supplied object type.
  *
  * Parameters:
- *    anObjectType - An object type whose fields should be the keys of the new map and
- *       whose values are the corresponding values.
+ *    anObjectType - An object type whose fields should be the keys of the new
+ *       map and whose values are the corresponding values.
  * Returns:
  *    The requested map.
  */
@@ -1066,7 +1067,8 @@ Method "_'s keys" is
  * Parameters:
  *    keyType - A type to which all keys of instances must conform.
  *    valueType - A type to which all values of instances must conform.
- *    cardinalityType - The range of cardinalities to which all instances must conform.
+ *    cardinalityType - The range of cardinalities to which all instances must
+ *       conform.
  * Returns:
  *    The requested map type.
  */
@@ -1192,8 +1194,8 @@ Method "_∈_" is
 ] : boolean;
 
 /**
- * Compute and answer the set union of the arguments. This is a set that contains
- * the elements of both sets.
+ * Compute and answer the set union of the arguments. This is a set that
+ * contains the elements of both sets.
  *
  * Parameters:
  *    arg1 - A set.
@@ -1229,8 +1231,8 @@ Method "_∩_" is
 
 /**
  * Compute and answer the asymmetric set difference of `minuend` and
- * `subtrahend` (also the relative complement of `subtrahend` in `minuend`). This
- * is a set that contains only those elements present in `minuend`
+ * `subtrahend` (also the relative complement of `subtrahend` in `minuend`).
+ * This is a set that contains only those elements present in `minuend`
  * but not in `subtrahend`.
  *
  * Parameters:
@@ -1343,8 +1345,8 @@ Method "_as tuple" is
  *    elementType - The element type.
  *    cardinalityType - The range of allowed cardinalities.
  * Returns:
- *    The requested set type. Instances have elements that conform to `elementType` and
- *    cardinalities that conform to `cardinalityType`.
+ *    The requested set type. Instances have elements that conform to
+ *    `elementType` and cardinalities that conform to `cardinalityType`.
  */
 Method "{_|_}" is 
 [
@@ -1598,7 +1600,7 @@ Method "_[_]" is
  * Returns:
  *    The requested tuple type.
  */
-Method "concatenate_" is 
+Method "_++_" is 
 [
 	arg1 : tuple meta,
 	arg2 : tuple meta
@@ -1641,13 +1643,13 @@ Method "|_'s local variables|" is
  * Answer the number of outer variables used by a function implementation.
  *
  * Parameters:
- *    aFunction Implementation - A function implementation.
+ *    aFunctionImplementation - A function implementation.
  * Returns:
  *    The number of outers used by the argument.
  */
 Method "|_'s outer variables|" is 
 [
-	aFunction Implementation : function implementation
+	aFunctionImplementation : function implementation
 |
 	Primitive 182;
 ] : whole number;
@@ -1877,7 +1879,7 @@ Method "ln_" is
  */
 Method "_^_" is 
 [
-	eulerNumber : e's type,
+	eulerNumber : type of Euler number,
 	x : float
 |
 	Primitive 287;
@@ -1913,7 +1915,7 @@ Method "_→extended integer" is
 Method "_⨉_^_" is 
 [
 	a : float,
-	two : two's type,
+	two : type of two,
 	b : integer
 |
 	Primitive 291;
@@ -1981,7 +1983,7 @@ Method "ln_" is
  */
 Method "_^_" is 
 [
-	eulerNumber : e's type,
+	eulerNumber : type of Euler number,
 	x : double
 |
 	Primitive 317;
@@ -2017,7 +2019,7 @@ Method "_→extended integer" is
 Method "_⨉_^_" is 
 [
 	a : double,
-	two : two's type,
+	two : type of two,
 	b : integer
 |
 	Primitive 321;
@@ -2125,8 +2127,8 @@ Method "_'s semantic type" is
  * compiler, never by a semantically valid Avail program.
  *
  * Parameters:
- *    expected - A description of the cause of rejection, worded to sound good after
- *       "Expected...".
+ *    expected - A description of the cause of rejection, worded to sound good
+ *       after "Expected...".
  */
 Method "Reject parse,expected:_" is 
 [

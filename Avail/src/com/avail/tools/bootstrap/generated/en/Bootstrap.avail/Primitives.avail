@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.01.21 00:16:19.316 -0600
+ * * Last Generated On: 2012.01.23 12:14:28.400 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -93,6 +93,7 @@ Names
 	/*  90 */ "_'s value type",
 	/*  91 */ "_'s values",
 	/*  19 */ "_'s write type",
+	/* 144 */ "_++_",
 	/* 105 */ "_+_",
 	/* 125 */ "_-_",
 	/*   5 */ "_<_",
@@ -127,7 +128,7 @@ Names
 	/* 107 */ "_⊆_",
 	/* 321 */ "_⨉_^_",
 	/*  12 */ "clear_",
-	/* 144 */ "concatenate_",
+	/* 136 */ "concatenate_",
 	/* 502 */ "constructor of_given_",
 	/*  25 */ "current fiber",
 	/*  18 */ "eject_",

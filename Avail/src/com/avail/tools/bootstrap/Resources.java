@@ -228,6 +228,8 @@ final class Resources
 		primitiveFailureFunctionName,
 		primitiveFailureFunctionSetterMethod,
 		invokePrimitiveFailureFunctionMethod,
-		invokePrimitiveFailureFunctionMethodUse
+		invokePrimitiveFailureFunctionMethodUse,
+		primitiveSemanticRestriction,
+		primitiveSemanticRestrictionUse
 	}
 }
