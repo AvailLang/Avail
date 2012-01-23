@@ -1,0 +1,2172 @@
+/*
+ * Infallible Primitives.avail
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/*
+ * GENERATED FILE
+ * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
+ * * Last Generated On: 2012.01.23 12:14:28.408 -0600
+ *
+ * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
+ */
+
+System Module "Infallible Primitives"
+Versions
+	"dev"
+Extends
+Uses
+	"Origin",
+	"Special Objects",
+	"Primitives"
+Names
+	/*  51 */ "$_",
+	/*  49 */ "$_@pc=_stack=_[_]caller=_",
+	/* 137 */ "<_,_`…|_>",
+	/* 257 */ "Breakpoint",
+	/* 258 */ "Print:_",
+	/* 352 */ "Reject parse,expected:_",
+	/* 256 */ "Terminate:_",
+	/*  39 */ "[`…]→_",
+	/* 180 */ "_'s arity",
+	/*  92 */ "_'s bindings",
+	/*  52 */ "_'s caller",
+	/* 140 */ "_'s default type",
+	/* 113 */ "_'s element type",
+	/*  53 */ "_'s function",
+	/* 185 */ "_'s function type",
+	/*  72 */ "_'s implementation",
+	/*  29 */ "_'s instances",
+	/*  89 */ "_'s key type",
+	/*  86 */ "_'s keys",
+	/* 139 */ "_'s leading types",
+	/* 187 */ "_'s literals",
+	/*   8 */ "_'s lower bound",
+	/* 183 */ "_'s maximum stack depth",
+	/* 121 */ "_'s name",
+	/*  68 */ "_'s name:=_",
+	/*  69 */ "_'s names",
+	/* 184 */ "_'s nybblecodes",
+	/*  73 */ "_'s outer variables",
+	/*  35 */ "_'s parameters'type",
+	/* 186 */ "_'s primitive number",
+	/*  54 */ "_'s program counter",
+	/*  14 */ "_'s read type",
+	/*  37 */ "_'s return type",
+	/* 351 */ "_'s semantic type",
+	/*  59 */ "_'s stack",
+	/*  55 */ "_'s stack pointer",
+	/*  30 */ "_'s type",
+	/*   9 */ "_'s upper bound",
+	/*  90 */ "_'s value type",
+	/*  91 */ "_'s values",
+	/*  19 */ "_'s write type",
+	/* 144 */ "_++_",
+	/* 105 */ "_+_",
+	/* 125 */ "_-_",
+	/*   5 */ "_<_",
+	/*  60 */ "_=_",
+	/* 501 */ "_[]",
+	/* 141 */ "_[_]",
+	/* 124 */ "_[_]:=_",
+	/* 104 */ "_\\_",
+	/* 317 */ "_^_",
+	/*  85 */ "_as map",
+	/*  61 */ "_as object",
+	/*  63 */ "_as object type",
+	/* 109 */ "_as set",
+	/* 110 */ "_as tuple",
+	/* 250 */ "_is a primitive",
+	/*  17 */ "_is unassigned",
+	/* 355 */ "_→_",
+	/* 331 */ "_→character",
+	/* 330 */ "_→code point",
+	/* 281 */ "_→double",
+	/* 319 */ "_→extended integer",
+	/* 280 */ "_→float",
+	/* 122 */ "_∈_",
+	/* 103 */ "_∩_",
+	/* 102 */ "_∪_",
+	/*  33 */ "_≤_",
+	/* 107 */ "_⊆_",
+	/* 321 */ "_⨉_^_",
+	/*  12 */ "clear_",
+	/* 136 */ "concatenate_",
+	/*  25 */ "current fiber",
+	/*  66 */ "enumeration of_",
+	/*  34 */ "function type accepting_and returning_",
+	/*  44 */ "if_then_",
+	/*  43 */ "if_then_else_",
+	/*  45 */ "ignore_and evaluate_",
+	/*   7 */ "integer range from_(inclusive=_)to_(inclusive=_)",
+	/* 316 */ "ln_",
+	/*  20 */ "milliseconds since the Epoch",
+	/* 120 */ "new atom_",
+	/*  71 */ "new_applying_",
+	/*  16 */ "new↑_",
+	/* 259 */ "primitive description of_",
+	/* 111 */ "{_|_}",
+	/*  87 */ "{_→_|_}",
+	/* 181 */ "|_'s local variables|",
+	/* 182 */ "|_'s outer variables|",
+	/* 138 */ "|_|",
+	/*  13 */ "↑_",
+	/*  38 */ "∪_",
+	/* 323 */ "⌈_⌉",
+	/* 322 */ "⌊_⌋"
+Body
+
+/**
+ * Is the first argument strictly less than the second argument?
+ *
+ * Parameters:
+ *    arg1 - A number.
+ *    arg2 - A number.
+ * Returns:
+ *    `true` if the first argument is strictly less than the second argument,
+ *    `false` otherwise.
+ */
+Method "_<_" is 
+[
+	arg1 : number,
+	arg2 : number
+|
+	Primitive 5;
+] : boolean;
+
+/**
+ * Is the first argument less than or equal to the second argument?
+ *
+ * Parameters:
+ *    arg1 - A number.
+ *    arg2 - A number.
+ * Returns:
+ *    `true` if the first argument is less than or equal to the second
+ *    argument, `false` otherwise.
+ */
+Method "_≤_" is 
+[
+	arg1 : number,
+	arg2 : number
+|
+	Primitive 6;
+] : boolean;
+
+/**
+ * Construct and answer an integral range type whose lower bound is `lowerBound`
+ * and whose upper bound is `upperBound`.
+ *
+ * Parameters:
+ *    lowerBound - The lower bound.
+ *    lowerBoundInclusive -
+ *       `true` if the lower bound should be adjudged inclusive, `false`
+ *       otherwise.
+ *    upperBound - The upper bound.
+ *    upperBoundInclusive -
+ *       `true` if the upper bound should be adjudged inclusive, `false`
+ *       otherwise.
+ * Returns:
+ *    The requested integral range type.
+ */
+Method "integer range from_(inclusive=_)to_(inclusive=_)" is 
+[
+	lowerBound : extended integer,
+	lowerBoundInclusive : boolean,
+	upperBound : extended integer,
+	upperBoundInclusive : boolean
+|
+	Primitive 7;
+] : extended integer meta;
+
+/**
+ * Answer the lower bound of the specified integral range type.
+ *
+ * Parameters:
+ *    range - An integral range type.
+ * Returns:
+ *    The lower bound of the argument.
+ */
+Method "_'s lower bound" is 
+[
+	range : extended integer meta
+|
+	Primitive 8;
+] : extended integer;
+
+/**
+ * Answer the upper bound of the specified integral range type.
+ *
+ * Parameters:
+ *    range - An integral range type.
+ * Returns:
+ *    The upper  bound of the argument.
+ */
+Method "_'s upper bound" is 
+[
+	range : extended integer meta
+|
+	Primitive 9;
+] : extended integer;
+
+/**
+ * Clear the specified variable. This resets it to the unassigned state.
+ *
+ * Parameters:
+ *    var - A variable.
+ */
+Method "clear_" is 
+[
+	var : variable
+|
+	Primitive 12;
+] : ⊤;
+
+/**
+ * Construct and answer a variable type with the specified containment type.
+ *
+ * Parameters:
+ *    containmentType - The containment type.
+ * Returns:
+ *    The requested variable type.
+ */
+Method "↑_" is 
+[
+	containmentType : type
+|
+	Primitive 13;
+] : variable meta;
+
+/**
+ * Answer the read type of the specified variable type. All values read from
+ * instances of the variable type are at least as specific as the answer.
+ *
+ * Parameters:
+ *    varType - A variable type.
+ * Returns:
+ *    The most general type that describes values that can be read from
+ *    instances of `varType`.
+ */
+Method "_'s read type" is 
+[
+	varType : variable meta
+|
+	Primitive 14;
+] : type;
+
+/**
+ * Construct and answer a new variable with the specified containment type.
+ *
+ * Parameters:
+ *    containmentType - The containment type.
+ * Returns:
+ *    A new variable capable of retrieving and storing values of the specified
+ *    containment type.
+ */
+Method "new↑_" is 
+[
+	containmentType : type
+|
+	Primitive 16;
+] : variable;
+
+/**
+ * Does the specified variable contain a value?
+ *
+ * Parameters:
+ *    var - A variable.
+ * Returns:
+ *    `true` if the variable contains a value (i.e. because it has previously
+ *    been assigned), `false` otherwise.
+ */
+Method "_is unassigned" is 
+[
+	var : variable
+|
+	Primitive 17;
+] : boolean;
+
+/**
+ * Answer the write type of the specified variable type. All values written to
+ * instances of the variable type are at least as specific as the answer.
+ *
+ * Parameters:
+ *    varType - A variable type.
+ * Returns:
+ *    The most general type that describes values that can be written to
+ *    instances of `varType`.
+ */
+Method "_'s write type" is 
+[
+	varType : variable meta
+|
+	Primitive 19;
+] : type;
+
+/**
+ * Answer the number of milliseconds which have elapsed since midnight
+ * Coordinated Universal Time (UTC) of Thursday, January 1, 1970 (i.e. the Unix
+ * Epoch).
+ *
+ * Returns:
+ *    The current time as the number of milliseconds which have elapsed since
+ *    the Unix Epoch.
+ */
+Method "milliseconds since the Epoch" is 
+[
+	Primitive 20;
+] : whole number;
+
+/**
+ * Answer the current fiber.
+ *
+ * Returns:
+ *    The current fiber.
+ */
+Method "current fiber" is 
+[
+	Primitive 25;
+] : fiber;
+
+/**
+ * Set the value bound to `key` in the specified fiber's environment,
+ * overwriting any previous value. Since the fiber's environment essentially
+ * contains fiber-local variables (i.e. bindings from atoms to arbitrary
+ * values), this operation effectively writes a fiber-local variable.
+ *
+ * Parameters:
+ *    aFiber - The fiber whose environment should be consulted.
+ *    key - The key whose value should be (over)written.
+ *    value - The new value.
+ */
+Method "_[_]:=_" is 
+[
+	aFiber : fiber,
+	key : atom,
+	value : any
+|
+	Primitive 27;
+] : ⊤;
+
+/**
+ * Answer the instances of the enumeration.
+ *
+ * Parameters:
+ *    enum - An enumeration.
+ * Returns:
+ *    A set whose members are the instances of the enumeration.
+ */
+Method "_'s instances" is 
+[
+	enum : enumeration meta
+|
+	Primitive 29;
+] : set;
+
+/**
+ * Answer the precise instance type of the supplied value. This is the most
+ * specific possible type that describes the value.
+ *
+ * Parameters:
+ *    value - An arbitrary value.
+ * Returns:
+ *    The precise instance type of the supplied value.
+ */
+Method "_'s type" is 
+[
+	value : any
+|
+	Primitive 30;
+] : enumeration meta;
+
+/**
+ * Compute and answer the type union of the two types. This is the most
+ * specific type that is a supertype of both types.
+ *
+ * Parameters:
+ *    arg1 - A type.
+ *    arg2 - A type.
+ * Returns:
+ *    The type union of the arguments.
+ */
+Method "_∪_" is 
+[
+	arg1 : type,
+	arg2 : type
+|
+	Primitive 31;
+] : type;
+
+/**
+ * Compute and answer the type intersection of the two types. This is the most
+ * general type that is a subtype of both types.
+ *
+ * Parameters:
+ *    arg1 - A type.
+ *    arg2 - A type.
+ * Returns:
+ *    The type intersection of the arguments.
+ */
+Method "_∩_" is 
+[
+	arg1 : type,
+	arg2 : type
+|
+	Primitive 32;
+] : type;
+
+/**
+ * Is the first argument a subtype of the second argument? This does not
+ * implement the proper subtype relation, so the first argument is considered
+ * a subtype of the second argument also if it is equal to the second argument.
+ *
+ * Parameters:
+ *    arg1 - A type.
+ *    arg2 - A type.
+ * Returns:
+ *    `true` if the first argument is a subtype of, or the same type as, the
+ *    second argument, `false` otherwise.
+ */
+Method "_≤_" is 
+[
+	arg1 : type,
+	arg2 : type
+|
+	Primitive 33;
+] : boolean;
+
+/**
+ * Construct and answer a function type with the specified parameter types and
+ * return type.
+ *
+ * Parameters:
+ *    parameterTypes - The parameter types.
+ *    returnType - The return type.
+ * Returns:
+ *    The requested function type. Instances of this type accept arguments
+ *    whose types conform to the parameter types and whose return value
+ *    conforms to the return type.
+ */
+Method "function type accepting_and returning_" is 
+[
+	parameterTypes : tuple of type,
+	returnType : type
+|
+	Primitive 34;
+] : function meta;
+
+/**
+ * Answer a tuple type that describes the parameter types of the specified
+ * function type.
+ *
+ * Parameters:
+ *    functionType - A function type.
+ * Returns:
+ *    A fixed-size tuple type whose element types correspond to the parameter
+ *    types of the argument.
+ */
+Method "_'s parameters'type" is 
+[
+	functionType : function meta
+|
+	Primitive 35;
+] : tuple meta;
+
+/**
+ * Answer the return type of the specified function type.
+ *
+ * Parameters:
+ *    functionType - A function type.
+ * Returns:
+ *    The return type of the argument.
+ */
+Method "_'s return type" is 
+[
+	functionType : function meta
+|
+	Primitive 37;
+] : type;
+
+/**
+ * Compute and answer the type union of the elements of the given tuple of
+ * types.
+ *
+ * Parameters:
+ *    tupleOfTypes - A tuple of types.
+ * Returns:
+ *    The type union of the elements of the argument.
+ */
+Method "∪_" is 
+[
+	tupleOfTypes : tuple of type
+|
+	Primitive 38;
+] : type;
+
+/**
+ * Construct and answer a function type with the specified return type.
+ * Instances of this type include any function that returns a value of the
+ * specified return type, irrespective of the number or types of its parameters.
+ *
+ * Parameters:
+ *    returnType - A type.
+ * Returns:
+ *    The requested function type. Instances of this type answer values of the
+ *    specified return type.
+ */
+Method "[`…]→_" is 
+[
+	returnType : type
+|
+	Primitive 39;
+] : function meta;
+
+/**
+ * Given a predicate value and two functions, invoke one of them and answer its
+ * result.
+ *
+ * Parameters:
+ *    predicate - A predicate value.
+ *    trueFunction - The function to invoke if `predicate` is `true`.
+ *    falseFunction - The function to invoke if `trueFunction` is `false`.
+ * Returns:
+ *    If `predicate` is `true`, then the value produced by invoking
+ *    `trueFunction`; otherwise, the value produced by invoking `falseFunction`.
+ */
+Method "if_then_else_" is 
+[
+	predicate : boolean,
+	trueFunction : nullary procedure,
+	falseFunction : nullary procedure
+|
+	Primitive 43;
+] : ⊤;
+
+/**
+ * Given a predicate value and a function, conditionally invoke the specified
+ * function.
+ *
+ * Parameters:
+ *    predicate - A predicate value.
+ *    trueBlock - The function to invoke if `predicate` is `true`.
+ */
+Method "if_then_" is 
+[
+	predicate : boolean,
+	trueBlock : nullary procedure
+|
+	Primitive 44;
+] : ⊤;
+
+/**
+ * DEPRECATED.
+ *
+ * Parameters:
+ *    arg1 -
+ *    arg2 -
+ * Returns:
+ *    TODO
+ */
+Method "ignore_and evaluate_" is 
+[
+	arg1 : boolean,
+	arg2 : predicate function
+|
+	Primitive 45;
+] : boolean;
+
+/**
+ * Construct and answer a continuation whose current function, Level One
+ * program counter, local stack, local stack pointer, and calling continuation
+ * are specified by the arguments.
+ *
+ * Parameters:
+ *    aFunction - The new continuation's current function.
+ *    programCounter - `aFunction`'s program counter. This is the index of the
+ *       next Level One instruction to execute when the new continuation is
+ *       resumed.
+ *    stack - `aFunction`'s stack. This tuple contains the arguments, local
+ *       variables, and temporaries.
+ *    stackPointer - `aFunction`'s stack pointer. This is the index of the
+ *       top of the stack.
+ *    caller - A variable holding the new continuation's calling continuation.
+ *       If the variable is unassigned, then create a root continuation (i.e.
+ *       one without a caller).
+ * Returns:
+ *    The requested continuation.
+ */
+Method "$_@pc=_stack=_[_]caller=_" is 
+[
+	aFunction : function,
+	programCounter : natural number,
+	stack : tuple,
+	stackPointer : natural number,
+	caller : continuation variable
+|
+	Primitive 49;
+] : continuation;
+
+/**
+ * Answer the type of the function represented by the specified continuation.
+ *
+ * Parameters:
+ *    aContinuation - A continuation.
+ * Returns:
+ *    The argument's current function's type.
+ */
+Method "_'s function type" is 
+[
+	aContinuation : continuation meta
+|
+	Primitive 50;
+] : function meta;
+
+/**
+ * Compute and answer a continuation type capable of representing a current
+ * function of the specified type.
+ *
+ * Parameters:
+ *    functionType - A function type.
+ * Returns:
+ *    The requested continuation type.
+ */
+Method "$_" is 
+[
+	functionType : function meta
+|
+	Primitive 51;
+] : continuation meta;
+
+/**
+ * Construct and answer a variable that holds the caller of the specified
+ * continuation. This variable will be unassigned if the continuation has no
+ * caller.
+ *
+ * Parameters:
+ *    aContinuation - A continuation.
+ * Returns:
+ *    A variable that, if assigned, holds the argument's caller. If unassigned,
+ *    then the argument has no caller.
+ */
+Method "_'s caller" is 
+[
+	aContinuation : continuation
+|
+	Primitive 52;
+] : continuation variable;
+
+/**
+ * Answer the current function of the specified continuation.
+ *
+ * Parameters:
+ *    aContinuation - A continuation.
+ * Returns:
+ *    The argument's current function. This is the function whose execution
+ *    will be resumed if the continuation is resumed.
+ */
+Method "_'s function" is 
+[
+	aContinuation : continuation
+|
+	Primitive 53;
+] : function;
+
+/**
+ * Answer the program counter of the specified continuation. Using the current
+ * function's tuple of Level One nybblecodes, this is the index of the next
+ * instruction to be performed (if the continuation is resumed).
+ *
+ * Parameters:
+ *    aContinuation - A continuation.
+ * Returns:
+ *    The argument's Level One program counter.
+ */
+Method "_'s program counter" is 
+[
+	aContinuation : continuation
+|
+	Primitive 54;
+] : natural number;
+
+/**
+ * Answer the stack pointer of the specified continuation. This is the index of
+ * the top of the local stack. For an empty stack, this value equals the size of
+ * the stack plus one. The stack grows downward.
+ *
+ * Parameters:
+ *    aContinuation - A continuation.
+ * Returns:
+ *    The argument's stack pointer.
+ */
+Method "_'s stack pointer" is 
+[
+	aContinuation : continuation
+|
+	Primitive 55;
+] : natural number;
+
+/**
+ * Answer the stack of the specified continuation. This tuple contains the
+ * arguments, local variables, and temporaries. Any null values, forbidden to
+ * leak through into observable Avail macrostate, are replaced with an
+ * unassigned variable whose containment type is ⊥. Note that such a variable
+ * cannot be constructed either syntactically nor through a variable
+ * construction primitive.
+ *
+ * Parameters:
+ *    aContinuation - A continuation.
+ * Returns:
+ *    The argument's stack.
+ */
+Method "_'s stack" is 
+[
+	aContinuation : continuation
+|
+	Primitive 59;
+] : tuple;
+
+/**
+ * Are the arguments equal?
+ *
+ * Parameters:
+ *    arg1 - A value.
+ *    arg2 - A value.
+ * Returns:
+ *    `true` if the arguments are equal, `false` otherwise.
+ */
+Method "_=_" is 
+[
+	arg1 : any,
+	arg2 : any
+|
+	Primitive 60;
+] : boolean;
+
+/**
+ * Construct and answer an object based on the supplied map.
+ *
+ * Parameters:
+ *    fieldsToValues - A map whose keys are the fields of the new object and
+ *       whose values are the corresponding field values.
+ * Returns:
+ *    The requested object.
+ */
+Method "_as object" is 
+[
+	fieldsToValues : field map
+|
+	Primitive 61;
+] : object;
+
+/**
+ * Construct and answer a map based on the supplied object.
+ *
+ * Parameters:
+ *    anObject - An object whose fields should be the keys of the new map and
+ *       whose values are the corresponding values.
+ * Returns:
+ *    The requested map.
+ */
+Method "_as map" is 
+[
+	anObject : object
+|
+	Primitive 62;
+] : field map;
+
+/**
+ * Construct and answer an object type based on the supplied map.
+ *
+ * Parameters:
+ *    fieldsToTypes - A map whose keys are the fields of the new object and
+ *       whose values are the corresponding field types.
+ * Returns:
+ *    The requested object type.
+ */
+Method "_as object type" is 
+[
+	fieldsToTypes : field map
+|
+	Primitive 63;
+] : object meta;
+
+/**
+ * Construct and answer a map based on the supplied object type.
+ *
+ * Parameters:
+ *    anObjectType - An object type whose fields should be the keys of the new
+ *       map and whose values are the corresponding values.
+ * Returns:
+ *    The requested map.
+ */
+Method "_as map" is 
+[
+	anObjectType : object meta
+|
+	Primitive 64;
+] : field type map;
+
+/**
+ * Construct and answer an enumeration whose instances are fully determined by
+ * the membership of the specified set.
+ *
+ * Parameters:
+ *    instances - The complete set of instances of the enumeration.
+ * Returns:
+ *    The requested enumeration.
+ */
+Method "enumeration of_" is 
+[
+	instances : set
+|
+	Primitive 65;
+] : enumeration meta;
+
+/**
+ * Construct and answer an enumeration meta whose instances' instances are
+ * universally subtypes of `instanceType`.
+ *
+ * Parameters:
+ *    instanceType - The complete set of instances of the enumeration.
+ * Returns:
+ *    The requested enumeration meta.
+ */
+Method "enumeration of_" is 
+[
+	instanceType : type
+|
+	Primitive 66;
+] : enumeration meta meta;
+
+/**
+ * For the purpose of debugging, bind a name to an object type. This name will
+ * be used for subtypes that do not bind a more specific name to describe their
+ * own subtypes.
+ *
+ * Parameters:
+ *    anObjectType - An object type.
+ *    name - The name that should be bound to the object type. This will replace
+ *       a previously bound name.
+ */
+Method "_'s name:=_" is 
+[
+	anObjectType : object meta,
+	name : string
+|
+	Primitive 68;
+] : ⊤;
+
+/**
+ * Answer the set of locally most-specific names bound to the specified object
+ * type.
+ *
+ * Parameters:
+ *    anObjectType - An object type.
+ * Returns:
+ *    The set of locally most-specific names bound to the specified object
+ *    type.
+ */
+Method "_'s names" is 
+[
+	anObjectType : object meta
+|
+	Primitive 69;
+] : set of string;
+
+/**
+ * Construct and answer a function that is an instance of `aFunctionType`
+ * and applies `functionToApply` when itself applied with the appropriate
+ * number and types of arguments.
+ *
+ * Parameters:
+ *    aFunctionType - The desired function type.
+ *    functionToApply - The function that the new function will apply when
+ *       itself applied with the correct number and types of arguments.
+ * Returns:
+ *    The requested function.
+ */
+Method "new_applying_" is 
+[
+	aFunctionType : function meta,
+	functionToApply : function
+|
+	Primitive 71;
+] : function;
+
+/**
+ * Answer the implementation of the specified function. A function's
+ * implementation comprises its nybblecodes, its literals, its primitive
+ * linkage (if any)
+, its function type, and various statistics.
+ *
+ * Parameters:
+ *    aFunction - A function.
+ * Returns:
+ *    The argument's implementation.
+ */
+Method "_'s implementation" is 
+[
+	aFunction : function
+|
+	Primitive 72;
+] : function implementation;
+
+/**
+ * Answer all variables captured by the specified function. For functions
+ * compiled directly from source code (i.e. the vast majority of them), these
+ * variables are lexically captured.
+ *
+ * Parameters:
+ *    aFunction - A function.
+ * Returns:
+ *    The argument's outer variables.
+ */
+Method "_'s outer variables" is 
+[
+	aFunction : function
+|
+	Primitive 73;
+] : tuple;
+
+/**
+ * Answer the cardinality of the specified map.
+ *
+ * Parameters:
+ *    aMap - A map.
+ * Returns:
+ *    The argument's cardinality.
+ */
+Method "|_|" is 
+[
+	aMap : map
+|
+	Primitive 80;
+] : whole number;
+
+/**
+ * Is `key` a member of the set of keys of `aMap`?
+ *
+ * Parameters:
+ *    key - The key whose membership should be queried.
+ *    aMap - A map.
+ * Returns:
+ *    `true` if `key` if a key of `aMap`, `false` otherwise.
+ */
+Method "_∈_" is 
+[
+	key : any,
+	aMap : map
+|
+	Primitive 81;
+] : boolean;
+
+/**
+ * Construct and answer a map that is based on the supplied map. The answer
+ * (potentially) differs from the argument in that it contains a binding from
+ * `key` to `value`; any value previously bound to `key` is "forgotten" in the
+ * new map.
+ *
+ * Parameters:
+ *    aMap - A map.
+ *    key - A key.
+ *    value - The new value for the key.
+ * Returns:
+ *    The requested map.
+ */
+Method "_[_]→_" is 
+[
+	aMap : map,
+	key : any,
+	value : any
+|
+	Primitive 83;
+] : non-empty map;
+
+/**
+ * Construct and answer a map that is based on the supplied map. The answer
+ * (potentially) differs from the argument in that it does not contain a
+ * binding for `key`; any such previous binding is "forgotten" in the new map.
+ *
+ * Parameters:
+ *    aMap - A map.
+ *    key - A key whose binding should be omitted.
+ * Returns:
+ *    The requested map.
+ */
+Method "_-_" is 
+[
+	aMap : map,
+	key : any
+|
+	Primitive 84;
+] : map;
+
+/**
+ * Construct and answer a map from the supplied tuple of bindings.
+ *
+ * Parameters:
+ *    bindings - A tuple of bindings. Each element of the argument is a
+ *       2-tuple that represents a binding. The first element of each 2-tuple is
+ *       a key, the second element is the value that should be bound to that key
+ *       in the resultant map.
+ * Returns:
+ *    The requested map.
+ */
+Method "_as map" is 
+[
+	bindings : key-value tuple
+|
+	Primitive 85;
+] : map;
+
+/**
+ * Answer the set of keys of the specified map.
+ *
+ * Parameters:
+ *    aMap - A map.
+ * Returns:
+ *    The argument's keys.
+ */
+Method "_'s keys" is 
+[
+	aMap : map
+|
+	Primitive 86;
+] : set;
+
+/**
+ * Construct and answer a map type with the specified key type, value type, and
+ * range of cardinalities.
+ *
+ * Parameters:
+ *    keyType - A type to which all keys of instances must conform.
+ *    valueType - A type to which all values of instances must conform.
+ *    cardinalityType - The range of cardinalities to which all instances must
+ *       conform.
+ * Returns:
+ *    The requested map type.
+ */
+Method "{_→_|_}" is 
+[
+	keyType : type,
+	valueType : type,
+	cardinalityType : whole number meta
+|
+	Primitive 87;
+] : map meta;
+
+/**
+ * Answer the acceptable range of cardinalities for instances of the specified
+ * map type.
+ *
+ * Parameters:
+ *    aMapType - A map type.
+ * Returns:
+ *    The argument's cardinality requirement.
+ */
+Method "|_|" is 
+[
+	aMapType : map meta
+|
+	Primitive 88;
+] : whole number meta;
+
+/**
+ * Answer the most specific type to which the keys of all instances must
+ * conform.
+ *
+ * Parameters:
+ *    aMapType - A map type.
+ * Returns:
+ *    The argument's key type.
+ */
+Method "_'s key type" is 
+[
+	aMapType : map meta
+|
+	Primitive 89;
+] : type;
+
+/**
+ * Answer the most specific type to which the values of all instances must
+ * conform.
+ *
+ * Parameters:
+ *    aMapType - A map type.
+ * Returns:
+ *    The argument's value type.
+ */
+Method "_'s value type" is 
+[
+	aMapType : map meta
+|
+	Primitive 90;
+] : type;
+
+/**
+ * Answer a tuple containing the values of the specified map. The values are
+ * arranged in no particular order.
+ *
+ * Parameters:
+ *    aMapType - A map.
+ * Returns:
+ *    The argument's values.
+ */
+Method "_'s values" is 
+[
+	aMapType : map
+|
+	Primitive 91;
+] : tuple;
+
+/**
+ * Answer a tuple containing the bindings of the specified map. A binding is a
+ * 2-tuple of key and value.
+ *
+ * Parameters:
+ *    aMapType - A map.
+ * Returns:
+ *    The argument's bindings.
+ */
+Method "_'s bindings" is 
+[
+	aMapType : map
+|
+	Primitive 92;
+] : key-value tuple;
+
+/**
+ * Answer the cardinality of the specified set.
+ *
+ * Parameters:
+ *    aSet - A set.
+ * Returns:
+ *    The argument's cardinality.
+ */
+Method "|_|" is 
+[
+	aSet : set
+|
+	Primitive 100;
+] : whole number;
+
+/**
+ * Is `element` an element of `aSet`?
+ *
+ * Parameters:
+ *    element - An arbitrary value.
+ *    aSet - A set.
+ * Returns:
+ *    `true` if `element` is an element of `aSet`, `false` otherwise.
+ */
+Method "_∈_" is 
+[
+	element : any,
+	aSet : set
+|
+	Primitive 101;
+] : boolean;
+
+/**
+ * Compute and answer the set union of the arguments. This is a set that
+ * contains the elements of both sets.
+ *
+ * Parameters:
+ *    arg1 - A set.
+ *    arg2 - A set.
+ * Returns:
+ *    The set union of the arguments.
+ */
+Method "_∪_" is 
+[
+	arg1 : set,
+	arg2 : set
+|
+	Primitive 102;
+] : set;
+
+/**
+ * Compute and answer the set intersection of the arguments. This is a set that
+ * contains only those elements present in each set.
+ *
+ * Parameters:
+ *    arg1 - A set.
+ *    arg2 - A set.
+ * Returns:
+ *    The set intersection of the arguments.
+ */
+Method "_∩_" is 
+[
+	arg1 : set,
+	arg2 : set
+|
+	Primitive 103;
+] : set;
+
+/**
+ * Compute and answer the asymmetric set difference of `minuend` and
+ * `subtrahend` (also the relative complement of `subtrahend` in `minuend`).
+ * This is a set that contains only those elements present in `minuend`
+ * but not in `subtrahend`.
+ *
+ * Parameters:
+ *    minuend - The minuend.
+ *    subtrahend - The subtrahend.
+ * Returns:
+ *    The asymmetric set difference of `minuend` and `subtrahend`.
+ */
+Method "_\\_" is 
+[
+	minuend : set,
+	subtrahend : set
+|
+	Primitive 104;
+] : set;
+
+/**
+ * Compute and answer the set union of the specified set and a set containing
+ * the supplied element.
+ *
+ * Parameters:
+ *    aSet - A set.
+ *    newElement - The element that must be present in the resultant set.
+ * Returns:
+ *    A set that contains the same elements as `aSet` but also contains
+ *    `newElement`.
+ */
+Method "_+_" is 
+[
+	aSet : set,
+	newElement : any
+|
+	Primitive 105;
+] : non-empty set;
+
+/**
+ * Compute and answer the asymmetric set difference of the specified set and a
+ * set containing the supplied element.
+ *
+ * Parameters:
+ *    aSet - A set.
+ *    oldElement - The element that must not be present in the resultant set.
+ * Returns:
+ *    A set that contains the same elements as `aSet` except that it does
+ *    not contain `oldElement`.
+ */
+Method "_-_" is 
+[
+	aSet : set,
+	oldElement : any
+|
+	Primitive 106;
+] : set;
+
+/**
+ * Is `arg1` a subset of or equal to `arg2`?
+ *
+ * Parameters:
+ *    arg1 - A set.
+ *    arg2 - A set.
+ * Returns:
+ *    `true` if `arg1` is a subset of or equal to `arg2`, `false` otherwise.
+ */
+Method "_⊆_" is 
+[
+	arg1 : set,
+	arg2 : set
+|
+	Primitive 107;
+] : boolean;
+
+/**
+ * Construct and answer a set that uniquely (by definition) contains the same
+ * elements as the specified tuple.
+ *
+ * Parameters:
+ *    aTuple - A tuple.
+ * Returns:
+ *    The requested set.
+ */
+Method "_as set" is 
+[
+	aTuple : tuple
+|
+	Primitive 109;
+] : set;
+
+/**
+ * Construct and answer a tuple that arbitrarily orders the elements of the
+ * specified set. The conversion is unstable, and thus different calls given
+ * the same argument may produce different orderings.
+ *
+ * Parameters:
+ *    aSet - A set.
+ * Returns:
+ *    The requested tuple.
+ */
+Method "_as tuple" is 
+[
+	aSet : set
+|
+	Primitive 110;
+] : tuple;
+
+/**
+ * Construct and answer a set type with the specified element type and range of
+ * cardinalities.
+ *
+ * Parameters:
+ *    elementType - The element type.
+ *    cardinalityType - The range of allowed cardinalities.
+ * Returns:
+ *    The requested set type. Instances have elements that conform to
+ *    `elementType` and cardinalities that conform to `cardinalityType`.
+ */
+Method "{_|_}" is 
+[
+	elementType : type,
+	cardinalityType : whole number meta
+|
+	Primitive 111;
+] : set meta;
+
+/**
+ * Answer the acceptable range of cardinalities for instances of the specified
+ * set type.
+ *
+ * Parameters:
+ *    aSetType - A set type.
+ * Returns:
+ *    The argument's cardinality requirement.
+ */
+Method "|_|" is 
+[
+	aSetType : set meta
+|
+	Primitive 112;
+] : whole number meta;
+
+/**
+ * Answer the element type of the specified set type. This is the most specific
+ * type to which all elements of instances must conform.
+ *
+ * Parameters:
+ *    aSetType - A set type.
+ * Returns:
+ *    The argument's element type.
+ */
+Method "_'s element type" is 
+[
+	aSetType : set meta
+|
+	Primitive 113;
+] : type;
+
+/**
+ * Construct and answer a new atom. Associate with the atom the supplied string,
+ * which should be a name used for debugging purposes only. Atoms have identity
+ * and all atoms are distinct, regardless of whether their debug names are
+ * equal.
+ *
+ * Parameters:
+ *    debugName - A name to associate with the atom for debugging purposes.
+ *       This name does not participate in atom comparison.
+ * Returns:
+ *    A new atom, distinct from every other atom answered by a different
+ *    invocation of this primitive.
+ */
+Method "new atom_" is 
+[
+	debugName : string
+|
+	Primitive 120;
+] : atom;
+
+/**
+ * Answer the debug name of the specified atom.
+ *
+ * Parameters:
+ *    anAtom - An atom.
+ * Returns:
+ *    The argument's debug name.
+ */
+Method "_'s name" is 
+[
+	anAtom : atom
+|
+	Primitive 121;
+] : string;
+
+/**
+ * Does `anAtom` have a property whose key is `key`?
+ *
+ * Parameters:
+ *    anAtom - An atom.
+ *    key - The property key.
+ * Returns:
+ *    `true` if `anAtom` has a property whose key is `key`, `false` otherwise.
+ */
+Method "_∈_" is 
+[
+	anAtom : atom,
+	key : atom
+|
+	Primitive 122;
+] : boolean;
+
+/**
+ * For `anAtom`, establish a property binding from `key` to `value`.
+ * Any previous property binding for `key` is replaced.
+ *
+ * Parameters:
+ *    anAtom - An atom.
+ *    key - The property key.
+ *    value - The property value.
+ */
+Method "_[_]:=_" is 
+[
+	anAtom : atom,
+	key : atom,
+	value : any
+|
+	Primitive 124;
+] : ⊤;
+
+/**
+ * If `anAtom` has a property whose key is `key`, then remove the property.
+ * Otherwise do nothing.
+ *
+ * Parameters:
+ *    anAtom - An atom.
+ *    key - A property key.
+ */
+Method "_-_" is 
+[
+	anAtom : atom,
+	key : atom
+|
+	Primitive 125;
+] : ⊤;
+
+/**
+ * Answer the cardinality of the specified tuple.
+ *
+ * Parameters:
+ *    aTuple - A tuple.
+ * Returns:
+ *    The argument's cardinality.
+ */
+Method "|_|" is 
+[
+	aTuple : tuple
+|
+	Primitive 130;
+] : whole number;
+
+/**
+ * Construct and answer a tuple that is the left-to-right concatenation of all
+ * elements (i.e. tuples) of the specified tuple.
+ *
+ * Parameters:
+ *    tupleOfTuples - A tuple of tuples.
+ * Returns:
+ *    The requested tuple.
+ */
+Method "concatenate_" is 
+[
+	tupleOfTuples : tuple of tuple
+|
+	Primitive 136;
+] : tuple;
+
+/**
+ * Construct and answer a tuple type with the specified leading element types,
+ * default element type, and range of cardinalities.
+ *
+ * Parameters:
+ *    leadingTypes - The leading types.
+ *    defaultType - The default type.
+ *    cardinalityType - The range of allowed cardinalities.
+ * Returns:
+ *    The requested tuple type.
+ */
+Method "<_,_`…|_>" is 
+[
+	leadingTypes : tuple of type,
+	defaultType : type,
+	cardinalityType : whole number meta
+|
+	Primitive 137;
+] : tuple meta;
+
+/**
+ * Answer the range of allowed cardinalities of instances of the specified type.
+ *
+ * Parameters:
+ *    aTupleType - A tuple type.
+ * Returns:
+ *    The argument's cardinality requirement.
+ */
+Method "|_|" is 
+[
+	aTupleType : tuple meta
+|
+	Primitive 138;
+] : whole number meta;
+
+/**
+ * Answer a tuple containing the leading element types of instances of the
+ * specified type.
+ *
+ * Parameters:
+ *    aTupleType - A tuple type.
+ * Returns:
+ *    The argument's leading element types.
+ */
+Method "_'s leading types" is 
+[
+	aTupleType : tuple meta
+|
+	Primitive 139;
+] : tuple of type;
+
+/**
+ * Answer the default element type of instances of the specified type.
+ *
+ * Parameters:
+ *    aTupleType - A tuple type.
+ * Returns:
+ *    The argument's default element type.
+ */
+Method "_'s default type" is 
+[
+	aTupleType : tuple meta
+|
+	Primitive 140;
+] : type;
+
+/**
+ * Answer the element type of the `index`-th element of instances of the
+ * specified type. If `index` is out of bounds, then answer ⊥.
+ *
+ * Parameters:
+ *    aTupleType - A tuple type.
+ *    index - The index of the desired element type.
+ * Returns:
+ *    The requested element type, or ⊥ if `index` is out of bounds.
+ */
+Method "_[_]" is 
+[
+	aTupleType : tuple meta,
+	index : natural number
+|
+	Primitive 141;
+] : type;
+
+/**
+ * Compute and answer the concatenation of the specified tuple types. This is
+ * the most specific type that encompasses all possible concatenations of the
+ * instances of the two types.
+ *
+ * Parameters:
+ *    arg1 - A tuple type.
+ *    arg2 - A tuple type.
+ * Returns:
+ *    The requested tuple type.
+ */
+Method "_++_" is 
+[
+	arg1 : tuple meta,
+	arg2 : tuple meta
+|
+	Primitive 144;
+] : tuple meta;
+
+/**
+ * Answer the arity of a function implementation. This is the number of
+ * parameters accepted by the function implementation.
+ *
+ * Parameters:
+ *    aFunctionImplementation - A function implementation.
+ * Returns:
+ *    The argument's arity.
+ */
+Method "_'s arity" is 
+[
+	aFunctionImplementation : function implementation
+|
+	Primitive 180;
+] : whole number;
+
+/**
+ * Answer the number of local variables used by a function implementation.
+ *
+ * Parameters:
+ *    aFunctionImplementation - A function implementation.
+ * Returns:
+ *    The number of locals used by the argument.
+ */
+Method "|_'s local variables|" is 
+[
+	aFunctionImplementation : function implementation
+|
+	Primitive 181;
+] : whole number;
+
+/**
+ * Answer the number of outer variables used by a function implementation.
+ *
+ * Parameters:
+ *    aFunctionImplementation - A function implementation.
+ * Returns:
+ *    The number of outers used by the argument.
+ */
+Method "|_'s outer variables|" is 
+[
+	aFunctionImplementation : function implementation
+|
+	Primitive 182;
+] : whole number;
+
+/**
+ * Answer the maximum stack depth of a function implementation. This does not
+ * account for arguments and local variables (which occupy the "bottom" stack
+ * slots).
+ *
+ * Parameters:
+ *    aFunctionImplementation - A function implementation.
+ * Returns:
+ *    The argument's maximum stack depth.
+ */
+Method "_'s maximum stack depth" is 
+[
+	aFunctionImplementation : function implementation
+|
+	Primitive 183;
+] : whole number;
+
+/**
+ * Answer the Level One instructions that describe a function implementation's
+ * algorithm as a tuple of nybblecodes.
+ *
+ * Parameters:
+ *    aFunctionImplementation - A function implementation.
+ * Returns:
+ *    The argument's nybblecodes.
+ */
+Method "_'s nybblecodes" is 
+[
+	aFunctionImplementation : function implementation
+|
+	Primitive 184;
+] : tuple of nybble;
+
+/**
+ * Answer the function type of any function that could close the specified
+ * function implementation.
+ *
+ * Parameters:
+ *    aFunctionImplementation - A function implementation.
+ * Returns:
+ *    The argument's function type.
+ */
+Method "_'s function type" is 
+[
+	aFunctionImplementation : function implementation
+|
+	Primitive 185;
+] : function meta;
+
+/**
+ * Answer the primitive number of the primitive linked to the specified
+ * function implementation. If the function implementation does not have
+ * primitive linkage, then answer `0`.
+ *
+ * Parameters:
+ *    aFunctionImplementation - A function implementation.
+ * Returns:
+ *    The argument's primitive number, or `0` if the argument does not have
+ *    primitive linkage.
+ */
+Method "_'s primitive number" is 
+[
+	aFunctionImplementation : function implementation
+|
+	Primitive 186;
+] : unsigned short;
+
+/**
+ * Answer the literals that support a function implementation's algorithm.
+ *
+ * Parameters:
+ *    aFunctionImplementation - A function implementation.
+ * Returns:
+ *    A tuple containing the argument's supporting literals.
+ */
+Method "_'s literals" is 
+[
+	aFunctionImplementation : function implementation
+|
+	Primitive 187;
+] : tuple;
+
+/**
+ * Does the argument denote a valid primitive?
+ *
+ * Parameters:
+ *    primitiveNumber - A potential primitive number.
+ * Returns:
+ *    `true` if the argument denotes a valid primitive, `false` otherwise.
+ */
+Method "_is a primitive" is 
+[
+	primitiveNumber : unsigned short
+|
+	Primitive 250;
+] : boolean;
+
+/**
+ * Terminate the current fiber. Use the specified value to provide contextual
+ * debugging information.
+ *
+ * This method must not leak beyond the bootstrap package. Termination of
+ * fibers is dangerous because it avoids cleaning up active continuations and
+ * ergo promotes deadlock (by failing to relinquish held locks). Only
+ * cooperative termination, e.g. interrupt queues, is supported in ordinary
+ * system or application code. This method is provided only for early detection
+ * of serious failures in bootstrap code. Real failures in system code outside
+ * of the bootstrap package use Avails usual exception handling machinery.
+ *
+ * Parameters:
+ *    {0} - A value, provided to establish context for debugging.
+ */
+Method "Terminate:_" is 
+[
+	value : any
+|
+	Primitive 256;
+] : ⊥;
+
+/**
+ * Cause the Avail virtual machine to raise an
+ * `org.availlang.exceptions.AvailBreakpointException` that a Java debugger
+ * can trap upon raise.
+ * 
+ * This method exists to facilitate debugging of the Avail virtual machine, and
+ * will be withdrawn once the implementation is considered sufficiently stable.
+ */
+Method "Breakpoint" is 
+[
+	Primitive 257;
+] : ⊤;
+
+/**
+ * Print the argument to the application's standard output stream.
+ *
+ * Parameters:
+ *    text - A string.
+ */
+Method "Print:_" is 
+[
+	text : string
+|
+	Primitive 258;
+] : ⊤;
+
+/**
+ * Produce a primitive description of the argument. This description is
+ * mechanically constructed by the Avail virtual machine. It may not contain
+ * appropriately localized text, and is intended to provide
+ * implementation-specific information that serves only to assist the
+ * Avail virtual machine developers in debugging the implementation.
+ *
+ * Parameters:
+ *    value - A value.
+ * Returns:
+ *    A mechanically constructed, possibly non-localized,
+ *    implementation-specific description of the argument.
+ */
+Method "primitive description of_" is 
+[
+	value : any
+|
+	Primitive 259;
+] : string;
+
+/**
+ * Compute and answer the numeric argument as a single-precision floating point
+ * number.
+ *
+ * Parameters:
+ *    aNumber - A number.
+ * Returns:
+ *    A `float` whose value approximates the argument.
+ */
+Method "_→float" is 
+[
+	aNumber : number
+|
+	Primitive 280;
+] : float;
+
+/**
+ * Compute and answer the numeric argument as a double-precision floating point
+ * number.
+ *
+ * Parameters:
+ *    aNumeric - A number.
+ * Returns:
+ *    A `double` whose value approximates the argument.
+ */
+Method "_→double" is 
+[
+	aNumeric : number
+|
+	Primitive 281;
+] : double;
+
+/**
+ * Compute and answer an approximation of the natural logarithm of the argument,
+ * i.e., ln `x`.
+ *
+ * Parameters:
+ *    x - A single-precision floating point number.
+ * Returns:
+ *    An approximation of ln `x`.
+ */
+Method "ln_" is 
+[
+	x : float
+|
+	Primitive 286;
+] : float;
+
+/**
+ * Compute and answer an approximation of the natural exponential function for
+ * the given exponent, i.e., e^`x`.
+ *
+ * Parameters:
+ *    eulerNumber - Euler's number.
+ *    x - The exponent.
+ * Returns:
+ *    An approximation of e^`x`.
+ */
+Method "_^_" is 
+[
+	eulerNumber : type of Euler number,
+	x : float
+|
+	Primitive 287;
+] : float;
+
+/**
+ * Compute and answer an `extended integer` by rounding the argument toward
+ * zero (`0`).
+ *
+ * Parameters:
+ *    aFloat - A single-precision floating point number.
+ * Returns:
+ *    The requested value.
+ */
+Method "_→extended integer" is 
+[
+	aFloat : float
+|
+	Primitive 289;
+] : extended integer;
+
+/**
+ * Compute and answer `a`⨉(2^`two`) without loss of precision or
+ * intermediate overflow. This scales `a` by a power of two (`2`).
+ *
+ * Parameters:
+ *    a - A single-precision floating point number.
+ *    two - The number two (`2`).
+ *    b - The scaling factor.
+ * Returns:
+ *    The requested value.
+ */
+Method "_⨉_^_" is 
+[
+	a : float,
+	two : type of two,
+	b : integer
+|
+	Primitive 291;
+] : float;
+
+/**
+ * Compute and answer the largest integral single-precision floating point
+ * number less than or equal to the argument, i.e., the floor of `x`.
+ *
+ * Parameters:
+ *    x - A single-precision floating point number.
+ * Returns:
+ *    If the `0` is ±∞ or not-a-number, then `x`, otherwise the floor of
+ *    `x`.
+ */
+Method "⌊_⌋" is 
+[
+	x : float
+|
+	Primitive 292;
+] : float;
+
+/**
+ * Compute and answer the smallest integral single-precision floating point
+ * number greater than or equal to the argument, i.e., the ceiling of `x`.
+ *
+ * Parameters:
+ *    x - A single-precision floating point number.
+ * Returns:
+ *    If the `0` is ±∞ or not-a-number, then `x`, otherwise the ceiling of
+ *    `x`.
+ */
+Method "⌈_⌉" is 
+[
+	x : float
+|
+	Primitive 293;
+] : float;
+
+/**
+ * Compute and answer an approximation of the natural logarithm of the argument,
+ * i.e., ln `x`.
+ *
+ * Parameters:
+ *    x - A double-precision floating point number.
+ * Returns:
+ *    An approximation of ln `x`.
+ */
+Method "ln_" is 
+[
+	x : double
+|
+	Primitive 316;
+] : double;
+
+/**
+ * Compute and answer an approximation of the natural exponential function for
+ * the given exponent, i.e., e^`x`.
+ *
+ * Parameters:
+ *    eulerNumber - Euler's number.
+ *    x - The exponent.
+ * Returns:
+ *    An approximation of e^`x`.
+ */
+Method "_^_" is 
+[
+	eulerNumber : type of Euler number,
+	x : double
+|
+	Primitive 317;
+] : double;
+
+/**
+ * Compute and answer an `extended integer` by rounding the argument toward
+ * zero (`0`).
+ *
+ * Parameters:
+ *    aDouble - A double-precision floating point number.
+ * Returns:
+ *    The requested value.
+ */
+Method "_→extended integer" is 
+[
+	aDouble : double
+|
+	Primitive 319;
+] : extended integer;
+
+/**
+ * Compute and answer `a`⨉(2^`two`) without loss of precision or
+ * intermediate overflow. This scales `a` by a power of two (`2`).
+ *
+ * Parameters:
+ *    a - A single-precision floating point number.
+ *    two - The number two (`2`).
+ *    b - The scaling factor.
+ * Returns:
+ *    The requested value.
+ */
+Method "_⨉_^_" is 
+[
+	a : double,
+	two : type of two,
+	b : integer
+|
+	Primitive 321;
+] : double;
+
+/**
+ * Compute and answer the largest integral double-precision floating point
+ * number less than or equal to the argument, i.e., the floor of `x`.
+ *
+ * Parameters:
+ *    x - A double-precision floating point number.
+ * Returns:
+ *    If the `0` is ±∞ or not-a-number, then `x`, otherwise the floor of
+ *    `x`.
+ */
+Method "⌊_⌋" is 
+[
+	x : double
+|
+	Primitive 322;
+] : double;
+
+/**
+ * Compute and answer the smallest integral double-precision floating point
+ * number greater than or equal to the argument, i.e., the ceiling of `x`.
+ *
+ * Parameters:
+ *    x - A double-precision floating point number.
+ * Returns:
+ *    If the `0` is ±∞ or not-a-number, then `x`, otherwise the ceiling of
+ *    `x`.
+ */
+Method "⌈_⌉" is 
+[
+	x : double
+|
+	Primitive 323;
+] : double;
+
+/**
+ * Answer the argument as a Unicode code point.
+ *
+ * Parameters:
+ *    aCharacter - A character.
+ * Returns:
+ *    The Unicode code point that encodes the argument.
+ */
+Method "_→code point" is 
+[
+	aCharacter : character
+|
+	Primitive 330;
+] : code point;
+
+/**
+ * Answer the argument as a character.
+ *
+ * Parameters:
+ *    codePoint - A Unicode code point.
+ * Returns:
+ *    The character encoded by the argument.
+ */
+Method "_→character" is 
+[
+	codePoint : code point
+|
+	Primitive 331;
+] : character;
+
+/**
+ * Answer the semantic type of the specified phrase. This is the type of value
+ * produced when the content of the phrase is evaluated (by the compiler and/or
+ * runtime).
+ *
+ * Parameters:
+ *    node - A phrase.
+ * Returns:
+ *    A type that describes all values producible by evaluations of the
+ *    argument.
+ */
+Method "_'s semantic type" is 
+[
+	node : phrase
+|
+	Primitive 351;
+] : type;
+
+/**
+ * Reject the current parse. This causes the compiler to reject the
+ * interpretation of the program text that resulted in execution of the code
+ * that invoked this method. The argument is a description of the parse
+ * rejection, but in positive terms that primarily assert what the caller was
+ * expecting (on the compiler's behalf). It is, of course, also useful to state
+ * what was actually discovered.
+ *
+ * Note that the Avail compiler attempts, in parallel, many different parses of
+ * a statement. If the only parses syntactically accepted by the compiler are
+ * semantically rejected by callers of this method, then and only then is the
+ * statement deemed invalid and the arguments of such calls emitted by the
+ * compiler as error messages to assist the programmer in correcting the
+ * rejected statement.
+ *
+ * This method may only be invoked from the body of a macro function or a
+ * semantic restriction function: it should only be invoked by the Avail
+ * compiler, never by a semantically valid Avail program.
+ *
+ * Parameters:
+ *    expected - A description of the cause of rejection, worded to sound good
+ *       after "Expected...".
+ */
+Method "Reject parse,expected:_" is 
+[
+	expected : string
+|
+	Primitive 352;
+] : ⊥;
+
+/**
+ * Construct and answer a phrase type with the specified semantic type.
+ *
+ * Parameters:
+ *    aPhrase - A phrase type.
+ *    semanticType - The semantic type of values producible by phrases that
+ *       are instances of the answer.
+ * Returns:
+ *    The requested phrase type.
+ */
+Method "_→_" is 
+[
+	aPhrase : phrase meta,
+	semanticType : type
+|
+	Primitive 355;
+] : phrase meta;
+
+/**
+ * Construct and answer a pojo array type parameterized by the argument.
+ *
+ * Parameters:
+ *    aType - A type.
+ * Returns:
+ *    The requested pojo array type.
+ */
+Method "_[]" is 
+[
+	aType : type
+|
+	Primitive 501;
+] : pojo[]meta;
+
