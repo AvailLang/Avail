@@ -1,5 +1,5 @@
 /*
- * Kernel.avail
+ * Early Literals.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,13 +30,44 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Kernel"
+System Module "Early Literals"
 Versions
 	"dev"
 Extends
 Uses
-	"Bootstrap",
-	"Foundation"
+	"Bootstrap"
 Names
+	"<«_‡,»>"
 Body
 
+/**
+ * Construct and answer a tuple from the lexically specified expressions. The
+ * hard work here is done automatically by the Avail compiler.
+ *
+ * Parameters:
+ *    result - The desired tuple, lexically constructed by the compiler.
+ * Returns:
+ *    The argument.
+ */
+Method "<«_‡,»>" is
+[
+	elements : tuple
+|
+	elements;
+] : tuple;
+
+/**
+ * Strengthen the type of `<«_‡,»>` to the most exact possible. The hard work
+ * here is done automatically by the Avail compiler, which examines the lexical
+ * arguments and produces instance types for literals and applies semantic
+ * restrictions to any method sends.
+ *
+ * Parameters:
+ *    result - The strengthened tuple type, constructed by the compiler.
+ */
+Semantic restriction "<«_‡,»>" is
+[
+	elements : tuple meta
+|
+	elements;
+];

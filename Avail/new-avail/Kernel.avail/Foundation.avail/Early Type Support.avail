@@ -1,5 +1,5 @@
 /*
- * Bootstrap.avail
+ * Early Type Support.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,24 +30,28 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * GENERATED FILE
- * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.01.23 12:14:28.459 -0600
- *
- * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
- */
-
-System Module "Bootstrap"
+System Module "Early Type Support"
 Versions
 	"dev"
 Extends
-	"Origin",
-	"Special Objects",
-	"Primitives",
-	"Infallible Primitives",
-	"Fallible Primitives"
 Uses
+	"Bootstrap"
 Names
 Body
 
+/**
+ * Use the same primitive that implements `_'s type` to implement its semantic
+ * restriction function. This ensures the availability of statically strong
+ * instance types.
+ *
+ * Parameters:
+ *    value - The arbitrary value's static type.
+ * Returns:
+ *    An instance type on `value`.
+ */
+Semantic restriction "_'s type" is
+[
+	value : type
+|
+	Primitive 30;
+] : type;

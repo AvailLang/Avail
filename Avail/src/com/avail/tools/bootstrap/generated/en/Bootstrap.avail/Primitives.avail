@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.01.23 12:14:28.400 -0600
+ * * Last Generated On: 2012.01.23 18:04:58.686 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -105,11 +105,6 @@ Names
 	/* 132 */ "_[_]→_",
 	/* 104 */ "_\\_",
 	/* 317 */ "_^_",
-	/*  85 */ "_as map",
-	/*  61 */ "_as object",
-	/*  63 */ "_as object type",
-	/* 109 */ "_as set",
-	/* 110 */ "_as tuple",
 	/* 250 */ "_is a primitive",
 	/*  17 */ "_is unassigned",
 	/* 318 */ "_mod_",
@@ -121,6 +116,11 @@ Names
 	/* 281 */ "_→double",
 	/* 319 */ "_→extended integer",
 	/* 280 */ "_→float",
+	/*  85 */ "_→map",
+	/*  61 */ "_→object",
+	/*  63 */ "_→object type",
+	/* 109 */ "_→set",
+	/* 110 */ "_→tuple",
 	/* 122 */ "_∈_",
 	/* 103 */ "_∩_",
 	/* 102 */ "_∪_",
@@ -134,8 +134,8 @@ Names
 	/*  18 */ "eject_",
 	/*  66 */ "enumeration of_",
 	/*  57 */ "exit_with_",
+	/*  34 */ "function accepting_and returning_",
 	/*  74 */ "function from_and_",
-	/*  34 */ "function type accepting_and returning_",
 	/*  44 */ "if_then_",
 	/*  43 */ "if_then_else_",
 	/*  45 */ "ignore_and evaluate_",

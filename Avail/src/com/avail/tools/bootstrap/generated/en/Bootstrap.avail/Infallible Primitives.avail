@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.01.23 12:14:28.408 -0600
+ * * Last Generated On: 2012.01.23 18:04:58.696 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -98,11 +98,6 @@ Names
 	/* 124 */ "_[_]:=_",
 	/* 104 */ "_\\_",
 	/* 317 */ "_^_",
-	/*  85 */ "_as map",
-	/*  61 */ "_as object",
-	/*  63 */ "_as object type",
-	/* 109 */ "_as set",
-	/* 110 */ "_as tuple",
 	/* 250 */ "_is a primitive",
 	/*  17 */ "_is unassigned",
 	/* 355 */ "_→_",
@@ -111,6 +106,11 @@ Names
 	/* 281 */ "_→double",
 	/* 319 */ "_→extended integer",
 	/* 280 */ "_→float",
+	/*  85 */ "_→map",
+	/*  61 */ "_→object",
+	/*  63 */ "_→object type",
+	/* 109 */ "_→set",
+	/* 110 */ "_→tuple",
 	/* 122 */ "_∈_",
 	/* 103 */ "_∩_",
 	/* 102 */ "_∪_",
@@ -121,7 +121,7 @@ Names
 	/* 136 */ "concatenate_",
 	/*  25 */ "current fiber",
 	/*  66 */ "enumeration of_",
-	/*  34 */ "function type accepting_and returning_",
+	/*  34 */ "function accepting_and returning_",
 	/*  44 */ "if_then_",
 	/*  43 */ "if_then_else_",
 	/*  45 */ "ignore_and evaluate_",
@@ -473,7 +473,7 @@ Method "_≤_" is
  *    whose types conform to the parameter types and whose return value
  *    conforms to the return type.
  */
-Method "function type accepting_and returning_" is 
+Method "function accepting_and returning_" is 
 [
 	parameterTypes : tuple of type,
 	returnType : type
@@ -777,7 +777,7 @@ Method "_=_" is
  * Returns:
  *    The requested object.
  */
-Method "_as object" is 
+Method "_→object" is 
 [
 	fieldsToValues : field map
 |
@@ -793,7 +793,7 @@ Method "_as object" is
  * Returns:
  *    The requested map.
  */
-Method "_as map" is 
+Method "_→map" is 
 [
 	anObject : object
 |
@@ -809,7 +809,7 @@ Method "_as map" is
  * Returns:
  *    The requested object type.
  */
-Method "_as object type" is 
+Method "_→object type" is 
 [
 	fieldsToTypes : field map
 |
@@ -825,7 +825,7 @@ Method "_as object type" is
  * Returns:
  *    The requested map.
  */
-Method "_as map" is 
+Method "_→map" is 
 [
 	anObjectType : object meta
 |
@@ -1038,7 +1038,7 @@ Method "_-_" is
  * Returns:
  *    The requested map.
  */
-Method "_as map" is 
+Method "_→map" is 
 [
 	bindings : key-value tuple
 |
@@ -1313,7 +1313,7 @@ Method "_⊆_" is
  * Returns:
  *    The requested set.
  */
-Method "_as set" is 
+Method "_→set" is 
 [
 	aTuple : tuple
 |
@@ -1330,7 +1330,7 @@ Method "_as set" is
  * Returns:
  *    The requested tuple.
  */
-Method "_as tuple" is 
+Method "_→tuple" is 
 [
 	aSet : set
 |
