@@ -167,7 +167,7 @@ public final class ModuleNameResolver
 	 *         fully-qualified {@linkplain ModuleName module name}.
 	 */
 	private @NotNull ModuleName canonicalNameFor (
-		@NotNull final ModuleName qualifiedName)
+		final @NotNull ModuleName qualifiedName)
 	{
 		final String substitute = renames.get(qualifiedName.qualifiedName());
 		if (substitute != null)
@@ -187,7 +187,7 @@ public final class ModuleNameResolver
 	 *        A fully-qualified {@linkplain ModuleName module name}.
 	 * @return A {@linkplain ResolvedModuleName resolved module name}.
 	 */
-	public ResolvedModuleName resolve (@NotNull final ModuleName qualifiedName)
+	public ResolvedModuleName resolve (final @NotNull ModuleName qualifiedName)
 	{
 		File resolution = null;
 

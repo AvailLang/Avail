@@ -40,6 +40,7 @@ import java.util.*;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.interpreter.*;
+import com.avail.interpreter.Primitive.Flag;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
 
@@ -99,6 +100,9 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 		 * This is not the {@link Enum#ordinal()} of the primitive, but rather
 		 * its {@link Primitive#primitiveNumber}.
 		 */
+		@EnumField(
+			describedBy=Primitive.class,
+			lookupMethodName="byPrimitiveNumber")
 		PRIMITIVE
 	}
 
@@ -608,11 +612,23 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 		{
 			builder.append('\t');
 		}
+		boolean skipFailureDeclaration = false;
 		if (primitive != 0)
 		{
 			builder.append('\t');
 			builder.append("Primitive ");
 			builder.append(primitive);
+			final Primitive primObject = Primitive.byPrimitiveNumber(primitive);
+			if (!primObject.hasFlag(Flag.CannotFail))
+			{
+				builder.append(" (");
+				statementsTuple.tupleAt(1).printOnAvoidingIndent(
+					builder,
+					recursionList,
+					indent + 2);
+				builder.append(")");
+				skipFailureDeclaration = true;
+			}
 			builder.append(";");
 			builder.append('\n');
 			for (int _count3 = 1; _count3 <= indent; _count3++)
@@ -622,13 +638,25 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 		}
 		for (final AvailObject statement : statementsTuple)
 		{
-			builder.append('\t');
-			statement.printOnAvoidingIndent(builder, recursionList, indent + 2);
-			builder.append(';');
-			builder.append('\n');
-			for (int _count5 = 1; _count5 <= indent; _count5++)
+			if (skipFailureDeclaration)
+			{
+				assert statement.isInstanceOf(
+					DECLARATION_NODE.mostGeneralType());
+				skipFailureDeclaration = false;
+			}
+			else
 			{
 				builder.append('\t');
+				statement.printOnAvoidingIndent(
+					builder,
+					recursionList,
+					indent + 2);
+				builder.append(';');
+				builder.append('\n');
+				for (int _count5 = 1; _count5 <= indent; _count5++)
+				{
+					builder.append('\t');
+				}
 			}
 		}
 		builder.append(']');

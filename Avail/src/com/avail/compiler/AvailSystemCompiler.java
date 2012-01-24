@@ -488,6 +488,18 @@ extends AbstractAvailCompiler
 									+ " declaration");
 								return;
 							}
+							final AvailObject expressionType =
+								initExpression.expressionType();
+							if (expressionType.equals(TOP.o())
+								|| expressionType.equals(
+									BottomTypeDescriptor.bottom()))
+							{
+								afterInitExpression.expected(
+									"constant expression to have a type other "
+									+ "than "
+									+ expressionType.toString());
+								return;
+							}
 							attempt(
 								afterInitExpression.withDeclaration(
 									constantDeclaration),
@@ -511,8 +523,8 @@ extends AbstractAvailCompiler
 						|| type.equals(BottomTypeDescriptor.bottom()))
 					{
 						afterType.expected(
-							"a type for the variable other than"
-							+ " top or bottom");
+							"a type for the variable other than "
+							+ type.toString());
 						return;
 					}
 					// Try the simple declaration... var : type;
@@ -647,7 +659,7 @@ extends AbstractAvailCompiler
 					{
 						afterType.expected(
 							"a type for the variable other than"
-							+ " top or bottom");
+							+ type.toString());
 						return;
 					}
 					if (lookupDeclaration(afterType, localName.string())
@@ -785,21 +797,16 @@ extends AbstractAvailCompiler
 					final ParserState afterArgType,
 					final AvailObject type)
 				{
-					if (type.equals(TOP.o()))
+					if (type.equals(TOP.o())
+						|| type.equals(BottomTypeDescriptor.bottom()))
 					{
 						afterArgType.expected(
-							"a type for the argument other than top");
-					}
-					else if (type.equals(BottomTypeDescriptor.bottom()))
-					{
-						afterArgType.expected(
-							"a type for the argument other than bottom");
+							"a type for the argument other than "
+							+ type.toString());
 					}
 					else
 					{
-						if (lookupDeclaration(
-								afterArgType,
-								localName.string())
+						if (lookupDeclaration(afterArgType, localName.string())
 							!= null)
 						{
 							afterArgType.expected(
@@ -1221,51 +1228,23 @@ extends AbstractAvailCompiler
 		final ParserState start,
 		final Con<AvailObject> continuation)
 	{
-		parseLeadingKeywordSendThen(
-			start,
-			new Con<AvailObject>("Uncached leading keyword send")
+		final Con<AvailObject> newContinuation =
+			new Con<AvailObject>("Optional leading argument send")
 			{
 				@Override
 				public void value (
-					final ParserState afterSendNode,
-					final AvailObject sendNode)
+					final ParserState afterSubexpression,
+					final AvailObject subexpression)
 				{
 					parseOptionalLeadingArgumentSendAfterThen(
-						afterSendNode,
-						sendNode,
+						afterSubexpression,
+						subexpression,
 						continuation);
 				}
-			});
-		parseSimpleThen(
-			start,
-			new Con<AvailObject>("Uncached simple expression")
-			{
-				@Override
-				public void value (
-					final ParserState afterSimple,
-					final AvailObject simpleNode)
-				{
-					parseOptionalLeadingArgumentSendAfterThen(
-						afterSimple,
-						simpleNode,
-						continuation);
-				}
-			});
-		parseBlockThen(
-			start,
-			new Con<AvailObject>("Uncached block expression")
-			{
-				@Override
-				public void value (
-					final ParserState afterBlock,
-					final AvailObject blockNode)
-				{
-					parseOptionalLeadingArgumentSendAfterThen(
-						afterBlock,
-						blockNode,
-						continuation);
-				}
-		});
+			};
+		parseLeadingKeywordSendThen(start, newContinuation);
+		parseSimpleThen(start, newContinuation);
+		parseBlockThen(start, newContinuation);
 	}
 
 	/**
@@ -1288,11 +1267,6 @@ extends AbstractAvailCompiler
 	 *            assemble into a list that correlates with the top-level
 	 *            non-backquoted underscores and chevron groups in the message
 	 *            name.
-	 * @param innerArgsSoFar
-	 *            The list of lists of innermost arguments. I do not modify it,
-	 *            nor any of its contained lists. The positions in the outer
-	 *            list correspond to non-backquoted underscores in the message
-	 *            name.
 	 * @param continuation
 	 *            What to do with a fully parsed send node.
 	 */
@@ -1302,18 +1276,22 @@ extends AbstractAvailCompiler
 		final AvailObject firstArgOrNull,
 		final ParserState initialTokenPosition,
 		final List<AvailObject> argsSoFar,
-		final List<List<AvailObject>> innerArgsSoFar,
 		final Con<AvailObject> continuation)
 	{
 		bundleTree.expand();
 		final AvailObject complete = bundleTree.lazyComplete();
 		final AvailObject incomplete = bundleTree.lazyIncomplete();
-		final AvailObject special = bundleTree.lazySpecialActions();
+		final AvailObject actions = bundleTree.lazyActions();
+		final AvailObject prefilter = bundleTree.lazyPrefilterMap();
 		final boolean anyComplete = complete.mapSize() > 0;
 		final boolean anyIncomplete = incomplete.mapSize() > 0;
-		final boolean anySpecial = special.mapSize() > 0;
-		assert anyComplete || anyIncomplete || anySpecial
-		: "Expected a nonempty list of possible messages";
+		final boolean anyActions = actions.mapSize() > 0;
+		final boolean anyPrefilter = prefilter.mapSize() > 0;
+
+		if (!(anyComplete || anyIncomplete || anyActions || anyPrefilter))
+		{
+			return;
+		}
 		if (anyComplete
 			&& firstArgOrNull == null
 			&& start.position != initialTokenPosition.position)
@@ -1330,7 +1308,6 @@ extends AbstractAvailCompiler
 						initialTokenPosition,
 						start,
 						argsSoFar,
-						innerArgsSoFar,
 						entry.value,
 						continuation);
 				}
@@ -1360,7 +1337,6 @@ extends AbstractAvailCompiler
 									null,
 									initialTokenPosition,
 									argsSoFar,
-									innerArgsSoFar,
 									continuation);
 							}
 						},
@@ -1378,9 +1354,31 @@ extends AbstractAvailCompiler
 				expectedKeywordsOf(start, incomplete);
 			}
 		}
-		if (anySpecial)
+		if (anyPrefilter)
 		{
-			for (final MapDescriptor.Entry entry : special.mapIterable())
+			final AvailObject latestArgument =
+				argsSoFar.get(argsSoFar.size() - 1);
+			if (latestArgument.isInstanceOfKind(SEND_NODE.mostGeneralType()))
+			{
+				final AvailObject methodName = latestArgument.method().name();
+				if (prefilter.hasKey(methodName))
+				{
+					parseRestOfSendNode(
+						start,
+						prefilter.mapAt(methodName),
+						firstArgOrNull,
+						initialTokenPosition,
+						argsSoFar,
+						continuation);
+					// Don't allow normal action processing, as it would ignore
+					// the restriction which we've been so careful to prefilter.
+					return;
+				}
+			}
+		}
+		if (anyActions)
+		{
+			for (final MapDescriptor.Entry entry : actions.mapIterable())
 			{
 				attempt(
 					new Continuation0()
@@ -1393,7 +1391,6 @@ extends AbstractAvailCompiler
 								entry.key.extractInt(),
 								firstArgOrNull,
 								argsSoFar,
-								innerArgsSoFar,
 								initialTokenPosition,
 								entry.value,
 								continuation);
@@ -1406,7 +1403,7 @@ extends AbstractAvailCompiler
 	}
 
 	/**
-	 * Execute one non-keyword parsing instruction, then run the continuation.
+	 * Execute one non-keyword-parsing instruction, then run the continuation.
 	 *
 	 * @param start
 	 *            Where to start parsing.
@@ -1420,10 +1417,6 @@ extends AbstractAvailCompiler
 	 *            reject attempts to start with an argument (before a keyword).
 	 * @param argsSoFar
 	 *            The message arguments that have been parsed so far.
-	 * @param innerArgsSoFar
-	 *            The list of lists of innermost arguments that have been parsed
-	 *            so far. These correlate with the complete list of
-	 *            non-backquoted underscores within the message name.
 	 * @param initialTokenPosition
 	 *            The position at which parsing of this message started. If it
 	 *            was parsed as a leading argument send (i.e., firtArgOrNull
@@ -1442,7 +1435,6 @@ extends AbstractAvailCompiler
 		final int instruction,
 		final AvailObject firstArgOrNull,
 		final List<AvailObject> argsSoFar,
-		final List<List<AvailObject>> innerArgsSoFar,
 		final ParserState initialTokenPosition,
 		final AvailObject successorTrees,
 		final Con<AvailObject> continuation)
@@ -1481,7 +1473,6 @@ extends AbstractAvailCompiler
 											initialTokenPosition,
 											Collections.unmodifiableList(
 												newArgsSoFar),
-											innerArgsSoFar,
 											continuation);
 									}
 								},
@@ -1512,7 +1503,6 @@ extends AbstractAvailCompiler
 								firstArgOrNull,
 								initialTokenPosition,
 								Collections.unmodifiableList(newArgsSoFar),
-								innerArgsSoFar,
 								continuation);
 						}
 					},
@@ -1547,7 +1537,6 @@ extends AbstractAvailCompiler
 								firstArgOrNull,
 								initialTokenPosition,
 								Collections.unmodifiableList(newArgsSoFar),
-								innerArgsSoFar,
 								continuation);
 						}
 					},
@@ -1577,7 +1566,6 @@ extends AbstractAvailCompiler
 								firstArgOrNull,
 								initialTokenPosition,
 								Collections.unmodifiableList(newArgsSoFar),
-								innerArgsSoFar,
 								continuation);
 						}
 					},
@@ -1607,7 +1595,6 @@ extends AbstractAvailCompiler
 								firstArgOrNull,
 								initialTokenPosition,
 								Collections.unmodifiableList(newArgsSoFar),
-								innerArgsSoFar,
 								continuation);
 						}
 					},
@@ -1645,7 +1632,6 @@ extends AbstractAvailCompiler
 								firstArgOrNull,
 								initialTokenPosition,
 								Collections.unmodifiableList(newArgsSoFar),
-								innerArgsSoFar,
 								continuation);
 						}
 					},
@@ -1654,17 +1640,21 @@ extends AbstractAvailCompiler
 				break;
 			}
 			case 6:
+				assert false
+					: "Methods with ellipsis notation may not be"
+					+ " invoked by the system compiler";
+				break;
 			case 7:
-			{
 				assert false : "Reserved parsing instruction";
 				break;
-			}
 			default:
-			{
 				assert instruction >= 8;
 				switch (instruction & 7)
 				{
 					case 0:
+						// Fall through.  The successorTrees will be different
+						// for the jump versus parallel-branch, due to the way
+						// MessageSplitter.successorPCs(...) operates.
 					case 1:
 						for (final AvailObject successorTree : successorTrees)
 						{
@@ -1680,7 +1670,6 @@ extends AbstractAvailCompiler
 											firstArgOrNull,
 											initialTokenPosition,
 											argsSoFar,
-											innerArgsSoFar,
 											continuation);
 									}
 								},
@@ -1693,26 +1682,12 @@ extends AbstractAvailCompiler
 						: "parse-token instruction should not be dispatched";
 						break;
 					case 3:
-						// An inner argument has just been parsed. Record it in
-						// a copy of innerArgsSoFar at position
-						// (instruction-3)/8 and continue. Actually subtract
-						// one from that to make it a List index.
+					{
+						// CheckArgument.  An argument has just been parsed (and
+						// pushed).  Make sure it satisfies any grammatical
+						// restrictions.  The message bundle tree's lazy
+						// prefilter map deals with that efficiently.
 						assert successorTrees.tupleSize() == 1;
-						final int position = (instruction - 3 >> 3) - 1;
-						final List<List<AvailObject>> newInnerArgs =
-							new ArrayList<List<AvailObject>>(innerArgsSoFar);
-						while (position >= newInnerArgs.size())
-						{
-							newInnerArgs.add(
-								Collections.<AvailObject> emptyList());
-						}
-						final List<AvailObject> subList =
-							new ArrayList<AvailObject>(
-								newInnerArgs.get(position));
-						subList.add(argsSoFar.get(argsSoFar.size() - 1));
-						newInnerArgs.set(position, subList);
-						final List<List<AvailObject>> finalNewInnerArgs =
-							newInnerArgs;
 						attempt(
 							new Continuation0()
 							{
@@ -1725,17 +1700,16 @@ extends AbstractAvailCompiler
 										firstArgOrNull,
 										initialTokenPosition,
 										argsSoFar,
-										finalNewInnerArgs,
 										continuation);
 								}
 							},
 							"Continue send after copyArgumentForCheck",
 							start.position);
 						break;
+					}
 					default:
 						assert false : "Reserved parsing instruction";
 				}
-			}
 		}
 	}
 
@@ -1744,7 +1718,6 @@ extends AbstractAvailCompiler
 		final ParserState stateBeforeCall,
 		final ParserState stateAfterCall,
 		final List<AvailObject> argumentExpressions,
-		final List<List<AvailObject>> innerArgumentExpressions,
 		final AvailObject bundle,
 		final AvailObject impSet,
 		final Con<AvailObject> continuation)
@@ -1841,7 +1814,6 @@ extends AbstractAvailCompiler
 			leadingArgument,
 			start,
 			Collections.<AvailObject> emptyList(),
-			Collections.<List<AvailObject>> emptyList(),
 			continuation);
 	}
 
@@ -1866,7 +1838,6 @@ extends AbstractAvailCompiler
 			null,
 			start,
 			Collections.<AvailObject> emptyList(),
-			Collections.<List<AvailObject>> emptyList(),
 			continuation);
 	}
 

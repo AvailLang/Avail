@@ -404,7 +404,8 @@ public final class AvailRuntime
 				final AvailObject bundle =
 					aModule.filteredBundleTree().includeBundle(
 						MessageBundleDescriptor.newBundle(name));
-				rootBundle.addRestrictions(bundle.grammaticalRestrictions());
+				rootBundle.addGrammaticalRestrictions(
+					bundle.grammaticalRestrictions());
 			}
 
 			// Finally add the module to the map of loaded modules.

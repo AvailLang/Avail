@@ -32,7 +32,7 @@
 
 package com.avail.descriptor;
 
-import java.lang.reflect.Field;
+import java.lang.reflect.*;
 import java.util.*;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
@@ -452,19 +452,49 @@ public abstract class AbstractDescriptor
 				{
 					final Class<? extends IntegerEnumSlotDescriptionEnum>
 						describingClass = enumAnnotation.describedBy();
-					final IntegerEnumSlotDescriptionEnum[] allValues =
-						describingClass.getEnumConstants();
-					if (0 <= value && value < allValues.length)
+					final String lookupName = enumAnnotation.lookupMethodName();
+					if (lookupName.isEmpty())
 					{
-						builder.append(" = ");
-						builder.append(allValues[value].name());
+						// Look it up by ordinal.
+						final IntegerEnumSlotDescriptionEnum[] allValues =
+							describingClass.getEnumConstants();
+						if (0 <= value && value < allValues.length)
+						{
+							builder.append(" = ");
+							builder.append(allValues[value].name());
+						}
+						else
+						{
+							builder.append(
+								new Formatter().format(
+									"(enum out of range: 0x%08X)",
+									value & 0xFFFFFFFFL));
+						}
 					}
 					else
 					{
-						builder.append(
-							new Formatter().format(
-								"(enum out of range: 0x%08X)",
-								value & 0xFFFFFFFFL));
+						// Look it up via the specified static lookup method.
+						final Method lookupMethod =
+							describingClass.getMethod(
+								lookupName,
+								Integer.TYPE);
+						@SuppressWarnings("rawtypes")
+						final
+						Enum lookedUp = (Enum)lookupMethod.invoke(null, value);
+						if (lookedUp == null)
+						{
+							builder.append(
+								new Formatter().format(
+									"(enum out of range: 0x%08X)",
+									value & 0xFFFFFFFFL));
+						}
+						else
+						{
+							assert lookedUp.getDeclaringClass()
+								== describingClass;
+							builder.append(" = ");
+							builder.append(lookedUp.name());
+						}
 					}
 				}
 				else if (bitFieldsAnnotation != null)
@@ -508,6 +538,22 @@ public abstract class AbstractDescriptor
 				throw new RuntimeException(e);
 			}
 			catch (final IllegalAccessException e)
+			{
+				throw new RuntimeException(e);
+			}
+			catch (final SecurityException e)
+			{
+				throw new RuntimeException(e);
+			}
+			catch (final NoSuchMethodException e)
+			{
+				throw new RuntimeException(e);
+			}
+			catch (final IllegalArgumentException e)
+			{
+				throw new RuntimeException(e);
+			}
+			catch (final InvocationTargetException e)
 			{
 				throw new RuntimeException(e);
 			}
@@ -678,7 +724,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param restrictions
 	 */
-	abstract void o_AddRestrictions (
+	abstract void o_AddGrammaticalRestrictions (
 		@NotNull AvailObject object,
 		AvailObject restrictions);
 
@@ -2041,7 +2087,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param obsoleteRestrictions
 	 */
-	abstract void o_RemoveRestrictions (
+	abstract void o_RemoveGrammaticalRestrictions (
 		@NotNull AvailObject object,
 		AvailObject obsoleteRestrictions);
 
@@ -2161,7 +2207,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	abstract void o_LazySpecialActions (
+	abstract void o_LazyActions (
 		@NotNull AvailObject object,
 		AvailObject value);
 
@@ -2989,7 +3035,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract boolean o_HasRestrictions (AvailObject object);
+	abstract boolean o_HasGrammaticalRestrictions (AvailObject object);
 
 	/**
 	 * @param object
@@ -3165,12 +3211,6 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract AvailObject o_MyRestrictions (AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
 	abstract AvailObject o_Name (AvailObject object);
 
 	/**
@@ -3301,11 +3341,6 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 */
-	abstract void o_RemoveRestrictions (AvailObject object);
-
-	/**
-	 * @param object
 	 * @return
 	 */
 	abstract AvailObject o_GrammaticalRestrictions (AvailObject object);
@@ -3344,7 +3379,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract AvailObject o_LazySpecialActions (AvailObject object);
+	abstract AvailObject o_LazyActions (AvailObject object);
 
 	/**
 	 * @param object
@@ -4496,7 +4531,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract AvailObject o_SpecialActions (
+	abstract AvailObject o_Actions (
 		@NotNull AvailObject object);
 
 	/**
@@ -4546,8 +4581,8 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	boolean o_EqualsEnumerationWithSet (
-		@NotNull final AvailObject object,
-		@NotNull final AvailObject aSet)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aSet)
 	{
 		return false;
 	}
@@ -4970,5 +5005,29 @@ public abstract class AbstractDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject floatObject,
 		final boolean canDestroy);
+
+	/**
+	 * @param object
+	 * @param value
+	 */
+	abstract void o_AllBundles (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value);
+
+	/**
+	 * @param object
+	 * @param value
+	 */
+	abstract void o_LazyPrefilterMap (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value);
+
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract @NotNull AvailObject o_LazyPrefilterMap (
+		final @NotNull AvailObject object);
 
 }

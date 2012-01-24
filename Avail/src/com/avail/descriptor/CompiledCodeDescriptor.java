@@ -107,6 +107,9 @@ extends Descriptor
 		 * nybblecodes.  The nybblecode instructions are only run if the
 		 * primitive was unsuccessful.
 		 */
+		@EnumField(
+			describedBy=Primitive.class,
+			lookupMethodName="byPrimitiveNumber")
 		PRIMITIVE_NUMBER,
 
 		/**

@@ -190,8 +190,7 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	@NotNull AvailObject o_Kind (final @NotNull AvailObject object)
 	{
-		unsupportedOperation();
-		return null;
+		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod

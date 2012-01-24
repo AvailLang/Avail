@@ -68,7 +68,7 @@ import com.avail.interpreter.levelTwo.instruction.L2AttemptPrimitiveInstruction;
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
-public enum Primitive
+public enum Primitive implements IntegerEnumSlotDescriptionEnum
 {
 	/**
 	 * <strong>Primitive 1:</strong> Add two {@linkplain
@@ -5021,76 +5021,6 @@ public enum Primitive
 	},
 
 	/**
-	 * <strong>Primitive 209:</strong> Answer a collection of all visible
-	 * {@linkplain MessageBundleDescriptor messages} that start with the given
-	 * string, and have only one part. Answer a {@linkplain MapDescriptor map}
-	 * from {@linkplain AtomDescriptor true name} to message bundle.
-	 */
-	prim209_CompleteMessagesStartingWith(
-		209, 1, CanInline, CannotFail)
-	{
-		@Override
-		public @NotNull Result attempt (
-			final @NotNull List<AvailObject> args,
-			final @NotNull Interpreter interpreter)
-		{
-			assert args.size() == 1;
-			final AvailObject leadingPart = args.get(0);
-			return interpreter.primitiveSuccess(
-				interpreter
-					.completeBundlesStartingWith(leadingPart)
-					.makeImmutable());
-		}
-
-		@Override
-		protected @NotNull AvailObject privateBlockTypeRestriction ()
-		{
-			return FunctionTypeDescriptor.create(
-				TupleDescriptor.from(
-					TupleTypeDescriptor.stringTupleType()),
-				MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
-					IntegerRangeTypeDescriptor.wholeNumbers(),
-					ATOM.o(),
-					MESSAGE_BUNDLE.o()));
-		}
-	},
-
-	/**
-	 * <strong>Primitive 210:</strong> Produce a collection of all visible
-	 * {@linkplain MessageBundleDescriptor messages} that start with the given
-	 * string, and have more than one part. Answer a {@linkplain MapDescriptor
-	 * map} from second part (string) to message bundle tree.
-	 */
-	prim210_IncompleteMessagesStartingWith(
-		210, 1, CanInline, CannotFail)
-	{
-		@Override
-		public @NotNull Result attempt (
-			final @NotNull List<AvailObject> args,
-			final @NotNull Interpreter interpreter)
-		{
-			assert args.size() == 1;
-			final AvailObject leadingPart = args.get(0);
-			final AvailObject bundles =
-				interpreter.incompleteBundlesStartingWith(leadingPart);
-			bundles.makeImmutable();
-			return interpreter.primitiveSuccess(bundles);
-		}
-
-		@Override
-		protected @NotNull AvailObject privateBlockTypeRestriction ()
-		{
-			return FunctionTypeDescriptor.create(
-				TupleDescriptor.from(
-					TupleTypeDescriptor.stringTupleType()),
-				MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
-					IntegerRangeTypeDescriptor.wholeNumbers(),
-					TupleTypeDescriptor.stringTupleType(),
-					MESSAGE_BUNDLE_TREE.o()));
-		}
-	},
-
-	/**
 	 * <strong>Primitive 211:</strong> Answer a {@linkplain
 	 * MessageBundleDescriptor message bundle}'s message (an {@linkplain
 	 * AtomDescriptor atom}, the message's true name).
@@ -5205,7 +5135,7 @@ public enum Primitive
 			final AvailObject bundle = args.get(0);
 			return interpreter.primitiveSuccess(
 				AtomDescriptor.objectFromBoolean(
-					bundle.message().hasRestrictions()));
+					bundle.message().hasGrammaticalRestrictions()));
 		}
 
 		@Override

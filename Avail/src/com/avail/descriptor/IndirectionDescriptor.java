@@ -291,11 +291,11 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_AddRestrictions (
+	void o_AddGrammaticalRestrictions (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject restrictions)
 	{
-		o_Traversed(object).addRestrictions(restrictions);
+		o_Traversed(object).addGrammaticalRestrictions(restrictions);
 	}
 
 	@Override
@@ -1784,11 +1784,11 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_RemoveRestrictions (
+	void o_RemoveGrammaticalRestrictions (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject obsoleteRestrictions)
 	{
-		o_Traversed(object).removeRestrictions(obsoleteRestrictions);
+		o_Traversed(object).removeGrammaticalRestrictions(obsoleteRestrictions);
 	}
 
 	@Override
@@ -1899,11 +1899,11 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_LazySpecialActions (
+	void o_LazyActions (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
-		o_Traversed(object).lazySpecialActions(value);
+		o_Traversed(object).lazyActions(value);
 	}
 
 	@Override
@@ -2675,9 +2675,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_HasRestrictions (final AvailObject object)
+	boolean o_HasGrammaticalRestrictions (final AvailObject object)
 	{
-		return o_Traversed(object).hasRestrictions();
+		return o_Traversed(object).hasGrammaticalRestrictions();
 	}
 
 	@Override
@@ -2963,12 +2963,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	@NotNull AvailObject o_MyRestrictions (final AvailObject object)
-	{
-		return o_Traversed(object).myRestrictions();
-	}
-
-	@Override
 	@NotNull AvailObject o_Name (final AvailObject object)
 	{
 		return o_Traversed(object).name();
@@ -3114,12 +3108,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_RemoveRestrictions (final AvailObject object)
-	{
-		o_Traversed(object).removeRestrictions();
-	}
-
-	@Override
 	@NotNull AvailObject o_GrammaticalRestrictions (final AvailObject object)
 	{
 		return o_Traversed(object).grammaticalRestrictions();
@@ -3156,9 +3144,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	@NotNull AvailObject o_LazySpecialActions (final AvailObject object)
+	@NotNull AvailObject o_LazyActions (final AvailObject object)
 	{
-		return o_Traversed(object).lazySpecialActions();
+		return o_Traversed(object).lazyActions();
 	}
 
 	@Override
@@ -3692,9 +3680,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_SpecialActions (final AvailObject object)
+	AvailObject o_Actions (final AvailObject object)
 	{
-		return o_Traversed(object).specialActions();
+		return o_Traversed(object).actions();
 	}
 
 	@Override
@@ -4065,9 +4053,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_SubtractFromDoubleCanDestroy (
-		@NotNull final AvailObject object,
-		@NotNull final AvailObject doubleObject,
+	@NotNull AvailObject o_SubtractFromDoubleCanDestroy (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject doubleObject,
 		final boolean canDestroy)
 	{
 		return o_Traversed(object).subtractFromDoubleCanDestroy(
@@ -4076,9 +4064,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_SubtractFromFloatCanDestroy (
-		@NotNull final AvailObject object,
-		@NotNull final AvailObject floatObject,
+	@NotNull AvailObject o_SubtractFromFloatCanDestroy (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject floatObject,
 		final boolean canDestroy)
 	{
 		return o_Traversed(object).subtractFromFloatCanDestroy(
@@ -4087,9 +4075,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_MultiplyByDoubleCanDestroy (
-		@NotNull final AvailObject object,
-		@NotNull final AvailObject doubleObject,
+	@NotNull AvailObject o_MultiplyByDoubleCanDestroy (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject doubleObject,
 		final boolean canDestroy)
 	{
 		return o_Traversed(object).multiplyByDoubleCanDestroy(
@@ -4098,9 +4086,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_MultiplyByFloatCanDestroy (
-		@NotNull final AvailObject object,
-		@NotNull final AvailObject floatObject,
+	@NotNull AvailObject o_MultiplyByFloatCanDestroy (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject floatObject,
 		final boolean canDestroy)
 	{
 		return o_Traversed(object).multiplyByFloatCanDestroy(
@@ -4109,9 +4097,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_DivideIntoDoubleCanDestroy (
-		@NotNull final AvailObject object,
-		@NotNull final AvailObject doubleObject,
+	@NotNull AvailObject o_DivideIntoDoubleCanDestroy (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject doubleObject,
 		final boolean canDestroy)
 	{
 		return o_Traversed(object).divideIntoDoubleCanDestroy(
@@ -4120,13 +4108,37 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_DivideIntoFloatCanDestroy (
-		@NotNull final AvailObject object,
-		@NotNull final AvailObject floatObject,
+	@NotNull AvailObject o_DivideIntoFloatCanDestroy (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject floatObject,
 		final boolean canDestroy)
 	{
 		return o_Traversed(object).divideIntoFloatCanDestroy(
 			floatObject,
 			canDestroy);
+	}
+
+	@Override
+	void o_AllBundles (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
+	{
+		o_Traversed(object).allBundles(
+			value);
+	}
+
+	@Override
+	void o_LazyPrefilterMap (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject value)
+	{
+		o_Traversed(object).lazyPrefilterMap(value);
+	}
+
+	@Override
+	@NotNull AvailObject o_LazyPrefilterMap (
+		final @NotNull AvailObject object)
+	{
+		return o_Traversed(object).lazyPrefilterMap();
 	}
 }

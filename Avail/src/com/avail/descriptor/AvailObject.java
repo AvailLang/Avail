@@ -104,6 +104,7 @@ implements Iterable<AvailObject>
 		MethodDescriptor.createWellKnownObjects();
 		FloatDescriptor.createWellKnownObjects();
 		DoubleDescriptor.createWellKnownObjects();
+		MessageBundleDescriptor.createWellKnownObjects();
 	}
 
 	/**
@@ -147,6 +148,7 @@ implements Iterable<AvailObject>
 		MethodDescriptor.clearWellKnownObjects();
 		FloatDescriptor.clearWellKnownObjects();
 		DoubleDescriptor.clearWellKnownObjects();
+		MessageBundleDescriptor.clearWellKnownObjects();
 	}
 
 	/**
@@ -541,10 +543,10 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public void addRestrictions (
+	public void addGrammaticalRestrictions (
 		final AvailObject restrictions)
 	{
-		descriptor.o_AddRestrictions(this, restrictions);
+		descriptor.o_AddGrammaticalRestrictions(this, restrictions);
 	}
 
 	/**
@@ -2033,9 +2035,9 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public boolean hasRestrictions ()
+	public boolean hasGrammaticalRestrictions ()
 	{
-		return descriptor.o_HasRestrictions(this);
+		return descriptor.o_HasGrammaticalRestrictions(this);
 	}
 
 	/**
@@ -2996,14 +2998,6 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public AvailObject myRestrictions ()
-	{
-		return descriptor.o_MyRestrictions(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	public void myType (
 		final AvailObject value)
 	{
@@ -3608,18 +3602,10 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public void removeRestrictions ()
-	{
-		descriptor.o_RemoveRestrictions(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public void removeRestrictions (
+	public void removeGrammaticalRestrictions (
 		final AvailObject obsoleteRestrictions)
 	{
-		descriptor.o_RemoveRestrictions(this, obsoleteRestrictions);
+		descriptor.o_RemoveGrammaticalRestrictions(this, obsoleteRestrictions);
 	}
 
 	/**
@@ -3818,18 +3804,18 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public AvailObject lazySpecialActions ()
+	public AvailObject lazyActions ()
 	{
-		return descriptor.o_LazySpecialActions(this);
+		return descriptor.o_LazyActions(this);
 	}
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public void lazySpecialActions (
+	public void lazyActions (
 		final AvailObject value)
 	{
-		descriptor.o_LazySpecialActions(this, value);
+		descriptor.o_LazyActions(this, value);
 	}
 
 	/**
@@ -5179,9 +5165,9 @@ implements Iterable<AvailObject>
 	/**
 	 * @return
 	 */
-	public AvailObject specialActions ()
+	public AvailObject actions ()
 	{
-		return descriptor.o_SpecialActions(this);
+		return descriptor.o_Actions(this);
 	}
 
 
@@ -5697,7 +5683,7 @@ implements Iterable<AvailObject>
 	 * @param canDestroy
 	 * @return
 	 */
-	public AvailObject addToDoubleCanDestroy (
+	public @NotNull AvailObject addToDoubleCanDestroy (
 		final @NotNull AvailObject doubleObject,
 		final boolean canDestroy)
 	{
@@ -5712,7 +5698,7 @@ implements Iterable<AvailObject>
 	 * @param canDestroy
 	 * @return
 	 */
-	public AvailObject addToFloatCanDestroy (
+	public @NotNull AvailObject addToFloatCanDestroy (
 		final @NotNull AvailObject floatObject,
 		final boolean canDestroy)
 	{
@@ -5727,7 +5713,7 @@ implements Iterable<AvailObject>
 	 * @param canDestroy
 	 * @return
 	 */
-	public AvailObject subtractFromDoubleCanDestroy (
+	public @NotNull AvailObject subtractFromDoubleCanDestroy (
 		final @NotNull AvailObject doubleObject,
 		final boolean canDestroy)
 	{
@@ -5742,7 +5728,7 @@ implements Iterable<AvailObject>
 	 * @param canDestroy
 	 * @return
 	 */
-	public AvailObject subtractFromFloatCanDestroy (
+	public @NotNull AvailObject subtractFromFloatCanDestroy (
 		final @NotNull AvailObject floatObject,
 		final boolean canDestroy)
 	{
@@ -5757,7 +5743,7 @@ implements Iterable<AvailObject>
 	 * @param canDestroy
 	 * @return
 	 */
-	public AvailObject multiplyByDoubleCanDestroy (
+	public @NotNull AvailObject multiplyByDoubleCanDestroy (
 		final @NotNull AvailObject doubleObject,
 		final boolean canDestroy)
 	{
@@ -5772,7 +5758,7 @@ implements Iterable<AvailObject>
 	 * @param canDestroy
 	 * @return
 	 */
-	public AvailObject multiplyByFloatCanDestroy (
+	public @NotNull AvailObject multiplyByFloatCanDestroy (
 		final @NotNull AvailObject floatObject,
 		final boolean canDestroy)
 	{
@@ -5787,7 +5773,7 @@ implements Iterable<AvailObject>
 	 * @param canDestroy
 	 * @return
 	 */
-	public AvailObject divideIntoDoubleCanDestroy (
+	public @NotNull AvailObject divideIntoDoubleCanDestroy (
 		final @NotNull AvailObject doubleObject,
 		final boolean canDestroy)
 	{
@@ -5802,7 +5788,7 @@ implements Iterable<AvailObject>
 	 * @param canDestroy
 	 * @return
 	 */
-	public AvailObject divideIntoFloatCanDestroy (
+	public @NotNull AvailObject divideIntoFloatCanDestroy (
 		final @NotNull AvailObject floatObject,
 		final boolean canDestroy)
 	{
@@ -5810,5 +5796,33 @@ implements Iterable<AvailObject>
 			this,
 			floatObject,
 			canDestroy);
+	}
+
+	/**
+	 * @param value
+	 */
+	public void allBundles (
+		final @NotNull AvailObject value)
+	{
+		descriptor.o_AllBundles(
+			this,
+			value);
+	}
+
+	/**
+	 * @param value
+	 */
+	public void lazyPrefilterMap (
+		final @NotNull AvailObject value)
+	{
+		descriptor.o_LazyPrefilterMap(this, value);
+	}
+
+	/**
+	 * @param value
+	 */
+	public @NotNull AvailObject lazyPrefilterMap ()
+	{
+		return descriptor.o_LazyPrefilterMap(this);
 	}
 }

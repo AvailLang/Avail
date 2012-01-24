@@ -37,6 +37,11 @@ import java.util.*;
 import com.avail.annotations.*;
 import com.avail.compiler.MessageSplitter;
 
+/**
+ *
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public class MessageBundleDescriptor
 extends Descriptor
 {
@@ -45,25 +50,58 @@ extends Descriptor
 	 */
 	public enum ObjectSlots implements ObjectSlotsEnum
 	{
+		/**
+		 * An {@linkplain AtomDescriptor atom} which is the "true name" of this
+		 * method.
+		 */
 		MESSAGE,
+
+		/**
+		 * The tuple of {@linkplain StringDescriptor strings} comprising the
+		 * method name's tokens.  These tokens may be a single operator
+		 * character, a sequence of alphanumerics, the underscore "_", an open
+		 * chevron "«", a close chevron "»", the double-dagger "‡", the ellipsis
+		 * "…", or any backquoted character "`x".  Some of the parsing
+		 * instructions index this tuple (e.g., to represent parsing a
+		 * particular keyword).  This tuple is produced by the {@link
+		 * MessageSplitter}.
+		 */
 		MESSAGE_PARTS,
-		MY_RESTRICTIONS,
+
+		/**
+		 * A tuple of sets, one for each underscore that occurs in the method
+		 * name.  The sets contain {@linkplain AtomDescriptor atoms} that name
+		 * methods that must not directly occur at the corresponding argument
+		 * position when parsing this method.  If such a method invocation does
+		 * occur in that argument position, that parse tree is simply eliminated
+		 * as malformed.  This allows the grammar to be specified by its
+		 * negative space, a <em>much</em> more powerful (and modular) concept
+		 * than the traditional specification of the positive space of the
+		 * grammar.
+		 */
+		GRAMMATICAL_RESTRICTIONS,
+
+		/**
+		 * A tuple of integers that describe how to parse an invocation of this
+		 * method.  The integers encode parsing instructions, many of which can
+		 * be executed en masse against a piece of Avail source code for
+		 * multiple potential methods.  This is facilitated by the incremental
+		 * construction of a {@linkplain MessageBundleTreeDescriptor message
+		 * bundle tree}.  The instructions are produced during analysis of the
+		 * method name by the {@link MessageSplitter}, which has a description
+		 * of the complete instruction set.
+		 */
 		PARSING_INSTRUCTIONS
 	}
 
 	@Override @AvailMethod
-	void o_AddRestrictions (
+	void o_AddGrammaticalRestrictions (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject restrictions)
 	{
 		assert restrictions.isTuple();
 		restrictions.makeImmutable();
-		AvailObject merged = object.myRestrictions();
-		if (merged.equalsNull())
-		{
-			object.setSlot(ObjectSlots.MY_RESTRICTIONS, restrictions);
-			return;
-		}
+		AvailObject merged = object.slot(ObjectSlots.GRAMMATICAL_RESTRICTIONS);
 		for (int i = merged.tupleSize(); i >= 1; i--)
 		{
 			merged = merged.tupleAtPuttingCanDestroy(
@@ -73,23 +111,16 @@ extends Descriptor
 					true),
 				true);
 		}
-		object.setSlot(ObjectSlots.MY_RESTRICTIONS, merged);
+		object.setSlot(ObjectSlots.GRAMMATICAL_RESTRICTIONS, merged);
 	}
 
 	@Override @AvailMethod
-	void o_RemoveRestrictions (
+	void o_RemoveGrammaticalRestrictions (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject obsoleteRestrictions)
 	{
 		assert obsoleteRestrictions.isTuple();
-		AvailObject reduced = object.myRestrictions();
-		if (reduced.equals(obsoleteRestrictions))
-		{
-			object.setSlot(
-				ObjectSlots.MY_RESTRICTIONS,
-				NullDescriptor.nullObject());
-			return;
-		}
+		AvailObject reduced = object.slot(ObjectSlots.GRAMMATICAL_RESTRICTIONS);
 		for (int i = reduced.tupleSize(); i >= 1; i--)
 		{
 			reduced = reduced.tupleAtPuttingCanDestroy(
@@ -99,18 +130,16 @@ extends Descriptor
 					true),
 				true);
 		}
-		object.setSlot(ObjectSlots.MY_RESTRICTIONS, reduced);
+		object.setSlot(ObjectSlots.GRAMMATICAL_RESTRICTIONS, reduced);
 	}
 
 	@Override @AvailMethod
-	boolean o_HasRestrictions (
+	boolean o_HasGrammaticalRestrictions (
 		final @NotNull AvailObject object)
 	{
-		if (object.myRestrictions().equalsNull())
-		{
-			return false;
-		}
-		for (final AvailObject setForArgument : object.myRestrictions())
+		final AvailObject restrictions =
+			object.slot(ObjectSlots.GRAMMATICAL_RESTRICTIONS);
+		for (final AvailObject setForArgument : restrictions)
 		{
 			if (setForArgument.setSize() > 0)
 			{
@@ -121,36 +150,10 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	void o_RemoveRestrictions (
-		final @NotNull AvailObject object)
-	{
-		object.setSlot(
-			ObjectSlots.MY_RESTRICTIONS,
-			NullDescriptor.nullObject());
-	}
-
-	@Override @AvailMethod
 	@NotNull AvailObject o_GrammaticalRestrictions (
 		final @NotNull AvailObject object)
 	{
-		AvailObject restrictions = object.myRestrictions();
-		if (restrictions.equalsNull())
-		{
-			final AvailObject parts = object.messageParts();
-			int count = 0;
-			for (final AvailObject part : parts)
-			{
-				if (part.equals(StringDescriptor.underscore()))
-				{
-					count++;
-				}
-			}
-			restrictions = TupleDescriptor.fromCollection(
-				Collections.nCopies(count, SetDescriptor.empty()));
-			restrictions.makeImmutable();
-			object.setSlot(ObjectSlots.MY_RESTRICTIONS, restrictions);
-		}
-		return restrictions;
+		return object.slot(ObjectSlots.GRAMMATICAL_RESTRICTIONS);
 	}
 
 	@Override @AvailMethod
@@ -168,13 +171,6 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_MyRestrictions (
-		final @NotNull AvailObject object)
-	{
-		return object.slot(ObjectSlots.MY_RESTRICTIONS);
-	}
-
-	@Override @AvailMethod
 	@NotNull AvailObject o_ParsingInstructions (
 		final @NotNull AvailObject object)
 	{
@@ -184,7 +180,7 @@ extends Descriptor
 	@Override boolean allowsImmutableToMutableReferenceInField (
 		final @NotNull AbstractSlotsEnum e)
 	{
-		return e == ObjectSlots.MY_RESTRICTIONS;
+		return e == ObjectSlots.GRAMMATICAL_RESTRICTIONS;
 	}
 
 	@Override
@@ -228,6 +224,51 @@ extends Descriptor
 		return MESSAGE_BUNDLE.o();
 	}
 
+
+	/**
+	 * A list of tuples whose elements are all the empty set.  Subscript N is an
+	 * immutable tuple of size N whose elements are all the empty set.
+	 */
+	static List<AvailObject> tuplesOfEmptySets;
+
+	/**
+	 * Return an immutable tuple of the specified size consisting of empty sets.
+	 *
+	 * @param size The size of the resulting tuple.
+	 * @return An immutable tuple of empty sets.
+	 */
+	static AvailObject tupleOfEmptySetsOfSize (final int size)
+	{
+		while (tuplesOfEmptySets.size() <= size)
+		{
+			final AvailObject lastTuple =
+				tuplesOfEmptySets.get(tuplesOfEmptySets.size() - 1);
+			final AvailObject newTuple = TupleDescriptor.append(
+				lastTuple,
+				SetDescriptor.empty());
+			newTuple.makeImmutable();
+			tuplesOfEmptySets.add(newTuple);
+		}
+		return tuplesOfEmptySets.get(size);
+	}
+
+	/**
+	 * Create a list of reusable immutable tuples of empty sets.
+	 */
+	static void createWellKnownObjects ()
+	{
+		tuplesOfEmptySets = new ArrayList<AvailObject>(20);
+		tuplesOfEmptySets.add(TupleDescriptor.empty());
+	}
+
+	/**
+	 * Discard the cache of tuples of empty sets.
+	 */
+	static void clearWellKnownObjects ()
+	{
+		tuplesOfEmptySets = null;
+	}
+
 	/**
 	 * Create a new {@linkplain MessageBundleDescriptor message bundle} for the
 	 * given message.  Also use the provided tuple of message parts and parsing
@@ -241,12 +282,12 @@ extends Descriptor
 	{
 		assert message.isAtom();
 		final MessageSplitter splitter = new MessageSplitter(message.name());
+		final AvailObject restrictions = tupleOfEmptySetsOfSize(
+			splitter.numberOfUnderscores());
 		final AvailObject result = mutable().create();
 		result.setSlot(ObjectSlots.MESSAGE, message);
 		result.setSlot(ObjectSlots.MESSAGE_PARTS, splitter.messageParts());
-		result.setSlot(
-			ObjectSlots.MY_RESTRICTIONS,
-			NullDescriptor.nullObject());
+		result.setSlot(ObjectSlots.GRAMMATICAL_RESTRICTIONS, restrictions);
 		result.setSlot(
 			ObjectSlots.PARSING_INSTRUCTIONS,
 			splitter.instructionsTuple());

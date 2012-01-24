@@ -47,11 +47,11 @@ import com.avail.descriptor.*;
  * <li>0     - parseArgument</li>
  * <li>1     - pushEmptyList</li>
  * <li>2     - append (pop A, append A to list on top of stack)</li>
- * <li>3     - push current parse position</li>
- * <li>4     - under-pop parse position (should be 2nd-to-top of stack)</li>
- * <li>5     - check that progress has been made relative to the parse position
- *             found at 2nd-to-top of stack.  Also replace with new parse
- *             position.</li>
+ * <li>3     - pushParsePosition</li>
+ * <li>4     - underPop parse position (remove 2nd-to-top of stack)</li>
+ * <li>5     - checkProgress checks that progress has been made relative to the
+ *             parse position found at 2nd-to-top of stack.  Also replace with
+ *             new parse position.</li>
  * <li>6     - parseRawToken</li>
  * <li>7     - (reserved)</li>
  * <li>8*N   - branch to instruction N (attempt to continue parsing at both
@@ -59,8 +59,8 @@ import com.avail.descriptor.*;
  * <li>8*N+1 - jump to instruction N (do not attempt to continue at the next
  *             instruction)</li>
  * <li>8*N+2 - parseKeyword at part N</li>
- * <li>8*N+3 - copyArgumentForCheck for Nth leaf argument (position corresponds
- *             with negative precedence restrictions</li>
+ * <li>8*N+3 - checkArgument for Nth leaf argument (position corresponds
+ *             with negative precedence restrictions)</li>
  * <li>8*N+4 - (reserved)</li>
  * <li>8*N+5 - (reserved)</li>
  * <li>8*N+6 - (reserved)</li>
@@ -74,7 +74,7 @@ public class MessageSplitter
 	/**
 	 * The Avail string to be parsed.
 	 */
-	final AvailObject messageName;
+	private final AvailObject messageName;
 
 	/**
 	 * The individual tokens (strings) constituting the message.  Alphanumerics
@@ -91,7 +91,7 @@ public class MessageSplitter
 	/**
 	 * The current one-based parsing position in the list of tokens.
 	 */
-	int messagePartPosition;
+	private int messagePartPosition;
 
 	/**
 	 * The number of non-backquoted underscores/ellipses encountered so far.
@@ -103,7 +103,7 @@ public class MessageSplitter
 	 * can parse a specific keyword, recursively parse an argument, branch for
 	 * backtracking, and manipulate a stack of parse nodes.
 	 */
-	final List<Integer> instructions = new ArrayList<Integer>(10);
+	private final List<Integer> instructions = new ArrayList<Integer>(10);
 
 	/**
 	 * The top-most {@link Group}.
@@ -829,31 +829,6 @@ public class MessageSplitter
 		}
 	}
 
-	//TODO: Implement parsing instruction class.
-	/*
-	 * <li>0     - parseArgument</li>
-	 * <li>1     - pushEmptyList</li>
-	 * <li>2     - append (pop A, append A to list on top of stack)</li>
-	 * <li>3     - push current parse position</li>
-	 * <li>4     - under-pop parse position (should be 2nd-to-top of stack)</li>
-	 * <li>5     - check that progress has been made relative to the parse position
-	 *             found at 2nd-to-top of stack.  Also replace with new parse
-	 *             position.</li>
-	 * <li>6     - parseRawToken</li>
-	 * <li>7     - (reserved)</li>
-	 * <li>8*N   - branch to instruction N (attempt to continue parsing at both
-	 *             the next instruction and N)</li>
-	 * <li>8*N+1 - jump to instruction N (do not attempt to continue at the next
-	 *             instruction)</li>
-	 * <li>8*N+2 - parseKeyword at part N</li>
-	 * <li>8*N+3 - copyArgumentForCheck for Nth leaf argument (position corresponds
-	 *             with negative precedence restrictions</li>
-	 * <li>8*N+4 - (reserved)</li>
-	 * <li>8*N+5 - (reserved)</li>
-	 * <li>8*N+6 - (reserved)</li>
-	 * <li>8*N+7 - (reserved)</li>
-	 */
-
 	/**
 	 * Construct a new {@link MessageSplitter}, parsing the provided message
 	 * into token strings and generating parsing instructions for parsing
@@ -1241,5 +1216,27 @@ public class MessageSplitter
 			}
 		}
 		return Collections.singletonList(currentPc + 1);
+	}
+
+
+	/**
+	 * If the instruction is a checkArgument then answer which argument position
+	 * is to be checked.  This is the 1-based {@linkplain
+	 * Argument#absoluteUnderscoreIndex absolute underscore index}, which
+	 * corresponds with the grammatical restrictions.  Answer zero if the
+	 * argument is not a checkArgument.
+	 *
+	 * @param instruction
+	 *            The instruction to decode.
+	 * @return The argument position to check, or zero if it's not a
+	 *         checkArgument instruction.
+	 */
+	public static int checkArgumentIndex (final int instruction)
+	{
+		if (instruction >= 8 && ((instruction & 7) == 3))
+		{
+			return instruction >> 3;
+		}
+		return 0;
 	}
 }

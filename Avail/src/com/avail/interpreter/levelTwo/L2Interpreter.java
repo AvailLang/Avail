@@ -268,7 +268,7 @@ implements L2OperationDispatcher
 		 *
 		 * @param value The value to push on the virtualized stack.
 		 */
-		private final void push (@NotNull final AvailObject value)
+		private final void push (final @NotNull AvailObject value)
 		{
 			int stackp = integerAt(stackpRegister());
 			stackp--;

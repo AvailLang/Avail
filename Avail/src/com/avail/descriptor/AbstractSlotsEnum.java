@@ -40,7 +40,7 @@ package com.avail.descriptor;
  * {@link Descriptor} class for which the slot layout is specified.
  *
  * <p>
- * There are two subinterfaces, {@link ObjectSlotsEnum} and {@link
+ * There are two sub-interfaces, {@link ObjectSlotsEnum} and {@link
  * IntegerSlotsEnum}, and the representation access methods defined in {@link
  * AbstractAvailObject} typically restrict the passed enumerations to be of the
  * appropriate kind.

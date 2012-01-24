@@ -53,4 +53,17 @@ public @interface EnumField
 	 * Enum#ordinal() ordinal} of a member of the specified {@code enum}.
 	 */
 	public Class<? extends IntegerEnumSlotDescriptionEnum> describedBy ();
+
+	/**
+	 * This optional annotation field indicates the name of a static method
+	 * defined within the {@linkplain #describedBy() describing enumeration}.
+	 * The method should take an {@code int} argument and return an instance of
+	 * the {@code #describedBy()} enumeration or null.  If null, only the
+	 * numeric value is displayed, otherwise the enumeration value's name is
+	 * displayed.  If this annotation field is omitted, the value of the field
+	 * is treated as the {@linkplain Enum#ordinal() ordinal} to look up.
+	 * Similarly, in this case an ordinal that is out of range will only display
+	 * its numeric value.
+	 */
+	public String lookupMethodName () default "";
 }

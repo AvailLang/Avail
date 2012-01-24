@@ -375,8 +375,7 @@ extends AbstractTypeDescriptor
 		/* Check if object (a type) is a subtype of aType (should also be a
 		 * type).
 		 */
-		unsupportedOperation();
-		return false;
+		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod
@@ -697,8 +696,7 @@ extends AbstractTypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject functionType)
 	{
-		unsupportedOperation();
-		return false;
+		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod
@@ -708,8 +706,7 @@ extends AbstractTypeDescriptor
 		final int stackp,
 		final int numArgs)
 	{
-		unsupportedOperation();
-		return false;
+		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod
@@ -717,8 +714,7 @@ extends AbstractTypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull List<AvailObject> argTypes)
 	{
-		unsupportedOperation();
-		return false;
+		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod
@@ -726,8 +722,7 @@ extends AbstractTypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull List<AvailObject> argValues)
 	{
-		unsupportedOperation();
-		return false;
+		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod
@@ -735,8 +730,7 @@ extends AbstractTypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject argTypes)
 	{
-		unsupportedOperation();
-		return false;
+		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod
@@ -744,40 +738,35 @@ extends AbstractTypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject arguments)
 	{
-		unsupportedOperation();
-		return false;
+		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_ArgsTupleType (
 		final @NotNull AvailObject object)
 	{
-		unsupportedOperation();
-		return null;
+		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_CheckedExceptions (
 		final @NotNull AvailObject object)
 	{
-		unsupportedOperation();
-		return null;
+		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_FunctionType (
 		final @NotNull AvailObject object)
 	{
-		unsupportedOperation();
-		return null;
+		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_ContentType (
 		final @NotNull AvailObject object)
 	{
-		unsupportedOperation();
-		return null;
+		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod
@@ -785,24 +774,21 @@ extends AbstractTypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull List<AvailObject> argTypes)
 	{
-		unsupportedOperation();
-		return false;
+		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_DefaultType (
 		final @NotNull AvailObject object)
 	{
-		unsupportedOperation();
-		return null;
+		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_FieldTypeMap (
 		final @NotNull AvailObject object)
 	{
-		unsupportedOperation();
-		return null;
+		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod
@@ -818,8 +804,7 @@ extends AbstractTypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anotherObject)
 	{
-		unsupportedOperation();
-		return false;
+		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod
@@ -827,8 +812,7 @@ extends AbstractTypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aTupleType)
 	{
-		unsupportedOperation();
-		return false;
+		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod
@@ -860,64 +844,56 @@ extends AbstractTypeDescriptor
 	@NotNull AvailObject o_KeyType (
 		final @NotNull AvailObject object)
 	{
-		unsupportedOperation();
-		return null;
+		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_LowerBound (
 		final @NotNull AvailObject object)
 	{
-		unsupportedOperation();
-		return null;
+		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod
 	boolean o_LowerInclusive (
 		final @NotNull AvailObject object)
 	{
-		unsupportedOperation();
-		return false;
+		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_Name (
 		final @NotNull AvailObject object)
 	{
-		unsupportedOperation();
-		return null;
+		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
-		unsupportedOperation();
-		return null;
+		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_Parent (
 		final @NotNull AvailObject object)
 	{
-		unsupportedOperation();
-		return null;
+		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_ReturnType (
 		final @NotNull AvailObject object)
 	{
-		unsupportedOperation();
-		return null;
+		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_SizeRange (
 		final @NotNull AvailObject object)
 	{
-		unsupportedOperation();
-		return null;
+		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod
@@ -925,16 +901,14 @@ extends AbstractTypeDescriptor
 		final @NotNull AvailObject object,
 		final int index)
 	{
-		unsupportedOperation();
-		return null;
+		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_TypeTuple (
 		final @NotNull AvailObject object)
 	{
-		unsupportedOperation();
-		return null;
+		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod
@@ -943,32 +917,28 @@ extends AbstractTypeDescriptor
 		final int startIndex,
 		final int endIndex)
 	{
-		unsupportedOperation();
-		return null;
+		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_UpperBound (
 		final @NotNull AvailObject object)
 	{
-		unsupportedOperation();
-		return null;
+		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod
 	boolean o_UpperInclusive (
 		final @NotNull AvailObject object)
 	{
-		unsupportedOperation();
-		return false;
+		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_ValueType (
 		final @NotNull AvailObject object)
 	{
-		unsupportedOperation();
-		return null;
+		throw unsupportedOperationException();
 	}
 
 	/**

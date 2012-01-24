@@ -539,11 +539,16 @@ public abstract class Interpreter
 	 * The modularity scheme should prevent all intermodular method conflicts.
 	 * Precedence is specified as an array of message sets that are not allowed
 	 * to be messages generating the arguments of this message.  For example,
-	 * <{'_+_'} , {'_+_' , '_*_'}> for the '_*_' operator makes * bind tighter
-	 * than + and also groups multiple *'s left-to-right.
+	 * &lt;&#123;'_+_'&#125; , &#123;'_+_' , '_*_'&#125;&gt; for the '_*_'
+	 * operator makes * bind tighter than + and also groups multiple *'s
+	 * left-to-right.
 	 *
-	 * @param methodName A {@linkplain AtomDescriptor method name}.
-	 * @param illegalArgMsgs The {@linkplain TupleDescriptor restrictions}.
+	 * @param methodName
+	 *            An {@linkplain AtomDescriptor atom} that names a method.
+	 * @param illegalArgMsgs
+	 *            The {@linkplain TupleDescriptor tuple} of {@linkplain
+	 *            SetDescriptor sets} of {@linkplain AtomDescriptor atoms} that
+	 *            name methods.
 	 */
 	public void atDisallowArgumentMessages (
 		final @NotNull AvailObject methodName,
@@ -562,8 +567,11 @@ public abstract class Interpreter
 		final AvailObject bundle =
 			module.filteredBundleTree().includeBundle(
 				MessageBundleDescriptor.newBundle(methodName));
-		bundle.addRestrictions(illegalArgMsgs);
+		module.filteredBundleTree().removeBundle(bundle);
+		bundle.addGrammaticalRestrictions(illegalArgMsgs);
 		module.addGrammaticalRestrictions(methodName, illegalArgMsgs);
+		module.filteredBundleTree().includeBundle(bundle);
+
 	}
 
 	/**
@@ -696,47 +704,6 @@ public abstract class Interpreter
 	public AvailObject unresolvedForwards ()
 	{
 		return pendingForwards;
-	}
-
-	/**
-	 * Answer the map whose sole token-component is firstPiece.  The map is from
-	 * message to messageBundle.  Filter selectors based on the
-	 * visibility of names in the current module.
-	 *
-	 * @param firstPiece
-	 *            An Avail {@linkplain StringDescriptor string}.
-	 * @return A map from TODO
-	 */
-	public AvailObject completeBundlesStartingWith (
-		final AvailObject firstPiece)
-	{
-		final AvailObject incomplete = module.filteredBundleTree().incomplete();
-		if (!incomplete.hasKey(firstPiece))
-		{
-			return MapDescriptor.empty();
-		}
-		return incomplete.mapAt(firstPiece).complete();
-	}
-
-	/**
-	 * Answer the map whose first (but not only) token-component is firstPiece.
-	 * The map is from the second piece to bundle tree.  Filter selectors based
-	 * on the visibility of names in the current module.
-	 *
-	 * @param firstPiece
-	 *            The first Avail {@linkplain StringDescriptor string} token by
-	 *            which to filter messages.
-	 * @return A map from TODO
-	 */
-	public AvailObject incompleteBundlesStartingWith (
-		final AvailObject firstPiece)
-	{
-		final AvailObject incomplete = module.filteredBundleTree().incomplete();
-		if (!incomplete.hasKey(firstPiece))
-		{
-			return MapDescriptor.empty();
-		}
-		return incomplete.mapAt(firstPiece).incomplete();
 	}
 
 	/**

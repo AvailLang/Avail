@@ -1111,7 +1111,11 @@ public abstract class AbstractAvailCompiler
 			greatExpectations);
 	}
 
+	/**
+	 * A bunch of dash characters, wide enough to catch the eye.
+	 */
 	static final String rowOfDashes;
+
 	static
 	{
 		final char[] chars = new char[70];
@@ -1496,11 +1500,6 @@ public abstract class AbstractAvailCompiler
 	 * @param argumentExpressions
 	 *            The {@linkplain ParseNodeDescriptor parse nodes} that will be
 	 *            arguments of the new send node.
-	 * @param innerArgumentExpressions
-	 *            The {@linkplain List lists} of {@linkplain ParseNodeDescriptor
-	 *            parse nodes} that will correspond to restriction positions,
-	 *            which are at the non-backquoted underscores of the bundle's
-	 *            message name.
 	 * @param bundle
 	 *            The {@linkplain MessageBundleDescriptor message bundle} that
 	 *            identifies the message to be sent.
@@ -1511,7 +1510,6 @@ public abstract class AbstractAvailCompiler
 		final ParserState stateBeforeCall,
 		final ParserState stateAfterCall,
 		final List<AvailObject> argumentExpressions,
-		final List<List<AvailObject>> innerArgumentExpressions,
 		final AvailObject bundle,
 		final Con<AvailObject> continuation)
 	{
@@ -1530,7 +1528,6 @@ public abstract class AbstractAvailCompiler
 				stateBeforeCall,
 				stateAfterCall,
 				argumentExpressions,
-				innerArgumentExpressions,
 				bundle,
 				impSet,
 				continuation);
@@ -1559,21 +1556,6 @@ public abstract class AbstractAvailCompiler
 				});
 		if (valid.value)
 		{
-			checkRestrictionsIfFail(
-				bundle,
-				innerArgumentExpressions,
-				new Continuation1<Generator<String>>()
-				{
-					@Override
-					public void value (final Generator<String> errorGenerator)
-					{
-						valid.value = false;
-						stateAfterCall.expected(errorGenerator);
-					}
-				});
-		}
-		if (valid.value)
-		{
 			final AvailObject sendNode = SendNodeDescriptor.mutable().create();
 			sendNode.method(impSet);
 			sendNode.arguments(
@@ -1600,11 +1582,6 @@ public abstract class AbstractAvailCompiler
 	 * @param argumentExpressions
 	 *            The {@linkplain ParseNodeDescriptor parse nodes} that will be
 	 *            arguments of the new send node.
-	 * @param innerArgumentExpressions
-	 *            The {@linkplain List lists} of {@linkplain ParseNodeDescriptor
-	 *            parse nodes} that will correspond to restriction positions,
-	 *            which are at the non-backquoted underscores of the bundle's
-	 *            message name.
 	 * @param bundle
 	 *            The {@linkplain MessageBundleDescriptor message bundle} that
 	 *            identifies the message to be sent.
@@ -1618,61 +1595,9 @@ public abstract class AbstractAvailCompiler
 		final ParserState stateBeforeCall,
 		final ParserState stateAfterCall,
 		final List<AvailObject> argumentExpressions,
-		final List<List<AvailObject>> innerArgumentExpressions,
 		final AvailObject bundle,
 		final AvailObject impSet,
 		final Con<AvailObject> continuation);
-
-	/**
-	 * Make sure none of my arguments are message sends that have been
-	 * disallowed in that position by a negative precedence declaration.
-	 *
-	 * @param bundle
-	 *            The bundle for which a send node was just parsed. It contains
-	 *            information about any negative precedence restrictions.
-	 * @param innerArguments
-	 *            The inner argument expressions for the send that was just
-	 *            parsed. These correspond to all non-backquoted underscores
-	 *            anywhere in the message name.
-	 * @param ifFail
-	 *            What to do when a negative precedence rule inhibits a parse.
-	 */
-	void checkRestrictionsIfFail (
-		final AvailObject bundle,
-		final List<List<AvailObject>> innerArguments,
-		final Continuation1<Generator<String>> ifFail)
-	{
-		for (int i = 1; i <= innerArguments.size(); i++)
-		{
-			final List<AvailObject> argumentOccurrences =
-				innerArguments.get(i - 1);
-			for (final AvailObject argument : argumentOccurrences)
-			{
-				final AvailObject argumentSendName =
-					argument.apparentSendName();
-				if (!argumentSendName.equalsNull())
-				{
-					final AvailObject restrictions =
-						bundle.grammaticalRestrictions().tupleAt(i);
-					if (restrictions.hasElement(argumentSendName))
-					{
-						final int index = i;
-						ifFail.value(
-							new Generator<String>()
-							{
-								@Override
-								public String value ()
-								{
-									return "different nesting for argument #"
-										+ Integer.toString(index) + " in "
-										+ bundle.message().name().toString();
-								}
-							});
-					}
-				}
-			}
-		}
-	}
 
 	/**
 	 * Parse a {@linkplain ModuleDescriptor module} and install it into the

@@ -548,22 +548,19 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	@NotNull AvailObject o_Name (final @NotNull AvailObject object)
 	{
-		unsupportedOperation();
-		return null;
+		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_Parent (final @NotNull AvailObject object)
 	{
-		unsupportedOperation();
-		return null;
+		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_ReturnType (final AvailObject object)
 	{
-		unsupportedOperation();
-		return null;
+		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod

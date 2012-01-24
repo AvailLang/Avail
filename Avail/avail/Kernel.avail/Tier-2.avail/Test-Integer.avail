@@ -41,6 +41,7 @@ Uses
 Names
 Body
 
+
 Method "_EQ_" is [a : extended integer type, b : extended integer type |
 	a as range = b as range;
 ];
