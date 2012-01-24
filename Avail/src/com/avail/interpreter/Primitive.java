@@ -903,7 +903,7 @@ public enum Primitive implements IntegerEnumSlotDescriptionEnum
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					ANY.o()),
-				EnumerationMetaDescriptor.mostGeneralType());
+				TYPE.o());
 		}
 	},
 

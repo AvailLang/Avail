@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.01.23 18:04:58.735 -0600
+ * * Last Generated On: 2012.01.24 17:50:28.713 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -45,38 +45,43 @@ Extends
 Uses
 	"Origin",
 	"Special Objects",
-	"Primitives"
+	"Primitives" =
+	(
+		"Abstract method_is_",
+		"Exit_with_",
+		"Forward method_is_",
+		"Grammatical restriction_is_",
+		"Macro_is_",
+		"Raise_",
+		"Restart_",
+		"Restart_with_",
+		"Semantic restriction_is_",
+		"_#_:_(literals=_,#locals_,#outers_,stack depth=_)",
+		"_+_",
+		"_-_",
+		"_[_.._]",
+		"_[_]",
+		"_[_]→_",
+		"_mod_",
+		"_×_",
+		"_÷_",
+		"constructor of_given_",
+		"eject_",
+		"function from_and_",
+		"invoke_with_",
+		"pojo_with_",
+		"read character",
+		"request termination of_",
+		"semantic restrictions for_given_",
+		"swap_and_",
+		"termination requested",
+		"try_catch_",
+		"↓_",
+		"↓_:=_",
+		"∪_[_.._]"
+	)
 Names
-	"Set primitive failure function to_",
-	/* 251 */ "Abstract method_is_",
-	/* 252 */ "Forward method_is_",
-	/* 255 */ "Grammatical restriction_is_",
-	/* 249 */ "Macro_is_",
-	/* 201 */ "Raise_",
-	/* 248 */ "Semantic restriction_is_",
-	/* 188 */ "_#_:_(literals=_,#locals_,#outers_,stack depth=_)",
-	/* 142 */ "_[_.._]",
-	/* 132 */ "_[_]→_",
-	/* 318 */ "_mod_",
-	/*   3 */ "_×_",
-	/*   4 */ "_÷_",
-	/* 502 */ "constructor of_given_",
-	/*  18 */ "eject_",
-	/*  57 */ "exit_with_",
-	/*  74 */ "function from_and_",
-	/*  40 */ "invoke_with_",
-	/* 500 */ "pojo_with_",
-	/* 254 */ "read character",
-	/*  24 */ "request termination of_",
-	/*  58 */ "restart_",
-	/*  56 */ "restart_with_",
-	/* 247 */ "semantic restrictions for_given_",
-	/*  15 */ "swap_and_",
-	/*  23 */ "termination requested",
-	/* 200 */ "try_catch_",
-	/*  10 */ "↓_",
-	/*  11 */ "↓_:=_",
-	/* 143 */ "∪_[_.._]"
+	"Set primitive failure function to_"
 Body
 
 Method "Private fail primitive with_" is 
@@ -361,7 +366,7 @@ Method "invoke_with_" is
  *    aContinuation - The continuation to restart.
  *    arguments - The new arguments with which to restart `aContinuation`.
  */
-Method "restart_with_" is 
+Method "Restart_with_" is 
 [
 	aContinuation : continuation,
 	arguments : tuple
@@ -381,7 +386,7 @@ Method "restart_with_" is
  *    aContinuation - The continuation to exit.
  *    value - The value with which to exit `aContinuation`.
  */
-Method "exit_with_" is 
+Method "Exit_with_" is 
 [
 	aContinuation : continuation,
 	value : any
@@ -400,7 +405,7 @@ Method "exit_with_" is
  * Parameters:
  *    aContinuation - The continuation to restart.
  */
-Method "restart_" is 
+Method "Restart_" is 
 [
 	aContinuation : continuation
 |

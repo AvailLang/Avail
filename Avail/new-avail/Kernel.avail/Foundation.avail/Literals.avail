@@ -40,7 +40,8 @@ Uses
 	"Early Control Structures",
 	"Early Literals"
 Names
-	"{«_‡,»}"
+	"{«_‡,»}",
+	"{«_→_‡,»}"
 Body
 
 /**
@@ -59,38 +60,28 @@ Method "{«_‡,»}" is
 	elements→set;
 ] : set;
 
-/**
- * TODO: [TLS] This comment is probably bogus ... I'm tired ...
- * 
- * Grammatical restrictions are not practically available yet, so `∪_` and
- * `∪_[_.._]` cannot be disambiguated yet. Create a local binding for the
- * primitive operation so that set literals can be statically strengthened.
- * (Then grammatical restrictions become practical.)
- *
- * Parameters:
- *    aTupleType - A tuple type.
- *    startIndex - The one-based index (inclusive) of the start of the range.
- *    endIndex - The one-based index (inclusive) of the end of the range.
- * Returns:
- *    The type union of all element types in the specified range.
+/* Disambiguate `∪_` and `∪_[_.._]` by forbidding `_[_.._]` as the only argument
+ * of the former.
  */
-Method "type range of_from_to_" is
-[
-	aTupleType : tuple meta,
-	startIndex : natural number,
-	endIndex : whole number
-|
-	Primitive 143 (failureCode : natural number);
-	Shouldn't happen;
-] : type;
+invoke
+	[
+		cast ::= [ t : {string|whole number} | t; ];
+		names ::= cast <"∪_">→set into cast;
+		exclusions ::= cast <"_[_.._]">→set into cast;
+		Grammatical restriction names is <exclusions>;
+	]
+with <>;
 
 /**
- * Strengthen the type of `{«_‡,»}` to the most exact possible. This is the type
- * union of the lexically specified elements.
+ * Strengthen the type of `{«_‡,»}` to the most exact possible. This is the set
+ * type whose element type is the type union of the lexically specified elements
+ * and whose cardinality requirement is number of distinct elements.
  *
  * Parameters:
  *    elements - A tuple type, constructed by the compiler from the lexically
  *       specified elements.
+ * Returns:
+ *    The requested type.
  */
 Semantic restriction "{«_‡,»}" is
 [
@@ -102,5 +93,56 @@ Semantic restriction "{«_‡,»}" is
 	 * equivalent.
 	 */
 	bound ::= cast |elements|'s upper bound into [ t : whole number | t; ];
-	{type range of elements from 1 to bound | |elements|};
+	{∪ elements[1..bound] | |elements|};
+];
+
+/**
+ * Construct and answer a map from the lexically specified key-value bindings.
+ * 
+ * Parameters:
+ *    bindings - The key-value bindings that constitute the answer.
+ * Returns:
+ *    A map comprising the specified key-value bindings.
+ */
+Method "{«_→_‡,»}" is
+[
+	bindings : key-value tuple
+|
+	bindings→map;
+] : map;
+
+/**
+ * Strength the type of `{«_→_‡,»}` to the most exact possible. This is the map
+ * type whose key type is the type union of the lexically specified keys, value
+ * type is the type union of the lexically specified values, and cardinality
+ * requirement is the number of distinct keys.
+ * 
+ * Parameters:
+ *    bindings - A key-value tuple type, constructed by the compiler from the
+ *       lexically specified bindings.
+ * Returns:
+ *    The requested type.
+ */
+Semantic restriction "{«_→_‡,»}" is
+[
+	bindings : key-value tuple's type
+|
+	keyType : type := ⊥;
+	valueType : type := ⊥;
+	limit ::= cast |bindings|'s upper bound into [ n : natural number | n; ];
+	index : natural number := 1;
+	invoke
+		[
+			$loop : $function accepting <> and returning ⊤;
+			binding ::= cast bindings[index] into [ t : tuple meta | t; ];
+			keyType := keyType ∪ binding[1];
+			valueType := valueType ∪ binding[2];
+			if index < limit then
+			[
+				index := cast index + 1 into [ i : natural number | i; ];
+				Restart loop;
+			];
+		]
+	with <>;
+	{keyType→valueType | |bindings|};
 ];

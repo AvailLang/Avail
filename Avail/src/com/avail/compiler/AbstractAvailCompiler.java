@@ -1797,13 +1797,12 @@ public abstract class AbstractAvailCompiler
 			}
 		}
 
-		for (final AvailObject stringObject : exportedNames)
+		for (final AvailObject name : exportedNames)
 		{
-			assert stringObject.isString();
-			final AvailObject trueNameObject =
-				AtomDescriptor.create(stringObject);
-			module.atNameAdd(stringObject, trueNameObject);
-			module.atNewNamePut(stringObject, trueNameObject);
+			assert name.isString();
+			final AvailObject trueName = AtomDescriptor.create(name);
+			module.atNewNamePut(name, trueName);
+			module.atNameAdd(name, trueName);
 		}
 
 		for (final AvailObject pragmaString : pragmas)

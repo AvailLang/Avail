@@ -41,8 +41,7 @@ Body
 
 /**
  * Use the same primitive that implements `_'s type` to implement its semantic
- * restriction function. This ensures the availability of statically strong
- * instance types.
+ * restriction function.
  *
  * Parameters:
  *    value - The arbitrary value's static type.

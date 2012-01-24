@@ -248,10 +248,11 @@ Semantic restriction "cast_into_" is
 	if value ≤ accept[1] then
 	[
 		messageTuple ::= concatenate <
-			"Necessary cast expression, but ",
+			"necessary cast expression, but (",
 			primitive description of value,
-			" ≤ ",
-			primitive description of accept[1]>;
+			") ≤ (",
+			primitive description of accept[1],
+			")">;
 		cast messageTuple into
 		[
 			message : string
@@ -262,17 +263,12 @@ Semantic restriction "cast_into_" is
 	accept's return type;
 ];
 
-/* TODO: [TLS] It would be nice to uncomment this. Something seems very wrong. */
 /* Nesting parentheses directly is bad style, and leads to confusing
  * expressions, so forbid it.
  */
-/*
 invoke
 	[
 		names ::= cast <"(_)">→set into [ t : {string|whole number} | t; ];
-		exclusions ::= cast <names> into
-			[ t : <<>, {string|whole number}…|whole number> | t; ];
-		Grammatical restriction names is exclusions;
+		Grammatical restriction names is <names>;
 	]
 with <>;
-*/

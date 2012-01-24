@@ -350,8 +350,8 @@ public final class BootstrapGenerator
 	 * A {@linkplain Map map} from localized names to Avail {@linkplain
 	 * Primitive primitives}.
 	 */
-	private final @NotNull Map<String, Primitive> primitiveNameMap =
-		new HashMap<String, Primitive>(specialObjects.size());
+	private final @NotNull Map<String, Set<Primitive>> primitiveNameMap =
+		new HashMap<String, Set<Primitive>>(specialObjects.size());
 
 	/**
 	 * Answer a textual representation of the specified {@linkplain Primitive
@@ -371,13 +371,12 @@ public final class BootstrapGenerator
 		final StringBuilder builder = new StringBuilder();
 		for (final String name : names)
 		{
-			final Primitive primitive = primitiveNameMap.get(name);
-			if (wanted.contains(primitive))
+			final Set<Primitive> set =
+				new HashSet<Primitive>(primitiveNameMap.get(name));
+			set.retainAll(wanted);
+			if (!set.isEmpty())
 			{
-				builder.append("\n\t");
-				builder.append(String.format(
-					"/* %3d */", primitive.primitiveNumber));
-				builder.append(" \"");
+				builder.append("\n\t\"");
 				builder.append(name);
 				builder.append("\",");
 			}
@@ -434,17 +433,22 @@ public final class BootstrapGenerator
 			uses.append(preamble.getString(specialObjectsModuleName.name()));
 			uses.append("\",\n\t\"");
 			uses.append(preamble.getString(primitivesModuleName.name()));
-			uses.append('"');
+			uses.append("\" =\n\t(");
+			uses.append(primitivesNamesString(
+				primitives(fallible)).replace("\t", "\t\t"));
+			uses.append("\n\t)");
 		}
 		final StringBuilder names = new StringBuilder();
-		if (Boolean.TRUE.equals(fallible))
+		if (fallible == null)
+		{
+			names.append(primitivesNamesString(primitives(fallible)));
+		}
+		else if (Boolean.TRUE.equals(fallible))
 		{
 			names.append("\n\t");
 			names.append(stringify(preamble.getString(
 				primitiveFailureFunctionSetterMethod.name())));
-			names.append(',');
 		}
-		names.append(primitivesNamesString(primitives(fallible)));
 		writer.println(MessageFormat.format(
 			preamble.getString(generalModuleHeader.name()),
 			preamble.getString(key.name()),
@@ -1171,7 +1175,13 @@ public final class BootstrapGenerator
 				final String value = primitiveBundle.getString(primitive.name());
 				if (value != null && !value.isEmpty())
 				{
-					primitiveNameMap.put(value, primitive);
+					Set<Primitive> set = primitiveNameMap.get(value);
+					if (set == null)
+					{
+						set = EnumSet.noneOf(Primitive.class);
+						primitiveNameMap.put(value, set);
+					}
+					set.add(primitive);
 				}
 			}
 		}
