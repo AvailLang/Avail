@@ -213,7 +213,7 @@ public final class BootstrapGenerator
 			final AvailObject specialObject = specialObjectsByName.get(name);
 			builder.append("\n\t");
 			builder.append(String.format(
-				"/* %2d */", specialObjectIndexMap.get(specialObject)));
+				"/* %3d */", specialObjectIndexMap.get(specialObject)));
 			builder.append(" \"");
 			builder.append(name);
 			builder.append("\",");

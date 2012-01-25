@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.01.24 17:50:28.713 -0600
+ * * Last Generated On: 2012.01.24 21:17:21.921 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -84,7 +84,7 @@ Names
 	"Set primitive failure function to_"
 Body
 
-Method "Private fail primitive with_" is 
+Method "Private fail primitive with_" is
 [
 	value : any
 |
@@ -98,14 +98,14 @@ _fail_primitive : primitive failure function :=
 		Private fail primitive with arg1;
 	] : ⊥;
 
-Method "Set primitive failure function to_" is 
+Method "Set primitive failure function to_" is
 [
 	arg1 : primitive failure function
 |
 	_fail_primitive := arg1;
 ] : ⊤;
 
-Method "Private invoke_with«_‡,»" is 
+Method "Private invoke_with«_‡,»" is
 [
 	aFunction : function,
 	arguments : tuple
@@ -114,7 +114,7 @@ Method "Private invoke_with«_‡,»" is
 	Private fail primitive with failureCode;
 ] : ⊤;
 
-Method "Private semantic restriction_is_" is 
+Method "Private semantic restriction_is_" is
 [
 	methodName : string,
 	restriction : semantic restriction function
@@ -140,7 +140,7 @@ Private semantic restriction "Private invoke_with«_‡,»" is
  * Returns:
  *    The sum of the augend and the addend.
  */
-Method "_+_" is 
+Method "_+_" is
 [
 	augend : number,
 	addend : number
@@ -158,7 +158,7 @@ Method "_+_" is
  * Returns:
  *    The difference of the minuend and the subtrahend.
  */
-Method "_-_" is 
+Method "_-_" is
 [
 	minuend : number,
 	subtrahend : number
@@ -176,7 +176,7 @@ Method "_-_" is
  * Returns:
  *    The product of the multiplicand and the multiplier.
  */
-Method "_×_" is 
+Method "_×_" is
 [
 	multiplicand : number,
 	multiplier : number
@@ -194,7 +194,7 @@ Method "_×_" is
  * Returns:
  *    The quotient of the dividend and the divisor.
  */
-Method "_÷_" is 
+Method "_÷_" is
 [
 	dividend : number,
 	divisor : number
@@ -211,7 +211,7 @@ Method "_÷_" is
  * Returns:
  *    The value contained within the specified variable.
  */
-Method "↓_" is 
+Method "↓_" is
 [
 	var : variable
 |
@@ -226,7 +226,7 @@ Method "↓_" is
  *    var - A variable.
  *    value - The value that should be stored into `var`.
  */
-Method "↓_:=_" is 
+Method "↓_:=_" is
 [
 	var : variable,
 	value : any
@@ -244,7 +244,7 @@ Method "↓_:=_" is
  *    arg1 - A variable.
  *    arg2 - A variable.
  */
-Method "swap_and_" is 
+Method "swap_and_" is
 [
 	arg1 : variable,
 	arg2 : variable
@@ -262,7 +262,7 @@ Method "swap_and_" is
  * Returns:
  *    The value ejected from the variable.
  */
-Method "eject_" is 
+Method "eject_" is
 [
 	var : variable
 |
@@ -277,7 +277,7 @@ Method "eject_" is
  *    `true` if termination of the current fiber has been requested, `false`
  *    otherwise.
  */
-Method "termination requested" is 
+Method "termination requested" is
 [
 	Primitive 23 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode;
@@ -290,7 +290,7 @@ Method "termination requested" is
  * Parameters:
  *    victim - A fiber.
  */
-Method "request termination of_" is 
+Method "request termination of_" is
 [
 	victim : fiber
 |
@@ -310,7 +310,7 @@ Method "request termination of_" is
  * Returns:
  *    The value bound to `key` within the fibers environment.
  */
-Method "_[_]" is 
+Method "_[_]" is
 [
 	aFiber : fiber,
 	key : atom
@@ -328,7 +328,7 @@ Method "_[_]" is
  * Returns:
  *    The `index`-th parameter type of the argument.
  */
-Method "_[_]" is 
+Method "_[_]" is
 [
 	functionType : function meta,
 	index : natural number
@@ -346,7 +346,7 @@ Method "_[_]" is
  * Returns:
  *    The value produced by applying the arguments to the function.
  */
-Method "invoke_with_" is 
+Method "invoke_with_" is
 [
 	aFunction : function,
 	arguments : tuple
@@ -366,7 +366,7 @@ Method "invoke_with_" is
  *    aContinuation - The continuation to restart.
  *    arguments - The new arguments with which to restart `aContinuation`.
  */
-Method "Restart_with_" is 
+Method "Restart_with_" is
 [
 	aContinuation : continuation,
 	arguments : tuple
@@ -386,7 +386,7 @@ Method "Restart_with_" is
  *    aContinuation - The continuation to exit.
  *    value - The value with which to exit `aContinuation`.
  */
-Method "Exit_with_" is 
+Method "Exit_with_" is
 [
 	aContinuation : continuation,
 	value : any
@@ -405,7 +405,7 @@ Method "Exit_with_" is
  * Parameters:
  *    aContinuation - The continuation to restart.
  */
-Method "Restart_" is 
+Method "Restart_" is
 [
 	aContinuation : continuation
 |
@@ -423,7 +423,7 @@ Method "Restart_" is
  * Returns:
  *    The requested function.
  */
-Method "function from_and_" is 
+Method "function from_and_" is
 [
 	implementation : function implementation,
 	outerVariables : tuple
@@ -441,7 +441,7 @@ Method "function from_and_" is
  * Returns:
  *    The value bound to `key` in `aMap`.
  */
-Method "_[_]" is 
+Method "_[_]" is
 [
 	aMap : map,
 	key : any
@@ -460,7 +460,7 @@ Method "_[_]" is
  * Returns:
  *    The property value bound to the key.
  */
-Method "_[_]" is 
+Method "_[_]" is
 [
 	anAtom : atom,
 	key : atom
@@ -478,7 +478,7 @@ Method "_[_]" is
  * Returns:
  *    The requested element.
  */
-Method "_[_]" is 
+Method "_[_]" is
 [
 	aTuple : tuple,
 	index : natural number
@@ -499,7 +499,7 @@ Method "_[_]" is
  * Returns:
  *    The requested tuple.
  */
-Method "_[_]→_" is 
+Method "_[_]→_" is
 [
 	aTuple : tuple,
 	index : natural number,
@@ -519,7 +519,7 @@ Method "_[_]→_" is
  * Returns:
  *    The requested tuple.
  */
-Method "_[_.._]" is 
+Method "_[_.._]" is
 [
 	aTuple : tuple,
 	sliceStart : natural number,
@@ -540,7 +540,7 @@ Method "_[_.._]" is
  * Returns:
  *    The requested slice of element types.
  */
-Method "_[_.._]" is 
+Method "_[_.._]" is
 [
 	aTupleType : tuple meta,
 	sliceStart : natural number,
@@ -560,7 +560,7 @@ Method "_[_.._]" is
  * Returns:
  *    The type union of all element types in the specified range.
  */
-Method "∪_[_.._]" is 
+Method "∪_[_.._]" is
 [
 	aTupleType : tuple meta,
 	startIndex : natural number,
@@ -586,7 +586,7 @@ Method "∪_[_.._]" is
  * Returns:
  *    The requested function implementation.
  */
-Method "_#_:_(literals=_,#locals_,#outers_,stack depth=_)" is 
+Method "_#_:_(literals=_,#locals_,#outers_,stack depth=_)" is
 [
 	nybblecodes : tuple of nybble,
 	primitiveNumber : unsigned short,
@@ -613,7 +613,7 @@ Method "_#_:_(literals=_,#locals_,#outers_,stack depth=_)" is
  *    body - The protected function.
  *    handler - The exception handler.
  */
-Method "try_catch_" is 
+Method "try_catch_" is
 [
 	body : nullary procedure,
 	handler : unary procedure
@@ -638,7 +638,7 @@ Method "try_catch_" is
  * Returns:
  *    ⊥.
  */
-Method "Raise_" is 
+Method "Raise_" is
 [
 	exception : object
 |
@@ -657,7 +657,7 @@ Method "Raise_" is
  * Returns:
  *    The requested semantic restrictions.
  */
-Method "semantic restrictions for_given_" is 
+Method "semantic restrictions for_given_" is
 [
 	aMethod : method,
 	arguments : tuple of type
@@ -683,7 +683,7 @@ Method "semantic restrictions for_given_" is
  *       applies.
  *    restriction - The restriction function.
  */
-Method "Semantic restriction_is_" is 
+Method "Semantic restriction_is_" is
 [
 	methodName : string,
 	restriction : semantic restriction function
@@ -708,7 +708,7 @@ Method "Semantic restriction_is_" is
  *    macroName - The name of the macro to define.
  *    body - The function that implements the macro.
  */
-Method "Macro_is_" is 
+Method "Macro_is_" is
 [
 	macroName : string,
 	body : macro function
@@ -726,7 +726,7 @@ Method "Macro_is_" is
  *    methodName - The name of the abstract method to declare.
  *    aFunctionType - The signature.
  */
-Method "Abstract method_is_" is 
+Method "Abstract method_is_" is
 [
 	methodName : string,
 	aFunctionType : function meta
@@ -747,7 +747,7 @@ Method "Abstract method_is_" is
  *    methodName - The name of the method to forward declare.
  *    aFunctionType - The signature.
  */
-Method "Forward method_is_" is 
+Method "Forward method_is_" is
 [
 	methodName : string,
 	aFunctionType : function meta
@@ -762,7 +762,7 @@ Method "Forward method_is_" is
  * Returns:
  *    The next character from the console.
  */
-Method "read character" is 
+Method "read character" is
 [
 	Primitive 254 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode;
@@ -789,7 +789,7 @@ Method "read character" is
  *       argument position of any invocation of a method named in
  *       `methodsToRestrict`.
  */
-Method "Grammatical restriction_is_" is 
+Method "Grammatical restriction_is_" is
 [
 	methodsToRestrict : set of string,
 	exclusions : tuple of set of string
@@ -808,7 +808,7 @@ Method "Grammatical restriction_is_" is
  * Returns:
  *    An approximation of `0` mod `divisor`.
  */
-Method "_mod_" is 
+Method "_mod_" is
 [
 	dividend : float,
 	divisor : float
@@ -827,7 +827,7 @@ Method "_mod_" is
  * Returns:
  *    An approximation of `0` mod `divisor`.
  */
-Method "_mod_" is 
+Method "_mod_" is
 [
 	dividend : double,
 	divisor : double
@@ -847,7 +847,7 @@ Method "_mod_" is
  * Returns:
  *    The requested pojo type.
  */
-Method "pojo_with_" is 
+Method "pojo_with_" is
 [
 	javaName : string,
 	typeParameters : tuple of type
@@ -886,7 +886,7 @@ Method "pojo_with_" is
  * Returns:
  *    The requested constructor function.
  */
-Method "constructor of_given_" is 
+Method "constructor of_given_" is
 [
 	aPojoType : pojo meta,
 	parameterTypes : tuple of type

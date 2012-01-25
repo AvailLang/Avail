@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.01.24 17:50:28.662 -0600
+ * * Last Generated On: 2012.01.24 21:17:21.836 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -45,111 +45,111 @@ Extends
 	"Origin"
 Uses
 Names
-	/* 78 */ "-∞",
+	/*  78 */ "-∞",
 	/* 111 */ "Euler number",
-	/* 42 */ "abstract signature",
-	/*  1 */ "any",
-	/* 62 */ "argument",
-	/* 53 */ "assignment",
-	/* 11 */ "atom",
-	/* 54 */ "block",
-	/*  2 */ "boolean",
-	/*  3 */ "character",
-	/* 38 */ "code point",
-	/*  9 */ "continuation",
-	/* 10 */ "continuation meta",
-	/* 92 */ "continuation variable",
-	/* 61 */ "declaration",
-	/* 12 */ "double",
-	/* 96 */ "empty map",
+	/*  42 */ "abstract signature",
+	/*   1 */ "any",
+	/*  62 */ "argument",
+	/*  53 */ "assignment",
+	/*  11 */ "atom",
+	/*  54 */ "block",
+	/*   2 */ "boolean",
+	/*   3 */ "character",
+	/*  38 */ "code point",
+	/*   9 */ "continuation",
+	/*  10 */ "continuation meta",
+	/*  92 */ "continuation variable",
+	/*  61 */ "declaration",
+	/*  12 */ "double",
+	/*  96 */ "empty map",
 	/* 104 */ "empty tuple",
-	/* 21 */ "enumeration meta",
-	/* 24 */ "enumeration meta meta",
-	/* 52 */ "expression",
-	/* 13 */ "extended integer",
-	/* 18 */ "extended integer meta",
-	/* 71 */ "false",
-	/* 14 */ "false type",
-	/* 25 */ "fiber",
-	/* 93 */ "field map",
-	/* 94 */ "field type map",
-	/* 15 */ "float",
-	/* 43 */ "forward signature",
-	/*  4 */ "function",
-	/*  6 */ "function implementation",
-	/*  5 */ "function meta",
-	/* 17 */ "integer",
-	/* 95 */ "key-value tuple",
-	/* 63 */ "label",
-	/* 59 */ "list",
-	/* 55 */ "literal",
-	/* 65 */ "local constant",
-	/* 64 */ "local variable",
+	/*  21 */ "enumeration meta",
+	/*  24 */ "enumeration meta meta",
+	/*  52 */ "expression",
+	/*  13 */ "extended integer",
+	/*  18 */ "extended integer meta",
+	/*  71 */ "false",
+	/*  14 */ "false type",
+	/*  25 */ "fiber",
+	/*  93 */ "field map",
+	/*  94 */ "field type map",
+	/*  15 */ "float",
+	/*  43 */ "forward signature",
+	/*   4 */ "function",
+	/*   6 */ "function implementation",
+	/*   5 */ "function meta",
+	/*  17 */ "integer",
+	/*  95 */ "key-value tuple",
+	/*  63 */ "label",
+	/*  59 */ "list",
+	/*  55 */ "literal",
+	/*  65 */ "local constant",
+	/*  64 */ "local variable",
 	/* 109 */ "macro function",
-	/* 39 */ "map",
-	/* 19 */ "map meta",
-	/* 40 */ "message bundle",
-	/* 45 */ "message bundle tree",
-	/* 20 */ "meta",
-	/* 46 */ "method",
-	/* 44 */ "method signature",
-	/* 67 */ "module constant",
-	/* 66 */ "module variable",
-	/* 37 */ "natural number",
-	/* 97 */ "non-empty map",
-	/* 99 */ "non-empty set",
-	/* 81 */ "null",
-	/* 82 */ "null type",
-	/* 90 */ "nullary procedure",
-	/* 16 */ "number",
+	/*  39 */ "map",
+	/*  19 */ "map meta",
+	/*  40 */ "message bundle",
+	/*  45 */ "message bundle tree",
+	/*  20 */ "meta",
+	/*  46 */ "method",
+	/*  44 */ "method signature",
+	/*  67 */ "module constant",
+	/*  66 */ "module variable",
+	/*  37 */ "natural number",
+	/*  97 */ "non-empty map",
+	/*  99 */ "non-empty set",
+	/*  81 */ "null",
+	/*  82 */ "null type",
+	/*  90 */ "nullary procedure",
+	/*  16 */ "number",
 	/* 101 */ "nybble",
-	/* 22 */ "object",
-	/* 23 */ "object meta",
-	/* 50 */ "phrase",
+	/*  22 */ "object",
+	/*  23 */ "object meta",
+	/*  50 */ "phrase",
 	/* 113 */ "phrase meta",
-	/* 80 */ "pojo",
-	/* 86 */ "pojo constructor",
-	/* 84 */ "pojo meta",
-	/* 85 */ "pojo[]meta",
-	/* 91 */ "predicate function",
-	/* 76 */ "primitive failure function",
-	/* 68 */ "primitive failure reason",
-	/* 83 */ "self type",
+	/*  80 */ "pojo",
+	/*  86 */ "pojo constructor",
+	/*  84 */ "pojo meta",
+	/*  85 */ "pojo[]meta",
+	/*  91 */ "predicate function",
+	/*  76 */ "primitive failure function",
+	/*  68 */ "primitive failure reason",
+	/*  83 */ "self type",
 	/* 107 */ "semantic restriction function",
-	/* 57 */ "send",
-	/* 26 */ "set",
-	/* 27 */ "set meta",
-	/* 75 */ "set of string",
-	/* 41 */ "signature",
-	/* 28 */ "string",
-	/* 58 */ "super cast",
-	/* 70 */ "true",
-	/* 31 */ "true type",
-	/* 32 */ "tuple",
-	/* 33 */ "tuple meta",
+	/*  57 */ "send",
+	/*  26 */ "set",
+	/*  27 */ "set meta",
+	/*  75 */ "set of string",
+	/*  41 */ "signature",
+	/*  28 */ "string",
+	/*  58 */ "super cast",
+	/*  70 */ "true",
+	/*  31 */ "true type",
+	/*  32 */ "tuple",
+	/*  33 */ "tuple meta",
 	/* 102 */ "tuple of nybble",
 	/* 108 */ "tuple of semantic restriction function",
-	/* 74 */ "tuple of set of string",
-	/* 72 */ "tuple of string",
+	/*  74 */ "tuple of set of string",
+	/*  72 */ "tuple of string",
 	/* 100 */ "tuple of tuple",
-	/* 73 */ "tuple of type",
-	/* 34 */ "type",
+	/*  73 */ "tuple of type",
+	/*  34 */ "type",
 	/* 112 */ "type of Euler number",
 	/* 110 */ "type of two",
 	/* 106 */ "type of zero",
 	/* 105 */ "unary procedure",
 	/* 103 */ "unsigned short",
-	/*  7 */ "variable",
-	/*  8 */ "variable meta",
-	/* 56 */ "variable reference",
-	/* 60 */ "variable use",
-	/* 36 */ "whole number",
-	/* 98 */ "whole number meta",
-	/* 77 */ "∅",
-	/* 79 */ "∞",
-	/* 35 */ "⊤",
-	/* 29 */ "⊥",
-	/* 30 */ "⊥meta"
+	/*   7 */ "variable",
+	/*   8 */ "variable meta",
+	/*  56 */ "variable reference",
+	/*  60 */ "variable use",
+	/*  36 */ "whole number",
+	/*  98 */ "whole number meta",
+	/*  77 */ "∅",
+	/*  79 */ "∞",
+	/*  35 */ "⊤",
+	/*  29 */ "⊥",
+	/*  30 */ "⊥meta"
 Body
 
 _any                                    ::= special object 1;
@@ -258,172 +258,172 @@ _Euler_number                           ::= special object 111;
 _type_of_Euler_number                   ::= special object 112;
 _phrase_meta                            ::= special object 113;
 
-Method "any" is 
+Method "any" is
 [
 	_any;
 ];
 
-Method "boolean" is 
+Method "boolean" is
 [
 	_boolean;
 ];
 
-Method "character" is 
+Method "character" is
 [
 	_character;
 ];
 
-Method "function" is 
+Method "function" is
 [
 	_function;
 ];
 
-Method "function meta" is 
+Method "function meta" is
 [
 	_function_meta;
 ];
 
-Method "function implementation" is 
+Method "function implementation" is
 [
 	_function_implementation;
 ];
 
-Method "variable" is 
+Method "variable" is
 [
 	_variable;
 ];
 
-Method "variable meta" is 
+Method "variable meta" is
 [
 	_variable_meta;
 ];
 
-Method "continuation" is 
+Method "continuation" is
 [
 	_continuation;
 ];
 
-Method "continuation meta" is 
+Method "continuation meta" is
 [
 	_continuation_meta;
 ];
 
-Method "atom" is 
+Method "atom" is
 [
 	_atom;
 ];
 
-Method "double" is 
+Method "double" is
 [
 	_double;
 ];
 
-Method "extended integer" is 
+Method "extended integer" is
 [
 	_extended_integer;
 ];
 
-Method "false type" is 
+Method "false type" is
 [
 	_false_type;
 ];
 
-Method "float" is 
+Method "float" is
 [
 	_float;
 ];
 
-Method "number" is 
+Method "number" is
 [
 	_number;
 ];
 
-Method "integer" is 
+Method "integer" is
 [
 	_integer;
 ];
 
-Method "extended integer meta" is 
+Method "extended integer meta" is
 [
 	_extended_integer_meta;
 ];
 
-Method "map meta" is 
+Method "map meta" is
 [
 	_map_meta;
 ];
 
-Method "meta" is 
+Method "meta" is
 [
 	_meta;
 ];
 
-Method "enumeration meta" is 
+Method "enumeration meta" is
 [
 	_enumeration_meta;
 ];
 
-Method "object" is 
+Method "object" is
 [
 	_object;
 ];
 
-Method "object meta" is 
+Method "object meta" is
 [
 	_object_meta;
 ];
 
-Method "enumeration meta meta" is 
+Method "enumeration meta meta" is
 [
 	_enumeration_meta_meta;
 ];
 
-Method "fiber" is 
+Method "fiber" is
 [
 	_fiber;
 ];
 
-Method "set" is 
+Method "set" is
 [
 	_set;
 ];
 
-Method "set meta" is 
+Method "set meta" is
 [
 	_set_meta;
 ];
 
-Method "string" is 
+Method "string" is
 [
 	_string;
 ];
 
-Method "⊥" is 
+Method "⊥" is
 [
 	_bottom;
 ];
 
-Method "⊥meta" is 
+Method "⊥meta" is
 [
 	_bottom_meta;
 ];
 
-Method "true type" is 
+Method "true type" is
 [
 	_true_type;
 ];
 
-Method "tuple" is 
+Method "tuple" is
 [
 	_tuple;
 ];
 
-Method "tuple meta" is 
+Method "tuple meta" is
 [
 	_tuple_meta;
 ];
 
-Method "type" is 
+Method "type" is
 [
 	_type;
 ];
@@ -436,357 +436,357 @@ Method "type" is
  * Returns:
  *    The root type.
  */
-Method "⊤" is 
+Method "⊤" is
 [
 	_top;
 ];
 
-Method "whole number" is 
+Method "whole number" is
 [
 	_whole_number;
 ];
 
-Method "natural number" is 
+Method "natural number" is
 [
 	_natural_number;
 ];
 
-Method "code point" is 
+Method "code point" is
 [
 	_code_point;
 ];
 
-Method "map" is 
+Method "map" is
 [
 	_map;
 ];
 
-Method "message bundle" is 
+Method "message bundle" is
 [
 	_message_bundle;
 ];
 
-Method "signature" is 
+Method "signature" is
 [
 	_signature;
 ];
 
-Method "abstract signature" is 
+Method "abstract signature" is
 [
 	_abstract_signature;
 ];
 
-Method "forward signature" is 
+Method "forward signature" is
 [
 	_forward_signature;
 ];
 
-Method "method signature" is 
+Method "method signature" is
 [
 	_method_signature;
 ];
 
-Method "message bundle tree" is 
+Method "message bundle tree" is
 [
 	_message_bundle_tree;
 ];
 
-Method "method" is 
+Method "method" is
 [
 	_method;
 ];
 
-Method "phrase" is 
+Method "phrase" is
 [
 	_phrase;
 ];
 
-Method "expression" is 
+Method "expression" is
 [
 	_expression;
 ];
 
-Method "assignment" is 
+Method "assignment" is
 [
 	_assignment;
 ];
 
-Method "block" is 
+Method "block" is
 [
 	_block;
 ];
 
-Method "literal" is 
+Method "literal" is
 [
 	_literal;
 ];
 
-Method "variable reference" is 
+Method "variable reference" is
 [
 	_variable_reference;
 ];
 
-Method "send" is 
+Method "send" is
 [
 	_send;
 ];
 
-Method "super cast" is 
+Method "super cast" is
 [
 	_super_cast;
 ];
 
-Method "list" is 
+Method "list" is
 [
 	_list;
 ];
 
-Method "variable use" is 
+Method "variable use" is
 [
 	_variable_use;
 ];
 
-Method "declaration" is 
+Method "declaration" is
 [
 	_declaration;
 ];
 
-Method "argument" is 
+Method "argument" is
 [
 	_argument;
 ];
 
-Method "label" is 
+Method "label" is
 [
 	_label;
 ];
 
-Method "local variable" is 
+Method "local variable" is
 [
 	_local_variable;
 ];
 
-Method "local constant" is 
+Method "local constant" is
 [
 	_local_constant;
 ];
 
-Method "module variable" is 
+Method "module variable" is
 [
 	_module_variable;
 ];
 
-Method "module constant" is 
+Method "module constant" is
 [
 	_module_constant;
 ];
 
-Method "primitive failure reason" is 
+Method "primitive failure reason" is
 [
 	_primitive_failure_reason;
 ];
 
-Method "true" is 
+Method "true" is
 [
 	_true;
 ];
 
-Method "false" is 
+Method "false" is
 [
 	_false;
 ];
 
-Method "tuple of string" is 
+Method "tuple of string" is
 [
 	_tuple_of_string;
 ];
 
-Method "tuple of type" is 
+Method "tuple of type" is
 [
 	_tuple_of_type;
 ];
 
-Method "tuple of set of string" is 
+Method "tuple of set of string" is
 [
 	_tuple_of_set_of_string;
 ];
 
-Method "set of string" is 
+Method "set of string" is
 [
 	_set_of_string;
 ];
 
-Method "primitive failure function" is 
+Method "primitive failure function" is
 [
 	_primitive_failure_function;
 ];
 
-Method "∅" is 
+Method "∅" is
 [
 	_empty_set;
 ];
 
-Method "-∞" is 
+Method "-∞" is
 [
 	_negative_infinity;
 ];
 
-Method "∞" is 
+Method "∞" is
 [
 	_positive_infinity;
 ];
 
-Method "pojo" is 
+Method "pojo" is
 [
 	_pojo;
 ];
 
-Method "null" is 
+Method "null" is
 [
 	_null;
 ];
 
-Method "null type" is 
+Method "null type" is
 [
 	_null_type;
 ];
 
-Method "self type" is 
+Method "self type" is
 [
 	_self_type;
 ];
 
-Method "pojo meta" is 
+Method "pojo meta" is
 [
 	_pojo_meta;
 ];
 
-Method "pojo[]meta" is 
+Method "pojo[]meta" is
 [
 	_pojo_array_meta;
 ];
 
-Method "pojo constructor" is 
+Method "pojo constructor" is
 [
 	_pojo_constructor;
 ];
 
-Method "nullary procedure" is 
+Method "nullary procedure" is
 [
 	_nullary_procedure;
 ];
 
-Method "predicate function" is 
+Method "predicate function" is
 [
 	_predicate_function;
 ];
 
-Method "continuation variable" is 
+Method "continuation variable" is
 [
 	_continuation_variable;
 ];
 
-Method "field map" is 
+Method "field map" is
 [
 	_field_map;
 ];
 
-Method "field type map" is 
+Method "field type map" is
 [
 	_field_type_map;
 ];
 
-Method "key-value tuple" is 
+Method "key-value tuple" is
 [
 	_key_value_tuple;
 ];
 
-Method "empty map" is 
+Method "empty map" is
 [
 	_empty_map;
 ];
 
-Method "non-empty map" is 
+Method "non-empty map" is
 [
 	_non_empty_map;
 ];
 
-Method "whole number meta" is 
+Method "whole number meta" is
 [
 	_whole_number_meta;
 ];
 
-Method "non-empty set" is 
+Method "non-empty set" is
 [
 	_non_empty_set;
 ];
 
-Method "tuple of tuple" is 
+Method "tuple of tuple" is
 [
 	_tuple_of_tuple;
 ];
 
-Method "nybble" is 
+Method "nybble" is
 [
 	_nybble;
 ];
 
-Method "tuple of nybble" is 
+Method "tuple of nybble" is
 [
 	_tuple_of_nybble;
 ];
 
-Method "unsigned short" is 
+Method "unsigned short" is
 [
 	_unsigned_short;
 ];
 
-Method "empty tuple" is 
+Method "empty tuple" is
 [
 	_empty_tuple;
 ];
 
-Method "unary procedure" is 
+Method "unary procedure" is
 [
 	_unary_procedure;
 ];
 
-Method "type of zero" is 
+Method "type of zero" is
 [
 	_type_of_zero;
 ];
 
-Method "semantic restriction function" is 
+Method "semantic restriction function" is
 [
 	_semantic_restriction_function;
 ];
 
-Method "tuple of semantic restriction function" is 
+Method "tuple of semantic restriction function" is
 [
 	_tuple_of_semantic_restriction_function;
 ];
 
-Method "macro function" is 
+Method "macro function" is
 [
 	_macro_function;
 ];
 
-Method "type of two" is 
+Method "type of two" is
 [
 	_type_of_two;
 ];
 
-Method "Euler number" is 
+Method "Euler number" is
 [
 	_Euler_number;
 ];
 
-Method "type of Euler number" is 
+Method "type of Euler number" is
 [
 	_type_of_Euler_number;
 ];
 
-Method "phrase meta" is 
+Method "phrase meta" is
 [
 	_phrase_meta;
 ];

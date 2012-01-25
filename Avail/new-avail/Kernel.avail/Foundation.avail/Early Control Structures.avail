@@ -215,10 +215,11 @@ Semantic restriction "cast_into_else_" is
 	if value ≤ accept[1] then
 	[
 		messageTuple ::= concatenate <
-			"Necessary cast expression, but ",
+			"necessary cast expression, but (",
 			primitive description of value,
 			" ≤ ",
-			primitive description of accept[1]>;
+			primitive description of accept[1],
+			")">;
 		cast messageTuple into
 		[
 			message : string

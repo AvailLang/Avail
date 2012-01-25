@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.01.24 17:50:28.688 -0600
+ * * Last Generated On: 2012.01.24 21:17:21.875 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -156,7 +156,7 @@ Body
  *    `true` if the first argument is strictly less than the second argument,
  *    `false` otherwise.
  */
-Method "_<_" is 
+Method "_<_" is
 [
 	arg1 : number,
 	arg2 : number
@@ -174,7 +174,7 @@ Method "_<_" is
  *    `true` if the first argument is less than or equal to the second
  *    argument, `false` otherwise.
  */
-Method "_≤_" is 
+Method "_≤_" is
 [
 	arg1 : number,
 	arg2 : number
@@ -198,7 +198,7 @@ Method "_≤_" is
  * Returns:
  *    The requested integral range type.
  */
-Method "integer range from_(inclusive=_)to_(inclusive=_)" is 
+Method "integer range from_(inclusive=_)to_(inclusive=_)" is
 [
 	lowerBound : extended integer,
 	lowerBoundInclusive : boolean,
@@ -216,7 +216,7 @@ Method "integer range from_(inclusive=_)to_(inclusive=_)" is
  * Returns:
  *    The lower bound of the argument.
  */
-Method "_'s lower bound" is 
+Method "_'s lower bound" is
 [
 	range : extended integer meta
 |
@@ -231,7 +231,7 @@ Method "_'s lower bound" is
  * Returns:
  *    The upper  bound of the argument.
  */
-Method "_'s upper bound" is 
+Method "_'s upper bound" is
 [
 	range : extended integer meta
 |
@@ -244,7 +244,7 @@ Method "_'s upper bound" is
  * Parameters:
  *    var - A variable.
  */
-Method "clear_" is 
+Method "clear_" is
 [
 	var : variable
 |
@@ -259,7 +259,7 @@ Method "clear_" is
  * Returns:
  *    The requested variable type.
  */
-Method "↑_" is 
+Method "↑_" is
 [
 	containmentType : type
 |
@@ -276,7 +276,7 @@ Method "↑_" is
  *    The most general type that describes values that can be read from
  *    instances of `varType`.
  */
-Method "_'s read type" is 
+Method "_'s read type" is
 [
 	varType : variable meta
 |
@@ -292,7 +292,7 @@ Method "_'s read type" is
  *    A new variable capable of retrieving and storing values of the specified
  *    containment type.
  */
-Method "new↑_" is 
+Method "new↑_" is
 [
 	containmentType : type
 |
@@ -308,7 +308,7 @@ Method "new↑_" is
  *    `true` if the variable contains a value (i.e. because it has previously
  *    been assigned), `false` otherwise.
  */
-Method "_is unassigned" is 
+Method "_is unassigned" is
 [
 	var : variable
 |
@@ -325,7 +325,7 @@ Method "_is unassigned" is
  *    The most general type that describes values that can be written to
  *    instances of `varType`.
  */
-Method "_'s write type" is 
+Method "_'s write type" is
 [
 	varType : variable meta
 |
@@ -341,7 +341,7 @@ Method "_'s write type" is
  *    The current time as the number of milliseconds which have elapsed since
  *    the Unix Epoch.
  */
-Method "milliseconds since the Epoch" is 
+Method "milliseconds since the Epoch" is
 [
 	Primitive 20;
 ] : whole number;
@@ -352,7 +352,7 @@ Method "milliseconds since the Epoch" is
  * Returns:
  *    The current fiber.
  */
-Method "current fiber" is 
+Method "current fiber" is
 [
 	Primitive 25;
 ] : fiber;
@@ -368,7 +368,7 @@ Method "current fiber" is
  *    key - The key whose value should be (over)written.
  *    value - The new value.
  */
-Method "_[_]:=_" is 
+Method "_[_]:=_" is
 [
 	aFiber : fiber,
 	key : atom,
@@ -385,7 +385,7 @@ Method "_[_]:=_" is
  * Returns:
  *    A set whose members are the instances of the enumeration.
  */
-Method "_'s instances" is 
+Method "_'s instances" is
 [
 	enum : enumeration meta
 |
@@ -401,7 +401,7 @@ Method "_'s instances" is
  * Returns:
  *    The precise instance type of the supplied value.
  */
-Method "_'s type" is 
+Method "_'s type" is
 [
 	value : any
 |
@@ -418,7 +418,7 @@ Method "_'s type" is
  * Returns:
  *    The type union of the arguments.
  */
-Method "_∪_" is 
+Method "_∪_" is
 [
 	arg1 : type,
 	arg2 : type
@@ -436,7 +436,7 @@ Method "_∪_" is
  * Returns:
  *    The type intersection of the arguments.
  */
-Method "_∩_" is 
+Method "_∩_" is
 [
 	arg1 : type,
 	arg2 : type
@@ -456,7 +456,7 @@ Method "_∩_" is
  *    `true` if the first argument is a subtype of, or the same type as, the
  *    second argument, `false` otherwise.
  */
-Method "_≤_" is 
+Method "_≤_" is
 [
 	arg1 : type,
 	arg2 : type
@@ -476,7 +476,7 @@ Method "_≤_" is
  *    whose types conform to the parameter types and whose return value
  *    conforms to the return type.
  */
-Method "function accepting_and returning_" is 
+Method "function accepting_and returning_" is
 [
 	parameterTypes : tuple of type,
 	returnType : type
@@ -494,7 +494,7 @@ Method "function accepting_and returning_" is
  *    A fixed-size tuple type whose element types correspond to the parameter
  *    types of the argument.
  */
-Method "_'s parameters'type" is 
+Method "_'s parameters'type" is
 [
 	functionType : function meta
 |
@@ -509,7 +509,7 @@ Method "_'s parameters'type" is
  * Returns:
  *    The return type of the argument.
  */
-Method "_'s return type" is 
+Method "_'s return type" is
 [
 	functionType : function meta
 |
@@ -525,7 +525,7 @@ Method "_'s return type" is
  * Returns:
  *    The type union of the elements of the argument.
  */
-Method "∪_" is 
+Method "∪_" is
 [
 	tupleOfTypes : tuple of type
 |
@@ -543,7 +543,7 @@ Method "∪_" is
  *    The requested function type. Instances of this type answer values of the
  *    specified return type.
  */
-Method "[`…]→_" is 
+Method "[`…]→_" is
 [
 	returnType : type
 |
@@ -562,7 +562,7 @@ Method "[`…]→_" is
  *    If `predicate` is `true`, then the value produced by invoking
  *    `trueFunction`; otherwise, the value produced by invoking `falseFunction`.
  */
-Method "if_then_else_" is 
+Method "if_then_else_" is
 [
 	predicate : boolean,
 	trueFunction : nullary procedure,
@@ -579,7 +579,7 @@ Method "if_then_else_" is
  *    predicate - A predicate value.
  *    trueBlock - The function to invoke if `predicate` is `true`.
  */
-Method "if_then_" is 
+Method "if_then_" is
 [
 	predicate : boolean,
 	trueBlock : nullary procedure
@@ -596,7 +596,7 @@ Method "if_then_" is
  * Returns:
  *    TODO
  */
-Method "ignore_and evaluate_" is 
+Method "ignore_and evaluate_" is
 [
 	arg1 : boolean,
 	arg2 : predicate function
@@ -624,7 +624,7 @@ Method "ignore_and evaluate_" is
  * Returns:
  *    The requested continuation.
  */
-Method "$_@pc=_stack=_[_]caller=_" is 
+Method "$_@pc=_stack=_[_]caller=_" is
 [
 	aFunction : function,
 	programCounter : natural number,
@@ -643,7 +643,7 @@ Method "$_@pc=_stack=_[_]caller=_" is
  * Returns:
  *    The argument's current function's type.
  */
-Method "_'s function type" is 
+Method "_'s function type" is
 [
 	aContinuation : continuation meta
 |
@@ -659,7 +659,7 @@ Method "_'s function type" is
  * Returns:
  *    The requested continuation type.
  */
-Method "$_" is 
+Method "$_" is
 [
 	functionType : function meta
 |
@@ -677,7 +677,7 @@ Method "$_" is
  *    A variable that, if assigned, holds the argument's caller. If unassigned,
  *    then the argument has no caller.
  */
-Method "_'s caller" is 
+Method "_'s caller" is
 [
 	aContinuation : continuation
 |
@@ -693,7 +693,7 @@ Method "_'s caller" is
  *    The argument's current function. This is the function whose execution
  *    will be resumed if the continuation is resumed.
  */
-Method "_'s function" is 
+Method "_'s function" is
 [
 	aContinuation : continuation
 |
@@ -710,7 +710,7 @@ Method "_'s function" is
  * Returns:
  *    The argument's Level One program counter.
  */
-Method "_'s program counter" is 
+Method "_'s program counter" is
 [
 	aContinuation : continuation
 |
@@ -727,7 +727,7 @@ Method "_'s program counter" is
  * Returns:
  *    The argument's stack pointer.
  */
-Method "_'s stack pointer" is 
+Method "_'s stack pointer" is
 [
 	aContinuation : continuation
 |
@@ -747,7 +747,7 @@ Method "_'s stack pointer" is
  * Returns:
  *    The argument's stack.
  */
-Method "_'s stack" is 
+Method "_'s stack" is
 [
 	aContinuation : continuation
 |
@@ -763,7 +763,7 @@ Method "_'s stack" is
  * Returns:
  *    `true` if the arguments are equal, `false` otherwise.
  */
-Method "_=_" is 
+Method "_=_" is
 [
 	arg1 : any,
 	arg2 : any
@@ -780,7 +780,7 @@ Method "_=_" is
  * Returns:
  *    The requested object.
  */
-Method "_→object" is 
+Method "_→object" is
 [
 	fieldsToValues : field map
 |
@@ -796,7 +796,7 @@ Method "_→object" is
  * Returns:
  *    The requested map.
  */
-Method "_→map" is 
+Method "_→map" is
 [
 	anObject : object
 |
@@ -812,7 +812,7 @@ Method "_→map" is
  * Returns:
  *    The requested object type.
  */
-Method "_→object type" is 
+Method "_→object type" is
 [
 	fieldsToTypes : field map
 |
@@ -828,7 +828,7 @@ Method "_→object type" is
  * Returns:
  *    The requested map.
  */
-Method "_→map" is 
+Method "_→map" is
 [
 	anObjectType : object meta
 |
@@ -844,7 +844,7 @@ Method "_→map" is
  * Returns:
  *    The requested enumeration.
  */
-Method "enumeration of_" is 
+Method "enumeration of_" is
 [
 	instances : set
 |
@@ -860,7 +860,7 @@ Method "enumeration of_" is
  * Returns:
  *    The requested enumeration meta.
  */
-Method "enumeration of_" is 
+Method "enumeration of_" is
 [
 	instanceType : type
 |
@@ -877,7 +877,7 @@ Method "enumeration of_" is
  *    name - The name that should be bound to the object type. This will replace
  *       a previously bound name.
  */
-Method "_'s name:=_" is 
+Method "_'s name:=_" is
 [
 	anObjectType : object meta,
 	name : string
@@ -895,7 +895,7 @@ Method "_'s name:=_" is
  *    The set of locally most-specific names bound to the specified object
  *    type.
  */
-Method "_'s names" is 
+Method "_'s names" is
 [
 	anObjectType : object meta
 |
@@ -914,7 +914,7 @@ Method "_'s names" is
  * Returns:
  *    The requested function.
  */
-Method "new_applying_" is 
+Method "new_applying_" is
 [
 	aFunctionType : function meta,
 	functionToApply : function
@@ -933,7 +933,7 @@ Method "new_applying_" is
  * Returns:
  *    The argument's implementation.
  */
-Method "_'s implementation" is 
+Method "_'s implementation" is
 [
 	aFunction : function
 |
@@ -950,7 +950,7 @@ Method "_'s implementation" is
  * Returns:
  *    The argument's outer variables.
  */
-Method "_'s outer variables" is 
+Method "_'s outer variables" is
 [
 	aFunction : function
 |
@@ -965,7 +965,7 @@ Method "_'s outer variables" is
  * Returns:
  *    The argument's cardinality.
  */
-Method "|_|" is 
+Method "|_|" is
 [
 	aMap : map
 |
@@ -981,7 +981,7 @@ Method "|_|" is
  * Returns:
  *    `true` if `key` if a key of `aMap`, `false` otherwise.
  */
-Method "_∈_" is 
+Method "_∈_" is
 [
 	key : any,
 	aMap : map
@@ -1002,7 +1002,7 @@ Method "_∈_" is
  * Returns:
  *    The requested map.
  */
-Method "_[_]→_" is 
+Method "_[_]→_" is
 [
 	aMap : map,
 	key : any,
@@ -1022,7 +1022,7 @@ Method "_[_]→_" is
  * Returns:
  *    The requested map.
  */
-Method "_-_" is 
+Method "_-_" is
 [
 	aMap : map,
 	key : any
@@ -1041,7 +1041,7 @@ Method "_-_" is
  * Returns:
  *    The requested map.
  */
-Method "_→map" is 
+Method "_→map" is
 [
 	bindings : key-value tuple
 |
@@ -1056,7 +1056,7 @@ Method "_→map" is
  * Returns:
  *    The argument's keys.
  */
-Method "_'s keys" is 
+Method "_'s keys" is
 [
 	aMap : map
 |
@@ -1075,7 +1075,7 @@ Method "_'s keys" is
  * Returns:
  *    The requested map type.
  */
-Method "{_→_|_}" is 
+Method "{_→_|_}" is
 [
 	keyType : type,
 	valueType : type,
@@ -1093,7 +1093,7 @@ Method "{_→_|_}" is
  * Returns:
  *    The argument's cardinality requirement.
  */
-Method "|_|" is 
+Method "|_|" is
 [
 	aMapType : map meta
 |
@@ -1109,7 +1109,7 @@ Method "|_|" is
  * Returns:
  *    The argument's key type.
  */
-Method "_'s key type" is 
+Method "_'s key type" is
 [
 	aMapType : map meta
 |
@@ -1125,7 +1125,7 @@ Method "_'s key type" is
  * Returns:
  *    The argument's value type.
  */
-Method "_'s value type" is 
+Method "_'s value type" is
 [
 	aMapType : map meta
 |
@@ -1141,7 +1141,7 @@ Method "_'s value type" is
  * Returns:
  *    The argument's values.
  */
-Method "_'s values" is 
+Method "_'s values" is
 [
 	aMapType : map
 |
@@ -1157,7 +1157,7 @@ Method "_'s values" is
  * Returns:
  *    The argument's bindings.
  */
-Method "_'s bindings" is 
+Method "_'s bindings" is
 [
 	aMapType : map
 |
@@ -1172,7 +1172,7 @@ Method "_'s bindings" is
  * Returns:
  *    The argument's cardinality.
  */
-Method "|_|" is 
+Method "|_|" is
 [
 	aSet : set
 |
@@ -1188,7 +1188,7 @@ Method "|_|" is
  * Returns:
  *    `true` if `element` is an element of `aSet`, `false` otherwise.
  */
-Method "_∈_" is 
+Method "_∈_" is
 [
 	element : any,
 	aSet : set
@@ -1206,7 +1206,7 @@ Method "_∈_" is
  * Returns:
  *    The set union of the arguments.
  */
-Method "_∪_" is 
+Method "_∪_" is
 [
 	arg1 : set,
 	arg2 : set
@@ -1224,7 +1224,7 @@ Method "_∪_" is
  * Returns:
  *    The set intersection of the arguments.
  */
-Method "_∩_" is 
+Method "_∩_" is
 [
 	arg1 : set,
 	arg2 : set
@@ -1244,7 +1244,7 @@ Method "_∩_" is
  * Returns:
  *    The asymmetric set difference of `minuend` and `subtrahend`.
  */
-Method "_\\_" is 
+Method "_\\_" is
 [
 	minuend : set,
 	subtrahend : set
@@ -1263,7 +1263,7 @@ Method "_\\_" is
  *    A set that contains the same elements as `aSet` but also contains
  *    `newElement`.
  */
-Method "_+_" is 
+Method "_+_" is
 [
 	aSet : set,
 	newElement : any
@@ -1282,7 +1282,7 @@ Method "_+_" is
  *    A set that contains the same elements as `aSet` except that it does
  *    not contain `oldElement`.
  */
-Method "_-_" is 
+Method "_-_" is
 [
 	aSet : set,
 	oldElement : any
@@ -1299,7 +1299,7 @@ Method "_-_" is
  * Returns:
  *    `true` if `arg1` is a subset of or equal to `arg2`, `false` otherwise.
  */
-Method "_⊆_" is 
+Method "_⊆_" is
 [
 	arg1 : set,
 	arg2 : set
@@ -1316,7 +1316,7 @@ Method "_⊆_" is
  * Returns:
  *    The requested set.
  */
-Method "_→set" is 
+Method "_→set" is
 [
 	aTuple : tuple
 |
@@ -1333,7 +1333,7 @@ Method "_→set" is
  * Returns:
  *    The requested tuple.
  */
-Method "_→tuple" is 
+Method "_→tuple" is
 [
 	aSet : set
 |
@@ -1351,7 +1351,7 @@ Method "_→tuple" is
  *    The requested set type. Instances have elements that conform to
  *    `elementType` and cardinalities that conform to `cardinalityType`.
  */
-Method "{_|_}" is 
+Method "{_|_}" is
 [
 	elementType : type,
 	cardinalityType : whole number meta
@@ -1368,7 +1368,7 @@ Method "{_|_}" is
  * Returns:
  *    The argument's cardinality requirement.
  */
-Method "|_|" is 
+Method "|_|" is
 [
 	aSetType : set meta
 |
@@ -1384,7 +1384,7 @@ Method "|_|" is
  * Returns:
  *    The argument's element type.
  */
-Method "_'s element type" is 
+Method "_'s element type" is
 [
 	aSetType : set meta
 |
@@ -1404,7 +1404,7 @@ Method "_'s element type" is
  *    A new atom, distinct from every other atom answered by a different
  *    invocation of this primitive.
  */
-Method "new atom_" is 
+Method "new atom_" is
 [
 	debugName : string
 |
@@ -1419,7 +1419,7 @@ Method "new atom_" is
  * Returns:
  *    The argument's debug name.
  */
-Method "_'s name" is 
+Method "_'s name" is
 [
 	anAtom : atom
 |
@@ -1435,7 +1435,7 @@ Method "_'s name" is
  * Returns:
  *    `true` if `anAtom` has a property whose key is `key`, `false` otherwise.
  */
-Method "_∈_" is 
+Method "_∈_" is
 [
 	anAtom : atom,
 	key : atom
@@ -1452,7 +1452,7 @@ Method "_∈_" is
  *    key - The property key.
  *    value - The property value.
  */
-Method "_[_]:=_" is 
+Method "_[_]:=_" is
 [
 	anAtom : atom,
 	key : atom,
@@ -1469,7 +1469,7 @@ Method "_[_]:=_" is
  *    anAtom - An atom.
  *    key - A property key.
  */
-Method "_-_" is 
+Method "_-_" is
 [
 	anAtom : atom,
 	key : atom
@@ -1485,7 +1485,7 @@ Method "_-_" is
  * Returns:
  *    The argument's cardinality.
  */
-Method "|_|" is 
+Method "|_|" is
 [
 	aTuple : tuple
 |
@@ -1501,7 +1501,7 @@ Method "|_|" is
  * Returns:
  *    The requested tuple.
  */
-Method "concatenate_" is 
+Method "concatenate_" is
 [
 	tupleOfTuples : tuple of tuple
 |
@@ -1519,7 +1519,7 @@ Method "concatenate_" is
  * Returns:
  *    The requested tuple type.
  */
-Method "<_,_`…|_>" is 
+Method "<_,_`…|_>" is
 [
 	leadingTypes : tuple of type,
 	defaultType : type,
@@ -1536,7 +1536,7 @@ Method "<_,_`…|_>" is
  * Returns:
  *    The argument's cardinality requirement.
  */
-Method "|_|" is 
+Method "|_|" is
 [
 	aTupleType : tuple meta
 |
@@ -1552,7 +1552,7 @@ Method "|_|" is
  * Returns:
  *    The argument's leading element types.
  */
-Method "_'s leading types" is 
+Method "_'s leading types" is
 [
 	aTupleType : tuple meta
 |
@@ -1567,7 +1567,7 @@ Method "_'s leading types" is
  * Returns:
  *    The argument's default element type.
  */
-Method "_'s default type" is 
+Method "_'s default type" is
 [
 	aTupleType : tuple meta
 |
@@ -1584,7 +1584,7 @@ Method "_'s default type" is
  * Returns:
  *    The requested element type, or ⊥ if `index` is out of bounds.
  */
-Method "_[_]" is 
+Method "_[_]" is
 [
 	aTupleType : tuple meta,
 	index : natural number
@@ -1603,7 +1603,7 @@ Method "_[_]" is
  * Returns:
  *    The requested tuple type.
  */
-Method "_++_" is 
+Method "_++_" is
 [
 	arg1 : tuple meta,
 	arg2 : tuple meta
@@ -1620,7 +1620,7 @@ Method "_++_" is
  * Returns:
  *    The argument's arity.
  */
-Method "_'s arity" is 
+Method "_'s arity" is
 [
 	aFunctionImplementation : function implementation
 |
@@ -1635,7 +1635,7 @@ Method "_'s arity" is
  * Returns:
  *    The number of locals used by the argument.
  */
-Method "|_'s local variables|" is 
+Method "|_'s local variables|" is
 [
 	aFunctionImplementation : function implementation
 |
@@ -1650,7 +1650,7 @@ Method "|_'s local variables|" is
  * Returns:
  *    The number of outers used by the argument.
  */
-Method "|_'s outer variables|" is 
+Method "|_'s outer variables|" is
 [
 	aFunctionImplementation : function implementation
 |
@@ -1667,7 +1667,7 @@ Method "|_'s outer variables|" is
  * Returns:
  *    The argument's maximum stack depth.
  */
-Method "_'s maximum stack depth" is 
+Method "_'s maximum stack depth" is
 [
 	aFunctionImplementation : function implementation
 |
@@ -1683,7 +1683,7 @@ Method "_'s maximum stack depth" is
  * Returns:
  *    The argument's nybblecodes.
  */
-Method "_'s nybblecodes" is 
+Method "_'s nybblecodes" is
 [
 	aFunctionImplementation : function implementation
 |
@@ -1699,7 +1699,7 @@ Method "_'s nybblecodes" is
  * Returns:
  *    The argument's function type.
  */
-Method "_'s function type" is 
+Method "_'s function type" is
 [
 	aFunctionImplementation : function implementation
 |
@@ -1717,7 +1717,7 @@ Method "_'s function type" is
  *    The argument's primitive number, or `0` if the argument does not have
  *    primitive linkage.
  */
-Method "_'s primitive number" is 
+Method "_'s primitive number" is
 [
 	aFunctionImplementation : function implementation
 |
@@ -1732,7 +1732,7 @@ Method "_'s primitive number" is
  * Returns:
  *    A tuple containing the argument's supporting literals.
  */
-Method "_'s literals" is 
+Method "_'s literals" is
 [
 	aFunctionImplementation : function implementation
 |
@@ -1747,7 +1747,7 @@ Method "_'s literals" is
  * Returns:
  *    `true` if the argument denotes a valid primitive, `false` otherwise.
  */
-Method "_is a primitive" is 
+Method "_is a primitive" is
 [
 	primitiveNumber : unsigned short
 |
@@ -1769,7 +1769,7 @@ Method "_is a primitive" is
  * Parameters:
  *    {0} - A value, provided to establish context for debugging.
  */
-Method "Terminate:_" is 
+Method "Terminate:_" is
 [
 	value : any
 |
@@ -1784,7 +1784,7 @@ Method "Terminate:_" is
  * This method exists to facilitate debugging of the Avail virtual machine, and
  * will be withdrawn once the implementation is considered sufficiently stable.
  */
-Method "Breakpoint" is 
+Method "Breakpoint" is
 [
 	Primitive 257;
 ] : ⊤;
@@ -1795,7 +1795,7 @@ Method "Breakpoint" is
  * Parameters:
  *    text - A string.
  */
-Method "Print:_" is 
+Method "Print:_" is
 [
 	text : string
 |
@@ -1815,7 +1815,7 @@ Method "Print:_" is
  *    A mechanically constructed, possibly non-localized,
  *    implementation-specific description of the argument.
  */
-Method "primitive description of_" is 
+Method "primitive description of_" is
 [
 	value : any
 |
@@ -1831,7 +1831,7 @@ Method "primitive description of_" is
  * Returns:
  *    A `float` whose value approximates the argument.
  */
-Method "_→float" is 
+Method "_→float" is
 [
 	aNumber : number
 |
@@ -1847,7 +1847,7 @@ Method "_→float" is
  * Returns:
  *    A `double` whose value approximates the argument.
  */
-Method "_→double" is 
+Method "_→double" is
 [
 	aNumeric : number
 |
@@ -1863,7 +1863,7 @@ Method "_→double" is
  * Returns:
  *    An approximation of ln `x`.
  */
-Method "ln_" is 
+Method "ln_" is
 [
 	x : float
 |
@@ -1880,7 +1880,7 @@ Method "ln_" is
  * Returns:
  *    An approximation of e^`x`.
  */
-Method "_^_" is 
+Method "_^_" is
 [
 	eulerNumber : type of Euler number,
 	x : float
@@ -1897,7 +1897,7 @@ Method "_^_" is
  * Returns:
  *    The requested value.
  */
-Method "_→extended integer" is 
+Method "_→extended integer" is
 [
 	aFloat : float
 |
@@ -1915,7 +1915,7 @@ Method "_→extended integer" is
  * Returns:
  *    The requested value.
  */
-Method "_⨉_^_" is 
+Method "_⨉_^_" is
 [
 	a : float,
 	two : type of two,
@@ -1934,7 +1934,7 @@ Method "_⨉_^_" is
  *    If the `0` is ±∞ or not-a-number, then `x`, otherwise the floor of
  *    `x`.
  */
-Method "⌊_⌋" is 
+Method "⌊_⌋" is
 [
 	x : float
 |
@@ -1951,7 +1951,7 @@ Method "⌊_⌋" is
  *    If the `0` is ±∞ or not-a-number, then `x`, otherwise the ceiling of
  *    `x`.
  */
-Method "⌈_⌉" is 
+Method "⌈_⌉" is
 [
 	x : float
 |
@@ -1967,7 +1967,7 @@ Method "⌈_⌉" is
  * Returns:
  *    An approximation of ln `x`.
  */
-Method "ln_" is 
+Method "ln_" is
 [
 	x : double
 |
@@ -1984,7 +1984,7 @@ Method "ln_" is
  * Returns:
  *    An approximation of e^`x`.
  */
-Method "_^_" is 
+Method "_^_" is
 [
 	eulerNumber : type of Euler number,
 	x : double
@@ -2001,7 +2001,7 @@ Method "_^_" is
  * Returns:
  *    The requested value.
  */
-Method "_→extended integer" is 
+Method "_→extended integer" is
 [
 	aDouble : double
 |
@@ -2019,7 +2019,7 @@ Method "_→extended integer" is
  * Returns:
  *    The requested value.
  */
-Method "_⨉_^_" is 
+Method "_⨉_^_" is
 [
 	a : double,
 	two : type of two,
@@ -2038,7 +2038,7 @@ Method "_⨉_^_" is
  *    If the `0` is ±∞ or not-a-number, then `x`, otherwise the floor of
  *    `x`.
  */
-Method "⌊_⌋" is 
+Method "⌊_⌋" is
 [
 	x : double
 |
@@ -2055,7 +2055,7 @@ Method "⌊_⌋" is
  *    If the `0` is ±∞ or not-a-number, then `x`, otherwise the ceiling of
  *    `x`.
  */
-Method "⌈_⌉" is 
+Method "⌈_⌉" is
 [
 	x : double
 |
@@ -2070,7 +2070,7 @@ Method "⌈_⌉" is
  * Returns:
  *    The Unicode code point that encodes the argument.
  */
-Method "_→code point" is 
+Method "_→code point" is
 [
 	aCharacter : character
 |
@@ -2085,7 +2085,7 @@ Method "_→code point" is
  * Returns:
  *    The character encoded by the argument.
  */
-Method "_→character" is 
+Method "_→character" is
 [
 	codePoint : code point
 |
@@ -2103,7 +2103,7 @@ Method "_→character" is
  *    A type that describes all values producible by evaluations of the
  *    argument.
  */
-Method "_'s semantic type" is 
+Method "_'s semantic type" is
 [
 	node : phrase
 |
@@ -2133,7 +2133,7 @@ Method "_'s semantic type" is
  *    expected - A description of the cause of rejection, worded to sound good
  *       after "Expected...".
  */
-Method "Reject parse,expected:_" is 
+Method "Reject parse,expected:_" is
 [
 	expected : string
 |
@@ -2150,7 +2150,7 @@ Method "Reject parse,expected:_" is
  * Returns:
  *    The requested phrase type.
  */
-Method "_→_" is 
+Method "_→_" is
 [
 	aPhrase : phrase meta,
 	semanticType : type
@@ -2166,7 +2166,7 @@ Method "_→_" is
  * Returns:
  *    The requested pojo array type.
  */
-Method "_[]" is 
+Method "_[]" is
 [
 	aType : type
 |

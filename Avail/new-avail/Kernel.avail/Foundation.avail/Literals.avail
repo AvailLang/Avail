@@ -55,7 +55,7 @@ Body
  */
 Method "{«_‡,»}" is
 [
-	elements : <<>,any…|natural number>
+	elements : <<>, any…|natural number>
 |
 	elements→set;
 ] : set;
@@ -85,7 +85,7 @@ with <>;
  */
 Semantic restriction "{«_‡,»}" is
 [
-	elements : <<>,any…|natural number>'s type
+	elements : <<>, any…|natural number>'s type
 |
 	/* Since the argument is derived from a lexically constructed tuple, then
 	 * the cardinality of the argument is guaranteed to be a fixed, finite
