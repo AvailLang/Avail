@@ -1,0 +1,171 @@
+/*
+ * Primitives.avail
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/*
+ * GENERATED FILE
+ * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
+ * * Last Generated On: 2012.01.25 16:41:54.533 -0600
+ *
+ * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
+ */
+
+System Module "Primitives"
+Versions
+	"dev"
+Extends
+Uses
+	"Origin"
+Names
+	"$_",
+	"$_@pc=_stack=_[_]caller=_",
+	"<_,_`…|_>",
+	"Abstract method_is_",
+	"Breakpoint",
+	"Clear_",
+	"Exit_with_",
+	"Forward method_is_",
+	"Grammatical restriction_is_",
+	"Macro_is_",
+	"Print:_",
+	"Raise_",
+	"Reject parse,expected:_",
+	"Restart_",
+	"Restart_with_",
+	"Semantic restriction_is_",
+	"Terminate:_",
+	"[`…]→_",
+	"_#_:_(literals=_,#locals_,#outers_,stack depth=_)",
+	"_'s arity",
+	"_'s bindings",
+	"_'s caller",
+	"_'s default type",
+	"_'s element type",
+	"_'s function",
+	"_'s function type",
+	"_'s implementation",
+	"_'s instances",
+	"_'s key type",
+	"_'s keys",
+	"_'s leading types",
+	"_'s literals",
+	"_'s lower bound",
+	"_'s maximum stack depth",
+	"_'s name",
+	"_'s name:=_",
+	"_'s names",
+	"_'s nybblecodes",
+	"_'s outer variables",
+	"_'s parameters'type",
+	"_'s primitive number",
+	"_'s program counter",
+	"_'s read type",
+	"_'s return type",
+	"_'s semantic type",
+	"_'s stack",
+	"_'s stack pointer",
+	"_'s type",
+	"_'s upper bound",
+	"_'s value type",
+	"_'s values",
+	"_'s write type",
+	"_++_",
+	"_+_",
+	"_-_",
+	"_<_",
+	"_=_",
+	"_[]",
+	"_[_.._]",
+	"_[_]",
+	"_[_]:=_",
+	"_[_]→_",
+	"_\\_",
+	"_^_",
+	"_is a primitive",
+	"_is unassigned",
+	"_mod_",
+	"_×_",
+	"_÷_",
+	"_→_",
+	"_→character",
+	"_→code point",
+	"_→double",
+	"_→extended integer",
+	"_→float",
+	"_→map",
+	"_→object",
+	"_→object type",
+	"_→set",
+	"_→tuple",
+	"_∈_",
+	"_∩_",
+	"_∪_",
+	"_≤_",
+	"_⊆_",
+	"_⨉_^_",
+	"concatenate_",
+	"constructor of_given_",
+	"current fiber",
+	"eject_",
+	"enumeration of_",
+	"function accepting_and returning_",
+	"function from_and_",
+	"if_then_",
+	"if_then_else_",
+	"integer range from_(inclusive=_)to_(inclusive=_)",
+	"invoke_with_",
+	"ln_",
+	"milliseconds since the Epoch",
+	"new atom_",
+	"new_applying_",
+	"new↑_",
+	"pojo_with_",
+	"primitive description of_",
+	"read character",
+	"request termination of_",
+	"semantic restrictions for_given_",
+	"swap_and_",
+	"termination requested",
+	"try_catch_",
+	"{_|_}",
+	"{_→_|_}",
+	"|_'s local variables|",
+	"|_'s outer variables|",
+	"|_|",
+	"↑_",
+	"↓_",
+	"↓_:=_",
+	"∪_",
+	"∪_[_.._]",
+	"⌈_⌉",
+	"⌊_⌋"
+Body
+
