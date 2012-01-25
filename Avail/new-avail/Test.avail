@@ -1,5 +1,5 @@
 /*
- * Foundation.avail
+ * Test.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,12 +30,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Foundation"
+System Module "Test"
 Versions
 	"dev"
 Extends
-	"Literals"
 Uses
+	"Avail"
 Names
 Body
-
