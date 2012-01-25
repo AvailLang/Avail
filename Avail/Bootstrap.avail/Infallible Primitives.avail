@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.01.24 21:17:21.875 -0600
+ * * Last Generated On: 2012.01.25 16:41:54.536 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -51,6 +51,7 @@ Uses
 		"$_@pc=_stack=_[_]caller=_",
 		"<_,_`…|_>",
 		"Breakpoint",
+		"Clear_",
 		"Print:_",
 		"Reject parse,expected:_",
 		"Terminate:_",
@@ -118,14 +119,12 @@ Uses
 		"_≤_",
 		"_⊆_",
 		"_⨉_^_",
-		"clear_",
 		"concatenate_",
 		"current fiber",
 		"enumeration of_",
 		"function accepting_and returning_",
 		"if_then_",
 		"if_then_else_",
-		"ignore_and evaluate_",
 		"integer range from_(inclusive=_)to_(inclusive=_)",
 		"ln_",
 		"milliseconds since the Epoch",
@@ -244,7 +243,7 @@ Method "_'s upper bound" is
  * Parameters:
  *    var - A variable.
  */
-Method "clear_" is
+Method "Clear_" is
 [
 	var : variable
 |
@@ -586,23 +585,6 @@ Method "if_then_" is
 |
 	Primitive 44;
 ] : ⊤;
-
-/**
- * DEPRECATED.
- *
- * Parameters:
- *    arg1 -
- *    arg2 -
- * Returns:
- *    TODO
- */
-Method "ignore_and evaluate_" is
-[
-	arg1 : boolean,
-	arg2 : predicate function
-|
-	Primitive 45;
-] : boolean;
 
 /**
  * Construct and answer a continuation whose current function, Level One

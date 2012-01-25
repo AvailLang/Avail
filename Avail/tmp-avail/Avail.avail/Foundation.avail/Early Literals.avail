@@ -37,11 +37,7 @@ Extends
 Uses
 	"Bootstrap"
 Names
-	"<«_‡,»>",
-	"[_.._]",
-	"[_.._)",
-	"(_.._]",
-	"(_.._)"
+	"<«_‡,»>"
 Body
 
 /**
@@ -77,79 +73,3 @@ Semantic restriction "<«_‡,»>" is
 |
 	elements;
 ];
-
-/**
- * Construct and answer an integer range type with the specified bounds.
- * 
- * Parameters:
- *    lowerBound - The lower bound, inclusive.
- *    upperBound - The upper bound, inclusive.
- * Returns:
- *    The requested integer range.
- */
-Method "[_.._]" is
-[
-	lowerBound : extended integer,
-	upperBound : extended integer
-|
-	integer range
-		from lowerBound (inclusive=true)
-		to upperBound (inclusive=true);
-] : extended integer meta;
-
-/**
- * Construct and answer an integer range type with the specified bounds.
- * 
- * Parameters:
- *    lowerBound - The lower bound, inclusive.
- *    upperBound - The upper bound, exclusive.
- * Returns:
- *    The requested integer range.
- */
-Method "[_.._)" is
-[
-	lowerBound : extended integer,
-	upperBound : extended integer
-|
-	integer range
-		from lowerBound (inclusive=true)
-		to upperBound (inclusive=false);
-] : extended integer meta;
-
-/**
- * Construct and answer an integer range type with the specified bounds.
- * 
- * Parameters:
- *    lowerBound - The lower bound, exclusive.
- *    upperBound - The upper bound, inclusive.
- * Returns:
- *    The requested integer range.
- */
-Method "(_.._]" is
-[
-	lowerBound : extended integer,
-	upperBound : extended integer
-|
-	integer range
-		from lowerBound (inclusive=false)
-		to upperBound (inclusive=true);
-] : extended integer meta;
-
-/**
- * Construct and answer an integer range type with the specified bounds.
- * 
- * Parameters:
- *    lowerBound - The lower bound, exclusive.
- *    upperBound - The upper bound, exclusive.
- * Returns:
- *    The requested integer range.
- */
-Method "(_.._)" is
-[
-	lowerBound : extended integer,
-	upperBound : extended integer
-|
-	integer range
-		from lowerBound (inclusive=false)
-		to upperBound (inclusive=false);
-] : extended integer meta;

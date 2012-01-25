@@ -41,7 +41,9 @@ Uses
 	"Early Type Support"
 Names
 	"(_)",
-	"cast_into_else",
+	"Exit_",
+	"From_to_do_",
+	"cast_into_else_",
 	"cast_into_"
 Body
 
@@ -273,3 +275,72 @@ invoke
 		Grammatical restriction names is <names>;
 	]
 with <>;
+
+/**
+ * Exit the continuation. Execution proceeds as though the continuation had just
+ * returned from its current function. The current continuation is completely
+ * replaced by the specified continuation's resumed caller.
+ *
+ * Parameters:
+ *    aContinuation - The continuation to exit.
+ */
+Method "Exit_" is
+[
+	aContinuation : $[…]→⊤
+|
+	/* Since the continuation's return type is ⊤, the primitive will discard
+	 * the argument, so it can be anything.
+	 */
+	Exit aContinuation with <>;
+] : ⊥;
+
+/**
+ * Strengthen `invoke_with_` to the invoked function's return type.
+ *
+ * Parameters:
+ *    aFunction -
+ *    arguments -
+ * Returns:
+ *    The function's return type.
+ */
+Semantic restriction "invoke_with_" is
+[
+	aFunction : function meta,
+	arguments : tuple meta
+|
+	aFunction's return type;
+];
+
+/**
+ * Basic counting loop with early exit support. Invoke `action` once with each
+ * consecutive number in the range established by `startIndex` and `endIndex`.
+ * 
+ * Parameters:
+ *    startIndex - The start index, inclusive.
+ *    endIndex - The end index, inclusive.
+ *    action - A function that accepts an index in the specified range. If it
+ *       answers `true`, then continue to iterate; if it answers `false`, then
+ *       terminate iteration early.
+ */
+Method "From_to_do_" is
+[
+	startIndex : natural number,
+	endIndex : whole number,
+	action : function accepting <natural number> and returning boolean
+|
+	index : natural number := startIndex;
+	invoke
+		[
+			$loop : $function accepting <> and returning ⊤;
+			if index ≤ endIndex then
+			[
+				continue ::= invoke action with <index>;
+				index := cast index + 1 into [ i : natural number | i; ];
+				if continue then
+				[
+					Restart loop;
+				];
+			];
+		] : ⊤
+	with <>;
+] : ⊤;

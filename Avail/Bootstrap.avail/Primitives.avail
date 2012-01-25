@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.01.24 21:17:21.871 -0600
+ * * Last Generated On: 2012.01.25 16:41:54.533 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -50,6 +50,7 @@ Names
 	"<_,_`…|_>",
 	"Abstract method_is_",
 	"Breakpoint",
+	"Clear_",
 	"Exit_with_",
 	"Forward method_is_",
 	"Grammatical restriction_is_",
@@ -130,7 +131,6 @@ Names
 	"_≤_",
 	"_⊆_",
 	"_⨉_^_",
-	"clear_",
 	"concatenate_",
 	"constructor of_given_",
 	"current fiber",
@@ -140,7 +140,6 @@ Names
 	"function from_and_",
 	"if_then_",
 	"if_then_else_",
-	"ignore_and evaluate_",
 	"integer range from_(inclusive=_)to_(inclusive=_)",
 	"invoke_with_",
 	"ln_",

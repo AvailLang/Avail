@@ -5896,7 +5896,7 @@ public enum Primitive implements IntegerEnumSlotDescriptionEnum
 			assert args.size() == 1;
 
 			final AvailObject string = args.get(0);
-			System.out.println(string.asNativeString());
+			System.out.print(string.asNativeString());
 			return interpreter.primitiveSuccess(NullDescriptor.nullObject());
 		}
 

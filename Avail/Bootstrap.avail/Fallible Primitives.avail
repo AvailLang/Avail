@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.01.24 21:17:21.921 -0600
+ * * Last Generated On: 2012.01.25 16:41:54.565 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -377,9 +377,9 @@ Method "Restart_with_" is
 
 /**
  * Exit the continuation and answer the specified value to the continuation's
- * caller. Execution proceeds as though the continuation's had just returned
- * from its current function with the supplied value. The current continuation
- * (in which this primitive was invoked) is completely replaced by the specified
+ * caller. Execution proceeds as though the continuation had just returned from
+ * its current function with the supplied value. The current continuation (in
+ * which this primitive was invoked) is completely replaced by the specified
  * continuation's resumed caller.
  *
  * Parameters:

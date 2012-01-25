@@ -1,5 +1,5 @@
 /*
- * Bootstrap.avail
+ * Early Logic.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,24 +30,43 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * GENERATED FILE
- * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.01.25 16:41:54.575 -0600
- *
- * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
- */
-
-System Module "Bootstrap"
+System Module "Early Logic"
 Versions
 	"dev"
 Extends
-	"Origin",
-	"Special Objects",
-	"Primitives",
-	"Infallible Primitives",
-	"Fallible Primitives"
 Uses
+	"Bootstrap",
+	"Early Control Structures"
 Names
+	"¬_"
 Body
 
+/**
+ * Answer the logical negation of the argument.
+ *
+ * Parameters:
+ *    predicate - A boolean.
+ * Returns:
+ *    The logical negation of the argument.
+ */
+Method "¬_" is
+[
+	predicate : boolean
+|
+	false;
+] : boolean;
+
+/**
+ * Answer the logical negation of the argument.
+ *
+ * Parameters:
+ *    predicate - A boolean.
+ * Returns:
+ *    The logical negation of the argument.
+ */
+Method "¬_" is
+[
+	predicate : false's type
+|
+	true;
+] : true's type;
