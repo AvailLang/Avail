@@ -287,24 +287,17 @@ extends Descriptor
 		final int size = object.mapSize();
 		if (size == 0)
 		{
-			aStream.append("{→}");
+			aStream.append("{}");
 			return;
 		}
-		if (size > 1)
-		{
-			aStream.append("Map:");
-		}
+		aStream.append('{');
+		boolean first = true;
 		for (final Entry entry : object.mapIterable())
 		{
-			if (size > 1)
+			if (!first)
 			{
-				aStream.append("\n");
-				for (int t = 1; t <= indent; t++)
-				{
-					aStream.append("\t");
-				}
+				aStream.append(", ");
 			}
-			aStream.append('[');
 			entry.key.printOnAvoidingIndent(
 				aStream,
 				recursionList,
@@ -314,8 +307,9 @@ extends Descriptor
 				aStream,
 				recursionList,
 				indent + 1);
-			aStream.append(']');
+			first = false;
 		}
+		aStream.append('}');
 	}
 
 	@Override @AvailMethod

@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.01.25 16:41:54.536 -0600
+ * * Last Generated On: 2012.01.26 13:37:01.457 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -887,7 +887,8 @@ Method "_'s names" is
 /**
  * Construct and answer a function that is an instance of `aFunctionType`
  * and applies `functionToApply` when itself applied with the appropriate
- * number and types of arguments.
+ * number and types of arguments. The new function answers whatever
+ * `functionToApply` answers.
  *
  * Parameters:
  *    aFunctionType - The desired function type.
@@ -907,8 +908,7 @@ Method "new_applying_" is
 /**
  * Answer the implementation of the specified function. A function's
  * implementation comprises its nybblecodes, its literals, its primitive
- * linkage (if any)
-, its function type, and various statistics.
+ * linkage (if any), its function type, and various statistics.
  *
  * Parameters:
  *    aFunction - A function.

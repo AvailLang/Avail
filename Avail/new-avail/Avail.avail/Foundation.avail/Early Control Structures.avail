@@ -192,6 +192,13 @@ Method "cast_into_" is
 	]
 	else
 	[
+		/* TODO: [TLS] Remove prints. */
+		Print: "\n[DEBUG] cast_into_\n";
+		Print: "\tvalue=";
+		Print: primitive description of value;
+		Print: "\n\ttype=";
+		Print: primitive description of (accept's type[1]);
+		Print: "\n";
 		Shouldn't happen;
 	];
 ] : ⊤;

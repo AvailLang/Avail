@@ -332,7 +332,7 @@ with <>;
 /**
  * If a lexical set is built only from expressions with statically well-known
  * runtime values, then answer the instance type of the set that contains
- * those statically known elements. This gives lexical set of literals and
+ * those statically known elements. This gives lexical sets of literals and
  * statically well-known elements the same force as lexical literals, e.g.,
  * numbers and strings.
  *
@@ -358,7 +358,8 @@ Semantic restriction "{«_‡,»}" is
 	[
 		index : natural number
 	|
-		cast elements[index] into
+		element ::= elements[index];
+		cast element into
 		[
 			t : enumeration meta
 		|
@@ -373,30 +374,42 @@ Semantic restriction "{«_‡,»}" is
 			false;
 		];
 	];
-	/* IF the elements were all instance types, then answer an instance type. */
+	/* If the elements were all instance types, then answer an instance type. */
 	if |accumulator| = limit then
 	[
 		(accumulator→set)'s type;
 	]
-	/* Otherwise, computer the lower bound of the set type's cardinality
-	 * requirement.
+	/* Otherwise, the answer cannot be an instance type. Compute the most
+	 * precise possible set type.
 	 */
 	else
 	[
-		distinct : tuple := <elements[1]>;
-		distinctType : type;
+		/* Build a tuple of distinct types encountered during a traversal of
+		 * `elements`. Two types are distinct in this sense if they have no
+		 * common descendents more general than ⊥. This establishes a lower
+		 * bound on the answer's cardinality requirement.
+		 *
+		 * Also note what types have been encountered along the way. At the end
+		 * they will be put into a set to effect deduplication of exact type
+		 * matches. This set establishes an upper bound on the answer's
+		 * cardinality requirement.
+		 */
+		types : tuple of type := <elements[1]>;
+		distinct : tuple of type := <elements[1]>;
 		From 2 to limit do
 		[
 			outerIndex : natural number
 		|
 			element ::= elements[outerIndex];
+			types := cast concatenate <types, <element>>
+				into [ t : tuple of type | t; ];
 			isDistinct : boolean := true;
 			From 1 to |distinct| do
 			[
 				innerIndex : natural number
 			|
-				distinctType :=
-					cast distinct[innerIndex] into [ t : type | t; ];
+				distinctType ::= cast distinct[innerIndex]
+					into [ t : type | t; ];
 				if ¬(element ∩ distinctType = ⊥) then
 				[
 					isDistinct := false;
@@ -409,13 +422,15 @@ Semantic restriction "{«_‡,»}" is
 			];
 			if isDistinct then
 			[
-				distinct := concatenate <distinct, <distinctType>>;
+				distinct := cast concatenate <distinct, <element>> into
+					[ t : tuple of type | t; ];
 			];
 			true;
 		];
+		typeSet ::= types→set;
 		lower ::= |distinct|;
-		upper ::= cast limit + 1 into [ i : natural number | i; ];
-		{∪ elements[1..limit] | [lower .. upper)};
+		upper ::= cast |typeSet| + 1 into [ i : natural number | i; ];
+		{∪ types | [lower .. upper)};
 	];
 ];
 
@@ -435,31 +450,128 @@ Method "{«_→_‡,»}" is
 ] : map;
 
 /**
- * Strength the type of `{«_→_‡,»}` to the most exact possible. This is the map
- * type whose key type is the type union of the lexically specified keys, value
- * type is the type union of the lexically specified values, and cardinality
- * requirement is the number of distinct keys.
- * 
+ * If a lexical map is built only from expressions with statically well-known
+ * runtime values, then answer the instance type of the map that contains
+ * those statically known elements. This gives lexical maps of literals and
+ * statically well-known elements the same force as lexical literals, e.g.,
+ * numbers and strings.
+ *
  * Parameters:
- *    bindings - A key-value tuple type, constructed by the compiler from the
- *       lexically specified bindings.
+ *    elements -
  * Returns:
- *    The requested type.
+ *    The most specific possible type of the lexical set, possibly an instance
+ *    type.
  */
 Semantic restriction "{«_→_‡,»}" is
 [
 	bindings : key-value tuple's type
 |
-	keyType : type := ⊥;
-	valueType : type := ⊥;
-	From 1 to |bindings|'s upper bound do
+	/* Since the argument is derived from a lexically constructed tuple, then
+	 * the cardinality of the argument is guaranteed to be a fixed, finite
+	 * value. Therefore asking for either the lower or upper bound would be
+	 * equivalent.
+	 */
+	limit ::= |bindings|'s upper bound;
+	accumulator : <<>, <<>, any…|[2..2]>… |whole number> := <>;
+	/* Check to see if keys and values are all instance types. */
+	From 1 to limit do
 	[
 		index : natural number
 	|
-		binding ::= cast bindings[index] into [ t : tuple meta | t; ];
-		keyType := keyType ∪ binding[1];
-		valueType := valueType ∪ binding[2];
-		true;
+		binding ::= cast bindings[index] into [ t: tuple meta | t; ];
+		cast binding[1] into
+		[
+			k : enumeration meta
+		|
+			instancesK ::= k's instances;
+			Assert |instancesK| = 1;
+			instanceK ::= instancesK→tuple[1];
+			cast binding[2] into
+			[
+				v : enumeration meta
+			|
+				instancesV ::= v's instances;
+				Assert |instancesV| = 1;
+				instanceV ::= instancesV→tuple[1];
+				accumulator :=
+					cast concatenate <accumulator, <<instanceK, instanceV>>>
+					into [ t : <<>, <<>, any…|[2..2]>… |whole number> | t; ];
+				true;
+			]
+			else
+			[
+				false;
+			];
+		]
+		else
+		[
+			false;
+		];
 	];
-	{keyType→valueType | |bindings|};
+	/* If the keys and values were all instance types, then answer an instance
+	 * type.
+	 */
+	if |accumulator| = limit then
+	[
+		(accumulator→map)'s type;
+	]
+	/* Otherwise, the answer cannot be an instance type. Compute the most
+	 * precise possible map type.
+	 */
+	else
+	[
+		/* Build a tuple of distinct key types encountered during a traversal of
+		 * `bindings`. Two key types are distinct in this sense if they have no
+		 * common descendents more general than ⊥. This establishes a lower
+		 * bound on the answer's cardinality requirement.
+		 *
+		 * Also note what key types have been encountered along the way. At the
+		 * end they will be put into a set to effect deduplication of exact type
+		 * matches. This set establishes an upper bound on the answer's
+		 * cardinality requirement.
+		 */
+		firstBinding ::= cast bindings[1] into [ t : tuple meta | t; ];
+		firstKeyType ::= firstBinding[1];
+		distinct : tuple of type := <firstKeyType>;
+		keyTypes : tuple of type := <firstKeyType>;
+		valueTypes : tuple of type := <firstBinding[2]>;
+		From 2 to limit do
+		[
+			outerIndex : natural number
+		|
+			binding ::= cast bindings[outerIndex] into [ t : tuple meta | t; ];
+			keyType ::= binding[1];
+			keyTypes := cast concatenate <keyTypes, <keyType>>
+				into [ t : tuple of type | t; ];
+			valueTypes := cast concatenate <valueTypes, <binding[2]>>
+				into [ t : tuple of type | t; ];
+			isDistinct : boolean := true;
+			From 1 to |distinct| do
+			[
+				innerIndex : natural number
+			|
+				distinctType ::= cast distinct[innerIndex]
+					into [ t : type | t; ];
+				if ¬(keyType ∩ distinctType = ⊥) then
+				[
+					isDistinct := false;
+					false;
+				]
+				else
+				[
+					true;
+				];
+			];
+			if isDistinct then
+			[
+				distinct := cast concatenate <distinct, <keyType>>
+					into [ t : tuple of type | t; ];
+			];
+			true;
+		];
+		keyTypeSet ::= keyTypes→set;
+		lower ::= |distinct|;
+		upper ::= cast |keyTypeSet| + 1 into [ i : natural number | i; ];
+		{∪ keyTypes → ∪ valueTypes | [lower .. upper)};
+	];
 ];
