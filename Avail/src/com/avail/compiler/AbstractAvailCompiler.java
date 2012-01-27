@@ -362,13 +362,6 @@ public abstract class AbstractAvailCompiler
 	}
 
 	/**
-	 * A stack of {@linkplain Continuation0 continuations} that need to be
-	 * explored at some point.
-	 */
-	final @NotNull Deque<Continuation0> workStack =
-		new ArrayDeque<Continuation0>();
-
-	/**
 	 * This is actually a two-argument continuation, but it has only a single
 	 * type parameter because the first one is always the {@linkplain
 	 * ParserState parser state} that indicates where the continuation should
@@ -412,6 +405,13 @@ public abstract class AbstractAvailCompiler
 	}
 
 	/**
+	 * A stack of {@linkplain Continuation0 continuations} that need to be
+	 * explored at some point.
+	 */
+	private final @NotNull Deque<Continuation0> workPool =
+		new ArrayDeque<Continuation0>();
+
+	/**
 	 * Execute the block, passing a continuation that it should run upon finding
 	 * a local solution. If exactly one solution is found, unwrap the stack (but
 	 * not the token stream position or scopeMap), and pass the result to the
@@ -422,30 +422,19 @@ public abstract class AbstractAvailCompiler
 	 *        Where to start parsing
 	 * @param tryBlock
 	 *        The block to attempt.
-	 * @param continuation
+	 * @param supplyAnswer
 	 *        What to do if exactly one result was produced.
 	 */
 	void tryIfUnambiguousThen (
 		final @NotNull ParserState start,
 		final @NotNull Con<Con<AvailObject>> tryBlock,
-		final @NotNull Con<AvailObject> continuation)
+		final @NotNull Con<AvailObject> supplyAnswer)
 	{
+		assert workPool.isEmpty();
 		final Mutable<Integer> count = new Mutable<Integer>(0);
 		final Mutable<AvailObject> solution = new Mutable<AvailObject>();
 		final Mutable<AvailObject> another = new Mutable<AvailObject>();
 		final Mutable<ParserState> where = new Mutable<ParserState>();
-		final Mutable<Boolean> markerFired = new Mutable<Boolean>(false);
-		attempt(
-			new Continuation0()
-			{
-				@Override
-				public void value ()
-				{
-					markerFired.value = true;
-				}
-			},
-			"Marker for try if unambiguous",
-			start.position);
 		attempt(
 			start,
 			tryBlock,
@@ -472,9 +461,9 @@ public abstract class AbstractAvailCompiler
 					count.value++;
 				}
 			});
-		while (!markerFired.value)
+		while (!workPool.isEmpty() && count.value < 2)
 		{
-			workStack.pop().value();
+			workPool.remove().value();
 		}
 		if (count.value == 0)
 		{
@@ -492,12 +481,13 @@ public abstract class AbstractAvailCompiler
 				another.value);
 			return;
 		}
-		assert count.value == 1;
 		// We found exactly one solution. Advance the token stream just past it,
 		// and redo any side-effects to the scopeMap, then invoke the
 		// continuation with the solution.
-
-		attempt(where.value, continuation, solution.value);
+		assert count.value == 1;
+		assert workPool.isEmpty();
+		supplyAnswer.value(where.value, solution.value);
+		assert workPool.isEmpty();
 	}
 
 	/**
@@ -1266,8 +1256,8 @@ public abstract class AbstractAvailCompiler
 		final @NotNull String description,
 		final int position)
 	{
-		workStack.push(continuation);
-		if (workStack.size() > 1000)
+		workPool.addFirst(continuation);
+		if (workPool.size() > 10000)
 		{
 			throw new RuntimeException("Probable recursive parse error");
 		}
@@ -1494,7 +1484,7 @@ public abstract class AbstractAvailCompiler
 	 *
 	 * @param stateBeforeCall
 	 *            The initial parsing state, prior to parsing the entire
-	 *            message.  TODO: deal correctly with leading argument.
+	 *            message.
 	 * @param stateAfterCall
 	 *            The parsing state after the message.
 	 * @param argumentExpressions
@@ -1652,8 +1642,9 @@ public abstract class AbstractAvailCompiler
 	 * @throws AvailCompilerException
 	 *             If compilation fails.
 	 */
-	private void parseModule (final @NotNull ResolvedModuleName qualifiedName)
-		throws AvailCompilerException
+	private final void parseModule (
+		final @NotNull ResolvedModuleName qualifiedName)
+	throws AvailCompilerException
 	{
 		final AvailRuntime runtime = interpreter.runtime();
 		final ModuleNameResolver resolver = runtime.moduleNameResolver();
@@ -1839,10 +1830,8 @@ public abstract class AbstractAvailCompiler
 			greatestGuess = 0;
 			greatExpectations.clear();
 			interpretation.value = null;
-			parseStatementAsOutermostCanBeLabelThen(
+			parseOutermostStatement(
 				state.value,
-				true,
-				false,
 				new Con<AvailObject>("Outermost statement")
 				{
 					@Override
@@ -1853,13 +1842,12 @@ public abstract class AbstractAvailCompiler
 						assert interpretation.value == null
 						: "Statement parser was supposed to catch ambiguity";
 						interpretation.value = stmt;
-						state.value = afterStatement;
+						state.value = new ParserState(
+							afterStatement.position,
+							state.value.scopeMap);
 					}
 				});
-			while (!workStack.isEmpty())
-			{
-				workStack.pop().value();
-			}
+			exhaustWorkPool();
 
 			if (interpretation.value == null)
 			{
@@ -1918,6 +1906,18 @@ public abstract class AbstractAvailCompiler
 	}
 
 	/**
+	 * Consume and execute actions from the {@link #workPool} until there are no
+	 * more.
+	 */
+	void exhaustWorkPool ()
+	{
+		while (!workPool.isEmpty())
+		{
+			workPool.remove().value();
+		}
+	}
+
+	/**
 	 * Parse a {@linkplain ModuleDescriptor module} header for the specified
 	 * {@linkplain ModuleName module name}. Populate {@link #extendedModules}
 	 * and {@link #usedModules}.
@@ -1964,7 +1964,7 @@ public abstract class AbstractAvailCompiler
 		final @NotNull ResolvedModuleName qualifiedName,
 		final boolean dependenciesOnly)
 	{
-		assert workStack.isEmpty();
+		assert workPool.isEmpty();
 		versions = new ArrayList<AvailObject>();
 		extendedModules = new ArrayList<AvailObject>();
 		usedModules = new ArrayList<AvailObject>();
@@ -2061,7 +2061,7 @@ public abstract class AbstractAvailCompiler
 			return null;
 		}
 		state = state.afterToken();
-		assert workStack.isEmpty();
+		assert workPool.isEmpty();
 		return state;
 	}
 
@@ -2072,6 +2072,13 @@ public abstract class AbstractAvailCompiler
 	 * subsequent parses, as long as the variable declarations up to that point
 	 * were identical.
 	 *
+	 * <p>
+	 * Additionally, the fragmentCache also keeps track of actions to perform
+	 * when another solution is found at this position, so the solutions and
+	 * actions can be added in arbitrary order while ensuring that each action
+	 * gets a chance to try each solution.
+	 * </p>
+	 *
 	 * @param start
 	 *        Where to start parsing.
 	 * @param originalContinuation
@@ -2081,67 +2088,39 @@ public abstract class AbstractAvailCompiler
 		final @NotNull ParserState start,
 		final @NotNull Con<AvailObject> originalContinuation)
 	{
-		if (!fragmentCache.hasComputedForState(start))
+		// The first time we parse at this position the fragmentCache will have
+		// no knowledge about it.
+		if (!fragmentCache.hasStartedParsingAt(start))
 		{
-			final Mutable<Boolean> markerFired = new Mutable<Boolean>(false);
+			fragmentCache.indicateParsingHasStartedAt(start);
 			attempt(
 				new Continuation0()
 				{
 					@Override
 					public void value ()
 					{
-						markerFired.value = true;
-					}
-				},
-				"Expression marker",
-				start.position);
-			fragmentCache.startComputingForState(start);
-			final Con<AvailObject> justRecord =
-				new Con<AvailObject>("Expression")
-				{
-					@Override
-					public void value (
-						final ParserState afterExpr,
-						final AvailObject expr)
-					{
-						fragmentCache.addSolution(
+						parseExpressionUncachedThen(
 							start,
-							new AvailCompilerCachedSolution(afterExpr, expr));
-					}
-				};
-			attempt(
-				new Continuation0()
-				{
-					@Override
-					public void value ()
-					{
-						parseExpressionUncachedThen(start, justRecord);
+							new Con<AvailObject>("Uncached expression")
+							{
+								@Override
+								public void value (
+									final ParserState afterExpr,
+									final AvailObject expr)
+								{
+									fragmentCache.addSolution(
+										start,
+										new AvailCompilerCachedSolution(
+											afterExpr,
+											expr));
+								}
+							});
 					}
 				},
 				"Capture expression for caching",
 				start.position);
-			// Force the previous attempts to all complete.
-			while (!markerFired.value)
-			{
-				workStack.pop().value();
-			}
 		}
-		// Deja vu! We were asked to parse an expression starting at this point
-		// before. Luckily we had the foresight to record what those resulting
-		// expressions were (as well as the scopeMap just after parsing each).
-		// Replay just these solutions to the passed continuation. This has the
-		// effect of eliminating each 'local' misparsing exactly once. I'm not
-		// sure what happens to the order of the algorithm, but it might go from
-		// exponential to small polynomial.
-		final List<AvailCompilerCachedSolution> solutions =
-			fragmentCache.solutionsAt(start);
-		for (final AvailCompilerCachedSolution solution : solutions)
-		{
-			attempt(
-				solution.endState(),
-				originalContinuation,
-				solution.parseNode());
-		}
+		fragmentCache.addAction(start, originalContinuation);
 	}
 
 	/**
@@ -2220,28 +2199,40 @@ public abstract class AbstractAvailCompiler
 	}
 
 	/**
-	 * Parse a statement. This is the boundary for the backtracking grammar. A
-	 * statement must be unambiguous (in isolation) to be valid. The passed
-	 * continuation will be invoked at most once, and only if the statement had
-	 * a single interpretation.
+	 * Parse a top-level statement.  This is the <em>only</em> boundary for the
+	 * backtracking grammar (it used to be that <em>all</em> statements had to
+	 * be unambiguous, even those in blocks).  The passed continuation will be
+	 * invoked at most once, and only if the top-level statement had a single
+	 * interpretation.
 	 *
 	 * <p>
-	 * The {@link #workStack} should have the same content before and after this
-	 * method is invoked.
+	 * The {@link #workPool} should be empty when invoking this method, as it
+	 * will be drained by this method.
 	 * </p>
 	 *
 	 * @param start
+	 *            Where to start parsing a top-level statement.
+	 * @param continuation
+	 *            What to do with the (unambiguous) top-level statement.
+	 */
+	abstract void parseOutermostStatement (
+		final ParserState start,
+		final Con<AvailObject> continuation);
+
+	/**
+	 * Parse a statement within a block, invoking the continuation with it.
+	 * Statements inside a block may be ambiguous, but top level statements may
+	 * not.
+	 *
+	 * @param start
 	 *        Where to start parsing.
-	 * @param outermost
-	 *        Whether this statement is outermost in the module.
 	 * @param canBeLabel
 	 *        Whether this statement can be a label declaration.
 	 * @param continuation
 	 *        What to do with the unambiguous, parsed statement.
 	 */
-	abstract void parseStatementAsOutermostCanBeLabelThen (
+	abstract void parseInnerStatement (
 		final @NotNull ParserState start,
-		final boolean outermost,
 		final boolean canBeLabel,
 		final @NotNull Con<AvailObject> continuation);
 

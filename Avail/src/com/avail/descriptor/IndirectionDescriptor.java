@@ -3890,7 +3890,7 @@ extends AbstractDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject tupleType)
 	{
-		o_Traversed(object).removeSealedArgumentsTup(tupleType);
+		o_Traversed(object).removeSealedArgumentsType(tupleType);
 	}
 
 	@Override

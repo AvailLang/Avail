@@ -169,13 +169,15 @@ public abstract class ParseNodeDescriptor extends Descriptor
 		final int integerCount = object.integerSlotsCount();
 
 		final short descriptorId = (short)(object.descriptorId() & ~1);
-		final AbstractDescriptor mutableDescriptor = allDescriptors.get(descriptorId);
+		final AbstractDescriptor mutableDescriptor =
+			allDescriptors.get(descriptorId);
 		assert mutableDescriptor.getClass() == object.descriptor().getClass();
 
-		final AvailObject copy = AvailObject.newObjectIndexedIntegerIndexedDescriptor(
-			objectCount - numberOfFixedObjectSlots,
-			integerCount - numberOfFixedIntegerSlots,
-			mutableDescriptor);
+		final AvailObject copy =
+			AvailObject.newObjectIndexedIntegerIndexedDescriptor(
+				objectCount - numberOfFixedObjectSlots,
+				integerCount - numberOfFixedIntegerSlots,
+				mutableDescriptor);
 		for (int i = 1; i <= objectCount; i++)
 		{
 			final AvailObject slotValue = object.slot(

@@ -80,33 +80,17 @@ extends AbstractAvailCompiler
 	}
 
 	/**
-	 * Parse a statement. This is the boundary for the backtracking grammar. A
-	 * statement must be unambiguous (in isolation) to be valid. The passed
-	 * continuation will be invoked at most once, and only if the statement had
-	 * a single interpretation.
-	 *
-	 * <p>
-	 * The {@link #workStack} should have the same content before and after this
-	 * method is invoked.
-	 * </p>
-	 *
-	 * @param start
-	 *            Where to start parsing.
-	 * @param outermost
-	 *            Whether this statement is outermost in the module.
-	 * @param canBeLabel
-	 *            Whether this statement can be a label declaration.
-	 * @param continuation
-	 *            What to do with the unambiguous, parsed statement.
+	 * Parse a top-level statement.  This is the <em>only</em> boundary for the
+	 * backtracking grammar (it used to be that <em>all</em> statements had to
+	 * be unambiguous, even those in blocks).  The passed continuation will be
+	 * invoked at most once, and only if the top-level statement had a single
+	 * interpretation.
 	 */
 	@Override
-	void parseStatementAsOutermostCanBeLabelThen (
+	void parseOutermostStatement (
 		final ParserState start,
-		final boolean outermost,
-		final boolean canBeLabel,
 		final Con<AvailObject> continuation)
 	{
-		assert !(outermost & canBeLabel);
 		tryIfUnambiguousThen(
 			start,
 			new Con<Con<AvailObject>>("Detect ambiguity")
@@ -129,14 +113,8 @@ extends AbstractAvailCompiler
 									SEMICOLON,
 									"; to end declaration statement"))
 								{
-									ParserState afterSemicolon =
+									final ParserState afterSemicolon =
 										afterDeclaration.afterToken();
-									if (outermost)
-									{
-										afterSemicolon = new ParserState(
-											afterSemicolon.position,
-											MapDescriptor.empty());
-									}
 									whenFoundStatement.value(
 										afterSemicolon,
 										declaration);
@@ -177,47 +155,104 @@ extends AbstractAvailCompiler
 								{
 									return;
 								}
-								if (!outermost
-									|| expression.expressionType().equals(
-										TOP.o()))
-								{
-									whenFoundStatement.value(
-										afterExpression.afterToken(),
-										expression);
-								}
-								else
-								{
-									afterExpression.expected(
-										"outer level statement "
-										+ "to have top type");
-								}
+								whenFoundStatement.value(
+									afterExpression.afterToken(),
+									expression);
 							}
 						});
-					if (canBeLabel)
-					{
-						parseLabelThen(
-							start,
-							new Con<AvailObject>("Semicolon after label")
-							{
-								@Override
-								public void value (
-									final ParserState afterDeclaration,
-									final AvailObject label)
-								{
-									if (afterDeclaration.peekToken(
-										SEMICOLON,
-										"; to end label statement"))
-									{
-										whenFoundStatement.value(
-											afterDeclaration.afterToken(),
-											label);
-									}
-								}
-							});
-					}
 				}
 			},
 			continuation);
+	}
+
+	@Override
+	void parseInnerStatement (
+		final ParserState start,
+		final boolean canBeLabel,
+		final Con<AvailObject> continuation)
+	{
+		parseDeclarationThen(
+			start,
+			new Con<AvailObject>("Semicolon after declaration")
+			{
+				@Override
+				public void value (
+					final ParserState afterDeclaration,
+					final AvailObject declaration)
+				{
+					if (afterDeclaration.peekToken(
+						SEMICOLON,
+						"; to end declaration statement"))
+					{
+						final ParserState afterSemicolon =
+							afterDeclaration.afterToken();
+						continuation.value(
+							afterSemicolon,
+							declaration);
+					}
+				}
+			});
+		parseAssignmentThen(
+			start,
+			new Con<AvailObject>("Semicolon after assignment")
+			{
+				@Override
+				public void value (
+					final ParserState afterAssignment,
+					final AvailObject assignment)
+				{
+					if (afterAssignment.peekToken(
+						SEMICOLON,
+						"; to end assignment statement"))
+					{
+						continuation.value(
+							afterAssignment.afterToken(),
+							assignment);
+					}
+				}
+			});
+		parseExpressionThen(
+			start,
+			new Con<AvailObject>("Semicolon after expression")
+			{
+				@Override
+				public void value (
+					final ParserState afterExpression,
+					final AvailObject expression)
+				{
+					if (!afterExpression.peekToken(
+						SEMICOLON,
+						"; to end statement"))
+					{
+						return;
+					}
+					continuation.value(
+						afterExpression.afterToken(),
+						expression);
+				}
+			});
+		if (canBeLabel)
+		{
+			parseLabelThen(
+				start,
+				new Con<AvailObject>("Semicolon after label")
+				{
+					@Override
+					public void value (
+						final ParserState afterDeclaration,
+						final AvailObject label)
+					{
+						if (afterDeclaration.peekToken(
+							SEMICOLON,
+							"; to end label statement"))
+						{
+							continuation.value(
+								afterDeclaration.afterToken(),
+								label);
+						}
+					}
+				});
+		}
 	}
 
 	/**
@@ -2325,11 +2360,13 @@ extends AbstractAvailCompiler
 				BottomTypeDescriptor.bottom()))
 			{
 				start.expected(
-					"end of statements, since the previous one has type bottom");
+					"end of statements, since the previous "
+					+ "one has type bottom");
 				return;
 			}
 			if (!lastStatement.expressionType().equals(TOP.o())
-				&& !lastStatement.isInstanceOfKind(ASSIGNMENT_NODE.mostGeneralType()))
+				&& !lastStatement.isInstanceOfKind(
+					ASSIGNMENT_NODE.mostGeneralType()))
 			{
 				start.expected(
 					new Generator<String>()
@@ -2350,9 +2387,8 @@ extends AbstractAvailCompiler
 		start.expected("more statements");
 
 		// Try for more statements.
-		parseStatementAsOutermostCanBeLabelThen(
+		parseInnerStatement(
 			start,
-			false,
 			canHaveLabel && statements.isEmpty(),
 			new Con<AvailObject>("Another statement")
 			{

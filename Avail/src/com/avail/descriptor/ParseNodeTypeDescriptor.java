@@ -177,7 +177,7 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 		/**
 		 * The most general type for this kind of parse node.
 		 */
-		AvailObject mostGeneralType;
+		private AvailObject mostGeneralType;
 
 		/**
 		 * Construct a new {@link ParseNodeKind}.

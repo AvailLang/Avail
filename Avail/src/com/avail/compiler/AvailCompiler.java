@@ -73,33 +73,17 @@ public class AvailCompiler extends AbstractAvailCompiler
 	}
 
 	/**
-	 * Parse a statement. This is the boundary for the backtracking grammar. A
-	 * statement must be unambiguous (in isolation) to be valid. The passed
-	 * continuation will be invoked at most once, and only if the statement had
-	 * a single interpretation.
-	 *
-	 * <p>
-	 * The {@link #workStack} should have the same content before and after this
-	 * method is invoked.
-	 * </p>
-	 *
-	 * @param start
-	 *            Where to start parsing.
-	 * @param outermost
-	 *            Whether this statement is outermost in the module.
-	 * @param canBeLabel
-	 *            Whether this statement can be a label declaration.
-	 * @param continuation
-	 *            What to do with the unambiguous, parsed statement.
+	 * Parse a top-level statement.  This is the <em>only</em> boundary for the
+	 * backtracking grammar (it used to be that <em>all</em> statements had to
+	 * be unambiguous, even those in blocks).  The passed continuation will be
+	 * invoked at most once, and only if the top-level statement had a single
+	 * interpretation.
 	 */
 	@Override
-	void parseStatementAsOutermostCanBeLabelThen (
+	void parseOutermostStatement (
 		final ParserState start,
-		final boolean outermost,
-		final boolean canBeLabel,
 		final Con<AvailObject> continuation)
 	{
-		assert !(outermost & canBeLabel);
 		tryIfUnambiguousThen(
 			start,
 			new Con<Con<AvailObject>>("Detect ambiguity")
@@ -118,9 +102,7 @@ public class AvailCompiler extends AbstractAvailCompiler
 								final ParserState afterExpression,
 								final AvailObject expression)
 							{
-								if (!outermost
-									|| expression.expressionType().equals(
-										TOP.o()))
+								if (expression.expressionType().equals(TOP.o()))
 								{
 									whenFoundStatement.value(
 										afterExpression.afterToken(),
@@ -137,6 +119,28 @@ public class AvailCompiler extends AbstractAvailCompiler
 				}
 			},
 			continuation);
+	}
+
+	@Override
+	void parseInnerStatement (
+		final ParserState start,
+		final boolean canBeLabel,
+		final Con<AvailObject> continuation)
+	{
+		parseExpressionThen(
+			start,
+			new Con<AvailObject>("End of statement")
+			{
+				@Override
+				public void value (
+					final ParserState afterExpression,
+					final AvailObject expression)
+				{
+					continuation.value(
+						afterExpression.afterToken(),
+						expression);
+				}
+			});
 	}
 
 	@Override

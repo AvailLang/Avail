@@ -33,7 +33,9 @@
 package com.avail.compiler;
 
 import java.util.*;
+import com.avail.compiler.AbstractAvailCompiler.Con;
 import com.avail.compiler.AbstractAvailCompiler.ParserState;
+import com.avail.descriptor.AvailObject;
 
 /**
  * An {@code AvailCompilerFragmentCache} implements a memoization mechanism for
@@ -51,35 +53,71 @@ public class AvailCompilerFragmentCache
 	 * ParserState parser states}, since we must take into account which
 	 * variable declarations are in scope when looking for subexpressions.
 	 */
-	private final Map<ParserState, List<AvailCompilerCachedSolution>>
-		solutions =
-			new HashMap<ParserState, List<AvailCompilerCachedSolution>>(100);
+	private final Map<ParserState, AvailCompilerBipartiteRendezvous> solutions =
+		new HashMap<ParserState, AvailCompilerBipartiteRendezvous>(100);
 
 
 	/**
-	 * Answer a {@link List} of {@linkplain AvailCompilerCachedSolution
-	 * solutions} that have been previously parsed at the specified position.
+	 * Answer whether expression parsing has started at this position.
 	 *
-	 * @param state The {@link ParserState} at which parsing is to take place.
-	 * @return The list of solutions.  Do not modify the list.
+	 * @param state
+	 *            The {@linkplain ParserState} at which parsing may have started
+	 * @return
+	 *            Whether parsing has started at that position.
 	 */
-	List<AvailCompilerCachedSolution> solutionsAt (
+	boolean hasStartedParsingAt (
 		final ParserState state)
 	{
-		return solutions.get(state);
+		return solutions.containsKey(state);
 	}
 
 	/**
-	 * Add one more parse solution at the specified position.
+	 * Indicate that parsing has started at this position.
 	 *
-	 * @param state The {@link ParserState} at which parsing took place.
-	 * @param solution The solution found starting at that position.
+	 * @param state
+	 *            The {@linkplain ParserState} at which parsing has started.
+	 */
+	void indicateParsingHasStartedAt (
+		final ParserState state)
+	{
+		assert !hasStartedParsingAt(state);
+		solutions.put(state, new AvailCompilerBipartiteRendezvous());
+		assert hasStartedParsingAt(state);
+	}
+
+	/**
+	 * Add one more parse solution at the specified position, running any
+	 * waiting actions with it.
+	 *
+	 * @param state
+	 *            The {@link ParserState} at which parsing took place.
+	 * @param solution
+	 *            The {@link AvailCompilerCachedSolution solution} found
+	 *            starting at that position.
 	 */
 	void addSolution (
 			final ParserState state,
 			final AvailCompilerCachedSolution solution)
 	{
-		solutions.get(state).add(solution);
+		solutions.get(state).addSolution(solution);
+	}
+
+	/**
+	 * Add one more action at the specified position, running it for any
+	 * solutions that now exist or will exist later.
+	 *
+	 * @param state
+	 *            The {@link ParserState} at which the action is expecting
+	 *            solutions to show up.
+	 * @param action
+	 *            The {@link Con action} to run with each solution found at the
+	 *            specified position.
+	 */
+	void addAction (
+			final ParserState state,
+			final Con<AvailObject> action)
+	{
+		solutions.get(state).addAction(action);
 	}
 
 	/**
@@ -92,35 +130,4 @@ public class AvailCompilerFragmentCache
 		solutions.clear();
 	}
 
-	/**
-	 * Answer whether an attempt has already been made to parse solutions at the
-	 * specified {@linkplain ParserState parse position}.
-	 *
-	 * @param state
-	 *            The state starting at which subexpression parsing may have
-	 *            already taken place.
-	 * @return
-	 *            Whether a previous parse attempt has taken place starting at
-	 *            the specified state, the results having been cached.
-	 */
-	boolean hasComputedForState (
-			final ParserState state)
-	{
-		return solutions.containsKey(state);
-	}
-
-	/**
-	 * Record the fact that no solutions have yet been found starting at the
-	 * specified {@link ParserState}.  Subsequent successful parses of
-	 * subexpressions starting there may be added to this list via {@link
-	 * #addSolution(ParserState, AvailCompilerCachedSolution)}.
-	 *
-	 * @param state The state at which parsing solutions will be attempted.
-	 */
-	void startComputingForState (
-			final ParserState state)
-	{
-		assert !hasComputedForState(state);
-		solutions.put(state, new ArrayList<AvailCompilerCachedSolution>(3));
-	}
 }

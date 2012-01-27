@@ -5477,7 +5477,7 @@ implements Iterable<AvailObject>
 	/**
 	 * @param tupleType
 	 */
-	public void removeSealedArgumentsTup (final AvailObject tupleType)
+	public void removeSealedArgumentsType (final @NotNull AvailObject tupleType)
 	{
 		descriptor.o_RemoveSealedArgumentsType(this, tupleType);
 	}

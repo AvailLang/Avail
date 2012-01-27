@@ -151,5 +151,9 @@ Assert (all indexes of <1,2,2,3> where [ x : any | x = 9;]) = <>;
 s ::= "" then "" then "" then "" then "" then "" then "" then "" then "" then
       "" then "" then "" then "" then "" then "" then "" then "" then "" then
       "" then "" then "" then "" then "" then "" then "" then "" then "" then
+      "" then "" then "" then "" then "" then "" then "" then "" then "" then
+      "" then "" then "" then "" then "" then "" then "" then "" then "" then
+      "" then "" then "" then "" then "" then "" then "" then "" then "" then
+      "" then "" then "" then "" then "" then "" then "" then "" then "" then
       "" then "" then "" then "" then "" then "" then "" then "" then "" then "";
 Assert s = "";
