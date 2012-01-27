@@ -68,7 +68,8 @@ import com.avail.interpreter.levelTwo.instruction.L2AttemptPrimitiveInstruction;
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
-public enum Primitive implements IntegerEnumSlotDescriptionEnum
+public enum Primitive
+implements IntegerEnumSlotDescriptionEnum
 {
 	/**
 	 * <strong>Primitive 1:</strong> Add two {@linkplain

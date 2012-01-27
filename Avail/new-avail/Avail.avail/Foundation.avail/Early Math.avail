@@ -1,0 +1,405 @@
+/*
+ * Early Math.avail
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Early Math"
+Versions
+	"dev"
+Extends
+Uses
+	"Assertions",
+	"Bootstrap",
+	"Early Control Structures",
+	"Early Literals",
+	"Early Logic"
+Names
+	"[_.._]",
+	"[_.._)",
+	"(_.._]",
+	"(_.._)",
+	"_'s lower bound is inclusive",
+	"_'s upper bound is inclusive",
+	"«_‡max»",
+	"«_‡min»"
+Body
+
+/**
+ * Answer the semantic restriction function that should be used for each of
+ * `_'s lower bound` and `_'s upper bound`.
+ *
+ * Returns:
+ *    A function that strengthens the integer range bounds methods.
+ */
+Method "integer range bound semantic restriction function" is
+[
+	[
+		range : extended integer meta's type
+	|
+		Assert ¬(range = ⊥);
+		instances ::= cast range's instances
+			into [ t : {extended integer meta|whole number} | t; ];
+		Assert |instances| = 1;
+		instance ::= cast instances→tuple[1] into
+			[ t : extended integer meta | t; ];
+		/* Treat the upper bound as inclusive in order to handle ∞. */
+		integer range
+			from instance's lower bound (inclusive=true)
+			to instance's upper bound (inclusive=true);
+	];
+];
+
+/**
+ * Strengthen the bound to have the same static type as the argument. Note that
+ * this is the strongest possible type because the argument's subtypes have
+ * lower and upper bounds drawn from the argument's entire range.
+ *
+ * Parameters:
+ *    range -
+ * Returns:
+ *    The same type as the argument to `_'s lower bound`.
+ */
+Semantic restriction "_'s lower bound" is
+	integer range bound semantic restriction function;
+
+/**
+ * Strengthen the bound to have the same static type as the argument. Note that
+ * this is the strongest possible type because the argument's subtypes have
+ * lower and upper bounds drawn from the argument's entire range.
+ *
+ * Parameters:
+ *    range -
+ * Returns:
+ *    The same type as the argument to `_'s upper bound`.
+ */
+Semantic restriction "_'s upper bound" is
+	integer range bound semantic restriction function;
+
+/**
+ * Construct and answer an integer range type with the specified bounds.
+ * 
+ * Parameters:
+ *    lowerBound - The lower bound, inclusive.
+ *    upperBound - The upper bound, inclusive.
+ * Returns:
+ *    The requested integer range.
+ */
+Method "[_.._]" is
+[
+	lowerBound : extended integer,
+	upperBound : extended integer
+|
+	integer range
+		from lowerBound (inclusive=true)
+		to upperBound (inclusive=true);
+] : extended integer meta;
+
+/**
+ * Strengthen integer range types.
+ *
+ * Parameters:
+ *    lowerBound -
+ *    upperBound -
+ * Returns:
+ *    The most specific possible type of the integer range type expression.
+ */
+Semantic restriction "[_.._]" is
+[
+	lowerBound : extended integer meta,
+	upperBound : extended integer meta
+|
+	(integer range
+		from lowerBound's lower bound (inclusive=true)
+		to upperBound's upper bound (inclusive=true))'s type;
+];
+
+/**
+ * Construct and answer an integer range type with the specified bounds.
+ * 
+ * Parameters:
+ *    lowerBound - The lower bound, inclusive.
+ *    upperBound - The upper bound, exclusive.
+ * Returns:
+ *    The requested integer range.
+ */
+Method "[_.._)" is
+[
+	lowerBound : extended integer,
+	upperBound : extended integer
+|
+	integer range
+		from lowerBound (inclusive=true)
+		to upperBound (inclusive=false);
+] : extended integer meta;
+
+/**
+ * Strengthen integer range types.
+ *
+ * Parameters:
+ *    lowerBound -
+ *    upperBound -
+ * Returns:
+ *    The most specific possible type of the integer range type expression.
+ */
+Semantic restriction "[_.._)" is
+[
+	lowerBound : extended integer meta,
+	upperBound : extended integer meta
+|
+	(integer range
+		from lowerBound's lower bound (inclusive=true)
+		to upperBound's upper bound (inclusive=false))'s type;
+];
+
+/**
+ * Construct and answer an integer range type with the specified bounds.
+ * 
+ * Parameters:
+ *    lowerBound - The lower bound, exclusive.
+ *    upperBound - The upper bound, inclusive.
+ * Returns:
+ *    The requested integer range.
+ */
+Method "(_.._]" is
+[
+	lowerBound : extended integer,
+	upperBound : extended integer
+|
+	integer range
+		from lowerBound (inclusive=false)
+		to upperBound (inclusive=true);
+] : extended integer meta;
+
+/**
+ * Strengthen integer range types.
+ *
+ * Parameters:
+ *    lowerBound -
+ *    upperBound -
+ * Returns:
+ *    The most specific possible type of the integer range type expression.
+ */
+Semantic restriction "(_.._]" is
+[
+	lowerBound : extended integer meta,
+	upperBound : extended integer meta
+|
+	(integer range
+		from lowerBound's lower bound (inclusive=false)
+		to upperBound's upper bound (inclusive=true))'s type;
+];
+
+/**
+ * Construct and answer an integer range type with the specified bounds.
+ * 
+ * Parameters:
+ *    lowerBound - The lower bound, exclusive.
+ *    upperBound - The upper bound, exclusive.
+ * Returns:
+ *    The requested integer range.
+ */
+Method "(_.._)" is
+[
+	lowerBound : extended integer,
+	upperBound : extended integer
+|
+	integer range
+		from lowerBound (inclusive=false)
+		to upperBound (inclusive=false);
+] : extended integer meta;
+
+/**
+ * Strengthen integer range types.
+ *
+ * Parameters:
+ *    lowerBound -
+ *    upperBound -
+ * Returns:
+ *    The most specific possible type of the integer range type expression.
+ */
+Semantic restriction "(_.._)" is
+[
+	lowerBound : extended integer meta,
+	upperBound : extended integer meta
+|
+	(integer range
+		from lowerBound's lower bound (inclusive=false)
+		to upperBound's upper bound (inclusive=false))'s type;
+];
+
+/**
+ * Is the lower bound of the argument inclusive?
+ * 
+ * Note that integer ranges canonize each bound as inclusive unless the bound is
+ * ±∞. So `(3..6)` is really `[4..5]` and will answer `true` if asked whether
+ * its lower bound is inclusive. But `(-∞..0]` will answer `false` if asked
+ * whether its lower bound is inclusive.
+ * 
+ * Parameters:
+ *    range - An integer range.
+ * Returns:
+ *    `false` if the lower bound is infinite and exclusive, `true` otherwise.
+ */
+Method "_'s lower bound is inclusive" is
+[
+	range : extended integer meta
+|
+	bound ::= range's lower bound;
+	bound's type ≤ range;
+] : boolean;
+
+/**
+ * Is the upper bound of the argument inclusive?
+ * 
+ * Note that integer ranges canonize each bound as inclusive unless the bound is
+ * ±∞. So `(3..6)` is really `[4..5]` and will answer `true` if asked whether
+ * its upper bound is inclusive. But `[0..∞)` will answer `false` if asked
+ * whether its upper bound is inclusive.
+ * 
+ * Parameters:
+ *    range - An integer range.
+ * Returns:
+ *    `false` if the upper bound is infinite and exclusive, `true` otherwise.
+ */
+Method "_'s upper bound is inclusive" is
+[
+	range : extended integer meta
+|
+	bound ::= range's upper bound;
+	bound's type ≤ range;
+] : boolean;
+
+/**
+ * Answer the minimum of the specified numbers.
+ *
+ * Parameters:
+ *    numbers - A tuple of numbers.
+ * Returns:
+ *    The minimum of the specified numbers.
+ */
+Method "«_‡min»" is
+[
+	numbers : <<>, number…|[2..∞)>
+|
+	min : number := cast numbers[1] into [ t : number | t; ];
+	From 2 to |numbers| do
+	[
+		index : natural number
+	|
+		n ::= cast numbers[index] into [ t : number | t; ];
+		min := if n ≤ min then [ n; ] else [ min; ];
+		¬(min = -∞);
+	];
+	min;
+] : number;
+
+/**
+ * Answer the maximum of the specified numbers.
+ *
+ * Parameters:
+ *    numbers - A tuple of numbers.
+ * Returns:
+ *    The maximum of the specified numbers.
+ */
+Method "«_‡max»" is
+[
+	numbers : <<>, number…|[2..∞)>
+|
+	max : number := cast numbers[1] into [ t : number | t; ];
+	From 2 to |numbers| do
+	[
+		index : natural number
+	|
+		n ::= cast numbers[index] into [ t : number | t; ];
+		max := if n ≤ max then [ max; ] else [ n; ];
+		¬(max = ∞);
+	];
+	max;
+] : number;
+
+/* Disambiguate `∪_` and `∪_[_.._]` by forbidding `_[_.._]` as the only argument
+ * of the former.
+ */
+invoke
+	[
+		cast ::= [ t : {string|whole number} | t; ];
+		names ::= cast <"∪_">→set into cast;
+		exclusions ::= cast <"_[_.._]">→set into cast;
+		Grammatical restriction names is <exclusions>;
+	]
+with <>;
+
+/*
+ * TODO: [TLS] Strengthen `_min_` and `_max_`.
+ */
+/**
+ * Answer the semantic restriction function that should be used for each of
+ * `«_‡min»` and `«_‡max»`. This is a fairly weak strengthening.
+ *
+ * Returns:
+ *    A function that strengthens the extremum methods.
+ */
+Method "extremum semantic restriction function" is
+[
+	[
+		numbers : <<>, number…|[2..∞)>'s type
+	|
+		Assert ¬(numbers = ⊥);
+		/* Since the argument is derived from a lexically constructed tuple,
+		 * then the cardinality of the argument is guaranteed to be a fixed,
+		 * finite value. Therefore asking for either the lower or upper bound
+		 * would be equivalent.
+		 */
+		upper ::= cast |numbers|'s upper bound into [ t : natural number | t; ];
+		∪ numbers [1..upper];
+	];
+];
+
+/**
+ * Strengthen the extremum to the type union of all numerically valued
+ * expressions.
+ * 
+ * Parameters:
+ *    numbers -
+ * Returns:
+ *    The type union of the argument expressions.
+ */
+Semantic restriction "«_‡min»" is extremum semantic restriction function;
+
+/**
+ * Strengthen the extremum to the type union of all numerically valued
+ * expressions.
+ * 
+ * Parameters:
+ *    numbers -
+ * Returns:
+ *    The type union of the argument expressions.
+ */
+Semantic restriction "«_‡max»" is extremum semantic restriction function;

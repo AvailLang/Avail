@@ -39,214 +39,12 @@ Uses
 	"Assertions",
 	"Bootstrap",
 	"Early Control Structures",
-	"Early Logic"
+	"Early Logic",
+	"Early Math"
 Names
-	"[_.._]",
-	"[_.._)",
-	"(_.._]",
-	"(_.._)",
 	"{«_‡,»}",
 	"{«_→_‡,»}"
 Body
-
-/**
- * Answer the semantic restriction function that should be used for each of
- * `_'s lower bound` and `_'s upper bound`.
- *
- * Returns:
- *    A function that strengthens the integer range bounds methods.
- */
-Method "integer range bound semantic restriction function" is
-[
-	[
-		range : extended integer meta's type
-	|
-		instances ::= cast range's instances
-			into [ t : {extended integer meta|whole number} | t; ];
-		Assert |instances| = 1;
-		instance ::= cast instances→tuple[1] into
-			[ t : extended integer meta | t; ];
-		instance;
-	];
-];
-
-/**
- * Strengthen the bound to have the same static type as the argument. Note that
- * this is the strongest possible type because the argument's subtypes have
- * lower and upper bounds drawn from the argument's entire range.
- *
- * Parameters:
- *    range -
- * Returns:
- *    The same type as the argument to `_'s lower bound`.
- */
-Semantic restriction "_'s lower bound" is
-	integer range bound semantic restriction function;
-
-/**
- * Strengthen the bound to have the same static type as the argument. Note that
- * this is the strongest possible type because the argument's subtypes have
- * lower and upper bounds drawn from the argument's entire range.
- *
- * Parameters:
- *    range -
- * Returns:
- *    The same type as the argument to `_'s upper bound`.
- */
-Semantic restriction "_'s upper bound" is
-	integer range bound semantic restriction function;
-
-/**
- * Construct and answer an integer range type with the specified bounds.
- * 
- * Parameters:
- *    lowerBound - The lower bound, inclusive.
- *    upperBound - The upper bound, inclusive.
- * Returns:
- *    The requested integer range.
- */
-Method "[_.._]" is
-[
-	lowerBound : extended integer,
-	upperBound : extended integer
-|
-	integer range
-		from lowerBound (inclusive=true)
-		to upperBound (inclusive=true);
-] : extended integer meta;
-
-/**
- * Strengthen integer range types.
- *
- * Parameters:
- *    lowerBound -
- *    upperBound -
- * Returns:
- *    The most specific possible type of the integer range type expression.
- */
-Semantic restriction "[_.._]" is
-[
-	lowerBound : extended integer meta,
-	upperBound : extended integer meta
-|
-	(integer range
-		from lowerBound's lower bound (inclusive=true)
-		to upperBound's upper bound (inclusive=true))'s type;
-];
-
-/**
- * Construct and answer an integer range type with the specified bounds.
- * 
- * Parameters:
- *    lowerBound - The lower bound, inclusive.
- *    upperBound - The upper bound, exclusive.
- * Returns:
- *    The requested integer range.
- */
-Method "[_.._)" is
-[
-	lowerBound : extended integer,
-	upperBound : extended integer
-|
-	integer range
-		from lowerBound (inclusive=true)
-		to upperBound (inclusive=false);
-] : extended integer meta;
-
-/**
- * Strengthen integer range types.
- *
- * Parameters:
- *    lowerBound -
- *    upperBound -
- * Returns:
- *    The most specific possible type of the integer range type expression.
- */
-Semantic restriction "[_.._)" is
-[
-	lowerBound : extended integer meta,
-	upperBound : extended integer meta
-|
-	(integer range
-		from lowerBound's lower bound (inclusive=true)
-		to upperBound's upper bound (inclusive=false))'s type;
-];
-
-/**
- * Construct and answer an integer range type with the specified bounds.
- * 
- * Parameters:
- *    lowerBound - The lower bound, exclusive.
- *    upperBound - The upper bound, inclusive.
- * Returns:
- *    The requested integer range.
- */
-Method "(_.._]" is
-[
-	lowerBound : extended integer,
-	upperBound : extended integer
-|
-	integer range
-		from lowerBound (inclusive=false)
-		to upperBound (inclusive=true);
-] : extended integer meta;
-
-/**
- * Strengthen integer range types.
- *
- * Parameters:
- *    lowerBound -
- *    upperBound -
- * Returns:
- *    The most specific possible type of the integer range type expression.
- */
-Semantic restriction "(_.._]" is
-[
-	lowerBound : extended integer meta,
-	upperBound : extended integer meta
-|
-	(integer range
-		from lowerBound's lower bound (inclusive=false)
-		to upperBound's upper bound (inclusive=true))'s type;
-];
-
-/**
- * Construct and answer an integer range type with the specified bounds.
- * 
- * Parameters:
- *    lowerBound - The lower bound, exclusive.
- *    upperBound - The upper bound, exclusive.
- * Returns:
- *    The requested integer range.
- */
-Method "(_.._)" is
-[
-	lowerBound : extended integer,
-	upperBound : extended integer
-|
-	integer range
-		from lowerBound (inclusive=false)
-		to upperBound (inclusive=false);
-] : extended integer meta;
-
-/**
- * Strengthen integer range types.
- *
- * Parameters:
- *    lowerBound -
- *    upperBound -
- * Returns:
- *    The most specific possible type of the integer range type expression.
- */
-Semantic restriction "(_.._)" is
-[
-	lowerBound : extended integer meta,
-	upperBound : extended integer meta
-|
-	(integer range
-		from lowerBound's lower bound (inclusive=false)
-		to upperBound's upper bound (inclusive=false))'s type;
-];
 
 /**
  * If a lexical tuple is built only from expressions with statically well-known
@@ -302,6 +100,55 @@ Semantic restriction "<«_‡,»>" is
 ];
 
 /**
+ * Strengthen the tuple subscript operation. The strongest available static type
+ * is the type union of the elements within the slice indicated by the range of
+ * the subscript. Forbid any access that could never be correct, i.e., the
+ * minimum value of the subscript exceeds the maximum cardinality of the tuple.
+ *
+ * Parameters:
+ *    aTuple -
+ *    index -
+ * Returns:
+ *    The type union of the elements accessible by an actual subscript of the
+ *    specified type.
+ */
+Semantic restriction "_[_]" is
+[
+	aTuple : tuple meta,
+	index : natural number's type
+|
+	if |aTuple|'s upper bound ≤ index's lower bound then
+	[
+		messageTuple ::= concatenate <
+			"a subscript (",
+			primitive description of index's lower bound,
+			" ≤ theSubscript ≤ ",
+			primitive description of index's upper bound,
+			") that could ever be valid (",
+			primitive description of |aTuple|'s lower bound,
+			" ≤ |theTuple| ≤ ",
+			primitive description of |aTuple|'s upper bound,
+			")">;
+		message ::= cast messageTuple into [ t : string | t; ];
+		Reject parse, expected: message;
+	];
+	union : type := ⊥;
+	limit ::= cast |aTuple's leading types| + 1
+		into [ t : natural number | t; ];
+	startIndex ::= cast index's lower bound min limit
+		into [ t : natural number | t; ];
+	endIndex ::= index's upper bound min limit;
+	From startIndex to endIndex do
+	[
+		i : natural number
+	|
+		union := union ∪ aTuple[i];
+		true;
+	];
+	union;
+];
+
+/**
  * Construct and answer a set from the lexically specified expressions.
  *
  * Parameters:
@@ -316,18 +163,6 @@ Method "{«_‡,»}" is
 |
 	elements→set;
 ] : set;
-
-/* Disambiguate `∪_` and `∪_[_.._]` by forbidding `_[_.._]` as the only argument
- * of the former.
- */
-invoke
-	[
-		cast ::= [ t : {string|whole number} | t; ];
-		names ::= cast <"∪_">→set into cast;
-		exclusions ::= cast <"_[_.._]">→set into cast;
-		Grammatical restriction names is <exclusions>;
-	]
-with <>;
 
 /**
  * If a lexical set is built only from expressions with statically well-known
@@ -408,9 +243,7 @@ Semantic restriction "{«_‡,»}" is
 			[
 				innerIndex : natural number
 			|
-				distinctType ::= cast distinct[innerIndex]
-					into [ t : type | t; ];
-				if ¬(element ∩ distinctType = ⊥) then
+				if ¬(element ∩ distinct[innerIndex] = ⊥) then
 				[
 					isDistinct := false;
 					false;
@@ -430,7 +263,7 @@ Semantic restriction "{«_‡,»}" is
 		typeSet ::= types→set;
 		lower ::= |distinct|;
 		upper ::= cast |typeSet| + 1 into [ i : natural number | i; ];
-		{∪ types | [lower .. upper)};
+		{∪ types | [lower..upper)};
 	];
 ];
 
@@ -550,9 +383,7 @@ Semantic restriction "{«_→_‡,»}" is
 			[
 				innerIndex : natural number
 			|
-				distinctType ::= cast distinct[innerIndex]
-					into [ t : type | t; ];
-				if ¬(keyType ∩ distinctType = ⊥) then
+				if ¬(keyType ∩ distinct[innerIndex] = ⊥) then
 				[
 					isDistinct := false;
 					false;
@@ -572,6 +403,6 @@ Semantic restriction "{«_→_‡,»}" is
 		keyTypeSet ::= keyTypes→set;
 		lower ::= |distinct|;
 		upper ::= cast |keyTypeSet| + 1 into [ i : natural number | i; ];
-		{∪ keyTypes → ∪ valueTypes | [lower .. upper)};
+		{∪ keyTypes → ∪ valueTypes | [lower..upper)};
 	];
 ];

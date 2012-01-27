@@ -323,26 +323,26 @@ Semantic restriction "invoke_with_" is
  * consecutive number in the range established by `startIndex` and `endIndex`.
  * 
  * Parameters:
- *    startIndex - The start index, inclusive.
- *    endIndex - The end index, inclusive.
+ *    start - The start index, inclusive.
+ *    end - The end index, inclusive.
  *    action - A function that accepts an index in the specified range. If it
  *       answers `true`, then continue to iterate; if it answers `false`, then
  *       terminate iteration early.
  */
 Method "From_to_do_" is
 [
-	startIndex : natural number,
-	endIndex : whole number,
+	start : natural number,
+	end : integer range from 0 (inclusive=true) to ∞ (inclusive=true),
 	action : function accepting <natural number> and returning boolean
 |
-	index : natural number := startIndex;
+	value : natural number := start;
 	invoke
 		[
 			$loop : $function accepting <> and returning ⊤;
-			if index ≤ endIndex then
+			if value ≤ end then
 			[
-				continue ::= invoke action with <index>;
-				index := cast index + 1 into [ i : natural number | i; ];
+				continue ::= invoke action with <value>;
+				value := cast value + 1 into [ i : natural number | i; ];
 				if continue then
 				[
 					Restart loop;
