@@ -34,6 +34,7 @@ package com.avail.compiler.scanning;
 import static com.avail.compiler.scanning.AvailScanner.ScannerAction.*;
 import java.util.*;
 import com.avail.annotations.*;
+import com.avail.compiler.AbstractAvailCompiler;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 
@@ -591,7 +592,8 @@ public class AvailScanner
 				final AvailObject token =
 					scanner.addCurrentToken(TokenType.KEYWORD);
 				if (scanner.stopAfterNamesToken
-					&& token.string().asNativeString().equals("Names"))
+					&& token.string().equals(
+						AbstractAvailCompiler.ExpectedToken.NAMES.lexeme()))
 				{
 					scanner.encounteredNamesToken = true;
 				}
@@ -600,9 +602,9 @@ public class AvailScanner
 
 		/**
 		 * The semicolon is not considered an operator character and cannot be
-		 * used within operators. Parse it by itself as a
-		 * {@linkplain TokenDescriptor token} whose type is
-		 * {@link TokenType#END_OF_STATEMENT}.
+		 * used within operators. Parse it by itself as a {@linkplain
+		 * TokenDescriptor token} whose type is {@link
+		 * TokenType#END_OF_STATEMENT}.
 		 */
 		SEMICOLON()
 		{

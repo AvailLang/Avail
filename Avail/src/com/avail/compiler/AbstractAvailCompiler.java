@@ -165,7 +165,7 @@ public abstract class AbstractAvailCompiler
 	 * system compiler}, though a few (related to module headers) are needed
 	 * also by the {@linkplain AvailCompiler standard compiler}.
 	 */
-	enum ExpectedToken
+	public enum ExpectedToken
 	{
 		/** Module header token. Must be the first token of a system module. */
 		SYSTEM("System", KEYWORD),
@@ -255,7 +255,7 @@ public abstract class AbstractAvailCompiler
 		 *
 		 * @return The lexeme.
 		 */
-		@NotNull AvailObject lexeme ()
+		public @NotNull AvailObject lexeme ()
 		{
 			return lexeme;
 		}

@@ -1167,6 +1167,7 @@ public class MessageSplitter
 		return aCharacter == '_'
 			|| aCharacter == '…'
 			|| aCharacter == ' '
+			|| aCharacter == '/'
 			|| AvailScanner.isOperatorCharacter(aCharacter);
 	}
 
