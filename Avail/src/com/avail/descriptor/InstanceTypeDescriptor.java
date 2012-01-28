@@ -616,7 +616,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	AvailObject o_Parent (final AvailObject object)
 	{
-		//TODO Maybe think about this one.
+		// TODO: [MvG] Maybe think about this one.
 		return getSuperkind(object).parent();
 	}
 
@@ -692,7 +692,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	AvailObject o_ValueType (final AvailObject object)
 	{
-		// TODO Auto-generated method stub
+		// TODO: [MvG] Is this legal?
 		return null;
 	}
 

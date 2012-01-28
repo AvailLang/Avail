@@ -44,22 +44,12 @@ import com.avail.descriptor.*;
 import com.avail.utility.Generator;
 
 /**
- * TODO: Document this type!
- *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
- */
-/**
  * Unit tests for the {@link AvailScanner}.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
 public final class ScannerTest
 {
-	/**
-	 * TODO: Document this type!
-	 *
-	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
-	 */
 	/**
 	 * A {@code Case} consists of a string to be lexically scanned, and a
 	 * description of the exact tokens that should be produced.

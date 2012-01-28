@@ -155,7 +155,8 @@ extends Descriptor
 		 * collector in the current scavenge cycle.  If it's still clear at flip
 		 * time, the chunk is unreferenced and can be reclaimed.
 		 *
-		 * TODO: This is not used by the current (2011.05.11) Avail-on-Java VM.
+		 * TODO: [MvG] This is not used by the current (2011.05.11)
+		 * Avail-on-Java VM.
 		 */
 		@BitField(shift=30, bits=1)
 		static final BitField SAVED =
@@ -548,8 +549,8 @@ extends Descriptor
 	public static void moveToHead (final @NotNull AvailObject chunk)
 	{
 		// Do nothing for now.
-		// TODO: Move it to the head of a ring that holds chunks weakly but
-		// explicitly evicts & invalidates the oldest entry sometimes.
+		// TODO: [MvG] Move it to the head of a ring that holds chunks weakly
+		// but explicitly evicts & invalidates the oldest entry sometimes.
 	}
 
 	/**

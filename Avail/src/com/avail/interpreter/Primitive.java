@@ -5371,7 +5371,6 @@ implements IntegerEnumSlotDescriptionEnum
 			final AvailObject name = args.get(0);
 			try
 			{
-				// TODO: This really ought to extend the Avail grammar.
 				return interpreter.primitiveSuccess(
 					interpreter.lookupName(name));
 			}
@@ -7167,7 +7166,7 @@ implements IntegerEnumSlotDescriptionEnum
 					constructorArgs, constructorArgTypePojos);
 				newObject = constructor.newInstance(marshaledArgs);
 			}
-			catch (final Exception e)
+			catch (final Throwable e)
 			{
 				return interpreter.primitiveFailure(E_JAVA_CONSTRUCTOR_FAILED);
 			}
@@ -7180,7 +7179,7 @@ implements IntegerEnumSlotDescriptionEnum
 			{
 				newPojo = PojoTypeDescriptor.unmarshal(newObject, expectedType);
 			}
-			catch (final Exception e)
+			catch (final Throwable e)
 			{
 				return interpreter.primitiveFailure(E_JAVA_CONSTRUCTOR_FAILED);
 			}
@@ -7207,8 +7206,6 @@ implements IntegerEnumSlotDescriptionEnum
 
 	/**
 	 * The success state of a primitive attempt.
-	 *
-	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
 	 */
 	public enum Result
 	{
@@ -7243,31 +7240,29 @@ implements IntegerEnumSlotDescriptionEnum
 	/**
 	 * These flags are used by the execution machinery and optimizer to indicate
 	 * the potential mischief that the corresponding primitives may get into.
-	 *
-	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
 	 */
 	public enum Flag
 	{
 		/**
 		 * The primitive can be attempted by the {@code L2Translator Level Two
 		 * translator} at re-optimization time if the arguments are known
-		 * constants.  The result should be stable, such that invoking the
+		 * constants. The result should be stable, such that invoking the
 		 * primitive again with the same arguments should produce the same
-		 * value.  The primitive should not have side-effects.
+		 * value. The primitive should not have side-effects.
 		 */
 		CanFold,
 
 		/**
-		 * The primitive can be safely inlined.  In particular, it simply
+		 * The primitive can be safely inlined. In particular, it simply
 		 * computes a value or changes the state of something and does not
-		 * replace the current continuation in unusual ways.  Thus, it is
-		 * suitable for directly embedding in {@linkplain L2Interpreter Level Two}
-		 * code by the {@linkplain L2Translator Level Two translator}, without the
-		 * need to reify the current continuation.
+		 * replace the current continuation in unusual ways. Thus, it is
+		 * suitable for directly embedding in {@linkplain L2Interpreter Level
+		 * Two} code by the {@linkplain L2Translator Level Two translator},
+		 * without the need to reify the current continuation.
 		 *
 		 * <p>The primitive may still fail at runtime, but that's dealt with by
 		 * a conditional branch in the {@linkplain L2AttemptPrimitiveInstruction
-		 * attempt-primitive wordcode} itself.
+		 * attempt-primitive wordcode} itself.</p>
 		 */
 		CanInline,
 
@@ -7278,7 +7273,7 @@ implements IntegerEnumSlotDescriptionEnum
 		HasSideEffect,
 
 		/**
-		 * The primitive can invoke a function.  If the function is a
+		 * The primitive can invoke a function. If the function is a
 		 * non-primitive (or a primitive that fails), the current continuation
 		 * must be reified before the call.
 		 */
@@ -7292,16 +7287,16 @@ implements IntegerEnumSlotDescriptionEnum
 		SwitchesContinuation,
 
 		/**
-		 * The primitive returns some constant.  Currently this is only used for
-		 * {@link Primitive#prim340_PushConstant primitive 340},
-		 * which always returns the first literal of the {@linkplain
-		 * CompiledCodeDescriptor compiled code}.
+		 * The primitive returns some constant. Currently this is only used for
+		 * {@link Primitive#prim340_PushConstant primitive 340}, which always
+		 * returns the first literal of the {@linkplain CompiledCodeDescriptor
+		 * compiled code}.
 		 */
 		SpecialReturnConstant,
 
 		/**
-		 * The primitive cannot fail.  Hence, there is no need for Avail code
-		 * to run in the event of a primitive failure.  Hence, such code is
+		 * The primitive cannot fail. Hence, there is no need for Avail code
+		 * to run in the event of a primitive failure. Hence, such code is
 		 * forbidden (because it would be unreachable).
 		 */
 		CannotFail,
@@ -7325,13 +7320,12 @@ implements IntegerEnumSlotDescriptionEnum
 
 		/**
 		 * The semantics of the primitive fall outside the usual capacity of the
-		 * {@linkplain L2Translator Level Two translator}.  The current continuation
-		 * should be reified prior to attempting the primitive.  Do not attempt
-		 * to fold or inline this primitive.
+		 * {@linkplain L2Translator Level Two translator}. The current
+		 * continuation should be reified prior to attempting the primitive. Do
+		 * not attempt to fold or inline this primitive.
 		 */
 		Unknown
 	}
-
 
 	/**
 	 * Attempt this primitive with the given arguments, and the {@linkplain
@@ -7355,14 +7349,13 @@ implements IntegerEnumSlotDescriptionEnum
 		List<AvailObject> args,
 		Interpreter interpreter);
 
-
 	/**
 	 * Return a function type that restricts actual primitive blocks defined
 	 * using that primitive.  The actual block's argument types must be at least
-	 * as specific as this function type's argument types, and the actual block's
-	 * return type must be at least as general as this function type's return
-	 * type.  That's equivalent to the condition that the actual block's type is
-	 * a subtype of this function type.
+	 * as specific as this function type's argument types, and the actual
+	 * block's return type must be at least as general as this function type's
+	 * return type.  That's equivalent to the condition that the actual block's
+	 * type is a subtype of this function type.
 	 *
 	 * @return
 	 *             A function type that restricts the type of a block that uses
@@ -7371,20 +7364,20 @@ implements IntegerEnumSlotDescriptionEnum
 	protected abstract @NotNull AvailObject privateBlockTypeRestriction ();
 
 	/**
-	 * A {@linkplain FunctionTypeDescriptor function type} that restricts the type
-	 * of block that can use this primitive.  This is initialized lazily to the
-	 * value provided by {@link #privateBlockTypeRestriction()}, to avoid having
-	 * to compute this function type multiple times.
+	 * A {@linkplain FunctionTypeDescriptor function type} that restricts the
+	 * type of block that can use this primitive.  This is initialized lazily to
+	 * the value provided by {@link #privateBlockTypeRestriction()}, to avoid
+	 * having to compute this function type multiple times.
 	 */
 	private AvailObject cachedBlockTypeRestriction;
 
 	/**
 	 * Return a function type that restricts actual primitive blocks defined
 	 * using that primitive.  The actual block's argument types must be at least
-	 * as specific as this function type's argument types, and the actual block's
-	 * return type must be at least as general as this function type's return
-	 * type.  That's equivalent to the condition that the actual block's type is
-	 * a subtype of this function type.
+	 * as specific as this function type's argument types, and the actual
+	 * block's return type must be at least as general as this function type's
+	 * return type.  That's equivalent to the condition that the actual block's
+	 * type is a subtype of this function type.
 	 *
 	 * <p>
 	 * Cache the value in this {@linkplain Primitive} so subsequent requests are
@@ -7403,7 +7396,8 @@ implements IntegerEnumSlotDescriptionEnum
 			final AvailObject argsTupleType =
 				cachedBlockTypeRestriction.argsTupleType();
 			final AvailObject sizeRange = argsTupleType.sizeRange();
-			assert cachedBlockTypeRestriction.equals(BottomTypeDescriptor.bottom())
+			assert cachedBlockTypeRestriction.equals(
+					BottomTypeDescriptor.bottom())
 				|| (sizeRange.lowerBound().extractInt() == argCount()
 					&& sizeRange.upperBound().extractInt() == argCount());
 		}
@@ -7456,7 +7450,6 @@ implements IntegerEnumSlotDescriptionEnum
 		return cachedFailureVariableType;
 	}
 
-
 	/**
 	 * Clear all cached block type restrictions and failure variable types.
 	 */
@@ -7469,26 +7462,22 @@ implements IntegerEnumSlotDescriptionEnum
 		}
 	}
 
-
 	/**
 	 * This primitive's number.  The Avail source code refers to this primitive
 	 * by number.
 	 */
 	public final short primitiveNumber;
 
-
 	/**
 	 * The number of arguments this primitive expects.
 	 */
 	final int argCount;
 
-
 	/**
 	 * The flags that indicate to the {@link L2Translator} how an invocation of
 	 * this primitive should be handled.
 	 */
-	private final EnumSet<Flag> primitiveFlags;
-
+	private final @NotNull EnumSet<Flag> primitiveFlags;
 
 	/**
 	 * Test whether the specified {@link Flag} is set for this primitive.
@@ -7496,11 +7485,10 @@ implements IntegerEnumSlotDescriptionEnum
 	 * @param flag The {@code Flag} to test.
 	 * @return Whether that {@code Flag} is set for this primitive.
 	 */
-	public final boolean hasFlag (final Flag flag)
+	public final boolean hasFlag (final @NotNull Flag flag)
 	{
 		return primitiveFlags.contains(flag);
 	}
-
 
 	/**
 	 * The number of arguments this primitive expects.
@@ -7511,7 +7499,6 @@ implements IntegerEnumSlotDescriptionEnum
 	{
 		return argCount;
 	}
-
 
 	/**
 	 * This static inner class definition forces the ClassLoader to make this
@@ -7527,12 +7514,10 @@ implements IntegerEnumSlotDescriptionEnum
 		public static int maxPrimitiveNumber = Integer.MIN_VALUE;
 	}
 
-
 	/**
 	 * An array of all primitives, indexed by primitive number.
 	 */
 	private static final Primitive[] byPrimitiveNumber;
-
 
 	// The enumeration values have been initialized, which means
 	// PrimitiveCounter#maxPrimitiveNumber has been computed.  Create a suitable
@@ -7546,7 +7531,6 @@ implements IntegerEnumSlotDescriptionEnum
 			byPrimitiveNumber[prim.primitiveNumber - 1] = prim;
 		}
 	}
-
 
 	/**
 	 * Locate the primitive that has the specified primitive number.
@@ -7564,7 +7548,6 @@ implements IntegerEnumSlotDescriptionEnum
 		return null;
 	}
 
-
 	/**
 	 * Construct a new {@link Primitive}.  The first argument is a primitive
 	 * number, the second is the number of arguments with which the primitive
@@ -7579,7 +7562,7 @@ implements IntegerEnumSlotDescriptionEnum
 	Primitive (
 		final int primitiveNumber,
 		final int argCount,
-		final Flag ... flags)
+		final @NotNull Flag ... flags)
 	{
 		this.primitiveNumber = (short)primitiveNumber;
 		this.argCount = argCount;

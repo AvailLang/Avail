@@ -1387,17 +1387,12 @@ public class TypeConsistencyTest
 		{
 			for (final Node y : Node.values)
 			{
-				// TODO: Remove!
-				if (y.allDescendants.contains(x) != x.subtype(y))
-				{
-					x.t.isSubtypeOf(y.t);
-					assertEQ(
-						y.allDescendants.contains(x),
-						x.subtype(y),
-						"graph model (not as declared): %s, %s",
-						x,
-						y);
-				}
+				assertEQ(
+					y.allDescendants.contains(x),
+					x.subtype(y),
+					"graph model (not as declared): %s, %s",
+					x,
+					y);
 				assertEQ(
 					x == y,
 					x.t.equals(y.t),
@@ -1531,7 +1526,7 @@ public class TypeConsistencyTest
 		{
 			for (final Node y : Node.values)
 			{
-				// TODO: [TLS] Remove guard.
+				// TODO: [TLS] Remove this guard after thorough debugging.
 				if (!x.union(y).equals(y.union(x)))
 				{
 					x.t.typeUnion(y.t);
@@ -1566,7 +1561,7 @@ public class TypeConsistencyTest
 					final AvailObject xyUz = xy.typeUnion(z.t);
 					final AvailObject yz = y.union(z);
 					final AvailObject xUyz = x.t.typeUnion(yz);
-					// TODO: [TLS] Remove guard after thorough debugging.
+					// TODO: [TLS] Remove this guard after thorough debugging.
 					if (!xyUz.equals(xUyz))
 					{
 						xy.typeUnion(z.t);
@@ -1642,7 +1637,7 @@ public class TypeConsistencyTest
 			{
 				final AvailObject xy = x.intersect(y);
 				final AvailObject yx = y.intersect(x);
-				// TODO: Remove this guard.
+				// TODO: [TLS] Remove this guard after thorough debugging.
 				if (!xy.equals(yx))
 				{
 					x.t.typeIntersection(y.t);

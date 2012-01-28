@@ -801,7 +801,8 @@ extends TypeDescriptor
 		return createWithArgumentTupleType(
 			BottomTypeDescriptor.bottom(),
 			returnType,
-			SetDescriptor.empty());//TODO: Probably should allow any exception.
+			// TODO: [MvG] Probably should allow any exception.
+			SetDescriptor.empty());
 	}
 
 	/**

@@ -38,7 +38,7 @@ import java.util.List;
 import com.avail.annotations.*;
 
 /**
- * TODO: Document this type!
+ * TODO: [MvG] Document this type!
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */

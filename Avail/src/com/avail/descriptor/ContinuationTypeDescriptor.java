@@ -56,19 +56,19 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
  * </p>
  *
  * <p>
- * TODO: Continuation types should be parameterizable with generalized function
- * types.  This would allow prim58 (restart with the same arguments) to be
- * performed even if the specific argument types were not known, but prim56
- * (restart with new arguments) would be forbidden.  Prim57 (Exit with value)
- * would be unaffected.  Make sure to update type computations and type
+ * TODO: [MvG] Continuation types should be parameterizable with generalized
+ * function types. This would allow prim58 (restart with the same arguments) to
+ * be performed even if the specific argument types were not known, but prim56
+ * (restart with new arguments) would be forbidden. Prim57 (Exit with value)
+ * would be unaffected. Make sure to update type computations and type
  * compatibility tests appropriately to accommodate the contained generalized
  * function types.
  * </p>
  *
  * <p>
- * TODO: If/when function types support checked exceptions we won't need to
- * mention them in continuation types, since invoking a continuation in any way
- * (restart, exit, resume) causes exception obligations/permissions to be
+ * TODO: [MvG] If/when function types support checked exceptions we won't need
+ * to mention them in continuation types, since invoking a continuation in any
+ * way (restart, exit, resume) causes exception obligations/permissions to be
  * instantly voided.
  * </p>
  *

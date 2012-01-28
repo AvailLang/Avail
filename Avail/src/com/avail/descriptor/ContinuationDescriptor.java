@@ -58,9 +58,9 @@ import com.avail.interpreter.levelTwo.L2Interpreter;
  * </p>
  *
  * <p>
- * TODO: Support labels in arbitrary locations perhaps.  This would be the most
- * general continuation type, above all the rest.  Its only supported operation
- * would be a new Resume primitive that took no other arguments.
+ * TODO: [MvG] Support labels in arbitrary locations perhaps.  This would be the
+ * most general continuation type, above all the rest.  Its only supported
+ * operation would be a new Resume primitive that took no other arguments.
  * </p>
  *
  * @author Mark van Gulik&lt;ghoul137@gmail.com&gt;

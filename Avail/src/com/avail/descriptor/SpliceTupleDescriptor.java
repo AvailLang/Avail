@@ -38,7 +38,7 @@ import java.util.List;
 import com.avail.annotations.*;
 
 /**
- * TODO: Document this type!
+ * TODO: [MvG] Document this type!
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
@@ -58,7 +58,7 @@ extends TupleDescriptor
 		HASH_OR_ZERO,
 
 		/**
-		 * TODO
+		 * TODO: [MvG] Document this.
 		 */
 		INTEGER_ZONE_DATA_AT_;
 
@@ -75,7 +75,7 @@ extends TupleDescriptor
 	public enum ObjectSlots implements ObjectSlotsEnum
 	{
 		/**
-		 * TODO
+		 * TODO: [MvG] Document this.
 		 */
 		OBJECT_ZONE_DATA_AT_
 	}

@@ -407,8 +407,8 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	AvailObject o_FieldTypeMap (final AvailObject object)
 	{
-		// TODO It's unclear what to return here.  Maybe raise an unchecked
-		// exception.
+		// TODO: [MvG] It's unclear what to return here.  Maybe raise an
+		// unchecked exception.
 		return null;
 	}
 

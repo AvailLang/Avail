@@ -36,7 +36,7 @@ import static java.lang.Integer.bitCount;
 import com.avail.annotations.*;
 
 /**
- * TODO: Document this type!
+ * TODO: [MvG] Document this type!
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  * @author Todd Smith &lt;anarakul@gmail.com&gt;

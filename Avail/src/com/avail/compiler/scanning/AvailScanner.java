@@ -547,7 +547,7 @@ public class AvailScanner
 								assert c == ')';
 								break;
 							case '[':
-								// TODO: Support power strings
+								// TODO: [MvG] Support power strings
 								throw new AvailScannerException(
 									"Power strings are not yet supported",
 									scanner);
