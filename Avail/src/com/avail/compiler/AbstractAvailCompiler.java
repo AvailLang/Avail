@@ -585,7 +585,6 @@ public abstract class AbstractAvailCompiler
 		 */
 		@NotNull AvailObject peekToken ()
 		{
-			assert !atEnd();
 			return tokens.get(position);
 		}
 
@@ -1640,7 +1639,7 @@ public abstract class AbstractAvailCompiler
 	 *        The {@linkplain ResolvedModuleName resolved name} of the
 	 *        {@linkplain ModuleDescriptor source module}.
 	 * @throws AvailCompilerException
-	 *             If compilation fails.
+	 *         If compilation fails.
 	 */
 	private final void parseModule (
 		final @NotNull ResolvedModuleName qualifiedName)
