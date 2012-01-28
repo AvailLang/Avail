@@ -135,8 +135,7 @@ Semantic restriction "_[_]" is
 	union : type := ⊥;
 	limit ::= cast |aTuple's leading types| + 1
 		into [ t : natural number | t; ];
-	startIndex ::= cast index's lower bound min limit
-		into [ t : natural number | t; ];
+	startIndex ::= index's lower bound min limit;
 	endIndex ::= index's upper bound min limit;
 	From startIndex to endIndex do
 	[
@@ -163,6 +162,18 @@ Method "{«_‡,»}" is
 |
 	elements→set;
 ] : set;
+
+/* Disambiguate `∪_` and `∪_[_.._]` by forbidding `_[_.._]` as the only argument
+ * of the former.
+ */
+invoke
+	[
+		cast ::= [ t : {string|whole number} | t; ];
+		names ::= cast <"∪_">→set into cast;
+		exclusions ::= cast <"_[_.._]">→set into cast;
+		Grammatical restriction names is <exclusions>;
+	]
+with <>;
 
 /**
  * If a lexical set is built only from expressions with statically well-known

@@ -47,6 +47,8 @@ Names
 	"(_.._)",
 	"_'s lower bound is inclusive",
 	"_'s upper bound is inclusive",
+	"max_",
+	"min_",
 	"«_‡max»",
 	"«_‡min»"
 Body
@@ -297,6 +299,30 @@ Method "_'s upper bound is inclusive" is
 ] : boolean;
 
 /**
+ * Answer a function that computes the  mininum of a tuple of numbers.
+ * 
+ * Returns:
+ *    The requested function.
+ */
+Method "minimum function" is
+[
+	[
+		numbers : <<>, number…|[1..∞)>
+	|
+		min : number := cast numbers[1] into [ t : number | t; ];
+		From 2 to |numbers| do
+		[
+			index : natural number
+		|
+			n ::= cast numbers[index] into [ t : number | t; ];
+			min := if n ≤ min then [ n; ] else [ min; ];
+			¬(min = -∞);
+		];
+		min;
+	] : number;
+];
+
+/**
  * Answer the minimum of the specified numbers.
  *
  * Parameters:
@@ -304,21 +330,41 @@ Method "_'s upper bound is inclusive" is
  * Returns:
  *    The minimum of the specified numbers.
  */
-Method "«_‡min»" is
+Method "min_" is minimum function;
+
+/**
+ * Answer the minimum of the specified numbers.
+ *
+ * Parameters:
+ *    numbers - A tuple of numbers.
+ * Returns:
+ *    The minimum of the specified numbers.
+ */
+Method "«_‡min»" is minimum function;
+
+/**
+ * Answer a function that computes the maximum of a tuple of numbers.
+ * 
+ * Returns:
+ *    The requested function.
+ */
+Method "maximum function" is
 [
-	numbers : <<>, number…|[2..∞)>
-|
-	min : number := cast numbers[1] into [ t : number | t; ];
-	From 2 to |numbers| do
 	[
-		index : natural number
+		numbers : <<>, number…|[1..∞)>
 	|
-		n ::= cast numbers[index] into [ t : number | t; ];
-		min := if n ≤ min then [ n; ] else [ min; ];
-		¬(min = -∞);
-	];
-	min;
-] : number;
+		max : number := cast numbers[1] into [ t : number | t; ];
+		From 2 to |numbers| do
+		[
+			index : natural number
+		|
+			n ::= cast numbers[index] into [ t : number | t; ];
+			max := if n ≤ max then [ max; ] else [ n; ];
+			¬(max = ∞);
+		];
+		max;
+	] : number;
+];
 
 /**
  * Answer the maximum of the specified numbers.
@@ -328,78 +374,252 @@ Method "«_‡min»" is
  * Returns:
  *    The maximum of the specified numbers.
  */
-Method "«_‡max»" is
-[
-	numbers : <<>, number…|[2..∞)>
-|
-	max : number := cast numbers[1] into [ t : number | t; ];
-	From 2 to |numbers| do
-	[
-		index : natural number
-	|
-		n ::= cast numbers[index] into [ t : number | t; ];
-		max := if n ≤ max then [ max; ] else [ n; ];
-		¬(max = ∞);
-	];
-	max;
-] : number;
+Method "max_" is maximum function;
 
-/* Disambiguate `∪_` and `∪_[_.._]` by forbidding `_[_.._]` as the only argument
- * of the former.
- */
-invoke
-	[
-		cast ::= [ t : {string|whole number} | t; ];
-		names ::= cast <"∪_">→set into cast;
-		exclusions ::= cast <"_[_.._]">→set into cast;
-		Grammatical restriction names is <exclusions>;
-	]
-with <>;
-
-/*
- * TODO: [TLS] Strengthen `_min_` and `_max_`.
- */
 /**
- * Answer the semantic restriction function that should be used for each of
- * `«_‡min»` and `«_‡max»`. This is a fairly weak strengthening.
+ * Answer the maximum of the specified numbers.
  *
+ * Parameters:
+ *    numbers - A tuple of numbers.
  * Returns:
- *    A function that strengthens the extremum methods.
+ *    The maximum of the specified numbers.
  */
-Method "extremum semantic restriction function" is
+Method "«_‡max»" is maximum function;
+
+/**
+ * Answer the semantic restriction function for minimum determination when all
+ * values are extended integers.
+ * 
+ * Returns:
+ *    The semantic restriction function.
+ */
+Method "minimum semantic restriction" is
 [
 	[
-		numbers : <<>, number…|[2..∞)>'s type
+		numbers : <<>, extended integer…|[1..∞)>'s type
 	|
-		Assert ¬(numbers = ⊥);
-		/* Since the argument is derived from a lexically constructed tuple,
-		 * then the cardinality of the argument is guaranteed to be a fixed,
-		 * finite value. Therefore asking for either the lower or upper bound
-		 * would be equivalent.
-		 */
-		upper ::= cast |numbers|'s upper bound into [ t : natural number | t; ];
-		∪ numbers [1..upper];
+		first ::= cast numbers[1] into [ t : extended integer meta | t; ];
+		min : extended integer := first's lower bound;
+		minInclusive : boolean := first's lower bound is inclusive;
+		max : extended integer := first's upper bound;
+		maxInclusive : boolean := first's upper bound is inclusive;
+		limit ::= cast |numbers's leading types| + 1
+			into [ t : natural number | t; ];
+		From 2 to limit do
+		[
+			index : natural number
+		|
+			value ::= cast numbers[index]
+				into [ t : extended integer meta | t; ];
+			lower ::= value's lower bound;
+			if lower = min then
+			[
+				minInclusive :=
+					minInclusive ∨ [ value's lower bound is inclusive; ];
+			]
+			else
+			[
+				if lower < min then
+				[
+					min := lower;
+					minInclusive := value's lower bound is inclusive;
+				];
+			];
+			upper ::= value's upper bound;
+			if upper = max then
+			[
+				maxInclusive :=
+					maxInclusive ∧ [ value's upper bound is inclusive; ];
+			]
+			else
+			[
+				if upper < max then
+				[
+					max := upper;
+					maxInclusive := value's upper bound is inclusive;
+				];
+			];
+			true;
+		];
+		if (min = max) ∧ [ minInclusive = maxInclusive; ] then
+		[
+			min's type;
+		]
+		else
+		[
+			integer range
+				from min (inclusive=minInclusive)
+				to max (inclusive=maxInclusive);
+		];
+	] : extended integer meta;
+];
+
+/**
+ * Given integer ranges [a1,n1], [a2,n2], [a3,n3], etc., the minimum
+ * value will lie between [a1 min a2 min a3 min ..., n1 min n2 min n3 min ...].
+ * Answer an instance type if possible.
+ *
+ * Parameters:
+ *    numbers - The static types of the operand expressions.
+ * Returns:
+ *    The strongest possible integer range for the minimum value.
+ */
+Semantic restriction "min_" is minimum semantic restriction;
+Semantic restriction "«_‡min»" is minimum semantic restriction;
+
+/**
+ * Answer the semantic restriction function for extremum determination when all
+ * values are single-precision floating point numbers.
+ * 
+ * Returns:
+ *    The semantic restriction function.
+ */
+Method "extremum semantic restriction(float)" is
+[
+	[
+		number : <<>, float…|[2..∞)>'s type
+	|
+		float;
 	];
 ];
 
 /**
- * Strengthen the extremum to the type union of all numerically valued
- * expressions.
+ * Answer the semantic restriction function for extremum determination when all
+ * values are double-precision floating point numbers.
  * 
- * Parameters:
- *    numbers -
  * Returns:
- *    The type union of the argument expressions.
+ *    The semantic restriction function.
  */
-Semantic restriction "«_‡min»" is extremum semantic restriction function;
+Method "extremum semantic restriction(double)" is
+[
+	[
+		number : <<>, double…|[2..∞)>'s type
+	|
+		double;
+	];
+];
 
 /**
- * Strengthen the extremum to the type union of all numerically valued
- * expressions.
- * 
+ * Given only floats, the minimum must be a float.
+ *
  * Parameters:
- *    numbers -
+ *    number - The static types of the operand expressions.
  * Returns:
- *    The type union of the argument expressions.
+ *    `float`.
  */
-Semantic restriction "«_‡max»" is extremum semantic restriction function;
+Semantic restriction "min_" is extremum semantic restriction (float);
+Semantic restriction "«_‡min»" is extremum semantic restriction (float);
+
+/**
+ * Given only doubles, the minimum must be a double.
+ *
+ * Parameters:
+ *    number - The static types of the operand expressions.
+ * Returns:
+ *    `double`.
+ */
+Semantic restriction "min_" is extremum semantic restriction (double);
+Semantic restriction "«_‡min»" is extremum semantic restriction (double);
+
+/**
+ * Answer the semantic restriction function for maximum determination when all
+ * values are extended integers.
+ * 
+ * Returns:
+ *    The semantic restriction function.
+ */
+Method "maximum semantic restriction" is
+[
+	[
+		numbers : <<>, extended integer…|[1..∞)>'s type
+	|
+		first ::= cast numbers[1] into [ t : extended integer meta | t; ];
+		min : extended integer := first's lower bound;
+		minInclusive : boolean := first's lower bound is inclusive;
+		max : extended integer := first's upper bound;
+		maxInclusive : boolean := first's upper bound is inclusive;
+		limit ::= cast |numbers's leading types| + 1
+			into [ t : natural number | t; ];
+		From 2 to limit do
+		[
+			index : natural number
+		|
+			value ::= cast numbers[index]
+				into [ t : extended integer meta | t; ];
+			lower ::= value's lower bound;
+			if min = lower then
+			[
+				minInclusive :=
+					minInclusive ∧ [ value's lower bound is inclusive; ];
+			]
+			else
+			[
+				if min < lower then
+				[
+					min := lower;
+					minInclusive := value's lower bound is inclusive;
+				];
+			];
+			upper ::= value's upper bound;
+			if max = upper then
+			[
+				maxInclusive :=
+					maxInclusive ∨ [ value's upper bound is inclusive; ];
+			]
+			else
+			[
+				if max < upper then
+				[
+					max := upper;
+					maxInclusive := value's upper bound is inclusive;
+				];
+			];
+			true;
+		];
+		if (min = max) ∧ [ minInclusive = maxInclusive; ] then
+		[
+			min's type;
+		]
+		else
+		[
+			integer range
+				from min (inclusive=minInclusive)
+				to max (inclusive=maxInclusive);
+		];
+	] : extended integer meta;
+];
+
+/**
+ * Given integer ranges [a1,n1], [a2,n2], [a3,n3], etc., the maximum
+ * value will lie between [a1 max a2 max a3 max ..., n1 max n2 max n3 max ...].
+ * Answer an instance type if possible.
+ *
+ * Parameters:
+ *    numbers - The static types of the operand expressions.
+ * Returns:
+ *    The strongest possible integer range for the maximum value.
+ */
+Semantic restriction "max_" is maximum semantic restriction;
+Semantic restriction "«_‡max»" is maximum semantic restriction;
+
+/**
+ * Given only floats, the maximum must be a float.
+ *
+ * Parameters:
+ *    number - The static types of the operand expressions.
+ * Returns:
+ *    `float`.
+ */
+Semantic restriction "max_" is extremum semantic restriction (float);
+Semantic restriction "«_‡max»" is extremum semantic restriction (float);
+
+/**
+ * Given only doubles, the maximum must be a double.
+ *
+ * Parameters:
+ *    number - The static types of the operand expressions.
+ * Returns:
+ *    `double`.
+ */
+Semantic restriction "max_" is extremum semantic restriction (double);
+Semantic restriction "«_‡max»" is extremum semantic restriction (double);
