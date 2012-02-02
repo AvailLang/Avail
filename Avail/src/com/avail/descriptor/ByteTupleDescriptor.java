@@ -474,7 +474,7 @@ extends TupleDescriptor
 	}
 
 	/** {@link ByteTupleDescriptor}s corresponding to different sizes. */
-	private final static ByteTupleDescriptor[] descriptors =
+	private static final ByteTupleDescriptor[] descriptors =
 	{
 		new ByteTupleDescriptor(true, 0),
 		new ByteTupleDescriptor(false, 0),

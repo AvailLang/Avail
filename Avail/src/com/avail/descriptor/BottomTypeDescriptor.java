@@ -352,7 +352,7 @@ extends AbstractEnumerationTypeDescriptor
 	/**
 	 * The mutable {@link BottomTypeDescriptor}.
 	 */
-	private final static BottomTypeDescriptor mutable =
+	private static final BottomTypeDescriptor mutable =
 		new BottomTypeDescriptor(true);
 
 	/**
@@ -368,7 +368,7 @@ extends AbstractEnumerationTypeDescriptor
 	/**
 	 * The immutable {@link BottomTypeDescriptor}.
 	 */
-	private final static BottomTypeDescriptor immutable =
+	private static final BottomTypeDescriptor immutable =
 		new BottomTypeDescriptor(false);
 
 	/**

@@ -191,7 +191,7 @@ extends ParseNodeDescriptor
 	/**
 	 * The mutable {@link ReferenceNodeDescriptor}.
 	 */
-	private final static ReferenceNodeDescriptor mutable =
+	private static final ReferenceNodeDescriptor mutable =
 		new ReferenceNodeDescriptor(true);
 
 	/**
@@ -207,7 +207,7 @@ extends ParseNodeDescriptor
 	/**
 	 * The immutable {@link ReferenceNodeDescriptor}.
 	 */
-	private final static ReferenceNodeDescriptor immutable =
+	private static final ReferenceNodeDescriptor immutable =
 		new ReferenceNodeDescriptor(false);
 
 	/**

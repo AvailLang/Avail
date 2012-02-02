@@ -408,7 +408,7 @@ extends SetBinDescriptor
 	/**
 	 * The array of {@link LinearSetBinDescriptor}s.
 	 */
-	final static LinearSetBinDescriptor[] descriptors;
+	static final LinearSetBinDescriptor[] descriptors;
 
 	static
 	{

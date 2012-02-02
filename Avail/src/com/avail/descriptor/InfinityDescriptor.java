@@ -165,19 +165,6 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_HashOfType (
-		final @NotNull AvailObject object)
-	{
-		// Answer my type's hash value (without creating any objects).
-		final int objectHash = object.hash();
-		return IntegerRangeTypeDescriptor.computeHash(
-			objectHash,
-			objectHash,
-			true,
-			true);
-	}
-
-	@Override @AvailMethod
 	boolean o_IsFinite (
 		final @NotNull AvailObject object)
 	{
@@ -563,7 +550,7 @@ extends ExtendedIntegerDescriptor
 	/**
 	 * The mutable {@link InfinityDescriptor}.
 	 */
-	private final static InfinityDescriptor mutable =
+	private static final InfinityDescriptor mutable =
 		new InfinityDescriptor(true);
 
 	/**
@@ -579,7 +566,7 @@ extends ExtendedIntegerDescriptor
 	/**
 	 * The immutable {@link InfinityDescriptor}.
 	 */
-	private final static InfinityDescriptor immutable =
+	private static final InfinityDescriptor immutable =
 		new InfinityDescriptor(false);
 
 	/**

@@ -304,7 +304,7 @@ extends TypeDescriptor
 	/**
 	 * The mutable {@link CompiledCodeTypeDescriptor}.
 	 */
-	private final static CompiledCodeTypeDescriptor mutable =
+	private static final CompiledCodeTypeDescriptor mutable =
 		new CompiledCodeTypeDescriptor(true);
 
 	/**
@@ -320,7 +320,7 @@ extends TypeDescriptor
 	/**
 	 * The immutable {@link CompiledCodeTypeDescriptor}.
 	 */
-	private final static CompiledCodeTypeDescriptor immutable =
+	private static final CompiledCodeTypeDescriptor immutable =
 		new CompiledCodeTypeDescriptor(false);
 
 	/**

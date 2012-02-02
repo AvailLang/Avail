@@ -248,7 +248,7 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * The mutable {@link TupleNodeDescriptor}.
 	 */
-	private final static TupleNodeDescriptor mutable =
+	private static final TupleNodeDescriptor mutable =
 		new TupleNodeDescriptor(true);
 
 	/**
@@ -264,7 +264,7 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * The immutable {@link TupleNodeDescriptor}.
 	 */
-	private final static TupleNodeDescriptor immutable =
+	private static final TupleNodeDescriptor immutable =
 		new TupleNodeDescriptor(false);
 
 	/**

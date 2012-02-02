@@ -130,7 +130,7 @@ extends ImplementationDescriptor
 	/**
 	 * The mutable {@link AbstractDeclarationDescriptor}.
 	 */
-	private final static AbstractDeclarationDescriptor mutable =
+	private static final AbstractDeclarationDescriptor mutable =
 		new AbstractDeclarationDescriptor(true);
 
 	/**
@@ -144,7 +144,7 @@ extends ImplementationDescriptor
 	/**
 	 * The immutable {@link AbstractDeclarationDescriptor}.
 	 */
-	private final static AbstractDeclarationDescriptor immutable =
+	private static final AbstractDeclarationDescriptor immutable =
 		new AbstractDeclarationDescriptor(false);
 
 	/**

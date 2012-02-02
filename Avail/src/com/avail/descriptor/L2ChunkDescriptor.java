@@ -758,7 +758,7 @@ extends Descriptor
 	/**
 	 * The mutable {@link L2ChunkDescriptor}.
 	 */
-	private final static L2ChunkDescriptor mutable = new L2ChunkDescriptor(true);
+	private static final L2ChunkDescriptor mutable = new L2ChunkDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link L2ChunkDescriptor}.
@@ -773,7 +773,7 @@ extends Descriptor
 	/**
 	 * The immutable {@link L2ChunkDescriptor}.
 	 */
-	private final static L2ChunkDescriptor immutable = new L2ChunkDescriptor(false);
+	private static final L2ChunkDescriptor immutable = new L2ChunkDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link L2ChunkDescriptor}.

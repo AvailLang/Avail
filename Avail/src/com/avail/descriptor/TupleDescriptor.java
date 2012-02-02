@@ -35,9 +35,11 @@ package com.avail.descriptor;
 import static com.avail.descriptor.AvailObject.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static java.lang.Math.min;
+import static java.util.Collections.min;
 import static java.util.Collections.max;
 import java.util.*;
 import com.avail.annotations.*;
+import com.avail.serialization.SerializerOperation;
 
 /**
  * {@code TupleDescriptor} is an abstract descriptor class under which all tuple
@@ -732,6 +734,79 @@ extends Descriptor
 		return false;
 	}
 
+	@Override
+	@AvailMethod @ThreadSafe
+	@NotNull SerializerOperation o_SerializerOperation (
+		final @NotNull AvailObject object)
+	{
+		final int size = object.tupleSize();
+		if (size == 0)
+		{
+			return SerializerOperation.NYBBLE_TUPLE;
+		}
+		boolean hasNonChars = false;
+		boolean hasNonInts = false;
+		int maxCodePoint = 0;
+		int maxInteger = 0;
+		int minInteger = 0;
+		for (int i = 1; i <= size; i++)
+		{
+			final AvailObject element = object.tupleAt(i);
+			if (element.isCharacter())
+			{
+				if (hasNonChars)
+				{
+					return SerializerOperation.GENERAL_TUPLE;
+				}
+				hasNonInts = true;
+				maxCodePoint = Math.max(maxCodePoint, element.codePoint());
+			}
+			else
+			{
+				if (hasNonInts)
+				{
+					return SerializerOperation.GENERAL_TUPLE;
+				}
+				hasNonChars = true;
+				if (element.isInt())
+				{
+					final int integer = element.extractInt();
+					maxInteger = Math.max(maxInteger, integer);
+					minInteger = Math.min(minInteger, integer);
+				}
+				else
+				{
+					return SerializerOperation.GENERAL_TUPLE;
+				}
+			}
+		}
+		assert !(hasNonChars && hasNonInts);
+		if (hasNonChars)
+		{
+			assert !hasNonInts;
+			if (minInteger >= 0 && maxInteger <= 15)
+			{
+				return SerializerOperation.NYBBLE_TUPLE;
+			}
+			if (minInteger >= 0 && maxInteger <= 255)
+			{
+				return SerializerOperation.BYTE_TUPLE;
+			}
+			return SerializerOperation.GENERAL_TUPLE;
+		}
+		assert hasNonInts;
+		if (maxCodePoint <= 255)
+		{
+			return SerializerOperation.BYTE_STRING;
+		}
+		if (maxCodePoint <= 65535)
+		{
+			return SerializerOperation.SHORT_STRING;
+		}
+		return SerializerOperation.ARBITRARY_STRING;
+	}
+
+
 	/**
 	 * Compute the object's hash value.
 	 *
@@ -1009,8 +1084,9 @@ extends Descriptor
 		final List<Integer> list)
 	{
 		AvailObject tuple;
+		final int minValue = list.size() == 0 ? 0 : min(list);
 		final int maxValue = list.size() == 0 ? 0 : max(list);
-		if (maxValue <= 15)
+		if (0 <= minValue && maxValue <= 15)
 		{
 			tuple = NybbleTupleDescriptor.mutableObjectOfSize(list.size());
 			for (int i = 1; i <= list.size(); i++)
@@ -1018,7 +1094,7 @@ extends Descriptor
 				tuple.rawNybbleAtPut(i, list.get(i - 1).byteValue());
 			}
 		}
-		else if (maxValue <= 255)
+		else if (0 <= minValue && maxValue <= 255)
 		{
 			tuple = ByteTupleDescriptor.mutableObjectOfSize(list.size());
 			for (int i = 1; i <= list.size(); i++)

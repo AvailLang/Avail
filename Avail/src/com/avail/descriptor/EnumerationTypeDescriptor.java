@@ -822,7 +822,7 @@ extends AbstractEnumerationTypeDescriptor
 	/**
 	 * The mutable {@link EnumerationTypeDescriptor}.
 	 */
-	private final static AbstractEnumerationTypeDescriptor mutable = new EnumerationTypeDescriptor(
+	private static final AbstractEnumerationTypeDescriptor mutable = new EnumerationTypeDescriptor(
 		true);
 
 	/**
@@ -838,7 +838,7 @@ extends AbstractEnumerationTypeDescriptor
 	/**
 	 * The immutable {@link EnumerationTypeDescriptor}.
 	 */
-	private final static AbstractEnumerationTypeDescriptor immutable = new EnumerationTypeDescriptor(
+	private static final AbstractEnumerationTypeDescriptor immutable = new EnumerationTypeDescriptor(
 		false);
 
 	/**

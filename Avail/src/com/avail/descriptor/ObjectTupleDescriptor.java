@@ -384,7 +384,7 @@ extends TupleDescriptor
 	/**
 	 * The mutable {@link ObjectTupleDescriptor}.
 	 */
-	private final static ObjectTupleDescriptor mutable = new ObjectTupleDescriptor(true);
+	private static final ObjectTupleDescriptor mutable = new ObjectTupleDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link ObjectTupleDescriptor}.
@@ -399,7 +399,7 @@ extends TupleDescriptor
 	/**
 	 * The immutable {@link ObjectTupleDescriptor}.
 	 */
-	private final static ObjectTupleDescriptor immutable = new ObjectTupleDescriptor(false);
+	private static final ObjectTupleDescriptor immutable = new ObjectTupleDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link ObjectTupleDescriptor}.

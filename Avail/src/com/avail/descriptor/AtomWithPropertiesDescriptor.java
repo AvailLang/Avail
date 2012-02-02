@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import com.avail.annotations.*;
+import com.avail.serialization.Serializer;
 
 /**
  * An {@code atom} is an object that has identity by fiat, i.e., it is
@@ -85,13 +86,24 @@ extends AtomDescriptor
 		NAME,
 
 		/**
+		 * The {@linkplain ModuleDescriptor module} that was active when this
+		 * atom was issued.  This information is crucial to {@linkplain
+		 * Serializer serialization}.  Must have the same ordinal as
+		 * {@link AtomDescriptor.ObjectSlots#NAME}.
+		 */
+		ISSUING_MODULE,
+
+		/**
 		 * A map from this atom's property keys (atoms) to property values.
 		 */
 		PROPERTY_MAP;
 
 		static
 		{
-			assert AtomDescriptor.ObjectSlots.NAME.ordinal() == NAME.ordinal();
+			assert AtomDescriptor.ObjectSlots.NAME.ordinal()
+				== NAME.ordinal();
+			assert AtomDescriptor.ObjectSlots.ISSUING_MODULE.ordinal()
+				== ISSUING_MODULE.ordinal();
 		}
 	}
 
@@ -175,16 +187,18 @@ extends AtomDescriptor
 	}
 
 	/**
-	 * Create a new atom with the given name and hash value.  The name is not
-	 * globally unique, but serves to help to visually distinguish atoms.  The
-	 * hash value is provided to allow an existing {@linkplain AtomDescriptor
-	 * simple atom} to be converted to an {@linkplain
+	 * Create a new atom with the given name, module, and hash value.  The name
+	 * is not globally unique, but serves to help to visually distinguish atoms.
+	 * The hash value is provided to allow an existing {@linkplain
+	 * AtomDescriptor simple atom} to be converted to an {@linkplain
 	 * AtomWithPropertiesDescriptor atom with properties}.  The client can
 	 * convert the original simple atom into an {@linkplain
 	 * IndirectionDescriptor indirection} to the new atom with properties.
 	 *
 	 * @param name
 	 *            A string used to help identify the new atom.
+	 * @param issuingModule
+	 *            The module that issued this atom.
 	 * @param originalHash
 	 *            The hash value that must be set for this atom, or zero if it
 	 *            doesn't matter.
@@ -192,12 +206,14 @@ extends AtomDescriptor
 	 *            The new atom, not equal to any object in use before this
 	 *            method was invoked.
 	 */
-	public static @NotNull AvailObject createWithNameAndHash (
+	public static @NotNull AvailObject createWithNameAndModuleAndHash (
 		final @NotNull AvailObject name,
+		final @NotNull AvailObject issuingModule,
 		final int originalHash)
 	{
 		final AvailObject instance = mutable().create();
 		instance.setSlot(ObjectSlots.NAME, name);
+		instance.setSlot(ObjectSlots.ISSUING_MODULE, issuingModule);
 		instance.setSlot(ObjectSlots.PROPERTY_MAP, MapDescriptor.empty());
 		instance.setSlot( IntegerSlots.HASH_OR_ZERO, originalHash);
 		instance.makeImmutable();
@@ -219,7 +235,7 @@ extends AtomDescriptor
 	/**
 	 * The mutable {@link AtomWithPropertiesDescriptor}.
 	 */
-	private final static AtomWithPropertiesDescriptor mutable =
+	private static final AtomWithPropertiesDescriptor mutable =
 		new AtomWithPropertiesDescriptor(true);
 
 	/**
@@ -235,7 +251,7 @@ extends AtomDescriptor
 	/**
 	 * The immutable {@link AtomWithPropertiesDescriptor}.
 	 */
-	private final static AtomWithPropertiesDescriptor immutable =
+	private static final AtomWithPropertiesDescriptor immutable =
 		new AtomWithPropertiesDescriptor(false);
 
 	/**

@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
 import com.avail.annotations.*;
+import com.avail.serialization.Serializer;
 
 /**
  * An {@code atom} is an object that has identity by fiat, i.e., it is
@@ -100,7 +101,14 @@ extends Descriptor
 		 * A string (non-uniquely) roughly identifying this atom.  It need not
 		 * be unique among atoms.
 		 */
-		NAME
+		NAME,
+
+		/**
+		 * The {@linkplain ModuleDescriptor module} that was active when this
+		 * atom was issued.  This information is crucial to {@linkplain
+		 * Serializer serialization}.
+		 */
+		ISSUING_MODULE
 	}
 
 	@Override boolean allowsImmutableToMutableReferenceInField (
@@ -152,16 +160,21 @@ extends Descriptor
 	 *
 	 * @param name
 	 *            A string used to help identify the new atom.
+	 * @param issuingModule
+	 *            Which {@linkplain ModuleDescriptor module} was active when the
+	 *            atom was created.
 	 * @return
 	 *            The new atom, not equal to any object in use before this
 	 *            method was invoked.
 	 */
 	public static @NotNull AvailObject create (
-		final @NotNull AvailObject name)
+		final @NotNull AvailObject name,
+		final @NotNull AvailObject issuingModule)
 	{
 		final AvailObject instance = mutable().create();
 		instance.setSlot(ObjectSlots.NAME, name);
 		instance.setSlot(IntegerSlots.HASH_OR_ZERO, 0);
+		instance.setSlot(ObjectSlots.ISSUING_MODULE, issuingModule);
 		instance.makeImmutable();
 		return instance;
 	}
@@ -223,10 +236,15 @@ extends Descriptor
 	 */
 	static void createWellKnownObjects ()
 	{
-		TrueObject = create(StringDescriptor.from("true"));
-		FalseObject = create(StringDescriptor.from("false"));
+		TrueObject = create(
+			StringDescriptor.from("true"),
+			NullDescriptor.nullObject());
+		FalseObject = create(
+			StringDescriptor.from("false"),
+			NullDescriptor.nullObject());
 		ObjectTypeNamePropertyKey = create(
-			StringDescriptor.from("objectNames"));
+			StringDescriptor.from("objectNames"),
+			NullDescriptor.nullObject());
 	}
 
 	/**
@@ -353,8 +371,9 @@ extends Descriptor
 		final AvailObject value)
 	{
 		final AvailObject substituteAtom =
-			AtomWithPropertiesDescriptor.createWithNameAndHash(
+			AtomWithPropertiesDescriptor.createWithNameAndModuleAndHash(
 				object.slot(ObjectSlots.NAME),
+				object.slot(ObjectSlots.ISSUING_MODULE),
 				object.slot(IntegerSlots.HASH_OR_ZERO));
 		object.becomeIndirectionTo(substituteAtom);
 		substituteAtom.setAtomProperty(key, value);
@@ -391,7 +410,7 @@ extends Descriptor
 	/**
 	 * The mutable {@link AtomDescriptor}.
 	 */
-	private final static AtomDescriptor mutable =
+	private static final AtomDescriptor mutable =
 		new AtomDescriptor(true);
 
 	/**
@@ -407,7 +426,7 @@ extends Descriptor
 	/**
 	 * The immutable {@link AtomDescriptor}.
 	 */
-	private final static AtomDescriptor immutable =
+	private static final AtomDescriptor immutable =
 		new AtomDescriptor(false);
 
 	/**

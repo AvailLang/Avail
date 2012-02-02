@@ -36,6 +36,7 @@ import static com.avail.descriptor.AvailObject.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
 import com.avail.annotations.*;
+import com.avail.serialization.SerializerOperation;
 
 /**
  * I represent a discrete function whose keys and values are arbitrary Avail
@@ -781,6 +782,15 @@ extends Descriptor
 		return new MapIterable(object);
 	}
 
+	@Override
+	@AvailMethod @ThreadSafe
+	@NotNull SerializerOperation o_SerializerOperation (
+		final @NotNull AvailObject object)
+	{
+		return SerializerOperation.MAP;
+	}
+
+
 	/**
 	 * An immutable empty map.
 	 */
@@ -919,7 +929,7 @@ extends Descriptor
 	/**
 	 * The mutable {@link MapDescriptor}.
 	 */
-	private final static MapDescriptor mutable = new MapDescriptor(true);
+	private static final MapDescriptor mutable = new MapDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link MapDescriptor}.
@@ -934,7 +944,7 @@ extends Descriptor
 	/**
 	 * The immutable {@link MapDescriptor}.
 	 */
-	private final static MapDescriptor immutable = new MapDescriptor(false);
+	private static final MapDescriptor immutable = new MapDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link MapDescriptor}.

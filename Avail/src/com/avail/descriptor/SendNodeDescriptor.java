@@ -269,7 +269,7 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 	 * If set to true, print send nodes with extra notation to help visually
 	 * sort out ambiguous parses.
 	 */
-	final static boolean nicePrinting = true;
+	static final boolean nicePrinting = true;
 
 	@Override
 	public void printObjectOnAvoidingIndent (
@@ -327,7 +327,7 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * The mutable {@link SendNodeDescriptor}.
 	 */
-	private final static SendNodeDescriptor mutable =
+	private static final SendNodeDescriptor mutable =
 		new SendNodeDescriptor(true);
 
 	/**
@@ -343,7 +343,7 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * The immutable {@link SendNodeDescriptor}.
 	 */
-	private final static SendNodeDescriptor immutable =
+	private static final SendNodeDescriptor immutable =
 		new SendNodeDescriptor(false);
 
 	/**

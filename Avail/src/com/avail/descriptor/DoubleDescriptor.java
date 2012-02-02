@@ -36,6 +36,7 @@ import static com.avail.descriptor.TypeDescriptor.Types;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.descriptor.AbstractNumberDescriptor.*;
+import com.avail.serialization.SerializerOperation;
 
 /**
  * A boxed, identityless Avail representation of IEEE-754 double-precision
@@ -576,6 +577,15 @@ extends AbstractNumberDescriptor
 		return compareDoubles(getDouble(object), aDouble);
 	}
 
+	@Override
+	@AvailMethod @ThreadSafe
+	@NotNull SerializerOperation o_SerializerOperation (
+		final @NotNull AvailObject object)
+	{
+		return SerializerOperation.DOUBLE;
+	}
+
+
 	/**
 	 * Construct an Avail boxed {@linkplain DoubleDescriptor double-precision
 	 * floating point object} from the passed {@code double}.  Do not answer an
@@ -783,7 +793,7 @@ extends AbstractNumberDescriptor
 	/**
 	 * The mutable {@link DoubleDescriptor}.
 	 */
-	private final static DoubleDescriptor mutable = new DoubleDescriptor(true);
+	private static final DoubleDescriptor mutable = new DoubleDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link DoubleDescriptor}.
@@ -798,7 +808,7 @@ extends AbstractNumberDescriptor
 	/**
 	 * The immutable {@link DoubleDescriptor}.
 	 */
-	private final static DoubleDescriptor immutable = new DoubleDescriptor(false);
+	private static final DoubleDescriptor immutable = new DoubleDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link DoubleDescriptor}.

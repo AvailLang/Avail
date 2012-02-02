@@ -43,6 +43,7 @@ import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.ProcessDescriptor.ExecutionState;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Interpreter;
+import com.avail.serialization.SerializerOperation;
 import com.avail.utility.*;
 import com.avail.visitor.AvailSubobjectVisitor;
 
@@ -4052,12 +4053,6 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract int o_HashOfType (AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
 	abstract boolean o_IsAtom (AvailObject object);
 
 	/**
@@ -5028,6 +5023,13 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract @NotNull AvailObject o_LazyPrefilterMap (
+		final @NotNull AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract @NotNull SerializerOperation o_SerializerOperation (
 		final @NotNull AvailObject object);
 
 }

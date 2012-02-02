@@ -36,6 +36,7 @@ import static java.lang.Math.min;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 import com.avail.annotations.*;
+import com.avail.serialization.SerializerOperation;
 
 /**
  * TODO: [MvG] Document this type!
@@ -324,6 +325,14 @@ extends TypeDescriptor
 		return objectTypeFromMap(resultMap);
 	}
 
+	@Override
+	@AvailMethod @ThreadSafe
+	@NotNull SerializerOperation o_SerializerOperation (
+		final @NotNull AvailObject object)
+	{
+		return SerializerOperation.OBJECT_TYPE;
+	}
+
 	/**
 	 * Create an {@linkplain ObjectTypeDescriptor object type} using the given
 	 * {@linkplain MapDescriptor map} from {@linkplain AtomDescriptor
@@ -543,7 +552,7 @@ extends TypeDescriptor
 	}
 
 	/** The mutable {@link ObjectTypeDescriptor}. */
-	private final static @NotNull ObjectTypeDescriptor mutable =
+	private static final @NotNull ObjectTypeDescriptor mutable =
 		new ObjectTypeDescriptor(true);
 
 	/**
@@ -557,7 +566,7 @@ extends TypeDescriptor
 	}
 
 	/** The immutable {@link ObjectTypeDescriptor}. */
-	private final static @NotNull ObjectTypeDescriptor immutable =
+	private static final @NotNull ObjectTypeDescriptor immutable =
 		new ObjectTypeDescriptor(false);
 
 	/**

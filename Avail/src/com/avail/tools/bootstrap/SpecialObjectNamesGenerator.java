@@ -94,8 +94,7 @@ public final class SpecialObjectNamesGenerator
 	{
 		AvailObject.clearAllWellKnownObjects();
 		AvailObject.createAllWellKnownObjects();
-		final List<AvailObject> specialObjects =
-			new AvailRuntime(null).specialObjects();
+		final List<AvailObject> specialObjects = AvailRuntime.specialObjects();
 		final Set<String> keys = new HashSet<String>();
 		for (int i = 0; i < specialObjects.size(); i++)
 		{

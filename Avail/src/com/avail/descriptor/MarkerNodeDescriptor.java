@@ -142,7 +142,7 @@ public class MarkerNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * The mutable {@link MarkerNodeDescriptor}.
 	 */
-	private final static MarkerNodeDescriptor mutable =
+	private static final MarkerNodeDescriptor mutable =
 		new MarkerNodeDescriptor(true);
 
 	/**
@@ -158,7 +158,7 @@ public class MarkerNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * The immutable {@link MarkerNodeDescriptor}.
 	 */
-	private final static MarkerNodeDescriptor immutable =
+	private static final MarkerNodeDescriptor immutable =
 		new MarkerNodeDescriptor(false);
 
 	/**

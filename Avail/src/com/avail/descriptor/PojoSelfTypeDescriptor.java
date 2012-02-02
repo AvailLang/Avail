@@ -94,7 +94,8 @@ extends TypeDescriptor
 	{
 		selfType =
 			InstanceTypeDescriptor.on(AtomDescriptor.create(
-				StringDescriptor.from("self type")));
+				StringDescriptor.from("self type"),
+				NullDescriptor.nullObject()));
 	}
 
 	/**
@@ -340,7 +341,7 @@ extends TypeDescriptor
 	}
 
 	/** The mutable {@link PojoSelfTypeDescriptor}. */
-	private final static @NotNull PojoSelfTypeDescriptor mutable =
+	private static final @NotNull PojoSelfTypeDescriptor mutable =
 		new PojoSelfTypeDescriptor(true);
 
 	/**
@@ -354,7 +355,7 @@ extends TypeDescriptor
 	}
 
 	/** The immutable {@link PojoSelfTypeDescriptor}. */
-	private final static @NotNull PojoSelfTypeDescriptor immutable =
+	private static final @NotNull PojoSelfTypeDescriptor immutable =
 		new PojoSelfTypeDescriptor(false);
 
 	/**

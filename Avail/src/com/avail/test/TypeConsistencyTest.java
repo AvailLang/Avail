@@ -143,7 +143,7 @@ public class TypeConsistencyTest
 		 * A mapping from {@link TypeDescriptor.Types} to their corresponding
 		 * {@link Node}s.
 		 */
-		private final static EnumMap<Types, Node> primitiveTypes =
+		private static final EnumMap<Types, Node> primitiveTypes =
 			new EnumMap<Types, Node>(Types.class);
 
 		static
@@ -175,7 +175,7 @@ public class TypeConsistencyTest
 
 
 		/** The type {@code tuple} */
-		final static Node TUPLE = new Node(
+		static final Node TUPLE = new Node(
 			"TUPLE",
 			primitiveTypes.get(Types.ANY))
 		{
@@ -189,7 +189,7 @@ public class TypeConsistencyTest
 		 * The type {@code string}, which is the same as {@code tuple of
 		 * character}
 		 */
-		final static Node STRING = new Node("STRING", TUPLE)
+		static final Node STRING = new Node("STRING", TUPLE)
 		{
 			@Override AvailObject get ()
 			{
@@ -198,7 +198,7 @@ public class TypeConsistencyTest
 		};
 
 		/** The type {@code tuple [1..1] of character} */
-		final static Node UNIT_STRING = new Node("UNIT_STRING", STRING)
+		static final Node UNIT_STRING = new Node("UNIT_STRING", STRING)
 		{
 			@Override AvailObject get ()
 			{
@@ -207,7 +207,7 @@ public class TypeConsistencyTest
 		};
 
 		/** The type {@code type of <>} */
-		final static Node EMPTY_TUPLE = new Node("EMPTY_TUPLE", TUPLE, STRING)
+		static final Node EMPTY_TUPLE = new Node("EMPTY_TUPLE", TUPLE, STRING)
 		{
 			@Override AvailObject get ()
 			{
@@ -216,7 +216,7 @@ public class TypeConsistencyTest
 		};
 
 		/** The type {@code set} */
-		final static Node SET = new Node(
+		static final Node SET = new Node(
 			"SET",
 			primitiveTypes.get(Types.ANY))
 		{
@@ -230,7 +230,7 @@ public class TypeConsistencyTest
 		 * The most general {@linkplain EnumerationMetaDescriptor enumeration
 		 * type}.
 		 */
-		final static Node UNION_META = new Node(
+		static final Node UNION_META = new Node(
 			"UNION_META",
 			primitiveTypes.get(Types.TYPE))
 		{
@@ -244,7 +244,7 @@ public class TypeConsistencyTest
 		 * An {@linkplain EnumerationMetaDescriptor enumeration type}
 		 * parameterized over integers.
 		 */
-		final static Node UNION_OF_INTEGER_META = new Node(
+		static final Node UNION_OF_INTEGER_META = new Node(
 			"UNION_OF_INTEGER_META",
 			UNION_META)
 		{
@@ -259,7 +259,7 @@ public class TypeConsistencyTest
 		 * A {@linkplain EnumerationMetaDescriptor enumeration type}
 		 * parameterized over types.
 		 */
-		final static Node UNION_OF_TYPE_META = new Node(
+		static final Node UNION_OF_TYPE_META = new Node(
 			"UNION_OF_TYPE_META",
 			UNION_META,
 			primitiveTypes.get(Types.META))
@@ -271,7 +271,7 @@ public class TypeConsistencyTest
 		};
 
 		/** The most general function type. */
-		final static Node MOST_GENERAL_FUNCTION = new Node(
+		static final Node MOST_GENERAL_FUNCTION = new Node(
 			"MOST_GENERAL_FUNCTION",
 			primitiveTypes.get(Types.ANY))
 		{
@@ -284,7 +284,7 @@ public class TypeConsistencyTest
 		/**
 		 * The type for functions that accept no arguments and return an integer.
 		 */
-		final static Node NOTHING_TO_INT_FUNCTION = new Node(
+		static final Node NOTHING_TO_INT_FUNCTION = new Node(
 			"NOTHING_TO_INT_FUNCTION",
 			MOST_GENERAL_FUNCTION)
 		{
@@ -299,7 +299,7 @@ public class TypeConsistencyTest
 		/**
 		 * The type for functions that accept an integer and return an integer.
 		 */
-		final static Node INT_TO_INT_FUNCTION = new Node(
+		static final Node INT_TO_INT_FUNCTION = new Node(
 			"INT_TO_INT_FUNCTION",
 			MOST_GENERAL_FUNCTION)
 		{
@@ -314,7 +314,7 @@ public class TypeConsistencyTest
 		/**
 		 * The type for functions that accept two integers and return an integer.
 		 */
-		final static Node INTS_TO_INT_FUNCTION = new Node(
+		static final Node INTS_TO_INT_FUNCTION = new Node(
 			"INTS_TO_INT_FUNCTION",
 			MOST_GENERAL_FUNCTION)
 		{
@@ -329,7 +329,7 @@ public class TypeConsistencyTest
 		};
 
 		/** The most specific function type, other than bottom. */
-		final static Node MOST_SPECIFIC_FUNCTION = new Node(
+		static final Node MOST_SPECIFIC_FUNCTION = new Node(
 			"MOST_SPECIFIC_FUNCTION",
 			NOTHING_TO_INT_FUNCTION,
 			INT_TO_INT_FUNCTION,
@@ -345,7 +345,7 @@ public class TypeConsistencyTest
 		};
 
 		/** The primitive type representing the extended integers [-∞..∞]. */
-		final static Node EXTENDED_INTEGER = new Node(
+		static final Node EXTENDED_INTEGER = new Node(
 			"EXTENDED_INTEGER",
 			primitiveTypes.get(Types.NUMBER))
 		{
@@ -356,7 +356,7 @@ public class TypeConsistencyTest
 		};
 
 		/** The primitive type representing whole numbers [0..∞). */
-		final static Node WHOLE_NUMBER = new Node(
+		static final Node WHOLE_NUMBER = new Node(
 			"WHOLE_NUMBER",
 			EXTENDED_INTEGER)
 		{
@@ -367,7 +367,7 @@ public class TypeConsistencyTest
 		};
 
 		/** Some {@linkplain AtomDescriptor atom}'s instance type. */
-		final static Node SOME_ATOM_TYPE = new Node(
+		static final Node SOME_ATOM_TYPE = new Node(
 			"SOME_ATOM_TYPE",
 			primitiveTypes.get(Types.ATOM))
 		{
@@ -375,7 +375,8 @@ public class TypeConsistencyTest
 			{
 				return InstanceTypeDescriptor.on(
 					AtomDescriptor.create(
-						StringDescriptor.from("something")));
+						StringDescriptor.from("something"),
+						NullDescriptor.nullObject()));
 			}
 		};
 
@@ -383,7 +384,7 @@ public class TypeConsistencyTest
 		 * The instance type of an {@linkplain AtomDescriptor atom} different
 		 * from {@link #SOME_ATOM_TYPE}.
 		 */
-		final static Node ANOTHER_ATOM_TYPE = new Node(
+		static final Node ANOTHER_ATOM_TYPE = new Node(
 			"ANOTHER_ATOM_TYPE",
 			primitiveTypes.get(Types.ATOM))
 		{
@@ -391,14 +392,15 @@ public class TypeConsistencyTest
 			{
 				return InstanceTypeDescriptor.on(
 					AtomDescriptor.create(
-						StringDescriptor.from("another")));
+						StringDescriptor.from("another"),
+						NullDescriptor.nullObject()));
 			}
 		};
 
 		/**
 		 * The base {@linkplain ObjectTypeDescriptor object type}.
 		 */
-		final static Node OBJECT_TYPE = new Node(
+		static final Node OBJECT_TYPE = new Node(
 			"OBJECT_TYPE",
 			primitiveTypes.get(Types.ANY))
 		{
@@ -411,7 +413,7 @@ public class TypeConsistencyTest
 		/**
 		 * A simple non-root {@linkplain ObjectTypeDescriptor object type}.
 		 */
-		final static Node NON_ROOT_OBJECT_TYPE = new Node(
+		static final Node NON_ROOT_OBJECT_TYPE = new Node(
 			"NON_ROOT_OBJECT_TYPE",
 			OBJECT_TYPE)
 		{
@@ -428,7 +430,7 @@ public class TypeConsistencyTest
 		/**
 		 * A simple non-root {@linkplain ObjectTypeDescriptor object type}.
 		 */
-		final static Node NON_ROOT_OBJECT_TYPE_WITH_INTEGERS = new Node(
+		static final Node NON_ROOT_OBJECT_TYPE_WITH_INTEGERS = new Node(
 			"NON_ROOT_OBJECT_TYPE_WITH_INTEGERS",
 			NON_ROOT_OBJECT_TYPE)
 		{
@@ -445,7 +447,7 @@ public class TypeConsistencyTest
 		/**
 		 * A simple non-root {@linkplain ObjectTypeDescriptor object type}.
 		 */
-		final static Node NON_ROOT_OBJECT_TYPE_WITH_DIFFERENT_KEY = new Node(
+		static final Node NON_ROOT_OBJECT_TYPE_WITH_DIFFERENT_KEY = new Node(
 			"NON_ROOT_OBJECT_TYPE_WITH_DIFFERENT_KEY",
 			OBJECT_TYPE)
 		{
@@ -462,7 +464,7 @@ public class TypeConsistencyTest
 		/**
 		 * The most general {@linkplain PojoTypeDescriptor pojo type}.
 		 */
-		final static Node MOST_GENERAL_POJO = new Node(
+		static final Node MOST_GENERAL_POJO = new Node(
 			"MOST_GENERAL_POJO",
 			primitiveTypes.get(Types.ANY))
 		{
@@ -476,7 +478,7 @@ public class TypeConsistencyTest
 		/**
 		 * The pojo type representing {@link Comparable}&lt;{@link Object}&gt;.
 		 */
-		final static Node COMPARABLE_OF_JAVA_OBJECT_POJO = new Node(
+		static final Node COMPARABLE_OF_JAVA_OBJECT_POJO = new Node(
 			"COMPARABLE_OF_JAVA_OBJECT_POJO",
 			MOST_GENERAL_POJO)
 		{
@@ -493,7 +495,7 @@ public class TypeConsistencyTest
 		/**
 		 * The pojo type representing {@link Comparable}&lt;{@link Integer}&gt;.
 		 */
-		final static Node COMPARABLE_OF_JAVA_INTEGER_POJO = new Node(
+		static final Node COMPARABLE_OF_JAVA_INTEGER_POJO = new Node(
 			"COMPARABLE_OF_JAVA_INTEGER_POJO",
 			COMPARABLE_OF_JAVA_OBJECT_POJO)
 		{
@@ -510,7 +512,7 @@ public class TypeConsistencyTest
 		/**
 		 * The pojo type representing {@link Integer}.
 		 */
-		final static Node JAVA_INTEGER_POJO = new Node(
+		static final Node JAVA_INTEGER_POJO = new Node(
 			"JAVA_INTEGER_POJO",
 			COMPARABLE_OF_JAVA_INTEGER_POJO)
 		{
@@ -525,7 +527,7 @@ public class TypeConsistencyTest
 		/**
 		 * The pojo type representing {@link Comparable}&lt;{@link String}&gt;.
 		 */
-		final static Node COMPARABLE_OF_JAVA_STRING_POJO = new Node(
+		static final Node COMPARABLE_OF_JAVA_STRING_POJO = new Node(
 			"COMPARABLE_OF_JAVA_STRING_POJO",
 			COMPARABLE_OF_JAVA_OBJECT_POJO)
 		{
@@ -542,7 +544,7 @@ public class TypeConsistencyTest
 		/**
 		 * The pojo type representing {@link String}.
 		 */
-		final static Node JAVA_STRING_POJO = new Node(
+		static final Node JAVA_STRING_POJO = new Node(
 			"JAVA_STRING_POJO",
 			COMPARABLE_OF_JAVA_STRING_POJO)
 		{
@@ -562,7 +564,7 @@ public class TypeConsistencyTest
 		 * actually be written as a Java type expression.  This pojo type is the
 		 * most general Java enumeration type.
 		 */
-		final static Node JAVA_ENUM_POJO = new Node(
+		static final Node JAVA_ENUM_POJO = new Node(
 			"JAVA_ENUM_POJO",
 			COMPARABLE_OF_JAVA_OBJECT_POJO)
 		{
@@ -580,7 +582,7 @@ public class TypeConsistencyTest
 		 * The pojo type representing the Java enumeration {@link
 		 * com.avail.interpreter.Primitive}.
 		 */
-		final static Node AVAIL_PRIMITIVE_ENUM_POJO = new Node(
+		static final Node AVAIL_PRIMITIVE_ENUM_POJO = new Node(
 			"AVAIL_PRIMITIVE_ENUM_POJO",
 			JAVA_ENUM_POJO)
 		{
@@ -597,7 +599,7 @@ public class TypeConsistencyTest
 		 * type</em>&gt;.  Note that this is a Java type parameterized by an
 		 * Avail type.
 		 */
-		final static Node COMPARABLE_OF_AVAIL_INTEGER_POJO = new Node(
+		static final Node COMPARABLE_OF_AVAIL_INTEGER_POJO = new Node(
 			"COMPARABLE_OF_AVAIL_INTEGER_POJO",
 			MOST_GENERAL_POJO)
 		{
@@ -615,7 +617,7 @@ public class TypeConsistencyTest
 		 * The pojo type representing the Java {@link Array} type {@link
 		 * Object}[].
 		 */
-		final static Node JAVA_OBJECT_ARRAY_POJO = new Node(
+		static final Node JAVA_OBJECT_ARRAY_POJO = new Node(
 			"JAVA_OBJECT_ARRAY_POJO",
 			MOST_GENERAL_POJO)
 		{
@@ -633,7 +635,7 @@ public class TypeConsistencyTest
 		 * The pojo type representing the Java {@link Array} type {@link
 		 * String}[].
 		 */
-		final static Node JAVA_STRING_ARRAY_POJO = new Node(
+		static final Node JAVA_STRING_ARRAY_POJO = new Node(
 			"JAVA_STRING_ARRAY_POJO",
 			JAVA_OBJECT_ARRAY_POJO)
 		{
@@ -650,7 +652,7 @@ public class TypeConsistencyTest
 		 * The special {@link PojoTypeDescriptor#mostSpecificType() most
 		 * specific pojo type},
 		 */
-		final static Node MOST_SPECIFIC_POJO = new Node(
+		static final Node MOST_SPECIFIC_POJO = new Node(
 			"MOST_SPECIFIC_POJO",
 			JAVA_INTEGER_POJO,
 			JAVA_STRING_POJO,
@@ -668,7 +670,7 @@ public class TypeConsistencyTest
 		/**
 		 * The metatype for function types.
 		 */
-		final static Node FUNCTION_META = new Node(
+		static final Node FUNCTION_META = new Node(
 			"FUNCTION_META",
 			primitiveTypes.get(Types.TYPE))
 		{
@@ -681,7 +683,7 @@ public class TypeConsistencyTest
 		/**
 		 * The metatype for continuation types.
 		 */
-		final static Node CONTINUATION_META = new Node(
+		static final Node CONTINUATION_META = new Node(
 			"CONTINUATION_META",
 			primitiveTypes.get(Types.TYPE))
 		{
@@ -694,7 +696,7 @@ public class TypeConsistencyTest
 		/**
 		 * The metatype for integer types.
 		 */
-		final static Node INTEGER_META = new Node(
+		static final Node INTEGER_META = new Node(
 			"INTEGER_META",
 			primitiveTypes.get(Types.TYPE))
 		{
@@ -705,7 +707,7 @@ public class TypeConsistencyTest
 		};
 
 		/** The primitive type representing the metatype of whole numbers [0..∞). */
-		final static Node WHOLE_NUMBER_META = new Node(
+		static final Node WHOLE_NUMBER_META = new Node(
 			"WHOLE_NUMBER_META",
 			INTEGER_META,
 			primitiveTypes.get(Types.TYPE))
@@ -718,7 +720,7 @@ public class TypeConsistencyTest
 		};
 
 		/** The primitive type representing the metametatype of the metatype of whole numbers [0..∞). */
-		final static Node WHOLE_NUMBER_META_META = new Node(
+		static final Node WHOLE_NUMBER_META_META = new Node(
 			"WHOLE_NUMBER_META_META",
 			UNION_OF_TYPE_META,
 			primitiveTypes.get(Types.META))
@@ -734,7 +736,7 @@ public class TypeConsistencyTest
 		/**
 		 * The most general {@linkplain VariableTypeDescriptor variable type}.
 		 */
-		final static Node ROOT_VARIABLE = new Node(
+		static final Node ROOT_VARIABLE = new Node(
 			"ROOT_VARIABLE",
 			primitiveTypes.get(Types.ANY))
 		{
@@ -748,7 +750,7 @@ public class TypeConsistencyTest
 		 * The {@linkplain VariableTypeDescriptor type of variable} which
 		 * holds {@linkplain IntegerDescriptor integers}.
 		 */
-		final static Node INT_VARIABLE = new Node(
+		static final Node INT_VARIABLE = new Node(
 			"INT_VARIABLE",
 			ROOT_VARIABLE)
 		{
@@ -763,7 +765,7 @@ public class TypeConsistencyTest
 		 * The {@linkplain VariableTypeDescriptor type of variable} which
 		 * holds only a particular atom.
 		 */
-		final static Node SOME_ATOM_VARIABLE = new Node(
+		static final Node SOME_ATOM_VARIABLE = new Node(
 			"SOME_ATOM_VARIABLE",
 			ROOT_VARIABLE)
 		{
@@ -777,7 +779,7 @@ public class TypeConsistencyTest
 		 * The most specific {@linkplain VariableTypeDescriptor type of
 		 * variable}, other than {@linkplain BottomTypeDescriptor bottom}.
 		 */
-		final static Node BOTTOM_VARIABLE = new Node(
+		static final Node BOTTOM_VARIABLE = new Node(
 			"BOTTOM_VARIABLE",
 			INT_VARIABLE,
 			SOME_ATOM_VARIABLE)
@@ -793,7 +795,7 @@ public class TypeConsistencyTest
 		/**
 		 * The metatype for map types.
 		 */
-		final static Node MAP_META = new Node(
+		static final Node MAP_META = new Node(
 			"MAP_META",
 			primitiveTypes.get(Types.TYPE))
 		{
@@ -806,7 +808,7 @@ public class TypeConsistencyTest
 		/**
 		 * The metatype for set types.
 		 */
-		final static Node SET_META = new Node(
+		static final Node SET_META = new Node(
 			"SET_META",
 			primitiveTypes.get(Types.TYPE))
 		{
@@ -819,7 +821,7 @@ public class TypeConsistencyTest
 		/**
 		 * The metatype for tuple types.
 		 */
-		final static Node TUPLE_META = new Node(
+		static final Node TUPLE_META = new Node(
 			"TUPLE_META",
 			primitiveTypes.get(Types.TYPE))
 		{
@@ -830,7 +832,7 @@ public class TypeConsistencyTest
 		};
 
 		/** The type of {@code bottom}.  This is the most specific meta. */
-		final static Node BOTTOM_TYPE = new Node(
+		static final Node BOTTOM_TYPE = new Node(
 			"BOTTOM_TYPE",
 			FUNCTION_META,
 			CONTINUATION_META,
@@ -960,7 +962,7 @@ public class TypeConsistencyTest
 		/**
 		 * The list of all {@link Node}s except BOTTOM.
 		 */
-		private final static List<Node> nonBottomTypes =
+		private static final List<Node> nonBottomTypes =
 			new ArrayList<Node>();
 
 		static
@@ -972,7 +974,7 @@ public class TypeConsistencyTest
 		}
 
 		/** The type {@code bottom} */
-		final static Node BOTTOM = new Node(
+		static final Node BOTTOM = new Node(
 			"BOTTOM",
 			nonBottomTypes.toArray(new Node[0]))
 		{

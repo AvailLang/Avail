@@ -42,6 +42,7 @@ import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.ProcessDescriptor.ExecutionState;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Interpreter;
+import com.avail.serialization.SerializerOperation;
 import com.avail.utility.*;
 import com.avail.visitor.AvailSubobjectVisitor;
 
@@ -192,7 +193,7 @@ extends AbstractDescriptor
 	/**
 	 * The mutable {@link IndirectionDescriptor}.
 	 */
-	private final static IndirectionDescriptor mutable = new IndirectionDescriptor(
+	private static final IndirectionDescriptor mutable = new IndirectionDescriptor(
 		true);
 
 	/**
@@ -208,7 +209,7 @@ extends AbstractDescriptor
 	/**
 	 * The immutable {@link IndirectionDescriptor}.
 	 */
-	private final static IndirectionDescriptor immutable = new IndirectionDescriptor(
+	private static final IndirectionDescriptor immutable = new IndirectionDescriptor(
 		false);
 
 	/**
@@ -2663,12 +2664,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	int o_HashOfType (final AvailObject object)
-	{
-		return o_Traversed(object).hashOfType();
-	}
-
-	@Override
 	int o_HashOrZero (final AvailObject object)
 	{
 		return o_Traversed(object).hashOrZero();
@@ -4140,5 +4135,12 @@ extends AbstractDescriptor
 		final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).lazyPrefilterMap();
+	}
+
+	@Override
+	@NotNull SerializerOperation o_SerializerOperation (
+		final @NotNull AvailObject object)
+	{
+		return o_Traversed(object).serializerOperation();
 	}
 }

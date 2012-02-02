@@ -35,6 +35,8 @@ package com.avail.descriptor;
 import static com.avail.descriptor.AvailObject.*;
 import java.util.List;
 import com.avail.annotations.*;
+import com.avail.serialization.SerializerOperation;
+import com.avail.utility.*;
 
 /**
  * {@code ByteStringDescriptor} represents a string of Latin-1 characters.
@@ -349,6 +351,15 @@ extends StringDescriptor
 		return hash * Multiplier;
 	}
 
+	@Override
+	@AvailMethod @ThreadSafe
+	@NotNull SerializerOperation o_SerializerOperation (
+		final @NotNull AvailObject object)
+	{
+		return SerializerOperation.BYTE_STRING;
+	}
+
+
 	/**
 	 * Answer a mutable copy of the {@linkplain AvailObject receiver} that also
 	 * only holds byte {@linkplain CharacterDescriptor characters}.
@@ -464,44 +475,79 @@ extends StringDescriptor
 	};
 
 	/**
-	 * Convert the specified Java {@link String} of Latin-1 characters into an
-	 * Avail {@linkplain ByteStringDescriptor string}.
+	 * Convert the specified Java {@link String} of purely Latin-1 characters
+	 * into an Avail {@linkplain ByteStringDescriptor string}.
 	 *
-	 * @param aNativeByteString A Java {@link String}.
-	 * @return A corresponding Avail {@linkplain ByteStringDescriptor string}.
+	 * @param aNativeByteString
+	 *            A Java {@link String} whose code points are all 0..255.
+	 * @return
+	 *            A corresponding Avail {@linkplain ByteStringDescriptor
+	 *            string}.
 	 */
 	static @NotNull AvailObject mutableObjectFromNativeByteString(
 		final @NotNull String aNativeByteString)
 	{
-		final ByteStringDescriptor descriptor =
-			isMutableSize(true, aNativeByteString.length());
-		final AvailObject result = descriptor.mutableObjectOfSize(
-			aNativeByteString.length());
+		return generateByteString(
+			aNativeByteString.length(),
+			new Generator<Integer>()
+			{
+				private int sourceIndex = 0;
+
+				@Override
+				public Integer value ()
+				{
+					return (int)aNativeByteString.charAt(sourceIndex++);
+				}
+			});
+	}
+
+
+	/**
+	 * Create an object of the appropriate size, whose descriptor is an instance
+	 * of {@link ByteStringDescriptor}.  Note that it can only store Latin-1
+	 * characters (i.e., those having Unicode code points 0..255).  Run the
+	 * generator for each position in ascending order to produce the code
+	 * points with which to populate the string.
+	 *
+	 * @param size The size of byte string to create.
+	 * @param generator A generator to provide code points to store.
+	 * @return The new Avail {@linkplain ByteStringDescriptor string}.
+	 */
+	static @NotNull AvailObject generateByteString(
+		final int size,
+		final @NotNull Generator<Integer> generator)
+	{
+		final ByteStringDescriptor descriptor = isMutableSize(true, size);
+		final AvailObject result = descriptor.mutableObjectOfSize(size);
 		// Aggregate four writes at a time for the bulk of the string.
 		int index;
-		for (index = 1; index <= aNativeByteString.length() - 3; index += 4)
+		for (index = 1; index <= size - 3; index += 4)
 		{
-			final char c1 = aNativeByteString.charAt(index - 1);
-			assert (c1 & 255) == c1;
-			final char c2 = aNativeByteString.charAt(index);
-			assert (c2 & 255) == c2;
-			final char c3 = aNativeByteString.charAt(index + 1);
-			assert (c3 & 255) == c3;
-			final char c4 = aNativeByteString.charAt(index + 2);
-			assert (c4 & 255) == c4;
+			final int byte1 = generator.value();
+			assert (byte1 & 255) == byte1;
+			final int byte2 = generator.value();
+			assert (byte2 & 255) == byte2;
+			final int byte3 = generator.value();
+			assert (byte3 & 255) == byte3;
+			final int byte4 = generator.value();
+			assert (byte4 & 255) == byte4;
 			// Use little-endian, since that's what byteSlotAtPut(...) uses.
-			final int combined = c1 + (c2 << 8) + (c3 << 16) + (c4 << 24);
+			final int combined =
+				byte1
+				+ (byte2 << 8)
+				+ (byte3 << 16)
+				+ (byte4 << 24);
 			result.setSlot(
 				IntegerSlots.RAW_QUAD_AT_,
 				(index + 3) >> 2,
 				combined);
 		}
 		// Do the last 0-3 writes the slow way.
-		for (; index <= aNativeByteString.length(); index++)
+		for (; index <= size; index++)
 		{
-			final char c = aNativeByteString.charAt(index - 1);
-			assert 0 <= c && c <= 255;
-			result.rawByteForCharacterAtPut(index, (short) c);
+			final int b = generator.value();
+			assert (b & 255) == b;;
+			result.rawByteForCharacterAtPut(index, (short) b);
 		}
 		return result;
 	}

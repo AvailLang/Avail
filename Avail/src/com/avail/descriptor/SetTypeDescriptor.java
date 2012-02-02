@@ -358,7 +358,7 @@ extends TypeDescriptor
 	/**
 	 * The mutable {@link SetTypeDescriptor}.
 	 */
-	private final static SetTypeDescriptor mutable = new SetTypeDescriptor(true);
+	private static final SetTypeDescriptor mutable = new SetTypeDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link SetTypeDescriptor}.
@@ -373,7 +373,7 @@ extends TypeDescriptor
 	/**
 	 * The immutable {@link SetTypeDescriptor}.
 	 */
-	private final static SetTypeDescriptor immutable = new SetTypeDescriptor(false);
+	private static final SetTypeDescriptor immutable = new SetTypeDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link SetTypeDescriptor}.

@@ -271,7 +271,7 @@ extends Descriptor
 	/**
 	 * The mutable {@link VariableDescriptor}.
 	 */
-	private final static VariableDescriptor mutable =
+	private static final VariableDescriptor mutable =
 		new VariableDescriptor(true);
 
 	/**
@@ -287,7 +287,7 @@ extends Descriptor
 	/**
 	 * The immutable {@link VariableDescriptor}.
 	 */
-	private final static VariableDescriptor immutable =
+	private static final VariableDescriptor immutable =
 		new VariableDescriptor(false);
 
 	/**

@@ -1790,7 +1790,9 @@ public abstract class AbstractAvailCompiler
 		for (final AvailObject name : exportedNames)
 		{
 			assert name.isString();
-			final AvailObject trueName = AtomDescriptor.create(name);
+			final AvailObject trueName = AtomDescriptor.create(
+				name,
+				module);
 			module.atNewNamePut(name, trueName);
 			module.atNameAdd(name, trueName);
 		}

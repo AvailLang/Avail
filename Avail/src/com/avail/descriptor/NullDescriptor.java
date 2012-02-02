@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 import com.avail.annotations.*;
+import com.avail.serialization.SerializerOperation;
 
 /**
  * {@code NullDescriptor} implements the Avail {@linkplain #nullObject() null
@@ -202,6 +203,13 @@ extends Descriptor
 	}
 
 	@Override
+	SerializerOperation o_SerializerOperation (
+		final @NotNull AvailObject object)
+	{
+		return SerializerOperation.NULL_OBJECT;
+	}
+
+	@Override
 	@ThreadSafe
 	public void printObjectOnAvoidingIndent (
 		final @NotNull AvailObject object,
@@ -225,7 +233,7 @@ extends Descriptor
 	}
 
 	/** The mutable {@link NullDescriptor}. */
-	private final static @NotNull NullDescriptor mutable =
+	private static final @NotNull NullDescriptor mutable =
 		new NullDescriptor(true);
 
 	/**
@@ -240,7 +248,7 @@ extends Descriptor
 	}
 
 	/** The immutable {@link NullDescriptor}. */
-	private final static NullDescriptor immutable =
+	private static final NullDescriptor immutable =
 		new NullDescriptor(false);
 
 	/**

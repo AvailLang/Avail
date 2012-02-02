@@ -757,7 +757,7 @@ extends TypeDescriptor
 	/**
 	 * The mutable {@link TupleTypeDescriptor}.
 	 */
-	private final static TupleTypeDescriptor mutable =
+	private static final TupleTypeDescriptor mutable =
 		new TupleTypeDescriptor(true);
 
 	/**
@@ -773,7 +773,7 @@ extends TypeDescriptor
 	/**
 	 * The immutable {@link TupleTypeDescriptor}.
 	 */
-	private final static TupleTypeDescriptor immutable =
+	private static final TupleTypeDescriptor immutable =
 		new TupleTypeDescriptor(false);
 
 	/**

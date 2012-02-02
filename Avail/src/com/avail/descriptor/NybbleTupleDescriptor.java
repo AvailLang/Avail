@@ -446,6 +446,27 @@ extends TupleDescriptor
 		return 4;
 	}
 
+	@Override @AvailMethod
+	int o_ComputeHashFromTo (
+		final @NotNull AvailObject object,
+		final int start,
+		final int end)
+	{
+		// See comment in superclass.  This method must produce the same value.
+		// This could eventually be rewritten to do a byte at a time (table
+		// lookup) and to use the square of the current multiplier.
+	
+		int hash = 0;
+		for (int nybbleIndex = end; nybbleIndex >= start; nybbleIndex--)
+		{
+			int itemHash = IntegerDescriptor.hashOfUnsignedByte(
+				object.rawNybbleAt(nybbleIndex));
+			itemHash ^= PreToggle;
+			hash = hash * Multiplier + itemHash;
+		}
+		return hash * Multiplier;
+	}
+
 	/**
 	 * Set how many unused nybbles that this descriptor leaves in the last
 	 * word.
@@ -457,27 +478,6 @@ extends TupleDescriptor
 		final int anInteger)
 	{
 		unusedNybblesOfLastWord = anInteger;
-	}
-
-	@Override @AvailMethod
-	int o_ComputeHashFromTo (
-		final @NotNull AvailObject object,
-		final int start,
-		final int end)
-	{
-		// See comment in superclass.  This method must produce the same value.
-		// This could eventually be rewritten to do a byte at a time (table
-		// lookup) and to use the square of the current multiplier.
-
-		int hash = 0;
-		for (int nybbleIndex = end; nybbleIndex >= start; nybbleIndex--)
-		{
-			int itemHash = IntegerDescriptor.hashOfUnsignedByte(
-				object.rawNybbleAt(nybbleIndex));
-			itemHash ^= PreToggle;
-			hash = hash * Multiplier + itemHash;
-		}
-		return hash * Multiplier;
 	}
 
 	/**
@@ -562,7 +562,7 @@ extends TupleDescriptor
 	 * {@link #isMutableSize(boolean, int)} can find them by mutability and
 	 * number of unused nybbles in the last word.
 	 */
-	final static NybbleTupleDescriptor descriptors[] =
+	static final NybbleTupleDescriptor descriptors[] =
 	{
 		new NybbleTupleDescriptor(true, 0),
 		new NybbleTupleDescriptor(false, 0),

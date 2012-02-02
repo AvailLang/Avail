@@ -681,7 +681,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * The mutable {@link BlockNodeDescriptor}.
 	 */
-	private final static BlockNodeDescriptor mutable =
+	private static final BlockNodeDescriptor mutable =
 		new BlockNodeDescriptor(true);
 
 	/**
@@ -697,7 +697,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * The immutable {@link BlockNodeDescriptor}.
 	 */
-	private final static BlockNodeDescriptor immutable =
+	private static final BlockNodeDescriptor immutable =
 		new BlockNodeDescriptor(false);
 
 	/**

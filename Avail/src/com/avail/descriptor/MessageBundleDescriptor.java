@@ -310,7 +310,7 @@ extends Descriptor
 	/**
 	 * The mutable {@link MessageBundleDescriptor}.
 	 */
-	private final static MessageBundleDescriptor mutable =
+	private static final MessageBundleDescriptor mutable =
 		new MessageBundleDescriptor(true);
 
 	/**
@@ -326,7 +326,7 @@ extends Descriptor
 	/**
 	 * The immutable {@link MessageBundleDescriptor}.
 	 */
-	private final static MessageBundleDescriptor immutable =
+	private static final MessageBundleDescriptor immutable =
 		new MessageBundleDescriptor(false);
 
 	/**

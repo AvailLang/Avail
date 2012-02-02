@@ -238,7 +238,7 @@ extends ParseNodeDescriptor
 	/**
 	 * The mutable {@link LiteralNodeDescriptor}.
 	 */
-	private final static LiteralNodeDescriptor mutable =
+	private static final LiteralNodeDescriptor mutable =
 		new LiteralNodeDescriptor(true);
 
 	/**
@@ -254,7 +254,7 @@ extends ParseNodeDescriptor
 	/**
 	 * The immutable {@link LiteralNodeDescriptor}.
 	 */
-	private final static LiteralNodeDescriptor immutable =
+	private static final LiteralNodeDescriptor immutable =
 		new LiteralNodeDescriptor(false);
 
 	/**

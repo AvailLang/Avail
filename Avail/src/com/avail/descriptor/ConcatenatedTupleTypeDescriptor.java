@@ -610,7 +610,7 @@ extends TypeDescriptor
 	/**
 	 * The mutable {@link ConcatenatedTupleTypeDescriptor}.
 	 */
-	private final static ConcatenatedTupleTypeDescriptor mutable =
+	private static final ConcatenatedTupleTypeDescriptor mutable =
 		new ConcatenatedTupleTypeDescriptor(true);
 
 	/**
@@ -626,7 +626,7 @@ extends TypeDescriptor
 	/**
 	 * The immutable {@link ConcatenatedTupleTypeDescriptor}.
 	 */
-	private final static ConcatenatedTupleTypeDescriptor immutable =
+	private static final ConcatenatedTupleTypeDescriptor immutable =
 		new ConcatenatedTupleTypeDescriptor(false);
 
 	/**

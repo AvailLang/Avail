@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import static com.avail.descriptor.TypeDescriptor.Types.CHARACTER;
 import java.util.*;
 import com.avail.annotations.*;
+import com.avail.serialization.SerializerOperation;
 
 /**
  * {@code CharacterDescriptor} implements an Avail character. Avail characters
@@ -193,7 +194,7 @@ extends Descriptor
 	/**
 	 * The immutable {@link CharacterDescriptor}.
 	 */
-	final static CharacterDescriptor immutable =
+	static final CharacterDescriptor immutable =
 		new CharacterDescriptor(false);
 
 	/**
@@ -263,6 +264,23 @@ extends Descriptor
 	@NotNull AvailObject o_Kind (final @NotNull AvailObject object)
 	{
 		return CHARACTER.o();
+	}
+
+	@Override
+	@AvailMethod @ThreadSafe
+	@NotNull SerializerOperation o_SerializerOperation (
+		final @NotNull AvailObject object)
+	{
+		final int codePoint = object.slot(IntegerSlots.CODE_POINT);
+		if (codePoint < 256)
+		{
+			return SerializerOperation.BYTE_CHARACTER;
+		}
+		else if (codePoint < 65536)
+		{
+			return SerializerOperation.SHORT_CHARACTER;
+		}
+		return SerializerOperation.LARGE_CHARACTER;
 	}
 
 	/**

@@ -528,7 +528,7 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 	/**
 	 * The mutable {@link ParseNodeTypeDescriptor}.
 	 */
-	private final static ParseNodeTypeDescriptor mutable =
+	private static final ParseNodeTypeDescriptor mutable =
 		new ParseNodeTypeDescriptor(true);
 
 	/**
@@ -544,7 +544,7 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 	/**
 	 * The immutable {@link ParseNodeTypeDescriptor}.
 	 */
-	private final static ParseNodeTypeDescriptor immutable =
+	private static final ParseNodeTypeDescriptor immutable =
 		new ParseNodeTypeDescriptor(false);
 
 	/**

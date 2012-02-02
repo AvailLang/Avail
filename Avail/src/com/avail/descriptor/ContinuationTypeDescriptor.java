@@ -361,7 +361,7 @@ extends TypeDescriptor
 	/**
 	 * The mutable {@link ContinuationTypeDescriptor}.
 	 */
-	private final static ContinuationTypeDescriptor mutable =
+	private static final ContinuationTypeDescriptor mutable =
 		new ContinuationTypeDescriptor(true);
 
 	/**
@@ -377,7 +377,7 @@ extends TypeDescriptor
 	/**
 	 * The immutable {@link ContinuationTypeDescriptor}.
 	 */
-	private final static ContinuationTypeDescriptor immutable =
+	private static final ContinuationTypeDescriptor immutable =
 		new ContinuationTypeDescriptor(false);
 
 	/**

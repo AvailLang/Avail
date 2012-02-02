@@ -150,7 +150,7 @@ extends TokenDescriptor
 	/**
 	 * The mutable {@link LiteralTokenDescriptor}.
 	 */
-	private final static LiteralTokenDescriptor mutable =
+	private static final LiteralTokenDescriptor mutable =
 		new LiteralTokenDescriptor(true);
 
 	/**
@@ -166,7 +166,7 @@ extends TokenDescriptor
 	/**
 	 * The immutable {@link LiteralTokenDescriptor}.
 	 */
-	private final static LiteralTokenDescriptor immutable =
+	private static final LiteralTokenDescriptor immutable =
 		new LiteralTokenDescriptor(false);
 
 	/**

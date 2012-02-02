@@ -525,7 +525,7 @@ extends SetBinDescriptor
 	/**
 	 *
 	 */
-	final static HashedSetBinDescriptor descriptors[];
+	static final HashedSetBinDescriptor descriptors[];
 
 	static {
 		descriptors = new HashedSetBinDescriptor[numberOfLevels * 2];

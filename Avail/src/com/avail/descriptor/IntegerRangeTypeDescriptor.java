@@ -721,7 +721,7 @@ extends TypeDescriptor
 	/**
 	 * The mutable {@link IntegerRangeTypeDescriptor}.
 	 */
-	private final static IntegerRangeTypeDescriptor mutable =
+	private static final IntegerRangeTypeDescriptor mutable =
 		new IntegerRangeTypeDescriptor(true);
 
 	/**
@@ -737,7 +737,7 @@ extends TypeDescriptor
 	/**
 	 * The immutable {@link IntegerRangeTypeDescriptor}.
 	 */
-	private final static IntegerRangeTypeDescriptor immutable =
+	private static final IntegerRangeTypeDescriptor immutable =
 		new IntegerRangeTypeDescriptor(false);
 
 	/**

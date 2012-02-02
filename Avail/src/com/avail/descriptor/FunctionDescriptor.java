@@ -358,7 +358,7 @@ extends Descriptor
 	/**
 	 * The mutable {@link FunctionDescriptor}.
 	 */
-	private final static FunctionDescriptor mutable =
+	private static final FunctionDescriptor mutable =
 		new FunctionDescriptor(true);
 
 	/**
@@ -374,7 +374,7 @@ extends Descriptor
 	/**
 	 * The immutable {@link FunctionDescriptor}.
 	 */
-	private final static FunctionDescriptor immutable =
+	private static final FunctionDescriptor immutable =
 		new FunctionDescriptor(false);
 
 	/**

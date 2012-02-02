@@ -409,7 +409,7 @@ extends Descriptor
 	/**
 	 * The mutable {@link ProcessDescriptor}.
 	 */
-	private final static ProcessDescriptor mutable = new ProcessDescriptor(true);
+	private static final ProcessDescriptor mutable = new ProcessDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link ProcessDescriptor}.
@@ -424,7 +424,7 @@ extends Descriptor
 	/**
 	 * The immutable {@link ProcessDescriptor}.
 	 */
-	private final static ProcessDescriptor immutable = new ProcessDescriptor(false);
+	private static final ProcessDescriptor immutable = new ProcessDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link ProcessDescriptor}.

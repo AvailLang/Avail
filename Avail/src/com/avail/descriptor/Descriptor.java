@@ -37,13 +37,13 @@ import java.util.*;
 import com.avail.annotations.NotNull;
 import com.avail.compiler.*;
 import com.avail.descriptor.AbstractNumberDescriptor.*;
-import com.avail.descriptor.AbstractNumberDescriptor.Sign;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.ProcessDescriptor.ExecutionState;
 import com.avail.exceptions.UnsupportedOperationException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Interpreter;
+import com.avail.serialization.SerializerOperation;
 import com.avail.utility.*;
 import com.avail.visitor.*;
 
@@ -3125,7 +3125,7 @@ extends AbstractDescriptor
 	 * A statically cached visitor instance to avoid having to create it at
 	 * runtime.
 	 */
-	final static AvailBeImmutableSubobjectVisitor beImmutableSubobjectVisitor =
+	static final AvailBeImmutableSubobjectVisitor beImmutableSubobjectVisitor =
 		new AvailBeImmutableSubobjectVisitor();
 
 	/**
@@ -3419,20 +3419,6 @@ extends AbstractDescriptor
 		final @NotNull AvailObject object)
 	{
 		return false;
-	}
-
-	@Override
-	int o_HashOfType (
-		final @NotNull AvailObject object)
-	{
-		//  We are computing the hash value of some ApproximateType, and it has
-		//  delegated responsibility back to this descriptor, the one that created the
-		//  ApproximateType that we're now trying to hash.  Only subclasses that
-		//  answer true to the query canComputeHashOfType need to implement
-		//  this method.
-
-		//  only provide if subclass canComputeHashOfType.
-		throw unsupportedOperationException();
 	}
 
 	@Override
@@ -4448,7 +4434,15 @@ extends AbstractDescriptor
 
 
 	@Override
-	AvailObject o_LazyPrefilterMap (
+	@NotNull AvailObject o_LazyPrefilterMap (
+		final @NotNull AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+
+	@Override
+	@NotNull SerializerOperation o_SerializerOperation (
 		final @NotNull AvailObject object)
 	{
 		throw unsupportedOperationException();

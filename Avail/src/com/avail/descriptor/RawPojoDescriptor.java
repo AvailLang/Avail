@@ -403,7 +403,7 @@ extends Descriptor
 	}
 
 	/** The mutable {@link RawPojoDescriptor}. */
-	private final static @NotNull RawPojoDescriptor mutable =
+	private static final @NotNull RawPojoDescriptor mutable =
 		new RawPojoDescriptor(true);
 
 	/**
@@ -417,7 +417,7 @@ extends Descriptor
 	}
 
 	/** The immutable {@link RawPojoDescriptor}. */
-	private final static @NotNull RawPojoDescriptor immutable =
+	private static final @NotNull RawPojoDescriptor immutable =
 		new RawPojoDescriptor(false);
 
 	/**

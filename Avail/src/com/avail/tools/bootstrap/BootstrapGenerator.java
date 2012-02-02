@@ -66,7 +66,7 @@ public final class BootstrapGenerator
 	{
 		AvailObject.clearAllWellKnownObjects();
 		AvailObject.createAllWellKnownObjects();
-		specialObjects = new AvailRuntime(null).specialObjects();
+		specialObjects = AvailRuntime.specialObjects();
 		specialObjectIndexMap =
 			new HashMap<AvailObject, Integer>(specialObjects.size());
 		for (int i = 0; i < specialObjects.size(); i++)

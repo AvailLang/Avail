@@ -875,7 +875,7 @@ extends TypeDescriptor
 	/**
 	 * The mutable {@link FunctionTypeDescriptor}.
 	 */
-	private final static FunctionTypeDescriptor mutable =
+	private static final FunctionTypeDescriptor mutable =
 		new FunctionTypeDescriptor(true);
 
 	/**
@@ -891,7 +891,7 @@ extends TypeDescriptor
 	/**
 	 * The immutable {@link FunctionTypeDescriptor}.
 	 */
-	private final static FunctionTypeDescriptor immutable =
+	private static final FunctionTypeDescriptor immutable =
 		new FunctionTypeDescriptor(false);
 
 	/**

@@ -355,7 +355,7 @@ public final class ScannerTest
 	 * input string.
 	 */
 	@SuppressWarnings("unchecked")
-	private final static Case[] tests =
+	private static final Case[] tests =
 	{
 		C(""),
 

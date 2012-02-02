@@ -232,7 +232,7 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * The mutable {@link VariableUseNodeDescriptor}.
 	 */
-	private final static VariableUseNodeDescriptor mutable =
+	private static final VariableUseNodeDescriptor mutable =
 		new VariableUseNodeDescriptor(true);
 
 	/**
@@ -248,7 +248,7 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * The immutable {@link VariableUseNodeDescriptor}.
 	 */
-	private final static VariableUseNodeDescriptor immutable =
+	private static final VariableUseNodeDescriptor immutable =
 		new VariableUseNodeDescriptor(false);
 
 	/**

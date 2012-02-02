@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import java.io.*;
 import java.util.*;
+import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
@@ -44,6 +45,7 @@ import com.avail.descriptor.ProcessDescriptor.ExecutionState;
 import com.avail.exceptions.ArithmeticException;
 import com.avail.interpreter.*;
 import com.avail.interpreter.levelTwo.L2Interpreter;
+import com.avail.serialization.*;
 import com.avail.utility.*;
 import com.avail.visitor.*;
 
@@ -105,6 +107,9 @@ implements Iterable<AvailObject>
 		FloatDescriptor.createWellKnownObjects();
 		DoubleDescriptor.createWellKnownObjects();
 		MessageBundleDescriptor.createWellKnownObjects();
+
+		AvailRuntime.createWellKnownObjects();
+		Serializer.createWellKnownObjects();
 	}
 
 	/**
@@ -149,6 +154,9 @@ implements Iterable<AvailObject>
 		FloatDescriptor.clearWellKnownObjects();
 		DoubleDescriptor.clearWellKnownObjects();
 		MessageBundleDescriptor.clearWellKnownObjects();
+
+		AvailRuntime.clearWellKnownObjects();
+		Serializer.clearWellKnownObjects();
 	}
 
 	/**
@@ -1987,14 +1995,6 @@ implements Iterable<AvailObject>
 			this,
 			startIndex,
 			endIndex);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public int hashOfType ()
-	{
-		return descriptor.o_HashOfType(this);
 	}
 
 	/**
@@ -5819,10 +5819,18 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * @param value
+	 * @return
 	 */
 	public @NotNull AvailObject lazyPrefilterMap ()
 	{
 		return descriptor.o_LazyPrefilterMap(this);
+	}
+
+	/**
+	 * @return
+	 */
+	public @NotNull SerializerOperation serializerOperation ()
+	{
+		return descriptor.o_SerializerOperation(this);
 	}
 }

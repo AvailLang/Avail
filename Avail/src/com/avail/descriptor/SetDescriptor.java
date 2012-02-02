@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
 import com.avail.annotations.*;
+import com.avail.serialization.SerializerOperation;
 
 /**
  * An Avail {@linkplain SetDescriptor set} refers to the root of a Bagwell Ideal
@@ -126,8 +127,7 @@ public class SetDescriptor extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aSet)
 	{
-		//  First eliminate the trivial case of different sizes.
-
+		// First eliminate the trivial case of different sizes.
 		if (object.setSize() != aSet.setSize())
 		{
 			return false;
@@ -136,11 +136,10 @@ public class SetDescriptor extends Descriptor
 		{
 			return false;
 		}
-		//  Do a simple comparison, neglecting order of elements...
-		//
-		//  Unfortunately, this also has time at least proportional to the set sizes, even if the sets
-		//  are virtually identical and share structural subcomponents.  We can do better,
-		//  ostensibly by navigating the tries together, checking for structural sharing.
+		// Unfortunately, this also has time at least proportional to the set
+		// sizes, even if the sets are virtually identical and share structural
+		// subcomponents.  We can do better, ostensibly by navigating the tries
+		// together, checking for structural sharing.
 		return object.rootBin().isBinSubsetOf(aSet);
 	}
 
@@ -161,7 +160,7 @@ public class SetDescriptor extends Descriptor
 		{
 			return false;
 		}
-		//  See if it's an acceptable size...
+		// See if it's an acceptable size...
 		final AvailObject size = IntegerDescriptor.fromInt(object.setSize());
 		if (!size.isInstanceOf(aTypeObject.sizeRange()))
 		{
@@ -187,8 +186,8 @@ public class SetDescriptor extends Descriptor
 	int o_Hash (
 		final @NotNull AvailObject object)
 	{
-		//  A set's hash is a simple function of its rootBin's binHash, which is always the sum
-		//  of its elements' hashes.
+		// A set's hash is a simple function of its rootBin's binHash, which is always the sum
+		// of its elements' hashes.
 
 		return object.rootBin().binHash() ^ 0xCD9EFC6;
 	}
@@ -225,7 +224,7 @@ public class SetDescriptor extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
-		//  Check if object is a subset of another.
+		// Check if object is a subset of another.
 
 		if (object.setSize() > another.setSize())
 		{
@@ -240,7 +239,7 @@ public class SetDescriptor extends Descriptor
 		final @NotNull AvailObject otherSet,
 		final boolean canDestroy)
 	{
-		//  Compute the intersection of two sets.  May destroy one of them if it's mutable and canDestroy is true.
+		// Compute the intersection of two sets.  May destroy one of them if it's mutable and canDestroy is true.
 
 		AvailObject smaller;
 		AvailObject larger;
@@ -259,8 +258,8 @@ public class SetDescriptor extends Descriptor
 			smaller.makeImmutable();
 		}
 		AvailObject result = smaller;
-		//  Do something hokey for now - convert smaller to a tuple then iterate over it.
-		//  The right answer probably involves creating a set visitor mechanism.
+		// Do something hokey for now - convert smaller to a tuple then iterate over it.
+		// The right answer probably involves creating a set visitor mechanism.
 		final AvailObject smallerAsTuple = smaller.asTuple();
 		for (int i = 1, end = smallerAsTuple.tupleSize(); i <= end; i++)
 		{
@@ -279,16 +278,16 @@ public class SetDescriptor extends Descriptor
 		final @NotNull AvailObject otherSet,
 		final boolean canDestroy)
 	{
-		//  Compute the asymmetric difference of two sets (a \ b).  May destroy one of them if it's
-		//  mutable and canDestroy is true.
+		// Compute the asymmetric difference of two sets (a \ b).  May destroy one of them if it's
+		// mutable and canDestroy is true.
 
 		if (!canDestroy)
 		{
 			object.makeImmutable();
 		}
 		AvailObject result = object;
-		//  Do something hokey for now - convert object to a tuple then iterate over it.
-		//  The right answer probably involves implementing a set visitor mechanism.
+		// Do something hokey for now - convert object to a tuple then iterate over it.
+		// The right answer probably involves implementing a set visitor mechanism.
 		final AvailObject objectAsTuple = object.asTuple();
 		for (int i = 1, end = objectAsTuple.tupleSize(); i <= end; i++)
 		{
@@ -307,7 +306,7 @@ public class SetDescriptor extends Descriptor
 		final @NotNull AvailObject otherSet,
 		final boolean canDestroy)
 	{
-		//  Compute the union of two sets.  May destroy one of them if it's mutable and canDestroy is true.
+		// Compute the union of two sets.  May destroy one of them if it's mutable and canDestroy is true.
 
 		AvailObject smaller;
 		AvailObject larger;
@@ -341,8 +340,8 @@ public class SetDescriptor extends Descriptor
 			toModify = smaller;
 			toScan = larger;
 		}
-		//  Do something hokey for now - convert toScan to a tuple then iterate over it.
-		//  The right answer probably involves creating a set visitor mechanism.
+		// Do something hokey for now - convert toScan to a tuple then iterate over it.
+		// The right answer probably involves creating a set visitor mechanism.
 		final AvailObject toScanAsTuple = toScan.asTuple();
 		for (int i = 1, end = toScanAsTuple.tupleSize(); i <= end; i++)
 		{
@@ -357,8 +356,8 @@ public class SetDescriptor extends Descriptor
 		final @NotNull AvailObject newElementObject,
 		final boolean canDestroy)
 	{
-		//  Ensure newElementObject is in the set, adding it if necessary.  May destroy the
-		//  set if it's mutable and canDestroy is true.
+		// Ensure newElementObject is in the set, adding it if necessary.  May destroy the
+		// set if it's mutable and canDestroy is true.
 
 		final int elementHash = newElementObject.hash();
 		final AvailObject root = object.rootBin();
@@ -395,8 +394,8 @@ public class SetDescriptor extends Descriptor
 		final @NotNull AvailObject elementObjectToExclude,
 		final boolean canDestroy)
 	{
-		//  Ensure elementObjectToExclude is not in the set, removing it if necessary.
-		//  May destroy the set if it's mutable and canDestroy is true.
+		// Ensure elementObjectToExclude is not in the set, removing it if necessary.
+		// May destroy the set if it's mutable and canDestroy is true.
 
 		final AvailObject root = object.rootBin();
 		final int oldSize = root.binSize();
@@ -561,12 +560,18 @@ public class SetDescriptor extends Descriptor
 	int o_SetSize (
 		final @NotNull AvailObject object)
 	{
-		//  Answer how many elements are in the set.  Delegate to the rootBin.
-
+		// Answer how many elements are in the set.  Delegate to the rootBin.
 		return object.rootBin().binSize();
 	}
 
-	// Startup/shutdown
+	@Override
+	@AvailMethod @ThreadSafe
+	@NotNull SerializerOperation o_SerializerOperation (
+		final @NotNull AvailObject object)
+	{
+		return SerializerOperation.SET;
+	}
+
 
 	/**
 	 * The empty set (immutable).
@@ -635,7 +640,7 @@ public class SetDescriptor extends Descriptor
 	/**
 	 * The mutable {@link SetDescriptor}.
 	 */
-	private final static SetDescriptor mutable = new SetDescriptor(true);
+	private static final SetDescriptor mutable = new SetDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link SetDescriptor}.
@@ -650,7 +655,7 @@ public class SetDescriptor extends Descriptor
 	/**
 	 * The immutable {@link SetDescriptor}.
 	 */
-	private final static SetDescriptor immutable = new SetDescriptor(false);
+	private static final SetDescriptor immutable = new SetDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link SetDescriptor}.

@@ -690,7 +690,7 @@ extends Descriptor
 	/**
 	 * The mutable {@link ModuleDescriptor}.
 	 */
-	private final static ModuleDescriptor mutable = new ModuleDescriptor(true);
+	private static final ModuleDescriptor mutable = new ModuleDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link ModuleDescriptor}.
@@ -705,7 +705,7 @@ extends Descriptor
 	/**
 	 * The immutable {@link ModuleDescriptor}.
 	 */
-	private final static ModuleDescriptor immutable =
+	private static final ModuleDescriptor immutable =
 		new ModuleDescriptor(false);
 
 	/**

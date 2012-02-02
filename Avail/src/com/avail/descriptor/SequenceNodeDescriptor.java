@@ -222,7 +222,7 @@ public class SequenceNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * The mutable {@link SequenceNodeDescriptor}.
 	 */
-	private final static SequenceNodeDescriptor mutable =
+	private static final SequenceNodeDescriptor mutable =
 		new SequenceNodeDescriptor(true);
 
 	/**
@@ -238,7 +238,7 @@ public class SequenceNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * The immutable {@link SequenceNodeDescriptor}.
 	 */
-	private final static SequenceNodeDescriptor immutable =
+	private static final SequenceNodeDescriptor immutable =
 		new SequenceNodeDescriptor(false);
 
 	/**

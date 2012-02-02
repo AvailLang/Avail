@@ -604,7 +604,7 @@ extends Descriptor
 	/**
 	 * The mutable {@link ContinuationDescriptor}.
 	 */
-	private final static ContinuationDescriptor mutable =
+	private static final ContinuationDescriptor mutable =
 		new ContinuationDescriptor(true);
 
 	/**
@@ -620,7 +620,7 @@ extends Descriptor
 	/**
 	 * The immutable {@link ContinuationDescriptor}.
 	 */
-	private final static ContinuationDescriptor immutable =
+	private static final ContinuationDescriptor immutable =
 		new ContinuationDescriptor(false);
 
 	/**

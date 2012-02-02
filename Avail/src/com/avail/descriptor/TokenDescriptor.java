@@ -284,7 +284,7 @@ extends Descriptor
 	/**
 	 * The mutable {@link TokenDescriptor}.
 	 */
-	private final static TokenDescriptor mutable = new TokenDescriptor(true);
+	private static final TokenDescriptor mutable = new TokenDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link TokenDescriptor}.
@@ -299,7 +299,7 @@ extends Descriptor
 	/**
 	 * The immutable {@link TokenDescriptor}.
 	 */
-	private final static TokenDescriptor immutable = new TokenDescriptor(false);
+	private static final TokenDescriptor immutable = new TokenDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link TokenDescriptor}.

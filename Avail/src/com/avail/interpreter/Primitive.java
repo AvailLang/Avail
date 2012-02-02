@@ -3039,7 +3039,7 @@ implements IntegerEnumSlotDescriptionEnum
 			assert args.size() == 1;
 			final AvailObject name = args.get(0);
 			return interpreter.primitiveSuccess(
-				AtomDescriptor.create(name));
+				interpreter.createAtom(name));
 		}
 
 		@Override
@@ -3709,7 +3709,7 @@ implements IntegerEnumSlotDescriptionEnum
 			assert args.size() == 1;
 			final AvailObject filename = args.get(0);
 
-			final AvailObject handle = AtomDescriptor.create(filename);
+			final AvailObject handle = interpreter.createAtom(filename);
 			try
 			{
 				final RandomAccessFile file = new RandomAccessFile(
@@ -3757,7 +3757,7 @@ implements IntegerEnumSlotDescriptionEnum
 			final AvailObject filename = args.get(0);
 			final AvailObject append = args.get(1);
 
-			final AvailObject handle = AtomDescriptor.create(filename);
+			final AvailObject handle = interpreter.createAtom(filename);
 			try
 			{
 				final RandomAccessFile file = new RandomAccessFile(
@@ -3813,7 +3813,7 @@ implements IntegerEnumSlotDescriptionEnum
 			assert args.size() == 1;
 			final AvailObject filename = args.get(0);
 
-			final AvailObject handle = AtomDescriptor.create(filename);
+			final AvailObject handle = interpreter.createAtom(filename);
 			try
 			{
 				final RandomAccessFile file = new RandomAccessFile(
@@ -5288,8 +5288,8 @@ implements IntegerEnumSlotDescriptionEnum
 			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
-			final AvailObject anMethod = args.get(0);
-			return interpreter.primitiveSuccess(anMethod.name());
+			final AvailObject method = args.get(0);
+			return interpreter.primitiveSuccess(method.name());
 		}
 
 		@Override
@@ -5326,7 +5326,7 @@ implements IntegerEnumSlotDescriptionEnum
 			final AvailObject result;
 			try
 			{
-				result = interpreter.runtime().specialObject(i);
+				result = AvailRuntime.specialObject(i);
 			}
 			catch (final ArrayIndexOutOfBoundsException e)
 			{

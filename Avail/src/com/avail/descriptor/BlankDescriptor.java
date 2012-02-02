@@ -148,7 +148,7 @@ extends Descriptor
 	/**
 	 * The mutable {@link BlankDescriptor}.
 	 */
-	private final static BlankDescriptor mutable = new BlankDescriptor(true);
+	private static final BlankDescriptor mutable = new BlankDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link BlankDescriptor}.
@@ -163,7 +163,7 @@ extends Descriptor
 	/**
 	 * The immutable {@link BlankDescriptor}.
 	 */
-	private final static BlankDescriptor immutable = new BlankDescriptor(false);
+	private static final BlankDescriptor immutable = new BlankDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link BlankDescriptor}.

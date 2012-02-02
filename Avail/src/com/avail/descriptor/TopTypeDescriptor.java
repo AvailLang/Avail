@@ -129,7 +129,7 @@ extends PrimitiveTypeDescriptor
 	/**
 	 * The mutable {@link TopTypeDescriptor}.
 	 */
-	private final static TopTypeDescriptor mutable =
+	private static final TopTypeDescriptor mutable =
 		new TopTypeDescriptor(true);
 
 	/**
@@ -151,7 +151,7 @@ extends PrimitiveTypeDescriptor
 	/**
 	 * The immutable {@link TopTypeDescriptor}.
 	 */
-	private final static TopTypeDescriptor immutable =
+	private static final TopTypeDescriptor immutable =
 		new TopTypeDescriptor(false);
 
 	/**

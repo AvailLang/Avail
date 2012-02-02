@@ -128,7 +128,7 @@ extends ImplementationDescriptor
 	/**
 	 * The mutable {@link MethodImplementationDescriptor}.
 	 */
-	private final static MethodImplementationDescriptor mutable =
+	private static final MethodImplementationDescriptor mutable =
 		new MethodImplementationDescriptor(true);
 
 	/**
@@ -144,7 +144,7 @@ extends ImplementationDescriptor
 	/**
 	 * The immutable {@link MethodImplementationDescriptor}.
 	 */
-	private final static MethodImplementationDescriptor immutable =
+	private static final MethodImplementationDescriptor immutable =
 		new MethodImplementationDescriptor(false);
 
 	/**

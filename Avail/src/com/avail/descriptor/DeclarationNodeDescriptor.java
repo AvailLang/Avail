@@ -978,7 +978,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * The mutable {@link DeclarationNodeDescriptor}.
 	 */
-	private final static DeclarationNodeDescriptor mutable =
+	private static final DeclarationNodeDescriptor mutable =
 		new DeclarationNodeDescriptor(true);
 
 	/**
@@ -994,7 +994,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * The immutable {@link DeclarationNodeDescriptor}.
 	 */
-	private final static DeclarationNodeDescriptor immutable =
+	private static final DeclarationNodeDescriptor immutable =
 		new DeclarationNodeDescriptor(false);
 
 	/**

@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
 import java.util.List;
 import com.avail.annotations.*;
+import com.avail.serialization.SerializerOperation;
 
 /**
  * A boxed, identityless Avail representation of IEEE-754 floating point values.
@@ -469,6 +470,15 @@ extends AbstractNumberDescriptor
 		return Order.INCOMPARABLE;
 	}
 
+	@Override
+	@AvailMethod @ThreadSafe
+	@NotNull SerializerOperation o_SerializerOperation (
+		final @NotNull AvailObject object)
+	{
+		return SerializerOperation.FLOAT;
+	}
+
+
 	/**
 	 * Construct an Avail boxed {@linkplain FloatDescriptor floating point
 	 * object} from the passed {@code float}.
@@ -660,7 +670,7 @@ extends AbstractNumberDescriptor
 	/**
 	 * The mutable {@link FloatDescriptor}.
 	 */
-	private final static FloatDescriptor mutable = new FloatDescriptor(true);
+	private static final FloatDescriptor mutable = new FloatDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link FloatDescriptor}.
@@ -675,7 +685,7 @@ extends AbstractNumberDescriptor
 	/**
 	 * The immutable {@link FloatDescriptor}.
 	 */
-	private final static FloatDescriptor immutable = new FloatDescriptor(false);
+	private static final FloatDescriptor immutable = new FloatDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link FloatDescriptor}.

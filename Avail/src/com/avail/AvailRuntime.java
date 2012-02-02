@@ -146,7 +146,8 @@ public final class AvailRuntime
 	 * The {@linkplain AvailObject special objects} of the {@linkplain
 	 * AvailRuntime runtime}.
 	 */
-	private final @NotNull AvailObject[] specialObjects = new AvailObject[120];
+	private static final @NotNull AvailObject[] specialObjects =
+		new AvailObject[120];
 
 	/**
 	 * Answer the {@linkplain AvailObject special objects} of the {@linkplain
@@ -155,14 +156,33 @@ public final class AvailRuntime
 	 *
 	 * @return The special objects.
 	 */
-	public @NotNull List<AvailObject> specialObjects ()
+	public static @NotNull List<AvailObject> specialObjects ()
 	{
 		return Collections.unmodifiableList(Arrays.asList(specialObjects));
 	}
 
-	/*
-	 * Set up the special objects.
+	/**
+	 * Answer the {@linkplain AvailObject special object} with the specified
+	 * ordinal.
+	 *
+	 * @param ordinal The {@linkplain AvailObject special object} with the
+	 *                specified ordinal.
+	 * @return An {@link AvailObject}.
+	 * @throws ArrayIndexOutOfBoundsException
+	 *         If the ordinal is out of bounds.
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
+	@ThreadSafe
+	public static AvailObject specialObject (final int ordinal)
+		throws ArrayIndexOutOfBoundsException
+	{
+		return specialObjects[ordinal];
+	}
+
+	/**
+	 * Set up the special objects table.
+	 */
+	public static void createWellKnownObjects ()
 	{
 		specialObjects[1] = ANY.o();
 		specialObjects[2] = EnumerationTypeDescriptor.booleanObject();
@@ -359,21 +379,14 @@ public final class AvailRuntime
 	}
 
 	/**
-	 * Answer the {@linkplain AvailObject special object} with the specified
-	 * ordinal.
-	 *
-	 * @param ordinal The {@linkplain AvailObject special object} with the
-	 *                specified ordinal.
-	 * @return An {@link AvailObject}.
-	 * @throws ArrayIndexOutOfBoundsException
-	 *         If the ordinal is out of bounds.
-	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 * Release any statically held objects.
 	 */
-	@ThreadSafe
-	public AvailObject specialObject (final int ordinal)
-		throws ArrayIndexOutOfBoundsException
+	public static void clearWellKnownObjects ()
 	{
-		return specialObjects[ordinal];
+		for (int i = 0; i < specialObjects.length; i++)
+		{
+			specialObjects[i] = null;
+		}
 	}
 
 	/**

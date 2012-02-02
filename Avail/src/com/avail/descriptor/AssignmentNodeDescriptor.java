@@ -316,7 +316,7 @@ extends ParseNodeDescriptor
 	/**
 	 * The mutable {@link AssignmentNodeDescriptor}.
 	 */
-	private final static AssignmentNodeDescriptor mutable =
+	private static final AssignmentNodeDescriptor mutable =
 		new AssignmentNodeDescriptor(true);
 
 	/**
@@ -332,7 +332,7 @@ extends ParseNodeDescriptor
 	/**
 	 * The immutable {@link AssignmentNodeDescriptor}.
 	 */
-	private final static AssignmentNodeDescriptor immutable =
+	private static final AssignmentNodeDescriptor immutable =
 		new AssignmentNodeDescriptor(false);
 
 	/**

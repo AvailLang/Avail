@@ -234,7 +234,7 @@ public class SuperCastNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * The mutable {@link SuperCastNodeDescriptor}.
 	 */
-	private final static SuperCastNodeDescriptor mutable =
+	private static final SuperCastNodeDescriptor mutable =
 		new SuperCastNodeDescriptor(true);
 
 	/**
@@ -250,7 +250,7 @@ public class SuperCastNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * The immutable {@link SuperCastNodeDescriptor}.
 	 */
-	private final static SuperCastNodeDescriptor immutable =
+	private static final SuperCastNodeDescriptor immutable =
 		new SuperCastNodeDescriptor(false);
 
 	/**

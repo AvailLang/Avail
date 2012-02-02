@@ -642,7 +642,7 @@ extends Descriptor
 	/**
 	 * The mutable {@link CompiledCodeDescriptor}.
 	 */
-	private final static CompiledCodeDescriptor mutable =
+	private static final CompiledCodeDescriptor mutable =
 		new CompiledCodeDescriptor(true);
 
 	/**
@@ -658,7 +658,7 @@ extends Descriptor
 	/**
 	 * The immutable {@link CompiledCodeDescriptor}.
 	 */
-	private final static CompiledCodeDescriptor immutable =
+	private static final CompiledCodeDescriptor immutable =
 		new CompiledCodeDescriptor(false);
 
 	/**

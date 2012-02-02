@@ -189,7 +189,7 @@ extends Descriptor
 	}
 
 	/** The mutable {@link PojoDescriptor}. */
-	private final static @NotNull PojoDescriptor mutable =
+	private static final @NotNull PojoDescriptor mutable =
 		new PojoDescriptor(true);
 
 	/**
@@ -203,7 +203,7 @@ extends Descriptor
 	}
 
 	/** The immutable {@link PojoDescriptor}. */
-	private final static @NotNull PojoDescriptor immutable =
+	private static final @NotNull PojoDescriptor immutable =
 		new PojoDescriptor(false);
 
 	/**

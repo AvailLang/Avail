@@ -108,7 +108,9 @@ extends Descriptor
 		// decompiler) use the name to figure out how many arguments a method
 		// accepts.
 		final AvailObject implSet = newMethodWithName(
-			AtomDescriptor.create(StringDescriptor.from("vm crash_")));
+			AtomDescriptor.create(
+				StringDescriptor.from("vm crash_"),
+				NullDescriptor.nullObject()));
 		implSet.addImplementation(
 			MethodImplementationDescriptor.create(newFunction));
 
@@ -172,8 +174,9 @@ extends Descriptor
 
 		// Create the new method.
 		final AvailObject implSet = newMethodWithName(
-			AtomDescriptor.create(StringDescriptor.from(
-				"vm function apply_(«_‡,»)")));
+			AtomDescriptor.create(
+				StringDescriptor.from("vm function apply_(«_‡,»)"),
+				NullDescriptor.nullObject()));
 		implSet.addImplementation(
 			MethodImplementationDescriptor.create(newFunction));
 
@@ -1272,7 +1275,7 @@ extends Descriptor
 	/**
 	 * The mutable {@link MethodDescriptor}.
 	 */
-	private final static MethodDescriptor mutable =
+	private static final MethodDescriptor mutable =
 		new MethodDescriptor(true);
 
 	/**
@@ -1288,7 +1291,7 @@ extends Descriptor
 	/**
 	 * The immutable {@link MethodDescriptor}.
 	 */
-	private final static MethodDescriptor immutable =
+	private static final MethodDescriptor immutable =
 		new MethodDescriptor(false);
 
 	/**

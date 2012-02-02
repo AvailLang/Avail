@@ -745,7 +745,7 @@ extends AbstractEnumerationTypeDescriptor
 	/**
 	 * The mutable {@link InstanceTypeDescriptor}.
 	 */
-	private final static AbstractEnumerationTypeDescriptor mutable =
+	private static final AbstractEnumerationTypeDescriptor mutable =
 		new InstanceTypeDescriptor(true);
 
 	/**
@@ -761,7 +761,7 @@ extends AbstractEnumerationTypeDescriptor
 	/**
 	 * The immutable {@link InstanceTypeDescriptor}.
 	 */
-	private final static AbstractEnumerationTypeDescriptor immutable =
+	private static final AbstractEnumerationTypeDescriptor immutable =
 		new InstanceTypeDescriptor(false);
 
 	/**

@@ -350,13 +350,13 @@ extends AbstractAvailObject
 	 * A reusable empty array of {@link AvailObject}s for objects that have no
 	 * object slots.
 	 */
-	private final static AvailObject[] emptyObjectSlots = new AvailObject[0];
+	private static final AvailObject[] emptyObjectSlots = new AvailObject[0];
 
 	/**
 	 * A reusable empty array of {@code int}s for objects that have no int
 	 * slots.
 	 */
-	private final static int[] emptyIntegerSlots = new int[0];
+	private static final int[] emptyIntegerSlots = new int[0];
 
 	/**
 	 * Construct a new {@link AvailObjectRepresentation}.

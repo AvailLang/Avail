@@ -42,6 +42,7 @@ import java.util.List;
 import com.avail.annotations.*;
 import com.avail.exceptions.*;
 import com.avail.exceptions.ArithmeticException;
+import com.avail.serialization.SerializerOperation;
 
 /**
  * An Avail {@linkplain IntegerDescriptor integer} is represented by a little
@@ -225,18 +226,6 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_HashOfType (
-		final @NotNull AvailObject object)
-	{
-		final int objectHash = object.hash();
-		return IntegerRangeTypeDescriptor.computeHash(
-			objectHash,
-			objectHash,
-			true,
-			true);
-	}
-
-	@Override @AvailMethod
 	boolean o_IsFinite (
 		final @NotNull AvailObject object)
 	{
@@ -316,7 +305,7 @@ extends ExtendedIntegerDescriptor
 			return false;
 		}
 		final int value = object.extractInt();
-		return value >= 0 && value <= 65535;
+		return (value & 65535) == value;
 	}
 
 	@Override @AvailMethod
@@ -1281,6 +1270,45 @@ extends ExtendedIntegerDescriptor
 			DoubleDescriptor.compareDoubleAndInteger(aDouble, object).reverse();
 	}
 
+	@Override
+	SerializerOperation o_SerializerOperation (
+		final @NotNull AvailObject object)
+	{
+		if (object.isInt())
+		{
+			final int intValue = object.extractInt();
+			if (0 <= intValue && intValue <= 10)
+			{
+				switch (intValue)
+				{
+					case 0: return SerializerOperation.ZERO_INTEGER;
+					case 1: return SerializerOperation.ONE_INTEGER;
+					case 2: return SerializerOperation.TWO_INTEGER;
+					case 3: return SerializerOperation.THREE_INTEGER;
+					case 4: return SerializerOperation.FOUR_INTEGER;
+					case 5: return SerializerOperation.FIVE_INTEGER;
+					case 6: return SerializerOperation.SIX_INTEGER;
+					case 7: return SerializerOperation.SEVEN_INTEGER;
+					case 8: return SerializerOperation.EIGHT_INTEGER;
+					case 9: return SerializerOperation.NINE_INTEGER;
+					case 10: return SerializerOperation.TEN_INTEGER;
+				}
+			}
+			if ((intValue & 0xFF) == intValue)
+			{
+				return SerializerOperation.BYTE_INTEGER;
+			}
+			if ((intValue & 0xFFFF) == intValue)
+			{
+				return SerializerOperation.SHORT_INTEGER;
+			}
+			return SerializerOperation.INT_INTEGER;
+		}
+		return SerializerOperation.BIG_INTEGER;
+	}
+
+
+
 	/**
 	 * The maximum code point of a character, as an Avail {@linkplain
 	 * IntegerDescriptor integer}.
@@ -1578,7 +1606,7 @@ extends ExtendedIntegerDescriptor
 	/**
 	 * The mutable {@link IntegerDescriptor}.
 	 */
-	private final static IntegerDescriptor mutable =
+	private static final IntegerDescriptor mutable =
 		new IntegerDescriptor(true);
 
 	/**
@@ -1594,7 +1622,7 @@ extends ExtendedIntegerDescriptor
 	/**
 	 * The immutable {@link IntegerDescriptor}.
 	 */
-	private final static IntegerDescriptor immutable =
+	private static final IntegerDescriptor immutable =
 		new IntegerDescriptor(false);
 
 	/**

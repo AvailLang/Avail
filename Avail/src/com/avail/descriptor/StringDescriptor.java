@@ -33,7 +33,9 @@
 package com.avail.descriptor;
 
 import com.avail.AvailRuntime;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
+import com.avail.serialization.SerializerOperation;
+import com.avail.utility.Generator;
 
 /**
  * {@code StringDescriptor} has Avail strings as its instances. The actual
@@ -46,6 +48,24 @@ import com.avail.annotations.NotNull;
 public abstract class StringDescriptor
 extends TupleDescriptor
 {
+
+	@Override
+	@AvailMethod @ThreadSafe
+	@NotNull SerializerOperation o_SerializerOperation (
+		final @NotNull AvailObject object)
+	{
+		final int size = object.tupleSize();
+		for (int i = 1; i <= size; i++)
+		{
+			final int codePoint = object.rawShortForCharacterAt(i);
+			if (codePoint >= 256)
+			{
+				return SerializerOperation.SHORT_STRING;
+			}
+		}
+		return SerializerOperation.BYTE_STRING;
+	}
+
 	/**
 	 * A tuple containing just the underscore character.
 	 */
@@ -246,5 +266,45 @@ extends TupleDescriptor
 		}
 		assert count == tuple.tupleSize() + 1;
 		return tuple;
+	}
+
+	/**
+	 * Create an object of the appropriate size, whose descriptor is an instance
+	 * of {@link ByteStringDescriptor}.  Note that it can only store Latin-1
+	 * characters (i.e., those having Unicode code points 0..255).  Run the
+	 * descriptor for each position in ascending order to produce the code
+	 * points with which to populate the string.
+	 *
+	 * @param size The size of byte string to create.
+	 * @param generator A generator to provide code points to store.
+	 * @return The new Avail {@linkplain ByteStringDescriptor string}.
+	 */
+	public static @NotNull AvailObject mutableByteStringFromGenerator(
+		final int size,
+		final @NotNull Generator<Integer> generator)
+	{
+		return ByteStringDescriptor.generateByteString(
+			size,
+			generator);
+	}
+
+	/**
+	 * Create an object of the appropriate size, whose descriptor is an instance
+	 * of {@link TwoByteStringDescriptor}.  Note that it can only store Unicode
+	 * characters from the Basic Multilingual Plane (i.e., those having Unicode
+	 * code points 0..65535).  Run the generator for each position in ascending
+	 * order to produce the code points with which to populate the string.
+	 *
+	 * @param size The size of two-byte string to create.
+	 * @param generator A generator to provide code points to store.
+	 * @return The new Avail {@linkplain TwoByteStringDescriptor string}.
+	 */
+	public static @NotNull AvailObject mutableTwoByteStringFromGenerator(
+		final int size,
+		final @NotNull Generator<Integer> generator)
+	{
+		return TwoByteStringDescriptor.generateTwoByteString(
+			size,
+			generator);
 	}
 }

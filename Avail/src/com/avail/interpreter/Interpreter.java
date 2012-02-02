@@ -575,6 +575,21 @@ public abstract class Interpreter
 	}
 
 	/**
+	 * Create a new atom with the given name.  The name does not have to be
+	 * unique, as it is only used as a visual hint about the purpose of an atom.
+	 *
+	 * @param nameString
+	 *            A {@linkplain StringDescriptor string} describing the atom.
+	 * @return
+	 *            A new atom.
+	 */
+	public @NotNull AvailObject createAtom (
+		final @NotNull AvailObject nameString)
+	{
+		return AtomDescriptor.create(nameString, module);
+	}
+
+	/**
 	 * Create the two-argument defining method. The first parameter of the
 	 * method is the name, the second parameter is the {@linkplain
 	 * FunctionDescriptor block}.
@@ -741,7 +756,7 @@ public abstract class Interpreter
 		AvailObject trueName;
 		if (who.setSize() == 0)
 		{
-			trueName = AtomDescriptor.create(stringName);
+			trueName = AtomDescriptor.create(stringName, module);
 			trueName.makeImmutable();
 			module.atPrivateNameAdd(stringName, trueName);
 			return trueName;

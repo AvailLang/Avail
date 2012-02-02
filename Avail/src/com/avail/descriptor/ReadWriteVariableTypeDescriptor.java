@@ -267,7 +267,7 @@ extends TypeDescriptor
 	/**
 	 * The mutable {@link ReadWriteVariableTypeDescriptor}.
 	 */
-	private final static @NotNull ReadWriteVariableTypeDescriptor mutable =
+	private static final @NotNull ReadWriteVariableTypeDescriptor mutable =
 		new ReadWriteVariableTypeDescriptor(true);
 
 	/**
@@ -283,7 +283,7 @@ extends TypeDescriptor
 	/**
 	 * The immutable {@link ReadWriteVariableTypeDescriptor}.
 	 */
-	private final static @NotNull ReadWriteVariableTypeDescriptor immutable =
+	private static final @NotNull ReadWriteVariableTypeDescriptor immutable =
 		new ReadWriteVariableTypeDescriptor(false);
 
 	/**

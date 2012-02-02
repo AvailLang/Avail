@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 import com.avail.annotations.*;
+import com.avail.serialization.SerializerOperation;
 
 /**
  * Avail {@linkplain ObjectTypeDescriptor user-defined object types} are novel.
@@ -236,6 +237,15 @@ extends Descriptor
 		return ObjectTypeDescriptor.objectTypeFromMap(typeMap);
 	}
 
+	@Override
+	@AvailMethod @ThreadSafe
+	@NotNull SerializerOperation o_SerializerOperation (
+		final @NotNull AvailObject object)
+	{
+		return SerializerOperation.OBJECT;
+	}
+
+
 	/**
 	 * Construct a user-defined object with attribute keys and values taken from
 	 * the provided map.
@@ -282,7 +292,7 @@ extends Descriptor
 	/**
 	 * The mutable {@link ObjectDescriptor}.
 	 */
-	private final static ObjectDescriptor mutable = new ObjectDescriptor(true);
+	private static final ObjectDescriptor mutable = new ObjectDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link ObjectDescriptor}.
@@ -297,7 +307,7 @@ extends Descriptor
 	/**
 	 * The immutable {@link ObjectDescriptor}.
 	 */
-	private final static ObjectDescriptor immutable = new ObjectDescriptor(false);
+	private static final ObjectDescriptor immutable = new ObjectDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link ObjectDescriptor}.

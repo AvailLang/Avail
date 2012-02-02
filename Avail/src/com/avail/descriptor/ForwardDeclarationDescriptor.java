@@ -136,7 +136,7 @@ extends ImplementationDescriptor
 	/**
 	 * The mutable {@link ForwardDeclarationDescriptor}.
 	 */
-	private final static ForwardDeclarationDescriptor mutable =
+	private static final ForwardDeclarationDescriptor mutable =
 		new ForwardDeclarationDescriptor(true);
 
 	/**
@@ -152,7 +152,7 @@ extends ImplementationDescriptor
 	/**
 	 * The immutable {@link ForwardDeclarationDescriptor}.
 	 */
-	private final static ForwardDeclarationDescriptor immutable =
+	private static final ForwardDeclarationDescriptor immutable =
 		new ForwardDeclarationDescriptor(false);
 
 	/**

@@ -272,7 +272,7 @@ extends TypeDescriptor
 	/**
 	 * The mutable {@link VariableTypeDescriptor}.
 	 */
-	private final static @NotNull VariableTypeDescriptor mutable =
+	private static final @NotNull VariableTypeDescriptor mutable =
 		new VariableTypeDescriptor(true);
 
 	/**
@@ -288,7 +288,7 @@ extends TypeDescriptor
 	/**
 	 * The immutable {@link VariableTypeDescriptor}.
 	 */
-	private final static @NotNull VariableTypeDescriptor immutable =
+	private static final @NotNull VariableTypeDescriptor immutable =
 		new VariableTypeDescriptor(false);
 
 	/**

@@ -890,7 +890,7 @@ extends TupleDescriptor
 	/**
 	 * The mutable {@link SpliceTupleDescriptor}.
 	 */
-	private final static SpliceTupleDescriptor mutable =
+	private static final SpliceTupleDescriptor mutable =
 		new SpliceTupleDescriptor(true);
 
 
@@ -908,7 +908,7 @@ extends TupleDescriptor
 	/**
 	 * The immutable {@link SpliceTupleDescriptor}.
 	 */
-	private final static SpliceTupleDescriptor immutable =
+	private static final SpliceTupleDescriptor immutable =
 		new SpliceTupleDescriptor(false);
 
 

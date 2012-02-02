@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import static com.avail.descriptor.AvailObject.*;
 import java.util.List;
 import com.avail.annotations.*;
+import com.avail.utility.*;
 
 /**
  * A {@linkplain TupleDescriptor tuple} implementation that consists entirely of
@@ -345,6 +346,49 @@ extends StringDescriptor
 	}
 
 	/**
+	 * Construct a new {@link TwoByteStringDescriptor}.
+	 *
+	 * @param isMutable
+	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
+	 *        object?
+	 * @param unusedShortsOfLastWord
+	 *        The number of unused shorts of the last word.
+	 */
+	private TwoByteStringDescriptor (
+		final boolean isMutable,
+		final int unusedShortsOfLastWord)
+	{
+		super(isMutable);
+		this.unusedShortsOfLastWord = unusedShortsOfLastWord;
+	}
+
+	/**
+	 * The static list of descriptors of this kind, organized in such a way that
+	 * {@link #isMutableSize(boolean, int)} can find them by mutability and
+	 * number of unused shorts in the last word.
+	 */
+	static final TwoByteStringDescriptor[] descriptors =
+	{
+		new TwoByteStringDescriptor(true, 0),
+		new TwoByteStringDescriptor(false, 0),
+		new TwoByteStringDescriptor(true, 1),
+		new TwoByteStringDescriptor(false, 1)
+	};
+
+	/**
+	 * Create a new mutable {@linkplain TwoByteStringDescriptor two-byte string} with
+	 * the specified number of elements.
+	 *
+	 * @param size The number of elements in the new tuple.
+	 * @return The new tuple, initialized to null characters (codepoint 0).
+	 */
+	static AvailObject mutableObjectOfSize (
+		final int size)
+	{
+		return isMutableSize(true, size).create(size + 1 >> 1);
+	}
+
+	/**
 	 * Answer a mutable copy of object that also only holds 16-bit characters.
 	 *
 	 * @param object
@@ -371,43 +415,6 @@ extends StringDescriptor
 	}
 
 	/**
-	 * Answer a mutable {@linkplain TwoByteStringDescriptor two-byte string}
-	 * containing the characters specified in the Java {@link String}.
-	 *
-	 * @param aNativeTwoByteString
-	 *            The Java {@link String} with which to initialize the new
-	 *            {@linkplain TwoByteStringDescriptor two-byte string}.
-	 * @return
-	 *            A new {@linkplain TwoByteStringDescriptor two-byte string}
-	 *            with the specified content.
-	 */
-	AvailObject privateMutableObjectFromNativeTwoByteString (
-		final @NotNull String aNativeTwoByteString)
-	{
-		final AvailObject result = mutableObjectOfSize(
-			aNativeTwoByteString.length());
-		for (int index = 1; index <= aNativeTwoByteString.length(); index++)
-		{
-			final char c = aNativeTwoByteString.charAt(index - 1);
-			result.rawShortForCharacterAtPut(index, (short)c);
-		}
-		return result;
-	}
-
-	/**
-	 * Create a new mutable {@linkplain TwoByteStringDescriptor two-byte string} with
-	 * the specified number of elements.
-	 *
-	 * @param size The number of elements in the new tuple.
-	 * @return The new tuple, initialized to null characters (codepoint 0).
-	 */
-	static AvailObject mutableObjectOfSize (
-		final int size)
-	{
-		return isMutableSize(true, size).create(size + 1 >> 1);
-	}
-
-	/**
 	 * Answer the descriptor that has the specified mutability flag and is
 	 * suitable to describe a tuple with the given number of elements.
 	 *
@@ -430,8 +437,8 @@ extends StringDescriptor
 	}
 
 	/**
-	 * Create a mutable {@linkplain TwoByteStringDescriptor two-byte string} with the
-	 * specified Java {@linkplain String}'s characters.
+	 * Create a mutable {@linkplain TwoByteStringDescriptor two-byte string}
+	 * with the specified Java {@linkplain String}'s characters.
 	 *
 	 * @param aNativeTwoByteString
 	 *            A Java String that may contain characters outside the Latin-1
@@ -442,39 +449,43 @@ extends StringDescriptor
 	static AvailObject mutableObjectFromNativeTwoByteString (
 		final String aNativeTwoByteString)
 	{
-		final TwoByteStringDescriptor descriptor =
-			isMutableSize(true, aNativeTwoByteString.length());
-		return descriptor.privateMutableObjectFromNativeTwoByteString(
-			aNativeTwoByteString);
+		return generateTwoByteString(
+			aNativeTwoByteString.length(),
+			new Generator<Integer>()
+			{
+				private int sourceIndex = 0;
+
+				@Override
+				public Integer value ()
+				{
+					return aNativeTwoByteString.codePointAt(sourceIndex++);
+				}
+			});
 	}
 
 	/**
-	 * Construct a new {@link TwoByteStringDescriptor}.
+	 * Create an object of the appropriate size, whose descriptor is an instance
+	 * of {@link TwoByteStringDescriptor}.  Note that it can only store Unicode
+	 * characters from the Basic Multilingual Plane (i.e., those having Unicode
+	 * code points 0..65535).  Run the generator for each position in ascending
+	 * order to produce the code points with which to populate the string.
 	 *
-	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
-	 * @param unusedShortsOfLastWord
-	 *        The number of unused shorts of the last word.
+	 * @param size The size of two-byte string to create.
+	 * @param generator A generator to provide code points to store.
+	 * @return The new Avail {@linkplain TwoByteStringDescriptor string}.
 	 */
-	private TwoByteStringDescriptor (
-		final boolean isMutable,
-		final int unusedShortsOfLastWord)
+	static @NotNull AvailObject generateTwoByteString(
+		final int size,
+		final @NotNull Generator<Integer> generator)
 	{
-		super(isMutable);
-		this.unusedShortsOfLastWord = unusedShortsOfLastWord;
+		final AvailObject result =
+			TwoByteStringDescriptor.mutableObjectOfSize(size);
+		for (int index = 1; index <= size; index++)
+		{
+			result.rawShortForCharacterAtPut(
+				index,
+				(short)(int)generator.value());
+		}
+		return result;
 	}
-
-	/**
-	 * The static list of descriptors of this kind, organized in such a way that
-	 * {@link #isMutableSize(boolean, int)} can find them by mutability and
-	 * number of unused shorts in the last word.
-	 */
-	final static TwoByteStringDescriptor[] descriptors =
-	{
-		new TwoByteStringDescriptor(true, 0),
-		new TwoByteStringDescriptor(false, 0),
-		new TwoByteStringDescriptor(true, 1),
-		new TwoByteStringDescriptor(false, 1)
-	};
 }

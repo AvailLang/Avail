@@ -263,7 +263,7 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * The mutable {@link MacroSubstitutionNodeDescriptor}.
 	 */
-	private final static MacroSubstitutionNodeDescriptor mutable =
+	private static final MacroSubstitutionNodeDescriptor mutable =
 		new MacroSubstitutionNodeDescriptor(true);
 
 	/**
@@ -279,7 +279,7 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * The immutable {@link MacroSubstitutionNodeDescriptor}.
 	 */
-	private final static MacroSubstitutionNodeDescriptor immutable =
+	private static final MacroSubstitutionNodeDescriptor immutable =
 		new MacroSubstitutionNodeDescriptor(false);
 
 	/**

@@ -154,7 +154,7 @@ extends ImplementationDescriptor
 	/**
 	 * The mutable {@link MacroImplementationDescriptor}.
 	 */
-	private final static MacroImplementationDescriptor mutable =
+	private static final MacroImplementationDescriptor mutable =
 		new MacroImplementationDescriptor(true);
 
 	/**
@@ -170,7 +170,7 @@ extends ImplementationDescriptor
 	/**
 	 * The immutable {@link MacroImplementationDescriptor}.
 	 */
-	private final static MacroImplementationDescriptor immutable =
+	private static final MacroImplementationDescriptor immutable =
 		new MacroImplementationDescriptor(false);
 
 	/**

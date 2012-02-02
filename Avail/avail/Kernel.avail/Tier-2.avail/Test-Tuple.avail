@@ -148,6 +148,7 @@ Assert (last index of <1,2,3,2,5> where [ x : any | x = 9;]) = 0;
 Assert (all indexes of <1,2,2,3> where [ x : any | x = 2;]) = <2,3>;
 Assert (all indexes of <1,2,2,3> where [ x : any | x = 9;]) = <>;
 
+/*
 s ::= "" then "" then "" then "" then "" then "" then "" then "" then "" then
       "" then "" then "" then "" then "" then "" then "" then "" then "" then
       "" then "" then "" then "" then "" then "" then "" then "" then "" then
@@ -157,3 +158,4 @@ s ::= "" then "" then "" then "" then "" then "" then "" then "" then "" then
       "" then "" then "" then "" then "" then "" then "" then "" then "" then
       "" then "" then "" then "" then "" then "" then "" then "" then "" then "";
 Assert s = "";
+*/

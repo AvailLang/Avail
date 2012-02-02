@@ -415,7 +415,7 @@ extends TypeDescriptor
 	/**
 	 * The mutable {@link MapTypeDescriptor}.
 	 */
-	private final static MapTypeDescriptor mutable = new MapTypeDescriptor(true);
+	private static final MapTypeDescriptor mutable = new MapTypeDescriptor(true);
 
 	/**
 	 * Answer the mutable {@link MapTypeDescriptor}.
@@ -430,7 +430,7 @@ extends TypeDescriptor
 	/**
 	 * The immutable {@link MapTypeDescriptor}.
 	 */
-	private final static MapTypeDescriptor immutable = new MapTypeDescriptor(false);
+	private static final MapTypeDescriptor immutable = new MapTypeDescriptor(false);
 
 	/**
 	 * Answer the immutable {@link MapTypeDescriptor}.
