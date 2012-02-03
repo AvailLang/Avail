@@ -1,0 +1,327 @@
+/*
+ * Quz Master 5000 Mark 3.avail
+ * Copyright © 1993-2012, Richard Arriaga.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Quiz Master 5000 Mark 3"
+Versions
+/* TODO: Set versions */
+Extends
+	"Kernel" = ("«_‡then»")
+Uses
+	"Kernel"
+Names
+	"Q:_«A:_«*»»",
+	"Administer Test",
+	"Points:_Q:_«A:_«*»»",
+	"Administer Weighted Test"
+	
+Body
+
+inquiry ::= new atom "inquiry";
+answers ::= new atom "answers";
+points ::= new atom "points";
+
+"quiz question" is implicit subtype of Object with
+	inquiry -> string,
+	answers -> <<string,<tuple like <>…|0..1>…|2..2>…|1..∞>;
+
+"weighted quiz question" is implicit subtype of Object with
+	inquiry -> string,
+	answers -> <<string,<tuple like <>…|0..1>…|2..2>…|1..∞>,
+	points -> whole number;
+	
+testQuestions : <quiz question…|0..∞> := <>;
+
+weightedTestQuestions : <weighted quiz question…|0..∞> := <>;
+
+/**
+ * A special form of Print that accepts a question and prints it in specific
+ * format.
+ *
+ * Parameters:
+ *    arg1 - quiz question
+ * Returns:
+ *    Top
+ */
+
+Method "Print_" is
+[
+ 	question : quiz question
+ |
+ 	Print question->inquiry then "\n";
+ 	From 1 to ||question->answers|| do 
+ 	[
+ 	 	i : natural number
+ 	 |
+ 	 	Print i as basic string then ". " 
+ 	 		then (question->answers[i][1]) then "\n";
+	];
+]:void;
+
+/**
+ * A special form of Print that accepts a question and prints it in specific
+ * format.
+ *
+ * Parameters:
+ *    arg1 - weighted quiz question
+ * Returns:
+ *    Top
+ */
+Method "Print_" is
+[
+ 	question : weighted quiz question
+ |
+ 	Print "Points: " then question->points as basic string then "\n";
+ 	Print question->inquiry then "\n";
+ 	From 1 to ||question->answers|| do 
+ 	[
+ 	 	i : natural number
+ 	 |
+ 	 	Print i as basic string then ". " 
+ 	 		then (question->answers[i][1]) then "\n";
+	];
+]:void;
+
+/**
+ * A method that creates a quiz question and prompts a user on the console
+ * to answer the question.  It determines if the user answer is correct.
+ *
+ * Parameters:
+ *    question - inquiry string
+ *    answerOptions: - tuple of answer strings.
+ *    «optional» - * indicates if answer is correct (multiple correct answers
+ *    	are valid)
+ * Returns:
+ *    void
+ */
+
+Method "Q:_«A:_«*»»" is
+[
+ 	question : string,
+ 	answerOptions : <<string,<tuple like <>…|0..1>…|2..2>…|1..∞>
+ |
+ 	/* Create quiz question object from input. */
+ 	quizQuestion : quiz question := quiz question new with
+ 		<<inquiry,question>,
+ 		<answers,answerOptions>>;
+ 		
+ 	/* Add quiz question to modular variable test questions. */
+ 	testQuestions := testQuestions then <quizQuestion>;
+ 	 	
+]:void;
+
+/**
+ * A method that creates a weighted quiz question and prompts a user on the 
+ * console to answer the question.  It determines if the user answer is correct.
+ *
+ * Parameters:
+ * 	  pointValue - whole number point value
+ *    question - inquiry string
+ *    answerOptions: - tuple of answer strings.
+ *    «optional» - * indicates if answer is correct (multiple correct answers
+ *    	are valid)
+ * Returns:
+ *    void
+ */
+Method "Points:_Q:_«A:_«*»»" is
+[
+ 	pointValue : whole number,
+ 	question : string,
+ 	answerOptions : <<string,<tuple like <>…|0..1>…|2..2>…|1..∞>
+ |
+ 	/* Create quiz question object from input. */
+ 	quizQuestion : weighted quiz question := quiz question new with
+ 		<<inquiry,question>,
+ 		<answers,answerOptions>,
+ 		<points,pointValue>>;
+ 		
+ 	/* Add quiz question to modular variable test questions. */
+ 		weightedTestQuestions := weightedTestQuestions then <quizQuestion>;
+ 	 	
+]:void;
+
+/**
+ * Takes a tuple of boolean and calculates the percentage that are true.
+ *
+ * Parameters:
+ *    userAnswerOutcomes - tuple of boolean
+ * Returns:
+ *    Float - percent of elements that are true.
+ */
+Method "calculate score for_" is
+[
+	userAnswerOutcomes : <boolean…|0..∞>
+ |
+ 	correctAnswers : <natural number…|0..∞> := all indexes of userAnswerOutcomes
+ 		where
+ 		[
+ 		 	x : boolean
+ 		 |
+ 		 	x = true;
+ 		];
+	score : float := (||correctAnswers|| as float / ||userAnswerOutcomes||)  * 100;
+	
+	score;
+]:float;
+
+/**
+ * Takes a tuple of boolean and calculates the percentage that are true.
+ *
+ * Parameters:
+ *    userAnswerOutcomes - tuple of tuple of boolean and point value
+ * Returns:
+ *    Float - percent of elements that are true.
+ */
+Method "calculate weighted score for_" is
+[
+	userAnswerOutcomes : <<boolean,whole number…|2..2>…|0..∞>
+ |
+ 	totalTestPoints : whole number := 0;
+ 	scoredPoints : whole number := 0;
+ 	correctAnswers : <natural number…|0..∞> := all indexes of userAnswerOutcomes
+ 		where
+ 		[
+ 		 	x : <boolean,whole number…|2..2>
+ 		 |
+ 		 	 x[1] = true;
+ 		];
+ 	
+ 	if ||correctAnswers|| > 0 then 
+ 	[
+ 	 	From 1 to ||correctAnswers|| do
+ 	 	[
+ 	 	 	i : natural number
+ 	 	 |
+ 	 	scoredPoints := scoredPoints + userAnswerOutcomes[correctAnswers[i]][2];
+ 	 	];
+	];
+ 	
+ 	From 1 to ||userAnswerOutcomes|| do
+ 	[
+ 	 	i : natural number
+ 	 |
+ 	 	totalTestPoints := totalTestPoints + userAnswerOutcomes[i][2];
+	];
+ 	
+	score : float := (scoredPoints as float / totalTestPoints)  * 100;
+	
+	score;
+]:float;
+
+/**
+ * Provides the test to the user and prints the final test score.
+ *
+ * Parameters:
+ *    none
+ * Returns:
+ *    void
+ */
+Method "Administer Test" is
+[
+ 	userAnswerOutcomes : <boolean…|0..∞> := <>;
+ 	
+ 	Print "\n\nAnd so begins the Test of Courage...\n";
+ 	
+ 	From 1 to ||testQuestions|| do
+ 	[
+ 	 	i : natural number
+ 	 |
+ 	 	correctAnswers : <natural number…|0..∞> := 
+			all indexes of testQuestions[i]->answers where 
+			[
+			 	x : <string,<tuple like <>…|0..1>…|2..2> 
+			 |
+			 	||x[2]|| = 1;
+			];
+		Print "\n";
+		Print testQuestions[i];
+	 	
+	 	response : <integer…|0..∞> := 
+	 		Ask for a tuple of integers with the question, "Your answer(s): ";
+
+	 	if response = correctAnswers then 
+	 	[userAnswerOutcomes := userAnswerOutcomes then <true>;] 
+	 	else 
+	 	[userAnswerOutcomes := userAnswerOutcomes then <false>;];
+ 	];
+ 	
+ 	Print "\nFinal Score: " then 
+ 		calculate score for userAnswerOutcomes as basic string then "%\n\n";
+]:void;
+
+/**
+ * Provides the weighted test to the user and prints the final test score.
+ *
+ * Parameters:
+ *    none
+ * Returns:
+ *    void
+ */
+Method "Administer Weighted Test" is
+[
+ 	userAnswerOutcomes : <<boolean,whole number…|2..2>…|0..∞> := <>;
+ 	
+ 	Print "\n\nAnd so begins the Weighted Test of Courage...\n";
+ 	
+ 	From 1 to ||weightedTestQuestions|| do
+ 	[
+ 	 	i : natural number
+ 	 |
+ 	 	correctAnswers : <natural number…|0..∞> := 
+			all indexes of weightedTestQuestions[i]->answers where 
+			[
+			 	x : <string,<tuple like <>…|0..1>…|2..2> 
+			 |
+			 	||x[2]|| = 1;
+			];
+		Print "\n";
+		Print weightedTestQuestions[i];
+	 	
+	 	response : <integer…|0..∞> := 
+	 		Ask for a tuple of integers with the question, "Your answer(s): ";
+
+	 	if response = correctAnswers then 
+	 	[
+	 	 	userAnswerOutcomes := userAnswerOutcomes then 
+	 	 		<<true,weightedTestQuestions[i]->points>>;
+	 	]
+	 	else 
+	 	[
+	 	 	userAnswerOutcomes := userAnswerOutcomes then 
+	 	 		<<false,weightedTestQuestions[i]->points>>;
+	 	];
+ 	];
+ 	
+ 	Print "\nFinal Score: " then 
+ 		calculate weighted score for userAnswerOutcomes as basic string 
+ 		then "%\n\n";
+]:void;
+
