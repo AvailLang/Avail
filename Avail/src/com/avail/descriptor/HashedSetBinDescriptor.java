@@ -82,7 +82,7 @@ extends SetBinDescriptor
 		 * If this is {@linkplain NullDescriptor#nullObject() top}, then it can
 		 * be recomputed when needed and cached.
 		 */
-		BIN_UNION_TYPE_OR_VOID,
+		BIN_UNION_TYPE_OR_NULL,
 
 		/**
 		 * The actual bin elements or sub-bins.  Each slot corresponds to a 1
@@ -119,11 +119,11 @@ extends SetBinDescriptor
 	}
 
 	@Override @AvailMethod
-	void o_BinUnionTypeOrTop (
+	void o_BinUnionTypeOrNull (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
-		object.setSlot(ObjectSlots.BIN_UNION_TYPE_OR_VOID, value);
+		object.setSlot(ObjectSlots.BIN_UNION_TYPE_OR_NULL, value);
 	}
 
 	@Override @AvailMethod
@@ -142,10 +142,10 @@ extends SetBinDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_BinUnionTypeOrTop (
+	@NotNull AvailObject o_BinUnionTypeOrNull (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.BIN_UNION_TYPE_OR_VOID);
+		return object.slot(ObjectSlots.BIN_UNION_TYPE_OR_NULL);
 	}
 
 	@Override @AvailMethod
@@ -158,7 +158,7 @@ extends SetBinDescriptor
 	@Override boolean allowsImmutableToMutableReferenceInField (
 		final @NotNull AbstractSlotsEnum e)
 	{
-		return e == ObjectSlots.BIN_UNION_TYPE_OR_VOID;
+		return e == ObjectSlots.BIN_UNION_TYPE_OR_NULL;
 	}
 
 	@Override @AvailMethod
@@ -179,7 +179,7 @@ extends SetBinDescriptor
 	AvailObject o_BinUnionKind (
 			final @NotNull AvailObject object)
 	{
-		AvailObject union = object.binUnionTypeOrTop();
+		AvailObject union = object.binUnionTypeOrNull();
 		if (union.equalsNull())
 		{
 			union = object.binElementAt(1).binUnionKind();
@@ -188,7 +188,7 @@ extends SetBinDescriptor
 			{
 				union = union.typeUnion(object.binElementAt(i).binUnionKind());
 			}
-			object.binUnionTypeOrTop(union);
+			object.binUnionTypeOrNull(union);
 		}
 		return union;
 	}
@@ -249,8 +249,7 @@ extends SetBinDescriptor
 					HashedSetBinDescriptor.isMutableLevel(true, level)
 						.create(objectEntryCount);
 				objectToModify.bitVector(vector);
-				final int limit =
-					object.variableObjectSlotsCount();
+				final int limit = object.variableObjectSlotsCount();
 				for (int i = 1; i <= limit; i++)
 				{
 					objectToModify.binElementAtPut(i, object.binElementAt(i));
@@ -258,7 +257,7 @@ extends SetBinDescriptor
 			}
 			objectToModify.binHash(object.binHash() + hashDelta);
 			objectToModify.binSize(newSize);
-			objectToModify.binUnionTypeOrTop(NullDescriptor.nullObject());
+			objectToModify.binUnionTypeOrNull(NullDescriptor.nullObject());
 			objectToModify.binElementAtPut(physicalIndex, entry);
 			return objectToModify;
 		}
@@ -266,7 +265,7 @@ extends SetBinDescriptor
 		{
 			object.makeSubobjectsImmutable();
 		}
-		typeUnion = object.binUnionTypeOrTop();
+		typeUnion = object.binUnionTypeOrNull();
 		if (!typeUnion.equalsNull())
 		{
 			typeUnion = typeUnion.typeUnion(elementObject.kind());
@@ -275,7 +274,7 @@ extends SetBinDescriptor
 			.create(objectEntryCount + 1);
 		objectToModify.binHash(object.binHash() + elementObjectHash);
 		objectToModify.binSize(object.binSize() + 1);
-		objectToModify.binUnionTypeOrTop(typeUnion);
+		objectToModify.binUnionTypeOrNull(typeUnion);
 		objectToModify.bitVector(vector | bitShift(1,logicalIndex));
 		for (int i = 1, end = physicalIndex - 1; i <= end; i++)
 		{
@@ -354,23 +353,11 @@ extends SetBinDescriptor
 			{
 				return NullDescriptor.nullObject();
 			}
-			// Calculate the type union before allocating the new bin, so we
-			// don't have to worry about a partially initialized object during a
-			// type computation which may require memory allocation.
-			AvailObject newTypeUnion = BottomTypeDescriptor.bottom();
-			for (int index = 1; index <= objectEntryCount; index++)
-			{
-				if (index != physicalIndex)
-				{
-					newTypeUnion = newTypeUnion.typeUnion(
-						object.binElementAt(index).binUnionKind());
-				}
-			}
 			result = HashedSetBinDescriptor.isMutableLevel(true, level).create(
 				objectEntryCount - 1);
 			result.binHash(object.binHash() + deltaHash);
 			result.binSize(object.binSize() + deltaSize);
-			result.binUnionTypeOrTop(newTypeUnion);
+			result.binUnionTypeOrNull(NullDescriptor.nullObject());
 			result.bitVector(vector ^ bitShift(1,logicalIndex));
 			for (int index = objectEntryCount - 1; index >= 1; index--)
 			{
@@ -396,12 +383,11 @@ extends SetBinDescriptor
 		}
 		else
 		{
-
 			result = HashedSetBinDescriptor.isMutableLevel(true, level).create(
 				objectEntryCount);
 			result.binHash(object.binHash() + deltaHash);
 			result.binSize(object.binSize() + deltaSize);
-			result.binUnionTypeOrTop(NullDescriptor.nullObject());
+			result.binUnionTypeOrNull(NullDescriptor.nullObject());
 			result.bitVector(vector);
 			for (int index = 1; index <= objectEntryCount; index++)
 			{

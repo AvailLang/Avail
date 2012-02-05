@@ -33,6 +33,7 @@
 package com.avail.test;
 
 import static org.junit.Assert.*;
+import static java.lang.Math.*;
 import java.io.*;
 import java.util.*;
 import org.junit.*;
@@ -104,11 +105,16 @@ public final class SerializerTest
 	private void prepareToReadBack ()
 	{
 		final byte[] bytes = out.toByteArray();
-		for (final byte b : bytes)
-		{
-			System.out.format("%02x ", b);
-		}
-		System.out.println();
+//		int count = 1;
+//		for (final byte b : bytes)
+//		{
+//			System.out.format("%02x ", b);
+//			if (count++ % 50 == 0)
+//			{
+//				System.out.println();
+//			}
+//		}
+//		System.out.println();
 		in = new ByteArrayInputStream(bytes);
 		deserializer = new Deserializer(in);
 		serializer = null;
@@ -217,9 +223,9 @@ public final class SerializerTest
 	throws MalformedSerialStreamException
 	{
 		checkObject(TupleDescriptor.fromIntegerList(Arrays.asList(0)));
-		checkObject(TupleDescriptor.fromIntegerList(Arrays.asList(0)));
-		checkObject(TupleDescriptor.fromIntegerList(Arrays.asList(0)));
-		checkObject(TupleDescriptor.fromIntegerList(Arrays.asList(0)));
+		checkObject(TupleDescriptor.fromIntegerList(Arrays.asList(1)));
+		checkObject(TupleDescriptor.fromIntegerList(Arrays.asList(2)));
+		checkObject(TupleDescriptor.fromIntegerList(Arrays.asList(3)));
 		checkObject(TupleDescriptor.fromIntegerList(Arrays.asList(10, 20)));
 		checkObject(TupleDescriptor.fromIntegerList(Arrays.asList(10, 20, 10)));
 		checkObject(TupleDescriptor.fromIntegerList(Arrays.asList(100, 200)));
@@ -236,4 +242,106 @@ public final class SerializerTest
 			IntegerDescriptor.fromLong(Long.MIN_VALUE),
 			IntegerDescriptor.fromLong(Long.MAX_VALUE)));
 	}
+
+	/**
+	 * Test random combinations of tuples, sets, maps, integers, and characters.
+	 *
+	 * @throws MalformedSerialStreamException If the stream is malformed.
+	 */
+	@Test
+	public void testRandomSimpleObjects ()
+	throws MalformedSerialStreamException
+	{
+		final Random random = new Random(-4673928647810677486L);
+		for (int run = 0; run < 100; run++)
+		{
+			final int partsCount = 1 + random.nextInt(1000);
+			final List<AvailObject> parts =
+				new ArrayList<AvailObject>(partsCount);
+			for (int partIndex = 0; partIndex < partsCount; partIndex++)
+			{
+				AvailObject newObject = null;
+				final int choice = (partIndex == partsCount - 1)
+					? random.nextInt(3) + 2
+					: random.nextInt(5);
+				if (choice == 0)
+				{
+					newObject = IntegerDescriptor.fromInt(random.nextInt());
+				}
+				else if (choice == 1)
+				{
+					newObject = CharacterDescriptor.fromCodePoint(
+						random.nextInt(0x110000));
+				}
+				else
+				{
+					int size = random.nextInt(min(20, partIndex + 1));
+					if (choice == 4)
+					{
+						// For a map.
+						size &= ~1;
+					}
+					final List<AvailObject> members =
+						new ArrayList<AvailObject>(size);
+					for (int i = 0; i < size; i++)
+					{
+						members.add(parts.get(random.nextInt(partIndex)));
+					}
+					if (choice == 2)
+					{
+						newObject = TupleDescriptor.fromCollection(members);
+					}
+					else if (choice == 3)
+					{
+						newObject = SetDescriptor.fromCollection(members);
+					}
+					else if (choice == 4)
+					{
+						newObject = MapDescriptor.newWithCapacity(size);
+						for (int i = 0; i < size; i+=2)
+						{
+							newObject = newObject.mapAtPuttingCanDestroy(
+								members.get(i),
+								members.get(i + 1),
+								true);
+						}
+					}
+				}
+				assert newObject != null;
+				newObject.makeImmutable();
+				parts.add(newObject);
+			}
+			assert parts.size() == partsCount;
+			checkObject(parts.get(partsCount - 1));
+		}
+	}
+
+//	@Test
+//	public void testRandomSimpleObjects2 ()
+//	throws MalformedSerialStreamException
+//	{
+//		testRandomSimpleObjects();
+//	}
+//
+//	@Test
+//	public void testRandomSimpleObjects3 ()
+//	throws MalformedSerialStreamException
+//	{
+//		testRandomSimpleObjects();
+//	}
+//
+//	@Test
+//	public void testRandomSimpleObjects4 ()
+//	throws MalformedSerialStreamException
+//	{
+//		testRandomSimpleObjects();
+//	}
+//
+//	@Test
+//	public void testRandomSimpleObjects5 ()
+//	throws MalformedSerialStreamException
+//	{
+//		testRandomSimpleObjects();
+//	}
+
 }

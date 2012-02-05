@@ -271,6 +271,8 @@ public class AvailCompiler extends AbstractAvailCompiler
 		{
 			for (final MapDescriptor.Entry entry : actions.mapIterable())
 			{
+				final AvailObject key = entry.key;
+				final AvailObject value = entry.value;
 				attempt(
 					new Continuation0()
 					{
@@ -279,15 +281,15 @@ public class AvailCompiler extends AbstractAvailCompiler
 						{
 							runParsingInstructionThen(
 								start,
-								entry.key.extractInt(),
+								key.extractInt(),
 								firstArgOrNull,
 								argsSoFar,
 								initialTokenPosition,
-								entry.value,
+								value,
 								continuation);
 						}
 					},
-					"Continue with instruction " + entry.key,
+					"Continue with instruction " + key,
 					start.position);
 			}
 		}

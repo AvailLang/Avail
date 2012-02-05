@@ -93,16 +93,36 @@ extends Descriptor
 		DATA_AT_INDEX_
 	}
 
-	@Override @AvailMethod
-	@NotNull AvailObject o_DataAtIndex (
+	/**
+	 * Answer the data at position N.  The data is keys and values in
+	 * alternation, using {@link NullDescriptor Nulls} and {@link
+	 * BlankDescriptor Blanks} to indicate unused or no longer occupied key
+	 * slots.
+	 *
+	 * @param object The map to examine.
+	 * @param subscript The position to extract.
+	 * @return The key or value at the specified position.
+	 */
+	@InnerAccess
+	static @NotNull AvailObject dataAtIndex (
 		final @NotNull AvailObject object,
 		final int subscript)
 	{
 		return object.slot(ObjectSlots.DATA_AT_INDEX_, subscript);
 	}
 
-	@Override @AvailMethod
-	void o_DataAtIndexPut (
+	/**
+	 * Write to the data at position N.  The data is keys and values in
+	 * alternation, using {@link NullDescriptor Nulls} and {@link
+	 * BlankDescriptor Blanks} to indicate unused or no longer occupied key
+	 * slots.
+	 *
+	 * @param object The map to examine.
+	 * @param subscript The position to extract.
+	 * @param value The key or value to write at the specified position.
+	 */
+	@InnerAccess
+	static void dataAtIndexPut (
 		final @NotNull AvailObject object,
 		final int subscript,
 		final AvailObject value)
@@ -110,35 +130,85 @@ extends Descriptor
 		object.setSlot(ObjectSlots.DATA_AT_INDEX_, subscript, value);
 	}
 
-	@Override @AvailMethod
-	void o_InternalHash (
+	@InnerAccess
+	static @NotNull AvailObject keyAtIndex (
 		final @NotNull AvailObject object,
-		final int value)
+		final int index)
 	{
-		object.setSlot(IntegerSlots.INTERNAL_HASH, value);
+		//  Answer the map's indexth key.
+		return object.slot(ObjectSlots.DATA_AT_INDEX_, index * 2 - 1);
 	}
 
-	@Override @AvailMethod
-	void o_MapSize (
+	@InnerAccess
+	static void keyAtIndexPut (
 		final @NotNull AvailObject object,
-		final int value)
+		final int index,
+		final AvailObject keyObject)
 	{
-		object.setSlot(IntegerSlots.MAP_SIZE, value);
+		// Set the map's indexth key.
+		object.setSlot(ObjectSlots.DATA_AT_INDEX_, index * 2 - 1, keyObject);
 	}
 
-	@Override @AvailMethod
-	void o_NumBlanks (
+	@InnerAccess
+	static @NotNull AvailObject valueAtIndex (
 		final @NotNull AvailObject object,
-		final int value)
+		final int index)
 	{
-		object.setSlot(IntegerSlots.NUM_BLANKS, value);
+		//  Answer the map's indexth value.
+		return object.slot(ObjectSlots.DATA_AT_INDEX_, index * 2);
 	}
 
-	@Override @AvailMethod
-	int o_InternalHash (
+	@InnerAccess
+	static void valueAtIndexPut (
+		final @NotNull AvailObject object,
+		final int index,
+		final AvailObject keyObject)
+	{
+		// Set the map's indexth value.
+		object.setSlot(ObjectSlots.DATA_AT_INDEX_, index * 2, keyObject);
+	}
+
+	@InnerAccess
+	static int numBlanks (
 		final @NotNull AvailObject object)
 	{
+		// Answer the number of blanks.
+		return object.slot(IntegerSlots.NUM_BLANKS);
+	}
+
+	@InnerAccess
+	static void numBlanks (
+		final @NotNull AvailObject object,
+		final int numBlanks)
+	{
+		// Set the number of blanks.
+		object.setSlot(IntegerSlots.NUM_BLANKS, numBlanks);
+	}
+
+	@InnerAccess
+	static int innerHash (
+		final @NotNull AvailObject object)
+	{
+		// Answer the internal hash value.
 		return object.slot(IntegerSlots.INTERNAL_HASH);
+	}
+
+	@InnerAccess
+	static void innerHash (
+		final @NotNull AvailObject object,
+		final int numBlanks)
+	{
+		// Set the internal hash value.
+		object.setSlot(IntegerSlots.INTERNAL_HASH, numBlanks);
+	}
+
+	@InnerAccess
+	static void mapSize (
+		final @NotNull AvailObject object,
+		final int mapSize)
+	{
+		// Set the map's size.
+		object.setSlot(IntegerSlots.MAP_SIZE, mapSize);
 	}
 
 	@Override @AvailMethod
@@ -146,13 +216,6 @@ extends Descriptor
 		final @NotNull AvailObject object)
 	{
 		return object.slot(IntegerSlots.MAP_SIZE);
-	}
-
-	@Override @AvailMethod
-	int o_NumBlanks (
-		final @NotNull AvailObject object)
-	{
-		return object.slot(IntegerSlots.NUM_BLANKS);
 	}
 
 
@@ -168,21 +231,15 @@ extends Descriptor
 		/**
 		 * The key at some {@link MapIterable}'s current position.
 		 */
-		public final AvailObject key;
+		public AvailObject key;
 
 		/**
 		 * The value associated with the key at some {@link MapIterable}'s
 		 * current position.
 		 */
-		public final AvailObject value;
+		public AvailObject value;
 
-		/**
-		 * Construct a new {@link Entry}.
-		 *
-		 * @param key The key of the {@linkplain MapDescriptor map} entry.
-		 * @param value The value of the {@linkplain MapDescriptor map} entry.
-		 */
-		Entry(final AvailObject key, final AvailObject value)
+		public Entry (final AvailObject key, final AvailObject value)
 		{
 			this.key = key;
 			this.value = value;
@@ -207,10 +264,15 @@ extends Descriptor
 		private final AvailObject object;
 
 		/**
-		 * The subscript used by {@link
-		* MapDescriptor#o_DataAtIndex(AvailObject, int) dataAtIndex(int)} to
+		 * The {@link Entry} to be reused for each <key, value> pair while
+		 * iterating over this {@link MapDescriptor map}.
+		 */
+		private final Entry entry = new Entry(null, null);
+
+		/**
+		 * The subscript used by {@link #dataAtIndex(AvailObject, int)} to
 		 * extract the current key.  The value associated with this key is at
-		 * {@code dataAtIndex(dataSubscript + 1)}.
+		 * {@code dataAtIndex(thisMap, dataSubscript + 1)}.
 		 */
 		private int dataSubscript;
 
@@ -243,7 +305,7 @@ extends Descriptor
 				dataSubscript += 2;
 			}
 			while (dataSubscript <= dataCapacity
-				&& object.dataAtIndex(dataSubscript).equalsNullOrBlank());
+				&& dataAtIndex(object, dataSubscript).equalsNullOrBlank());
 		}
 
 		@Override
@@ -257,11 +319,11 @@ extends Descriptor
 		{
 			// Recycle the same Entry repeatedly.
 			assert hasNext();
-			final AvailObject key = object.dataAtIndex(dataSubscript);
-			final AvailObject value = object.dataAtIndex(dataSubscript + 1);
-			assert !key.equalsNullOrBlank();
+			entry.key = dataAtIndex(object, dataSubscript);
+			entry.value = dataAtIndex(object, dataSubscript + 1);
+			assert !entry.key.equalsNullOrBlank();
 			advance();
-			return new Entry(key, value);
+			return entry;  //new Entry(entry.key, entry.value); // TODO unhack
 		}
 
 		@Override
@@ -326,7 +388,11 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final AvailObject aMap)
 	{
-		if (object.internalHash() != aMap.internalHash())
+		if (object.sameAddressAs(aMap))
+		{
+			return true;
+		}
+		if (object.hash() != aMap.hash())
 		{
 			return false;
 		}
@@ -336,19 +402,25 @@ extends Descriptor
 		}
 		for (int i = 1, end = object.capacity(); i <= end; i++)
 		{
-			final AvailObject keyObject = object.keyAtIndex(i);
+			final AvailObject keyObject = keyAtIndex(object, i);
 			if (!keyObject.equalsNullOrBlank())
 			{
 				if (!aMap.hasKey(keyObject))
 				{
 					return false;
 				}
-				if (!aMap.mapAt(keyObject).equals(object.valueAtIndex(i)))
+				if (!aMap.mapAt(keyObject).equals(valueAtIndex(object, i)))
 				{
 					return false;
 				}
 			}
 		}
+		// They're equal (but occupy disjoint storage).  Replace one with an
+		// indirection to the other to reduce storage costs and the frequency
+		// of entry-wise comparisons.
+		object.becomeIndirectionTo(aMap);
+		// Mark as immutable, now that there are at least two references to it.
+		aMap.makeImmutable();
 		return true;
 	}
 
@@ -382,14 +454,14 @@ extends Descriptor
 		AvailObject value;
 		for (int i = 1, end = object.capacity(); i <= end; i++)
 		{
-			key = object.keyAtIndex(i);
+			key = keyAtIndex(object, i);
 			if (!key.equalsNullOrBlank())
 			{
 				if (!key.isInstanceOf(keyTypeObject))
 				{
 					return false;
 				}
-				value = object.valueAtIndex(i);
+				value = valueAtIndex(object, i);
 				if (!value.equalsNullOrBlank()
 						&& !value.isInstanceOf(valueTypeObject))
 				{
@@ -404,9 +476,9 @@ extends Descriptor
 	int o_Hash (
 		final @NotNull AvailObject object)
 	{
-		//  Take the internal hash, and twiddle it (so nested maps won't cause unwanted correlation).
-
-		return object.internalHash() + 0x1D79B13 ^ 0x1A9A22FE;
+		// Take the internal hash, and twiddle it so nested maps won't have
+		// unwanted hash correlation.
+		return innerHash(object) + 0x1D79B13 ^ 0x1A9A22FE;
 	}
 
 	@Override @AvailMethod
@@ -433,14 +505,14 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final AvailObject keyObject)
 	{
-		//  Answer whether the map has the given key.  Note that we don't stop searching
-		//  when we reach a blank, only when we reach top or the target object.
-
+		// Answer whether the map has the given key.  Note that we don't stop
+		// searching when we reach a blank, only when we reach top or the target
+		// object.
 		final int modulus = object.capacity();
 		int h = (int)((keyObject.hash() & 0xFFFFFFFFL) % modulus + 1);
 		while (true)
 		{
-			final AvailObject slotObject = object.keyAtIndex(h);
+			final AvailObject slotObject = keyAtIndex(object, h);
 			if (slotObject.equalsNull())
 			{
 				return false;
@@ -458,13 +530,13 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final AvailObject keyObject)
 	{
-		//  Answer the value of the map at the specified key.  Fail if the key is not present.
-
+		// Answer the value of the map at the specified key.  Fail if the key is
+		// not present.
 		final int modulus = object.capacity();
 		int h = (int)((keyObject.hash() & 0xFFFFFFFFL) % modulus + 1);
 		while (true)
 		{
-			final AvailObject slotObject = object.keyAtIndex(h);
+			final AvailObject slotObject = keyAtIndex(object, h);
 			if (slotObject.equalsNull())
 			{
 				error("Key not found in map", object);
@@ -472,7 +544,7 @@ extends Descriptor
 			}
 			if (slotObject.equals(keyObject))
 			{
-				return object.valueAtIndex(h);
+				return valueAtIndex(object, h);
 			}
 			h = h == modulus ? 1 : h + 1;
 		}
@@ -485,28 +557,26 @@ extends Descriptor
 		final AvailObject newValueObject,
 		final boolean canDestroy)
 	{
-		//  Answer a map like this one but with keyObject->newValueObject instead of any existing
-		//  mapping for keyObject.  The original map can be destroyed if canDestroy is true and it's mutable.
-
-		keyObject.hash();
-		newValueObject.hash();
-		//  Forces hash value to be available so GC can't happen during internalHash update.
-		final int neededCapacity = (object.mapSize() + 1 + object.numBlanks()) * 4 / 3 + 1;
-		if (canDestroy && isMutable &&
-				(object.hasKey(keyObject)
-						|| object.capacity() >= neededCapacity))
+		// Answer a map like this one but with keyObject->newValueObject instead
+		// of any existing mapping for keyObject.  The original map can be
+		// destroyed or recycled if canDestroy is true and it's mutable.
+		final int neededCapacity =
+			(object.mapSize() + 1 + numBlanks(object)) * 4 / 3 + 1;
+		if (canDestroy
+			&& isMutable
+			&& (object.hasKey(keyObject)
+				|| object.capacity() >= neededCapacity))
 		{
 			return object.privateMapAtPut(keyObject, newValueObject);
 		}
-		final AvailObject result = MapDescriptor.newWithCapacity(object.mapSize() * 2 + 5);
+		final AvailObject result = MapDescriptor.newWithCapacity(
+			object.mapSize() * 2 + 5);
 		//  Start new map just over 50% free (with no blanks).
-//		canAllocateObjects(false);
 		for (final Entry entry : object.mapIterable())
 		{
 			result.privateMapAtPut(entry.key, entry.value);
 		}
 		result.privateMapAtPut(keyObject, newValueObject);
-//		canAllocateObjects(true);
 		return result;
 	}
 
@@ -518,14 +588,13 @@ extends Descriptor
 	{
 		// Answer a map like this one but with keyObject removed from it.  The
 		// original map can be destroyed if canDestroy is true and it's mutable.
-
 		if (!object.hasKey(keyObject))
 		{
 			if (!canDestroy)
 			{
+				// Existing reference will be kept around.
 				object.makeImmutable();
 			}
-			//  Existing reference will be kept around.
 			return object;
 		}
 		if (canDestroy && isMutable)
@@ -534,7 +603,6 @@ extends Descriptor
 		}
 		final AvailObject result =
 			MapDescriptor.newWithCapacity(object.capacity());
-//		canAllocateObjects(false);
 		for (final Entry entry : object.mapIterable())
 		{
 			if (!entry.key.equals(keyObject))
@@ -542,7 +610,6 @@ extends Descriptor
 				result.privateMapAtPut(entry.key, entry.value);
 			}
 		}
-//		canAllocateObjects(true);
 		return result;
 	}
 
@@ -575,19 +642,19 @@ extends Descriptor
 	@NotNull AvailObject o_KeysAsSet (
 		final @NotNull AvailObject object)
 	{
-		//  Answer a set with all my keys.  Mark the keys as immutable because they'll be shared with the new set.
-
-//		AvailObject.lock(object);
+		// Answer a set with all my keys.  Mark the keys as immutable because
+		// they'll be shared with the new set.
 		AvailObject result = SetDescriptor.empty();
 		for (int i = 1, end = object.capacity(); i <= end; i++)
 		{
-			final AvailObject eachKeyObject = object.keyAtIndex(i);
+			final AvailObject eachKeyObject = keyAtIndex(object, i);
 			if (!eachKeyObject.equalsNullOrBlank())
 			{
-				result = result.setWithElementCanDestroy(eachKeyObject.makeImmutable(), true);
+				result = result.setWithElementCanDestroy(
+					eachKeyObject.makeImmutable(),
+					true);
 			}
 		}
-//		AvailObject.unlock(object);
 		return result;
 	}
 
@@ -601,8 +668,6 @@ extends Descriptor
 	{
 		final AvailObject result = ObjectTupleDescriptor.mutable().create(
 			object.mapSize());
-//		AvailObject.lock(result);
-//		canAllocateObjects(false);
 		for (int i = 1, end = object.mapSize(); i <= end; i++)
 		{
 			result.tupleAtPut(i, NullDescriptor.nullObject());
@@ -616,30 +681,7 @@ extends Descriptor
 			targetIndex++;
 		}
 		assert targetIndex == object.mapSize() + 1;
-//		canAllocateObjects(true);
-//		AvailObject.unlock(result);
 		return result;
-	}
-
-	@Override @AvailMethod
-	@NotNull AvailObject o_KeyAtIndex (
-		final @NotNull AvailObject object,
-		final int index)
-	{
-		//  Answer the map's indexth key.
-
-		return object.dataAtIndex(index * 2 - 1);
-	}
-
-	@Override @AvailMethod
-	void o_KeyAtIndexPut (
-		final @NotNull AvailObject object,
-		final int index,
-		final AvailObject keyObject)
-	{
-		//  Set the map's indexth key.
-
-		object.dataAtIndexPut(index * 2 - 1, keyObject);
 	}
 
 	@Override @AvailMethod
@@ -647,32 +689,31 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final AvailObject keyObject)
 	{
-		//  Remove keyObject from the map's keys if it's present.  The map must be mutable.
-		//  Also, computing the key's hash value should not cause an allocation.
+		// Remove keyObject from the map's keys if it's present.  The map must
+		// be mutable.  Also, computing the key's hash value should not cause an
+		// allocation.
 
-		assert !keyObject.equalsNullOrBlank() & isMutable;
+		assert isMutable;
+		assert !keyObject.equalsNullOrBlank();
 		final int h0 = keyObject.hash();
 		final int modulus = object.capacity();
 		int probe = (int)((h0 & 0xFFFFFFFFL) % modulus + 1);
-//		AvailObject.lock(object);
 		while (true)
 		{
-			final AvailObject slotValue = object.keyAtIndex(probe);
+			final AvailObject slotValue = keyAtIndex(object, probe);
 			if (slotValue.equalsNull())
 			{
-//				AvailObject.unlock(object);
 				return object;
 			}
 			if (slotValue.equals(keyObject))
 			{
-				object.internalHash(
-					object.internalHash()
-					^ h0 + object.valueAtIndex(probe).hash() * 23);
-				object.keyAtIndexPut(probe, BlankDescriptor.blank());
-				object.valueAtIndexPut(probe, NullDescriptor.nullObject());
-				object.mapSize(object.mapSize() - 1);
-				object.numBlanks(object.numBlanks() + 1);
-//				AvailObject.unlock(object);
+				int newHash = innerHash(object);
+				newHash ^= h0 + valueAtIndex(object, probe).hash() * 23;
+				innerHash(object, newHash);
+				keyAtIndexPut(object, probe, BlankDescriptor.blank());
+				valueAtIndexPut(object, probe, NullDescriptor.nullObject());
+				mapSize(object, object.mapSize() - 1);
+				numBlanks(object, numBlanks(object) + 1);
 				return object;
 			}
 			if (probe == modulus)
@@ -692,42 +733,39 @@ extends Descriptor
 		final AvailObject keyObject,
 		final AvailObject valueObject)
 	{
-		//  Make keyObject go to valueObject in the map.  The object must be mutable and have
-		//  room for the new element.  Also, computing the key's hash value should not cause
-		//  an allocation.
-
-		assert !keyObject.equalsNullOrBlank() & isMutable;
-		assert (object.mapSize() + object.numBlanks()) * 4 <= object.capacity() * 3;
+		// Make keyObject go to valueObject in the map.  The object must be
+		// mutable and have room for the new element.  Also, computing the key's
+		// hash value should not cause an allocation.
+		assert isMutable;
+		assert !keyObject.equalsNullOrBlank();
+		assert (object.mapSize() + numBlanks(object)) * 4 <= object.capacity() * 3;
 		final int h0 = keyObject.hash();
 		final int modulus = object.capacity();
 		int probe = (int)((h0 & 0xFFFFFFFFL) % modulus + 1);
-//		AvailObject.lock(object);
 		int tempHash;
 		while (true)
 		{
-			final AvailObject slotValue = object.keyAtIndex(probe);
+			final AvailObject slotValue = keyAtIndex(object, probe);
 			if (slotValue.equals(keyObject))
 			{
-				tempHash = object.internalHash()
-				^ h0 + object.valueAtIndex(probe).hash() * 23;
+				tempHash = innerHash(object)
+				^ h0 + valueAtIndex(object, probe).hash() * 23;
 				tempHash ^= h0 + valueObject.hash() * 23;
-				object.internalHash(tempHash);
-				object.valueAtIndexPut(probe, valueObject);
-//				AvailObject.unlock(object);
+				innerHash(object, tempHash);
+				valueAtIndexPut(object, probe, valueObject);
 				return object;
 			}
 			if (slotValue.equalsNullOrBlank())
 			{
-				object.keyAtIndexPut(probe, keyObject);
-				object.valueAtIndexPut(probe, valueObject);
-				object.mapSize(object.mapSize() + 1);
-				object.internalHash(
-					object.internalHash() ^ h0 + valueObject.hash() * 23);
+				keyAtIndexPut(object, probe, keyObject);
+				valueAtIndexPut(object, probe, valueObject);
+				mapSize(object, object.mapSize() + 1);
+				innerHash(object,
+					innerHash(object) ^ h0 + valueObject.hash() * 23);
 				if (slotValue.equalsBlank())
 				{
-					object.numBlanks(object.numBlanks() - 1);
+					numBlanks(object, numBlanks(object) - 1);
 				}
-//				AvailObject.unlock(object);
 				return object;
 			}
 			probe = probe == modulus ? 1 : probe + 1;
@@ -735,43 +773,20 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_ValueAtIndex (
-		final @NotNull AvailObject object,
-		final int index)
-	{
-		//  Answer the map's indexth value.
-
-		return object.dataAtIndex(index * 2);
-	}
-
-	@Override @AvailMethod
-	void o_ValueAtIndexPut (
-		final @NotNull AvailObject object,
-		final int index,
-		final AvailObject valueObject)
-	{
-		//  Set the map's indexth value.
-
-		object.dataAtIndexPut(index * 2, valueObject);
-	}
-
-	@Override @AvailMethod
 	List<AvailObject> o_KeysAsArray (
 		final @NotNull AvailObject object)
 	{
-//		AvailObject.lock(object);
 		List<AvailObject> result;
 		result = new ArrayList<AvailObject>(object.mapSize());
 		for (int i = 1, end = object.capacity(); i <= end; i++)
 		{
-			final AvailObject eachKeyObject = object.keyAtIndex(i);
+			final AvailObject eachKeyObject = keyAtIndex(object, i);
 			if (!eachKeyObject.equalsNullOrBlank())
 			{
 				result.add(eachKeyObject.makeImmutable());
 			}
 		}
 		assert result.size() == object.mapSize();
-//		AvailObject.unlock(object);
 		return result;
 	}
 
@@ -835,12 +850,12 @@ extends Descriptor
 	public static @NotNull AvailObject newWithCapacity (final int capacity)
 	{
 		final AvailObject result = mutable().create(capacity * 2);
-		result.internalHash(0);
-		result.mapSize(0);
-		result.numBlanks(0);
+		innerHash(result, 0);
+		mapSize(result, 0);
+		numBlanks(result, 0);
 		for (int i = 1; i <= capacity * 2; i++)
 		{
-			result.dataAtIndexPut(i, NullDescriptor.nullObject());
+			dataAtIndexPut(result, i, NullDescriptor.nullObject());
 		}
 		return result;
 	}

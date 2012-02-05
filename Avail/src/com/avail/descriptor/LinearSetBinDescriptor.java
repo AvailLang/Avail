@@ -98,8 +98,6 @@ extends SetBinDescriptor
 	@NotNull AvailObject o_MakeImmutable (
 		final @NotNull AvailObject object)
 	{
-		//  Make the object immutable so it can be shared safely.
-
 		if (isMutable)
 		{
 			object.descriptor = isMutableLevel(false, level);
@@ -116,10 +114,10 @@ extends SetBinDescriptor
 		final byte myLevel,
 		final boolean canDestroy)
 	{
-		//  Add the given element to this bin, potentially modifying it if canDestroy and it's
-		//  mutable.  Answer the new bin.  Note that the client is responsible for marking
-		//  elementObject as immutable if another reference exists.
-
+		// Add the given element to this bin, potentially modifying it if
+		// canDestroy and it's mutable.  Answer the new bin.  Note that the
+		// client is responsible for marking elementObject as immutable if
+		// another reference exists.
 		assert myLevel == level;
 		if (object.binHasElementHash(elementObject, elementObjectHash))
 		{
@@ -129,27 +127,26 @@ extends SetBinDescriptor
 			}
 			return object;
 		}
-		//  It's not present, so grow the list.  Keep it simple for now by always replacing the list.
+		// It's not present, so grow the list.  Keep it simple for now by always
+		// replacing the list.
 		final int oldSize = object.variableObjectSlotsCount();
 		AvailObject result;
 		if (myLevel < 7 && oldSize >= 10)
 		{
 			int bitPosition = bitShift(elementObjectHash, -5 * myLevel) & 31;
 			int bitVector = bitShift(1,bitPosition);
-			AvailObject typeUnion = elementObject.kind();
 			for (int i = 1; i <= oldSize; i++)
 			{
 				final AvailObject element = object.binElementAt(i);
 				bitPosition = bitShift(element.hash(), -5 * myLevel) & 31;
 				bitVector |= bitShift(1,bitPosition);
-				typeUnion = typeUnion.typeUnion(element.kind());
 			}
-		final int newSize = bitCount(bitVector);
+			final int newSize = bitCount(bitVector);
 			result = HashedSetBinDescriptor.isMutableLevel(true, myLevel)
 				.create(newSize);
 			result.binHash(0);
 			result.binSize(0);
-			result.binUnionTypeOrTop(typeUnion);
+			result.binUnionTypeOrNull(NullDescriptor.nullObject());
 			result.bitVector(bitVector);
 			for (int i = 1; i <= newSize; i++)
 			{
@@ -179,7 +176,7 @@ extends SetBinDescriptor
 				assert localAddResult.sameAddressAs(result)
 				: "The element should have been added without reallocation";
 			}
-		final int newHash = object.binHash() + elementObjectHash;
+			final int newHash = object.binHash() + elementObjectHash;
 			assert result.binHash() == newHash;
 			assert result.binSize() == oldSize + 1;
 			return result;
@@ -331,11 +328,11 @@ extends SetBinDescriptor
 		assert mutableTuple.descriptor().isMutable();
 		int writeIndex = startingIndex;
 		for (
-			int
-				readIndex = 1,
-				end = object.variableObjectSlotsCount();
-			readIndex <= end;
-			readIndex++)
+				int
+					readIndex = 1,
+					end = object.variableObjectSlotsCount();
+				readIndex <= end;
+				readIndex++)
 		{
 			mutableTuple.tupleAtPut(writeIndex, object.binElementAt(readIndex));
 			writeIndex++;

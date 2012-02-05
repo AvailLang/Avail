@@ -324,7 +324,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_BinUnionTypeOrTop (
+	void o_BinUnionTypeOrNull (
 		final @NotNull AvailObject object,
 		final AvailObject value)
 	{
@@ -525,23 +525,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	@NotNull AvailObject o_DataAtIndex (
-		final @NotNull AvailObject object,
-		final int index)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	void o_DataAtIndexPut (
-		final @NotNull AvailObject object,
-		final int index,
-		final AvailObject value)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	@NotNull AvailObject o_DivideCanDestroy (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aNumber,
@@ -718,14 +701,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_InternalHash (
-		final @NotNull AvailObject object,
-		final int value)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	void o_InterruptRequestFlag (
 		final @NotNull AvailObject object,
 		final int value)
@@ -870,23 +845,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	@NotNull AvailObject o_KeyAtIndex (
-		final @NotNull AvailObject object,
-		final int index)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	void o_KeyAtIndexPut (
-		final @NotNull AvailObject object,
-		final int index,
-		final AvailObject keyObject)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	void o_LevelTwoChunkOffset (
 		final @NotNull AvailObject object,
 		final AvailObject chunk,
@@ -996,14 +954,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_MapSize (
-		final @NotNull AvailObject object,
-		final int value)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	@NotNull AvailObject o_MapWithoutKeyCanDestroy (
 		final @NotNull AvailObject object,
 		final AvailObject keyObject,
@@ -1059,14 +1009,6 @@ extends AbstractDescriptor
 	boolean o_NameVisible (
 		final @NotNull AvailObject object,
 		final AvailObject trueName)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	void o_NumBlanks (
-		final @NotNull AvailObject object,
-		final int value)
 	{
 		throw unsupportedOperationException();
 	}
@@ -1239,7 +1181,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	short o_RawShortForCharacterAt (
+	int o_RawShortForCharacterAt (
 		final @NotNull AvailObject object,
 		final int index)
 	{
@@ -1250,7 +1192,7 @@ extends AbstractDescriptor
 	void o_RawShortForCharacterAtPut (
 		final @NotNull AvailObject object,
 		final int index,
-		final short anInteger)
+		final int anInteger)
 	{
 		throw unsupportedOperationException();
 	}
@@ -1877,23 +1819,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	@NotNull AvailObject o_ValueAtIndex (
-		final @NotNull AvailObject object,
-		final int index)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	void o_ValueAtIndexPut (
-		final @NotNull AvailObject object,
-		final int index,
-		final AvailObject valueObject)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	int o_ZoneForIndex (
 		final @NotNull AvailObject object,
 		final int index)
@@ -2241,13 +2166,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	int o_InternalHash (
-		final @NotNull AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	int o_InterruptRequestFlag (
 		final @NotNull AvailObject object)
 	{
@@ -2452,13 +2370,6 @@ extends AbstractDescriptor
 
 	@Override
 	int o_NumberOfZones (
-		final @NotNull AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	int o_NumBlanks (
 		final @NotNull AvailObject object)
 	{
 		throw unsupportedOperationException();
@@ -3408,7 +3319,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	@NotNull AvailObject o_BinUnionTypeOrTop (
+	@NotNull AvailObject o_BinUnionTypeOrNull (
 		final @NotNull AvailObject object)
 	{
 		throw unsupportedOperationException();

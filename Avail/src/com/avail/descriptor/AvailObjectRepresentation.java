@@ -170,20 +170,20 @@ extends AbstractAvailObject
 	}
 
 	@Override
-	final short shortSlotAt (
+	final int shortSlotAt (
 		final @NotNull IntegerSlotsEnum e,
 		final int shortIndex)
 	{
 //		verifyToSpaceAddress();
 		final int word = intSlots[e.ordinal() + (shortIndex - 1) / 2];
-		return (short)(word >>> ((shortIndex - 1 & 1) << 4));
+		return (word >>> ((shortIndex - 1 & 1) << 4)) & 0xFFFF;
 	}
 
 	@Override
 	final void shortSlotAtPut (
 		final @NotNull IntegerSlotsEnum e,
 		final int shortIndex,
-		final short aShort)
+		final int aShort)
 	{
 		checkWriteForField(e);
 //		verifyToSpaceAddress();

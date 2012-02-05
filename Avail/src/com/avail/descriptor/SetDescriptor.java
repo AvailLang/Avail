@@ -140,7 +140,15 @@ public class SetDescriptor extends Descriptor
 		// sizes, even if the sets are virtually identical and share structural
 		// subcomponents.  We can do better, ostensibly by navigating the tries
 		// together, checking for structural sharing.
-		return object.rootBin().isBinSubsetOf(aSet);
+		if (!object.rootBin().isBinSubsetOf(aSet))
+		{
+			return false;
+		}
+		// They're equal.  Collapse them together.
+		object.becomeIndirectionTo(aSet);
+		// Note that it now has at least two references.
+		object.makeImmutable();
+		return true;
 	}
 
 	@Override @AvailMethod

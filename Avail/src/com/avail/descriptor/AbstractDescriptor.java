@@ -870,7 +870,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	abstract void o_BinUnionTypeOrTop (
+	abstract void o_BinUnionTypeOrNull (
 		@NotNull AvailObject object,
 		AvailObject value);
 
@@ -1102,25 +1102,6 @@ public abstract class AbstractDescriptor
 	abstract boolean o_CouldEverBeInvokedWith (
 		@NotNull AvailObject object,
 		List<AvailObject> argTypes);
-
-	/**
-	 * @param object
-	 * @param index
-	 * @return
-	 */
-	abstract AvailObject o_DataAtIndex (
-		@NotNull AvailObject object,
-		int index);
-
-	/**
-	 * @param object
-	 * @param index
-	 * @param value
-	 */
-	abstract void o_DataAtIndexPut (
-		@NotNull AvailObject object,
-		int index,
-		AvailObject value);
 
 	/**
 	 * Divide the {@linkplain AvailObject operands} and answer the result.
@@ -1364,14 +1345,6 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	abstract void o_InternalHash (
-		@NotNull AvailObject object,
-		int value);
-
-	/**
-	 * @param object
-	 * @param value
-	 */
 	abstract void o_InterruptRequestFlag (
 		@NotNull AvailObject object,
 		int value);
@@ -1529,25 +1502,6 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param index
-	 * @return
-	 */
-	abstract AvailObject o_KeyAtIndex (
-		@NotNull AvailObject object,
-		int index);
-
-	/**
-	 * @param object
-	 * @param index
-	 * @param keyObject
-	 */
-	abstract void o_KeyAtIndexPut (
-		@NotNull AvailObject object,
-		int index,
-		AvailObject keyObject);
-
-	/**
-	 * @param object
 	 * @param chunk
 	 * @param offset
 	 */
@@ -1672,14 +1626,6 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param value
-	 */
-	abstract void o_MapSize (
-		@NotNull AvailObject object,
-		int value);
-
-	/**
-	 * @param object
 	 * @param keyObject
 	 * @param canDestroy
 	 * @return
@@ -1788,14 +1734,6 @@ public abstract class AbstractDescriptor
 	abstract boolean o_NameVisible (
 		@NotNull AvailObject object,
 		AvailObject trueName);
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	abstract void o_NumBlanks (
-		@NotNull AvailObject object,
-		int value);
 
 	/**
 	 * @param object
@@ -1999,7 +1937,7 @@ public abstract class AbstractDescriptor
 	 * @param index
 	 * @return
 	 */
-	abstract short o_RawShortForCharacterAt (
+	abstract int o_RawShortForCharacterAt (
 		@NotNull AvailObject object,
 		int index);
 
@@ -2011,7 +1949,7 @@ public abstract class AbstractDescriptor
 	abstract void o_RawShortForCharacterAtPut (
 		@NotNull AvailObject object,
 		int index,
-		short anInteger);
+		int anInteger);
 
 	/**
 	 * @param object
@@ -2744,25 +2682,6 @@ public abstract class AbstractDescriptor
 	 * @param index
 	 * @return
 	 */
-	abstract AvailObject o_ValueAtIndex (
-		@NotNull AvailObject object,
-		int index);
-
-	/**
-	 * @param object
-	 * @param index
-	 * @param valueObject
-	 */
-	abstract void o_ValueAtIndexPut (
-		@NotNull AvailObject object,
-		int index,
-		AvailObject valueObject);
-
-	/**
-	 * @param object
-	 * @param index
-	 * @return
-	 */
 	abstract int o_ZoneForIndex (
 		@NotNull AvailObject object,
 		int index);
@@ -3061,12 +2980,6 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract int o_InternalHash (AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
 	abstract int o_InterruptRequestFlag (AvailObject object);
 
 	/**
@@ -3243,12 +3156,6 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract int o_NumberOfZones (AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	abstract int o_NumBlanks (AvailObject object);
 
 	/**
 	 * @param object
@@ -4041,7 +3948,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract AvailObject o_BinUnionTypeOrTop (AvailObject object);
+	abstract AvailObject o_BinUnionTypeOrNull (AvailObject object);
 
 	/**
 	 * @param object

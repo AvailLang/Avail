@@ -161,14 +161,15 @@ extends TupleDescriptor
 		if (object.isBetterRepresentationThan(anObjectTuple))
 		{
 			anObjectTuple.becomeIndirectionTo(object);
+			// Now there are at least two references to it.
 			object.makeImmutable();
 		}
 		else
 		{
 			object.becomeIndirectionTo(anObjectTuple);
+			// Now there are at least two references to it.
 			anObjectTuple.makeImmutable();
 		}
-		//  Now that there are at least two references to it
 		return true;
 	}
 

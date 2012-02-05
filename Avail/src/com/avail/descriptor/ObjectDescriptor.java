@@ -138,8 +138,7 @@ extends Descriptor
 			}
 		}
 		first = true;
-		for (final MapDescriptor.Entry entry
-			: object.fieldMap().mapIterable())
+		for (final MapDescriptor.Entry entry : object.fieldMap().mapIterable())
 		{
 			if (!ignoreKeys.hasElement(entry.key))
 			{

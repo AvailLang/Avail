@@ -825,18 +825,18 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public AvailObject binUnionTypeOrTop ()
+	public AvailObject binUnionTypeOrNull ()
 	{
-		return descriptor.o_BinUnionTypeOrTop(this);
+		return descriptor.o_BinUnionTypeOrNull(this);
 	}
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public void binUnionTypeOrTop (
+	public void binUnionTypeOrNull (
 		final AvailObject value)
 	{
-		descriptor.o_BinUnionTypeOrTop(this, value);
+		descriptor.o_BinUnionTypeOrNull(this, value);
 	}
 
 	/**
@@ -1265,28 +1265,6 @@ implements Iterable<AvailObject>
 		final List<AvailObject> argTypes)
 	{
 		return descriptor.o_CouldEverBeInvokedWith(this, argTypes);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public AvailObject dataAtIndex (
-		final int index)
-	{
-		return descriptor.o_DataAtIndex(this, index);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public void dataAtIndexPut (
-		final int index,
-		final AvailObject value)
-	{
-		descriptor.o_DataAtIndexPut(
-			this,
-			index,
-			value);
 	}
 
 	/**
@@ -2114,23 +2092,6 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public int internalHash ()
-	{
-		return descriptor.o_InternalHash(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public void internalHash (
-		final int value)
-	{
-		descriptor.o_InternalHash(this, value);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	public int interruptRequestFlag ()
 	{
 		return descriptor.o_InterruptRequestFlag(this);
@@ -2579,28 +2540,6 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public AvailObject keyAtIndex (
-		final int index)
-	{
-		return descriptor.o_KeyAtIndex(this, index);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public void keyAtIndexPut (
-		final int index,
-		final AvailObject keyObject)
-	{
-		descriptor.o_KeyAtIndexPut(
-			this,
-			index,
-			keyObject);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	public List<AvailObject> keysAsArray ()
 	{
 		return descriptor.o_KeysAsArray(this);
@@ -2819,15 +2758,6 @@ implements Iterable<AvailObject>
 	public int mapSize ()
 	{
 		return descriptor.o_MapSize(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public void mapSize (
-		final int value)
-	{
-		descriptor.o_MapSize(this, value);
 	}
 
 	/**
@@ -3068,23 +2998,6 @@ implements Iterable<AvailObject>
 	public int numberOfZones ()
 	{
 		return descriptor.o_NumberOfZones(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public int numBlanks ()
-	{
-		return descriptor.o_NumBlanks(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public void numBlanks (
-		final int value)
-	{
-		descriptor.o_NumBlanks(this, value);
 	}
 
 	/**
@@ -3482,7 +3395,7 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public short rawShortForCharacterAt (
+	public int rawShortForCharacterAt (
 		final int index)
 	{
 		return descriptor.o_RawShortForCharacterAt(this, index);
@@ -3493,7 +3406,7 @@ implements Iterable<AvailObject>
 	 */
 	public void rawShortForCharacterAtPut (
 		final int index,
-		final short anInteger)
+		final int anInteger)
 	{
 		descriptor.o_RawShortForCharacterAtPut(
 			this,
@@ -4554,28 +4467,6 @@ implements Iterable<AvailObject>
 		final AvailObject value)
 	{
 		descriptor.o_Value(this, value);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public AvailObject valueAtIndex (
-		final int index)
-	{
-		return descriptor.o_ValueAtIndex(this, index);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public void valueAtIndexPut (
-		final int index,
-		final AvailObject valueObject)
-	{
-		descriptor.o_ValueAtIndexPut(
-			this,
-			index,
-			valueObject);
 	}
 
 	/**

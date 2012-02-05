@@ -445,11 +445,11 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_BinUnionTypeOrTop (
+	void o_BinUnionTypeOrNull (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
-		o_Traversed(object).binUnionTypeOrTop(value);
+		o_Traversed(object).binUnionTypeOrNull(value);
 	}
 
 	@Override
@@ -679,21 +679,6 @@ extends AbstractDescriptor
 		final @NotNull List<AvailObject> argTypes)
 	{
 		return o_Traversed(object).couldEverBeInvokedWith(argTypes);
-	}
-
-	@Override
-	@NotNull AvailObject o_DataAtIndex (final AvailObject object, final int index)
-	{
-		return o_Traversed(object).dataAtIndex(index);
-	}
-
-	@Override
-	void o_DataAtIndexPut (
-		final @NotNull AvailObject object,
-		final int index,
-		final @NotNull AvailObject value)
-	{
-		o_Traversed(object).dataAtIndexPut(index, value);
 	}
 
 	@Override
@@ -1145,12 +1130,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_InternalHash (final AvailObject object, final int value)
-	{
-		o_Traversed(object).internalHash(value);
-	}
-
-	@Override
 	void o_InterruptRequestFlag (
 		final @NotNull AvailObject object,
 		final int value)
@@ -1328,21 +1307,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	@NotNull AvailObject o_KeyAtIndex (final AvailObject object, final int index)
-	{
-		return o_Traversed(object).keyAtIndex(index);
-	}
-
-	@Override
-	void o_KeyAtIndexPut (
-		final @NotNull AvailObject object,
-		final int index,
-		final @NotNull AvailObject keyObject)
-	{
-		o_Traversed(object).keyAtIndexPut(index, keyObject);
-	}
-
-	@Override
 	void o_LevelTwoChunkOffset (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject chunk,
@@ -1455,12 +1419,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_MapSize (final AvailObject object, final int value)
-	{
-		o_Traversed(object).mapSize(value);
-	}
-
-	@Override
 	@NotNull AvailObject o_MapWithoutKeyCanDestroy (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject keyObject,
@@ -1524,12 +1482,6 @@ extends AbstractDescriptor
 		final @NotNull AvailObject trueName)
 	{
 		return o_Traversed(object).nameVisible(trueName);
-	}
-
-	@Override
-	void o_NumBlanks (final AvailObject object, final int value)
-	{
-		o_Traversed(object).numBlanks(value);
 	}
 
 	@Override
@@ -1703,7 +1655,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	short o_RawShortForCharacterAt (
+	int o_RawShortForCharacterAt (
 		final @NotNull AvailObject object,
 		final int index)
 	{
@@ -1714,7 +1666,7 @@ extends AbstractDescriptor
 	void o_RawShortForCharacterAtPut (
 		final @NotNull AvailObject object,
 		final int index,
-		final short anInteger)
+		final int anInteger)
 	{
 		o_Traversed(object).rawShortForCharacterAtPut(index, anInteger);
 	}
@@ -2346,21 +2298,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	@NotNull AvailObject o_ValueAtIndex (final AvailObject object, final int index)
-	{
-		return o_Traversed(object).valueAtIndex(index);
-	}
-
-	@Override
-	void o_ValueAtIndexPut (
-		final @NotNull AvailObject object,
-		final int index,
-		final @NotNull AvailObject valueObject)
-	{
-		o_Traversed(object).valueAtIndexPut(index, valueObject);
-	}
-
-	@Override
 	int o_ZoneForIndex (final AvailObject object, final int index)
 	{
 		return o_Traversed(object).zoneForIndex(index);
@@ -2403,9 +2340,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	@NotNull AvailObject o_BinUnionTypeOrTop (final AvailObject object)
+	@NotNull AvailObject o_BinUnionTypeOrNull (final AvailObject object)
 	{
-		return o_Traversed(object).binUnionTypeOrTop();
+		return o_Traversed(object).binUnionTypeOrNull();
 	}
 
 	@Override
@@ -2691,12 +2628,6 @@ extends AbstractDescriptor
 	int o_Index (final AvailObject object)
 	{
 		return o_Traversed(object).index();
-	}
-
-	@Override
-	int o_InternalHash (final AvailObject object)
-	{
-		return o_Traversed(object).internalHash();
 	}
 
 	@Override
@@ -2991,12 +2922,6 @@ extends AbstractDescriptor
 	int o_NumberOfZones (final AvailObject object)
 	{
 		return o_Traversed(object).numberOfZones();
-	}
-
-	@Override
-	int o_NumBlanks (final AvailObject object)
-	{
-		return o_Traversed(object).numBlanks();
 	}
 
 	@Override

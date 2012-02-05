@@ -227,29 +227,31 @@ abstract class AbstractAvailObject
 		final short aByte);
 
 	/**
-	 * Extract a (16-bit signed) {@code short} at the given short-index of the
+	 * Extract a (16-bit unsigned) {@code short} at the given short-index of the
 	 * receiver.
 	 *
 	 * @param e The enumeration value that identifies the base field.
 	 * @param shortIndex The index in bytes (must be even).
-	 * @return The {@code short} found at the given short-index.
+	 * @return The unsigned {@code short} (as an {@code int} found at the given
+	 *         short-index.
 	 */
-	abstract short shortSlotAt (
+	abstract int shortSlotAt (
 		final @NotNull IntegerSlotsEnum e,
 		final int shortIndex);
 
 	/**
-	 * Store the (16-bit signed) {@code short} at the given short-index of the
+	 * Store the (16-bit unsigned) {@code short} at the given short-index of the
 	 * receiver.
 	 *
 	 * @param e The enumeration value that identifies the base field.
 	 * @param shortIndex The index in bytes (must be even).
-	 * @param aShort The {@code short} to store at the given short-index.
+	 * @param aShort The {@code short} to store at the given short-index, passed
+	 *               as an {@code int} for safety.
 	 */
 	abstract void shortSlotAtPut (
 		final @NotNull IntegerSlotsEnum e,
 		final int shortIndex,
-		final short aShort);
+		final int aShort);
 
 	/**
 	 * Extract the (signed 32-bit) integer for the given field {@code enum}

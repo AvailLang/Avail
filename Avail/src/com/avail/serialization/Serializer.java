@@ -35,6 +35,7 @@ package com.avail.serialization;
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
+import com.avail.utility.Continuation0;
 import java.io.*;
 import java.util.*;
 
@@ -73,10 +74,10 @@ public class Serializer
 	 * instructions} that need to be processed.  It's a stack to ensure depth
 	 * first writing of instructions before their parents.  This mechanism
 	 * avoids using Java's limited stack, since Avail structures may in theory
-	 * be exceptionally deep.
+	 * be exceptionally deep.  TODO
 	 */
-	final Deque<SerializerInstruction> workStack =
-		new ArrayDeque<SerializerInstruction>(1000);
+	final Deque<Continuation0> workStack =
+		new ArrayDeque<Continuation0>(1000);
 
 	/**
 	 * The {@link OutputStream} on which to write the serialized objects.
@@ -202,12 +203,15 @@ public class Serializer
 	 * Avail structures.
 	 *
 	 * <p>
-	 * If this is the first time this object has been encountered by this {@link
-	 * Serializer} then write any instructions necessary for a {@link
-	 * Deserializer} to reconstruct it.  Also keep track of the index of the
-	 * instruction which generates this object to ensure the object doesn't get
-	 * serialized twice – subsequent uses can just mention the instruction
-	 * index.
+	 * To trace an object X with children Y and Z, first push onto the workstack
+	 * an action (a {@link Continuation0}) which will write X's {@link
+	 * SerializerInstruction}.  Then examine X to discover Y and Z, pushing
+	 * {@code Continuation0}s which will trace Y then trace Z.  Since those will
+	 * be processed completely before the first action gets a chance to run
+	 * (i.e., to generate the instruction for X), we ensure Y and Z are always
+	 * created before X.  Note that the continuation to trace Y must check if Y
+	 * has already been traced, since Z might recursively contain a reference to
+	 * Y, leading to Y needing to be traced prior to Z.
 	 * </p>
 	 *
 	 * @param object The object to trace.
@@ -215,11 +219,14 @@ public class Serializer
 	void traceOne (
 		final @NotNull AvailObject object)
 	{
-		if (!encounteredObjects.containsKey(object))
+		final SerializerInstruction instruction;
+		if (encounteredObjects.containsKey(object))
 		{
-			// Stack an action that will assemble the object after the parts
-			// have been assembled, then stack actions to assemble the parts.
-			assert !encounteredObjects.containsKey(object);
+			instruction = encounteredObjects.get(object);
+		}
+		else
+		{
+			// Build but don't yet emit the instruction.
 			final Integer specialIndex = specialObjects.get(object);
 			final SerializerOperation operation;
 			if (specialIndex != null)
@@ -230,11 +237,34 @@ public class Serializer
 			{
 				operation = object.serializerOperation();
 			}
-			final SerializerInstruction instruction = new SerializerInstruction(
+			instruction = new SerializerInstruction(
 				object,
 				operation);
 			encounteredObjects.put(object, instruction);
-			workStack.addLast(instruction);
+		}
+		// Do nothing if the object's instruction has already been emitted.
+		if (!instruction.hasBeenWritten())
+		{
+			// The object has not yet been traced.  (1) Stack an action that
+			// will assemble the object after the parts have been assembled,
+			// then (2) stack actions to ensure the parts have been assembled.
+			// Note that we have to add these actions even if we've already
+			// stacked equivalent actions, since it's the last one we push that
+			// will cause the instruction to be emitted.
+			workStack.addLast(new Continuation0()
+			{
+				@Override
+				public void value ()
+				{
+					if (!instruction.hasBeenWritten())
+					{
+						instruction.index(instructionsWritten);
+						instructionsWritten++;
+						instruction.writeTo(Serializer.this);
+						assert instruction.hasBeenWritten();
+					}
+				}
+			});
 			// Push actions for the subcomponents in reverse order to make the
 			// serialized file slightly easier to debug.  Any order is correct.
 			final AvailObject[] subobjects = instruction.decomposed();
@@ -243,9 +273,17 @@ public class Serializer
 			assert subobjects.length == operands.length;
 			for (int i = operands.length - 1; i >= 0; i--)
 			{
-				operands[i].trace(
-					subobjects[i],
-					Serializer.this);
+				final int index = i;
+				workStack.addLast(new Continuation0()
+				{
+					@Override
+					public void value ()
+					{
+						operands[index].trace(
+							subobjects[index],
+							Serializer.this);
+					}
+				});
 			}
 		}
 	}
@@ -300,14 +338,7 @@ public class Serializer
 		traceOne(object);
 		while (!workStack.isEmpty())
 		{
-			final SerializerInstruction instruction = workStack.removeLast();
-			if (!instruction.hasBeenWritten())
-			{
-				instruction.index(instructionsWritten);
-				instructionsWritten++;
-				instruction.writeTo(this);
-				assert instruction.hasBeenWritten();
-			}
+			workStack.removeLast().value();
 		}
 		final SerializerInstruction checkpoint = new SerializerInstruction(
 			object,

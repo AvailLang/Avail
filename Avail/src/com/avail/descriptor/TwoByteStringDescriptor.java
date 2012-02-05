@@ -214,10 +214,10 @@ extends StringDescriptor
 	}
 
 	/**
-	 * Answer the byte that encodes the character at the given index.
+	 * Answer the int that encodes the character at the given index.
 	 */
 	@Override @AvailMethod
-	short o_RawShortForCharacterAt (
+	int o_RawShortForCharacterAt (
 		final @NotNull AvailObject object,
 		final int index)
 	{
@@ -228,7 +228,7 @@ extends StringDescriptor
 	void o_RawShortForCharacterAtPut (
 		final @NotNull AvailObject object,
 		final int index,
-		final short anInteger)
+		final int anInteger)
 	{
 		// Set the character at the given index based on the given byte.
 		object.shortSlotAtPut(IntegerSlots.RAW_QUAD_AT_, index, anInteger);

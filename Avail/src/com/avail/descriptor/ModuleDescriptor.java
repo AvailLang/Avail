@@ -34,7 +34,6 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.TypeDescriptor.Types.FORWARD_SIGNATURE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import com.avail.annotations.*;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 
