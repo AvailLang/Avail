@@ -93,8 +93,16 @@ extends StringDescriptor
 			if (c == '\"' || c == '\\')
 			{
 				aStream.append('\\');
+				aStream.append(c);
 			}
-			aStream.append(c);
+			else if ((c >= 0 && c < 32) || c == 127)
+			{
+				aStream.append(String.format("\\(%x)", (int)c));
+			}
+			else
+			{
+				aStream.append(c);
+			}
 		}
 		aStream.append('"');
 	}

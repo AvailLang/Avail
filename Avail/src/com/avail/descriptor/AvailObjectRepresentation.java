@@ -44,11 +44,11 @@ import com.avail.visitor.AvailMarkUnreachableSubobjectVisitor;
 abstract class AvailObjectRepresentation
 extends AbstractAvailObject
 {
-	/** An array of all my references to other {@link AvailObject}s. */
-	private @NotNull AvailObject[] objectSlots;
-
 	/** An {@code int} array encoding all of my digital state. */
 	private @NotNull int[] intSlots;
+
+	/** An array of all my references to other {@link AvailObject}s. */
+	private @NotNull AvailObject[] objectSlots;
 
 	/**
 	 * Turn the receiver into an {@linkplain IndirectionDescriptor indirection}

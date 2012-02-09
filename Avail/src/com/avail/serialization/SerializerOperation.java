@@ -32,7 +32,7 @@
 
 package com.avail.serialization;
 
-import static com.avail.serialization.SerializerOperand.*;
+import static com.avail.serialization.SerializerOperandEncoding.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
@@ -296,7 +296,7 @@ public enum SerializerOperation
 	 * An Avail integer in the range 11..255.  Note that 0..10 have their own
 	 * special cases already which require very little space.
 	 */
-	BYTE_INTEGER (11, BYTE)
+	BYTE_INTEGER (11, BYTE.as("only byte"))
 	{
 		@Override
 		AvailObject[] decompose (
@@ -326,7 +326,7 @@ public enum SerializerOperation
 	 * a byte.
 	 * </p>
 	 */
-	SHORT_INTEGER (12, BYTE, BYTE)
+	SHORT_INTEGER (12, BYTE.as("high byte"), BYTE.as("low byte"))
 	{
 		@Override
 		AvailObject[] decompose (
@@ -353,7 +353,7 @@ public enum SerializerOperation
 	 * An Avail integer in the range -2<sup>31</sup> through 2<sup>31</sup>-1,
 	 * except the range 0..65535 which have their own special cases already.
 	 */
-	INT_INTEGER (13, SIGNED_INT)
+	INT_INTEGER (13, SIGNED_INT.as("int's value"))
 	{
 		@Override
 		AvailObject[] decompose (
@@ -374,7 +374,7 @@ public enum SerializerOperation
 	/**
 	 * An Avail integer that cannot be represented as an {@code int}.
 	 */
-	BIG_INTEGER (14, BIG_INTEGER_DATA)
+	BIG_INTEGER (14, BIG_INTEGER_DATA.as("constituent ints"))
 	{
 		@Override
 		AvailObject[] decompose (
@@ -418,7 +418,7 @@ public enum SerializerOperation
 	 * This special opcode causes a previously built object to be produced as an
 	 * actual checkpoint output from the {@link Deserializer}.
 	 */
-	CHECKPOINT (16, OBJECT_REFERENCE)
+	CHECKPOINT (16, OBJECT_REFERENCE.as("object to checkpoint"))
 	{
 		@Override
 		@NotNull AvailObject[] decompose (final @NotNull AvailObject object)
@@ -441,7 +441,7 @@ public enum SerializerOperation
 	/**
 	 * One of the special objects that the {@link AvailRuntime} maintains.
 	 */
-	SPECIAL_OBJECT (17, COMPRESSED_SHORT)
+	SPECIAL_OBJECT (17, COMPRESSED_SHORT.as("special object number"))
 	{
 		@Override
 		@NotNull AvailObject[] decompose (
@@ -465,7 +465,7 @@ public enum SerializerOperation
 	 * A {@linkplain CharacterDescriptor character} whose code point fits in an
 	 * unsigned byte (0..255).
 	 */
-	BYTE_CHARACTER (18, BYTE)
+	BYTE_CHARACTER (18, BYTE.as("Latin-1 code point"))
 	{
 		@Override
 		@NotNull AvailObject[] decompose (
@@ -489,7 +489,8 @@ public enum SerializerOperation
 	 * A {@linkplain CharacterDescriptor character} whose code point requires an
 	 * unsigned short (256..65535).
 	 */
-	SHORT_CHARACTER (19, UNCOMPRESSED_SHORT)
+	SHORT_CHARACTER (19,
+		UNCOMPRESSED_SHORT.as("BMP code point"))
 	{
 		@Override
 		@NotNull AvailObject[] decompose (
@@ -513,7 +514,10 @@ public enum SerializerOperation
 	 * A {@linkplain CharacterDescriptor character} whose code point requires
 	 * three bytes to represent (0..16777215, but technically only 0..1114111).
 	 */
-	LARGE_CHARACTER (20, BYTE, BYTE, BYTE)
+	LARGE_CHARACTER (20,
+		BYTE.as("SMP codepoint high byte"),
+		BYTE.as("SMP codepoint middle byte"),
+		BYTE.as("SMP codepoint low byte"))
 	{
 		@Override
 		@NotNull AvailObject[] decompose (
@@ -542,7 +546,7 @@ public enum SerializerOperation
 	 * A {@linkplain CharacterDescriptor character} whose code point requires
 	 * three bytes to represent (0..16777215, but technically only 0..1114111).
 	 */
-	FLOAT (21, SIGNED_INT)
+	FLOAT (21, SIGNED_INT.as("raw bits"))
 	{
 		@Override
 		@NotNull AvailObject[] decompose (
@@ -569,7 +573,9 @@ public enum SerializerOperation
 	 * A {@linkplain DoubleDescriptor double}.  Convert the raw bits to a long
 	 * and write it in big endian.
 	 */
-	DOUBLE (22, SIGNED_INT, UNSIGNED_INT)
+	DOUBLE (22,
+		SIGNED_INT.as("upper raw bits"),
+		UNSIGNED_INT.as("lower raw bits"))
 	{
 		@Override
 		@NotNull AvailObject[] decompose (
@@ -601,7 +607,7 @@ public enum SerializerOperation
 	 * A {@linkplain TupleDescriptor tuple} of arbitrary objects.  Write the
 	 * size of the tuple then the elements as object identifiers.
 	 */
-	GENERAL_TUPLE (23, TUPLE_OF_OBJECTS)
+	GENERAL_TUPLE (23, TUPLE_OF_OBJECTS.as("tuple elements"))
 	{
 		@Override
 		@NotNull AvailObject[] decompose (
@@ -624,7 +630,8 @@ public enum SerializerOperation
 	 * the range 0..255}.  Write the size of the tuple then the sequence of
 	 * character bytes.
 	 */
-	BYTE_STRING(24, BYTE_CHARACTER_TUPLE)
+	BYTE_STRING(24,
+		BYTE_CHARACTER_TUPLE.as("Latin-1 string"))
 	{
 		@Override
 		@NotNull AvailObject[] decompose (
@@ -647,7 +654,8 @@ public enum SerializerOperation
 	 * fall in the range 0..65535.  Write the compressed number of characters
 	 * then each compressed character.
 	 */
-	SHORT_STRING(25, COMPRESSED_SHORT_CHARACTER_TUPLE)
+	SHORT_STRING(25,
+		COMPRESSED_SHORT_CHARACTER_TUPLE.as("BMP string"))
 	{
 		@Override
 		@NotNull AvailObject[] decompose (
@@ -670,7 +678,8 @@ public enum SerializerOperation
 	 * points.  Write the compressed number of characters then each compressed
 	 * character.
 	 */
-	ARBITRARY_STRING(26, COMPRESSED_ARBITRARY_CHARACTER_TUPLE)
+	ARBITRARY_STRING(26,
+		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("arbitrary string"))
 	{
 		@Override
 		@NotNull AvailObject[] decompose (
@@ -693,7 +702,7 @@ public enum SerializerOperation
 	 * fall in the range 0..65535.  Write the compressed number of characters
 	 * then each compressed character.
 	 */
-	BYTE_TUPLE(27, UNCOMPRESSED_BYTE_TUPLE)
+	BYTE_TUPLE(27, UNCOMPRESSED_BYTE_TUPLE.as("tuple of bytes"))
 	{
 		@Override
 		@NotNull AvailObject[] decompose (
@@ -716,7 +725,7 @@ public enum SerializerOperation
 	 * fall in the range 0..65535.  Write the compressed number of characters
 	 * then each compressed character.
 	 */
-	NYBBLE_TUPLE(28, UNCOMPRESSED_NYBBLE_TUPLE)
+	NYBBLE_TUPLE(28, UNCOMPRESSED_NYBBLE_TUPLE.as("tuple of nybbles"))
 	{
 		@Override
 		@NotNull AvailObject[] decompose (
@@ -738,7 +747,7 @@ public enum SerializerOperation
 	 * A {@linkplain SetDescriptor set}.  Convert it to a tuple and work with
 	 * that, converting it back to a set when deserializing.
 	 */
-	SET(29, TUPLE_OF_OBJECTS)
+	SET(29, TUPLE_OF_OBJECTS.as("tuple of objects"))
 	{
 		@Override
 		AvailObject[] decompose (final AvailObject object)
@@ -760,7 +769,7 @@ public enum SerializerOperation
 	 * ... key[N], value[N]) and work with that, converting it back to a map
 	 * when deserializing.
 	 */
-	MAP(30, GENERAL_MAP)
+	MAP(30, GENERAL_MAP.as("map contents"))
 	{
 		@Override
 		AvailObject[] decompose (final AvailObject object)
@@ -782,7 +791,7 @@ public enum SerializerOperation
 	 * ... key[N], value[N]) and work with that, converting it back to a map
 	 * when deserializing.
 	 */
-	OBJECT(31, GENERAL_MAP)
+	OBJECT(31, GENERAL_MAP.as("field map"))
 	{
 		@Override
 		AvailObject[] decompose (final AvailObject object)
@@ -804,7 +813,7 @@ public enum SerializerOperation
 	 * ... key[N], value[N]) and work with that, converting it back to a map
 	 * when deserializing.
 	 */
-	OBJECT_TYPE(32, GENERAL_MAP)
+	OBJECT_TYPE(32, GENERAL_MAP.as("field type map"))
 	{
 		@Override
 		AvailObject[] decompose (final AvailObject object)
@@ -850,7 +859,7 @@ public enum SerializerOperation
 	 *            The list of operands that describe the interpretation of a
 	 *            stream of bytes written with this {@code SerializerOperation}.
 	 */
-	private SerializerOperation(
+	private SerializerOperation (
 		final int ordinal,
 		final SerializerOperand... operands)
 	{

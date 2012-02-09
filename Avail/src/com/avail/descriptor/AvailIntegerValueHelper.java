@@ -1,5 +1,5 @@
 /**
- * .../Tier-3/Test-String.avail
+ * AvailIntegerValueHelper.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,76 +30,27 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Test-String"
-Extends
-Uses
-	"Tier-2",
-	"Number"
-Names
-Body
+package com.avail.descriptor;
 
+/**
+ * TODO: Document this type!
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
+public class AvailIntegerValueHelper
+{
+	/**
+	 * The {@code int} value to present.
+	 */
+	public final int intValue;
 
-Method "_check_" is [str : string, ints : tuple of integer |
-	Assert ||str|| = ||ints||;
-	From 1 to ||str|| do [i : natural number |
-		Assert code point of str[i] = ints[i];
-	];
-];
-
-
-"a" check <97>;
-"ab" check <97, 98>;
-"\n" check <10>;
-"a\n" check <97, 10>;
-"\r" check <13>;
-"\r\n" check <13, 10>;
-"\t" check <9>;
-"\(61)" check <97>;
-
-Assert "c\(61)t" = "cat";
-Assert "\(63,61)t" = "cat";
-Assert "\(63)at" = "cat";
-Assert "\(63)\(61)\(74)" = "cat";
-Assert "\(63)a\(74)" = "cat";
-
-"\(F,EE,DDD,CCCC,BBBBB,10AAAA)" check
-	<16r"F", 16r"EE", 16r"DDD", 16r"CCCC", 16r"BBBBB", 16r"10AAAA">;
-"\(0,00,000,0000,00000,000000)" check <0, 0, 0, 0, 0, 0>;
-"\(10FFFF,FFFF,EEE,DD,C)" check <16r"10FFFF", 16r"FFFF", 16r"EEE", 16r"DD", 16r"C">;
-"\"" check <34>;
-"\\" check <92>;
-"\"a" check <34, 97>;
-"\\a" check <92, 97>;
-"\\\t" check <92, 9>;
-"\t \r\n" check <9, 32, 13, 10>;
-
-/* Check that characters beyond the Basic Multilingual Page work. */
-"𝄞" check <16r"1D11E">;
-
-Method "𝄞" is ["hello";];
-Assert 𝄞 = "hello"; 
-
-/* Now check lines ending with backslash. */
-"ab\
-" check <97, 98>;
-"ab \
-" check <97, 98, 32>;
-"ab\
-c" check <97, 98, 99>;
-"ab \
-c" check <97, 98, 32, 99>;
-"ab
-c" check <97, 98, 10, 99>;
-"ab
- c" check <97, 98, 10, 32, 99>;
-"ab
-\|c" check <97, 98, 10, 99>;
-"ab
- \|c" check <97, 98, 10, 99>;
-"ab
-      \|c" check <97, 98, 10, 99>;
-"ab\
-      \|c" check <97, 98, 99>;
-"ab\
-	\|c" check <97, 98, 99>;  /* Leading tab character. */
-"ab\(0D)\(0A)" check <97, 98, 13, 10>;
+	/** Construct a new {@link AvailIntegerValueHelper}.
+	 *
+	 * @param intValue The {@code int} value.
+	 */
+	public AvailIntegerValueHelper (
+		final int intValue)
+	{
+		this.intValue = intValue;
+	}
+}

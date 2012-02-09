@@ -33,12 +33,12 @@
 package com.avail.compiler;
 
 import static com.avail.descriptor.AvailObject.error;
-import static com.avail.descriptor.TypeDescriptor.Types.TYPE;
 import java.io.ByteArrayOutputStream;
 import java.util.*;
 import com.avail.compiler.instruction.*;
 import com.avail.descriptor.*;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Primitive;
 
 /**
@@ -167,8 +167,14 @@ public class AvailCodeGenerator
 			{
 				if (((AvailPushLiteral)onlyInstruction).index() == 1)
 				{
-					primitive(340);
+					primitive(Primitive.prim340_PushConstant.primitiveNumber);
 				}
+			}
+			if (numArgs() == 1
+				&& onlyInstruction instanceof AvailPushLocalVariable
+				&& ((AvailPushLocalVariable)onlyInstruction).index() == 1)
+			{
+				primitive(Primitive.prim341_PushArgument.primitiveNumber);
 			}
 		}
 		for (final AvailInstruction instruction : instructions)
@@ -193,7 +199,7 @@ public class AvailCodeGenerator
 			final AvailObject argDeclType = entry.getKey().declaredType();
 			if (i <= numArgs)
 			{
-				assert argDeclType.isInstanceOfKind(TYPE.o());
+				assert argDeclType.isInstanceOfKind(Types.TYPE.o());
 				argsArray[i - 1] = argDeclType;
 			}
 			else

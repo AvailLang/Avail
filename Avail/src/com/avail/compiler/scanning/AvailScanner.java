@@ -320,7 +320,7 @@ public class AvailScanner
 		 * A digit was encountered. Scan a (positive) numeric constant. The
 		 * constant may be an integer, float, or double.
 		 */
-		DIGIT()
+		DIGIT ()
 		{
 			@Override
 			void scan (final AvailScanner scanner)
@@ -440,15 +440,23 @@ public class AvailScanner
 		 * Parse double-quoted string literal. This is an open-quote, followed
 		 * by zero or more items, and a close-quote. An item is either a single
 		 * character that is neither backslash (\) nor quote ("), or a backslash
-		 * followed by: 1) n, r, or t indicating newline (U+000A), return
-		 * (U+000D) or tab {U+0009), respectively. 2) a backslash (\) indicating
-		 * a single literal backslash character. 3) a quote (") indicating a
-		 * single literal quote character. 4) open parenthesis "(", one or more
-		 * upper case hexadecimal sequences, one to six digits, separated by
-		 * commas, and a close parenthesis. 5) open bracket "[", an expression
-		 * yielding a string, and "]".
+		 * followed by:
+		 * <ol>
+		 * <li>n, r, or t indicating newline (U+000A), return (U+000D) or tab
+		 * (U+0009) respectively,</li>
+		 * <li>a backslash (\) indicating a single literal backslash character,
+		 * </li>
+		 * <li>a quote (") indicating a single literal quote character,</li>
+		 * <li>open parenthesis "(", one or more upper case hexadecimal
+		 * sequences of one to six digits, separated by commas, and a close
+		 * parenthesis,</li>
+		 * <li>open bracket "[", an expression yielding a string, and "]", or
+		 * </li>
+		 * <li>the end of the line, indicating the next line is to be considered
+		 * a continuation of the current line.</li>
+		 * </ol>
 		 */
-		DOUBLE_QUOTE()
+		DOUBLE_QUOTE ()
 		{
 			@Override
 			void scan (final AvailScanner scanner)
@@ -551,12 +559,49 @@ public class AvailScanner
 								throw new AvailScannerException(
 									"Power strings are not yet supported",
 									scanner);
+							case '\r':
+							case '\n':
+								// A backslash ending a line.  Emit nothing.
+								break;
+							case '|':
+								// Remove all immediately preceding white space
+								// from this line.
+								loop:
+								while (true)
+								{
+									final int codePoint =
+										stringBuilder.codePointBefore(
+											stringBuilder.length());
+									if (Character.isWhitespace(codePoint)
+										&& codePoint != '\r'
+										&& codePoint != '\n')
+									{
+										stringBuilder.setLength(
+											stringBuilder.length() -
+												Character.charCount(codePoint));
+									}
+									else
+									{
+										break loop;
+									}
+								}
+								break;
 							default:
 								throw new AvailScannerException(
-									"Invalid escape sequence – must be one of:"
-									+ "\\n \\r \\t \\\\ \\\" \\( \\[",
+									"Backslash escape should be followed by "
+									+ "one of n, r, t, \\, \", (, [, |, or a "
+									+ "line break",
 									scanner);
 						}
+					}
+					else if (c == '\r')
+					{
+						// Transform \r or \r\n in the source into \n.
+						if (!scanner.atEnd() && scanner.peekFor('\n'))
+						{
+							scanner.next();
+						}
+						stringBuilder.appendCodePoint('\n');
 					}
 					else
 					{
@@ -580,7 +625,7 @@ public class AvailScanner
 		/**
 		 * An alphabetic was encountered. Scan a keyword.
 		 */
-		IDENTIFIER_START()
+		IDENTIFIER_START ()
 		{
 			@Override
 			void scan (final AvailScanner scanner)
@@ -606,7 +651,7 @@ public class AvailScanner
 		 * TokenDescriptor token} whose type is {@link
 		 * TokenType#END_OF_STATEMENT}.
 		 */
-		SEMICOLON()
+		SEMICOLON ()
 		{
 			@Override
 			void scan (final AvailScanner scanner)
@@ -624,7 +669,7 @@ public class AvailScanner
 		 * Nested comments are supported.
 		 * </p>
 		 */
-		SLASH()
+		SLASH ()
 		{
 			@Override
 			void scan (final AvailScanner scanner)
@@ -672,7 +717,7 @@ public class AvailScanner
 		/**
 		 * Scan an unrecognized character.
 		 */
-		UNKNOWN()
+		UNKNOWN ()
 		{
 			@Override
 			void scan (final AvailScanner scanner)
@@ -684,7 +729,7 @@ public class AvailScanner
 		/**
 		 * A whitespace character was encountered. Just skip it.
 		 */
-		WHITESPACE()
+		WHITESPACE ()
 		{
 			@Override
 			void scan (final AvailScanner scanner)
@@ -702,7 +747,7 @@ public class AvailScanner
 		 * Treat it as whitespace even though Unicode says it isn't.
 		 * </p>
 		 */
-		ZEROWIDTHWHITESPACE()
+		ZEROWIDTHWHITESPACE ()
 		{
 			@Override
 			void scan (final AvailScanner scanner)
@@ -715,7 +760,7 @@ public class AvailScanner
 		 * Operator characters are never grouped. Instead, method names treat a
 		 * string of operator characters as separate pseudo-keywords.
 		 */
-		OPERATOR()
+		OPERATOR ()
 		{
 			@Override
 			void scan (final AvailScanner scanner)

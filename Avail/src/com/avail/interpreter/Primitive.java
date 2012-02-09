@@ -6601,6 +6601,32 @@ implements IntegerEnumSlotDescriptionEnum
 	},
 
 	/**
+	 * <strong>Primitive 341:</strong> The only argument is being returned.
+	 */
+	prim341_PushArgument(341, 1, CanFold, CanInline, Private, CannotFail)
+	{
+		@Override
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
+		{
+			assert args.size() == 1;
+			final AvailObject argument = args.get(0);
+			return interpreter.primitiveSuccess(argument);
+		}
+
+		@Override
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
+		{
+			// This primitive is suitable for any actual one-argument function.
+			return FunctionTypeDescriptor.create(
+				TupleDescriptor.from(
+					ANY.o()),
+				BottomTypeDescriptor.bottom());
+		}
+	},
+
+	/**
 	 * <strong>Primitive 350:</strong> Transform a variable reference and an
 	 * expression into an inner {@linkplain AssignmentNodeDescriptor assignment
 	 * node}. Such a node also produces the assigned value as its result, so it

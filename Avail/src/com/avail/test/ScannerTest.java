@@ -396,6 +396,12 @@ public final class ScannerTest
 		C("\"cat", (Generator<AvailObject>)null),
 		C("\"cat\"", L("cat","\"cat\"")),
 
+		C("\"ab\\(63)\"", L("abc","\"ab\\(63)\"")),
+		C("\"ab\\(063)\"", L("abc","\"ab\\(063)\"")),
+		C("\"ab\\(0063)\"", L("abc","\"ab\\(0063)\"")),
+		C("\"ab\\(00063)\"", L("abc","\"ab\\(00063)\"")),
+		C("\"ab\\(000063)\"", L("abc","\"ab\\(000063)\"")),
+
 		C("  \t  ")
 	};
 

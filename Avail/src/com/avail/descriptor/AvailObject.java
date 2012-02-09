@@ -243,6 +243,10 @@ implements Iterable<AvailObject>
 		}
 	}
 
+	public AvailObjectFieldHelper[] describeForDebugger()
+	{
+		return descriptor.o_DescribeForDebugger(this);
+	}
 
 	@Override
 	public String toString ()

@@ -298,6 +298,103 @@ public abstract class AbstractDescriptor
 			instances.length - (hasVariableIntegerSlots ? 1 : 0);
 	}
 
+
+	/**
+	 * Describe the object for the Eclipse debugger.
+	 *
+	 * @param object
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	public AvailObjectFieldHelper[] o_DescribeForDebugger (
+		final @NotNull AvailObject object)
+	{
+		final List<AvailObjectFieldHelper> fields =
+			new ArrayList<AvailObjectFieldHelper>();
+		final Class<Descriptor> cls = (Class<Descriptor>) this.getClass();
+		final ClassLoader loader = cls.getClassLoader();
+		Class<Enum<?>> enumClass;
+		Enum<?>[] slots;
+
+		try
+		{
+			enumClass = (Class<Enum<?>>) loader.loadClass(
+				cls.getCanonicalName() + "$IntegerSlots");
+		}
+		catch (final ClassNotFoundException e)
+		{
+			enumClass = null;
+		}
+		slots = enumClass != null ? enumClass.getEnumConstants() : new Enum<?>[0];
+		for (int i = 0; i < numberOfFixedIntegerSlots; i++)
+		{
+			final Enum<?> slot = slots[i];
+			if (slot.name() != "HASH_OR_ZERO" && slot.name() != "HASH")
+			{
+				fields.add(
+					new AvailObjectFieldHelper(
+						object,
+						(IntegerSlotsEnum)slot,
+						-1,
+						new AvailIntegerValueHelper(
+							object.slot((IntegerSlotsEnum)slot))));
+			}
+		}
+		for (int i = numberOfFixedIntegerSlots; i < object.integerSlotsCount(); i++)
+		{
+			final Enum<?> slot = slots[slots.length - 1];
+			final int subscript = i - numberOfFixedIntegerSlots + 1;
+			fields.add(
+				new AvailObjectFieldHelper(
+					object,
+					(IntegerSlotsEnum)slot,
+					subscript,
+					new AvailIntegerValueHelper(
+						object.slot((IntegerSlotsEnum)slot, subscript))));
+		}
+
+		try
+		{
+			enumClass = (Class<Enum<?>>) loader.loadClass(
+				cls.getCanonicalName() + "$ObjectSlots");
+		}
+		catch (final ClassNotFoundException e)
+		{
+			enumClass = null;
+		}
+		slots = enumClass != null ? enumClass.getEnumConstants() : new Enum<?>[0];
+		for (int i = 0; i < numberOfFixedObjectSlots; i++)
+		{
+			final Enum<?> slot = slots[i];
+			fields.add(
+				new AvailObjectFieldHelper(
+					object,
+					(ObjectSlotsEnum)slot,
+					-1,
+					object.slot((ObjectSlotsEnum)slot)));
+		}
+		for (int i = numberOfFixedObjectSlots; i < object.objectSlotsCount(); i++)
+		{
+			final Enum<?> slot = slots[slots.length - 1];
+			final int subscript = i - numberOfFixedObjectSlots + 1;
+			final AvailObject subobject = object.slot((ObjectSlotsEnum)slot);
+			String typeName = subobject.getClass().getName();
+			if (typeName.matches(".*Descriptor"))
+			{
+				typeName = typeName.substring(0, typeName.length() - 10);
+			}
+			fields.add(
+				new AvailObjectFieldHelper(
+					object,
+					(ObjectSlotsEnum)slot,
+					subscript,
+					object.slot((ObjectSlotsEnum)slot, subscript)));
+		}
+
+		return fields.toArray(new AvailObjectFieldHelper[fields.size()]);
+	}
+
+
 	/**
 	 * Answer whether the field at the given offset is allowed to be modified
 	 * even in an immutable object.
@@ -442,122 +539,7 @@ public abstract class AbstractDescriptor
 			}
 			builder.append(" = ");
 			builder.append(value);
-			try
-			{
-				final Field slotMirror = slot.getClass().getField(slot.name());
-				final EnumField enumAnnotation =
-					slotMirror.getAnnotation(EnumField.class);
-				final BitFields bitFieldsAnnotation =
-					slotMirror.getAnnotation(BitFields.class);
-				if (enumAnnotation != null)
-				{
-					final Class<? extends IntegerEnumSlotDescriptionEnum>
-						describingClass = enumAnnotation.describedBy();
-					final String lookupName = enumAnnotation.lookupMethodName();
-					if (lookupName.isEmpty())
-					{
-						// Look it up by ordinal.
-						final IntegerEnumSlotDescriptionEnum[] allValues =
-							describingClass.getEnumConstants();
-						if (0 <= value && value < allValues.length)
-						{
-							builder.append(" = ");
-							builder.append(allValues[value].name());
-						}
-						else
-						{
-							builder.append(
-								new Formatter().format(
-									"(enum out of range: 0x%08X)",
-									value & 0xFFFFFFFFL));
-						}
-					}
-					else
-					{
-						// Look it up via the specified static lookup method.
-						final Method lookupMethod =
-							describingClass.getMethod(
-								lookupName,
-								Integer.TYPE);
-						@SuppressWarnings("rawtypes")
-						final
-						Enum lookedUp = (Enum)lookupMethod.invoke(null, value);
-						if (lookedUp == null)
-						{
-							builder.append(
-								new Formatter().format(
-									"(enum out of range: 0x%08X)",
-									value & 0xFFFFFFFFL));
-						}
-						else
-						{
-							assert lookedUp.getDeclaringClass()
-								== describingClass;
-							builder.append(" = ");
-							builder.append(lookedUp.name());
-						}
-					}
-				}
-				else if (bitFieldsAnnotation != null)
-				{
-					// Show each bit field.
-					final Class<?> describingClass =
-						bitFieldsAnnotation.describedBy();
-					final Field[] allSubfields =
-						describingClass.getDeclaredFields();
-					builder.append(" (");
-					for (
-						int subfieldIndex = 0;
-						subfieldIndex < allSubfields.length;
-						subfieldIndex++)
-					{
-						if (subfieldIndex > 0)
-						{
-							builder.append(", ");
-						}
-						final Field subfield = allSubfields[subfieldIndex];
-						builder.append(subfield.getName());
-						builder.append("=");
-						BitField bitField;
-						bitField = (BitField)subfield.get(null);
-						final int subfieldValue =
-							object.bitSlot(slot, bitField);
-						builder.append(subfieldValue);
-					}
-					builder.append(")");
-				}
-				else
-				{
-					builder.append(
-						new Formatter().format(
-							" = 0x%08X",
-							value & 0xFFFFFFFFL));
-				}
-			}
-			catch (final NoSuchFieldException e)
-			{
-				throw new RuntimeException(e);
-			}
-			catch (final IllegalAccessException e)
-			{
-				throw new RuntimeException(e);
-			}
-			catch (final SecurityException e)
-			{
-				throw new RuntimeException(e);
-			}
-			catch (final NoSuchMethodException e)
-			{
-				throw new RuntimeException(e);
-			}
-			catch (final IllegalArgumentException e)
-			{
-				throw new RuntimeException(e);
-			}
-			catch (final InvocationTargetException e)
-			{
-				throw new RuntimeException(e);
-			}
+			describeIntegerSlot(object, value, slot, builder);
 		}
 
 		Class<ObjectSlotsEnum> objectEnumClass;
@@ -605,6 +587,140 @@ public abstract class AbstractDescriptor
 					recursionList,
 					indent + 1);
 			}
+		}
+	}
+
+	/**
+	 * Describe the integer field onto the provided {@link StringDescriptor}.
+	 * The pre-extracted {@code int} value is provided, as well as the
+	 * containing {@link AvailObject} and the {@link IntegerSlotsEnum} instance.
+	 * Take into account annotations on the slot enumeration object which may
+	 * define the way it should be described.
+	 *
+	 * @param object The object containing the {@code int} value in some slot.
+	 * @param value The {@code int} value of the slot.
+	 * @param slot The {@linkplain IntegerSlotsEnum integer slot} definition.
+	 * @param builder Where to write the description.
+	 */
+	static void describeIntegerSlot (
+		final @NotNull AvailObject object,
+		final int value,
+		final @NotNull IntegerSlotsEnum slot,
+		final @NotNull StringBuilder builder)
+	{
+		try
+		{
+			final Field slotMirror = slot.getClass().getField(slot.name());
+			final EnumField enumAnnotation =
+				slotMirror.getAnnotation(EnumField.class);
+			final BitFields bitFieldsAnnotation =
+				slotMirror.getAnnotation(BitFields.class);
+			if (enumAnnotation != null)
+			{
+				final Class<? extends IntegerEnumSlotDescriptionEnum>
+					describingClass = enumAnnotation.describedBy();
+				final String lookupName = enumAnnotation.lookupMethodName();
+				if (lookupName.isEmpty())
+				{
+					// Look it up by ordinal.
+					final IntegerEnumSlotDescriptionEnum[] allValues =
+						describingClass.getEnumConstants();
+					if (0 <= value && value < allValues.length)
+					{
+						builder.append(" = ");
+						builder.append(allValues[value].name());
+					}
+					else
+					{
+						builder.append(
+							new Formatter().format(
+								" (enum out of range: 0x%08X)",
+								value & 0xFFFFFFFFL));
+					}
+				}
+				else
+				{
+					// Look it up via the specified static lookup method.
+					final Method lookupMethod =
+						describingClass.getMethod(
+							lookupName,
+							Integer.TYPE);
+					@SuppressWarnings("rawtypes")
+					final
+					Enum lookedUp = (Enum)lookupMethod.invoke(null, value);
+					if (lookedUp == null)
+					{
+						builder.append(
+							new Formatter().format(
+								" (enum out of range: 0x%08X)",
+								value & 0xFFFFFFFFL));
+					}
+					else
+					{
+						assert lookedUp.getDeclaringClass()
+							== describingClass;
+						builder.append(" = ");
+						builder.append(lookedUp.name());
+					}
+				}
+			}
+			else if (bitFieldsAnnotation != null)
+			{
+				// Show each bit field.
+				final Class<?> describingClass =
+					bitFieldsAnnotation.describedBy();
+				final Field[] allSubfields =
+					describingClass.getDeclaredFields();
+				builder.append(" (");
+				for (
+					int subfieldIndex = 0;
+					subfieldIndex < allSubfields.length;
+					subfieldIndex++)
+				{
+					if (subfieldIndex > 0)
+					{
+						builder.append(", ");
+					}
+					final Field subfield = allSubfields[subfieldIndex];
+					builder.append(subfield.getName());
+					builder.append("=");
+					BitField bitField;
+					bitField = (BitField)subfield.get(null);
+					final int subfieldValue =
+						object.bitSlot(slot, bitField);
+					builder.append(subfieldValue);
+				}
+				builder.append(")");
+			}
+			else
+			{
+				builder.append(
+					new Formatter().format(" = 0x%08X", value & 0xFFFFFFFFL));
+			}
+		}
+		catch (final NoSuchFieldException e)
+		{
+			throw new RuntimeException(e);
+		}
+		catch (final IllegalAccessException e)
+		{
+			throw new RuntimeException(e);
+		}
+		catch (final SecurityException e)
+		{
+			throw new RuntimeException(e);
+		}
+		catch (final NoSuchMethodException e)
+		{
+			throw new RuntimeException(e);
+		}
+		catch (final IllegalArgumentException e)
+		{
+			throw new RuntimeException(e);
+		}
+		catch (final InvocationTargetException e)
+		{
+			throw new RuntimeException(e);
 		}
 	}
 

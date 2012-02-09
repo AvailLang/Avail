@@ -45,6 +45,7 @@ import com.avail.interpreter.Primitive.Result;
 import com.avail.interpreter.levelOne.*;
 import com.avail.interpreter.levelTwo.instruction.*;
 import com.avail.interpreter.levelTwo.register.*;
+import com.avail.utility.Mutable;
 
 public class L2Translator implements L1OperationDispatcher
 {
@@ -531,21 +532,24 @@ public class L2Translator implements L1OperationDispatcher
 	 * is specified:  Always fold it, since it's just a constant.</p>
 	 *
 	 * @param primitiveFunction
-	 *            A {@linkplain FunctionDescriptor function} for which its primitive
-	 *            might be inlined, or even folded if possible.
+	 *            A {@linkplain FunctionDescriptor function} for which its
+	 *            primitive might be inlined, or even folded if possible.
 	 * @param impSet
 	 *            The method containing the primitive to be invoked.
 	 * @param args
 	 *            The {@link List} of arguments to the primitive function.
 	 * @param expectedType
-	 *            The {@linkplain TypeDescriptor type} of object that this primitive
-	 *            call site was expected to produce.
+	 *            The {@linkplain TypeDescriptor type} of object that this
+	 *            primitive call site was expected to produce.
 	 * @param failureValueRegister
 	 *            The {@linkplain L2ObjectRegister register} into which to write
 	 *            the failure information if the primitive fails.
 	 * @param successLabel
 	 *            The label to jump to if the primitive is not folded and is
 	 *            inlined.
+	 * @param canFailPrimitive
+	 *            A {@linkplain Mutable Mutable<Boolean>} that this method sets
+	 *            if a fallible primitive was inlined.
 	 * @return
 	 *            The value if the primitive was folded, otherwise null.
 	 */
@@ -555,7 +559,8 @@ public class L2Translator implements L1OperationDispatcher
 		final List<L2ObjectRegister> args,
 		final AvailObject expectedType,
 		final L2ObjectRegister failureValueRegister,
-		final L2LabelInstruction successLabel)
+		final L2LabelInstruction successLabel,
+		final Mutable<Boolean> canFailPrimitive)
 	{
 		final int primitiveNumber = primitiveFunction.code().primitiveNumber();
 		final Primitive primitive =
@@ -565,10 +570,15 @@ public class L2Translator implements L1OperationDispatcher
 		{
 			// Use the first literal as the return value.
 			final AvailObject value = primitiveFunction.code().literalAt(1);
-			addInstruction(new L2LoadConstantInstruction(
-				value,
-				topOfStackRegister()));
-			return value;
+			// Restriction might be too strong even on a constant method.
+			if (value.isInstanceOf(expectedType))
+			{
+				addInstruction(new L2LoadConstantInstruction(
+					value,
+					topOfStackRegister()));
+				canFailPrimitive.value = false;
+				return value;
+			}
 		}
 		boolean allConstants = true;
 		for (final L2ObjectRegister arg : args)
@@ -602,6 +612,7 @@ public class L2Translator implements L1OperationDispatcher
 					addInstruction(new L2LoadConstantInstruction(
 						value,
 						topOfStackRegister()));
+					canFailPrimitive.value = false;
 					return value;
 				}
 			}
@@ -614,20 +625,19 @@ public class L2Translator implements L1OperationDispatcher
 				primitiveNumber,
 				createVector(args),
 				topOfStackRegister()));
-			addInstruction(new L2JumpInstruction(successLabel));
+			canFailPrimitive.value = false;
+			return null;
 		}
-		else
-		{
-			final L2LabelInstruction postPrimitiveLabel = newLabel();
-			addInstruction(new L2AttemptPrimitiveInstruction(
-				primitiveNumber,
-				createVector(args),
-				topOfStackRegister(),
-				failureValueRegister,
-				postPrimitiveLabel));
-			addInstruction(new L2JumpInstruction(successLabel));
-			addInstruction(postPrimitiveLabel);
-		}
+		final L2LabelInstruction postPrimitiveLabel = newLabel();
+		addInstruction(new L2AttemptPrimitiveInstruction(
+			primitiveNumber,
+			createVector(args),
+			topOfStackRegister(),
+			failureValueRegister,
+			postPrimitiveLabel));
+		addInstruction(new L2JumpInstruction(successLabel));
+		addInstruction(postPrimitiveLabel);
+		canFailPrimitive.value = true;
 		return null;
 	}
 
@@ -655,7 +665,8 @@ public class L2Translator implements L1OperationDispatcher
 			new ArrayList<L2ObjectRegister>(numSlots);
 		for (int slotIndex = 1; slotIndex <= numSlots; slotIndex++)
 		{
-			final L2ObjectRegister register = continuationSlotRegister(slotIndex);
+			final L2ObjectRegister register =
+				continuationSlotRegister(slotIndex);
 			preSlots.add(register);
 			postSlots.add(register);
 		}
@@ -681,6 +692,7 @@ public class L2Translator implements L1OperationDispatcher
 		final AvailObject primFunction = primitiveToInlineForArgumentRegisters(
 			impSet,
 			args);
+		final Mutable<Boolean> canFailPrimitive = new Mutable<Boolean>();
 		if (primFunction != null)
 		{
 			// Inline the primitive.  Attempt to fold it if the primitive says
@@ -691,24 +703,28 @@ public class L2Translator implements L1OperationDispatcher
 				args,
 				expectedType,
 				failureObjectReg,
-				postExplodeLabel);
+				postExplodeLabel,
+				canFailPrimitive);
 			if (folded != null)
 			{
 				// It was folded to a constant.
-				if (folded.isInstanceOf(expectedType))
-				{
-					return;
-				}
-				// It doesn't match the expected type.  Don't accept the folded
-				// value, but instead run the primitive at runtime -- in case
-				// this is dead code.
+				assert !canFailPrimitive.value;
+				// Folding should have checked this already.
+				assert folded.isInstanceOf(expectedType);
+				return;
+			}
+			if (!canFailPrimitive.value)
+			{
+				// Primitive attempt was not inlined, but it can't fail.
+				return;
 			}
 		}
 		addInstruction(new L2LoadConstantInstruction(
 			expectedType,
 			expectedTypeReg));
 		addInstruction(new L2ClearObjectInstruction(voidReg));
-		final List<AvailObject> savedSlotTypes = new ArrayList<AvailObject>(numSlots);
+		final List<AvailObject> savedSlotTypes =
+			new ArrayList<AvailObject>(numSlots);
 		final List<AvailObject> savedSlotConstants =
 			new ArrayList<AvailObject>(numSlots);
 		for (final L2ObjectRegister reg : preSlots)
@@ -1123,7 +1139,8 @@ public class L2Translator implements L1OperationDispatcher
 			new ArrayList<L2ObjectRegister>(numSlots);
 		for (int slotIndex = 1; slotIndex <= numSlots; slotIndex++)
 		{
-			final L2ObjectRegister register = continuationSlotRegister(slotIndex);
+			final L2ObjectRegister register =
+				continuationSlotRegister(slotIndex);
 			preSlots.add(register);
 			postSlots.add(register);
 		}
@@ -1156,9 +1173,11 @@ public class L2Translator implements L1OperationDispatcher
 			code.numArgs() + code.numLocals() + stackp - 1,
 			expectedTypeReg);
 		final L2LabelInstruction postExplodeLabel = newLabel();
-		final AvailObject primFunction = primitiveToInlineForArgumentTypeRegisters(
-			impSet,
-			argTypes);
+		final AvailObject primFunction =
+			primitiveToInlineForArgumentTypeRegisters(
+				impSet,
+				argTypes);
+		final Mutable<Boolean> canFailPrimitive = new Mutable<Boolean>();
 		if (primFunction != null)
 		{
 			// Inline the primitive.  Attempt to fold it if the primitive says
@@ -1169,27 +1188,30 @@ public class L2Translator implements L1OperationDispatcher
 				args,
 				expectedType,
 				failureObjectReg,
-				postExplodeLabel);
+				postExplodeLabel,
+				canFailPrimitive);
 			if (folded != null)
 			{
 				// It was folded to a constant.
-				if (folded.isInstanceOf(expectedType))
-				{
-					return;
-				}
-				// It doesn't match the expected type.  Don't accept the folded
-				// value, but instead run the primitive at runtime -- in case
-				// this is dead code.
+				assert !canFailPrimitive.value;
+				// Folding should have checked this already.
+				assert folded.isInstanceOf(expectedType);
+				return;
+			}
+			if (!canFailPrimitive.value)
+			{
+				// Primitive attempt was not inlined, but it can't fail.
+				return;
 			}
 		}
-		// The failure variable is always the first local variable by
-		// construction.
 		addInstruction(new L2LoadConstantInstruction(
 			expectedType,
 			expectedTypeReg));
 		addInstruction(new L2ClearObjectInstruction(voidReg));
-		final List<AvailObject> savedSlotTypes = new ArrayList<AvailObject>(numSlots);
-		final List<AvailObject> savedSlotConstants = new ArrayList<AvailObject>(numSlots);
+		final List<AvailObject> savedSlotTypes =
+			new ArrayList<AvailObject>(numSlots);
+		final List<AvailObject> savedSlotConstants =
+			new ArrayList<AvailObject>(numSlots);
 		for (final L2ObjectRegister reg : preSlots)
 		{
 			savedSlotTypes.add(registerTypeAt(reg));
@@ -1206,22 +1228,25 @@ public class L2Translator implements L1OperationDispatcher
 				createVector(preSlots),
 				postCallLabel,
 				callerRegister()));
-		addInstruction(new L2SuperCallInstruction(
-			impSet,
-			createVector(args),
-			createVector(argTypes)));
-
+		if (primFunction != null)
+		{
+			addInstruction(new L2CallAfterFailedPrimitiveInstruction(
+				impSet,
+				createVector(args),
+				failureObjectReg));
+		}
+		else
+		{
+			addInstruction(new L2SuperCallInstruction(
+				impSet,
+				createVector(args),
+				createVector(argTypes)));
+		}
 		// The method being invoked will run until it returns, and the next
 		// instruction will be here.
 		addInstruction(postCallLabel);
-
 		// And after the call returns, the callerRegister will contain the
 		// continuation to be exploded.
-//		addInstruction(new L2ExplodeInstruction(
-//			callerRegister(),
-//			callerRegister(),
-//			functionRegister(),
-//			createVector(postSlots)));
 		for (int i = 0; i < postSlots.size(); i++)
 		{
 			final AvailObject type = savedSlotTypes.get(i);
@@ -1235,7 +1260,6 @@ public class L2Translator implements L1OperationDispatcher
 				registerConstantAtPut(postSlots.get(i), constant);
 			}
 		}
-
 		// At this point the implied return instruction in the called code has
 		// verified the value matched the expected type, so we know that much
 		// has to be true.
