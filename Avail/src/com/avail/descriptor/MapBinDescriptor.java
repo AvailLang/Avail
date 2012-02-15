@@ -1,5 +1,5 @@
 /**
- * SetBinDescriptor.java
+ * MapBinDescriptor.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -39,9 +39,8 @@ import com.avail.annotations.*;
  * used to implement hashed maps.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
- * @author Todd Smith &lt;anarakul@gmail.com&gt;
  */
-public abstract class SetBinDescriptor
+public abstract class MapBinDescriptor
 extends Descriptor
 {
 	/**
@@ -50,33 +49,39 @@ extends Descriptor
 	public enum IntegerSlots implements IntegerSlotsEnum
 	{
 		/**
-		 * The sum of the hashes of the elements recursively within this bin.
+		 * The sum of the hashes of the keys recursively within this bin.
 		 */
-		BIN_HASH
-	}
+		KEYS_HASH,
 
-
-	@Override @AvailMethod
-	void o_BinHash (
-		final @NotNull AvailObject object,
-		final int value)
-	{
-		object.setSlot(IntegerSlots.BIN_HASH, value);
+		/**
+		 * The sum of the hashes of the values recursively within this bin.
+		 */
+		VALUES_HASH_OR_ZERO
 	}
 
 	@Override @AvailMethod
-	int o_BinHash (
+	int o_MapBinKeysHash (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(IntegerSlots.BIN_HASH);
+		return object.slot(IntegerSlots.KEYS_HASH);
 	}
-
 
 	@Override @AvailMethod
-	boolean o_IsSetBin (final AvailObject object)
+	abstract int o_MapBinValuesHash (
+		final @NotNull AvailObject object);
+
+	@Override
+	boolean o_IsHashedMapBin (
+		final @NotNull AvailObject object)
 	{
-		return true;
+		return false;
 	}
+
+	@Override
+	abstract AvailObject o_MapBinAtHash (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject key,
+		final int keyHash);
 
 
 	/**
@@ -90,7 +95,7 @@ extends Descriptor
 	 * Answer what level this descriptor's objects occupy in their hierarchy.
 	 * The top node is level 0 (using hash bits 0..4), and the bottom hashed
 	 * node is level 6 (using hash bits 30..34, the top three of which are
-	 * always zero).  There can be a level 7 {@linkplain LinearSetBinDescriptor
+	 * always zero).  There can be a level 7 {@linkplain LinearMapBinDescriptor
 	 * linear bin}, but it represents elements which all have the same hash
 	 * value, so it should never be hashed.
 	 *
@@ -102,14 +107,14 @@ extends Descriptor
 	}
 
 	/**
-	 * Construct a new {@link SetBinDescriptor}.
+	 * Construct a new {@link MapBinDescriptor}.
 	 *
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
 	 * @param level The depth of the bin in the hash tree.
 	 */
-	protected SetBinDescriptor (
+	protected MapBinDescriptor (
 		final boolean isMutable,
 		final int level)
 	{

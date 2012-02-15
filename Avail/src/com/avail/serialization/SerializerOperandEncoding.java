@@ -600,7 +600,7 @@ enum SerializerOperandEncoding
 		AvailObject read (final Deserializer deserializer)
 		{
 			final int mapSize = readCompressedPositiveInt(deserializer);
-			AvailObject map = MapDescriptor.newWithCapacity(mapSize * 3);
+			AvailObject map = MapDescriptor.empty();
 			for (int index = 1; index <= mapSize; index++)
 			{
 				map = map.mapAtPuttingCanDestroy(

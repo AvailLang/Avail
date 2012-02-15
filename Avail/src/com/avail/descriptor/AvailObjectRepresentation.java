@@ -44,6 +44,8 @@ import com.avail.visitor.AvailMarkUnreachableSubobjectVisitor;
 abstract class AvailObjectRepresentation
 extends AbstractAvailObject
 {
+	private final static boolean shouldCheckSlots = false;
+
 	/** An {@code int} array encoding all of my digital state. */
 	private @NotNull int[] intSlots;
 
@@ -99,12 +101,22 @@ extends AbstractAvailObject
 		}
 	}
 
+	private void checkSlot (final AbstractSlotsEnum field)
+	{
+		if (shouldCheckSlots)
+		{
+			final Class<?> definitionClass = field.getClass().getEnclosingClass();
+			assert definitionClass.isInstance(descriptor);
+		}
+	}
+
 	@Override
 	final int bitSlot (
 		final @NotNull IntegerSlotsEnum field,
 		final @NotNull BitField bitField)
 	{
 //		verifyToSpaceAddress();
+		checkSlot(field);
 		int value = intSlots[field.ordinal()];
 		value >>>= bitField.shift();
 		final int mask = ~(-1 << bitField.bits());
@@ -119,6 +131,7 @@ extends AbstractAvailObject
 	{
 		checkWriteForField(field);
 //		verifyToSpaceAddress();
+		checkSlot(field);
 		int value = intSlots[field.ordinal()];
 		final int mask = ~(-1 << bitField.bits());
 		value &= ~(mask << bitField.shift());
@@ -130,17 +143,18 @@ extends AbstractAvailObject
 	 * Extract the byte at the given one-based byte subscript within the
 	 * specified field. Always use little-endian encoding.
 	 *
-	 * @param e An enumeration value representing an integer field.
+	 * @param field An enumeration value representing an integer field.
 	 * @param byteSubscript Which byte to extract.
 	 * @return The unsigned byte as a short.
 	 */
 	@Override
 	final short byteSlotAt (
-		final @NotNull IntegerSlotsEnum e,
+		final @NotNull IntegerSlotsEnum field,
 		final int byteSubscript)
 	{
 //		verifyToSpaceAddress();
-		final int word = intSlots[e.ordinal() + (byteSubscript - 1) / 4];
+		checkSlot(field);
+		final int word = intSlots[field.ordinal() + (byteSubscript - 1) / 4];
 		return (short) (word >>> ((byteSubscript - 1 & 0x03) << 3) & 0xFF);
 	}
 
@@ -148,20 +162,21 @@ extends AbstractAvailObject
 	 * Replace the byte at the given one-based byte subscript within the
 	 * specified field. Always use little endian encoding.
 	 *
-	 * @param e An enumeration value representing an integer field.
+	 * @param field An enumeration value representing an integer field.
 	 * @param byteSubscript Which byte to extract.
 	 * @param aByte The unsigned byte to write, passed as a short.
 	 */
 	@Override
 	final void byteSlotAtPut (
-		final @NotNull IntegerSlotsEnum e,
+		final @NotNull IntegerSlotsEnum field,
 		final int byteSubscript,
 		final short aByte)
 	{
 		assert aByte == (aByte & 0xFF);
-		checkWriteForField(e);
+		checkWriteForField(field);
 //		verifyToSpaceAddress();
-		final int wordIndex = e.ordinal() + (byteSubscript - 1) / 4;
+		checkSlot(field);
+		final int wordIndex = field.ordinal() + (byteSubscript - 1) / 4;
 		int word = intSlots[wordIndex];
 		final int leftShift = (byteSubscript - 1 & 3) << 3;
 		word &= ~(0xFF << leftShift);
@@ -171,24 +186,26 @@ extends AbstractAvailObject
 
 	@Override
 	final int shortSlotAt (
-		final @NotNull IntegerSlotsEnum e,
+		final @NotNull IntegerSlotsEnum field,
 		final int shortIndex)
 	{
 //		verifyToSpaceAddress();
-		final int word = intSlots[e.ordinal() + (shortIndex - 1) / 2];
+		checkSlot(field);
+		final int word = intSlots[field.ordinal() + (shortIndex - 1) / 2];
 		return (word >>> ((shortIndex - 1 & 1) << 4)) & 0xFFFF;
 	}
 
 	@Override
 	final void shortSlotAtPut (
-		final @NotNull IntegerSlotsEnum e,
+		final @NotNull IntegerSlotsEnum field,
 		final int shortIndex,
 		final int aShort)
 	{
-		checkWriteForField(e);
+		checkWriteForField(field);
 //		verifyToSpaceAddress();
+		checkSlot(field);
 		final int shift = (shortIndex - 1 & 1) << 4;
-		final int wordIndex = e.ordinal() + (shortIndex - 1) / 2;
+		final int wordIndex = field.ordinal() + (shortIndex - 1) / 2;
 		int word = intSlots[wordIndex];
 		word &= ~(0xFFFF << shift);
 		word |= aShort << shift;
@@ -202,40 +219,44 @@ extends AbstractAvailObject
 	}
 
 	@Override
-	final int slot (final @NotNull IntegerSlotsEnum e)
+	final int slot (final @NotNull IntegerSlotsEnum field)
 	{
 //		verifyToSpaceAddress();
-		return intSlots[e.ordinal()];
+		checkSlot(field);
+		return intSlots[field.ordinal()];
 	}
 
 	@Override
 	final void setSlot (
-		final @NotNull IntegerSlotsEnum e,
+		final @NotNull IntegerSlotsEnum field,
 		final int anInteger)
 	{
-		checkWriteForField(e);
+		checkWriteForField(field);
 //		verifyToSpaceAddress();
-		intSlots[e.ordinal()] = anInteger;
+		checkSlot(field);
+		intSlots[field.ordinal()] = anInteger;
 	}
 
 	@Override
 	final int slot (
-		final @NotNull IntegerSlotsEnum e,
+		final @NotNull IntegerSlotsEnum field,
 		final int subscript)
 	{
 //		verifyToSpaceAddress();
-		return intSlots[e.ordinal() + subscript - 1];
+		checkSlot(field);
+		return intSlots[field.ordinal() + subscript - 1];
 	}
 
 	@Override
 	final void setSlot (
-		final @NotNull IntegerSlotsEnum e,
+		final @NotNull IntegerSlotsEnum field,
 		final int subscript,
 		final int anInteger)
 	{
-		checkWriteForField(e);
+		checkWriteForField(field);
 //		verifyToSpaceAddress();
-		intSlots[e.ordinal() + subscript - 1] = anInteger;
+		checkSlot(field);
+		intSlots[field.ordinal() + subscript - 1] = anInteger;
 	}
 
 	@Override
@@ -246,44 +267,48 @@ extends AbstractAvailObject
 
 	@Override
 	final AvailObject slot (
-		final @NotNull ObjectSlotsEnum e)
+		final @NotNull ObjectSlotsEnum field)
 	{
 //		verifyToSpaceAddress();
-		final AvailObject result = objectSlots[e.ordinal()];
+		checkSlot(field);
+		final AvailObject result = objectSlots[field.ordinal()];
 //		result.verifyToSpaceAddress();
 		return result;
 	}
 
 	@Override
 	final void setSlot (
-		final @NotNull ObjectSlotsEnum e,
+		final @NotNull ObjectSlotsEnum field,
 		final @NotNull AvailObject anAvailObject)
 	{
 //		verifyToSpaceAddress();
-		checkWriteForField(e);
-		objectSlots[e.ordinal()] = anAvailObject;
+		checkSlot(field);
+		checkWriteForField(field);
+		objectSlots[field.ordinal()] = anAvailObject;
 	}
 
 	@Override
 	final AvailObject slot (
-		final @NotNull ObjectSlotsEnum e,
+		final @NotNull ObjectSlotsEnum field,
 		final int subscript)
 	{
 //		verifyToSpaceAddress();
-		final AvailObject result = objectSlots[e.ordinal() + subscript - 1];
+		checkSlot(field);
+		final AvailObject result = objectSlots[field.ordinal() + subscript - 1];
 //		result.verifyToSpaceAddress();
 		return result;
 	}
 
 	@Override
 	final void setSlot (
-		final @NotNull ObjectSlotsEnum e,
+		final @NotNull ObjectSlotsEnum field,
 		final int subscript,
 		final @NotNull AvailObject anAvailObject)
 	{
 //		verifyToSpaceAddress();
-		checkWriteForField(e);
-		objectSlots[e.ordinal() + subscript - 1] = anAvailObject;
+		checkSlot(field);
+		checkWriteForField(field);
+		objectSlots[field.ordinal() + subscript - 1] = anAvailObject;
 	}
 
 	/**
@@ -344,6 +369,78 @@ extends AbstractAvailObject
 		System.arraycopy(
 			objectSlots, 0, newObjectSlots, 0, newObjectSlotsCount);
 		objectSlots = newObjectSlots;
+	}
+
+	/**
+	 * Create a new {@link AvailObject} with the specified {@linkplain
+	 * AbstractDescriptor descriptor}, the specified number of object slots, and
+	 * the specified number of integer slots.  Also copy the fields from the
+	 * specified object, which must have a descriptor of the same class.  If the
+	 * sizes of the int arrays differ, only transfer the minimum of the two
+	 * sizes, and do the same for the object slots.
+	 *
+	 * <p>
+	 * It is the client's responsibility to mark the shared fields as immutable
+	 * if necessary.  Also, any new {@code int} fields beyond the end of the
+	 * original array will be initialized to 0, and any new {@code AvailObject}
+	 * slots will contain a Java {@code null} (requiring initialization by the
+	 * client).
+	 * </p>
+	 *
+	 * @param descriptor
+	 *            A descriptor.
+	 * @param objectToCopy
+	 *            The object from which to copy corresponding fields.
+	 * @param deltaObjectSlots
+	 *            How many AvailObject fields to add (or if negative, to
+	 *            subtract).
+	 * @param deltaIntegerSlots
+	 *            How many int fields to add (or if negative, to subtract).
+	 * @return A new object.
+	 */
+	static AvailObject newLike (
+		final @NotNull AbstractDescriptor descriptor,
+		final @NotNull AvailObjectRepresentation objectToCopy,
+		final int deltaObjectSlots,
+		final int deltaIntegerSlots)
+	{
+		assert deltaObjectSlots == 0 || descriptor.hasVariableObjectSlots;
+		assert deltaIntegerSlots == 0 || descriptor.hasVariableIntegerSlots;
+		assert descriptor.getClass().equals(objectToCopy.descriptor.getClass());
+		final int newObjectSlotCount =
+			objectToCopy.objectSlots.length + deltaObjectSlots;
+		final int newIntegerSlotCount =
+			objectToCopy.intSlots.length + deltaIntegerSlots;
+		assert newObjectSlotCount >= descriptor.numberOfFixedObjectSlots;
+		assert newIntegerSlotCount >= descriptor.numberOfFixedIntegerSlots;
+		final AvailObject newObject =
+			AvailObject.newObjectIndexedIntegerIndexedDescriptor(
+				newObjectSlotCount - descriptor.numberOfFixedObjectSlots,
+				newIntegerSlotCount - descriptor.numberOfFixedIntegerSlots,
+				descriptor);
+		// Even though we define the private fields in this class we aren't
+		// allowed to access them in an instance of something that we know is a
+		// subclass!  This surprising situation is probably related to separate
+		// compilation and local verification of correctness by the bytecode
+		// verifier.
+		final AvailObjectRepresentation weakerNewObject = newObject;
+		System.arraycopy(
+			objectToCopy.intSlots,
+			0,
+			weakerNewObject.intSlots,
+			0,
+			Math.min(
+				objectToCopy.intSlots.length,
+				weakerNewObject.intSlots.length));
+		System.arraycopy(
+			objectToCopy.objectSlots,
+			0,
+			weakerNewObject.objectSlots,
+			0,
+			Math.min(
+				objectToCopy.objectSlots.length,
+				weakerNewObject.objectSlots.length));
+		return newObject;
 	}
 
 	/**

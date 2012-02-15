@@ -297,7 +297,7 @@ public final class SerializerTest
 					}
 					else if (choice == 4)
 					{
-						newObject = MapDescriptor.newWithCapacity(size);
+						newObject = MapDescriptor.empty();
 						for (int i = 0; i < size; i+=2)
 						{
 							newObject = newObject.mapAtPuttingCanDestroy(
@@ -314,6 +314,15 @@ public final class SerializerTest
 			assert parts.size() == partsCount;
 			checkObject(parts.get(partsCount - 1));
 		}
+	}
+
+	/**
+	 * Test serialization and deserialization of atom references.
+	 */
+	@Test
+	public void testAtoms ()
+	{
+		//TODO
 	}
 
 //	@Test

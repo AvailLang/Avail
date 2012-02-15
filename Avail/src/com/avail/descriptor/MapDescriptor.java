@@ -32,345 +32,137 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
 import com.avail.annotations.*;
+import com.avail.exceptions.MapException;
+import com.avail.exceptions.AvailErrorCode;
 import com.avail.serialization.SerializerOperation;
 
 /**
- * I represent a discrete function whose keys and values are arbitrary Avail
- * objects.  My type depends on the union of the types of my keys, as well as
- * the union of the types of my values.
+ * An Avail {@linkplain MapDescriptor map} refers to the root of a Bagwell
+ * Ideal Hash Tree.  The implementation is similar to that of {@linkplain
+ * SetDescriptor sets}, but using map-specific bin descriptors instead of the
+ * set-specific ones.
+ *
+ * <p>
+ * Unlike the optimization for {@linkplain SetDescriptor sets} in which a
+ * singleton set has the element itself as the root bin (since bins likewise are
+ * not manipulated by Avail programs), that optimization is not available for
+ * maps.  That's because a singleton map records both a key and a value.  Thus,
+ * a map bin is allowed to be so small that it can contain one key and value.
+ * In fact, there is even a single size zero linear map bin for use as the root
+ * of the empty map.
+ * </p>
+ *
+ * <p>
+ * The presence of singular bins affects maps of all scales, due to the
+ * recursive nature of the hash tree of bins, many of which contain sub-bins.
+ * Since a sub-bin of size one for a set is just the element itself, small bins
+ * lead to more expensive in space for maps than for sets.  To compensate for
+ * this, maps are allowed to have larger linear bins before replacing them with
+ * their hashed equivalents.
+ * </p>
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
-public class MapDescriptor
-extends Descriptor
+public class MapDescriptor extends Descriptor
 {
-	/**
-	 * The layout of integer slots for my instances.
-	 */
-	public enum IntegerSlots implements IntegerSlotsEnum
-	{
-		/**
-		 * The basic hash value of the map, computed as some commutative
-		 * combination of the hashes of the map's <key,value> pairs.  This basic
-		 * hash is twiddled before being used as the map's formal hash, to
-		 * reduce the propagation of bad hashes (e.g., 0 for the empty map), and
-		 * to ensure various combinations of nested maps have uncorrelated
-		 * hash values.
-		 */
-		INTERNAL_HASH,
-
-		/**
-		 * The number of valid <key,value> pairs in the map.
-		 */
-		MAP_SIZE,
-
-		/**
-		 * The number of key slots that currently contain a {@linkplain
-		 * BlankDescriptor blank}.  Overwriting with blanks allows rehashing the
-		 * map to be significantly postponed for a reasonable cost in space.
-		 * The blanks disappear after the rehash.
-		 */
-		NUM_BLANKS
-	}
-
 	/**
 	 * The layout of object slots for my instances.
 	 */
 	public enum ObjectSlots implements ObjectSlotsEnum
 	{
 		/**
-		 * The raw data, organized as key1, value1, key2, value2, etc.  Hashing
-		 * locates the key slot.  If it contains the expected key, great.  If
-		 * it contains a {@linkplain BlankDescriptor blank}, continue the search
-		 * with the next pair of slots, wrapping if necessary.  If it contains
-		 * the {@linkplain NullDescriptor#nullObject() null object}, the key is
-		 * not present.
+		 * The topmost bin of this {@linkplain MapDescriptor map}.  Unlike the
+		 * implementation for {@linkplain SetDescriptor sets}, all maps contain
+		 * an actual map bin in this slot.
 		 */
-		DATA_AT_INDEX_
+		ROOT_BIN
 	}
 
 	/**
-	 * Answer the data at position N.  The data is keys and values in
-	 * alternation, using {@link NullDescriptor Nulls} and {@link
-	 * BlankDescriptor Blanks} to indicate unused or no longer occupied key
-	 * slots.
+	 * Extract the root {@linkplain MapBinDescriptor bin} from the {@linkplain
+	 * MapDescriptor map}.
 	 *
-	 * @param object The map to examine.
-	 * @param subscript The position to extract.
-	 * @return The key or value at the specified position.
+	 * @param object The map from which to extract the root bin.
+	 * @return The map's bin.
 	 */
-	@InnerAccess
-	static @NotNull AvailObject dataAtIndex (
-		final @NotNull AvailObject object,
-		final int subscript)
-	{
-		return object.slot(ObjectSlots.DATA_AT_INDEX_, subscript);
-	}
-
-	/**
-	 * Write to the data at position N.  The data is keys and values in
-	 * alternation, using {@link NullDescriptor Nulls} and {@link
-	 * BlankDescriptor Blanks} to indicate unused or no longer occupied key
-	 * slots.
-	 *
-	 * @param object The map to examine.
-	 * @param subscript The position to extract.
-	 * @param value The key or value to write at the specified position.
-	 */
-	@InnerAccess
-	static void dataAtIndexPut (
-		final @NotNull AvailObject object,
-		final int subscript,
-		final AvailObject value)
-	{
-		object.setSlot(ObjectSlots.DATA_AT_INDEX_, subscript, value);
-	}
-
-	@InnerAccess
-	static @NotNull AvailObject keyAtIndex (
-		final @NotNull AvailObject object,
-		final int index)
-	{
-		//  Answer the map's indexth key.
-		return object.slot(ObjectSlots.DATA_AT_INDEX_, index * 2 - 1);
-	}
-
-	@InnerAccess
-	static void keyAtIndexPut (
-		final @NotNull AvailObject object,
-		final int index,
-		final AvailObject keyObject)
-	{
-		// Set the map's indexth key.
-		object.setSlot(ObjectSlots.DATA_AT_INDEX_, index * 2 - 1, keyObject);
-	}
-
-	@InnerAccess
-	static @NotNull AvailObject valueAtIndex (
-		final @NotNull AvailObject object,
-		final int index)
-	{
-		//  Answer the map's indexth value.
-		return object.slot(ObjectSlots.DATA_AT_INDEX_, index * 2);
-	}
-
-	@InnerAccess
-	static void valueAtIndexPut (
-		final @NotNull AvailObject object,
-		final int index,
-		final AvailObject keyObject)
-	{
-		// Set the map's indexth value.
-		object.setSlot(ObjectSlots.DATA_AT_INDEX_, index * 2, keyObject);
-	}
-
-	@InnerAccess
-	static int numBlanks (
+	private static @NotNull AvailObject rootBin (
 		final @NotNull AvailObject object)
 	{
-		// Answer the number of blanks.
-		return object.slot(IntegerSlots.NUM_BLANKS);
-	}
-
-	@InnerAccess
-	static void numBlanks (
-		final @NotNull AvailObject object,
-		final int numBlanks)
-	{
-		// Set the number of blanks.
-		object.setSlot(IntegerSlots.NUM_BLANKS, numBlanks);
-	}
-
-	@InnerAccess
-	static int innerHash (
-		final @NotNull AvailObject object)
-	{
-		// Answer the internal hash value.
-		return object.slot(IntegerSlots.INTERNAL_HASH);
-	}
-
-	@InnerAccess
-	static void innerHash (
-		final @NotNull AvailObject object,
-		final int numBlanks)
-	{
-		// Set the internal hash value.
-		object.setSlot(IntegerSlots.INTERNAL_HASH, numBlanks);
-	}
-
-	@InnerAccess
-	static void mapSize (
-		final @NotNull AvailObject object,
-		final int mapSize)
-	{
-		// Set the map's size.
-		object.setSlot(IntegerSlots.MAP_SIZE, mapSize);
-	}
-
-	@Override @AvailMethod
-	int o_MapSize (
-		final @NotNull AvailObject object)
-	{
-		return object.slot(IntegerSlots.MAP_SIZE);
-	}
-
-
-	/**
-	 * {@link MapDescriptor.Entry} exists solely to allow the "foreach" control
-	 * structure to be used on a {@linkplain MapDescriptor map} by suitable use
-	* of {@linkplain MapDescriptor#o_MapIterable(AvailObject) mapIterable()}.
-	 *
-	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
-	 */
-	public static class Entry
-	{
-		/**
-		 * The key at some {@link MapIterable}'s current position.
-		 */
-		public AvailObject key;
-
-		/**
-		 * The value associated with the key at some {@link MapIterable}'s
-		 * current position.
-		 */
-		public AvailObject value;
-
-		public Entry (final AvailObject key, final AvailObject value)
-		{
-			this.key = key;
-			this.value = value;
-		}
+		return object.slot(ObjectSlots.ROOT_BIN);
 	}
 
 	/**
-	 * {@link MapDescriptor.MapIterable} is returned by {@linkplain
-	* MapDescriptor#o_MapIterable(AvailObject) mapIterable()} to support use of
-	 * the"foreach" control structure on {@linkplain MapDescriptor maps}.
+	 * Replace the {@linkplain MapDescriptor map}'s root {@linkplain
+	 * MapBinDescriptor bin}.  The replacement may be the {@link
+	 * NullDescriptor#nullObject() null object} to indicate an empty map.
 	 *
-	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+	 * @param object
+	 *            The map (must not be an indirection).
+	 * @param bin
+	 *            The root bin for the map, or the null object.
 	 */
-	public static class MapIterable
-	implements
-		Iterator<Entry>,
-		Iterable<Entry>
+	private static void rootBin (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject bin)
 	{
-		/**
-		 * The {@linkplain MapDescriptor map} being iterated.
-		 */
-		private final AvailObject object;
-
-		/**
-		 * The {@link Entry} to be reused for each <key, value> pair while
-		 * iterating over this {@link MapDescriptor map}.
-		 */
-		private final Entry entry = new Entry(null, null);
-
-		/**
-		 * The subscript used by {@link #dataAtIndex(AvailObject, int)} to
-		 * extract the current key.  The value associated with this key is at
-		 * {@code dataAtIndex(thisMap, dataSubscript + 1)}.
-		 */
-		private int dataSubscript;
-
-		/**
-		 * The size of the {@linkplain MapDescriptor map} being iterated over.
-		 */
-		private final int dataCapacity;
-
-		/**
-		 * Construct a new {@link MapIterable}.
-		 *
-		 * @param object The {@linkplain MapDescriptor map} to iterate over.
-		 */
-		MapIterable (final AvailObject object)
-		{
-			this.object = object;
-			dataSubscript = -1;  // 1 - 2
-			dataCapacity = object.capacity() * 2;
-			advance();
-		}
-
-		/**
-		 * Advance this iterator to the next position at which an actual key
-		 * exists, or just beyond the end of the map.
-		 */
-		private void advance ()
-		{
-			do
-			{
-				dataSubscript += 2;
-			}
-			while (dataSubscript <= dataCapacity
-				&& dataAtIndex(object, dataSubscript).equalsNullOrBlank());
-		}
-
-		@Override
-		public void remove ()
-		{
-			throw new UnsupportedOperationException();
-		}
-
-		@Override
-		public Entry next ()
-		{
-			// Recycle the same Entry repeatedly.
-			assert hasNext();
-			entry.key = dataAtIndex(object, dataSubscript);
-			entry.value = dataAtIndex(object, dataSubscript + 1);
-			assert !entry.key.equalsNullOrBlank();
-			advance();
-			return entry;  //new Entry(entry.key, entry.value); // TODO unhack
-		}
-
-		@Override
-		public boolean hasNext ()
-		{
-			return dataSubscript <= dataCapacity;
-		}
-
-		@Override
-		public Iterator<Entry> iterator ()
-		{
-			// This is what Java *should* have provided all along.
-			return this;
-		}
+		object.setSlot(ObjectSlots.ROOT_BIN, bin);
 	}
 
 	@Override
 	public void printObjectOnAvoidingIndent (
 		final @NotNull AvailObject object,
-		final StringBuilder aStream,
-		final List<AvailObject> recursionList,
+		final @NotNull StringBuilder aStream,
+		final @NotNull List<AvailObject> recursionList,
 		final int indent)
 	{
-		final int size = object.mapSize();
-		if (size == 0)
-		{
-			aStream.append("{}");
-			return;
-		}
+		boolean multiline = false;
 		aStream.append('{');
+		final int startPosition = aStream.length();
 		boolean first = true;
-		for (final Entry entry : object.mapIterable())
+		for (final MapDescriptor.Entry entry : object.mapIterable())
 		{
-			if (!first)
-			{
-				aStream.append(", ");
-			}
+			aStream.append(first ? "" : ", ");
+			final int entryStart = aStream.length();
 			entry.key.printOnAvoidingIndent(
-				aStream,
-				recursionList,
-				indent + 1);
+				aStream, recursionList, indent + 2);
 			aStream.append("→");
 			entry.value.printOnAvoidingIndent(
-				aStream,
-				recursionList,
-				indent + 1);
+				aStream, recursionList, indent + 1);
+			if (aStream.length() - startPosition > 100
+				|| aStream.indexOf("\n", entryStart) != -1)
+			{
+				// Start over with multiple line formatting.
+				aStream.setLength(startPosition);
+				multiline = true;
+				break;
+			}
 			first = false;
+		}
+		if (multiline)
+		{
+			first = true;
+			for (final MapDescriptor.Entry entry : object.mapIterable())
+			{
+				aStream.append(first ? "\n" : ",\n");
+				for (int i = indent + 1; i > 0; i--)
+				{
+					aStream.append('\t');
+				}
+				entry.key.printOnAvoidingIndent(
+					aStream, recursionList, indent + 2);
+				aStream.append("→");
+				entry.value.printOnAvoidingIndent(
+					aStream, recursionList, indent + 1);
+				first = false;
+			}
+			aStream.append("\n");
+			for (int i = indent; i > 0; i--)
+			{
+				aStream.append('\t');
+			}
 		}
 		aStream.append('}');
 	}
@@ -378,7 +170,7 @@ extends Descriptor
 	@Override @AvailMethod
 	boolean o_Equals (
 		final @NotNull AvailObject object,
-		final AvailObject another)
+		final @NotNull AvailObject another)
 	{
 		return another.equalsMap(object);
 	}
@@ -392,27 +184,23 @@ extends Descriptor
 		{
 			return true;
 		}
-		if (object.hash() != aMap.hash())
-		{
-			return false;
-		}
 		if (object.mapSize() != aMap.mapSize())
 		{
 			return false;
 		}
-		for (int i = 1, end = object.capacity(); i <= end; i++)
+		if (object.hash() != aMap.hash())
 		{
-			final AvailObject keyObject = keyAtIndex(object, i);
-			if (!keyObject.equalsNullOrBlank())
+			return false;
+		}
+		final AvailObject aMapRootBin = rootBin(aMap);
+		for (final MapDescriptor.Entry entry : object.mapIterable())
+		{
+			final AvailObject actualValue = aMapRootBin.mapBinAtHash(
+				entry.key,
+				entry.keyHash);
+			if (!entry.value.equals(actualValue))
 			{
-				if (!aMap.hasKey(keyObject))
-				{
-					return false;
-				}
-				if (!aMap.mapAt(keyObject).equals(valueAtIndex(object, i)))
-				{
-					return false;
-				}
+				return false;
 			}
 		}
 		// They're equal (but occupy disjoint storage).  Replace one with an
@@ -429,11 +217,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final AvailObject aTypeObject)
 	{
-		if (aTypeObject.equals(TOP.o()))
-		{
-			return true;
-		}
-		if (aTypeObject.equals(ANY.o()))
+		if (ANY.o().isSubtypeOf(aTypeObject))
 		{
 			return true;
 		}
@@ -447,26 +231,29 @@ extends Descriptor
 		{
 			return false;
 		}
-		//  map's size is out of range.
-		final AvailObject keyTypeObject = aTypeObject.keyType();
-		final AvailObject valueTypeObject = aTypeObject.valueType();
-		AvailObject key;
-		AvailObject value;
-		for (int i = 1, end = object.capacity(); i <= end; i++)
+		final AvailObject keyType = aTypeObject.keyType();
+		final AvailObject valueType = aTypeObject.valueType();
+		final AvailObject rootBin = rootBin(object);
+		final boolean keysMatch =
+			rootBin.mapBinKeyUnionKind().isSubtypeOf(keyType);
+		final boolean valuesMatch =
+			rootBin.mapBinValueUnionKind().isSubtypeOf(valueType);
+		if (keysMatch && valuesMatch)
 		{
-			key = keyAtIndex(object, i);
-			if (!key.equalsNullOrBlank())
+			return true;
+		}
+		// We could produce separate loops for the cases where one or the other
+		// matched, but we'll leave it up to the HotSpot compiler to hoist the
+		// final booleans out.  Or at least rely on hardware branch prediction.
+		for (final Entry entry : object.mapIterable())
+		{
+			if (!keysMatch && !entry.key.isInstanceOf(keyType))
 			{
-				if (!key.isInstanceOf(keyTypeObject))
-				{
-					return false;
-				}
-				value = valueAtIndex(object, i);
-				if (!value.equalsNullOrBlank()
-						&& !value.isInstanceOf(valueTypeObject))
-				{
-					return false;
-				}
+				return false;
+			}
+			if (!valuesMatch && !entry.value.isInstanceOf(valueType))
+			{
+				return false;
 			}
 		}
 		return true;
@@ -476,53 +263,35 @@ extends Descriptor
 	int o_Hash (
 		final @NotNull AvailObject object)
 	{
-		// Take the internal hash, and twiddle it so nested maps won't have
-		// unwanted hash correlation.
-		return innerHash(object) + 0x1D79B13 ^ 0x1A9A22FE;
+		// A map's hash is a simple function of its rootBin's keysHash and
+		// valuesHash.
+		final AvailObject root = rootBin(object);
+		int h = root.mapBinKeysHash();
+		h ^= 0x45F78A7E;
+		h += root.mapBinValuesHash();
+		h ^= 0x57CE9F5E;
+		return h;
+	}
+
+	@Override @AvailMethod
+	boolean o_IsMap (
+		final @NotNull AvailObject object)
+	{
+		return true;
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
-		AvailObject keyType = BottomTypeDescriptor.bottom();
-		AvailObject valueType = BottomTypeDescriptor.bottom();
-		for (final Entry entry : object.mapIterable())
-		{
-			// TODO: [TLS] Need to visit and fix all noninstanceType() sends --
-			// including this one!
-			keyType = keyType.typeUnion(entry.key.kind());
-			valueType = valueType.typeUnion(entry.value.kind());
-		}
+		final int size = object.mapSize();
+		final AvailObject sizeRange = InstanceTypeDescriptor.on(
+			IntegerDescriptor.fromInt(size));
+		final AvailObject root = rootBin(object);
 		return MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
-			IntegerDescriptor.fromInt(object.mapSize()).kind(),
-			keyType,
-			valueType);
-	}
-
-	@Override @AvailMethod
-	boolean o_HasKey (
-		final @NotNull AvailObject object,
-		final AvailObject keyObject)
-	{
-		// Answer whether the map has the given key.  Note that we don't stop
-		// searching when we reach a blank, only when we reach top or the target
-		// object.
-		final int modulus = object.capacity();
-		int h = (int)((keyObject.hash() & 0xFFFFFFFFL) % modulus + 1);
-		while (true)
-		{
-			final AvailObject slotObject = keyAtIndex(object, h);
-			if (slotObject.equalsNull())
-			{
-				return false;
-			}
-			if (slotObject.equals(keyObject))
-			{
-				return true;
-			}
-			h = h == modulus ? 1 : h + 1;
-		}
+			sizeRange,
+			root.mapBinKeyUnionKind(),
+			root.mapBinValueUnionKind());
 	}
 
 	@Override @AvailMethod
@@ -532,22 +301,14 @@ extends Descriptor
 	{
 		// Answer the value of the map at the specified key.  Fail if the key is
 		// not present.
-		final int modulus = object.capacity();
-		int h = (int)((keyObject.hash() & 0xFFFFFFFFL) % modulus + 1);
-		while (true)
+		final AvailObject value = rootBin(object).mapBinAtHash(
+			keyObject,
+			keyObject.hash());
+		if (value.equalsNull())
 		{
-			final AvailObject slotObject = keyAtIndex(object, h);
-			if (slotObject.equalsNull())
-			{
-				error("Key not found in map", object);
-				return NullDescriptor.nullObject();
-			}
-			if (slotObject.equals(keyObject))
-			{
-				return valueAtIndex(object, h);
-			}
-			h = h == modulus ? 1 : h + 1;
+			throw new MapException(AvailErrorCode.E_KEY_NOT_FOUND);
 		}
+		return value;
 	}
 
 	@Override @AvailMethod
@@ -560,23 +321,65 @@ extends Descriptor
 		// Answer a map like this one but with keyObject->newValueObject instead
 		// of any existing mapping for keyObject.  The original map can be
 		// destroyed or recycled if canDestroy is true and it's mutable.
-		final int neededCapacity =
-			(object.mapSize() + 1 + numBlanks(object)) * 4 / 3 + 1;
-		if (canDestroy
-			&& isMutable
-			&& (object.hasKey(keyObject)
-				|| object.capacity() >= neededCapacity))
+		assert !newValueObject.equalsNull();
+		final AvailObject oldRoot = rootBin(object);
+		final AvailObject newRoot = oldRoot.mapBinAtHashPutLevelCanDestroy(
+			 keyObject,
+			 keyObject.hash(),
+			 newValueObject,
+			 (byte)0,
+			 canDestroy);
+		if (canDestroy & isMutable())
 		{
-			return object.privateMapAtPut(keyObject, newValueObject);
+			rootBin(object, newRoot);
+			return object;
 		}
-		final AvailObject result = MapDescriptor.newWithCapacity(
-			object.mapSize() * 2 + 5);
-		//  Start new map just over 50% free (with no blanks).
+		else if (isMutable())
+		{
+			object.makeImmutable();
+		}
+		return MapDescriptor.createFromBin(newRoot);
+	}
+
+	@Override @AvailMethod
+	@NotNull AvailObject o_KeysAsSet (
+		final @NotNull AvailObject object)
+	{
+		// Answer a set with all my keys.  Mark the keys as immutable because
+		// they'll be shared with the new set.
+		AvailObject result = SetDescriptor.empty();
 		for (final Entry entry : object.mapIterable())
 		{
-			result.privateMapAtPut(entry.key, entry.value);
+			result = result.setWithElementCanDestroy(
+				entry.key.makeImmutable(),
+				true);
 		}
-		result.privateMapAtPut(keyObject, newValueObject);
+		return result;
+	}
+
+	/**
+	 * Answer a tuple with all my values.  Mark the values as immutable because
+	 * they'll be shared with the new tuple.
+	 */
+	@Override @AvailMethod
+	@NotNull AvailObject o_ValuesAsTuple (
+		final @NotNull AvailObject object)
+	{
+		final int size = object.mapSize();
+		final AvailObject result = ObjectTupleDescriptor.mutable().create(size);
+		for (int i = 1; i <= size; i++)
+		{
+			// Initialize it for when we have our own garbage collector again.
+			result.tupleAtPut(i, NullDescriptor.nullObject());
+		}
+		result.hashOrZero(0);
+		int index = 1;
+		for (final Entry entry : object.mapIterable())
+		{
+			result.tupleAtPut(index, entry.value.makeImmutable());
+			index++;
+		}
+		assert index == size + 1;
 		return result;
 	}
 
@@ -597,204 +400,41 @@ extends Descriptor
 			}
 			return object;
 		}
+		AvailObject root = rootBin(object);
+		root = root.mapBinRemoveKeyHashCanDestroy(
+			keyObject,
+			keyObject.hash(),
+			canDestroy);
 		if (canDestroy && isMutable)
 		{
-			return object.privateExcludeKey(keyObject);
+			rootBin(object, root);
+			return object;
 		}
-		final AvailObject result =
-			MapDescriptor.newWithCapacity(object.capacity());
-		for (final Entry entry : object.mapIterable())
-		{
-			if (!entry.key.equals(keyObject))
-			{
-				result.privateMapAtPut(entry.key, entry.value);
-			}
-		}
-		return result;
+		return createFromBin(root);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_AsObject (
-		final @NotNull AvailObject object)
-	{
-		//  Convert the receiver into an object.
-
-		return ObjectDescriptor.objectFromMap(object);
-	}
-
-	@Override @AvailMethod
-	int o_Capacity (
-		final @NotNull AvailObject object)
-	{
-		//  Answer the total number of slots reserved for holding keys.
-
-		return object.variableObjectSlotsCount() >>> 1;
-	}
-
-	@Override @AvailMethod
-	boolean o_IsMap (
-		final @NotNull AvailObject object)
-	{
-		return true;
-	}
-
-	@Override @AvailMethod
-	@NotNull AvailObject o_KeysAsSet (
-		final @NotNull AvailObject object)
-	{
-		// Answer a set with all my keys.  Mark the keys as immutable because
-		// they'll be shared with the new set.
-		AvailObject result = SetDescriptor.empty();
-		for (int i = 1, end = object.capacity(); i <= end; i++)
-		{
-			final AvailObject eachKeyObject = keyAtIndex(object, i);
-			if (!eachKeyObject.equalsNullOrBlank())
-			{
-				result = result.setWithElementCanDestroy(
-					eachKeyObject.makeImmutable(),
-					true);
-			}
-		}
-		return result;
-	}
-
-	/**
-	 * Answer a tuple with all my values.  Mark the values as immutable because
-	 * they'll be shared with the new tuple.
-	 */
-	@Override @AvailMethod
-	@NotNull AvailObject o_ValuesAsTuple (
-		final @NotNull AvailObject object)
-	{
-		final AvailObject result = ObjectTupleDescriptor.mutable().create(
-			object.mapSize());
-		for (int i = 1, end = object.mapSize(); i <= end; i++)
-		{
-			result.tupleAtPut(i, NullDescriptor.nullObject());
-		}
-		result.hashOrZero(0);
-		int targetIndex = 1;
-		for (final Entry entry : object.mapIterable())
-		{
-			entry.value.makeImmutable();
-			result.tupleAtPut(targetIndex, entry.value);
-			targetIndex++;
-		}
-		assert targetIndex == object.mapSize() + 1;
-		return result;
-	}
-
-	@Override @AvailMethod
-	@NotNull AvailObject o_PrivateExcludeKey (
+	boolean o_HasKey (
 		final @NotNull AvailObject object,
-		final AvailObject keyObject)
+		final AvailObject key)
 	{
-		// Remove keyObject from the map's keys if it's present.  The map must
-		// be mutable.  Also, computing the key's hash value should not cause an
-		// allocation.
-
-		assert isMutable;
-		assert !keyObject.equalsNullOrBlank();
-		final int h0 = keyObject.hash();
-		final int modulus = object.capacity();
-		int probe = (int)((h0 & 0xFFFFFFFFL) % modulus + 1);
-		while (true)
-		{
-			final AvailObject slotValue = keyAtIndex(object, probe);
-			if (slotValue.equalsNull())
-			{
-				return object;
-			}
-			if (slotValue.equals(keyObject))
-			{
-				int newHash = innerHash(object);
-				newHash ^= h0 + valueAtIndex(object, probe).hash() * 23;
-				innerHash(object, newHash);
-				keyAtIndexPut(object, probe, BlankDescriptor.blank());
-				valueAtIndexPut(object, probe, NullDescriptor.nullObject());
-				mapSize(object, object.mapSize() - 1);
-				numBlanks(object, numBlanks(object) + 1);
-				return object;
-			}
-			if (probe == modulus)
-			{
-				probe = 1;
-			}
-			else
-			{
-				probe++;
-			}
-		}
+		// Answer whether the map has the given key.
+		return !rootBin(object).mapBinAtHash(key, key.hash()).equalsNull();
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_PrivateMapAtPut (
-		final @NotNull AvailObject object,
-		final AvailObject keyObject,
-		final AvailObject valueObject)
-	{
-		// Make keyObject go to valueObject in the map.  The object must be
-		// mutable and have room for the new element.  Also, computing the key's
-		// hash value should not cause an allocation.
-		assert isMutable;
-		assert !keyObject.equalsNullOrBlank();
-		assert (object.mapSize() + numBlanks(object)) * 4 <= object.capacity() * 3;
-		final int h0 = keyObject.hash();
-		final int modulus = object.capacity();
-		int probe = (int)((h0 & 0xFFFFFFFFL) % modulus + 1);
-		int tempHash;
-		while (true)
-		{
-			final AvailObject slotValue = keyAtIndex(object, probe);
-			if (slotValue.equals(keyObject))
-			{
-				tempHash = innerHash(object)
-				^ h0 + valueAtIndex(object, probe).hash() * 23;
-				tempHash ^= h0 + valueObject.hash() * 23;
-				innerHash(object, tempHash);
-				valueAtIndexPut(object, probe, valueObject);
-				return object;
-			}
-			if (slotValue.equalsNullOrBlank())
-			{
-				keyAtIndexPut(object, probe, keyObject);
-				valueAtIndexPut(object, probe, valueObject);
-				mapSize(object, object.mapSize() + 1);
-				innerHash(object,
-					innerHash(object) ^ h0 + valueObject.hash() * 23);
-				if (slotValue.equalsBlank())
-				{
-					numBlanks(object, numBlanks(object) - 1);
-				}
-				return object;
-			}
-			probe = probe == modulus ? 1 : probe + 1;
-		}
-	}
-
-	@Override @AvailMethod
-	List<AvailObject> o_KeysAsArray (
+	int o_MapSize (
 		final @NotNull AvailObject object)
 	{
-		List<AvailObject> result;
-		result = new ArrayList<AvailObject>(object.mapSize());
-		for (int i = 1, end = object.capacity(); i <= end; i++)
-		{
-			final AvailObject eachKeyObject = keyAtIndex(object, i);
-			if (!eachKeyObject.equalsNullOrBlank())
-			{
-				result.add(eachKeyObject.makeImmutable());
-			}
-		}
-		assert result.size() == object.mapSize();
-		return result;
+		// Answer how many elements are in the set.  Delegate to the rootBin.
+		return rootBin(object).binSize();
 	}
 
 	@Override @AvailMethod
 	MapDescriptor.MapIterable o_MapIterable (
 		final @NotNull AvailObject object)
 	{
-		return new MapIterable(object);
+		return new MapIterable(rootBin(object));
 	}
 
 	@Override
@@ -805,60 +445,211 @@ extends Descriptor
 		return SerializerOperation.MAP;
 	}
 
-
 	/**
-	 * An immutable empty map.
+	 * {@link MapDescriptor.Entry} exists solely to allow the "foreach" control
+	 * structure to be used on a {@linkplain MapDescriptor map} by suitable use
+	 * of {@linkplain MapDescriptor#o_MapIterable(AvailObject) mapIterable()}.
+	 *
+	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
 	 */
-	static AvailObject emptyMap;
+	public static class Entry
+	{
+		/**
+		 * The key at some {@link MapIterable}'s current position.
+		 */
+		public AvailObject key;
+
+		/**
+		 * The hash of the key at some {@link MapIterable}'s current position.
+		 */
+		public int keyHash;
+
+		/**
+		 * The value associated with the key at some {@link MapIterable}'s
+		 * current position.
+		 */
+		public AvailObject value;
+	}
 
 	/**
-	 * Initialize my emptyMap static field.
+	 * {@link MapDescriptor.MapIterable} is returned by {@linkplain
+	 * MapDescriptor#o_MapIterable(AvailObject) mapIterable()} to support use
+	 * of the "foreach" control structure on {@linkplain MapDescriptor maps}.
+	 *
+	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+	 */
+	public static class MapIterable
+	implements
+		Iterator<Entry>,
+		Iterable<Entry>
+	{
+		/**
+		 * The {@link Entry} to be reused for each <key, value> pair while
+		 * iterating over this {@link MapDescriptor map}.
+		 */
+		private final Entry entry = new Entry();
+
+		/**
+		 * The path through map bins, including the current linear bin.
+		 */
+		final Deque<AvailObject> binStack = new ArrayDeque<AvailObject>();
+
+		/**
+		 * The current position in each bin on the binStack, including the
+		 * linear bin.  It should be the same size as the binStack.  When
+		 * they're both empty it indicates {@code !hasNext()}.
+		 */
+		final Deque<Integer> subscriptStack = new ArrayDeque<Integer>();
+
+		/**
+		 * Construct a new {@link MapIterable} over the keys and values
+		 * recursively contained in the given root bin / null.
+		 *
+		 * @see ObjectSlots#ROOT_BIN
+		 * @param root The root bin over which to iterate.
+		 */
+		MapIterable (final AvailObject root)
+		{
+			followLeftmost(root);
+		}
+
+		/**
+		 * Visit this bin or {@link NullDescriptor#nullObject() null object}.
+		 * In particular, travel down its left spine so that it's positioned at
+		 * the leftmost descendant.
+		 *
+		 * @param bin The bin or null object at which to begin enumerating.
+		 */
+		private void followLeftmost (
+			final @NotNull AvailObject bin)
+		{
+			if (bin.equalsNull())
+			{
+				// The null object may only occur at the top of the bin tree.
+				assert binStack.isEmpty();
+				assert subscriptStack.isEmpty();
+				//entry.keyHash = 0;
+				entry.key = null;
+				entry.value = null;
+			}
+			else
+			{
+				AvailObject currentBin = bin;
+				while (currentBin.isHashedMapBin())
+				{
+					binStack.addLast(currentBin);
+					subscriptStack.addLast(1);
+					currentBin = currentBin.binElementAt(1);
+				}
+				binStack.addLast(currentBin);
+				subscriptStack.addLast(1);
+				assert binStack.size() == subscriptStack.size();
+			}
+		}
+
+		@Override
+		public Entry next ()
+		{
+			assert !binStack.isEmpty();
+			final AvailObject linearBin = binStack.getLast().traversed();
+			final Integer linearIndex = subscriptStack.getLast();
+			entry.keyHash = linearBin.slot(
+				LinearMapBinDescriptor.IntegerSlots.KEY_HASHES_,
+				linearIndex);
+			entry.key = linearBin.binElementAt(linearIndex * 2 - 1);
+			entry.value = linearBin.binElementAt(linearIndex * 2);
+			// Got the result.  Now advance the state...
+			if (linearIndex < linearBin.variableIntegerSlotsCount())
+			{
+				// Continue in same leaf bin.
+				subscriptStack.removeLast();
+				subscriptStack.addLast(linearIndex + 1);
+				return entry;
+			}
+
+			binStack.removeLast();
+			subscriptStack.removeLast();
+			assert binStack.size() == subscriptStack.size();
+			while (true)
+			{
+				if (subscriptStack.isEmpty())
+				{
+					// This was the last entry in the map.
+					return entry;
+				}
+				final AvailObject internalBin = binStack.getLast().traversed();
+				final int internalSubscript = subscriptStack.getLast();
+				final int maxSubscript = internalBin.variableObjectSlotsCount();
+				if (internalSubscript != maxSubscript)
+				{
+					// Continue in current internal (hashed) bin.
+					subscriptStack.addLast(subscriptStack.removeLast() + 1);
+					assert binStack.size() == subscriptStack.size();
+					followLeftmost(
+						binStack.getLast().binElementAt(internalSubscript + 1));
+					assert binStack.size() == subscriptStack.size();
+					return entry;
+				}
+				subscriptStack.removeLast();
+				binStack.removeLast();
+				assert binStack.size() == subscriptStack.size();
+			}
+		}
+
+		@Override
+		public boolean hasNext ()
+		{
+			return !binStack.isEmpty();
+		}
+
+		@Override
+		public void remove ()
+		{
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public MapIterable iterator ()
+		{
+			// This is what Java *should* have provided all along.
+			return this;
+		}
+	}
+
+	/**
+	 * The empty map (immutable).
+	 */
+	static AvailObject EmptyMap;
+
+	/**
+	 * Initialize the {@link #EmptyMap} static in addition to the usual statics.
 	 */
 	static void createWellKnownObjects ()
 	{
-		emptyMap = newWithCapacity(3);
-		emptyMap.makeImmutable();
+		final AvailObject empty = mutable().create();
+		rootBin(empty, NullDescriptor.nullObject());
+		empty.makeImmutable();
+		EmptyMap = empty;
 	}
 
 	/**
-	 * Clear my emptyMap static field.
+	 * Clear the {@link #EmptyMap} static in addition to the usual statics.
 	 */
 	static void clearWellKnownObjects ()
 	{
-		emptyMap = null;
+		EmptyMap = null;
 	}
 
 	/**
-	 * Return the (immutable) empty map.
+	 * Answer the (immutable) empty map.
 	 *
-	 * @return An empty, immutable map.
+	 * @return The empty map.
 	 */
 	public static AvailObject empty ()
 	{
-		return emptyMap;
+		return EmptyMap;
 	}
 
-	/**
-	 * Create a new map with the given initial capacity.  The capacity is a
-	 * measure of how many slot pairs a map contains, and as such is always
-	 * somewhat larger than the maximum number of keys the map may actually
-	 * contain.
-	 *
-	 * @param capacity The number of key/value slot pairs to reserve.
-	 * @return A new map.
-	 */
-	public static @NotNull AvailObject newWithCapacity (final int capacity)
-	{
-		final AvailObject result = mutable().create(capacity * 2);
-		innerHash(result, 0);
-		mapSize(result, 0);
-		numBlanks(result, 0);
-		for (int i = 1; i <= capacity * 2; i++)
-		{
-			dataAtIndexPut(result, i, NullDescriptor.nullObject());
-		}
-		return result;
-	}
 
 	/**
 	 * Create a new {@linkplain MapDescriptor map} whose contents correspond to
@@ -872,10 +663,8 @@ extends Descriptor
 		final @NotNull AvailObject tupleOfBindings)
 	{
 		assert tupleOfBindings.isTuple();
-		// The adjustment supports empty maps.
-		AvailObject newMap = newWithCapacity(
-			tupleOfBindings.tupleSize() * 2 + 1);
-		 for (final AvailObject binding : tupleOfBindings)
+		AvailObject newMap = EmptyMap;
+		for (final AvailObject binding : tupleOfBindings)
 		 {
 			 assert binding.isTuple();
 			 assert binding.tupleSize() == 2;
@@ -885,6 +674,21 @@ extends Descriptor
 				 true);
 		 }
 		 return newMap;
+	}
+
+	/**
+	 * Create a new {@linkplain MapDescriptor map} based on the given
+	 * {@linkplain MapBinDescriptor root bin}.
+	 *
+	 * @param rootBin The rootBin to use in the new map.
+	 * @return A new mutable map.
+	 */
+	public static @NotNull AvailObject createFromBin (
+		final @NotNull AvailObject rootBin)
+	{
+		final AvailObject newMap = MapDescriptor.mutable().create();
+		rootBin(newMap, rootBin);
+		return newMap;
 	}
 
 	/**
@@ -909,22 +713,21 @@ extends Descriptor
 		assert destination.isMap();
 		assert source.isMap();
 
-		AvailObject target =
-			canDestroy && destination.descriptor.isMutable()
-			? destination
-			: empty();
-		if (target != destination)
+		if (!canDestroy)
 		{
-			for (final AvailObject key : destination.keysAsSet())
-			{
-				target = target.mapAtPuttingCanDestroy(
-					key, destination.mapAt(key), true);
-			}
+			destination.makeImmutable();
 		}
-		for (final AvailObject key : source.keysAsSet())
+		if (source.mapSize() == 0)
+		{
+			return destination;
+		}
+		AvailObject target = destination;
+		for (final Entry entry : source.mapIterable())
 		{
 			target = target.mapAtPuttingCanDestroy(
-				key, source.mapAt(key), canDestroy);
+				entry.key,
+				entry.value,
+				true);
 		}
 		return target;
 	}

@@ -2088,19 +2088,14 @@ implements L2OperationDispatcher
 		final int destIndex = nextWord();
 		final AvailObject function = pointerAt(functionIndex);
 		final AvailObject code = function.code();
+		final int frameSize = code.numArgsAndLocalsAndStack();
 		final AvailObject continuation =
-			ContinuationDescriptor.mutable().create(
-				code.numArgsAndLocalsAndStack());
+			ContinuationDescriptor.mutable().create(frameSize);
 		continuation.caller(pointerAt(senderIndex));
 		continuation.function(function);
 		continuation.pc(pcIndex);
-		continuation.stackp(
-			code.numArgsAndLocalsAndStack()
-			- code.maxStackDepth()
-			+ stackpIndex);
-		continuation.levelTwoChunkOffset(
-			chunk(),
-			wordcodeOffset);
+		continuation.stackp(frameSize - code.maxStackDepth() + stackpIndex);
+		continuation.levelTwoChunkOffset(chunk(), wordcodeOffset);
 		final AvailObject slots = chunkVectors.tupleAt(slotsIndex);
 		for (int i = 1; i <= sizeIndex; i++)
 		{

@@ -35,6 +35,12 @@ package com.avail.descriptor;
 import static com.avail.descriptor.AvailObject.Multiplier;
 import com.avail.annotations.*;
 
+/**
+ * This is a representation for {@linkplain TupleDescriptor tuples} that can
+ * consist of arbitrary {@link AvailObject}s.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public class ObjectTupleDescriptor
 extends TupleDescriptor
 {
@@ -43,6 +49,10 @@ extends TupleDescriptor
 	 */
 	public enum IntegerSlots implements IntegerSlotsEnum
 	{
+		/**
+		 * The tuple's hash value or zero if not computed.  If the hash value
+		 * happens to be zero (very rare) we have to recalculate it on demand.
+		 */
 		HASH_OR_ZERO;
 
 		static
@@ -57,6 +67,9 @@ extends TupleDescriptor
 	 */
 	public enum ObjectSlots implements ObjectSlotsEnum
 	{
+		/**
+		 * The tuple elements themselves.
+		 */
 		TUPLE_AT_
 	}
 
@@ -85,7 +98,7 @@ extends TupleDescriptor
 		final @NotNull AvailObject anotherObject,
 		final int startIndex2)
 	{
-		//  Compare sections of two tuples.
+		// Compare sections of two tuples.
 
 		return anotherObject.compareFromToWithObjectTupleStartingAt(
 			startIndex2,
@@ -102,13 +115,13 @@ extends TupleDescriptor
 		final @NotNull AvailObject anObjectTuple,
 		final int startIndex2)
 	{
-		//  Compare sections of two object tuples.
+		// Compare sections of two object tuples.
 
 		if (object.sameAddressAs(anObjectTuple) && startIndex1 == startIndex2)
 		{
 			return true;
 		}
-		//  Compare actual entries.
+		// Compare actual entries.
 		int index2 = startIndex2;
 		for (int index1 = startIndex1; index1 <= endIndex1; index1++)
 		{
@@ -134,9 +147,9 @@ extends TupleDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anObjectTuple)
 	{
-		//  Compare this object tuple and the given object tuple.
+		// Compare this object tuple and the given object tuple.
 		//
-		//  Compare identity...
+		// Compare identity...
 
 		if (object.sameAddressAs(anObjectTuple))
 		{
@@ -208,7 +221,9 @@ extends TupleDescriptor
 					}
 					for (int i = 1; i <= endIndex - startIndex + 1; i++)
 					{
-						object.tupleAtPut(i, object.tupleAt(startIndex + i - 1));
+						object.tupleAtPut(
+							i,
+							object.tupleAt(startIndex + i - 1));
 					}
 					for (int i = endIndex - startIndex + 2; i <= endIndex; i++)
 					{
@@ -221,7 +236,8 @@ extends TupleDescriptor
 					object.tupleAtPut(i, zeroObject);
 				}
 				object.truncateTo(endIndex - startIndex + 1);
-				//  Clip remaining items off end, padding lost space with a dummy header.
+				// Clip remaining items off end, padding lost space with a
+				// dummy header.
 				return object;
 			}
 			for (int i = 1, end = startIndex - 1; i <= end; i++)
@@ -239,10 +255,10 @@ extends TupleDescriptor
 		{
 			return TupleDescriptor.empty();
 		}
-		//  Compute the hash ahead of time, because asking an element to hash
-		//  might trigger a garbage collection.
+		// Compute the hash ahead of time, because asking an element to hash
+		// might trigger a garbage collection.
 		int newHash = 0;
-		//  This is just to assist the type deducer.
+		// This is just to assist the type deducer.
 		newHash = object.computeHashFromTo(startIndex, endIndex);
 		AvailObject result;
 		if (endIndex - startIndex < 20)
@@ -251,7 +267,9 @@ extends TupleDescriptor
 			result.hashOrZero(newHash);
 			for (int i = 1, end = endIndex - startIndex + 1; i <= end; i++)
 			{
-				result.tupleAtPut(i, object.tupleAt(i + startIndex - 1).makeImmutable());
+				result.tupleAtPut(
+					i,
+					object.tupleAt(i + startIndex - 1).makeImmutable());
 			}
 		}
 		else
@@ -264,7 +282,7 @@ extends TupleDescriptor
 			{
 				object.makeImmutable();
 			}
-			//  Share it - play nice
+			// Share it - play nice
 			result.hashOrZero(newHash);
 			result.forZoneSetSubtupleStartSubtupleIndexEndOfZone(
 				1,
@@ -281,14 +299,13 @@ extends TupleDescriptor
 		final @NotNull AvailObject object,
 		final int newTupleSize)
 	{
-		//  Private
-		//
-		//  Shrink the current object on the right.  Assumes that elements beyond the new end
-		//  have already been released if necessary.  Since my representation no longer varies
-		//  with tupleSize (I used to have different descriptors for different o_Tuple sizes),
-		//  I can simply compute the delta for the number of slots.  I must pad the unused space
-		//  on the right with a dummy descriptor and slotsSize for the garbage collector.
-
+		// Shrink the current object on the right.  Assumes that elements beyond
+		// the new end have already been released if necessary.  Since my
+		// representation no longer varies with tupleSize (I used to have
+		// different descriptors for different o_Tuple sizes), I can simply
+		// compute the delta for the number of slots.  I must pad the unused
+		// space on the right with a dummy descriptor and slotsSize for the
+		// garbage collector.
 		assert isMutable;
 		final int delta = object.tupleSize() - newTupleSize;
 		if (delta == 0)
@@ -310,9 +327,9 @@ extends TupleDescriptor
 		final @NotNull AvailObject newValueObject,
 		final boolean canDestroy)
 	{
-		//  Answer a tuple with all the elements of object except at the given index we should
-		//  have newValueObject.  This may destroy the original tuple if canDestroy is true.
-
+		// Answer a tuple with all the elements of object except at the given
+		// index we should have newValueObject.  This may destroy the original
+		// tuple if canDestroy is true.
 		assert index >= 1 && index <= object.tupleSize();
 		if (!canDestroy || !isMutable)
 		{
@@ -322,8 +339,8 @@ extends TupleDescriptor
 				true);
 		}
 		object.tupleAtPut(index, newValueObject);
+		// Invalidate the hash value.
 		object.hashOrZero(0);
-		//  ...invalidate the hash value.
 		return object;
 	}
 
@@ -332,7 +349,7 @@ extends TupleDescriptor
 		final @NotNull AvailObject object,
 		final int index)
 	{
-		//  Answer the integer element at the given index in the tuple object.
+		// Answer the integer element at the given index in the tuple object.
 		return object.tupleAt(index).extractInt();
 	}
 
@@ -340,7 +357,7 @@ extends TupleDescriptor
 	int o_TupleSize (
 		final @NotNull AvailObject object)
 	{
-		//  Answer the number of elements in the object (as a Java int).
+		// Answer the number of elements in the object (as a Java int).
 		return object.variableObjectSlotsCount();
 	}
 
@@ -348,8 +365,8 @@ extends TupleDescriptor
 	int o_BitsPerEntry (
 		final @NotNull AvailObject object)
 	{
-		//  Answer approximately how many bits per entry are taken up by this object.
-
+		// Answer approximately how many bits per entry are taken up by this
+		// object.
 		return 32;
 	}
 
@@ -359,8 +376,7 @@ extends TupleDescriptor
 		final int start,
 		final int end)
 	{
-		//  See comment in superclass.  This method must produce the same value.
-
+		// See comment in superclass.  This method must produce the same value.
 		int hash = 0;
 		for (int index = end; index >= start; index--)
 		{

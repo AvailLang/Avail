@@ -1105,23 +1105,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	@NotNull AvailObject o_PrivateExcludeKey (
-		final @NotNull AvailObject object,
-		final AvailObject keyObject)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	@NotNull AvailObject o_PrivateMapAtPut (
-		final @NotNull AvailObject object,
-		final AvailObject keyObject,
-		final AvailObject valueObject)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	void o_ProcessGlobals (
 		final @NotNull AvailObject object,
 		final AvailObject value)
@@ -1282,14 +1265,6 @@ extends AbstractDescriptor
 
 	@Override
 	void o_ReturnType (
-		final @NotNull AvailObject object,
-		final AvailObject value)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	void o_RootBin (
 		final @NotNull AvailObject object,
 		final AvailObject value)
 	{
@@ -1834,13 +1809,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	@NotNull AvailObject o_AsObject (
-		final @NotNull AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	@NotNull AvailObject o_AsSet (
 		final @NotNull AvailObject object)
 	{
@@ -1856,13 +1824,6 @@ extends AbstractDescriptor
 
 	@Override
 	int o_BitsPerEntry (
-		final @NotNull AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	int o_BitVector (
 		final @NotNull AvailObject object)
 	{
 		throw unsupportedOperationException();
@@ -1891,13 +1852,6 @@ extends AbstractDescriptor
 
 	@Override
 	@NotNull AvailObject o_Caller (
-		final @NotNull AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	int o_Capacity (
 		final @NotNull AvailObject object)
 	{
 		throw unsupportedOperationException();
@@ -2243,13 +2197,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	List<AvailObject> o_KeysAsArray (
-		final @NotNull AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	@NotNull AvailObject o_KeysAsSet (
 		final @NotNull AvailObject object)
 	{
@@ -2489,13 +2436,6 @@ extends AbstractDescriptor
 
 	@Override
 	@NotNull AvailObject o_ReturnType (
-		final @NotNull AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	@NotNull AvailObject o_RootBin (
 		final @NotNull AvailObject object)
 	{
 		throw unsupportedOperationException();
@@ -2980,21 +2920,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_EqualsBlank (
-		final @NotNull AvailObject object)
-	{
-		return false;
-	}
-
-	@Override
 	boolean o_EqualsNull (
-		final @NotNull AvailObject object)
-	{
-		return false;
-	}
-
-	@Override
-	boolean o_EqualsNullOrBlank (
 		final @NotNull AvailObject object)
 	{
 		return false;
@@ -3192,17 +3118,18 @@ extends AbstractDescriptor
 
 
 	@Override
-	@NotNull AvailObject o_BinAddingElementHashLevelCanDestroy (
+	@NotNull AvailObject o_SetBinAddingElementHashLevelCanDestroy (
 		final @NotNull AvailObject object,
 		final AvailObject elementObject,
 		final int elementObjectHash,
 		final byte myLevel,
 		final boolean canDestroy)
 	{
-		//  Add the given element to this bin, potentially modifying it if canDestroy and it's
-		//  mutable.  Answer the new bin.  Note that the client is responsible for marking
-		//  elementObject as immutable if another reference exists.  In particular, the
-		//  object is masquerading as a bin of size one.
+		// Add the given element to this bin, potentially modifying it if
+		// canDestroy and it's mutable.  Answer the new bin.  Note that the
+		// client is responsible for marking elementObject as immutable if
+		// another reference exists.  In particular, the object is masquerading
+		// as a bin of size one.
 
 		if (object.equals(elementObject))
 		{
@@ -3223,7 +3150,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_BinHasElementHash (
+	boolean o_BinHasElementWithHash (
 		final @NotNull AvailObject object,
 		final AvailObject elementObject,
 		final int elementObjectHash)
@@ -3282,21 +3209,6 @@ extends AbstractDescriptor
 		final AvailObject potentialSuperset)
 	{
 		return potentialSuperset.hasElement(object);
-	}
-
-	@Override
-	int o_PopulateTupleStartingAt (
-		final @NotNull AvailObject object,
-		final AvailObject mutableTuple,
-		final int startingIndex)
-	{
-		//  Write set bin elements into the tuple, starting at the given startingIndex.  Answer
-		//  the next available index in which to write.  Regular objects act as set bins
-		//  of size 1, so treat them that way.
-
-		assert mutableTuple.descriptor().isMutable();
-		mutableTuple.tupleAtPut(startingIndex, object);
-		return startingIndex + 1;
 	}
 
 	@Override
@@ -4354,6 +4266,94 @@ extends AbstractDescriptor
 
 	@Override
 	@NotNull SerializerOperation o_SerializerOperation (
+		final @NotNull AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	/**
+	 * @param object
+	 * @param key
+	 * @param keyHash
+	 * @param value
+	 * @param myLevel
+	 * @param canDestroy
+	 * @return
+	 */
+	@Override
+	@NotNull AvailObject o_MapBinAtHashPutLevelCanDestroy (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject key,
+		final int keyHash,
+		final @NotNull AvailObject value,
+		final byte myLevel,
+		final boolean canDestroy)
+	{
+		throw unsupportedOperationException();
+	}
+
+	/**
+	 * @param object
+	 * @param key
+	 * @param keyHash
+	 * @param canDestroy
+	 * @return
+	 */
+	@NotNull AvailObject o_MapBinRemoveKeyHashCanDestroy (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject key,
+		final int keyHash,
+		final boolean canDestroy)
+	{
+		throw unsupportedOperationException();
+	}
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	@NotNull AvailObject o_MapBinKeyUnionKind (
+		final @NotNull AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	@NotNull AvailObject o_MapBinValueUnionKind (
+		final @NotNull AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	boolean o_IsHashedMapBin (
+		final @NotNull AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	@NotNull AvailObject o_MapBinAtHash (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject key,
+		final int keyHash)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	int o_MapBinKeysHash (
+		final @NotNull AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+
+	@Override
+	int o_MapBinValuesHash (
 		final @NotNull AvailObject object)
 	{
 		throw unsupportedOperationException();

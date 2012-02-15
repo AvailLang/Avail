@@ -48,7 +48,8 @@ import com.avail.annotations.NotNull;
  * with the Eclipse preference files).  Here are the minimum steps by which to
  * set up symbolic Avail descriptions:
  * <ol>
- * <li>Preferences... -> Debug -> Logical Structures -> Add:
+ * <li>Preferences... &rarr; Java &rarr; Debug &rarr; Logical Structures &rarr;
+ * Add:
  *   <ul>
  *   <li>Qualified name: com.avail.descriptor.AvailIntegerValueHelper</li>
  *   <li>Description: Hide integer value field</li>
@@ -56,7 +57,8 @@ import com.avail.annotations.NotNull;
  *   <li>Code: {@code new Object[0]}</li>
  *   </ul>
  * </li>
- * <li>Preferences... -> Debug -> Logical Structures -> Add:
+ * <li>Preferences... &rarr; Java &rarr; Debug &rarr; Logical Structures &rarr;
+ * Add:
  *   <ul>
  *   <li>Qualified name: com.avail.descriptor.AvailObject</li>
  *   <li>Description: Present Avail objects</li>
@@ -64,15 +66,8 @@ import com.avail.annotations.NotNull;
  *   <li>Code: {@code describeForDebugger()}</li>
  *   </ul>
  * </li>
- * <li>Preferences... -> Debug -> Logical Structures -> Add:
- *   <ul>
- *   <li>Qualified name: com.avail.descriptor.AvailObject</li>
- *   <li>Description: Present Avail objects</li>
- *   <li>Structure type: Single value</li>
- *   <li>Code: {@code describeForDebugger()}</li>
- *   </ul>
- * </li>
- * <li>Preferences... -> Debug -> Logical Structures -> Add:
+ * <li>Preferences... &rarr; Java &rarr; Debug &rarr; Logical Structures &rarr;
+ * Add:
  *   <ul>
  *   <li>Qualified name: com.avail.descriptor.AvailObjectFieldHelper</li>
  *   <li>Description: Present helper's value's fields instead of the helper</li>
@@ -80,16 +75,16 @@ import com.avail.annotations.NotNull;
  *   <li>Code: {@code value}</li>
  *   </ul>
  * </li>
- * <li>Preferences... -> Debug -> Detail Formatters -> Add:
+ * <li>Preferences... &rarr; Java &rarr; Debug &rarr; Detail Formatters &rarr;
+ * Add:
  *   <ul>
  *   <li>Qualified type name: com.avail.descriptor.AvailObjectFieldHelper</li>
- *   <li>Description: Present helper's value's fields instead of the helper</li>
  *   <li>Detail formatter code snippet: {@code return name;}</li>
  *   <li>Enable this detail formatter: (checked)</li>
- *   <li>(after Ok) Show variable details: As the label for all variables</li>
+ *   <li>(after OK) Show variable details: As the label for all variables</li>
  *   </ul>
  * </li>
- * <li>In the Debug perspective, go to the Variables view.  Select the toolbar
+ * <li>In the Debug perspective, go to the Variables view.  Select the tool bar
  * icon whose hover help is Show Logical Structure.</li>
  * </ol>
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;

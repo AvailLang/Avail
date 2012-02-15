@@ -96,14 +96,6 @@ extends Descriptor
 
 	@Override
 	@AvailMethod @ThreadSafe
-	boolean o_EqualsNullOrBlank (final @NotNull AvailObject object)
-	{
-		// There is only one top.
-		return true;
-	}
-
-	@Override
-	@AvailMethod @ThreadSafe
 	int o_Hash (final @NotNull AvailObject object)
 	{
 		// The null object should hash to zero, because the only place it can
@@ -121,7 +113,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_BinAddingElementHashLevelCanDestroy (
+	@NotNull AvailObject o_SetBinAddingElementHashLevelCanDestroy (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject elementObject,
 		final int elementObjectHash,
@@ -166,18 +158,6 @@ extends Descriptor
 
 	@Override
 	@AvailMethod @ThreadSafe
-	int o_PopulateTupleStartingAt (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject mutableTuple,
-		final int startingIndex)
-	{
-		// The null object acts as an empty bin, so do nothing.
-		assert mutableTuple.descriptor().isMutable();
-		return startingIndex;
-	}
-
-	@Override
-	@AvailMethod @ThreadSafe
 	int o_BinHash (final @NotNull AvailObject object)
 	{
 		// The null object acting as a size-zero bin has a bin hash which is the
@@ -207,6 +187,59 @@ extends Descriptor
 		final @NotNull AvailObject object)
 	{
 		return SerializerOperation.NULL_OBJECT;
+	}
+
+	@Override
+	AvailObject o_MapBinAtHashPutLevelCanDestroy (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject key,
+		final int keyHash,
+		final @NotNull AvailObject value,
+		final byte myLevel,
+		final boolean canDestroy)
+	{
+		return LinearMapBinDescriptor.createSingle(
+			key,
+			keyHash,
+			value,
+			myLevel);
+	}
+
+	@Override
+	AvailObject o_MapBinKeyUnionKind (
+		final @NotNull AvailObject object)
+	{
+		return BottomTypeDescriptor.bottom();
+	}
+
+	@Override
+	AvailObject o_MapBinValueUnionKind (
+		final @NotNull AvailObject object)
+	{
+		return BottomTypeDescriptor.bottom();
+	}
+
+	@Override
+	@NotNull AvailObject o_MapBinAtHash (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject key,
+		final int keyHash)
+	{
+		return nullObject();
+	}
+
+	@Override
+	int o_MapBinKeysHash (
+		final @NotNull AvailObject object)
+	{
+		return 0;
+	}
+
+	@Override
+	int o_MapBinValuesHash (
+		final @NotNull AvailObject object)
+	{
+		return 0;
 	}
 
 	@Override

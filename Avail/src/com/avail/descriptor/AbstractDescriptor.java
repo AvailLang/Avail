@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.util.*;
 import com.avail.annotations.*;
@@ -300,6 +301,35 @@ public abstract class AbstractDescriptor
 
 
 	/**
+	 * Look up the specified {@link Annotation} from the {@link Enum} constant.
+	 * If the enumeration constant does not have an annotation of that type then
+	 * answer null.
+	 *
+	 * @param <A> The {@code Annotation} type.
+	 * @param enumConstant The {@code Enum} value.
+	 * @param annotationClass The {@link Class} of the {@code Annotation} type.
+	 * @return
+	 */
+	private static <A extends Annotation> A getAnnotation (
+		final Enum<? extends Enum<?>> enumConstant,
+		final Class<A> annotationClass)
+	{
+		final Class<?> enumClass = enumConstant.getClass();
+		final Field slotMirror;
+		try
+		{
+			slotMirror = enumClass.getField(enumConstant.name());
+		}
+		catch (final NoSuchFieldException e)
+		{
+			throw new RuntimeException(
+				"Enum class didn't recognize its own instance",
+				e);
+		}
+		return slotMirror.getAnnotation(annotationClass);
+	}
+
+	/**
 	 * Describe the object for the Eclipse debugger.
 	 *
 	 * @param object
@@ -325,32 +355,41 @@ public abstract class AbstractDescriptor
 		{
 			enumClass = null;
 		}
-		slots = enumClass != null ? enumClass.getEnumConstants() : new Enum<?>[0];
-		for (int i = 0; i < numberOfFixedIntegerSlots; i++)
+		if (enumClass != null)
 		{
-			final Enum<?> slot = slots[i];
-			if (slot.name() != "HASH_OR_ZERO" && slot.name() != "HASH")
+			slots = enumClass.getEnumConstants();
+			for (int i = 0; i < numberOfFixedIntegerSlots; i++)
 			{
-				fields.add(
-					new AvailObjectFieldHelper(
-						object,
-						(IntegerSlotsEnum)slot,
-						-1,
-						new AvailIntegerValueHelper(
-							object.slot((IntegerSlotsEnum)slot))));
+				final Enum<?> slot = slots[i];
+				if (getAnnotation(slot, HideFieldInDebugger.class) == null)
+				{
+					fields.add(
+						new AvailObjectFieldHelper(
+							object,
+							(IntegerSlotsEnum)slot,
+							-1,
+							new AvailIntegerValueHelper(
+								object.slot((IntegerSlotsEnum)slot))));
+				}
 			}
-		}
-		for (int i = numberOfFixedIntegerSlots; i < object.integerSlotsCount(); i++)
-		{
 			final Enum<?> slot = slots[slots.length - 1];
-			final int subscript = i - numberOfFixedIntegerSlots + 1;
-			fields.add(
-				new AvailObjectFieldHelper(
-					object,
-					(IntegerSlotsEnum)slot,
-					subscript,
-					new AvailIntegerValueHelper(
-						object.slot((IntegerSlotsEnum)slot, subscript))));
+			if (getAnnotation(slot, HideFieldInDebugger.class) == null)
+			{
+				for (
+					int i = numberOfFixedIntegerSlots;
+					i < object.integerSlotsCount();
+					i++)
+				{
+					final int subscript = i - numberOfFixedIntegerSlots + 1;
+					fields.add(
+						new AvailObjectFieldHelper(
+							object,
+							(IntegerSlotsEnum)slot,
+							subscript,
+							new AvailIntegerValueHelper(
+								object.slot((IntegerSlotsEnum)slot, subscript))));
+				}
+			}
 		}
 
 		try
@@ -362,33 +401,39 @@ public abstract class AbstractDescriptor
 		{
 			enumClass = null;
 		}
-		slots = enumClass != null ? enumClass.getEnumConstants() : new Enum<?>[0];
-		for (int i = 0; i < numberOfFixedObjectSlots; i++)
+		if (enumClass != null)
 		{
-			final Enum<?> slot = slots[i];
-			fields.add(
-				new AvailObjectFieldHelper(
-					object,
-					(ObjectSlotsEnum)slot,
-					-1,
-					object.slot((ObjectSlotsEnum)slot)));
-		}
-		for (int i = numberOfFixedObjectSlots; i < object.objectSlotsCount(); i++)
-		{
-			final Enum<?> slot = slots[slots.length - 1];
-			final int subscript = i - numberOfFixedObjectSlots + 1;
-			final AvailObject subobject = object.slot((ObjectSlotsEnum)slot);
-			String typeName = subobject.getClass().getName();
-			if (typeName.matches(".*Descriptor"))
+			slots = enumClass.getEnumConstants();
+			for (int i = 0; i < numberOfFixedObjectSlots; i++)
 			{
-				typeName = typeName.substring(0, typeName.length() - 10);
+				final Enum<?> slot = slots[i];
+				if (getAnnotation(slot, HideFieldInDebugger.class) == null)
+				{
+					fields.add(
+						new AvailObjectFieldHelper(
+							object,
+							(ObjectSlotsEnum)slot,
+							-1,
+							object.slot((ObjectSlotsEnum)slot)));
+				}
 			}
-			fields.add(
-				new AvailObjectFieldHelper(
-					object,
-					(ObjectSlotsEnum)slot,
-					subscript,
-					object.slot((ObjectSlotsEnum)slot, subscript)));
+			final Enum<?> slot = slots[slots.length - 1];
+			if (getAnnotation(slot, HideFieldInDebugger.class) == null)
+			{
+				for (
+					int i = numberOfFixedObjectSlots;
+					i < object.objectSlotsCount();
+					i++)
+				{
+					final int subscript = i - numberOfFixedObjectSlots + 1;
+					fields.add(
+						new AvailObjectFieldHelper(
+							object,
+							(ObjectSlotsEnum)slot,
+							subscript,
+							object.slot((ObjectSlotsEnum)slot, subscript)));
+				}
+			}
 		}
 
 		return fields.toArray(new AvailObjectFieldHelper[fields.size()]);
@@ -494,6 +539,10 @@ public abstract class AbstractDescriptor
 		}
 		builder.append(' ');
 		builder.append(shortenedName);
+		if (isMutable)
+		{
+			builder.append("\u2133");
+		}
 
 		final Class<Descriptor> cls = (Class<Descriptor>) this.getClass();
 		final ClassLoader loader = cls.getClassLoader();
@@ -652,7 +701,7 @@ public abstract class AbstractDescriptor
 					{
 						builder.append(
 							new Formatter().format(
-								" (enum out of range: 0x%08X)",
+								" (enum out of range: 0x%X)",
 								value & 0xFFFFFFFFL));
 					}
 					else
@@ -1965,26 +2014,6 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param keyObject
-	 * @return
-	 */
-	abstract AvailObject o_PrivateExcludeKey (
-		@NotNull AvailObject object,
-		AvailObject keyObject);
-
-	/**
-	 * @param object
-	 * @param keyObject
-	 * @param valueObject
-	 * @return
-	 */
-	abstract AvailObject o_PrivateMapAtPut (
-		@NotNull AvailObject object,
-		AvailObject keyObject,
-		AvailObject valueObject);
-
-	/**
-	 * @param object
 	 * @param value
 	 */
 	abstract void o_ProcessGlobals (
@@ -2161,14 +2190,6 @@ public abstract class AbstractDescriptor
 	 * @param value
 	 */
 	abstract void o_ReturnType (
-		@NotNull AvailObject object,
-		AvailObject value);
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	abstract void o_RootBin (
 		@NotNull AvailObject object,
 		AvailObject value);
 
@@ -2812,12 +2833,6 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract AvailObject o_AsObject (AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
 	abstract AvailObject o_AsSet (AvailObject object);
 
 	/**
@@ -2831,12 +2846,6 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract int o_BitsPerEntry (AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	abstract int o_BitVector (AvailObject object);
 
 	/**
 	 * @param object
@@ -2861,12 +2870,6 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract AvailObject o_Caller (AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	abstract int o_Capacity (AvailObject object);
 
 	/**
 	 * @param object
@@ -3163,12 +3166,6 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract List<AvailObject> o_KeysAsArray (AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
 	abstract AvailObject o_KeysAsSet (AvailObject object);
 
 	/**
@@ -3374,12 +3371,6 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract AvailObject o_ReturnType (AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	abstract AvailObject o_RootBin (AvailObject object);
 
 	/**
 	 * @param object
@@ -3857,19 +3848,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract boolean o_EqualsBlank (AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
 	abstract boolean o_EqualsNull (AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	abstract boolean o_EqualsNullOrBlank (AvailObject object);
 
 	/**
 	 * @param object
@@ -3997,7 +3976,7 @@ public abstract class AbstractDescriptor
 	 * @param canDestroy
 	 * @return
 	 */
-	abstract AvailObject o_BinAddingElementHashLevelCanDestroy (
+	abstract AvailObject o_SetBinAddingElementHashLevelCanDestroy (
 		@NotNull AvailObject object,
 		AvailObject elementObject,
 		int elementObjectHash,
@@ -4010,7 +3989,7 @@ public abstract class AbstractDescriptor
 	 * @param elementObjectHash
 	 * @return
 	 */
-	abstract boolean o_BinHasElementHash (
+	abstract boolean o_BinHasElementWithHash (
 		@NotNull AvailObject object,
 		AvailObject elementObject,
 		int elementObjectHash);
@@ -4036,17 +4015,6 @@ public abstract class AbstractDescriptor
 	abstract boolean o_IsBinSubsetOf (
 		@NotNull AvailObject object,
 		AvailObject potentialSuperset);
-
-	/**
-	 * @param object
-	 * @param mutableTuple
-	 * @param startingIndex
-	 * @return
-	 */
-	abstract int o_PopulateTupleStartingAt (
-		@NotNull AvailObject object,
-		AvailObject mutableTuple,
-		int startingIndex);
 
 	/**
 	 * @param object
@@ -5055,4 +5023,79 @@ public abstract class AbstractDescriptor
 	abstract @NotNull SerializerOperation o_SerializerOperation (
 		final @NotNull AvailObject object);
 
+	/**
+	 * @param object
+	 * @param key
+	 * @param keyHash
+	 * @param value
+	 * @param myLevel
+	 * @param canDestroy
+	 * @return
+	 */
+	abstract @NotNull AvailObject o_MapBinAtHashPutLevelCanDestroy (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject key,
+		final int keyHash,
+		final @NotNull AvailObject value,
+		final byte myLevel,
+		final boolean canDestroy);
+
+	/**
+	 * @param object
+	 * @param key
+	 * @param keyHash
+	 * @param canDestroy
+	 * @return
+	 */
+	abstract @NotNull AvailObject o_MapBinRemoveKeyHashCanDestroy (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject key,
+		final int keyHash,
+		final boolean canDestroy);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract @NotNull AvailObject o_MapBinKeyUnionKind (
+		final @NotNull AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract @NotNull AvailObject o_MapBinValueUnionKind (
+		final @NotNull AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract boolean o_IsHashedMapBin (
+		final @NotNull AvailObject object);
+
+	/**
+	 * @param object
+	 * @param key
+	 * @param keyHash
+	 * @return
+	 */
+	abstract @NotNull AvailObject o_MapBinAtHash (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject key,
+		final int keyHash);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract int o_MapBinKeysHash (
+		final @NotNull AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract int o_MapBinValuesHash (
+		final @NotNull AvailObject object);
 }

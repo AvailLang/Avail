@@ -33,6 +33,8 @@
 package com.avail.descriptor;
 
 import static java.lang.Integer.bitCount;
+import static com.avail.descriptor.HashedSetBinDescriptor.IntegerSlots.*;
+import static com.avail.descriptor.HashedSetBinDescriptor.ObjectSlots.*;
 import com.avail.annotations.*;
 
 /**
@@ -96,7 +98,7 @@ extends SetBinDescriptor
 		final @NotNull AvailObject object,
 		final int subscript)
 	{
-		return object.slot(ObjectSlots.BIN_ELEMENT_AT_, subscript);
+		return object.slot(BIN_ELEMENT_AT_, subscript);
 	}
 
 	@Override @AvailMethod
@@ -107,7 +109,7 @@ extends SetBinDescriptor
 	{
 		//  GENERATED setter method (indexed).
 
-		object.setSlot(ObjectSlots.BIN_ELEMENT_AT_, subscript, value);
+		object.setSlot(BIN_ELEMENT_AT_, subscript, value);
 	}
 
 	@Override @AvailMethod
@@ -115,7 +117,7 @@ extends SetBinDescriptor
 		final @NotNull AvailObject object,
 		final int value)
 	{
-		object.setSlot(IntegerSlots.BIN_SIZE, value);
+		object.setSlot(BIN_SIZE, value);
 	}
 
 	@Override @AvailMethod
@@ -123,7 +125,7 @@ extends SetBinDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
-		object.setSlot(ObjectSlots.BIN_UNION_TYPE_OR_NULL, value);
+		object.setSlot(BIN_UNION_TYPE_OR_NULL, value);
 	}
 
 	@Override @AvailMethod
@@ -131,34 +133,27 @@ extends SetBinDescriptor
 		final @NotNull AvailObject object,
 		final int value)
 	{
-		object.setSlot(IntegerSlots.BIT_VECTOR, value);
+		object.setSlot(BIT_VECTOR, value);
 	}
 
 	@Override @AvailMethod
 	int o_BinSize (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(IntegerSlots.BIN_SIZE);
+		return object.slot(BIN_SIZE);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_BinUnionTypeOrNull (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.BIN_UNION_TYPE_OR_NULL);
-	}
-
-	@Override @AvailMethod
-	int o_BitVector (
-		final @NotNull AvailObject object)
-	{
-		return object.slot(IntegerSlots.BIT_VECTOR);
+		return object.slot(BIN_UNION_TYPE_OR_NULL);
 	}
 
 	@Override boolean allowsImmutableToMutableReferenceInField (
 		final @NotNull AbstractSlotsEnum e)
 	{
-		return e == ObjectSlots.BIN_UNION_TYPE_OR_NULL;
+		return e == BIN_UNION_TYPE_OR_NULL;
 	}
 
 	@Override @AvailMethod
@@ -201,7 +196,7 @@ extends SetBinDescriptor
 	 * exists.
 	 */
 	@Override @AvailMethod
-	@NotNull AvailObject o_BinAddingElementHashLevelCanDestroy (
+	@NotNull AvailObject o_SetBinAddingElementHashLevelCanDestroy (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject elementObject,
 		final int elementObjectHash,
@@ -212,17 +207,17 @@ extends SetBinDescriptor
 		//  First, grab the appropriate 5 bits from the hash.
 		final int objectEntryCount = object.variableObjectSlotsCount();
 		final int logicalIndex = bitShift(elementObjectHash, -5 * level) & 31;
-		final int vector = object.bitVector();
-		final int masked = vector & bitShift(1,logicalIndex) - 1;
+		final int vector = object.slot(BIT_VECTOR);
+		final int masked = vector & bitShift(1, logicalIndex) - 1;
 		final int physicalIndex = bitCount(masked) + 1;
 		AvailObject objectToModify;
 		AvailObject typeUnion;
-		if ((vector & bitShift(1,logicalIndex)) != 0)
+		if ((vector & bitShift(1, logicalIndex)) != 0)
 		{
 			AvailObject entry = object.binElementAt(physicalIndex);
 			final int previousBinSize = entry.binSize();
 			final int previousHash = entry.binHash();
-			entry = entry.binAddingElementHashLevelCanDestroy(
+			entry = entry.setBinAddingElementHashLevelCanDestroy(
 				elementObject,
 				elementObjectHash,
 				((byte)(level + 1)),
@@ -275,7 +270,7 @@ extends SetBinDescriptor
 		objectToModify.binHash(object.binHash() + elementObjectHash);
 		objectToModify.binSize(object.binSize() + 1);
 		objectToModify.binUnionTypeOrNull(typeUnion);
-		objectToModify.bitVector(vector | bitShift(1,logicalIndex));
+		objectToModify.bitVector(vector | bitShift(1, logicalIndex));
 		for (int i = 1, end = physicalIndex - 1; i <= end; i++)
 		{
 			objectToModify.binElementAtPut(i, object.binElementAt(i));
@@ -289,7 +284,7 @@ extends SetBinDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_BinHasElementHash (
+	boolean o_BinHasElementWithHash (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject elementObject,
 		final int elementObjectHash)
@@ -297,16 +292,16 @@ extends SetBinDescriptor
 		// First, grab the appropriate 5 bits from the hash.
 
 		final int logicalIndex = bitShift(elementObjectHash, -5 * level) & 31;
-		final int vector = object.bitVector();
-		if ((vector & bitShift(1,logicalIndex)) == 0)
+		final int vector = object.slot(BIT_VECTOR);
+		if ((vector & bitShift(1, logicalIndex)) == 0)
 		{
 			return false;
 		}
 		// There's an entry.  Count the 1-bits below it to compute its
 		// zero-relative physicalIndex.
-		final int masked = vector & bitShift(1,logicalIndex) - 1;
+		final int masked = vector & bitShift(1, logicalIndex) - 1;
 		final int physicalIndex = bitCount(masked) + 1;
-		return object.binElementAt(physicalIndex).binHasElementHash(
+		return object.binElementAt(physicalIndex).binHasElementWithHash(
 			elementObject,
 			elementObjectHash);
 	}
@@ -325,8 +320,8 @@ extends SetBinDescriptor
 
 		final int objectEntryCount = object.variableObjectSlotsCount();
 		final int logicalIndex = bitShift(elementObjectHash, -5 * level) & 31;
-		final int vector = object.bitVector();
-		if ((vector & bitShift(1,logicalIndex)) == 0)
+		final int vector = object.slot(BIT_VECTOR);
+		if ((vector & bitShift(1, logicalIndex)) == 0)
 		{
 			if (!canDestroy)
 			{
@@ -334,7 +329,7 @@ extends SetBinDescriptor
 			}
 			return object;
 		}
-		final int masked = vector & bitShift(1,logicalIndex) - 1;
+		final int masked = vector & bitShift(1, logicalIndex) - 1;
 		final int physicalIndex = bitCount(masked) + 1;
 		final AvailObject oldEntry = object.binElementAt(physicalIndex);
 		final int oldHash = oldEntry.binHash();
@@ -358,7 +353,7 @@ extends SetBinDescriptor
 			result.binHash(object.binHash() + deltaHash);
 			result.binSize(object.binSize() + deltaSize);
 			result.binUnionTypeOrNull(NullDescriptor.nullObject());
-			result.bitVector(vector ^ bitShift(1,logicalIndex));
+			result.bitVector(vector ^ bitShift(1, logicalIndex));
 			for (int index = objectEntryCount - 1; index >= 1; index--)
 			{
 				result.binElementAtPut(index, NullDescriptor.nullObject());
@@ -445,30 +440,6 @@ extends SetBinDescriptor
 			}
 		}
 		return true;
-	}
-
-	/**
-	 * Write set bin elements into the tuple, starting at the given
-	 * startingIndex.  Answer the next available index in which to write.
-	 */
-	@Override @AvailMethod
-	int o_PopulateTupleStartingAt (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject mutableTuple,
-		final int startingIndex)
-	{
-		assert mutableTuple.descriptor().isMutable();
-		int writeIndex = startingIndex;
-		for (
-			int index = object.variableObjectSlotsCount();
-			index >= 1;
-			index--)
-		{
-			writeIndex = object.binElementAt(index).populateTupleStartingAt(
-				mutableTuple,
-				writeIndex);
-		}
-		return writeIndex;
 	}
 
 	/**

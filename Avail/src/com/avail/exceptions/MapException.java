@@ -1,5 +1,5 @@
 /**
- * EnumField.java
+ * MapException.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,42 +30,52 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.annotations;
+package com.avail.exceptions;
 
-import java.lang.annotation.*;
+import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 
 /**
- * {@code EnumField} annotation is used to indicate which enumeration should be
- * used to describe an integer value embedded in an integer slot that has this
- * annotation.  This is used for pretty-printing {@linkplain AvailObject}s.
+ * A {@code MapException} is thrown by map operations.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @see MapDescriptor
+ * @see MapBinDescriptor
+ * @see HashedMapBinDescriptor
+ * @see LinearMapBinDescriptor
  */
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.FIELD})
-public @interface EnumField
+public final class MapException
+extends AvailRuntimeException
 {
-	/**
-	 * This annotation field indicates the {@link Enum} responsible for
-	 * describing the integer slot to which the annotation is applied.  The
-	 * value of the field (an {@code int}) should equal an {@linkplain
-	 * Enum#ordinal() ordinal} of a member of the specified {@code enum}.  If a
-	 * {@link #lookupMethodName()} is also specified then the int value may be
-	 * something other than the Enum's ordinal.
-	 */
-	public Class<? extends IntegerEnumSlotDescriptionEnum> describedBy ();
+	/** The serial version identifier. */
+	private static final long serialVersionUID = -2390483636801333298L;
 
 	/**
-	 * This optional annotation field indicates the name of a static method
-	 * defined within the {@linkplain #describedBy() describing enumeration}.
-	 * The method should take an {@code int} argument and return an instance of
-	 * the {@code #describedBy()} enumeration or null.  If null, only the
-	 * numeric value is displayed, otherwise the enumeration value's name is
-	 * displayed.  If this annotation field is omitted, the value of the field
-	 * is treated as the {@linkplain Enum#ordinal() ordinal} to look up.
-	 * Similarly, in this case an ordinal that is out of range will only display
-	 * its numeric value.
+	 * Construct a new {@link MapException} with the specified
+	 * {@linkplain AvailErrorCode error code}.
+	 *
+	 * @param errorCode
+	 *        The {@linkplain AvailErrorCode error code}.
 	 */
-	public String lookupMethodName () default "";
+	public MapException (final @NotNull AvailErrorCode errorCode)
+	{
+		super(errorCode);
+	}
+
+	/**
+	 * Construct a new {@link MapException} with the specified
+	 * {@linkplain Throwable cause}.
+	 *
+	 * @param errorCode
+	 *        The {@linkplain AvailErrorCode error code}.
+	 * @param cause
+	 *        The proximal {@linkplain Throwable cause} of the {@linkplain
+	 *        MapException exception}.
+	 */
+	public MapException (
+		final @NotNull AvailErrorCode errorCode,
+		final @NotNull Throwable cause)
+	{
+		super(errorCode, cause);
+	}
 }

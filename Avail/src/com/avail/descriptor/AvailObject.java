@@ -76,7 +76,6 @@ implements Iterable<AvailObject>
 		BottomTypeDescriptor.createWellKnownObjects();
 		TupleDescriptor.createWellKnownObjects();
 		StringDescriptor.createWellKnownObjects();
-		BlankDescriptor.createWellKnownObjects();
 		TypeDescriptor.createWellKnownObjects();
 		MapDescriptor.createWellKnownObjects();
 		ObjectTypeDescriptor.createWellKnownObjects();
@@ -123,7 +122,6 @@ implements Iterable<AvailObject>
 		BottomTypeDescriptor.clearWellKnownObjects();
 		TupleDescriptor.clearWellKnownObjects();
 		StringDescriptor.clearWellKnownObjects();
-		BlankDescriptor.clearWellKnownObjects();
 		TypeDescriptor.clearWellKnownObjects();
 		MapDescriptor.clearWellKnownObjects();
 		ObjectTypeDescriptor.clearWellKnownObjects();
@@ -243,6 +241,14 @@ implements Iterable<AvailObject>
 		}
 	}
 
+	/**
+	 * Utility method for decomposing this object in the debugger.  See {@link
+	 * AvailObjectFieldHelper} for instructions to enable this functionality in
+	 * Eclipse.
+	 *
+	 * @return An array of {@link AvailObjectFieldHelper} objects that help
+	 *         describe the logical structure of the receiver to the debugger.
+	 */
 	public AvailObjectFieldHelper[] describeForDebugger()
 	{
 		return descriptor.o_DescribeForDebugger(this);
@@ -254,7 +260,7 @@ implements Iterable<AvailObject>
 		final StringBuilder stringBuilder = new StringBuilder(100);
 		final List<AvailObject> recursionList = new ArrayList<AvailObject>(10);
 		printOnAvoidingIndent(stringBuilder, recursionList, 1);
-		// assert recursionList.size() == 0;
+		assert recursionList.size() == 0;
 		return stringBuilder.toString();
 	}
 
@@ -626,14 +632,6 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public AvailObject asObject ()
-	{
-		return descriptor.o_AsObject(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	public AvailObject asSet ()
 	{
 		return descriptor.o_AsSet(this);
@@ -728,13 +726,13 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public AvailObject binAddingElementHashLevelCanDestroy (
+	public AvailObject setBinAddingElementHashLevelCanDestroy (
 		final AvailObject elementObject,
 		final int elementObjectHash,
 		final byte myLevel,
 		final boolean canDestroy)
 	{
-		return descriptor.o_BinAddingElementHashLevelCanDestroy(
+		return descriptor.o_SetBinAddingElementHashLevelCanDestroy(
 			this,
 			elementObject,
 			elementObjectHash,
@@ -767,11 +765,11 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public boolean binHasElementHash (
+	public boolean binHasElementWithHash (
 		final AvailObject elementObject,
 		final int elementObjectHash)
 	{
-		return descriptor.o_BinHasElementHash(
+		return descriptor.o_BinHasElementWithHash(
 			this,
 			elementObject,
 			elementObjectHash);
@@ -854,14 +852,6 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public int bitVector ()
-	{
-		return descriptor.o_BitVector(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	public void bitVector (
 		final int value)
 	{
@@ -925,14 +915,6 @@ implements Iterable<AvailObject>
 		final AvailObject value)
 	{
 		descriptor.o_Caller(this, value);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public int capacity ()
-	{
-		return descriptor.o_Capacity(this);
 	}
 
 	/**
@@ -1514,14 +1496,6 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public boolean equalsBlank ()
-	{
-		return descriptor.o_EqualsBlank(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	public boolean equalsByteString (
 		final AvailObject aByteString)
 	{
@@ -1787,14 +1761,6 @@ implements Iterable<AvailObject>
 	public boolean equalsNull ()
 	{
 		return descriptor.o_EqualsNull(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public boolean equalsNullOrBlank ()
-	{
-		return descriptor.o_EqualsNullOrBlank(this);
 	}
 
 	/**
@@ -2544,14 +2510,6 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public List<AvailObject> keysAsArray ()
-	{
-		return descriptor.o_KeysAsArray(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	public AvailObject keysAsSet ()
 	{
 		return descriptor.o_KeysAsSet(this);
@@ -3209,19 +3167,6 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public int populateTupleStartingAt (
-		final AvailObject mutableTuple,
-		final int startingIndex)
-	{
-		return descriptor.o_PopulateTupleStartingAt(
-			this,
-			mutableTuple,
-			startingIndex);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	public void postFault ()
 	{
 		descriptor.o_PostFault(this);
@@ -3281,28 +3226,6 @@ implements Iterable<AvailObject>
 			this,
 			element,
 			knownIndex);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public AvailObject privateExcludeKey (
-		final AvailObject keyObject)
-	{
-		return descriptor.o_PrivateExcludeKey(this, keyObject);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public AvailObject privateMapAtPut (
-		final AvailObject keyObject,
-		final AvailObject valueObject)
-	{
-		return descriptor.o_PrivateMapAtPut(
-			this,
-			keyObject,
-			valueObject);
 	}
 
 	/**
@@ -3561,23 +3484,6 @@ implements Iterable<AvailObject>
 		final AvailObject value)
 	{
 		descriptor.o_ReturnType(this, value);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public AvailObject rootBin ()
-	{
-		return descriptor.o_RootBin(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public void rootBin (
-		final AvailObject value)
-	{
-		descriptor.o_RootBin(this, value);
 	}
 
 	/**
@@ -5727,5 +5633,105 @@ implements Iterable<AvailObject>
 	public @NotNull SerializerOperation serializerOperation ()
 	{
 		return descriptor.o_SerializerOperation(this);
+	}
+
+	/**
+	 * @param key
+	 * @param keyHash
+	 * @param value
+	 * @param myLevel
+	 * @param canDestroy
+	 * @return
+	 */
+	public AvailObject mapBinAtHashPutLevelCanDestroy (
+		final @NotNull AvailObject key,
+		final int keyHash,
+		final @NotNull AvailObject value,
+		final byte myLevel,
+		final boolean canDestroy)
+	{
+		return descriptor.o_MapBinAtHashPutLevelCanDestroy(
+			this,
+			key,
+			keyHash,
+			value,
+			myLevel,
+			canDestroy);
+	}
+
+	/**
+	 * @param object
+	 * @param key
+	 * @param keyHash
+	 * @param canDestroy
+	 * @return
+	 */
+	@NotNull AvailObject mapBinRemoveKeyHashCanDestroy (
+		final @NotNull AvailObject key,
+		final int keyHash,
+		final boolean canDestroy)
+	{
+		return descriptor.o_MapBinRemoveKeyHashCanDestroy(
+			this,
+			key,
+			keyHash,
+			canDestroy);
+	}
+
+	/**
+	 * @return
+	 */
+	AvailObject mapBinKeyUnionKind ()
+	{
+		return descriptor.o_MapBinKeyUnionKind(this);
+	}
+
+	/**
+	 * @return
+	 */
+	AvailObject mapBinValueUnionKind ()
+	{
+		return descriptor.o_MapBinValueUnionKind(this);
+	}
+
+	/**
+	 * @return
+	 */
+	boolean isHashedMapBin ()
+	{
+		return descriptor.o_IsHashedMapBin(this);
+	}
+
+	/**
+	 * Look up the key in this {@linkplain MapBinDescriptor map bin}.  If not
+	 * found, answer the {@linkplain NullDescriptor#nullObject()}.  Use the
+	 * provided hash of the key.
+	 *
+	 * @param key The key to look up in this map.
+	 * @param keyHash The conveniently already computed hash of the key.
+	 * @return The value under that key in the map, or the null object if not
+	 *         found.
+	 */
+	AvailObject mapBinAtHash (
+		final @NotNull AvailObject key,
+		final int keyHash)
+	{
+		return descriptor.o_MapBinAtHash(this, key, keyHash);
+	}
+
+	/**
+	 * @return
+	 */
+	int mapBinKeysHash ()
+	{
+		return descriptor.o_MapBinKeysHash(this);
+	}
+
+	/**
+	 * @return
+	 */
+	int mapBinValuesHash ()
+	{
+		return descriptor.o_MapBinValuesHash(this);
 	}
 }

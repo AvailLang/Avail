@@ -511,7 +511,7 @@ extends TypeDescriptor
 		{
 			final Map<Class<?>, AvailObject> rawTypeMap =
 				new HashMap<Class<?>, AvailObject>(5);
-			typeVarMap = MapDescriptor.newWithCapacity(typeVars.length);
+			typeVarMap = MapDescriptor.empty();
 			for (final TypeVariable<?> typeVar : typeVars)
 			{
 				final AvailObject upperBound = upperBound(
@@ -1213,8 +1213,7 @@ extends TypeDescriptor
 		final AvailObject aPojoTypeTypes = aPojoTypeParamMap.keysAsSet();
 		final AvailObject union = objectTypes.setUnionCanDestroy(
 			aPojoTypeTypes, false);
-		AvailObject newParamMap =
-			MapDescriptor.newWithCapacity(union.setSize());
+		AvailObject newParamMap = MapDescriptor.empty();
 		for (final AvailObject rawTypePojo : union)
 		{
 			final AvailObject objectParamTuple =
@@ -1334,8 +1333,7 @@ extends TypeDescriptor
 		final AvailObject otherTypes = otherParamMap.keysAsSet();
 		final AvailObject intersection = objectTypes.setIntersectionCanDestroy(
 			otherTypes, false);
-		AvailObject newParamMap =
-			MapDescriptor.newWithCapacity(intersection.setSize());
+		AvailObject newParamMap = MapDescriptor.empty();
 		for (final AvailObject rawTypePojo : intersection)
 		{
 			final AvailObject objectParamTuple =
@@ -1790,7 +1788,7 @@ extends TypeDescriptor
 		final Map<Class<?>, AvailObject> rawTypeMap =
 			new HashMap<Class<?>, AvailObject>(5);
 		final AvailObject rawObjectClass = canonize(rawTypeMap, Object.class);
-		AvailObject parameterizationMap = MapDescriptor.newWithCapacity(5);
+		AvailObject parameterizationMap = MapDescriptor.empty();
 		parameterizationMap = parameterizationMap.mapAtPuttingCanDestroy(
 			rawObjectClass, TupleDescriptor.empty(), true);
 

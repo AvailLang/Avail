@@ -1,5 +1,5 @@
 /**
- * EnumField.java
+ * HideFieldInDebugger.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -36,36 +36,16 @@ import java.lang.annotation.*;
 import com.avail.descriptor.*;
 
 /**
- * {@code EnumField} annotation is used to indicate which enumeration should be
- * used to describe an integer value embedded in an integer slot that has this
- * annotation.  This is used for pretty-printing {@linkplain AvailObject}s.
+ * {@code HideFieldInDebugger} annotation is used to indicate that a slot should
+ * not be presented in the debugger when using "Show Logical Structure".  The
+ * class {@link AvailObjectFieldHelper} has instructions for how to enable this
+ * feature correctly in Eclipse.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD})
-public @interface EnumField
+public @interface HideFieldInDebugger
 {
-	/**
-	 * This annotation field indicates the {@link Enum} responsible for
-	 * describing the integer slot to which the annotation is applied.  The
-	 * value of the field (an {@code int}) should equal an {@linkplain
-	 * Enum#ordinal() ordinal} of a member of the specified {@code enum}.  If a
-	 * {@link #lookupMethodName()} is also specified then the int value may be
-	 * something other than the Enum's ordinal.
-	 */
-	public Class<? extends IntegerEnumSlotDescriptionEnum> describedBy ();
-
-	/**
-	 * This optional annotation field indicates the name of a static method
-	 * defined within the {@linkplain #describedBy() describing enumeration}.
-	 * The method should take an {@code int} argument and return an instance of
-	 * the {@code #describedBy()} enumeration or null.  If null, only the
-	 * numeric value is displayed, otherwise the enumeration value's name is
-	 * displayed.  If this annotation field is omitted, the value of the field
-	 * is treated as the {@linkplain Enum#ordinal() ordinal} to look up.
-	 * Similarly, in this case an ordinal that is out of range will only display
-	 * its numeric value.
-	 */
-	public String lookupMethodName () default "";
+	// No content.
 }

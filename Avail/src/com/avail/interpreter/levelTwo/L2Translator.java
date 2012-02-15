@@ -47,6 +47,14 @@ import com.avail.interpreter.levelTwo.instruction.*;
 import com.avail.interpreter.levelTwo.register.*;
 import com.avail.utility.Mutable;
 
+/**
+ * The {@code L2Translator} converts a level one {@linkplain FunctionDescriptor
+ * function} into a {@linkplain L2ChunkDescriptor level two chunk}.  It
+ * optimizes as it does so, folding and inlining method invocations whenever
+ * possible.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public class L2Translator implements L1OperationDispatcher
 {
 	private List<L2Instruction> instructions;

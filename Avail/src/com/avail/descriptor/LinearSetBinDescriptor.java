@@ -107,7 +107,7 @@ extends SetBinDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_BinAddingElementHashLevelCanDestroy (
+	@NotNull AvailObject o_SetBinAddingElementHashLevelCanDestroy (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject elementObject,
 		final int elementObjectHash,
@@ -119,9 +119,9 @@ extends SetBinDescriptor
 		// client is responsible for marking elementObject as immutable if
 		// another reference exists.
 		assert myLevel == level;
-		if (object.binHasElementHash(elementObject, elementObjectHash))
+		if (object.binHasElementWithHash(elementObject, elementObjectHash))
 		{
-			if (!canDestroy || !isMutable)
+			if (!canDestroy)
 			{
 				object.makeImmutable();
 			}
@@ -134,12 +134,12 @@ extends SetBinDescriptor
 		if (myLevel < 7 && oldSize >= 10)
 		{
 			int bitPosition = bitShift(elementObjectHash, -5 * myLevel) & 31;
-			int bitVector = bitShift(1,bitPosition);
+			int bitVector = bitShift(1, bitPosition);
 			for (int i = 1; i <= oldSize; i++)
 			{
 				final AvailObject element = object.binElementAt(i);
 				bitPosition = bitShift(element.hash(), -5 * myLevel) & 31;
-				bitVector |= bitShift(1,bitPosition);
+				bitVector |= bitShift(1, bitPosition);
 			}
 			final int newSize = bitCount(bitVector);
 			result = HashedSetBinDescriptor.isMutableLevel(true, myLevel)
@@ -168,7 +168,7 @@ extends SetBinDescriptor
 					eachHash = eachElement.hash();
 				}
 				assert result.descriptor().isMutable();
-				localAddResult = result.binAddingElementHashLevelCanDestroy(
+				localAddResult = result.setBinAddingElementHashLevelCanDestroy(
 					eachElement,
 					eachHash,
 					myLevel,
@@ -214,15 +214,15 @@ extends SetBinDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_BinHasElementHash (
+	boolean o_BinHasElementWithHash (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject elementObject,
 		final int elementObjectHash)
 	{
 		final int limit = object.variableObjectSlotsCount();
-		for (int x = 1; x <= limit; x++)
+		for (int i = 1; i <= limit; i++)
 		{
-			if (elementObject.equals(object.binElementAt(x)))
+			if (elementObject.equals(object.binElementAt(i)))
 			{
 				return true;
 			}
@@ -313,31 +313,6 @@ extends SetBinDescriptor
 			}
 		}
 		return true;
-	}
-
-	/**
-	 * Write set bin elements into the tuple, starting at the given
-	 * startingIndex.  Answer the next available index in which to write.
-	 */
-	@Override @AvailMethod
-	int o_PopulateTupleStartingAt (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject mutableTuple,
-		final int startingIndex)
-	{
-		assert mutableTuple.descriptor().isMutable();
-		int writeIndex = startingIndex;
-		for (
-				int
-					readIndex = 1,
-					end = object.variableObjectSlotsCount();
-				readIndex <= end;
-				readIndex++)
-		{
-			mutableTuple.tupleAtPut(writeIndex, object.binElementAt(readIndex));
-			writeIndex++;
-		}
-		return writeIndex;
 	}
 
 	@Override @AvailMethod

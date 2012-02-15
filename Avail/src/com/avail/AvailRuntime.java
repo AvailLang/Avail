@@ -536,9 +536,7 @@ public final class AvailRuntime
 			}
 			else
 			{
-				method =
-					MethodDescriptor.newMethodWithName(
-						methodName);
+				method = MethodDescriptor.newMethodWithName(methodName);
 				methods = methods.mapAtPuttingCanDestroy(
 					methodName,
 					method,
@@ -561,7 +559,7 @@ public final class AvailRuntime
 	 * @param selector
 	 *            A {@linkplain AtomDescriptor selector}.
 	 * @return
-	 *            An {@linkplain MethodDescriptor method}
+	 *            A {@linkplain MethodDescriptor method}
 	 *            or {@linkplain NullDescriptor the null object}.
 	 */
 	@ThreadSafe
@@ -718,9 +716,10 @@ public final class AvailRuntime
 			boolean allEmpty = true;
 			for (int i = tuple.tupleSize(); i > 0; i--)
 			{
-				final AvailObject difference = tuple.tupleAt(i).setMinusCanDestroy(
-					restrictionsToRemove.tupleAt(i),
-					true);
+				final AvailObject difference =
+					tuple.tupleAt(i).setMinusCanDestroy(
+						restrictionsToRemove.tupleAt(i),
+						true);
 				tuple = tuple.tupleAtPuttingCanDestroy(i, difference, true);
 				if (difference.setSize() != 0)
 				{

@@ -224,8 +224,7 @@ extends Descriptor
 	{
 		object.makeImmutable();
 		final AvailObject valueMap = object.fieldMap();
-		AvailObject typeMap = MapDescriptor.newWithCapacity(
-			valueMap.capacity());
+		AvailObject typeMap = MapDescriptor.empty();
 		for (final MapDescriptor.Entry entry : valueMap.mapIterable())
 		{
 			typeMap = typeMap.mapAtPuttingCanDestroy(

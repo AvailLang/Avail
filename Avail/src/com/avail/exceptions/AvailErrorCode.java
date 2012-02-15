@@ -234,16 +234,10 @@ public enum AvailErrorCode
 	E_TYPE_RESTRICTION_MUST_ACCEPT_ONLY_TYPES (31),
 
 	/**
-	 * The specific kind of {@linkplain ImplementationDescriptor signature} does not
-	 * support a {@linkplain FunctionDescriptor requires function}.
+	 *
+	 * ******* Unused entry, please recycle, save the planet  *******
 	 */
-//	E_SIGNATURE_DOES_NOT_SUPPORT_REQUIRES_FUNCTION (**),
-
-	/**
-	 * The specific kind of {@linkplain ImplementationDescriptor signature} does not
-	 * support a {@linkplain FunctionDescriptor returns function}.
-	 */
-//	E_SIGNATURE_DOES_NOT_SUPPORT_RETURNS_FUNCTION (**),
+//	E_UNUSED_ENTRY,
 
 	/**
 	 * A {@linkplain AvailRuntime#specialObject(int) special object} number is

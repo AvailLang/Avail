@@ -32,7 +32,6 @@
 
 package com.avail.descriptor;
 
-import static java.lang.Math.min;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 import com.avail.annotations.*;
@@ -246,8 +245,7 @@ extends TypeDescriptor
 	{
 		final AvailObject map1 = object.fieldTypeMap();
 		final AvailObject map2 = anObjectType.fieldTypeMap();
-		AvailObject resultMap = MapDescriptor.newWithCapacity(
-			map1.capacity() + map2.capacity());
+		AvailObject resultMap = MapDescriptor.empty();
 		for (final MapDescriptor.Entry entry : map1.mapIterable())
 		{
 			final AvailObject key = entry.key;
@@ -308,8 +306,7 @@ extends TypeDescriptor
 	{
 		final AvailObject map1 = object.fieldTypeMap();
 		final AvailObject map2 = anObjectType.fieldTypeMap();
-		AvailObject resultMap = MapDescriptor.newWithCapacity(
-			min(map1.capacity(), map2.capacity()));
+		AvailObject resultMap = MapDescriptor.empty();
 		for (final MapDescriptor.Entry entry : map1.mapIterable())
 		{
 			final AvailObject key = entry.key;

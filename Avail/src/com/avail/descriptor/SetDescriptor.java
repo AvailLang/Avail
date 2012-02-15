@@ -71,19 +71,34 @@ public class SetDescriptor extends Descriptor
 		ROOT_BIN
 	}
 
-	@Override @AvailMethod
-	void o_RootBin (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		object.setSlot(ObjectSlots.ROOT_BIN, value);
-	}
-
-	@Override @AvailMethod
-	@NotNull AvailObject o_RootBin (
+	/**
+	 * Extract the root {@linkplain SetBinDescriptor bin} from the {@linkplain
+	 * SetDescriptor set}.
+	 *
+	 * @param object The set from which to extract the root bin.
+	 * @return The set's bin.
+	 */
+	private static @NotNull AvailObject rootBin (
 		final @NotNull AvailObject object)
 	{
 		return object.slot(ObjectSlots.ROOT_BIN);
+	}
+
+	/**
+	 * Replace the {@linkplain SetDescriptor set}'s root {@linkplain
+	 * SetBinDescriptor bin}.  The replacement may be the {@link
+	 * NullDescriptor#nullObject() null object} to indicate an empty map.
+	 *
+	 * @param object
+	 *            The set (must not be an indirection).
+	 * @param bin
+	 *            The root bin for the set, or the null object.
+	 */
+	private static void rootBin (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject bin)
+	{
+		object.setSlot(ObjectSlots.ROOT_BIN, bin);
 	}
 
 	@Override
@@ -140,7 +155,7 @@ public class SetDescriptor extends Descriptor
 		// sizes, even if the sets are virtually identical and share structural
 		// subcomponents.  We can do better, ostensibly by navigating the tries
 		// together, checking for structural sharing.
-		if (!object.rootBin().isBinSubsetOf(aSet))
+		if (!rootBin(object).isBinSubsetOf(aSet))
 		{
 			return false;
 		}
@@ -187,7 +202,7 @@ public class SetDescriptor extends Descriptor
 			}
 			return true;
 		}
-		return object.rootBin().binUnionKind().isSubtypeOf(expectedContentType);
+		return rootBin(object).binUnionKind().isSubtypeOf(expectedContentType);
 	}
 
 	@Override @AvailMethod
@@ -197,7 +212,7 @@ public class SetDescriptor extends Descriptor
 		// A set's hash is a simple function of its rootBin's binHash, which is always the sum
 		// of its elements' hashes.
 
-		return object.rootBin().binHash() ^ 0xCD9EFC6;
+		return rootBin(object).binHash() ^ 0xCD9EFC6;
 	}
 
 	@Override @AvailMethod
@@ -224,7 +239,7 @@ public class SetDescriptor extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject elementObject)
 	{
-		return object.rootBin().binHasElementHash(elementObject, elementObject.hash());
+		return rootBin(object).binHasElementWithHash(elementObject, elementObject.hash());
 	}
 
 	@Override @AvailMethod
@@ -233,12 +248,11 @@ public class SetDescriptor extends Descriptor
 		final @NotNull AvailObject another)
 	{
 		// Check if object is a subset of another.
-
 		if (object.setSize() > another.setSize())
 		{
 			return false;
 		}
-		return object.rootBin().isBinSubsetOf(another);
+		return rootBin(object).isBinSubsetOf(another);
 	}
 
 	@Override @AvailMethod
@@ -247,8 +261,8 @@ public class SetDescriptor extends Descriptor
 		final @NotNull AvailObject otherSet,
 		final boolean canDestroy)
 	{
-		// Compute the intersection of two sets.  May destroy one of them if it's mutable and canDestroy is true.
-
+		// Compute the intersection of two sets.  May destroy one of them if
+		// it's mutable and canDestroy is true.
 		AvailObject smaller;
 		AvailObject larger;
 		if (object.setSize() <= otherSet.setSize())
@@ -261,20 +275,16 @@ public class SetDescriptor extends Descriptor
 			larger = object;
 			smaller = otherSet.traversed();
 		}
-		if (!canDestroy)
-		{
-			smaller.makeImmutable();
-		}
+		// Freeze smaller because we're going to create a new version with some
+		// elements removed.  Technically we might be able to do slightly better
+		// by freezing it the first time a removal is actually needed.
+		smaller.makeImmutable();
 		AvailObject result = smaller;
-		// Do something hokey for now - convert smaller to a tuple then iterate over it.
-		// The right answer probably involves creating a set visitor mechanism.
-		final AvailObject smallerAsTuple = smaller.asTuple();
-		for (int i = 1, end = smallerAsTuple.tupleSize(); i <= end; i++)
+		for (final AvailObject element : smaller)
 		{
-			final AvailObject element = smallerAsTuple.tupleAt(i);
 			if (!larger.hasElement(element))
 			{
-				result = result.setWithoutElementCanDestroy(smallerAsTuple.tupleAt(i), true);
+				result = result.setWithoutElementCanDestroy(element, true);
 			}
 		}
 		return result;
@@ -286,23 +296,19 @@ public class SetDescriptor extends Descriptor
 		final @NotNull AvailObject otherSet,
 		final boolean canDestroy)
 	{
-		// Compute the asymmetric difference of two sets (a \ b).  May destroy one of them if it's
-		// mutable and canDestroy is true.
+		// Compute the asymmetric difference of two sets (a \ b).  May destroy
+		// one of them if it's mutable and canDestroy is true.
 
-		if (!canDestroy)
-		{
-			object.makeImmutable();
-		}
+		// Freeze object because we're going to create a new version with some
+		// elements removed.  Technically we might be able to do slightly better
+		// by freezing it the first time a removal is actually needed.
+		object.makeImmutable();
 		AvailObject result = object;
-		// Do something hokey for now - convert object to a tuple then iterate over it.
-		// The right answer probably involves implementing a set visitor mechanism.
-		final AvailObject objectAsTuple = object.asTuple();
-		for (int i = 1, end = objectAsTuple.tupleSize(); i <= end; i++)
+		for (final AvailObject element : object)
 		{
-			final AvailObject element = objectAsTuple.tupleAt(i);
 			if (otherSet.hasElement(element))
 			{
-				result = result.setWithoutElementCanDestroy(objectAsTuple.tupleAt(i), true);
+				result = result.setWithoutElementCanDestroy(element, true);
 			}
 		}
 		return result;
@@ -314,7 +320,8 @@ public class SetDescriptor extends Descriptor
 		final @NotNull AvailObject otherSet,
 		final boolean canDestroy)
 	{
-		// Compute the union of two sets.  May destroy one of them if it's mutable and canDestroy is true.
+		// Compute the union of two sets.  May destroy one of them if it's
+		// mutable and canDestroy is true.
 
 		AvailObject smaller;
 		AvailObject larger;
@@ -328,34 +335,26 @@ public class SetDescriptor extends Descriptor
 			larger = object;
 			smaller = otherSet.traversed();
 		}
-		if (!canDestroy
-				|| !smaller.descriptor().isMutable()
-					&& !larger.descriptor().isMutable())
+		if (smaller.setSize() == 0)
 		{
-			final AvailObject copy = mutable().create();
-			copy.rootBin(larger.rootBin().makeImmutable());
-			larger = copy;
+			if (larger.descriptor().isMutable() & !canDestroy)
+			{
+				larger.makeImmutable();
+			}
+			return larger;
 		}
-		AvailObject toModify;
-		AvailObject toScan;
-		if (larger.descriptor().isMutable())
+		if (larger.descriptor().isMutable() & !canDestroy)
 		{
-			toModify = larger;
-			toScan = smaller;
+			larger.makeImmutable();
 		}
-		else
+		AvailObject result = larger;
+		for (final AvailObject element : smaller)
 		{
-			toModify = smaller;
-			toScan = larger;
+			result = result.setWithElementCanDestroy(
+				element.makeImmutable(),
+				canDestroy);
 		}
-		// Do something hokey for now - convert toScan to a tuple then iterate over it.
-		// The right answer probably involves creating a set visitor mechanism.
-		final AvailObject toScanAsTuple = toScan.asTuple();
-		for (int i = 1, end = toScanAsTuple.tupleSize(); i <= end; i++)
-		{
-			toModify = toModify.setWithElementCanDestroy(toScanAsTuple.tupleAt(i), true);
-		}
-		return toModify;
+		return result;
 	}
 
 	@Override @AvailMethod
@@ -364,17 +363,17 @@ public class SetDescriptor extends Descriptor
 		final @NotNull AvailObject newElementObject,
 		final boolean canDestroy)
 	{
-		// Ensure newElementObject is in the set, adding it if necessary.  May destroy the
-		// set if it's mutable and canDestroy is true.
-
+		// Ensure newElementObject is in the set, adding it if necessary.  May
+		// destroy the set if it's mutable and canDestroy is true.
 		final int elementHash = newElementObject.hash();
-		final AvailObject root = object.rootBin();
+		final AvailObject root = rootBin(object);
 		final int oldSize = root.binSize();
-		final AvailObject newRootBin = root.binAddingElementHashLevelCanDestroy(
-			newElementObject,
-			elementHash,
-			((byte)0),
-			(canDestroy & isMutable));
+		final AvailObject newRootBin =
+			root.setBinAddingElementHashLevelCanDestroy(
+				newElementObject,
+				elementHash,
+				(byte)0,
+				canDestroy & isMutable);
 		if (newRootBin.binSize() == oldSize)
 		{
 			if (!canDestroy)
@@ -392,7 +391,7 @@ public class SetDescriptor extends Descriptor
 		{
 			result = mutable().create();
 		}
-		result.rootBin(newRootBin);
+		rootBin(result, newRootBin);
 		return result;
 	}
 
@@ -405,7 +404,7 @@ public class SetDescriptor extends Descriptor
 		// Ensure elementObjectToExclude is not in the set, removing it if necessary.
 		// May destroy the set if it's mutable and canDestroy is true.
 
-		final AvailObject root = object.rootBin();
+		final AvailObject root = rootBin(object);
 		final int oldSize = root.binSize();
 		final AvailObject newRootBin = root.binRemoveElementHashCanDestroy(
 			elementObjectToExclude,
@@ -428,7 +427,7 @@ public class SetDescriptor extends Descriptor
 		{
 			result = mutable().create();
 		}
-		result.rootBin(newRootBin);
+		rootBin(result, newRootBin);
 		return result;
 	}
 
@@ -543,7 +542,7 @@ public class SetDescriptor extends Descriptor
 	@NotNull Iterator<AvailObject> o_Iterator (
 		final @NotNull AvailObject object)
 	{
-		return new SetIterator(object.rootBin());
+		return new SetIterator(rootBin(object));
 	}
 
 	/**
@@ -553,14 +552,21 @@ public class SetDescriptor extends Descriptor
 	@NotNull AvailObject o_AsTuple (
 		final @NotNull AvailObject object)
 	{
-		final AvailObject result = ObjectTupleDescriptor.mutable().create(
-			object.setSize());
-//		canAllocateObjects(false);
+		final int size = object.setSize();
+		final AvailObject result = ObjectTupleDescriptor.mutable().create(size);
+		for (int i = 1; i <= size; i++)
+		{
+			// Initialize it for when do use our own garbage collection again.
+			result.tupleAtPut(i, NullDescriptor.nullObject());
+		}
+		int index = 1;
+		for (final AvailObject element : object)
+		{
+			result.tupleAtPut(index, element.makeImmutable());
+			index++;
+		}
+		assert index == size + 1;
 		result.hashOrZero(0);
-		final int pastEnd = object.rootBin().populateTupleStartingAt(result, 1);
-		assert pastEnd == object.setSize() + 1;
-		assert result.tupleSize() + 1 == pastEnd;
-//		canAllocateObjects(true);
 		return result;
 	}
 
@@ -569,7 +575,7 @@ public class SetDescriptor extends Descriptor
 		final @NotNull AvailObject object)
 	{
 		// Answer how many elements are in the set.  Delegate to the rootBin.
-		return object.rootBin().binSize();
+		return rootBin(object).binSize();
 	}
 
 	@Override
@@ -591,9 +597,10 @@ public class SetDescriptor extends Descriptor
 	 */
 	static void createWellKnownObjects ()
 	{
-		EmptySet = mutable().create();
-		EmptySet.rootBin(NullDescriptor.nullObject());
-		EmptySet.makeImmutable();
+		final AvailObject empty = mutable().create();
+		rootBin(empty, NullDescriptor.nullObject());
+		empty.makeImmutable();
+		EmptySet = empty;
 	}
 
 	/**

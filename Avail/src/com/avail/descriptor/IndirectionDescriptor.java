@@ -379,14 +379,14 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	@NotNull AvailObject o_BinAddingElementHashLevelCanDestroy (
+	@NotNull AvailObject o_SetBinAddingElementHashLevelCanDestroy (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject elementObject,
 		final int elementObjectHash,
 		final byte myLevel,
 		final boolean canDestroy)
 	{
-		return o_Traversed(object).binAddingElementHashLevelCanDestroy(
+		return o_Traversed(object).setBinAddingElementHashLevelCanDestroy(
 			elementObject,
 			elementObjectHash,
 			myLevel,
@@ -409,12 +409,12 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_BinHasElementHash (
+	boolean o_BinHasElementWithHash (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject elementObject,
 		final int elementObjectHash)
 	{
-		return o_Traversed(object).binHasElementHash(
+		return o_Traversed(object).binHasElementWithHash(
 			elementObject,
 			elementObjectHash);
 	}
@@ -1537,17 +1537,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	int o_PopulateTupleStartingAt (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject mutableTuple,
-		final int startingIndex)
-	{
-		return o_Traversed(object).populateTupleStartingAt(
-			mutableTuple,
-			startingIndex);
-	}
-
-	@Override
 	void o_Priority (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
@@ -1580,23 +1569,6 @@ extends AbstractDescriptor
 		return o_Traversed(object).privateExcludeElementKnownIndex(
 			element,
 			knownIndex);
-	}
-
-	@Override
-	@NotNull AvailObject o_PrivateExcludeKey (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject keyObject)
-	{
-		return o_Traversed(object).privateExcludeKey(keyObject);
-	}
-
-	@Override
-	@NotNull AvailObject o_PrivateMapAtPut (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject keyObject,
-		final @NotNull AvailObject valueObject)
-	{
-		return o_Traversed(object).privateMapAtPut(keyObject, valueObject);
 	}
 
 	@Override
@@ -1761,14 +1733,6 @@ extends AbstractDescriptor
 		final @NotNull AvailObject value)
 	{
 		o_Traversed(object).returnType(value);
-	}
-
-	@Override
-	void o_RootBin (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		o_Traversed(object).rootBin(value);
 	}
 
 	@Override
@@ -2310,12 +2274,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	@NotNull AvailObject o_AsObject (final AvailObject object)
-	{
-		return o_Traversed(object).asObject();
-	}
-
-	@Override
 	@NotNull AvailObject o_AsSet (final AvailObject object)
 	{
 		return o_Traversed(object).asSet();
@@ -2352,12 +2310,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	int o_BitVector (final AvailObject object)
-	{
-		return o_Traversed(object).bitVector();
-	}
-
-	@Override
 	@NotNull AvailObject o_BodyBlock (final AvailObject object)
 	{
 		return o_Traversed(object).bodyBlock();
@@ -2379,12 +2331,6 @@ extends AbstractDescriptor
 	@NotNull AvailObject o_Caller (final AvailObject object)
 	{
 		return o_Traversed(object).caller();
-	}
-
-	@Override
-	int o_Capacity (final AvailObject object)
-	{
-		return o_Traversed(object).capacity();
 	}
 
 	@Override
@@ -2490,21 +2436,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_EqualsBlank (final AvailObject object)
-	{
-		return o_Traversed(object).equalsBlank();
-	}
-
-	@Override
 	boolean o_EqualsNull (final AvailObject object)
 	{
 		return o_Traversed(object).equalsNull();
-	}
-
-	@Override
-	boolean o_EqualsNullOrBlank (final AvailObject object)
-	{
-		return o_Traversed(object).equalsNullOrBlank();
 	}
 
 	@Override
@@ -2805,12 +2739,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	List<AvailObject> o_KeysAsArray (final AvailObject object)
-	{
-		return o_Traversed(object).keysAsArray();
-	}
-
-	@Override
 	@NotNull AvailObject o_KeysAsSet (final AvailObject object)
 	{
 		return o_Traversed(object).keysAsSet();
@@ -3037,12 +2965,6 @@ extends AbstractDescriptor
 	@NotNull AvailObject o_ReturnType (final AvailObject object)
 	{
 		return o_Traversed(object).returnType();
-	}
-
-	@Override
-	@NotNull AvailObject o_RootBin (final AvailObject object)
-	{
-		return o_Traversed(object).rootBin();
 	}
 
 	@Override
@@ -4067,5 +3989,99 @@ extends AbstractDescriptor
 		final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).serializerOperation();
+	}
+
+	/**
+	 * @param object
+	 * @param key
+	 * @param keyHash
+	 * @param value
+	 * @param myLevel
+	 * @param canDestroy
+	 * @return
+	 */
+	@Override
+	AvailObject o_MapBinAtHashPutLevelCanDestroy (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject key,
+		final int keyHash,
+		final @NotNull AvailObject value,
+		final byte myLevel,
+		final boolean canDestroy)
+	{
+		return o_Traversed(object).mapBinAtHashPutLevelCanDestroy(
+			key,
+			keyHash,
+			value,
+			myLevel,
+			canDestroy);
+	}
+
+	/**
+	 * @param object
+	 * @param key
+	 * @param keyHash
+	 * @param canDestroy
+	 * @return
+	 */
+	@NotNull AvailObject o_MapBinRemoveKeyHashCanDestroy (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject key,
+		final int keyHash,
+		final boolean canDestroy)
+	{
+		return o_Traversed(object).mapBinRemoveKeyHashCanDestroy(
+			key,
+			keyHash,
+			canDestroy);
+	}
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	@NotNull AvailObject o_MapBinKeyUnionKind (
+		final @NotNull AvailObject object)
+	{
+		return o_Traversed(object).mapBinKeyUnionKind();
+	}
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	@NotNull AvailObject o_MapBinValueUnionKind (
+		final @NotNull AvailObject object)
+	{
+		return o_Traversed(object).mapBinValueUnionKind();
+	}
+
+	@Override
+	boolean o_IsHashedMapBin (
+		final @NotNull AvailObject object)
+	{
+		return o_Traversed(object).isHashedMapBin();
+	}
+
+	@Override
+	@NotNull AvailObject o_MapBinAtHash (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject key,
+		final int keyHash)
+	{
+		return o_Traversed(object).mapBinAtHash(key, keyHash);
+	}
+
+	@Override
+	int o_MapBinKeysHash (
+		final @NotNull AvailObject object)
+	{
+		return o_Traversed(object).mapBinKeysHash();
+	}
+
+	@Override
+	int o_MapBinValuesHash (final AvailObject object)
+	{
+		return o_Traversed(object).mapBinValuesHash();
 	}
 }
