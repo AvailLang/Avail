@@ -830,6 +830,96 @@ public enum SerializerOperation
 		}
 	},
 
+	/**
+	 * An {@linkplain AtomDescriptor atom}.  Output the atom name and the name
+	 * of the module that issued it.  Look up the corresponding atom during
+	 * reconstruction, recreating it if it's not present and supposed to have
+	 * been issued by the current module.
+	 */
+	ATOM(33,
+		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("atom name"),
+		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("module name"))
+	{
+		@Override
+		AvailObject[] decompose (final AvailObject object)
+		{
+			final AvailObject module = object.issuingModule();
+			if (module.equalsNull())
+			{
+				throw new RuntimeException("Atom has no issuing module");
+			}
+			return array(object.name(), module.name());
+		}
+
+		@Override
+		@NotNull AvailObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			final AvailObject atomName = subobjects[0];
+			final AvailObject moduleName = subobjects[1];
+			final AvailObject currentModule = deserializer.currentModule();
+			if (moduleName.equals(currentModule.name()))
+			{
+				// An atom in the current module.  Create it if necessary.
+				// Check if it's already defined somewhere...
+				final AvailObject localMatches;
+				if (currentModule.privateNames().hasKey(atomName))
+				{
+					localMatches = currentModule.privateNames().mapAt(atomName);
+				}
+				else
+				{
+					localMatches = SetDescriptor.empty();
+				}
+
+				if (localMatches.setSize() == 1)
+				{
+					return localMatches.asTuple().tupleAt(1);
+				}
+				else if (localMatches.setSize() == 0)
+				{
+					final AvailObject atom = AtomDescriptor.create(
+						atomName,
+						currentModule);
+					currentModule.atPrivateNameAdd(atomName, atom);
+					return atom;
+				}
+				else
+				{
+					throw new RuntimeException(
+						"Ambiguous local atom name: \""
+						+ atomName.toString() + "\"");
+				}
+			}
+			// An atom in an imported module.
+			final AvailObject module = deserializer.moduleNamed(moduleName);
+			if (module.privateNames().hasKey(atomName))
+			{
+				final AvailObject atoms = module.privateNames().mapAt(atomName);
+				if (atoms.setSize() == 1)
+				{
+					return atoms.asTuple().tupleAt(1);
+				}
+				if (atoms.setSize() > 1)
+				{
+					throw new RuntimeException(
+						"Ambiguous imported atom \""
+						+ atomName.toString()
+						+ "\" in module \""
+						+ moduleName.toString()
+						+ "\"");
+				}
+			}
+			throw new RuntimeException(
+				"No such atom \""
+				+ atomName.toString()
+				+ "\" in module \""
+				+ moduleName.toString()
+				+ "\"");
+
+		}
+	}
 	;
 
 
@@ -938,6 +1028,7 @@ public enum SerializerOperation
 		}
 		final AvailObject newObject =
 			operation.compose(subobjects, deserializer);
+		newObject.makeImmutable();
 		deserializer.addObject(newObject);
 	}
 

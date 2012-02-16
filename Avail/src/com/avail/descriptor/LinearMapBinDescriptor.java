@@ -95,8 +95,14 @@ extends MapBinDescriptor
 		return e == IntegerSlots.VALUES_HASH_OR_ZERO;
 	}
 
+	/**
+	 * Debugging flag to force deep, expensive consistency checks.
+	 */
 	private final static boolean shouldCheckConsistency = false;
 
+	/**
+	 * Debugging flag to dump trace information to the console.
+	 */
 	private final static boolean shouldTrace = false;
 
 	/**

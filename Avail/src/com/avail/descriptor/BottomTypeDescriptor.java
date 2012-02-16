@@ -111,7 +111,8 @@ extends AbstractEnumerationTypeDescriptor
 	 *            The most general type that is a subtype of both object and
 	 *            another.
 	 */
-	final @NotNull AvailObject computeIntersectionWith (
+	@Override final
+	@NotNull AvailObject computeIntersectionWith (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
@@ -131,6 +132,7 @@ extends AbstractEnumerationTypeDescriptor
 	 *            The most specific type that is a supertype of both object and
 	 *            another.
 	 */
+	@Override final
 	@NotNull AvailObject computeUnionWith (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)

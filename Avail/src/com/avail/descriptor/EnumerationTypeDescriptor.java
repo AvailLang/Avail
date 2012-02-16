@@ -240,8 +240,8 @@ extends AbstractEnumerationTypeDescriptor
 	 * @return The most general type that is a subtype of both {@code object}
 	 *         and {@code another}.
 	 */
-	final @NotNull
-	AvailObject computeIntersectionWith (
+	@Override final
+	@NotNull AvailObject computeIntersectionWith (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
@@ -313,8 +313,8 @@ extends AbstractEnumerationTypeDescriptor
 	 * @return The most general type that is a subtype of both {@code object}
 	 *         and {@code another}.
 	 */
-	final @NotNull
-	AvailObject computeUnionWith (
+	@Override final
+	@NotNull AvailObject computeUnionWith (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{

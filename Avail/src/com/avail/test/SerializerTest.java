@@ -252,7 +252,7 @@ public final class SerializerTest
 	public void testRandomSimpleObjects ()
 	throws MalformedSerialStreamException
 	{
-		final Random random = new Random(-4673928647810677486L);
+		final Random random = new Random(-4673928647810677481L);
 		for (int run = 0; run < 100; run++)
 		{
 			final int partsCount = 1 + random.nextInt(1000);
@@ -318,11 +318,39 @@ public final class SerializerTest
 
 	/**
 	 * Test serialization and deserialization of atom references.
+	 *
+	 * @throws MalformedSerialStreamException If the stream is malformed.
 	 */
 	@Test
 	public void testAtoms ()
+	throws MalformedSerialStreamException
 	{
-		//TODO
+		final AvailObject inputModule = ModuleDescriptor.newModule(
+			StringDescriptor.from("Imported"));
+		final AvailObject currentModule = ModuleDescriptor.newModule(
+			StringDescriptor.from("Current"));
+		final AvailObject atom1 = AtomDescriptor.create(
+			StringDescriptor.from("importAtom1"),
+			inputModule);
+		inputModule.atPrivateNameAdd(atom1.name(), atom1);
+		final AvailObject atom2 = AtomDescriptor.create(
+			StringDescriptor.from("currentAtom2"),
+			currentModule);
+		currentModule.atPrivateNameAdd(atom2.name(), atom2);
+		final AvailObject tuple = TupleDescriptor.from(atom1, atom2);
+
+		prepareToWrite();
+		serializer.addImportedModule(inputModule);
+		serializer.currentModule(currentModule);
+		serializer.serialize(tuple);
+		prepareToReadBack();
+		deserializer.addImportedModule(inputModule);
+		deserializer.currentModule(currentModule);
+		final AvailObject newObject = deserializer.deserialize();
+		assertTrue(
+			"Serialization stream was not fully emptied",
+			in.available() == 0);
+		assertEquals(tuple, newObject);
 	}
 
 //	@Test

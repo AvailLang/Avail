@@ -1457,8 +1457,8 @@ implements Iterable<AvailObject>
 	 * with a <strike>strike-out</strike>.  That's a convenient warning for the
 	 * programmer, but we also fail if this method actually gets invoked AND
 	 * the argument is not an {@code AvailObject}.  That means we don't allow
-	 * AvailObjects to be added to Java {@linkplain Set sets} and such intermixed
-	 * with things that are not AvailObjects.
+	 * AvailObjects to be added to Java {@linkplain Set sets} and such, at least
+	 * when they're intermixed with things that are not AvailObjects.
 	 * </p>
 	 */
 	@Override
@@ -5733,5 +5733,13 @@ implements Iterable<AvailObject>
 	int mapBinValuesHash ()
 	{
 		return descriptor.o_MapBinValuesHash(this);
+	}
+
+	/**
+	 * @return
+	 */
+	public AvailObject issuingModule ()
+	{
+		return descriptor.o_IssuingModule(this);
 	}
 }

@@ -70,6 +70,7 @@ extends AtomDescriptor
 		 * The hash value of this {@linkplain AtomDescriptor atom}.  It is a
 		 * random number (not 0), computed on demand.
 		 */
+		@HideFieldInDebugger
 		HASH_OR_ZERO
 	}
 

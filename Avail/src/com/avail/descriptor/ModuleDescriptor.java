@@ -33,7 +33,7 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.error;
-import static com.avail.descriptor.TypeDescriptor.Types.FORWARD_SIGNATURE;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import com.avail.annotations.*;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 
@@ -396,7 +396,7 @@ extends Descriptor
 				object.newNames().mapAt(stringName),
 				false);
 		}
-		AvailObject publics;
+		final AvailObject publics;
 		if (object.names().hasKey(stringName))
 		{
 			publics = object.names().mapAt(stringName);
@@ -575,6 +575,12 @@ extends Descriptor
 	{
 		// Compare by address (identity).
 		return another.traversed().sameAddressAs(object);
+	}
+
+	@Override @AvailMethod
+	@NotNull AvailObject o_Kind (final @NotNull AvailObject object)
+	{
+		return MODULE.o();
 	}
 
 	@Override @AvailMethod

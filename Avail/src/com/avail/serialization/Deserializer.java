@@ -35,6 +35,7 @@ package com.avail.serialization;
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
+import com.avail.descriptor.TypeDescriptor.Types;
 import java.io.*;
 import java.util.*;
 
@@ -57,6 +58,17 @@ public class Deserializer
 	 * The most recently object produced by deserialization.
 	 */
 	protected AvailObject producedObject;
+
+	/**
+	 * All visible {@linkplain ModuleDescriptor modules}.  These can be used to
+	 * locate or reconstruct serialized {@linkplain AtomDescriptor atoms}.
+	 */
+	private AvailObject importedModules = MapDescriptor.empty();
+
+	/**
+	 * The current {@linkplain ModuleDescriptor module}.
+	 */
+	private AvailObject currentModule;
 
 	/**
 	 * Look up the {@linkplain AvailRuntime#specialObject(int) special object}.
@@ -90,6 +102,45 @@ public class Deserializer
 		final @NotNull AvailObject newObject)
 	{
 		assembledObjects.add(newObject);
+	}
+
+	public void addImportedModule (
+		final @NotNull AvailObject module)
+	{
+		assert module.isInstanceOf(Types.MODULE.o());
+		final AvailObject name = module.name();
+		assert !importedModules.hasKey(name)
+			: "Duplicate module with same name: " + name.toString();
+		importedModules = importedModules.mapAtPuttingCanDestroy(
+			module.name(),
+			module,
+			true);
+	}
+
+	public void currentModule (
+		final @NotNull AvailObject module)
+	{
+		assert module.isInstanceOf(Types.MODULE.o());
+		currentModule = module;
+	}
+
+	public @NotNull AvailObject moduleNamed (
+		final @NotNull AvailObject moduleName)
+	{
+		assert moduleName.isString();
+		if (!importedModules.hasKey(moduleName))
+		{
+			throw new RuntimeException(
+				"Cannot reconstruct atom from absent module \""
+				+ moduleName.toString() + "\"");
+		}
+		final AvailObject module = importedModules.mapAt(moduleName);
+		return module;
+	}
+
+	public @NotNull AvailObject currentModule ()
+	{
+		return currentModule;
 	}
 
 	/**

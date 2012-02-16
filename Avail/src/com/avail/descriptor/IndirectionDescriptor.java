@@ -4024,6 +4024,7 @@ extends AbstractDescriptor
 	 * @param canDestroy
 	 * @return
 	 */
+	@Override
 	@NotNull AvailObject o_MapBinRemoveKeyHashCanDestroy (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject key,
@@ -4040,6 +4041,7 @@ extends AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	@NotNull AvailObject o_MapBinKeyUnionKind (
 		final @NotNull AvailObject object)
 	{
@@ -4050,6 +4052,7 @@ extends AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	@NotNull AvailObject o_MapBinValueUnionKind (
 		final @NotNull AvailObject object)
 	{
@@ -4083,5 +4086,12 @@ extends AbstractDescriptor
 	int o_MapBinValuesHash (final AvailObject object)
 	{
 		return o_Traversed(object).mapBinValuesHash();
+	}
+
+	@Override
+	AvailObject o_IssuingModule (
+		final @NotNull AvailObject object)
+	{
+		return o_Traversed(object).issuingModule();
 	}
 }

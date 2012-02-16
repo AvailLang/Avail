@@ -218,6 +218,15 @@ extends AbstractTypeDescriptor
 		MACRO_SIGNATURE(SIGNATURE),
 
 		/**
+		 * {@linkplain ModuleDescriptor Modules} are maintained mostly
+		 * automatically by Avail's runtime environment.  Modules are not
+		 * currently visible to the Avail programmer, but there may still be a
+		 * need for modules to be placed in sets and maps maintained by the
+		 * runtime, so the type story has to at least be consistent.
+		 */
+		MODULE(ANY),
+
+		/**
 		 * A {@linkplain PojoDescriptor POJO} is a Plain Old Java {@linkplain
 		 * Object}.  Avail is able to interface to arbitrary Java code via its
 		 * implementation of POJOs.  POJOs contain (and conform to) their own

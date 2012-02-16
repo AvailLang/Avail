@@ -5098,4 +5098,11 @@ public abstract class AbstractDescriptor
 	 */
 	abstract int o_MapBinValuesHash (
 		final @NotNull AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract @NotNull AvailObject o_IssuingModule (
+		final @NotNull AvailObject object);
 }

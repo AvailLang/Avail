@@ -35,7 +35,7 @@ package com.avail.descriptor;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
 import com.avail.annotations.*;
-import com.avail.serialization.Serializer;
+import com.avail.serialization.*;
 
 /**
  * An {@code atom} is an object that has identity by fiat, i.e., it is
@@ -89,6 +89,7 @@ extends Descriptor
 		 * The hash value of this {@linkplain AtomDescriptor atom}.  It is a
 		 * random number (not 0), computed on demand.
 		 */
+		@HideFieldInDebugger
 		HASH_OR_ZERO
 	}
 
@@ -293,6 +294,12 @@ extends Descriptor
 		return object.slot(ObjectSlots.NAME);
 	}
 
+	@Override @AvailMethod
+	@NotNull AvailObject o_IssuingModule (
+		final @NotNull AvailObject object)
+	{
+		return object.slot(ObjectSlots.ISSUING_MODULE);
+	}
 
 	@Override @AvailMethod
 	boolean o_Equals (
@@ -393,6 +400,13 @@ extends Descriptor
 		final @NotNull AvailObject key)
 	{
 		return NullDescriptor.nullObject();
+	}
+
+	@Override
+	@NotNull SerializerOperation o_SerializerOperation (
+		final @NotNull AvailObject object)
+	{
+		return SerializerOperation.ATOM;
 	}
 
 	/**

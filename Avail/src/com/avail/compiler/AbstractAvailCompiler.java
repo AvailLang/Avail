@@ -1983,7 +1983,7 @@ public abstract class AbstractAvailCompiler
 			}
 			state = state.afterToken();
 		}
-		if (!state.peekToken(MODULE, "Module keyword"))
+		if (!state.peekToken(ExpectedToken.MODULE, "Module keyword"))
 		{
 			return null;
 		}

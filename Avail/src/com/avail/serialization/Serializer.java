@@ -35,6 +35,7 @@ package com.avail.serialization;
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.utility.Continuation0;
 import java.io.*;
 import java.util.*;
@@ -83,6 +84,18 @@ public class Serializer
 	 * The {@link OutputStream} on which to write the serialized objects.
 	 */
 	final @NotNull OutputStream output;
+
+	/**
+	 * All visible {@linkplain ModuleDescriptor modules}.  These must be present
+	 * if there are any atoms in the structure to be serialized, which is pretty
+	 * much always the case.
+	 */
+	private AvailObject importedModules = MapDescriptor.empty();
+
+	/**
+	 * The current {@linkplain ModuleDescriptor module}.
+	 */
+	private AvailObject currentModule;
 
 	/**
 	 * Output an unsigned byte.  It must be in the range 0 ≤ n ≤ 255.
@@ -324,6 +337,26 @@ public class Serializer
 		final @NotNull OutputStream output)
 	{
 		this.output = output;
+	}
+
+	public void addImportedModule (
+		final @NotNull AvailObject module)
+	{
+		assert module.isInstanceOf(Types.MODULE.o());
+		final AvailObject name = module.name();
+		assert !importedModules.hasKey(name)
+			: "Duplicate module with same name: " + name.toString();
+		importedModules = importedModules.mapAtPuttingCanDestroy(
+			module.name(),
+			module,
+			true);
+	}
+
+	public void currentModule (
+		final @NotNull AvailObject module)
+	{
+		assert module.isInstanceOf(Types.MODULE.o());
+		currentModule = module;
 	}
 
 	/**
