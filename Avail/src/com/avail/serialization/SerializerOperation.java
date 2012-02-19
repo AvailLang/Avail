@@ -655,7 +655,7 @@ public enum SerializerOperation
 	 * then each compressed character.
 	 */
 	SHORT_STRING(25,
-		COMPRESSED_SHORT_CHARACTER_TUPLE.as("BMP string"))
+		COMPRESSED_SHORT_CHARACTER_TUPLE.as("Basic Multilingual Plane string"))
 	{
 		@Override
 		@NotNull AvailObject[] decompose (
@@ -919,8 +919,247 @@ public enum SerializerOperation
 				+ "\"");
 
 		}
-	}
-	;
+	},
+
+	/**
+	 * A {@linkplain CompiledCodeDescriptor compiled code object}.  Output any
+	 * information needed to reconstruct the compiled code object.
+	 */
+	COMPILED_CODE (34,
+		COMPRESSED_SHORT.as("Total number of frame slots"),
+		COMPRESSED_SHORT.as("Primitive number"),
+		OBJECT_REFERENCE.as("Function type"),
+		UNCOMPRESSED_NYBBLE_TUPLE.as("Level one nybblecodes"),
+		TUPLE_OF_OBJECTS.as("Regular literals"),
+		TUPLE_OF_OBJECTS.as("Local types"),
+		TUPLE_OF_OBJECTS.as("Outer types"))
+	{
+
+		@Override
+		AvailObject[] decompose (final AvailObject object)
+		{
+			final int numLocals = object.numLocals();
+			final int numOuters = object.numOuters();
+			final int numRegularLiterals =
+				object.numLiterals() - numLocals - numOuters;
+			final AvailObject regularLiterals =
+				ObjectTupleDescriptor.mutable().create(numRegularLiterals);
+			for (int i = 1; i <= numRegularLiterals; i++)
+			{
+				regularLiterals.tupleAtPut(i, object.literalAt(i));
+			}
+			final AvailObject localTypes =
+				ObjectTupleDescriptor.mutable().create(numLocals);
+			for (int i = 1; i <= numLocals; i++)
+			{
+				localTypes.tupleAtPut(i, object.localTypeAt(i));
+			}
+			final AvailObject outerTypes =
+				ObjectTupleDescriptor.mutable().create(numOuters);
+			for (int i = 1; i <= numOuters; i++)
+			{
+				outerTypes.tupleAtPut(i, object.outerTypeAt(i));
+			}
+			return array(
+				IntegerDescriptor.fromInt(object.numArgsAndLocalsAndStack()),
+				IntegerDescriptor.fromInt(object.primitiveNumber()),
+				object.functionType(),
+				object.nybbles(),
+				regularLiterals,
+				localTypes,
+				outerTypes);
+		}
+
+		@Override
+		AvailObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			final int numArgsAndLocalsAndStack = subobjects[0].extractInt();
+			final int primitive = subobjects[1].extractInt();
+			final AvailObject functionType = subobjects[2];
+			final AvailObject nybbles = subobjects[3];
+			final AvailObject regularLiterals = subobjects[4];
+			final AvailObject localTypes = subobjects[5];
+			final AvailObject outerTypes = subobjects[6];
+
+			final AvailObject numArgsRange =
+				functionType.argsTupleType().sizeRange();
+			final int numArgs = numArgsRange.lowerBound().extractInt();
+			final int numLocals = localTypes.tupleSize();
+
+			return CompiledCodeDescriptor.create(
+				nybbles,
+				localTypes.tupleSize(),
+				numArgsAndLocalsAndStack - numLocals - numArgs,
+				functionType,
+				primitive,
+				regularLiterals,
+				localTypes,
+				outerTypes);
+		}
+	},
+
+	/**
+	 * A {@linkplain FunctionDescriptor function} with no outer (lexically
+	 * captured) variables.
+	 */
+	CLEAN_FUNCTION (35,
+		OBJECT_REFERENCE.as("Compiled code"))
+	{
+		@Override
+		AvailObject[] decompose (final AvailObject object)
+		{
+			return array(
+				object.code());
+		}
+
+		@Override
+		AvailObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			final AvailObject code = subobjects[0];
+			return FunctionDescriptor.create(code, TupleDescriptor.empty());
+		}
+	},
+
+	/**
+	 * A {@linkplain FunctionDescriptor function} with one or more outer
+	 * (lexically captured) variables.
+	 */
+	GENERAL_FUNCTION (36,
+		OBJECT_REFERENCE.as("Compiled code"),
+		TUPLE_OF_OBJECTS.as("Outer values"))
+	{
+		@Override
+		AvailObject[] decompose (final AvailObject object)
+		{
+			final int numOuters = object.numOuterVars();
+			final AvailObject outers = ObjectTupleDescriptor.mutable().create(
+				numOuters);
+			for (int i = 1; i <= numOuters; i++)
+			{
+				outers.tupleAtPut(i, object.outerVarAt(i));
+			}
+			return array(
+				object.code(),
+				outers);
+		}
+
+		@Override
+		AvailObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			final AvailObject code = subobjects[0];
+			final AvailObject outers = subobjects[1];
+			return FunctionDescriptor.create(
+				code,
+				outers);
+		}
+	},
+
+	/**
+	 * A {@linkplain FunctionTypeDescriptor function type}.
+	 */
+	FUNCTION_TYPE (37,
+		OBJECT_REFERENCE.as("Arguments tuple type"),
+		OBJECT_REFERENCE.as("Return type"),
+		TUPLE_OF_OBJECTS.as("Checked exceptions"))
+	{
+		@Override
+		AvailObject[] decompose (final AvailObject object)
+		{
+			return array(
+				object.argsTupleType(),
+				object.returnType(),
+				object.checkedExceptions().asTuple());
+		}
+
+		@Override
+		AvailObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			final AvailObject argsTupleType = subobjects[0];
+			final AvailObject returnType = subobjects[1];
+			final AvailObject checkedExceptionsTuple = subobjects[2];
+			return FunctionTypeDescriptor.createWithArgumentTupleType(
+				argsTupleType,
+				returnType,
+				checkedExceptionsTuple.asSet());
+		}
+	},
+
+	/**
+	 * A {@linkplain TupleTypeDescriptor tuple type}.
+	 */
+	TUPLE_TYPE (38,
+		OBJECT_REFERENCE.as("Tuple sizes"),
+		TUPLE_OF_OBJECTS.as("Leading types"),
+		OBJECT_REFERENCE.as("Default type"))
+	{
+		@Override
+		AvailObject[] decompose (final AvailObject object)
+		{
+			return array (
+				object.sizeRange(),
+				object.typeTuple(),
+				object.defaultType());
+		}
+
+		@Override
+		AvailObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			final AvailObject sizeRange = subobjects[0];
+			final AvailObject typeTuple = subobjects[1];
+			final AvailObject defaultType = subobjects[2];
+			return TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+				sizeRange,
+				typeTuple,
+				defaultType);
+		}
+	},
+
+	/**
+	 *
+	 */
+	INTEGER_RANGE_TYPE (39,
+		BYTE.as("Inclusive flags"),
+		OBJECT_REFERENCE.as("Lower bound"),
+		OBJECT_REFERENCE.as("Upper bound"))
+	{
+		@Override
+		AvailObject[] decompose (final AvailObject object)
+		{
+			final int flags = (object.lowerInclusive() ? 1 : 0)
+				+ (object.upperInclusive() ? 2 : 0);
+			return array(
+				IntegerDescriptor.fromInt(flags),
+				object.lowerBound(),
+				object.upperBound());
+		}
+
+		@Override
+		AvailObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			final int flags = subobjects[0].extractByte();
+			final AvailObject lowerBound = subobjects[1];
+			final AvailObject upperBound = subobjects[2];
+			final boolean lowerInclusive = (flags & 1) != 0;
+			final boolean upperInclusive = (flags & 2) != 0;
+			return IntegerRangeTypeDescriptor.create(
+				lowerBound,
+				lowerInclusive,
+				upperBound,
+				upperInclusive);
+		}
+	};
 
 
 	/**

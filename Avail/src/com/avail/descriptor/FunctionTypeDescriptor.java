@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
 import com.avail.annotations.*;
+import com.avail.serialization.SerializerOperation;
 
 /**
  * Function types are the types of {@linkplain FunctionDescriptor functions}.
@@ -632,6 +633,13 @@ extends TypeDescriptor
 			tupleTypeIntersection,
 			returnType,
 			exceptions);
+	}
+
+	@Override @AvailMethod
+	SerializerOperation o_SerializerOperation (
+		final @NotNull AvailObject object)
+	{
+		return SerializerOperation.FUNCTION_TYPE;
 	}
 
 	/**

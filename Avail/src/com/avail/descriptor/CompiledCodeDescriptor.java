@@ -37,6 +37,7 @@ import com.avail.annotations.*;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.interpreter.*;
 import com.avail.interpreter.levelOne.*;
+import com.avail.serialization.SerializerOperation;
 
 /**
  * A {@linkplain CompiledCodeDescriptor compiled code} object is created whenever a
@@ -476,6 +477,14 @@ extends Descriptor
 				L2ChunkDescriptor.countdownForInvalidatedCode());
 		}
 	}
+
+	@Override
+	@AvailMethod @ThreadSafe
+	@NotNull SerializerOperation o_SerializerOperation(
+		final AvailObject object)
+	{
+		return SerializerOperation.COMPILED_CODE;
+	};
 
 	@Override
 	public void printObjectOnAvoidingIndent (

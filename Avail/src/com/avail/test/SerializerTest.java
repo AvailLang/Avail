@@ -33,12 +33,15 @@
 package com.avail.test;
 
 import static org.junit.Assert.*;
+import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
 import static java.lang.Math.*;
 import java.io.*;
 import java.util.*;
 import org.junit.*;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
+import com.avail.interpreter.Primitive;
+import com.avail.interpreter.levelOne.L1InstructionWriter;
 import com.avail.serialization.*;
 
 /**
@@ -351,6 +354,26 @@ public final class SerializerTest
 			"Serialization stream was not fully emptied",
 			in.available() == 0);
 		assertEquals(tuple, newObject);
+	}
+
+	/**
+	 * Test serialization and deserialization of atom references.
+	 *
+	 * @throws MalformedSerialStreamException If the stream is malformed.
+	 */
+	@Test
+	public void testFunctions ()
+	throws MalformedSerialStreamException
+	{
+		final L1InstructionWriter writer = new L1InstructionWriter();
+		writer.argumentTypes(FLOAT.o());
+		writer.primitiveNumber(Primitive.prim292_FloatFloor.primitiveNumber);
+		writer.returnType(FLOAT.o());
+		final AvailObject code = writer.compiledCode();
+		final AvailObject function = FunctionDescriptor.create(
+			code,
+			TupleDescriptor.empty());
+		checkObject(function);
 	}
 
 //	@Test

@@ -1261,7 +1261,7 @@ extends ExtendedIntegerDescriptor
 		return sign == Sign.POSITIVE ? LESS : MORE;
 	}
 
-	@Override
+	@Override @AvailMethod
 	@NotNull Order o_NumericCompareToDouble (
 		final @NotNull AvailObject object,
 		final double aDouble)
@@ -1270,7 +1270,7 @@ extends ExtendedIntegerDescriptor
 			DoubleDescriptor.compareDoubleAndInteger(aDouble, object).reverse();
 	}
 
-	@Override
+	@Override @AvailMethod
 	SerializerOperation o_SerializerOperation (
 		final @NotNull AvailObject object)
 	{

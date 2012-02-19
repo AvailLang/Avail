@@ -36,6 +36,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static java.lang.Math.*;
 import java.util.List;
 import com.avail.annotations.*;
+import com.avail.serialization.SerializerOperation;
 
 /**
  * A tuple type can be the {@linkplain AvailObject#kind() type} of a {@linkplain
@@ -531,11 +532,17 @@ extends TypeDescriptor
 	boolean o_IsTupleType (
 		final @NotNull AvailObject object)
 	{
-		//  I am a tupleType, so answer true.
-
+		// I am a tupleType, so answer true.
 		return true;
 	}
 
+	@Override
+	@AvailMethod @ThreadSafe
+	SerializerOperation o_SerializerOperation (
+		final @NotNull AvailObject object)
+	{
+		return SerializerOperation.TUPLE_TYPE;
+	}
 
 	/**
 	 * The most general tuple type.

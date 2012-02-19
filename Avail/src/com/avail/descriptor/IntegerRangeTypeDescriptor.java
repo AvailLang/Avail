@@ -36,6 +36,7 @@ import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 import com.avail.annotations.*;
+import com.avail.serialization.SerializerOperation;
 
 /**
  * My instances represent the types of one or more extended integers.  There are
@@ -379,6 +380,12 @@ extends TypeDescriptor
 		return true;
 	}
 
+	@Override @AvailMethod
+	@NotNull SerializerOperation o_SerializerOperation(
+		final @NotNull AvailObject object)
+	{
+		return SerializerOperation.INTEGER_RANGE_TYPE;
+	};
 	/**
 	 * The range [0..255].
 	 */

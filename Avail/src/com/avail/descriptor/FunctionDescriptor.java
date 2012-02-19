@@ -35,9 +35,10 @@ package com.avail.descriptor;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static java.util.Arrays.fill;
 import java.util.List;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 import com.avail.interpreter.*;
 import com.avail.interpreter.levelOne.*;
+import com.avail.serialization.SerializerOperation;
 
 /**
  * A function associates {@linkplain CompiledCodeDescriptor compiled code} with
@@ -234,6 +235,18 @@ extends Descriptor
 		final @NotNull AvailObject object)
 	{
 		return object.variableObjectSlotsCount();
+	}
+
+	@Override
+	@AvailMethod @ThreadSafe
+	SerializerOperation o_SerializerOperation (
+		final AvailObject object)
+	{
+		if (object.numOuterVars() == 0)
+		{
+			return SerializerOperation.CLEAN_FUNCTION;
+		}
+		return SerializerOperation.GENERAL_FUNCTION;
 	}
 
 	/**

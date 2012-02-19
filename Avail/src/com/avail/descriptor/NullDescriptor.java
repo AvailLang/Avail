@@ -183,6 +183,7 @@ extends Descriptor
 	}
 
 	@Override
+	@AvailMethod @ThreadSafe
 	SerializerOperation o_SerializerOperation (
 		final @NotNull AvailObject object)
 	{
