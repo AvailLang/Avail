@@ -50,19 +50,6 @@ extends TypeDescriptor
 {
 
 	/**
-	 * The layout of integer slots for my instances.
-	 */
-	public enum IntegerSlots implements IntegerSlotsEnum
-	{
-		/**
-		* An int field used to hold the {@linkplain #o_LowerInclusive lower
-		* inclusive} and {@linkplain #o_UpperInclusive upper inclusive} flags.
-		 */
-		@BitFields(describedBy = Flags.class)
-		INCLUSIVE_FLAGS
-	}
-
-	/**
 	 * The layout of object slots for my instances.
 	 */
 	public enum ObjectSlots implements ObjectSlotsEnum
@@ -80,29 +67,6 @@ extends TypeDescriptor
 		* IntegerRangeTypeDescriptor#o_UpperInclusive upperInclusive} flag.
 		 */
 		UPPER_BOUND
-	}
-
-	/**
-	 * The layout of bit fields within my {@linkplain
-	 * IntegerSlots#INCLUSIVE_FLAGS}.
-	 */
-	public static class Flags
-	{
-		/**
-		 * The position of the lowerInclusive flag within the {@link
-		 * IntegerSlots#INCLUSIVE_FLAGS}.
-		 */
-		@BitField(shift=0, bits=1)
-		static final BitField LowerInclusive =
-			bitField(Flags.class, "LowerInclusive");
-
-		/**
-		 * The position of the upperInclusive flag within the {@link
-		 * IntegerSlots#INCLUSIVE_FLAGS}.
-		 */
-		@BitField(shift=1, bits=1)
-		static final BitField UpperInclusive =
-			bitField(Flags.class, "UpperInclusive");
 	}
 
 	@Override @AvailMethod
@@ -205,18 +169,14 @@ extends TypeDescriptor
 	boolean o_LowerInclusive (
 		final @NotNull AvailObject object)
 	{
-		return object.bitSlot(
-			IntegerSlots.INCLUSIVE_FLAGS,
-			Flags.LowerInclusive) != 0;
+		return lowerInclusive;
 	}
 
 	@Override @AvailMethod
 	boolean o_UpperInclusive (
 		final @NotNull AvailObject object)
 	{
-		return object.bitSlot(
-			IntegerSlots.INCLUSIVE_FLAGS,
-			Flags.UpperInclusive) != 0;
+		return upperInclusive;
 	}
 
 	@Override @AvailMethod
@@ -224,8 +184,7 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
-		//  Check if object (a type) is a subtype of aType (should also be a type).
-
+		// Check if object (a type) is a subtype of aType (should also be a type).
 		return aType.isSupertypeOfIntegerRangeType(object);
 	}
 
@@ -608,10 +567,14 @@ extends TypeDescriptor
 
 
 	/**
-	 * Return a range consisting of a single integer or infinity.
+	 * Return a range consisting of a single {@linkplain IntegerDescriptor
+	 * integer} or {@linkplain InfinityDescriptor infinity}.
 	 *
-	 * @param integerObject An Avail integer or infinity.
-	 * @return A range containing a single value.
+	 * @param integerObject
+	 *            An Avail integer or infinity.
+	 * @return
+	 *            A {@linkplain IntegerRangeTypeDescriptor range} containing a
+	 *            single value.
 	 */
 	public static AvailObject singleInteger (final AvailObject integerObject)
 	{
@@ -698,17 +661,11 @@ extends TypeDescriptor
 			// over inclusion.
 			return BottomTypeDescriptor.bottom();
 		}
-		final AvailObject result = mutable().create();
+		final IntegerRangeTypeDescriptor descriptor =
+			lookupDescriptor(true, lowInc, highInc);
+		final AvailObject result = descriptor.create();
 		result.setSlot(ObjectSlots.LOWER_BOUND, low);
 		result.setSlot(ObjectSlots.UPPER_BOUND, high);
-		result.bitSlotPut(
-			IntegerSlots.INCLUSIVE_FLAGS,
-			Flags.LowerInclusive,
-			lowInc ? 1 : 0);
-		result.bitSlotPut(
-			IntegerSlots.INCLUSIVE_FLAGS,
-			Flags.UpperInclusive,
-			highInc ? 1 : 0);
 		result.makeImmutable();
 		return result;
 	}
@@ -717,43 +674,81 @@ extends TypeDescriptor
 	 * Construct a new {@link IntegerRangeTypeDescriptor}.
 	 *
 	 * @param isMutable
-	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
-	 *        object?
+	 *            Does the {@linkplain Descriptor descriptor} represent a
+	 *            mutable object?
+	 * @param lowerInclusive
+	 *            Do my object instances include their lower bound?
+	 * @param upperInclusive
+	 *            Do my object instances include their upper bound?
 	 */
-	protected IntegerRangeTypeDescriptor (final boolean isMutable)
+	protected IntegerRangeTypeDescriptor (
+		final boolean isMutable,
+		final boolean lowerInclusive,
+		final boolean upperInclusive)
 	{
 		super(isMutable);
+		this.lowerInclusive = lowerInclusive;
+		this.upperInclusive = upperInclusive;
 	}
 
 	/**
-	 * The mutable {@link IntegerRangeTypeDescriptor}.
+	 * When true, my object instances (i.e., instances of {@link AvailObject})
+	 * are considered to include their lower bound.
 	 */
-	private static final IntegerRangeTypeDescriptor mutable =
-		new IntegerRangeTypeDescriptor(true);
+	private final boolean lowerInclusive;
 
 	/**
-	 * Answer the mutable {@link IntegerRangeTypeDescriptor}.
-	 *
-	 * @return The mutable {@link IntegerRangeTypeDescriptor}.
+	 * When true, my object instances (i.e., instances of {@link AvailObject})
+	 * are considered to include their upper bound.
 	 */
-	public static IntegerRangeTypeDescriptor mutable ()
+	private final boolean upperInclusive;
+
+	/**
+	 * The array of descriptor instances of this class.  There are three boolean
+	 * decisions to make when selecting a descriptor, namely:
+	 * <ul>
+	 * <li>Whether the descriptor is <em>immutable</em>,</li>
+	 * <li>Whether the descriptor's instances include their lower bound,
+	 * and</li>
+	 * <li>Whether the descriptor's instances include their upper bound.</li>
+	 * </ul>
+	 * These occur in bit positions 0x01, 0x02, and 0x04 of the array
+	 * subscripts, respectively.
+	 */
+	private final static IntegerRangeTypeDescriptor[] descriptors;
+
+	static
 	{
-		return mutable;
+		descriptors = new IntegerRangeTypeDescriptor[8];
+		for (int i = 0; i < 8; i++)
+		{
+			descriptors[i] = new IntegerRangeTypeDescriptor(
+				(i & 1) == 0,
+				(i & 2) != 0,
+				(i & 4) != 0);
+		}
 	}
 
 	/**
-	 * The immutable {@link IntegerRangeTypeDescriptor}.
-	 */
-	private static final IntegerRangeTypeDescriptor immutable =
-		new IntegerRangeTypeDescriptor(false);
-
-	/**
-	 * Answer the immutable {@link IntegerRangeTypeDescriptor}.
+	 * Answer the descriptor with the three specified boolean properties.
 	 *
-	 * @return The immutable {@link IntegerRangeTypeDescriptor}.
+	 * @param isMutable
+	 *            Whether the descriptor's objects are mutable.
+	 * @param lowerInclusive
+	 *            Whether the descriptor's objects include the lower bound.
+	 * @param upperInclusive
+	 *            Whether the descriptor's objects include the upper bound.
+	 * @return
 	 */
-	public static IntegerRangeTypeDescriptor immutable ()
+	private static IntegerRangeTypeDescriptor lookupDescriptor (
+		final boolean isMutable,
+		final boolean lowerInclusive,
+		final boolean upperInclusive)
 	{
-		return immutable;
+		final int subscript =
+			(isMutable ? 0 : 1)
+			| (lowerInclusive ? 2 : 0)
+			| (upperInclusive ? 4 : 0);
+		return descriptors[subscript];
 	}
 }
