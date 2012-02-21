@@ -492,6 +492,5 @@ extends SetBinDescriptor
 			descriptors[target++] = new HashedSetBinDescriptor(true, level);
 			descriptors[target++] = new HashedSetBinDescriptor(false, level);
 		}
-	};
-
+	}
 }

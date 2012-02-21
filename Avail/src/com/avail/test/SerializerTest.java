@@ -343,8 +343,6 @@ public final class SerializerTest
 		final AvailObject tuple = TupleDescriptor.from(atom1, atom2);
 
 		prepareToWrite();
-		serializer.addImportedModule(inputModule);
-		serializer.currentModule(currentModule);
 		serializer.serialize(tuple);
 		prepareToReadBack();
 		deserializer.addImportedModule(inputModule);

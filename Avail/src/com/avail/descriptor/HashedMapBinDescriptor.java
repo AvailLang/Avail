@@ -647,6 +647,5 @@ extends MapBinDescriptor
 			descriptors[target++] = new HashedMapBinDescriptor(true, level);
 			descriptors[target++] = new HashedMapBinDescriptor(false, level);
 		}
-	};
-
+	}
 }

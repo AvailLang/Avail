@@ -391,5 +391,5 @@ extends SetBinDescriptor
 			descriptors[target++] = new LinearSetBinDescriptor(true, level);
 			descriptors[target++] = new LinearSetBinDescriptor(false, level);
 		}
-	};
+	}
 }

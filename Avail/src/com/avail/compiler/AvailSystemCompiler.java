@@ -643,7 +643,7 @@ extends AbstractAvailCompiler
 													+ "declared type (%s)",
 													initExpr.expressionType(),
 													type);
-											};
+											}
 										});
 								}
 							}
@@ -1068,7 +1068,7 @@ extends AbstractAvailCompiler
 								lastStatementType.value,
 								checkedExceptions);
 						attempt(afterExceptions, continuation, blockNode);
-					};
+					}
 				});
 		}
 
@@ -1174,7 +1174,7 @@ extends AbstractAvailCompiler
 										afterExceptions,
 										continuation,
 										blockNode);
-								};
+								}
 							});
 					}
 					else

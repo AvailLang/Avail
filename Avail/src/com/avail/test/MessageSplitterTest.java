@@ -32,10 +32,8 @@
 
 package com.avail.test;
 
-import java.io.StringReader;
 import java.util.*;
 import org.junit.*;
-import com.avail.AvailRuntime;
 import com.avail.compiler.*;
 import com.avail.descriptor.*;
 
@@ -50,30 +48,25 @@ import com.avail.descriptor.*;
  */
 public class MessageSplitterTest
 {
-	/** A {@linkplain ModuleNameResolver module name resolver}. */
-	private ModuleNameResolver moduleNameResolver;
-
-	/** An {@linkplain AvailRuntime Avail runtime}. */
-	private AvailRuntime runtime;
+	/**
+	 * Test fixture: clear and then create all special objects well-known to the
+	 * Avail runtime.
+	 */
+	@Before
+	public void initializeAllWellKnownObjects ()
+	{
+		AvailObject.clearAllWellKnownObjects();
+		AvailObject.createAllWellKnownObjects();
+	}
 
 	/**
 	 * Test fixture: clear and then create all special objects well-known to the
 	 * Avail runtime.
-	 *
-	 * @throws RenamesFileParserException
-	 *         Never happens.
 	 */
-	@Before
-	public void initializeAllWellKnownObjects ()
-		throws RenamesFileParserException
+	@After
+	public void clearAllWellKnownObjects ()
 	{
 		AvailObject.clearAllWellKnownObjects();
-		AvailObject.createAllWellKnownObjects();
-		final RenamesFileParser renamesFileParser = new RenamesFileParser(
-			new StringReader(""),
-			new ModuleRoots(""));
-		final ModuleNameResolver resolver = renamesFileParser.parse();
-		runtime = new AvailRuntime(resolver);
 	}
 
 	/** Test cases. */

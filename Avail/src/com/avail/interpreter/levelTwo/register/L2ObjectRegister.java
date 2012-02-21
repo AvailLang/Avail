@@ -40,6 +40,7 @@ import com.avail.descriptor.AvailObject;
  * store an {@linkplain AvailObject Avail object}.
  *
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
 public class L2ObjectRegister
 extends L2Register

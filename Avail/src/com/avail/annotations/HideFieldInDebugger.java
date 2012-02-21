@@ -33,7 +33,7 @@
 package com.avail.annotations;
 
 import java.lang.annotation.*;
-import com.avail.descriptor.*;
+import com.avail.descriptor.AvailObjectFieldHelper;
 
 /**
  * {@code HideFieldInDebugger} annotation is used to indicate that a slot should

@@ -33,12 +33,12 @@
 package com.avail.annotations;
 
 import java.lang.annotation.*;
-import com.avail.descriptor.*;
+import com.avail.descriptor.AvailObject;
 
 /**
  * The {@code BitFields} annotation is used to indicate the presence of a
  * set of {@linkplain BitField bit fields} within an integer slot that has this
- * annotation.  This is used for pretty-printing {@linkplain AvailObject}s.
+ * annotation.  This is used for pretty-printing {@link AvailObject}s.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */

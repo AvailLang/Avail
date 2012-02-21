@@ -554,7 +554,7 @@ extends StringDescriptor
 		for (; index <= size; index++)
 		{
 			final int b = generator.value();
-			assert (b & 255) == b;;
+			assert (b & 255) == b;
 			result.rawByteForCharacterAtPut(index, (short) b);
 		}
 		return result;

@@ -2002,7 +2002,7 @@ implements IntegerEnumSlotDescriptionEnum
 				TupleDescriptor.from(
 					SetTypeDescriptor.mostGeneralType()),
 				EnumerationMetaDescriptor.mostGeneralType());
-		};
+		}
 	},
 
 	/**
@@ -2030,7 +2030,7 @@ implements IntegerEnumSlotDescriptionEnum
 				TupleDescriptor.from(
 					TYPE.o()),
 				EnumerationMetaDescriptor.meta());
-		};
+		}
 	},
 
 	/**

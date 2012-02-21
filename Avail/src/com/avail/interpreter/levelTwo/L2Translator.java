@@ -59,10 +59,8 @@ public class L2Translator implements L1OperationDispatcher
 {
 	private List<L2Instruction> instructions;
 	private List<L2ObjectRegister> architecturalRegisters;
-	private List<L2RegisterVector> vectors;
 	private int pc;
 	private int stackp;
-	private int stackDepth;
 	private AvailObject code;
 	private AvailObject nybbles;
 	private int optimizationLevel;
@@ -276,8 +274,8 @@ public class L2Translator implements L1OperationDispatcher
 	}
 
 	/**
-	 * Create a {@linkplain L2RegisterVector vector register} that represents the
-	 * given {@linkplain List list} of {@linkplain L2ObjectRegister object
+	 * Create a {@linkplain L2RegisterVector vector register} that represents
+	 * the given {@linkplain List list} of {@linkplain L2ObjectRegister object
 	 * registers}.  Answer an existing vector if an equivalent one is already
 	 * defined.
 	 *
@@ -1324,7 +1322,6 @@ public class L2Translator implements L1OperationDispatcher
 		architecturalRegisters = new ArrayList<L2ObjectRegister>(10);
 		registerTypes = new HashMap<L2RegisterIdentity, AvailObject>(10);
 		registerConstants = new HashMap<L2RegisterIdentity, AvailObject>(10);
-		vectors = new ArrayList<L2RegisterVector>(10);
 		code = null;
 		nybbles = null;
 
@@ -1415,7 +1412,6 @@ public class L2Translator implements L1OperationDispatcher
 		architecturalRegisters = new ArrayList<L2ObjectRegister>(10);
 		registerTypes = new HashMap<L2RegisterIdentity, AvailObject>(10);
 		registerConstants = new HashMap<L2RegisterIdentity, AvailObject>(10);
-		vectors = new ArrayList<L2RegisterVector>(10);
 
 		code = aCompiledCodeObject;
 		optimizationLevel = optLevel;

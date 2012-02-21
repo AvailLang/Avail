@@ -78,7 +78,7 @@ public final class L2CodeGenerator
 	 */
 	public void emitLiteral (final @NotNull AvailObject literal)
 	{
-		L2OperandType expected = expectedOperandTypes.remove(0);
+		final L2OperandType expected = expectedOperandTypes.remove(0);
 		assert expected == L2OperandType.CONSTANT
 			|| expected == L2OperandType.SELECTOR;
 		literal.readBarrierFault();
@@ -101,6 +101,14 @@ public final class L2CodeGenerator
 		new ArrayList<List<Integer>>(20);
 
 	/**
+	 * The inverse of {@link #vectors}.  That is, if vectors contains a list of
+	 * integers at index x, this {@link Map} contains the integer x at that list
+	 * of integers.
+	 */
+	private final @NotNull Map<List<Integer>, Integer> inverseVectors =
+		new HashMap<List<Integer>, Integer>(20);
+
+	/**
 	 * Emit the {@linkplain L2RegisterIdentity identities} of the {@linkplain
 	 * L2ObjectRegister members} of the specified {@linkplain L2RegisterVector
 	 * register vector} into the instruction stream.
@@ -109,22 +117,24 @@ public final class L2CodeGenerator
 	 */
 	public void emitVector (final @NotNull L2RegisterVector registerVector)
 	{
-		L2OperandType expected = expectedOperandTypes.remove(0);
+		final L2OperandType expected = expectedOperandTypes.remove(0);
 		assert expected == L2OperandType.READ_VECTOR
 			|| expected == L2OperandType.READWRITE_VECTOR
 			|| expected == L2OperandType.WRITE_VECTOR;
-		List<L2ObjectRegister> registersList = registerVector.registers();
-		List<Integer> registerIndices =
+		final List<L2ObjectRegister> registersList = registerVector.registers();
+		final List<Integer> registerIndices =
 			new ArrayList<Integer>(registersList.size());
 		for (int i = 0; i < registersList.size(); i++)
 		{
 			registerIndices.add(registersList.get(i).identity().finalIndex());
 		}
-		int vectorIndex = vectors.indexOf(registerIndices) + 1;
-		if (vectorIndex == 0)
+		Integer vectorIndex = inverseVectors.get(registerIndices);
+		if (vectorIndex == null)
 		{
 			vectors.add(registerIndices);
+			// Extract the size after the add to make it one-based.
 			vectorIndex = vectors.size();
+			inverseVectors.put(registerIndices, vectorIndex);
 		}
 		emitWord(vectorIndex);
 	}
@@ -146,7 +156,7 @@ public final class L2CodeGenerator
 	public void emitObjectRegister (
 		final @NotNull L2ObjectRegister objectRegister)
 	{
-		L2OperandType expected = expectedOperandTypes.remove(0);
+		final L2OperandType expected = expectedOperandTypes.remove(0);
 		assert expected == L2OperandType.READ_POINTER
 			|| expected == L2OperandType.READWRITE_POINTER
 			|| expected == L2OperandType.WRITE_POINTER;
@@ -174,7 +184,7 @@ public final class L2CodeGenerator
 	public void emitIntegerRegister (
 		final @NotNull L2IntegerRegister integerRegister)
 	{
-		L2OperandType expected = expectedOperandTypes.remove(0);
+		final L2OperandType expected = expectedOperandTypes.remove(0);
 		assert expected == L2OperandType.READ_INT
 			|| expected == L2OperandType.READWRITE_INT
 			|| expected == L2OperandType.WRITE_INT;
@@ -260,7 +270,7 @@ public final class L2CodeGenerator
 	 */
 	public void emitWordcodeOffsetOf (final L2Instruction targetInstruction)
 	{
-		L2OperandType expected = expectedOperandTypes.remove(0);
+		final L2OperandType expected = expectedOperandTypes.remove(0);
 		assert expected == L2OperandType.PC;
 		wordcodes.add(targetInstruction.offset());
 	}
@@ -272,7 +282,7 @@ public final class L2CodeGenerator
 	 */
 	public void emitPrimitiveNumber (final int primitive)
 	{
-		L2OperandType expected = expectedOperandTypes.remove(0);
+		final L2OperandType expected = expectedOperandTypes.remove(0);
 		assert expected == L2OperandType.PRIMITIVE;
 		wordcodes.add(primitive);
 	}
@@ -284,7 +294,7 @@ public final class L2CodeGenerator
 	 */
 	public void emitImmediate (final int immediate)
 	{
-		L2OperandType expected = expectedOperandTypes.remove(0);
+		final L2OperandType expected = expectedOperandTypes.remove(0);
 		assert expected == L2OperandType.IMMEDIATE;
 		wordcodes.add(immediate);
 	}
@@ -323,7 +333,7 @@ public final class L2CodeGenerator
 		// pass, as the main intent is to measure instruction lengths to set
 		// their offsets (so references to labels will be correct).
 		assert wordcodes.size() == 0;
-		for (L2Instruction instruction : instructions)
+		for (final L2Instruction instruction : instructions)
 		{
 			instruction.setOffset(wordcodes.size() + 1);
 			instruction.emitOn(this);
@@ -333,7 +343,7 @@ public final class L2CodeGenerator
 		// code generator and generate on a real code generator. This is a
 		// trivial two-pass scheme to calculate jumps.
 		wordcodes = new ArrayList<Integer>(wordcodes.size());
-		for (L2Instruction instruction : instructions)
+		for (final L2Instruction instruction : instructions)
 		{
 			assert instruction.offset() == wordcodes.size() + 1
 				: "Instruction offset is not right";
@@ -364,7 +374,7 @@ public final class L2CodeGenerator
 				"translating L1 compiled code: %s ...", code));
 		}
 
-		AvailObject newChunk = L2ChunkDescriptor.allocate(
+		final AvailObject newChunk = L2ChunkDescriptor.allocate(
 			code,
 			literals,
 			vectors,

@@ -37,6 +37,8 @@ import com.avail.annotations.NotNull;
 
 /**
  * {@code L1Instruction} combines an {@link L1Operation} with the operands.
+ * It represents the smallest atomic step that the Avail interpreter can
+ * conceptually execute.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */

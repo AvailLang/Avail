@@ -98,7 +98,7 @@ public final class AvailRuntime
 	{
 		// For now, just use our own class's class loader. In the future, the
 		// AvailRuntime could be created with a specified class loader.
-		return getClass().getClassLoader();
+		return classLoader;
 	}
 
 	/**

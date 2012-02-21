@@ -1697,7 +1697,7 @@ extends TypeDescriptor
 	 * @param parameters
 	 *        The type parameterization {@linkplain TupleDescriptor tuple} for
 	 *        {@code rawType}.
-	 * @param parameterizationMap
+	 * @param initialParameterizationMap
 	 *        The type parameterization map, incrementally recursively built
 	 *        quasi-destructively.
 	 * @param rawTypeMap
@@ -1712,10 +1712,11 @@ extends TypeDescriptor
 	private static @NotNull AvailObject create (
 		final @NotNull Class<?> rawType,
 		final @NotNull AvailObject parameters,
-		@NotNull AvailObject parameterizationMap,
+		final @NotNull AvailObject initialParameterizationMap,
 		final @NotNull Map<Class<?>, AvailObject> rawTypeMap,
 		final @NotNull Map<Class<?>, AvailObject> selfTypeMap)
 	{
+		AvailObject parameterizationMap = initialParameterizationMap;
 		if (!rawTypeMap.containsKey(rawType))
 		{
 			final AvailObject javaClass = canonize(rawTypeMap, rawType);
@@ -1741,7 +1742,7 @@ extends TypeDescriptor
 					selfTypeMap);
 			}
 
-			// Recursively create the superinterfaces.
+			// Recursively create the super-interfaces.
 			final Class<?>[] superinterfaces = rawType.getInterfaces();
 			final Type[] weakSuperinterfaces = rawType.getGenericInterfaces();
 			assert superinterfaces.length == weakSuperinterfaces.length;

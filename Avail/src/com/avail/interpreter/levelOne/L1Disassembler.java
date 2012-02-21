@@ -37,16 +37,56 @@ import java.util.List;
 import com.avail.annotations.*;
 import com.avail.descriptor.*;
 
+/**
+ * An instance of {@code L1Disassembler} converts a {@linkplain
+ * CompiledCodeDescriptor compiled code object} into a textual representation
+ * of its sequence of {@linkplain L1Instruction level one instructions}.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public class L1Disassembler
 {
+	/**
+	 * The {@linkplain CompiledCodeDescriptor compiled code object} being
+	 * disassembled.
+	 */
 	AvailObject code;
+
+	/**
+	 * The {@link StringBuilder} onto which to describe the level one
+	 * instructions.
+	 */
 	StringBuilder builder;
+
+	/**
+	 * The (mutable) {@link List} of {@link AvailObject}s to avoid recursing
+	 * into while printing the {@linkplain L1Instruction level one
+	 * instructions}.
+	 */
 	List<AvailObject> recursionList;
+
+	/**
+	 * The number of tabs to output after each line break.
+	 */
 	int indent;
+
+	/**
+	 * The level one {@linkplain NybbleTupleDescriptor nybblecodes tuple},
+	 * pre-extracted from the {@linkplain CompiledCodeDescriptor compiled code
+	 * object}.
+	 */
 	AvailObject nybbles;
+
+	/**
+	 * The current level one offset into the code.
+	 */
 	int pc;
 
 
+	/**
+	 * An {@link L1OperandTypeDispatcher} suitably specialized to decode and
+	 * print the instruction operands.
+	 */
 	L1OperandTypeDispatcher operandTypePrinter = new L1OperandTypeDispatcher()
 	{
 

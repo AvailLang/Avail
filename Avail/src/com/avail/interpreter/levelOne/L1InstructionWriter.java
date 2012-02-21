@@ -36,16 +36,41 @@ import static com.avail.descriptor.TypeDescriptor.Types.TYPE;
 import java.io.ByteArrayOutputStream;
 import java.util.*;
 import com.avail.descriptor.*;
+import com.avail.interpreter.Primitive;
 
+/**
+ * An instance of this class can be used to construct a {@linkplain
+ * CompiledCodeDescriptor compiled code object} without detailed knowledge of
+ * the level one nybblecode instruction set.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public class L1InstructionWriter
 {
 
+	/**
+	 * The stream of nybbles that have been generated thus far.
+	 */
 	private final ByteArrayOutputStream stream = new ByteArrayOutputStream();
 
+	/**
+	 * The collection of literal objects that have been accumulated thus far.
+	 */
 	final List<AvailObject> literals = new ArrayList<AvailObject>();
 
-	private final Map<AvailObject, Integer> reverseLiterals = new HashMap<AvailObject, Integer>();
+	/**
+	 * An inverse mapping of the literal objects encountered thus far.  The map
+	 * is from each literal object to its 1-based index.
+	 */
+	private final Map<AvailObject, Integer> reverseLiterals =
+		new HashMap<AvailObject, Integer>();
 
+	/**
+	 * Locate or record the specified literal object.  Answer its 1-based index.
+	 *
+	 * @param literal The literal object to look up.
+	 * @return The object's 1-based literal index.
+	 */
 	public int addLiteral (final AvailObject literal)
 	{
 		Integer index = reverseLiterals.get(literal);
@@ -58,17 +83,36 @@ public class L1InstructionWriter
 		return index;
 	}
 
+	/**
+	 * The {@link List} of argument {@linkplain TypeDescriptor types} for this
+	 * {@linkplain CompiledCodeDescriptor compiled code}.
+	 */
 	private List<AvailObject> argumentTypes;
 
+	/**
+	 * @param argTypes
+	 */
 	public void argumentTypes (final AvailObject ... argTypes)
 	{
-		assert localTypes.size() == 0: "Must declare argument types before allocating locals";
+		assert localTypes.size() == 0
+		: "Must declare argument types before allocating locals";
 		this.argumentTypes = Arrays.asList(argTypes);
 	}
 
+	/**
+	 * Specify the types of the arguments that the resulting {@linkplain
+	 * CompiledCodeDescriptor compiled code object} will accept.
+	 *
+	 * @param argTypes
+	 *            A {@linkplain TupleDescriptor tuple} of {@linkplain
+	 *            TypeDescriptor types} corresponding with the types which the
+	 *            {@linkplain FunctionDescriptor} under construction will
+	 *            accept.
+	 */
 	public void argumentTypesTuple (final AvailObject argTypes)
 	{
-		assert localTypes.size() == 0: "Must declare argument types before allocating locals";
+		assert localTypes.size() == 0
+		: "Must declare argument types before allocating locals";
 		final List<AvailObject> types = new ArrayList<AvailObject>(
 			argTypes.tupleSize());
 		for (final AvailObject type : argTypes)
@@ -78,39 +122,93 @@ public class L1InstructionWriter
 		this.argumentTypes = types;
 	}
 
+	/**
+	 * The return type of the {@linkplain FunctionDescriptor} under
+	 * construction.
+	 */
 	private AvailObject returnType;
 
+	/**
+	 * Set the return type that the {@linkplain FunctionDescriptor} under
+	 * construction will produce.
+	 *
+	 * @param retType
+	 */
 	public void returnType (final AvailObject retType)
 	{
 		this.returnType = retType;
 	}
 
+	/**
+	 * The types of the local variables, including the arguments which must
+	 * occur first.
+	 */
 	private final List<AvailObject> localTypes = new ArrayList<AvailObject>();
 
+	/**
+	 * Declare a local variable with the specified type.  Answer its index.  The
+	 * index is relative to the start of the arguments.
+	 *
+	 * @param localType The {@linkplain TypeDescriptor type} of the local.
+	 * @return The index of the local variable.
+	 */
 	public int createLocal (final AvailObject localType)
 	{
-		assert argumentTypes != null : "Must declare argument types before allocating locals";
+		assert argumentTypes != null
+		: "Must declare argument types before allocating locals";
 		assert localType.isInstanceOfKind(TYPE.o());
 		localTypes.add(localType);
 		return localTypes.size() + argumentTypes.size();
 	}
 
+	/**
+	 * The types of the outer (lexically captured) variables.  Note that
+	 * arguments of outer scopes can also be captured, which aren't technically
+	 * variables.
+	 */
 	private final List<AvailObject> outerTypes = new ArrayList<AvailObject>();
 
+	/**
+	 * Declare an outer (lexically captured) variable, specifying its type.
+	 *
+	 * @param outerType
+	 *            The {@linkplain TypeDescriptor type} of the outer variable.
+	 * @return
+	 *            The index of the newly declared outer variable.
+	 */
 	public int createOuter (final AvailObject outerType)
 	{
 		outerTypes.add(outerType);
 		return outerTypes.size();
 	}
 
+	/**
+	 * The {@linkplain Primitive primitive} {@linkplain
+	 * Primitive#primitiveNumber number} of the {@linkplain
+	 * CompiledCodeDescriptor compiled code object} being generated.
+	 */
 	private int primitiveNumber = 0;
 
+	/**
+	 * Specify the {@linkplain Primitive#primitiveNumber primitive number} of
+	 * the {@linkplain CompiledCodeDescriptor compiled code object} being
+	 * created.
+	 *
+	 * @param primNumber The primitive number.
+	 */
 	public void primitiveNumber (final int primNumber)
 	{
 		assert this.primitiveNumber == 0 : "Don't set the primitive twice";
 		this.primitiveNumber = primNumber;
 	}
 
+	/**
+	 * The {@linkplain L1StackTracker mechanism} used to ensure the stack is
+	 * correctly balanced at the end and does not pop more than has been pushed.
+	 * It also records the maximum stack depth for correctly sizing {@linkplain
+	 * ContinuationDescriptor continuations} (essentially stack frames) at
+	 * runtime.
+	 */
 	L1StackTracker stackTracker = new L1StackTracker ()
 	{
 		@Override AvailObject literalAt (final int literalIndex)
@@ -121,6 +219,16 @@ public class L1InstructionWriter
 
 
 
+	/**
+	 * Write a numerically encoded operand.  All operands are encoded the same
+	 * way in the level one nybblecode instruction set.  Values 0-9 take a
+	 * single nybble, 10-57 take two, 58-313 take three, 314-65535 take five,
+	 * and 65536..2^31-1 take nine nybbles.
+	 *
+	 * @param operand
+	 *            An {@code int}-encoded operand of some {@linkplain
+	 *            L1Instruction instruction}.
+	 */
 	private void writeOperand (final int operand)
 	{
 		if (operand < 10)
@@ -160,7 +268,13 @@ public class L1InstructionWriter
 		}
 	}
 
-
+	/**
+	 * Write an {@linkplain L1Instruction instruction} to the nybblecode stream.
+	 * Some opcodes (automatically) write an extension nybble (0xF).  Also write
+	 * any {@linkplain L1OperandType operands}.
+	 *
+	 * @param instruction The instruction to write.
+	 */
 	public void write (final L1Instruction instruction)
 	{
 		stackTracker.track(instruction);
@@ -182,6 +296,14 @@ public class L1InstructionWriter
 	}
 
 
+	/**
+	 * Extract the {@linkplain NybbleTupleDescriptor tuple of nybbles} encoding
+	 * the instructions of the {@linkplain CompiledCodeDescriptor compiled code
+	 * object} under construction.
+	 *
+	 * @return A {@linkplain TupleDescriptor} of nybbles ({@linkplain
+	 *         IntegerDescriptor integers} in the range 0..15).
+	 */
 	private AvailObject nybbles ()
 	{
 		final AvailObject nybbles =
@@ -197,6 +319,14 @@ public class L1InstructionWriter
 	}
 
 
+	/**
+	 * Produce the {@linkplain CompiledCodeDescriptor compiled code object}
+	 * which we have just incrementally specified.
+	 *
+	 * @return A compiled code object (which can be lexically "closed" to a
+	 *         {@linkplain FunctionDescriptor function} by supplying the outer
+	 *         variables to capture).
+	 */
 	public AvailObject compiledCode ()
 	{
 		return CompiledCodeDescriptor.create(

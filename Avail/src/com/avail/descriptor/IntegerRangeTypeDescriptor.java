@@ -344,7 +344,8 @@ extends TypeDescriptor
 		final @NotNull AvailObject object)
 	{
 		return SerializerOperation.INTEGER_RANGE_TYPE;
-	};
+	}
+
 	/**
 	 * The range [0..255].
 	 */

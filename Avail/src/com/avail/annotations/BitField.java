@@ -42,9 +42,7 @@ import java.lang.annotation.*;
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({
-	ElementType.FIELD
-})
+@Target({ElementType.FIELD})
 public @interface BitField
 {
 	/**

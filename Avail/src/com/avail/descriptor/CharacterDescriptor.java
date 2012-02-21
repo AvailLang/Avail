@@ -167,8 +167,6 @@ extends Descriptor
 	@ThreadSafe
 	static int hashOfByteCharacterWithCodePoint (final short codePoint)
 	{
-		// Provided separately so it can return more efficiently by constant
-		// reference.
 		assert codePoint >= 0 && codePoint <= 255;
 		return hashesOfByteCharacters[codePoint];
 	}

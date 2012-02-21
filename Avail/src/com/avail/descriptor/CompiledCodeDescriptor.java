@@ -484,7 +484,7 @@ extends Descriptor
 		final AvailObject object)
 	{
 		return SerializerOperation.COMPILED_CODE;
-	};
+	}
 
 	@Override
 	public void printObjectOnAvoidingIndent (

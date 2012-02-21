@@ -1183,7 +1183,7 @@ public class TypeConsistencyTest
 		public String toString()
 		{
 			return name;
-		};
+		}
 
 		/**
 		 * Record the actual type information into the graph.

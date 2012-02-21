@@ -1310,12 +1310,6 @@ extends ExtendedIntegerDescriptor
 
 
 	/**
-	 * The maximum code point of a character, as an Avail {@linkplain
-	 * IntegerDescriptor integer}.
-	 */
-	private static AvailObject maxCharacterCodePoint;
-
-	/**
 	 * Create any instances of {@link AvailObject} that need to be present for
 	 * basic Avail operations like arithmetic to work correctly.  In particular,
 	 * generate the array of immutable Avail {@linkplain IntegerDescriptor
@@ -1331,8 +1325,6 @@ extends ExtendedIntegerDescriptor
 			object.makeImmutable();
 			immutableByteObjects[i] = object;
 		}
-		maxCharacterCodePoint = fromInt(
-			CharacterDescriptor.maxCodePointInt);
 	}
 
 	/**
@@ -1349,7 +1341,6 @@ extends ExtendedIntegerDescriptor
 		{
 			hashesOfUnsignedBytes[i] = computeHashOfInt(i);
 		}
-		maxCharacterCodePoint = null;
 	}
 
 	/**

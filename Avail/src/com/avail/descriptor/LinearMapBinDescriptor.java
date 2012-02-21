@@ -557,5 +557,5 @@ extends MapBinDescriptor
 			descriptors[target++] = new LinearMapBinDescriptor(true, level);
 			descriptors[target++] = new LinearMapBinDescriptor(false, level);
 		}
-	};
+	}
 }
