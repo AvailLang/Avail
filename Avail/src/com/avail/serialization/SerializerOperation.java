@@ -332,7 +332,7 @@ public enum SerializerOperation
 		AvailObject[] decompose (
 			final @NotNull AvailObject object)
 		{
-			final int shortValue = object.extractShort();
+			final int shortValue = object.extractUnsignedShort();
 			return array(
 				IntegerDescriptor.fromInt((shortValue >> 8) & 0xFF),
 				IntegerDescriptor.fromInt(shortValue & 0xFF));
@@ -343,8 +343,8 @@ public enum SerializerOperation
 			final @NotNull AvailObject[] subobjects,
 			final @NotNull Deserializer deserializer)
 		{
-			final int intValue = (subobjects[0].extractByte() << 8)
-				+ subobjects[1].extractByte();
+			final int intValue = (subobjects[0].extractUnsignedByte() << 8)
+				+ subobjects[1].extractUnsignedByte();
 			return IntegerDescriptor.fromInt(intValue);
 		}
 	},
@@ -536,9 +536,9 @@ public enum SerializerOperation
 			final @NotNull Deserializer deserializer)
 		{
 			return CharacterDescriptor.fromCodePoint(
-				(subobjects[0].extractByte() << 16)
-				+ (subobjects[1].extractByte() << 8)
-				+ subobjects[2].extractByte());
+				(subobjects[0].extractUnsignedByte() << 16)
+				+ (subobjects[1].extractUnsignedByte() << 8)
+				+ subobjects[2].extractUnsignedByte());
 		}
 	},
 
@@ -1148,7 +1148,7 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			final int flags = subobjects[0].extractByte();
+			final int flags = subobjects[0].extractUnsignedByte();
 			final AvailObject lowerBound = subobjects[1];
 			final AvailObject upperBound = subobjects[2];
 			final boolean lowerInclusive = (flags & 1) != 0;

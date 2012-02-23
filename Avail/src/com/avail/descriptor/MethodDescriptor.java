@@ -107,14 +107,14 @@ extends Descriptor
 		// essential here, as certain parts of the virtual machine (like the
 		// decompiler) use the name to figure out how many arguments a method
 		// accepts.
-		final AvailObject implSet = newMethodWithName(
+		final AvailObject method = newMethodWithName(
 			AtomDescriptor.create(
 				StringDescriptor.from("vm crash_"),
 				NullDescriptor.nullObject()));
-		implSet.addImplementation(
+		method.addImplementation(
 			MethodImplementationDescriptor.create(newFunction));
 
-		return implSet;
+		return method;
 	}
 
 	/**
@@ -140,13 +140,13 @@ extends Descriptor
 
 	/**
 	 * Construct the {@linkplain MethodDescriptor method}
-	 * for bootstrap emergency exit.
+	 * for bootstrap function application.
 	 *
 	 * @return A method.
 	 */
 	private static @NotNull AvailObject newVMFunctionApplyMethod ()
 	{
-		// Generate a function with linkage to primitive 256.
+		// Generate a function with linkage to primitive 40.
 		final L1InstructionWriter writer = new L1InstructionWriter();
 		writer.primitiveNumber(
 			Primitive.prim40_InvokeWithTuple.primitiveNumber);
@@ -173,14 +173,69 @@ extends Descriptor
 		newFunction.makeImmutable();
 
 		// Create the new method.
-		final AvailObject implSet = newMethodWithName(
+		final AvailObject method = newMethodWithName(
 			AtomDescriptor.create(
 				StringDescriptor.from("vm function apply_(«_‡,»)"),
 				NullDescriptor.nullObject()));
-		implSet.addImplementation(
+		method.addImplementation(
 			MethodImplementationDescriptor.create(newFunction));
 
-		return implSet;
+		return method;
+	}
+
+	/**
+	 * An {@linkplain MethodDescriptor method} containing a {@linkplain
+	 * MethodImplementationDescriptor function} that invokes {@linkplain
+	 * Primitive#prim201_RaiseException primitive 201} (raise exception). Needed
+	 * by some hand-built functions.
+	 */
+	private static AvailObject vmRaiseExceptionMethod;
+
+	/**
+	 * An {@linkplain MethodDescriptor method} containing a {@linkplain
+	 * MethodImplementationDescriptor function} that invokes {@linkplain
+	 * Primitive#prim201_RaiseException primitive 201} (raise exception). Needed
+	 * by some hand-built functions.
+	 *
+	 * @return A method.
+	 */
+	public static @NotNull AvailObject vmRaiseExceptionMethod ()
+	{
+		return vmRaiseExceptionMethod;
+	}
+
+	/**
+	 * Construct the {@linkplain MethodDescriptor method} for bootstrap
+	 * exception raising.
+	 *
+	 * @return A method.
+	 */
+	private static @NotNull AvailObject newVMRaiseExceptionMethod ()
+	{
+		// Generate a function with linkage to primitive 201.
+		final L1InstructionWriter writer = new L1InstructionWriter();
+		writer.primitiveNumber(
+			Primitive.prim201_RaiseException.primitiveNumber);
+		writer.argumentTypes(ANY.o());
+		writer.returnType(BottomTypeDescriptor.bottom());
+		writer.write(
+			new L1Instruction(
+				L1Operation.L1_doPushLiteral,
+				writer.addLiteral(NullDescriptor.nullObject())));
+		final AvailObject newFunction = FunctionDescriptor.create(
+			writer.compiledCode(),
+			TupleDescriptor.empty());
+		newFunction.makeImmutable();
+
+		// Create the new method.
+		final AvailObject method = newMethodWithName(
+			AtomDescriptor.create(
+				StringDescriptor.from("vm raise_"),
+				NullDescriptor.nullObject()));
+		method.addImplementation(
+			MethodImplementationDescriptor.create(newFunction));
+
+		return method;
 	}
 
 	/**
@@ -190,8 +245,8 @@ extends Descriptor
 	public static void createWellKnownObjects ()
 	{
 		vmCrashMethod = newVMCrashMethod();
-		vmFunctionApplyMethod =
-			newVMFunctionApplyMethod();
+		vmFunctionApplyMethod = newVMFunctionApplyMethod();
+		vmRaiseExceptionMethod = newVMRaiseExceptionMethod();
 	}
 
 	/**
@@ -202,6 +257,7 @@ extends Descriptor
 	{
 		vmCrashMethod = null;
 		vmFunctionApplyMethod = null;
+		vmRaiseExceptionMethod = null;
 	}
 
 	/**

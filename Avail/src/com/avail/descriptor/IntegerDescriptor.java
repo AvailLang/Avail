@@ -38,7 +38,7 @@ import static java.lang.Math.*;
 import static com.avail.descriptor.AbstractNumberDescriptor.Order.*;
 import static com.avail.descriptor.IntegerDescriptor.IntegerSlots.*;
 import java.math.BigInteger;
-import java.util.List;
+import java.util.*;
 import com.avail.annotations.*;
 import com.avail.exceptions.*;
 import com.avail.exceptions.ArithmeticException;
@@ -218,9 +218,9 @@ extends ExtendedIntegerDescriptor
 	int o_Hash (
 		final @NotNull AvailObject object)
 	{
-		if (object.isByte())
+		if (object.isUnsignedByte())
 		{
-			return hashOfUnsignedByte(object.extractByte());
+			return hashOfUnsignedByte(object.extractUnsignedByte());
 		}
 		return computeHashOfIntegerObject(object);
 	}
@@ -277,6 +277,61 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
+	boolean o_IsNybble (final @NotNull AvailObject object)
+	{
+		if (object.integerSlotsCount() > 1)
+		{
+			return false;
+		}
+		final int value = object.extractInt();
+		return (value & 15) == value;
+	}
+
+	@Override @AvailMethod
+	boolean o_IsSignedByte (final @NotNull AvailObject object)
+	{
+		if (object.integerSlotsCount() > 1)
+		{
+			return false;
+		}
+		final int value = object.extractInt();
+		return value == (byte) value;
+	}
+
+	@Override @AvailMethod
+	boolean o_IsUnsignedByte (final @NotNull AvailObject object)
+	{
+		if (object.integerSlotsCount() > 1)
+		{
+			return false;
+		}
+		final int value = object.extractInt();
+		return (value & 255) == value;
+	}
+
+	@Override @AvailMethod
+	boolean o_IsSignedShort (final @NotNull AvailObject object)
+	{
+		if (object.integerSlotsCount() > 1)
+		{
+			return false;
+		}
+		final int value = object.extractInt();
+		return value == (short) value;
+	}
+
+	@Override @AvailMethod
+	boolean o_IsUnsignedShort (final @NotNull AvailObject object)
+	{
+		if (object.integerSlotsCount() > 1)
+		{
+			return false;
+		}
+		final int value = object.extractInt();
+		return (value & 65535) == value;
+	}
+
+	@Override @AvailMethod
 	boolean o_IsInt (final @NotNull AvailObject object)
 	{
 		return object.integerSlotsCount() == 1;
@@ -289,7 +344,25 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	short o_ExtractByte (final @NotNull AvailObject object)
+	byte o_ExtractNybble (final @NotNull AvailObject object)
+	{
+		assert object.integerSlotsCount() == 1;
+		final int value = object.rawSignedIntegerAt(1);
+		assert value == (value & 15) : "Value is out of range for a nybble";
+		return (byte)value;
+	}
+
+	@Override @AvailMethod
+	byte o_ExtractSignedByte (final @NotNull AvailObject object)
+	{
+		assert object.integerSlotsCount() == 1;
+		final int value = object.rawSignedIntegerAt(1);
+		assert value == (byte) value : "Value is out of range for a byte";
+		return (byte) value;
+	}
+
+	@Override @AvailMethod
+	short o_ExtractUnsignedByte (final @NotNull AvailObject object)
 	{
 		assert object.integerSlotsCount() == 1;
 		final int value = object.rawSignedIntegerAt(1);
@@ -298,18 +371,16 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsShort (final @NotNull AvailObject object)
+	short o_ExtractSignedShort (final @NotNull AvailObject object)
 	{
-		if (object.integerSlotsCount() > 1)
-		{
-			return false;
-		}
-		final int value = object.extractInt();
-		return (value & 65535) == value;
+		assert object.integerSlotsCount() == 1;
+		final int value = object.rawSignedIntegerAt(1);
+		assert value == (short) value : "Value is out of range for a short";
+		return (short) value;
 	}
 
 	@Override @AvailMethod
-	int o_ExtractShort (final @NotNull AvailObject object)
+	int o_ExtractUnsignedShort (final @NotNull AvailObject object)
 	{
 		assert object.integerSlotsCount() == 1;
 		final int value = object.rawSignedIntegerAt(1);
@@ -324,9 +395,6 @@ extends ExtendedIntegerDescriptor
 		return object.rawSignedIntegerAt(1);
 	}
 
-	/**
-	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
-	 */
 	@Override @AvailMethod
 	long o_ExtractLong (final @NotNull AvailObject object)
 	{
@@ -345,51 +413,15 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	byte o_ExtractNybble (
-		final @NotNull AvailObject object)
+	float o_ExtractFloat (final @NotNull AvailObject object)
 	{
-		assert object.integerSlotsCount() == 1;
-		final int value = object.rawSignedIntegerAt(1);
-		assert value >= 0 && value <= 15 : "Value is out of range for a nybble";
-		return (byte)value;
+		return (float) extractDoubleScaled(object, 0);
 	}
 
 	@Override @AvailMethod
-	float o_ExtractFloat (
-		final @NotNull AvailObject object)
-	{
-		return (float)extractDoubleScaled(object, 0);
-	}
-
-	@Override @AvailMethod
-	double o_ExtractDouble (
-		final @NotNull AvailObject object)
+	double o_ExtractDouble (final @NotNull AvailObject object)
 	{
 		return extractDoubleScaled(object, 0);
-	}
-
-	@Override @AvailMethod
-	boolean o_IsByte (
-		final @NotNull AvailObject object)
-	{
-		if (object.integerSlotsCount() > 1)
-		{
-			return false;
-		}
-		final int value = object.extractInt();
-		return value >= 0 && value <= 255;
-	}
-
-	@Override @AvailMethod
-	boolean o_IsNybble (
-		final @NotNull AvailObject object)
-	{
-		if (object.integerSlotsCount() > 1)
-		{
-			return false;
-		}
-		final int value = object.extractInt();
-		return value >= 0 && value <= 15;
 	}
 
 	/**
@@ -1307,7 +1339,72 @@ extends ExtendedIntegerDescriptor
 		return SerializerOperation.BIG_INTEGER;
 	}
 
-
+	@Override
+	Object o_MarshalToJava (
+		final @NotNull AvailObject object,
+		final Class<?> classHint)
+	{
+		// Force marshaling to java.math.BigInteger.
+		if (BigInteger.class.equals(classHint))
+		{
+			return new BigInteger(object.toString());
+		}
+		// Force marshaling to Java's primitive long type.
+		else if (Long.TYPE.equals(classHint))
+		{
+			if (!object.isLong())
+			{
+				throw new MarshalingException();
+			}
+			return Long.valueOf(object.extractLong());
+		}
+		// Force marshaling to Java's primitive int type.
+		else if (Integer.TYPE.equals(classHint))
+		{
+			if (!object.isInt())
+			{
+				throw new MarshalingException();
+			}
+			return Integer.valueOf(object.extractInt());
+		}
+		// Force marshaling to Java's primitive short type.
+		else if (Short.TYPE.equals(classHint))
+		{
+			if (!object.isSignedShort())
+			{
+				throw new MarshalingException();
+			}
+			return Short.valueOf(object.extractSignedShort());
+		}
+		// Force marshaling to Java's primitive byte type.
+		else if (Byte.TYPE.equals(classHint))
+		{
+			if (!object.isSignedByte())
+			{
+				throw new MarshalingException();
+			}
+			return Byte.valueOf(object.extractSignedByte());
+		}
+		// No useful hint was provided, so marshal to the smallest primitive
+		// integral type able to express object's value.
+		if (object.isLong())
+		{
+			if (object.isInt())
+			{
+				if (object.isSignedShort())
+				{
+					if (object.isSignedByte())
+					{
+						return Byte.valueOf(object.extractSignedByte());
+					}
+					return Short.valueOf(object.extractSignedShort());
+				}
+				return Integer.valueOf(object.extractInt());
+			}
+			return Long.valueOf(object.extractLong());
+		}
+		return new BigInteger(object.toString());
+	}
 
 	/**
 	 * Create any instances of {@link AvailObject} that need to be present for

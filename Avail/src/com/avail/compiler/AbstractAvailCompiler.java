@@ -298,15 +298,15 @@ public abstract class AbstractAvailCompiler
 	 *        ModuleDescriptor module} being defined.
 	 * @param interpreter
 	 *        The {@link Interpreter} used to execute code during compilation.
-	 * @param stopAfterNamesToken
-	 *        Whether to stop parsing at the occurrence of the "NAMES"
-	 *        token.  This is an optimization for faster build analysis.
+	 * @param stopAfterBodyToken
+	 *        Whether to stop parsing at the occurrence of the BODY token. This
+	 *        is an optimization for faster build analysis.
 	 * @return The new {@linkplain AbstractAvailCompiler compiler}.
 	 */
 	static @NotNull AbstractAvailCompiler create (
 		final @NotNull ModuleName qualifiedName,
 		final @NotNull L2Interpreter interpreter,
-		final boolean stopAfterNamesToken)
+		final boolean stopAfterBodyToken)
 	{
 		final AvailRuntime runtime = interpreter.runtime();
 		final ResolvedModuleName resolvedName =
@@ -314,7 +314,7 @@ public abstract class AbstractAvailCompiler
 		final String source = extractSource(qualifiedName, resolvedName);
 		final List<AvailObject> tokens = tokenize(
 			source,
-			stopAfterNamesToken);
+			stopAfterBodyToken);
 		AbstractAvailCompiler compiler;
 		if (!tokens.isEmpty()
 			&& tokens.get(0).string().equals(SYSTEM.lexeme()))
@@ -937,18 +937,18 @@ public abstract class AbstractAvailCompiler
 	 * @param source
 	 *        The {@linkplain String string} containing the module's source
 	 *        code.
-	 * @param stopAfterNamesToken
-	 *         Stop scanning after encountering the <em>Names</em> token?
+	 * @param stopAfterBodyToken
+	 *        Stop scanning after encountering the BODY token?
 	 * @return The {@linkplain ResolvedModuleName resolved module name}.
 	 * @throws AvailCompilerException
 	 *         If tokenization failed for any reason.
 	 */
 	static @NotNull List<AvailObject> tokenize (
 			final @NotNull String source,
-			final boolean stopAfterNamesToken)
+			final boolean stopAfterBodyToken)
 		throws AvailCompilerException
 	{
-		return new AvailScanner().scanString(source, stopAfterNamesToken);
+		return new AvailScanner().scanString(source, stopAfterBodyToken);
 	}
 
 	/**
@@ -1947,12 +1947,11 @@ public abstract class AbstractAvailCompiler
 	/**
 	 * Parse the header of the module from the token stream. If successful,
 	 * return the {@link ParserState} just after the header, otherwise return
-	 * null.
+	 * {@code null}.
 	 *
-	 * <p>
-	 * If the dependenciesOnly parameter is true, only parse the bare minimum
-	 * needed to determine information about which modules are used by this one.
-	 * </p>
+	 * <p>If the {@code dependenciesOnly} parameter is true, only parse the bare
+	 * minimum needed to determine information about which modules are used by
+	 * this one.</p>
 	 *
 	 * @param qualifiedName
 	 *        The expected module name.
@@ -1966,15 +1965,22 @@ public abstract class AbstractAvailCompiler
 		final boolean dependenciesOnly)
 	{
 		assert workPool.isEmpty();
+
+		// Initialize module structures.
 		versions = new ArrayList<AvailObject>();
 		extendedModules = new ArrayList<AvailObject>();
 		usedModules = new ArrayList<AvailObject>();
 		exportedNames = new ArrayList<AvailObject>();
 		pragmas = new ArrayList<AvailObject>();
+
+		// Create the initial parser state: no tokens have been seen, no names
+		// are in scope.
 		ParserState state = new ParserState(
 			0,
 			MapDescriptor.empty());
 
+		// The module header must begin with either SYSTEM MODULE or MODULE,
+		// followed by the local name of the module.
 		if (isSystemCompiler())
 		{
 			if (!state.peekToken(SYSTEM, "System keyword"))
@@ -2005,65 +2011,109 @@ public abstract class AbstractAvailCompiler
 			}
 		}
 		state = state.afterToken();
-		if (state.peekToken(VERSIONS, "Versions keyword"))
+
+		// Module header section tracking.
+		final List<ExpectedToken> expected = new ArrayList<ExpectedToken>(
+			Arrays.asList(new ExpectedToken[]
+				{ VERSIONS, EXTENDS, USES, NAMES, PRAGMA, BODY }));
+		final Set<AvailObject> seen = new HashSet<AvailObject>(5);
+		final Generator<String> expectedMessage = new Generator<String>()
 		{
-			state = parseStringLiterals(state.afterToken(), versions);
-			if (state == null)
+			@Override
+			public @NotNull String value ()
 			{
+				final StringBuilder builder = new StringBuilder();
+				builder.append(
+					expected.size() == 1
+					? "module header keyword "
+					: "one of the following module header keywords: ");
+				boolean first = true;
+				for (final ExpectedToken token : expected)
+				{
+					if (!first)
+					{
+						builder.append(", ");
+					}
+					builder.append(token.lexeme().asNativeString());
+					first = false;
+				}
+				return builder.toString();
+			}
+		};
+
+		// Permit the other sections to appear optionally, singly, and in any
+		// order. Parsing of the module header is complete when BODY has been
+		// consumed.
+		while (true)
+		{
+			final AvailObject token = state.peekToken();
+			final AvailObject lexeme = token.string();
+			int tokenIndex = 0;
+			for (final ExpectedToken expectedToken : expected)
+			{
+				if (expectedToken.tokenType() == token.tokenType()
+					&& expectedToken.lexeme().equals(lexeme))
+				{
+					break;
+				}
+				tokenIndex++;
+			}
+			// The token was not recognized as beginning a module section, so
+			// record what was expected and fail the parse.
+			if (tokenIndex == expected.size())
+			{
+				if (seen.contains(lexeme))
+				{
+					state.expected(
+						lexeme.asNativeString()
+						+ " keyword (and related section) to occur only once");
+				}
+				else
+				{
+					state.expected(expectedMessage);
+				}
 				return null;
 			}
-		}
-		if (!state.peekToken(EXTENDS, "Extends keyword"))
-		{
-			return null;
-		}
-		state = state.afterToken();
-		state = parseImports(state, extendedModules);
-		if (state == null)
-		{
-			return null;
-		}
-		if (!state.peekToken(USES, "Uses keyword"))
-		{
-			return null;
-		}
-		state = state.afterToken();
-		state = parseImports(state, usedModules);
-		if (state == null)
-		{
-			return null;
-		}
-		if (!state.peekToken(NAMES, "Names keyword"))
-		{
-			return null;
-		}
-		state = state.afterToken();
-		if (dependenciesOnly)
-		{
-			// We've parsed everything necessary for intermodule information.
-			return state;
-		}
-		state = parseStringLiterals(state, exportedNames);
-		if (state == null)
-		{
-			return null;
-		}
-		if (state.peekToken(PRAGMA))
-		{
+			expected.remove(tokenIndex);
+			seen.add(lexeme);
 			state = state.afterToken();
-			state = parseStringLiterals(state, pragmas);
+			// When BODY has been encountered, the parse of the module header is
+			// complete.
+			if (lexeme.equals(BODY.lexeme()))
+			{
+				return state;
+			}
+			// On VERSIONS, record the versions.
+			else if (lexeme.equals(VERSIONS.lexeme()))
+			{
+				state = parseStringLiterals(state, versions);
+			}
+			// On EXTENDS, record the imports.
+			else if (lexeme.equals(EXTENDS.lexeme()))
+			{
+				state = parseImports(state, extendedModules);
+			}
+			// On USES, record the imports.
+			else if (lexeme.equals(USES.lexeme()))
+			{
+				state = parseImports(state, usedModules);
+			}
+			// On NAMES, record the names.
+			else if (lexeme.equals(NAMES.lexeme()))
+			{
+				state = parseStringLiterals(state, exportedNames);
+			}
+			// On PRAGMA, record the pragma strings.
+			else if (lexeme.equals(PRAGMA.lexeme()))
+			{
+				state = parseStringLiterals(state, pragmas);
+			}
+			// If the parser state is now null, then fail the parse.
 			if (state == null)
 			{
 				return null;
 			}
 		}
-		if (!state.peekToken(BODY, "Body keyword"))
-		{
-			return null;
-		}
-		state = state.afterToken();
-		assert workPool.isEmpty();
-		return state;
 	}
 
 	/**

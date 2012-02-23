@@ -483,7 +483,7 @@ interface L2OperationDispatcher
 	 * {@link L2Operation#L2_doSend_argumentsVector_}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doSendAfterFailedPrimitive_argumentsVector_ ();
+	public void L2_doSendAfterFailedPrimitive_arguments_failureValue_ ();
 
 	/**
 	 * Process an

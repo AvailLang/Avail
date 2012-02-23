@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import static com.avail.descriptor.TypeDescriptor.Types.CHARACTER;
 import java.util.*;
 import com.avail.annotations.*;
+import com.avail.exceptions.MarshalingException;
 import com.avail.serialization.SerializerOperation;
 
 /**
@@ -281,9 +282,38 @@ extends Descriptor
 		return SerializerOperation.LARGE_CHARACTER;
 	}
 
-	/**
-	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
-	 */
+	@Override
+	Object o_MarshalToJava (
+		final @NotNull AvailObject object,
+		final Class<?> classHint)
+	{
+		final int codePoint = object.slot(IntegerSlots.CODE_POINT);
+		// Force marshaling to Java's primitive int type.
+		if (Integer.TYPE.equals(classHint))
+		{
+			return Integer.valueOf(codePoint);
+		}
+		// Force marshaling to Java's primitive char type, throwing an exception
+		// if the code point is out of range.
+		if (Character.TYPE.equals(classHint))
+		{
+			if (codePoint > 65535)
+			{
+				throw new MarshalingException();
+			}
+			return Character.valueOf((char) codePoint);
+		}
+		assert classHint == null;
+		// Only understand Unicode code points in the basic multilingual plane
+		// (BMP) as marshaling to Java's primitive char type.
+		if (codePoint < 65536)
+		{
+			return Character.valueOf((char) codePoint);
+		}
+		// Use Java's primitive int type for all others.
+		return Integer.valueOf(codePoint);
+	}
+
 	@Override
 	public void printObjectOnAvoidingIndent (
 		final @NotNull AvailObject object,
@@ -291,6 +321,7 @@ extends Descriptor
 		final @NotNull List<AvailObject> recursionList,
 		final int indent)
 	{
+		aStream.append("¢\"");
 		final int codePoint = object.codePoint();
 		switch (Character.getType(codePoint))
 		{
@@ -304,13 +335,17 @@ extends Descriptor
 			case Character.SPACE_SEPARATOR:
 			case Character.SURROGATE:
 			case Character.UNASSIGNED:
-				new Formatter(aStream).format("'\\u%04x'", codePoint);
+				new Formatter(aStream).format("\\(%x)", codePoint);
 				break;
 			default:
-				aStream.append('\'');
+				// Check for double quote (") and backslash (\).
+				if (codePoint == 0x22 || codePoint == 0x5C)
+				{
+					aStream.append('\\');
+				}
 				aStream.appendCodePoint(codePoint);
-				aStream.append('\'');
 		}
+		aStream.append('"');
 	}
 
 	/**

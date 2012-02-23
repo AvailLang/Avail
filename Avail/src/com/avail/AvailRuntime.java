@@ -51,7 +51,6 @@ import com.avail.descriptor.*;
  */
 public final class AvailRuntime
 {
-
 	/**
 	 * The {@linkplain ModuleNameResolver module name resolver} that this
 	 * {@linkplain AvailRuntime runtime} should use to resolve unqualified
@@ -96,8 +95,6 @@ public final class AvailRuntime
 	 */
 	public @NotNull ClassLoader classLoader ()
 	{
-		// For now, just use our own class's class loader. In the future, the
-		// AvailRuntime could be created with a specified class loader.
 		return classLoader;
 	}
 
@@ -153,9 +150,11 @@ public final class AvailRuntime
 	 * Answer the {@linkplain AvailObject special objects} of the {@linkplain
 	 * AvailRuntime runtime} as an {@linkplain
 	 * Collections#unmodifiableList(List) immutable} {@linkplain List list}.
+	 * Some elements may be {@code null}.
 	 *
 	 * @return The special objects.
 	 */
+	@ThreadSafe
 	public static @NotNull List<AvailObject> specialObjects ()
 	{
 		return Collections.unmodifiableList(Arrays.asList(specialObjects));
@@ -177,6 +176,49 @@ public final class AvailRuntime
 		throws ArrayIndexOutOfBoundsException
 	{
 		return specialObjects[ordinal];
+	}
+
+	/**
+	 * The {@linkplain AtomDescriptor special atoms} known to the {@linkplain
+	 * AvailRuntime runtime}.
+	 */
+	private static final @NotNull List<AvailObject> specialAtoms =
+		new ArrayList<AvailObject>(5);
+
+	/**
+	 * Answer the {@linkplain AtomDescriptor special atoms} known to the
+	 * {@linkplain AvailRuntime runtime} as an {@linkplain
+	 * Collections#unmodifiableList(List) immutable} {@linkplain List list}.
+	 * Some elements may be {@code null}.
+	 *
+	 * @return The special atoms.
+	 */
+	@ThreadSafe
+	public static @NotNull List<AvailObject> specialAtoms ()
+	{
+		return Collections.unmodifiableList(specialAtoms);
+	}
+
+	/**
+	 * Is the specified {@linkplain AtomDescriptor atom} one of the {@linkplain
+	 * #specialAtoms() special atoms} known to the {@linkplain AvailRuntime
+	 * runtime}?
+	 *
+	 * @param atom An atom.
+	 * @return {@code true} if the specified atom is one of the special atoms,
+	 *         {@code false} otherwise.
+	 */
+	@ThreadSafe
+	public static boolean isSpecialAtom (final @NotNull AvailObject atom)
+	{
+		for (final AvailObject specialAtom : specialAtoms)
+		{
+			if (specialAtom.equals(atom))
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -285,17 +327,18 @@ public final class AvailRuntime
 		specialObjects[78] = InfinityDescriptor.negativeInfinity();
 		specialObjects[79] = InfinityDescriptor.positiveInfinity();
 		specialObjects[80] = PojoTypeDescriptor.mostGeneralType();
-		specialObjects[81] = PojoTypeDescriptor.mostSpecificType();
+		specialObjects[81] = PojoTypeDescriptor.pojoBottom();
 		specialObjects[82] = PojoDescriptor.nullObject();
-		specialObjects[83] = PojoSelfTypeDescriptor.selfType();
-		specialObjects[84] = PojoTypeDescriptor.meta();
+		specialObjects[83] = PojoTypeDescriptor.selfType();
+		specialObjects[84] = InstanceTypeDescriptor.on(
+			PojoTypeDescriptor.mostGeneralType());
 		specialObjects[85] = InstanceTypeDescriptor.on(
 			PojoTypeDescriptor.mostGeneralArrayType());
 		specialObjects[86] = FunctionTypeDescriptor.forReturnType(
 			PojoTypeDescriptor.mostGeneralType());
-		// 87
-		// 88
-		// 89
+		specialObjects[87] = PojoTypeDescriptor.mostGeneralArrayType();
+		specialObjects[88] = PojoTypeDescriptor.selfAtom();
+		specialObjects[89] = PojoTypeDescriptor.forClass(Throwable.class);
 		specialObjects[90] = FunctionTypeDescriptor.create(
 			TupleDescriptor.from(),
 			TOP.o());
@@ -368,12 +411,19 @@ public final class AvailRuntime
 			DoubleDescriptor.fromDouble(Math.E));
 		specialObjects[113] = InstanceTypeDescriptor.on(
 			PARSE_NODE.mostGeneralType());
+		specialObjects[114] = SetTypeDescriptor.setTypeForSizesContentType(
+			IntegerRangeTypeDescriptor.wholeNumbers(),
+			ATOM.o());
 
 		for (final AvailObject object : specialObjects)
 		{
 			if (object != null)
 			{
 				object.makeImmutable();
+				if (object.isAtom())
+				{
+					specialAtoms.add(object);
+				}
 			}
 		}
 	}
@@ -383,6 +433,7 @@ public final class AvailRuntime
 	 */
 	public static void clearWellKnownObjects ()
 	{
+		specialAtoms.clear();
 		for (int i = 0; i < specialObjects.length; i++)
 		{
 			specialObjects[i] = null;

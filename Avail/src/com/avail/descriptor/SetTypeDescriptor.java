@@ -89,20 +89,32 @@ extends TypeDescriptor
 		final @NotNull List<AvailObject> recursionList,
 		final int indent)
 	{
-		aStream.append("set");
-		if (!object.sizeRange().equals(IntegerRangeTypeDescriptor.wholeNumbers()))
+		if (object.contentType().equals(ANY.o())
+			&& object.sizeRange().equals(
+				IntegerRangeTypeDescriptor.wholeNumbers()))
 		{
-			aStream.append(" ");
-			object.sizeRange().printOnAvoidingIndent(
-				aStream,
-				recursionList,
-				(indent + 1));
+			aStream.append("set");
+			return;
 		}
-		aStream.append(" of ");
+		aStream.append('{');
 		object.contentType().printOnAvoidingIndent(
-			aStream,
-			recursionList,
-			(indent + 1));
+			aStream, recursionList, indent + 1);
+		aStream.append('|');
+		final AvailObject sizeRange = object.sizeRange();
+		if (sizeRange.equals(IntegerRangeTypeDescriptor.wholeNumbers()))
+		{
+			aStream.append('}');
+			return;
+		}
+		sizeRange.lowerBound().printOnAvoidingIndent(
+			aStream, recursionList, indent + 1);
+		if (!sizeRange.lowerBound().equals(sizeRange.upperBound()))
+		{
+			aStream.append("..");
+			sizeRange.upperBound().printOnAvoidingIndent(
+				aStream, recursionList, indent + 1);
+		}
+		aStream.append('}');
 	}
 
 	@Override @AvailMethod

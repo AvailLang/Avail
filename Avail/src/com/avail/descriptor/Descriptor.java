@@ -1998,7 +1998,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	short o_ExtractByte (
+	short o_ExtractUnsignedByte (
 		final @NotNull AvailObject object)
 	{
 		throw unsupportedOperationException();
@@ -2415,13 +2415,6 @@ extends AbstractDescriptor
 
 	@Override
 	@NotNull AvailObject o_ProcessGlobals (
-		final @NotNull AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	void o_ReleaseVariableOrMakeContentsImmutable (
 		final @NotNull AvailObject object)
 	{
 		throw unsupportedOperationException();
@@ -3093,7 +3086,7 @@ extends AbstractDescriptor
 
 
 	@Override
-	boolean o_IsByte (
+	boolean o_IsUnsignedByte (
 		final @NotNull AvailObject object)
 	{
 		return false;
@@ -4063,14 +4056,14 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_IsShort (
+	boolean o_IsUnsignedShort (
 		final @NotNull AvailObject object)
 	{
 		return false;
 	}
 
 	@Override
-	int o_ExtractShort (
+	int o_ExtractUnsignedShort (
 		final @NotNull AvailObject object)
 	{
 		throw unsupportedOperationException();
@@ -4364,6 +4357,170 @@ extends AbstractDescriptor
 	@Override
 	AvailObject o_IssuingModule (
 		final @NotNull AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	boolean o_IsPojoFusedType (final @NotNull AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	boolean o_IsSupertypeOfPojoBottomType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aPojoType)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	boolean o_EqualsPojoBottomType (final @NotNull AvailObject object)
+	{
+		return false;
+	}
+
+	@Override
+	@NotNull AvailObject o_JavaAncestors (final @NotNull AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	/**
+	 * @param object
+	 * @param aFusedPojoType
+	 * @return
+	 */
+	@NotNull AvailObject o_TypeIntersectionOfPojoFusedType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aFusedPojoType)
+	{
+		throw unsupportedOperationException();
+	}
+
+	/**
+	 * @param object
+	 * @param anUnfusedPojoType
+	 * @return
+	 */
+	@NotNull AvailObject o_TypeIntersectionOfPojoUnfusedType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anUnfusedPojoType)
+	{
+		throw unsupportedOperationException();
+	}
+
+
+	/**
+	 * @param object
+	 * @param aFusedPojoType
+	 * @return
+	 */
+	@NotNull AvailObject o_TypeUnionOfPojoFusedType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aFusedPojoType)
+	{
+		throw unsupportedOperationException();
+	}
+
+
+	/**
+	 * @param object
+	 * @param anUnfusedPojoType
+	 * @return
+	 */
+	@NotNull AvailObject o_TypeUnionOfPojoUnfusedType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anUnfusedPojoType)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	boolean o_IsPojoArrayType (final @NotNull AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	Object o_MarshalToJava (
+		final @NotNull AvailObject object,
+		final Class<?> ignoredClassHint)
+	{
+		// Treat AvailObjects as opaque for most purposes. Pass them to Java
+		// unmarshaled.
+		return object;
+	}
+
+	@Override
+	@NotNull AvailObject o_TypeVariables (final @NotNull AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	boolean o_EqualsPojoField (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject field,
+		final @NotNull AvailObject receiver)
+	{
+		return false;
+	}
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	boolean o_IsSignedByte (final @NotNull AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	boolean o_IsSignedShort (final @NotNull AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	byte o_ExtractSignedByte (final @NotNull AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	short o_ExtractSignedShort (final @NotNull AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	/**
+	 * @param object
+	 * @param aRawPojo
+	 * @return
+	 */
+	boolean o_EqualsEqualityRawPojo (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aRawPojo)
+	{
+		return false;
+	}
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	Object o_JavaObject (final @NotNull AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}

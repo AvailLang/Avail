@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.01.26 14:40:33.109 -0600
+ * * Last Generated On: 2012.02.22 22:49:58.367 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -94,7 +94,6 @@ Uses
 		"_-_",
 		"_<_",
 		"_=_",
-		"_[]",
 		"_[_]",
 		"_[_]:=_",
 		"_[_]→_",
@@ -129,9 +128,11 @@ Uses
 		"ln_",
 		"milliseconds since the Epoch",
 		"new atom_",
+		"new_[_]",
 		"new_applying_",
 		"new↑_",
 		"primitive description of_",
+		"special atoms",
 		"{_|_}",
 		"{_→_|_}",
 		"|_'s local variables|",
@@ -1409,55 +1410,17 @@ Method "_'s name" is
 ] : string;
 
 /**
- * Does `anAtom` have a property whose key is `key`?
+ * Answer a set containing all atoms well-known to the Avail virtual machine.
+ * These atoms cannot serve as properties, nor have properties added, queried,
+ * modified, or removed.
  *
- * Parameters:
- *    anAtom - An atom.
- *    key - The property key.
  * Returns:
- *    `true` if `anAtom` has a property whose key is `key`, `false` otherwise.
+ *    The special atoms.
  */
-Method "_∈_" is
+Method "special atoms" is
 [
-	anAtom : atom,
-	key : atom
-|
-	Primitive 122;
-] : boolean;
-
-/**
- * For `anAtom`, establish a property binding from `key` to `value`.
- * Any previous property binding for `key` is replaced.
- *
- * Parameters:
- *    anAtom - An atom.
- *    key - The property key.
- *    value - The property value.
- */
-Method "_[_]:=_" is
-[
-	anAtom : atom,
-	key : atom,
-	value : any
-|
-	Primitive 124;
-] : ⊤;
-
-/**
- * If `anAtom` has a property whose key is `key`, then remove the property.
- * Otherwise do nothing.
- *
- * Parameters:
- *    anAtom - An atom.
- *    key - A property key.
- */
-Method "_-_" is
-[
-	anAtom : atom,
-	key : atom
-|
-	Primitive 125;
-] : ⊤;
+	Primitive 126;
+] : set of atom;
 
 /**
  * Answer the cardinality of the specified tuple.
@@ -2141,17 +2104,53 @@ Method "_→_" is
 ] : phrase meta;
 
 /**
- * Construct and answer a pojo array type parameterized by the argument.
+ * Construct and answer a pojo array type whose element type is `elementType`
+ * and whose cardinality requirement is `cardinalityRequirement`.
  *
  * Parameters:
- *    aType - A type.
+ *    elementType - The type of the elements of instances.
+ *    cardinalityRequirement - The range of sizes of instances.
  * Returns:
  *    The requested pojo array type.
  */
-Method "_[]" is
+Method "_[_]" is
 [
-	aType : type
+	elementType : type,
+	cardinalityRequirement : whole number meta
 |
 	Primitive 501;
-] : pojo[]meta;
+] : pojo array meta;
+
+/**
+ * Compute and answer a pojo array with the specified element type and length.
+ *
+ * Parameters:
+ *    elementType - The element type.
+ *    length - The number of elements.
+ * Returns:
+ *    A new pojo array that can store and answer `length` elements conforming
+ *    to `elementType`.
+ */
+Method "new_[_]" is
+[
+	elementType : type,
+	length : whole number
+|
+	Primitive 510;
+] : pojo array;
+
+/**
+ * Answer the number of elements contained by the specified pojo array.
+ *
+ * Parameters:
+ *    anArray - A pojo array.
+ * Returns:
+ *    The size of the argument.
+ */
+Method "|_|" is
+[
+	anArray : pojo array
+|
+	Primitive 511;
+] : whole number;
 

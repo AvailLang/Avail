@@ -69,9 +69,9 @@ extends Descriptor
 	 */
 	public static void createWellKnownObjects ()
 	{
-		nullObject = create(
+		nullObject = newPojo(
 			RawPojoDescriptor.rawNullObject(),
-			PojoTypeDescriptor.mostSpecificType());
+			PojoTypeDescriptor.pojoBottom());
 	}
 
 	/**
@@ -156,6 +156,14 @@ extends Descriptor
 		return object;
 	}
 
+	@Override
+	Object o_MarshalToJava (
+		final @NotNull AvailObject object,
+		final Class<?> ignoredClassHint)
+	{
+		return object.slot(RAW_POJO).javaObject();
+	}
+
 	@Override @AvailMethod
 	@NotNull AvailObject o_RawPojo (final @NotNull AvailObject object)
 	{
@@ -169,8 +177,7 @@ extends Descriptor
 		final @NotNull List<AvailObject> recursionList,
 		final int indent)
 	{
-		builder.append(String.valueOf(RawPojoDescriptor.getPojo(
-			object.slot(RAW_POJO))));
+		builder.append(String.valueOf(object.slot(RAW_POJO).javaObject()));
 		builder.append(" ∈ ");
 		object.slot(KIND).printOnAvoidingIndent(
 			builder, recursionList, indent);
@@ -219,21 +226,19 @@ extends Descriptor
 	/**
 	 * Create a new {@link AvailObject} that wraps the specified {@linkplain
 	 * RawPojoDescriptor raw pojo} and has the specified {@linkplain
-	 * PojoTypeDescriptor pojo kind}.
+	 * PojoTypeDescriptor pojo type}.
 	 *
 	 * @param rawPojo A raw pojo.
-	 * @param pojoKind A pojo kind.
+	 * @param pojoType A pojo type.
 	 * @return The new {@linkplain PojoDescriptor Avail pojo}.
 	 */
-	public static @NotNull AvailObject create (
+	public static @NotNull AvailObject newPojo (
 		final @NotNull AvailObject rawPojo,
-		final @NotNull AvailObject pojoKind)
+		final @NotNull AvailObject pojoType)
 	{
-		assert rawPojo.isRawPojo();
-		assert pojoKind.isSubtypeOf(PojoTypeDescriptor.mostGeneralType());
 		final AvailObject newObject = mutable.create();
 		newObject.setSlot(RAW_POJO, rawPojo);
-		newObject.setSlot(KIND, pojoKind);
+		newObject.setSlot(KIND, pojoType);
 		return newObject.makeImmutable();
 	}
 }

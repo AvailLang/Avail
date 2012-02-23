@@ -33,7 +33,6 @@
 System Module "Early Logic"
 Versions
 	"dev"
-Extends
 Uses
 	"Bootstrap",
 	"Early Control Structures",

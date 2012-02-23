@@ -367,6 +367,13 @@ extends StringDescriptor
 		return SerializerOperation.BYTE_STRING;
 	}
 
+	@Override
+	Object o_MarshalToJava (
+		final @NotNull AvailObject object,
+		final Class<?> ignoredClassHint)
+	{
+		return object.asNativeString();
+	}
 
 	/**
 	 * Answer a mutable copy of the {@linkplain AvailObject receiver} that also

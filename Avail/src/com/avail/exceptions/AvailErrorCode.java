@@ -93,9 +93,10 @@ public enum AvailErrorCode
 
 	/**
 	 * Cannot write an incorrectly typed value into a {@linkplain
-	 * VariableDescriptor variable}.
+	 * VariableDescriptor variable} or {@linkplain PojoTypeDescriptor pojo
+	 * array}.
 	 */
-	E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE_INTO_VARIABLE (7),
+	E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE (7),
 
 	/**
 	 * Cannot swap the contents of two differently typed {@linkplain
@@ -149,9 +150,9 @@ public enum AvailErrorCode
 	E_CANNOT_ORDER_NOT_A_NUMBER (16),
 
 	/**
-	 * Metatypes must only have positive levels (>=1).
+	 * TODO: Recycle!
 	 */
-//	E_NONPOSITIVE_METATYPE_LEVEL (**),
+//	E_??? (17),
 
 	/**
 	 * A user-defined {@linkplain ObjectTypeDescriptor object type} has no
@@ -234,10 +235,9 @@ public enum AvailErrorCode
 	E_TYPE_RESTRICTION_MUST_ACCEPT_ONLY_TYPES (31),
 
 	/**
-	 *
-	 * ******* Unused entry, please recycle, save the planet  *******
+	 * TODO: Recycle!
 	 */
-//	E_UNUSED_ENTRY,
+//	E_??? (32),
 
 	/**
 	 * A {@linkplain AvailRuntime#specialObject(int) special object} number is
@@ -289,6 +289,12 @@ public enum AvailErrorCode
 	E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS (40),
 
 	/**
+	 * A {@linkplain AvailRuntime#specialAtoms() special atom} was supplied
+	 * where forbidden.
+	 */
+	E_SPECIAL_ATOM (41),
+
+	/**
 	 * A Java {@linkplain Class class} specified by name was either not found by
 	 * the runtime system or not available for reflection.
 	 */
@@ -303,15 +309,45 @@ public enum AvailErrorCode
 
 	/**
 	 * The indicated Java {@linkplain Method method} or {@linkplain Constructor
-	 * constructor} does not exist.
+	 * constructor} is not visible or does not exist.
 	 */
-	E_JAVA_METHOD_DOES_NOT_EXIST (503),
+	E_JAVA_METHOD_NOT_AVAILABLE (502),
 
 	/**
-	 * A reflected Java {@linkplain Constructor constructor} failed to produce
-	 * a new instance for some reason.
+	 * TODO: Recycle!
 	 */
-	E_JAVA_CONSTRUCTOR_FAILED (503);
+//	E_??? (503),
+
+	/**
+	 * Marshaling an {@linkplain AvailObject Avail object} to a Java counterpart
+	 * failed.
+	 */
+	E_JAVA_MARSHALING_FAILED (504),
+
+	/**
+	 * The indicated Java {@linkplain Field field} is not visible or does not
+	 * exist.
+	 */
+	E_JAVA_FIELD_NOT_AVAILABLE (505),
+
+	/**
+	 * A reference to a {@linkplain Field Java field} is not uniquely
+	 * resolvable for the given {@linkplain PojoTypeDescriptor pojo type}.
+	 */
+	E_JAVA_FIELD_REFERENCE_IS_AMBIGUOUS (506),
+
+	/**
+	 * An attempt was made to modify a {@linkplain Modifier#isFinal(int) final}
+	 * {@linkplain Field Java field}.
+	 */
+	E_CANNOT_MODIFY_FINAL_JAVA_FIELD (507),
+
+	/**
+	 * A reference to a {@linkplain Method Java method} is not uniquely
+	 * resolvable for the given {@linkplain PojoTypeDescriptor pojo type} and
+	 * parameter {@linkplain TypeDescriptor types}.
+	 */
+	E_JAVA_METHOD_REFERENCE_IS_AMBIGUOUS (508);
 
 	/** The numeric error code. */
 	private final int code;

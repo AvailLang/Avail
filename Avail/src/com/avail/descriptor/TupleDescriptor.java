@@ -691,7 +691,7 @@ extends Descriptor
 	{
 		for (int i = object.tupleSize(); i >= 1; i--)
 		{
-			if (!object.tupleAt(i).isByte())
+			if (!object.tupleAt(i).isUnsignedByte())
 			{
 				return false;
 			}
@@ -713,7 +713,6 @@ extends Descriptor
 				return false;
 			}
 		}
-
 		return true;
 	}
 
@@ -922,6 +921,18 @@ extends Descriptor
 				throw new UnsupportedOperationException();
 			}
 		};
+	}
+
+	@Override
+	Object o_MarshalToJava (
+		final @NotNull AvailObject object,
+		final Class<?> ignoredClassHint)
+	{
+		if (object.isString())
+		{
+			return object.asNativeString();
+		}
+		return super.o_MarshalToJava(object, ignoredClassHint);
 	}
 
 	/**

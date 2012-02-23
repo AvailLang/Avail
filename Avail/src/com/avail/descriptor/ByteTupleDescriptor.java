@@ -113,7 +113,7 @@ extends TupleDescriptor
 					i <= end;
 					i++)
 			{
-				final short val = object.tupleAt(i).extractByte();
+				final short val = object.tupleAt(i).extractUnsignedByte();
 				aStream.append(Integer.toHexString(val >> 4));
 				aStream.append(Integer.toHexString(val & 15));
 				if (i % 4 == 0)
@@ -322,7 +322,7 @@ extends TupleDescriptor
 		// Set the byte at the given index to the given object (which should be
 		// an AvailObject that's an integer 0<=n<=255.
 		assert index >= 1 && index <= object.tupleSize();
-		final short theByte = aByteObject.extractByte();
+		final short theByte = aByteObject.extractUnsignedByte();
 		object.byteSlotAtPut(IntegerSlots.RAW_QUAD_AT_, index, theByte);
 	}
 
@@ -338,7 +338,7 @@ extends TupleDescriptor
 		// tuple if canDestroy is true.
 
 		assert index >= 1 && index <= object.tupleSize();
-		if (!newValueObject.isByte())
+		if (!newValueObject.isUnsignedByte())
 		{
 			return object.copyAsMutableObjectTuple().tupleAtPuttingCanDestroy(
 				index,
@@ -353,7 +353,7 @@ extends TupleDescriptor
 				true);
 		}
 		// Clobber the object in place...
-		object.rawByteAtPut(index, newValueObject.extractByte());
+		object.rawByteAtPut(index, newValueObject.extractUnsignedByte());
 		object.hashOrZero(0);
 		//  ...invalidate the hash value.
 		return object;

@@ -73,15 +73,15 @@ public class AvailScanner
 	List<AvailObject> outputTokens;
 
 	/**
-	 * Whether to stop scanning after encountering the keyword "Names".
+	 * Whether to stop scanning after encountering the keyword "Body".
 	 */
-	boolean stopAfterNamesToken;
+	boolean stopAfterBodyToken;
 
 	/**
-	 * Whether the "Names" token has already been encountered. Only set if
-	 * {@link #stopAfterNamesToken} is set.
+	 * Whether the BODY token has already been encountered. Only set if
+	 * {@link #stopAfterBodyToken} is set.
 	 */
-	boolean encounteredNamesToken;
+	boolean encounteredBodyToken;
 
 	/**
 	 * Alter the scanner's position in the input String.
@@ -636,11 +636,11 @@ public class AvailScanner
 				}
 				final AvailObject token =
 					scanner.addCurrentToken(TokenType.KEYWORD);
-				if (scanner.stopAfterNamesToken
+				if (scanner.stopAfterBodyToken
 					&& token.string().equals(
-						AbstractAvailCompiler.ExpectedToken.NAMES.lexeme()))
+						AbstractAvailCompiler.ExpectedToken.BODY.lexeme()))
 				{
-					scanner.encounteredNamesToken = true;
+					scanner.encounteredBodyToken = true;
 				}
 			}
 		},
@@ -824,22 +824,21 @@ public class AvailScanner
 	 * @param string
 	 *            The text of an Avail {@linkplain ModuleDescriptor module} (or
 	 *            at least the prefix up to the <em>Names</em> token).
-	 * @param stopAfterNamesTokenFlag
+	 * @param stopAfterBodyTokenFlag
 	 *            Stop scanning after encountering the <em>Names</em> token?
 	 * @return A {@linkplain List list} of {@linkplain TokenDescriptor tokens}
 	 *         terminated by a token of type {@link TokenType#END_OF_FILE}.
 	 */
-	public @NotNull
-	List<AvailObject> scanString (
+	public @NotNull List<AvailObject> scanString (
 		final @NotNull String string,
-		final boolean stopAfterNamesTokenFlag)
+		final boolean stopAfterBodyTokenFlag)
 	{
 		inputString = string;
 		position = 0;
 		lineNumber = 1;
 		outputTokens = new ArrayList<AvailObject>(100);
-		stopAfterNamesToken = stopAfterNamesTokenFlag;
-		while (!(stopAfterNamesToken ? encounteredNamesToken : atEnd()))
+		stopAfterBodyToken = stopAfterBodyTokenFlag;
+		while (!(stopAfterBodyToken ? encounteredBodyToken : atEnd()))
 		{
 			startOfToken = position;
 			final int c = next();

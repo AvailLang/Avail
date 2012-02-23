@@ -665,15 +665,15 @@ public class MapDescriptor extends Descriptor
 		assert tupleOfBindings.isTuple();
 		AvailObject newMap = EmptyMap;
 		for (final AvailObject binding : tupleOfBindings)
-		 {
-			 assert binding.isTuple();
-			 assert binding.tupleSize() == 2;
-			 newMap = newMap.mapAtPuttingCanDestroy(
-				 binding.tupleAt(1),
-				 binding.tupleAt(2),
-				 true);
-		 }
-		 return newMap;
+		{
+			assert binding.isTuple();
+			assert binding.tupleSize() == 2;
+			newMap = newMap.mapAtPuttingCanDestroy(
+				binding.tupleAt(1),
+				binding.tupleAt(2),
+				true);
+		}
+		return newMap;
 	}
 
 	/**

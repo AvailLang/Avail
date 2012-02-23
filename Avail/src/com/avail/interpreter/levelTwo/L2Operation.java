@@ -653,13 +653,13 @@ public enum L2Operation
 		}
 	},
 
-	L2_doSendAfterFailedPrimitive_argumentsVector_ (
+	L2_doSendAfterFailedPrimitive_arguments_failureValue_ (
 		SELECTOR, READ_VECTOR, READ_POINTER)
 	{
 		@Override
 		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
 		{
-			operationDispatcher.L2_doSendAfterFailedPrimitive_argumentsVector_();
+			operationDispatcher.L2_doSendAfterFailedPrimitive_arguments_failureValue_();
 		}
 	},
 

@@ -37,11 +37,11 @@ import java.util.List;
 import com.avail.annotations.*;
 
 /**
- * A {@code VariableTypeDescriptor variable type} is the {@linkplain TypeDescriptor
- * type} of any {@linkplain VariableDescriptor variable} that can only hold objects
- * having the specified {@linkplain ObjectSlots#INNER_TYPE inner type}. The
- * read and write capabilities of the object instances are equivalent, therefore
- * the inner type is invariant.
+ * A {@code VariableTypeDescriptor variable type} is the {@linkplain
+ * TypeDescriptor type} of any {@linkplain VariableDescriptor variable} that can
+ * only hold objects having the specified {@linkplain ObjectSlots#INNER_TYPE
+ * inner type}. The read and write capabilities of the object instances are
+ * equivalent, therefore the inner type is invariant.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  * @author Todd Smith &lt;anarakul@gmail.com&gt;

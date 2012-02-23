@@ -585,6 +585,14 @@ extends AbstractTypeDescriptor
 		return false;
 	}
 
+	@Override
+	boolean o_IsSupertypeOfPojoBottomType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aPojoType)
+	{
+		return false;
+	}
+
 	@Override @AvailMethod
 	abstract AvailObject o_KeyType (
 		final @NotNull AvailObject object);

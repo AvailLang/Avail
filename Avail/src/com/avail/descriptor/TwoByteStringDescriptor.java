@@ -353,6 +353,14 @@ extends StringDescriptor
 		return hash * Multiplier;
 	}
 
+	@Override
+	Object o_MarshalToJava (
+		final @NotNull AvailObject object,
+		final Class<?> ignoredClassHint)
+	{
+		return object.asNativeString();
+	}
+
 	/**
 	 * Construct a new {@link TwoByteStringDescriptor}.
 	 *

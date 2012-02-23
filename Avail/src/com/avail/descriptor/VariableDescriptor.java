@@ -32,9 +32,9 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.error;
 import java.util.Random;
 import com.avail.annotations.*;
+import com.avail.exceptions.*;
 
 /**
  * My {@linkplain AvailObject object instances} are variables which can hold
@@ -51,7 +51,8 @@ extends Descriptor
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots implements IntegerSlotsEnum
+	public enum IntegerSlots
+	implements IntegerSlotsEnum
 	{
 		/**
 		 * The hash, or zero ({@code 0}) if the hash has not yet been computed.
@@ -62,7 +63,8 @@ extends Descriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	public enum ObjectSlots
+	implements ObjectSlotsEnum
 	{
 		/**
 		 * The {@linkplain AvailObject contents} of the {@linkplain
@@ -161,7 +163,8 @@ extends Descriptor
 		final AvailObject outerKind = object.slot(ObjectSlots.KIND);
 		if (!newValue.isInstanceOf(outerKind.writeType()))
 		{
-			error("variable can't hold that value (wrong type)");
+			throw new VariableSetException(
+				AvailErrorCode.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE);
 		}
 		object.setSlot(ObjectSlots.VALUE, newValue);
 	}
@@ -184,34 +187,10 @@ extends Descriptor
 		final AvailObject value = object.slot(ObjectSlots.VALUE);
 		if (value.equalsNull())
 		{
-			error("variable has no value yet");
-			return NullDescriptor.nullObject();
+			throw new VariableGetException(
+				AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE);
 		}
 		return value;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>
-	 * If I'm mutable, release me.  Otherwise make my contents immutable.  This
-	 * is used when a variable is being read 'for the last time', but it's
-	 * unknown whether the variable has already been shared.
-	 * </p>
-	 */
-	@Override @AvailMethod
-	void o_ReleaseVariableOrMakeContentsImmutable (
-		final @NotNull AvailObject object)
-	{
-		final AvailObject value = object.slot(ObjectSlots.VALUE);
-		if (isMutable)
-		{
-			object.assertObjectUnreachableIfMutableExcept(value);
-		}
-		else
-		{
-			value.makeImmutable();
-		}
 	}
 
 	/**
@@ -254,7 +233,7 @@ extends Descriptor
 	/**
 	 * A random generator used for creating hash values as needed.
 	 */
-	private static Random hashGenerator = new Random();
+	private static final Random hashGenerator = new Random();
 
 	/**
 	 * Construct a new {@link VariableDescriptor}.

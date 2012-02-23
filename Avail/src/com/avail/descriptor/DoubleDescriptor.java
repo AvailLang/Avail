@@ -585,6 +585,13 @@ extends AbstractNumberDescriptor
 		return SerializerOperation.DOUBLE;
 	}
 
+	@Override
+	Object o_MarshalToJava (
+		final @NotNull AvailObject object,
+		final Class<?> ignoredClassHint)
+	{
+		return Double.valueOf(getDouble(object));
+	}
 
 	/**
 	 * Construct an Avail boxed {@linkplain DoubleDescriptor double-precision

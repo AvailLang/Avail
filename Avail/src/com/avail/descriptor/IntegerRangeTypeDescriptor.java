@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
+import java.math.BigInteger;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
@@ -48,11 +49,11 @@ import com.avail.serialization.SerializerOperation;
 public class IntegerRangeTypeDescriptor
 extends TypeDescriptor
 {
-
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	public enum ObjectSlots
+	implements ObjectSlotsEnum
 	{
 		/**
 		 * The extended integer which is the lower bound of this range.  It is
@@ -344,6 +345,36 @@ extends TypeDescriptor
 		final @NotNull AvailObject object)
 	{
 		return SerializerOperation.INTEGER_RANGE_TYPE;
+	}
+
+	@Override
+	Object o_MarshalToJava (
+		final @NotNull AvailObject object,
+		final Class<?> ignoredClassHint)
+	{
+		if (object.isSubtypeOf(PojoTypeDescriptor.byteRange()))
+		{
+			return Byte.TYPE;
+		}
+		else if (object.isSubtypeOf(PojoTypeDescriptor.shortRange()))
+		{
+			return Short.TYPE;
+		}
+		else if (object.isSubtypeOf(PojoTypeDescriptor.intRange()))
+		{
+			return Integer.TYPE;
+		}
+		else if (object.isSubtypeOf(PojoTypeDescriptor.longRange()))
+		{
+			return Long.TYPE;
+		}
+		else if (object.isSubtypeOf(Integers))
+		{
+			return BigInteger.class;
+		}
+		// If the integer range type is something else, then treat the
+		// type as opaque.
+		return super.o_MarshalToJava(object, ignoredClassHint);
 	}
 
 	/**

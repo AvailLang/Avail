@@ -100,7 +100,6 @@ implements Iterable<AvailObject>
 		LiteralNodeDescriptor.createWellKnownObjects();
 		RawPojoDescriptor.createWellKnownObjects();
 		PojoTypeDescriptor.createWellKnownObjects();
-		PojoSelfTypeDescriptor.createWellKnownObjects();
 		PojoDescriptor.createWellKnownObjects();
 		MethodDescriptor.createWellKnownObjects();
 		FloatDescriptor.createWellKnownObjects();
@@ -146,7 +145,6 @@ implements Iterable<AvailObject>
 		LiteralNodeDescriptor.clearWellKnownObjects();
 		RawPojoDescriptor.clearWellKnownObjects();
 		PojoTypeDescriptor.clearWellKnownObjects();
-		PojoSelfTypeDescriptor.clearWellKnownObjects();
 		PojoDescriptor.clearWellKnownObjects();
 		MethodDescriptor.clearWellKnownObjects();
 		FloatDescriptor.clearWellKnownObjects();
@@ -1799,9 +1797,9 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public short extractByte ()
+	public short extractUnsignedByte ()
 	{
-		return descriptor.o_ExtractByte(this);
+		return descriptor.o_ExtractUnsignedByte(this);
 	}
 
 	/**
@@ -2139,9 +2137,9 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public boolean isByte ()
+	public boolean isUnsignedByte ()
 	{
-		return descriptor.o_IsByte(this);
+		return descriptor.o_IsUnsignedByte(this);
 	}
 
 	/**
@@ -3391,14 +3389,6 @@ implements Iterable<AvailObject>
 	public void readBarrierFault ()
 	{
 		descriptor.o_ReadBarrierFault(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public void releaseVariableOrMakeContentsImmutable ()
-	{
-		descriptor.o_ReleaseVariableOrMakeContentsImmutable(this);
 	}
 
 	/**
@@ -5372,17 +5362,17 @@ implements Iterable<AvailObject>
 	/**
 	 * @return
 	 */
-	public boolean isShort ()
+	public boolean isUnsignedShort ()
 	{
-		return descriptor.o_IsShort(this);
+		return descriptor.o_IsUnsignedShort(this);
 	}
 
 	/**
 	 * @return
 	 */
-	public int extractShort ()
+	public int extractUnsignedShort ()
 	{
-		return descriptor.o_ExtractShort(this);
+		return descriptor.o_ExtractUnsignedShort(this);
 	}
 
 	/**
@@ -5635,6 +5625,7 @@ implements Iterable<AvailObject>
 		return descriptor.o_SerializerOperation(this);
 	}
 
+
 	/**
 	 * @param key
 	 * @param keyHash
@@ -5741,5 +5732,170 @@ implements Iterable<AvailObject>
 	public AvailObject issuingModule ()
 	{
 		return descriptor.o_IssuingModule(this);
+	}
+
+
+	/**
+	 * @return
+	 */
+	public boolean isPojoFusedType ()
+	{
+		return descriptor.o_IsPojoFusedType(this);
+	}
+
+	/**
+	 * @param aPojoType
+	 * @return
+	 */
+	public boolean isSupertypeOfPojoBottomType (
+		final @NotNull AvailObject aPojoType)
+	{
+		return descriptor.o_IsSupertypeOfPojoBottomType(this, aPojoType);
+	}
+
+	/**
+	 * @return
+	 */
+	public boolean equalsPojoBottomType ()
+	{
+		return descriptor.o_EqualsPojoBottomType(this);
+	}
+
+	/**
+	 * @return
+	 */
+	public AvailObject javaAncestors ()
+	{
+		return descriptor.o_JavaAncestors(this);
+	}
+
+	/**
+	 * @param aFusedPojoType
+	 * @return
+	 */
+	public AvailObject typeIntersectionOfPojoFusedType (
+		final AvailObject aFusedPojoType)
+	{
+		return descriptor.o_TypeIntersectionOfPojoFusedType(
+			this, aFusedPojoType);
+	}
+
+	/**
+	 * @param aFusedPojoType
+	 * @return
+	 */
+	public AvailObject typeIntersectionOfPojoUnfusedType (
+		final AvailObject anUnfusedPojoType)
+	{
+		return descriptor.o_TypeIntersectionOfPojoUnfusedType(
+			this, anUnfusedPojoType);
+	}
+
+	/**
+	 * @param aFusedPojoType
+	 * @return
+	 */
+	public AvailObject typeUnionOfPojoFusedType (
+		final AvailObject aFusedPojoType)
+	{
+		return descriptor.o_TypeUnionOfPojoFusedType(
+			this, aFusedPojoType);
+	}
+
+	/**
+	 * @param aFusedPojoType
+	 * @return
+	 */
+	public AvailObject typeUnionOfPojoUnfusedType (
+		final AvailObject anUnfusedPojoType)
+	{
+		return descriptor.o_TypeUnionOfPojoUnfusedType(
+			this, anUnfusedPojoType);
+	}
+
+	/**
+	 * @return
+	 */
+	public boolean isPojoArrayType ()
+	{
+		return descriptor.o_IsPojoArrayType(this);
+	}
+
+	/**
+	 * @param classHint
+	 * @return
+	 */
+	public Object marshalToJava (final Class<?> classHint)
+	{
+		return descriptor.o_MarshalToJava(this, classHint);
+	}
+
+	/**
+	 * @return
+	 */
+	public @NotNull AvailObject typeVariables ()
+	{
+		return descriptor.o_TypeVariables(this);
+	}
+
+	/**
+	 * @param field
+	 * @param receiver
+	 * @return
+	 */
+	public boolean equalsPojoField (
+		final @NotNull AvailObject field,
+		final @NotNull AvailObject receiver)
+	{
+		return descriptor.o_EqualsPojoField(this, field, receiver);
+	}
+
+	/**
+	 * @return
+	 */
+	boolean isSignedByte ()
+	{
+		return descriptor.o_IsSignedByte(this);
+	}
+
+	/**
+	 * @return
+	 */
+	boolean isSignedShort ()
+	{
+		return descriptor.o_IsSignedShort(this);
+	}
+
+	/**
+	 * @return
+	 */
+	byte extractSignedByte ()
+	{
+		return descriptor.o_ExtractSignedByte(this);
+	}
+
+	/**
+	 * @return
+	 */
+	short extractSignedShort ()
+	{
+		return descriptor.o_ExtractSignedShort(this);
+	}
+
+	/**
+	 * @param aRawPojo
+	 * @return
+	 */
+	public boolean equalsEqualityRawPojo (final @NotNull AvailObject aRawPojo)
+	{
+		return descriptor.o_EqualsEqualityRawPojo(this, aRawPojo);
+	}
+
+	/**
+	 * @return
+	 */
+	public Object javaObject ()
+	{
+		return descriptor.o_JavaObject(this);
 	}
 }

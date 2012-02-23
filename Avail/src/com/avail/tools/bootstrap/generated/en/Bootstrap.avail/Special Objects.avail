@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.01.26 14:40:33.083 -0600
+ * * Last Generated On: 2012.02.22 22:49:58.331 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -99,7 +99,6 @@ Names
 	/*  97 */ "non-empty map",
 	/*  99 */ "non-empty set",
 	/*  81 */ "null",
-	/*  82 */ "null type",
 	/*  90 */ "nullary procedure",
 	/*  16 */ "number",
 	/* 101 */ "nybble",
@@ -108,17 +107,22 @@ Names
 	/*  50 */ "phrase",
 	/* 113 */ "phrase meta",
 	/*  80 */ "pojo",
+	/*  87 */ "pojo array",
+	/*  85 */ "pojo array meta",
 	/*  86 */ "pojo constructor",
+	/*  89 */ "pojo exception",
 	/*  84 */ "pojo meta",
-	/*  85 */ "pojo[]meta",
+	/*  88 */ "pojo self",
+	/*  83 */ "pojo self type",
+	/*  82 */ "pojo⊥",
 	/*  91 */ "predicate function",
 	/*  76 */ "primitive failure function",
 	/*  68 */ "primitive failure reason",
-	/*  83 */ "self type",
 	/* 107 */ "semantic restriction function",
 	/*  57 */ "send",
 	/*  26 */ "set",
 	/*  27 */ "set meta",
+	/* 114 */ "set of atom",
 	/*  75 */ "set of string",
 	/*  41 */ "signature",
 	/*  28 */ "string",
@@ -228,11 +232,14 @@ _negative_infinity                      ::= special object 78;
 _positive_infinity                      ::= special object 79;
 _pojo                                   ::= special object 80;
 _null                                   ::= special object 81;
-_null_type                              ::= special object 82;
-_self_type                              ::= special object 83;
+_pojo_bottom                            ::= special object 82;
+_pojo_self_type                         ::= special object 83;
 _pojo_meta                              ::= special object 84;
 _pojo_array_meta                        ::= special object 85;
 _pojo_constructor                       ::= special object 86;
+_pojo_array                             ::= special object 87;
+_pojo_self                              ::= special object 88;
+_pojo_exception                         ::= special object 89;
 _nullary_procedure                      ::= special object 90;
 _predicate_function                     ::= special object 91;
 _continuation_variable                  ::= special object 92;
@@ -257,6 +264,7 @@ _type_of_two                            ::= special object 110;
 _Euler_number                           ::= special object 111;
 _type_of_Euler_number                   ::= special object 112;
 _phrase_meta                            ::= special object 113;
+_set_of_atom                            ::= special object 114;
 
 Method "any" is
 [
@@ -646,14 +654,14 @@ Method "null" is
 	_null;
 ];
 
-Method "null type" is
+Method "pojo⊥" is
 [
-	_null_type;
+	_pojo_bottom;
 ];
 
-Method "self type" is
+Method "pojo self type" is
 [
-	_self_type;
+	_pojo_self_type;
 ];
 
 Method "pojo meta" is
@@ -661,7 +669,7 @@ Method "pojo meta" is
 	_pojo_meta;
 ];
 
-Method "pojo[]meta" is
+Method "pojo array meta" is
 [
 	_pojo_array_meta;
 ];
@@ -669,6 +677,21 @@ Method "pojo[]meta" is
 Method "pojo constructor" is
 [
 	_pojo_constructor;
+];
+
+Method "pojo array" is
+[
+	_pojo_array;
+];
+
+Method "pojo self" is
+[
+	_pojo_self;
+];
+
+Method "pojo exception" is
+[
+	_pojo_exception;
 ];
 
 Method "nullary procedure" is
@@ -789,5 +812,10 @@ Method "type of Euler number" is
 Method "phrase meta" is
 [
 	_phrase_meta;
+];
+
+Method "set of atom" is
+[
+	_set_of_atom;
 ];
 

@@ -43,9 +43,11 @@ Names
 	"null type",
 	"null",
 	"self type",
+	"pojo[]",
 
 	"Java type_parameters_",
 	"Java type_",
+	"Java_[_]",
 	"Java_[]",
 
 	"jbyte",
@@ -53,7 +55,14 @@ Names
 	"jint",
 	"jlong",
 
-	"constructor of_given_"
+	"constructor of_given_",
+
+	"new_[_]",
+	"_.length",
+	"_._",
+
+	"method_._(«_‡,»)",
+	"static method_._(«_‡,»)"
 Body
 
 privatePojo ::= Special Object 80;
@@ -92,9 +101,24 @@ Method "self type" is
 	privateSelfObject;
 ] : privateSelfObject type;
 
+privatePojoArrayType ::= Special Object 87;
+
+Method "pojo[]" is
+[
+	privatePojoArrayType;
+];
+
 "Java Class Not Available" is explicit subtype of Exception;
+"Java Class Is Abstract" is explicit subtype of Exception;
 "Incorrect Number of Java Type Parameters" is explicit subtype of Exception;
 "Incorrect Java Type Parameter" is explicit subtype of Exception;
+"Marshaling Failure" is explicit subtype of Exception;
+"Array Subscript Out Of Bounds" is explicit subtype of Exception;
+"Cannot Store Incorrectly Typed Value" is explicit subtype of Exception;
+"Java Field Not Available" is explicit subtype of Exception;
+"Java Field Reference Is Ambiguous" is explicit subtype of Exception;
+"Java Method Not Available" is explicit subtype of Exception;
+"Java Method Reference Is Ambiguous" is explicit subtype of Exception;
 
 Method "⊶Java type_parameters_" is
 [
@@ -214,12 +238,22 @@ Restriction "Java type_" is
 	Assert jInteger <= jComparableOfComparableOfObject;
 ]();
 
+{"Java_"} can't have <{"_[_]"}>;
+
+Method "Java_[_]" is
+[
+	aType : type,
+	sizeRange : whole number type
+|
+	Primitive 501;
+] : pojo[] type;
+
 Method "Java_[]" is
 [
 	aType : type
 |
-	Primitive 501;
-] : pojo type;
+	Java aType [whole number];
+];
 
 Restriction "Java_[]" is
 [
@@ -249,7 +283,12 @@ Method "constructor of_given_" is
 	argTypes : tuple of type
 |
 	Primitive 502 (failureCode : whole number);
-	Crash "Yikes!";
+	if failureCode = 501 then
+	[
+		Raise Java Class Is Abstract with aPojoType;
+	];
+	Assert failureCode = 502;
+	Raise Java Method Not Available with <aPojoType, argTypes>;
 ] : [...]->pojo;
 
 Restriction "constructor of_given_" is
@@ -289,13 +328,295 @@ Method "jlong" is [ [-2^63..2^63); ];
 	jObjectC ::= constructor of pojo given <>;
 	o ::= jObjectC();
 	Print o;
+	Print "\n";
 	jStringC ::= constructor of Java type "java.lang.String" given <string>;
 	o2 ::= jStringC("Hello, Java!");
 	Print o2;
+	Print "\n";
 	jList ::= Java type "java.util.ArrayList" parameters <jint>;
 	jListC ::= constructor of jList given <jint>;
 	o3 ::= jListC(100);
 	Print o3;
+	Print "\n";
 	jEnum ::= Java type "java.lang.Enum" parameters <self type>;
 	Print jEnum;
+	Print "\n";
+]();
+
+Method "new_[_]" is
+[
+	elementType : type,
+	sizeRange : whole number
+|
+	Primitive 510;
+] : pojo[];
+
+Restriction "new_[_]" is
+[
+	elementType : type type,
+	sizeRange : whole number type
+|
+	contentEnum ::= cast elementType into [ x : enum | x; ];
+	contentType ::= cast contentEnum instance into [ t : type | t; ];
+	lower ::= cast sizeRange lower bound into [ b : whole number | b; ];
+	upper ::= cast sizeRange upper bound into [ b : whole number | b; ];
+	Java contentType [[lower .. upper+1)];
+];
+
+Method "_.length" is
+[
+	array : pojo[]
+|
+	Primitive 511;
+] : whole number;
+
+Method "_[_]" is
+[
+	array : pojo[],
+	index : natural number
+|
+	Primitive 512 (failureCode : natural number);
+	if failureCode = 10 then
+	[
+		Raise Array Subscript Out Of Bounds with index;
+	];
+	Assert failureCode = 504;
+	Raise Marshaling Failure with <array, index>;
+] : any;
+
+Method "_[_]:=_" is
+[
+	array : pojo[],
+	index : natural number,
+	value : any
+|
+	Primitive 513 (failureCode : natural number);
+	if failureCode = 7 then
+	[
+		Raise Cannot Store Incorrectly Typed Value with <array, index, value>;
+	];
+	if failureCode = 10 then
+	[
+		Raise Array Subscript Out Of Bounds with index;
+	];
+	Assert failureCode = 504;
+	Raise Marshaling Failure with <array, index>;
+] : void;
+
+[
+	Print "\n";
+	array ::= new any[10];
+	Print array;
+	Print "\n";
+	array[1] := (constructor of pojo given <>)();
+	array[2] := "foo";
+	array[3] := 5;
+	array[6] := new atom "bar";
+	array[7] := <1, 2, 3>;
+	array[8] := {5, 9, 13};
+	length ::= cast array.length into [ t : 10 type | t; ];
+	From 1 to length by 1 do
+	[
+		i : integer
+	|
+		index ::= cast i into [ x : [1..10] | x; ];
+		Print "array["
+			then i as basic string
+			then "] = "
+			then array[index] as basic string
+			then "\n";
+	];
+]();
+
+Method "_._" is
+[
+	p : pojo,
+	fieldName : string
+|
+	Primitive 504 (failureCode : natural number);
+	Assert failureCode = 505;
+	Raise Java Field Not Available with <p, fieldName>;
+] : container;
+
+Method "_._" is
+[
+	pT : pojo type,
+	fieldName : string
+|
+	Primitive 505 (failureCode : natural number);
+	if failureCode = 500 then
+	[
+		Raise Java Class Not Available with pT;
+	];
+	if failureCode = 505 then
+	[
+		Raise Java Field Not Available with <pT, fieldName>;
+	];
+	Assert failureCode = 506;
+	Raise Java Field Reference Is Ambiguous with <pT, fieldName>;
+] : container;
+
+[
+	pointT ::= Java type "java.awt.Point";
+	pointC ::= constructor of pointT given <jint, jint>;
+	point ::= pointC(10, 20);
+	Print "\npoint = " then point as basic string then "\n";
+	pointX ::= cast point."x" into [ x : &:jint | x; ];
+	pointY ::= cast point."y" into [ y : &:jint | y; ];
+	Print "point.x = " then (*pointX) as basic string then "\n";
+	Print "point.y = " then (*pointY) as basic string then "\n";
+	*pointX := 15;
+	*pointY := 30;
+	Print "\npoint = " then point as basic string then "\n";
+	Print "point.x = " then (*pointX) as basic string then "\n";
+	Print "point.y = " then (*pointY) as basic string then "\n";
+]();
+
+[
+	modifierT ::= Java type "java.lang.reflect.Modifier";
+	field ::= cast modifierT."STATIC" into [ x : &:jint | x; ];
+	Assert *field = 8;
+	fusedT ::= type intersection of
+		modifierT and Java type "java.io.Serializable";
+	fusedFieldT ::= cast fusedT."STATIC" into [ x : &:jint | x; ];
+	Assert *fusedFieldT = 8;
+]();
+
+Method "private method_._(_)" is
+[
+	pT : pojo type,
+	methodName : string,
+	paramTypes : tuple of type
+|
+	Primitive 506 (failureCode : natural number);
+	if failureCode = 502 then
+	[
+		Raise Java Method Not Available with <pT, methodName, paramTypes>;
+	];
+	Assert failureCode = 508;
+	Raise Java Method Reference Is Ambiguous with <pT, methodName, paramTypes>;
+] : [...]->void;
+
+Method "method_._(«_‡,»)" is
+[
+	pT : pojo type,
+	methodName : string,
+	paramTypes : tuple of type
+|
+	private method pT.methodName (paramTypes);
+] : [...]->void;
+
+Restriction "method_._(«_‡,»)" is
+[
+	pT : pojo type type,
+	mT : string type,
+	paramT : (tuple of type) type
+|
+	p ::= pT instance;
+	mEnum ::= cast mT into [ x : enum | x; ];
+	methodName ::= cast mEnum instance into [ s : string | s; ];
+	paramTypesSize ::= cast paramT sizes upper bound into
+		[ b : whole number | b; ];
+	args : tuple of type := <>;
+	From 1 to paramTypesSize do [i : natural number |
+		argType ::= cast paramT[i] into [ x : enum | x; ]
+			otherwise [
+				Fail parse
+					"argument type "
+					then i as basic string
+					then " is not statically known"; ];
+		arg ::= cast argType instance into [ t : type | t; ];
+		args := args then <arg>;
+	];
+	(private method p.methodName (args)) type;
+];
+
+Method "private static method_._(_)" is
+[
+	pT : pojo type,
+	methodName : string,
+	paramTypes : tuple of type
+|
+	Primitive 508 (failureCode : natural number);
+	if failureCode = 502 then
+	[
+		Raise Java Method Not Available with <pT, methodName, paramTypes>;
+	];
+	Assert failureCode = 508;
+	Raise Java Method Reference Is Ambiguous with <pT, methodName, paramTypes>;
+] : [...]->void;
+
+Method "static method_._(«_‡,»)" is
+[
+	pT : pojo type,
+	methodName : string,
+	paramTypes : tuple of type
+|
+	private static method pT.methodName (paramTypes);
+] : [...]->void;
+
+Restriction "static method_._(«_‡,»)" is
+[
+	pT : pojo type type,
+	mT : string type,
+	paramT : (tuple of type) type
+|
+	p ::= pT instance;
+	mEnum ::= cast mT into [ x : enum | x; ];
+	methodName ::= cast mEnum instance into [ s : string | s; ];
+	paramTypesSize ::= cast paramT sizes upper bound into
+		[ b : whole number | b; ];
+	args : tuple of type := <>;
+	From 1 to paramTypesSize do [i : natural number |
+		argType ::= cast paramT[i] into [ x : enum | x; ]
+			otherwise [
+				Fail parse
+					"argument type "
+					then i as basic string
+					then " is not statically known"; ];
+		arg ::= cast argType instance into [ t : type | t; ];
+		args := args then <arg>;
+	];
+	(private static method p.methodName (args)) type;
+];
+
+[
+	pointT ::= Java type "java.awt.Point";
+	pointC ::= constructor of pointT given <jint, jint>;
+	dimT ::= Java type "java.awt.Dimension";
+	dimC ::= constructor of dimT given <jint, jint>;
+	rectT ::= Java type "java.awt.Rectangle";
+	rectC ::= constructor of rectT given <pointT, dimT>;
+	rect ::= rectC(pointC(10, 50), dimC(5, 3));
+	Print "\nrect = " then rect as basic string then "\n";
+	hashCodeF ::= method pojo."hashCode" ();
+	Print "rect.hashCode() = " then hashCodeF(rect) as basic string then "\n";
+	rect2 ::= rectC(pointC(20, 0), dimC(3, 5));
+	Print "rect2 = " then rect2 as basic string then "\n";
+	Print "rect2.hashCode() = " then hashCodeF(rect2) as basic string then "\n";
+	addF ::= method rectT."add" (rectT);
+	addF(rect, rect2);
+	Print "rect.add(rect2) = " then rect as basic string then "\n";
+]();
+
+[
+	arraylistT ::= Java type "java.util.ArrayList" parameters <jint>;
+	listC ::= constructor of arraylistT given <>;
+	list ::= listC();
+	addF ::= method arraylistT."add" (any);
+	Print "\nlist = " then list as basic string then "\n";
+	Discard addF(list, 10);
+	Discard addF(list, 20);
+	Discard addF(list, 30);
+	Print "list = " then list as basic string then "\n";
+	list2 ::= listC();
+	Discard addF(list2, -20);
+	Discard addF(list2, -40);
+	Discard addF(list2, -60);
+	Print "list2 = " then list2 as basic string then "\n";
+	collectionsT ::= Java type "java.util.Collections";
+	listT ::= Java type "java.util.List" parameters <any>;
+	copyF ::= static method collectionsT."copy" (listT, listT);
+	copyF(list2, list);
+	Print "Collections.copy(list2, list) = " then list2 as basic string then "\n";
 ]();

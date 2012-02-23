@@ -650,4 +650,28 @@ extends AbstractEnumerationTypeDescriptor
 	{
 		return bottom;
 	}
+
+	@Override
+	boolean o_IsPojoType (final @NotNull AvailObject object)
+	{
+		return true;
+	}
+
+	@Override
+	boolean o_IsPojoFusedType (final @NotNull AvailObject object)
+	{
+		return true;
+	}
+
+	@Override
+	boolean o_IsPojoArrayType (final @NotNull AvailObject object)
+	{
+		return true;
+	}
+
+	@Override
+	boolean o_IsPojoSelfType (final @NotNull AvailObject object)
+	{
+		return true;
+	}
 }

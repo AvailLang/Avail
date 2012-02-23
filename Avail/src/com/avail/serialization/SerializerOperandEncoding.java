@@ -59,7 +59,7 @@ enum SerializerOperandEncoding
 			final @NotNull AvailObject object,
 			final @NotNull Serializer serializer)
 		{
-			serializer.writeByte(object.extractByte());
+			serializer.writeByte(object.extractUnsignedByte());
 		}
 
 		@Override
@@ -153,7 +153,7 @@ enum SerializerOperandEncoding
 			final @NotNull AvailObject object,
 			final @NotNull Serializer serializer)
 		{
-			serializer.writeShort(object.extractShort());
+			serializer.writeShort(object.extractUnsignedShort());
 		}
 
 		@Override

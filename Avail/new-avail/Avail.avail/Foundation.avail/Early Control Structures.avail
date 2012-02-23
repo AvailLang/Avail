@@ -33,7 +33,6 @@
 System Module "Early Control Structures"
 Versions
 	"dev"
-Extends
 Uses
 	"Assertions",
 	"Bootstrap",
@@ -224,11 +223,30 @@ Semantic restriction "cast_into_else_" is
 	if value ≤ accept[1] then
 	[
 		messageTuple ::= concatenate <
-			"necessary cast expression, but (",
+			"necessary cast expression, but ",
 			primitive description of value,
-			" ≤ ",
-			primitive description of accept[1],
-			")">;
+			" is a subtype of ",
+			primitive description of accept[1]>;
+		cast messageTuple into
+		[
+			message : string
+		|
+			Reject parse, expected: message;
+		];
+	];
+	if value ∪ accept[1] = value then
+	[
+		/* This is the expected case, i.e., the function argument is a subtype
+		 * of `value`, but logical negation isn't available yet.
+		 */
+	]
+	else
+	[
+		messageTuple ::= concatenate <
+			"allowed cast expression, but ",
+			primitive description of value,
+			" is not a supertype of ",
+			primitive description of accept[1]>;
 		cast messageTuple into
 		[
 			message : string
@@ -258,11 +276,30 @@ Semantic restriction "cast_into_" is
 	if value ≤ accept[1] then
 	[
 		messageTuple ::= concatenate <
-			"necessary cast expression, but (",
+			"necessary cast expression, but ",
 			primitive description of value,
-			") ≤ (",
-			primitive description of accept[1],
-			")">;
+			" is a subtype of ",
+			primitive description of accept[1]>;
+		cast messageTuple into
+		[
+			message : string
+		|
+			Reject parse, expected: message;
+		];
+	];
+	if value ∪ accept[1] = value then
+	[
+		/* This is the expected case, i.e., the function argument is a subtype
+		 * of `value`, but logical negation isn't available yet.
+		 */
+	]
+	else
+	[
+		messageTuple ::= concatenate <
+			"allowed cast expression, but ",
+			primitive description of value,
+			" is not a supertype of ",
+			primitive description of accept[1]>;
 		cast messageTuple into
 		[
 			message : string

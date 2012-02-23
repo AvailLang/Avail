@@ -508,6 +508,14 @@ extends AbstractTypeDescriptor
 		return false;
 	}
 
+	@Override
+	boolean o_IsSupertypeOfPojoBottomType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aPojoType)
+	{
+		return false;
+	}
+
 	@Override @AvailMethod
 	@NotNull AvailObject o_TypeIntersectionOfFunctionType (
 		final @NotNull AvailObject object,
@@ -693,10 +701,6 @@ extends AbstractTypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aTupleType)
 	{
-		/* Answer the most specific type that is still at least as general as
-		 * these.  This is just above extended integer, the most general integer
-		 * range.
-		 */
 		return object.typeUnion(ANY.o());
 	}
 
@@ -950,6 +954,16 @@ extends AbstractTypeDescriptor
 		throw unsupportedOperationException();
 	}
 
+	@Override
+	Object o_MarshalToJava (
+		final @NotNull AvailObject object,
+		final Class<?> ignoredClassHint)
+	{
+		// Most Avail types are opaque to Java, and can be characterized by the
+		// class of AvailObject.
+		return AvailObject.class;
+	}
+
 	/**
 	 * Create any cached {@link AvailObject}s.
 	 */
@@ -958,16 +972,17 @@ extends AbstractTypeDescriptor
 		// Build all the objects with null fields.
 		for (final Types spec : Types.values())
 		{
+			final String name = spec == TOP
+				? "⊤"
+				: spec.name().toLowerCase().replace('_', ' ');
 			final AvailObject o =
-				spec.descriptor.createPrimitiveObjectNamed(spec.name());
+				spec.descriptor.createPrimitiveObjectNamed(name);
 			spec.set_o(o);
 		}
 		// Connect and name the objects.
 		for (final Types spec : Types.values())
 		{
 			final AvailObject o = spec.o();
-			o.name(StringDescriptor.from(
-				spec == TOP ? "⊤" : spec.name()));
 			o.parent(
 				spec.parent == null
 					 ? NullDescriptor.nullObject()

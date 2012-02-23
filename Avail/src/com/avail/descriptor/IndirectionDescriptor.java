@@ -2460,9 +2460,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	short o_ExtractByte (final AvailObject object)
+	short o_ExtractUnsignedByte (final AvailObject object)
 	{
-		return o_Traversed(object).extractByte();
+		return o_Traversed(object).extractUnsignedByte();
 	}
 
 	@Override
@@ -2589,9 +2589,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_IsByte (final AvailObject object)
+	boolean o_IsUnsignedByte (final AvailObject object)
 	{
-		return o_Traversed(object).isByte();
+		return o_Traversed(object).isUnsignedByte();
 	}
 
 	/**
@@ -2946,13 +2946,6 @@ extends AbstractDescriptor
 	void o_ReadBarrierFault (final AvailObject object)
 	{
 		o_Traversed(object).readBarrierFault();
-	}
-
-	@Override
-	void o_ReleaseVariableOrMakeContentsImmutable (
-		final @NotNull AvailObject object)
-	{
-		o_Traversed(object).releaseVariableOrMakeContentsImmutable();
 	}
 
 	@Override
@@ -3801,15 +3794,15 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_IsShort (final @NotNull AvailObject object)
+	boolean o_IsUnsignedShort (final @NotNull AvailObject object)
 	{
-		return o_Traversed(object).isShort();
+		return o_Traversed(object).isUnsignedShort();
 	}
 
 	@Override
-	int o_ExtractShort (final @NotNull AvailObject object)
+	int o_ExtractUnsignedShort (final @NotNull AvailObject object)
 	{
-		return o_Traversed(object).extractShort();
+		return o_Traversed(object).extractUnsignedShort();
 	}
 
 	@Override
@@ -4093,5 +4086,169 @@ extends AbstractDescriptor
 		final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).issuingModule();
+	}
+
+	@Override
+	boolean o_IsPojoFusedType (final @NotNull AvailObject object)
+	{
+		return o_Traversed(object).isPojoFusedType();
+	}
+
+	@Override
+	boolean o_IsSupertypeOfPojoBottomType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aPojoType)
+	{
+		return o_Traversed(object).isSupertypeOfPojoBottomType(aPojoType);
+	}
+
+	@Override
+	boolean o_EqualsPojoBottomType (final @NotNull AvailObject object)
+	{
+		return o_Traversed(object).equalsPojoBottomType();
+	}
+
+	@Override
+	@NotNull AvailObject o_JavaAncestors (final @NotNull AvailObject object)
+	{
+		return o_Traversed(object).javaAncestors();
+	}
+
+	/**
+	 * @param object
+	 * @param aFusedPojoType
+	 * @return
+	 */
+	@NotNull AvailObject o_TypeIntersectionOfPojoFusedType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aFusedPojoType)
+	{
+		return o_Traversed(object).typeIntersectionOfPojoFusedType(
+			aFusedPojoType);
+	}
+
+	/**
+	 * @param object
+	 * @param anUnfusedPojoType
+	 * @return
+	 */
+	@NotNull AvailObject o_TypeIntersectionOfPojoUnfusedType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anUnfusedPojoType)
+	{
+		return o_Traversed(object).typeIntersectionOfPojoUnfusedType(
+			anUnfusedPojoType);
+	}
+
+	/**
+	 * @param object
+	 * @param aFusedPojoType
+	 * @return
+	 */
+	@NotNull AvailObject o_TypeUnionOfPojoFusedType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aFusedPojoType)
+	{
+		return o_Traversed(object).typeUnionOfPojoFusedType(
+			aFusedPojoType);
+	}
+
+	/**
+	 * @param object
+	 * @param anUnfusedPojoType
+	 * @return
+	 */
+	@NotNull AvailObject o_TypeUnionOfPojoUnfusedType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anUnfusedPojoType)
+	{
+		return o_Traversed(object).typeUnionOfPojoUnfusedType(
+			anUnfusedPojoType);
+	}
+
+	@Override
+	boolean o_IsPojoArrayType (final @NotNull AvailObject object)
+	{
+		return o_Traversed(object).isPojoArrayType();
+	}
+
+	@Override
+	Object o_MarshalToJava (
+		final @NotNull AvailObject object,
+		final Class<?> classHint)
+	{
+		return o_Traversed(object).marshalToJava(classHint);
+	}
+
+	@Override
+	@NotNull AvailObject o_TypeVariables (final @NotNull AvailObject object)
+	{
+		return o_Traversed(object).typeVariables();
+	}
+
+	@Override
+	boolean o_EqualsPojoField (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject field,
+		final @NotNull AvailObject receiver)
+	{
+		return o_Traversed(object).equalsPojoField(field, receiver);
+	}
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	boolean o_IsSignedByte (final @NotNull AvailObject object)
+	{
+		return o_Traversed(object).isSignedByte();
+	}
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	boolean o_IsSignedShort (final @NotNull AvailObject object)
+	{
+		return o_Traversed(object).isSignedShort();
+	}
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	byte o_ExtractSignedByte (final @NotNull AvailObject object)
+	{
+		return o_Traversed(object).extractSignedByte();
+	}
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	short o_ExtractSignedShort (final @NotNull AvailObject object)
+	{
+		return o_Traversed(object).extractSignedShort();
+	}
+
+	/**
+	 * @param object
+	 * @param aRawPojo
+	 * @return
+	 */
+	boolean o_EqualsEqualityRawPojo (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aRawPojo)
+	{
+		return o_Traversed(object).equalsEqualityRawPojo(aRawPojo);
+	}
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	Object o_JavaObject (final @NotNull AvailObject object)
+	{
+		return o_Traversed(object).javaObject();
 	}
 }

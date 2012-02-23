@@ -745,6 +745,18 @@ extends AbstractEnumerationTypeDescriptor
 		return kindUnion;
 	}
 
+	@Override
+	Object o_MarshalToJava (
+		final @NotNull AvailObject object,
+		final Class<?> ignoredClassHint)
+	{
+		if (object.isSubtypeOf(Boolean))
+		{
+			return java.lang.Boolean.TYPE;
+		}
+		return super.o_MarshalToJava(object, ignoredClassHint);
+	}
+
 	/**
 	 * Construct an {@linkplain EnumerationTypeDescriptor enumeration} from a
 	 * {@linkplain SetDescriptor set} with at least two instances.  The set

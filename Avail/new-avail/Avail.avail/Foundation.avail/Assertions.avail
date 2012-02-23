@@ -33,7 +33,6 @@
 System Module "Assertions"
 Versions
 	"dev"
-Extends
 Uses
 	"Bootstrap"
 Names

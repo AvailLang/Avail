@@ -33,7 +33,6 @@
 System Module "Early Math"
 Versions
 	"dev"
-Extends
 Uses
 	"Assertions",
 	"Bootstrap",

@@ -33,10 +33,8 @@
 System Module "Early Type Support"
 Versions
 	"dev"
-Extends
 Uses
 	"Bootstrap"
-Names
 Body
 
 /**

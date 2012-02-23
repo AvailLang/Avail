@@ -54,7 +54,11 @@ Restriction "_(«_‡,»)" is [blkType : functionType, argsType : tupleType |
 		if not argsType[i] <= blkType[i] then [
 			Fail parse "Argument #"
 				then i as basic string
-				then " has the wrong type for this function invocation.";];];
+				then " ("
+				then argsType[i] as basic string
+				then ") to be a subtype of ("
+				then blkType[i] as basic string
+				then ") for this function invocation.";];];
 	blkType result;
 ];
 

@@ -192,6 +192,11 @@ extends Descriptor
 		final @NotNull AvailObject aParseNodeType);
 
 	@Override @AvailMethod
+	abstract boolean o_IsSupertypeOfPojoType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aPojoType);
+
+	@Override @AvailMethod
 	abstract boolean o_IsSupertypeOfPrimitiveType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aPrimitiveType);
@@ -207,11 +212,15 @@ extends Descriptor
 		final @NotNull AvailObject aTupleType);
 
 	@Override @AvailMethod
+	abstract boolean o_IsSupertypeOfPojoBottomType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aPojoType);
+
+	@Override @AvailMethod
 	boolean o_IsSupertypeOfBottom (
 		final @NotNull AvailObject object)
 	{
-		// All types are supertypes of bottom.  Anything that's not a type
-		// will end the VM.
+		// All types are supertypes of bottom.
 		return true;
 	}
 
@@ -309,7 +318,12 @@ extends Descriptor
 	@Override @AvailMethod
 	abstract AvailObject o_TypeIntersectionOfParseNodeType (
 		final @NotNull AvailObject object,
-		final AvailObject aParseNodeType);
+		final @NotNull AvailObject aParseNodeType);
+
+	@Override
+	abstract AvailObject o_TypeIntersectionOfPojoType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aPojoType);
 
 	@Override @AvailMethod
 	abstract @NotNull AvailObject o_TypeIntersectionOfSetType (
@@ -373,6 +387,11 @@ extends Descriptor
 	abstract @NotNull AvailObject o_TypeUnionOfSetType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aSetType);
+
+	@Override
+	abstract @NotNull AvailObject o_TypeUnionOfPojoType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aPojoType);
 
 	@Override @AvailMethod
 	abstract @NotNull AvailObject o_TypeUnionOfTupleType (

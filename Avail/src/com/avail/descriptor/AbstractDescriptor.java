@@ -2994,7 +2994,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract short o_ExtractByte (AvailObject object);
+	abstract short o_ExtractUnsignedByte (AvailObject object);
 
 	/**
 	 * @param object
@@ -3353,12 +3353,6 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract AvailObject o_ProcessGlobals (AvailObject object);
-
-	/**
-	 * @param object
-	 */
-	abstract void o_ReleaseVariableOrMakeContentsImmutable (
-		@NotNull AvailObject object);
 
 	/**
 	 * @param object
@@ -3954,7 +3948,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract boolean o_IsByte (AvailObject object);
+	abstract boolean o_IsUnsignedByte (AvailObject object);
 
 	/**
 	 * @param object
@@ -4816,13 +4810,13 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract boolean o_IsShort (@NotNull AvailObject object);
+	abstract boolean o_IsUnsignedShort (@NotNull AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	abstract int o_ExtractShort (@NotNull AvailObject object);
+	abstract int o_ExtractUnsignedShort (@NotNull AvailObject object);
 
 	/**
 	 * @param object
@@ -5105,4 +5099,141 @@ public abstract class AbstractDescriptor
 	 */
 	abstract @NotNull AvailObject o_IssuingModule (
 		final @NotNull AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract boolean o_IsPojoFusedType (final @NotNull AvailObject object);
+
+	/**
+	 * @param object
+	 * @param aPojoType
+	 * @return
+	 */
+	abstract boolean o_IsSupertypeOfPojoBottomType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aPojoType);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract boolean o_EqualsPojoBottomType (
+		final @NotNull AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract AvailObject o_JavaAncestors (
+		final @NotNull AvailObject object);
+
+	/**
+	 * @param object
+	 * @param aFusedPojoType
+	 * @return
+	 */
+	abstract @NotNull AvailObject o_TypeIntersectionOfPojoFusedType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aFusedPojoType);
+
+	/**
+	 * @param object
+	 * @param anUnfusedPojoType
+	 * @return
+	 */
+	abstract @NotNull AvailObject o_TypeIntersectionOfPojoUnfusedType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anUnfusedPojoType);
+
+	/**
+	 * @param object
+	 * @param aFusedPojoType
+	 * @return
+	 */
+	abstract @NotNull AvailObject o_TypeUnionOfPojoFusedType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aFusedPojoType);
+
+	/**
+	 * @param object
+	 * @param anUnfusedPojoType
+	 * @return
+	 */
+	abstract @NotNull AvailObject o_TypeUnionOfPojoUnfusedType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anUnfusedPojoType);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract boolean o_IsPojoArrayType (final @NotNull AvailObject object);
+
+	/**
+	 * @param object
+	 * @param ignoredClassHint
+	 * @return
+	 */
+	abstract Object o_MarshalToJava (
+		final @NotNull AvailObject object,
+		final Class<?> ignoredClassHint);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract @NotNull AvailObject o_TypeVariables (
+		final @NotNull AvailObject object);
+
+	/**
+	 * @param object
+	 * @param field
+	 * @param receiver
+	 * @return
+	 */
+	abstract boolean o_EqualsPojoField (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject field,
+		final @NotNull AvailObject receiver);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract boolean o_IsSignedByte (final @NotNull AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract boolean o_IsSignedShort (final @NotNull AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract byte o_ExtractSignedByte (final @NotNull AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract short o_ExtractSignedShort (final @NotNull AvailObject object);
+
+	/**
+	 * @param object
+	 * @param aRawPojo
+	 * @return
+	 */
+	abstract boolean o_EqualsEqualityRawPojo (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aRawPojo);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract Object o_JavaObject (final @NotNull AvailObject object);
 }

@@ -36,7 +36,6 @@ import static org.junit.Assert.*;
 import org.junit.*;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.FloatDescriptor;
-import com.avail.descriptor.DoubleDescriptor;
 
 /**
  * Unit tests for the Avail arithmetic types.
@@ -169,4 +168,6 @@ public final class ArithmeticTest
 			}
 		}
 	}
+
+	// TODO: [MvG] Write tests for doubles.
 }

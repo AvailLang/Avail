@@ -1,5 +1,5 @@
-/*
- * Early Literals.avail
+/**
+ * MarshalingException.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,45 +30,41 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Early Literals"
-Versions
-	"dev"
-Uses
-	"Bootstrap"
-Names
-	"<«_‡,»>"
-Body
+package com.avail.exceptions;
+
+import static com.avail.exceptions.AvailErrorCode.E_JAVA_MARSHALING_FAILED;
+import com.avail.annotations.NotNull;
+import com.avail.descriptor.AvailObject;
 
 /**
- * Construct and answer a tuple from the lexically specified expressions. The
- * hard work here is done automatically by the Avail compiler.
+ * {@code MarshalingException} indicates that an error occurred during the
+ * marshaling of an {@linkplain AvailObject Avail object} to Java.
  *
- * Parameters:
- *    elements - The desired tuple, lexically constructed by the compiler.
- * Returns:
- *    The argument.
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
-Method "<«_‡,»>" is
-[
-	elements : tuple
-|
-	elements;
-] : tuple;
+public final class MarshalingException
+extends AvailRuntimeException
+{
+	/** The serial version identifier. */
+	private static final long serialVersionUID = -5955389215116529L;
 
-/**
- * Strengthen the type of `<«_‡,»>` to the most exact possible. The hard work
- * here is done automatically by the Avail compiler, which examines the lexical
- * arguments and produces instance types for literals and applies semantic
- * restrictions to any method sends.
- *
- * Parameters:
- *    elements - The strengthened tuple type, constructed by the compiler.
- * Returns:
- *    The argument.
- */
-Semantic restriction "<«_‡,»>" is
-[
-	elements : tuple meta
-|
-	elements;
-];
+	/**
+	 * Construct a new {@link MarshalingException}.
+	 */
+	public MarshalingException ()
+	{
+		super(E_JAVA_MARSHALING_FAILED);
+	}
+
+	/**
+	 * Construct a new {@link MarshalingException}.
+	 *
+	 * @param cause
+	 *        The proximal {@linkplain Throwable cause} of the {@code
+	 *        MarshalingException exception}.
+	 */
+	public MarshalingException (final @NotNull Throwable cause)
+	{
+		super(E_JAVA_MARSHALING_FAILED, cause);
+	}
+}

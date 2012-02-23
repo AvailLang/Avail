@@ -393,7 +393,7 @@ extends TupleDescriptor
 		assert nybbleIndex >= 1 && nybbleIndex <= object.tupleSize();
 		if (!newValueObject.isNybble())
 		{
-			if (newValueObject.isByte())
+			if (newValueObject.isUnsignedByte())
 			{
 				return copyAsMutableByteTuple(object).tupleAtPuttingCanDestroy(
 					nybbleIndex,

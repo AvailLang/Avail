@@ -57,7 +57,6 @@ import com.avail.serialization.SerializerOperation;
 public class TupleTypeDescriptor
 extends TypeDescriptor
 {
-
 	/**
 	 * The layout of object slots for my instances.
 	 */
@@ -116,8 +115,6 @@ extends TypeDescriptor
 		final @NotNull List<AvailObject> recursionList,
 		final int indent)
 	{
-		//  Be nice about it and use special forms for common cases...
-
 		if (object.typeTuple().tupleSize() == 0)
 		{
 			if (object.sizeRange().equals(
@@ -133,56 +130,48 @@ extends TypeDescriptor
 					aStream.append("string");
 					return;
 				}
-				//  Ok, it's homogenous and of arbitrary size...
-				aStream.append("tuple of ");
+				//  Okay, it's homogenous and of arbitrary size...
+				aStream.append('<');
 				object.defaultType().printOnAvoidingIndent(
 					aStream,
 					recursionList,
 					(indent + 1));
+				aStream.append("…|>");
 				return;
 			}
 		}
-		if (object.sizeRange().upperBound().lessOrEqual(
-			IntegerDescriptor.ten()))
+		aStream.append('<');
+		final int end = object.typeTuple().tupleSize();
+		for (int i = 1; i <= end; i++)
 		{
-			if (object.sizeRange().upperBound().equals(
-				object.sizeRange().lowerBound()))
+			if (i > 1)
 			{
-				aStream.append("tuple like <");
-				final int end =
-					object.sizeRange().upperBound().extractInt();
-				for (int i = 1; i <= end; i++)
-				{
-					if (i > 1)
-					{
-						aStream.append(", ");
-					}
-					object.typeAtIndex(i).printOnAvoidingIndent(
-						aStream,
-						recursionList,
-						(indent + 1));
-				}
-				aStream.append(">");
-				return;
+				aStream.append(", ");
 			}
+			object.typeAtIndex(i).printOnAvoidingIndent(
+				aStream,
+				recursionList,
+				indent + 1);
 		}
-		//  Default case...
-		aStream.append("tuple ");
-		object.sizeRange().printOnAvoidingIndent(
-			aStream,
-			recursionList,
-			(indent + 1));
-		aStream.append(" like ");
-		object.typeTuple().printOnAvoidingIndent(
-			aStream,
-			recursionList,
-			(indent + 1));
-		aStream.append(" default (");
 		object.defaultType().printOnAvoidingIndent(
 			aStream,
 			recursionList,
-			(indent + 1));
-		aStream.append(")");
+			indent + 1);
+		aStream.append("…|");
+		final AvailObject sizeRange = object.sizeRange();
+		sizeRange.lowerBound().printOnAvoidingIndent(
+			aStream,
+			recursionList,
+			indent + 1);
+		if (!sizeRange.lowerBound().equals(sizeRange.upperBound()))
+		{
+			aStream.append("..");
+			sizeRange.upperBound().printOnAvoidingIndent(
+				aStream,
+				recursionList,
+				indent + 1);
+		}
+		aStream.append('>');
 	}
 
 	@Override @AvailMethod
@@ -542,6 +531,18 @@ extends TypeDescriptor
 		final @NotNull AvailObject object)
 	{
 		return SerializerOperation.TUPLE_TYPE;
+	}
+
+	@Override
+	Object o_MarshalToJava (
+		final @NotNull AvailObject object,
+		final Class<?> ignoredClassHint)
+	{
+		if (object.isSubtypeOf(StringType))
+		{
+			return String.class;
+		}
+		return super.o_MarshalToJava(object, ignoredClassHint);
 	}
 
 	/**

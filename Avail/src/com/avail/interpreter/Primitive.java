@@ -426,7 +426,7 @@ implements IntegerEnumSlotDescriptionEnum
 			if (!value.isInstanceOf(var.kind().writeType()))
 			{
 				return interpreter.primitiveFailure(
-					E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE_INTO_VARIABLE);
+					E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE);
 			}
 			var.setValue(value);
 			return interpreter.primitiveSuccess(NullDescriptor.nullObject());
@@ -3083,7 +3083,7 @@ implements IntegerEnumSlotDescriptionEnum
 	 * AtomDescriptor atom} has a property whose property key is the second
 	 * atom.
 	 */
-	prim122_AtomHasProperty(122, 2, CanInline, CannotFail)
+	prim122_AtomHasProperty(122, 2, CanInline)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -3093,6 +3093,11 @@ implements IntegerEnumSlotDescriptionEnum
 			assert args.size() == 2;
 			final AvailObject atom = args.get(0);
 			final AvailObject propertyKey = args.get(1);
+			if (AvailRuntime.isSpecialAtom(atom)
+				|| AvailRuntime.isSpecialAtom(propertyKey))
+			{
+				return interpreter.primitiveFailure(E_SPECIAL_ATOM);
+			}
 			final AvailObject propertyValue = atom.getAtomProperty(propertyKey);
 			return interpreter.primitiveSuccess(
 				AtomDescriptor.objectFromBoolean(!propertyValue.equalsNull()));
@@ -3124,6 +3129,11 @@ implements IntegerEnumSlotDescriptionEnum
 			assert args.size() == 2;
 			final AvailObject atom = args.get(0);
 			final AvailObject propertyKey = args.get(1);
+			if (AvailRuntime.isSpecialAtom(atom)
+				|| AvailRuntime.isSpecialAtom(propertyKey))
+			{
+				return interpreter.primitiveFailure(E_SPECIAL_ATOM);
+			}
 			final AvailObject propertyValue = atom.getAtomProperty(propertyKey);
 			if (propertyValue.equalsNull())
 			{
@@ -3148,7 +3158,7 @@ implements IntegerEnumSlotDescriptionEnum
 	 * AtomDescriptor atom}, associate the given property key (another atom)
 	 * and property value.  This is a destructive operation.
 	 */
-	prim124_AtomSetProperty(124, 3, CanInline, CannotFail)
+	prim124_AtomSetProperty(124, 3, CanInline)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -3159,6 +3169,11 @@ implements IntegerEnumSlotDescriptionEnum
 			final AvailObject atom = args.get(0);
 			final AvailObject propertyKey = args.get(1);
 			final AvailObject propertyValue = args.get(2);
+			if (AvailRuntime.isSpecialAtom(atom)
+				|| AvailRuntime.isSpecialAtom(propertyKey))
+			{
+				return interpreter.primitiveFailure(E_SPECIAL_ATOM);
+			}
 			atom.setAtomProperty(propertyKey, propertyValue);
 			return interpreter.primitiveSuccess(NullDescriptor.nullObject());
 		}
@@ -3180,7 +3195,7 @@ implements IntegerEnumSlotDescriptionEnum
 	 * AtomDescriptor atom}, remove the property with the given property key
 	 * (another atom).
 	 */
-	prim125_AtomRemoveProperty(125, 2, CanInline, CannotFail)
+	prim125_AtomRemoveProperty(125, 2, CanInline)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -3190,6 +3205,11 @@ implements IntegerEnumSlotDescriptionEnum
 			assert args.size() == 2;
 			final AvailObject atom = args.get(0);
 			final AvailObject propertyKey = args.get(1);
+			if (AvailRuntime.isSpecialAtom(atom)
+				|| AvailRuntime.isSpecialAtom(propertyKey))
+			{
+				return interpreter.primitiveFailure(E_SPECIAL_ATOM);
+			}
 			atom.setAtomProperty(propertyKey, NullDescriptor.nullObject());
 			return interpreter.primitiveSuccess(NullDescriptor.nullObject());
 		}
@@ -3202,6 +3222,34 @@ implements IntegerEnumSlotDescriptionEnum
 					ATOM.o(),
 					ATOM.o()),
 				TOP.o());
+		}
+	},
+
+	/**
+	 * <strong>Primitive 126:</strong> Answer the {@linkplain SetDescriptor
+	 * set} of {@linkplain AvailRuntime#specialAtoms() special atoms} known to
+	 * the {@linkplain AvailRuntime Avail runtime}.
+	 */
+	prim126_SpecialAtoms(126, 0, CanFold, CannotFail)
+	{
+		@Override
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
+		{
+			assert args.size() == 0;
+			return interpreter.primitiveSuccess(
+				SetDescriptor.fromCollection(AvailRuntime.specialAtoms()));
+		}
+
+		@Override
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
+		{
+			return FunctionTypeDescriptor.create(
+				TupleDescriptor.from(),
+				SetTypeDescriptor.setTypeForSizesContentType(
+					IntegerRangeTypeDescriptor.wholeNumbers(),
+					ATOM.o()));
 		}
 	},
 
@@ -4023,7 +4071,7 @@ implements IntegerEnumSlotDescriptionEnum
 			final byte[] buffer = new byte[bytes.tupleSize()];
 			for (int i = 1, end = bytes.tupleSize(); i <= end; i++)
 			{
-				buffer[i - 1] = (byte) bytes.tupleAt(i).extractByte();
+				buffer[i - 1] = (byte) bytes.tupleAt(i).extractUnsignedByte();
 			}
 
 			try
@@ -4949,7 +4997,7 @@ implements IntegerEnumSlotDescriptionEnum
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					ObjectTypeDescriptor.mostGeneralType()),
+					ANY.o()),
 				BottomTypeDescriptor.bottom());
 		}
 	},
@@ -6654,7 +6702,7 @@ implements IntegerEnumSlotDescriptionEnum
 				variable.expressionType()))
 			{
 				return interpreter.primitiveFailure(
-					E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE_INTO_VARIABLE);
+					E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE);
 			}
 			final AvailObject assignment =
 				AssignmentNodeDescriptor.mutable().create();
@@ -6761,7 +6809,7 @@ implements IntegerEnumSlotDescriptionEnum
 				variable.expressionType()))
 			{
 				return interpreter.primitiveFailure(
-					E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE_INTO_VARIABLE);
+					E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE);
 			}
 			final AvailObject assignment =
 				AssignmentNodeDescriptor.mutable().create();
@@ -6870,11 +6918,9 @@ implements IntegerEnumSlotDescriptionEnum
 	},
 
 	/**
-	 * <strong>Primitive 500:</strong> Create a {@linkplain PojoTypeDescriptor
-	 * pojo type} for the specified {@linkplain Class Java class}, specified by
-	 * fully-qualified name, and type parameters.
-	 *
-	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 * <strong>Primitive 500:</strong> Create a {@linkplain
+	 * PojoTypeDescriptor pojo type} for the specified {@linkplain Class
+	 * Java class}, specified by fully-qualified name, and type parameters.
 	 */
 	prim500_CreatePojoType(500, 2, CanFold)
 	{
@@ -6886,18 +6932,17 @@ implements IntegerEnumSlotDescriptionEnum
 			assert args.size() == 2;
 			final AvailObject className = args.get(0);
 			final AvailObject classParameters = args.get(1);
-
+			// Forbid access to the Avail implementation's packages.
 			final String nativeClassName = className.asNativeString();
 			if (nativeClassName.startsWith("com.avail"))
 			{
 				return interpreter.primitiveFailure(E_JAVA_CLASS_NOT_AVAILABLE);
 			}
-
+			// Look up the raw Java class using the interpreter's runtime's
+			// class loader.
 			final Class<?> rawClass;
 			try
 			{
-				// Look up the raw Java class using the interpreter's runtime's
-				// class loader.
 				rawClass = Class.forName(
 					className.asNativeString(),
 					true,
@@ -6907,17 +6952,18 @@ implements IntegerEnumSlotDescriptionEnum
 			{
 				return interpreter.primitiveFailure(E_JAVA_CLASS_NOT_AVAILABLE);
 			}
-
 			// Check that the correct number of type parameters have been
-			// supplied.
+			// supplied. Don't bother to check the bounds of the type
+			// parameters. Incorrect bounds will cause some method and
+			// constructor lookups to fail, but that's fine.
 			final TypeVariable<?>[] typeVars = rawClass.getTypeParameters();
 			if (typeVars.length != classParameters.tupleSize())
 			{
 				return interpreter.primitiveFailure(
 					E_INCORRECT_NUMBER_OF_ARGUMENTS);
 			}
-
-			// Use real pojo self types in place of the special atom type.
+			// Replace all occurrences of the pojo self type atom with actual
+			// pojo self types.
 			AvailObject realParameters =
 				classParameters.copyAsMutableObjectTuple();
 			for (int i = 1; i <= classParameters.tupleSize(); i++)
@@ -6926,9 +6972,10 @@ implements IntegerEnumSlotDescriptionEnum
 					classParameters.tupleAt(i);
 				final AvailObject realParameter;
 				if (originalParameter.equals(
-					PojoSelfTypeDescriptor.selfType()))
+					PojoTypeDescriptor.selfType()))
 				{
-					realParameter = PojoSelfTypeDescriptor.create(rawClass);
+					realParameter =
+						PojoTypeDescriptor.selfTypeForClass(rawClass);
 				}
 				else
 				{
@@ -6937,30 +6984,10 @@ implements IntegerEnumSlotDescriptionEnum
 				realParameters = realParameters.tupleAtPuttingCanDestroy(
 					i, realParameter, true);
 			}
-
-			final AvailObject upperBoundMap =
-				PojoTypeDescriptor.createUpperBoundMap(rawClass);
-
-			// Ensure that each type parameter is a subtype of the
-			// corresponding type variable's computed upper bound, i.e. the
-			// intersection of its upper bounds as an Avail pojo type.
-			for (int i = 0; i < typeVars.length; i++)
-			{
-				final TypeVariable<?> var = typeVars[i];
-				final AvailObject varName =
-					PojoTypeDescriptor.typeVariableName(var);
-				final AvailObject upperBound = upperBoundMap.mapAt(varName);
-				final AvailObject param = realParameters.tupleAt(i + 1);
-				if (!param.isSubtypeOf(upperBound))
-				{
-					return interpreter.primitiveFailure(
-						E_INCORRECT_ARGUMENT_TYPE);
-				}
-			}
-
-			final AvailObject newPojoType = PojoTypeDescriptor.create(
-				rawClass, realParameters);
-			newPojoType.upperBoundMap(upperBoundMap);
+			// Construct and answer the pojo type.
+			final AvailObject newPojoType =
+				PojoTypeDescriptor.forClassWithTypeArguments(
+					rawClass, realParameters);
 			return interpreter.primitiveSuccess(newPojoType);
 		}
 
@@ -6980,30 +7007,36 @@ implements IntegerEnumSlotDescriptionEnum
 	},
 
 	/**
-	 * <strong>Primitive 501:</strong> Create a {@linkplain PojoTypeDescriptor
-	 * pojo array type} for the specified {@linkplain TypeDescriptor type}.
+	 * <strong>Primitive 501:</strong> Create a {@linkplain
+	 * PojoTypeDescriptor pojo array type} for the specified {@linkplain
+	 * TypeDescriptor type} and {@linkplain IntegerRangeTypeDescriptor range of
+	 * sizes}.
 	 *
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
-	prim501_CreatePojoArrayType(501, 1, CanFold, CannotFail)
+	prim501_CreatePojoArrayType(501, 2, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
 			final @NotNull List<AvailObject> args,
 			final @NotNull Interpreter interpreter)
 		{
-			assert args.size() == 1;
+			assert args.size() == 2;
 			final AvailObject type = args.get(0);
-			return interpreter.primitiveSuccess(PojoTypeDescriptor.create(
-				PojoTypeDescriptor.pojoArrayClass(),
-				TupleDescriptor.from(type)));
+			final AvailObject sizes = args.get(1);
+			return interpreter.primitiveSuccess(
+				PojoTypeDescriptor.forArrayTypeWithSizeRange(
+					type, sizes));
 		}
 
 		@Override
 		protected @NotNull AvailObject privateBlockTypeRestriction ()
 		{
 			return FunctionTypeDescriptor.create(
-				TupleDescriptor.from(TYPE.o()),
+				TupleDescriptor.from(
+					TYPE.o(),
+					InstanceTypeDescriptor.on(
+						IntegerRangeTypeDescriptor.wholeNumbers())),
 				InstanceTypeDescriptor.on(
 					PojoTypeDescriptor.mostGeneralArrayType()));
 		}
@@ -7011,8 +7044,8 @@ implements IntegerEnumSlotDescriptionEnum
 
 	/**
 	 * <strong>Primitive 502:</strong> Given the specified {@linkplain
-	 * PojoTypeDescriptor pojo type} and {@linkplain TupleDescriptor tuple} of
-	 * {@linkplain TypeDescriptor types}, create a {@linkplain
+	 * PojoTypeDescriptor pojo type} and {@linkplain TupleDescriptor
+	 * tuple} of {@linkplain TypeDescriptor types}, create a {@linkplain
 	 * FunctionDescriptor function} that when applied will produce a new
 	 * instance of the pojo type by invoking a reflected Java {@linkplain
 	 * Constructor constructor} with arguments conforming to the specified
@@ -7028,18 +7061,30 @@ implements IntegerEnumSlotDescriptionEnum
 			assert args.size() == 2;
 			final AvailObject pojoType = args.get(0);
 			final AvailObject paramTypes = args.get(1);
-
 			// Do not attempt to bind a constructor to an abstract pojo type.
 			if (pojoType.isAbstract())
 			{
 				return interpreter.primitiveFailure(E_POJO_TYPE_IS_ABSTRACT);
 			}
-
+			// Marshal the argument types and look up the appropriate
+			// constructor.
 			final Class<?> javaClass =
-				(Class<?>) RawPojoDescriptor.getPojo(pojoType.javaClass());
+				(Class<?>) pojoType.javaClass().javaObject();
 			assert javaClass != null;
-			final Class<?>[] marshaledTypes = PojoTypeDescriptor.marshalTypes(
-				paramTypes);
+			final Class<?>[] marshaledTypes =
+				new Class<?>[paramTypes.tupleSize()];
+			try
+			{
+				for (int i = 0; i < marshaledTypes.length; i++)
+				{
+					marshaledTypes[i] = (Class<?>) paramTypes.tupleAt(
+						i + 1).marshalToJava(null);
+				}
+			}
+			catch (final MarshalingException e)
+			{
+				return interpreter.primitiveFailure(e);
+			}
 			final Constructor<?> constructor;
 			try
 			{
@@ -7049,27 +7094,21 @@ implements IntegerEnumSlotDescriptionEnum
 			catch (final Exception e)
 			{
 				return interpreter.primitiveFailure(
-					E_JAVA_METHOD_DOES_NOT_EXIST);
+					E_JAVA_METHOD_NOT_AVAILABLE);
 			}
 			assert constructor != null;
-
-			// TODO: [TLS] Must finish handling generic types!
-			final AvailObject upperBoundMap =
-				MapDescriptor.combineMapsCanDestroy(
-					pojoType.upperBoundMap(),
-					PojoTypeDescriptor.createUpperBoundMap(constructor),
-					false);
-
+			// Wrap each of the marshaled argument types into raw pojos. These
+			// will be embedded into one of the generated functions below.
 			final List<AvailObject> marshaledTypePojos =
 				new ArrayList<AvailObject>(marshaledTypes.length);
 			for (final Class<?> paramClass : marshaledTypes)
 			{
-				marshaledTypePojos.add(RawPojoDescriptor.create(paramClass));
+				marshaledTypePojos.add(
+					RawPojoDescriptor.equalityWrap(paramClass));
 			}
 			final AvailObject marshaledTypesTuple =
 				TupleDescriptor.fromCollection(marshaledTypePojos);
-
-			// Create the function wrapper for the pojo constructor invocation
+			// Create a function wrapper for the pojo constructor invocation
 			// primitive. This function will be embedded as a literal into
 			// an outer function that holds the (unexposed) constructor pojo.
 			L1InstructionWriter writer = new L1InstructionWriter();
@@ -7088,22 +7127,18 @@ implements IntegerEnumSlotDescriptionEnum
 			writer.write(new L1Instruction(
 				L1Operation.L1_doGetLocal,
 				writer.createLocal(VariableTypeDescriptor.wrapInnerType(
-					IntegerRangeTypeDescriptor.naturalNumbers()))));
+					PojoTypeDescriptor.forClass(Throwable.class)))));
 			writer.write(new L1Instruction(
 				L1Operation.L1_doCall,
-				writer.addLiteral(MethodDescriptor
-					.vmCrashMethod()),
+				writer.addLiteral(MethodDescriptor.vmRaiseExceptionMethod()),
 				writer.addLiteral(BottomTypeDescriptor.bottom())));
 			final AvailObject innerFunction = FunctionDescriptor.create(
 				writer.compiledCode(),
 				TupleDescriptor.empty()).makeImmutable();
-
 			// Create the outer function that pushes the arguments expected by
 			// the constructor invocation primitive. Various objects that we do
 			// not want to expose to the Avail program are embedded in this
 			// function as literals.
-			// TODO: [TLS] When functions can be made non-reflective, then make
-			// both these functions non-reflective for safety.
 			writer = new L1InstructionWriter();
 			writer.argumentTypesTuple(paramTypes);
 			writer.returnType(pojoType);
@@ -7112,7 +7147,8 @@ implements IntegerEnumSlotDescriptionEnum
 				writer.addLiteral(innerFunction)));
 			writer.write(new L1Instruction(
 				L1Operation.L1_doPushLiteral,
-				writer.addLiteral(RawPojoDescriptor.create(constructor))));
+				writer.addLiteral(
+					RawPojoDescriptor.equalityWrap(constructor))));
 			for (int i = 1; i <= paramTypes.tupleSize(); i++)
 			{
 				writer.write(new L1Instruction(
@@ -7138,7 +7174,8 @@ implements IntegerEnumSlotDescriptionEnum
 			final AvailObject outerFunction = FunctionDescriptor.create(
 				writer.compiledCode(),
 				TupleDescriptor.empty()).makeImmutable();
-
+			// TODO: [TLS] When functions can be made non-reflective, then make
+			// both these functions non-reflective for safety.
 			return interpreter.primitiveSuccess(outerFunction);
 		}
 
@@ -7153,6 +7190,8 @@ implements IntegerEnumSlotDescriptionEnum
 						IntegerRangeTypeDescriptor.wholeNumbers(),
 						TupleDescriptor.empty(),
 						TYPE.o())),
+				// TODO: [TLS] Answer a function type that answers pojo and
+				// can raise java.lang.Throwable.
 				FunctionTypeDescriptor.forReturnType(
 					PojoTypeDescriptor.mostGeneralType()));
 		}
@@ -7165,7 +7204,9 @@ implements IntegerEnumSlotDescriptionEnum
 	 * tuple of raw pojos that reference the reflected {@linkplain Class Java
 	 * classes} of the marshaled arguments, and an expected {@linkplain
 	 * TypeDescriptor type} of the new instance, invoke the constructor and
-	 * answer the new instance.
+	 * answer the new instance. If the constructor fails, then store the actual
+	 * Java {@linkplain Throwable exception} into the primitive failure
+	 * {@linkplain VariableDescriptor variable}.
 	 */
 	prim503_InvokePojoConstructor(503, 4, Private)
 	{
@@ -7177,39 +7218,55 @@ implements IntegerEnumSlotDescriptionEnum
 			assert args.size() == 4;
 			final AvailObject constructorPojo = args.get(0);
 			final AvailObject constructorArgs = args.get(1);
-			final AvailObject constructorArgTypePojos = args.get(2);
+			final AvailObject marshaledTypePojos = args.get(2);
 			final AvailObject expectedType = args.get(3);
-
-			final Constructor<?> constructor = (Constructor<?>)
-				RawPojoDescriptor.getPojo(constructorPojo);
+			final Constructor<?> constructor =
+				(Constructor<?>) constructorPojo.javaObject();
 			assert constructor != null;
-
-			// Marshal the arguments and invoke the constructor.
+			final Object[] marshaledArgs =
+				new Object[constructorArgs.tupleSize()];
+			// Marshal the arguments.
+			try
+			{
+				for (int i = 0; i < marshaledArgs.length; i++)
+				{
+					final Class<?> marshaledType = (Class<?>)
+						marshaledTypePojos.tupleAt(i + 1).javaObject();
+					marshaledArgs[i] = constructorArgs.tupleAt(
+						i + 1).marshalToJava(marshaledType);
+				}
+			}
+			catch (final MarshalingException e)
+			{
+				return interpreter.primitiveFailure(
+					PojoDescriptor.newPojo(
+						RawPojoDescriptor.identityWrap(e),
+						PojoTypeDescriptor.forClass(e.getClass())));
+			}
+			// Invoke the constructor.
 			final Object newObject;
 			try
 			{
-				final Object[] marshaledArgs = PojoTypeDescriptor.marshal(
-					constructorArgs, constructorArgTypePojos);
 				newObject = constructor.newInstance(marshaledArgs);
 			}
+			catch (final InvocationTargetException e)
+			{
+				final Throwable cause = e.getCause();
+				return interpreter.primitiveFailure(
+					PojoDescriptor.newPojo(
+						RawPojoDescriptor.identityWrap(cause),
+						PojoTypeDescriptor.forClass(cause.getClass())));
+			}
 			catch (final Throwable e)
 			{
-				return interpreter.primitiveFailure(E_JAVA_CONSTRUCTOR_FAILED);
+				// This is an unexpected failure.
+				error("reflected constructor call unexpectedly failed");
+				throw new Error();
 			}
-
-			// Unmarshal the arguments, checking the object produced against the
-			// expected type.
 			assert newObject != null;
-			final AvailObject newPojo;
-			try
-			{
-				newPojo = PojoTypeDescriptor.unmarshal(newObject, expectedType);
-			}
-			catch (final Throwable e)
-			{
-				return interpreter.primitiveFailure(E_JAVA_CONSTRUCTOR_FAILED);
-			}
-
+			final AvailObject newPojo = PojoDescriptor.newPojo(
+				RawPojoDescriptor.identityWrap(newObject),
+				expectedType);
 			return interpreter.primitiveSuccess(newPojo);
 		}
 
@@ -7227,6 +7284,913 @@ implements IntegerEnumSlotDescriptionEnum
 					InstanceTypeDescriptor.on(
 						PojoTypeDescriptor.mostGeneralType())),
 				PojoTypeDescriptor.mostGeneralType());
+		}
+
+		@Override
+		protected @NotNull AvailObject privateFailureVariableType ()
+		{
+			return PojoTypeDescriptor.forClass(Throwable.class);
+		}
+	},
+
+	/**
+	 * <strong>Primitive 504:</strong> Bind the instance {@linkplain Field Java
+	 * field} specified by the {@linkplain PojoDescriptor pojo} and {@linkplain
+	 * StringDescriptor field name} to a {@linkplain PojoFieldDescriptor
+	 * variable}. Reads/writes of this variable pass through to the field.
+	 * Answer this variable.
+	 */
+	prim504_BindPojoInstanceField(504, 2, CanFold)
+	{
+		@Override
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
+		{
+			assert args.size() == 2;
+			final AvailObject pojo = args.get(0);
+			final AvailObject fieldName = args.get(1);
+			// Use the actual Java runtime type of the pojo to perform the
+			// reflective field lookup.
+			final Object object = pojo.rawPojo().javaObject();
+			final Class<?> javaClass = object.getClass();
+			final Field field;
+			try
+			{
+				field = javaClass.getField(fieldName.asNativeString());
+			}
+			catch (final NoSuchFieldException e)
+			{
+				return interpreter.primitiveFailure(
+					E_JAVA_FIELD_NOT_AVAILABLE);
+			}
+			// This is not the right primitive to bind static fields.
+			if (Modifier.isStatic(field.getModifiers()))
+			{
+				return interpreter.primitiveFailure(
+					E_JAVA_FIELD_NOT_AVAILABLE);
+			}
+			final AvailObject fieldType = PojoTypeDescriptor.resolve(
+				field.getGenericType(),
+				pojo.kind().typeVariables());
+			final AvailObject var = PojoFieldDescriptor.forInnerType(
+				RawPojoDescriptor.equalityWrap(field),
+				pojo.rawPojo(),
+				fieldType);
+			return interpreter.primitiveSuccess(var);
+		}
+
+		@Override
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
+		{
+			return FunctionTypeDescriptor.create(
+				TupleDescriptor.from(
+					PojoTypeDescriptor.mostGeneralType(),
+					TupleTypeDescriptor.stringTupleType()),
+				VariableTypeDescriptor.mostGeneralType());
+		}
+	},
+
+	/**
+	 * <strong>Primitive 505:</strong> Bind the static {@linkplain Field Java
+	 * field} specified by the {@linkplain PojoTypeDescriptor pojo type} and
+	 * {@linkplain StringDescriptor field name} to a {@linkplain
+	 * PojoFieldDescriptor variable}. Reads/writes of this variable pass through
+	 * to the field. Answer this variable.
+	 */
+	prim505_BindPojoStaticField(505, 2, CanFold)
+	{
+		@Override
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
+		{
+			assert args.size() == 2;
+			final AvailObject pojoType = args.get(0);
+			final AvailObject fieldName = args.get(1);
+			final Field field;
+			// If pojoType is not a fused type, then it has an immediate class
+			// that should be used to recursively look up the field.
+			if (!pojoType.isPojoFusedType())
+			{
+				final Class<?> javaClass =
+					(Class<?>) pojoType.javaClass().javaObject();
+				try
+				{
+					field = javaClass.getField(fieldName.asNativeString());
+				}
+				catch (final NoSuchFieldException e)
+				{
+					return interpreter.primitiveFailure(
+						E_JAVA_FIELD_NOT_AVAILABLE);
+				}
+			}
+			// If pojoType is a fused type, then iterate through its ancestry in
+			// an attempt to uniquely resolve the field.
+			else
+			{
+				final Set<Field> fields = new HashSet<Field>();
+				final AvailObject ancestors = pojoType.javaAncestors();
+				for (final AvailObject ancestor : ancestors.keysAsSet())
+				{
+					final Class<?> javaClass = (Class<?>) ancestor.javaObject();
+					try
+					{
+						fields.add(javaClass.getField(
+							fieldName.asNativeString()));
+					}
+					catch (final NoSuchFieldException e)
+					{
+						// Ignore -- this is not unexpected.
+					}
+				}
+				if (fields.isEmpty())
+				{
+					return interpreter.primitiveFailure(
+						E_JAVA_FIELD_NOT_AVAILABLE);
+				}
+				if (fields.size() > 1)
+				{
+					return interpreter.primitiveFailure(
+						E_JAVA_FIELD_REFERENCE_IS_AMBIGUOUS);
+				}
+				field = fields.iterator().next();
+			}
+			// This is not the right primitive to bind instance fields.
+			if (!Modifier.isStatic(field.getModifiers()))
+			{
+				return interpreter.primitiveFailure(
+					E_JAVA_FIELD_NOT_AVAILABLE);
+			}
+			// A static field cannot have a type parametric on type variables
+			// of the declaring class, so pass an empty map where the type
+			// variables are expected.
+			final AvailObject fieldType = PojoTypeDescriptor.resolve(
+				field.getGenericType(),
+				MapDescriptor.empty());
+			final AvailObject var = PojoFieldDescriptor.forInnerType(
+				RawPojoDescriptor.equalityWrap(field),
+				RawPojoDescriptor.rawNullObject(),
+				fieldType);
+			return interpreter.primitiveSuccess(var);
+		}
+
+		@Override
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
+		{
+			return FunctionTypeDescriptor.create(
+				TupleDescriptor.from(
+					InstanceTypeDescriptor.on(
+						PojoTypeDescriptor.mostGeneralType()),
+					TupleTypeDescriptor.stringTupleType()),
+				VariableTypeDescriptor.mostGeneralType());
+		}
+	},
+
+	/**
+	 * <strong>Primitive 506:</strong> Given the specified {@linkplain
+	 * PojoTypeDescriptor pojo type}, {@linkplain StringDescriptor method name},
+	 * and {@linkplain TupleDescriptor tuple} of {@linkplain TypeDescriptor
+	 * types}, create a {@linkplain FunctionDescriptor function} that when
+	 * applied with a {@linkplain PojoDescriptor receiver} and arguments will
+	 * invoke the reflected Java instance {@linkplain Method method}.
+	 */
+	prim506_CreatePojoInstanceMethodFunction(506, 3, CanFold)
+	{
+		@Override
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
+		{
+			assert args.size() == 3;
+			final AvailObject pojoType = args.get(0);
+			final AvailObject methodName = args.get(1);
+			final AvailObject paramTypes = args.get(2);
+			// Marshal the argument types.
+			final Class<?>[] marshaledTypes =
+				new Class<?>[paramTypes.tupleSize()];
+			try
+			{
+				for (int i = 0; i < marshaledTypes.length; i++)
+				{
+					marshaledTypes[i] = (Class<?>) paramTypes.tupleAt(
+						i + 1).marshalToJava(null);
+				}
+			}
+			catch (final MarshalingException e)
+			{
+				return interpreter.primitiveFailure(e);
+			}
+			// Search for the method.
+			final Method method;
+			// If pojoType is not a fused type, then it has an immediate class
+			// that should be used to recursively look up the method.
+			if (!pojoType.isPojoFusedType())
+			{
+				final Class<?> javaClass =
+					(Class<?>) pojoType.javaClass().javaObject();
+				try
+				{
+					method = javaClass.getMethod(
+						methodName.asNativeString(), marshaledTypes);
+				}
+				catch (final NoSuchMethodException e)
+				{
+					return interpreter.primitiveFailure(
+						E_JAVA_METHOD_NOT_AVAILABLE);
+				}
+			}
+			// If pojoType is a fused type, then iterate through its ancestry in
+			// an attempt to uniquely resolve the method.
+			else
+			{
+				final Set<Method> methods = new HashSet<Method>();
+				final AvailObject ancestors = pojoType.javaAncestors();
+				for (final AvailObject ancestor : ancestors.keysAsSet())
+				{
+					final Class<?> javaClass = (Class<?>) ancestor.javaObject();
+					try
+					{
+						methods.add(javaClass.getMethod(
+							methodName.asNativeString(), marshaledTypes));
+					}
+					catch (final NoSuchMethodException e)
+					{
+						// Ignore -- this is not unexpected.
+					}
+				}
+				if (methods.isEmpty())
+				{
+					return interpreter.primitiveFailure(
+						E_JAVA_METHOD_NOT_AVAILABLE);
+				}
+				if (methods.size() > 1)
+				{
+					return interpreter.primitiveFailure(
+						E_JAVA_METHOD_REFERENCE_IS_AMBIGUOUS);
+				}
+				method = methods.iterator().next();
+			}
+			assert method != null;
+			// Wrap each of the marshaled argument types into raw pojos. These
+			// will be embedded into one of the generated functions below.
+			final List<AvailObject> marshaledTypePojos =
+				new ArrayList<AvailObject>(marshaledTypes.length);
+			for (final Class<?> paramClass : marshaledTypes)
+			{
+				marshaledTypePojos.add(
+					RawPojoDescriptor.equalityWrap(paramClass));
+			}
+			final AvailObject marshaledTypesTuple =
+				TupleDescriptor.fromCollection(marshaledTypePojos);
+			// Create a function wrapper for the pojo method invocation
+			// primitive. This function will be embedded as a literal into
+			// an outer function that holds the (unexposed) method pojo.
+			L1InstructionWriter writer = new L1InstructionWriter();
+			writer.primitiveNumber(
+				prim507_InvokeInstancePojoMethod.primitiveNumber);
+			writer.argumentTypes(
+				RAW_POJO.o(),
+				PojoTypeDescriptor.mostGeneralType(),
+				TupleTypeDescriptor.mostGeneralType(),
+				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+					IntegerRangeTypeDescriptor.wholeNumbers(),
+					TupleDescriptor.empty(),
+					RAW_POJO.o()));
+			writer.returnType(TOP.o());
+			writer.write(new L1Instruction(
+				L1Operation.L1_doGetLocal,
+				writer.createLocal(VariableTypeDescriptor.wrapInnerType(
+					PojoTypeDescriptor.forClass(Throwable.class)))));
+			writer.write(new L1Instruction(
+				L1Operation.L1_doCall,
+				writer.addLiteral(MethodDescriptor.vmRaiseExceptionMethod()),
+				writer.addLiteral(BottomTypeDescriptor.bottom())));
+			final AvailObject innerFunction = FunctionDescriptor.create(
+				writer.compiledCode(),
+				TupleDescriptor.empty()).makeImmutable();
+			// Create the outer function that pushes the arguments expected by
+			// the method invocation primitive. Various objects that we do
+			// not want to expose to the Avail program are embedded in this
+			// function as literals.
+			writer = new L1InstructionWriter();
+			final List<AvailObject> allParamTypes =
+				new ArrayList<AvailObject>(paramTypes.tupleSize() + 1);
+			allParamTypes.add(pojoType);
+			for (final AvailObject paramType : paramTypes)
+			{
+				allParamTypes.add(paramType);
+			}
+			writer.argumentTypesTuple(
+				TupleDescriptor.fromCollection(allParamTypes));
+			final AvailObject returnType = PojoTypeDescriptor.resolve(
+				method.getGenericReturnType(),
+				pojoType.typeVariables());
+			writer.returnType(returnType);
+			writer.write(new L1Instruction(
+				L1Operation.L1_doPushLiteral,
+				writer.addLiteral(innerFunction)));
+			writer.write(new L1Instruction(
+				L1Operation.L1_doPushLiteral,
+				writer.addLiteral(
+					RawPojoDescriptor.equalityWrap(method))));
+			final int limit = allParamTypes.size();
+			for (int i = 1; i <= limit; i++)
+			{
+				writer.write(new L1Instruction(L1Operation.L1_doPushLocal, i));
+			}
+			writer.write(new L1Instruction(
+				L1Operation.L1_doMakeTuple,
+				allParamTypes.size() - 1));
+			writer.write(new L1Instruction(
+				L1Operation.L1_doPushLiteral,
+				writer.addLiteral(marshaledTypesTuple)));
+			writer.write(new L1Instruction(
+				L1Operation.L1_doMakeTuple,
+				4));
+			writer.write(new L1Instruction(
+				L1Operation.L1_doCall,
+				writer.addLiteral(MethodDescriptor.vmFunctionApplyMethod()),
+				writer.addLiteral(returnType)));
+			final AvailObject outerFunction = FunctionDescriptor.create(
+				writer.compiledCode(),
+				TupleDescriptor.empty()).makeImmutable();
+			// TODO: [TLS] When functions can be made non-reflective, then make
+			// both these functions non-reflective for safety.
+			return interpreter.primitiveSuccess(outerFunction);
+		}
+
+		@Override
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
+		{
+			return FunctionTypeDescriptor.create(
+				TupleDescriptor.from(
+					InstanceTypeDescriptor.on(
+						PojoTypeDescriptor.mostGeneralType()),
+					TupleTypeDescriptor.stringTupleType(),
+					TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+						IntegerRangeTypeDescriptor.wholeNumbers(),
+						TupleDescriptor.empty(),
+						TYPE.o())),
+				// TODO: [TLS] Answer a function type that answers top and
+				// can raise java.lang.Throwable.
+				FunctionTypeDescriptor.forReturnType(TOP.o()));
+		}
+	},
+
+	/**
+	 * <strong>Primitive 507:</strong> Given a {@linkplain RawPojoDescriptor raw
+	 * pojo} that references a reflected instance {@linkplain Method Java
+	 * method}, the {@linkplain PojoDescriptor receiver}, a {@linkplain
+	 * TupleDescriptor tuple} of arguments, and a tuple of raw pojos that
+	 * reference the reflected {@linkplain Class Java classes} of the marshaled
+	 * arguments, invoke the method and answer the result. If the method fails,
+	 * then store the actual Java {@linkplain Throwable exception} into the
+	 * primitive failure {@linkplain VariableDescriptor variable}.
+	 */
+	prim507_InvokeInstancePojoMethod(507, 4, Private)
+	{
+		@Override
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
+		{
+			assert args.size() == 4;
+			final AvailObject methodPojo = args.get(0);
+			final AvailObject receiverPojo = args.get(1);
+			final AvailObject methodArgs = args.get(2);
+			final AvailObject marshaledTypePojos = args.get(3);
+			// Marshal the arguments and invoke the method.
+			final Method method = (Method) methodPojo.javaObject();
+			assert method != null;
+			final Object receiver = receiverPojo.rawPojo().javaObject();
+			final Object[] marshaledArgs =
+				new Object[methodArgs.tupleSize()];
+			try
+			{
+				for (int i = 0; i < marshaledArgs.length; i++)
+				{
+					final Class<?> marshaledType = (Class<?>)
+						marshaledTypePojos.tupleAt(i + 1).javaObject();
+					marshaledArgs[i] = methodArgs.tupleAt(
+						i + 1).marshalToJava(marshaledType);
+				}
+			}
+			catch (final MarshalingException e)
+			{
+				return interpreter.primitiveFailure(
+					PojoDescriptor.newPojo(
+						RawPojoDescriptor.identityWrap(e),
+						PojoTypeDescriptor.forClass(e.getClass())));
+			}
+			final Object result;
+			try
+			{
+				result = method.invoke(receiver, marshaledArgs);
+			}
+			catch (final NullPointerException e)
+			{
+				return interpreter.primitiveFailure(
+					PojoDescriptor.newPojo(
+						RawPojoDescriptor.identityWrap(e),
+						PojoTypeDescriptor.forClass(e.getClass())));
+			}
+			catch (final InvocationTargetException e)
+			{
+				final Throwable cause = e.getCause();
+				return interpreter.primitiveFailure(
+					PojoDescriptor.newPojo(
+						RawPojoDescriptor.identityWrap(cause),
+						PojoTypeDescriptor.forClass(cause.getClass())));
+			}
+			catch (final Throwable e)
+			{
+				// This is an unexpected failure.
+				error("reflected method call unexpectedly failed");
+				throw new Error();
+			}
+			if (result == null)
+			{
+				return interpreter.primitiveSuccess(
+					PojoDescriptor.nullObject());
+			}
+			final AvailObject expectedType = PojoTypeDescriptor.resolve(
+				method.getGenericReturnType(),
+				receiverPojo.kind().typeVariables());
+			final AvailObject unmarshaled = PojoTypeDescriptor.unmarshal(
+				result, expectedType);
+			return interpreter.primitiveSuccess(unmarshaled);
+		}
+
+		@Override
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
+		{
+			return FunctionTypeDescriptor.create(
+				TupleDescriptor.from(
+					RAW_POJO.o(),
+					PojoTypeDescriptor.mostGeneralType(),
+					TupleTypeDescriptor.mostGeneralType(),
+					TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+						IntegerRangeTypeDescriptor.wholeNumbers(),
+						TupleDescriptor.empty(),
+						RAW_POJO.o())),
+				TOP.o());
+		}
+
+		@Override
+		protected @NotNull AvailObject privateFailureVariableType ()
+		{
+			return PojoTypeDescriptor.forClass(Throwable.class);
+		}
+	},
+
+	/**
+	 * <strong>Primitive 508:</strong> Given the specified {@linkplain
+	 * PojoTypeDescriptor pojo type}, {@linkplain StringDescriptor method name},
+	 * and {@linkplain TupleDescriptor tuple} of {@linkplain TypeDescriptor
+	 * types}, create a {@linkplain FunctionDescriptor function} that when
+	 * applied with arguments will invoke the reflected Java static {@linkplain
+	 * Method method}.
+	 */
+	prim508_CreatePojoStaticMethodFunction(508, 3, CanFold)
+	{
+		@Override
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
+		{
+			assert args.size() == 3;
+			final AvailObject pojoType = args.get(0);
+			final AvailObject methodName = args.get(1);
+			final AvailObject paramTypes = args.get(2);
+			// Marshal the argument types.
+			final Class<?>[] marshaledTypes =
+				new Class<?>[paramTypes.tupleSize()];
+			try
+			{
+				for (int i = 0; i < marshaledTypes.length; i++)
+				{
+					marshaledTypes[i] = (Class<?>) paramTypes.tupleAt(
+						i + 1).marshalToJava(null);
+				}
+			}
+			catch (final MarshalingException e)
+			{
+				return interpreter.primitiveFailure(e);
+			}
+			// Search for the method.
+			final Method method;
+			// If pojoType is not a fused type, then it has an immediate class
+			// that should be used to recursively look up the method.
+			if (!pojoType.isPojoFusedType())
+			{
+				final Class<?> javaClass =
+					(Class<?>) pojoType.javaClass().javaObject();
+				try
+				{
+					method = javaClass.getMethod(
+						methodName.asNativeString(), marshaledTypes);
+				}
+				catch (final NoSuchMethodException e)
+				{
+					return interpreter.primitiveFailure(
+						E_JAVA_METHOD_NOT_AVAILABLE);
+				}
+			}
+			// If pojoType is a fused type, then iterate through its ancestry in
+			// an attempt to uniquely resolve the method.
+			else
+			{
+				final Set<Method> methods = new HashSet<Method>();
+				final AvailObject ancestors = pojoType.javaAncestors();
+				for (final AvailObject ancestor : ancestors.keysAsSet())
+				{
+					final Class<?> javaClass = (Class<?>) ancestor.javaObject();
+					try
+					{
+						methods.add(javaClass.getMethod(
+							methodName.asNativeString(), marshaledTypes));
+					}
+					catch (final NoSuchMethodException e)
+					{
+						// Ignore -- this is not unexpected.
+					}
+				}
+				if (methods.isEmpty())
+				{
+					return interpreter.primitiveFailure(
+						E_JAVA_METHOD_NOT_AVAILABLE);
+				}
+				if (methods.size() > 1)
+				{
+					return interpreter.primitiveFailure(
+						E_JAVA_METHOD_REFERENCE_IS_AMBIGUOUS);
+				}
+				method = methods.iterator().next();
+			}
+			assert method != null;
+			// Wrap each of the marshaled argument types into raw pojos. These
+			// will be embedded into one of the generated functions below.
+			final List<AvailObject> marshaledTypePojos =
+				new ArrayList<AvailObject>(marshaledTypes.length);
+			for (final Class<?> paramClass : marshaledTypes)
+			{
+				marshaledTypePojos.add(
+					RawPojoDescriptor.equalityWrap(paramClass));
+			}
+			final AvailObject marshaledTypesTuple =
+				TupleDescriptor.fromCollection(marshaledTypePojos);
+			// Create a function wrapper for the pojo method invocation
+			// primitive. This function will be embedded as a literal into
+			// an outer function that holds the (unexposed) method pojo.
+			L1InstructionWriter writer = new L1InstructionWriter();
+			writer.primitiveNumber(
+				prim509_InvokeStaticPojoMethod.primitiveNumber);
+			writer.argumentTypes(
+				RAW_POJO.o(),
+				TupleTypeDescriptor.mostGeneralType(),
+				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+					IntegerRangeTypeDescriptor.wholeNumbers(),
+					TupleDescriptor.empty(),
+					RAW_POJO.o()),
+				TYPE.o());
+			writer.returnType(TOP.o());
+			writer.write(new L1Instruction(
+				L1Operation.L1_doGetLocal,
+				writer.createLocal(VariableTypeDescriptor.wrapInnerType(
+					PojoTypeDescriptor.forClass(Throwable.class)))));
+			writer.write(new L1Instruction(
+				L1Operation.L1_doCall,
+				writer.addLiteral(MethodDescriptor.vmRaiseExceptionMethod()),
+				writer.addLiteral(BottomTypeDescriptor.bottom())));
+			final AvailObject innerFunction = FunctionDescriptor.create(
+				writer.compiledCode(),
+				TupleDescriptor.empty()).makeImmutable();
+			// Create the outer function that pushes the arguments expected by
+			// the method invocation primitive. Various objects that we do
+			// not want to expose to the Avail program are embedded in this
+			// function as literals.
+			writer = new L1InstructionWriter();
+			writer.argumentTypesTuple(paramTypes);
+			final AvailObject returnType = PojoTypeDescriptor.resolve(
+				method.getGenericReturnType(),
+				pojoType.typeVariables());
+			writer.returnType(returnType);
+			writer.write(new L1Instruction(
+				L1Operation.L1_doPushLiteral,
+				writer.addLiteral(innerFunction)));
+			writer.write(new L1Instruction(
+				L1Operation.L1_doPushLiteral,
+				writer.addLiteral(RawPojoDescriptor.equalityWrap(method))));
+			final int limit = paramTypes.tupleSize();
+			for (int i = 1; i <= limit; i++)
+			{
+				writer.write(new L1Instruction(L1Operation.L1_doPushLocal, i));
+			}
+			writer.write(new L1Instruction(
+				L1Operation.L1_doMakeTuple,
+				paramTypes.tupleSize()));
+			writer.write(new L1Instruction(
+				L1Operation.L1_doPushLiteral,
+				writer.addLiteral(marshaledTypesTuple)));
+			writer.write(new L1Instruction(
+				L1Operation.L1_doPushLiteral,
+				writer.addLiteral(pojoType)));
+			writer.write(new L1Instruction(
+				L1Operation.L1_doMakeTuple,
+				4));
+			writer.write(new L1Instruction(
+				L1Operation.L1_doCall,
+				writer.addLiteral(MethodDescriptor.vmFunctionApplyMethod()),
+				writer.addLiteral(returnType)));
+			final AvailObject outerFunction = FunctionDescriptor.create(
+				writer.compiledCode(),
+				TupleDescriptor.empty()).makeImmutable();
+			// TODO: [TLS] When functions can be made non-reflective, then make
+			// both these functions non-reflective for safety.
+			return interpreter.primitiveSuccess(outerFunction);
+		}
+
+		@Override
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
+		{
+			return FunctionTypeDescriptor.create(
+				TupleDescriptor.from(
+					InstanceTypeDescriptor.on(
+						PojoTypeDescriptor.mostGeneralType()),
+					TupleTypeDescriptor.stringTupleType(),
+					TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+						IntegerRangeTypeDescriptor.wholeNumbers(),
+						TupleDescriptor.empty(),
+						TYPE.o())),
+				// TODO: [TLS] Answer a function type that answers any and
+				// can raise java.lang.Throwable.
+				FunctionTypeDescriptor.forReturnType(TOP.o()));
+		}
+	},
+
+	/**
+	 * <strong>Primitive 509:</strong> Given a {@linkplain RawPojoDescriptor raw
+	 * pojo} that references a reflected static {@linkplain Method Java method},
+	 * a {@linkplain TupleDescriptor tuple} of arguments, and a tuple of raw
+	 * pojos that reference the reflected {@linkplain Class Java classes} of the
+	 * marshaled arguments, invoke the method and answer the result. If the
+	 * method fails, then store the actual Java {@linkplain Throwable exception}
+	 * into the primitive failure {@linkplain VariableDescriptor variable}.
+	 */
+	prim509_InvokeStaticPojoMethod(509, 4, Private)
+	{
+		@Override
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
+		{
+			assert args.size() == 4;
+			final AvailObject methodPojo = args.get(0);
+			final AvailObject methodArgs = args.get(1);
+			final AvailObject marshaledTypePojos = args.get(2);
+			final AvailObject expectedType = args.get(3);
+			// Marshal the arguments and invoke the method.
+			final Method method = (Method) methodPojo.javaObject();
+			assert method != null;
+			final Object[] marshaledArgs =
+				new Object[methodArgs.tupleSize()];
+			try
+			{
+				for (int i = 0; i < marshaledArgs.length; i++)
+				{
+					final Class<?> marshaledType = (Class<?>)
+						marshaledTypePojos.tupleAt(i + 1).javaObject();
+					marshaledArgs[i] = methodArgs.tupleAt(
+						i + 1).marshalToJava(marshaledType);
+				}
+			}
+			catch (final MarshalingException e)
+			{
+				return interpreter.primitiveFailure(
+					PojoDescriptor.newPojo(
+						RawPojoDescriptor.identityWrap(e),
+						PojoTypeDescriptor.forClass(e.getClass())));
+			}
+			final Object result;
+			try
+			{
+				result = method.invoke(null, marshaledArgs);
+			}
+			catch (final InvocationTargetException e)
+			{
+				final Throwable cause = e.getCause();
+				return interpreter.primitiveFailure(
+					PojoDescriptor.newPojo(
+						RawPojoDescriptor.identityWrap(cause),
+						PojoTypeDescriptor.forClass(cause.getClass())));
+			}
+			catch (final Throwable e)
+			{
+				// This is an unexpected failure.
+				error("reflected method call unexpectedly failed");
+				throw new Error();
+			}
+			if (result == null)
+			{
+				return interpreter.primitiveSuccess(
+					PojoDescriptor.nullObject());
+			}
+			final AvailObject unmarshaled = PojoTypeDescriptor.unmarshal(
+				result, expectedType);
+			return interpreter.primitiveSuccess(unmarshaled);
+		}
+
+		@Override
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
+		{
+			return FunctionTypeDescriptor.create(
+				TupleDescriptor.from(
+					RAW_POJO.o(),
+					TupleTypeDescriptor.mostGeneralType(),
+					TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+						IntegerRangeTypeDescriptor.wholeNumbers(),
+						TupleDescriptor.empty(),
+						RAW_POJO.o()),
+					TYPE.o()),
+				TOP.o());
+		}
+
+		@Override
+		protected @NotNull AvailObject privateFailureVariableType ()
+		{
+			return PojoTypeDescriptor.forClass(Throwable.class);
+		}
+	},
+
+	/**
+	 * <strong>Primitive 510:</strong> Create a {@linkplain
+	 * PojoTypeDescriptor pojo array} that stores and answers elements of the
+	 * specified {@linkplain TypeDescriptor Avail type} and has the specified
+	 * {@linkplain IntegerDescriptor length}.
+	 */
+	prim510_CreatePojoArray(510, 2, CannotFail, CanFold)
+	{
+		@Override
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
+		{
+			assert args.size() == 2;
+			final AvailObject elementType = args.get(0);
+			final AvailObject length = args.get(1);
+			final AvailObject pojoType =
+				PojoTypeDescriptor.forArrayTypeWithSizeRange(
+					elementType,
+					IntegerRangeTypeDescriptor.singleInteger(length));
+			final Object array = Array.newInstance(
+				(Class<?>) elementType.marshalToJava(null),
+				length.extractInt());
+			final AvailObject pojo = PojoDescriptor.newPojo(
+				RawPojoDescriptor.identityWrap(array),
+				pojoType);
+			return interpreter.primitiveSuccess(pojo);
+		}
+
+		@Override
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
+		{
+			return FunctionTypeDescriptor.create(
+				TupleDescriptor.from(
+					TYPE.o(),
+					IntegerRangeTypeDescriptor.wholeNumbers()),
+				PojoTypeDescriptor.mostGeneralArrayType());
+		}
+	},
+
+	/**
+	 * <strong>Primitive 511:</strong> Answer the length of the specified
+	 * {@linkplain PojoDescriptor pojo array}.
+	 */
+	prim511_PojoArrayLength(511, 1, CannotFail, CanFold)
+	{
+		@Override
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
+		{
+			assert args.size() == 1;
+			final AvailObject pojo = args.get(0);
+			final AvailObject rawPojo = pojo.rawPojo();
+			final Object array = rawPojo.javaObject();
+			return interpreter.primitiveSuccess(
+				IntegerDescriptor.fromInt(Array.getLength(array)));
+		}
+
+		@Override
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
+		{
+			return FunctionTypeDescriptor.create(
+				TupleDescriptor.from(
+					PojoTypeDescriptor.mostGeneralArrayType()),
+				IntegerRangeTypeDescriptor.wholeNumbers());
+		}
+	},
+
+	/**
+	 * <strong>Primitive 512:</strong> Get the {@linkplain AvailObject element}
+	 * that resides at the given {@linkplain IntegerDescriptor subscript} of the
+	 * specified {@linkplain PojoTypeDescriptor pojo array type}.
+	 */
+	prim512_PojoArrayGet(512, 2, CanFold)
+	{
+		@Override
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
+		{
+			assert args.size() == 2;
+			final AvailObject pojo = args.get(0);
+			final AvailObject subscript = args.get(1);
+			final AvailObject rawPojo = pojo.rawPojo();
+			final Object array = rawPojo.javaObject();
+			final int index = subscript.extractInt();
+			if (index > Array.getLength(array))
+			{
+				return interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS);
+			}
+			final Object element = Array.get(array, index - 1);
+			final AvailObject unmarshaled;
+			try
+			{
+				unmarshaled = PojoTypeDescriptor.unmarshal(
+					element, pojo.kind().contentType());
+			}
+			catch (final MarshalingException e)
+			{
+				return interpreter.primitiveFailure(e);
+			}
+			return interpreter.primitiveSuccess(unmarshaled);
+		}
+
+		@Override
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
+		{
+			return FunctionTypeDescriptor.create(
+				TupleDescriptor.from(
+					PojoTypeDescriptor.mostGeneralArrayType(),
+					IntegerRangeTypeDescriptor.naturalNumbers()),
+				ANY.o());
+		}
+	},
+
+	/**
+	 * <strong>Primitive 513:</strong> Overwrite the {@linkplain AvailObject
+	 * element} that resides at the given {@linkplain IntegerDescriptor
+	 * subscript} of the specified {@linkplain PojoTypeDescriptor pojo array
+	 * type}.
+	 */
+	prim513_PojoArraySet(513, 3, CanFold)
+	{
+		@Override
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
+		{
+			assert args.size() == 3;
+			final AvailObject pojo = args.get(0);
+			final AvailObject subscript = args.get(1);
+			final AvailObject value = args.get(2);
+			final AvailObject rawPojo = pojo.rawPojo();
+			final Object array = rawPojo.javaObject();
+			final int index = subscript.extractInt();
+			if (index > Array.getLength(array))
+			{
+				return interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS);
+			}
+			final AvailObject contentType = pojo.kind().contentType();
+			if (!value.isInstanceOf(contentType))
+			{
+				return interpreter.primitiveFailure(
+					E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE);
+			}
+			try
+			{
+				final Class<?> marshaledType =
+					(Class<?>) contentType.marshalToJava(null);
+				Array.set(array, index - 1, value.marshalToJava(marshaledType));
+			}
+			catch (final MarshalingException e)
+			{
+				return interpreter.primitiveFailure(e);
+			}
+			return interpreter.primitiveSuccess(NullDescriptor.nullObject());
+		}
+
+		@Override
+		protected AvailObject privateBlockTypeRestriction ()
+		{
+			return FunctionTypeDescriptor.create(
+				TupleDescriptor.from(
+					PojoTypeDescriptor.mostGeneralArrayType(),
+					IntegerRangeTypeDescriptor.naturalNumbers(),
+					ANY.o()),
+				TOP.o());
 		}
 	};
 

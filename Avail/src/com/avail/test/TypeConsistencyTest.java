@@ -127,9 +127,9 @@ public class TypeConsistencyTest
 	 * {@linkplain TypeConsistencyTest consistency checks}.
 	 *
 	 * <p>
-	 * All {@link TypeDescriptor.Types} are included, as well as a few
-	 * simple representative samples, such as the one-element string type and
-	 * the type of whole numbers.
+	 * All {@link com.avail.descriptor.TypeDescriptor.Types} are included, as
+	 * well as a few simple representative samples, such as the one-element
+	 * string type and the type of whole numbers.
 	 * </p>
 	 */
 	public abstract static class Node
@@ -140,8 +140,8 @@ public class TypeConsistencyTest
 		static final List<Node> values = new ArrayList<Node>();
 
 		/**
-		 * A mapping from {@link TypeDescriptor.Types} to their corresponding
-		 * {@link Node}s.
+		 * A mapping from {@link com.avail.descriptor.TypeDescriptor.Types} to
+		 * their corresponding {@link Node}s.
 		 */
 		private static final EnumMap<Types, Node> primitiveTypes =
 			new EnumMap<Types, Node>(Types.class);
@@ -485,10 +485,10 @@ public class TypeConsistencyTest
 			@Override
 			AvailObject get ()
 			{
-				return PojoTypeDescriptor.create(
+				return PojoTypeDescriptor.forClassWithTypeArguments(
 					Comparable.class,
-					TupleDescriptor.from(PojoTypeDescriptor.create(
-						Object.class, TupleDescriptor.empty())));
+					TupleDescriptor.from(
+						PojoTypeDescriptor.mostGeneralType()));
 			}
 		};
 
@@ -502,10 +502,10 @@ public class TypeConsistencyTest
 			@Override
 			AvailObject get ()
 			{
-				return PojoTypeDescriptor.create(
+				return PojoTypeDescriptor.forClassWithTypeArguments(
 					Comparable.class,
-					TupleDescriptor.from(PojoTypeDescriptor.create(
-						Integer.class, TupleDescriptor.empty())));
+					TupleDescriptor.from(
+						PojoTypeDescriptor.forClass(Integer.class)));
 			}
 		};
 
@@ -519,8 +519,7 @@ public class TypeConsistencyTest
 			@Override
 			AvailObject get ()
 			{
-				return PojoTypeDescriptor.create(
-					Integer.class, TupleDescriptor.empty());
+				return PojoTypeDescriptor.forClass(Integer.class);
 			}
 		};
 
@@ -534,10 +533,10 @@ public class TypeConsistencyTest
 			@Override
 			AvailObject get ()
 			{
-				return PojoTypeDescriptor.create(
+				return PojoTypeDescriptor.forClassWithTypeArguments(
 					Comparable.class,
-					TupleDescriptor.from(PojoTypeDescriptor.create(
-						String.class, TupleDescriptor.empty())));
+					TupleDescriptor.from(
+						PojoTypeDescriptor.forClass(String.class)));
 			}
 		};
 
@@ -551,8 +550,7 @@ public class TypeConsistencyTest
 			@Override
 			AvailObject get ()
 			{
-				return PojoTypeDescriptor.create(
-					String.class, TupleDescriptor.empty());
+				return PojoTypeDescriptor.forClass(String.class);
 			}
 		};
 
@@ -564,17 +562,18 @@ public class TypeConsistencyTest
 		 * actually be written as a Java type expression.  This pojo type is the
 		 * most general Java enumeration type.
 		 */
-		static final Node JAVA_ENUM_POJO = new Node(
+		final static Node JAVA_ENUM_POJO = new Node(
 			"JAVA_ENUM_POJO",
 			COMPARABLE_OF_JAVA_OBJECT_POJO)
 		{
 			@Override
 			AvailObject get ()
 			{
-				return PojoTypeDescriptor.create(
+				return PojoTypeDescriptor.forClassWithTypeArguments(
 					Enum.class,
-					TupleDescriptor.from(PojoSelfTypeDescriptor.create(
-						Enum.class)));
+					TupleDescriptor.from(
+						PojoTypeDescriptor.selfTypeForClass(
+							Enum.class)));
 			}
 		};
 
@@ -582,15 +581,14 @@ public class TypeConsistencyTest
 		 * The pojo type representing the Java enumeration {@link
 		 * com.avail.interpreter.Primitive}.
 		 */
-		static final Node AVAIL_PRIMITIVE_ENUM_POJO = new Node(
+		final static Node AVAIL_PRIMITIVE_ENUM_POJO = new Node(
 			"AVAIL_PRIMITIVE_ENUM_POJO",
 			JAVA_ENUM_POJO)
 		{
 			@Override
 			AvailObject get ()
 			{
-				return PojoTypeDescriptor.create(
-					Primitive.class, TupleDescriptor.empty());
+				return PojoTypeDescriptor.forClass(Primitive.class);
 			}
 		};
 
@@ -606,7 +604,7 @@ public class TypeConsistencyTest
 			@Override
 			AvailObject get ()
 			{
-				return PojoTypeDescriptor.create(
+				return PojoTypeDescriptor.forClassWithTypeArguments(
 					Comparable.class,
 					TupleDescriptor.from(
 						IntegerRangeTypeDescriptor.integers()));
@@ -624,10 +622,9 @@ public class TypeConsistencyTest
 			@Override
 			AvailObject get ()
 			{
-				return PojoTypeDescriptor.create(
-					PojoTypeDescriptor.pojoArrayClass(),
-					TupleDescriptor.from(
-						PojoTypeDescriptor.mostGeneralType()));
+				return PojoTypeDescriptor.forArrayTypeWithSizeRange(
+					PojoTypeDescriptor.mostGeneralType(),
+					IntegerRangeTypeDescriptor.wholeNumbers());
 			}
 		};
 
@@ -642,18 +639,17 @@ public class TypeConsistencyTest
 			@Override
 			AvailObject get ()
 			{
-				return PojoTypeDescriptor.create(
-					PojoTypeDescriptor.pojoArrayClass(),
-					TupleDescriptor.from(JAVA_STRING_POJO.t));
+				return PojoTypeDescriptor.forArrayTypeWithSizeRange(
+					JAVA_STRING_POJO.t,
+					IntegerRangeTypeDescriptor.wholeNumbers());
 			}
 		};
 
 		/**
-		 * The special {@link PojoTypeDescriptor#mostSpecificType() most
-		 * specific pojo type},
+		 * {@linkplain PojoTypeDescriptor Pojo bottom}.
 		 */
-		static final Node MOST_SPECIFIC_POJO = new Node(
-			"MOST_SPECIFIC_POJO",
+		static final Node POJO_BOTTOM = new Node(
+			"POJO_BOTTOM",
 			JAVA_INTEGER_POJO,
 			JAVA_STRING_POJO,
 			AVAIL_PRIMITIVE_ENUM_POJO,
@@ -663,7 +659,7 @@ public class TypeConsistencyTest
 			@Override
 			AvailObject get ()
 			{
-				return PojoTypeDescriptor.mostSpecificType();
+				return PojoTypeDescriptor.pojoBottom();
 			}
 		};
 
@@ -1216,7 +1212,6 @@ public class TypeConsistencyTest
 
 	}
 
-
 	/**
 	 * Test fixture: clear and then create all special objects well-known to the
 	 * Avail runtime, then set up the graph of types.
@@ -1677,6 +1672,8 @@ public class TypeConsistencyTest
 					// TODO: [TLS] Remove this guard after thorough debugging.
 					if (!xyIz.equals(xIyz))
 					{
+						x.t.typeIntersection(y.t);
+						y.t.typeIntersection(z.t);
 						xy.typeIntersection(z.t);
 						x.t.typeIntersection(yz);
 						xyIz.equals(xIyz);
@@ -1829,14 +1826,14 @@ public class TypeConsistencyTest
 	 * @see #checkCovariance(TypeRelation)
 	 */
 	@Test
-	public void testPojoTypeParametersCovariance ()
+	public void testAbstractPojoTypeParametersCovariance ()
 	{
 		checkCovariance(new TypeRelation("pojo type parameters")
 		{
 			@Override
 			AvailObject transform (final AvailObject type)
 			{
-				return PojoTypeDescriptor.create(
+				return PojoTypeDescriptor.forClassWithTypeArguments(
 					Comparable.class,
 					TupleDescriptor.from(type));
 			}

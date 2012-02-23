@@ -1,5 +1,5 @@
-/*
- * Early Literals.avail
+/**
+ * VariableSetException.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,45 +30,46 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Early Literals"
-Versions
-	"dev"
-Uses
-	"Bootstrap"
-Names
-	"<«_‡,»>"
-Body
+package com.avail.exceptions;
+
+import com.avail.annotations.NotNull;
+import com.avail.descriptor.AvailObject;
 
 /**
- * Construct and answer a tuple from the lexically specified expressions. The
- * hard work here is done automatically by the Avail compiler.
+ * {@code VariableSetException} is thrown when {@link AvailObject#setValue}
+ * fails for any reason.
  *
- * Parameters:
- *    elements - The desired tuple, lexically constructed by the compiler.
- * Returns:
- *    The argument.
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
-Method "<«_‡,»>" is
-[
-	elements : tuple
-|
-	elements;
-] : tuple;
+public final class VariableSetException
+extends AvailRuntimeException
+{
+	/** The serial version identifier. */
+	private static final long serialVersionUID = 5516315813534925676L;
 
-/**
- * Strengthen the type of `<«_‡,»>` to the most exact possible. The hard work
- * here is done automatically by the Avail compiler, which examines the lexical
- * arguments and produces instance types for literals and applies semantic
- * restrictions to any method sends.
- *
- * Parameters:
- *    elements - The strengthened tuple type, constructed by the compiler.
- * Returns:
- *    The argument.
- */
-Semantic restriction "<«_‡,»>" is
-[
-	elements : tuple meta
-|
-	elements;
-];
+	/**
+	 * Construct a new {@link VariableSetException}.
+	 *
+	 * @param errorCode An {@linkplain AvailErrorCode error code}.
+	 */
+	public VariableSetException (final @NotNull AvailErrorCode errorCode)
+	{
+		super(errorCode);
+	}
+
+	/**
+	 * Construct a new {@link VariableSetException}.
+	 *
+	 * @param errorCode
+	 *        An {@linkplain AvailErrorCode error code}.
+	 * @param cause
+	 *        The proximal {@linkplain Throwable cause} of the {@linkplain
+	 *        VariableSetException exception}.
+	 */
+	public VariableSetException (
+		final @NotNull AvailErrorCode errorCode,
+		final @NotNull Throwable cause)
+	{
+		super(errorCode, cause);
+	}
+}

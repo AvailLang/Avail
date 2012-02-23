@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.01.26 13:37:01.482 -0600
+ * * Last Generated On: 2012.02.22 22:49:58.404 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -59,20 +59,25 @@ Uses
 		"_#_:_(literals=_,#locals_,#outers_,stack depth=_)",
 		"_+_",
 		"_-_",
+		"_._→variable",
+		"_<«_‡,»>",
 		"_[_.._]",
 		"_[_]",
+		"_[_]:=_",
 		"_[_]→_",
 		"_mod_",
 		"_×_",
 		"_÷_",
-		"constructor of_given_",
+		"_∈_",
+		"constructor_<«_‡,»>",
 		"eject_",
 		"function from_and_",
 		"invoke_with_",
-		"pojo_with_",
+		"method_._(«_‡,»)",
 		"read character",
 		"request termination of_",
 		"semantic restrictions for_given_",
+		"static method_._(«_‡,»)",
 		"swap_and_",
 		"termination requested",
 		"try_catch_",
@@ -451,6 +456,24 @@ Method "_[_]" is
 ] : any;
 
 /**
+ * Does `anAtom` have a property whose key is `key`?
+ *
+ * Parameters:
+ *    anAtom - An atom.
+ *    key - The property key.
+ * Returns:
+ *    `true` if `anAtom` has a property whose key is `key`, `false` otherwise.
+ */
+Method "_∈_" is
+[
+	anAtom : atom,
+	key : atom
+|
+	Primitive 122 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode;
+] : boolean;
+
+/**
  * Assuming that `anAtom` has a property whose key is `key`, then answer
  * the property value associated with the `key`.
  *
@@ -468,6 +491,42 @@ Method "_[_]" is
 	Primitive 123 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode;
 ] : any;
+
+/**
+ * For `anAtom`, establish a property binding from `key` to `value`.
+ * Any previous property binding for `key` is replaced.
+ *
+ * Parameters:
+ *    anAtom - An atom.
+ *    key - The property key.
+ *    value - The property value.
+ */
+Method "_[_]:=_" is
+[
+	anAtom : atom,
+	key : atom,
+	value : any
+|
+	Primitive 124 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode;
+] : ⊤;
+
+/**
+ * If `anAtom` has a property whose key is `key`, then remove the property.
+ * Otherwise do nothing.
+ *
+ * Parameters:
+ *    anAtom - An atom.
+ *    key - A property key.
+ */
+Method "_-_" is
+[
+	anAtom : atom,
+	key : atom
+|
+	Primitive 125 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode;
+] : ⊤;
 
 /**
  * Answer the `index`-th element of `aTuple`.
@@ -640,7 +699,7 @@ Method "try_catch_" is
  */
 Method "Raise_" is
 [
-	exception : object
+	exception : any
 |
 	Primitive 201 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode;
@@ -847,7 +906,7 @@ Method "_mod_" is
  * Returns:
  *    The requested pojo type.
  */
-Method "pojo_with_" is
+Method "_<«_‡,»>" is
 [
 	javaName : string,
 	typeParameters : tuple of type
@@ -877,16 +936,16 @@ Method "pojo_with_" is
  *    - `double` is marshaled to Java double (java.lang.Double.TYPE).
  *    - `string` is marshaled to java.lang.String.
  *    - `_[]` is marshaled to java.lang.reflect.Array.newInstance().getClass().
- *    - `pojo_with_` is marshaled to the reflected Java class or interface.
- *    - All other values are marshaled to org.availlang.descriptor.AvailObject.
+ *    - `_<«_‡,»>` is marshaled to the reflected Java class or interface.
+ *    - All other values are marshaled to com.avail.descriptor.AvailObject.
  *
  * Parameters:
  *    aPojoType - A pojo type.
  *    parameterTypes - The parameter types accepted by the desired constructor.
  * Returns:
- *    The requested constructor function.
+ *    The requested constructor invocation function.
  */
-Method "constructor of_given_" is
+Method "constructor_<«_‡,»>" is
 [
 	aPojoType : pojo meta,
 	parameterTypes : tuple of type
@@ -894,4 +953,166 @@ Method "constructor of_given_" is
 	Primitive 502 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode;
 ] : pojo constructor;
+
+/**
+ * Construct and answer a variable that, when read or written, will pass
+ * through to the instance field uniquely specified by the given pojo and field
+ * name.
+ *
+ * Parameters:
+ *    aPojo - The pojo whose instance field should be bound to the answered
+ *       variable.
+ *    fieldName - The name of the desired field.
+ * Returns:
+ *    A variable bound to the specified instance field.
+ */
+Method "_._→variable" is
+[
+	aPojo : pojo,
+	fieldName : string
+|
+	Primitive 504 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode;
+] : variable;
+
+/**
+ * Construct and answer a variable that, when read or written, will pass
+ * through to the static field specified by the given pojo type and field
+ * name.
+ *
+ * Parameters:
+ *    aPojoType - A pojo type whose static field should be bound to the
+ *       answered variable.
+ *    fieldName - The name of the desired field.
+ * Returns:
+ *    A variable bound to the specified static field.
+ */
+Method "_._→variable" is
+[
+	aPojoType : pojo meta,
+	fieldName : string
+|
+	Primitive 505 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode;
+] : variable;
+
+/**
+ * Construct and answer a function that, when applied with arguments
+ * corresponding to the specified parameter types, invokes a particular
+ * instance method.
+ *
+ * The answered function adapts a reflective invocation of the Java method,
+ * if any, that has the specified name and accepts the specified number and
+ * types of arguments. The receiver is specified as the first argument. To
+ * establish type conformance between Avail types and Java types for the purpose
+ * of reflective method lookup and invocation, the following marshaling rules
+ * are applied:
+ *
+ *    - `[-128..127]` is marshaled to Java byte (java.lang.Byte.TYPE).
+ *    - `[-32768..32767]` is marshaled to Java short (java.lang.Short.TYPE).
+ *    - `[-2^31..2^31-1]` is marshaled to Java int (java.lang.Integer.TYPE).
+ *    - `[-2^63..2^63-1]` is marshaled to Java long (java.lang.Long.TYPE).
+ *    - `boolean` is marshaled to Java boolean (java.lang.Boolean.TYPE).
+ *    - `character` is marshaled to Java char (java.lang.Character.TYPE).
+ *    - `float` is marshaled to Java float (java.lang.Float.TYPE).
+ *    - `double` is marshaled to Java double (java.lang.Double.TYPE).
+ *    - `string` is marshaled to java.lang.String.
+ *    - `_[]` is marshaled to java.lang.reflect.Array.newInstance().getClass().
+ *    - `_<«_‡,»>` is marshaled to the reflected Java class or interface.
+ *    - All other values are marshaled to com.avail.descriptor.AvailObject.
+ *
+ * Parameters:
+ *    aPojoType - A pojo type.
+ *    methodName - The name of the desired method.
+ *    parameterTypes - The parameter types accepted by the desired method.
+ * Returns:
+ *    The requested instance method invocation function.
+ */
+Method "method_._(«_‡,»)" is
+[
+	aPojoType : pojo meta,
+	methodName : string,
+	parameterTypes : tuple of type
+|
+	Primitive 506 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode;
+] : function;
+
+/**
+ * Construct and answer a function that, when applied with arguments
+ * corresponding to the specified parameter types, invokes a particular
+ * static method.
+ *
+ * The answered function adapts a reflective invocation of the Java method,
+ * if any, that has the specified name and accepts the specified number and
+ * types of arguments. To establish type conformance between Avail types and
+ * Java types for the purpose of reflective method lookup and invocation, the
+ * following marshaling rules are applied:
+ *
+ *    - `[-128..127]` is marshaled to Java byte (java.lang.Byte.TYPE).
+ *    - `[-32768..32767]` is marshaled to Java short (java.lang.Short.TYPE).
+ *    - `[-2^31..2^31-1]` is marshaled to Java int (java.lang.Integer.TYPE).
+ *    - `[-2^63..2^63-1]` is marshaled to Java long (java.lang.Long.TYPE).
+ *    - `boolean` is marshaled to Java boolean (java.lang.Boolean.TYPE).
+ *    - `character` is marshaled to Java char (java.lang.Character.TYPE).
+ *    - `float` is marshaled to Java float (java.lang.Float.TYPE).
+ *    - `double` is marshaled to Java double (java.lang.Double.TYPE).
+ *    - `string` is marshaled to java.lang.String.
+ *    - `_[]` is marshaled to java.lang.reflect.Array.newInstance().getClass().
+ *    - `_<«_‡,»>` is marshaled to the reflected Java class or interface.
+ *    - All other values are marshaled to com.avail.descriptor.AvailObject.
+ *
+ * Parameters:
+ *    aPojoType - A pojo type.
+ *    methodName - The name of the desired method.
+ *    parameterTypes - The parameter types accepted by the desired method.
+ * Returns:
+ *    The requested static method invocation function.
+ */
+Method "static method_._(«_‡,»)" is
+[
+	aPojoType : pojo meta,
+	methodName : string,
+	parameterTypes : tuple of type
+|
+	Primitive 508 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode;
+] : function;
+
+/**
+ * Answer the `index`-th element of the specified pojo array.
+ *
+ * Parameters:
+ *    anArray - A pojo array.
+ *    index - A one-based index into the pojo array.
+ * Returns:
+ *    The `index`-th element of `anArray`.
+ */
+Method "_[_]" is
+[
+	anArray : pojo array,
+	index : natural number
+|
+	Primitive 512 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode;
+] : any;
+
+/**
+ * Mutate the specified pojo array such that its `index`-th element is
+ * overwritten by `value`.
+ *
+ * Parameters:
+ *    anArray - A pojo array.
+ *    index - A one-based index into the pojo array.
+ *    value - The value that should be written into the pojo array.
+ */
+Method "_[_]:=_" is
+[
+	anArray : pojo array,
+	index : natural number,
+	value : any
+|
+	Primitive 513 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode;
+] : ⊤;
 

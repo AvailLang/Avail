@@ -1276,7 +1276,7 @@ implements L2OperationDispatcher
 					offset - 1,
 					stackString));
 			}
-
+final AvailObject oldChunk = chunk; //TODO[MvG]: REMOVE debugging
 			operation.dispatch(this);
 		}
 		return exitValue;
@@ -2187,12 +2187,13 @@ implements L2OperationDispatcher
 	}
 
 	@Override
-	public void L2_doSendAfterFailedPrimitive_argumentsVector_ ()
+	public void L2_doSendAfterFailedPrimitive_arguments_failureValue_ ()
 	{
 		// The continuation is required to have already been reified.
 		final int selectorIndex = nextWord();
 		final int argumentsIndex = nextWord();
 		final int failureValueIndex = nextWord();
+		final AvailObject failureValue = pointerAt(failureValueIndex);
 		final AvailObject vect = chunkVectors.tupleAt(argumentsIndex);
 		argsBuffer.clear();
 		for (int i = 1; i <= vect.tupleSize(); i++)
@@ -2224,7 +2225,6 @@ implements L2OperationDispatcher
 		final int failureVariableIndex =
 			argumentRegister(vect.tupleSize() + 1);
 		final AvailObject failureVariable = pointerAt(failureVariableIndex);
-		final AvailObject failureValue = pointerAt(failureValueIndex);
 		failureVariable.setValue(failureValue);
 	}
 

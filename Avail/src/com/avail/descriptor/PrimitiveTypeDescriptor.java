@@ -243,9 +243,8 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aMapType)
 	{
-		//  This primitive type is a supertype of aMapType if and only if this
-		//  primitive type is a supertype of ANY.
-
+		// This primitive type is a supertype of aMapType if and only if this
+		// primitive type is a supertype of ANY.
 		return ANY.o().isSubtypeOf(object);
 	}
 
@@ -254,9 +253,8 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anEagerObjectType)
 	{
-		//  Check if I'm a supertype of the given eager object type.  Only all and its
-		//  ancestors are supertypes of an object type.
-
+		// Check if I'm a supertype of the given eager object type.  Only ANY
+		// and its ancestors are supertypes of an object type.
 		return ANY.o().isSubtypeOf(object);
 	}
 
@@ -264,6 +262,14 @@ extends TypeDescriptor
 	boolean o_IsSupertypeOfParseNodeType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aParseNodeType)
+	{
+		return ANY.o().isSubtypeOf(object);
+	}
+
+	@Override
+	boolean o_IsSupertypeOfPojoBottomType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aPojoType)
 	{
 		return ANY.o().isSubtypeOf(object);
 	}
@@ -382,6 +388,53 @@ extends TypeDescriptor
 		return object.slot(ObjectSlots.MY_TYPE);
 	}
 
+	@Override @AvailMethod
+	Object o_MarshalToJava (
+		final @NotNull AvailObject object,
+		final Class<?> ignoredClassHint)
+	{
+		for (final Types type : Types.values())
+		{
+			if (object.equals(type.o()))
+			{
+				switch (type)
+				{
+					case TOP:
+						return Void.class;
+					case ANY:
+						return Object.class;
+					case CHARACTER:
+						return Character.TYPE;
+					case DOUBLE:
+						return Double.TYPE;
+					case FLOAT:
+						return Float.TYPE;
+					case ABSTRACT_SIGNATURE:
+					case ATOM:
+					case FORWARD_SIGNATURE:
+					case LITERAL_TOKEN:
+					case MACRO_SIGNATURE:
+					case MESSAGE_BUNDLE:
+					case MESSAGE_BUNDLE_TREE:
+					case META:
+					case METHOD:
+					case METHOD_SIGNATURE:
+					case MODULE:
+					case NUMBER:
+					case PROCESS:
+					case RAW_POJO:
+					case SIGNATURE:
+					case TOKEN:
+					case TYPE:
+						return super.o_MarshalToJava(object, ignoredClassHint);
+				}
+			}
+		}
+		assert false
+			: "All cases have been dealt with, and each forces a return";
+		return null;
+	}
+
 	/**
 	 * Create a partially-initialized primitive type with the given name.  The
 	 * type's parent and the type's myType will be set later, to allow circular
@@ -419,7 +472,8 @@ extends TypeDescriptor
 	/**
 	 * The descriptor instance that describes a mutable primitive type.
 	 */
-	final private static PrimitiveTypeDescriptor mutable = new PrimitiveTypeDescriptor(true);
+	final private static PrimitiveTypeDescriptor mutable =
+		new PrimitiveTypeDescriptor(true);
 
 	/**
 	 * Answer the descriptor instance that describes a mutable primitive type.
@@ -434,7 +488,8 @@ extends TypeDescriptor
 	/**
 	 * The descriptor instance that describes an immutable primitive type.
 	 */
-	final private static PrimitiveTypeDescriptor immutable = new PrimitiveTypeDescriptor(false);
+	final private static PrimitiveTypeDescriptor immutable =
+		new PrimitiveTypeDescriptor(false);
 
 	/**
 	 * Answer the descriptor instance that describes an immutable primitive

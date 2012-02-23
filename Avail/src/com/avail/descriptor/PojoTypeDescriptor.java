@@ -33,26 +33,26 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.descriptor.PojoTypeDescriptor.ObjectSlots.*;
-import java.io.Serializable;
 import java.lang.reflect.*;
+import java.math.BigInteger;
 import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
+import com.avail.exceptions.*;
+import com.avail.utility.*;
 
 /**
- * A {@code PojoTypeDescriptor} describes the type of a plain-old Java object
- * (pojo) that is accessible to an Avail programmer as an {@linkplain
+ * An {@code PojoTypeDescriptor} describes the type of a plain-old Java
+ * object (pojo) that is accessible to an Avail programmer as an {@linkplain
  * AvailObject Avail object}.
  *
  * <p>Even though Java uses type erasure for its generic types, Java class files
- * contain enough reflectively available information about {@linkplain
- * TypeVariable type variables} for Avail to expose Java types as if they were
- * fully polymorphic (like Avail's own types). Avail does not need to create new
- * Java types by extending the Java class hierarchy, so there is no need to
- * model Java generic types directly. Polymorphic types are therefore sufficient
- * for construction and employment, which runs the gamut of purposes from an
- * Avail programmer's perspective.</p>
+ * contain enough reflectively available information about genericity for Avail
+ * to expose Java types as if they were fully polymorphic (like Avail's own
+ * types). Avail does not need to create new Java types by extending the Java
+ * class hierarchy, so there is no need to model Java generic types directly.
+ * Polymorphic types are therefore sufficient for construction and employment,
+ * which runs the gamut of purposes from an Avail programmer's perspective.</p>
  *
  * <p>Java interfaces are presented to Avail as though they were Java classes.
  * Avail sees interface inheritance as though it were class inheritance, with
@@ -62,14 +62,134 @@ import com.avail.annotations.*;
  *
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
-public final class PojoTypeDescriptor
+public abstract class PojoTypeDescriptor
 extends TypeDescriptor
 {
+	/**
+	 * {@code Canon} specifies a {@linkplain Map map} from {@linkplain Class
+	 * Java classes} to {@linkplain TupleDescriptor type parameterization
+	 * tuples}.
+	 */
+	private static final class Canon
+	extends HashMap<Class<?>, AvailObject>
+	{
+		/** The serial version identifier. */
+		private static final long serialVersionUID = -5682929623799845184L;
+
+		/**
+		 * Construct a new {@link Canon} that has initial capacity for five
+		 * bindings and includes a binding for {@link Object java.lang.Object}.
+		 */
+		public Canon ()
+		{
+			super(5);
+			put(Object.class, RawPojoDescriptor.rawObjectClass());
+		}
+
+		/**
+		 * Answer the locally canonical {@linkplain RawPojoDescriptor raw pojo}
+		 * that represents the specified {@linkplain Class Java class}. (If the
+		 * canon already contains a raw pojo for the class, then answer it. If
+		 * not, then install a new one and answer that one.)
+		 *
+		 * @param javaClass
+		 *        A Java class or interface.
+		 * @return A locally canonical raw pojo corresponding to the argument.
+		 */
+		public @NotNull AvailObject canonize (final @NotNull Class<?> javaClass)
+		{
+			AvailObject rawPojo = get(javaClass);
+			if (rawPojo == null)
+			{
+				rawPojo = RawPojoDescriptor.equalityWrap(javaClass);
+				put(javaClass, rawPojo);
+			}
+			return rawPojo;
+		}
+	}
+
+	/**
+	 * {@code TypeVariableMap} is a {@linkplain Map map} from {@linkplain String
+	 * local type variable names} to their type parameterization indices.
+	 */
+	private static final class TypeVariableMap
+	extends HashMap<String, Integer>
+	{
+		/** The serial version identifier. */
+		private static final long serialVersionUID = -6642629479723500110L;
+
+		/**
+		 * Construct a new {@link TypeVariableMap} for the specified {@linkplain
+		 * Class Java class or interface}.
+		 *
+		 * @param javaClass
+		 *        A Java class or interface.
+		 */
+		public TypeVariableMap (final Class<?> javaClass)
+		{
+			super(2);
+			final TypeVariable<?>[] vars = javaClass.getTypeParameters();
+			for (int i = 0; i < vars.length; i++)
+			{
+				put(vars[i].getName(), i);
+			}
+		}
+	}
+
+	/**
+	 * {@code LRUCacheKey} combines a {@linkplain Class Java class or interface}
+	 * with its complete type parameterization. It serves as the key to the
+	 * {@linkplain PojoTypeDescriptor pojo type} {@linkplain #cache}.
+	 */
+	private static final class LRUCacheKey
+	{
+		/** The {@linkplain Class Java class or interface}. */
+		public final @NotNull Class<?> javaClass;
+
+		/** The type arguments. */
+		public final @NotNull AvailObject typeArgs;
+
+		@Override
+		public boolean equals (final @NotNull Object obj)
+		{
+			if (obj instanceof LRUCacheKey)
+			{
+				final LRUCacheKey other = (LRUCacheKey) obj;
+				return javaClass.equals(other.javaClass)
+					&& typeArgs.equals(other.typeArgs);
+			}
+			return false;
+		}
+
+		@Override
+		public int hashCode ()
+		{
+			return javaClass.hashCode() * typeArgs.hash() ^ 0x1FA07381;
+		}
+
+		/**
+		 * Construct a new {@link LRUCacheKey}.
+		 *
+		 * @param javaClass
+		 *        The {@linkplain Class Java class or interface}.
+		 * @param typeArgs
+		 *        The type arguments.
+		 */
+		public LRUCacheKey (
+			final @NotNull Class<?> javaClass,
+			final @NotNull AvailObject typeArgs)
+		{
+			this.javaClass = javaClass;
+			this.typeArgs = typeArgs;
+		}
+	}
+
 	/** The most general {@linkplain PojoTypeDescriptor pojo type}. */
 	private static AvailObject mostGeneralType;
 
 	/**
-	 * Answer the most general {@linkplain PojoTypeDescriptor pojo type}.
+	 * Answer the most general {@linkplain PojoTypeDescriptor pojo
+	 * type}.
 	 *
 	 * @return The most general pojo type.
 	 */
@@ -78,11 +198,15 @@ extends TypeDescriptor
 		return mostGeneralType;
 	}
 
-	/** The most general {@linkplain PojoTypeDescriptor pojo array type}. */
+	/**
+	 * The most general {@linkplain PojoTypeDescriptor pojo array
+	 * type}.
+	 */
 	private static AvailObject mostGeneralArrayType;
 
 	/**
-	 * Answer the most general {@linkplain PojoTypeDescriptor pojo array type}.
+	 * Answer the most general {@linkplain PojoTypeDescriptor pojo array
+	 * type}.
 	 *
 	 * @return The most general pojo array type.
 	 */
@@ -92,33 +216,56 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * The most specific {@linkplain PojoTypeDescriptor pojo type}, other than
-	 * {@linkplain BottomTypeDescriptor#bottom() bottom}.
+	 * The most specific {@linkplain PojoTypeDescriptor pojo type},
+	 * other than {@linkplain BottomTypeDescriptor#bottom() bottom}.
 	 */
-	private static AvailObject mostSpecificType;
+	private static AvailObject pojoBottom;
 
 	/**
-	 * Answer the most specific {@linkplain PojoTypeDescriptor pojo type}, other
-	 * than {@linkplain BottomTypeDescriptor#bottom() bottom}.
+	 * Answer the most specific {@linkplain PojoTypeDescriptor pojo
+	 * type}, other than {@linkplain BottomTypeDescriptor#bottom() bottom}.
 	 *
 	 * @return The most specific pojo type.
 	 */
-	public static @NotNull AvailObject mostSpecificType ()
+	public static @NotNull AvailObject pojoBottom ()
 	{
-		return mostSpecificType;
+		return pojoBottom;
 	}
 
-	/** The {@linkplain PojoTypeDescriptor pojo metatype}. */
-	private static AvailObject meta;
+	/**
+	 * A special {@linkplain AtomDescriptor atom} whose {@linkplain
+	 * InstanceTypeDescriptor instance type} represents the self type of a
+	 * {@linkplain Class Java class or interface}.
+	 */
+	private static AvailObject selfAtom;
 
 	/**
-	 * Answer the {@linkplain PojoTypeDescriptor pojo metatype}.
+	 * Answer a special {@linkplain AtomDescriptor atom} whose {@linkplain
+	 * InstanceTypeDescriptor instance type} represents the self type of a
+	 * {@linkplain Class Java class or interface}.
 	 *
-	 * @return The pojo metatype.
+	 * @return The pojo self type atom.
 	 */
-	public static @NotNull AvailObject meta ()
+	public static @NotNull AvailObject selfAtom ()
 	{
-		return meta;
+		return selfAtom;
+	}
+
+	/**
+	 * A special {@linkplain InstanceTypeDescriptor instance type} that
+	 * represents the self type of a {@linkplain Class Java class or interface}.
+	 */
+	private static AvailObject selfType;
+
+	/**
+	 * Answer a special {@linkplain InstanceTypeDescriptor instance type} that
+	 * represents the self type of a {@linkplain Class Java class or interface}.
+	 *
+	 * @return The pojo self type atom.
+	 */
+	public static @NotNull AvailObject selfType ()
+	{
+		return selfType;
 	}
 
 	/**
@@ -142,8 +289,8 @@ extends TypeDescriptor
 	 * The {@linkplain IntegerRangeTypeDescriptor integer range type} that
 	 * corresponds to Java {@code short}.
 	 */
-	private static AvailObject shortRange;
 
+	private static AvailObject shortRange;
 	/**
 	 * Answer the {@linkplain IntegerRangeTypeDescriptor integer range type}
 	 * that corresponds to Java {@code short}.
@@ -159,6 +306,7 @@ extends TypeDescriptor
 	 * The {@linkplain IntegerRangeTypeDescriptor integer range type} that
 	 * corresponds to Java {@code int}.
 	 */
+
 	private static AvailObject intRange;
 
 	/**
@@ -203,8 +351,53 @@ extends TypeDescriptor
 	 */
 	public static AvailObject charRange ()
 	{
-		return longRange;
+		return charRange;
 	}
+
+	/**
+	 * Given an {@link LRUCacheKey}, compute the corresponding {@linkplain
+	 * PojoTypeDescriptor pojo type}.
+	 *
+	 * @param key An {@code LRUCacheKey}.
+	 * @return A pojo type.
+	 */
+	@InnerAccess static @NotNull AvailObject computeValue (
+		final @NotNull LRUCacheKey key)
+	{
+		// Java allows the operations defined in java.lang.Object to be
+		// performed on interface types, so interfaces are implicitly subtypes
+		// of java.lang.Object. Make this relationship explicit: seed the
+		// ancestry with java.lang.Object.
+		final Canon canon = new Canon();
+		final Mutable<AvailObject> ancestors = new Mutable<AvailObject>(
+			MapDescriptor.empty());
+		ancestors.value = ancestors.value.mapAtPuttingCanDestroy(
+			canon.get(Object.class),
+			TupleDescriptor.empty(),
+			true);
+		computeAncestry(
+			key.javaClass, key.typeArgs, ancestors, canon);
+		return UnfusedPojoTypeDescriptor.create(
+			canon.get(key.javaClass), ancestors.value);
+	}
+
+	/**
+	 * {@linkplain PojoTypeDescriptor Pojo types} are somewhat expensive
+	 * to build, so cache them for efficiency.
+	 */
+	private static final @NotNull LRUCache<LRUCacheKey, AvailObject> cache =
+		new LRUCache<LRUCacheKey, AvailObject>(
+			1000,
+			10,
+			new Transformer1<LRUCacheKey, AvailObject>()
+			{
+				@Override
+				public @NotNull AvailObject value (
+					final @NotNull LRUCacheKey key)
+				{
+					return computeValue(key);
+				}
+			});
 
 	/**
 	 * Create any instances statically well-known to the {@linkplain
@@ -212,16 +405,14 @@ extends TypeDescriptor
 	 */
 	public static void createWellKnownObjects ()
 	{
-		mostGeneralType = create(Object.class, TupleDescriptor.empty());
-		mostGeneralType.upperBoundMap(MapDescriptor.empty());
-		mostGeneralArrayType = create(
-			pojoArrayClass(), TupleDescriptor.from(TYPE.o()));
-		mostGeneralArrayType.upperBoundMap(createUpperBoundMap(
-			pojoArrayClass()));
-		mostSpecificType = create(
-			RawPojoDescriptor.rawNullObject(), NullDescriptor.nullObject());
-		mostSpecificType.upperBoundMap(MapDescriptor.empty());
-		meta = InstanceTypeDescriptor.on(mostGeneralType);
+		mostGeneralType = forClass(Object.class);
+		mostGeneralArrayType = forArrayTypeWithSizeRange(
+			ANY.o(), IntegerRangeTypeDescriptor.wholeNumbers());
+		pojoBottom = BottomPojoTypeDescriptor.mutable().create();
+		selfAtom = AtomDescriptor.create(
+			StringDescriptor.from("pojo self"),
+			NullDescriptor.nullObject());
+		selfType = InstanceTypeDescriptor.on(selfAtom);
 		byteRange = IntegerRangeTypeDescriptor.create(
 			IntegerDescriptor.fromInt(Byte.MIN_VALUE),
 			true,
@@ -255,10 +446,19 @@ extends TypeDescriptor
 	 */
 	public static void clearWellKnownObjects ()
 	{
+		try
+		{
+			cache.clear();
+		}
+		catch (final InterruptedException e)
+		{
+			throw new RuntimeException(e);
+		}
 		mostGeneralType = null;
 		mostGeneralArrayType = null;
-		mostSpecificType = null;
-		meta = null;
+		pojoBottom = null;
+		selfAtom = null;
+		selfType = null;
 		byteRange = null;
 		shortRange = null;
 		intRange = null;
@@ -266,737 +466,47 @@ extends TypeDescriptor
 		charRange = null;
 	}
 
-	/**
-	 * Obtain a canonical {@linkplain RawPojoDescriptor raw pojo} for the
-	 * specified {@linkplain Class raw Java type}.
-	 *
-	 * @param rawTypeMap
-	 *        The {@linkplain Map map} that locally establishes the
-	 *        canonical identity of the raw pojo.
-	 * @param rawType
-	 *        A raw Java type.
-	 * @return A canonical raw pojo corresponding to the raw Java type.
-	 */
-	static @NotNull AvailObject canonize (
-		final @NotNull Map<Class<?>, AvailObject> rawTypeMap,
-		final @NotNull Class<?> rawType)
-	{
-		AvailObject rawPojo = rawTypeMap.get(rawType);
-		if (rawPojo == null)
-		{
-			rawPojo = RawPojoDescriptor.create(rawType);
-			rawTypeMap.put(rawType, rawPojo);
-		}
-		return rawPojo;
-	}
-
-	/**
-	 * Resolve a {@linkplain ParameterizedType parameterized type} into a
-	 * {@linkplain PojoTypeDescriptor pojo type}.
-	 *
-	 * @param parameterizedType
-	 *        A parameterized type.
-	 * @param currentTypeVar
-	 *        The {@linkplain TypeVariable type variable} whose {@linkplain
-	 *        #resolveAllUpperBounds(TypeVariable, AvailObject, Map) upper bounds
-	 *        are currently being computed}.
-	 * @param typeVarMap
-	 *        A {@linkplain MapDescriptor map} from type variable {@linkplain
-	 *        StringDescriptor names} to their resolved {@linkplain
-	 *        TypeDescriptor upper bounds}.
-	 * @param rawTypeMap
-	 *        A map from raw {@linkplain Class Java types} to {@linkplain
-	 *        RawPojoDescriptor raw pojos}.
-	 * @return A pojo type.
-	 */
-	private static @NotNull AvailObject resolveParameterizedType (
-		final @NotNull ParameterizedType parameterizedType,
-		final @NotNull TypeVariable<?> currentTypeVar,
-		final @NotNull AvailObject typeVarMap,
-		final @NotNull Map<Class<?>, AvailObject> rawTypeMap)
-	{
-		final Class<?> rawType =
-			(Class<?>) parameterizedType.getRawType();
-		final List<AvailObject> params = new ArrayList<AvailObject>();
-		for (final Type type : parameterizedType.getActualTypeArguments())
-		{
-			// The type parameter is a Java class. Build a trivial pojo type to
-			// represent it.
-			if (type instanceof Class<?>)
-			{
-				final Class<?> rawParamType = (Class<?>) type;
-				canonize(rawTypeMap, rawParamType);
-				params.add(create(rawParamType, TupleDescriptor.empty()));
-			}
-			// The type parameter is a parameterized type. Recurse to compute
-			// the pojo type.
-			else if (type instanceof ParameterizedType)
-			{
-				params.add(resolveParameterizedType(
-					(ParameterizedType) type,
-					currentTypeVar,
-					typeVarMap,
-					rawTypeMap));
-			}
-			// The type parameter is a type variable. It must either be one that
-			// has already been fully resolved or be the type variable
-			// undergoing resolution. In the latter case, use the self type to
-			// curtail the recursion.
-			else if (type instanceof TypeVariable<?>)
-			{
-				final TypeVariable<?> typeVar = (TypeVariable<?>) type;
-				final AvailObject pojoType;
-				if (typeVar.equals(currentTypeVar))
-				{
-					pojoType = PojoSelfTypeDescriptor.create(rawType);
-				}
-				else
-				{
-					pojoType = typeVarMap.mapAt(typeVariableName(typeVar));
-				}
-				params.add(pojoType);
-			}
-			else
-			{
-				assert false : "This should not happen.";
-			}
-		}
-
-		return create(rawType, TupleDescriptor.fromCollection(params));
-	}
-
-	/**
-	 * Recursively resolve into {@linkplain PojoTypeDescriptor pojo types} all
-	 * upper bounds of the specified {@linkplain TypeVariable type variable}.
-	 *
-	 * @param typeVar
-	 *        A type variable.
-	 * @param typeVarMap
-	 *        A {@linkplain MapDescriptor map} from type variable {@linkplain
-	 *        StringDescriptor names} to their resolved {@linkplain
-	 *        TypeDescriptor upper bounds}.
-	 * @param rawTypeMap
-	 *        A map from raw {@linkplain Class Java types} to {@linkplain
-	 *        RawPojoDescriptor raw pojos}.
-	 * @return The resolved upper bounds.
-	 */
-	private static @NotNull List<AvailObject> resolveAllUpperBounds (
-		final @NotNull TypeVariable<?> typeVar,
-		final @NotNull AvailObject typeVarMap,
-		final @NotNull Map<Class<?>, AvailObject> rawTypeMap)
-	{
-		final List<AvailObject> resolved = new ArrayList<AvailObject>();
-		for (final Type upperBound : typeVar.getBounds())
-		{
-			final AvailObject pojoType;
-			if (upperBound instanceof Class<?>)
-			{
-				final Class<?> rawType = (Class<?>) upperBound;
-				// If the upper bound is Object, then pretend that it was the
-				// Avail type "any" instead.
-				if (rawType.equals(Object.class))
-				{
-					pojoType = ANY.o();
-				}
-				else
-				{
-					canonize(rawTypeMap, rawType);
-					pojoType = create(rawType, TupleDescriptor.empty());
-				}
-			}
-			else if (upperBound instanceof ParameterizedType)
-			{
-				final ParameterizedType parameterizedType =
-					(ParameterizedType) upperBound;
-				pojoType = resolveParameterizedType(
-					parameterizedType, typeVar, typeVarMap, rawTypeMap);
-			}
-			// Any type variable encountered at this point must have already
-			// been completely resolved (i.e. it had to occur lexically before
-			// the type variable undergoing upper bound computation).
-			else if (upperBound instanceof TypeVariable<?>)
-			{
-				final TypeVariable<?> resolvedTypeVar =
-					(TypeVariable<?>) upperBound;
-				pojoType = typeVarMap.mapAt(typeVariableName(resolvedTypeVar));
-			}
-			// This should not happen.
-			else
-			{
-				assert false : "This should not happen.";
-				pojoType = null;
-			}
-			// Canonize the raw type to a raw pojo and add the raw type to the
-			// output.
-			assert pojoType != null;
-			resolved.add(pojoType);
-		}
-		return resolved;
-	}
-
-
-	/**
-	 * Resolve into an Avail {@linkplain TypeDescriptor type} the upper bound
-	 * of the specified {@linkplain TypeVariable type variable}.
-	 *
-	 * @param typeVar
-	 *        A type variable.
-	 * @param typeVarMap
-	 *        A {@linkplain MapDescriptor map} from type variable {@linkplain
-	 *        StringDescriptor names} to their resolved upper bounds.
-	 * @param rawTypeMap
-	 *        A map from raw {@linkplain Class Java types} to {@linkplain
-	 *        RawPojoDescriptor raw pojos}.
-	 * @return The upper bound.
-	 */
-	private static @NotNull AvailObject upperBound (
-		final @NotNull TypeVariable<?> typeVar,
-		final @NotNull AvailObject typeVarMap,
-		final @NotNull Map<Class<?>, AvailObject> rawTypeMap)
-	{
-		final List<AvailObject> upperBounds = resolveAllUpperBounds(
-			typeVar, typeVarMap, rawTypeMap);
-		AvailObject intersectionBound = ANY.o();
-		for (final AvailObject upperBound : upperBounds)
-		{
-			intersectionBound =
-				intersectionBound.typeIntersection(upperBound);
-		}
-		return intersectionBound;
-	}
-
-	/**
-	 * Answer the fully-qualified name of the specified {@linkplain TypeVariable
-	 * type variable}.
-	 *
-	 * @param typeVar A type variable.
-	 * @return The fully-qualified name of the declarer, then a ".", then the
-	 *         lexical name of the type variable.
-	 */
-	public static @NotNull AvailObject typeVariableName (
-		final @NotNull TypeVariable<?> typeVar)
-	{
-		final GenericDeclaration declarer = typeVar.getGenericDeclaration();
-		final String typeName;
-		// TODO: [TLS] Implement the other cases (if there are any).
-		if (declarer instanceof Class<?>)
-		{
-			typeName =
-				((Class<?>) declarer).getName() + "." + typeVar.getName();
-		}
-		else
-		{
-			assert false : "This should never happen";
-			typeName = null;
-		}
-		return StringDescriptor.from(typeName);
-	}
-
-	/**
-	 * Create the {@linkplain MapDescriptor map} from the fully-qualified
-	 * {@linkplain TypeVariable type variable} {@linkplain StringDescriptor
-	 * names} declared by the specified {@linkplain GenericDeclaration Java
-	 * element} to their {@linkplain TypeDescriptor upper bounds}.
-	 *
-	 * @param javaElement
-	 *        A Java element.
-	 * @return A new {@linkplain ObjectSlots#UPPER_BOUND_MAP upper bound map}.
-	 */
-	public static @NotNull AvailObject createUpperBoundMap (
-		final @NotNull GenericDeclaration javaElement)
-	{
-		AvailObject typeVarMap = MapDescriptor.empty();
-		final TypeVariable<?>[] typeVars = javaElement.getTypeParameters();
-		if (typeVars.length > 0)
-		{
-			final Map<Class<?>, AvailObject> rawTypeMap =
-				new HashMap<Class<?>, AvailObject>(5);
-			typeVarMap = MapDescriptor.empty();
-			for (final TypeVariable<?> typeVar : typeVars)
-			{
-				final AvailObject upperBound = upperBound(
-					typeVar, typeVarMap, rawTypeMap);
-				typeVarMap = typeVarMap.mapAtPuttingCanDestroy(
-					typeVariableName(typeVar), upperBound, true);
-			}
-		}
-		return typeVarMap.makeImmutable();
-	}
-
-	/**
-	 * {@code PojoArray} mimics the reflective properties of a Java array
-	 * {@linkplain Class class}. It implements the same interfaces and professes
-	 * that {@link Object} is its superclass. Array {@linkplain
-	 * PojoTypeDescriptor pojo types} use {@code PojoArray} as their most
-	 * specific class and represent the array's component type using the sole
-	 * type parameter.
-	 *
-	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
-	 * @param <T> The component type of the represented array.
-	 */
-	private static class PojoArray<T> implements Cloneable, Serializable
-	{
-		/** The serial version identifier. */
-		private static final long serialVersionUID = 6632261359267941627L;
-
-		/** An array. */
-		final Object array;
-
-		/**
-		 * Answer the length of the array.
-		 *
-		 * @return The length of the array.
-		 */
-		public int length ()
-		{
-			return Array.getLength(array);
-		}
-
-		/**
-		 * Get the element at the specified index of the array.
-		 *
-		 * @param index An index.
-		 * @return An element.
-		 */
-		@SuppressWarnings("unchecked")
-		public T get (final int index)
-		{
-			return (T) Array.get(array, index);
-		}
-
-		/**
-		 * Store the element at the specified index of the array.
-		 *
-		 * @param index An index.
-		 * @param value A value.
-		 */
-		private void set (final int index, final T value)
-		{
-			Array.set(array, index, value);
-		}
-
-		/**
-		 * Construct a new {@link PojoArray}.
-		 *
-		 * @param array An array.
-		 */
-		public PojoArray (final @NotNull Object array)
-		{
-			assert array.getClass().isArray();
-			this.array = array;
-		}
-	}
-
-	/**
-	 * Answer the {@linkplain Class Java class} corresponding to the array
-	 * {@linkplain PojoTypeDescriptor pojo type}.
-	 *
-	 * @return A Java class.
-	 */
-	@SuppressWarnings("rawtypes")
-	public static Class<PojoArray> pojoArrayClass ()
-	{
-		return PojoArray.class;
-	}
-
-	/**
-	 * Marshal the {@linkplain TupleDescriptor tuple} of {@linkplain AvailObject
-	 * Avail objects} to an array of Java {@linkplain Object counterparts}.
-	 *
-	 * @param availObjects
-	 *        The Avail objects to be marshaled.
-	 * @param counterpartClassPojos
-	 *        The counterpart raw {@linkplain Class Java class} {@linkplain
-	 *        RawPojoDescriptor pojos}. Each object to be marshaled will be
-	 *        converted to an instance of its Java counterpart.
-	 * @return The marshaled Java objects.
-	 */
-	public static @NotNull Object[] marshal (
-		final @NotNull AvailObject availObjects,
-		final @NotNull AvailObject counterpartClassPojos)
-	{
-		assert availObjects.isTuple();
-		final Object[] javaObjects = new Object[availObjects.tupleSize()];
-		for (int i = 0; i < javaObjects.length; i++)
-		{
-			final AvailObject availObject = availObjects.tupleAt(i + 1);
-			final Class<?> javaClass = (Class<?>) RawPojoDescriptor.getPojo(
-				counterpartClassPojos.tupleAt(i + 1));
-			final Object object;
-			if (javaClass.isPrimitive())
-			{
-				// Deliberately avoid autoboxing here so that we have explicit
-				// control over the boxing conversions.
-				if (javaClass.equals(Boolean.TYPE))
-				{
-					assert availObject.isBoolean();
-					object = new Boolean(availObject.extractBoolean());
-				}
-				else if (javaClass.equals(Byte.TYPE))
-				{
-					assert availObject.isByte();
-					object = new Byte((byte) availObject.extractByte());
-				}
-				else if (javaClass.equals(Short.TYPE))
-				{
-					assert availObject.isShort();
-					object = new Short((short) availObject.extractShort());
-				}
-				else if (javaClass.equals(Integer.TYPE))
-				{
-					assert availObject.isInt();
-					object = new Integer(availObject.extractInt());
-				}
-				else if (javaClass.equals(Long.TYPE))
-				{
-					assert availObject.isLong();
-					object = new Long(availObject.extractLong());
-				}
-				else if (javaClass.equals(Float.TYPE))
-				{
-					assert availObject.isFloat();
-					object = new Float(availObject.extractFloat());
-				}
-				else if (javaClass.equals(Double.TYPE))
-				{
-					assert availObject.isDouble();
-					object = new Double(availObject.extractDouble());
-				}
-				else if (javaClass.equals(Character.TYPE))
-				{
-					if (availObject.isCharacter())
-					{
-						final int codePoint = availObject.codePoint();
-						assert codePoint >= Character.MIN_VALUE
-							&& codePoint <= Character.MAX_VALUE;
-						object = new Character((char) codePoint);
-					}
-					else
-					{
-						object = new Character(
-							(char) availObject.extractShort());
-					}
-				}
-				else
-				{
-					assert false
-						: "There are only the eight primitive Java types";
-					object = null;
-				}
-			}
-			else if (javaClass.equals(String.class))
-			{
-				assert availObject.isString();
-				object = availObject.asNativeString();
-			}
-			else if (availObject.isPojo())
-			{
-				final Object rawPojo = RawPojoDescriptor.getPojo(
-					availObject.rawPojo());
-				if (rawPojo instanceof PojoArray<?>)
-				{
-					object = ((PojoArray<?>) rawPojo).array;
-				}
-				else
-				{
-					object = rawPojo;
-				}
-			}
-			else
-			{
-				// Pass other Avail objects through unmarshaled.
-				object = availObject;
-			}
-			javaObjects[i] = object;
-		}
-		return javaObjects;
-	}
-
-	/**
-	 * Marshal the {@linkplain TupleDescriptor tuple} of {@linkplain AvailObject
-	 * Avail types} to an array of Java {@linkplain Class counterparts}.
-	 *
-	 * @param availTypes
-	 *        The Avail types to be marshaled.
-	 * @return The marshaled Java types.
-	 */
-	public static @NotNull Class<?>[] marshalTypes (
-		final @NotNull AvailObject availTypes)
-	{
-		assert availTypes.isTuple();
-		final Class<?>[] javaClasses = new Class<?>[availTypes.tupleSize()];
-		for (int i = 0; i < javaClasses.length; i++)
-		{
-			final AvailObject availType = availTypes.tupleAt(i + 1);
-			final Class<?> javaClass;
-			// Marshal integer range types to Java primitive classes.
-			if (availType.isIntegerRangeType())
-			{
-				if (availType.equals(byteRange))
-				{
-					javaClass = Byte.TYPE;
-				}
-				else if (availType.equals(shortRange))
-				{
-					javaClass = Short.TYPE;
-				}
-				else if (availType.equals(intRange))
-				{
-					javaClass = Integer.TYPE;
-				}
-				else if (availType.equals(longRange))
-				{
-					javaClass = Long.TYPE;
-				}
-				// If the integer range type is something else, then treat the
-				// type as opaque.
-				else
-				{
-					javaClass = AvailObject.class;
-				}
-			}
-			else if (availType.isSubtypeOf(
-				EnumerationTypeDescriptor.booleanObject()))
-			{
-				javaClass = Boolean.TYPE;
-			}
-			else if (availType.isSubtypeOf(CHARACTER.o()))
-			{
-				javaClass = Character.TYPE;
-			}
-			else if (availType.isSubtypeOf(FLOAT.o()))
-			{
-				javaClass = Float.TYPE;
-			}
-			else if (availType.isSubtypeOf(DOUBLE.o()))
-			{
-				javaClass = Double.TYPE;
-			}
-			else if (availType.isSubtypeOf(
-				TupleTypeDescriptor.stringTupleType()))
-			{
-				javaClass = String.class;
-			}
-			else if (availType.isSubtypeOf(mostGeneralType))
-			{
-				Class<?> tempClass = (Class<?>) RawPojoDescriptor.getPojo(
-					availType.traversed().slot(MOST_SPECIFIC_CLASS));
-				// Recursively resolve a pojo array type.
-				if (tempClass.equals(PojoArray.class))
-				{
-					tempClass = marshalTypes(availType.traversed().slot(
-						PARAMETERIZATION_MAP).mapAt(RawPojoDescriptor.create(
-							PojoArray.class)))[0];
-					tempClass = Array.newInstance(tempClass, 0).getClass();
-				}
-				javaClass = tempClass;
-			}
-			else
-			{
-				// Treat other Avail types (tuple, set, map, etc.) as opaque.
-				javaClass = AvailObject.class;
-			}
-			javaClasses[i] = javaClass;
-		}
-		return javaClasses;
-	}
-
-	/**
-	 * Marshal the arbitrary {@linkplain Object Java object} to its counterpart
-	 * {@linkplain AvailObject Avail object}.
-	 *
-	 * @param object
-	 *        A Java object.
-	 * @param type
-	 *        A {@linkplain TypeDescriptor type} to which the resultant Avail
-	 *        object must conform.
-	 * @return An Avail Object.
-	 */
-	public static @NotNull AvailObject unmarshal (
-		final @NotNull Object object,
-		final @NotNull AvailObject type)
-	{
-		final Class<?> javaClass = object.getClass();
-		final AvailObject availObject;
-		// If the type is explicitly a pojo type, then make sure that the result
-		// does not undergo conversion to a semantically corresponding Avail
-		// object.
-		if (type.isPojoType())
-		{
-			availObject = PojoDescriptor.create(
-				RawPojoDescriptor.create(object),
-				type);
-		}
-		// Otherwise attempt to convert the object into a semantically
-		// corresponding Avail object.
-		else if (javaClass.isPrimitive())
-		{
-			if (javaClass.equals(Boolean.TYPE))
-			{
-				availObject = (Boolean) object
-					? AtomDescriptor.trueObject()
-					: AtomDescriptor.falseObject();
-			}
-			else if (javaClass.equals(Byte.TYPE))
-			{
-				availObject = IntegerDescriptor.fromInt((Byte) object);
-			}
-			else if (javaClass.equals(Short.TYPE))
-			{
-				availObject = IntegerDescriptor.fromInt((Short) object);
-			}
-			else if (javaClass.equals(Integer.TYPE))
-			{
-				availObject = IntegerDescriptor.fromInt((Integer) object);
-			}
-			else if (javaClass.equals(Long.TYPE))
-			{
-				availObject = IntegerDescriptor.fromLong((Long) object);
-			}
-			else if (javaClass.equals(Float.TYPE))
-			{
-				availObject = FloatDescriptor.fromFloat((Float) object);
-			}
-			else if (javaClass.equals(Double.TYPE))
-			{
-				availObject = DoubleDescriptor.fromDouble((Double) object);
-			}
-			else if (javaClass.equals(Character.TYPE))
-			{
-				availObject = CharacterDescriptor.fromCodePoint(
-					((Character) object).charValue());
-			}
-			else
-			{
-				assert false
-					: "There are only the eight primitive Java types";
-				availObject = null;
-			}
-		}
-		else if (javaClass.equals(String.class))
-		{
-			availObject = StringDescriptor.from((String) object);
-		}
-		else
-		{
-			availObject = (AvailObject) object;
-		}
-		assert availObject != null;
-		assert availObject.isInstanceOfKind(type);
-		return availObject;
-	}
-
-	/** The layout of the object slots. */
-	@InnerAccess enum ObjectSlots
-	implements ObjectSlotsEnum
-	{
-		/**
-		 * A {@linkplain RawPojoDescriptor raw pojo} that represents the most
-		 * specific {@linkplain Class raw Java class} included by this
-		 * {@linkplain PojoTypeDescriptor pojo type}. May be the Avail
-		 * {@linkplain NullDescriptor#nullObject() null object} if this pojo
-		 * type does not represent a Java class, e.g. it may instead represent
-		 * an interface or a fused pojo type.
-		 */
-		MOST_SPECIFIC_CLASS,
-
-		/**
-		 * A {@linkplain MapDescriptor map} of {@linkplain PojoDescriptor pojos}
-		 * representing {@Linkplain Class raw Java classes} to their {@linkplain
-		 * TupleDescriptor type parameterizations}. The {@linkplain
-		 * AvailObject#keysAsSet() keys} of this map are the complete
-		 * {@linkplain SetDescriptor set} of Java types to which this pojo type
-		 * conforms, i.e. its own class, all superclasses, and all
-		 * superinterfaces.
-		 */
-		PARAMETERIZATION_MAP,
-
-		/**
-		 * A {@linkplain MapDescriptor map} of {@linkplain StringDescriptor
-		 * type variable names} to their {@linkplain TypeDescriptor upper
-		 * bounds}.
-		 */
-		UPPER_BOUND_MAP
-	}
-
-	@Override boolean allowsImmutableToMutableReferenceInField (
-		final @NotNull AbstractSlotsEnum e)
-	{
-		return e == UPPER_BOUND_MAP;
-	}
-
 	@Override @AvailMethod
-	boolean o_Equals (
+	final boolean o_Equals (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
-		return another.equalsPojoType(object);
-	}
-
-	@Override @AvailMethod
-	boolean o_EqualsPojoType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aPojoType)
-	{
-		if (aPojoType.isPojoSelfType())
-		{
-			return aPojoType.equalsPojoType(object);
-		}
-
-		// Two pojo types with equal parameterization maps must have equal
-		// most specific classes, so don't bother doing that comparison
-		// explicitly.
-		if (!object.slot(PARAMETERIZATION_MAP).equals(
-				aPojoType.slot(PARAMETERIZATION_MAP)))
-		{
-			return false;
-		}
-
-		assert object.slot(MOST_SPECIFIC_CLASS).equals(
-			aPojoType.slot(MOST_SPECIFIC_CLASS));
-
-		// Only if the upper bound maps match (and the objects are not reference
-		// identical) are we allowed to coalesce them.
-		if (object.slot(UPPER_BOUND_MAP).equals(
-				aPojoType.slot(UPPER_BOUND_MAP))
-			&& !object.sameAddressAs(aPojoType))
-		{
-			object.becomeIndirectionTo(aPojoType);
-			aPojoType.makeImmutable();
-		}
-
-		return true;
-	}
-
-	@Override @AvailMethod
-	boolean o_IsAbstract (final @NotNull AvailObject object)
-	{
-		final AvailObject rawType = object.slot(MOST_SPECIFIC_CLASS);
-
-		// If the most specific class is the Avail null object, then this type
-		// does not represent a Java class; it represents either an interface,
-		// or a fusion type. It must therefore be abstract.
-		if (rawType.equalsNull())
+		// Short circuit if the arguments are reference identical.
+		if (another.traversed().sameAddressAs(object))
 		{
 			return true;
 		}
-
-		final Class<?> javaClass =
-			(Class<?>) RawPojoDescriptor.getPojo(rawType);
-
-		// This handles the most specific type.
-		if (javaClass == null)
-		{
-			return true;
-		}
-
-		final int modifiers = javaClass.getModifiers();
-		return Modifier.isAbstract(modifiers)
-			|| Modifier.isInterface(modifiers);
+		// Note that pojo bottom is a pojo array type.
+		return
+			object.isPojoType() == another.isPojoType()
+			&& object.isPojoFusedType() == another.isPojoFusedType()
+			&& object.isPojoArrayType() == another.isPojoArrayType()
+			&& object.hash() == another.hash()
+			&& another.equalsPojoType(object);
 	}
 
 	@Override @AvailMethod
-	boolean o_IsPojoType (final @NotNull AvailObject object)
+	abstract boolean o_EqualsPojoType (
+		@NotNull AvailObject object,
+		@NotNull AvailObject aPojoType);
+
+	@Override @AvailMethod
+	abstract boolean o_IsAbstract (@NotNull AvailObject object);
+
+	@Override @AvailMethod
+	abstract boolean o_IsPojoArrayType (@NotNull AvailObject object);
+
+	@Override @AvailMethod
+	abstract boolean o_IsPojoFusedType (@NotNull AvailObject object);
+
+	@Override @AvailMethod
+	boolean o_IsPojoSelfType (final @NotNull AvailObject object)
+	{
+		return false;
+	}
+
+	@Override @AvailMethod
+	final boolean o_IsPojoType (final @NotNull AvailObject object)
 	{
 		return true;
 	}
@@ -1010,64 +520,58 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
+	final boolean o_IsSupertypeOfPojoBottomType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aPojoType)
+	{
+		// Every pojo type is a supertype of pojo bottom.
+		return true;
+	}
+
+	@Override @AvailMethod
 	boolean o_IsSupertypeOfPojoType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aPojoType)
 	{
+		// If aPojoType is a self type, then answer whether object's self type
+		// is a supertype of aPojoType.
 		if (aPojoType.isPojoSelfType())
 		{
 			return object.pojoSelfType().isSupertypeOfPojoType(aPojoType);
 		}
-
-		if (aPojoType.equals(mostSpecificType))
-		{
-			return true;
-		}
-
-		if (object.equals(mostSpecificType))
-		{
-			return false;
-		}
-
-		// Check raw type compatibility by computing the set intersection of the
-		// raw types of the arguments. If the result is equal to the raw types
-		// of object, then object is a supertype of aPojoType.
-		final AvailObject objectParamMap =
-			object.slot(PARAMETERIZATION_MAP);
-		final AvailObject otherParamMap =
-			aPojoType.slot(PARAMETERIZATION_MAP);
-		final AvailObject objectTypes = objectParamMap.keysAsSet();
-		final AvailObject otherTypes = otherParamMap.keysAsSet();
+		// Check type compatibility by computing the set intersection of the
+		// unparameterized ancestry of the arguments. If the result is not equal
+		// to the unparameterized ancestry of object, then object is not a
+		// supertype of aPojoType.
+		final AvailObject ancestors = object.javaAncestors();
+		final AvailObject otherAncestors = aPojoType.javaAncestors();
+		final AvailObject javaClasses = ancestors.keysAsSet();
+		final AvailObject otherJavaClasses = otherAncestors.keysAsSet();
 		final AvailObject intersection =
-			objectTypes.setIntersectionCanDestroy(otherTypes, false);
-		if (!objectTypes.equals(intersection))
+			javaClasses.setIntersectionCanDestroy(otherJavaClasses, false);
+		if (!javaClasses.equals(intersection))
 		{
 			return false;
 		}
-
-		// For each raw type in the intersection, ensure that the
+		// For each Java class in the intersection, ensure that the
 		// parameterizations are compatible. Java's type parameters are
-		// (brokenly) always covariant, so check that the type parameters of
-		// aPojoType are subtypes of the corresponding type parameters in
-		// object.
-		for (final AvailObject rawTypePojo : intersection)
+		// (brokenly) always covariant, so check that the type arguments of
+		// aPojoType are subtypes of the corresponding type argument of object.
+		for (final AvailObject javaClass : intersection)
 		{
-			final AvailObject objectParamTuple =
-				objectParamMap.mapAt(rawTypePojo);
-			final AvailObject otherParamTuple =
-				otherParamMap.mapAt(rawTypePojo);
-			final int limit = objectParamTuple.tupleSize();
+			final AvailObject params = ancestors.mapAt(javaClass);
+			final AvailObject otherParams = otherAncestors.mapAt(javaClass);
+			final int limit = params.tupleSize();
 			for (int i = 1; i <= limit; i++)
 			{
-				final AvailObject x = objectParamTuple.tupleAt(i);
-				final AvailObject y = otherParamTuple.tupleAt(i);
+				final AvailObject x = params.tupleAt(i);
+				final AvailObject y = otherParams.tupleAt(i);
 				if (!y.isSubtypeOf(x))
 				{
 					return false;
 				}
 			}
 		}
-
 		// If object is a supertype of aPojoType sans any embedded pojo self
 		// types, then object is really a supertype of aPojoType. The
 		// corresponding pojo self types must be compatible, and that
@@ -1077,56 +581,35 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final @NotNull AvailObject object)
-	{
-		// Note that this definition produces a value compatible with a pojo
-		// self type; this is necessary to permit comparison between a pojo type
-		// and its self type.
-		final AvailObject map = object.slot(PARAMETERIZATION_MAP);
-		return (map.equalsNull() ? map.hash() : map.keysAsSet().hash())
-			^ 0xA015BC44;
-	}
+	abstract int o_Hash (@NotNull AvailObject object);
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_JavaClass (final @NotNull AvailObject object)
-	{
-		return object.slot(MOST_SPECIFIC_CLASS);
-	}
+	abstract @NotNull AvailObject o_JavaAncestors (@NotNull AvailObject object);
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_Kind (final @NotNull AvailObject object)
+	abstract @NotNull AvailObject o_JavaClass (@NotNull AvailObject object);
+
+	@Override @AvailMethod
+	final @NotNull AvailObject o_Kind (final @NotNull AvailObject object)
 	{
 		return TYPE.o();
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_MakeImmutable (
-		final @NotNull AvailObject object)
-	{
-		object.descriptor = immutable();
-		object.slot(MOST_SPECIFIC_CLASS).makeImmutable();
-		object.slot(PARAMETERIZATION_MAP).makeImmutable();
-		return object;
-	}
+	abstract @NotNull AvailObject o_MakeImmutable (
+		final @NotNull AvailObject object);
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_PojoSelfType (
-		final @NotNull AvailObject object)
-	{
-		if (object.equals(mostSpecificType))
-		{
-			return PojoSelfTypeDescriptor.create(
-				RawPojoDescriptor.rawNullObject(),
-				NullDescriptor.nullObject());
-		}
-
-		return PojoSelfTypeDescriptor.create(
-			object.slot(MOST_SPECIFIC_CLASS),
-			object.slot(PARAMETERIZATION_MAP).keysAsSet());
-	}
+	abstract @NotNull Object o_MarshalToJava (
+		final @NotNull AvailObject object,
+		final Class<?> ignoredClassHint);
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeIntersection (
+	abstract @NotNull AvailObject o_PojoSelfType (
+		@NotNull AvailObject object);
+
+	@Override @AvailMethod
+	final @NotNull AvailObject o_TypeIntersection (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
@@ -1141,120 +624,79 @@ extends TypeDescriptor
 		return another.typeIntersectionOfPojoType(object);
 	}
 
-	/**
-	 * Is the {@linkplain AvailObject#typeIntersection(AvailObject) type
-	 * intersection} of the specified {@linkplain RawPojoDescriptor raw}
-	 * {@linkplain Class Java types} the {@linkplain #mostSpecificType() most
-	 * specific pojo type}?
-	 *
-	 * @param objectMSC A raw Java type.
-	 * @param otherMSC A raw Java type.
-	 * @return {@code true} if the type intersection of the specified raw Java
-	 *         types is the most specific pojo type, {@code false} otherwise.
-	 */
-	static boolean isTypeIntersectionMostSpecificType (
-		final @NotNull AvailObject objectMSC,
-		final @NotNull AvailObject otherMSC)
-	{
-		final Class<?> objectMSCClass =
-			!objectMSC.equalsNull()
-			? (Class<?>) RawPojoDescriptor.getPojo(objectMSC)
-			: null;
-		final Class<?> aPojoTypeMSCClass =
-			!otherMSC.equalsNull()
-			? (Class<?>) RawPojoDescriptor.getPojo(otherMSC)
-			: null;
-		final int objectModifiers = objectMSCClass != null
-			? objectMSCClass.getModifiers()
-			: 0;
-		final int aPojoTypeModifiers = aPojoTypeMSCClass != null
-			? aPojoTypeMSCClass.getModifiers()
-			: 0;
-		// If either class is declared final, then the intersection is the
-		// most specific pojo type.
-		if (Modifier.isFinal(objectModifiers)
-			|| Modifier.isFinal(aPojoTypeModifiers))
-		{
-			return true;
-		}
-		// If neither class is an interface, then the intersection is the
-		// most specific pojo type (because Java does not support multiple
-		// inheritance of classes).
-		return !objectMSC.equalsNull()
-			&& !Modifier.isInterface(objectModifiers)
-			&& !otherMSC.equalsNull()
-			&& !Modifier.isInterface(aPojoTypeModifiers);
-	}
-
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeIntersectionOfPojoType (
+	abstract @NotNull AvailObject o_TypeIntersectionOfPojoType (
+		@NotNull AvailObject object,
+		@NotNull AvailObject aPojoType);
+
+	@Override
+	abstract @NotNull AvailObject o_TypeIntersectionOfPojoFusedType (
+		@NotNull AvailObject object,
+		@NotNull AvailObject aFusedPojoType);
+
+	@Override
+	abstract @NotNull AvailObject o_TypeIntersectionOfPojoUnfusedType (
+		@NotNull AvailObject object,
+		@NotNull AvailObject anUnfusedPojoType);
+
+	/**
+	 * Compute the intersection of two {@linkplain PojoTypeDescriptor
+	 * pojo types}. This is utility method that only examines the {@linkplain
+	 * AvailObject#javaAncestors() ancestry} of the pojo types. It computes and
+	 * answers the union of the key sets and the intersections of their
+	 * parameterizations.
+	 *
+	 * @param object
+	 *        A pojo type.
+	 * @param aPojoType
+	 *        Another pojo type.
+	 * @return A new ancestry map.
+	 */
+	protected static @NotNull AvailObject computeIntersection (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aPojoType)
 	{
-		if (aPojoType.isPojoSelfType())
+		final AvailObject ancestors = object.javaAncestors();
+		final AvailObject otherAncestors = aPojoType.javaAncestors();
+		final AvailObject javaClasses = ancestors.keysAsSet();
+		final AvailObject otherJavaClasses = otherAncestors.keysAsSet();
+		final AvailObject union = javaClasses.setUnionCanDestroy(
+			otherJavaClasses, false);
+		AvailObject unionAncestors = MapDescriptor.empty();
+		for (final AvailObject javaClass : union)
 		{
-			return aPojoType.typeIntersectionOfPojoType(object);
-		}
-
-		if (isTypeIntersectionMostSpecificType(
-			object.slot(MOST_SPECIFIC_CLASS),
-			aPojoType.traversed().slot(MOST_SPECIFIC_CLASS)))
-		{
-			return mostSpecificType;
-		}
-
-		// Find the union of the key sets and the intersection of their
-		// parameterizations.
-		final AvailObject objectParamMap =
-			object.slot(PARAMETERIZATION_MAP);
-		final AvailObject aPojoTypeParamMap =
-			aPojoType.slot(PARAMETERIZATION_MAP);
-		final AvailObject objectTypes = objectParamMap.keysAsSet();
-		final AvailObject aPojoTypeTypes = aPojoTypeParamMap.keysAsSet();
-		final AvailObject union = objectTypes.setUnionCanDestroy(
-			aPojoTypeTypes, false);
-		AvailObject newParamMap = MapDescriptor.empty();
-		for (final AvailObject rawTypePojo : union)
-		{
-			final AvailObject objectParamTuple =
-				objectParamMap.hasKey(rawTypePojo)
-				? objectParamMap.mapAt(rawTypePojo)
-				: aPojoTypeParamMap.mapAt(rawTypePojo);
-			final AvailObject aPojoTypeParamTuple =
-				aPojoTypeParamMap.hasKey(rawTypePojo)
-				? aPojoTypeParamMap.mapAt(rawTypePojo)
-				: objectParamMap.mapAt(rawTypePojo);
-			final int limit = objectParamTuple.tupleSize();
+			final AvailObject params = ancestors.hasKey(javaClass)
+				? ancestors.mapAt(javaClass)
+				: otherAncestors.mapAt(javaClass);
+			final AvailObject otherParams = otherAncestors.hasKey(javaClass)
+				? otherAncestors.mapAt(javaClass)
+				: ancestors.mapAt(javaClass);
+			final int limit = params.tupleSize();
+			assert limit == otherParams.tupleSize();
 			final List<AvailObject> intersectionParams =
 				new ArrayList<AvailObject>(limit);
 			for (int i = 1; i <= limit; i++)
 			{
-				final AvailObject x = objectParamTuple.tupleAt(i);
-				final AvailObject y = aPojoTypeParamTuple.tupleAt(i);
+				final AvailObject x = params.tupleAt(i);
+				final AvailObject y = otherParams.tupleAt(i);
 				final AvailObject intersection = x.typeIntersection(y);
-				if (intersection.isSubtypeOf(mostSpecificType))
+				if (intersection.isSubtypeOf(
+					PojoTypeDescriptor.pojoBottom()))
 				{
-					return mostSpecificType;
+					return PojoTypeDescriptor.pojoBottom();
 				}
 				intersectionParams.add(intersection);
 			}
-			newParamMap = newParamMap.mapAtPuttingCanDestroy(
-				rawTypePojo.makeImmutable(),
+			unionAncestors = unionAncestors.mapAtPuttingCanDestroy(
+				javaClass,
 				TupleDescriptor.fromCollection(intersectionParams),
 				true);
 		}
-
-		// Use the Avail null object for the most specific class here. Since
-		// the pojo types had no lineal relation, then the result of the
-		// intersection is certainly abstract.
-		// TODO: [TLS] Consider computing the upper bound map here. It would be
-		// the "union map" of the upper bound maps of the pojo types being
-		// intersected.
-		return create(NullDescriptor.nullObject(), newParamMap);
+		return unionAncestors;
 	}
 
-	@Override @AvailMethod
-	AvailObject o_TypeUnion (
+	@Override
+	final @NotNull AvailObject o_TypeUnion (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
@@ -1269,552 +711,709 @@ extends TypeDescriptor
 		return another.typeUnionOfPojoType(object);
 	}
 
-	/**
-	 * Answer the most specific {@linkplain Class raw type} present in the
-	 * specified {@linkplain SetDescriptor set}.
-	 *
-	 * @param set
-	 *        A set of {@linkplain RawPojoDescriptor raw pojos} that represent
-	 *        raw Java types. This must be the set intersection of the keys of
-	 *        two pojo types (probably computed by a type union of two
-	 *        {@linkplain PojoTypeDescriptor pojo types}).
-	 * @param rawTypeMap
-	 *        A {@linkplain Map map} from raw Java types to the raw pojos that
-	 *        represent them. This should be initially empty, and will be
-	 *        populated by this method.
-	 * @return The most specific raw type present in the set. Note that there
-	 *         may be several most specific interfaces, in which case one of
-	 *         them will be answered arbitrarily. There can only be one most
-	 *         specific class, however, and it must be strictly more specific
-	 *         than any other types in the set.
-	 */
-	static @NotNull Class<?> mostSpecificRawType (
-		final @NotNull AvailObject set,
-		final @NotNull Map<Class<?>, AvailObject> rawTypeMap)
-	{
-		// Build a map of raw types to pojos.
-		for (final AvailObject javaClass : set)
-		{
-			assert javaClass.isRawPojo();
-			rawTypeMap.put(
-				(Class<?>) RawPojoDescriptor.getPojo(javaClass), javaClass);
-		}
-
-		// Find the most specific raw type.
-		Class<?> mostSpecificRawType = Object.class;
-		for (final Class<?> rawType : rawTypeMap.keySet())
-		{
-			if (mostSpecificRawType.isAssignableFrom(rawType))
-			{
-				mostSpecificRawType = rawType;
-			}
-		}
-
-		return mostSpecificRawType;
-	}
+	@Override @AvailMethod
+	abstract @NotNull AvailObject o_TypeUnionOfPojoType (
+		@NotNull AvailObject object,
+		@NotNull AvailObject aPojoType);
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeUnionOfPojoType (
+	abstract @NotNull AvailObject o_TypeUnionOfPojoFusedType (
+		@NotNull AvailObject object,
+		@NotNull AvailObject aFusedPojoType);
+
+	@Override @AvailMethod
+	abstract @NotNull AvailObject o_TypeUnionOfPojoUnfusedType (
+		@NotNull AvailObject object,
+		@NotNull AvailObject anUnfusedPojoType);
+
+	@Override @AvailMethod
+	abstract @NotNull AvailObject o_TypeVariables (
+		@NotNull AvailObject object);
+
+	/**
+	 * Compute the union of two {@linkplain PojoTypeDescriptor pojo
+	 * types}. This is utility method that only examines the {@linkplain
+	 * AvailObject#javaAncestors() ancestry} of the pojo types. It computes and
+	 * answers the intersection of the key sets and the union of their
+	 * parameterizations.
+	 *
+	 * @param object
+	 *        A pojo type.
+	 * @param aPojoType
+	 *        Another pojo type.
+	 * @return A new ancestry map.
+	 */
+	protected static @NotNull AvailObject computeUnion (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aPojoType)
 	{
-		if (aPojoType.isPojoSelfType())
-		{
-			return aPojoType.typeUnionOfPojoType(object);
-		}
-
 		// Find the intersection of the key sets and the union of their
 		// parameterizations.
-		final AvailObject objectParamMap =
-			object.slot(PARAMETERIZATION_MAP);
-		final AvailObject otherParamMap =
-			aPojoType.traversed().slot(PARAMETERIZATION_MAP);
-		final AvailObject objectTypes = objectParamMap.keysAsSet();
-		final AvailObject otherTypes = otherParamMap.keysAsSet();
-		final AvailObject intersection = objectTypes.setIntersectionCanDestroy(
-			otherTypes, false);
-		AvailObject newParamMap = MapDescriptor.empty();
-		for (final AvailObject rawTypePojo : intersection)
+		final AvailObject ancestors = object.javaAncestors();
+		final AvailObject otherAncestors = aPojoType.javaAncestors();
+		final AvailObject javaClasses = ancestors.keysAsSet();
+		final AvailObject otherJavaClasses = otherAncestors.keysAsSet();
+		final AvailObject intersection = javaClasses.setIntersectionCanDestroy(
+			otherJavaClasses, false);
+		AvailObject intersectionAncestors = MapDescriptor.empty();
+		for (final AvailObject javaClass : intersection)
 		{
-			final AvailObject objectParamTuple =
-				objectParamMap.mapAt(rawTypePojo);
-			final AvailObject otherParamTuple =
-				otherParamMap.mapAt(rawTypePojo);
-			final int limit = objectParamTuple.tupleSize();
+			final AvailObject params = ancestors.mapAt(javaClass);
+			final AvailObject otherParams = otherAncestors.mapAt(javaClass);
+			final int limit = params.tupleSize();
+			assert limit == otherParams.tupleSize();
 			final List<AvailObject> unionParams = new ArrayList<AvailObject>(
 				limit);
 			for (int i = 1; i <= limit; i++)
 			{
-				final AvailObject x = objectParamTuple.tupleAt(i);
-				final AvailObject y = otherParamTuple.tupleAt(i);
+				final AvailObject x = params.tupleAt(i);
+				final AvailObject y = otherParams.tupleAt(i);
 				final AvailObject union = x.typeUnion(y);
 				unionParams.add(union);
 			}
-			newParamMap = newParamMap.mapAtPuttingCanDestroy(
-				rawTypePojo.makeImmutable(),
-				TupleDescriptor.fromCollection(unionParams),
-				true);
+			intersectionAncestors =
+				intersectionAncestors.mapAtPuttingCanDestroy(
+					javaClass.makeImmutable(),
+					TupleDescriptor.fromCollection(unionParams),
+					true);
 		}
-
-		final Map<Class<?>, AvailObject> rawTypeMap =
-			new HashMap<Class<?>, AvailObject>(intersection.setSize());
-		final Class<?> mostSpecificRawType = mostSpecificRawType(
-			intersection, rawTypeMap);
-		final int modifiers = mostSpecificRawType.getModifiers();
-		final AvailObject mostSpecificClass;
-		// If the most specific raw type is an interface or an abstract class,
-		// then use the Avail null object to represent the most specific class.
-		if (Modifier.isAbstract(modifiers) || Modifier.isInterface(modifiers))
-		{
-			mostSpecificClass = NullDescriptor.nullObject();
-		}
-		// If the most specific raw type is a concrete class, then get its pojo
-		// from the map.
-		else
-		{
-			mostSpecificClass = rawTypeMap.get(mostSpecificRawType);
-		}
-
-		// TODO: [TLS] Consider creating the upper bound map. It must include
-		// all most specific classes and interfaces (we are currently not
-		// computing them).
-		return create(mostSpecificClass, newParamMap);
+		return intersectionAncestors;
 	}
 
-	@Override @AvailMethod
-	public @NotNull AvailObject o_UpperBoundMap (
-		final @NotNull AvailObject object)
+	/**
+	 * Answer the locally childless {@linkplain Class Java types} from among
+	 * the types present in the specified ancestry.
+	 *
+	 * @param ancestry
+	 *        A {@linkplain SetDescriptor set} of {@linkplain RawPojoDescriptor
+	 *        raw pojos} that wrap related Java types.
+	 * @return Those subset of the ancestry that is locally childless, i.e.,
+	 *         those elements that do not have any subtypes also present in the
+	 *         ancestry.
+	 */
+	protected static @NotNull Set<AvailObject> childlessAmong (
+		final @NotNull AvailObject ancestry)
 	{
-		return object.slot(UPPER_BOUND_MAP);
+		final Set<AvailObject> childless = new HashSet<AvailObject>();
+		for (final AvailObject ancestor : ancestry)
+		{
+			childless.add(ancestor);
+		}
+		for (final AvailObject ancestor : ancestry)
+		{
+			final Class<?> possibleAncestor = (Class<?>) ancestor.javaObject();
+			for (final AvailObject child : ancestry)
+			{
+				final Class<?> possibleChild = (Class<?>) child.javaObject();
+				if (possibleAncestor != possibleChild
+					&& possibleAncestor.isAssignableFrom(possibleChild))
+				{
+					childless.remove(possibleAncestor);
+				}
+			}
+		}
+		return childless;
 	}
 
-	@Override @AvailMethod
-	public void o_UpperBoundMap (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aMap)
+	/**
+	 * Answer the most specific {@linkplain Class Java type} present in the
+	 * specified ancestry.
+	 *
+	 * @param ancestry
+	 *        A {@linkplain SetDescriptor set} of {@linkplain RawPojoDescriptor
+	 *        raw pojos} that wrap Java types. The set contains related types
+	 *        that were computed during a type union of two {@linkplain
+	 *        PojoTypeDescriptor pojo types}.
+	 * @return The most specific Java type in the set. Answer {@linkplain
+	 *         NullDescriptor nil} if there is not a single most specific type
+	 *         (this can only happen for interfaces).
+	 */
+	protected static @NotNull AvailObject mostSpecificOf (
+		final @NotNull AvailObject ancestry)
 	{
-		assert object.slot(UPPER_BOUND_MAP).equalsNull();
-		object.setSlot(UPPER_BOUND_MAP, aMap);
+		AvailObject answer = RawPojoDescriptor.rawObjectClass();
+		Class<?> mostSpecific = Object.class;
+		for (final AvailObject rawType : ancestry)
+		{
+			final Class<?> javaClass = (Class<?>) rawType.javaObject();
+			if (mostSpecific.isAssignableFrom(javaClass))
+			{
+				mostSpecific = javaClass;
+				answer = rawType;
+			}
+		}
+		// If the (tentative) answer is an interface, then verify that it is
+		// strictly more specific than all other types in the set.
+		final int modifiers = mostSpecific.getModifiers();
+		if (Modifier.isInterface(modifiers))
+		{
+			for (final AvailObject rawType : ancestry)
+			{
+				final Class<?> javaClass = (Class<?>) rawType.javaObject();
+				if (!javaClass.isAssignableFrom(mostSpecific))
+				{
+					return NullDescriptor.nullObject();
+				}
+			}
+		}
+		return answer;
 	}
 
 	@Override
-	public void printObjectOnAvoidingIndent (
-		final @NotNull AvailObject object,
-		final @NotNull StringBuilder builder,
-		final @NotNull List<AvailObject> recursionList,
-		final int indent)
-	{
-		final AvailObject classPojo = object.slot(MOST_SPECIFIC_CLASS);
-		if (classPojo.equalsNull())
-		{
-			super.printObjectOnAvoidingIndent(
-				object, builder, recursionList, indent);
-			return;
-		}
-
-		final Class<?> javaClass =
-			(Class<?>) RawPojoDescriptor.getPojo(classPojo);
-		if (javaClass == null)
-		{
-			builder.append("null's type");
-			return;
-		}
-
-		final AvailObject typeParams =
-			object.slot(PARAMETERIZATION_MAP).mapAt(classPojo);
-		if (javaClass.equals(PojoArray.class))
-		{
-			builder.append("[]<");
-			typeParams.tupleAt(1).printOnAvoidingIndent(
-				builder, recursionList, indent);
-			builder.append('>');
-			return;
-		}
-
-		builder.append(javaClass.getName());
-		if (typeParams.tupleSize() > 0)
-		{
-			final TypeVariable<?>[] typeVars = javaClass.getTypeParameters();
-			final AvailObject upperBoundMap = object.slot(UPPER_BOUND_MAP);
-			boolean first = true;
-			builder.append('<');
-			for (int i = 1; i <= typeParams.tupleSize(); i++)
-			{
-				if (!first)
-				{
-					builder.append(", ");
-					first = true;
-				}
-				typeParams.tupleAt(i).printOnAvoidingIndent(
-					builder, recursionList, indent);
-				if (!upperBoundMap.equalsNull())
-				{
-					builder.append(" ≤ ");
-					final AvailObject typeVarName =
-						typeVariableName(typeVars[i - 1]);
-					upperBoundMap.mapAt(typeVarName).printOnAvoidingIndent(
-						builder, recursionList, indent);
-				}
-			}
-			builder.append('>');
-		}
-	}
+	abstract void printObjectOnAvoidingIndent (
+		@NotNull AvailObject object,
+		@NotNull StringBuilder builder,
+		@NotNull List<AvailObject> recursionList,
+		int indent);
 
 	/**
 	 * Construct a new {@link PojoTypeDescriptor}.
 	 *
 	 * @param isMutable
-	 *        Does the {@linkplain AbstractDescriptor descriptor} represent a
-	 *        mutable object?
+	 *        Does the {@linkplain PojoTypeDescriptor descriptor}
+	 *        represent a mutable object?
 	 */
-	private PojoTypeDescriptor (final boolean isMutable)
+	protected PojoTypeDescriptor (final boolean isMutable)
 	{
 		super(isMutable);
 	}
 
-	/** The mutable {@link PojoTypeDescriptor}. */
-	private static final @NotNull PojoTypeDescriptor mutable =
-		new PojoTypeDescriptor(true);
-
 	/**
-	 * Answer the mutable {@link PojoTypeDescriptor}.
+	 * Marshal the arbitrary {@linkplain Object Java object} to its counterpart
+	 * {@linkplain AvailObject Avail object}.
 	 *
-	 * @return The mutable {@code PojoTypeDescriptor}.
+	 * @param object
+	 *        A Java object, or {@code null}.
+	 * @param type
+	 *        A {@linkplain TypeDescriptor type} to which the resultant Avail
+	 *        object must conform.
+	 * @return An Avail Object.
 	 */
-	public static @NotNull PojoTypeDescriptor mutable ()
+	public static @NotNull AvailObject unmarshal (
+		final Object object,
+		final @NotNull AvailObject type)
 	{
-		return mutable;
-	}
-
-	/** The immutable {@link PojoTypeDescriptor}. */
-	private static final @NotNull PojoTypeDescriptor immutable =
-		new PojoTypeDescriptor(false);
-
-	/**
-	 * Answer the immutable {@link PojoTypeDescriptor}.
-	 *
-	 * @return The immutable {@code PojoTypeDescriptor}.
-	 */
-	public static @NotNull PojoTypeDescriptor immutable ()
-	{
-		return immutable;
-	}
-
-	/**
-	 * Are all of the keys of the specified {@linkplain MapDescriptor map}
-	 * {@linkplain Class raw Java types}?
-	 *
-	 * @param map A map.
-	 * @return {@code true} if the map's keys are all Java raw types, {@code
-	 *         false} otherwise.
-	 */
-	private static boolean keysAreRawTypes (final @NotNull AvailObject map)
-	{
-		for (final AvailObject element : map.keysAsSet())
+		if (object == null)
 		{
-			if (!element.isRawPojo())
-			{
-				return false;
-			}
-
-			final Object javaClass = RawPojoDescriptor.getPojo(element);
-			if (!(javaClass instanceof Class<?>))
-			{
-				return false;
-			}
+			return PojoDescriptor.nullObject();
 		}
-		return true;
-	}
-
-	/**
-	 * Do the preconditions for {@link #create(AvailObject, AvailObject)} hold?
-	 *
-	 * @param mostSpecificClass
-	 *        The most specific {@linkplain Class Java class} included by this
-	 *        pojo type, or the Avail {@linkplain NullDescriptor#nullObject()
-	 *        null object} if the pojo type represents an interface or fusion.
-	 * @param parameterizationMap
-	 *        The type parameterization {@linkplain MapDescriptor map}. It maps
-	 *        {@linkplain PojoDescriptor pojos} representing {@linkplain Class
-	 *        raw Java types} to type parameterization {@linkplain
-	 *        TupleDescriptor tuples}. These tuples may include arbitrary Avail
-	 *        {@linkplain TypeDescriptor types}. Avail types are used to
-	 *        represent Java primitive types.
-	 * @return {@code true} if the preconditions hold, {@code false} otherwise.
-	 */
-	private static boolean createPreconditionsHold (
-		final @NotNull AvailObject mostSpecificClass,
-		final @NotNull AvailObject parameterizationMap)
-	{
-		if (mostSpecificClass.equals(RawPojoDescriptor.rawNullObject()))
+		final Class<?> javaClass = object.getClass();
+		final AvailObject availObject;
+		if (javaClass.equals(AvailObject.class))
 		{
-			return parameterizationMap.equalsNull();
+			availObject = (AvailObject) object;
 		}
-		if (!parameterizationMap.isMap()
-			|| !keysAreRawTypes(parameterizationMap))
+		else if (javaClass.equals(Boolean.class))
 		{
-			return false;
+			availObject = (Boolean) object
+				? AtomDescriptor.trueObject()
+				: AtomDescriptor.falseObject();
 		}
-		if (mostSpecificClass.equalsNull())
+		else if (javaClass.equals(Byte.class))
 		{
-			return true;
+			availObject = IntegerDescriptor.fromInt((Byte) object);
 		}
-		return mostSpecificClass.isRawPojo()
-			&& (RawPojoDescriptor.getPojo(
-				mostSpecificClass) instanceof Class<?>)
-			&& parameterizationMap.hasKey(mostSpecificClass);
-	}
-
-	/**
-	 * Create a new {@link AvailObject} that represents a {@linkplain
-	 * PojoTypeDescriptor pojo type}. The {@linkplain
-	 * AvailObject#upperBoundMap() upper bound map} is set to the {@linkplain
-	 * NullDescriptor#nullObject() null object}.
-	 *
-	 * @param mostSpecificClass
-	 *        The most specific {@linkplain Class Java class} included by this
-	 *        pojo type, or the Avail {@linkplain NullDescriptor#nullObject()
-	 *        null object} if the pojo type represents an interface or fusion.
-	 * @param parameterizationMap
-	 *        The type parameterization {@linkplain MapDescriptor map}. It maps
-	 *        {@linkplain PojoDescriptor pojos} representing {@linkplain Class
-	 *        raw Java types} to type parameterization {@linkplain
-	 *        TupleDescriptor tuples}. These tuples may include arbitrary Avail
-	 *        {@linkplain TypeDescriptor types}. Avail types are used to
-	 *        represent Java primitive types.
-	 * @return The new Avail pojo type.
-	 */
-	public static @NotNull AvailObject create (
-		final @NotNull AvailObject mostSpecificClass,
-		final @NotNull AvailObject parameterizationMap)
-	{
-		assert createPreconditionsHold(mostSpecificClass, parameterizationMap);
-		final AvailObject newObject = mutable.create();
-		newObject.setSlot(MOST_SPECIFIC_CLASS, mostSpecificClass);
-		newObject.setSlot(PARAMETERIZATION_MAP, parameterizationMap);
-		newObject.setSlot(UPPER_BOUND_MAP, NullDescriptor.nullObject());
-		return newObject.makeImmutable();
-	}
-
-	/**
-	 * Compute type propagation between {@code rawType} and its contextually
-	 * parameterized supertype, {@code genericSupertype}.
-	 *
-	 * @param rawType
-	 *        A {@linkplain Class raw Java type}.
-	 * @param genericSupertype
-	 *        The parameterized supertype, as viewed contextually from {@code
-	 *        rawType}.
-	 * @param parameters
-	 *        The type parameterization {@linkplain TupleDescriptor tuple} for
-	 *        {@code rawType}.
-	 * @param selfTypeMap
-	 *        A {@linkplain Map map} from raw Java types to the {@linkplain
-	 *        PojoSelfTypeDescriptor pojo self types} that represent them.
-	 * @return The propagated type parameters of the supertype.
-	 */
-	private static @NotNull AvailObject supertypeParameters (
-		final @NotNull Class<?> rawType,
-		final @NotNull Type genericSupertype,
-		final @NotNull AvailObject parameters,
-		final @NotNull Map<Class<?>, AvailObject> selfTypeMap)
-	{
-		final TypeVariable<?>[] vars = rawType.getTypeParameters();
-		final List<AvailObject> propagation = new ArrayList<AvailObject>(
-			vars.length);
-		// If genericSuperclass is a Class, then it has no type parameters.
-		if (genericSupertype instanceof Class<?>)
+		else if (javaClass.equals(Short.class))
 		{
-			final Class<?> superclass = (Class<?>) genericSupertype;
-			assert superclass.getTypeParameters().length == 0;
+			availObject = IntegerDescriptor.fromInt((Short) object);
 		}
-		// If genericSuperclass is a ParameterizedType, then ascertain type
-		// parameter propagation.
-		else if (genericSupertype instanceof ParameterizedType)
+		else if (javaClass.equals(Integer.class))
 		{
-			final ParameterizedType supertype =
-				(ParameterizedType) genericSupertype;
-			final Type[] superVars = supertype.getActualTypeArguments();
-			for (final Type weakSuperVar : superVars)
-			{
-				// If weakSuperVar is a Class (e.g. String), then it is fully
-				// specified. Adjust rawTypeMap if necessary and append the
-				// appropriate raw pojo to the propagation list.
-				if (weakSuperVar instanceof Class<?>)
-				{
-					final AvailObject pojoType =
-						selfTypeMap.containsKey(weakSuperVar)
-						? selfTypeMap.get(weakSuperVar)
-						: create(rawType, TupleDescriptor.empty());
-					propagation.add(pojoType);
-				}
-				// If weakSuperVar is a TypeVariable, then scan vars to find
-				// how propagation happens.
-				else if (weakSuperVar instanceof TypeVariable<?>)
-				{
-					final TypeVariable<?> strongSuperVar =
-						(TypeVariable<?>) weakSuperVar;
-					boolean propagationSucceeded = false;
-					for (int i = 0; i < vars.length; i++)
-					{
-						if (vars[i].getName().equals(strongSuperVar.getName()))
-						{
-							propagation.add(parameters.tupleAt(i + 1));
-							propagationSucceeded = true;
-							break;
-						}
-					}
-					assert propagationSucceeded;
-				}
-				// If weakSuperVar is a ParameterizedType (e.g. List<String>),
-				// then it may be recursively specified in terms of Classes and
-				// already encountered TypeVariables.
-				else if (weakSuperVar instanceof ParameterizedType)
-				{
-					// TODO: [TLS] Implement this!
-				}
-				// This probably shouldn't happen ...
-				else
-				{
-					assert false : "Unexpected type parameter.";
-				}
-			}
+			availObject = IntegerDescriptor.fromInt((Integer) object);
 		}
-		// This probably shouldn't happen ...
+		else if (javaClass.equals(Long.class))
+		{
+			availObject = IntegerDescriptor.fromLong((Long) object);
+		}
+		else if (javaClass.equals(Float.class))
+		{
+			availObject = FloatDescriptor.fromFloat((Float) object);
+		}
+		else if (javaClass.equals(Double.class))
+		{
+			availObject = DoubleDescriptor.fromDouble((Double) object);
+		}
+		else if (javaClass.equals(Character.class))
+		{
+			availObject = CharacterDescriptor.fromCodePoint(
+				((Character) object).charValue());
+		}
+		else if (javaClass.equals(String.class))
+		{
+			availObject = StringDescriptor.from((String) object);
+		}
+		else if (javaClass.equals(BigInteger.class))
+		{
+			// TODO: [TLS] Implement a facility creating an Avail integer from
+			// a Java BigInteger.
+			throw new MarshalingException();
+		}
 		else
 		{
-			assert false : "Unexpected generic declaration";
+			availObject = PojoDescriptor.newPojo(
+				RawPojoDescriptor.identityWrap(object),
+				type);
+		}
+		if (!availObject.isInstanceOf(type))
+		{
+			throw new MarshalingException();
+		}
+		return availObject;
+	}
+
+	/**
+	 * Resolve the specified {@linkplain Type type} using the given {@linkplain
+	 * AvailObject#typeVariables() type variables}.
+	 *
+	 * @param type
+	 *        A type.
+	 * @param typeVars
+	 *        A {@linkplain MapDescriptor map} from fully-qualified {@linkplain
+	 *        TypeVariable type variable} {@linkplain StringDescriptor names} to
+	 *        their {@linkplain TypeDescriptor types}.
+	 * @return An Avail type.
+	 */
+	public static @NotNull AvailObject resolve (
+		final @NotNull Type type,
+		final @NotNull AvailObject typeVars)
+	{
+		// If type is a Java class or interface, then answer a pojo type.
+		if (type instanceof Class<?>)
+		{
+			final Class<?> aClass = (Class<?>) type;
+			// If type represents java.lang.Object, then answer any.
+			if (aClass.equals(Object.class))
+			{
+				return ANY.o();
+			}
+			// If type represents a Java primitive, then unmarshal it.
+			else if (aClass.isPrimitive())
+			{
+				// If type represents Java void, then answer top.
+				if (aClass.equals(Void.TYPE))
+				{
+					return TOP.o();
+				}
+				else if (aClass.equals(Boolean.TYPE))
+				{
+					return EnumerationTypeDescriptor.booleanObject();
+				}
+				else if (aClass.equals(Byte.TYPE))
+				{
+					return byteRange;
+				}
+				else if (aClass.equals(Short.TYPE))
+				{
+					return shortRange;
+				}
+				else if (aClass.equals(Integer.TYPE))
+				{
+					return intRange;
+				}
+				else if (aClass.equals(Long.TYPE))
+				{
+					return longRange;
+				}
+				else if (aClass.equals(Float.TYPE))
+				{
+					return FLOAT.o();
+				}
+				else if (aClass.equals(Double.TYPE))
+				{
+					return DOUBLE.o();
+				}
+				else if (aClass.equals(Character.TYPE))
+				{
+					return CHARACTER.o();
+				}
+				else
+				{
+					assert false : "There are only nine primitive types!";
+					return null;
+				}
+			}
+			else if (aClass.equals(String.class))
+			{
+				return TupleTypeDescriptor.stringTupleType();
+			}
+			else if (aClass.equals(BigInteger.class))
+			{
+				return IntegerRangeTypeDescriptor.integers();
+			}
+			return forClass((Class<?>) type);
+		}
+		// If type is a type variable, then resolve it using the map of type
+		// variables.
+		else if (type instanceof TypeVariable<?>)
+		{
+			final TypeVariable<?> var = (TypeVariable<?>) type;
+			final GenericDeclaration decl = var.getGenericDeclaration();
+			final Class<?> javaClass;
+			// class Foo<X> { ... }
+			if (decl instanceof Class<?>)
+			{
+				javaClass = ((Class<?>) decl);
+			}
+			// class Foo { <X> Foo(X x) { ... } ... }
+			else if (decl instanceof Constructor<?>)
+			{
+				javaClass = ((Constructor<?>) decl).getDeclaringClass();
+			}
+			// class Foo { <X> X compute (X x) { ... } }
+			else if (decl instanceof Method)
+			{
+				javaClass = ((Method) decl).getDeclaringClass();
+			}
+			else
+			{
+				assert false :
+					"There should only be three contexts that can define a "
+					+ "type variable!";
+				return null;
+			}
+			final AvailObject name = StringDescriptor.from(
+				javaClass.getName() + "." + var.getName());
+			return typeVars.mapAt(name);
+		}
+		// If type is a parameterized type, then recursively resolve it using
+		// the map of type variables.
+		else if (type instanceof ParameterizedType)
+		{
+			final ParameterizedType parameterized = (ParameterizedType) type;
+			final Type[] unresolved = parameterized.getActualTypeArguments();
+			final List<AvailObject> resolved = new ArrayList<AvailObject>(
+				unresolved.length);
+			for (int i = 0; i < unresolved.length; i++)
+			{
+				resolved.add(resolve(unresolved[i], typeVars));
+			}
+			return forClassWithTypeArguments(
+				(Class<?>) parameterized.getRawType(),
+				TupleDescriptor.fromCollection(resolved));
+		}
+		assert false : "Unsupported generic declaration";
+		return null;
+	}
+
+	/**
+	 * In the context of a reference {@linkplain Class Java class or interface}
+	 * implicitly specified by the {@linkplain TypeVariableMap type variable
+	 * map} and {@linkplain TupleDescriptor tuple of type arguments}, compute
+	 * the type arguments of the specified target Java class or interface.
+	 *
+	 * @param target
+	 *        A Java class or interface (encountered during processing of the
+	 *        reference type's ancestry).
+	 * @param vars
+	 *        The reference type's type variable map. Indices are specified
+	 *        relative to ...
+	 * @param typeArgs
+	 *        The reference type's type arguments.
+	 * @param canon
+	 *        The current {@linkplain Canon canon}, used to identify recursive
+	 *        type dependency.
+	 * @return The type arguments of the target.
+	 */
+	private static
+	@NotNull AvailObject computeTypeArgumentsOf (
+		final @NotNull ParameterizedType target,
+		final @NotNull TypeVariableMap vars,
+		final @NotNull AvailObject typeArgs,
+		final @NotNull Canon canon)
+	{
+		final Type[] args = target.getActualTypeArguments();
+		final List<AvailObject> propagation = new ArrayList<AvailObject>(2);
+		for (final Type arg : args)
+		{
+			// class Target<...> extends Supertype<Arg> { ... }
+			//
+			// If the type argument is an unparameterized class or
+			// interface, then add its pojo type to the supertype's tuple of
+			// type arguments.
+			if (arg instanceof Class<?>)
+			{
+				final Class<?> javaClass = (Class<?>) arg;
+				final AvailObject typeArg =
+					canon.containsKey(javaClass)
+					? selfTypeForClass(javaClass)
+					: forClass(javaClass);
+				propagation.add(typeArg);
+			}
+			// class Target<A, ...> extends Supertype<A, ...> { ... }
+			//
+			// If the type argument is a type variable, then copy the
+			// corresponding type argument from the subtype's type
+			// parameterization tuple to the supertype's tuple of type
+			// arguments.
+			else if (arg instanceof TypeVariable<?>)
+			{
+				final Integer index =
+					vars.get(((TypeVariable<?>) arg).getName());
+				assert index != null;
+				propagation.add(typeArgs.tupleAt(index + 1));
+			}
+			// class Target<A, ...>
+			// extends Supertype<B<A>, D<Arg>, ...> { ... }
+			//
+			// If the type argument is a parameterized class or interface,
+			// then recursively resolve it to a pojo type and copy the
+			// result to the supertype's tuple of type arguments.
+			else if (arg instanceof ParameterizedType)
+			{
+				final ParameterizedType parameterized =
+					(ParameterizedType) arg;
+				final AvailObject localArgs = computeTypeArgumentsOf(
+					parameterized,
+					vars,
+					typeArgs,
+					canon);
+				propagation.add(forClassWithTypeArguments(
+					(Class<?>) parameterized.getRawType(), localArgs));
+			}
+			// There are no other conditions, but in the unlikely event that
+			// the structure of the Java language changes significantly in a
+			// future release ...
+			else
+			{
+				assert false : "Unsupported generic declaration";
+				return null;
+			}
 		}
 		return TupleDescriptor.fromCollection(propagation);
 	}
 
 	/**
-	 * Recursively create the {@linkplain ObjectSlots#PARAMETERIZATION_MAP type
-	 * parameterization map} for the original {@code rawType}.
+	 * Given the type parameterization of the {@linkplain Class target Java
+	 * class or interface}, use type propagation to determine the type
+	 * parameterization of the specified direct {@linkplain Type supertype}.
 	 *
-	 * @param rawType
-	 *        A {@linkplain Class raw Java type}.
-	 * @param parameters
-	 *        The type parameterization {@linkplain TupleDescriptor tuple} for
-	 *        {@code rawType}.
-	 * @param initialParameterizationMap
-	 *        The type parameterization map, incrementally recursively built
-	 *        quasi-destructively.
-	 * @param rawTypeMap
-	 *        A {@linkplain Map map} from raw Java types to the {@linkplain
-	 *        RawPojoDescriptor raw pojos} that embed them.
-	 * @param selfTypeMap
-	 *        A {@linkplain Map map} from raw Java types to the {@linkplain
-	 *        PojoSelfTypeDescriptor pojo self types} that represent them.
-	 * @return The replacement type parameterization map, ultimately the
-	 *         complete type parameterization for the original raw Java type.
+	 * @param target
+	 *        A Java class or interface.
+	 * @param supertype
+	 *        A parameterized direct supertype of the target.
+	 * @param typeArgs
+	 *        The type parameters of the target. These may be any {@linkplain
+	 *        TypeDescriptor Avail types}, not just pojo types.
+	 * @param canon
+	 *        The current {@linkplain Canon canon}, used to identify recursive
+	 *        type dependency.
+	 * @return The type parameters of the specified supertype.
 	 */
-	private static @NotNull AvailObject create (
-		final @NotNull Class<?> rawType,
-		final @NotNull AvailObject parameters,
-		final @NotNull AvailObject initialParameterizationMap,
-		final @NotNull Map<Class<?>, AvailObject> rawTypeMap,
-		final @NotNull Map<Class<?>, AvailObject> selfTypeMap)
+	private static @NotNull AvailObject computeSupertypeParameters (
+		final @NotNull Class<?> target,
+		final @NotNull Type supertype,
+		final @NotNull AvailObject typeArgs,
+		final @NotNull Canon canon)
 	{
-		AvailObject parameterizationMap = initialParameterizationMap;
-		if (!rawTypeMap.containsKey(rawType))
+		// class Target<...> extends GenericSupertype { ... }
+		//
+		// If the supertype is an unparameterized class or interface, then
+		// answer an empty type parameterization tuple.
+		if (supertype instanceof Class<?>)
 		{
-			final AvailObject javaClass = canonize(rawTypeMap, rawType);
-			final AvailObject selfType = PojoSelfTypeDescriptor.create(rawType);
-			selfTypeMap.put(rawType, selfType);
-			parameterizationMap = parameterizationMap.mapAtPuttingCanDestroy(
-				javaClass, parameters, true);
-
-			// Recursively create the superclass.
-			final Class<?> superclass = rawType.getSuperclass();
-			if (superclass != null)
-			{
-				final AvailObject supertypeParameters = supertypeParameters(
-					rawType,
-					rawType.getGenericSuperclass(),
-					parameters,
-					selfTypeMap);
-				parameterizationMap = create(
-					superclass,
-					supertypeParameters,
-					parameterizationMap,
-					rawTypeMap,
-					selfTypeMap);
-			}
-
-			// Recursively create the super-interfaces.
-			final Class<?>[] superinterfaces = rawType.getInterfaces();
-			final Type[] weakSuperinterfaces = rawType.getGenericInterfaces();
-			assert superinterfaces.length == weakSuperinterfaces.length;
-			for (int i = 0; i < superinterfaces.length; i++)
-			{
-				final AvailObject supertypeParameters = supertypeParameters(
-					rawType,
-					weakSuperinterfaces[i],
-					parameters,
-					selfTypeMap);
-				parameterizationMap = create(
-					superinterfaces[i],
-					supertypeParameters,
-					parameterizationMap,
-					rawTypeMap,
-					selfTypeMap);
-			}
+			return TupleDescriptor.empty();
 		}
-		return parameterizationMap;
+		// class Target<A, B, ...> extends GenericSupertype<A, B, ...> { ... }
+		//
+		// If the supertype is a parameterized class or interface, then compute
+		// the type parameterization tuple.
+		else if (supertype instanceof ParameterizedType)
+		{
+			return computeTypeArgumentsOf(
+				(ParameterizedType) supertype,
+				new TypeVariableMap(target),
+				typeArgs,
+				canon);
+		}
+		// There are no other conditions, but in the unlikely event that the
+		// structure of the Java language changes significantly in a future
+		// release ...
+		else
+		{
+			assert false : "Unsupported generic declaration";
+			return null;
+		}
 	}
 
 	/**
-	 * Create a {@linkplain PojoTypeDescriptor pojo type} from the specified
-	 * {@linkplain Class raw Java type} and  {@linkplain TypeDescriptor type}
-	 * parameterization {@linkplain TupleDescriptor tuple}.
+	 * Recursively compute the complete ancestry (of Java types) of the
+	 * specified {@linkplain Class Java class or interface}.
 	 *
-	 * @param rawType
-	 *        The raw Java type, possibly {@code null} for the artificial
-	 *        {@linkplain #mostSpecificType() most specific pojo type}.
-	 * @param parameters
-	 *        The type parameters.
-	 * @return A new pojo type.
+	 * @param target
+	 *        A Java class or interface.
+	 * @param typeArgs
+	 *        The type arguments. These may be any {@linkplain TypeDescriptor
+	 *        Avail types}, not just pojo types.
+	 * @param ancestry
+	 *        The working partial {@linkplain MapDescriptor ancestry}.
+	 * @param canon
+	 *        The current {@linkplain Canon canon}, used to deduplicate the
+	 *        collection of ancestors.
 	 */
-	public static @NotNull AvailObject create (
-		final Class<?> rawType,
-		final @NotNull AvailObject parameters)
+	@InnerAccess static void computeAncestry (
+		final @NotNull Class<?> target,
+		final @NotNull AvailObject typeArgs,
+		final @NotNull Mutable<AvailObject> ancestry,
+		final @NotNull Canon canon)
 	{
-		assert rawType != null;
-
-		// Explicitly seed the parameterization map with Object. From an Avail
-		// programmer's point of view, a Java interface seems to inherit from
-		// Object. This accomplishes that. It also prevents raw pojos for
-		// Object's class from being created repeatedly.
-		final Map<Class<?>, AvailObject> rawTypeMap =
-			new HashMap<Class<?>, AvailObject>(5);
-		final AvailObject rawObjectClass = canonize(rawTypeMap, Object.class);
-		AvailObject parameterizationMap = MapDescriptor.empty();
-		parameterizationMap = parameterizationMap.mapAtPuttingCanDestroy(
-			rawObjectClass, TupleDescriptor.empty(), true);
-
-		// Recursively build the parameterization map.
-		parameterizationMap = create(
-			rawType,
-			parameters,
-			parameterizationMap,
-			rawTypeMap,
-			new HashMap<Class<?>, AvailObject>(5));
-
-		// Use the Avail null object as the most specific class if the raw Java
-		// type is an abstract class or interface.
-		final AvailObject mostSpecificClass;
-		final int modifiers = rawType.getModifiers();
-		if (Modifier.isAbstract(modifiers) || Modifier.isInterface(modifiers))
+		final AvailObject javaClass = canon.canonize(target);
+		ancestry.value = ancestry.value.mapAtPuttingCanDestroy(
+			javaClass, typeArgs, true);
+		// Recursively accumulate the class ancestry.
+		final Class<?> superclass = target.getSuperclass();
+		if (superclass != null)
 		{
-			mostSpecificClass = NullDescriptor.nullObject();
+			if (!canon.containsKey(superclass))
+			{
+				final AvailObject supertypeParams = computeSupertypeParameters(
+					target,
+					target.getGenericSuperclass(),
+					typeArgs,
+					canon);
+				computeAncestry(
+					superclass,
+					supertypeParams,
+					ancestry,
+					canon);
+			}
+		}
+		// Recursively accumulate the interface ancestry.
+		final Class<?>[] superinterfaces = target.getInterfaces();
+		final Type[] genericSuperinterfaces = target.getGenericInterfaces();
+		for (int i = 0; i < superinterfaces.length; i++)
+		{
+			if (!canon.containsKey(superinterfaces[i]))
+			{
+				final AvailObject supertypeParams = computeSupertypeParameters(
+					target,
+					genericSuperinterfaces[i],
+					typeArgs,
+					canon);
+				 computeAncestry(
+					superinterfaces[i],
+					supertypeParams,
+					ancestry,
+					canon);
+			}
+		}
+	}
+
+	/**
+	 * Create a {@linkplain PojoTypeDescriptor pojo type} from the
+	 * specified {@linkplain Class Java class} and type arguments.
+	 *
+	 * @param target
+	 *        A Java class or interface.
+	 * @param typeArgs
+	 *        The type arguments. These may be any {@linkplain TypeDescriptor
+	 *        Avail types}, not just pojo types.
+	 * @return The requested pojo type.
+	 */
+	public static @NotNull AvailObject forClassWithTypeArguments (
+		final @NotNull Class<?> target,
+		final @NotNull AvailObject typeArgs)
+	{
+		return cache.get(new LRUCacheKey(target, typeArgs));
+	}
+
+	/**
+	 * Create a {@linkplain PojoTypeDescriptor pojo type} for the
+	 * specified {@linkplain Class Java class}.
+	 *
+	 * @param target
+	 *        A Java class or interface.
+	 * @return The requested pojo type.
+	 */
+	public static @NotNull AvailObject forClass (final @NotNull Class<?> target)
+	{
+		final int paramCount = target.getTypeParameters().length;
+		final List<AvailObject> params;
+		if (paramCount > 0)
+		{
+			params = Arrays.asList(new AvailObject[paramCount]);
+			Collections.fill(params, ANY.o());
 		}
 		else
 		{
-			mostSpecificClass = rawTypeMap.get(rawType);
-			assert mostSpecificClass != null;
+			params = Collections.emptyList();
 		}
+		return forClassWithTypeArguments(
+			target, TupleDescriptor.fromCollection(params));
+	}
 
-		return create(mostSpecificClass, parameterizationMap);
+	/**
+	 * Create a {@linkplain PojoTypeDescriptor pojo type} that
+	 * represents an array of the specified {@linkplain TypeDescriptor element
+	 * type}.
+	 *
+	 * @param elementType
+	 *        The element type. This may be any Avail type, not just a pojo
+	 *        type.
+	 * @param sizeRange
+	 *        An {@linkplain IntegerRangeTypeDescriptor integer range} that
+	 *        specifies all allowed array sizes for instances of this type. This
+	 *        must be a subtype of {@linkplain
+	 *        IntegerRangeTypeDescriptor#wholeNumbers() whole number}.
+	 * @return The requested pojo type.
+	 */
+	public static @NotNull AvailObject forArrayTypeWithSizeRange (
+		final @NotNull AvailObject elementType,
+		final @NotNull AvailObject sizeRange)
+	{
+		assert sizeRange.isSubtypeOf(IntegerRangeTypeDescriptor.wholeNumbers());
+		return ArrayPojoTypeDescriptor.create(elementType, sizeRange);
+	}
+
+	/**
+	 * Recursively compute the complete ancestry (of Java types) of the
+	 * specified {@linkplain Class Java class or interface}. Ignore type
+	 * parameters.
+	 *
+	 * @param target
+	 *        A Java class or interface.
+	 * @param ancestors
+	 *        The {@linkplain Set set} of ancestors.
+	 * @param canon
+	 *        The current {@linkplain Canon canon}, used to deduplicate the
+	 *        collection of ancestors.
+	 */
+	private static void computeUnparameterizedAncestry (
+		final @NotNull Class<?> target,
+		final @NotNull Set<AvailObject> ancestors,
+		final @NotNull Canon canon)
+	{
+		if (target != null)
+		{
+			ancestors.add(canon.canonize(target));
+			final Class<?> superclass = target.getSuperclass();
+			if (superclass != null)
+			{
+				computeUnparameterizedAncestry(superclass, ancestors, canon);
+			}
+			for (final Class<?> superinterface : target.getInterfaces())
+			{
+				computeUnparameterizedAncestry(superinterface, ancestors, canon);
+			}
+		}
+	}
+
+	/**
+	 * Create a {@linkplain PojoTypeDescriptor pojo self type} for the
+	 * specified {@linkplain Class Java class}.
+	 *
+	 * @param target
+	 *        A Java class or interface. This element should define no type
+	 *        parameters.
+	 * @return The requested pojo type.
+	 */
+	public static @NotNull AvailObject selfTypeForClass (
+		final @NotNull Class<?> target)
+	{
+		final Canon canon = new Canon();
+		final Set<AvailObject> ancestors = new HashSet<AvailObject>(5);
+		ancestors.add(canon.get(Object.class));
+		computeUnparameterizedAncestry(target, ancestors, canon);
+		return SelfPojoTypeDescriptor.create(
+			canon.get(target), SetDescriptor.fromCollection(ancestors));
 	}
 }

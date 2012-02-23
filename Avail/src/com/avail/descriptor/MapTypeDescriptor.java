@@ -101,21 +101,36 @@ extends TypeDescriptor
 		final @NotNull List<AvailObject> recursionList,
 		final int indent)
 	{
-		aStream.append("map ");
-		object.sizeRange().printOnAvoidingIndent(
-			aStream,
-			recursionList,
-			(indent + 1));
-		aStream.append(" from ");
+		if (object.keyType().equals(ANY.o())
+			&& object.valueType().equals(ANY.o())
+			&& object.sizeRange().equals(
+				IntegerRangeTypeDescriptor.wholeNumbers()))
+		{
+			aStream.append("map");
+			return;
+		}
+		aStream.append('{');
 		object.keyType().printOnAvoidingIndent(
-			aStream,
-			recursionList,
-			(indent + 1));
-		aStream.append(" to ");
+			aStream, recursionList, indent + 1);
+		aStream.append('→');
 		object.valueType().printOnAvoidingIndent(
-			aStream,
-			recursionList,
-			(indent + 1));
+			aStream, recursionList, indent + 1);
+		aStream.append('|');
+		final AvailObject sizeRange = object.sizeRange();
+		if (sizeRange.equals(IntegerRangeTypeDescriptor.wholeNumbers()))
+		{
+			aStream.append('}');
+			return;
+		}
+		sizeRange.lowerBound().printOnAvoidingIndent(
+			aStream, recursionList, indent + 1);
+		if (!sizeRange.lowerBound().equals(sizeRange.upperBound()))
+		{
+			aStream.append("..");
+			sizeRange.upperBound().printOnAvoidingIndent(
+				aStream, recursionList, indent + 1);
+		}
+		aStream.append('}');
 	}
 
 	@Override @AvailMethod
@@ -349,7 +364,7 @@ extends TypeDescriptor
 	 *            The type of all keys of maps of the proposed type.
 	 * @param valueType
 	 *            The type of all values of maps of the proposed type.
-	 * @return
+	 * @return The requested map type.
 	 */
 	public static AvailObject mapTypeForSizesKeyTypeValueType (
 		final @NotNull AvailObject sizeRange,

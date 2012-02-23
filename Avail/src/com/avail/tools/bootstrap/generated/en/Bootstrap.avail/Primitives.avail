@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.01.26 14:40:33.107 -0600
+ * * Last Generated On: 2012.02.22 22:49:58.364 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -100,9 +100,10 @@ Names
 	"_++_",
 	"_+_",
 	"_-_",
+	"_._→variable",
 	"_<_",
+	"_<«_‡,»>",
 	"_=_",
-	"_[]",
 	"_[_.._]",
 	"_[_]",
 	"_[_]:=_",
@@ -132,7 +133,7 @@ Names
 	"_⊆_",
 	"_⨉_^_",
 	"concatenate_",
-	"constructor of_given_",
+	"constructor_<«_‡,»>",
 	"current fiber",
 	"eject_",
 	"enumeration of_",
@@ -143,15 +144,18 @@ Names
 	"integer range from_(inclusive=_)to_(inclusive=_)",
 	"invoke_with_",
 	"ln_",
+	"method_._(«_‡,»)",
 	"milliseconds since the Epoch",
 	"new atom_",
+	"new_[_]",
 	"new_applying_",
 	"new↑_",
-	"pojo_with_",
 	"primitive description of_",
 	"read character",
 	"request termination of_",
 	"semantic restrictions for_given_",
+	"special atoms",
+	"static method_._(«_‡,»)",
 	"swap_and_",
 	"termination requested",
 	"try_catch_",

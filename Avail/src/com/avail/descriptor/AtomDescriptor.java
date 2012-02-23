@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
+import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.serialization.*;
 
@@ -125,20 +126,17 @@ extends Descriptor
 		final @NotNull List<AvailObject> recursionList,
 		final int indent)
 	{
-		// Some atoms print nicer than others.
-		if (object.equals(TrueObject))
-		{
-			aStream.append("true");
-			return;
-		}
-		if (object.equals(FalseObject))
-		{
-			aStream.append("false");
-			return;
-		}
-		// Default printing.
-		aStream.append('$');
 		final String nativeName = object.name().asNativeString();
+		// Some atoms print nicer than others.
+		if (AvailRuntime.isSpecialAtom(object))
+		{
+			aStream.append(nativeName);
+			return;
+		}
+		// Default printing: Print the name of the atom, encased in double
+		// quotes if it contains any nonalphanumeric characters, followed by a
+		// parenthetical aside describing what module originally issued it.
+		aStream.append('$');
 		if (nativeName.matches("\\w+"))
 		{
 			aStream.append(nativeName);
@@ -149,11 +147,16 @@ extends Descriptor
 			aStream.append(nativeName);
 			aStream.append('"');
 		}
-		aStream.append('[');
-		aStream.append(object.hash());
-		aStream.append(']');
+		final AvailObject issuer = object.slot(ObjectSlots.ISSUING_MODULE);
+		if (!issuer.equalsNull())
+		{
+			aStream.append(" (from ");
+			final String issuerName = issuer.name().asNativeString();
+			aStream.append(
+				issuerName.substring(issuerName.lastIndexOf('/') + 1));
+			aStream.append(')');
+		}
 	}
-
 
 	/**
 	 * Create a new atom with the given name.  The name is not globally unique,
@@ -408,6 +411,22 @@ extends Descriptor
 		final @NotNull AvailObject object)
 	{
 		return SerializerOperation.ATOM;
+	}
+
+	@Override
+	Object o_MarshalToJava (
+		final @NotNull AvailObject object,
+		final Class<?> ignoredClassHint)
+	{
+		if (object.equals(TrueObject))
+		{
+			return Boolean.TRUE;
+		}
+		if (object.equals(FalseObject))
+		{
+			return Boolean.FALSE;
+		}
+		return super.o_MarshalToJava(object, ignoredClassHint);
 	}
 
 	/**

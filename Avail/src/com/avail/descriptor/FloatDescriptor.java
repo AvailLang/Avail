@@ -478,6 +478,13 @@ extends AbstractNumberDescriptor
 		return SerializerOperation.FLOAT;
 	}
 
+	@Override
+	Object o_MarshalToJava (
+		final @NotNull AvailObject object,
+		final Class<?> ignoredClassHint)
+	{
+		return Float.valueOf(getFloat(object));
+	}
 
 	/**
 	 * Construct an Avail boxed {@linkplain FloatDescriptor floating point
