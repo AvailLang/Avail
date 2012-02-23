@@ -1337,7 +1337,7 @@ extends ExtendedIntegerDescriptor
 		// Force marshaling to java.math.BigInteger.
 		if (BigInteger.class.equals(classHint))
 		{
-			return new BigInteger(object.toString());
+			return object.asBigInteger();
 		}
 		// Force marshaling to Java's primitive long type.
 		else if (Long.TYPE.equals(classHint))
@@ -1393,7 +1393,7 @@ extends ExtendedIntegerDescriptor
 			}
 			return Long.valueOf(object.extractLong());
 		}
-		return new BigInteger(object.toString());
+		return object.asBigInteger();
 	}
 
 	/**

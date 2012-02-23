@@ -944,9 +944,7 @@ extends TypeDescriptor
 		}
 		else if (javaClass.equals(BigInteger.class))
 		{
-			// TODO: [TLS] Implement a facility creating an Avail integer from
-			// a Java BigInteger.
-			throw new MarshalingException();
+			availObject = IntegerDescriptor.fromBigInteger((BigInteger) object);
 		}
 		else
 		{
