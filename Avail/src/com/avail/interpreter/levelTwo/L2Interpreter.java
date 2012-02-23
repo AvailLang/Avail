@@ -1276,7 +1276,6 @@ implements L2OperationDispatcher
 					offset - 1,
 					stackString));
 			}
-final AvailObject oldChunk = chunk; //TODO[MvG]: REMOVE debugging
 			operation.dispatch(this);
 		}
 		return exitValue;

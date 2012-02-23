@@ -120,17 +120,7 @@ extends ExtendedIntegerDescriptor
 		}
 		else
 		{
-			final byte[] bytes = new byte[integerCount << 2];
-			for (int i = integerCount, b = 0; i > 0; i--)
-			{
-				final int integer = object.slot(RAW_SIGNED_INT_AT_, i);
-				bytes[b++] = (byte) (integer >> 24);
-				bytes[b++] = (byte) (integer >> 16);
-				bytes[b++] = (byte) (integer >> 8);
-				bytes[b++] = (byte) integer;
-			}
-			final BigInteger bigInteger = new BigInteger(bytes);
-			aStream.append(bigInteger);
+			aStream.append(object.asBigInteger());
 		}
 	}
 
@@ -1407,6 +1397,31 @@ extends ExtendedIntegerDescriptor
 	}
 
 	/**
+	 * Answer a {@link BigInteger} that is the numerical equivalent of the given
+	 * object, which is an {@linkplain IntegerDescriptor Avail integer}.
+	 */
+	@Override @AvailMethod
+	public @NotNull BigInteger o_AsBigInteger (
+		final @NotNull AvailObject object)
+	{
+		final int integerCount = object.integerSlotsCount();
+		if (integerCount <= 2)
+		{
+			return BigInteger.valueOf(object.extractLong());
+		}
+		final byte[] bytes = new byte[integerCount << 2];
+		for (int i = integerCount, b = 0; i > 0; i--)
+		{
+			final int integer = object.slot(RAW_SIGNED_INT_AT_, i);
+			bytes[b++] = (byte) (integer >> 24);
+			bytes[b++] = (byte) (integer >> 16);
+			bytes[b++] = (byte) (integer >> 8);
+			bytes[b++] = (byte) integer;
+		}
+		return new BigInteger(bytes);
+	}
+
+	/**
 	 * Create any instances of {@link AvailObject} that need to be present for
 	 * basic Avail operations like arithmetic to work correctly.  In particular,
 	 * generate the array of immutable Avail {@linkplain IntegerDescriptor
@@ -1465,6 +1480,47 @@ extends ExtendedIntegerDescriptor
 		result.rawSignedIntegerAtPut(2, (int) (aLong >> 32L));
 		return result;
 	}
+
+	/**
+	 * Create an {@linkplain IntegerDescriptor Avail integer} that is the
+	 * numerical equivalent of the given Java {@link BigInteger}.
+	 *
+	 * @param bigInteger The BigInteger to convert.
+	 * @return An Avail integer representing the same number as the argument.
+	 */
+	public static @NotNull AvailObject fromBigInteger (
+		final @NotNull BigInteger bigInteger)
+	{
+		final byte[] bytes = bigInteger.toByteArray();
+		if (bytes.length <= 8)
+		{
+			return fromLong(bigInteger.longValue());
+		}
+		final int intCount = (bytes.length + 3) >> 2;
+		final AvailObject result = mutable().create(intCount);
+		// Start with the least significant bits.
+		int byteIndex = bytes.length - 1;
+		for (int destIndex = 1; destIndex < intCount; destIndex++)
+		{
+			final int intValue =
+				(bytes[byteIndex] & 255) +
+				((bytes[byteIndex - 1] & 255) << 8) +
+				((bytes[byteIndex - 2] & 255) << 16) +
+				((bytes[byteIndex - 3] & 255) << 24);
+			result.rawSignedIntegerAtPut(destIndex, intValue);
+			byteIndex -= 4;
+		}
+		// Do the highest order int specially, low to high bytes.
+		final int signByte = ((bytes[byteIndex] >> 7) & 1) * 255;
+		int intValue = bytes[byteIndex] & 255;
+		intValue += (byteIndex >= 1 ? bytes[byteIndex - 1] : signByte) << 8;
+		intValue += (byteIndex >= 2 ? bytes[byteIndex - 2] : signByte) << 8;
+		intValue += (byteIndex >= 3 ? bytes[byteIndex - 3] : signByte) << 8;
+		result.rawSignedIntegerAtPut(intCount, intValue);
+		result.trimExcessInts();
+		return result;
+	}
+
 
 	/**
 	 * Answer an Avail {@linkplain IntegerDescriptor integer} that holds the

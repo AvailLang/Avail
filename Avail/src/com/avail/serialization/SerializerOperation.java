@@ -36,6 +36,7 @@ import static com.avail.serialization.SerializerOperandEncoding.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
+import com.avail.descriptor.TypeDescriptor.Types;
 
 /**
  * A {@code SerializerOpcode} describes how to disassemble and assemble the
@@ -858,66 +859,7 @@ public enum SerializerOperation
 		{
 			final AvailObject atomName = subobjects[0];
 			final AvailObject moduleName = subobjects[1];
-			final AvailObject currentModule = deserializer.currentModule();
-			if (moduleName.equals(currentModule.name()))
-			{
-				// An atom in the current module.  Create it if necessary.
-				// Check if it's already defined somewhere...
-				final AvailObject localMatches;
-				if (currentModule.privateNames().hasKey(atomName))
-				{
-					localMatches = currentModule.privateNames().mapAt(atomName);
-				}
-				else
-				{
-					localMatches = SetDescriptor.empty();
-				}
-
-				if (localMatches.setSize() == 1)
-				{
-					return localMatches.asTuple().tupleAt(1);
-				}
-				else if (localMatches.setSize() == 0)
-				{
-					final AvailObject atom = AtomDescriptor.create(
-						atomName,
-						currentModule);
-					currentModule.atPrivateNameAdd(atomName, atom);
-					return atom;
-				}
-				else
-				{
-					throw new RuntimeException(
-						"Ambiguous local atom name: \""
-						+ atomName.toString() + "\"");
-				}
-			}
-			// An atom in an imported module.
-			final AvailObject module = deserializer.moduleNamed(moduleName);
-			if (module.privateNames().hasKey(atomName))
-			{
-				final AvailObject atoms = module.privateNames().mapAt(atomName);
-				if (atoms.setSize() == 1)
-				{
-					return atoms.asTuple().tupleAt(1);
-				}
-				if (atoms.setSize() > 1)
-				{
-					throw new RuntimeException(
-						"Ambiguous imported atom \""
-						+ atomName.toString()
-						+ "\" in module \""
-						+ moduleName.toString()
-						+ "\"");
-				}
-			}
-			throw new RuntimeException(
-				"No such atom \""
-				+ atomName.toString()
-				+ "\" in module \""
-				+ moduleName.toString()
-				+ "\"");
-
+			return lookupAtom(atomName, moduleName, deserializer);
 		}
 	},
 
@@ -1159,8 +1101,43 @@ public enum SerializerOperation
 				upperBound,
 				upperInclusive);
 		}
-	};
+	},
 
+	/**
+	 * A reference to a {@linkplain MethodDescriptor method} that should be
+	 * looked up by name during reconstruction.
+	 */
+	METHOD (40,
+		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("method's atom's name"),
+		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("method's atom's module name"))
+	{
+		@Override
+		AvailObject[] decompose (final AvailObject object)
+		{
+			assert object.isInstanceOf(Types.METHOD.o());
+			final AvailObject methodNameAtom = object.name();
+			final AvailObject module = methodNameAtom.issuingModule();
+			if (module.equalsNull())
+			{
+				throw new RuntimeException("Atom has no issuing module");
+			}
+			return array(methodNameAtom.name(), module.name());
+		}
+
+		@Override
+		@NotNull AvailObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			final AvailObject atomName = subobjects[0];
+			final AvailObject moduleName = subobjects[1];
+			final AvailObject atom = lookupAtom(
+				atomName,
+				moduleName,
+				deserializer);
+			return deserializer.runtime().methodFor(atom);
+		}
+	};
 
 	/**
 	 * The operands that this operation expects to see encoded after the tag.
@@ -1245,6 +1222,78 @@ public enum SerializerOperation
 		{
 			operands[i].write(decomposed[i], serializer);
 		}
+	}
+
+	/**
+	 * @param atomName
+	 * @param moduleName
+	 * @param deserializer
+	 * @return
+	 */
+	AvailObject lookupAtom (
+		final AvailObject atomName,
+		final AvailObject moduleName,
+		final Deserializer deserializer)
+	{
+		final AvailObject currentModule = deserializer.currentModule();
+		if (moduleName.equals(currentModule.name()))
+		{
+			// An atom in the current module.  Create it if necessary.
+			// Check if it's already defined somewhere...
+			final AvailObject localMatches;
+			if (currentModule.privateNames().hasKey(atomName))
+			{
+				localMatches = currentModule.privateNames().mapAt(atomName);
+			}
+			else
+			{
+				localMatches = SetDescriptor.empty();
+			}
+
+			if (localMatches.setSize() == 1)
+			{
+				return localMatches.asTuple().tupleAt(1);
+			}
+			else if (localMatches.setSize() == 0)
+			{
+				final AvailObject atom = AtomDescriptor.create(
+					atomName,
+					currentModule);
+				currentModule.atPrivateNameAdd(atomName, atom);
+				return atom;
+			}
+			else
+			{
+				throw new RuntimeException(
+					"Ambiguous local atom name: \""
+					+ atomName.toString() + "\"");
+			}
+		}
+		// An atom in an imported module.
+		final AvailObject module = deserializer.moduleNamed(moduleName);
+		if (module.privateNames().hasKey(atomName))
+		{
+			final AvailObject atoms = module.privateNames().mapAt(atomName);
+			if (atoms.setSize() == 1)
+			{
+				return atoms.asTuple().tupleAt(1);
+			}
+			if (atoms.setSize() > 1)
+			{
+				throw new RuntimeException(
+					"Ambiguous imported atom \""
+					+ atomName.toString()
+					+ "\" in module \""
+					+ moduleName.toString()
+					+ "\"");
+			}
+		}
+		throw new RuntimeException(
+			"No such atom \""
+			+ atomName.toString()
+			+ "\" in module \""
+			+ moduleName.toString()
+			+ "\"");
 	}
 
 	/**

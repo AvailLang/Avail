@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import java.io.*;
+import java.math.BigInteger;
 import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
@@ -5634,7 +5635,7 @@ implements Iterable<AvailObject>
 	 * @param canDestroy
 	 * @return
 	 */
-	public AvailObject mapBinAtHashPutLevelCanDestroy (
+	public @NotNull AvailObject mapBinAtHashPutLevelCanDestroy (
 		final @NotNull AvailObject key,
 		final int keyHash,
 		final @NotNull AvailObject value,
@@ -5672,7 +5673,7 @@ implements Iterable<AvailObject>
 	/**
 	 * @return
 	 */
-	AvailObject mapBinKeyUnionKind ()
+	@NotNull AvailObject mapBinKeyUnionKind ()
 	{
 		return descriptor.o_MapBinKeyUnionKind(this);
 	}
@@ -5680,7 +5681,7 @@ implements Iterable<AvailObject>
 	/**
 	 * @return
 	 */
-	AvailObject mapBinValueUnionKind ()
+	@NotNull AvailObject mapBinValueUnionKind ()
 	{
 		return descriptor.o_MapBinValueUnionKind(this);
 	}
@@ -5703,7 +5704,7 @@ implements Iterable<AvailObject>
 	 * @return The value under that key in the map, or the null object if not
 	 *         found.
 	 */
-	AvailObject mapBinAtHash (
+	@NotNull AvailObject mapBinAtHash (
 		final @NotNull AvailObject key,
 		final int keyHash)
 	{
@@ -5729,7 +5730,7 @@ implements Iterable<AvailObject>
 	/**
 	 * @return
 	 */
-	public AvailObject issuingModule ()
+	public @NotNull AvailObject issuingModule ()
 	{
 		return descriptor.o_IssuingModule(this);
 	}
@@ -5897,5 +5898,13 @@ implements Iterable<AvailObject>
 	public Object javaObject ()
 	{
 		return descriptor.o_JavaObject(this);
+	}
+
+	/**
+	 * @return
+	 */
+	public @NotNull BigInteger asBigInteger ()
+	{
+		return descriptor.o_AsBigInteger(this);
 	}
 }

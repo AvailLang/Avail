@@ -23,7 +23,9 @@
  * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
  * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * SUBSTITUTE GOODS OR SERVICES;
+ LOSS OF USE, DATA, OR PROFITS;
+ OR BUSINESS
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
@@ -32,20 +34,93 @@
 
 package com.avail.interpreter.levelTwo;
 
+import com.avail.descriptor.*;
+import com.avail.interpreter.Primitive;
+import com.avail.interpreter.levelTwo.instruction.L2Instruction;
+import com.avail.interpreter.levelTwo.register.*;
+
+
+/**
+ * An {@link L2OperandTypeDispatcher} acts as a visitor for the operands of
+ * {@linkplain L2Instruction level two instructions}.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 interface L2OperandTypeDispatcher
 {
+	/**
+	 * An integer into the {@link L2ChunkDescriptor level two chunk}'s literals,
+	 * specifying any {@linkplain AvailObject}.
+	 */
 	void doConstant();
+
+	/**
+	 * An operand that encodes an unsigned 32-bit integer... as itself.
+	 */
 	void doImmediate();
+
+	/**
+	 * An integer encoding a position in the current {@linkplain
+	 * L2ChunkDescriptor level two chunk}'s instructions.
+	 */
 	void doPC();
+
+	/**
+	 * The {@linkplain Primitive#primitiveNumber primitive number} of a {@link
+	 * Primitive} that can be invoked.
+	 */
 	void doPrimitive();
+
+	/**
+	 * An index into the {@link L2ChunkDescriptor level two chunk}'s literals,
+	 * specifying a {@link MethodDescriptor method} that can be invoked
+	 * polymorphically.
+	 */
 	void doSelector();
+
+	/**
+	 * An {@linkplain L2ObjectRegister} to be read.
+	 */
 	void doReadPointer();
+
+	/**
+	 * An {@linkplain L2ObjectRegister} to be written.
+	 */
 	void doWritePointer();
+
+	/**
+	 * An {@linkplain L2ObjectRegister} to be both read and written.
+	 */
 	void doReadWritePointer();
+
+	/**
+	 * An {@linkplain L2IntegerRegister} to be read.
+	 */
 	void doReadInt();
+
+	/**
+	 * An {@linkplain L2IntegerRegister} to be written.
+	 */
 	void doWriteInt();
+
+	/**
+	 * An {@linkplain L2IntegerRegister} to be both read and written.
+	 */
 	void doReadWriteInt();
+
+	/**
+	 * A vector of {@linkplain L2ObjectRegister object registers} to be read.
+	 */
 	void doReadVector();
+
+	/**
+	 * A vector of {@linkplain L2ObjectRegister object registers} to be written.
+	 */
 	void doWriteVector();
+
+	/**
+	 * A vector of {@linkplain L2ObjectRegister object registers} to be both
+	 * read and written.
+	 */
 	void doReadWriteVector();
 }

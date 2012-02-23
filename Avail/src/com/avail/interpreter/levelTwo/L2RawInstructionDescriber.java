@@ -32,23 +32,47 @@
 
 package com.avail.interpreter.levelTwo;
 
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.*;
 
+/**
+ * An {@code L2RawInstructionDescriber} can {@linkplain #describe(
+ * L2RawInstruction, AvailObject, StringBuilder) describe} an {@link
+ * L2RawInstruction}, properly interpreting the instruction's {@linkplain
+ * L2Operation operation} and {@linkplain L2OperandType operands}.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public class L2RawInstructionDescriber
 {
-	L2OperandDescriber operandDescriber = new L2OperandDescriber();
+	/**
+	 *
+	 */
+	final L2OperandDescriber operandDescriber = new L2OperandDescriber();
 
-	public void describe(
+	/**
+	 * Describe an {@link L2RawInstruction}, including information about its
+	 * {@linkplain L2Operation operation} and {@linkplain L2OperandType
+	 * operands}.
+	 *
+	 * @param rawInstruction
+	 *            The {@code L2RawInstruction} to describe.
+	 * @param chunk
+	 *            The {@link L2ChunkDescriptor chunk} in which the instruction
+	 *            occurs.
+	 * @param stream
+	 *            Where to describe the instruction.
+	 */
+	public void describe (
 			final L2RawInstruction rawInstruction,
 			final AvailObject chunk,
 			final StringBuilder stream)
 	{
-		L2Operation operation = rawInstruction.operation();
-		String operationName = operation.name();
+		final L2Operation operation = rawInstruction.operation();
+		final String operationName = operation.name();
 		stream.append(operationName);
 		stream.append(" (");
-		L2OperandType[] operandTypes = operation.operandTypes();
-		int[] operands = rawInstruction.operands();
+		final L2OperandType[] operandTypes = operation.operandTypes();
+		final int[] operands = rawInstruction.operands();
 		for (int i = 0; i < operands.length; i++)
 		{
 			if (i > 0)

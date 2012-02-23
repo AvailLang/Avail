@@ -41,8 +41,8 @@ import com.avail.interpreter.levelTwo.register.*;
 
 /**
  * {@code L2CallInstruction} attempts to execute a specific {@linkplain
- * MethodImplementationDescriptor method} by matching the actual {@linkplain
- * AvailObject arguments} against an {@linkplain MethodDescriptor
+ * MethodImplementationDescriptor method implementation} by matching the actual
+ * {@linkplain AvailObject arguments} against a {@linkplain MethodDescriptor
  * method}.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
@@ -52,9 +52,9 @@ public class L2CallInstruction
 extends L2Instruction
 {
 	/**
-	 * The {@linkplain MethodDescriptor method} from
-	 * which a {@linkplain MethodImplementationDescriptor method} should be selected
-	 * and called based on the exact {@linkplain #arguments arguments}.
+	 * The {@linkplain MethodDescriptor method} from which an {@linkplain
+	 * MethodImplementationDescriptor implementation} should be selected and
+	 * called, based on the exact {@linkplain #arguments arguments}.
 	 */
 	protected final @NotNull AvailObject method;
 
@@ -87,7 +87,7 @@ extends L2Instruction
 	@Override
 	public @NotNull List<L2Register> sourceRegisters ()
 	{
-		List<L2Register> result = new ArrayList<L2Register>(
+		final List<L2Register> result = new ArrayList<L2Register>(
 			arguments.registers().size());
 		result.addAll(arguments.registers());
 		return result;

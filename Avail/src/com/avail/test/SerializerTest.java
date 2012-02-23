@@ -38,7 +38,9 @@ import static java.lang.Math.*;
 import java.io.*;
 import java.util.*;
 import org.junit.*;
+import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
+import com.avail.compiler.*;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.L1InstructionWriter;
@@ -72,6 +74,12 @@ public final class SerializerTest
 	}
 
 	/**
+	 * The {@link AvailRuntime} for use by the {@link #serializer} or the
+	 * {@link #deserializer}.
+	 */
+	AvailRuntime runtime;
+
+	/**
 	 * The stream onto which the serializer writes its bytes.
 	 */
 	ByteArrayOutputStream out;
@@ -92,10 +100,32 @@ public final class SerializerTest
 	Deserializer deserializer;
 
 	/**
+	 * Create a new instance of {@link AvailRuntime} for testing.
+	 */
+	void createRuntime ()
+	{
+		final ModuleRoots roots = new ModuleRoots(
+			"avail=" + new File("avail").getAbsolutePath());
+		final RenamesFileParser parser =
+			new RenamesFileParser(new StringReader(""), roots);
+		ModuleNameResolver resolver;
+		try
+		{
+			resolver = parser.parse();
+		}
+		catch (final RenamesFileParserException e)
+		{
+			throw new RuntimeException(e);
+		}
+		runtime = new AvailRuntime(resolver);
+	}
+
+	/**
 	 * Get ready to write objects to the {@link #serializer}.
 	 */
 	private void prepareToWrite ()
 	{
+		createRuntime();
 		out = new ByteArrayOutputStream(1000);
 		serializer = new Serializer(out);
 		deserializer = null;
@@ -118,8 +148,9 @@ public final class SerializerTest
 //			}
 //		}
 //		System.out.println();
+		createRuntime();
 		in = new ByteArrayInputStream(bytes);
-		deserializer = new Deserializer(in);
+		deserializer = new Deserializer(in, runtime);
 		serializer = null;
 	}
 
@@ -345,7 +376,7 @@ public final class SerializerTest
 		prepareToWrite();
 		serializer.serialize(tuple);
 		prepareToReadBack();
-		deserializer.addImportedModule(inputModule);
+		runtime.addModule(inputModule);
 		deserializer.currentModule(currentModule);
 		final AvailObject newObject = deserializer.deserialize();
 		assertTrue(

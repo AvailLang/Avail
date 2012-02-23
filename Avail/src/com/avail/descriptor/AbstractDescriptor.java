@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
+import java.math.BigInteger;
 import java.util.*;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
@@ -5236,4 +5237,11 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract Object o_JavaObject (final @NotNull AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract @NotNull BigInteger o_AsBigInteger (
+		final @NotNull AvailObject object);
 }

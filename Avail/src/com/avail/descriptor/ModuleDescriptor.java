@@ -110,10 +110,10 @@ extends Descriptor
 		VISIBLE_NAMES,
 
 		/**
-		 * A {@linkplain MapDescriptor map} from {@linkplain AtomDescriptor true
-		 * names} to {@linkplain ImplementationDescriptor signatures} which implement
-		 * (or forward or declare abstract or declare as a macro} that true
-		 * name.
+		 * A {@linkplain MapDescriptor map} from {@linkplain AtomDescriptor
+		 * atoms} to {@linkplain ImplementationDescriptor signatures} which
+		 * implement (or forward or declare abstract or declare as a macro} that
+		 * true name.
 		 */
 		METHODS,
 

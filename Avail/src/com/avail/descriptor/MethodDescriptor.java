@@ -40,6 +40,7 @@ import com.avail.annotations.*;
 import com.avail.compiler.AvailRejectedParseException;
 import com.avail.interpreter.*;
 import com.avail.interpreter.levelOne.*;
+import com.avail.serialization.SerializerOperation;
 import com.avail.utility.*;
 
 /**
@@ -1052,6 +1053,12 @@ extends Descriptor
 		return true;
 	}
 
+	@Override @AvailMethod
+	SerializerOperation o_SerializerOperation (
+		final @NotNull AvailObject object)
+	{
+		return SerializerOperation.METHOD;
+	}
 
 	/**
 	 * Create the testing tree for computing which implementation to invoke when

@@ -42,9 +42,10 @@ import com.avail.interpreter.levelTwo.register.*;
 
 /**
  * {@code L2CallInstruction} attempts to execute a specific {@linkplain
- * MethodImplementationDescriptor method} by matching the actual {@linkplain
- * AvailObject arguments} against an {@linkplain MethodDescriptor
- * method}.
+ * MethodImplementationDescriptor method implementation} by matching the actual
+ * {@linkplain AvailObject arguments} against a {@linkplain MethodDescriptor
+ * method}.  The method will be a primitive, but the primitive has already
+ * failed at this point, so the non-primitive code should be invoked directly.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
@@ -63,9 +64,9 @@ extends L2CallInstruction
 	 * Construct a new {@link L2CallAfterFailedPrimitiveInstruction}.
 	 *
 	 * @param method
-	 *        The {@linkplain MethodDescriptor method}
-	 *        from which a {@linkplain MethodImplementationDescriptor method} should
-	 *        be selected and called based on the exact {@linkplain #arguments
+	 *        The {@linkplain MethodDescriptor method} from which a {@linkplain
+	 *        MethodImplementationDescriptor method implementation} should be
+	 *        selected and called based on the exact {@linkplain #arguments
 	 *        arguments}.
 	 * @param arguments
 	 *        The {@linkplain AvailObject arguments} of the {@linkplain

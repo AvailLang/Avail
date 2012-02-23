@@ -35,7 +35,6 @@ package com.avail.serialization;
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
-import com.avail.descriptor.TypeDescriptor.Types;
 import java.io.*;
 import java.util.*;
 
@@ -60,15 +59,28 @@ public class Deserializer
 	protected AvailObject producedObject;
 
 	/**
-	 * All visible {@linkplain ModuleDescriptor modules}.  These can be used to
-	 * locate or reconstruct serialized {@linkplain AtomDescriptor atoms}.
+	 * The {@link AvailRuntime} whose scope is used to decode references to
+	 * constructs that need to be looked up rather than re-instantiated.
 	 */
-	private AvailObject importedModules = MapDescriptor.empty();
+	private final AvailRuntime runtime;
 
 	/**
 	 * The current {@linkplain ModuleDescriptor module}.
 	 */
 	private AvailObject currentModule;
+
+	/**
+	 * Answer the deserializer's instance of {@link AvailRuntime} used for
+	 * linking deserialized objects to existing important objects like
+	 * {@linkplain MethodDescriptor methods} and {@linkplain AtomDescriptor
+	 * atoms}.
+	 *
+	 * @return The {@code AvailRuntime}.
+	 */
+	AvailRuntime runtime ()
+	{
+		return runtime;
+	}
 
 	/**
 	 * Look up the {@linkplain AvailRuntime#specialObject(int) special object}.
@@ -104,40 +116,42 @@ public class Deserializer
 		assembledObjects.add(newObject);
 	}
 
-	public void addImportedModule (
-		final @NotNull AvailObject module)
-	{
-		assert module.isInstanceOf(Types.MODULE.o());
-		final AvailObject name = module.name();
-		assert !importedModules.hasKey(name)
-			: "Duplicate module with same name: " + name.toString();
-		importedModules = importedModules.mapAtPuttingCanDestroy(
-			module.name(),
-			module,
-			true);
-	}
-
-	public void currentModule (
-		final @NotNull AvailObject module)
-	{
-		assert module.isInstanceOf(Types.MODULE.o());
-		currentModule = module;
-	}
-
+	/**
+	 * Look up the module of the receiver's {@link AvailRuntime} which has the
+	 * given name.
+	 *
+	 * @param moduleName The {@link StringDescriptor name} of the module.
+	 * @return The module with the specified name.
+	 */
 	public @NotNull AvailObject moduleNamed (
 		final @NotNull AvailObject moduleName)
 	{
 		assert moduleName.isString();
-		if (!importedModules.hasKey(moduleName))
+		if (!runtime.includesModuleNamed(moduleName))
 		{
 			throw new RuntimeException(
-				"Cannot reconstruct atom from absent module \""
-				+ moduleName.toString() + "\"");
+				"Cannot locate module named \"" + moduleName.toString() + "\"");
 		}
-		final AvailObject module = importedModules.mapAt(moduleName);
-		return module;
+		return runtime.moduleAt(moduleName);
 	}
 
+	/**
+	 * Set which module is currently being defined.  This should not be a module
+	 * of the current {@link #runtime}.
+	 *
+	 * @param module The active {@link ModuleDescriptor module}.
+	 */
+	public void currentModule (
+		final @NotNull AvailObject module)
+	{
+		currentModule = module;
+	}
+
+	/**
+	 * Return the {@link ModuleDescriptor module} currently being defined.
+	 *
+	 * @return The current module.
+	 */
 	public @NotNull AvailObject currentModule ()
 	{
 		return currentModule;
@@ -180,12 +194,18 @@ public class Deserializer
 	/**
 	 * Construct a new {@link Deserializer}.
 	 *
-	 * @param input An {@link InputStream} from which to reconstruct objects.
+	 * @param input
+	 *            An {@link InputStream} from which to reconstruct objects.
+	 * @param runtime
+	 *            The {@link AvailRuntime} from which to locate well-known
+	 *            objects during deserialization.
 	 */
 	public Deserializer (
-		final @NotNull InputStream input)
+		final @NotNull InputStream input,
+		final @NotNull AvailRuntime runtime)
 	{
 		this.input = input;
+		this.runtime = runtime;
 	}
 
 	/**

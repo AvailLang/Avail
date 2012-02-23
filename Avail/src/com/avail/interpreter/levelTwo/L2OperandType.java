@@ -102,9 +102,10 @@ public enum L2OperandType
 	/**
 	 * Like a {@link #CONSTANT}, the operand represents the actual object at the
 	 * specified index of the chunk's list of literals, but more specifically
-	 * that object is an {@linkplain MethodDescriptor method} holding a hierarchy of multi-methods.  Presumably a dispatch will
-	 * take place through this method, or at least a dependency is
-	 * established with respect to which multi-methods are present.
+	 * that object is an {@linkplain MethodDescriptor method} holding a
+	 * hierarchy of multi-methods.  Presumably a dispatch will take place
+	 * through this method, or at least a dependency is established with respect
+	 * to which multi-methods are present.
 	 */
 	SELECTOR(false, false)
 	{

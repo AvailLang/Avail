@@ -390,6 +390,7 @@ extends PojoTypeDescriptor
 			childless,
 			new Comparator<AvailObject>()
 			{
+				@Override
 				public int compare (
 					final @NotNull AvailObject o1,
 					final @NotNull AvailObject o2)

@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.error;
+import java.math.BigInteger;
 import java.util.*;
 import com.avail.annotations.*;
 import com.avail.compiler.*;
@@ -4392,6 +4393,7 @@ extends AbstractDescriptor
 	 * @param aFusedPojoType
 	 * @return
 	 */
+	@Override
 	@NotNull AvailObject o_TypeIntersectionOfPojoFusedType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aFusedPojoType)
@@ -4404,6 +4406,7 @@ extends AbstractDescriptor
 	 * @param anUnfusedPojoType
 	 * @return
 	 */
+	@Override
 	@NotNull AvailObject o_TypeIntersectionOfPojoUnfusedType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anUnfusedPojoType)
@@ -4417,6 +4420,7 @@ extends AbstractDescriptor
 	 * @param aFusedPojoType
 	 * @return
 	 */
+	@Override
 	@NotNull AvailObject o_TypeUnionOfPojoFusedType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aFusedPojoType)
@@ -4430,6 +4434,7 @@ extends AbstractDescriptor
 	 * @param anUnfusedPojoType
 	 * @return
 	 */
+	@Override
 	@NotNull AvailObject o_TypeUnionOfPojoUnfusedType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anUnfusedPojoType)
@@ -4472,6 +4477,7 @@ extends AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	boolean o_IsSignedByte (final @NotNull AvailObject object)
 	{
 		throw unsupportedOperationException();
@@ -4481,6 +4487,7 @@ extends AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	boolean o_IsSignedShort (final @NotNull AvailObject object)
 	{
 		throw unsupportedOperationException();
@@ -4490,6 +4497,7 @@ extends AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	byte o_ExtractSignedByte (final @NotNull AvailObject object)
 	{
 		throw unsupportedOperationException();
@@ -4499,6 +4507,8 @@ extends AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
+
+	@Override
 	short o_ExtractSignedShort (final @NotNull AvailObject object)
 	{
 		throw unsupportedOperationException();
@@ -4509,6 +4519,7 @@ extends AbstractDescriptor
 	 * @param aRawPojo
 	 * @return
 	 */
+	@Override
 	boolean o_EqualsEqualityRawPojo (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aRawPojo)
@@ -4520,7 +4531,15 @@ extends AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
+	@Override
 	Object o_JavaObject (final @NotNull AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	@NotNull BigInteger o_AsBigInteger (
+		final @NotNull AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
