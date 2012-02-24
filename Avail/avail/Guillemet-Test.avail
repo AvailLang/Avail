@@ -1,5 +1,5 @@
 /**
- * Chevron-Test.avail
+ * Guillemet-Test.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Chevron-Test"
+System Module "Guillemet-Test"
 Extends
 Uses
 	"Kernel"
@@ -67,7 +67,7 @@ Assert !0! = <<0>,<>>;
 Assert ! = <<>>;
 
 
-/* Test nullable content (chevron group occurrence with nothing inside). */
+/* Test nullable content (guillemet group occurrence with nothing inside). */
 Method "««cat»«dog»»" is [
 		t : tuple of tuple [2..2] of tuple [0..1] of tuple [0..0] of any |
 	t collect [y : tuple [2..2] of tuple |

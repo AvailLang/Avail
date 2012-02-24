@@ -1250,7 +1250,7 @@ public abstract class AbstractAvailCompiler
 	 * @param position
 	 *        Debugging information about where the parse is happening.
 	 */
-	void attempt (
+	void eventuallyDo (
 		final @NotNull Continuation0 continuation,
 		final @NotNull String description,
 		final int position)
@@ -1265,7 +1265,7 @@ public abstract class AbstractAvailCompiler
 	/**
 	 * Wrap the {@linkplain Continuation1 continuation of one argument} inside a
 	 * {@linkplain Continuation0 continuation of zero arguments} and record that
-	 * as per {@linkplain #attempt(Continuation0, String, int)}.
+	 * as per {@linkplain #eventuallyDo(Continuation0, String, int)}.
 	 *
 	 * @param <ArgType>
 	 *        The type of argument to the given continuation.
@@ -1282,7 +1282,7 @@ public abstract class AbstractAvailCompiler
 		final @NotNull Con<ArgType> continuation,
 		final @NotNull ArgType argument)
 	{
-		attempt(
+		eventuallyDo(
 			new Continuation0()
 			{
 				@Override
@@ -2144,7 +2144,7 @@ public abstract class AbstractAvailCompiler
 		if (!fragmentCache.hasStartedParsingAt(start))
 		{
 			fragmentCache.indicateParsingHasStartedAt(start);
-			attempt(
+			eventuallyDo(
 				new Continuation0()
 				{
 					@Override
@@ -2299,4 +2299,27 @@ public abstract class AbstractAvailCompiler
 	abstract void parseExpressionUncachedThen (
 		final @NotNull ParserState start,
 		final @NotNull Con<AvailObject> continuation);
+
+	/**
+	 * Parse an occurrence of a raw keyword or operator token, then invoke the
+	 * continuation with it.
+	 *
+	 * @param start
+	 *            Where to start parsing.
+	 * @param continuation
+	 *            What to do after parsing the raw token.  This continuation
+	 *            should expect a token, not a parse node.
+	 */
+	protected void parseRawTokenThen (final ParserState start, final Con<AvailObject> continuation)
+	{
+		final AvailObject token = start.peekToken();
+		if (token.tokenType() == KEYWORD || token.tokenType() == OPERATOR)
+		{
+			attempt(start.afterToken(), continuation, token);
+		}
+		else
+		{
+			start.expected("raw token");
+		}
+	}
 }

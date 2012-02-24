@@ -35,7 +35,7 @@ package com.avail.descriptor;
 import static com.avail.descriptor.TypeDescriptor.Types.MESSAGE_BUNDLE_TREE;
 import java.util.*;
 import com.avail.annotations.*;
-import com.avail.compiler.MessageSplitter;
+import com.avail.compiler.*;
 
 
 /**
@@ -78,7 +78,7 @@ extends Descriptor
 		 * The subscript into the {@linkplain TupleDescriptor tuple} of encoded
 		 * parsing instructions.  These instructions are produced by the {@link
 		 * MessageSplitter} as a way to interpret the tokens, underscores, and
-		 * chevron expressions of a method name.  There may be multiple
+		 * guillemet expressions of a method name.  There may be multiple
 		 * potential method invocations being parsed <em>together</em> at this
 		 * position in the message bundle tree, but the parsing instructions
 		 * that have been encountered so far along this history must be the same
@@ -569,8 +569,9 @@ extends Descriptor
 			else
 			{
 				final int instruction = instructions.tupleIntAt(pc);
-				final int keywordIndex =
-					MessageSplitter.keywordIndexFromInstruction(instruction);
+				final ParsingOperation op =
+					ParsingOperation.decode(instruction);
+				final int keywordIndex = op.keywordIndex(instruction);
 				if (keywordIndex != 0)
 				{
 					// It's a parseKeyword instruction.
@@ -596,9 +597,9 @@ extends Descriptor
 					final AvailObject instructionObject =
 						IntegerDescriptor.fromInt(instruction);
 					final List<Integer> nextPcs =
-						MessageSplitter.successorPcs(instruction, pc);
+						op.successorPcs(instruction, pc);
 					final int checkArgumentIndex =
-						MessageSplitter.checkArgumentIndex(instruction);
+						op.checkArgumentIndex(instruction);
 					if (checkArgumentIndex > 0)
 					{
 						// It's a checkArgument instruction.

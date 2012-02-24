@@ -49,10 +49,11 @@ import com.avail.annotations.*;
  * Instead, the macro is expected to throw a suitable exception if it is being
  * used in an incorrect or unsupported manner.</p>
  *
- * <p>As with methods, repeated arguments of macros are indicated with chevrons
+ * <p>As with methods, repeated arguments of macros are indicated with
+ * guillemets
  * («») and the double-dagger (‡).  The type of such an argument for a method is
  * a tuple of tuples whose elements correspond to the underscores (_) and
- * chevron groups contained therein.  When exactly one underscore or chevron
+ * guillemet groups contained therein.  When exactly one underscore or guillemet
  * group occurs within a group, then a simple tuple of values is expected
  * (rather than a tuple of tuples).  Macros expect tuples in a similar way, but
  * the bottom-level pieces being passed are parse nodes rather than values.

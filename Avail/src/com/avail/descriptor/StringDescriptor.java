@@ -83,35 +83,35 @@ extends TupleDescriptor
 	}
 
 	/**
-	 * A tuple containing just the open-chevron character.
+	 * A tuple containing just the open-guillemet character.
 	 */
-	static AvailObject openChevron;
+	static AvailObject openGuillemet;
 
 	/**
 	 * Return an Avail {@linkplain StringDescriptor string} of size one,
-	 * consisting of just the open-chevron character ("«").
+	 * consisting of just the open-guillemet character ("«").
 	 *
-	 * @return A tuple containing just the open-chevron character.
+	 * @return A tuple containing just the open-guillemet character.
 	 */
-	public static AvailObject openChevron ()
+	public static AvailObject openGuillemet ()
 	{
-		return openChevron;
+		return openGuillemet;
 	}
 
 	/**
-	 * A tuple containing just the close-chevron character.
+	 * A tuple containing just the close-guillemet character.
 	 */
-	static AvailObject closeChevron;
+	static AvailObject closeGuillemet;
 
 	/**
 	 * Return an Avail {@linkplain StringDescriptor string} of size one,
-	 * consisting of just the close-chevron character ("»").
+	 * consisting of just the close-guillemet character ("»").
 	 *
-	 * @return A tuple containing just the close-chevron character.
+	 * @return A tuple containing just the close-guillemet character.
 	 */
-	public static AvailObject closeChevron ()
+	public static AvailObject closeGuillemet ()
 	{
-		return closeChevron;
+		return closeGuillemet;
 	}
 
 	/**
@@ -169,8 +169,8 @@ extends TupleDescriptor
 	static void createWellKnownObjects ()
 	{
 		underscore = StringDescriptor.from("_").makeImmutable();
-		openChevron = StringDescriptor.from("«").makeImmutable();
-		closeChevron = StringDescriptor.from("»").makeImmutable();
+		openGuillemet = StringDescriptor.from("«").makeImmutable();
+		closeGuillemet = StringDescriptor.from("»").makeImmutable();
 		doubleDagger = StringDescriptor.from("‡").makeImmutable();
 		backQuote = StringDescriptor.from("`").makeImmutable();
 		ellipsis = StringDescriptor.from("…").makeImmutable();
@@ -183,8 +183,8 @@ extends TupleDescriptor
 	static void clearWellKnownObjects ()
 	{
 		underscore = null;
-		openChevron = null;
-		closeChevron = null;
+		openGuillemet = null;
+		closeGuillemet = null;
 		doubleDagger = null;
 		backQuote = null;
 		ellipsis = null;

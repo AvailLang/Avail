@@ -39,11 +39,11 @@ Body
 
 
 /*
- * Method signatures should be able to use chevrons «» (Alt-0171, Alt-0187)
+ * Method signatures should be able to use guillemets «» (Alt-0171, Alt-0187)
  * and optionally double-dagger ‡ (Alt-0135) to specify repeated sections.  The
- * sections between the open chevron and the double dagger can be repeated,
+ * sections between the open guillemet and the double dagger can be repeated,
  * separated by occurrences of the section between the double dagger and the
- * close chevron.  Examples should be handy in fleshing out this idea.
+ * close guillemet.  Examples should be handy in fleshing out this idea.
  */
 
 

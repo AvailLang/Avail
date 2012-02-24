@@ -50,64 +50,64 @@ extends AbstractAvailTest
 	}
 
 	/**
-	 * Test: Compile the Chevron-Test module.
+	 * Test: Compile the Guillemet-Test module.
 	 *
 	 * @throws Exception
 	 *         If an {@linkplain Exception exception} occurs.
 	 */
 	@Test
-	public void chevronTest () throws Exception
+	public void guillemetTest () throws Exception
 	{
 		final long startTime = System.currentTimeMillis();
-		compile(new ModuleName("/avail/Chevron-Test"));
+		compile(new ModuleName("/avail/Guillemet-Test"));
 		System.out.flush();
 		System.err.printf(
 			"%ntime elapsed = %dms", System.currentTimeMillis() - startTime);
 	}
 
 //	@Test
-//	public void chevronTest2 () throws Exception
+//	public void guillemetTest2 () throws Exception
 //	{
-//		chevronTest();
+//		guillemetTest();
 //	}
 //	@Test
-//	public void chevronTest3 () throws Exception
+//	public void guillemetTest3 () throws Exception
 //	{
-//		chevronTest();
+//		guillemetTest();
 //	}
 //	@Test
-//	public void chevronTest4 () throws Exception
+//	public void guillemetTest4 () throws Exception
 //	{
-//		chevronTest();
+//		guillemetTest();
 //	}
 //	@Test
-//	public void chevronTest5 () throws Exception
+//	public void guillemetTest5 () throws Exception
 //	{
-//		chevronTest();
+//		guillemetTest();
 //	}
 //	@Test
-//	public void chevronTest6 () throws Exception
+//	public void guillemetTest6 () throws Exception
 //	{
-//		chevronTest();
+//		guillemetTest();
 //	}
 //	@Test
-//	public void chevronTest7 () throws Exception
+//	public void guillemetTest7 () throws Exception
 //	{
-//		chevronTest();
+//		guillemetTest();
 //	}
 //	@Test
-//	public void chevronTest8 () throws Exception
+//	public void guillemetTest8 () throws Exception
 //	{
-//		chevronTest();
+//		guillemetTest();
 //	}
 //	@Test
-//	public void chevronTest9 () throws Exception
+//	public void guillemetTest9 () throws Exception
 //	{
-//		chevronTest();
+//		guillemetTest();
 //	}
 //	@Test
-//	public void chevronTest10 () throws Exception
+//	public void guillemetTest10 () throws Exception
 //	{
-//		chevronTest();
+//		guillemetTest();
 //	}
 }

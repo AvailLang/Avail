@@ -418,7 +418,7 @@ extends AbstractAvailCompiler
 			return;
 		}
 		final ParserState afterColon = atColon.afterToken();
-		attempt(
+		eventuallyDo(
 			new Continuation0()
 			{
 				@Override
@@ -1300,7 +1300,7 @@ extends AbstractAvailCompiler
 	 *            The list of arguments parsed so far. I do not modify it. This
 	 *            is a stack of expressions that the parsing instructions will
 	 *            assemble into a list that correlates with the top-level
-	 *            non-backquoted underscores and chevron groups in the message
+	 *            non-backquoted underscores and guillemet groups in the message
 	 *            name.
 	 * @param continuation
 	 *            What to do with a fully parsed send node.
@@ -1360,7 +1360,7 @@ extends AbstractAvailCompiler
 				if (incomplete.hasKey(keywordString))
 				{
 					final AvailObject subtree = incomplete.mapAt(keywordString);
-					attempt(
+					eventuallyDo(
 						new Continuation0()
 						{
 							@Override
@@ -1417,7 +1417,7 @@ extends AbstractAvailCompiler
 			{
 				final AvailObject key = entry.key;
 				final AvailObject value = entry.value;
-				attempt(
+				eventuallyDo(
 					new Continuation0()
 					{
 						@Override
@@ -1476,9 +1476,10 @@ extends AbstractAvailCompiler
 		final AvailObject successorTrees,
 		final Con<AvailObject> continuation)
 	{
-		switch (instruction)
+		final ParsingOperation op = ParsingOperation.decode(instruction);
+		switch (op)
 		{
-			case 0:
+			case parseArgument:
 			{
 				// Parse an argument and continue.
 				assert successorTrees.tupleSize() == 1;
@@ -1497,7 +1498,7 @@ extends AbstractAvailCompiler
 							final List<AvailObject> newArgsSoFar =
 								new ArrayList<AvailObject>(argsSoFar);
 							newArgsSoFar.add(newArg);
-							attempt(
+							eventuallyDo(
 								new Continuation0()
 								{
 									@Override
@@ -1519,16 +1520,16 @@ extends AbstractAvailCompiler
 					});
 				break;
 			}
-			case 1:
+			case newList:
 			{
-				// Push an empty list node and continue.
+				// Push an empty tuple node and continue.
 				assert successorTrees.tupleSize() == 1;
 				final List<AvailObject> newArgsSoFar =
 					new ArrayList<AvailObject>(argsSoFar);
 				final AvailObject newTupleNode =
 					TupleNodeDescriptor.newExpressions(TupleDescriptor.empty());
 				newArgsSoFar.add(newTupleNode);
-				attempt(
+				eventuallyDo(
 					new Continuation0()
 					{
 						@Override
@@ -1547,12 +1548,11 @@ extends AbstractAvailCompiler
 					start.position);
 				break;
 			}
-			case 2:
+			case appendArgument:
 			{
-				// Append the item that's the last thing to the
-				// list that's the second last thing. Pop both and
-				// push the new list (the original list must not
-				// change), then continue.
+				// Append the item that's the last thing to the tuple that's the
+				// second last thing. Pop both and push the new tuple (the
+				// original tuple must not change), then continue.
 				assert successorTrees.tupleSize() == 1;
 				final List<AvailObject> newArgsSoFar =
 					new ArrayList<AvailObject>(argsSoFar);
@@ -1562,7 +1562,7 @@ extends AbstractAvailCompiler
 					newArgsSoFar.remove(newArgsSoFar.size() - 1);
 				final AvailObject tupleNode = oldNode.copyWith(value);
 				newArgsSoFar.add(tupleNode);
-				attempt(
+				eventuallyDo(
 					new Continuation0()
 					{
 						@Override
@@ -1581,7 +1581,7 @@ extends AbstractAvailCompiler
 					start.position);
 				break;
 			}
-			case 3:
+			case saveParsePosition:
 			{
 				// Push current parse position.
 				assert successorTrees.tupleSize() == 1;
@@ -1591,7 +1591,7 @@ extends AbstractAvailCompiler
 					MarkerNodeDescriptor.mutable().create();
 				marker.markerValue(IntegerDescriptor.fromInt(start.position));
 				newArgsSoFar.add(marker);
-				attempt(
+				eventuallyDo(
 					new Continuation0()
 					{
 						@Override
@@ -1610,7 +1610,7 @@ extends AbstractAvailCompiler
 					start.position);
 				break;
 			}
-			case 4:
+			case discardSavedParsePosition:
 			{
 				// Underpop saved parse position (from 2nd-to-top of stack).
 				assert successorTrees.tupleSize() == 1;
@@ -1620,7 +1620,7 @@ extends AbstractAvailCompiler
 					newArgsSoFar.remove(newArgsSoFar.size() - 2);
 				assert marker.traversed().descriptor()
 					instanceof MarkerNodeDescriptor;
-				attempt(
+				eventuallyDo(
 					new Continuation0()
 					{
 						@Override
@@ -1639,7 +1639,7 @@ extends AbstractAvailCompiler
 					start.position);
 				break;
 			}
-			case 5:
+			case ensureParseProgress:
 			{
 				// Check parse progress (abort if parse position is still equal
 				// to value at 2nd-to-top of stack). Also update the entry to
@@ -1657,7 +1657,7 @@ extends AbstractAvailCompiler
 				newMarker.markerValue(
 					IntegerDescriptor.fromInt(start.position));
 				newArgsSoFar.set(newArgsSoFar.size() - 2, newMarker);
-				attempt(
+				eventuallyDo(
 					new Continuation0()
 					{
 						@Override
@@ -1676,77 +1676,110 @@ extends AbstractAvailCompiler
 					start.position);
 				break;
 			}
-			case 6:
-				assert false
-					: "Methods with ellipsis notation may not be"
-					+ " invoked by the system compiler";
-				break;
-			case 7:
-				assert false : "Reserved parsing instruction";
-				break;
-			default:
-				assert instruction >= 8;
-				switch (instruction & 7)
-				{
-					case 0:
-						// Fall through.  The successorTrees will be different
-						// for the jump versus parallel-branch, due to the way
-						// MessageSplitter.successorPCs(...) operates.
-					case 1:
-						for (final AvailObject successorTree : successorTrees)
+			case parseRawToken:
+				// Parse a raw token and continue.
+				assert successorTrees.tupleSize() == 1;
+				parseRawTokenThen(
+					start,
+					new Con<AvailObject>(
+						"Raw token for ellipsis (…) in some message")
+					{
+						@Override
+						public void value (
+							final ParserState afterToken,
+							final AvailObject newToken)
 						{
-							attempt(
+							final List<AvailObject> newArgsSoFar =
+								new ArrayList<AvailObject>(argsSoFar);
+							final AvailObject syntheticToken =
+								LiteralTokenDescriptor.mutable().create(
+									newToken.string(),
+									newToken.start(),
+									newToken.lineNumber(),
+									SYNTHETIC_LITERAL);
+							syntheticToken.literal(newToken);
+							final AvailObject literalNode =
+								LiteralNodeDescriptor.fromToken(syntheticToken);
+							newArgsSoFar.add(literalNode);
+							eventuallyDo(
 								new Continuation0()
 								{
 									@Override
 									public void value ()
 									{
 										parseRestOfSendNode(
-											start,
-											successorTree,
-											firstArgOrNull,
+											afterToken,
+											successorTrees.tupleAt(1),
+											null,
 											initialTokenPosition,
-											argsSoFar,
+											Collections.unmodifiableList(
+												newArgsSoFar),
 											continuation);
 									}
 								},
-								"Continue send after branch or jump",
-								start.position);
+								"Continue send after raw token for ellipsis",
+								afterToken.position);
 						}
-						break;
-					case 2:
-						assert false
-						: "parse-token instruction should not be dispatched";
-						break;
-					case 3:
-					{
-						// CheckArgument.  An argument has just been parsed (and
-						// pushed).  Make sure it satisfies any grammatical
-						// restrictions.  The message bundle tree's lazy
-						// prefilter map deals with that efficiently.
-						assert successorTrees.tupleSize() == 1;
-						attempt(
-							new Continuation0()
+					});
+				break;
+			case branch:
+				// $FALL-THROUGH$
+				// Fall through.  The successorTrees will be different
+				// for the jump versus parallel-branch.
+			case jump:
+				for (final AvailObject successorTree : successorTrees)
+				{
+					eventuallyDo(
+						new Continuation0()
+						{
+							@Override
+							public void value ()
 							{
-								@Override
-								public void value ()
-								{
-									parseRestOfSendNode(
-										start,
-										successorTrees.tupleAt(1),
-										firstArgOrNull,
-										initialTokenPosition,
-										argsSoFar,
-										continuation);
-								}
-							},
-							"Continue send after copyArgumentForCheck",
-							start.position);
-						break;
-					}
-					default:
-						assert false : "Reserved parsing instruction";
+								parseRestOfSendNode(
+									start,
+									successorTree,
+									firstArgOrNull,
+									initialTokenPosition,
+									argsSoFar,
+									continuation);
+							}
+						},
+						"Continue send after branch or jump",
+						start.position);
 				}
+				break;
+			case parsePart:
+				assert false
+				: "parse-token instruction should not be dispatched";
+				break;
+			case checkArgument:
+			{
+				// CheckArgument.  An argument has just been parsed (and
+				// pushed).  Make sure it satisfies any grammatical
+				// restrictions.  The message bundle tree's lazy
+				// prefilter map deals with that efficiently.
+				assert successorTrees.tupleSize() == 1;
+				eventuallyDo(
+					new Continuation0()
+					{
+						@Override
+						public void value ()
+						{
+							parseRestOfSendNode(
+								start,
+								successorTrees.tupleAt(1),
+								firstArgOrNull,
+								initialTokenPosition,
+								argsSoFar,
+								continuation);
+						}
+					},
+					"Continue send after copyArgumentForCheck",
+					start.position);
+				break;
+			}
+			default:
+				assert false : "Reserved parsing instruction";
 		}
 	}
 
@@ -2135,7 +2168,7 @@ extends AbstractAvailCompiler
 			return;
 		}
 		final ParserState afterSecondColon = afterColon.afterToken();
-		attempt(
+		eventuallyDo(
 			new Continuation0()
 			{
 				@Override

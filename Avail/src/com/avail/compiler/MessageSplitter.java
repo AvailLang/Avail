@@ -32,40 +32,18 @@
 
 package com.avail.compiler;
 
+import static com.avail.compiler.ParsingOperation.*;
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import java.util.*;
+import com.avail.annotations.*;
 import com.avail.compiler.scanning.AvailScanner;
 import com.avail.descriptor.*;
 
 /**
- * This class is used to split Avail message names into a sequence of
- * pseudo-instructions that can be used directly for parsing.  The
- * pseudo-instructions are of the form:
- *
- * <p><ul>
- * <li>0     - parseArgument</li>
- * <li>1     - pushEmptyList</li>
- * <li>2     - append (pop A, append A to list on top of stack)</li>
- * <li>3     - pushParsePosition</li>
- * <li>4     - underPop parse position (remove 2nd-to-top of stack)</li>
- * <li>5     - checkProgress checks that progress has been made relative to the
- *             parse position found at 2nd-to-top of stack.  Also replace with
- *             new parse position.</li>
- * <li>6     - parseRawToken</li>
- * <li>7     - (reserved)</li>
- * <li>8*N   - branch to instruction N (attempt to continue parsing at both
- *             the next instruction and N)</li>
- * <li>8*N+1 - jump to instruction N (do not attempt to continue at the next
- *             instruction)</li>
- * <li>8*N+2 - parseKeyword at part N</li>
- * <li>8*N+3 - checkArgument for Nth leaf argument (position corresponds
- *             with negative precedence restrictions)</li>
- * <li>8*N+4 - (reserved)</li>
- * <li>8*N+5 - (reserved)</li>
- * <li>8*N+6 - (reserved)</li>
- * <li>8*N+7 - (reserved)</li>
- * </ul></p>
+ * {@code MessageSplitter} is used to split Avail message names into a sequence
+ * of {@linkplain ParsingOperation instructions} that can be used directly for
+ * parsing.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
@@ -77,58 +55,61 @@ public class MessageSplitter
 	private final AvailObject messageName;
 
 	/**
-	 * The individual tokens (strings) constituting the message.  Alphanumerics
-	 * are in runs, separated from other alphanumerics by a single space.
-	 * Operator characters are never beside spaces, and are always parsed as
-	 * individual tokens.  Open chevron («), double dagger (‡), and close
-	 * chevron (») are used to indicate repeated/optional substructures.  The
-	 * backquote (`) can precede any operator character to ensure it is not
-	 * used in a special way like chevrons and double dagger.  A backquote may
-	 * also escape another backquote.
+	 * The individual tokens ({@linkplain StringDescriptor strings})
+	 * constituting the message. Alphanumerics are in runs, separated from other
+	 * alphanumerics by a single space. Operator characters are never beside
+	 * spaces, and are always parsed as individual tokens. {@linkplain
+	 * StringDescriptor#openGuillemet() Open guillemet} («), {@linkplain
+	 * StringDescriptor#doubleDagger() double dagger} (‡), and {@linkplain
+	 * StringDescriptor#closeGuillemet() close guillemet} (») are used to
+	 * indicate repeated/optional substructures. The {@linkplain
+	 * StringDescriptor#backQuote()} backquote (`) can precede any operator
+	 * character, like guillemets and double dagger, to ensure it is not used in
+	 * a special way. A backquote may also escape another backquote.
 	 */
-	final List<AvailObject> messageParts = new ArrayList<AvailObject>(10);
+	final @NotNull List<AvailObject> messageParts =
+		new ArrayList<AvailObject>(10);
 
-	/**
-	 * The current one-based parsing position in the list of tokens.
-	 */
+	/** The current one-based parsing position in the list of tokens. */
 	private int messagePartPosition;
 
 	/**
 	 * The number of non-backquoted underscores/ellipses encountered so far.
 	 */
-	int numberOfUnderscores;
+	@InnerAccess int numberOfUnderscores;
 
 	/**
-	 * A list of integers representing parsing instructions.  These instructions
+	 * A list of integers representing parsing instructions. These instructions
 	 * can parse a specific keyword, recursively parse an argument, branch for
 	 * backtracking, and manipulate a stack of parse nodes.
 	 */
-	private final List<Integer> instructions = new ArrayList<Integer>(10);
+	private final @NotNull List<Integer> instructions =
+		new ArrayList<Integer>(10);
+
+	/** The top-most {@linkplain Group group}. */
+	private final @NotNull Group rootGroup;
 
 	/**
-	 * The top-most {@link Group}.
-	 */
-	private final Group rootGroup;
-
-
-	/**
-	 * An {@linkplain Expression} represents a structural view of part of the
+	 * An {@code Expression} represents a structural view of part of the
 	 * message name.
 	 */
 	abstract class Expression
 	{
-
 		/**
 		 * Write instructions for parsing me to the given list.
-		 * @param list The list of integers {@linkplain MessageSplitter
-		 * encoding} parsing instructions.
+		 *
+		 * @param list
+		 *        The list of integers {@linkplain MessageSplitter encoding}
+		 *        parsing instructions.
 		 */
-		abstract void emitOn (final List<Integer> list);
-
+		abstract void emitOn (final @NotNull List<Integer> list);
 
 		/**
-		 * Answer whether or not this an argument or group.
-		 * @return True if and only if this is an argument or group.
+		 * Answer whether or not this an {@linkplain Argument argument} or
+		 * {@linkplain Group group}.
+		 *
+		 * @return {@code true} if and only if this is an argument or group,
+		 *         {@code false} otherwise.
 		 */
 		boolean isArgumentOrGroup ()
 		{
@@ -149,21 +130,21 @@ public class MessageSplitter
 
 		/**
 		 * Check that the given type signature is appropriate for this message
-		 * expression.  If not, throw a suitable exception.
+		 * expression. If not, throw a suitable exception.
 		 *
 		 * <p>This is also called recursively on subcomponents, and it checks
-		 * that group arguments have the correct structure for what will be
-		 * parsed.  The method may reject parses based on the number of
-		 * repetitions of a group at a call site, but not the number of
-		 * arguments actually delivered by each repetition.  For example, the
-		 * message "«_:_‡,»" can limit the number of _:_ pairs to at most 5 by
-		 * declaring the tuple type's size to be [5..5].  However, the message
-		 * "«_:_‡[_]»" will always produce a tuple of 3-tuples followed by a
-		 * 2-tuple (if any elements at all occur).  Attempting to add a method
-		 * implementation for this message that only accepted a tuple of
-		 * 7-tuples would be inappropriate (and ineffective).  Instead, it
-		 * should be required to accept a tuple whose size is in the range
-		 * [2..3].</p>
+		 * that {@linkplain Argument group arguments} have the correct structure
+		 * for what will be parsed. The method may reject parses based on the
+		 * number of repetitions of a {@linkplain Group group} at a call site,
+		 * but not the number of arguments actually delivered by each
+		 * repetition. For example, the message "«_:_‡,»" can limit the number
+		 * of _:_ pairs to at most 5 by declaring the tuple type's size to be
+		 * [5..5]. However, the message "«_:_‡[_]»" will always produce a tuple
+		 * of 3-tuples followed by a 2-tuple (if any elements at all occur).
+		 * Attempting to add a method implementation for this message that only
+		 * accepted a tuple of 7-tuples would be inappropriate (and
+		 * ineffective). Instead, it should be required to accept a tuple whose
+		 * size is in the range [2..3].</p>
 		 *
 		 * <p>Note that the outermost (pseudo)group represents the entire
 		 * message, so the caller should synthesize a fixed-length {@linkplain
@@ -173,22 +154,22 @@ public class MessageSplitter
 		 *        A {@linkplain TupleTypeDescriptor tuple type} describing the
 		 *        types of arguments that a method being added will accept.
 		 */
-		public abstract void checkType (final AvailObject argumentType);
-
+		public abstract void checkType (
+			final @NotNull AvailObject argumentType);
 
 		@Override
-		public String toString ()
+		public @NotNull String toString ()
 		{
 			return getClass().getSimpleName();
 		}
 	}
 
-
 	/**
-	 * A {@linkplain Simple} is an {@linkplain Expression} that represents a
-	 * single token, except for the double-dagger character.
+	 * A {@linkplain Simple} is an {@linkplain Expression expression} that
+	 * represents a single token, except for the double-dagger character.
 	 */
-	final class Simple extends Expression
+	final class Simple
+	extends Expression
 	{
 		/**
 		 * The one-based index of this token within the {@link
@@ -196,30 +177,28 @@ public class MessageSplitter
 		 */
 		final int tokenIndex;
 
-
 		/**
-		 * Construct a new {@link Simple} expression representing a specific
-		 * token expected in the input.
+		 * Construct a new {@linkplain Simple simple expression} representing a
+		 * specific token expected in the input.
 		 *
-		 * @param tokenIndex The one-based index of the token within the {@link
-		 * MessageSplitter#messageParts message parts}.
+		 * @param tokenIndex
+		 *        The one-based index of the token within the {@link
+		 *        MessageSplitter#messageParts message parts}.
 		 */
 		Simple (final int tokenIndex)
 		{
 			this.tokenIndex = tokenIndex;
 		}
 
-
 		@Override
-		void emitOn (final List<Integer> list)
+		void emitOn (final @NotNull List<Integer> list)
 		{
 			// Parse the specific keyword.
-			list.add(tokenIndex * 8 + 2);
+			list.add(parsePart.encodingForOperand(tokenIndex));
 		}
 
-
 		@Override
-		public String toString ()
+		public @NotNull String toString ()
 		{
 			final StringBuilder builder = new StringBuilder();
 			builder.append(getClass().getSimpleName());
@@ -229,21 +208,21 @@ public class MessageSplitter
 			return builder.toString();
 		}
 
-
 		@Override
-		public void checkType (final AvailObject argumentType)
+		public void checkType (final @NotNull AvailObject argumentType)
 		{
 			assert false : "checkType() should not be called for Simple" +
 					" expressions";
 		}
 	}
 
-
 	/**
-	 * An {@linkplain Argument} is an occurrence of "_" in a message name.  It
+	 * An {@linkplain Argument} is an occurrence of {@linkplain
+	 * StringDescriptor#underscore() underscore} (_) in a message name. It
 	 * indicates where an argument is expected.
 	 */
-	class Argument extends Expression
+	class Argument
+	extends Expression
 	{
 		/**
 		 * The one-based index for this argument.  In particular, it's one plus
@@ -267,36 +246,35 @@ public class MessageSplitter
 			return true;
 		}
 
-
 		@Override
 		int underscoreCount ()
 		{
 			return 1;
 		}
 
-
 		@Override
-		void emitOn (final List<Integer> list)
+		void emitOn (final @NotNull List<Integer> list)
 		{
-			// First, parse an argument subexpression.  Next, record it in a
-			// list of lists that will later be used to check negative
-			// precedence restrictions.  In particular, it will be recorded at
-			// position N if this argument is for the Nth non-backquoted
-			// underscore/ellipsis of this message.  This is done with two
-			// instructions to simplify processing of the recursive expression
-			// parse, as well as to make a completely non-recursive
-			// parallel-shift-reduce parsing engine easier to build eventually.
-			list.add(0);
-			list.add(absoluteUnderscoreIndex * 8 + 3);
+			// First, parse an argument subexpression. Next, record it in a list
+			// of lists that will later be used to check negative precedence
+			// restrictions. In particular, it will be recorded at position N if
+			// this argument is for the Nth non-backquoted underscore/ellipsis
+			// of this message. This is done with two instructions to simplify
+			// processing of the recursive expression parse, as well as to make
+			// a completely non-recursive parallel-shift-reduce parsing engine
+			// easier to build eventually.
+			list.add(parseArgument.encoding());
+			list.add(checkArgument.encodingForOperand(
+				absoluteUnderscoreIndex));
 		}
-
 
 		/**
 		 * A simple underscore/ellipsis can be arbitrarily restricted, other
-		 * than when it is restricted to the uninstantiable type bottom.
+		 * than when it is restricted to the uninstantiable type {@linkplain
+		 * BottomTypeDescriptor#bottom() bottom}.
 		 */
 		@Override
-		public void checkType (final AvailObject argumentType)
+		public void checkType (final @NotNull AvailObject argumentType)
 		{
 			if (argumentType.equals(BottomTypeDescriptor.bottom()))
 			{
@@ -306,14 +284,15 @@ public class MessageSplitter
 		}
 	}
 
-
 	/**
-	 * A {@linkplain RawTokenArgument} is an occurrence of "…" in a message
-	 * name.  It indicates where a raw token argument is expected.  This is an
-	 * unusual kind of argument, in that the next token in the input stream is
-	 * captured and passed as a literal argument to the macro.
+	 * A {@linkplain RawTokenArgument} is an occurrence of {@linkplain
+	 * StringDescriptor#ellipsis() ellipsis} (…) in a message name. It indicates
+	 * where a raw token argument is expected. This is an unusual kind of
+	 * argument, in that the next token in the input stream is captured and
+	 * passed as a literal argument to the macro.
 	 */
-	final class RawTokenArgument extends Argument
+	final class RawTokenArgument
+	extends Argument
 	{
 		/**
 		 * Construct a RawTokenArgument.
@@ -324,106 +303,121 @@ public class MessageSplitter
 		}
 
 		@Override
-		void emitOn (final List<Integer> list)
+		void emitOn (final @NotNull List<Integer> list)
 		{
-			// First, parse a raw token.  Next, record it in a list of lists
+			// First, parse a raw token. Next, record it in a list of lists
 			// that will later be used to check negative precedence
-			// restrictions.  In particular, it will be recorded at position N
-			// if this argument is for the Nth non-backquoted underscore or
-			// ellipsis of this message.  This is done with two instructions
-			// to simplify processing of the recursive expression parse,
-			// especially as it relates to the non-recursive parallel
-			// shift-reduce parsing engine.
-			list.add(6);
-			list.add(absoluteUnderscoreIndex * 8 + 3);
+			// restrictions. In particular, it will be recorded at position N if
+			// this argument is for the Nth non-backquoted underscore or
+			// ellipsis of this message. This is done with two instructions to
+			// simplify processing of the recursive expression parse, especially
+			// as it relates to the non-recursive parallel shift-reduce parsing
+			// engine.
+			list.add(parseRawToken.encoding());
+			list.add(checkArgument.encodingForOperand(
+				absoluteUnderscoreIndex));
 		}
 	}
 
-
 	/**
-	 * A {@linkplain Group} is delimited by the open chevron ("«") and close
-	 * chevron ("»") characters, and may contain subgroups and an occurrence of
-	 * a double dagger ("‡").  If no dagger or subgroup is present, the sequence
-	 * of message parts between the chevrons are allowed to occur zero or more
-	 * times at a call site (i.e., a send of this message).  When the number of
-	 * underscores ("_") and ellipses ("…") plus the number of subgroups is
-	 * exactly one, the argument (or subgroup) values are assembled into a list.
-	 * Otherwise the leaf arguments and/or subgroups are assembled into a list
-	 * of fixed-sized lists, each containing one entry for each argument or
-	 * subgroup.
-	 * <p>
-	 * When a dagger occurs in a group, the parts to the left of the dagger
-	 * can occur zero or more times, but separated by the parts to the right.
-	 * For example, "«_‡,»" is how to specify a comma-separated list of
-	 * arguments.  This pattern contains a single underscore and no subgroups,
-	 * so parsing "1,2,3" would simply produce the list <1,2,3>.  The pattern
+	 * A {@linkplain Group} is delimited by the {@linkplain
+	 * StringDescriptor#openGuillemet() open guillemet} («) and {@linkplain
+	 * StringDescriptor#closeGuillemet() close guillemet} (») characters, and
+	 * may contain subgroups and an occurrence of a {@linkplain
+	 * StringDescriptor#doubleDagger() double dagger} (‡). If no double dagger
+	 * or subgroup is present, the sequence of message parts between the
+	 * guillemets are allowed to occur zero or more times at a call site
+	 * (i.e., a send of this message). When the number of {@linkplain
+	 * StringDescriptor#underscore() underscores} (_) and {@linkplain
+	 * StringDescriptor#ellipsis() ellipses} (…) plus the number of subgroups is
+	 * exactly one, the argument (or subgroup) values are assembled into a
+	 * {@linkplain TupleDescriptor tuple}. Otherwise the leaf arguments and/or
+	 * subgroups are assembled into a tuple of fixed-sized tuples, each
+	 * containing one entry for each argument or subgroup.
+	 *
+	 * <p>When a double dagger occurs in a group, the parts to the left of the
+	 * double dagger can occur zero or more times, but separated by the parts to
+	 * the right. For example, "«_‡,»" is how to specify a comma-separated tuple
+	 * of arguments. This pattern contains a single underscore and no subgroups,
+	 * so parsing "1,2,3" would simply produce the tuple <1,2,3>. The pattern
 	 * "«_=_;»" will parse "1=2;3=4;5=6;" into <<1,2>,<3,4>,<5,6>> because it
-	 * has two underscores.
-	 * <p>
-	 * The message "«A_‡x_»" parses zero or more occurrences in the text of the
-	 * keyword "A" followed by an argument, separated by the keyword "x" and an
-	 * argument.  "A 1 x 2 A 3 x 4 A 5" is such an expression (and "A 1 x 2" is
-	 * not).  In this case, the arguments will be grouped in such a way that the
-	 * final element of the list, if any, is missing the post-dagger elements:
-	 * <<1,2>,<3,4>,<5>>.
+	 * has two underscores.</p>
+	 *
+	 * <p>The message "«A_‡x_»" parses zero or more occurrences in the text of
+	 * the keyword "A" followed by an argument, separated by the keyword "x" and
+	 * an argument.  "A 1 x 2 A 3 x 4 A 5" is such an expression (and "A 1 x 2"
+	 * is not). In this case, the arguments will be grouped in such a way that
+	 * the final element of the tuple, if any, is missing the post-double dagger
+	 * elements: <<1,2>,<3,4>,<5>>.</p>
 	 */
-	final class Group extends Expression
+	final class Group
+	extends Expression
 	{
 		/**
-		 * Whether a double dagger (‡) has been encountered in the tokens for
-		 * this group.
+		 * Whether a {@linkplain StringDescriptor#doubleDagger() double dagger}
+		 * (‡) has been encountered in the tokens for this group.
 		 */
 		boolean hasDagger = false;
 
 		/**
-		 * How many argument tokens ("_") or ellipses ("…") were specified prior
-		 * to the double dagger (or the end of the group if no double dagger is
+		 * How many {@linkplain StringDescriptor#underscore() argument tokens}
+		 * (_) or {@linkplain StringDescriptor#ellipsis() ellipses} (…) were
+		 * specified prior to the {@linkplain StringDescriptor#doubleDagger()
+		 * double dagger} (or the end of the group if no double dagger is
 		 * present).
 		 */
 		int argumentsBeforeDagger = 0;
 
 		/**
-		 * How many argument tokens ("_") or ellipses ("…") appeared after the
-		 * double dagger, or zero if there was no double dagger.
+		 * How many {@linkplain StringDescriptor#underscore() argument tokens}
+		 * (_) or {@linkplain StringDescriptor#ellipsis() ellipses} (…) appeared
+		 * after the {@linkplain StringDescriptor#doubleDagger() double dagger},
+		 * or zero if there was no double dagger.
 		 */
 		int argumentsAfterDagger = 0;
 
 		/**
-		 * The expressions that appeared before the double dagger, or in the
-		 * entire subexpression if no double dagger is present.
+		 * The expressions that appeared before the {@linkplain
+		 * StringDescriptor#doubleDagger() double dagger}, or in the entire
+		 * subexpression if no double dagger is present.
 		 */
-		List<Expression> expressionsBeforeDagger = new ArrayList<Expression>();
+		final @NotNull List<Expression> expressionsBeforeDagger =
+			new ArrayList<Expression>();
 
 		/**
-		 * The expressions that appeared after the double dagger, or an empty
-		 * list if no double dagger is present.
+		 * The expressions that appeared after the {@linkplain
+		 * StringDescriptor#doubleDagger() double dagger}, or an empty list if
+		 * no double dagger is present.
 		 */
-		List<Expression> expressionsAfterDagger = new ArrayList<Expression>();
+		final @NotNull List<Expression> expressionsAfterDagger =
+			new ArrayList<Expression>();
 
 		/**
 		 * The one-based position in the instruction stream to branch to in
-		 * order to parse zero occurrences of this group.  Set during the first
+		 * order to parse zero occurrences of this group. Set during the first
 		 * pass of code generation.
 		 */
 		int loopSkip = -1;
 
 		/**
 		 * The one-based position in the instruction stream to branch to from
-		 * the dagger's position within the loop for this group.  Depending on
+		 * the dagger's position within the loop for this group. Depending on
 		 * the number of arguments and subgroups specified within this group,
-		 * this may or may not equal {@link #loopSkip}.  If not equal, the only
+		 * this may or may not equal {@link #loopSkip}. If not equal, the only
 		 * intervening instruction will be an append to add the final partial
 		 * group to the list.
 		 */
 		int loopExit = -1;
 
 		/**
-		 * Add an expression to the group, either before or after the dagger,
-		 * depending on whether hasDagger has been set.
+		 * Add an {@linkplain Expression expression} to the {@linkplain Group
+		 * group}, either before or after the {@linkplain
+		 * StringDescriptor#doubleDagger() double dagger}, depending on whether
+		 * {@link #hasDagger} has been set.
 		 *
 		 * @param e The expression to add.
 		 */
-		final void addExpression (final Expression e)
+		void addExpression (final @NotNull Expression e)
 		{
 			if (!hasDagger)
 			{
@@ -443,13 +437,11 @@ public class MessageSplitter
 			}
 		}
 
-
 		@Override
 		boolean isArgumentOrGroup ()
 		{
 			return true;
 		}
-
 
 		@Override
 		int underscoreCount ()
@@ -466,23 +458,22 @@ public class MessageSplitter
 			return count;
 		}
 
-
 		/**
-		 * Determine if this group should generate a tuple of plain arguments
-		 * or a tuple of fixed-length tuples of plain arguments.
+		 * Determine if this group should generate a {@linkplain TupleDescriptor
+		 * tuple} of plain arguments or a tuple of fixed-length tuples of plain
+		 * arguments.
 		 *
-		 * @return True if this group will generate a tuple of fixed-length
-		 *         tuples, otherwise false (and the group will generate a tuple
-		 *         of individual arguments or subgroups).
+		 * @return {@code true} if this group will generate a tuple of
+		 *         fixed-length tuples, {@code false} if this group will
+		 *         generate a tuple of individual arguments or subgroups.
 		 */
 		boolean needsDoubleWrapping ()
 		{
 			return argumentsBeforeDagger != 1 || argumentsAfterDagger != 0;
 		}
 
-
 		@Override
-		void emitOn (final List<Integer> list)
+		void emitOn (final @NotNull List<Integer> list)
 		{
 			if (!needsDoubleWrapping())
 			{
@@ -506,27 +497,27 @@ public class MessageSplitter
 				 * @loopSkip:
 				 * **under-pop parse position (remove 2nd from top of stack)
 				 */
-				list.add(3);  // push parse position
-				list.add(1);  // push empty list
-				list.add(8 * loopSkip);  // branch to @loopSkip
+				list.add(saveParsePosition.encoding());
+				list.add(newList.encoding());
+				list.add(branch.encodingForOperand(loopSkip));
 				final int loopStart = list.size() + 1;
 				for (final Expression expression : expressionsBeforeDagger)
 				{
 					expression.emitOn(list);
 				}
-				list.add(2);  // append
-				list.add(8 * loopExit);  // branch to @loopExit
+				list.add(appendArgument.encoding());
+				list.add(branch.encodingForOperand(loopExit));
 				for (final Expression expression : expressionsAfterDagger)
 				{
 					assert !expression.isArgumentOrGroup();
 					expression.emitOn(list);
 				}
-				list.add(5);  // check progress
-				list.add(loopStart * 8 + 1);  // jump to @loopStart
+				list.add(ensureParseProgress.encoding());
+				list.add(jump.encodingForOperand(loopStart));
 				loopExit = list.size() + 1;
-				list.add(5);  // check progress
+				list.add(ensureParseProgress.encoding());
 				loopSkip = list.size() + 1;
-				list.add(4);  // underpop parse position
+				list.add(discardSavedParsePosition.encoding());
 			}
 			else
 			{
@@ -556,41 +547,41 @@ public class MessageSplitter
 				 * @loopSkip:
 				 * **under-pop parse position (remove 2nd from top of stack)
 				 */
-				list.add(3);  // push parse position
-				list.add(1);  // push empty list
-				list.add(8 * loopSkip);  // branch to @loopSkip
+				list.add(saveParsePosition.encoding());
+				list.add(newList.encoding());
+				list.add(branch.encodingForOperand(loopSkip));
 				final int loopStart = list.size() + 1;
-				list.add(1);  // inner list
+				list.add(newList.encoding());
 				for (final Expression expression : expressionsBeforeDagger)
 				{
 					expression.emitOn(list);
 					if (expression.isArgumentOrGroup())
 					{
-						list.add(2);  // append
+						list.add(appendArgument.encoding());
 					}
 				}
-				list.add(8 * loopExit);  // branch to @loopExit
+				list.add(branch.encodingForOperand(loopExit));
 				for (final Expression expression : expressionsAfterDagger)
 				{
 					expression.emitOn(list);
 					if (expression.isArgumentOrGroup())
 					{
-						list.add(2);  // append
+						list.add(appendArgument.encoding());
 					}
 				}
-				list.add(2);  // add inner list to outer
-				list.add(5);  // check progress
-				list.add(loopStart * 8 + 1);  // jump to @loopStart
+				list.add(appendArgument.encoding());
+				list.add(ensureParseProgress.encoding());
+				list.add(jump.encodingForOperand(loopStart));
 				loopExit = list.size() + 1;
-				list.add(2);  // append partial tuple, up to dagger
-				list.add(5);  // check progress
+				list.add(appendArgument.encoding());
+				list.add(ensureParseProgress.encoding());
 				loopSkip = list.size() + 1;
-				list.add(4);  // underpop parse position
+				list.add(discardSavedParsePosition.encoding());
 			}
 		}
 
 		@Override
-		public String toString ()
+		public @NotNull String toString ()
 		{
 			final List<String> strings = new ArrayList<String>();
 			for (final Expression e : expressionsBeforeDagger)
@@ -622,13 +613,12 @@ public class MessageSplitter
 			return builder.toString();
 		}
 
-
 		/**
 		 * Check if the given type is suitable for holding values generated by
 		 * this group.
 		 */
 		@Override
-		public void checkType (final AvailObject argumentType)
+		public void checkType (final @NotNull AvailObject argumentType)
 		{
 			// Always expect a tuple of solutions here.
 			if (argumentType.equals(BottomTypeDescriptor.bottom()))
@@ -663,7 +653,8 @@ public class MessageSplitter
 					i <= limit;
 					i++)
 				{
-					final AvailObject solutionType = argumentType.typeAtIndex(i);
+					final AvailObject solutionType =
+						argumentType.typeAtIndex(i);
 					if (!solutionType.isTupleType())
 					{
 						error(
@@ -676,7 +667,8 @@ public class MessageSplitter
 					// Check that the solution that will reside at the current
 					// index accepts either a full group or a group up to the
 					// dagger.
-					final AvailObject solutionTypeSizes = solutionType.sizeRange();
+					final AvailObject solutionTypeSizes =
+						solutionType.sizeRange();
 					final AvailObject lower = solutionTypeSizes.lowerBound();
 					final AvailObject upper = solutionTypeSizes.upperBound();
 					if (lower != expectedLower && lower != expectedUpper
@@ -715,35 +707,34 @@ public class MessageSplitter
 			}
 		}
 
-
 		/**
 		 * Pretty-print this part of the message, using the provided argument
 		 * {@linkplain ParseNodeDescriptor nodes}.
 		 *
 		 * @param availObject
-		 *        The arguments to this {@link Group}, organized as either a
-		 *        single {@linkplain ParseNodeDescriptor parse node} or a
-		 *        {@linkplain TupleNodeDescriptor tuple node} of parse nodes,
-		 *        depending on {@code doubleWrap}.  The root group always has
-		 *        doubleWrap true, and passes a synthetic {@linkplain
-		 *        TupleNodeDescriptor tuple node}.
+		 *        The arguments to this {@linkplain Group group}, organized as
+		 *        either a single {@linkplain ParseNodeDescriptor parse node} or
+		 *        a {@linkplain TupleNodeDescriptor tuple node} of parse nodes,
+		 *        depending on {@code doubleWrap}. The root group always has
+		 *        {@code doubleWrap} as {@code true}, and passes a synthetic
+		 *        tuple node.
 		 * @param aStream
 		 *        The {@link StringBuilder} on which to print.
 		 * @param indent
 		 *        The indentation level.
 		 * @param completeGroup
 		 *        Whether to produce a complete group or just up to the
-		 *        double-dagger.  The last repetition of a subgroup uses false
+		 *        double-dagger. The last repetition of a subgroup uses false
 		 *        for this flag.
 		 * @param doubleWrap
 		 *        Whether to treat the arguments list as a tuple of values or a
-		 *        single value.  True if the group's {@code
-		 *        needsDoubleWrapping()} is true.  Forced to true for the root
-		 *        group.
+		 *        single value. {@code true} if the group's {@code
+		 *        needsDoubleWrapping()} is true. Forced to {@code true} for the
+		 *        root group.
 		 */
 		public void printWithArguments (
-			final AvailObject availObject,
-			final StringBuilder aStream,
+			final @NotNull AvailObject availObject,
+			final @NotNull StringBuilder aStream,
 			final int indent,
 			final boolean completeGroup,
 			final boolean doubleWrap)
@@ -752,12 +743,14 @@ public class MessageSplitter
 			final Iterator<AvailObject> argumentsIterator;
 			if (doubleWrap)
 			{
-				assert availObject.isInstanceOfKind(TUPLE_NODE.mostGeneralType());
+				assert availObject.isInstanceOfKind(
+					TUPLE_NODE.mostGeneralType());
 				argumentsIterator = availObject.expressionsTuple().iterator();
 			}
 			else
 			{
-				assert availObject.isInstanceOfKind(EXPRESSION_NODE.mostGeneralType());
+				assert availObject.isInstanceOfKind(
+					EXPRESSION_NODE.mostGeneralType());
 				final List<AvailObject> argumentNodes =
 					Collections.singletonList(availObject);
 				argumentsIterator = argumentNodes.iterator();
@@ -831,14 +824,14 @@ public class MessageSplitter
 
 	/**
 	 * Construct a new {@link MessageSplitter}, parsing the provided message
-	 * into token strings and generating parsing instructions for parsing
-	 * occurrences of this message.
+	 * into token strings and generating {@linkplain ParsingOperation parsing
+	 * instructions} for parsing occurrences of this message.
 	 *
-	 * @param messageName An Avail {@linkplain StringDescriptor string}
-	 *                    specifying the keywords and arguments of some message
-	 *                    being defined.
+	 * @param messageName
+	 *        An Avail {@linkplain StringDescriptor string} specifying the
+	 *        keywords and arguments of some message being defined.
 	 */
-	public MessageSplitter (final AvailObject messageName)
+	public MessageSplitter (final @NotNull AvailObject messageName)
 	{
 		this.messageName = messageName;
 		messageName.makeImmutable();
@@ -847,11 +840,11 @@ public class MessageSplitter
 		rootGroup = parseGroup();
 		if (rootGroup.hasDagger)
 		{
-			error("Dagger is not allowed outside chevrons");
+			error("Dagger is not allowed outside guillemets");
 		}
 		if (messagePartPosition != messageParts.size() + 1)
 		{
-			error("Imbalanced chevrons in message: "
+			error("Imbalanced guillemets in message: "
 				+ messageName.asNativeString());
 		}
 		// Emit it twice -- once to calculate the branch positions, and then
@@ -859,7 +852,8 @@ public class MessageSplitter
 		for (int i = 1; i <= 2; i++)
 		{
 			instructions.clear();
-			for (final Expression expression : rootGroup.expressionsBeforeDagger)
+			for (final Expression expression
+				: rootGroup.expressionsBeforeDagger)
 			{
 				expression.emitOn(instructions);
 			}
@@ -868,14 +862,14 @@ public class MessageSplitter
 		// dumpForDebug();
 	}
 
-
 	/**
 	 * Dump debugging information about this {@linkplain MessageSplitter} to
 	 * System.out.
 	 */
 	public void dumpForDebug ()
 	{
-		final List<String> partsList = new ArrayList<String>(messageParts.size());
+		final List<String> partsList =
+			new ArrayList<String>(messageParts.size());
 		for (final AvailObject part : messageParts)
 		{
 			partsList.add(part.asNativeString());
@@ -893,7 +887,6 @@ public class MessageSplitter
 			instructionsList.toString());
 	}
 
-
 	/**
 	 * Answer a {@linkplain TupleDescriptor tuple} of Avail {@linkplain
 	 * StringDescriptor strings} comprising this message.
@@ -907,12 +900,12 @@ public class MessageSplitter
 		return tuple;
 	}
 
-
 	/**
 	 * Pretty-print a send of this message with given argument nodes.
 	 *
 	 * @param sendNode
-	 *        The {@linkplain SendNodeDescriptor send node} that is being printed.
+	 *        The {@linkplain SendNodeDescriptor send node} that is being
+	 *        printed.
 	 * @param aStream
 	 *        A {@link StringBuilder} on which to pretty-print the send of my
 	 *        message with the given arguments.
@@ -932,7 +925,6 @@ public class MessageSplitter
 			true);
 	}
 
-
 	/**
 	 * Answer a {@linkplain TupleDescriptor tuple} of Avail {@linkplain
 	 * IntegerDescriptor integers} describing how to parse this message.
@@ -949,13 +941,12 @@ public class MessageSplitter
 		return tuple;
 	}
 
-
 	/**
-	 * Decompose the message name into its constituent token strings.  These
+	 * Decompose the message name into its constituent token strings. These
 	 * can be subsequently parsed to generate the actual parse instructions.
 	 * Do not do any semantic analysis here, not even backquote processing –
 	 * that would lead to confusion over whether an operator was supposed to be
-	 * treated as a special token like open-chevron («) rather than like a
+	 * treated as a special token like open-guillemet («) rather than like a
 	 * backquote-escaped token).
 	 */
 	private void splitMessage ()
@@ -1014,20 +1005,21 @@ public class MessageSplitter
 		}
 	}
 
-
 	/**
-	 * Create a group from the series of tokens describing it.  This is also
-	 * used to construct the outermost sequence of expressions, with the
-	 * restriction that an occurrence of a double-dagger in the outermost
-	 * pseudo-group is an error.  Expect the {@linkplain #messagePartPosition}
-	 * to point (via a one-based offset) to the first token of the group, or
-	 * just past the end if the group is empty.  Leave the messagePartPosition
-	 * pointing just past the last token of the group.
-	 * <p>
-	 * The caller is responsible for identifying and skipping an open chevron
-	 * prior to this group, and for consuming the close chevron after parsing
-	 * the group.  The outermost caller is also responsible for ensuring the
-	 * entire input was exactly consumed.
+	 * Create a {@linkplain Group group} from the series of tokens describing
+	 * it. This is also used to construct the outermost sequence of {@linkplain
+	 * Expression expressions}, with the restriction that an occurrence of a
+	 * {@linkplain StringDescriptor#doubleDagger() double dagger} in the
+	 * outermost pseudo-group is an error. Expect the {@linkplain
+	 * #messagePartPosition} to point (via a one-based offset) to the first
+	 * token of the group, or just past the end if the group is empty. Leave the
+	 * {@code messagePartPosition} pointing just past the last token of the
+	 * group.
+	 *
+	 * <p>The caller is responsible for identifying and skipping an open
+	 * guillemet prior to this group, and for consuming the close guillemet
+	 * after parsing the group. The outermost caller is also responsible for
+	 * ensuring the entire input was exactly consumed.</p>
 	 *
 	 * @return A {@link Group} expression parsed from the {@link #messageParts}.
 	 */
@@ -1041,7 +1033,7 @@ public class MessageSplitter
 				return group;
 			}
 			AvailObject token = messageParts.get(messagePartPosition - 1);
-			if (token.equals(StringDescriptor.closeChevron()))
+			if (token.equals(StringDescriptor.closeGuillemet()))
 			{
 				return group;
 			}
@@ -1064,21 +1056,21 @@ public class MessageSplitter
 				group.hasDagger = true;
 				messagePartPosition++;
 			}
-			else if (token.equals(StringDescriptor.openChevron()))
+			else if (token.equals(StringDescriptor.openGuillemet()))
 			{
-				// Eat the open chevron, parse a subgroup, eat the (mandatory)
-				// close chevron, and add the group.
+				// Eat the open guillemet, parse a subgroup, eat the (mandatory)
+				// close guillemet, and add the group.
 				messagePartPosition++;
 				final Group subgroup = parseGroup();
 				if (messagePartPosition <= messageParts.size())
 				{
 					token = messageParts.get(messagePartPosition - 1);
 				}
-				// Otherwise token stays an open chevron, hence not a close...
-				if (!token.equals(StringDescriptor.closeChevron()))
+				// Otherwise token stays an open guillemet, hence not a close...
+				if (!token.equals(StringDescriptor.closeGuillemet()))
 				{
 					error(
-						"Expected matching close chevron in method name",
+						"Expected matching close guillemet in method name",
 						messageName);
 				}
 				messagePartPosition++;
@@ -1114,13 +1106,13 @@ public class MessageSplitter
 		}
 	}
 
-
 	/**
-	 * Return the number of arguments a {@linkplain MethodImplementationDescriptor method}
-	 * implementing this name would accept.  Note that this is not necessarily
-	 * the number of underscores and ellipses, as a chevron group may contain
-	 * zero or more underscores/ellipses (and other chevron groups) but count as
-	 * one top-level argument.
+	 * Return the number of arguments a {@linkplain
+	 * MethodImplementationDescriptor method} implementing this name would
+	 * accept.  Note that this is not necessarily the number of underscores and
+	 * ellipses, as a guillemet group may contain zero or more
+	 * underscores/ellipses (and other guillemet groups) but count as one
+	 * top-level argument.
 	 *
 	 * @return The number of arguments this message takes.
 	 */
@@ -1129,12 +1121,11 @@ public class MessageSplitter
 		return rootGroup.argumentsBeforeDagger + rootGroup.argumentsAfterDagger;
 	}
 
-
 	/**
 	 * Return the number of underscores/ellipses present in the method name.
 	 * This is not the same as the number of arguments that a method
-	 * implementing this name would accept, as a top-level chevron group with N
-	 * recursively embedded underscores/ellipses is counted as N, not one.
+	 * implementing this name would accept, as a top-level guillemet group with
+	 * N recursively embedded underscores/ellipses is counted as N, not one.
 	 *
 	 * <p>
 	 * This count of underscores/ellipses is essential for expressing negative
@@ -1152,7 +1143,6 @@ public class MessageSplitter
 		return numberOfUnderscores;
 	}
 
-
 	/**
 	 * Answer whether the specified character is an operator character, space,
 	 * underscore, or ellipsis.
@@ -1169,75 +1159,5 @@ public class MessageSplitter
 			|| aCharacter == ' '
 			|| aCharacter == '/'
 			|| AvailScanner.isOperatorCharacter(aCharacter);
-	}
-
-
-	/**
-	 * If the argument is an encoding of a parseKeyword instruction, answer the
-	 * index of the keyword into the message parts, otherwise answer zero.
-	 *
-	 * @param instruction The encoded parsing instruction.
-	 * @return The keyword index or zero.
-	 */
-	public static int keywordIndexFromInstruction (final int instruction)
-	{
-		if (instruction >= 8 && (instruction & 7) == 2)
-		{
-			return instruction >> 3;
-		}
-		return 0;
-	}
-
-
-	/**
-	 * Given an instruction and program counter, answer the list of successor
-	 * program counters that should be explored.  For example, a branch
-	 * instruction will need to visit both the program counter plus one
-	 * <em>and</em> the branch target.
-	 *
-	 * @param instruction The encoded parsing instruction at the specified
-	 *                    program counter.
-	 * @param currentPc The current program counter.
-	 * @return The list of successor program counters.
-	 */
-	public static List<Integer> successorPcs (
-		final int instruction,
-		final int currentPc)
-	{
-		if (instruction >= 8)
-		{
-			if ((instruction & 7) == 0)
-			{
-				// Branch -- return the next pc *and* the branch target.
-				return Arrays.asList(instruction >> 3, currentPc + 1);
-			}
-			if ((instruction & 7) == 1)
-			{
-				return Collections.singletonList(instruction >> 3);
-			}
-		}
-		return Collections.singletonList(currentPc + 1);
-	}
-
-
-	/**
-	 * If the instruction is a checkArgument then answer which argument position
-	 * is to be checked.  This is the 1-based {@linkplain
-	 * Argument#absoluteUnderscoreIndex absolute underscore index}, which
-	 * corresponds with the grammatical restrictions.  Answer zero if the
-	 * argument is not a checkArgument.
-	 *
-	 * @param instruction
-	 *            The instruction to decode.
-	 * @return The argument position to check, or zero if it's not a
-	 *         checkArgument instruction.
-	 */
-	public static int checkArgumentIndex (final int instruction)
-	{
-		if (instruction >= 8 && ((instruction & 7) == 3))
-		{
-			return instruction >> 3;
-		}
-		return 0;
 	}
 }

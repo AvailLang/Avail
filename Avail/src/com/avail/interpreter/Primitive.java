@@ -5799,7 +5799,7 @@ implements IntegerEnumSlotDescriptionEnum
 	 * messages to exclude for each argument position. Note that the tuple's
 	 * elements should correspond with occurrences of underscore in the method
 	 * names, *not* with the (top-level) arguments of the method. This
-	 * distinction is only apparent when chevron notation is used to accept
+	 * distinction is only apparent when guillemet notation is used to accept
 	 * tuples of arguments.
 	 */
 	prim255_GrammaticalRestriction(255, 2, Unknown)

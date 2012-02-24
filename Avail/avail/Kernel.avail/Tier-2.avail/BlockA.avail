@@ -80,7 +80,7 @@ Restriction "_apply_" is [functionT : functionType, argsT : tupleType |
 ];
 
 /**
- * Block evaluation with a (chevron-group) tuple of arguments...
+ * Block evaluation with a (guillemet-group) tuple of arguments...
  */
 Method "_(«_‡,»)" is [block : [...]->void, args : tuple |
 	block apply args;

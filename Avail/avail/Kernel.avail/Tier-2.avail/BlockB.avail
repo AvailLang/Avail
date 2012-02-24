@@ -43,7 +43,7 @@ Names
 Body
 
 Restriction "_(«_‡,»)" is [blkType : functionType, argsType : tupleType |
-	/* The arguments are a chevron group, so the exact count is known at the
+	/* The arguments are a guillemet group, so the exact count is known at the
 	 * call site.
 	 */
 	size ::= argsType sizes lower bound;

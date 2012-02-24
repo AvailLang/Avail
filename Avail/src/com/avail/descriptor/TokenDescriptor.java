@@ -115,8 +115,9 @@ extends Descriptor
 		KEYWORD,
 
 		/**
-		 * A literal token, detected at lexical scanning time.  At the moment
-		 * this includes non-negative numeric tokens and strings.
+		 * A literal token, detected at lexical scanning time. At the moment
+		 * this includes non-negative numeric tokens and strings. Only
+		 * applicable for a {@link LiteralTokenDescriptor}.
 		 */
 		LITERAL,
 
@@ -125,7 +126,13 @@ extends Descriptor
 		 * a keyword character, or an Avail reserved character such as
 		 * semicolon.
 		 */
-		OPERATOR;
+		OPERATOR,
+
+		/**
+		 * A synthetic literal token. Such a token does not occur in the source
+		 * text. Only applicable for a {@link LiteralTokenDescriptor}.
+		 */
+		SYNTHETIC_LITERAL;
 	}
 
 
