@@ -106,3 +106,70 @@ Assert dog cat cat = "dcc";
 Assert dog cat dog = "dcd";
 Assert dog dog cat = "ddc";
 Assert dog dog dog = "ddd";
+
+Method "«very»#good" is
+[
+	count : whole number
+|
+	count;
+];
+
+Assert good = 0;
+Assert very good = 1;
+Assert very very good = 2;
+Assert very very very good = 3;
+
+Method "«very‡,»#bad" is
+[
+	count : [3..5]
+|
+	count;
+];
+
+Assert very, very, very bad = 3;
+Assert very, very, very, very bad = 4;
+Assert very, very, very, very, very bad = 5;
+
+Method "«extremely»?plaid" is
+[
+	extremely : boolean
+|
+	extremely;
+];
+
+Assert plaid = false;
+Assert extremely plaid = true;
+
+_token ::= Special Object 115;
+_literalToken ::= Special Object 116;
+
+Method "token" is [ _token; ];
+Method "literal token" is [ _literalToken; ];
+Method "_'s lexeme" is [ aToken : token | Primitive 356; ] : string;
+
+Method "I««really»?like to»eat…«very»#much" is
+[
+	really : tuple of boolean,
+	subject : token,
+	very : natural number
+|
+	reallyText ::= if ||really|| = 0
+		then [ ""; ]
+		else [
+			(if really[1] then [ "really "; ] else [ ""; ]) then "like to "; ];
+	veryText : string := "";
+	From 1 to very do [ i : whole number |
+		veryText := veryText then "very "; ];
+	"I "
+		then reallyText
+		then "eat "
+		then subject's lexeme
+		then " "
+		then veryText
+		then "much";
+] : string;
+
+Assert I eat bacon very much = "I eat bacon very much";
+Assert I like to eat tires very much = "I like to eat tires very much";
+Assert I really like to eat perfume very very very much =
+	"I really like to eat perfume very very very much";

@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.02.22 22:49:58.404 -0600
+ * * Last Generated On: 2012.02.24 13:08:53.200 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -56,7 +56,6 @@ Uses
 		"Restart_",
 		"Restart_with_",
 		"Semantic restriction_is_",
-		"_#_:_(literals=_,#locals_,#outers_,stack depth=_)",
 		"_+_",
 		"_-_",
 		"_._→variable",
@@ -65,6 +64,7 @@ Uses
 		"_[_]",
 		"_[_]:=_",
 		"_[_]→_",
+		"_`#_:_(literals=_,`#locals_,`#outers_,stack depth=_)",
 		"_mod_",
 		"_×_",
 		"_÷_",
@@ -645,7 +645,7 @@ Method "∪_[_.._]" is
  * Returns:
  *    The requested function implementation.
  */
-Method "_#_:_(literals=_,#locals_,#outers_,stack depth=_)" is
+Method "_`#_:_(literals=_,`#locals_,`#outers_,stack depth=_)" is
 [
 	nybblecodes : tuple of nybble,
 	primitiveNumber : unsigned short,

@@ -2310,7 +2310,9 @@ public abstract class AbstractAvailCompiler
 	 *            What to do after parsing the raw token.  This continuation
 	 *            should expect a token, not a parse node.
 	 */
-	protected void parseRawTokenThen (final ParserState start, final Con<AvailObject> continuation)
+	protected void parseRawTokenThen (
+		final @NotNull ParserState start,
+		final @NotNull Con<AvailObject> continuation)
 	{
 		final AvailObject token = start.peekToken();
 		if (token.tokenType() == KEYWORD || token.tokenType() == OPERATOR)

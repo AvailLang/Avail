@@ -33,10 +33,10 @@
 package com.avail.test;
 
 import java.util.*;
+import static junit.framework.Assert.*;
 import org.junit.*;
 import com.avail.compiler.*;
 import com.avail.descriptor.*;
-
 
 /**
  * Test the {@link MessageSplitter}.  It splits method names into a sequence of
@@ -78,11 +78,11 @@ public class MessageSplitterTest
 		{"||_||", "|", "|", "_", "|", "|", "[10, 18, 0, 11, 34, 42]"},
 		{"_+_*_", "_", "+", "_", "*", "_", "[0, 11, 18, 0, 19, 34, 0, 27]"},
 		{"_;", "_", ";", "[0, 11, 18]"},
-		/* Backquotes */
+		/* Backquotes. */
 		{"`__", "`", "_", "_", "[18, 0, 11]"},
 		{"_`«_", "_", "`", "«", "_", "[0, 11, 26, 0, 19]"},
 		{"_``_", "_", "`", "`", "_", "[0, 11, 26, 0, 19]"},
-		/* Repeated groups */
+		/* Repeated groups. */
 		{"«_;»", "«", "_", ";", "»",
 			"[3, 1, 96, 0, 11, 26, 2, 88, 5, 33, 5, 4]"},
 		{"«x»", "«", "x", "»",
@@ -97,7 +97,7 @@ public class MessageSplitterTest
 			"[3, 1, 88, 1, 72, 2, 5, 33, 2, 5, 4]"},
 		{"«»«»", "«", "»", "«", "»",
 			"[3, 1, 88, 1, 72, 2, 5, 33, 2, 5, 4, 3, 1, 176, 1, 160, 2, 5, 121, 2, 5, 4]"},
-		/* With dagger */
+		/* Repeated groups with double dagger. */
 		{"«_‡,»", "«", "_", "‡", ",", "»",
 			"[3, 1, 96, 0, 11, 2, 88, 34, 5, 33, 5, 4]"},
 		{"«‡»", "«", "‡", "»",
@@ -105,6 +105,35 @@ public class MessageSplitterTest
 		{"new_«with«_=_‡,»»",
 			"new", "_", "«", "with", "«", "_", "=", "_", "‡", ",", "»", "»",
 			"[10, 0, 11, 3, 1, 256, 34, 3, 1, 208, 1, 0, 19, 2, 58, 0, 27, 2, 192, 82, 2, 5, 89, 2, 5, 4, 2, 248, 5, 57, 5, 4]"},
+		/* Counting groups. */
+		{"«x»#", "«", "x", "»", "#",
+			"[3, 1, 88, 1, 18, 2, 80, 5, 33, 5, 4, 12]"},
+		{"«x y»#", "«", "x", "y", "»", "#",
+			"[3, 1, 96, 1, 18, 26, 2, 88, 5, 33, 5, 4, 12]"},
+		{"«»#", "«", "»", "#",
+			"[3, 1, 80, 1, 2, 72, 5, 33, 5, 4, 12]"},
+		{"«»#«»#", "«", "»", "#", "«", "»", "#",
+			"[3, 1, 80, 1, 2, 72, 5, 33, 5, 4, 12, 3, 1, 168, 1, 2, 160, 5, 121, 5, 4, 12]"},
+		/* Counting groups with double dagger. */
+		{"«‡»#", "«", "‡", "»", "#",
+			"[3, 1, 80, 1, 2, 72, 5, 33, 5, 4, 12]"},
+		{"«fish‡»#", "«", "fish", "‡", "»", "#",
+			"[3, 1, 88, 1, 18, 2, 80, 5, 33, 5, 4, 12]"},
+		{"«‡face»#", "«", "‡", "face", "»", "#",
+			"[3, 1, 88, 1, 2, 80, 26, 5, 33, 5, 4, 12]"},
+		{"«fish‡face»#", "«", "fish", "‡", "face", "»", "#",
+			"[3, 1, 96, 1, 18, 2, 88, 34, 5, 33, 5, 4, 12]"},
+		{"««fish‡face»#»", "«", "«", "fish", "‡", "face", "»", "#", "»",
+			"[3, 1, 176, 3, 1, 120, 1, 26, 2, 112, 42, 5, 57, 5, 4, 12, 2, 168, 5, 33, 5, 4]"},
+		/* Optional groups. */
+		{"«x»?", "«", "x", "»", "?",
+			"[3, 1, 64, 1, 18, 2, 5, 4, 20]"},
+		{"«x y»?", "«", "x", "y", "»", "?",
+			"[3, 1, 72, 1, 18, 26, 2, 5, 4, 20]"},
+		{"«»?", "«", "»", "?",
+			"[3, 1, 56, 1, 2, 5, 4, 20]"},
+		{"««bagel»#«friend»?»", "«", "«", "bagel", "»", "#", "«", "friend", "»", "?", "»",
+			"[3, 1, 272, 1, 3, 1, 120, 1, 26, 2, 112, 5, 65, 5, 4, 12, 2, 3, 1, 200, 1, 58, 2, 5, 4, 20, 2, 256, 2, 5, 33, 2, 5, 4]"}
 	};
 
 	/**
@@ -122,7 +151,10 @@ public class MessageSplitterTest
 			assert splitCase.length == parts.tupleSize() + 2;
 			for (int i = 1; i <= parts.tupleSize(); i++)
 			{
-				assert parts.tupleAt(i).asNativeString().equals(splitCase[i]);
+				assertEquals(
+					"Split was not as expected: " + msgString,
+					splitCase[i],
+					parts.tupleAt(i).asNativeString());
 			}
 			final AvailObject instructionsTuple = splitter.instructionsTuple();
 			final List<Integer> instructionsList = new ArrayList<Integer>();
@@ -130,9 +162,10 @@ public class MessageSplitterTest
 			{
 				instructionsList.add(instruction.extractInt());
 			}
-			assert instructionsList.toString()
-				.equals(splitCase[splitCase.length - 1])
-			: "Generated parse code was not as expected";
+			assertEquals(
+				"Generated parse code was not as expected: " + msgString,
+				splitCase[splitCase.length - 1],
+				instructionsList.toString());
 		}
 	}
 }

@@ -6885,8 +6885,6 @@ implements IntegerEnumSlotDescriptionEnum
 	 * node type of the same {@linkplain
 	 * com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind kind} but with
 	 * the specified expression type.
-	 *
-	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
 	 */
 	prim355_CreateParseNodeType(355, 2, CanFold, CannotFail)
 	{
@@ -6914,6 +6912,114 @@ implements IntegerEnumSlotDescriptionEnum
 					InstanceTypeDescriptor.on(PARSE_NODE.mostGeneralType()),
 					TYPE.o()),
 				InstanceTypeDescriptor.on(PARSE_NODE.mostGeneralType()));
+		}
+	},
+
+	/**
+	 * <strong>Primitive 356:</strong> Get the lexeme associated with the
+	 * specified {@linkplain TokenDescriptor token}.
+	 */
+	prim356_TokenLexeme(356, 1, CanFold, CannotFail)
+	{
+		@Override
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
+		{
+			assert args.size() == 1;
+			final AvailObject token = args.get(0);
+			return interpreter.primitiveSuccess(token.string());
+		}
+
+		@Override
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
+		{
+			return FunctionTypeDescriptor.create(
+				TupleDescriptor.from(
+					TOKEN.o()),
+				TupleTypeDescriptor.stringTupleType());
+		}
+	},
+
+	/**
+	 * <strong>Primitive 357:</strong> Get the specified {@linkplain
+	 * TokenDescriptor token}'s zero-based start position within the source
+	 * module that supplied it.
+	 */
+	prim357_TokenStart(357, 1, CanFold, CannotFail)
+	{
+		@Override
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
+		{
+			assert args.size() == 1;
+			final AvailObject token = args.get(0);
+			return interpreter.primitiveSuccess(
+				IntegerDescriptor.fromInt(token.start()));
+		}
+
+		@Override
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
+		{
+			return FunctionTypeDescriptor.create(
+				TupleDescriptor.from(
+					TOKEN.o()),
+				IntegerRangeTypeDescriptor.naturalNumbers());
+		}
+	},
+
+	/**
+	 * <strong>Primitive 358:</strong> Get the specified {@linkplain
+	 * TokenDescriptor token}'s one-based line number within the source module
+	 * that supplied it.
+	 */
+	prim358_TokenLineNumber(358, 1, CanFold, CannotFail)
+	{
+		@Override
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
+		{
+			assert args.size() == 1;
+			final AvailObject token = args.get(0);
+			return interpreter.primitiveSuccess(
+				IntegerDescriptor.fromInt(token.lineNumber()));
+		}
+
+		@Override
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
+		{
+			return FunctionTypeDescriptor.create(
+				TupleDescriptor.from(
+					TOKEN.o()),
+				IntegerRangeTypeDescriptor.naturalNumbers());
+		}
+	},
+
+	/**
+	 * <strong>Primitive 359:</strong> Get the specified {@linkplain
+	 * LiteralTokenDescriptor literal token}'s literal value.
+	 */
+	prim359_LiteralTokenValue(359, 1, CanFold, CannotFail)
+	{
+		@Override
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
+		{
+			assert args.size() == 1;
+			final AvailObject literalToken = args.get(0);
+			return interpreter.primitiveSuccess(literalToken.literal());
+		}
+
+		@Override
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
+		{
+			return FunctionTypeDescriptor.create(
+				TupleDescriptor.from(
+					LITERAL_TOKEN.o()),
+				ANY.o());
 		}
 	},
 

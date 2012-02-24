@@ -123,7 +123,8 @@ extends ParseNodeDescriptor
 	AvailObject o_ExpressionType (final AvailObject object)
 	{
 		final AvailObject token = object.token();
-		assert token.tokenType() == TokenType.LITERAL;
+		assert token.tokenType() == TokenType.LITERAL
+			|| token.tokenType() == TokenType.SYNTHETIC_LITERAL;
 		final AvailObject literal = token.literal();
 		return InstanceTypeDescriptor.on(literal).makeImmutable();
 	}

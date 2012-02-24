@@ -46,7 +46,7 @@ Names
 	"_functionType",
 	"_literals",
 	"_primitive",
-	"_#_:_(literals=_,#locals_,#outers_,stack depth=_)"
+	"_`#_:_(literals=_,`#locals_,`#outers_,stack depth=_)"
 Body
 
 
@@ -86,7 +86,7 @@ Method "_literals" is [cc : compiledCode |
 
 /* Construction... */
 
-Method "_#_:_(literals=_,#locals_,#outers_,stack depth=_)" is [
+Method "_`#_:_(literals=_,`#locals_,`#outers_,stack depth=_)" is [
 		nybbles : tuple of [0..15],
 		prim : [0..65535],
 		functionType : functionType,

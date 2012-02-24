@@ -62,7 +62,7 @@ Names
 	"_hex",
 	"code point_",
 	"code point of_",
-	"#_",
+	"`#_",
 	"$_",
 	"<«_‡,»`…|_.._>",
 	"first index of_where_",
@@ -615,7 +615,7 @@ Method "$_" is [str : tuple [1..1] of character |
 	str [1];
 ] : character;
 
-Method "#_" is [str : tuple [1..1] of character |
+Method "`#_" is [str : tuple [1..1] of character |
 	code point of str [1];
 ] : character code points;
 

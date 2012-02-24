@@ -128,7 +128,7 @@ Method "_privateUpperBound" is [range : integerType |
 ] : extended integer;
 
 /* Here's the implementation of the conditional downcast */
-Method "Private*_?:=_" is [var : container, arg : any |
+Method "Private*_`?:=_" is [var : container, arg : any |
 	Primitive 11 (failureCode : natural number);
 	Failed;
 ] : void;

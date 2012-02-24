@@ -32,6 +32,7 @@
 
 package com.avail.compiler;
 
+import static com.avail.compiler.ParsingConversionRule.*;
 import java.util.*;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
@@ -78,8 +79,8 @@ public enum ParsingOperation
 	/**
 	 * {@code 2} - Pop an argument from the parse stack of the current
 	 * potential message send. Pop a {@linkplain TupleNodeDescriptor list} from
-	 * the parse stack. Append the argument to the tuple node. Push the
-	 * resultant list onto the parse stack.
+	 * the parse stack. Append the argument to the list. Push the resultant list
+	 * onto the parse stack.
 	 */
 	appendArgument(2)
 	{
@@ -231,17 +232,7 @@ public enum ParsingOperation
 
 	/**
 	 * {@code 8*N+4} - Pop an argument from the parse stack and apply the
-	 * conversion rule specified by N:
-	 *
-	 * <ul>
-	 * <li>1 - Convert a {@linkplain TupleNodeDescriptor list} into an
-	 * {@linkplain IntegerDescriptor integer} representing its {@linkplain
-	 * AvailObject#tupleSize() size}.</li>
-	 * <li>2 - Convert a list into a {@linkplain
-	 * EnumerationTypeDescriptor#booleanObject() boolean}: {@link
-	 * AtomDescriptor#trueObject() true} if the list was nonempty, {@link
-	 * AtomDescriptor#falseObject() false} otherwise.</li>
-	 * </ul>
+	 * {@linkplain ParsingConversionRule conversion rule} specified by N.
 	 */
 	convert(4)
 	{
@@ -252,9 +243,10 @@ public enum ParsingOperation
 		}
 
 		@Override
-		public int conversionSpecifier (final int instruction)
+		public @NotNull ParsingConversionRule conversionRule (
+			final int instruction)
 		{
-			return operand(instruction);
+			return ruleNumber(operand(instruction));
 		}
 	};
 
@@ -355,15 +347,15 @@ public enum ParsingOperation
 
 	/**
 	 * Assume that the instruction encodes an operand that represents an
-	 * argument conversion to be performed: answer the operand.
+	 * argument {@linkplain ParsingConversionRule conversion rule} to be
+	 * performed: answer the operand.
 	 *
 	 * @param instruction A coded instruction.
-	 * @return The conversion argument, or {@code 0} if the assumption was
-	 *         false.
+	 * @return The conversion rule, or {@code 0} if the assumption was false.
 	 */
-	public int conversionSpecifier (final int instruction)
+	public @NotNull ParsingConversionRule conversionRule (final int instruction)
 	{
-		return 0;
+		return noConversion;
 	}
 
 	/**

@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.02.22 22:49:58.331 -0600
+ * * Last Generated On: 2012.02.24 13:08:53.125 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -83,6 +83,7 @@ Names
 	/*  63 */ "label",
 	/*  59 */ "list",
 	/*  55 */ "literal",
+	/* 116 */ "literal token",
 	/*  65 */ "local constant",
 	/*  64 */ "local variable",
 	/* 109 */ "macro function",
@@ -127,6 +128,7 @@ Names
 	/*  41 */ "signature",
 	/*  28 */ "string",
 	/*  58 */ "super cast",
+	/* 115 */ "token",
 	/*  70 */ "true",
 	/*  31 */ "true type",
 	/*  32 */ "tuple",
@@ -265,6 +267,8 @@ _Euler_number                           ::= special object 111;
 _type_of_Euler_number                   ::= special object 112;
 _phrase_meta                            ::= special object 113;
 _set_of_atom                            ::= special object 114;
+_token                                  ::= special object 115;
+_literal_token                          ::= special object 116;
 
 Method "any" is
 [
@@ -817,5 +821,15 @@ Method "phrase meta" is
 Method "set of atom" is
 [
 	_set_of_atom;
+];
+
+Method "token" is
+[
+	_token;
+];
+
+Method "literal token" is
+[
+	_literal_token;
 ];
 

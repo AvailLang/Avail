@@ -49,7 +49,7 @@ Names
 	"_keyType",
 	"_valueType",
 	"||_||",
-	"_[_]?",
+	"_[_]`?",
 	"_[_->_]",
 	"_[_->nil]",
 	"*_[_]:=_",
@@ -125,11 +125,11 @@ Method "_∈_keys" is [k : any, m : map |
 	Primitive 81;
 ] : boolean;	
 
-Method "_[_]?" is [m : map, k : any |
+Method "_[_]`?" is [m : map, k : any |
 	k ∈ m keys;
 ] : boolean;
 
-Restriction "_[_]?" is [mt : mapType, kt : type |
+Restriction "_[_]`?" is [mt : mapType, kt : type |
 	if type intersection of mt keyType and kt = terminates | [mt sizes upper bound = 0;] then [
 		/* No value of the k argument could ever be in the map. */
 		falseType;

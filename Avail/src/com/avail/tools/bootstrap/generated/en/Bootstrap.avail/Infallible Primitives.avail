@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.02.22 22:49:58.367 -0600
+ * * Last Generated On: 2012.02.24 13:21:04.457 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -68,6 +68,8 @@ Uses
 		"_'s key type",
 		"_'s keys",
 		"_'s leading types",
+		"_'s lexeme",
+		"_'s line number",
 		"_'s literals",
 		"_'s lower bound",
 		"_'s maximum stack depth",
@@ -84,8 +86,10 @@ Uses
 		"_'s semantic type",
 		"_'s stack",
 		"_'s stack pointer",
+		"_'s starting position",
 		"_'s type",
 		"_'s upper bound",
+		"_'s value",
 		"_'s value type",
 		"_'s values",
 		"_'s write type",
@@ -2102,6 +2106,69 @@ Method "_→_" is
 |
 	Primitive 355;
 ] : phrase meta;
+
+/**
+ * Answer the lexeme of the specified token. This is the source text that
+ * produced the token.
+ *
+ * Parameters:
+ *    aToken - A token.
+ * Returns:
+ *    The source text of `aToken`.
+ */
+Method "_'s lexeme" is
+[
+	aToken : token
+|
+	Primitive 356;
+] : string;
+
+/**
+ * Answer the zero-based starting position of the specified token within the
+ * module that supplied it.
+ *
+ * Parameters:
+ *    aToken - A token.
+ * Returns:
+ *    The zero-based starting position of `aToken`.
+ */
+Method "_'s starting position" is
+[
+	aToken : token
+|
+	Primitive 357;
+] : natural number;
+
+/**
+ * Answer the one-based line number of the specified token within the module
+ * that supplied it.
+ *
+ * Parameters:
+ *    aToken - A token.
+ * Returns:
+ *    The one-based line number of `aToken`.
+ */
+Method "_'s line number" is
+[
+	aToken : token
+|
+	Primitive 358;
+] : natural number;
+
+/**
+ * Answer the literal value associated with the specified token.
+ *
+ * Parameters:
+ *    aLiteralToken - A literal token.
+ * Returns:
+ *    The literal value produced by `aLiteralToken`.
+ */
+Method "_'s value" is
+[
+	aLiteralToken : literal token
+|
+	Primitive 359;
+] : any;
 
 /**
  * Construct and answer a pojo array type whose element type is `elementType`

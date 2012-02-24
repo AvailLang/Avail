@@ -35,7 +35,7 @@ Extends
 Uses
 	"Tier-0"
 Names
-	"*_?:=_",
+	"*_`?:=_",
 	"&:_",
 	"_readType",
 	"_writeType",
@@ -44,7 +44,7 @@ Body
 
 
 /* Here's the implementation of the conditional downcast */
-Method "*_?:=_" is [var : container, arg : any |
+Method "*_`?:=_" is [var : container, arg : any |
 	Primitive 11 (failureCode : natural number);
 	Failed;
 ] : void;

@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.02.22 22:49:58.364 -0600
+ * * Last Generated On: 2012.02.24 13:08:53.156 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -63,7 +63,6 @@ Names
 	"Semantic restriction_is_",
 	"Terminate:_",
 	"[`…]→_",
-	"_#_:_(literals=_,#locals_,#outers_,stack depth=_)",
 	"_'s arity",
 	"_'s bindings",
 	"_'s caller",
@@ -76,6 +75,8 @@ Names
 	"_'s key type",
 	"_'s keys",
 	"_'s leading types",
+	"_'s lexeme",
+	"_'s line number",
 	"_'s literals",
 	"_'s lower bound",
 	"_'s maximum stack depth",
@@ -92,8 +93,10 @@ Names
 	"_'s semantic type",
 	"_'s stack",
 	"_'s stack pointer",
+	"_'s starting position",
 	"_'s type",
 	"_'s upper bound",
+	"_'s value",
 	"_'s value type",
 	"_'s values",
 	"_'s write type",
@@ -110,6 +113,7 @@ Names
 	"_[_]→_",
 	"_\\_",
 	"_^_",
+	"_`#_:_(literals=_,`#locals_,`#outers_,stack depth=_)",
 	"_is a primitive",
 	"_is unassigned",
 	"_mod_",

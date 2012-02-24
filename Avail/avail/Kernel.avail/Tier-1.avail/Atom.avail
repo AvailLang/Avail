@@ -38,7 +38,7 @@ Uses
 Names
 	"new atom_",
 	"_name",
-	"_property[_]?",
+	"_property[_]`?",
 	"_property[_]",
 	"_property[_]:=_",
 	"_property[_]:=nil"
@@ -53,7 +53,7 @@ Method "_name" is [a : atom |
 	Primitive 121;
 ] : string;
 
-Method "_property[_]?" is [
+Method "_property[_]`?" is [
 		a : atom,
 		propertyKey : atom |
 	Primitive 122 (failureCode : natural number);

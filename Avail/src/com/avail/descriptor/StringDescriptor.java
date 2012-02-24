@@ -48,7 +48,6 @@ import com.avail.utility.Generator;
 public abstract class StringDescriptor
 extends TupleDescriptor
 {
-
 	@Override
 	@AvailMethod @ThreadSafe
 	@NotNull SerializerOperation o_SerializerOperation (
@@ -163,6 +162,38 @@ extends TupleDescriptor
 	}
 
 	/**
+	 * A tuple containing just the octothorp character.
+	 */
+	static AvailObject octothorp;
+
+	/**
+	 * Return an Avail {@linkplain StringDescriptor string} of size one,
+	 * consisting of just the octothorp character ("#").
+	 *
+	 * @return A tuple containing just the octothorp character.
+	 */
+	public static AvailObject octothorp ()
+	{
+		return octothorp;
+	}
+
+	/**
+	 * A tuple containing just the question mark character.
+	 */
+	static AvailObject questionMark;
+
+	/**
+	 * Return an Avail {@linkplain StringDescriptor string} of size one,
+	 * consisting of just the question mark character ("?").
+	 *
+	 * @return A tuple containing just the question mark character.
+	 */
+	public static AvailObject questionMark ()
+	{
+		return questionMark;
+	}
+
+	/**
 	 * Create any instances statically well-known to the {@linkplain
 	 * AvailRuntime Avail runtime system}.
 	 */
@@ -174,6 +205,8 @@ extends TupleDescriptor
 		doubleDagger = StringDescriptor.from("‡").makeImmutable();
 		backQuote = StringDescriptor.from("`").makeImmutable();
 		ellipsis = StringDescriptor.from("…").makeImmutable();
+		octothorp = StringDescriptor.from("#").makeImmutable();
+		questionMark = StringDescriptor.from("?").makeImmutable();
 	}
 
 	/**
@@ -188,6 +221,8 @@ extends TupleDescriptor
 		doubleDagger = null;
 		backQuote = null;
 		ellipsis = null;
+		octothorp = null;
+		questionMark = null;
 	}
 
 	/**

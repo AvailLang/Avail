@@ -33,6 +33,7 @@
 package com.avail.compiler;
 
 import static com.avail.compiler.ParsingOperation.*;
+import static com.avail.compiler.ParsingConversionRule.*;
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import java.util.*;
@@ -62,10 +63,13 @@ public class MessageSplitter
 	 * StringDescriptor#openGuillemet() Open guillemet} («), {@linkplain
 	 * StringDescriptor#doubleDagger() double dagger} (‡), and {@linkplain
 	 * StringDescriptor#closeGuillemet() close guillemet} (») are used to
-	 * indicate repeated/optional substructures. The {@linkplain
-	 * StringDescriptor#backQuote()} backquote (`) can precede any operator
-	 * character, like guillemets and double dagger, to ensure it is not used in
-	 * a special way. A backquote may also escape another backquote.
+	 * indicate repeated substructures. The characters {@linkplain
+	 * StringDescriptor#octothorp() octothorp} (#) and {@linkplain
+	 * StringDescriptor#questionMark() question mark} (?) modify the output of
+	 * repeated substructures. The {@linkplain StringDescriptor#backQuote()}
+	 * backquote (`) can precede any operator character, like guillemets and
+	 * double dagger, to ensure it is not used in a special way. A backquote
+	 * may also escape another backquote.
 	 */
 	final @NotNull List<AvailObject> messageParts =
 		new ArrayList<AvailObject>(10);
@@ -403,9 +407,7 @@ public class MessageSplitter
 		 * The one-based position in the instruction stream to branch to from
 		 * the dagger's position within the loop for this group. Depending on
 		 * the number of arguments and subgroups specified within this group,
-		 * this may or may not equal {@link #loopSkip}. If not equal, the only
-		 * intervening instruction will be an append to add the final partial
-		 * group to the list.
+		 * this may or may not equal {@link #loopSkip}.
 		 */
 		int loopExit = -1;
 
@@ -481,7 +483,7 @@ public class MessageSplitter
 				 * expressions rather than a list of fixed-length lists of
 				 * expressions.  The generated instructions should look like:
 				 *
-				 * **push current parse position
+				 * push current parse position
 				 * push empty list
 				 * branch to @loopSkip
 				 * @loopStart:
@@ -490,12 +492,12 @@ public class MessageSplitter
 				 * branch to @loopExit (even if no dagger)
 				 * ...Stuff after dagger, nothing if dagger is omitted.  Must
 				 * ...follow argument or subgroup with "append" instruction.
-				 * ** check progress and update saved position, or abort.
+				 * check progress and update saved position, or abort.
 				 * jump to @loopStart
 				 * @loopExit:
-				 * ** check progress and update saved position, or abort.
+				 * check progress and update saved position, or abort.
 				 * @loopSkip:
-				 * **under-pop parse position (remove 2nd from top of stack)
+				 * under-pop parse position (remove 2nd from top of stack)
 				 */
 				list.add(saveParsePosition.encoding());
 				list.add(newList.encoding());
@@ -528,7 +530,7 @@ public class MessageSplitter
 				 * group, and the backward jump should be preceded by an append
 				 * to capture a solution.  Here's the code:
 				 *
-				 * **push current parse position
+				 * push current parse position
 				 * push empty list (the list of solutions)
 				 * branch to @loopSkip
 				 * @loopStart:
@@ -539,13 +541,13 @@ public class MessageSplitter
 				 * ...Stuff after dagger, nothing if dagger is omitted.  Must
 				 * ...follow argument or subgroup with "append" instruction.
 				 * append  (add complete solution)
-				 * ** check progress and update saved position, or abort.
+				 * check progress and update saved position, or abort.
 				 * jump @loopStart
 				 * @loopExit:
 				 * append  (add partial solution up to dagger)
-				 * ** check progress and update saved position, or abort.
+				 * check progress and update saved position, or abort.
 				 * @loopSkip:
-				 * **under-pop parse position (remove 2nd from top of stack)
+				 * under-pop parse position (remove 2nd from top of stack)
 				 */
 				list.add(saveParsePosition.encoding());
 				list.add(newList.encoding());
@@ -795,10 +797,9 @@ public class MessageSplitter
 						new ArrayList<AvailObject>(),
 						indent);
 				}
-				else
+				else if (expr instanceof Group)
 				{
-					assert expr instanceof Group;
-					final Group subgroup = (Group)expr;
+					final Group subgroup = (Group) expr;
 					final AvailObject argument = argumentsIterator.next();
 					final AvailObject occurrences = argument.expressionsTuple();
 					for (int i = 1; i <= occurrences.tupleSize(); i++)
@@ -815,10 +816,269 @@ public class MessageSplitter
 							subgroup.needsDoubleWrapping());
 					}
 				}
+				else if (expr instanceof Counter)
+				{
+					final AvailObject argument = argumentsIterator.next();
+					argument.printOnAvoidingIndent(
+						aStream,
+						new ArrayList<AvailObject>(),
+						indent);
+				}
+				else
+				{
+					assert expr instanceof Optional;
+					final AvailObject argument = argumentsIterator.next();
+					argument.printOnAvoidingIndent(
+						aStream,
+						new ArrayList<AvailObject>(),
+						indent);
+				}
 				isFirst = false;
 			}
 			assert !argumentsIterator.hasNext();
 			aStream.append("»");
+		}
+	}
+
+	/**
+	 * A {@code Counter} is a special subgroup (i.e., not a root group)
+	 * indicated by an {@linkplain StringDescriptor#octothorp() octothorp}
+	 * following a {@linkplain Group group}. It may not contain {@linkplain
+	 * Argument arguments} or subgroups, though it may contain a {@linkplain
+	 * StringDescriptor#doubleDagger() double dagger}.
+	 *
+	 * <p>When a double dagger appears in a counter, the counter produces a
+	 * {@linkplain IntegerRangeTypeDescriptor#wholeNumbers() whole number} that
+	 * indicates the number of occurrences of the subexpression to the left of
+	 * the double dagger. The message "«very‡,»# good" accepts a single
+	 * argument: the count of occurrences of "very".</p>
+	 *
+	 * <p>When no double dagger appears in a counter, then the counter produces
+	 * a whole number that indicates the number of occurrences of the entire
+	 * group. The message "«very»#good" accepts a single argument: the count of
+	 * occurrences of "very".</p>
+	 */
+	final class Counter
+	extends Expression
+	{
+		/** The {@linkplain Group group} whose occurrences should be counted. */
+		final @NotNull Group group;
+
+		/**
+		 * The one-based position in the instruction stream to branch to in
+		 * order to parse zero occurrences of this group. Set during the first
+		 * pass of code generation.
+		 */
+		int loopSkip = -1;
+
+		/**
+		 * The one-based position in the instruction stream to branch to from
+		 * the dagger's position within the loop for this group. Depending on
+		 * the number of arguments and subgroups specified within this group,
+		 * this may or may not equal {@link #loopSkip}.
+		 */
+		int loopExit = -1;
+
+		/**
+		 * Construct a new {@link Counter}.
+		 *
+		 * @param group
+		 *        The {@linkplain Group group} whose occurrences should be
+		 *        counted.
+		 */
+		Counter (final @NotNull Group group)
+		{
+			this.group = group;
+		}
+
+		@Override
+		void emitOn (final @NotNull List<Integer> list)
+		{
+			/* push current parse position
+			 * push empty list
+			 * branch to @loopSkip
+			 * @loopStart:
+			 * push empty list (represents group presence)
+			 * ...Stuff before dagger.
+			 * append (add solution)
+			 * branch to @loopExit (even if no dagger)
+			 * ...Stuff after dagger, nothing if dagger is omitted.  Must
+			 * ...follow argument or subgroup with "append" instruction.
+			 * check progress and update saved position, or abort.
+			 * jump to @loopStart
+			 * @loopExit:
+			 * check progress and update saved position, or abort.
+			 * @loopSkip:
+			 * under-pop parse position (remove 2nd from top of stack)
+			 */
+			list.add(saveParsePosition.encoding());
+			list.add(newList.encoding());
+			list.add(branch.encodingForOperand(loopSkip));
+			final int loopStart = list.size() + 1;
+			list.add(newList.encoding());
+			for (final Expression expression : group.expressionsBeforeDagger)
+			{
+				assert !expression.isArgumentOrGroup();
+				expression.emitOn(list);
+			}
+			list.add(appendArgument.encoding());
+			list.add(branch.encodingForOperand(loopExit));
+			for (final Expression expression : group.expressionsAfterDagger)
+			{
+				assert !expression.isArgumentOrGroup();
+				expression.emitOn(list);
+			}
+			list.add(ensureParseProgress.encoding());
+			list.add(jump.encodingForOperand(loopStart));
+			loopExit = list.size() + 1;
+			list.add(ensureParseProgress.encoding());
+			loopSkip = list.size() + 1;
+			list.add(discardSavedParsePosition.encoding());
+			list.add(convert.encodingForOperand(listToSize.number()));
+		}
+
+		@Override
+		boolean isArgumentOrGroup ()
+		{
+			return true;
+		}
+
+		@Override
+		int underscoreCount ()
+		{
+			assert group.underscoreCount() == 0;
+			return 0;
+		}
+
+		@Override
+		public void checkType (final @NotNull AvailObject argumentType)
+		{
+			if (argumentType.isSubtypeOf(
+				IntegerRangeTypeDescriptor.wholeNumbers()))
+			{
+				error(
+					"The declared type for the subexpression must be a subtype "
+					+ "of "
+					+ IntegerRangeTypeDescriptor.wholeNumbers());
+			}
+		}
+
+		@Override
+		public @NotNull String toString ()
+		{
+			final StringBuilder builder = new StringBuilder();
+			builder.append(getClass().getSimpleName());
+			builder.append("(");
+			builder.append(group.toString());
+			builder.append(")");
+			return builder.toString();
+		}
+	}
+
+	/**
+	 * An {@code Optional} is a special subgroup (i.e., not a root group)
+	 * indicated by a {@linkplain StringDescriptor#questionMark() question mark}
+	 * following a {@linkplain Group group}. It may not contain {@linkplain
+	 * Argument arguments} or subgroups and it may not contain a {@linkplain
+	 * StringDescriptor#doubleDagger() double dagger}. The group may appear only
+	 * once.
+	 *
+	 * <p>An optional produces a {@linkplain
+	 * EnumerationTypeDescriptor#booleanObject() boolean} that indicates whether
+	 * there was an occurrence of the group. The message "«very»?good"
+	 * accepts a single argument: a boolean that is {@linkplain
+	 * AtomDescriptor#trueObject() true} if the token "very" occurred and
+	 * {@linkplain AtomDescriptor#falseObject() false} if it did not.</p>
+	 */
+	final class Optional
+	extends Expression
+	{
+		/** The governed {@linkplain Group group}. */
+		final @NotNull Group group;
+
+		/**
+		 * The one-based position in the instruction stream to branch to in
+		 * order to parse zero occurrences of this group. Set during the first
+		 * pass of code generation.
+		 */
+		int groupSkip = -1;
+
+		/**
+		 * Construct a new {@link Counter}.
+		 *
+		 * @param group
+		 *        The governed {@linkplain Group group}.
+		 */
+		Optional (final @NotNull Group group)
+		{
+			this.group = group;
+		}
+
+		@Override
+		void emitOn (final @NotNull List<Integer> list)
+		{
+			/* push current parse position
+			 * push empty list
+			 * branch to @groupSkip
+			 * push empty list (represents group presence)
+			 * ...Stuff before dagger (i.e., all expressions).
+			 * append (add solution)
+			 * check progress and update saved position, or abort.
+			 * @groupSkip:
+			 * under-pop parse position (remove 2nd from top of stack)
+			 * convert (list->boolean)
+			 */
+			list.add(saveParsePosition.encoding());
+			list.add(newList.encoding());
+			list.add(branch.encodingForOperand(groupSkip));
+			list.add(newList.encoding());
+			for (final Expression expression : group.expressionsBeforeDagger)
+			{
+				assert !expression.isArgumentOrGroup();
+				expression.emitOn(list);
+			}
+			list.add(appendArgument.encoding());
+			list.add(ensureParseProgress.encoding());
+			groupSkip = list.size() + 1;
+			list.add(discardSavedParsePosition.encoding());
+			list.add(convert.encodingForOperand(listToNonemptiness.number()));
+		}
+
+		@Override
+		boolean isArgumentOrGroup ()
+		{
+			return true;
+		}
+
+		@Override
+		int underscoreCount ()
+		{
+			assert group.underscoreCount() == 0;
+			return 0;
+		}
+
+		@Override
+		public void checkType (final @NotNull AvailObject argumentType)
+		{
+			if (argumentType.isSubtypeOf(
+				EnumerationTypeDescriptor.booleanObject()))
+			{
+				error(
+					"The declared type for the subexpression must be a subtype "
+					+ "of "
+					+ EnumerationTypeDescriptor.booleanObject());
+			}
+		}
+
+		@Override
+		public @NotNull String toString ()
+		{
+			final StringBuilder builder = new StringBuilder();
+			builder.append(getClass().getSimpleName());
+			builder.append("(");
+			builder.append(group.toString());
+			builder.append(")");
+			return builder.toString();
 		}
 	}
 
@@ -1051,10 +1311,18 @@ public class MessageSplitter
 			{
 				if (group.hasDagger)
 				{
-					error("Two daggers encountered in group");
+					error("Two double daggers encountered in group");
 				}
 				group.hasDagger = true;
 				messagePartPosition++;
+			}
+			else if (token.equals(StringDescriptor.octothorp()))
+			{
+				error("Octothorp must follow a group");
+			}
+			else if (token.equals(StringDescriptor.questionMark()))
+			{
+				error("Question mark must follow a group");
 			}
 			else if (token.equals(StringDescriptor.openGuillemet()))
 			{
@@ -1074,7 +1342,48 @@ public class MessageSplitter
 						messageName);
 				}
 				messagePartPosition++;
-				group.addExpression(subgroup);
+				// Try to parse a counter or optional.
+				final Expression subexpression;
+				if (messagePartPosition <= messageParts.size())
+				{
+					token = messageParts.get(messagePartPosition - 1);
+					if (token.equals(StringDescriptor.octothorp()))
+					{
+						if (subgroup.underscoreCount() > 0)
+						{
+							error(
+								"Counting group may not contain underscores, "
+								+ "ellipses, or subgroups");
+						}
+						subexpression = new Counter(subgroup);
+						messagePartPosition++;
+					}
+					else if (token.equals(StringDescriptor.questionMark()))
+					{
+						if (subgroup.underscoreCount() > 0)
+						{
+							error(
+								"Optional group may not contain underscores, "
+								+ "ellipses, or subgroups");
+						}
+						if (subgroup.hasDagger)
+						{
+							error(
+								"Optional group may not contain double dagger");
+						}
+						subexpression = new Optional(subgroup);
+						messagePartPosition++;
+					}
+					else
+					{
+						subexpression = subgroup;
+					}
+				}
+				else
+				{
+					subexpression = subgroup;
+				}
+				group.addExpression(subexpression);
 			}
 			else
 			{

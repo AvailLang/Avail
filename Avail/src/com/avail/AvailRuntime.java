@@ -414,6 +414,8 @@ public final class AvailRuntime
 		specialObjects[114] = SetTypeDescriptor.setTypeForSizesContentType(
 			IntegerRangeTypeDescriptor.wholeNumbers(),
 			ATOM.o());
+		specialObjects[115] = TOKEN.o();
+		specialObjects[116] = LITERAL_TOKEN.o();
 
 		for (final AvailObject object : specialObjects)
 		{

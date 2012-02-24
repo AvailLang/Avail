@@ -655,6 +655,84 @@ public class AvailCompiler extends AbstractAvailCompiler
 					"Continue send after copyArgumentForCheck",
 					start.position);
 				break;
+			case convert:
+			{
+				// Convert the argument.
+				assert successorTrees.tupleSize() == 1;
+				final List<AvailObject> newArgsSoFar =
+					new ArrayList<AvailObject>(argsSoFar);
+				final AvailObject target = newArgsSoFar.get(
+					newArgsSoFar.size() - 1);
+				final AvailObject replacement;
+				switch (op.conversionRule(instruction))
+				{
+					case noConversion:
+						replacement = target;
+						break;
+					case listToSize:
+					{
+						final AvailObject expressions =
+							target.expressionsTuple();
+						final AvailObject count = IntegerDescriptor.fromInt(
+							expressions.tupleSize());
+						final AvailObject token =
+							LiteralTokenDescriptor.mutable().create(
+								StringDescriptor.from(count.toString()),
+								initialTokenPosition.peekToken().start(),
+								initialTokenPosition.peekToken().lineNumber(),
+								LITERAL);
+						token.literal(count);
+						final AvailObject literalNode =
+							LiteralNodeDescriptor.fromToken(token);
+						replacement = literalNode;
+						break;
+					}
+					case listToNonemptiness:
+					{
+						final AvailObject expressions =
+							target.expressionsTuple();
+						final AvailObject nonempty =
+							AtomDescriptor.objectFromBoolean(
+								expressions.tupleSize() > 0);
+						final AvailObject token =
+							LiteralTokenDescriptor.mutable().create(
+								StringDescriptor.from(nonempty.toString()),
+								initialTokenPosition.peekToken().start(),
+								initialTokenPosition.peekToken().lineNumber(),
+								LITERAL);
+						token.literal(nonempty);
+						final AvailObject literalNode =
+							LiteralNodeDescriptor.fromToken(token);
+						replacement = literalNode;
+						break;
+					}
+					default:
+					{
+						replacement = target;
+						assert false : "Conversion rule not handled";
+						break;
+					}
+				}
+				newArgsSoFar.set(newArgsSoFar.size() - 1, replacement);
+				eventuallyDo(
+					new Continuation0()
+					{
+						@Override
+						public void value ()
+						{
+							parseRestOfSendNode(
+								start,
+								successorTrees.tupleAt(1),
+								firstArgOrNull,
+								initialTokenPosition,
+								Collections.unmodifiableList(newArgsSoFar),
+								continuation);
+						}
+					},
+					"Continue send after conversion",
+					start.position);
+				break;
+			}
 			default:
 				assert false : "Reserved parsing instruction";
 		}
