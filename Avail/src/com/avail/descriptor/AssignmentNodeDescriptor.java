@@ -58,8 +58,15 @@ extends ParseNodeDescriptor
 		/**
 		 * The {@linkplain AssignmentNodeDescriptor assignment node}'s flags.
 		 */
-		@BitFields(describedBy=Flags.class)
-		FLAGS
+		FLAGS;
+
+		/**
+		 * Is this an inline {@linkplain AssignmentNodeDescriptor assignment}?
+		 */
+		static BitField IS_INLINE = bitField(
+			FLAGS,
+			0,
+			1);
 	}
 
 	/**
@@ -78,19 +85,6 @@ extends ParseNodeDescriptor
 		 * value to assign.
 		 */
 		EXPRESSION
-	}
-
-	/**
-	 * Bit fields for the {@link IntegerSlots#FLAGS FLAGS} integer slot.
-	 */
-	public static final class Flags
-	{
-		/**
-		 * Is this an inline {@linkplain AssignmentNodeDescriptor assignment}?
-		 */
-		@BitField(shift=0, bits=1)
-		static final BitField IS_INLINE =
-			bitField(Flags.class, "IS_INLINE");
 	}
 
 	/**
@@ -144,7 +138,7 @@ extends ParseNodeDescriptor
 	 */
 	private boolean isInline (final @NotNull AvailObject object)
 	{
-		return object.bitSlot(IntegerSlots.FLAGS, Flags.IS_INLINE) == 1;
+		return object.slot(IntegerSlots.IS_INLINE) == 1;
 	}
 
 	@Override @AvailMethod
@@ -296,8 +290,7 @@ extends ParseNodeDescriptor
 		final AvailObject assignment = mutable().create();
 		assignment.setSlot(ObjectSlots.VARIABLE, variableUse);
 		assignment.setSlot(ObjectSlots.EXPRESSION, expression);
-		assignment.bitSlotPut(
-			IntegerSlots.FLAGS, Flags.IS_INLINE, isInline ? 1 : 0);
+		assignment.setSlot(IntegerSlots.IS_INLINE, isInline ? 1 : 0);
 		assignment.makeImmutable();
 		return assignment;
 	}

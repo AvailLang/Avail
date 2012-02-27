@@ -37,6 +37,7 @@ import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.compiler.*;
+import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
 
@@ -280,8 +281,19 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 	{
 		if (nicePrinting)
 		{
-			final MessageSplitter splitter = new MessageSplitter(
-				object.method().name().name());
+			final MessageSplitter splitter;
+			try
+			{
+				splitter = new MessageSplitter(
+					object.method().name().name());
+			}
+			catch (final SignatureException e)
+			{
+				builder.append("*** Malformed selector: ");
+				builder.append(e.errorCode().name());
+				builder.append("***");
+				return;
+			}
 			splitter.printSendNodeOnIndent(
 				object,
 				builder,

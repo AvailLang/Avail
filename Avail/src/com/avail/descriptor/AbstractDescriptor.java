@@ -388,7 +388,9 @@ public abstract class AbstractDescriptor
 							(IntegerSlotsEnum)slot,
 							subscript,
 							new AvailIntegerValueHelper(
-								object.slot((IntegerSlotsEnum)slot, subscript))));
+								object.slot(
+									(IntegerSlotsEnum)slot,
+									subscript))));
 				}
 			}
 		}
@@ -564,32 +566,35 @@ public abstract class AbstractDescriptor
 
 		for (int i = 1, limit = object.integerSlotsCount(); i <= limit; i++)
 		{
-			builder.append('\n');
-			for (int tab = 0; tab < indent; tab++)
-			{
-				builder.append('\t');
-			}
 			final int ordinal = Math.min(i, intSlots.length) - 1;
 			final IntegerSlotsEnum slot = intSlots[ordinal];
-			final String slotName = slot.name();
-			int value;
-			if (slotName.charAt(slotName.length() - 1) == '_')
+			if (getAnnotation((Enum<?>)slot, HideFieldInDebugger.class) == null)
 			{
-				final int subscript = i - intSlots.length + 1;
-				value = object.slot(slot, subscript);
-				builder.append(slotName, 0, slotName.length() - 1);
-				builder.append('[');
-				builder.append(subscript);
-				builder.append("]");
+				builder.append('\n');
+				for (int tab = 0; tab < indent; tab++)
+				{
+					builder.append('\t');
+				}
+				final String slotName = slot.name();
+				int value;
+				if (slotName.charAt(slotName.length() - 1) == '_')
+				{
+					final int subscript = i - intSlots.length + 1;
+					value = object.slot(slot, subscript);
+					builder.append(slotName, 0, slotName.length() - 1);
+					builder.append('[');
+					builder.append(subscript);
+					builder.append("]");
+				}
+				else
+				{
+					value = object.slot(slot);
+					builder.append(slotName);
+				}
+				builder.append(" = ");
+				builder.append(value);
+				describeIntegerSlot(object, value, slot, builder);
 			}
-			else
-			{
-				value = object.slot(slot);
-				builder.append(slotName);
-			}
-			builder.append(" = ");
-			builder.append(value);
-			describeIntegerSlot(object, value, slot, builder);
 		}
 
 		Class<ObjectSlotsEnum> objectEnumClass;
@@ -608,37 +613,49 @@ public abstract class AbstractDescriptor
 
 		for (int i = 1, limit = object.objectSlotsCount(); i <= limit; i++)
 		{
-			builder.append('\n');
-			for (int tab = 0; tab < indent; tab++)
-			{
-				builder.append('\t');
-			}
 			final int ordinal = Math.min(i, objectSlots.length) - 1;
 			final ObjectSlotsEnum slot = objectSlots[ordinal];
-			final String slotName = slot.name();
-			if (slotName.charAt(slotName.length() - 1) == '_')
+			if (getAnnotation((Enum<?>)slot, HideFieldInDebugger.class) == null)
 			{
-				final int subscript = i - objectSlots.length + 1;
-				builder.append(slotName, 0, slotName.length() - 1);
-				builder.append('[');
-				builder.append(subscript);
-				builder.append("] = ");
-				object.slot(slot, subscript).printOnAvoidingIndent(
-					builder,
-					recursionList,
-					indent + 1);
-			}
-			else
-			{
-				builder.append(slotName);
-				builder.append(" = ");
-				object.slot(slot).printOnAvoidingIndent(
-					builder,
-					recursionList,
-					indent + 1);
+				builder.append('\n');
+				for (int tab = 0; tab < indent; tab++)
+				{
+					builder.append('\t');
+				}
+				final String slotName = slot.name();
+				if (slotName.charAt(slotName.length() - 1) == '_')
+				{
+					final int subscript = i - objectSlots.length + 1;
+					builder.append(slotName, 0, slotName.length() - 1);
+					builder.append('[');
+					builder.append(subscript);
+					builder.append("] = ");
+					object.slot(slot, subscript).printOnAvoidingIndent(
+						builder,
+						recursionList,
+						indent + 1);
+				}
+				else
+				{
+					builder.append(slotName);
+					builder.append(" = ");
+					object.slot(slot).printOnAvoidingIndent(
+						builder,
+						recursionList,
+						indent + 1);
+				}
 			}
 		}
 	}
+
+	/**
+	 * A static cache of mappings from {@link IntegerSlotsEnum integer slots} to
+	 * {@link List}s of {@link BitField}s.  Access to the map must be
+	 * synchronized, which isn't much of a penalty since it only affects the
+	 * default object printing mechanism.
+	 */
+	private static final Map<IntegerSlotsEnum, List<BitField>> bitFieldsCache =
+		new HashMap<IntegerSlotsEnum, List<BitField>>(500);
 
 	/**
 	 * Describe the integer field onto the provided {@link StringDescriptor}.
@@ -660,11 +677,36 @@ public abstract class AbstractDescriptor
 	{
 		try
 		{
+			List<BitField> bitFields;
+			synchronized(bitFieldsCache)
+			{
+				bitFields = bitFieldsCache.get(slot);
+				if (bitFields == null)
+				{
+					final Enum<?> slotAsEnum = (Enum<?>) slot;
+					final Class<?> slotClass = slotAsEnum.getDeclaringClass();
+					bitFields = new ArrayList<BitField>();
+					for (final Field field : slotClass.getDeclaredFields())
+					{
+						if (Modifier.isStatic(field.getModifiers())
+							&& BitField.class.isAssignableFrom(field.getType()))
+						{
+							final BitField bitField =
+								(BitField) (field.get(null));
+							if (bitField.integerSlot == slot)
+							{
+								bitField.name = field.getName();
+								bitFields.add(bitField);
+							}
+						}
+					}
+					Collections.sort(bitFields);
+					bitFieldsCache.put(slot, bitFields);
+				}
+			}
 			final Field slotMirror = slot.getClass().getField(slot.name());
 			final EnumField enumAnnotation =
 				slotMirror.getAnnotation(EnumField.class);
-			final BitFields bitFieldsAnnotation =
-				slotMirror.getAnnotation(BitFields.class);
 			if (enumAnnotation != null)
 			{
 				final Class<? extends IntegerEnumSlotDescriptionEnum>
@@ -714,31 +756,22 @@ public abstract class AbstractDescriptor
 					}
 				}
 			}
-			else if (bitFieldsAnnotation != null)
+			else if (!bitFields.isEmpty())
 			{
 				// Show each bit field.
-				final Class<?> describingClass =
-					bitFieldsAnnotation.describedBy();
-				final Field[] allSubfields =
-					describingClass.getDeclaredFields();
 				builder.append(" (");
-				for (
-					int subfieldIndex = 0;
-					subfieldIndex < allSubfields.length;
-					subfieldIndex++)
+				boolean first = true;
+				for (final BitField bitField : bitFields)
 				{
-					if (subfieldIndex > 0)
+					if (!first)
 					{
 						builder.append(", ");
 					}
-					final Field subfield = allSubfields[subfieldIndex];
-					builder.append(subfield.getName());
+					builder.append(bitField.name);
 					builder.append("=");
-					BitField bitField;
-					bitField = (BitField)subfield.get(null);
-					final int subfieldValue =
-						object.bitSlot(slot, bitField);
+					final int subfieldValue = object.slot(bitField);
 					builder.append(subfieldValue);
+					first = false;
 				}
 				builder.append(")");
 			}
@@ -775,42 +808,30 @@ public abstract class AbstractDescriptor
 	}
 
 	/**
-	 * Extract the {@link BitField} that is specified as an annotation of the
-	 * member of the given class with the given name.  This uses reflection so
-	 * it might be a bit slow.  It's recommended that the resulting BitField be
-	 * stored somewhere statically, preferably as the value of the field
-	 * itself.
+	 * Create a {@link BitField} for the specified {@link IntegerSlotsEnum
+	 * integer slot}.  The {@code BitField} should be stored back into a static
+	 * field of the {@link IntegerSlotsEnum} subclass in which the integer slot
+	 * is defined.  This method may be quite slow, so it should only be invoked
+	 * by static code during class loading.
 	 *
-	 * @param theClass
-	 *            The class which defines one or more {@code BitField}s as
-	 *            static members having the {@linkplain BitField @BitField}
-	 *            annotation.
-	 * @param fieldName
-	 *            The name of the static member for which to extract the {@code
-	 *            BitField} annotation.
-	 * @return
-	 *            The {@code BitField} that the specified static member was
-	 *            annotated with.
+	 * @param integerSlot
+	 *            The {@linkplain IntegerSlotsEnum integer slot} in which this
+	 *            {@link BitField} will occur.
+	 * @param shift
+	 *            The position of the lowest order bit of this {@code BitField}.
+	 * @param bits
+	 *            The number of bits occupied by this {@code BitField}.
+	 * @return A BitField
 	 */
 	static BitField bitField (
-		final @NotNull Class<?> theClass,
-		final @NotNull String fieldName)
+		final @NotNull IntegerSlotsEnum integerSlot,
+		final int shift,
+		final int bits)
 	{
-		BitField bitField;
-		try
-		{
-			final Field field = theClass.getDeclaredField(fieldName);
-			bitField = field.getAnnotation(BitField.class);
-		}
-		catch (final NoSuchFieldException e)
-		{
-			throw new RuntimeException(e);
-		}
-		assert bitField.shift() >= 0;
-		assert bitField.shift() <= 31;
-		assert bitField.bits() > 0;
-		assert bitField.shift() + bitField.bits() <= 32;
-		return bitField;
+		return new BitField(
+			integerSlot,
+			shift,
+			bits);
 	}
 
 	/**
@@ -5244,4 +5265,15 @@ public abstract class AbstractDescriptor
 	 */
 	abstract @NotNull BigInteger o_AsBigInteger (
 		final @NotNull AvailObject object);
+
+	/**
+	 * @param object
+	 * @param newElement
+	 * @param canDestroy
+	 * @return
+	 */
+	abstract AvailObject o_AppendCanDestroy (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject newElement,
+		final boolean canDestroy);
 }

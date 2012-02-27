@@ -42,6 +42,14 @@ Names
 Body
 
 
+
+Method "«_‡++»" is [tuples : tuple of tuple |
+	Primitive 136;
+] : tuple;
+
+{"«_‡++»"} can't have <{"«_‡++»"}>;
+
+
 /* Dynamically typed block evaluation... */
 
 /**
@@ -53,7 +61,9 @@ Body
  */
 Method "_apply_" is [block : [...]->void, args : tuple |
 	Primitive 40 (failureCode : natural number);
-	Crash "Bad argument during function application.";
+	Crash "Bad argument tuple during function application (error="
+		++ failureCode as basic string
+		++ ").";
 ] : void;
 
 Restriction "_apply_" is [functionT : functionType, argsT : tupleType |
@@ -83,14 +93,12 @@ Restriction "_apply_" is [functionT : functionType, argsT : tupleType |
  * Block evaluation with a (guillemet-group) tuple of arguments...
  */
 Method "_(«_‡,»)" is [block : [...]->void, args : tuple |
-	block apply args;
+	Primitive 40 (failureCode : natural number);
+	Crash "Bad argument tuple during function application (error="
+		++ (failureCode as basic string)
+		++ ").";
 ] : void;
 
-Method "«_‡++»" is [tuples : tuple of tuple |
-	Primitive 136;
-] : tuple;
-
-{"«_‡++»"} can't have <{"«_‡++»"}>;
 
 /* Type downcasting operation... */
 

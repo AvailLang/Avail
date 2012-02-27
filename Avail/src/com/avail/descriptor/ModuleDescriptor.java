@@ -636,7 +636,7 @@ extends Descriptor
 		{
 			tuple = TupleDescriptor.empty();
 		}
-		tuple = TupleDescriptor.append(tuple, typeRestrictionFunction);
+		tuple = tuple.appendCanDestroy(typeRestrictionFunction, true);
 		typeRestrictions = typeRestrictions.mapAtPuttingCanDestroy(
 			methodNameAtom,
 			tuple,

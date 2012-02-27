@@ -44,6 +44,13 @@ import com.avail.visitor.AvailMarkUnreachableSubobjectVisitor;
 abstract class AvailObjectRepresentation
 extends AbstractAvailObject
 {
+	/**
+	 * This static switch enables paranoid checks to ensure objects are only
+	 * being accessed via slot definitions appropriate for the object's actual
+	 * descriptor.  This check slows the system considerably, but it's
+	 * occasionally valuable to enable for a short time, especially right after
+	 * introducing new descriptors subclasses.
+	 */
 	private final static boolean shouldCheckSlots = false;
 
 	/** An {@code int} array encoding all of my digital state. */
@@ -101,6 +108,14 @@ extends AbstractAvailObject
 		}
 	}
 
+	/**
+	 * Verify that the slot is an appropriate way to access this object (i.e.,
+	 * that the slot is defined in an enumeration within the class of this
+	 * object's descriptor).  It fails (an assertion) if it's inappropriate, and
+	 * if {@link #shouldCheckSlots} is enabled.
+	 *
+	 * @param field The slot to validate for the receiver.
+	 */
 	private void checkSlot (final AbstractSlotsEnum field)
 	{
 		if (shouldCheckSlots)
@@ -111,32 +126,27 @@ extends AbstractAvailObject
 	}
 
 	@Override
-	final int bitSlot (
-		final @NotNull IntegerSlotsEnum field,
+	final int slot (
 		final @NotNull BitField bitField)
 	{
 //		verifyToSpaceAddress();
-		checkSlot(field);
-		int value = intSlots[field.ordinal()];
-		value >>>= bitField.shift();
-		final int mask = ~(-1 << bitField.bits());
-		return value & mask;
+		checkSlot(bitField.integerSlot);
+		final int value = intSlots[bitField.integerSlotIndex];
+		return (value >>> bitField.shift) & bitField.lowMask;
 	}
 
 	@Override
-	final void bitSlotPut (
-		final @NotNull IntegerSlotsEnum field,
+	final void setSlot (
 		final @NotNull BitField bitField,
 		final int anInteger)
 	{
-		checkWriteForField(field);
+		checkWriteForField(bitField.integerSlot);
 //		verifyToSpaceAddress();
-		checkSlot(field);
-		int value = intSlots[field.ordinal()];
-		final int mask = ~(-1 << bitField.bits());
-		value &= ~(mask << bitField.shift());
-		value |= (anInteger & mask) << bitField.shift();
-		intSlots[field.ordinal()] = value;
+		checkSlot(bitField.integerSlot);
+		int value = intSlots[bitField.integerSlotIndex];
+		value &= bitField.invertedMask;
+		value |= (anInteger << bitField.shift) & bitField.mask;
+		intSlots[bitField.integerSlotIndex] = value;
 	}
 
 	/**
@@ -154,8 +164,11 @@ extends AbstractAvailObject
 	{
 //		verifyToSpaceAddress();
 		checkSlot(field);
-		final int word = intSlots[field.ordinal() + (byteSubscript - 1) / 4];
-		return (short) (word >>> ((byteSubscript - 1 & 0x03) << 3) & 0xFF);
+		final int zeroBasedSubscript = byteSubscript - 1;
+		final int wordIndex = field.ordinal() + (zeroBasedSubscript >> 2);
+		final int word = intSlots[wordIndex];
+		final int rightShift = (zeroBasedSubscript & 0x03) << 3;
+		return (short) ((word >>> rightShift) & 0xFF);
 	}
 
 	/**
@@ -176,9 +189,10 @@ extends AbstractAvailObject
 		checkWriteForField(field);
 //		verifyToSpaceAddress();
 		checkSlot(field);
-		final int wordIndex = field.ordinal() + (byteSubscript - 1) / 4;
+		final int zeroBasedSubscript = byteSubscript - 1;
+		final int wordIndex = field.ordinal() + (zeroBasedSubscript >> 2);
 		int word = intSlots[wordIndex];
-		final int leftShift = (byteSubscript - 1 & 3) << 3;
+		final int leftShift = (zeroBasedSubscript & 0x03) << 3;
 		word &= ~(0xFF << leftShift);
 		word |= aByte << leftShift;
 		intSlots[wordIndex] = word;

@@ -93,18 +93,72 @@ extends Descriptor
 		 * dynamically expanded as needed only when starting or resuming a
 		 * continuation.
 		 */
-		@BitFields(describedBy=NumObjectsAndFlags.class)
 		NUM_OBJECTS_AND_FLAGS,
 
 		/**
-		 * A compound field containing the number of {@linkplain L2IntegerRegister
-		 * integer registers} and the number of {@linkplain L2FloatRegister floating
-		 * point registers} that are used by this chunk.  Having this recorded
-		 * separately allows the register list to be dynamically expanded as
-		 * needed only when starting or resuming a continuation.
+		 * A compound field containing the number of {@linkplain
+		 * L2IntegerRegister integer registers} and the number of {@linkplain
+		 * L2FloatRegister floating point registers} that are used by this
+		 * chunk.  Having this recorded separately allows the register list to
+		 * be dynamically expanded as needed only when starting or resuming a
+		 * continuation.
 		 */
-		@BitFields(describedBy=NumIntegersAndDoubles.class)
-		NUM_INTEGERS_AND_DOUBLES,
+		NUM_INTEGERS_AND_DOUBLES;
+
+
+		/**
+		 * The number of {@linkplain L2ObjectRegister object registers} that
+		 * this chunk uses.
+		 */
+		static final BitField NUM_OBJECTS = bitField(
+			NUM_OBJECTS_AND_FLAGS,
+			0,
+			30);
+
+		/**
+		 * A flag indicating whether this chunk has been reached by the garbage
+		 * collector in the current scavenge cycle.  If it's still clear at flip
+		 * time, the chunk is unreferenced and can be reclaimed.
+		 *
+		 * TODO: [MvG] This is not used by the current (2011.05.11)
+		 * Avail-on-Java VM.
+		 */
+		static final BitField SAVED = bitField(
+			NUM_OBJECTS_AND_FLAGS,
+			30,
+			1);
+
+		/**
+		 * A flag indicating whether this chunk is valid or if it has been
+		 * invalidated by the addition or removal of a method signature.
+		 */
+		static final BitField VALID = bitField(
+			NUM_OBJECTS_AND_FLAGS,
+			31,
+			1);
+
+		/**
+		 * The number of {@linkplain L2IntegerRegister integer registers} that are
+		 * used by this chunk.  Having this recorded separately allows the
+		 * register list to be dynamically expanded as needed only when starting
+		 * or resuming a continuation.
+		 */
+		static final BitField NUM_INTEGERS = bitField(
+			NUM_INTEGERS_AND_DOUBLES,
+			0,
+			16);
+
+		/**
+		 * The number of {@linkplain L2FloatRegister floating point registers} that
+		 * are used by this chunk.  Having this recorded separately allows the
+		 * register list to be dynamically expanded as needed only when starting
+		 * or resuming a continuation.
+		 */
+		static final BitField NUM_DOUBLES = bitField(
+			NUM_INTEGERS_AND_DOUBLES,
+			16,
+			16);
+
 	}
 
 	/**
@@ -134,73 +188,6 @@ extends Descriptor
 		LITERAL_AT_
 	}
 
-	/**
-	 * The bit field representation for {@link
-	 * IntegerSlots#NUM_OBJECTS_AND_FLAGS}.
-	 *
-	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
-	 */
-	static class NumObjectsAndFlags
-	{
-		/**
-		 * The number of {@linkplain L2ObjectRegister object registers} that
-		 * this chunk uses.
-		 */
-		@BitField(shift=0, bits=30)
-		static final BitField NUM_OBJECTS =
-			bitField(NumObjectsAndFlags.class, "NUM_OBJECTS");
-
-		/**
-		 * A flag indicating whether this chunk has been reached by the garbage
-		 * collector in the current scavenge cycle.  If it's still clear at flip
-		 * time, the chunk is unreferenced and can be reclaimed.
-		 *
-		 * TODO: [MvG] This is not used by the current (2011.05.11)
-		 * Avail-on-Java VM.
-		 */
-		@BitField(shift=30, bits=1)
-		static final BitField SAVED =
-			bitField(NumObjectsAndFlags.class, "SAVED");
-
-		/**
-		 * A flag indicating whether this chunk is valid or if it has been
-		 * invalidated by the addition or removal of a method signature.
-		 */
-		@BitField(shift=31, bits=1)
-		static final BitField VALID =
-			bitField(NumObjectsAndFlags.class, "VALID");
-	}
-
-
-	/**
-	 * The bit field representation for {@link
-	 * IntegerSlots#NUM_INTEGERS_AND_DOUBLES}.
-	 *
-	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
-	 */
-	static class NumIntegersAndDoubles
-	{
-		/**
-		 * The number of {@linkplain L2IntegerRegister integer registers} that are
-		 * used by this chunk.  Having this recorded separately allows the
-		 * register list to be dynamically expanded as needed only when starting
-		 * or resuming a continuation.
-		 */
-		@BitField(shift=0, bits=16)
-		static final BitField NUM_INTEGERS =
-			bitField(NumIntegersAndDoubles.class, "NUM_INTEGERS");
-
-		/**
-		 * The number of {@linkplain L2FloatRegister floating point registers} that
-		 * are used by this chunk.  Having this recorded separately allows the
-		 * register list to be dynamically expanded as needed only when starting
-		 * or resuming a continuation.
-		 */
-		@BitField(shift=16, bits=16)
-		static final BitField NUM_DOUBLES =
-			bitField(NumIntegersAndDoubles.class, "NUM_DOUBLES");
-	}
-
 	@Override @AvailMethod
 	void o_Index (
 		final @NotNull AvailObject object,
@@ -228,27 +215,21 @@ extends Descriptor
 	int o_NumDoubles (
 		final @NotNull AvailObject object)
 	{
-		return object.bitSlot(
-			IntegerSlots.NUM_INTEGERS_AND_DOUBLES,
-			NumIntegersAndDoubles.NUM_DOUBLES);
+		return object.slot(IntegerSlots.NUM_DOUBLES);
 	}
 
 	@Override @AvailMethod
 	int o_NumIntegers (
 		final @NotNull AvailObject object)
 	{
-		return object.bitSlot(
-			IntegerSlots.NUM_INTEGERS_AND_DOUBLES,
-			NumIntegersAndDoubles.NUM_INTEGERS);
+		return object.slot(IntegerSlots.NUM_INTEGERS);
 	}
 
 	@Override @AvailMethod
 	int o_NumObjects (
 		final @NotNull AvailObject object)
 	{
-		return object.bitSlot(
-			IntegerSlots.NUM_OBJECTS_AND_FLAGS,
-			NumObjectsAndFlags.NUM_OBJECTS);
+		return object.slot(IntegerSlots.NUM_OBJECTS);
 	}
 
 	@Override @AvailMethod
@@ -334,10 +315,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final boolean aBoolean)
 	{
-		object.bitSlotPut(
-			IntegerSlots.NUM_OBJECTS_AND_FLAGS,
-			NumObjectsAndFlags.SAVED,
-			aBoolean ? 1 : 0);
+		object.setSlot(IntegerSlots.SAVED, aBoolean ? 1 : 0);
 	}
 
 	@Override @AvailMethod
@@ -351,18 +329,14 @@ extends Descriptor
 	boolean o_IsSaved (
 		final @NotNull AvailObject object)
 	{
-		return object.bitSlot(
-			IntegerSlots.NUM_OBJECTS_AND_FLAGS,
-			NumObjectsAndFlags.SAVED) != 0;
+		return object.slot(IntegerSlots.SAVED) != 0;
 	}
 
 	@Override @AvailMethod
 	boolean o_IsValid (
 		final @NotNull AvailObject object)
 	{
-		return object.bitSlot(
-			IntegerSlots.NUM_OBJECTS_AND_FLAGS,
-			NumObjectsAndFlags.VALID) != 0;
+		return object.slot(IntegerSlots.VALID) != 0;
 	}
 
 
@@ -536,7 +510,7 @@ extends Descriptor
 	 */
 	public static int countdownForNewlyOptimizedCode ()
 	{
-		return 200;
+		return 1000000000;
 	}
 
 	/**
@@ -614,28 +588,17 @@ extends Descriptor
 		final AvailObject chunk = mutable().create(listOfLiterals.size());
 //		AvailObject.lock(chunk);
 		// A new chunk starts out saved.
-		chunk.bitSlotPut(
-			IntegerSlots.NUM_OBJECTS_AND_FLAGS,
-			NumObjectsAndFlags.SAVED,
+		chunk.setSlot(
+			IntegerSlots.SAVED,
 			1);
 		// A new chunk starts out valid.
-		chunk.bitSlotPut(
-			IntegerSlots.NUM_OBJECTS_AND_FLAGS,
-			NumObjectsAndFlags.VALID,
+		chunk.setSlot(
+			IntegerSlots.VALID,
 			1);
 		chunk.setSlot(ObjectSlots.VECTORS, vectorTuplesTuple);
-		chunk.bitSlotPut(
-			IntegerSlots.NUM_OBJECTS_AND_FLAGS,
-			NumObjectsAndFlags.NUM_OBJECTS,
-			numObjects);
-		chunk.bitSlotPut(
-			IntegerSlots.NUM_INTEGERS_AND_DOUBLES,
-			NumIntegersAndDoubles.NUM_INTEGERS,
-			numIntegers);
-		chunk.bitSlotPut(
-			IntegerSlots.NUM_INTEGERS_AND_DOUBLES,
-			NumIntegersAndDoubles.NUM_DOUBLES,
-			numFloats);
+		chunk.setSlot(IntegerSlots.NUM_OBJECTS, numObjects);
+		chunk.setSlot(IntegerSlots.NUM_INTEGERS, numIntegers);
+		chunk.setSlot(IntegerSlots.NUM_DOUBLES, numFloats);
 		chunk.setSlot(ObjectSlots.WORDCODES, wordcodesTuple);
 		for (int i = 1; i <= listOfLiterals.size(); i++)
 		{
@@ -721,10 +684,7 @@ extends Descriptor
 		final AvailObject chunk = ref.get();
 		if (chunk != null)
 		{
-			chunk.bitSlotPut(
-				IntegerSlots.NUM_OBJECTS_AND_FLAGS,
-				NumObjectsAndFlags.VALID,
-				0);
+			chunk.setSlot(IntegerSlots.VALID, 0);
 			chunk.setSlot(ObjectSlots.WORDCODES, TupleDescriptor.empty());
 			chunk.setSlot(ObjectSlots.VECTORS, TupleDescriptor.empty());
 			for (int i = chunk.variableObjectSlotsCount(); i >= 1; i--)

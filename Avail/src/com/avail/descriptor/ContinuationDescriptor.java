@@ -57,12 +57,6 @@ import com.avail.interpreter.levelTwo.L2Interpreter;
  * Primitive#prim58_RestartContinuation with the original arguments}.
  * </p>
  *
- * <p>
- * TODO: [MvG] Support labels in arbitrary locations perhaps.  This would be the
- * most general continuation type, above all the rest.  Its only supported
- * operation would be a new Resume primitive that took no other arguments.
- * </p>
- *
  * @author Mark van Gulik&lt;ghoul137@gmail.com&gt;
  */
 public class ContinuationDescriptor
@@ -74,19 +68,38 @@ extends Descriptor
 	public enum IntegerSlots implements IntegerSlotsEnum
 	{
 		/**
-		 * A composite field containing the {@linkplain
-		 * ProgramCounterAndStackPointer#PROGRAM_COUNTER program counter} and
-		 * {@linkplain ProgramCounterAndStackPointer#STACK_POINTER stack
-		 * pointer}.
+		 * A composite field containing the {@linkplain #PROGRAM_COUNTER program
+		 * counter} and {@linkplain #STACK_POINTER stack pointer}.
 		 */
-		@BitFields(describedBy=ProgramCounterAndStackPointer.class)
 		PROGRAM_COUNTER_AND_STACK_POINTER,
 
 		/**
 		 * The Level Two {@linkplain L2ChunkDescriptor.ObjectSlots#WORDCODES
 		 * wordcode} index at which to resume.
 		 */
-		LEVEL_TWO_OFFSET
+		LEVEL_TWO_OFFSET;
+
+
+		/**
+		 * The index into the current continuation's {@linkplain
+		 * ObjectSlots#FUNCTION function's} compiled code's tuple of nybblecodes
+		 * at which execution will next occur.
+		 */
+		static BitField PROGRAM_COUNTER = bitField(
+			PROGRAM_COUNTER_AND_STACK_POINTER,
+			16,
+			16);
+
+		/**
+		 * An index into this continuation's {@linkplain ObjectSlots#FRAME_AT_
+		 * frame slots}.  It grows from the top + 1 (empty stack), and at its
+		 * deepest it just abuts the last local variable.
+		 */
+		static BitField STACK_POINTER = bitField(
+			PROGRAM_COUNTER_AND_STACK_POINTER,
+			0,
+			16);
+
 	}
 
 	/**
@@ -125,31 +138,6 @@ extends Descriptor
 		 * will abut the last local.
 		 */
 		FRAME_AT_
-	}
-
-	/**
-	 * The bit fields that make up the {@link
-	 * IntegerSlots#PROGRAM_COUNTER_AND_STACK_POINTER} integer field.
-	 */
-	static class ProgramCounterAndStackPointer
-	{
-		/**
-		 * The index into the current continuation's {@linkplain
-		 * ObjectSlots#FUNCTION function's} compiled code's tuple of nybblecodes
-		 * at which execution will next occur.
-		 */
-		@BitField(shift=16, bits=16)
-		static BitField PROGRAM_COUNTER
-			= bitField(ProgramCounterAndStackPointer.class, "PROGRAM_COUNTER");
-
-		/**
-		 * An index into this continuation's {@linkplain ObjectSlots#FRAME_AT_
-		 * frame slots}.  It grows from the top + 1 (empty stack), and at its
-		 * deepest it just abuts the last local variable.
-		 */
-		@BitField(shift=0, bits=16)
-		static BitField STACK_POINTER
-			= bitField(ProgramCounterAndStackPointer.class, "STACK_POINTER");
 	}
 
 
@@ -194,9 +182,8 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final int value)
 	{
-		object.bitSlotPut(
-			IntegerSlots.PROGRAM_COUNTER_AND_STACK_POINTER,
-			ProgramCounterAndStackPointer.PROGRAM_COUNTER,
+		object.setSlot(
+			IntegerSlots.PROGRAM_COUNTER,
 			value);
 	}
 
@@ -205,9 +192,8 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final int value)
 	{
-		object.bitSlotPut(
-			IntegerSlots.PROGRAM_COUNTER_AND_STACK_POINTER,
-			ProgramCounterAndStackPointer.STACK_POINTER,
+		object.setSlot(
+			IntegerSlots.STACK_POINTER,
 			value);
 	}
 
@@ -229,18 +215,14 @@ extends Descriptor
 	int o_Pc (
 		final @NotNull AvailObject object)
 	{
-		return object.bitSlot(
-			IntegerSlots.PROGRAM_COUNTER_AND_STACK_POINTER,
-			ProgramCounterAndStackPointer.PROGRAM_COUNTER);
+		return object.slot(IntegerSlots.PROGRAM_COUNTER);
 	}
 
 	@Override @AvailMethod
 	int o_Stackp (
 		final @NotNull AvailObject object)
 	{
-		return object.bitSlot(
-			IntegerSlots.PROGRAM_COUNTER_AND_STACK_POINTER,
-			ProgramCounterAndStackPointer.STACK_POINTER);
+		return object.slot(IntegerSlots.STACK_POINTER);
 	}
 
 	@Override @AvailMethod

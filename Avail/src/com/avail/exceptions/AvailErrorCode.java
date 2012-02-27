@@ -35,6 +35,7 @@ package com.avail.exceptions;
 import java.lang.reflect.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
+import com.avail.compiler.MessageSplitter;
 import com.avail.descriptor.*;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 
@@ -235,9 +236,10 @@ public enum AvailErrorCode
 	E_TYPE_RESTRICTION_MUST_ACCEPT_ONLY_TYPES (31),
 
 	/**
-	 * TODO: Recycle!
+	 * A method's argument type was inconsistent with a {@link
+	 * MessageSplitter guillemet group's} specific requirements.
 	 */
-//	E_??? (32),
+	E_INCORRECT_TYPE_FOR_GROUP (32),
 
 	/**
 	 * A {@linkplain AvailRuntime#specialObject(int) special object} number is
@@ -293,6 +295,63 @@ public enum AvailErrorCode
 	 * where forbidden.
 	 */
 	E_SPECIAL_ATOM (41),
+
+	/**
+	 * A method's argument type was inconsistent with a {@link
+	 * MessageSplitter complex guillemet group's} specific requirements.  In
+	 * particular, the corresponding argument position must be a tuple of tuples
+	 * whose sizes range from the number of argument subexpressions left of the
+	 * double-dagger, up to the number of argument subexpressions on both sides
+	 * of the double-dagger.
+	 */
+	E_INCORRECT_TYPE_FOR_COMPLEX_GROUP (42),
+
+	/**
+	 * The method name is invalid because it uses the double-dagger (‡)
+	 * incorrectly.
+	 */
+	E_INCORRECT_USE_OF_DOUBLE_DAGGER (43),
+
+	/**
+	 * The method name is invalid because it has unmatched guillemets («»).
+	 */
+	E_UNBALANCED_GUILLEMETS (44),
+
+	/**
+	 * The method name is not well-formed because it does not have the
+	 * canonically simplest representation.
+	 */
+	E_METHOD_NAME_IS_NOT_CANONICAL (45),
+
+	/**
+	 * The method name is invalid because an operator character did not follow
+	 * a backquote (`).
+	 */
+	E_EXPECTED_OPERATOR_AFTER_BACKQUOTE (46),
+
+	/**
+	 * An argument type for a boolean group («...»?) must be a subtype of
+	 * boolean.
+	 */
+	E_INCORRECT_TYPE_FOR_BOOLEAN_GROUP (47),
+
+	/**
+	 * An argument type for a boolean group («...»?) must be a subtype of
+	 * boolean.
+	 */
+	E_INCORRECT_TYPE_FOR_COUNTING_GROUP (48),
+
+	/**
+	 * An octothorp (#) may only occur after a guillemet group which has no
+	 * arguments.
+	 */
+	E_OCTOTHORP_MUST_FOLLOW_A_SIMPLE_GROUP (49),
+
+	/**
+	 * A question mark (?) may only occur after a guillemet group which has no
+	 * arguments.
+	 */
+	E_QUESTION_MARK_MUST_FOLLOW_A_SIMPLE_GROUP (50),
 
 	/**
 	 * A Java {@linkplain Class class} specified by name was either not found by

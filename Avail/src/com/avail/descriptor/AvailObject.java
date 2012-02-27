@@ -76,6 +76,7 @@ implements Iterable<AvailObject>
 		NullDescriptor.createWellKnownObjects();
 		BottomTypeDescriptor.createWellKnownObjects();
 		TupleDescriptor.createWellKnownObjects();
+		TupleNodeDescriptor.createWellKnownObjects();
 		StringDescriptor.createWellKnownObjects();
 		TypeDescriptor.createWellKnownObjects();
 		MapDescriptor.createWellKnownObjects();
@@ -121,6 +122,7 @@ implements Iterable<AvailObject>
 		NullDescriptor.clearWellKnownObjects();
 		BottomTypeDescriptor.clearWellKnownObjects();
 		TupleDescriptor.clearWellKnownObjects();
+		TupleNodeDescriptor.clearWellKnownObjects();
 		StringDescriptor.clearWellKnownObjects();
 		TypeDescriptor.clearWellKnownObjects();
 		MapDescriptor.clearWellKnownObjects();
@@ -5906,5 +5908,17 @@ implements Iterable<AvailObject>
 	public @NotNull BigInteger asBigInteger ()
 	{
 		return descriptor.o_AsBigInteger(this);
+	}
+
+	/**
+	 * @param newElement
+	 * @param canDestroy
+	 * @return
+	 */
+	public @NotNull AvailObject appendCanDestroy (
+		final @NotNull AvailObject newElement,
+		final boolean canDestroy)
+	{
+		return descriptor.o_AppendCanDestroy(this, newElement, canDestroy);
 	}
 }

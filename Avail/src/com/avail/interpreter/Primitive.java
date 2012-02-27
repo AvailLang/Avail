@@ -5843,6 +5843,10 @@ implements IntegerEnumSlotDescriptionEnum
 			{
 				return interpreter.primitiveFailure(e);
 			}
+			catch (final SignatureException e)
+			{
+				return interpreter.primitiveFailure(e);
+			}
 			return interpreter.primitiveSuccess(NullDescriptor.nullObject());
 		}
 

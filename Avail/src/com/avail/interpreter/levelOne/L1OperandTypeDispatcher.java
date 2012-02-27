@@ -32,11 +32,43 @@
 
 package com.avail.interpreter.levelOne;
 
+import com.avail.descriptor.FunctionDescriptor;
+
+/**
+ * A visitor for {@linkplain L1OperandType}s.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 interface L1OperandTypeDispatcher
 {
-	void doImmediate();
-	void doLiteral();
-	void doLocal();
-	void doOuter();
-	void doExtension();
+	/**
+	 * The operand is an {@linkplain L1OperandType#IMMEDIATE immediate value},
+	 * encoding an integer as itself.
+	 */
+	void doImmediate ();
+
+	/**
+	 * The operand is a {@linkplain L1OperandType#LITERAL literal value},
+	 * encoded by a subscript into some list of literals.
+	 */
+	void doLiteral ();
+
+	/**
+	 * The operand is a {@linkplain L1OperandType#LOCAL local}, encoded by a
+	 * subscript into the arguments and locals area.
+	 */
+	void doLocal ();
+
+	/**
+	 * The operand is a declaration {@linkplain L1OperandType#OUTER captured}
+	 * from an outer scope, encoded as a subscript into some {@linkplain
+	 * FunctionDescriptor function}'s list of outer variables.
+	 */
+	void doOuter ();
+
+	/**
+	 * The operand is an extension nybblecode, indicating that the current
+	 * {@link L1Operation} has an ordinal equal to the next nybble plus 16.
+	 */
+	void doExtension ();
 }

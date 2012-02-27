@@ -1526,8 +1526,7 @@ extends AbstractAvailCompiler
 				assert successorTrees.tupleSize() == 1;
 				final List<AvailObject> newArgsSoFar =
 					new ArrayList<AvailObject>(argsSoFar);
-				final AvailObject newTupleNode =
-					TupleNodeDescriptor.newExpressions(TupleDescriptor.empty());
+				final AvailObject newTupleNode = TupleNodeDescriptor.empty();
 				newArgsSoFar.add(newTupleNode);
 				eventuallyDo(
 					new Continuation0()

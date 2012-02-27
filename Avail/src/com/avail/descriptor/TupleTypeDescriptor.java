@@ -130,7 +130,7 @@ extends TypeDescriptor
 					aStream.append("string");
 					return;
 				}
-				//  Okay, it's homogenous and of arbitrary size...
+				//  Okay, it's homogeneous and of arbitrary size...
 				aStream.append('<');
 				object.defaultType().printOnAvoidingIndent(
 					aStream,
@@ -144,14 +144,11 @@ extends TypeDescriptor
 		final int end = object.typeTuple().tupleSize();
 		for (int i = 1; i <= end; i++)
 		{
-			if (i > 1)
-			{
-				aStream.append(", ");
-			}
 			object.typeAtIndex(i).printOnAvoidingIndent(
 				aStream,
 				recursionList,
 				indent + 1);
+			aStream.append(", ");
 		}
 		object.defaultType().printOnAvoidingIndent(
 			aStream,

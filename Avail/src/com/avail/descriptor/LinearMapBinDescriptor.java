@@ -101,11 +101,6 @@ extends MapBinDescriptor
 	private final static boolean shouldCheckConsistency = false;
 
 	/**
-	 * Debugging flag to dump trace information to the console.
-	 */
-	private final static boolean shouldTrace = false;
-
-	/**
 	 * When a {@linkplain LinearMapBinDescriptor linear bin} reaches this many
 	 * entries and it's not already at the bottom allowable level ({@link
 	 * #numberOfLevels} - 1) of the hash tree, then convert it to a hashed bin.
@@ -142,14 +137,6 @@ extends MapBinDescriptor
 			{
 				assert storedValueHashSum == computedValueHashSum;
 			}
-		}
-	}
-
-	static void trace (final String format, final Object... other)
-	{
-		if (shouldTrace)
-		{
-			System.out.printf(format, other);
 		}
 	}
 

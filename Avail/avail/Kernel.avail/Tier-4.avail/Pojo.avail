@@ -610,12 +610,25 @@ Restriction "static method_._(«_‡,»)" is
 	Discard addF(list, 30);
 	Print "list = " then list as basic string then "\n";
 	list2 ::= listC();
+
+	Print "list2 = " then list2 as basic string then "\n";
+	collectionsT ::= Java type "java.util.Collections";
+	listT ::= Java type "java.util.List" parameters <any>;
+	
+/*** The "catch«_‡,»in_" currently requires catch blocks which take subtypes of Exception.   TODO[MvG]
+	catch [e : Java type "java.lang.IndexOutOfBoundsException" |
+		Print "Problem copying:" then (e as basic string);
+	] in [
+		copyF ::= static method collectionsT."copy" (listT, listT);
+		copyF(list2, list);
+		Print "Collections.copy(list2, list) = " then list2 as basic string then "\n";
+	];
+*/
+
 	Discard addF(list2, -20);
 	Discard addF(list2, -40);
 	Discard addF(list2, -60);
 	Print "list2 = " then list2 as basic string then "\n";
-	collectionsT ::= Java type "java.util.Collections";
-	listT ::= Java type "java.util.List" parameters <any>;
 	copyF ::= static method collectionsT."copy" (listT, listT);
 	copyF(list2, list);
 	Print "Collections.copy(list2, list) = " then list2 as basic string then "\n";

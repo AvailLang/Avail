@@ -76,8 +76,28 @@ extends Descriptor
 		 * Flags indicating the reasons for interrupting this process.  If the
 		 * value is zero then no interrupt is indicated.
 		 */
-		@BitFields(describedBy=InterruptRequestFlag.class)
-		INTERRUPT_REQUEST_FLAG
+		INTERRUPT_REQUEST_FLAG;
+
+
+		/**
+		 * Interrupt because this process has executed the specified number of
+		 * nybblecodes.  This can be used to implement single-stepping.
+		 */
+		static final BitField OUT_OF_GAS = bitField(
+			INTERRUPT_REQUEST_FLAG,
+			0,
+			1);
+
+		/**
+		 * Either this process's priority has been lowered or another process's
+		 * priority has been increased.  Either way, a higher priority process
+		 * than the current one may be ready to schedule, and the process
+		 * scheduling machinery should have an opportunity for determining this.
+		 */
+		static final BitField HIGHER_PRIORITY_READY = bitField(
+			INTERRUPT_REQUEST_FLAG,
+			1,
+			1);
 	}
 
 	/**
@@ -140,35 +160,6 @@ extends Descriptor
 		 * The process has terminated.  This state is permanent.
 		 */
 		TERMINATED;
-	}
-
-	/**
-	 * Definitions of static flags that indicate why a {@linkplain
-	 * ProcessDescriptor process} is being interrupted.  These flags are
-	 * single-bit masks that can be set or cleared in the process's {@linkplain
-	 * IntegerSlots#INTERRUPT_REQUEST_FLAG interrupt request flags}.  If
-	 * <em>any</em> bits are set then an inter-nybblecode interrupt will take
-	 * place at the next convenient time.
-	 */
-	public static class InterruptRequestFlag
-	{
-		/**
-		 * Interrupt because this process has executed the specified number of
-		 * nybblecodes.  This can be used to implement single-stepping.
-		 */
-		@BitField(shift=0, bits=1)
-		static final BitField OUT_OF_GAS =
-			bitField(InterruptRequestFlag.class, "OUT_OF_GAS");
-
-		/**
-		 * Either this process's priority has been lowered or another process's
-		 * priority has been increased.  Either way, a higher priority process
-		 * than the current one may be ready to schedule, and the process
-		 * scheduling machinery should have an opportunity for determining this.
-		 */
-		@BitField(shift=1, bits=1)
-		static final BitField HIGHER_PRIORITY_READY =
-			bitField(InterruptRequestFlag.class, "HIGHER_PRIORITY_READY");
 	}
 
 	@Override @AvailMethod

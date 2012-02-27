@@ -38,6 +38,7 @@ import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailRejectedParseException;
+import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.*;
 import com.avail.interpreter.levelOne.*;
 import com.avail.serialization.SerializerOperation;
@@ -218,11 +219,34 @@ extends Descriptor
 		writer.primitiveNumber(
 			Primitive.prim201_RaiseException.primitiveNumber);
 		writer.argumentTypes(ANY.o());
+		// Declare the primitive failure local.
+		final int failureLocal = writer.createLocal(
+			VariableTypeDescriptor.wrapInnerType(
+				IntegerRangeTypeDescriptor.singleInteger(
+					AvailErrorCode.E_UNHANDLED_EXCEPTION.numericCode())));
 		writer.returnType(BottomTypeDescriptor.bottom());
 		writer.write(
 			new L1Instruction(
 				L1Operation.L1_doPushLiteral,
-				writer.addLiteral(NullDescriptor.nullObject())));
+				writer.addLiteral(
+					StringDescriptor.from("Exception handler not found"))));
+		writer.write(
+			new L1Instruction(
+				L1Operation.L1_doPushLocal,
+				1));  // Argument #1 is the exception being raised.
+		writer.write(
+			new L1Instruction(
+				L1Operation.L1_doGetLocal,
+				failureLocal));
+		writer.write(
+			new L1Instruction(
+				L1Operation.L1_doMakeTuple,
+				3));
+		writer.write(
+			new L1Instruction(
+				L1Operation.L1_doCall,
+				writer.addLiteral(vmCrashMethod),
+				writer.addLiteral(BottomTypeDescriptor.bottom())));
 		final AvailObject newFunction = FunctionDescriptor.create(
 			writer.compiledCode(),
 			TupleDescriptor.empty());
@@ -963,11 +987,8 @@ extends Descriptor
 	{
 		final AvailObject oldTuple =
 			object.slot(ObjectSlots.TYPE_RESTRICTIONS_TUPLE);
-		final AvailObject newTuple =
-			TupleDescriptor.append(oldTuple, function);
-		object.setSlot(
-			ObjectSlots.TYPE_RESTRICTIONS_TUPLE,
-			newTuple);
+		final AvailObject newTuple = oldTuple.appendCanDestroy(function, true);
+		object.setSlot(ObjectSlots.TYPE_RESTRICTIONS_TUPLE, newTuple);
 	}
 
 	@Override @AvailMethod
@@ -999,11 +1020,8 @@ extends Descriptor
 	{
 		final AvailObject oldTuple =
 			object.slot(ObjectSlots.SEALED_ARGUMENTS_TYPES_TUPLE);
-		final AvailObject newTuple =
-			TupleDescriptor.append(oldTuple, tupleType);
-		object.setSlot(
-			ObjectSlots.SEALED_ARGUMENTS_TYPES_TUPLE,
-			newTuple);
+		final AvailObject newTuple = oldTuple.appendCanDestroy(tupleType, true);
+		object.setSlot(ObjectSlots.SEALED_ARGUMENTS_TYPES_TUPLE, newTuple);
 	}
 
 	@Override @AvailMethod

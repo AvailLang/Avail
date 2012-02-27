@@ -34,7 +34,7 @@ package com.avail.descriptor;
 
 import java.math.BigInteger;
 import java.util.*;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
@@ -90,9 +90,9 @@ extends AbstractDescriptor
 	/**
 	 * The object slots of my {@link AvailObject} instances.  In particular, an
 	 * {@linkplain IndirectionDescriptor indirection} has just a {@link
-	 * #TARGET}, which is the object that the current object is equivalent to.
-	 *
-	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+	 * #INDIRECTION_TARGET}, which is the object that the current object is
+	 * equivalent to.  There may be other slots, depending on our mechanism for
+	 * conversion to an indirection object, but they should be ignored.
 	 */
 	enum ObjectSlots implements ObjectSlotsEnum
 	{
@@ -100,13 +100,32 @@ extends AbstractDescriptor
 		 * The target {@linkplain AvailObject object} to which my instance is
 		 * delegating all behavior.
 		 */
-		TARGET
+		INDIRECTION_TARGET,
+
+		/**
+		 * All other object slots should be ignored.
+		 */
+		@HideFieldInDebugger
+		IGNORED_OBJECT_SLOT_;
+	}
+
+	/**
+	 * The integer slots of my {@link AvailObject} instances.  Always ignored
+	 * for an indirection object.
+	 */
+	enum IntegerSlots implements IntegerSlotsEnum
+	{
+		/**
+		 * Ignore all integer slots.
+		 */
+		@HideFieldInDebugger
+		IGNORED_INTEGER_SLOT_;
 	}
 
 	@Override boolean allowsImmutableToMutableReferenceInField (
 		final AbstractSlotsEnum e)
 	{
-		return e == ObjectSlots.TARGET;
+		return e == ObjectSlots.INDIRECTION_TARGET;
 	}
 
 	@Override
@@ -129,7 +148,7 @@ extends AbstractDescriptor
 	{
 		// Manually constructed scanning method.
 
-		visitor.invoke(object, object.slot(ObjectSlots.TARGET));
+		visitor.invoke(object, object.slot(ObjectSlots.INDIRECTION_TARGET));
 	}
 
 	/**
@@ -147,7 +166,7 @@ extends AbstractDescriptor
 		if (isMutable)
 		{
 			object.descriptor = immutable();
-			object.slot(ObjectSlots.TARGET).makeImmutable();
+			object.slot(ObjectSlots.INDIRECTION_TARGET).makeImmutable();
 		}
 		return object;
 	}
@@ -164,9 +183,9 @@ extends AbstractDescriptor
 	@Override
 	@NotNull AvailObject o_Traversed (final AvailObject object)
 	{
-		final AvailObject next = object.slot(ObjectSlots.TARGET);
+		final AvailObject next = object.slot(ObjectSlots.INDIRECTION_TARGET);
 		final AvailObject finalObject = next.traversed();
-		object.setSlot(ObjectSlots.TARGET, finalObject);
+		object.setSlot(ObjectSlots.INDIRECTION_TARGET, finalObject);
 		return finalObject;
 	}
 
@@ -4268,5 +4287,14 @@ extends AbstractDescriptor
 		final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).asBigInteger();
+	}
+
+	@Override
+	@NotNull AvailObject o_AppendCanDestroy (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject newElement,
+		final boolean canDestroy)
+	{
+		return o_Traversed(object).appendCanDestroy(newElement, canDestroy);
 	}
 }

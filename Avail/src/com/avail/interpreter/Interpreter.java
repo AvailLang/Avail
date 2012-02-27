@@ -215,6 +215,7 @@ public abstract class Interpreter
 		assert bodyBlock.isFunction();
 
 		final MessageSplitter splitter = new MessageSplitter(methodName.name());
+		splitter.checkImplementationSignature(bodyBlock.kind());
 		final int numArgs = splitter.numberOfArguments();
 		assert bodyBlock.code().numArgs() == numArgs
 			: "Wrong number of arguments in method definition";
@@ -549,10 +550,14 @@ public abstract class Interpreter
 	 *            The {@linkplain TupleDescriptor tuple} of {@linkplain
 	 *            SetDescriptor sets} of {@linkplain AtomDescriptor atoms} that
 	 *            name methods.
+	 * @throws SignatureException
+	 *            If one of the specified names is inappropriate as a method
+	 *            name.
 	 */
 	public void atDisallowArgumentMessages (
 		final @NotNull AvailObject methodName,
 		final @NotNull AvailObject illegalArgMsgs)
+	throws SignatureException
 	{
 		methodName.makeImmutable();
 		// So we can safely hold onto it in the VM
@@ -571,7 +576,6 @@ public abstract class Interpreter
 		bundle.addGrammaticalRestrictions(illegalArgMsgs);
 		module.addGrammaticalRestrictions(methodName, illegalArgMsgs);
 		module.filteredBundleTree().includeBundle(bundle);
-
 	}
 
 	/**
@@ -967,7 +971,8 @@ public abstract class Interpreter
 		final @NotNull AvailObject compiledCode,
 		final List<AvailObject> args)
 	{
-		final Primitive primitive = Primitive.byPrimitiveNumber(primitiveNumber);
+		final Primitive primitive =
+			Primitive.byPrimitiveNumber(primitiveNumber);
 		if (logger.isLoggable(Level.FINER))
 		{
 			logger.finer(String.format(

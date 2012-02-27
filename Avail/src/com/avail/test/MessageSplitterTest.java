@@ -37,6 +37,7 @@ import static junit.framework.Assert.*;
 import org.junit.*;
 import com.avail.compiler.*;
 import com.avail.descriptor.*;
+import com.avail.exceptions.SignatureException;
 
 /**
  * Test the {@link MessageSplitter}.  It splits method names into a sequence of
@@ -138,9 +139,10 @@ public class MessageSplitterTest
 
 	/**
 	 * Test: Split the test cases.
+	 * @throws SignatureException If the message name is malformed.
 	 */
 	@Test
-	public void testSplitting ()
+	public void testSplitting () throws SignatureException
 	{
 		for (final String[] splitCase : Arrays.asList(splitCases))
 		{

@@ -40,6 +40,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import com.avail.annotations.*;
 import com.avail.compiler.*;
 import com.avail.descriptor.*;
+import com.avail.exceptions.SignatureException;
 
 /**
  * An {@code AvailRuntime} comprises the {@linkplain ModuleDescriptor
@@ -478,6 +479,11 @@ public final class AvailRuntime
 			modules = modules.mapAtPuttingCanDestroy(
 				aModule.name(), aModule, true);
 		}
+		catch (final SignatureException e)
+		{
+			// Shouldn't happen.
+			throw new RuntimeException(e);
+		}
 		finally
 		{
 			runtimeLock.writeLock().unlock();
@@ -670,6 +676,11 @@ public final class AvailRuntime
 					selector,
 					true);
 			}
+		}
+		catch (final SignatureException e)
+		{
+			// Shouldn't happen.
+			throw new RuntimeException(e);
 		}
 		finally
 		{

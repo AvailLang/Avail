@@ -186,7 +186,6 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 		// Do nothing.
 	}
 
-
 	/**
 	 * Create a new {@code TupleNodeDescriptor tuple node} with one more parse
 	 * node added to the end of the tuple.
@@ -204,17 +203,47 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 		final @NotNull AvailObject object,
 		final AvailObject newParseNode)
 	{
-		final List<AvailObject> newNodes = new ArrayList<AvailObject>(
-			object.expressionsTuple().tupleSize() + 1);
-		for (final AvailObject expression : object.expressionsTuple())
-		{
-			newNodes.add(expression);
-		}
-		newNodes.add(newParseNode);
-		final AvailObject newTupleNode = TupleNodeDescriptor.newExpressions(
-			TupleDescriptor.fromCollection(newNodes));
-		return newTupleNode;
+		final AvailObject oldTuple = object.slot(EXPRESSIONS_TUPLE);
+		final AvailObject newTuple = oldTuple.appendCanDestroy(
+			newParseNode,
+			true);
+		return TupleNodeDescriptor.newExpressions(newTuple);
 	}
+
+
+	/**
+	 * The empty {@link TupleNodeDescriptor tuple node}.
+	 */
+	private static AvailObject empty;
+
+
+	/**
+	 * Answer the empty {@link TupleNodeDescriptor tuple node}.
+	 *
+	 * @return The empty tuple node.
+	 */
+	public static @NotNull AvailObject empty ()
+	{
+		return empty;
+	}
+
+	/**
+	 * Create the empty {@link TupleNodeDescriptor tuple node}.
+	 */
+	static void createWellKnownObjects ()
+	{
+		empty = newExpressions(TupleDescriptor.empty());
+		empty.makeImmutable();
+	}
+
+	/**
+	 * Discard the empty {@link TupleNodeDescriptor tuple node}.
+	 */
+	static void clearWellKnownObjects ()
+	{
+		empty = null;
+	}
+
 
 
 	/**

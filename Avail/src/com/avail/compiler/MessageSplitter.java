@@ -34,12 +34,13 @@ package com.avail.compiler;
 
 import static com.avail.compiler.ParsingOperation.*;
 import static com.avail.compiler.ParsingConversionRule.*;
-import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.exceptions.AvailErrorCode.*;
 import java.util.*;
 import com.avail.annotations.*;
 import com.avail.compiler.scanning.AvailScanner;
 import com.avail.descriptor.*;
+import com.avail.exceptions.*;
 
 /**
  * {@code MessageSplitter} is used to split Avail message names into a sequence
@@ -91,7 +92,7 @@ public class MessageSplitter
 		new ArrayList<Integer>(10);
 
 	/** The top-most {@linkplain Group group}. */
-	private final @NotNull Group rootGroup;
+	final @NotNull Group rootGroup;
 
 	/**
 	 * An {@code Expression} represents a structural view of part of the
@@ -134,7 +135,7 @@ public class MessageSplitter
 
 		/**
 		 * Check that the given type signature is appropriate for this message
-		 * expression. If not, throw a suitable exception.
+		 * expression. If not, throw a {@link SignatureException}.
 		 *
 		 * <p>This is also called recursively on subcomponents, and it checks
 		 * that {@linkplain Argument group arguments} have the correct structure
@@ -157,9 +158,12 @@ public class MessageSplitter
 		 * @param argumentType
 		 *        A {@linkplain TupleTypeDescriptor tuple type} describing the
 		 *        types of arguments that a method being added will accept.
+		 * @throws SignatureException
+		 *        If the argument type is inappropriate.
 		 */
 		public abstract void checkType (
-			final @NotNull AvailObject argumentType);
+			final @NotNull AvailObject argumentType)
+		throws SignatureException;
 
 		@Override
 		public @NotNull String toString ()
@@ -279,10 +283,12 @@ public class MessageSplitter
 		 */
 		@Override
 		public void checkType (final @NotNull AvailObject argumentType)
+		throws SignatureException
 		{
 			if (argumentType.equals(BottomTypeDescriptor.bottom()))
 			{
-				error("Method argument type should not be \"bottom\".");
+				// Method argument type should not be bottom.
+				throwSignatureException(E_INCORRECT_ARGUMENT_TYPE);
 			}
 			return;
 		}
@@ -621,22 +627,22 @@ public class MessageSplitter
 		 */
 		@Override
 		public void checkType (final @NotNull AvailObject argumentType)
+		throws SignatureException
 		{
 			// Always expect a tuple of solutions here.
 			if (argumentType.equals(BottomTypeDescriptor.bottom()))
 			{
-				error("Method argument type should not be \"bottom\".");
+				// Method argument type should not be bottom.
+				throwSignatureException(E_INCORRECT_ARGUMENT_TYPE);
 			}
 
 			if (!argumentType.isTupleType())
 			{
-				error(
-					"The repeated group \"" + toString() +
-					"\" must accept a tuple, not \"" +
-					argumentType.toString() + "\".");
+				// The group produces a tuple.
+				throwSignatureException(E_INCORRECT_TYPE_FOR_GROUP);
 			}
 
-			if (!needsDoubleWrapping())
+			if (this != rootGroup && !needsDoubleWrapping())
 			{
 				// Expect a tuple of individual values.  No further checks are
 				// needed.
@@ -651,20 +657,21 @@ public class MessageSplitter
 					argumentsBeforeDagger);
 				final AvailObject expectedUpper = IntegerDescriptor.fromInt(
 					argumentsBeforeDagger + argumentsAfterDagger);
-				for (int i = 1, limit = argumentType.typeTuple().tupleSize();
-					i <= limit;
-					i++)
+				final AvailObject typeTuple = argumentType.typeTuple();
+				final int limit = typeTuple.tupleSize() + 1;
+				for (int i = 1; i <= limit; i++)
 				{
 					final AvailObject solutionType =
 						argumentType.typeAtIndex(i);
+					if (solutionType.equals(BottomTypeDescriptor.bottom()))
+					{
+						// It was the empty tuple type.
+						break;
+					}
 					if (!solutionType.isTupleType())
 					{
-						error(
-							"The declared type for the subexpression \"" +
-							toString() +
-							"\" is expected to be a tuple type whose " +
-							Integer.toString(i) +
-							"-th element accepts a tuple.");
+						// The argument should be a tuple of tuples.
+						throwSignatureException(E_INCORRECT_TYPE_FOR_GROUP);
 					}
 					// Check that the solution that will reside at the current
 					// index accepts either a full group or a group up to the
@@ -673,20 +680,16 @@ public class MessageSplitter
 						solutionType.sizeRange();
 					final AvailObject lower = solutionTypeSizes.lowerBound();
 					final AvailObject upper = solutionTypeSizes.upperBound();
-					if (lower != expectedLower && lower != expectedUpper
-						|| upper != expectedLower && upper != expectedUpper)
+					if (!(lower.equals(expectedLower) || lower.equals(expectedUpper))
+						&& (!(upper.equals(expectedLower) || upper.equals(expectedUpper))))
 					{
-						error(
-							"The complex group \"" + toString() +
-							"\" should have elements whose types are " +
-							"tuples restricted to have lower and upper " +
-							"bounds equal to the pre-dagger cardinality (" +
-							expectedLower.toString() +
-							") or the total cardinality (" +
-							expectedUpper.toString() +
-							").  Instead, the " + Integer.toString(i) +
-							"-th element of the outer list has type " +
-							solutionType.toString() + ".");
+						// This complex group should have elements whose types
+						// are tuples restricted to have sizes ranging from the
+						// number of argument subexpressions before the double
+						// dagger up to the total number of argument
+						// subexpressions in this group.
+						throwSignatureException(
+							E_INCORRECT_TYPE_FOR_COMPLEX_GROUP);
 					}
 					int j = 1;
 					for (final Expression e : expressionsBeforeDagger)
@@ -952,14 +955,14 @@ public class MessageSplitter
 
 		@Override
 		public void checkType (final @NotNull AvailObject argumentType)
+		throws SignatureException
 		{
-			if (argumentType.isSubtypeOf(
+			if (!argumentType.isSubtypeOf(
 				IntegerRangeTypeDescriptor.wholeNumbers()))
 			{
-				error(
-					"The declared type for the subexpression must be a subtype "
-					+ "of "
-					+ IntegerRangeTypeDescriptor.wholeNumbers());
+				// The declared type for the subexpression must be a subtype of
+				// whole number.
+				throwSignatureException(E_INCORRECT_TYPE_FOR_COUNTING_GROUP);
 			}
 		}
 
@@ -1059,14 +1062,14 @@ public class MessageSplitter
 
 		@Override
 		public void checkType (final @NotNull AvailObject argumentType)
+		throws SignatureException
 		{
-			if (argumentType.isSubtypeOf(
+			if (!argumentType.isSubtypeOf(
 				EnumerationTypeDescriptor.booleanObject()))
 			{
-				error(
-					"The declared type for the subexpression must be a subtype "
-					+ "of "
-					+ EnumerationTypeDescriptor.booleanObject());
+				// The declared type of the subexpression must be a subtype of
+				// boolean.
+				throwSignatureException(E_INCORRECT_TYPE_FOR_BOOLEAN_GROUP);
 			}
 		}
 
@@ -1090,8 +1093,11 @@ public class MessageSplitter
 	 * @param messageName
 	 *        An Avail {@linkplain StringDescriptor string} specifying the
 	 *        keywords and arguments of some message being defined.
+	 * @throws SignatureException
+	 *         If the message name is malformed.
 	 */
 	public MessageSplitter (final @NotNull AvailObject messageName)
+	throws SignatureException
 	{
 		this.messageName = messageName;
 		messageName.makeImmutable();
@@ -1100,12 +1106,11 @@ public class MessageSplitter
 		rootGroup = parseGroup();
 		if (rootGroup.hasDagger)
 		{
-			error("Dagger is not allowed outside guillemets");
+			throwSignatureException(E_INCORRECT_USE_OF_DOUBLE_DAGGER);
 		}
 		if (messagePartPosition != messageParts.size() + 1)
 		{
-			error("Imbalanced guillemets in message: "
-				+ messageName.asNativeString());
+			throwSignatureException(E_UNBALANCED_GUILLEMETS);
 		}
 		// Emit it twice -- once to calculate the branch positions, and then
 		// again to output using the correct branches.
@@ -1208,8 +1213,11 @@ public class MessageSplitter
 	 * that would lead to confusion over whether an operator was supposed to be
 	 * treated as a special token like open-guillemet («) rather than like a
 	 * backquote-escaped token).
+	 *
+	 * @throws SignatureException If the signature is invalid.
 	 */
 	private void splitMessage ()
+	throws SignatureException
 	{
 		if (messageName.tupleSize() == 0)
 		{
@@ -1225,9 +1233,8 @@ public class MessageSplitter
 					|| isCharacterAnUnderscoreOrSpaceOrOperator(
 						(char) messageName.tupleAt(position - 1).codePoint()))
 				{
-					error(
-						"Illegally canonized method name"
-						+ " (problem before space)");
+					// Problem is before the space.
+					throwSignatureException(E_METHOD_NAME_IS_NOT_CANONICAL);
 				}
 				//  Skip the space.
 				position++;
@@ -1235,9 +1242,8 @@ public class MessageSplitter
 						|| isCharacterAnUnderscoreOrSpaceOrOperator(
 							(char) messageName.tupleAt(position).codePoint()))
 				{
-					error(
-						"Illegally canonized method name"
-						+ " (problem after space)");
+					// Problem is after the space.
+					throwSignatureException(E_METHOD_NAME_IS_NOT_CANONICAL);
 				}
 			}
 			else if (isCharacterAnUnderscoreOrSpaceOrOperator(ch))
@@ -1282,8 +1288,11 @@ public class MessageSplitter
 	 * ensuring the entire input was exactly consumed.</p>
 	 *
 	 * @return A {@link Group} expression parsed from the {@link #messageParts}.
+	 *
+	 * @throws SignatureException If the method name is malformed.
 	 */
 	Group parseGroup ()
+	throws SignatureException
 	{
 		final Group group = new Group();
 		while (true)
@@ -1311,18 +1320,21 @@ public class MessageSplitter
 			{
 				if (group.hasDagger)
 				{
-					error("Two double daggers encountered in group");
+					// Two daggers were encountered in a group.
+					throwSignatureException(E_INCORRECT_USE_OF_DOUBLE_DAGGER);
 				}
 				group.hasDagger = true;
 				messagePartPosition++;
 			}
 			else if (token.equals(StringDescriptor.octothorp()))
 			{
-				error("Octothorp must follow a group");
+				throwSignatureException(
+					E_OCTOTHORP_MUST_FOLLOW_A_SIMPLE_GROUP);
 			}
 			else if (token.equals(StringDescriptor.questionMark()))
 			{
-				error("Question mark must follow a group");
+				throwSignatureException(
+					E_QUESTION_MARK_MUST_FOLLOW_A_SIMPLE_GROUP);
 			}
 			else if (token.equals(StringDescriptor.openGuillemet()))
 			{
@@ -1337,9 +1349,8 @@ public class MessageSplitter
 				// Otherwise token stays an open guillemet, hence not a close...
 				if (!token.equals(StringDescriptor.closeGuillemet()))
 				{
-					error(
-						"Expected matching close guillemet in method name",
-						messageName);
+					// Expected matching close guillemet.
+					throwSignatureException(E_UNBALANCED_GUILLEMETS);
 				}
 				messagePartPosition++;
 				// Try to parse a counter or optional.
@@ -1351,9 +1362,9 @@ public class MessageSplitter
 					{
 						if (subgroup.underscoreCount() > 0)
 						{
-							error(
-								"Counting group may not contain underscores, "
-								+ "ellipses, or subgroups");
+							// Counting group may not contain arguments.
+							throwSignatureException(
+								E_OCTOTHORP_MUST_FOLLOW_A_SIMPLE_GROUP);
 						}
 						subexpression = new Counter(subgroup);
 						messagePartPosition++;
@@ -1362,14 +1373,15 @@ public class MessageSplitter
 					{
 						if (subgroup.underscoreCount() > 0)
 						{
-							error(
-								"Optional group may not contain underscores, "
-								+ "ellipses, or subgroups");
+							// Optional group may not contain arguments.
+							throwSignatureException(
+								E_QUESTION_MARK_MUST_FOLLOW_A_SIMPLE_GROUP);
 						}
 						if (subgroup.hasDagger)
 						{
-							error(
-								"Optional group may not contain double dagger");
+							// Optional group may not contain double dagger.
+							throwSignatureException(
+								E_QUESTION_MARK_MUST_FOLLOW_A_SIMPLE_GROUP);
 						}
 						subexpression = new Optional(subgroup);
 						messagePartPosition++;
@@ -1393,19 +1405,18 @@ public class MessageSplitter
 					messagePartPosition++;  // eat the backquote
 					if (messagePartPosition > messageParts.size())
 					{
-						error(
-							"Expected operator character after backquote, "
-								+ "not end of message name",
-							messageName);
+						// Expected operator character after backquote, not end.
+						throwSignatureException(
+							E_EXPECTED_OPERATOR_AFTER_BACKQUOTE);
 					}
 					token = messageParts.get(messagePartPosition - 1);
 					if (token.tupleSize() != 1
 						|| !isCharacterAnUnderscoreOrSpaceOrOperator(
 							(char)token.tupleAt(1).codePoint()))
 					{
-						error(
-							"Expecting operator character after backquote",
-							messageName);
+						// Expected operator character after backquote.
+						throwSignatureException(
+							E_EXPECTED_OPERATOR_AFTER_BACKQUOTE);
 					}
 				}
 				// Parse a regular keyword or operator
@@ -1450,6 +1461,58 @@ public class MessageSplitter
 	public int numberOfUnderscores ()
 	{
 		return numberOfUnderscores;
+	}
+
+	/**
+	 * Check that an {@linkplain ImplementationDescriptor implementation} with
+	 * the given {@linkplain FunctionTypeDescriptor signature} is appropriate
+	 * for a message like this.
+	 *
+	 * @param functionType
+	 *            A function type.
+	 * @throws SignatureException
+	 *            If the function type is inappropriate for the method name.
+	 */
+	public void checkImplementationSignature (
+		final @NotNull AvailObject functionType)
+	throws SignatureException
+	{
+		final AvailObject argsTupleType = functionType.argsTupleType();
+		final AvailObject sizes = argsTupleType.sizeRange();
+		final AvailObject lowerBound = sizes.lowerBound();
+		final AvailObject upperBound = sizes.upperBound();
+		if (!lowerBound.equals(upperBound) || !lowerBound.isInt())
+		{
+			// Method implementations (and other implementations) should take a
+			// definite number of arguments.
+			throwSignatureException(
+				E_INCORRECT_NUMBER_OF_ARGUMENTS);
+		}
+		final int lowerBoundInt = lowerBound.extractInt();
+		if (lowerBoundInt != numberOfArguments())
+		{
+			throwSignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS);
+		}
+		// The checker treats the outer group as needing double-wrapping, so
+		// wrap it.
+		rootGroup.checkType(
+			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+				sizes,
+				TupleDescriptor.empty(),
+				functionType.argsTupleType()));
+	}
+
+	/**
+	 * Throw a {@link SignatureException} with the given error code.
+	 *
+	 * @param errorCode The {@link AvailErrorCode} that indicates the problem.
+	 * @throws SignatureException Always, with the given error code.
+	 */
+	void throwSignatureException (
+		final @NotNull AvailErrorCode errorCode)
+	throws SignatureException
+	{
+		throw new SignatureException(errorCode);
 	}
 
 	/**

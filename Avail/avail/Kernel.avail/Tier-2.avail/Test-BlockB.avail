@@ -35,7 +35,9 @@ Extends
 Uses
 	"Tier-1",
 	"BlockA",
-	"BlockB"
+	"BlockB",
+	"Continuation",
+	"Number"
 Names
 Body
 
@@ -66,3 +68,17 @@ Assert t <= [100..456];
 Assert 100 type <= t;
 Assert 456 type <= t;
 Assert 123 type <= t;
+
+/* Test that we can invoke a primitive block which fails. */
+addPrim ::= [x : extended integer, y : extended integer |
+	Primitive 1 (ignored : whole number);
+	1000;
+] : number;
+
+Assert addPrim(10,20) = 30;
+Assert addPrim(INF, -INF) = 1000;
+/* Run it enough times to become optimized. */
+From 1 to 100 do [x : integer |
+	Halt;
+	Assert addPrim(INF, -INF) = 1000;
+];

@@ -81,6 +81,7 @@ extends Descriptor
 		 * The hash value of this {@linkplain CompiledCodeDescriptor compiled
 		 * code object}.  It is computed at construction time.
 		 */
+		@HideFieldInDebugger
 		HASH,
 
 		/**
@@ -89,14 +90,12 @@ extends Descriptor
 		 * the variable number of slots that should be allocated for a
 		 * {@linkplain ContinuationDescriptor continuation} running this code.
 		 */
-		@BitFields(describedBy=HiNumOutersLowFrameSlots.class)
 		HI_NUM_OUTERS_LOW_FRAME_SLOTS,
 
 		/**
 		 * A compound field consisting of the number of locals variables and the
 		 * number of arguments.
 		 */
-		@BitFields(describedBy=HiNumLocalsLowNumArgs.class)
 		HI_NUM_LOCALS_LOW_NUM_ARGS,
 
 		/**
@@ -117,7 +116,46 @@ extends Descriptor
 		 * The remaining number of times to invoke this code before performing
 		 * a reoptimization attempt.
 		 */
-		INVOCATION_COUNT
+		INVOCATION_COUNT;
+
+
+		/**
+		 * The number of outer variables that must captured by my {@linkplain
+		 * FunctionDescriptor functions}.
+		 */
+		static final BitField NUM_OUTERS = bitField(
+			HI_NUM_OUTERS_LOW_FRAME_SLOTS,
+			16,
+			16);
+
+		/**
+		 * The number of {@linkplain
+		 * ContinuationDescriptor.ObjectSlots#FRAME_AT_ frame slots} to allocate
+		 * for continuations running this code.
+		 */
+		static final BitField FRAME_SLOTS = bitField(
+			HI_NUM_OUTERS_LOW_FRAME_SLOTS,
+			0,
+			16);
+
+		/**
+		 * The number of local variables and constants declared in this code,
+		 * not counting the arguments.  Also don't count locals in nested code.
+		 */
+		static final BitField NUM_LOCALS = bitField(
+			HI_NUM_LOCALS_LOW_NUM_ARGS,
+			16,
+			16);
+
+		/**
+		 * The number of {@link DeclarationKind#ARGUMENT arguments} that this
+		 * code expects.
+		 */
+		static final BitField NUM_ARGS = bitField(
+			HI_NUM_LOCALS_LOW_NUM_ARGS,
+			0,
+			16);
+
 	}
 
 	/**
@@ -145,9 +183,9 @@ extends Descriptor
 		/**
 		 * The {@linkplain L2ChunkDescriptor level two chunk} that should be
 		 * invoked whenever this code is started.  The chunk may no longer be
-		 * {@linkplain L2ChunkDescriptor.NumObjectsAndFlags#VALID valid}, in
-		 * which case the {@linkplain L2ChunkDescriptor#unoptimizedChunk()
-		 * default chunk} will be substituted until the next reoptimization.
+		 * {@linkplain L2ChunkDescriptor.IntegerSlots#VALID valid}, in which
+		 * case the {@linkplain L2ChunkDescriptor#unoptimizedChunk() default
+		 * chunk} will be substituted until the next reoptimization.
 		 */
 		STARTING_CHUNK,
 
@@ -157,53 +195,6 @@ extends Descriptor
 		 * in the {@linkplain #NYBBLES nybblecodes}.  This also includes
 		 */
 		LITERAL_AT_
-	}
-
-	/**
-	 * Bit fields for the {@link IntegerSlots#HI_NUM_OUTERS_LOW_FRAME_SLOTS}
-	 * integer slot.
-	 */
-	public static class HiNumOutersLowFrameSlots
-	{
-		/**
-		 * The number of outer variables that must captured by my {@linkplain
-		 * FunctionDescriptor functions}.
-		 */
-		@BitField(shift=16, bits=16)
-		static final BitField NUM_OUTERS =
-			bitField(HiNumOutersLowFrameSlots.class, "NUM_OUTERS");
-
-		/**
-		 * The number of {@linkplain
-		 * ContinuationDescriptor.ObjectSlots#FRAME_AT_ frame slots} to allocate
-		 * for continuations running this code.
-		 */
-		@BitField(shift=0, bits=16)
-		static final BitField FRAME_SLOTS =
-			bitField(HiNumOutersLowFrameSlots.class, "FRAME_SLOTS");
-	}
-
-	/**
-	 * Bit fields for the {@link IntegerSlots#HI_NUM_LOCALS_LOW_NUM_ARGS}
-	 * integer slot.
-	 */
-	public static class HiNumLocalsLowNumArgs
-	{
-		/**
-		 * The number of local variables and constants declared in this code,
-		 * not counting the arguments.  Also don't count locals in nested code.
-		 */
-		@BitField(shift=16, bits=16)
-		static final BitField NUM_LOCALS =
-			bitField(HiNumLocalsLowNumArgs.class, "NUM_LOCALS");
-
-		/**
-		 * The number of {@link DeclarationKind#ARGUMENT arguments} that this
-		 * code expects.
-		 */
-		@BitField(shift=0, bits=16)
-		static final BitField NUM_ARGS =
-			bitField(HiNumLocalsLowNumArgs.class, "NUM_ARGS");
 	}
 
 
@@ -390,9 +381,7 @@ extends Descriptor
 	int o_NumArgs (
 		final @NotNull AvailObject object)
 	{
-		return (short)object.bitSlot(
-			IntegerSlots.HI_NUM_LOCALS_LOW_NUM_ARGS,
-			HiNumLocalsLowNumArgs.NUM_ARGS);
+		return (short)object.slot(IntegerSlots.NUM_ARGS);
 	}
 
 	/**
@@ -407,9 +396,7 @@ extends Descriptor
 	int o_NumArgsAndLocalsAndStack (
 		final @NotNull AvailObject object)
 	{
-		return object.bitSlot(
-			IntegerSlots.HI_NUM_OUTERS_LOW_FRAME_SLOTS,
-			HiNumOutersLowFrameSlots.FRAME_SLOTS);
+		return object.slot(IntegerSlots.FRAME_SLOTS);
 	}
 
 	@Override @AvailMethod
@@ -423,18 +410,14 @@ extends Descriptor
 	int o_NumLocals (
 		final @NotNull AvailObject object)
 	{
-		return object.bitSlot(
-			IntegerSlots.HI_NUM_LOCALS_LOW_NUM_ARGS,
-			HiNumLocalsLowNumArgs.NUM_LOCALS);
+		return object.slot(IntegerSlots.NUM_LOCALS);
 	}
 
 	@Override @AvailMethod
 	int o_NumOuters (
 		final @NotNull AvailObject object)
 	{
-		return object.bitSlot(
-			IntegerSlots.HI_NUM_OUTERS_LOW_FRAME_SLOTS,
-			HiNumOutersLowFrameSlots.NUM_OUTERS);
+		return object.slot(IntegerSlots.NUM_OUTERS);
 	}
 
 	@Override @AvailMethod
@@ -564,22 +547,10 @@ extends Descriptor
 
 //		canAllocateObjects(false);
 
-		code.bitSlotPut(
-			IntegerSlots.HI_NUM_LOCALS_LOW_NUM_ARGS,
-			HiNumLocalsLowNumArgs.NUM_LOCALS,
-			locals);
-		code.bitSlotPut(
-			IntegerSlots.HI_NUM_LOCALS_LOW_NUM_ARGS,
-			HiNumLocalsLowNumArgs.NUM_ARGS,
-			numArgs);
-		code.bitSlotPut(
-			IntegerSlots.HI_NUM_OUTERS_LOW_FRAME_SLOTS,
-			HiNumOutersLowFrameSlots.FRAME_SLOTS,
-			slotCount);
-		code.bitSlotPut(
-			IntegerSlots.HI_NUM_OUTERS_LOW_FRAME_SLOTS,
-			HiNumOutersLowFrameSlots.NUM_OUTERS,
-			outersSize);
+		code.setSlot(IntegerSlots.NUM_LOCALS, locals);
+		code.setSlot(IntegerSlots.NUM_ARGS, numArgs);
+		code.setSlot(IntegerSlots.FRAME_SLOTS, slotCount);
+		code.setSlot(IntegerSlots.NUM_OUTERS, outersSize);
 		code.setSlot(IntegerSlots.PRIMITIVE_NUMBER, primitive);
 		code.setSlot(ObjectSlots.NYBBLES, nybbles);
 		code.setSlot(ObjectSlots.FUNCTION_TYPE, functionType);

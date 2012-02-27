@@ -36,6 +36,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.MESSAGE_BUNDLE;
 import java.util.*;
 import com.avail.annotations.*;
 import com.avail.compiler.MessageSplitter;
+import com.avail.exceptions.SignatureException;
 
 /**
  *
@@ -243,9 +244,9 @@ extends Descriptor
 		{
 			final AvailObject lastTuple =
 				tuplesOfEmptySets.get(tuplesOfEmptySets.size() - 1);
-			final AvailObject newTuple = TupleDescriptor.append(
-				lastTuple,
-				SetDescriptor.empty());
+			final AvailObject newTuple = lastTuple.appendCanDestroy(
+				SetDescriptor.empty(),
+				true);
 			newTuple.makeImmutable();
 			tuplesOfEmptySets.add(newTuple);
 		}
@@ -276,9 +277,11 @@ extends Descriptor
 	 *
 	 * @param message The message name, an {@linkplain AtomDescriptor atom}.
 	 * @return A new {@linkplain MessageBundleDescriptor message bundle}.
+	 * @throws SignatureException If the message name is malformed.
 	 */
 	public static AvailObject newBundle (
 		final AvailObject message)
+	throws SignatureException
 	{
 		assert message.isAtom();
 		final MessageSplitter splitter = new MessageSplitter(message.name());

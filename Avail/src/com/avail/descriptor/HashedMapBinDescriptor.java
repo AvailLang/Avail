@@ -126,6 +126,9 @@ extends MapBinDescriptor
 		SUB_BINS_
 	}
 
+	/**
+	 * A static switch for enabling slow, detailed correctness checks.
+	 */
 	private final static boolean shouldCheck = false;
 
 	/**

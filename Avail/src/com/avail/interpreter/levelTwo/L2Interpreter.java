@@ -1110,16 +1110,16 @@ implements L2OperationDispatcher
 			{
 				return result;
 			}
+			// The primitive failed.
+			assert !Primitive.byPrimitiveNumber(primNum).hasFlag(
+				Flag.CannotFail);
+			invokeWithoutPrimitiveFunctionArguments(aFunction, args);
+			final int failureVarIndex = argumentRegister(code.numArgs() + 1);
+			final AvailObject failureVariable = pointerAt(failureVarIndex);
+			failureVariable.setValue(primitiveResult);
+			return CONTINUATION_CHANGED;
 		}
-		// Either it wasn't a primitive or the primitive failed.
-		if (!pointerAt(functionRegister()).equalsNull())
-		{
-			integerAtPut(pcRegister(), 1);
-			integerAtPut(
-				stackpRegister(),
-				argumentRegister(code.numArgsAndLocalsAndStack() + 1));
-			// reifyContinuation();
-		}
+		// It wasn't a primitive.
 		invokeWithoutPrimitiveFunctionArguments(aFunction, args);
 		return CONTINUATION_CHANGED;
 	}
@@ -1194,6 +1194,7 @@ implements L2OperationDispatcher
 			switch (primResult)
 			{
 				case CONTINUATION_CHANGED:
+					return;
 				case SUSPENDED:
 					return;
 				case SUCCESS:

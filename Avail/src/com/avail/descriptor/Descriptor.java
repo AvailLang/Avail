@@ -32,7 +32,6 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.error;
 import java.math.BigInteger;
 import java.util.*;
 import com.avail.annotations.*;
@@ -2037,10 +2036,7 @@ extends AbstractDescriptor
 	@Override
 	long o_ExtractLong (final @NotNull AvailObject object)
 	{
-		error(
-			"Subclass responsiblity: o_ExtractLong() in "
-			+ getClass().getCanonicalName());
-		return 0L;
+		throw unsupportedOperationException();
 	}
 
 	@Override
@@ -3302,11 +3298,7 @@ extends AbstractDescriptor
 	@NotNull Iterator<AvailObject> o_Iterator (
 		final @NotNull AvailObject object)
 	{
-		error(
-			"Subclass responsibility: o_Iterator() in "
-			+ getClass().getCanonicalName(),
-			object);
-		return null;
+		throw unsupportedOperationException();
 	}
 
 	@Override
@@ -4540,6 +4532,16 @@ extends AbstractDescriptor
 	@Override
 	@NotNull BigInteger o_AsBigInteger (
 		final @NotNull AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+
+	@Override
+	@NotNull AvailObject o_AppendCanDestroy (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject newElement,
+		final boolean canDestroy)
 	{
 		throw unsupportedOperationException();
 	}

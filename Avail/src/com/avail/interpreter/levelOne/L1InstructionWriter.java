@@ -36,7 +36,8 @@ import static com.avail.descriptor.TypeDescriptor.Types.TYPE;
 import java.io.ByteArrayOutputStream;
 import java.util.*;
 import com.avail.descriptor.*;
-import com.avail.interpreter.Primitive;
+import com.avail.interpreter.*;
+import com.avail.interpreter.Primitive.Flag;
 
 /**
  * An instance of this class can be used to construct a {@linkplain
@@ -329,6 +330,21 @@ public class L1InstructionWriter
 	 */
 	public AvailObject compiledCode ()
 	{
+		if (primitiveNumber != 0)
+		{
+			final Primitive primitive =
+				Primitive.byPrimitiveNumber(primitiveNumber);
+			if (!primitive.hasFlag(Flag.CannotFail))
+			{
+				// Make sure the first local is set up as a primitive failure
+				// variable.
+				assert localTypes.size() > 0
+				: "Fallible primitive needs a primitive failure variable";
+				// At some point we'll declare all failure codes that a
+				// primitive can produce, at which point we can strengthen this
+				// safety check.
+			}
+		}
 		return CompiledCodeDescriptor.create(
 			nybbles(),
 			localTypes.size(),

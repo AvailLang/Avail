@@ -175,29 +175,22 @@ abstract class AbstractAvailObject
 	}
 
 	/**
-	 * Extract the value of the {@link BitField} of the {@code int} located at
-	 * the {@linkplain AbstractSlotsEnum#ordinal() ordinal} of the given field
-	 * {@code enum} value.
+	 * Extract the value of the {@link BitField} of the receiver.
 	 *
-	 * @param field An enumeration value that defines the field ordering.
-	 * @param subfield A {@code BitField} that defines the subfield layout.
+	 * @param bitField
+	 *            A {@code BitField} that defines the object's layout.
 	 * @return An {@code int} extracted from this object.
 	 */
-	abstract int bitSlot (
-		final @NotNull IntegerSlotsEnum field,
-		final @NotNull BitField subfield);
+	abstract int slot (
+		final @NotNull BitField bitField);
 
 	/**
-	 * Replace the value of the {@link BitField} of the {@code int} located at
-	 * the {@linkplain AbstractSlotsEnum#ordinal() ordinal} of the given field
-	 * {@code enum} value.
+	 * Replace the value of the {@link BitField} within this object.
 	 *
-	 * @param field An enumeration value that defines the field ordering.
-	 * @param subfield A {@code BitField} that defines the subfield layout.
-	 * @param anInteger An {@code int} to store in the indicated slot.
+	 * @param subfield A {@code BitField} that defines the object's layout.
+	 * @param anInteger An {@code int} to store in the indicated bit field.
 	 */
-	abstract void bitSlotPut (
-		final @NotNull IntegerSlotsEnum field,
+	abstract void setSlot (
 		final @NotNull BitField subfield,
 		final int anInteger);
 

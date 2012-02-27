@@ -32,22 +32,53 @@
 
 package com.avail.interpreter.levelTwo;
 
+/**
+ * An {@code L2RawInstruction} is a combination of an {@link L2Operation} and an
+ * array of {@code int}s encoding its operands.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public class L2RawInstruction
 {
+	/**
+	 * The {@link L2Operation} invoked by this instruction.
+	 */
 	private final L2Operation operation;
+
+	/**
+	 * An array of {@code int}s encoding the instruction's operands.
+	 */
 	private final int [] operands;
 
+	/**
+	 * Answer this instruction's {@link L2Operation}.
+	 *
+	 * @return An {@code L2Operation}.
+	 */
 	public L2Operation operation ()
 	{
 		return operation;
 	}
 
+	/**
+	 * Answer this instruction's {@code int}-encoded operands.  They should
+	 * correspond in purpose to the operation's {@link
+	 * L2Operation#operandTypes() operand types}.
+	 *
+	 * @return An array of {@code int}s encoding the operands.
+	 */
 	public int [] operands ()
 	{
 		return operands;
 	}
 
-	// Constructor
+	/**
+	 * Construct a new {@link L2RawInstruction} from the {@link L2Operation} and
+	 * the array of {@code int}-encoded operands.
+	 *
+	 * @param operation The {@code L2Operation} to use.
+	 * @param operands Its operands, encoded as {@code int}s.
+	 */
 	public L2RawInstruction (final L2Operation operation, final int ... operands)
 	{
 		assert operation.operandTypes().length == operands.length;

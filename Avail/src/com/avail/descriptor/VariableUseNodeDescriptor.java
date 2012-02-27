@@ -80,22 +80,19 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 		 * A flag indicating (with 0/1) whether this is the last use of the
 		 * mentioned entity.
 		 */
-		@BitFields(describedBy=Flags.class)
-		FLAGS
-	}
+		FLAGS;
 
-	/**
-	 * Bit fields for the {@link IntegerSlots#FLAGS} slot.
-	 */
-	public static class Flags
-	{
+
 		/**
 		 * Whether this is the last use of the mentioned entity.
 		 */
-		@BitField(shift=0, bits=1)
-		static final BitField LAST_USE =
-			bitField(Flags.class, "LAST_USE");
+		static final BitField LAST_USE = bitField(
+			FLAGS,
+			0,
+			1);
+
 	}
+
 
 	/**
 	 * Getter for field token.
@@ -123,19 +120,14 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 		final @NotNull AvailObject object,
 		final boolean isLastUse)
 	{
-		object.bitSlotPut(
-			IntegerSlots.FLAGS,
-			Flags.LAST_USE,
-			isLastUse ? 1 : 0);
+		object.setSlot(IntegerSlots.LAST_USE, isLastUse ? 1 : 0);
 	}
 
 	@Override @AvailMethod
 	boolean o_IsLastUse (
 		final @NotNull AvailObject object)
 	{
-		return object.bitSlot(
-			IntegerSlots.FLAGS,
-			Flags.LAST_USE) != 0;
+		return object.slot(IntegerSlots.LAST_USE) != 0;
 	}
 
 
@@ -181,6 +173,32 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 		declaration.declarationKind().emitVariableValueForOn(
 			declaration,
 			codeGenerator);
+	}
+
+	@Override @AvailMethod
+	void o_ChildrenMap (
+		final @NotNull AvailObject object,
+		final Transformer1<AvailObject, AvailObject> aBlock)
+	{
+		// Do nothing.
+	}
+
+	@Override @AvailMethod
+	void o_ChildrenDo (
+		final @NotNull AvailObject object,
+		final Continuation1<AvailObject> aBlock)
+	{
+		// Do nothing.
+	}
+
+	@Override @AvailMethod
+	void o_ValidateLocally (
+		final @NotNull AvailObject object,
+		final AvailObject parent,
+		final List<AvailObject> outerBlocks,
+		final L2Interpreter anAvailInterpreter)
+	{
+		// Do nothing.
 	}
 
 	@Override
@@ -259,32 +277,5 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 	public static VariableUseNodeDescriptor immutable ()
 	{
 		return immutable;
-	}
-
-	@Override @AvailMethod
-	void o_ChildrenMap (
-		final @NotNull AvailObject object,
-		final Transformer1<AvailObject, AvailObject> aBlock)
-	{
-		// Do nothing.
-	}
-
-	@Override @AvailMethod
-	void o_ChildrenDo (
-		final @NotNull AvailObject object,
-		final Continuation1<AvailObject> aBlock)
-	{
-		// Do nothing.
-	}
-
-
-	@Override @AvailMethod
-	void o_ValidateLocally (
-		final @NotNull AvailObject object,
-		final AvailObject parent,
-		final List<AvailObject> outerBlocks,
-		final L2Interpreter anAvailInterpreter)
-	{
-		// Do nothing.
 	}
 }

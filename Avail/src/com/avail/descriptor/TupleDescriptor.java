@@ -325,18 +325,12 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_CompareFromToWithStartingAt (
+	abstract boolean o_CompareFromToWithStartingAt (
 		final @NotNull AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
 		final AvailObject anotherObject,
-		final int startIndex2)
-	{
-		error(
-			"Subclass responsibility: Object:compareFrom:to:with:startingAt: in Avail.TupleDescriptor",
-			object);
-		return false;
-	}
+		final int startIndex2);
 
 	@Override @AvailMethod
 	boolean o_CompareFromToWithAnyTupleStartingAt (
@@ -629,43 +623,19 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TupleAt (final AvailObject object, final int index)
-	{
-		// Answer the element at the given index in the tuple object.
-
-		error(
-			"Subclass responsibility: Object:tupleAt: in Avail.TupleDescriptor",
-			object);
-		return NullDescriptor.nullObject();
-	}
+	abstract @NotNull AvailObject o_TupleAt (
+		final @NotNull AvailObject object,
+		final int index);
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TupleAtPuttingCanDestroy (
+	abstract @NotNull AvailObject o_TupleAtPuttingCanDestroy (
 		final @NotNull AvailObject object,
 		final int index,
 		final AvailObject newValueObject,
-		final boolean canDestroy)
-	{
-		// Answer a tuple with all the elements of object, except at the given
-		// index we should have newValueObject. This may destroy the original
-		// tuple if canDestroy is true.
-
-		error(
-			"Subclass responsibility: Object:tupleAt:putting:canDestroy: in Avail.TupleDescriptor",
-			object);
-		return NullDescriptor.nullObject();
-	}
+		final boolean canDestroy);
 
 	@Override @AvailMethod
-	int o_TupleIntAt (final AvailObject object, final int index)
-	{
-		// Answer the integer element at the given index in the tuple object.
-
-		error(
-			"Subclass responsibility: Object:tupleIntAt: in Avail.TupleDescriptor",
-			object);
-		return 0;
-	}
+	abstract int o_TupleIntAt (final AvailObject object, final int index);
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_AsSet (final AvailObject object)
@@ -717,15 +687,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	int o_TupleSize (final AvailObject object)
-	{
-		// Answer the number of elements in the object (as a Smalltalk Integer).
-
-		error(
-			"Subclass responsibility: o_TupleSize: in Avail.TupleDescriptor",
-			object);
-		return 0;
-	}
+	abstract int o_TupleSize (final @NotNull AvailObject object);
 
 	@Override @AvailMethod
 	boolean o_IsSplice (final AvailObject object)
@@ -1016,25 +978,24 @@ extends Descriptor
 	 * the client must ensure that either the elements are marked immutable, or
 	 * one of the copies is not kept after the call.
 	 *
-	 * @param originalTuple
-	 *            The original tuple of {@linkplain AvailObject Avail objects}
-	 *            on which to base the new tuple.
 	 * @param newElement
 	 *            The new element that should be at the end of the new tuple.
 	 * @return
 	 *            The new mutable tuple of objects including all elements of the
 	 *            passed tuple plus the new element.
 	 */
-	public static @NotNull AvailObject append (
-		final @NotNull AvailObject originalTuple,
-		final @NotNull AvailObject newElement)
+	@Override @AvailMethod
+	public @NotNull AvailObject o_AppendCanDestroy (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject newElement,
+		final boolean canDestroy)
 	{
-		final int originalSize = originalTuple.tupleSize();
+		final int originalSize = object.tupleSize();
 		final AvailObject newTuple = ObjectTupleDescriptor.mutable().create(
 			originalSize + 1);
 		for (int i = 1; i <= originalSize; i++)
 		{
-			newTuple.tupleAtPut(i, originalTuple.tupleAt(i));
+			newTuple.tupleAtPut(i, object.tupleAt(i));
 		}
 		newTuple.tupleAtPut(originalSize + 1, newElement);
 		return newTuple;
@@ -1094,34 +1055,40 @@ extends Descriptor
 	public static AvailObject fromIntegerList (
 		final List<Integer> list)
 	{
-		AvailObject tuple;
-		final int minValue = list.size() == 0 ? 0 : min(list);
-		final int maxValue = list.size() == 0 ? 0 : max(list);
-		if (0 <= minValue && maxValue <= 15)
+		if (list.size() == 0)
 		{
-			tuple = NybbleTupleDescriptor.mutableObjectOfSize(list.size());
-			for (int i = 1; i <= list.size(); i++)
+			return empty();
+		}
+		final AvailObject tuple;
+		final int minValue = min(list);
+		if (minValue >= 0)
+		{
+			final int maxValue = max(list);
+			if (maxValue <= 15)
 			{
-				tuple.rawNybbleAtPut(i, list.get(i - 1).byteValue());
+				tuple = NybbleTupleDescriptor.mutableObjectOfSize(list.size());
+				for (int i = 1; i <= list.size(); i++)
+				{
+					tuple.rawNybbleAtPut(i, list.get(i - 1).byteValue());
+				}
+				return tuple;
+			}
+			if (maxValue <= 255)
+			{
+				tuple = ByteTupleDescriptor.mutableObjectOfSize(list.size());
+				for (int i = 1; i <= list.size(); i++)
+				{
+					tuple.rawByteAtPut(i, list.get(i - 1).shortValue());
+				}
+				return tuple;
 			}
 		}
-		else if (0 <= minValue && maxValue <= 255)
+		tuple = ObjectTupleDescriptor.mutable().create(list.size());
+		for (int i = 1; i <= list.size(); i++)
 		{
-			tuple = ByteTupleDescriptor.mutableObjectOfSize(list.size());
-			for (int i = 1; i <= list.size(); i++)
-			{
-				tuple.rawByteAtPut(i, list.get(i - 1).shortValue());
-			}
-		}
-		else
-		{
-			tuple = ObjectTupleDescriptor.mutable().create(list.size());
-			for (int i = 1; i <= list.size(); i++)
-			{
-				tuple.tupleAtPut(
-					i,
-					IntegerDescriptor.fromInt(list.get(i - 1).intValue()));
-			}
+			tuple.tupleAtPut(
+				i,
+				IntegerDescriptor.fromInt(list.get(i - 1).intValue()));
 		}
 		return tuple;
 	}
