@@ -2101,7 +2101,7 @@ implements L2OperationDispatcher
 		{
 			continuation.argOrLocalOrStackAtPut(
 				i,
-				pointerAt(slots.tupleAt(i).extractInt()));
+				pointerAt(slots.tupleIntAt(i)));
 		}
 		pointerAtPut(destIndex, continuation);
 	}
@@ -2152,7 +2152,7 @@ implements L2OperationDispatcher
 		for (int i = 1, end = slotsVector.tupleSize(); i <= end; i++)
 		{
 			pointerAtPut(
-				slotsVector.tupleAt(i).extractInt(),
+				slotsVector.tupleIntAt(i),
 				cont.argOrLocalOrStackAt(i));
 		}
 	}
@@ -2310,7 +2310,7 @@ implements L2OperationDispatcher
 			sizeIndex);
 		for (int i = 1; i <= sizeIndex; i++)
 		{
-			tuple.tupleAtPut(i, pointerAt(indices.tupleAt(i).extractInt()));
+			tuple.tupleAtPut(i, pointerAt(indices.tupleIntAt(i)));
 		}
 		pointerAtPut(destIndex, tuple);
 	}
@@ -2381,7 +2381,7 @@ implements L2OperationDispatcher
 		clos.code(chunk().literalAt(codeIndex));
 		for (int i = 1, end = outers.tupleSize(); i <= end; i++)
 		{
-			clos.outerVarAtPut(i, pointerAt(outers.tupleAt(i).extractInt()));
+			clos.outerVarAtPut(i, pointerAt(outers.tupleIntAt(i)));
 		}
 		pointerAtPut(destIndex, clos);
 	}
@@ -2472,7 +2472,7 @@ implements L2OperationDispatcher
 		argsBuffer.clear();
 		for (int i1 = 1; i1 <= argsVect.tupleSize(); i1++)
 		{
-			argsBuffer.add(pointerAt(argsVect.tupleAt(i1).extractInt()));
+			argsBuffer.add(pointerAt(argsVect.tupleIntAt(i1)));
 		}
 		// Only primitive 340 needs the compiledCode argument, and it's always
 		// folded.
@@ -2516,7 +2516,7 @@ implements L2OperationDispatcher
 		argsBuffer.clear();
 		for (int i1 = 1; i1 <= argsVect.tupleSize(); i1++)
 		{
-			argsBuffer.add(pointerAt(argsVect.tupleAt(i1).extractInt()));
+			argsBuffer.add(pointerAt(argsVect.tupleIntAt(i1)));
 		}
 		// Only primitive 340 needs the compiledCode argument, and it's always
 		// folded.

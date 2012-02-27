@@ -281,7 +281,8 @@ extends Descriptor
 			aStream.append("(INVALID)\n");
 		}
 		final AvailObject words = object.wordcodes();
-		final L2RawInstructionDescriber describer = new L2RawInstructionDescriber();
+		final L2RawInstructionDescriber describer =
+			new L2RawInstructionDescriber();
 		for (int i = 1, limit = words.tupleSize(); i <= limit; )
 		{
 			for (int t = 1; t <= indent + 1; t++)
@@ -289,14 +290,16 @@ extends Descriptor
 				aStream.append("\t");
 			}
 			aStream.append(String.format("#%-3d ", i));
-			final L2Operation operation = L2Operation.values()[words.tupleAt(i).extractInt()];
+			final L2Operation operation =
+				L2Operation.values()[words.tupleIntAt(i)];
 			i++;
 			final int[] operands = new int[operation.operandTypes().length];
 			for (int opIndex = 0; opIndex < operands.length; opIndex++, i++)
 			{
-				operands[opIndex] = words.tupleAt(i).extractInt();
+				operands[opIndex] = words.tupleIntAt(i);
 			}
-			final L2RawInstruction rawInstruction = new L2RawInstruction(operation, operands);
+			final L2RawInstruction rawInstruction =
+				new L2RawInstruction(operation, operands);
 			describer.describe(rawInstruction, object, aStream);
 			aStream.append("\n");
 		}

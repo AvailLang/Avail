@@ -556,7 +556,7 @@ extends Descriptor
 		int index = 1;
 		while (true)
 		{
-			int test = tree.tupleAt(index).extractInt();
+			int test = tree.tupleIntAt(index);
 			final int lowBit = test & 1;
 			test = test >>> 1;
 			if (lowBit == 1)
@@ -572,7 +572,7 @@ extends Descriptor
 			}
 			else
 			{
-				index = index + 2 + tree.tupleAt(index + 1).extractInt();
+				index = index + 2 + tree.tupleIntAt(index + 1);
 			}
 		}
 	}
@@ -595,7 +595,7 @@ extends Descriptor
 		int index = 1;
 		while (true)
 		{
-			int test = tree.tupleAt(index).extractInt();
+			int test = tree.tupleIntAt(index);
 			final int lowBit = test & 1;
 			test = test >>> 1;
 			if (lowBit == 1)
@@ -615,7 +615,7 @@ extends Descriptor
 			}
 			else
 			{
-				index = index + 2 + tree.tupleAt(index + 1).extractInt();
+				index = index + 2 + tree.tupleIntAt(index + 1);
 			}
 		}
 	}
@@ -636,7 +636,7 @@ extends Descriptor
 		int index = 1;
 		while (true)
 		{
-			int test = tree.tupleAt(index).extractInt();
+			int test = tree.tupleIntAt(index);
 			final int lowBit = test & 1;
 			test = test >>> 1;
 			if (lowBit == 1)
@@ -652,7 +652,7 @@ extends Descriptor
 			}
 			else
 			{
-				index = index + 2 + tree.tupleAt(index + 1).extractInt();
+				index = index + 2 + tree.tupleIntAt(index + 1);
 			}
 		}
 	}
@@ -672,7 +672,7 @@ extends Descriptor
 		int index = 1;
 		while (true)
 		{
-			int test = tree.tupleAt(index).extractInt();
+			int test = tree.tupleIntAt(index);
 			final int lowBit = test & 1;
 			test = test >>> 1;
 			if (lowBit == 1)
@@ -688,7 +688,7 @@ extends Descriptor
 			}
 			else
 			{
-				index = index + 2 + tree.tupleAt(index + 1).extractInt();
+				index = index + 2 + tree.tupleIntAt(index + 1);
 			}
 		}
 	}
@@ -710,7 +710,7 @@ extends Descriptor
 		int index = 1;
 		while (true)
 		{
-			int test = tree.tupleAt(index).extractInt();
+			int test = tree.tupleIntAt(index);
 			final int lowBit = test & 1;
 			test = test >>> 1;
 			if (lowBit == 1)
@@ -726,7 +726,7 @@ extends Descriptor
 			}
 			else
 			{
-				index = index + 2 + tree.tupleAt(index + 1).extractInt();
+				index = index + 2 + tree.tupleIntAt(index + 1);
 			}
 		}
 	}

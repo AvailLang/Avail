@@ -906,7 +906,7 @@ extends AbstractAvailCompiler
 								// declaration of the primitive failure
 								// variable.
 								final int primitive =
-									primitiveAndFailure.tupleAt(1).extractInt();
+									primitiveAndFailure.tupleIntAt(1);
 								final Primitive thePrimitive =
 									Primitive.byPrimitiveNumber(primitive);
 								if (thePrimitive != null

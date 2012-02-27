@@ -121,7 +121,7 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 	public void doSelector()
 	{
 		_description.append("Message(");
-		AvailObject impSet = _chunk.literalAt(_operand);
+		final AvailObject impSet = _chunk.literalAt(_operand);
 		_description.append(impSet.name().name().asNativeString());
 		_description.append(")");
 	}
@@ -173,14 +173,14 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 		_description.append("Vector#");
 		_description.append(_operand);
 		_description.append("=(");
-		AvailObject vector = _chunk.vectors().tupleAt(_operand);
+		final AvailObject vector = _chunk.vectors().tupleAt(_operand);
 		for (int i = 1; i <= vector.tupleSize(); i++)
 		{
 			if (i > 1)
 			{
 				_description.append(",");
 			}
-			_description.append(vector.tupleAt(i).extractInt());
+			_description.append(vector.tupleIntAt(i));
 		}
 		_description.append(")[read]");
 	}
@@ -190,14 +190,14 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 		_description.append("Vector#");
 		_description.append(_operand);
 		_description.append("=(");
-		AvailObject vector = _chunk.vectors().tupleAt(_operand);
+		final AvailObject vector = _chunk.vectors().tupleAt(_operand);
 		for (int i = 1; i <= vector.tupleSize(); i++)
 		{
 			if (i > 1)
 			{
 				_description.append(",");
 			}
-			_description.append(vector.tupleAt(i).extractInt());
+			_description.append(vector.tupleIntAt(i));
 		}
 		_description.append(")[write]");
 	}
@@ -207,14 +207,14 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 		_description.append("Vector#");
 		_description.append(_operand);
 		_description.append("=(");
-		AvailObject vector = _chunk.vectors().tupleAt(_operand);
+		final AvailObject vector = _chunk.vectors().tupleAt(_operand);
 		for (int i = 1; i <= vector.tupleSize(); i++)
 		{
 			if (i > 1)
 			{
 				_description.append(",");
 			}
-			_description.append(vector.tupleAt(_operand).extractInt());
+			_description.append(vector.tupleIntAt(_operand));
 		}
 		_description.append(")[read/write]");
 	}
