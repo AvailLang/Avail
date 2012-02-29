@@ -50,7 +50,6 @@ import com.avail.exceptions.*;
 import com.avail.exceptions.ArithmeticException;
 import com.avail.interpreter.levelOne.*;
 import com.avail.interpreter.levelTwo.*;
-import com.avail.interpreter.levelTwo.instruction.L2AttemptPrimitiveInstruction;
 
 
 /**
@@ -6655,7 +6654,8 @@ implements IntegerEnumSlotDescriptionEnum
 	/**
 	 * <strong>Primitive 341:</strong> The only argument is being returned.
 	 */
-	prim341_PushArgument(341, 1, CanFold, CanInline, Private, CannotFail)
+	prim341_PushArgument(341, 1,
+		SpecialReturnSoleArgument, CanFold, CanInline, Private, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -8361,7 +8361,8 @@ implements IntegerEnumSlotDescriptionEnum
 		 * without the need to reify the current continuation.
 		 *
 		 * <p>The primitive may still fail at runtime, but that's dealt with by
-		 * a conditional branch in the {@linkplain L2AttemptPrimitiveInstruction
+		 * a conditional branch in the {@linkplain
+		 * L2Operation#L2_doAttemptPrimitive_arguments_result_failure_ifSuccess_
 		 * attempt-primitive wordcode} itself.</p>
 		 */
 		CanInline,
@@ -8393,6 +8394,13 @@ implements IntegerEnumSlotDescriptionEnum
 		 * compiled code}.
 		 */
 		SpecialReturnConstant,
+
+		/**
+		 * The primitive returns the only argument.  This is only used for
+		 * {@link Primitive#prim341_PushArgument primitive 341}, which is
+		 * detected automatically at code generation time.
+		 */
+		SpecialReturnSoleArgument,
 
 		/**
 		 * The primitive cannot fail. Hence, there is no need for Avail code

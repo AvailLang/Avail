@@ -1,5 +1,5 @@
 /**
- * L2DecrementToZeroThenOptimizeInstruction.java
+ * L2ReadVectorOperand.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,42 +30,72 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.levelTwo.instruction;
+package com.avail.interpreter.levelTwo.operand;
 
-import static com.avail.interpreter.levelTwo.L2Operation.L2_doDecrementCounterAndReoptimizeOnZero;
 import java.util.*;
 import com.avail.annotations.NotNull;
-import com.avail.descriptor.CompiledCodeDescriptor;
-import com.avail.interpreter.levelTwo.L2CodeGenerator;
-import com.avail.interpreter.levelTwo.register.L2Register;
+import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.register.*;
+import com.avail.utility.*;
+
 
 /**
- * {@code L2DecrementToZeroThenOptimizeInstruction} decrements the run counter
- * in the current {@linkplain CompiledCodeDescriptor compiled code object} and
- * re-optimizes the code when it reaches zero ({@code 0}).
+ * An {@code L2ReadVectorOperand} is an operand of type {@link
+ * L2OperandType#READ_VECTOR}.  It holds an {@link L2RegisterVector}.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
-public final class L2DecrementToZeroThenOptimizeInstruction
-extends L2Instruction
+public class L2ReadVectorOperand extends L2Operand
 {
-	@Override
-	public @NotNull List<L2Register> sourceRegisters ()
+	/**
+	 * The actual {@link L2RegisterVector}.
+	 */
+	public final @NotNull L2RegisterVector vector;
+
+	/**
+	 * Construct a new {@link L2ReadVectorOperand} with the specified {@link
+	 * L2RegisterVector}.
+	 *
+	 * @param vector The register vector.
+	 */
+	public L2ReadVectorOperand (
+		final @NotNull L2RegisterVector vector)
 	{
-		return Collections.emptyList();
+		this.vector = vector;
 	}
 
 	@Override
-	public @NotNull List<L2Register> destinationRegisters ()
+	public L2OperandType operandType ()
 	{
-		return Collections.emptyList();
+		return L2OperandType.READ_VECTOR;
 	}
 
 	@Override
-	public void emitOn (final @NotNull L2CodeGenerator codeGenerator)
+	public void dispatchOperand (final L2OperandDispatcher dispatcher)
 	{
-		codeGenerator.emitL2Operation(
-			L2_doDecrementCounterAndReoptimizeOnZero);
+		dispatcher.doOperand(this);
+	}
+
+	@Override
+	public L2ReadVectorOperand transformRegisters (
+		final @NotNull Transformer1<L2Register, L2Register> transformer)
+	{
+		final List<L2ObjectRegister> newRegisters =
+			new ArrayList<L2ObjectRegister>(vector.registers().size());
+		for (final L2ObjectRegister register : vector.registers())
+		{
+			final L2ObjectRegister newRegister =
+				(L2ObjectRegister)transformer.value(register);
+			newRegisters.add(newRegister);
+		}
+		final L2RegisterVector newVector = new L2RegisterVector(newRegisters);
+		return new L2ReadVectorOperand(newVector);
+	}
+
+	@Override
+	public void emitOn (
+		final @NotNull L2CodeGenerator codeGenerator)
+	{
+		codeGenerator.emitVector(vector);
 	}
 }

@@ -1,5 +1,5 @@
 /**
- * L2AbstractJumpInstruction.java
+ * L2Operand.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,62 +30,54 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.levelTwo.instruction;
+package com.avail.interpreter.levelTwo.operand;
 
-import java.util.*;
 import com.avail.annotations.NotNull;
-import com.avail.interpreter.levelTwo.L2Interpreter;
+import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.L2Register;
+import com.avail.utility.*;
+
 
 /**
- * {@code L2AbstractJumpInstruction} is the foundation of all jump instructions
- * understood by the {@linkplain L2Interpreter level two Avail interpreter}. It
- * implements a read-only jump {@linkplain L2Instruction target} that is set at
- * construction time.
+ * An {@code L2Operand} knows its {@link L2OperandType} and any specific value
+ * that needs to be captured for that type of operand.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
-public abstract class L2AbstractJumpInstruction
-extends L2Instruction
+public abstract class L2Operand
 {
 	/**
-	 * The {@linkplain L2LabelInstruction target} of the {@linkplain
-	 * L2AbstractJumpInstruction jump}.
+	 * Answer this operand's {@link L2OperandType}.
+	 *
+	 * @return An {@code L2OperandType}.
 	 */
-	private final @NotNull L2LabelInstruction target;
+	public abstract L2OperandType operandType ();
 
 	/**
-	 * Answer the {@linkplain L2LabelInstruction target} of the {@linkplain
-	 * L2AbstractJumpInstruction jump}.
+	 * Dispatch this {@code L2Operand} to the provided {@link
+	 * L2OperandDispatcher}.
 	 *
-	 * @return The jump {@linkplain L2LabelInstruction target}.
+	 * @param dispatcher The {@code L2OperandDispatcher} visiting the receiver.
 	 */
-	protected @NotNull L2LabelInstruction target ()
-	{
-		return target;
-	}
+	public abstract void dispatchOperand (
+		final @NotNull L2OperandDispatcher dispatcher);
 
 	/**
-	 * Construct a new {@link L2AbstractJumpInstruction}.
+	 * Invoke the {@link Transformer1 transformer} with each {@link L2Register}
+	 * contained within me, producing an alternative {@link L2Operand}.  If no
+	 * transformations were necessary, the receiver may be returned.
 	 *
-	 * @param target The jump {@linkplain L2LabelInstruction target}.
+	 * @param transformer
+	 *            {@linkplain Continuation1 What} to do with each register.
+	 * @return
+	 *            The transformed version of the receiver.
 	 */
-	protected L2AbstractJumpInstruction (
-		final @NotNull L2LabelInstruction target)
-	{
-		this.target = target;
-	}
+	public abstract L2Operand transformRegisters (
+		final @NotNull Transformer1<L2Register, L2Register> transformer);
 
-	@Override
-	public @NotNull List<L2Register> sourceRegisters ()
-	{
-		return Collections.emptyList();
-	}
-
-	@Override
-	public @NotNull List<L2Register> destinationRegisters ()
-	{
-		return Collections.emptyList();
-	}
+	/**
+	 * @param codeGenerator
+	 */
+	public abstract void emitOn (
+		final @NotNull L2CodeGenerator codeGenerator);
 }

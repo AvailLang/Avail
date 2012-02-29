@@ -1,5 +1,5 @@
 /**
- * L2MakeImmutableInstruction.java
+ * L2ReadWriteVectorOperand.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,57 +30,72 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.levelTwo.instruction;
+package com.avail.interpreter.levelTwo.operand;
 
-import static com.avail.interpreter.levelTwo.L2Operation.L2_doMakeImmutableObject_;
 import java.util.*;
 import com.avail.annotations.NotNull;
-import com.avail.descriptor.AvailObject;
-import com.avail.interpreter.levelTwo.L2CodeGenerator;
+import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.*;
+import com.avail.utility.*;
+
 
 /**
- * {@code L2MakeImmutableInstruction} marks the {@linkplain AvailObject object}
- * in the source {@linkplain L2ObjectRegister register} as immutable.
+ * An {@code L2ReadWriteVectorOperand} is an operand of type {@link
+ * L2OperandType#READWRITE_VECTOR}.  It holds an {@link L2RegisterVector}.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
-public final class L2MakeImmutableInstruction
-extends L2Instruction
+public class L2ReadWriteVectorOperand extends L2Operand
 {
-	/** The source {@linkplain L2ObjectRegister register}. */
-	private final @NotNull L2ObjectRegister sourceRegister;
+	/**
+	 * The actual {@link L2RegisterVector}.
+	 */
+	public final @NotNull L2RegisterVector vector;
 
 	/**
-	 * Construct a new {@link L2MakeImmutableInstruction}.
+	 * Construct a new {@link L2ReadWriteVectorOperand} with the specified
+	 * {@link L2RegisterVector}.
 	 *
-	 * @param sourceRegister
-	 *        The source {@linkplain L2ObjectRegister register}.
+	 * @param vector The register vector.
 	 */
-	public L2MakeImmutableInstruction (
-		final @NotNull L2ObjectRegister sourceRegister)
+	public L2ReadWriteVectorOperand (
+		final @NotNull L2RegisterVector vector)
 	{
-		this.sourceRegister = sourceRegister;
+		this.vector = vector;
 	}
 
 	@Override
-	public @NotNull List<L2Register> sourceRegisters ()
+	public L2OperandType operandType ()
 	{
-		return Collections.<L2Register>singletonList(sourceRegister);
+		return L2OperandType.READWRITE_VECTOR;
 	}
 
 	@Override
-	public @NotNull List<L2Register> destinationRegisters ()
+	public void dispatchOperand (final L2OperandDispatcher dispatcher)
 	{
-		return Collections.emptyList();
+		dispatcher.doOperand(this);
 	}
 
 	@Override
-	public void emitOn (final @NotNull L2CodeGenerator codeGenerator)
+	public L2ReadWriteVectorOperand transformRegisters (
+		final @NotNull Transformer1<L2Register, L2Register> transformer)
 	{
-		codeGenerator.emitL2Operation(
-			L2_doMakeImmutableObject_);
-		codeGenerator.emitObjectRegister(sourceRegister);
+		final List<L2ObjectRegister> newRegisters =
+			new ArrayList<L2ObjectRegister>(vector.registers().size());
+		for (final L2ObjectRegister register : vector.registers())
+		{
+			final L2ObjectRegister newRegister =
+				(L2ObjectRegister)transformer.value(register);
+			newRegisters.add(newRegister);
+		}
+		final L2RegisterVector newVector = new L2RegisterVector(newRegisters);
+		return new L2ReadWriteVectorOperand(newVector);
+	}
+
+	@Override
+	public void emitOn (
+		final @NotNull L2CodeGenerator codeGenerator)
+	{
+		codeGenerator.emitVector(vector);
 	}
 }

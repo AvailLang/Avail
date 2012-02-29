@@ -1,5 +1,5 @@
 /**
- * L2MakeSubobjectsImmutableInstruction.java
+ * L2ReadIntOperand.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,58 +30,64 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.levelTwo.instruction;
+package com.avail.interpreter.levelTwo.operand;
 
-import static com.avail.interpreter.levelTwo.L2Operation.L2_doMakeSubobjectsImmutableInObject_;
-import java.util.*;
 import com.avail.annotations.NotNull;
-import com.avail.descriptor.AvailObject;
-import com.avail.interpreter.levelTwo.L2CodeGenerator;
+import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.*;
+import com.avail.utility.*;
+
 
 /**
- * {@code L2MakeSubobjectsImmutableInstruction} marks every subobject of the
- * {@linkplain AvailObject object} in the source {@linkplain L2ObjectRegister
- * register} as immutable.
+ * An {@code L2ReadIntOperand} is an operand of type {@link
+ * L2OperandType#READ_INT}.  It holds the actual {@link L2IntegerRegister} that
+ * is to be accessed.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
-public final class L2MakeSubobjectsImmutableInstruction
-extends L2Instruction
+public class L2ReadIntOperand extends L2Operand
 {
-	/** The source {@linkplain L2ObjectRegister register}. */
-	private final @NotNull L2ObjectRegister sourceRegister;
+	/**
+	 * The actual {@link L2IntegerRegister}.
+	 */
+	public final @NotNull L2IntegerRegister register;
 
 	/**
-	 * Construct a new {@link L2MakeImmutableInstruction}.
+	 * Construct a new {@link L2ReadIntOperand} with the specified {@link
+	 * L2IntegerRegister}.
 	 *
-	 * @param sourceRegister
-	 *        The source {@linkplain L2ObjectRegister register}.
+	 * @param register The integer register.
 	 */
-	public L2MakeSubobjectsImmutableInstruction (
-		final @NotNull L2ObjectRegister sourceRegister)
+	public L2ReadIntOperand (
+		final @NotNull L2IntegerRegister register)
 	{
-		this.sourceRegister = sourceRegister;
+		this.register = register;
 	}
 
 	@Override
-	public @NotNull List<L2Register> sourceRegisters ()
+	public L2OperandType operandType ()
 	{
-		return Collections.<L2Register>singletonList(sourceRegister);
+		return L2OperandType.READ_INT;
 	}
 
 	@Override
-	public @NotNull List<L2Register> destinationRegisters ()
+	public void dispatchOperand (final L2OperandDispatcher dispatcher)
 	{
-		return Collections.emptyList();
+		dispatcher.doOperand(this);
 	}
 
 	@Override
-	public void emitOn (final @NotNull L2CodeGenerator codeGenerator)
+	public L2ReadIntOperand transformRegisters (
+		final @NotNull Transformer1<L2Register, L2Register> transformer)
 	{
-		codeGenerator.emitL2Operation(
-			L2_doMakeSubobjectsImmutableInObject_);
-		codeGenerator.emitObjectRegister(sourceRegister);
+		return new L2ReadIntOperand(
+			(L2IntegerRegister)transformer.value(register));
+	}
+
+	@Override
+	public void emitOn (
+		final @NotNull L2CodeGenerator codeGenerator)
+	{
+		codeGenerator.emitIntegerRegister(register);
 	}
 }

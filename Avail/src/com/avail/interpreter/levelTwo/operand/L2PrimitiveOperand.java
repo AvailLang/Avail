@@ -1,5 +1,5 @@
 /**
- * L2JumpIfInterruptInstruction.java
+ * L2PrimitiveOperand.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,41 +30,63 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.levelTwo.instruction;
+package com.avail.interpreter.levelTwo.operand;
 
-import static com.avail.interpreter.levelTwo.L2Operation.L2_doJumpIfInterrupt_;
 import com.avail.annotations.NotNull;
-import com.avail.descriptor.ProcessDescriptor;
+import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.register.L2Register;
+import com.avail.utility.*;
+
 
 /**
- * If the {@linkplain ProcessDescriptor.IntegerSlots#INTERRUPT_REQUEST_FLAG
- * interrupt request flag} is set when the {@linkplain L2Interpreter
- * interpreter} encounters an {@code L2JumpIfInterruptInstruction}, then jump to
- * the {@linkplain L2LabelInstruction target}; otherwise do nothing.
+ * An {@code L2PrimitiveOperand} is an operand of type {@link
+ * L2OperandType#PRIMITIVE}.  The specific {@link Primitive} is captured.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
-public final class L2JumpIfInterruptInstruction
-extends L2AbstractJumpInstruction
+public class L2PrimitiveOperand extends L2Operand
 {
 	/**
-	 * Construct a new {@link L2JumpIfInterruptInstruction}.
-	 *
-	 * @param target The jump {@linkplain L2LabelInstruction target}.
+	 * The actual {@link Primitive}.
 	 */
-	public L2JumpIfInterruptInstruction (
-		final @NotNull L2LabelInstruction target)
+	public final @NotNull Primitive primitive;
+
+	/**
+	 * Construct a new {@link L2PrimitiveOperand} for the specified {@link
+	 * Primitive primitive}.
+	 *
+	 * @param primitive The primitive to invoke.
+	 */
+	public L2PrimitiveOperand (
+		final @NotNull Primitive primitive)
 	{
-		super(target);
+		this.primitive = primitive;
 	}
 
 	@Override
-	public void emitOn (final @NotNull L2CodeGenerator codeGenerator)
+	public L2OperandType operandType ()
 	{
-		codeGenerator.emitL2Operation(
-			L2_doJumpIfInterrupt_);
-		codeGenerator.emitWordcodeOffsetOf(target());
+		return L2OperandType.PRIMITIVE;
+	}
+
+	@Override
+	public void dispatchOperand (final L2OperandDispatcher dispatcher)
+	{
+		dispatcher.doOperand(this);
+	}
+
+	@Override
+	public L2PrimitiveOperand transformRegisters (
+		final @NotNull Transformer1<L2Register, L2Register> transformer)
+	{
+		return this;
+	}
+
+	@Override
+	public void emitOn (
+		final @NotNull L2CodeGenerator codeGenerator)
+	{
+		codeGenerator.emitPrimitiveNumber(primitive.primitiveNumber);
 	}
 }

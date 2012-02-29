@@ -36,7 +36,6 @@ import java.lang.ref.*;
 import java.util.*;
 import com.avail.annotations.*;
 import com.avail.interpreter.levelTwo.*;
-import com.avail.interpreter.levelTwo.instruction.L2Instruction;
 import com.avail.interpreter.levelTwo.register.*;
 
 /**

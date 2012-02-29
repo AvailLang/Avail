@@ -1,5 +1,5 @@
 /**
- * L2JumpInstruction.java
+ * L2SelectorOperand.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,36 +30,64 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.levelTwo.instruction;
+package com.avail.interpreter.levelTwo.operand;
 
-import static com.avail.interpreter.levelTwo.L2Operation.L2_doJump_;
 import com.avail.annotations.NotNull;
-import com.avail.interpreter.levelTwo.L2CodeGenerator;
+import com.avail.descriptor.*;
+import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.register.*;
+import com.avail.utility.*;
+
 
 /**
- * {@code L2JumpInstruction} causes an unconditional jump to the {@linkplain
- * L2LabelInstruction target}.
+ * An {@code L2SelectorOperand} is an operand of type {@link
+ * L2OperandType#SELECTOR}.  It also holds the actual {@link AvailObject} that
+ * is the {@linkplain MethodDescriptor method} to invoke.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
-public final class L2JumpInstruction
-extends L2AbstractJumpInstruction
+public class L2SelectorOperand extends L2Operand
 {
 	/**
-	 * Construct a new {@link L2JumpInstruction}.
-	 *
-	 * @param target The jump {@linkplain L2LabelInstruction target}.
+	 * The actual {@linkplain MethodDescriptor method}.
 	 */
-	public L2JumpInstruction (final @NotNull L2LabelInstruction target)
+	public final @NotNull AvailObject method;
+
+	/**
+	 * Construct a new {@link L2SelectorOperand} with the specified {@linkplain
+	 * MethodDescriptor method}.
+	 *
+	 * @param method The method to invoke.
+	 */
+	public L2SelectorOperand (
+		final @NotNull AvailObject method)
 	{
-		super(target);
+		this.method = method;
 	}
 
 	@Override
-	public void emitOn (final @NotNull L2CodeGenerator codeGenerator)
+	public L2OperandType operandType ()
 	{
-		codeGenerator.emitL2Operation(
-			L2_doJump_);
-		codeGenerator.emitWordcodeOffsetOf(target());
+		return L2OperandType.SELECTOR;
+	}
+
+	@Override
+	public void dispatchOperand (final L2OperandDispatcher dispatcher)
+	{
+		dispatcher.doOperand(this);
+	}
+
+	@Override
+	public L2SelectorOperand transformRegisters (
+		final @NotNull Transformer1<L2Register, L2Register> transformer)
+	{
+		return this;
+	}
+
+	@Override
+	public void emitOn (
+		final @NotNull L2CodeGenerator codeGenerator)
+	{
+		codeGenerator.emitLiteral(method);
 	}
 }

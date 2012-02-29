@@ -1,5 +1,5 @@
 /**
- * L2LoadConstantInstruction.java
+ * L2WriteVectorOperand.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,72 +30,72 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.levelTwo.instruction;
+package com.avail.interpreter.levelTwo.operand;
 
-import static com.avail.interpreter.levelTwo.L2Operation.L2_doMoveFromConstant_destObject_;
 import java.util.*;
 import com.avail.annotations.NotNull;
-import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.*;
+import com.avail.utility.*;
+
 
 /**
- * {@L2LoadConstantInstruction} stores a literal {@linkplain AvailObject object}
- * into the specified {@linkplain L2ObjectRegister register}.
+ * An {@code L2WriteVectorOperand} is an operand of type {@link
+ * L2OperandType#WRITE_VECTOR}.  It holds an {@link L2RegisterVector}.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
-public final class L2LoadConstantInstruction
-extends L2Instruction
+public class L2WriteVectorOperand extends L2Operand
 {
-	/** A literal {@linkplain AvailObject object}. */
-	private final @NotNull AvailObject literal;
-
-	/** The destination {@linkplain L2ObjectRegister register}. */
-	private final @NotNull L2ObjectRegister destinationRegister;
+	/**
+	 * The actual {@link L2RegisterVector}.
+	 */
+	public final @NotNull L2RegisterVector vector;
 
 	/**
-	 * Construct a new {@link L2LoadConstantInstruction}.
+	 * Construct a new {@link L2WriteVectorOperand} with the specified
+	 * {@link L2RegisterVector}.
 	 *
-	 * @param literal
-	 *        A literal {@linkplain AvailObject object}.
-	 * @param destinationRegister
-	 *        The destination {@linkplain L2ObjectRegister register}.
+	 * @param vector The register vector.
 	 */
-	public L2LoadConstantInstruction (
-		final @NotNull AvailObject literal,
-		final @NotNull L2ObjectRegister destinationRegister)
+	public L2WriteVectorOperand (
+		final @NotNull L2RegisterVector vector)
 	{
-		this.literal = literal;
-		this.destinationRegister = destinationRegister;
+		this.vector = vector;
 	}
 
 	@Override
-	public @NotNull List<L2Register> sourceRegisters ()
+	public L2OperandType operandType ()
 	{
-		return Collections.emptyList();
+		return L2OperandType.WRITE_VECTOR;
 	}
 
 	@Override
-	public @NotNull List<L2Register> destinationRegisters ()
+	public void dispatchOperand (final L2OperandDispatcher dispatcher)
 	{
-		return Collections.<L2Register>singletonList(destinationRegister);
+		dispatcher.doOperand(this);
 	}
 
 	@Override
-	public void emitOn (final @NotNull L2CodeGenerator codeGenerator)
+	public L2WriteVectorOperand transformRegisters (
+		final @NotNull Transformer1<L2Register, L2Register> transformer)
 	{
-		codeGenerator.emitL2Operation(
-			L2_doMoveFromConstant_destObject_);
-		codeGenerator.emitLiteral(literal);
-		codeGenerator.emitObjectRegister(destinationRegister);
+		final List<L2ObjectRegister> newRegisters =
+			new ArrayList<L2ObjectRegister>(vector.registers().size());
+		for (final L2ObjectRegister register : vector.registers())
+		{
+			final L2ObjectRegister newRegister =
+				(L2ObjectRegister)transformer.value(register);
+			newRegisters.add(newRegister);
+		}
+		final L2RegisterVector newVector = new L2RegisterVector(newRegisters);
+		return new L2WriteVectorOperand(newVector);
 	}
 
 	@Override
-	public void propagateTypeInfoFor (final @NotNull L2Translator translator)
+	public void emitOn (
+		final @NotNull L2CodeGenerator codeGenerator)
 	{
-		translator.registerTypeAtPut(destinationRegister, literal.kind());
-		translator.registerConstantAtPut(destinationRegister, literal);
+		codeGenerator.emitVector(vector);
 	}
 }

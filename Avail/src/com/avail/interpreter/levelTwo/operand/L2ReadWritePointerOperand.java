@@ -1,5 +1,5 @@
 /**
- * L2LabelInstruction.java
+ * L2ReadWritePointerOperand.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,42 +30,64 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.levelTwo.instruction;
+package com.avail.interpreter.levelTwo.operand;
 
-import java.util.*;
 import com.avail.annotations.NotNull;
-import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.*;
-import com.avail.interpreter.levelTwo.register.L2Register;
+import com.avail.interpreter.levelTwo.register.*;
+import com.avail.utility.*;
+
 
 /**
- * {@code L2LabelInstruction} is a placeholder for the {@linkplain L2Translator
- * translator} to use while dynamically translating {@linkplain
- * MethodImplementationDescriptor level one Avail methods} to {@linkplain
- * L2ChunkDescriptor level two Avail chunks}. Instances represent {@linkplain
- * L2AbstractJumpInstruction jump} targets.
+ * An {@code L2ReadWritePointerOperand} is an operand of type {@link
+ * L2OperandType#READWRITE_POINTER}.  It holds the actual {@link
+ * L2ObjectRegister} that is to be accessed.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
-public final class L2LabelInstruction
-extends L2Instruction
+public class L2ReadWritePointerOperand extends L2Operand
 {
-	@Override
-	public @NotNull List<L2Register> sourceRegisters ()
+	/**
+	 * The actual {@link L2ObjectRegister}.
+	 */
+	public final @NotNull L2ObjectRegister register;
+
+	/**
+	 * Construct a new {@link L2ReadWritePointerOperand} with the specified
+	 * {@link L2ObjectRegister}.
+	 *
+	 * @param register The object register.
+	 */
+	public L2ReadWritePointerOperand (
+		final @NotNull L2ObjectRegister register)
 	{
-		return Collections.emptyList();
+		this.register = register;
 	}
 
 	@Override
-	public @NotNull List<L2Register> destinationRegisters ()
+	public L2OperandType operandType ()
 	{
-		return Collections.emptyList();
+		return L2OperandType.READWRITE_POINTER;
 	}
 
 	@Override
-	public void emitOn (final @NotNull L2CodeGenerator codeGenerator)
+	public void dispatchOperand (final L2OperandDispatcher dispatcher)
 	{
-		// Do nothing.
+		dispatcher.doOperand(this);
+	}
+
+	@Override
+	public L2ReadWritePointerOperand transformRegisters (
+		final @NotNull Transformer1<L2Register, L2Register> transformer)
+	{
+		return new L2ReadWritePointerOperand(
+			(L2ObjectRegister)transformer.value(register));
+	}
+
+	@Override
+	public void emitOn (
+		final @NotNull L2CodeGenerator codeGenerator)
+	{
+		codeGenerator.emitObjectRegister(register);
 	}
 }

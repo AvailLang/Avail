@@ -1,5 +1,5 @@
 /**
- * L2RawInstruction.java
+ * L2ConstantOperand.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,62 +30,64 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.levelTwo;
+package com.avail.interpreter.levelTwo.operand;
+
+import com.avail.annotations.NotNull;
+import com.avail.descriptor.*;
+import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.register.L2Register;
+import com.avail.utility.*;
+
 
 /**
- * An {@code L2RawInstruction} is a combination of an {@link L2Operation} and an
- * array of {@code int}s encoding its operands.
+ * An {@code L2ConstantOperand} is an operand of type {@link
+ * L2OperandType#CONSTANT}.  It also holds the actual {@link AvailObject} that
+ * is the constant.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
-public class L2RawInstruction
+public class L2ConstantOperand extends L2Operand
 {
 	/**
-	 * The {@link L2Operation} invoked by this instruction.
+	 * The actual constant value.
 	 */
-	private final L2Operation operation;
+	public final @NotNull AvailObject object;
 
 	/**
-	 * An array of {@code int}s encoding the instruction's operands.
-	 */
-	private final int [] operands;
-
-	/**
-	 * Answer this instruction's {@link L2Operation}.
+	 * Construct a new {@link L2ConstantOperand} with the specified {@link
+	 * AvailObject constant}.
 	 *
-	 * @return An {@code L2Operation}.
+	 * @param object The constant value.
 	 */
-	public L2Operation operation ()
+	public L2ConstantOperand (
+		final @NotNull AvailObject object)
 	{
-		return operation;
+		this.object = object;
 	}
 
-	/**
-	 * Answer this instruction's {@code int}-encoded operands.  They should
-	 * correspond in purpose to the operation's {@link
-	 * L2Operation#operandTypes() operand types}.
-	 *
-	 * @return An array of {@code int}s encoding the operands.
-	 */
-	public int [] operands ()
+	@Override
+	public L2OperandType operandType ()
 	{
-		return operands;
+		return L2OperandType.CONSTANT;
 	}
 
-	/**
-	 * Construct a new {@link L2RawInstruction} from the {@link L2Operation} and
-	 * the array of {@code int}-encoded operands.
-	 *
-	 * @param operation The {@code L2Operation} to use.
-	 * @param operands Its operands, encoded as {@code int}s.
-	 */
-	public L2RawInstruction (
-		final L2Operation operation,
-		final int ... operands)
+	@Override
+	public void dispatchOperand (final L2OperandDispatcher dispatcher)
 	{
-		assert operation.operandTypes().length == operands.length;
+		dispatcher.doOperand(this);
+	}
 
-		this.operation = operation;
-		this.operands = operands;
+	@Override
+	public L2ConstantOperand transformRegisters (
+		final @NotNull Transformer1<L2Register, L2Register> transformer)
+	{
+		return this;
+	}
+
+	@Override
+	public void emitOn (
+		final @NotNull L2CodeGenerator codeGenerator)
+	{
+		codeGenerator.emitLiteral(object);
 	}
 }

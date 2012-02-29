@@ -32,7 +32,6 @@
 
 package com.avail.interpreter.levelTwo;
 
-import com.avail.interpreter.levelTwo.instruction.L2Instruction;
 
 /**
  * {@code L2OperationDispatcher} enumerates the responsibilities that must be
@@ -50,6 +49,13 @@ interface L2OperationDispatcher
 	 * {@linkplain L2Operation operation}.
 	 */
 	public void L2_unknownWordcode ();
+
+	/**
+	 * Process an
+	 * {@link L2Operation#L2_doLabel}
+	 * {@linkplain L2Operation operation}.
+	 */
+	public void L2_label ();
 
 	/**
 	 * Process an
@@ -134,13 +140,6 @@ interface L2OperationDispatcher
 	 * {@linkplain L2Operation operation}.
 	 */
 	public void L2_doClearVariablesVector_ ();
-
-	/**
-	 * Process an
-	 * {@link L2Operation#L2_doClearObject_}
-	 * {@linkplain L2Operation operation}.
-	 */
-	public void L2_doClearObject_ ();
 
 	/**
 	 * Process an
@@ -466,13 +465,6 @@ interface L2OperationDispatcher
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doExplodeContinuationObject}
-	 * {@linkplain L2Operation operation}.
-	 */
-	public void L2_doExplodeContinuationObject ();
-
-	/**
-	 * Process an
 	 * {@link L2Operation#L2_doSend_argumentsVector_}
 	 * {@linkplain L2Operation operation}.
 	 */
@@ -501,10 +493,10 @@ interface L2OperationDispatcher
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doCreateTupleOfSizeImmediate_valuesVector_destObject_}
+	 * {@link L2Operation#L2_doCreateTupleFromValues_destObject_}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doCreateTupleOfSizeImmediate_valuesVector_destObject_ ();
+	public void L2_doCreateTupleFromValues_destObject_ ();
 
 	/**
 	 * Process an
@@ -578,10 +570,10 @@ interface L2OperationDispatcher
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doAttemptPrimitive_withArguments_result_failure_ifFail_}
+	 * {@link L2Operation#L2_doAttemptPrimitive_arguments_result_failure_ifSuccess_}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doAttemptPrimitive_withArguments_result_failure_ifFail_ ();
+	public void L2_doAttemptPrimitive_arguments_result_failure_ifSuccess_ ();
 
 	/**
 	 * Process an

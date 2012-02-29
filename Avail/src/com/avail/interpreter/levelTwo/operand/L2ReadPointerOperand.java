@@ -1,5 +1,5 @@
 /**
- * L2PrepareNewFrame.java
+ * L2ReadPointerOperand.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,60 +30,64 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.levelTwo.instruction;
+package com.avail.interpreter.levelTwo.operand;
 
-import static com.avail.interpreter.levelTwo.L2Operation.L2_doPrepareNewFrame;
-import java.util.*;
 import com.avail.annotations.NotNull;
-import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.*;
-import com.avail.interpreter.levelTwo.register.L2Register;
+import com.avail.interpreter.levelTwo.register.*;
+import com.avail.utility.*;
+
 
 /**
- * {@code L2CreateContinuationInstruction} creates a new {@linkplain
- * ContinuationDescriptor continuation} from a calling continuation, a
- * {@linkplain FunctionDescriptor function}, a level one program counter and stack
- * pointer, some slot information, and a level two program counter.
+ * An {@code L2ReadPointerOperand} is an operand of type {@link
+ * L2OperandType#READ_POINTER}.  It holds the actual {@link L2ObjectRegister}
+ * that is to be accessed.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
-public final class L2PrepareNewFrame
-extends L2Instruction
+public class L2ReadPointerOperand extends L2Operand
 {
 	/**
-	 * Construct a new {@link L2PrepareNewFrame}.  The instance doesn't need to
-	 * keep track of which registers are read or written, because it should only
-	 * ever be invoked within the default {@linkplain L2ChunkDescriptor chunk}.
+	 * The actual {@link L2ObjectRegister}.
 	 */
-	public L2PrepareNewFrame ()
+	public final @NotNull L2ObjectRegister register;
+
+	/**
+	 * Construct a new {@link L2ReadPointerOperand} with the specified {@link
+	 * L2ObjectRegister}.
+	 *
+	 * @param register The object register.
+	 */
+	public L2ReadPointerOperand (
+		final @NotNull L2ObjectRegister register)
 	{
-		// No state to initialize.
+		this.register = register;
 	}
 
 	@Override
-	public @NotNull List<L2Register> sourceRegisters ()
+	public L2OperandType operandType ()
 	{
-		return Collections.emptyList();
+		return L2OperandType.READ_POINTER;
 	}
 
 	@Override
-	public @NotNull List<L2Register> destinationRegisters ()
+	public void dispatchOperand (final L2OperandDispatcher dispatcher)
 	{
-		return Collections.emptyList();
+		dispatcher.doOperand(this);
 	}
 
 	@Override
-	public void emitOn (final @NotNull L2CodeGenerator codeGenerator)
+	public L2ReadPointerOperand transformRegisters (
+		final @NotNull Transformer1<L2Register, L2Register> transformer)
 	{
-		codeGenerator.emitL2Operation(
-			L2_doPrepareNewFrame);
+		return new L2ReadPointerOperand(
+			(L2ObjectRegister)transformer.value(register));
 	}
 
 	@Override
-	public void propagateTypeInfoFor (final @NotNull L2Translator translator)
+	public void emitOn (
+		final @NotNull L2CodeGenerator codeGenerator)
 	{
-		// No real optimization should ever be done near this wordcode.
-		// Do nothing.
+		codeGenerator.emitObjectRegister(register);
 	}
 }

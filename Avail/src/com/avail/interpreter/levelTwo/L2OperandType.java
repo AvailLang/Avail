@@ -270,6 +270,7 @@ public enum L2OperandType
 		}
 	};
 
+
 	/**
 	 * Invoke an entry point of the passed {@linkplain L2OperandTypeDispatcher
 	 * operand type dispatcher} that's specific to which {@link L2OperandType}

@@ -745,6 +745,7 @@ implements L2OperationDispatcher
 	public L2Interpreter (final @NotNull AvailRuntime runtime)
 	{
 		super(runtime);
+		pointers[0] = NullDescriptor.nullObject();
 	}
 
 	/**
@@ -885,25 +886,27 @@ implements L2OperationDispatcher
 
 
 	/**
-	 * Read from an object register.  The index is one-based in both Smalltalk
-	 * (obsolete) and Java, to avoid index manipulation.  Entry [0] is unused.
+	 * Read from an object register.  Register zero is reserved for read-only
+	 * use, and always contains the {@linkplain NullDescriptor#nullObject() null
+	 * object}.
 	 *
-	 * @param index The one-based object-register index.
+	 * @param index The object register index.
 	 * @return The object in the specified register.
 	 */
 	public AvailObject pointerAt (final int index)
 	{
-		assert index > 0;
+		assert index >= 0;
 		assert pointers[index] != null;
 		return pointers[index];
 	}
 
 
 	/**
-	 * Write to an object register.  The index is one-based in both Smalltalk
-	 * (obsolete) and Java, to avoid index manipulation.  Entry [0] is unused.
+	 * Write to an object register.  Register zero is reserved for read-only
+	 * use, and always contains the {@linkplain NullDescriptor#nullObject() null
+	 * object}.
 	 *
-	 * @param index The one-based object-register index.
+	 * @param index The object register index.
 	 * @param anAvailObject The object to write to the specified register.
 	 */
 	public void pointerAtPut (final int index, final AvailObject anAvailObject)
@@ -1323,6 +1326,12 @@ implements L2OperationDispatcher
 	}
 
 	@Override
+	public void L2_label ()
+	{
+		error("Label wordcode should not occur\n");
+	}
+
+	@Override
 	public void L2_doPrepareNewFrame ()
 	{
 		// A new function has been set up for execution.  Its L1-architectural
@@ -1502,13 +1511,6 @@ implements L2OperationDispatcher
 		final int variablesIndex = nextWord();
 		error("not implemented");
 		return;
-	}
-
-	@Override
-	public void L2_doClearObject_ ()
-	{
-		final int clearIndex = nextWord();
-		pointerAtPut(clearIndex, NullDescriptor.nullObject());
 	}
 
 	@Override
@@ -2133,31 +2135,6 @@ implements L2OperationDispatcher
 	}
 
 	@Override
-	public void L2_doExplodeContinuationObject ()
-	{
-		final int continuationIndex = nextWord();
-		final int senderDestIndex = nextWord();
-		final int functionDestIndex = nextWord();
-		final int slotsDestIndex = nextWord();
-		final AvailObject cont = pointerAt(continuationIndex);
-		pointerAtPut(senderDestIndex, cont.caller());
-		pointerAtPut(functionDestIndex, cont.function());
-		final AvailObject slotsVector = chunkVectors.tupleAt(slotsDestIndex);
-		if (slotsVector.tupleSize()
-			!= cont.function().code().numArgsAndLocalsAndStack())
-		{
-			error("problem in doExplode...");
-			return;
-		}
-		for (int i = 1, end = slotsVector.tupleSize(); i <= end; i++)
-		{
-			pointerAtPut(
-				slotsVector.tupleIntAt(i),
-				cont.argOrLocalOrStackAt(i));
-		}
-	}
-
-	@Override
 	public void L2_doSend_argumentsVector_ ()
 	{
 		// Assume the current continuation is already reified.
@@ -2218,12 +2195,9 @@ implements L2OperationDispatcher
 		final int primNum = codeToCall.primitiveNumber();
 		assert primNum != 0;
 		assert !Primitive.byPrimitiveNumber(primNum).hasFlag(Flag.CannotFail);
-		invokeWithoutPrimitiveFunctionArguments(
-			functionToCall,
-			argsBuffer);
+		invokeWithoutPrimitiveFunctionArguments(functionToCall, argsBuffer);
 		// Now write the primitive failure value into the first local.
-		final int failureVariableIndex =
-			argumentRegister(vect.tupleSize() + 1);
+		final int failureVariableIndex = argumentRegister(vect.tupleSize() + 1);
 		final AvailObject failureVariable = pointerAt(failureVariableIndex);
 		failureVariable.setValue(failureValue);
 	}
@@ -2252,8 +2226,8 @@ implements L2OperationDispatcher
 			}
 		}
 		final AvailObject selector = chunk().literalAt(selectorIndex);
-		final AvailObject signatureToCall = selector
-		.lookupByTypesFromList(argsBuffer);
+		final AvailObject signatureToCall =
+			selector.lookupByTypesFromList(argsBuffer);
 		if (signatureToCall.equalsNull())
 		{
 			error("Unable to find unique implementation for call");
@@ -2299,16 +2273,14 @@ implements L2OperationDispatcher
 	}
 
 	@Override
-	public void L2_doCreateTupleOfSizeImmediate_valuesVector_destObject_ ()
+	public void L2_doCreateTupleFromValues_destObject_ ()
 	{
-		final int sizeIndex = nextWord();
 		final int valuesIndex = nextWord();
 		final int destIndex = nextWord();
 		final AvailObject indices = chunkVectors.tupleAt(valuesIndex);
-		assert indices.tupleSize() == sizeIndex;
-		final AvailObject tuple = ObjectTupleDescriptor.mutable().create(
-			sizeIndex);
-		for (int i = 1; i <= sizeIndex; i++)
+		final int size = indices.tupleSize();
+		final AvailObject tuple = ObjectTupleDescriptor.mutable().create(size);
+		for (int i = 1; i <= size; i++)
 		{
 			tuple.tupleAtPut(i, pointerAt(indices.tupleIntAt(i)));
 		}
@@ -2461,13 +2433,13 @@ implements L2OperationDispatcher
 	 * not the case for an <em>inlined</em> primitive.
 	 */
 	@Override
-	public void L2_doAttemptPrimitive_withArguments_result_failure_ifFail_ ()
+	public void L2_doAttemptPrimitive_arguments_result_failure_ifSuccess_ ()
 	{
 		final int primNumber = nextWord();
 		final int argsVector = nextWord();
 		final int resultRegister = nextWord();
 		final int failureValueRegister = nextWord();
-		final int failureOffset = nextWord();
+		final int successOffset = nextWord();
 		final AvailObject argsVect = chunkVectors.tupleAt(argsVector);
 		argsBuffer.clear();
 		for (int i1 = 1; i1 <= argsVect.tupleSize(); i1++)
@@ -2483,11 +2455,11 @@ implements L2OperationDispatcher
 		if (res == SUCCESS)
 		{
 			pointerAtPut(resultRegister, primitiveResult);
+			offset(successOffset);
 		}
 		else if (res == FAILURE)
 		{
 			pointerAtPut(failureValueRegister, primitiveResult);
-			offset(failureOffset);
 		}
 		else if (res == CONTINUATION_CHANGED)
 		{

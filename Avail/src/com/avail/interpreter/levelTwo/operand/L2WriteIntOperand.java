@@ -1,5 +1,5 @@
 /**
- * L2JumpIfNotInterruptInstruction.java
+ * L2WriteIntOperand.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,41 +30,64 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.levelTwo.instruction;
+package com.avail.interpreter.levelTwo.operand;
 
-import static com.avail.interpreter.levelTwo.L2Operation.L2_doJumpIfNotInterrupt_;
 import com.avail.annotations.NotNull;
-import com.avail.descriptor.ProcessDescriptor;
 import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.register.*;
+import com.avail.utility.*;
+
 
 /**
- * If the {@linkplain ProcessDescriptor.IntegerSlots#INTERRUPT_REQUEST_FLAG
- * interrupt request flag} is clear when the {@linkplain L2Interpreter
- * interpreter} encounters an {@code L2JumpIfNotInterruptInstruction}, then jump
- * to the {@linkplain L2LabelInstruction target}; otherwise do nothing.
+ * An {@code L2WriteIntOperand} is an operand of type {@link
+ * L2OperandType#WRITE_INT}.  It holds the actual {@link L2IntegerRegister}
+ * that is to be accessed.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
-public final class L2JumpIfNotInterruptInstruction
-extends L2AbstractJumpInstruction
+public class L2WriteIntOperand extends L2Operand
 {
 	/**
-	 * Construct a new {@link L2JumpIfNotInterruptInstruction}.
-	 *
-	 * @param target The jump {@linkplain L2LabelInstruction target}.
+	 * The actual {@link L2IntegerRegister}.
 	 */
-	public L2JumpIfNotInterruptInstruction (
-		final @NotNull L2LabelInstruction target)
+	public final @NotNull L2IntegerRegister register;
+
+	/**
+	 * Construct a new {@link L2WriteIntOperand} with the specified {@link
+	 * L2IntegerRegister}.
+	 *
+	 * @param register The integer register.
+	 */
+	public L2WriteIntOperand (
+		final @NotNull L2IntegerRegister register)
 	{
-		super(target);
+		this.register = register;
 	}
 
 	@Override
-	public void emitOn (final @NotNull L2CodeGenerator codeGenerator)
+	public L2OperandType operandType ()
 	{
-		codeGenerator.emitL2Operation(
-			L2_doJumpIfNotInterrupt_);
-		codeGenerator.emitWordcodeOffsetOf(target());
+		return L2OperandType.WRITE_INT;
+	}
+
+	@Override
+	public void dispatchOperand (final L2OperandDispatcher dispatcher)
+	{
+		dispatcher.doOperand(this);
+	}
+
+	@Override
+	public L2WriteIntOperand transformRegisters (
+		final @NotNull Transformer1<L2Register, L2Register> transformer)
+	{
+		return new L2WriteIntOperand(
+			(L2IntegerRegister)transformer.value(register));
+	}
+
+	@Override
+	public void emitOn (
+		final @NotNull L2CodeGenerator codeGenerator)
+	{
+		codeGenerator.emitIntegerRegister(register);
 	}
 }

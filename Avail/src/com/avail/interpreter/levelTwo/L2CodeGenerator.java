@@ -37,7 +37,6 @@ import java.util.*;
 import java.util.logging.*;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
-import com.avail.interpreter.levelTwo.instruction.*;
 import com.avail.interpreter.levelTwo.register.*;
 
 /**
@@ -161,7 +160,8 @@ public final class L2CodeGenerator
 			|| expected == L2OperandType.READWRITE_POINTER
 			|| expected == L2OperandType.WRITE_POINTER;
 		final int index = objectRegister.identity().finalIndex();
-		assert index > 0;
+		assert index >= 0;
+		assert index > 0 || expected == L2OperandType.READ_POINTER;
 		objectRegisterCount = max(objectRegisterCount, index);
 		emitWord(index);
 	}
@@ -318,8 +318,8 @@ public final class L2CodeGenerator
 	 * Emit the specified {@linkplain L2Instruction instructions}. Use a
 	 * two-pass algorithm: the first pass measures instruction lengths to
 	 * correctly determine their offsets (to ensure that references to
-	 * {@linkplain L2LabelInstruction labels} will be correct), the second pass
-	 * generates the real instruction stream.
+	 * {@linkplain L2Operation#L2_doLabel labels} will be correct), the second
+	 * pass generates the real instruction stream.
 	 *
 	 * @param instructions
 	 *        The {@linkplain L2Instruction instructions} that should be

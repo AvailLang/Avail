@@ -36,7 +36,6 @@ package com.avail.interpreter.levelTwo;
 
 import com.avail.descriptor.*;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelTwo.instruction.L2Instruction;
 import com.avail.interpreter.levelTwo.register.*;
 
 

@@ -1,5 +1,5 @@
 /**
- * L2ClearObjectInstruction.java
+ * L2ImmediateOperand.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,65 +30,63 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.levelTwo.instruction;
+package com.avail.interpreter.levelTwo.operand;
 
-import static com.avail.interpreter.levelTwo.L2Operation.L2_doClearObject_;
-import java.util.*;
 import com.avail.annotations.NotNull;
-import com.avail.descriptor.NullDescriptor;
 import com.avail.interpreter.levelTwo.*;
-import com.avail.interpreter.levelTwo.register.*;
+import com.avail.interpreter.levelTwo.register.L2Register;
+import com.avail.utility.*;
+
 
 /**
- * {@code L2ClearObjectInstruction} causes the destination {@linkplain
- * L2Register register} to be cleared.
+ * An {@code L2ConstantOperand} is an operand of type {@link
+ * L2OperandType#IMMEDIATE}, which holds an {@code int} value representing
+ * itself.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
-public final class L2ClearObjectInstruction
-extends L2Instruction
+public class L2ImmediateOperand extends L2Operand
 {
-	/** The {@linkplain L2ObjectRegister register} that should be cleared. */
-	private final L2ObjectRegister destinationRegister;
+	/**
+	 * The actual {@code int} value.
+	 */
+	public final int value;
 
 	/**
-	 * Construct a new {@link L2ClearObjectInstruction}.
+	 * Construct a new {@link L2ImmediateOperand} with the specified {@code int}
+	 * value.
 	 *
-	 * @param destinationRegister
-	 *        The {@linkplain L2ObjectRegister register} that should be cleared.
+	 * @param value The constant {@code int} itself.
 	 */
-	public L2ClearObjectInstruction (
-		final @NotNull L2ObjectRegister destinationRegister)
+	public L2ImmediateOperand (
+		final int value)
 	{
-		this.destinationRegister = destinationRegister;
+		this.value = value;
 	}
 
 	@Override
-	public @NotNull List<L2Register> sourceRegisters ()
+	public L2OperandType operandType ()
 	{
-		return Collections.emptyList();
+		return L2OperandType.IMMEDIATE;
 	}
 
 	@Override
-	public @NotNull List<L2Register> destinationRegisters ()
+	public void dispatchOperand (final L2OperandDispatcher dispatcher)
 	{
-		return Collections.<L2Register>singletonList(destinationRegister);
+		dispatcher.doOperand(this);
 	}
 
 	@Override
-	public void emitOn (final @NotNull L2CodeGenerator codeGenerator)
+	public L2ImmediateOperand transformRegisters (
+		final @NotNull Transformer1<L2Register, L2Register> transformer)
 	{
-		codeGenerator.emitL2Operation(
-			L2_doClearObject_);
-		codeGenerator.emitObjectRegister(destinationRegister);
+		return this;
 	}
 
 	@Override
-	public void propagateTypeInfoFor (final @NotNull L2Translator translator)
+	public void emitOn (
+		final @NotNull L2CodeGenerator codeGenerator)
 	{
-		translator.removeTypeForRegister(destinationRegister);
-		translator.registerConstantAtPut(
-			destinationRegister, NullDescriptor.nullObject());
+		codeGenerator.emitImmediate(value);
 	}
 }

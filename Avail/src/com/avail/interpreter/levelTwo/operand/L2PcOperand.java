@@ -1,5 +1,5 @@
 /**
- * L2InterpretOneInstructionAndBranchBackIfNoInterrupt.java
+ * L2PcOperand.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,68 +30,64 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.levelTwo.instruction;
+package com.avail.interpreter.levelTwo.operand;
 
-import static com.avail.interpreter.levelTwo.L2Operation.L2_doInterpretOneInstructionAndBranchBackIfNoInterrupt;
-import java.util.*;
 import com.avail.annotations.NotNull;
-import com.avail.descriptor.L2ChunkDescriptor;
-import com.avail.interpreter.levelOne.L1Instruction;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.L2Register;
+import com.avail.utility.*;
+
 
 /**
- * {@code L2InterpretOneInstruction} resides solely in the {@linkplain
- * L2ChunkDescriptor#unoptimizedChunk() default chunk} and exists to simulate a
- * single {@linkplain L1Instruction level one Avail instruction}.
+ * An {@code L2ConstantOperand} is an operand of type {@link L2OperandType#PC}.
+ * It also holds the {@link L2Operation#L2_doLabel} that is the target
+ * instruction to which this operand refers.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
-public final class L2InterpretOneInstructionAndBranchBackIfNoInterrupt
-extends L2Instruction
+public class L2PcOperand extends L2Operand
 {
 	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>
-	 * Note that this should never be produced by the {@linkplain L2Translator
-	 * optimizer}, as its existence and purpose are restricted to the
-	 * {@linkplain L2ChunkDescriptor#unoptimizedChunk() default chunk}.
-	 * </p>
+	 * The label instruction that this operand refers to.
 	 */
-	@Override
-	public @NotNull List<L2Register> sourceRegisters ()
-	{
-		return Collections.emptyList();
-	}
+	public final L2Instruction label;
 
 	/**
-	 * {@inheritDoc}
+	 * Construct a new {@link L2PcOperand} with the specified {@link
+	 * L2Instruction}, which should be a {@link L2Operation#L2_doLabel label}.
 	 *
-	 * <p>
-	 * Ignore the {@linkplain L2Interpreter#callerRegister() caller register},
-	 * as it is implicit in the {@linkplain
-	 * L2InterpretOneInstructionAndBranchBackIfNoInterrupt instruction}.
-	 * </p>
+	 * @param label The target label.
 	 */
-	@Override
-	public List<L2Register> destinationRegisters ()
+	public L2PcOperand (
+		final @NotNull L2Instruction label)
 	{
-		return Collections.emptyList();
+		assert label.operation == L2Operation.L2_doLabel;
+		this.label = label;
 	}
 
 	@Override
-	public void emitOn (final @NotNull L2CodeGenerator codeGenerator)
+	public L2OperandType operandType ()
 	{
-		codeGenerator.emitL2Operation(
-			L2_doInterpretOneInstructionAndBranchBackIfNoInterrupt);
+		return L2OperandType.PC;
 	}
 
 	@Override
-	public void propagateTypeInfoFor (final @NotNull L2Translator translator)
+	public void dispatchOperand (final L2OperandDispatcher dispatcher)
 	{
-		// No real optimization should ever be done near this wordcode.
-		// Do nothing.
+		dispatcher.doOperand(this);
+	}
+
+	@Override
+	public L2PcOperand transformRegisters (
+		final @NotNull Transformer1<L2Register, L2Register> transformer)
+	{
+		return this;
+	}
+
+	@Override
+	public void emitOn (
+		final @NotNull L2CodeGenerator codeGenerator)
+	{
+		codeGenerator.emitWordcodeOffsetOf(label);
 	}
 }

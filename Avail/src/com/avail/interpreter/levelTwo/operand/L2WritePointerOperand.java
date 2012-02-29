@@ -1,5 +1,5 @@
 /**
- * L2ProcessInterruptNowInstruction.java
+ * L2WritePointerOperand.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,59 +30,64 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.levelTwo.instruction;
+package com.avail.interpreter.levelTwo.operand;
 
-import static com.avail.interpreter.levelTwo.L2Operation.L2_doProcessInterruptNowWithContinuationObject_;
-import java.util.*;
 import com.avail.annotations.NotNull;
-import com.avail.descriptor.*;
-import com.avail.interpreter.levelTwo.L2CodeGenerator;
+import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.*;
+import com.avail.utility.*;
+
 
 /**
- * {@code L2ProcessInterruptNowInstruction} interrupts the currently running
- * {@linkplain ProcessDescriptor process} and requests that the {@linkplain
- * ContinuationDescriptor continuation} in the source {@linkplain
- * L2ObjectRegister register} be executed when the process resumes.
+ * An {@code L2WritePointerOperand} is an operand of type {@link
+ * L2OperandType#WRITE_POINTER}.  It holds the actual {@link
+ * L2ObjectRegister} that is to be accessed.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
-public final class L2ProcessInterruptNowInstruction
-extends L2Instruction
+public class L2WritePointerOperand extends L2Operand
 {
-	/** The source {@linkplain L2ObjectRegister register}. */
-	private final @NotNull L2ObjectRegister sourceRegister;
+	/**
+	 * The actual {@link L2ObjectRegister}.
+	 */
+	public final @NotNull L2ObjectRegister register;
 
 	/**
-	 * Construct a new {@link L2ProcessInterruptNowInstruction}.
+	 * Construct a new {@link L2WritePointerOperand} with the specified
+	 * {@link L2ObjectRegister}.
 	 *
-	 * @param sourceRegister
-	 *        The source {@linkplain L2ObjectRegister register}.
+	 * @param register The object register.
 	 */
-	public L2ProcessInterruptNowInstruction (
-		final @NotNull L2ObjectRegister sourceRegister)
+	public L2WritePointerOperand (
+		final @NotNull L2ObjectRegister register)
 	{
-		this.sourceRegister = sourceRegister;
+		this.register = register;
 	}
 
 	@Override
-	public @NotNull List<L2Register> sourceRegisters ()
+	public L2OperandType operandType ()
 	{
-		return Collections.<L2Register>singletonList(sourceRegister);
+		return L2OperandType.WRITE_POINTER;
 	}
 
 	@Override
-	public @NotNull List<L2Register> destinationRegisters ()
+	public void dispatchOperand (final L2OperandDispatcher dispatcher)
 	{
-		return Collections.emptyList();
+		dispatcher.doOperand(this);
 	}
 
 	@Override
-	public void emitOn (final @NotNull L2CodeGenerator codeGenerator)
+	public L2WritePointerOperand transformRegisters (
+		final @NotNull Transformer1<L2Register, L2Register> transformer)
 	{
-		codeGenerator.emitL2Operation(
-			L2_doProcessInterruptNowWithContinuationObject_);
-		codeGenerator.emitObjectRegister(sourceRegister);
+		return new L2WritePointerOperand(
+			(L2ObjectRegister)transformer.value(register));
+	}
+
+	@Override
+	public void emitOn (
+		final @NotNull L2CodeGenerator codeGenerator)
+	{
+		codeGenerator.emitObjectRegister(register);
 	}
 }

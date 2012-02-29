@@ -32,12 +32,17 @@
 
 package com.avail.interpreter.levelTwo;
 
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import java.util.*;
 import com.avail.annotations.NotNull;
+import com.avail.descriptor.*;
+import com.avail.interpreter.levelTwo.operand.*;
+import com.avail.interpreter.levelTwo.register.*;
 
 public enum L2Operation
 {
-	L2_unknownWordcode
+	L2_unknownWordcode ()
 	{
 		@Override
 		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
@@ -46,12 +51,37 @@ public enum L2Operation
 		}
 	},
 
-	L2_doPrepareNewFrame
+	L2_doLabel ()
+	{
+		@Override
+		void dispatch (final L2OperationDispatcher operationDispatcher)
+		{
+			// This operation should not actually be emitted.
+			operationDispatcher.L2_label();
+		}
+
+		@Override
+		public boolean shouldEmit ()
+		{
+			return false;
+		}
+	},
+
+	L2_doPrepareNewFrame ()
 	{
 		@Override
 		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L2_doPrepareNewFrame();
+		}
+
+		@Override
+		public void propagateTypesInFor (
+			final L2Instruction instruction,
+			final L2Translator translator)
+		{
+			// No real optimization should ever be done near this wordcode.
+			// Do nothing.
 		}
 	},
 
@@ -62,9 +92,18 @@ public enum L2Operation
 		{
 			operationDispatcher.L2_doInterpretOneInstructionAndBranchBackIfNoInterrupt();
 		}
+
+		@Override
+		public void propagateTypesInFor (
+			final L2Instruction instruction,
+			final L2Translator translator)
+		{
+			// No real optimization should ever be done near this wordcode.
+			// Do nothing.
+		}
 	},
 
-	L2_doDecrementCounterAndReoptimizeOnZero
+	L2_doDecrementCounterAndReoptimizeOnZero ()
 	{
 		@Override
 		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
@@ -81,6 +120,40 @@ public enum L2Operation
 		{
 			operationDispatcher.L2_doMoveFromObject_destObject_();
 		}
+
+		@Override
+		public void propagateTypesInFor (
+			final L2Instruction instruction,
+			final L2Translator translator)
+		{
+			final L2ReadPointerOperand sourceOperand =
+				(L2ReadPointerOperand)instruction.operands[0];
+			final L2WritePointerOperand destinationOperand =
+				(L2WritePointerOperand)instruction.operands[1];
+			final L2Register sourceRegister = sourceOperand.register;
+			final L2Register destinationRegister = destinationOperand.register;
+
+			if (translator.registerHasTypeAt(sourceRegister))
+			{
+				translator.registerTypeAtPut(
+					destinationRegister,
+					translator.registerTypeAt(sourceRegister));
+			}
+			else
+			{
+				translator.removeTypeForRegister(destinationRegister);
+			}
+			if (translator.registerHasConstantAt(sourceRegister))
+			{
+				translator.registerConstantAtPut(
+					destinationRegister,
+					translator.registerConstantAt(sourceRegister));
+			}
+			else
+			{
+				translator.removeConstantForRegister(destinationRegister);
+			}
+		}
 	},
 
 	L2_doMoveFromConstant_destObject_ (
@@ -90,6 +163,23 @@ public enum L2Operation
 		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L2_doMoveFromConstant_destObject_();
+		}
+
+		@Override
+		public void propagateTypesInFor (
+			final L2Instruction instruction,
+			final L2Translator translator)
+		{
+			final L2ConstantOperand constantOperand =
+				(L2ConstantOperand)instruction.operands[0];
+			final L2WritePointerOperand destinationOperand =
+				(L2WritePointerOperand)instruction.operands[1];
+			translator.registerTypeAtPut(
+				destinationOperand.register,
+				constantOperand.object.kind());
+			translator.registerConstantAtPut(
+				destinationOperand.register,
+				constantOperand.object);
 		}
 	},
 
@@ -101,6 +191,17 @@ public enum L2Operation
 		{
 			operationDispatcher.L2_doMoveFromOuterVariable_ofFunctionObject_destObject_();
 		}
+
+		@Override
+		public void propagateTypesInFor (
+			final L2Instruction instruction,
+			final L2Translator translator)
+		{
+			final L2WritePointerOperand destinationOperand =
+				(L2WritePointerOperand)instruction.operands[2];
+			translator.removeTypeForRegister(destinationOperand.register);
+			translator.removeConstantForRegister(destinationOperand.register);
+		}
 	},
 
 	L2_doCreateVariableTypeConstant_destObject_ (
@@ -110,6 +211,23 @@ public enum L2Operation
 		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L2_doCreateVariableTypeConstant_destObject_();
+		}
+
+		@Override
+		public void propagateTypesInFor (
+			final L2Instruction instruction,
+			final L2Translator translator)
+		{
+			final L2ConstantOperand constantOperand =
+				(L2ConstantOperand)instruction.operands[0];
+			final L2WritePointerOperand destinationOperand =
+				(L2WritePointerOperand)instruction.operands[1];
+			//  We know the type...
+			translator.registerTypeAtPut(
+				destinationOperand.register,
+				constantOperand.object);
+			//  ...but the instance is new so it can't be a constant.
+			translator.removeConstantForRegister(destinationOperand.register);
 		}
 	},
 
@@ -121,6 +239,33 @@ public enum L2Operation
 		{
 			operationDispatcher.L2_doGetVariable_destObject_();
 		}
+
+		@Override
+		public void propagateTypesInFor (
+			final L2Instruction instruction,
+			final L2Translator translator)
+		{
+			final L2ReadPointerOperand sourceOperand =
+				(L2ReadPointerOperand)instruction.operands[0];
+			final L2WritePointerOperand destinationOperand =
+				(L2WritePointerOperand)instruction.operands[1];
+			if (translator.registerHasTypeAt(sourceOperand.register))
+			{
+				final AvailObject oldType =
+					translator.registerTypeAt(sourceOperand.register);
+				final AvailObject varType = oldType.typeIntersection(
+					VariableTypeDescriptor.mostGeneralType());
+				translator.registerTypeAtPut(sourceOperand.register, varType);
+				translator.registerTypeAtPut(
+					destinationOperand.register,
+					varType.readType());
+			}
+			else
+			{
+				translator.removeTypeForRegister(destinationOperand.register);
+			}
+			translator.removeConstantForRegister(destinationOperand.register);
+		}
 	},
 
 	L2_doGetVariableClearing_destObject_ (
@@ -131,6 +276,29 @@ public enum L2Operation
 		{
 			operationDispatcher.L2_doGetVariableClearing_destObject_();
 		}
+
+		@Override
+		public void propagateTypesInFor (
+			final L2Instruction instruction,
+			final L2Translator translator)
+		{
+			final L2ReadPointerOperand sourceOperand =
+				(L2ReadPointerOperand)instruction.operands[0];
+			final L2WritePointerOperand destinationOperand =
+				(L2WritePointerOperand)instruction.operands[1];
+			if (translator.registerHasTypeAt(sourceOperand.register))
+			{
+				final AvailObject varType =
+					translator.registerTypeAt(sourceOperand.register);
+				translator.registerTypeAtPut(
+					destinationOperand.register, varType.readType());
+			}
+			else
+			{
+				translator.removeTypeForRegister(destinationOperand.register);
+			}
+			translator.removeConstantForRegister(destinationOperand.register);
+		}
 	},
 
 	L2_doSetVariable_sourceObject_ (
@@ -140,6 +308,32 @@ public enum L2Operation
 		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L2_doSetVariable_sourceObject_();
+		}
+
+		@Override
+		public void propagateTypesInFor (
+			final L2Instruction instruction,
+			final L2Translator translator)
+		{
+			// This is kind of strange.  Because of the way outer variables can
+			// lose all type information, we use the fact that the compiler set
+			// up an assignment to a variable to indicate that the variable
+			// really is a variable.
+			final L2ReadPointerOperand variableOperand =
+				(L2ReadPointerOperand)instruction.operands[0];
+			final AvailObject varType;
+			if (translator.registerHasTypeAt(variableOperand.register))
+			{
+				final AvailObject oldType =
+					translator.registerTypeAt(variableOperand.register);
+				varType = oldType.typeIntersection(
+					VariableTypeDescriptor.mostGeneralType());
+			}
+			else
+			{
+				varType = VariableTypeDescriptor.mostGeneralType();
+			}
+			translator.registerTypeAtPut(variableOperand.register, varType);
 		}
 	},
 
@@ -160,16 +354,6 @@ public enum L2Operation
 		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L2_doClearVariablesVector_();
-		}
-	},
-
-	L2_doClearObject_ (
-		WRITE_POINTER)
-	{
-		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
-		{
-			operationDispatcher.L2_doClearObject_();
 		}
 	},
 
@@ -611,6 +795,22 @@ public enum L2Operation
 		{
 			operationDispatcher.L2_doCreateContinuationSender_function_pc_stackp_size_slots_offset_dest_();
 		}
+
+		@Override
+		public void propagateTypesInFor (
+			final L2Instruction instruction,
+			final L2Translator translator)
+		{
+			final L2WritePointerOperand destinationOperand =
+				(L2WritePointerOperand)instruction.operands[7];
+			final L2ObjectRegister destinationRegister =
+				destinationOperand.register;
+			translator.registerTypeAtPut(
+				destinationRegister,
+				ContinuationTypeDescriptor.forFunctionType(
+					translator.code().functionType()));
+			translator.removeConstantForRegister(destinationRegister);
+		}
 	},
 
 	L2_doSetContinuationObject_slotIndexImmediate_valueObject_ (
@@ -633,16 +833,6 @@ public enum L2Operation
 		}
 	},
 
-	L2_doExplodeContinuationObject (
-		READ_POINTER, WRITE_POINTER, WRITE_POINTER, WRITE_VECTOR)
-	{
-		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
-		{
-			operationDispatcher.L2_doExplodeContinuationObject();
-		}
-	},
-
 	L2_doSend_argumentsVector_ (
 		SELECTOR, READ_VECTOR)
 	{
@@ -650,6 +840,14 @@ public enum L2Operation
 		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L2_doSend_argumentsVector_();
+		}
+
+		@Override
+		public void propagateTypesInFor (
+			final L2Instruction instruction,
+			final L2Translator translator)
+		{
+			translator.restrictPropagationInformationToArchitecturalRegisters();
 		}
 	},
 
@@ -661,6 +859,14 @@ public enum L2Operation
 		{
 			operationDispatcher.L2_doSendAfterFailedPrimitive_arguments_failureValue_();
 		}
+
+		@Override
+		public void propagateTypesInFor (
+			final L2Instruction instruction,
+			final L2Translator translator)
+		{
+			translator.restrictPropagationInformationToArchitecturalRegisters();
+		}
 	},
 
 	L2_doGetType_destObject_ (
@@ -670,6 +876,45 @@ public enum L2Operation
 		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L2_doGetType_destObject_();
+		}
+
+		@Override
+		public void propagateTypesInFor (
+			final L2Instruction instruction,
+			final L2Translator translator)
+		{
+			final L2ReadPointerOperand sourceOperand =
+				(L2ReadPointerOperand)instruction.operands[0];
+			final L2WritePointerOperand destinationOperand =
+				(L2WritePointerOperand)instruction.operands[1];
+
+			final L2ObjectRegister sourceRegister = sourceOperand.register;
+			final L2ObjectRegister destinationRegister =
+				destinationOperand.register;
+			if (translator.registerHasTypeAt(sourceRegister))
+			{
+				final AvailObject type =
+					translator.registerTypeAt(sourceRegister);
+				// Apply the rule of metacovariance. It says that given types T1
+				// and T2, T1 <= T2 implies T1 type <= T2 type. It is guaranteed
+				// true for all types in Avail.
+				final AvailObject meta = type.kind();
+				translator.registerTypeAtPut(destinationRegister, meta);
+			}
+			else
+			{
+				translator.registerTypeAtPut(destinationRegister, TYPE.o());
+			}
+			if (translator.registerHasConstantAt(sourceRegister))
+			{
+				translator.registerConstantAtPut(
+					destinationRegister,
+					translator.registerConstantAt(sourceRegister).kind());
+			}
+			else
+			{
+				translator.removeConstantForRegister(destinationRegister);
+			}
 		}
 	},
 
@@ -681,25 +926,106 @@ public enum L2Operation
 		{
 			operationDispatcher.L2_doSuperSend_argumentsVector_argumentTypesVector_();
 		}
+
+		@Override
+		public void propagateTypesInFor (
+			final L2Instruction instruction,
+			final L2Translator translator)
+		{
+			translator.restrictPropagationInformationToArchitecturalRegisters();
+		}
 	},
 
-	L2_doCreateTupleOfSizeImmediate_valuesVector_destObject_ (
-		IMMEDIATE, READ_VECTOR, WRITE_POINTER)
+	L2_doCreateTupleFromValues_destObject_ (
+		READ_VECTOR, WRITE_POINTER)
 	{
 		@Override
 		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
 		{
-			operationDispatcher.L2_doCreateTupleOfSizeImmediate_valuesVector_destObject_();
+			operationDispatcher.L2_doCreateTupleFromValues_destObject_();
+		}
+
+		@Override
+		public void propagateTypesInFor (
+			final L2Instruction instruction,
+			final L2Translator translator)
+		{
+			final L2ReadVectorOperand sourcesOperand =
+				(L2ReadVectorOperand)instruction.operands[0];
+			final L2WritePointerOperand destinationOperand =
+				(L2WritePointerOperand)instruction.operands[1];
+
+			final L2RegisterVector sourceVector = sourcesOperand.vector;
+			final int size = sourceVector.registers().size();
+			final AvailObject sizeRange =
+				IntegerDescriptor.fromInt(size).kind();
+			List<AvailObject> types;
+			types = new ArrayList<AvailObject>(sourceVector.registers().size());
+			for (final L2Register register : sourceVector.registers())
+			{
+				if (translator.registerHasTypeAt(register))
+				{
+					types.add(translator.registerTypeAt(register));
+				}
+				else
+				{
+					types.add(ANY.o());
+				}
+			}
+			final AvailObject tupleType =
+				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+					sizeRange,
+					TupleDescriptor.fromCollection(types),
+					BottomTypeDescriptor.bottom());
+			tupleType.makeImmutable();
+			translator.registerTypeAtPut(
+				destinationOperand.register,
+				tupleType);
+			if (sourceVector.allRegistersAreConstantsIn(translator))
+			{
+				final List<AvailObject> constants = new ArrayList<AvailObject>(
+					sourceVector.registers().size());
+				for (final L2Register register : sourceVector.registers())
+				{
+					constants.add(translator.registerConstantAt(register));
+				}
+				final AvailObject tuple = TupleDescriptor.fromCollection(constants);
+				tuple.makeImmutable();
+				assert tuple.isInstanceOf(tupleType);
+				translator.registerConstantAtPut(
+					destinationOperand.register,
+					tuple);
+			}
+			else
+			{
+				translator.removeConstantForRegister(
+					destinationOperand.register);
+			}
 		}
 	},
 
-	L2_doAttemptPrimitive_withArguments_result_failure_ifFail_ (
+	L2_doAttemptPrimitive_arguments_result_failure_ifSuccess_ (
 		PRIMITIVE, READ_VECTOR, WRITE_POINTER, WRITE_POINTER, PC)
 	{
 		@Override
 		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
 		{
-			operationDispatcher.L2_doAttemptPrimitive_withArguments_result_failure_ifFail_();
+			operationDispatcher.L2_doAttemptPrimitive_arguments_result_failure_ifSuccess_();
+		}
+
+		@Override
+		public void propagateTypesInFor (
+			final L2Instruction instruction,
+			final L2Translator translator)
+		{
+			final L2WritePointerOperand result =
+				(L2WritePointerOperand)instruction.operands[2];
+			final L2WritePointerOperand failureValue =
+				(L2WritePointerOperand)instruction.operands[3];
+			translator.removeTypeForRegister(result.register);
+			translator.removeConstantForRegister(result.register);
+			translator.removeTypeForRegister(failureValue.register);
+			translator.removeConstantForRegister(failureValue.register);
 		}
 	},
 
@@ -710,6 +1036,25 @@ public enum L2Operation
 		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L2_doNoFailPrimitive_withArguments_result_();
+		}
+
+		@Override
+		public void propagateTypesInFor (
+			final L2Instruction instruction,
+			final L2Translator translator)
+		{
+			final L2PrimitiveOperand primitiveOperand =
+				(L2PrimitiveOperand)instruction.operands[0];
+			final L2WritePointerOperand destinationOperand =
+				(L2WritePointerOperand)instruction.operands[2];
+			translator.removeTypeForRegister(destinationOperand.register);
+			translator.removeConstantForRegister(destinationOperand.register);
+
+			// We can at least believe what the basic primitive signature says
+			// it returns.
+			translator.registerTypeAtPut(
+				destinationOperand.register,
+				primitiveOperand.primitive.blockTypeRestriction().returnType());
 		}
 	},
 
@@ -760,6 +1105,41 @@ public enum L2Operation
 		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L2_doCreateFunctionFromCodeObject_outersVector_destObject_();
+		}
+
+		@Override
+		public void propagateTypesInFor (
+			final L2Instruction instruction,
+			final L2Translator translator)
+		{
+			final L2ConstantOperand codeOperand =
+				(L2ConstantOperand)instruction.operands[0];
+			final L2ReadVectorOperand outersOperand =
+				(L2ReadVectorOperand)instruction.operands[1];
+			final L2WritePointerOperand destinationOperand =
+				(L2WritePointerOperand)instruction.operands[2];
+			translator.registerTypeAtPut(
+				destinationOperand.register,
+				codeOperand.object.functionType());
+			if (outersOperand.vector.allRegistersAreConstantsIn(translator))
+			{
+				final AvailObject function =
+					FunctionDescriptor.mutable().create(
+						outersOperand.vector.registers().size());
+				function.code(codeOperand.object);
+				int index = 1;
+				for (final L2ObjectRegister outer : outersOperand.vector)
+				{
+					function.outerVarAtPut(
+						index++,
+						translator.registerConstantAt(outer));
+				}
+			}
+			else
+			{
+				translator.removeConstantForRegister(
+					destinationOperand.register);
+			}
 		}
 	},
 
@@ -840,6 +1220,18 @@ public enum L2Operation
 		final @NotNull L2OperandType ... operandTypes)
 	{
 		this.operandTypes = operandTypes;
+		final String s = this.name();
+		int underscoreCount = 0;
+		for (int i = 0; i < s.length(); i++)
+		{
+			if (s.charAt(i) == '_')
+			{
+				underscoreCount++;
+			}
+		}
+		assert operandTypes.length == underscoreCount - 1
+		: "Wrong number of underscores/operands in L2Operation \""
+			+ name() + "\"";
 	}
 
 	/**
@@ -852,4 +1244,26 @@ public enum L2Operation
 	 */
 	abstract void dispatch (
 		final @NotNull L2OperationDispatcher operationDispatcher);
+
+	/**
+	 * @param instruction
+	 * @param translator
+	 */
+	public void propagateTypesInFor (
+		final @NotNull L2Instruction instruction,
+		final @NotNull L2Translator translator)
+	{
+		// Do nothing by default.
+	}
+
+	/**
+	 * Answer whether an instruction using this operation should be emitted.
+	 * For example, labels are place holders and produce no code.
+	 *
+	 * @return A {@code boolean} indicating if this operation should be emitted.
+	 */
+	public boolean shouldEmit ()
+	{
+		return true;
+	}
 }
