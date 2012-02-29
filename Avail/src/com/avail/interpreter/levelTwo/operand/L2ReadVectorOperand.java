@@ -98,4 +98,23 @@ public class L2ReadVectorOperand extends L2Operand
 	{
 		codeGenerator.emitVector(vector);
 	}
+
+	@Override
+	public String toString ()
+	{
+		final StringBuilder builder = new StringBuilder();
+		builder.append("ReadVector(");
+		boolean first = true;
+		for (final L2Register register : vector.registers())
+		{
+			if (!first)
+			{
+				builder.append(",");
+			}
+			builder.append(register);
+			first = false;
+		}
+		builder.append(")");
+		return builder.toString();
+	}
 }

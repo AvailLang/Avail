@@ -80,4 +80,7 @@ public abstract class L2Operand
 	 */
 	public abstract void emitOn (
 		final @NotNull L2CodeGenerator codeGenerator);
+
+	@Override
+	public abstract String toString ();
 }

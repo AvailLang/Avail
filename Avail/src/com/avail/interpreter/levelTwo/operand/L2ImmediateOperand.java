@@ -89,4 +89,10 @@ public class L2ImmediateOperand extends L2Operand
 	{
 		codeGenerator.emitImmediate(value);
 	}
+
+	@Override
+	public String toString ()
+	{
+		return String.format("Imm(%d)", value);
+	}
 }

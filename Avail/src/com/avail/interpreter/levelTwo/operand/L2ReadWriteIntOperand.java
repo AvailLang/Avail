@@ -90,4 +90,10 @@ public class L2ReadWriteIntOperand extends L2Operand
 	{
 		codeGenerator.emitIntegerRegister(register);
 	}
+
+	@Override
+	public String toString ()
+	{
+		return String.format("WriteInt(%s)", register);
+	}
 }

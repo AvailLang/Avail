@@ -90,4 +90,10 @@ public class L2PcOperand extends L2Operand
 	{
 		codeGenerator.emitWordcodeOffsetOf(label);
 	}
+
+	@Override
+	public String toString ()
+	{
+		return String.format("Pc(%d)", label.offset());
+	}
 }

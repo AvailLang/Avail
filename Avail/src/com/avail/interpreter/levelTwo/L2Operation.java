@@ -37,6 +37,8 @@ import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import java.util.*;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
+import com.avail.interpreter.*;
+import com.avail.interpreter.Primitive.Flag;
 import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.register.*;
 
@@ -48,6 +50,14 @@ public enum L2Operation
 		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L2_unknownWordcode();
+		}
+
+		@Override
+		public boolean shouldEmit ()
+		{
+			assert false
+			: "An instruction with this operation should not be created";
+			return false;
 		}
 	},
 
@@ -64,6 +74,15 @@ public enum L2Operation
 		public boolean shouldEmit ()
 		{
 			return false;
+		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			// Not really, but this is an easy way to keep labels from being
+			// removed from the instruction stream.  They don't get emitted
+			// anyhow.
+			return true;
 		}
 	},
 
@@ -83,6 +102,14 @@ public enum L2Operation
 			// No real optimization should ever be done near this wordcode.
 			// Do nothing.
 		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			// Keep this instruction from being removed, since it's only used
+			// by the default chunk.
+			return true;
+		}
 	},
 
 	L2_doInterpretOneInstructionAndBranchBackIfNoInterrupt
@@ -101,6 +128,14 @@ public enum L2Operation
 			// No real optimization should ever be done near this wordcode.
 			// Do nothing.
 		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			// Keep this instruction from being removed, since it's only used
+			// by the default chunk.
+			return true;
+		}
 	},
 
 	L2_doDecrementCounterAndReoptimizeOnZero ()
@@ -109,6 +144,12 @@ public enum L2Operation
 		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L2_doDecrementCounterAndReoptimizeOnZero();
+		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			return true;
 		}
 	},
 
@@ -266,6 +307,13 @@ public enum L2Operation
 			}
 			translator.removeConstantForRegister(destinationOperand.register);
 		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			// Subtle.  Reading from a variable can fail, so don't remove this.
+			return true;
+		}
 	},
 
 	L2_doGetVariableClearing_destObject_ (
@@ -298,6 +346,14 @@ public enum L2Operation
 				translator.removeTypeForRegister(destinationOperand.register);
 			}
 			translator.removeConstantForRegister(destinationOperand.register);
+		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			// Subtle.  Reading from a variable can fail, so don't remove this.
+			// Also it clears the variable.
+			return true;
 		}
 	},
 
@@ -335,6 +391,12 @@ public enum L2Operation
 			}
 			translator.registerTypeAtPut(variableOperand.register, varType);
 		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			return true;
+		}
 	},
 
 	L2_doClearVariable_ (
@@ -345,6 +407,12 @@ public enum L2Operation
 		{
 			operationDispatcher.L2_doClearVariable_();
 		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			return true;
+		}
 	},
 
 	L2_doClearVariablesVector_ (
@@ -354,6 +422,12 @@ public enum L2Operation
 		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L2_doClearVariablesVector_();
+		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			return true;
 		}
 	},
 
@@ -375,6 +449,13 @@ public enum L2Operation
 		{
 			operationDispatcher.L2_doAddIntegerConstant_destInteger_ifFail_();
 		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			// It jumps if the result doesn't fit in an int.
+			return true;
+		}
 	},
 
 	L2_doAddObject_destObject_ (
@@ -384,6 +465,13 @@ public enum L2Operation
 		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L2_doAddObject_destObject_();
+		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			// It can fail if adding unlike infinities.
+			return true;
 		}
 	},
 
@@ -395,6 +483,13 @@ public enum L2Operation
 		{
 			operationDispatcher.L2_doAddInteger_destInteger_ifFail_();
 		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			// It jumps if the result doesn't fit in an int.
+			return true;
+		}
 	},
 
 	L2_doAddIntegerImmediate_destInteger_ifFail_ (
@@ -404,6 +499,13 @@ public enum L2Operation
 		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L2_doAddIntegerImmediate_destInteger_ifFail_();
+		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			// It jumps if the result doesn't fit in an int.
+			return true;
 		}
 	},
 
@@ -435,6 +537,13 @@ public enum L2Operation
 		{
 			operationDispatcher.L2_doSubtractIntegerConstant_destInteger_ifFail_();
 		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			// It jumps if the result doesn't fit in an int.
+			return true;
+		}
 	},
 
 	L2_doSubtractObject_destObject_ (
@@ -444,6 +553,13 @@ public enum L2Operation
 		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L2_doSubtractObject_destObject_();
+		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			// It can fail if subtracting like infinites.
+			return true;
 		}
 	},
 
@@ -455,6 +571,13 @@ public enum L2Operation
 		{
 			operationDispatcher.L2_doSubtractInteger_destInteger_ifFail_();
 		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			// It jumps if the result doesn't fit in an int.
+			return true;
+		}
 	},
 
 	L2_doSubtractIntegerImmediate_destInteger_ifFail_ (
@@ -464,6 +587,13 @@ public enum L2Operation
 		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L2_doSubtractIntegerImmediate_destInteger_ifFail_();
+		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			// It jumps if the result doesn't fit in an int.
+			return true;
 		}
 	},
 
@@ -485,6 +615,13 @@ public enum L2Operation
 		{
 			operationDispatcher.L2_doMultiplyIntegerConstant_destObject_();
 		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			// It can fail if multiplying zero by infinity.
+			return true;
+		}
 	},
 
 	L2_doMultiplyIntegerConstant_destInteger_ifFail_ (
@@ -494,6 +631,13 @@ public enum L2Operation
 		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L2_doMultiplyIntegerConstant_destInteger_ifFail_();
+		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			// It jumps if the result doesn't fit in an int.
+			return true;
 		}
 	},
 
@@ -505,6 +649,13 @@ public enum L2Operation
 		{
 			operationDispatcher.L2_doMultiplyObject_destObject_();
 		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			// It can fail when multiplying zero by infinity.
+			return true;
+		}
 	},
 
 	L2_doMultiplyInteger_destInteger_ifFail_ (
@@ -515,6 +666,13 @@ public enum L2Operation
 		{
 			operationDispatcher.L2_doMultiplyInteger_destInteger_ifFail_();
 		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			// It jumps if the result doesn't fit in an int.
+			return true;
+		}
 	},
 
 	L2_doMultiplyIntegerImmediate_destInteger_ifFail_ (
@@ -524,6 +682,13 @@ public enum L2Operation
 		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L2_doMultiplyIntegerImmediate_destInteger_ifFail_();
+		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			// It jumps if the result doesn't fit in an int.
+			return true;
 		}
 	},
 
@@ -545,6 +710,13 @@ public enum L2Operation
 		{
 			operationDispatcher.L2_doDivideObject_byIntegerConstant_destQuotientObject_destRemainderInteger_ifFail_();
 		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			// It jumps if the results don't fit in an int.
+			return true;
+		}
 	},
 
 	L2_doDivideInteger_byIntegerConstant_destQuotientInteger_destRemainderInteger_ifFail_ (
@@ -554,6 +726,13 @@ public enum L2Operation
 		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L2_doDivideInteger_byIntegerConstant_destQuotientInteger_destRemainderInteger_ifFail_();
+		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			// It jumps if the results don't fit in an int.
+			return true;
 		}
 	},
 
@@ -565,6 +744,13 @@ public enum L2Operation
 		{
 			operationDispatcher.L2_doDivideInteger_byIntegerImmediate_destQuotientInteger_destRemainderInteger_ifFail_();
 		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			// It jumps if the results don't fit in an int.
+			return true;
+		}
 	},
 
 	L2_doDivideObject_byObject_destQuotientObject_destRemainderObject_ifZeroDivisor_ (
@@ -574,6 +760,13 @@ public enum L2Operation
 		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L2_doDivideObject_byObject_destQuotientObject_destRemainderObject_ifZeroDivisor_();
+		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			// It jumps for division by zero.
+			return true;
 		}
 	},
 
@@ -585,6 +778,13 @@ public enum L2Operation
 		{
 			operationDispatcher.L2_doDivideInteger_byInteger_destQuotientInteger_destRemainderInteger_ifFail_ifZeroDivisor_();
 		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			// It jumps for division by zero.
+			return true;
+		}
 	},
 
 	L2_doJump_ (
@@ -594,6 +794,13 @@ public enum L2Operation
 		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L2_doJump_();
+		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			// It jumps, which counts as a side effect.
+			return true;
 		}
 	},
 
@@ -605,6 +812,13 @@ public enum L2Operation
 		{
 			operationDispatcher.L2_doJump_ifObject_equalsObject_();
 		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			// It jumps, which counts as a side effect.
+			return true;
+		}
 	},
 
 	L2_doJump_ifObject_equalsConstant_ (
@@ -614,6 +828,13 @@ public enum L2Operation
 		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L2_doJump_ifObject_equalsConstant_();
+		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			// It jumps, which counts as a side effect.
+			return true;
 		}
 	},
 
@@ -625,6 +846,13 @@ public enum L2Operation
 		{
 			operationDispatcher.L2_doJump_ifObject_notEqualsObject_();
 		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			// It jumps, which counts as a side effect.
+			return true;
+		}
 	},
 
 	L2_doJump_ifObject_notEqualsConstant_ (
@@ -634,6 +862,13 @@ public enum L2Operation
 		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L2_doJump_ifObject_notEqualsConstant_();
+		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			// It jumps, which counts as a side effect.
+			return true;
 		}
 	},
 
@@ -645,6 +880,13 @@ public enum L2Operation
 		{
 			operationDispatcher.L2_doJump_ifObject_lessThanObject_();
 		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			// It jumps, which counts as a side effect.
+			return true;
+		}
 	},
 
 	L2_doJump_ifObject_lessThanConstant_ (
@@ -654,6 +896,13 @@ public enum L2Operation
 		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L2_doJump_ifObject_lessThanConstant_();
+		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			// It jumps, which counts as a side effect.
+			return true;
 		}
 	},
 
@@ -665,6 +914,13 @@ public enum L2Operation
 		{
 			operationDispatcher.L2_doJump_ifObject_lessOrEqualObject_();
 		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			// It jumps, which counts as a side effect.
+			return true;
+		}
 	},
 
 	L2_doJump_ifObject_lessOrEqualConstant_ (
@@ -674,6 +930,13 @@ public enum L2Operation
 		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L2_doJump_ifObject_lessOrEqualConstant_();
+		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			// It jumps, which counts as a side effect.
+			return true;
 		}
 	},
 
@@ -685,6 +948,13 @@ public enum L2Operation
 		{
 			operationDispatcher.L2_doJump_ifObject_greaterThanObject_();
 		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			// It jumps, which counts as a side effect.
+			return true;
+		}
 	},
 
 	L2_doJump_ifObject_greaterConstant_ (
@@ -694,6 +964,13 @@ public enum L2Operation
 		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L2_doJump_ifObject_greaterConstant_();
+		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			// It jumps, which counts as a side effect.
+			return true;
 		}
 	},
 
@@ -705,6 +982,13 @@ public enum L2Operation
 		{
 			operationDispatcher.L2_doJump_ifObject_greaterOrEqualObject_();
 		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			// It jumps, which counts as a side effect.
+			return true;
+		}
 	},
 
 	L2_doJump_ifObject_greaterOrEqualConstant_ (
@@ -714,6 +998,13 @@ public enum L2Operation
 		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L2_doJump_ifObject_greaterOrEqualConstant_();
+		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			// It jumps, which counts as a side effect.
+			return true;
 		}
 	},
 
@@ -725,6 +1016,13 @@ public enum L2Operation
 		{
 			operationDispatcher.L2_doJump_ifObject_isKindOfObject_();
 		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			// It jumps, which counts as a side effect.
+			return true;
+		}
 	},
 
 	L2_doJump_ifObject_isKindOfConstant_ (
@@ -734,6 +1032,13 @@ public enum L2Operation
 		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L2_doJump_ifObject_isKindOfConstant_();
+		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			// It jumps, which counts as a side effect.
+			return true;
 		}
 	},
 
@@ -745,6 +1050,13 @@ public enum L2Operation
 		{
 			operationDispatcher.L2_doJump_ifObject_isNotKindOfObject_();
 		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			// It jumps, which counts as a side effect.
+			return true;
+		}
 	},
 
 	L2_doJump_ifObject_isNotKindOfConstant_ (
@@ -754,6 +1066,13 @@ public enum L2Operation
 		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L2_doJump_ifObject_isNotKindOfConstant_();
+		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			// It jumps, which counts as a side effect.
+			return true;
 		}
 	},
 
@@ -765,6 +1084,13 @@ public enum L2Operation
 		{
 			operationDispatcher.L2_doJumpIfInterrupt_();
 		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			// It jumps, which counts as a side effect.
+			return true;
+		}
 	},
 
 	L2_doJumpIfNotInterrupt_ (
@@ -775,6 +1101,13 @@ public enum L2Operation
 		{
 			operationDispatcher.L2_doJumpIfNotInterrupt_();
 		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			// It jumps, which counts as a side effect.
+			return true;
+		}
 	},
 
 	L2_doProcessInterruptNowWithContinuationObject_ (
@@ -784,6 +1117,13 @@ public enum L2Operation
 		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L2_doProcessInterruptNowWithContinuationObject_();
+		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			// Don't remove this kind of instruction.
+			return true;
 		}
 	},
 
@@ -849,6 +1189,13 @@ public enum L2Operation
 		{
 			translator.restrictPropagationInformationToArchitecturalRegisters();
 		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			// Never remove a send -- but inlining it might make it go away.
+			return true;
+		}
 	},
 
 	L2_doSendAfterFailedPrimitive_arguments_failureValue_ (
@@ -866,6 +1213,13 @@ public enum L2Operation
 			final L2Translator translator)
 		{
 			translator.restrictPropagationInformationToArchitecturalRegisters();
+		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			// Never remove this send, since it's due to a failed primitive.
+			return true;
 		}
 	},
 
@@ -933,6 +1287,13 @@ public enum L2Operation
 			final L2Translator translator)
 		{
 			translator.restrictPropagationInformationToArchitecturalRegisters();
+		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			// Never remove a send -- but inlining it might make it go away.
+			return true;
 		}
 	},
 
@@ -1027,6 +1388,13 @@ public enum L2Operation
 			translator.removeTypeForRegister(failureValue.register);
 			translator.removeConstantForRegister(failureValue.register);
 		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			// It could fail and jump.
+			return true;
+		}
 	},
 
 	L2_doNoFailPrimitive_withArguments_result_ (
@@ -1056,6 +1424,24 @@ public enum L2Operation
 				destinationOperand.register,
 				primitiveOperand.primitive.blockTypeRestriction().returnType());
 		}
+
+		@Override
+		public boolean hasSideEffect (final L2Instruction instruction)
+		{
+			// It depends on the primitive.
+			assert instruction.operation == this;
+			final L2PrimitiveOperand primitiveOperand =
+				(L2PrimitiveOperand)instruction.operands[0];
+			final Primitive primitive = primitiveOperand.primitive;
+			assert primitive.hasFlag(Flag.CannotFail);
+			final boolean mustKeep =
+				primitive.hasFlag(Flag.HasSideEffect)
+				|| primitive.hasFlag(Flag.CatchException)
+				|| primitive.hasFlag(Flag.Invokes)
+				|| primitive.hasFlag(Flag.SwitchesContinuation)
+				|| primitive.hasFlag(Flag.Unknown);
+			return mustKeep;
+		}
 	},
 
 	L2_doConcatenateTuplesVector_destObject_ (
@@ -1068,33 +1454,33 @@ public enum L2Operation
 		}
 	},
 
-	L2_doCreateSetOfSizeImmediate_valuesVector_destObject_ (
-		IMMEDIATE, READ_VECTOR, WRITE_POINTER)
+	L2_doCreateSetFromValues_destObject_ (
+		READ_VECTOR, WRITE_POINTER)
 	{
 		@Override
 		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
 		{
-			operationDispatcher.L2_doCreateSetOfSizeImmediate_valuesVector_destObject_();
+			operationDispatcher.L2_doCreateSetFromValues_destObject_();
 		}
 	},
 
-	L2_doCreateMapOfSizeImmediate_keysVector_valuesVector_destObject_ (
-		IMMEDIATE, READ_VECTOR, READ_VECTOR, WRITE_POINTER)
+	L2_doCreateMapFromKeysVector_valuesVector_destObject_ (
+		READ_VECTOR, READ_VECTOR, WRITE_POINTER)
 	{
 		@Override
 		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
 		{
-			operationDispatcher.L2_doCreateMapOfSizeImmediate_keysVector_valuesVector_destObject_();
+			operationDispatcher.L2_doCreateMapFromKeysVector_valuesVector_destObject_();
 		}
 	},
 
-	L2_doCreateObjectOfSizeImmediate_keysVector_valuesVector_destObject_ (
-		IMMEDIATE, READ_VECTOR, READ_VECTOR, WRITE_POINTER)
+	L2_doCreateObjectFromKeysVector_valuesVector_destObject_ (
+		READ_VECTOR, READ_VECTOR, WRITE_POINTER)
 	{
 		@Override
 		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
 		{
-			operationDispatcher.L2_doCreateObjectOfSizeImmediate_keysVector_valuesVector_destObject_();
+			operationDispatcher.L2_doCreateObjectFromKeysVector_valuesVector_destObject_();
 		}
 	},
 
@@ -1151,6 +1537,13 @@ public enum L2Operation
 		{
 			operationDispatcher.L2_doReturnToContinuationObject_valueObject_();
 		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			// Never remove this.
+			return true;
+		}
 	},
 
 	L2_doExitContinuationObject_valueObject_ (
@@ -1160,6 +1553,13 @@ public enum L2Operation
 		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L2_doExitContinuationObject_valueObject_();
+		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			// Never remove this.
+			return true;
 		}
 	},
 
@@ -1171,6 +1571,13 @@ public enum L2Operation
 		{
 			operationDispatcher.L2_doResumeContinuationObject_();
 		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			// Never remove this.
+			return true;
+		}
 	},
 
 	L2_doMakeImmutableObject_ (
@@ -1181,6 +1588,16 @@ public enum L2Operation
 		{
 			operationDispatcher.L2_doMakeImmutableObject_();
 		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			// Marking the object immutable is a side effect, but unfortunately
+			// this could keep extra instructions around to create an object
+			// that nobody wants.
+			// TODO[MvG] - maybe a pseudo-copy operation from linear languages?
+			return true;
+		}
 	},
 
 	L2_doMakeSubobjectsImmutableInObject_ (
@@ -1190,6 +1607,16 @@ public enum L2Operation
 		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
 		{
 			operationDispatcher.L2_doMakeSubobjectsImmutableInObject_();
+		}
+
+		@Override
+		protected boolean hasSideEffect ()
+		{
+			// Marking the object immutable is a side effect, but unfortunately
+			// this could keep extra instructions around to create an object
+			// that nobody wants.
+			// TODO[MvG] - maybe a pseudo-copy operation from linear languages?
+			return true;
 		}
 	};
 
@@ -1265,5 +1692,43 @@ public enum L2Operation
 	public boolean shouldEmit ()
 	{
 		return true;
+	}
+
+
+	/**
+	 * Answer whether this {@link L2Operation} changes the state of the
+	 * interpreter in any way other than by writing to its destination
+	 * registers.  Most operations are computational and don't have side
+	 * effects.
+	 *
+	 * @return Whether this operation has any side effect.
+	 */
+	protected boolean hasSideEffect ()
+	{
+		return false;
+	}
+
+	/**
+	 * Answer whether the given {@link L2Instruction} (whose operation must be
+	 * the receiver) changes the state of the interpreter in any way other than
+	 * by writing to its destination registers.  Most operations are
+	 * computational and don't have side effects.
+	 *
+	 * <p>
+	 * Most enum instances can override {@link #hasSideEffect()} if {@code
+	 * false} isn't good enough, but some might need to know details of the
+	 * actual {@link L2Instruction} – in which case they should override this
+	 * method instead.
+	 *
+	 * @param instruction
+	 *            The {@code L2Instruction} for which a side effect test is
+	 *            being performed.
+	 * @return
+	 *            Whether that L2Instruction has any side effect.
+	 */
+	public boolean hasSideEffect (final @NotNull L2Instruction instruction)
+	{
+		assert instruction.operation == this;
+		return hasSideEffect();
 	}
 }

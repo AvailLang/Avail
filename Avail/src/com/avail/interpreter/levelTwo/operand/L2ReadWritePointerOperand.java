@@ -90,4 +90,10 @@ public class L2ReadWritePointerOperand extends L2Operand
 	{
 		codeGenerator.emitObjectRegister(register);
 	}
+
+	@Override
+	public String toString ()
+	{
+		return String.format("ReadWriteObject(%s)", register);
+	}
 }

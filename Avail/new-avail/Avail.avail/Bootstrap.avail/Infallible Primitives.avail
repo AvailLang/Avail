@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.02.24 13:08:53.161 -0600
+ * * Last Generated On: 2012.02.29 15:20:48.626 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -136,6 +136,7 @@ Uses
 		"new_applying_",
 		"new↑_",
 		"primitive description of_",
+		"semantic restrictions for_given_",
 		"special atoms",
 		"{_|_}",
 		"{_→_|_}",
@@ -1687,6 +1688,25 @@ Method "_'s literals" is
 |
 	Primitive 187;
 ] : tuple;
+
+/**
+ * Compute and answer the semantic restrictions that would run at a call site
+ * of `aMethod` applied with the specified tuple of arguments.
+ *
+ * Parameters:
+ *    aMethod - A method.
+ *    arguments - The tuple of arguments that should be used to filter the
+ *       semantic restrictions.
+ * Returns:
+ *    The requested semantic restrictions.
+ */
+Method "semantic restrictions for_given_" is
+[
+	aMethod : method,
+	arguments : tuple of type
+|
+	Primitive 247;
+] : tuple of semantic restriction function;
 
 /**
  * Does the argument denote a valid primitive?

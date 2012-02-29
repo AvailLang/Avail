@@ -90,4 +90,10 @@ public class L2ReadIntOperand extends L2Operand
 	{
 		codeGenerator.emitIntegerRegister(register);
 	}
+
+	@Override
+	public String toString ()
+	{
+		return String.format("ReadInt(%s)", register);
+	}
 }

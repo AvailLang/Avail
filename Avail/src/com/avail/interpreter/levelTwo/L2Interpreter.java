@@ -2299,10 +2299,8 @@ implements L2OperationDispatcher
 	}
 
 	@Override
-	public void L2_doCreateSetOfSizeImmediate_valuesVector_destObject_ ()
+	public void L2_doCreateSetFromValues_destObject_ ()
 	{
-		@SuppressWarnings("unused")
-		final int sizeIndex = nextWord();
 		@SuppressWarnings("unused")
 		final int valuesIndex = nextWord();
 		@SuppressWarnings("unused")
@@ -2312,10 +2310,8 @@ implements L2OperationDispatcher
 	}
 
 	@Override
-	public void L2_doCreateMapOfSizeImmediate_keysVector_valuesVector_destObject_ ()
+	public void L2_doCreateMapFromKeysVector_valuesVector_destObject_ ()
 	{
-		@SuppressWarnings("unused")
-		final int sizeIndex = nextWord();
 		@SuppressWarnings("unused")
 		final int keysIndex = nextWord();
 		@SuppressWarnings("unused")
@@ -2327,10 +2323,8 @@ implements L2OperationDispatcher
 	}
 
 	@Override
-	public void L2_doCreateObjectOfSizeImmediate_keysVector_valuesVector_destObject_ ()
+	public void L2_doCreateObjectFromKeysVector_valuesVector_destObject_ ()
 	{
-		@SuppressWarnings("unused")
-		final int sizeIndex = nextWord();
 		@SuppressWarnings("unused")
 		final int keysIndex = nextWord();
 		@SuppressWarnings("unused")

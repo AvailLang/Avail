@@ -244,4 +244,23 @@ public final class L2Instruction
 		return new L2Instruction(operation, newOperands);
 	}
 
+	@Override
+	public String toString ()
+	{
+		final StringBuilder builder = new StringBuilder();
+		builder.append(operation.name());
+		builder.append(" (");
+		boolean first = true;
+		for (final L2Operand operand : operands)
+		{
+			if (!first)
+			{
+				builder.append(", ");
+			}
+			builder.append(operand);
+			first = false;
+		}
+		builder.append(")");
+		return builder.toString();
+	}
 }

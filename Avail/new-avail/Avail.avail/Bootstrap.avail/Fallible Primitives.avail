@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.02.24 13:08:53.200 -0600
+ * * Last Generated On: 2012.02.29 15:20:48.714 -0600
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -76,7 +76,6 @@ Uses
 		"method_._(«_‡,»)",
 		"read character",
 		"request termination of_",
-		"semantic restrictions for_given_",
 		"static method_._(«_‡,»)",
 		"swap_and_",
 		"termination requested",
@@ -704,26 +703,6 @@ Method "Raise_" is
 	Primitive 201 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode;
 ] : ⊥;
-
-/**
- * Compute and answer the semantic restrictions that would run at a call site
- * of `aMethod` applied with the specified tuple of arguments.
- *
- * Parameters:
- *    aMethod - A method.
- *    arguments - The tuple of arguments that should be used to filter the
- *       semantic restrictions.
- * Returns:
- *    The requested semantic restrictions.
- */
-Method "semantic restrictions for_given_" is
-[
-	aMethod : method,
-	arguments : tuple of type
-|
-	Primitive 247 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode;
-] : tuple of semantic restriction function;
 
 /**
  * Define the specified semantic restriction. Henceforth whenever the method

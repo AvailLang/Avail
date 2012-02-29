@@ -38,6 +38,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.interpreter.Primitive.Result.*;
 import static java.lang.Math.max;
+import java.lang.instrument.Instrumentation;
 import java.util.*;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
@@ -865,14 +866,11 @@ public class L2Translator implements L1OperationDispatcher
 		final int numArgsAndLocals = code.numArgs() + code.numLocals();
 		final List<L2ObjectRegister> preSlots =
 			new ArrayList<L2ObjectRegister>(numSlots);
-		final List<L2ObjectRegister> postSlots =
-			new ArrayList<L2ObjectRegister>(numSlots);
 		for (int slotIndex = 1; slotIndex <= numSlots; slotIndex++)
 		{
 			final L2ObjectRegister register =
 				continuationSlotRegister(slotIndex);
 			preSlots.add(register);
-			postSlots.add(register);
 		}
 		final L2ObjectRegister expectedTypeReg = newRegister();
 		final L2ObjectRegister failureObjectReg = newRegister();
@@ -967,17 +965,18 @@ public class L2Translator implements L1OperationDispatcher
 		addInstruction(postCallLabel);
 		// And after the call returns, the callerRegister will contain the
 		// continuation to be exploded.
-		for (int i = 0; i < postSlots.size(); i++)
+		for (int slotIndex = 1; slotIndex <= numSlots; slotIndex++)
 		{
-			final AvailObject type = savedSlotTypes.get(i);
+			final L2Register postSlot = continuationSlotRegister(slotIndex);
+			final AvailObject type = savedSlotTypes.get(slotIndex - 1);
 			if (type != null)
 			{
-				registerTypeAtPut(postSlots.get(i), type);
+				registerTypeAtPut(postSlot, type);
 			}
-			final AvailObject constant = savedSlotConstants.get(i);
+			final AvailObject constant = savedSlotConstants.get(slotIndex - 1);
 			if (constant != null)
 			{
-				registerConstantAtPut(postSlots.get(i), constant);
+				registerConstantAtPut(postSlot, constant);
 			}
 		}
 		// At this point the implied return instruction in the called code has
@@ -1394,14 +1393,11 @@ public class L2Translator implements L1OperationDispatcher
 		final int numArgsAndLocals = code.numArgs() + code.numLocals();
 		final List<L2ObjectRegister> preSlots =
 			new ArrayList<L2ObjectRegister>(numSlots);
-		final List<L2ObjectRegister> postSlots =
-			new ArrayList<L2ObjectRegister>(numSlots);
 		for (int slotIndex = 1; slotIndex <= numSlots; slotIndex++)
 		{
 			final L2ObjectRegister register =
 				continuationSlotRegister(slotIndex);
 			preSlots.add(register);
-			postSlots.add(register);
 		}
 		final L2ObjectRegister expectedTypeReg = newRegister();
 		final L2ObjectRegister failureObjectReg = newRegister();
@@ -1507,17 +1503,18 @@ public class L2Translator implements L1OperationDispatcher
 		addInstruction(postCallLabel);
 		// And after the call returns, the callerRegister will contain the
 		// continuation to be exploded.
-		for (int i = 0; i < postSlots.size(); i++)
+		for (int slotIndex = 1; slotIndex <= numSlots; slotIndex++)
 		{
-			final AvailObject type = savedSlotTypes.get(i);
+			final L2Register postSlot = continuationSlotRegister(slotIndex);
+			final AvailObject type = savedSlotTypes.get(slotIndex - 1);
 			if (type != null)
 			{
-				registerTypeAtPut(postSlots.get(i), type);
+				registerTypeAtPut(postSlot, type);
 			}
-			final AvailObject constant = savedSlotConstants.get(i);
+			final AvailObject constant = savedSlotConstants.get(slotIndex - 1);
 			if (constant != null)
 			{
-				registerConstantAtPut(postSlots.get(i), constant);
+				registerConstantAtPut(postSlot, constant);
 			}
 		}
 		// At this point the implied return instruction in the called code has
@@ -1610,7 +1607,61 @@ public class L2Translator implements L1OperationDispatcher
 	 */
 	private void optimize ()
 	{
+		while (removeDeadInstructions())
+		{
+			// Do it again.
+		}
 		simpleColorRegisters();
+	}
+
+	/**
+	 * Remove any unnecessary instructions.  Answer true if any were removed.
+	 *
+	 * @return Whether any dead instructions were removed.
+	 */
+	private boolean removeDeadInstructions ()
+	{
+		final Map<L2RegisterIdentity, L2Instruction> pendingWriters =
+			new HashMap<L2RegisterIdentity, L2Instruction>();
+		final Set<L2Instruction> neededInstructions =
+			new HashSet<L2Instruction>();
+		for (final L2Instruction instruction : instructions)
+		{
+			if (instruction.operation.hasSideEffect(instruction))
+			{
+				neededInstructions.add(instruction);
+			}
+			for (final L2Register readRegister : instruction.sourceRegisters())
+			{
+				if (pendingWriters.containsKey(readRegister.identity()))
+				{
+					// We just read something some earlier instruction went to
+					// the trouble of producing.  Keep the earlier instruction.
+					neededInstructions.add(
+						pendingWriters.get(readRegister.identity()));
+				}
+				else
+				{
+					// There wasn't a writer for this read.  Make sure it's
+					// legitimate.
+					final int index = readRegister.identity().finalIndex();
+					final L2Register firstArg = continuationSlotRegister(1);
+					final int firstArgIndex = firstArg.identity().finalIndex();
+					final int lastArgIndex = firstArgIndex + code.numArgs() - 1;
+					assert index >= 0 && index <= lastArgIndex
+					: "Detected read from uninitialized register";
+				}
+			}
+			for (final L2Register writeRegister
+				: instruction.destinationRegisters())
+			{
+				// Ignore any previous writes to the same register, since
+				// whether the value was consumed or not was already dealt with
+				// and no longer matters to me.
+				pendingWriters.put(writeRegister.identity(), instruction);
+			}
+		}
+		return instructions.retainAll(neededInstructions);
 	}
 
 	/**

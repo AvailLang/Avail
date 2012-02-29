@@ -507,24 +507,24 @@ interface L2OperationDispatcher
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doCreateSetOfSizeImmediate_valuesVector_destObject_}
+	 * {@link L2Operation#L2_doCreateSetFromValues_destObject_}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doCreateSetOfSizeImmediate_valuesVector_destObject_ ();
+	public void L2_doCreateSetFromValues_destObject_ ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doCreateMapOfSizeImmediate_keysVector_valuesVector_destObject_}
+	 * {@link L2Operation#L2_doCreateMapFromKeysVector_valuesVector_destObject_}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doCreateMapOfSizeImmediate_keysVector_valuesVector_destObject_ ();
+	public void L2_doCreateMapFromKeysVector_valuesVector_destObject_ ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doCreateObjectOfSizeImmediate_keysVector_valuesVector_destObject_}
+	 * {@link L2Operation#L2_doCreateObjectFromKeysVector_valuesVector_destObject_}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doCreateObjectOfSizeImmediate_keysVector_valuesVector_destObject_ ();
+	public void L2_doCreateObjectFromKeysVector_valuesVector_destObject_ ();
 
 	/**
 	 * Process an

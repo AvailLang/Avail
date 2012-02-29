@@ -5443,7 +5443,7 @@ implements IntegerEnumSlotDescriptionEnum
 	 * would run for a call site for the specified {@linkplain
 	 * MethodDescriptor method} and tuple of argument types.
 	 */
-	prim247_SemanticRestrictions(247, 2, Unknown)
+	prim247_SemanticRestrictions(247, 2, CanInline, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (

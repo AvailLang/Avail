@@ -90,4 +90,10 @@ public class L2SelectorOperand extends L2Operand
 	{
 		codeGenerator.emitLiteral(method);
 	}
+
+	@Override
+	public String toString ()
+	{
+		return String.format("Selector(%s)", method.name().name());
+	}
 }

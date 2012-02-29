@@ -90,4 +90,10 @@ public class L2ConstantOperand extends L2Operand
 	{
 		codeGenerator.emitLiteral(object);
 	}
+
+	@Override
+	public String toString ()
+	{
+		return String.format("Const(%s)", object);
+	}
 }

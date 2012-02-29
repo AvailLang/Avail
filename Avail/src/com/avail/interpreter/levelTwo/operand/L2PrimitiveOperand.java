@@ -89,4 +89,10 @@ public class L2PrimitiveOperand extends L2Operand
 	{
 		codeGenerator.emitPrimitiveNumber(primitive.primitiveNumber);
 	}
+
+	@Override
+	public String toString ()
+	{
+		return String.format("Priw(%s)", primitive);
+	}
 }
