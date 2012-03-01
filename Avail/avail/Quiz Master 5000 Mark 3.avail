@@ -32,42 +32,53 @@
 
 System Module "Quiz Master 5000 Mark 3"
 Versions
-/* TODO: Set versions */
+
 Extends
 	"Kernel" = ("«_‡then»")
 Uses
 	"Kernel"
 Names
-	"Q:_«A:_«*»»",
+	"Q:_«A:_«*»?»",
 	"Administer Test",
-	"Points:_Q:_«A:_«*»»",
+	"Points:_Q:_«A:_«*»?»",
 	"Administer Weighted Test"
 	
 Body
 
+/**
+ * This is the module that defines the domain specific language for writing
+ * tests.  It creates a sandbox environment (the domain) in which the user
+ * does not have access to any of the Avail library.  This particular domain
+ * doesn't even permit variables creation (and hence variable population). The
+ * user of this module may construct questions and run tests.
+ */
+
+/* fields for question objects */
 inquiry ::= new atom "inquiry";
 answers ::= new atom "answers";
 points ::= new atom "points";
 
+/* Object definitions */
 "quiz question" is implicit subtype of Object with
 	inquiry -> string,
-	answers -> <<string,<tuple like <>…|0..1>…|2..2>…|1..∞>;
+	answers -> <<string,boolean…|2..2>…|1..∞>;
 
 "weighted quiz question" is implicit subtype of Object with
 	inquiry -> string,
-	answers -> <<string,<tuple like <>…|0..1>…|2..2>…|1..∞>,
+	answers -> <<string,boolean…|2..2>…|1..∞>,
 	points -> whole number;
-	
+
+/* Module Variables */
 testQuestions : <quiz question…|0..∞> := <>;
 
 weightedTestQuestions : <weighted quiz question…|0..∞> := <>;
 
 /**
- * A special form of Print that accepts a question and prints it in specific
- * format.
+ * A special form of Print that accepts a quiz question and prints it in a
+ *  specific format.
  *
  * Parameters:
- *    arg1 - quiz question
+ *    question - quiz question object
  * Returns:
  *    Top
  */
@@ -87,11 +98,11 @@ Method "Print_" is
 ]:void;
 
 /**
- * A special form of Print that accepts a question and prints it in specific
- * format.
+ * A special form of Print that accepts a weighted quiz question and prints it 
+ * in a specific format.
  *
  * Parameters:
- *    arg1 - weighted quiz question
+ *    question - weighted quiz question object
  * Returns:
  *    Top
  */
@@ -111,8 +122,8 @@ Method "Print_" is
 ]:void;
 
 /**
- * A method that creates a quiz question and prompts a user on the console
- * to answer the question.  It determines if the user answer is correct.
+ * A method that creates a quiz question and adds it to the tuple module 
+ * variable that will ultimately contain all the quiz questions.
  *
  * Parameters:
  *    question - inquiry string
@@ -123,10 +134,10 @@ Method "Print_" is
  *    void
  */
 
-Method "Q:_«A:_«*»»" is
+Method "Q:_«A:_«*»?»" is
 [
  	question : string,
- 	answerOptions : <<string,<tuple like <>…|0..1>…|2..2>…|1..∞>
+ 	answerOptions : <<string,boolean…|2..2>…|1..∞>
  |
  	/* Create quiz question object from input. */
  	quizQuestion : quiz question := quiz question new with
@@ -139,8 +150,8 @@ Method "Q:_«A:_«*»»" is
 ]:void;
 
 /**
- * A method that creates a weighted quiz question and prompts a user on the 
- * console to answer the question.  It determines if the user answer is correct.
+ * A method that creates a weighted quiz question and and adds it to the tuple 
+ * module variable that will ultimately contain all the quiz questions.
  *
  * Parameters:
  * 	  pointValue - whole number point value
@@ -151,11 +162,11 @@ Method "Q:_«A:_«*»»" is
  * Returns:
  *    void
  */
-Method "Points:_Q:_«A:_«*»»" is
+Method "Points:_Q:_«A:_«*»?»" is
 [
  	pointValue : whole number,
  	question : string,
- 	answerOptions : <<string,<tuple like <>…|0..1>…|2..2>…|1..∞>
+ 	answerOptions : <<string,boolean…|2..2>…|1..∞>
  |
  	/* Create quiz question object from input. */
  	quizQuestion : weighted quiz question := quiz question new with
@@ -193,8 +204,8 @@ Method "calculate score for_" is
 ]:float;
 
 /**
- * Takes a tuple of boolean and calculates the percentage that are true.
- *
+ * Takes a tuple of <boolean,point value> and calculates the weighted 
+ * percentage that are true based on the associated point value.
  * Parameters:
  *    userAnswerOutcomes - tuple of tuple of boolean and point value
  * Returns:
@@ -237,7 +248,7 @@ Method "calculate weighted score for_" is
 ]:float;
 
 /**
- * Provides the test to the user and prints the final test score.
+ * Provides the regular test to the user and prints the final test score.
  *
  * Parameters:
  *    none
@@ -257,9 +268,9 @@ Method "Administer Test" is
  	 	correctAnswers : <natural number…|0..∞> := 
 			all indexes of testQuestions[i]->answers where 
 			[
-			 	x : <string,<tuple like <>…|0..1>…|2..2> 
+			 	x : <string,boolean…|2..2> 
 			 |
-			 	||x[2]|| = 1;
+			 	x type default type = true type;
 			];
 		Print "\n";
 		Print testQuestions[i];
@@ -298,9 +309,9 @@ Method "Administer Weighted Test" is
  	 	correctAnswers : <natural number…|0..∞> := 
 			all indexes of weightedTestQuestions[i]->answers where 
 			[
-			 	x : <string,<tuple like <>…|0..1>…|2..2> 
+			 	x : <string,boolean…|2..2> 
 			 |
-			 	||x[2]|| = 1;
+			 	1x type default type = true type;
 			];
 		Print "\n";
 		Print weightedTestQuestions[i];

@@ -41,13 +41,14 @@ Names
 
 Body
 
+/* Begin Regular Test Definition/Run */
 Q: "5+5?"
 A: "10" *
 A: "11" 
 A: "12"
 A: "MOTOR TORPEDO BOAT!";
 
-Q: "When was the Treaty of Versailles signed ?"
+Q: "When was the Treaty of Versailles signed?"
 A: "April 1919"  
 A: "May 1919" 
 A: "June 1919" * 
@@ -75,6 +76,7 @@ A:	"Puxatony Phil";
 
 Administer Test;
 
+/* Begin Weighted Test Definition/Run */
 Points: 5
 Q: "5+5?"
 A: "10" *
