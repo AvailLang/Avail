@@ -161,9 +161,8 @@ public class MessageSplitter
 		 * @throws SignatureException
 		 *        If the argument type is inappropriate.
 		 */
-		public abstract void checkType (
-			final @NotNull AvailObject argumentType)
-		throws SignatureException;
+		public abstract void checkType (final @NotNull AvailObject argumentType)
+			throws SignatureException;
 
 		@Override
 		public @NotNull String toString ()
@@ -283,7 +282,7 @@ public class MessageSplitter
 		 */
 		@Override
 		public void checkType (final @NotNull AvailObject argumentType)
-		throws SignatureException
+			throws SignatureException
 		{
 			if (argumentType.equals(BottomTypeDescriptor.bottom()))
 			{
@@ -627,7 +626,7 @@ public class MessageSplitter
 		 */
 		@Override
 		public void checkType (final @NotNull AvailObject argumentType)
-		throws SignatureException
+			throws SignatureException
 		{
 			// Always expect a tuple of solutions here.
 			if (argumentType.equals(BottomTypeDescriptor.bottom()))
@@ -955,7 +954,7 @@ public class MessageSplitter
 
 		@Override
 		public void checkType (final @NotNull AvailObject argumentType)
-		throws SignatureException
+			throws SignatureException
 		{
 			if (!argumentType.isSubtypeOf(
 				IntegerRangeTypeDescriptor.wholeNumbers()))
@@ -1062,7 +1061,7 @@ public class MessageSplitter
 
 		@Override
 		public void checkType (final @NotNull AvailObject argumentType)
-		throws SignatureException
+			throws SignatureException
 		{
 			if (!argumentType.isSubtypeOf(
 				EnumerationTypeDescriptor.booleanObject()))
@@ -1097,7 +1096,7 @@ public class MessageSplitter
 	 *         If the message name is malformed.
 	 */
 	public MessageSplitter (final @NotNull AvailObject messageName)
-	throws SignatureException
+		throws SignatureException
 	{
 		this.messageName = messageName;
 		messageName.makeImmutable();
@@ -1216,8 +1215,7 @@ public class MessageSplitter
 	 *
 	 * @throws SignatureException If the signature is invalid.
 	 */
-	private void splitMessage ()
-	throws SignatureException
+	private void splitMessage () throws SignatureException
 	{
 		if (messageName.tupleSize() == 0)
 		{
@@ -1291,8 +1289,7 @@ public class MessageSplitter
 	 *
 	 * @throws SignatureException If the method name is malformed.
 	 */
-	Group parseGroup ()
-	throws SignatureException
+	Group parseGroup () throws SignatureException
 	{
 		final Group group = new Group();
 		while (true)
@@ -1474,8 +1471,8 @@ public class MessageSplitter
 	 *            If the function type is inappropriate for the method name.
 	 */
 	public void checkImplementationSignature (
-		final @NotNull AvailObject functionType)
-	throws SignatureException
+			final @NotNull AvailObject functionType)
+		throws SignatureException
 	{
 		final AvailObject argsTupleType = functionType.argsTupleType();
 		final AvailObject sizes = argsTupleType.sizeRange();
@@ -1509,8 +1506,8 @@ public class MessageSplitter
 	 * @throws SignatureException Always, with the given error code.
 	 */
 	void throwSignatureException (
-		final @NotNull AvailErrorCode errorCode)
-	throws SignatureException
+			final @NotNull AvailErrorCode errorCode)
+		throws SignatureException
 	{
 		throw new SignatureException(errorCode);
 	}
