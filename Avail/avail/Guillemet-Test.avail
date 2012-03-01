@@ -149,7 +149,7 @@ Method "_'s lexeme" is [ aToken : token | Primitive 356; ] : string;
 
 Method "I««really»?like to»eat…«very»#much" is
 [
-	really : tuple of boolean,
+	really : tuple [0..1] of boolean,
 	subject : token,
 	very : natural number
 |
