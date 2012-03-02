@@ -1067,7 +1067,7 @@ public enum SerializerOperation
 	},
 
 	/**
-	 *
+	 * An {@linkplain IntegerRangeTypeDescriptor integer range type}.
 	 */
 	INTEGER_RANGE_TYPE (39,
 		BYTE.as("Inclusive flags"),
@@ -1136,6 +1136,198 @@ public enum SerializerOperation
 				moduleName,
 				deserializer);
 			return deserializer.runtime().methodFor(atom);
+		}
+	},
+
+	/**
+	 * A {@linkplain PojoTypeDescriptor pojo type} for which {@linkplain
+	 * AvailObject#isPojoFusedType()} is false.  This indicates a representation
+	 * with a juicy class filling, which allows a particularly compact
+	 * representation involving the class name and its parameter types.
+	 */
+	UNFUSED_POJO_TYPE (41,
+		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("class name"),
+		TUPLE_OF_OBJECTS.as("class parameterization"))
+	{
+		@Override
+		AvailObject[] decompose (final AvailObject object)
+		{
+			assert object.isPojoType();
+			assert !object.isPojoFusedType();
+			final AvailObject rawPojoType = object.javaClass();
+			final Class<?> baseClass =
+				(Class<?>)rawPojoType.javaObject();
+			final AvailObject className =
+				StringDescriptor.from(baseClass.getName());
+			final AvailObject ancestorMap = object.javaAncestors();
+			final AvailObject myParameters = ancestorMap.mapAt(rawPojoType);
+			return array(className, myParameters);
+		}
+
+		@Override
+		@NotNull AvailObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			final ClassLoader classLoader =
+				deserializer.runtime().classLoader();
+			Class<?> baseClass;
+			try
+			{
+				baseClass = Class.forName(
+					subobjects[0].asNativeString(),
+					true,
+					classLoader);
+			}
+			catch (final ClassNotFoundException e)
+			{
+				throw new RuntimeException(e);
+			}
+			return PojoTypeDescriptor.forClassWithTypeArguments(
+				baseClass,
+				subobjects[1]);
+		}
+	},
+
+	/**
+	 * A {@linkplain PojoTypeDescriptor pojo type} for which {@linkplain
+	 * AvailObject#isPojoFusedType()} is true.  This indicates a representation
+	 * without the juicy class filling, so we have to say how each ancestor is
+	 * parameterized.
+	 */
+	FUSED_POJO_TYPE (42,
+		GENERAL_MAP.as("ancestor parameterizations map"))
+	{
+		@Override
+		AvailObject[] decompose (final AvailObject object)
+		{
+			assert object.isPojoType();
+			assert object.isPojoFusedType();
+			AvailObject symbolicMap = MapDescriptor.empty();
+			for (final MapDescriptor.Entry entry
+				: object.javaAncestors().mapIterable())
+			{
+				final Class<?> baseClass =
+					(Class<?>)entry.key.javaObject();
+				final AvailObject className =
+					StringDescriptor.from(baseClass.getName());
+				symbolicMap = symbolicMap.mapAtPuttingCanDestroy(
+					className,
+					entry.value,
+					true);
+			}
+			return array(symbolicMap);
+		}
+
+		@Override
+		@NotNull AvailObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			final ClassLoader classLoader =
+				deserializer.runtime().classLoader();
+			AvailObject ancestorMap = MapDescriptor.empty();
+			try
+			{
+				for (final MapDescriptor.Entry entry
+					: subobjects[0].mapIterable())
+				{
+					final Class<?> baseClass = Class.forName(
+						entry.key.asNativeString(),
+						true,
+						classLoader);
+					final AvailObject rawPojo =
+						RawPojoDescriptor.equalityWrap(baseClass);
+					ancestorMap = ancestorMap.mapAtPuttingCanDestroy(
+						rawPojo,
+						entry.value,
+						true);
+				}
+			}
+			catch (final ClassNotFoundException e)
+			{
+				throw new RuntimeException(e);
+			}
+			return PojoTypeDescriptor.fusedTypeFromAncestorMap(
+				ancestorMap);
+		}
+	},
+
+	/**
+	 * A {@linkplain PojoTypeDescriptor pojo type} representing a Java array
+	 * type.  We can reconstruct this array type from the content type and the
+	 * range of allowable sizes (a much stronger model than Java itself
+	 * supports).
+	 */
+	ARRAY_POJO_TYPE (43,
+		OBJECT_REFERENCE.as("content type"),
+		OBJECT_REFERENCE.as("size range"))
+	{
+		@Override
+		AvailObject[] decompose (final AvailObject object)
+		{
+			assert object.isPojoArrayType();
+			final AvailObject contentType = object.contentType();
+			final AvailObject sizeRange = object.sizeRange();
+			return array(contentType, sizeRange);
+		}
+
+		@Override
+		@NotNull AvailObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			final AvailObject contentType = subobjects[0];
+			final AvailObject sizeRange = subobjects[1];
+			return PojoTypeDescriptor.forArrayTypeWithSizeRange(
+				contentType,
+				sizeRange);
+		}
+	},
+
+	/**
+	 * A {@linkplain PojoTypeDescriptor pojo type} representing a "self type"
+	 * for parameterizing a Java class by itself.  For example, in the
+	 * parametric type {@code Enum<E extends Enum<E>>}, we parameterize the
+	 * class {@code Enum} with such a self type.  To reconstruct a self type all
+	 * we need is a way to get to the raw Java class, so we serialize its name.
+	 */
+	SELF_POJO_TYPE (44,
+		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("class name"))
+	{
+		@Override
+		AvailObject[] decompose (final AvailObject object)
+		{
+			assert object.isPojoSelfType();
+			final AvailObject rawPojoType = object.javaClass();
+			final Class<?> selfClass =
+				(Class<?>)rawPojoType.javaObject();
+			final AvailObject className =
+				StringDescriptor.from(selfClass.getName());
+			return array(className);
+		}
+
+		@Override
+		@NotNull AvailObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			final String className = subobjects[0].asNativeString();
+			final ClassLoader classLoader =
+				deserializer.runtime().classLoader();
+			Class<?> baseClass;
+			try
+			{
+				baseClass = Class.forName(
+					className,
+					true,
+					classLoader);
+			}
+			catch (final ClassNotFoundException e)
+			{
+				throw new RuntimeException(e);
+			}
+			return PojoTypeDescriptor.selfTypeForClass(baseClass);
 		}
 	};
 

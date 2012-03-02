@@ -578,8 +578,7 @@ public class SetDescriptor extends Descriptor
 		return rootBin(object).binSize();
 	}
 
-	@Override
-	@AvailMethod @ThreadSafe
+	@Override @AvailMethod @ThreadSafe
 	@NotNull SerializerOperation o_SerializerOperation (
 		final @NotNull AvailObject object)
 	{

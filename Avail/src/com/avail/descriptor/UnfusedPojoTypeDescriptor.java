@@ -38,6 +38,7 @@ import static com.avail.descriptor.UnfusedPojoTypeDescriptor.ObjectSlots.*;
 import java.lang.reflect.*;
 import java.util.List;
 import com.avail.annotations.*;
+import com.avail.serialization.SerializerOperation;
 
 /**
  * {@code UnfusedPojoTypeDescriptor} describes a fully-parameterized Java
@@ -57,6 +58,7 @@ extends PojoTypeDescriptor
 		 * The {@linkplain AvailObject#hash() hash}, or zero ({@code 0}) if the
 		 * hash should be computed.
 		 */
+		@HideFieldInDebugger
 		HASH_OR_ZERO
 	}
 
@@ -223,6 +225,13 @@ extends PojoTypeDescriptor
 			object.setSlot(SELF_TYPE, selfType);
 		}
 		return selfType;
+	}
+
+	@Override @AvailMethod @ThreadSafe
+	@NotNull SerializerOperation o_SerializerOperation (
+		final @NotNull AvailObject object)
+	{
+		return SerializerOperation.UNFUSED_POJO_TYPE;
 	}
 
 	@Override @AvailMethod

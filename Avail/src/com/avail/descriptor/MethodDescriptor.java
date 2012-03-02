@@ -1071,8 +1071,8 @@ extends Descriptor
 		return true;
 	}
 
-	@Override @AvailMethod
-	SerializerOperation o_SerializerOperation (
+	@Override @AvailMethod @ThreadSafe
+	@NotNull SerializerOperation o_SerializerOperation (
 		final @NotNull AvailObject object)
 	{
 		return SerializerOperation.METHOD;

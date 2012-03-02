@@ -695,8 +695,7 @@ extends Descriptor
 		return false;
 	}
 
-	@Override
-	@AvailMethod @ThreadSafe
+	@Override @AvailMethod @ThreadSafe
 	@NotNull SerializerOperation o_SerializerOperation (
 		final @NotNull AvailObject object)
 	{

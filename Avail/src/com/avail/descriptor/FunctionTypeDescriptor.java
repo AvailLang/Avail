@@ -635,8 +635,8 @@ extends TypeDescriptor
 			exceptions);
 	}
 
-	@Override @AvailMethod
-	SerializerOperation o_SerializerOperation (
+	@Override @AvailMethod @ThreadSafe
+	@NotNull SerializerOperation o_SerializerOperation (
 		final @NotNull AvailObject object)
 	{
 		return SerializerOperation.FUNCTION_TYPE;

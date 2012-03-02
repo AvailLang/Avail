@@ -437,8 +437,7 @@ public class MapDescriptor extends Descriptor
 		return new MapIterable(rootBin(object));
 	}
 
-	@Override
-	@AvailMethod @ThreadSafe
+	@Override @AvailMethod @ThreadSafe
 	@NotNull SerializerOperation o_SerializerOperation (
 		final @NotNull AvailObject object)
 	{

@@ -194,6 +194,8 @@ public enum L2Operation
 			{
 				translator.removeConstantForRegister(destinationRegister);
 			}
+
+			translator.propagateMove(sourceRegister, destinationRegister);
 		}
 	},
 
@@ -215,6 +217,7 @@ public enum L2Operation
 				(L2ConstantOperand)instruction.operands[0];
 			final L2WritePointerOperand destinationOperand =
 				(L2WritePointerOperand)instruction.operands[1];
+			translator.propagateWriteTo(destinationOperand.register);
 			translator.registerTypeAtPut(
 				destinationOperand.register,
 				constantOperand.object.kind());
@@ -242,6 +245,7 @@ public enum L2Operation
 				(L2WritePointerOperand)instruction.operands[2];
 			translator.removeTypeForRegister(destinationOperand.register);
 			translator.removeConstantForRegister(destinationOperand.register);
+			translator.propagateWriteTo(destinationOperand.register);
 		}
 	},
 
@@ -269,6 +273,7 @@ public enum L2Operation
 				constantOperand.object);
 			//  ...but the instance is new so it can't be a constant.
 			translator.removeConstantForRegister(destinationOperand.register);
+			translator.propagateWriteTo(destinationOperand.register);
 		}
 	},
 
@@ -306,6 +311,7 @@ public enum L2Operation
 				translator.removeTypeForRegister(destinationOperand.register);
 			}
 			translator.removeConstantForRegister(destinationOperand.register);
+			translator.propagateWriteTo(destinationOperand.register);
 		}
 
 		@Override
@@ -346,6 +352,7 @@ public enum L2Operation
 				translator.removeTypeForRegister(destinationOperand.register);
 			}
 			translator.removeConstantForRegister(destinationOperand.register);
+			translator.propagateWriteTo(destinationOperand.register);
 		}
 
 		@Override
@@ -1150,6 +1157,7 @@ public enum L2Operation
 				ContinuationTypeDescriptor.forFunctionType(
 					translator.code().functionType()));
 			translator.removeConstantForRegister(destinationRegister);
+			translator.propagateWriteTo(destinationRegister);
 		}
 	},
 
@@ -1252,7 +1260,7 @@ public enum L2Operation
 				// Apply the rule of metacovariance. It says that given types T1
 				// and T2, T1 <= T2 implies T1 type <= T2 type. It is guaranteed
 				// true for all types in Avail.
-				final AvailObject meta = type.kind();
+				final AvailObject meta = InstanceTypeDescriptor.on(type);
 				translator.registerTypeAtPut(destinationRegister, meta);
 			}
 			else
@@ -1269,6 +1277,7 @@ public enum L2Operation
 			{
 				translator.removeConstantForRegister(destinationRegister);
 			}
+			translator.propagateWriteTo(destinationRegister);
 		}
 	},
 
@@ -1342,6 +1351,7 @@ public enum L2Operation
 			translator.registerTypeAtPut(
 				destinationOperand.register,
 				tupleType);
+			translator.propagateWriteTo(destinationOperand.register);
 			if (sourceVector.allRegistersAreConstantsIn(translator))
 			{
 				final List<AvailObject> constants = new ArrayList<AvailObject>(
@@ -1385,8 +1395,10 @@ public enum L2Operation
 				(L2WritePointerOperand)instruction.operands[3];
 			translator.removeTypeForRegister(result.register);
 			translator.removeConstantForRegister(result.register);
+			translator.propagateWriteTo(result.register);
 			translator.removeTypeForRegister(failureValue.register);
 			translator.removeConstantForRegister(failureValue.register);
+			translator.propagateWriteTo(failureValue.register);
 		}
 
 		@Override
@@ -1417,6 +1429,7 @@ public enum L2Operation
 				(L2WritePointerOperand)instruction.operands[2];
 			translator.removeTypeForRegister(destinationOperand.register);
 			translator.removeConstantForRegister(destinationOperand.register);
+			translator.propagateWriteTo(destinationOperand.register);
 
 			// We can at least believe what the basic primitive signature says
 			// it returns.
@@ -1507,6 +1520,7 @@ public enum L2Operation
 			translator.registerTypeAtPut(
 				destinationOperand.register,
 				codeOperand.object.functionType());
+			translator.propagateWriteTo(destinationOperand.register);
 			if (outersOperand.vector.allRegistersAreConstantsIn(translator))
 			{
 				final AvailObject function =
@@ -1615,7 +1629,7 @@ public enum L2Operation
 			// Marking the object immutable is a side effect, but unfortunately
 			// this could keep extra instructions around to create an object
 			// that nobody wants.
-			// TODO[MvG] - maybe a pseudo-copy operation from linear languages?
+			// [MvG] - maybe use a pseudo-copy operation from linear languages?
 			return true;
 		}
 	};
@@ -1680,7 +1694,14 @@ public enum L2Operation
 		final @NotNull L2Instruction instruction,
 		final @NotNull L2Translator translator)
 	{
-		// Do nothing by default.
+		// By default just record that the destinations have been overwritten.
+		for (final L2Register destinationRegister
+			: instruction.destinationRegisters())
+		{
+			translator.removeConstantForRegister(destinationRegister);
+			translator.removeTypeForRegister(destinationRegister);
+			translator.propagateWriteTo(destinationRegister);
+		}
 	}
 
 	/**

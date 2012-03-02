@@ -37,7 +37,7 @@ import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.register.L2Register;
-import com.avail.utility.Transformer1;
+import com.avail.utility.*;
 
 /**
  * {@code L2Instruction} is the foundation for all instructions understood by
@@ -140,13 +140,15 @@ public final class L2Instruction
 			if (operand.operandType().isSource)
 			{
 				operand.transformRegisters(
-					new Transformer1<L2Register, L2Register>()
+					new Transformer2<L2Register, L2OperandType, L2Register>()
 					{
 						@Override
-						public L2Register value (final L2Register arg)
+						public L2Register value (
+							final L2Register register,
+							final L2OperandType operandType)
 						{
-							sourceRegisters.add(arg);
-							return arg;
+							sourceRegisters.add(register);
+							return register;
 						}
 					});
 			}
@@ -169,13 +171,15 @@ public final class L2Instruction
 			if (operand.operandType().isDestination)
 			{
 				operand.transformRegisters(
-					new Transformer1<L2Register, L2Register>()
+					new Transformer2<L2Register, L2OperandType, L2Register>()
 					{
 						@Override
-						public L2Register value (final L2Register arg)
+						public L2Register value (
+							final L2Register register,
+							final L2OperandType operandType)
 						{
-							destinationRegisters.add(arg);
-							return arg;
+							destinationRegisters.add(register);
+							return register;
 						}
 					});
 			}
@@ -219,27 +223,20 @@ public final class L2Instruction
 	 * redundant moves can be eliminated.  Answer an equivalent instruction,
 	 * possibly the receiver itself.
 	 *
-	 * @param translator
-	 *            The {@link L2Translator} holding the register equivalence
-	 *            state at this point in the translation.
+	 * @param transformer
+	 *            The {@link Transformer2 transformer} which can normalize any
+	 *            register to its best available equivalent.
 	 * @return
 	 *            The resulting {@link L2Instruction}.
 	 */
-	public @NotNull L2Instruction normalizeRegisters (
-		final @NotNull L2Translator translator)
+	public @NotNull L2Instruction transformRegisters (
+		final @NotNull Transformer2<L2Register, L2OperandType, L2Register>
+			transformer)
 	{
-		final L2Operand[] newOperands = operands.clone();
+		final L2Operand[] newOperands = new L2Operand[operands.length];
 		for (int i = 0; i < newOperands.length; i++)
 		{
-			newOperands[i] = newOperands[i].transformRegisters(
-				new Transformer1<L2Register, L2Register>()
-				{
-					@Override
-					public L2Register value (final L2Register arg)
-					{
-						return translator.normalize(arg);
-					}
-				});
+			newOperands[i] = operands[i].transformRegisters(transformer);
 		}
 		return new L2Instruction(operation, newOperands);
 	}

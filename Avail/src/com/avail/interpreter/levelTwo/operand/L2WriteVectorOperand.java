@@ -78,14 +78,15 @@ public class L2WriteVectorOperand extends L2Operand
 
 	@Override
 	public L2WriteVectorOperand transformRegisters (
-		final @NotNull Transformer1<L2Register, L2Register> transformer)
+		final @NotNull Transformer2<L2Register, L2OperandType, L2Register>
+			transformer)
 	{
 		final List<L2ObjectRegister> newRegisters =
 			new ArrayList<L2ObjectRegister>(vector.registers().size());
 		for (final L2ObjectRegister register : vector.registers())
 		{
 			final L2ObjectRegister newRegister =
-				(L2ObjectRegister)transformer.value(register);
+				(L2ObjectRegister)transformer.value(register, operandType());
 			newRegisters.add(newRegister);
 		}
 		final L2RegisterVector newVector = new L2RegisterVector(newRegisters);

@@ -45,6 +45,8 @@ import com.avail.interpreter.levelTwo.*;
  */
 public class L2Register
 {
+	static int debugCounter = 0;
+
 	/**
 	 * The {@linkplain L2RegisterIdentity identity} of this {@linkplain
 	 * L2Register register}.
@@ -71,17 +73,7 @@ public class L2Register
 		identity = new L2RegisterIdentity();
 	}
 
-	/**
-	 * Construct a new {@link L2Register} identical to the specified register.
-	 *
-	 * @param register A {@linkplain L2Register register}.
-	 */
-	protected L2Register (final @NotNull L2Register register)
-	{
-		this.identity = register.identity;
-		this.isLast = register.isLast;
-		this.knowsIsLast = register.knowsIsLast;
-	}
+	int debugValue = ++debugCounter;
 
 	/**
 	 * Has the {@linkplain L2Register register} been used for the last time?
@@ -143,6 +135,7 @@ public class L2Register
 			builder.append("Reg_");
 			builder.append(identity.printId());
 		}
+		builder.append("@" + Integer.toString(debugValue));
 		if (knowsIsLast)
 		{
 			if (isLast)

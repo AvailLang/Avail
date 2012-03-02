@@ -38,6 +38,7 @@ import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.util.List;
 import com.avail.annotations.*;
+import com.avail.serialization.SerializerOperation;
 
 /**
  * {@code ArrayPojoTypeDescriptor} describes Java array types. A Java array
@@ -83,6 +84,7 @@ extends PojoTypeDescriptor
 		 * The {@linkplain AvailObject#hash() hash}, or zero ({@code 0}) if the
 		 * hash should be computed.
 		 */
+		@HideFieldInDebugger
 		HASH_OR_ZERO
 	}
 
@@ -228,6 +230,13 @@ extends PojoTypeDescriptor
 	@NotNull AvailObject o_SizeRange (final @NotNull AvailObject object)
 	{
 		return object.slot(SIZE_RANGE);
+	}
+
+	@Override @AvailMethod @ThreadSafe
+	@NotNull SerializerOperation o_SerializerOperation (
+		final @NotNull AvailObject object)
+	{
+		return SerializerOperation.ARRAY_POJO_TYPE;
 	}
 
 	@Override @AvailMethod
@@ -406,23 +415,11 @@ extends PojoTypeDescriptor
 		final @NotNull AvailObject elementType,
 		final @NotNull AvailObject sizeRange)
 	{
-		AvailObject javaAncestors = MapDescriptor.empty();
-		javaAncestors = javaAncestors.mapAtPuttingCanDestroy(
-			RawPojoDescriptor.rawObjectClass(),
-			TupleDescriptor.empty(),
-			true);
-		javaAncestors = javaAncestors.mapAtPuttingCanDestroy(
-			RawPojoDescriptor.equalityWrap(Cloneable.class),
-			TupleDescriptor.empty(),
-			true);
-		javaAncestors = javaAncestors.mapAtPuttingCanDestroy(
-			RawPojoDescriptor.equalityWrap(Serializable.class),
-			TupleDescriptor.empty(),
-			true);
+		AvailObject javaAncestors = PojoTypeDescriptor.arrayBaseAncestorMap();
 		javaAncestors = javaAncestors.mapAtPuttingCanDestroy(
 			RawPojoDescriptor.equalityWrap(PojoArray.class),
 			TupleDescriptor.from(elementType),
-			true);
+			false);
 		final AvailObject newObject = mutable.create();
 		newObject.setSlot(JAVA_ANCESTORS, javaAncestors);
 		newObject.setSlot(CONTENT_TYPE, elementType);

@@ -63,17 +63,19 @@ public abstract class L2Operand
 		final @NotNull L2OperandDispatcher dispatcher);
 
 	/**
-	 * Invoke the {@link Transformer1 transformer} with each {@link L2Register}
-	 * contained within me, producing an alternative {@link L2Operand}.  If no
-	 * transformations were necessary, the receiver may be returned.
+	 * Invoke the {@link Transformer2 transformer} with each {@link L2Register}
+	 * contained within me (also passing this L2Operand), producing an
+	 * alternative {@link L2Operand}.  If no transformations were necessary, the
+	 * receiver may be returned.
 	 *
 	 * @param transformer
-	 *            {@linkplain Continuation1 What} to do with each register.
+	 *            What to do with each register.
 	 * @return
 	 *            The transformed version of the receiver.
 	 */
 	public abstract L2Operand transformRegisters (
-		final @NotNull Transformer1<L2Register, L2Register> transformer);
+		final @NotNull Transformer2<L2Register, L2OperandType, L2Register>
+			transformer);
 
 	/**
 	 * @param codeGenerator

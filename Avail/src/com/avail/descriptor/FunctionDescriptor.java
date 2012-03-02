@@ -239,7 +239,7 @@ extends Descriptor
 
 	@Override
 	@AvailMethod @ThreadSafe
-	SerializerOperation o_SerializerOperation (
+	@NotNull SerializerOperation o_SerializerOperation (
 		final AvailObject object)
 	{
 		if (object.numOuterVars() == 0)

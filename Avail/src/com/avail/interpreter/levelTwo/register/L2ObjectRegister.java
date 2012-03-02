@@ -32,7 +32,6 @@
 
 package com.avail.interpreter.levelTwo.register;
 
-import com.avail.annotations.NotNull;
 import com.avail.descriptor.AvailObject;
 
 /**
@@ -51,16 +50,5 @@ extends L2Register
 	public L2ObjectRegister ()
 	{
 		// No implementation required.
-	}
-
-	/**
-	 * Construct a new {@link L2ObjectRegister} identical to the specified
-	 * register.
-	 *
-	 * @param register An {@linkplain L2ObjectRegister object register}.
-	 */
-	public L2ObjectRegister (final @NotNull L2ObjectRegister register)
-	{
-		super(register);
 	}
 }

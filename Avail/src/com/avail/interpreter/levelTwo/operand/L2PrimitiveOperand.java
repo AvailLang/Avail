@@ -78,7 +78,8 @@ public class L2PrimitiveOperand extends L2Operand
 
 	@Override
 	public L2PrimitiveOperand transformRegisters (
-		final @NotNull Transformer1<L2Register, L2Register> transformer)
+		final @NotNull Transformer2<L2Register, L2OperandType, L2Register>
+			transformer)
 	{
 		return this;
 	}
@@ -93,6 +94,6 @@ public class L2PrimitiveOperand extends L2Operand
 	@Override
 	public String toString ()
 	{
-		return String.format("Priw(%s)", primitive);
+		return String.format("Prim(%s)", primitive);
 	}
 }

@@ -182,9 +182,8 @@ extends Descriptor
 		return BottomTypeDescriptor.bottom();
 	}
 
-	@Override
-	@AvailMethod @ThreadSafe
-	SerializerOperation o_SerializerOperation (
+	@Override @AvailMethod @ThreadSafe
+	@NotNull SerializerOperation o_SerializerOperation (
 		final @NotNull AvailObject object)
 	{
 		return SerializerOperation.NULL_OBJECT;

@@ -35,6 +35,7 @@ package com.avail.test;
 import java.io.*;
 import org.junit.*;
 import com.avail.compiler.*;
+import com.avail.interpreter.levelTwo.L2Translator;
 
 /**
  * Broad test suite for the Avail compiler, interpreter, and library.
@@ -63,6 +64,10 @@ extends AbstractAvailTest
 		System.out.flush();
 		System.err.printf(
 			"%ntime elapsed = %dms", System.currentTimeMillis() - startTime);
+		System.out.printf("Instructions%n\tGen=%d%n\tKept=%d%n\tRemv=%d%n",
+			L2Translator.generatedInstructionCount,
+			L2Translator.keptInstructionCount,
+			L2Translator.removedInstructionCount);
 	}
 
 //	@Test

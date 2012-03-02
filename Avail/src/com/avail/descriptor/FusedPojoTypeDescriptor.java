@@ -39,6 +39,7 @@ import java.io.Serializable;
 import java.lang.reflect.TypeVariable;
 import java.util.*;
 import com.avail.annotations.*;
+import com.avail.serialization.SerializerOperation;
 
 /**
  * {@code FusedPojoTypeDescriptor} describes synthetic points in Avail's pojo
@@ -62,6 +63,7 @@ extends PojoTypeDescriptor
 		 * The {@linkplain AvailObject#hash() hash}, or zero ({@code 0}) if the
 		 * hash should be computed.
 		 */
+		@HideFieldInDebugger
 		HASH_OR_ZERO
 	}
 
@@ -107,13 +109,11 @@ extends PojoTypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aPojoType)
 	{
-		// The caller has already eliminated the possibility that aPojoType is a
-		// pojo self type.
 		if (aPojoType.isPojoSelfType())
 		{
 			return object.pojoSelfType().equalsPojoType(aPojoType);
 		}
-		if (!NullDescriptor.nullObject().equals(aPojoType.javaClass()))
+		if (!aPojoType.javaClass().equalsNull())
 		{
 			return false;
 		}
@@ -222,6 +222,13 @@ extends PojoTypeDescriptor
 			object.setSlot(SELF_TYPE, selfType);
 		}
 		return selfType;
+	}
+
+	@Override @AvailMethod @ThreadSafe
+	@NotNull SerializerOperation o_SerializerOperation (
+		final @NotNull AvailObject object)
+	{
+		return SerializerOperation.FUSED_POJO_TYPE;
 	}
 
 	@Override

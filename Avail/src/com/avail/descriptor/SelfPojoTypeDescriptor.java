@@ -36,6 +36,7 @@ import static com.avail.descriptor.SelfPojoTypeDescriptor.ObjectSlots.*;
 import java.lang.reflect.Modifier;
 import java.util.*;
 import com.avail.annotations.*;
+import com.avail.serialization.SerializerOperation;
 
 /**
  * {@code SelfPojoTypeDescriptor} describes the self type of a Java class or
@@ -180,6 +181,13 @@ extends PojoTypeDescriptor
 			return Object.class;
 		}
 		return javaClass.javaObject();
+	}
+
+	@Override @AvailMethod @ThreadSafe
+	@NotNull SerializerOperation o_SerializerOperation (
+		final @NotNull AvailObject object)
+	{
+		return SerializerOperation.SELF_POJO_TYPE;
 	}
 
 	@Override @AvailMethod

@@ -61,6 +61,7 @@ public class L2WritePointerOperand extends L2Operand
 	public L2WritePointerOperand (
 		final @NotNull L2ObjectRegister register)
 	{
+		assert register.identity().finalIndex() != 0;
 		this.register = register;
 	}
 
@@ -78,10 +79,11 @@ public class L2WritePointerOperand extends L2Operand
 
 	@Override
 	public L2WritePointerOperand transformRegisters (
-		final @NotNull Transformer1<L2Register, L2Register> transformer)
+		final @NotNull Transformer2<L2Register, L2OperandType, L2Register>
+			transformer)
 	{
 		return new L2WritePointerOperand(
-			(L2ObjectRegister)transformer.value(register));
+			(L2ObjectRegister)transformer.value(register, operandType()));
 	}
 
 	@Override

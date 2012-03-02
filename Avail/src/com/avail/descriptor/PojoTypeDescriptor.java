@@ -33,11 +33,13 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
+import java.io.Serializable;
 import java.lang.reflect.*;
 import java.math.BigInteger;
 import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
+import com.avail.descriptor.ArrayPojoTypeDescriptor.PojoArray;
 import com.avail.exceptions.*;
 import com.avail.utility.*;
 
@@ -269,6 +271,23 @@ extends TypeDescriptor
 	}
 
 	/**
+	 * The {@linkplain MapDescriptor map} used by {@linkplain
+	 * ArrayPojoTypeDescriptor array pojo types}.  Note that this map does not
+	 * contain the entry for {@link PojoArray}, as this has to be specialized
+	 * per pojo array type.
+	 */
+	private static AvailObject arrayBaseAncestorMap;
+
+	/**
+	 * Answer the {@link #arrayBaseAncestorMap base ancestor map} for array pojo
+	 * types.
+	 */
+	static @NotNull AvailObject arrayBaseAncestorMap ()
+	{
+		return arrayBaseAncestorMap;
+	}
+
+	/**
 	 * The {@linkplain IntegerRangeTypeDescriptor integer range type} that
 	 * corresponds to Java {@code byte}.
 	 */
@@ -406,6 +425,20 @@ extends TypeDescriptor
 	public static void createWellKnownObjects ()
 	{
 		mostGeneralType = forClass(Object.class);
+		AvailObject javaAncestors = MapDescriptor.empty();
+		javaAncestors = javaAncestors.mapAtPuttingCanDestroy(
+			RawPojoDescriptor.rawObjectClass(),
+			TupleDescriptor.empty(),
+			true);
+		javaAncestors = javaAncestors.mapAtPuttingCanDestroy(
+			RawPojoDescriptor.equalityWrap(Cloneable.class),
+			TupleDescriptor.empty(),
+			true);
+		javaAncestors = javaAncestors.mapAtPuttingCanDestroy(
+			RawPojoDescriptor.equalityWrap(Serializable.class),
+			TupleDescriptor.empty(),
+			true);
+		arrayBaseAncestorMap = javaAncestors.makeImmutable();
 		mostGeneralArrayType = forArrayTypeWithSizeRange(
 			ANY.o(), IntegerRangeTypeDescriptor.wholeNumbers());
 		pojoBottom = BottomPojoTypeDescriptor.mutable().create();
@@ -417,27 +450,27 @@ extends TypeDescriptor
 			IntegerDescriptor.fromInt(Byte.MIN_VALUE),
 			true,
 			IntegerDescriptor.fromInt(Byte.MAX_VALUE),
-			true);
+			true).makeImmutable();
 		shortRange = IntegerRangeTypeDescriptor.create(
 			IntegerDescriptor.fromInt(Short.MIN_VALUE),
 			true,
 			IntegerDescriptor.fromInt(Short.MAX_VALUE),
-			true);
+			true).makeImmutable();
 		intRange = IntegerRangeTypeDescriptor.create(
 			IntegerDescriptor.fromInt(Integer.MIN_VALUE),
 			true,
 			IntegerDescriptor.fromInt(Integer.MAX_VALUE),
-			true);
+			true).makeImmutable();
 		longRange = IntegerRangeTypeDescriptor.create(
 			IntegerDescriptor.fromLong(Long.MIN_VALUE),
 			true,
 			IntegerDescriptor.fromLong(Long.MAX_VALUE),
-			true);
+			true).makeImmutable();
 		charRange = IntegerRangeTypeDescriptor.create(
 			IntegerDescriptor.fromInt(Character.MIN_VALUE),
 			true,
 			IntegerDescriptor.fromInt(Character.MAX_VALUE),
-			true);
+			true).makeImmutable();
 	}
 
 	/**
@@ -459,6 +492,7 @@ extends TypeDescriptor
 		pojoBottom = null;
 		selfAtom = null;
 		selfType = null;
+		arrayBaseAncestorMap = null;
 		byteRange = null;
 		shortRange = null;
 		intRange = null;
@@ -1360,6 +1394,26 @@ extends TypeDescriptor
 	{
 		assert sizeRange.isSubtypeOf(IntegerRangeTypeDescriptor.wholeNumbers());
 		return ArrayPojoTypeDescriptor.create(elementType, sizeRange);
+	}
+
+	/**
+	 * Create a {@link FusedPojoTypeDescriptor fused pojo type} based on the
+	 * given complete parameterization map.  Each ancestor class and interface
+	 * occurs as a key, with that class or interface's parameter tuple as the
+	 * value.
+	 *
+	 * @param ancestorMap
+	 *            A map from {@link RawPojoDescriptor#equalityWrap(Object)
+	 *            equality-wrapped} {@link RawPojoDescriptor raw pojos} to their
+	 *            tuples of type parameters.
+	 * @return
+	 *            A fused pojo type.
+	 */
+	public static AvailObject fusedTypeFromAncestorMap (
+		final @NotNull AvailObject ancestorMap)
+	{
+		assert ancestorMap.isMap();
+		return FusedPojoTypeDescriptor.create(ancestorMap);
 	}
 
 	/**

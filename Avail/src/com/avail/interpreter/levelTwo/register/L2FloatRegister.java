@@ -32,7 +32,6 @@
 
 package com.avail.interpreter.levelTwo.register;
 
-import com.avail.annotations.NotNull;
 
 /**
  * {@code L2FloatRegister} models the conceptual usage of a register that can
@@ -49,15 +48,5 @@ extends L2Register
 	public L2FloatRegister ()
 	{
 		// No implementation required.
-	}
-
-	/**
-	 * Construct a new {@link L2FloatRegister}.
-	 *
-	 * @param register A {@linkplain L2FloatRegister float register}.
-	 */
-	public L2FloatRegister (final @NotNull L2FloatRegister register)
-	{
-		super(register);
 	}
 }

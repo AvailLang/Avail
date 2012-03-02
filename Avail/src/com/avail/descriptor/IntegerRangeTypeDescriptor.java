@@ -340,7 +340,7 @@ extends TypeDescriptor
 		return true;
 	}
 
-	@Override @AvailMethod
+	@Override @AvailMethod @ThreadSafe
 	@NotNull SerializerOperation o_SerializerOperation(
 		final @NotNull AvailObject object)
 	{

@@ -235,8 +235,7 @@ extends Descriptor
 		return ObjectTypeDescriptor.objectTypeFromMap(typeMap);
 	}
 
-	@Override
-	@AvailMethod @ThreadSafe
+	@Override @AvailMethod @ThreadSafe
 	@NotNull SerializerOperation o_SerializerOperation (
 		final @NotNull AvailObject object)
 	{
