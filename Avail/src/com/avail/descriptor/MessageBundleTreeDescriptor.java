@@ -32,11 +32,14 @@
 
 package com.avail.descriptor;
 
+import static com.avail.compiler.ParsingOperation.*;
+import static com.avail.descriptor.MessageBundleTreeDescriptor.IntegerSlots.*;
+import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.MESSAGE_BUNDLE_TREE;
 import java.util.*;
+import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.compiler.*;
-
 
 /**
  * A {@linkplain MessageBundleTreeDescriptor message bundle tree} is used by the
@@ -85,7 +88,13 @@ extends Descriptor
 		 * for each message – otherwise the message bundle tree would have
 		 * diverged into multiple subtrees.
 		 */
-		PARSING_PC
+		PARSING_PC,
+
+		/**
+		 * The hash, or zero ({@code 0}) if the hash has not yet been computed.
+		 */
+		@HideFieldInDebugger
+		HASH_OR_ZERO
 	}
 
 	/**
@@ -126,23 +135,43 @@ extends Descriptor
 		/**
 		 * A {@linkplain MapDescriptor map} from {@linkplain StringDescriptor
 		 * strings} to successor {@linkplain MessageBundleTreeDescriptor message
-		 * bundle trees}.  During parsing, if the next token is a key of this
+		 * bundle trees}. During parsing, if the next token is a key of this
 		 * map then consume that token, look it up in this map, and continue
-		 * parsing with the corresponding message bundle tree.  Otherwise record
+		 * parsing with the corresponding message bundle tree. Otherwise record
 		 * a suitable parsing failure message for this position in the source
 		 * stream (in case this ends up being the rightmost parse position to be
 		 * reached).
 		 *
-		 * <p>
-		 * {@linkplain MessageBundleDescriptor Message bundles} only get added
-		 * to this map if their current instruction is the parseKeyword
-		 * instruction.  There may be other instructions current for other
-		 * message bundles, but they will be represented in the {@link
-		 * #LAZY_ACTIONS} map, or the {@link #LAZY_PREFILTER_MAP} if
-		 * their instruction is a checkArgument.
-		 * </p>
+		 * <p>{@linkplain MessageBundleDescriptor Message bundles} only get
+		 * added to this map if their current instruction is the {@link
+		 * ParsingOperation#parsePart} instruction. There may be other
+		 * instructions current for other message bundles, but they will be
+		 * represented in the {@link #LAZY_ACTIONS} map, or the {@link
+		 * #LAZY_PREFILTER_MAP} if their instruction is a {@link
+		 * ParsingOperation#checkArgument}.</p>
 		 */
 		LAZY_INCOMPLETE,
+
+		/**
+		 * A {@linkplain MapDescriptor map} from lower-case {@linkplain
+		 * StringDescriptor strings} to successor {@linkplain
+		 * MessageBundleTreeDescriptor message bundle trees}. During parsing, if
+		 * the next token, following conversion to lower case, is a key of this
+		 * map then consume that token, look it up in this map, and continue
+		 * parsing with the corresponding message bundle tree. Otherwise record
+		 * a suitable parsing failure message for this position in the source
+		 * stream (in case this ends up being the rightmost parse position to be
+		 * reached).
+		 *
+		 * <p>{@linkplain MessageBundleDescriptor Message bundles} only get
+		 * added to this map if their current instruction is the {@link
+		 * ParsingOperation#parsePartCaseInsensitive} instruction. There may be
+		 * other instructions current for other message bundles, but they will
+		 * be represented in the {@link #LAZY_ACTIONS} map, or the {@link
+		 * #LAZY_PREFILTER_MAP} if their instruction is a {@link
+		 * ParsingOperation#checkArgument}.</p>
+		 */
+		LAZY_INCOMPLETE_CASE_INSENSITIVE,
 
 		/**
 		 * This is a map from instruction (an {@linkplain IntegerDescriptor
@@ -151,23 +180,22 @@ extends Descriptor
 		 * instruction succeeds.  Attempt each possible instruction, proceeding
 		 * to each of the successor trees if the instruction succeeds.
 		 *
-		 * <p>
-		 * Note that the parseKeyword instruction (8*N+2) is treated specially,
-		 * as only one keyword can be next in the source stream (so there's no
-		 * value in checking whether it's an X, whether it's a Y, whether it's a
-		 * Z, etc.  Instead, the {@link #LAZY_INCOMPLETE} {@linkplain
-		 * MapDescriptor map} takes care of dealing with this efficiently with a
-		 * single lookup.
-		 * </p>
+		 * <p>Note that the {@link ParsingOperation#parsePart} and {@link
+		 * ParsingOperation#parsePartCaseInsensitive} instructions are treated
+		 * specially, as only one keyword can be next in the source stream (so
+		 * there's no value in checking whether it's an X, whether it's a Y,
+		 * whether it's a Z, etc. Instead, the {@link #LAZY_INCOMPLETE} and
+		 * {@link #LAZY_INCOMPLETE_CASE_INSENSITIVE} {@linkplain MapDescriptor
+		 * map} takes care of dealing with this efficiently with a single
+		 * lookup.</p>
 		 *
-		 * <p>
-		 * Similarly, the checkArgument instruction (8*N+3) is treated
-		 * specially.  When it is encountered and the argument that was just
-		 * parsed is a send node, that send node is looked up in the {@link
-		 * #LAZY_PREFILTER_MAP}, yielding the next message bundle tree.  If it's
-		 * not present as a key (or the argument isn't a send), then the
-		 * instruction is looked up normally in the {@link #LAZY_ACTIONS} map.
-		 * </p>
+		 * <p>Similarly, the {@link ParsingOperation#checkArgument} instruction
+		 * is treated specially. When it is encountered and the argument that
+		 * was just parsed is a send node, that send node is looked up in the
+		 * {@link #LAZY_PREFILTER_MAP}, yielding the next message bundle tree.
+		 * If it's not present as a key (or the argument isn't a send), then the
+		 * instruction is looked up normally in the {@link #LAZY_ACTIONS}
+		 * map.</p>
 		 */
 		LAZY_ACTIONS,
 
@@ -175,167 +203,112 @@ extends Descriptor
 		 * If we wait until all tokens and arguments of a potential method send
 		 * have been parsed before checking that all the arguments have the
 		 * right types and precedence then we may spend a <em>lot</em> of extra
-		 * effort parsing unnecessary expressions.  For example, the "_*_"
+		 * effort parsing unnecessary expressions. For example, the "_*_"
 		 * operation might not allow a "_+_" call for its left or right
 		 * arguments, so parsing "1+2*…" as "(1+2)*…" is wasted effort.
 		 *
-		 * <p>
-		 * This is especially expensive for operations with many arguments that
-		 * could otherwise be culled by the shapes and types of early arguments,
-		 * such as for "«_‡++»", which forbids arguments being invocations of
-		 * the same message, keeping a call with many arguments flat.  I haven't
-		 * worked out the complete recurrence relations for this, but it's
-		 * probably exponential (it certainly grows <em>much</em> faster than
-		 * linearly without this optimization).
-		 * </p>
+		 * <p>This is especially expensive for operations with many arguments
+		 * that could otherwise be culled by the shapes and types of early
+		 * arguments, such as for "«_‡++»", which forbids arguments being
+		 * invocations of the same message, keeping a call with many arguments
+		 * flat. I haven't worked out the complete recurrence relations for
+		 * this, but it's probably exponential (it certainly grows <em>much</em>
+		 * faster than linearly without this optimization).</p>
 		 *
-		 * <p>
-		 * To accomplish this culling we have to filter out any inconsistent
+		 * <p>To accomplish this culling we have to filter out any inconsistent
 		 * {@linkplain MessageBundleDescriptor message bundles} as we parse.
 		 * Since we already do this in general while parsing expressions, all
 		 * that remains is to check right after an argument has been parsed (or
-		 * replayed due to the dynamic programming optimization).  The check for
+		 * replayed due to the dynamic programming optimization). The check for
 		 * now is simple and doesn't consider argument types, simply excluding
-		 * methods based on the grammatical restrictions.
-		 * </p>
+		 * methods based on the grammatical restrictions.</p>
 		 *
-		 * <p>
-		 * When a message bundle's next instruction is checkArgument (8*N+3)
-		 * (which must be all or nothing within a {@linkplain
-		 * MessageBundleTreeDescriptor message bundle tree}, this {@link
-		 * #LAZY_PREFILTER_MAP} is populated.  It maps from interesting
+		 * <p>When a message bundle's next instruction is {@link
+		 * ParsingOperation#checkArgument} (which must be all or nothing within
+		 * a {@linkplain MessageBundleTreeDescriptor message bundle tree}, this
+		 * {@link #LAZY_PREFILTER_MAP} is populated. It maps from interesting
 		 * {@linkplain AtomDescriptor atoms} naming methods that might occur as
 		 * an argument to an appropriately reduced {@linkplain
 		 * MessageBundleTreeDescriptor message bundle tree} (i.e., a message
 		 * bundle tree containing precisely those method bundles that allow that
-		 * argument.  The only keys that occur are ones for which at least one
+		 * argument. The only keys that occur are ones for which at least one
 		 * restriction exists in at least one of the still possible {@linkplain
-		 * MessageBundleDescriptor message bundles}.  When {@link #UNCLASSIFIED}
+		 * MessageBundleDescriptor message bundles}. When {@link #UNCLASSIFIED}
 		 * is empty, <em>all</em> such restricted argument message names occur
-		 * in this map.  Note that some of the resulting message bundle trees
-		 * may be completely empty.  Also note that some of the trees may be
+		 * in this map. Note that some of the resulting message bundle trees
+		 * may be completely empty. Also note that some of the trees may be
 		 * shared, so be careful to discard them rather than maintaining them
-		 * when new method bundles or grammatical restrictions are added.
-		 * </p>
+		 * when new method bundles or grammatical restrictions are added.</p>
 		 *
-		 * <p>
-		 * When an argument is a message that is not restricted for any of the
-		 * message bundles in this message bundle tree (i.e., it does not occur
-		 * as a key in this map), then the sole entry in {@link
-		 * #LAZY_INCOMPLETE} is used.  The key is always the checkArgument
-		 * instruction that all message bundles in this message bundle tree must
-		 * have.
-		 * </p>
+		 * <p>When an argument is a message that is not restricted for any of
+		 * the message bundles in this message bundle tree (i.e., it does not
+		 * occur as a key in this map), then the sole entry in {@link
+		 * #LAZY_INCOMPLETE} is used. The key is always the {@code
+		 * checkArgument} instruction that all message bundles in this message
+		 * bundle tree must have.</p>
 		 */
 		LAZY_PREFILTER_MAP
 	}
 
 	@Override @AvailMethod
-	void o_AllBundles (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
+	int o_ParsingPc (final @NotNull AvailObject object)
 	{
-		object.setSlot(ObjectSlots.ALL_BUNDLES, value);
+		return object.slot(PARSING_PC);
 	}
 
 	@Override @AvailMethod
-	void o_Unclassified (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
+	@NotNull AvailObject o_AllBundles (final @NotNull AvailObject object)
 	{
-		object.setSlot(ObjectSlots.UNCLASSIFIED, value);
+		return object.slot(ALL_BUNDLES);
 	}
 
 	@Override @AvailMethod
-	void o_LazyComplete (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
+	@NotNull AvailObject o_Unclassified (final @NotNull AvailObject object)
 	{
-		object.setSlot(ObjectSlots.LAZY_COMPLETE, value);
+		return object.slot(UNCLASSIFIED);
 	}
 
 	@Override @AvailMethod
-	void o_LazyIncomplete (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
+	@NotNull AvailObject o_LazyComplete (final @NotNull AvailObject object)
 	{
-		object.setSlot(ObjectSlots.LAZY_INCOMPLETE, value);
+		return object.slot(LAZY_COMPLETE);
 	}
 
 	@Override @AvailMethod
-	void o_LazyActions (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
+	@NotNull AvailObject o_LazyIncomplete (final @NotNull AvailObject object)
 	{
-		object.setSlot(ObjectSlots.LAZY_ACTIONS, value);
+		return object.slot(LAZY_INCOMPLETE);
 	}
 
 	@Override @AvailMethod
-	void o_LazyPrefilterMap (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		object.setSlot(ObjectSlots.LAZY_PREFILTER_MAP, value);
-	}
-
-	@Override @AvailMethod
-	int o_ParsingPc (
+	@NotNull AvailObject o_LazyIncompleteCaseInsensitive (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(IntegerSlots.PARSING_PC);
+		return object.slot(LAZY_INCOMPLETE_CASE_INSENSITIVE);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_AllBundles (
-		final @NotNull AvailObject object)
+	@NotNull AvailObject o_LazyActions (final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.ALL_BUNDLES);
+		return object.slot(LAZY_ACTIONS);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_Unclassified (
-		final @NotNull AvailObject object)
+	@NotNull AvailObject o_LazyPrefilterMap (final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.UNCLASSIFIED);
-	}
-
-	@Override @AvailMethod
-	@NotNull AvailObject o_LazyComplete (
-		final @NotNull AvailObject object)
-	{
-		return object.slot(ObjectSlots.LAZY_COMPLETE);
-	}
-
-	@Override @AvailMethod
-	@NotNull AvailObject o_LazyIncomplete (
-		final @NotNull AvailObject object)
-	{
-		return object.slot(ObjectSlots.LAZY_INCOMPLETE);
-	}
-
-	@Override @AvailMethod
-	@NotNull AvailObject o_LazyActions (
-		final @NotNull AvailObject object)
-	{
-		return object.slot(ObjectSlots.LAZY_ACTIONS);
-	}
-
-	@Override @AvailMethod
-	@NotNull AvailObject o_LazyPrefilterMap (
-		final @NotNull AvailObject object)
-	{
-		return object.slot(ObjectSlots.LAZY_PREFILTER_MAP);
+		return object.slot(LAZY_PREFILTER_MAP);
 	}
 
 	@Override boolean allowsImmutableToMutableReferenceInField (
 		final @NotNull AbstractSlotsEnum e)
 	{
-		return e == ObjectSlots.LAZY_COMPLETE
-			|| e == ObjectSlots.LAZY_INCOMPLETE
-			|| e == ObjectSlots.LAZY_ACTIONS
-			|| e == ObjectSlots.LAZY_PREFILTER_MAP
-			|| e == ObjectSlots.UNCLASSIFIED
-			|| e == ObjectSlots.ALL_BUNDLES;
+		return e == LAZY_COMPLETE
+			|| e == LAZY_INCOMPLETE
+			|| e == LAZY_INCOMPLETE_CASE_INSENSITIVE
+			|| e == LAZY_ACTIONS
+			|| e == LAZY_PREFILTER_MAP
+			|| e == UNCLASSIFIED
+			|| e == ALL_BUNDLES;
 	}
 
 	/**
@@ -362,40 +335,43 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (
-		final @NotNull AvailObject object)
+	int o_Hash (final @NotNull AvailObject object)
 	{
-		// Answer a 32-bit hash value.  Do something better than this
-		// eventually.
-		return 0;
+		int hash = object.slot(HASH_OR_ZERO);
+		if (hash == 0)
+		{
+			do
+			{
+				hash = AvailRuntime.nextHash();
+			}
+			while (hash == 0);
+			object.setSlot(HASH_OR_ZERO, hash);
+		}
+		return hash;
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_Kind (
-		final @NotNull AvailObject object)
+	@NotNull AvailObject o_Kind (final @NotNull AvailObject object)
 	{
 		return MESSAGE_BUNDLE_TREE.o();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Complete (
-		final @NotNull AvailObject object)
+	AvailObject o_Complete (final @NotNull AvailObject object)
 	{
 		object.expand();
 		return object.lazyComplete();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Incomplete (
-		final @NotNull AvailObject object)
+	AvailObject o_Incomplete (final @NotNull AvailObject object)
 	{
 		object.expand();
 		return object.lazyIncomplete();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Actions (
-		final @NotNull AvailObject object)
+	AvailObject o_Actions (final @NotNull AvailObject object)
 	{
 		object.expand();
 		return object.lazyActions();
@@ -410,19 +386,19 @@ extends Descriptor
 		final @NotNull AvailObject message,
 		final @NotNull AvailObject bundle)
 	{
-		AvailObject allBundles = object.slot(ObjectSlots.ALL_BUNDLES);
+		AvailObject allBundles = object.slot(ALL_BUNDLES);
 		allBundles = allBundles.mapAtPuttingCanDestroy(
 			message,
 			bundle,
 			true);
-		object.setSlot(ObjectSlots.ALL_BUNDLES, allBundles);
+		object.setSlot(ALL_BUNDLES, allBundles);
 		AvailObject unclassified = object.unclassified();
 		assert !unclassified.hasKey(message);
 		unclassified = unclassified.mapAtPuttingCanDestroy(
 			message,
 			bundle,
 			true);
-		object.setSlot(ObjectSlots.UNCLASSIFIED, unclassified);
+		object.setSlot(UNCLASSIFIED, unclassified);
 	}
 
 	/**
@@ -461,8 +437,8 @@ extends Descriptor
 						true);
 			}
 		}
-		filteredBundleTree.allBundles(filteredAllBundles);
-		filteredBundleTree.unclassified(filteredUnclassified);
+		filteredBundleTree.setSlot(ALL_BUNDLES, filteredAllBundles);
+		filteredBundleTree.setSlot(UNCLASSIFIED, filteredUnclassified);
 	}
 
 	/**
@@ -484,13 +460,13 @@ extends Descriptor
 			message,
 			newBundle,
 			true);
-		object.setSlot(ObjectSlots.ALL_BUNDLES, allBundles);
-		AvailObject unclassified = object.slot(ObjectSlots.UNCLASSIFIED);
+		object.setSlot(ALL_BUNDLES, allBundles);
+		AvailObject unclassified = object.slot(UNCLASSIFIED);
 		unclassified = unclassified.mapAtPuttingCanDestroy(
 			message,
 			newBundle,
 			true);
-		object.setSlot(ObjectSlots.UNCLASSIFIED, unclassified);
+		object.setSlot(UNCLASSIFIED, unclassified);
 		return newBundle;
 	}
 
@@ -510,7 +486,7 @@ extends Descriptor
 			allBundles = allBundles.mapWithoutKeyCanDestroy(
 				message,
 				true);
-			object.setSlot(ObjectSlots.ALL_BUNDLES, allBundles);
+			object.setSlot(ALL_BUNDLES, allBundles);
 			AvailObject unclassified = object.unclassified();
 			if (unclassified.hasKey(message))
 			{
@@ -522,14 +498,16 @@ extends Descriptor
 			else
 			{
 				// Not so easy -- just clear everything.
-				object.lazyComplete(MapDescriptor.empty());
-				object.lazyIncomplete(MapDescriptor.empty());
-				object.lazyActions(MapDescriptor.empty());
-				object.lazyPrefilterMap(MapDescriptor.empty());
+				object.setSlot(LAZY_COMPLETE, MapDescriptor.empty());
+				object.setSlot(LAZY_INCOMPLETE, MapDescriptor.empty());
+				object.setSlot(
+					LAZY_INCOMPLETE_CASE_INSENSITIVE, MapDescriptor.empty());
+				object.setSlot(LAZY_ACTIONS, MapDescriptor.empty());
+				object.setSlot(LAZY_PREFILTER_MAP, MapDescriptor.empty());
 				allBundles.makeImmutable();
 				unclassified = allBundles;
 			}
-			object.unclassified(unclassified);
+			object.setSlot(UNCLASSIFIED, unclassified);
 		}
 		return allBundles.mapSize() == 0;
 	}
@@ -539,21 +517,22 @@ extends Descriptor
 	 * Expand the bundleTree if there's anything unclassified in it.
 	 */
 	@Override @AvailMethod
-	void o_Expand (
-		final @NotNull AvailObject object)
+	void o_Expand (final @NotNull AvailObject object)
 	{
-		final AvailObject unclassified = object.slot(ObjectSlots.UNCLASSIFIED);
+		final AvailObject unclassified = object.slot(UNCLASSIFIED);
 		if (unclassified.mapSize() == 0)
 		{
 			return;
 		}
-		AvailObject complete = object.slot(ObjectSlots.LAZY_COMPLETE);
-		AvailObject incomplete = object.slot(ObjectSlots.LAZY_INCOMPLETE);
-		AvailObject actionMap = object.slot(ObjectSlots.LAZY_ACTIONS);
-		AvailObject prefilterMap = object.slot(ObjectSlots.LAZY_PREFILTER_MAP);
-		final int pc = object.parsingPc();
+		AvailObject complete = object.slot(LAZY_COMPLETE);
+		AvailObject incomplete = object.slot(LAZY_INCOMPLETE);
+		AvailObject caseInsensitive =
+			object.slot(LAZY_INCOMPLETE_CASE_INSENSITIVE);
+		AvailObject actionMap = object.slot(LAZY_ACTIONS);
+		AvailObject prefilterMap = object.slot(LAZY_PREFILTER_MAP);
+		final int pc = object.slot(PARSING_PC);
 		// Fail fast if someone messes with this during iteration.
-		object.setSlot(ObjectSlots.UNCLASSIFIED, NullDescriptor.nullObject());
+		object.setSlot(UNCLASSIFIED, NullDescriptor.nullObject());
 		for (final MapDescriptor.Entry entry : unclassified.mapIterable())
 		{
 			final AvailObject message = entry.key;
@@ -574,21 +553,41 @@ extends Descriptor
 				final int keywordIndex = op.keywordIndex(instruction);
 				if (keywordIndex != 0)
 				{
-					// It's a parseKeyword instruction.
+					// It's either a parsePart or parsePartCaseInsensitive
+					// instruction.
 					AvailObject subtree;
 					final AvailObject part = bundle.messageParts().tupleAt(
 						keywordIndex);
-					if (incomplete.hasKey(part))
+					AvailObject map;
+					if (op == parsePart)
 					{
-						subtree = incomplete.mapAt(part);
+						map = incomplete;
+					}
+					else
+					{
+						assert op == parsePartCaseInsensitive;
+						map = caseInsensitive;
+					}
+					if (map.hasKey(part))
+					{
+						subtree = map.mapAt(part);
 					}
 					else
 					{
 						subtree = newPc(pc + 1);
-						incomplete = incomplete.mapAtPuttingCanDestroy(
+						map = map.mapAtPuttingCanDestroy(
 							part,
 							subtree,
 							true);
+					}
+					if (op == parsePart)
+					{
+						incomplete = map;
+					}
+					else
+					{
+						assert op == parsePartCaseInsensitive;
+						caseInsensitive = map;
 					}
 					subtree.includeBundle(bundle);
 				}
@@ -699,11 +698,12 @@ extends Descriptor
 				}
 			}
 		}
-		object.unclassified(MapDescriptor.empty());
-		object.lazyComplete(complete);
-		object.lazyIncomplete(incomplete);
-		object.lazyActions(actionMap);
-		object.lazyPrefilterMap(prefilterMap);
+		object.setSlot(UNCLASSIFIED, MapDescriptor.empty());
+		object.setSlot(LAZY_COMPLETE, complete);
+		object.setSlot(LAZY_INCOMPLETE, incomplete);
+		object.setSlot(LAZY_INCOMPLETE_CASE_INSENSITIVE, caseInsensitive);
+		object.setSlot(LAZY_ACTIONS, actionMap);
+		object.setSlot(LAZY_PREFILTER_MAP, prefilterMap);
 	}
 
 
@@ -713,20 +713,21 @@ extends Descriptor
 	 * @param pc A common index into each eligible message's instructions.
 	 * @return The new unexpanded, empty message bundle tree.
 	 */
-	public static AvailObject newPc(final int pc)
+	public static AvailObject newPc (final int pc)
 	{
 		final AvailObject result = mutable().create();
-		result.setSlot(IntegerSlots.PARSING_PC, pc);
-		result.setSlot(ObjectSlots.ALL_BUNDLES, MapDescriptor.empty());
-		result.setSlot(ObjectSlots.UNCLASSIFIED, MapDescriptor.empty());
-		result.setSlot(ObjectSlots.LAZY_COMPLETE, MapDescriptor.empty());
-		result.setSlot(ObjectSlots.LAZY_INCOMPLETE, MapDescriptor.empty());
-		result.setSlot(ObjectSlots.LAZY_ACTIONS, MapDescriptor.empty());
-		result.setSlot(ObjectSlots.LAZY_PREFILTER_MAP, MapDescriptor.empty());
+		result.setSlot(PARSING_PC, pc);
+		result.setSlot(HASH_OR_ZERO, 0);
+		result.setSlot(ALL_BUNDLES, MapDescriptor.empty());
+		result.setSlot(UNCLASSIFIED, MapDescriptor.empty());
+		result.setSlot(LAZY_COMPLETE, MapDescriptor.empty());
+		result.setSlot(LAZY_INCOMPLETE, MapDescriptor.empty());
+		result.setSlot(LAZY_INCOMPLETE_CASE_INSENSITIVE, MapDescriptor.empty());
+		result.setSlot(LAZY_ACTIONS, MapDescriptor.empty());
+		result.setSlot(LAZY_PREFILTER_MAP, MapDescriptor.empty());
 		result.makeImmutable();
 		return result;
 	}
-
 
 	/**
 	 * Construct a new {@link MessageBundleTreeDescriptor}.

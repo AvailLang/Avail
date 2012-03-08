@@ -354,6 +354,18 @@ public enum AvailErrorCode
 	E_QUESTION_MARK_MUST_FOLLOW_A_SIMPLE_GROUP (50),
 
 	/**
+	 * An expression followed by a tilde (~) must contain only lower case
+	 * characters.
+	 */
+	E_CASE_INSENSITIVE_EXPRESSION_CANONIZATION (51),
+
+	/**
+	 * A tilde (~) must not follow an argument. It may only follow a keyword or
+	 * a guillemet group.
+	 */
+	E_TILDE_MUST_NOT_FOLLOW_ARGUMENT (52),
+
+	/**
 	 * A Java {@linkplain Class class} specified by name was either not found by
 	 * the runtime system or not available for reflection.
 	 */

@@ -33,6 +33,8 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.Multiplier;
+import static com.avail.descriptor.TokenDescriptor.IntegerSlots.*;
+import static com.avail.descriptor.TokenDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
 import com.avail.annotations.*;
 import com.avail.descriptor.Descriptor;
@@ -46,23 +48,30 @@ import com.avail.descriptor.Descriptor;
 public class TokenDescriptor
 extends Descriptor
 {
-
 	/**
 	 * My class's slots of type AvailObject.
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	public enum ObjectSlots
+	implements ObjectSlotsEnum
 	{
 		/**
 		 * The {@linkplain StringDescriptor string}, exactly as it appeared in
 		 * the source.
 		 */
-		STRING
+		STRING,
+
+		/**
+		 * The lower case {@linkplain StringDescriptor string}, cached as an
+		 * optimization for case insensitive parsing.
+		 */
+		LOWER_CASE_STRING
 	}
 
 	/**
 	 * My class's slots of type int.
 	 */
-	public enum IntegerSlots implements IntegerSlotsEnum
+	public enum IntegerSlots
+	implements IntegerSlotsEnum
 	{
 		/**
 		 * The starting position in the source file.  Currently signed 32 bits,
@@ -86,14 +95,14 @@ extends Descriptor
 		TOKEN_TYPE_CODE
 	}
 
-
 	/**
 	 * An enumeration that lists the basic kinds of tokens that can be
 	 * encountered.
 	 *
 	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
 	 */
-	public enum TokenType implements IntegerEnumSlotDescriptionEnum
+	public enum TokenType
+	implements IntegerEnumSlotDescriptionEnum
 	{
 		/**
 		 * A special type of token that is appended to the actual tokens of the
@@ -135,48 +144,53 @@ extends Descriptor
 		SYNTHETIC_LITERAL;
 	}
 
+	@Override
+	boolean allowsImmutableToMutableReferenceInField (
+		final @NotNull AbstractSlotsEnum e)
+	{
+		return e == LOWER_CASE_STRING;
+	}
 
-
-	/**
-	 * Setter for field string.
-	 */
 	@Override @AvailMethod
 	void o_String (
 		final @NotNull AvailObject object,
-		final AvailObject value)
+		final @NotNull AvailObject value)
 	{
-		object.setSlot(ObjectSlots.STRING, value);
+		object.setSlot(STRING, value);
 	}
 
-	/**
-	 * Getter for field string.
-	 */
 	@Override @AvailMethod
-	AvailObject o_String (
-		final @NotNull AvailObject object)
+	@NotNull AvailObject o_String (final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.STRING);
+		return object.slot(STRING);
 	}
 
-	/**
-	 * Setter for field start.
-	 */
+	@Override @AvailMethod
+	@NotNull AvailObject o_LowerCaseString (final @NotNull AvailObject object)
+	{
+		AvailObject lowerCase = object.slot(LOWER_CASE_STRING);
+		if (lowerCase.equalsNull())
+		{
+			final String nativeOriginal = object.slot(STRING).asNativeString();
+			final String nativeLowerCase = nativeOriginal.toLowerCase();
+			lowerCase = StringDescriptor.from(nativeLowerCase);
+			object.setSlot(LOWER_CASE_STRING, lowerCase);
+		}
+		return lowerCase;
+	}
+
 	@Override @AvailMethod
 	void o_Start (
 		final @NotNull AvailObject object,
 		final int value)
 	{
-		object.setSlot(IntegerSlots.START, value);
+		object.setSlot(START, value);
 	}
 
-	/**
-	 * Getter for field start.
-	 */
 	@Override @AvailMethod
-	int o_Start (
-		final @NotNull AvailObject object)
+	int o_Start (final @NotNull AvailObject object)
 	{
-		return object.slot(IntegerSlots.START);
+		return object.slot(START);
 	}
 
 	/**
@@ -187,17 +201,16 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final int value)
 	{
-		object.setSlot(IntegerSlots.LINE_NUMBER, value);
+		object.setSlot(LINE_NUMBER, value);
 	}
 
 	/**
 	 * Getter for field lineNumber.
 	 */
 	@Override @AvailMethod
-	int o_LineNumber (
-		final @NotNull AvailObject object)
+	int o_LineNumber (final @NotNull AvailObject object)
 	{
-		return object.slot(IntegerSlots.LINE_NUMBER);
+		return object.slot(LINE_NUMBER);
 	}
 
 	/**
@@ -206,30 +219,29 @@ extends Descriptor
 	@Override @AvailMethod
 	void o_TokenType (
 		final @NotNull AvailObject object,
-		final TokenDescriptor.TokenType value)
+		final @NotNull TokenType value)
 	{
-		object.setSlot(IntegerSlots.TOKEN_TYPE_CODE, value.ordinal());
+		object.setSlot(TOKEN_TYPE_CODE, value.ordinal());
 	}
 
 	/**
 	 * Getter for field tokenTypeCode.
 	 */
 	@Override @AvailMethod
-	TokenDescriptor.TokenType o_TokenType (
-		final @NotNull AvailObject object)
+	@NotNull TokenType o_TokenType (final @NotNull AvailObject object)
 	{
-		final int index = object.slot(IntegerSlots.TOKEN_TYPE_CODE);
-		return TokenDescriptor.TokenType.values()[index];
+		final int index = object.slot(TOKEN_TYPE_CODE);
+		return TokenType.values()[index];
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Kind (final AvailObject object)
+	@NotNull AvailObject o_Kind (final @NotNull AvailObject object)
 	{
 		return TOKEN.o();
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	int o_Hash (final @NotNull AvailObject object)
 	{
 		return
 			(object.string().hash() * Multiplier
@@ -241,7 +253,7 @@ extends Descriptor
 	@Override @AvailMethod
 	boolean o_Equals (
 		final @NotNull AvailObject object,
-		final AvailObject another)
+		final @NotNull AvailObject another)
 	{
 		return object.kind().equals(another.kind())
 			&& object.string().equals(another.string())
@@ -259,7 +271,7 @@ extends Descriptor
 	 * @param tokenType The type of token to create.
 	 * @return The new token.
 	 */
-	public AvailObject create(
+	public AvailObject create (
 		final @NotNull AvailObject string,
 		final int start,
 		final int lineNumber,
@@ -267,12 +279,11 @@ extends Descriptor
 	{
 		assert isMutable();
 		final AvailObject instance = create();
-		instance.setSlot(ObjectSlots.STRING, string);
-		instance.setSlot(IntegerSlots.START, start);
-		instance.setSlot(IntegerSlots.LINE_NUMBER, lineNumber);
-		instance.setSlot(
-			IntegerSlots.TOKEN_TYPE_CODE,
-			tokenType.ordinal());
+		instance.setSlot(STRING, string);
+		instance.setSlot(LOWER_CASE_STRING, NullDescriptor.nullObject());
+		instance.setSlot(START, start);
+		instance.setSlot(LINE_NUMBER, lineNumber);
+		instance.setSlot(TOKEN_TYPE_CODE, tokenType.ordinal());
 		return instance;
 	}
 

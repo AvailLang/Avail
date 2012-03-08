@@ -194,7 +194,8 @@ public enum ParsingOperation
 	/**
 	 * {@code 8*N+2} - Parse the Nth {@linkplain MessageSplitter#messageParts
 	 * message part} of the current message. This will be a specific {@linkplain
-	 * TokenDescriptor token}.
+	 * TokenDescriptor token}. It should be matched case sensitively against the
+	 * source token.
 	 */
 	parsePart(2)
 	{
@@ -247,6 +248,27 @@ public enum ParsingOperation
 			final int instruction)
 		{
 			return ruleNumber(operand(instruction));
+		}
+	},
+
+	/**
+	 * {@code 8*N+5} - Parse the Nth {@linkplain MessageSplitter#messageParts
+	 * message part} of the current message. This will be a specific {@linkplain
+	 * TokenDescriptor token}. It should be matched case insensitively against
+	 * the source token.
+	 */
+	parsePartCaseInsensitive(5)
+	{
+		@Override
+		public int encoding ()
+		{
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public int keywordIndex (final int instruction)
+		{
+			return operand(instruction);
 		}
 	};
 
@@ -377,6 +399,7 @@ public enum ParsingOperation
 				case 2: return parsePart;
 				case 3: return checkArgument;
 				case 4: return convert;
+				case 5: return parsePartCaseInsensitive;
 			}
 		}
 		else

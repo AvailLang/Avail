@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import java.util.Random;
+import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.exceptions.*;
 
@@ -137,7 +138,7 @@ extends Descriptor
 		{
 			do
 			{
-				hash = hashGenerator.nextInt();
+				hash = AvailRuntime.nextHash();
 			}
 			while (hash == 0);
 			object.setSlot(IntegerSlots.HASH_OR_ZERO, hash);
@@ -230,11 +231,6 @@ extends Descriptor
 		result.setSlot(ObjectSlots.VALUE, NullDescriptor.nullObject());
 		return result;
 	}
-
-	/**
-	 * A random generator used for creating hash values as needed.
-	 */
-	private static final Random hashGenerator = new Random();
 
 	/**
 	 * Construct a new {@link VariableDescriptor}.

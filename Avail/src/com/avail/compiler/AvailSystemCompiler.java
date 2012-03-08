@@ -1316,14 +1316,21 @@ extends AbstractAvailCompiler
 		bundleTree.expand();
 		final AvailObject complete = bundleTree.lazyComplete();
 		final AvailObject incomplete = bundleTree.lazyIncomplete();
+		final AvailObject caseInsensitive =
+			bundleTree.lazyIncompleteCaseInsensitive();
 		final AvailObject actions = bundleTree.lazyActions();
 		final AvailObject prefilter = bundleTree.lazyPrefilterMap();
 		final boolean anyComplete = complete.mapSize() > 0;
 		final boolean anyIncomplete = incomplete.mapSize() > 0;
+		final boolean anyCaseInsensitive = caseInsensitive.mapSize() > 0;
 		final boolean anyActions = actions.mapSize() > 0;
 		final boolean anyPrefilter = prefilter.mapSize() > 0;
 
-		if (!(anyComplete || anyIncomplete || anyActions || anyPrefilter))
+		if (!(anyComplete
+			|| anyIncomplete
+			|| anyCaseInsensitive
+			|| anyActions
+			|| anyPrefilter))
 		{
 			return;
 		}
@@ -1381,12 +1388,55 @@ extends AbstractAvailCompiler
 				}
 				else
 				{
-					expectedKeywordsOf(start, incomplete);
+					expectedKeywordsOf(start, incomplete, false);
 				}
 			}
 			else
 			{
-				expectedKeywordsOf(start, incomplete);
+				expectedKeywordsOf(start, incomplete, false);
+			}
+		}
+		if (anyCaseInsensitive
+			&& firstArgOrNull == null
+			&& !start.atEnd())
+		{
+			final AvailObject keywordToken = start.peekToken();
+			if (keywordToken.tokenType() == KEYWORD
+					|| keywordToken.tokenType() == OPERATOR)
+			{
+				final AvailObject keywordString =
+					keywordToken.lowerCaseString();
+				if (caseInsensitive.hasKey(keywordString))
+				{
+					final AvailObject subtree =
+						caseInsensitive.mapAt(keywordString);
+					eventuallyDo(
+						new Continuation0()
+						{
+							@Override
+							public void value ()
+							{
+								parseRestOfSendNode(
+									start.afterToken(),
+									subtree,
+									null,
+									initialTokenPosition,
+									argsSoFar,
+									continuation);
+							}
+						},
+						"Continue send after keyword: "
+							+ keywordString.asNativeString(),
+						start.afterToken().position);
+				}
+				else
+				{
+					expectedKeywordsOf(start, caseInsensitive, true);
+				}
+			}
+			else
+			{
+				expectedKeywordsOf(start, caseInsensitive, true);
 			}
 		}
 		if (anyPrefilter)
@@ -1468,13 +1518,13 @@ extends AbstractAvailCompiler
 	 *            message send}.
 	 */
 	void runParsingInstructionThen (
-		final ParserState start,
+		final @NotNull ParserState start,
 		final int instruction,
-		final AvailObject firstArgOrNull,
-		final List<AvailObject> argsSoFar,
-		final ParserState initialTokenPosition,
-		final AvailObject successorTrees,
-		final Con<AvailObject> continuation)
+		final @NotNull AvailObject firstArgOrNull,
+		final @NotNull List<AvailObject> argsSoFar,
+		final @NotNull ParserState initialTokenPosition,
+		final @NotNull AvailObject successorTrees,
+		final @NotNull Con<AvailObject> continuation)
 	{
 		final ParsingOperation op = ParsingOperation.decode(instruction);
 		switch (op)
@@ -1888,14 +1938,18 @@ extends AbstractAvailCompiler
 	 * {@code incomplete}.
 	 *
 	 * @param where
-	 *            Where the keywords were expected.
+	 *        Where the keywords were expected.
 	 * @param incomplete
-	 *            A map of partially parsed keywords, where the keys are the
-	 *            strings that were expected at this position.
+	 *        A map of partially parsed keywords, where the keys are the strings
+	 *        that were expected at this position.
+	 * @param caseInsensitive
+	 *        {@code true} if the parsed keywords are case-insensitive, {@code
+	 *        false} otherwise.
 	 */
 	private void expectedKeywordsOf (
-		final ParserState where,
-		final AvailObject incomplete)
+		final @NotNull ParserState where,
+		final @NotNull AvailObject incomplete,
+		final boolean caseInsensitive)
 	{
 		where.expected(
 			new Generator<String>()
@@ -1904,9 +1958,19 @@ extends AbstractAvailCompiler
 				public String value ()
 				{
 					final StringBuilder builder = new StringBuilder(200);
-					builder.append("one of the following internal keywords:");
-					final List<String> sorted =
-						new ArrayList<String>(incomplete.mapSize());
+					if (caseInsensitive)
+					{
+						builder.append(
+							"one of the following case-insensitive internal "
+							+ "keywords:");
+					}
+					else
+					{
+						builder.append(
+							"one of the following internal keywords:");
+					}
+					final List<String> sorted = new ArrayList<String>(
+						incomplete.mapSize());
 					for (final MapDescriptor.Entry entry
 						: incomplete.mapIterable())
 					{

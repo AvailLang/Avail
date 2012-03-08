@@ -1123,15 +1123,6 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public void lazyComplete (
-		final AvailObject value)
-	{
-		descriptor.o_LazyComplete(this, value);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	public int computeHashFromTo (
 		final int start,
 		final int end)
@@ -2032,15 +2023,6 @@ implements Iterable<AvailObject>
 	public AvailObject lazyIncomplete ()
 	{
 		return descriptor.o_LazyIncomplete(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public void lazyIncomplete (
-		final AvailObject value)
-	{
-		descriptor.o_LazyIncomplete(this, value);
 	}
 
 	/**
@@ -3628,15 +3610,6 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public void lazyActions (
-		final AvailObject value)
-	{
-		descriptor.o_LazyActions(this, value);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	public AvailObject stackAt (
 		final int slotIndex)
 	{
@@ -4278,15 +4251,6 @@ implements Iterable<AvailObject>
 	public AvailObject unclassified ()
 	{
 		return descriptor.o_Unclassified(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public void unclassified (
-		final AvailObject value)
-	{
-		descriptor.o_Unclassified(this, value);
 	}
 
 	/**
@@ -5593,26 +5557,6 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * @param value
-	 */
-	public void allBundles (
-		final @NotNull AvailObject value)
-	{
-		descriptor.o_AllBundles(
-			this,
-			value);
-	}
-
-	/**
-	 * @param value
-	 */
-	public void lazyPrefilterMap (
-		final @NotNull AvailObject value)
-	{
-		descriptor.o_LazyPrefilterMap(this, value);
-	}
-
-	/**
 	 * @return
 	 */
 	public @NotNull AvailObject lazyPrefilterMap ()
@@ -5920,5 +5864,21 @@ implements Iterable<AvailObject>
 		final boolean canDestroy)
 	{
 		return descriptor.o_AppendCanDestroy(this, newElement, canDestroy);
+	}
+
+	/**
+	 * @return
+	 */
+	public @NotNull AvailObject lazyIncompleteCaseInsensitive ()
+	{
+		return descriptor.o_LazyIncompleteCaseInsensitive(this);
+	}
+
+	/**
+	 * @return
+	 */
+	public @NotNull AvailObject lowerCaseString ()
+	{
+		return descriptor.o_LowerCaseString(this);
 	}
 }

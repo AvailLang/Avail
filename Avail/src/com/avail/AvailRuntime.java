@@ -53,6 +53,26 @@ import com.avail.exceptions.SignatureException;
 public final class AvailRuntime
 {
 	/**
+	 * A general purpose {@linkplain Random pseudo-random number generator}.
+	 */
+	private static final @NotNull Random rng = new Random();
+
+	/**
+	 * Answer a new value suitable for use as the {@linkplain AvailObject#hash()
+	 * hash code} for an immutable {@linkplain AvailObject value}.
+	 *
+	 * <p>Note that the implementation uses opportunistic locking internally, so
+	 * explicit synchronization here is not required.</p>
+	 *
+	 * @return A 32-bit pseudo-random number.
+	 */
+	@ThreadSafe
+	public static int nextHash ()
+	{
+		return rng.nextInt();
+	}
+
+	/**
 	 * The {@linkplain ModuleNameResolver module name resolver} that this
 	 * {@linkplain AvailRuntime runtime} should use to resolve unqualified
 	 * {@linkplain ModuleDescriptor module} names.
@@ -687,131 +707,6 @@ public final class AvailRuntime
 			runtimeLock.writeLock().unlock();
 		}
 	}
-
-	/**
-	 * A {@linkplain MapDescriptor map} from MessageBundle to a {@linkplain
-	 * TupleDescriptor tuple} of {@linkplain SetDescriptor sets} of {@linkplain
-	 * AtomDescriptor atoms} (the messages' true names).
-	 */
-	private @NotNull AvailObject grammaticalRestrictions =
-		MapDescriptor.empty();
-
-	/**
-	 * Answer the {@linkplain MapDescriptor map} of {@linkplain
-	 * MessageBundleDescriptor message bundle} grammatical restrictions.
-	 *
-	 * @return The restrictions map.
-	 */
-	private @NotNull AvailObject grammaticalRestrictions ()
-	{
-		return grammaticalRestrictions;
-	}
-
-	/**
-	 * Add the specified grammatical restrictions for the specified message
-	 * bundle.
-	 *
-	 * @param messageBundle
-	 *            The message bundle to be restricted.
-	 * @param restrictionsToAdd
-	 *            The grammatical restrictions to associate with the message
-	 *            bundle.
-	 */
-	private @NotNull void addGrammaticalRestriction (
-		final @NotNull AvailObject messageBundle,
-		final @NotNull AvailObject restrictionsToAdd)
-	{
-		runtimeLock.writeLock().lock();
-		try
-		{
-			AvailObject tuple;
-			if (grammaticalRestrictions.hasKey(messageBundle))
-			{
-				tuple = grammaticalRestrictions.mapAt(messageBundle);
-				assert tuple.tupleSize() == restrictionsToAdd.tupleSize();
-				for (int i = tuple.tupleSize(); i > 0; i--)
-				{
-					tuple = tuple.tupleAtPuttingCanDestroy(
-						i,
-						tuple.tupleAt(i).setUnionCanDestroy(
-							restrictionsToAdd.tupleAt(i),
-							true),
-						true);
-				}
-			}
-			else
-			{
-				tuple = restrictionsToAdd;
-			}
-			grammaticalRestrictions =
-				grammaticalRestrictions.mapAtPuttingCanDestroy(
-					messageBundle,
-					tuple,
-					true);
-		}
-		finally
-		{
-			runtimeLock.writeLock().unlock();
-		}
-	}
-
-	/**
-	 * Remove the specified grammatical restrictions from the specified message
-	 * bundle.
-	 *
-	 * @param messageBundle
-	 *            The message bundle to be restricted.
-	 * @param restrictionsToRemove
-	 *            The restrictions to dissociate from the message bundle.
-	 */
-	private @NotNull void removeGrammaticalRestriction (
-		final @NotNull AvailObject messageBundle,
-		final @NotNull AvailObject restrictionsToRemove)
-	{
-		runtimeLock.writeLock().lock();
-		try
-		{
-			if (!grammaticalRestrictions.hasKey(messageBundle))
-			{
-				return;
-			}
-			AvailObject tuple = grammaticalRestrictions.mapAt(messageBundle);
-			assert tuple.tupleSize() == restrictionsToRemove.tupleSize();
-			boolean allEmpty = true;
-			for (int i = tuple.tupleSize(); i > 0; i--)
-			{
-				final AvailObject difference =
-					tuple.tupleAt(i).setMinusCanDestroy(
-						restrictionsToRemove.tupleAt(i),
-						true);
-				tuple = tuple.tupleAtPuttingCanDestroy(i, difference, true);
-				if (difference.setSize() != 0)
-				{
-					allEmpty = false;
-				}
-			}
-			if (allEmpty)
-			{
-				grammaticalRestrictions =
-					grammaticalRestrictions.mapWithoutKeyCanDestroy(
-						messageBundle,
-						true);
-			}
-			else
-			{
-				grammaticalRestrictions =
-					grammaticalRestrictions.mapAtPuttingCanDestroy(
-						messageBundle,
-						tuple,
-						true);
-			}
-		}
-		finally
-		{
-			runtimeLock.writeLock().unlock();
-		}
-	}
-
 
 	/**
 	 * Add a type restriction to the method associated with the

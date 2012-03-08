@@ -630,14 +630,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_LazyComplete (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		o_Traversed(object).lazyComplete(value);
-	}
-
-	@Override
 	int o_ComputeHashFromTo (
 		final @NotNull AvailObject object,
 		final int start,
@@ -1133,14 +1125,6 @@ extends AbstractDescriptor
 		final @NotNull AvailObject imp)
 	{
 		return o_Traversed(object).includesImplementation(imp);
-	}
-
-	@Override
-	void o_LazyIncomplete (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		o_Traversed(object).lazyIncomplete(value);
 	}
 
 	@Override
@@ -1836,14 +1820,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_LazyActions (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		o_Traversed(object).lazyActions(value);
-	}
-
-	@Override
 	@NotNull AvailObject o_StackAt (final AvailObject object, final int slotIndex)
 	{
 		return o_Traversed(object).stackAt(slotIndex);
@@ -2226,14 +2202,6 @@ extends AbstractDescriptor
 		final @NotNull AvailObject aTupleType)
 	{
 		return o_Traversed(object).typeUnionOfTupleType(aTupleType);
-	}
-
-	@Override
-	void o_Unclassified (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		o_Traversed(object).unclassified(value);
 	}
 
 	@Override
@@ -3974,23 +3942,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_AllBundles (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		o_Traversed(object).allBundles(
-			value);
-	}
-
-	@Override
-	void o_LazyPrefilterMap (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		o_Traversed(object).lazyPrefilterMap(value);
-	}
-
-	@Override
 	@NotNull AvailObject o_LazyPrefilterMap (
 		final @NotNull AvailObject object)
 	{
@@ -4296,5 +4247,18 @@ extends AbstractDescriptor
 		final boolean canDestroy)
 	{
 		return o_Traversed(object).appendCanDestroy(newElement, canDestroy);
+	}
+
+	@Override
+	@NotNull AvailObject o_LazyIncompleteCaseInsensitive (
+		final @NotNull AvailObject object)
+	{
+		return o_Traversed(object).lazyIncompleteCaseInsensitive();
+	}
+
+	@Override
+	@NotNull AvailObject o_LowerCaseString (final @NotNull AvailObject object)
+	{
+		return o_Traversed(object).lowerCaseString();
 	}
 }

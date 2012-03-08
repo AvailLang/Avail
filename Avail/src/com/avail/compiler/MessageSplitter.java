@@ -106,8 +106,12 @@ public class MessageSplitter
 		 * @param list
 		 *        The list of integers {@linkplain MessageSplitter encoding}
 		 *        parsing instructions.
+		 * @param caseInsensitive
+		 *        Should keywords be matched case insensitively?
 		 */
-		abstract void emitOn (final @NotNull List<Integer> list);
+		abstract void emitOn (
+			final @NotNull List<Integer> list,
+			final boolean caseInsensitive);
 
 		/**
 		 * Answer whether or not this an {@linkplain Argument argument} or
@@ -131,6 +135,19 @@ public class MessageSplitter
 		int underscoreCount ()
 		{
 			return 0;
+		}
+
+		/**
+		 * Are all keywords of the expression comprised exclusively of lower
+		 * case characters?
+		 *
+		 * @return {@code true} if all keywords of the expression are comprised
+		 *         exclusively of lower case characters, {@code false}
+		 *         otherwise.
+		 */
+		boolean isLowerCase ()
+		{
+			return true;
 		}
 
 		/**
@@ -198,10 +215,22 @@ public class MessageSplitter
 		}
 
 		@Override
-		void emitOn (final @NotNull List<Integer> list)
+		void emitOn (
+			final @NotNull List<Integer> list,
+			final boolean caseInsensitive)
 		{
 			// Parse the specific keyword.
-			list.add(parsePart.encodingForOperand(tokenIndex));
+			final ParsingOperation op =
+				caseInsensitive ? parsePartCaseInsensitive : parsePart;
+			list.add(op.encodingForOperand(tokenIndex));
+		}
+
+		@Override
+		final boolean isLowerCase ()
+		{
+			final String token =
+				messageParts.get(tokenIndex - 1).asNativeString();
+			return token.toLowerCase().equals(token);
 		}
 
 		@Override
@@ -260,7 +289,9 @@ public class MessageSplitter
 		}
 
 		@Override
-		void emitOn (final @NotNull List<Integer> list)
+		void emitOn (
+			final @NotNull List<Integer> list,
+			final boolean caseInsensitive)
 		{
 			// First, parse an argument subexpression. Next, record it in a list
 			// of lists that will later be used to check negative precedence
@@ -312,7 +343,9 @@ public class MessageSplitter
 		}
 
 		@Override
-		void emitOn (final @NotNull List<Integer> list)
+		void emitOn (
+			final @NotNull List<Integer> list,
+			final boolean caseInsensitive)
 		{
 			// First, parse a raw token. Next, record it in a list of lists
 			// that will later be used to check negative precedence
@@ -465,6 +498,26 @@ public class MessageSplitter
 			return count;
 		}
 
+		@Override
+		boolean isLowerCase ()
+		{
+			for (final Expression expression : expressionsBeforeDagger)
+			{
+				if (!expression.isLowerCase())
+				{
+					return false;
+				}
+			}
+			for (final Expression expression : expressionsAfterDagger)
+			{
+				if (!expression.isLowerCase())
+				{
+					return false;
+				}
+			}
+			return true;
+		}
+
 		/**
 		 * Determine if this group should generate a {@linkplain TupleDescriptor
 		 * tuple} of plain arguments or a tuple of fixed-length tuples of plain
@@ -480,7 +533,9 @@ public class MessageSplitter
 		}
 
 		@Override
-		void emitOn (final @NotNull List<Integer> list)
+		void emitOn (
+			final @NotNull List<Integer> list,
+			final boolean caseInsensitive)
 		{
 			if (!needsDoubleWrapping())
 			{
@@ -510,14 +565,14 @@ public class MessageSplitter
 				final int loopStart = list.size() + 1;
 				for (final Expression expression : expressionsBeforeDagger)
 				{
-					expression.emitOn(list);
+					expression.emitOn(list, caseInsensitive);
 				}
 				list.add(appendArgument.encoding());
 				list.add(branch.encodingForOperand(loopExit));
 				for (final Expression expression : expressionsAfterDagger)
 				{
 					assert !expression.isArgumentOrGroup();
-					expression.emitOn(list);
+					expression.emitOn(list, caseInsensitive);
 				}
 				list.add(ensureParseProgress.encoding());
 				list.add(jump.encodingForOperand(loopStart));
@@ -561,7 +616,7 @@ public class MessageSplitter
 				list.add(newList.encoding());
 				for (final Expression expression : expressionsBeforeDagger)
 				{
-					expression.emitOn(list);
+					expression.emitOn(list, caseInsensitive);
 					if (expression.isArgumentOrGroup())
 					{
 						list.add(appendArgument.encoding());
@@ -570,7 +625,7 @@ public class MessageSplitter
 				list.add(branch.encodingForOperand(loopExit));
 				for (final Expression expression : expressionsAfterDagger)
 				{
-					expression.emitOn(list);
+					expression.emitOn(list, caseInsensitive);
 					if (expression.isArgumentOrGroup())
 					{
 						list.add(appendArgument.encoding());
@@ -894,7 +949,9 @@ public class MessageSplitter
 		}
 
 		@Override
-		void emitOn (final @NotNull List<Integer> list)
+		void emitOn (
+			final @NotNull List<Integer> list,
+			final boolean caseInsensitive)
 		{
 			/* push current parse position
 			 * push empty list
@@ -921,14 +978,14 @@ public class MessageSplitter
 			for (final Expression expression : group.expressionsBeforeDagger)
 			{
 				assert !expression.isArgumentOrGroup();
-				expression.emitOn(list);
+				expression.emitOn(list, caseInsensitive);
 			}
 			list.add(appendArgument.encoding());
 			list.add(branch.encodingForOperand(loopExit));
 			for (final Expression expression : group.expressionsAfterDagger)
 			{
 				assert !expression.isArgumentOrGroup();
-				expression.emitOn(list);
+				expression.emitOn(list, caseInsensitive);
 			}
 			list.add(ensureParseProgress.encoding());
 			list.add(jump.encodingForOperand(loopStart));
@@ -953,6 +1010,12 @@ public class MessageSplitter
 		}
 
 		@Override
+		boolean isLowerCase ()
+		{
+			return group.isLowerCase();
+		}
+
+		@Override
 		public void checkType (final @NotNull AvailObject argumentType)
 			throws SignatureException
 		{
@@ -971,7 +1034,7 @@ public class MessageSplitter
 			final StringBuilder builder = new StringBuilder();
 			builder.append(getClass().getSimpleName());
 			builder.append("(");
-			builder.append(group.toString());
+			builder.append(group);
 			builder.append(")");
 			return builder.toString();
 		}
@@ -1017,7 +1080,9 @@ public class MessageSplitter
 		}
 
 		@Override
-		void emitOn (final @NotNull List<Integer> list)
+		void emitOn (
+			final @NotNull List<Integer> list,
+			final boolean caseInsensitive)
 		{
 			/* push current parse position
 			 * push empty list
@@ -1037,7 +1102,7 @@ public class MessageSplitter
 			for (final Expression expression : group.expressionsBeforeDagger)
 			{
 				assert !expression.isArgumentOrGroup();
-				expression.emitOn(list);
+				expression.emitOn(list, caseInsensitive);
 			}
 			list.add(appendArgument.encoding());
 			list.add(ensureParseProgress.encoding());
@@ -1060,6 +1125,12 @@ public class MessageSplitter
 		}
 
 		@Override
+		boolean isLowerCase ()
+		{
+			return group.isLowerCase();
+		}
+
+		@Override
 		public void checkType (final @NotNull AvailObject argumentType)
 			throws SignatureException
 		{
@@ -1078,7 +1149,81 @@ public class MessageSplitter
 			final StringBuilder builder = new StringBuilder();
 			builder.append(getClass().getSimpleName());
 			builder.append("(");
-			builder.append(group.toString());
+			builder.append(group);
+			builder.append(")");
+			return builder.toString();
+		}
+	}
+
+	/**
+	 * {@code CaseInsensitive} is a special decorator {@linkplain Expression
+	 * expression} that causes the decorated expression's keywords to generate
+	 * {@linkplain ParsingOperation parse instructions} that cause case
+	 * insensitive parsing. It is indicated by a trailing {@linkplain
+	 * StringDescriptor#tilde() tilde} ("~").
+	 */
+	final class CaseInsensitive
+	extends Expression
+	{
+		/**
+		 * The {@linkplain Expression expression} whose keywords should be
+		 * matched case-insensitively.
+		 */
+		final Expression expression;
+
+		/**
+		 * Construct a new {@link CaseInsensitive}.
+		 *
+		 * @param expression
+		 *        The {@linkplain Expression expression} whose keywords should
+		 *        be matched case-insensitively.
+		 */
+		CaseInsensitive (final Expression expression)
+		{
+			this.expression = expression;
+		}
+
+		@Override
+		void emitOn (
+			final @NotNull List<Integer> list,
+			final boolean caseInsensitive)
+		{
+			expression.emitOn(list, true);
+		}
+
+		@Override
+		boolean isArgumentOrGroup ()
+		{
+			return expression.isArgumentOrGroup();
+		}
+
+		@Override
+		int underscoreCount ()
+		{
+			return expression.underscoreCount();
+		}
+
+		@Override
+		boolean isLowerCase ()
+		{
+			assert expression.isLowerCase();
+			return true;
+		}
+
+		@Override
+		public void checkType (final @NotNull AvailObject argumentType)
+			throws SignatureException
+		{
+			expression.checkType(argumentType);
+		}
+
+		@Override
+		public @NotNull String toString ()
+		{
+			final StringBuilder builder = new StringBuilder();
+			builder.append(getClass().getSimpleName());
+			builder.append("(");
+			builder.append(expression);
 			builder.append(")");
 			return builder.toString();
 		}
@@ -1119,7 +1264,7 @@ public class MessageSplitter
 			for (final Expression expression
 				: rootGroup.expressionsBeforeDagger)
 			{
-				expression.emitOn(instructions);
+				expression.emitOn(instructions, false);
 			}
 		}
 		assert rootGroup.expressionsAfterDagger.isEmpty();
@@ -1333,6 +1478,10 @@ public class MessageSplitter
 				throwSignatureException(
 					E_QUESTION_MARK_MUST_FOLLOW_A_SIMPLE_GROUP);
 			}
+			else if (token.equals(StringDescriptor.tilde()))
+			{
+				throwSignatureException(E_TILDE_MUST_NOT_FOLLOW_ARGUMENT);
+			}
 			else if (token.equals(StringDescriptor.openGuillemet()))
 			{
 				// Eat the open guillemet, parse a subgroup, eat the (mandatory)
@@ -1350,8 +1499,8 @@ public class MessageSplitter
 					throwSignatureException(E_UNBALANCED_GUILLEMETS);
 				}
 				messagePartPosition++;
-				// Try to parse a counter or optional.
-				final Expression subexpression;
+				// Try to parse a counter, optional, and/or case-insensitive.
+				Expression subexpression;
 				if (messagePartPosition <= messageParts.size())
 				{
 					token = messageParts.get(messagePartPosition - 1);
@@ -1387,11 +1536,27 @@ public class MessageSplitter
 					{
 						subexpression = subgroup;
 					}
+					if (messagePartPosition <= messageParts.size())
+					{
+						token = messageParts.get(messagePartPosition - 1);
+						// Try to parse a case-insensitive modifier.
+						if (token.equals(StringDescriptor.tilde()))
+						{
+							if (!subexpression.isLowerCase())
+							{
+								throwSignatureException(
+									E_CASE_INSENSITIVE_EXPRESSION_CANONIZATION);
+							}
+							subexpression = new CaseInsensitive(subexpression);
+							messagePartPosition++;
+						}
+					}
 				}
 				else
 				{
 					subexpression = subgroup;
 				}
+				assert subexpression != null;
 				group.addExpression(subexpression);
 			}
 			else
@@ -1417,8 +1582,23 @@ public class MessageSplitter
 					}
 				}
 				// Parse a regular keyword or operator
-				group.addExpression(new Simple(messagePartPosition));
+				Expression subexpression = new Simple(messagePartPosition);
 				messagePartPosition++;
+				if (messagePartPosition <= messageParts.size())
+				{
+					token = messageParts.get(messagePartPosition - 1);
+					if (token.equals(StringDescriptor.tilde()))
+					{
+						if (!subexpression.isLowerCase())
+						{
+							throwSignatureException(
+								E_CASE_INSENSITIVE_EXPRESSION_CANONIZATION);
+						}
+						subexpression = new CaseInsensitive(subexpression);
+						messagePartPosition++;
+					}
+				}
+				group.addExpression(subexpression);
 			}
 		}
 	}

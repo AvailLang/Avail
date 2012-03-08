@@ -1224,14 +1224,6 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param value
-	 */
-	abstract void o_LazyComplete (
-		@NotNull AvailObject object,
-		AvailObject value);
-
-	/**
-	 * @param object
 	 * @param start
 	 * @param end
 	 * @return
@@ -1511,14 +1503,6 @@ public abstract class AbstractDescriptor
 	abstract boolean o_IncludesImplementation (
 		@NotNull AvailObject object,
 		AvailObject imp);
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	abstract void o_LazyIncomplete (
-		@NotNull AvailObject object,
-		AvailObject value);
 
 	/**
 	 * @param object
@@ -2303,14 +2287,6 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param value
-	 */
-	abstract void o_LazyActions (
-		@NotNull AvailObject object,
-		AvailObject value);
-
-	/**
-	 * @param object
 	 * @param slotIndex
 	 * @return
 	 */
@@ -2776,14 +2752,6 @@ public abstract class AbstractDescriptor
 	abstract AvailObject o_TypeUnionOfTupleType (
 		@NotNull AvailObject object,
 		AvailObject aTupleType);
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	abstract void o_Unclassified (
-		@NotNull AvailObject object,
-		AvailObject value);
 
 	/**
 	 * @param object
@@ -5010,23 +4978,6 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param value
-	 */
-	abstract void o_AllBundles (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value);
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	abstract void o_LazyPrefilterMap (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value);
-
-
-	/**
-	 * @param object
 	 * @return
 	 */
 	abstract @NotNull AvailObject o_LazyPrefilterMap (
@@ -5276,4 +5227,18 @@ public abstract class AbstractDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject newElement,
 		final boolean canDestroy);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract @NotNull AvailObject o_LazyIncompleteCaseInsensitive (
+		final @NotNull AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract @NotNull AvailObject o_LowerCaseString (
+		final @NotNull AvailObject object);
 }

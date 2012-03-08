@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import static com.avail.descriptor.AvailObject.error;
 import java.util.Random;
 import java.util.concurrent.ThreadPoolExecutor;
+import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.descriptor.TypeDescriptor.Types;
 
@@ -315,7 +316,7 @@ extends Descriptor
 		{
 			do
 			{
-				hash = hashGenerator.nextInt();
+				hash = AvailRuntime.nextHash();
 			}
 			while (hash == 0);
 			object.setSlot(IntegerSlots.HASH_OR_ZERO, hash);
@@ -379,11 +380,6 @@ extends Descriptor
 
 		error("Process stepping is not implemented");
 	}
-
-	/**
-	 * A random generator used for creating hash values as needed.
-	 */
-	private static Random hashGenerator = new Random();
 
 	/**
 	 * Construct a new {@link ProcessDescriptor}.

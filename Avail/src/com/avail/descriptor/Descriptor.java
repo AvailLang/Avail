@@ -465,14 +465,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_LazyComplete (
-		final @NotNull AvailObject object,
-		final AvailObject value)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	int o_ComputeHashFromTo (
 		final @NotNull AvailObject object,
 		final int start,
@@ -680,14 +672,6 @@ extends AbstractDescriptor
 	boolean o_IncludesImplementation (
 		final @NotNull AvailObject object,
 		final AvailObject imp)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	void o_LazyIncomplete (
-		final @NotNull AvailObject object,
-		final AvailObject value)
 	{
 		throw unsupportedOperationException();
 	}
@@ -1350,14 +1334,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_LazyActions (
-		final @NotNull AvailObject object,
-		final AvailObject value)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	@NotNull AvailObject o_StackAt (
 		final @NotNull AvailObject object,
 		final int slotIndex)
@@ -1737,14 +1713,6 @@ extends AbstractDescriptor
 	@NotNull AvailObject o_TypeUnionOfTupleType (
 		final @NotNull AvailObject object,
 		final AvailObject aTupleType)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	void o_Unclassified (
-		final @NotNull AvailObject object,
-		final AvailObject value)
 	{
 		throw unsupportedOperationException();
 	}
@@ -4223,25 +4191,6 @@ extends AbstractDescriptor
 		throw unsupportedOperationException();
 	}
 
-
-	@Override
-	void o_AllBundles (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		throw unsupportedOperationException();
-	}
-
-
-	@Override
-	void o_LazyPrefilterMap (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		throw unsupportedOperationException();
-	}
-
-
 	@Override
 	@NotNull AvailObject o_LazyPrefilterMap (
 		final @NotNull AvailObject object)
@@ -4542,6 +4491,19 @@ extends AbstractDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject newElement,
 		final boolean canDestroy)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	@NotNull AvailObject o_LazyIncompleteCaseInsensitive (
+		final @NotNull AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	@NotNull AvailObject o_LowerCaseString (final @NotNull AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}

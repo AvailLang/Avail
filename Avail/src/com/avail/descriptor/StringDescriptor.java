@@ -193,6 +193,22 @@ extends TupleDescriptor
 	}
 
 	/**
+	 * A tuple containing just the tilde character.
+	 */
+	static AvailObject tilde;
+
+	/**
+	 * Return an Avail {@linkplain StringDescriptor string} of size one,
+	 * consisting of just the tilde character ("~").
+	 *
+	 * @return A tuple containing just the question mark character.
+	 */
+	public static AvailObject tilde ()
+	{
+		return tilde;
+	}
+
+	/**
 	 * Create any instances statically well-known to the {@linkplain
 	 * AvailRuntime Avail runtime system}.
 	 */
@@ -206,6 +222,7 @@ extends TupleDescriptor
 		ellipsis = StringDescriptor.from("…").makeImmutable();
 		octothorp = StringDescriptor.from("#").makeImmutable();
 		questionMark = StringDescriptor.from("?").makeImmutable();
+		tilde = StringDescriptor.from("~").makeImmutable();
 	}
 
 	/**
@@ -222,6 +239,7 @@ extends TupleDescriptor
 		ellipsis = null;
 		octothorp = null;
 		questionMark = null;
+		tilde = null;
 	}
 
 	/**

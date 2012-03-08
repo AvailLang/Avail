@@ -275,12 +275,6 @@ extends Descriptor
 		return aBoolean ? TrueObject : FalseObject;
 	}
 
-	/**
-	 * A random generator used for creating hash values as needed.
-	 */
-	private static Random hashGenerator = new Random();
-
-
 	@Override @AvailMethod
 	void o_Name (
 		final @NotNull AvailObject object,
@@ -322,7 +316,7 @@ extends Descriptor
 		{
 			do
 			{
-				hash = hashGenerator.nextInt();
+				hash = AvailRuntime.nextHash();
 			}
 			while (hash == 0);
 			object.setSlot(IntegerSlots.HASH_OR_ZERO, hash);

@@ -36,7 +36,7 @@ import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TokenDescriptor.TokenType.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
-import com.avail.compiler.AbstractAvailCompiler;
+import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.interpreter.levelOne.*;
 import com.avail.interpreter.levelTwo.L2Interpreter;
@@ -47,7 +47,8 @@ import com.avail.utility.*;
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
-public class AvailCompiler extends AbstractAvailCompiler
+public class AvailCompiler
+extends AbstractAvailCompiler
 {
 
 	/**
@@ -175,11 +176,11 @@ public class AvailCompiler extends AbstractAvailCompiler
 	 *            The bundle tree used to parse at this position.
 	 * @param firstArgOrNull
 	 *            Either null or an argument that must be consumed before any
-	 *            raw tokens or keywords (or completion of a send).
+	 *            keywords (or completion of a send).
 	 * @param initialTokenPosition
 	 *            The parse position where the send node started to be
 	 *            processed. Does not count the position of the first argument
-	 *            if the message started with an argument.
+	 *            if there are no leading keywords.
 	 * @param argsSoFar
 	 *            The list of arguments parsed so far. I do not modify it. This
 	 *            is a stack of expressions that the parsing instructions will
@@ -200,12 +201,24 @@ public class AvailCompiler extends AbstractAvailCompiler
 		bundleTree.expand();
 		final AvailObject complete = bundleTree.lazyComplete();
 		final AvailObject incomplete = bundleTree.lazyIncomplete();
+		final AvailObject caseInsensitive =
+			bundleTree.lazyIncompleteCaseInsensitive();
 		final AvailObject actions = bundleTree.lazyActions();
+		final AvailObject prefilter = bundleTree.lazyPrefilterMap();
 		final boolean anyComplete = complete.mapSize() > 0;
 		final boolean anyIncomplete = incomplete.mapSize() > 0;
+		final boolean anyCaseInsensitive = caseInsensitive.mapSize() > 0;
 		final boolean anyActions = actions.mapSize() > 0;
-		assert anyComplete || anyIncomplete || anyActions
-		: "Expected a nonempty list of possible messages";
+		final boolean anyPrefilter = prefilter.mapSize() > 0;
+
+		if (!(anyComplete
+			|| anyIncomplete
+			|| anyCaseInsensitive
+			|| anyActions
+			|| anyPrefilter))
+		{
+			return;
+		}
 		if (anyComplete
 			&& firstArgOrNull == null
 			&& start.position != initialTokenPosition.position)
@@ -239,32 +252,98 @@ public class AvailCompiler extends AbstractAvailCompiler
 				if (incomplete.hasKey(keywordString))
 				{
 					final AvailObject subtree = incomplete.mapAt(keywordString);
-					eventuallyDo(new Continuation0()
-					{
-						@Override
-						public void value ()
+					eventuallyDo(
+						new Continuation0()
 						{
-							parseRestOfSendNode(
-								start.afterToken(),
-								subtree,
-								null,
-								initialTokenPosition,
-								argsSoFar,
-								continuation);
-						}
-					},
+							@Override
+							public void value ()
+							{
+								parseRestOfSendNode(
+									start.afterToken(),
+									subtree,
+									null,
+									initialTokenPosition,
+									argsSoFar,
+									continuation);
+							}
+						},
 						"Continue send after keyword: "
 							+ keywordString.asNativeString(),
 						start.afterToken().position);
 				}
 				else
 				{
-					expectedKeywordsOf(start, incomplete);
+					expectedKeywordsOf(start, incomplete, false);
 				}
 			}
 			else
 			{
-				expectedKeywordsOf(start, incomplete);
+				expectedKeywordsOf(start, incomplete, false);
+			}
+		}
+		if (anyCaseInsensitive
+			&& firstArgOrNull == null
+			&& !start.atEnd())
+		{
+			final AvailObject keywordToken = start.peekToken();
+			if (keywordToken.tokenType() == KEYWORD
+					|| keywordToken.tokenType() == OPERATOR)
+			{
+				final AvailObject keywordString =
+					keywordToken.lowerCaseString();
+				if (caseInsensitive.hasKey(keywordString))
+				{
+					final AvailObject subtree =
+						caseInsensitive.mapAt(keywordString);
+					eventuallyDo(
+						new Continuation0()
+						{
+							@Override
+							public void value ()
+							{
+								parseRestOfSendNode(
+									start.afterToken(),
+									subtree,
+									null,
+									initialTokenPosition,
+									argsSoFar,
+									continuation);
+							}
+						},
+						"Continue send after keyword: "
+							+ keywordString.asNativeString(),
+						start.afterToken().position);
+				}
+				else
+				{
+					expectedKeywordsOf(start, caseInsensitive, true);
+				}
+			}
+			else
+			{
+				expectedKeywordsOf(start, caseInsensitive, true);
+			}
+		}
+		if (anyPrefilter)
+		{
+			final AvailObject latestArgument =
+				argsSoFar.get(argsSoFar.size() - 1);
+			if (latestArgument.isInstanceOfKind(SEND_NODE.mostGeneralType()))
+			{
+				final AvailObject methodName = latestArgument.method().name();
+				if (prefilter.hasKey(methodName))
+				{
+					parseRestOfSendNode(
+						start,
+						prefilter.mapAt(methodName),
+						firstArgOrNull,
+						initialTokenPosition,
+						argsSoFar,
+						continuation);
+					// Don't allow normal action processing, as it would ignore
+					// the restriction which we've been so careful to prefilter.
+					return;
+				}
 			}
 		}
 		if (anyActions)
@@ -353,27 +432,6 @@ public class AvailCompiler extends AbstractAvailCompiler
 							final List<AvailObject> newArgsSoFar =
 								new ArrayList<AvailObject>(argsSoFar);
 							newArgsSoFar.add(newArg);
-							final ParserState afterArgWithDeclaration;
-							if (newArg.isInstanceOfKind(
-								DECLARATION_NODE.mostGeneralType()))
-							{
-								if (lookupDeclaration(
-										afterArg,
-										newArg.token().string())
-									!= null)
-								{
-									afterArg.expected(
-										"macro argument that's a declaration"
-										+ " not to shadow another declaration");
-									return;
-								}
-								afterArgWithDeclaration =
-									afterArg.withDeclaration(newArg);
-							}
-							else
-							{
-								afterArgWithDeclaration = afterArg;
-							}
 							eventuallyDo(
 								new Continuation0()
 								{
@@ -381,7 +439,7 @@ public class AvailCompiler extends AbstractAvailCompiler
 									public void value ()
 									{
 										parseRestOfSendNode(
-											afterArgWithDeclaration,
+											afterArg,
 											successorTrees.tupleAt(1),
 											null,
 											initialTokenPosition,
@@ -391,7 +449,7 @@ public class AvailCompiler extends AbstractAvailCompiler
 									}
 								},
 								"Continue send after argument",
-								afterArgWithDeclaration.position);
+								afterArg.position);
 						}
 					});
 				break;
@@ -833,54 +891,70 @@ public class AvailCompiler extends AbstractAvailCompiler
 	 * {@code incomplete}.
 	 *
 	 * @param where
-	 *            Where the keywords were expected.
+	 *        Where the keywords were expected.
 	 * @param incomplete
-	 *            A map of partially parsed keywords, where the keys are the
-	 *            strings that were expected at this position.
+	 *        A map of partially parsed keywords, where the keys are the strings
+	 *        that were expected at this position.
+	 * @param caseInsensitive
+	 *        {@code true} if the parsed keywords are case-insensitive, {@code
+	 *        false} otherwise.
 	 */
 	private void expectedKeywordsOf (
-		final ParserState where,
-		final AvailObject incomplete)
+		final @NotNull ParserState where,
+		final @NotNull AvailObject incomplete,
+		final boolean caseInsensitive)
 	{
-		where.expected(new Generator<String>()
-		{
-			@Override
-			public String value ()
+		where.expected(
+			new Generator<String>()
 			{
-				final StringBuilder builder = new StringBuilder(200);
-				builder.append("one of the following internal keywords:");
-				final List<String> sorted =
-					new ArrayList<String>(incomplete.mapSize());
-				for (final MapDescriptor.Entry entry : incomplete.mapIterable())
+				@Override
+				public String value ()
 				{
-					sorted.add(entry.key.asNativeString());
-				}
-				Collections.sort(sorted);
-				boolean startOfLine = true;
-				builder.append("\n\t");
-				final int leftColumn = 4 + 4; // ">>> " and a tab.
-				int column = leftColumn;
-				for (final String s : sorted)
-				{
-					if (!startOfLine)
+					final StringBuilder builder = new StringBuilder(200);
+					if (caseInsensitive)
 					{
-						builder.append("  ");
-						column += 2;
+						builder.append(
+							"one of the following case-insensitive internal "
+							+ "keywords:");
 					}
-					startOfLine = false;
-					final int lengthBefore = builder.length();
-					builder.append(s);
-					column += builder.length() - lengthBefore;
-					if (column + 2 + s.length() > 80)
+					else
 					{
-						builder.append("\n\t");
-						column = leftColumn;
-						startOfLine = true;
+						builder.append(
+							"one of the following internal keywords:");
 					}
+					final List<String> sorted = new ArrayList<String>(
+						incomplete.mapSize());
+					for (final MapDescriptor.Entry entry
+						: incomplete.mapIterable())
+					{
+						sorted.add(entry.key.asNativeString());
+					}
+					Collections.sort(sorted);
+					boolean startOfLine = true;
+					builder.append("\n\t");
+					final int leftColumn = 4 + 4; // ">>> " and a tab.
+					int column = leftColumn;
+					for (final String s : sorted)
+					{
+						if (!startOfLine)
+						{
+							builder.append("  ");
+							column += 2;
+						}
+						startOfLine = false;
+						final int lengthBefore = builder.length();
+						builder.append(s);
+						column += builder.length() - lengthBefore;
+						if (column + 2 + s.length() > 80)
+						{
+							builder.append("\n\t");
+							column = leftColumn;
+							startOfLine = true;
+						}
+					}
+					return builder.toString();
 				}
-				return builder.toString();
-			}
-		});
+			});
 	}
 
 	/**
