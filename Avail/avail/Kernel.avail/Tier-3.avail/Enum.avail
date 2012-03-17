@@ -35,43 +35,55 @@ Extends
 Uses
 	"Tier-2"
 Names
-	"_instance",
-	"_unsafe instances",
-	"_unsafe instance"
+	"_instance"
 Body
 
-
+Forward "_instance" for [type]->any;
 
 /* This method was defined earlier, but we couldn't add the restriction until
    now. */
-Restriction "_instances" is [eT : enum type |
-	cast eT into [uuT : enum |
-		unionOfMembershipTypes : set type := terminates;
-		anyTypes : boolean := false;
-		anyNonTypes : boolean := false;
-		commonElementType : type := terminates;
-		uuT instances do [weakMembershipType : any |
-			membershipType ::= cast weakMembershipType into [t : enum | t;];
-			membershipType instances do [member : any |
-				cast member into [memberAsType : type |
-					commonElementType := type union of commonElementType and memberAsType;
-					anyTypes := true;]
-				otherwise [
-					anyNonTypes := true;];];
-			unionOfMembershipTypes := type union of unionOfMembershipTypes
-				and membershipType instances type;];
-		if anyTypes then [
-			if anyNonTypes then [
-				set;]
-			else [
-				set of (commonElementType type);];]
-		else [
-			if anyNonTypes then [
-				unionOfMembershipTypes;]
-			else [
-				{} type;];];
-	]
-	otherwise [set;];
+Restriction "_instances" is
+[
+	eT : type type
+|
+	result ::= if |eT| = INF then
+		[
+			Assert eT = type;
+			set;
+		]
+		else
+		[
+			if |eT| = 0 then
+			[
+				Assert eT = terminates;
+				{} type;
+			]
+			else
+			[
+				/* It looks like |eT| > 1 is possible, but actually it isn't
+				 * because we are dealing with metatypes here.
+				 */
+				Assert |eT| = 1;
+				instance ::= cast eT instance into [ t : type | t; ];
+				strong : any type;
+				*&strong ?:= instance;
+				if |instance| not = INF then
+				[
+					set [0..|strong|+1) of strong;
+				]
+				else
+				[
+					set [0..INF) of strong;
+				];
+			];
+		];
+	Assert result <= set;
+	Print "\nDEBUG: _instances("
+		then eT as basic string
+		then ") ∋ "
+		then result as basic string
+		then "\n";
+	result;
 ] : set type;
 
 
@@ -102,34 +114,44 @@ Print (if B then [X;] else [Y;]) instances as basic string;
 
 
 
-Method "_instance" is [e : enum |
-	instances ::= e instances;
-	if ||instances|| not = 1 then [Crash "Too many elements in union";];
-	instances as tuple [1];
+Method "_instance" is
+[
+	e : type
+|
+	if |e| not = 1 then [Crash "Type must have exactly one instance";];
+	e instances as tuple [1];
 ] : any;
 
-Restriction "_instance" is [eT : meta |
-	if eT = enum then [
+Restriction "_instance" is [eT : type type |
+	result ::= if |eT| not = INF then
+	[
+		union : type := terminates;
+		instances ::= cast eT instances into [ t : set of any type | t; ];
+		instances do
+		[
+			membershipType : any type
+		|
+			union := type union of union and membershipType;
+		];
+		union;
+	]
+	else
+	[
 		any;
-	] else [
-		union : enum := terminates;
-		cast eT into [uuT : enum |
-			uuT instances do [weakMembershipType : any |
-				membershipType ::= cast weakMembershipType into [t : enum | t;];
-				union := type union of union and membershipType;];
-			union;];
 	];
+/*
+	Print "\nDEBUG: _instance("
+		then eT as basic string
+		then ") ∈ "
+		then result as basic string
+		then "\n";
+*/
+	result;
 ] : type;
 
+Assert boolean instances = {false, true};
+Assert string type instances = {string};
+Assert string type instance = string;
+Assert (type union of 1 type and 2 type) instances = {1, 2};
 
-Method "_unsafe instances" is [t : type |
-	cast t into [e : enum |
-		e instances;];
-] : set;
-
-
-Method "_unsafe instance" is [t : type |
-	cast t into [e : enum |
-		e instance;];
-] : any;
 

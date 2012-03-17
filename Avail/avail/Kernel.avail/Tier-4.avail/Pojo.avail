@@ -123,7 +123,7 @@ Method "pojo[]" is
 Method "⊶Java type_parameters_" is
 [
 	typeName : string,
-	typeParameters : tuple of type
+	typeParameters : tuple of any type
 |
 	Primitive 500 (failureCode : whole number);
 	if failureCode = 500 then
@@ -141,7 +141,7 @@ Method "⊶Java type_parameters_" is
 Method "Java type_parameters_" is
 [
 	typeName : string,
-	typeParameters : tuple of type
+	typeParameters : tuple of any type
 |
 	⊶Java type typeName parameters typeParameters;
 ] : pojo type;
@@ -149,12 +149,11 @@ Method "Java type_parameters_" is
 Restriction "Java type_parameters_" is
 [
 	typeNameType : string type,
-	typeParametersType : (tuple of type) type
+	typeParametersType : (tuple of any type) type
 |
-	typeNameEnum ::= cast typeNameType into [ x : enum | x; ]
-		otherwise [
-			Fail parse "Java type name is not statically known"; ];
-	typeName ::= cast typeNameEnum instance into [ s : string | s; ];
+	if |typeNameType| not = 1 then [
+		Fail parse "Java type name is not statically known"; ];
+	typeName ::= typeNameType instance;
 
 	typeParametersTypeBounds ::= typeParametersType sizes;
 	if
@@ -164,15 +163,14 @@ Restriction "Java type_parameters_" is
 		Fail parse "argument tuple size must be statically known"; ];
 
 	typeParametersSize ::= typeParametersTypeBounds upper bound;
-	args : tuple of type := <>;
+	args : tuple of any type := <>;
 	From 1 to typeParametersSize do [ i : natural number |
-		argType ::= cast typeParametersType[i] into [ x : enum | x; ]
-			otherwise [
-				Fail parse
-					"argument type "
-					then i as basic string
-					then " is not statically known"; ];
-		arg ::= cast argType instance into [ t : type | t; ];
+		if |typeParametersType[i]| not = 1 then [
+			Fail parse
+				"argument type "
+				then i as basic string
+				then " is not statically known"; ];
+		arg ::= typeParametersType[i] instance;
 		args := args then <arg>;
 	];
 
@@ -190,10 +188,9 @@ Restriction "Java type_" is
 [
 	typeNameType : string type
 |
-	typeNameEnum ::= cast typeNameType into [ x : enum | x; ]
-		otherwise [
-			Fail parse "Java type name is not statically known"; ];
-	typeName ::= cast typeNameEnum instance into [ s : string | s; ];
+	if |typeNameType| not = 1 then [
+		Fail parse "Java type name is not statically known"; ];
+	typeName ::= typeNameType instance;
 
 	result : pojo type type;
 	catch [ e : Incorrect Number of Java Type Parameters |
@@ -242,7 +239,7 @@ Restriction "Java type_" is
 
 Method "Java_[_]" is
 [
-	aType : type,
+	aType : any type,
 	sizeRange : whole number type
 |
 	Primitive 501;
@@ -250,7 +247,7 @@ Method "Java_[_]" is
 
 Method "Java_[]" is
 [
-	aType : type
+	aType : any type
 |
 	Java aType [whole number];
 ];
@@ -259,10 +256,9 @@ Restriction "Java_[]" is
 [
 	aTypeType : type type
 |
-	cast aTypeType into [ e : enum |
-		(Java (cast e instance into [ t : type | t; ]) []) type; ]
-	otherwise [
+	if |aTypeType| not = 1 then [
 		Fail parse "pojo type is not statically known"; ];
+	(Java (cast aTypeType instance into [ t : any type | t; ]) []) type;
 ];
 
 [
@@ -280,7 +276,7 @@ Restriction "Java_[]" is
 Method "constructor of_given_" is
 [
 	aPojoType : pojo type,
-	argTypes : tuple of type
+	argTypes : tuple of any type
 |
 	Primitive 502 (failureCode : whole number);
 	if failureCode = 501 then
@@ -294,7 +290,7 @@ Method "constructor of_given_" is
 Restriction "constructor of_given_" is
 [
 	aPojoTypeType : pojo type type,
-	argTypesType : (tuple of type) type
+	argTypesType : (tuple of any type) type
 |
 	argTypesTypeBounds ::= argTypesType sizes;
 	if argTypesTypeBounds lower bound not = argTypesTypeBounds upper bound then
@@ -304,15 +300,14 @@ Restriction "constructor of_given_" is
 
 	argTypesSize ::= cast argTypesTypeBounds upper bound into
 		[ b : whole number | b; ];
-	args : tuple of type := <>;
+	args : tuple of any type := <>;
 	From 1 to argTypesSize do [i : natural number |
-		argType ::= cast argTypesType[i] into [ x : enum | x; ]
-			otherwise [
-				Fail parse
-					"argument type "
-					then i as basic string
-					then " is not statically known"; ];
-		arg ::= cast argType instance into [ t : type | t; ];
+		if |argTypesType[i]| not = 1 then [
+			Fail parse
+				"argument type "
+				then i as basic string
+				then " is not statically known"; ];
+		arg ::= argTypesType[i] instance;
 		args := args then <arg>;
 	];
 
@@ -345,7 +340,7 @@ Method "jlong" is [ [-2^63..2^63); ];
 
 Method "new_[_]" is
 [
-	elementType : type,
+	elementType : any type,
 	sizeRange : whole number
 |
 	Primitive 510;
@@ -353,11 +348,10 @@ Method "new_[_]" is
 
 Restriction "new_[_]" is
 [
-	elementType : type type,
+	elementType : any type type,
 	sizeRange : whole number type
 |
-	contentEnum ::= cast elementType into [ x : enum | x; ];
-	contentType ::= cast contentEnum instance into [ t : type | t; ];
+	contentType ::= elementType instance;
 	lower ::= cast sizeRange lower bound into [ b : whole number | b; ];
 	upper ::= cast sizeRange upper bound into [ b : whole number | b; ];
 	Java contentType [[lower .. upper+1)];
@@ -486,7 +480,7 @@ Method "private method_._(_)" is
 [
 	pT : pojo type,
 	methodName : string,
-	paramTypes : tuple of type
+	paramTypes : tuple of any type
 |
 	Primitive 506 (failureCode : natural number);
 	if failureCode = 502 then
@@ -501,7 +495,7 @@ Method "method_._(«_‡,»)" is
 [
 	pT : pojo type,
 	methodName : string,
-	paramTypes : tuple of type
+	paramTypes : tuple of any type
 |
 	private method pT.methodName (paramTypes);
 ] : [...]->void;
@@ -510,22 +504,20 @@ Restriction "method_._(«_‡,»)" is
 [
 	pT : pojo type type,
 	mT : string type,
-	paramT : (tuple of type) type
+	paramT : (tuple of any type) type
 |
 	p ::= pT instance;
-	mEnum ::= cast mT into [ x : enum | x; ];
-	methodName ::= cast mEnum instance into [ s : string | s; ];
+	methodName ::= mT instance;
 	paramTypesSize ::= cast paramT sizes upper bound into
 		[ b : whole number | b; ];
-	args : tuple of type := <>;
+	args : tuple of any type := <>;
 	From 1 to paramTypesSize do [i : natural number |
-		argType ::= cast paramT[i] into [ x : enum | x; ]
-			otherwise [
-				Fail parse
-					"argument type "
-					then i as basic string
-					then " is not statically known"; ];
-		arg ::= cast argType instance into [ t : type | t; ];
+		if |paramT[i]| not = 1 then [
+			Fail parse
+				"argument type "
+				then i as basic string
+				then " is not statically known"; ];
+		arg ::= paramT[i] instance;
 		args := args then <arg>;
 	];
 	(private method p.methodName (args)) type;
@@ -535,7 +527,7 @@ Method "private static method_._(_)" is
 [
 	pT : pojo type,
 	methodName : string,
-	paramTypes : tuple of type
+	paramTypes : tuple of any type
 |
 	Primitive 508 (failureCode : natural number);
 	if failureCode = 502 then
@@ -550,7 +542,7 @@ Method "static method_._(«_‡,»)" is
 [
 	pT : pojo type,
 	methodName : string,
-	paramTypes : tuple of type
+	paramTypes : tuple of any type
 |
 	private static method pT.methodName (paramTypes);
 ] : [...]->void;
@@ -559,22 +551,20 @@ Restriction "static method_._(«_‡,»)" is
 [
 	pT : pojo type type,
 	mT : string type,
-	paramT : (tuple of type) type
+	paramT : (tuple of any type) type
 |
 	p ::= pT instance;
-	mEnum ::= cast mT into [ x : enum | x; ];
-	methodName ::= cast mEnum instance into [ s : string | s; ];
+	methodName ::= mT instance;
 	paramTypesSize ::= cast paramT sizes upper bound into
 		[ b : whole number | b; ];
-	args : tuple of type := <>;
+	args : tuple of any type := <>;
 	From 1 to paramTypesSize do [i : natural number |
-		argType ::= cast paramT[i] into [ x : enum | x; ]
-			otherwise [
-				Fail parse
-					"argument type "
-					then i as basic string
-					then " is not statically known"; ];
-		arg ::= cast argType instance into [ t : type | t; ];
+		if |paramT[i]| not = 1 then [
+			Fail parse
+				"argument type "
+				then i as basic string
+				then " is not statically known"; ];
+		arg ::= paramT[i] instance;
 		args := args then <arg>;
 	];
 	(private static method p.methodName (args)) type;

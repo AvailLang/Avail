@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.02.29 15:20:48.626 -0600
+ * * Last Generated On: 2012.03.14 16:39:35.855 -0500
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -64,7 +64,6 @@ Uses
 		"_'s function",
 		"_'s function type",
 		"_'s implementation",
-		"_'s instances",
 		"_'s key type",
 		"_'s keys",
 		"_'s leading types",
@@ -143,6 +142,7 @@ Uses
 		"|_'s local variables|",
 		"|_'s outer variables|",
 		"|_|",
+		"||_||",
 		"↑_",
 		"∪_",
 		"⌈_⌉",
@@ -266,7 +266,7 @@ Method "Clear_" is
  */
 Method "↑_" is
 [
-	containmentType : type
+	containmentType : any meta
 |
 	Primitive 13;
 ] : variable meta;
@@ -299,7 +299,7 @@ Method "_'s read type" is
  */
 Method "new↑_" is
 [
-	containmentType : type
+	containmentType : any meta
 |
 	Primitive 16;
 ] : variable;
@@ -383,19 +383,20 @@ Method "_[_]:=_" is
 ] : ⊤;
 
 /**
- * Answer the instances of the enumeration.
+ * Answer the number of instances of the specified type. This is `∞` for all
+ * types except for enumerations.
  *
  * Parameters:
- *    enum - An enumeration.
+ *    aType - A type.
  * Returns:
- *    A set whose members are the instances of the enumeration.
+ *    The cardinality of the membership of the type.
  */
-Method "_'s instances" is
+Method "|_|" is
 [
-	enum : enumeration meta
+	aType : type
 |
-	Primitive 29;
-] : set;
+	Primitive 28;
+] : nonnegative integer;
 
 /**
  * Answer the precise instance type of the supplied value. This is the most
@@ -461,7 +462,7 @@ Method "_∩_" is
  *    `true` if the first argument is a subtype of, or the same type as, the
  *    second argument, `false` otherwise.
  */
-Method "_≤_" is
+Method "_⊆_" is
 [
 	arg1 : type,
 	arg2 : type
@@ -483,7 +484,7 @@ Method "_≤_" is
  */
 Method "function accepting_and returning_" is
 [
-	parameterTypes : tuple of type,
+	parameterTypes : tuple of any meta,
 	returnType : type
 |
 	Primitive 34;
@@ -837,23 +838,7 @@ Method "enumeration of_" is
 	instances : set
 |
 	Primitive 65;
-] : enumeration meta;
-
-/**
- * Construct and answer an enumeration meta whose instances' instances are
- * universally subtypes of `instanceType`.
- *
- * Parameters:
- *    instanceType - The complete set of instances of the enumeration.
- * Returns:
- *    The requested enumeration meta.
- */
-Method "enumeration of_" is
-[
-	instanceType : type
-|
-	Primitive 66;
-] : enumeration meta meta;
+] : type;
 
 /**
  * For the purpose of debugging, bind a name to an object type. This name will
@@ -1065,8 +1050,8 @@ Method "_'s keys" is
  */
 Method "{_→_|_}" is
 [
-	keyType : type,
-	valueType : type,
+	keyType : any meta,
+	valueType : any meta,
 	cardinalityType : whole number meta
 |
 	Primitive 87;
@@ -1081,7 +1066,7 @@ Method "{_→_|_}" is
  * Returns:
  *    The argument's cardinality requirement.
  */
-Method "|_|" is
+Method "||_||" is
 [
 	aMapType : map meta
 |
@@ -1102,7 +1087,7 @@ Method "_'s key type" is
 	aMapType : map meta
 |
 	Primitive 89;
-] : type;
+] : any meta;
 
 /**
  * Answer the most specific type to which the values of all instances must
@@ -1118,7 +1103,7 @@ Method "_'s value type" is
 	aMapType : map meta
 |
 	Primitive 90;
-] : type;
+] : any meta;
 
 /**
  * Answer a tuple containing the values of the specified map. The values are
@@ -1341,7 +1326,7 @@ Method "_→tuple" is
  */
 Method "{_|_}" is
 [
-	elementType : type,
+	elementType : any meta,
 	cardinalityType : whole number meta
 |
 	Primitive 111;
@@ -1356,7 +1341,7 @@ Method "{_|_}" is
  * Returns:
  *    The argument's cardinality requirement.
  */
-Method "|_|" is
+Method "||_||" is
 [
 	aSetType : set meta
 |
@@ -1377,7 +1362,7 @@ Method "_'s element type" is
 	aSetType : set meta
 |
 	Primitive 113;
-] : type;
+] : any meta;
 
 /**
  * Construct and answer a new atom. Associate with the atom the supplied string,
@@ -1471,8 +1456,8 @@ Method "concatenate_" is
  */
 Method "<_,_`…|_>" is
 [
-	leadingTypes : tuple of type,
-	defaultType : type,
+	leadingTypes : tuple of any meta,
+	defaultType : any meta,
 	cardinalityType : whole number meta
 |
 	Primitive 137;
@@ -1486,7 +1471,7 @@ Method "<_,_`…|_>" is
  * Returns:
  *    The argument's cardinality requirement.
  */
-Method "|_|" is
+Method "||_||" is
 [
 	aTupleType : tuple meta
 |
@@ -1507,7 +1492,7 @@ Method "_'s leading types" is
 	aTupleType : tuple meta
 |
 	Primitive 139;
-] : tuple of type;
+] : tuple of any meta;
 
 /**
  * Answer the default element type of instances of the specified type.
@@ -1522,7 +1507,7 @@ Method "_'s default type" is
 	aTupleType : tuple meta
 |
 	Primitive 140;
-] : type;
+] : any meta;
 
 /**
  * Answer the element type of the `index`-th element of instances of the
@@ -1540,7 +1525,7 @@ Method "_[_]" is
 	index : natural number
 |
 	Primitive 141;
-] : type;
+] : any meta;
 
 /**
  * Compute and answer the concatenation of the specified tuple types. This is
@@ -1703,7 +1688,7 @@ Method "_'s literals" is
 Method "semantic restrictions for_given_" is
 [
 	aMethod : method,
-	arguments : tuple of type
+	arguments : tuple of any meta
 |
 	Primitive 247;
 ] : tuple of semantic restriction function;
@@ -2202,7 +2187,7 @@ Method "_'s value" is
  */
 Method "_[_]" is
 [
-	elementType : type,
+	elementType : any meta,
 	cardinalityRequirement : whole number meta
 |
 	Primitive 501;
@@ -2220,7 +2205,7 @@ Method "_[_]" is
  */
 Method "new_[_]" is
 [
-	elementType : type,
+	elementType : any meta,
 	length : whole number
 |
 	Primitive 510;

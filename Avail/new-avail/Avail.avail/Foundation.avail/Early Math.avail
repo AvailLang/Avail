@@ -273,7 +273,7 @@ Method "_'s lower bound is inclusive" is
 	range : extended integer meta
 |
 	bound ::= range's lower bound;
-	bound's type ≤ range;
+	bound's type ⊆ range;
 ] : boolean;
 
 /**
@@ -294,7 +294,7 @@ Method "_'s upper bound is inclusive" is
 	range : extended integer meta
 |
 	bound ::= range's upper bound;
-	bound's type ≤ range;
+	bound's type ⊆ range;
 ] : boolean;
 
 /**

@@ -247,18 +247,9 @@ extends AbstractTypeDescriptor
 		/**
 		 * Types are objects too, so they have to have their own types.  This is
 		 * the most general kind of all types.  Since it's a type's type, it can
-		 * also be called a metatype (or often just {@linkplain #META meta} for
-		 * short).
+		 * also be called a metatype (or often just meta for short).
 		 */
-		TYPE(ANY, "META"),
-
-		/**
-		 * Metatypes are special cases of both types and objects.  This is the
-		 * most general kind for objects that are themselves metatypes.  That
-		 * makes this a meta-metatype (i.e., a type of a type of a type of an
-		 * object).
-		 */
-		META(TYPE, "META");
+		TYPE(ANY, "TYPE");
 
 
 		/**
@@ -366,6 +357,12 @@ extends AbstractTypeDescriptor
 		return another.isType()
 			&& object.isSubtypeOf(another)
 			&& another.isSubtypeOf(object);
+	}
+
+	@Override @AvailMethod
+	@NotNull AvailObject o_InstanceCount (final @NotNull AvailObject object)
+	{
+		return InfinityDescriptor.positiveInfinity();
 	}
 
 	@Override @AvailMethod
@@ -561,18 +558,6 @@ extends AbstractTypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aMapType)
 	{
-		return BottomTypeDescriptor.bottom();
-	}
-
-	@Override @AvailMethod
-	@NotNull AvailObject o_TypeIntersectionOfMeta (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject someMeta)
-	{
-		/* Answer the most general type that is still at least as specific as
-		 * these.  Since metatypes intersect at bottom's type rather than
-		 * bottom, we must be very careful to override this properly.
-		 */
 		return BottomTypeDescriptor.bottom();
 	}
 

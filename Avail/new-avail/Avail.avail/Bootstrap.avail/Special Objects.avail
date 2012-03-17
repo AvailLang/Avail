@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.02.24 13:08:53.125 -0600
+ * * Last Generated On: 2012.03.14 16:39:35.817 -0500
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -49,6 +49,7 @@ Names
 	/* 111 */ "Euler number",
 	/*  42 */ "abstract signature",
 	/*   1 */ "any",
+	/*  69 */ "any meta",
 	/*  62 */ "argument",
 	/*  53 */ "assignment",
 	/*  11 */ "atom",
@@ -63,8 +64,6 @@ Names
 	/*  12 */ "double",
 	/*  96 */ "empty map",
 	/* 104 */ "empty tuple",
-	/*  21 */ "enumeration meta",
-	/*  24 */ "enumeration meta meta",
 	/*  52 */ "expression",
 	/*  13 */ "extended integer",
 	/*  18 */ "extended integer meta",
@@ -91,7 +90,6 @@ Names
 	/*  19 */ "map meta",
 	/*  40 */ "message bundle",
 	/*  45 */ "message bundle tree",
-	/*  20 */ "meta",
 	/*  46 */ "method",
 	/*  44 */ "method signature",
 	/*  67 */ "module constant",
@@ -99,6 +97,7 @@ Names
 	/*  37 */ "natural number",
 	/*  97 */ "non-empty map",
 	/*  99 */ "non-empty set",
+	/* 118 */ "nonnegative integer",
 	/*  81 */ "null",
 	/*  90 */ "nullary procedure",
 	/*  16 */ "number",
@@ -133,6 +132,7 @@ Names
 	/*  31 */ "true type",
 	/*  32 */ "tuple",
 	/*  33 */ "tuple meta",
+	/* 117 */ "tuple of any meta",
 	/* 102 */ "tuple of nybble",
 	/* 108 */ "tuple of semantic restriction function",
 	/*  74 */ "tuple of set of string",
@@ -177,11 +177,8 @@ _number                                 ::= special object 16;
 _integer                                ::= special object 17;
 _extended_integer_meta                  ::= special object 18;
 _map_meta                               ::= special object 19;
-_meta                                   ::= special object 20;
-_enumeration_meta                       ::= special object 21;
 _object                                 ::= special object 22;
 _object_meta                            ::= special object 23;
-_enumeration_meta_meta                  ::= special object 24;
 _fiber                                  ::= special object 25;
 _set                                    ::= special object 26;
 _set_meta                               ::= special object 27;
@@ -222,6 +219,7 @@ _local_constant                         ::= special object 65;
 _module_variable                        ::= special object 66;
 _module_constant                        ::= special object 67;
 _primitive_failure_reason               ::= special object 68;
+_any_meta                               ::= special object 69;
 _true                                   ::= special object 70;
 _false                                  ::= special object 71;
 _tuple_of_string                        ::= special object 72;
@@ -269,7 +267,30 @@ _phrase_meta                            ::= special object 113;
 _set_of_atom                            ::= special object 114;
 _token                                  ::= special object 115;
 _literal_token                          ::= special object 116;
+_tuple_of_any_meta                      ::= special object 117;
+_nonnegative_integer                    ::= special object 118;
 
+/**
+ * The practical abstract root of the Avail type lattice. `any` is the second
+ * most senior type, inferior only to `⊤`. It includes every value available
+ * to an Avail program, i.e., every Avail value except for the unexposed special
+ * value nil.
+ *
+ * `any` is made extremely useful by the interaction of polymorphism and
+ * semantic restrictions. Many algorithms can be codified once in terms of `any`
+ * and then strengthened via a semantic restriction that extrapolates a
+ * stronger result subtype from the static input types.
+ *
+ * `any` is the most general type that may appear in the following contexts:
+ *
+ *    - As a parameter type of a function type.
+ *    - As the read type of a variable type.
+ *    - As a leading type or the default type of a tuple type.
+ *    - As the element type of a set type.
+ *    - As the key type or value type of a map type.
+ *    - As the field type of an object type.
+ *    - As the type parameter of a pojo type.
+ */
 Method "any" is
 [
 	_any;
@@ -365,16 +386,6 @@ Method "map meta" is
 	_map_meta;
 ];
 
-Method "meta" is
-[
-	_meta;
-];
-
-Method "enumeration meta" is
-[
-	_enumeration_meta;
-];
-
 Method "object" is
 [
 	_object;
@@ -383,11 +394,6 @@ Method "object" is
 Method "object meta" is
 [
 	_object_meta;
-];
-
-Method "enumeration meta meta" is
-[
-	_enumeration_meta_meta;
 ];
 
 Method "fiber" is
@@ -441,12 +447,63 @@ Method "type" is
 ];
 
 /**
- * The abstract root of the Avail type lattice, pronounced "top". When
- * appearing as the return type of a function type, it indicates that the
- * function is a procedure (i.e. it does not produce a value).
+ * The true abstract root of the Avail type lattice. It is pronounced "top" and
+ * written as the down tack (⊤) character. Every Avail value is an instance
+ * of `⊤`, and every Avail type is a subtype of `⊤`.
  *
- * Returns:
- *    The root type.
+ * `⊤` is distinct from `any` in that it includes exactly one additional value:
+ * the special value nil. This value does not satisfy any public protocol and
+ * is not available to an Avail programmer. It is, however, implicitly returned
+ * from every procedure, i.e., function whose return type is `⊤`. Thus nil is
+ * the value produced iff no value is produced. The virtual machine uses nil to
+ * simplify several core algorithms, but exposure of nil to an Avail programmer
+ * would not yield a net good.
+ *
+ * `⊤` typically appears in Avail code in only a few select contexts:
+ *
+ *    - As the return type of a function type. In this context, it signifies
+ *      that the function does not produce a value, i.e., it produces the
+ *      unexposed value nil.
+ *    - As the return type of a continuation type. In this context, it
+ *      signifies that the continuation will not produce a value, i.e., it
+ *      produces the unexposed value nil.
+ *    - As the read type of a variable type. In this context, it signifies
+ *      that no value may be read from the variable, i.e., the variable is
+ *      write-only.
+ *    - As the idempotent initial value of an accumulator variable whose
+ *      intermediate and final results represent a chain of type intersections.
+ *      (Note that the type intersection of `⊤` with some type X is always X.)
+ *    - As the result of a semantic restriction on a procedure that serves only
+ *      to reject parses based on the static types of the arguments (but does
+ *      not strengthen the return type).
+ *    - As the result type of a phrase. In this context, it signifies that the
+ *      phrase serves as a statement (and not merely as an expression).
+ *
+ * A function whose declared return type is `⊤` is still permitted to answer an
+ * actual (non-nil) value. This is consistent with the type lattice, since every
+ * value is an instance of `⊤`. It is useful, moreover, because a semantic
+ * restriction may strengthen the return type of a `⊤`-valued function at a
+ * particular call site to a subtype of `⊤`.
+ *
+ * `⊤` is expressly forbidden from occurring in most contexts, including the
+ * following:
+ *
+ *    - As a parameter type of a function type.
+ *    - As the write type of a variable type. This also implies that it cannot
+ *      be the type of an actual variable.
+ *    - As a leading type or the default type of a tuple type.
+ *    - As the element type of a set type.
+ *    - As the key type or value type of a map type.
+ *    - As the field type of an object type.
+ *    - As the type parameter of a pojo type.
+ *
+ * Note that these prohibitions, when considered in aggregate, negate any
+ * possible value that could be gleaned from exposing the special value nil to
+ * an Avail program. They conspire together to ensure that nil could never be
+ * retained by an Avail value. It may therefore only exist as a temporary within
+ * a continuation, i.e., an item on the local stack of a function call. A
+ * reflective query of a continuation''s temporaries that would answer nil will
+ * instead produce a variable whose read type is `⊥`.
  */
 Method "⊤" is
 [
@@ -596,6 +653,11 @@ Method "module constant" is
 Method "primitive failure reason" is
 [
 	_primitive_failure_reason;
+];
+
+Method "any meta" is
+[
+	_any_meta;
 ];
 
 Method "true" is
@@ -831,5 +893,15 @@ Method "token" is
 Method "literal token" is
 [
 	_literal_token;
+];
+
+Method "tuple of any meta" is
+[
+	_tuple_of_any_meta;
+];
+
+Method "nonnegative integer" is
+[
+	_nonnegative_integer;
 ];
 

@@ -32,6 +32,8 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.LiteralTokenDescriptor.IntegerSlots.*;
+import static com.avail.descriptor.LiteralTokenDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.LITERAL_TOKEN;
 import com.avail.annotations.*;
 
@@ -62,6 +64,13 @@ extends TokenDescriptor
 		STRING,
 
 		/**
+		 * The lower case {@linkplain StringDescriptor string}, cached as an
+		 * optimization for case insensitive parsing.
+		 */
+		@HideFieldInDebugger
+		LOWER_CASE_STRING,
+
+		/**
 		 * The actual {@link AvailObject} wrapped by this token.
 		 */
 		LITERAL;
@@ -70,6 +79,8 @@ extends TokenDescriptor
 		{
 			assert TokenDescriptor.ObjectSlots.STRING.ordinal()
 				== STRING.ordinal();
+			assert TokenDescriptor.ObjectSlots.LOWER_CASE_STRING.ordinal()
+				== LOWER_CASE_STRING.ordinal();
 		}
 	}
 
@@ -177,5 +188,32 @@ extends TokenDescriptor
 	public static LiteralTokenDescriptor immutable ()
 	{
 		return immutable;
+	}
+
+	/**
+	 * Create and initialize a new {@linkplain TokenDescriptor token}.
+	 *
+	 * @param string The token text.
+	 * @param start The token's starting character position in the file.
+	 * @param lineNumber The line number on which the token occurred.
+	 * @param tokenType The type of token to create.
+	 * @param literal The literal.
+	 * @return The new token.
+	 */
+	public static @NotNull AvailObject create (
+		final @NotNull AvailObject string,
+		final int start,
+		final int lineNumber,
+		final @NotNull TokenType tokenType,
+		final @NotNull AvailObject literal)
+	{
+		final AvailObject instance = mutable.create();
+		instance.setSlot(STRING, string);
+		instance.setSlot(LOWER_CASE_STRING, NullDescriptor.nullObject());
+		instance.setSlot(START, start);
+		instance.setSlot(LINE_NUMBER, lineNumber);
+		instance.setSlot(TOKEN_TYPE_CODE, tokenType.ordinal());
+		instance.setSlot(LITERAL, literal);
+		return instance;
 	}
 }

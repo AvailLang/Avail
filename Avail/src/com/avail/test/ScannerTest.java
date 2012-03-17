@@ -159,7 +159,7 @@ public final class ScannerTest
 		{
 			@Override public AvailObject value ()
 			{
-				final AvailObject token = TokenDescriptor.mutable().create(
+				final AvailObject token = TokenDescriptor.create(
 					StringDescriptor.from(string),
 					start,
 					1,
@@ -313,12 +313,12 @@ public final class ScannerTest
 					literal = null;
 				}
 				final AvailObject token =
-					LiteralTokenDescriptor.mutable().create(
+					LiteralTokenDescriptor.create(
 						StringDescriptor.from(string),
 						start,
 						1,
-						LITERAL);
-				token.literal(literal);
+						LITERAL,
+						literal);
 				return token;
 			}
 		};
@@ -430,7 +430,7 @@ public final class ScannerTest
 				assertEquals(
 					c + ": Expected scanner to have produced the"
 					+ " end-of-file token.",
-					TokenDescriptor.mutable().create(
+					TokenDescriptor.create(
 						TupleDescriptor.empty(),
 						input.length(),
 						1,

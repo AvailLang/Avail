@@ -384,7 +384,13 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Instances (final AvailObject object)
+	@NotNull AvailObject o_InstanceCount (final AvailObject object)
+	{
+		return IntegerDescriptor.zero();
+	}
+
+	@Override @AvailMethod
+	@NotNull AvailObject o_Instances (final AvailObject object)
 	{
 		return SetDescriptor.empty();
 	}
@@ -623,18 +629,6 @@ extends AbstractEnumerationTypeDescriptor
 		final AvailObject potentialInstance)
 	{
 		return false;
-	}
-
-	@Override @AvailMethod
-	@NotNull AvailObject o_InnerKind (final @NotNull AvailObject object)
-	{
-		return object;
-	}
-
-	@Override @AvailMethod
-	boolean o_IsEnumerationType (final @NotNull AvailObject object)
-	{
-		return true;
 	}
 
 	@Override @AvailMethod

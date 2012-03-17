@@ -190,11 +190,10 @@ extends AbstractEnumerationTypeDescriptor
 			// be treated as being a meta for our purposes, even though
 			// bottom technically is a meta.
 			if (instance.isType()
-				&& another.isInstanceOfKind(META.o())
+				&& another.isSubtypeOf(TYPE.o())
 				&& !another.equals(BottomTypeDescriptor.bottom()))
 			{
-				return InstanceTypeDescriptor.on(
-					BottomTypeDescriptor.bottom());
+				return on(BottomTypeDescriptor.bottom());
 			}
 		}
 		return AbstractEnumerationTypeDescriptor.withInstances(set);
@@ -486,7 +485,13 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Instances (final AvailObject object)
+	@NotNull AvailObject o_InstanceCount (final @NotNull AvailObject object)
+	{
+		return IntegerDescriptor.one();
+	}
+
+	@Override @AvailMethod
+	@NotNull AvailObject o_Instances (final AvailObject object)
 	{
 		return SetDescriptor.empty().setWithElementCanDestroy(
 			getInstance(object),
@@ -697,23 +702,6 @@ extends AbstractEnumerationTypeDescriptor
 		// TODO: [MvG] Is this legal?
 		return null;
 	}
-
-	@Override @AvailMethod
-	boolean o_IsEnumerationType (final @NotNull AvailObject object)
-	{
-		return getInstance(object).isEnumeration();
-	}
-
-	@Override @AvailMethod
-	@NotNull AvailObject o_InnerKind (final @NotNull AvailObject object)
-	{
-		assert object.isEnumerationType();
-		final AvailObject instance = getInstance(object);
-		return instance.isEnumeration()
-			? instance.computeSuperkind()
-			: instance;
-	}
-
 
 	/**
 	 * Answer a new instance of this descriptor based on some object whose type

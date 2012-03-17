@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.02.24 13:08:53.156 -0600
+ * * Last Generated On: 2012.03.14 16:39:35.852 -0500
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -168,6 +168,7 @@ Names
 	"|_'s local variables|",
 	"|_'s outer variables|",
 	"|_|",
+	"||_||",
 	"↑_",
 	"↓_",
 	"↓_:=_",

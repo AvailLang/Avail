@@ -159,9 +159,9 @@ Restriction "_new with_" is [oM : objectMeta, tT : tupleType |
 				valueType ::= pairType[2];
 				if keyType = atom then [
 					Fail parse "Keys for \"_new with_\" must be statically known and proper subtypes of atom.";];
-				if ||keyType unsafe instances|| > 1 then [
+				if ||keyType instances|| > 1 then [
 					Fail parse "Key for \"_new with_\" must be statically known and an instance type (not union) of atom.";];
-				key ::= cast keyType unsafe instance into [k : atom | k;];
+				key ::= keyType instance;
 				if m[key]? then [Crash "Duplicate key in \"_new from_\" argument.";];
 				if mustMatch[key]? & [not valueType <= mustMatch[key];] then [
 					Crash <"Value for key ", key,
@@ -211,9 +211,9 @@ Restriction "_altered with_" is [oT : objectType, tT : tupleType |
 				valueType ::= pairType[2];
 				if keyType = atom then [
 					Fail parse "Keys for \"_altered with_\" must be statically known and proper subtypes of atom.";];
-				if ||keyType unsafe instances|| > 1 then [
+				if ||keyType instances|| > 1 then [
 					Fail parse "Key for \"_altered with_\" must be statically known and an instance type (not union) of atom.";];
-				key ::= cast keyType unsafe instance into [x : atom | x;];
+				key ::= keyType instance;
 				if keysEncountered includes key then [
 					Crash "Duplicate key encountered in tuple of pairs in \"_altered with_\".";];
 				keysEncountered := keysEncountered with key;
@@ -263,15 +263,15 @@ Method "_->_" is [ot : objectType, key : atom |
 Restriction "_->_" is [om : objectMeta, keyT : atom type |
 	/* Require that the atom's static type be at least a union type for which
 	   all instances can be looked up in the static object type. */
-	good ::= keyT type <= enum & [
-		om instances as tuple all [ot : objectType |
-			keyT unsafe instances as tuple all [key : any |
-				ot as map [key]?;];];];
+Print "\nGOT HERE: " then om as basic string then "\n";
+	good ::= om instances as tuple all [ot : objectType |
+		keyT instances as tuple all [key : any |
+			ot as map [key]?;];];
 	if not good then [
 		Fail parse "No such field in this object type";];
 	result : type := terminates;
 	om instances do [ot : objectType |
-		keyT unsafe instances do [key : any |
+		keyT instances do [key : any |
 			strongKey : atom;
 			*&strongKey ?:= key;
 			result := type union of result and ot as map [strongKey];];];
@@ -284,15 +284,12 @@ Method "_->_result" is [ot : objectType, key : atom |
 ] : type;
 
 Restriction "_->_result" is [om : objectMeta, keyT : atom type |
-	good ::= cast keyT
-		into [keyU : enum |
-			||keyU instances|| = 1 & [
-				om instance as map [keyU instance]? & [
-					om instance as map [keyU instance] <= []->any;];];]
-		otherwise [false;];
+	good ::= |keyT| = 1 & [
+			om instance as map [keyT instance]? & [
+				om instance as map [keyT instance] <= []->any;];];
 	if not good then [
 		Fail parse "No such field in this object type";];
-	cast om instance as map [keyT unsafe instance]
+	cast om instance as map [keyT instance]
 		into [x : functionType | x result type;];
 ];
 
@@ -310,22 +307,18 @@ Method "_->_" is [o : Object, key : atom |
 
 Restriction "_->_" is [ot : objectType, keyT : atom type |
 	$escape : $[objectType, atom type]->type;
-	good ::= keyT type <= enum & [
-		keyT not = terminates & [
-			keyT unsafe instances as tuple all [shouldBeAtom : any |
-				shouldBeAtom type <= atom;];];];
+	good ::= keyT not = terminates & [
+		keyT instances as tuple all [shouldBeAtom : any |
+			shouldBeAtom type <= atom;];];
 	if not good then [
 		Fail parse "No such field in object";];
 	union : type := terminates;
-	cast keyT
-		into [keyU : enum |
-			map ::= ot as map;
-			keyU instances do [shouldBeAtom : any |
-				if map[shouldBeAtom]? then [
-					union := type union of union and map[shouldBeAtom];
-				] else [
-					Exit escape with terminates;];];]
-		otherwise [];
+	map ::= ot as map;
+	keyT instances do [shouldBeAtom : any |
+		if map[shouldBeAtom]? then [
+			union := type union of union and map[shouldBeAtom];
+		] else [
+			Exit escape with terminates;];];
 	union;
 ];
 
@@ -337,33 +330,27 @@ Method "_->_result" is [o : Object, key : atom |
 ] : any;
 
 Restriction "_->_result" is [ot : objectType, keyT : atom type |
-	good ::= cast keyT
-		into [keyU : enum |
-			atoms ::= keyU instances;
-			if || atoms || = 1 then [
-				exactAtom ::= atoms as tuple [1];
-				ot as map [exactAtom]?
-					& [
-						ot as map [exactAtom] <= function;
-					];]
-			else [
-				Fail parse "Expected type of second argument of \"_->_result\" to be a specific atom type";];]
-		otherwise [
-			Fail parse "Expected type of second argument of \"_->_result\" to be a specific atom's type";];
+	good ::= if |keyT| = 1 then [
+			exactAtom ::= keyT instance;
+			ot as map [exactAtom]?
+				& [
+					ot as map [exactAtom] <= function;
+				];]
+		else [
+			Fail parse
+				"Expected type of second argument of\
+				\| \"_->_result\" to be a specific atom type";];
 	if not good then [
 		Fail parse "No such field in object";];
-	cast keyT
-		into [keyU : enum |
-			atoms ::= keyU instances;
-			if || atoms || = 1 then [
-				exactAtom ::= atoms as tuple [1];
-				if ot as map [exactAtom]? then [
-					cast ot as map [exactAtom] into [x : functionType | x result;];]
-				else [
-					/* For lack of anything better.  Really should raise exception eventually. */
-					terminates;];]
-			else [
-				terminates;];];
+	if |keyT| = 1 then [
+		exactAtom ::= keyT instance;
+		if ot as map [exactAtom]? then [
+			cast ot as map [exactAtom] into [x : functionType | x result;];]
+		else [
+			/* For lack of anything better.  Really should raise exception eventually. */
+			terminates;];]
+	else [
+		terminates;];
 ];
 
 

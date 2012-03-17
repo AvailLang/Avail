@@ -490,7 +490,7 @@ implements IntegerEnumSlotDescriptionEnum
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					TYPE.o()),
+					InstanceTypeDescriptor.on(ANY.o())),
 				VariableTypeDescriptor.meta());
 		}
 	},
@@ -581,7 +581,7 @@ implements IntegerEnumSlotDescriptionEnum
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					TYPE.o()),
+					InstanceTypeDescriptor.on(ANY.o())),
 				VariableTypeDescriptor.mostGeneralType());
 		}
 	},
@@ -855,10 +855,10 @@ implements IntegerEnumSlotDescriptionEnum
 	},
 
 	/**
-	 * <strong>Primitive 29:</strong> Obtain the instances of the specified
-	 * {@linkplain AbstractEnumerationTypeDescriptor enumeration}.
+	 * <strong>Primitive 28:</strong> How many instances does the specified
+	 * {@linkplain com.avail.descriptor.TypeDescriptor.Types#TYPE type} have?
 	 */
-	prim29_Instances(29, 1, CanFold, CannotFail)
+	prim28_InstanceCount(28, 1, CanFold, CannotFail)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -866,9 +866,8 @@ implements IntegerEnumSlotDescriptionEnum
 			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 1;
-			final AvailObject enumeration = args.get(0);
-			return interpreter.primitiveSuccess(
-				enumeration.instances());
+			final AvailObject type = args.get(0);
+			return interpreter.primitiveSuccess(type.instanceCount());
 		}
 
 		@Override
@@ -876,7 +875,41 @@ implements IntegerEnumSlotDescriptionEnum
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					EnumerationMetaDescriptor.mostGeneralType()),
+					TYPE.o()),
+				IntegerRangeTypeDescriptor.create(
+					IntegerDescriptor.zero(),
+					true,
+					InfinityDescriptor.positiveInfinity(),
+					true));
+		}
+	},
+
+	/**
+	 * <strong>Primitive 29:</strong> Obtain the instances of the specified
+	 * {@linkplain com.avail.descriptor.TypeDescriptor.Types#TYPE type}.
+	 */
+	prim29_Instances(29, 1, CanFold)
+	{
+		@Override
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
+		{
+			assert args.size() == 1;
+			final AvailObject type = args.get(0);
+			if (!type.isEnumeration())
+			{
+				return interpreter.primitiveFailure(E_NOT_ENUMERATION);
+			}
+			return interpreter.primitiveSuccess(type.instances());
+		}
+
+		@Override
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
+		{
+			return FunctionTypeDescriptor.create(
+				TupleDescriptor.from(
+					TYPE.o()),
 				SetTypeDescriptor.mostGeneralType());
 		}
 	},
@@ -1023,7 +1056,7 @@ implements IntegerEnumSlotDescriptionEnum
 					TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 						IntegerRangeTypeDescriptor.wholeNumbers(),
 						TupleDescriptor.empty(),
-						TYPE.o()),
+						InstanceTypeDescriptor.on(ANY.o())),
 					TYPE.o()),
 				FunctionTypeDescriptor.meta());
 		}
@@ -1089,7 +1122,7 @@ implements IntegerEnumSlotDescriptionEnum
 				TupleDescriptor.from(
 					FunctionTypeDescriptor.meta(),
 					IntegerRangeTypeDescriptor.naturalNumbers()),
-				TYPE.o());
+				InstanceTypeDescriptor.on(ANY.o()));
 		}
 	},
 
@@ -1972,7 +2005,7 @@ implements IntegerEnumSlotDescriptionEnum
 				MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
 					IntegerRangeTypeDescriptor.wholeNumbers(),
 					ATOM.o(),
-					TYPE.o()));
+					InstanceTypeDescriptor.on(ANY.o())));
 		}
 	},
 
@@ -2000,35 +2033,7 @@ implements IntegerEnumSlotDescriptionEnum
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					SetTypeDescriptor.mostGeneralType()),
-				EnumerationMetaDescriptor.mostGeneralType());
-		}
-	},
-
-	/**
-	 * <strong>Primitive 66:</strong> Create an enumeration meta from the given
-	 * inner type.  The type will be canonized to the nearest kind.
-	 */
-	prim66_CreateEnumerationType(66, 1, CanFold, CannotFail)
-	{
-		@Override
-		public @NotNull Result attempt (
-			final @NotNull List<AvailObject> args,
-			final @NotNull Interpreter interpreter)
-		{
-			assert args.size() == 1;
-			final AvailObject innerType = args.get(0);
-			final AvailObject enumerationType =
-				EnumerationMetaDescriptor.of(innerType);
-			return interpreter.primitiveSuccess(enumerationType);
-		}
-
-		@Override
-		protected @NotNull AvailObject privateBlockTypeRestriction()
-		{
-			return FunctionTypeDescriptor.create(
-				TupleDescriptor.from(
-					TYPE.o()),
-				EnumerationMetaDescriptor.meta());
+				TYPE.o());
 		}
 	},
 
@@ -2485,8 +2490,8 @@ implements IntegerEnumSlotDescriptionEnum
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					TYPE.o(),
-					TYPE.o(),
+					InstanceTypeDescriptor.on(ANY.o()),
+					InstanceTypeDescriptor.on(ANY.o()),
 					InstanceTypeDescriptor.on(
 						IntegerRangeTypeDescriptor.wholeNumbers())),
 				MapTypeDescriptor.meta());
@@ -2546,7 +2551,7 @@ implements IntegerEnumSlotDescriptionEnum
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					MapTypeDescriptor.meta()),
-				TYPE.o());
+				InstanceTypeDescriptor.on(ANY.o()));
 		}
 	},
 
@@ -2572,7 +2577,7 @@ implements IntegerEnumSlotDescriptionEnum
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					MapTypeDescriptor.meta()),
-				TYPE.o());
+				InstanceTypeDescriptor.on(ANY.o()));
 		}
 	},
 
@@ -2961,7 +2966,7 @@ implements IntegerEnumSlotDescriptionEnum
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					TYPE.o(),
+					InstanceTypeDescriptor.on(ANY.o()),
 					InstanceTypeDescriptor.on(
 						IntegerRangeTypeDescriptor.wholeNumbers())),
 				SetTypeDescriptor.meta());
@@ -3020,7 +3025,7 @@ implements IntegerEnumSlotDescriptionEnum
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					SetTypeDescriptor.meta()),
-				TYPE.o());
+				InstanceTypeDescriptor.on(ANY.o()));
 		}
 	},
 
@@ -3468,8 +3473,8 @@ implements IntegerEnumSlotDescriptionEnum
 					TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 						IntegerRangeTypeDescriptor.wholeNumbers(),
 						TupleDescriptor.empty(),
-						TYPE.o()),
-					TYPE.o(),
+						InstanceTypeDescriptor.on(ANY.o())),
+					InstanceTypeDescriptor.on(ANY.o()),
 					InstanceTypeDescriptor.on(
 						IntegerRangeTypeDescriptor.wholeNumbers())),
 				TupleTypeDescriptor.meta());
@@ -3533,7 +3538,7 @@ implements IntegerEnumSlotDescriptionEnum
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 					IntegerRangeTypeDescriptor.wholeNumbers(),
 					TupleDescriptor.empty(),
-					TYPE.o()));
+					InstanceTypeDescriptor.on(ANY.o())));
 		}
 	},
 
@@ -3559,7 +3564,7 @@ implements IntegerEnumSlotDescriptionEnum
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
 					TupleTypeDescriptor.meta()),
-				TYPE.o());
+				InstanceTypeDescriptor.on(ANY.o()));
 		}
 	},
 
@@ -3595,7 +3600,7 @@ implements IntegerEnumSlotDescriptionEnum
 				TupleDescriptor.from(
 					TupleTypeDescriptor.meta(),
 					IntegerRangeTypeDescriptor.naturalNumbers()),
-				TYPE.o());
+				InstanceTypeDescriptor.on(ANY.o()));
 		}
 	},
 
@@ -3656,7 +3661,7 @@ implements IntegerEnumSlotDescriptionEnum
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 					IntegerRangeTypeDescriptor.wholeNumbers(),
 					TupleDescriptor.empty(),
-					TYPE.o()));
+					InstanceTypeDescriptor.on(ANY.o())));
 		}
 	},
 
@@ -3701,7 +3706,7 @@ implements IntegerEnumSlotDescriptionEnum
 					TupleTypeDescriptor.meta(),
 					IntegerRangeTypeDescriptor.naturalNumbers(),
 					IntegerRangeTypeDescriptor.wholeNumbers()),
-				TYPE.o());
+				InstanceTypeDescriptor.on(ANY.o()));
 		}
 	},
 
@@ -5476,7 +5481,7 @@ implements IntegerEnumSlotDescriptionEnum
 					TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 						IntegerRangeTypeDescriptor.wholeNumbers(),
 						TupleDescriptor.empty(),
-						TYPE.o())),
+						InstanceTypeDescriptor.on(ANY.o()))),
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 					IntegerRangeTypeDescriptor.wholeNumbers(),
 					TupleDescriptor.empty(),
@@ -5502,7 +5507,8 @@ implements IntegerEnumSlotDescriptionEnum
 			final AvailObject tupleType = functionType.argsTupleType();
 			for (int i = function.code().numArgs(); i >= 1; i--)
 			{
-				if (!tupleType.typeAtIndex(i).isInstanceOfKind(META.o()))
+				if (!tupleType.typeAtIndex(i).isInstanceOf(
+					InstanceTypeDescriptor.on(TYPE.o())))
 				{
 					return interpreter.primitiveFailure(
 						E_TYPE_RESTRICTION_MUST_ACCEPT_ONLY_TYPES);
@@ -7110,7 +7116,7 @@ implements IntegerEnumSlotDescriptionEnum
 					TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 						IntegerRangeTypeDescriptor.wholeNumbers(),
 						TupleDescriptor.empty(),
-						TYPE.o())),
+						InstanceTypeDescriptor.on(ANY.o()))),
 				InstanceTypeDescriptor.on(
 					PojoTypeDescriptor.mostGeneralType()));
 		}
@@ -7121,8 +7127,6 @@ implements IntegerEnumSlotDescriptionEnum
 	 * PojoTypeDescriptor pojo array type} for the specified {@linkplain
 	 * TypeDescriptor type} and {@linkplain IntegerRangeTypeDescriptor range of
 	 * sizes}.
-	 *
-	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
 	prim501_CreatePojoArrayType(501, 2, CanFold, CannotFail)
 	{
@@ -7144,7 +7148,7 @@ implements IntegerEnumSlotDescriptionEnum
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					TYPE.o(),
+					InstanceTypeDescriptor.on(ANY.o()),
 					InstanceTypeDescriptor.on(
 						IntegerRangeTypeDescriptor.wholeNumbers())),
 				InstanceTypeDescriptor.on(
@@ -7299,7 +7303,7 @@ implements IntegerEnumSlotDescriptionEnum
 					TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 						IntegerRangeTypeDescriptor.wholeNumbers(),
 						TupleDescriptor.empty(),
-						TYPE.o())),
+						InstanceTypeDescriptor.on(ANY.o()))),
 				// TODO: [TLS] Answer a function type that answers pojo and
 				// can raise java.lang.Throwable.
 				FunctionTypeDescriptor.forReturnType(
@@ -7741,7 +7745,7 @@ implements IntegerEnumSlotDescriptionEnum
 					TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 						IntegerRangeTypeDescriptor.wholeNumbers(),
 						TupleDescriptor.empty(),
-						TYPE.o())),
+						InstanceTypeDescriptor.on(ANY.o()))),
 				// TODO: [TLS] Answer a function type that answers top and
 				// can raise java.lang.Throwable.
 				FunctionTypeDescriptor.forReturnType(TOP.o()));
@@ -8167,7 +8171,7 @@ implements IntegerEnumSlotDescriptionEnum
 		{
 			return FunctionTypeDescriptor.create(
 				TupleDescriptor.from(
-					TYPE.o(),
+					InstanceTypeDescriptor.on(ANY.o()),
 					IntegerRangeTypeDescriptor.wholeNumbers()),
 				PojoTypeDescriptor.mostGeneralArrayType());
 		}

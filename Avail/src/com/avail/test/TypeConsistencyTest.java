@@ -172,7 +172,16 @@ public class TypeConsistencyTest
 			}
 		}
 
-
+		/** The type of {@code any}. */
+		static final Node ANY_META = new Node(
+			"ANY_META",
+			primitiveTypes.get(Types.TYPE))
+		{
+			@Override AvailObject get ()
+			{
+				return InstanceTypeDescriptor.on(Types.ANY.o());
+			}
+		};
 
 		/** The type {@code tuple} */
 		static final Node TUPLE = new Node(
@@ -223,50 +232,6 @@ public class TypeConsistencyTest
 			@Override AvailObject get ()
 			{
 				return SetTypeDescriptor.mostGeneralType();
-			}
-		};
-
-		/**
-		 * The most general {@linkplain EnumerationMetaDescriptor enumeration
-		 * type}.
-		 */
-		static final Node UNION_META = new Node(
-			"UNION_META",
-			primitiveTypes.get(Types.TYPE))
-		{
-			@Override AvailObject get ()
-			{
-				return EnumerationMetaDescriptor.mostGeneralType();
-			}
-		};
-
-		/**
-		 * An {@linkplain EnumerationMetaDescriptor enumeration type}
-		 * parameterized over integers.
-		 */
-		static final Node UNION_OF_INTEGER_META = new Node(
-			"UNION_OF_INTEGER_META",
-			UNION_META)
-		{
-			@Override AvailObject get ()
-			{
-				return EnumerationMetaDescriptor.of(
-					IntegerRangeTypeDescriptor.integers());
-			}
-		};
-
-		/**
-		 * A {@linkplain EnumerationMetaDescriptor enumeration type}
-		 * parameterized over types.
-		 */
-		static final Node UNION_OF_TYPE_META = new Node(
-			"UNION_OF_TYPE_META",
-			UNION_META,
-			primitiveTypes.get(Types.META))
-		{
-			@Override AvailObject get ()
-			{
-				return EnumerationMetaDescriptor.of(Types.TYPE.o());
 			}
 		};
 
@@ -668,7 +633,7 @@ public class TypeConsistencyTest
 		 */
 		static final Node FUNCTION_META = new Node(
 			"FUNCTION_META",
-			primitiveTypes.get(Types.TYPE))
+			ANY_META)
 		{
 			@Override AvailObject get ()
 			{
@@ -681,7 +646,7 @@ public class TypeConsistencyTest
 		 */
 		static final Node CONTINUATION_META = new Node(
 			"CONTINUATION_META",
-			primitiveTypes.get(Types.TYPE))
+			ANY_META)
 		{
 			@Override AvailObject get ()
 			{
@@ -694,7 +659,7 @@ public class TypeConsistencyTest
 		 */
 		static final Node INTEGER_META = new Node(
 			"INTEGER_META",
-			primitiveTypes.get(Types.TYPE))
+			ANY_META)
 		{
 			@Override AvailObject get ()
 			{
@@ -705,8 +670,7 @@ public class TypeConsistencyTest
 		/** The primitive type representing the metatype of whole numbers [0..∞). */
 		static final Node WHOLE_NUMBER_META = new Node(
 			"WHOLE_NUMBER_META",
-			INTEGER_META,
-			primitiveTypes.get(Types.TYPE))
+			INTEGER_META)
 		{
 			@Override AvailObject get ()
 			{
@@ -715,11 +679,14 @@ public class TypeConsistencyTest
 			}
 		};
 
-		/** The primitive type representing the metametatype of the metatype of whole numbers [0..∞). */
+		/**
+		 * The primitive type representing the metametatype of the metatype of
+		 * whole numbers [0..∞).
+		 */
 		static final Node WHOLE_NUMBER_META_META = new Node(
 			"WHOLE_NUMBER_META_META",
-			UNION_OF_TYPE_META,
-			primitiveTypes.get(Types.META))
+			ANY_META,
+			primitiveTypes.get(Types.TYPE))
 		{
 			@Override AvailObject get ()
 			{
@@ -793,7 +760,7 @@ public class TypeConsistencyTest
 		 */
 		static final Node MAP_META = new Node(
 			"MAP_META",
-			primitiveTypes.get(Types.TYPE))
+			ANY_META)
 		{
 			@Override AvailObject get ()
 			{
@@ -806,7 +773,7 @@ public class TypeConsistencyTest
 		 */
 		static final Node SET_META = new Node(
 			"SET_META",
-			primitiveTypes.get(Types.TYPE))
+			ANY_META)
 		{
 			@Override AvailObject get ()
 			{
@@ -819,7 +786,7 @@ public class TypeConsistencyTest
 		 */
 		static final Node TUPLE_META = new Node(
 			"TUPLE_META",
-			primitiveTypes.get(Types.TYPE))
+			ANY_META)
 		{
 			@Override AvailObject get ()
 			{
@@ -836,10 +803,7 @@ public class TypeConsistencyTest
 			WHOLE_NUMBER_META_META,
 			MAP_META,
 			SET_META,
-			TUPLE_META,
-			UNION_OF_INTEGER_META,
-			UNION_OF_TYPE_META,
-			primitiveTypes.get(Types.META))
+			TUPLE_META)
 		{
 			@Override AvailObject get ()
 			{
@@ -1523,9 +1487,9 @@ public class TypeConsistencyTest
 		{
 			for (final Node y : Node.values)
 			{
-				// TODO: [TLS] Remove this guard after thorough debugging.
 				if (!x.union(y).equals(y.union(x)))
 				{
+					// These are useful trace points. Leave them in.
 					x.t.typeUnion(y.t);
 					y.t.typeUnion(x.t);
 					assertEQ(
@@ -1558,9 +1522,9 @@ public class TypeConsistencyTest
 					final AvailObject xyUz = xy.typeUnion(z.t);
 					final AvailObject yz = y.union(z);
 					final AvailObject xUyz = x.t.typeUnion(yz);
-					// TODO: [TLS] Remove this guard after thorough debugging.
 					if (!xyUz.equals(xUyz))
 					{
+						// These are useful trace points. Leave them in.
 						xy.typeUnion(z.t);
 						x.t.typeUnion(yz);
 						xyUz.equals(xUyz);
@@ -1634,9 +1598,9 @@ public class TypeConsistencyTest
 			{
 				final AvailObject xy = x.intersect(y);
 				final AvailObject yx = y.intersect(x);
-				// TODO: [TLS] Remove this guard after thorough debugging.
 				if (!xy.equals(yx))
 				{
+					// These are useful trace points. Leave them in.
 					x.t.typeIntersection(y.t);
 					y.t.typeIntersection(x.t);
 					assertEQ(
@@ -1669,9 +1633,9 @@ public class TypeConsistencyTest
 					final AvailObject xyIz = xy.typeIntersection(z.t);
 					final AvailObject yz = y.intersect(z);
 					final AvailObject xIyz = x.t.typeIntersection(yz);
-					// TODO: [TLS] Remove this guard after thorough debugging.
 					if (!xyIz.equals(xIyz))
 					{
+						// These are useful trace points. Leave them in.
 						x.t.typeIntersection(y.t);
 						y.t.typeIntersection(z.t);
 						xy.typeIntersection(z.t);

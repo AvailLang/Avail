@@ -64,6 +64,7 @@ extends Descriptor
 		 * The lower case {@linkplain StringDescriptor string}, cached as an
 		 * optimization for case insensitive parsing.
 		 */
+		@HideFieldInDebugger
 		LOWER_CASE_STRING
 	}
 
@@ -271,14 +272,13 @@ extends Descriptor
 	 * @param tokenType The type of token to create.
 	 * @return The new token.
 	 */
-	public AvailObject create (
+	public static @NotNull AvailObject create (
 		final @NotNull AvailObject string,
 		final int start,
 		final int lineNumber,
 		final @NotNull TokenType tokenType)
 	{
-		assert isMutable();
-		final AvailObject instance = create();
+		final AvailObject instance = mutable.create();
 		instance.setSlot(STRING, string);
 		instance.setSlot(LOWER_CASE_STRING, NullDescriptor.nullObject());
 		instance.setSlot(START, start);

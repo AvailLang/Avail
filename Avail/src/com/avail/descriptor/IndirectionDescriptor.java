@@ -2056,14 +2056,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	@NotNull AvailObject o_TypeIntersectionOfMeta (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject someMeta)
-	{
-		return o_Traversed(object).typeIntersectionOfMeta(someMeta);
-	}
-
-	@Override
 	@NotNull AvailObject o_TypeIntersectionOfObjectType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anObjectType)
@@ -3604,23 +3596,11 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_InnerKind (final @NotNull AvailObject object)
-	{
-		return o_Traversed(object).innerKind();
-	}
-
-	@Override
 	boolean o_EqualsEnumerationType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
 		return o_Traversed(object).equalsEnumerationType(another);
-	}
-
-	@Override
-	boolean o_IsEnumerationType (final @NotNull AvailObject object)
-	{
-		return o_Traversed(object).isEnumerationType();
 	}
 
 	@Override
@@ -4260,5 +4240,11 @@ extends AbstractDescriptor
 	@NotNull AvailObject o_LowerCaseString (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).lowerCaseString();
+	}
+
+	@Override
+	@NotNull AvailObject o_InstanceCount (final @NotNull AvailObject object)
+	{
+		return o_Traversed(object).instanceCount();
 	}
 }

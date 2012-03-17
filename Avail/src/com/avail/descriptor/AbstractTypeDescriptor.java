@@ -122,6 +122,10 @@ extends Descriptor
 		final @NotNull AvailObject potentialInstance);
 
 	@Override @AvailMethod
+	abstract @NotNull AvailObject o_InstanceCount (
+		final @NotNull AvailObject object);
+
+	@Override @AvailMethod
 	abstract boolean o_IsBetterRepresentationThan (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anotherObject);
@@ -304,11 +308,6 @@ extends Descriptor
 	abstract @NotNull AvailObject o_TypeIntersectionOfMapType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aMapType);
-
-	@Override @AvailMethod
-	abstract @NotNull AvailObject o_TypeIntersectionOfMeta (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject someMeta);
 
 	@Override @AvailMethod
 	abstract @NotNull AvailObject o_TypeIntersectionOfObjectType (

@@ -103,8 +103,9 @@ Restriction "Restart_with_" is [conType : type, argsType : tupleType |
 		argsType sizes lower bound = numArgs
 			& argsType sizes upper bound = numArgs
 			& closType <=
-				block type taking argsType[1..numArgs]
-				and returning void;
+				block type
+					taking cast argsType[1..numArgs] into [ t : tuple of any type | t; ]
+					and returning void;
 	];
 	if not good then [
 		Fail parse "Restart_with_ to be provided arguments that conform to the continuation argument types";];

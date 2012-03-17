@@ -55,21 +55,21 @@ Body
 
 /* Set type construction / accessing */
 
-Method "{_|_}" is [contentType : type , sizes : whole number type |
+Method "{_|_}" is [contentType : any type , sizes : whole number type |
 	Primitive 111;
 ] : setType;
 
-Method "set_of_" is [sizes : whole number type, contentType : type |
+Method "set_of_" is [sizes : whole number type, contentType : any type |
 	{contentType|sizes};
 ] : setType;
 
-Method "set of_" is [elementType : type |
+Method "set of_" is [elementType : any type |
 	set whole number of elementType;
 ] : setType;
 
 Method "_content type" is [st : setType |
 	Primitive 113;
-] : type;
+] : any type;
 
 Method "_sizes" is [st : setType |
 	Primitive 112;
@@ -122,7 +122,9 @@ Restriction "_as set" is [tt : tupleType |
 	maxSize ::= sizes upper bound;
 	mergedType ::= type union of (union of types in tt leading types) and (tt default type);
 	range ::= [minSize..maxSize private plus 1);
-	set (type intersection of range and whole number) of mergedType;
+	merged : any type;
+	*&merged ?:= mergedType;
+	set (type intersection of range and whole number) of merged;
 ] : setType;
 
 <"_lower bound", "_upper bound"> as set can't have <<"_sizes"> as set>;
@@ -156,7 +158,9 @@ Restriction "{«_‡,»}" is [tt : tupleType |
 	maxSize ::= sizes upper bound;
 	mergedType ::= type union of (union of types in tt leading types) and (tt default type);
 	range ::= [minSize..maxSize private plus 1);
-	set (type intersection of range and whole number) of mergedType;
+	merged : any type;
+	*&merged ?:= mergedType;
+	set (type intersection of range and whole number) of merged;
 ] : setType;
 
 Assert ||{}|| = 0;

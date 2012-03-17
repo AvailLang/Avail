@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import java.util.List;
 import com.avail.annotations.*;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 
 /**
  * I represent the abstract concept of enumerations. In particular, every object
@@ -52,6 +53,10 @@ public abstract class AbstractEnumerationTypeDescriptor
 extends AbstractTypeDescriptor
 {
 	@Override @AvailMethod
+	abstract @NotNull AvailObject o_InstanceCount (
+		final @NotNull AvailObject object);
+
+	@Override @AvailMethod
 	abstract @NotNull AvailObject o_Instances (
 		final @NotNull AvailObject object);
 
@@ -68,12 +73,9 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	abstract boolean o_IsEnumerationType (final @NotNull AvailObject object);
-
-	@Override @AvailMethod
 	final @NotNull AvailObject o_Kind (final AvailObject object)
 	{
-		return EnumerationMetaDescriptor.of(object.computeSuperkind());
+		return TYPE.o();
 	}
 
 	/**
@@ -175,17 +177,6 @@ extends AbstractTypeDescriptor
 		// Answer the most general type that is still at least as specific as
 		// these.  Make it exact first.
 		return computeIntersectionWith(object, aMapType);
-	}
-
-	@Override @AvailMethod
-	final @NotNull AvailObject o_TypeIntersectionOfMeta (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject someMeta)
-	{
-		// Answer the most general type that is still at least as specific as
-		// these.  Since metas intersect at bottomType rather than
-		// bottom, we must be very careful to override this properly.
-		return computeIntersectionWith(object, someMeta);
 	}
 
 	@Override @AvailMethod

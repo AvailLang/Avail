@@ -162,7 +162,7 @@ Method "cast_into_else_" is
 	accept : function accepting <⊥> and returning ⊤,
 	reject : nullary procedure
 |
-	if value's type ≤ accept's type[1] then
+	if value's type ⊆ accept's type[1] then
 	[
 		invoke accept with <value>;
 	]
@@ -185,7 +185,7 @@ Method "cast_into_" is
 	value : any,
 	accept : function accepting <⊥> and returning ⊤
 |
-	if value's type ≤ accept's type[1] then
+	if value's type ⊆ accept's type[1] then
 	[
 		invoke accept with <value>;
 	]
@@ -220,7 +220,7 @@ Semantic restriction "cast_into_else_" is
 	accept : (function accepting <⊥> and returning ⊤)'s type,
 	reject : nullary procedure's type
 |
-	if value ≤ accept[1] then
+	if value ⊆ accept[1] then
 	[
 		messageTuple ::= concatenate <
 			"necessary cast expression, but ",
@@ -273,7 +273,7 @@ Semantic restriction "cast_into_" is
 	value : type,
 	accept : (function accepting <⊥> and returning ⊤)'s type
 |
-	if value ≤ accept[1] then
+	if value ⊆ accept[1] then
 	[
 		messageTuple ::= concatenate <
 			"necessary cast expression, but ",

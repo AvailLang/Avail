@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.Multiplier;
+import static com.avail.descriptor.TypeDescriptor.Types.TYPE;
 import java.util.List;
 import com.avail.annotations.*;
 
@@ -148,15 +149,20 @@ extends AbstractEnumerationTypeDescriptor
 		return getSuperkind(object);
 	}
 
-	@Override
-	public @NotNull
-	AvailObject o_Instances (final @NotNull AvailObject object)
+	@Override @AvailMethod
+	@NotNull AvailObject o_InstanceCount (final @NotNull AvailObject object)
+	{
+		return IntegerDescriptor.fromInt(getInstances(object).setSize());
+	}
+
+	@Override @AvailMethod
+	@NotNull AvailObject o_Instances (final @NotNull AvailObject object)
 	{
 		return getInstances(object);
 	}
 
 	@Override
-	public void printObjectOnAvoidingIndent (
+	void printObjectOnAvoidingIndent (
 		final @NotNull AvailObject object,
 		final @NotNull StringBuilder aStream,
 		final @NotNull List<AvailObject> recursionList,
@@ -295,6 +301,21 @@ extends AbstractEnumerationTypeDescriptor
 				{
 					set = set.setWithElementCanDestroy(element, true);
 				}
+			}
+		}
+		if (set.setSize() == 0)
+		{
+			// Decide whether this should be bottom or bottom's type
+			// based on whether object and another are both metas.  Note that
+			// object is a meta precisely when one of its instances is a type.
+			// One more thing:  The special case of another being bottom should
+			// not be treated as being a meta for our purposes, even though
+			// bottom technically is a meta.
+			if (object.isSubtypeOf(TYPE.o())
+				&& another.isSubtypeOf(TYPE.o())
+				&& !another.equals(BottomTypeDescriptor.bottom()))
+			{
+				return InstanceTypeDescriptor.on(BottomTypeDescriptor.bottom());
 			}
 		}
 		return AbstractEnumerationTypeDescriptor.withInstances(set);
@@ -715,34 +736,6 @@ extends AbstractEnumerationTypeDescriptor
 	AvailObject o_ValueType (final AvailObject object)
 	{
 		return getSuperkind(object).valueType();
-	}
-
-	@Override @AvailMethod
-	boolean o_IsEnumerationType (final @NotNull AvailObject object)
-	{
-		for (final AvailObject element : getInstances(object))
-		{
-			if (!element.isEnumeration())
-			{
-				return false;
-			}
-		}
-		return true;
-	}
-
-	@Override @AvailMethod
-	@NotNull AvailObject o_InnerKind (final @NotNull AvailObject object)
-	{
-		assert object.isEnumerationType();
-		AvailObject kindUnion = BottomTypeDescriptor.bottom();
-		for (final AvailObject instance : getInstances(object))
-		{
-			kindUnion = kindUnion.typeUnion(
-				instance.isEnumeration()
-					? instance.computeSuperkind()
-					: instance);
-		}
-		return kindUnion;
 	}
 
 	@Override

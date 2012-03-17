@@ -392,13 +392,13 @@ public class L1Decompiler
 				{
 					final AvailObject varObject = value.outerVarAt(i);
 					final AvailObject token =
-						LiteralTokenDescriptor.mutable().create();
-					token.tokenType(TokenType.LITERAL);
-					token.string(StringDescriptor.from(
-						"OuterOfUncleanConstantFunction#" + i));
-					token.start(0);
-					token.lineNumber(0);
-					token.literal(varObject);
+						LiteralTokenDescriptor.create(
+							StringDescriptor.from(
+								"OuterOfUncleanConstantFunction#" + i),
+							0,
+							0,
+							TokenType.LITERAL,
+							varObject);
 					final AvailObject literalNode =
 						LiteralNodeDescriptor.fromToken(token);
 					functionOuters.add(literalNode);
@@ -413,12 +413,12 @@ public class L1Decompiler
 			else
 			{
 				final AvailObject token =
-					LiteralTokenDescriptor.mutable().create();
-				token.tokenType(TokenType.LITERAL);
-				token.string(StringDescriptor.from(value.toString()));
-				token.start(0);
-				token.lineNumber(0);
-				token.literal(value);
+					LiteralTokenDescriptor.create(
+						StringDescriptor.from(value.toString()),
+						0,
+						0,
+						TokenType.LITERAL,
+						value);
 				final AvailObject literalNode =
 					LiteralNodeDescriptor.fromToken(token);
 				pushExpression(literalNode);
@@ -558,10 +558,11 @@ public class L1Decompiler
 		@Override
 		public void L1Ext_doGetLiteral ()
 		{
-			final AvailObject globalToken = TokenDescriptor.mutable().create();
-			globalToken.tokenType(TokenType.KEYWORD);
-			globalToken.string(StringDescriptor.from("SomeGlobal"));
-			globalToken.start(0);
+			final AvailObject globalToken = TokenDescriptor.create(
+				StringDescriptor.from("SomeGlobal"),
+				0,
+				0,
+				TokenType.KEYWORD);
 			final AvailObject globalVar = code.literalAt(getInteger());
 
 			final AvailObject decl =
@@ -593,13 +594,12 @@ public class L1Decompiler
 			}
 			else
 			{
-				final AvailObject labelToken =
-					TokenDescriptor.mutable().create();
-				labelToken.tokenType(TokenType.KEYWORD);
-				labelToken.string(
+				final AvailObject labelToken = TokenDescriptor.create(
 					StringDescriptor.from(
-						tempGenerator.value("label")));
-				labelToken.start(0);
+						tempGenerator.value("label")),
+					0,
+					0,
+					TokenType.KEYWORD);
 				label = DeclarationNodeDescriptor.newLabel(
 					labelToken,
 					ContinuationTypeDescriptor.forFunctionType(
@@ -623,10 +623,11 @@ public class L1Decompiler
 		@Override
 		public void L1Ext_doSetLiteral ()
 		{
-			final AvailObject globalToken = TokenDescriptor.mutable().create();
-			globalToken.tokenType(TokenType.KEYWORD);
-			globalToken.string(StringDescriptor.from("SomeGlobal"));
-			globalToken.start(0);
+			final AvailObject globalToken = TokenDescriptor.create(
+				StringDescriptor.from("SomeGlobal"),
+				0,
+				0,
+				TokenType.KEYWORD);
 			final AvailObject globalVar = code.literalAt(getInteger());
 
 			final AvailObject decl =
@@ -720,10 +721,11 @@ public class L1Decompiler
 		for (int i = 1, end = code.numArgs(); i <= end; i++)
 		{
 			final String argName = tempGenerator.value("arg");
-			final AvailObject token = TokenDescriptor.mutable().create();
-			token.tokenType(TokenType.KEYWORD);
-			token.string(StringDescriptor.from(argName));
-			token.start(0);
+			final AvailObject token = TokenDescriptor.create(
+				StringDescriptor.from(argName),
+				0,
+				0,
+				TokenType.KEYWORD);
 			final AvailObject decl = DeclarationNodeDescriptor.newArgument(
 				token,
 				tupleType.typeAtIndex(i));
@@ -732,10 +734,11 @@ public class L1Decompiler
 		for (int i = 1, end = code.numLocals(); i <= end; i++)
 		{
 			final String localName = tempGenerator.value("local");
-			final AvailObject token = TokenDescriptor.mutable().create();
-			token.tokenType(TokenType.KEYWORD);
-			token.string(StringDescriptor.from(localName));
-			token.start(0);
+			final AvailObject token = TokenDescriptor.create(
+				StringDescriptor.from(localName),
+				0,
+				0,
+				TokenType.KEYWORD);
 			final AvailObject decl = DeclarationNodeDescriptor.newVariable(
 				token,
 				code.localTypeAt(i).writeType());
@@ -774,12 +777,12 @@ public class L1Decompiler
 		{
 			final AvailObject varObject = aFunction.outerVarAt(i);
 
-			final AvailObject token = LiteralTokenDescriptor.mutable().create();
-			token.tokenType(TokenType.LITERAL);
-			token.string(StringDescriptor.from("Outer#" + i));
-			token.start(0);
-			token.lineNumber(0);
-			token.literal(varObject);
+			final AvailObject token = LiteralTokenDescriptor.create(
+				StringDescriptor.from("Outer#" + i),
+				0,
+				0,
+				TokenType.LITERAL,
+				varObject);
 			final AvailObject literalNode =
 				LiteralNodeDescriptor.fromToken(token);
 			functionOuters.add(literalNode);

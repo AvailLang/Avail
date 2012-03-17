@@ -136,7 +136,7 @@ public class AvailScanner
 	@NotNull AvailObject addCurrentToken (
 		final TokenDescriptor.TokenType tokenType)
 	{
-		final AvailObject token = TokenDescriptor.mutable().create(
+		final AvailObject token = TokenDescriptor.create(
 			StringDescriptor.from(currentTokenString()),
 			startOfToken,
 			lineNumber,
@@ -158,12 +158,12 @@ public class AvailScanner
 	@NotNull AvailObject addCurrentLiteralToken (
 		final AvailObject anAvailObject)
 	{
-		final AvailObject token = LiteralTokenDescriptor.mutable().create(
+		final AvailObject token = LiteralTokenDescriptor.create(
 			StringDescriptor.from(currentTokenString()),
 			startOfToken,
 			lineNumber,
-			TokenType.LITERAL);
-		token.literal(anAvailObject);
+			TokenType.LITERAL,
+			anAvailObject);
 		token.makeImmutable();
 		outputTokens.add(token);
 		return token;

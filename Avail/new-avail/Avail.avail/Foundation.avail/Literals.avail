@@ -68,17 +68,15 @@ Semantic restriction "<«_‡,»>" is
 	 * value. Therefore asking for either the lower or upper bound would be
 	 * equivalent.
 	 */
-	limit ::= |elements|'s upper bound;
+	limit ::= ||elements||'s upper bound;
 	accumulator : tuple := <>;
 	From 1 to limit do
 	[
 		index : natural number
 	|
-		cast elements[index] into
+		if ¬(|elements[index]| = ∞) then
 		[
-			t : enumeration meta
-		|
-			instances ::= t's instances;
+			instances ::= elements[index]'s instances;
 			Assert |instances| = 1;
 			instance ::= instances→tuple[1];
 			accumulator := concatenate <accumulator, <instance>>;
@@ -117,7 +115,7 @@ Semantic restriction "_[_]" is
 	aTuple : tuple meta,
 	index : natural number's type
 |
-	if |aTuple|'s upper bound ≤ index's lower bound then
+	if ||aTuple||'s upper bound ≤ index's lower bound then
 	[
 		messageTuple ::= concatenate <
 			"a subscript (",
@@ -125,9 +123,9 @@ Semantic restriction "_[_]" is
 			" ≤ theSubscript ≤ ",
 			primitive description of index's upper bound,
 			") that could ever be valid (",
-			primitive description of |aTuple|'s lower bound,
+			primitive description of ||aTuple||'s lower bound,
 			" ≤ |theTuple| ≤ ",
-			primitive description of |aTuple|'s upper bound,
+			primitive description of ||aTuple||'s upper bound,
 			")">;
 		message ::= cast messageTuple into [ t : string | t; ];
 		Reject parse, expected: message;
@@ -197,7 +195,7 @@ Semantic restriction "{«_‡,»}" is
 	 * value. Therefore asking for either the lower or upper bound would be
 	 * equivalent.
 	 */
-	limit ::= |elements|'s upper bound;
+	limit ::= ||elements||'s upper bound;
 	accumulator : tuple := <>;
 	/* Check to see if the elements are instance types. */
 	From 1 to limit do
@@ -205,11 +203,9 @@ Semantic restriction "{«_‡,»}" is
 		index : natural number
 	|
 		element ::= elements[index];
-		cast element into
+		if ¬(|elements[index]| = ∞) then
 		[
-			t : enumeration meta
-		|
-			instances ::= t's instances;
+			instances ::= elements[index]'s instances;
 			Assert |instances| = 1;
 			instance ::= instances→tuple[1];
 			accumulator := concatenate <accumulator, <instance>>;
@@ -274,7 +270,8 @@ Semantic restriction "{«_‡,»}" is
 		typeSet ::= types→set;
 		lower ::= |distinct|;
 		upper ::= cast |typeSet| + 1 into [ i : natural number | i; ];
-		{∪ types | [lower..upper)};
+		union ::= cast ∪ types into [ t : any's type | t; ]; 
+		{union | [lower..upper)};
 	];
 ];
 
@@ -315,7 +312,7 @@ Semantic restriction "{«_→_‡,»}" is
 	 * value. Therefore asking for either the lower or upper bound would be
 	 * equivalent.
 	 */
-	limit ::= |bindings|'s upper bound;
+	limit ::= ||bindings||'s upper bound;
 	accumulator : <<>, <<>, any…|[2..2]>… |whole number> := <>;
 	/* Check to see if keys and values are all instance types. */
 	From 1 to limit do
@@ -323,18 +320,14 @@ Semantic restriction "{«_→_‡,»}" is
 		index : natural number
 	|
 		binding ::= cast bindings[index] into [ t: tuple meta | t; ];
-		cast binding[1] into
+		if ¬(|binding[1]| = ∞) then
 		[
-			k : enumeration meta
-		|
-			instancesK ::= k's instances;
+			instancesK ::= binding[1]'s instances;
 			Assert |instancesK| = 1;
 			instanceK ::= instancesK→tuple[1];
-			cast binding[2] into
+			if ¬(|binding[2]| = ∞) then
 			[
-				v : enumeration meta
-			|
-				instancesV ::= v's instances;
+				instancesV ::= binding[2]'s instances;
 				Assert |instancesV| = 1;
 				instanceV ::= instancesV→tuple[1];
 				accumulator :=
@@ -414,6 +407,8 @@ Semantic restriction "{«_→_‡,»}" is
 		keyTypeSet ::= keyTypes→set;
 		lower ::= |distinct|;
 		upper ::= cast |keyTypeSet| + 1 into [ i : natural number | i; ];
-		{∪ keyTypes → ∪ valueTypes | [lower..upper)};
+		unionK ::= cast ∪ keyTypes into [ t : any's type | t; ];
+		unionV ::= cast ∪ valueTypes into [ t : any's type | t; ];
+		{unionK → unionV | [lower..upper)};
 	];
 ];

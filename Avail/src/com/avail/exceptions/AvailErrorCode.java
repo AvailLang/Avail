@@ -151,9 +151,10 @@ public enum AvailErrorCode
 	E_CANNOT_ORDER_NOT_A_NUMBER (16),
 
 	/**
-	 * TODO: Recycle!
+	 * The specified type is not a finite {@linkplain EnumerationTypeDescriptor
+	 * enumeration} of values.
 	 */
-//	E_??? (17),
+	E_NOT_ENUMERATION (17),
 
 	/**
 	 * A user-defined {@linkplain ObjectTypeDescriptor object type} has no

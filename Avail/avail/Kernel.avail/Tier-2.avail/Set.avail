@@ -131,7 +131,7 @@ Method "_with_" is [s : set, element : any |
 
 Restriction "_with_" is [st : setType, et : type |
 	set [st sizes lower bound .. st sizes upper bound + 2)
-		of type union of st content type and et;
+		of cast type union of st content type and et into [ t : any type | t; ];
 ];
 
 Method "_without_" is [s : set, element : any |

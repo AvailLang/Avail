@@ -97,7 +97,6 @@ implements Iterable<AvailObject>
 		TupleTypeDescriptor.createWellKnownObjects();
 		L2ChunkDescriptor.createWellKnownObjects();
 		VariableTypeDescriptor.createWellKnownObjects();
-		EnumerationMetaDescriptor.createWellKnownObjects();
 		ParseNodeTypeDescriptor.createWellKnownObjects();
 		LiteralNodeDescriptor.createWellKnownObjects();
 		RawPojoDescriptor.createWellKnownObjects();
@@ -143,7 +142,6 @@ implements Iterable<AvailObject>
 		TupleTypeDescriptor.clearWellKnownObjects();
 		L2ChunkDescriptor.clearWellKnownObjects();
 		VariableTypeDescriptor.clearWellKnownObjects();
-		EnumerationMetaDescriptor.clearWellKnownObjects();
 		ParseNodeTypeDescriptor.clearWellKnownObjects();
 		LiteralNodeDescriptor.clearWellKnownObjects();
 		RawPojoDescriptor.clearWellKnownObjects();
@@ -4079,15 +4077,6 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public AvailObject typeIntersectionOfMeta (
-		final AvailObject someMeta)
-	{
-		return descriptor.o_TypeIntersectionOfMeta(this, someMeta);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	public AvailObject typeIntersectionOfObjectType (
 		final AvailObject anObjectType)
 	{
@@ -5105,15 +5094,6 @@ implements Iterable<AvailObject>
 
 
 	/**
-	 * @return
-	 */
-	public @NotNull AvailObject innerKind ()
-	{
-		return descriptor.o_InnerKind(this);
-	}
-
-
-	/**
 	 * @param object
 	 * @return
 	 */
@@ -5121,15 +5101,6 @@ implements Iterable<AvailObject>
 		final @NotNull AvailObject object)
 	{
 		return descriptor.o_EqualsEnumerationType(this, object);
-	}
-
-
-	/**
-	 * @return
-	 */
-	public boolean isEnumerationType ()
-	{
-		return descriptor.o_IsEnumerationType(this);
 	}
 
 
@@ -5880,5 +5851,13 @@ implements Iterable<AvailObject>
 	public @NotNull AvailObject lowerCaseString ()
 	{
 		return descriptor.o_LowerCaseString(this);
+	}
+
+	/**
+	 * @return
+	 */
+	public @NotNull AvailObject instanceCount ()
+	{
+		return descriptor.o_InstanceCount(this);
 	}
 }

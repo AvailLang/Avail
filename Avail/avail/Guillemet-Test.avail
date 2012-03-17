@@ -203,3 +203,8 @@ Method "«go away»#~«maybe»?~" is
 Assert GO AWAY go away = 2;
 Assert go away go away go away go away GO AWAY MAYBE = 5;
 Assert GO AWAY GO AWAY GO AWAY maybe = 3;
+
+Method "«intruder~ALERT»" is [ intruder : tuple [1..∞) of tuple | true; ];
+
+Assert intruder ALERT;
+Assert InTrUdEr ALERT iNtRuDeR ALERT INTRUDER ALERT intruder ALERT;

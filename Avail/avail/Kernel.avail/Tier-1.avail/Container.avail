@@ -52,7 +52,7 @@ Method "*_`?:=_" is [var : container, arg : any |
 
 /* Container type operations... */
 
-Method "&:_" is [t : type |
+Method "&:_" is [t : any type |
 	Primitive 13;
 ] : containerType;
 
@@ -69,7 +69,7 @@ Method "_writeType" is [ct : containerType |
 ] : type;
 
 
-Method "new container with content type_" is [t : type |
+Method "new container with content type_" is [t : any type |
 	/* Answer a new container to hold the given type of contents. */
 	Primitive 16;
 ] : container;

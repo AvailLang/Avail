@@ -159,7 +159,7 @@ Restriction "_collect_" is [tType : tupleType, blkType : functionType |
 	check blkType accepts tType;
 	tuple tType sizes
 		like <>
-		default blkType result;
+		default cast blkType result into [ t : any type | t; ];
 ];
 
 
@@ -185,7 +185,7 @@ Restriction "_select_" is [tType : tupleType, blkType : functionType |
 			else [[0..tType sizes upper bound + 1);];];
 	tuple sizes
 		like <>
-		default union;
+		default cast union into [ t : any type | t; ];
 ];
 
 
@@ -210,7 +210,7 @@ Restriction "_reject_" is [tType : tupleType, blkType : functionType |
 			else [[0..tType sizes upper bound + 1);];];
 	tuple sizes
 		like <>
-		default union;
+		default cast union into [ t : any type | t; ];
 ];
 
 
@@ -402,8 +402,8 @@ Method "type of subtuple_from range_to range_" is [
 		sizes ::= [(clipMinEnd - clipMaxStart + 1) max 0
 			.. ((clipMaxEnd - clipMinStart + 1) max 0) + 1);
 		tuple sizes
-			like resultPattern
-			default default;
+			like cast resultPattern into [ t : tuple of any type | t; ]
+			default cast default into [ t : any type | t; ];
 	];
 ] : tupleType;
 
@@ -448,8 +448,8 @@ Restriction "_[_->_]" is [tType : tupleType, iType : integerType, vType : type |
 		default := type union of default and vType;
 	];
 	tuple tType sizes
-		like leading
-		default default;
+		like cast leading into [ t : tuple of any type | t; ]
+		default cast default into [ t : any type | t; ];
 ] : tupleType;
 
 
@@ -493,16 +493,17 @@ Restriction "splice_" is [ttType : tupleType |
 			and cast ttType[i] into [x : tupleType | x;];
 	];
 	if ttType sizes upper bound is infinite then [
+		slice ::= result [1 ..
+			cast result sizes upper bound into [w : whole number | w;]];
+		union ::= union of types in
+			(cast ttType default type
+				into [t : tupleType |
+					t[1 .. ||t leading types|| + 1];
+				]
+			);
 		result := tuple [result sizes lower bound .. INF)
-			like result
-				[1 ..
-					cast result sizes upper bound into [w : whole number | w;]]
-			default union of types in
-				(cast ttType default type
-					into [t : tupleType |
-						t[1 .. ||t leading types|| + 1];
-					]
-				);
+			like cast slice into [ t : tuple of any type | t; ]
+			default cast union into [ t : any type | t; ];
 	];
 	result;
 ];
@@ -644,8 +645,8 @@ Method "<«_‡,»`…|_.._>" is
 	cardinalityUpper : [0..∞]
  |
  	tuple [cardinalityLower..cardinalityUpper+1)
- 		like aTupleOfTypes[1..||aTupleOfTypes||-1]
- 		default aTupleOfTypes[||aTupleOfTypes||];
+ 		like cast aTupleOfTypes[1..||aTupleOfTypes||-1] into [ t : tuple of any type | t; ]
+ 		default cast aTupleOfTypes[||aTupleOfTypes||] into [ t : any type | t; ];
 ] : tupleType;
 
 Method "first index of_where_" is

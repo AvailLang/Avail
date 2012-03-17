@@ -48,11 +48,11 @@ Body
    definitions of range type operations, starting with some helpers... */
 
 
-Method "⊶block type taking_and returning_" is [args : tupleOfType, ret : type |
+Method "⊶block type taking_and returning_" is [args : tupleOfAnyMeta, ret : type |
 	Primitive 34;
 ] : functionType;
 
-Method "⊶[«_‡,»]->_" is [types : tupleOfType, result : type |
+Method "⊶[«_‡,»]->_" is [types : tupleOfAnyMeta, result : type |
 	⊶block type taking types and returning result;
 ] : functionType;
 

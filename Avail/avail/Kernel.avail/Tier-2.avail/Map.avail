@@ -71,23 +71,23 @@ Body
 /* mapType construction and manipulation primitives... */
 
 Method "{_->_|_}" is [
-		keyType : type,
-		valueType : type,
+		keyType : any type,
+		valueType : any type,
 		sizes : whole number type |
 	Primitive 87;
 ] : mapType;
 
 Method "map_from_to_" is [
 		sizes : whole number type,
-		keyType : type,
-		valueType : type |
+		keyType : any type,
+		valueType : any type |
 	{keyType->valueType|sizes};
 ] : mapType;
 
 
 Method "map from_to_" is [
-		keyType : type,
-		valueType : type |
+		keyType : any type,
+		valueType : any type |
 	map whole number from keyType to valueType;
 ] : mapType;
 
@@ -104,12 +104,12 @@ Method "_sizes" is [mt : mapType |
 
 Method "_keyType" is [mt : mapType |
 	Primitive 89;
-] : type;
+] : any type;
 
 
 Method "_valueType" is [mt : mapType |
 	Primitive 90;
-] : type;
+] : any type;
 
 
 Method "||_||" is [m : map |
@@ -161,8 +161,8 @@ Restriction "_[_->_]" is [mt : mapType, kt : type, vt : type |
 	sizes ::= cast [mt sizes lower bound .. mt sizes upper bound + 2)
 		into [ i : whole number type | i; ];
 	map sizes
-		from (type union of mt keyType and kt)
-		to (type union of mt valueType and vt);
+		from cast (type union of mt keyType and kt) into [ t : any type | t; ]
+		to cast (type union of mt valueType and vt) into [ t : any type | t; ];
 ];
 
 
@@ -244,7 +244,9 @@ Restriction "«[_->_]»" is [tt : <<any…|2..2>…|0..∞> type |
 		strongType ::= cast tt[i] into [ t : tupleType | t; ];
 		keyType := type union of keyType and (strongType[1]);
 		valueType := type union of valueType and (strongType[2]); ];
-	map sizes from keyType to valueType;
+	map sizes
+		from cast keyType into [ t : any type | t; ]
+		to cast valueType into [ t : any type | t; ];
 ];
 
 

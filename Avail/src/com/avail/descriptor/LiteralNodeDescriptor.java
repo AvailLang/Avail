@@ -77,12 +77,12 @@ extends ParseNodeDescriptor
 	 */
 	public static void createWellKnownObjects ()
 	{
-		final AvailObject token = LiteralTokenDescriptor.mutable().create();
-		token.tokenType(TokenType.LITERAL);
-		token.string(StringDescriptor.from("nil"));
-		token.start(0);
-		token.lineNumber(0);
-		token.literal(NullDescriptor.nullObject());
+		final AvailObject token = LiteralTokenDescriptor.create(
+			StringDescriptor.from("nil"),
+			0,
+			0,
+			TokenType.LITERAL,
+			NullDescriptor.nullObject());
 		literalNullObject = fromToken(token).makeImmutable();
 	}
 

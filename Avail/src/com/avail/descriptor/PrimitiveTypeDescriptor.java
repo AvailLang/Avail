@@ -331,10 +331,6 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anEnumerationType)
 	{
-		if (anEnumerationType.innerKind().isSubtypeOf(TYPE.o()))
-		{
-			return META.o().isSubtypeOf(object);
-		}
 		return TYPE.o().isSubtypeOf(object);
 	}
 
@@ -350,10 +346,6 @@ extends TypeDescriptor
 		if (another.isSubtypeOf(object))
 		{
 			return another;
-		}
-		if (object.equals(META.o()))
-		{
-			return another.typeIntersectionOfMeta(object);
 		}
 		return BottomTypeDescriptor.bottom();
 	}
@@ -416,7 +408,6 @@ extends TypeDescriptor
 					case MACRO_SIGNATURE:
 					case MESSAGE_BUNDLE:
 					case MESSAGE_BUNDLE_TREE:
-					case META:
 					case METHOD:
 					case METHOD_SIGNATURE:
 					case MODULE:

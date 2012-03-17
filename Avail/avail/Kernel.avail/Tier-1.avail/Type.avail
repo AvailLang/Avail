@@ -53,8 +53,8 @@ Method "type union of_and_" is [
 ] : type;
 
 Restriction "type union of_and_" is [
-		aT : meta,
-		bT : meta |
+		aT : type,
+		bT : type |
 	/* Metacovariance is guaranteed by the VM.  */
 	type union of aT and bT;
 ];

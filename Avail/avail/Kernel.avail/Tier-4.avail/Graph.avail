@@ -89,14 +89,17 @@ Rule [g : Graph |
 
 /* Also define a type-specializing method... */
 
-Method "Graph of_" is [nodeType : type |
+Method "Graph of_" is
+[
+	nodeType : any type
+|
 	Graph altered with <
 			<nodes, set of nodeType>,
 			<successors, map from nodeType to set of nodeType>,
 			<predecessors, map from nodeType to set of nodeType>>;
 ];
 
-Restriction "Graph of_" is [ntt : meta |
+Restriction "Graph of_" is [ntt : type type |
 	/* We can't be more specific, but we shouldn't need to be. */
 	Graph type;
 ];

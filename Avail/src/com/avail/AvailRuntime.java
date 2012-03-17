@@ -267,11 +267,11 @@ public final class AvailRuntime
 		specialObjects[17] = IntegerRangeTypeDescriptor.integers();
 		specialObjects[18] = IntegerRangeTypeDescriptor.meta();
 		specialObjects[19] = MapTypeDescriptor.meta();
-		specialObjects[20] = META.o();
-		specialObjects[21] = EnumerationMetaDescriptor.mostGeneralType();
+		// 20
+		// 21
 		specialObjects[22] = ObjectTypeDescriptor.mostGeneralType();
 		specialObjects[23] = ObjectTypeDescriptor.meta();
-		specialObjects[24] = EnumerationMetaDescriptor.meta();
+		// 24
 		specialObjects[25] = PROCESS.o();
 		specialObjects[26] = SetTypeDescriptor.mostGeneralType();
 		specialObjects[27] = SetTypeDescriptor.meta();
@@ -315,7 +315,7 @@ public final class AvailRuntime
 		specialObjects[66] = MODULE_VARIABLE_NODE.mostGeneralType();
 		specialObjects[67] = MODULE_CONSTANT_NODE.mostGeneralType();
 		specialObjects[68] = PRIMITIVE_FAILURE_REASON_NODE.mostGeneralType();
-		// 69
+		specialObjects[69] = InstanceTypeDescriptor.on(ANY.o());
 		specialObjects[70] = AtomDescriptor.trueObject();
 		specialObjects[71] = AtomDescriptor.falseObject();
 		specialObjects[72] =
@@ -375,7 +375,7 @@ public final class AvailRuntime
 		specialObjects[94] = MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
 			IntegerRangeTypeDescriptor.wholeNumbers(),
 			ATOM.o(),
-			TYPE.o());
+			InstanceTypeDescriptor.on(ANY.o()));
 		specialObjects[95] =
 			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 				IntegerRangeTypeDescriptor.wholeNumbers(),
@@ -437,6 +437,17 @@ public final class AvailRuntime
 			ATOM.o());
 		specialObjects[115] = TOKEN.o();
 		specialObjects[116] = LITERAL_TOKEN.o();
+		specialObjects[117] =
+			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+				IntegerRangeTypeDescriptor.wholeNumbers(),
+				TupleDescriptor.empty(),
+				InstanceTypeDescriptor.on(ANY.o()));
+		specialObjects[118] =
+			IntegerRangeTypeDescriptor.create(
+				IntegerDescriptor.zero(),
+				true,
+				InfinityDescriptor.positiveInfinity(),
+				true);
 
 		for (final AvailObject object : specialObjects)
 		{

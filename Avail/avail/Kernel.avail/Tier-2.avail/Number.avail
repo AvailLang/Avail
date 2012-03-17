@@ -47,7 +47,6 @@ Names
 
 	"_++", "_--",
 
-	"e",
 	"_as float", "_as double",
 	"floor_",
 	"ln_",
@@ -164,19 +163,11 @@ Method "numberRestrictionFunction_" is
 		aT : number type,
 		bT : number type
 	|
-		aE : enum of number;
-		bE : enum of number;
-		if aT type <= enum of number
-			& bT type <= enum of number
-			& [
-				aE := cast aT into [x : enum of number | x;];
-				bE := cast bT into [x : enum of number | x;];
-				||aE instances|| = 1 & ||bE instances|| = 1;]
-		then
+		if |aT| = 1 & |bT| = 1 then
 		[
 			/* The exact values are known statically.  Calculate it exactly. */
-			aValue ::= private aE instances as tuple [1];
-			bValue ::= private bE instances as tuple [1];
+			aValue ::= private aT instances as tuple [1];
+			bValue ::= private bT instances as tuple [1];
 			(operator apply <aValue, bValue>) type;
 		]
 		else
@@ -304,8 +295,8 @@ Method "floor_" is [value : double |
 	Primitive 322;
 ] : double;
 
-Restriction "floor_" is [valueT : enum of number |
-	if ||valueT instances|| = 1 then
+Restriction "floor_" is [valueT : type |
+	if |valueT| = 1 then
 	[
 		/* The exact value is known statically.  Calculate it exactly. */
 		value ::= private valueT instances as tuple [1];

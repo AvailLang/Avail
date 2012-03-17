@@ -627,12 +627,12 @@ extends AbstractAvailCompiler
 							final List<AvailObject> newArgsSoFar =
 								new ArrayList<AvailObject>(argsSoFar);
 							final AvailObject syntheticToken =
-								LiteralTokenDescriptor.mutable().create(
+								LiteralTokenDescriptor.create(
 									newToken.string(),
 									newToken.start(),
 									newToken.lineNumber(),
-									SYNTHETIC_LITERAL);
-							syntheticToken.literal(newToken);
+									SYNTHETIC_LITERAL,
+									newToken);
 							final AvailObject literalNode =
 								LiteralNodeDescriptor.fromToken(syntheticToken);
 							newArgsSoFar.add(literalNode);
@@ -733,12 +733,12 @@ extends AbstractAvailCompiler
 						final AvailObject count = IntegerDescriptor.fromInt(
 							expressions.tupleSize());
 						final AvailObject token =
-							LiteralTokenDescriptor.mutable().create(
+							LiteralTokenDescriptor.create(
 								StringDescriptor.from(count.toString()),
 								initialTokenPosition.peekToken().start(),
 								initialTokenPosition.peekToken().lineNumber(),
-								LITERAL);
-						token.literal(count);
+								LITERAL,
+								count);
 						final AvailObject literalNode =
 							LiteralNodeDescriptor.fromToken(token);
 						replacement = literalNode;
@@ -752,12 +752,12 @@ extends AbstractAvailCompiler
 							AtomDescriptor.objectFromBoolean(
 								expressions.tupleSize() > 0);
 						final AvailObject token =
-							LiteralTokenDescriptor.mutable().create(
+							LiteralTokenDescriptor.create(
 								StringDescriptor.from(nonempty.toString()),
 								initialTokenPosition.peekToken().start(),
 								initialTokenPosition.peekToken().lineNumber(),
-								LITERAL);
-						token.literal(nonempty);
+								LITERAL,
+								nonempty);
 						final AvailObject literalNode =
 							LiteralNodeDescriptor.fromToken(token);
 						replacement = literalNode;

@@ -1574,14 +1574,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	@NotNull AvailObject o_TypeIntersectionOfMeta (
-		final @NotNull AvailObject object,
-		final AvailObject someMeta)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	@NotNull AvailObject o_TypeIntersectionOfObjectType (
 		final @NotNull AvailObject object,
 		final AvailObject anObjectType)
@@ -3836,25 +3828,12 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_InnerKind (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	boolean o_EqualsEnumerationType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
 		return false;
 	}
-
-	@Override
-	boolean o_IsEnumerationType (final @NotNull AvailObject object)
-	{
-		return false;
-	}
-
 
 	@Override
 	@NotNull AvailObject o_ReadType (final @NotNull AvailObject object)
@@ -4504,6 +4483,12 @@ extends AbstractDescriptor
 
 	@Override
 	@NotNull AvailObject o_LowerCaseString (final @NotNull AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	@NotNull AvailObject o_InstanceCount (final @NotNull AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}

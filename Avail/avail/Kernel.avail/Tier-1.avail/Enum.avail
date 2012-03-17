@@ -33,23 +33,18 @@
 System Module "Enum"
 Extends
 Uses
-	"Tier-0"
+	"Tier-0",
+	"Integer"
 Names
-	"_instances",
-	"enum of_"
+	"|_|",
+	"_instances"
 Body
 
+Method "|_|" is [t : type |
+	Primitive 28;
+] : [0..∞];
 
-/* Initial type approximation.  Later in the bootstrap we can strengthen this
-   based on the enumeration meta. */
-Method "_instances" is [e : enum |
-	Primitive 29;
+Method "_instances" is [t : type |
+	Primitive 29 (failureCode : natural number);
+	Failed;
 ] : set;
-
-
-Method "enum of_" is
-[
-	aType : type
-|
-	Primitive 66;
-] : enum type;

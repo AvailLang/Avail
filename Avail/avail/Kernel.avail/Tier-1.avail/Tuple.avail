@@ -70,26 +70,26 @@ Restriction "<«_‡,»>" is [tType : tupleType |
 /* Tuple type constructor... */
 
 Method "<_,_`…|_>" is [
-		typeTuple : tupleOfType,
-		defaultType : type,
+		typeTuple : tupleOfAnyMeta,
+		defaultType : any type,
 		sizeRange : whole number type |
 	Primitive 137;
 ] : tupleType;
 
 Method "tuple_like_default_" is [
 		sizeRange : whole number type,
-		typeTuple : tupleOfType,
-		defaultType : type |
+		typeTuple : tupleOfAnyMeta,
+		defaultType : any type |
 	<typeTuple, defaultType…|sizeRange>;
 ] : tupleType;
 
-Method "tuple_of_" is [sizeRange : whole number type, elementType : type |
+Method "tuple_of_" is [sizeRange : whole number type, elementType : any type |
 	tuple sizeRange
 	like <>
 	default elementType;
 ] : tupleType;
 
-Method "tuple of_" is [elementType : type |
+Method "tuple of_" is [elementType : any type |
 	tuple whole number
 		like <>
 		default elementType;
@@ -160,7 +160,7 @@ Restriction "||_||" is [tT : tupleType |
 
 /* Another tuple type constructor... */
 
-Method "tuple like_" is [elementTypes : tuple of type |
+Method "tuple like_" is [elementTypes : tuple of any type |
 	tuple ||elementTypes|| type
 		like elementTypes
 		default terminates;

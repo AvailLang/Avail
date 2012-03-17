@@ -2602,15 +2602,6 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param someMeta
-	 * @return
-	 */
-	abstract AvailObject o_TypeIntersectionOfMeta (
-		@NotNull AvailObject object,
-		AvailObject someMeta);
-
-	/**
-	 * @param object
 	 * @param anObjectType
 	 * @return
 	 */
@@ -4610,24 +4601,12 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @return
-	 */
-	abstract AvailObject o_InnerKind (@NotNull AvailObject object);
-
-	/**
-	 * @param object
 	 * @param another
 	 * @return
 	 */
 	abstract boolean o_EqualsEnumerationType (
 		@NotNull AvailObject object,
 		@NotNull AvailObject another);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	abstract boolean o_IsEnumerationType (@NotNull AvailObject object);
 
 	/**
 	 * @param object
@@ -5240,5 +5219,12 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract @NotNull AvailObject o_LowerCaseString (
+		final @NotNull AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract @NotNull AvailObject o_InstanceCount (
 		final @NotNull AvailObject object);
 }

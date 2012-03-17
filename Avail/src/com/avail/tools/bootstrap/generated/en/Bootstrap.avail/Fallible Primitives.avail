@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.02.29 15:20:48.714 -0600
+ * * Last Generated On: 2012.03.14 16:39:35.890 -0500
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -56,6 +56,7 @@ Uses
 		"Restart_",
 		"Restart_with_",
 		"Semantic restriction_is_",
+		"_'s instances",
 		"_+_",
 		"_-_",
 		"_._→variable",
@@ -324,6 +325,22 @@ Method "_[_]" is
 ] : any;
 
 /**
+ * Answer the instances of the enumeration.
+ *
+ * Parameters:
+ *    enum - An enumeration.
+ * Returns:
+ *    A set whose members are the instances of the enumeration.
+ */
+Method "_'s instances" is
+[
+	enum : type
+|
+	Primitive 29 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode;
+] : set;
+
+/**
  * Answer the `index`-th parameter type of the specified function type.
  *
  * Parameters:
@@ -339,7 +356,7 @@ Method "_[_]" is
 |
 	Primitive 36 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode;
-] : type;
+] : any meta;
 
 /**
  * Invoke the function with the given arguments. Answer its result.
@@ -606,7 +623,7 @@ Method "_[_.._]" is
 |
 	Primitive 142 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode;
-] : tuple of type;
+] : tuple of any meta;
 
 /**
  * Compute and answer the type union of the indicated range of element types.
@@ -626,7 +643,7 @@ Method "∪_[_.._]" is
 |
 	Primitive 143 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode;
-] : type;
+] : any meta;
 
 /**
  * Construct and answer a function implementation from the specified arguments.
@@ -888,7 +905,7 @@ Method "_mod_" is
 Method "_<«_‡,»>" is
 [
 	javaName : string,
-	typeParameters : tuple of type
+	typeParameters : tuple of any meta
 |
 	Primitive 500 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode;
@@ -927,7 +944,7 @@ Method "_<«_‡,»>" is
 Method "constructor_<«_‡,»>" is
 [
 	aPojoType : pojo meta,
-	parameterTypes : tuple of type
+	parameterTypes : tuple of any meta
 |
 	Primitive 502 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode;
@@ -1011,7 +1028,7 @@ Method "method_._(«_‡,»)" is
 [
 	aPojoType : pojo meta,
 	methodName : string,
-	parameterTypes : tuple of type
+	parameterTypes : tuple of any meta
 |
 	Primitive 506 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode;

@@ -89,14 +89,14 @@ Method "_result" is [ct : functionType |
 	Primitive 37;
 ] : type;
 
-Method "block type taking_and returning_" is [args : tupleOfType, ret : type |
+Method "block type taking_and returning_" is [args : tupleOfAnyMeta, ret : type |
 	Primitive 34;
 ] : functionType;
 
 /**
  * Create a function type.
  */
-Method "[«_‡,»]->_" is [types : tupleOfType, result : type |
+Method "[«_‡,»]->_" is [types : tupleOfAnyMeta, result : type |
 	block type taking types and returning result;
 ] : functionType;
 
