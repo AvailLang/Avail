@@ -33,6 +33,7 @@
 package com.avail.test;
 
 import static org.junit.Assert.*;
+import static com.avail.descriptor.TokenDescriptor.TokenType;
 import static com.avail.descriptor.TokenDescriptor.TokenType.*;
 import static com.avail.test.ScannerTest.Case.C;
 import java.util.List;
@@ -118,8 +119,8 @@ public final class ScannerTest
 	/**
 	 * A concise static method for building a {@link Generator} of {@linkplain
 	 * TokenDescriptor token} with the specified string and {@linkplain
-	 * TokenDescriptor.TokenType token type}.  Its zero-based start position
-	 * in the entire input string is set to zero.
+	 * TokenType token type}.  Its zero-based start position in the entire input
+	 * string is set to zero.
 	 *
 	 * @param string
 	 *            The characters from which the token will ostensibly have been
@@ -130,15 +131,15 @@ public final class ScannerTest
 	 */
 	static Generator<AvailObject> T (
 		final String string,
-		final TokenDescriptor.TokenType tokenType)
+		final TokenType tokenType)
 	{
 		return T(string, tokenType, 0);
 	}
 
 	/**
 	 * A concise static method for building a {@link Generator} of {@linkplain
-	 * TokenDescriptor token} with the specified string, {@linkplain
-	 * TokenDescriptor.TokenType token type}, and start offset.
+	 * TokenDescriptor token} with the specified string, {@linkplain TokenType
+	 * token type}, and start offset.
 	 *
 	 * @param string
 	 *            The characters from which the token will ostensibly have been
@@ -152,7 +153,7 @@ public final class ScannerTest
 	 */
 	static Generator<AvailObject> T (
 		final String string,
-		final TokenDescriptor.TokenType tokenType,
+		final TokenType tokenType,
 		final int start)
 	{
 		return new Generator<AvailObject>()
@@ -171,24 +172,23 @@ public final class ScannerTest
 
 	/**
 	 * A concise static method for building a {@link Generator} of {@linkplain
-	 * TokenDescriptor.TokenType#KEYWORD keyword} {@linkplain TokenDescriptor
-	 * token} with the specified string.
+	 * TokenType#KEYWORD keyword} {@linkplain TokenDescriptor token} with the
+	 * specified string.
 	 *
 	 * @param string
 	 *            The characters from which the token will ostensibly have been
 	 *            constructed.
 	 * @return The new keyword token.
 	 */
-	static Generator<AvailObject> K (
-		final String string)
+	static @NotNull Generator<AvailObject> K (final @NotNull String string)
 	{
 		return T(string, KEYWORD);
 	}
 
 	/**
 	 * A concise static method for building a {@link Generator} of {@linkplain
-	 * TokenDescriptor.TokenType#KEYWORD keyword} {@linkplain TokenDescriptor
-	 * token} with the specified string and start offset.
+	 * TokenType#KEYWORD keyword} {@linkplain TokenDescriptor token} with the
+	 * specified string and start offset.
 	 *
 	 * @param string
 	 *            The characters from which the token will ostensibly have been
@@ -198,8 +198,8 @@ public final class ScannerTest
 	 *            within the entire input string.
 	 * @return The new keyword token.
 	 */
-	static Generator<AvailObject> K (
-		final String string,
+	static @NotNull Generator<AvailObject> K (
+		final @NotNull String string,
 		final int start)
 	{
 		return T(string, KEYWORD, start);
@@ -207,16 +207,16 @@ public final class ScannerTest
 
 	/**
 	 * A concise static method for building a {@link Generator} of {@linkplain
-	 * TokenDescriptor.TokenType#OPERATOR operator} {@linkplain TokenDescriptor
-	 * token} with the specified string.
+	 * TokenType#OPERATOR operator} {@linkplain TokenDescriptor token} with the
+	 * specified string.
 	 *
 	 * @param string
 	 *            The characters from which the token will ostensibly have been
 	 *            constructed.  An operator token is always a single character.
 	 * @return The new operator token.
 	 */
-	static Generator<AvailObject> O (
-		final String string)
+	static @NotNull Generator<AvailObject> O (
+		final @NotNull String string)
 	{
 		assert string.codePointCount(0, string.length()) == 1;
 		return T(string, OPERATOR);
@@ -224,8 +224,8 @@ public final class ScannerTest
 
 	/**
 	 * A concise static method for building a {@link Generator} of {@linkplain
-	 * TokenDescriptor.TokenType#OPERATOR operator} {@linkplain TokenDescriptor
-	 * token} with the specified string and start offset.
+	 * TokenType#OPERATOR operator} {@linkplain TokenDescriptor token} with the
+	 * specified string and start offset.
 	 *
 	 * @param string
 	 *            The characters from which the token will ostensibly have been
@@ -235,8 +235,8 @@ public final class ScannerTest
 	 *            within the entire input string.
 	 * @return The new operator token.
 	 */
-	static Generator<AvailObject> O (
-		final String string,
+	static @NotNull Generator<AvailObject> O (
+		final @NotNull String string,
 		final int start)
 	{
 		return T(string, OPERATOR, start);
@@ -255,7 +255,7 @@ public final class ScannerTest
 	 *            have been constructed.
 	 * @return The new operator token.
 	 */
-	static Generator<AvailObject> L (
+	static @NotNull Generator<AvailObject> L (
 		final @NotNull Object object,
 		final @NotNull String string)
 	{
@@ -277,7 +277,7 @@ public final class ScannerTest
 	 *            token within the entire input string.
 	 * @return The new operator token.
 	 */
-	static Generator<AvailObject> L (
+	static @NotNull Generator<AvailObject> L (
 		final @NotNull Object object,
 		final @NotNull String string,
 		final int start)

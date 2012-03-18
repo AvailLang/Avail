@@ -42,7 +42,9 @@ Names
 	"Fail parse_",
 	"_type",
 	"(_)",
-	"lookup_"
+	"lookup_",
+	"Assert_",
+	"falseType", "trueType"
 Body
 
 /* This module defines declaration methods. */
@@ -134,3 +136,25 @@ Method "lookup_" is [t : string |
 	Primitive 245 (failureCode : natural number);
 	Failed;
 ] : atom;
+
+Method "falseType" is [ false type; ] : false type type;
+Method "trueType" is [ true type; ] : true type type;
+
+
+/* Runtime assertions... */
+
+Method "Assert_" is [b : boolean |
+] : void;
+
+Method "Assert_" is [b : falseType |
+	Crash "A runtime assertion has failed";
+] : terminates;
+
+Method "Assert_:_" is [b : boolean, message : string |
+	/* Do nothing - the assertion is true. */
+] : void;
+
+Method "Assert_:_" is [b : falseType, message : string |
+	Crash message;
+] : terminates;
+

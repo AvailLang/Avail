@@ -84,23 +84,24 @@ Assert phony INF + -INF = 666;
 
 two30 ::= 2^30;
 two31 ::= two30 * 2;
-Print two30;
-Print two30 * 2;
-Print two30 * -2;
-Print (two30 * 2) * -1;
-Print [10..20];
-Print [10..20] negated;
-Print [-10..20] negated;
-Print 0 - 1000;
-Print [0 - two30;] type result;
-Print 0 - two30;
-Print [two30..two30] negated;
-Print [two30..two31] negated;
-Print [two31..two31] negated;
-Print [0 - two31;] type result;
-Print 0 - two31;
-bigNeg ::= -two31;
-Print two31;
+Print two30 as basic string then "\n";
+Print two30 as basic string then "\n";
+Print two30 as basic string  then "\n";
+Print (two30 * 2) * -1 as basic string  then "\n";
+Print [10..20] as basic string  then "\n";
+Print [10..20] negated as basic string  then "\n";
+Print [-10..20] negated as basic string  then "\n";
+Print 0 - 1000 as basic string  then "\n";
+Print [0 - two30;] type result as basic string then "\n";
+Print 0 - two30 as basic string then "\n";
+Print [two30..two30] negated as basic string then "\n";
+Print [two30..two31] negated as basic string then "\n";
+Print [two31..two31] negated as basic string then "\n";
+Print [0 - two31;] type result as basic string then "\n";
+Print 0 - two31 as basic string then "\n";
+bigNeg ::= -two31 as basic string then "\n";
+Print two31 as basic string then "\n";
+Print bigNeg as basic string then "\n";
 
 /* Test that restrictions on "_^_" are as precise as possible. */
 

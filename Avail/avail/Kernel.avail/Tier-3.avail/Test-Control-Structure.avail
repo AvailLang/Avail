@@ -46,9 +46,9 @@ switchCase1: string := Switch 1
 
 Assert switchCase1 = "meh";
 
-switchCase2: string := Switch [Print "Moo";] 
-	case [Print "Who";] do ["huh?";]: 
-	case [Print "Moo";] do ["Makes Sense";]: 
+switchCase2: string := Switch [Print "Moo\n";] 
+	case [Print "Who\n";] do ["huh?";]: 
+	case [Print "Moo\n";] do ["Makes Sense";]: 
 	default ["meh";];
 
 Assert switchCase2 = "Makes Sense";

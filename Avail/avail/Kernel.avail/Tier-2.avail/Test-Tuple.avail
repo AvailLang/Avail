@@ -57,7 +57,7 @@ Assert 123 radix 10 = "123";
 	end ::= [1..INF);
 	t1 ::= type of subtuple t from range start to range end;
 	if t1 not = tuple [0..INF) like <> default any then [
-		Print "Problem with tuple type t1";
+		Print "Problem with tuple type t1\n";
 	];
 ]();
 
@@ -73,11 +73,11 @@ Assert 123 radix 10 = "123";
 	end ::= [20..INF);
 	t2 ::= type of subtuple t from range start to range end;
 	if t2 not = terminates then [
-		Print "Problem with tuple type t2";
+		Print "Problem with tuple type t2\n";
 	];
 	t3 ::= type of subtuple t from range [1..10] to range [4..5];
 	if t3 not = tuple [0..5] like <any, any, any, []->[1..125]> default []->[1..100] then [
-		Print "Problem with tuple type t3";
+		Print "Problem with tuple type t3\n";
 	];
 ]();
 

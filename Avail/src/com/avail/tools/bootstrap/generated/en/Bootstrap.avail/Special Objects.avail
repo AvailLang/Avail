@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.03.14 16:39:35.817 -0500
+ * * Last Generated On: 2012.03.17 15:13:18.729 -0500
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -68,7 +68,6 @@ Names
 	/*  13 */ "extended integer",
 	/*  18 */ "extended integer meta",
 	/*  71 */ "false",
-	/*  14 */ "false type",
 	/*  25 */ "fiber",
 	/*  93 */ "field map",
 	/*  94 */ "field type map",
@@ -129,7 +128,6 @@ Names
 	/*  58 */ "super cast",
 	/* 115 */ "token",
 	/*  70 */ "true",
-	/*  31 */ "true type",
 	/*  32 */ "tuple",
 	/*  33 */ "tuple meta",
 	/* 117 */ "tuple of any meta",
@@ -171,7 +169,6 @@ _continuation_meta                      ::= special object 10;
 _atom                                   ::= special object 11;
 _double                                 ::= special object 12;
 _extended_integer                       ::= special object 13;
-_false_type                             ::= special object 14;
 _float                                  ::= special object 15;
 _number                                 ::= special object 16;
 _integer                                ::= special object 17;
@@ -185,7 +182,6 @@ _set_meta                               ::= special object 27;
 _string                                 ::= special object 28;
 _bottom                                 ::= special object 29;
 _bottom_meta                            ::= special object 30;
-_true_type                              ::= special object 31;
 _tuple                                  ::= special object 32;
 _tuple_meta                             ::= special object 33;
 _type                                   ::= special object 34;
@@ -296,6 +292,39 @@ Method "any" is
 	_any;
 ];
 
+/**
+ * The enumeration of the special atoms `true` and `false`. All primitive
+ * interrogatives use classical (Boolean) bivalence and obey the three classical
+ * (Aristotelian) laws of thought.
+ *
+ * Bivalent logic assigns either `true` or `false` as the unique truth value of
+ * every proposition. Every primitive interrogative, i.e. `boolean`-valued
+ * primitive, stably answers either `true` or `false` for a given set of
+ * arguments.
+ *
+ * The three classical laws of thought are:
+ *
+ *    - The law of identity: P → P.
+ *      For every primitive interrogative "prim_,_,_", then
+ *      "prim A, B, C = prim A, B, C". (All primitive interrogatives are
+ *      stable.)
+ *    - The law of noncontradiction: ¬(P ∧ ¬P).
+ *      For every primitive interrogative "prim_,_,_", then
+ *      "(prim A, B, C ∧ ¬prim A, B, C) = false".
+ *    - The law of excluded middle: P ∨ ¬P.
+ *      For every primitive interrogative "prim_,_,_", then
+ *      "((prim A, B, C = true) ∨ (prim A, B, C = false)) = true".
+ *
+ * Therefore the primitive interrogatives satisfy classical logic.
+ *
+ * Note that values may be instances of many enumerations. This means that Avail
+ * directly supports other logical systems, such as Kleene's three-valued logic
+ * of indeterminacy, whose truth values are `true`, `false`, and "unknown".
+ * Implementation of this system would proceed directly from creation of an atom
+ * to represent "unknown" and the formation of a new enumeration that contained
+ * the standard `true` and `false` atoms and also the "unknown" atom. New
+ * logical operations could then be written in terms of this new enumeration.
+ */
 Method "boolean" is
 [
 	_boolean;
@@ -354,11 +383,6 @@ Method "double" is
 Method "extended integer" is
 [
 	_extended_integer;
-];
-
-Method "false type" is
-[
-	_false_type;
 ];
 
 Method "float" is
@@ -424,11 +448,6 @@ Method "⊥" is
 Method "⊥meta" is
 [
 	_bottom_meta;
-];
-
-Method "true type" is
-[
-	_true_type;
 ];
 
 Method "tuple" is
@@ -660,6 +679,8 @@ Method "any meta" is
 	_any_meta;
 ];
 
+/** * The special atom that represents truth. `true` is an instance of `boolean`.
+ */
 Method "true" is
 [
 	_true;

@@ -103,23 +103,23 @@ ripeApple ::= anApple altered with <<ripeness, 789>, <shade, "red">>;
 
 Assert ripeApple ripeness = 789 & ripeApple shade = "red" & ripeApple type <= Apple;
 
-Print newApple;
-Print newApple type names;
-Print ripeApple;
-Print ripeApple type names;
+Print newApple as basic string then "\n";
+Print newApple type names as basic string then "\n";
+Print ripeApple as basic string then "\n";
+Print ripeApple type names as basic string then "\n";
 
 "Pear" is explicit subtype of Fruit;
 
 "PearApple" is implicit subtype of Pear, Apple;
 
-Print Pear names;
-Print PearApple names;
-Print (type intersection of Pear and Apple) names;
-Print (type union of Pear and Apple) names;
-Print "Fruit, Apple, Pear, PearApple, intersect(Pear,Apple), Pear+ripeness:byte";
-Print Fruit;
-Print Apple;
-Print Pear;
-Print PearApple;
-Print type intersection of Pear and Apple;
-Print Pear altered with <<ripeness, byte>>;
+Print Pear names as basic string then "\n";
+Print PearApple names as basic string then "\n";
+Print (type intersection of Pear and Apple) names as basic string then "\n";
+Print (type union of Pear and Apple) names as basic string then "\n";
+Print "Fruit, Apple, Pear, PearApple, intersect(Pear,Apple), Pear+ripeness:byte\n";
+Print Fruit as basic string then "\n";
+Print Apple as basic string then "\n";
+Print Pear as basic string then "\n";
+Print PearApple as basic string then "\n";
+Print (type intersection of Pear and Apple) as basic string then "\n";
+Print (Pear altered with <<ripeness, byte>>) as basic string then "\n";

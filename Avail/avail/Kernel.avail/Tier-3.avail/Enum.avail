@@ -86,34 +86,6 @@ Restriction "_instances" is
 	result;
 ] : set type;
 
-
-/*
-P29 ::= [u : enum | Primitive 29; ] :set;
-A ::= any type;
-B ::= tuple type;
-C ::= new atom "C";
-X ::= type union of (A type) and (B type);
-Y ::= C type;
-Print "X = " then X as basic string;
-Print "Y = " then Y as basic string;
-Print "X instances = " then P29(X) as basic string;
-Print "Y instances = " then P29(Y) as basic string;
-B : boolean := true;
-Print "(X or Y) instances = " then P29(if B then [X;] else [Y;]) as basic string;
-Print "_instances returns (X) : " then ([X instances;] type result as basic string);
-Print "_instances returns (Y) : " then ([Y instances;] type result as basic string);
-Print "_instances returns (X or Y) : " then ([(if B then [X;] else [Y;]) instances;] type result as basic string);
-Print "_instances returns (X) : " then ([X instances;] compiledCode as basic string);
-Print "_instances returns (Y) : " then ([Y instances;] compiledCode as basic string);
-Print "_instances returns (X or Y) : " then ([(if B then [X;] else [Y;]) instances;] compiledCode as basic string);
-Print X instances as basic string;
-Print Y instances as basic string;
-Print (if B then [X;] else [Y;]) instances as basic string;
-*/
-
-
-
-
 Method "_instance" is
 [
 	e : type

@@ -887,9 +887,9 @@ public abstract class AbstractAvailCompiler
 	 *         If source extraction failed for any reason.
 	 */
 	private static @NotNull String extractSource (
-		final @NotNull ModuleName qualifiedName,
-		final @NotNull ResolvedModuleName resolvedName)
-	throws AvailCompilerException
+			final @NotNull ModuleName qualifiedName,
+			final @NotNull ResolvedModuleName resolvedName)
+		throws AvailCompilerException
 	{
 		String source;
 		if (resolvedName == null)
