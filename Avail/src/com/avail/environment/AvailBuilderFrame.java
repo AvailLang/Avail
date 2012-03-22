@@ -933,7 +933,7 @@ extends JFrame
 			+ "process. Characters are not made available until ENTER is "
 			+ "pressed.");
 		inputField.setAction(new SubmitInputAction());
-		inputField.setColumns(80);
+		inputField.setColumns(targetField.getColumns());
 		inputField.setEditable(true);
 		inputField.setEnabled(false);
 		inputField.setFocusable(true);
