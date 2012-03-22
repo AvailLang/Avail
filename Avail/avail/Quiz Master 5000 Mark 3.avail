@@ -311,7 +311,7 @@ Method "Administer Weighted Test" is
 			[
 			 	x : <string,boolean…|2..2> 
 			 |
-			 	1x type default type = true type;
+			 	x type default type = true type;
 			];
 		Print "\n";
 		Print weightedTestQuestions[i];
