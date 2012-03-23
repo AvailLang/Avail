@@ -43,7 +43,9 @@ import java.awt.event.*;
 import java.io.*;
 import java.util.*;
 import javax.swing.*;
+import javax.swing.event.*;
 import javax.swing.text.*;
+import javax.swing.tree.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.compiler.*;
@@ -111,7 +113,7 @@ extends JFrame
 			inputStream.clear();
 
 			// Build the target module in a Swing worker thread.
-			buildTask = new BuildTask();
+			buildTask = new BuildTask(selectedModule());
 			buildTask.execute();
 			cancelAction.setEnabled(true);
 		}
@@ -195,12 +197,60 @@ extends JFrame
 	}
 
 	/**
+	 * A {@code RefreshAction} updates the {@linkplain #moduleTree module tree}
+	 * with new information from the filesystem.
+	 */
+	private final class RefreshAction
+	extends AbstractAction
+	{
+		/** The serial version identifier. */
+		private static final long serialVersionUID = 8414764326820529464L;
+
+		@Override
+		public void actionPerformed (final @NotNull ActionEvent event)
+		{
+			final String selection = selectedModule();
+			moduleTree.setModel(new DefaultTreeModel(moduleTree()));
+			for (int i = 0; i < moduleTree.getRowCount(); i++)
+			{
+				moduleTree.expandRow(i);
+			}
+			if (selection != null)
+			{
+				final TreePath path = modulePath(selection);
+				if (path != null)
+				{
+					moduleTree.setSelectionPath(path);
+				}
+			}
+		}
+
+		/**
+		 * Construct a new {@link RefreshAction}.
+		 */
+		public RefreshAction ()
+		{
+			super("Refresh");
+			putValue(
+				SHORT_DESCRIPTION,
+				"Refresh the availability of top-level modules.");
+			putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("F5"));
+		}
+	}
+
+	/**
 	 * A {@code BuildTask} launches the actual build of the target {@linkplain
 	 * ModuleDescriptor module}.
 	 */
 	private final class BuildTask
 	extends SwingWorker<Void, Void>
 	{
+		/**
+		 * The fully-qualified name of the target {@linkplain ModuleDescriptor
+		 * module}.
+		 */
+		private final @NotNull String targetModuleName;
+
 		/**
 		 * The {@linkplain Thread thread} running the {@linkplain BuildTask
 		 * build task}.
@@ -238,7 +288,7 @@ extends JFrame
 				AvailObject.createAllWellKnownObjects();
 				final AvailBuilder builder = new AvailBuilder(
 					new AvailRuntime(resolver),
-					new ModuleName(targetField.getText()));
+					new ModuleName(targetModuleName));
 				builder.buildTarget(
 					new Continuation4<ModuleName, Long, Long, Long>()
 					{
@@ -402,12 +452,15 @@ extends JFrame
 		}
 
 		/**
-		 * Construct a new {@link AvailBuilderFrame.BuildTask}.
+		 * Construct a new {@link BuildTask}.
 		 *
+		 * @param targetModuleName
+		 *        The fully-qualified name of the target {@linkplain
+		 *        ModuleDescriptor module}.
 		 */
-		public BuildTask ()
+		public BuildTask (final @NotNull String targetModuleName)
 		{
-			// No implementation required.
+			this.targetModuleName = targetModuleName;
 		}
 	}
 
@@ -698,8 +751,8 @@ extends JFrame
 	 * UI components.
 	 */
 
-	/** The {@linkplain JTextField text field} that indicates the target. */
-	@InnerAccess final @NotNull JTextField targetField;
+	/** The {@linkplain ModuleDescriptor module} {@linkplain JTree tree}. */
+	@InnerAccess final @NotNull JTree moduleTree;
 
 	/**
 	 * The {@linkplain JProgressBar progress bar} that displays compilation
@@ -731,6 +784,112 @@ extends JFrame
 
 	/** The {@linkplain CancelAction cancel action}. */
 	@InnerAccess final @NotNull CancelAction cancelAction;
+
+	/**
+	 * Answer the (invisible) root of the {@linkplain #moduleTree module tree}.
+	 *
+	 * @return The root of the module tree.
+	 */
+	@InnerAccess @NotNull TreeNode moduleTree ()
+	{
+		final ModuleRoots roots = resolver.moduleRoots();
+		final DefaultMutableTreeNode treeRoot = new DefaultMutableTreeNode();
+		for (final String rootName : roots.rootNames())
+		{
+			final DefaultMutableTreeNode rootNode =
+				new DefaultMutableTreeNode(rootName);
+			treeRoot.add(rootNode);
+			final File rootDirectory = roots.rootDirectoryFor(rootName);
+			final File[] files = rootDirectory.listFiles(new FilenameFilter()
+			{
+				@Override
+				public boolean accept (
+					final @NotNull File dir,
+					final @NotNull String name)
+				{
+					return name.endsWith(".avail");
+				}
+			});
+			for (final File file : files)
+			{
+				final String fileName = file.getName();
+				final String label = fileName.substring(
+					0, fileName.length() - 6);
+				final DefaultMutableTreeNode moduleNode =
+					new DefaultMutableTreeNode(label);
+				rootNode.add(moduleNode);
+			}
+		}
+		return treeRoot;
+	}
+
+	/**
+	 * Answer the {@linkplain TreePath path} to the specified module name in the
+	 * {@linkplain #moduleTree module tree}.
+	 *
+	 * @param moduleName A module name.
+	 * @return A tree path, or {@code null} if the module name is not present in
+	 *         the tree.
+	 */
+	@InnerAccess TreePath modulePath (final String moduleName)
+	{
+		final String[] path = moduleName.split("/");
+		assert path.length == 3;
+		final TreeModel model = moduleTree.getModel();
+		final DefaultMutableTreeNode treeRoot =
+			(DefaultMutableTreeNode) model.getRoot();
+		@SuppressWarnings("unchecked")
+		final Enumeration<DefaultMutableTreeNode> roots = treeRoot.children();
+		while (roots.hasMoreElements())
+		{
+			final DefaultMutableTreeNode rootNode = roots.nextElement();
+			if (path[1].equals(rootNode.getUserObject()))
+			{
+				@SuppressWarnings("unchecked")
+				final Enumeration<DefaultMutableTreeNode> modules =
+					rootNode.children();
+				while (modules.hasMoreElements())
+				{
+					final DefaultMutableTreeNode moduleNode =
+						modules.nextElement();
+					if (path[2].equals(moduleNode.getUserObject()))
+					{
+						return new TreePath(moduleNode.getPath());
+					}
+				}
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Answer the currently selected {@linkplain ModuleDescriptor module}.
+	 *
+	 * @return A fully-qualified module name, or {@code null} if no module is
+	 *         selected.
+	 */
+	@InnerAccess String selectedModule ()
+	{
+		final TreePath path = moduleTree.getSelectionPath();
+		if (path == null)
+		{
+			return null;
+		}
+		final Object[] nodes = path.getPath();
+		if (nodes.length != 3)
+		{
+			return null;
+		}
+		final StringBuilder builder = new StringBuilder();
+		for (int i = 1; i < nodes.length; i++)
+		{
+			final DefaultMutableTreeNode node =
+				(DefaultMutableTreeNode) nodes[i];
+			builder.append('/');
+			builder.append((String) node.getUserObject());
+		}
+		return builder.toString();
+	}
 
 	/**
 	 * Redirect the standard streams.
@@ -813,8 +972,9 @@ extends JFrame
 		this.resolver = resolver;
 
 		// Set properties of the frame.
-		setTitle("Avail Builder");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setTitle("Avail Builder");
+		setResizable(false);
 
 		// Create the menu bar and menus.
 		final JMenuBar menuBar = new JMenuBar();
@@ -828,6 +988,18 @@ extends JFrame
 		menu.add(cancelItem);
 		menuBar.add(menu);
 		setJMenuBar(menuBar);
+		final JPopupMenu buildPopup = new JPopupMenu("Build");
+		final JMenuItem popupBuildItem = new JMenuItem(buildAction);
+		buildPopup.add(popupBuildItem);
+		final RefreshAction refreshAction = new RefreshAction();
+		final JMenuItem popupRefreshItem = new JMenuItem(refreshAction);
+		buildPopup.add(popupRefreshItem);
+		// The refresh item needs a little help ...
+		InputMap inputMap = getRootPane().getInputMap(
+			JComponent.WHEN_IN_FOCUSED_WINDOW);
+		ActionMap actionMap = getRootPane().getActionMap();
+		inputMap.put(KeyStroke.getKeyStroke("F5"), "refresh");
+		actionMap.put("refresh", refreshAction);
 
 		// Get the content pane.
 		final Container contentPane = getContentPane();
@@ -841,42 +1013,84 @@ extends JFrame
 		c.insets = new Insets(5, 5, 5, 5);
 		int y = 0;
 
-		// Create the target module entry field.
-		final JLabel targetLabel = new JLabel("Target:");
+		// Create the module tree.
+		final JScrollPane moduleTreeScrollArea = new JScrollPane();
+		moduleTreeScrollArea.setHorizontalScrollBarPolicy(
+			HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		moduleTreeScrollArea.setVerticalScrollBarPolicy(
+			VERTICAL_SCROLLBAR_AS_NEEDED);
+		moduleTreeScrollArea.setVisible(true);
+		c.fill = GridBagConstraints.BOTH;
+		c.gridheight = GridBagConstraints.REMAINDER;
 		c.gridx = 0;
 		c.gridy = y++;
-		contentPane.add(targetLabel, c);
-		targetField = new JTextField(initialTarget);
-		targetField.setToolTipText(
-			"The fully-qualified name of the module to build.");
-		targetField.setAction(buildAction);
-		targetField.setColumns(80);
-		targetField.setEditable(true);
-		targetField.setEnabled(true);
-		targetField.setFocusable(true);
-		targetField.setFocusTraversalKeys(
+		contentPane.add(moduleTreeScrollArea, c);
+		moduleTree = new JTree(moduleTree());
+		moduleTree.setToolTipText(
+			"All top-level modules, organized by module root.");
+		moduleTree.setComponentPopupMenu(buildPopup);
+		moduleTree.setEditable(false);
+		moduleTree.setEnabled(true);
+		moduleTree.setFocusable(true);
+		moduleTree.setFocusTraversalKeys(
 			FORWARD_TRAVERSAL_KEYS,
 			Collections.singleton(getAWTKeyStroke("TAB")));
-		targetField.setFocusTraversalKeys(
+		moduleTree.setFocusTraversalKeys(
 			BACKWARD_TRAVERSAL_KEYS,
 			Collections.singleton(getAWTKeyStroke("shift TAB")));
-		targetField.setVisible(true);
-		c.gridx = 0;
-		c.gridy = y++;
-		contentPane.add(targetField, c);
+		moduleTree.setPreferredSize(new Dimension(200, 0));
+		moduleTree.getSelectionModel().setSelectionMode(
+			TreeSelectionModel.SINGLE_TREE_SELECTION);
+		moduleTree.setShowsRootHandles(true);
+		moduleTree.setRootVisible(false);
+		moduleTree.setVisible(true);
+		moduleTree.addTreeSelectionListener(new TreeSelectionListener()
+		{
+			@Override
+ 			public void valueChanged (final @NotNull TreeSelectionEvent event)
+			{
+				if (moduleTree.getLastSelectedPathComponent() == null)
+				{
+					buildAction.setEnabled(false);
+				}
+				else
+				{
+					buildAction.setEnabled(true);
+				}
+			}
+		});
+		inputMap = moduleTree.getInputMap(
+			JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+		actionMap = moduleTree.getActionMap();
+		inputMap.put(KeyStroke.getKeyStroke("ENTER"), "build");
+		actionMap.put("build", buildAction);
+		for (int i = 0; i < moduleTree.getRowCount(); i++)
+		{
+			moduleTree.expandRow(i);
+		}
+		if (!initialTarget.isEmpty())
+		{
+			final TreePath path = modulePath(initialTarget);
+			if (path != null)
+			{
+				moduleTree.setSelectionPath(path);
+			}
+		}
+		moduleTreeScrollArea.setViewportView(moduleTree);
 
 		// Create the module progress bar.
 		moduleProgress = new JProgressBar(0, 100);
 		moduleProgress.setToolTipText(
 			"Progress indicator for the module undergoing compilation.");
-		moduleProgress.setPreferredSize(targetField.getPreferredSize());
 		moduleProgress.setEnabled(false);
 		moduleProgress.setFocusable(false);
 		moduleProgress.setIndeterminate(false);
 		moduleProgress.setStringPainted(true);
 		moduleProgress.setString("Module Progress:");
 		moduleProgress.setValue(0);
-		c.gridx = 0;
+		c.gridwidth = 3;
+		c.gridheight = 1;
+		c.gridx = 1;
 		c.gridy = y++;
 		contentPane.add(moduleProgress, c);
 
@@ -884,7 +1098,6 @@ extends JFrame
 		buildProgress = new JProgressBar(0, 100);
 		buildProgress.setToolTipText(
 			"Progress indicator for the build.");
-		buildProgress.setPreferredSize(targetField.getPreferredSize());
 		buildProgress.setEnabled(false);
 		buildProgress.setFocusable(false);
 		buildProgress.setIndeterminate(false);
@@ -898,19 +1111,19 @@ extends JFrame
 		final JLabel outputLabel = new JLabel("Build Transcript:");
 		c.gridy = y++;
 		contentPane.add(outputLabel, c);
-		final JScrollPane scrollArea = new JScrollPane();
-		scrollArea.setHorizontalScrollBarPolicy(HORIZONTAL_SCROLLBAR_AS_NEEDED);
-		scrollArea.setVerticalScrollBarPolicy(VERTICAL_SCROLLBAR_AS_NEEDED);
+		final JScrollPane transcriptScrollArea = new JScrollPane();
+		transcriptScrollArea.setHorizontalScrollBarPolicy(
+			HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		transcriptScrollArea.setVerticalScrollBarPolicy(
+			VERTICAL_SCROLLBAR_AS_NEEDED);
+		transcriptScrollArea.setVisible(true);
 		c.gridy = y++;
-		contentPane.add(scrollArea, c);
+		contentPane.add(transcriptScrollArea, c);
 		transcript = new JTextPane();
 		transcript.setToolTipText(
 			"The build transcript. Intermixes characters written to the "
 			+ "standard output and standard error, as well as characters read "
 			+ "from the standard input stream.");
-		transcript.setPreferredSize(new Dimension(
-			targetField.getPreferredSize().width,
-			targetField.getPreferredSize().height * 20));
 		transcript.setBorder(BorderFactory.createEtchedBorder());
 		transcript.setEditable(false);
 		transcript.setEnabled(true);
@@ -921,7 +1134,9 @@ extends JFrame
 		transcript.setFocusTraversalKeys(
 			BACKWARD_TRAVERSAL_KEYS,
 			Collections.singleton(getAWTKeyStroke("shift TAB")));
-		scrollArea.setViewportView(transcript);
+		transcript.setPreferredSize(new Dimension(300, 600));
+		transcript.setVisible(true);
+		transcriptScrollArea.setViewportView(transcript);
 
 		// Create the input area.
 		final JLabel inputLabel = new JLabel("Console Input:");
@@ -933,7 +1148,7 @@ extends JFrame
 			+ "process. Characters are not made available until ENTER is "
 			+ "pressed.");
 		inputField.setAction(new SubmitInputAction());
-		inputField.setColumns(targetField.getColumns());
+		inputField.setColumns(60);
 		inputField.setEditable(true);
 		inputField.setEnabled(false);
 		inputField.setFocusable(true);
@@ -975,8 +1190,7 @@ extends JFrame
 	 * @throws Exception
 	 *         If something goes wrong.
 	 */
-	public static void main (final @NotNull String[] args)
-		throws Exception
+	public static void main (final @NotNull String[] args) throws Exception
 	{
 		final ModuleRoots roots = new ModuleRoots(
 			System.getProperty("availRoots", ""));
