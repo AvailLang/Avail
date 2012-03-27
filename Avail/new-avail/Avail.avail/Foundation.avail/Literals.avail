@@ -40,7 +40,8 @@ Uses
 	"Bootstrap",
 	"Early Control Structures",
 	"Early Logic",
-	"Early Math"
+	"Early Math",
+	"Enumeration Support"
 Names
 	"{«_‡,»}",
 	"{«_→_‡,»}"
@@ -74,13 +75,28 @@ Semantic restriction "<«_‡,»>" is
 	[
 		index : natural number
 	|
-		if ¬(|elements[index]| = ∞) then
+		if |elements[index]| ≠ ∞ then
 		[
 			instances ::= elements[index]'s instances;
-			Assert |instances| = 1;
+			Assert: |instances| = 1;
 			instance ::= instances→tuple[1];
-			accumulator := concatenate <accumulator, <instance>>;
-			true;
+			/* Do not blithely construct a literal-force tuple if any of the
+			 * instances are themselves types. This prevents expressions like
+			 * `<elements[index]>` from asserting the type `<any>'s type` rather
+			 * than `<any's type…|1>`, which frequently leads to (absurd)
+			 * runtime type errors, e.g., if elements[index] has the static type
+			 * [0..5], then the return type verification nybblecode would fail
+			 * because `<[0..5]>` is not a subtype of `<any>`.
+			 */
+			if instance's type ⊆ type then
+			[
+				false;
+			]
+			else
+			[
+				accumulator := concatenate <accumulator, <instance>>;
+				true;
+			];
 		]
 		else
 		[
@@ -203,13 +219,28 @@ Semantic restriction "{«_‡,»}" is
 		index : natural number
 	|
 		element ::= elements[index];
-		if ¬(|elements[index]| = ∞) then
+		if |elements[index]| ≠ ∞ then
 		[
 			instances ::= elements[index]'s instances;
-			Assert |instances| = 1;
+			Assert: |instances| = 1;
 			instance ::= instances→tuple[1];
-			accumulator := concatenate <accumulator, <instance>>;
-			true;
+			/* Do not blithely construct a literal-force tuple if any of the
+			 * instances are themselves types. This prevents expressions like
+			 * `{elements[index]}` from asserting the type `{any}'s type` rather
+			 * than `{any's type|1}`, which frequently leads to (absurd)
+			 * runtime type errors, e.g., if elements[index] has the static type
+			 * [0..5], then the return type verification nybblecode would fail
+			 * because `{[0..5]}` is not a subtype of `{any}`.
+			 */
+			if instance's type ⊆ type then
+			[
+				false;
+			]
+			else
+			[
+				accumulator := concatenate <accumulator, <instance>>;
+				true;
+			];
 		]
 		else
 		[
@@ -250,7 +281,7 @@ Semantic restriction "{«_‡,»}" is
 			[
 				innerIndex : natural number
 			|
-				if ¬(element ∩ distinct[innerIndex] = ⊥) then
+				if element ∩ distinct[innerIndex] ≠ ⊥ then
 				[
 					isDistinct := false;
 					false;
@@ -267,10 +298,9 @@ Semantic restriction "{«_‡,»}" is
 			];
 			true;
 		];
-		typeSet ::= types→set;
 		lower ::= |distinct|;
-		upper ::= cast |typeSet| + 1 into [ i : natural number | i; ];
-		union ::= cast ∪ types into [ t : any's type | t; ]; 
+		upper ::= cast |types| + 1 into [ i : natural number | i; ];
+		union ::= cast ∪ types into [ t : any's type | t; ];
 		{union | [lower..upper)};
 	];
 ];
@@ -320,20 +350,39 @@ Semantic restriction "{«_→_‡,»}" is
 		index : natural number
 	|
 		binding ::= cast bindings[index] into [ t: tuple meta | t; ];
-		if ¬(|binding[1]| = ∞) then
+		if |binding[1]| ≠ ∞ then
 		[
 			instancesK ::= binding[1]'s instances;
-			Assert |instancesK| = 1;
+			Assert: |instancesK| = 1;
 			instanceK ::= instancesK→tuple[1];
-			if ¬(|binding[2]| = ∞) then
+			if |binding[2]| ≠ ∞ then
 			[
 				instancesV ::= binding[2]'s instances;
-				Assert |instancesV| = 1;
+				Assert: |instancesV| = 1;
 				instanceV ::= instancesV→tuple[1];
-				accumulator :=
-					cast concatenate <accumulator, <<instanceK, instanceV>>>
-					into [ t : <<>, <<>, any…|[2..2]>… |whole number> | t; ];
-				true;
+				/* Do not blithely construct a literal-force tuple if any of the
+				 * instances are themselves types. This prevents expressions
+				 * like `{index→elements[index]}` from asserting the type
+				 * `{natural number→any}'s type` rather than
+				 * `{natural number's type→any's type|1}`, which frequently
+				 * leads to (absurd) runtime type errors.
+				 */
+				if instanceK's type ⊆ type ∨ [ instanceV's type ⊆ type; ] then
+				[
+					false;
+				]
+				else
+				[
+					accumulator :=
+						cast concatenate <accumulator, <<instanceK, instanceV>>>
+						into
+						[
+							t : <<>, <<>, any…|[2..2]>… |whole number>
+						|
+							t;
+						];
+					true;
+				];
 			]
 			else
 			[
@@ -387,7 +436,7 @@ Semantic restriction "{«_→_‡,»}" is
 			[
 				innerIndex : natural number
 			|
-				if ¬(keyType ∩ distinct[innerIndex] = ⊥) then
+				if keyType ∩ distinct[innerIndex] ≠ ⊥ then
 				[
 					isDistinct := false;
 					false;
@@ -404,9 +453,8 @@ Semantic restriction "{«_→_‡,»}" is
 			];
 			true;
 		];
-		keyTypeSet ::= keyTypes→set;
 		lower ::= |distinct|;
-		upper ::= cast |keyTypeSet| + 1 into [ i : natural number | i; ];
+		upper ::= cast |keyTypes| + 1 into [ i : natural number | i; ];
 		unionK ::= cast ∪ keyTypes into [ t : any's type | t; ];
 		unionV ::= cast ∪ valueTypes into [ t : any's type | t; ];
 		{unionK → unionV | [lower..upper)};

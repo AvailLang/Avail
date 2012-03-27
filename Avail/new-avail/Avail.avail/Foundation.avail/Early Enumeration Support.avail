@@ -1,5 +1,5 @@
 /*
- * Early Type Support.avail
+ * Early Enumeration Support.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Early Type Support"
+System Module "Early Enumeration Support"
 Versions
 	"dev"
 Uses

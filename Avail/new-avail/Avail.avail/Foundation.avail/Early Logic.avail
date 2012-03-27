@@ -40,7 +40,8 @@ Uses
 Names
 	"¬_",
 	"_∧_",
-	"_∨_"
+	"_∨_",
+	"_≠_"
 Body
 
 /**
@@ -284,3 +285,20 @@ Semantic restriction "_∨_" is
 |
 	true's type;
 ];
+
+/**
+ * Are the arguments inequal?
+ * 
+ * Parameters:
+ *    a - A value.
+ *    b - A value.
+ * Returns:
+ *    `true` if the arguments are not equal, `false` otherwise.
+ */
+Method "_≠_" is
+[
+	a : any,
+	b : any
+|
+	¬a = b;
+] : boolean;

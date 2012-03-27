@@ -37,7 +37,7 @@ Uses
 	"Assertions",
 	"Bootstrap",
 	"Early Literals",
-	"Early Type Support"
+	"Early Enumeration Support"
 Names
 	"(_)",
 	"Exit_",
@@ -388,3 +388,13 @@ Method "From_to_do_" is
 		] : ⊤
 	with <>;
 ] : ⊤;
+
+/* Don't permit `(_)` as the second argument of `Assert:_(_)`. */
+invoke
+	[
+		cast ::= [ t : {string|whole number} | t; ];
+		names ::= cast <"Assert:_(_)">→set into cast;
+		exclusions ::= cast <"(_)">→set into cast;
+		Grammatical restriction names is <∅, exclusions>;
+	]
+with <>;

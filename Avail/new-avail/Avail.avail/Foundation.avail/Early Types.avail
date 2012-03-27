@@ -1,5 +1,5 @@
 /*
- * Foundation.avail
+ * Early Types.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,12 +30,26 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Foundation"
+System Module "Early Types"
 Versions
 	"dev"
 Extends
-	"Assertions",
-	"Enumeration Support",
-	"Literals"
+Uses
+	"Bootstrap"
+Names
+	"<«_‡,»`…|_.._>",
+	"<«_‡,»`…|_..>",
+	"<«_‡,»`…|.._>",
+	"<«_‡,»`…|_>",
+	"<«_‡,»`…|>",
+	"{_|_.._}",
+	"{_|_..}",
+	"{_|.._}",
+	/* "{_|_}" */
+	"{_|}",
+	"{_→_|_.._}",
+	"{_→_|_..}",
+	"{_→_|.._}",
+	/* "{_→_|_}" */
+	"{_→_|}",
 Body
-

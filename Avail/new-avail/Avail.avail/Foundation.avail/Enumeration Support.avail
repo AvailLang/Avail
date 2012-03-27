@@ -1,0 +1,168 @@
+/*
+ * Enumeration Support.avail
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Enumeration Support"
+Versions
+	"dev"
+Extends
+	"Early Enumeration Support"
+Uses
+	"Assertions",
+	"Bootstrap",
+	"Early Control Structures",
+	"Early Logic",
+	"Early Math"
+Names
+	"_'s instance"
+Body
+
+/**
+ * Strengthen enumerations. When the argument has literal force, then it is
+ * possible to produce the exact enumeration type.
+ * 
+ * Parameters:
+ *    instances - A set type.
+ * Returns:
+ *    The most specific possible type.
+ */
+Semantic restriction "enumeration of_" is
+[
+	setType : set's type
+|
+	if |setType| = ∞ then
+	[
+		type;
+	]
+	else
+	[
+		instances ::=
+			cast setType's instances→tuple[1] into [ t : set | t; ];
+		(enumeration of instances)'s type;
+	];
+];
+
+/**
+ * Answer the sole instance of the specified enumeration.
+ *
+ * Parameters:
+ *    enum - An enumeration. Anything answered by `_'s type` satisfies this
+ *       criterion.
+ * Returns:
+ *    The sole instance of the argument.
+ */
+Method "_'s instance" is
+[
+	enum : type
+|
+	Assert: |enum| = 1;
+	enum's instances→tuple[1];
+] : any;
+
+/**
+ * Ensure that literal enumerations are able to produce the unique type of their
+ * membership set.
+ *
+ * Parameters:
+ *    enum - A metatype.
+ * Returns:
+ *    The most specific possible set type.
+ */
+Semantic restriction "_'s instances" is
+[
+	meta : type's type
+|
+	if |meta| = ∞ then
+	[
+		Assert: meta = type;
+		set;
+	]
+	else
+	[
+		if |meta| = 0 then
+		[
+			Assert: meta = ⊥;
+			∅'s type;
+		]
+		else
+		[
+			/* It looks like |meta| > 1 is possible, but actually it isn't
+			 * because we are dealing with metatypes here.
+			 */
+			Assert: |meta| = 1;
+			enum ::= cast meta's instance into [ t : any's type | t; ];
+			if |enum| ≠ ∞ then
+			[
+				bound ::= cast |enum| + 1 into [ t : whole number | t; ];
+				{enum|[0..bound)};
+			]
+			else
+			[
+				{enum|whole number};
+			];
+		];
+	];
+];
+
+/**
+ * Ensure that a singleton literal enumeration is able to produce the unique
+ * type of its member.
+ *
+ * Parameters:
+ *    enum - A metatype.
+ * Returns:
+ *    The most specific possible set type.
+ */
+Semantic restriction "_'s instance" is
+[
+	meta : type
+|
+	if |meta| ≠ ∞ then
+	[
+		union : type := ⊥;
+		instances ::=
+			cast meta's instances into [ t : {any's type|whole number} | t; ];
+		From 1 to |instances| do
+		[
+			index : natural number
+		|
+			instance ::=
+				cast instances→tuple[index] into [ t : any's type | t; ];
+			union := union ∪ instance;
+			true;
+		];
+		union;
+	]
+	else
+	[
+		any;
+	];
+];

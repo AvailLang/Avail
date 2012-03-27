@@ -175,7 +175,7 @@ extends AbstractEnumerationTypeDescriptor
 			return;
 		}
 		// Default printing.
-		aStream.append("enum of ");
+		aStream.append("enumeration of ");
 		object.instances().printOnAvoidingIndent(
 			aStream,
 			recursionList,
