@@ -34,8 +34,8 @@ System Module "Tuple"
 Extends
 Uses
 	"Tier-2",
-	"Enum"
-
+	"Enum",
+	"Integer"
 Names
 
 Body

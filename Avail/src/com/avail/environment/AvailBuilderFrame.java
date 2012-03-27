@@ -1049,13 +1049,25 @@ extends JFrame
 			@Override
  			public void valueChanged (final @NotNull TreeSelectionEvent event)
 			{
-				if (moduleTree.getLastSelectedPathComponent() == null)
+				if (buildAction.isEnabled()
+					&& moduleTree.getLastSelectedPathComponent() == null)
 				{
 					buildAction.setEnabled(false);
 				}
-				else
+			}
+		});
+		moduleTree.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mouseClicked (final @NotNull MouseEvent e)
+			{
+				if (buildAction.isEnabled()
+					&& e.getClickCount() == 2
+					&& e.getButton() == MouseEvent.BUTTON1)
 				{
-					buildAction.setEnabled(true);
+					final ActionEvent actionEvent = new ActionEvent(
+						moduleTree, -1, "Build");
+					buildAction.actionPerformed(actionEvent);
 				}
 			}
 		});
