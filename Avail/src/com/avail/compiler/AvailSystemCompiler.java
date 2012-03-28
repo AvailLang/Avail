@@ -48,6 +48,7 @@ import com.avail.utility.*;
  * I parse a source file to create a {@linkplain ModuleDescriptor module}.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
 public class AvailSystemCompiler
 extends AbstractAvailCompiler
@@ -352,6 +353,14 @@ extends AbstractAvailCompiler
 										"; to end assignment statement");
 									return;
 								}
+								if (expr.expressionType().equals(
+									BottomTypeDescriptor.bottom()))
+								{
+									afterExpr.expected(
+										"assignment expression to have a type "
+										+ "other than ⊥");
+									return;
+								}
 								if (expr.expressionType().isSubtypeOf(
 									varType.value))
 								{
@@ -607,6 +616,14 @@ extends AbstractAvailCompiler
 								final ParserState afterInit,
 								final AvailObject initExpr)
 							{
+								if (initExpr.expressionType().equals(
+									BottomTypeDescriptor.bottom()))
+								{
+									afterInit.expected(
+										"initializing expression to have a "
+										+ "type other than ⊥");
+									return;
+								}
 								if (initExpr.expressionType().isSubtypeOf(type))
 								{
 									final AvailObject initDecl =

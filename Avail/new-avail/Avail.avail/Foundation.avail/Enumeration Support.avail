@@ -83,7 +83,7 @@ Method "_'s instance" is
 [
 	enum : type
 |
-	Assert: |enum| = 1;
+	Assert: |enum| = 1 ("|enum| ≠ 1");
 	enum's instances→tuple[1];
 ] : any;
 
@@ -102,14 +102,14 @@ Semantic restriction "_'s instances" is
 |
 	if |meta| = ∞ then
 	[
-		Assert: meta = type;
+		Assert: meta = type ("|meta| = ∞ ∧ meta ≠ type");
 		set;
 	]
 	else
 	[
 		if |meta| = 0 then
 		[
-			Assert: meta = ⊥;
+			Assert: meta = ⊥ ("|meta| = 0 ∧ meta ≠ ⊥");
 			∅'s type;
 		]
 		else
@@ -117,7 +117,7 @@ Semantic restriction "_'s instances" is
 			/* It looks like |meta| > 1 is possible, but actually it isn't
 			 * because we are dealing with metatypes here.
 			 */
-			Assert: |meta| = 1;
+			Assert: |meta| = 1 ("|meta| > 1");
 			enum ::= cast meta's instance into [ t : any's type | t; ];
 			if |enum| ≠ ∞ then
 			[

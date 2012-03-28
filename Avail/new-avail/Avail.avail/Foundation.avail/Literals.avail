@@ -36,12 +36,12 @@ Versions
 Extends
 	"Early Literals"
 Uses
-	"Assertions",
 	"Bootstrap",
 	"Early Control Structures",
 	"Early Logic",
 	"Early Math",
-	"Enumeration Support"
+	"Enumeration Support",
+	"Variables"
 Names
 	"{«_‡,»}",
 	"{«_→_‡,»}"
@@ -77,9 +77,7 @@ Semantic restriction "<«_‡,»>" is
 	|
 		if |elements[index]| ≠ ∞ then
 		[
-			instances ::= elements[index]'s instances;
-			Assert: |instances| = 1;
-			instance ::= instances→tuple[1];
+			instance ::= elements[index]'s instance;
 			/* Do not blithely construct a literal-force tuple if any of the
 			 * instances are themselves types. This prevents expressions like
 			 * `<elements[index]>` from asserting the type `<any>'s type` rather
@@ -94,7 +92,7 @@ Semantic restriction "<«_‡,»>" is
 			]
 			else
 			[
-				accumulator := concatenate <accumulator, <instance>>;
+				accumulator := concatenate <eject &accumulator, <instance>>;
 				true;
 			];
 		]
@@ -128,10 +126,10 @@ Semantic restriction "<«_‡,»>" is
  */
 Semantic restriction "_[_]" is
 [
-	aTuple : tuple meta,
+	aTupleType : tuple meta,
 	index : natural number's type
 |
-	if ||aTuple||'s upper bound ≤ index's lower bound then
+	if ||aTupleType||'s upper bound < index's lower bound then
 	[
 		messageTuple ::= concatenate <
 			"a subscript (",
@@ -139,15 +137,15 @@ Semantic restriction "_[_]" is
 			" ≤ theSubscript ≤ ",
 			primitive description of index's upper bound,
 			") that could ever be valid (",
-			primitive description of ||aTuple||'s lower bound,
+			primitive description of ||aTupleType||'s lower bound,
 			" ≤ |theTuple| ≤ ",
-			primitive description of ||aTuple||'s upper bound,
+			primitive description of ||aTupleType||'s upper bound,
 			")">;
 		message ::= cast messageTuple into [ t : string | t; ];
 		Reject parse, expected: message;
 	];
 	union : type := ⊥;
-	limit ::= cast |aTuple's leading types| + 1
+	limit ::= cast |aTupleType's leading types| + 1
 		into [ t : natural number | t; ];
 	startIndex ::= index's lower bound min limit;
 	endIndex ::= index's upper bound min limit;
@@ -155,10 +153,60 @@ Semantic restriction "_[_]" is
 	[
 		i : natural number
 	|
-		union := union ∪ aTuple[i];
+		union := union ∪ aTupleType[i];
 		true;
 	];
 	union;
+];
+
+/**
+ * Strengthen the tuple type subscript operation. The strongest available static
+ * type is the instance type of the type union of the elements within the slice
+ * indicated by the range of the subscript. Forbid any access that could never
+ * be correct, i.e., the minimum value of the subscript exceeds the maximum
+ * cardinality of the tuple.
+ *
+ * Parameters:
+ *    aTuple -
+ *    index -
+ * Returns:
+ *    The instance type of the type union of the elements accessible by an
+ *    actual subscript of the specified type.
+ */
+Semantic restriction "_[_]" is
+[
+	aTupleMeta : tuple meta's type,
+	index : natural number's type
+|
+	aTupleType ::= aTupleMeta's instance;
+	if ||aTupleType||'s upper bound < index's lower bound then
+	[
+		messageTuple ::= concatenate <
+			"a subscript (",
+			primitive description of index's lower bound,
+			" ≤ theSubscript ≤ ",
+			primitive description of index's upper bound,
+			") that could ever be valid (",
+			primitive description of ||aTupleType||'s lower bound,
+			" ≤ |theTuple| ≤ ",
+			primitive description of ||aTupleType||'s upper bound,
+			")">;
+		message ::= cast messageTuple into [ t : string | t; ];
+		Reject parse, expected: message;
+	];
+	union : type := ⊥;
+	limit ::= cast |aTupleType's leading types| + 1
+		into [ t : natural number | t; ];
+	startIndex ::= index's lower bound min limit;
+	endIndex ::= index's upper bound min limit;
+	From startIndex to endIndex do
+	[
+		i : natural number
+	|
+		union := union ∪ aTupleType[i];
+		true;
+	];
+	union's type;
 ];
 
 /**
@@ -221,9 +269,7 @@ Semantic restriction "{«_‡,»}" is
 		element ::= elements[index];
 		if |elements[index]| ≠ ∞ then
 		[
-			instances ::= elements[index]'s instances;
-			Assert: |instances| = 1;
-			instance ::= instances→tuple[1];
+			instance ::= elements[index]'s instance;
 			/* Do not blithely construct a literal-force tuple if any of the
 			 * instances are themselves types. This prevents expressions like
 			 * `{elements[index]}` from asserting the type `{any}'s type` rather
@@ -238,7 +284,7 @@ Semantic restriction "{«_‡,»}" is
 			]
 			else
 			[
-				accumulator := concatenate <accumulator, <instance>>;
+				accumulator := concatenate <eject &accumulator, <instance>>;
 				true;
 			];
 		]
@@ -274,7 +320,7 @@ Semantic restriction "{«_‡,»}" is
 			outerIndex : natural number
 		|
 			element ::= elements[outerIndex];
-			types := cast concatenate <types, <element>>
+			types := cast concatenate <eject &types, <element>>
 				into [ t : tuple of type | t; ];
 			isDistinct : boolean := true;
 			From 1 to |distinct| do
@@ -293,7 +339,7 @@ Semantic restriction "{«_‡,»}" is
 			];
 			if isDistinct then
 			[
-				distinct := cast concatenate <distinct, <element>> into
+				distinct := cast concatenate <eject &distinct, <element>> into
 					[ t : tuple of type | t; ];
 			];
 			true;
@@ -349,17 +395,13 @@ Semantic restriction "{«_→_‡,»}" is
 	[
 		index : natural number
 	|
-		binding ::= cast bindings[index] into [ t: tuple meta | t; ];
+		binding ::= bindings[index];
 		if |binding[1]| ≠ ∞ then
 		[
-			instancesK ::= binding[1]'s instances;
-			Assert: |instancesK| = 1;
-			instanceK ::= instancesK→tuple[1];
+			instanceK ::= binding[1]'s instance;
 			if |binding[2]| ≠ ∞ then
 			[
-				instancesV ::= binding[2]'s instances;
-				Assert: |instancesV| = 1;
-				instanceV ::= instancesV→tuple[1];
+				instanceV ::= binding[2]'s instance;
 				/* Do not blithely construct a literal-force tuple if any of the
 				 * instances are themselves types. This prevents expressions
 				 * like `{index→elements[index]}` from asserting the type
@@ -374,7 +416,8 @@ Semantic restriction "{«_→_‡,»}" is
 				else
 				[
 					accumulator :=
-						cast concatenate <accumulator, <<instanceK, instanceV>>>
+						cast concatenate
+							<eject &accumulator, <<instanceK, instanceV>>>
 						into
 						[
 							t : <<>, <<>, any…|[2..2]>… |whole number>
@@ -416,7 +459,7 @@ Semantic restriction "{«_→_‡,»}" is
 		 * matches. This set establishes an upper bound on the answer's
 		 * cardinality requirement.
 		 */
-		firstBinding ::= cast bindings[1] into [ t : tuple meta | t; ];
+		firstBinding ::= bindings[1];
 		firstKeyType ::= firstBinding[1];
 		distinct : tuple of type := <firstKeyType>;
 		keyTypes : tuple of type := <firstKeyType>;
@@ -425,11 +468,11 @@ Semantic restriction "{«_→_‡,»}" is
 		[
 			outerIndex : natural number
 		|
-			binding ::= cast bindings[outerIndex] into [ t : tuple meta | t; ];
+			binding ::= bindings[outerIndex];
 			keyType ::= binding[1];
-			keyTypes := cast concatenate <keyTypes, <keyType>>
+			keyTypes := cast concatenate <eject &keyTypes, <keyType>>
 				into [ t : tuple of type | t; ];
-			valueTypes := cast concatenate <valueTypes, <binding[2]>>
+			valueTypes := cast concatenate <eject &valueTypes, <binding[2]>>
 				into [ t : tuple of type | t; ];
 			isDistinct : boolean := true;
 			From 1 to |distinct| do
@@ -448,7 +491,7 @@ Semantic restriction "{«_→_‡,»}" is
 			];
 			if isDistinct then
 			[
-				distinct := cast concatenate <distinct, <keyType>>
+				distinct := cast concatenate <eject &distinct, <keyType>>
 					into [ t : tuple of type | t; ];
 			];
 			true;
@@ -459,4 +502,58 @@ Semantic restriction "{«_→_‡,»}" is
 		unionV ::= cast ∪ valueTypes into [ t : any's type | t; ];
 		{unionK → unionV | [lower..upper)};
 	];
+];
+
+/**
+ * Strengthen the cardinality of a tuple to the range of cardinalities supported
+ * by its tuple type.
+ * 
+ * Parameters:
+ *    aTupleType -
+ * Returns:
+ *    The range of cardinalities supported by the argument.
+ */
+Semantic restriction "|_|" is
+[
+	aTupleType : tuple meta
+|
+	sizes ::= ||aTupleType||;
+	upper ::= cast sizes's upper bound + 1 into [ t : [0..∞] | t; ];
+	[sizes's lower bound..upper);
+];
+
+/**
+ * Strengthen the cardinality of a set to the range of cardinalities supported
+ * by its set type.
+ * 
+ * Parameters:
+ *    aSetType -
+ * Returns:
+ *    The range of cardinalities supported by the argument.
+ */
+Semantic restriction "|_|" is
+[
+	aSetType : set meta
+|
+	sizes ::= ||aSetType||;
+	upper ::= cast sizes's upper bound + 1 into [ t : [0..∞] | t; ];
+	[sizes's lower bound..upper);
+];
+
+/**
+ * Strengthen the cardinality of a map to the range of cardinalities supported
+ * by its map type.
+ * 
+ * Parameters:
+ *    aMapType -
+ * Returns:
+ *    The range of cardinalities supported by the argument.
+ */
+Semantic restriction "|_|" is
+[
+	aMapType : map meta
+|
+	sizes ::= ||aMapType||;
+	upper ::= cast sizes's upper bound + 1 into [ t : [0..∞] | t; ];
+	[sizes's lower bound..upper);
 ];

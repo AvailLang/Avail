@@ -38,8 +38,10 @@ Uses
 	"Bootstrap",
 	"Early Control Structures",
 	"Early Math",
+	"Early Tuples",
 	"Enumeration Support",
-	"Literals"
+	"Literals",
+	"Variables"
 Names
 	"[«_‡,»]→_",
 	"<«_‡,»`…|_.._>",
@@ -58,6 +60,11 @@ Names
 	/* "{_→_|_}" */
 	"{_→_|}"
 Body
+
+/*
+ * TODO: Implement remaining methods. Implement semantic restrictions for
+ * existing/remaining methods. Document existing/remaining methods.
+ */
 
 /**
  * Construct and answer a function type from the lexically specified argument
@@ -78,95 +85,38 @@ Method "[«_‡,»]→_" is
 ] : function meta;
 
 /**
- * Strengthen the cardinality of a tuple to the range of cardinalities supported
- * by its tuple type.
+ * Strengthen function type construction.
  * 
  * Parameters:
- *    aTupleType -
+ *    argsTupleType - A tuple type whose element types are instance metatypes.
+ *    returnMeta - An instance metatype.
  * Returns:
- *    The range of cardinalities supported by the argument.
+ *    The instance metatype of the exact function type.
  */
-Semantic restriction "|_|" is
+Semantic restriction "[«_‡,»]→_" is
 [
-	aTupleType : tuple meta
+	argsTupleType : (tuple of any meta)'s type,
+	returnMeta : type's type
 |
-	sizes ::= ||aTupleType||;
-	upper ::= cast sizes's upper bound + 1 into [ t : [0..∞] | t; ];
-	[sizes's lower bound..upper);
-];
-
-/**
- * Strengthen the tuple splice operation to answer the type union of all
- * element types potentially included in the slice.
- * 
- * Parameters:
- *    aTupleType -
- *    sliceStart -
- *    sliceEnd -
- * Returns:
- *    The type union of all element types potentially included in the slice.
- */
-Semantic restriction "_[_.._]" is
-[
-	aTupleType : tuple meta,
-	sliceStart : natural number's type,
-	sliceEnd : whole number's type
-|
-	$body : $[tuple meta, natural number's type, whole number's type]→type;
-	if sliceStart's upper bound < ||aTupleType||'s lower bound then
+	/* The tuple was constructed lexically, so it doesn't matter which bound
+	 * is used.
+	 */
+	bound ::= cast ||argsTupleType||'s upper bound
+		into [ t : whole number | t; ];
+	argMetas ::= argsTupleType[1..bound];
+	argTypes : tuple of any meta := <>;
+	From 1 to bound do
 	[
-		Exit body with ⊥;
-	];
-	upper ::= ||aTupleType||'s upper bound;
-	if sliceEnd's lower bound > upper then
-	[
-		Exit body with ⊥;
-	];
-	if sliceEnd's lower bound > sliceStart's upper bound then
-	[
-		Exit body with ⊥;
-	];
-	lastLeadingTypeIndex ::= cast |aTupleType's leading types| + 1
-		into [ t : natural number | t; ];
-	limit ::= sliceEnd's upper bound
-		min sliceEnd's upper bound
-		min lastLeadingTypeIndex;
-	types : tuple of any meta := <>;
-	minStart ::= (sliceStart's lower bound min limit) max 1;
-	maxStart ::= (sliceStart's upper bound min limit) max 1;
-	smearDelta ::= cast maxStart - minStart into [ t : whole number | t; ];
-	From minStart to limit do
-	[
-		i : natural number
+		index : natural number
 	|
-		union : type := ⊥;
-		smearEnd ::=
-			cast (i + smearDelta) min limit into [ t : natural number | t; ];
-		From i to smearEnd do
-		[
-			j : natural number
-		|
-			union := union ∪ aTupleType[j];
-			true;
-		];
-		types := cast concatenate <types, <union>>
-			into [ t : tuple of any meta | t; ];
+		argType ::= cast argMetas[index]'s instance into [ t : any meta | t; ];
+		argTypes := eject &argTypes ++ <argType>;
 		true;
 	];
-	defaultType ::= cast |types|
-		into [ n : natural number | types[n]; ]
-		else [ ⊥; ];
-	resultMinStart ::= sliceStart's lower bound min upper;
-	resultMaxStart ::= sliceStart's upper bound min upper;
-	resultMinEnd ::= sliceEnd's lower bound min upper;
-	resultMaxEnd ::= sliceEnd's upper bound min upper;
-	resultStart ::= cast (resultMinEnd - resultMaxEnd + 1) max 0
-		into [ t : whole number | t; ];
-	resultEnd ::= cast ((resultMaxEnd - resultMinStart + 1) max 0) + 1
-		into [ t : whole number | t; ];
-	resultSizes ::= [resultStart..resultEnd);
-	<types, defaultType…|resultSizes>;
-] : type;
+	/* `returnMeta` must be an instance type. */
+	returnType ::= returnMeta's instance;
+	(function accepting argTypes and returning returnType)'s type;
+];
 
 Method "<«_‡,»`…|_.._>" is
 [
@@ -176,21 +126,11 @@ Method "<«_‡,»`…|_.._>" is
 |
 	typesSize ::= |leadingAndDefaultTypes|;
 	lastLeadingTypeIndex ::= cast typesSize - 1 into [ t : whole number | t; ];
-	leadingTypes ::= leadingAndDefaultTypes[1..lastLeadingTypeIndex];
+	leadingTypes ::= leadingAndDefaultTypes[..lastLeadingTypeIndex];
 	defaultType ::= leadingAndDefaultTypes[typesSize];
 	bound ::= cast maximumSize + 1 into [ t : [0..∞] | t; ];
 	<leadingTypes, defaultType…|[minimumSize..bound)>;
 ] : tuple meta;
-
-/*
-Semantic restriction "<«_‡,»`…|_.._>" is
-[
-	leadingAndDefaultTypes : <<>, any's type…|natural number>'s type,
-	minimumSize : whole number's type,
-	maximumSize : [0..∞]'s type
-|
-];
-*/
 
 Method "<«_‡,»`…|_..>" is
 [
@@ -199,7 +139,7 @@ Method "<«_‡,»`…|_..>" is
 |
 	typesSize ::= |leadingAndDefaultTypes|;
 	lastLeadingTypeIndex ::= cast typesSize - 1 into [ t : whole number | t; ];
-	leadingTypes ::= leadingAndDefaultTypes[1..lastLeadingTypeIndex];
+	leadingTypes ::= leadingAndDefaultTypes[..lastLeadingTypeIndex];
 	defaultType ::= leadingAndDefaultTypes[typesSize];
 	<leadingTypes, defaultType…|[minimumSize..∞)>;
 ] : tuple meta;
@@ -211,7 +151,7 @@ Method "<«_‡,»`…|.._>" is
 |
 	typesSize ::= |leadingAndDefaultTypes|;
 	lastLeadingTypeIndex ::= cast typesSize - 1 into [ t : whole number | t; ];
-	leadingTypes ::= leadingAndDefaultTypes[1..lastLeadingTypeIndex];
+	leadingTypes ::= leadingAndDefaultTypes[..lastLeadingTypeIndex];
 	defaultType ::= leadingAndDefaultTypes[typesSize];
 	bound ::= cast maximumSize + 1 into [ t : [0..∞] | t; ];
 	<leadingTypes, defaultType…|[0..bound)>;
@@ -224,19 +164,19 @@ Method "<«_‡,»`…|_>" is
 |
 	typesSize ::= |leadingAndDefaultTypes|;
 	lastLeadingTypeIndex ::= cast typesSize - 1 into [ t : whole number | t; ];
-	leadingTypes ::= leadingAndDefaultTypes[1..lastLeadingTypeIndex];
+	leadingTypes ::= leadingAndDefaultTypes[..lastLeadingTypeIndex];
 	defaultType ::= leadingAndDefaultTypes[typesSize];
-	<leadingTypes, defaultType…|[size..size]>;
+	bound ::= cast exactSize + 1 into [ t : [0..∞] | t; ];
+	<leadingTypes, defaultType…|[exactSize..bound)>;
 ] : tuple meta;
 
 Method "<«_‡,»`…|>" is
 [
-	leadingAndDefaultTypes : <<>, any's type…|natural number>,
+	leadingAndDefaultTypes : <<>, any's type…|natural number>
 |
 	typesSize ::= |leadingAndDefaultTypes|;
 	lastLeadingTypeIndex ::= cast typesSize - 1 into [ t : whole number | t; ];
-	leadingTypes ::= leadingAndDefaultTypes[1..lastLeadingTypeIndex];
+	leadingTypes ::= leadingAndDefaultTypes[..lastLeadingTypeIndex];
 	defaultType ::= leadingAndDefaultTypes[typesSize];
 	<leadingTypes, defaultType…|whole number>;
 ] : tuple meta;
-

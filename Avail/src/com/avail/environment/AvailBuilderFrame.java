@@ -274,8 +274,8 @@ extends JFrame
 		/** The stop time. */
 		private long stopTimeMillis;
 
-		/** The {@linkplain Exception exception} that terminated the build. */
-		private Exception terminator;
+		/** The {@linkplain Throwable exception} that terminated the build. */
+		private Throwable terminator;
 
 		@Override
 		protected Void doInBackground () throws Exception
@@ -382,7 +382,7 @@ extends JFrame
 				terminator = e;
 				return null;
 			}
-			catch (final Exception e)
+			catch (final Throwable e)
 			{
 				e.printStackTrace();
 				terminator = e;

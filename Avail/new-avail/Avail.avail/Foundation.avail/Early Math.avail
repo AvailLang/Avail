@@ -66,10 +66,10 @@ Method "integer range bound semantic restriction function" is
 	[
 		range : extended integer meta's type
 	|
-		Assert: range ≠ ⊥;
+		Assert: range ≠ ⊥ ("range should not have type ⊥");
 		instances ::= cast range's instances
 			into [ t : {extended integer meta|whole number} | t; ];
-		Assert: |instances| = 1;
+		Assert: |instances| = 1 ("range should but a single instance");
 		instance ::= cast instances→tuple[1] into
 			[ t : extended integer meta | t; ];
 		/* Treat the upper bound as inclusive in order to handle ∞. */
