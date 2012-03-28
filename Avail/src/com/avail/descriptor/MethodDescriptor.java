@@ -422,7 +422,7 @@ extends Descriptor
 		final int aChunkIndex)
 	{
 		// Record the fact that the chunk indexed by aChunkIndex depends on
-		// this method not changing.
+		// the receiver not changing.
 		AvailObject indices =
 			object.slot(ObjectSlots.DEPENDENT_CHUNK_INDICES);
 		indices = indices.setWithElementCanDestroy(

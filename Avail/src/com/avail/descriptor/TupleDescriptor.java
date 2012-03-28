@@ -640,8 +640,6 @@ extends Descriptor
 	@Override @AvailMethod
 	@NotNull AvailObject o_AsSet (final AvailObject object)
 	{
-		// Convert the tuple to a set.
-
 		AvailObject result = SetDescriptor.empty();
 		for (int i = 1, end = object.tupleSize(); i <= end; i++)
 		{
@@ -811,8 +809,6 @@ extends Descriptor
 	String o_AsNativeString (
 		final @NotNull AvailObject object)
 	{
-		// Only applicable to tuples that contain characters.
-
 		final int size = object.tupleSize();
 		final StringBuilder builder = new StringBuilder(size);
 		for (int i = 1; i <= size; i++)

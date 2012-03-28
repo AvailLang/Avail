@@ -535,9 +535,6 @@ public class SetDescriptor extends Descriptor
 		}
 	}
 
-	/**
-	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
-	 */
 	@Override @AvailMethod
 	@NotNull Iterator<AvailObject> o_Iterator (
 		final @NotNull AvailObject object)
@@ -545,9 +542,6 @@ public class SetDescriptor extends Descriptor
 		return new SetIterator(rootBin(object));
 	}
 
-	/**
-	 * Convert me to a tuple.  The ordering will be arbitrary and unstable.
-	 */
 	@Override @AvailMethod
 	@NotNull AvailObject o_AsTuple (
 		final @NotNull AvailObject object)

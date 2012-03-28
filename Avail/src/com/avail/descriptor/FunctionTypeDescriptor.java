@@ -361,12 +361,6 @@ extends TypeDescriptor
 		return TYPE.o();
 	}
 
-	/**
-	 * Answer whether the {@linkplain AvailObject#argsTupleType() argument
-	 * types} supported by the specified {@linkplain FunctionTypeDescriptor
-	 * function type} are acceptable argument types for invoking a {@linkplain
-	 * FunctionDescriptor function} whose type is the {@code object}.
-	 */
 	@Override @AvailMethod
 	boolean o_AcceptsArgTypesFromFunctionType (
 		final @NotNull AvailObject object,
@@ -375,12 +369,6 @@ extends TypeDescriptor
 		return functionType.argsTupleType().isSubtypeOf(object.argsTupleType());
 	}
 
-	/**
-	 * The {@linkplain TypeDescriptor argument types} have been pushed onto
-	 * the specified {@linkplain ContinuationDescriptor continuation}'s stack.
-	 * Answer whether these arguments are acceptable for invoking a {@linkplain
-	 * FunctionDescriptor function} whose type is the {@code object}.
-	 */
 	@Override @AvailMethod
 	boolean o_AcceptsArgumentTypesFromContinuation (
 		final @NotNull AvailObject object,
@@ -401,11 +389,6 @@ extends TypeDescriptor
 		return true;
 	}
 
-	/**
-	 * Answer whether these are acceptable {@linkplain TypeDescriptor argument
-	 * types} for invoking a {@linkplain FunctionDescriptor function} whose type
-	 * is the {@code object}.
-	 */
 	@Override @AvailMethod
 	boolean o_AcceptsListOfArgTypes (
 		final @NotNull AvailObject object,
@@ -422,10 +405,6 @@ extends TypeDescriptor
 		return true;
 	}
 
-	/**
-	 * Answer whether these are acceptable arguments for invoking a {@linkplain
-	 * FunctionDescriptor function} whose type is the {@code object}.
-	 */
 	@Override @AvailMethod
 	boolean o_AcceptsListOfArgValues (
 		final @NotNull AvailObject object,
@@ -443,13 +422,6 @@ extends TypeDescriptor
 		return true;
 	}
 
-	/**
-	 * Answer whether these are acceptable {@linkplain TypeDescriptor argument
-	 * types} for invoking a {@linkplain FunctionDescriptor function} that is an
-	 * instance of {@code object}. There may be more entries in the {@linkplain
-	 * TupleDescriptor tuple} than are required by the {@linkplain
-	 * FunctionTypeDescriptor function type}.
-	 */
 	@Override @AvailMethod
 	boolean o_AcceptsTupleOfArgTypes (
 		final @NotNull AvailObject object,
@@ -466,12 +438,6 @@ extends TypeDescriptor
 		return true;
 	}
 
-	/**
-	 * Answer whether these are acceptable arguments for invoking a {@linkplain
-	 * FunctionDescriptor function} that is an instance of {@code object}. There
-	 * may be more entries in the {@linkplain TupleDescriptor tuple} than are
-	 * required by the {@linkplain FunctionTypeDescriptor function type}.
-	 */
 	@Override @AvailMethod
 	boolean o_AcceptsTupleOfArguments (
 		final @NotNull AvailObject object,

@@ -478,9 +478,16 @@ implements Iterable<AvailObject>
 		super(descriptor, objectSlotsSize, intSlotsSize);
 	}
 
-
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer whether the {@linkplain AvailObject#argsTupleType() argument
+	 * types} supported by the specified {@linkplain FunctionTypeDescriptor
+	 * function type} are acceptable argument types for invoking a {@linkplain
+	 * FunctionDescriptor function} whose type is the receiver.
+	 *
+	 * @param functionType A function type.
+	 * @return {@code true} if the arguments of the receiver are, pairwise, more
+	 *         general than those of {@code functionType}, {@code false}
+	 *         otherwise.
 	 */
 	public boolean acceptsArgTypesFromFunctionType (
 		final AvailObject functionType)
@@ -489,7 +496,21 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Dispatch to the descriptor.
+	 * The {@linkplain TypeDescriptor argument types} have been pushed onto
+	 * the specified {@linkplain ContinuationDescriptor continuation}'s stack.
+	 * Answer whether these arguments are acceptable for invoking a {@linkplain
+	 * FunctionDescriptor function} whose type is the receiver.
+	 *
+	 * @param continuation
+	 *        The continuation whose stack is to be checked.
+	 * @param stackp
+	 *        The stack pointer.
+	 * @param numArgs
+	 *        The number of arguments that have been pushed onto the
+	 *        continuation's stack.
+	 * @return {@code true} if the arguments of the receiver are, pairwise, more
+	 *         general than those within the {@code continuation}'s stack,
+	 *         {@code false} otherwise.
 	 */
 	public boolean acceptsArgumentTypesFromContinuation (
 		final AvailObject continuation,
@@ -504,7 +525,14 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer whether these are acceptable {@linkplain TypeDescriptor argument
+	 * types} for invoking a {@linkplain FunctionDescriptor function} whose type
+	 * is the receiver.
+	 *
+	 * @param argTypes A list containing the argument types to be checked.
+	 * @return {@code true} if the arguments of the receiver are, pairwise, more
+	 *         general than those within the {@code argTypes} list, {@code
+	 *         false} otherwise.
 	 */
 	public boolean acceptsListOfArgTypes (
 		final List<AvailObject> argTypes)
@@ -513,7 +541,13 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer whether these are acceptable arguments for invoking a {@linkplain
+	 * FunctionDescriptor function} whose type is the receiver.
+	 *
+	 * @param argValues A list containing the argument values to be checked.
+	 * @return {@code true} if the arguments of the receiver are, pairwise, more
+	 *         general than the types of the values within the {@code argValues}
+	 *         list, {@code false} otherwise.
 	 */
 	public boolean acceptsListOfArgValues (
 		final List<AvailObject> argValues)
@@ -522,7 +556,16 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer whether these are acceptable {@linkplain TypeDescriptor argument
+	 * types} for invoking a {@linkplain FunctionDescriptor function} that is an
+	 * instance of the receiver. There may be more entries in the {@linkplain
+	 * TupleDescriptor tuple} than are required by the {@linkplain
+	 * FunctionTypeDescriptor function type}.
+	 *
+	 * @param argTypes A tuple containing the argument types to be checked.
+	 * @return {@code true} if the arguments of the receiver are, pairwise, more
+	 *         general than the corresponding elements of the {@code argTypes}
+	 *         tuple, {@code false} otherwise.
 	 */
 	public boolean acceptsTupleOfArgTypes (
 		final AvailObject argTypes)
@@ -531,7 +574,15 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer whether these are acceptable arguments for invoking a {@linkplain
+	 * FunctionDescriptor function} that is an instance of the receiver. There
+	 * may be more entries in the {@linkplain TupleDescriptor tuple} than are
+	 * required by the {@linkplain FunctionTypeDescriptor function type}.
+	 *
+	 * @param arguments A tuple containing the argument values to be checked.
+	 * @return {@code true} if the arguments of the receiver are, pairwise, more
+	 *         general than the types of the corresponding elements of the
+	 *         {@code arguments} tuple, {@code false} otherwise.
 	 */
 	public boolean acceptsTupleOfArguments (
 		final AvailObject arguments)
@@ -574,8 +625,8 @@ implements Iterable<AvailObject>
 	 * #plusCanDestroy(AvailObject, boolean) plusCanDestroy}. It exists for
 	 * double-dispatch only.</p>
 	 *
-	 * @param anInfinity
-	 *        An {@linkplain InfinityDescriptor infinity}.
+	 * @param sign
+	 *        The {@linkplain Sign sign} of the infinity.
 	 * @param canDestroy
 	 *        {@code true} if the operation may modify either {@linkplain
 	 *        AvailObject operand}, {@code false} otherwise.
@@ -621,7 +672,10 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Construct a Java {@linkplain String string} from the receiver, an Avail
+	 * {@linkplain StringDescriptor string}.
+	 *
+	 * @return The corresponding Java string.
 	 */
 	public String asNativeString ()
 	{
@@ -629,7 +683,10 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Construct a Java {@linkplain Set set} from the receiver, a {@linkplain
+	 * TupleDescriptor tuple}.
+	 *
+	 * @return A set containing each element in the tuple.
 	 */
 	public AvailObject asSet ()
 	{
@@ -637,7 +694,11 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Construct a {@linkplain TupleDescriptor tuple} from the receiver, a
+	 * {@linkplain SetDescriptor set}. Element ordering in the tuple will be
+	 * arbitrary and unstable.
+	 *
+	 * @return A tuple containing each element in the set.
 	 */
 	public AvailObject asTuple ()
 	{

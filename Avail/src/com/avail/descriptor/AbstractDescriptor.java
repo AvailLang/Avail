@@ -835,20 +835,41 @@ public abstract class AbstractDescriptor
 	}
 
 	/**
-	 * @param object
-	 * @param functionType
-	 * @return
+	 * Answer whether the {@linkplain AvailObject#argsTupleType() argument
+	 * types} supported by the specified {@linkplain FunctionTypeDescriptor
+	 * function type} are acceptable argument types for invoking a {@linkplain
+	 * FunctionDescriptor function} whose type is the {@code object}.
+	 *
+	 * @see AvailObject#acceptsArgTypesFromFunctionType(AvailObject)
+	 * @param object A function type.
+	 * @param functionType A function type.
+	 * @return {@code true} if the arguments of {@code object} are, pairwise,
+	 *         more general than those of {@code functionType}, {@code false}
+	 *         otherwise.
 	 */
 	abstract boolean o_AcceptsArgTypesFromFunctionType (
 		@NotNull AvailObject object,
 		AvailObject functionType);
 
 	/**
+	 * The {@linkplain TypeDescriptor argument types} have been pushed onto
+	 * the specified {@linkplain ContinuationDescriptor continuation}'s stack.
+	 * Answer whether these arguments are acceptable for invoking a {@linkplain
+	 * FunctionDescriptor function} whose type is the receiver.
+	 *
+	 * @see AvailObject#acceptsArgumentTypesFromContinuation(AvailObject, int, int)
 	 * @param object
+	 *        The receiver.
 	 * @param continuation
+	 *        The continuation whose stack is to be checked.
 	 * @param stackp
+	 *        The stack pointer.
 	 * @param numArgs
-	 * @return
+	 *        The number of arguments that have been pushed onto the
+	 *        continuation's stack.
+	 * @return {@code true} if the arguments of the receiver are, pairwise, more
+	 *         general than those within the {@code continuation}'s stack,
+	 *         {@code false} otherwise.
 	 */
 	abstract boolean o_AcceptsArgumentTypesFromContinuation (
 		@NotNull AvailObject object,
@@ -857,42 +878,74 @@ public abstract class AbstractDescriptor
 		int numArgs);
 
 	/**
-	 * @param object
-	 * @param argTypes
-	 * @return
+	 * Answer whether these are acceptable {@linkplain TypeDescriptor argument
+	 * types} for invoking a {@linkplain FunctionDescriptor function} whose type
+	 * is the {@code object}.
+	 *
+	 * @see AvailObject#acceptsListOfArgTypes(List)
+	 * @param object The receiver.
+	 * @param argTypes A list containing the argument types to be checked.
+	 * @return {@code true} if the arguments of the receiver are, pairwise, more
+	 *         general than those within the {@code argTypes} list, {@code
+	 *         false} otherwise.
 	 */
 	abstract boolean o_AcceptsListOfArgTypes (
 		@NotNull AvailObject object,
 		List<AvailObject> argTypes);
 
 	/**
-	 * @param object
-	 * @param argValues
-	 * @return
+	 * Answer whether these are acceptable arguments for invoking a {@linkplain
+	 * FunctionDescriptor function} whose type is the {@code object}.
+	 *
+	 * @see AvailObject#acceptsListOfArgValues(List)
+	 * @param object The receiver.
+	 * @param argValues A list containing the argument values to be checked.
+	 * @return {@code true} if the arguments of the receiver are, pairwise, more
+	 *         general than the types of the values within the {@code argValues}
+	 *         list, {@code false} otherwise.
 	 */
 	abstract boolean o_AcceptsListOfArgValues (
 		@NotNull AvailObject object,
 		List<AvailObject> argValues);
 
 	/**
-	 * @param object
-	 * @param argTypes
-	 * @return
+	 * Answer whether these are acceptable {@linkplain TypeDescriptor argument
+	 * types} for invoking a {@linkplain FunctionDescriptor function} that is an
+	 * instance of {@code object}. There may be more entries in the {@linkplain
+	 * TupleDescriptor tuple} than are required by the {@linkplain
+	 * FunctionTypeDescriptor function type}.
+	 *
+	 * @see AvailObject#acceptsTupleOfArgTypes(AvailObject)
+	 * @param object The receiver.
+	 * @param argTypes A tuple containing the argument types to be checked.
+	 * @return {@code true} if the arguments of the receiver are, pairwise, more
+	 *         general than the corresponding elements of the {@code argTypes}
+	 *         tuple, {@code false} otherwise.
 	 */
 	abstract boolean o_AcceptsTupleOfArgTypes (
 		@NotNull AvailObject object,
 		AvailObject argTypes);
 
 	/**
-	 * @param object
-	 * @param arguments
-	 * @return
+	 * Answer whether these are acceptable arguments for invoking a {@linkplain
+	 * FunctionDescriptor function} that is an instance of {@code object}. There
+	 * may be more entries in the {@linkplain TupleDescriptor tuple} than are
+	 * required by the {@linkplain FunctionTypeDescriptor function type}.
+	 *
+	 * @see AvailObject#acceptsTupleOfArguments(AvailObject)
+	 * @param object The receiver.
+	 * @param arguments A tuple containing the argument values to be checked.
+	 * @return {@code true} if the arguments of the receiver are, pairwise, more
+	 *         general than the types of the corresponding elements of the
+	 *         {@code arguments} tuple, {@code false} otherwise.
 	 */
 	abstract boolean o_AcceptsTupleOfArguments (
 		@NotNull AvailObject object,
 		AvailObject arguments);
 
 	/**
+	 *
+	 *
 	 * @param object
 	 * @param aChunkIndex
 	 */
@@ -2805,20 +2858,33 @@ public abstract class AbstractDescriptor
 		int index);
 
 	/**
-	 * @param object
-	 * @return
+	 * Construct a Java {@linkplain String string} from the given Avail
+	 * {@linkplain StringDescriptor string}.
+	 *
+	 * @see AvailObject#asNativeString()
+	 * @param object An Avail string.
+	 * @return The corresponding Java string.
 	 */
 	abstract String o_AsNativeString (AvailObject object);
 
 	/**
-	 * @param object
-	 * @return
+	 * Construct a Java {@linkplain Set set} from the given {@linkplain
+	 * TupleDescriptor tuple}.
+	 *
+	 * @see AvailObject#asSet()
+	 * @param object A tuple.
+	 * @return A set containing each element in the tuple.
 	 */
 	abstract AvailObject o_AsSet (AvailObject object);
 
 	/**
-	 * @param object
-	 * @return
+	 * Construct a {@linkplain TupleDescriptor tuple} from the given {@linkplain
+	 * SetDescriptor set}. Element ordering in the tuple will be arbitrary and
+	 * unstable.
+	 *
+	 * @see AvailObject#asTuple()
+	 * @param object A set.
+	 * @return A tuple containing each element in the set.
 	 */
 	abstract AvailObject o_AsTuple (AvailObject object);
 
