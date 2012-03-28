@@ -49,7 +49,9 @@ Names
 	"max_",
 	"min_",
 	"«_‡max»",
-	"«_‡min»"
+	"«_‡min»",
+	"_>_",
+	"_≥_"
 Body
 
 /**
@@ -341,6 +343,16 @@ Method "min_" is minimum function;
  */
 Method "«_‡min»" is minimum function;
 
+/* Don't parse `«_‡min»` recursively. */
+invoke
+[
+	cast ::= [ t : {string|whole number} | t; ];
+	names ::= cast <"«_‡min»">→set into cast;
+	exclusions ::= cast <"«_‡min»">→set into cast;
+	Grammatical restriction names is <exclusions>;
+]
+with <>;
+
 /**
  * Answer a function that computes the maximum of a tuple of numbers.
  * 
@@ -384,6 +396,16 @@ Method "max_" is maximum function;
  *    The maximum of the specified numbers.
  */
 Method "«_‡max»" is maximum function;
+
+/* Don't parse `«_‡max»` recursively. */
+invoke
+[
+	cast ::= [ t : {string|whole number} | t; ];
+	names ::= cast <"«_‡max»">→set into cast;
+	exclusions ::= cast <"«_‡max»">→set into cast;
+	Grammatical restriction names is <exclusions>;
+]
+with <>;
 
 /**
  * Answer the semantic restriction function for minimum determination when all
@@ -622,3 +644,46 @@ Semantic restriction "«_‡max»" is extremum semantic restriction (float);
  */
 Semantic restriction "max_" is extremum semantic restriction (double);
 Semantic restriction "«_‡max»" is extremum semantic restriction (double);
+
+/**
+ * Is `a` greater than `b`?
+ * 
+ * Parameters:
+ *    a - A number.
+ *    b - A number.
+ * Returns:
+ *    `true` if `a` is greater than `b`, `false` otherwise.
+ */
+Method "_>_" is
+[
+	a : number,
+	b : number
+|
+	b < a;
+] : boolean;
+
+/**
+ * Is `a` greater than or equal to `b`?
+ * 
+ * Parameters:
+ *    a - A number.
+ *    b - A number.
+ * Returns:
+ *    `true` if `a` is greater than or equal to `b`, `false` otherwise.
+ */
+Method "_≥_" is
+[
+	a : number,
+	b : number
+|
+	b ≤ a;
+] : boolean;
+
+/* Make addition and subtraction left-associative. */
+invoke
+[
+	cast ::= [ t : {string|whole number} | t; ];
+	names ::= cast <"_+_", "_-_">→set into cast;
+	Grammatical restriction names is <∅, names>;
+]
+with <>;
