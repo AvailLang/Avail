@@ -769,9 +769,6 @@ extends Descriptor
 		membershipChanged(object);
 	}
 
-	/**
-	 * Answer how many arguments my implementations require.
-	 */
 	@Override @AvailMethod
 	int o_NumArgs (
 		final @NotNull AvailObject object)
@@ -782,7 +779,6 @@ extends Descriptor
 		final AvailObject argsTupleType = first.bodySignature().argsTupleType();
 		return argsTupleType.sizeRange().lowerBound().extractInt();
 	}
-
 
 	/**
 	 * {@inheritDoc}

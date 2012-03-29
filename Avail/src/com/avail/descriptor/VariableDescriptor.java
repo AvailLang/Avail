@@ -111,16 +111,6 @@ extends Descriptor
 		return another.equalsVariable(object);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>
-	 * Variables compare by address (Java object identity).  There's no need to
-	 * traverse the objects before comparing addresses, because this message was
-	 * a double-dispatch that would have skipped (and stripped) the indirection
-	 * objects in either path.
-	 * </p>
-	 */
 	@Override @AvailMethod
 	boolean o_EqualsVariable (
 		final @NotNull AvailObject object,

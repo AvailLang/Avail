@@ -184,7 +184,6 @@ implements Iterable<AvailObject>
 	 *                      print.
 	 * @param indent The indent level, in horizontal tabs, at which the {@link
 	 *               AvailObject} should be printed.
-	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
 	public void printOnAvoidingIndent (
 		final @NotNull StringBuilder builder,
@@ -444,10 +443,6 @@ implements Iterable<AvailObject>
 		descriptor.o_Hash(this, value);
 	}
 
-	/**
-	 * The receiver implements {@link #hashCode()} so Java can use an {@link
-	 * AvailObject} in a Java {@link Set} or {@link Map}.
-	 */
 	@Override
 	public final int hashCode ()
 	{
@@ -1395,15 +1390,15 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Divide the argument {@code anInfinity} by the receiver and answer the
-	 * {@linkplain AvailObject result}.
+	 * Divide an infinity with the given {@linkplain Sign sign} by the receiver
+	 * and answer the {@linkplain AvailObject result}.
 	 *
 	 * <p>This method should only be called from {@link
 	 * #divideCanDestroy(AvailObject, boolean) divideCanDestroy}. It exists for
 	 * double-dispatch only.</p>
 	 *
-	 * @param anInfinity
-	 *        An {@linkplain InfinityDescriptor infinity}.
+	 * @param sign
+	 *        The sign of the infinity.
 	 * @param canDestroy
 	 *        {@code true} if the operation may modify either {@linkplain
 	 *        AvailObject operand}, {@code false} otherwise.
@@ -1449,7 +1444,10 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer the element at the given index of the receiver.
+	 *
+	 * @param index An integer.
+	 * @return The element at the given index.
 	 */
 	public AvailObject elementAt (
 		final int index)
@@ -1522,12 +1520,19 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Dispatch to the descriptor.  Note that its argument is of type {@link
-	 * AvailObject} so that correctly typed uses (where the argument is
-	 * statically known to be an AvailObject) proceed normally.  Incorrectly
-	 * typed uses (where the argument is an arbitrary Java {@link Object} should
-	 * show up as calling a deprecated method, and should fail at runtime if the
-	 * argument is not actually an AvailObject.
+	 * Answer whether the receiver and the argument, both {@linkplain
+	 * AvailObject objects}, are equal in value.
+	 *
+	 * Note that the argument is of type {@link AvailObject} so that correctly
+	 * typed uses (where the argument is statically known to be an AvailObject)
+	 * proceed normally. Incorrectly typed uses (where the argument is an
+	 * arbitrary Java {@link Object} should show up as calling a deprecated
+	 * method, and should fail at runtime if the argument is not actually an
+	 * AvailObject.
+	 *
+	 * @param another The object to be compared to the receiver.
+	 * @return {@code true} if the two objects are of equal value, {@code false}
+	 *         otherwise.
 	 */
 	public boolean equals (
 		final AvailObject another)
@@ -1536,16 +1541,27 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer whether the receiver, an {@linkplain AvailObject object}, and the
+	 * argument, a {@linkplain TupleDescriptor tuple}, are equal in value.
+	 *
+	 * @param aTuple The tuple to be compared to the receiver.
+	 * @return {@code true} if the receiver is a tuple and of value equal to the
+	 *         argument, {@code false} otherwise.
 	 */
 	public boolean equalsAnyTuple (
-		final AvailObject anotherTuple)
+		final AvailObject aTuple)
 	{
-		return descriptor.o_EqualsAnyTuple(this, anotherTuple);
+		return descriptor.o_EqualsAnyTuple(this, aTuple);
 	}
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer whether the receiver, an {@linkplain AvailObject object}, and the
+	 * argument, a {@linkplain ByteStringDescriptor byte string}, are equal in
+	 * value.
+	 *
+	 * @param aByteString The byte string to be compared to the receiver.
+	 * @return {@code true} if the receiver is a byte string and of value equal
+	 *         to the argument, {@code false} otherwise.
 	 */
 	public boolean equalsByteString (
 		final AvailObject aByteString)
@@ -1554,7 +1570,13 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer whether the receiver, an {@linkplain AvailObject object}, and the
+	 * argument, a {@linkplain ByteTupleDescriptor byte tuple}, are equal in
+	 * value.
+	 *
+	 * @param aByteTuple The byte tuple to be compared to the receiver.
+	 * @return {@code true} if the receiver is a byte tuple and of value equal
+	 *         to the argument, {@code false} otherwise.
 	 */
 	public boolean equalsByteTuple (
 		final AvailObject aByteTuple)
@@ -1563,16 +1585,27 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer whether the receiver, an {@linkplain AvailObject object}, is a
+	 * character with a code point equal to the integer argument.
+	 *
+	 * @param aCodePoint The code point to be compared to the receiver.
+	 * @return {@code true} if the receiver is a character with a code point
+	 *         equal to the argument, {@code false} otherwise.
 	 */
 	public boolean equalsCharacterWithCodePoint (
-		final int otherCodePoint)
+		final int aCodePoint)
 	{
-		return descriptor.o_EqualsCharacterWithCodePoint(this, otherCodePoint);
+		return descriptor.o_EqualsCharacterWithCodePoint(this, aCodePoint);
 	}
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer whether the receiver, an {@linkplain AvailObject object}, and the
+	 * argument, a {@linkplain FunctionDescriptor function}, are equal in value.
+	 *
+	 * @param aFunction The function used in the comparison.
+	 * @return {@code true} if the receiver is a function and of value equal to
+	 *         the argument, {@code false} otherwise.
+	 * @see AvailObject#equalsFunction(AvailObject)
 	 */
 	public boolean equalsFunction (
 		final AvailObject aFunction)
@@ -1581,7 +1614,20 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer whether the receiver, an {@linkplain AvailObject object}, and the
+	 * argument, a {@linkplain FunctionTypeDescriptor function type}, are equal.
+	 *
+	 * @param aFunctionType The function type used in the comparison.
+	 * @return {@code true} IFF the receiver is also a function type and:
+	 *
+	 * <p><ul>
+	 * <li>The {@linkplain AvailObject#argsTupleType() argument types}
+	 * correspond,</li>
+	 * <li>The {@linkplain AvailObject#returnType() return types}
+	 * correspond, and</li>
+	 * <li>The {@linkplain AvailObject#checkedExceptions() raise types}
+	 * correspond.</li>
+	 * </ul></p>
 	 */
 	public boolean equalsFunctionType (
 		final AvailObject aFunctionType)
@@ -1590,7 +1636,12 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer whether the arguments, an {@linkplain AvailObject object} and a
+	 * {@linkplain CompiledCodeDescriptor compiled code}, are equal.
+	 *
+	 * @param aCompiledCode The compiled code used in the comparison.
+	 * @return {@code true} if the receiver is a compiled code and of value
+	 *         equal to the argument, {@code false} otherwise.
 	 */
 	public boolean equalsCompiledCode (
 		final AvailObject aCompiledCode)
@@ -1599,7 +1650,16 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer whether the arguments, an {@linkplain AvailObject object} and a
+	 * {@linkplain VariableDescriptor variable}, are the exact same object,
+	 * comparing by address (Java object identity). There's no need to traverse
+	 * the objects before comparing addresses, because this message was a
+	 * double-dispatch that would have skipped (and stripped) the indirection
+	 * objects in either path.
+	 *
+	 * @param aVariable The variable used in the comparison.
+	 * @return {@code true} if the receiver is a variable with the same identity
+	 *         as the argument, {@code false} otherwise.
 	 */
 	public boolean equalsVariable (
 		final AvailObject aVariable)
@@ -2171,7 +2231,10 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Is the {@linkplain AvailObject receiver} an Avail boolean?
+	 *
+	 * @return {@code true} if the receiver is a boolean, {@code false}
+	 *         otherwise.
 	 */
 	public boolean isBoolean ()
 	{
@@ -2179,7 +2242,10 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Is the {@linkplain AvailObject receiver} an Avail unsigned byte?
+	 *
+	 * @return {@code true} if the argument is an unsigned byte, {@code false}
+	 *         otherwise.
 	 */
 	public boolean isUnsignedByte ()
 	{
@@ -2189,9 +2255,8 @@ implements Iterable<AvailObject>
 	/**
 	 * Is the {@linkplain AvailObject receiver} an Avail byte tuple?
 	 *
-	 * @return {@code true} if the receiver is an Avail byte tuple, {@code
-	 *         false} otherwise.
-	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 * @return {@code true} if the receiver is a byte tuple, {@code false}
+	 *         otherwise.
 	 */
 	public boolean isByteTuple ()
 	{
@@ -2199,7 +2264,10 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Is the {@linkplain AvailObject receiver} an Avail character?
+	 *
+	 * @return {@code true} if the receiver is a character, {@code false}
+	 *         otherwise.
 	 */
 	public boolean isCharacter ()
 	{
@@ -2207,7 +2275,10 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Is the {@linkplain AvailObject receiver} an Avail function?
+	 *
+	 * @return {@code true} if the receiver is a function, {@code false}
+	 *         otherwise.
 	 */
 	public boolean isFunction ()
 	{
@@ -2215,7 +2286,10 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Is the {@linkplain AvailObject receiver} an Avail atom?
+	 *
+	 * @return {@code true} if the receiver is an atom, {@code false}
+	 *         otherwise.
 	 */
 	public boolean isAtom ()
 	{
@@ -2223,7 +2297,10 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Is the {@linkplain AvailObject receiver} an Avail extended integer?
+	 *
+	 * @return {@code true} if the receiver is an extended integer, {@code
+	 *         false} otherwise.
 	 */
 	public boolean isExtendedInteger ()
 	{
@@ -2281,7 +2358,9 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Is the {@linkplain AvailObject receiver} an Avail map?
+	 *
+	 * @return {@code true} if the receiver is a map, {@code false} otherwise.
 	 */
 	public boolean isMap ()
 	{
@@ -2297,7 +2376,10 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Is the {@linkplain AvailObject receiver} an Avail nybble?
+	 *
+	 * @return {@code true} if the receiver is a nybble, {@code false}
+	 *         otherwise.
 	 */
 	public boolean isNybble ()
 	{
@@ -2322,7 +2404,6 @@ implements Iterable<AvailObject>
 
 	/**
 	 * Dispatch to the descriptor.
-	 * @param aBoolean
 	 */
 	public void isSaved (
 		final boolean aBoolean)
@@ -2331,7 +2412,9 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Is the {@linkplain AvailObject receiver} an Avail set?
+	 *
+	 * @return {@code true} if the receiver is a set, {@code false} otherwise.
 	 */
 	public boolean isSet ()
 	{
@@ -2368,7 +2451,6 @@ implements Iterable<AvailObject>
 	 *
 	 * @return {@code true} if the receiver is an Avail string, {@code false}
 	 *         otherwise.
-	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
 	public boolean isString ()
 	{
@@ -2439,8 +2521,6 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * @param aParseNodeType
-	 * @return
 	 */
 	public boolean isSupertypeOfParseNodeType (
 		final @NotNull AvailObject aParseNodeType)
@@ -2493,8 +2573,6 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * @param anEnumerationType
-	 * @return
 	 */
 	public boolean isSupertypeOfEnumerationType (
 		final @NotNull AvailObject anEnumerationType)
@@ -2504,7 +2582,9 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Is the {@linkplain AvailObject receiver} an Avail tuple?
+	 *
+	 * @return {@code true} if the receiver is a tuple, {@code false} otherwise.
 	 */
 	public boolean isTuple ()
 	{
@@ -2541,7 +2621,6 @@ implements Iterable<AvailObject>
 	 * <em>foreach</em> construct.
 	 *
 	 * @return An {@linkplain Iterator iterator}.
-	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
 	@Override
 	public @NotNull Iterator<AvailObject> iterator ()

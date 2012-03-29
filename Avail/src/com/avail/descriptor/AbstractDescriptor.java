@@ -1362,7 +1362,9 @@ public abstract class AbstractDescriptor
 		boolean canDestroy);
 
 	/**
-	 * Divide the {@linkplain AvailObject operands} and answer the result.
+	 * Divide an infinity with the given {@linkplain Sign sign} by the
+	 * {@linkplain AvailObject object} and answer the {@linkplain AvailObject
+	 * result}.
 	 *
 	 * <p>This method should only be called from {@link
 	 * AvailObject#divideCanDestroy(AvailObject, boolean) divideCanDestroy}. It
@@ -1371,7 +1373,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 *        The divisor, an integral numeric.
 	 * @param sign
-	 *        The dividend, an {@linkplain InfinityDescriptor infinity}.
+	 *        The sign of the infinity.
 	 * @param canDestroy
 	 *        {@code true} if the operation may modify either {@linkplain
 	 *        AvailObject operand}, {@code false} otherwise.
@@ -1396,9 +1398,9 @@ public abstract class AbstractDescriptor
 	 * @param anInteger
 	 *        The dividend, an {@linkplain IntegerDescriptor integer}.
 	 * @param canDestroy
-	 *        {@code true} if the operation may modify either {@linkplain
-	 *        AvailObject operand}, {@code false} otherwise.
-	 * @return The {@linkplain AvailObject result} of dividing the operands.
+	 *        {@code true} if the operation may modify either operand, {@code
+	 *        false} otherwise.
+	 * @return The result of dividing the operands.
 	 * @see IntegerDescriptor
 	 * @see InfinityDescriptor
 	 */
@@ -1408,9 +1410,12 @@ public abstract class AbstractDescriptor
 		boolean canDestroy);
 
 	/**
-	 * @param object
-	 * @param index
-	 * @return
+	 * Answer the element at the given index of the {@code AvailObject object}.
+	 *
+	 * @param object A sequenceable collection.
+	 * @param index An integer.
+	 * @return The element at the given index.
+	 * @see AvailObject#elementAt(int)
 	 */
 	abstract AvailObject o_ElementAt (
 		@NotNull AvailObject object,
@@ -3300,8 +3305,7 @@ public abstract class AbstractDescriptor
 	abstract AvailObject o_NewNames (AvailObject object);
 
 	/**
-	 * @param object
-	 * @return
+	 * Answer how many arguments my implementations require.
 	 */
 	abstract int o_NumArgs (AvailObject object);
 
@@ -3562,81 +3566,138 @@ public abstract class AbstractDescriptor
 	abstract AvailObject o_Wordcodes (AvailObject object);
 
 	/**
-	 * @param object
-	 * @param another
-	 * @return
+	 * Answer whether the arguments, both {@linkplain AvailObject objects}, are
+	 * equal in value.
+	 *
+	 * @param object The receiver.
+	 * @param another The second object used in the comparison.
+	 * @return {@code true} if the two objects are of equal value, {@code false}
+	 *         otherwise.
+	 * @see AvailObject#equals(AvailObject)
 	 */
 	abstract boolean o_Equals (
 		@NotNull AvailObject object,
 		AvailObject another);
 
 	/**
-	 * @param object
-	 * @param aTuple
-	 * @return
+	 * Answer whether the arguments, an {@linkplain AvailObject object} and a
+	 * {@linkplain TupleDescriptor tuple}, are equal in value.
+	 *
+	 * @param object The receiver.
+	 * @param aTuple The tuple used in the comparison.
+	 * @return {@code true} if the receiver is a tuple and of value equal to the
+	 *         argument, {@code false} otherwise.
+	 * @see AvailObject#equalsAnyTuple(AvailObject)
 	 */
 	abstract boolean o_EqualsAnyTuple (
 		@NotNull AvailObject object,
 		AvailObject aTuple);
 
 	/**
-	 * @param object
-	 * @param aString
-	 * @return
+	 * Answer whether the arguments, an {@linkplain AvailObject object} and a
+	 * {@linkplain ByteStringDescriptor byte string}, are equal in value.
+	 *
+	 * @param object The receiver.
+	 * @param aByteString The byte string used in the comparison.
+	 * @return {@code true} if the receiver is a byte string and of value equal
+	 *         to the argument, {@code false} otherwise.
+	 * @see AvailObject#equalsByteString(AvailObject)
 	 */
 	abstract boolean o_EqualsByteString (
 		@NotNull AvailObject object,
-		AvailObject aString);
+		AvailObject aByteString);
 
 	/**
-	 * @param object
-	 * @param aTuple
-	 * @return
+	 * Answer whether the arguments, an {@linkplain AvailObject object}, and a
+	 * {@linkplain ByteTupleDescriptor byte tuple}, are equal in value.
+	 *
+	 * @param object The receiver.
+	 * @param aByteTuple The byte tuple used in the comparison.
+	 * @return {@code true} if the receiver is a byte tuple and of value equal
+	 *         to the argument, {@code false} otherwise.
+	 * @see AvailObject#equalsByteString(AvailObject)
 	 */
 	abstract boolean o_EqualsByteTuple (
 		@NotNull AvailObject object,
-		AvailObject aTuple);
+		AvailObject aByteTuple);
 
 	/**
-	 * @param object
-	 * @param otherCodePoint
-	 * @return
+	 * Answer whether the receiver, an {@linkplain AvailObject object}, is a
+	 * character with a code point equal to the integer argument.
+	 *
+	 * @param object The receiver.
+	 * @param aCodePoint The code point to be compared to the receiver.
+	 * @return {@code true} if the receiver is a character with a code point
+	 *         equal to the argument, {@code false} otherwise.
+	 * @see AvailObject#equalsCharacterWithCodePoint(int)
 	 */
 	abstract boolean o_EqualsCharacterWithCodePoint (
 		@NotNull AvailObject object,
-		int otherCodePoint);
+		int aCodePoint);
 
 	/**
-	 * @param object
-	 * @param aFunction
-	 * @return
+	 * Answer whether the arguments, an {@linkplain AvailObject object} and a
+	 * {@linkplain FunctionDescriptor function}, are equal in value.
+	 *
+	 * @param object The receiver.
+	 * @param aFunction The function used in the comparison.
+	 * @return {@code true} if the receiver is a function and of value equal to
+	 *         the argument, {@code false} otherwise.
+	 * @see AvailObject#equalsFunction(AvailObject)
 	 */
 	abstract boolean o_EqualsFunction (
 		@NotNull AvailObject object,
 		AvailObject aFunction);
 
 	/**
-	 * @param object
-	 * @param aFunctionType
-	 * @return
+	 * Answer whether the arguments, an {@linkplain AvailObject object} and a
+	 * {@linkplain FunctionTypeDescriptor function type}, are equal.
+	 *
+	 * @param object The receiver.
+	 * @param aFunctionType The function type used in the comparison.
+	 * @return {@code true} IFF the receiver is also a function type and:
+	 *
+	 * <p><ul>
+	 * <li>The {@linkplain AvailObject#argsTupleType() argument types}
+	 * correspond,</li>
+	 * <li>The {@linkplain AvailObject#returnType() return types}
+	 * correspond, and</li>
+	 * <li>The {@linkplain AvailObject#checkedExceptions() raise types}
+	 * correspond.</li>
+	 * </ul></p>
+	 * @see AvailObject#equalsFunctionType(AvailObject)
 	 */
 	abstract boolean o_EqualsFunctionType (
 		@NotNull AvailObject object,
 		AvailObject aFunctionType);
 
 	/**
-	 * @param object
-	 * @param aCompiledCode
-	 * @return
+	 * Answer whether the arguments, an {@linkplain AvailObject object} and a
+	 * {@linkplain CompiledCodeDescriptor compiled code}, are equal.
+	 *
+	 * @param object The receiver.
+	 * @param aCompiledCode The compiled code used in the comparison.
+	 * @return {@code true} if the receiver is a compiled code and of value
+	 *         equal to the argument, {@code false} otherwise.
+	 * @see AvailObject#equalsCompiledCode(AvailObject)
 	 */
 	abstract boolean o_EqualsCompiledCode (
 		@NotNull AvailObject object,
 		AvailObject aCompiledCode);
 
 	/**
-	 * @param object
-	 * @param aVariable
-	 * @return
+	 * Answer whether the arguments, an {@linkplain AvailObject object} and a
+	 * {@linkplain VariableDescriptor variable}, are the exact same object,
+	 * comparing by address (Java object identity). There's no need to traverse
+	 * the objects before comparing addresses, because this message was a
+	 * double-dispatch that would have skipped (and stripped) the indirection
+	 * objects in either path.
+	 *
+     * @param object The receiver.
+	 * @param aVariable The variable used in the comparison.
+	 * @return {@code true} if the receiver is a variable with the same identity
+	 *         as the argument, {@code false} otherwise.
+	 * @see AvailObject#equalsVariable(AvailObject)
 	 */
 	abstract boolean o_EqualsVariable (
 		@NotNull AvailObject object,
@@ -3898,8 +3959,12 @@ public abstract class AbstractDescriptor
 	abstract int o_Hash (AvailObject object);
 
 	/**
-	 * @param object
-	 * @return
+	 * Is the specified {@link AvailObject} an Avail function?
+	 *
+	 * @see AvailObject#isCharacter()
+	 * @param object An {@link AvailObject}.
+	 * @return {@code true} if the argument is a function, {@code false}
+	 *         otherwise.
 	 */
 	abstract boolean o_IsFunction (AvailObject object);
 
@@ -3921,42 +3986,42 @@ public abstract class AbstractDescriptor
 	abstract AvailObject o_Kind (AvailObject object);
 
 	/**
-	 * @param object
-	 * @return
+	 * Is the specified {@link AvailObject} an Avail boolean?
+	 *
+	 * @see AvailObject#isBoolean()
+	 * @param object An {@link AvailObject}.
+	 * @return {@code true} if the argument is a boolean, {@code false}
+	 *         otherwise.
 	 */
 	abstract boolean o_IsBoolean (AvailObject object);
 
 	/**
 	 * Is the specified {@link AvailObject} an Avail byte tuple?
 	 *
+	 * @see AvailObject#isByteTuple()
 	 * @param object An {@link AvailObject}.
 	 * @return {@code true} if the argument is a byte tuple, {@code false}
 	 *         otherwise.
-	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
-	 */
-	/**
-	 * @param object
-	 * @return
 	 */
 	abstract boolean o_IsByteTuple (@NotNull AvailObject object);
 
 	/**
-	 * @param object
-	 * @return
+	 * Is the specified {@link AvailObject} an Avail character?
+	 *
+	 * @see AvailObject#isCharacter()
+	 * @param object An {@link AvailObject}.
+	 * @return {@code true} if the argument is a character, {@code false}
+	 *         otherwise.
 	 */
 	abstract boolean o_IsCharacter (AvailObject object);
 
 	/**
 	 * Is the specified {@link AvailObject} an Avail string?
 	 *
+	 * @see AvailObject#isString()
 	 * @param object An {@link AvailObject}.
 	 * @return {@code true} if the argument is an Avail string, {@code false}
 	 *         otherwise.
-	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
-	 */
-	/**
-	 * @param object
-	 * @return
 	 */
 	abstract boolean o_IsString (@NotNull AvailObject object);
 
@@ -3986,26 +4051,40 @@ public abstract class AbstractDescriptor
 	abstract AvailObject o_Traversed (AvailObject object);
 
 	/**
-	 * @param object
-	 * @return
+	 * Is the specified {@link AvailObject} an Avail map?
+	 *
+	 * @see AvailObject#isMap()
+	 * @param object An {@link AvailObject}.
+	 * @return {@code true} if the argument is a map, {@code false} otherwise.
 	 */
 	abstract boolean o_IsMap (AvailObject object);
 
 	/**
-	 * @param object
-	 * @return
+	 * Is the specified {@link AvailObject} an Avail unsigned byte?
+	 *
+	 * @see AvailObject#isUnsignedByte()
+	 * @param object An {@link AvailObject}.
+	 * @return {@code true} if the argument is an unsigned byte, {@code false}
+	 *         otherwise.
 	 */
 	abstract boolean o_IsUnsignedByte (AvailObject object);
 
 	/**
-	 * @param object
-	 * @return
+	 * Is the specified {@link AvailObject} an Avail nybble?
+	 *
+	 * @see AvailObject#isNybble()
+	 * @param object An {@link AvailObject}.
+	 * @return {@code true} if the argument is a nybble, {@code false}
+	 *         otherwise.
 	 */
 	abstract boolean o_IsNybble (AvailObject object);
 
 	/**
-	 * @param object
-	 * @return
+	 * Is the specified {@link AvailObject} an Avail set?
+	 *
+	 * @see AvailObject#isSet()
+	 * @param object An {@link AvailObject}.
+	 * @return {@code true} if the argument is a set, {@code false} otherwise.
 	 */
 	abstract boolean o_IsSet (AvailObject object);
 
@@ -4076,20 +4155,30 @@ public abstract class AbstractDescriptor
 	abstract AvailObject o_BinUnionTypeOrNull (AvailObject object);
 
 	/**
-	 * @param object
-	 * @return
+	 * Is the specified {@link AvailObject} an Avail tuple?
+	 *
+	 * @see AvailObject#isTuple()
+	 * @param object An {@link AvailObject}.
+	 * @return {@code true} if the argument is a tuple, {@code false} otherwise.
 	 */
 	abstract boolean o_IsTuple (AvailObject object);
 
 	/**
-	 * @param object
-	 * @return
+	 * Is the specified {@link AvailObject} an Avail atom?
+	 *
+	 * @see AvailObject#isAtom()
+	 * @param object An {@link AvailObject}.
+	 * @return {@code true} if the argument is an atom, {@code false} otherwise.
 	 */
 	abstract boolean o_IsAtom (AvailObject object);
 
 	/**
-	 * @param object
-	 * @return
+	 * Is the specified {@link AvailObject} an Avail extended integer?
+	 *
+	 * @see AvailObject#isExtendedInteger()
+	 * @param object An {@link AvailObject}.
+	 * @return {@code true} if the argument is an extended integer, {@code
+	 *         false} otherwise.
 	 */
 	abstract boolean o_IsExtendedInteger (AvailObject object);
 

@@ -284,21 +284,6 @@ extends TypeDescriptor
 		return another.equalsFunctionType(object);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>Two {@linkplain FunctionTypeDescriptor function types} are {@linkplain
-	 * AvailObject#equals(AvailObject) equal} IFF:</p>
-	 *
-	 * <p><ul>
-	 * <li>The {@linkplain AvailObject#argsTupleType() argument types}
-	 * correspond,</li>
-	 * <li>The {@linkplain AvailObject#returnType() return types}
-	 * correspond, and</li>
-	 * <li>The {@linkplain AvailObject#checkedExceptions() raise types}
-	 * correspond.</li>
-	 * </ul></p>
-	 */
 	@Override @AvailMethod
 	boolean o_EqualsFunctionType (
 		final @NotNull AvailObject object,

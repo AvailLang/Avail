@@ -2940,8 +2940,6 @@ extends AbstractDescriptor
 		throw unsupportedOperationException();
 	}
 
-
-
 	@Override
 	boolean o_IsBoolean (
 		final @NotNull AvailObject object)
@@ -2949,14 +2947,6 @@ extends AbstractDescriptor
 		return false;
 	}
 
-	/**
-	 * Is the specified {@link AvailObject} an Avail byte tuple?
-	 *
-	 * @param object An {@link AvailObject}.
-	 * @return {@code true} if the argument is a byte tuple, {@code false}
-	 *         otherwise.
-	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
-	 */
 	@Override
 	boolean o_IsByteTuple (final @NotNull AvailObject object)
 	{
@@ -3031,16 +3021,12 @@ extends AbstractDescriptor
 		return object;
 	}
 
-
-
 	@Override
 	boolean o_IsMap (
 		final @NotNull AvailObject object)
 	{
 		return false;
 	}
-
-
 
 	@Override
 	boolean o_IsUnsignedByte (
@@ -3056,16 +3042,12 @@ extends AbstractDescriptor
 		return false;
 	}
 
-
-
 	@Override
 	boolean o_IsSet (
 		final @NotNull AvailObject object)
 	{
 		return false;
 	}
-
-
 
 	@Override
 	@NotNull AvailObject o_SetBinAddingElementHashLevelCanDestroy (
