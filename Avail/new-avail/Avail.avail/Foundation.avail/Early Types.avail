@@ -366,7 +366,30 @@ Method "{_→_|_.._}" is
 	{keyType→valueType|[minimumSize..bound)};
  ] : map meta;
  
- /**
+/**
+ * Strengthen map type construction.
+ *
+ * Parameters:
+ *    keyTypeType - The key's type's type.
+ *    valueTypeType - The value's type's type.
+ *	  minimumSizeType - The type of the minimum cardinality of the set
+ *	  maximumSizeType - The type of the maximum cardinality of the set.
+ * Returns:
+ *    The instance metatype of the exact map type.
+ */
+Semantic restriction "{_→_|_.._}" is
+[
+	keyTypeType : any's type's type,
+	valueTypeType : any's type's type,
+ 	minimumSizeType : whole number's type,
+ 	maximumSizeType : [0..∞]'s type
+|
+	lower ::= minimumSizeType's lower bound;
+	upper ::= cast maximumSizeType's upper bound + 1 into [ t : [0..∞] | t; ];
+	{keyTypeType's instance→valueTypeType's instance|[lower..upper)}'s type;
+];
+ 
+/**
  * Construct and answer a map type with the specified key type, value type, and
  * the specified minimum value of the cardinality and ∞ as the maximum value of 
  * the cardinality.
@@ -378,18 +401,36 @@ Method "{_→_|_.._}" is
  * Returns:
  *    The requested map type.
  */
- 
- Method "{_→_|_..}" is
+Method "{_→_|_..}" is
 [
-  	keyType : any meta,
+	keyType : any meta,
 	valueType : any meta,
 	minimumSize : whole number
- |
+|
 	{keyType→valueType|[minimumSize..∞)};
- ] : map meta;
+] : map meta;
 
+/**
+ * Strengthen map type construction.
+ *
+ * Parameters:
+ *    keyTypeType - The key's type's type.
+ *    valueTypeType - The value's type's type.
+ *	  minimumSizeType - The type of the minimum cardinality of the set
+ * Returns:
+ *    The instance metatype of the exact map type.
+ */
+Semantic restriction "{_→_|_..}" is
+[
+	keyTypeType : any's type's type,
+	valueTypeType : any's type's type,
+	minimumSizeType : whole number's type
+|
+	lower ::= minimumSizeType's lower bound;
+	{keyTypeType's instance→valueTypeType's instance|[lower..∞)}'s type;
+];
 
- /**
+/**
  * Construct and answer a map type with the specified key type, value type, and
  * the specified maximum value of the cardinality and 0 as the minimum value of 
  * the cardinality.
@@ -402,18 +443,37 @@ Method "{_→_|_.._}" is
  *    The requested map type.
  */
  
- Method "{_→_|.._}" is
+Method "{_→_|.._}" is
 [
-  	keyType : any meta,
+	keyType : any meta,
 	valueType : any meta,
 	maximumSize : [0..∞]
- |
+|
 	bound ::= cast maximumSize + 1 into [ t : [0..∞] | t; ];
 	{keyType→valueType|[0..bound)};
- ] : map meta;
+] : map meta;
 
- 
- /**
+/**
+ * Strengthen map type construction.
+ *
+ * Parameters:
+ *    keyTypeType - The key's type's type.
+ *    valueTypeType - The value's type's type.
+ *	  maximumSizeType - The type of the maximum cardinality of the set.
+ * Returns:
+ *    The instance metatype of the exact map type.
+ */
+Semantic restriction "{_→_|.._}" is
+[
+	keyTypeType : any's type's type,
+	valueTypeType : any's type's type,
+ 	maximumSizeType : [0..∞]'s type
+|
+	upper ::= cast maximumSizeType's upper bound + 1 into [ t : [0..∞] | t; ];
+	{keyTypeType's instance→valueTypeType's instance|[0..upper)}'s type;
+];
+
+/**
  * Construct and answer a map type with the specified key type, value type, and
  * uses all whole numbers as the value of the cardinality.
  * 
@@ -424,12 +484,29 @@ Method "{_→_|_.._}" is
  * Returns:
  *    The requested map type.
  */
- 
- Method "{_→_|}" is
+
+Method "{_→_|}" is
 [
-  	keyType : any meta,
+	keyType : any meta,
 	valueType : any meta
- |
+|
 	{keyType→valueType|[0..∞)};
- ] : map meta;
- 
+] : map meta;
+
+/**
+ * Strengthen map type construction.
+ *
+ * Parameters:
+ *    keyTypeType - The key's type's type.
+ *    valueTypeType - The value's type's type.
+ *	  maximumSizeType - The type of the maximum cardinality of the set.
+ * Returns:
+ *    The instance metatype of the exact map type.
+ */
+Semantic restriction "{_→_|}" is
+[
+	keyTypeType : any's type's type,
+	valueTypeType : any's type's type
+|
+	{keyTypeType's instance→valueTypeType's instance|[0..∞)}'s type;
+];
