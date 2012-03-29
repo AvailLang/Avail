@@ -189,7 +189,6 @@ Method "<«_‡,»`…|>" is
  *    elementType - The element type.
  *    minimumSize - The minimum cardinality of the set.
  *    maximumSize - The maximum cardinality of the set.
- *    
  * Returns:
  *    The requested set type. Instances have elements that conform to
  *    `elementType` and cardinalities, using the supplied minimum and maximum 
@@ -197,13 +196,13 @@ Method "<«_‡,»`…|>" is
  */
 Method "{_|_.._}" is
 [
- 	elementType : any's type,
+	elementType : any's type,
 	minimumSize : whole number,
 	maximumSize : [0..∞]
 |
 	bound ::= cast maximumSize + 1 into [ t : [0..∞] | t; ];
- 	{elementType|[minimumSize..bound)};
-]:set meta;
+	{elementType|[minimumSize..bound)};
+] : set meta;
 
 /**
  * Strengthen set type construction.
@@ -220,21 +219,20 @@ Semantic restriction "{_|_.._}" is
 	elementTypeType : any's type's type,
 	minimumSizeType : whole number's type,
 	maximumSizeType : [0..∞]'s type
- |
- 	lower ::= minimumSizeType's lower bound;
- 	upper ::= cast maximumSizeType's upper bound + 1 into [ t : [0..∞] | t; ];
- 	{elementTypeType's instance|[lower..upper)}'s type;
- ];
+|
+	lower ::= minimumSizeType's lower bound;
+	upper ::= cast maximumSizeType's upper bound + 1 into [ t : [0..∞] | t; ];
+	{elementTypeType's instance|[lower..upper)}'s type;
+];
 
 /**
  * Construct and answer a set type with the specified element type and the 
  * specified minimum value of the cardinality. The maximum value of the 
  * cardinality is automatically set to ∞.
- * 
+ *
  * Parameters:
  *    elementType - The element type.
  *    minimumSize - The minimum cardinality of the set.
- *    
  * Returns:
  *    The requested set type. Instances have elements that conform to
  *    `elementType` and cardinalities, using the supplied minimum value and 
@@ -242,11 +240,11 @@ Semantic restriction "{_|_.._}" is
  */
 Method "{_|_..}" is
 [
- 	elementType : any's type,
+	elementType : any's type,
 	minimumSize : whole number
 |
- 	{elementType|[minimumSize..∞)};
-]:set meta;
+	{elementType|[minimumSize..∞)};
+] : set meta;
 
 /**
  * Strengthen set type construction.
@@ -261,20 +259,19 @@ Semantic restriction "{_|_..}" is
 [
 	elementTypeType : any's type's type,
 	minimumSizeType : whole number's type
- |
- 	lower ::= minimumSizeType's lower bound;
- 	{elementTypeType's instance|[lower..∞)}'s type;
- ];
+|
+	lower ::= minimumSizeType's lower bound;
+	{elementTypeType's instance|[lower..∞)}'s type;
+];
 
 /**
  * Construct and answer a set type with the specified element type and the 
  * specified minimum value of the cardinality. The maximum value of the 
  * cardinality is automatically set to ∞.
- * 
+ *
  * Parameters:
  *    elementType - The element type.
  *    maximumSize - The maximum cardinality of the set.
- *    
  * Returns:
  *    The requested set type. Instances have elements that conform to
  *    `elementType` and cardinalities, using the supplied maximum value and 
@@ -282,12 +279,12 @@ Semantic restriction "{_|_..}" is
  */
 Method "{_|.._}" is
 [
- 	elementType : any's type,
+	elementType : any's type,
 	maximumSize : [0..∞]
 |
 	bound ::= cast maximumSize + 1 into [ t : [0..∞] | t; ];
- 	{elementType|[0..bound)};
-]:set meta;
+	{elementType|[0..bound)};
+] : set meta;
 
 /**
  * Strengthen set type construction.
@@ -302,10 +299,10 @@ Semantic restriction "{_|.._}" is
 [
 	elementTypeType : any's type's type,
 	maximumSizeType : [0..∞]'s type
- |
- 	upper ::= cast maximumSizeType's upper bound + 1 into [ t : [0..∞] | t; ];
- 	{elementTypeType's instance|[0..upper)}'s type;
- ];
+|
+	upper ::= cast maximumSizeType's upper bound + 1 into [ t : [0..∞] | t; ];
+	{elementTypeType's instance|[0..upper)}'s type;
+];
 
 /**
  * Construct and answer a set type with the specified element type and the 
@@ -322,10 +319,10 @@ Semantic restriction "{_|.._}" is
  */
 Method "{_|}" is
 [
- 	elementType : any's type
+	elementType : any's type
 |
- 	{elementType|whole number};
-]:set meta;
+	{elementType|whole number};
+] : set meta;
 
 /**
  * Strengthen set type construction.
@@ -351,44 +348,20 @@ Semantic restriction "{_|}" is
  *    valueType - A type to which all values of instances must conform.
  *    minimumSize - The minimum cardinality of the set.
  *    maximumSize - The maximum cardinality of the set.
- *    
  * Returns:
  *    The requested map type.
  */
 Method "{_→_|_.._}" is
 [
- 	keyType : any meta,
+	keyType : any meta,
 	valueType : any meta,
 	minimumSize : whole number,
 	maximumSize : [0..∞]
- |
+|
 	bound ::= cast maximumSize + 1 into [ t : [0..∞] | t; ];
 	{keyType→valueType|[minimumSize..bound)};
- ] : map meta;
- 
-/**
- * Strengthen map type construction.
- *
- * Parameters:
- *    keyTypeType - The key's type's type.
- *    valueTypeType - The value's type's type.
- *	  minimumSizeType - The type of the minimum cardinality of the set
- *	  maximumSizeType - The type of the maximum cardinality of the set.
- * Returns:
- *    The instance metatype of the exact map type.
- */
-Semantic restriction "{_→_|_.._}" is
-[
-	keyTypeType : any's type's type,
-	valueTypeType : any's type's type,
- 	minimumSizeType : whole number's type,
- 	maximumSizeType : [0..∞]'s type
-|
-	lower ::= minimumSizeType's lower bound;
-	upper ::= cast maximumSizeType's upper bound + 1 into [ t : [0..∞] | t; ];
-	{keyTypeType's instance→valueTypeType's instance|[lower..upper)}'s type;
-];
- 
+] : map meta;
+
 /**
  * Construct and answer a map type with the specified key type, value type, and
  * the specified minimum value of the cardinality and ∞ as the maximum value of 
@@ -416,7 +389,7 @@ Method "{_→_|_..}" is
  * Parameters:
  *    keyTypeType - The key's type's type.
  *    valueTypeType - The value's type's type.
- *	  minimumSizeType - The type of the minimum cardinality of the set
+ *    minimumSizeType - The type of the minimum cardinality of the set.
  * Returns:
  *    The instance metatype of the exact map type.
  */
@@ -429,12 +402,12 @@ Semantic restriction "{_→_|_..}" is
 	lower ::= minimumSizeType's lower bound;
 	{keyTypeType's instance→valueTypeType's instance|[lower..∞)}'s type;
 ];
-
+	
 /**
  * Construct and answer a map type with the specified key type, value type, and
  * the specified maximum value of the cardinality and 0 as the minimum value of 
  * the cardinality.
- * 
+ *
  * Parameters:
  *    keyType - A type to which all keys of instances must conform.
  *    valueType - A type to which all values of instances must conform.
@@ -442,7 +415,6 @@ Semantic restriction "{_→_|_..}" is
  * Returns:
  *    The requested map type.
  */
- 
 Method "{_→_|.._}" is
 [
 	keyType : any meta,
@@ -453,25 +425,6 @@ Method "{_→_|.._}" is
 	{keyType→valueType|[0..bound)};
 ] : map meta;
 
-/**
- * Strengthen map type construction.
- *
- * Parameters:
- *    keyTypeType - The key's type's type.
- *    valueTypeType - The value's type's type.
- *	  maximumSizeType - The type of the maximum cardinality of the set.
- * Returns:
- *    The instance metatype of the exact map type.
- */
-Semantic restriction "{_→_|.._}" is
-[
-	keyTypeType : any's type's type,
-	valueTypeType : any's type's type,
- 	maximumSizeType : [0..∞]'s type
-|
-	upper ::= cast maximumSizeType's upper bound + 1 into [ t : [0..∞] | t; ];
-	{keyTypeType's instance→valueTypeType's instance|[0..upper)}'s type;
-];
 
 /**
  * Construct and answer a map type with the specified key type, value type, and
@@ -480,11 +433,9 @@ Semantic restriction "{_→_|.._}" is
  * Parameters:
  *    keyType - A type to which all keys of instances must conform.
  *    valueType - A type to which all values of instances must conform.
- *    
  * Returns:
  *    The requested map type.
  */
-
 Method "{_→_|}" is
 [
 	keyType : any meta,
@@ -494,19 +445,20 @@ Method "{_→_|}" is
 ] : map meta;
 
 /**
- * Strengthen map type construction.
+ * Strengthen the type union operation.
  *
  * Parameters:
- *    keyTypeType - The key's type's type.
- *    valueTypeType - The value's type's type.
- *	  maximumSizeType - The type of the maximum cardinality of the set.
+ *    metaA - A metatype.
+ *    metaB - A metatype.
  * Returns:
- *    The instance metatype of the exact map type.
+ *    The type of the type union of the arguments.
  */
-Semantic restriction "{_→_|}" is
+Semantic restriction "_∪_" is
 [
-	keyTypeType : any's type's type,
-	valueTypeType : any's type's type
+	metaA : type's type,
+	metaB : type's type
 |
-	{keyTypeType's instance→valueTypeType's instance|[0..∞)}'s type;
+	typeA ::= if |metaA| = 1 then [ metaA's instance; ] else [ type; ];
+	typeB ::= if |metaB| = 1 then [ metaB's instance; ] else [ type; ];
+	(typeA ∪ typeB)'s type;
 ];

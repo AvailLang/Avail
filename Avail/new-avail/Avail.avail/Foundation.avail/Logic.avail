@@ -88,6 +88,7 @@ Method "_⊕_" is
  * Compute and answer the logical alternative denial, i.e., NAND, of the
  * arguments. Short-circuit the computation, i.e., only evaluate `b` if `a` is
  * `true`.
+ * 
  * Parameters:
  *    a - A boolean.
  *    b - A boolean function.

@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.03.17 15:13:18.767 -0500
+ * * Last Generated On: 2012.03.28 22:40:39.299 -0500
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -145,8 +145,8 @@ Uses
 		"||_||",
 		"↑_",
 		"∪_",
-		"⌈_⌉",
-		"⌊_⌋"
+		"⎡_⎤",
+		"⎣_⎦"
 	)
 Names
 Body
@@ -1888,7 +1888,7 @@ Method "_⨉_^_" is
  *    If the `0` is ±∞ or not-a-number, then `x`, otherwise the floor of
  *    `x`.
  */
-Method "⌊_⌋" is
+Method "⎣_⎦" is
 [
 	x : float
 |
@@ -1905,7 +1905,7 @@ Method "⌊_⌋" is
  *    If the `0` is ±∞ or not-a-number, then `x`, otherwise the ceiling of
  *    `x`.
  */
-Method "⌈_⌉" is
+Method "⎡_⎤" is
 [
 	x : float
 |
@@ -1992,7 +1992,7 @@ Method "_⨉_^_" is
  *    If the `0` is ±∞ or not-a-number, then `x`, otherwise the floor of
  *    `x`.
  */
-Method "⌊_⌋" is
+Method "⎣_⎦" is
 [
 	x : double
 |
@@ -2009,7 +2009,7 @@ Method "⌊_⌋" is
  *    If the `0` is ±∞ or not-a-number, then `x`, otherwise the ceiling of
  *    `x`.
  */
-Method "⌈_⌉" is
+Method "⎡_⎤" is
 [
 	x : double
 |

@@ -1,5 +1,5 @@
 /*
- * Foundation.avail
+ * Early Set.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,13 +30,57 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Foundation"
+System Module "Early Set"
 Versions
 	"dev"
 Extends
-	"Assertions",
+Uses
+	"Bootstrap",
+	"Early Control Structures",
+	"Early Math",
+	"Early Types",
 	"Enumeration Support",
-	"Literals",
-	"Math"
+	"Literals"
+Names
 Body
 
+/**
+ * Strengthen `_'s element type`.
+ * 
+ * Parameters:
+ *    aSetMeta -
+ * Returns:
+ *    The strongest possible element type.
+ */
+Semantic restriction "_'s element type" is
+[
+	aSetMeta : set meta's type
+|
+	aSetType ::= aSetMeta's instance;
+	aSetType's element type's type;
+];
+
+/**
+ * The static type of the union of two sets is the set type whose element type
+ * is the type union of the element types of the sets and whose cardinality
+ * requirement is the type union of the cardinality requirements of the sets.
+ * 
+ * Parameters:
+ *    typeA - A set type.
+ *    typeB - A set type.
+ * Returns:
+ *    The strongest possible type of the union of the sets.
+ */
+Semantic restriction "_∪_" is
+[
+	typeA : set meta,
+	typeB : set meta
+|
+	lower ::= ||typeA||'s lower bound min ||typeB||'s lower bound;
+	upper ::= cast ||typeA||'s upper bound + ||typeB||'s upper bound + 1
+		into [ t : whole number | t; ];
+	{typeA's element type ∪ typeB's element type | [lower..upper)};
+];
+
+/* Make union left associate. */
+Grammatical restriction {"_∪_"} is <∅, {"_∪_"}>;

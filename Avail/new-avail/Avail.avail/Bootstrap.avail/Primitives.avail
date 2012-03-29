@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.03.17 15:13:18.762 -0500
+ * * Last Generated On: 2012.03.28 22:40:39.295 -0500
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -174,7 +174,7 @@ Names
 	"↓_:=_",
 	"∪_",
 	"∪_[_.._]",
-	"⌈_⌉",
-	"⌊_⌋"
+	"⎡_⎤",
+	"⎣_⎦"
 Body
 

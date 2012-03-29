@@ -1,0 +1,511 @@
+/*
+ * Math.avail
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Math"
+Versions
+	"dev"
+Extends
+	"Early Math"
+Uses
+	"Bootstrap",
+	"Early Control Structures",
+	"Early Logic",
+	"Early Set",
+	"Early Types",
+	"Enumeration Support",
+	"Literals"
+Names
+	"_is odd",
+	"_is even",
+	"_mod_",
+	"-_",
+	"_^_"
+Body
+
+Forward method "_mod_" is [number, number]→number;
+Forward method "-_" is [number]→number;
+Forward method "_^_" is [number, number]→number;
+
+/* Establish grammatical rules. */
+invoke
+	[
+		sum      ::= {"_+_", "_-_"};
+		product  ::= {"_×_", "_÷_", "_mod_"};
+		negation ::= {"-_"};
+		power    ::= {"_^_"};
+		abs      ::= {"|_|"};
+
+		sumAndProduct ::= sum ∪ product;
+
+		/* Establish the standard grammatical rules for arithmetic. */
+		Grammatical restriction product is <sum, sumAndProduct>;
+		Grammatical restriction negation is <sumAndProduct ∪ {"∞"}>;
+		Grammatical restriction power is
+			<sumAndProduct ∪ negation ∪ power, sum ∪ product>;
+
+		/* Forbid nesting of absolute value. */
+		Grammatical restriction abs is <abs>;
+	] : ⊤
+with <>;
+
+/**
+ * Construct and answer a function that affects type promotions for the various
+ * numeric types. This function is intended for use by semantic restrictions
+ * of the basic arithmetic operators.
+ *
+ * Parameters:
+ *    operator - A function that performs one of the basic arithmetic
+ *       operations and answers the result.
+ * Returns:
+ *    A function that handles type promotions for the given operator.
+ */
+Method "type promotion function for_" is
+[
+	operator : [number, number]→number
+|
+	[
+		a : number's type,
+		b : number's type
+	|
+		if |a| = 1 ∧ [ |b| = 1; ] then
+		[
+			/* The exact values are known statically. Calculate it exactly. */
+			(invoke operator with <a's instance, b's instance>)'s type;
+		]
+		else
+		[
+			if a ⊆ double ∨ [ b ⊆ double; ] then
+			[
+				/* At least one is known to be double, which forces the result
+				 * to be a double.
+				 */
+				double;
+			]
+			else
+			[
+				if a = number ∨ [ b = number; ] then
+				[
+					/* Neither is known to be a double, and at least one is as
+					 * weak as a number.  The weak one might be a double at run
+					 * time, so we can't limit the output type any more.
+					 */
+					number;
+				]
+				else
+				[
+					/* Neither one is as weak as number. */
+					if a ⊆ float ∨ [ b ⊆ float; ] then
+					[
+						/* Either {float,float} or {float,int}, which each
+						 * produce a float.
+						 */
+						float;
+					]
+					else
+					[
+						if a ⊆ extended integer ∧ [ b ⊆ extended integer; ]
+						then [ extended integer; ]
+						else [ number; ];
+					];
+				];
+			];
+		];
+	];
+] : [number's type, number's type]→number's type;
+
+Semantic restriction "_+_" is type promotion function for
+	[ a : number, b : number | a + b; ];
+Semantic restriction "_-_" is type promotion function for
+	[ a : number, b : number | a - b; ];
+Semantic restriction "_×_" is type promotion function for
+	[ a : number, b : number | a × b; ];
+Semantic restriction "_÷_" is type promotion function for
+	[ a : number, b : number | a ÷ b; ];
+Semantic restriction "_mod_" is type promotion function for
+	[ a : number, b : number | a mod b; ];
+
+/**
+ * Negate the argument. Avail's system dialect has no negative numeric literals,
+ * but the associated semantic restriction effectively overcomes this limitation
+ * (for literal arguments).
+ * 
+ * Parameters:
+ *    a - A number.
+ * Returns:
+ *    The negation of the argument.
+ */
+Method "-_" is
+[
+	a : number
+|
+	0 - a;
+];
+
+/**
+ * Compute and answer the strongest possible type of the argument. In
+ * particular, an instance type will result in a precise answer that has the
+ * same force as a literal.
+ * 
+ * Parameters:
+ *    a - A numeric type.
+ * Returns:
+ *    The strongest possible type.
+ */
+Semantic restriction "-_" is
+[
+	a : number's type
+|
+	if |a| = 1 then
+	[
+		(0 - a's instance)'s type;
+	]
+	else
+	[
+		if a ⊆ extended integer then
+		[
+		 	extended integer;
+		]
+		else
+		[
+			if a ⊆ double then
+			[
+				double;
+			]
+			else
+			[
+				if a ⊆ float then
+				[
+					float;
+				]
+				else
+				[
+					number;
+				];
+			];
+		];
+	];
+];
+
+Abstract method "⎣_⎦" is [number]→number;
+
+/**
+ * Compute and answer the floor of the argument. Note that integers and
+ * infinities are their own floors.
+ * 
+ * Parameters:
+ *    value - An integral value.
+ * Returns:
+ *    The argument.
+ */
+Method "⎣_⎦" is
+[
+	value : extended integer
+|
+	value;
+];
+
+/**
+ * If the exact type of the argument is know statically, then produce an exact
+ * answer.
+ *
+ * Parameters:
+ *    valueType - Any numeric type.
+ * Returns:
+ *    Either an instance type or `number`.
+ */
+Semantic restriction "⎣_⎦" is
+[
+	valueType : number's type
+|
+	if |valueType| = 1 then
+	[
+		⎣valueType's instance⎦'s type;
+	]
+	else
+	[
+		/* An innocuous answer that will disappear in a type intersection with
+		 * the answer produced by a more specific semantic restriction.
+		 */
+		number;
+	];
+];
+
+/**
+ * Integers and infinities are their own floors.
+ *
+ * Parameters:
+ *    valueType - An integral type.
+ * Returns:
+ *    The argument.
+ */
+Semantic restriction "⎣_⎦" is
+[
+	valueType : extended integer's type
+|
+	valueType;
+];
+
+Abstract method "⎡_⎤" is [number]→number;
+
+/**
+ * Compute and answer the ceiling of the argument. Note that integers and
+ * infinities are their own ceilings.
+ * 
+ * Parameters:
+ *    value - An integral value.
+ * Returns:
+ *    The argument.
+ */
+Method "⎡_⎤" is
+[
+	value : extended integer
+|
+	value;
+];
+
+/**
+ * If the exact type of the argument is known statically, then produce an exact
+ * answer.
+ *
+ * Parameters:
+ *    valueType - Any numeric type.
+ * Returns:
+ *    Either an instance type or `number`.
+ */
+Semantic restriction "⎡_⎤" is
+[
+	valueType : number's type
+|
+	if |valueType| = 1 then
+	[
+		⎡valueType's instance⎤'s type;
+	]
+	else
+	[
+		/* An innocuous answer that will disappear in a type intersection with
+		 * the answer produced by a more specific semantic restriction.
+		 */
+		number;
+	];
+];
+
+/**
+ * Integers and infinities are their own ceilings.
+ *
+ * Parameters:
+ *    valueType - An integral type.
+ * Returns:
+ *    The argument.
+ */
+Semantic restriction "⎡_⎤" is
+[
+	valueType : extended integer's type
+|
+	valueType;
+];
+
+/**
+ * Compute and answer the remainder after dividing the divident by the divisor.
+ * 
+ * Parameters:
+ *    dividend - The dividend.
+ *    divisor - The divisor.
+ * Returns:
+ *    The remainder.
+ */
+Method "_mod_" is
+[
+	dividend : number,
+	divisor : number
+|
+	dividend - divisor × ⎣dividend ÷ divisor⎦;
+];
+
+/**
+ * Compute and answer the remainder after dividing the divident by the divisor.
+ * 
+ * Parameters:
+ *    dividend - The dividend.
+ *    divisor - ∞.
+ * Returns:
+ *    The dividend.
+ */
+Method "_mod_" is
+[
+	dividend : extended integer,
+	divisor : ∞'s type
+|
+	dividend;
+];
+
+/**
+ * Is the argument odd?
+ * 
+ * Parameters:
+ *    a - An integer.
+ * Returns:
+ *    `true` if the argument is odd, `false` otherwise.
+ */
+Method "_is odd" is
+[
+	a : integer
+|
+	a mod 2 = 1;
+];
+
+/**
+ * If the exact type of the argument is known statically, then produce an exact
+ * answer.
+ *
+ * Parameters:
+ *    a - An integral type.
+ * Returns:
+ *    Either an instance type or `number`.
+ */
+Semantic restriction "_is odd" is
+[
+	a : integer's type
+|
+	if |a| = 1 then
+	[
+		a's instance is odd's type;
+	]
+	else
+	[
+		integer;
+	];
+];
+
+/**
+ * Is the argument even?
+ * 
+ * Parameters:
+ *    a - An integer.
+ * Returns:
+ *    `true` if the argument is even, `false` otherwise.
+ */
+Method "_is even" is
+[
+	a : integer
+|
+	a mod 2 = 1;
+];
+
+/**
+ * If the exact type of the argument is known statically, then produce an exact
+ * answer.
+ *
+ * Parameters:
+ *    a - An integral type.
+ * Returns:
+ *    Either an instance type or `number`.
+ */
+Semantic restriction "_is even" is
+[
+	a : integer's type
+|
+	if |a| = 1 then
+	[
+		a's instance is even's type;
+	]
+	else
+	[
+		integer;
+	];
+];
+
+/**
+ * Compute and answer the integer range type of the sum of the argument types.
+ * 
+ * Parameters:
+ *    a - An integral type.
+ *    b - An integral type.
+ * Returns:
+ *    The narrowest integer range type general enough to hold all possible
+ *    sums of the arguments' instances.
+ */
+Method "_.+._" is
+[
+	a : extended integer's type,
+	b : extended integer's type
+|
+	bounds ::=
+		{
+			{a's lower bound, a's upper bound},
+			{b's lower bound, b's upper bound}
+		};
+	if bounds = {{-∞, ∞}} then
+	[
+		Reject parse, expected: "terms not to be unlike infinities";
+	]
+	else
+	[
+		lower ::= a's lower bound + b's lower bound - 1;
+		lowerInclusive ::=
+			(a's lower bound is inclusive ∧ [a's lower bound is infinite;])
+			∨ [b's lower bound is inclusive ∧ [b's lower bound is infinite;];];
+		upper ::= a's upper bound + b's upper bound + 1;
+		upperInclusive ::=
+			(a's upper bound is inclusive ∧ [a's upper bound is infinite;])
+			∨ [b's upper bound is inclusive ∧ [b's upper bound is infinite;];];
+		integer range
+			from lower (inclusive=lowerInclusive)
+			to upper (inclusive=upperInclusive);
+	];
+];
+
+/**
+ * Compute and answer the integer range type of the sum of the argument types.
+ * 
+ * Parameters:
+ *    a - An integral type.
+ *    b - An integral type.
+ * Returns:
+ *    The narrowest integer range type general enough to hold all possible
+ *    sums of the arguments' instances.
+ */
+Semantic restriction "_+_" is
+[
+	a : extended integer's type,
+	b : extended integer's type
+|
+	a .+. b;
+];
+
+Method "_^_" is
+[
+	base : number,
+	exponent : number
+|
+	/* TODO */
+	0;
+] : number;

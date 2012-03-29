@@ -44,6 +44,8 @@ Names
 	"[_.._)",
 	"(_.._]",
 	"(_.._)",
+	"_is finite",
+	"_is infinite",
 	"_'s lower bound is inclusive",
 	"_'s upper bound is inclusive",
 	"max_",
@@ -687,3 +689,63 @@ invoke
 	Grammatical restriction names is <∅, names>;
 ]
 with <>;
+
+/**
+ * Is the argument finite?
+ * 
+ * Parameters:
+ *    a - An extended integer.
+ * Returns:
+ *    `true` if the argument is finite, `false` otherwise.
+ */
+Method "_is finite" is
+[
+	a : extended integer
+|
+	false;
+] : boolean;
+
+/**
+ * Is the argument finite?
+ * 
+ * Parameters:
+ *    a - An integer.
+ * Returns:
+ *    `true` if the argument is finite, `false` otherwise.
+ */
+Method "_is finite" is
+[
+	a : integer
+|
+	true;
+] : true's type;
+
+/**
+ * Is the argument infinite?
+ * 
+ * Parameters:
+ *    a - An extended integer.
+ * Returns:
+ *    `true` if the argument is infinite, `false` otherwise.
+ */
+Method "_is infinite" is
+[
+	a : extended integer
+|
+	true;
+] : boolean;
+
+/**
+ * Is the argument infinite?
+ * 
+ * Parameters:
+ *    a - An integer.
+ * Returns:
+ *    `true` if the argument is infinite, `false` otherwise.
+ */
+Method "_is infinite" is
+[
+	a : integer
+|
+	false;
+] : false's type;
