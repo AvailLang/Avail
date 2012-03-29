@@ -106,7 +106,7 @@ Method "Ask for_with the question,_" is
 				e : Invalid Numeral 
 			|
 				Print "The prompt requires an integer input. " then stream then 
-					" is not an integer.";  
+					" is not an integer.\n";  
 				Ask for an integer with the question, question;
 			],
 			[
@@ -114,7 +114,7 @@ Method "Ask for_with the question,_" is
 			|
 				Print "The input received, " 
 					then stream then 
-					" contains invalid characters.";
+					" contains invalid characters.\n";
 				Ask for an integer with the question, question;
 			] in
 			[
@@ -128,7 +128,7 @@ Method "Ask for_with the question,_" is
 				e : Invalid Numeral 
 			|
 				Print "The prompt requires a decimal number input. " then 
-				stream then " is not a decimal number.";  
+				stream then " is not a decimal number.\n";  
 				Ask for a float with the question, question;
 			],
 			[
@@ -136,7 +136,7 @@ Method "Ask for_with the question,_" is
 			|
 				Print "The input received, " 
 					then stream then 
-					" contains invalid characters.";
+					" contains invalid characters.\n";
 				Ask for an integer with the question, question;	
 			] in
 			[
@@ -154,9 +154,9 @@ Method "Ask for_with the question,_" is
 				" the format YYYY-MM-DD, where:\n" then 
 				"	YYYY is a four digit year integer\n" then
 				"	MM is a two digit month integr from 01 through 12\n" then
-				"	DD is a two digit day integer from 01 through 31";
+				"	DD is a two digit day integer from 01 through 31\n";
 				 
-				Print stream then " is not a properly formated date.";  
+				Print stream then " is not a properly formated date.\n";  
 				
 				Ask for a date with the question, question;
 			],
@@ -165,7 +165,7 @@ Method "Ask for_with the question,_" is
 			|
 				Print "The input received, " 
 					then stream then 
-					" contains invalid characters.";
+					" contains invalid characters.\n";
 				Ask for an integer with the question, question;
 			] in
 			[
@@ -174,7 +174,7 @@ Method "Ask for_with the question,_" is
 		]:
 		default
 		[
-			Crash "Invalid type.  Can't ever get here.";
+			Crash "Invalid type.  Can't ever get here.\n";
 		];
 ]:any;
 
@@ -187,7 +187,8 @@ Restriction "Ask for_with the question,_" is
 
 	if not (availableTypes includes inputTypeType)
 	then [Fail parse "The method, 'Ask for_with the question,_', does " then
-				"not support the type" then inputTypeType as basic string;];
+				"not support the type" then inputTypeType as basic string
+				then "\n";];
 
 	inputTypeType instance;
 ];
@@ -220,7 +221,7 @@ Method "Ask for a number between_and_with the question,_" is
 		lowerBound <= userInput <= upperBound;
 	] do
 	[
-		Print userInput as basic string then " is not a valid response";
+		Print userInput as basic string then " is not a valid response\n";
 	];
 	
 	userInput;
@@ -253,7 +254,7 @@ Method "Ask for a tuple of integers with the question,_" is
 				e : Invalid Numeral 
 			|
 				Print "The prompt requires a set of integers as input. " then
-					stream then " contains a non-integer.";
+					stream then " contains a non-integer.\n";
 				Restart method;
 			],
 			[
@@ -261,7 +262,7 @@ Method "Ask for a tuple of integers with the question,_" is
 			|
 				Print "The input received, " 
 					then stream then 
-					" contains invalid characters.";
+					" contains invalid characters.\n";
 				Restart method;
 			] in
 			[
@@ -286,7 +287,7 @@ Method "Ask for a tuple of integers with the question,_" is
 					e : Invalid Numeral 
 				|
 					Print "The prompt requires a set of integers as input. " then
-						stream then " contains a non-integer.";
+						stream then " contains a non-integer.\n";
 					Restart method;
 				],
 				[
@@ -294,7 +295,7 @@ Method "Ask for a tuple of integers with the question,_" is
 				|
 					Print "The input received, " 
 						then stream then 
-						" contains invalid characters.";
+						" contains invalid characters.\n";
 					Restart method;
 				] in
 				[
@@ -313,7 +314,7 @@ Method "Ask for a tuple of integers with the question,_" is
 				e : Invalid Numeral 
 			|
 				Print "The prompt requires a set of integers as input. " then
-					stream then " contains a non-integer.";
+					stream then " contains a non-integer.\n";
 				Restart method;
 			],
 			[
@@ -321,7 +322,7 @@ Method "Ask for a tuple of integers with the question,_" is
 			|
 				Print "The input received, " 
 					then stream then 
-					" contains invalid characters.";
+					" contains invalid characters.\n";
 				Restart method;
 			] in
 			[			
@@ -337,7 +338,7 @@ Method "Ask for a tuple of integers with the question,_" is
 				e : Invalid Numeral 
 			|
 				Print "The prompt requires a set of integers as input. " then
-					stream then " contains a non-integer.";
+					stream then " contains a non-integer.\n";
 				Restart method;
 			],
 			[
@@ -345,7 +346,7 @@ Method "Ask for a tuple of integers with the question,_" is
 			|
 				Print "The input received, " 
 					then stream then 
-					" contains invalid characters.";
+					" contains invalid characters.\n";
 				Restart method;
 			] in
 			[
