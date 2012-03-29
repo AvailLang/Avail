@@ -48,36 +48,36 @@ Method "⊤" is [ void; ];
 
 Method "Heart Rate Calculator" is
 [
-	name: string := Ask for a string with the question, "What is your name?";
+	name: string := Ask for a string with the question, "What is your name?\n";
 	
 	dob: date;
 	
 	Loop
 	[
 		dob := Ask for a date with the question, 
-			"what is your date of birth? (YYYY-MM-DD):";
+			"what is your date of birth? (YYYY-MM-DD):\n";
 	] until
 	[
 		dob size <= today's date size;
 	] do
 	[
-		Print "Birthdate cannot be in the future";
+		Print "Birthdate cannot be in the future\n";
 	];
 
 	age : integer := Subtract dob from today's date;
 	
 	maxHeartRate : integer := 220 - age;
 	
-	Print "Name: " then name;
+	Print "Name: " then name then "\n";
 
-	Print "DOB: " then dob as string;
+	Print "DOB: " then dob as string then "\n";
 	
-	Print "Age: " then age as basic string; 
+	Print "Age: " then age as basic string then "\n"; 
 	
-	Print "Maximum Heart Rate: " then maxHeartRate as basic string;
+	Print "Maximum Heart Rate: " then maxHeartRate as basic string then "\n";
 	 
 	Print "Heart Rate Range: " then (0.5 * maxHeartRate as basic string) then 
-		"-" then (0.85 * maxHeartRate as basic string);
+		"-" then (0.85 * maxHeartRate as basic string) then "\n";
 ]:⊤;
 
 Heart Rate Calculator;

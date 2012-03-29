@@ -1,0 +1,821 @@
+/**
+ * Date and Time.avail
+ * Copyright (c) 2010, Mark van Gulik.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Date and Time"
+Extends
+Uses
+	"Kernel"
+Names
+Body
+
+/** Time Object **/
+hour ::= new atom "hour";
+minute ::= new atom "minute";
+second ::= new atom "second";
+millisecond ::= new atom "millisecond";
+timeZoneName ::= new atom "timeZoneName";
+
+t : map from atom to type := 
+	[hour -> integer]
+	[minute -> integer]
+	[second -> integer]
+	[millisecond -> integer]
+	[timeZoneName -> string];
+
+time ::= t as objectType;
+Give type time the name "Time";
+
+Rule
+[
+	t : time
+|
+	t->hour < 24 & t->hour >= 0 & 
+	t->minute < 60 & t->minute >= 0 & 
+	t->second < 60 & t->second >= 0 &
+	t->millisecond < 1000 & t->millisecond >= 0 ;
+];
+
+/** Time Zone Object - accounts for time difference from UTC **/
+hourDifference ::= new atom "hourDifference";
+minuteDifference ::= new atom "minuteDifference";
+
+tz : map from atom to type := 
+	[hourDifference -> [-12..12]]
+	[minuteDifference -> [-59..59]]
+	[timeZoneName -> string];
+
+timeZone ::= tz as objectType;
+Give type timeZone the name "Time Zone Specific Time";
+
+/*Abstract method "_in the string format hh:mm:ss time zone" for [time] -> string;*/
+
+/* Create time string of structure hh:mm:ss time zone */
+Method "_in the string format hh:mm:ss time zone" is
+[
+	t : time
+|
+	t->hour as basic string then ":" then 
+	t->minute as basic string then ":" then 
+	t->second as basic string then " " then
+	t->timeZoneName;
+]:string;
+
+/* Create "Central Standard Time" timeZone */
+centralStandardTime ::= timeZone new with
+	<<hourDifference,-6>,
+	<minuteDifference,0>,
+	<timeZoneName,"CST">>;
+	
+Method "CST" is [centralStandardTime;];
+
+/* Create "Central Daylight Time" timeZone */
+centralDaylightTime ::= timeZone new with
+	<<hourDifference,-5>,
+	<minuteDifference,0>,
+	<timeZoneName,"CDT">>;
+	
+Method "CDT" is [centralDaylightTime;];
+
+/* Returns the current time for given time zone (default - UTC) */
+Method "the current time«in_»" is
+[
+	tz : <timeZone…|0..1>
+|
+	hourDiff : integer; 
+	minuteDiff : integer;
+	tzName : string;
+	
+	/* check to see if a time zone was provided */
+	if (||tz||) = 1 then
+	[
+		hourDiff := tz[1]->hourDifference;
+		minuteDiff := tz[1]->minuteDifference;
+		tzName := tz[1]->timeZoneName;
+	] else
+	[
+		hourDiff := 0;
+		minuteDiff := 0;
+		tzName := "UTC";
+	];
+	
+	ctm : integer := current time in milliseconds;
+	
+	hourNowUTC : integer := ((ctm mod 
+		(1000*60*60*24))/(1000*60*60));
+		
+	minuteNowUTC : integer := (((ctm mod 
+		(1000*60*60*24)) mod 
+		(1000*60*60))/(1000*60));
+		
+	secondNow : integer := (((ctm mod 
+		(1000*60*60*24)) mod 
+		(1000*60*60)) mod 
+		(1000*60))/1000;
+		
+	millisecondNow : integer := (((ctm mod 
+		(1000*60*60*24)) mod 
+		(1000*60*60)) mod 
+		(1000*60)) mod 1000;
+		
+	if tzName = "UTC" then
+	[
+		time new with <<hour,hourNowUTC>,
+			   		<minute,minuteNowUTC>,
+					<second,secondNow>,
+					<millisecond,millisecondNow>,
+					<timeZoneName,tzName>>;
+	]else
+	[
+		hourNow : integer;
+		minuteNow : integer;
+		
+		if hourDiff < 0 then
+		[
+			if |hourDiff| > hourNowUTC then
+			[
+				hourNow := hourNowUTC + hourDiff + 24;
+			] else
+			[
+				hourNow := hourNowUTC + hourDiff;
+			];
+		] else
+		[
+			if hourDiff + hourNowUTC > 23 then
+			[
+				hourNow := hourNowUTC + hourDiff - 24;
+			] else
+			[
+				hourNow := hourNowUTC + hourDiff;
+			];
+		
+		];
+		
+		if 	minuteDiff not = 0 then
+		[
+			minuteNow := minuteNowUTC;
+		] else
+		[
+			minuteNow := minuteNowUTC;
+		];
+		time new with <<hour,hourNow>,
+			   		<minute,minuteNow>,
+					<second,secondNow>,
+					<millisecond,millisecondNow>,
+					<timeZoneName,tzName>>;
+	];
+		
+]:time;
+
+Print "Current Time: " then the current time in CST in the string format hh:mm:ss time zone;
+
+/** Date Object **/
+month ::= new atom "month";
+day ::= new atom "day";
+year ::= new atom "year";
+
+d : map from atom to type := 
+	[month -> integer]
+	[day -> integer]
+	[year -> integer]
+	[timeZoneName -> string];
+
+	
+date ::= d as objectType;
+Give type date the name "Date";
+
+Rule
+[
+	d : date
+|
+	d->month < 13 & d->month > 0 & 
+	d->day < 32 & d->day > 0 &
+	d->year < ∞ & d->year > -∞;
+];
+
+/** Timestamp Object **/
+ts : map from atom to type := 
+	[month -> integer]
+	[day -> integer]
+	[year -> integer]
+	[hour -> integer]
+	[minute -> integer]
+	[second -> integer]
+	[millisecond -> integer]
+	[timeZoneName -> string];
+
+	
+timestamp ::= ts as objectType;
+Give type timestamp the name "Timestamp";
+
+Rule
+[
+	ts : timestamp
+|
+	ts->hour < 24 & ts->hour >= 0 & 
+	ts->minute < 60 & ts->minute >= 0 &
+	ts->millisecond < 1000 & ts->millisecond >= 0 & 
+	ts->second < 60 & ts->second >= 0 &
+	ts->month < 13 & ts->month > 0 & 
+	ts->day < 32 & ts->day > 0 &
+	ts->year < ∞ & ts->year > -∞;
+];
+
+/* Unix Epoch Date */
+unixEpoch ::= timestamp new with
+	<<month,1>,
+	<day,1>,
+	<year,1970>,
+	<hour,0>,
+	<minute,0>,
+	<second,0>,
+	<millisecond,0>,
+	<timeZoneName,"UTC">>;
+	
+Method "Unix Epoch" is [unixEpoch;];
+
+/* Date String MM/DD/YYYY */
+
+Method "date_string as MM/DD/YYYY" is 
+[
+	dt : date
+|
+	/*Need to write me!*/
+	"YO!";
+]:string;
+
+/* Accepts a date and returns an integer of the form YYYYMMDD */
+Method "date_size" is
+[
+	dt : date
+|
+	dt->year * 10000 + dt->month * 100 + dt->day;
+	
+]:integer;
+
+/* Check if given year is a leap year */
+Method "_is a leap year" is
+[
+	year : integer
+|
+	if (year mod 4) = 0 then
+	[
+		if (year mod 100) = 0 then
+		[
+			if (year mod 400) = 0 then
+			[
+				true;
+			] else
+			[
+				false;
+			];
+		] else
+		[
+			true;
+		];
+	] else
+	[
+		false;
+	];
+]:boolean;
+
+/* Given a number of days, calculate the month and day in the year */
+Method "Date_days into the year_" is
+[
+	days : integer,
+	yearInput : integer
+|
+	leapShift : integer := 0;
+	if yearInput is a leap year then [leapShift := 1;];
+	
+	monthNow : integer;
+	daysNow : integer;
+
+	 /* In January */
+     if days > 0 & days <= 30 then 
+     [
+         monthNow := 1;
+         daysNow := days;
+     ]
+     /* In February */
+     else if days > 30 & days <= (58 + leapShift) then 
+     [
+         monthNow := 2;
+         daysNow := days - 30;
+     ]
+     /* In March */
+     else if days > (58 + leapShift) & days <= (89 + leapShift) then 
+     [
+         monthNow := 3;
+         daysNow := days - (58 + leapShift);
+     ] 
+     /* In April */
+     else if days > (89  + leapShift) & days <= (119 + leapShift) then
+     [
+         monthNow := 4;
+         daysNow := days - (89 + leapShift);
+     ] 
+     /* In May */
+     else if days > (119 + leapShift) & days <= (150 + leapShift) then
+     [
+         monthNow := 5;
+         daysNow := days - (119 + leapShift);
+     ]
+     /* In June */
+     else if days > (150 + leapShift) & days <= (180 + leapShift) then
+     [
+         monthNow := 6;
+         daysNow := days - (150 + leapShift);
+     ]
+     /* In July */
+     else if days > (180 + leapShift) & days <= (211 + leapShift) then
+     [
+         monthNow := 7;
+         daysNow := days - (180 + leapShift);
+     ]
+     /* In August */
+     else if days > (211 + leapShift) & days <= (242 + leapShift) then
+     [
+         monthNow := 8;
+         daysNow := days - (211 + leapShift);
+     ]
+     /* In September */
+     else if days > (242 + leapShift) & days <= (272 + leapShift) then
+     [
+         monthNow := 9;
+         daysNow := days - (242 + leapShift);
+     ]
+     /* In October */
+     else if days > (272 + leapShift) & days <= (303 + leapShift) then
+     [
+         monthNow := 10;
+         daysNow := days - (272 + leapShift);
+     ]
+     /* In November */
+     else if days > (303 + leapShift) & days <= (333 + leapShift) then
+     [
+         monthNow := 11;
+         daysNow := days - (303 + leapShift);
+     ]
+      /* In December */
+     else /* days > (333 + leapShift) & days <= (364 + leapShift) */
+     [
+         monthNow := 12;
+         daysNow := days - (333 + leapShift);
+     ];   
+       
+     date new with <<month,monthNow>,
+        <day,daysNow>,
+        <year,yearInput>,
+        <timeZoneName,"UTC">>;
+
+]:date;
+
+/* Given a date, calculate the number of days progressed in the year */
+Method "Date_transformed into number of days into the year" is
+[
+	dateInput : date
+|
+	leapShift : integer := 0;
+	if dateInput->year is a leap year then [leapShift := -1;];
+	
+	days : integer :=
+		 /* In January */
+		 if dateInput->month = 1 then 
+		 [
+		     dateInput->day;
+		 ]
+		 /* In February */
+		 else if dateInput->month = 2 then 
+		 [
+		     dateInput->day + 30;
+		 ]
+		 /* In March */
+		 else if dateInput->month = 3 then 
+		 [
+		     dateInput->day + (58 + leapShift);
+		 ] 
+		 /* In April */
+		 else if dateInput->month = 4 then
+		 [
+		     dateInput->day + (89 + leapShift);
+		 ] 
+		 /* In May */
+		 else if dateInput->month = 5 then
+		 [
+		     dateInput->day + (119 + leapShift);
+		 ]
+		 /* In June */
+		 else if dateInput->month = 6 then
+		 [
+		     dateInput->day + (150 + leapShift);
+		 ]
+		 /* In July */
+		 else if dateInput->month = 7 then
+		 [
+		     dateInput->day + (180 + leapShift);
+		 ]
+		 /* In August */
+		else if dateInput->month = 8 then
+		 [
+		     dateInput->day + (211 + leapShift);
+		 ]
+		 /* In September */
+		 else if dateInput->month = 9 then
+		 [
+		     dateInput->day + (242 + leapShift);
+		 ]
+		 /* In October */
+		else if dateInput->month = 10 then
+		 [
+		     dateInput->day + (272 + leapShift);
+		 ]
+		 /* In November */
+		else if dateInput->month = 11 then
+		 [
+		     dateInput->day + (303 + leapShift);
+		 ]
+		  /* In December */
+		 else /* if dateInput->month = 12 */
+		 [
+		     dateInput->day + (333 + leapShift);
+		 ];
+	days;
+]:integer;
+
+testDate : date := Date 75 days into the year 2011;
+Print "75 Days into 2011 is : ";
+Print testDate;
+
+Print "Date above translated to days: ";
+Print Date testDate transformed into number of days into the year;
+
+/* Method that returns the current date */
+Method "today's date«in_»" is
+[
+    tz : <timeZone…|0..1>
+|
+    /* This method was written on 12/25/2011 ~12:22 am central.  There are 
+     * It is known that there are 31,622,400,400 milliseconds in a leap year.  
+     * There has been 10 leap years since 1970.  That is 316,224,000,000
+     * milliseconds.  That can be subtracted from the current milliseconds.
+     * There are 31,536,000,000 milliseconds in a regular year and
+     * In a 4 year cycle (including the leap year),
+     * there is 126,230,400,000 milliseconds.  There has been 10
+     * such 4 year cycles since the Java base date of 1/1/1970.  There has been
+     * 29 normal years and 10 leap years in years: [1970,2008].  That is a 
+     * total of 1,230,768,000,000 milliseconds.  
+     */
+     
+     yearNow : integer;
+     monthNow : integer;
+     daysNow : integer;
+     tzDiffMilliseconds : integer;
+     tzTimeZone : string;
+     
+     if ||tz|| = 1 then
+    [
+        tzDiffMilliseconds := tz[1]->hourDifference * 60 * 60 *1000 + 
+            tz[1]->minuteDifference * 60 * 1000;
+        tzTimeZone := tz[1]->timeZoneName;
+    ] else
+    [
+        tzDiffMilliseconds := 0;
+        tzTimeZone := "UTC";
+    ];
+     
+     /* current time in milliseconds */
+     ctm : integer := current time in milliseconds + tzDiffMilliseconds;
+     
+     /* time in milliseconds since end of last known leap year (2008) */
+     rt : integer := ctm - 1230768000000;
+     
+     /* leap year cycles since 2008 */
+     lpc : integer := rt / 126230400000;
+     
+     /* milliseconds since last leap year*/
+     mllp : integer := rt mod 126230400000;
+     
+     /* Calculate date if currently in Leap Year. */
+     if mllp > 94608000000 then
+     [
+        /* days passed in current leap year */
+        dily : integer := (mllp - 94608000000)/(1000*60*60*24);
+    	
+    	currentMonthAndDay: date := 
+    		Date dily days into the year ((lpc + 1) * 4 + 2008);
+    			
+		date new with <<month,currentMonthAndDay->month>,
+        	<day,currentMonthAndDay->day>,
+        	<year,currentMonthAndDay->year>,
+        	<timeZoneName,tzTimeZone>>;
+     ] else      
+	 [
+        /* Years since last leap year */
+        ysly : integer := (mllp / 31536000000);
+		 
+        /* Days progressed in current nonleap year */
+        dty : integer := (mllp mod 31536000000)/ (1000*60*60*24);
+
+    	currentMonthAndDay: date := 
+    		Date dty days into the year (lpc * 4 + ysly + 2009);
+		
+		date new with <<month,currentMonthAndDay->month>,
+        	<day,currentMonthAndDay->day>,
+        	<year,currentMonthAndDay->year>,
+        	<timeZoneName,tzTimeZone>>;
+	];
+]:date;
+
+Print "Today's Date: ";
+Print today's date in CST;
+
+Method "current date and time«in_»" is
+[
+	tz : <timeZone…|0..1>
+|
+	currentDate : date;
+	currentTime : time;
+	timezoneString : string;
+	
+	if ||tz|| = 1 then
+	[
+		currentDate := today's date in tz[1];
+		currentTime := the current time in tz[1];
+		timezoneString := tz[1]->timeZoneName;
+	] else
+	[
+		currentDate := today's date;
+		currentTime := the current time;
+		timezoneString := "UTC";
+	];	
+	
+	timestamp new with
+		<<month,currentDate->month>,
+		<day,currentDate->day>,
+		<year,currentDate->year>,
+		<hour,currentTime->hour>,
+		<minute,currentTime->minute>,
+		<second,currentTime->second>,
+		<millisecond,currentTime->millisecond>,
+		<timeZoneName,timezoneString>>;
+]:timestamp;
+
+Print current date and time;
+Print current date and time in CST;
+
+/* Calculate the number of days that have occurred since the Unix Epoch.
+ * Negative days indicate date was before Unix Epoch.
+ */
+Method "days since unix epoch from date_" is
+[
+	dt : date
+|
+	daysIntegerSign : integer;
+	daysSinceUnixEpoch : integer := 0;
+	
+	if date dt size > date unixEpoch size then
+	[ 
+		daysIntegerSign := 1;
+	] else
+	[
+		daysIntegerSign := -1;
+	];
+	
+ 	sdYearsDiff : integer := (dt->year) - (unixEpoch->year);
+ 	
+ 	/* Handle full years passing */
+ 	if sdYearsDiff not = 0 then 
+ 	[
+ 		From 0 to sdYearsDiff - daysIntegerSign by daysIntegerSign do
+ 		[
+ 			i : integer
+ 		|	
+ 			if ((1970 + i) is a leap year) then 
+ 			[
+ 				daysSinceUnixEpoch := 
+ 					daysSinceUnixEpoch + (366 * daysIntegerSign);
+ 			] else
+ 			[
+ 				daysSinceUnixEpoch := 
+ 					daysSinceUnixEpoch + (365 * daysIntegerSign);	
+ 			];
+ 		];
+
+		/* Handle partial year passing */ 
+		if daysIntegerSign = 1 then 
+		[
+			daysSinceUnixEpoch := daysSinceUnixEpoch +
+	 			Date dt transformed into number of days into the year;
+	 	] else
+	 	[
+	 		if dt->year is a leap year then
+	 		[
+	 			daysSinceUnixEpoch := daysSinceUnixEpoch +
+	 			 (Date dt transformed into number of days into the year - 366);
+	 		] else
+	 		[
+	 			daysSinceUnixEpoch := daysSinceUnixEpoch +
+	 			 (Date dt transformed into number of days into the year - 365);
+	 		];
+	 	];
+	 ];
+	 
+ 	daysSinceUnixEpoch;
+]:integer;
+
+Print "Got here!";
+Print days since unix epoch from date today's date;
+
+/* Number of leap years to occur between two years inclusive */
+Method "number of leap years between_and_" is
+[
+	year1 : integer,
+	year2 : integer
+|
+	numOfLeapYears : integer := 0;
+	
+	if year1 = year2 then
+	[
+		if year1 is a leap year then [numOfLeapYears := 1;];
+	] else if year1 < year2 then
+	[
+		From year1 to year2 do
+		[
+			i : integer
+		|
+			if i is a leap year then [numOfLeapYears := numOfLeapYears + 1;];
+		];
+	] else
+	[
+		From year2 to year1 do
+		[
+			i : integer
+		|
+			if i is a leap year then [numOfLeapYears := numOfLeapYears + 1;];
+		];
+	];
+	
+	numOfLeapYears;
+
+	
+]: integer;
+
+Print "Leap years between 2006 and 2011: " then number of leap years between 2006 and 2012 as basic string;
+Print "Leap years between 2011 and 2006: " then number of leap years between 2011 and 2006 as basic string;
+Print "Leap years between 2011 and 2011: " then number of leap years between 2011 and 2011 as basic string;
+Print "Leap years between 2008 and 2008: " then number of leap years between 2008 and 2008 as basic string;
+Print "Leap years between 2009 and 2011: " then number of leap years between 2009 and 2011 as basic string;
+
+Method "Subtract_from_«in_»" is
+[
+	subtractingDate : date,
+	baseDate: date,
+	unitOfTime : <string…|0..1>
+	
+|
+	/* Confirm date order is correct */
+	if date subtractingDate size > date baseDate size then
+	[
+		Fail parse "The subtracting date must be lesser than the base date";
+	];
+	
+	/* Check to see which MMDD is larger */
+	baseMDgreaterSubtractingMD : boolean := 
+		(date baseDate size - (baseDate->year * 10000)) >
+		(date subtractingDate size - (subtractingDate->year * 10000));
+	
+	/* Check to see which DD is larger */
+	baseDDgreaterSubtractingDD : boolean := 
+		(date baseDate size - (baseDate->year * 10000 + baseDate->month * 100)) >
+		(date subtractingDate size - 
+			(subtractingDate->year * 10000 + subtractingDate->month * 100));
+	
+	if ||unitOfTime|| = 1 then
+	[
+		daysIntoBaseYear : integer :=
+			Date baseDate transformed into number of days into the year;
+		daysIntoSubtractYear : integer :=
+			Date subtractingDate transformed into number of days into the year;
+		
+		timePassed : []->integer := [Switch unitOfTime[1]
+			case "days" do
+			[		 
+				dys : []->integer := [days since unix epoch from date baseDate -
+					days since unix epoch from date subtractingDate;]:integer;
+				dys();
+			]:
+			case "months" do
+			[
+				cumulativeMonths : []->integer := [Switch true
+					case baseMDgreaterSubtractingMD & 
+						baseDDgreaterSubtractingDD do 
+					[ 
+						(baseDate->year - subtractingDate->year) * 12 + 
+						  baseDate->month - subtractingDate->month;
+					]: 
+					case not baseMDgreaterSubtractingMD & 
+						baseDDgreaterSubtractingDD do
+					[
+						(baseDate->year - subtractingDate->year - 1) * 12 +
+						  12 + baseDate->month - subtractingDate->month;
+					]:
+					case baseMDgreaterSubtractingMD & 
+						not baseDDgreaterSubtractingDD do
+					[
+						(baseDate->year - subtractingDate->year) * 12 +
+						  ((daysIntoBaseYear - daysIntoSubtractYear) / 30);
+					]:
+					default
+					[
+						(baseDate->year - subtractingDate->year - 1) * 12 +
+						  ((365 + daysIntoBaseYear - daysIntoSubtractYear) / 30);
+					];
+				]:integer;
+				cumulativeMonths();
+			]:
+			default
+			[
+				d : []->integer := [ 
+					yearShift : integer := 0;
+					if  baseMDgreaterSubtractingMD then 
+					[
+						yearShift := 1;
+					];
+					baseDate->year - subtractingDate->year - yearShift;
+				]:integer;
+				d();
+			];
+		];
+		timePassed();
+	] else
+	[	
+		if  baseMDgreaterSubtractingMD then 
+		[
+			baseDate->year - subtractingDate->year;
+		] else
+		[
+			baseDate->year - subtractingDate->year - 1;
+		];
+	];	
+]:integer;
+
+tr : date := today's date;
+adt : date := date new with
+	<<month,1>,
+	<day,1>,
+	<year,1971>,
+	<timeZoneName,"UTC">>;
+
+dateDiff : integer := Subtract adt from tr in "months";
+Print "Date diff :" then dateDiff as basic string;
+
+Print Subtract Unix Epoch from today's date;
+
+Print "Unix Epoch: ";
+Print Unix Epoch;
+
+Print date Unix Epoch size;
+
+Print Unix Epoch in the string format hh:mm:ss time zone;
+
+Print "Timestamp is a subtype of Date: " then (timestamp <= date) as basic string;
+Print "Timestamp is a subtype of Time: " then (timestamp <= time) as basic string;
+Print "Time is a subtype of Date: " then (time <= date) as basic string;
+Print "Date is a subtype of Time: " then (date <= time) as basic string;
+
+bdadt : date := date new with
+	<<month,3>,
+	<day,29>,
+	<year,1979>,
+	<timeZoneName,"UTC">>;
+	
+Print Subtract bdadt from tr in "days";	

@@ -53,8 +53,8 @@ Names
 	"{_|_..}",/*Y*/
 	"{_|.._}",/*Y*/
 	/* "{_|_}" */
-	"{_|}",
-	"{_→_|_.._}",
+	"{_|}",/*Y*/
+	"{_→_|_.._}",/*Y*/
 	"{_→_|_..}",
 	"{_→_|.._}",
 	/* "{_→_|_}" */
@@ -187,10 +187,9 @@ Method "<«_‡,»`…|>" is
  * 
  * Parameters:
  *    elementType - The element type.
- *    minimumSize : a whole number representing the minimum cardinality of the 
- *    	set
- *    maximumSize - a number in the range, [0..∞], representing the maximum
- *    	cardinality of the set.
+ *    minimumSize - The minimum cardinality of the set.
+ *    maximumSize - The maximum cardinality of the set.
+ *    
  * Returns:
  *    The requested set type. Instances have elements that conform to
  *    `elementType` and cardinalities, using the supplied minimum and maximum 
@@ -214,8 +213,7 @@ Method "{_|_.._}" is
  * 
  * Parameters:
  *    elementType - The element type.
- *    minimumSize : a whole number representing the minimum cardinality of the 
- *    	set
+ *    minimumSize - The minimum cardinality of the set.
  *    
  * Returns:
  *    The requested set type. Instances have elements that conform to
@@ -238,8 +236,7 @@ Method "{_|_..}" is
  * 
  * Parameters:
  *    elementType - The element type.
- *    maximumSize - a number in the range, [0..∞], representing the maximum
- *    	cardinality of the set.
+ *    maximumSize - The maximum cardinality of the set.
  *    
  * Returns:
  *    The requested set type. Instances have elements that conform to
@@ -276,4 +273,94 @@ Method "{_|}" is
  	{elementType|whole number};
 ]:set meta;
 
+/**
+ * Construct and answer a map type with the specified key type, value type, and
+ * uses all whole numbers as the value of the cardinality.
+ *
+ * Parameters:
+ *    keyType - A type to which all keys of instances must conform.
+ *    valueType - A type to which all values of instances must conform.
+ *    minimumSize - The minimum cardinality of the set.
+ *    maximumSize - The maximum cardinality of the set.
+ *    
+ * Returns:
+ *    The requested map type.
+ */
+Method "{_→_|_.._}" is
+[
+ 	keyType : any meta,
+	valueType : any meta,
+	minimumSize : whole number,
+	maximumSize : [0..∞]
+ |
+	bound ::= cast maximumSize + 1 into [ t : [0..∞] | t; ];
+	{keyType→valueType|[minimumSize..bound)};
+ ] : map meta;
+ 
+ /**
+ * Construct and answer a map type with the specified key type, value type, and
+ * the specified minimum value of the cardinality and ∞ as the maximum value of 
+ * the cardinality.
+ * 
+ * Parameters:
+ *    keyType - A type to which all keys of instances must conform.
+ *    valueType - A type to which all values of instances must conform.
+ *    minimumSize - The minimum cardinality of the set.
+ * Returns:
+ *    The requested map type.
+ */
+ 
+ Method "{_→_|_..}" is
+[
+  	keyType : any meta,
+	valueType : any meta,
+	minimumSize : whole number
+ |
+	{keyType→valueType|[minimumSize..∞)};
+ ] : map meta;
 
+
+ /**
+ * Construct and answer a map type with the specified key type, value type, and
+ * the specified maximum value of the cardinality and 0 as the minimum value of 
+ * the cardinality.
+ * 
+ * Parameters:
+ *    keyType - A type to which all keys of instances must conform.
+ *    valueType - A type to which all values of instances must conform.
+ *    maximumSize - The maximum cardinality of the set.
+ * Returns:
+ *    The requested map type.
+ */
+ 
+ Method "{_→_|.._}" is
+[
+  	keyType : any meta,
+	valueType : any meta,
+	maximumSize : [0..∞]
+ |
+	bound ::= cast maximumSize + 1 into [ t : [0..∞] | t; ];
+	{keyType→valueType|[0..bound)};
+ ] : map meta;
+
+ 
+ /**
+ * Construct and answer a map type with the specified key type, value type, and
+ * uses all whole numbers as the value of the cardinality.
+ * 
+ * Parameters:
+ *    keyType - A type to which all keys of instances must conform.
+ *    valueType - A type to which all values of instances must conform.
+ *    
+ * Returns:
+ *    The requested map type.
+ */
+ 
+ Method "{_→_|}" is
+[
+  	keyType : any meta,
+	valueType : any meta
+ |
+	{keyType→valueType|[0..∞)};
+ ] : map meta;
+ 
