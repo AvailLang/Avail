@@ -183,7 +183,7 @@ Restriction "Ask for_with the question,_" is
 	inputTypeType : any type type,
 	questionType : string type
 |
-	availableTypes : set := {string,integer type,float,date};
+	availableTypes : set := {string type,integer type,float type,date type};
 
 	if not (availableTypes includes inputTypeType)
 	then [Fail parse "The method, 'Ask for_with the question,_', does " then
