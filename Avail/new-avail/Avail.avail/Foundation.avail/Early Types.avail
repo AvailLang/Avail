@@ -43,15 +43,15 @@ Uses
 	"Literals",
 	"Variables"
 Names
-	"[«_‡,»]→_",
-	"<«_‡,»`…|_.._>",
-	"<«_‡,»`…|_..>",
-	"<«_‡,»`…|.._>",
-	"<«_‡,»`…|_>",
-	"<«_‡,»`…|>",
-	"{_|_.._}",
-	"{_|_..}",
-	"{_|.._}",
+	"[«_‡,»]→_",/*Y*/
+	"<«_‡,»`…|_.._>",/*Y*/
+	"<«_‡,»`…|_..>",/*Y*/
+	"<«_‡,»`…|.._>",/*Y*/
+	"<«_‡,»`…|_>",/*Y*/
+	"<«_‡,»`…|>",/*Y*/
+	"{_|_.._}",/*Y*/
+	"{_|_..}",/*Y*/
+	"{_|.._}",/*Y*/
 	/* "{_|_}" */
 	"{_|}",
 	"{_→_|_.._}",
@@ -180,3 +180,100 @@ Method "<«_‡,»`…|>" is
 	defaultType ::= leadingAndDefaultTypes[typesSize];
 	<leadingTypes, defaultType…|whole number>;
 ] : tuple meta;
+
+/**
+ * Construct and answer a set type with the specified element type and the 
+ * specified minimum value and maximum value of the cardinalities.
+ * 
+ * Parameters:
+ *    elementType - The element type.
+ *    minimumSize : a whole number representing the minimum cardinality of the 
+ *    	set
+ *    maximumSize - a number in the range, [0..∞], representing the maximum
+ *    	cardinality of the set.
+ * Returns:
+ *    The requested set type. Instances have elements that conform to
+ *    `elementType` and cardinalities, using the supplied minimum and maximum 
+ *    provided values, that conform to `cardinalityType`.
+ */
+Method "{_|_.._}" is
+[
+ 	elementType : any's type,
+	minimumSize : whole number,
+	maximumSize : [0..∞]
+|
+	bound ::= cast maximumSize + 1 into [ t : [0..∞] | t; ];
+ 	{elementType|[minimumSize..bound)};
+]:set meta;
+
+
+/**
+ * Construct and answer a set type with the specified element type and the 
+ * specified minimum value of the cardinality. The maximum value of the 
+ * cardinality is automatically set to ∞.
+ * 
+ * Parameters:
+ *    elementType - The element type.
+ *    minimumSize : a whole number representing the minimum cardinality of the 
+ *    	set
+ *    
+ * Returns:
+ *    The requested set type. Instances have elements that conform to
+ *    `elementType` and cardinalities, using the supplied minimum value and 
+ *    infinity as the maximum value, that conform to `cardinalityType`.
+ */
+Method "{_|_..}" is
+[
+ 	elementType : any's type,
+	minimumSize : whole number
+|
+ 	{elementType|[minimumSize..∞)};
+]:set meta;
+
+
+/**
+ * Construct and answer a set type with the specified element type and the 
+ * specified minimum value of the cardinality. The maximum value of the 
+ * cardinality is automatically set to ∞.
+ * 
+ * Parameters:
+ *    elementType - The element type.
+ *    maximumSize - a number in the range, [0..∞], representing the maximum
+ *    	cardinality of the set.
+ *    
+ * Returns:
+ *    The requested set type. Instances have elements that conform to
+ *    `elementType` and cardinalities, using the supplied maximum value and 
+ *    0 as the minimum value, that conform to `cardinalityType`.
+ */
+Method "{_|.._}" is
+[
+ 	elementType : any's type,
+	maximumSize : [0..∞]
+|
+	bound ::= cast maximumSize + 1 into [ t : [0..∞] | t; ];
+ 	{elementType|[0..bound)};
+]:set meta;
+
+
+/**
+ * Construct and answer a set type with the specified element type and the 
+ * specified minimum value of the cardinality. The maximum value of the 
+ * cardinality is automatically set to ∞.
+ * 
+ * Parameters:
+ *    elementType - The element type.
+ *    
+ * Returns:
+ *    The requested set type. Instances have elements that conform to
+ *    `elementType` and cardinalities, using the supplied maximum value and 
+ *    0 as the minimum value, that conform to `cardinalityType`.
+ */
+Method "{_|}" is
+[
+ 	elementType : any's type
+|
+ 	{elementType|whole number};
+]:set meta;
+
+
