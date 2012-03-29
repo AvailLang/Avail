@@ -144,7 +144,7 @@ Method "_∧_" is
 
 /**
  * If the left-hand argument of `_∧_` is known statically to be `false`, then
- * the expression is also known staticaly to be `false`.
+ * the expression is also known statically to be `false`.
  *
  * Parameters:
  *    a - The type of `false`.
@@ -234,7 +234,7 @@ Method "_∨_" is
 
 /**
  * If the left-hand argument of `_∨_` is known statically to be `true`, then
- * the expression is also known staticaly to be `true`.
+ * the expression is also known statically to be `true`.
  *
  * Parameters:
  *    a - The type of `true`.
