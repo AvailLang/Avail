@@ -458,7 +458,28 @@ Semantic restriction "_∪_" is
 	metaA : type's type,
 	metaB : type's type
 |
+	/* The only metatype that is not an enumeration is `type`. */
 	typeA ::= if |metaA| = 1 then [ metaA's instance; ] else [ type; ];
 	typeB ::= if |metaB| = 1 then [ metaB's instance; ] else [ type; ];
 	(typeA ∪ typeB)'s type;
+];
+
+/**
+ * Strengthen the type intersection operation.
+ *
+ * Parameters:
+ *    metaA - A metatype.
+ *    metaB - A metatype.
+ * Returns:
+ *    The type of the type intersection of the arguments.
+ */
+Semantic restriction "_∩_" is
+[
+	metaA : type's type,
+	metaB : type's type
+|
+	/* The only metatype that is not an enumeration is `type`. */
+	typeA ::= if |metaA| = 1 then [ metaA's instance; ] else [ type; ];
+	typeB ::= if |metaB| = 1 then [ metaB's instance; ] else [ type; ];
+	(typeA ∩ typeB)'s type;
 ];

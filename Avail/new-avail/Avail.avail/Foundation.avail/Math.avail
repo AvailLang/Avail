@@ -443,6 +443,13 @@ Semantic restriction "_is even" is
 	];
 ];
 
+/* The helper methods below perform operations analogous to the arithmetic
+ * operations, but on integral types instead of integers. The naming convention
+ * is tmesis of the integer range operator ".." with an arithmetic operator like
+ * "+", "×", or "-". This results in messages like ".+.". This is cute here, but
+ * probably should not leak beyond this module.
+ */
+
 /**
  * Compute and answer the integer range type of the sum of the argument types.
  * 
@@ -484,6 +491,137 @@ Method "_.+._" is
 ];
 
 /**
+ * Compute and answer the integer range type of the product of the argument
+ * types.
+ * 
+ * Parameters:
+ *    a - An integral type.
+ *    b - An integral type.
+ * Returns:
+ *    The narrowest integer range type general enough to hold all possible
+ *    products of the arguments' instances.
+ */
+Method "_.×._" is
+[
+	a : extended integer's type,
+	b : extended integer's type
+|
+	bounds ::=
+	{
+		{a's lower bound, a's upper bound},
+		{b's lower bound, b's upper bound}
+	};
+	if bounds = {{0}, {∞}} ∨ [ bounds = {{0}, {-∞}}; ] then
+	[
+		Reject parse, expected: "terms not be 0 and ±∞";
+	]
+	else
+	[
+		negativeA : extended integer's type := a ∩ [-∞..-1];
+		negativeB : extended integer's type := b ∩ [-∞..-1];
+		positiveA : extended integer's type := a ∩ [1..∞];
+		positiveB : extended integer's type := b ∩ [1..∞];
+		result : extended integer's type := ⊥;
+		if positiveA ≠ ⊥ then
+		[
+			if positiveB ≠ ⊥ then
+			[
+				lower ::= positiveA's lower bound × positiveB's lower bound;
+				lowerInclusive ::= positiveA's lower bound is inclusive
+					∧ [ positiveB's lower bound is inclusive; ];
+				upper ::= positiveA's upper bound × positiveB's upper bound;
+				upperInclusive ::= positiveA's upper bound is inclusive
+					∧ [ positiveB's upper bound is inclusive; ];
+				range ::= integer range
+					from lower (inclusive=lowerInclusive)
+					to upper (inclusive=upperInclusive);
+				result := eject &result ∪ range;
+			];
+			if negativeB ≠ ⊥ then
+			[
+				lower ::= positiveA's upper bound × negativeB's lower bound;
+				lowerInclusive ::= positiveA's upper bound is inclusive
+					∧ [ negativeB's lower bound is inclusive; ];
+				upper ::= positiveA's lower bound × negativeB's upper bound;
+				upperInclusive ::= positiveA's lower bound is inclusive
+					∧ [ negativeB's upper bound is inclusive; ];
+				range ::= integer range
+					from lower (inclusive=lowerInclusive)
+					to upper (inclusive=upperInclusive);
+				result := eject &result ∪ range;
+			];
+		];
+		if negativeA ≠ ⊥ then
+		[
+			if positiveB ≠ ⊥ then
+			[
+				lower ::= negativeA's lower bound × positiveB's upper bound;
+				lowerInclusive ::= negativeA's lower bound is inclusive
+					∧ [ positiveB's upper bound is inclusive; ];
+				upper ::= negativeA's upper bound × positiveB's lower bound;
+				upperInclusive ::= negativeA's upper bound is inclusive
+					∧ [ positiveB's lower bound is inclusive; ];
+				range ::= integer range
+					from lower (inclusive=lowerInclusive)
+					to upper (inclusive=upperInclusive);
+				result := eject &result ∪ range;
+			];
+			if negativeB ≠ ⊥ then
+			[
+				lower ::= negativeA's upper bound × negativeB's upper bound;
+				lowerInclusive ::= negativeA's upper bound is inclusive
+					∧ [ negativeB's upper bound is inclusive; ];
+				upper ::= negativeA's lower bound × negativeB's lower bound;
+				upperInclusive ::= negativeA's lower bound is inclusive
+					∧ [ negativeB's lower bound is inclusive; ];
+				range ::= integer range
+					from lower (inclusive=lowerInclusive)
+					to upper (inclusive=upperInclusive);
+				result := eject &result ∪ range;
+			];
+		];
+		/* Zero is handled specially, to prevent multiplication of 0 and ±∞ by
+		 * one of the preceding clauses.
+		 */
+		if 0's type ⊆ a ∨ [ 0's type ⊆ b; ] then
+		[
+			result := eject &result ∪ 0's type;
+		];
+		result;
+	];
+];
+
+/**
+ * Compute and answer the negation of the specified integral type.
+ * 
+ * Parameters:
+ *    a - An integral type.
+ * Returns:
+ *    The negation of the argument, e.g., the negation of [3..5] is [-5..-3].
+ */
+Method ".-._" is
+[
+	a : extended integer's type
+|
+	a .×. -1's type;
+];
+
+/**
+ * Strengthen negation.
+ * 
+ * Parameters:
+ *    a - An integral type.
+ * Returns:
+ *    The negation of the argument.
+ */
+Semantic restriction "-_" is
+[
+	a : extended integer's type
+|
+	.-. a;
+];
+
+/**
  * Compute and answer the integer range type of the sum of the argument types.
  * 
  * Parameters:
@@ -499,6 +637,44 @@ Semantic restriction "_+_" is
 	b : extended integer's type
 |
 	a .+. b;
+];
+
+/**
+ * Compute and answer the integer range type of the difference of the argument
+ * types.
+ * 
+ * Parameters:
+ *    a - An integral type.
+ *    b - An integral type.
+ * Returns:
+ *    The narrowest integer range type general enough to hold all possible
+ *    differences of the arguments' instances.
+ */
+Semantic restriction "_-_" is
+[
+	a : extended integer's type,
+	b : extended integer's type
+|
+	a .+. (.-. b);
+];
+
+/**
+ * Compute and answer the integer range type of the product of the argument
+ * types.
+ * 
+ * Parameters:
+ *    a - An integral type.
+ *    b - An integral type.
+ * Returns:
+ *    The narrowest integer range type general enough to hold all possible
+ *    products of the arguments' instances.
+ */
+Semantic restriction "_×_" is
+[
+	a : extended integer's type,
+	b : extended integer's type
+|
+	a .×. b;
 ];
 
 Method "_^_" is
