@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.03.28 22:40:39.299 -0500
+ * * Last Generated On: 2012.04.01 18:02:01.675 -0500
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -63,6 +63,8 @@ Uses
 		"_'s element type",
 		"_'s function",
 		"_'s function type",
+		"_'s genuine lower bound",
+		"_'s genuine upper bound",
 		"_'s implementation",
 		"_'s key type",
 		"_'s keys",
@@ -70,7 +72,6 @@ Uses
 		"_'s lexeme",
 		"_'s line number",
 		"_'s literals",
-		"_'s lower bound",
 		"_'s maximum stack depth",
 		"_'s name",
 		"_'s name:=_",
@@ -87,7 +88,6 @@ Uses
 		"_'s stack pointer",
 		"_'s starting position",
 		"_'s type",
-		"_'s upper bound",
 		"_'s value",
 		"_'s value type",
 		"_'s values",
@@ -221,7 +221,7 @@ Method "integer range from_(inclusive=_)to_(inclusive=_)" is
  * Returns:
  *    The lower bound of the argument.
  */
-Method "_'s lower bound" is
+Method "_'s genuine lower bound" is
 [
 	range : extended integer meta
 |
@@ -236,7 +236,7 @@ Method "_'s lower bound" is
  * Returns:
  *    The upper  bound of the argument.
  */
-Method "_'s upper bound" is
+Method "_'s genuine upper bound" is
 [
 	range : extended integer meta
 |

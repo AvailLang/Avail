@@ -493,15 +493,21 @@ Restriction "_/_" is [aT : integerType, bT : integerType |
 	   therefore treat these bounds as inclusive.  */
 	soFar : integerType := terminates;
 	negativeDenominators ::= type intersection of bT and [-INF..-1];
+	if negativeDenominators not = terminates then
+	[
+		soFar := type union of soFar and
+			(aT divide range by negativeDenominators lower bound);
+		soFar := type union of soFar and
+			(aT divide range by negativeDenominators upper bound);
+	];
 	positiveDenominators ::= type intersection of bT and [1..INF];
-	soFar := type union of soFar and
-		(aT divide range by negativeDenominators lower bound);
-	soFar := type union of soFar and
-		(aT divide range by negativeDenominators upper bound);
-	soFar := type union of soFar and
-		(aT divide range by positiveDenominators lower bound);
-	soFar := type union of soFar and
-		(aT divide range by positiveDenominators upper bound);
+	if positiveDenominators not = terminates then
+	[
+		soFar := type union of soFar and
+			(aT divide range by positiveDenominators lower bound);
+		soFar := type union of soFar and
+			(aT divide range by positiveDenominators upper bound);
+	];
 	soFar;
 ] : integerType;
 

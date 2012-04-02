@@ -35,8 +35,10 @@ Versions
 	"dev"
 Extends
 Uses
+	"Assertions",
 	"Bootstrap",
 	"Early Control Structures",
+	"Early Logic",
 	"Early Math",
 	"Early Tuples",
 	"Enumeration Support",
@@ -458,10 +460,7 @@ Semantic restriction "_∪_" is
 	metaA : type's type,
 	metaB : type's type
 |
-	/* The only metatype that is not an enumeration is `type`. */
-	typeA ::= if |metaA| = 1 then [ metaA's instance; ] else [ type; ];
-	typeB ::= if |metaB| = 1 then [ metaB's instance; ] else [ type; ];
-	(typeA ∪ typeB)'s type;
+	metaA ∪ metaB;
 ];
 
 /**
@@ -478,8 +477,76 @@ Semantic restriction "_∩_" is
 	metaA : type's type,
 	metaB : type's type
 |
-	/* The only metatype that is not an enumeration is `type`. */
-	typeA ::= if |metaA| = 1 then [ metaA's instance; ] else [ type; ];
-	typeB ::= if |metaB| = 1 then [ metaB's instance; ] else [ type; ];
-	(typeA ∩ typeB)'s type;
+	metaA ∩ metaB;
+];
+
+/**
+ * Is `value` an instance of `aType`?
+ * 
+ * Parameters:
+ *    value - An arbitrary value.
+ *    aType - An arbitrary type.
+ * Returns:
+ *    `true` if `value` is an instance of `aType`, `false` otherwise.
+ */
+Method "_∈_" is
+[
+	value : any,
+	aType : type
+|
+	value's type ⊆ aType;
+];
+
+/**
+ * Strengthen the type instance operation.
+ * 
+ * Parameters:
+ *    aType - An arbitrary type.
+ *    aMeta - An arbitrary metatype.
+ * Returns:
+ *    `true` if `aType` is an instance of `aMeta`, `false` otherwise.
+ */
+Semantic restriction "_∈_" is
+[
+	aType : any's type,
+	aMeta : type's type
+|
+	/* If `aMeta` isn't known exactly, then the operation cannot be strengthened
+	 * statically.
+	 */
+	if |aMeta| ≠ 1 then
+	[
+		Assert: aMeta = type;
+		boolean;
+	]
+	else
+	[
+		/* If `aType's` type is a subtype of `aMeta`, then `aType` is definitely
+		 * an instance of `aMeta`.
+		 */
+		if aType's type ⊆ aMeta then
+		[
+			true's type;
+		]
+		else
+		[
+			/* If the intersection of `aType's type` and `aMeta` is bottom, then
+			 * the two hierarchies are disjoint; `aType` cannot be an instance
+			 * of `aMeta`.
+			 */
+			if aType ∩ (aMeta's instance) = ⊥ then
+			[
+				false's type;
+			]
+			/* `aMeta` is a subtype of a `aType's type`, e.g., `aMeta` is
+			 * `string's type` and `aType's type` is `any's type`. In this case,
+			 * no strengthening is possible.
+			 */
+			else
+			[
+				Assert: aMeta's instance ⊆ aType;
+				boolean;
+			];
+		];
+	];
 ];

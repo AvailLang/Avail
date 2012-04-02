@@ -46,7 +46,9 @@ Names
 	"(_.._)",
 	"_is finite",
 	"_is infinite",
+	"_'s lower bound",
 	"_'s lower bound is inclusive",
+	"_'s upper bound",
 	"_'s upper bound is inclusive",
 	"max_",
 	"min_",
@@ -55,6 +57,104 @@ Names
 	"_>_",
 	"_≥_"
 Body
+
+/**
+ * Answer the semantic restriction function that should be used for each of
+ * `_'s genuine lower bound` and `_'s genuine upper bound`.
+ *
+ * Returns:
+ *    A function that strengthens the integer range bounds methods.
+ */
+Method "integer range genuine«lower»?«upper»?\
+		\|bound semantic restriction function" is
+[
+	wantsLower : boolean,
+	wantsUpper : boolean
+|
+	Assert: wantsLower ≠ wantsUpper
+		("exactly one of {\"lower\", \"upper\"} to follow \"genuine\"");
+	[
+		range : extended integer meta's type
+	|
+		instances ::= cast range's instances
+			into [ t : {extended integer meta|whole number} | t; ];
+		Assert: |instances| = 1 ("range should be a single instance");
+		instance ::= cast instances→tuple[1] into
+			[ t : extended integer meta | t; ];
+		/* Must accommodate ⊥. It answers ∞ for its lower bound and -∞ for its
+		 * upper bound.
+		 */
+		lower ::= if wantsUpper
+			then [ -∞; ]
+			else [ instance's genuine lower bound; ];
+		upper ::= if wantsLower
+			then [ ∞; ]
+			else [ instance's genuine upper bound; ];
+		integer range from lower (inclusive=true) to upper (inclusive=true);
+	];
+];
+
+/**
+ * Strengthen the bound to have the same static type as the argument. Note that
+ * this is the strongest possible type because the argument's subtypes have
+ * lower and upper bounds drawn from the argument's entire range.
+ *
+ * Parameters:
+ *    range -
+ * Returns:
+ *    The same type as the argument to `_'s lower bound`.
+ */
+Semantic restriction "_'s genuine lower bound" is
+	integer range genuine lower bound semantic restriction function;
+
+/**
+ * Strengthen the bound to have the same static type as the argument. Note that
+ * this is the strongest possible type because the argument's subtypes have
+ * lower and upper bounds drawn from the argument's entire range.
+ *
+ * Parameters:
+ *    range -
+ * Returns:
+ *    The same type as the argument to `_'s upper bound`.
+ */
+Semantic restriction "_'s genuine upper bound" is
+	integer range genuine upper bound semantic restriction function;
+
+/**
+ * Answer the lower bound of the specified integral range type. Note that unlike
+ * `_'s genuine lower bound`, this method explicitly forbids the argument from
+ * being ⊥. It is intended as a practical (but not universal) replacement.
+ *
+ * Parameters:
+ *    range - An integral range type. Must not be ⊥.
+ * Returns:
+ *    The lower bound of the argument.
+ */
+Method "_'s lower bound" is
+[
+	range : extended integer meta
+|
+	Assert: range ≠ ⊥ ("must use `_'s genuine lower bound` for ⊥");
+	range's genuine lower bound;
+];
+
+/**
+ * Answer the upper bound of the specified integral range type. Note that unlike
+ * `_'s genuine upper bound`, this method explicitly forbids the argument from
+ * being ⊥. It is intended as a practical (but not universal) replacement.
+ *
+ * Parameters:
+ *    range - An integral range type. Must not be ⊥.
+ * Returns:
+ *    The upper bound of the argument.
+ */
+Method "_'s upper bound" is
+[
+	range : extended integer meta
+|
+	Assert: range ≠ ⊥ ("must use `_'s genuine upper bound` for ⊥");
+	range's genuine upper bound;
+];
 
 /**
  * Answer the semantic restriction function that should be used for each of
@@ -68,13 +168,12 @@ Method "integer range bound semantic restriction function" is
 	[
 		range : extended integer meta's type
 	|
-		Assert: range ≠ ⊥ ("range should not have type ⊥");
 		instances ::= cast range's instances
 			into [ t : {extended integer meta|whole number} | t; ];
-		Assert: |instances| = 1 ("range should but a single instance");
+		Assert: |instances| = 1 ("range should be a single instance");
 		instance ::= cast instances→tuple[1] into
 			[ t : extended integer meta | t; ];
-		/* Treat the upper bound as inclusive in order to handle ∞. */
+		/* Specifically do not accommodate ⊥. */
 		integer range
 			from instance's lower bound (inclusive=true)
 			to instance's upper bound (inclusive=true);

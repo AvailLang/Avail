@@ -142,16 +142,84 @@ Method "type promotion function for_" is
 	];
 ] : [number's type, number's type]→number's type;
 
+/* These messages describe arithmetic failure (integers only). */
+cannotAddMessage ::= "terms not to be unlike infinities";
+cannotSubtractMessage ::= "terms not to be like infinities";
+cannotMultiplyMessage ::= "terms not be 0 and ±∞";
+cannotDivideByZeroMessage ::= "denominator not to be zero (0)";
+cannotDivideTwoInfinitiesMessage ::=
+	"either numerator or denominator to be finite";
+
 Semantic restriction "_+_" is type promotion function for
-	[ a : number, b : number | a + b; ];
+[
+	a : number,
+	b : number
+|
+	if {a, b} = {-∞, ∞} then
+	[
+		Reject parse, expected: cannotAddMessage;
+	];
+	a + b;
+];
+
 Semantic restriction "_-_" is type promotion function for
-	[ a : number, b : number | a - b; ];
+[
+	a : number,
+	b : number
+|
+	if {a, b} ∈ {{-∞}, {∞}} then
+	[
+		Reject parse, expected: cannotSubtractMessage;
+	];
+	a - b;
+];
+
 Semantic restriction "_×_" is type promotion function for
-	[ a : number, b : number | a × b; ];
+[
+	a : number,
+	b : number
+|
+	terms ::= {a, b};
+	if terms = {0, ∞} ∨ [ terms = {0, -∞}; ] then
+	[
+		Reject parse, expected: cannotMultiplyMessage;
+	];
+	a × b;
+];
+
 Semantic restriction "_÷_" is type promotion function for
-	[ a : number, b : number | a ÷ b; ];
+[
+	a : number,
+	b : number
+|
+	if b = 0 ∧ [ a ∈ extended integer; ] then
+	[
+		Reject parse, expected: cannotDivideByZeroMessage;
+	];
+	infinities ::= {∞, -∞};
+	if a ∈ infinities ∧ [ b ∈ infinities; ] then
+	[
+		Reject parse, expected: cannotDivideTwoInfinitiesMessage;
+	];
+	a ÷ b;
+];
+
 Semantic restriction "_mod_" is type promotion function for
-	[ a : number, b : number | a mod b; ];
+[
+	a : number,
+	b : number
+|
+	if b = 0 ∧ [ a ∈ extended integer; ] then
+	[
+		Reject parse, expected: cannotDivideByZeroMessage;
+	];
+	infinities ::= {∞, -∞};
+	if a ∈ infinities ∧ [ b ∈ infinities; ] then
+	[
+		Reject parse, expected: cannotDivideTwoInfinitiesMessage;
+	];
+	a mod b;
+];
 
 /**
  * Negate the argument. Avail's system dialect has no negative numeric literals,
@@ -465,29 +533,17 @@ Method "_.+._" is
 	a : extended integer's type,
 	b : extended integer's type
 |
-	bounds ::=
-		{
-			{a's lower bound, a's upper bound},
-			{b's lower bound, b's upper bound}
-		};
-	if bounds = {{-∞, ∞}} then
-	[
-		Reject parse, expected: "terms not to be unlike infinities";
-	]
-	else
-	[
-		lower ::= a's lower bound + b's lower bound - 1;
-		lowerInclusive ::=
-			(a's lower bound is inclusive ∧ [a's lower bound is infinite;])
-			∨ [b's lower bound is inclusive ∧ [b's lower bound is infinite;];];
-		upper ::= a's upper bound + b's upper bound + 1;
-		upperInclusive ::=
-			(a's upper bound is inclusive ∧ [a's upper bound is infinite;])
-			∨ [b's upper bound is inclusive ∧ [b's upper bound is infinite;];];
-		integer range
-			from lower (inclusive=lowerInclusive)
-			to upper (inclusive=upperInclusive);
-	];
+	lower ::= a's lower bound + b's lower bound - 1;
+	lowerInclusive ::=
+		(a's lower bound is inclusive ∧ [a's lower bound is infinite;])
+		∨ [b's lower bound is inclusive ∧ [b's lower bound is infinite;];];
+	upper ::= a's upper bound + b's upper bound + 1;
+	upperInclusive ::=
+		(a's upper bound is inclusive ∧ [a's upper bound is infinite;])
+		∨ [b's upper bound is inclusive ∧ [b's upper bound is infinite;];];
+	integer range
+		from lower (inclusive=lowerInclusive)
+		to upper (inclusive=upperInclusive);
 ];
 
 /**
@@ -513,7 +569,7 @@ Method "_.×._" is
 	};
 	if bounds = {{0}, {∞}} ∨ [ bounds = {{0}, {-∞}}; ] then
 	[
-		Reject parse, expected: "terms not be 0 and ±∞";
+		Reject parse, expected: cannotMultiplyMessage;
 	]
 	else
 	[
@@ -636,6 +692,15 @@ Semantic restriction "_+_" is
 	a : extended integer's type,
 	b : extended integer's type
 |
+	bounds ::=
+	{
+		{a's lower bound, a's upper bound},
+		{b's lower bound, b's upper bound}
+	};
+	if bounds = {{-∞}, {∞}} then
+	[
+		Reject parse, expected: cannotAddMessage;
+	];
 	a .+. b;
 ];
 
@@ -655,7 +720,18 @@ Semantic restriction "_-_" is
 	a : extended integer's type,
 	b : extended integer's type
 |
-	a .+. (.-. b);
+	negated ::= .-. b;
+	bounds ::=
+	{
+		{a's lower bound, a's upper bound},
+		{negated's lower bound, negated's upper bound}
+	};
+	if bounds = {{-∞}, {∞}} then
+	[
+	 	Print: "got here\n";
+		Reject parse, expected: cannotSubtractMessage;
+	];
+	a .+. negated;
 ];
 
 /**
@@ -675,6 +751,149 @@ Semantic restriction "_×_" is
 	b : extended integer's type
 |
 	a .×. b;
+];
+
+/**
+ * Compute and answer the integer range type of the quotient.
+ * 
+ * Parameters:
+ *    numeratorRange - An integral type.
+ *    denomintor - An integer.
+ * Returns:
+ *    The narrowest integer range type general enough to hold all possible
+ *    quotients of `numeratorRange`'s instances and `denominator`.
+ */
+Method "_.÷._" is
+[
+	numeratorRange : extended integer's type,
+	denominator : extended integer
+|
+	/* Produce ⊥ if the numerator range is ⊥ or the denominator is 0. */
+	if numeratorRange = ⊥ ∨ [ denominator = 0; ] then
+	[
+		⊥;
+	]
+	else
+	[
+		/* ±∞ divided by any finite nonzero value is 0. */
+		if denominator is infinite then
+		[
+			0's type;
+		]
+		else
+		[
+			/* The denominator is finite and nonzero. The numerator may be
+			 * either finite or infinite. The following handles all cases.
+			 */
+			numeratorMin ::= numeratorRange's lower bound ÷ denominator;
+			lowerInclusive ::= numeratorRange's lower bound is inclusive;
+			numeratorMax ::= numeratorRange's upper bound ÷ denominator;
+			upperInclusive ::= numeratorRange's upper bound is inclusive;
+			result ::= if denominator < 0 then
+				[
+					integer range
+						from numeratorMax (inclusive=upperInclusive)
+						to numeratorMin (inclusive=lowerInclusive);
+				]
+				else
+				[
+					integer range
+						from numeratorMin (inclusive=lowerInclusive)
+						to numeratorMax (inclusive=upperInclusive);
+				];
+			result;
+		];
+	];
+];
+
+/**
+ * Compute and answer the integer range type of the quotient of the argument
+ * types.
+ * 
+ * Parameters:
+ *    a - An integral type.
+ *    b - An integral type.
+ * Returns:
+ *    The narrowest integer range type general enough to hold all possible
+ *    quotients of the arguments' instances.
+ */
+Semantic restriction "_÷_" is
+[
+	a : extended integer's type,
+	b : extended integer's type
+|
+	denominatorSet ::= {b's lower bound, b's upper bound};
+	if denominatorSet = {0} then
+	[
+		Reject parse, expected: cannotDivideByZeroMessage;
+	];
+	numeratorSet ::= {a's lower bound, a's upper bound};
+	infinities ::= {{∞}, {-∞}};
+	if numeratorSet ∈ infinities ∧ [ denominatorSet ∈ infinities; ] then
+	[
+		Reject parse, expected: cannotDivideTwoInfinitiesMessage;
+	];
+	union : extended integer's type := ⊥;
+	negativeDenominators ::= b ∩ [-∞..-1];
+	if negativeDenominators ≠ ⊥ then
+	[
+		union :=
+			eject &union ∪ (a .÷. negativeDenominators's genuine lower bound);
+		union :=
+			eject &union ∪ (a .÷. negativeDenominators's genuine upper bound);
+	];
+	positiveDenominators ::= b ∩ [1..∞];
+	if positiveDenominators ≠ ⊥ then
+	[
+		union :=
+			eject &union ∪ (a .÷. positiveDenominators's genuine lower bound);
+		union :=
+			eject &union ∪ (a .÷. positiveDenominators's genuine upper bound);
+	];
+	union;
+];
+
+/**
+ * Compute and answer the integer range type of the remainder of the argument
+ * types.
+ * 
+ * Parameters:
+ *    a - An integral type.
+ *    b - An integral type.
+ * Returns:
+ *    The narrowest integer range type general enough to hold all possible
+ *    remainders of the arguments' instances.
+ */
+Semantic restriction "_mod_" is
+[
+	a : extended integer's type,
+	b : extended integer's type
+|
+	denominatorSet ::= {b's lower bound, b's upper bound};
+	if denominatorSet = {0} then
+	[
+		Reject parse, expected: cannotDivideByZeroMessage;
+	];
+	numeratorSet ::= {a's lower bound, a's upper bound};
+	infinities ::= {{∞}, {-∞}};
+	if numeratorSet ∈ infinities ∧ [ denominatorSet ∈ infinities; ] then
+	[
+		Reject parse, expected: cannotDivideTwoInfinitiesMessage;
+	];
+	if b's lower bound = b's upper bound
+		∧ [ a's lower bound is finite
+		∧ [ a's upper bound is finite
+		∧ [ a's lower bound ÷ b's lower bound
+			= a's upper bound ÷ b's lower bound; ]; ]; ]
+	then
+	[
+		[a's lower bound mod b's lower bound
+			.. a's upper bound mod b's lower bound];
+	]
+	else
+	[
+		[0..b's upper bound);
+	];
 ];
 
 Method "_^_" is
