@@ -305,6 +305,7 @@ public abstract class Interpreter
 		bodySignature.makeImmutable();
 		//  Add the stubbed method implementation.
 		final AvailObject newImp = ForwardDeclarationDescriptor.create(
+			methodName,
 			bodySignature);
 		module.addMethodImplementation(methodName, newImp);
 		final AvailObject imps = runtime.methodFor(methodName);

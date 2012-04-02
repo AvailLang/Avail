@@ -296,3 +296,6 @@ Semantic restriction "_[.._]" is
 |
 	tuple type of aTupleType[1's type..sliceEnd];
 ];
+
+/* Disambiguate `_→_` and `_→tuple`. */
+Grammatical restriction {"_→_"} is <∅, {"tuple"}>;

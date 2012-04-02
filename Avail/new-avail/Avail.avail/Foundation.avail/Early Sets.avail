@@ -1,5 +1,5 @@
 /*
- * Early Set.avail
+ * Early Sets.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Early Set"
+System Module "Early Sets"
 Versions
 	"dev"
 Extends
@@ -84,3 +84,6 @@ Semantic restriction "_∪_" is
 
 /* Make union left associate. */
 Grammatical restriction {"_∪_"} is <∅, {"_∪_"}>;
+
+/* Disambiguate `_→_` and `_→set`. */
+Grammatical restriction {"_→_"} is <∅, {"set"}>;

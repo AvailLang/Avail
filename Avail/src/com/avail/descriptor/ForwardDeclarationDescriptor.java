@@ -32,6 +32,8 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.ForwardDeclarationDescriptor.ObjectSlots.*;
+import java.util.List;
 import com.avail.annotations.*;
 import com.avail.descriptor.TypeDescriptor.Types;
 
@@ -56,8 +58,15 @@ extends ImplementationDescriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	public enum ObjectSlots
+	implements ObjectSlotsEnum
 	{
+		/**
+		 * The {@linkplain MethodDescriptor method} {@linkplain AtomDescriptor
+		 * name}.
+		 */
+		METHOD_NAME,
+
 		/**
 		 * The signature being forward-declared.  This is a {@linkplain
 		 * FunctionTypeDescriptor function type}.
@@ -66,25 +75,22 @@ extends ImplementationDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_BodySignature (
-		final @NotNull AvailObject object)
+	@NotNull AvailObject o_BodySignature (final @NotNull AvailObject object)
 	{
-		return object.signature();
+		return object.slot(BODY_SIGNATURE);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_Signature (
-		final @NotNull AvailObject object)
+	@NotNull AvailObject o_Signature (final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.BODY_SIGNATURE);
+		return object.slot(BODY_SIGNATURE);
 	}
 
 	@Override @AvailMethod
-	int o_Hash (
-		final @NotNull AvailObject object)
+	int o_Hash (final @NotNull AvailObject object)
 	{
-		final int hash = object.signature().hash() * 19;
-		return hash;
+		return object.slot(BODY_SIGNATURE).hash() * 19
+			^ object.slot(METHOD_NAME).hash() * 757;
 	}
 
 	@Override @AvailMethod
@@ -95,31 +101,47 @@ extends ImplementationDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsForward (
-		final @NotNull AvailObject object)
+	boolean o_IsForward (final @NotNull AvailObject object)
 	{
 		return true;
 	}
 
+	@Override
+	void printObjectOnAvoidingIndent (
+		final @NotNull AvailObject object,
+		final @NotNull StringBuilder builder,
+		final @NotNull List<AvailObject> recursionList,
+		final int indent)
+	{
+		object.slot(METHOD_NAME).printOnAvoidingIndent(
+			builder, recursionList, indent);
+		builder.append(' ');
+		object.slot(BODY_SIGNATURE).printOnAvoidingIndent(
+			builder, recursionList, indent + 1);
+	}
 
 	/**
 	 * Create a forward declaration signature for the given {@linkplain
+	 * MethodDescriptor method} {@linkplain AtomDescriptor name} and {@linkplain
 	 * FunctionTypeDescriptor function type}.
 	 *
+	 * @param methodName
+	 *        The method name.
 	 * @param bodySignature
-	 *            The function type at which this signature should occur within
-	 *            an {@linkplain MethodDescriptor method}.
-	 * @return
-	 *            The new forward declaration signature.
+	 *        The function type at which this signature should occur within
+	 *        a {@linkplain MethodDescriptor method}.
+	 * @return The new forward declaration signature.
 	 */
-	public static AvailObject create (final AvailObject bodySignature)
+	public static AvailObject create (
+		final AvailObject methodName,
+		final AvailObject bodySignature)
 	{
 		final AvailObject instance = mutable().create();
+		instance.setSlot(ObjectSlots.METHOD_NAME, methodName);
 		instance.setSlot(ObjectSlots.BODY_SIGNATURE, bodySignature);
 		instance.makeImmutable();
 		return instance;
 	}
-
 
 	/**
 	 * Construct a new {@link ForwardDeclarationDescriptor}.
