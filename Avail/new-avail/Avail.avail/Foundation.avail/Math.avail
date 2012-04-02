@@ -1063,5 +1063,12 @@ Semantic restriction "|_|" is
 [
 	a : extended integer's type
 |
-	(a ∪ .-. a) ∩ [0..∞];
+	if |a| = 1 then
+	[
+		|a's instance|'s type;
+	]
+	else
+	[
+		([0..∞] ∩ a) ∪ ([0..∞] ∩ .-. a);
+	];
 ];
