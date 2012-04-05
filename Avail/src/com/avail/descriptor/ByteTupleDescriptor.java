@@ -152,8 +152,6 @@ extends TupleDescriptor
 		final @NotNull AvailObject aByteTuple,
 		final int startIndex2)
 	{
-		//  Compare sections of two byte tuples.
-
 		if (object.sameAddressAs(aByteTuple) && startIndex1 == startIndex2)
 		{
 			return true;

@@ -102,13 +102,6 @@ extends ExtendedIntegerDescriptor
 		return another.equalsInfinity(getSign(object));
 	}
 
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>
-	 * Compare infinities by their {@link IntegerSlots#SIGN} fields.
-	 * </p>
-	 */
 	@Override @AvailMethod
 	boolean o_EqualsInfinity (
 		final @NotNull AvailObject object,

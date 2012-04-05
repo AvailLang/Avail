@@ -107,9 +107,6 @@ extends StringDescriptor
 		aStream.append('"');
 	}
 
-	/**
-	 * Compare sections of two tuples.  My instance is a two-byte-string.
-	 */
 	@Override @AvailMethod
 	boolean o_CompareFromToWithStartingAt (
 		final @NotNull AvailObject object,
@@ -125,9 +122,6 @@ extends StringDescriptor
 			startIndex1);
 	}
 
-	/**
-	 * Compare sections of two two-byte strings.
-	 */
 	@Override @AvailMethod
 	boolean o_CompareFromToWithTwoByteStringStartingAt (
 		final @NotNull AvailObject object,
@@ -140,7 +134,6 @@ extends StringDescriptor
 		{
 			return true;
 		}
-		// Compare actual bytes.
 		int index2 = startIndex2;
 		for (int index1 = startIndex1; index1 <= endIndex1; index1++)
 		{

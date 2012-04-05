@@ -41,6 +41,7 @@ import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.descriptor.InfinityDescriptor.IntegerSlots;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.ProcessDescriptor.ExecutionState;
 import com.avail.interpreter.Interpreter;
@@ -932,12 +933,12 @@ public abstract class AbstractDescriptor
 	 * may be more entries in the {@linkplain TupleDescriptor tuple} than are
 	 * required by the {@linkplain FunctionTypeDescriptor function type}.
 	 *
-	 * @see AvailObject#acceptsTupleOfArguments(AvailObject)
 	 * @param object The receiver.
 	 * @param arguments A tuple containing the argument values to be checked.
 	 * @return {@code true} if the arguments of the receiver are, pairwise, more
 	 *         general than the types of the corresponding elements of the
 	 *         {@code arguments} tuple, {@code false} otherwise.
+	 * @see AvailObject#acceptsTupleOfArguments(AvailObject)
 	 */
 	abstract boolean o_AcceptsTupleOfArguments (
 		@NotNull AvailObject object,
@@ -954,16 +955,27 @@ public abstract class AbstractDescriptor
 		int aChunkIndex);
 
 	/**
-	 * @param object
-	 * @param implementation
+	 * Add a {@linkplain ImplementationDescriptor signature implementation} to
+	 * the receiver. Causes dependent chunks to be invalidated.
+	 *
+	 * Macro signatures and non-macro signatures should not be combined in the
+	 * same method.
+	 *
+	 * @param object The receiver.
+	 * @param implementation The signature implementation to be added.
+	 * @see AvailObject#addImplementation(AvailObject)
 	 */
 	abstract void o_AddImplementation (
 		@NotNull AvailObject object,
 		AvailObject implementation);
 
 	/**
-	 * @param object
-	 * @param restrictions
+	 * Add a set of {@linkplain MessageBundleDescriptor grammatical
+	 * restrictions} to the receiver.
+	 *
+	 * @param object The receiver.
+	 * @param restrictions The set of grammatical restrictions to be added.
+	 * @see AvailObject#addGrammaticalRestrictions(AvailObject)
 	 */
 	abstract void o_AddGrammaticalRestrictions (
 		@NotNull AvailObject object,
@@ -1171,12 +1183,23 @@ public abstract class AbstractDescriptor
 		int value);
 
 	/**
+	 * Compare a subrange of the {@linkplain AvailObject receiver} with a
+	 * subrange of another object. The size of the subrange of both objects is
+	 * determined by the index range supplied for the receiver.
+	 *
 	 * @param object
+	 *        The receiver.
 	 * @param startIndex1
+	 *        The inclusive lower bound of the receiver's subrange.
 	 * @param endIndex1
+	 *        The inclusive upper bound of the receiver's subrange.
 	 * @param anotherObject
+	 *        The other object used in the comparison.
 	 * @param startIndex2
-	 * @return
+	 *        The inclusive lower bound of the other object's subrange.
+	 * @return {@code true} if the contents of the subranges match exactly,
+	 *         {@code false} otherwise.
+	 * @see AvailObject#compareFromToWithStartingAt(int, int, AvailObject, int)
 	 */
 	abstract boolean o_CompareFromToWithStartingAt (
 		@NotNull AvailObject object,
@@ -1186,12 +1209,24 @@ public abstract class AbstractDescriptor
 		int startIndex2);
 
 	/**
+	 * Compare a subrange of the {@linkplain AvailObject receiver} with a
+	 * subrange of the given {@linkplain TupleDescriptor tuple}. The size of the
+	 * subrange of both objects is determined by the index range supplied for
+	 * the receiver.
+	 *
 	 * @param object
+	 *        The receiver.
 	 * @param startIndex1
+	 *        The inclusive lower bound of the receiver's subrange.
 	 * @param endIndex1
+	 *        The inclusive upper bound of the receiver's subrange.
 	 * @param aTuple
+	 *        The tuple used in the comparison.
 	 * @param startIndex2
-	 * @return
+	 *        The inclusive lower bound of the tuple's subrange.
+	 * @return {@code true} if the contents of the subranges match exactly,
+	 *         {@code false} otherwise.
+	 * @see AvailObject#compareFromToWithAnyTupleStartingAt(int, int, AvailObject, int)
 	 */
 	abstract boolean o_CompareFromToWithAnyTupleStartingAt (
 		@NotNull AvailObject object,
@@ -1201,12 +1236,24 @@ public abstract class AbstractDescriptor
 		int startIndex2);
 
 	/**
+	 * Compare a subrange of the {@linkplain AvailObject receiver} with a
+	 * subrange of the given {@linkplain ByteStringDescriptor byte string}. The
+	 * size of the subrange of both objects is determined by the index range
+	 * supplied for the receiver.
+	 *
 	 * @param object
+	 *        The receiver.
 	 * @param startIndex1
+	 *        The inclusive lower bound of the receiver's subrange.
 	 * @param endIndex1
+	 *        The inclusive upper bound of the receiver's subrange.
 	 * @param aByteString
+	 *        The byte string used in the comparison.
 	 * @param startIndex2
-	 * @return
+	 *        The inclusive lower bound of the byte string's subrange.
+	 * @return {@code true} if the contents of the subranges match exactly,
+	 *         {@code false} otherwise.
+	 * @see AvailObject#compareFromToWithByteStringStartingAt(int, int, AvailObject, int)
 	 */
 	abstract boolean o_CompareFromToWithByteStringStartingAt (
 		@NotNull AvailObject object,
@@ -1216,12 +1263,24 @@ public abstract class AbstractDescriptor
 		int startIndex2);
 
 	/**
+	 * Compare a subrange of the {@linkplain AvailObject receiver} with a
+	 * subrange of the given {@linkplain ByteTupleDescriptor byte tuple}. The
+	 * size of the subrange of both objects is determined by the index range
+	 * supplied for the receiver.
+	 *
 	 * @param object
+	 *        The receiver.
 	 * @param startIndex1
+	 *        The inclusive lower bound of the receiver's subrange.
 	 * @param endIndex1
+	 *        The inclusive upper bound of the receiver's subrange.
 	 * @param aByteTuple
+	 *        The byte tuple used in the comparison.
 	 * @param startIndex2
-	 * @return
+	 *        The inclusive lower bound of the byte tuple's subrange.
+	 * @return {@code true} if the contents of the subranges match exactly,
+	 *         {@code false} otherwise.
+	 * @see AvailObject#compareFromToWithByteTupleStartingAt(int, int, AvailObject, int)
 	 */
 	abstract boolean o_CompareFromToWithByteTupleStartingAt (
 		@NotNull AvailObject object,
@@ -1231,12 +1290,24 @@ public abstract class AbstractDescriptor
 		int startIndex2);
 
 	/**
+	 * Compare a subrange of the {@linkplain AvailObject receiver} with a
+	 * subrange of the given {@linkplain NybbleTupleDescriptor nybble tuple}.
+	 * The size of the subrange of both objects is determined by the index range
+	 * supplied for the receiver.
+	 *
 	 * @param object
+	 *        The receiver.
 	 * @param startIndex1
+	 *        The inclusive lower bound of the receiver's subrange.
 	 * @param endIndex1
+	 *        The inclusive upper bound of the receiver's subrange.
 	 * @param aNybbleTuple
+	 *        The nybble tuple used in the comparison.
 	 * @param startIndex2
-	 * @return
+	 *        The inclusive lower bound of the nybble tuple's subrange.
+	 * @return {@code true} if the contents of the subranges match exactly,
+	 *         {@code false} otherwise.
+	 * @see AvailObject#compareFromToWithNybbleTupleStartingAt(int, int, AvailObject, int)
 	 */
 	abstract boolean o_CompareFromToWithNybbleTupleStartingAt (
 		@NotNull AvailObject object,
@@ -1246,13 +1317,25 @@ public abstract class AbstractDescriptor
 		int startIndex2);
 
 	/**
+	 * Compare a subrange of the {@linkplain AvailObject receiver} with a
+	 * subrange of the given {@linkplain ObjectTupleDescriptor object tuple}.
+	 * The size of the subrange of both objects is determined by the index range
+	 * supplied for the receiver.
+	 *
 	 * @param object
+	 *        The receiver.
 	 * @param startIndex1
+	 *        The inclusive lower bound of the receiver's subrange.
 	 * @param endIndex1
+	 *        The inclusive upper bound of the receiver's subrange.
 	 * @param anObjectTuple
+	 *        The object tuple used in the comparison.
 	 * @param startIndex2
-	 * @return
-	 */
+	 *        The inclusive lower bound of the object tuple's subrange.
+	 * @return {@code true} if the contents of the subranges match exactly,
+	 *         {@code false} otherwise.
+	 * @see AvailObject#compareFromToWithObjectTupleStartingAt(int, int, AvailObject, int)
+     */
 	abstract boolean o_CompareFromToWithObjectTupleStartingAt (
 		@NotNull AvailObject object,
 		int startIndex1,
@@ -1261,13 +1344,25 @@ public abstract class AbstractDescriptor
 		int startIndex2);
 
 	/**
+	 * Compare a subrange of the {@linkplain AvailObject receiver} with a
+	 * subrange of the given {@linkplain TwoByteStringDescriptor two-byte
+	 * string}. The size of the subrange of both objects is determined by the
+	 * index range supplied for the receiver.
+	 *
 	 * @param object
+	 *        The receiver.
 	 * @param startIndex1
+	 *        The inclusive lower bound of the receiver's subrange.
 	 * @param endIndex1
+	 *        The inclusive upper bound of the receiver's subrange.
 	 * @param aTwoByteString
+	 *        The two-byte string used in the comparison.
 	 * @param startIndex2
-	 * @return
-	 */
+	 *        The inclusive lower bound of the two-byte string's subrange.
+	 * @return {@code true} if the contents of the subranges match exactly,
+	 *         {@code false} otherwise.
+	 * @see AvailObject#compareFromToWithTwoByteStringStartingAt(int, int, AvailObject, int)
+     */
 	abstract boolean o_CompareFromToWithTwoByteStringStartingAt (
 		@NotNull AvailObject object,
 		int startIndex1,
@@ -1491,9 +1586,14 @@ public abstract class AbstractDescriptor
 		int endOfZone);
 
 	/**
-	 * @param object
-	 * @param elementObject
-	 * @return
+	 * Answer whether the {@linkplain AvailObject receiver} contains the
+	 * specified element.
+	 *
+	 * @param object The receiver.
+	 * @param elementObject The element.
+	 * @return {@code true} if the receiver contains the element, {@code false}
+	 *         otherwise.
+	 * @see AvailObject#hasElement(AvailObject)
 	 */
 	abstract boolean o_HasElement (
 		@NotNull AvailObject object,
@@ -3758,9 +3858,15 @@ public abstract class AbstractDescriptor
 		final float aFloat);
 
 	/**
-	 * @param object
-	 * @param sign
-	 * @return
+	 * Answer whether the {@linkplain AvailObject receiver} is an {@linkplain
+	 * InfinityDescriptor infinity} with the specified {@link
+	 * IntegerSlots#SIGN}.
+	 *
+	 * @param object The receiver.
+	 * @param sign The type of infinity for comparison.
+	 * @return {@code true} if the receiver is an infinity of the specified
+	 *         sign, {@code false} otherwise.
+	 * @see AvailObject#equalsInfinity(Sign)
 	 */
 	abstract boolean o_EqualsInfinity (
 		final @NotNull AvailObject object,

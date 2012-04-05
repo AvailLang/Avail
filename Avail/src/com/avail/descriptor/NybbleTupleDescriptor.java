@@ -133,8 +133,6 @@ extends TupleDescriptor
 		final @NotNull AvailObject anotherObject,
 		final int startIndex2)
 	{
-		//  Compare sections of two tuples.
-
 		return anotherObject.compareFromToWithNybbleTupleStartingAt(
 			startIndex2,
 			(startIndex2 + endIndex1 - startIndex1),
@@ -150,8 +148,6 @@ extends TupleDescriptor
 		final @NotNull AvailObject aNybbleTuple,
 		final int startIndex2)
 	{
-		//  Compare sections of two nybble tuples.
-
 		if (object.sameAddressAs(aNybbleTuple) && startIndex1 == startIndex2)
 		{
 			return true;
@@ -455,7 +451,7 @@ extends TupleDescriptor
 		// See comment in superclass.  This method must produce the same value.
 		// This could eventually be rewritten to do a byte at a time (table
 		// lookup) and to use the square of the current multiplier.
-	
+
 		int hash = 0;
 		for (int nybbleIndex = end; nybbleIndex >= start; nybbleIndex--)
 		{

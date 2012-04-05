@@ -433,17 +433,6 @@ extends Descriptor
 			indices);
 	}
 
-	/**
-	 * Add the {@linkplain ImplementationDescriptor signature implementation} to me.
-	 * Causes dependent chunks to be invalidated.
-	 *
-	 * <p>Macro signatures and non-macro signatures should not be combined in
-	 * the same method.
-	 *
-	 * @param object The method.
-	 * @param implementation A {@linkplain ImplementationDescriptor signature} to be
-	 *
-	 */
 	@Override @AvailMethod
 	void o_AddImplementation (
 		final @NotNull AvailObject object,

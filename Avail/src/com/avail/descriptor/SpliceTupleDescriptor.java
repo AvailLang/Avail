@@ -166,14 +166,6 @@ extends TupleDescriptor
 		return true;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>
-	 * Compare a subrange of this splice tuple and a subrange of the given
-	 * byte string.
-	 * </p>
-	 */
 	@Override @AvailMethod
 	boolean o_CompareFromToWithByteStringStartingAt (
 		final @NotNull AvailObject object,
@@ -211,14 +203,6 @@ extends TupleDescriptor
 		return true;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>
-	 * Compare a subrange of this splice tuple and a subrange of the given
-	 * byte tuple.
-	 * </p>
-	 */
 	@Override @AvailMethod
 	boolean o_CompareFromToWithByteTupleStartingAt (
 		final @NotNull AvailObject object,
@@ -256,14 +240,6 @@ extends TupleDescriptor
 		return true;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>
-	 * Compare a subrange of this splice tuple and a subrange of the given
-	 * nybble tuple.
-	 * </p>
-	 */
 	@Override @AvailMethod
 	boolean o_CompareFromToWithNybbleTupleStartingAt (
 		final @NotNull AvailObject object,

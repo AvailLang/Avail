@@ -340,8 +340,6 @@ extends Descriptor
 		final AvailObject aTuple,
 		final int startIndex2)
 	{
-		// Compare sections of two tuples. Default generic comparison.
-
 		int index2 = startIndex2;
 		for (int index1 = startIndex1; index1 <= endIndex1; index1++)
 		{
@@ -362,8 +360,6 @@ extends Descriptor
 		final AvailObject aByteString,
 		final int startIndex2)
 	{
-		// Compare sections of two tuples. Default to generic comparison.
-
 		return o_CompareFromToWithAnyTupleStartingAt(
 			object,
 			startIndex1,
@@ -380,8 +376,6 @@ extends Descriptor
 		final AvailObject aByteTuple,
 		final int startIndex2)
 	{
-		// Compare sections of two tuples. Default to generic comparison.
-
 		return o_CompareFromToWithAnyTupleStartingAt(
 			object,
 			startIndex1,
@@ -398,8 +392,6 @@ extends Descriptor
 		final AvailObject aNybbleTuple,
 		final int startIndex2)
 	{
-		// Compare sections of two tuples. Default to generic comparison.
-
 		return o_CompareFromToWithAnyTupleStartingAt(
 			object,
 			startIndex1,
@@ -434,8 +426,6 @@ extends Descriptor
 		final AvailObject aTwoByteString,
 		final int startIndex2)
 	{
-		// Compare sections of two tuples. Default to generic comparison.
-
 		return o_CompareFromToWithAnyTupleStartingAt(
 			object,
 			startIndex1,

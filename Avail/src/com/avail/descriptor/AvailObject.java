@@ -41,6 +41,7 @@ import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.descriptor.InfinityDescriptor.IntegerSlots;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.ProcessDescriptor.ExecutionState;
 import com.avail.exceptions.ArithmeticException;
@@ -411,7 +412,6 @@ implements Iterable<AvailObject>
 		return;
 	}
 
-
 	/**
 	 * Replace my descriptor field with a {@link FillerDescriptor}.  This blows
 	 * up for most messages, catching incorrect (all, by definition) further
@@ -595,7 +595,13 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Add the {@linkplain ImplementationDescriptor signature implementation} to
+	 * the receiver. Causes dependent chunks to be invalidated.
+	 *
+	 * Macro signatures and non-macro signatures should not be combined in the
+	 * same method.
+	 *
+	 * @param implementation The signature implementation to be added.
 	 */
 	public void addImplementation (
 		final AvailObject implementation)
@@ -604,7 +610,10 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Add a set of {@linkplain MessageBundleDescriptor grammatical
+	 * restrictions} to the receiver.
+	 *
+	 * @param restrictions The set of grammatical restrictions to be added.
 	 */
 	public void addGrammaticalRestrictions (
 		final AvailObject restrictions)
@@ -1048,7 +1057,20 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Compare a subrange of the {@linkplain AvailObject receiver} with a
+	 * subrange of another object. The size of the subrange of both objects is
+	 * determined by the index range supplied for the receiver.
+	 *
+	 * @param startIndex1
+	 *        The inclusive lower bound of the receiver's subrange.
+	 * @param endIndex1
+	 *        The inclusive upper bound of the receiver's subrange.
+	 * @param anotherObject
+	 *        The other object used in the comparison.
+	 * @param startIndex2
+	 *        The inclusive lower bound of the other object's subrange.
+	 * @return {@code true} if the contents of the subranges match exactly,
+	 *         {@code false} otherwise.
 	 */
 	public boolean compareFromToWithStartingAt (
 		final int startIndex1,
@@ -1065,7 +1087,21 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Compare a subrange of the {@linkplain AvailObject receiver} with a
+	 * subrange of the given {@linkplain TupleDescriptor tuple}. The size of the
+	 * subrange of both objects is determined by the index range supplied for
+	 * the receiver.
+	 *
+	 * @param startIndex1
+	 *        The inclusive lower bound of the receiver's subrange.
+	 * @param endIndex1
+	 *        The inclusive upper bound of the receiver's subrange.
+	 * @param aTuple
+	 *        The tuple used in the comparison.
+	 * @param startIndex2
+	 *        The inclusive lower bound of the tuple's subrange.
+	 * @return {@code true} if the contents of the subranges match exactly,
+	 *         {@code false} otherwise.
 	 */
 	public boolean compareFromToWithAnyTupleStartingAt (
 		final int startIndex1,
@@ -1082,7 +1118,21 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Compare a subrange of the {@linkplain AvailObject receiver} with a
+	 * subrange of the given {@linkplain ByteStringDescriptor byte string}. The
+	 * size of the subrange of both objects is determined by the index range
+	 * supplied for the receiver.
+	 *
+	 * @param startIndex1
+	 *        The inclusive lower bound of the receiver's subrange.
+	 * @param endIndex1
+	 *        The inclusive upper bound of the receiver's subrange.
+	 * @param aByteString
+	 *        The byte string used in the comparison.
+	 * @param startIndex2
+	 *        The inclusive lower bound of the byte string's subrange.
+	 * @return {@code true} if the contents of the subranges match exactly,
+	 *         {@code false} otherwise.
 	 */
 	public boolean compareFromToWithByteStringStartingAt (
 		final int startIndex1,
@@ -1099,7 +1149,21 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Compare a subrange of the {@linkplain AvailObject receiver} with a
+	 * subrange of the given {@linkplain ByteTupleDescriptor byte tuple}. The
+	 * size of the subrange of both objects is determined by the index range
+	 * supplied for the receiver.
+	 *
+	 * @param startIndex1
+	 *        The inclusive lower bound of the receiver's subrange.
+	 * @param endIndex1
+	 *        The inclusive upper bound of the receiver's subrange.
+	 * @param aByteTuple
+	 *        The byte tuple used in the comparison.
+	 * @param startIndex2
+	 *        The inclusive lower bound of the byte tuple's subrange.
+	 * @return {@code true} if the contents of the subranges match exactly,
+	 *         {@code false} otherwise.
 	 */
 	public boolean compareFromToWithByteTupleStartingAt (
 		final int startIndex1,
@@ -1116,7 +1180,21 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Compare a subrange of the {@linkplain AvailObject receiver} with a
+	 * subrange of the given {@linkplain NybbleTupleDescriptor nybble tuple}.
+	 * The size of the subrange of both objects is determined by the index range
+	 * supplied for the receiver.
+	 *
+	 * @param startIndex1
+	 *        The inclusive lower bound of the receiver's subrange.
+	 * @param endIndex1
+	 *        The inclusive upper bound of the receiver's subrange.
+	 * @param aNybbleTuple
+	 *        The nybble tuple used in the comparison.
+	 * @param startIndex2
+	 *        The inclusive lower bound of the nybble tuple's subrange.
+	 * @return {@code true} if the contents of the subranges match exactly,
+	 *         {@code false} otherwise.
 	 */
 	public boolean compareFromToWithNybbleTupleStartingAt (
 		final int startIndex1,
@@ -1133,8 +1211,22 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Dispatch to the descriptor.
-	 */
+	 * Compare a subrange of the {@linkplain AvailObject receiver} with a
+	 * subrange of the given {@linkplain ObjectTupleDescriptor object tuple}.
+	 * The size of the subrange of both objects is determined by the index range
+	 * supplied for the receiver.
+	 *
+	 * @param startIndex1
+	 *        The inclusive lower bound of the receiver's subrange.
+	 * @param endIndex1
+	 *        The inclusive upper bound of the receiver's subrange.
+	 * @param anObjectTuple
+	 *        The object tuple used in the comparison.
+	 * @param startIndex2
+	 *        The inclusive lower bound of the object tuple's subrange.
+	 * @return {@code true} if the contents of the subranges match exactly,
+	 *         {@code false} otherwise.
+     */
 	public boolean compareFromToWithObjectTupleStartingAt (
 		final int startIndex1,
 		final int endIndex1,
@@ -1150,8 +1242,22 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Dispatch to the descriptor.
-	 */
+	 * Compare a subrange of the {@linkplain AvailObject receiver} with a
+	 * subrange of the given {@linkplain TwoByteStringDescriptor two-byte
+	 * string}. The size of the subrange of both objects is determined by the
+	 * index range supplied for the receiver.
+	 *
+	 * @param startIndex1
+	 *        The inclusive lower bound of the receiver's subrange.
+	 * @param endIndex1
+	 *        The inclusive upper bound of the receiver's subrange.
+	 * @param aTwoByteString
+	 *        The two-byte string used in the comparison.
+	 * @param startIndex2
+	 *        The inclusive lower bound of the two-byte string's subrange.
+	 * @return {@code true} if the contents of the subranges match exactly,
+	 *         {@code false} otherwise.
+     */
 	public boolean compareFromToWithTwoByteStringStartingAt (
 		final int startIndex1,
 		final int endIndex1,
@@ -1713,7 +1819,13 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer whether the {@linkplain AvailObject receiver} is an {@linkplain
+	 * InfinityDescriptor infinity} with the specified {@link
+	 * IntegerSlots#SIGN}.
+	 *
+	 * @param sign The type of infinity for comparison.
+	 * @return {@code true} if the receiver is an infinity of the specified
+	 *         sign, {@code false} otherwise.
 	 */
 	public boolean equalsInfinity (
 		final @NotNull Sign sign)
@@ -2035,7 +2147,12 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Answer whether the {@linkplain AvailObject receiver} contains the
+	 * specified element.
+	 *
+	 * @param elementObject The element.
+	 * @return {@code true} if the receiver contains the element, {@code false}
+	 *         otherwise.
 	 */
 	public boolean hasElement (
 		final AvailObject elementObject)
