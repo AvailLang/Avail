@@ -336,16 +336,15 @@ extends TypeDescriptor
 		{
 			return false;
 		}
-		if (!aTupleType.defaultType().isSubtypeOf(object.defaultType()))
-		{
-			return false;
-		}
 		final AvailObject subTuple = aTupleType.typeTuple();
 		final AvailObject superTuple = object.typeTuple();
-		for (
-			int i = 1, end = max(subTuple.tupleSize(), superTuple.tupleSize());
-			i <= end;
-			i++)
+		int end = max(subTuple.tupleSize(), superTuple.tupleSize()) + 1;
+		final AvailObject smallUpper = aTupleType.sizeRange().upperBound();
+		if (smallUpper.isInt())
+		{
+			end = min(end, smallUpper.extractInt());
+		}
+		for (int i = 1; i <= end; i++)
 		{
 			AvailObject subType;
 			if (i <= subTuple.tupleSize())
@@ -642,29 +641,29 @@ extends TypeDescriptor
 		}
 		assert sizeRange.lowerBound().isFinite();
 		assert sizeRange.upperBound().isFinite() || !sizeRange.upperInclusive();
-		assert IntegerDescriptor.fromInt(typeTuple.tupleSize())
-			.lessOrEqual(sizeRange.upperBound());
 		if (sizeRange.lowerBound().equals(IntegerDescriptor.zero())
 				&& sizeRange.upperBound().equals(IntegerDescriptor.zero()))
 		{
-			assert typeTuple.tupleSize() == 0;
 			return privateTupleTypeForSizesTypesDefaultType(
-				sizeRange, typeTuple, BottomTypeDescriptor.bottom());
+				sizeRange,
+				TupleDescriptor.empty(),
+				BottomTypeDescriptor.bottom());
 		}
-		if (sizeRange.upperInclusive()
-				&& sizeRange.upperBound().extractInt() == typeTuple.tupleSize())
+		if (IntegerDescriptor.fromInt(typeTuple.tupleSize()).greaterOrEqual(
+			sizeRange.upperBound()))
 		{
 			// The (nonempty) tuple hits the end of the range – disregard the
 			// passed defaultType and use the final element of the tuple as the
 			// defaultType, while removing it from the tuple.  Recurse for
 			// further reductions.
+			final int upper = sizeRange.upperBound().extractInt();
 			return tupleTypeForSizesTypesDefaultType(
 				sizeRange,
 				typeTuple.copyTupleFromToCanDestroy(
 					1,
-					typeTuple.tupleSize() - 1,
+					upper - 1,
 					false),
-				typeTuple.tupleAt(typeTuple.tupleSize()).makeImmutable());
+				typeTuple.tupleAt(upper).makeImmutable());
 		}
 		if (typeTuple.tupleSize() > 0
 				&& typeTuple.tupleAt(typeTuple.tupleSize()).equals(defaultType))

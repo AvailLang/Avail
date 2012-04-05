@@ -119,10 +119,10 @@ Method "_for arguments_primitive_locals_labels_outers_result type_" is [
 	insts : tuple of Instruction := <>;
 	litMap : map from any to natural number := [->];
 	varMap : map from Variable to natural number := [->];
-	args do [v : Argument | *&varMap[v] := ||varMap|| + 1;];
-	locs do [v : Local | *&varMap[v] := ||varMap|| + 1;];
+	args do [v : Argument | *↑varMap[v] := ||varMap|| + 1;];
+	locs do [v : Local | *↑varMap[v] := ||varMap|| + 1;];
 	outMap : map from Variable to natural number := [->];
-	outs do [v : Variable | *&outMap[v] := ||outMap|| + 1;];
+	outs do [v : Variable | *↑outMap[v] := ||outMap|| + 1;];
 	stack : integer := 0;
 	max : integer := 0;
 	argTypes ::= args collect [arg : Argument | arg myType;];
@@ -135,11 +135,11 @@ Method "_for arguments_primitive_locals_labels_outers_result type_" is [
 		<outerTuple, outs>,
 		<outerMap, outMap>,
 		<blockType, block type taking argTypes and returning res>,
-		<instructions, &insts>,
+		<instructions, ↑insts>,
 		<labels, labs>,
-		<literals, &litMap>,
-		<stackDepth, &stack>,
-		<maxDepth, &max>,
+		<literals, ↑litMap>,
+		<stackDepth, ↑stack>,
+		<maxDepth, ↑max>,
 		<resultType, [Crash "Don't call";] : compiledCode>
 	>;
 ];
@@ -442,7 +442,7 @@ Method "_compute flags" is [gen : Instruction Generator |
 	gets : map from Variable to Get Variable Instruction := [->];
 	pushes : map from Variable to Push Variable Instruction := [->];
 	*gen instructions do [instr : Instruction |
-		gen fix instruction instr gets &gets pushes &pushes;];
+		gen fix instruction instr gets ↑gets pushes ↑pushes;];
 ];
 
 

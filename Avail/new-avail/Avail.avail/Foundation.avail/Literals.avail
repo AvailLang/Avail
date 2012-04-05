@@ -92,7 +92,7 @@ Semantic restriction "<«_‡,»>" is
 			]
 			else
 			[
-				accumulator := concatenate <eject &accumulator, <instance>>;
+				accumulator := concatenate <eject ↑accumulator, <instance>>;
 				true;
 			];
 		]
@@ -284,7 +284,7 @@ Semantic restriction "{«_‡,»}" is
 			]
 			else
 			[
-				accumulator := concatenate <eject &accumulator, <instance>>;
+				accumulator := concatenate <eject ↑accumulator, <instance>>;
 				true;
 			];
 		]
@@ -320,7 +320,7 @@ Semantic restriction "{«_‡,»}" is
 			outerIndex : natural number
 		|
 			element ::= elements[outerIndex];
-			types := cast concatenate <eject &types, <element>>
+			types := cast concatenate <eject ↑types, <element>>
 				into [ t : tuple of type | t; ];
 			isDistinct : boolean := true;
 			From 1 to |distinct| do
@@ -339,7 +339,7 @@ Semantic restriction "{«_‡,»}" is
 			];
 			if isDistinct then
 			[
-				distinct := cast concatenate <eject &distinct, <element>> into
+				distinct := cast concatenate <eject ↑distinct, <element>> into
 					[ t : tuple of type | t; ];
 			];
 			true;
@@ -417,7 +417,7 @@ Semantic restriction "{«_→_‡,»}" is
 				[
 					accumulator :=
 						cast concatenate
-							<eject &accumulator, <<instanceK, instanceV>>>
+							<eject ↑accumulator, <<instanceK, instanceV>>>
 						into
 						[
 							t : <<>, <<>, any…|[2..2]>… |whole number>
@@ -470,9 +470,9 @@ Semantic restriction "{«_→_‡,»}" is
 		|
 			binding ::= bindings[outerIndex];
 			keyType ::= binding[1];
-			keyTypes := cast concatenate <eject &keyTypes, <keyType>>
+			keyTypes := cast concatenate <eject ↑keyTypes, <keyType>>
 				into [ t : tuple of type | t; ];
-			valueTypes := cast concatenate <eject &valueTypes, <binding[2]>>
+			valueTypes := cast concatenate <eject ↑valueTypes, <binding[2]>>
 				into [ t : tuple of type | t; ];
 			isDistinct : boolean := true;
 			From 1 to |distinct| do
@@ -491,7 +491,7 @@ Semantic restriction "{«_→_‡,»}" is
 			];
 			if isDistinct then
 			[
-				distinct := cast concatenate <eject &distinct, <keyType>>
+				distinct := cast concatenate <eject ↑distinct, <keyType>>
 					into [ t : tuple of type | t; ];
 			];
 			true;

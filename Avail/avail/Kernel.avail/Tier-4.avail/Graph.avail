@@ -136,8 +136,8 @@ Method "new_" is [gft : Graph Factory type |
 	gtt ::= cast graphTypeThunk into [gtt2 : []->Graph | gtt2;];
 	gft new with <
 		<resultType, gtt>,
-		<nodes, &nodesVar>,
-		<successors, &succVar>
+		<nodes, ↑nodesVar>,
+		<successors, ↑succVar>
 	>;
 ];
 
@@ -180,7 +180,7 @@ Method "_result" is [gf : Graph Factory |
 	];
 	*gf -> successors do [src : any, dests : set |
 		dests do [dest : any |
-			*&preds [dest] := preds[dest] with src;
+			*↑preds [dest] := preds[dest] with src;
 		];
 	];
 	Graph new with <

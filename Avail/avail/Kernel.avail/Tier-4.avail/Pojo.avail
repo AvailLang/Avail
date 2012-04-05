@@ -30,10 +30,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
- */
-
 System Module "Pojo"
 Extends
 Uses

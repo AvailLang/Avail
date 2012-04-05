@@ -123,7 +123,7 @@ Restriction "_as set" is [tt : tupleType |
 	mergedType ::= type union of (union of types in tt leading types) and (tt default type);
 	range ::= [minSize..maxSize private plus 1);
 	merged : any type;
-	*&merged ?:= mergedType;
+	*↑merged ?:= mergedType;
 	set (type intersection of range and whole number) of merged;
 ] : setType;
 
@@ -132,14 +132,14 @@ Restriction "_as set" is [tt : tupleType |
 Method "_sizes lower bound" is [st : setType |
 	/* This is syntactically overloaded for a stronger return type. */
 	result : [0..INF);
-	* &result ?:= (st sizes) lower bound;
+	* ↑result ?:= (st sizes) lower bound;
 	result;
 ] : [0..INF);
 
 Method "_sizes upper bound" is [st : setType |
 	/* This is syntactically overloaded for a stronger return type. */
 	result : [0..INF];
-	* &result ?:= (st sizes) upper bound;
+	* ↑result ?:= (st sizes) upper bound;
 	result;
 ] : [0..INF];
 
@@ -159,7 +159,7 @@ Restriction "{«_‡,»}" is [tt : tupleType |
 	mergedType ::= type union of (union of types in tt leading types) and (tt default type);
 	range ::= [minSize..maxSize private plus 1);
 	merged : any type;
-	*&merged ?:= mergedType;
+	*↑merged ?:= mergedType;
 	set (type intersection of range and whole number) of merged;
 ] : setType;
 

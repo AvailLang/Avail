@@ -2459,7 +2459,7 @@ extends AbstractAvailCompiler
 	}
 
 	/**
-	 * Parse a reference expression, which is an ampersand (&) followed by a
+	 * Parse a reference expression, which is an up arrow (↑) followed by a
 	 * variable name.
 	 *
 	 * @param start
@@ -2471,11 +2471,11 @@ extends AbstractAvailCompiler
 		final ParserState start,
 		final Con<AvailObject> continuation)
 	{
-		if (start.peekToken(AMPERSAND))
+		if (start.peekToken(UP_ARROW))
 		{
-			final ParserState afterAmpersand = start.afterToken();
+			final ParserState afterUpArrow = start.afterToken();
 			parseVariableUseWithExplanationThen(
-				afterAmpersand,
+				afterUpArrow,
 				"in reference expression",
 				new Con<AvailObject>("Variable for reference")
 				{
@@ -2514,7 +2514,7 @@ extends AbstractAvailCompiler
 							}
 							if (suffix != null)
 							{
-								afterAmpersand.expected(
+								afterUpArrow.expected(
 									"reference variable " + suffix);
 							}
 						}

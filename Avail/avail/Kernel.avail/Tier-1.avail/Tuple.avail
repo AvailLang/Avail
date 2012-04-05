@@ -132,14 +132,14 @@ Method "_sizes" is [tt : tupleType |
 Method "_sizes lower bound" is [tt : tupleType |
 	/* This is syntactically overloaded for a stronger return type. */
 	result : [0..INF);
-	* &result ?:= (tt sizes) lower bound;
+	* ↑result ?:= (tt sizes) lower bound;
 	result;
 ] : whole number;
 
 Method "_sizes upper bound" is [tt : tupleType |
 	/* This is syntactically overloaded for a stronger return type. */
 	result : [0..INF];
-	* &result ?:= (tt sizes) upper bound;
+	* ↑result ?:= (tt sizes) upper bound;
 	result;
 ] : [0..INF];
 

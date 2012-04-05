@@ -36,14 +36,18 @@ Versions
 Extends
 	"Early Math"
 Uses
+	"Assertions",
 	"Bootstrap",
 	"Early Control Structures",
+	"Early Functions",
 	"Early Logic",
 	"Early Sets",
 	"Early Types",
 	"Enumeration Support",
-	"Literals"
+	"Literals",
+	"Variables"
 Names
+	"type promotion function for_",
 	"_is odd",
 	"_is even",
 	"_mod_",
@@ -52,34 +56,28 @@ Body
 
 Forward method "_mod_" is [number, number]→number;
 Forward method "-_" is [number]→number;
-Forward method "_^_" is [number, number]→number;
 
 /* Establish grammatical rules. */
-invoke
-	[
-		sum      ::= {"_+_", "_-_"};
-		product  ::= {"_×_", "_÷_", "_mod_"};
-		negation ::= {"-_"};
-		power    ::= {"_^_"};
-		abs      ::= {"|_|"};
+[
+	sum      ::= {"_+_", "_-_"};
+	product  ::= {"_×_", "_÷_", "_mod_"};
+	negation ::= {"-_"};
+	abs      ::= {"|_|"};
 
-		sumAndProduct ::= sum ∪ product;
+	sumAndProduct ::= sum ∪ product;
 
-		/* Establish the standard grammatical rules for arithmetic. */
-		Grammatical restriction product is <sum, sumAndProduct>;
-		Grammatical restriction negation is <sumAndProduct ∪ {"∞"}>;
-		Grammatical restriction power is
-			<sumAndProduct ∪ negation ∪ power, sum ∪ product>;
+	/* Establish the standard grammatical rules for arithmetic. */
+	Grammatical restriction product is <sum, sumAndProduct>;
+	Grammatical restriction negation is <sumAndProduct ∪ {"∞"}>;
 
-		/* Forbid nesting of absolute value. */
-		Grammatical restriction abs is <abs>;
-	] : ⊤
-with <>;
+	/* Forbid nesting of absolute value. */
+	Grammatical restriction abs is <abs>;
+]();
 
 /**
  * Construct and answer a function that affects type promotions for the various
  * numeric types. This function is intended for use by semantic restrictions
- * of the basic arithmetic operators.
+ * of binary arithmetic operators.
  *
  * Parameters:
  *    operator - A function that performs one of the basic arithmetic
@@ -98,7 +96,7 @@ Method "type promotion function for_" is
 		if |a| = 1 ∧ [ |b| = 1; ] then
 		[
 			/* The exact values are known statically. Calculate it exactly. */
-			(invoke operator with <a's instance, b's instance>)'s type;
+			(operator(a's instance, b's instance))'s type;
 		]
 		else
 		[
@@ -145,7 +143,7 @@ Method "type promotion function for_" is
 cannotAddMessage ::= "terms not to be unlike infinities";
 cannotSubtractMessage ::= "terms not to be like infinities";
 cannotMultiplyMessage ::= "terms not be 0 and ±∞";
-cannotDivideByZeroMessage ::= "denominator not to be zero (0)";
+cannotDivideByZeroMessage ::= "denominator not to be 0";
 cannotDivideTwoInfinitiesMessage ::=
 	"either numerator or denominator to be finite";
 
@@ -592,7 +590,7 @@ Method "_.×._" is
 				range ::= integer range
 					from lower (inclusive=lowerInclusive)
 					to upper (inclusive=upperInclusive);
-				result := eject &result ∪ range;
+				result := eject ↑result ∪ range;
 			];
 			if negativeB ≠ ⊥ then
 			[
@@ -605,7 +603,7 @@ Method "_.×._" is
 				range ::= integer range
 					from lower (inclusive=lowerInclusive)
 					to upper (inclusive=upperInclusive);
-				result := eject &result ∪ range;
+				result := eject ↑result ∪ range;
 			];
 		];
 		if negativeA ≠ ⊥ then
@@ -621,7 +619,7 @@ Method "_.×._" is
 				range ::= integer range
 					from lower (inclusive=lowerInclusive)
 					to upper (inclusive=upperInclusive);
-				result := eject &result ∪ range;
+				result := eject ↑result ∪ range;
 			];
 			if negativeB ≠ ⊥ then
 			[
@@ -634,7 +632,7 @@ Method "_.×._" is
 				range ::= integer range
 					from lower (inclusive=lowerInclusive)
 					to upper (inclusive=upperInclusive);
-				result := eject &result ∪ range;
+				result := eject ↑result ∪ range;
 			];
 		];
 		/* Zero is handled specially, to prevent multiplication of 0 and ±∞ by
@@ -642,7 +640,7 @@ Method "_.×._" is
 		 */
 		if 0's type ⊆ a ∨ [ 0's type ⊆ b; ] then
 		[
-			result := eject &result ∪ 0's type;
+			result := eject ↑result ∪ 0's type;
 		];
 		result;
 	];
@@ -839,17 +837,17 @@ Semantic restriction "_÷_" is
 	if negativeDenominators ≠ ⊥ then
 	[
 		union :=
-			eject &union ∪ (a .÷. negativeDenominators's genuine lower bound);
+			eject ↑union ∪ (a .÷. negativeDenominators's genuine lower bound);
 		union :=
-			eject &union ∪ (a .÷. negativeDenominators's genuine upper bound);
+			eject ↑union ∪ (a .÷. negativeDenominators's genuine upper bound);
 	];
 	positiveDenominators ::= b ∩ [1..∞];
 	if positiveDenominators ≠ ⊥ then
 	[
 		union :=
-			eject &union ∪ (a .÷. positiveDenominators's genuine lower bound);
+			eject ↑union ∪ (a .÷. positiveDenominators's genuine lower bound);
 		union :=
-			eject &union ∪ (a .÷. positiveDenominators's genuine upper bound);
+			eject ↑union ∪ (a .÷. positiveDenominators's genuine upper bound);
 	];
 	union;
 ];
@@ -899,111 +897,6 @@ Semantic restriction "_mod_" is
 
 /* Disambiguate `_→_` and several conversion operations. */
 Grammatical restriction {"_→_"} is <∅, {"double", "extended integer", "float"}>;
-
-/**
- * Compute and answer the result of exponentiating `base` by `exponent`.
- * 
- * Parameters:
- *    base - The base.
- *    exponent - The exponent.
- * Returns:
- *    The result of raising `base` to the `exponent` power.
- */
-Method "_^_" is
-[
-	base : number,
-	exponent : number
-|
-	/* Uses the identity: a^b = exp(ln(a^b)) = exp(b*ln(a)). */
-	Euler number ^ (exponent × ln (base→double));
-] : number;
-
-/* The remaining implementations of `_^_` are recursive, so forward declare them
- * here.
- */
-Forward method "_^_" is [extended integer, whole number]→extended integer;
-Forward method "_^_" is [float, whole number]→float;
-Forward method "_^_" is [double, whole number]→double;
-
-/**
- * Compute and answer the result of exponentiating `base` by `exponent`.
- * 
- * Parameters:
- *    base - The base.
- *    exponent - The exponent.
- * Returns:
- *    The result of raising `base` to the `exponent` power.
- */
-Method "_^_" is
-[
-	base : extended integer,
-	exponent : whole number
-|
-	/*  Uses the identities: b^(2x) = (b^2)^x; and: b^(2x+1) = (b^2)^x*b. */
-	if exponent = 0 then
-	[
-		1;
-	]
-	else
-	[
-		intermediate ::= (base × base) ^ (exponent ÷ 2);
-		if exponent is odd then [ intermediate × base; ] else [ intermediate; ];
-	];
-] : extended integer;
-
-/**
- * Compute and answer the result of exponentiating `base` by `exponent`.
- * 
- * Parameters:
- *    base - The base.
- *    exponent - The exponent.
- * Returns:
- *    The result of raising `base` to the `exponent` power.
- */
-Method "_^_" is
-[
-	base : float,
-	exponent : whole number
-|
-	/*  Uses the identities: b^(2x) = (b^2)^x; and: b^(2x+1) = (b^2)^x*b. */
-	if exponent = 0 then
-	[
-		1.0;
-	]
-	else
-	[
-		intermediate ::= (base × base) ^ (exponent ÷ 2);
-		if exponent is odd then [ intermediate × base; ] else [ intermediate; ];
-	];
-] : float;
-
-/**
- * Compute and answer the result of exponentiating `base` by `exponent`.
- * 
- * Parameters:
- *    base - The base.
- *    exponent - The exponent.
- * Returns:
- *    The result of raising `base` to the `exponent` power.
- */
-Method "_^_" is
-[
-	base : double,
-	exponent : whole number
-|
-	/*  Uses the identities: b^(2x) = (b^2)^x; and: b^(2x+1) = (b^2)^x*b. */
-	if exponent = 0 then
-	[
-		1.0d;
-	]
-	else
-	[
-		intermediate ::= (base × base) ^ (exponent ÷ 2);
-		if exponent is odd then [ intermediate × base; ] else [ intermediate; ];
-	];
-] : double;
-
-/* TODO: Port the semantic restriction for exponentiation. */
 
 /**
  * Compute and answer the absolute value of the argument.
@@ -1072,3 +965,180 @@ Semantic restriction "|_|" is
 		([0..∞] ∩ a) ∪ ([0..∞] ∩ .-. a);
 	];
 ];
+
+/**
+ * Compute and answer the boolean value of the sequence of equals, less than or
+ * equal, and less than operators.
+ * 
+ * Parameters:
+ *    args - A tuple whose elements are a sequence of 4-tuples following by an
+ *       ending 1-tuple. The first element of these 1,4-tuples is a number.
+ *       If present, the second element will be a boolean that indicates that
+ *       this number should be checked for equality with the next number. If
+ *       present, the third element will be a boolean that indicates that this
+ *       number should be compared against the next number to see if it is less
+ *       than or equal. If present, the fourth element will be a boolean that
+ *       indicates this this number should be compared against the next number
+ *       to see if it is strictly less.
+ * Returns:
+ *    `true` if the entire chain of comparisons is true, `false` otherwise.
+ */
+Method "«_‡«=»?«≤»?«<»?»" is
+[
+	args : <<number, boolean…|1..4>…|3..∞>
+|
+	predicates ::=
+		<
+			[ a : number, b : number | a = b; ],
+			[ a : number, b : number | a ≤ b; ],
+			[ a : number, b : number | a < b; ]
+		>;
+	result : boolean := true;
+	From 1 to |args| - 1 do
+	[
+		index : natural number
+	|
+		arg ::= args[index];
+		Assert: |arg| = 4 ("args ≠ <aNumber, isEqual, isLess, isLessEqual>");
+		/* Determine which predicate to apply. */
+		predicate : [number, number]→boolean;
+		From 2 to 4 do
+		[
+			predicateIndex : [2..4]
+		|
+			if arg[predicateIndex] then
+			[
+				predicate := predicates[predicateIndex - 1];
+				false;
+			]
+			else
+			[
+				true;
+			];
+		];
+		Assert: ¬↑predicate is unassigned ("no predicate was selected");
+		if predicate(arg[1], args[index + 1][1]) then
+		[
+			true;
+		]
+		else
+		[
+			result := false;
+			false;
+		];
+	];
+	result;
+];
+
+Method "comparison chain semantic restriction function" is
+[
+	[
+		args : <<number, boolean…|1..4>…|3..∞>'s type
+	|
+		exactSize ::= cast ||args||'s lower bound - 1 into [ t : [2..∞] | t; ];
+		From 1 to exactSize do
+		[
+			index : natural number
+		|
+			arg ::= args[index];
+			optionCount : whole number := 0;
+			From 2 to 4 do
+			[
+				optionIndex : [2..4]
+			|
+				if arg[optionIndex]'s instance then
+				[
+					optionCount := optionCount + 1;
+				];
+				true;
+			];
+			if optionCount ≠ 1 then
+			[
+				Reject parse, expected:
+					"exactly one comparison operator between numeric arguments";
+			];
+			true;
+		];
+		⊤;
+	];
+];
+
+Semantic restriction "«_‡«=»?«≤»?«<»?»" is
+	comparison chain semantic restriction function;
+
+/**
+ * Compute and answer the boolean value of the sequence of equals, greater than
+ * or equal, and greater than operators.
+ * 
+ * Parameters:
+ *    args - A tuple whose elements are a sequence of 4-tuples following by an
+ *       ending 1-tuple. The first element of these 1,4-tuples is a number.
+ *       If present, the second element will be a boolean that indicates that
+ *       this number should be checked for equality with the next number. If
+ *       present, the third element will be a boolean that indicates that this
+ *       number should be compared against the next number to see if it is
+ *       greater than or equal. If present, the fourth element will be a boolean
+ *       that indicates this this number should be compared against the next
+ *       number to see if it is strictly greater.
+ * Returns:
+ *    `true` if the entire chain of comparisons is true, `false` otherwise.
+ */
+Method "«_‡«=»?«≥»?«>»?»" is
+[
+	args : <<number, boolean…|1..4>…|3..∞>
+|
+	predicates ::=
+		<
+			[ a : number, b : number | a = b; ],
+			[ a : number, b : number | a ≥ b; ],
+			[ a : number, b : number | a > b; ]
+		>;
+	result : boolean := true;
+	From 1 to |args| - 1 do
+	[
+		index : natural number
+	|
+		arg ::= args[index];
+		Assert: |arg| = 4
+			("args ≠ <aNumber, isEqual, isGreater, isGreaterEqual>");
+		/* Determine which predicate to apply. */
+		predicate : [number, number]→boolean;
+		From 2 to 4 do
+		[
+			predicateIndex : [2..4]
+		|
+			if arg[predicateIndex] then
+			[
+				predicate := predicates[predicateIndex - 1];
+				false;
+			]
+			else
+			[
+				true;
+			];
+		];
+		Assert: ¬↑predicate is unassigned ("no predicate was selected");
+		if predicate(arg[1], args[index + 1][1]) then
+		[
+			true;
+		]
+		else
+		[
+			result := false;
+			false;
+		];
+	];
+	result;
+];
+
+Semantic restriction "«_‡«=»?«≥»?«>»?»" is
+	comparison chain semantic restriction function;
+
+/* Disambiguate the comparison chains from the binary comparisons. */
+[
+	binary ::= {"_=_", "_≤_", "_<_", "_≥_", "_>_"};
+	chains ::= {"«_‡«=»?«≤»?«<»?»", "«_‡«=»?«≥»?«>»?»"};
+	comparisons ::= binary ∪ chains;
+	Grammatical restriction binary is <comparisons, comparisons>;
+	Grammatical restriction chains is <comparisons>;
+]();

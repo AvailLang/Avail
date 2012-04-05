@@ -70,10 +70,10 @@ Method "Avail Parser on_" is [toks : tuple of Token |
 	exp : set [1..INF) of string;
 	Avail Parser new with <
 		<tokens, toks>,
-		<position, &pos>,
-		<scope, &scp>,
-		<bestDistance, &bestDist>,
-		<expectations, &exp>
+		<position, ↑pos>,
+		<scope, ↑scp>,
+		<bestDistance, ↑bestDist>,
+		<expectations, ↑exp>
 	>;
 ] : Avail Parser;
 
@@ -791,10 +791,10 @@ Method "_parse and execute outer statement" is [
 	p parse statement then [pn : Parse Node |
 		solution := <pn, *p->position, *p->scope>;
 	];
-	if *&solution = nil then [
+	if *↑solution = nil then [
 		Crash "Couldn't parse outer statement.";
 	] else [
-		/*  *<&statement, p->position, p->scope> := solution;    */
+		/*  *<↑statement, p->position, p->scope> := solution;    */
 		statement := solution[1];
 		*p->position := solution[2];
 		*p->scope := solution[3];

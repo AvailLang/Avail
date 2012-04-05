@@ -1,0 +1,202 @@
+/*
+ * Exponentiation.avail
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Exponentiation"
+Versions
+	"dev"
+Extends
+Uses
+	"Foundation"
+Names
+	"_^_"
+Body
+
+/* Establish grammatical rules. */
+[
+	sum      ::= {"_+_", "_-_"};
+	product  ::= {"_×_", "_÷_", "_mod_"};
+	negation ::= {"-_"};
+	power    ::= {"_^_"};
+
+	/* Establish the precedence of exponentiation. */
+	Grammatical restriction power is
+		<sum ∪ product ∪ negation ∪ power, sum ∪ product>;
+]();
+
+/* These messages describe arithmetic failure (integers only). */
+cannotRaiseZeroToZero ::= "either base or exponent not to be 0";
+cannotRaiseInfinityToZero ::= "base not to be ±∞ or exponent not to be 0";
+cannotRaiseNegativeToInfinity ::=
+	"base not to be negative or exponent not to be ±∞";
+
+/**
+ * Establish type promotion rules for exponentiation. Also handle instance
+ * types.
+ * 
+ * Parameters:
+ *    a - The base's type.
+ *    b - The exponent's type.
+ * Returns:
+ *    A numeric type that is not an integral kind. (These are dealt with by
+ *    another restriction.)
+ */
+Semantic restriction "_^_" is type promotion function for
+[
+	a : number,
+	b : number
+|
+	if b = 0 then
+	[
+		if a = 0 then
+		[
+			Reject parse, expected: cannotRaiseZeroToZero;
+		];
+		if a ∈ {-∞, ∞} then
+		[
+			Reject parse, expected: cannotRaiseInfinityToZero;
+		];
+	];
+	if a ∈ extended integer then
+	[
+		if a < 0 ∧ [ b ∈ {-∞, ∞}; ] then
+		[
+			Reject parse, expected: cannotRaiseNegativeToInfinity;
+		];
+	];
+	a ^ b;
+];
+
+/**
+ * Compute and answer the result of exponentiating `base` by `exponent`.
+ * 
+ * Parameters:
+ *    base - The base.
+ *    exponent - The exponent.
+ * Returns:
+ *    The result of raising `base` to the `exponent` power.
+ */
+Method "_^_" is
+[
+	base : number,
+	exponent : number
+|
+	/* Uses the identity: a^b = exp(ln(a^b)) = exp(b*ln(a)). */
+	Euler number ^ (exponent × ln (base→double));
+] : number;
+
+/* The remaining implementations of `_^_` are recursive, so forward declare them
+ * here.
+ */
+Forward method "_^_" is [extended integer, whole number]→extended integer;
+Forward method "_^_" is [float, whole number]→float;
+Forward method "_^_" is [double, whole number]→double;
+
+/**
+ * Compute and answer the result of exponentiating `base` by `exponent`.
+ * 
+ * Parameters:
+ *    base - The base.
+ *    exponent - The exponent.
+ * Returns:
+ *    The result of raising `base` to the `exponent` power.
+ */
+Method "_^_" is
+[
+	base : extended integer,
+	exponent : whole number
+|
+	/* TODO: [TLS] Must forbid 0^0, [-∞..0)^{-∞, ∞}, {-∞, ∞}^0. */
+	/*  Uses the identities: b^(2x) = (b^2)^x; and: b^(2x+1) = (b^2)^x*b. */
+	if exponent = 0 then
+	[
+		1;
+	]
+	else
+	[
+		intermediate ::= (base × base) ^ (exponent ÷ 2);
+		if exponent is odd then [ intermediate × base; ] else [ intermediate; ];
+	];
+] : extended integer;
+
+/* TODO: [TLS] Port the semantic restriction. Will require modifications. */
+
+/**
+ * Compute and answer the result of exponentiating `base` by `exponent`.
+ * 
+ * Parameters:
+ *    base - The base.
+ *    exponent - The exponent.
+ * Returns:
+ *    The result of raising `base` to the `exponent` power.
+ */
+Method "_^_" is
+[
+	base : float,
+	exponent : whole number
+|
+	/*  Uses the identities: b^(2x) = (b^2)^x; and: b^(2x+1) = (b^2)^x*b. */
+	if exponent = 0 then
+	[
+		1.0;
+	]
+	else
+	[
+		intermediate ::= (base × base) ^ (exponent ÷ 2);
+		if exponent is odd then [ intermediate × base; ] else [ intermediate; ];
+	];
+] : float;
+
+/**
+ * Compute and answer the result of exponentiating `base` by `exponent`.
+ * 
+ * Parameters:
+ *    base - The base.
+ *    exponent - The exponent.
+ * Returns:
+ *    The result of raising `base` to the `exponent` power.
+ */
+Method "_^_" is
+[
+	base : double,
+	exponent : whole number
+|
+	/*  Uses the identities: b^(2x) = (b^2)^x; and: b^(2x+1) = (b^2)^x*b. */
+	if exponent = 0 then
+	[
+		1.0d;
+	]
+	else
+	[
+		intermediate ::= (base × base) ^ (exponent ÷ 2);
+		if exponent is odd then [ intermediate × base; ] else [ intermediate; ];
+	];
+] : double;

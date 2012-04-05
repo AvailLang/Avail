@@ -64,7 +64,7 @@ Method "_emit value on_" is [node : Assignment Node, gen : Instruction Generator
 Method "_emit value on_" is [node : Block Node, gen : Instruction Generator |
 	stats ::= node statements;
 	outerSet : set of Declaration Node := {};
-	node accumulate needed outer variables in &outerSet;
+	node accumulate needed outer variables in ↑outerSet;
 	outers ::= outerSet as tuple collect [decl : Declaration Node | decl variable;];
 	subGen ::= Instruction Generator
 		for arguments (node arguments

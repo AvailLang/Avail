@@ -192,34 +192,34 @@ dispatch := [->];
 <9,10,12,13,32> do [codePoint : whole number |
 	/* This includes tab (9), linefeed (10), formfeed (12),
 	   carriage return (13), and space (32).   */
-	*&dispatch [code point codePoint] := [sc : Scanner | sc scan whitespace;];
+	*↑dispatch [code point codePoint] := [sc : Scanner | sc scan whitespace;];
 ];
 
 From #"a" to #"z" do [codePoint : whole number |
-	*&dispatch [code point codePoint] := [sc : Scanner | sc scan alpha;];
+	*↑dispatch [code point codePoint] := [sc : Scanner | sc scan alpha;];
 ];
 
 From #"A" to #"Z" do [codePoint : whole number |
-	*&dispatch [code point codePoint] := [sc : Scanner | sc scan alpha;];
+	*↑dispatch [code point codePoint] := [sc : Scanner | sc scan alpha;];
 ];
 
 From #"0" to #"9" do [codePoint : whole number |
-	*&dispatch [code point codePoint] := [sc : Scanner | sc scan digit;];
+	*↑dispatch [code point codePoint] := [sc : Scanner | sc scan digit;];
 ];
 
 "%&*+,-/|~\^`<=>?@!#$().:[]{}'" do [chr : character |
 	/* The regular 8-bit operator characters. */
-	*&dispatch [chr] := [sc : Scanner | sc scan operator;];
+	*↑dispatch [chr] := [sc : Scanner | sc scan operator;];
 ];
 
 "'£€¥§¡¢°±¶·÷¿´¯¨¸®©«»'" do [chr : character |
 	/* The unusual 8-bit operator characters. */
-	*&dispatch [chr] := [sc : Scanner | sc scan operator;];
+	*↑dispatch [chr] := [sc : Scanner | sc scan operator;];
 ];
 
-*&dispatch [$"\""] := [sc : Scanner | sc scan quote;];
-*&dispatch [$"/"] := [sc : Scanner | sc scan slash;];
-*&dispatch [$";"] := [sc : Scanner | sc scan semicolon;];
+*↑dispatch [$"\""] := [sc : Scanner | sc scan quote;];
+*↑dispatch [$"/"] := [sc : Scanner | sc scan slash;];
+*↑dispatch [$";"] := [sc : Scanner | sc scan semicolon;];
 
 
 Method "new Scanner from_" is [src : Character Source |
@@ -227,8 +227,8 @@ Method "new Scanner from_" is [src : Character Source |
 	toks : tuple of Token := <>;
 	Scanner new with <
 		<source, src>,
-		<current, &curr>,
-		<tokens, &toks>
+		<current, ↑curr>,
+		<tokens, ↑toks>
 	>;
 ] : Scanner;
 

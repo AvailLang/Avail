@@ -42,9 +42,9 @@ Uses
 	"Literals",
 	"Variables"
 Names
+	"«_‡++»",
 	"_[_..]",
-	"_[.._]",
-	"«_‡++»"
+	"_[.._]"
 Body
 
 /**
@@ -104,7 +104,7 @@ Semantic restriction "«_‡++»" is
 	[
 		index : natural number
 	|
-		result := eject &result ++ tuplesType[index];
+		result := eject ↑result ++ tuplesType[index];
 		true;
 	];
 	result;

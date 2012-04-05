@@ -106,7 +106,7 @@ Restriction "«_‡then»" is [outerTupleType : tupleType |
 	Assert exactSize = outerTupleType sizes upper bound;
 	index : natural number := 1;
 	While [index <= exactSize;] loop [
-		output := concatenate tuple type clearing*&output
+		output := concatenate tuple type clearing*↑output
 			and cast outerTupleType[index] into [t : tupleType | t;];
 		index := index + 1;
 	];

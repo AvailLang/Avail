@@ -174,7 +174,7 @@ Method "new Get Local Instruction local index_" is [
 	canClearFlag : boolean;
 	Get Local Instruction new with <
 		<index, localIndex>,
-		<canClear, &canClearFlag>
+		<canClear, ↑canClearFlag>
 	>;
 ];
 
@@ -183,7 +183,7 @@ Method "new Get Outer Instruction outer index_" is [
 	canClearFlag : boolean;
 	Get Outer Instruction new with <
 		<index, outerIndex>,
-		<canClear, &canClearFlag>
+		<canClear, ↑canClearFlag>
 	>;
 ];
 
@@ -222,7 +222,7 @@ Method "new Push Local Instruction local index_" is [
 	isLastFlag : boolean;
 	Push Local Instruction new with <
 		<index, localIndex>,
-		<isLast, &isLastFlag>
+		<isLast, ↑isLastFlag>
 	>;
 ];
 
@@ -231,7 +231,7 @@ Method "new Push Outer Instruction outer index_" is [
 	isLastFlag : boolean;
 	Push Outer Instruction new with <
 		<index, outerIndex>,
-		<isLast, &isLastFlag>
+		<isLast, ↑isLastFlag>
 	>;
 ];
 

@@ -37,9 +37,50 @@ Extends
 Uses
 	"Bootstrap",
 	"Early Control Structures",
-	"Early Logic"
+	"Early Literals",
+	"Early Logic",
+	"Early Math",
+	"Enumeration Support"
 Names
+	"_++",
+	"++_",
+	"(_++)",
+	"(++_)",
+	"_--",
+	"--_",
+	"(_--)",
+	"(--_)"
 Body
+
+/**
+ * Strengthen `_'s read type`.
+ *
+ * Parameters:
+ *    varType - A variable type.
+ * Returns:
+ *    The argument's read type's type.
+ */
+Semantic restriction "_'s read type" is
+[
+	varType : variable meta's type
+|
+	varType's instance's read type's type;
+];
+
+/**
+ * Strengthen `_'s write type`.
+ *
+ * Parameters:
+ *    varType - A variable type.
+ * Returns:
+ *    The argument's write type's type.
+ */
+Semantic restriction "_'s write type" is
+[
+	varType : variable meta's type
+|
+	varType's instance's write type's type;
+];
 
 /**
  * Strengthen `eject_` to the read type of the argument.
@@ -90,3 +131,278 @@ Semantic restriction "swap_and_" is
 			"variable's read/write types to be cross-compatible";
 	];
 ];
+
+/**
+ * Answer a function that accepts a variable and increments it.
+ * 
+ * Returns:
+ *    The requested function.
+ */
+Method "increment function" is
+[
+	[
+		var : ↑number
+	|
+		↓var := eject var + 1;
+	] : ⊤;
+];
+
+/**
+ * Increment the variable by one. This is intended for use as a statement.
+ * 
+ * Parameters:
+ *    var - A numeric variable.
+ */
+Method "_++" is increment function;
+
+/**
+ * Remember the current value of the specified variable, increment the variable
+ * by one, and answer the remembered value. This is intended for use as an
+ * expression.
+ * 
+ * Parameters:
+ *    var - A numeric variable.
+ * Returns:
+ *    The value of the argument prior to the increment.
+ */
+Method "(_++)" is
+[
+	var : ↑number
+|
+	value ::= eject var;
+	↓var := value + 1;
+	value;
+] : ⊤;
+
+/**
+ * Since the increment happens after the value is queried, then simply answer
+ * the read type of the variable.
+ * 
+ * Parameters:
+ *    var - A numeric variable type.
+ * Returns:
+ *    The read type of the variable type.
+ */
+Semantic restriction "(_++)" is
+[
+	varType : (↑number)'s type
+|
+	varType's read type;
+];
+
+/**
+ * Increment the variable by one. This is intended for use as a statement.
+ * 
+ * Parameters:
+ *    var - A numeric variable.
+ */
+Method "++_" is increment function;
+
+/**
+ * Increment the specified value and answer its new value.
+ * 
+ * Parameters:
+ *    var - A numeric variable.
+ * Returns:
+ *    The value of the argument after the increment.
+ */
+Method "(++_)" is
+[
+	var : ↑number
+|
+	↓var := eject var + 1;
+	↓var;
+];
+
+/**
+ * Preserve the read type of the numeric variable. This can actually be
+ * tightened for integral types (which happens in another semantic restriction).
+ *
+ * Parameters:
+ *    var - A numeric variable type.
+ * Returns:
+ *    The read type of the variable type, or ⊤ if the argument's read type is a
+ *    subtype of extended integer.
+ */
+Semantic restriction "(++_)" is
+[
+	varType : (↑number)'s type
+|
+	if varType's read type ⊆ extended integer then
+	[
+		⊤;
+	]
+	else
+	[
+		varType's read type;
+	];
+];
+
+/**
+ * Adjust the bounds of the result type by one, but preserve the inclusiveness
+ * of the bounds.
+ * 
+ * Parameters:
+ *    var - A integral variable type.
+ * Returns:
+ *    An read type of the variable, but offset by one.
+ */
+Semantic restriction "(++_)" is
+[
+	varType : (↑extended integer)'s type
+|
+	readType ::= varType's read type;
+	lower ::= cast readType's lower bound + 1
+		into [ t : extended integer | t; ];
+	upper ::= cast readType's upper bound + 1
+		into [ t : extended integer | t; ];
+	integer range
+		from lower (inclusive = readType's lower bound is inclusive)
+		to upper (inclusive = readType's upper bound is inclusive);
+];
+
+/**
+ * Answer a function that accepts a variable and decrements it.
+ * 
+ * Returns:
+ *    The requested function.
+ */
+Method "decrement function" is
+[
+	[
+		var : ↑number
+	|
+		↓var := eject var - 1;
+	] : ⊤;
+];
+
+/**
+ * Decrement the variable by one. This is intended for use as a statement.
+ * 
+ * Parameters:
+ *    var - A numeric variable.
+ */
+Method "_--" is decrement function;
+
+/**
+ * Remember the current value of the specified variable, decrement the variable
+ * by one, and answer the remembered value. This is intended for use as an
+ * expression.
+ * 
+ * Parameters:
+ *    var - A numeric variable.
+ * Returns:
+ *    The value of the argument prior to the decrement.
+ */
+Method "(_--)" is
+[
+	var : ↑number
+|
+	value ::= eject var;
+	↓var := value - 1;
+	value;
+] : ⊤;
+
+/**
+ * Since the decrement happens after the value is queried, then simply answer
+ * the read type of the variable.
+ * 
+ * Parameters:
+ *    var - A numeric variable type.
+ * Returns:
+ *    The read type of the variable type.
+ */
+Semantic restriction "(_--)" is
+[
+	varType : (↑number)'s type
+|
+	varType's read type;
+];
+
+/**
+ * Decrement the variable by one. This is intended for use as a statement.
+ * 
+ * Parameters:
+ *    var - A numeric variable.
+ */
+Method "--_" is decrement function;
+
+/**
+ * Decrement the specified value and answer its new value.
+ * 
+ * Parameters:
+ *    var - A numeric variable.
+ * Returns:
+ *    The value of the argument after the decrement.
+ */
+Method "(--_)" is
+[
+	var : ↑number
+|
+	↓var := eject var - 1;
+	↓var;
+];
+
+/**
+ * Preserve the read type of the numeric variable. This can actually be
+ * tightened for integral types (which happens in another semantic restriction).
+ *
+ * Parameters:
+ *    var - A numeric variable type.
+ * Returns:
+ *    The read type of the variable type, or ⊤ if the argument's read type is a
+ *    subtype of extended integer.
+ */
+Semantic restriction "(--_)" is
+[
+	varType : (↑number)'s type
+|
+	if varType's read type ⊆ extended integer then
+	[
+		⊤;
+	]
+	else
+	[
+		varType's read type;
+	];
+];
+
+/**
+ * Adjust the bounds of the result type by one, but preserve the inclusiveness
+ * of the bounds.
+ * 
+ * Parameters:
+ *    var - A integral variable type.
+ * Returns:
+ *    An read type of the variable, but each bound is offset by negative one.
+ */
+Semantic restriction "(--_)" is
+[
+	varType : (↑extended integer)'s type
+|
+	readType ::= varType's read type;
+	lower ::= cast readType's lower bound - 1
+		into [ t : extended integer | t; ];
+	upper ::= cast readType's upper bound - 1
+		into [ t : extended integer | t; ];
+	integer range
+		from lower (inclusive = readType's lower bound is inclusive)
+		to upper (inclusive = readType's upper bound is inclusive);
+];
+
+/* Disallow the variable increment/decrement operations from appearing as the
+ * argument to parentheses.
+ */
+invoke
+[
+	parens ::= cast <"(_)">→set into [ t : {string|whole number} | t; ];
+	forbid ::=
+		cast
+			<
+				"_++", "++_", "(_++)", "(++_)",
+				"_--", "--_", "(_--)", "(--_)"
+			>→set
+		into [ t : {string|whole number} | t; ];
+	Grammatical restriction parens is <forbid>;
+]
+with <>;

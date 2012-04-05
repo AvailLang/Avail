@@ -87,7 +87,7 @@ extends TypeDescriptor
 		final @NotNull List<AvailObject> recursionList,
 		final int indent)
 	{
-		aStream.append("& : <--(");
+		aStream.append("↑<--(");
 		object.slot(ObjectSlots.READ_TYPE).printOnAvoidingIndent(
 			aStream,
 			recursionList,

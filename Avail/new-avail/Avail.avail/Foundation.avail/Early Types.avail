@@ -114,7 +114,7 @@ Semantic restriction "[«_‡,»]→_" is
 		index : natural number
 	|
 		argType ::= cast argMetas[index]'s instance into [ t : any meta | t; ];
-		argTypes := eject &argTypes ++ <argType>;
+		argTypes := eject ↑argTypes ++ <argType>;
 		true;
 	];
 	/* `returnMeta` must be an instance type. */
@@ -175,9 +175,9 @@ Semantic restriction "<«_‡,»`…|_.._>" is
 	   			if |leadingTypesTypes[index]| ≠ 1 then [
 					Assert: leadingTypesTypes[index] = type 
 						("I'm an informative assertion failure!");
-   					eject &typesTypesInstanceTuple ++ <type>; 
+   					eject ↑typesTypesInstanceTuple ++ <type>; 
 				] else [
-				    eject &typesTypesInstanceTuple ++ 
+				    eject ↑typesTypesInstanceTuple ++ 
 						<leadingTypesTypes[index]'s instance>;
 				];
 	/* loop must have terminating condition.  True to complete the full loop.*/
@@ -255,9 +255,9 @@ Semantic restriction "<«_‡,»`…|_..>" is
 	   			if |leadingTypesTypes[index]| ≠ 1 then [
 					Assert: leadingTypesTypes[index] = type 
 						("I'm an informative assertion failure!");
-   					eject &typesTypesInstanceTuple ++ <type>; 
+   					eject ↑typesTypesInstanceTuple ++ <type>; 
 				] else [
-				    eject &typesTypesInstanceTuple ++ 
+				    eject ↑typesTypesInstanceTuple ++ 
 						<leadingTypesTypes[index]'s instance>;
 				];
 	/* loop must have terminating condition.  True to complete the full loop.*/
@@ -335,9 +335,9 @@ Semantic restriction "<«_‡,»`…|.._>" is
 	   			if |leadingTypesTypes[index]| ≠ 1 then [
 					Assert: leadingTypesTypes[index] = type 
 						("I'm an informative assertion failure!");
-   					eject &typesTypesInstanceTuple ++ <type>; 
+   					eject ↑typesTypesInstanceTuple ++ <type>; 
 				] else [
-				    eject &typesTypesInstanceTuple ++ 
+				    eject ↑typesTypesInstanceTuple ++ 
 						<leadingTypesTypes[index]'s instance>;
 				];
 	/* loop must have terminating condition.  True to complete the full loop.*/
@@ -416,9 +416,9 @@ Semantic restriction "<«_‡,»`…|_..>" is
 	   			if |leadingTypesTypes[index]| ≠ 1 then [
 					Assert: leadingTypesTypes[index] = type 
 						("I'm an informative assertion failure!");
-   					eject &typesTypesInstanceTuple ++ <type>; 
+   					eject ↑typesTypesInstanceTuple ++ <type>; 
 				] else [
-				    eject &typesTypesInstanceTuple ++ 
+				    eject ↑typesTypesInstanceTuple ++ 
 						<leadingTypesTypes[index]'s instance>;
 				];
 	/* loop must have terminating condition.  True to complete the full loop.*/
@@ -490,9 +490,9 @@ Semantic restriction "<«_‡,»`…|>" is
 	   			if |leadingTypesTypes[index]| ≠ 1 then [
 					Assert: leadingTypesTypes[index] = type 
 						("I'm an informative assertion failure!");
-   					eject &typesTypesInstanceTuple ++ <type>; 
+   					eject ↑typesTypesInstanceTuple ++ <type>; 
 				] else [
-				    eject &typesTypesInstanceTuple ++ 
+				    eject ↑typesTypesInstanceTuple ++ 
 						<leadingTypesTypes[index]'s instance>;
 				];
 	/* loop must have terminating condition.  True to complete the full loop.*/

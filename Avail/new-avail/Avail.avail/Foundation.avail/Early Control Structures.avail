@@ -191,13 +191,6 @@ Method "cast_into_" is
 	]
 	else
 	[
-		/* TODO: [TLS] Remove prints. */
-		Print: "\n[DEBUG] cast_into_\n";
-		Print: "\tvalue=";
-		Print: primitive description of value;
-		Print: "\n\ttype=";
-		Print: primitive description of (accept's type[1]);
-		Print: "\n";
 		Shouldn't happen;
 	];
 ] : ⊤;
@@ -339,6 +332,21 @@ Method "Exit_" is
 ] : ⊥;
 
 /**
+ * The cardinality of ⊥ is also ⊥. This is supplied to disambiguate `||_||`.
+ * 
+ * Parameters:
+ *    bottomMeta - ⊥'s type.
+ * Returns:
+ *    ⊥.
+ */
+Method "||_||" is
+[
+	bottomMeta : ⊥'s type
+|
+	⊥;
+];
+
+/**
  * Strengthen `invoke_with_` to the invoked function's return type.
  *
  * Parameters:
@@ -370,7 +378,7 @@ Method "From_to_do_" is
 [
 	start : natural number,
 	end : integer range from 0 (inclusive=true) to ∞ (inclusive=true),
-	action : function accepting <natural number> and returning boolean
+	action : function accepting <⊥> and returning boolean
 |
 	value : natural number := start;
 	invoke
@@ -388,6 +396,55 @@ Method "From_to_do_" is
 		] : ⊤
 	with <>;
 ] : ⊤;
+
+/**
+ * Sanity check the function's arguments against the implied range of iteration.
+ * 
+ * Parameters:
+ *    start -
+ *    end -
+ *    action -
+ * Returns:
+ *    ⊤.
+ */
+Semantic restriction "From_to_do_" is
+[
+	start : natural number's type,
+	end : (integer range from 0 (inclusive=true) to ∞ (inclusive=true))'s type,
+	action : (function accepting <⊥> and returning boolean)'s type
+|
+	lower ::= start's genuine lower bound;
+	if lower ≤ end's genuine upper bound then
+	[
+		upper ::= cast end's genuine upper bound + 1
+			into [ t : extended integer | t;] ;
+		subscripts ::= integer range
+			from lower (inclusive = lower's type ⊆ start)
+			to upper (inclusive = false);
+		if subscripts ⊆ action[1] then
+		[
+			/* Do nothing. */
+		]
+		else
+		[
+			messageTuple ::= concatenate <
+				"repeatedly applied function to accept all integers from ",
+				primitive description of lower,
+				" to ",
+				primitive description of upper,
+				" (but it only accepts ",
+				primitive description of action[1],
+				")">;
+			cast messageTuple into
+			[
+				message : string
+			|
+				Reject parse, expected: message;
+			];
+		];
+	];
+	⊤;
+];
 
 /* Don't permit `(_)` as the second argument of `Assert:_(_)`. */
 invoke

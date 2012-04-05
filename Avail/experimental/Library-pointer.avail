@@ -52,12 +52,12 @@ privateType ::= lookup "type";
 Method "Pointer to_" is [
 		targetType : type |
 	Pointer new with <
-		<privateAddress, &privateAddress
+		<privateAddress, ↑privateAddress
 
 
 	nybs : tuple of nybble := <>;
 	Nybblecode Generator new with <
-		<nybbles, &nybs>,
+		<nybbles, ↑nybs>,
 		<resultType, [Crash "Don't call";] : tuple of nybble>
 	>;
 ] returns [ttT : meta |

@@ -138,7 +138,7 @@ Method "_argument count" is [c : functionType |
 	sizes ::= argTypes privateSizes;
 	Assert sizes privateLowerBound = sizes privateUpperBound;
 	result : whole number;
-	Private *&result ?:= sizes privateLowerBound;
+	Private *↑result ?:= sizes privateLowerBound;
 	result;
 ] : whole number;
 

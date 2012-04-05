@@ -212,7 +212,7 @@ public abstract class AbstractAvailCompiler
 		DOLLAR_SIGN("$", OPERATOR),
 
 		/** Leads a reference. */
-		AMPERSAND("&", OPERATOR),
+		UP_ARROW("↑", OPERATOR),
 
 		/** Module header token: Separates tokens. */
 		COMMA(",", OPERATOR),

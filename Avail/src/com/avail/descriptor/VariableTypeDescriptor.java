@@ -82,7 +82,7 @@ extends TypeDescriptor
 		final @NotNull List<AvailObject> recursionList,
 		final int indent)
 	{
-		aStream.append("& : ");
+		aStream.append("↑");
 		object.slot(ObjectSlots.INNER_TYPE).printOnAvoidingIndent(
 			aStream,
 			recursionList,

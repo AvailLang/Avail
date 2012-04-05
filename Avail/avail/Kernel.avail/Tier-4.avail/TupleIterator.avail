@@ -73,7 +73,7 @@ Method "_as Iterator" is [t : tuple |
 	thingsThunk2 ::= cast thingsThunk into [c : []->any | c;];
 	Tuple Iterator new with <
 		<tupleField, t>,
-		<position, &pos>,
+		<position, ↑pos>,
 		<elementType, thingsThunk2>
 	>;
 ] : Tuple Iterator;

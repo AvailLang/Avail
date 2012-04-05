@@ -77,7 +77,7 @@ nybbles ::= lookup "nybbles";
 Method "new Nybblecode Generator" is [
 	nybs : tuple of nybble := <>;
 	Nybblecode Generator new with <
-		<nybbles, &nybs>,
+		<nybbles, ↑nybs>,
 		<resultType, [Crash "Don't call";] : tuple of nybble>
 	>;
 ];

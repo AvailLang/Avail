@@ -84,7 +84,7 @@ primitiveTypes := <
 primitiveTypeIndices : map from type to natural number;
 primitiveTypeIndices := [->];
 1 to ||primitiveTypes|| do [i : natural number |
-	*&primitiveTypeIndices[primitiveTypes[i]] := i;
+	*↑primitiveTypeIndices[primitiveTypes[i]] := i;
 ];
 
 
@@ -151,7 +151,7 @@ decoder [t : tuple [1..INF) like <[9..9]> default any |
 	While [
 		i < ||t||;
 	] loop [
-		*&m [t[i]] := t[i+1];
+		*↑m [t[i]] := t[i+1];
 		i := i + 2;
 	];
 	m;

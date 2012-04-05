@@ -72,7 +72,7 @@ Method "new Decompiler for code_outers_" is [c : compiledCode, out : tuple of Va
 	Decompiler new with <
 		<code, c>,
 		<nybbles, c nybbles>,
-		<pc, &thePc>,
+		<pc, ↑thePc>,
 		<outers, out>,
 		<args, 1 to c numArgs collect [i : natural number |
 			new Argument
@@ -83,7 +83,7 @@ Method "new Decompiler for code_outers_" is [c : compiledCode, out : tuple of Va
 			new Local
 				name "temp" then c numArgs + i decimal
 				type cast localType into [t : containerType | t readType;];]>,
-		<exprStack, &theExprStack>
+		<exprStack, ↑theExprStack>
 	>;
 ] : Decompiler;
 

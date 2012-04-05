@@ -130,15 +130,18 @@ Assert very, very, very bad = 3;
 Assert very, very, very, very bad = 4;
 Assert very, very, very, very, very bad = 5;
 
-Method "«extremely»?plaid" is
+Method "«super»?«extremely»?plaid" is
 [
+	super : boolean,
 	extremely : boolean
 |
-	extremely;
+	super & extremely;
 ];
 
 Assert plaid = false;
-Assert extremely plaid = true;
+Assert extremely plaid = false;
+Assert super plaid = false;
+Assert super extremely plaid = true;
 
 _token ::= Special Object 115;
 _literalToken ::= Special Object 116;

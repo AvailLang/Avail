@@ -57,7 +57,7 @@ Restriction "*_:=_" is [varType : container type, argType : type |
 	then [false;]
 	else [
 		varTypeAsTypedContainer : containerType;
-		*&varTypeAsTypedContainer ?:= varType;
+		*↑varTypeAsTypedContainer ?:= varType;
 		argType <= varTypeAsTypedContainer writeType;
 	];
 	if not ok then [ Fail parse "cannot assign to variable"; ];
@@ -79,7 +79,7 @@ Restriction "*_" is [varType : container type |
 	else [
 		/* Use the downcasting assignment operator *_?:=_  */
 		varTypeAsTypedContainer : containerType;
-		*&varTypeAsTypedContainer ?:= varType;
+		*↑varTypeAsTypedContainer ?:= varType;
 		varTypeAsTypedContainer readType;
 	];
 ];
@@ -100,7 +100,7 @@ Restriction "clearing*_" is [varType : container type |
 	else [
 		/* Use the downcasting assignment operator *_?:=_  */
 		varTypeAsTypedContainer : containerType;
-		*&varTypeAsTypedContainer ?:= varType;
+		*↑varTypeAsTypedContainer ?:= varType;
 		varTypeAsTypedContainer readType;
 	];
 ];

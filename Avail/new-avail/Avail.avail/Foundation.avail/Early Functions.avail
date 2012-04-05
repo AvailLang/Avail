@@ -35,12 +35,123 @@ Versions
 	"dev"
 Uses
 	"Bootstrap",
+	"Early Control Structures",
+	"Early Logic",
+	"Early Math",
+	"Early Tuples",
+	"Early Types",
 	"Enumeration Support"
+Names
+	"_(«_‡,»)"
 Body
 
+/**
+ * Strengthen the return type of a function type.
+ * 
+ * Parameters:
+ *    functionType - A function type.
+ * Returns:
+ *    The argument's return type.
+ */
 Semantic restriction "_'s return type" is
 [
-	arg : function's type's type
+	functionType : function's type's type
 |
-	arg's instance's return type's type;
+	functionType's instance's return type's type;
 ];
+
+/* These are error messages. */
+sizesIncompatibleMessage ::=
+	"size of argument tuple to be compatible with size of applied\
+	\| function's parameter tuple";
+
+/**
+ * Answer a function suitable for use as a semantic restriction on a function
+ * application method.
+ * 
+ * Returns:
+ *    The requested function.
+ */
+Method "function application semantic restriction function" is
+[
+	[
+		functionType : function meta,
+		argumentsType : tuple meta
+	|
+		/* Check the sizes of the parameters tuple type and the arguments tuple
+		 * type before taking advantage of instance types.
+		 */
+		parametersType ::= functionType's parameters' type;
+		parametersSizes ::= ||parametersType||;
+		argumentsSizes ::= ||argumentsType||;
+		validSizes ::= parametersSizes ∩ argumentsSizes;
+		if parametersSizes ≠ ⊥ ∧ [ validSizes = ⊥; ] then
+		[
+			Reject parse, expected: sizesIncompatibleMessage;
+		];
+		/* Verify each of the arguments. */
+		From 1 to argumentsSizes's lower bound do
+		[
+			index : natural number
+		|
+			if ¬argumentsType[index] ⊆ parametersType[index] then
+			[
+				Reject parse, expected:
+					"argument #"
+					++ primitive description of index
+					++ " of type ("
+					++ primitive description of argumentsType[index]
+					++ ") to agree with corresponding function "
+					++ "parameter type ("
+					++ primitive description of parametersType[index]
+					++ ")";
+			];
+			true;
+		];
+		functionType's return type;
+	];
+] : [function meta, tuple meta]→type;
+
+/**
+ * `invoke_with_` should reject impossible argument tuples.
+ *
+ * Parameters:
+ *    aFunction -
+ *    arguments -
+ * Returns:
+ *    The function's return type.
+ */
+Semantic restriction "invoke_with_" is
+	function application semantic restriction function;
+
+/**
+ * Invoke the function with the lexically specified arguments. Answer its
+ * result.
+ *
+ * Parameters:
+ *    aFunction - A function.
+ *    arguments - The tuple of arguments.
+ * Returns:
+ *    The value produced by applying the arguments to the function.
+ */
+Method "_(«_‡,»)" is
+[
+	aFunction : function,
+	arguments : tuple
+|
+	invoke aFunction with arguments;
+] : ⊤;
+
+/**
+ * Strengthen the lexical function application operation. If the function is
+ * precisely known, then check conformance of the arguments to the parameters;
+ * otherwise just check for size compatibility of the two tuples.
+ * 
+ * Parameters:
+ *    functionType -
+ *    argumentsType -
+ * Returns:
+ *    The function type's return type.
+ */
+Semantic restriction "_(«_‡,»)" is
+	function application semantic restriction function;
