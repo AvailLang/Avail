@@ -40,7 +40,8 @@ Uses
 	"Assertions",
 	"Early Control Structures",
 	"Early Literals",
-	"Early Functions"
+	"Early Functions",
+	"Early Types"
 Names
 	"_⊕_",
 	"_↑_",
@@ -84,7 +85,7 @@ Method "_⊕_" is
 Method "_↑_" is
 [
 	a : boolean,
-	b : function accepting <> and returning boolean
+	b : []→boolean
 |
 	¬(a ∧ b);
 ] : boolean;
@@ -103,7 +104,7 @@ Method "_↑_" is
 Method "_↑_" is
 [
 	a : false's type,
-	b : function accepting <> and returning boolean
+	b : []→boolean
 |
 	true;
 ] : boolean;
@@ -121,7 +122,7 @@ Method "_↑_" is
 Semantic restriction "_↑_" is
 [
 	a : false's type's type,
-	b : (function accepting <> and returning boolean)'s type
+	b : ([]→boolean)'s type
 |
 	true's type;
 ];
@@ -139,7 +140,7 @@ Semantic restriction "_↑_" is
 Semantic restriction "_↑_" is
 [
 	a : true's type's type,
-	b : (function accepting <> and returning true's type)'s type
+	b : ([]→true's type)'s type
 |
 	false's type;
 ];
@@ -157,11 +158,12 @@ Semantic restriction "_↑_" is
 Semantic restriction "_↑_" is
 [
 	a : boolean's type,
-	b : (function accepting <> and returning false's type)'s type
+	b : ([]→false's type)'s type
 |
 	true's type;
 ];
 
+/* TODO: Eventually move these into a testing module. */
 Assert: ¬(true ↑ [true;]) ("true ↑ true");
 Assert: true ↑ [false;] ("true ↑ false");
 Assert: false ↑ [true;] ("false ↑ true");
@@ -181,7 +183,7 @@ Assert: false ↑ [false;] ("false ↑ false");
 Method "_↓_" is
 [
 	a : boolean,
-	b : function accepting <> and returning boolean
+	b : []→boolean
 |
 	¬(a ∨ b);
 ] : boolean;
@@ -200,7 +202,7 @@ Method "_↓_" is
 Method "_↓_" is
 [
 	a : true's type,
-	b : function accepting <> and returning boolean
+	b : []→boolean
 |
 	false;
 ] : boolean;
@@ -218,7 +220,7 @@ Method "_↓_" is
 Semantic restriction "_↓_" is
 [
 	a : true's type's type,
-	b : (function accepting <> and returning boolean)'s type
+	b : ([]→boolean)'s type
 |
 	false's type;
 ];
@@ -254,7 +256,7 @@ Semantic restriction "_↓_" is
 Semantic restriction "_↓_" is
 [
 	a : false's type's type,
-	b : (function accepting <> and returning false's type)'s type
+	b : ([]→false's type)'s type
 |
 	true's type;
 ];
@@ -272,7 +274,7 @@ Semantic restriction "_↓_" is
 Semantic restriction "_↓_" is
 [
 	a : boolean's type,
-	b : (function accepting <> and returning true's type)'s type
+	b : ([]→true's type)'s type
 |
 	false's type;
 ];
@@ -291,7 +293,7 @@ Semantic restriction "_↓_" is
 Method "_→_" is
 [
 	a : boolean,
-	b : function accepting <> and returning boolean
+	b : []→boolean
 |
 	(¬a) ∨ b;
 ] : boolean;
@@ -310,7 +312,7 @@ Method "_→_" is
 Method "_→_" is
 [
 	a : false's type,
-	b : function accepting <> and returning boolean
+	b : []→boolean
 |
 	true;
 ] : boolean;
@@ -328,7 +330,7 @@ Method "_→_" is
 Semantic restriction "_→_" is
 [
 	a : false's type's type,
-	b : (function accepting <> and returning boolean)'s type
+	b : ([]→boolean)'s type
 |
 	true's type;
 ];
@@ -346,7 +348,7 @@ Semantic restriction "_→_" is
 Semantic restriction "_→_" is
 [
 	a : boolean's type,
-	b : (function accepting <> and returning true's type)'s type
+	b : ([]→true's type)'s type
 |
 	true's type;
 ];
@@ -365,7 +367,7 @@ Semantic restriction "_→_" is
 Method "_←_" is
 [
 	a : boolean,
-	b : function accepting <> and returning boolean
+	b : []→boolean
 |
 	a ∨ [¬b();];
 ] : boolean;
@@ -384,7 +386,7 @@ Method "_←_" is
 Method "_←_" is
 [
 	a : true's type,
-	b : function accepting <> and returning boolean
+	b : []→boolean
 |
 	true;
 ] : boolean;
@@ -402,7 +404,7 @@ Method "_←_" is
 Semantic restriction "_←_" is
 [
 	a : true's type's type,
-	b : (function accepting <> and returning boolean)'s type
+	b : ([]→boolean)'s type
 |
 	true's type;
 ];
@@ -420,7 +422,7 @@ Semantic restriction "_←_" is
 Semantic restriction "_←_" is
 [
 	a : boolean's type,
-	b : (function accepting <> and returning false's type)'s type
+	b : ([]→false's type)'s type
 |
 	true's type;
 ];
@@ -457,7 +459,7 @@ Method "_↔_" is
 Method "_↛_" is
 [
 	a : boolean,
-	b : function accepting <> and returning boolean
+	b : []→boolean
 |
 	a ∧ [¬b();];
 ] : boolean;
@@ -476,7 +478,7 @@ Method "_↛_" is
 Method "_↛_" is
 [
 	a : false's type,
-	b : function accepting <> and returning boolean
+	b : []→boolean
 |
 	false;
 ] : boolean;
@@ -494,7 +496,7 @@ Method "_↛_" is
 Semantic restriction "_↛_" is
 [
 	a : false's type's type,
-	b : (function accepting <> and returning boolean)'s type
+	b : ([]→boolean)'s type
 |
 	false's type;
 ];
@@ -512,7 +514,7 @@ Semantic restriction "_↛_" is
 Semantic restriction "_↛_" is
 [
 	a : boolean's type,
-	b : (function accepting <> and returning true's type)'s type
+	b : ([]→true's type)'s type
 |
 	false's type;
 ];
@@ -531,7 +533,7 @@ Semantic restriction "_↛_" is
 Method "_↚_" is
 [
 	a : boolean,
-	b : function accepting <> and returning boolean
+	b : []→boolean
 |
 	(¬a) ∧ [b();];
 ] : boolean;
@@ -550,7 +552,7 @@ Method "_↚_" is
 Method "_↚_" is
 [
 	a : true's type,
-	b : function accepting <> and returning boolean
+	b : []→boolean
 |
 	false;
 ] : boolean;
@@ -568,7 +570,7 @@ Method "_↚_" is
 Semantic restriction "_↚_" is
 [
 	a : true's type's type,
-	b : (function accepting <> and returning boolean)'s type
+	b : ([]→boolean)'s type
 |
 	false's type;
 ];
@@ -586,7 +588,7 @@ Semantic restriction "_↚_" is
 Semantic restriction "_↚_" is
 [
 	a : boolean's type,
-	b : (function accepting <> and returning false's type)'s type
+	b : ([]→false's type)'s type
 |
 	false's type;
 ];
@@ -605,7 +607,7 @@ Semantic restriction "_↚_" is
 Semantic restriction "_↚_" is
 [
 	a : false's type's type,
-	b : (function accepting <> and returning true's type)'s type
+	b : ([]→true's type)'s type
 |
 	true's type;
 ];
