@@ -52,23 +52,9 @@ Names
 	"_↚_"
 Body
 
-Method "¬_" is
-[
-	a : boolean's type
-|
-	false's type;
-] : boolean's type;
-
-Method "¬_" is
-[
-	a : false's type's type
-|
-	true's type;
-] : true's type's type;
-
 /**
  * Compute and answer the logical exclusive disjunction, i.e., XOR, of the
- * arguments.
+ * arguments. This is equivalent to (a ∧ ¬b) ∨ ((¬a) ∧ b)
  * 
  * Parameters:
  *    a - A boolean.
@@ -85,9 +71,9 @@ Method "_⊕_" is
 ] : boolean;
 
 /**
- * Compute and answer the logical alternative denial, i.e., NAND, of the
- * arguments. Short-circuit the computation, i.e., only evaluate `b` if `a` is
- * `true`.
+ * Compute and answer the logical NAND of the arguments. This is equivalent to
+ * ¬(`a` ∧ `b`).
+ * Short-circuit the computation, i.e., only evaluate `b` if `a` is `true`.
  * 
  * Parameters:
  *    a - A boolean.
@@ -104,8 +90,8 @@ Method "_↑_" is
 ] : boolean;
 
 /**
- * Compute and answer the logical alternative denial, i.e., NAND, of the
- * arguments. Short-circuit the computation, i.e., only evaluate `b` if `a` is
+ * Compute and answer the logical NAND of the arguments. This is equivalent to
+ * ¬(a ∧ b). Short-circuit the computation, i.e., only evaluate `b` if `a` is
  * `true`.
  * 
  * Parameters:
@@ -128,7 +114,7 @@ Method "_↑_" is
  *
  * Parameters:
  *    a - The type of `false`.
- *    b - (function accepting <> and returning boolean)'s type
+ *    b - A function type whose instances answer a boolean.
  * Returns:
  *    The type of `true`.
  */
@@ -142,28 +128,28 @@ Semantic restriction "_↑_" is
 
 /**
  * If the left-hand argument of `_↑_` is known statically to be `true`, then
- * the static type of the expression is ¬ `b`'s return type.
+ * the static type of the expression is the negation of `b`'s return type.
  *
  * Parameters:
  *    a - The type of `true`.
- *    b -
+ *    b - A function type whose instances answer `true`.
  * Returns:
  *    The return type of `b`.
  */
 Semantic restriction "_↑_" is
 [
 	a : true's type's type,
-	b : (function accepting <> and returning boolean)'s type
+	b : (function accepting <> and returning true's type)'s type
 |
-	¬b's return type;
+	false's type;
 ];
 
 /**
- * If the right-hand argument of `_↑_` is known statically to be `false`, then
- * the expression is known statically to be `true`.
+ * If the right-hand argument of `_↑_` is known statically to be `true`, then
+ * the static type of the expression is the negation of `b`'s return type.
  *
  * Parameters:
- *    a - 
+ *    a - boolean's type.
  *    b - A function type whose instances answer `false`.
  * Returns:
  *    The type of `true`.
@@ -172,6 +158,454 @@ Semantic restriction "_↑_" is
 [
 	a : boolean's type,
 	b : (function accepting <> and returning false's type)'s type
+|
+	true's type;
+];
+
+Assert: ¬(true ↑ [true;]) ("true ↑ true");
+Assert: true ↑ [false;] ("true ↑ false");
+Assert: false ↑ [true;] ("false ↑ true");
+Assert: false ↑ [false;] ("false ↑ false");
+
+/**
+ * Compute and answer the logical NOR of the arguments. This is equivalent to
+ * ¬(`a` ∨ `b`). Short-circuit the computation, i.e., only evaluate `b` if `a`
+ * is `false`.
+ *
+ * Parameters:
+ *    a - A boolean.
+ *    b - A boolean function.
+ * Returns:
+ *    `a` ↓ `b`.
+ */
+Method "_↓_" is
+[
+	a : boolean,
+	b : function accepting <> and returning boolean
+|
+	¬(a ∨ b);
+] : boolean;
+
+/**
+ * Compute and answer the logical NOR of the arguments. This is equivalent to
+ * ¬(`a` ∨ `b`). Short-circuit the computation, i.e., only evaluate `b` if `a`
+ * is `false`.
+ *
+ * Parameters:
+ *    a - A boolean.
+ *    b - A boolean function.
+ * Returns:
+ *    `a` ↓ `b`.
+ */
+Method "_↓_" is
+[
+	a : true's type,
+	b : function accepting <> and returning boolean
+|
+	false;
+] : boolean;
+
+/**
+ * If the left-hand argument of `_↓_` is known statically to be `true`, then
+ * the expression is known statically to be `false`.
+ *
+ * Parameters:
+ *    a - The type of `true`.
+ *    b - A function type whose instances answer a boolean.
+ * Returns:
+ *    The type of `false`.
+ */
+Semantic restriction "_↓_" is
+[
+	a : true's type's type,
+	b : (function accepting <> and returning boolean)'s type
+|
+	false's type;
+];
+
+/**
+ * If the left-hand argument of `_↓_` is known statically to be `false`, then
+ * the static type of the expression is the negation of `b`'s return type.
+ *
+ * Parameters:
+ *    a - The type of `false`.
+ *    b - A function type whose instances answer `true`.
+ * Returns:
+ *    The type of `false`.
+ */
+Semantic restriction "_↓_" is
+[
+	a : false's type's type,
+	b : (function accepting <> and returning true's type)'s type
+|
+	false's type;
+];
+
+/**
+ * If the left-hand argument of `_↓_` is known statically to be `false`, then
+ * the static type of the expression is the negation of `b`'s return type.
+ *
+ * Parameters:
+ *    a - The type of `false`.
+ *    b - A function type whose instances answer `false`.
+ * Returns:
+ *    The type of `true`.
+ */
+Semantic restriction "_↓_" is
+[
+	a : false's type's type,
+	b : (function accepting <> and returning false's type)'s type
+|
+	true's type;
+];
+
+/**
+ * If the right-hand argument of `_↓_` is known statically to be `false`, then
+ * the static type of the expression is `false`.
+ *
+ * Parameters:
+ *    a - Boolean's type.
+ *    b - A function type whose instances answer `true`.
+ * Returns:
+ *    The type of `false`.
+ */
+Semantic restriction "_↓_" is
+[
+	a : boolean's type,
+	b : (function accepting <> and returning true's type)'s type
+|
+	false's type;
+];
+
+/**
+ * Compute and answer the material conditional of the arguments. This is the
+ * equivalent of (¬`a`) ∨ `b`. Short-circuit the computation, i.e., only
+ * evaluate `b` if `a` is `true`.
+ *
+ * Parameters:
+ *    a - A boolean.
+ *    b - A boolean function.
+ * Returns:
+ *    `a` → `b`.
+ */
+Method "_→_" is
+[
+	a : boolean,
+	b : function accepting <> and returning boolean
+|
+	(¬a) ∨ b;
+] : boolean;
+
+/**
+ * Compute and answer the material conditional of the arguments. This is the
+ * equivalent of (¬`a`) ∨ `b`. Short-circuit the computation, i.e., only
+ * evaluate `b` if `a` is `true`.
+ *
+ * Parameters:
+ *    a - A boolean.
+ *    b - A boolean function.
+ * Returns:
+ *    `a` → `b`.
+ */
+Method "_→_" is
+[
+	a : false's type,
+	b : function accepting <> and returning boolean
+|
+	true;
+] : boolean;
+
+/**
+ * If the left-hand argument of `_∧_` is known statically to be `false`, then
+ * the expression is known statically to be `true`.
+ *
+ * Parameters:
+ *    a - The type of `false`.
+ *    b - A function type whose instances answer a boolean.
+ * Returns:
+ *    The type of `true`.
+ */
+Semantic restriction "_→_" is
+[
+	a : false's type's type,
+	b : (function accepting <> and returning boolean)'s type
+|
+	true's type;
+];
+
+/**
+ * If the right-hand argument of `_∧_` is known statically to be `true`, then
+ * the expression is known statically to be `true`.
+ *
+ * Parameters:
+ *    a - The type of `false`.
+ *    b - A function type whose instances answer a boolean.
+ * Returns:
+ *    The type of `true`.
+ */
+Semantic restriction "_→_" is
+[
+	a : boolean's type,
+	b : (function accepting <> and returning true's type)'s type
+|
+	true's type;
+];
+
+/**
+ * Compute and answer the converse implication of the arguments. This is
+ * equivalent to `a` ∨ ¬`b`. Short-circuit the computation, i.e., only evaluate
+ * `b` if `a`  is false.
+ *
+ * Parameters:
+ *    a - A boolean.
+ *    b - A boolean function.
+ * Returns:
+ *    `a` ← `b`.
+ */
+Method "_←_" is
+[
+	a : boolean,
+	b : function accepting <> and returning boolean
+|
+	a ∨ [¬b();];
+] : boolean;
+
+/**
+ * Compute and answer the converse implication of the arguments. This is
+ * equivalent to `a` ∨ ¬`b`. Short-circuit the computation, i.e., only evaluate
+ * `b` if `a`  is false.
+ *
+ * Parameters:
+ *    a - A boolean.
+ *    b - A boolean function.
+ * Returns:
+ *    `a` ← `b`.
+ */
+Method "_←_" is
+[
+	a : true's type,
+	b : function accepting <> and returning boolean
+|
+	true;
+] : boolean;
+
+/**
+ * If the left-hand argument of `_∧_` is known statically to be `true`, then
+ * the static type of the expression is `true`.
+ *
+ * Parameters:
+ *    a - The type of `true`.
+ *    b - A function type whose instances answer a boolean.
+ * Returns:
+ *    The type of `true`.
+ */
+Semantic restriction "_←_" is
+[
+	a : true's type's type,
+	b : (function accepting <> and returning boolean)'s type
+|
+	true's type;
+];
+
+/**
+ * If the right-hand argument of `_←_` is known statically to be `false`, then
+ * the static type of the expression is `true`.
+ *
+ * Parameters:
+ *    a - boolean's type.
+ *    b - A function type whose instances answer `false`.
+ * Returns:
+ *    The type of `true`.
+ */
+Semantic restriction "_←_" is
+[
+	a : boolean's type,
+	b : (function accepting <> and returning false's type)'s type
+|
+	true's type;
+];
+
+/**
+ * Compute and answer the logical biconditional of the arguments. This is the
+ * negation of XOR and equivalent to (`a` ∧ `b`) ∨ ((¬`a`) ∧ ¬`b`).
+ *
+ * Parameters:
+ *    a - A boolean.
+ *    b - A boolean.
+ * Returns:
+ *    `a` ↔ `b`.
+ */
+Method "_↔_" is
+[
+	a : boolean,
+	b : boolean
+|
+	(a ∧ [b;]) ∨ [(¬a) ∧ [¬b;];];
+] : boolean;
+
+/**
+ * Compute and answer the material nonimplication of the arguments. This is
+ * equivalent to `a` ∧ ¬`b`. Short-circuit the computation, i.e., only evaluate
+ * `b` if `a` is `true`.
+ *
+ * Parameters:
+ *    a - A boolean.
+ *    b - A boolean function.
+ * Returns:
+ *    `a` ↛ `b`.
+ */
+Method "_↛_" is
+[
+	a : boolean,
+	b : function accepting <> and returning boolean
+|
+	a ∧ [¬b();];
+] : boolean;
+
+/**
+ * Compute and answer the material nonimplication of the arguments. This is
+ * equivalent to `a` ∧ ¬`b`. Short-circuit the computation, i.e., only evaluate
+ * `b` if `a` is `true`.
+ *
+ * Parameters:
+ *    a - A boolean.
+ *    b - A boolean function.
+ * Returns:
+ *    `a` ↛ `b`.
+ */
+Method "_↛_" is
+[
+	a : false's type,
+	b : function accepting <> and returning boolean
+|
+	false;
+] : boolean;
+
+/**
+ * If the left-hand argument of `_↛_` is known statically to be `false`, then
+ * the static type of the expression is `false`.
+ *
+ * Parameters:
+ *    a - The type of `false`.
+ *    b - A function type whose instances answer a boolean.
+ * Returns:
+ *    The type of `false`.
+ */
+Semantic restriction "_↛_" is
+[
+	a : false's type's type,
+	b : (function accepting <> and returning boolean)'s type
+|
+	false's type;
+];
+
+/**
+ * If the right-hand argument of `_↛_` is known statically to be `true`, then
+ * the static type of the expression is `false`.
+ *
+ * Parameters:
+ *    a - The type of boolean.
+ *    b - A function type whose instances answer `true`.
+ * Returns:
+ *    The type of `false`.
+ */
+Semantic restriction "_↛_" is
+[
+	a : boolean's type,
+	b : (function accepting <> and returning true's type)'s type
+|
+	false's type;
+];
+
+/**
+ * Compute and answer the converse nonimplication of the arguments. This is
+ * equivalent to (¬`a`) ∧ `b`. Short-circuit the computation, i.e., only
+ * evaluate `b` if `a` is `false`.
+ *
+ * Parameters:
+ *    a - A boolean.
+ *    b - A boolean function.
+ * Returns:
+ *    `a` ↚ `b`.
+ */
+Method "_↚_" is
+[
+	a : boolean,
+	b : function accepting <> and returning boolean
+|
+	(¬a) ∧ [b();];
+] : boolean;
+
+/**
+ * Compute and answer the converse nonimplication of the arguments. This is
+ * equivalent to (¬`a`) ∧ `b`. Short-circuit the computation, i.e., only
+ * evaluate `b` if `a` is `false`.
+ *
+ * Parameters:
+ *    a - A boolean.
+ *    b - A boolean function.
+ * Returns:
+ *    `a` ↚ `b`.
+ */
+Method "_↚_" is
+[
+	a : true's type,
+	b : function accepting <> and returning boolean
+|
+	false;
+] : boolean;
+
+/**
+ * If the left-hand argument of `_↚_` is known statically to be `true`, then
+ * the static type of the expression is `false`.
+ *
+ * Parameters:
+ *    a - The type of `true`.
+ *    b - A function type whose instances answer a boolean.
+ * Returns:
+ *    The type of `false`.
+ */
+Semantic restriction "_↚_" is
+[
+	a : true's type's type,
+	b : (function accepting <> and returning boolean)'s type
+|
+	false's type;
+];
+
+/**
+ * If the right-hand argument of `_↚_` is known statically to be `false`, then
+ * the static type of the expression is `false`.
+ *
+ * Parameters:
+ *    a - The type of boolean.
+ *    b - A function type whose instances answer a `false`.
+ * Returns:
+ *    The type of `false`.
+ */
+Semantic restriction "_↚_" is
+[
+	a : boolean's type,
+	b : (function accepting <> and returning false's type)'s type
+|
+	false's type;
+];
+
+/**
+ * If the right-hand argument of `_↚_` is known statically to be `true` and the
+ * left-hand argument is known statically to be `false`, then the static type
+ * of the expression is `true`.
+ *
+ * Parameters:
+ *    a - The type of boolean.
+ *    b - A function type whose instances answer a `false`.
+ * Returns:
+ *    The type of `false`.
+ */
+Semantic restriction "_↚_" is
+[
+	a : false's type's type,
+	b : (function accepting <> and returning true's type)'s type
 |
 	true's type;
 ];

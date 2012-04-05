@@ -37,6 +37,7 @@ Extends
 	"Assertions",
 	"Enumeration Support",
 	"Literals",
-	"Math"
+	"Math",
+	"Logic"
 Body
 
