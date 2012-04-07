@@ -40,9 +40,9 @@ import com.avail.descriptor.ModuleDescriptor;
  * ModuleDescriptor module}. A canonical name is specified relative to an
  * Avail {@linkplain ModuleRoots module root} and has the form
  * <strong>/R/X/Y/Z</strong>, where <strong>R</strong> is a module root on the
- * Avail module path, <strong>X</strong> is a module group within
- * <strong>R</strong>, <strong>Y</strong> is a module group within
- * <strong>X</strong>, and <strong>Z</strong> is a module or module group within
+ * Avail module path, <strong>X</strong> is a package within
+ * <strong>R</strong>, <strong>Y</strong> is a package within
+ * <strong>X</strong>, and <strong>Z</strong> is a module or package within
  * </strong>Y</strong>.
  *
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
@@ -77,21 +77,21 @@ public class ModuleName
 	}
 
 	/**
-	 * The fully-qualified module group of the {@linkplain ModuleName module
+	 * The fully-qualified package name of the {@linkplain ModuleName module
 	 * name}.
 	 */
-	private final @NotNull String moduleGroup;
+	private final @NotNull String packageName;
 
 	/**
-	 * Answer the fully-qualified module group of the {@linkplain ModuleName
+	 * Answer the fully-qualified package name of the {@linkplain ModuleName
 	 * module name}.
 	 *
-	 * @return The fully-qualified module group of the {@linkplain ModuleName
+	 * @return The fully-qualified package name of the {@linkplain ModuleName
 	 *         module name}.
 	 */
-	public @NotNull String moduleGroup ()
+	public @NotNull String packageName ()
 	{
-		return moduleGroup;
+		return packageName;
 	}
 
 	/**
@@ -136,31 +136,31 @@ public class ModuleName
 		moduleRoot = components[1];
 		localName  = components[components.length - 1];
 
-		// Now determine the module group.
+		// Now determine the package.
 		final StringBuilder builder = new StringBuilder(50);
 		for (int index = 1; index < components.length - 1; index++)
 		{
 			builder.append('/');
 			builder.append(components[index]);
 		}
-		moduleGroup = builder.toString();
+		packageName = builder.toString();
 	}
 
 	/**
 	 * Construct a new {@link ModuleName} from the specified canonical module
 	 * group name and local name.
 	 *
-	 * @param moduleGroup A canonical module group name.
+	 * @param packageName A canonical package name.
 	 * @param localName A local module name.
 	 * @throws IllegalArgumentException
 	 *         If the argument was malformed.
 	 */
 	public ModuleName (
-			final @NotNull String moduleGroup,
+			final @NotNull String packageName,
 			final @NotNull String localName)
 		throws IllegalArgumentException
 	{
-		this(moduleGroup + "/" + localName);
+		this(packageName + "/" + localName);
 	}
 
 	@Override

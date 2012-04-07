@@ -32,7 +32,8 @@
 
 package com.avail.compiler;
 
-import java.io.File;
+import java.io.*;
+import java.util.*;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.ModuleDescriptor;
 
@@ -66,21 +67,21 @@ extends ModuleName
 
 	/**
 	 * Does the {@linkplain ResolvedModuleName resolved module name} represent
-	 * a module group? This is a cached value produced by {@link
-	 * #isModuleGroup()}.
+	 * a package? This is a cached value produced by {@link
+	 * #isPackage()}.
 	 */
-	private final boolean isModuleGroup;
+	private final boolean isPackage;
 
 	/**
 	 * Does the {@linkplain ResolvedModuleName resolved module name} represent
-	 * a module group?
+	 * a package?
 	 *
 	 * @return {@code true} if the {@linkplain ResolvedModuleName resolved
-	 *         module name} represents a module group, {@code false} otherwise.
+	 *         module name} represents a package, {@code false} otherwise.
 	 */
-	public boolean isModuleGroup ()
+	public boolean isPackage ()
 	{
-		return isModuleGroup;
+		return isPackage;
 	}
 
 	/**
@@ -90,12 +91,54 @@ extends ModuleName
 	 * @param localName A local module name.
 	 * @return A {@linkplain ModuleName module name}.
 	 */
-	public ModuleName asSibling (final @NotNull String localName)
+	public @NotNull ModuleName asSibling (final @NotNull String localName)
 	{
-		final String moduleGroup = isModuleGroup()
+		final String packageName = isPackage()
 			? qualifiedName()
-			: moduleGroup();
-		return new ModuleName(moduleGroup, localName);
+			: packageName();
+		return new ModuleName(packageName, localName);
+	}
+
+	/**
+	 * Compute and answer the {@linkplain ModuleName module names} contained in
+	 * this package. Note that the package representative is considered
+	 * synonymous with the package itself, and is therefore not among its
+	 * contents.
+	 *
+	 * @return A {@linkplain Collection collection} of module names.
+	 * @throws UnsupportedOperationException
+	 *         If the {@linkplain ResolvedModuleName receiver} does not
+	 *         represent a {@linkplain #isPackage() package}.
+	 */
+	public @NotNull Collection<ModuleName> contents ()
+	{
+		if (!isPackage)
+		{
+			throw new UnsupportedOperationException();
+		}
+		final File parent = fileReference.getParentFile();
+		final String extension = ModuleNameResolver.availExtension;
+		final List<ModuleName> contents = new ArrayList<ModuleName>();
+		final File[] files = parent.listFiles(new FilenameFilter()
+		{
+			@Override
+			public boolean accept (
+				final @NotNull File dir,
+				final @NotNull String name)
+			{
+				return name.endsWith(extension)
+					&& !name.equals(localName() + extension);
+			}
+		});
+		final String qualifiedName = qualifiedName();
+		for (final File file : files)
+		{
+			final String fileName = file.getName();
+			contents.add(new ModuleName(
+				qualifiedName, fileName.substring(
+					0, fileName.length() - extension.length())));
+		}
+		return contents;
 	}
 
 	/**
@@ -103,20 +146,20 @@ extends ModuleName
 	 *
 	 * @param qualifiedName
 	 *        The just-resolved {@linkplain ModuleName module name}.
-	 * @param isModuleGroup
+	 * @param isPackage
 	 *        {@code true} if the {@linkplain ModuleName module name} represents
-	 *        a module group, {@code false} otherwise.
+	 *        a package, {@code false} otherwise.
 	 * @param fileReference
 	 *        The {@linkplain ModuleNameResolver#resolve(ModuleName) resolved}
 	 *        {@linkplain File file reference}.
 	 */
 	ResolvedModuleName (
 		final @NotNull ModuleName qualifiedName,
-		final boolean isModuleGroup,
+		final boolean isPackage,
 		final @NotNull File fileReference)
 	{
 		super(qualifiedName.qualifiedName());
-		this.isModuleGroup = isModuleGroup;
+		this.isPackage = isPackage;
 		this.fileReference = fileReference;
 	}
 }

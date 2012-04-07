@@ -53,11 +53,11 @@ import com.avail.descriptor.ModuleDescriptor;
  * <ol>
  * <li>Obtain the canonical name <strong>/R'/A/B/C/M'</strong> by applying an
  * existing renaming rule for <strong>/R/X/Y/Z/M</strong>.
- * <li>If module group <strong>/R'/A/B/C</strong> contains a module
+ * <li>If package <strong>/R'/A/B/C</strong> contains a module
  * <strong>M'</strong>, then capture its file reference <string>F</strong>.</li>
- * <li>If module group <strong>/R'/A/B</strong> contains a module
+ * <li>If package <strong>/R'/A/B</strong> contains a module
  * <strong>M'</strong>, then capture its file reference <string>F</strong>.</li>
- * <li>If module group <strong>/R'/A</strong> contains a module
+ * <li>If package <strong>/R'/A</strong> contains a module
  * <strong>M'</strong>, then capture its file reference <string>F</strong>.</li>
  * <li>If module root <strong>/R</strong> contains a module <strong>M'</strong>,
  * then capture its file reference <strong>F</strong>.</li>
@@ -83,7 +83,7 @@ public final class ModuleNameResolver
 	 * The standard extension for Avail {@linkplain ModuleDescriptor module}
 	 * source files.
 	 */
-	static final @NotNull String availExtension = ".avail";
+	public static final @NotNull String availExtension = ".avail";
 
 	/** The {@linkplain ModuleRoots Avail module roots}. */
 	private final @NotNull ModuleRoots moduleRoots;
@@ -143,18 +143,18 @@ public final class ModuleNameResolver
 	}
 
 	/**
-	 * Trivially translate the specified module group name and local module name
+	 * Trivially translate the specified package name and local module name
 	 * into a filename.
 	 *
-	 * @param moduleGroup A module group name.
+	 * @param packageName A package name.
 	 * @param localName A local module name.
-	 * @return A filename that specifies the module within the module group.
+	 * @return A filename that specifies the module within the package.
 	 */
 	private @NotNull String filenameFor (
-		final @NotNull String moduleGroup,
+		final @NotNull String packageName,
 		final @NotNull String localName)
 	{
-		return moduleGroup + "/" + localName + availExtension;
+		return packageName + "/" + localName + availExtension;
 	}
 
 	/**
@@ -181,7 +181,7 @@ public final class ModuleNameResolver
 	/**
 	 * Resolve a fully-qualified module name (as a reference to the {@linkplain
 	 * ModuleName#localName() local name} made from within the {@linkplain
-	 * ModuleName#moduleGroup() module group}).
+	 * ModuleName#packageName() package}).
 	 *
 	 * @param qualifiedName
 	 *        A fully-qualified {@linkplain ModuleName module name}.
@@ -197,12 +197,12 @@ public final class ModuleNameResolver
 
 		// Really resolve the local name. Start by splitting the module
 		// group into its components.
-		final String[] components = canonicalName.moduleGroup().split("/");
+		final String[] components = canonicalName.packageName().split("/");
 		assert components.length > 1;
 		assert components[0].isEmpty();
 
 		// Build a search stack of trials at ascending tiers of enclosing
-		// module groups.
+		// packages.
 		final Deque<File> searchStack = new LinkedList<File>();
 		final Deque<String> canonicalNames = new LinkedList<String>();
 		final String enclosingRoot = canonicalName.moduleRoot();
@@ -218,7 +218,7 @@ public final class ModuleNameResolver
 				components[index] + availExtension));
 		}
 
-		// Explore the search stack from most enclosing module group to
+		// Explore the search stack from most enclosing package to
 		// least enclosing.
 		while (!searchStack.isEmpty())
 		{
@@ -257,23 +257,23 @@ public final class ModuleNameResolver
 
 		if (resolution != null)
 		{
-			final boolean isModuleGroup = resolution.isDirectory();
+			final boolean isPackage = resolution.isDirectory();
 
-			// We found a candidate. If it is a module group, then substitute
-			// the module group representative.
-			if (isModuleGroup)
+			// We found a candidate. If it is a package, then substitute
+			// the package representative.
+			if (isPackage)
 			{
 				resolution = new File(
 					resolution, canonicalName.localName() + availExtension);
 				if (!resolution.isFile())
 				{
-					// Alas, the module group representative did not exist.
+					// Alas, the package representative did not exist.
 					return null;
 				}
 			}
 
 			return new ResolvedModuleName(
-				canonicalName, isModuleGroup, resolution);
+				canonicalName, isPackage, resolution);
 		}
 
 		// Resolution failed.

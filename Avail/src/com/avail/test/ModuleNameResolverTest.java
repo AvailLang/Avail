@@ -130,13 +130,13 @@ public final class ModuleNameResolverTest
 		for (final String[] aCase : cases)
 		{
 			final int index = aCase[0].lastIndexOf('/');
-			final String moduleGroup = aCase[0].substring(0, index);
+			final String packageName = aCase[0].substring(0, index);
 			final String localName = aCase[0].substring(index + 1);
 
 			final File expected = new File(aCase[2], aCase[1]);
 			final ResolvedModuleName modName = renames.resolve(
 				new ModuleName(
-					"/avail" + moduleGroup, localName));
+					"/avail" + packageName, localName));
 			final File actual = modName.fileReference();
 			assertEquals(expected, actual);
 		}

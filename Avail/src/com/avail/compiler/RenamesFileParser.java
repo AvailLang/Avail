@@ -61,13 +61,13 @@ import com.avail.descriptor.ModuleDescriptor;
  * renaming rules. On the left-hand side of a rule is a fully-qualified module
  * reference (<em>quotedModulePath</em>) of the form
  * <strong>"/R/X/.../Y/Z"</strong>, where <strong>R</strong> is a root name
- * referring to a vendor, <strong>X</strong> is a public module group provided
- * by the vendor, <strong>Y</strong> is a module group recursively within module
+ * referring to a vendor, <strong>X</strong> is a public package provided
+ * by the vendor, <strong>Y</strong> is a package recursively within module
  * group <strong>X</strong>, and <strong>Z</strong> is a local module name. On
  * the right-hand side of a rule is another module reference of the form
  * <strong>"/Q/A/.../B/C"</strong>, where <strong>Q</strong> is a root name
- * referring to a vendor, <strong>A</strong> is a public module group provided
- * by the vendor, <strong>B</strong> is a module group recursively within module
+ * referring to a vendor, <strong>A</strong> is a public package provided
+ * by the vendor, <strong>B</strong> is a package recursively within module
  * group <strong>A</strong>, and <strong>C</strong> is a local module name.</p>
  *
  * <p>Note that some operating systems may have difficulty resolving certain

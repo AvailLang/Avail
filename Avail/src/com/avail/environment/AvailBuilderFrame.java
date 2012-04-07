@@ -799,6 +799,7 @@ extends JFrame
 			final DefaultMutableTreeNode rootNode =
 				new DefaultMutableTreeNode(rootName);
 			treeRoot.add(rootNode);
+			final String extension = ModuleNameResolver.availExtension;
 			final File rootDirectory = roots.rootDirectoryFor(rootName);
 			final File[] files = rootDirectory.listFiles(new FilenameFilter()
 			{
@@ -807,14 +808,14 @@ extends JFrame
 					final @NotNull File dir,
 					final @NotNull String name)
 				{
-					return name.endsWith(".avail");
+					return name.endsWith(extension);
 				}
 			});
 			for (final File file : files)
 			{
 				final String fileName = file.getName();
 				final String label = fileName.substring(
-					0, fileName.length() - 6);
+					0, fileName.length() - extension.length());
 				final DefaultMutableTreeNode moduleNode =
 					new DefaultMutableTreeNode(label);
 				rootNode.add(moduleNode);

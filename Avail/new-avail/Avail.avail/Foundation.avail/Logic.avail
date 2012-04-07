@@ -73,8 +73,8 @@ Method "_⊕_" is
 
 /**
  * Compute and answer the logical NAND of the arguments. This is equivalent to
- * ¬(`a` ∧ `b`).
- * Short-circuit the computation, i.e., only evaluate `b` if `a` is `true`.
+ * ¬(`a` ∧ `b`). Short-circuit the computation, i.e., only evaluate `b` if `a`
+ * is `true`.
  * 
  * Parameters:
  *    a - A boolean.
