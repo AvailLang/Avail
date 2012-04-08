@@ -36,7 +36,9 @@ import static com.avail.compiler.ParsingOperation.*;
 import static com.avail.compiler.ParsingConversionRule.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.exceptions.AvailErrorCode.*;
+import java.io.PrintStream;
 import java.util.*;
+import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.compiler.scanning.AvailScanner;
 import com.avail.descriptor.*;
@@ -1289,7 +1291,8 @@ public class MessageSplitter
 		{
 			instructionsList.add(instruction.extractInt());
 		}
-		System.out.printf(
+		final PrintStream out = AvailRuntime.current().standardOutputStream();
+		out.printf(
 			"%s  ->  %s  ->  %s%n",
 			messageName.asNativeString(),
 			partsList.toString(),

@@ -33,7 +33,7 @@
 package com.avail.compiler;
 
 import java.util.*;
-import com.avail.AvailRuntime;
+import com.avail.*;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.L2Interpreter;
@@ -80,8 +80,8 @@ public final class AvailBuilder
 	 *            the {@linkplain AvailRuntime runtime}.
 	 */
 	public AvailBuilder (
-			final @NotNull AvailRuntime runtime,
-			final @NotNull ModuleName target)
+		final @NotNull AvailRuntime runtime,
+		final @NotNull ModuleName target)
 	{
 		this.runtime = runtime;
 		this.target = target;
@@ -279,44 +279,131 @@ public final class AvailBuilder
 	}
 
 	/**
+	 * Build the {@linkplain ModuleDescriptor target} and its dependencies
+	 * within a new {@linkplain AvailThread Avail thread}.
+	 *
+	 * @param builder
+	 *        An {@linkplain AvailBuilder Avail builder}.
+	 * @param localTracker
+	 *        A {@linkplain Continuation4 continuation} that accepts
+	 *        <ol>
+	 *        <li>the {@linkplain ModuleName name} of the
+	 *        {@linkplain ModuleDescriptor module} undergoing
+	 *        {@linkplain AbstractAvailCompiler compilation},</li>
+	 *        <li>the current line number within the current module,</li>
+	 *        <li>the position of the ongoing parse (in bytes), and</li>
+	 *        <li>the size of the module in bytes.</li>
+	 *        </ol>
+	 * @param globalTracker
+	 *        A {@linkplain Continuation3 continuation} that accepts
+	 *        <ol>
+	 *        <li>the name of the module undergoing compilation,</li>
+	 *        <li>the number of bytes globally processed, and</li>
+	 *        <li>the global size (in bytes) of all modules that will be
+	 *        built.</li>
+	 *        </ol>
+	 * @throws AvailCompilerException
+	 *         If the compiler is unable to process a module declaration.
+	 * @throws InterruptedException
+	 *         If the builder thread is interrupted.
+	 * @throws RecursiveDependencyException
+	 *         If an encountered module recursively depends upon itself.
+	 * @throws UnresolvedDependencyException
+	 *         If a module name could not be resolved.
+	 */
+	public static void buildTargetInNewAvailThread (
+			final @NotNull AvailBuilder builder,
+			final @NotNull
+				Continuation4<ModuleName, Long, Long, Long> localTracker,
+			final @NotNull
+				Continuation3<ModuleName, Long, Long> globalTracker)
+		throws
+			AvailCompilerException,
+			InterruptedException,
+			RecursiveDependencyException,
+			UnresolvedDependencyException
+	{
+		final Mutable<Exception> killer = new Mutable<Exception>();
+		final AvailThread thread = builder.runtime.newThread(new Runnable()
+		{
+			@Override
+			public void run ()
+			{
+				try
+				{
+					builder.buildTarget(localTracker, globalTracker);
+				}
+				catch (final AvailCompilerException e)
+				{
+					killer.value = e;
+				}
+				catch (final RecursiveDependencyException e)
+				{
+					killer.value = e;
+				}
+				catch (final UnresolvedDependencyException e)
+				{
+					killer.value = e;
+				}
+			}
+		});
+		thread.run();
+		thread.join();
+		if (killer.value != null)
+		{
+			if (killer.value instanceof AvailCompilerException)
+			{
+				throw (AvailCompilerException) killer.value;
+			}
+			else if (killer.value instanceof RecursiveDependencyException)
+			{
+				throw (RecursiveDependencyException) killer.value;
+			}
+			else if (killer.value instanceof UnresolvedDependencyException)
+			{
+				throw (UnresolvedDependencyException) killer.value;
+			}
+		}
+	}
+
+	/**
 	 * Build the {@linkplain ModuleDescriptor target} and its dependencies.
+	 * Must be called from an {@linkplain AvailThread Avail thread}.
 	 *
 	 * @param localTracker
-	 *            A {@linkplain Continuation3 continuation} that accepts
-	 *            <ol>
-	 *            <li>the {@linkplain ModuleName name} of the
-	 *            {@linkplain ModuleDescriptor module} undergoing
-	 *            {@linkplain AbstractAvailCompiler compilation},</li>
-	 *            <li>the current line number within the current module,</li>
-	 *            <li>the position of the ongoing parse (in bytes), and</li>
-	 *            <li>the size of the module in bytes.</li>
-	 *            </ol>
+	 *        A {@linkplain Continuation4 continuation} that accepts
+	 *        <ol>
+	 *        <li>the {@linkplain ModuleName name} of the
+	 *        {@linkplain ModuleDescriptor module} undergoing
+	 *        {@linkplain AbstractAvailCompiler compilation},</li>
+	 *        <li>the current line number within the current module,</li>
+	 *        <li>the position of the ongoing parse (in bytes), and</li>
+	 *        <li>the size of the module in bytes.</li>
+	 *        </ol>
 	 * @param globalTracker
-	 *            A {@linkplain Continuation3 continuation} that accepts
-	 *            <ol>
-	 *            <li>the {@linkplain ModuleName name} of the
-	 *            {@linkplain ModuleDescriptor module} undergoing
-	 *            {@linkplain AbstractAvailCompiler compilation},</li>
-	 *            <li>the number of bytes globally processed, and</li>
-	 *            <li>the global size (in bytes) of all modules that will be
-	 *            built.</li>
-	 *            </ol>
+	 *        A {@linkplain Continuation3 continuation} that accepts
+	 *        <ol>
+	 *        <li>the name of the module undergoing compilation,</li>
+	 *        <li>the number of bytes globally processed, and</li>
+	 *        <li>the global size (in bytes) of all modules that will be
+	 *        built.</li>
+	 *        </ol>
 	 * @throws AvailCompilerException
-	 *             If the {@linkplain AbstractAvailCompiler compiler} is unable
-	 *             to process a module declaration.
+	 *         If the compiler is unable to process a module declaration.
 	 * @throws RecursiveDependencyException
-	 *             If an encountered {@linkplain ModuleDescriptor module}
-	 *             recursively depends upon itself.
+	 *         If an encountered module recursively depends upon itself.
 	 * @throws UnresolvedDependencyException
-	 *             If a module name could not be resolved.
+	 *         If a module name could not be resolved.
 	 */
 	public void buildTarget (
-		final @NotNull Continuation4<ModuleName, Long, Long, Long> localTracker,
-		final @NotNull Continuation3<ModuleName, Long, Long> globalTracker)
-	throws
-		AvailCompilerException,
-		RecursiveDependencyException,
-		UnresolvedDependencyException
+			final @NotNull
+				Continuation4<ModuleName, Long, Long, Long> localTracker,
+			final @NotNull
+				Continuation3<ModuleName, Long, Long> globalTracker)
+		throws
+			AvailCompilerException,
+			RecursiveDependencyException,
+			UnresolvedDependencyException
 	{
 		final ModuleNameResolver resolver = runtime.moduleNameResolver();
 		traceModuleImports(null, target);

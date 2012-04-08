@@ -128,7 +128,8 @@ public class AbstractAvailTest
 		{
 			final Mutable<ModuleName> lastModule = new Mutable<ModuleName>();
 			final AvailBuilder builder = new AvailBuilder(runtime, target);
-			builder.buildTarget(
+			AvailBuilder.buildTargetInNewAvailThread(
+				builder,
 				new Continuation4<ModuleName, Long, Long, Long>()
 				{
 					@Override

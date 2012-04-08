@@ -289,7 +289,8 @@ extends JFrame
 				final AvailBuilder builder = new AvailBuilder(
 					new AvailRuntime(resolver),
 					new ModuleName(targetModuleName));
-				builder.buildTarget(
+				AvailBuilder.buildTargetInNewAvailThread(
+					builder,
 					new Continuation4<ModuleName, Long, Long, Long>()
 					{
 						@Override

@@ -34,8 +34,9 @@ package com.avail;
 
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
-import java.io.RandomAccessFile;
+import java.io.*;
 import java.util.*;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import com.avail.annotations.*;
 import com.avail.compiler.*;
@@ -51,7 +52,48 @@ import com.avail.exceptions.SignatureException;
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
 public final class AvailRuntime
+implements ThreadFactory
 {
+	/**
+	 * The {@linkplain InheritableThreadLocal thread-local} {@linkplain
+	 * AvailRuntime Avail runtime}
+	 */
+	private static final @NotNull InheritableThreadLocal<AvailRuntime> current =
+		new InheritableThreadLocal<AvailRuntime>();
+
+	/**
+	 * Set the {@linkplain #current() current} {@linkplain AvailRuntime Avail
+	 * runtime} for the {@linkplain Thread#currentThread() current} {@linkplain
+	 * AvailThread thread}.
+	 *
+	 * @param runtime
+	 *        An Avail runtime.
+	 */
+	static final void setCurrent (final @NotNull AvailRuntime runtime)
+	{
+		current.set(runtime);
+	}
+
+	/**
+	 * Answer the {@linkplain AvailRuntime Avail runtime} associated with the
+	 * current {@linkplain Thread thread}. If the {@linkplain
+	 * Thread#currentThread() current thread} is not an {@link AvailThread},
+	 * then answer {@code null}.
+	 *
+	 * @return The current Avail runtime, or {@code null} if the the current
+	 *         thread is not an {@code AvailThread}.
+	 */
+	public static final AvailRuntime current ()
+	{
+		return current.get();
+	}
+
+	@Override
+	public @NotNull AvailThread newThread (final @NotNull Runnable runnable)
+	{
+		return new AvailThread(this, runnable);
+	}
+
 	/**
 	 * A general purpose {@linkplain Random pseudo-random number generator}.
 	 */
@@ -117,6 +159,138 @@ public final class AvailRuntime
 	public @NotNull ClassLoader classLoader ()
 	{
 		return classLoader;
+	}
+
+	/** The {@linkplain PrintStream standard output stream}. */
+	private @NotNull PrintStream standardOutputStream = System.out;
+
+	/**
+	 * Answer the {@linkplain PrintStream standard output stream}.
+	 *
+	 * @return The standard output stream.
+	 */
+	@ThreadSafe
+	public @NotNull PrintStream standardOutputStream ()
+	{
+		runtimeLock.readLock().lock();
+		try
+		{
+			return standardOutputStream;
+		}
+		finally
+		{
+			runtimeLock.readLock().unlock();
+		}
+	}
+
+	/** The {@linkplain PrintStream standard error stream}. */
+	private @NotNull PrintStream standardErrorStream = System.err;
+
+	/**
+	 * Answer the {@linkplain PrintStream standard error stream}.
+	 *
+	 * @return The standard error stream.
+	 */
+	@ThreadSafe
+	public @NotNull PrintStream standardErrorStream ()
+	{
+		runtimeLock.readLock().lock();
+		try
+		{
+			return standardErrorStream;
+		}
+		finally
+		{
+			runtimeLock.readLock().unlock();
+		}
+	}
+
+	/** The {@linkplain InputStream standard input stream}. */
+	private @NotNull InputStream standardInputStream = System.in;
+
+	/**
+	 * Answer the {@linkplain PrintStream standard input stream}.
+	 *
+	 * @return The standard input stream.
+	 */
+	@ThreadSafe
+	public @NotNull InputStream standardInputStream ()
+	{
+		runtimeLock.readLock().lock();
+		try
+		{
+			return standardInputStream;
+		}
+		finally
+		{
+			runtimeLock.readLock().unlock();
+		}
+	}
+
+	/** The {@linkplain Reader standard input reader}. */
+	private @NotNull Reader standardInputReader = new InputStreamReader(
+		standardInputStream);
+
+	/**
+	 * Answer the {@linkplain Reader standard input reader}.
+	 *
+	 * @return The standard input reader.
+	 */
+	@ThreadSafe
+	public @NotNull Reader standardInputReader ()
+	{
+		runtimeLock.readLock().lock();
+		try
+		{
+			return standardInputReader;
+		}
+		finally
+		{
+			runtimeLock.readLock().unlock();
+		}
+	}
+
+	/**
+	 * Replace one or more of the standard I/O streams used by this {@linkplain
+	 * AvailRuntime Avail runtime}.
+	 *
+	 * @param outputStream
+	 *        The new {@linkplain PrintStream standard output stream}, or
+	 *        {@code null} if the standard output stream should not be replaced.
+	 * @param errorStream
+	 *        The new standard error stream, or {@code null} if the standard
+	 *        error stream should not be replaced.
+	 * @param inputStream
+	 *        The new {@linkplain InputStream standard input stream}, or {@code
+	 *        null} if the standard input stream should not be replaced.
+	 */
+	@ThreadSafe
+	public void setStandardStreams (
+		final PrintStream outputStream,
+		final PrintStream errorStream,
+		final InputStream inputStream)
+	{
+		runtimeLock.writeLock().lock();
+		try
+		{
+			if (outputStream != null)
+			{
+				standardOutputStream = outputStream;
+			}
+			if (errorStream != null)
+			{
+				standardErrorStream = errorStream;
+			}
+			if (inputStream != null)
+			{
+				standardInputStream = inputStream;
+				standardInputReader = new InputStreamReader(inputStream);
+			}
+		}
+		finally
+		{
+			runtimeLock.writeLock().unlock();
+		}
 	}
 
 	/**

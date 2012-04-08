@@ -5761,16 +5761,13 @@ implements IntegerEnumSlotDescriptionEnum
 	 */
 	prim254_ReadFromConsole(254, 0, Unknown)
 	{
-		/** The console reader */
-		private final @NotNull InputStreamReader reader =
-			new InputStreamReader(System.in);
-
 		@Override
 		public Result attempt (
 			final @NotNull List<AvailObject> args,
 			final @NotNull Interpreter interpreter)
 		{
 			assert args.size() == 0;
+			final Reader reader = AvailRuntime.current().standardInputReader();
 			final char[] buffer = new char[1];
 			final int charactersRead;
 			try
@@ -5953,7 +5950,9 @@ implements IntegerEnumSlotDescriptionEnum
 			assert args.size() == 1;
 
 			final AvailObject string = args.get(0);
-			System.out.print(string.asNativeString());
+			final PrintStream out =
+				AvailRuntime.current().standardOutputStream();
+			out.print(string.asNativeString());
 			return interpreter.primitiveSuccess(NullDescriptor.nullObject());
 		}
 
