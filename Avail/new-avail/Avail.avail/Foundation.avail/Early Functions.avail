@@ -40,7 +40,8 @@ Uses
 	"Early Math",
 	"Early Tuples",
 	"Early Types",
-	"Enumeration Support"
+	"Enumeration Support",
+	"Literals"
 Names
 	"_(«_‡,»)"
 Body
@@ -49,15 +50,15 @@ Body
  * Strengthen the return type of a function type.
  * 
  * Parameters:
- *    functionType - A function type.
+ *    functionMeta - A function type.
  * Returns:
  *    The argument's return type.
  */
 Semantic restriction "_'s return type" is
 [
-	functionType : function's type's type
+	functionMeta : function meta's type
 |
-	functionType's instance's return type's type;
+	functionMeta's instance's return type's type;
 ];
 
 /* These are error messages. */
@@ -66,54 +67,7 @@ sizesIncompatibleMessage ::=
 	\| function's parameter tuple";
 
 /**
- * Answer a function suitable for use as a semantic restriction on a function
- * application method.
- * 
- * Returns:
- *    The requested function.
- */
-Method "function application semantic restriction function" is
-[
-	[
-		functionType : function meta,
-		argumentsType : tuple meta
-	|
-		/* Check the sizes of the parameters tuple type and the arguments tuple
-		 * type before taking advantage of instance types.
-		 */
-		parametersType ::= functionType's parameters' type;
-		parametersSizes ::= ||parametersType||;
-		argumentsSizes ::= ||argumentsType||;
-		validSizes ::= parametersSizes ∩ argumentsSizes;
-		if parametersSizes ≠ ⊥ ∧ [ validSizes = ⊥; ] then
-		[
-			Reject parse, expected: sizesIncompatibleMessage;
-		];
-		/* Verify each of the arguments. */
-		From 1 to argumentsSizes's lower bound do
-		[
-			index : natural number
-		|
-			if ¬argumentsType[index] ⊆ parametersType[index] then
-			[
-				Reject parse, expected:
-					"argument #"
-					++ primitive description of index
-					++ " of type ("
-					++ primitive description of argumentsType[index]
-					++ ") to agree with corresponding function "
-					++ "parameter type ("
-					++ primitive description of parametersType[index]
-					++ ")";
-			];
-			true;
-		];
-		functionType's return type;
-	];
-] : [function meta, tuple meta]→type;
-
-/**
- * `invoke_with_` should reject impossible argument tuples.
+ * `invoke_with_` should reject improperly sized argument tuples.
  *
  * Parameters:
  *    aFunction -
@@ -122,7 +76,26 @@ Method "function application semantic restriction function" is
  *    The function's return type.
  */
 Semantic restriction "invoke_with_" is
-	function application semantic restriction function;
+[
+	functionType : function meta,
+	argumentsType : tuple meta
+|
+	/* Check the sizes of the parameters tuple type and the arguments tuple
+	 * type before taking advantage of instance types.
+	 */
+	parametersType ::= functionType's parameters' type;
+	parametersSizes ::= ||parametersType||;
+	if parametersSizes ≠ ⊥ then
+	[
+		argumentsSizes ::= ||argumentsType||;
+		validSizes ::= parametersSizes ∩ argumentsSizes;
+		if validSizes = ⊥ then
+		[
+			Reject parse, expected: sizesIncompatibleMessage;
+		];
+	];
+	functionType's return type;
+];
 
 /**
  * Invoke the function with the lexically specified arguments. Answer its
@@ -154,4 +127,61 @@ Method "_(«_‡,»)" is
  *    The function type's return type.
  */
 Semantic restriction "_(«_‡,»)" is
-	function application semantic restriction function;
+[
+	functionType : function meta,
+	argumentsType : tuple meta
+|
+	/* Check the sizes of the parameters tuple type and the arguments tuple
+	 * type before taking advantage of instance types.
+	 */
+	parametersType ::= functionType's parameters' type;
+	parametersSizes ::= ||parametersType||;
+	/* If `parameterSizes` = ⊥, then `parametersType` = ⊥. In this case, we
+	 * cannot statically ascertain anything interesting about the function and
+	 * the arguments to apply.
+	 */
+	if parametersSizes ≠ ⊥ then
+	[
+		argumentsSizes ::= ||argumentsType||;
+		validSizes ::= parametersSizes ∩ argumentsSizes;
+		if validSizes = ⊥ then
+		[
+			Reject parse, expected: sizesIncompatibleMessage;
+		];
+		/* Verify each of the arguments. */
+		From 1 to argumentsSizes's lower bound do
+		[
+			index : natural number
+		|
+			if ¬argumentsType[index] ⊆ parametersType[index] then
+			[
+				Reject parse, expected:
+					"argument #"
+					++ primitive description of index
+					++ " of type ("
+					++ primitive description of argumentsType[index]
+					++ ") to agree with corresponding function "
+					++ "parameter type ("
+					++ primitive description of parametersType[index]
+					++ ")";
+			];
+			true;
+		];
+	];
+	functionType's return type;
+];
+
+/**
+ * Strengthen the type of a function type's parameters' tuple type.
+ * 
+ * Parameters:
+ *    functionMeta - A function type.
+ * Returns:
+ *    The parameters' tuple type.
+ */
+Semantic restriction "_'s parameters'type" is
+[
+	functionMeta : function meta's type
+|
+	functionMeta's instance's parameters' type's type;
+];

@@ -37,7 +37,6 @@ Uses
 	"Bootstrap"
 Names
 	"Assert:_",
-	"Assert:_(_)",
 	"Shouldn't happen"
 Body
 
@@ -52,28 +51,8 @@ Method "Assert:_" is
 [
 	predicate : boolean
 |
-	/* Do nothing. */
+	Assert: predicate ("(no description provided)");
 ]  : ⊤;
-
-/**
- * Early assertion mechanism. This is obsolete once exceptions are available,
- * and should not be exported beyond this package.
- * 
- * Print
- *    "An assertion failed.\n"
- * to standard output and then terminate the current fiber.
- *
- * Parameters:
- *    predicate - `false`.
- */
-Method "Assert:_" is
-[
-	predicate : false's type
-|
-	message ::= "An assertion failed.\n";
-	Print: message;
-	Terminate: message;
-] : ⊥;
 
 /**
  * Strengthen the return type to ⊥ iff the assertion statement is statically
@@ -90,45 +69,6 @@ Semantic restriction "Assert:_" is
 |
 	⊥;
 ];
-
-/**
- * Early assertion mechanism. This is obsolete once exceptions are available,
- * and should not be exported beyond this package.
- *
- * Parameters:
- *    predicate - `true`.
- *    message - Text describing the assertion failure. Ignored.
- */
-Method "Assert:_(_)" is
-[
-	predicate : boolean,
-	message : string
-|
-	/* Do nothing. */
-] : ⊤;
-
-/**
- * Early assertion mechanism. This is obsolete once exceptions are available,
- * and should not be exported beyond this package.
- *
- * Print
- *    "An assertion failed: \[`message`]\n."
- * to standard output and then terminate the current fiber.
- *       
- * Parameters:
- *    predicate - `false`.
- *    message - Text describing the assertion failure.
- */
-Method "Assert:_(_)" is
-[
-	predicate : false's type,
-	message : string
-|
-	Print: "An assertion failed: ";
-	Print: message;
-	Print: "\n";
-	Terminate: message;
-] : ⊥;
 
 /**
  * Strengthen the return type to ⊥ iff the assertion statement is statically

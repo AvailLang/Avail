@@ -5995,6 +5995,40 @@ implements IntegerEnumSlotDescriptionEnum
 	},
 
 	/**
+	 * <strong>Primitive 260:</strong> Assert the specified {@linkplain
+	 * EnumerationTypeDescriptor#booleanObject() predicate} or raise an
+	 * {@link AvailAssertionFailedException} (in Java) that contains the
+	 * provided {@linkplain TupleTypeDescriptor#stringTupleType() message}.
+	 */
+	prim260_Assert(260, 2, Unknown, CannotFail)
+	{
+		@Override
+		public @NotNull Result attempt (
+			final @NotNull List<AvailObject> args,
+			final @NotNull Interpreter interpreter)
+		{
+			assert args.size() == 2;
+			final AvailObject predicate = args.get(0);
+			final AvailObject failureMessage = args.get(1);
+			if (predicate.equals(AtomDescriptor.falseObject()))
+			{
+				throw new AvailAssertionFailedException(failureMessage);
+			}
+			return interpreter.primitiveSuccess(NullDescriptor.nullObject());
+		}
+
+		@Override
+		protected @NotNull AvailObject privateBlockTypeRestriction ()
+		{
+			return FunctionTypeDescriptor.create(
+				TupleDescriptor.from(
+					EnumerationTypeDescriptor.booleanObject(),
+					TupleTypeDescriptor.stringTupleType()),
+				TOP.o());
+		}
+	},
+
+	/**
 	 * <strong>Primitive 280:</strong> Convert the numeric argument to a
 	 * {@linkplain FloatDescriptor float}.
 	 */

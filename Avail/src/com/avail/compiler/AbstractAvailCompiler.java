@@ -1605,9 +1605,9 @@ public abstract class AbstractAvailCompiler
 	 *         If compilation fails.
 	 */
 	public void parseModule (
-		final @NotNull ModuleName qualifiedName,
-		final @NotNull Continuation4<ModuleName, Long, Long, Long> aBlock)
-	throws AvailCompilerException
+			final @NotNull ModuleName qualifiedName,
+			final @NotNull Continuation4<ModuleName, Long, Long, Long> aBlock)
+		throws AvailCompilerException
 	{
 		progressBlock = aBlock;
 		greatestGuess = -1;
@@ -1626,6 +1626,43 @@ public abstract class AbstractAvailCompiler
 		{
 			rollbackModuleTransaction();
 			throw e;
+		}
+		catch (final AvailAssertionFailedException e)
+		{
+			rollbackModuleTransaction();
+			final Generator<String> errorProducer = new Generator<String>()
+			{
+				@Override
+				public @NotNull String value ()
+				{
+					return e.assertionString().asNativeString();
+				}
+			};
+			reportError(
+				qualifiedName,
+				tokens.get(greatestGuess),
+				"Assertion failed ...",
+				Collections.singletonList(errorProducer));
+		}
+		catch (final Throwable e)
+		{
+			rollbackModuleTransaction();
+			final Generator<String> errorProducer = new Generator<String>()
+			{
+				@Override
+				public @NotNull String value ()
+				{
+					final StringWriter writer = new StringWriter(500);
+					final PrintWriter printer = new PrintWriter(writer);
+					e.printStackTrace(printer);
+					return writer.toString();
+				}
+			};
+			reportError(
+				qualifiedName,
+				tokens.get(greatestGuess),
+				"Encountered exception during compilation ...",
+				Collections.singletonList(errorProducer));
 		}
 		commitModuleTransaction();
 	}
@@ -1841,7 +1878,15 @@ public abstract class AbstractAvailCompiler
 						final AvailObject stmt)
 					{
 						assert interpretation.value == null
-						: "Statement parser was supposed to catch ambiguity";
+							: "Statement parser was supposed to catch "
+							+ "ambiguity";
+						if (stmt.expressionType().equals(
+							BottomTypeDescriptor.bottom()))
+						{
+							afterStatement.expected(
+								"top-level statement not to have type ⊥");
+							return;
+						}
 						interpretation.value = stmt;
 						state.value = new ParserState(
 							afterStatement.position,

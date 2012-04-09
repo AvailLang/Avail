@@ -847,9 +847,9 @@ implements ThreadFactory
 	/**
 	 * Unbind the specified implementation from the {@linkplain
 	 * AtomDescriptor selector}. If no implementations remain in the
-	 * {@linkplain MethodDescriptor method}, then
-	 * forget the selector from the method dictionary and the {@linkplain
-	 * #rootBundleTree() root message bundle tree}.
+	 * {@linkplain MethodDescriptor method}, then forget the selector from the
+	 * method dictionary and the {@linkplain #rootBundleTree() root message
+	 * bundle tree}.
 	 *
 	 * @param selector A {@linkplain AtomDescriptor selector}.
 	 * @param implementation An implementation.
@@ -864,20 +864,22 @@ implements ThreadFactory
 		runtimeLock.writeLock().lock();
 		try
 		{
-			assert methods.hasKey(selector);
-			final AvailObject method = methods.mapAt(selector);
-			method.removeImplementation(implementation);
-			if (method.isMethodEmpty())
+			if (methods.hasKey(selector))
 			{
-				methods = methods.mapWithoutKeyCanDestroy(selector, true);
-				rootBundleTree.removeBundle(
-					MessageBundleDescriptor.newBundle(selector));
-			}
-			if (method.isMethodEmpty())
-			{
-				methods = methods.mapWithoutKeyCanDestroy(
-					selector,
-					true);
+				final AvailObject method = methods.mapAt(selector);
+				method.removeImplementation(implementation);
+				if (method.isMethodEmpty())
+				{
+					methods = methods.mapWithoutKeyCanDestroy(selector, true);
+					rootBundleTree.removeBundle(
+						MessageBundleDescriptor.newBundle(selector));
+				}
+				if (method.isMethodEmpty())
+				{
+					methods = methods.mapWithoutKeyCanDestroy(
+						selector,
+						true);
+				}
 			}
 		}
 		catch (final SignatureException e)

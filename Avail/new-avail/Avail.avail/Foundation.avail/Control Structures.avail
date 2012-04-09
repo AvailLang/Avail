@@ -1,0 +1,276 @@
+/*
+ * Control Structures.avail
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Control Structures"
+Versions
+	"dev"
+Extends
+	"Early Control Structures" =
+	(
+		"(_)",
+		"Exit_",
+		"cast_into_else_",
+		"cast_into_"
+	)
+Uses
+	"Bootstrap",
+	"Early Functions",
+	"Early Tuples",
+	"Early Types",
+	"Literals",
+	"Logic",
+	"Math"
+Names
+	"From_to_by_do_",
+	"From_to_do_"
+Body
+
+/**
+ * Counting loop with customizable step and early exit support. Invoke `action`
+ * once for every consecutive value = `start` + N × `step` ≤ `end`, aborting if
+ * `action` answers `false` after an iteration.
+ * 
+ * Parameters:
+ *    start - The start value, inclusive.
+ *    end - The end value, inclusive.
+ *    step - The amount by which to adjust the value after each iteration.
+ *    action - A function that accepts a value in the specified range. If it
+ *       answers `true`, then continue to iterate; if it answers `false`, then
+ *       terminate iteration early.
+ */
+Method "From_to_by_do_" is
+[
+	start : (-∞..∞),
+	end : (-∞..∞],
+	step : [1..∞),
+	action : [⊥]→boolean
+|
+	value : extended integer := start;
+	[
+		$loop : $[]→⊤;
+		if value ≤ end then
+		[
+			continue ::= invoke action with <value>;
+			value := value + step;
+			if continue then
+			[
+				Restart loop;
+			];
+		];
+	]();
+] : ⊤;
+
+/**
+ * If possible, then enforce that the specified function will accept all values
+ * in the implied range. If the limit is definitely `∞` and the function
+ * definitely answers `true`, then strengthen the return type to ⊥.
+ * 
+ * Parameters:
+ *    start - The start value, inclusive.
+ *    end - The end value, inclusive.
+ *    step - The amount by which to adjust the value after each iteration.
+ *    action - A function that accepts a value in the specified range. If it
+ *       answers `true`, then continue to iterate; if it answers `false`, then
+ *       terminate iteration early.
+ */
+Semantic restriction "From_to_by_do_" is
+[
+	start : (-∞..∞)'s type,
+	end : (-∞..∞]'s type,
+	step : [1..∞)'s type,
+	action : [⊥]→boolean's type
+|
+	upper ::= end's upper bound;
+	if action[1] ≠ ⊥ then
+	[
+		lower ::= start's lower bound;
+		if lower ≤ upper then
+		[
+			values ::= integer range
+				from lower (inclusive=false)
+				to upper + 1 (inclusive=false);
+			if ¬values ⊆ action[1] then
+			[
+				Reject parse, expected:
+					"repeatedly applied function to accept all integers from "
+					++ primitive description of lower
+					++ " to "
+					++ primitive description of upper
+					++ " (but it only accepts "
+					++ primitive description of action[1]
+					++ ")";
+			];
+		];
+	];
+	if upper = ∞
+		∧ [ end's lower bound = upper
+		∧ [ action's return type = true's type; ]; ] then
+	[
+		⊥;
+	]
+	else
+	[
+		⊤;
+	];
+];
+
+/**
+ * Counting loop with customizable step and early exit support. Invoke `action`
+ * once for every consecutive value = `start` + N × `step` ≥ `end`, aborting if
+ * `action` answers `false` after an iteration.
+ * 
+ * Parameters:
+ *    start - The start value, inclusive.
+ *    end - The end value, inclusive.
+ *    step - The amount by which to adjust the value after each iteration.
+ *    action - A function that accepts a value in the specified range. If it
+ *       answers `true`, then continue to iterate; if it answers `false`, then
+ *       terminate iteration early.
+ */
+Method "From_to_by_do_" is
+[
+	start : (-∞..∞),
+	end : [-∞..∞),
+	step : (-∞..-1],
+	action : [⊥]→boolean
+|
+	value : extended integer := start;
+	[
+		$loop : $[]→⊤;
+		if value ≥ end then
+		[
+			continue ::= invoke action with <value>;
+			value := value + step;
+			if continue then
+			[
+				Restart loop;
+			];
+		];
+	]();
+] : ⊤;
+
+/**
+ * Counting loop with customizable step. Invoke `action` once for every
+ * consecutive value = `start` + N × `step` ≤ `end`.
+ * 
+ * Parameters:
+ *    start - The start value, inclusive.
+ *    end - The end value, inclusive.
+ *    step - The amount by which to adjust the value after each iteration.
+ *    action - A function that accepts a value in the specified range.
+ */
+Method "From_to_by_do_" is
+[
+	start : (-∞..∞),
+	end : (-∞..∞],
+	step : [1..∞),
+	action : [⊥]→⊤
+|
+	From start to end by step do
+	[
+		value : extended integer
+	|
+		invoke action with <value>;
+		true;
+	];
+];
+
+/**
+ * Counting loop with customizable step. Invoke `action` once for every
+ * consecutive value = `start` + N × `step` ≥ `end`.
+ * 
+ * Parameters:
+ *    start - The start value, inclusive.
+ *    end - The end value, inclusive.
+ *    step - The amount by which to adjust the value after each iteration.
+ *    action - A function that accepts a value in the specified range.
+ */
+Method "From_to_by_do_" is
+[
+	start : (-∞..∞),
+	end : [-∞..∞),
+	step : (-∞..-1],
+	action : [⊥]→⊤
+|
+	From start to end by step do
+	[
+		value : extended integer
+	|
+		invoke action with <value>;
+		true;
+	];
+];
+
+/**
+ * Counting loop with early exit support. Invoke `action` once for every
+ * consecutive number in the range established by `start` and `end`, aborting if
+ * `action` answers `false` after an iteration.
+ * 
+ * Parameters:
+ *    start - The start value, inclusive.
+ *    end - The end value, inclusive.
+ *    action - A function that accepts a value in the specified range. If it
+ *       answers `true`, then continue to iterate; if it answers `false`, then
+ *       terminate iteration early.
+ */
+Method "From_to_do_" is
+[
+	start : (-∞..∞),
+	end : (-∞..∞],
+	action : [⊥]→boolean
+|
+	From start to end by 1 do action;
+];
+
+/**
+ * Counting loop with early exit support. Invoke `action` once for every
+ * consecutive number in the range established by `start` and `end`.
+ * 
+ * Parameters:
+ *    start - The start value, inclusive.
+ *    end - The end value, inclusive.
+ *    action - A function that accepts a value in the specified range.
+ */
+Method "From_to_do_" is
+[
+	start : (-∞..∞),
+	end : (-∞..∞],
+	action : [⊥]→⊤
+|
+	From start to end by 1 do
+	[
+		value : extended integer
+	|
+		invoke action with <value>;
+		true;
+	];
+];

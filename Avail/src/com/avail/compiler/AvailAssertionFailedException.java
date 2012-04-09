@@ -53,7 +53,7 @@ extends RuntimeException
 	 * The {@linkplain StringDescriptor error message} describing the
 	 * assertion.
 	 */
-	final AvailObject assertionString;
+	private final @NotNull AvailObject assertionString;
 
 	/**
 	 * Return the {@linkplain StringDescriptor error message} describing the
@@ -77,5 +77,13 @@ extends RuntimeException
 		final @NotNull AvailObject assertionString)
 	{
 		this.assertionString = assertionString;
+	}
+
+	@Override
+	public @NotNull String getMessage ()
+	{
+		return String.format(
+			"An assertion failed: %s\n",
+			assertionString.asNativeString());
 	}
 }

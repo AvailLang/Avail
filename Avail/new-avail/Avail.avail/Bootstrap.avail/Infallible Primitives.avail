@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.04.01 18:02:01.675 -0500
+ * * Last Generated On: 2012.04.09 13:16:55.555 -0500
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -50,6 +50,7 @@ Uses
 		"$_",
 		"$_@pc=_stack=_[_]caller=_",
 		"<_,_`…|_>",
+		"Assert:_(_)",
 		"Breakpoint",
 		"Clear_",
 		"Print:_",
@@ -1775,6 +1776,25 @@ Method "primitive description of_" is
 |
 	Primitive 259;
 ] : string;
+
+/**
+ * Early assertion mechanism. This is obsolete once exceptions are available.
+ * Raise a special exception in the virtual machine that may be trapped to
+ * facilitate debugging. This exception will provided access to `message`.
+ *
+ * Parameters:
+ *    predicate - A boolean, usually derived from a more complex predicate
+ *       expression.
+ *    message - Text describing the assertion failure, ignored unless
+ *       `predicate` is `false`.
+ */
+Method "Assert:_(_)" is
+[
+	predicate : boolean,
+	message : string
+|
+	Primitive 260;
+] : ⊤;
 
 /**
  * Compute and answer the numeric argument as a single-precision floating point

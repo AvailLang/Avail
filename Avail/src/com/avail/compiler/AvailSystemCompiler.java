@@ -82,10 +82,8 @@ extends AbstractAvailCompiler
 
 	/**
 	 * Parse a top-level statement.  This is the <em>only</em> boundary for the
-	 * backtracking grammar (it used to be that <em>all</em> statements had to
-	 * be unambiguous, even those in blocks).  The passed continuation will be
-	 * invoked at most once, and only if the top-level statement had a single
-	 * interpretation.
+	 * backtracking grammar.  The passed continuation will be invoked at most
+	 * once, and only if the top-level statement had a single interpretation.
 	 */
 	@Override
 	void parseOutermostStatement (
@@ -2554,7 +2552,7 @@ extends AbstractAvailCompiler
 			{
 				start.expected(
 					"end of statements, since the previous "
-					+ "one has type bottom");
+					+ "one has type ⊥");
 				return;
 			}
 			if (!lastStatement.expressionType().equals(TOP.o())

@@ -365,12 +365,12 @@ Semantic restriction "invoke_with_" is
 
 /**
  * Basic counting loop with early exit support. Invoke `action` once with each
- * consecutive number in the range established by `startIndex` and `endIndex`.
+ * consecutive number in the range established by `start` and `end`.
  * 
  * Parameters:
- *    start - The start index, inclusive.
- *    end - The end index, inclusive.
- *    action - A function that accepts an index in the specified range. If it
+ *    start - The start value, inclusive.
+ *    end - The end value, inclusive.
+ *    action - A function that accepts a value in the specified range. If it
  *       answers `true`, then continue to iterate; if it answers `false`, then
  *       terminate iteration early.
  */
