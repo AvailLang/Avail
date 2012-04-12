@@ -40,7 +40,8 @@ Uses
 	"Early Math",
 	"Early Types",
 	"Enumeration Support",
-	"Literals"
+	"Literals",
+	"Early Logic"
 Names
 Body
 
@@ -54,7 +55,7 @@ Body
  */
 Semantic restriction "_'s element type" is
 [
-	aSetMeta : set meta's type
+	aSetMeta : set's type's type
 |
 	aSetType ::= aSetMeta's instance;
 	aSetType's element type's type;
@@ -73,8 +74,8 @@ Semantic restriction "_'s element type" is
  */
 Semantic restriction "_∪_" is
 [
-	typeA : set meta,
-	typeB : set meta
+	typeA : set's type,
+	typeB : set's type
 |
 	lower ::= ||typeA||'s lower bound min ||typeB||'s lower bound;
 	upper ::= cast ||typeA||'s upper bound + ||typeB||'s upper bound + 1
@@ -84,6 +85,81 @@ Semantic restriction "_∪_" is
 
 /* Make union left associate. */
 Grammatical restriction {"_∪_"} is <∅, {"_∪_"}>;
+
+/* Make intersection left associate. */
+Grammatical restriction {"_∩_"} is <∅, {"_∩_"}>;
+
+/**
+ * The static type of the union of two sets is the set type whose element type
+ * is the type union of the element types of the sets and whose cardinality
+ * requirement is the type intersection of the cardinality requirements of the
+ * sets.
+ * 
+ * Parameters:
+ *    typeA - A set type.
+ *    typeB - A set type.
+ * Returns:
+ *    The strongest possible type of the intersection of the sets.
+ */
+Semantic restriction "_∩_" is
+[
+	typeA : set's type,
+	typeB : set's type
+|
+	upper ::= ||typeA||'s upper bound min ||typeB||'s upper bound;
+	{typeA's element type ∩ (typeB's element type) | [0..upper)};
+];
+
+/**
+ * If it can be statically determined that the type of the right-hand argument
+ * (A) is a subtype of the type of the left-hand argument (B), and that A's
+ * lower bound is greater than or equal to B's lower bound, and that A's upper
+ * bound is less than or equal to B's upper bound, then it is known that the
+ * return type of _⊆_ is true's type.
+ * 
+ * Parameters:
+ *    typeA - A set type.
+ *    typeB - A set type.
+ * Returns:
+ *    A boolean.
+ */
+Semantic restriction "_⊆_" is
+[
+	typeA : set's type,
+	typeB : set's type
+|
+	if (typeA ⊆ typeB ∧ 
+		[||typeA||'s lower bound ≥ ||typeB||'s lower bound ∧ 
+		[||typeB||'s upper bound ≥ ||typeA||'s upper bound;];])
+	then [true's type;]
+	else [boolean;];
+];
+
+/**
+ * If it can be statically determined that the type of the right-hand argument
+ * (A) is not a subtype of the type of the left-hand argument (B), or that A's
+ * lower bound is less than to B's lower bound, or that A's upper bound is 
+ * greater than to B's upper bound, then it is known that the return type of
+ * _⊆_ is false's type.
+ * 
+ * Parameters:
+ *    typeA - A set type.
+ *    typeB - A set type.
+ * Returns:
+ *    A boolean.
+ */
+Semantic restriction "_⊆_" is
+[
+	typeA : set's type,
+	typeB : set's type
+|
+	if ((¬(typeA ⊆ typeB)) ∨ 
+		[||typeB||'s lower bound > ||typeA||'s lower bound ∨ 
+		[||typeA||'s upper bound > ||typeB||'s upper bound;];])
+	then [false's type;]
+	else [boolean;];
+];
+
 
 /* Disambiguate `_→_` and `_→set`. */
 Grammatical restriction {"_→_"} is <∅, {"set"}>;
