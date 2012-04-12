@@ -319,7 +319,7 @@ Method "_→_" is
 ] : boolean;
 
 /**
- * If the left-hand argument of `_∧_` is known statically to be `false`, then
+ * If the left-hand argument of `_→_` is known statically to be `false`, then
  * the expression is known statically to be `true`.
  *
  * Parameters:
@@ -337,7 +337,7 @@ Semantic restriction "_→_" is
 ];
 
 /**
- * If the right-hand argument of `_∧_` is known statically to be `true`, then
+ * If the right-hand argument of `_→_` is known statically to be `true`, then
  * the expression is known statically to be `true`.
  *
  * Parameters:
@@ -393,7 +393,7 @@ Method "_←_" is
 ] : boolean;
 
 /**
- * If the left-hand argument of `_∧_` is known statically to be `true`, then
+ * If the left-hand argument of `_←_` is known statically to be `true`, then
  * the static type of the expression is `true`.
  *
  * Parameters:
