@@ -41,7 +41,8 @@ Uses
 	"Early Control Structures",
 	"Early Literals",
 	"Early Functions",
-	"Early Types"
+	"Early Types",
+	"Literals"
 Names
 	"_⊕_",
 	"_↑_",
@@ -611,3 +612,19 @@ Semantic restriction "_↚_" is
 |
 	true's type;
 ];
+
+Grammatical restriction {"¬_"} is
+	<{"_∧_", "_∨_", "_⊕_", "_↑_", "_↓_", "_→_", "_←_", "_↔_", "_↛_", "_↚_"}>;
+	
+Grammatical restriction {"_∧_"} is
+	<{"_∨_", "_→_", "_↔_", "_←_", "_⊕_", "_↛_", "_↚_"},
+	{"_∧_", "_∨_", "_⊕_", "_→_", "_↔_", "_←_", "_↛_", "_↚_"}>;
+	
+Grammatical restriction {"_∨_"} is 
+	<{"_→_", "_↔_", "_←_", "_⊕_", "_↛_", "_↚_"},
+	{"_∨_", "_→_", "_↔_", "_←_", "_⊕_", "_↛_", "_↚_"}>;
+
+Grammatical restriction {"_→_", "_←_", "_↛_", "_↚_"} is 
+	<{"_↔_", "_⊕_"}, {"_→_","_↔_", "_←_", "_⊕_", "_↛_", "_↚_"}>;
+
+Grammatical restriction {"_↔_", "_⊕_"} is <∅, {"_↔_", "_⊕_"}>;
