@@ -141,7 +141,7 @@ Semantic restriction "_↑_" is
 Semantic restriction "_↑_" is
 [
 	a : true's type's type,
-	b : ([]→true's type)'s type
+	b : []→(true's type)'s type
 |
 	false's type;
 ];
@@ -159,7 +159,7 @@ Semantic restriction "_↑_" is
 Semantic restriction "_↑_" is
 [
 	a : boolean's type,
-	b : ([]→false's type)'s type
+	b : []→(false's type)'s type
 |
 	true's type;
 ];
@@ -221,7 +221,7 @@ Method "_↓_" is
 Semantic restriction "_↓_" is
 [
 	a : true's type's type,
-	b : ([]→boolean)'s type
+	b : []→boolean's type
 |
 	false's type;
 ];
@@ -239,7 +239,7 @@ Semantic restriction "_↓_" is
 Semantic restriction "_↓_" is
 [
 	a : false's type's type,
-	b : (function accepting <> and returning true's type)'s type
+	b : []→(true's type)'s type
 |
 	false's type;
 ];
@@ -257,7 +257,7 @@ Semantic restriction "_↓_" is
 Semantic restriction "_↓_" is
 [
 	a : false's type's type,
-	b : ([]→false's type)'s type
+	b : []→(false's type)'s type
 |
 	true's type;
 ];
@@ -275,7 +275,7 @@ Semantic restriction "_↓_" is
 Semantic restriction "_↓_" is
 [
 	a : boolean's type,
-	b : ([]→true's type)'s type
+	b : []→(true's type)'s type
 |
 	false's type;
 ];
@@ -331,7 +331,7 @@ Method "_→_" is
 Semantic restriction "_→_" is
 [
 	a : false's type's type,
-	b : ([]→boolean)'s type
+	b : []→boolean's type
 |
 	true's type;
 ];
@@ -349,7 +349,7 @@ Semantic restriction "_→_" is
 Semantic restriction "_→_" is
 [
 	a : boolean's type,
-	b : ([]→true's type)'s type
+	b : []→(true's type)'s type
 |
 	true's type;
 ];
@@ -405,7 +405,7 @@ Method "_←_" is
 Semantic restriction "_←_" is
 [
 	a : true's type's type,
-	b : ([]→boolean)'s type
+	b : []→boolean's type
 |
 	true's type;
 ];
@@ -423,7 +423,7 @@ Semantic restriction "_←_" is
 Semantic restriction "_←_" is
 [
 	a : boolean's type,
-	b : ([]→false's type)'s type
+	b : []→(false's type)'s type
 |
 	true's type;
 ];
@@ -497,7 +497,7 @@ Method "_↛_" is
 Semantic restriction "_↛_" is
 [
 	a : false's type's type,
-	b : ([]→boolean)'s type
+	b : []→boolean's type
 |
 	false's type;
 ];
@@ -515,7 +515,7 @@ Semantic restriction "_↛_" is
 Semantic restriction "_↛_" is
 [
 	a : boolean's type,
-	b : ([]→true's type)'s type
+	b : []→(true's type)'s type
 |
 	false's type;
 ];
@@ -571,7 +571,7 @@ Method "_↚_" is
 Semantic restriction "_↚_" is
 [
 	a : true's type's type,
-	b : ([]→boolean)'s type
+	b : []→boolean's type
 |
 	false's type;
 ];
@@ -589,7 +589,7 @@ Semantic restriction "_↚_" is
 Semantic restriction "_↚_" is
 [
 	a : boolean's type,
-	b : ([]→false's type)'s type
+	b : []→(false's type)'s type
 |
 	false's type;
 ];
@@ -608,7 +608,7 @@ Semantic restriction "_↚_" is
 Semantic restriction "_↚_" is
 [
 	a : false's type's type,
-	b : ([]→true's type)'s type
+	b : []→(true's type)'s type
 |
 	true's type;
 ];

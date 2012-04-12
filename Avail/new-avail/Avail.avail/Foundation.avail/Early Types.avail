@@ -43,9 +43,7 @@ Uses
 	"Early Tuples",
 	"Enumeration Support",
 	"Literals",
-	"Variables",
-	"Assertions",
-	"Early Logic"
+	"Variables"
 Names
 	"[«_‡,»]→_",
 	"<«_‡,»`…|_.._>",
@@ -56,19 +54,12 @@ Names
 	"{_|_.._}",
 	"{_|_..}",
 	"{_|.._}",
-	/* "{_|_}" */
 	"{_|}",
 	"{_→_|_.._}",
 	"{_→_|_..}",
 	"{_→_|.._}",
-	/* "{_→_|_}" */
 	"{_→_|}"
 Body
-
-/*
- * TODO: Implement remaining methods. Implement semantic restrictions for
- * existing/remaining methods. Document existing/remaining methods.
- */
 
 /**
  * Construct and answer a function type from the lexically specified argument
@@ -87,6 +78,10 @@ Method "[«_‡,»]→_" is
 |
 	function accepting argTypes and returning returnType;
 ] : function meta;
+
+/* Make it easier to specify argument types in semantic restrictions. */
+Grammatical restriction {"[«_‡,»]→_"} is <∅, {"_'s type"}>;
+Grammatical restriction {"[`…]→_"} is <{"_'s type"}>;
 
 /**
  * Strengthen function type construction.

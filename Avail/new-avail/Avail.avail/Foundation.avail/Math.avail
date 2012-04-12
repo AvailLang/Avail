@@ -137,7 +137,7 @@ Method "type promotion function for_" is
 			];
 		];
 	];
-] : [number's type, number's type]→number's type;
+] : [number's type, number's type]→(number's type);
 
 /* These messages describe arithmetic failure (integers only). */
 cannotAddMessage ::= "terms not to be unlike infinities";
