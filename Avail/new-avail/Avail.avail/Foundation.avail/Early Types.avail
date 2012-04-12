@@ -163,7 +163,7 @@ Semantic restriction "<«_‡,»`…|_.._>" is
 	maximumSizeType : [0..∞]'s type
 |
 	leadingTypesTypes ::= 
-	leadingAndDefaultTypesTypes's leading types;
+		leadingAndDefaultTypesTypes's leading types;
 	leadingTypesTypesSize ::= |leadingTypesTypes|;
 	typesTypesInstanceTuple : tuple := <>;
 	
@@ -174,7 +174,13 @@ Semantic restriction "<«_‡,»`…|_.._>" is
 	   		typesTypesInstanceTuple := 
 	   			if |leadingTypesTypes[index]| ≠ 1 then [
 					Assert: leadingTypesTypes[index] = type 
-						("I'm an informative assertion failure!");
+						("Assertion failure - Tuple leading type at index: " 
+							++ primitive description of index ++ 
+							" has size ≠ 1 and is " ++ 
+							primitive description of 
+							leadingTypesTypes[index] 
+							++ ", however only type is acceptable "
+							++ "in this case.");
    					eject ↑typesTypesInstanceTuple ++ <type>; 
 				] else [
 				    eject ↑typesTypesInstanceTuple ++ 
@@ -189,7 +195,10 @@ Semantic restriction "<«_‡,»`…|_.._>" is
 	defaultTypeTypeInstance : any;
 	if |defaultTypeType| ≠ 1 then [
 		Assert: defaultTypeType = type 
-			("I'm an informative assertion failure!");
+			("Assertion failure - Tuple default type is " ++ 
+				primitive description of defaultTypeType 
+				++ " and has size ≠ 1, however only type is acceptable "
+				++ "in this case.");
 		defaultTypeTypeInstance := type; 
 	] else [
 	    defaultTypeTypeInstance := defaultTypeType's instance;
@@ -254,7 +263,13 @@ Semantic restriction "<«_‡,»`…|_..>" is
 	   		typesTypesInstanceTuple := 
 	   			if |leadingTypesTypes[index]| ≠ 1 then [
 					Assert: leadingTypesTypes[index] = type 
-						("I'm an informative assertion failure!");
+						("Assertion failure - Tuple leading type at index: " 
+							++ primitive description of index ++ 
+							" has size ≠ 1 and is " ++ 
+							primitive description of 
+							leadingTypesTypes[index] 
+							++ ", however only type is acceptable "
+							++ "in this case.");
    					eject ↑typesTypesInstanceTuple ++ <type>; 
 				] else [
 				    eject ↑typesTypesInstanceTuple ++ 
@@ -269,7 +284,10 @@ Semantic restriction "<«_‡,»`…|_..>" is
 	defaultTypeTypeInstance : any;
 	if |defaultTypeType| ≠ 1 then [
 		Assert: defaultTypeType = type 
-			("I'm an informative assertion failure!");
+			("Assertion failure - Tuple default type is " ++ 
+				primitive description of defaultTypeType 
+				++ " and has size ≠ 1, however only type is acceptable "
+				++ "in this case.");
 		defaultTypeTypeInstance := type; 
 	] else [
 	    defaultTypeTypeInstance := defaultTypeType's instance;
@@ -334,7 +352,13 @@ Semantic restriction "<«_‡,»`…|.._>" is
 	   		typesTypesInstanceTuple := 
 	   			if |leadingTypesTypes[index]| ≠ 1 then [
 					Assert: leadingTypesTypes[index] = type 
-						("I'm an informative assertion failure!");
+						("Assertion failure - Tuple leading type at index: " 
+							++ primitive description of index ++ 
+							" has size ≠ 1 and is " ++ 
+							primitive description of 
+							leadingTypesTypes[index] 
+							++ ", however only type is acceptable "
+							++ "in this case.");
    					eject ↑typesTypesInstanceTuple ++ <type>; 
 				] else [
 				    eject ↑typesTypesInstanceTuple ++ 
@@ -349,7 +373,10 @@ Semantic restriction "<«_‡,»`…|.._>" is
 	defaultTypeTypeInstance : any;
 	if |defaultTypeType| ≠ 1 then [
 		Assert: defaultTypeType = type 
-			("I'm an informative assertion failure!");
+			("Assertion failure - Tuple default type is " ++ 
+				primitive description of defaultTypeType 
+				++ " and has size ≠ 1, however only type is acceptable "
+				++ "in this case.");
 		defaultTypeTypeInstance := type; 
 	] else [
 	    defaultTypeTypeInstance := defaultTypeType's instance;
@@ -415,7 +442,13 @@ Semantic restriction "<«_‡,»`…|_..>" is
 	   		typesTypesInstanceTuple := 
 	   			if |leadingTypesTypes[index]| ≠ 1 then [
 					Assert: leadingTypesTypes[index] = type 
-						("I'm an informative assertion failure!");
+						("Assertion failure - Tuple leading type at index: " 
+							++ primitive description of index ++ 
+							" has size ≠ 1 and is " ++ 
+							primitive description of 
+							leadingTypesTypes[index] 
+							++ ", however only type is acceptable "
+							++ "in this case.");
    					eject ↑typesTypesInstanceTuple ++ <type>; 
 				] else [
 				    eject ↑typesTypesInstanceTuple ++ 
@@ -430,7 +463,10 @@ Semantic restriction "<«_‡,»`…|_..>" is
 	defaultTypeTypeInstance : any;
 	if |defaultTypeType| ≠ 1 then [
 		Assert: defaultTypeType = type 
-			("I'm an informative assertion failure!");
+			("Assertion failure - Tuple default type is " ++ 
+				primitive description of defaultTypeType 
+				++ " and has size ≠ 1, however only type is acceptable "
+				++ "in this case.");
 		defaultTypeTypeInstance := type; 
 	] else [
 	    defaultTypeTypeInstance := defaultTypeType's instance;
@@ -489,7 +525,13 @@ Semantic restriction "<«_‡,»`…|>" is
 	   		typesTypesInstanceTuple := 
 	   			if |leadingTypesTypes[index]| ≠ 1 then [
 					Assert: leadingTypesTypes[index] = type 
-						("I'm an informative assertion failure!");
+						("Assertion failure - Tuple leading type at index: " 
+							++ primitive description of index ++ 
+							" has size ≠ 1 and is " ++ 
+							primitive description of 
+							leadingTypesTypes[index] 
+							++ ", however only type is acceptable "
+							++ "in this case.");
    					eject ↑typesTypesInstanceTuple ++ <type>; 
 				] else [
 				    eject ↑typesTypesInstanceTuple ++ 
@@ -504,7 +546,10 @@ Semantic restriction "<«_‡,»`…|>" is
 	defaultTypeTypeInstance : any;
 	if |defaultTypeType| ≠ 1 then [
 		Assert: defaultTypeType = type 
-			("I'm an informative assertion failure!");
+			("Assertion failure - Tuple default type is " ++ 
+				primitive description of defaultTypeType 
+				++ " and has size ≠ 1, however only type is acceptable "
+				++ "in this case.");
 		defaultTypeTypeInstance := type; 
 	] else [
 	    defaultTypeTypeInstance := defaultTypeType's instance;
