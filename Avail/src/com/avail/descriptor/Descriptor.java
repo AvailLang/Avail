@@ -76,7 +76,6 @@ extends AbstractDescriptor
 		super(isMutable);
 	}
 
-
 	/**
 	 * Answer a {@linkplain UnsupportedOperationException unsupported operation
 	 * exception} suitable to be thrown by the sender.  We don't throw it here,
@@ -693,7 +692,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_InvocationCount (
+	void o_CountdownToReoptimize (
 		final @NotNull AvailObject object,
 		final int value)
 	{
@@ -2975,29 +2974,30 @@ extends AbstractDescriptor
 	}
 
 
+	/**
+	 * Answer true if the object is aFunction or it (recursively) contains
+	 * aFunction.  It only follows the trail of literal compiledCode and
+	 * function objects, so this is a dead end by default.
+	 */
 	@Override
 	boolean o_ContainsBlock (
 		final @NotNull AvailObject object,
 		final AvailObject aFunction)
 	{
-		//  Answer true if either I am aFunction or I contain aFunction.  I only follow
-		//  the trail of literal compiledCode and function objects, so this is a dead end.
-
 		return false;
 	}
 
 
-
-	@Override
+	/**
+	 * The object was just scanned, and its pointers converted into valid
+	 * ToSpace pointers.  Do any follow-up activities specific to the kind of
+	 * object it is.
+	 */
+	@Override @Deprecated
 	void o_PostFault (
 		final @NotNull AvailObject object)
 	{
-		//  The object was just scanned, and its pointers converted into valid ToSpace pointers.
-		//  Do any follow-up activities specific to the kind of object it is.
-		//
-		//  do nothing
-
-
+		// do nothing special by default.
 	}
 
 	@Override
@@ -4471,6 +4471,18 @@ extends AbstractDescriptor
 
 	@Override
 	@NotNull AvailObject o_InstanceCount (final @NotNull AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	long o_TotalInvocations (final @NotNull AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_TallyInvocation (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}

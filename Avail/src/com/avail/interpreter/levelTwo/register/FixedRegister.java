@@ -1,5 +1,5 @@
 /**
- * L2IntegerRegister.java
+ * L2Translator.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -32,23 +32,40 @@
 
 package com.avail.interpreter.levelTwo.register;
 
+import com.avail.descriptor.*;
+import com.avail.interpreter.Primitive;
+import com.avail.interpreter.levelTwo.L2Interpreter;
 
 /**
- * {@code L2IntegerRegister} models the conceptual usage of a register that can
- * store a machine integer.
- *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * A collection of representatives of {@link L2ObjectRegister}s, occupying
+ * indices prior to any non-fixed registers.
  */
-public class L2IntegerRegister
-extends L2Register
+public enum FixedRegister
 {
 	/**
-	 * Construct a new {@link L2IntegerRegister}.
-	 *
-	 * @param debugValue A value used to distinguish the new instance visually.
+	 * The enumeration value representing the fixed register reserved for
+	 * holding Avail's {@link NullDescriptor#nullObject() null value}.
+	 * Read only.
 	 */
-	public L2IntegerRegister (final long debugValue)
-	{
-		super(debugValue);
-	}
+	NULL,
+
+	/**
+	 * The enumeration value representing the fixed register reserved for
+	 * holding the {@link L2Interpreter}'s calling {@linkplain
+	 * ContinuationDescriptor continuation}.
+	 */
+	CALLER,
+
+	/**
+	 * The enumeration value representing the fixed register reserved for
+	 * holding the currently executing {@linkplain FunctionDescriptor
+	 * function}.
+	 */
+	FUNCTION,
+
+	/**
+	 * The enumeration value representing the fixed register reserved for
+	 * holding the most recently failed {@link Primitive}'s failure value.
+	 */
+	PRIMITIVE_FAILURE;
 }

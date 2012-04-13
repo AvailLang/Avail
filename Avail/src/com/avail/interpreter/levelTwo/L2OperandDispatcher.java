@@ -48,6 +48,13 @@ import com.avail.interpreter.levelTwo.operand.*;
 public interface L2OperandDispatcher
 {
 	/**
+	 * Process an operand which is merely a comment.
+	 *
+	 * @param operand an {@link L2CommentOperand}.
+	 */
+	void doOperand (L2CommentOperand operand);
+
+	/**
 	 * Process an operand which is a constant.
 	 *
 	 * @param operand an {@link L2ConstantOperand}.

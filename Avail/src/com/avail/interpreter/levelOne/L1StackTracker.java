@@ -36,31 +36,73 @@ import static com.avail.descriptor.AvailObject.error;
 import static java.lang.Math.max;
 import com.avail.descriptor.AvailObject;
 
+/**
+ * An {@code L1StackTracker} verifies the integrity of a sequence of {@link
+ * L1Instruction}s and calculates how big a stack will be necessary.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 abstract class L1StackTracker implements L1OperationDispatcher
 {
+	/**
+	 * The operands of the {@link L1Instruction} being traced.
+	 */
 	int [] currentOperands = null;
 
+	/**
+	 * The number of items that will have been pushed on the stack at this
+	 * point in the code.
+	 */
 	int currentDepth = 0;
 
+	/**
+	 * Answer the number of items that will have been pushed onto the stack at
+	 * this point.
+	 *
+	 * @return The stack depth.
+	 */
 	int currentDepth ()
 	{
 		return currentDepth;
 	}
 
+	/**
+	 * The maximum stack depth needed so far.
+	 */
 	int maxDepth = 0;
 
+	/**
+	 * Answer the deepest encountered stack depth so far.
+	 *
+	 * @return The maximum
+	 */
 	int maxDepth ()
 	{
 		return maxDepth;
 	}
 
+	/**
+	 * Whether the next instruction is reachable.
+	 */
 	boolean reachable = true;
 
+	/**
+	 * Answer whether there is a path through the code that can reach the next
+	 * instruction.  Since level one code has no branches and always ends with
+	 * an {@link L1Operation#L1Implied_Return}, this is a simple test.
+	 *
+	 * @return Whether the next instruction is reachable.
+	 */
 	boolean reachable ()
 	{
 		return reachable;
 	}
 
+	/**
+	 * Record the effect of an {@link L1Instruction}.
+	 *
+	 * @param instruction The instruction to record.
+	 */
 	void track (final L1Instruction instruction)
 	{
 		assert reachable;
@@ -73,10 +115,14 @@ abstract class L1StackTracker implements L1OperationDispatcher
 		maxDepth = max(maxDepth, currentDepth);
 	}
 
+	/**
+	 * Answer the literal at the specified index.
+	 *
+	 * @param literalIndex The literal's index.
+	 * @return The literal {@link AvailObject}.
+	 */
 	abstract AvailObject literalAt (int literalIndex);
 
-
-	// Operation dispatching
 
 	@Override
 	public void L1_doCall ()

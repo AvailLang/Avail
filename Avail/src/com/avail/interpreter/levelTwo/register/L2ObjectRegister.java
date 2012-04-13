@@ -46,9 +46,28 @@ extends L2Register
 {
 	/**
 	 * Construct a new {@link L2ObjectRegister}.
+	 *
+	 * @param debugValue A value used to distinguish the new instance visually.
 	 */
-	public L2ObjectRegister ()
+	public L2ObjectRegister (final long debugValue)
 	{
-		// No implementation required.
+		super(debugValue);
+	}
+
+	/**
+	 * Construct a new {@link L2ObjectRegister}, pre-colored to a particular
+	 * register number.
+	 *
+	 * @param debugValue A value used to distinguish the new instance visually.
+	 * @param index The index to which to constrain the register.
+	 * @return The new register.
+	 */
+	public static L2ObjectRegister precolored (
+		final long debugValue,
+		final int index)
+	{
+		final L2ObjectRegister register = new L2ObjectRegister(debugValue);
+		register.setFinalIndex(index);
+		return register;
 	}
 }

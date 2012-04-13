@@ -699,9 +699,25 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	AvailObject o_ValueType (final AvailObject object)
 	{
-		// TODO: [MvG] Is this legal?
-		return null;
+		// object must be a map.
+		return getSuperkind(object).valueType();
 	}
+
+	@Override
+	AvailObject o_ReadType (final AvailObject object)
+	{
+		// object must be a variable
+		return getSuperkind(object).readType();
+	}
+
+
+	@Override
+	AvailObject o_WriteType (final AvailObject object)
+	{
+		// object must be a variable
+		return getSuperkind(object).writeType();
+	}
+
 
 	/**
 	 * Answer a new instance of this descriptor based on some object whose type

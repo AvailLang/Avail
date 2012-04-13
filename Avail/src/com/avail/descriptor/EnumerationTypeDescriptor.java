@@ -750,6 +750,18 @@ extends AbstractEnumerationTypeDescriptor
 		return super.o_MarshalToJava(object, ignoredClassHint);
 	}
 
+	@Override
+	AvailObject o_ReadType (final AvailObject object)
+	{
+		return getSuperkind(object).readType();
+	}
+
+	@Override
+	AvailObject o_WriteType (final AvailObject object)
+	{
+		return getSuperkind(object).writeType();
+	}
+
 	/**
 	 * Construct an {@linkplain EnumerationTypeDescriptor enumeration} from a
 	 * {@linkplain SetDescriptor set} with at least two instances.  The set

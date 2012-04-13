@@ -2306,10 +2306,10 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public void invocationCount (
+	public void countdownToReoptimize (
 		final int value)
 	{
-		descriptor.o_InvocationCount(this, value);
+		descriptor.o_CountdownToReoptimize(this, value);
 	}
 
 	/**
@@ -3405,6 +3405,7 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
+	@Deprecated
 	public void postFault ()
 	{
 		descriptor.o_PostFault(this);
@@ -6116,5 +6117,21 @@ implements Iterable<AvailObject>
 	public @NotNull AvailObject instanceCount ()
 	{
 		return descriptor.o_InstanceCount(this);
+	}
+
+	/**
+	 * @return
+	 */
+	public long totalInvocations ()
+	{
+		return descriptor.o_TotalInvocations(this);
+	}
+
+	/**
+	 *
+	 */
+	public void tallyInvocation ()
+	{
+		descriptor.o_TallyInvocation(this);
 	}
 }

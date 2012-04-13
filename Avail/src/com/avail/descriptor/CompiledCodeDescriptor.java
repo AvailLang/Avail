@@ -33,6 +33,8 @@
 package com.avail.descriptor;
 
 import java.util.List;
+import static com.avail.descriptor.CompiledCodeDescriptor.IntegerSlots.*;
+import static com.avail.descriptor.CompiledCodeDescriptor.ObjectSlots.*;
 import com.avail.annotations.*;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.interpreter.*;
@@ -75,7 +77,7 @@ extends Descriptor
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots implements IntegerSlotsEnum
+	public static enum IntegerSlots implements IntegerSlotsEnum
 	{
 		/**
 		 * The hash value of this {@linkplain CompiledCodeDescriptor compiled
@@ -116,7 +118,14 @@ extends Descriptor
 		 * The remaining number of times to invoke this code before performing
 		 * a reoptimization attempt.
 		 */
-		INVOCATION_COUNT;
+		COUNTDOWN_TO_REOPTIMIZE,
+
+		/**
+		 * The total number of times this code has been invoked.  This is useful
+		 * for determining the expected utility of inlining (i.e., no point in
+		 * inlining a method that is almost never actually called).
+		 */
+		TOTAL_INVOCATIONS;
 
 
 		/**
@@ -155,13 +164,12 @@ extends Descriptor
 			HI_NUM_LOCALS_LOW_NUM_ARGS,
 			0,
 			16);
-
 	}
 
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	public static enum ObjectSlots implements ObjectSlotsEnum
 	{
 		/**
 		 * The {@linkplain NybbleTupleDescriptor tuple of nybbles} that describe
@@ -203,15 +211,22 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final int value)
 	{
-		object.setSlot(IntegerSlots.HASH, value);
+		object.setSlot(HASH, value);
 	}
 
 	@Override @AvailMethod
-	void o_InvocationCount (
+	void o_CountdownToReoptimize (
 		final @NotNull AvailObject object,
 		final int value)
 	{
-		object.setSlot(IntegerSlots.INVOCATION_COUNT, value);
+		object.setSlot(COUNTDOWN_TO_REOPTIMIZE, value);
+	}
+
+	@Override @AvailMethod
+	long o_TotalInvocations (
+		final @NotNull AvailObject object)
+	{
+		return object.slot(TOTAL_INVOCATIONS) & 0xFFFFFFFFL;
 	}
 
 	@Override @AvailMethod
@@ -219,42 +234,43 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final int subscript)
 	{
-		return object.slot(ObjectSlots.LITERAL_AT_, subscript);
+		return object.slot(LITERAL_AT_, subscript);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_FunctionType (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.FUNCTION_TYPE);
+		return object.slot(FUNCTION_TYPE);
 	}
 
 	@Override @AvailMethod
 	int o_Hash (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(IntegerSlots.HASH);
+		return object.slot(HASH);
 	}
 
 	@Override @AvailMethod
 	int o_InvocationCount (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(IntegerSlots.INVOCATION_COUNT);
+		return object.slot(COUNTDOWN_TO_REOPTIMIZE);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_Nybbles (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.NYBBLES);
+		return object.slot(NYBBLES);
 	}
 
 	@Override boolean allowsImmutableToMutableReferenceInField (
 		final @NotNull AbstractSlotsEnum e)
 	{
-		return e == ObjectSlots.STARTING_CHUNK
-			|| e == IntegerSlots.INVOCATION_COUNT;
+		return e == STARTING_CHUNK
+			|| e == TOTAL_INVOCATIONS
+			|| e == COUNTDOWN_TO_REOPTIMIZE;
 	}
 
 	@Override @AvailMethod
@@ -363,7 +379,7 @@ extends Descriptor
 		final @NotNull AvailObject value)
 	{
 		object.setSlot(
-			ObjectSlots.STARTING_CHUNK,
+			STARTING_CHUNK,
 			value);
 	}
 
@@ -381,7 +397,7 @@ extends Descriptor
 	int o_NumArgs (
 		final @NotNull AvailObject object)
 	{
-		return (short)object.slot(IntegerSlots.NUM_ARGS);
+		return (short)object.slot(NUM_ARGS);
 	}
 
 	/**
@@ -396,7 +412,7 @@ extends Descriptor
 	int o_NumArgsAndLocalsAndStack (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(IntegerSlots.FRAME_SLOTS);
+		return object.slot(FRAME_SLOTS);
 	}
 
 	@Override @AvailMethod
@@ -410,14 +426,14 @@ extends Descriptor
 	int o_NumLocals (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(IntegerSlots.NUM_LOCALS);
+		return object.slot(NUM_LOCALS);
 	}
 
 	@Override @AvailMethod
 	int o_NumOuters (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(IntegerSlots.NUM_OUTERS);
+		return object.slot(NUM_OUTERS);
 	}
 
 	@Override @AvailMethod
@@ -426,27 +442,52 @@ extends Descriptor
 	{
 		//  Answer the primitive number I should try before falling back on
 		//  the Avail code.  Zero indicates not-a-primitive.
-		return object.slot(IntegerSlots.PRIMITIVE_NUMBER);
+		return object.slot(PRIMITIVE_NUMBER);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_StartingChunk (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.STARTING_CHUNK);
+		return object.slot(STARTING_CHUNK);
 	}
 
+	/**
+	 * A function based on this code was just invoked.  Tally that fact,
+	 * taking care to avoid overflowing the counter's representation (i.e., it
+	 * stays stuck at the maximum value).  The total number of invocations of
+	 * the code can be extracted as a long [0..2^32) via {@link
+	 * AvailObject#totalInvocations()}.
+	 */
 	@Override @AvailMethod
+	void o_TallyInvocation (
+		final @NotNull AvailObject object)
+	{
+		int counter = object.slot(TOTAL_INVOCATIONS);
+		counter++;
+		if (counter != 0)
+		{
+			// Didn't overflow *unsigned* int.
+			object.setSlot(TOTAL_INVOCATIONS, counter);
+		}
+	}
+
+	/**
+	 * The object was just scanned, and its pointers converted into valid
+	 * ToSpace pointers.  Do any follow-up activities specific to the kind of
+	 * object it is.
+	 *
+	 * <p>
+	 * In particular, a CompiledCode object needs to bring its L2Chunk object
+	 * into ToSpace and link it into the ring of saved chunks.  Chunks that are
+	 * no longer accessed can be reclaimed, or at least their entries can be
+	 * reclaimed, at flip time.
+	 * </p>
+	 */
+	@Override @AvailMethod @Deprecated
 	void o_PostFault (
 		final @NotNull AvailObject object)
 	{
-		//  The object was just scanned, and its pointers converted into valid ToSpace pointers.
-		//  Do any follow-up activities specific to the kind of object it is.
-		//
-		//  In particular, a CompiledCode object needs to bring its L2Chunk object into ToSpace and
-		//  link it into the ring of saved chunks.  Chunks that are no longer accessed can be reclaimed,
-		//  or at least their entries can be reclaimed, at flip time.
-
 		final AvailObject chunk = object.startingChunk();
 		if (chunk.isValid())
 		{
@@ -456,7 +497,7 @@ extends Descriptor
 		{
 			object.startingChunk(
 				L2ChunkDescriptor.unoptimizedChunk());
-			object.invocationCount(
+			object.countdownToReoptimize(
 				L2ChunkDescriptor.countdownForInvalidatedCode());
 		}
 	}
@@ -545,40 +586,29 @@ extends Descriptor
 		final AvailObject code = mutable().create(
 			literalsSize + outersSize + locals);
 
-//		canAllocateObjects(false);
-
-		code.setSlot(IntegerSlots.NUM_LOCALS, locals);
-		code.setSlot(IntegerSlots.NUM_ARGS, numArgs);
-		code.setSlot(IntegerSlots.FRAME_SLOTS, slotCount);
-		code.setSlot(IntegerSlots.NUM_OUTERS, outersSize);
-		code.setSlot(IntegerSlots.PRIMITIVE_NUMBER, primitive);
-		code.setSlot(ObjectSlots.NYBBLES, nybbles);
-		code.setSlot(ObjectSlots.FUNCTION_TYPE, functionType);
+		code.setSlot(NUM_LOCALS, locals);
+		code.setSlot(NUM_ARGS, numArgs);
+		code.setSlot(FRAME_SLOTS, slotCount);
+		code.setSlot(NUM_OUTERS, outersSize);
+		code.setSlot(PRIMITIVE_NUMBER, primitive);
+		code.setSlot(NYBBLES, nybbles);
+		code.setSlot(FUNCTION_TYPE, functionType);
 		code.startingChunk(L2ChunkDescriptor.unoptimizedChunk());
-		code.invocationCount(L2ChunkDescriptor.countdownForNewCode());
+		code.countdownToReoptimize(L2ChunkDescriptor.countdownForNewCode());
 
 		// Fill in the literals.
 		int dest;
 		for (dest = 1; dest <= literalsSize; dest++)
 		{
-			code.setSlot(
-				ObjectSlots.LITERAL_AT_,
-				dest,
-				literals.tupleAt(dest));
+			code.setSlot(LITERAL_AT_, dest, literals.tupleAt(dest));
 		}
 		for (int i = 1; i <= outersSize; i++)
 		{
-			code.setSlot(
-				ObjectSlots.LITERAL_AT_,
-				dest++,
-				outerTypes.tupleAt(i));
+			code.setSlot(LITERAL_AT_, dest++, outerTypes.tupleAt(i));
 		}
 		for (int i = 1; i <= locals; i++)
 		{
-			code.setSlot(
-				ObjectSlots.LITERAL_AT_,
-				dest++,
-				localTypes.tupleAt(i));
+			code.setSlot(LITERAL_AT_, dest++, localTypes.tupleAt(i));
 		}
 		assert dest == literalsSize + outersSize + locals + 1;
 
@@ -599,10 +629,8 @@ extends Descriptor
 		{
 			hash = hash * 5 + localTypes.tupleAt(i).hash() ^ 0x01E37808;
 		}
-		code.setSlot(IntegerSlots.HASH, hash);
+		code.setSlot(HASH, hash);
 		code.makeImmutable();
-
-//		canAllocateObjects(true);
 
 		return code;
 	}

@@ -61,7 +61,6 @@ public class L2WritePointerOperand extends L2Operand
 	public L2WritePointerOperand (
 		final @NotNull L2ObjectRegister register)
 	{
-		assert register.identity().finalIndex() != 0;
 		this.register = register;
 	}
 

@@ -1682,7 +1682,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	abstract void o_InvocationCount (
+	abstract void o_CountdownToReoptimize (
 		@NotNull AvailObject object,
 		int value);
 
@@ -4026,18 +4026,29 @@ public abstract class AbstractDescriptor
 		AvailObject potentialInstance);
 
 	/**
-	 * @param object
-	 * @param anotherObject
-	 * @return
+	 * Given two objects that are known to be equal, is the first one in a
+	 * better form (more compact, more efficient, older generation) than the
+	 * second one?
+	 *
+	 * @param object The first object.
+	 * @param anotherObject The second object, equal to the first object.
+	 * @return Whether the first object is the better representation to keep.
 	 */
 	abstract boolean o_IsBetterRepresentationThan (
 		@NotNull AvailObject object,
 		AvailObject anotherObject);
 
 	/**
+	 * Given two objects that are known to be equal, the second of which is in
+	 * the form of a tuple type, is the first one in a better form than the
+	 * second one?
+	 *
 	 * @param object
+	 *            The first object.
 	 * @param aTupleType
+	 *            The second object, a tuple type equal to the first object.
 	 * @return
+	 *            Whether the first object is a better representation to keep.
 	 */
 	abstract boolean o_IsBetterRepresentationThanTupleType (
 		@NotNull AvailObject object,
@@ -4143,6 +4154,7 @@ public abstract class AbstractDescriptor
 	/**
 	 * @param object
 	 */
+	@Deprecated
 	abstract void o_PostFault (AvailObject object);
 
 	/**
@@ -5487,5 +5499,18 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract @NotNull AvailObject o_InstanceCount (
+		final @NotNull AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract long o_TotalInvocations (
+		final @NotNull AvailObject object);
+
+	/**
+	 * @param object
+	 */
+	abstract void o_TallyInvocation (
 		final @NotNull AvailObject object);
 }

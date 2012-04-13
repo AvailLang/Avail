@@ -34,7 +34,7 @@ package com.avail.interpreter.levelTwo.register;
 
 import java.util.*;
 import com.avail.annotations.NotNull;
-import com.avail.interpreter.levelTwo.L2Translator;
+import com.avail.optimizer.RegisterSet;
 
 /**
  * {@code L2RegisterVector} aggregates {@linkplain L2ObjectRegister object
@@ -80,16 +80,16 @@ implements Iterable<L2ObjectRegister>
 	 * Do all member {@linkplain L2ObjectRegister registers} contain constant
 	 * values?
 	 *
-	 * @param translator The {@linkplain L2Translator translator}.
+	 * @param registers The {@linkplain RegisterSet register set}.
 	 * @return {@code true} if each member {@linkplain L2ObjectRegister
 	 *         register} contains a constant value, {@code false} otherwise.
 	 */
 	public boolean allRegistersAreConstantsIn (
-		final @NotNull L2Translator translator)
+		final @NotNull RegisterSet registerSet)
 	{
 		for (final L2ObjectRegister register : registers)
 		{
-			if (!translator.registerHasConstantAt(register))
+			if (!registerSet.hasConstantAt(register))
 			{
 				return false;
 			}

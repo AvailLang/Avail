@@ -33,6 +33,7 @@
 package com.avail.exceptions;
 
 import java.lang.reflect.*;
+import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
 import com.avail.compiler.MessageSplitter;
@@ -431,7 +432,7 @@ public enum AvailErrorCode
 	 */
 	public int nativeCode ()
 	{
-		return ordinal();
+		return code;
 	}
 
 	/**
@@ -455,5 +456,36 @@ public enum AvailErrorCode
 	private AvailErrorCode (final int code)
 	{
 		this.code = code;
+	}
+
+	/**
+	 * The mapping from {@linkplain #code numeric codes} to {@link
+	 * AvailErrorCode}s.
+	 */
+	private final static Map<Integer, AvailErrorCode> byNumericCode
+		= new HashMap<Integer, AvailErrorCode>();
+
+	// The enumeration values have been initialized, so build the map.
+	static
+	{
+		for (final AvailErrorCode errorCode : values())
+		{
+			assert !byNumericCode.containsKey(errorCode.numericCode());
+			byNumericCode.put(
+				Integer.valueOf(errorCode.nativeCode()),
+				errorCode);
+		}
+	}
+
+	/**
+	 * Look up the {@link AvailErrorCode} with the given {@linkplain #code
+	 * numeric code}.
+	 *
+	 * @param numericCode The {@code int} to look up as a numeric code.
+	 * @return The AvailErrorCode or null if not defined.
+	 */
+	public static AvailErrorCode byNumericCode (final int numericCode)
+	{
+		return byNumericCode.get(numericCode);
 	}
 }

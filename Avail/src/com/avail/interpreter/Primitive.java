@@ -50,6 +50,7 @@ import com.avail.exceptions.*;
 import com.avail.exceptions.ArithmeticException;
 import com.avail.interpreter.levelOne.*;
 import com.avail.interpreter.levelTwo.*;
+import com.avail.optimizer.L2Translator;
 
 
 /**
@@ -1630,8 +1631,7 @@ implements IntegerEnumSlotDescriptionEnum
 	 * if the continuation's {@linkplain FunctionDescriptor function} is not
 	 * capable of accepting the given arguments.
 	 */
-	prim56_RestartContinuationWithArguments(
-		56, 2, SwitchesContinuation)
+	prim56_RestartContinuationWithArguments(56, 2, SwitchesContinuation)
 	{
 		@Override
 		public @NotNull Result attempt (
@@ -1648,20 +1648,17 @@ implements IntegerEnumSlotDescriptionEnum
 			assert con.pc() == 1
 				: "Labels must only occur at the start of a block.  "
 					+ "Only restart that kind of continuation.";
-			// The arguments will be referenced by the continuation.
-
-			// No need to make it immutable because current continuation's
-			// reference is lost by this.  We go ahead and make a mutable copy
-			// (if necessary) because the interpreter requires the current
-			// continuation to always be mutable.
-			final AvailObject conCopy = con.ensureMutable();
-			final AvailObject itsCode = conCopy.function().code();
+			final AvailObject itsCode = con.function().code();
 			final int numArgs = itsCode.numArgs();
 			if (numArgs != arguments.tupleSize())
 			{
 				return interpreter.primitiveFailure(
 					E_INCORRECT_NUMBER_OF_ARGUMENTS);
 			}
+			// No need to make it immutable because current continuation's
+			// reference is lost by this.  We go ahead and make a mutable copy
+			// to allow the new arguments to be injected.
+			final AvailObject conCopy = con.ensureMutable();
 			if (!itsCode.functionType().acceptsTupleOfArguments(arguments))
 			{
 				return interpreter.primitiveFailure(
@@ -1671,14 +1668,7 @@ implements IntegerEnumSlotDescriptionEnum
 			{
 				conCopy.argOrLocalOrStackAtPut(i, arguments.tupleAt(i));
 			}
-			final int numLocals = itsCode.numLocals();
-			for (int i = 1; i <= numLocals; i++)
-			{
-				conCopy.argOrLocalOrStackAtPut(
-					numArgs + i,
-					VariableDescriptor.forOuterType(itsCode.localTypeAt(i)));
-			}
-			interpreter.prepareToExecuteContinuation(conCopy);
+			interpreter.prepareToRestartContinuation(conCopy);
 			return CONTINUATION_CHANGED;
 		}
 
@@ -1746,7 +1736,7 @@ implements IntegerEnumSlotDescriptionEnum
 			}
 			final AvailObject targetCon = caller.ensureMutable();
 			targetCon.stackAtPut(targetCon.stackp(), result);
-			interpreter.prepareToExecuteContinuation(targetCon);
+			interpreter.prepareToResumeContinuation(targetCon);
 			return CONTINUATION_CHANGED;
 		}
 
@@ -1784,23 +1774,9 @@ implements IntegerEnumSlotDescriptionEnum
 			assert con.pc() == 1
 				: "Labels must only occur at the start of a block.  "
 					+ "Only restart that kind of continuation.";
-			// Funny twist - destroy previous continuation in place of one
-			// being restarted
-
-			// No need to make it immutable because current continuation's
-			// reference is lost by this.  We go ahead and make a mutable copy
-			// (if necessary) because the interpreter requires the current
-			// continuation to always be mutable.
-			final AvailObject conCopy = con.ensureMutable();
-			final AvailObject itsCode = conCopy.function().code();
-			for (int i = 1, end = itsCode.numLocals(); i <= end; i++)
-			{
-				conCopy.argOrLocalOrStackAtPut(
-					itsCode.numArgs() + i,
-					VariableDescriptor.forOuterType(
-						itsCode.localTypeAt(i)));
-			}
-			interpreter.prepareToExecuteContinuation(conCopy);
+			// The current continuation's reference is lost by this operation,
+			// so we don't need to mark the continuation as immutable.
+			interpreter.prepareToRestartContinuation(con);
 			return CONTINUATION_CHANGED;
 		}
 
@@ -1818,7 +1794,7 @@ implements IntegerEnumSlotDescriptionEnum
 	 * <strong>Primitive 59:</strong> Answer a {@linkplain TupleDescriptor
 	 * tuple} containing the {@linkplain ContinuationDescriptor continuation}'s
 	 * stack data. Substitute an unassigned {@linkplain BottomTypeDescriptor
-	 * bottom}-typed {@linkplain VariableDescriptor variable} (unconstructable
+	 * bottom}-typed {@linkplain VariableDescriptor variable} (unconstructible
 	 * from Avail) for any {@linkplain NullDescriptor#nullObject() null} values.
 	 */
 	prim59_ContinuationStackData(59, 1, CanFold, CannotFail)
@@ -8399,8 +8375,8 @@ implements IntegerEnumSlotDescriptionEnum
 		 *
 		 * <p>The primitive may still fail at runtime, but that's dealt with by
 		 * a conditional branch in the {@linkplain
-		 * L2Operation#L2_doAttemptPrimitive_arguments_result_failure_ifSuccess_
-		 * attempt-primitive wordcode} itself.</p>
+		 * L2Operation#L2_ATTEMPT_INLINE_PRIMITIVE attempt-primitive
+		 * wordcode} itself.</p>
 		 */
 		CanInline,
 

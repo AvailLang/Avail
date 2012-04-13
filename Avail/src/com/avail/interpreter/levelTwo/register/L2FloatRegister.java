@@ -44,9 +44,11 @@ extends L2Register
 {
 	/**
 	 * Construct a new {@link L2FloatRegister}.
+	 *
+	 * @param debugValue A value used to distinguish the new instance visually.
 	 */
-	public L2FloatRegister ()
+	public L2FloatRegister (final long debugValue)
 	{
-		// No implementation required.
+		super(debugValue);
 	}
 }

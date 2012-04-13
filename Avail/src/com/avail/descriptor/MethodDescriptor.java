@@ -330,8 +330,8 @@ extends Descriptor
 		 * The {@linkplain SetDescriptor set} of {@linkplain
 		 * L2ChunkDescriptor.IntegerSlots#INDEX indices} of {@linkplain
 		 * L2ChunkDescriptor level two chunks} that depend on the membership of
-		 * this {@linkplain MethodDescriptor method}.  A
-		 * change to the membership should cause these chunks to be invalidated.
+		 * this {@linkplain MethodDescriptor method}.  A change to the
+		 * membership should cause these chunks to be invalidated.
 		 */
 		DEPENDENT_CHUNK_INDICES
 	}

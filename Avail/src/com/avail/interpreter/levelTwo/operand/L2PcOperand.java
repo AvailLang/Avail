@@ -40,7 +40,7 @@ import com.avail.utility.*;
 
 /**
  * An {@code L2ConstantOperand} is an operand of type {@link L2OperandType#PC}.
- * It also holds the {@link L2Operation#L2_doLabel} that is the target
+ * It also holds the {@link L2Operation#L2_LABEL} that is the target
  * instruction to which this operand refers.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
@@ -50,18 +50,18 @@ public class L2PcOperand extends L2Operand
 	/**
 	 * The label instruction that this operand refers to.
 	 */
-	public final L2Instruction label;
+	private final L2Instruction label;
 
 	/**
 	 * Construct a new {@link L2PcOperand} with the specified {@link
-	 * L2Instruction}, which should be a {@link L2Operation#L2_doLabel label}.
+	 * L2Instruction}, which should be a {@link L2Operation#L2_LABEL label}.
 	 *
 	 * @param label The target label.
 	 */
 	public L2PcOperand (
 		final @NotNull L2Instruction label)
 	{
-		assert label.operation == L2Operation.L2_doLabel;
+		assert label.operation == L2Operation.L2_LABEL;
 		this.label = label;
 	}
 
@@ -85,6 +85,17 @@ public class L2PcOperand extends L2Operand
 		return this;
 	}
 
+	/**
+	 * Answer the target label that this operand refers to.  It must be an
+	 * {@link L2Instruction} whose operation is {@link L2Operation#L2_LABEL}.
+	 *
+	 * @return The target label instruction.
+	 */
+	public L2Instruction targetLabel ()
+	{
+		return label;
+	}
+
 	@Override
 	public void emitOn (
 		final @NotNull L2CodeGenerator codeGenerator)
@@ -95,6 +106,8 @@ public class L2PcOperand extends L2Operand
 	@Override
 	public String toString ()
 	{
-		return String.format("Pc(%d)", label.offset());
+		final L2CommentOperand commentOperand =
+			(L2CommentOperand)label.operands[0];
+		return String.format("Pc(%s)", commentOperand.comment);
 	}
 }

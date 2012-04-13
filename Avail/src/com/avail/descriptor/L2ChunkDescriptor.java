@@ -36,6 +36,7 @@ import java.lang.ref.*;
 import java.util.*;
 import com.avail.annotations.*;
 import com.avail.interpreter.levelTwo.*;
+import com.avail.optimizer.L2Translator;
 import com.avail.interpreter.levelTwo.register.*;
 
 /**
@@ -148,10 +149,10 @@ extends Descriptor
 			16);
 
 		/**
-		 * The number of {@linkplain L2FloatRegister floating point registers} that
-		 * are used by this chunk.  Having this recorded separately allows the
-		 * register list to be dynamically expanded as needed only when starting
-		 * or resuming a continuation.
+		 * The number of {@linkplain L2FloatRegister floating point registers}
+		 * that are used by this chunk.  Having this recorded separately allows
+		 * the register list to be dynamically expanded as needed only when
+		 * starting or resuming a continuation.
 		 */
 		static final BitField NUM_DOUBLES = bitField(
 			NUM_INTEGERS_AND_DOUBLES,
@@ -271,12 +272,16 @@ extends Descriptor
 		aStream.append("Chunk #");
 		aStream.append(object.index());
 		aStream.append("\n");
+		final StringBuilder tabStream = new StringBuilder();
+		for (int t = 1; t <= indent; t++)
+		{
+			tabStream.append("\t");
+		}
+		final String tabString = tabStream.toString();
+
 		if (!object.isValid())
 		{
-			for (int t = 1; t <= indent; t++)
-			{
-				aStream.append("\t");
-			}
+			aStream.append(tabString);
 			aStream.append("(INVALID)\n");
 		}
 		final AvailObject words = object.wordcodes();
@@ -284,11 +289,7 @@ extends Descriptor
 			new L2RawInstructionDescriber();
 		for (int i = 1, limit = words.tupleSize(); i <= limit; )
 		{
-			for (int t = 1; t <= indent + 1; t++)
-			{
-				aStream.append("\t");
-			}
-			aStream.append(String.format("#%-3d ", i));
+			aStream.append(String.format("%s\t#%-3d ", tabString, i));
 			final L2Operation operation =
 				L2Operation.values()[words.tupleIntAt(i)];
 			i++;
@@ -299,7 +300,10 @@ extends Descriptor
 			}
 			final L2RawInstruction rawInstruction =
 				new L2RawInstruction(operation, operands);
-			describer.describe(rawInstruction, object, aStream);
+			final StringBuilder tempStream = new StringBuilder(100);
+			describer.describe(rawInstruction, object, tempStream);
+			aStream.append(
+				tempStream.toString().replace("\n", "\n\t\t" + tabString));
 			aStream.append("\n");
 		}
 	}
@@ -435,7 +439,8 @@ extends Descriptor
 	{
 		WeakChunkReference.RecyclingQueue = new ReferenceQueue<AvailObject>();
 		assert AllChunksWeakly.isEmpty();
-		UnoptimizedChunk = new L2Translator().createChunkForFirstInvocation();
+		UnoptimizedChunk =
+			new L2Translator(null).createChunkForFirstInvocation();
 		assert AllChunksWeakly.size() == 1;
 		assert UnoptimizedChunk.index() == 0;
 	}
@@ -475,7 +480,7 @@ extends Descriptor
 	{
 		// This is hard-coded, but cross-checked by
 		// L2Translator#createChunkForFirstInvocation().
-		return 3;
+		return 9;
 	}
 
 	/**
@@ -499,7 +504,7 @@ extends Descriptor
 	 */
 	public static int countdownForNewCode ()
 	{
-		return 20;
+		return 10;
 	}
 
 	/**
@@ -544,14 +549,14 @@ extends Descriptor
 	 *            The {@link List} of vectors, each of which is a list of
 	 *            {@linkplain Integer}s denoting an {@link L2ObjectRegister}.
 	 * @param numObjects
-	 *            The number of {@linkplain L2ObjectRegister object registers} that
-	 *            this chunk will require.
-	 * @param numIntegers
-	 *            The number of {@linkplain L2IntegerRegister integer registers} that
-	 *            this chunk will require.
-	 * @param numFloats
-	 *            The number of {@linkplain L2FloatRegister floating point registers}
+	 *            The number of {@linkplain L2ObjectRegister object registers}
 	 *            that this chunk will require.
+	 * @param numIntegers
+	 *            The number of {@linkplain L2IntegerRegister integer registers}
+	 *            that this chunk will require.
+	 * @param numFloats
+	 *            The number of {@linkplain L2FloatRegister floating point
+	 *            registers} that this chunk will require.
 	 * @param theWordcodes
 	 *            A {@link List} of {@linkplain Integer}s that encode the
 	 *            {@linkplain L2Instruction}s to execute in place of the level
@@ -588,15 +593,9 @@ extends Descriptor
 			TupleDescriptor.fromIntegerList(theWordcodes);
 		wordcodesTuple.makeImmutable();
 		final AvailObject chunk = mutable().create(listOfLiterals.size());
-//		AvailObject.lock(chunk);
-		// A new chunk starts out saved.
-		chunk.setSlot(
-			IntegerSlots.SAVED,
-			1);
-		// A new chunk starts out valid.
-		chunk.setSlot(
-			IntegerSlots.VALID,
-			1);
+		// A new chunk starts out saved and valid.
+		chunk.setSlot(IntegerSlots.SAVED, 1);
+		chunk.setSlot(IntegerSlots.VALID, 1);
 		chunk.setSlot(ObjectSlots.VECTORS, vectorTuplesTuple);
 		chunk.setSlot(IntegerSlots.NUM_OBJECTS, numObjects);
 		chunk.setSlot(IntegerSlots.NUM_INTEGERS, numIntegers);
@@ -621,10 +620,9 @@ extends Descriptor
 			// clean it up if necessary.
 			final WeakChunkReference oldReference =
 				(WeakChunkReference)weaklyTypedRecycledReference;
-			for (final AvailObject impSet
-				: oldReference.contingentMethods)
+			for (final AvailObject method : oldReference.contingentMethods)
 			{
-				impSet.removeDependentChunkIndex(oldReference.index);
+				method.removeDependentChunkIndex(oldReference.index);
 			}
 			oldReference.contingentMethods.clear();
 			index = oldReference.index;
@@ -649,14 +647,13 @@ extends Descriptor
 		if (code != null)
 		{
 			code.startingChunk(chunk);
-			code.invocationCount(
+			code.countdownToReoptimize(
 				L2ChunkDescriptor.countdownForNewlyOptimizedCode());
 		}
 		for (final AvailObject impSet : contingentSets)
 		{
 			impSet.addDependentChunkIndex(index);
 		}
-//		AvailObject.unlock(chunk);
 		chunk.makeImmutable();
 		moveToHead(chunk);
 		return chunk;

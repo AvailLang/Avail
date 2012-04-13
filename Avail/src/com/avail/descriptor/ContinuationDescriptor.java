@@ -33,6 +33,8 @@
 package com.avail.descriptor;
 
 import java.util.*;
+import static com.avail.descriptor.ContinuationDescriptor.IntegerSlots.*;
+import static com.avail.descriptor.ContinuationDescriptor.ObjectSlots.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.interpreter.Primitive;
@@ -146,7 +148,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
-		object.setSlot(ObjectSlots.CALLER, value);
+		object.setSlot(CALLER, value);
 	}
 
 	@Override @AvailMethod
@@ -154,7 +156,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
-		object.setSlot(ObjectSlots.FUNCTION, value);
+		object.setSlot(FUNCTION, value);
 	}
 
 	@Override @AvailMethod
@@ -162,7 +164,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final int subscript)
 	{
-		return object.slot(ObjectSlots.FRAME_AT_, subscript);
+		return object.slot(FRAME_AT_, subscript);
 	}
 
 	@Override @AvailMethod
@@ -171,10 +173,7 @@ extends Descriptor
 		final int subscript,
 		final @NotNull AvailObject value)
 	{
-		object.setSlot(
-			ObjectSlots.FRAME_AT_,
-			subscript,
-			value);
+		object.setSlot(FRAME_AT_, subscript, value);
 	}
 
 	@Override @AvailMethod
@@ -182,9 +181,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final int value)
 	{
-		object.setSlot(
-			IntegerSlots.PROGRAM_COUNTER,
-			value);
+		object.setSlot(PROGRAM_COUNTER, value);
 	}
 
 	@Override @AvailMethod
@@ -192,37 +189,35 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final int value)
 	{
-		object.setSlot(
-			IntegerSlots.STACK_POINTER,
-			value);
+		object.setSlot(STACK_POINTER, value);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_Caller (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.CALLER);
+		return object.slot(CALLER);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_Function (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.FUNCTION);
+		return object.slot(FUNCTION);
 	}
 
 	@Override @AvailMethod
 	int o_Pc (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(IntegerSlots.PROGRAM_COUNTER);
+		return object.slot(PROGRAM_COUNTER);
 	}
 
 	@Override @AvailMethod
 	int o_Stackp (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(IntegerSlots.STACK_POINTER);
+		return object.slot(STACK_POINTER);
 	}
 
 	@Override @AvailMethod
@@ -300,8 +295,8 @@ extends Descriptor
 		final @NotNull AvailObject chunk,
 		final int offset)
 	{
-		object.setSlot(ObjectSlots.LEVEL_TWO_CHUNK, chunk);
-		object.setSlot(IntegerSlots.LEVEL_TWO_OFFSET, offset);
+		object.setSlot(LEVEL_TWO_CHUNK, chunk);
+		object.setSlot(LEVEL_TWO_OFFSET, offset);
 	}
 
 	/**
@@ -313,9 +308,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final int subscript)
 	{
-		return object.slot(
-			ObjectSlots.FRAME_AT_,
-			subscript);
+		return object.slot(FRAME_AT_, subscript);
 	}
 
 	/**
@@ -328,10 +321,7 @@ extends Descriptor
 		final int subscript,
 		final @NotNull AvailObject anObject)
 	{
-		object.setSlot(
-			ObjectSlots.FRAME_AT_,
-			subscript,
-			anObject);
+		object.setSlot(FRAME_AT_, subscript, anObject);
 	}
 
 
@@ -352,14 +342,14 @@ extends Descriptor
 	@NotNull AvailObject o_LevelTwoChunk (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.LEVEL_TWO_CHUNK);
+		return object.slot(LEVEL_TWO_CHUNK);
 	}
 
 	@Override @AvailMethod
 	int o_LevelTwoOffset (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(IntegerSlots.LEVEL_TWO_OFFSET);
+		return object.slot(LEVEL_TWO_OFFSET);
 	}
 
 	/**
@@ -385,7 +375,7 @@ extends Descriptor
 	 * reclaimed, at flip time.
 	 * </p>
 	 */
-	@Override @AvailMethod
+	@Override @AvailMethod @Deprecated
 	void o_PostFault (
 		final @NotNull AvailObject object)
 	{
@@ -416,12 +406,8 @@ extends Descriptor
 		final AvailObject result = mutable().create(
 			object.variableObjectSlotsCount());
 		assert result.objectSlotsCount() == object.objectSlotsCount();
-		result.setSlot(
-			ObjectSlots.CALLER,
-			object.slot(ObjectSlots.CALLER));
-		result.setSlot(
-			ObjectSlots.FUNCTION,
-			object.slot(ObjectSlots.FUNCTION));
+		result.setSlot(CALLER, object.slot(CALLER));
+		result.setSlot(FUNCTION, object.slot(FUNCTION));
 		result.pc(object.pc());
 		result.stackp(object.stackp());
 		result.levelTwoChunkOffset(
@@ -437,8 +423,8 @@ extends Descriptor
 	@Override boolean allowsImmutableToMutableReferenceInField (
 		final @NotNull AbstractSlotsEnum e)
 	{
-		return e == IntegerSlots.LEVEL_TWO_OFFSET
-			|| e == ObjectSlots.LEVEL_TWO_CHUNK;
+		return e == LEVEL_TWO_OFFSET
+			|| e == LEVEL_TWO_CHUNK;
 	}
 
 	/**
@@ -480,50 +466,12 @@ extends Descriptor
 	/**
 	 * Create a new continuation with the given data.  The continuation should
 	 * represent the state upon entering the new context - i.e., set the pc to
-	 * the first instruction (skipping the primitive indicator if necessary),
-	 * clear the stack, and set up all local variables.
+	 * the first instruction, clear the stack, and set up all local variables.
 	 *
 	 * @param function The function being invoked.
 	 * @param caller The calling continuation.
 	 * @param startingChunk The level two chunk to invoke.
-	 * @param args The List of arguments
-	 * @return The new continuation.
-	 */
-	public static AvailObject create (
-		final @NotNull AvailObject function,
-		final @NotNull AvailObject caller,
-		final @NotNull AvailObject startingChunk,
-		final @NotNull List<AvailObject> args)
-	{
-		final AvailObject code = function.code();
-		final List<AvailObject> locals = new ArrayList<AvailObject>(
-			code.numLocals());
-		final int nArgs = args.size();
-		assert nArgs == code.numArgs();
-		final int nLocals = code.numLocals();
-		for (int i = 1; i <= nLocals; i++)
-		{
-			locals.add(
-				VariableDescriptor.forOuterType(
-					code.localTypeAt(i)));
-		}
-		return create(
-			function,
-			caller,
-			startingChunk,
-			args,
-			locals);
-	}
-
-	/**
-	 * Create a new continuation with the given data.  The continuation should
-	 * represent the state upon entering the new context - i.e., set the pc to
-	 * the first instruction (skipping the primitive indicator if necessary),
-	 * clear the stack, and set up all local variables.
-	 *
-	 * @param function The function being invoked.
-	 * @param caller The calling continuation.
-	 * @param startingChunk The level two chunk to invoke.
+	 * @param startingOffset The offset into the chunk at which to resume.
 	 * @param args The {@link List} of arguments
 	 * @param locals The {@link List} of (non-argument) local variables.
 	 * @return The new continuation.
@@ -532,6 +480,7 @@ extends Descriptor
 		final @NotNull AvailObject function,
 		final @NotNull AvailObject caller,
 		final @NotNull AvailObject startingChunk,
+		final int startingOffset,
 		final @NotNull List<AvailObject> args,
 		final @NotNull List<AvailObject> locals)
 	{
@@ -539,14 +488,12 @@ extends Descriptor
 		final AvailObject code = function.code();
 		final AvailObject cont = descriptor.create(
 			code.numArgsAndLocalsAndStack());
-		cont.setSlot(ObjectSlots.CALLER, caller);
-		cont.setSlot(ObjectSlots.FUNCTION, function);
+		cont.setSlot(CALLER, caller);
+		cont.setSlot(FUNCTION, function);
 		cont.pc(1);
 		cont.stackp(
 			cont.objectSlotsCount() + 1 - descriptor.numberOfFixedObjectSlots);
-		cont.levelTwoChunkOffset(
-			startingChunk,
-			1);
+		cont.levelTwoChunkOffset(startingChunk, startingOffset);
 		for (int i = code.numArgsAndLocalsAndStack(); i >= 1; i--)
 		{
 			cont.argOrLocalOrStackAtPut(i, NullDescriptor.nullObject());
@@ -564,9 +511,7 @@ extends Descriptor
 		for (int i = 1; i <= nLocals; i++)
 		{
 			//  non-argument locals
-			cont.argOrLocalOrStackAtPut(
-				nArgs + i,
-				locals.get(i - 1));
+			cont.argOrLocalOrStackAtPut(nArgs + i, locals.get(i - 1));
 		}
 		return cont;
 	}

@@ -139,7 +139,7 @@ public class AbstractAvailTest
 						final @NotNull Long position,
 						final @NotNull Long moduleSize)
 					{
-						 System.out.printf("[line %d]%n", lineNumber);
+						 System.out.printf("%nline %d", lineNumber);
 					}
 				},
 				new Continuation3<ModuleName, Long, Long>()
@@ -154,13 +154,13 @@ public class AbstractAvailTest
 						{
 							lastModule.value = moduleName;
 							System.out.printf(
-								"compiling %s ... [bytes remaining = %d]%n",
+								"%ncompiling %s ... [bytes remaining = %d]",
 								moduleName,
 								globalCodeSize - position);
 						}
 
 						System.out.printf(
-							"(%.2f%% done)",
+							"%n(%.2f%%)",
 							position * 100.0d / globalCodeSize);
 					}
 				});

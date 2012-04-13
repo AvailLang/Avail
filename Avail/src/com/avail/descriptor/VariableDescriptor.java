@@ -32,7 +32,6 @@
 
 package com.avail.descriptor;
 
-import java.util.Random;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.exceptions.*;

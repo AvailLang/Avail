@@ -71,7 +71,7 @@ public class L2RawInstructionDescriber
 		final String operationName = operation.name();
 		stream.append(operationName);
 		stream.append(" (");
-		final L2OperandType[] operandTypes = operation.operandTypes();
+		final L2NamedOperandType[] operandTypes = operation.operandTypes();
 		final int[] operands = rawInstruction.operands();
 		for (int i = 0; i < operands.length; i++)
 		{

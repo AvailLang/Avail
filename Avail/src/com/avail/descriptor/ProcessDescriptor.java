@@ -33,7 +33,6 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.error;
-import java.util.Random;
 import java.util.concurrent.ThreadPoolExecutor;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;

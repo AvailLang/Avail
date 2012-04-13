@@ -122,4 +122,10 @@ interface L2OperandTypeDispatcher
 	 * read and written.
 	 */
 	void doReadWriteVector();
+
+	/**
+	 * A vector of {@linkplain L2ObjectRegister object registers} to be set up
+	 * automatically by the virtual machine.
+	 */
+	void doImplicitlyInitializeVector();
 }

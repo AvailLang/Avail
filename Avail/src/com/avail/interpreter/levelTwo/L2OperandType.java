@@ -34,6 +34,7 @@ package com.avail.interpreter.levelTwo;
 
 import com.avail.descriptor.*;
 import com.avail.interpreter.Primitive;
+import com.avail.interpreter.levelTwo.operand.L2CommentOperand;
 import com.avail.interpreter.levelTwo.register.*;
 
 
@@ -268,6 +269,20 @@ public enum L2OperandType
 		{
 			dispatcher.doReadWriteVector();
 		}
+	},
+
+	/**
+	 * The operand represents a {@linkplain L2CommentOperand}, which holds a
+	 * descriptive {@link String} during optimization, but has no effect on the
+	 * actual wordcode stream.
+	 */
+	COMMENT(false, false)
+	{
+		@Override
+		void dispatch(final L2OperandTypeDispatcher dispatcher)
+		{
+			dispatcher.doImplicitlyInitializeVector();
+		}
 	};
 
 
@@ -307,5 +322,17 @@ public enum L2OperandType
 	{
 		this.isSource = isSource;
 		this.isDestination = isDestination;
+	}
+
+	/**
+	 * Create a {@link L2NamedOperandType} from the receiver and a {@link
+	 * String} naming its role for some {@link L2Operation}.
+	 *
+	 * @param name The name of this operand.
+	 * @return A named operand type.
+	 */
+	public L2NamedOperandType is (final String name)
+	{
+		return new L2NamedOperandType(this, name);
 	}
 }

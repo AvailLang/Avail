@@ -45,540 +45,537 @@ interface L2OperationDispatcher
 {
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_unknownWordcode}
+	 * {@link L2Operation#L2_UNKNOWN_WORDCODE}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_unknownWordcode ();
+	public void L2_UNKNOWN_WORDCODE ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doLabel}
+	 * {@link L2Operation#L2_LABEL}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_label ();
+	public void L2_LABEL ();
 
 	/**
-	 * Process an
-	 * {@link L2Operation#L2_doPrepareNewFrame}
-	 * {@linkplain L2Operation operation}.
+	 * Process an {@link L2Operation#L2_ENTER_L2_CHUNK} {@linkplain L2Operation
+	 * operation}.
 	 */
-	public void L2_doPrepareNewFrame ();
+	public void L2_ENTER_L2_CHUNK ();
 
 	/**
-	 * Process an
-	 * {@link L2Operation#L2_doInterpretOneInstructionAndBranchBackIfNoInterrupt}
-	 * {@linkplain L2Operation operation}.
+	 * Process an {@link L2Operation#L2_REENTER_L2_CHUNK} {@linkplain
+	 * L2Operation operation}.
 	 */
-	public void L2_doInterpretOneInstructionAndBranchBackIfNoInterrupt ();
+	public void L2_REENTER_L2_CHUNK ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doDecrementCounterAndReoptimizeOnZero}
+	 * {@link L2Operation#L2_PREPARE_NEW_FRAME}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doDecrementCounterAndReoptimizeOnZero ();
+	public void L2_PREPARE_NEW_FRAME ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doMoveFromObject_destObject_}
+	 * {@link L2Operation#L2_INTERPRET_UNTIL_INTERRUPT}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doMoveFromObject_destObject_ ();
+	public void L2_INTERPRET_UNTIL_INTERRUPT ();
 
 	/**
-	 * Process an
-	 * {@link L2Operation#L2_doMoveFromConstant_destObject_}
-	 * {@linkplain L2Operation operation}.
+	 * Process an {@link L2Operation#L2_REENTER_L1_CHUNK} {@linkplain
+	 * L2Operation operation}.
 	 */
-	public void L2_doMoveFromConstant_destObject_ ();
+	public void L2_REENTER_L1_CHUNK ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doMoveFromOuterVariable_ofFunctionObject_destObject_}
+	 * {@link L2Operation#L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doMoveFromOuterVariable_ofFunctionObject_destObject_ ();
+	public void L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doCreateVariableTypeConstant_destObject_}
+	 * {@link L2Operation#L2_MOVE}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doCreateVariableTypeConstant_destObject_ ();
+	public void L2_MOVE ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doGetVariable_destObject_}
+	 * {@link L2Operation#L2_MOVE_CONSTANT}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doGetVariable_destObject_ ();
+	public void L2_MOVE_CONSTANT ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doGetVariableClearing_destObject_}
+	 * {@link L2Operation#L2_MOVE_OUTER_VARIABLE}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doGetVariableClearing_destObject_ ();
+	public void L2_MOVE_OUTER_VARIABLE ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doSetVariable_sourceObject_}
+	 * {@link L2Operation#L2_CREATE_VARIABLE}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doSetVariable_sourceObject_ ();
+	public void L2_CREATE_VARIABLE ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doClearVariable_}
+	 * {@link L2Operation#L2_GET_VARIABLE}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doClearVariable_ ();
+	public void L2_GET_VARIABLE ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doClearVariablesVector_}
+	 * {@link L2Operation#L2_GET_VARIABLE_CLEARING}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doClearVariablesVector_ ();
+	public void L2_GET_VARIABLE_CLEARING ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doAddIntegerConstant_destObject_}
+	 * {@link L2Operation#L2_SET_VARIABLE}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doAddIntegerConstant_destObject_ ();
+	public void L2_SET_VARIABLE ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doAddIntegerConstant_destInteger_ifFail_}
+	 * {@link L2Operation#L2_CLEAR_VARIABLE}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doAddIntegerConstant_destInteger_ifFail_ ();
+	public void L2_CLEAR_VARIABLE ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doAddObject_destObject_}
+	 * {@link L2Operation#L2_CLEAR_VARIABLES}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doAddObject_destObject_ ();
+	public void L2_CLEAR_VARIABLES ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doAddInteger_destInteger_ifFail_}
+	 * {@link L2Operation#L2_ADD_INTEGER_CONSTANT_TO_OBJECT}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doAddInteger_destInteger_ifFail_ ();
+	public void L2_ADD_INTEGER_CONSTANT_TO_OBJECT ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doAddIntegerImmediate_destInteger_ifFail_}
+	 * {@link L2Operation#L2_ADD_INTEGER_CONSTANT_TO_INT}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doAddIntegerImmediate_destInteger_ifFail_ ();
+	public void L2_ADD_INTEGER_CONSTANT_TO_INT ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doAddModThirtyTwoBitInteger_destInteger_}
+	 * {@link L2Operation#L2_ADD_OBJECT_TO_OBJECT}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doAddModThirtyTwoBitInteger_destInteger_ ();
+	public void L2_ADD_OBJECT_TO_OBJECT ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doSubtractIntegerConstant_destObject_}
+	 * {@link L2Operation#L2_ADD_INT_TO_INT}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doSubtractIntegerConstant_destObject_ ();
+	public void L2_ADD_INT_TO_INT ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doSubtractIntegerConstant_destInteger_ifFail_}
+	 * {@link L2Operation#L2_ADD_INT_TO_INT_MOD_32_BITS}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doSubtractIntegerConstant_destInteger_ifFail_ ();
+	public void L2_ADD_INT_TO_INT_MOD_32_BITS ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doSubtractObject_destObject_}
+	 * {@link L2Operation#L2_SUBTRACT_CONSTANT_INTEGER_FROM_OBJECT}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doSubtractObject_destObject_ ();
+	public void L2_SUBTRACT_CONSTANT_INTEGER_FROM_OBJECT ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doSubtractInteger_destInteger_ifFail_}
+	 * {@link L2Operation#L2_SUBTRACT_CONSTANT_INTEGER_FROM_INT}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doSubtractInteger_destInteger_ifFail_ ();
+	public void L2_SUBTRACT_CONSTANT_INTEGER_FROM_INT ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doSubtractIntegerImmediate_destInteger_ifFail_}
+	 * {@link L2Operation#L2_SUBTRACT_OBJECT_FROM_OBJECT}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doSubtractIntegerImmediate_destInteger_ifFail_ ();
+	public void L2_SUBTRACT_OBJECT_FROM_OBJECT ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doSubtractModThirtyTwoBitInteger_destInteger_}
+	 * {@link L2Operation#L2_SUBTRACT_INT_FROM_INT}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doSubtractModThirtyTwoBitInteger_destInteger_ ();
+	public void L2_SUBTRACT_INT_FROM_INT ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doMultiplyIntegerConstant_destObject_}
+	 * {@link L2Operation#L2_SUBTRACT_INT_FROM_INT_MOD_32_BITS}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doMultiplyIntegerConstant_destObject_ ();
+	public void L2_SUBTRACT_INT_FROM_INT_MOD_32_BITS ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doMultiplyIntegerConstant_destInteger_ifFail_}
+	 * {@link L2Operation#L2_MULTIPLY_CONSTANT_OBJECT_BY_OBJECT}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doMultiplyIntegerConstant_destInteger_ifFail_ ();
+	public void L2_MULTIPLY_CONSTANT_OBJECT_BY_OBJECT ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doMultiplyObject_destObject_}
+	 * {@link L2Operation#L2_MULTIPLY_CONSTANT_OBJECT_BY_INT}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doMultiplyObject_destObject_ ();
+	public void L2_MULTIPLY_CONSTANT_OBJECT_BY_INT ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doMultiplyInteger_destInteger_ifFail_}
+	 * {@link L2Operation#L2_MULTIPLY_OBJECT_BY_OBJECT}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doMultiplyInteger_destInteger_ifFail_ ();
+	public void L2_MULTIPLY_OBJECT_BY_OBJECT ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doMultiplyIntegerImmediate_destInteger_ifFail_}
+	 * {@link L2Operation#L2_MULTIPLY_INT_BY_INT}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doMultiplyIntegerImmediate_destInteger_ifFail_ ();
+	public void L2_MULTIPLY_INT_BY_INT ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doMultiplyModThirtyTwoBitInteger_destInteger_}
+	 * {@link L2Operation#L2_MULTIPLY_INT_BY_INT_MOD_32_BITS}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doMultiplyModThirtyTwoBitInteger_destInteger_ ();
+	public void L2_MULTIPLY_INT_BY_INT_MOD_32_BITS ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doDivideObject_byIntegerConstant_destQuotientObject_destRemainderInteger_ifFail_}
+	 * {@link L2Operation#L2_DIVIDE_OBJECT_BY_CONSTANT_INT}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doDivideObject_byIntegerConstant_destQuotientObject_destRemainderInteger_ifFail_ ();
+	public void L2_DIVIDE_OBJECT_BY_CONSTANT_INT ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doDivideInteger_byIntegerConstant_destQuotientInteger_destRemainderInteger_ifFail_}
+	 * {@link L2Operation#L2_DIVIDE_INT_BY_CONSTANT_INT}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doDivideInteger_byIntegerConstant_destQuotientInteger_destRemainderInteger_ifFail_ ();
+	public void L2_DIVIDE_INT_BY_CONSTANT_INT ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doDivideInteger_byIntegerImmediate_destQuotientInteger_destRemainderInteger_ifFail_}
+	 * {@link L2Operation#L2_DIVIDE_OBJECT_BY_OBJECT}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doDivideInteger_byIntegerImmediate_destQuotientInteger_destRemainderInteger_ifFail_ ();
+	public void L2_DIVIDE_OBJECT_BY_OBJECT ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doDivideObject_byObject_destQuotientObject_destRemainderObject_ifZeroDivisor_}
+	 * {@link L2Operation#L2_DIVIDE_INT_BY_INT}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doDivideObject_byObject_destQuotientObject_destRemainderObject_ifZeroDivisor_ ();
+	public void L2_DIVIDE_INT_BY_INT ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doDivideInteger_byInteger_destQuotientInteger_destRemainderInteger_ifFail_ifZeroDivisor_}
+	 * {@link L2Operation#L2_JUMP}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doDivideInteger_byInteger_destQuotientInteger_destRemainderInteger_ifFail_ifZeroDivisor_ ();
+	public void L2_JUMP ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doJump_}
+	 * {@link L2Operation#L2_JUMP_IF_OBJECTS_EQUAL}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doJump_ ();
+	public void L2_JUMP_IF_OBJECTS_EQUAL ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doJump_ifObject_equalsObject_}
+	 * {@link L2Operation#L2_JUMP_IF_EQUALS_CONSTANT}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doJump_ifObject_equalsObject_ ();
+	public void L2_JUMP_IF_EQUALS_CONSTANT ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doJump_ifObject_equalsConstant_}
+	 * {@link L2Operation#L2_JUMP_IF_OBJECTS_NOT_EQUAL}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doJump_ifObject_equalsConstant_ ();
+	public void L2_JUMP_IF_OBJECTS_NOT_EQUAL ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doJump_ifObject_notEqualsObject_}
+	 * {@link L2Operation#L2_JUMP_IF_DOES_NOT_EQUAL_CONSTANT}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doJump_ifObject_notEqualsObject_ ();
+	public void L2_JUMP_IF_DOES_NOT_EQUAL_CONSTANT ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doJump_ifObject_notEqualsConstant_}
+	 * {@link L2Operation#L2_JUMP_IF_LESS_THAN_OBJECT}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doJump_ifObject_notEqualsConstant_ ();
+	public void L2_JUMP_IF_LESS_THAN_OBJECT ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doJump_ifObject_lessThanObject_}
+	 * {@link L2Operation#L2_JUMP_IF_LESS_THAN_CONSTANT}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doJump_ifObject_lessThanObject_ ();
+	public void L2_JUMP_IF_LESS_THAN_CONSTANT ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doJump_ifObject_lessThanConstant_}
+	 * {@link L2Operation#L2_JUMP_IF_LESS_THAN_OR_EQUAL_TO_OBJECT}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doJump_ifObject_lessThanConstant_ ();
+	public void L2_JUMP_IF_LESS_THAN_OR_EQUAL_TO_OBJECT ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doJump_ifObject_lessOrEqualObject_}
+	 * {@link L2Operation#L2_JUMP_IF_LESS_THAN_OR_EQUAL_TO_CONSTANT}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doJump_ifObject_lessOrEqualObject_ ();
+	public void L2_JUMP_IF_LESS_THAN_OR_EQUAL_TO_CONSTANT ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doJump_ifObject_lessOrEqualConstant_}
+	 * {@link L2Operation#L2_JUMP_IF_GREATER_THAN_OBJECT}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doJump_ifObject_lessOrEqualConstant_ ();
+	public void L2_JUMP_IF_GREATER_THAN_OBJECT ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doJump_ifObject_greaterThanObject_}
+	 * {@link L2Operation#L2_JUMP_IF_GREATER_THAN_CONSTANT}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doJump_ifObject_greaterThanObject_ ();
+	public void L2_JUMP_IF_GREATER_THAN_CONSTANT ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doJump_ifObject_greaterConstant_}
+	 * {@link L2Operation#L2_JUMP_IF_GREATER_THAN_OR_EQUAL_TO_OBJECT}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doJump_ifObject_greaterConstant_ ();
+	public void L2_JUMP_IF_GREATER_THAN_OR_EQUAL_TO_OBJECT ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doJump_ifObject_greaterOrEqualObject_}
+	 * {@link L2Operation#L2_JUMP_IF_GREATER_THAN_OR_EQUAL_TO_CONSTANT}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doJump_ifObject_greaterOrEqualObject_ ();
+	public void L2_JUMP_IF_GREATER_THAN_OR_EQUAL_TO_CONSTANT ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doJump_ifObject_greaterOrEqualConstant_}
+	 * {@link L2Operation#L2_JUMP_IF_KIND_OF_OBJECT}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doJump_ifObject_greaterOrEqualConstant_ ();
+	public void L2_JUMP_IF_KIND_OF_OBJECT ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doJump_ifObject_isKindOfObject_}
+	 * {@link L2Operation#L2_JUMP_IF_KIND_OF_CONSTANT}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doJump_ifObject_isKindOfObject_ ();
+	public void L2_JUMP_IF_KIND_OF_CONSTANT ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doJump_ifObject_isKindOfConstant_}
+	 * {@link L2Operation#L2_JUMP_IF_IS_NOT_KIND_OF_OBJECT}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doJump_ifObject_isKindOfConstant_ ();
+	public void L2_JUMP_IF_IS_NOT_KIND_OF_OBJECT ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doJump_ifObject_isNotKindOfObject_}
+	 * {@link L2Operation#L2_JUMP_IF_IS_NOT_KIND_OF_CONSTANT}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doJump_ifObject_isNotKindOfObject_ ();
+	public void L2_JUMP_IF_IS_NOT_KIND_OF_CONSTANT ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doJump_ifObject_isNotKindOfConstant_}
+	 * {@link L2Operation#L2_JUMP_IF_INTERRUPT}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doJump_ifObject_isNotKindOfConstant_ ();
+	public void L2_JUMP_IF_INTERRUPT ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doJumpIfInterrupt_}
+	 * {@link L2Operation#L2_JUMP_IF_NOT_INTERRUPT}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doJumpIfInterrupt_ ();
+	public void L2_JUMP_IF_NOT_INTERRUPT ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doJumpIfNotInterrupt_}
+	 * {@link L2Operation#L2_PROCESS_INTERRUPT}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doJumpIfNotInterrupt_ ();
+	public void L2_PROCESS_INTERRUPT ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doProcessInterruptNowWithContinuationObject_}
+	 * {@link L2Operation#L2_CREATE_CONTINUATION}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doProcessInterruptNowWithContinuationObject_ ();
+	public void L2_CREATE_CONTINUATION ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doCreateContinuationSender_function_pc_stackp_size_slots_offset_dest_}
+	 * {@link L2Operation#L2_UPDATE_CONTINUATION_SLOT}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doCreateContinuationSender_function_pc_stackp_size_slots_offset_dest_ ();
+	public void L2_UPDATE_CONTINUATION_SLOT ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doSetContinuationObject_slotIndexImmediate_valueObject_}
+	 * {@link L2Operation#L2_UPDATE_CONTINUATION_PC_AND_STACKP_}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doSetContinuationObject_slotIndexImmediate_valueObject_ ();
+	public void L2_UPDATE_CONTINUATION_PC_AND_STACKP_ ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doSetContinuationObject_newPcImmediate_newStackpImmediate_}
+	 * {@link L2Operation#L2_SEND}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doSetContinuationObject_newPcImmediate_newStackpImmediate_ ();
+	public void L2_SEND ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doSend_argumentsVector_}
+	 * {@link L2Operation#L2_SEND_AFTER_FAILED_PRIMITIVE_}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doSend_argumentsVector_ ();
+	public void L2_SEND_AFTER_FAILED_PRIMITIVE_ ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doSend_argumentsVector_}
+	 * {@link L2Operation#L2_SUPER_SEND}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doSendAfterFailedPrimitive_arguments_failureValue_ ();
+	public void L2_SUPER_SEND ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doGetType_destObject_}
+	 * {@link L2Operation#L2_EXPLODE_CONTINUATION}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doGetType_destObject_ ();
+	public void L2_EXPLODE_CONTINUATION ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doSuperSend_argumentsVector_argumentTypesVector_}
+	 * {@link L2Operation#L2_GET_TYPE}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doSuperSend_argumentsVector_argumentTypesVector_ ();
+	public void L2_GET_TYPE ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doCreateTupleFromValues_destObject_}
+	 * {@link L2Operation#L2_CREATE_TUPLE}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doCreateTupleFromValues_destObject_ ();
+	public void L2_CREATE_TUPLE ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doConcatenateTuplesVector_destObject_}
+	 * {@link L2Operation#L2_CONCATENATE_TUPLES}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doConcatenateTuplesVector_destObject_ ();
+	public void L2_CONCATENATE_TUPLES ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doCreateSetFromValues_destObject_}
+	 * {@link L2Operation#L2_CREATE_SET}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doCreateSetFromValues_destObject_ ();
+	public void L2_CREATE_SET ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doCreateMapFromKeysVector_valuesVector_destObject_}
+	 * {@link L2Operation#L2_CREATE_MAP}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doCreateMapFromKeysVector_valuesVector_destObject_ ();
+	public void L2_CREATE_MAP ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doCreateObjectFromKeysVector_valuesVector_destObject_}
+	 * {@link L2Operation#L2_CREATE_OBJECT}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doCreateObjectFromKeysVector_valuesVector_destObject_ ();
+	public void L2_CREATE_OBJECT ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doCreateFunctionFromCodeObject_outersVector_destObject_}
+	 * {@link L2Operation#L2_CREATE_FUNCTION}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doCreateFunctionFromCodeObject_outersVector_destObject_ ();
+	public void L2_CREATE_FUNCTION ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doReturnToContinuationObject_valueObject_}
+	 * {@link L2Operation#L2_RETURN}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doReturnToContinuationObject_valueObject_ ();
+	public void L2_RETURN ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doExitContinuationObject_valueObject_}
+	 * {@link L2Operation#L2_EXIT_CONTINUATION}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doExitContinuationObject_valueObject_ ();
+	public void L2_EXIT_CONTINUATION ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doResumeContinuationObject_}
+	 * {@link L2Operation#L2_RESUME_CONTINUATION}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doResumeContinuationObject_ ();
+	public void L2_RESUME_CONTINUATION ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doMakeImmutableObject_}
+	 * {@link L2Operation#L2_MAKE_IMMUTABLE}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doMakeImmutableObject_ ();
+	public void L2_MAKE_IMMUTABLE ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doMakeSubobjectsImmutableInObject_}
+	 * {@link L2Operation#L2_MAKE_SUBOBJECTS_IMMUTABLE}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doMakeSubobjectsImmutableInObject_ ();
+	public void L2_MAKE_SUBOBJECTS_IMMUTABLE ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doAttemptPrimitive_arguments_result_failure_ifSuccess_}
+	 * {@link L2Operation#L2_ATTEMPT_INLINE_PRIMITIVE}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doAttemptPrimitive_arguments_result_failure_ifSuccess_ ();
+	public void L2_ATTEMPT_INLINE_PRIMITIVE ();
 
 	/**
 	 * Process an
-	 * {@link L2Operation#L2_doNoFailPrimitive_withArguments_result_}
+	 * {@link L2Operation#L2_RUN_INFALLIBLE_PRIMITIVE}
 	 * {@linkplain L2Operation operation}.
 	 */
-	public void L2_doNoFailPrimitive_withArguments_result_ ();
+	public void L2_RUN_INFALLIBLE_PRIMITIVE ();
 }

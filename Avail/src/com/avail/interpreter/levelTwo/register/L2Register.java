@@ -32,8 +32,9 @@
 
 package com.avail.interpreter.levelTwo.register;
 
-import com.avail.annotations.NotNull;
+import java.util.concurrent.atomic.AtomicLong;
 import com.avail.interpreter.levelTwo.*;
+import com.avail.optimizer.L2Translator;
 
 /**
  * {@code L2Register} models the conceptual use of a register by a {@linkplain
@@ -45,108 +46,73 @@ import com.avail.interpreter.levelTwo.*;
  */
 public class L2Register
 {
-	static int debugCounter = 0;
-
 	/**
-	 * The {@linkplain L2RegisterIdentity identity} of this {@linkplain
-	 * L2Register register}.
+	 * A monotonic counter for distinguishing registers when printed.
 	 */
-	private final @NotNull L2RegisterIdentity identity;
+	static AtomicLong debugCounter = new AtomicLong();
 
 	/**
-	 * Answer the {@linkplain L2RegisterIdentity identity} of this {@linkplain
+	 * A coloring number to be used by the {@linkplain L2Interpreter
+	 * interpreter} at runtime to identify the storage location of a
+	 * {@linkplain L2Register register}.
+	 */
+	private int finalIndex = -1;
+
+	/**
+	 * Answer the coloring number to be used by the {@linkplain L2Interpreter
+	 * interpreter} at runtime to identify the storage location of a {@linkplain
 	 * L2Register register}.
 	 *
-	 * @return The {@linkplain L2RegisterIdentity identity} of this {@linkplain
-	 *         L2Register register}.
+	 * @return A {@linkplain L2Register register} coloring number.
 	 */
-	public L2RegisterIdentity identity ()
+	public int finalIndex ()
 	{
-		return identity;
+		return finalIndex;
 	}
+
+	/**
+	 * Set the coloring number to be used by the {@linkplain L2Interpreter
+	 * interpreter} at runtime to identify the storage location of a {@linkplain
+	 * L2Register register}.
+	 *
+	 * @param finalIndex
+	 *        A {@linkplain L2Register register} coloring number.
+	 */
+	public void setFinalIndex (final int finalIndex)
+	{
+		assert this.finalIndex == -1
+			: "Only set the finalIndex of an L2RegisterIdentity once";
+		this.finalIndex = finalIndex;
+	}
+
+	/**
+	 * A value used to distinguish distinct registers.
+	 */
+	public final long debugValue;
 
 	/**
 	 * Construct a new {@link L2Register}.
-	 */
-	public L2Register ()
-	{
-		identity = new L2RegisterIdentity();
-	}
-
-	int debugValue = ++debugCounter;
-
-	/**
-	 * Has the {@linkplain L2Register register} been used for the last time?
-	 * This flag is set during flow analysis by the {@linkplain L2Translator
-	 * translator}.
-	 */
-	boolean isLast = false;
-
-	/**
-	 * Does the {@linkplain L2Register register} know whether it has been used
-	 * for the last time? This flag is set automatically by {@link
-	 * #setIsLastUse(boolean)}.
-	 */
-	boolean knowsIsLast = false;
-
-	/**
-	 * Has the {@linkplain L2Register register} been used for the last time?
 	 *
-	 * @return {@code true} if flow analysis has determined that the {@linkplain
-	 *         L2Register register} has been used for the last time, {@code
-	 *         false} otherwise.
+	 * @param debugValue A {@code long} used to identify this register visually.
 	 */
-	public boolean isLastUse ()
+	L2Register (final long debugValue)
 	{
-		// TODO: [MvG] Recover the flow analysis code from Smalltalk!
-		assert !knowsIsLast;
-		return isLast;
-	}
-
-	/**
-	 * Record whether the {@linkplain L2Register register} has been used for the
-	 * last time.
-	 *
-	 * @param isLast
-	 *        {@code true} if flow analysis has determined that the {@linkplain
-	 *        L2Register register} has been used for the last time, {@code
-	 *        false} if the register may be used again.
-	 */
-	public void setIsLastUse (final boolean isLast)
-	{
-		// TODO: [MvG] Recover the flow analysis code from Smalltalk!
-		assert !knowsIsLast;
-		this.isLast = isLast;
-		knowsIsLast = true;
+		this.debugValue = debugValue;
 	}
 
 	@Override
 	public String toString ()
 	{
 		final StringBuilder builder = new StringBuilder();
-		if (identity.finalIndex() != -1)
+		builder.append("Reg");
+		if (finalIndex != -1)
 		{
-			builder.append("Reg[");
-			builder.append(identity.finalIndex());
+			builder.append("[");
+			builder.append(finalIndex);
 			builder.append("]");
 		}
-		else
-		{
-			builder.append("Reg_");
-			builder.append(identity.printId());
-		}
-		builder.append("@" + Integer.toString(debugValue));
-		if (knowsIsLast)
-		{
-			if (isLast)
-			{
-				builder.append(" isLast");
-			}
-			else
-			{
-				builder.append(" notLast");
-			}
-		}
+		builder.append("@");
+		builder.append(debugValue);
 		return builder.toString();
 	}
 }

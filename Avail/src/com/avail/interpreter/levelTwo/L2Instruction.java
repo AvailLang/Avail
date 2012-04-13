@@ -35,7 +35,8 @@ package com.avail.interpreter.levelTwo;
 import java.util.*;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
-import com.avail.interpreter.levelTwo.operand.L2Operand;
+import com.avail.interpreter.levelTwo.operand.*;
+import com.avail.optimizer.L2Translator;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.utility.*;
 
@@ -67,6 +68,12 @@ public final class L2Instruction
 	 * The {@link L2Operand}s to supply to the operation.
 	 */
 	public final @NotNull L2Operand[] operands;
+
+	/**
+	 * An optional action to perform in place of the regular {@link
+	 * #propagateTypesFor(L2Translator)}.
+	 */
+	public final @NotNull Continuation0 propagationAction;
 
 	/**
 	 * The position of the {@linkplain L2Instruction instruction} in its
@@ -116,14 +123,37 @@ public final class L2Instruction
 		final @NotNull L2Operation operation,
 		final @NotNull L2Operand... operands)
 	{
-		final L2OperandType[] operandTypes = operation.operandTypes();
+		this(null, operation, operands);
+	}
+
+	/**
+	 * Construct a new {@link L2Instruction}.
+	 *
+	 * @param propagationAction
+	 *            The {@link Continuation1 action}, if present, to perform with
+	 *            the {@link L2Translator} in place of {@link
+	 *            #propagateTypesFor(L2Translator)}.
+	 * @param operation
+	 *            The {@link L2Operation} that this instruction performs.
+	 * @param operands
+	 *            The array of {@link L2Operand}s on which this instruction
+	 *            operates.  These must agree with the operation's array of
+	 *            {@link L2OperandType}s.
+	 */
+	public L2Instruction (
+		final @NotNull Continuation0 propagationAction,
+		final @NotNull L2Operation operation,
+		final @NotNull L2Operand... operands)
+	{
+		final L2NamedOperandType[] operandTypes = operation.namedOperandTypes;
 		assert operandTypes.length == operands.length;
 		for (int i = 0; i < operands.length; i++)
 		{
-			assert operands[i].operandType() == operandTypes[i];
+			assert operands[i].operandType() == operandTypes[i].operandType();
 		}
 		this.operation = operation;
 		this.operands = operands;
+		this.propagationAction = propagationAction;
 	}
 
 	/**
@@ -188,6 +218,32 @@ public final class L2Instruction
 	}
 
 	/**
+	 * Answer the possible target instructions of this instruction.  These must
+	 * be {@linkplain L2Operation#L2_LABEL labels}.  This list does not
+	 * include the instruction immediately following the receiver in the stream
+	 * of instructions, but its reachability can be determined separately via
+	 * {@linkplain L2Operation#reachesNextInstruction()}.
+	 *
+	 * @return A {@link List} of label {@link L2Instruction instructions}.
+	 */
+	public @NotNull List<L2Instruction> targetLabels ()
+	{
+		List<L2Instruction> labels = Collections.emptyList();
+		for (final L2Operand operand : operands)
+		{
+			if (operand.operandType() == L2OperandType.PC)
+			{
+				if (labels.size() == 0)
+				{
+					labels = new ArrayList<L2Instruction>();
+				}
+				labels.add(((L2PcOperand)operand).targetLabel());
+			}
+		}
+		return labels;
+	}
+
+	/**
 	 * Emit this {@linkplain L2Instruction instruction} to the specified
 	 * {@linkplain L2CodeGenerator code generator}.
 	 *
@@ -207,6 +263,17 @@ public final class L2Instruction
 	}
 
 	/**
+	 * Answer whether this instruction has any observable effect besides
+	 * writing to its destination registers.
+	 *
+	 * @return Whether this instruction has side effects.
+	 */
+	public boolean hasSideEffect ()
+	{
+		return operation.hasSideEffect(this);
+	}
+
+	/**
 	 * Propagate {@linkplain TypeDescriptor type} and constant value information
 	 * from source {@linkplain L2Register registers} to the destination
 	 * registers.
@@ -215,7 +282,14 @@ public final class L2Instruction
 	 */
 	public void propagateTypesFor (final @NotNull L2Translator translator)
 	{
-		operation.propagateTypesInFor(this, translator);
+		if (propagationAction == null)
+		{
+			operation.propagateTypesInFor(this, translator.registers());
+		}
+		else
+		{
+			propagationAction.value();
+		}
 	}
 
 	/**
@@ -238,7 +312,7 @@ public final class L2Instruction
 		{
 			newOperands[i] = operands[i].transformRegisters(transformer);
 		}
-		return new L2Instruction(operation, newOperands);
+		return new L2Instruction(propagationAction, operation, newOperands);
 	}
 
 	@Override
@@ -246,18 +320,16 @@ public final class L2Instruction
 	{
 		final StringBuilder builder = new StringBuilder();
 		builder.append(operation.name());
-		builder.append(" (");
-		boolean first = true;
-		for (final L2Operand operand : operands)
+		assert operands.length == operation.namedOperandTypes.length;
+		for (int i = 0; i < operands.length; i++)
 		{
-			if (!first)
-			{
-				builder.append(", ");
-			}
-			builder.append(operand);
-			first = false;
+			builder.append(i == 0 ? ": " : ", ");
+			assert operands[i].operandType() ==
+				operation.namedOperandTypes[i].operandType();
+			builder.append(operation.namedOperandTypes[i].name());
+			builder.append("=");
+			builder.append(operands[i]);
 		}
-		builder.append(")");
 		return builder.toString();
 	}
 }

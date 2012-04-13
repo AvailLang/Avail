@@ -79,7 +79,7 @@ import com.avail.annotations.NotNull;
  * Add:
  *   <ul>
  *   <li>Qualified type name: com.avail.descriptor.AvailObjectFieldHelper</li>
- *   <li>Detail formatter code snippet: {@code return name;}</li>
+ *   <li>Detail formatter code snippet: {@code return name();}</li>
  *   <li>Enable this detail formatter: (checked)</li>
  *   <li>(after OK) Show variable details: As the label for all variables</li>
  *   </ul>
@@ -92,70 +92,102 @@ import com.avail.annotations.NotNull;
 public class AvailObjectFieldHelper
 {
 	/**
-	 * The name to present for this field.
+	 * The object containing this field.
 	 */
-	public final String name;
+	public final AvailObject parentObject;
 
 	/**
 	 * The actual value being presented with the given label.
 	 */
 	public final Object value;
 
+	/**
+	 * The slot of the parent object in which the value occurs.
+	 */
+	public final AbstractSlotsEnum slot;
+
+	/**
+	 * This value's subscript within a repeated slot, or -1 if not repeated.
+	 */
+	public final int subscript;
+
+	/**
+	 * The name to present for this field.
+	 */
+	private String name;
+
 	/** Construct a new {@link AvailObjectFieldHelper}.
 	 *
 	 * @param parentObject
 	 *            The object containing the value.
 	 * @param slot
-	 *            The slot in which the value occurs.  Should be either
-	 * @param subscriptToDisplay
+	 *            The {@linkplain AbstractSlotsEnum slot} in which the value
+	 *            occurs.
+	 * @param subscript
 	 *            The optional subscript for a repeating slot.  Uses -1 to
 	 *            indicate this is not a repeating slot.
 	 * @param value
-	 *            The value found in that field of the object.
+	 *            The value found in that slot of the object.
 	 */
 	public AvailObjectFieldHelper (
 		final @NotNull AvailObject parentObject,
-		final AbstractSlotsEnum slot,
-		final int subscriptToDisplay,
+		final @NotNull AbstractSlotsEnum slot,
+		final int subscript,
 		final Object value)
 	{
-		final StringBuilder builder = new StringBuilder();
-		if (value == null)
-		{
-			builder.append(" = Java null");
-		}
-		else if (value instanceof AvailObject)
-		{
-			final AbstractDescriptor descriptor =
-				((AvailObject)value).descriptor();
-			String typeName = descriptor.getClass().getSimpleName();
-			if (typeName.matches(".*Descriptor"))
-			{
-				typeName = typeName.substring(0, typeName.length() - 10);
-			}
-			if (descriptor.isMutable())
-			{
-				typeName = typeName + "\u2133";
-			}
-			builder.append(String.format(" (%s) = %s", typeName, value));
-		}
-		else if (value instanceof AvailIntegerValueHelper)
-		{
-			AbstractDescriptor.describeIntegerSlot(
-				parentObject,
-				((AvailIntegerValueHelper)value).intValue,
-				(IntegerSlotsEnum)slot,
-				builder);
-		}
-		else
-		{
-			builder.append(String.format(
-				"*** UNKNOWN FIELD VALUE TYPE: %s ***",
-				value.getClass().getCanonicalName()));
-		}
-		this.name = slot.name()
-			+ (subscriptToDisplay == -1 ? "" : "[" + subscriptToDisplay + "]")
-			+ builder;
+		this.parentObject = parentObject;
+		this.slot = slot;
+		this.subscript = subscript;
 		this.value = value;
+	}
+
+	/**
+	 * Answer the string to display for this field.
+	 *
+	 * @return A {@link String}.
+	 */
+	public String name ()
+	{
+		if (name == null)
+		{
+			final StringBuilder builder = new StringBuilder();
+			if (value == null)
+			{
+				builder.append(" = Java null");
+			}
+			else if (value instanceof AvailObject)
+			{
+				final AbstractDescriptor descriptor =
+					((AvailObject)value).descriptor();
+				String typeName = descriptor.getClass().getSimpleName();
+				if (typeName.matches(".*Descriptor"))
+				{
+					typeName = typeName.substring(0, typeName.length() - 10);
+				}
+				if (descriptor.isMutable())
+				{
+					typeName = typeName + "\u2133";
+				}
+				builder.append(String.format(" (%s) = %s", typeName, value));
+			}
+			else if (value instanceof AvailIntegerValueHelper)
+			{
+				AbstractDescriptor.describeIntegerSlot(
+					parentObject,
+					((AvailIntegerValueHelper)value).intValue,
+					(IntegerSlotsEnum)slot,
+					builder);
+			}
+			else
+			{
+				builder.append(String.format(
+					"*** UNKNOWN FIELD VALUE TYPE: %s ***",
+					value.getClass().getCanonicalName()));
+			}
+			name = slot.name()
+				+ (subscript == -1 ? "" : "[" + subscript + "]")
+				+ builder;
+		}
+		return name;
 	}
 }

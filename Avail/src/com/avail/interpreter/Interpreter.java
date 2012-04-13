@@ -136,7 +136,15 @@ public abstract class Interpreter
 		return primitiveCompiledCodeBeingAttempted;
 	}
 
-
+	/**
+	 * Answer true if an interrupt has been requested for this process.
+	 *
+	 * @return If an interrupt is pending.
+	 */
+	public final boolean isInterruptRequested ()
+	{
+		return interruptRequestFlag != 0;
+	}
 
 	/**
 	 * Exit the current {@linkplain ProcessDescriptor process} with the
@@ -989,13 +997,17 @@ public abstract class Interpreter
 		primitiveCompiledCodeBeingAttempted = null;
 		if (logger.isLoggable(Level.FINER))
 		{
+			final String failPart = success == FAILURE
+				? " (" + AvailErrorCode.byNumericCode(
+					primitiveResult.extractInt())
+					+ ")"
+				: "";
 			logger.finer(String.format(
-				"... completed primitive %d (%s) => %s",
-				primitiveNumber,
+				"... completed primitive (%s) => %s%s",
 				primitive,
-				success.name()));
+				success.name(),
+				failPart));
 		}
-
 		return success;
 	}
 
@@ -1029,8 +1041,18 @@ public abstract class Interpreter
 	 *
 	 * @param continuation The continuation to resume.
 	 */
-	public abstract void prepareToExecuteContinuation (
+	public abstract void prepareToResumeContinuation (
 		AvailObject continuation);
+
+	/**
+	 * Prepare to restart the given continuation.  Its new arguments, if any,
+	 * have already been supplied, and all other data has been wiped.  Do not
+	 * tally this as an invocation of the method.
+	 *
+	 * @param continuationToRestart
+	 */
+	public abstract void prepareToRestartContinuation (
+		final AvailObject continuationToRestart);
 
 	/**
 	 * Raise an exception. Scan the stack of continuations until one is found
@@ -1051,18 +1073,28 @@ public abstract class Interpreter
 
 	/**
 	 * Prepare the interpreter to deal with executing the given function, using
-	 * the given arguments.  Also set up the new function's locals.  Assume the
-	 * current context has already been reified.  If the function is a
-	 * primitive, then it was already attempted and must have failed, so the
-	 * failure value must be in {@link #primitiveResult}.  The (Java) caller
-	 * will deal with that.
+	 * the given arguments.  <em>Do not</em> set up the new function's locals.
+	 * In the case of level one code simulated in level two, a preamble level
+	 * two instruction will set them up.  In the case of level two, the code to
+	 * initialize them is a sequence of variable creation instructions that can
+	 * be interleaved, hoisted or even elided, just like any other instructions.
+	 *
+	 * <p>
+	 * Assume the current context has already been reified.  If the function is
+	 * a primitive, then it was already attempted and must have failed, so the
+	 * failure value must be in {@link #primitiveResult}.  Move it somewhere
+	 * more appropriate for the specialization of {@link Interpreter}, but not
+	 * into the primitive failure variable (since that local has not been
+	 * created yet).
 	 *
 	 * @param aFunction The function to invoke.
 	 * @param args The arguments to pass to the function.
+	 * @param caller The calling continuation.
 	 */
 	public abstract void invokeWithoutPrimitiveFunctionArguments (
 		AvailObject aFunction,
-		List<AvailObject> args);
+		List<AvailObject> args,
+		final @NotNull AvailObject caller);
 
 	/**
 	 * Run the given function with the provided arguments as a top-level action.

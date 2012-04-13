@@ -32,6 +32,7 @@
 
 package com.avail.interpreter.levelTwo;
 
+import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Primitive;
 
@@ -43,6 +44,11 @@ import com.avail.interpreter.Primitive;
  */
 class L2OperandDescriber implements L2OperandTypeDispatcher
 {
+	/**
+	 * The {@link String name} of this {@link L2NamedOperandType}.
+	 */
+	private String _name;
+
 	/**
 	 * The numeric operand being described.
 	 */
@@ -61,11 +67,45 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 
 
 	/**
+	 * Print the format string, with the arguments plugged in.
+	 *
+	 * @see String#format(String, Object...)
+	 *
+	 * @param format The format {@link String} to use.
+	 * @param arguments The arguments to substitute in the format string.
+	 */
+	private void print (
+		final @NotNull String format,
+		final @NotNull Object... arguments)
+	{
+		_description.append(String.format(format, arguments));
+	}
+
+	/**
+	 * Describe the current operand, which must be some vector of object
+	 * registers.
+	 */
+	private void printVector ()
+	{
+		print("Vec=(");
+		final AvailObject vector = _chunk.vectors().tupleAt(_operand);
+		for (int i = 1; i <= vector.tupleSize(); i++)
+		{
+			if (i > 1)
+			{
+				_description.append(",");
+			}
+			_description.append(vector.tupleIntAt(i));
+		}
+		_description.append(")");
+	}
+
+	/**
 	 * Output a description of the given operand to the stream, given its
 	 * numeric encoding, its {@linkplain L2OperandType operand type}, and the current
 	 * {@linkplain L2ChunkDescriptor chunk}.
 	 *
-	 * @param operandType
+	 * @param namedOperandType
 	 *            The {@link L2OperandType} used to interpret the operand.
 	 * @param operand
 	 *            The numeric operand itself, an {@code int}.
@@ -77,145 +117,102 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 	 *            description appended.
 	 */
 	public void describeInOperandChunkOn (
-			final L2OperandType operandType,
+			final L2NamedOperandType namedOperandType,
 			final int operand,
 			final AvailObject chunk,
 			final StringBuilder stream)
 	{
+		_name = namedOperandType.name();
 		_operand = operand;
 		_chunk = chunk;
 		_description = stream;
-		operandType.dispatch(this);
+		stream.append(
+			String.format(
+				"%n\t%s = ",
+				_name));
+		namedOperandType.operandType().dispatch(this);
 	}
 
 
 	@Override
 	public void doConstant()
 	{
-		_description.append("Const(");
-		_description.append(_chunk.literalAt(_operand).toString());
-		_description.append(")");
+		print("Const(%s)", _chunk.literalAt(_operand));
 	}
 	@Override
 	public void doImmediate()
 	{
-		_description.append("Immediate(");
-		_description.append(_operand);
-		_description.append(")");
+		print("Immediate(%d)", _operand);
 	}
 	@Override
 	public void doPC()
 	{
-		_description.append("PC(");
-		_description.append(_operand);
-		_description.append(")");
+		print("PC(%d)", _operand);
 	}
 	@Override
 	public void doPrimitive()
 	{
-		_description.append("Prim(");
-		_description.append(Primitive.byPrimitiveNumber((short)_operand).name());
-		_description.append(")");
+		print("Prim(%s)", Primitive.byPrimitiveNumber((short)_operand).name());
 	}
 	@Override
 	public void doSelector()
 	{
-		_description.append("Message(");
 		final AvailObject impSet = _chunk.literalAt(_operand);
-		_description.append(impSet.name().name().asNativeString());
-		_description.append(")");
+		print("Message(%s)", impSet.name().name().asNativeString());
 	}
 	@Override
 	public void doReadPointer()
 	{
-		_description.append("Obj(");
-		_description.append(_operand);
-		_description.append(")[read]");
+		print("Obj(%s)[r]", _operand);
 	}
 	@Override
 	public void doWritePointer()
 	{
-		_description.append("Obj(");
-		_description.append(_operand);
-		_description.append(")[write]");
+		print("Obj(%s)[w]", _operand);
 	}
 	@Override
 	public void doReadWritePointer()
 	{
-		_description.append("Obj(");
-		_description.append(_operand);
-		_description.append(")[read/write]");
+		print("Obj(%s)[r/w]", _operand);
 	}
 	@Override
 	public void doReadInt()
 	{
-		_description.append("Int(");
-		_description.append(_operand);
-		_description.append(")[read]");
+		print("Int(%s)[r]", _operand);
 	}
 	@Override
 	public void doWriteInt()
 	{
-		_description.append("Int(");
-		_description.append(_operand);
-		_description.append(")[write]");
+		print("Int(%s)[w]", _operand);
 	}
 	@Override
 	public void doReadWriteInt()
 	{
-		_description.append("Int(");
-		_description.append(_operand);
-		_description.append(")[read/write]");
+		print("Int(%s)[r/w]", _operand);
 	}
 	@Override
 	public void doReadVector()
 	{
-		_description.append("Vector#");
-		_description.append(_operand);
-		_description.append("=(");
-		final AvailObject vector = _chunk.vectors().tupleAt(_operand);
-		for (int i = 1; i <= vector.tupleSize(); i++)
-		{
-			if (i > 1)
-			{
-				_description.append(",");
-			}
-			_description.append(vector.tupleIntAt(i));
-		}
-		_description.append(")[read]");
+		printVector();
+		print("[r]");
 	}
 	@Override
 	public void doWriteVector()
 	{
-		_description.append("Vector#");
-		_description.append(_operand);
-		_description.append("=(");
-		final AvailObject vector = _chunk.vectors().tupleAt(_operand);
-		for (int i = 1; i <= vector.tupleSize(); i++)
-		{
-			if (i > 1)
-			{
-				_description.append(",");
-			}
-			_description.append(vector.tupleIntAt(i));
-		}
-		_description.append(")[write]");
+		printVector();
+		print("[w]");
 	}
 	@Override
 	public void doReadWriteVector()
 	{
-		_description.append("Vector#");
-		_description.append(_operand);
-		_description.append("=(");
-		final AvailObject vector = _chunk.vectors().tupleAt(_operand);
-		for (int i = 1; i <= vector.tupleSize(); i++)
-		{
-			if (i > 1)
-			{
-				_description.append(",");
-			}
-			_description.append(vector.tupleIntAt(_operand));
-		}
-		_description.append(")[read/write]");
+		printVector();
+		print("[r/w]");
+	}
+
+	@Override
+	public void doImplicitlyInitializeVector ()
+	{
+		printVector();
+		print("[INIT]");
 	}
 }

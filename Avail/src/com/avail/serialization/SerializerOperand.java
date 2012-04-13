@@ -43,7 +43,7 @@ import com.avail.descriptor.*;
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
-class SerializerOperand
+final class SerializerOperand
 {
 	/**
 	 * The {@linkplain SerializerOperandEncoding encoding} used by this operand.
@@ -117,5 +117,11 @@ class SerializerOperand
 	public AvailObject read (final Deserializer deserializer)
 	{
 		return operandEncoding.read(deserializer);
+	}
+
+	@Override
+	public String toString ()
+	{
+		return operandEncoding + "(" + roleName + ")";
 	}
 }

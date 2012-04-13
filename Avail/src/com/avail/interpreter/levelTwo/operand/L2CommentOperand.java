@@ -1,5 +1,5 @@
 /**
- * L2IntegerRegister.java
+ * L2CommentOperand.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,25 +30,73 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.levelTwo.register;
+package com.avail.interpreter.levelTwo.operand;
+
+import com.avail.annotations.NotNull;
+import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.register.*;
+import com.avail.utility.*;
 
 
 /**
- * {@code L2IntegerRegister} models the conceptual usage of a register that can
- * store a machine integer.
+ * An {@code L2CommentOperand} holds a descriptive string during level two
+ * translation, but this operand emits no actual data into the wordcode stream.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
-public class L2IntegerRegister
-extends L2Register
+public class L2CommentOperand extends L2Operand
 {
 	/**
-	 * Construct a new {@link L2IntegerRegister}.
-	 *
-	 * @param debugValue A value used to distinguish the new instance visually.
+	 * The actual comment {@link String}.
 	 */
-	public L2IntegerRegister (final long debugValue)
+	public final @NotNull String comment;
+
+	/**
+	 * Construct a new {@link L2CommentOperand} with the specified comment
+	 * {@link String}.
+	 *
+	 * @param comment The comment string.
+	 */
+	public L2CommentOperand (
+		final @NotNull String comment)
 	{
-		super(debugValue);
+		this.comment = comment;
+	}
+
+	@Override
+	public L2OperandType operandType ()
+	{
+		return L2OperandType.COMMENT;
+	}
+
+	@Override
+	public void dispatchOperand (final L2OperandDispatcher dispatcher)
+	{
+		dispatcher.doOperand(this);
+	}
+
+	@Override
+	public L2CommentOperand transformRegisters (
+		final @NotNull Transformer2<L2Register, L2OperandType, L2Register>
+			transformer)
+	{
+		return this;
+	}
+
+	@Override
+	public void emitOn (
+		final @NotNull L2CodeGenerator codeGenerator)
+	{
+		// emit nothing
+	}
+
+	@Override
+	public String toString ()
+	{
+		final StringBuilder builder = new StringBuilder();
+		builder.append("Comment(");
+		builder.append(comment);
+		builder.append(")");
+		return builder.toString();
 	}
 }

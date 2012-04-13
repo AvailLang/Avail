@@ -1142,9 +1142,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_InvocationCount (final AvailObject object, final int value)
+	void o_CountdownToReoptimize (final AvailObject object, final int value)
 	{
-		o_Traversed(object).invocationCount(value);
+		o_Traversed(object).countdownToReoptimize(value);
 	}
 
 	@Override
@@ -2892,7 +2892,7 @@ extends AbstractDescriptor
 		return o_Traversed(object).pc();
 	}
 
-	@Override
+	@Override @Deprecated
 	void o_PostFault (final AvailObject object)
 	{
 		o_Traversed(object).postFault();
@@ -4246,5 +4246,17 @@ extends AbstractDescriptor
 	@NotNull AvailObject o_InstanceCount (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).instanceCount();
+	}
+
+	@Override
+	long o_TotalInvocations (final @NotNull AvailObject object)
+	{
+		return o_Traversed(object).totalInvocations();
+	}
+
+	@Override
+	void o_TallyInvocation (final @NotNull AvailObject object)
+	{
+		o_Traversed(object).tallyInvocation();
 	}
 }

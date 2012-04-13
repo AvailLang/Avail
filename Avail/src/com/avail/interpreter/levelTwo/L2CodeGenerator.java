@@ -37,6 +37,7 @@ import java.util.*;
 import java.util.logging.*;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
+import com.avail.optimizer.L2Translator;
 import com.avail.interpreter.levelTwo.register.*;
 
 /**
@@ -59,8 +60,8 @@ public final class L2CodeGenerator
 	 * L2ChunkDescriptor chunk} undergoing {@linkplain L2CodeGenerator code
 	 * generation}.
 	 */
-	private final @NotNull List<L2OperandType> expectedOperandTypes =
-		new ArrayList<L2OperandType>(10);
+	private final @NotNull List<L2NamedOperandType> expectedNamedOperandTypes =
+		new ArrayList<L2NamedOperandType>(10);
 
 	/**
 	 * The {@linkplain AvailObject literals} that will be embedded into the
@@ -77,11 +78,11 @@ public final class L2CodeGenerator
 	 */
 	public void emitLiteral (final @NotNull AvailObject literal)
 	{
-		final L2OperandType expected = expectedOperandTypes.remove(0);
-		assert expected == L2OperandType.CONSTANT
-			|| expected == L2OperandType.SELECTOR;
-		literal.readBarrierFault();
-		assert !literal.descriptor().isMutable();
+		final L2NamedOperandType expected = expectedNamedOperandTypes.remove(0);
+		final L2OperandType expectedOperandType = expected.operandType();
+		assert expectedOperandType == L2OperandType.CONSTANT
+			|| expectedOperandType == L2OperandType.SELECTOR;
+		assert !literal.traversed().descriptor().isMutable();
 		int index = literals.indexOf(literal) + 1;
 		if (index == 0)
 		{
@@ -93,7 +94,7 @@ public final class L2CodeGenerator
 
 	/**
 	 * {@linkplain List Lists} of indices corresponding to {@linkplain
-	 * L2RegisterIdentity register identities} and grouped by {@linkplain
+	 * L2ObjectRegister object registers}, grouped by {@linkplain
 	 * L2RegisterVector register vector}.
 	 */
 	private final @NotNull List<List<Integer>> vectors =
@@ -108,24 +109,25 @@ public final class L2CodeGenerator
 		new HashMap<List<Integer>, Integer>(20);
 
 	/**
-	 * Emit the {@linkplain L2RegisterIdentity identities} of the {@linkplain
-	 * L2ObjectRegister members} of the specified {@linkplain L2RegisterVector
+	 * Emit the {@linkplain L2Register#finalIndex() indices} of the {@link
+	 * L2ObjectRegister}s within the specified {@linkplain L2RegisterVector
 	 * register vector} into the instruction stream.
 	 *
 	 * @param registerVector A {@linkplain L2RegisterVector register vector}.
 	 */
 	public void emitVector (final @NotNull L2RegisterVector registerVector)
 	{
-		final L2OperandType expected = expectedOperandTypes.remove(0);
-		assert expected == L2OperandType.READ_VECTOR
-			|| expected == L2OperandType.READWRITE_VECTOR
-			|| expected == L2OperandType.WRITE_VECTOR;
+		final L2NamedOperandType expected = expectedNamedOperandTypes.remove(0);
+		final L2OperandType expectedOperandType = expected.operandType();
+		assert expectedOperandType == L2OperandType.READ_VECTOR
+			|| expectedOperandType == L2OperandType.READWRITE_VECTOR
+			|| expectedOperandType == L2OperandType.WRITE_VECTOR;
 		final List<L2ObjectRegister> registersList = registerVector.registers();
 		final List<Integer> registerIndices =
 			new ArrayList<Integer>(registersList.size());
 		for (int i = 0; i < registersList.size(); i++)
 		{
-			registerIndices.add(registersList.get(i).identity().finalIndex());
+			registerIndices.add(registersList.get(i).finalIndex());
 		}
 		Integer vectorIndex = inverseVectors.get(registerIndices);
 		if (vectorIndex == null)
@@ -146,7 +148,7 @@ public final class L2CodeGenerator
 	private int objectRegisterCount = 0;
 
 	/**
-	 * Emit the {@linkplain L2RegisterIdentity identity} of the specified
+	 * Emit the {@linkplain L2Register#finalIndex() index} of the specified
 	 * {@linkplain L2ObjectRegister object register} into the instruction
 	 * stream.
 	 *
@@ -155,14 +157,16 @@ public final class L2CodeGenerator
 	public void emitObjectRegister (
 		final @NotNull L2ObjectRegister objectRegister)
 	{
-		final L2OperandType expected = expectedOperandTypes.remove(0);
-		assert expected == L2OperandType.READ_POINTER
-			|| expected == L2OperandType.READWRITE_POINTER
-			|| expected == L2OperandType.WRITE_POINTER;
-		final int index = objectRegister.identity().finalIndex();
+		final L2NamedOperandType expected = expectedNamedOperandTypes.remove(0);
+		final L2OperandType expectedOperandType = expected.operandType();
+		assert expectedOperandType == L2OperandType.READ_POINTER
+			|| expectedOperandType == L2OperandType.READWRITE_POINTER
+			|| expectedOperandType == L2OperandType.WRITE_POINTER;
+		final int index = objectRegister.finalIndex();
 		assert index >= 0;
-		assert index > 0 || expected == L2OperandType.READ_POINTER;
-		objectRegisterCount = max(objectRegisterCount, index);
+		assert index != FixedRegister.NULL.ordinal()
+			|| expectedOperandType == L2OperandType.READ_POINTER;
+		objectRegisterCount = max(objectRegisterCount, index + 1);
 		emitWord(index);
 	}
 
@@ -174,7 +178,7 @@ public final class L2CodeGenerator
 	private int integerRegisterCount = 0;
 
 	/**
-	 * Emit the {@linkplain L2RegisterIdentity identity} of the specified
+	 * Emit the {@linkplain L2Register#finalIndex() index} of the specified
 	 * {@linkplain L2IntegerRegister integer register} into the instruction
 	 * stream.
 	 *
@@ -184,11 +188,12 @@ public final class L2CodeGenerator
 	public void emitIntegerRegister (
 		final @NotNull L2IntegerRegister integerRegister)
 	{
-		final L2OperandType expected = expectedOperandTypes.remove(0);
-		assert expected == L2OperandType.READ_INT
-			|| expected == L2OperandType.READWRITE_INT
-			|| expected == L2OperandType.WRITE_INT;
-		final int index = integerRegister.identity().finalIndex();
+		final L2NamedOperandType expected = expectedNamedOperandTypes.remove(0);
+		final L2OperandType expectedOperandType = expected.operandType();
+		assert expectedOperandType == L2OperandType.READ_INT
+			|| expectedOperandType == L2OperandType.READWRITE_INT
+			|| expectedOperandType == L2OperandType.WRITE_INT;
+		final int index = integerRegister.finalIndex();
 		if (index != -1)
 		{
 			integerRegisterCount = max(integerRegisterCount, index);
@@ -204,14 +209,14 @@ public final class L2CodeGenerator
 	private int floatRegisterCount = 0;
 
 	/**
-	 * Emit the {@linkplain L2RegisterIdentity identity} of the specified
+	 * Emit the {@linkplain L2Register#finalIndex() index} of the specified
 	 * {@linkplain L2FloatRegister float register} into the instruction stream.
 	 *
 	 * @param floatRegister An {@linkplain L2FloatRegister float register}.
 	 */
 	public void emitFloatRegister (final @NotNull L2FloatRegister floatRegister)
 	{
-		final int index = floatRegister.identity().finalIndex();
+		final int index = floatRegister.finalIndex();
 		if (index != -1)
 		{
 			floatRegisterCount = max(floatRegisterCount, index);
@@ -270,8 +275,9 @@ public final class L2CodeGenerator
 	 */
 	public void emitWordcodeOffsetOf (final L2Instruction targetInstruction)
 	{
-		final L2OperandType expected = expectedOperandTypes.remove(0);
-		assert expected == L2OperandType.PC;
+		final L2NamedOperandType expected = expectedNamedOperandTypes.remove(0);
+		final L2OperandType expectedOperandType = expected.operandType();
+		assert expectedOperandType == L2OperandType.PC;
 		wordcodes.add(targetInstruction.offset());
 	}
 
@@ -282,8 +288,9 @@ public final class L2CodeGenerator
 	 */
 	public void emitPrimitiveNumber (final int primitive)
 	{
-		final L2OperandType expected = expectedOperandTypes.remove(0);
-		assert expected == L2OperandType.PRIMITIVE;
+		final L2NamedOperandType expected = expectedNamedOperandTypes.remove(0);
+		final L2OperandType expectedOperandType = expected.operandType();
+		assert expectedOperandType == L2OperandType.PRIMITIVE;
 		wordcodes.add(primitive);
 	}
 
@@ -294,8 +301,9 @@ public final class L2CodeGenerator
 	 */
 	public void emitImmediate (final int immediate)
 	{
-		final L2OperandType expected = expectedOperandTypes.remove(0);
-		assert expected == L2OperandType.IMMEDIATE;
+		final L2NamedOperandType expected = expectedNamedOperandTypes.remove(0);
+		final L2OperandType expectedOperandType = expected.operandType();
+		assert expectedOperandType == L2OperandType.IMMEDIATE;
 		wordcodes.add(immediate);
 	}
 
@@ -309,16 +317,16 @@ public final class L2CodeGenerator
 	 */
 	public void emitL2Operation (final @NotNull L2Operation operation)
 	{
-		assert expectedOperandTypes.isEmpty();
+		assert expectedNamedOperandTypes.isEmpty();
 		wordcodes.add(operation.ordinal());
-		Collections.addAll(expectedOperandTypes, operation.operandTypes());
+		Collections.addAll(expectedNamedOperandTypes, operation.operandTypes());
 	}
 
 	/**
 	 * Emit the specified {@linkplain L2Instruction instructions}. Use a
 	 * two-pass algorithm: the first pass measures instruction lengths to
 	 * correctly determine their offsets (to ensure that references to
-	 * {@linkplain L2Operation#L2_doLabel labels} will be correct), the second
+	 * {@linkplain L2Operation#L2_LABEL labels} will be correct), the second
 	 * pass generates the real instruction stream.
 	 *
 	 * @param instructions
@@ -365,9 +373,10 @@ public final class L2CodeGenerator
 	 *        code} currently undergoing translation to Level Two.
 	 * @return The translated {@linkplain L2ChunkDescriptor chunk}.
 	 */
-	@NotNull AvailObject createChunkFor (final @NotNull AvailObject code)
+	@NotNull
+	public AvailObject createChunkFor (final @NotNull AvailObject code)
 	{
-		assert expectedOperandTypes.isEmpty();
+		assert expectedNamedOperandTypes.isEmpty();
 		if (logger.isLoggable(Level.FINE))
 		{
 			logger.fine(String.format(

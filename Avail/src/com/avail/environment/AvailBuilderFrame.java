@@ -1148,7 +1148,7 @@ extends JFrame
 		transcript.setFocusTraversalKeys(
 			BACKWARD_TRAVERSAL_KEYS,
 			Collections.singleton(getAWTKeyStroke("shift TAB")));
-		transcript.setPreferredSize(new Dimension(300, 600));
+		transcript.setPreferredSize(new Dimension(300, 300));
 		transcript.setVisible(true);
 		transcriptScrollArea.setViewportView(transcript);
 

@@ -1,5 +1,5 @@
 /**
- * L2IntegerRegister.java
+ * L2NamedOperandType.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,25 +30,62 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.levelTwo.register;
+package com.avail.interpreter.levelTwo;
 
 
 /**
- * {@code L2IntegerRegister} models the conceptual usage of a register that can
- * store a machine integer.
+ * An {@code L2NamedOperandType} is used to specify both an {@link
+ * L2OperandType} and a {@link String} naming its purpose with respect to some
+ * {@link L2Operation}.  This effectively allows operations to declare named
+ * operands, increasing the descriptiveness of the level two instruction set.
+ * The names are not used in any way at runtime.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
-public class L2IntegerRegister
-extends L2Register
+public class L2NamedOperandType
 {
 	/**
-	 * Construct a new {@link L2IntegerRegister}.
-	 *
-	 * @param debugValue A value used to distinguish the new instance visually.
+	 * The {@link L2OperandType} that the receiver decorates.
 	 */
-	public L2IntegerRegister (final long debugValue)
+	private final L2OperandType operandType;
+
+	/**
+	 * The {@link String} that names the receiver within an {@link L2Operation}.
+	 */
+	private final String name;
+
+
+	/**
+	 * Answer the {@link L2OperandType} that this decorates.
+	 *
+	 * @return The L2OperandType.
+	 */
+	L2OperandType operandType ()
 	{
-		super(debugValue);
+		return operandType;
+	}
+
+	/**
+	 * Answer the {@link String} that names the receiver.
+	 *
+	 * @return The receiver's name.
+	 */
+	String name ()
+	{
+		return name;
+	}
+
+	/**
+	 * Construct a new {@link L2NamedOperandType}.
+	 *
+	 * @param operandType The {@link L2OperandType} to wrap.
+	 * @param name The name of this operand.
+	 */
+	L2NamedOperandType (
+		final L2OperandType operandType,
+		final String name)
+	{
+		this.operandType = operandType;
+		this.name = name;
 	}
 }

@@ -1665,8 +1665,7 @@ public class MessageSplitter
 		{
 			// Method implementations (and other implementations) should take a
 			// definite number of arguments.
-			throwSignatureException(
-				E_INCORRECT_NUMBER_OF_ARGUMENTS);
+			throwSignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS);
 		}
 		final int lowerBoundInt = lowerBound.extractInt();
 		if (lowerBoundInt != numberOfArguments())
