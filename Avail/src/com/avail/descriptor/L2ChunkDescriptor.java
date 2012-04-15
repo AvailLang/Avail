@@ -32,6 +32,8 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.L2ChunkDescriptor.IntegerSlots.*;
+import static com.avail.descriptor.L2ChunkDescriptor.ObjectSlots.*;
 import java.lang.ref.*;
 import java.util.*;
 import com.avail.annotations.*;
@@ -193,7 +195,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final int value)
 	{
-		object.setSlot(IntegerSlots.INDEX, value);
+		object.setSlot(INDEX, value);
 	}
 
 	@Override @AvailMethod
@@ -201,58 +203,58 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final int subscript)
 	{
-		return object.slot(ObjectSlots.LITERAL_AT_, subscript);
+		return object.slot(LITERAL_AT_, subscript);
 	}
 
 	@Override @AvailMethod
 	int o_Index (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(IntegerSlots.INDEX);
+		return object.slot(INDEX);
 	}
 
 	@Override @AvailMethod
 	int o_NumDoubles (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(IntegerSlots.NUM_DOUBLES);
+		return object.slot(NUM_DOUBLES);
 	}
 
 	@Override @AvailMethod
 	int o_NumIntegers (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(IntegerSlots.NUM_INTEGERS);
+		return object.slot(NUM_INTEGERS);
 	}
 
 	@Override @AvailMethod
 	int o_NumObjects (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(IntegerSlots.NUM_OBJECTS);
+		return object.slot(NUM_OBJECTS);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_Vectors (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.VECTORS);
+		return object.slot(VECTORS);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_Wordcodes (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.WORDCODES);
+		return object.slot(WORDCODES);
 	}
 
 	@Override boolean allowsImmutableToMutableReferenceInField (
 		final @NotNull AbstractSlotsEnum e)
 	{
-		return e == ObjectSlots.WORDCODES
-			|| e == ObjectSlots.VECTORS
-			|| e == ObjectSlots.LITERAL_AT_
-			|| e == IntegerSlots.NUM_OBJECTS_AND_FLAGS;
+		return e == WORDCODES
+			|| e == VECTORS
+			|| e == LITERAL_AT_
+			|| e == NUM_OBJECTS_AND_FLAGS;
 	}
 
 	@Override
@@ -321,7 +323,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final boolean aBoolean)
 	{
-		object.setSlot(IntegerSlots.SAVED, aBoolean ? 1 : 0);
+		object.setSlot(SAVED, aBoolean ? 1 : 0);
 	}
 
 	@Override @AvailMethod
@@ -335,14 +337,14 @@ extends Descriptor
 	boolean o_IsSaved (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(IntegerSlots.SAVED) != 0;
+		return object.slot(SAVED) != 0;
 	}
 
 	@Override @AvailMethod
 	boolean o_IsValid (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(IntegerSlots.VALID) != 0;
+		return object.slot(VALID) != 0;
 	}
 
 
@@ -594,19 +596,16 @@ extends Descriptor
 		wordcodesTuple.makeImmutable();
 		final AvailObject chunk = mutable().create(listOfLiterals.size());
 		// A new chunk starts out saved and valid.
-		chunk.setSlot(IntegerSlots.SAVED, 1);
-		chunk.setSlot(IntegerSlots.VALID, 1);
-		chunk.setSlot(ObjectSlots.VECTORS, vectorTuplesTuple);
-		chunk.setSlot(IntegerSlots.NUM_OBJECTS, numObjects);
-		chunk.setSlot(IntegerSlots.NUM_INTEGERS, numIntegers);
-		chunk.setSlot(IntegerSlots.NUM_DOUBLES, numFloats);
-		chunk.setSlot(ObjectSlots.WORDCODES, wordcodesTuple);
+		chunk.setSlot(SAVED, 1);
+		chunk.setSlot(VALID, 1);
+		chunk.setSlot(VECTORS, vectorTuplesTuple);
+		chunk.setSlot(NUM_OBJECTS, numObjects);
+		chunk.setSlot(NUM_INTEGERS, numIntegers);
+		chunk.setSlot(NUM_DOUBLES, numFloats);
+		chunk.setSlot(WORDCODES, wordcodesTuple);
 		for (int i = 1; i <= listOfLiterals.size(); i++)
 		{
-			chunk.setSlot(
-				ObjectSlots.LITERAL_AT_,
-				i,
-				listOfLiterals.get(i - 1));
+			chunk.setSlot(LITERAL_AT_, i, listOfLiterals.get(i - 1));
 		}
 
 		final int index;
@@ -683,13 +682,13 @@ extends Descriptor
 		final AvailObject chunk = ref.get();
 		if (chunk != null)
 		{
-			chunk.setSlot(IntegerSlots.VALID, 0);
-			chunk.setSlot(ObjectSlots.WORDCODES, TupleDescriptor.empty());
-			chunk.setSlot(ObjectSlots.VECTORS, TupleDescriptor.empty());
+			chunk.setSlot(VALID, 0);
+			chunk.setSlot(WORDCODES, TupleDescriptor.empty());
+			chunk.setSlot(VECTORS, TupleDescriptor.empty());
 			for (int i = chunk.variableObjectSlotsCount(); i >= 1; i--)
 			{
 				chunk.setSlot(
-					ObjectSlots.LITERAL_AT_,
+					LITERAL_AT_,
 					i,
 					NullDescriptor.nullObject());
 			}

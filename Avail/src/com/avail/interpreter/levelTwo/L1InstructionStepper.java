@@ -33,10 +33,12 @@
 package com.avail.interpreter.levelTwo;
 
 import static com.avail.descriptor.AvailObject.error;
+import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
 import java.util.*;
 import com.avail.annotations.*;
 import com.avail.descriptor.*;
 import com.avail.interpreter.levelOne.*;
+import com.avail.interpreter.levelTwo.register.FixedRegister;
 
 /**
  * This class is used to simulate the effect of level one nybblecodes during
@@ -81,16 +83,6 @@ implements L1OperationDispatcher
 		return L2Interpreter.pcRegister();
 	}
 
-	private static int callerRegister ()
-	{
-		return L2Interpreter.callerRegister();
-	}
-
-	private static int functionRegister ()
-	{
-		return L2Interpreter.functionRegister();
-	}
-
 	private static int argumentOrLocalRegister (
 		final int argumentOrLocalNumber)
 	{
@@ -110,6 +102,19 @@ implements L1OperationDispatcher
 	private @NotNull AvailObject pointerAt (final int index)
 	{
 		return interpreter.pointerAt(index);
+	}
+
+	private void pointerAtPut (
+		final FixedRegister fixedRegister,
+		final @NotNull AvailObject value)
+	{
+		interpreter.pointerAtPut(fixedRegister, value);
+	}
+
+	private @NotNull AvailObject pointerAt (
+		final FixedRegister fixedRegister)
+	{
+		return interpreter.pointerAt(fixedRegister);
 	}
 
 	private void pointerAtPut (
@@ -151,7 +156,7 @@ implements L1OperationDispatcher
 	{
 		final int stackp = integerAt(stackpRegister());
 		assert stackp <= argumentOrLocalRegister(
-			pointerAt(functionRegister()).code().numArgsAndLocalsAndStack());
+			pointerAt(FUNCTION).code().numArgsAndLocalsAndStack());
 		final AvailObject popped = pointerAt(stackp);
 		// Clear the stack slot
 		pointerAtPut(stackp, NullDescriptor.nullObject());
@@ -171,11 +176,50 @@ implements L1OperationDispatcher
 	 */
 	private final @NotNull AvailObject literalAt (final int literalIndex)
 	{
-		final AvailObject function = pointerAt(functionRegister());
+		final AvailObject function = pointerAt(FUNCTION);
 		final AvailObject code = function.code();
 		return code.literalAt(literalIndex);
 	}
 
+	/**
+	 * Create a continuation from the values of the interpreter's registers.
+	 * In particular, the {@link L1InstructionStepper} treats the object
+	 * registers immediately following the fixed registers as holding the
+	 * exploded content of the current continuation.  The {@link #pcRegister()}
+	 * and {@link #stackpRegister()} are also part of the state manipulated by
+	 * the L1 stepper.
+	 *
+	 * <p>
+	 * Write the resulting continuation into the {@linkplain
+	 * FixedRegister#CALLER caller register}.
+	 * </p>
+	 */
+	public void reifyContinuation ()
+	{
+		final AvailObject function = pointerAt(FUNCTION);
+		final AvailObject code = function.code();
+		final AvailObject continuation =
+			ContinuationDescriptor.mutable().create(
+				code.numArgsAndLocalsAndStack());
+		continuation.caller(pointerAt(CALLER));
+		continuation.function(function);
+		continuation.pc(integerAt(pcRegister()));
+		continuation.stackp(
+			integerAt(stackpRegister()) + 1 - argumentOrLocalRegister(1));
+		final AvailObject chunk = interpreter.chunk();
+		assert chunk == L2ChunkDescriptor.unoptimizedChunk();
+		continuation.levelTwoChunkOffset(
+			chunk,
+			L2ChunkDescriptor.offsetToContinueUnoptimizedChunk());
+		for (int i = code.numArgsAndLocalsAndStack(); i >= 1; i--)
+		{
+			continuation.argOrLocalOrStackAtPut(
+				i,
+				pointerAt(argumentOrLocalRegister(i)));
+		}
+		interpreter.wipeObjectRegisters();
+		pointerAtPut(CALLER, continuation);
+	}
 
 	@Override
 	public void L1_doCall()
@@ -183,7 +227,7 @@ implements L1OperationDispatcher
 		final AvailObject implementations = literalAt(getInteger());
 		final AvailObject expectedReturnType = literalAt(getInteger());
 		final int numArgs = implementations.numArgs();
-		if (L2InstructionStepper.debugL1)
+		if (L2Interpreter.debugL1)
 		{
 			System.out.printf(" (%s)", implementations.name().name());
 		}
@@ -222,10 +266,10 @@ implements L1OperationDispatcher
 		push(expectedReturnType);
 
 		// Call the method...
-		interpreter.reifyContinuation();
+		reifyContinuation();
 		interpreter.invokePossiblePrimitiveWithReifiedCaller(
 			matching.bodyBlock(),
-			pointerAt(callerRegister()));
+			pointerAt(CALLER));
 	}
 
 	@Override
@@ -259,7 +303,7 @@ implements L1OperationDispatcher
 	@Override
 	public void L1_doPushLastOuter ()
 	{
-		final AvailObject function = pointerAt(functionRegister());
+		final AvailObject function = pointerAt(FUNCTION);
 		final int outerIndex = getInteger();
 		final AvailObject outer = function.outerVarAt(outerIndex);
 		if (outer.equalsNull())
@@ -331,7 +375,7 @@ implements L1OperationDispatcher
 	@Override
 	public void L1_doPushOuter ()
 	{
-		final AvailObject function = pointerAt(functionRegister());
+		final AvailObject function = pointerAt(FUNCTION);
 		final int outerIndex = getInteger();
 		final AvailObject outer = function.outerVarAt(outerIndex);
 		if (outer.equalsNull())
@@ -352,7 +396,7 @@ implements L1OperationDispatcher
 	@Override
 	public void L1_doGetOuterClearing ()
 	{
-		final AvailObject function = pointerAt(functionRegister());
+		final AvailObject function = pointerAt(FUNCTION);
 		final int outerIndex = getInteger();
 		final AvailObject outerVariable = function.outerVarAt(outerIndex);
 		final AvailObject value = outerVariable.getValue();
@@ -370,7 +414,7 @@ implements L1OperationDispatcher
 	@Override
 	public void L1_doSetOuter ()
 	{
-		final AvailObject function = pointerAt(functionRegister());
+		final AvailObject function = pointerAt(FUNCTION);
 		final int outerIndex = getInteger();
 		final AvailObject outerVariable = function.outerVarAt(outerIndex);
 		if (outerVariable.equalsNull())
@@ -410,7 +454,7 @@ implements L1OperationDispatcher
 	@Override
 	public void L1_doGetOuter ()
 	{
-		final AvailObject function = pointerAt(functionRegister());
+		final AvailObject function = pointerAt(FUNCTION);
 		final int outerIndex = getInteger();
 		final AvailObject outerVariable = function.outerVarAt(outerIndex);
 		final AvailObject outer = outerVariable.getValue();
@@ -426,7 +470,7 @@ implements L1OperationDispatcher
 	@Override
 	public void L1_doExtension ()
 	{
-		final AvailObject function = pointerAt(functionRegister());
+		final AvailObject function = pointerAt(FUNCTION);
 		final AvailObject code = function.code();
 		final AvailObject nybbles = code.nybbles();
 		int pc = integerAt(pcRegister());
@@ -439,7 +483,7 @@ implements L1OperationDispatcher
 	@Override
 	public void L1Ext_doPushLabel ()
 	{
-		final AvailObject function = pointerAt(functionRegister());
+		final AvailObject function = pointerAt(FUNCTION);
 		final AvailObject code = function.code();
 		final int numArgs = code.numArgs();
 		assert code.primitiveNumber() == 0;
@@ -458,7 +502,7 @@ implements L1OperationDispatcher
 		assert interpreter.chunk() == L2ChunkDescriptor.unoptimizedChunk();
 		final AvailObject newContinuation = ContinuationDescriptor.create(
 			function,
-			pointerAt(callerRegister()),
+			pointerAt(CALLER),
 			L2ChunkDescriptor.unoptimizedChunk(),
 			L2ChunkDescriptor.offsetToContinueUnoptimizedChunk(),
 			args, locals);
@@ -536,10 +580,10 @@ implements L1OperationDispatcher
 		push(expectedReturnType);
 
 		// Call the method...
-		interpreter.reifyContinuation();
+		reifyContinuation();
 		interpreter.invokePossiblePrimitiveWithReifiedCaller(
 			matching.bodyBlock(),
-			pointerAt(callerRegister()));
+			pointerAt(CALLER));
 	}
 
 	@Override
@@ -571,7 +615,7 @@ implements L1OperationDispatcher
 	@Override
 	public void L1Implied_doReturn ()
 	{
-		final AvailObject caller = pointerAt(callerRegister());
+		final AvailObject caller = pointerAt(CALLER);
 		final AvailObject value = pop();
 		interpreter.returnToCaller(caller, value);
 	}

@@ -31,42 +31,66 @@
 
 package com.avail.interpreter.levelTwo;
 
+import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.interpreter.Primitive.Result.*;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
+import static com.avail.interpreter.levelTwo.L2Interpreter.*;
 import java.util.*;
+import java.util.logging.*;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 import com.avail.interpreter.Primitive.Flag;
+import com.avail.interpreter.Primitive.Result;
+import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.operand.*;
-import com.avail.optimizer.RegisterSet;
+import com.avail.optimizer.*;
 import com.avail.interpreter.levelTwo.register.*;
 
+/**
+ * The instruction set for the {@linkplain L2Interpreter level two Avail
+ * interpreter}.  Avail programs can only see as far down as the level one
+ * nybblecode representation.  Level two translations are invisibly created as
+ * necessary to boost performance of frequently executed code.  Technically
+ * level two is an optional part of the implementation, but modern hardware
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public enum L2Operation
 {
+	/**
+	 * A place holder for invalid wordcode instructions.
+	 */
 	L2_UNKNOWN_WORDCODE ()
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_UNKNOWN_WORDCODE();
+			error("Unknown wordcode\n");
 		}
 
 		@Override
 		public boolean shouldEmit ()
 		{
-			assert false : "An instruction with this operation should not be created";
+			assert false
+				: "An instruction with this operation should not be created";
 			return false;
 		}
 	},
 
+	/**
+	 * A label can be the target of a branching instruction.  It is not actually
+	 * emitted in the instruction stream, but it acts as a place holder during
+	 * code generation and optimization.
+	 */
 	L2_LABEL (COMMENT.is("Name of label"))
 	{
 		@Override
-		void dispatch (final L2OperationDispatcher operationDispatcher)
+		void step (final L2Interpreter interpreter)
 		{
-			// This operation should not actually be emitted.
-			operationDispatcher.L2_LABEL();
+			error("Label wordcode should is not executable\n");
 		}
 
 		@Override
@@ -76,12 +100,59 @@ public enum L2Operation
 		}
 	},
 
+	/**
+	 * This operation is only used when entering a function that uses the
+	 * default chunk.  A new function has been set up for execution.  Its
+	 * arguments have been written to the architectural registers.  If this is a
+	 * primitive, then the primitive has already been attempted and failed,
+	 * writing the failure value into the failureValueRegister().  Set up the pc
+	 * and stackp, as well as local variables.  Also transfer the primitive
+	 * failure value into the first local variable if this is a primitive (and
+	 * therefore failed).
+	 */
 	L2_PREPARE_NEW_FRAME ()
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_PREPARE_NEW_FRAME();
+			final AvailObject function = interpreter.pointerAt(FUNCTION);
+			final AvailObject code = function.code();
+			final int numArgs = code.numArgs();
+			final int numLocals = code.numLocals();
+			final int numSlots = code.numArgsAndLocalsAndStack();
+			// Create locals...
+			int dest = argumentOrLocalRegister(numArgs + 1);
+			for (int i = 1; i <= numLocals; i++)
+			{
+				interpreter.pointerAtPut(
+					dest,
+					VariableDescriptor.forOuterType(code.localTypeAt(i)));
+				dest++;
+			}
+			// Write the null object into the remaining stack slots.  These
+			// values should not encounter any kind of ordinary use, but they
+			// must still be transferred into a continuation during reification.
+			// Therefore don't use Java nulls here.
+			for (int i = numArgs + numLocals + 1; i <= numSlots; i++)
+			{
+				interpreter.pointerAtPut(dest, NullDescriptor.nullObject());
+				dest++;
+			}
+			interpreter.integerAtPut(pcRegister(), 1);
+			interpreter.integerAtPut(
+				stackpRegister(),
+				argumentOrLocalRegister(numSlots + 1));
+			if (code.primitiveNumber() != 0)
+			{
+				// A failed primitive.
+				assert !Primitive.byPrimitiveNumber(code.primitiveNumber())
+					.hasFlag(Flag.CannotFail);
+				final AvailObject primitiveFailureValue =
+					interpreter.pointerAt(PRIMITIVE_FAILURE);
+				final AvailObject primitiveFailureVariable =
+					interpreter.pointerAt(argumentOrLocalRegister(numArgs + 1));
+				primitiveFailureVariable.setValue(primitiveFailureValue);
+			}
 		}
 
 		@Override
@@ -102,13 +173,78 @@ public enum L2Operation
 		}
 	},
 
+	/**
+	 * Execute a single nybblecode of the current continuation, found in {@link
+	 * FixedRegister#CALLER caller register}.  If no interrupt is indicated,
+	 * move the L2 {@link L2Interpreter#offset()} back to the same instruction
+	 * (which always occupies a single word, so the address is implicit).
+	 */
 	L2_INTERPRET_UNTIL_INTERRUPT (
 		PC.is("return here after a call"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_INTERPRET_UNTIL_INTERRUPT();
+			final AvailObject function = interpreter.pointerAt(FUNCTION);
+			final AvailObject code = function.code();
+			final AvailObject nybbles = code.nybbles();
+			final int pc = interpreter.integerAt(pcRegister());
+
+			if (!interpreter.isInterruptRequested())
+			{
+				// Branch back to this (operandless) instruction by default.
+				interpreter.offset(interpreter.offset() - 1);
+			}
+
+			// TODO Debug only.
+			int depth = 0;
+			if (debugL1)
+			{
+				for (
+					AvailObject c = interpreter.pointerAt(CALLER);
+					!c.equalsNull();
+					c = c.caller())
+				{
+					depth++;
+				}
+			}
+
+			// Before we extract the nybblecode, make sure that the PC hasn't
+			// passed the end of the instruction sequence. If we have, then
+			// execute an L1Implied_doReturn.
+			if (pc > nybbles.tupleSize())
+			{
+				assert pc == nybbles.tupleSize() + 1;
+				if (Interpreter.logger.isLoggable(Level.FINEST))
+				{
+					Interpreter.logger.finest(String.format(
+						"simulating %s (pc = %d)",
+						L1Operation.L1Implied_Return,
+						pc));
+				}
+				if (debugL1)
+				{
+					System.out.printf("%d  Step L1: return\n", depth);
+				}
+				interpreter.levelOneStepper.L1Implied_doReturn();
+				return;
+			}
+			final int nybble = nybbles.extractNybbleFromTupleAt(pc);
+			interpreter.integerAtPut(pcRegister(), (pc + 1));
+
+			final L1Operation operation = L1Operation.values()[nybble];
+			if (Interpreter.logger.isLoggable(Level.FINEST))
+			{
+				Interpreter.logger.finest(String.format(
+					"simulating %s (pc = %d)",
+					operation,
+					pc));
+			}
+			if (debugL1)
+			{
+				System.out.printf("%n%d  Step L1: %s", depth, operation);
+			}
+			operation.dispatch(interpreter.levelOneStepper);
 		}
 
 		@Override
@@ -132,9 +268,24 @@ public enum L2Operation
 	L2_REENTER_L1_CHUNK ()
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_REENTER_L1_CHUNK();
+			// Arrive here by returning from a called method.  Explode the current
+			// continuation's slots into the registers that level one uses.
+			final AvailObject continuation = interpreter.pointerAt(CALLER);
+			final int numSlots = continuation.numArgsAndLocalsAndStack();
+			for (int i = 1; i <= numSlots; i++)
+			{
+				interpreter.pointerAtPut(
+					argumentOrLocalRegister(i),
+					continuation.stackAt(i));
+			}
+			interpreter.integerAtPut(pcRegister(), continuation.pc());
+			interpreter.integerAtPut(
+				stackpRegister(),
+				argumentOrLocalRegister(continuation.stackp()));
+			interpreter.pointerAtPut(FUNCTION, continuation.function());
+			interpreter.pointerAtPut(CALLER, continuation.caller());
 		}
 
 		@Override
@@ -147,9 +298,32 @@ public enum L2Operation
 	L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO ()
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO();
+			final AvailObject theFunction = interpreter.pointerAt(FUNCTION);
+			final AvailObject theCode = theFunction.code();
+			final int newCount = theCode.invocationCount() - 1;
+			assert newCount >= 0;
+			if (newCount != 0)
+			{
+				theCode.countdownToReoptimize(newCount);
+			}
+			else
+			{
+				theCode.countdownToReoptimize(
+					L2ChunkDescriptor.countdownForNewlyOptimizedCode());
+				final L2Translator translator = new L2Translator(theCode);
+				translator.translateOptimizationFor(
+					3,
+					interpreter);
+				interpreter.argsBuffer.clear();
+				final int nArgs = theCode.numArgs();
+				for (int i = 1; i <= nArgs; i++)
+				{
+					interpreter.argsBuffer.add(interpreter.pointerAt(argumentOrLocalRegister(i)));
+				}
+				interpreter.invokeFunctionArguments(theFunction, interpreter.argsBuffer);
+			}
 		}
 
 		@Override
@@ -163,9 +337,9 @@ public enum L2Operation
 		WRITE_VECTOR.is("arguments"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_ENTER_L2_CHUNK();
+			error("Enter chunk wordcode is not executable\n");
 		}
 
 		@Override
@@ -193,9 +367,9 @@ public enum L2Operation
 		WRITE_POINTER.is("continuation"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_REENTER_L2_CHUNK();
+			error("Re-enter chunk wordcode is not executable\n");
 		}
 
 		@Override
@@ -218,9 +392,11 @@ public enum L2Operation
 		WRITE_POINTER.is("destination"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_MOVE();
+			final int fromIndex = interpreter.nextWord();
+			final int destIndex = interpreter.nextWord();
+			interpreter.pointerAtPut(destIndex, interpreter.pointerAt(fromIndex));
 		}
 
 		@Override
@@ -258,7 +434,7 @@ public enum L2Operation
 				registers.removeConstantAt(destinationRegister);
 			}
 
-			registers.propagateMove(sourceRegister, destinationRegister);
+		registers.propagateMove(sourceRegister, destinationRegister);
 		}
 	},
 
@@ -267,9 +443,11 @@ public enum L2Operation
 		WRITE_POINTER.is("destination"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_MOVE_CONSTANT();
+			final int fromIndex = interpreter.nextWord();
+			final int destIndex = interpreter.nextWord();
+			interpreter.pointerAtPut(destIndex, interpreter.chunk().literalAt(fromIndex));
 		}
 
 		@Override
@@ -293,9 +471,12 @@ public enum L2Operation
 		WRITE_POINTER.is("destination"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_MOVE_OUTER_VARIABLE();
+			final int outerIndex = interpreter.nextWord();
+			final int fromIndex = interpreter.nextWord();
+			final int destIndex = interpreter.nextWord();
+			interpreter.pointerAtPut(destIndex, interpreter.pointerAt(fromIndex).outerVarAt(outerIndex));
 		}
 
 		@Override
@@ -322,9 +503,13 @@ public enum L2Operation
 		WRITE_POINTER.is("variable"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_CREATE_VARIABLE();
+			final int typeIndex = interpreter.nextWord();
+			final int destIndex = interpreter.nextWord();
+			interpreter.pointerAtPut(
+				destIndex,
+				VariableDescriptor.forOuterType(interpreter.chunk().literalAt(typeIndex)));
 		}
 
 		@Override
@@ -351,9 +536,11 @@ public enum L2Operation
 		WRITE_POINTER.is("extracted value"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_GET_VARIABLE();
+			final int getIndex = interpreter.nextWord();
+			final int destIndex = interpreter.nextWord();
+			interpreter.pointerAtPut(destIndex, interpreter.pointerAt(getIndex).getValue().makeImmutable());
 		}
 
 		@Override
@@ -395,9 +582,21 @@ public enum L2Operation
 		WRITE_POINTER.is("extracted value"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_GET_VARIABLE_CLEARING();
+			final int getIndex = interpreter.nextWord();
+			final int destIndex = interpreter.nextWord();
+			final AvailObject var = interpreter.pointerAt(getIndex);
+			final AvailObject value = var.getValue();
+			if (var.traversed().descriptor().isMutable())
+			{
+				var.clearValue();
+			}
+			else
+			{
+				value.makeImmutable();
+			}
+			interpreter.pointerAtPut(destIndex, value);
 		}
 
 		@Override
@@ -436,9 +635,11 @@ public enum L2Operation
 		READ_POINTER.is("value to write"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_SET_VARIABLE();
+			final int setIndex = interpreter.nextWord();
+			final int sourceIndex = interpreter.nextWord();
+			interpreter.pointerAt(setIndex).setValue(interpreter.pointerAt(sourceIndex));
 		}
 
 		@Override
@@ -467,9 +668,11 @@ public enum L2Operation
 		READ_POINTER.is("variable"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_CLEAR_VARIABLE();
+			@SuppressWarnings("unused")
+			final int clearIndex = interpreter.nextWord();
+			error("not implemented");
 		}
 
 		@Override
@@ -498,9 +701,11 @@ public enum L2Operation
 		READ_VECTOR.is("variables to clear"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_CLEAR_VARIABLES();
+			@SuppressWarnings("unused")
+			final int variablesIndex = interpreter.nextWord();
+			error("not implemented");
 		}
 
 		@Override
@@ -515,9 +720,13 @@ public enum L2Operation
 		READWRITE_POINTER.is("augend"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_ADD_INTEGER_CONSTANT_TO_OBJECT();
+			@SuppressWarnings("unused")
+			final int integerIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int destIndex = interpreter.nextWord();
+			error("not implemented");
 		}
 	},
 
@@ -527,9 +736,15 @@ public enum L2Operation
 		PC.is("if out of range"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_ADD_INTEGER_CONSTANT_TO_INT();
+			@SuppressWarnings("unused")
+			final int integerIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int destIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int ifIndex = interpreter.nextWord();
+			error("not implemented");
 		}
 
 		@Override
@@ -545,9 +760,13 @@ public enum L2Operation
 		READWRITE_POINTER.is("augend"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_ADD_OBJECT_TO_OBJECT();
+			@SuppressWarnings("unused")
+			final int addIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int destIndex = interpreter.nextWord();
+			error("not implemented");
 		}
 
 		@Override
@@ -564,9 +783,23 @@ public enum L2Operation
 		PC.is("if out of range"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_ADD_INT_TO_INT();
+			final int addIndex = interpreter.nextWord();
+			final int destIndex = interpreter.nextWord();
+			final int failOffset = interpreter.nextWord();
+			final long add = interpreter.integerAt(addIndex);
+			final long dest = interpreter.integerAt(destIndex);
+			final long result = dest + add;
+			final int resultInt = (int) result;
+			if (result == resultInt)
+			{
+				interpreter.integerAtPut(destIndex, resultInt);
+			}
+			else
+			{
+				interpreter.offset(failOffset);
+			}
 		}
 
 		@Override
@@ -582,9 +815,13 @@ public enum L2Operation
 		READWRITE_INT.is("augend"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_ADD_INT_TO_INT_MOD_32_BITS();
+			@SuppressWarnings("unused")
+			final int bitIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int destIndex = interpreter.nextWord();
+			error("not implemented");
 		}
 	},
 
@@ -593,9 +830,13 @@ public enum L2Operation
 		READWRITE_POINTER.is("minuend"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_SUBTRACT_CONSTANT_INTEGER_FROM_OBJECT();
+			@SuppressWarnings("unused")
+			final int integerIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int destIndex = interpreter.nextWord();
+			error("not implemented");
 		}
 	},
 
@@ -605,9 +846,15 @@ public enum L2Operation
 		PC.is("if out of range"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_SUBTRACT_CONSTANT_INTEGER_FROM_INT();
+			@SuppressWarnings("unused")
+			final int integerIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int destIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int ifIndex = interpreter.nextWord();
+			error("not implemented");
 		}
 
 		@Override
@@ -623,9 +870,13 @@ public enum L2Operation
 		READWRITE_POINTER.is("minuend"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_SUBTRACT_OBJECT_FROM_OBJECT();
+			@SuppressWarnings("unused")
+			final int subtractIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int destIndex = interpreter.nextWord();
+			error("not implemented");
 		}
 
 		@Override
@@ -642,9 +893,15 @@ public enum L2Operation
 		PC.is("if out of range"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_SUBTRACT_INT_FROM_INT();
+			@SuppressWarnings("unused")
+			final int subtractIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int destIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int ifIndex = interpreter.nextWord();
+			error("not implemented");
 		}
 
 		@Override
@@ -660,9 +917,13 @@ public enum L2Operation
 		READWRITE_INT.is("minuend"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_SUBTRACT_INT_FROM_INT_MOD_32_BITS();
+			@SuppressWarnings("unused")
+			final int integerIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int destIndex = interpreter.nextWord();
+			error("not implemented");
 		}
 	},
 
@@ -671,9 +932,13 @@ public enum L2Operation
 		READWRITE_POINTER.is("multiplicand"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_MULTIPLY_CONSTANT_OBJECT_BY_OBJECT();
+			@SuppressWarnings("unused")
+			final int integerIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int destIndex = interpreter.nextWord();
+			error("not implemented");
 		}
 
 		@Override
@@ -690,9 +955,15 @@ public enum L2Operation
 		PC.is("if out of range"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_MULTIPLY_CONSTANT_OBJECT_BY_INT();
+			@SuppressWarnings("unused")
+			final int integerIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int destIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int ifIndex = interpreter.nextWord();
+			error("not implemented");
 		}
 
 		@Override
@@ -708,9 +979,13 @@ public enum L2Operation
 		READWRITE_POINTER.is("multiplicand"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_MULTIPLY_OBJECT_BY_OBJECT();
+			@SuppressWarnings("unused")
+			final int multiplyIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int destIndex = interpreter.nextWord();
+			error("not implemented");
 		}
 
 		@Override
@@ -727,9 +1002,15 @@ public enum L2Operation
 		PC.is("if out of range"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_MULTIPLY_INT_BY_INT();
+			@SuppressWarnings("unused")
+			final int multiplyIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int destIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int ifIndex = interpreter.nextWord();
+			error("not implemented");
 		}
 
 		@Override
@@ -745,9 +1026,13 @@ public enum L2Operation
 		READWRITE_INT.is("multiplicand"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_MULTIPLY_INT_BY_INT_MOD_32_BITS();
+			@SuppressWarnings("unused")
+			final int integerIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int destIndex = interpreter.nextWord();
+			error("not implemented");
 		}
 	},
 
@@ -759,9 +1044,19 @@ public enum L2Operation
 		PC.is("if out of range"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_DIVIDE_OBJECT_BY_CONSTANT_INT();
+			@SuppressWarnings("unused")
+			final int divideIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int integerIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int quotientIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int remainderIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int ifIndex = interpreter.nextWord();
+			error("not implemented");
 		}
 
 		@Override
@@ -780,9 +1075,19 @@ public enum L2Operation
 		PC.is("if out of range"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_DIVIDE_INT_BY_CONSTANT_INT();
+			@SuppressWarnings("unused")
+			final int divideIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int integerIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int quotientIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int remainderIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int ifIndex = interpreter.nextWord();
+			error("not implemented");
 		}
 
 		@Override
@@ -801,9 +1106,19 @@ public enum L2Operation
 		PC.is("if out of range"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_DIVIDE_OBJECT_BY_OBJECT();
+			@SuppressWarnings("unused")
+			final int divideIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int byIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int quotientIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int remainderIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int zeroIndex = interpreter.nextWord();
+			error("not implemented");
 		}
 
 		@Override
@@ -823,9 +1138,21 @@ public enum L2Operation
 		PC.is("if zero divisor"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_DIVIDE_INT_BY_INT();
+			@SuppressWarnings("unused")
+			final int divideIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int byIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int quotientIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int remainderIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int ifIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int zeroIndex = interpreter.nextWord();
+			error("not implemented");
 		}
 
 		@Override
@@ -840,9 +1167,10 @@ public enum L2Operation
 		PC.is("target"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_JUMP();
+			final int doIndex = interpreter.nextWord();
+			interpreter.offset(doIndex);
 		}
 
 		@Override
@@ -865,9 +1193,15 @@ public enum L2Operation
 		READ_POINTER.is("second value"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_JUMP_IF_OBJECTS_EQUAL();
+			@SuppressWarnings("unused")
+			final int doIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int ifIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int equalsIndex = interpreter.nextWord();
+			error("not implemented");
 		}
 
 		@Override
@@ -884,9 +1218,15 @@ public enum L2Operation
 		CONSTANT.is("constant"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_JUMP_IF_EQUALS_CONSTANT();
+			@SuppressWarnings("unused")
+			final int doIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int ifIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int equalsIndex = interpreter.nextWord();
+			error("not implemented");
 		}
 
 		@Override
@@ -903,9 +1243,15 @@ public enum L2Operation
 		READ_POINTER.is("second value"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_JUMP_IF_OBJECTS_NOT_EQUAL();
+			@SuppressWarnings("unused")
+			final int doIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int ifIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int equalsIndex = interpreter.nextWord();
+			error("not implemented");
 		}
 
 		@Override
@@ -922,9 +1268,15 @@ public enum L2Operation
 		CONSTANT.is("constant"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_JUMP_IF_DOES_NOT_EQUAL_CONSTANT();
+			@SuppressWarnings("unused")
+			final int doIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int ifIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int equalsIndex = interpreter.nextWord();
+			error("not implemented");
 		}
 
 		@Override
@@ -941,9 +1293,15 @@ public enum L2Operation
 		READ_POINTER.is("second value"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_JUMP_IF_LESS_THAN_OBJECT();
+			@SuppressWarnings("unused")
+			final int doIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int ifIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int thanIndex = interpreter.nextWord();
+			error("not implemented");
 		}
 
 		@Override
@@ -960,9 +1318,15 @@ public enum L2Operation
 		CONSTANT.is("constant"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_JUMP_IF_LESS_THAN_CONSTANT();
+			@SuppressWarnings("unused")
+			final int doIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int ifIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int thanIndex = interpreter.nextWord();
+			error("not implemented");
 		}
 
 		@Override
@@ -980,9 +1344,15 @@ public enum L2Operation
 		READ_POINTER.is("second value"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_JUMP_IF_LESS_THAN_OR_EQUAL_TO_OBJECT();
+			@SuppressWarnings("unused")
+			final int doIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int ifIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int equalIndex = interpreter.nextWord();
+			error("not implemented");
 		}
 
 		@Override
@@ -999,9 +1369,15 @@ public enum L2Operation
 		CONSTANT.is("constant"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_JUMP_IF_LESS_THAN_OR_EQUAL_TO_CONSTANT();
+			@SuppressWarnings("unused")
+			final int doIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int ifIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int equalIndex = interpreter.nextWord();
+			error("not implemented");
 		}
 
 		@Override
@@ -1018,9 +1394,15 @@ public enum L2Operation
 		READ_POINTER.is("second value"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_JUMP_IF_GREATER_THAN_OBJECT();
+			@SuppressWarnings("unused")
+			final int doIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int ifIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int thanIndex = interpreter.nextWord();
+			error("not implemented");
 		}
 
 		@Override
@@ -1037,9 +1419,15 @@ public enum L2Operation
 		CONSTANT.is("constant"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_JUMP_IF_GREATER_THAN_CONSTANT();
+			@SuppressWarnings("unused")
+			final int doIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int ifIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int greaterIndex = interpreter.nextWord();
+			error("not implemented");
 		}
 
 		@Override
@@ -1056,9 +1444,15 @@ public enum L2Operation
 		READ_POINTER.is("second value"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_JUMP_IF_GREATER_THAN_OR_EQUAL_TO_OBJECT();
+			@SuppressWarnings("unused")
+			final int doIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int ifIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int equalIndex = interpreter.nextWord();
+			error("not implemented");
 		}
 
 		@Override
@@ -1075,9 +1469,15 @@ public enum L2Operation
 		CONSTANT.is("constant"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_JUMP_IF_GREATER_THAN_OR_EQUAL_TO_CONSTANT();
+			@SuppressWarnings("unused")
+			final int doIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int ifIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int equalIndex = interpreter.nextWord();
+			error("not implemented");
 		}
 
 		@Override
@@ -1094,9 +1494,15 @@ public enum L2Operation
 		READ_POINTER.is("type"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_JUMP_IF_KIND_OF_OBJECT();
+			@SuppressWarnings("unused")
+			final int doIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int ifIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int ofIndex = interpreter.nextWord();
+			error("not implemented");
 		}
 
 		@Override
@@ -1113,9 +1519,17 @@ public enum L2Operation
 		CONSTANT.is("constant type"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_JUMP_IF_KIND_OF_CONSTANT();
+			final int doIndex = interpreter.nextWord();
+			final int valueIndex = interpreter.nextWord();
+			final int typeConstIndex = interpreter.nextWord();
+			final AvailObject value = interpreter.pointerAt(valueIndex);
+			final AvailObject type = interpreter.chunk().literalAt(typeConstIndex);
+			if (value.isInstanceOf(type))
+			{
+				interpreter.offset(doIndex);
+			}
 		}
 
 		@Override
@@ -1132,9 +1546,15 @@ public enum L2Operation
 		READ_POINTER.is("type"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_JUMP_IF_IS_NOT_KIND_OF_OBJECT();
+			@SuppressWarnings("unused")
+			final int doIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int ifIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int ofIndex = interpreter.nextWord();
+			error("not implemented");
 		}
 
 		@Override
@@ -1151,9 +1571,15 @@ public enum L2Operation
 		CONSTANT.is("constant type"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_JUMP_IF_IS_NOT_KIND_OF_CONSTANT();
+			@SuppressWarnings("unused")
+			final int doIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int ifIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int ofIndex = interpreter.nextWord();
+			error("not implemented");
 		}
 
 		@Override
@@ -1168,9 +1594,13 @@ public enum L2Operation
 		PC.is("target if interrupt"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_JUMP_IF_INTERRUPT();
+			final int ifIndex = interpreter.nextWord();
+			if (interpreter.isInterruptRequested())
+			{
+				interpreter.offset(ifIndex);
+			}
 		}
 
 		@Override
@@ -1185,9 +1615,13 @@ public enum L2Operation
 		PC.is("target if not interrupt"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_JUMP_IF_NOT_INTERRUPT();
+			final int ifNotIndex = interpreter.nextWord();
+			if (!interpreter.isInterruptRequested())
+			{
+				interpreter.offset(ifNotIndex);
+			}
 		}
 
 		@Override
@@ -1202,9 +1636,9 @@ public enum L2Operation
 		READ_POINTER.is("continuation"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_PROCESS_INTERRUPT();
+			interpreter.interruptProcess();
 		}
 
 		@Override
@@ -1232,9 +1666,34 @@ public enum L2Operation
 		WRITE_POINTER.is("destination"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_CREATE_CONTINUATION();
+			final int senderIndex = interpreter.nextWord();
+			final int functionIndex = interpreter.nextWord();
+			final int pcIndex = interpreter.nextWord();
+			final int stackpIndex = interpreter.nextWord();
+			final int slotsIndex = interpreter.nextWord();
+			final int wordcodeOffset = interpreter.nextWord();
+			final int destIndex = interpreter.nextWord();
+			final AvailObject function = interpreter.pointerAt(functionIndex);
+			final AvailObject code = function.code();
+			final int frameSize = code.numArgsAndLocalsAndStack();
+			final AvailObject continuation =
+				ContinuationDescriptor.mutable().create(frameSize);
+			continuation.caller(interpreter.pointerAt(senderIndex));
+			continuation.function(function);
+			continuation.pc(pcIndex);
+			continuation.stackp(frameSize - code.maxStackDepth() + stackpIndex);
+			continuation.levelTwoChunkOffset(interpreter.chunk(), wordcodeOffset);
+			final AvailObject slots = interpreter.vectorAt(slotsIndex);
+			final int size = slots.tupleSize();
+			for (int i = 1; i <= size; i++)
+			{
+				continuation.argOrLocalOrStackAtPut(
+					i,
+					interpreter.pointerAt(slots.tupleIntAt(i)));
+			}
+			interpreter.pointerAtPut(destIndex, continuation);
 		}
 
 		@Override
@@ -1266,9 +1725,15 @@ public enum L2Operation
 		READ_POINTER.is("replacement value"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_UPDATE_CONTINUATION_SLOT();
+			@SuppressWarnings("unused")
+			final int continuationIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int indexIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int valueIndex = interpreter.nextWord();
+			error("not implemented");
 		}
 	},
 
@@ -1278,9 +1743,15 @@ public enum L2Operation
 		IMMEDIATE.is("new stack pointer"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_UPDATE_CONTINUATION_PC_AND_STACKP_();
+			@SuppressWarnings("unused")
+			final int continuationIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int pcIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int stackpIndex = interpreter.nextWord();
+			error("not implemented");
 		}
 	},
 
@@ -1290,9 +1761,39 @@ public enum L2Operation
 		READ_VECTOR.is("arguments"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_SEND();
+			// Assume the current continuation is already reified.
+			final int callerIndex = interpreter.nextWord();
+			final int selectorIndex = interpreter.nextWord();
+			final int argumentsIndex = interpreter.nextWord();
+			final AvailObject caller = interpreter.pointerAt(callerIndex);
+			final AvailObject vect = interpreter.vectorAt(argumentsIndex);
+			interpreter.argsBuffer.clear();
+			for (int i = 1; i <= vect.tupleSize(); i++)
+			{
+				interpreter.argsBuffer.add(interpreter.pointerAt(vect.tupleIntAt(i)));
+			}
+			final AvailObject selector = interpreter.chunk().literalAt(selectorIndex);
+			if (debugL1)
+			{
+				System.out.printf("  --- calling: %s%n", selector.name().name());
+			}
+			final AvailObject signatureToCall =
+				selector.lookupByValuesFromList(interpreter.argsBuffer);
+			if (signatureToCall.equalsNull())
+			{
+				error("Unable to find unique implementation for call");
+				return;
+			}
+			if (!signatureToCall.isMethod())
+			{
+				error("Attempted to call a non-implementation signature");
+				return;
+			}
+			interpreter.invokePossiblePrimitiveWithReifiedCaller(
+				signatureToCall.bodyBlock(),
+				caller);
 		}
 
 		@Override
@@ -1325,9 +1826,52 @@ public enum L2Operation
 		READ_POINTER.is("primitive failure value"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_SEND_AFTER_FAILED_PRIMITIVE_();
+			// The continuation is required to have already been reified.
+			final int callerIndex = interpreter.nextWord();
+			final int selectorIndex = interpreter.nextWord();
+			final int argumentsIndex = interpreter.nextWord();
+			final int failureValueIndex = interpreter.nextWord();
+			final AvailObject caller = interpreter.pointerAt(callerIndex);
+			final AvailObject failureValue = interpreter.pointerAt(failureValueIndex);
+			final AvailObject vect = interpreter.vectorAt(argumentsIndex);
+			interpreter.argsBuffer.clear();
+			for (int i = 1; i <= vect.tupleSize(); i++)
+			{
+				interpreter.argsBuffer.add(interpreter.pointerAt(vect.tupleIntAt(i)));
+			}
+			final AvailObject selector = interpreter.chunk().literalAt(selectorIndex);
+			if (debugL1)
+			{
+				System.out.printf(
+					"  --- calling after fail: %s%n",
+					selector.name().name());
+			}
+			final AvailObject signatureToCall =
+				selector.lookupByValuesFromList(interpreter.argsBuffer);
+			if (signatureToCall.equalsNull())
+			{
+				error("Unable to find unique implementation for call");
+				return;
+			}
+			if (!signatureToCall.isMethod())
+			{
+				error("Attempted to call a non-implementation signature");
+				return;
+			}
+			final AvailObject functionToCall = signatureToCall.bodyBlock();
+			final AvailObject codeToCall = functionToCall.code();
+			final int primNum = codeToCall.primitiveNumber();
+			assert primNum != 0;
+			assert !Primitive.byPrimitiveNumber(primNum).hasFlag(Flag.CannotFail);
+			interpreter.invokeWithoutPrimitiveFunctionArguments(
+				functionToCall,
+				interpreter.argsBuffer,
+				caller);
+			// Put the primitive failure value somewhere both L1 and L2 will find
+			// it.
+			interpreter.pointerAtPut(PRIMITIVE_FAILURE, failureValue);
 		}
 
 		@Override
@@ -1360,9 +1904,46 @@ public enum L2Operation
 		READ_VECTOR.is("argument types"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_SUPER_SEND();
+			// Assume the current continuation is already reified.
+			final int callerIndex = interpreter.nextWord();
+			final int selectorIndex = interpreter.nextWord();
+			final int argumentsIndex = interpreter.nextWord();
+			final int typesIndex = interpreter.nextWord();
+			final AvailObject caller = interpreter.pointerAt(callerIndex);
+			AvailObject vect = interpreter.vectorAt(typesIndex);
+			if (true)
+			{
+				interpreter.argsBuffer.clear();
+				for (int i = 1; i < vect.tupleSize(); i++)
+				{
+					interpreter.argsBuffer.add(interpreter.pointerAt(vect.tupleIntAt(i)));
+				}
+			}
+			final AvailObject selector = interpreter.chunk().literalAt(selectorIndex);
+			final AvailObject signatureToCall =
+				selector.lookupByTypesFromList(interpreter.argsBuffer);
+			if (signatureToCall.equalsNull())
+			{
+				error("Unable to find unique implementation for call");
+				return;
+			}
+			if (!signatureToCall.isMethod())
+			{
+				error("Attempted to call a non-implementation signature");
+				return;
+			}
+			vect = interpreter.vectorAt(argumentsIndex);
+			interpreter.argsBuffer.clear();
+			for (int i = 1; i < vect.tupleSize(); i++)
+			{
+				interpreter.argsBuffer.add(interpreter.pointerAt(vect.tupleIntAt(i)));
+			}
+			final AvailObject functionToCall = signatureToCall.bodyBlock();
+			interpreter.invokePossiblePrimitiveWithReifiedCaller(
+				functionToCall,
+				caller);
 		}
 
 		@Override
@@ -1395,9 +1976,27 @@ public enum L2Operation
 		WRITE_POINTER.is("exploded function"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_EXPLODE_CONTINUATION();
+			// Expand the current continuation's slots into the specified vector
+			// of destination registers.  Also explode the level one pc, stack
+			// pointer, the current function and the caller.
+			final int continuationToExplodeIndex = interpreter.nextWord();
+			final int explodedSlotsVectorIndex = interpreter.nextWord();
+			final int explodedCallerIndex = interpreter.nextWord();
+			final int explodedFunctionIndex = interpreter.nextWord();
+
+			final AvailObject slots = interpreter.vectorAt(explodedSlotsVectorIndex);
+			final int slotsCount = slots.tupleSize();
+			final AvailObject continuation = interpreter.pointerAt(continuationToExplodeIndex);
+			assert continuation.numArgsAndLocalsAndStack() == slotsCount;
+			for (int i = 1; i <= slotsCount; i++)
+			{
+				final AvailObject slotValue = continuation.argOrLocalOrStackAt(i);
+				interpreter.pointerAtPut(slots.tupleIntAt(i), slotValue);
+			}
+			interpreter.pointerAtPut(explodedCallerIndex, continuation.caller());
+			interpreter.pointerAtPut(explodedFunctionIndex, continuation.function());
 		}
 
 		@Override
@@ -1412,9 +2011,11 @@ public enum L2Operation
 		WRITE_POINTER.is("value's type"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_GET_TYPE();
+			final int srcIndex = interpreter.nextWord();
+			final int destIndex = interpreter.nextWord();
+			interpreter.pointerAtPut(destIndex, interpreter.pointerAt(srcIndex).kind());
 		}
 
 		@Override
@@ -1445,7 +2046,7 @@ public enum L2Operation
 				registers.typeAtPut(destinationRegister, TYPE.o());
 			}
 
-			if (registers.hasConstantAt(sourceRegister))
+		if (registers.hasConstantAt(sourceRegister))
 			{
 				registers.constantAtPut(
 					destinationRegister,
@@ -1464,9 +2065,18 @@ public enum L2Operation
 		WRITE_POINTER.is("tuple"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_CREATE_TUPLE();
+			final int valuesIndex = interpreter.nextWord();
+			final int destIndex = interpreter.nextWord();
+			final AvailObject indices = interpreter.vectorAt(valuesIndex);
+			final int size = indices.tupleSize();
+			final AvailObject tuple = ObjectTupleDescriptor.mutable().create(size);
+			for (int i = 1; i <= size; i++)
+			{
+				tuple.tupleAtPut(i, interpreter.pointerAt(indices.tupleIntAt(i)));
+			}
+			interpreter.pointerAtPut(destIndex, tuple);
 		}
 
 		@Override
@@ -1538,9 +2148,48 @@ public enum L2Operation
 		PC.is("if primitive succeeds"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_ATTEMPT_INLINE_PRIMITIVE();
+			final int primNumber = interpreter.nextWord();
+			final int argsVector = interpreter.nextWord();
+			final int resultRegister = interpreter.nextWord();
+			final int failureValueRegister = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int unusedPreservedVector = interpreter.nextWord();
+			final int successOffset = interpreter.nextWord();
+
+			final AvailObject argsVect = interpreter.vectorAt(argsVector);
+			interpreter.argsBuffer.clear();
+			for (int i1 = 1; i1 <= argsVect.tupleSize(); i1++)
+			{
+				interpreter.argsBuffer.add(interpreter.pointerAt(argsVect.tupleIntAt(i1)));
+			}
+			// Only primitive 340 needs the compiledCode argument, and it's always
+			// folded.
+			final Result res = interpreter.attemptPrimitive(
+				primNumber,
+				null,
+				interpreter.argsBuffer);
+			if (res == SUCCESS)
+			{
+				interpreter.pointerAtPut(resultRegister, interpreter.primitiveResult);
+				interpreter.offset(successOffset);
+			}
+			else if (res == FAILURE)
+			{
+				interpreter.pointerAtPut(failureValueRegister, interpreter.primitiveResult);
+			}
+			else if (res == CONTINUATION_CHANGED)
+			{
+				error(
+					"attemptPrimitive wordcode should never set up "
+					+ "a new continuation",
+					primNumber);
+			}
+			else
+			{
+				error("Unrecognized return type from attemptPrimitive()");
+			}
 		}
 
 		@Override
@@ -1572,9 +2221,25 @@ public enum L2Operation
 		WRITE_POINTER.is("primitive result"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_RUN_INFALLIBLE_PRIMITIVE();
+			final int primNumber = interpreter.nextWord();
+			final int argsVector = interpreter.nextWord();
+			final int resultRegister = interpreter.nextWord();
+			final AvailObject argsVect = interpreter.vectorAt(argsVector);
+			interpreter.argsBuffer.clear();
+			for (int i1 = 1; i1 <= argsVect.tupleSize(); i1++)
+			{
+				interpreter.argsBuffer.add(interpreter.pointerAt(argsVect.tupleIntAt(i1)));
+			}
+			// Only primitive 340 needs the compiledCode argument, and it's always
+			// folded.
+			final Result res = interpreter.attemptPrimitive(
+				primNumber,
+				null,
+				interpreter.argsBuffer);
+			assert res == SUCCESS;
+			interpreter.pointerAtPut(resultRegister, interpreter.primitiveResult);
 		}
 
 		@Override
@@ -1617,9 +2282,13 @@ public enum L2Operation
 		WRITE_POINTER.is("concatenated tuple"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_CONCATENATE_TUPLES();
+			@SuppressWarnings("unused")
+			final int subtupleIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int destIndex = interpreter.nextWord();
+			error("not implemented");
 		}
 	},
 
@@ -1628,9 +2297,13 @@ public enum L2Operation
 		WRITE_POINTER.is("new set"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_CREATE_SET();
+			@SuppressWarnings("unused")
+			final int valuesIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int destIndex = interpreter.nextWord();
+			error("not implemented");
 		}
 	},
 
@@ -1640,9 +2313,15 @@ public enum L2Operation
 		WRITE_POINTER.is("new map"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_CREATE_MAP();
+			@SuppressWarnings("unused")
+			final int keysIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int valuesIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int destIndex = interpreter.nextWord();
+			error("not implemented");
 		}
 	},
 
@@ -1652,9 +2331,15 @@ public enum L2Operation
 		WRITE_POINTER.is("new object"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_CREATE_OBJECT();
+			@SuppressWarnings("unused")
+			final int keysIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int valuesIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int destIndex = interpreter.nextWord();
+			error("not implemented");
 		}
 	},
 
@@ -1664,9 +2349,20 @@ public enum L2Operation
 		WRITE_POINTER.is("new function"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_CREATE_FUNCTION();
+			final int codeIndex = interpreter.nextWord();
+			final int outersIndex = interpreter.nextWord();
+			final int destIndex = interpreter.nextWord();
+			final AvailObject outers = interpreter.vectorAt(outersIndex);
+			final AvailObject clos = FunctionDescriptor.mutable().create(
+				outers.tupleSize());
+			clos.code(interpreter.chunk().literalAt(codeIndex));
+			for (int i = 1, end = outers.tupleSize(); i <= end; i++)
+			{
+				clos.outerVarAtPut(i, interpreter.pointerAt(outers.tupleIntAt(i)));
+			}
+			interpreter.pointerAtPut(destIndex, clos);
 		}
 
 		@Override
@@ -1710,9 +2406,16 @@ public enum L2Operation
 		READ_POINTER.is("return value"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_RETURN();
+			// Return to the calling continuation with the given value.
+			final int continuationIndex = interpreter.nextWord();
+			final int valueIndex = interpreter.nextWord();
+			assert continuationIndex == CALLER.ordinal();
+
+			final AvailObject caller = interpreter.pointerAt(continuationIndex);
+			final AvailObject valueObject = interpreter.pointerAt(valueIndex);
+			interpreter.returnToCaller(caller, valueObject);
 		}
 
 		@Override
@@ -1734,9 +2437,13 @@ public enum L2Operation
 		READ_POINTER.is("value with which to exit"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_EXIT_CONTINUATION();
+			@SuppressWarnings("unused")
+			final int continuationIndex = interpreter.nextWord();
+			@SuppressWarnings("unused")
+			final int valueIndex = interpreter.nextWord();
+			error("not implemented");
 		}
 
 		@Override
@@ -1757,9 +2464,11 @@ public enum L2Operation
 		READ_POINTER.is("continuation to resume"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_RESUME_CONTINUATION();
+			@SuppressWarnings("unused")
+			final int continuationIndex = interpreter.nextWord();
+			error("not implemented");
 		}
 
 		@Override
@@ -1780,9 +2489,10 @@ public enum L2Operation
 		READ_POINTER.is("object"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_MAKE_IMMUTABLE();
+			final int objectIndex = interpreter.nextWord();
+			interpreter.pointerAt(objectIndex).makeImmutable();
 		}
 
 		@Override
@@ -1800,9 +2510,10 @@ public enum L2Operation
 		READ_POINTER.is("object"))
 	{
 		@Override
-		void dispatch (final @NotNull L2OperationDispatcher operationDispatcher)
+		void step (final @NotNull L2Interpreter interpreter)
 		{
-			operationDispatcher.L2_MAKE_SUBOBJECTS_IMMUTABLE();
+			final int objectIndex = interpreter.nextWord();
+			interpreter.pointerAt(objectIndex).makeSubobjectsImmutable();
 		}
 
 		@Override
@@ -1815,6 +2526,7 @@ public enum L2Operation
 			return true;
 		}
 	};
+
 
 	/**
 	 * The {@linkplain L2NamedOperandType named operand types} that this
@@ -1845,15 +2557,16 @@ public enum L2Operation
 	}
 
 	/**
-	 * Dispatch to my {@linkplain L2Operation operation}'s implementation within
-	 * an {@linkplain L2OperationDispatcher}.
+	 * Execute this {@link L2Operation} within an {@link L2Interpreter}.  The
+	 * {@linkplain L2Operand operands} are encoded as integers in the wordcode
+	 * stream, extracted with {@link L2Interpreter#nextWord()}.
 	 *
-	 * @param operationDispatcher
-	 *            The {@linkplain L2OperationDispatcher dispatcher} to which to
-	 *            redirect this message.
+	 * @param interpreter
+	 *            The {@linkplain L2Interpreter interpreter} on behalf of which
+	 *            to perform this operation.
 	 */
-	abstract void dispatch (
-		final @NotNull L2OperationDispatcher operationDispatcher);
+	abstract void step (
+		final @NotNull L2Interpreter interpreter);
 
 	/**
 	 * @param instruction

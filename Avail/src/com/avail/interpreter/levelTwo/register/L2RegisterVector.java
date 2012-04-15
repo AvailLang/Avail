@@ -80,7 +80,7 @@ implements Iterable<L2ObjectRegister>
 	 * Do all member {@linkplain L2ObjectRegister registers} contain constant
 	 * values?
 	 *
-	 * @param registers The {@linkplain RegisterSet register set}.
+	 * @param registerSet The {@linkplain RegisterSet register set}.
 	 * @return {@code true} if each member {@linkplain L2ObjectRegister
 	 *         register} contains a constant value, {@code false} otherwise.
 	 */

@@ -111,8 +111,7 @@ implements Comparable<BitField>
 		final int shift,
 		final int bits)
 	{
-		assert shift >= 0;
-		assert shift <= 31;
+		assert shift == (shift & 31);
 		assert bits > 0;
 		assert shift + bits <= 32;
 

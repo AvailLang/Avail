@@ -38,6 +38,16 @@ import static java.lang.Math.*;
 import java.util.List;
 import com.avail.annotations.*;
 
+/**
+ * {@code NybbleTupleDescriptor} represents a tuple of integers that happen to
+ * fall in the range 0..15.  They are packed eight per {@code int}.
+ *
+ * <p>
+ * This representation is particularly useful for {@linkplain
+ * CompiledCodeDescriptor compiled code}, which uses nybblecodes.
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ */
 public class NybbleTupleDescriptor
 extends TupleDescriptor
 {

@@ -40,7 +40,6 @@ import static com.avail.interpreter.Primitive.Result.*;
 import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
 import static java.lang.Math.max;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicLong;
 import com.avail.annotations.*;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
@@ -78,8 +77,10 @@ public class L2Translator implements L1OperationDispatcher
 	private final Set<AvailObject> contingentMethods =
 		new HashSet<AvailObject>();
 
-	final AtomicLong debugCounter = new AtomicLong();
-
+	/**
+	 * The bank of registers defined at the current level two instruction being
+	 * generated.
+	 */
 	final RegisterSet registers;
 
 	/**
@@ -1309,7 +1310,7 @@ public class L2Translator implements L1OperationDispatcher
 			new L2ReadPointerOperand(registers.fixed(CALLER)),
 			new L2ReadPointerOperand(readTopOfStackRegister()));
 		assert stackp == code.maxStackDepth();
-		stackp = -666;
+		stackp = Integer.MIN_VALUE;
 	}
 
 	/**
@@ -1497,7 +1498,7 @@ public class L2Translator implements L1OperationDispatcher
 				@Override
 				public int compare (final L2Register r1, final L2Register r2)
 				{
-					return (int)(r2.debugValue - r1.debugValue);
+					return (int)(r2.uniqueValue - r1.uniqueValue);
 				}
 			});
 		for (final L2Register register : encounteredList)
@@ -1543,9 +1544,7 @@ public class L2Translator implements L1OperationDispatcher
 		registers.constantAtPut(
 			registers.fixed(NULL),
 			NullDescriptor.nullObject());
-		registers.typeAtPut(
-			registers.fixed(FUNCTION),
-			code.functionType());
+		registers.typeAtPut(registers.fixed(FUNCTION), code.functionType());
 		if (optLevel == 0)
 		{
 			// Optimize it again if it's called frequently enough.
@@ -1585,8 +1584,7 @@ public class L2Translator implements L1OperationDispatcher
 				L2_CREATE_VARIABLE,
 				new L2ConstantOperand(code.localTypeAt(local)),
 				new L2WritePointerOperand(
-					registers.argumentOrLocal(
-						numArgs + local)));
+					registers.argumentOrLocal(numArgs + local)));
 		}
 		final int prim = code.primitiveNumber();
 		if (prim != 0)
@@ -1597,8 +1595,7 @@ public class L2Translator implements L1OperationDispatcher
 			addInstruction(
 				L2_SET_VARIABLE,
 				new L2ReadPointerOperand(
-					registers.argumentOrLocal(
-						numArgs + 1)),
+					registers.argumentOrLocal(numArgs + 1)),
 				new L2ReadPointerOperand(
 					registers.fixed(PRIMITIVE_FAILURE)));
 		}
@@ -1625,7 +1622,7 @@ public class L2Translator implements L1OperationDispatcher
 		// the instruction sequence.
 		L1Operation.L1Implied_Return.dispatch(this);
 		assert pc == nybbles.tupleSize() + 1;
-		assert stackp == -666;
+		assert stackp == Integer.MIN_VALUE;
 
 		optimize();
 		final AvailObject newChunk = createChunk();

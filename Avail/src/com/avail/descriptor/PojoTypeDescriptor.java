@@ -281,6 +281,8 @@ extends TypeDescriptor
 	/**
 	 * Answer the {@link #arrayBaseAncestorMap base ancestor map} for array pojo
 	 * types.
+	 *
+	 * @return The map for array pojo types.
 	 */
 	static @NotNull AvailObject arrayBaseAncestorMap ()
 	{

@@ -56,7 +56,7 @@ import com.avail.interpreter.levelOne.*;
 public abstract class Interpreter
 {
 	/** A {@linkplain Logger logger}. */
-	protected static final @NotNull Logger logger =
+	public static final @NotNull Logger logger =
 		Logger.getLogger(Interpreter.class.getCanonicalName());
 
 	/** An {@link AvailRuntime}. */
@@ -1028,12 +1028,6 @@ public abstract class Interpreter
 	public abstract Result invokeFunctionArguments (
 		AvailObject aFunction,
 		List<AvailObject> args);
-
-	/**
-	 * Ensure any cached interpreter state is represented in the current
-	 * continuation.
-	 */
-	public abstract void reifyContinuation ();
 
 	/**
 	 * Resume execution of the passed {@linkplain ContinuationDescriptor

@@ -33,15 +33,16 @@
 package com.avail.interpreter.levelTwo;
 
 import static com.avail.descriptor.AvailObject.error;
+import static com.avail.exceptions.AvailErrorCode.E_UNHANDLED_EXCEPTION;
 import static com.avail.interpreter.Primitive.Result.*;
+import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
 import static java.lang.Math.max;
 import java.util.*;
-import java.util.logging.Level;
+import java.util.logging.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.descriptor.*;
 import com.avail.descriptor.ProcessDescriptor.ExecutionState;
-import static com.avail.exceptions.AvailErrorCode.*;
 import com.avail.interpreter.*;
 import com.avail.interpreter.Primitive.Flag;
 import com.avail.interpreter.Primitive.Result;
@@ -154,8 +155,15 @@ import com.avail.interpreter.levelTwo.register.FixedRegister;
 final public class L2Interpreter
 extends Interpreter
 {
+	/** Whether to print detailed level one debug information. */
+	final static boolean debugL1 = false;
+
+	/** Whether to print detailed level two debug information. */
 	final static boolean debugL2 = false;
+
+	/** Whether to print detailed level two method results. */
 	final static boolean debugL2Results = false;
+
 
 	/**
 	 * The {@link L2ChunkDescriptor} being executed.
@@ -255,11 +263,6 @@ extends Interpreter
 	final L1InstructionStepper levelOneStepper = new L1InstructionStepper(this);
 
 	/**
-	 * The {@link L2InstructionStepper} used to execute level two wordcodes.
-	 */
-	final L2InstructionStepper levelTwoStepper = new L2InstructionStepper(this);
-
-	/**
 	 * Whether or not execution has completed.
 	 */
 	private boolean exitNow = false;
@@ -276,8 +279,7 @@ extends Interpreter
 		process.continuation(NullDescriptor.nullObject());
 		exitNow = true;
 		exitValue = finalObject;
-		clearPointerAt(callerRegister());
-		clearPointerAt(functionRegister());
+		wipeObjectRegisters();
 	}
 
 	/**
@@ -386,43 +388,7 @@ extends Interpreter
 	 */
 	public final AvailObject currentContinuation ()
 	{
-		return pointerAt(callerRegister());
-	}
-
-
-	/**
-	 * Answer the subscript of the register holding the current context's caller
-	 * context.
-	 *
-	 * @return The subscript to use with {@link L2Interpreter#pointerAt(int)}.
-	 */
-	final static int callerRegister ()
-	{
-		return FixedRegister.CALLER.ordinal();
-	}
-
-
-	/**
-	 * Answer the subscript of the register holding the current context's
-	 * function.
-	 *
-	 * @return The subscript to use with {@link L2Interpreter#pointerAt(int)}.
-	 */
-	final static int functionRegister ()
-	{
-		return FixedRegister.FUNCTION.ordinal();
-	}
-
-
-	/**
-	 * Answer the subscript of the register holding the most recently failed
-	 * primitive's failure value.
-	 *
-	 * @return The subscript to use with {@link L2Interpreter#pointerAt(int)}.
-	 */
-	final static int primitiveFailureValueRegister ()
-	{
-		return FixedRegister.PRIMITIVE_FAILURE.ordinal();
+		return pointerAt(CALLER);
 	}
 
 
@@ -434,7 +400,7 @@ extends Interpreter
 	 */
 	public int getInteger ()
 	{
-		final AvailObject function = pointerAt(functionRegister());
+		final AvailObject function = pointerAt(FUNCTION);
 		final AvailObject code = function.code();
 		final AvailObject nybbles = code.nybbles();
 		int pc = integerAt(pcRegister());
@@ -458,7 +424,6 @@ extends Interpreter
 		return value;
 	}
 
-
 	/**
 	 * Read from an object register.  Register zero is reserved for read-only
 	 * use, and always contains the {@linkplain NullDescriptor#nullObject() null
@@ -473,7 +438,6 @@ extends Interpreter
 		assert pointers[index] != null;
 		return pointers[index];
 	}
-
 
 	/**
 	 * Write to an object register.  Register zero is reserved for read-only
@@ -492,6 +456,34 @@ extends Interpreter
 		pointers[index] = anAvailObject;
 	}
 
+	/**
+	 * Read from a {@linkplain FixedRegister fixed object register}.  Register
+	 * zero is reserved for read-only use, and always contains the {@linkplain
+	 * NullDescriptor#nullObject() null object}.
+	 *
+	 * @param fixedObjectRegister The fixed object register.
+	 * @return The object in the specified register.
+	 */
+	public AvailObject pointerAt (
+		final @NotNull FixedRegister fixedObjectRegister)
+	{
+		return pointerAt(fixedObjectRegister.ordinal());
+	}
+
+	/**
+	 * Write to a fixed object register.  Register zero is reserved for
+	 * read-only use, and always contains the {@linkplain
+	 * NullDescriptor#nullObject() null object}.
+	 *
+	 * @param fixedObjectRegister The fixed object register.
+	 * @param anAvailObject The object to write to the specified register.
+	 */
+	public void pointerAtPut (
+		final @NotNull FixedRegister fixedObjectRegister,
+		final @NotNull AvailObject anAvailObject)
+	{
+		pointerAtPut(fixedObjectRegister.ordinal(), anAvailObject);
+	}
 
 	/**
 	 * Write a Java null to an object register.  Register zero is reserved for
@@ -507,21 +499,20 @@ extends Interpreter
 	}
 
 	/**
-	 * Write null into the pointers whose indices are firstIndex through
-	 * lastIndex, <em>inclusive</em>.
-	 *
-	 * @param firstIndex The index of the first pointer to clear.
-	 * @param lastIndex The index of the last pointer to clear.
+	 * Write {@code null} into each object register except the constant {@link
+	 * FixedRegister#NULL} register.
 	 */
-	public void clearPointersRange (final int firstIndex, final int lastIndex)
+	public void wipeObjectRegisters ()
 	{
-		Arrays.fill(
-			pointers,
-			firstIndex,
-			lastIndex + 1,
-			null);
+		if (chunk != null)
+		{
+			Arrays.fill(
+				pointers,
+				1,
+				chunk().numObjects() + 1,
+				null);
+		}
 	}
-
 
 	/**
 	 * Read from an integer register.  The index is one-based.  Entry [0] is
@@ -564,42 +555,6 @@ extends Interpreter
 
 
 	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>
-	 * Construct the continuation from the L2 registers that hold the
-	 * L1-architectural state.  Write the resulting continuation into the
-	 * {@linkplain L2Interpreter#callerRegister() caller register}.
-	 * </p>
-	 */
-	@Override
-	public void reifyContinuation ()
-	{
-		final AvailObject function = pointerAt(functionRegister());
-		final AvailObject code = function.code();
-		final AvailObject continuation =
-			ContinuationDescriptor.mutable().create(
-				code.numArgsAndLocalsAndStack());
-		continuation.caller(pointerAt(callerRegister()));
-		continuation.function(function);
-		continuation.pc(integerAt(pcRegister()));
-		continuation.stackp(
-			integerAt(stackpRegister()) + 1 - argumentOrLocalRegister(1));
-		assert chunk() == L2ChunkDescriptor.unoptimizedChunk();
-		continuation.levelTwoChunkOffset(
-			chunk(),
-			L2ChunkDescriptor.offsetToContinueUnoptimizedChunk());
-		for (int i = code.numArgsAndLocalsAndStack(); i >= 1; i--)
-		{
-			continuation.argOrLocalOrStackAtPut(
-				i,
-				pointerAt(argumentOrLocalRegister(i)));
-		}
-		clearPointersRange(1, chunk().numObjects() - 1);
-		pointerAtPut(callerRegister(), continuation);
-	}
-
-	/**
 	 * Return into the specified continuation with the given return value.
 	 * Verify that the return value matches the expected type already pushed
 	 * on the continuation's stack.  If the continuation is {@linkplain
@@ -619,7 +574,7 @@ extends Interpreter
 		// Wipe out the existing registers for safety.  This is technically
 		// optional, but not doing so may (1) hide bugs, and (2) leak
 		// references to values in registers.
-		clearPointersRange(1, chunk().numObjects() - 1);
+		wipeObjectRegisters();
 		if (caller.equalsNull())
 		{
 			exitProcessWith(value);
@@ -653,7 +608,7 @@ extends Interpreter
 				chunkToResume,
 				L2ChunkDescriptor.offsetToContinueUnoptimizedChunk());
 		}
-		pointerAtPut(callerRegister(), continuation);
+		pointerAtPut(CALLER, continuation);
 		setChunk(chunkToResume, continuation.function().code());
 		offset(continuation.levelTwoOffset());
 	}
@@ -678,7 +633,7 @@ extends Interpreter
 		{
 			argsBuffer.add(continuationToRestart.argOrLocalOrStackAt(i));
 		}
-		clearPointersRange(1, chunk().numObjects() - 1); // Safety
+		wipeObjectRegisters();
 		invokeWithoutPrimitiveFunctionArguments(
 			continuationToRestart.function(),
 			argsBuffer,
@@ -726,7 +681,7 @@ extends Interpreter
 	public Result searchForExceptionHandler (
 		final @NotNull AvailObject exceptionValue)
 	{
-		AvailObject continuation = pointerAt(callerRegister());
+		AvailObject continuation = pointerAt(CALLER);
 		while (!continuation.equalsNull())
 		{
 			if (continuation.function().code().primitiveNumber() == 200)
@@ -754,7 +709,7 @@ extends Interpreter
 	{
 		final AvailObject code = aFunction.code();
 		assert code.numArgs() == args.size();
-		final AvailObject caller = pointerAt(callerRegister());
+		final AvailObject caller = pointerAt(CALLER);
 		final int primNum = code.primitiveNumber();
 		if (primNum != 0)
 		{
@@ -770,7 +725,7 @@ extends Interpreter
 				aFunction,
 				args,
 				caller);
-			pointerAtPut(primitiveFailureValueRegister(), primitiveResult);
+			pointerAtPut(PRIMITIVE_FAILURE, primitiveResult);
 			return CONTINUATION_CHANGED;
 		}
 		// It wasn't a primitive.
@@ -799,18 +754,12 @@ extends Interpreter
 			code.countdownToReoptimize(
 				L2ChunkDescriptor.countdownForInvalidatedCode());
 		}
-		if (chunk != null)
-		{
-			// Wipe out the existing registers for safety.  This is technically
-			// optional, but not doing so may (1) hide bugs, and (2) leak
-			// references to values in registers.
-			clearPointersRange(1, chunk.numObjects() - 1);
-		}
+		wipeObjectRegisters();
 		setChunk(chunkToInvoke, code);
 		offset(1);
 
-		pointerAtPut(callerRegister(), caller);
-		pointerAtPut(functionRegister(), aFunction);
+		pointerAtPut(CALLER, caller);
+		pointerAtPut(FUNCTION, aFunction);
 		// Transfer arguments...
 		final int numArgs = code.numArgs();
 		int dest = argumentOrLocalRegister(1);
@@ -838,7 +787,7 @@ extends Interpreter
 	{
 		final AvailObject theCode = theFunction.code();
 		final int primNum = theCode.primitiveNumber();
-		pointerAtPut(callerRegister(), caller);
+		pointerAtPut(CALLER, caller);
 		if (primNum != 0)
 		{
 			final Result primResult = attemptPrimitive(
@@ -867,7 +816,7 @@ extends Interpreter
 							expectedType));
 					}
 					updatedCaller.stackAtPut(stackp, primitiveResult);
-					pointerAtPut(callerRegister(), updatedCaller);
+					pointerAtPut(CALLER, updatedCaller);
 					setChunk(
 						updatedCaller.levelTwoChunk(),
 						updatedCaller.function().code());
@@ -878,9 +827,7 @@ extends Interpreter
 						theFunction,
 						argsBuffer,
 						caller);
-					pointerAtPut(
-						primitiveFailureValueRegister(),
-						primitiveResult);
+					pointerAtPut(PRIMITIVE_FAILURE, primitiveResult);
 					return;
 			}
 		}
@@ -920,7 +867,7 @@ extends Interpreter
 			if (logger.isLoggable(Level.FINEST))
 			{
 				final StringBuilder stackString = new StringBuilder();
-				AvailObject chain = pointerAt(callerRegister());
+				AvailObject chain = pointerAt(CALLER);
 				while (!chain.equalsNull())
 				{
 					stackString.insert(0, "->");
@@ -939,7 +886,7 @@ extends Interpreter
 			{
 				int depth = 0;
 				for (
-					AvailObject c = pointerAt(callerRegister());
+					AvailObject c = pointerAt(CALLER);
 					!c.equalsNull();
 					c = c.caller())
 				{
@@ -952,7 +899,7 @@ extends Interpreter
 					offset,
 					operation);
 			}
-			operation.dispatch(levelTwoStepper);
+			operation.step(this);
 		}
 		if (debugL2Results)
 		{
@@ -966,8 +913,8 @@ extends Interpreter
 		final AvailObject function,
 		final List<AvailObject> arguments)
 	{
-		pointerAtPut(callerRegister(), NullDescriptor.nullObject());
-		clearPointerAt(functionRegister());
+		pointerAtPut(CALLER, NullDescriptor.nullObject());
+		clearPointerAt(FUNCTION.ordinal());
 		// Keep the process's current continuation clear during execution.
 		process.continuation(NullDescriptor.nullObject());
 

@@ -255,8 +255,8 @@ extends Descriptor
 		}
 		for (int i = object.numArgsAndLocalsAndStack(); i >= 1; i--)
 		{
-			if (!object.argOrLocalOrStackAt(i)
-					.equals(aContinuation.argOrLocalOrStackAt(i)))
+			if (!object.argOrLocalOrStackAt(i).equals(
+				aContinuation.argOrLocalOrStackAt(i)))
 			{
 				return false;
 			}

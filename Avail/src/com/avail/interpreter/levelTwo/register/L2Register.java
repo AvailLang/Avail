@@ -32,7 +32,6 @@
 
 package com.avail.interpreter.levelTwo.register;
 
-import java.util.concurrent.atomic.AtomicLong;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.optimizer.L2Translator;
 
@@ -46,11 +45,6 @@ import com.avail.optimizer.L2Translator;
  */
 public class L2Register
 {
-	/**
-	 * A monotonic counter for distinguishing registers when printed.
-	 */
-	static AtomicLong debugCounter = new AtomicLong();
-
 	/**
 	 * A coloring number to be used by the {@linkplain L2Interpreter
 	 * interpreter} at runtime to identify the storage location of a
@@ -88,7 +82,7 @@ public class L2Register
 	/**
 	 * A value used to distinguish distinct registers.
 	 */
-	public final long debugValue;
+	public final long uniqueValue;
 
 	/**
 	 * Construct a new {@link L2Register}.
@@ -97,7 +91,7 @@ public class L2Register
 	 */
 	L2Register (final long debugValue)
 	{
-		this.debugValue = debugValue;
+		this.uniqueValue = debugValue;
 	}
 
 	@Override
@@ -112,7 +106,7 @@ public class L2Register
 			builder.append("]");
 		}
 		builder.append("@");
-		builder.append(debugValue);
+		builder.append(uniqueValue);
 		return builder.toString();
 	}
 }
