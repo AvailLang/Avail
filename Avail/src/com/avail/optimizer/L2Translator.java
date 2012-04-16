@@ -536,13 +536,27 @@ public class L2Translator implements L1OperationDispatcher
 		{
 			// Use the first literal as the return value.
 			final AvailObject value = primitiveFunction.code().literalAt(1);
+			moveConstant(value, writeTopOfStackRegister());
 			// Restriction might be too strong even on a constant method.
 			if (value.isInstanceOf(expectedType))
 			{
-				moveConstant(value, writeTopOfStackRegister());
 				canFailPrimitive.value = false;
 				return value;
 			}
+			// The primitive will technically succeed, but the return will trip
+			// a failure to meet the strengthened return type.
+			addInstruction(
+				L2_REPORT_INVALID_RETURN_TYPE,
+				new L2PrimitiveOperand(primitive),
+				new L2ReadPointerOperand(readTopOfStackRegister()),
+				new L2ConstantOperand(expectedType));
+			// No need to generate primitive failure handling code, since
+			// technically the primitive succeeded but the return failed.
+			// The above instruction effectively makes the successor
+			// instructions unreachable, so don't spend a lot of time generating
+			// that dead code.
+			canFailPrimitive.value = false;
+			return null;
 		}
 		if (primitive.hasFlag(SpecialReturnSoleArgument))
 		{
@@ -613,12 +627,15 @@ public class L2Translator implements L1OperationDispatcher
 			assert success != CONTINUATION_CHANGED
 			: "This foldable primitive changed the continuation!";
 		}
+		final L2ObjectRegister expectedTypeRegister = registers.newObject();
+		moveConstant(expectedType, expectedTypeRegister);
 		if (primitive.hasFlag(CannotFail))
 		{
 			addInstruction(
 				L2_RUN_INFALLIBLE_PRIMITIVE,
 				new L2PrimitiveOperand(primitive),
 				new L2ReadVectorOperand(createVector(args)),
+				new L2ReadPointerOperand(expectedTypeRegister),
 				new L2WritePointerOperand(writeTopOfStackRegister()));
 			canFailPrimitive.value = false;
 		}
@@ -628,6 +645,7 @@ public class L2Translator implements L1OperationDispatcher
 				L2_ATTEMPT_INLINE_PRIMITIVE,
 				new L2PrimitiveOperand(primitive),
 				new L2ReadVectorOperand(createVector(args)),
+				new L2ReadPointerOperand(expectedTypeRegister),
 				new L2WritePointerOperand(writeTopOfStackRegister()),
 				new L2WritePointerOperand(failureValueRegister),
 				new L2ReadWriteVectorOperand(createVector(preserved)),
@@ -768,7 +786,7 @@ public class L2Translator implements L1OperationDispatcher
 			else
 			{
 				addInstruction(
-					L2_SEND_AFTER_FAILED_PRIMITIVE_,
+					L2_SEND_AFTER_FAILED_PRIMITIVE,
 					new L2ReadPointerOperand(tempCallerRegister),
 					new L2SelectorOperand(method),
 					new L2ReadVectorOperand(createVector(args)),

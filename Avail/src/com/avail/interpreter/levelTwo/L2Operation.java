@@ -90,7 +90,7 @@ public enum L2Operation
 		@Override
 		void step (final L2Interpreter interpreter)
 		{
-			error("Label wordcode should is not executable\n");
+			error("Label wordcode is not executable\n");
 		}
 
 		@Override
@@ -196,7 +196,6 @@ public enum L2Operation
 				interpreter.offset(interpreter.offset() - 1);
 			}
 
-			// TODO Debug only.
 			int depth = 0;
 			if (debugL1)
 			{
@@ -265,13 +264,16 @@ public enum L2Operation
 		}
 	},
 
+	/**
+	 * Arrive here by returning from a called method into unoptimized (level
+	 * one) code.  Explode the current continuation's slots into the registers
+	 * that level one expects.
+	 */
 	L2_REENTER_L1_CHUNK ()
 	{
 		@Override
 		void step (final @NotNull L2Interpreter interpreter)
 		{
-			// Arrive here by returning from a called method.  Explode the current
-			// continuation's slots into the registers that level one uses.
 			final AvailObject continuation = interpreter.pointerAt(CALLER);
 			final int numSlots = continuation.numArgsAndLocalsAndStack();
 			for (int i = 1; i <= numSlots; i++)
@@ -295,6 +297,11 @@ public enum L2Operation
 		}
 	},
 
+	/**
+	 * Explicitly decrement the current compiled code's countdown via {@link
+	 * AvailObject#countdownToReoptimize(int)}.  If it reaches zero then
+	 * re-optimize the code.
+	 */
 	L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO ()
 	{
 		@Override
@@ -320,9 +327,12 @@ public enum L2Operation
 				final int nArgs = theCode.numArgs();
 				for (int i = 1; i <= nArgs; i++)
 				{
-					interpreter.argsBuffer.add(interpreter.pointerAt(argumentOrLocalRegister(i)));
+					interpreter.argsBuffer.add(
+						interpreter.pointerAt(argumentOrLocalRegister(i)));
 				}
-				interpreter.invokeFunctionArguments(theFunction, interpreter.argsBuffer);
+				interpreter.invokeFunctionArguments(
+					theFunction,
+					interpreter.argsBuffer);
 			}
 		}
 
@@ -333,6 +343,11 @@ public enum L2Operation
 		}
 	},
 
+	/**
+	 * This marks the entry point into optimized (level two) code.  At entry,
+	 * the arguments are expected to be in the specified architectural
+	 * registers.  This operation is a place-holder and is not actually emitted.
+	 */
 	L2_ENTER_L2_CHUNK (
 		WRITE_VECTOR.is("arguments"))
 	{
@@ -363,6 +378,15 @@ public enum L2Operation
 		}
 	},
 
+	/**
+	 * This marks a re-entry point into optimized (level two) code.  At
+	 * re-entry, only the architectural {@link #CALLER} register has a value.
+	 * This mechanism is used for a re-entry point to which a return should
+	 * arrive, as well as when restarting a continuation created from a
+	 * {@link L1Operation#L1Ext_doPushLabel push-label L1 instruction}.  In the
+	 * former, the return value has already been written into the continuation,
+	 * and in the latter only the continuation's argument slots are non-nil.
+	 */
 	L2_REENTER_L2_CHUNK (
 		WRITE_POINTER.is("continuation"))
 	{
@@ -387,6 +411,16 @@ public enum L2Operation
 	},
 
 
+	/**
+	 * Move an {@link AvailObject} from the source to the destination.  The
+	 * {@link L2Translator} creates more moves than are strictly necessary, but
+	 * various mechanisms cooperate to remove redundant inter-register moves.
+	 *
+	 * <p>
+	 * The object being moved is not made immutable by this operation, as that
+	 * is the responsibility of the {@link #L2_MAKE_IMMUTABLE} operation.
+	 * </p>
+	 */
 	L2_MOVE (
 		READ_POINTER.is("source"),
 		WRITE_POINTER.is("destination"))
@@ -396,7 +430,9 @@ public enum L2Operation
 		{
 			final int fromIndex = interpreter.nextWord();
 			final int destIndex = interpreter.nextWord();
-			interpreter.pointerAtPut(destIndex, interpreter.pointerAt(fromIndex));
+			interpreter.pointerAtPut(
+				destIndex,
+				interpreter.pointerAt(fromIndex));
 		}
 
 		@Override
@@ -438,6 +474,9 @@ public enum L2Operation
 		}
 	},
 
+	/**
+	 * Move a constant {@link AvailObject} into an object register.
+	 */
 	L2_MOVE_CONSTANT (
 		CONSTANT.is("constant"),
 		WRITE_POINTER.is("destination"))
@@ -447,7 +486,9 @@ public enum L2Operation
 		{
 			final int fromIndex = interpreter.nextWord();
 			final int destIndex = interpreter.nextWord();
-			interpreter.pointerAtPut(destIndex, interpreter.chunk().literalAt(fromIndex));
+			interpreter.pointerAtPut(
+				destIndex,
+				interpreter.chunk().literalAt(fromIndex));
 		}
 
 		@Override
@@ -465,6 +506,11 @@ public enum L2Operation
 		}
 	},
 
+	/**
+	 * Extract a captured "outer" variable from a function.  If the outer
+	 * variable is an actual {@linkplain VariableDescriptor variable}, then the
+	 * variable itself is what gets moved into the destination register.
+	 */
 	L2_MOVE_OUTER_VARIABLE (
 		IMMEDIATE.is("outer index"),
 		READ_POINTER.is("function"),
@@ -476,7 +522,9 @@ public enum L2Operation
 			final int outerIndex = interpreter.nextWord();
 			final int fromIndex = interpreter.nextWord();
 			final int destIndex = interpreter.nextWord();
-			interpreter.pointerAtPut(destIndex, interpreter.pointerAt(fromIndex).outerVarAt(outerIndex));
+			interpreter.pointerAtPut(
+				destIndex,
+				interpreter.pointerAt(fromIndex).outerVarAt(outerIndex));
 		}
 
 		@Override
@@ -498,6 +546,10 @@ public enum L2Operation
 		}
 	},
 
+	/**
+	 * Create a new {@linkplain VariableDescriptor variable object} of the
+	 * specified {@link VariableTypeDescriptor variable type}.
+	 */
 	L2_CREATE_VARIABLE (
 		CONSTANT.is("type"),
 		WRITE_POINTER.is("variable"))
@@ -509,7 +561,8 @@ public enum L2Operation
 			final int destIndex = interpreter.nextWord();
 			interpreter.pointerAtPut(
 				destIndex,
-				VariableDescriptor.forOuterType(interpreter.chunk().literalAt(typeIndex)));
+				VariableDescriptor.forOuterType(
+					interpreter.chunk().literalAt(typeIndex)));
 		}
 
 		@Override
@@ -531,6 +584,14 @@ public enum L2Operation
 		}
 	},
 
+	/**
+	 * Extract the value of a variable.
+	 *
+	 * <p>
+	 * TODO [MvG] - Currently stops the VM if the variable does not have a
+	 * value assigned.  This needs a better mechanism.
+	 * </p>
+	 */
 	L2_GET_VARIABLE (
 		READ_POINTER.is("variable"),
 		WRITE_POINTER.is("extracted value"))
@@ -540,7 +601,9 @@ public enum L2Operation
 		{
 			final int getIndex = interpreter.nextWord();
 			final int destIndex = interpreter.nextWord();
-			interpreter.pointerAtPut(destIndex, interpreter.pointerAt(getIndex).getValue().makeImmutable());
+			interpreter.pointerAtPut(
+				destIndex,
+				interpreter.pointerAt(getIndex).getValue().makeImmutable());
 		}
 
 		@Override
@@ -548,14 +611,16 @@ public enum L2Operation
 			final L2Instruction instruction,
 			final RegisterSet registers)
 		{
-			final L2ReadPointerOperand sourceOperand = (L2ReadPointerOperand) instruction.operands[0];
-			final L2WritePointerOperand destinationOperand = (L2WritePointerOperand) instruction.operands[1];
+			final L2ReadPointerOperand sourceOperand =
+				(L2ReadPointerOperand) instruction.operands[0];
+			final L2WritePointerOperand destinationOperand =
+				(L2WritePointerOperand) instruction.operands[1];
 			if (registers.hasTypeAt(sourceOperand.register))
 			{
-				final AvailObject oldType = registers
-					.typeAt(sourceOperand.register);
-				final AvailObject varType = oldType
-					.typeIntersection(VariableTypeDescriptor.mostGeneralType());
+				final AvailObject oldType = registers.typeAt(
+					sourceOperand.register);
+				final AvailObject varType = oldType.typeIntersection(
+					VariableTypeDescriptor.mostGeneralType());
 				registers.typeAtPut(sourceOperand.register, varType);
 				registers.typeAtPut(
 					destinationOperand.register,
@@ -577,6 +642,14 @@ public enum L2Operation
 		}
 	},
 
+	/**
+	 * Extract the value of a variable, while simultaneously clearing it.
+	 *
+	 * <p>
+	 * TODO [MvG] - Currently stops the VM if the variable did not have a value
+	 * assigned.  This needs a better mechanism.
+	 * </p>
+	 */
 	L2_GET_VARIABLE_CLEARING (
 		READ_POINTER.is("variable"),
 		WRITE_POINTER.is("extracted value"))
@@ -604,8 +677,10 @@ public enum L2Operation
 			final L2Instruction instruction,
 			final RegisterSet registers)
 		{
-			final L2ReadPointerOperand variableOperand = (L2ReadPointerOperand) instruction.operands[0];
-			final L2WritePointerOperand destinationOperand = (L2WritePointerOperand) instruction.operands[1];
+			final L2ReadPointerOperand variableOperand =
+				(L2ReadPointerOperand) instruction.operands[0];
+			final L2WritePointerOperand destinationOperand =
+				(L2WritePointerOperand) instruction.operands[1];
 
 			// If we haven't already guaranteed that this is a variable then we
 			// are probably not doing things right.
@@ -630,6 +705,9 @@ public enum L2Operation
 		}
 	},
 
+	/**
+	 * Assign a value to a {@linkplain VariableDescriptor variable}.
+	 */
 	L2_SET_VARIABLE (
 		READ_POINTER.is("variable"),
 		READ_POINTER.is("value to write"))
@@ -639,7 +717,8 @@ public enum L2Operation
 		{
 			final int setIndex = interpreter.nextWord();
 			final int sourceIndex = interpreter.nextWord();
-			interpreter.pointerAt(setIndex).setValue(interpreter.pointerAt(sourceIndex));
+			interpreter.pointerAt(setIndex).setValue(
+				interpreter.pointerAt(sourceIndex));
 		}
 
 		@Override
@@ -647,14 +726,15 @@ public enum L2Operation
 			final L2Instruction instruction,
 			final RegisterSet registers)
 		{
-			final L2ReadPointerOperand variableOperand = (L2ReadPointerOperand) instruction.operands[0];
+			final L2ReadPointerOperand variableOperand =
+				(L2ReadPointerOperand) instruction.operands[0];
 			// If we haven't already guaranteed that this is a variable then we
 			// are probably not doing things right.
 			assert registers.hasTypeAt(variableOperand.register);
-			final AvailObject varType = registers
-				.typeAt(variableOperand.register);
-			assert varType
-				.isSubtypeOf(VariableTypeDescriptor.mostGeneralType());
+			final AvailObject varType = registers.typeAt(
+				variableOperand.register);
+			assert varType.isSubtypeOf(
+				VariableTypeDescriptor.mostGeneralType());
 		}
 
 		@Override
@@ -664,6 +744,9 @@ public enum L2Operation
 		}
 	},
 
+	/**
+	 * Clear a variable; i.e., make it have no assigned value.
+	 */
 	L2_CLEAR_VARIABLE (
 		READ_POINTER.is("variable"))
 	{
@@ -680,7 +763,8 @@ public enum L2Operation
 			final L2Instruction instruction,
 			final RegisterSet registers)
 		{
-			final L2ReadPointerOperand variableOperand = (L2ReadPointerOperand) instruction.operands[0];
+			final L2ReadPointerOperand variableOperand =
+				(L2ReadPointerOperand) instruction.operands[0];
 			// If we haven't already guaranteed that this is a variable then we
 			// are probably not doing things right.
 			assert registers.hasTypeAt(variableOperand.register);
@@ -1525,7 +1609,8 @@ public enum L2Operation
 			final int valueIndex = interpreter.nextWord();
 			final int typeConstIndex = interpreter.nextWord();
 			final AvailObject value = interpreter.pointerAt(valueIndex);
-			final AvailObject type = interpreter.chunk().literalAt(typeConstIndex);
+			final AvailObject type =
+				interpreter.chunk().literalAt(typeConstIndex);
 			if (value.isInstanceOf(type))
 			{
 				interpreter.offset(doIndex);
@@ -1590,6 +1675,10 @@ public enum L2Operation
 		}
 	},
 
+	/**
+	 * Jump to the specified level two program counter if an interrupt has been
+	 * requested but not yet serviced.  Otherwise do nothing.
+	 */
 	L2_JUMP_IF_INTERRUPT (
 		PC.is("target if interrupt"))
 	{
@@ -1611,6 +1700,11 @@ public enum L2Operation
 		}
 	},
 
+	/**
+	 * Jump to the specified level two program counter if no interrupt has been
+	 * requested since last serviced.  Otherwise an interrupt has been requested
+	 * and we should do nothing then proceed to the next instruction.
+	 */
 	L2_JUMP_IF_NOT_INTERRUPT (
 		PC.is("target if not interrupt"))
 	{
@@ -1632,6 +1726,9 @@ public enum L2Operation
 		}
 	},
 
+	/**
+	 * Handle an interrupt that has been requested.
+	 */
 	L2_PROCESS_INTERRUPT (
 		READ_POINTER.is("continuation"))
 	{
@@ -1656,6 +1753,12 @@ public enum L2Operation
 		}
 	},
 
+	/**
+	 * Create a continuation from scratch, using the specified caller, function,
+	 * constant level one program counter, constant stack pointer, continuation
+	 * slot values, and level two program counter.  Write the new continuation
+	 * into the specified register.
+	 */
 	L2_CREATE_CONTINUATION (
 		READ_POINTER.is("caller"),
 		READ_POINTER.is("function"),
@@ -1684,7 +1787,9 @@ public enum L2Operation
 			continuation.function(function);
 			continuation.pc(pcIndex);
 			continuation.stackp(frameSize - code.maxStackDepth() + stackpIndex);
-			continuation.levelTwoChunkOffset(interpreter.chunk(), wordcodeOffset);
+			continuation.levelTwoChunkOffset(
+				interpreter.chunk(),
+				wordcodeOffset);
 			final AvailObject slots = interpreter.vectorAt(slotsIndex);
 			final int size = slots.tupleSize();
 			for (int i = 1; i <= size; i++)
@@ -1719,6 +1824,12 @@ public enum L2Operation
 		}
 	},
 
+	/**
+	 * Update a slot of an existing continuation.  If the continuation is
+	 * mutable then change it in place, otherwise use a mutable copy.  Write
+	 * the resulting continuation back to the register that provided the
+	 * original.
+	 */
 	L2_UPDATE_CONTINUATION_SLOT (
 		READWRITE_POINTER.is("continuation"),
 		IMMEDIATE.is("slot index"),
@@ -1727,6 +1838,7 @@ public enum L2Operation
 		@Override
 		void step (final @NotNull L2Interpreter interpreter)
 		{
+			// TODO [MvG] Implement.
 			@SuppressWarnings("unused")
 			final int continuationIndex = interpreter.nextWord();
 			@SuppressWarnings("unused")
@@ -1737,7 +1849,14 @@ public enum L2Operation
 		}
 	},
 
-	L2_UPDATE_CONTINUATION_PC_AND_STACKP_ (
+	/**
+	 * Update an existing continuation's level one program counter and stack
+	 * pointer to the provided immediate integers.  If the continuation is
+	 * mutable then change it in place, otherwise use a mutable copy.  Write
+	 * the resulting continuation back to the register that provided the
+	 * original.
+	 */
+	L2_UPDATE_CONTINUATION_PC_AND_STACKP (
 		READWRITE_POINTER.is("continuation"),
 		IMMEDIATE.is("new pc"),
 		IMMEDIATE.is("new stack pointer"))
@@ -1745,6 +1864,7 @@ public enum L2Operation
 		@Override
 		void step (final @NotNull L2Interpreter interpreter)
 		{
+			// TODO [MvG] Implement.
 			@SuppressWarnings("unused")
 			final int continuationIndex = interpreter.nextWord();
 			@SuppressWarnings("unused")
@@ -1755,6 +1875,18 @@ public enum L2Operation
 		}
 	},
 
+	/**
+	 * Send the specified method and arguments.  The calling continuation is
+	 * provided, which allows this operation to act more like a non-local jump
+	 * than a call.  The continuation has the arguments popped already, with the
+	 * expected return type pushed instead.
+	 *
+	 * <p>
+	 * The appropriate function is looked up and invoked.  The function may be a
+	 * primitive, and the primitive may succeed, fail, or change the current
+	 * continuation.
+	 * </p>
+	 */
 	L2_SEND (
 		READ_POINTER.is("continuation"),
 		SELECTOR.is("method"),
@@ -1772,12 +1904,16 @@ public enum L2Operation
 			interpreter.argsBuffer.clear();
 			for (int i = 1; i <= vect.tupleSize(); i++)
 			{
-				interpreter.argsBuffer.add(interpreter.pointerAt(vect.tupleIntAt(i)));
+				interpreter.argsBuffer.add(
+					interpreter.pointerAt(vect.tupleIntAt(i)));
 			}
-			final AvailObject selector = interpreter.chunk().literalAt(selectorIndex);
+			final AvailObject selector =
+				interpreter.chunk().literalAt(selectorIndex);
 			if (debugL1)
 			{
-				System.out.printf("  --- calling: %s%n", selector.name().name());
+				System.out.printf(
+					"  --- calling: %s%n",
+					selector.name().name());
 			}
 			final AvailObject signatureToCall =
 				selector.lookupByValuesFromList(interpreter.argsBuffer);
@@ -1801,7 +1937,7 @@ public enum L2Operation
 			final L2Instruction instruction,
 			final RegisterSet registers)
 		{
-			// translator.restrictPropagationInformationToArchitecturalRegisters();
+			// restriction happens elsewhere.
 		}
 
 		@Override
@@ -1819,7 +1955,22 @@ public enum L2Operation
 		}
 	},
 
-	L2_SEND_AFTER_FAILED_PRIMITIVE_ (
+	/**
+	 * Send the specified method and arguments.  The calling continuation is
+	 * provided, which allows this operation to act more like a non-local jump
+	 * than a call.  The continuation has the arguments popped already, with the
+	 * expected return type pushed instead.
+	 *
+	 * <p>
+	 * The appropriate function is looked up and invoked.  The function must be
+	 * a primitive which has already failed at this point, so set up the
+	 * failure code of the function without trying the primitive.  The failure
+	 * value from the failed primitive attempt is provided and will be saved in
+	 * the architectural {@link FixedRegister#PRIMITIVE_FAILURE} register for
+	 * use by subsequent L1 or L2 code.
+	 * </p>
+	 */
+	L2_SEND_AFTER_FAILED_PRIMITIVE (
 		READ_POINTER.is("continuation"),
 		SELECTOR.is("method"),
 		READ_VECTOR.is("arguments"),
@@ -1834,14 +1985,17 @@ public enum L2Operation
 			final int argumentsIndex = interpreter.nextWord();
 			final int failureValueIndex = interpreter.nextWord();
 			final AvailObject caller = interpreter.pointerAt(callerIndex);
-			final AvailObject failureValue = interpreter.pointerAt(failureValueIndex);
+			final AvailObject failureValue =
+				interpreter.pointerAt(failureValueIndex);
 			final AvailObject vect = interpreter.vectorAt(argumentsIndex);
 			interpreter.argsBuffer.clear();
 			for (int i = 1; i <= vect.tupleSize(); i++)
 			{
-				interpreter.argsBuffer.add(interpreter.pointerAt(vect.tupleIntAt(i)));
+				interpreter.argsBuffer.add(
+					interpreter.pointerAt(vect.tupleIntAt(i)));
 			}
-			final AvailObject selector = interpreter.chunk().literalAt(selectorIndex);
+			final AvailObject selector =
+				interpreter.chunk().literalAt(selectorIndex);
 			if (debugL1)
 			{
 				System.out.printf(
@@ -1864,13 +2018,14 @@ public enum L2Operation
 			final AvailObject codeToCall = functionToCall.code();
 			final int primNum = codeToCall.primitiveNumber();
 			assert primNum != 0;
-			assert !Primitive.byPrimitiveNumber(primNum).hasFlag(Flag.CannotFail);
+			assert !Primitive.byPrimitiveNumber(primNum).hasFlag(
+				Flag.CannotFail);
 			interpreter.invokeWithoutPrimitiveFunctionArguments(
 				functionToCall,
 				interpreter.argsBuffer,
 				caller);
-			// Put the primitive failure value somewhere both L1 and L2 will find
-			// it.
+			// Put the primitive failure value somewhere that both L1 and L2
+			// will find it.
 			interpreter.pointerAtPut(PRIMITIVE_FAILURE, failureValue);
 		}
 
@@ -1879,7 +2034,7 @@ public enum L2Operation
 			final L2Instruction instruction,
 			final RegisterSet registers)
 		{
-			// translator.restrictPropagationInformationToArchitecturalRegisters();
+			// Restriction happens elsewhere.
 		}
 
 		@Override
@@ -1897,6 +2052,19 @@ public enum L2Operation
 		}
 	},
 
+	/**
+	 * Send the specified method and arguments, using the specified argument
+	 * types to select the function to invoke.  The calling continuation is
+	 * provided, which allows this operation to act more like a non-local jump
+	 * than a call.  The continuation has the arguments types and arguments
+	 * popped already, with the expected return type pushed instead.
+	 *
+	 * <p>
+	 * The appropriate function is looked up and invoked.  The function may be a
+	 * primitive, and the primitive may succeed, fail, or change the current
+	 * continuation.
+	 * </p>
+	 */
 	L2_SUPER_SEND (
 		READ_POINTER.is("continuation"),
 		SELECTOR.is("method"),
@@ -1918,10 +2086,12 @@ public enum L2Operation
 				interpreter.argsBuffer.clear();
 				for (int i = 1; i < vect.tupleSize(); i++)
 				{
-					interpreter.argsBuffer.add(interpreter.pointerAt(vect.tupleIntAt(i)));
+					interpreter.argsBuffer.add(
+						interpreter.pointerAt(vect.tupleIntAt(i)));
 				}
 			}
-			final AvailObject selector = interpreter.chunk().literalAt(selectorIndex);
+			final AvailObject selector =
+				interpreter.chunk().literalAt(selectorIndex);
 			final AvailObject signatureToCall =
 				selector.lookupByTypesFromList(interpreter.argsBuffer);
 			if (signatureToCall.equalsNull())
@@ -1938,7 +2108,8 @@ public enum L2Operation
 			interpreter.argsBuffer.clear();
 			for (int i = 1; i < vect.tupleSize(); i++)
 			{
-				interpreter.argsBuffer.add(interpreter.pointerAt(vect.tupleIntAt(i)));
+				interpreter.argsBuffer.add(
+					interpreter.pointerAt(vect.tupleIntAt(i)));
 			}
 			final AvailObject functionToCall = signatureToCall.bodyBlock();
 			interpreter.invokePossiblePrimitiveWithReifiedCaller(
@@ -1951,7 +2122,7 @@ public enum L2Operation
 			final L2Instruction instruction,
 			final RegisterSet registers)
 		{
-			// translator.restrictPropagationInformationToArchitecturalRegisters();
+			// Restrictions happen elsewhere.
 		}
 
 		@Override
@@ -1969,6 +2140,12 @@ public enum L2Operation
 		}
 	},
 
+	/**
+	 * Given a continuation, extract its caller, function, and all of its slots
+	 * into the specified registers.  The level one program counter and stack
+	 * pointer are ignored, since they're always implicitly correlated with the
+	 * level two program counter.
+	 */
 	L2_EXPLODE_CONTINUATION (
 		READ_POINTER.is("continuation to explode"),
 		WRITE_VECTOR.is("exploded continuation slots"),
@@ -1986,17 +2163,24 @@ public enum L2Operation
 			final int explodedCallerIndex = interpreter.nextWord();
 			final int explodedFunctionIndex = interpreter.nextWord();
 
-			final AvailObject slots = interpreter.vectorAt(explodedSlotsVectorIndex);
+			final AvailObject slots =
+				interpreter.vectorAt(explodedSlotsVectorIndex);
 			final int slotsCount = slots.tupleSize();
-			final AvailObject continuation = interpreter.pointerAt(continuationToExplodeIndex);
+			final AvailObject continuation =
+				interpreter.pointerAt(continuationToExplodeIndex);
 			assert continuation.numArgsAndLocalsAndStack() == slotsCount;
 			for (int i = 1; i <= slotsCount; i++)
 			{
-				final AvailObject slotValue = continuation.argOrLocalOrStackAt(i);
+				final AvailObject slotValue =
+					continuation.argOrLocalOrStackAt(i);
 				interpreter.pointerAtPut(slots.tupleIntAt(i), slotValue);
 			}
-			interpreter.pointerAtPut(explodedCallerIndex, continuation.caller());
-			interpreter.pointerAtPut(explodedFunctionIndex, continuation.function());
+			interpreter.pointerAtPut(
+				explodedCallerIndex,
+				continuation.caller());
+			interpreter.pointerAtPut(
+				explodedFunctionIndex,
+				continuation.function());
 		}
 
 		@Override
@@ -2006,6 +2190,10 @@ public enum L2Operation
 		}
 	},
 
+	/**
+	 * Extract the {@link InstanceTypeDescriptor exact type} of an object in a
+	 * register, writing the type to another register.
+	 */
 	L2_GET_TYPE (
 		READ_POINTER.is("value"),
 		WRITE_POINTER.is("value's type"))
@@ -2015,7 +2203,9 @@ public enum L2Operation
 		{
 			final int srcIndex = interpreter.nextWord();
 			final int destIndex = interpreter.nextWord();
-			interpreter.pointerAtPut(destIndex, interpreter.pointerAt(srcIndex).kind());
+			interpreter.pointerAtPut(
+				destIndex,
+				InstanceTypeDescriptor.on(interpreter.pointerAt(srcIndex)));
 		}
 
 		@Override
@@ -2060,6 +2250,10 @@ public enum L2Operation
 		}
 	},
 
+	/**
+	 * Create a {@link TupleDescriptor tuple} from the {@linkplain AvailObject
+	 * objects} in the specified registers.
+	 */
 	L2_CREATE_TUPLE (
 		READ_VECTOR.is("elements"),
 		WRITE_POINTER.is("tuple"))
@@ -2071,10 +2265,13 @@ public enum L2Operation
 			final int destIndex = interpreter.nextWord();
 			final AvailObject indices = interpreter.vectorAt(valuesIndex);
 			final int size = indices.tupleSize();
-			final AvailObject tuple = ObjectTupleDescriptor.mutable().create(size);
+			final AvailObject tuple =
+				ObjectTupleDescriptor.mutable().create(size);
 			for (int i = 1; i <= size; i++)
 			{
-				tuple.tupleAtPut(i, interpreter.pointerAt(indices.tupleIntAt(i)));
+				tuple.tupleAtPut(
+					i,
+					interpreter.pointerAt(indices.tupleIntAt(i)));
 			}
 			interpreter.pointerAtPut(destIndex, tuple);
 		}
@@ -2139,9 +2336,35 @@ public enum L2Operation
 		}
 	},
 
+	/**
+	 * Attempt to perform the specified primitive, using the provided arguments.
+	 * If successful, check that the resulting object's type agrees with the
+	 * provided expected type (TODO [MvG] currently stopping the VM if not),
+	 * writing the result to some register and then jumping to the success
+	 * label.  If the primitive fails, capture the primitive failure value in
+	 * some register then continue to the next instruction.
+	 *
+	 * <p>
+	 * Unlike for {@link #L2_SEND} and related operations, we do not provide the
+	 * calling continuation here.  That's because by inlining the primitive
+	 * attempt we have avoided (or at worst postponed) construction of the
+	 * continuation that reifies the current function execution.  This is a Good
+	 * Thing, performance-wise.
+	 * </p>
+	 *
+	 * <p>
+	 * A collection of preserved fields is provided.  Since tampering with a
+	 * continuation switches it to use the default level one interpreting chunk,
+	 * we can rest assured that anything written to a continuation by optimized
+	 * level two code will continue to be free from tampering.  The preserved
+	 * fields lists any such registers whose values are preserved across both
+	 * successful primitive invocations and failed invocations.
+	 * </p>
+	 */
 	L2_ATTEMPT_INLINE_PRIMITIVE (
 		PRIMITIVE.is("primitive to attempt"),
 		READ_VECTOR.is("arguments"),
+		READ_POINTER.is("expected type"),
 		WRITE_POINTER.is("primitive result"),
 		WRITE_POINTER.is("primitive failure value"),
 		READWRITE_VECTOR.is("preserved fields"),
@@ -2152,6 +2375,7 @@ public enum L2Operation
 		{
 			final int primNumber = interpreter.nextWord();
 			final int argsVector = interpreter.nextWord();
+			final int expectedTypeRegister = interpreter.nextWord();
 			final int resultRegister = interpreter.nextWord();
 			final int failureValueRegister = interpreter.nextWord();
 			@SuppressWarnings("unused")
@@ -2162,22 +2386,39 @@ public enum L2Operation
 			interpreter.argsBuffer.clear();
 			for (int i1 = 1; i1 <= argsVect.tupleSize(); i1++)
 			{
-				interpreter.argsBuffer.add(interpreter.pointerAt(argsVect.tupleIntAt(i1)));
+				interpreter.argsBuffer.add(
+					interpreter.pointerAt(argsVect.tupleIntAt(i1)));
 			}
-			// Only primitive 340 needs the compiledCode argument, and it's always
-			// folded.
+			// Only primitive 340 needs the compiledCode argument, and it's
+			// infallible.  Thus, we can pass null.
 			final Result res = interpreter.attemptPrimitive(
 				primNumber,
 				null,
 				interpreter.argsBuffer);
 			if (res == SUCCESS)
 			{
-				interpreter.pointerAtPut(resultRegister, interpreter.primitiveResult);
+				final AvailObject expectedType =
+					interpreter.pointerAt(expectedTypeRegister);
+				if (!interpreter.primitiveResult.isInstanceOf(expectedType))
+				{
+					// TODO [MvG] This will have to be handled better some day.
+					error(
+						"primitive %s's result (%s) did not agree with"
+						+ " semantic restriction's expected type (%s)",
+						Primitive.byPrimitiveNumber(primNumber).name(),
+						interpreter.primitiveResult,
+						expectedType);
+				}
+				interpreter.pointerAtPut(
+					resultRegister,
+					interpreter.primitiveResult);
 				interpreter.offset(successOffset);
 			}
 			else if (res == FAILURE)
 			{
-				interpreter.pointerAtPut(failureValueRegister, interpreter.primitiveResult);
+				interpreter.pointerAtPut(
+					failureValueRegister,
+					interpreter.primitiveResult);
 			}
 			else if (res == CONTINUATION_CHANGED)
 			{
@@ -2197,8 +2438,10 @@ public enum L2Operation
 			final L2Instruction instruction,
 			final RegisterSet registers)
 		{
-			final L2WritePointerOperand result = (L2WritePointerOperand) instruction.operands[2];
-			final L2WritePointerOperand failureValue = (L2WritePointerOperand) instruction.operands[3];
+			final L2WritePointerOperand result =
+				(L2WritePointerOperand) instruction.operands[3];
+			final L2WritePointerOperand failureValue =
+				(L2WritePointerOperand) instruction.operands[4];
 			registers.removeTypeAt(result.register);
 			registers.removeConstantAt(result.register);
 			registers.propagateWriteTo(result.register);
@@ -2215,9 +2458,24 @@ public enum L2Operation
 		}
 	},
 
+	/**
+	 * Execute a primitive with the provided arguments, writing the result into
+	 * the specified register.  The primitive must not fail.  Check that the
+	 * resulting object's type agrees with the provided expected type
+	 * (TODO [MvG] currently stopping the VM if not).
+	 *
+	 * <p>
+	 * Unlike for {@link #L2_SEND} and related operations, we do not provide the
+	 * calling continuation here.  That's because by inlining the primitive
+	 * attempt we have avoided (or at worst postponed) construction of the
+	 * continuation that reifies the current function execution.  This is a Good
+	 * Thing, performance-wise.
+	 * </p>
+	 */
 	L2_RUN_INFALLIBLE_PRIMITIVE (
 		PRIMITIVE.is("primitive to run"),
 		READ_VECTOR.is("arguments"),
+		READ_POINTER.is("expected type"),
 		WRITE_POINTER.is("primitive result"))
 	{
 		@Override
@@ -2225,21 +2483,40 @@ public enum L2Operation
 		{
 			final int primNumber = interpreter.nextWord();
 			final int argsVector = interpreter.nextWord();
+			final int expectedTypeRegister = interpreter.nextWord();
 			final int resultRegister = interpreter.nextWord();
 			final AvailObject argsVect = interpreter.vectorAt(argsVector);
 			interpreter.argsBuffer.clear();
 			for (int i1 = 1; i1 <= argsVect.tupleSize(); i1++)
 			{
-				interpreter.argsBuffer.add(interpreter.pointerAt(argsVect.tupleIntAt(i1)));
+				interpreter.argsBuffer.add(
+					interpreter.pointerAt(argsVect.tupleIntAt(i1)));
 			}
-			// Only primitive 340 needs the compiledCode argument, and it's always
-			// folded.
+			// Only primitive 340 needs the compiledCode argument, and it's
+			// always folded.  In the case that primitive 340 is known to
+			// produce the wrong type at some site (potentially dead code due to
+			// inlining of an unreachable branch), it is converted to an
+			// explicit failure instruction.  Thus we can pass null.
 			final Result res = interpreter.attemptPrimitive(
 				primNumber,
 				null,
 				interpreter.argsBuffer);
 			assert res == SUCCESS;
-			interpreter.pointerAtPut(resultRegister, interpreter.primitiveResult);
+			final AvailObject expectedType =
+				interpreter.pointerAt(expectedTypeRegister);
+			if (!interpreter.primitiveResult.isInstanceOf(expectedType))
+			{
+				// TODO [MvG] - This will have to be handled better some day.
+				error(
+					"primitive %s's result (%s) did not agree with"
+					+ " semantic restriction's expected type (%s)",
+					Primitive.byPrimitiveNumber(primNumber).name(),
+					interpreter.primitiveResult,
+					expectedType);
+			}
+			interpreter.pointerAtPut(
+				resultRegister,
+				interpreter.primitiveResult);
 		}
 
 		@Override
@@ -2247,8 +2524,10 @@ public enum L2Operation
 			final L2Instruction instruction,
 			final RegisterSet registers)
 		{
-			final L2PrimitiveOperand primitiveOperand = (L2PrimitiveOperand) instruction.operands[0];
-			final L2WritePointerOperand destinationOperand = (L2WritePointerOperand) instruction.operands[2];
+			final L2PrimitiveOperand primitiveOperand =
+				(L2PrimitiveOperand) instruction.operands[0];
+			final L2WritePointerOperand destinationOperand =
+				(L2WritePointerOperand) instruction.operands[3];
 			registers.removeTypeAt(destinationOperand.register);
 			registers.removeConstantAt(destinationOperand.register);
 			registers.propagateWriteTo(destinationOperand.register);
@@ -2265,7 +2544,8 @@ public enum L2Operation
 		{
 			// It depends on the primitive.
 			assert instruction.operation == this;
-			final L2PrimitiveOperand primitiveOperand = (L2PrimitiveOperand) instruction.operands[0];
+			final L2PrimitiveOperand primitiveOperand =
+				(L2PrimitiveOperand) instruction.operands[0];
 			final Primitive primitive = primitiveOperand.primitive;
 			assert primitive.hasFlag(Flag.CannotFail);
 			final boolean mustKeep = primitive.hasFlag(Flag.HasSideEffect)
@@ -2274,6 +2554,55 @@ public enum L2Operation
 				|| primitive.hasFlag(Flag.SwitchesContinuation)
 				|| primitive.hasFlag(Flag.Unknown);
 			return mustKeep;
+		}
+	},
+
+	/**
+	 * A value is known at this point to disagree with the type that it is
+	 * expected to be.  Report this problem and stop execution.  Note that this
+	 * instruction might be in a branch of (potentially inlined) code that
+	 * happens to be unreachable in actuality, despite the compiler being unable
+	 * to prove this.
+	 *
+	 * <p>
+	 * TODO [MvG] - Of course, this will ultimately need to be handled in a much
+	 * better way than just stopping the whole VM.
+	 * </p>
+	 */
+	L2_REPORT_INVALID_RETURN_TYPE (
+		PRIMITIVE.is("failed primitive"),
+		READ_POINTER.is("actual value"),
+		CONSTANT.is("expected type"))
+	{
+		@Override
+		void step (final @NotNull L2Interpreter interpreter)
+		{
+			final int primitiveNumber = interpreter.nextWord();
+			final int actualValueRegister = interpreter.nextWord();
+			final int expectedTypeIndex = interpreter.nextWord();
+			final AvailObject actualValue =
+				interpreter.pointerAt(actualValueRegister);
+			final AvailObject expectedType =
+				interpreter.chunk().literalAt(expectedTypeIndex);
+			assert !interpreter.primitiveResult.isInstanceOf(expectedType);
+			error(
+				"primitive %s's result (%s) did not agree with"
+				+ " semantic restriction's expected type (%s)",
+				Primitive.byPrimitiveNumber(primitiveNumber).name(),
+				actualValue,
+				expectedType);
+		}
+
+		@Override
+		public boolean hasSideEffect (final L2Instruction instruction)
+		{
+			return true;
+		}
+
+		@Override
+		public boolean reachesNextInstruction ()
+		{
+			return false;
 		}
 	},
 
@@ -2343,6 +2672,10 @@ public enum L2Operation
 		}
 	},
 
+	/**
+	 * Synthesize a new {@link FunctionDescriptor function} from the provided
+	 * constant compiled code and the vector of captured ("outer") variables.
+	 */
 	L2_CREATE_FUNCTION (
 		CONSTANT.is("compiled code"),
 		READ_VECTOR.is("captured variables"),
@@ -2360,7 +2693,9 @@ public enum L2Operation
 			clos.code(interpreter.chunk().literalAt(codeIndex));
 			for (int i = 1, end = outers.tupleSize(); i <= end; i++)
 			{
-				clos.outerVarAtPut(i, interpreter.pointerAt(outers.tupleIntAt(i)));
+				clos.outerVarAtPut(
+					i,
+					interpreter.pointerAt(outers.tupleIntAt(i)));
 			}
 			interpreter.pointerAtPut(destIndex, clos);
 		}
@@ -2382,8 +2717,9 @@ public enum L2Operation
 			registers.propagateWriteTo(destinationOperand.register);
 			if (outersOperand.vector.allRegistersAreConstantsIn(registers))
 			{
-				final AvailObject function = FunctionDescriptor.mutable()
-					.create(outersOperand.vector.registers().size());
+				final AvailObject function =
+					FunctionDescriptor.mutable().create(
+						outersOperand.vector.registers().size());
 				function.code(codeOperand.object);
 				int index = 1;
 				for (final L2ObjectRegister outer : outersOperand.vector)
@@ -2395,12 +2731,15 @@ public enum L2Operation
 			}
 			else
 			{
-				registers
-					.removeConstantAt(destinationOperand.register);
+				registers.removeConstantAt(destinationOperand.register);
 			}
 		}
 	},
 
+	/**
+	 * Return into the provided continuation with the given return value.  The
+	 * continuation may be running as either level one or level two.
+	 */
 	L2_RETURN (
 		READ_POINTER.is("continuation"),
 		READ_POINTER.is("return value"))
@@ -2485,6 +2824,12 @@ public enum L2Operation
 		}
 	},
 
+	/**
+	 * Force the specified object to be immutable.  Maintenance of
+	 * conservative sticky-bit reference counts is mostly separated out into
+	 * this operation to allow code transformations to obviate the need for it
+	 * in certain non-obvious circumstances.
+	 */
 	L2_MAKE_IMMUTABLE (
 		READ_POINTER.is("object"))
 	{
@@ -2506,6 +2851,12 @@ public enum L2Operation
 		}
 	},
 
+	/**
+	 * Mark as immutable all objects referred to from the specified object.
+	 * Copying a continuation as part of the {@link
+	 * L1Operation#L1Ext_doPushLabel} can make good use of this peculiar
+	 * instruction.
+	 */
 	L2_MAKE_SUBOBJECTS_IMMUTABLE (
 		READ_POINTER.is("object"))
 	{
@@ -2588,7 +2939,9 @@ public enum L2Operation
 
 	/**
 	 * Answer whether an instruction using this operation should be emitted. For
-	 * example, labels are place holders and produce no code.
+	 * example, labels are place holders and produce no code.  By default an
+	 * instruction should be emitted, so non-emitting operations should override
+	 * to return false.
 	 *
 	 * @return A {@code boolean} indicating if this operation should be emitted.
 	 */
@@ -2620,6 +2973,7 @@ public enum L2Operation
 	 * {@code false} isn't good enough, but some might need to know details of
 	 * the actual {@link L2Instruction} – in which case they should override
 	 * this method instead.
+	 * </p>
 	 *
 	 * @param instruction
 	 *            The {@code L2Instruction} for which a side effect test is
@@ -2638,7 +2992,7 @@ public enum L2Operation
 	 * form, but some might not be (return, unconditional branches, continuation
 	 * resumption, etc).
 	 *
-	 * @return Whether the next instruction is potentioally reachable from here.
+	 * @return Whether the next instruction is potentially reachable from here.
 	 */
 	public boolean reachesNextInstruction ()
 	{
