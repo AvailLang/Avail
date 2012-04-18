@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.InstanceTypeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.AvailObject.Multiplier;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static java.lang.Math.*;
@@ -93,7 +94,7 @@ extends AbstractEnumerationTypeDescriptor
 	private static @NotNull AvailObject getInstance (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.INSTANCE);
+		return object.slot(INSTANCE);
 	}
 
 
@@ -729,9 +730,8 @@ extends AbstractEnumerationTypeDescriptor
 	public static @NotNull AvailObject on (final @NotNull AvailObject instance)
 	{
 		final AvailObject result = mutable().create();
-		result.setSlot(
-			ObjectSlots.INSTANCE,
-			instance.makeImmutable());
+		instance.makeImmutable();
+		result.setSlot(INSTANCE, instance);
 		return result;
 	}
 

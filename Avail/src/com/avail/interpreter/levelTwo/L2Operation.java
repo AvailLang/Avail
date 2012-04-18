@@ -223,7 +223,7 @@ public enum L2Operation
 				}
 				if (debugL1)
 				{
-					System.out.printf("%d  Step L1: return\n", depth);
+					System.out.printf("%n%d  Step L1: return", depth);
 				}
 				interpreter.levelOneStepper.L1Implied_doReturn();
 				return;
@@ -349,7 +349,7 @@ public enum L2Operation
 	 * registers.  This operation is a place-holder and is not actually emitted.
 	 */
 	L2_ENTER_L2_CHUNK (
-		WRITE_VECTOR.is("arguments"))
+		WRITE_VECTOR.is("fixed and arguments"))
 	{
 		@Override
 		void step (final @NotNull L2Interpreter interpreter)
@@ -685,10 +685,10 @@ public enum L2Operation
 			// If we haven't already guaranteed that this is a variable then we
 			// are probably not doing things right.
 			assert registers.hasTypeAt(variableOperand.register);
-			final AvailObject varType = registers
-				.typeAt(variableOperand.register);
-			assert varType
-				.isSubtypeOf(VariableTypeDescriptor.mostGeneralType());
+			final AvailObject varType = registers.typeAt(
+				variableOperand.register);
+			assert varType.isSubtypeOf(
+				VariableTypeDescriptor.mostGeneralType());
 			registers.typeAtPut(
 				destinationOperand.register,
 				varType.readType());
@@ -768,10 +768,10 @@ public enum L2Operation
 			// If we haven't already guaranteed that this is a variable then we
 			// are probably not doing things right.
 			assert registers.hasTypeAt(variableOperand.register);
-			final AvailObject varType = registers
-				.typeAt(variableOperand.register);
-			assert varType
-				.isSubtypeOf(VariableTypeDescriptor.mostGeneralType());
+			final AvailObject varType = registers.typeAt(
+				variableOperand.register);
+			assert varType.isSubtypeOf(
+				VariableTypeDescriptor.mostGeneralType());
 		}
 
 		@Override
@@ -1876,33 +1876,25 @@ public enum L2Operation
 	},
 
 	/**
-	 * Send the specified method and arguments.  The calling continuation is
-	 * provided, which allows this operation to act more like a non-local jump
-	 * than a call.  The continuation has the arguments popped already, with the
-	 * expected return type pushed instead.
-	 *
-	 * <p>
-	 * The appropriate function is looked up and invoked.  The function may be a
-	 * primitive, and the primitive may succeed, fail, or change the current
-	 * continuation.
-	 * </p>
+	 * Look up the method to invoke.  Use the provided vector of arguments to
+	 * perform a polymorphic lookup.  Write the resulting function into the
+	 * specified destination register.
 	 */
-	L2_SEND (
-		READ_POINTER.is("continuation"),
+	L2_LOOKUP_BY_VALUES (
 		SELECTOR.is("method"),
-		READ_VECTOR.is("arguments"))
+		READ_VECTOR.is("arguments"),
+		WRITE_POINTER.is("looked up function"))
 	{
 		@Override
 		void step (final @NotNull L2Interpreter interpreter)
 		{
-			// Assume the current continuation is already reified.
-			final int callerIndex = interpreter.nextWord();
 			final int selectorIndex = interpreter.nextWord();
 			final int argumentsIndex = interpreter.nextWord();
-			final AvailObject caller = interpreter.pointerAt(callerIndex);
+			final int resultingFunctionIndex = interpreter.nextWord();
 			final AvailObject vect = interpreter.vectorAt(argumentsIndex);
 			interpreter.argsBuffer.clear();
-			for (int i = 1; i <= vect.tupleSize(); i++)
+			final int numArgs = vect.tupleSize();
+			for (int i = 1; i <= numArgs; i++)
 			{
 				interpreter.argsBuffer.add(
 					interpreter.pointerAt(vect.tupleIntAt(i)));
@@ -1912,7 +1904,7 @@ public enum L2Operation
 			if (debugL1)
 			{
 				System.out.printf(
-					"  --- calling: %s%n",
+					"  --- looking up: %s%n",
 					selector.name().name());
 			}
 			final AvailObject signatureToCall =
@@ -1927,8 +1919,224 @@ public enum L2Operation
 				error("Attempted to call a non-implementation signature");
 				return;
 			}
+			interpreter.pointerAtPut(
+				resultingFunctionIndex,
+				signatureToCall.bodyBlock());
+		}
+
+		@Override
+		public void propagateTypesInFor (
+			final L2Instruction instruction,
+			final RegisterSet registers)
+		{
+			// Find all possible implementations (taking into account the types
+			// of the argument registers).  Then build an enumeration type over
+			// those functions.
+			final L2SelectorOperand selectorOperand =
+				(L2SelectorOperand) instruction.operands[0];
+			final L2ReadVectorOperand argsOperand =
+				(L2ReadVectorOperand) instruction.operands[1];
+			final L2WritePointerOperand destinationOperand =
+				(L2WritePointerOperand) instruction.operands[2];
+			final List<L2ObjectRegister> argRegisters =
+				argsOperand.vector.registers();
+			final int numArgs = argRegisters.size();
+			final List<AvailObject> argTypeBounds =
+				new ArrayList<AvailObject>(numArgs);
+			for (final L2ObjectRegister argRegister : argRegisters)
+			{
+				final AvailObject type = registers.hasTypeAt(argRegister)
+					? registers.typeAt(argRegister)
+					: TOP.o();
+				argTypeBounds.add(type);
+			}
+			// Figure out what could be invoked at runtime given these argument
+			// type constraints.
+			final List<AvailObject> possibleFunctions =
+				new ArrayList<AvailObject>();
+			final List<AvailObject> possibleSignatures =
+				selectorOperand.method.implementationsAtOrBelow(argTypeBounds);
+			for (final AvailObject signature : possibleSignatures)
+			{
+				if (signature.isMethod())
+				{
+					possibleFunctions.add(signature.bodyBlock());
+				}
+			}
+			if (possibleFunctions.size() == 1)
+			{
+				// Only one function could be looked up (it's monomorphic for
+				// this call site).  Therefore we know strongly what the
+				// function is.
+				registers.constantAtPut(
+					destinationOperand.register,
+					possibleFunctions.get(0));
+			}
+			else
+			{
+				final AvailObject enumType =
+					AbstractEnumerationTypeDescriptor.withInstances(
+						SetDescriptor.fromCollection(possibleFunctions));
+				registers.typeAtPut(destinationOperand.register, enumType);
+			}
+		}
+	},
+
+
+	/**
+	 * Look up the method to invoke.  Use the provided vector of argument
+	 * <em>types</em> to perform a polymorphic lookup.  Write the resulting
+	 * function into the specified destination register.
+	 */
+	L2_LOOKUP_BY_TYPES (
+		SELECTOR.is("method"),
+		READ_VECTOR.is("argument types"),
+		WRITE_POINTER.is("looked up function"))
+	{
+		@Override
+		void step (final @NotNull L2Interpreter interpreter)
+		{
+			final int selectorIndex = interpreter.nextWord();
+			final int argumentTypesIndex = interpreter.nextWord();
+			final int resultingFunctionIndex = interpreter.nextWord();
+			final AvailObject vect = interpreter.vectorAt(argumentTypesIndex);
+			interpreter.argsBuffer.clear();
+			final int numArgs = vect.tupleSize();
+			for (int i = 1; i <= numArgs; i++)
+			{
+				interpreter.argsBuffer.add(
+					interpreter.pointerAt(vect.tupleIntAt(i)));
+			}
+			final AvailObject selector =
+				interpreter.chunk().literalAt(selectorIndex);
+			if (debugL1)
+			{
+				System.out.printf(
+					"  --- looking up: %s%n",
+					selector.name().name());
+			}
+			final AvailObject signatureToCall =
+				selector.lookupByTypesFromList(interpreter.argsBuffer);
+			if (signatureToCall.equalsNull())
+			{
+				error("Unable to find unique implementation for call");
+				return;
+			}
+			if (!signatureToCall.isMethod())
+			{
+				error("Attempted to call a non-implementation signature");
+				return;
+			}
+			interpreter.pointerAtPut(
+				resultingFunctionIndex,
+				signatureToCall.bodyBlock());
+		}
+
+		@Override
+		public void propagateTypesInFor (
+			final L2Instruction instruction,
+			final RegisterSet registers)
+		{
+			// Find all possible implementations (taking into account the types
+			// of the argument registers).  Then build an enumeration type over
+			// those functions.
+			final L2SelectorOperand selectorOperand =
+				(L2SelectorOperand) instruction.operands[0];
+			final L2ReadVectorOperand argsTypesOperand =
+				(L2ReadVectorOperand) instruction.operands[1];
+			final L2WritePointerOperand destinationOperand =
+				(L2WritePointerOperand) instruction.operands[2];
+			final List<L2ObjectRegister> argTypeRegisters =
+				argsTypesOperand.vector.registers();
+			final int numArgs = argTypeRegisters.size();
+			final List<AvailObject> argTypeBounds =
+				new ArrayList<AvailObject>(numArgs);
+			for (final L2ObjectRegister argTypeRegister : argTypeRegisters)
+			{
+				AvailObject type = registers.constantAt(argTypeRegister);
+				if (type == null)
+				{
+					final AvailObject meta = registers.typeAt(argTypeRegister);
+					if (meta != null && !meta.equals(TYPE.o()))
+					{
+						assert meta.instanceCount().equals(
+							IntegerDescriptor.one());
+						type = meta.instances().asTuple().tupleAt(1);
+					}
+					else
+					{
+						type = TOP.o();
+					}
+				}
+				argTypeBounds.add(type);
+			}
+			// Figure out what could be invoked at runtime given these argument
+			// type constraints.
+			final List<AvailObject> possibleFunctions =
+				new ArrayList<AvailObject>();
+			final List<AvailObject> possibleSignatures =
+				selectorOperand.method.implementationsAtOrBelow(argTypeBounds);
+			for (final AvailObject signature : possibleSignatures)
+			{
+				if (signature.isMethod())
+				{
+					possibleFunctions.add(signature.bodyBlock());
+				}
+			}
+			if (possibleFunctions.size() == 1)
+			{
+				// Only one function could be looked up (it's monomorphic for
+				// this call site).  Therefore we know strongly what the
+				// function is.
+				registers.constantAtPut(
+					destinationOperand.register,
+					possibleFunctions.get(0));
+			}
+			else
+			{
+				final AvailObject enumType =
+					AbstractEnumerationTypeDescriptor.withInstances(
+						SetDescriptor.fromCollection(possibleFunctions));
+				registers.typeAtPut(destinationOperand.register, enumType);
+			}
+		}
+	},
+
+	/**
+	 * Send the specified method and arguments.  The calling continuation is
+	 * provided, which allows this operation to act more like a non-local jump
+	 * than a call.  The continuation has the arguments popped already, with the
+	 * expected return type pushed instead.
+	 *
+	 * <p>
+	 * The appropriate function is looked up and invoked.  The function may be a
+	 * primitive, and the primitive may succeed, fail, or change the current
+	 * continuation.
+	 * </p>
+	 */
+	L2_INVOKE (
+		READ_POINTER.is("continuation"),
+		READ_POINTER.is("function"),
+		READ_VECTOR.is("arguments"))
+	{
+		@Override
+		void step (final @NotNull L2Interpreter interpreter)
+		{
+			// Assume the current continuation is already reified.
+			final int callerIndex = interpreter.nextWord();
+			final int functionIndex = interpreter.nextWord();
+			final int argumentsIndex = interpreter.nextWord();
+			final AvailObject caller = interpreter.pointerAt(callerIndex);
+			final AvailObject function = interpreter.pointerAt(functionIndex);
+			final AvailObject vect = interpreter.vectorAt(argumentsIndex);
+			interpreter.argsBuffer.clear();
+			for (int i = 1; i <= vect.tupleSize(); i++)
+			{
+				interpreter.argsBuffer.add(
+					interpreter.pointerAt(vect.tupleIntAt(i)));
+			}
 			interpreter.invokePossiblePrimitiveWithReifiedCaller(
-				signatureToCall.bodyBlock(),
+				function,
 				caller);
 		}
 
@@ -1937,13 +2145,13 @@ public enum L2Operation
 			final L2Instruction instruction,
 			final RegisterSet registers)
 		{
-			// restriction happens elsewhere.
+			// Restriction happens elsewhere.
 		}
 
 		@Override
 		protected boolean hasSideEffect ()
 		{
-			// Never remove a send -- but inlining it might make it go away.
+			// Never remove invocations -- but inlining might make them go away.
 			return true;
 		}
 
@@ -1956,23 +2164,23 @@ public enum L2Operation
 	},
 
 	/**
-	 * Send the specified method and arguments.  The calling continuation is
-	 * provided, which allows this operation to act more like a non-local jump
-	 * than a call.  The continuation has the arguments popped already, with the
-	 * expected return type pushed instead.
+	 * Invoke the specified <em>primitive</em> function with the supplied
+	 * arguments, ignoring the primitive designation.  The calling continuation
+	 * is provided, which allows this operation to act more like a non-local
+	 * jump than a call.  The continuation has the arguments popped already,
+	 * with the expected return type pushed instead.
 	 *
 	 * <p>
-	 * The appropriate function is looked up and invoked.  The function must be
-	 * a primitive which has already failed at this point, so set up the
-	 * failure code of the function without trying the primitive.  The failure
-	 * value from the failed primitive attempt is provided and will be saved in
-	 * the architectural {@link FixedRegister#PRIMITIVE_FAILURE} register for
-	 * use by subsequent L1 or L2 code.
+	 * The function must be a primitive which has already failed at this point,
+	 * so set up the failure code of the function without trying the primitive.
+	 * The failure value from the failed primitive attempt is provided and will
+	 * be saved in the architectural {@link FixedRegister#PRIMITIVE_FAILURE}
+	 * register for use by subsequent L1 or L2 code.
 	 * </p>
 	 */
-	L2_SEND_AFTER_FAILED_PRIMITIVE (
+	L2_INVOKE_AFTER_FAILED_PRIMITIVE (
 		READ_POINTER.is("continuation"),
-		SELECTOR.is("method"),
+		READ_POINTER.is("function"),
 		READ_VECTOR.is("arguments"),
 		READ_POINTER.is("primitive failure value"))
 	{
@@ -1981,10 +2189,11 @@ public enum L2Operation
 		{
 			// The continuation is required to have already been reified.
 			final int callerIndex = interpreter.nextWord();
-			final int selectorIndex = interpreter.nextWord();
+			final int functionIndex = interpreter.nextWord();
 			final int argumentsIndex = interpreter.nextWord();
 			final int failureValueIndex = interpreter.nextWord();
 			final AvailObject caller = interpreter.pointerAt(callerIndex);
+			final AvailObject function = interpreter.pointerAt(functionIndex);
 			final AvailObject failureValue =
 				interpreter.pointerAt(failureValueIndex);
 			final AvailObject vect = interpreter.vectorAt(argumentsIndex);
@@ -1994,34 +2203,13 @@ public enum L2Operation
 				interpreter.argsBuffer.add(
 					interpreter.pointerAt(vect.tupleIntAt(i)));
 			}
-			final AvailObject selector =
-				interpreter.chunk().literalAt(selectorIndex);
-			if (debugL1)
-			{
-				System.out.printf(
-					"  --- calling after fail: %s%n",
-					selector.name().name());
-			}
-			final AvailObject signatureToCall =
-				selector.lookupByValuesFromList(interpreter.argsBuffer);
-			if (signatureToCall.equalsNull())
-			{
-				error("Unable to find unique implementation for call");
-				return;
-			}
-			if (!signatureToCall.isMethod())
-			{
-				error("Attempted to call a non-implementation signature");
-				return;
-			}
-			final AvailObject functionToCall = signatureToCall.bodyBlock();
-			final AvailObject codeToCall = functionToCall.code();
+			final AvailObject codeToCall = function.code();
 			final int primNum = codeToCall.primitiveNumber();
 			assert primNum != 0;
 			assert !Primitive.byPrimitiveNumber(primNum).hasFlag(
 				Flag.CannotFail);
 			interpreter.invokeWithoutPrimitiveFunctionArguments(
-				functionToCall,
+				function,
 				interpreter.argsBuffer,
 				caller);
 			// Put the primitive failure value somewhere that both L1 and L2
@@ -2041,94 +2229,6 @@ public enum L2Operation
 		protected boolean hasSideEffect ()
 		{
 			// Never remove this send, since it's due to a failed primitive.
-			return true;
-		}
-
-		@Override
-		public boolean reachesNextInstruction ()
-		{
-			// Returns to the pc saved in the continuation.
-			return false;
-		}
-	},
-
-	/**
-	 * Send the specified method and arguments, using the specified argument
-	 * types to select the function to invoke.  The calling continuation is
-	 * provided, which allows this operation to act more like a non-local jump
-	 * than a call.  The continuation has the arguments types and arguments
-	 * popped already, with the expected return type pushed instead.
-	 *
-	 * <p>
-	 * The appropriate function is looked up and invoked.  The function may be a
-	 * primitive, and the primitive may succeed, fail, or change the current
-	 * continuation.
-	 * </p>
-	 */
-	L2_SUPER_SEND (
-		READ_POINTER.is("continuation"),
-		SELECTOR.is("method"),
-		READ_VECTOR.is("arguments"),
-		READ_VECTOR.is("argument types"))
-	{
-		@Override
-		void step (final @NotNull L2Interpreter interpreter)
-		{
-			// Assume the current continuation is already reified.
-			final int callerIndex = interpreter.nextWord();
-			final int selectorIndex = interpreter.nextWord();
-			final int argumentsIndex = interpreter.nextWord();
-			final int typesIndex = interpreter.nextWord();
-			final AvailObject caller = interpreter.pointerAt(callerIndex);
-			AvailObject vect = interpreter.vectorAt(typesIndex);
-			if (true)
-			{
-				interpreter.argsBuffer.clear();
-				for (int i = 1; i < vect.tupleSize(); i++)
-				{
-					interpreter.argsBuffer.add(
-						interpreter.pointerAt(vect.tupleIntAt(i)));
-				}
-			}
-			final AvailObject selector =
-				interpreter.chunk().literalAt(selectorIndex);
-			final AvailObject signatureToCall =
-				selector.lookupByTypesFromList(interpreter.argsBuffer);
-			if (signatureToCall.equalsNull())
-			{
-				error("Unable to find unique implementation for call");
-				return;
-			}
-			if (!signatureToCall.isMethod())
-			{
-				error("Attempted to call a non-implementation signature");
-				return;
-			}
-			vect = interpreter.vectorAt(argumentsIndex);
-			interpreter.argsBuffer.clear();
-			for (int i = 1; i < vect.tupleSize(); i++)
-			{
-				interpreter.argsBuffer.add(
-					interpreter.pointerAt(vect.tupleIntAt(i)));
-			}
-			final AvailObject functionToCall = signatureToCall.bodyBlock();
-			interpreter.invokePossiblePrimitiveWithReifiedCaller(
-				functionToCall,
-				caller);
-		}
-
-		@Override
-		public void propagateTypesInFor (
-			final L2Instruction instruction,
-			final RegisterSet registers)
-		{
-			// Restrictions happen elsewhere.
-		}
-
-		@Override
-		protected boolean hasSideEffect ()
-		{
-			// Never remove a send -- but inlining it might make it go away.
 			return true;
 		}
 
@@ -2309,8 +2409,7 @@ public enum L2Operation
 					TupleDescriptor.fromCollection(types),
 					BottomTypeDescriptor.bottom());
 			tupleType.makeImmutable();
-			registers
-				.typeAtPut(destinationOperand.register, tupleType);
+			registers.typeAtPut(destinationOperand.register, tupleType);
 			registers.propagateWriteTo(destinationOperand.register);
 			if (sourceVector.allRegistersAreConstantsIn(registers))
 			{
@@ -2928,8 +3027,8 @@ public enum L2Operation
 		final @NotNull RegisterSet registers)
 	{
 		// By default just record that the destinations have been overwritten.
-		for (final L2Register destinationRegister : instruction
-			.destinationRegisters())
+		for (final L2Register destinationRegister
+			: instruction.destinationRegisters())
 		{
 			registers.removeConstantAt(destinationRegister);
 			registers.removeTypeAt(destinationRegister);

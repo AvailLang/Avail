@@ -776,42 +776,49 @@ public class L2Translator implements L1OperationDispatcher
 			new L2ReadVectorOperand(createVector(preSlots)),
 			new L2PcOperand(postCallLabel),
 			new L2WritePointerOperand(tempCallerRegister));
-		if (primFunction != null)
+		final L2ObjectRegister function = registers.newObject();
+		// Look it up...
+		if (isSuper)
 		{
-			if (isSuper)
-			{
-				error("Fallible super primitive calls not yet implemented");
-				//TODO [MvG] Add a new step.
-			}
-			else
-			{
-				addInstruction(
-					L2_SEND_AFTER_FAILED_PRIMITIVE,
-					new L2ReadPointerOperand(tempCallerRegister),
-					new L2SelectorOperand(method),
-					new L2ReadVectorOperand(createVector(args)),
-					new L2ReadPointerOperand(failureObjectReg));
-			}
+			addInstruction(
+				L2_LOOKUP_BY_TYPES,
+				new L2SelectorOperand(method),
+				new L2ReadVectorOperand(createVector(argTypes)),
+				new L2WritePointerOperand(function));
 		}
 		else
 		{
-			if (isSuper)
-			{
-				addInstruction(
-					L2_SUPER_SEND,
-					new L2ReadPointerOperand(tempCallerRegister),
-					new L2SelectorOperand(method),
-					new L2ReadVectorOperand(createVector(args)),
-					new L2ReadVectorOperand(createVector(argTypes)));
-			}
-			else
-			{
-				addInstruction(
-					L2_SEND,
-					new L2ReadPointerOperand(tempCallerRegister),
-					new L2SelectorOperand(method),
-					new L2ReadVectorOperand(createVector(args)));
-			}
+			addInstruction(
+				L2_LOOKUP_BY_VALUES,
+				new L2SelectorOperand(method),
+				new L2ReadVectorOperand(createVector(args)),
+				new L2WritePointerOperand(function));
+		}
+		// If there was only one possible function to invoke don't bother
+		// looking it up at runtime.
+		if (registers.hasConstantAt(function))
+		{
+			// Don't bother to remove the lookup instruction -- it'll evaporate
+			// since nobody will use its result.
+			moveConstant(registers.constantAt(function), function);
+		}
+		// Now invoke what was looked up.
+		if (primFunction != null)
+		{
+			addInstruction(
+				L2_INVOKE_AFTER_FAILED_PRIMITIVE,
+				new L2ReadPointerOperand(tempCallerRegister),
+				new L2ReadPointerOperand(function),
+				new L2ReadVectorOperand(createVector(args)),
+				new L2ReadPointerOperand(failureObjectReg));
+		}
+		else
+		{
+			addInstruction(
+				L2_INVOKE,
+				new L2ReadPointerOperand(tempCallerRegister),
+				new L2ReadPointerOperand(function),
+				new L2ReadVectorOperand(createVector(args)));
 		}
 		// The method being invoked will run until it returns, and the next
 		// instruction will be here (if the chunk isn't invalidated in the

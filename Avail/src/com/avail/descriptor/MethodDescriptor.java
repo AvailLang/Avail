@@ -422,7 +422,7 @@ extends Descriptor
 		final int aChunkIndex)
 	{
 		// Record the fact that the chunk indexed by aChunkIndex depends on
-		// the receiver not changing.
+		// this object not changing.
 		AvailObject indices =
 			object.slot(ObjectSlots.DEPENDENT_CHUNK_INDICES);
 		indices = indices.setWithElementCanDestroy(
@@ -486,8 +486,8 @@ extends Descriptor
 	 * types are created.  If an argType and the corresponding argument type of
 	 * an implementation have no possible descendant except bottom, then
 	 * disallow the implementation (it could never actually be invoked because
-	 * bottom is uninstantiable).  Answer a {@linkplain List list} of {@linkplain
-	 * MethodImplementationDescriptor method signatures}.
+	 * bottom is uninstantiable).  Answer a {@linkplain List list} of
+	 * {@linkplain MethodImplementationDescriptor method signatures}.
 	 * <p>
 	 * Don't do coverage analysis yet (i.e., determining if one method would
 	 * always override a strictly more abstract method).  We can do that some

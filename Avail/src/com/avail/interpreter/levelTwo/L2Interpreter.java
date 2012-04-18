@@ -509,7 +509,7 @@ extends Interpreter
 			Arrays.fill(
 				pointers,
 				1,
-				chunk().numObjects() + 1,
+				chunk().numObjects(),
 				null);
 		}
 	}
@@ -893,7 +893,7 @@ extends Interpreter
 					depth++;
 				}
 				System.out.printf(
-					"Step L2 (d=%d, #%d, off=%d): %s\n",
+					"%nStep L2 (d=%d, #%d, off=%d): %s",
 					depth,
 					chunk.index(),
 					offset,
@@ -903,7 +903,7 @@ extends Interpreter
 		}
 		if (debugL2Results)
 		{
-			System.out.printf("Output --> %s\n\n", exitValue);
+			System.out.printf("%nOutput --> %s%n", exitValue);
 		}
 		return exitValue;
 	}

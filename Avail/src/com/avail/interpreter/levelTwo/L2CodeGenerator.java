@@ -141,11 +141,11 @@ public final class L2CodeGenerator
 	}
 
 	/**
-	 * The number of {@linkplain L2ObjectRegister object registers} emitted
-	 * thus far for the {@linkplain L2ChunkDescriptor chunk} undergoing
+	 * The highest numbered {@linkplain L2ObjectRegister object registers}
+	 * emitted thus far for the {@linkplain L2ChunkDescriptor chunk} undergoing
 	 * {@linkplain L2CodeGenerator code generation}.
 	 */
-	private int objectRegisterCount = 0;
+	private int maxObjectRegisterIndex = 0;
 
 	/**
 	 * Emit the {@linkplain L2Register#finalIndex() index} of the specified
@@ -166,7 +166,7 @@ public final class L2CodeGenerator
 		assert index >= 0;
 		assert index != FixedRegister.NULL.ordinal()
 			|| expectedOperandType == L2OperandType.READ_POINTER;
-		objectRegisterCount = max(objectRegisterCount, index + 1);
+		maxObjectRegisterIndex = max(maxObjectRegisterIndex, index);
 		emitWord(index);
 	}
 
@@ -387,7 +387,7 @@ public final class L2CodeGenerator
 			code,
 			literals,
 			vectors,
-			objectRegisterCount,
+			maxObjectRegisterIndex + 1,
 			integerRegisterCount,
 			floatRegisterCount,
 			wordcodes,

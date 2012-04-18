@@ -586,7 +586,13 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Add the {@linkplain L2ChunkDescriptor chunk} with the given index to the
+	 * receiver's list of chunks that depend on it.  The receiver is a
+	 * {@linkplain MethodDescriptor method}.  A change in the method's
+	 * membership (e.g., adding a new method definition) will cause the chunk
+	 * to be invalidated.
+	 *
+	 * @param aChunkIndex
 	 */
 	public void addDependentChunkIndex (
 		final int aChunkIndex)

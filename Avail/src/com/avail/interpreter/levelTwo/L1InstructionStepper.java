@@ -34,6 +34,7 @@ package com.avail.interpreter.levelTwo;
 
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
+import static com.avail.interpreter.levelTwo.L2Interpreter.*;
 import java.util.*;
 import com.avail.annotations.*;
 import com.avail.descriptor.*;
@@ -73,50 +74,45 @@ implements L1OperationDispatcher
 		argsBuffer = interpreter.argsBuffer;
 	}
 
-	private static int stackpRegister ()
-	{
-		return L2Interpreter.stackpRegister();
-	}
-
-	private static int pcRegister ()
-	{
-		return L2Interpreter.pcRegister();
-	}
-
-	private static int argumentOrLocalRegister (
-		final int argumentOrLocalNumber)
-	{
-		return L2Interpreter.argumentOrLocalRegister(argumentOrLocalNumber);
-	}
-
+	/**
+	 * Read from the specified integer register.
+	 *
+	 * @param index Which integer register to read.
+	 * @return The value from that register.
+	 */
 	private int integerAt (final int index)
 	{
 		return interpreter.integerAt(index);
 	}
 
+	/**
+	 * Write to the specified integer register.
+	 *
+	 * @param index Which integer register to write.
+	 * @param value The value to write to that register.
+	 */
 	private void integerAtPut (final int index, final int value)
 	{
 		interpreter.integerAtPut(index, value);
 	}
 
+	/**
+	 * Read from the specified object register.
+	 *
+	 * @param index Which object register to read.
+	 * @return The value from that register.
+	 */
 	private @NotNull AvailObject pointerAt (final int index)
 	{
 		return interpreter.pointerAt(index);
 	}
 
-	private void pointerAtPut (
-		final FixedRegister fixedRegister,
-		final @NotNull AvailObject value)
-	{
-		interpreter.pointerAtPut(fixedRegister, value);
-	}
-
-	private @NotNull AvailObject pointerAt (
-		final FixedRegister fixedRegister)
-	{
-		return interpreter.pointerAt(fixedRegister);
-	}
-
+	/**
+	 * Write to the specified object register.
+	 *
+	 * @param index Which object register to write.
+	 * @param value The value to write to that register.
+	 */
 	private void pointerAtPut (
 		final int index,
 		final @NotNull AvailObject value)
@@ -124,6 +120,35 @@ implements L1OperationDispatcher
 		interpreter.pointerAtPut(index, value);
 	}
 
+	/**
+	 * Read from the specified {@link FixedRegister fixed object register}.
+	 *
+	 * @param fixedRegister Which fixed object register to read.
+	 * @return The value from that register.
+	 */
+	private @NotNull AvailObject pointerAt (
+		final FixedRegister fixedRegister)
+	{
+		return interpreter.pointerAt(fixedRegister);
+	}
+
+	/**
+	 * Write to the specified {@link FixedRegister fixed object register}.
+	 *
+	 * @param fixedRegister Which fixed object register to write.
+	 * @param value The value to write to that register.
+	 */
+	private void pointerAtPut (
+		final FixedRegister fixedRegister,
+		final @NotNull AvailObject value)
+	{
+		interpreter.pointerAtPut(fixedRegister, value);
+	}
+
+	/**
+	 * Extract an integer from nybblecode stream.
+	 * @return
+	 */
 	private int getInteger ()
 	{
 		return interpreter.getInteger();
@@ -185,9 +210,9 @@ implements L1OperationDispatcher
 	 * Create a continuation from the values of the interpreter's registers.
 	 * In particular, the {@link L1InstructionStepper} treats the object
 	 * registers immediately following the fixed registers as holding the
-	 * exploded content of the current continuation.  The {@link #pcRegister()}
-	 * and {@link #stackpRegister()} are also part of the state manipulated by
-	 * the L1 stepper.
+	 * exploded content of the current continuation.  The {@link
+	 * L2Interpreter#pcRegister()} and {@link L2Interpreter#stackpRegister()}
+	 * are also part of the state manipulated by the L1 stepper.
 	 *
 	 * <p>
 	 * Write the resulting continuation into the {@linkplain
@@ -227,7 +252,7 @@ implements L1OperationDispatcher
 		final AvailObject implementations = literalAt(getInteger());
 		final AvailObject expectedReturnType = literalAt(getInteger());
 		final int numArgs = implementations.numArgs();
-		if (L2Interpreter.debugL1)
+		if (debugL1)
 		{
 			System.out.printf(" (%s)", implementations.name().name());
 		}
@@ -497,7 +522,7 @@ implements L1OperationDispatcher
 			new ArrayList<AvailObject>(numLocals);
 		for (int i = 1; i <= numLocals; i++)
 		{
-			locals.add(pointerAt(argumentOrLocalRegister(numArgs + i)));
+			locals.add(pointerAt(argumentOrLocalRegister((numArgs + i))));
 		}
 		assert interpreter.chunk() == L2ChunkDescriptor.unoptimizedChunk();
 		final AvailObject newContinuation = ContinuationDescriptor.create(
