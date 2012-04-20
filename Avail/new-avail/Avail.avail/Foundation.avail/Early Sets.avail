@@ -86,9 +86,6 @@ Semantic restriction "_∪_" is
 /* Make union left associate. */
 Grammatical restriction {"_∪_"} is <∅, {"_∪_"}>;
 
-/* Make intersection left associate. */
-Grammatical restriction {"_∩_"} is <∅, {"_∩_"}>;
-
 /**
  * The static type of the union of two sets is the set type whose element type
  * is the type union of the element types of the sets and whose cardinality
@@ -110,6 +107,9 @@ Semantic restriction "_∩_" is
 	{typeA's element type ∩ (typeB's element type) | [0..upper)};
 ];
 
+/* Make intersection left associate. */
+Grammatical restriction {"_∩_"} is <∅, {"_∩_"}>;
+
 /**
  * If it can be statically determined that the type of the right-hand argument
  * (A) is a subtype of the type of the left-hand argument (B), and that A's
@@ -128,38 +128,54 @@ Semantic restriction "_⊆_" is
 	typeA : set's type,
 	typeB : set's type
 |
-	if (typeA ⊆ typeB ∧ 
-		[||typeA||'s lower bound ≥ ||typeB||'s lower bound ∧ 
-		[||typeB||'s upper bound ≥ ||typeA||'s upper bound;];])
-	then [true's type;]
-	else [boolean;];
+	/* If both arguments are instance types, then extract their instances and
+	 * perform the subset operation on them, answering the result's type.
+	 */
+	if |typeA| = 1 ∧ [ |typeB| = 1; ] then
+	[
+		a ::= typeA's instance;
+		b ::= typeB's instance;
+		(a ⊆ b)'s type;
+	]
+	else
+	[
+		elementA ::= typeA's element type;
+		elementB ::= typeB's element type;
+		/* The basic rule is this: If the type intersection of the element type
+		 * of `typeA` and the element type of `typeB` is ⊥, then the result must
+		 * be false. Otherwise all bets are off.
+		 */
+		basicRule ::=
+			[
+				if elementA ∩ elementB = ⊥ then
+				[
+					false's type;
+				]
+				else
+				[
+					boolean;
+				];
+			];
+		sizesB ::= ||typeB||;
+		/* This is finesse. If `typeB` is definitely the set of all possible
+		 * instances of its (enumeration) element type, then `typeA`'s instances
+		 * must be subsets of `typeB`'s instance if `typeA`'s element type is a
+		 * subtype of `typeB`'s element type.
+		 */
+		if |elementB| ≠ ∞
+			∧ [ sizesB's lower bound = sizesB's upper bound
+			∧ [ |elementB| = sizesB's lower bound; ]; ]
+		then
+		[
+			if elementA ⊆ elementB then
+			[
+				true's type;
+			]
+			else basicRule;
+		]
+		else basicRule;
+	];
 ];
-
-/**
- * If it can be statically determined that the type of the right-hand argument
- * (A) is not a subtype of the type of the left-hand argument (B), or that A's
- * lower bound is less than to B's lower bound, or that A's upper bound is 
- * greater than to B's upper bound, then it is known that the return type of
- * _⊆_ is false's type.
- * 
- * Parameters:
- *    typeA - A set type.
- *    typeB - A set type.
- * Returns:
- *    A boolean.
- */
-Semantic restriction "_⊆_" is
-[
-	typeA : set's type,
-	typeB : set's type
-|
-	if ((¬(typeA ⊆ typeB)) ∨ 
-		[||typeB||'s lower bound > ||typeA||'s lower bound ∨ 
-		[||typeA||'s upper bound > ||typeB||'s upper bound;];])
-	then [false's type;]
-	else [boolean;];
-];
-
 
 /* Disambiguate `_→_` and `_→set`. */
 Grammatical restriction {"_→_"} is <∅, {"set"}>;

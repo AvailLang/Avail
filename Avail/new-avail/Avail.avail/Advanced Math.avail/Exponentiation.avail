@@ -74,20 +74,20 @@ Semantic restriction "_^_" is type promotion function for
 	a : number,
 	b : number
 |
-	if b = 0 then
+	If b = 0 then
 	[
-		if a = 0 then
+		If a = 0 then
 		[
 			Reject parse, expected: cannotRaiseZeroToZero;
 		];
-		if a ∈ {-∞, ∞} then
+		If a ∈ {-∞, ∞} then
 		[
 			Reject parse, expected: cannotRaiseInfinityToZero;
 		];
 	];
-	if a ∈ extended integer then
+	If a ∈ extended integer then
 	[
-		if a < 0 ∧ [ b ∈ {-∞, ∞}; ] then
+		If a < 0 ∧ [ b ∈ {-∞, ∞}; ] then
 		[
 			Reject parse, expected: cannotRaiseNegativeToInfinity;
 		];

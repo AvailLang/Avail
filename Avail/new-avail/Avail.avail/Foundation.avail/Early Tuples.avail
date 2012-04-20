@@ -137,7 +137,7 @@ Method "tuple type of_[_.._]" is
 	maxEnd ::= 0 max sliceEnd's upper bound;
 	tupleEnd ::= ||aTupleType||'s upper bound;
 	/* If all possible slices are out of bounds, then answer ⊥. */
-	if minEnd > tupleEnd then
+	If minEnd > tupleEnd then
 	[
 		Reject parse, expected:
 			"a subscript ("
@@ -150,7 +150,7 @@ Method "tuple type of_[_.._]" is
 			++ primitive description of tupleEnd
 			++ ")";
 	];
-	if minStart - maxEnd > 1 then
+	If minStart - maxEnd > 1 then
 	[
 		Reject parse, expected:
 			"the lower bound of the slice start subscript ("
@@ -300,82 +300,3 @@ Semantic restriction "_[.._]" is
 
 /* Disambiguate `_→_` and `_→tuple`. */
 Grammatical restriction {"_→_"} is <∅, {"tuple"}>;
-
-/**
- * Tuple type constructor's semantic restriction.
- *
- * Parameters:
- *  leadingTypesTypes - the type of a tuple of the types in the tuple
- *  defaultTypeType - 
- *	cardinalityType - The range of allowed cardinalities.
- * Returns:
- *    The requested tuple's type's type.
- */ 
-Semantic restriction "<_,_`…|_>" is
-[
-	leadingTypesTypes : tuple of any meta's type,
-	defaultTypeType : any meta's type,
-	cardinalityTypeType : whole number meta's type
-|
-	leadingTupleLeadingAndDefaultTypes :: = 
-		leadingTypesTypes's leading types ++ <leadingTypesTypes's default type>;
-	leadingTypesTypesSize ::= |leadingTupleLeadingAndDefaultTypes|;
-	typesTypesInstanceTuple : tuple := <>;
-	
-	if leadingTypesTypesSize > 0 then [
-		From 1 to leadingTypesTypesSize do [ 
-   			index : natural number
-   		|
-	   		typesTypesInstanceTuple := 
-	   			if |leadingTupleLeadingAndDefaultTypes[index]| ≠ 1 then [
-					Assert: leadingTupleLeadingAndDefaultTypes[index] 
-						∈ {type,⊥} 
-						("Assertion failure - Tuple leading type at index: " 
-							++ primitive description of index ++ 
-							" has size ≠ 1 and is " ++ 
-							primitive description of 
-							leadingTupleLeadingAndDefaultTypes[index] 
-							++ ", however only type or ⊥ is acceptable "
-							++ "in this case.");
-					if leadingTupleLeadingAndDefaultTypes[index] = type then [
-						eject ↑typesTypesInstanceTuple ++ <type>; 
-					] else [
-						eject ↑typesTypesInstanceTuple;
-					];
-				] else [
-				    eject ↑typesTypesInstanceTuple ++ 
-						<leadingTupleLeadingAndDefaultTypes[index]'s instance>;
-				];
-	/* loop must have terminating condition.  True to complete the full loop.*/
-			true;
-		];
-	];
-
-	defaultTypeTypeInstance : any;
-	if |defaultTypeType| ≠ 1 then [
-		Assert: defaultTypeType ∈ {type} 
-			("Assertion failure - Tuple default type is " ++ 
-				primitive description of defaultTypeType 
-				++ " and has size ≠ 1, however only type is acceptable "
-				++ "in this case.");
-		defaultTypeTypeInstance := type; 
-	] else [
-	    defaultTypeTypeInstance := defaultTypeType's instance;
-	];
-	
-	finalDefaultType ::= cast defaultTypeTypeInstance into [t: any's type | t;];
-
-	cardinalityTypeTypeInstance :: = cardinalityTypeType's instance;
-
-	bound ::= cast cardinalityTypeTypeInstance's upper bound + 
-		1 into [ t : [0..∞] | t; ];
-			
-	lower ::= cardinalityTypeTypeInstance's lower bound;
-		
-	allTypesToUse ::= cast typesTypesInstanceTuple into 
-		[t: <<>,any's type…|[0..∞)> | t;];
-
-	<allTypesToUse,finalDefaultType…|[lower..bound)>'s type;
-];
-		
-		

@@ -152,7 +152,7 @@ Semantic restriction "_+_" is type promotion function for
 	a : number,
 	b : number
 |
-	if {a, b} = {-∞, ∞} then
+	If {a, b} = {-∞, ∞} then
 	[
 		Reject parse, expected: cannotAddMessage;
 	];
@@ -164,7 +164,7 @@ Semantic restriction "_-_" is type promotion function for
 	a : number,
 	b : number
 |
-	if {a, b} ∈ {{-∞}, {∞}} then
+	If {a, b} ∈ {{-∞}, {∞}} then
 	[
 		Reject parse, expected: cannotSubtractMessage;
 	];
@@ -177,7 +177,7 @@ Semantic restriction "_×_" is type promotion function for
 	b : number
 |
 	terms ::= {a, b};
-	if terms = {0, ∞} ∨ [ terms = {0, -∞}; ] then
+	If terms = {0, ∞} ∨ [ terms = {0, -∞}; ] then
 	[
 		Reject parse, expected: cannotMultiplyMessage;
 	];
@@ -189,12 +189,12 @@ Semantic restriction "_÷_" is type promotion function for
 	a : number,
 	b : number
 |
-	if b = 0 ∧ [ a ∈ extended integer; ] then
+	If b = 0 ∧ [ a ∈ extended integer; ] then
 	[
 		Reject parse, expected: cannotDivideByZeroMessage;
 	];
 	infinities ::= {∞, -∞};
-	if a ∈ infinities ∧ [ b ∈ infinities; ] then
+	If a ∈ infinities ∧ [ b ∈ infinities; ] then
 	[
 		Reject parse, expected: cannotDivideTwoInfinitiesMessage;
 	];
@@ -206,12 +206,12 @@ Semantic restriction "_mod_" is type promotion function for
 	a : number,
 	b : number
 |
-	if b = 0 ∧ [ a ∈ extended integer; ] then
+	If b = 0 ∧ [ a ∈ extended integer; ] then
 	[
 		Reject parse, expected: cannotDivideByZeroMessage;
 	];
 	infinities ::= {∞, -∞};
-	if a ∈ infinities ∧ [ b ∈ infinities; ] then
+	If a ∈ infinities ∧ [ b ∈ infinities; ] then
 	[
 		Reject parse, expected: cannotDivideTwoInfinitiesMessage;
 	];
@@ -466,7 +466,7 @@ Semantic restriction "_is odd" is
 	]
 	else
 	[
-		/* Don't strengthen .*/
+		/* Don't strengthen. */
 		⊤;
 	];
 ];
@@ -566,7 +566,7 @@ Method "_.×._" is
 		{a's lower bound, a's upper bound},
 		{b's lower bound, b's upper bound}
 	};
-	if bounds = {{0}, {∞}} ∨ [ bounds = {{0}, {-∞}}; ] then
+	If bounds = {{0}, {∞}} ∨ [ bounds = {{0}, {-∞}}; ] then
 	[
 		Reject parse, expected: cannotMultiplyMessage;
 	]
@@ -577,9 +577,9 @@ Method "_.×._" is
 		positiveA : extended integer's type := a ∩ [1..∞];
 		positiveB : extended integer's type := b ∩ [1..∞];
 		result : extended integer's type := ⊥;
-		if positiveA ≠ ⊥ then
+		If positiveA ≠ ⊥ then
 		[
-			if positiveB ≠ ⊥ then
+			If positiveB ≠ ⊥ then
 			[
 				lower ::= positiveA's lower bound × positiveB's lower bound;
 				lowerInclusive ::= positiveA's lower bound is inclusive
@@ -592,7 +592,7 @@ Method "_.×._" is
 					to upper (inclusive=upperInclusive);
 				result := eject ↑result ∪ range;
 			];
-			if negativeB ≠ ⊥ then
+			If negativeB ≠ ⊥ then
 			[
 				lower ::= positiveA's upper bound × negativeB's lower bound;
 				lowerInclusive ::= positiveA's upper bound is inclusive
@@ -606,9 +606,9 @@ Method "_.×._" is
 				result := eject ↑result ∪ range;
 			];
 		];
-		if negativeA ≠ ⊥ then
+		If negativeA ≠ ⊥ then
 		[
-			if positiveB ≠ ⊥ then
+			If positiveB ≠ ⊥ then
 			[
 				lower ::= negativeA's lower bound × positiveB's upper bound;
 				lowerInclusive ::= negativeA's lower bound is inclusive
@@ -621,7 +621,7 @@ Method "_.×._" is
 					to upper (inclusive=upperInclusive);
 				result := eject ↑result ∪ range;
 			];
-			if negativeB ≠ ⊥ then
+			If negativeB ≠ ⊥ then
 			[
 				lower ::= negativeA's upper bound × negativeB's upper bound;
 				lowerInclusive ::= negativeA's upper bound is inclusive
@@ -638,7 +638,7 @@ Method "_.×._" is
 		/* Zero is handled specially, to prevent multiplication of 0 and ±∞ by
 		 * one of the preceding clauses.
 		 */
-		if 0's type ⊆ a ∨ [ 0's type ⊆ b; ] then
+		If 0's type ⊆ a ∨ [ 0's type ⊆ b; ] then
 		[
 			result := eject ↑result ∪ 0's type;
 		];
@@ -696,7 +696,7 @@ Semantic restriction "_+_" is
 		{a's lower bound, a's upper bound},
 		{b's lower bound, b's upper bound}
 	};
-	if bounds = {{-∞}, {∞}} then
+	If bounds = {{-∞}, {∞}} then
 	[
 		Reject parse, expected: cannotAddMessage;
 	];
@@ -725,9 +725,8 @@ Semantic restriction "_-_" is
 		{a's lower bound, a's upper bound},
 		{negated's lower bound, negated's upper bound}
 	};
-	if bounds = {{-∞}, {∞}} then
+	If bounds = {{-∞}, {∞}} then
 	[
-	 	Print: "got here\n";
 		Reject parse, expected: cannotSubtractMessage;
 	];
 	a .+. negated;
@@ -788,7 +787,8 @@ Method "_.÷._" is
 			lowerInclusive ::= numeratorRange's lower bound is inclusive;
 			numeratorMax ::= numeratorRange's upper bound ÷ denominator;
 			upperInclusive ::= numeratorRange's upper bound is inclusive;
-			result ::= if denominator < 0 then
+			result ::=
+				if denominator < 0 then
 				[
 					integer range
 						from numeratorMax (inclusive=upperInclusive)
@@ -822,19 +822,19 @@ Semantic restriction "_÷_" is
 	b : extended integer's type
 |
 	denominatorSet ::= {b's lower bound, b's upper bound};
-	if denominatorSet = {0} then
+	If denominatorSet = {0} then
 	[
 		Reject parse, expected: cannotDivideByZeroMessage;
 	];
 	numeratorSet ::= {a's lower bound, a's upper bound};
 	infinities ::= {{∞}, {-∞}};
-	if numeratorSet ∈ infinities ∧ [ denominatorSet ∈ infinities; ] then
+	If numeratorSet ∈ infinities ∧ [ denominatorSet ∈ infinities; ] then
 	[
 		Reject parse, expected: cannotDivideTwoInfinitiesMessage;
 	];
 	union : extended integer's type := ⊥;
 	negativeDenominators ::= b ∩ [-∞..-1];
-	if negativeDenominators ≠ ⊥ then
+	If negativeDenominators ≠ ⊥ then
 	[
 		union :=
 			eject ↑union ∪ (a .÷. negativeDenominators's genuine lower bound);
@@ -842,7 +842,7 @@ Semantic restriction "_÷_" is
 			eject ↑union ∪ (a .÷. negativeDenominators's genuine upper bound);
 	];
 	positiveDenominators ::= b ∩ [1..∞];
-	if positiveDenominators ≠ ⊥ then
+	If positiveDenominators ≠ ⊥ then
 	[
 		union :=
 			eject ↑union ∪ (a .÷. positiveDenominators's genuine lower bound);
@@ -869,13 +869,13 @@ Semantic restriction "_mod_" is
 	b : extended integer's type
 |
 	denominatorSet ::= {b's lower bound, b's upper bound};
-	if denominatorSet = {0} then
+	If denominatorSet = {0} then
 	[
 		Reject parse, expected: cannotDivideByZeroMessage;
 	];
 	numeratorSet ::= {a's lower bound, a's upper bound};
 	infinities ::= {{∞}, {-∞}};
-	if numeratorSet ∈ infinities ∧ [ denominatorSet ∈ infinities; ] then
+	If numeratorSet ∈ infinities ∧ [ denominatorSet ∈ infinities; ] then
 	[
 		Reject parse, expected: cannotDivideTwoInfinitiesMessage;
 	];
@@ -1046,13 +1046,13 @@ Method "comparison chain semantic restriction function" is
 			[
 				optionIndex : [2..4]
 			|
-				if arg[optionIndex]'s instance then
+				If arg[optionIndex]'s instance then
 				[
-					optionCount := optionCount + 1;
+					↑optionCount++;
 				];
 				true;
 			];
-			if optionCount ≠ 1 then
+			If optionCount ≠ 1 then
 			[
 				Reject parse, expected:
 					"exactly one comparison operator between numeric arguments";

@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.04.09 13:16:55.555 -0500
+ * * Last Generated On: 2012.04.20 10:36:10.833 -0500
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -53,6 +53,7 @@ Uses
 		"Assert:_(_)",
 		"Breakpoint",
 		"Clear_",
+		"If_then_",
 		"Print:_",
 		"Reject parse,expected:_",
 		"Terminate:_",
@@ -126,8 +127,7 @@ Uses
 		"current fiber",
 		"enumeration of_",
 		"function accepting_and returning_",
-		"if_then_",
-		"if_then_else_",
+		"if~_then_else_",
 		"integer range from_(inclusive=_)to_(inclusive=_)",
 		"ln_",
 		"milliseconds since the Epoch",
@@ -569,7 +569,7 @@ Method "[`…]→_" is
  *    If `predicate` is `true`, then the value produced by invoking
  *    `trueFunction`; otherwise, the value produced by invoking `falseFunction`.
  */
-Method "if_then_else_" is
+Method "if~_then_else_" is
 [
 	predicate : boolean,
 	trueFunction : nullary procedure,
@@ -586,7 +586,7 @@ Method "if_then_else_" is
  *    predicate - A predicate value.
  *    trueBlock - The function to invoke if `predicate` is `true`.
  */
-Method "if_then_" is
+Method "If_then_" is
 [
 	predicate : boolean,
 	trueBlock : nullary procedure

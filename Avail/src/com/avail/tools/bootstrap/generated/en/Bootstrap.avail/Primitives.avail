@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.04.09 13:16:55.553 -0500
+ * * Last Generated On: 2012.04.20 10:36:10.831 -0500
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -55,6 +55,7 @@ Names
 	"Exit_with_",
 	"Forward method_is_",
 	"Grammatical restriction_is_",
+	"If_then_",
 	"Macro_is_",
 	"Print:_",
 	"Raise_",
@@ -144,8 +145,7 @@ Names
 	"enumeration of_",
 	"function accepting_and returning_",
 	"function from_and_",
-	"if_then_",
-	"if_then_else_",
+	"if~_then_else_",
 	"integer range from_(inclusive=_)to_(inclusive=_)",
 	"invoke_with_",
 	"ln_",

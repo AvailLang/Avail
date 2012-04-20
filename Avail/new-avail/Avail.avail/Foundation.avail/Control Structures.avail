@@ -81,11 +81,11 @@ Method "From_to_by_do_" is
 	value : extended integer := start;
 	[
 		$loop : $[]→⊤;
-		if value ≤ end then
+		If value ≤ end then
 		[
 			continue ::= invoke action with <value>;
 			value := eject ↑value + step;
-			if continue then
+			If continue then
 			[
 				Restart loop;
 			];
@@ -112,13 +112,13 @@ Semantic restriction "From_to_by_do_" is
 	action : [⊥]→boolean's type
 |
 	upper ::= end's upper bound;
-	if action[1] ≠ ⊥ then
+	If action[1] ≠ ⊥ then
 	[
 		lower ::= start's lower bound;
-		if lower ≤ upper then
+		If lower ≤ upper then
 		[
 			values ::= (lower - 1..upper + 1);
-			if ¬values ⊆ action[1] then
+			If ¬values ⊆ action[1] then
 			[
 				Reject parse, expected:
 					"repeatedly applied function to accept all integers from "
@@ -166,11 +166,11 @@ Method "From_to_by_do_" is
 	value : extended integer := start;
 	[
 		$loop : $[]→⊤;
-		if value ≥ end then
+		If value ≥ end then
 		[
 			continue ::= invoke action with <value>;
 			value := eject ↑value + step;
-			if continue then
+			If continue then
 			[
 				Restart loop;
 			];
@@ -197,13 +197,13 @@ Semantic restriction "From_to_by_do_" is
 	action : [⊥]→boolean's type
 |
 	upper ::= start's upper bound;
-	if action[1] ≠ ⊥ then
+	If action[1] ≠ ⊥ then
 	[
 		lower ::= end's lower bound;
-		if lower ≤ upper then
+		If lower ≤ upper then
 		[
 			values ::= (lower - 1..upper + 1);
-			if ¬values ⊆ action[1] then
+			If ¬values ⊆ action[1] then
 			[
 				Reject parse, expected:
 					"repeatedly applied function to accept all integers from "
@@ -273,13 +273,13 @@ Semantic restriction "From_to_by_do_" is
 	action : [⊥]→⊤'s type
 |
 	upper ::= end's upper bound;
-	if action[1] ≠ ⊥ then
+	If action[1] ≠ ⊥ then
 	[
 		lower ::= start's lower bound;
-		if lower ≤ upper then
+		If lower ≤ upper then
 		[
 			values ::= (lower - 1..upper + 1);
-			if ¬values ⊆ action[1] then
+			If ¬values ⊆ action[1] then
 			[
 				Reject parse, expected:
 					"repeatedly applied function to accept all integers from "
@@ -292,7 +292,7 @@ Semantic restriction "From_to_by_do_" is
 			];
 		];
 	];
-	if upper = ∞ ∧ [ end's lower bound = upper; ] then
+	If upper = ∞ ∧ [ end's lower bound = upper; ] then
 	[
 		⊥;
 	]
@@ -347,13 +347,13 @@ Semantic restriction "From_to_by_do_" is
 	action : [⊥]→⊤'s type
 |
 	upper ::= end's upper bound;
-	if action[1] ≠ ⊥ then
+	If action[1] ≠ ⊥ then
 	[
 		lower ::= start's lower bound;
-		if lower ≤ upper then
+		If lower ≤ upper then
 		[
 			values ::= (lower - 1..upper + 1);
-			if ¬values ⊆ action[1] then
+			If ¬values ⊆ action[1] then
 			[
 				Reject parse, expected:
 					"repeatedly applied function to accept all integers from "
@@ -414,13 +414,13 @@ Semantic restriction "From_to_do_" is
 	action : [⊥]→boolean's type
 |
 	upper ::= end's upper bound;
-	if action[1] ≠ ⊥ then
+	If action[1] ≠ ⊥ then
 	[
 		lower ::= start's lower bound;
-		if lower ≤ upper then
+		If lower ≤ upper then
 		[
 			values ::= (lower - 1..upper + 1);
-			if ¬values ⊆ action[1] then
+			If ¬values ⊆ action[1] then
 			[
 				Reject parse, expected:
 					"repeatedly applied function to accept all integers from "
@@ -486,13 +486,13 @@ Semantic restriction "From_to_do_" is
 	action : [⊥]→⊤'s type
 |
 	upper ::= end's upper bound;
-	if action[1] ≠ ⊥ then
+	If action[1] ≠ ⊥ then
 	[
 		lower ::= start's lower bound;
-		if lower ≤ upper then
+		If lower ≤ upper then
 		[
 			values ::= (lower - 1..upper + 1);
-			if ¬values ⊆ action[1] then
+			If ¬values ⊆ action[1] then
 			[
 				Reject parse, expected:
 					"repeatedly applied function to accept all integers from "
@@ -531,7 +531,7 @@ Method "For each_do_" is
 	end ::= |aTuple|;
 	[
 		$loop : $[]→⊤;
-		if index ≤ end then
+		If index ≤ end then
 		[
 			invoke action with <aTuple[index]>;
 			↑index++;
@@ -555,7 +555,7 @@ Method "Require:_accepts_" is
 	tupleType : tuple meta
 |
 	union ::= ∪ tupleType[1..|tupleType's leading types| + 1];
-	if ¬union ⊆ action[1] then
+	If ¬union ⊆ action[1] then
 	[
 		Reject parse, expected:
 			"repeatedly applied function to accept all elements of the tuple ∈ "
@@ -611,7 +611,7 @@ Method "For each_do_" is
 	end ::= |aTuple|;
 	[
 		$loop : $[]→⊤;
-		if index ≤ end then
+		If index ≤ end then
 		[
 			invoke action with <aTuple[index]>;
 			↑index++;
@@ -633,7 +633,7 @@ Method "Require:_accepts_" is
 	action : [⊥]→⊤'s type,
 	setType : set meta
 |
-	if ¬setType's element type ⊆ action[1] then
+	If ¬setType's element type ⊆ action[1] then
 	[
 		Reject parse, expected:
 			"repeatedly applied function to accept all elements of the set ∈ "
@@ -689,7 +689,7 @@ Method "For each_do_" is
 	end ::= |aMap|;
 	[
 		$loop : $[]→⊤;
-		if index ≤ end then
+		If index ≤ end then
 		[
 			binding ::= bindings[index];
 			invoke action with <binding[1], binding[2]>;
@@ -712,7 +712,7 @@ Method "Require:_accepts_" is
 	action : [⊥, ⊥]→⊤'s type,
 	mapType : map meta
 |
-	if ¬mapType's key type ⊆ action[1] then
+	If ¬mapType's key type ⊆ action[1] then
 	[
 		Reject parse, expected:
 			"repeatedly applied function to accept all keys of the map ∈ "
@@ -721,7 +721,7 @@ Method "Require:_accepts_" is
 			++ primitive description of action[1]
 			++ ")";
 	];
-	if ¬mapType's value type ⊆ action[2] then
+	If ¬mapType's value type ⊆ action[2] then
 	[
 		Reject parse, expected:
 			"repeatedly applied function to accept all values of the map ∈ "
@@ -780,7 +780,7 @@ Method "map_through_" is
 	end ::= |aTuple|;
 	[
 		$loop : $[]→⊤;
-		if index ≤ end then
+		If index ≤ end then
 		[
 			result := eject ↑result ++ <invoke action with <aTuple[index]>>;
 			↑index++;
@@ -807,9 +807,9 @@ Semantic restriction "map_through_" is
 	action : [⊥]→any's type
 |
 	Require: action accepts tupleType;
-	if ||tupleType||'s lower bound > 0 then
+	If ||tupleType||'s lower bound > 0 then
 	[
-		if action's return type ∈ {⊤, ⊥} then
+		If action's return type ∈ {⊤, ⊥} then
 		[
 			Reject parse, expected:
 				"repeatedly applied function to have a return type other than\

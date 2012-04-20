@@ -534,28 +534,28 @@ Method "minimum semantic restriction" is
 			value ::= cast numbers[index]
 				into [ t : extended integer meta | t; ];
 			lower ::= value's lower bound;
-			if lower = min then
+			If lower = min then
 			[
 				minInclusive :=
 					minInclusive ∨ [ value's lower bound is inclusive; ];
 			]
 			else
 			[
-				if lower < min then
+				If lower < min then
 				[
 					min := lower;
 					minInclusive := value's lower bound is inclusive;
 				];
 			];
 			upper ::= value's upper bound;
-			if upper = max then
+			If upper = max then
 			[
 				maxInclusive :=
 					maxInclusive ∧ [ value's upper bound is inclusive; ];
 			]
 			else
 			[
-				if upper < max then
+				If upper < max then
 				[
 					max := upper;
 					maxInclusive := value's upper bound is inclusive;
@@ -669,28 +669,28 @@ Method "maximum semantic restriction" is
 			value ::= cast numbers[index]
 				into [ t : extended integer meta | t; ];
 			lower ::= value's lower bound;
-			if min = lower then
+			If min = lower then
 			[
 				minInclusive :=
 					minInclusive ∧ [ value's lower bound is inclusive; ];
 			]
 			else
 			[
-				if min < lower then
+				If min < lower then
 				[
 					min := lower;
 					minInclusive := value's lower bound is inclusive;
 				];
 			];
 			upper ::= value's upper bound;
-			if max = upper then
+			If max = upper then
 			[
 				maxInclusive :=
 					maxInclusive ∨ [ value's upper bound is inclusive; ];
 			]
 			else
 			[
-				if max < upper then
+				If max < upper then
 				[
 					max := upper;
 					maxInclusive := value's upper bound is inclusive;

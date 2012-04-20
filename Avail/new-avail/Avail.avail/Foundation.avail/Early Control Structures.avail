@@ -90,7 +90,7 @@ Semantic restriction "(_)" is
  * Returns:
  *    The type union of the return types of `trueFunction` and `falseFunction`.
  */
-Semantic restriction "if_then_else_" is
+Semantic restriction "if~_then_else_" is
 [
 	predicate : boolean's type,
 	trueFunction : nullary procedure's type,
@@ -110,7 +110,7 @@ Semantic restriction "if_then_else_" is
  * Returns:
  *    The return type of `trueFunction`.
  */
-Semantic restriction "if_then_else_" is
+Semantic restriction "if~_then_else_" is
 [
 	tautology : true's type's type,
 	trueFunction : nullary procedure's type,
@@ -130,7 +130,7 @@ Semantic restriction "if_then_else_" is
  * Returns:
  *    The return type of `falseFunction`.
  */
-Semantic restriction "if_then_else_" is
+Semantic restriction "if~_then_else_" is
 [
 	contradiction : false's type's type,
 	trueFunction : nullary procedure's type,
@@ -213,7 +213,7 @@ Semantic restriction "cast_into_else_" is
 	accept : (function accepting <⊥> and returning ⊤)'s type,
 	reject : nullary procedure's type
 |
-	if value ⊆ accept[1] then
+	If value ⊆ accept[1] then
 	[
 		messageTuple ::= concatenate <
 			"necessary cast expression, but ",
@@ -227,7 +227,7 @@ Semantic restriction "cast_into_else_" is
 			Reject parse, expected: message;
 		];
 	];
-	if value ∪ accept[1] = value then
+	If value ∪ accept[1] = value then
 	[
 		/* This is the expected case, i.e., the function argument is a subtype
 		 * of `value`, but logical negation isn't available yet.
@@ -266,7 +266,7 @@ Semantic restriction "cast_into_" is
 	value : type,
 	accept : (function accepting <⊥> and returning ⊤)'s type
 |
-	if value ⊆ accept[1] then
+	If value ⊆ accept[1] then
 	[
 		messageTuple ::= concatenate <
 			"necessary cast expression, but ",
@@ -280,7 +280,7 @@ Semantic restriction "cast_into_" is
 			Reject parse, expected: message;
 		];
 	];
-	if value ∪ accept[1] = value then
+	If value ∪ accept[1] = value then
 	[
 		/* This is the expected case, i.e., the function argument is a subtype
 		 * of `value`, but logical negation isn't available yet.
@@ -384,11 +384,11 @@ Method "From_to_do_" is
 	invoke
 		[
 			$loop : $function accepting <> and returning ⊤;
-			if value ≤ end then
+			If value ≤ end then
 			[
 				continue ::= invoke action with <value>;
 				value := cast value + 1 into [ i : natural number | i; ];
-				if continue then
+				If continue then
 				[
 					Restart loop;
 				];
@@ -414,16 +414,17 @@ Semantic restriction "From_to_do_" is
 	action : (function accepting <⊥> and returning boolean)'s type
 |
 	lower ::= start's genuine lower bound;
-	if lower ≤ end's genuine upper bound then
+	If lower ≤ end's genuine upper bound then
 	[
 		upper ::= cast end's genuine upper bound + 1
 			into [ t : extended integer | t;] ;
 		subscripts ::= integer range
 			from lower (inclusive = lower's type ⊆ start)
 			to upper (inclusive = false);
-		if subscripts ⊆ action[1] then
+		If subscripts ⊆ action[1] then
 		[
-			/* Do nothing. */
+			/* This is the happy case, but logical negation isn't available yet.
+			 */
 		]
 		else
 		[

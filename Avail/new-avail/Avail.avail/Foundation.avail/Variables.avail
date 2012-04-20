@@ -108,7 +108,7 @@ Method "increment/decrement semantic restriction" is
 	[
 		varType : variable meta
 	|
-		if (¬varType's read type ⊆ number)
+		If (¬varType's read type ⊆ number)
 			∨ [ ¬varType's write type ⊆ number; ]
 		then
 		[
@@ -168,7 +168,7 @@ Semantic restriction "(_++)" is
 [
 	varType : variable meta
 |
-	if (¬varType's read type ⊆ number)
+	If (¬varType's read type ⊆ number)
 		∨ [ ¬varType's write type ⊆ number; ]
 	then
 	[
@@ -225,7 +225,7 @@ Semantic restriction "(++_)" is
 [
 	varType : variable meta
 |
-	if (¬varType's read type ⊆ number)
+	If (¬varType's read type ⊆ number)
 		∨ [ ¬varType's write type ⊆ number; ]
 	then
 	[
@@ -314,7 +314,7 @@ Semantic restriction "(_--)" is
 [
 	varType : variable meta
 |
-	if (¬varType's read type ⊆ number)
+	If (¬varType's read type ⊆ number)
 		∨ [ ¬varType's write type ⊆ number; ]
 	then
 	[
@@ -372,7 +372,7 @@ Semantic restriction "(--_)" is
 [
 	varType : variable meta
 |
-	if (¬varType's read type ⊆ number)
+	If (¬varType's read type ⊆ number)
 		∨ [ ¬varType's write type ⊆ number; ]
 	then
 	[

@@ -85,11 +85,11 @@ Semantic restriction "invoke_with_" is
 	 */
 	parametersType ::= functionType's parameters' type;
 	parametersSizes ::= ||parametersType||;
-	if parametersSizes ≠ ⊥ then
+	If parametersSizes ≠ ⊥ then
 	[
 		argumentsSizes ::= ||argumentsType||;
 		validSizes ::= parametersSizes ∩ argumentsSizes;
-		if validSizes = ⊥ then
+		If validSizes = ⊥ then
 		[
 			Reject parse, expected: sizesIncompatibleMessage;
 		];
@@ -140,11 +140,11 @@ Semantic restriction "_(«_‡,»)" is
 	 * cannot statically ascertain anything interesting about the function and
 	 * the arguments to apply.
 	 */
-	if parametersSizes ≠ ⊥ then
+	If parametersSizes ≠ ⊥ then
 	[
 		argumentsSizes ::= ||argumentsType||;
 		validSizes ::= parametersSizes ∩ argumentsSizes;
-		if validSizes = ⊥ then
+		If validSizes = ⊥ then
 		[
 			Reject parse, expected: sizesIncompatibleMessage;
 		];
@@ -153,7 +153,7 @@ Semantic restriction "_(«_‡,»)" is
 		[
 			index : natural number
 		|
-			if ¬argumentsType[index] ⊆ parametersType[index] then
+			If ¬argumentsType[index] ⊆ parametersType[index] then
 			[
 				Reject parse, expected:
 					"argument #"

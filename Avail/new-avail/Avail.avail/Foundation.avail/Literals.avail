@@ -129,7 +129,7 @@ Semantic restriction "_[_]" is
 	aTupleType : tuple meta,
 	index : natural number's type
 |
-	if ||aTupleType||'s upper bound < index's lower bound then
+	If ||aTupleType||'s upper bound < index's lower bound then
 	[
 		messageTuple ::= concatenate <
 			"a subscript (",
@@ -179,7 +179,7 @@ Semantic restriction "_[_]" is
 	index : natural number's type
 |
 	aTupleType ::= aTupleMeta's instance;
-	if ||aTupleType||'s upper bound < index's lower bound then
+	If ||aTupleType||'s upper bound < index's lower bound then
 	[
 		messageTuple ::= concatenate <
 			"a subscript (",
@@ -337,7 +337,7 @@ Semantic restriction "{«_‡,»}" is
 					true;
 				];
 			];
-			if isDistinct then
+			If isDistinct then
 			[
 				distinct := cast concatenate <eject ↑distinct, <element>> into
 					[ t : tuple of type | t; ];
@@ -489,7 +489,7 @@ Semantic restriction "{«_→_‡,»}" is
 					true;
 				];
 			];
-			if isDistinct then
+			If isDistinct then
 			[
 				distinct := cast concatenate <eject ↑distinct, <keyType>>
 					into [ t : tuple of type | t; ];
