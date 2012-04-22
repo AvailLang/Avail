@@ -1,0 +1,191 @@
+/*
+ * Early Maps.avail
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Early Maps"
+Versions
+	"dev"
+Extends
+Uses
+	"Bootstrap",
+	"Early Control Structures",
+	"Early Logic",
+	"Early Types",
+	"Enumeration Support",
+	"Literals"
+Names
+Body
+
+/**
+ * If the exact map is known, then answer the enumeration of its keys.
+ * Otherwise, just answer the key type.
+ * 
+ * Parameters:
+ *    mapMeta -
+ * Return:
+ *    The argument's instance's key type's type.
+ */
+Semantic restriction "_'s key type" is
+[
+	mapMeta : map meta's type
+|
+	mapType ::= mapMeta's instance;
+	if |mapType| = 1 then
+	[
+		aMap ::= mapType's instance;
+		elements ::= aMap's keys;
+		enumeration of elements's type;
+	]
+	else
+	[
+		mapMeta's instance's key type's type;
+	];
+];
+
+/**
+ * If the exact map is known, then answer the enumeration of its values.
+ * Otherwise, just answer the value type.
+ * 
+ * Parameters:
+ *    mapMeta -
+ * Return:
+ *    The argument's instance's value type's type.
+ */
+Semantic restriction "_'s value type" is
+[
+	mapMeta : map meta's type
+|
+	mapType ::= mapMeta's instance;
+	if |mapType| = 1 then
+	[
+		aMap ::= mapType's instance;
+		elements ::= aMap's values→set;
+		enumeration of elements's type;
+	]
+	else
+	[
+		mapMeta's instance's value type's type;
+	];
+];
+
+/**
+ * If the exact map and key are known, then provide the exact type of the value.
+ * Otherwise, just provide the map's value type.
+ * 
+ * Parameters:
+ *    mapType -
+ *    keyType -
+ * Returns:
+ *    The strongest available value type.
+ */
+Semantic restriction "_[_]" is
+[
+	mapType : map meta,
+	keyType : any meta
+|
+	if |mapType| = 1 ∧ [ |keyType| = 1; ] then
+	[
+		mapType's instance[keyType's instance]'s type;
+	]
+	else
+	[
+		mapType's value type;
+	];
+];
+
+/**
+ * If the exact map is known, then provide the exact type of the bindings.
+ * Otherwise, just provide the closest tuple type.
+ * 
+ * Parameters:
+ *    mapType -
+ * Returns:
+ *    The strongest available tuple type.
+ */
+Semantic restriction "_'s bindings" is
+[
+	mapType : map meta
+|
+	if |mapType| = 1 then
+	[
+		mapType's instance's bindings's type;
+	]
+	else
+	[
+		<<>, <mapType's key type, mapType's value type…|2>… | ||mapType||>;
+	];
+];
+
+/**
+ * If the exact map is known, then answer the type of its set of keys.
+ * Otherwise, just answer the closest set type.
+ * 
+ * Parameters:
+ *    mapType -
+ * Returns:
+ *    The strongest available set type.
+ */
+Semantic restriction "_'s keys" is
+[
+	mapType : map meta
+|
+	if |mapType| = 1 then
+	[
+		mapType's instance's keys's type;
+	]
+	else
+	[
+		{mapType's key type | ||mapType||};
+	];
+];
+
+/**
+ * If the exact map is known, then answer the type of its tuple of arbitrarily
+ * ordered values. Otherwise, just answer the closest tuple type.
+ * 
+ * Parameters:
+ *    mapType -
+ * Returns:
+ *    The strongest available tuple type.
+ */
+Semantic restriction "_'s values" is
+[
+	mapType : map meta
+|
+	if |mapType| = 1 then
+	[
+		mapType's instance's values's type;
+	]
+	else
+	[
+		<<>, mapType's value type… | ||mapType||>;
+	];
+];

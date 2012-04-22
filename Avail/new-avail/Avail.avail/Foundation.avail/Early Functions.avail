@@ -172,16 +172,71 @@ Semantic restriction "_(«_‡,»)" is
 ];
 
 /**
- * Strengthen the type of a function type's parameters' tuple type.
+ * Strength `_[_]` as much as possible for function types. When very little
+ * information is available about the number and types of the parameters, then
+ * don't strengthen the result.
  * 
- * Parameters:
- *    functionMeta - A function type.
+ * Parameter:
+ *    functionMeta -
+ *    index -
  * Returns:
- *    The parameters' tuple type.
+ *    The strongest type available for the parameters in the given range.
  */
-Semantic restriction "_'s parameters'type" is
+Semantic restriction "_[_]" is
 [
-	functionMeta : function meta's type
+	functionMeta : function meta's type,
+	index : natural number's type
 |
-	functionMeta's instance's parameters' type's type;
+	functionType ::= functionMeta's instance;
+	parametersType ::= functionType's parameters' type;
+	/* If `functionType` is maximally generic, then `parametersType` may be ⊥.
+	 * In this case we don't know anything about the types of the parameters, so
+	 * don't strengthen the primitive's answer.
+	 */
+	if parametersType = ⊥ then
+	[
+		⊤;
+	]
+	else
+	[
+		limit ::= cast ||parametersType||'s upper bound
+			into [ t : natural number | t; ];
+		start ::= cast index's lower bound
+			into [ t : natural number | t; ];
+		If start > limit then
+		[
+			Reject parse, expected:
+				"a subscript ("
+				++ primitive description of start
+				++ " ≤ theSubscript ≤ "
+				++ primitive description of index's upper bound
+				++ ") that could ever be valid ("
+				++ primitive description of
+					||parametersType||'s lower bound
+				++ " ≤ |theFunctionType| ≤ "
+				++ primitive description of limit
+				++ ")";
+		];
+		result : any's type := ⊥;
+		end ::= index's upper bound min limit;
+		From start to end min limit do
+		[
+			subscript : natural number
+		|
+			result := eject ↑result ∪ functionType[subscript];
+			true;
+		];
+		/* If `result` is ⊥, then we don't know anything about the types of the
+		 * parameters in the specified range. In this case, don't strengthen the
+		 * primitive's answer.
+		 */
+		if result = ⊥ then
+		[
+			⊤;
+		]
+		else
+		[
+			result's type;
+		];
+	];
 ];

@@ -146,7 +146,7 @@ Method "tuple type of_[_.._]" is
 			++ primitive description of maxEnd
 			++ ") that could ever be valid ("
 			++ primitive description of ||aTupleType||'s lower bound
-			++ " ≤ |theTuple ≤ "
+			++ " ≤ |theTuple| ≤ "
 			++ primitive description of tupleEnd
 			++ ")";
 	];

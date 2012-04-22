@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.04.20 10:36:10.833 -0500
+ * * Last Generated On: 2012.04.21 15:25:47.056 -0500
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -96,12 +96,12 @@ Uses
 		"_'s write type",
 		"_++_",
 		"_+_",
+		"_+_→_",
 		"_-_",
 		"_<_",
 		"_=_",
 		"_[_]",
 		"_[_]:=_",
-		"_[_]→_",
 		"_\\_",
 		"_^_",
 		"_is a primitive",
@@ -976,7 +976,7 @@ Method "_∈_" is
  * Returns:
  *    The requested map.
  */
-Method "_[_]→_" is
+Method "_+_→_" is
 [
 	aMap : map,
 	key : any,

@@ -272,8 +272,7 @@ extends Descriptor
 
 	/**
 	 * Create a new {@linkplain MessageBundleDescriptor message bundle} for the
-	 * given message.  Also use the provided tuple of message parts and parsing
-	 * instructions.
+	 * given message.
 	 *
 	 * @param message The message name, an {@linkplain AtomDescriptor atom}.
 	 * @return A new {@linkplain MessageBundleDescriptor message bundle}.

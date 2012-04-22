@@ -514,7 +514,7 @@ extends Descriptor
 
 
 	/**
-	 * Expand the bundleTree if there's anything unclassified in it.
+	 * Expand the bundle tree if there's anything unclassified in it.
 	 */
 	@Override @AvailMethod
 	void o_Expand (final @NotNull AvailObject object)
