@@ -168,6 +168,9 @@ Semantic restriction "_'s keys" is
 ];
 
 /**
+ * TODO: We can only do better after primitive 91 is rewritten to either answer
+ * a bag (new data type) or a map from values to counts.
+ * 
  * If the exact map is known, then answer the type of its tuple of arbitrarily
  * ordered values. Otherwise, just answer the closest tuple type.
  * 
@@ -180,12 +183,5 @@ Semantic restriction "_'s values" is
 [
 	mapType : map meta
 |
-	if |mapType| = 1 then
-	[
-		mapType's instance's values's type;
-	]
-	else
-	[
-		<<>, mapType's value type… | ||mapType||>;
-	];
+	<<>, mapType's value type… | ||mapType||>;
 ];

@@ -831,13 +831,16 @@ public class MessageSplitter
 			{
 				expressionsToVisit = expressionsBeforeDagger;
 			}
-			for (final Expression expr : expressionsToVisit)
+			for (Expression expr : expressionsToVisit)
 			{
 				if (!isFirst)
 				{
 					aStream.append(" ");
 				}
-
+				if (expr instanceof CaseInsensitive)
+				{
+					expr = ((CaseInsensitive) expr).expression;
+				}
 				if (expr == null)
 				{
 					aStream.append("‡");

@@ -57,6 +57,7 @@ Names
 	"For each_do_",
 	"From_to_by_do_",
 	"From_to_do_",
+	"if~_then_«else if_then_»«else_»",
 	"filter_by_",
 	"map_and_filter_by_",
 	"map_through_"
@@ -1169,7 +1170,8 @@ Method "map and filter_by_" is
 		If index ≤ end then
 		[
 			hasAlreadyKept : boolean := false;
-			invoke accumulator with <
+			invoke accumulator with
+			<
 				aTuple[index],
 				[
 					transformed : any
@@ -1241,7 +1243,7 @@ Semantic restriction "map and filter_by_" is
 	If accumulator's return type ≠ ⊤ then
 	[
 		Reject parse, expected:
-			"repeatedly applied function to have a return type ⊤";
+			"repeatedly applied function to have return type ⊤";
 	];
 	<
 		<>,
@@ -1281,7 +1283,8 @@ Method "map and filter_by_" is
 		If index ≤ end then
 		[
 			hasAlreadyKept : boolean := false;
-			invoke accumulator with <
+			invoke accumulator with
+			<
 				aTuple[index],
 				[
 					transformed : any
@@ -1321,7 +1324,7 @@ Semantic restriction "map and filter_by_" is
 	If accumulator's return type ≠ ⊤ then
 	[
 		Reject parse, expected:
-			"repeatedly applied function to have a return type ⊤";
+			"repeatedly applied function to have return type ⊤";
 	];
 	{
 		cast accumulator[2] into [ t : function meta | t[1]; ]
@@ -1364,7 +1367,8 @@ Method "map and filter_by_" is
 			binding ::= bindings[index];
 			key ::= binding[1];
 			value ::= binding[2];
-			invoke accumulator with <
+			invoke accumulator with
+			<
 				key,
 				value,
 				[
@@ -1406,11 +1410,221 @@ Semantic restriction "map and filter_by_" is
 	If accumulator's return type ≠ ⊤ then
 	[
 		Reject parse, expected:
-			"repeatedly applied function to have a return type ⊤";
+			"repeatedly applied function to have return type ⊤";
 	];
 	valueType ::= cast accumulator[3] into [ t : function meta | t[1]; ];
 	{
 		mapType's key type → valueType
 		| [0..||mapType||'s upper bound + 1)
 	};
+];
+
+/**
+ * Multiply branching conditional statement/expression. Execute the first
+ * action for which the associated predicate answers `true`. If none of the
+ * predicates answer `true`, then execute the "else" action. If no "else"
+ * action is provided, then do not execute any of the action blocks.
+ * 
+ * Parameters:
+ *    firstPredicate - The first predicate. This argument is a raw boolean
+ *       rather than a function answering a boolean, because it must always be
+ *       evalutated (and hence there is no point deferring its evaluation).
+ *    firstThen - The action to perform if `firstPredicate` is `true`.
+ *    elseIfTuple - A lexically constructed tuple of 2-tuples. Each 2-tuple has
+ *       as its first element a predicate function and as its second element an
+ *       action to perform if the predicate function answers `true`.
+ *    else - A lexically constructed tuple that optionally contains the action
+ *       to perform if `firstPredicate` is `false` and all predicates of
+ *       `elseIfTuple` answer `false`.
+ * Returns:
+ *    If used as an expression, then the value of the selected action.
+ */
+Method "if~_then_«else if_then_»«else_»" is
+[
+	firstPredicate : boolean,
+	firstThen : []→⊤,
+	elseIfTuple : <<[]→boolean, []→⊤…|2>…|1..>,
+	else : <[]→⊤…|0..1>
+|
+	if firstPredicate then
+	[
+		firstThen();
+	]
+	else
+	[
+		/* Choose the first of the remaining clauses for which the associated
+		 * predicate is `true`.
+		 */
+		action : []→⊤;
+		From 1 to |elseIfTuple| do
+		[
+			index : natural number
+		|
+			If elseIfTuple[index][1]() then
+			[
+				action := elseIfTuple[index][2];
+			];
+			↑action is unassigned;
+		];
+		/* If none of the predicates answered `true`, then choose the "else"
+		 * clause (if one was provided).
+		 */
+		If ↑action is unassigned ∧ [ |else| = 1; ] then
+		[
+			action := else[1];
+		];
+		if ↑action is unassigned then
+		[
+			/* Do nothing. */
+		]
+		else
+		[
+			action();
+		];
+	];
+] : ⊤;
+
+/**
+ * Provide the strongest possible return type. If no "else" action is provided,
+ * but the chain of predicates does not definitely indicate a particular action,
+ * then answer ⊤. The weakest possible (but actual) strengthening is the type
+ * union of the return types of all actions whose associated predicates are not
+ * guaranteed to answer `false`. The greatest possible strengthening occurs when
+ * an action whose predicate is guaranteed to answer `true` is preceded only by
+ * actions whose predicates are guaranteed to answer `false`; in this case,
+ * answer this action's return type.
+ * 
+ * Parameters:
+ *    firstPredicate -
+ *    firstThen -
+ *    elseIfTuple -
+ *    else -
+ * Returns:
+ *    The strongest possible type for the expression.
+ */
+Semantic restriction "if~_then_«else if_then_»«else_»" is
+[
+	firstPredicate : boolean's type,
+	firstThen : []→⊤'s type,
+	elseIfTuple : <<[]→boolean, []→⊤…|2>…|1..>'s type,
+	else : <[]→⊤…|0..1>'s type
+|
+	/* `ambiguous` tracks whether any of the predicates cannot be proven to
+	 * answer a specific value. It is set to `true` when a predicate's return
+	 * type cannot be specifically established, i.e., when it is only known to
+	 * be `boolean`.
+	 */
+	ambiguous : boolean := false;
+	/* `exact` is assigned only if an exact type can be established for the
+	 * current call site. In particular, this occurs when a predicate's return
+	 * type is `true's type` but `ambiguous` is not set. `exact` is set in only
+	 * two cases: 1) every previous predicate answers `false's type` but the
+	 * current predicate answers `true's type` and 2) no preceding predicate
+	 * has answered `true's type` and no "else" action has been provided.
+	 */
+	exact : type;
+	/* `union` tracks the general type of the expression. Every predicate that
+	 * answers `boolean` prior to the first predicate that answers `true's type`
+	 * should have its action's return type accumulated via type union with
+	 * `union`. (Every predicate/action pair after the first that answers
+	 * `true's type` may be ignored, as its action's return value does not
+	 * participate in the final result.)
+	 */
+	union : type := ⊥;
+	/* Handle `firstPredicate` specially (because it is lexically distinct from
+	 * `elseIfTuple`).
+	 */
+	If firstPredicate = true's type then
+	[
+		exact := firstThen's return type;
+	]
+	else
+	[
+		/* If `firstPredicate` is `boolean`, then the expression is already
+		 * ambiguous. Set the flag and begin accumulating the expression's type.
+		 */
+		If firstPredicate = boolean then
+		[
+			ambiguous := true;
+			union := eject ↑union ∪ firstThen's return type;
+		];
+		elseIfTupleSize ::= ||elseIfTuple||'s lower bound;
+		/* `keepLooping` tracks whether it is necessary to continue examining
+		 * predicate/action pairs. It is set to `false` when a predicate is
+		 * discovered that answers `true's type`. No predicate/action pairs
+		 * beyond such a one participate in determination of the result type,
+		 * i.e., they are guaranteed not to execute at runtime.
+		 */
+		keepLooping : boolean := true;
+		From 1 to elseIfTupleSize do
+		[
+			index : natural number
+		|
+			elseIf ::= elseIfTuple[index];
+			predicateReturnType ::= elseIf[1]'s return type;
+			actionReturnType ::= elseIf[2]'s return type;
+			If predicateReturnType = true's type ∧ [ ¬ambiguous; ] then
+			[
+				exact := actionReturnType;
+			];
+			keepLooping :=
+				if ↑exact is assigned then
+				[
+					false;
+				]
+				else
+				[
+					If predicateReturnType ≠ false's type then
+					[
+						ambiguous := true;
+						union := eject ↑union ∪ actionReturnType;
+					];
+					/* If the predicate's return type is `true's type`, then we
+					 * want to exit the loop early no matter what else has
+					 * happened up to this point. No further predicate/action
+					 * pairs can participate in determining a result.
+					 */
+					predicateReturnType ≠ (true's type);
+				];
+			keepLooping;
+		];
+		/* Unless we exited the loop early (`keepLooping` = `false`), then we
+		 * want to give the "else" action an opportunity to participate.
+		 */
+		If keepLooping then
+		[
+			If ||else||'s lower bound = 1 then
+			[
+				elseReturnType ::= else[1]'s return type;
+				If ¬ambiguous then
+				[
+					exact := elseReturnType;
+				]
+				else
+				[
+					union := eject ↑union ∪ elseReturnType;
+				];
+			]
+			else
+			[
+				exact := ⊤;
+			];
+		];
+	];
+	/* Produce the final answer. */
+	if ↑exact is assigned then
+	[
+		exact;
+	]
+	else
+	[
+		if ambiguous then
+		[
+			union;
+		]
+		else
+		[
+			⊤;
+		];
+	];
 ];

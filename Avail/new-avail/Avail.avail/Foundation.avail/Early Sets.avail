@@ -179,3 +179,8 @@ Semantic restriction "_⊆_" is
 
 /* Disambiguate `_→_` and `_→set`. */
 Grammatical restriction {"_→_"} is <∅, {"set"}>;
+
+/* Make various boolean-valued set (and type) operations bind more tightly than
+ * logical negation.
+ */
+Grammatical restriction {"_∈_", "_⊆_"} is <{"¬_"}, ∅>;

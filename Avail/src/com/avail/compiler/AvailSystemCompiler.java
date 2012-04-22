@@ -614,6 +614,13 @@ extends AbstractAvailCompiler
 								final ParserState afterInit,
 								final AvailObject initExpr)
 							{
+								if (initExpr.expressionType().equals(TOP.o()))
+								{
+									afterInit.expected(
+										"initializing expression to have a "
+										+ "type other than ⊤");
+									return;
+								}
 								if (initExpr.expressionType().equals(
 									BottomTypeDescriptor.bottom()))
 								{

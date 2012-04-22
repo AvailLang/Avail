@@ -49,7 +49,8 @@ Names
 	"_--",
 	"--_",
 	"(_--)",
-	"(--_)"
+	"(--_)",
+	"_is assigned"
 Body
 
 /**
@@ -463,4 +464,20 @@ Semantic restriction "eject_" is
 	[
 		varType's read type;
 	];
+];
+
+/**
+ * Does the specified variable contain a value?
+ *
+ * Parameters:
+ *    var - A variable.
+ * Returns:
+ *    `true` if the variable contains a value (i.e. because it has previously
+ *    been assigned), `false` otherwise.
+ */
+Method "_is assigned" is
+[
+	var : variable
+|
+	¬var is unassigned;
 ];

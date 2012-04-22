@@ -42,6 +42,8 @@ Uses
 	"Early Literals",
 	"Early Functions",
 	"Early Types",
+	"Early Sets",
+	"Enumeration Support",
 	"Literals"
 Names
 	"_⊕_",
@@ -628,3 +630,61 @@ Grammatical restriction {"_→_", "_←_", "_↛_", "_↚_"} is
 	<{"_↔_", "_⊕_"}, {"_→_","_↔_", "_←_", "_⊕_", "_↛_", "_↚_"}>;
 
 Grammatical restriction {"_↔_", "_⊕_"} is <∅, {"_↔_", "_⊕_"}>;
+
+/**
+ * Strengthen for exactly known values.
+ * 
+ * Parameters:
+ *    a -
+ *    b -
+ * Returns:
+ *    Either an instance type or ⊤.
+ */
+Semantic restriction "_=_" is
+[
+	a : any meta,
+	b : any meta
+|
+	if |a| = 1
+		∧ [ |b| = 1
+		∧ [ ¬a's instance ∈ type
+		∧ [ ¬b's instance ∈ type; ]; ]; ]
+	then
+	[
+		(a's instance = b's instance)'s type;
+	]
+	else
+	[
+		/* Don't strengthen. */
+		⊤;
+	];
+];
+
+/**
+ * Strengthen for exactly known values.
+ * 
+ * Parameters:
+ *    a -
+ *    b -
+ * Returns:
+ *    Either an instance type or ⊤.
+ */
+Semantic restriction "_≠_" is
+[
+	a : any meta,
+	b : any meta
+|
+	if |a| = 1
+		∧ [ |b| = 1
+		∧ [ ¬a's instance ∈ type
+		∧ [ ¬b's instance ∈ type; ]; ]; ]
+	then
+	[
+		(a's instance ≠ b's instance)'s type;
+	]
+	else
+	[
+		/* Don't strengthen. */
+		⊤;
+	];
+];

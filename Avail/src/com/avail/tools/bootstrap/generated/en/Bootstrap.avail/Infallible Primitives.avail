@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.04.21 15:25:47.056 -0500
+ * * Last Generated On: 2012.04.22 12:28:39.196 -0500
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -306,13 +306,13 @@ Method "new↑_" is
 ] : variable;
 
 /**
- * Does the specified variable contain a value?
+ * Is the specified variable unassigned?
  *
  * Parameters:
  *    var - A variable.
  * Returns:
- *    `true` if the variable contains a value (i.e. because it has previously
- *    been assigned), `false` otherwise.
+ *    `true` if the variable does not contain a value (i.e. because it has
+ *    never previously been assigned), `false` otherwise.
  */
 Method "_is unassigned" is
 [

@@ -147,7 +147,7 @@ Semantic restriction "<_,_`…|_>" is
 			[
 				Assert: leadingTupleLeadingAndDefaultTypes[index] 
 					∈ {type,⊥} 
-					("Assertion failure - Tuple leading type at index: " 
+					("tuple leading type at index: " 
 						++ primitive description of index ++ 
 						" has size ≠ 1 and is " ++ 
 						primitive description of 
@@ -175,7 +175,7 @@ Semantic restriction "<_,_`…|_>" is
 		if |defaultTypeType| ≠ 1 then
 		[
 			Assert: defaultTypeType ∈ {type} 
-				("Assertion failure - Tuple default type is " ++ 
+				("tuple default type is " ++ 
 					primitive description of defaultTypeType 
 					++ " and has size ≠ 1, however only type is acceptable "
 					++ "in this case.");
@@ -249,7 +249,7 @@ Semantic restriction "<«_‡,»`…|_.._>" is
 			if |leadingTypesTypes[index]| ≠ 1 then
 			[
 				Assert: leadingTypesTypes[index] = type 
-					("Assertion failure - Tuple leading type at index: " 
+					("tuple leading type at index: " 
 						++ primitive description of index ++ 
 						" has size ≠ 1 and is " ++ 
 						primitive description of 
@@ -271,7 +271,7 @@ Semantic restriction "<«_‡,»`…|_.._>" is
 		if |defaultTypeType| ≠ 1 then
 		[
 			Assert: defaultTypeType = type 
-				("Assertion failure - Tuple default type is " ++ 
+				("tuple default type is " ++ 
 					primitive description of defaultTypeType 
 					++ " and has size ≠ 1, however only type is acceptable "
 					++ "in this case.");
@@ -339,7 +339,7 @@ Semantic restriction "<«_‡,»`…|_..>" is
 			if |leadingTypesTypes[index]| ≠ 1 then
 			[
 				Assert: leadingTypesTypes[index] = type 
-					("Assertion failure - Tuple leading type at index: " 
+					("tuple leading type at index: " 
 						++ primitive description of index ++ 
 						" has size ≠ 1 and is " ++ 
 						primitive description of 
@@ -361,7 +361,7 @@ Semantic restriction "<«_‡,»`…|_..>" is
 		if |defaultTypeType| ≠ 1 then
 		[
 			Assert: defaultTypeType = type 
-				("Assertion failure - Tuple default type is " ++ 
+				("tuple default type is " ++ 
 					primitive description of defaultTypeType 
 					++ " and has size ≠ 1, however only type is acceptable "
 					++ "in this case.");
@@ -430,7 +430,7 @@ Semantic restriction "<«_‡,»`…|.._>" is
 			if |leadingTypesTypes[index]| ≠ 1 then
 			[
 				Assert: leadingTypesTypes[index] = type 
-					("Assertion failure - Tuple leading type at index: " 
+					("tuple leading type at index: " 
 						++ primitive description of index ++ 
 						" has size ≠ 1 and is " ++ 
 						primitive description of 
@@ -452,7 +452,7 @@ Semantic restriction "<«_‡,»`…|.._>" is
 		if |defaultTypeType| ≠ 1 then
 		[
 			Assert: defaultTypeType = type 
-				("Assertion failure - Tuple default type is " ++ 
+				("tuple default type is " ++ 
 					primitive description of defaultTypeType 
 					++ " and has size ≠ 1, however only type is acceptable "
 					++ "in this case.");
@@ -502,7 +502,7 @@ Method "<«_‡,»`…|_>" is
  * Returns:
  *    The requested tuple's type's type.
  */ 
-Semantic restriction "<«_‡,»`…|_..>" is
+Semantic restriction "<«_‡,»`…|_>" is
 [
 	leadingAndDefaultTypesTypes : <<>, any's type…|natural number>'s type,
 	exactSizeType : whole number's type
@@ -519,7 +519,7 @@ Semantic restriction "<«_‡,»`…|_..>" is
 			if |leadingTypesTypes[index]| ≠ 1 then
 			[
 				Assert: leadingTypesTypes[index] = type 
-					("Assertion failure - Tuple leading type at index: " 
+					("tuple leading type at index: " 
 						++ primitive description of index ++ 
 						" has size ≠ 1 and is " ++ 
 						primitive description of 
@@ -541,7 +541,7 @@ Semantic restriction "<«_‡,»`…|_..>" is
 		if |defaultTypeType| ≠ 1 then
 		[
 			Assert: defaultTypeType = type 
-				("Assertion failure - Tuple default type is " ++ 
+				("tuple default type is " ++ 
 					primitive description of defaultTypeType 
 					++ " and has size ≠ 1, however only type is acceptable "
 					++ "in this case.");
@@ -553,11 +553,12 @@ Semantic restriction "<«_‡,»`…|_..>" is
 		];
 
 	finalDefaultType ::= cast defaultTypeTypeInstance into [t: any's type | t;];
-	exactBound ::= exactSizeType's lower bound;
+	lower ::= exactSizeType's lower bound;
+	upper ::= cast exactSizeType's upper bound + 1 into [ t : [0..∞] | t; ];
 	allTypesToUse ::= cast typesTypesInstanceTuple into 
 		[t: <any's type…|0..∞> | t;];
 
-	<allTypesToUse,finalDefaultType…|[exactBound..exactBound)>'s type;
+	<allTypesToUse,finalDefaultType…|[lower..upper)>'s type;
 ];
 
 /**
@@ -603,7 +604,7 @@ Semantic restriction "<«_‡,»`…|>" is
 		typesTypesInstanceTuple := 
 			if |leadingTypesTypes[index]| ≠ 1 then [
 				Assert: leadingTypesTypes[index] = type 
-					("Assertion failure - Tuple leading type at index: " 
+					("tuple leading type at index: " 
 						++ primitive description of index ++ 
 						" has size ≠ 1 and is " ++ 
 						primitive description of 
@@ -625,7 +626,7 @@ Semantic restriction "<«_‡,»`…|>" is
 		if |defaultTypeType| ≠ 1 then
 		[
 			Assert: defaultTypeType = type 
-				("Assertion failure - Tuple default type is " ++ 
+				("tuple default type is " ++ 
 					primitive description of defaultTypeType 
 					++ " and has size ≠ 1, however only type is acceptable "
 					++ "in this case.");
