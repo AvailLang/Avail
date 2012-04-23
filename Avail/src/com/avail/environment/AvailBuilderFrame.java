@@ -48,6 +48,7 @@ import javax.swing.text.*;
 import javax.swing.tree.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
+import com.avail.builder.*;
 import com.avail.compiler.*;
 import com.avail.descriptor.*;
 import com.avail.utility.*;

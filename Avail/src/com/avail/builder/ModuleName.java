@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.compiler;
+package com.avail.builder;
 
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.ModuleDescriptor;

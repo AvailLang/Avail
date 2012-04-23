@@ -1,0 +1,76 @@
+package com.avail.interpreter.levelTwo.operation;
+
+import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import com.avail.annotations.NotNull;
+import com.avail.descriptor.*;
+import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.operand.*;
+import com.avail.optimizer.RegisterSet;
+
+/**
+ * Extract the value of a variable.
+ *
+ * <p>
+ * TODO [MvG] - Currently stops the VM if the variable does not have a
+ * value assigned.  This needs a better mechanism.
+ * </p>
+ */
+public class L2_GET_VARIABLE extends L2Operation
+{
+	/**
+	 * Initialize the sole instance.
+	 */
+	public final static L2Operation instance = new L2_GET_VARIABLE();
+
+	static
+	{
+		instance.init(
+			READ_POINTER.is("variable"),
+			WRITE_POINTER.is("extracted value"));
+	}
+
+	@Override
+	public void step (final @NotNull L2Interpreter interpreter)
+	{
+		final int getIndex = interpreter.nextWord();
+		final int destIndex = interpreter.nextWord();
+		interpreter.pointerAtPut(
+			destIndex,
+			interpreter.pointerAt(getIndex).getValue().makeImmutable());
+	}
+
+	@Override
+	public void propagateTypesInFor (
+		final L2Instruction instruction,
+		final RegisterSet registers)
+	{
+		final L2ReadPointerOperand sourceOperand =
+			(L2ReadPointerOperand) instruction.operands[0];
+		final L2WritePointerOperand destinationOperand =
+			(L2WritePointerOperand) instruction.operands[1];
+		if (registers.hasTypeAt(sourceOperand.register))
+		{
+			final AvailObject oldType = registers.typeAt(
+				sourceOperand.register);
+			final AvailObject varType = oldType.typeIntersection(
+				VariableTypeDescriptor.mostGeneralType());
+			registers.typeAtPut(sourceOperand.register, varType);
+			registers.typeAtPut(
+				destinationOperand.register,
+				varType.readType());
+		}
+		else
+		{
+			registers.removeTypeAt(destinationOperand.register);
+		}
+		registers.removeConstantAt(destinationOperand.register);
+		registers.propagateWriteTo(destinationOperand.register);
+	}
+
+	@Override
+	public boolean hasSideEffect ()
+	{
+		// Subtle. Reading from a variable can fail, so don't remove this.
+		return true;
+	}
+}

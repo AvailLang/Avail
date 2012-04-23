@@ -1,5 +1,5 @@
 /**
- * RenamesFileParserException.java
+ * L2_JUMP_IF_LESS_THAN_OR_EQUAL_TO_CONSTANT.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,40 +30,45 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.compiler;
+package com.avail.interpreter.levelTwo.operation;
 
+import static com.avail.descriptor.AvailObject.error;
+import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import com.avail.annotations.NotNull;
+import com.avail.interpreter.levelTwo.*;
 
-/**
- * {@code RenamesFileParserException} is thrown by a {@link RenamesFileParser}
- * when a {@linkplain RenamesFileParser#parse() parse} fails for any reason.
- *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
- */
-public final class RenamesFileParserException
-extends Exception
+public class L2_JUMP_IF_LESS_THAN_OR_EQUAL_TO_CONSTANT extends L2Operation
 {
-	/** The serial version identifier. */
-	private static final long serialVersionUID = -7113513880608719974L;
-
 	/**
-	 * Construct a new {@link RenamesFileParserException}.
-	 *
-	 * @param message The detail message.
+	 * Initialize the sole instance.
 	 */
-	RenamesFileParserException (final @NotNull String message)
+	public final static L2Operation instance =
+		new L2_JUMP_IF_LESS_THAN_OR_EQUAL_TO_CONSTANT();
+
+	static
 	{
-		super(message);
+		instance.init(
+			PC.is("target"),
+			READ_POINTER.is("value"),
+			CONSTANT.is("constant"));
 	}
 
-	/**
-	 * Construct a new {@link RenamesFileParserException}.
-	 *
-	 * @param cause The original {@link Throwable} that caused this {@linkplain
-	 *              RenamesFileParserException exception}.
-	 */
-	RenamesFileParserException (final @NotNull Throwable cause)
+	@Override
+	public void step (final @NotNull L2Interpreter interpreter)
 	{
-		super(cause);
+		@SuppressWarnings("unused")
+		final int doIndex = interpreter.nextWord();
+		@SuppressWarnings("unused")
+		final int ifIndex = interpreter.nextWord();
+		@SuppressWarnings("unused")
+		final int equalIndex = interpreter.nextWord();
+		error("not implemented");
+	}
+
+	@Override
+	public boolean hasSideEffect ()
+	{
+		// It jumps, which counts as a side effect.
+		return true;
 	}
 }

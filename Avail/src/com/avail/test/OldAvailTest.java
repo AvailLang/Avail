@@ -34,7 +34,7 @@ package com.avail.test;
 
 import java.io.*;
 import org.junit.*;
-import com.avail.compiler.*;
+import com.avail.builder.*;
 import com.avail.optimizer.L2Translator;
 
 /**

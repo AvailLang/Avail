@@ -156,7 +156,7 @@ final public class L2Interpreter
 extends Interpreter
 {
 	/** Whether to print detailed level one debug information. */
-	final static boolean debugL1 = false;
+	public final static boolean debugL1 = false;
 
 	/** Whether to print detailed level two debug information. */
 	final static boolean debugL2 = false;
@@ -178,7 +178,8 @@ extends Interpreter
 	 *            The {@linkplain L2ChunkDescriptor level two chunk} that is
 	 *            currently being executed.
 	 */
-	@InnerAccess AvailObject chunk ()
+	@InnerAccess
+	public AvailObject chunk ()
 	{
 		return chunk;
 	}
@@ -254,13 +255,13 @@ extends Interpreter
 	 * A reusable temporary buffer used to hold arguments during method
 	 * invocations.
 	 */
-	final List<AvailObject> argsBuffer = new ArrayList<AvailObject>();
+	public final List<AvailObject> argsBuffer = new ArrayList<AvailObject>();
 
 	/**
 	 * The {@link L1InstructionStepper} used to simulate execution of level
 	 * one nybblecodes.
 	 */
-	final L1InstructionStepper levelOneStepper = new L1InstructionStepper(this);
+	public final L1InstructionStepper levelOneStepper = new L1InstructionStepper(this);
 
 	/**
 	 * Whether or not execution has completed.
@@ -317,7 +318,7 @@ extends Interpreter
 	 *
 	 * @return The position in the L2 wordcode stream.
 	 */
-	int offset ()
+	public int offset ()
 	{
 		return offset;
 	}
@@ -327,7 +328,7 @@ extends Interpreter
 	 *
 	 * @param newOffset The new position in the L2 wordcode stream.
 	 */
-	void offset (final int newOffset)
+	public void offset (final int newOffset)
 	{
 		// System.out.printf("[#%d] %d -> %d%n", _chunk.index(), _offset,
 		// newOffset);
@@ -341,7 +342,7 @@ extends Interpreter
 	 *
 	 * @return The subscript to use with {@link L2Interpreter#integerAt(int)}.
 	 */
-	final static int pcRegister ()
+	public final static int pcRegister ()
 	{
 		// reserved
 		return 1;
@@ -358,7 +359,7 @@ extends Interpreter
 	 *
 	 * @return The subscript to use with {@link L2Interpreter#integerAt(int)}.
 	 */
-	final static int stackpRegister ()
+	public final static int stackpRegister ()
 	{
 		// reserved
 		return 2;
@@ -567,7 +568,7 @@ extends Interpreter
 	 * @param value
 	 *            The {@link AvailObject} to return.
 	 */
-	void returnToCaller (
+	public void returnToCaller (
 		final AvailObject caller,
 		final AvailObject value)
 	{
@@ -781,7 +782,7 @@ extends Interpreter
 	 * @param caller
 	 *            The calling continuation.
 	 */
-	void invokePossiblePrimitiveWithReifiedCaller (
+	public void invokePossiblePrimitiveWithReifiedCaller (
 		final @NotNull AvailObject theFunction,
 		final @NotNull AvailObject caller)
 	{
@@ -932,7 +933,7 @@ extends Interpreter
 	 *
 	 * @return The word.
 	 */
-	int nextWord ()
+	public int nextWord ()
 	{
 		final int theOffset = offset();
 		final int word = chunkWords.tupleIntAt(theOffset);

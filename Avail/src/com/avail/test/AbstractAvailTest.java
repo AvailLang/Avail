@@ -36,6 +36,7 @@ import java.io.*;
 import org.junit.Before;
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
+import com.avail.builder.*;
 import com.avail.compiler.*;
 import com.avail.descriptor.*;
 import com.avail.utility.*;

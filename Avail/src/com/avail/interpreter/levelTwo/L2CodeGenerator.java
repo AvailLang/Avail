@@ -38,6 +38,7 @@ import java.util.logging.*;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.optimizer.L2Translator;
+import com.avail.interpreter.levelTwo.operation.L2_LABEL;
 import com.avail.interpreter.levelTwo.register.*;
 
 /**
@@ -326,7 +327,7 @@ public final class L2CodeGenerator
 	 * Emit the specified {@linkplain L2Instruction instructions}. Use a
 	 * two-pass algorithm: the first pass measures instruction lengths to
 	 * correctly determine their offsets (to ensure that references to
-	 * {@linkplain L2Operation#L2_LABEL labels} will be correct), the second
+	 * {@linkplain L2_LABEL labels} will be correct), the second
 	 * pass generates the real instruction stream.
 	 *
 	 * @param instructions

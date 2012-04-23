@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.compiler;
+package com.avail.builder;
 
 import java.io.EOFException;
 import java.io.File;

@@ -50,6 +50,7 @@ import com.avail.exceptions.*;
 import com.avail.exceptions.ArithmeticException;
 import com.avail.interpreter.levelOne.*;
 import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.operation.L2_ATTEMPT_INLINE_PRIMITIVE;
 import com.avail.optimizer.L2Translator;
 
 
@@ -8374,9 +8375,8 @@ implements IntegerEnumSlotDescriptionEnum
 		 * without the need to reify the current continuation.
 		 *
 		 * <p>The primitive may still fail at runtime, but that's dealt with by
-		 * a conditional branch in the {@linkplain
-		 * L2Operation#L2_ATTEMPT_INLINE_PRIMITIVE attempt-primitive
-		 * wordcode} itself.</p>
+		 * a conditional branch in the {@link L2_ATTEMPT_INLINE_PRIMITIVE}
+		 * wordcode itself.</p>
 		 */
 		CanInline,
 

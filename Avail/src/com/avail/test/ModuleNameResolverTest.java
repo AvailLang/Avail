@@ -36,7 +36,7 @@ import static org.junit.Assert.assertEquals;
 import java.io.*;
 import org.junit.Test;
 import com.avail.annotations.NotNull;
-import com.avail.compiler.*;
+import com.avail.builder.*;
 
 /**
  * Unit tests for {@link ModuleNameResolver}.

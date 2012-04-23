@@ -38,6 +38,7 @@ import static com.avail.descriptor.TokenDescriptor.TokenType.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
 import com.avail.annotations.*;
+import com.avail.builder.ModuleName;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 import com.avail.interpreter.Primitive.Flag;

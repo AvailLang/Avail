@@ -37,6 +37,7 @@ import static com.avail.descriptor.TokenDescriptor.TokenType.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
 import com.avail.annotations.NotNull;
+import com.avail.builder.ModuleName;
 import com.avail.descriptor.*;
 import com.avail.interpreter.levelOne.*;
 import com.avail.interpreter.levelTwo.L2Interpreter;

@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.compiler;
+package com.avail.builder;
 
 import java.util.*;
 import com.avail.annotations.NotNull;

@@ -34,14 +34,15 @@ package com.avail.interpreter.levelTwo.operand;
 
 import com.avail.annotations.NotNull;
 import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.operation.L2_LABEL;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.utility.*;
 
 
 /**
  * An {@code L2ConstantOperand} is an operand of type {@link L2OperandType#PC}.
- * It also holds the {@link L2Operation#L2_LABEL} that is the target
- * instruction to which this operand refers.
+ * It also holds the {@link L2_LABEL} that is the target instruction to which
+ * this operand refers.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
@@ -54,14 +55,14 @@ public class L2PcOperand extends L2Operand
 
 	/**
 	 * Construct a new {@link L2PcOperand} with the specified {@link
-	 * L2Instruction}, which should be a {@link L2Operation#L2_LABEL label}.
+	 * L2Instruction}, which should be a {@link L2_LABEL label}.
 	 *
 	 * @param label The target label.
 	 */
 	public L2PcOperand (
 		final @NotNull L2Instruction label)
 	{
-		assert label.operation == L2Operation.L2_LABEL;
+		assert label.operation == L2_LABEL.instance;
 		this.label = label;
 	}
 
@@ -87,7 +88,7 @@ public class L2PcOperand extends L2Operand
 
 	/**
 	 * Answer the target label that this operand refers to.  It must be an
-	 * {@link L2Instruction} whose operation is {@link L2Operation#L2_LABEL}.
+	 * {@link L2Instruction} whose operation is {@link L2_LABEL}.
 	 *
 	 * @return The target label instruction.
 	 */

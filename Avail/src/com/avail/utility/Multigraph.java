@@ -153,6 +153,8 @@ public class Multigraph<V, E extends Edge<V>>
 
 		/**
 		 * Construct a new {@link Multigraph.VertexInGraph}.
+		 *
+		 * @param vertex The actual vertex to wrap.
 		 */
 		public VertexInGraph (final V vertex)
 		{

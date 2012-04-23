@@ -39,7 +39,7 @@ import java.util.*;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import com.avail.annotations.*;
-import com.avail.compiler.*;
+import com.avail.builder.*;
 import com.avail.descriptor.*;
 import com.avail.exceptions.SignatureException;
 

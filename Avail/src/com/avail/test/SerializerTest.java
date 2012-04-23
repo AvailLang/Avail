@@ -40,7 +40,7 @@ import java.util.*;
 import org.junit.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
-import com.avail.compiler.*;
+import com.avail.builder.*;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.L1InstructionWriter;

@@ -41,6 +41,7 @@ import java.io.*;
 import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
+import com.avail.builder.*;
 import com.avail.compiler.scanning.*;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TokenDescriptor.TokenType;
@@ -116,7 +117,7 @@ public abstract class AbstractAvailCompiler
 	 * {@linkplain MethodImplementationDescriptor method} names to import (and
 	 * re-export), and whose third element is the set of conformant versions.
 	 */
-	@InnerAccess List<AvailObject> extendedModules;
+	public List<AvailObject> extendedModules;
 
 	/**
 	 * The {@linkplain ModuleDescriptor modules} used by the module undergoing
@@ -126,7 +127,7 @@ public abstract class AbstractAvailCompiler
 	 * MethodImplementationDescriptor method} names to import, and whose third
 	 * element is the set of conformant versions.
 	 */
-	@InnerAccess List<AvailObject> usedModules;
+	public List<AvailObject> usedModules;
 
 	/**
 	 * The {@linkplain AtomDescriptor names} defined and exported by the
@@ -303,7 +304,7 @@ public abstract class AbstractAvailCompiler
 	 *        is an optimization for faster build analysis.
 	 * @return The new {@linkplain AbstractAvailCompiler compiler}.
 	 */
-	static @NotNull AbstractAvailCompiler create (
+	public static @NotNull AbstractAvailCompiler create (
 		final @NotNull ModuleName qualifiedName,
 		final @NotNull L2Interpreter interpreter,
 		final boolean stopAfterBodyToken)
@@ -1974,7 +1975,7 @@ public abstract class AbstractAvailCompiler
 	 *         If compilation fails.
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
-	void parseModuleHeader (final @NotNull ModuleName qualifiedName)
+	public void parseModuleHeader (final @NotNull ModuleName qualifiedName)
 		throws AvailCompilerException
 	{
 		progressBlock = null;

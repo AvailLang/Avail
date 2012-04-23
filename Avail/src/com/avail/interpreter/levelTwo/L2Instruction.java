@@ -36,6 +36,7 @@ import java.util.*;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.operand.*;
+import com.avail.interpreter.levelTwo.operation.L2_LABEL;
 import com.avail.optimizer.L2Translator;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.utility.*;
@@ -219,7 +220,7 @@ public final class L2Instruction
 
 	/**
 	 * Answer the possible target instructions of this instruction.  These must
-	 * be {@linkplain L2Operation#L2_LABEL labels}.  This list does not
+	 * be {@linkplain L2_LABEL labels}.  This list does not
 	 * include the instruction immediately following the receiver in the stream
 	 * of instructions, but its reachability can be determined separately via
 	 * {@linkplain L2Operation#reachesNextInstruction()}.

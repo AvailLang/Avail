@@ -30,11 +30,12 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.compiler;
+package com.avail.builder;
 
 import java.util.*;
 import com.avail.*;
 import com.avail.annotations.NotNull;
+import com.avail.compiler.*;
 import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;

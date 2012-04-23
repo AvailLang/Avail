@@ -39,16 +39,17 @@ import java.util.*;
 import com.avail.annotations.*;
 import com.avail.descriptor.*;
 import com.avail.interpreter.levelOne.*;
+import com.avail.interpreter.levelTwo.operation.L2_INTERPRET_UNTIL_INTERRUPT;
 import com.avail.interpreter.levelTwo.register.FixedRegister;
 
 /**
  * This class is used to simulate the effect of level one nybblecodes during
- * execution of the {@link L2Operation#L2_INTERPRET_UNTIL_INTERRUPT}
- * instruction, on behalf of a {@link L2Interpreter}.
+ * execution of the {@link L2_INTERPRET_UNTIL_INTERRUPT} instruction, on behalf
+ * of a {@link L2Interpreter}.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
-final class L1InstructionStepper
+public final class L1InstructionStepper
 implements L1OperationDispatcher
 {
 	/**

@@ -64,8 +64,10 @@ public class RegisterSet
 	final AtomicLong uniqueCounter = new AtomicLong();
 
 	/**
-	 * @param translator
-	 * @return
+	 * Answer the next value from the unique counter.  This is only used to
+	 * distinguish registers for visual debugging.
+	 *
+	 * @return A long.
 	 */
 	private long nextUnique ()
 	{
