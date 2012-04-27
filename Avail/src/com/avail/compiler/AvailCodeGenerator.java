@@ -40,6 +40,7 @@ import com.avail.descriptor.*;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Primitive;
+import com.avail.interpreter.primitive.*;
 
 /**
  * An {@link AvailCodeGenerator} is used to convert a {@linkplain
@@ -167,14 +168,14 @@ public class AvailCodeGenerator
 			{
 				if (((AvailPushLiteral)onlyInstruction).index() == 1)
 				{
-					primitive(Primitive.prim340_PushConstant.primitiveNumber);
+					primitive(P_340_PushConstant.instance.primitiveNumber);
 				}
 			}
 			if (numArgs() == 1
 				&& onlyInstruction instanceof AvailPushLocalVariable
 				&& ((AvailPushLocalVariable)onlyInstruction).index() == 1)
 			{
-				primitive(Primitive.prim341_PushArgument.primitiveNumber);
+				primitive(P_341_PushArgument.instance.primitiveNumber);
 			}
 		}
 		for (final AvailInstruction instruction : instructions)

@@ -36,8 +36,8 @@ import com.avail.compiler.AvailCodeGenerator;
 import com.avail.compiler.instruction.AvailInstruction;
 import com.avail.descriptor.FunctionDescriptor;
 import com.avail.descriptor.ContinuationDescriptor;
-import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.L1Operation;
+import com.avail.interpreter.primitive.*;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
 
@@ -49,9 +49,10 @@ import java.util.List;
  * stack pointer, and stack slots, and creating new local variables.
  *
  * <p>
- * The new continuation can subsequently be {@link
- * Primitive#prim56_RestartContinuationWithArguments restarted} or
- * {@link Primitive#prim57_ExitContinuationWithResult exited}.
+ * The new continuation can subsequently be {@linkplain
+ * P_058_RestartContinuation restarted}, {@linkplain
+ * P_056_RestartContinuationWithArguments restarted with new arguments}, or
+ * {@linkplain P_057_ExitContinuationWithResult exited}.
  * </p>
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;

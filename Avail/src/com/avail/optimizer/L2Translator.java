@@ -41,7 +41,7 @@ import static java.lang.Math.max;
 import java.util.*;
 import com.avail.annotations.*;
 import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Result;
 import com.avail.interpreter.levelOne.*;
 import com.avail.interpreter.levelTwo.*;
@@ -60,20 +60,67 @@ import com.avail.utility.*;
  */
 public class L2Translator implements L1OperationDispatcher
 {
+	/**
+	 * Whether detailed optimization information should be logged.
+	 */
 	final static boolean debugOptimized = false;
 
+	/**
+	 * The current {@link CompiledCodeDescriptor compiled code} being optimized.
+	 */
 	@InnerAccess AvailObject code;
+
+	/**
+	 * The nybblecodes being optimized.
+	 */
 	@InnerAccess AvailObject nybbles;
+
+	/**
+	 * The number of arguments expected by the code being optimized.
+	 */
 	@InnerAccess int numArgs;
+
+	/**
+	 * The number of locals created by the code being optimized.
+	 */
 	@InnerAccess int numLocals;
+
+	/**
+	 * The number of stack slots reserved for use by the code being optimized.
+	 */
 	@InnerAccess int numSlots;
+
+	/**
+	 * The current level one nybblecode program counter during naive
+	 * translation to level two.
+	 */
 	@InnerAccess int pc;
+
+	/**
+	 * The current stack depth during naive translation to level two.
+	 */
 	@InnerAccess int stackp;
+
+	/**
+	 * The amount of effort to apply to the current optimization attempt.
+	 */
 	@InnerAccess int optimizationLevel;
+
+	/**
+	 * The interpreter that tripped the optimization request.
+	 */
 	@InnerAccess L2Interpreter interpreter;
+
+	/**
+	 * The current sequence of level two instructions.
+	 */
 	@InnerAccess private final List<L2Instruction> instructions =
 		new ArrayList<L2Instruction>(10);
 
+	/**
+	 * All {@link MethodDescriptor methods} for which changes should cause the
+	 * current {@linkplain L2ChunkDescriptor level two chunk} to be invalidated.
+	 */
 	private final Set<AvailObject> contingentMethods =
 		new HashSet<AvailObject>();
 
@@ -1390,9 +1437,21 @@ public class L2Translator implements L1OperationDispatcher
 		return newChunk;
 	}
 
-	//TODO[MvG] Remove basic performance gathering code...
+	/**
+	 * Keep track of the total number of generated L2 instructions.
+	 */
 	public static long generatedInstructionCount = 0;
+
+	/**
+	 * Keep track of how many L2 instructions survived dead code elimination and
+	 * redundant move elimination.
+	 */
 	public static long keptInstructionCount = 0;
+
+	/**
+	 * Keep track of how many L2 instructions were removed as part of dead code
+	 * elimination and redundant move elimination.
+	 */
 	public static long removedInstructionCount = 0;
 
 	/**

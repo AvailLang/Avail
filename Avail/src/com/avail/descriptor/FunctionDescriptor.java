@@ -36,8 +36,8 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static java.util.Arrays.fill;
 import java.util.List;
 import com.avail.annotations.*;
-import com.avail.interpreter.*;
 import com.avail.interpreter.levelOne.*;
+import com.avail.interpreter.primitive.P_340_PushConstant;
 import com.avail.serialization.SerializerOperation;
 
 /**
@@ -274,7 +274,7 @@ extends Descriptor
 				L1Operation.L1_doPushLiteral,
 				writer.addLiteral(constantResult)));
 		writer.primitiveNumber(
-			Primitive.prim340_PushConstant.primitiveNumber);
+			P_340_PushConstant.instance.primitiveNumber);
 		final AvailObject code = writer.compiledCode();
 		final AvailObject function =
 			FunctionDescriptor.create (

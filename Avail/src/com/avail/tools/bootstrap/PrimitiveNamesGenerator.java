@@ -102,9 +102,14 @@ public final class PrimitiveNamesGenerator
 		final @NotNull PrintWriter writer)
 	{
 		final Set<String> keys = new HashSet<String>();
-		for (final Primitive primitive : Primitive.values())
+		for (
+			int primitiveNumber = 1;
+			primitiveNumber <= Primitive.maxPrimitiveNumber;
+			primitiveNumber++)
 		{
-			if (!primitive.hasFlag(Flag.Private))
+			final Primitive primitive =
+				Primitive.byPrimitiveNumber(primitiveNumber);
+			if (primitive != null && !primitive.hasFlag(Flag.Private))
 			{
 				keys.add(primitive.name());
 				writer.format(

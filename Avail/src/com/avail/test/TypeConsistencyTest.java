@@ -544,16 +544,16 @@ public class TypeConsistencyTest
 
 		/**
 		 * The pojo type representing the Java enumeration {@link
-		 * com.avail.interpreter.Primitive}.
+		 * com.avail.interpreter.Primitive.Result}.
 		 */
-		final static Node AVAIL_PRIMITIVE_ENUM_POJO = new Node(
-			"AVAIL_PRIMITIVE_ENUM_POJO",
+		final static Node AVAIL_PRIMITIVE_RESULT_ENUM_POJO = new Node(
+			"AVAIL_PRIMITIVE_RESULT_ENUM_POJO",
 			JAVA_ENUM_POJO)
 		{
 			@Override
 			AvailObject get ()
 			{
-				return PojoTypeDescriptor.forClass(Primitive.class);
+				return PojoTypeDescriptor.forClass(Primitive.Result.class);
 			}
 		};
 
@@ -617,7 +617,7 @@ public class TypeConsistencyTest
 			"POJO_BOTTOM",
 			JAVA_INTEGER_POJO,
 			JAVA_STRING_POJO,
-			AVAIL_PRIMITIVE_ENUM_POJO,
+			AVAIL_PRIMITIVE_RESULT_ENUM_POJO,
 			COMPARABLE_OF_AVAIL_INTEGER_POJO,
 			JAVA_STRING_ARRAY_POJO)
 		{

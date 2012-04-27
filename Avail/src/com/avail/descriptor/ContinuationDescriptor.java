@@ -37,9 +37,9 @@ import static com.avail.descriptor.ContinuationDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.ContinuationDescriptor.ObjectSlots.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
-import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.L2Interpreter;
+import com.avail.interpreter.primitive.*;
 
 /**
  * A {@linkplain ContinuationDescriptor continuation} acts as an immutable
@@ -50,13 +50,13 @@ import com.avail.interpreter.levelTwo.L2Interpreter;
  *
  * <p>
  * A continuation can be {@linkplain
- * Primitive#prim57_ExitContinuationWithResult exited}, which causes
+ * P_057_ExitContinuationWithResult exited}, which causes
  * the current process's continuation to be replaced by the specified
  * continuation's caller.  A return value is supplied to this caller.  A
  * continuation can also be {@linkplain
- * Primitive#prim56_RestartContinuationWithArguments restarted},
+ * P_056_RestartContinuationWithArguments restarted},
  * either with a specified tuple of arguments or {@linkplain
- * Primitive#prim58_RestartContinuation with the original arguments}.
+ * P_058_RestartContinuation with the original arguments}.
  * </p>
  *
  * @author Mark van Gulik&lt;ghoul137@gmail.com&gt;
@@ -429,13 +429,13 @@ extends Descriptor
 
 	/**
 	 * A substitute for the {@linkplain AvailObject null object}, for use by
-	 * {@link Primitive#prim59_ContinuationStackData}.
+	 * {@link P_059_ContinuationStackData}.
 	 */
 	private static AvailObject nullSubstitute;
 
 	/**
 	 * Answer a substitute for the {@linkplain AvailObject null object}. This is
-	 * primarily for use by {@link Primitive#prim59_ContinuationStackData}.
+	 * primarily for use by {@link P_059_ContinuationStackData}.
 	 *
 	 * @return An immutable bottom-typed variable.
 	 */

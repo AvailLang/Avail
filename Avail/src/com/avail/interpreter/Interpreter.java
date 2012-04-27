@@ -44,9 +44,9 @@ import com.avail.compiler.*;
 import com.avail.descriptor.*;
 import com.avail.descriptor.ProcessDescriptor.ExecutionState;
 import com.avail.exceptions.*;
-import com.avail.interpreter.Primitive.Flag;
-import com.avail.interpreter.Primitive.Result;
+import com.avail.interpreter.Primitive.*;
 import com.avail.interpreter.levelOne.*;
+import com.avail.interpreter.primitive.*;
 
 /**
  * This is the abstraction for execution Avail code.
@@ -116,16 +116,16 @@ public abstract class Interpreter
 	/**
 	 * A place to store the primitive {@linkplain CompiledCodeDescriptor
 	 * compiled code} being attempted.  That allows {@linkplain
-	 * Primitive#prim340_PushConstant} to get to the first literal
-	 * in order to return it from the primitive.
+	 * P_340_PushConstant} to get to the first literal in order to return it
+	 * from the primitive.
 	 */
 	private AvailObject primitiveCompiledCodeBeingAttempted;
 
 	/**
 	 * Answer the primitive {@linkplain CompiledCodeDescriptor compiled code}
 	 * that is currently being attempted.  That allows {@linkplain
-	 * Primitive#prim340_PushConstant} to get to the first literal
-	 * in order to return it from the primitive.
+	 * P_340_PushConstant} to get to the first literal in order to return it
+	 * from the primitive.
 	 *
 	 * @return
 	 *            The {@linkplain CompiledCodeDescriptor compiled code} whose
@@ -616,7 +616,7 @@ public abstract class Interpreter
 		assert module != null;
 		final L1InstructionWriter writer = new L1InstructionWriter();
 		writer.primitiveNumber(
-			Primitive.prim253_SimpleMethodDeclaration.primitiveNumber);
+			P_253_SimpleMethodDeclaration.instance.primitiveNumber);
 		writer.argumentTypes(
 			TupleTypeDescriptor.stringTupleType(),
 			FunctionTypeDescriptor.mostGeneralType());
@@ -672,8 +672,7 @@ public abstract class Interpreter
 		//  Define the method for extracting special objects known to the VM.
 		assert module != null;
 		final L1InstructionWriter writer = new L1InstructionWriter();
-		writer.primitiveNumber(
-			Primitive.prim240_SpecialObject.primitiveNumber);
+		writer.primitiveNumber(P_240_SpecialObject.instance.primitiveNumber);
 		writer.argumentTypes(IntegerRangeTypeDescriptor.naturalNumbers());
 		writer.returnType(ANY.o());
 		// Declare the local that holds primitive failure information.
@@ -855,17 +854,18 @@ public abstract class Interpreter
 
 	/**
 	 * Does the {@linkplain Interpreter interpreter} provide a {@linkplain
-	 * Primitive primitive} with the specified ordinal?
+	 * Primitive primitive} with the specified primitive number?
 	 *
-	 * @param ordinal
-	 *            An ordinal.
+	 * @param primitiveNumber
+	 *            The primitive number.
 	 * @return
 	 *            {@code true} if there is a {@linkplain Primitive primitive}
-	 *            with the specified ordinal, {@code false} otherwise.
+	 *            with the specified primitive number, {@code false} otherwise.
 	 */
-	public boolean supportsPrimitive (final int ordinal)
+	public boolean supportsPrimitive (final int primitiveNumber)
 	{
-		final Primitive primitive = Primitive.byPrimitiveNumber(ordinal);
+		final Primitive primitive = Primitive.byPrimitiveNumber(
+			primitiveNumber);
 		return primitive != null && !primitive.hasFlag(Flag.Private);
 	}
 
@@ -1050,8 +1050,7 @@ public abstract class Interpreter
 
 	/**
 	 * Raise an exception. Scan the stack of continuations until one is found
-	 * for a function whose code specifies {@linkplain
-	 * Primitive#prim200_CatchException primitive 200}.
+	 * for a function whose code specifies {@linkplain P_200_CatchException}.
 	 * Get that continuation's second argument (a handler block of one
 	 * argument), and check if that handler block will accept the
 	 * exceptionValue. If not, keep looking. If it will accept it, unwind the

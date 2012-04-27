@@ -41,8 +41,9 @@ import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
-import com.avail.interpreter.*;
-import com.avail.interpreter.Primitive.Flag;
+import com.avail.interpreter.Primitive;
+import com.avail.interpreter.Primitive.*;
+import com.avail.interpreter.primitive.*;
 
 /**
  * Generate the Avail system {@linkplain ModuleDescriptor modules} that
@@ -334,13 +335,17 @@ public final class BootstrapGenerator
 	private @NotNull List<Primitive> primitives (final Boolean fallible)
 	{
 		final List<Primitive> primitives = new ArrayList<Primitive>();
-		for (final Primitive primitive : Primitive.values())
+		for (int i = 1; i <= Primitive.maxPrimitiveNumber; i++)
 		{
-			if (!primitive.hasFlag(Flag.Private) &&
-				(fallible == null
-				|| primitive.hasFlag(Flag.CannotFail) == !fallible))
+			final Primitive primitive = Primitive.byPrimitiveNumber(i);
+			if (primitive != null)
 			{
-				primitives.add(primitive);
+				if (!primitive.hasFlag(Flag.Private) &&
+					(fallible == null
+						|| primitive.hasFlag(Flag.CannotFail) == !fallible))
+				{
+					primitives.add(primitive);
+				}
 			}
 		}
 		return primitives;
@@ -695,7 +700,7 @@ public final class BootstrapGenerator
 	private void generatePrimitiveFailureMethod (
 		final @NotNull PrintWriter writer)
 	{
-		final Primitive primitive = Primitive.prim256_EmergencyExit;
+		final Primitive primitive = P_256_EmergencyExit.instance;
 		final StringBuilder statements = new StringBuilder();
 		statements.append('\t');
 		statements.append(preamble.getString(primitiveKeyword.name()));
@@ -796,7 +801,7 @@ public final class BootstrapGenerator
 	private void generateInvokePrimitiveFailureFunctionMethod (
 		final @NotNull PrintWriter writer)
 	{
-		final Primitive primitive = Primitive.prim40_InvokeWithTuple;
+		final Primitive primitive = P_040_InvokeWithTuple.instance;
 		final StringBuilder statements = new StringBuilder();
 		statements.append('\t');
 		statements.append(preamble.getString(primitiveKeyword.name()));
@@ -836,7 +841,7 @@ public final class BootstrapGenerator
 	private void generatePrivateSemanticRestrictionMethod (
 		final @NotNull PrintWriter writer)
 	{
-		final Primitive primitive = Primitive.prim248_AddSemanticRestriction;
+		final Primitive primitive = P_248_AddSemanticRestriction.instance;
 		StringBuilder statements = new StringBuilder();
 		statements.append('\t');
 		statements.append(preamble.getString(primitiveKeyword.name()));
@@ -867,8 +872,7 @@ public final class BootstrapGenerator
 		statements.append(specialObjectName(BottomTypeDescriptor.bottom()));
 		statements.append(";\n");
 		block = block(
-			primitiveMethodParameterDeclarations(
-				Primitive.prim40_InvokeWithTuple, true),
+			primitiveMethodParameterDeclarations(P_040_InvokeWithTuple.instance, true),
 			statements.toString(),
 			null);
 		writer.append(MessageFormat.format(
@@ -1168,7 +1172,7 @@ public final class BootstrapGenerator
 		}
 
 		// Map localized names to the primitives.
-		for (final Primitive primitive : Primitive.values())
+		for (final Primitive primitive : primitives(null))
 		{
 			if (!primitive.hasFlag(Flag.Private))
 			{
@@ -1178,7 +1182,7 @@ public final class BootstrapGenerator
 					Set<Primitive> set = primitiveNameMap.get(value);
 					if (set == null)
 					{
-						set = EnumSet.noneOf(Primitive.class);
+						set = new HashSet<Primitive>();
 						primitiveNameMap.put(value, set);
 					}
 					set.add(primitive);

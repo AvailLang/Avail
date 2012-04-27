@@ -35,7 +35,7 @@ package com.avail.descriptor;
 import java.util.List;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
-import com.avail.interpreter.*;
+import com.avail.interpreter.primitive.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 
 /**
@@ -46,23 +46,22 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
  *
  * <p>
  * Continuations can be {@linkplain
- * Primitive#prim56_RestartContinuationWithArguments restarted}
- * with a new set of arguments, so continuation types are contravariant with
- * respect to their function types' argument types.  Surprisingly, continuation
- * types are also contravariant with respect to their function types' return
- * types.  This is due to the capability to {@linkplain
- * Primitive#prim57_ExitContinuationWithResult exit} a continuation
- * with a specific value.
+ * P_056_RestartContinuationWithArguments restarted with a new tuple of
+ * arguments}, so continuation types are contravariant with respect to their
+ * function types' argument types.  Surprisingly, continuation types are also
+ * contravariant with respect to their function types' return types.  This is
+ * due to the capability to {@linkplain P_057_ExitContinuationWithResult exit} a
+ * continuation with a specific value.
  * </p>
  *
  * <p>
  * TODO: [MvG] Continuation types should be parameterizable with generalized
- * function types. This would allow prim58 (restart with the same arguments) to
- * be performed even if the specific argument types were not known, but prim56
- * (restart with new arguments) would be forbidden. Prim57 (Exit with value)
- * would be unaffected. Make sure to update type computations and type
- * compatibility tests appropriately to accommodate the contained generalized
- * function types.
+ * function types. This would allow {@link P_058_RestartContinuation} to be
+ * performed even if the specific argument types were not known, but {@link
+ * P_056_RestartContinuationWithArguments} would be forbidden. {@link
+ * P_057_ExitContinuationWithResult} would be unaffected. Make sure to update
+ * type computations and type compatibility tests appropriately to accommodate
+ * the contained generalized function types.
  * </p>
  *
  * <p>

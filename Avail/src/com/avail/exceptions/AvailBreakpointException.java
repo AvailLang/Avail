@@ -32,11 +32,11 @@
 
 package com.avail.exceptions;
 
-import com.avail.interpreter.Primitive;
+import com.avail.interpreter.primitive.*;
 
 /**
  * {@code AvailBreakpointException} is thrown by {@linkplain
- * Primitive#prim257_BreakPoint primitive 257} and then immediately caught. The
+ * P_257_BreakPoint primitive 257} and then immediately caught. The
  * Java debugger may be configured to trap when this exception is raised,
  * thereby permitting VM-debugging within the context of specific Avail code.
  *

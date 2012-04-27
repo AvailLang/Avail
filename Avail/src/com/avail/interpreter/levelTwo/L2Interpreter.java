@@ -44,8 +44,7 @@ import com.avail.annotations.*;
 import com.avail.descriptor.*;
 import com.avail.descriptor.ProcessDescriptor.ExecutionState;
 import com.avail.interpreter.*;
-import com.avail.interpreter.Primitive.Flag;
-import com.avail.interpreter.Primitive.Result;
+import com.avail.interpreter.Primitive.*;
 import com.avail.interpreter.levelTwo.register.FixedRegister;
 
 /**

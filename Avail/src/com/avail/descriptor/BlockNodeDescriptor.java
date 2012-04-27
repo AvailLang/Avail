@@ -39,7 +39,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.interpreter.*;
+import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;

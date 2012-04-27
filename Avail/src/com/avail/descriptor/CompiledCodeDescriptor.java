@@ -37,7 +37,7 @@ import static com.avail.descriptor.CompiledCodeDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.CompiledCodeDescriptor.ObjectSlots.*;
 import com.avail.annotations.*;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
-import com.avail.interpreter.*;
+import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.*;
 import com.avail.serialization.SerializerOperation;
 

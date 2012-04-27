@@ -3405,7 +3405,12 @@ public abstract class AbstractDescriptor
 	abstract AvailObject o_NewNames (AvailObject object);
 
 	/**
-	 * Answer how many arguments my implementations require.
+	 * Answer how many arguments my instances expect.  This is applicable to
+	 * both {@linkplain MethodDescriptor methods} and {@linkplain
+	 * CompiledCodeDescriptor compiled code}.
+	 *
+	 * @param object The method or compiled code.
+	 * @return The number of arguments expected.
 	 */
 	abstract int o_NumArgs (AvailObject object);
 

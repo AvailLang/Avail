@@ -42,8 +42,8 @@ import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
 import com.avail.builder.*;
 import com.avail.descriptor.*;
-import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.L1InstructionWriter;
+import com.avail.interpreter.primitive.P_292_FloatFloor;
 import com.avail.serialization.*;
 
 /**
@@ -396,7 +396,7 @@ public final class SerializerTest
 	{
 		final L1InstructionWriter writer = new L1InstructionWriter();
 		writer.argumentTypes(FLOAT.o());
-		writer.primitiveNumber(Primitive.prim292_FloatFloor.primitiveNumber);
+		writer.primitiveNumber(P_292_FloatFloor.instance.primitiveNumber);
 		writer.returnType(FLOAT.o());
 		final AvailObject code = writer.compiledCode();
 		final AvailObject function = FunctionDescriptor.create(

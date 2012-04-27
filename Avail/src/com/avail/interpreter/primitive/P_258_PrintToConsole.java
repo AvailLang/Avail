@@ -1,5 +1,5 @@
 /**
- * L2_EXIT_CONTINUATION.java
+ * Primitive_258_PrintToConsole.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -29,48 +29,49 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.primitive;
 
-package com.avail.interpreter.levelTwo.operation;
-
-import static com.avail.descriptor.AvailObject.error;
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.interpreter.Primitive.Flag.*;
+import java.io.PrintStream;
+import java.util.List;
+import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
-import com.avail.interpreter.levelTwo.*;
+import com.avail.descriptor.*;
+import com.avail.interpreter.*;
 
-public class L2_EXIT_CONTINUATION extends L2Operation
+/**
+ * <strong>Primitive 258:</strong> Print the specified {@linkplain
+ * StringDescriptor string} to standard output.
+ */
+public class P_258_PrintToConsole extends Primitive
 {
 	/**
-	 * Initialize the sole instance.
+	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static L2Operation instance = new L2_EXIT_CONTINUATION();
+	public final static Primitive instance = new P_258_PrintToConsole().init(
+		1, Unknown, CannotFail);
 
-	static
+	@Override
+	public @NotNull Result attempt (
+		final @NotNull List<AvailObject> args,
+		final @NotNull Interpreter interpreter)
 	{
-		instance.init(
-			READ_POINTER.is("continuation to exit"),
-			READ_POINTER.is("value with which to exit"));
+		assert args.size() == 1;
+
+		final AvailObject string = args.get(0);
+		final PrintStream out =
+			AvailRuntime.current().standardOutputStream();
+		out.print(string.asNativeString());
+		return interpreter.primitiveSuccess(NullDescriptor.nullObject());
 	}
 
 	@Override
-	public void step (final @NotNull L2Interpreter interpreter)
+	protected @NotNull AvailObject privateBlockTypeRestriction ()
 	{
-		@SuppressWarnings("unused")
-		final int continuationIndex = interpreter.nextWord();
-		@SuppressWarnings("unused")
-		final int valueIndex = interpreter.nextWord();
-		error("not implemented");
-	}
-
-	@Override
-	public boolean hasSideEffect ()
-	{
-		// Never remove this.
-		return true;
-	}
-
-	@Override
-	public boolean reachesNextInstruction ()
-	{
-		return false;
+		return FunctionTypeDescriptor.create(
+			TupleDescriptor.from(
+				TupleTypeDescriptor.stringTupleType()),
+			TOP.o());
 	}
 }

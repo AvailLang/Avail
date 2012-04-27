@@ -36,7 +36,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.TYPE;
 import java.io.ByteArrayOutputStream;
 import java.util.*;
 import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
 
 /**

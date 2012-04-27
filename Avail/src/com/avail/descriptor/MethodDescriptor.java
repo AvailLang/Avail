@@ -41,6 +41,7 @@ import com.avail.compiler.AvailRejectedParseException;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.*;
 import com.avail.interpreter.levelOne.*;
+import com.avail.interpreter.primitive.*;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.*;
 
@@ -63,18 +64,17 @@ public class MethodDescriptor
 extends Descriptor
 {
 	/**
-	 * An {@linkplain MethodDescriptor method} containing
-	 * a {@linkplain MethodImplementationDescriptor function} that invokes
-	 * {@linkplain Primitive#prim256_EmergencyExit primitive 256} (emergency
-	 * exit). Needed by some hand-built bootstrap functions.
+	 * An {@linkplain MethodDescriptor method} containing a {@linkplain
+	 * MethodImplementationDescriptor function} that invokes {@linkplain
+	 * P_256_EmergencyExit}. Needed by some hand-built bootstrap functions.
 	 */
 	private static AvailObject vmCrashMethod;
 
 	/**
 	 * Answer an {@linkplain MethodDescriptor method}
 	 * containing a {@linkplain MethodImplementationDescriptor function} that
-	 * invokes {@linkplain Primitive#prim256_EmergencyExit primitive 256}
-	 * (emergency exit). Needed by some hand-built bootstrap functions.
+	 * invokes {@linkplain P_256_EmergencyExit}. Needed by some hand-built
+	 * bootstrap functions.
 	 *
 	 * @return A method.
 	 */
@@ -93,7 +93,7 @@ extends Descriptor
 	{
 		// Generate a function with linkage to primitive 256.
 		final L1InstructionWriter writer = new L1InstructionWriter();
-		writer.primitiveNumber(Primitive.prim256_EmergencyExit.primitiveNumber);
+		writer.primitiveNumber(P_256_EmergencyExit.instance.primitiveNumber);
 		writer.argumentTypes(ANY.o());
 		writer.returnType(BottomTypeDescriptor.bottom());
 		writer.write(
@@ -122,16 +122,16 @@ extends Descriptor
 	/**
 	 * An {@linkplain MethodDescriptor method} containing
 	 * a {@linkplain MethodImplementationDescriptor function} that invokes
-	 * {@linkplain Primitive#prim256_EmergencyExit primitive 40} (function
-	 * application). Needed by some hand-built functions.
+	 * {@link P_040_InvokeWithTuple} (function application). Needed by some
+	 * hand-built functions.
 	 */
 	private static AvailObject vmFunctionApplyMethod;
 
 	/**
 	 * An {@linkplain MethodDescriptor method} containing
 	 * a {@linkplain MethodImplementationDescriptor function} that invokes
-	 * {@linkplain Primitive#prim256_EmergencyExit primitive 40} (function
-	 * application). Needed by some hand-built functions.
+	 * {@link P_040_InvokeWithTuple} (function application). Needed by some
+	 * hand-built functions.
 	 *
 	 * @return A method.
 	 */
@@ -151,7 +151,7 @@ extends Descriptor
 		// Generate a function with linkage to primitive 40.
 		final L1InstructionWriter writer = new L1InstructionWriter();
 		writer.primitiveNumber(
-			Primitive.prim40_InvokeWithTuple.primitiveNumber);
+			P_040_InvokeWithTuple.instance.primitiveNumber);
 		writer.argumentTypes(
 			FunctionTypeDescriptor.mostGeneralType(),
 			TupleTypeDescriptor.mostGeneralType());
@@ -187,17 +187,15 @@ extends Descriptor
 
 	/**
 	 * An {@linkplain MethodDescriptor method} containing a {@linkplain
-	 * MethodImplementationDescriptor function} that invokes {@linkplain
-	 * Primitive#prim201_RaiseException primitive 201} (raise exception). Needed
-	 * by some hand-built functions.
+	 * MethodImplementationDescriptor function} that invokes {@link
+	 * P_201_RaiseException}. Needed by some hand-built functions.
 	 */
 	private static AvailObject vmRaiseExceptionMethod;
 
 	/**
 	 * An {@linkplain MethodDescriptor method} containing a {@linkplain
 	 * MethodImplementationDescriptor function} that invokes {@linkplain
-	 * Primitive#prim201_RaiseException primitive 201} (raise exception). Needed
-	 * by some hand-built functions.
+	 * P_201_RaiseException}. Needed by some hand-built functions.
 	 *
 	 * @return A method.
 	 */
@@ -217,7 +215,7 @@ extends Descriptor
 		// Generate a function with linkage to primitive 201.
 		final L1InstructionWriter writer = new L1InstructionWriter();
 		writer.primitiveNumber(
-			Primitive.prim201_RaiseException.primitiveNumber);
+			P_201_RaiseException.instance.primitiveNumber);
 		writer.argumentTypes(ANY.o());
 		// Declare the primitive failure local.
 		final int failureLocal = writer.createLocal(
@@ -777,8 +775,8 @@ extends Descriptor
 	 * message send.  Use not only the applicable {@linkplain
 	 * MethodImplementationDescriptor method signatures}, but also any type
 	 * restriction functions.  The type restriction functions may choose to
-	 * {@linkplain Primitive#prim352_RejectParsing reject} the parse, indicating
-	 * that the argument types are mutually incompatible.
+	 * {@linkplain P_352_RejectParsing}, indicating that the argument types are
+	 * mutually incompatible.
 	 * </p>
 	 */
 	@Override @AvailMethod

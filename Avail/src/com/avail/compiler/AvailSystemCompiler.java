@@ -40,7 +40,7 @@ import java.util.*;
 import com.avail.annotations.*;
 import com.avail.builder.ModuleName;
 import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;

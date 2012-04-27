@@ -1442,7 +1442,7 @@ implements Iterable<AvailObject>
 	 * <p>Implementations may double-dispatch to {@link
 	 * #divideIntoIntegerCanDestroy(AvailObject, boolean)
 	 * divideIntoIntegerCanDestroy} or {@link
-	 * #divideIntoInfinityCanDestroy(AvailObject, boolean)
+	 * #divideIntoInfinityCanDestroy(Sign, boolean)
 	 * divideIntoInfinityCanDestroy}, where actual implementations of the
 	 * division operation should reside.</p>
 	 *
@@ -3018,7 +3018,7 @@ implements Iterable<AvailObject>
 	 * <p>Implementations may double-dispatch to {@link
 	 * #subtractFromIntegerCanDestroy(AvailObject, boolean)
 	 * subtractFromIntegerCanDestroy} or {@link
-	 * #subtractFromInfinityCanDestroy(AvailObject, boolean)
+	 * #subtractFromInfinityCanDestroy(Sign, boolean)
 	 * subtractFromInfinityCanDestroy}, where actual implementations of the
 	 * subtraction operation should reside.</p>
 	 *
@@ -3349,7 +3349,7 @@ implements Iterable<AvailObject>
 	 *
 	 * <p>Implementations may double-dispatch to {@link
 	 * #addToIntegerCanDestroy(AvailObject, boolean) addToIntegerCanDestroy} or
-	 * {@link #addToInfinityCanDestroy(AvailObject, boolean)
+	 * {@link #addToInfinityCanDestroy(Sign, boolean)
 	 * addToInfinityCanDestroy}, where actual implementations of the addition
 	 * operation should reside.</p>
 	 *
@@ -4064,8 +4064,8 @@ implements Iterable<AvailObject>
 	 *
 	 * <p>Implementations may double-dispatch to {@link
 	 * #multiplyByIntegerCanDestroy(AvailObject, boolean)
-	 * multiplyByIntegerCanDestroy} or {@link
-	 * #multiplyByInfinityCanDestroy(AvailObject, boolean)
+	 * multiplyByIntegerCanDestroy} or {@linkplain
+	 * #multiplyByInfinityCanDestroy(Sign, boolean)
 	 * multiplyByInfinityCanDestroy}, where actual implementations of the
 	 * multiplication operation should reside.</p>
 	 *
@@ -5336,7 +5336,6 @@ implements Iterable<AvailObject>
 	/**
 	 * @param key
 	 * @param value
-	 * @return
 	 */
 	public void setAtomProperty (
 		final @NotNull AvailObject key,
@@ -5388,7 +5387,6 @@ implements Iterable<AvailObject>
 
 	/**
 	 * @param value
-	 * @return
 	 */
 	public void versions (final @NotNull AvailObject value)
 	{
@@ -5627,7 +5625,6 @@ implements Iterable<AvailObject>
 
 	/**
 	 * @param aMap
-	 * @return
 	 */
 	public void upperBoundMap (final @NotNull AvailObject aMap)
 	{
