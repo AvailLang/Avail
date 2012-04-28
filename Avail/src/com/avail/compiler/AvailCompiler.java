@@ -125,9 +125,10 @@ extends AbstractAvailCompiler
 
 	@Override
 	void parseInnerStatement (
-		final ParserState start,
+		final @NotNull ParserState start,
 		final boolean canBeLabel,
-		final Con<AvailObject> continuation)
+		final List<AvailObject> argDecls,
+		final @NotNull Con<AvailObject> continuation)
 	{
 		parseExpressionThen(
 			start,
@@ -657,6 +658,32 @@ extends AbstractAvailCompiler
 								afterToken.position);
 						}
 					});
+				break;
+			}
+			case pop:
+			{
+				// Pop the parse stack.
+				assert successorTrees.tupleSize() == 1;
+				final List<AvailObject> newArgsSoFar =
+					new ArrayList<AvailObject>(argsSoFar);
+				newArgsSoFar.remove(newArgsSoFar.size() - 1);
+				eventuallyDo(
+					new Continuation0()
+					{
+						@Override
+						public void value ()
+						{
+							parseRestOfSendNode(
+								start,
+								successorTrees.tupleAt(1),
+								firstArgOrNull,
+								initialTokenPosition,
+								Collections.unmodifiableList(newArgsSoFar),
+								continuation);
+						}
+					},
+					"Continue send after pop",
+					start.position);
 				break;
 			}
 			case branch:

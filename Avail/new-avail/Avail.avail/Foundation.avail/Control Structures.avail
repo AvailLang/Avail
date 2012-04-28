@@ -38,8 +38,8 @@ Extends
 	(
 		"(_)",
 		"Exit_",
-		"cast_into_else_",
-		"cast_into_"
+		"cast~_into_else_",
+		"cast~_into_"
 	)
 Uses
 	"Assertions",
@@ -54,14 +54,36 @@ Uses
 	"Math",
 	"Variables"
 Names
+	"Do_until_",
+	"Do_while_",
 	"For each_do_",
 	"From_to_by_do_",
 	"From_to_do_",
+	"Repeat_",
+	"Unless_then_",
+	"Until_do_",
+	"While_do_",
 	"if~_then_«else if_then_»«else_»",
 	"filter_by_",
 	"map_and_filter_by_",
-	"map_through_"
+	"map_through_",
+	"unless~_then_else_"
 Body
+
+/**
+ * Basic unconditional loop. Repeatedly invoke `action`.
+ * 
+ * Parameters:
+ *    action - The function that should be invoked repeatedly.
+ */
+Method "Repeat_" is
+[
+	action : []→⊤
+|
+	$loop;
+	action();
+	Restart loop;
+] : ⊥;
 
 /**
  * Counting loop with customizable step and early exit support. Invoke `action`
@@ -85,7 +107,7 @@ Method "From_to_by_do_" is
 |
 	value : extended integer := start;
 	[
-		$loop : $[]→⊤;
+		$loop;
 		If value ≤ end then
 		[
 			continue ::= invoke action with <value>;
@@ -170,7 +192,7 @@ Method "From_to_by_do_" is
 |
 	value : extended integer := start;
 	[
-		$loop : $[]→⊤;
+		$loop;
 		If value ≥ end then
 		[
 			continue ::= invoke action with <value>;
@@ -254,7 +276,7 @@ Method "From_to_by_do_" is
 	[
 		value : extended integer
 	|
-		invoke action with <value>;
+		Invoke action with <value>;
 		true;
 	];
 ];
@@ -328,7 +350,7 @@ Method "From_to_by_do_" is
 	[
 		value : extended integer
 	|
-		invoke action with <value>;
+		Invoke action with <value>;
 		true;
 	];
 ];
@@ -469,7 +491,7 @@ Method "From_to_do_" is
 	[
 		value : extended integer
 	|
-		invoke action with <value>;
+		Invoke action with <value>;
 		true;
 	];
 ];
@@ -535,10 +557,10 @@ Method "For each_do_" is
 	index : natural number := 1;
 	end ::= |aTuple|;
 	[
-		$loop : $[]→⊤;
+		$loop;
 		If index ≤ end then
 		[
-			invoke action with <aTuple[index]>;
+			Invoke action with <aTuple[index]>;
 			↑index++;
 			Restart loop;
 		];
@@ -616,10 +638,10 @@ Method "For each_do_" is
 	aTuple ::= aSet→tuple;
 	end ::= |aTuple|;
 	[
-		$loop : $[]→⊤;
+		$loop;
 		If index ≤ end then
 		[
-			invoke action with <aTuple[index]>;
+			Invoke action with <aTuple[index]>;
 			↑index++;
 			Restart loop;
 		];
@@ -696,11 +718,11 @@ Method "For each_do_" is
 	bindings ::= aMap's bindings;
 	end ::= |aMap|;
 	[
-		$loop : $[]→⊤;
+		$loop;
 		If index ≤ end then
 		[
 			binding ::= bindings[index];
-			invoke action with <binding[1], binding[2]>;
+			Invoke action with <binding[1], binding[2]>;
 			↑index++;
 			Restart loop;
 		];
@@ -789,7 +811,7 @@ Method "map_through_" is
 	result : tuple := <>;
 	end ::= |aTuple|;
 	[
-		$loop : $[]→⊤;
+		$loop;
 		If index ≤ end then
 		[
 			result :=
@@ -852,7 +874,7 @@ Method "map_through_" is
 	end ::= |aTuple|;
 	result : set := ∅;
 	[
-		$loop : $[]→⊤;
+		$loop;
 		If index ≤ end then
 		[
 			result := eject ↑result + invoke transformer with <aTuple[index]>;
@@ -916,7 +938,7 @@ Method "map_through_" is
 	end ::= |aMap|;
 	result : map := {};
 	[
-		$loop : $[]→⊤;
+		$loop;
 		If index ≤ end then
 		[
 			binding ::= bindings[index];
@@ -982,7 +1004,7 @@ Method "filter_by_" is
 	end ::= |aTuple|;
 	result : tuple := <>;
 	[
-		$loop : $[]→⊤;
+		$loop;
 		If index ≤ end then
 		[
 			element ::= aTuple[index];
@@ -1044,7 +1066,7 @@ Method "filter_by_" is
 	end ::= |aTuple|;
 	result : set := ∅;
 	[
-		$loop : $[]→⊤;
+		$loop;
 		If index ≤ end then
 		[
 			element ::= aTuple[index];
@@ -1101,7 +1123,7 @@ Method "filter_by_" is
 	end ::= |bindings|;
 	result : map := {};
 	[
-		$loop : $[]→⊤;
+		$loop;
 		If index ≤ end then
 		[
 			binding ::= bindings[index];
@@ -1166,11 +1188,11 @@ Method "map and filter_by_" is
 	end ::= |aTuple|;
 	result : tuple := <>;
 	[
-		$loop : $[]→⊤;
+		$loop;
 		If index ≤ end then
 		[
 			hasAlreadyKept : boolean := false;
-			invoke accumulator with
+			Invoke accumulator with
 			<
 				aTuple[index],
 				[
@@ -1199,15 +1221,15 @@ Method "map and filter_by_" is
  *       one-argument procedure.
  *    tupleType - A tuple type.
  */
-Method "Require:_'s keeper is valid" is
+Method "Require:_'s⁇keeper is valid" is
 [
 	action : function meta
 |
 	parametersType ::= action's parameters' type;
 	parametersSizes ::= ||parametersType||;
-	Assert: parametersSizes's lower bound = parametersSizes's upper bound
+	Assert: parametersSizes' lower bound = parametersSizes' upper bound
 		("number of parameters cannot be determined");
-	parametersSize ::= cast parametersSizes's lower bound
+	parametersSize ::= cast parametersSizes' lower bound
 		into [ t : natural number | t; ];
 	expectedType ::= [⊥]→⊤;
 	If ¬action[parametersSize] ⊆ expectedType then
@@ -1279,11 +1301,11 @@ Method "map and filter_by_" is
 	end ::= |aTuple|;
 	result : set := ∅;
 	[
-		$loop : $[]→⊤;
+		$loop;
 		If index ≤ end then
 		[
 			hasAlreadyKept : boolean := false;
-			invoke accumulator with
+			Invoke accumulator with
 			<
 				aTuple[index],
 				[
@@ -1360,14 +1382,14 @@ Method "map and filter_by_" is
 	end ::= |bindings|;
 	result : map := {};
 	[
-		$loop : $[]→⊤;
+		$loop;
 		If index ≤ end then
 		[
 			hasAlreadyKept : boolean := false;
 			binding ::= bindings[index];
 			key ::= binding[1];
 			value ::= binding[2];
-			invoke accumulator with
+			Invoke accumulator with
 			<
 				key,
 				value,
@@ -1626,5 +1648,290 @@ Semantic restriction "if~_then_«else if_then_»«else_»" is
 		[
 			⊤;
 		];
+	];
+];
+
+/**
+ * Given a predicate value and a function, invoke the specified function only if
+ * the predicate is `false`. This is the inverse of `If_then_`.
+ * 
+ * Parameters:
+ *    predicate - A predicate value.
+ *    action - The function to invoke if `predicate` is `false`.
+ */
+Method "Unless_then_" is
+[
+	predicate : boolean,
+	action : []→⊤
+|
+	If ¬predicate then action;
+] : ⊤;
+
+/**
+ * Given a predicate value and two functions, invoke one of them and answer its
+ * result.
+ *
+ * Parameters:
+ *    predicate - A predicate value.
+ *    falseFunction - The function to invoke if `predicate` is `false`.
+ *    trueFunction - The function to invoke if `trueFunction` is `true`.
+ * Returns:
+ *    If `predicate` is `false`, then the value produced by invoking
+ *    `falseFunction`; otherwise, the value produced by invoking `trueFunction`.
+ */
+Method "unless~_then_else_" is
+[
+	predicate : boolean,
+	falseBlock : []→⊤,
+	trueBlock : []→⊤
+|
+	If ¬predicate then falseBlock else trueBlock;
+];
+
+/**
+ * Establish a conditional expression whose static return type is the type union
+ * of its two possible functions' return types.
+ *
+ * Parameters:
+ *    predicate - The predicate's type.
+ *    falseFunction -
+ *    trueFunction -
+ * Returns:
+ *    The type union of the return types of `falseFunction` and `trueFunction`.
+ */
+Semantic restriction "unless~_then_else_" is
+[
+	predicate : boolean's type,
+	falseFunction : []→⊤'s type,
+	trueFunction : []→⊤'s type
+|
+	trueFunction's return type ∪ falseFunction's return type;
+];
+
+/**
+ * Strengthen the static return type to that of the function to invoke when the
+ * predicate is false (which it is).
+ *
+ * Parameters:
+ *    tautology - The type of `false`.
+ *    trueFunction -
+ *    falseFunction -
+ * Returns:
+ *    The return type of `falseFunction`.
+ */
+Semantic restriction "unless~_then_else_" is
+[
+	contradiction : false's type's type,
+	falseFunction : []→⊤'s type,
+	trueFunction : []→⊤'s type
+|
+	falseFunction's return type;
+];
+
+/**
+ * Strengthen the static return type to that of the function to invoke when the
+ * predicate is true (which it is).
+ *
+ * Parameters:
+ *    tautology - The type of `true`.
+ *    trueFunction -
+ *    falseFunction -
+ * Returns:
+ *    The return type of `trueFunction`.
+ */
+Semantic restriction "unless~_then_else_" is
+[
+	tautology : true's type's type,
+	falseFunction : []→⊤'s type,
+	trueFunction : []→⊤'s type
+|
+	trueFunction's return type;
+];
+
+/**
+ * Basic conditional loop. Invoke `predicate`. If `predicate` answers `true`,
+ * then invoke `action` and repeat.
+ * 
+ * Parameters:
+ *    predicate - The function that guards repeated application of `action`.
+ *    action - The function to apply whenever `predicate` answers `true`.
+ */
+Method "While_do_" is
+[
+	predicate : []→boolean,
+	action : []→⊤
+|
+	$loop;
+	If predicate() then
+	[
+		action();
+		Restart loop;
+	];
+] : ⊤;
+
+/**
+ * If `predicate` certainly answers `true`, then answer ⊥ (because the loop will
+ * run forever).
+ *
+ * Parameters:
+ *    predicate -
+ *    action -
+ * Returns:
+ *    Either ⊤ or ⊥.
+ */
+Semantic restriction "While_do_" is
+[
+	predicate : []→boolean's type,
+	action : []→⊤'s type
+|
+	if predicate's return type = true's type then
+	[
+		⊥;
+	]
+	else
+	[
+		⊤;
+	];
+];
+
+/**
+ * Basic conditional loop. Invoke `predicate`. If `predicate` answers `false`,
+ * then invoke `action` and repeat.
+ * 
+ * Parameters:
+ *    predicate - The function that guards repeated application of `action`.
+ *    action - The function to apply whenever `predicate` answers `false`.
+ */
+Method "Until_do_" is
+[
+	predicate : []→boolean,
+	action : []→⊤
+|
+	$loop;
+	Unless predicate() then
+	[
+		action();
+		Restart loop;
+	];
+] : ⊤;
+
+/**
+ * If `predicate` certainly answers `false`, then answer ⊥ (because the loop
+ * will run forever).
+ *
+ * Parameters:
+ *    predicate -
+ *    action -
+ * Returns:
+ *    Either ⊤ or ⊥.
+ */
+Semantic restriction "Until_do_" is
+[
+	predicate : []→boolean's type,
+	action : []→⊤'s type
+|
+	if predicate's return type = false's type then
+	[
+		⊥;
+	]
+	else
+	[
+		⊤;
+	];
+];
+
+/**
+ * Basic conditional loop. Invoke `action` and then `predicate`. If `predicate`
+ * answers `true`, then repeat.
+ * 
+ * Parameters:
+ *    predicate - The function that guards repeated application of `action`.
+ *    action - The function to apply once and then again whenever `predicate`
+ *       answers `true`.
+ */
+Method "Do_while_" is
+[
+	action : []→⊤,
+	predicate : []→boolean
+|
+	$loop;
+	action();
+	If predicate() then
+	[
+		Restart loop;
+	];
+] : ⊤;
+
+/**
+ * If `action` does not terminate or `predicate` certainly answers `true`, then
+ * answer ⊥ (because the loop will run forever).
+ *
+ * Parameters:
+ *    predicate -
+ *    action -
+ * Returns:
+ *    Either ⊤ or ⊥.
+ */
+Semantic restriction "Do_while_" is
+[
+	action : []→⊤'s type,
+	predicate : []→boolean's type
+|
+	if action's return type = ⊥
+		∨ [ predicate's return type = true's type; ] then
+	[
+		⊥;
+	]
+	else
+	[
+		⊤;
+	];
+];
+
+/**
+ * Basic conditional loop. Invoke `action` and then `predicate`. If `predicate`
+ * answers `false`, then repeat.
+ * 
+ * Parameters:
+ *    predicate - The function that guards repeated application of `action`.
+ *    action - The function to apply once and then again whenever `predicate`
+ *       answers `false`.
+ */
+Method "Do_until_" is
+[
+	action : []→⊤,
+	predicate : []→boolean
+|
+	$loop;
+	action();
+	Unless predicate() then
+	[
+		Restart loop;
+	];
+] : ⊤;
+
+/**
+ * If `action` does not terminate or `predicate` certainly answers `false`, then
+ * answer ⊥ (because the loop will run forever).
+ *
+ * Parameters:
+ *    predicate -
+ *    action -
+ * Returns:
+ *    Either ⊤ or ⊥.
+ */
+Semantic restriction "Do_until_" is
+[
+	action : []→⊤'s type,
+	predicate : []→boolean's type
+|
+	if action's return type = ⊥
+		∨ [ predicate's return type = false's type; ] then
+	[
+		⊥;
+	]
+	else
+	[
+		⊤;
 	];
 ];

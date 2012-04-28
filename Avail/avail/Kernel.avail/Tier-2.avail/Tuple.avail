@@ -654,7 +654,7 @@ Method "first index of_where_" is
 	t : tuple,
 	predicate : [terminates]->boolean
 |
-	$method : $[tuple,[terminates]->boolean]->whole number;
+	$method : whole number;
 	i : whole number := 1;
 	
 	t do
@@ -683,7 +683,7 @@ Method "last index of_where_" is
 	t : tuple,
 	predicate : [terminates]->boolean
 |
-	$method : $[tuple,[terminates]->boolean]->whole number;
+	$method : whole number;
 	From ||t|| to 1 by -1 do
 	[
 		i : integer
@@ -742,7 +742,7 @@ Method "_includes_" is
 	t : tuple,
 	element : any
 |
-	$method : $[tuple,any]->boolean;
+	$method : boolean;
 	
 	if first index of t where [ x : any | x = element;] > 0 then
 		[Exit method with true;];

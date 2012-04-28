@@ -42,7 +42,7 @@ Uses
 	"Early Logic",
 	"Early Math"
 Names
-	"_'s instance"
+	"_'s⁇instance"
 Body
 
 /**
@@ -74,12 +74,12 @@ Semantic restriction "enumeration of_" is
  * Answer the sole instance of the specified enumeration.
  *
  * Parameters:
- *    enum - An enumeration. Anything answered by `_'s type` satisfies this
+ *    enum - An enumeration. Anything answered by `_'s⁇type` satisfies this
  *       criterion.
  * Returns:
  *    The sole instance of the argument.
  */
-Method "_'s instance" is
+Method "_'s⁇instance" is
 [
 	enum : type
 |
@@ -96,7 +96,7 @@ Method "_'s instance" is
  * Returns:
  *    The most specific possible set type.
  */
-Semantic restriction "_'s instances" is
+Semantic restriction "_'s⁇instances" is
 [
 	meta : type's type
 |
@@ -141,7 +141,7 @@ Semantic restriction "_'s instances" is
  * Returns:
  *    The most specific possible set type.
  */
-Semantic restriction "_'s instance" is
+Semantic restriction "_'s⁇instance" is
 [
 	meta : type
 |

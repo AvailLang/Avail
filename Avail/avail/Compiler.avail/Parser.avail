@@ -163,7 +163,7 @@ Method "_skip_then_" is [
 		c : [] -> void |
 	startPos ::= *p->position;
 	[
-		$escape : $[]->void;
+		$escape : void;
 		token do [tok : Token |
 			if p->tokens [*p->position] = tok then [
 				p->position++;
@@ -680,7 +680,7 @@ Method "_parse from_complete_incomplete_arguments so far_then_" is [
 	if ||complete|| > 0 then [
 		argTypes ::= args collect [arg : Parse Node | arg result type;];
 		complete do [message : atom, bundle : messageBundle |
-			$checkBundle : $[atom, messageBundle]->void;
+			$checkBundle : void;
 			if ||bundle signatures|| > 0 then [
 				/* We have tested for the case where there are no implementations,
 				   and the bundle is only there to hold restrictions on *future*

@@ -136,6 +136,11 @@ public class MessageSplitterTest
 			"[3, 1, 56, 1, 2, 5, 4, 20]"},
 		{"««bagel»#«friend»?»", "«", "«", "bagel", "»", "#", "«", "friend", "»", "?", "»",
 			"[3, 1, 272, 1, 3, 1, 120, 1, 26, 2, 112, 5, 65, 5, 4, 12, 2, 3, 1, 200, 1, 58, 2, 5, 4, 20, 2, 256, 2, 5, 33, 2, 5, 4]"},
+		/* Completely optional groups. */
+		{"very⁇good", "very", "⁇", "good",
+			"[3, 1, 48, 10, 5, 4, 7, 26]"},
+		{"«very extremely»⁇good", "«", "very", "extremely", "»", "⁇", "good",
+			"[3, 1, 56, 18, 26, 5, 4, 7, 50]"},
 		/* Case insensitive. */
 		{"fnord~", "fnord", "~", "[13]"},
 		{"the~_", "the", "~", "_", "[13, 0, 11]"},

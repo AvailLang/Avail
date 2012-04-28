@@ -52,7 +52,7 @@ topRetry ::= lookup "topRetry";
 Method "Initialize backtracking" is [
 	firstTime : boolean := true;
 	[
-		$here : $[]->void;
+		$here : void;
 		if firstTime then [
 			current process[topRetry] := here;
 			firstTime := false;
@@ -74,7 +74,7 @@ Method "maybe" is [
 	nextState : boolean := true;
 	currentValue : boolean;
 	[
-		$here : $[]->void;
+		$here : void;
 		if nextState then [
 			nextState := false;   /* for next time */
 			current process [topRetry] := here;
@@ -123,7 +123,7 @@ Method "capture first_of_" is [n : whole number, blk : []->any |
 	previousRetry ::= current process [topRetry];
 	nextState : boolean := true;
 	[
-		$capture : $[]->void;
+		$capture : void;
 		current process [topRetry] := capture;
 		if nextState then [
 			nextState := false;
@@ -147,7 +147,7 @@ returns [nT : integerType, blkT : functionType |
   turn, hence the name. */
 
 Method "each_" is [t : tuple |
-	$there : $[tuple]->any;
+	$there : any;
 	From 1 to ||t|| do [i : natural number |
 		if maybe then [
 			Exit there with t[i];

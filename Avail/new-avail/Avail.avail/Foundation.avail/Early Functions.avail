@@ -54,7 +54,7 @@ Body
  * Returns:
  *    The argument's return type.
  */
-Semantic restriction "_'s return type" is
+Semantic restriction "_'s⁇return type" is
 [
 	functionMeta : function meta's type
 |
@@ -67,7 +67,7 @@ sizesIncompatibleMessage ::=
 	\| function's parameter tuple";
 
 /**
- * `invoke_with_` should reject improperly sized argument tuples.
+ * `invoke~_with_` should reject improperly sized argument tuples.
  *
  * Parameters:
  *    aFunction -
@@ -75,7 +75,7 @@ sizesIncompatibleMessage ::=
  * Returns:
  *    The function's return type.
  */
-Semantic restriction "invoke_with_" is
+Semantic restriction "invoke~_with_" is
 [
 	functionType : function meta,
 	argumentsType : tuple meta
@@ -149,7 +149,7 @@ Semantic restriction "_(«_‡,»)" is
 			Reject parse, expected: sizesIncompatibleMessage;
 		];
 		/* Verify each of the arguments. */
-		From 1 to argumentsSizes's lower bound do
+		From 1 to argumentsSizes' lower bound do
 		[
 			index : natural number
 		|

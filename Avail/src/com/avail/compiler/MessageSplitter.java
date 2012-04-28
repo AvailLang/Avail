@@ -736,8 +736,10 @@ public class MessageSplitter
 						solutionType.sizeRange();
 					final AvailObject lower = solutionTypeSizes.lowerBound();
 					final AvailObject upper = solutionTypeSizes.upperBound();
-					if (!(lower.equals(expectedLower) || lower.equals(expectedUpper))
-						&& (!(upper.equals(expectedLower) || upper.equals(expectedUpper))))
+					if (!(lower.equals(expectedLower)
+							|| lower.equals(expectedUpper))
+						&& (!(upper.equals(expectedLower)
+							|| upper.equals(expectedUpper))))
 					{
 						// This complex group should have elements whose types
 						// are tuples restricted to have sizes ranging from the
@@ -1074,7 +1076,7 @@ public class MessageSplitter
 		int groupSkip = -1;
 
 		/**
-		 * Construct a new {@link Counter}.
+		 * Construct a new {@link Optional}.
 		 *
 		 * @param group
 		 *        The governed {@linkplain Group group}.
@@ -1155,6 +1157,124 @@ public class MessageSplitter
 			builder.append(getClass().getSimpleName());
 			builder.append("(");
 			builder.append(group);
+			builder.append(")");
+			return builder.toString();
+		}
+	}
+
+	/**
+	 * A {@code CompletelyOptional} is a special {@linkplain Expression
+	 * expression} indicated by two {@linkplain StringDescriptor#questionMark()
+	 * question marks} following a {@linkplain Simple simple} or {@linkplain
+	 * Group simple group}. It may not contain {@linkplain Argument arguments}
+	 * or non-simple subgroups and it may not contain a {@linkplain
+	 * StringDescriptor#doubleDagger() double dagger}. The expression may appear
+	 * zero or one times.
+	 *
+	 * <p>A completely optional does not produce any information. No facility is
+	 * provided to determine whether there was an occurrence of the expression.
+	 * The message "very??good" accepts no arguments, but may be parsed as
+	 * either "very good" or "good".</p>
+	 */
+	final class CompletelyOptional
+	extends Expression
+	{
+		/** The governed {@linkplain Expression expression}. */
+		final @NotNull Expression expression;
+
+		/**
+		 * The one-based position in the instruction stream to branch to in
+		 * order to parse zero occurrences of this expression. Set during the
+		 * first pass of code generation.
+		 */
+		int expressionSkip = -1;
+
+		/**
+		 * Construct a new {@link Counter}.
+		 *
+		 * @param expression
+		 *        The governed {@linkplain Expression expression}.
+		 */
+		CompletelyOptional (final @NotNull Expression expression)
+		{
+			this.expression = expression;
+		}
+
+		@Override
+		void emitOn (
+			final @NotNull List<Integer> list,
+			final boolean caseInsensitive)
+		{
+			/* push current parse position
+			 * push empty list (just to discard)
+			 * branch to @groupSkip
+			 * ...Simple or stuff before dagger (i.e., all expressions).
+			 * check progress and update saved position, or abort.
+			 * @groupSkip:
+			 * pop (parse position)
+			 */
+			list.add(saveParsePosition.encoding());
+			list.add(newList.encoding());
+			list.add(branch.encodingForOperand(expressionSkip));
+			final List<Expression> expressions;
+			if (expression instanceof Simple)
+			{
+				expressions = Collections.singletonList(expression);
+			}
+			else
+			{
+				assert expression instanceof Group;
+				final Group group = (Group) expression;
+				assert group.expressionsAfterDagger.isEmpty();
+				assert group.underscoreCount() == 0;
+				expressions = group.expressionsBeforeDagger;
+			}
+			for (final Expression subexpression : expressions)
+			{
+				assert !subexpression.isArgumentOrGroup();
+				subexpression.emitOn(list, caseInsensitive);
+			}
+			list.add(ensureParseProgress.encoding());
+			expressionSkip = list.size() + 1;
+			list.add(discardSavedParsePosition.encoding());
+			list.add(pop.encoding());
+		}
+
+		@Override
+		boolean isArgumentOrGroup ()
+		{
+			return false;
+		}
+
+		@Override
+		int underscoreCount ()
+		{
+			assert expression.underscoreCount() == 0;
+			return 0;
+		}
+
+		@Override
+		boolean isLowerCase ()
+		{
+			return expression.isLowerCase();
+		}
+
+		@Override
+		public void checkType (final @NotNull AvailObject argumentType)
+			throws SignatureException
+		{
+			assert false :
+				"checkType() should not be called for CompletelyOptional" +
+				" expressions";
+		}
+
+		@Override
+		public @NotNull String toString ()
+		{
+			final StringBuilder builder = new StringBuilder();
+			builder.append(getClass().getSimpleName());
+			builder.append("(");
+			builder.append(expression);
 			builder.append(")");
 			return builder.toString();
 		}
@@ -1538,6 +1658,26 @@ public class MessageSplitter
 						subexpression = new Optional(subgroup);
 						messagePartPosition++;
 					}
+					else if (token.equals(
+						StringDescriptor.doubleQuestionMark()))
+					{
+						if (subgroup.underscoreCount() > 0)
+						{
+							// Completely optional group may not contain
+							// arguments.
+							throwSignatureException(
+								E_DOUBLE_QUESTION_MARK_MUST_FOLLOW_A_SIMPLE_OR_SIMPLE_GROUP);
+						}
+						if (subgroup.hasDagger)
+						{
+							// Completely optional group may not contain double
+							// dagger.
+							throwSignatureException(
+								E_DOUBLE_QUESTION_MARK_MUST_FOLLOW_A_SIMPLE_OR_SIMPLE_GROUP);
+						}
+						subexpression = new CompletelyOptional(subgroup);
+						messagePartPosition++;
+					}
 					else
 					{
 						subexpression = subgroup;
@@ -1567,7 +1707,7 @@ public class MessageSplitter
 			}
 			else
 			{
-				// Parse a backquote or regular keyword or operator
+				// Parse a backquote.
 				if (token.equals(StringDescriptor.backQuote()))
 				{
 					messagePartPosition++;  // eat the backquote
@@ -1587,9 +1727,20 @@ public class MessageSplitter
 							E_EXPECTED_OPERATOR_AFTER_BACKQUOTE);
 					}
 				}
-				// Parse a regular keyword or operator
+				// Parse a regular keyword or operator.
 				Expression subexpression = new Simple(messagePartPosition);
 				messagePartPosition++;
+				// Parse a completely optional.
+				if (messagePartPosition <= messageParts.size())
+				{
+					token = messageParts.get(messagePartPosition - 1);
+					if (token.equals(StringDescriptor.doubleQuestionMark()))
+					{
+						subexpression = new CompletelyOptional(subexpression);
+						messagePartPosition++;
+					}
+				}
+				// Parse a case insensitive.
 				if (messagePartPosition <= messageParts.size())
 				{
 					token = messageParts.get(messagePartPosition - 1);

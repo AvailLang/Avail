@@ -2325,12 +2325,15 @@ public abstract class AbstractAvailCompiler
 	 *        Where to start parsing.
 	 * @param canBeLabel
 	 *        Whether this statement can be a label declaration.
+	 * @param argDecls
+	 *        The enclosing block's argument declarations.
 	 * @param continuation
 	 *        What to do with the unambiguous, parsed statement.
 	 */
 	abstract void parseInnerStatement (
 		final @NotNull ParserState start,
 		final boolean canBeLabel,
+		final @NotNull List<AvailObject> argDecls,
 		final @NotNull Con<AvailObject> continuation);
 
 	/**

@@ -38,7 +38,7 @@ Uses
 Body
 
 /**
- * Use the same primitive that implements `_'s type` to implement its semantic
+ * Use the same primitive that implements `_'s⁇type` to implement its semantic
  * restriction function.
  *
  * Parameters:
@@ -46,7 +46,7 @@ Body
  * Returns:
  *    An instance type on `value`.
  */
-Semantic restriction "_'s type" is
+Semantic restriction "_'s⁇type" is
 [
 	value : type
 |

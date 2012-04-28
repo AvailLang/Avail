@@ -145,6 +145,18 @@ public enum ParsingOperation
 		}
 	},
 
+	/**
+	 * {@code 7} - Pop the parse stack (and discard the result).
+	 */
+	pop(7)
+	{
+		@Override
+		public int encodingForOperand (final int operand)
+		{
+			throw new UnsupportedOperationException();
+		}
+	},
+
 	/*
 	 * Arity one (1).
 	 */
@@ -413,6 +425,7 @@ public enum ParsingOperation
 				case 4: return discardSavedParsePosition;
 				case 5: return ensureParseProgress;
 				case 6: return parseRawToken;
+				case 7: return pop;
 			}
 		}
 		throw new RuntimeException("reserved opcode");

@@ -148,7 +148,7 @@ _literalToken ::= Special Object 116;
 
 Method "token" is [ _token; ];
 Method "literal token" is [ _literalToken; ];
-Method "_'s lexeme" is [ aToken : token | Primitive 356; ] : string;
+Method "_'s⁇lexeme" is [ aToken : token | Primitive 356; ] : string;
 
 Method "I««really»?like to»eat…«very»#much" is
 [
@@ -211,3 +211,9 @@ Method "«intruder~ALERT»" is [ intruder : tuple [1..∞) of tuple | true; ];
 
 Assert intruder ALERT;
 Assert InTrUdEr ALERT iNtRuDeR ALERT INTRUDER ALERT intruder ALERT;
+
+Method "«filthy grubby»⁇~maggots" is [ true; ];
+
+Assert maggots;
+Assert filthy grubby maggots;
+Assert filthy GRUBBY maggots;

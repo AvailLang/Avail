@@ -400,7 +400,7 @@ Semantic restriction "(--_)" is
 /* Disallow the variable increment/decrement operations from appearing as the
  * argument to parentheses.
  */
-invoke
+Invoke
 [
 	parens ::= cast <"(_)">→set into [ t : {string|whole number} | t; ];
 	forbid ::=
@@ -415,14 +415,14 @@ invoke
 with <>;
 
 /**
- * Strengthen `_'s read type`.
+ * Strengthen `_'s⁇read type`.
  *
  * Parameters:
  *    varType - A variable type.
  * Returns:
  *    The argument's read type's type.
  */
-Semantic restriction "_'s read type" is
+Semantic restriction "_'s⁇read type" is
 [
 	varType : variable meta's type
 |
@@ -430,14 +430,14 @@ Semantic restriction "_'s read type" is
 ];
 
 /**
- * Strengthen `_'s write type`.
+ * Strengthen `_'s⁇write type`.
  *
  * Parameters:
  *    varType - A variable type.
  * Returns:
  *    The argument's write type's type.
  */
-Semantic restriction "_'s write type" is
+Semantic restriction "_'s⁇write type" is
 [
 	varType : variable meta's type
 |

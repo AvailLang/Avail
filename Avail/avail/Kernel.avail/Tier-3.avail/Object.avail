@@ -306,7 +306,7 @@ Method "_->_" is [o : Object, key : atom |
 ] : any;
 
 Restriction "_->_" is [ot : objectType, keyT : atom type |
-	$escape : $[objectType, atom type]->type;
+	$escape : type;
 	good ::= keyT not = terminates & [
 		keyT instances as tuple all [shouldBeAtom : any |
 			shouldBeAtom type <= atom;];];

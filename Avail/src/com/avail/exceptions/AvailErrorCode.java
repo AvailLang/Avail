@@ -351,7 +351,7 @@ public enum AvailErrorCode
 
 	/**
 	 * A question mark (?) may only occur after a guillemet group which has no
-	 * arguments.
+	 * arguments or subgroups.
 	 */
 	E_QUESTION_MARK_MUST_FOLLOW_A_SIMPLE_GROUP (50),
 
@@ -366,6 +366,12 @@ public enum AvailErrorCode
 	 * a guillemet group.
 	 */
 	E_TILDE_MUST_NOT_FOLLOW_ARGUMENT (52),
+
+	/**
+	 * A double question mark (⁇) may only occur after a keyword, operator, or
+	 * guillemet group which has no arguments or subgroups.
+	 */
+	E_DOUBLE_QUESTION_MARK_MUST_FOLLOW_A_SIMPLE_OR_SIMPLE_GROUP (53),
 
 	/**
 	 * A Java {@linkplain Class class} specified by name was either not found by

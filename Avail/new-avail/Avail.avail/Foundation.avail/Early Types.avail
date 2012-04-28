@@ -80,8 +80,8 @@ Method "[«_‡,»]→_" is
 ] : function meta;
 
 /* Make it easier to specify argument types in semantic restrictions. */
-Grammatical restriction {"[«_‡,»]→_"} is <∅, {"_'s type"}>;
-Grammatical restriction {"[`…]→_"} is <{"_'s type"}>;
+Grammatical restriction {"[«_‡,»]→_"} is <∅, {"_'s⁇type"}>;
+Grammatical restriction {"[`…]→_"} is <{"_'s⁇type"}>;
 
 /**
  * Strengthen function type construction.
@@ -134,7 +134,7 @@ Semantic restriction "<_,_`…|_>" is
 	cardinalityTypeType : whole number meta's type
 |
 	leadingTupleLeadingAndDefaultTypes :: = 
-		leadingTypesTypes's leading types ++ <leadingTypesTypes's default type>;
+		leadingTypesTypes' leading types ++ <leadingTypesTypes' default type>;
 	leadingTypesTypesSize ::= |leadingTupleLeadingAndDefaultTypes|;
 	typesTypesInstanceTuple : tuple := <>;
 
@@ -237,7 +237,7 @@ Semantic restriction "<«_‡,»`…|_.._>" is
 	maximumSizeType : [0..∞]'s type
 |
 	leadingTypesTypes ::= 
-		leadingAndDefaultTypesTypes's leading types;
+		leadingAndDefaultTypesTypes' leading types;
 	leadingTypesTypesSize ::= |leadingTypesTypes|;
 	typesTypesInstanceTuple : tuple := <>;
 
@@ -266,7 +266,7 @@ Semantic restriction "<«_‡,»`…|_.._>" is
 		true;
 	];
 
-	defaultTypeType ::= leadingAndDefaultTypesTypes's default type;
+	defaultTypeType ::= leadingAndDefaultTypesTypes' default type;
 	defaultTypeTypeInstance ::=
 		if |defaultTypeType| ≠ 1 then
 		[
@@ -327,7 +327,7 @@ Semantic restriction "<«_‡,»`…|_..>" is
 	minimumSizeType : whole number's type
 |
 	leadingTypesTypes ::= 
-	leadingAndDefaultTypesTypes's leading types;
+	leadingAndDefaultTypesTypes' leading types;
 	leadingTypesTypesSize ::= |leadingTypesTypes|;
 	typesTypesInstanceTuple : tuple := <>;
 
@@ -356,7 +356,7 @@ Semantic restriction "<«_‡,»`…|_..>" is
 		true;
 	];
 
-	defaultTypeType ::= leadingAndDefaultTypesTypes's default type;
+	defaultTypeType ::= leadingAndDefaultTypesTypes' default type;
 	defaultTypeTypeInstance ::=
 		if |defaultTypeType| ≠ 1 then
 		[
@@ -418,7 +418,7 @@ Semantic restriction "<«_‡,»`…|.._>" is
 	maximumSizeType : [0..∞]'s type
 |
 	leadingTypesTypes ::= 
-	leadingAndDefaultTypesTypes's leading types;
+	leadingAndDefaultTypesTypes' leading types;
 	leadingTypesTypesSize ::= |leadingTypesTypes|;
 	typesTypesInstanceTuple : tuple := <>;
 
@@ -447,7 +447,7 @@ Semantic restriction "<«_‡,»`…|.._>" is
 		true;
 	];
 
-	defaultTypeType ::= leadingAndDefaultTypesTypes's default type;
+	defaultTypeType ::= leadingAndDefaultTypesTypes' default type;
 	defaultTypeTypeInstance ::=
 		if |defaultTypeType| ≠ 1 then
 		[
@@ -508,7 +508,7 @@ Semantic restriction "<«_‡,»`…|_>" is
 	exactSizeType : whole number's type
 |
 	leadingTypesTypes ::= 
-	leadingAndDefaultTypesTypes's leading types;
+	leadingAndDefaultTypesTypes' leading types;
 	leadingTypesTypesSize ::= |leadingTypesTypes|;
 	typesTypesInstanceTuple : tuple := <>;
 
@@ -536,7 +536,7 @@ Semantic restriction "<«_‡,»`…|_>" is
 		true;
 	];
 
-	defaultTypeType ::= leadingAndDefaultTypesTypes's default type;
+	defaultTypeType ::= leadingAndDefaultTypesTypes' default type;
 	defaultTypeTypeInstance ::=
 		if |defaultTypeType| ≠ 1 then
 		[
@@ -593,7 +593,7 @@ Semantic restriction "<«_‡,»`…|>" is
 	leadingAndDefaultTypesTypes : <<>, any's type…|natural number>'s type
 |
 	leadingTypesTypes ::= 
-	leadingAndDefaultTypesTypes's leading types;
+	leadingAndDefaultTypesTypes' leading types;
 	leadingTypesTypesSize ::= |leadingTypesTypes|;
 	typesTypesInstanceTuple : tuple := <>;
 
@@ -621,7 +621,7 @@ Semantic restriction "<«_‡,»`…|>" is
 		true;
 	];
 
-	defaultTypeType ::= leadingAndDefaultTypesTypes's default type;
+	defaultTypeType ::= leadingAndDefaultTypesTypes' default type;
 	defaultTypeTypeInstance ::=
 		if |defaultTypeType| ≠ 1 then
 		[
@@ -668,7 +668,7 @@ Method "{_|_.._}" is
 	 */
 	if |elementType| = minimumSize ∧ [ minimumSize = maximumSize; ] then
 	[
-		elementType's instances's type;
+		elementType's instances' type;
 	]
 	/* Otherwise just build an ordinary set type. */
 	else
@@ -701,7 +701,7 @@ Semantic restriction "{_|_.._}" is
 		∧ [ minimumSize's lower bound = maximumSize's lower bound; ]; ]; ]
 	then
 	[
-		elementType's instances's type's type;
+		elementType's instances' type's type;
 	]
 	else
 	[
@@ -809,7 +809,7 @@ Method "{_|_}" is
 	 */
 	if |elementType| = exactSize then
 	[
-		elementType's instances's type;
+		elementType's instances' type;
 	]
 	/* Otherwise just build an ordinary set type. */
 	else
@@ -838,7 +838,7 @@ Semantic restriction "{_|_}" is
 		∧ [ exactSize's lower bound = exactSize's upper bound; ]
 	then
 	[
-		elementType's instances's type's type;
+		elementType's instances' type's type;
 	]
 	else
 	[

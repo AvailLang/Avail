@@ -193,6 +193,22 @@ extends TupleDescriptor
 	}
 
 	/**
+	 * A tuple containing just the double question mark character.
+	 */
+	static AvailObject doubleQuestionMark;
+
+	/**
+	 * Return an Avail {@linkplain StringDescriptor string} of size one,
+	 * consisting of just the double question mark character ("⁇").
+	 *
+	 * @return A tuple containing just the question mark character.
+	 */
+	public static AvailObject doubleQuestionMark ()
+	{
+		return doubleQuestionMark;
+	}
+
+	/**
 	 * A tuple containing just the tilde character.
 	 */
 	static AvailObject tilde;
@@ -214,15 +230,16 @@ extends TupleDescriptor
 	 */
 	static void createWellKnownObjects ()
 	{
-		underscore = StringDescriptor.from("_").makeImmutable();
-		openGuillemet = StringDescriptor.from("«").makeImmutable();
-		closeGuillemet = StringDescriptor.from("»").makeImmutable();
-		doubleDagger = StringDescriptor.from("‡").makeImmutable();
-		backQuote = StringDescriptor.from("`").makeImmutable();
-		ellipsis = StringDescriptor.from("…").makeImmutable();
-		octothorp = StringDescriptor.from("#").makeImmutable();
-		questionMark = StringDescriptor.from("?").makeImmutable();
-		tilde = StringDescriptor.from("~").makeImmutable();
+		underscore = from("_").makeImmutable();
+		openGuillemet = from("«").makeImmutable();
+		closeGuillemet = from("»").makeImmutable();
+		doubleDagger = from("‡").makeImmutable();
+		backQuote = from("`").makeImmutable();
+		ellipsis = from("…").makeImmutable();
+		octothorp = from("#").makeImmutable();
+		questionMark = from("?").makeImmutable();
+		doubleQuestionMark = from("⁇").makeImmutable();
+		tilde = from("~").makeImmutable();
 	}
 
 	/**
@@ -239,6 +256,7 @@ extends TupleDescriptor
 		ellipsis = null;
 		octothorp = null;
 		questionMark = null;
+		doubleQuestionMark = null;
 		tilde = null;
 	}
 

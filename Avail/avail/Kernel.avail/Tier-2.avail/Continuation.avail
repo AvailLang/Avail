@@ -148,13 +148,13 @@ Method "Exit_" is [con : $[...]->void |
 /* Basic looping constructs */
 
 Method "Loop_" is [block : []->void |
-	$body : $[[]->void]->terminates;
+	$body;
 	block();
 	Restart body;
 ] : terminates;
 
 Method "Loop_until_" is [block : []->void, predicate : []->boolean |
-	$body : $[[]->void, []->boolean]->void;
+	$body;
 	block();
 	if not predicate() then [Restart body;];
 ] : void;
@@ -165,19 +165,19 @@ Method "Loop_until_do_" is
 	predicate : []->boolean,
 	alternateBlock : []->void
 |
-	$body : $[[]->void, []->boolean, []->void]->void;
+	$body;
 	block();
 	if not predicate() then [alternateBlock(); Restart body;];
 ] : void;
 
 Method "Loop_while_" is [block : []->void, predicate : []->boolean |
-	$body : $[[]->void, []->boolean]->void;
+	$body;
 	block();
 	if predicate() then [Restart body;];
 ] : void;
 
 Method "Until_loop_" is [predicate : []->boolean, block : []->void |
-	$body : $[[]->boolean, []->void]->void;
+	$body;
 	if not predicate() then [
 		block();
 		Restart body;
@@ -185,7 +185,7 @@ Method "Until_loop_" is [predicate : []->boolean, block : []->void |
 ] : void;
 
 Method "While_loop_" is [predicate : []->boolean, block : []->void |
-	$body : $[[]->boolean, []->void]->void;
+	$body;
 	if predicate() then [
 		block();
 		Restart body;
@@ -198,7 +198,7 @@ Method "While_loop_" is [predicate : []->boolean, block : []->void |
 /* Counting... */
 
 Method "From_to_do_" is [start : integer, end : (-INF..INF], blk : [terminates]->void |
-	$body : $[integer,(-INF..INF], [terminates]->void]->void;
+	$body;
 	if start <= end then [
 		blk apply <start>;
 		Restart body with <start + 1, end, blk>;
@@ -237,7 +237,7 @@ action : [integer]->void
    		then [ [counter <= end;]; ]
    		else [ [counter >= end;]; ];
    [
-        $body : $[]->void;
+        $body;
 
         if guard() then
         [

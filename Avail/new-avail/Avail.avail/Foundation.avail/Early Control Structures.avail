@@ -42,8 +42,8 @@ Names
 	"(_)",
 	"Exit_",
 	"From_to_do_",
-	"cast_into_else_",
-	"cast_into_"
+	"cast~_into_else_",
+	"cast~_into_"
 Body
 
 /**
@@ -156,7 +156,7 @@ Semantic restriction "if~_then_else_" is
  *    reject - The function to invoke if `value` is not a subtype of the
  *       parameter type of `accept`.
  */
-Method "cast_into_else_" is
+Method "cast~_into_else_" is
 [
 	value : any,
 	accept : function accepting <⊥> and returning ⊤,
@@ -180,7 +180,7 @@ Method "cast_into_else_" is
  *    accept - The function to invoke if `value` is a subtype of the its
  *       parameter type.
  */
-Method "cast_into_" is
+Method "cast~_into_" is
 [
 	value : any,
 	accept : function accepting <⊥> and returning ⊤
@@ -196,7 +196,7 @@ Method "cast_into_" is
 ] : ⊤;
 
 /**
- * Strengthen the return type of `cast_into_else` so that it may be used as a
+ * Strengthen the return type of `cast~_into_else` so that it may be used as a
  * value-producing expression. If the type cast is unnecessary, then reject the
  * current parse.
  *
@@ -207,7 +207,7 @@ Method "cast_into_" is
  * Returns:
  *    The type union of the return types of `accept` and `reject`.
  */
-Semantic restriction "cast_into_else_" is
+Semantic restriction "cast~_into_else_" is
 [
 	value : type,
 	accept : (function accepting <⊥> and returning ⊤)'s type,
@@ -251,7 +251,7 @@ Semantic restriction "cast_into_else_" is
 ];
 
 /**
- * Strengthen the return type of `cast_into_` so that it may be used as a
+ * Strengthen the return type of `cast~_into_` so that it may be used as a
  * value-producing expression. If the type cast is unnecessary, then reject the
  * current parse.
  *
@@ -261,7 +261,7 @@ Semantic restriction "cast_into_else_" is
  * Returns:
  *    The return type of `accept`.
  */
-Semantic restriction "cast_into_" is
+Semantic restriction "cast~_into_" is
 [
 	value : type,
 	accept : (function accepting <⊥> and returning ⊤)'s type
@@ -306,11 +306,11 @@ Semantic restriction "cast_into_" is
 /* Nesting parentheses directly is bad style, and leads to confusing
  * expressions, so forbid it.
  */
-invoke
-	[
-		names ::= cast <"(_)">→set into [ t : {string|whole number} | t; ];
-		Grammatical restriction names is <names>;
-	]
+Invoke
+[
+	names ::= cast <"(_)">→set into [ t : {string|whole number} | t; ];
+	Grammatical restriction names is <names>;
+]
 with <>;
 
 /**
@@ -347,7 +347,7 @@ Method "||_||" is
 ];
 
 /**
- * Strengthen `invoke_with_` to the invoked function's return type.
+ * Strengthen `invoke~_with_` to the invoked function's return type.
  *
  * Parameters:
  *    aFunction -
@@ -355,7 +355,7 @@ Method "||_||" is
  * Returns:
  *    The function's return type.
  */
-Semantic restriction "invoke_with_" is
+Semantic restriction "invoke~_with_" is
 [
 	aFunction : function meta,
 	arguments : tuple meta
@@ -381,19 +381,19 @@ Method "From_to_do_" is
 	action : function accepting <⊥> and returning boolean
 |
 	value : natural number := start;
-	invoke
+	Invoke
+	[
+		$loop;
+		If value ≤ end then
 		[
-			$loop : $function accepting <> and returning ⊤;
-			If value ≤ end then
+			continue ::= invoke action with <value>;
+			value := cast value + 1 into [ i : natural number | i; ];
+			If continue then
 			[
-				continue ::= invoke action with <value>;
-				value := cast value + 1 into [ i : natural number | i; ];
-				If continue then
-				[
-					Restart loop;
-				];
+				Restart loop;
 			];
-		] : ⊤
+		];
+	] : ⊤
 	with <>;
 ] : ⊤;
 
@@ -448,11 +448,11 @@ Semantic restriction "From_to_do_" is
 ];
 
 /* Don't permit `(_)` as the second argument of `Assert:_(_)`. */
-invoke
-	[
-		cast ::= [ t : {string|whole number} | t; ];
-		names ::= cast <"Assert:_(_)">→set into cast;
-		exclusions ::= cast <"(_)">→set into cast;
-		Grammatical restriction names is <∅, exclusions>;
-	]
+Invoke
+[
+	cast ::= [ t : {string|whole number} | t; ];
+	names ::= cast <"Assert:_(_)">→set into cast;
+	exclusions ::= cast <"(_)">→set into cast;
+	Grammatical restriction names is <∅, exclusions>;
+]
 with <>;

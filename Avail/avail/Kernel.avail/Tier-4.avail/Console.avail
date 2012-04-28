@@ -234,7 +234,7 @@ Method "Ask for a tuple of integers with the question,_" is
 [
 	question : string
 |
-	$method : $[string] -> <integer…|0..∞>;
+	$method;
 	Print question;
 	
 	stream : string := get user input;

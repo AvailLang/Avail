@@ -53,7 +53,7 @@ Body
  * Return:
  *    The argument's instance's key type's type.
  */
-Semantic restriction "_'s key type" is
+Semantic restriction "_'s⁇key type" is
 [
 	mapMeta : map meta's type
 |
@@ -62,7 +62,7 @@ Semantic restriction "_'s key type" is
 	[
 		aMap ::= mapType's instance;
 		elements ::= aMap's keys;
-		enumeration of elements's type;
+		enumeration of elements' type;
 	]
 	else
 	[
@@ -79,7 +79,7 @@ Semantic restriction "_'s key type" is
  * Return:
  *    The argument's instance's value type's type.
  */
-Semantic restriction "_'s value type" is
+Semantic restriction "_'s⁇value type" is
 [
 	mapMeta : map meta's type
 |
@@ -88,7 +88,7 @@ Semantic restriction "_'s value type" is
 	[
 		aMap ::= mapType's instance;
 		elements ::= aMap's values→set;
-		enumeration of elements's type;
+		enumeration of elements' type;
 	]
 	else
 	[
@@ -130,13 +130,13 @@ Semantic restriction "_[_]" is
  * Returns:
  *    The strongest available tuple type.
  */
-Semantic restriction "_'s bindings" is
+Semantic restriction "_'s⁇bindings" is
 [
 	mapType : map meta
 |
 	if |mapType| = 1 then
 	[
-		mapType's instance's bindings's type;
+		mapType's instance's bindings' type;
 	]
 	else
 	[
@@ -153,13 +153,13 @@ Semantic restriction "_'s bindings" is
  * Returns:
  *    The strongest available set type.
  */
-Semantic restriction "_'s keys" is
+Semantic restriction "_'s⁇keys" is
 [
 	mapType : map meta
 |
 	if |mapType| = 1 then
 	[
-		mapType's instance's keys's type;
+		mapType's instance's keys' type;
 	]
 	else
 	[
@@ -179,7 +179,7 @@ Semantic restriction "_'s keys" is
  * Returns:
  *    The strongest available tuple type.
  */
-Semantic restriction "_'s values" is
+Semantic restriction "_'s⁇values" is
 [
 	mapType : map meta
 |

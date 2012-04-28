@@ -167,9 +167,10 @@ extends AbstractAvailCompiler
 
 	@Override
 	void parseInnerStatement (
-		final ParserState start,
+		final @NotNull ParserState start,
 		final boolean canBeLabel,
-		final Con<AvailObject> continuation)
+		final @NotNull List<AvailObject> argDecls,
+		final @NotNull Con<AvailObject> continuation)
 	{
 		parseDeclarationThen(
 			start,
@@ -235,6 +236,7 @@ extends AbstractAvailCompiler
 		{
 			parseLabelThen(
 				start,
+				argDecls,
 				new Con<AvailObject>("Semicolon after label")
 				{
 					@Override
@@ -397,74 +399,105 @@ extends AbstractAvailCompiler
 	 * Parse a label declaration, then invoke the continuation.
 	 *
 	 * @param start
-	 *            Where to start parsing
+	 *        Where to start parsing
+	 * @param argDecls
+	 *        The enclosing block's argument declarations.
 	 * @param continuation
-	 *            What to do after parsing a label.
+	 *        What to do after parsing a label.
 	 */
 	void parseLabelThen (
-		final ParserState start,
-		final Con<AvailObject> continuation)
+		final @NotNull ParserState start,
+		final @NotNull List<AvailObject> argDecls,
+		final @NotNull Con<AvailObject> continuation)
 	{
+		assert argDecls != null;
 		if (!start.peekToken(
 			DOLLAR_SIGN,
 			"label statement starting with \"$\""))
 		{
 			return;
 		}
-		final ParserState atName = start.afterToken();
-		final AvailObject token = atName.peekToken();
+		final ParserState afterDollar = start.afterToken();
+		final AvailObject token = afterDollar.peekToken();
 		if (token.tokenType() != KEYWORD)
 		{
-			atName.expected("name of label after $");
+			afterDollar.expected("name of label after $");
 			return;
 		}
-		final ParserState atColon = atName.afterToken();
-		if (!atColon.peekToken(
-			COLON,
-			"colon for label's type declaration"))
-		{
-			return;
-		}
-		final ParserState afterColon = atColon.afterToken();
-		eventuallyDo(
-			new Continuation0()
+		final Con<AvailObject> finishLabel = new Con<AvailObject>(
+			"Label return type expression")
 			{
 				@Override
-				public void value ()
+				public void value (
+					final ParserState afterExpression,
+					final AvailObject returnType)
 				{
-					parseAndEvaluateExpressionYieldingInstanceOfThen(
-						afterColon,
-						ContinuationTypeDescriptor.meta(),
-						new Con<AvailObject>("Check label type expression")
-						{
-							@Override
-							public void value (
-								final ParserState afterExpression,
-								final AvailObject contType)
-							{
-								final AvailObject label =
-									DeclarationNodeDescriptor.newLabel(
-										token,
-										contType);
-								if (lookupDeclaration(
-										afterExpression,
-										token.string())
-									!= null)
-								{
-									afterExpression.expected(
-										"label name not to shadow"
-										+ " another declaration");
-									return;
-								}
-								final ParserState afterDeclaration =
-									afterExpression.withDeclaration(label);
-								attempt(afterDeclaration, continuation, label);
-							}
-						});
+					final List<AvailObject> argTypes =
+						new ArrayList<AvailObject>(argDecls.size());
+					for (final AvailObject decl : argDecls)
+					{
+						argTypes.add(decl.declaredType());
+					}
+					final AvailObject contType =
+						ContinuationTypeDescriptor.forFunctionType(
+							FunctionTypeDescriptor.create(
+								TupleDescriptor.fromCollection(argTypes),
+								returnType));
+					final AvailObject label =
+						DeclarationNodeDescriptor.newLabel(
+							token,
+							contType);
+					if (lookupDeclaration(
+							afterExpression,
+							token.string())
+						!= null)
+					{
+						afterExpression.expected(
+							"label name not to shadow"
+							+ " another declaration");
+						return;
+					}
+					final ParserState afterDeclaration =
+						afterExpression.withDeclaration(label);
+					attempt(afterDeclaration, continuation, label);
 				}
-			},
-			"Label type",
-			afterColon.position);
+			};
+		final ParserState afterName = afterDollar.afterToken();
+		if (afterName.peekToken(
+			COLON,
+			"colon for label's return type declaration"))
+		{
+			final ParserState afterColon = afterName.afterToken();
+			eventuallyDo(
+				new Continuation0()
+				{
+					@Override
+					public void value ()
+					{
+						parseAndEvaluateExpressionYieldingInstanceOfThen(
+							afterColon,
+							TYPE.o(),
+							finishLabel);
+					}
+				},
+				"Label type",
+				afterColon.position);
+		}
+		else
+		{
+			eventuallyDo(
+				new Continuation0()
+				{
+					@Override
+					public void value ()
+					{
+						finishLabel.value(
+							afterName, BottomTypeDescriptor.bottom());
+					}
+				},
+				"Default label return type",
+				afterName.position);
+		}
 	}
 
 	/**
@@ -950,6 +983,7 @@ extends AbstractAvailCompiler
 								parseStatementsThen(
 									afterOptionalPrimitive,
 									primitive == 0,
+									arguments,
 									primitive == 0
 										? Collections.<AvailObject>emptyList()
 										: Collections.singletonList(
@@ -1056,21 +1090,22 @@ extends AbstractAvailCompiler
 			&& statements.get(0).isInstanceOfKind(LABEL_NODE.mostGeneralType()))
 		{
 			final AvailObject labelNode = statements.get(0);
-			final AvailObject labelFunctionType =
-				labelNode.declaredType().functionType();
+			final AvailObject labelType = labelNode.declaredType();
 			final AvailObject implicitBlockType =
 				FunctionTypeDescriptor.create(
 					TupleDescriptor.fromCollection(argumentTypesList),
 					lastStatementType.value,
 					SetDescriptor.empty());
-			blockTypeGood = labelFunctionType.equals(implicitBlockType);
+			final AvailObject implicitContType =
+				ContinuationTypeDescriptor.forFunctionType(implicitBlockType);
+			blockTypeGood = implicitContType.isSubtypeOf(labelType);
 		}
 
 		if (!blockTypeGood)
 		{
 			stateOutsideBlock.expected(
-				"label's declared type to exactly match "
-				+ "enclosing block's basic type");
+				"label's type to be a supertype of enclosing block's basic " +
+				"type");
 		}
 		else if (thePrimitive == null)
 		{
@@ -1170,10 +1205,12 @@ extends AbstractAvailCompiler
 							LABEL_NODE))
 					{
 						final AvailObject labelNode = statements.get(0);
-						final AvailObject labelFunctionType =
-							labelNode.declaredType().functionType();
-						blockTypeGood2 = labelFunctionType.equals(
-							explicitBlockType);
+						final AvailObject labelType =
+							labelNode.declaredType();
+						final AvailObject contType =
+							ContinuationTypeDescriptor.forFunctionType(
+								explicitBlockType);
+						blockTypeGood2 = contType.isSubtypeOf(labelType);
 					}
 					if (blockTypeGood2)
 					{
@@ -1203,8 +1240,8 @@ extends AbstractAvailCompiler
 					else
 					{
 						stateOutsideBlock.expected(
-							"label's declared type to exactly match "
-							+ "enclosing block's declared type");
+							"label's type to be a supertype of enclosing "
+							+ "block's declared type");
 					}
 				}
 			});
@@ -1794,6 +1831,32 @@ extends AbstractAvailCompiler
 						}
 					});
 				break;
+			case pop:
+			{
+				// Pop the parse stack.
+				assert successorTrees.tupleSize() == 1;
+				final List<AvailObject> newArgsSoFar =
+					new ArrayList<AvailObject>(argsSoFar);
+				newArgsSoFar.remove(newArgsSoFar.size() - 1);
+				eventuallyDo(
+					new Continuation0()
+					{
+						@Override
+						public void value ()
+						{
+							parseRestOfSendNode(
+								start,
+								successorTrees.tupleAt(1),
+								firstArgOrNull,
+								initialTokenPosition,
+								Collections.unmodifiableList(newArgsSoFar),
+								continuation);
+						}
+					},
+					"Continue send after pop",
+					start.position);
+				break;
+			}
 			case branch:
 				// $FALL-THROUGH$
 				// Fall through.  The successorTrees will be different
@@ -2533,17 +2596,21 @@ extends AbstractAvailCompiler
 	 * Try the current list of statements but also try to parse more.
 	 *
 	 * @param start
-	 *            Where to parse.
+	 *        Where to parse.
 	 * @param canHaveLabel
-	 *            Whether the statements can start with a label declaration.
+	 *        Whether the statements can start with a label declaration.
+	 * @param argDecls
+	 *        The enclosing block's argument declarations, or {@code null} if
+	 *        there is no enclosing block.
 	 * @param statements
-	 *            The preceding list of statements.
+	 *        The preceding list of statements.
 	 * @param continuation
-	 *            What to do with the resulting list of statements.
+	 *        What to do with the resulting list of statements.
 	 */
 	void parseStatementsThen (
 		final ParserState start,
 		final boolean canHaveLabel,
+		final List<AvailObject> argDecls,
 		final List<AvailObject> statements,
 		final Con<List<AvailObject>> continuation)
 	{
@@ -2589,6 +2656,7 @@ extends AbstractAvailCompiler
 		parseInnerStatement(
 			start,
 			canHaveLabel && statements.isEmpty(),
+			argDecls,
 			new Con<AvailObject>("Another statement")
 			{
 				@Override
@@ -2618,6 +2686,7 @@ extends AbstractAvailCompiler
 					parseStatementsThen(
 						afterStatement,
 						false,
+						null,
 						newStatements,
 						continuation);
 				}

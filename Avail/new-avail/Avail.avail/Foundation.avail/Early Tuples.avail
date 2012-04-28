@@ -128,9 +128,6 @@ Method "tuple type of_[_.._]" is
 	sliceStart : natural number's type,
 	sliceEnd : whole number's type
 |
-	$body : $function
-		accepting <tuple meta, natural number's type, whole number's type>
-		and returning type;
 	minStart ::= 1 max sliceStart's lower bound;
 	maxStart ::= 1 max sliceStart's upper bound;
 	minEnd ::= 0 max sliceEnd's lower bound;

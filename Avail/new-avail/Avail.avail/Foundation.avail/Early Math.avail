@@ -46,10 +46,10 @@ Names
 	"(_.._)",
 	"_is finite",
 	"_is infinite",
-	"_'s lower bound",
-	"_'s lower bound is inclusive",
-	"_'s upper bound",
-	"_'s upper bound is inclusive",
+	"_'s⁇lower bound",
+	"_'s⁇lower bound is inclusive",
+	"_'s⁇upper bound",
+	"_'s⁇upper bound is inclusive",
 	"max_",
 	"min_",
 	"«_‡max»",
@@ -60,7 +60,7 @@ Body
 
 /**
  * Answer the semantic restriction function that should be used for each of
- * `_'s genuine lower bound` and `_'s genuine upper bound`.
+ * `_'s⁇genuine lower bound` and `_'s⁇genuine upper bound`.
  *
  * Returns:
  *    A function that strengthens the integer range bounds methods.
@@ -102,9 +102,9 @@ Method "integer range genuine«lower»?«upper»?\
  * Parameters:
  *    range -
  * Returns:
- *    The same type as the argument to `_'s lower bound`.
+ *    The same type as the argument to `_'s⁇lower bound`.
  */
-Semantic restriction "_'s genuine lower bound" is
+Semantic restriction "_'s⁇genuine lower bound" is
 	integer range genuine lower bound semantic restriction function;
 
 /**
@@ -115,14 +115,14 @@ Semantic restriction "_'s genuine lower bound" is
  * Parameters:
  *    range -
  * Returns:
- *    The same type as the argument to `_'s upper bound`.
+ *    The same type as the argument to `_'s⁇upper bound`.
  */
-Semantic restriction "_'s genuine upper bound" is
+Semantic restriction "_'s⁇genuine upper bound" is
 	integer range genuine upper bound semantic restriction function;
 
 /**
  * Answer the lower bound of the specified integral range type. Note that unlike
- * `_'s genuine lower bound`, this method explicitly forbids the argument from
+ * `_'s⁇genuine lower bound`, this method explicitly forbids the argument from
  * being ⊥. It is intended as a practical (but not universal) replacement.
  *
  * Parameters:
@@ -130,17 +130,17 @@ Semantic restriction "_'s genuine upper bound" is
  * Returns:
  *    The lower bound of the argument.
  */
-Method "_'s lower bound" is
+Method "_'s⁇lower bound" is
 [
 	range : extended integer meta
 |
-	Assert: range ≠ ⊥ ("must use `_'s genuine lower bound` for ⊥");
+	Assert: range ≠ ⊥ ("must use `_'s⁇genuine lower bound` for ⊥");
 	range's genuine lower bound;
 ];
 
 /**
  * Answer the upper bound of the specified integral range type. Note that unlike
- * `_'s genuine upper bound`, this method explicitly forbids the argument from
+ * `_'s⁇genuine upper bound`, this method explicitly forbids the argument from
  * being ⊥. It is intended as a practical (but not universal) replacement.
  *
  * Parameters:
@@ -148,17 +148,17 @@ Method "_'s lower bound" is
  * Returns:
  *    The upper bound of the argument.
  */
-Method "_'s upper bound" is
+Method "_'s⁇upper bound" is
 [
 	range : extended integer meta
 |
-	Assert: range ≠ ⊥ ("must use `_'s genuine upper bound` for ⊥");
+	Assert: range ≠ ⊥ ("must use `_'s⁇genuine upper bound` for ⊥");
 	range's genuine upper bound;
 ];
 
 /**
  * Answer the semantic restriction function that should be used for each of
- * `_'s lower bound` and `_'s upper bound`.
+ * `_'s⁇lower bound` and `_'s⁇upper bound`.
  *
  * Returns:
  *    A function that strengthens the integer range bounds methods.
@@ -188,9 +188,9 @@ Method "integer range bound semantic restriction function" is
  * Parameters:
  *    range -
  * Returns:
- *    The same type as the argument to `_'s lower bound`.
+ *    The same type as the argument to `_'s⁇lower bound`.
  */
-Semantic restriction "_'s lower bound" is
+Semantic restriction "_'s⁇lower bound" is
 	integer range bound semantic restriction function;
 
 /**
@@ -201,9 +201,9 @@ Semantic restriction "_'s lower bound" is
  * Parameters:
  *    range -
  * Returns:
- *    The same type as the argument to `_'s upper bound`.
+ *    The same type as the argument to `_'s⁇upper bound`.
  */
-Semantic restriction "_'s upper bound" is
+Semantic restriction "_'s⁇upper bound" is
 	integer range bound semantic restriction function;
 
 /**
@@ -371,7 +371,7 @@ Semantic restriction "(_.._)" is
  * Returns:
  *    `false` if the lower bound is infinite and exclusive, `true` otherwise.
  */
-Method "_'s lower bound is inclusive" is
+Method "_'s⁇lower bound is inclusive" is
 [
 	range : extended integer meta
 |
@@ -392,7 +392,7 @@ Method "_'s lower bound is inclusive" is
  * Returns:
  *    `false` if the upper bound is infinite and exclusive, `true` otherwise.
  */
-Method "_'s upper bound is inclusive" is
+Method "_'s⁇upper bound is inclusive" is
 [
 	range : extended integer meta
 |
@@ -445,7 +445,7 @@ Method "min_" is minimum function;
 Method "«_‡min»" is minimum function;
 
 /* Don't parse `«_‡min»` recursively. */
-invoke
+Invoke
 [
 	cast ::= [ t : {string|whole number} | t; ];
 	names ::= cast <"«_‡min»">→set into cast;
@@ -499,7 +499,7 @@ Method "max_" is maximum function;
 Method "«_‡max»" is maximum function;
 
 /* Don't parse `«_‡max»` recursively. */
-invoke
+Invoke
 [
 	cast ::= [ t : {string|whole number} | t; ];
 	names ::= cast <"«_‡max»">→set into cast;
@@ -525,7 +525,7 @@ Method "minimum semantic restriction" is
 		minInclusive : boolean := first's lower bound is inclusive;
 		max : extended integer := first's upper bound;
 		maxInclusive : boolean := first's upper bound is inclusive;
-		limit ::= cast |numbers's leading types| + 1
+		limit ::= cast |numbers' leading types| + 1
 			into [ t : natural number | t; ];
 		From 2 to limit do
 		[
@@ -660,7 +660,7 @@ Method "maximum semantic restriction" is
 		minInclusive : boolean := first's lower bound is inclusive;
 		max : extended integer := first's upper bound;
 		maxInclusive : boolean := first's upper bound is inclusive;
-		limit ::= cast |numbers's leading types| + 1
+		limit ::= cast |numbers' leading types| + 1
 			into [ t : natural number | t; ];
 		From 2 to limit do
 		[
@@ -781,7 +781,7 @@ Method "_≥_" is
 ] : boolean;
 
 /* Make addition and subtraction left-associative. */
-invoke
+Invoke
 [
 	cast ::= [ t : {string|whole number} | t; ];
 	names ::= cast <"_+_", "_-_">→set into cast;

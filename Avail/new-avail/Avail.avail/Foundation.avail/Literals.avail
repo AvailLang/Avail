@@ -228,13 +228,13 @@ Method "{«_‡,»}" is
 /* Disambiguate `∪_` and `∪_[_.._]` by forbidding `_[_.._]` as the only argument
  * of the former.
  */
-invoke
-	[
-		cast ::= [ t : {string|whole number} | t; ];
-		names ::= cast <"∪_">→set into cast;
-		exclusions ::= cast <"_[_.._]">→set into cast;
-		Grammatical restriction names is <exclusions>;
-	]
+Invoke
+[
+	cast ::= [ t : {string|whole number} | t; ];
+	names ::= cast <"∪_">→set into cast;
+	exclusions ::= cast <"_[_.._]">→set into cast;
+	Grammatical restriction names is <exclusions>;
+]
 with <>;
 
 /**
@@ -518,8 +518,8 @@ Semantic restriction "|_|" is
 	aTupleType : tuple meta
 |
 	sizes ::= ||aTupleType||;
-	upper ::= cast sizes's upper bound + 1 into [ t : [0..∞] | t; ];
-	[sizes's lower bound..upper);
+	upper ::= cast sizes' upper bound + 1 into [ t : [0..∞] | t; ];
+	[sizes' lower bound..upper);
 ];
 
 /**
@@ -536,8 +536,8 @@ Semantic restriction "|_|" is
 	aSetType : set meta
 |
 	sizes ::= ||aSetType||;
-	upper ::= cast sizes's upper bound + 1 into [ t : [0..∞] | t; ];
-	[sizes's lower bound..upper);
+	upper ::= cast sizes' upper bound + 1 into [ t : [0..∞] | t; ];
+	[sizes' lower bound..upper);
 ];
 
 /**
@@ -554,6 +554,6 @@ Semantic restriction "|_|" is
 	aMapType : map meta
 |
 	sizes ::= ||aMapType||;
-	upper ::= cast sizes's upper bound + 1 into [ t : [0..∞] | t; ];
-	[sizes's lower bound..upper);
+	upper ::= cast sizes' upper bound + 1 into [ t : [0..∞] | t; ];
+	[sizes' lower bound..upper);
 ];
