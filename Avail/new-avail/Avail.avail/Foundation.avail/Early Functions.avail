@@ -70,8 +70,8 @@ sizesIncompatibleMessage ::=
  * `invoke~_with_` should reject improperly sized argument tuples.
  *
  * Parameters:
- *    aFunction -
- *    arguments -
+ *    functionType -
+ *    argumentsType -
  * Returns:
  *    The function's return type.
  */
@@ -80,11 +80,12 @@ Semantic restriction "invoke~_with_" is
 	functionType : function meta,
 	argumentsType : tuple meta
 |
-	/* Check the sizes of the parameters tuple type and the arguments tuple
-	 * type before taking advantage of instance types.
-	 */
 	parametersType ::= functionType's parameters' type;
 	parametersSizes ::= ||parametersType||;
+	/* If `parameterSizes` = ⊥, then `parametersType` = ⊥. In this case, we
+	 * cannot statically ascertain anything interesting about the function and
+	 * the arguments to apply.
+	 */
 	If parametersSizes ≠ ⊥ then
 	[
 		argumentsSizes ::= ||argumentsType||;
@@ -116,9 +117,8 @@ Method "_(«_‡,»)" is
 ] : ⊤;
 
 /**
- * Strengthen the lexical function application operation. If the function is
- * precisely known, then check conformance of the arguments to the parameters;
- * otherwise just check for size compatibility of the two tuples.
+ * Strengthen the lexical function application operation. Reject applications
+ * whose argument types do not conform to the function's parameter types.
  * 
  * Parameters:
  *    functionType -
@@ -131,9 +131,6 @@ Semantic restriction "_(«_‡,»)" is
 	functionType : function meta,
 	argumentsType : tuple meta
 |
-	/* Check the sizes of the parameters tuple type and the arguments tuple
-	 * type before taking advantage of instance types.
-	 */
 	parametersType ::= functionType's parameters' type;
 	parametersSizes ::= ||parametersType||;
 	/* If `parameterSizes` = ⊥, then `parametersType` = ⊥. In this case, we

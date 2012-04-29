@@ -1,0 +1,371 @@
+/*
+ * Maps.avail
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Maps"
+Versions
+	"dev"
+Extends
+	"Collections",
+	"Early Maps"
+Uses
+	"Bootstrap",
+	"Control Structures",
+	"Early Functions",
+	"Early Tuples",
+	"Early Types",
+	"Literals",
+	"Logic",
+	"Math",
+	"Variables"
+Body
+
+/**
+ * Is the specified map empty?
+ *
+ * Parameters:
+ *    aMap - A map.
+ * Returns:
+ *    `true` if the argument is empty, `false` otherwise.
+ */
+Method "_is empty" is
+[
+	aMap : map
+|
+	|aMap| = 0;
+];
+
+/**
+ * Iteratively apply `action` to each binding of `aMap`, but in no particular
+ * order.
+ * 
+ * Parameters:
+ *    aMap - A map.
+ *    action - A function that accepts the bindings of the map. The first
+ *       argument is a key from the map, the second is a value from the map.
+ */
+Method "For each_do_" is
+[
+	aMap : map,
+	action : [⊥, ⊥]→⊤
+|
+	index : natural number := 1;
+	bindings ::= aMap's bindings;
+	end ::= |aMap|;
+	[
+		$loop;
+		If index ≤ end then
+		[
+			binding ::= bindings[index];
+			Invoke action with <binding[1], binding[2]>;
+			↑index++;
+			Restart loop;
+		];
+	]();
+] : ⊤;
+
+/**
+ * Helper method for semantic restrictions: If `action` does not accept the
+ * key and value types of `mapType`, then reject the current parse.
+ * 
+ * Parameters:
+ *    action - A function type whose first two arguments must correspond to the
+ *       key and value types of `mapType`.
+ *    mapType - A map type.
+ */
+Method "Require:_accepts_" is
+[
+	action : function meta,
+	mapType : map meta
+|
+	If ¬mapType's key type ⊆ action[1] then
+	[
+		Reject parse, expected:
+			"repeatedly applied function to accept all keys ∈ "
+			++ primitive description of mapType's key type
+			++ " (but it only accepts "
+			++ primitive description of action[1]
+			++ ")";
+	];
+	If ¬mapType's value type ⊆ action[2] then
+	[
+		Reject parse, expected:
+			"repeatedly applied function to accept all values ∈ "
+			++ primitive description of mapType's value type
+			++ " (but it only accepts "
+			++ primitive description of action[2]
+			++ ")";
+	];
+] : ⊤;
+
+/**
+ * Ensure that the function will accept all bindings of the map. If the map is
+ * certainly nonempty and the function certainly does not complete if applied,
+ * then answer ⊥.
+ * 
+ * Parameters:
+ *    mapType -
+ *    action -
+ * Returns:
+ *    Either ⊤ or ⊥.
+ */
+Semantic restriction "For each_do_" is
+[
+	mapType : map meta,
+	action : [⊥, ⊥]→⊤'s type
+|
+	Require: action accepts mapType;
+	if ||mapType||'s lower bound > 0 ∧ [ action's return type = ⊥; ] then
+	[
+		⊥;
+	]
+	else
+	[
+		⊤;
+	];
+];
+
+/**
+ * Iteratively apply `transformer` to each binding of `aMap`, in no particular
+ * order, collecting the results into a new map. The resultant map has the same
+ * keys as the original, but its values have been transformed via `transformer`.
+ * 
+ * Parameters:
+ *    aMap - A map.
+ *    transformer - A function that accepts the bindings of the map. The first
+ *       argument is a key from the map, the second is a value from the map.
+ *       This function answers a replacement value for the given binding.
+ * Returns:
+ *    A map of results of applications of `transformer` to the elements of
+ *    `aMap`.
+ */
+Method "map_through_" is
+[
+	aMap : map,
+	transformer : [⊥, ⊥]→any
+|
+	index : natural number := 1;
+	bindings ::= aMap's bindings;
+	end ::= |aMap|;
+	result : map := {};
+	[
+		$loop;
+		If index ≤ end then
+		[
+			binding ::= bindings[index];
+			key ::= binding[1];
+			value ::= binding[2];
+			result := eject ↑result + key→invoke transformer with <key, value>;
+			↑index++;
+			Restart loop;
+		];
+	]();
+	result;
+] : map;
+
+/**
+ * Ensure that the function will accept all bindings of the map. If the map is
+ * certainly nonempty, then the function cannot answer ⊥.
+ *
+ * Parameters:
+ *    mapType -
+ *    transformer -
+ * Returns:
+ *    A map type whose key type is the key type of `mapType`, whose value
+ *    type is the return type of `transformer`, and whose cardinality is the
+ *    same as `mapType`'s.
+ */
+Semantic restriction "map_through_" is
+[
+	mapType : map meta,
+	transformer : [⊥, ⊥]→any's type
+|
+	Require: transformer accepts mapType;
+	If ||mapType||'s lower bound > 0 then
+	[
+		If transformer's return type = ⊥ then
+		[
+			Reject parse, expected:
+				"repeatedly applied function to have a return type other than\
+				\| ⊥";
+		];
+	];
+	{mapType's key type → transformer's return type | ||mapType||};
+];
+
+/**
+ * Iteratively apply `predicate` to each binding of `aMap`, in no particular
+ * order, collecting those bindings for which `predicate` answers `true` into a
+ * new map. Answer the new map.
+ *
+ * Parameters:
+ *    aMap - A map.
+ *    predicate - A function that accepts the bindings of the map and answers
+ *       `true` iff they should be accumulated into the output map.
+ * Returns:
+ *    A map containing exactly those bindings of `aMap` for which `predicate`
+ *    answered `true`.
+ */
+Method "filter_by_" is
+[
+	aMap : map,
+	predicate : [⊥, ⊥]→boolean
+|
+	bindings ::= aMap's bindings;
+	index : natural number := 1;
+	end ::= |bindings|;
+	result : map := {};
+	[
+		$loop;
+		If index ≤ end then
+		[
+			binding ::= bindings[index];
+			key ::= binding[1];
+			value ::= binding[2];
+			If invoke predicate with <key, value> then
+			[
+				result := eject ↑result + key→value;
+			];
+			↑index++;
+			Restart loop;
+		];
+	]();
+	result;
+] : map;
+
+/**
+ * Ensure that the function will accept all elements of the map.
+ * 
+ * Parameters:
+ *    mapType -
+ *    predicate -
+ * Returns:
+ *    A map type whose key and value types are the same as `mapType`'s and which
+ *    has cardinality `[0..||mapType||'s upper bound + 1)`.
+ */
+Semantic restriction "filter_by_" is
+[
+	mapType : map meta,
+	predicate : [⊥, ⊥]→boolean's type
+|
+	Require: predicate accepts mapType;
+	{
+		mapType's key type → mapType's value type
+		| [0..||mapType||'s upper bound)
+	};
+];
+
+/**
+ * Iteratively apply `accumulator` to the bindings of `aMap`, in no particular
+ * order, in order to transform and filter its bindings into a new map. When
+ * `accumulator` is invoked, it is passed a "keeper" function. The keeper
+ * function may be invoked to "save" a particular value, i.e., a value that will
+ * be associated with the current key in the output set. The keeper function
+ * will save at most one value per binding of `aSet`, i.e., each time that
+ * `accumulator` is invoked, it may invoke the keeper function at most one time.
+ * Answer the new map.
+ * 
+ * Parameters:
+ *    aMap - A map.
+ *    accumulator - A function that accepts 1) a key from `aMap`, 2) the value
+ *       associated with that key, and 3) a keeper function. The keeper function
+ *       accepts an argument of the (value) type that should be saved.
+ * Returns:
+ *    A map whose bindings are those saved by the `accumulator`.
+ */
+Method "map and filter_by_" is
+[
+	aMap : map,
+	accumulator : [⊥, ⊥, ⊥]→⊤
+|
+	bindings ::= aMap's bindings;
+	index : natural number := 1;
+	end ::= |bindings|;
+	result : map := {};
+	[
+		$loop;
+		If index ≤ end then
+		[
+			hasAlreadyKept : boolean := false;
+			binding ::= bindings[index];
+			key ::= binding[1];
+			value ::= binding[2];
+			Invoke accumulator with
+			<
+				key,
+				value,
+				[
+					transformed : any
+				|
+					If ¬hasAlreadyKept then
+					[
+						result := eject ↑result + key→transformed;
+						hasAlreadyKept := true;
+					];
+				]
+			>;
+			↑index++;
+			Restart loop;
+		];
+	]();
+	result;
+] : map;
+
+/**
+ * Ensure that the function will accept all bindings of the map and also an
+ * appropriately typed keeper function.
+ *
+ * Parameters:
+ *    mapType -
+ *    accumulator -
+ * Returns:
+ *    A map type whose key type is the key type of `mapType`, whose value type
+ *    is the parameter type of the keeper function, and whose cardinality is
+ *    `[0..||mapType||'s upper bound + 1)`.
+ */
+Semantic restriction "map and filter_by_" is
+[
+	mapType : map meta,
+	accumulator : [⊥, ⊥, ⊥]→⊤'s type
+|
+	Require: accumulator accepts mapType;
+	Require: accumulator's keeper is valid;
+	If accumulator's return type ≠ ⊤ then
+	[
+		Reject parse, expected:
+			"repeatedly applied function to have return type ⊤";
+	];
+	valueType ::= cast accumulator[3] into [ t : function meta | t[1]; ];
+	{
+		mapType's key type → valueType
+		| [0..||mapType||'s upper bound + 1)
+	};
+];

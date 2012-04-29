@@ -1,5 +1,5 @@
 /*
- * Foundation.avail
+ * Collections.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,18 +30,21 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Foundation"
+System Module "Collections"
 Versions
 	"dev"
 Extends
-	"Assertions",
-	"Control Structures",
-	"Enumeration Support",
-	"Literals",
-	"Maps",
-	"Math",
-	"Logic",
-	"Sets",
-	"Tuples"
+	"Control Structures" =
+	(
+		"For each_do_",
+		"filter_by_",
+		"map and filter_by_",
+		"map_through_"
+	)
+Uses
+Names
+	/* The implementations are provided by Tuples, Sets, and Maps, but the names
+	 * are introduced here.
+	 */
+	"_is empty"
 Body
-

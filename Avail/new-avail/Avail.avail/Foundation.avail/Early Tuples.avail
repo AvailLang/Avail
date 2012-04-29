@@ -43,6 +43,7 @@ Uses
 	"Literals",
 	"Variables"
 Names
+	"relevant|_|",
 	"«_‡++»",
 	"_[_..]",
 	"_[.._]"
@@ -297,3 +298,22 @@ Semantic restriction "_[.._]" is
 
 /* Disambiguate `_→_` and `_→tuple`. */
 Grammatical restriction {"_→_"} is <∅, {"tuple"}>;
+
+/**
+ * Compute and answer the minimum size of `tupleType` for efficient traversal of
+ * its relevant element types.
+ * 
+ * Parameters:
+ *    tupleType - A tuple type.
+ * Returns:
+ *    The smaller of the argument's cardinality's lower bound and one more than
+ *    the size of its leading types.
+ */
+Method "relevant|_|" is
+[
+	tupleType : tuple meta
+|
+	cast
+		||tupleType||'s lower bound min (|tupleType's leading types| + 1)
+	into [ t : whole number | t; ];
+] : whole number;

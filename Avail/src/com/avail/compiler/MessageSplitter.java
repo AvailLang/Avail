@@ -843,6 +843,10 @@ public class MessageSplitter
 				{
 					expr = ((CaseInsensitive) expr).expression;
 				}
+				else if (expr instanceof CompletelyOptional)
+				{
+					expr = ((CompletelyOptional) expr).expression;
+				}
 				if (expr == null)
 				{
 					aStream.append("‡");
@@ -1211,7 +1215,8 @@ public class MessageSplitter
 			 * ...Simple or stuff before dagger (i.e., all expressions).
 			 * check progress and update saved position, or abort.
 			 * @groupSkip:
-			 * pop (parse position)
+			 * under-pop parse position (remove 2nd from top of stack)
+			 * pop (empty list)
 			 */
 			list.add(saveParsePosition.encoding());
 			list.add(newList.encoding());

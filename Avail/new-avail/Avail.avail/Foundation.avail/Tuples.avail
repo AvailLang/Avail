@@ -1,0 +1,347 @@
+/*
+ * Tuples.avail
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Tuples"
+Versions
+	"dev"
+Extends
+	"Collections",
+	"Early Tuples"
+Uses
+	"Bootstrap",
+	"Control Structures",
+	"Early Functions",
+	"Early Types",
+	"Literals",
+	"Logic",
+	"Math",
+	"Variables"
+Names
+Body
+
+/**
+ * Is the specified tuple empty?
+ *
+ * Parameters:
+ *    aTuple - A tuple.
+ * Returns:
+ *    `true` if the argument is empty, `false` otherwise.
+ */
+Method "_is empty" is
+[
+	aTuple : tuple
+|
+	|aTuple| = 0;
+];
+
+/**
+ * Iteratively apply `action` to each consecutive element of `aTuple`.
+ * 
+ * Parameters:
+ *    aTuple - A tuple.
+ *    action - A function that accepts the elements of the tuple.
+ */
+Method "For each_do_" is
+[
+	aTuple : tuple,
+	action : [⊥]→⊤
+|
+	index : natural number := 1;
+	end ::= |aTuple|;
+	[
+		$loop;
+		If index ≤ end then
+		[
+			Invoke action with <aTuple[index]>;
+			↑index++;
+			Restart loop;
+		];
+	]();
+] : ⊤;
+
+/**
+ * Helper method for semantic restrictions: If `action` does not accept the
+ * type union of all element types of `tupleType`, then reject the current
+ * parse.
+ * 
+ * Parameters:
+ *    action - A function type whose first argument must correspond to the
+ *       type union of the element types of `tupleType`.
+ *    tupleType - A tuple type.
+ */
+Method "Require:_accepts_" is
+[
+	action : function meta,
+	tupleType : tuple meta
+|
+	union ::= ∪ tupleType[1..|tupleType's leading types| + 1];
+	If ¬union ⊆ action[1] then
+	[
+		Reject parse, expected:
+			"repeatedly applied function to accept all elements of the tuple ∈ "
+			++ primitive description of tupleType
+			++ " (but it only accepts "
+			++ primitive description of action[1]
+			++ ")";
+	];
+] : ⊤;
+
+/**
+ * Ensure that the function will accept all elements of the tuple. If the tuple
+ * is certainly nonempty and the function certainly does not complete if
+ * applied, then answer ⊥.
+ * 
+ * Parameters:
+ *    tupleType -
+ *    action -
+ * Returns:
+ *    Either ⊤ or ⊥.
+ */
+Semantic restriction "For each_do_" is
+[
+	tupleType : tuple meta,
+	action : [⊥]→⊤'s type
+|
+	Require: action accepts tupleType;
+	if ||tupleType||'s lower bound > 0 ∧ [ action's return type = ⊥; ] then
+	[
+		⊥;
+	]
+	else
+	[
+		⊤;
+	];
+];
+
+/**
+ * Iteratively apply `transformer` to each consecutive element of `aTuple`,
+ * collecting the results into a new tuple (and preserving ordering of the
+ * transformed elements). Answer this tuple.
+ * 
+ * Parameters:
+ *    aTuple - A tuple.
+ *    transformer - A function that accepts the elements of the tuple.
+ * Returns:
+ *    A tuple of results of applications of `transformer` to the elements of
+ *    `aTuple`.
+ */
+Method "map_through_" is
+[
+	aTuple : tuple,
+	transformer : [⊥]→any
+|
+	index : natural number := 1;
+	result : tuple := <>;
+	end ::= |aTuple|;
+	[
+		$loop;
+		If index ≤ end then
+		[
+			result :=
+				eject ↑result ++ <invoke transformer with <aTuple[index]>>;
+			↑index++;
+			Restart loop;
+		];
+	]();
+	result;
+] : tuple;
+
+/**
+ * Ensure that the function will accept all elements of the tuple. If the tuple
+ * is certainly nonempty, then the function cannot answer ⊥.
+ * 
+ * Parameters:
+ *    tupleType -
+ *    transformer -
+ * Returns:
+ *    A tuple type with no leading types whose default type is the return type
+ *    of `transformer` and whose cardinality is the same as `tupleType`'s.
+ */
+Semantic restriction "map_through_" is
+[
+	tupleType : tuple meta,
+	transformer : [⊥]→any's type
+|
+	Require: transformer accepts tupleType;
+	If ||tupleType||'s lower bound > 0 then
+	[
+		If transformer's return type = ⊥ then
+		[
+			Reject parse, expected:
+				"repeatedly applied function to have a return type other than\
+				\| ⊥";
+		];
+	];
+	<<>, transformer's return type… | ||tupleType||>;
+];
+
+/**
+ * Iteratively apply `predicate` to each consecutive element of `aTuple`,
+ * collecting those elements for which `predicate` answers `true` into a new
+ * tuple (and preserving ordering). Answer the new tuple.
+ * 
+ * Parameters:
+ *    aTuple - A tuple.
+ *    predicate - A function that accepts the elements of the tuple and answers
+ *       `true` iff they should be accumulated into the output tuple.
+ * Returns:
+ *    A tuple containing exactly those elements of `aTuple` for which
+ *    `predicate` answered `true`.
+ */
+Method "filter_by_" is
+[
+	aTuple : tuple,
+	predicate : [⊥]→boolean
+|
+	index : natural number := 1;
+	end ::= |aTuple|;
+	result : tuple := <>;
+	[
+		$loop;
+		If index ≤ end then
+		[
+			element ::= aTuple[index];
+			If invoke predicate with <element> then
+			[
+				result := eject ↑result ++ <element>;
+			];
+			↑index++;
+			Restart loop;
+		];
+	]();
+	result;
+] : tuple;
+
+/**
+ * Ensure that the function will accept all elements of the tuple.
+ * 
+ * Parameters:
+ *    tupleType -
+ *    predicate -
+ * Returns:
+ *    A tuple type whose leading and default types are the same as
+ *    `tupleType`'s and which has cardinality
+ *    `[0..||tupleType||'s upper bound + 1)`.
+ */
+Semantic restriction "filter_by_" is
+[
+	tupleType : tuple meta,
+	predicate : [⊥]→boolean's type
+|
+	Require: predicate accepts tupleType;
+	<
+		tupleType's leading types,
+		tupleType's default type…
+		| [0..||tupleType||'s upper bound + 1)
+	>;
+];
+
+/**
+ * Iteratively apply `accumulator` to the consecutive elements of `aTuple` in
+ * order to transform and filter its elements into a new tuple. When
+ * `accumulator` is invoked, it is passed a "keeper" function. The keeper
+ * function may be invoked to "save" a particular value, i.e., a value that will
+ * be copied into the output tuple. The keeper function will save at most one
+ * value per element of `aTuple`, i.e., each time that `accumulator` is invoked,
+ * it may invoke the keeper function at most one time. Answer the new tuple.
+ * 
+ * Parameters:
+ *    aTuple - A tuple.
+ *    accumulator - A function that accepts 1) an element from `aTuple` and 2)
+ *       a keeper function. The keeper function accepts an argument of the type
+ *       that should be saved.
+ * Returns:
+ *    A tuple whose elements are those saved by the `accumulator`.
+ */
+Method "map and filter_by_" is
+[
+	aTuple : tuple,
+	accumulator : [⊥, ⊥]→⊤
+|
+	index : natural number := 1;
+	end ::= |aTuple|;
+	result : tuple := <>;
+	[
+		$loop;
+		If index ≤ end then
+		[
+			hasAlreadyKept : boolean := false;
+			Invoke accumulator with
+			<
+				aTuple[index],
+				[
+					transformed : any
+				|
+					If ¬hasAlreadyKept then
+					[
+						result := eject ↑result ++ <transformed>;
+						hasAlreadyKept := true;
+					];
+				]
+			>;
+			↑index++;
+			Restart loop;
+		];
+	]();
+	result;
+] : tuple;
+
+/**
+ * Ensure that the function will accept all arguments of the tuple and also an
+ * appropriately typed keeper function.
+ *
+ * Parameters:
+ *    tupleType -
+ *    accumulator -
+ * Returns:
+ *    A tuple type with no leading types whose default type is the argument type
+ *    of the keeper function and whose cardinality is
+ *    `[0..||tupleType||'s upper bound + 1)`.
+ */
+Semantic restriction "map and filter_by_" is
+[
+	tupleType : tuple meta,
+	accumulator : [⊥, ⊥]→⊤'s type
+|
+	Require: accumulator accepts tupleType;
+	Require: accumulator's keeper is valid;
+	If accumulator's return type ≠ ⊤ then
+	[
+		Reject parse, expected:
+			"repeatedly applied function to have return type ⊤";
+	];
+	<
+		<>,
+		cast accumulator[2] into [ t : function meta | t[1]; ]…
+		| [0..||tupleType||'s upper bound + 1)
+	>;
+];

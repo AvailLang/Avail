@@ -51,7 +51,10 @@ Names
 	"_is odd",
 	"_is even",
 	"_mod_",
-	"-_"
+	"-_",
+	"«_‡«=»?«≤»?«<»?»",
+	"«_‡«=»?«≥»?«>»?»"
+	
 Body
 
 Forward method "_mod_" is [number, number]→number;

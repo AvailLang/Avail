@@ -632,7 +632,7 @@ Grammatical restriction {"_→_", "_←_", "_↛_", "_↚_"} is
 Grammatical restriction {"_↔_", "_⊕_"} is <∅, {"_↔_", "_⊕_"}>;
 
 /**
- * Strengthen for exactly known values.
+ * Strengthen for exactly known values (but never for types).
  * 
  * Parameters:
  *    a -
@@ -661,7 +661,7 @@ Semantic restriction "_=_" is
 ];
 
 /**
- * Strengthen for exactly known values.
+ * Strengthen for exactly known values (but never for types).
  * 
  * Parameters:
  *    a -

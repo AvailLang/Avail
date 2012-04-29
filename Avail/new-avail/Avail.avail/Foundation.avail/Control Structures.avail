@@ -49,6 +49,7 @@ Uses
 	"Early Tuples",
 	"Early Types",
 	"Early Sets",
+	"Enumeration Support",
 	"Literals",
 	"Logic",
 	"Math",
@@ -56,19 +57,100 @@ Uses
 Names
 	"Do_until_",
 	"Do_while_",
-	"For each_do_",
 	"From_to_by_do_",
 	"From_to_do_",
 	"Repeat_",
 	"Unless_then_",
+	"Until_",
 	"Until_do_",
+	"While_",
 	"While_do_",
+	"cast~_into«_‡,»«else_»",
+	"choose~_from_where«_is_‡,»«else_»",
 	"if~_then_«else if_then_»«else_»",
+	"unless~_then_else_",
+	"unless~_then_«else unless_then_»«else_»",
+
+	/* The implementations are provided by Tuples, Sets, and Maps, but the names
+	 * are introduced here.
+	 */
+	"For each_do_",
 	"filter_by_",
-	"map_and_filter_by_",
+	"map and filter_by_",
 	"map_through_",
-	"unless~_then_else_"
+
+	/* This is provided to support implementation of semantic restrictions of
+	 * `map and filter_by_`. Not for export beyond this package.
+	 */
+	"Require:_'s⁇keeper is valid"
 Body
+
+/**
+ * Reject the current parse unless the value supplied upon exit of a
+ * continuation conforms to its function type's return type.
+ * 
+ * Parameters:
+ *    continuationMeta - A continuation type.
+ *    exitType -
+ * Returns:
+ *    ⊥.
+ */
+Semantic restriction "Exit_with_" is
+[
+	continuationType : continuation meta,
+	exitType : any meta
+|
+	functionType ::= continuationType's function type;
+	If ¬exitType ⊆ functionType's return type then
+	[
+		Reject parse, expected:
+			"continuation ("
+			++ primitive description of continuationType
+			++ ") to accept value ("
+			++ primitive description of exitType
+			++ ")";
+	];
+	⊥;
+];
+
+/* These are error messages. */
+sizesIncompatibleMessage ::=
+	"size of argument tuple to be compatible with size of\
+	\| continuation's parameter tuple";
+
+/**
+ * Reject the current parse if the argument tuple cannot possibly match the
+ * continuation's parameter tuple.
+ * 
+ * Parameters:
+ *    continuationType -
+ *    argumentsType -
+ * Returns:
+ *    ⊥.
+ */
+Semantic restriction "Restart_with_" is
+[
+	continuationType : continuation meta,
+	argumentsType : tuple meta
+|
+	functionType ::= continuationType's function type;
+	parametersType ::= functionType's parameters' type;
+	parametersSizes ::= ||parametersType||;
+	/* If `parameterSizes` = ⊥, then `parametersType` = ⊥. In this case, we
+	 * cannot statically ascertain anything interesting about the function and
+	 * the arguments to apply.
+	 */
+	If parametersSizes ≠ ⊥ then
+	[
+		argumentsSizes ::= ||argumentsType||;
+		validSizes ::= parametersSizes ∩ argumentsSizes;
+		If validSizes = ⊥ then
+		[
+			Reject parse, expected: sizesIncompatibleMessage;
+		];
+	];
+	⊥;
+];
 
 /**
  * Basic unconditional loop. Repeatedly invoke `action`.
@@ -543,683 +625,84 @@ Semantic restriction "From_to_do_" is
 ];
 
 /**
- * Iteratively apply `action` to each consecutive element of `aTuple`.
- * 
- * Parameters:
- *    aTuple - A tuple.
- *    action - A function that accepts the elements of the tuple.
- */
-Method "For each_do_" is
-[
-	aTuple : tuple,
-	action : [⊥]→⊤
-|
-	index : natural number := 1;
-	end ::= |aTuple|;
-	[
-		$loop;
-		If index ≤ end then
-		[
-			Invoke action with <aTuple[index]>;
-			↑index++;
-			Restart loop;
-		];
-	]();
-] : ⊤;
-
-/**
- * Helper method for semantic restrictions: If `action` does not accept the
- * type union of all element types of `tupleType`, then reject the current
- * parse.
- * 
- * Parameters:
- *    action - A function type whose first argument must correspond to the
- *       type union of the element types of `tupleType`.
- *    tupleType - A tuple type.
- */
-Method "Require:_accepts_" is
-[
-	action : function meta,
-	tupleType : tuple meta
-|
-	union ::= ∪ tupleType[1..|tupleType's leading types| + 1];
-	If ¬union ⊆ action[1] then
-	[
-		Reject parse, expected:
-			"repeatedly applied function to accept all elements of the tuple ∈ "
-			++ primitive description of tupleType
-			++ " (but it only accepts "
-			++ primitive description of action[1]
-			++ ")";
-	];
-] : ⊤;
-
-/**
- * Ensure that the function will accept all elements of the tuple. If the tuple
- * is certainly nonempty and the function certainly does not complete if
- * applied, then answer ⊥.
- * 
- * Parameters:
- *    tupleType -
- *    action -
- * Returns:
- *    Either ⊤ or ⊥.
- */
-Semantic restriction "For each_do_" is
-[
-	tupleType : tuple meta,
-	action : [⊥]→⊤'s type
-|
-	Require: action accepts tupleType;
-	if ||tupleType||'s lower bound > 0 ∧ [ action's return type = ⊥; ] then
-	[
-		⊥;
-	]
-	else
-	[
-		⊤;
-	];
-];
-
-/**
- * Iteratively apply `action` to each element of `aSet`, but in no particular
- * order.
- * 
- * Parameters:
- *    aSet - A set.
- *    action - A function that accepts the elements of the set.
- */
-Method "For each_do_" is
-[
-	aSet : set,
-	action : [⊥]→⊤
-|
-	index : natural number := 1;
-	aTuple ::= aSet→tuple;
-	end ::= |aTuple|;
-	[
-		$loop;
-		If index ≤ end then
-		[
-			Invoke action with <aTuple[index]>;
-			↑index++;
-			Restart loop;
-		];
-	]();
-] : ⊤;
-
-/**
- * Helper method for semantic restrictions: If `action` does not accept the
- * element types of `setType`, then reject the current parse.
- * 
- * Parameters:
- *    action - A function type whose first argument must correspond to the
- *       element type of `setType`.
- *    setType - A set type.
- */
-Method "Require:_accepts_" is
-[
-	action : function meta,
-	setType : set meta
-|
-	If ¬setType's element type ⊆ action[1] then
-	[
-		Reject parse, expected:
-			"repeatedly applied function to accept all elements of the set ∈ "
-			++ primitive description of setType
-			++ " (but it only accepts "
-			++ primitive description of action[1]
-			++ ")";
-	];
-] : ⊤;
-
-/**
- * Ensure that the function will accept all elements of the set. If the set is
- * certainly nonempty and the function certainly does not complete if applied,
- * then answer ⊥.
- * 
- * Parameters:
- *    setType -
- *    action -
- * Returns:
- *    Either ⊤ or ⊥.
- */
-Semantic restriction "For each_do_" is
-[
-	setType : set meta,
-	action : [⊥]→⊤'s type
-|
-	Require: action accepts setType;
-	if ||setType||'s lower bound > 0 ∧ [ action's return type = ⊥; ] then
-	[
-		⊥;
-	]
-	else
-	[
-		⊤;
-	];
-];
-
-/**
- * Iteratively apply `action` to each binding of `aMap`, but in no particular
- * order.
- * 
- * Parameters:
- *    aMap - A map.
- *    action - A function that accepts the bindings of the map. The first
- *       argument is a key from the map, the second is a value from the map.
- */
-Method "For each_do_" is
-[
-	aMap : map,
-	action : [⊥, ⊥]→⊤
-|
-	index : natural number := 1;
-	bindings ::= aMap's bindings;
-	end ::= |aMap|;
-	[
-		$loop;
-		If index ≤ end then
-		[
-			binding ::= bindings[index];
-			Invoke action with <binding[1], binding[2]>;
-			↑index++;
-			Restart loop;
-		];
-	]();
-] : ⊤;
-
-/**
- * Helper method for semantic restrictions: If `action` does not accept the
- * key and value types of `mapType`, then reject the current parse.
- * 
- * Parameters:
- *    action - A function type whose first two arguments must correspond to the
- *       key and value types of `mapType`.
- *    mapType - A map type.
- */
-Method "Require:_accepts_" is
-[
-	action : function meta,
-	mapType : map meta
-|
-	If ¬mapType's key type ⊆ action[1] then
-	[
-		Reject parse, expected:
-			"repeatedly applied function to accept all keys ∈ "
-			++ primitive description of mapType's key type
-			++ " (but it only accepts "
-			++ primitive description of action[1]
-			++ ")";
-	];
-	If ¬mapType's value type ⊆ action[2] then
-	[
-		Reject parse, expected:
-			"repeatedly applied function to accept all values ∈ "
-			++ primitive description of mapType's value type
-			++ " (but it only accepts "
-			++ primitive description of action[2]
-			++ ")";
-	];
-] : ⊤;
-
-/**
- * Ensure that the function will accept all bindings of the map. If the map is
- * certainly nonempty and the function certainly does not complete if applied,
- * then answer ⊥.
- * 
- * Parameters:
- *    mapType -
- *    action -
- * Returns:
- *    Either ⊤ or ⊥.
- */
-Semantic restriction "For each_do_" is
-[
-	mapType : map meta,
-	action : [⊥, ⊥]→⊤'s type
-|
-	Require: action accepts mapType;
-	if ||mapType||'s lower bound > 0 ∧ [ action's return type = ⊥; ] then
-	[
-		⊥;
-	]
-	else
-	[
-		⊤;
-	];
-];
-
-/**
- * Iteratively apply `transformer` to each consecutive element of `aTuple`,
- * collecting the results into a new tuple (and preserving ordering of the
- * transformed elements). Answer this tuple.
- * 
- * Parameters:
- *    aTuple - A tuple.
- *    transformer - A function that accepts the elements of the tuple.
- * Returns:
- *    A tuple of results of applications of `transformer` to the elements of
- *    `aTuple`.
- */
-Method "map_through_" is
-[
-	aTuple : tuple,
-	transformer : [⊥]→any
-|
-	index : natural number := 1;
-	result : tuple := <>;
-	end ::= |aTuple|;
-	[
-		$loop;
-		If index ≤ end then
-		[
-			result :=
-				eject ↑result ++ <invoke transformer with <aTuple[index]>>;
-			↑index++;
-			Restart loop;
-		];
-	]();
-	result;
-] : tuple;
-
-/**
- * Ensure that the function will accept all elements of the tuple. If the tuple
- * is certainly nonempty, then the function cannot answer ⊥.
- * 
- * Parameters:
- *    tupleType -
- *    transformer -
- * Returns:
- *    A tuple type with no leading types whose default type is the return type
- *    of `transformer` and whose cardinality is the same as `tupleType`'s.
- */
-Semantic restriction "map_through_" is
-[
-	tupleType : tuple meta,
-	transformer : [⊥]→any's type
-|
-	Require: transformer accepts tupleType;
-	If ||tupleType||'s lower bound > 0 then
-	[
-		If transformer's return type = ⊥ then
-		[
-			Reject parse, expected:
-				"repeatedly applied function to have a return type other than\
-				\| ⊥";
-		];
-	];
-	<<>, transformer's return type… | ||tupleType||>;
-];
-
-/**
- * Iteratively apply `transformer` to each element of `aSet`, collecting the
- * results into a new tuple. The set is traversed in no particular order. Answer
- * the resultant set.
+ * Restart the continuation with the specified arguments. Execution proceeds as
+ * though the continuation's caller had just invoked the continuation's current
+ * function with the given arguments instead of the original arguments. The
+ * current continuation (in which this primitive was invoked) is completely
+ * replaced by the restarted continuation.
  *
  * Parameters:
- *    aSet - A set.
- *    transformer - A function that accepts the elements of the set.
- * Returns:
- *    A set of results of applications of `transformer` to the elements of
- *    `aSet`.
+ *    aContinuation - The continuation to restart.
+ *    arguments - The new arguments with which to restart `aContinuation`.
  */
-Method "map_through_" is
+Method "_(«_‡,»)" is
 [
-	aSet : set,
-	transformer : [⊥]→any
+	aContinuation : continuation,
+	arguments : tuple
 |
-	aTuple ::= aSet→tuple;
-	index : natural number := 1;
-	end ::= |aTuple|;
-	result : set := ∅;
-	[
-		$loop;
-		If index ≤ end then
-		[
-			result := eject ↑result + invoke transformer with <aTuple[index]>;
-			↑index++;
-			Restart loop;
-		];
-	]();
-	result;
-] : set;
-
-/**
- * Ensure that the function will accept all elements of the set. If the set is
- * certainly nonempty, then the function cannot answer ⊥.
- *
- * Parameters:
- *    setType -
- *    transformer -
- * Returns:
- *    A set type whose element type is the return type of `transformer` and
- *    whose cardinality is the same as `setType`'s.
- */
-Semantic restriction "map_through_" is
-[
-	setType : set meta,
-	transformer : [⊥]→any's type
-|
-	Require: transformer accepts setType;
-	If ||setType||'s lower bound > 0 then
-	[
-		If transformer's return type = ⊥ then
-		[
-			Reject parse, expected:
-				"repeatedly applied function to have a return type other than\
-				\| ⊥";
-		];
-	];
-	{transformer's return type | ||setType||};
+	Restart aContinuation with arguments;
 ];
 
 /**
- * Iteratively apply `transformer` to each binding of `aMap`, in no particular
- * order, collecting the results into a new map. The resultant map has the same
- * keys as the original, but its values have been transformed via `transformer`.
+ * Reject the current parse if the argument types do not conform to the
+ * continuation's parameter types.
  * 
  * Parameters:
- *    aMap - A map.
- *    transformer - A function that accepts the bindings of the map. The first
- *       argument is a key from the map, the second is a value from the map.
- *       This function answers a replacement value for the given binding.
+ *    continuationType -
+ *    argumentsType -
  * Returns:
- *    A map of results of applications of `transformer` to the elements of
- *    `aMap`.
+ *    ⊥.
  */
-Method "map_through_" is
+Semantic restriction "_(«_‡,»)" is
 [
-	aMap : map,
-	transformer : [⊥, ⊥]→any
+	continuationType : continuation meta,
+	argumentsType : tuple meta
 |
-	index : natural number := 1;
-	bindings ::= aMap's bindings;
-	end ::= |aMap|;
-	result : map := {};
+	functionType ::= continuationType's function type;
+	parametersType ::= functionType's parameters' type;
+	parametersSizes ::= ||parametersType||;
+	/* If `parameterSizes` = ⊥, then `parametersType` = ⊥. In this case, we
+	 * cannot statically ascertain anything interesting about the function and
+	 * the arguments to apply.
+	 */
+	If parametersSizes ≠ ⊥ then
 	[
-		$loop;
-		If index ≤ end then
+		argumentsSizes ::= ||argumentsType||;
+		validSizes ::= parametersSizes ∩ argumentsSizes;
+		If validSizes = ⊥ then
 		[
-			binding ::= bindings[index];
-			key ::= binding[1];
-			value ::= binding[2];
-			result := eject ↑result + key→invoke transformer with <key, value>;
-			↑index++;
-			Restart loop;
+			Reject parse, expected: sizesIncompatibleMessage;
 		];
-	]();
-	result;
-] : map;
-
-/**
- * Ensure that the function will accept all bindings of the map. If the map is
- * certainly nonempty, then the function cannot answer ⊥.
- *
- * Parameters:
- *    mapType -
- *    transformer -
- * Returns:
- *    A map type whose key type is the key type of `mapType`, whose value
- *    type is the return type of `transformer`, and whose cardinality is the
- *    same as `mapType`'s.
- */
-Semantic restriction "map_through_" is
-[
-	mapType : map meta,
-	transformer : [⊥, ⊥]→any's type
-|
-	Require: transformer accepts mapType;
-	If ||mapType||'s lower bound > 0 then
-	[
-		If transformer's return type = ⊥ then
+		/* Verify each of the arguments. */
+		From 1 to argumentsSizes' lower bound do
 		[
-			Reject parse, expected:
-				"repeatedly applied function to have a return type other than\
-				\| ⊥";
-		];
-	];
-	{mapType's key type → transformer's return type | ||mapType||};
-];
-
-/**
- * Iteratively apply `predicate` to each consecutive element of `aTuple`,
- * collecting those elements for which `predicate` answers `true` into a new
- * tuple (and preserving ordering). Answer the new tuple.
- * 
- * Parameters:
- *    aTuple - A tuple.
- *    predicate - A function that accepts the elements of the tuple and answers
- *       `true` iff they should be accumulated into the output tuple.
- * Returns:
- *    A tuple containing exactly those elements of `aTuple` for which
- *    `predicate` answered `true`.
- */
-Method "filter_by_" is
-[
-	aTuple : tuple,
-	predicate : [⊥]→boolean
-|
-	index : natural number := 1;
-	end ::= |aTuple|;
-	result : tuple := <>;
-	[
-		$loop;
-		If index ≤ end then
-		[
-			element ::= aTuple[index];
-			If invoke predicate with <element> then
+			index : natural number
+		|
+			If ¬argumentsType[index] ⊆ parametersType[index] then
 			[
-				result := eject ↑result ++ <element>;
+				Reject parse, expected:
+					"argument #"
+					++ primitive description of index
+					++ " of type ("
+					++ primitive description of argumentsType[index]
+					++ ") to agree with corresponding continuation's "
+					++ "parameter type ("
+					++ primitive description of parametersType[index]
+					++ ")";
 			];
-			↑index++;
-			Restart loop;
 		];
-	]();
-	result;
-] : tuple;
-
-/**
- * Ensure that the function will accept all elements of the tuple.
- * 
- * Parameters:
- *    tupleType -
- *    predicate -
- * Returns:
- *    A tuple type whose leading and default types are the same as
- *    `tupleType`'s and which has cardinality
- *    `[0..||tupleType||'s upper bound + 1)`.
- */
-Semantic restriction "filter_by_" is
-[
-	tupleType : tuple meta,
-	predicate : [⊥]→boolean's type
-|
-	Require: predicate accepts tupleType;
-	<
-		tupleType's leading types,
-		tupleType's default type…
-		| [0..||tupleType||'s upper bound + 1)
-	>;
+	];
+	⊥;
 ];
 
 /**
- * Iteratively apply `predicate` to each element of `aSet`, in no particular
- * order, collecting those elements for which `predicate` answers `true` into a
- * new set. Answer the new set.
- * 
- * Parameters:
- *    aSet - A set.
- *    predicate - A function that accepts the elements of the set and answers
- *       `true` iff they should be accumulated into the output set.
- * Returns:
- *    A set containing exactly those elements of `aSet` for which
- *    `predicate` answered `true`.
- */
-Method "filter_by_" is
-[
-	aSet : set,
-	predicate : [⊥]→boolean
-|
-	aTuple ::= aSet→tuple;
-	index : natural number := 1;
-	end ::= |aTuple|;
-	result : set := ∅;
-	[
-		$loop;
-		If index ≤ end then
-		[
-			element ::= aTuple[index];
-			If invoke predicate with <element> then
-			[
-				result := eject ↑result + element;
-			];
-			↑index++;
-			Restart loop;
-		];
-	]();
-	result;
-] : set;
-
-/**
- * Ensure that the function will accept all elements of the set.
- *
- * Parameters:
- *    setType -
- *    predicate -
- * Returns:
- *    A set type whose element type is the same as `setType`'s and which has
- *    cardinality `[0..||setType||'s upper bound + 1)`.
- */
-Semantic restriction "filter_by_" is
-[
-	setType : set meta,
-	predicate : [⊥]→boolean's type
-|
-	Require: predicate accepts setType;
-	{setType's element type | [0..||setType||'s upper bound + 1)};
-];
-
-/**
- * Iteratively apply `predicate` to each binding of `aMap`, in no particular
- * order, collecting those bindings for which `predicate` answers `true` into a
- * new map. Answer the new map.
- *
- * Parameters:
- *    aMap - A map.
- *    predicate - A function that accepts the bindings of the map and answers
- *       `true` iff they should be accumulated into the output map.
- * Returns:
- *    A map containing exactly those bindings of `aMap` for which `predicate`
- *    answered `true`.
- */
-Method "filter_by_" is
-[
-	aMap : map,
-	predicate : [⊥, ⊥]→boolean
-|
-	bindings ::= aMap's bindings;
-	index : natural number := 1;
-	end ::= |bindings|;
-	result : map := {};
-	[
-		$loop;
-		If index ≤ end then
-		[
-			binding ::= bindings[index];
-			key ::= binding[1];
-			value ::= binding[2];
-			If invoke predicate with <key, value> then
-			[
-				result := eject ↑result + key→value;
-			];
-			↑index++;
-			Restart loop;
-		];
-	]();
-	result;
-] : map;
-
-/**
- * Ensure that the function will accept all elements of the map.
- * 
- * Parameters:
- *    mapType -
- *    predicate -
- * Returns:
- *    A map type whose key and value types are the same as `mapType`'s and which
- *    has cardinality `[0..||mapType||'s upper bound + 1)`.
- */
-Semantic restriction "filter_by_" is
-[
-	mapType : map meta,
-	predicate : [⊥, ⊥]→boolean's type
-|
-	Require: predicate accepts mapType;
-	{
-		mapType's key type → mapType's value type
-		| [0..||mapType||'s upper bound)
-	};
-];
-
-/**
- * Iteratively apply `accumulator` to the consecutive elements of `aTuple` in
- * order to transform and filter its elements into a new tuple. When
- * `accumulator` is invoked, it is passed a "keeper" function. The keeper
- * function may be invoked to "save" a particular value, i.e., a value that will
- * be copied into the output tuple. The keeper function will save at most one
- * value per element of `aTuple`, i.e., each time that `accumulator` is invoked,
- * it may invoke the keeper function at most one time. Answer the new tuple.
- * 
- * Parameters:
- *    aTuple - A tuple.
- *    accumulator - A function that accepts 1) an element from `aTuple` and 2)
- *       a keeper function. The keeper function accepts an argument of the type
- *       that should be saved.
- * Returns:
- *    A tuple whose elements are those saved by the `accumulator`.
- */
-Method "map and filter_by_" is
-[
-	aTuple : tuple,
-	accumulator : [⊥, ⊥]→⊤
-|
-	index : natural number := 1;
-	end ::= |aTuple|;
-	result : tuple := <>;
-	[
-		$loop;
-		If index ≤ end then
-		[
-			hasAlreadyKept : boolean := false;
-			Invoke accumulator with
-			<
-				aTuple[index],
-				[
-					transformed : any
-				|
-					If ¬hasAlreadyKept then
-					[
-						result := eject ↑result ++ <transformed>;
-						hasAlreadyKept := true;
-					];
-				]
-			>;
-			↑index++;
-			Restart loop;
-		];
-	]();
-	result;
-] : tuple;
-
-/**
- * Helper method for semantic restrictions: If `action`'s last parameter does
- * not accept an arity-one procedure, then reject the current parse.
+ * Helper method for semantic restrictions of `map and filter_by_`: If
+ * `action`'s last parameter does not accept an arity-one procedure, then reject
+ * the current parse.
  * 
  * Parameters:
  *    action - A function type whose last parameter type must permit a
  *       one-argument procedure.
- *    tupleType - A tuple type.
  */
 Method "Require:_'s⁇keeper is valid" is
 [
@@ -1241,204 +724,6 @@ Method "Require:_'s⁇keeper is valid" is
 			++ primitive description of action[parametersSize]
 			++ ")";
 	];
-];
-
-/**
- * Ensure that the function will accept all arguments of the tuple and also an
- * appropriately typed keeper function.
- *
- * Parameters:
- *    tupleType -
- *    accumulator -
- * Returns:
- *    A tuple type with no leading types whose default type is the argument type
- *    of the keeper function and whose cardinality is
- *    `[0..||tupleType||'s upper bound + 1)`.
- */
-Semantic restriction "map and filter_by_" is
-[
-	tupleType : tuple meta,
-	accumulator : [⊥, ⊥]→⊤'s type
-|
-	Require: accumulator accepts tupleType;
-	Require: accumulator's keeper is valid;
-	If accumulator's return type ≠ ⊤ then
-	[
-		Reject parse, expected:
-			"repeatedly applied function to have return type ⊤";
-	];
-	<
-		<>,
-		cast accumulator[2] into [ t : function meta | t[1]; ]…
-		| [0..||tupleType||'s upper bound + 1)
-	>;
-];
-
-/**
- * Iteratively apply `accumulator` to the elements of `aSet`, in no particular
- * order, in order to transform and filter its elements into a new set. When
- * `accumulator` is invoked, it is passed a "keeper" function. The keeper
- * function may be invoked to "save" a particular value, i.e., a value that will
- * be copied into the output set. The keeper function will save at most one
- * value per element of `aSet`, i.e., each time that `accumulator` is invoked,
- * it may invoke the keeper function at most one time. Answer the new set.
- * 
- * Parameters:
- *    aSet - A set.
- *    accumulator - A function that accepts 1) an element from `aSet` and 2)
- *       a keeper function. The keeper function accepts an argument of the type
- *       that should be saved.
- * Returns:
- *    A set whose elements are those saved by the `accumulator`.
- */
-Method "map and filter_by_" is
-[
-	aSet : set,
-	accumulator : [⊥, ⊥]→⊤
-|
-	aTuple ::= aSet→tuple;
-	index : natural number := 1;
-	end ::= |aTuple|;
-	result : set := ∅;
-	[
-		$loop;
-		If index ≤ end then
-		[
-			hasAlreadyKept : boolean := false;
-			Invoke accumulator with
-			<
-				aTuple[index],
-				[
-					transformed : any
-				|
-					If ¬hasAlreadyKept then
-					[
-						result := eject ↑result + transformed;
-						hasAlreadyKept := true;
-					];
-				]
-			>;
-			↑index++;
-			Restart loop;
-		];
-	]();
-	result;
-] : set;
-
-/**
- * Ensure that the function will accept all arguments of the set and also an
- * appropriately typed keeper function.
- *
- * Parameters:
- *    setType -
- *    accumulator -
- * Returns:
- *    A set type whose element type is the argument type of the keeper function
- *    and whose cardinality is `[0..||setType||'s upper bound + 1)`.
- */
-Semantic restriction "map and filter_by_" is
-[
-	setType : set meta,
-	accumulator : [⊥, ⊥]→⊤'s type
-|
-	Require: accumulator accepts setType;
-	Require: accumulator's keeper is valid;
-	If accumulator's return type ≠ ⊤ then
-	[
-		Reject parse, expected:
-			"repeatedly applied function to have return type ⊤";
-	];
-	{
-		cast accumulator[2] into [ t : function meta | t[1]; ]
-		| [0..||setType||'s upper bound + 1)
-	};
-];
-
-/**
- * Iteratively apply `accumulator` to the bindings of `aMap`, in no particular
- * order, in order to transform and filter its bindings into a new map. When
- * `accumulator` is invoked, it is passed a "keeper" function. The keeper
- * function may be invoked to "save" a particular value, i.e., a value that will
- * be associated with the current key in the output set. The keeper function
- * will save at most one value per binding of `aSet`, i.e., each time that
- * `accumulator` is invoked, it may invoke the keeper function at most one time.
- * Answer the new map.
- * 
- * Parameters:
- *    aMap - A map.
- *    accumulator - A function that accepts 1) a key from `aMap`, 2) the value
- *       associated with that key, and 3) a keeper function. The keeper function
- *       accepts an argument of the (value) type that should be saved.
- * Returns:
- *    A map whose bindings are those saved by the `accumulator`.
- */
-Method "map and filter_by_" is
-[
-	aMap : map,
-	accumulator : [⊥, ⊥, ⊥]→⊤
-|
-	bindings ::= aMap's bindings;
-	index : natural number := 1;
-	end ::= |bindings|;
-	result : map := {};
-	[
-		$loop;
-		If index ≤ end then
-		[
-			hasAlreadyKept : boolean := false;
-			binding ::= bindings[index];
-			key ::= binding[1];
-			value ::= binding[2];
-			Invoke accumulator with
-			<
-				key,
-				value,
-				[
-					transformed : any
-				|
-					If ¬hasAlreadyKept then
-					[
-						result := eject ↑result + key→transformed;
-						hasAlreadyKept := true;
-					];
-				]
-			>;
-			↑index++;
-			Restart loop;
-		];
-	]();
-	result;
-] : map;
-
-/**
- * Ensure that the function will accept all bindings of the map and also an
- * appropriately typed keeper function.
- *
- * Parameters:
- *    mapType -
- *    accumulator -
- * Returns:
- *    A map type whose key type is the key type of `mapType`, whose value type
- *    is the parameter type of the keeper function, and whose cardinality is
- *    `[0..||mapType||'s upper bound + 1)`.
- */
-Semantic restriction "map and filter_by_" is
-[
-	mapType : map meta,
-	accumulator : [⊥, ⊥, ⊥]→⊤'s type
-|
-	Require: accumulator accepts mapType;
-	Require: accumulator's keeper is valid;
-	If accumulator's return type ≠ ⊤ then
-	[
-		Reject parse, expected:
-			"repeatedly applied function to have return type ⊤";
-	];
-	valueType ::= cast accumulator[3] into [ t : function meta | t[1]; ];
-	{
-		mapType's key type → valueType
-		| [0..||mapType||'s upper bound + 1)
-	};
 ];
 
 /**
@@ -1570,7 +855,7 @@ Semantic restriction "if~_then_«else if_then_»«else_»" is
 			ambiguous := true;
 			union := eject ↑union ∪ firstThen's return type;
 		];
-		elseIfTupleSize ::= ||elseIfTuple||'s lower bound;
+		elseIfTupleSize ::= relevant |elseIfTuple|;
 		/* `keepLooping` tracks whether it is necessary to continue examining
 		 * predicate/action pairs. It is set to `false` when a predicate is
 		 * discovered that answers `true's type`. No predicate/action pairs
@@ -1585,7 +870,7 @@ Semantic restriction "if~_then_«else if_then_»«else_»" is
 			elseIf ::= elseIfTuple[index];
 			predicateReturnType ::= elseIf[1]'s return type;
 			actionReturnType ::= elseIf[2]'s return type;
-			If predicateReturnType = true's type ∧ [ ¬ambiguous; ] then
+			If ¬ambiguous ∧ [ predicateReturnType = true's type; ] then
 			[
 				exact := actionReturnType;
 			];
@@ -1650,7 +935,6 @@ Semantic restriction "if~_then_«else if_then_»«else_»" is
 		];
 	];
 ];
-
 /**
  * Given a predicate value and a function, invoke the specified function only if
  * the predicate is `false`. This is the inverse of `If_then_`.
@@ -1746,6 +1030,301 @@ Semantic restriction "unless~_then_else_" is
 	trueFunction : []→⊤'s type
 |
 	trueFunction's return type;
+];
+
+
+/**
+ * Multiply branching conditional statement/expression. Execute the first
+ * action for which the associated predicate answers `false`. If none of the
+ * predicates answer `false`, then execute the "else" action. If no "else"
+ * action is provided, then do not execute any of the action blocks.
+ * 
+ * Parameters:
+ *    firstPredicate - The first predicate. This argument is a raw boolean
+ *       rather than a function answering a boolean, because it must always be
+ *       evalutated (and hence there is no point deferring its evaluation).
+ *    firstThen - The action to perform if `firstPredicate` is `false`.
+ *    elseUnlessTuple - A lexically constructed tuple of 2-tuples. Each 2-tuple
+ *       has as its first element a predicate function and as its second element
+ *       an action to perform if the predicate function answers `false`.
+ *    else - A lexically constructed tuple that optionally contains the action
+ *       to perform if `firstPredicate` is `true` and all predicates of
+ *       `elseIfTuple` answer `true`.
+ * Returns:
+ *    If used as an expression, then the value of the selected action.
+ */
+Method "unless~_then_«else unless_then_»«else_»" is
+[
+	firstPredicate : boolean,
+	firstThen : []→⊤,
+	elseUnlessTuple : <<[]→boolean, []→⊤…|2>…|1..>,
+	else : <[]→⊤…|0..1>
+|
+	if firstPredicate then
+	[
+		firstThen();
+	]
+	else
+	[
+		/* Choose the first of the remaining clauses for which the associated
+		 * predicate is `false`.
+		 */
+		action : []→⊤;
+		From 1 to |elseUnlessTuple| do
+		[
+			index : natural number
+		|
+			Unless elseUnlessTuple[index][1]() then
+			[
+				action := elseUnlessTuple[index][2];
+			];
+			↑action is unassigned;
+		];
+		/* If none of the predicates answered `false`, then choose the "else"
+		 * clause (if one was provided).
+		 */
+		If ↑action is unassigned ∧ [ |else| = 1; ] then
+		[
+			action := else[1];
+		];
+		if ↑action is unassigned then
+		[
+			/* Do nothing. */
+		]
+		else
+		[
+			action();
+		];
+	];
+] : ⊤;
+
+/**
+ * Provide the strongest possible return type. If no "else" action is provided,
+ * but the chain of predicates does not definitely indicate a particular action,
+ * then answer ⊤. The weakest possible (but actual) strengthening is the type
+ * union of the return types of all actions whose associated predicates are not
+ * guaranteed to answer `true`. The greatest possible strengthening occurs when
+ * an action whose predicate is guaranteed to answer `false` is preceded only by
+ * actions whose predicates are guaranteed to answer `true`; in this case,
+ * answer this action's return type.
+ * 
+ * Parameters:
+ *    firstPredicate -
+ *    firstThen -
+ *    elseUnlessTuple -
+ *    else -
+ * Returns:
+ *    The strongest possible type for the expression.
+ */
+Semantic restriction "unless~_then_«else unless_then_»«else_»" is
+[
+	firstPredicate : boolean's type,
+	firstThen : []→⊤'s type,
+	elseUnlessTuple : <<[]→boolean, []→⊤…|2>…|1..>'s type,
+	else : <[]→⊤…|0..1>'s type
+|
+	/* `ambiguous` tracks whether any of the predicates cannot be proven to
+	 * answer a specific value. It is set to `true` when a predicate's return
+	 * type cannot be specifically established, i.e., when it is only known to
+	 * be `boolean`.
+	 */
+	ambiguous : boolean := false;
+	/* `exact` is assigned only if an exact type can be established for the
+	 * current call site. In particular, this occurs when a predicate's return
+	 * type is `false's type` but `ambiguous` is not set. `exact` is set in only
+	 * two cases: 1) every previous predicate answers `true's type` but the
+	 * current predicate answers `false's type` and 2) no preceding predicate
+	 * has answered `false's type` and no "else" action has been provided.
+	 */
+	exact : type;
+	/* `union` tracks the general type of the expression. Every predicate that
+	 * answers `boolean` prior to the first predicate that answers `false's
+	 * type` should have its action's return type accumulated via type union
+	 * with `union`. (Every predicate/action pair after the first that answers
+	 * `false's type` may be ignored, as its action's return value does not
+	 * participate in the final result.)
+	 */
+	union : type := ⊥;
+	/* Handle `firstPredicate` specially (because it is lexically distinct from
+	 * `elseIfTuple`).
+	 */
+	If firstPredicate = false's type then
+	[
+		exact := firstThen's return type;
+	]
+	else
+	[
+		/* If `firstPredicate` is `boolean`, then the expression is already
+		 * ambiguous. Set the flag and begin accumulating the expression's type.
+		 */
+		If firstPredicate = boolean then
+		[
+			ambiguous := true;
+			union := eject ↑union ∪ firstThen's return type;
+		];
+		elseUnlessTupleSize ::= relevant |elseUnlessTuple|;
+		/* `keepLooping` tracks whether it is necessary to continue examining
+		 * predicate/action pairs. It is set to `false` when a predicate is
+		 * discovered that answers `true's type`. No predicate/action pairs
+		 * beyond such a one participate in determination of the result type,
+		 * i.e., they are guaranteed not to execute at runtime.
+		 */
+		keepLooping : boolean := true;
+		From 1 to elseUnlessTupleSize do
+		[
+			index : natural number
+		|
+			elseUnless ::= elseUnlessTuple[index];
+			predicateReturnType ::= elseUnless[1]'s return type;
+			actionReturnType ::= elseUnless[2]'s return type;
+			If ¬ambiguous ∧ [ predicateReturnType = true's type; ] then
+			[
+				exact := actionReturnType;
+			];
+			keepLooping :=
+				if ↑exact is assigned then
+				[
+					false;
+				]
+				else
+				[
+					If predicateReturnType ≠ true's type then
+					[
+						ambiguous := true;
+						union := eject ↑union ∪ actionReturnType;
+					];
+					/* If the predicate's return type is `false's type`, then we
+					 * want to exit the loop early no matter what else has
+					 * happened up to this point. No further predicate/action
+					 * pairs can participate in determining a result.
+					 */
+					predicateReturnType ≠ (false's type);
+				];
+			keepLooping;
+		];
+		/* Unless we exited the loop early (`keepLooping` = `false`), then we
+		 * want to give the "else" action an opportunity to participate.
+		 */
+		If keepLooping then
+		[
+			If ||else||'s lower bound = 1 then
+			[
+				elseReturnType ::= else[1]'s return type;
+				If ¬ambiguous then
+				[
+					exact := elseReturnType;
+				]
+				else
+				[
+					union := eject ↑union ∪ elseReturnType;
+				];
+			]
+			else
+			[
+				exact := ⊤;
+			];
+		];
+	];
+	/* Produce the final answer. */
+	if ↑exact is assigned then
+	[
+		exact;
+	]
+	else
+	[
+		if ambiguous then
+		[
+			union;
+		]
+		else
+		[
+			⊤;
+		];
+	];
+];
+
+/**
+ * Basic conditional loop. Invoke `action`. If `action` answers `true`, then
+ * repeat.
+ * 
+ * Parameters:
+ *    action - The function to apply repeatedly. It must answer `true` if it
+ *       should run again.
+ */
+Method "While_" is
+[
+	action : []→boolean
+|
+	$loop;
+	If action() then
+	[
+		Restart loop;
+	];
+] : ⊤;
+
+/**
+ * If `action` certainly answers `true`, then answer ⊥ (because the loop will
+ * run forever).
+ *
+ * Parameters:
+ *    action -
+ * Returns:
+ *    Either ⊤ or ⊥.
+ */
+Semantic restriction "While_" is
+[
+	action : []→boolean's type
+|
+	if action's return type = true's type then
+	[
+		⊥;
+	]
+	else
+	[
+		⊤;
+	];
+];
+
+/**
+ * Basic conditional loop. Invoke `action`. If `action` answers `false`, then
+ * repeat.
+ * 
+ * Parameters:
+ *    action - The function to apply repeatedly. It must answer `false` if it
+ *       should run again.
+ */
+Method "Until_" is
+[
+	action : []→boolean
+|
+	$loop;
+	Unless action() then
+	[
+		Restart loop;
+	];
+] : ⊤;
+
+/**
+ * If `action` certainly answers `false`, then answer ⊥ (because the loop will
+ * run forever).
+ *
+ * Parameters:
+ *    action -
+ * Returns:
+ *    Either ⊤ or ⊥.
+ */
+Semantic restriction "Until_" is
+[
+	action : []→boolean's type
+|
+	if action's return type = false's type then
+	[
+		⊥;
+	]
+	else
+	[
+		⊤;
+	];
 ];
 
 /**
@@ -1934,4 +1513,250 @@ Semantic restriction "Do_until_" is
 	[
 		⊤;
 	];
+];
+
+/**
+ * Invoke the first function of `caseTuple` that accepts `value`. If no such
+ * function is specified, then invoke `else`. If `else` is not specified, then
+ * do nothing.
+ * 
+ * Parameters:
+ *    value - An arbitrary value.
+ *    caseTuple - A tuple of arity-1 functions. The first of these able to
+ *       accept `value` will be applied to it.
+ *    else - An optional arity-0 function. If provided, then it will be invoked
+ *       iff no function of `caseTuple` is able to accept `value`.
+ * Returns:
+ *    The result of whatever function is applied.
+ */
+Method "cast~_into«_‡,»«else_»" is
+[
+	value : any,
+	caseTuple : <[⊥]→⊤…|2..>,
+	else : <[]→⊤…|0..1>
+|
+	index : natural number := 1;
+	[
+		$body;
+		if index > |caseTuple| then
+		[
+			if |else| = 0 then
+			[
+				/* Do nothing. */
+			]
+			else
+			[
+				invoke else[1] with <>;
+			];
+		]
+		else if [ value ∈ caseTuple[index]'s type[1]; ] then
+		[
+			invoke caseTuple[index] with <value>;
+		]
+		else
+		[
+			↑index++;
+			Restart body;
+		];
+	]();
+] : ⊤;
+
+/**
+ * Strengthen the return type of `cast~_into«_‡,»«else_»` so that it may be used
+ * as a value-producing expression. If any case is unnecessary or invalid, then
+ * reject the current parse.
+ *
+ * Parameters:
+ *    valueType -
+ *    caseTuple -
+ *    else -
+ * Returns:
+ *    The type union of the return types of all cases and `else`.
+ */
+Semantic restriction "cast~_into«_‡,»«else_»" is
+[
+	valueType : any meta,
+	caseTuple : <[⊥]→⊤…|2..>'s type,
+	else : <[]→⊤…|0..1>'s type
+|
+	acceptSize ::= relevant |caseTuple|;
+	union : type := ⊥;
+	From 1 to |acceptSize| do
+	[
+		index : natural number
+	|
+		functionType ::= caseTuple[index];
+		If valueType ⊆ functionType[1] then
+		[
+			Reject parse, expected:
+				"necessary cast expression, but "
+				++ primitive description of valueType
+				++ " is a subtype of "
+				++ primitive description of functionType[1];
+		];
+		If valueType ∩ (functionType[1]) = ⊥ then
+		[
+			Reject parse, expected:
+				"allowed cast expression, but "
+				++ primitive description of valueType
+				++ " is not a supertype of "
+				++ primitive description of functionType[1];
+		];
+		union := eject ↑union ∪ functionType's return type;
+	];
+	If ||else||'s lower bound = 1 then
+	[
+		union := eject ↑union ∪ else[1]'s return type;
+	];
+	union;
+];
+
+/**
+ * Case statement/expression. `enum` is an enumeration. `value` must be one of
+ * the instances of `enum`. Choose the case corresponding to `value` and perform
+ * its associated action. If no case corresponds to `value`, then perform the
+ * `else` action. `else` must be provided unless `caseTuple` specifically
+ * represents each value of `enum`.
+ * 
+ * Parameters:
+ *    value - An instance of `enum`.
+ *    enum - An enumeration.
+ *    caseTuple - A tuple of 2-tuples whose first element is an instance of
+ *       `enum` and whose second element is an arity-0 function. This function
+ *       will be performed if `value` equals the first element.
+ *    else - A tuple optionally containing the function to invoke if `value`
+ *       does not match any of the cases. This represents the default case.
+ * Returns:
+ *    The return value of the chosen function.
+ */
+Method "choose~_from_where«_is_‡,»«else_»" is
+[
+	value : any,
+	enum : type,
+	caseTuple : <<any, []→⊤…|2>…|1..>,
+	else : <[]→⊤…|0..1>
+|
+	index : natural number := 1;
+	[
+		$body;
+		if index > |caseTuple| then
+		[
+			if |else| = 0 then
+			[
+				/* Do nothing. */
+			]
+			else
+			[
+				invoke else[1] with <>;
+			];
+		]
+		else if [ caseTuple[index][1] = value; ] then
+		[
+			invoke caseTuple[index][2] with <>;
+		]
+		else
+		[
+			↑index++;
+			Restart body;
+		];
+	]();
+] : ⊤;
+
+/**
+ * Reject the current parse unless all of the following are true:
+ *
+ * - `meta`'s sole instance is an enumeration.
+ * - `valueType` is an instance of `meta`.
+ * - Each case's selector is a statically known value.
+ * - Each case's selector is an instance of the enumeration.
+ * - Every value of the enumeration is handled by a case, either explicitly or
+ *   implicitly by the default case.
+ * - Each case's selector occurs only once.
+ *
+ * Parameters:
+ *    valueType - The decider's type.
+ *    meta - An enumeration's type.
+ *    caseTuple - A tuple type whose default element type is a 2-tuple type
+ *       whose first element type's instance is an instance of `meta`'s instance
+ *       and whose second element type is an arity-0 function type.
+ *    else - A tuple type whose default type is an arity-0 function type.
+ * Returns:
+ *    The type union of the return types of the case functions that could
+ *    actually run.
+ */
+Semantic restriction "choose~_from_where«_is_‡,»«else_»" is
+[
+	valueType : any meta,
+	meta : type's type,
+	caseTuple : <<any, []→⊤…|2>…|1..>'s type,
+	else : <[]→⊤…|0..1>'s type
+|
+	$body : type;
+	If |meta| ≠ 1 ∨ [ ¬0 < |meta's instance| < ∞; ] then
+	[
+		Reject parse, expected: "enumeration to be statically known";
+	];
+	If ¬valueType ∈ meta then
+	[
+		Reject parse, expected:
+			"case selector ("
+			++ primitive description of valueType
+			++ ") to be an instance of "
+			++ primitive description of meta;
+	];
+	enum ::= meta's instance;
+	caseEnum : type := ⊥;
+	union : type := ⊥;
+	From 1 to relevant |caseTuple| do
+	[
+		index : natural number
+	|
+		case ::= caseTuple[index];
+		If |case[1]| ≠ 1 then
+		[
+			Reject parse, expected:
+				"all cases to be statically known values, but discovered "
+				++ primitive description of case[1];
+		];
+		instance ::= case[1]'s instance;
+		If ¬instance ∈ enum then
+		[
+			Reject parse, expected:
+				"all cases to be instances of "
+				++ primitive description of enum
+				++ ", but "
+				++ primitive description of instance
+				++ " is not";
+		];
+		If case[1] ⊆ caseEnum then
+		[
+			Reject parse, expected:
+				"each case to be unique, but "
+				++ primitive description of instance
+				++ " occurs more than once";
+		];
+		caseEnum := eject ↑caseEnum ∪ case[1];
+		If |valueType| = 1 ∧ [ valueType = case[1]; ] then
+		[
+			Exit body with case[2]'s return type;
+		];
+		If valueType ∩ (case[1]) ≠ ⊥ then
+		[
+			union := eject ↑union ∪ case[2]'s return type;
+		];
+	];
+	If caseEnum ≠ enum ∧ [ ||else||'s lower bound ≠ 1; ] then
+	[
+		allCases ::= enum's instances;
+		handledCases ::= caseEnum's instances;
+		unhandledCases ::= allCases \ handledCases;
+		Reject parse, expected:
+			"all cases to be handled, but these cases are not: "
+			++ primitive description of unhandledCases;
+	];
+	If ¬valueType ⊆ caseEnum then
+	[
+		union := eject ↑union ∪ else[1]'s return type;
+	];
+	union;
 ];

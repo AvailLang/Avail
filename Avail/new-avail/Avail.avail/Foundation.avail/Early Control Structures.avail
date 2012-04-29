@@ -252,8 +252,8 @@ Semantic restriction "cast~_into_else_" is
 
 /**
  * Strengthen the return type of `cast~_into_` so that it may be used as a
- * value-producing expression. If the type cast is unnecessary, then reject the
- * current parse.
+ * value-producing expression. If the type cast is unnecessary or invalid, then
+ * reject the current parse.
  *
  * Parameters:
  *    value -

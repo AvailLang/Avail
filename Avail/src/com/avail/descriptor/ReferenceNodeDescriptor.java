@@ -154,7 +154,7 @@ extends ParseNodeDescriptor
 		final List<AvailObject> recursionList,
 		final int indent)
 	{
-		builder.append("&");
+		builder.append("↑");
 		builder.append(
 			object.variable().token().string().asNativeString());
 	}

@@ -1,0 +1,342 @@
+/*
+ * Sets.avail
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Sets"
+Versions
+	"dev"
+Extends
+	"Collections",
+	"Early Sets"
+Uses
+	"Bootstrap",
+	"Control Structures",
+	"Early Functions",
+	"Early Tuples",
+	"Early Types",
+	"Literals",
+	"Logic",
+	"Math",
+	"Variables"
+Body
+
+/**
+ * Is the specified set empty?
+ *
+ * Parameters:
+ *    aSet - A set.
+ * Returns:
+ *    `true` if the argument is empty, `false` otherwise.
+ */
+Method "_is empty" is
+[
+	aSet : set
+|
+	|aSet| = 0;
+];
+
+/**
+ * Iteratively apply `action` to each element of `aSet`, but in no particular
+ * order.
+ * 
+ * Parameters:
+ *    aSet - A set.
+ *    action - A function that accepts the elements of the set.
+ */
+Method "For each_do_" is
+[
+	aSet : set,
+	action : [⊥]→⊤
+|
+	index : natural number := 1;
+	aTuple ::= aSet→tuple;
+	end ::= |aTuple|;
+	[
+		$loop;
+		If index ≤ end then
+		[
+			Invoke action with <aTuple[index]>;
+			↑index++;
+			Restart loop;
+		];
+	]();
+] : ⊤;
+
+/**
+ * Helper method for semantic restrictions: If `action` does not accept the
+ * element types of `setType`, then reject the current parse.
+ * 
+ * Parameters:
+ *    action - A function type whose first argument must correspond to the
+ *       element type of `setType`.
+ *    setType - A set type.
+ */
+Method "Require:_accepts_" is
+[
+	action : function meta,
+	setType : set meta
+|
+	If ¬setType's element type ⊆ action[1] then
+	[
+		Reject parse, expected:
+			"repeatedly applied function to accept all elements of the set ∈ "
+			++ primitive description of setType
+			++ " (but it only accepts "
+			++ primitive description of action[1]
+			++ ")";
+	];
+] : ⊤;
+
+/**
+ * Ensure that the function will accept all elements of the set. If the set is
+ * certainly nonempty and the function certainly does not complete if applied,
+ * then answer ⊥.
+ * 
+ * Parameters:
+ *    setType -
+ *    action -
+ * Returns:
+ *    Either ⊤ or ⊥.
+ */
+Semantic restriction "For each_do_" is
+[
+	setType : set meta,
+	action : [⊥]→⊤'s type
+|
+	Require: action accepts setType;
+	if ||setType||'s lower bound > 0 ∧ [ action's return type = ⊥; ] then
+	[
+		⊥;
+	]
+	else
+	[
+		⊤;
+	];
+];
+
+/**
+ * Iteratively apply `transformer` to each element of `aSet`, collecting the
+ * results into a new tuple. The set is traversed in no particular order. Answer
+ * the resultant set.
+ *
+ * Parameters:
+ *    aSet - A set.
+ *    transformer - A function that accepts the elements of the set.
+ * Returns:
+ *    A set of results of applications of `transformer` to the elements of
+ *    `aSet`.
+ */
+Method "map_through_" is
+[
+	aSet : set,
+	transformer : [⊥]→any
+|
+	aTuple ::= aSet→tuple;
+	index : natural number := 1;
+	end ::= |aTuple|;
+	result : set := ∅;
+	[
+		$loop;
+		If index ≤ end then
+		[
+			result := eject ↑result + invoke transformer with <aTuple[index]>;
+			↑index++;
+			Restart loop;
+		];
+	]();
+	result;
+] : set;
+
+/**
+ * Ensure that the function will accept all elements of the set. If the set is
+ * certainly nonempty, then the function cannot answer ⊥.
+ *
+ * Parameters:
+ *    setType -
+ *    transformer -
+ * Returns:
+ *    A set type whose element type is the return type of `transformer` and
+ *    whose cardinality is the same as `setType`'s.
+ */
+Semantic restriction "map_through_" is
+[
+	setType : set meta,
+	transformer : [⊥]→any's type
+|
+	Require: transformer accepts setType;
+	If ||setType||'s lower bound > 0 then
+	[
+		If transformer's return type = ⊥ then
+		[
+			Reject parse, expected:
+				"repeatedly applied function to have a return type other than\
+				\| ⊥";
+		];
+	];
+	{transformer's return type | ||setType||};
+];
+
+/**
+ * Iteratively apply `predicate` to each element of `aSet`, in no particular
+ * order, collecting those elements for which `predicate` answers `true` into a
+ * new set. Answer the new set.
+ * 
+ * Parameters:
+ *    aSet - A set.
+ *    predicate - A function that accepts the elements of the set and answers
+ *       `true` iff they should be accumulated into the output set.
+ * Returns:
+ *    A set containing exactly those elements of `aSet` for which
+ *    `predicate` answered `true`.
+ */
+Method "filter_by_" is
+[
+	aSet : set,
+	predicate : [⊥]→boolean
+|
+	aTuple ::= aSet→tuple;
+	index : natural number := 1;
+	end ::= |aTuple|;
+	result : set := ∅;
+	[
+		$loop;
+		If index ≤ end then
+		[
+			element ::= aTuple[index];
+			If invoke predicate with <element> then
+			[
+				result := eject ↑result + element;
+			];
+			↑index++;
+			Restart loop;
+		];
+	]();
+	result;
+] : set;
+
+/**
+ * Ensure that the function will accept all elements of the set.
+ *
+ * Parameters:
+ *    setType -
+ *    predicate -
+ * Returns:
+ *    A set type whose element type is the same as `setType`'s and which has
+ *    cardinality `[0..||setType||'s upper bound + 1)`.
+ */
+Semantic restriction "filter_by_" is
+[
+	setType : set meta,
+	predicate : [⊥]→boolean's type
+|
+	Require: predicate accepts setType;
+	{setType's element type | [0..||setType||'s upper bound + 1)};
+];
+
+/**
+ * Iteratively apply `accumulator` to the elements of `aSet`, in no particular
+ * order, in order to transform and filter its elements into a new set. When
+ * `accumulator` is invoked, it is passed a "keeper" function. The keeper
+ * function may be invoked to "save" a particular value, i.e., a value that will
+ * be copied into the output set. The keeper function will save at most one
+ * value per element of `aSet`, i.e., each time that `accumulator` is invoked,
+ * it may invoke the keeper function at most one time. Answer the new set.
+ * 
+ * Parameters:
+ *    aSet - A set.
+ *    accumulator - A function that accepts 1) an element from `aSet` and 2)
+ *       a keeper function. The keeper function accepts an argument of the type
+ *       that should be saved.
+ * Returns:
+ *    A set whose elements are those saved by the `accumulator`.
+ */
+Method "map and filter_by_" is
+[
+	aSet : set,
+	accumulator : [⊥, ⊥]→⊤
+|
+	aTuple ::= aSet→tuple;
+	index : natural number := 1;
+	end ::= |aTuple|;
+	result : set := ∅;
+	[
+		$loop;
+		If index ≤ end then
+		[
+			hasAlreadyKept : boolean := false;
+			Invoke accumulator with
+			<
+				aTuple[index],
+				[
+					transformed : any
+				|
+					If ¬hasAlreadyKept then
+					[
+						result := eject ↑result + transformed;
+						hasAlreadyKept := true;
+					];
+				]
+			>;
+			↑index++;
+			Restart loop;
+		];
+	]();
+	result;
+] : set;
+
+/**
+ * Ensure that the function will accept all arguments of the set and also an
+ * appropriately typed keeper function.
+ *
+ * Parameters:
+ *    setType -
+ *    accumulator -
+ * Returns:
+ *    A set type whose element type is the argument type of the keeper function
+ *    and whose cardinality is `[0..||setType||'s upper bound + 1)`.
+ */
+Semantic restriction "map and filter_by_" is
+[
+	setType : set meta,
+	accumulator : [⊥, ⊥]→⊤'s type
+|
+	Require: accumulator accepts setType;
+	Require: accumulator's keeper is valid;
+	If accumulator's return type ≠ ⊤ then
+	[
+		Reject parse, expected:
+			"repeatedly applied function to have return type ⊤";
+	];
+	{
+		cast accumulator[2] into [ t : function meta | t[1]; ]
+		| [0..||setType||'s upper bound + 1)
+	};
+];

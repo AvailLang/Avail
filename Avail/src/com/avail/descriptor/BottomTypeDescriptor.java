@@ -568,7 +568,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	@NotNull AvailObject o_ReturnType (final AvailObject object)
 	{
-		throw unsupportedOperationException();
+		return object;
 	}
 
 	@Override @AvailMethod
