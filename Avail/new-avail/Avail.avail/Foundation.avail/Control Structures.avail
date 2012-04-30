@@ -37,7 +37,6 @@ Extends
 	"Early Control Structures" =
 	(
 		"(_)",
-		"Exit_",
 		"cast~_into_else_",
 		"cast~_into_"
 	)
@@ -57,6 +56,7 @@ Uses
 Names
 	"Do_until_",
 	"Do_while_",
+	"Exit_",
 	"From_to_by_do_",
 	"From_to_do_",
 	"Repeat_",
@@ -65,8 +65,9 @@ Names
 	"Until_do_",
 	"While_",
 	"While_do_",
-	"cast~_into«_‡,»«else_»",
-	"choose~_from_where«_is_‡,»«else_»",
+	"cast~_into«_‡or»«else_»",
+	"choose~_from_where«_is_‡and»«and others are_»",
+	"here",
 	"if~_then_«else if_then_»«else_»",
 	"unless~_then_else_",
 	"unless~_then_«else unless_then_»«else_»",
@@ -84,6 +85,24 @@ Names
 	 */
 	"Require:_'s⁇keeper is valid"
 Body
+
+/**
+ * Exit the continuation. Execution proceeds as though the continuation had just
+ * returned from its current function. The current continuation is completely
+ * replaced by the specified continuation's resumed caller.
+ *
+ * Parameters:
+ *    aContinuation - The continuation to exit.
+ */
+Method "Exit_" is
+[
+	aContinuation : $[…]→⊤
+|
+	/* Since the continuation's return type is ⊤, the primitive will discard
+	 * the argument, so it can be anything.
+	 */
+	Exit aContinuation with <>;
+] : ⊥;
 
 /**
  * Reject the current parse unless the value supplied upon exit of a
@@ -151,6 +170,23 @@ Semantic restriction "Restart_with_" is
 	];
 	⊥;
 ];
+
+/**
+ * Answer a continuation that represents (approximately) the current
+ * continuation. This facility may be used to simulate labels within (but not at
+ * the start of) blocks. The answer may be restarted, but not exited, which
+ * causes execution to resume at the point where the continuation is computed
+ * and answered.
+ * 
+ * Returns:
+ *    A continuation which, when restarted, causes `here` to answer the
+ *    continuation again.
+ */
+Method "here" is
+[
+	$body : $[]→⊥;
+	body;
+] : $[]→⊥;
 
 /**
  * Basic unconditional loop. Repeatedly invoke `action`.
@@ -1529,7 +1565,7 @@ Semantic restriction "Do_until_" is
  * Returns:
  *    The result of whatever function is applied.
  */
-Method "cast~_into«_‡,»«else_»" is
+Method "cast~_into«_‡or»«else_»" is
 [
 	value : any,
 	caseTuple : <[⊥]→⊤…|2..>,
@@ -1573,7 +1609,7 @@ Method "cast~_into«_‡,»«else_»" is
  * Returns:
  *    The type union of the return types of all cases and `else`.
  */
-Semantic restriction "cast~_into«_‡,»«else_»" is
+Semantic restriction "cast~_into«_‡or»«else_»" is
 [
 	valueType : any meta,
 	caseTuple : <[⊥]→⊤…|2..>'s type,
@@ -1629,7 +1665,7 @@ Semantic restriction "cast~_into«_‡,»«else_»" is
  * Returns:
  *    The return value of the chosen function.
  */
-Method "choose~_from_where«_is_‡,»«else_»" is
+Method "choose~_from_where«_is_‡and»«and others are_»" is
 [
 	value : any,
 	enum : type,
@@ -1684,7 +1720,7 @@ Method "choose~_from_where«_is_‡,»«else_»" is
  *    The type union of the return types of the case functions that could
  *    actually run.
  */
-Semantic restriction "choose~_from_where«_is_‡,»«else_»" is
+Semantic restriction "choose~_from_where«_is_‡and»«and others are_»" is
 [
 	valueType : any meta,
 	meta : type's type,

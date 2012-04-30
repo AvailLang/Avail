@@ -40,7 +40,6 @@ Uses
 	"Early Enumeration Support"
 Names
 	"(_)",
-	"Exit_",
 	"From_to_do_",
 	"cast~_into_else_",
 	"cast~_into_"
@@ -312,24 +311,6 @@ Invoke
 	Grammatical restriction names is <names>;
 ]
 with <>;
-
-/**
- * Exit the continuation. Execution proceeds as though the continuation had just
- * returned from its current function. The current continuation is completely
- * replaced by the specified continuation's resumed caller.
- *
- * Parameters:
- *    aContinuation - The continuation to exit.
- */
-Method "Exit_" is
-[
-	aContinuation : $[…]→⊤
-|
-	/* Since the continuation's return type is ⊤, the primitive will discard
-	 * the argument, so it can be anything.
-	 */
-	Exit aContinuation with <>;
-] : ⊥;
 
 /**
  * The cardinality of ⊥ is also ⊥. This is supplied to disambiguate `||_||`.
