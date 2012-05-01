@@ -282,13 +282,12 @@ Semantic restriction "<«_‡,»`…|_.._>" is
 			defaultTypeType's instance;
 		];
 
-	finalDefaultType ::= cast defaultTypeTypeInstance into [t: any's type | t;];
 	bound ::= cast maximumSizeType's upper bound + 1 into [ t : [0..∞] | t; ];
 	lower ::= minimumSizeType's lower bound;
 	allTypesToUse ::= cast typesTypesInstanceTuple into 
 		[t: <any's type…|0..∞> | t;];
 
-	<allTypesToUse,finalDefaultType…|[lower..bound)>'s type;
+	<allTypesToUse,defaultTypeTypeInstance…|[lower..bound)>'s type;
 ];
 
 /**
@@ -372,12 +371,11 @@ Semantic restriction "<«_‡,»`…|_..>" is
 			defaultTypeType's instance;
 		];
 
-	finalDefaultType ::= cast defaultTypeTypeInstance into [t: any's type | t;];
 	lower ::= minimumSizeType's lower bound;
 	allTypesToUse ::= cast typesTypesInstanceTuple into 
 		[t: <any's type…|0..∞> | t;];
 
-	<allTypesToUse,finalDefaultType…|[lower..∞)>'s type;
+	<allTypesToUse,defaultTypeTypeInstance…|[lower..∞)>'s type;
 ];
 
 /**
@@ -463,12 +461,11 @@ Semantic restriction "<«_‡,»`…|.._>" is
 			defaultTypeType's instance;
 		];
 
-	finalDefaultType ::= cast defaultTypeTypeInstance into [t: any's type | t;];
 	bound ::= cast maximumSizeType's upper bound + 1 into [ t : [0..∞] | t; ];
 	allTypesToUse ::= cast typesTypesInstanceTuple into 
 		[t: <any's type…|0..∞> | t;];
 
-	<allTypesToUse,finalDefaultType…|[0..bound)>'s type;
+	<allTypesToUse,defaultTypeTypeInstance…|[0..bound)>'s type;
 ];
 
 /**
@@ -552,13 +549,12 @@ Semantic restriction "<«_‡,»`…|_>" is
 			defaultTypeType's instance;
 		];
 
-	finalDefaultType ::= cast defaultTypeTypeInstance into [t: any's type | t;];
 	lower ::= exactSizeType's lower bound;
 	upper ::= cast exactSizeType's upper bound + 1 into [ t : [0..∞] | t; ];
 	allTypesToUse ::= cast typesTypesInstanceTuple into 
 		[t: <any's type…|0..∞> | t;];
 
-	<allTypesToUse,finalDefaultType…|[lower..upper)>'s type;
+	<allTypesToUse,defaultTypeTypeInstance…|[lower..upper)>'s type;
 ];
 
 /**
@@ -637,11 +633,10 @@ Semantic restriction "<«_‡,»`…|>" is
 			defaultTypeType's instance;
 		];
 
-	finalDefaultType ::= cast defaultTypeTypeInstance into [t: any's type | t;];
 	allTypesToUse ::= cast typesTypesInstanceTuple into 
 		[t: <any's type…|0..∞> | t;];
 
-	<allTypesToUse,finalDefaultType…|[0..∞)>'s type;
+	<allTypesToUse,defaultTypeTypeInstance…|[0..∞)>'s type;
 ];
 
 /**

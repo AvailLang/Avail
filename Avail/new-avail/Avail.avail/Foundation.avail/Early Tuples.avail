@@ -50,6 +50,21 @@ Names
 Body
 
 /**
+ * Strengthen `_'s⁇default type`.
+ * 
+ * Parameters:
+ *    meta -
+ * Return:
+ *    The tuple type's default type's type.
+ */
+Semantic restriction "_'s⁇default type" is
+[
+	meta : tuple meta's type
+|
+	meta's instance's default type's type;
+];
+
+/**
  * Strengthen concatenation of tuple types. This is the most specific type whose
  * instance encompasses all possible concatenations of the two types.
  * 
@@ -296,8 +311,48 @@ Semantic restriction "_[.._]" is
 	tuple type of aTupleType[1's type..sliceEnd];
 ];
 
-/* Disambiguate `_→_` and `_→tuple`. */
-Grammatical restriction {"_→_"} is <∅, {"tuple"}>;
+/**
+ * Strengthen `concatenate_`.
+ * 
+ * Parameters:
+ *     tupleType -
+ * Returns:
+ *     The strongest possible type of the resulting tuple.
+ */
+Semantic restriction "concatenate_" is
+[
+	tupleType : tuple of tuple's type
+|
+	sizes ::= ||tupleType||;
+	limit ::=
+		if sizes' upper bound is infinite then
+		[
+			sizes' lower bound max (cast |tupleType's leading types| + 1
+				into [ t : natural number | t; ]);
+		]
+		else
+		[
+			sizes' upper bound;
+		];
+	result : tuple meta := <>'s type;
+	From 1 to limit do
+	[
+		index : natural number
+	|
+		result := eject ↑result ++ tupleType[index];
+		true;
+	];
+	If sizes' upper bound is infinite then
+	[
+		slice ::= result[1 ..
+			cast ||result||'s upper bound into [ t : whole number | t; ]];
+		default ::= tupleType's default type;
+		union ::= ∪ default[1 ..
+			cast |default's leading types| + 1 into [ t : whole number | t; ]];
+		result := <slice, union… | [||result||'s lower bound..∞)>;
+	];
+	result;
+];
 
 /**
  * Compute and answer the minimum size of `tupleType` for efficient traversal of
@@ -317,3 +372,6 @@ Method "relevant|_|" is
 		||tupleType||'s lower bound min (|tupleType's leading types| + 1)
 	into [ t : whole number | t; ];
 ] : whole number;
+
+/* Disambiguate `_→_` and `_→tuple`. */
+Grammatical restriction {"_→_"} is <∅, {"tuple"}>;

@@ -36,7 +36,8 @@ Versions
 Uses
 	"Bootstrap"
 Names
-	"<«_‡,»>"
+	"<«_‡,»>",
+	"{«_‡,»}"
 Body
 
 /**
@@ -72,3 +73,19 @@ Semantic restriction "<«_‡,»>" is
 |
 	elements;
 ];
+
+/**
+ * Construct and answer a set from the lexically specified expressions.
+ *
+ * Parameters:
+ *    elements - A tuple, lexically constructed by the compiler, whose elements
+ *       should be unique members of the answer.
+ * Returns:
+ *    The requested set.
+ */
+Method "{«_‡,»}" is
+[
+	elements : <<>, any…|natural number>
+|
+	elements→set;
+] : set;

@@ -77,71 +77,6 @@ Forward method "-_" is [number]→number;
 	Grammatical restriction abs is <abs>;
 ]();
 
-/**
- * Construct and answer a function that affects type promotions for the various
- * numeric types. This function is intended for use by semantic restrictions
- * of binary arithmetic operators.
- *
- * Parameters:
- *    operator - A function that performs one of the basic arithmetic
- *       operations and answers the result.
- * Returns:
- *    A function that handles type promotions for the given operator.
- */
-Method "type promotion function for_" is
-[
-	operator : [number, number]→number
-|
-	[
-		a : number's type,
-		b : number's type
-	|
-		if |a| = 1 ∧ [ |b| = 1; ] then
-		[
-			/* The exact values are known statically. Calculate it exactly. */
-			(operator(a's instance, b's instance))'s type;
-		]
-		else
-		[
-			if a ⊆ double ∨ [ b ⊆ double; ] then
-			[
-				/* At least one is known to be double, which forces the result
-				 * to be a double.
-				 */
-				double;
-			]
-			else
-			[
-				if a = number ∨ [ b = number; ] then
-				[
-					/* Neither is known to be a double, and at least one is as
-					 * weak as a number.  The weak one might be a double at run
-					 * time, so we can't limit the output type any more.
-					 */
-					number;
-				]
-				else
-				[
-					/* Neither one is as weak as number. */
-					if a ⊆ float ∨ [ b ⊆ float; ] then
-					[
-						/* Either {float,float} or {float,int}, which each
-						 * produce a float.
-						 */
-						float;
-					]
-					else
-					[
-						if a ⊆ extended integer ∧ [ b ⊆ extended integer; ]
-						then [ extended integer; ]
-						else [ number; ];
-					];
-				];
-			];
-		];
-	];
-] : [number's type, number's type]→(number's type);
-
 /* These messages describe arithmetic failure (integers only). */
 cannotAddMessage ::= "terms not to be unlike infinities";
 cannotSubtractMessage ::= "terms not to be like infinities";
@@ -149,60 +84,6 @@ cannotMultiplyMessage ::= "terms not be 0 and ±∞";
 cannotDivideByZeroMessage ::= "denominator not to be 0";
 cannotDivideTwoInfinitiesMessage ::=
 	"either numerator or denominator to be finite";
-
-Semantic restriction "_+_" is type promotion function for
-[
-	a : number,
-	b : number
-|
-	If {a, b} = {-∞, ∞} then
-	[
-		Reject parse, expected: cannotAddMessage;
-	];
-	a + b;
-];
-
-Semantic restriction "_-_" is type promotion function for
-[
-	a : number,
-	b : number
-|
-	If {a, b} ∈ {{-∞}, {∞}} then
-	[
-		Reject parse, expected: cannotSubtractMessage;
-	];
-	a - b;
-];
-
-Semantic restriction "_×_" is type promotion function for
-[
-	a : number,
-	b : number
-|
-	terms ::= {a, b};
-	If terms = {0, ∞} ∨ [ terms = {0, -∞}; ] then
-	[
-		Reject parse, expected: cannotMultiplyMessage;
-	];
-	a × b;
-];
-
-Semantic restriction "_÷_" is type promotion function for
-[
-	a : number,
-	b : number
-|
-	If b = 0 ∧ [ a ∈ extended integer; ] then
-	[
-		Reject parse, expected: cannotDivideByZeroMessage;
-	];
-	infinities ::= {∞, -∞};
-	If a ∈ infinities ∧ [ b ∈ infinities; ] then
-	[
-		Reject parse, expected: cannotDivideTwoInfinitiesMessage;
-	];
-	a ÷ b;
-];
 
 Semantic restriction "_mod_" is type promotion function for
 [

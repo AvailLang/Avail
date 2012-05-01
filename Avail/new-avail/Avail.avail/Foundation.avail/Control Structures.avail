@@ -55,11 +55,14 @@ Uses
 	"Variables"
 Names
 	"Do_until_",
+	"Do_until_alternate with_",
 	"Do_while_",
+	"Do_while_alternate with_",
 	"Exit_",
 	"From_to_by_do_",
 	"From_to_do_",
 	"Repeat_",
+	"Repeat__times",
 	"Unless_then_",
 	"Until_",
 	"Until_do_",
@@ -71,14 +74,6 @@ Names
 	"if~_then_«else if_then_»«else_»",
 	"unless~_then_else_",
 	"unless~_then_«else unless_then_»«else_»",
-
-	/* The implementations are provided by Tuples, Sets, and Maps, but the names
-	 * are introduced here.
-	 */
-	"For each_do_",
-	"filter_by_",
-	"map and filter_by_",
-	"map_through_",
 
 	/* This is provided to support implementation of semantic restrictions of
 	 * `map and filter_by_`. Not for export beyond this package.
@@ -202,6 +197,54 @@ Method "Repeat_" is
 	action();
 	Restart loop;
 ] : ⊥;
+
+/**
+ * Apply the specified function exactly `count` times.
+ * 
+ * Parameters:
+ *    action - A function.
+ *    count - The number of times to apply `action`.
+ */
+Method "Repeat__times" is
+[
+	action : []→⊤,
+	count : [0..∞]
+|
+	index : natural number := 1;
+	[
+		$loop;
+		If index ≤ count then
+		[
+			action();
+			↑index++;
+			Restart loop;
+		];
+	]();
+] : ⊤;
+
+/**
+ * If `count` is ∞, then answer ⊥ (because the loop will never terminate).
+ * 
+ * Parameters:
+ *    action -
+ *    count -
+ * Returns:
+ *    Either ⊤ or ⊥.
+ */
+Semantic restriction "Repeat__times" is
+[
+	action : []→⊤'s type,
+	count : [0..∞]'s type
+|
+	if count's lower bound = ∞ then
+	[
+		⊥;
+	]
+	else
+	[
+		⊤;
+	];
+];
 
 /**
  * Counting loop with customizable step and early exit support. Invoke `action`
@@ -1460,9 +1503,9 @@ Semantic restriction "Until_do_" is
  * answers `true`, then repeat.
  * 
  * Parameters:
- *    predicate - The function that guards repeated application of `action`.
  *    action - The function to apply once and then again whenever `predicate`
  *       answers `true`.
+ *    predicate - The function that guards repeated application of `action`.
  */
 Method "Do_while_" is
 [
@@ -1504,13 +1547,66 @@ Semantic restriction "Do_while_" is
 ];
 
 /**
+ * Conditional loop with alternation. Invoke `action` and then `predicate`. If
+ * `predicate` answers `true`, then invoke `between`. Then repeat.
+ * 
+ * Parameters:
+ *    action - The function to apply once and then again repeatedly while
+ *       `predicate` answers `true`.
+ *    predicate - The function that guards repeated application of `action`.
+ *    between - The function to apply between applications of `action`.
+ */
+Method "Do_while_alternate with_" is
+[
+	action : []→⊤,
+	predicate : []→boolean,
+	between : []→⊤
+|
+	$loop;
+	action();
+	If predicate() then
+	[
+		between();
+		Restart loop;
+	];
+];
+
+/**
+ * If `action` does not terminate or `predicate` certainly answers `true`, then
+ * answer ⊥ (because the loop will run forever).
+ *
+ * Parameters:
+ *    predicate -
+ *    action -
+ *    between -
+ * Returns:
+ *    Either ⊤ or ⊥.
+ */
+Semantic restriction "Do_while_alternate with_" is
+[
+	action : []→⊤'s type,
+	predicate : []→boolean's type,
+	between : []→⊤'s type
+|
+	if action's return type = ⊥
+		∨ [ predicate's return type = true's type; ] then
+	[
+		⊥;
+	]
+	else
+	[
+		⊤;
+	];
+];
+
+/**
  * Basic conditional loop. Invoke `action` and then `predicate`. If `predicate`
  * answers `false`, then repeat.
  * 
  * Parameters:
- *    predicate - The function that guards repeated application of `action`.
  *    action - The function to apply once and then again whenever `predicate`
  *       answers `false`.
+ *    predicate - The function that guards repeated application of `action`.
  */
 Method "Do_until_" is
 [
@@ -1539,6 +1635,59 @@ Semantic restriction "Do_until_" is
 [
 	action : []→⊤'s type,
 	predicate : []→boolean's type
+|
+	if action's return type = ⊥
+		∨ [ predicate's return type = false's type; ] then
+	[
+		⊥;
+	]
+	else
+	[
+		⊤;
+	];
+];
+
+/**
+ * Conditional loop with alternation. Invoke `action` and then `predicate`. If
+ * `predicate` answers `false`, then invoke `between`. Then repeat.
+ * 
+ * Parameters:
+ *    action - The function to apply once and then again repeatedly while
+ *       `predicate` answers `false`.
+ *    predicate - The function that guards repeated application of `action`.
+ *    between - The function to apply between applications of `action`.
+ */
+Method "Do_until_alternate with_" is
+[
+	action : []→⊤,
+	predicate : []→boolean,
+	between : []→⊤
+|
+	$loop;
+	action();
+	Unless predicate() then
+	[
+		between();
+		Restart loop;
+	];
+];
+
+/**
+ * If `action` does not terminate or `predicate` certainly answers `false`, then
+ * answer ⊥ (because the loop will run forever).
+ *
+ * Parameters:
+ *    predicate -
+ *    action -
+ *    between -
+ * Returns:
+ *    Either ⊤ or ⊥.
+ */
+Semantic restriction "Do_until_alternate with_" is
+[
+	action : []→⊤'s type,
+	predicate : []→boolean's type,
+	between : []→⊤'s type
 |
 	if action's return type = ⊥
 		∨ [ predicate's return type = false's type; ] then

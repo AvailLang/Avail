@@ -41,8 +41,6 @@ Uses
 	"Early Control Structures",
 	"Early Logic",
 	"Early Math"
-Names
-	"_'s⁇instance"
 Body
 
 /**
@@ -69,23 +67,6 @@ Semantic restriction "enumeration of_" is
 		(enumeration of instances)'s type;
 	];
 ];
-
-/**
- * Answer the sole instance of the specified enumeration.
- *
- * Parameters:
- *    enum - An enumeration. Anything answered by `_'s⁇type` satisfies this
- *       criterion.
- * Returns:
- *    The sole instance of the argument.
- */
-Method "_'s⁇instance" is
-[
-	enum : type
-|
-	Assert: |enum| = 1 ("|enum| ≠ 1");
-	enum's instances→tuple[1];
-] : any;
 
 /**
  * Ensure that literal enumerations are able to produce the unique type of their

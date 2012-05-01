@@ -104,7 +104,7 @@ Method "Require:_accepts_" is
 	tupleType : tuple meta
 |
 	union ::= ∪ tupleType[1..|tupleType's leading types| + 1];
-	If ¬union ⊆ action[1] then
+	If action[1] ≠ ⊥ ∧ [ ¬union ⊆ action[1]; ] then
 	[
 		Reject parse, expected:
 			"repeatedly applied function to accept all elements of the tuple ∈ "
@@ -258,11 +258,18 @@ Semantic restriction "filter_by_" is
 	predicate : [⊥]→boolean's type
 |
 	Require: predicate accepts tupleType;
-	<
-		tupleType's leading types,
-		tupleType's default type…
-		| [0..||tupleType||'s upper bound + 1)
-	>;
+	if predicate's return type = true's type then
+	[
+		tupleType;
+	]
+	else
+	[
+		union ::= ∪ tupleType[1..|tupleType's leading types| + 1];
+		sizes ::=
+			if predicate's return type = false's type then [ 0's type; ]
+			else [ [0..||tupleType||'s upper bound + 1); ];
+		<<>, union…|sizes>;
+	];
 ];
 
 /**
@@ -316,7 +323,7 @@ Method "map and filter_by_" is
 ] : tuple;
 
 /**
- * Ensure that the function will accept all arguments of the tuple and also an
+ * Ensure that the function will accept all elements of the tuple and also an
  * appropriately typed keeper function.
  *
  * Parameters:
@@ -344,4 +351,137 @@ Semantic restriction "map and filter_by_" is
 		cast accumulator[2] into [ t : function meta | t[1]; ]…
 		| [0..||tupleType||'s upper bound + 1)
 	>;
+];
+
+/**
+ * Compute and answer whether any of the elements of `aTuple` satisfies the
+ * specified function. Do not examine more elements than necessary.
+ * 
+ * Parameters:
+ *    aTuple - A tuple.
+ *    predicate - A function that accepts the elements of the tuple and answers
+ *       a boolean.
+ * Returns:
+ *    `true` if `predicate` answers `true` for any element of `aTuple`, `false`
+ *    otherwise.
+ */
+Method "any of_satisfies_" is
+[
+	aTuple : tuple,
+	predicate : [⊥]→boolean
+|
+	$body : boolean;
+	For each aTuple do
+	[
+		element : any
+	|
+		If invoke predicate with <element> then
+		[
+			Exit body with true;
+		];
+	];
+	false;
+] : boolean;
+
+/**
+ * Ensure that the function will accept all elements of the tuple.
+ * 
+ * Parameters:
+ *    tupleType -
+ *    predicate -
+ * Returns:
+ *    The function's return type.
+ */
+Semantic restriction "any of_satisfies_" is
+[
+	tupleType : tuple meta,
+	predicate : [⊥]→boolean's type
+|
+	Require: predicate accepts tupleType;
+	predicate's return type;
+];
+
+/**
+ * Compute and answer whether each of the elements of `aTuple` satisfies the
+ * specified function. Do not examine more elements than necessary.
+ * 
+ * Parameters:
+ *    aTuple - A tuple.
+ *    predicate - A function that accepts the elements of the tuple and answers
+ *       a boolean.
+ * Returns:
+ *    `true` if `predicate` answers `true` for each element of `aTuple`, `false`
+ *    otherwise.
+ */
+Method "each of_satisfies_" is
+[
+	aTuple : tuple,
+	predicate : [⊥]→boolean
+|
+	$body : boolean;
+	For each aTuple do
+	[
+		element : any
+	|
+		Unless invoke predicate with <element> then
+		[
+			Exit body with false;
+		];
+	];
+	true;
+] : boolean;
+
+/**
+ * Ensure that the function will accept all elements of the tuple.
+ * 
+ * Parameters:
+ *    tupleType -
+ *    predicate -
+ * Returns:
+ *    The function's return type.
+ */
+Semantic restriction "each of_satisfies_" is
+[
+	tupleType : tuple meta,
+	predicate : [⊥]→boolean's type
+|
+	Require: predicate accepts tupleType;
+	predicate's return type;
+];
+
+/**
+ * Compute and answer the count of elements of `aTuple` that satisfy the given
+ * predicate.
+ * 
+ * Parameters:
+ *    aTuple - A tuple.
+ *    predicate - A function that accepts the elements of the tuple and answers
+ *       `true` if the element should be represented in the resulting count.
+ * Returns:
+ *    The number of elements of `aTuple` for which `predicate` answers `true`.
+ */
+Method "count of_where_" is
+[
+	aTuple : tuple,
+	predicate : [⊥]→boolean
+|
+	|filter aTuple by predicate|;
+] : whole number;
+
+/**
+ * Ensure that the function will accept all elements of the tuple.
+ * 
+ * Parameters:
+ *    tupleType -
+ *    predicate -
+ * Returns:
+ *    `[0..||tupleType||'s upper bound + 1)`.
+ */
+Semantic restriction "count of_where_" is
+[
+	tupleType : tuple meta,
+	predicate : [⊥]→boolean's type
+|
+	Require: predicate accepts tupleType;
+	[0..||tupleType||'s upper bound + 1);
 ];

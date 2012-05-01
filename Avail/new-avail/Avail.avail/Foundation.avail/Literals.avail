@@ -43,7 +43,6 @@ Uses
 	"Enumeration Support",
 	"Variables"
 Names
-	"{«_‡,»}",
 	"{«_→_‡,»}"
 Body
 
@@ -208,22 +207,6 @@ Semantic restriction "_[_]" is
 	];
 	union's type;
 ];
-
-/**
- * Construct and answer a set from the lexically specified expressions.
- *
- * Parameters:
- *    elements - A tuple, lexically constructed by the compiler, whose elements
- *       should be unique members of the answer.
- * Returns:
- *    The requested set.
- */
-Method "{«_‡,»}" is
-[
-	elements : <<>, any…|natural number>
-|
-	elements→set;
-] : set;
 
 /* Disambiguate `∪_` and `∪_[_.._]` by forbidding `_[_.._]` as the only argument
  * of the former.

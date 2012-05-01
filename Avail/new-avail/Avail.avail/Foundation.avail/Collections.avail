@@ -34,17 +34,17 @@ System Module "Collections"
 Versions
 	"dev"
 Extends
-	"Control Structures" =
-	(
-		"For each_do_",
-		"filter_by_",
-		"map and filter_by_",
-		"map_through_"
-	)
 Uses
 Names
 	/* The implementations are provided by Tuples, Sets, and Maps, but the names
 	 * are introduced here.
 	 */
+	"For each_do_",
+	"any of_satisfies_",
+	"count of_where_",
+	"each of_satisfies_",
+	"filter_by_",
+	"map and filter_by_",
+	"map_through_",
 	"_is empty"
 Body
