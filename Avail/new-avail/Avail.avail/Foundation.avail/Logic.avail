@@ -655,8 +655,9 @@ Semantic restriction "_=_" is
 	]
 	else
 	[
-		if a ≠ b ∧ [ a ∩ b = ⊥; ] then
+		if a ∩ b = ⊥ then
 		[
+			Assert: a ≠ ⊥ ∧ [ b ≠ ⊥; ];
 			false's type;
 		]
 		else
@@ -691,8 +692,9 @@ Semantic restriction "_≠_" is
 	]
 	else
 	[
-		if a ≠ b ∧ [ a ∩ b = ⊥; ] then
+		if a ∩ b = ⊥ then
 		[
+			Assert: a ≠ ⊥ ∧ [ b ≠ ⊥; ];
 			false's type;
 		]
 		else
