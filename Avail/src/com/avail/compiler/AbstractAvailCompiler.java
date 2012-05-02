@@ -38,7 +38,10 @@ import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TokenDescriptor.TokenType.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.io.*;
+import java.text.DateFormat;
 import java.util.*;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.builder.*;
@@ -405,12 +408,111 @@ public abstract class AbstractAvailCompiler
 			AnswerType answer);
 	}
 
+
 	/**
-	 * A stack of {@linkplain Continuation0 continuations} that need to be
-	 * explored at some point.
+	 * A {@link Runnable} which supports a natural ordering (via the {@link
+	 * Comparable} interface) which will favor processing of the leftmost
+	 * available tasks first.
+	 *
+	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
 	 */
-	private final @NotNull Deque<Continuation0> workPool =
-		new ArrayDeque<Continuation0>();
+	abstract class ParsingTask implements Runnable, Comparable<ParsingTask>
+	{
+		/**
+		 * The description associated with this task.  Only used for debugging.
+		 */
+		final @NotNull String description;
+
+		/**
+		 * The parsing position (token index) at which this task will operate.
+		 */
+		final int position;
+
+		/**
+		 * Construct a new {@link AbstractAvailCompiler.ParsingTask}.
+		 *
+		 * @param description What this task will do.
+		 * @param position Where in the parse stream this task operates.
+		 */
+		public ParsingTask (
+			@NotNull final String description,
+			final int position)
+		{
+			this.description = description;
+			this.position = position;
+		}
+
+		@Override
+		public String toString()
+		{
+			return description + "@pos(" + position + ")";
+		}
+
+		@Override
+		public int compareTo (final ParsingTask o)
+		{
+			return position - o.position;
+		}
+	}
+
+	/**
+	 * The maximum number of entries that may be in the work pool.
+	 */
+	private final static int maxWorkPoolSize = 10000;
+
+	/**
+	 * A collection of {@link Runnable} parsing tasks that need to be explored
+	 * at some point.  The contents of this collection should only be accessed
+	 * through synchronized methods.
+	 */
+	private final static @NotNull BlockingQueue<Runnable> workPool =
+		new PriorityBlockingQueue<Runnable>(
+			maxWorkPoolSize);
+
+	/**
+	 * A static flag indicating whether parallel parsing should be allowed.
+	 * As of 2011.05.01 there is not yet correct support for multiple Avail
+	 * threads manipulating AvailObjects safely, but it will be forthcoming.
+	 */
+	private final static boolean enableParallelParsing = false;
+
+	/**
+	 * A {@link ThreadPoolExecutor} with which to execute parsing tasks.
+	 */
+	private final static @NotNull ThreadPoolExecutor workPoolExecutor =
+		enableParallelParsing
+			?
+				new ThreadPoolExecutor(
+					1,
+					Runtime.getRuntime().availableProcessors(),
+					2,
+					TimeUnit.MINUTES,
+					workPool)
+			:
+				new ThreadPoolExecutor(
+					1,
+					1,
+					2,
+					TimeUnit.MINUTES,
+					workPool);
+
+	/**
+	 * The number of work units that have been queued.  This should only be
+	 * accessed through synchronized methods.
+	 */
+	long workUnitsQueued = 0;
+
+	/**
+	 * The number of work units that have been started.  This should only be
+	 * accessed through synchronized methods.
+	 */
+	long workUnitsStarted = 0;
+
+	/**
+	 * The number of work units that have been completed.  This should only be
+	 * accessed through synchronized methods.
+	 */
+	long workUnitsCompleted = 0;
 
 	/**
 	 * Execute the block, passing a continuation that it should run upon finding
@@ -446,25 +548,50 @@ public abstract class AbstractAvailCompiler
 					final ParserState afterSolution,
 					final AvailObject aSolution)
 				{
-					if (count.value == 0)
+					synchronized (AbstractAvailCompiler.this)
 					{
-						solution.value = aSolution;
-						where.value = afterSolution;
-					}
-					else
-					{
-						if (aSolution == solution.value)
+						if (count.value == 0)
 						{
-							error("Same solution was presented twice!");
+							solution.value = aSolution;
+							where.value = afterSolution;
 						}
-						another.value = aSolution;
+						else
+						{
+							assert aSolution != solution.value
+								: "Same solution was presented twice!";
+							another.value = aSolution;
+							AbstractAvailCompiler.this.notifyAll();
+						}
+						count.value++;
 					}
-					count.value++;
 				}
 			});
-		while (!workPool.isEmpty() && count.value < 2)
+		synchronized (this)
 		{
-			workPool.remove().value();
+			try
+			{
+				while (workUnitsCompleted < workUnitsQueued && count.value <= 1)
+				{
+					wait();
+				}
+				// Note: count.value increases monotonically.
+				if (count.value > 1)
+				{
+					workPoolExecutor.shutdownNow();
+					workPoolExecutor.awaitTermination(2, TimeUnit.MINUTES);
+				}
+				else
+				{
+					assert workPool.isEmpty();
+				}
+				workUnitsStarted = workUnitsQueued;
+				workUnitsCompleted = workUnitsQueued;
+			}
+			catch (final InterruptedException e)
+			{
+				// Treat an interrupt of this thread as a failure.
+				throw new RuntimeException(e);
+			}
 		}
 		if (count.value == 0)
 		{
@@ -474,7 +601,7 @@ public abstract class AbstractAvailCompiler
 		{
 			// Indicate the problem on the last token of the ambiguous
 			// expression.
-			ambiguousInterpretationsAnd(
+			reportAmbiguousInterpretations(
 				new ParserState(
 					where.value.position - 1,
 					where.value.scopeMap),
@@ -483,7 +610,7 @@ public abstract class AbstractAvailCompiler
 			return;
 		}
 		// We found exactly one solution. Advance the token stream just past it,
-		// and redo any side-effects to the scopeMap, then invoke the
+		// and commit its side-effects to the scope, then invoke the
 		// continuation with the solution.
 		assert count.value == 1;
 		assert workPool.isEmpty();
@@ -1216,7 +1343,7 @@ public abstract class AbstractAvailCompiler
 	 *        The second interpretation as a {@linkplain ParseNodeDescriptor
 	 *        parse node}.
 	 */
-	private void ambiguousInterpretationsAnd (
+	private void reportAmbiguousInterpretations (
 		final @NotNull ParserState where,
 		final @NotNull AvailObject interpretation1,
 		final @NotNull AvailObject interpretation2)
@@ -1241,8 +1368,11 @@ public abstract class AbstractAvailCompiler
 
 	/**
 	 * Attempt the zero-argument continuation. The implementation is free to
-	 * execute it now or to put it in a stack of continuations to run later, but
-	 * they have to be run in the reverse order that they were pushed.
+	 * execute it now or to put it in a bag of continuations to run later <em>in
+	 * an arbitrary order</em>.  There may be performance and/or scale benefits
+	 * to processing entries in FIFO, LIFO, or some hybrid order, but the
+	 * correctness is not affected by a choice of order.  Parallel execution is
+	 * even expected to be implemented at some point.
 	 *
 	 * @param continuation
 	 *        What to do at some point in the future.
@@ -1251,15 +1381,39 @@ public abstract class AbstractAvailCompiler
 	 * @param position
 	 *        Debugging information about where the parse is happening.
 	 */
-	void eventuallyDo (
+	synchronized void eventuallyDo (
 		final @NotNull Continuation0 continuation,
 		final @NotNull String description,
 		final int position)
 	{
-		workPool.addFirst(continuation);
-		if (workPool.size() > 10000)
+		final AbstractAvailCompiler thisCompiler = this;
+		try
 		{
-			throw new RuntimeException("Probable recursive parse error");
+			workUnitsQueued++;
+			workPoolExecutor.execute(new ParsingTask(description, position)
+			{
+				@Override
+				public void run ()
+				{
+					synchronized (thisCompiler)
+					{
+						workUnitsStarted++;
+					}
+					continuation.value();
+					synchronized (thisCompiler)
+					{
+						workUnitsCompleted++;
+						if (workUnitsCompleted == workUnitsQueued)
+						{
+							thisCompiler.notifyAll();
+						}
+					}
+				}
+			});
+		}
+		catch (final RejectedExecutionException e)
+		{
+			throw new RuntimeException("Probably recursive parse error", e);
 		}
 	}
 
@@ -1894,7 +2048,7 @@ public abstract class AbstractAvailCompiler
 							state.value.scopeMap);
 					}
 				});
-			exhaustWorkPool();
+			assert workPool.isEmpty();
 
 			if (interpretation.value == null)
 			{
@@ -1949,18 +2103,6 @@ public abstract class AbstractAvailCompiler
 			}
 			state.value.expected(formatter.toString());
 			reportError(qualifiedName);
-		}
-	}
-
-	/**
-	 * Consume and execute actions from the {@link #workPool} until there are no
-	 * more.
-	 */
-	void exhaustWorkPool ()
-	{
-		while (!workPool.isEmpty())
-		{
-			workPool.remove().value();
 		}
 	}
 

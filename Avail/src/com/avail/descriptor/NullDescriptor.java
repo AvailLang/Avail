@@ -42,7 +42,7 @@ import com.avail.serialization.SerializerOperation;
  * object}, the sole instance of the invisible and uninstantiable root type, ⊤
  * (pronounced top).
  *
- * @author Mark van Gulik &lt;ghoul6@gmail.com&gt;
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
 public class NullDescriptor
 extends Descriptor

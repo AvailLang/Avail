@@ -32,11 +32,6 @@
 
 package com.avail.builder;
 
-import java.util.Calendar;
-import java.security.*;
-import com.avail.annotations.InnerAccess;
-import com.avail.exceptions.AvailRuntimeException;
-
 /**
  * This class tracks changes to files to determine the minimum effort required
  * to recompile one or more Avail source files.
