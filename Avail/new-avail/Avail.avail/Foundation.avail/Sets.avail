@@ -47,6 +47,11 @@ Uses
 	"Logic",
 	"Math",
 	"Variables"
+Names
+	"_∋_",
+	"_⊂_",
+	"_⊇_",
+	"_⊃_"
 Body
 
 /**
@@ -489,7 +494,7 @@ Semantic restriction "count of_where_" is
  * 
  * Parameters:
  *    valueType -
- *    mapType -
+ *    setType -
  * Returns:
  *    The strongest possible boolean type.
  */
@@ -503,6 +508,219 @@ Semantic restriction "_∈_" is
 		(valueType's instance ∈ setType's instance)'s type;
 	]
 	else if [ valueType ∩ (setType's element type) = ⊥; ] then
+	[
+		false's type;
+	]
+	else
+	[
+		/* Can't strengthen. */
+		⊤;
+	];
+];
+
+/**
+ * Does `aSet` contain `value`?
+ * 
+ * Parameters:
+ *    aSet - A set.
+ *    value - An arbitrary value.
+ * Returns:
+ *    `true` if `aSet` contains `value` as a member, `false` otherwise.
+ */
+Method "_∋_" is
+[
+	aSet : set,
+	value : any
+|
+	value ∈ aSet;
+];
+
+/**
+ * Strength `_∋_`.
+ * 
+ * Parameters:
+ *    setType -
+ *    valueType -
+ * Returns:
+ *    The strongest possible boolean type.
+ */
+Semantic restriction "_∋_" is
+[
+	setType : set meta,
+	valueType : any meta
+|
+	if |setType| = 1 ∧ [ |valueType| = 1; ] then
+	[
+		(setType's instance ∋ valueType's instance)'s type;
+	]
+	else if [ (setType's element type) ∩ valueType = ⊥; ] then
+	[
+		false's type;
+	]
+	else
+	[
+		/* Can't strengthen. */
+		⊤;
+	];
+];
+
+/**
+ * Strengthen `_⊆_`.
+ * 
+ * Parameters:
+ *    a -
+ *    b -
+ * Returns:
+ *    The strongest possible boolean type.
+ */
+Semantic restriction "_⊆_" is
+[
+	a : set meta,
+	b : set meta
+|
+	if |a| = 1 ∧ [ |b| = 1; ] then
+	[
+		(a's instance ⊆ b's instance)'s type;
+	]
+	else if [ a's element type ∩ (b's element type) = ⊥; ] then
+	[
+		false's type;
+	]
+	else
+	[
+		/* Can't strengthen. */
+		⊤;
+	];
+];
+
+/**
+ * Is `a` a proper subset of `b`?
+ *
+ * Parameters:
+ *    a - A set.
+ *    b - A set.
+ * Returns:
+ *    `true` if `a` is a proper subset of `b`, `false` otherwise.
+ */
+Method "_⊂_" is
+[
+	a : set,
+	b : set
+|
+	|a| ≠ |b| ∧ [ a ⊆ b; ];
+] : boolean;
+
+/**
+ * Strengthen `_⊂_`.
+ * 
+ * Parameters:
+ *    a -
+ *    b -
+ * Returns:
+ *    The strongest possible boolean type.
+ */
+Semantic restriction "_⊂_" is
+[
+	a : set meta,
+	b : set meta
+|
+	if |a| = 1 ∧ [ |b| = 1; ] then
+	[
+		(a's instance ⊂ b's instance)'s type;
+	]
+	else if [ a's element type ∩ (b's element type) = ⊥; ] then
+	[
+		false's type;
+	]
+	else
+	[
+		/* Can't strengthen. */
+		⊤;
+	];
+];
+
+/**
+ * Is `a` a superset of or equal to `b`?
+ *
+ * Parameters:
+ *    a - A set.
+ *    b - A set.
+ * Returns:
+ *    `true` if `a` is a superset of or equal to `b`, `false` otherwise.
+ */
+Method "_⊇_" is
+[
+	a : set,
+	b : set
+|
+	b ⊆ a;
+];
+
+/**
+ * Strengthen `_⊇_`.
+ * 
+ * Parameters:
+ *    a -
+ *    b -
+ * Returns:
+ *    The strongest possible boolean type.
+ */
+Semantic restriction "_⊇_" is
+[
+	a : set meta,
+	b : set meta
+|
+	if |a| = 1 ∧ [ |b| = 1; ] then
+	[
+		(a's instance ⊇ b's instance)'s type;
+	]
+	else if [ a's element type ∩ (b's element type) = ⊥; ] then
+	[
+		false's type;
+	]
+	else
+	[
+		/* Can't strengthen. */
+		⊤;
+	];
+];
+
+/**
+ * Is `a` a proper superset of `b`?
+ *
+ * Parameters:
+ *    a - A set.
+ *    b - A set.
+ * Returns:
+ *    `true` if `a` is a proper superset of `b`, `false` otherwise.
+ */
+Method "_⊃_" is
+[
+	a : set,
+	b : set
+|
+	b ⊂ a;
+];
+
+/**
+ * Strengthen `_⊃_`.
+ * 
+ * Parameters:
+ *    a -
+ *    b -
+ * Returns:
+ *    The strongest possible boolean type.
+ */
+Semantic restriction "_⊃_" is
+[
+	a : set meta,
+	b : set meta
+|
+	if |a| = 1 ∧ [ |b| = 1; ] then
+	[
+		(a's instance ⊃ b's instance)'s type;
+	]
+	else if [ a's element type ∩ (b's element type) = ⊥; ] then
 	[
 		false's type;
 	]

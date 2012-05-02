@@ -288,7 +288,7 @@ Semantic restriction "{«_‡,»}" is
 	[
 		/* Build a tuple of distinct types encountered during a traversal of
 		 * `elements`. Two types are distinct in this sense if they have no
-		 * common descendents more general than ⊥. This establishes a lower
+		 * common descendants more general than ⊥. This establishes a lower
 		 * bound on the answer's cardinality requirement.
 		 *
 		 * Also note what types have been encountered along the way. At the end
@@ -328,7 +328,7 @@ Semantic restriction "{«_‡,»}" is
 			true;
 		];
 		lower ::= |distinct|;
-		upper ::= cast |types| + 1 into [ i : natural number | i; ];
+		upper ::= |types| + 1;
 		union ::= cast ∪ types into [ t : any's type | t; ];
 		{union | [lower..upper)};
 	];
@@ -434,7 +434,7 @@ Semantic restriction "{«_→_‡,»}" is
 	[
 		/* Build a tuple of distinct key types encountered during a traversal of
 		 * `bindings`. Two key types are distinct in this sense if they have no
-		 * common descendents more general than ⊥. This establishes a lower
+		 * common descendants more general than ⊥. This establishes a lower
 		 * bound on the answer's cardinality requirement.
 		 *
 		 * Also note what key types have been encountered along the way. At the
@@ -480,7 +480,7 @@ Semantic restriction "{«_→_‡,»}" is
 			true;
 		];
 		lower ::= |distinct|;
-		upper ::= cast |keyTypes| + 1 into [ i : natural number | i; ];
+		upper ::= |keyTypes| + 1;
 		unionK ::= cast ∪ keyTypes into [ t : any's type | t; ];
 		unionV ::= cast ∪ valueTypes into [ t : any's type | t; ];
 		{unionK → unionV | [lower..upper)};
@@ -501,8 +501,7 @@ Semantic restriction "|_|" is
 	aTupleType : tuple meta
 |
 	sizes ::= ||aTupleType||;
-	upper ::= cast sizes' upper bound + 1 into [ t : [0..∞] | t; ];
-	[sizes' lower bound..upper);
+	[sizes' lower bound..sizes' upper bound + 1);
 ];
 
 /**
@@ -519,8 +518,7 @@ Semantic restriction "|_|" is
 	aSetType : set meta
 |
 	sizes ::= ||aSetType||;
-	upper ::= cast sizes' upper bound + 1 into [ t : [0..∞] | t; ];
-	[sizes' lower bound..upper);
+	[sizes' lower bound..sizes' upper bound + 1);
 ];
 
 /**
@@ -537,6 +535,5 @@ Semantic restriction "|_|" is
 	aMapType : map meta
 |
 	sizes ::= ||aMapType||;
-	upper ::= cast sizes' upper bound + 1 into [ t : [0..∞] | t; ];
-	[sizes' lower bound..upper);
+	[sizes' lower bound..sizes' upper bound + 1);
 ];

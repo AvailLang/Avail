@@ -54,7 +54,7 @@ Body
  */
 Semantic restriction "enumeration of_" is
 [
-	setType : set's type
+	setType : set meta
 |
 	if |setType| = ∞ then
 	[
@@ -62,9 +62,16 @@ Semantic restriction "enumeration of_" is
 	]
 	else
 	[
-		instances ::=
-			cast setType's instances→tuple[1] into [ t : set | t; ];
-		(enumeration of instances)'s type;
+		instances ::= setType's instances→tuple;
+		union : set := ∅;
+		From 1 to |instances| do
+		[
+			index : natural number
+		|
+			union := union ∪ cast instances[index] into [ t : set | t; ];
+			true;
+		];
+		(enumeration of union)'s type;
 	];
 ];
 

@@ -695,7 +695,7 @@ Semantic restriction "_≠_" is
 		if a ∩ b = ⊥ then
 		[
 			Assert: a ≠ ⊥ ∧ [ b ≠ ⊥; ];
-			false's type;
+			true's type;
 		]
 		else
 		[

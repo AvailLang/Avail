@@ -32,16 +32,13 @@
 package com.avail.compiler;
 
 import static com.avail.compiler.AbstractAvailCompiler.ExpectedToken.*;
-import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TokenDescriptor.TokenType.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.io.*;
-import java.text.DateFormat;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.builder.*;
