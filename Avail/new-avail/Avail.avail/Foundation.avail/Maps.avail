@@ -42,6 +42,7 @@ Uses
 	"Early Functions",
 	"Early Tuples",
 	"Early Types",
+	"Enumeration Support",
 	"Literals",
 	"Logic",
 	"Math",
@@ -106,6 +107,11 @@ Method "Require:_accepts_" is
 	action : function meta,
 	mapType : map meta
 |
+	If ||action's parameters' type||'s lower bound < 2 then
+	[
+		Reject parse, expected:
+			"repeatedly applied function to accept at least two arguments";
+	];
 	If action[1] ≠ ⊥ ∧ [ ¬mapType's key type ⊆ action[1]; ] then
 	[
 		Reject parse, expected:
@@ -504,4 +510,33 @@ Semantic restriction "count of_where_" is
 |
 	Require: predicate accepts mapType;
 	[0..||mapType||'s upper bound + 1);
+];
+
+/**
+ * Strength `_∈_`.
+ * 
+ * Parameters:
+ *    keyType -
+ *    mapType -
+ * Returns:
+ *    The strongest possible boolean type.
+ */
+Semantic restriction "_∈_" is
+[
+	keyType : any meta,
+	mapType : map meta
+|
+	if |keyType| = 1 ∧ [ |mapType| = 1; ] then
+	[
+		(keyType's instance ∈ mapType's instance)'s type;
+	]
+	else if [ keyType ∩ (mapType's key type) = ⊥; ] then
+	[
+		false's type;
+	]
+	else
+	[
+		/* Can't strengthen. */
+		⊤;
+	];
 ];

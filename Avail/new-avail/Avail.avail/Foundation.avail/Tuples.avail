@@ -41,11 +41,14 @@ Uses
 	"Control Structures",
 	"Early Functions",
 	"Early Types",
+	"Enumeration Support",
 	"Literals",
 	"Logic",
 	"Math",
 	"Variables"
 Names
+	"first index of_where_",
+	"last index of_where_"
 Body
 
 /**
@@ -89,13 +92,40 @@ Method "For each_do_" is
 ] : ⊤;
 
 /**
- * Helper method for semantic restrictions: If `action` does not accept the
- * type union of all element types of `tupleType`, then reject the current
- * parse.
+ * Iteratively apply `action` to each consecutive element of `aTuple`.
  * 
  * Parameters:
- *    action - A function type whose first argument must correspond to the
- *       type union of the element types of `tupleType`.
+ *    aTuple - A tuple.
+ *    action - A function that accepts 1) an element of the tuple and 2) the
+ *       index of that element.
+ */
+Method "For each_do_" is
+[
+	aTuple : tuple,
+	action : [⊥, ⊥]→⊤
+|
+	index : natural number := 1;
+	end ::= |aTuple|;
+	[
+		$loop;
+		If index ≤ end then
+		[
+			Invoke action with <aTuple[index], index>;
+			↑index++;
+			Restart loop;
+		];
+	]();
+] : ⊤;
+
+/**
+ * Helper method for semantic restrictions: If `action` does not accept the
+ * type union of all element types of `tupleType` and their indices, then reject
+ * the current parse.
+ * 
+ * Parameters:
+ *    action - A function type whose first parameter must correspond to the
+ *       type union of the element types of `tupleType` and whose second
+ *       parameter, if provided, must correspond to `indices`.
  *    tupleType - A tuple type.
  */
 Method "Require:_accepts_" is
@@ -103,6 +133,11 @@ Method "Require:_accepts_" is
 	action : function meta,
 	tupleType : tuple meta
 |
+	If ||action's parameters' type||'s lower bound < 1 then
+	[
+		Reject parse, expected:
+			"repeatedly applied function to accept at least one argument";
+	];
 	union ::= ∪ tupleType[1..|tupleType's leading types| + 1];
 	If action[1] ≠ ⊥ ∧ [ ¬union ⊆ action[1]; ] then
 	[
@@ -113,12 +148,24 @@ Method "Require:_accepts_" is
 			++ primitive description of action[1]
 			++ ")";
 	];
+	If ||action's parameters' type||'s lower bound = 2
+		∧ [ action[2] ≠ ⊥
+		∧ [ ¬[1..||tupleType||'s upper bound + 1) ⊆ action[2]; ]; ]
+	then
+	[
+		Reject parse, expected:
+			"repeatedly applied function to accept all indices of the tuple ∈ "
+			++ primitive description of tupleType
+			++ " (but it only accepts "
+			++ primitive description of action[2]
+			++ ")";
+	];
 ] : ⊤;
 
 /**
- * Ensure that the function will accept all elements of the tuple. If the tuple
- * is certainly nonempty and the function certainly does not complete if
- * applied, then answer ⊥.
+ * Ensure that the function will accept all elements and indices of the tuple.
+ * If the tuple is certainly nonempty and the function certainly does not
+ * complete if applied, then answer ⊥.
  * 
  * Parameters:
  *    tupleType -
@@ -129,7 +176,7 @@ Method "Require:_accepts_" is
 Semantic restriction "For each_do_" is
 [
 	tupleType : tuple meta,
-	action : [⊥]→⊤'s type
+	action : function meta
 |
 	Require: action accepts tupleType;
 	if ||tupleType||'s lower bound > 0 ∧ [ action's return type = ⊥; ] then
@@ -176,8 +223,42 @@ Method "map_through_" is
 ] : tuple;
 
 /**
- * Ensure that the function will accept all elements of the tuple. If the tuple
- * is certainly nonempty, then the function cannot answer ⊥.
+ * Iteratively apply `transformer` to each consecutive element of `aTuple`,
+ * collecting the results into a new tuple (and preserving ordering of the
+ * transformed elements). Answer this tuple.
+ * 
+ * Parameters:
+ *    aTuple - A tuple.
+ *    transformer - A function that accepts 1) an element of the tuple and 2)
+ *       the index of that element.
+ * Returns:
+ *    A tuple of results of applications of `transformer` to the elements and
+ *    indices of `aTuple`.
+ */
+Method "map_through_" is
+[
+	aTuple : tuple,
+	transformer : [⊥, ⊥]→any
+|
+	index : natural number := 1;
+	result : tuple := <>;
+	end ::= |aTuple|;
+	[
+		$loop;
+		If index ≤ end then
+		[
+			result := eject ↑result
+				++ <invoke transformer with <aTuple[index], index>>;
+			↑index++;
+			Restart loop;
+		];
+	]();
+	result;
+] : tuple;
+
+/**
+ * Ensure that the function will accept all elements and indices of the tuple.
+ * If the tuple is certainly nonempty, then the function cannot answer ⊥.
  * 
  * Parameters:
  *    tupleType -
@@ -189,7 +270,7 @@ Method "map_through_" is
 Semantic restriction "map_through_" is
 [
 	tupleType : tuple meta,
-	transformer : [⊥]→any's type
+	transformer : […]→any's type
 |
 	Require: transformer accepts tupleType;
 	If ||tupleType||'s lower bound > 0 then
@@ -242,20 +323,56 @@ Method "filter_by_" is
 ] : tuple;
 
 /**
- * Ensure that the function will accept all elements of the tuple.
+ * Iteratively apply `predicate` to each consecutive element and index of
+ * `aTuple`, collecting those elements for which `predicate` answers `true` into
+ * a new tuple (and preserving ordering). Answer the new tuple.
+ * 
+ * Parameters:
+ *    aTuple - A tuple.
+ *    predicate - A function that accepts 1) an element of the tuple and 2)
+ *       the index of that element and which answers `true` iff the elements
+ *       should be accumulated into the output tuple.
+ * Returns:
+ *    A tuple containing exactly those elements of `aTuple` for which
+ *    `predicate` answered `true`.
+ */
+Method "filter_by_" is
+[
+	aTuple : tuple,
+	predicate : [⊥, ⊥]→boolean
+|
+	index : natural number := 1;
+	end ::= |aTuple|;
+	result : tuple := <>;
+	[
+		$loop;
+		If index ≤ end then
+		[
+			element ::= aTuple[index];
+			If invoke predicate with <element, index> then
+			[
+				result := eject ↑result ++ <element>;
+			];
+			↑index++;
+			Restart loop;
+		];
+	]();
+	result;
+] : tuple;
+
+/**
+ * Ensure that the function will accept all elements and indices of the tuple.
  * 
  * Parameters:
  *    tupleType -
  *    predicate -
  * Returns:
- *    A tuple type whose leading and default types are the same as
- *    `tupleType`'s and which has cardinality
- *    `[0..||tupleType||'s upper bound + 1)`.
+ *    The most specific possible tuple type.
  */
 Semantic restriction "filter_by_" is
 [
 	tupleType : tuple meta,
-	predicate : [⊥]→boolean's type
+	predicate : […]→boolean's type
 |
 	Require: predicate accepts tupleType;
 	if predicate's return type = true's type then
@@ -323,6 +440,57 @@ Method "map and filter_by_" is
 ] : tuple;
 
 /**
+ * Iteratively apply `accumulator` to the consecutive elements and indices of
+ * `aTuple` in order to transform and filter its elements into a new tuple. When
+ * `accumulator` is invoked, it is passed a "keeper" function. The keeper
+ * function may be invoked to "save" a particular value, i.e., a value that will
+ * be copied into the output tuple. The keeper function will save at most one
+ * value per element of `aTuple`, i.e., each time that `accumulator` is invoked,
+ * it may invoke the keeper function at most one time. Answer the new tuple.
+ * 
+ * Parameters:
+ *    aTuple - A tuple.
+ *    accumulator - A function that accepts 1) an element from `aTuple`, 2) the
+ *       index of that element, and 3) a keeper function. The keeper function
+ *       accepts an argument of the type that should be saved.
+ * Returns:
+ *    A tuple whose elements are those saved by the `accumulator`.
+ */
+Method "map and filter_by_" is
+[
+	aTuple : tuple,
+	accumulator : [⊥, ⊥, ⊥]→⊤
+|
+	index : natural number := 1;
+	end ::= |aTuple|;
+	result : tuple := <>;
+	[
+		$loop;
+		If index ≤ end then
+		[
+			hasAlreadyKept : boolean := false;
+			Invoke accumulator with
+			<
+				aTuple[index],
+				index,
+				[
+					transformed : any
+				|
+					If ¬hasAlreadyKept then
+					[
+						result := eject ↑result ++ <transformed>;
+						hasAlreadyKept := true;
+					];
+				]
+			>;
+			↑index++;
+			Restart loop;
+		];
+	]();
+	result;
+] : tuple;
+
+/**
  * Ensure that the function will accept all elements of the tuple and also an
  * appropriately typed keeper function.
  *
@@ -337,7 +505,7 @@ Method "map and filter_by_" is
 Semantic restriction "map and filter_by_" is
 [
 	tupleType : tuple meta,
-	accumulator : [⊥, ⊥]→⊤'s type
+	accumulator : […]→⊤'s type
 |
 	Require: accumulator accepts tupleType;
 	Require: accumulator's keeper is valid;
@@ -384,7 +552,38 @@ Method "any of_satisfies_" is
 ] : boolean;
 
 /**
- * Ensure that the function will accept all elements of the tuple.
+ * Compute and answer whether any of the elements (and indices) of `aTuple`
+ * satisfy the specified function. Do not examine more elements than necessary.
+ * 
+ * Parameters:
+ *    aTuple - A tuple.
+ *    predicate - A function that accepts 1) an element of the tuple and 2) the
+ *       index of that element.
+ * Returns:
+ *    `true` if `predicate` answers `true` for any element of `aTuple`, `false`
+ *    otherwise.
+ */
+Method "any of_satisfies_" is
+[
+	aTuple : tuple,
+	predicate : [⊥, ⊥]→boolean
+|
+	$body : boolean;
+	For each aTuple do
+	[
+		element : any,
+		index : natural number
+	|
+		If invoke predicate with <element, index> then
+		[
+			Exit body with true;
+		];
+	];
+	false;
+] : boolean;
+
+/**
+ * Ensure that the function will accept all elements and indices of the tuple.
  * 
  * Parameters:
  *    tupleType -
@@ -395,7 +594,7 @@ Method "any of_satisfies_" is
 Semantic restriction "any of_satisfies_" is
 [
 	tupleType : tuple meta,
-	predicate : [⊥]→boolean's type
+	predicate : […]→boolean's type
 |
 	Require: predicate accepts tupleType;
 	predicate's return type;
@@ -432,7 +631,38 @@ Method "each of_satisfies_" is
 ] : boolean;
 
 /**
- * Ensure that the function will accept all elements of the tuple.
+ * Compute and answer whether each of the elements (and indices) of `aTuple`
+ * satisfy the specified function. Do not examine more elements than necessary.
+ * 
+ * Parameters:
+ *    aTuple - A tuple.
+ *    predicate - A function that accepts 1) an element of the tuple and 2) the
+ *       index of that element and answers a boolean.
+ * Returns:
+ *    `true` if `predicate` answers `true` for each element of `aTuple`, `false`
+ *    otherwise.
+ */
+Method "each of_satisfies_" is
+[
+	aTuple : tuple,
+	predicate : [⊥, ⊥]→boolean
+|
+	$body : boolean;
+	For each aTuple do
+	[
+		element : any,
+		index : natural number
+	|
+		Unless invoke predicate with <element, index> then
+		[
+			Exit body with false;
+		];
+	];
+	true;
+] : boolean;
+
+/**
+ * Ensure that the function will accept all elements and indices of the tuple.
  * 
  * Parameters:
  *    tupleType -
@@ -443,7 +673,7 @@ Method "each of_satisfies_" is
 Semantic restriction "each of_satisfies_" is
 [
 	tupleType : tuple meta,
-	predicate : [⊥]→boolean's type
+	predicate : […]→boolean's type
 |
 	Require: predicate accepts tupleType;
 	predicate's return type;
@@ -469,7 +699,27 @@ Method "count of_where_" is
 ] : whole number;
 
 /**
- * Ensure that the function will accept all elements of the tuple.
+ * Compute and answer the count of elements (and indices) of `aTuple` that
+ * satisfy the given predicate.
+ * 
+ * Parameters:
+ *    aTuple - A tuple.
+ *    predicate - A function that accepts 1) an element of the tuple and 2) the
+ *       index of that element and answers `true` if the element should be
+ *       represented in the resulting count.
+ * Returns:
+ *    The number of elements of `aTuple` for which `predicate` answers `true`.
+ */
+Method "count of_where_" is
+[
+	aTuple : tuple,
+	predicate : [⊥, ⊥]→boolean
+|
+	|filter aTuple by predicate|;
+] : whole number;
+
+/**
+ * Ensure that the function will accept all elements and indices of the tuple.
  * 
  * Parameters:
  *    tupleType -
@@ -480,8 +730,148 @@ Method "count of_where_" is
 Semantic restriction "count of_where_" is
 [
 	tupleType : tuple meta,
+	predicate : […]→boolean's type
+|
+	Require: predicate accepts tupleType;
+	[0..||tupleType||'s upper bound + 1);
+];
+
+/**
+ * Compute and answer the index of the first element of `aTuple` that satisfies
+ * the specified predicate.
+ * 
+ * Parameters:
+ *    aTuple - A tuple.
+ *    predicate - A function that accepts the elements of the tuple.
+ * Returns:
+ *    The index of the first satisfactory element, or 0 if no element satisfied
+ *    the predicate.
+ */
+Method "first index of_where_" is
+[
+	aTuple : tuple,
+	predicate : [⊥]→boolean
+|
+	$body : natural number;
+	From 1 to |aTuple| do
+	[
+		index : natural number
+	|
+		If invoke predicate with <aTuple[index]> then
+		[
+			Exit body with index;
+		];
+	];
+	0;
+] : whole number;
+
+/**
+ * Ensure that the function will accept all elements of the tuple.
+ * 
+ * Parameters:
+ *    tupleType -
+ *    predicate -
+ * Returns:
+ *    `[0..||tupleType||'s upper bound + 1)`.
+ */
+Semantic restriction "first index of_where_" is
+[
+	tupleType : tuple meta,
 	predicate : [⊥]→boolean's type
 |
 	Require: predicate accepts tupleType;
 	[0..||tupleType||'s upper bound + 1);
+];
+
+/**
+ * Compute and answer the index of the last element of `aTuple` that satisfies
+ * the specified predicate.
+ * 
+ * Parameters:
+ *    aTuple - A tuple.
+ *    predicate - A function that accepts the elements of the tuple.
+ * Returns:
+ *    The index of the last satisfactory element, or 0 if no element satisfied
+ *    the predicate.
+ */
+Method "last index of_where_" is
+[
+	aTuple : tuple,
+	predicate : [⊥]→boolean
+|
+	$body : natural number;
+	From |aTuple| to 1 by -1 do
+	[
+		index : natural number
+	|
+		If invoke predicate with <aTuple[index]> then
+		[
+			Exit body with index;
+		];
+	];
+	0;
+] : whole number;
+
+/**
+ * Ensure that the function will accept all elements of the tuple.
+ * 
+ * Parameters:
+ *    tupleType -
+ *    predicate -
+ * Returns:
+ *    `[0..||tupleType||'s upper bound + 1)`.
+ */
+Semantic restriction "last index of_where_" is
+[
+	tupleType : tuple meta,
+	predicate : [⊥]→boolean's type
+|
+	Require: predicate accepts tupleType;
+	[0..||tupleType||'s upper bound + 1);
+];
+
+/**
+ * Is `value` an element of `aTuple`?
+ * 
+ * Parameters:
+ *    value - An arbitrary value.
+ *    aTuple -  A tuple.
+ * Returns:
+ *    `true` if `value` is an element of `aTuple`, `false` otherwise.
+ */
+Method "_∈_" is
+[
+	value : any,
+	aTuple : tuple
+|
+	any of aTuple satisfies [ element : any | element = value; ];
+] : boolean;
+
+/**
+ * Strength `_∈_`.
+ * 
+ * Parameters:
+ *    valueType -
+ *    mapType -
+ * Returns:
+ *    The strongest possible boolean type.
+ */
+Semantic restriction "_∈_" is
+[
+	valueType : any meta,
+	tupleType : tuple meta
+|
+	if |valueType| = 1 ∧ [ |tupleType| = 1; ] then
+	[
+		(valueType's instance ∈ tupleType's instance)'s type;
+	]
+	else if [ valueType ∩ (∪ tupleType[1..relevant |tupleType|]) = ⊥; ] then
+	[
+		false's type;
+	]
+	else
+	[
+		/* Can't strengthen. */
+		⊤;
+	];
 ];

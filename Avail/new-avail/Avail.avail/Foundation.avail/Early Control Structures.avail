@@ -40,10 +40,25 @@ Uses
 	"Early Enumeration Support"
 Names
 	"(_)",
+	"Ignore:_",
 	"From_to_do_",
 	"cast~_into_else_",
 	"cast~_into_"
 Body
+
+/**
+ * Ignore the specified value. This allows the return value of an expression to
+ * be discarded, effectively converting it into a statement.
+ * 
+ * Parameters:
+ *    value - An arbitrary value which will be ignored.
+ */
+Method "Ignore:_" is
+[
+	value : any
+|
+	/* No implementation required. */
+] : ⊤;
 
 /**
  * Establish grammatical boundaries around an expression. This serves to assist

@@ -42,6 +42,7 @@ Uses
 	"Early Functions",
 	"Early Tuples",
 	"Early Types",
+	"Enumeration Support",
 	"Literals",
 	"Logic",
 	"Math",
@@ -104,6 +105,11 @@ Method "Require:_accepts_" is
 	action : function meta,
 	setType : set meta
 |
+	If ||action's parameters' type||'s lower bound < 1 then
+	[
+		Reject parse, expected:
+			"repeatedly applied function to accept at least one argument";
+	];
 	If action[1] ≠ ⊥ ∧ [ ¬setType's element type ⊆ action[1]; ] then
 	[
 		Reject parse, expected:
@@ -476,4 +482,33 @@ Semantic restriction "count of_where_" is
 |
 	Require: predicate accepts setType;
 	[0..||setType||'s upper bound + 1);
+];
+
+/**
+ * Strength `_∈_`.
+ * 
+ * Parameters:
+ *    valueType -
+ *    mapType -
+ * Returns:
+ *    The strongest possible boolean type.
+ */
+Semantic restriction "_∈_" is
+[
+	valueType : any meta,
+	setType : set meta
+|
+	if |valueType| = 1 ∧ [ |setType| = 1; ] then
+	[
+		(valueType's instance ∈ setType's instance)'s type;
+	]
+	else if [ valueType ∩ (setType's element type) = ⊥; ] then
+	[
+		false's type;
+	]
+	else
+	[
+		/* Can't strengthen. */
+		⊤;
+	];
 ];

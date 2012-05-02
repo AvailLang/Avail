@@ -655,8 +655,15 @@ Semantic restriction "_=_" is
 	]
 	else
 	[
-		/* Don't strengthen. */
-		⊤;
+		if a ≠ b ∧ [ a ∩ b = ⊥; ] then
+		[
+			false's type;
+		]
+		else
+		[
+			/* Don't strengthen. */
+			⊤;
+		];
 	];
 ];
 
@@ -684,7 +691,14 @@ Semantic restriction "_≠_" is
 	]
 	else
 	[
-		/* Don't strengthen. */
-		⊤;
+		if a ≠ b ∧ [ a ∩ b = ⊥; ] then
+		[
+			false's type;
+		]
+		else
+		[
+			/* Don't strengthen. */
+			⊤;
+		];
 	];
 ];
