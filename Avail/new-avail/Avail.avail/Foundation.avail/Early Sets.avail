@@ -111,17 +111,13 @@ Semantic restriction "_∩_" is
 Grammatical restriction {"_∩_"} is <∅, {"_∩_"}>;
 
 /**
- * If it can be statically determined that the type of the right-hand argument
- * (A) is a subtype of the type of the left-hand argument (B), and that A's
- * lower bound is greater than or equal to B's lower bound, and that A's upper
- * bound is less than or equal to B's upper bound, then it is known that the
- * return type of _⊆_ is true's type.
+ * Strengthen `_⊆_`.
  * 
  * Parameters:
  *    typeA - A set type.
  *    typeB - A set type.
  * Returns:
- *    A boolean.
+ *    A boolean type.
  */
 Semantic restriction "_⊆_" is
 [

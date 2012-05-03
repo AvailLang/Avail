@@ -574,8 +574,14 @@ public abstract class AbstractAvailCompiler
 				// Note: count.value increases monotonically.
 				if (count.value > 1)
 				{
-					workPoolExecutor.shutdownNow();
-					workPoolExecutor.awaitTermination(2, TimeUnit.MINUTES);
+					workPool.drainTo(new ArrayList<Runnable>());
+					synchronized (this)
+					{
+						while (workUnitsCompleted < workUnitsQueued)
+						{
+							wait();
+						}
+					}
 				}
 				else
 				{
@@ -1396,13 +1402,19 @@ public abstract class AbstractAvailCompiler
 					{
 						workUnitsStarted++;
 					}
-					continuation.value();
-					synchronized (thisCompiler)
+					try
 					{
-						workUnitsCompleted++;
-						if (workUnitsCompleted == workUnitsQueued)
+						continuation.value();
+					}
+					finally
+					{
+						synchronized (thisCompiler)
 						{
-							thisCompiler.notifyAll();
+							workUnitsCompleted++;
+							if (workUnitsCompleted == workUnitsQueued)
+							{
+								thisCompiler.notifyAll();
+							}
 						}
 					}
 				}
@@ -2503,7 +2515,9 @@ public abstract class AbstractAvailCompiler
 		final @NotNull Con<AvailObject> continuation)
 	{
 		final AvailObject token = start.peekToken();
-		if (token.tokenType() == KEYWORD || token.tokenType() == OPERATOR)
+		if (token.tokenType() == KEYWORD
+			|| token.tokenType() == OPERATOR
+			|| token.tokenType() == LITERAL)
 		{
 			attempt(start.afterToken(), continuation, token);
 		}

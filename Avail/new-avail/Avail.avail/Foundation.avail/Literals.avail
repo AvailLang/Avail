@@ -43,7 +43,8 @@ Uses
 	"Enumeration Support",
 	"Variables"
 Names
-	"{«_→_‡,»}"
+	"{«_→_‡,»}",
+	"¢…"
 Body
 
 /**
@@ -536,4 +537,80 @@ Semantic restriction "|_|" is
 |
 	sizes ::= ||aMapType||;
 	[sizes' lower bound..sizes' upper bound + 1);
+];
+
+/**
+ * Construct a character literal from an arbitrary token.
+ * 
+ * Parameter:
+ *    aToken - An arbitary token.
+ * Returns:
+ *    A character.
+ */
+Method "¢…" is
+[
+	aToken : token
+|
+	lexeme ::= aToken's lexeme;
+	lexeme[1];
+];
+
+/**
+ * Construct a character literal from an arbitrary literal token. If the token
+ * is a string literal, then use its value instead of its lexeme. This allows
+ * capture of characters like space and double quote (").
+ * 
+ * Parameter:
+ *    aToken - An arbitrary literal token.
+ * Returns:
+ *    A character.
+ */
+Method "¢…" is
+[
+	aToken : literal token
+|
+	cast aToken's value into
+	[
+		value : string
+	|
+		value[1];
+	]
+	else
+	[
+		lexeme ::= aToken's lexeme;
+		lexeme[1];
+	];
+];
+
+/**
+ * Enforce that a character literal contains only a single character.
+ * 
+ * Parameters:
+ *    tokenType - A token type.
+ * Returns:
+ *    ⊤.
+ */
+Semantic restriction "¢…" is
+[
+	tokenType : token's type
+|
+	Assert: |tokenType| = 1 ("token must be statically known");
+	instance ::= tokenType's instance;
+	value ::=
+		cast instance into
+		[
+			literalToken : literal token
+		|
+			cast literalToken's value into [ t : string | t; ]
+			else [ instance's lexeme; ];
+		]
+		else
+		[
+			instance's lexeme;
+		];
+	If |value| ≠ 1 then
+	[
+		Reject parse, expected: "a character literal to have a length of 1";
+	];
+	⊤;
 ];
