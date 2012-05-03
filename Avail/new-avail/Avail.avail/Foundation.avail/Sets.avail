@@ -51,7 +51,8 @@ Names
 	"_∋_",
 	"_⊂_",
 	"_⊇_",
-	"_⊃_"
+	"_⊃_",
+	"_∉_"
 Body
 
 /**
@@ -730,3 +731,38 @@ Semantic restriction "_⊃_" is
 		⊤;
 	];
 ];
+
+/**
+ * Is `element` not an element of `aSet`?
+ *
+ * Parameters:
+ *    element - An arbitrary value.
+ *    aSet - A set.
+ * Returns:
+ *    `true` if `element` is an element of `aSet`, `false` otherwise.
+ */
+Method "_∉_" is
+[
+	element : any,
+	aSet : set
+|
+	¬ element ∈ aSet;
+] : boolean;
+
+/**
+ * Is `a` not a proper subset of `b`?
+ *
+ * Parameters:
+ *    a - A set.
+ *    b - A set.
+ * Returns:
+ *    `true` if `a` is a proper subset of `b`, `false` otherwise.
+ */
+Method "_⊄_" is
+[
+	a : set,
+	b : set
+|
+	¬ a ⊂ b;
+] : boolean;
+

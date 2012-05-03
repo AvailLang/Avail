@@ -225,7 +225,7 @@ Method "<«_‡,»`…|_.._>" is
  * Parameters:
  *  leadingAndDefaultTypesTypes - the type of a tuple of the types in the tuple
  *	minimumSizeType : type of the minimum cardinality
- *	maximumSizeType : type of the minimum cardinality
+ *	maximumSizeType : type of the maximum cardinality
  * Returns:
  *    The requested tuple's type's type.
  */ 
@@ -631,6 +631,27 @@ Semantic restriction "<«_‡,»`…|>" is
 ];
 
 /**
+ * Strengthen set type construction.
+ *
+ * Parameters:
+ *    elementTypeType - The element type's type.
+ *    cardinalityTypeType : whole number meta's type
+ * Returns:
+ *    The requested set type's most specific type. 
+ */
+Semantic restriction "{_|_}" is
+[
+	elementTypeType : any meta's type,
+	cardinalityTypeType : whole number meta's type
+|
+	cardinalityTypeTypeInstance :: = cardinalityTypeType's instance;
+	bound ::= cast cardinalityTypeTypeInstance's upper bound + 
+		1 into [ t : [0..∞] | t; ];
+	lower ::= cardinalityTypeTypeInstance's lower bound;
+	{elementTypeType's instance|[lower..bound)}'s type;
+];
+
+/**
  * Construct and answer a set type with the specified element type and the 
  * specified minimum value and maximum value of the cardinalities.
  * 
@@ -868,6 +889,29 @@ Semantic restriction "{_|}" is
 ];
 
 /**
+ * Strengthen map type construction.
+ *
+ * Parameters:
+ *    keyTypeType - The type's type to which all keys of instances must conform.
+ *    valueTypeType - The type's type to which all values of instances must conform.
+ *    cardinalityTypeType - The range of allowed cardinalities.
+ * Returns:
+ *    The requested map type's most specific type.
+ */
+Semantic restriction "{_→_|_}" is
+[
+	keyTypeType : any meta's type,
+	valueTypeType : any meta's type,
+	cardinalityTypeType : whole number meta's type
+|
+	cardinalityTypeTypeInstance :: = cardinalityTypeType's instance;
+	bound ::= cast cardinalityTypeTypeInstance's upper bound + 
+	1 into [ t : [0..∞] | t; ];
+	lower ::= cardinalityTypeTypeInstance's lower bound;
+	{keyTypeType's instance→valueTypeType's instance|[lower..bound)}'s type;
+];
+
+/**
  * Construct and answer a map type with the specified key type, value type, and
  * uses all whole numbers as the value of the cardinality.
  *
@@ -889,6 +933,29 @@ Method "{_→_|_.._}" is
 	bound ::= cast maximumSize + 1 into [ t : [0..∞] | t; ];
 	{keyType→valueType|[minimumSize..bound)};
 ] : map meta;
+
+/**
+ * Strengthen map type construction.
+ *
+ * Parameters:
+ *    keyTypeType - The key's type's type.
+ *    valueTypeType - The value's type's type.
+ *    minimumSizeType - The type of the minimum cardinality.
+ *    maximumSizeType : type of the maximum cardinality.
+ * Returns:
+ *    The instance metatype of the exact map type.
+ */
+Semantic restriction "{_→_|_.._}" is
+[
+	keyTypeType : any's type's type,
+	valueTypeType : any's type's type,
+	minimumSizeType : whole number's type,
+	maximumSizeType : [0..∞]'s type
+|
+	bound ::= cast maximumSizeType's upper bound + 1 into [ t : [0..∞] | t; ];
+	lower ::= minimumSizeType's lower bound;
+	{keyTypeType's instance→valueTypeType's instance|[lower..bound)}'s type;
+];
 
 /**
  * Construct and answer a map type with the specified key type, value type, and
@@ -955,11 +1022,32 @@ Method "{_→_|.._}" is
 
 /**
  * Strengthen map type construction.
+ *
+ * Parameters:
+ *    keyTypeType - The key's type's type.
+ *    valueTypeType - The value's type's type.
+ *    maximumSizeType : type of the maximum cardinality.
+ * Returns:
+ *    The instance metatype of the exact map type.
+ */
+Semantic restriction "{_→_|.._}" is
+[
+	keyTypeType : any's type's type,
+	valueTypeType : any's type's type,
+	maximumSizeType : [0..∞]'s type
+|
+	bound ::= cast maximumSizeType's upper bound + 1 into [ t : [0..∞] | t; ];
+	{keyTypeType's instance→valueTypeType's instance|[0..bound)}'s type;
+];
+
+/**
+ * Construct and answer a map type with the specified key type, value type, and
+ * the exact size of the cardinality.
  * 
  * Parameters:
- *    keyType -
- *    valueType -
- *    exactSize -
+ *    keyType - A type to which all keys of instances must conform.
+ *    valueType - A type to which all values of instances must conform.
+ *    exactSize - The minimum and maximum cardinality.
  * Returns:
  *    The requested map type.
  */
@@ -971,6 +1059,26 @@ Method "{_→_|_}" is
 |
 	bound ::= cast exactSize + 1 into [ t : whole number | t; ];
 	{keyType→valueType|[exactSize..bound)};
+]:map meta;
+
+/**
+ * Strengthen map type construction..
+ * 
+ * Parameters:
+ *    keyTypeType - The type's type to which all keys of instances must conform.
+ *    valueTypeType - The type's to which all values of instances must conform.
+ *    exactSizeType - The minimum and maximum cardinality's type.
+ * Returns:
+ *    The requested map type.
+ */
+Semantic restriction "{_→_|_}" is
+[
+	keyTypeType : any meta's type,
+	valueTypeType : any meta's type,
+	exactSizeType : whole number's type
+|
+	bound ::= exactSizeType's instance;
+	{keyTypeType's instance→valueTypeType's instance|bound..bound}'s type;
 ];
 
 /**
@@ -990,6 +1098,23 @@ Method "{_→_|}" is
 |
 	{keyType→valueType|[0..∞)};
 ] : map meta;
+
+/**
+ * Strengthen map type constructor.
+ * 
+ * Parameters:
+ *    keyTypeType - The type's type to which all keys of instances must conform.
+ *    valueTypeType - The type's type to which all values of instances must conform.
+ * Returns:
+ *    The requested map type most specific type.
+ */
+Semantic restriction "{_→_|}" is
+[
+	keyTypeType : any meta's type,
+	valueTypeType : any meta's type
+|
+	{keyTypeType's instance→valueTypeType's instance|0..∞}'s type;
+];
 
 /**
  * Strengthen the type union operation.
