@@ -126,7 +126,26 @@ Semantic restriction "«_‡++»" is
 	];
 	result;
 ];
-	
+
+/**
+ * Compute and answer the minimum size of `tupleType` for efficient traversal of
+ * its relevant element types.
+ * 
+ * Parameters:
+ *    tupleType - A tuple type.
+ * Returns:
+ *    The smaller of the argument's cardinality's lower bound and one more than
+ *    the size of its leading types.
+ */
+Method "relevant|_|" is
+[
+	tupleType : tuple meta
+|
+	cast
+		||tupleType||'s lower bound min (|tupleType's leading types| + 1)
+	into [ t : whole number | t; ];
+] : whole number;
+
 /**
  * This private helper method is essentially the implementation of the semantic
  * restrictions of `_[_.._]`, `_[_..]`, and `_[.._]`.
@@ -240,6 +259,24 @@ Semantic restriction "_[_.._]" is
 ];
 
 /**
+ * Construct and answer a slice (i.e., tuple type) that begins at subscript
+ * `sliceStart` and continues to the end of the tuple type.
+ * 
+ * Parameters:
+ *    aTupleType - A tuple type.
+ *    sliceStart - The one-based start index (inclusive) of the desired slice.
+ * Returns:
+ *    The requested tuple.
+ */
+Method "_[_..]" is
+[
+	aTupleType : tuple meta,
+	sliceStart : natural number
+|
+	aTupleType[sliceStart..relevant |aTupleType|];
+] : tuple of any meta;
+
+/**
  * Construct and answer a slice (i.e., subtuple) that begins at subscript
  * `sliceStart` and continues to the end of the tuple.
  * 
@@ -255,7 +292,7 @@ Method "_[_..]" is
 	sliceStart : natural number
 |
 	aTuple[sliceStart..|aTuple|];
-] : any;
+] : tuple;
 
 /**
  * Strengthen the tuple type procuded by `_[_..]` to the strongest possible
@@ -276,6 +313,24 @@ Semantic restriction "_[_..]" is
 ];
 
 /**
+ * Construct and answer a slice (i.e., tuple type) that begins at the start of
+ * the tuple type and continues to subscript `sliceEnd`.
+ * 
+ * Parameters:
+ *    aTupleType - A tuple type.
+ *    sliceEnd - The one-based end index (inclusive) of the desired slice.
+ * Returns:
+ *    The requested tuple.
+ */
+Method "_[.._]" is
+[
+	aTupleType : tuple meta,
+	sliceEnd : whole number
+|
+	aTupleType[1..sliceEnd];
+] : tuple;
+
+/**
  * Construct and answer a slice (i.e., subtuple) that begins at the start of the
  * tuple and continues to subscript `sliceEnd`.
  * 
@@ -291,7 +346,7 @@ Method "_[.._]" is
 	sliceEnd : whole number
 |
 	aTuple[1..sliceEnd];
-] : any;
+] : tuple;
 
 /**
  * Strengthen the tuple type procuded by `_[.._]` to the strongest possible
@@ -353,25 +408,6 @@ Semantic restriction "concatenate_" is
 	];
 	result;
 ];
-
-/**
- * Compute and answer the minimum size of `tupleType` for efficient traversal of
- * its relevant element types.
- * 
- * Parameters:
- *    tupleType - A tuple type.
- * Returns:
- *    The smaller of the argument's cardinality's lower bound and one more than
- *    the size of its leading types.
- */
-Method "relevant|_|" is
-[
-	tupleType : tuple meta
-|
-	cast
-		||tupleType||'s lower bound min (|tupleType's leading types| + 1)
-	into [ t : whole number | t; ];
-] : whole number;
 
 /* Disambiguate `_→_` and `_→tuple`. */
 Grammatical restriction {"_→_"} is <∅, {"tuple"}>;

@@ -339,7 +339,7 @@ implements ThreadFactory
 	 * AvailRuntime runtime}.
 	 */
 	private static final @NotNull AvailObject[] specialObjects =
-		new AvailObject[120];
+		new AvailObject[150];
 
 	/**
 	 * Answer the {@linkplain AvailObject special objects} of the {@linkplain
@@ -553,11 +553,7 @@ implements ThreadFactory
 				IntegerRangeTypeDescriptor.wholeNumbers(),
 				TupleDescriptor.from(),
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-					IntegerRangeTypeDescriptor.create(
-						IntegerDescriptor.fromInt(2),
-						true,
-						IntegerDescriptor.fromInt(2),
-						true),
+					IntegerRangeTypeDescriptor.singleInt(2),
 					TupleDescriptor.from(),
 					ANY.o()));
 		specialObjects[96] = MapDescriptor.empty();
@@ -620,6 +616,22 @@ implements ThreadFactory
 				true,
 				InfinityDescriptor.positiveInfinity(),
 				true);
+		specialObjects[119] =
+			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+				IntegerRangeTypeDescriptor.wholeNumbers(),
+				TupleDescriptor.empty(),
+				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+					IntegerRangeTypeDescriptor.singleInt(2),
+					TupleDescriptor.from(ATOM.o()),
+					InstanceTypeDescriptor.on(ANY.o())));
+		specialObjects[120] =
+			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+				IntegerRangeTypeDescriptor.wholeNumbers(),
+				TupleDescriptor.empty(),
+				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+					IntegerRangeTypeDescriptor.singleInt(2),
+					TupleDescriptor.from(ATOM.o()),
+					ANY.o()));
 
 		for (final AvailObject object : specialObjects)
 		{

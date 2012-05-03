@@ -1,5 +1,5 @@
 /**
- * Primitive_063_MapToObjectType.java
+ * P_150_TupleToObjectType.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -29,6 +29,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
@@ -39,28 +40,31 @@ import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 63:</strong> Convert a {@linkplain MapDescriptor map}
- * from fields ({@linkplain InstanceTypeDescriptor instance types} of
- * {@linkplain AtomDescriptor atoms}) to {@linkplain TypeDescriptor types}
- * into an {@linkplain ObjectTypeDescriptor object type}.
+ * <strong>Primitive 150:</strong> Convert a {@linkplain TupleDescriptor tuple}
+ * of field assignment into an {@linkplain ObjectDescriptor object}. A field
+ * assignment is a 2-tuple whose first element is an {@linkplain AtomDescriptor
+ * atom} that represents the field and whose second element is its value.
+ *
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
-public class P_063_MapToObjectType extends Primitive
+public final class P_152_TupleToObject
+extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_063_MapToObjectType().init(
+	public final static Primitive instance = new P_152_TupleToObject().init(
 		1, CanFold, CannotFail);
 
 	@Override
-	public @NotNull Result attempt (
+	public Result attempt (
 		final @NotNull List<AvailObject> args,
 		final @NotNull Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject map = args.get(0);
+		final AvailObject tuple = args.get(0);
 		return interpreter.primitiveSuccess(
-			ObjectTypeDescriptor.objectTypeFromMap(map));
+			ObjectDescriptor.objectFromTuple(tuple));
 	}
 
 	@Override
@@ -68,10 +72,13 @@ public class P_063_MapToObjectType extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
+				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 					IntegerRangeTypeDescriptor.wholeNumbers(),
-					ATOM.o(),
-					InstanceTypeDescriptor.on(ANY.o()))),
-			ObjectTypeDescriptor.meta());
+					TupleDescriptor.empty(),
+					TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+						IntegerRangeTypeDescriptor.singleInt(2),
+						TupleDescriptor.from(ATOM.o()),
+						ANY.o()))),
+			ObjectTypeDescriptor.mostGeneralType());
 	}
 }

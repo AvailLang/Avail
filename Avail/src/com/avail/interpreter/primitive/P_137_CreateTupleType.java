@@ -49,8 +49,7 @@ public class P_137_CreateTupleType extends Primitive
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance = new P_137_CreateTupleType().init(
-
-	3, CanFold, CannotFail);
+		3, CanFold, CannotFail);
 
 	@Override
 	public @NotNull Result attempt (

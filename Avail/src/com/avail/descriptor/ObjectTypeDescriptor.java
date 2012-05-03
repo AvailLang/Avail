@@ -33,14 +33,19 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
-import java.util.List;
+import static com.avail.descriptor.ObjectTypeDescriptor.ObjectSlots.*;
+import java.util.*;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
 
 /**
- * TODO: [MvG] Document this type!
+ * {@code ObjectTypeDescriptor} represents an Avail object type. An object type
+ * associates {@linkplain AtomDescriptor fields} with {@linkplain TypeDescriptor
+ * types}. An object type's instances have at least the same fields and field
+ * values that are instances of the appropriate types.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
 public class ObjectTypeDescriptor
 extends TypeDescriptor
@@ -48,7 +53,8 @@ extends TypeDescriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	public enum ObjectSlots
+	implements ObjectSlotsEnum
 	{
 		/**
 		 * A {@linkplain MapTypeDescriptor map} from {@linkplain
@@ -162,10 +168,22 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_FieldTypeMap (
-		final @NotNull AvailObject object)
+	@NotNull AvailObject o_FieldTypeMap (final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.FIELD_TYPE_MAP);
+		return object.slot(FIELD_TYPE_MAP);
+	}
+
+	@Override @AvailMethod
+	@NotNull AvailObject o_FieldTypeTuple (final @NotNull AvailObject object)
+	{
+		final AvailObject map = object.slot(FIELD_TYPE_MAP);
+		final List<AvailObject> fieldAssignments = new ArrayList<AvailObject>(
+			map.mapSize());
+		for (final MapDescriptor.Entry entry : map.mapIterable())
+		{
+			fieldAssignments.add(TupleDescriptor.from(entry.key, entry.value));
+		}
+		return TupleDescriptor.fromCollection(fieldAssignments);
 	}
 
 	@Override @AvailMethod
@@ -332,20 +350,41 @@ extends TypeDescriptor
 	/**
 	 * Create an {@linkplain ObjectTypeDescriptor object type} using the given
 	 * {@linkplain MapDescriptor map} from {@linkplain AtomDescriptor
-	 * atoms}' {@linkplain InstanceTypeDescriptor instance types} to {@linkplain
-	 * TypeDescriptor types}.
+	 * atoms} to {@linkplain TypeDescriptor types}.
 	 *
-	 * @param map
-	 *        The {@linkplain MapDescriptor map} from {@linkplain
-	 *        AtomDescriptor key} {@linkplain InstanceTypeDescriptor types} to
-	 *        {@linkplain TypeDescriptor types}.
+	 * @param map The map from atoms to types.
 	 * @return The new {@linkplain ObjectTypeDescriptor object type}.
 	 */
 	public static AvailObject objectTypeFromMap (
 		final @NotNull AvailObject map)
 	{
 		final AvailObject result = mutable().create();
-		result.setSlot(ObjectSlots.FIELD_TYPE_MAP, map);
+		result.setSlot(FIELD_TYPE_MAP, map);
+		return result;
+	}
+
+	/**
+	 * Create an {@linkplain ObjectTypeDescriptor object type} from the
+	 * specified {@linkplain TupleDescriptor tuple}.
+	 *
+	 * @param tuple
+	 *        A tuple whose elements are 2-tuples whose first element is an
+	 *        {@linkplain AtomDescriptor atom} and whose second element is a
+	 *        {@linkplain TypeDescriptor type}.
+	 * @return The new object type.
+	 */
+	public static AvailObject objectTypeFromTuple (
+		final @NotNull AvailObject tuple)
+	{
+		AvailObject map = MapDescriptor.empty();
+		for (final AvailObject fieldDefinition : tuple)
+		{
+			final AvailObject fieldAtom = fieldDefinition.tupleAt(1);
+			final AvailObject type = fieldDefinition.tupleAt(2);
+			map = map.mapAtPuttingCanDestroy(fieldAtom, type, true);
+		}
+		final AvailObject result = mutable().create();
+		result.setSlot(FIELD_TYPE_MAP, map);
 		return result;
 	}
 

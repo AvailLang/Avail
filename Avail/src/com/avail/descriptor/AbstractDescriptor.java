@@ -5518,4 +5518,18 @@ public abstract class AbstractDescriptor
 	 */
 	abstract void o_TallyInvocation (
 		final @NotNull AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract @NotNull AvailObject o_FieldTypeTuple (
+		final @NotNull AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract @NotNull AvailObject o_FieldTuple (
+		final @NotNull AvailObject object);
 }

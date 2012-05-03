@@ -4259,4 +4259,16 @@ extends AbstractDescriptor
 	{
 		o_Traversed(object).tallyInvocation();
 	}
+
+	@Override
+	@NotNull AvailObject o_FieldTypeTuple (final @NotNull AvailObject object)
+	{
+		return o_Traversed(object).fieldTypeTuple();
+	}
+
+	@Override
+	@NotNull AvailObject o_FieldTuple (final @NotNull AvailObject object)
+	{
+		return o_Traversed(object).fieldTuple();
+	}
 }

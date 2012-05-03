@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.04.27 16:53:46.728 -0500
+ * * Last Generated On: 2012.05.03 14:11:30.399 -0500
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -70,7 +70,9 @@ Names
 	/*  71 */ "false",
 	/*  25 */ "fiber",
 	/*  93 */ "field map",
+	/* 120 */ "field tuple",
 	/*  94 */ "field type map",
+	/* 119 */ "field type tuple",
 	/*  15 */ "float",
 	/*  43 */ "forward signature",
 	/*   4 */ "function",
@@ -265,6 +267,8 @@ _token                                  ::= special object 115;
 _literal_token                          ::= special object 116;
 _tuple_of_any_meta                      ::= special object 117;
 _nonnegative_integer                    ::= special object 118;
+_field_type_tuple                       ::= special object 119;
+_field_tuple                            ::= special object 120;
 
 /**
  * The practical abstract root of the Avail type lattice. `any` is the second
@@ -679,13 +683,18 @@ Method "any meta" is
 	_any_meta;
 ];
 
-/** * The special atom that represents truth. `true` is an instance of `boolean`.
+/**
+ * The special atom that represents truth. `true` is an instance of `boolean`.
  */
 Method "true" is
 [
 	_true;
 ];
 
+/**
+ * The special atom that represents falsehood. `false` is an instance of
+ * `boolean`.
+ */
 Method "false" is
 [
 	_false;
@@ -924,5 +933,15 @@ Method "tuple of any meta" is
 Method "nonnegative integer" is
 [
 	_nonnegative_integer;
+];
+
+Method "field type tuple" is
+[
+	_field_type_tuple;
+];
+
+Method "field tuple" is
+[
+	_field_tuple;
 ];
 

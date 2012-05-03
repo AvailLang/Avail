@@ -48,7 +48,10 @@ Uses
 	"Variables"
 Names
 	"first index of_where_",
-	"last index of_where_"
+	"last index of_where_",
+	"zip_",
+	"_of_",
+	"«_‡zip»"
 Body
 
 /**
@@ -737,6 +740,153 @@ Semantic restriction "count of_where_" is
 ];
 
 /**
+ * Answer a function that computes the zip of a tuple of tuples.
+ * 
+ * Returns:
+ *    The requested function.
+ */
+Method "zip function" is
+[
+	[
+		tuples : <tuple…|1..>
+	|
+		accumulator : <tuple…|> := <>;
+		limit ::= min map tuples through [ aTuple : tuple | |aTuple|; ];
+		From 1 to limit do
+		[
+			index : natural number
+		|
+			group : tuple := <>;
+			For each tuples do
+			[
+				aTuple : tuple
+			|
+				group := eject ↑group ++ <aTuple[index]>;
+			];
+			accumulator := eject ↑accumulator ++ <group>;
+		];
+		accumulator;
+	] : tuple;
+] : [<tuple…|1..>]→tuple;
+
+/**
+ * Compute and answer the zip of the specified tuples. Given N input tuples, the
+ * output is the tuple whose i-th element contains the i-th element from each
+ * consecutive input tuple. The size of the output equals to the smallest size
+ * of the inputs. Each of the output's tuples has length equal to the number of
+ * inputs.
+ * 
+ * Parameters:
+ *    tuples - A tuple of tuples.
+ * Returns:
+ *    The zip of the input tuples.
+ */
+Method "zip_" is zip function;
+
+/**
+ * Compute and answer the zip of the specified tuples. Given N input tuples, the
+ * output is the tuple whose i-th element contains the i-th element from each
+ * consecutive input tuple. The size of the output equals to the smallest size
+ * of the inputs. Each of the output's tuples has length equal to the number of
+ * inputs.
+ * 
+ * Parameters:
+ *    tuples - A tuple of tuples.
+ * Returns:
+ *    The zip of the input tuples.
+ */
+Method "«_‡zip»" is zip function;
+
+/* Don't parse `«_‡zip»` recursively. */
+Grammatical restriction {"«_‡zip»"} is <{"«_‡zip»"}>;
+
+/**
+ * Answer the semantic restriction function for zipping tuples.
+ * 
+ * Returns:
+ *    The semantic restriction function.
+ */
+Method "zip semantic restriction" is
+[
+	[
+		tuplesType : <tuple…|1..>'s type
+	|
+		if |tuplesType| = 1 then
+		[
+			(zip tuplesType's instance)'s type;
+		]
+		else
+		[
+			types ::= cast tuplesType[1..relevant |tuplesType|]
+				into [ t : <tuple meta…|1..> | t; ];
+			lower ::=
+				min map types through
+				[
+					tupleType : tuple meta
+				|
+					||tupleType||'s lower bound;
+				];
+			upper ::=
+				min map types through
+				[
+					tupleType : tuple meta
+				|
+					||tupleType||'s upper bound;
+				];
+			limit ::=
+				max map types through
+				[
+					tupleType : tuple meta
+				|
+					|tupleType's leading types| + 1;
+				];
+			resultTypes : <tuple meta…|> := <>;
+			From 1 to limit do
+			[
+				index : natural number
+			|
+				zipped : tuple of any meta := <>;
+				For each types do
+				[
+					tupleType : tuple meta
+				|
+					zipped := eject ↑zipped ++ <tupleType[index]>;
+				];
+				nonempty ::= cast zipped
+					into [ t : <any meta…|1..> | t; ];
+				zippedType ::=
+					<nonempty[1..|nonempty| - 1], nonempty[|nonempty|]…
+						| ||tuplesType||>;
+				resultTypes := eject ↑resultTypes ++ <zippedType>;
+			];
+			nonempty ::= cast resultTypes into [ t : <tuple meta…|1..> | t; ];
+			resultSizes ::= [lower..upper + 1);
+			<nonempty[1..|nonempty| - 1], nonempty[|nonempty|]… | resultSizes>;
+		];
+	] : type;
+] : [<tuple…|1..>'s type]→type;
+
+/**
+ * Compute the resulting tuple type of a zip.
+ * 
+ * Parameters:
+ *    tupleType - A tuple type whose default type is `tuple`.
+ * Returns:
+ *    The strongest possible tuple type.
+ */
+Semantic restriction "zip_" is zip semantic restriction;
+
+/**
+ * Compute the resulting tuple type of a zip.
+ * 
+ * Parameters:
+ *    tupleType - A tuple type whose default type is `tuple`.
+ * Returns:
+ *    The strongest possible tuple type.
+ */
+Semantic restriction "«_‡zip»" is zip semantic restriction;
+
+/**
  * Compute and answer the index of the first element of `aTuple` that satisfies
  * the specified predicate.
  * 
@@ -828,6 +978,53 @@ Semantic restriction "last index of_where_" is
 |
 	Require: predicate accepts tupleType;
 	[0..||tupleType||'s upper bound + 1);
+];
+
+/**
+ * Construct and answer a tuple whose elements are each `value`.
+ * 
+ * Parameters:
+ *    count - The number of elements in the resulting tuple.
+ *    value - The repeated value.
+ * Returns:
+ *    A tuple containing `count` occurrences of `value`.
+ */
+Method "_of_" is
+[
+	count : whole number,
+	value : any
+|
+	accumulator : tuple := <>;
+	Repeat
+	[
+		accumulator := eject ↑accumulator ++ <value>;
+	]
+	count times;
+	accumulator;
+];
+
+/**
+ * Strengthen `_of_`.
+ * 
+ * Parameters:
+ *    countType -
+ *    valueType -
+ * Returns:
+ *    The strongest available tuple type.
+ */
+Semantic restriction "_of_" is
+[
+	countType : whole number's type,
+	valueType : any meta
+|
+	if |countType| = 1 ∧ [ |valueType| = 1; ] then
+	[
+		(countType's instance of (valueType's instance))'s type;
+	]
+	else
+	[
+		<<>, valueType…|countType>;
+	];
 ];
 
 /**

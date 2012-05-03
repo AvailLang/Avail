@@ -4486,4 +4486,16 @@ extends AbstractDescriptor
 	{
 		throw unsupportedOperationException();
 	}
+
+	@Override
+	@NotNull AvailObject o_FieldTypeTuple (final @NotNull AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	@NotNull AvailObject o_FieldTuple (final @NotNull AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
 }

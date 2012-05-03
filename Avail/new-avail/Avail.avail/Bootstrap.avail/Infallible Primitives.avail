@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.04.27 16:53:46.768 -0500
+ * * Last Generated On: 2012.05.03 14:11:30.426 -0500
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -804,7 +804,7 @@ Method "_→map" is
  */
 Method "_→object type" is
 [
-	fieldsToTypes : field map
+	fieldsToTypes : field type map
 |
 	Primitive 63;
 ] : object meta;
@@ -1546,6 +1546,75 @@ Method "_++_" is
 |
 	Primitive 144;
 ] : tuple meta;
+
+/**
+ * Construct and answer an object type based on the supplied tuple.
+ *
+ * Parameters:
+ *    fieldDefinitions - A tuple whose elements are 2-tuples. Each 2-tuples
+ *       first element is an atom (i.e., the field identifier) and its second
+ *       element is the value type permitted by the field.
+ * Returns:
+ *    The requested object type.
+ */
+Method "_→object type" is
+[
+	fieldDefinitions : field type tuple
+|
+	Primitive 150;
+] : object meta;
+
+/**
+ * Construct and answer a tuple based on the supplied object type.
+ *
+ * Parameters:
+ *    anObjectType - An object type.
+ * Returns:
+ *    A tuple that represents the composition of the object type. Its elements
+ *    are 2-tuples. Each 2-tuples first element is an atom (i.e., the field
+ *    identifier) and its second element is the value type permitted by the
+ *    field.
+ */
+Method "_→tuple" is
+[
+	anObjectType : object meta
+|
+	Primitive 151;
+] : field type tuple;
+
+/**
+ * Construct and answer an object based on the supplied tuple.
+ *
+ * Parameters:
+ *    fieldAssignments - A tuple whose elements are 2-tuples. Each 2-tuples
+ *       first element is an atom (i.e., the field identifier) and its second
+ *       element is associated value.
+ * Returns:
+ *    The requested object.
+ */
+Method "_→object" is
+[
+	fieldAssignments : field tuple
+|
+	Primitive 152;
+] : object;
+
+/**
+ * Construct and answer a tuple based on the supplied object.
+ *
+ * Parameters:
+ *    anObject - An object.
+ * Returns:
+ *    A tuple that represents the composition of the object. Its elements are
+ *    2-tuples. Each 2-tuples first element is an atom (i.e., the field
+ *    identifier) and its second element is associated value.
+ */
+Method "_→tuple" is
+[
+	anObject : object
+|
+	Primitive 153;
+] : field tuple;
 
 /**
  * Answer the arity of a function implementation. This is the number of

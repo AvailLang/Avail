@@ -62,7 +62,7 @@ Method "objectType" is [privateObjectType;] : privateObjectType type;
 Method "objectMeta" is [objectType type;];
 
 Method "fieldMap" is [map from atom to any;];
-Method "fieldTypeMap" is [map from atom to type;];
+Method "fieldTypeMap" is [map from atom to (any type);];
 
 Method "_as objectType" is [m : fieldTypeMap |
 	/* Now it's declared publicly with a return type of objectType... */
@@ -156,7 +156,7 @@ Restriction "_new with_" is [oM : objectMeta, tT : tupleType |
 	leading do [leadingType : type |
 		cast leadingType into [pairType : tupleType |
 			cast pairType[1] into [keyType : atom type |
-				valueType ::= pairType[2];
+				valueType ::= cast pairType[2] into [t : any type | t;];
 				if keyType = atom then [
 					Fail parse "Keys for \"_new with_\" must be statically known and proper subtypes of atom.";];
 				if ||keyType instances|| > 1 then [
@@ -208,7 +208,7 @@ Restriction "_altered with_" is [oT : objectType, tT : tupleType |
 	leading do [leadingType : type |
 		cast leadingType into [pairType : tupleType |
 			cast pairType[1] into [keyType : atom type |
-				valueType ::= pairType[2];
+				valueType ::= cast pairType[2] into [t: any type | t;];
 				if keyType = atom then [
 					Fail parse "Keys for \"_altered with_\" must be statically known and proper subtypes of atom.";];
 				if ||keyType instances|| > 1 then [
@@ -231,9 +231,9 @@ Restriction "_altered with_" is [oT : objectType, tT : tupleType |
     objectTypes will tend to be used in type declarations (and therefore executed at compile time
     to produce actual strong types), this is probably good enough. */
 
-Method "_altered with_" is [ot : Object type, t : tuple of (tuple like <atom, type>) |
+Method "_altered with_" is [ot : Object type, t : tuple of (tuple like <atom, any type>) |
 	m : fieldTypeMap := ot as map;
-	t do [pair : tuple like <atom, type> |
+	t do [pair : tuple like <atom, any type> |
 		*↑m[pair[1]] := pair[2];
 	];
 	m as objectType;
@@ -360,10 +360,10 @@ Method "_is implicit subtype of«_‡,»«with«_->_‡,»»" is [
 		superTypes : tuple [1..INF) of objectType,
 		optionalConditions : tuple [0..1] of
 			tuple [1..INF) of
-				tuple like <atom, type> |
-	conditionsMap : map from atom to type := [->];
+				tuple like <atom, any type> |
+	conditionsMap : map from atom to any type := [->];
 	if ||optionalConditions|| > 0 then [
-		optionalConditions[1] do [pair : tuple like <atom, type> |
+		optionalConditions[1] do [pair : tuple like <atom, any type> |
 			conditionsMap := conditionsMap[pair[1] -> pair[2]];];];
 	intersection : objectType := conditionsMap as objectType;
 	superTypes do [each : objectType |
@@ -388,11 +388,11 @@ Method "_is explicit subtype of«_‡,»«with«_->_‡,»»" is [
 		superTypes : tuple of objectType,
 		optionalConditions : tuple [0..1] of
 			tuple [1..INF) of
-				tuple like <atom, type> |
+				tuple like <atom, any type> |
 	newKey ::= new atom newName;
-	conditionsMap : map from atom to type := [newKey -> newKey type];
+	conditionsMap : map from atom to any type := [newKey -> newKey type];
 	if ||optionalConditions|| > 0 then [
-		optionalConditions[1] do [pair : tuple like <atom, type> |
+		optionalConditions[1] do [pair : tuple like <atom, any type> |
 			conditionsMap := conditionsMap[pair[1] -> pair[2]];];];
 	intersection : objectType := conditionsMap as objectType;
 	superTypes do [each : objectType |

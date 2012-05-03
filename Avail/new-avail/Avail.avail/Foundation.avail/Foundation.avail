@@ -38,9 +38,10 @@ Extends
 	"Control Structures",
 	"Enumeration Support",
 	"Literals",
+	"Logic",
 	"Maps",
 	"Math",
-	"Logic",
+	"Objects",
 	"Sets",
 	"Tuples"
 Body

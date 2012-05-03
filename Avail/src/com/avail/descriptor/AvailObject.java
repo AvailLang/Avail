@@ -6137,4 +6137,20 @@ implements Iterable<AvailObject>
 	{
 		descriptor.o_TallyInvocation(this);
 	}
+
+	/**
+	 * @return
+	 */
+	public @NotNull AvailObject fieldTypeTuple ()
+	{
+		return descriptor.o_FieldTypeTuple(this);
+	}
+
+	/**
+	 * @return
+	 */
+	public @NotNull AvailObject fieldTuple ()
+	{
+		return descriptor.o_FieldTuple(this);
+	}
 }

@@ -405,7 +405,7 @@ Method "_'s⁇upper bound is inclusive" is
 ] : boolean;
 
 /**
- * Answer a function that computes the  mininum of a tuple of numbers.
+ * Answer a function that computes the mininum of a tuple of numbers.
  * 
  * Returns:
  *    The requested function.

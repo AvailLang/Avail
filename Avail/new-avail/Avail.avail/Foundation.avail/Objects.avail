@@ -1,5 +1,5 @@
-/**
- * Primitive_063_MapToObjectType.java
+/*
+ * Objects.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -29,49 +29,15 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.annotations.NotNull;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
-
-/**
- * <strong>Primitive 63:</strong> Convert a {@linkplain MapDescriptor map}
- * from fields ({@linkplain InstanceTypeDescriptor instance types} of
- * {@linkplain AtomDescriptor atoms}) to {@linkplain TypeDescriptor types}
- * into an {@linkplain ObjectTypeDescriptor object type}.
- */
-public class P_063_MapToObjectType extends Primitive
-{
-	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
-	 */
-	public final static Primitive instance = new P_063_MapToObjectType().init(
-		1, CanFold, CannotFail);
-
-	@Override
-	public @NotNull Result attempt (
-		final @NotNull List<AvailObject> args,
-		final @NotNull Interpreter interpreter)
-	{
-		assert args.size() == 1;
-		final AvailObject map = args.get(0);
-		return interpreter.primitiveSuccess(
-			ObjectTypeDescriptor.objectTypeFromMap(map));
-	}
-
-	@Override
-	protected @NotNull AvailObject privateBlockTypeRestriction ()
-	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
-					IntegerRangeTypeDescriptor.wholeNumbers(),
-					ATOM.o(),
-					InstanceTypeDescriptor.on(ANY.o()))),
-			ObjectTypeDescriptor.meta());
-	}
-}
+System Module "Objects"
+Versions
+	"dev"
+Uses
+	"Bootstrap",
+	"Control Structures",
+	"Enumeration Support",
+	"Literals",
+	"Math",
+	"Tuples"
+Body

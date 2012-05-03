@@ -33,7 +33,8 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
-import java.util.List;
+import static com.avail.descriptor.ObjectDescriptor.ObjectSlots.*;
+import java.util.*;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
 
@@ -87,7 +88,113 @@ extends Descriptor
 		 * the attribute values, so it's not quite right to say that the values
 		 * can be anything.
 		 */
-		FIELD_MAP
+		FIELD_MAP,
+
+		/**
+		 * The {@linkplain ObjectTypeDescriptor kind} of the {@linkplain
+		 * ObjectDescriptor object}.
+		 */
+		KIND
+	}
+
+	@Override
+	boolean allowsImmutableToMutableReferenceInField (
+		final @NotNull AbstractSlotsEnum e)
+	{
+		return e == KIND;
+	}
+
+	@Override @AvailMethod
+	@NotNull AvailObject o_FieldMap (final @NotNull AvailObject object)
+	{
+		return object.slot(FIELD_MAP);
+	}
+
+	@Override @AvailMethod
+	@NotNull AvailObject o_FieldTuple (final @NotNull AvailObject object)
+	{
+		final AvailObject map = object.slot(FIELD_MAP);
+		final List<AvailObject> fieldAssignments = new ArrayList<AvailObject>(
+			map.mapSize());
+		for (final MapDescriptor.Entry entry : map.mapIterable())
+		{
+			fieldAssignments.add(TupleDescriptor.from(entry.key, entry.value));
+		}
+		return TupleDescriptor.fromCollection(fieldAssignments);
+	}
+
+	@Override @AvailMethod
+	boolean o_Equals (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
+	{
+		return another.equalsObject(object);
+	}
+
+	@Override @AvailMethod
+	boolean o_EqualsObject (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anObject)
+	{
+		if (object.sameAddressAs(anObject))
+		{
+			return true;
+		}
+		return object.fieldMap().equals(anObject.fieldMap());
+	}
+
+	@Override @AvailMethod
+	boolean o_IsInstanceOfKind (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aTypeObject)
+	{
+		if (aTypeObject.equals(TOP.o()))
+		{
+			return true;
+		}
+		if (aTypeObject.equals(ANY.o()))
+		{
+			return true;
+		}
+		return aTypeObject.hasObjectInstance(object);
+	}
+
+	@Override @AvailMethod
+	int o_Hash (
+		final @NotNull AvailObject object)
+	{
+		// Answer the object's hash value.
+		return computeHashFromFieldMapHash(object.fieldMap().hash());
+	}
+
+	@Override @AvailMethod
+	@NotNull AvailObject o_Kind (
+		final @NotNull AvailObject object)
+	{
+		AvailObject kind = object.slot(KIND);
+		if (kind.equalsNull())
+		{
+			object.makeImmutable();
+			final AvailObject valueMap = object.fieldMap();
+			AvailObject typeMap = MapDescriptor.empty();
+			for (final MapDescriptor.Entry entry : valueMap.mapIterable())
+			{
+				typeMap = typeMap.mapAtPuttingCanDestroy(
+					entry.key,
+					InstanceTypeDescriptor.on(entry.value),
+					true);
+			}
+			kind = ObjectTypeDescriptor.objectTypeFromMap(typeMap);
+			object.setSlot(KIND, kind);
+		}
+		return kind;
+	}
+
+	@Override @AvailMethod @ThreadSafe
+	@NotNull SerializerOperation o_SerializerOperation (
+		final @NotNull AvailObject object)
+	{
+		return SerializerOperation.OBJECT;
 	}
 
 	@Override
@@ -166,98 +273,44 @@ extends Descriptor
 		}
 	}
 
-	@Override @AvailMethod
-	@NotNull AvailObject o_FieldMap (
-		final @NotNull AvailObject object)
-	{
-		return object.slot(ObjectSlots.FIELD_MAP);
-	}
-
-	@Override @AvailMethod
-	boolean o_Equals (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
-	{
-		return another.equalsObject(object);
-	}
-
-	@Override @AvailMethod
-	boolean o_EqualsObject (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject anObject)
-	{
-		if (object.sameAddressAs(anObject))
-		{
-			return true;
-		}
-		return object.fieldMap().equals(anObject.fieldMap());
-	}
-
-	@Override @AvailMethod
-	boolean o_IsInstanceOfKind (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aTypeObject)
-	{
-		if (aTypeObject.equals(TOP.o()))
-		{
-			return true;
-		}
-		if (aTypeObject.equals(ANY.o()))
-		{
-			return true;
-		}
-		return aTypeObject.hasObjectInstance(object);
-	}
-
-	@Override @AvailMethod
-	int o_Hash (
-		final @NotNull AvailObject object)
-	{
-		// Answer the object's hash value.
-
-		return computeHashFromFieldMapHash(object.fieldMap().hash());
-	}
-
-	@Override @AvailMethod
-	@NotNull AvailObject o_Kind (
-		final @NotNull AvailObject object)
-	{
-		object.makeImmutable();
-		final AvailObject valueMap = object.fieldMap();
-		AvailObject typeMap = MapDescriptor.empty();
-		for (final MapDescriptor.Entry entry : valueMap.mapIterable())
-		{
-			typeMap = typeMap.mapAtPuttingCanDestroy(
-				entry.key,
-				InstanceTypeDescriptor.on(entry.value),
-				true);
-		}
-		return ObjectTypeDescriptor.objectTypeFromMap(typeMap);
-	}
-
-	@Override @AvailMethod @ThreadSafe
-	@NotNull SerializerOperation o_SerializerOperation (
-		final @NotNull AvailObject object)
-	{
-		return SerializerOperation.OBJECT;
-	}
-
-
 	/**
-	 * Construct a user-defined object with attribute keys and values taken from
-	 * the provided map.
+	 * Construct an {@linkplain ObjectDescriptor object} with attribute
+	 * {@linkplain AtomDescriptor keys} and values taken from the provided
+	 * {@linkplain MapDescriptor map}.
 	 *
-	 * @param map
-	 *            A map from {@link AtomDescriptor atom} keys to their
-	 *            corresponding values.
-	 * @return
-	 *            A user-defined object with the specified fields.
+	 * @param map A map from keys to their corresponding values.
+	 * @return The new object.
 	 */
-	public static AvailObject objectFromMap (final AvailObject map)
+	public static @NotNull AvailObject objectFromMap (
+		final @NotNull AvailObject map)
 	{
 		final AvailObject result = mutable().create();
-		result.setSlot(ObjectSlots.FIELD_MAP, map);
+		result.setSlot(FIELD_MAP, map);
+		result.setSlot(KIND, NullDescriptor.nullObject());
 		return result;
+	}
+
+	/**
+	 * Construct an object from the specified {@linkplain TupleDescriptor
+	 * tuple} of field assignments.
+	 *
+	 * @param tuple
+	 *        A tuple of 2-tuples whose first element is an {@linkplain
+	 *        AtomDescriptor atom} and whose second element is an arbitrary
+	 *        value.
+	 * @return The new object.
+	 */
+	public static @NotNull AvailObject objectFromTuple (
+		final @NotNull AvailObject tuple)
+	{
+		AvailObject map = MapDescriptor.empty();
+		for (final AvailObject fieldAssignment : tuple)
+		{
+			final AvailObject fieldAtom = fieldAssignment.tupleAt(1);
+			final AvailObject fieldValue = fieldAssignment.tupleAt(2);
+			map = map.mapAtPuttingCanDestroy(fieldAtom, fieldValue, true);
+		}
+		return objectFromMap(map);
 	}
 
 	/**
