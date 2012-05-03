@@ -490,7 +490,7 @@ Semantic restriction "count of_where_" is
 ];
 
 /**
- * Strength `_∈_`.
+ * Strengthen `_∈_`.
  * 
  * Parameters:
  *    valueType -
@@ -536,7 +536,7 @@ Method "_∋_" is
 ];
 
 /**
- * Strength `_∋_`.
+ * Strengthen `_∋_`.
  * 
  * Parameters:
  *    setType -

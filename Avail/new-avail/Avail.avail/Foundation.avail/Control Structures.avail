@@ -361,8 +361,23 @@ Semantic restriction "From_to_by_do_" is
 	];
 	return ::= action's return type;
 	endSet ::= {end's lower bound, end's upper bound};
-	subscriptSet ::= {subscripts' lower bound, subscripts' upper bound};
-	/* These are three circumstances which lead to non-termination:
+	definitelyRuns ::=
+		if step ⊆ [0..∞) then
+		[
+			start's upper bound ≤ end's lower bound;
+		]
+		else
+		[
+			if step ⊆ (-∞..-1] then
+			[
+				start's lower bound ≥ end's upper bound;
+			]
+			else
+			[
+				false;
+			];
+		];
+	/* These are four circumstances which lead to non-termination:
 	 * 
 	 * 1. The step is 0.
 	 * 2. The step is positive, the end is ∞, and the action answers `true`.
@@ -372,7 +387,7 @@ Semantic restriction "From_to_by_do_" is
 	if step ⊆ [0..0]
 		∨ [ (step ⊆ [0..∞) ∧ [ endSet = {∞} ∧ [ return = true's type; ]; ])
 		∨ [ (step ⊆ (-∞..-1] ∧ [ endSet = {-∞} ∧ [ return = true's type; ]; ])
-		∨ [ |subscriptSet| > 1 ∧ [ return = ⊥; ]; ]; ]; ]
+		∨ [ definitelyRuns ∧ [ return = ⊥; ]; ]; ]; ]
 	then
 	[
 		⊥;
@@ -480,7 +495,22 @@ Semantic restriction "From_to_by_do_" is
 	];
 	return ::= action's return type;
 	endSet ::= {end's lower bound, end's upper bound};
-	subscriptSet ::= {subscripts' lower bound, subscripts' upper bound};
+	definitelyRuns ::=
+		if step ⊆ [0..∞) then
+		[
+			start's upper bound ≤ end's lower bound;
+		]
+		else
+		[
+			if step ⊆ (-∞..-1] then
+			[
+				start's lower bound ≥ end's upper bound;
+			]
+			else
+			[
+				false;
+			];
+		];
 	/* These are four circumstances which lead to non-termination:
 	 * 
 	 * 1. The step is 0.
@@ -491,7 +521,7 @@ Semantic restriction "From_to_by_do_" is
 	if step ⊆ [0..0]
 		∨ [ (step ⊆ [0..∞) ∧ [ endSet = {∞}; ])
 		∨ [ (step ⊆ (-∞..-1] ∧ [ endSet = {-∞}; ])
-		∨ [ |subscriptSet| > 1 ∧ [ return = ⊥; ]; ]; ]; ]
+		∨ [ definitelyRuns ∧ [ return = ⊥; ]; ]; ]; ]
 	then
 	[
 		⊥;
@@ -551,9 +581,9 @@ Semantic restriction "From_to_do_" is
 	];
 	return ::= action's return type;
 	endSet ::= {end's lower bound, end's upper bound};
-	subscriptSet ::= {subscripts' lower bound, subscripts' upper bound};
+	definitelyRuns ::= start's upper bound ≤ end's lower bound;
 	if (endSet = {∞} ∧ [ return = true's type; ])
-		∨ [ |subscriptSet| > 1 ∧ [ return = ⊥; ]; ]
+		∨ [ definitelyRuns ∧ [ return = ⊥; ]; ]
 	then
 	[
 		⊥;
@@ -616,8 +646,8 @@ Semantic restriction "From_to_do_" is
 	];
 	return ::= action's return type;
 	endSet ::= {end's lower bound, end's upper bound};
-	subscriptSet ::= {subscripts' lower bound, subscripts' upper bound};
-	if endSet = {∞} ∨ [ |subscriptSet| > 1 ∧ [ return = ⊥; ]; ]
+	definitelyRuns ::= start's upper bound ≤ end's lower bound;
+	if endSet = {∞} ∨ [ definitelyRuns ∧ [ return = ⊥; ]; ]
 	then
 	[
 		⊥;

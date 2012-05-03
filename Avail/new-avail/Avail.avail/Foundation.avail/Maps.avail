@@ -513,7 +513,7 @@ Semantic restriction "count of_where_" is
 ];
 
 /**
- * Strength `_∈_`.
+ * Strengthen `_∈_`.
  * 
  * Parameters:
  *    keyType -
