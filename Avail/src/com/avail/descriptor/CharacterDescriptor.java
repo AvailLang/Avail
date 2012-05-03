@@ -321,7 +321,7 @@ extends Descriptor
 		final @NotNull List<AvailObject> recursionList,
 		final int indent)
 	{
-		aStream.append("¢\"");
+		aStream.append("¢");
 		final int codePoint = object.codePoint();
 		switch (Character.getType(codePoint))
 		{
@@ -335,17 +335,22 @@ extends Descriptor
 			case Character.SPACE_SEPARATOR:
 			case Character.SURROGATE:
 			case Character.UNASSIGNED:
-				new Formatter(aStream).format("\\(%x)", codePoint);
+				new Formatter(aStream).format("\"\\(%x)\"", codePoint);
 				break;
 			default:
 				// Check for double quote (") and backslash (\).
+				boolean mustCloseQuote = false;
 				if (codePoint == 0x22 || codePoint == 0x5C)
 				{
-					aStream.append('\\');
+					aStream.append("\"\\");
+					mustCloseQuote = true;
 				}
 				aStream.appendCodePoint(codePoint);
+				if (mustCloseQuote)
+				{
+					aStream.append('"');
+				}
 		}
-		aStream.append('"');
 	}
 
 	/**

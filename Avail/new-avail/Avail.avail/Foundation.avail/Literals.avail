@@ -612,5 +612,5 @@ Semantic restriction "¢…" is
 	[
 		Reject parse, expected: "a character literal to have a length of 1";
 	];
-	⊤;
+	value[1]'s type;
 ];
