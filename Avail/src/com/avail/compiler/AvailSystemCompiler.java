@@ -1239,7 +1239,7 @@ extends AbstractAvailCompiler
 					}
 					else
 					{
-						stateOutsideBlock.expected(
+						afterReturnType.expected(
 							"label's type to be a supertype of enclosing "
 							+ "block's declared type");
 					}

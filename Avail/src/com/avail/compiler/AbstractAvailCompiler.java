@@ -148,6 +148,12 @@ public abstract class AbstractAvailCompiler
 	Continuation4<ModuleName, Long, Long, Long> progressBlock;
 
 	/**
+	 * A flag to indicate that the tasks in the {@link #workPool} are being
+	 * canceled.
+	 */
+	@InnerAccess volatile boolean canceling = false;
+
+	/**
 	 * Answer whether this is a {@linkplain AvailSystemCompiler system
 	 * compiler}.  A system compiler is used for modules that start with the
 	 * keyword "{@linkplain ExpectedToken#SYSTEM System}".  Such modules use a
@@ -557,6 +563,7 @@ public abstract class AbstractAvailCompiler
 							assert aSolution != solution.value
 								: "Same solution was presented twice!";
 							another.value = aSolution;
+							canceling = true;
 							AbstractAvailCompiler.this.notifyAll();
 						}
 						count.value++;
@@ -567,28 +574,13 @@ public abstract class AbstractAvailCompiler
 		{
 			try
 			{
-				while (workUnitsCompleted < workUnitsQueued && count.value <= 1)
+				while (workUnitsCompleted < workUnitsQueued)
 				{
 					wait();
 				}
 				// Note: count.value increases monotonically.
-				if (count.value > 1)
-				{
-					workPool.drainTo(new ArrayList<Runnable>());
-					synchronized (this)
-					{
-						while (workUnitsCompleted < workUnitsQueued)
-						{
-							wait();
-						}
-					}
-				}
-				else
-				{
-					assert workPool.isEmpty();
-				}
-				workUnitsStarted = workUnitsQueued;
-				workUnitsCompleted = workUnitsQueued;
+				assert workUnitsStarted == workUnitsQueued;
+				assert workUnitsCompleted == workUnitsQueued;
 			}
 			catch (final InterruptedException e)
 			{
@@ -616,9 +608,7 @@ public abstract class AbstractAvailCompiler
 		// and commit its side-effects to the scope, then invoke the
 		// continuation with the solution.
 		assert count.value == 1;
-		assert workPool.isEmpty();
 		supplyAnswer.value(where.value, solution.value);
-		assert workPool.isEmpty();
 	}
 
 	/**
@@ -1351,6 +1341,12 @@ public abstract class AbstractAvailCompiler
 		final @NotNull AvailObject interpretation1,
 		final @NotNull AvailObject interpretation2)
 	{
+		final Mutable<AvailObject> node1 =
+			new Mutable<AvailObject>(interpretation1);
+		final Mutable<AvailObject> node2 =
+			new Mutable<AvailObject>(interpretation2);
+		findParseTreeDiscriminants(node1, node2);
+
 		where.expected(
 			new Generator<String>()
 			{
@@ -1361,12 +1357,81 @@ public abstract class AbstractAvailCompiler
 					builder.append("unambiguous interpretation.  ");
 					builder.append("Here are two possible parsings...\n");
 					builder.append("\t");
-					builder.append(interpretation1.toString());
+					builder.append(node1.value.toString());
 					builder.append("\n\t");
-					builder.append(interpretation2.toString());
+					builder.append(node2.value.toString());
 					return builder.toString();
 				}
 			});
+	}
+
+	/**
+	 * Given two unequal parse trees, find the smallest descendant nodes that
+	 * still contain all the differences.  The given {@link Mutable} objects
+	 * initially contain references to the root nodes, but are updated to refer
+	 * to the most specific pair of nodes that contain all the differences.
+	 *
+	 * @param node1
+	 *            A {@code Mutable} reference to a {@linkplain
+	 *            ParseNodeDescriptor parse tree}.  Updated to hold the most
+	 *            specific difference.
+	 * @param node2
+	 *            The {@code Mutable} reference to the other parse tree.
+	 *            Updated to hold the most specific difference.
+	 */
+	private void findParseTreeDiscriminants (
+		final Mutable<AvailObject> node1,
+		final Mutable<AvailObject> node2)
+	{
+		while (true)
+		{
+			assert !node1.value.equals(node2.value);
+			if (!node1.value.kind().parseNodeKind().equals(
+				node2.value.kind().parseNodeKind()))
+			{
+				return;
+			}
+			final List<AvailObject> parts1 = new ArrayList<AvailObject>();
+			node1.value.childrenDo(new Continuation1<AvailObject>()
+			{
+				@Override
+				public void value (final AvailObject part)
+				{
+					parts1.add(part);
+				}
+			});
+			final List<AvailObject> parts2 = new ArrayList<AvailObject>();
+			node2.value.childrenDo(new Continuation1<AvailObject>()
+				{
+					@Override
+					public void value (final AvailObject part)
+					{
+						parts2.add(part);
+					}
+				});
+			if (parts1.size() != parts2.size())
+			{
+				// Different structure at this level.
+				return;
+			}
+			final List<Integer> differentIndices =
+				new ArrayList<Integer>();
+			for (int i = 0; i < parts1.size(); i++)
+			{
+				if (!parts1.get(i).equals(parts2.get(i)))
+				{
+					differentIndices.add(i);
+				}
+			}
+			if (differentIndices.size() != 1)
+			{
+				// More than one part differs, so we can't drill deeper.
+				return;
+			}
+			// Drill into the only part that differs.
+			node1.value = parts1.get(differentIndices.get(0));
+			node2.value = parts2.get(differentIndices.get(0));
+		}
 	}
 
 	/**
@@ -1389,6 +1454,11 @@ public abstract class AbstractAvailCompiler
 		final @NotNull String description,
 		final int position)
 	{
+		if (canceling)
+		{
+			// Don't add any new tasks if canceling.
+			return;
+		}
 		final AbstractAvailCompiler thisCompiler = this;
 		try
 		{
@@ -1404,7 +1474,11 @@ public abstract class AbstractAvailCompiler
 					}
 					try
 					{
-						continuation.value();
+						// Don't actually run tasks if canceling.
+						if (!canceling)
+						{
+							continuation.value();
+						}
 					}
 					finally
 					{

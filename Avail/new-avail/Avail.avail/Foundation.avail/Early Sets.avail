@@ -78,13 +78,14 @@ Semantic restriction "_∪_" is
 	typeB : set's type
 |
 	lower ::= ||typeA||'s lower bound min ||typeB||'s lower bound;
-	upper ::= cast ||typeA||'s upper bound + ||typeB||'s upper bound + 1
+	upper ::= cast ||typeA||'s upper bound + ||typeB||'s upper bound
 		into [ t : whole number | t; ];
-	{typeA's element type ∪ typeB's element type | [lower..upper)};
+	{typeA's element type ∪ typeB's element type | [lower..upper + 1)};
 ];
 
 /* Make union left associate. */
 Grammatical restriction {"_∪_"} is <∅, {"_∪_"}>;
+
 
 /**
  * The static type of the union of two sets is the set type whose element type
@@ -103,8 +104,14 @@ Semantic restriction "_∩_" is
 	typeA : set's type,
 	typeB : set's type
 |
-	upper ::= ||typeA||'s upper bound min ||typeB||'s upper bound;
-	{typeA's element type ∩ (typeB's element type) | [0..upper)};
+	innerType ::= typeA's element type ∩ (typeB's element type);
+	upper : [0..∞] := ||typeA||'s upper bound min ||typeB||'s upper bound;
+	If |innerType| ≠ ∞ ∧ [innerType ∩ (type's type) ≠ ⊥;] then
+	[
+		/* There are a limited number of possible values. */
+		upper := upper min |innerType|;
+	];
+	{typeA's element type ∩ (typeB's element type) | [0..upper + 1)};
 ];
 
 /* Make intersection left associate. */
@@ -149,7 +156,7 @@ Semantic restriction "_⊆_" is
 				]
 				else
 				[
-					boolean;
+					⊤;
 				];
 			];
 		sizesB ::= ||typeB||;
