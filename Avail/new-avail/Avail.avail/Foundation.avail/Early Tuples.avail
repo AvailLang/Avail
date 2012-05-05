@@ -46,7 +46,10 @@ Names
 	"relevant|_|",
 	"«_‡++»",
 	"_[_..]",
-	"_[.._]"
+	"_[.._]",
+
+	/* Exported for use by Tuples. */
+	"tuple type of_[_.._]"
 Body
 
 /**
@@ -147,8 +150,8 @@ Method "relevant|_|" is
 ] : whole number;
 
 /**
- * This private helper method is essentially the implementation of the semantic
- * restrictions of `_[_.._]`, `_[_..]`, and `_[.._]`.
+ * Construct and answer the tuple type that represents the specified tuple
+ * slice.
  * 
  * Parameters:
  *    aTupleType - A tuple type.
@@ -214,7 +217,7 @@ Method "tuple type of_[_.._]" is
 		[
 			j : natural number
 		|
-			union := union ∪ aTupleType[j];
+			union := eject ↑union ∪ aTupleType[j];
 			true;
 		];
 		types := cast concatenate <types, <union>>
@@ -225,18 +228,16 @@ Method "tuple type of_[_.._]" is
 	defaultType ::= cast |types|
 		into [ n : natural number | types[n]; ]
 		else [ ⊥; ];
-	resultMinStart ::= minStart min tupleEnd;
-	resultMaxStart ::= maxStart min tupleEnd;
 	resultMinEnd ::= minEnd min tupleEnd;
 	resultMaxEnd ::= maxEnd min tupleEnd;
-	resultStart ::= cast (resultMinEnd - resultMaxStart + 1) max 0
+	resultStart ::= cast (resultMinEnd - maxStart + 1) max 0
 		into [ t : whole number | t; ];
-	resultEnd ::= cast ((resultMaxEnd - resultMinStart + 1) max 0) + 1
+	resultEnd ::= cast ((resultMaxEnd - minStart + 1) max 0) + 1
 		into [ t : [1..∞] | t; ];
 	resultSizes ::= [resultStart..resultEnd);
 	result ::= <types, defaultType…|resultSizes>;
 	result;
-] : type;
+] : tuple meta;
 
 /**
  * Strengthen the tuple type procuded by `_[_.._]` to the strongest possible

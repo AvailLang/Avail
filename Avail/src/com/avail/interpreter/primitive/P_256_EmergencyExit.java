@@ -61,7 +61,7 @@ public class P_256_EmergencyExit extends Primitive
 
 		final AvailObject errorMessageProducer = args.get(0);
 		error(String.format(
-			"A process (%s) has exited: %s",
+			"A fiber (%s) has exited: %s",
 			interpreter.process().name(),
 			errorMessageProducer));
 		return interpreter.primitiveSuccess(NullDescriptor.nullObject());

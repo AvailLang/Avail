@@ -47,10 +47,15 @@ Uses
 	"Math",
 	"Variables"
 Names
+	"distinct_",
 	"first index of_where_",
 	"last index of_where_",
+	"left fold_through_",
+	"right fold_through_",
+	"split_at_",
 	"zip_",
 	"_of_",
+	"_to_",
 	"«_‡zip»"
 Body
 
@@ -740,6 +745,45 @@ Semantic restriction "count of_where_" is
 ];
 
 /**
+ * Compute and answer the distinct elements of `aTuple`, preserving order.
+ * 
+ * Parameters:
+ *    aTuple - A tuple.
+ * Returns:
+ *    A tuple that contains only the distinct elements of `aTuple`, and in the
+ *    order in which they were encountered.
+ */
+Method "distinct_" is
+[
+	aTuple : tuple
+|
+	seen : set := ∅;
+	filter aTuple by
+	[
+		element : any
+	|
+		if ¬element ∈ seen then
+		[
+			seen := eject ↑seen + element;
+			true;
+		]
+		else
+		[
+			false;
+		];
+	];
+] : tuple;
+
+/* No decent semantic restrictions can be written yet for `distinct_` and
+ * `_→set`. An efficient algorithm involves construction and evaluation of a
+ * chromatic polynomial over the type intersection graph of the tuple type's
+ * element types (the vertices represent the element types and an edge between
+ * two vertices indicates that the type intersection of the element types is ⊥).
+ * We cannot conveniently build graphs yet. We need object types and objects
+ * first.
+ */
+
+/**
  * Answer a function that computes the zip of a tuple of tuples.
  * 
  * Returns:
@@ -1375,5 +1419,64 @@ Semantic restriction "_∈_" is
 	[
 		/* Can't strengthen. */
 		⊤;
+	];
+];
+
+/**
+ * Split a `aTuple` at `pivot` and answer the results tuples.
+ * 
+ * Parameters:
+ *    aTuple - A tuple.
+ *    pivot - The index (inclusive) at which to split `aTuple`.
+ * Returns:
+ *    A 2-tuple. The first tuple contains the first `pivot` elements of
+ *    `aTuple`. The second tuple contains the remaining elements of `aTuple`.
+ */
+Method "split_at_" is
+[
+	aTuple : tuple,
+	pivot : whole number
+|
+	<aTuple[..pivot], aTuple[pivot + 1..]>;
+] : <tuple…|2>;
+
+/**
+ * Construct the strongest possible 2-tuple type for the given arguments. The
+ * first element type is a tuple type whose elements are drawn from the original
+ * tuple type. The second element type is a tuple type whose element type are
+ * smears (i.e., type unions) of the trailing element types of the original
+ * tuple type. The pivot is used to determine the cardinality ranges of the
+ * these element types.
+ * 
+ * Parameters:
+ *    tupleType - A tuple type.
+ *    pivot - The range of possible values of the actual pivot.
+ * Returns:
+ *    The strongest possible 2-tuple type for the given arguments.
+ */
+Semantic restriction "split_at_" is
+[
+	tupleType : tuple meta,
+	pivot : whole number's type
+|
+	If pivot's lower bound > ||tupleType||'s upper bound then
+	[
+		Reject parse, expected:
+			"pivot ∈ "
+			++ primitive description of pivot
+			++ " ever to be valid for the tuple ∈ "
+			++ primitive description of tupleType;
+	];
+	if |tupleType| = 1 ∧ [ |pivot| = 1; ] then
+	[
+		(split tupleType's instance at pivot's instance)'s type;
+	]
+	else
+	[
+		pivotPlusOne ::= cast pivot + 1's type
+			into [ t : natural number's type | t; ];
+		firstType ::= tuple type of tupleType[1's type..pivot];
+		secondType ::= tuple type of tupleType[pivotPlusOne..||tupleType||];
+		<firstType, secondType…|2>;
 	];
 ];

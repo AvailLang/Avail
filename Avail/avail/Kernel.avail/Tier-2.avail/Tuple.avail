@@ -395,19 +395,15 @@ Method "type of subtuple_from range_to range_" is [
 		] otherwise [
 			terminates;
 		];
-		clipMinStart ::= (minStart max 1) min tt sizes upper bound;
-		clipMaxStart ::= (maxStart max 1) min tt sizes upper bound;
 		clipMinEnd ::= (minEnd max 0) min tt sizes upper bound;
 		clipMaxEnd ::= (maxEnd max 0) min tt sizes upper bound;
-		sizes ::= [(clipMinEnd - clipMaxStart + 1) max 0
-			.. ((clipMaxEnd - clipMinStart + 1) max 0) + 1);
+		sizes ::= [(clipMinEnd - maxStart + 1) max 0
+			.. ((clipMaxEnd - minStart + 1) max 0) + 1);
 		tuple sizes
 			like cast resultPattern into [ t : tuple of any type | t; ]
 			default cast default into [ t : any type | t; ];
 	];
 ] : tupleType;
-
-
 
 /* Replacement... */
 
