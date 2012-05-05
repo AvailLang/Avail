@@ -52,7 +52,8 @@ Names
 	"last index of_where_",
 	"left fold_through_",
 	"right fold_through_",
-	"split_at_",
+	"split_after_",
+	"split_before_",
 	"zip_",
 	"_of_",
 	"_to_",
@@ -1423,8 +1424,9 @@ Semantic restriction "_∈_" is
 ];
 
 /**
- * Split a `aTuple` at `pivot` and answer the results tuples.
- * 
+ * Split a `aTuple` into two tuples between `pivot` and `pivot + 1` and answer
+ * a 2-tuple containing the results.
+ *
  * Parameters:
  *    aTuple - A tuple.
  *    pivot - The index (inclusive) at which to split `aTuple`.
@@ -1432,7 +1434,7 @@ Semantic restriction "_∈_" is
  *    A 2-tuple. The first tuple contains the first `pivot` elements of
  *    `aTuple`. The second tuple contains the remaining elements of `aTuple`.
  */
-Method "split_at_" is
+Method "split_after_" is
 [
 	aTuple : tuple,
 	pivot : whole number
@@ -1454,7 +1456,7 @@ Method "split_at_" is
  * Returns:
  *    The strongest possible 2-tuple type for the given arguments.
  */
-Semantic restriction "split_at_" is
+Semantic restriction "split_after_" is
 [
 	tupleType : tuple meta,
 	pivot : whole number's type
@@ -1469,7 +1471,7 @@ Semantic restriction "split_at_" is
 	];
 	if |tupleType| = 1 ∧ [ |pivot| = 1; ] then
 	[
-		(split tupleType's instance at pivot's instance)'s type;
+		(split tupleType's instance after pivot's instance)'s type;
 	]
 	else
 	[
@@ -1477,6 +1479,129 @@ Semantic restriction "split_at_" is
 			into [ t : natural number's type | t; ];
 		firstType ::= tuple type of tupleType[1's type..pivot];
 		secondType ::= tuple type of tupleType[pivotPlusOne..||tupleType||];
+		<firstType, secondType…|2>;
+	];
+];
+
+/**
+ * Split a `aTuple` into two tuples between `pivot - 1` and `pivot` and answer
+ * a 2-tuple containing the results.
+ *
+ * Parameters:
+ *    aTuple - A tuple.
+ *    pivot - The index (exclusive) at which to split `aTuple`.
+ * Returns:
+ *    A 2-tuple. The first tuple contains the first `pivot - 1` elements of
+ *    `aTuple`. The second tuple contains the remaining elements of `aTuple`.
+ */
+Method "split_before_" is
+[
+	aTuple : tuple,
+	pivot : natural number
+|
+	<aTuple[..pivot - 1], aTuple[pivot..]>;
+] : <tuple…|2>;
+
+/**
+ * Construct the strongest possible 2-tuple type for the given arguments. The
+ * first element type is a tuple type whose elements are drawn from the original
+ * tuple type. The second element type is a tuple type whose element type are
+ * smears (i.e., type unions) of the trailing element types of the original
+ * tuple type. The pivot is used to determine the cardinality ranges of the
+ * these element types.
+ * 
+ * Parameters:
+ *    tupleType - A tuple type.
+ *    pivot - The range of possible values of the actual pivot.
+ * Returns:
+ *    The strongest possible 2-tuple type for the given arguments.
+ */
+Semantic restriction "split_before_" is
+[
+	tupleType : tuple meta,
+	pivot : natural number's type
+|
+	If pivot's lower bound > ||tupleType||'s upper bound + 1 then
+	[
+		Reject parse, expected:
+			"pivot ∈ "
+			++ primitive description of pivot
+			++ " ever to be valid for the tuple ∈ "
+			++ primitive description of tupleType;
+	];
+	if |tupleType| = 1 ∧ [ |pivot| = 1; ] then
+	[
+		(split tupleType's instance before pivot's instance)'s type;
+	]
+	else
+	[
+		pivotMinusOne ::= cast pivot - 1's type
+			into [ t : whole number's type | t; ];
+		firstType ::= tuple type of tupleType[1's type..pivotMinusOne];
+		secondType ::= tuple type of tupleType[pivot..||tupleType||];
+		<firstType, secondType…|2>;
+	];
+];
+
+/**
+ * Split a `aTuple` into two tuples.
+ *
+ * Parameters:
+ *    aTuple - A tuple.
+ *    predicate - A function that accepts each element of the tuple. It must
+ *       answer `true` when the pivot position has been reached. The function
+ *       will not be applied again answer it has answered `true`.
+ * Returns:
+ *    A 2-tuple. The first tuple contains the elements of `aTuple` to which
+ *    `predicate` was applied. The second tuple contains the remaining elements
+ *    of `aTuple`.
+ */
+Method "split_before_" is
+[
+	aTuple : tuple,
+	predicate : [⊥]→boolean
+|
+	firstIndex ::= first index of aTuple where predicate;
+	splitIndex ::=
+		if firstIndex = 0
+		then [ |aTuple|; ]
+		else [ cast firstIndex - 1 into [ t : whole number | t; ]; ];
+	split aTuple after splitIndex;
+] : <tuple…|2>;
+
+/**
+ * Construct the strongest possible 2-tuple type for the given arguments. The
+ * first element type is a tuple type whose elements are drawn from the original
+ * tuple type. The second element type is a tuple type whose element type are
+ * smears (i.e., type unions) of the trailing element types of the original
+ * tuple type. The cardinality of each tuple varies from 0 to the upper bound of
+ * `tupleType`'s cardinality range.
+ * 
+ * Parameters:
+ *    tupleType - A tuple type.
+ *    predicate - A function type.
+ * Returns:
+ *    The strongest possible 2-tuple type for the given arguments.
+ */
+Semantic restriction "split_before_" is
+[
+	tupleType : tuple meta,
+	predicate : [⊥]→boolean's type
+|
+	Require: predicate accepts tupleType;
+	returnType ::= predicate's return type;
+	if ||tupleType||'s upper bound = 0 then
+	[
+		<<>, <>>'s type;
+	]
+	else
+	[
+		sizes ::= ||tupleType||;
+		upper ::= [0..sizes' upper bound + 1);
+		firstType ::=
+			<tupleType's leading types, tupleType's default type…|upper>;
+		secondType ::=
+			tuple type of tupleType[[1..sizes' upper bound + 1)..upper];
 		<firstType, secondType…|2>;
 	];
 ];
