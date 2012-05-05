@@ -54,7 +54,6 @@ Names
 	"-_",
 	"«_‡«=»?«≤»?«<»?»",
 	"«_‡«=»?«≥»?«>»?»"
-	
 Body
 
 Forward method "_mod_" is [number, number]→number;
@@ -394,13 +393,6 @@ Semantic restriction "_is even" is
 	];
 ];
 
-/* The helper methods below perform operations analogous to the arithmetic
- * operations, but on integral types instead of integers. The naming convention
- * is tmesis of the integer range operator ".." with an arithmetic operator like
- * "+", "×", or "-". This results in messages like ".+.". This is cute here, but
- * probably should not leak beyond this module.
- */
-
 /**
  * Compute and answer the integer range type of the sum of the argument types.
  * 
@@ -411,7 +403,7 @@ Semantic restriction "_is even" is
  *    The narrowest integer range type general enough to hold all possible
  *    sums of the arguments' instances.
  */
-Method "_.+._" is
+Method "_+_" is
 [
 	a : extended integer's type,
 	b : extended integer's type
@@ -440,7 +432,7 @@ Method "_.+._" is
  *    The narrowest integer range type general enough to hold all possible
  *    products of the arguments' instances.
  */
-Method "_.×._" is
+Method "_×_" is
 [
 	a : extended integer's type,
 	b : extended integer's type
@@ -538,11 +530,11 @@ Method "_.×._" is
  * Returns:
  *    The negation of the argument, e.g., the negation of [3..5] is [-5..-3].
  */
-Method ".-._" is
+Method "-_" is
 [
 	a : extended integer's type
 |
-	a .×. -1's type;
+	a × -1's type;
 ];
 
 /**
@@ -557,7 +549,26 @@ Semantic restriction "-_" is
 [
 	a : extended integer's type
 |
-	.-. a;
+	- a;
+];
+
+/**
+ * Compute and answer the integer range type of the difference of the argument
+ * types.
+ * 
+ * Paramters:
+ *    a - An integral type.
+ *    b - An integral type.
+ * Returns:
+ *    The narrowest integer range type general enough to hold all possible
+ *    differences of the arguments' instances.
+ */
+Method "_-_" is
+[
+	a : extended integer's type,
+	b : extended integer's type
+|
+	a + (- b);
 ];
 
 /**
@@ -584,7 +595,7 @@ Semantic restriction "_+_" is
 	[
 		Reject parse, expected: cannotAddMessage;
 	];
-	a .+. b;
+	a + b;
 ];
 
 /**
@@ -603,7 +614,7 @@ Semantic restriction "_-_" is
 	a : extended integer's type,
 	b : extended integer's type
 |
-	negated ::= .-. b;
+	negated ::= - b;
 	bounds ::=
 	{
 		{a's lower bound, a's upper bound},
@@ -613,7 +624,7 @@ Semantic restriction "_-_" is
 	[
 		Reject parse, expected: cannotSubtractMessage;
 	];
-	a .+. negated;
+	a + negated;
 ];
 
 /**
@@ -632,7 +643,7 @@ Semantic restriction "_×_" is
 	a : extended integer's type,
 	b : extended integer's type
 |
-	a .×. b;
+	a × b;
 ];
 
 /**
@@ -645,7 +656,7 @@ Semantic restriction "_×_" is
  *    The narrowest integer range type general enough to hold all possible
  *    quotients of `numeratorRange`'s instances and `denominator`.
  */
-Method "_.÷._" is
+Method "_÷_" is
 [
 	numeratorRange : extended integer's type,
 	denominator : extended integer
@@ -721,17 +732,17 @@ Semantic restriction "_÷_" is
 	If negativeDenominators ≠ ⊥ then
 	[
 		union :=
-			eject ↑union ∪ (a .÷. negativeDenominators' genuine lower bound);
+			eject ↑union ∪ (a ÷ negativeDenominators' genuine lower bound);
 		union :=
-			eject ↑union ∪ (a .÷. negativeDenominators' genuine upper bound);
+			eject ↑union ∪ (a ÷ negativeDenominators' genuine upper bound);
 	];
 	positiveDenominators ::= b ∩ [1..∞];
 	If positiveDenominators ≠ ⊥ then
 	[
 		union :=
-			eject ↑union ∪ (a .÷. positiveDenominators' genuine lower bound);
+			eject ↑union ∪ (a ÷ positiveDenominators' genuine lower bound);
 		union :=
-			eject ↑union ∪ (a .÷. positiveDenominators' genuine upper bound);
+			eject ↑union ∪ (a ÷ positiveDenominators' genuine upper bound);
 	];
 	union;
 ];
@@ -846,7 +857,7 @@ Semantic restriction "|_|" is
 	]
 	else
 	[
-		([0..∞] ∩ a) ∪ ([0..∞] ∩ .-. a);
+		([0..∞] ∩ a) ∪ ([0..∞] ∩ - a);
 	];
 ];
 
@@ -919,7 +930,7 @@ Method "comparison chain semantic restriction function" is
 	[
 		args : <<number, boolean…|1..4>…|3..∞>'s type
 	|
-		exactSize ::= cast ||args||'s lower bound - 1 into [ t : [2..∞] | t; ];
+		exactSize ::= ||args||'s lower bound - 1;
 		From 1 to exactSize do
 		[
 			index : natural number

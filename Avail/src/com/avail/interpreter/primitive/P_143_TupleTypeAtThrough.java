@@ -68,14 +68,8 @@ public class P_143_TupleTypeAtThrough extends Primitive
 		}
 		final int startInt = startIndex.extractInt();
 		final int endInt = endIndex.extractInt();
-		if (startInt > endInt)
-		{
-			return interpreter.primitiveFailure(E_NEGATIVE_SIZE);
-		}
 		return interpreter.primitiveSuccess(
-			tupleType.unionOfTypesAtThrough(
-				startIndex.extractInt(),
-				endIndex.extractInt()));
+			tupleType.unionOfTypesAtThrough(startInt, endInt));
 	}
 
 	@Override

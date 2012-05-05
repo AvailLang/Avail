@@ -280,14 +280,13 @@ extends TypeDescriptor
 		final int startIndex,
 		final int endIndex)
 	{
-		assert startIndex <= endIndex;
+		if (startIndex > endIndex)
+		{
+			return BottomTypeDescriptor.bottom();
+		}
 		if (startIndex == endIndex)
 		{
 			return object.typeAtIndex(startIndex);
-		}
-		if (endIndex <= 0)
-		{
-			return BottomTypeDescriptor.bottom();
 		}
 		final AvailObject upper = object.sizeRange().upperBound();
 		if (upper.isFinite() && startIndex > upper.extractInt())

@@ -259,6 +259,22 @@ Semantic restriction "Repeat__times" is
  *       answers `true`, then continue to iterate; if it answers `false`, then
  *       terminate iteration early.
  */
+Abstract method "From_to_by_do_" is
+	[integer, extended integer, integer, [⊥]→boolean]→⊤;
+
+/**
+ * Counting loop with customizable step and early exit support. Invoke `action`
+ * once for every consecutive value = `start` + N × `step` ≤ `end`, aborting if
+ * `action` answers `false` after an iteration.
+ * 
+ * Parameters:
+ *    start - The start value, inclusive.
+ *    end - The end value, inclusive.
+ *    step - The amount by which to adjust the value after each iteration.
+ *    action - A function that accepts a value in the specified range. If it
+ *       answers `true`, then continue to iterate; if it answers `false`, then
+ *       terminate iteration early.
+ */
 Method "From_to_by_do_" is
 [
 	start : integer,
@@ -397,6 +413,19 @@ Semantic restriction "From_to_by_do_" is
 		⊤;
 	];
 ];
+
+/**
+ * Counting loop with customizable step. Invoke `action` once for every
+ * consecutive value = `start` + N × `step` ≤ `end`.
+ * 
+ * Parameters:
+ *    start - The start value, inclusive.
+ *    end - The end value, inclusive.
+ *    step - The amount by which to adjust the value after each iteration.
+ *    action - A function that accepts a value in the specified range.
+ */
+Abstract method "From_to_by_do_" is
+	[integer, extended integer, integer, [⊥]→⊤]→⊤;
 
 /**
  * Counting loop with customizable step. Invoke `action` once for every

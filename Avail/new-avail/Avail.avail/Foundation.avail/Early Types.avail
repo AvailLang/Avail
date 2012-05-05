@@ -1166,3 +1166,63 @@ Method "_∈_" is
 |
 	value's type ⊆ aType;
 ];
+
+/**
+ * Answer the cardinality type of the specified tuple type.
+ * 
+ * Parameters:
+ *    tupleMeta - A tuple type.
+ * Returns:
+ *    The cardinality type of the argument's instance.
+ */
+Semantic restriction "||_||" is
+[
+	tupleMeta : tuple meta's type
+|
+	||tupleMeta's instance||'s type;
+];
+
+/**
+ * Answer the cardinality type of the specified set type.
+ * 
+ * Parameters:
+ *    setMeta - A set type.
+ * Returns:
+ *    The cardinality type of the argument's instance.
+ */
+Semantic restriction "||_||" is
+[
+	setMeta : set meta's type
+|
+	||setMeta's instance||'s type;
+];
+
+/**
+ * Answer the cardinality type of the specified map type.
+ * 
+ * Parameters:
+ *    mapMeta - A map type.
+ * Returns:
+ *    The cardinality type of the argument's instance.
+ */
+Semantic restriction "||_||" is
+[
+	mapMeta : map meta's type
+|
+	||mapMeta's instance||'s type;
+];
+
+/**
+ * Answer the cardinality type of bottom's type.
+ * 
+ * Parameters:
+ *    bottomMeta - Bottom's type.
+ * Returns:
+ *    The cardinality type of the argument's instance.
+ */
+Semantic restriction "||_||" is
+[
+	bottomMeta : ⊥'s type's type
+|
+	⊥'s type;
+];

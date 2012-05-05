@@ -145,7 +145,7 @@ Method "Require:_accepts_" is
 	If action[1] ≠ ⊥ ∧ [ ¬union ⊆ action[1]; ] then
 	[
 		Reject parse, expected:
-			"repeatedly applied function to accept all elements of the tuple ∈ "
+			"repeatedly applied function to accept all elements of the tuple ⊆ "
 			++ primitive description of tupleType
 			++ " (but it only accepts "
 			++ primitive description of action[1]
@@ -157,7 +157,7 @@ Method "Require:_accepts_" is
 	then
 	[
 		Reject parse, expected:
-			"repeatedly applied function to accept all indices of the tuple ∈ "
+			"repeatedly applied function to accept all indices of the tuple ⊆ "
 			++ primitive description of tupleType
 			++ " (but it only accepts "
 			++ primitive description of action[2]
@@ -811,6 +811,7 @@ Method "zip semantic restriction" is
 	[
 		tuplesType : <tuple…|1..>'s type
 	|
+		/* Leverage an instance type if possible. */
 		if |tuplesType| = 1 then
 		[
 			(zip tuplesType's instance)'s type;
@@ -819,6 +820,7 @@ Method "zip semantic restriction" is
 		[
 			types ::= cast tuplesType[1..relevant |tuplesType|]
 				into [ t : <tuple meta…|1..> | t; ];
+			/* Find the smallest of the lower bounds of the inputs. */
 			lower ::=
 				min map types through
 				[
@@ -826,6 +828,7 @@ Method "zip semantic restriction" is
 				|
 					||tupleType||'s lower bound;
 				];
+			/* Find the smallest of the upper bounds of the inputs. */
 			upper ::=
 				min map types through
 				[
@@ -833,6 +836,7 @@ Method "zip semantic restriction" is
 				|
 					||tupleType||'s upper bound;
 				];
+			/* Find the maximum number of element types to scan. */
 			limit ::=
 				max map types through
 				[
@@ -841,11 +845,15 @@ Method "zip semantic restriction" is
 					|tupleType's leading types| + 1;
 				];
 			resultTypes : <tuple meta…|> := <>;
+			/* Examine the relevant element types of all inputs. */
 			From 1 to limit do
 			[
 				index : natural number
 			|
 				zipped : tuple of any meta := <>;
+				/* Examine the `index`-th element type of each input. Accumulate
+				 * the results into `zipped`.
+				 */
 				For each types do
 				[
 					tupleType : tuple meta
@@ -885,6 +893,181 @@ Semantic restriction "zip_" is zip semantic restriction;
  *    The strongest possible tuple type.
  */
 Semantic restriction "«_‡zip»" is zip semantic restriction;
+
+/**
+ * Reduce `aTuple` via the binary function, traversing the tuple from left to
+ * right. Answer the result of the reduction.
+ *
+ * Parameters:
+ *    aTuple - A nonempty tuple.
+ *    transformer - A binary function whose second parameter type matches its
+ *       return type. The first parameter type must be general enough to accept
+ *       each element of `aTuple`.
+ * Returns:
+ *    The only element of `aTuple` if `aTuple` contains only one element.
+ *    Otherwise, the result of iteratively applying `transformer` to 1) the
+ *    left-to-right consecutive elements of `aTuple` and 2) the previous results
+ *    of applying `transformer`.
+ */
+Method "left fold_through_" is
+[
+	aTuple : <any…|1..>,
+	transformer : [⊥, ⊥]→any
+|
+	result : any := aTuple[1];
+	From 2 to |aTuple| do
+	[
+		index : natural number
+	|
+		result := invoke transformer with <aTuple[index], eject ↑result>;
+	];
+	result;
+] : any;
+
+/**
+ * Left fold has the following requirements:
+ *
+ * - The function's first parameter must accept every element of the tuple
+ *   except for the first (with which it will not be applied at this position).
+ * - The function's second parameter must accept the tuple's first element and
+ *   also every value producible by the function.
+ *
+ * Left fold answers either the tuple's first element or the value produced by
+ * the final application of the function.
+ * 
+ * Parameters:
+ *    tupleType -
+ *    transformer -
+ * Returns:
+ *    The type union of the tuple's non-first element types and the function's
+ *    return types.
+ */
+Semantic restriction "left fold_through_" is
+[
+	tupleType : <any…|1..>'s type,
+	transformer : [⊥, ⊥]→any's type
+|
+	headType ::= tupleType[1];
+	restType ::= if |tupleType's leading types| > 0
+		then [ ∪ tupleType[2..|tupleType's leading types| + 1]; ]
+		else [ headType; ];
+	returnType ::= transformer's return type;
+	finalType ::= headType ∪ returnType;
+	If transformer[1] ≠ ⊥ ∧ [ ¬restType ⊆ transformer[1]; ] then
+	[
+		Reject parse, expected:
+			"repeatedly applied function's first parameter to accept all\
+			\| non-first elements of the tuple ⊆ "
+			++ primitive description of restType
+			++ " (but it only accepts "
+			++ primitive description of transformer[1]
+			++ ")";
+	];
+	If transformer[2] ≠ ⊥ ∧ [ ¬finalType ⊆ transformer[2]; ] then
+	[
+		Reject parse, expected:
+			"repeatedly applied function's second parameter to accept the\
+			\| type union ⊆ "
+			++ primitive description of finalType
+			++ " of the first element ⊆ "
+			++ primitive description of headType
+			++ " of the tuple and its own return type ⊆ "
+			++ primitive description of returnType
+			++ " (but it only accepts "
+			++ primitive description of transformer[2]
+			++ ")";
+	];
+	finalType;
+];
+
+/**
+ * Reduce `aTuple` via the binary function, traversing the tuple from right to
+ * left. Answer the result of the reduction.
+ *
+ * Parameters:
+ *    aTuple - A nonempty tuple.
+ *    transformer - A binary function whose second parameter type matches its
+ *       return type. The first parameter type must be general enough to accept
+ *       each element of `aTuple`.
+ * Returns:
+ *    The only element of `aTuple` if `aTuple` contains only one element.
+ *    Otherwise, the result of iteratively applying `transformer` to 1) the
+ *    right-to-left consecutive elements of `aTuple` and 2) the previous results
+ *    of applying `transformer`.
+ */
+Method "right fold_through_" is
+[
+	aTuple : <any…|1..>,
+	transformer : [⊥, ⊥]→any
+|
+	result : any := aTuple[|aTuple|];
+	From |aTuple| - 1 to 1 by -1 do
+	[
+		index : natural number
+	|
+		result := invoke transformer with <aTuple[index], eject ↑result>;
+	];
+	result;
+] : any;
+
+/**
+ * Right fold has the following requirements:
+ *
+ * - The function's first parameter must accept every element of the tuple
+ *   except for the last (with which it will not be applied at this position).
+ * - The function's second parameter must accept the tuple's last element and
+ *   also every value producible by the function.
+ *
+ * Right fold answers either the tuple's last element or the value produced by
+ * the final application of the function.
+ * 
+ * Parameters:
+ *    tupleType -
+ *    transformer -
+ * Returns:
+ *    The type union of the tuple's non-last element types and the function's
+ *    return types.
+ */
+Semantic restriction "right fold_through_" is
+[
+	tupleType : <any…|1..>'s type,
+	transformer : [⊥, ⊥]→any's type
+|
+	sizes ::= ||tupleType||;
+
+	lastIndexStart ::= 1 max relevant |tupleType|;
+	lastIndexEnd ::= lastIndexStart
+		max (sizes' upper bound min (|tupleType's leading types| + 1));
+	lastType ::= ∪ tupleType[lastIndexStart..lastIndexEnd];
+	restType ::= ∪ tupleType[1..lastIndexEnd - 1];
+	returnType ::= transformer's return type;
+	finalType ::= lastType ∪ returnType;
+	If transformer[1] ≠ ⊥ ∧ [ ¬restType ⊆ transformer[1]; ] then
+	[
+		Reject parse, expected:
+			"repeatedly applied function's first parameter to accept all\
+			\| non-last elements of the tuple ⊆ "
+			++ primitive description of restType
+			++ " (but it only accepts "
+			++ primitive description of transformer[1]
+			++ ")";
+	];
+	If transformer[2] ≠ ⊥ ∧ [ ¬finalType ⊆ transformer[2]; ] then
+	[
+		Reject parse, expected:
+			"repeatedly applied function's second parameter to accept the\
+			\| type union ⊆ "
+			++ primitive description of finalType
+			++ " of the last element ⊆ "
+			++ primitive description of lastType
+			++ " of the tuple and its own return type ⊆ "
+			++ primitive description of returnType
+			++ " (but it only accepts "
+			++ primitive description of transformer[2]
+			++ ")";
+	];
+	finalType;
+];
 
 /**
  * Compute and answer the index of the first element of `aTuple` that satisfies
@@ -1024,6 +1207,128 @@ Semantic restriction "_of_" is
 	else
 	[
 		<<>, valueType…|countType>;
+	];
+];
+
+/**
+ * Construct and answer a tuple that contains the consecutive integers from
+ * `start` (inclusive) to `end` (inclusive). If `start ≤ end`, then
+ * `result[i] < result[i+1]`; otherwise, `result[i] > result[i+1]`.
+ * 
+ * Parameters:
+ *    start - The first value of the resulting tuple.
+ *    end - The last value of the resulting tuple.
+ * Returns:
+ *    The interval from `start` (inclusive) to `end` (inclusive).
+ */
+Method "_to_" is
+[
+	start : integer,
+	end : integer
+|
+	accumulator : <integer…|> := <>;
+	step ::= if start ≤ end then [ 1; ] else [ -1; ];
+	From start to end by step do
+	[
+		value : integer
+	|
+		accumulator := eject ↑accumulator ++ <value>;
+	];
+	cast accumulator into [ t : <integer…|1..> | t; ];
+] : <integer…|1..>;
+
+/**
+ * Construct and answer the tuple type that best describes a particular interval
+ * construction. Provide an instance when `start` and `end` are precisely known.
+ * Leverage the uncertainty of `start` to produce good leading types when the
+ * upper bound of the result's cardinality can be determined.
+ * 
+ * Parameters:
+ *    start -
+ *    end -
+ * Returns:
+ *    The strongest possible tuple type.
+ */
+Semantic restriction "_to_" is
+[
+	start : integer's type,
+	end : integer's type
+|
+	/* If `start` and `end` are known precisely, then answer the instance type
+	 * of the result.
+	 */
+	if |start| = 1 ∧ [ |end| = 1; ] then
+	[
+		(start's instance to end's instance)'s type;
+	]
+	else
+	[
+		uncertainty ::= start's upper bound - start's lower bound;
+		min : extended integer;
+		max : extended integer;
+		sizes : whole number's type;
+		/* There are three cases: the interval is definitely ascending ... */
+		if start's upper bound ≤ end's lower bound then
+		[
+			min := start's lower bound;
+			max := end's upper bound;
+			sizes := [0 max (end's lower bound - start's upper bound + 1)
+				.. max - min + 2);
+			if uncertainty is finite ∧ [ sizes' upper bound is finite; ]
+			then
+			[
+				finiteMin ::= cast min into [ t : integer | t; ];
+				finiteMax ::= cast max into [ t : integer | t; ];
+				types ::=
+					map finiteMin to finiteMax through
+					[
+						x : integer
+					|
+						[x .. (finiteMax min (x + uncertainty)) + 1);
+					];
+				<types[1..|types| - 1], types[|types|]…|sizes>;
+			]
+			else
+			[
+				<<>, [min..max + 1)…|sizes>;
+			];
+		]
+		/* ... the interval is definitely descending ... */
+		else if [ start's lower bound ≥ end's upper bound; ] then
+		[
+			min := end's lower bound;
+			max := start's upper bound;
+			sizes := [0 max (start's lower bound - end's upper bound + 1)
+				.. max - min + 2);
+			if uncertainty is finite ∧ [ sizes' upper bound is finite; ]
+			then
+			[
+				finiteMin ::= cast min into [ t : integer | t; ];
+				finiteMax ::= cast max into [ t : integer | t; ];
+				types ::=
+					map finiteMax to finiteMin through
+					[
+						x : integer
+					|
+						[finiteMin max (x - uncertainty) .. x + 1);
+					];
+				<types[1..|types| - 1], types[|types|]…|sizes>;
+			]
+			else
+			[
+				<<>, [min..max + 1)…|sizes>;
+			];
+		]
+		/* ... or the interval's directionality is unknown. In this last case,
+		 * the best that we can do is to produce the type union of the ranges
+		 * and answer a tuple type with this default type.
+		 */
+		else
+		[
+			upper ::= |(end's upper bound - start's lower bound)
+				max (start's upper bound - end's lower bound)|;
+			<<>, start ∪ end…|[1..upper + 2)>;
+		];
 	];
 ];
 
