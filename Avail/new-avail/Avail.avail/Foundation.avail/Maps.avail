@@ -50,52 +50,6 @@ Uses
 Body
 
 /**
- * Strengthen map binding addition.
- * 
- * Parameters:
- *    mapType -
- *    valueType -
- * Returns:
- *    The strongest possible map type for the given argument types.
- */
-Semantic restriction "_+_→_" is
-[
-	mapType : map meta,
-	keyType : any meta,
-	valueType : any meta
-|
-	/* Leverage instance types. */
-	if {|mapType|, |keyType|, |valueType|} = {1} then
-	[
-		(mapType's instance + keyType's instance→valueType's instance)'s type;
-	]
-	else
-	[
-		oldKeyType ::= map's key type;
-		newKeyType ::= oldKeyType ∪ keyType;
-		newValueType ::= map's value type ∪ valueType;
-		sizes ::= ||mapType||;
-		/* If the type intersection of the key type and the new key type is
-		 * ⊥, then the new key cannot be present in the map. Adjust the
-		 * cardinality accordingly.
-		 */
-		newSizes ::=
-			if oldKeyType ∩ keyType = ⊥ then
-			[
-				cast sizes + 1's type into [ t : whole number's type | t; ];
-			]
-			/* Otherwise the key *may* be present, but there's no way to
-			 * know for sure. Adjust the cardinality accordingly.
-			 */
-			else
-			[
-				cast sizes + [0..1] into [ t : whole number's type | t; ];
-			];
-		{newKeyType→newValueType | newSizes};
-	];
-];
-
-/**
  * Is the specified map empty?
  *
  * Parameters:

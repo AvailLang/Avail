@@ -39,6 +39,7 @@ Uses
 	"Early Control Structures",
 	"Early Logic",
 	"Early Types",
+	"Early Math",
 	"Enumeration Support",
 	"Literals"
 Names
@@ -184,4 +185,52 @@ Semantic restriction "_'s⁇values" is
 	mapType : map meta
 |
 	<<>, mapType's value type… | ||mapType||>;
+];
+
+/**
+ * Strengthen map binding addition.
+ * 
+ * Parameters:
+ *    mapType -
+ *    valueType -
+ * Returns:
+ *    The strongest possible map type for the given argument types.
+ */
+Semantic restriction "_+_→_" is
+[
+	mapType : map meta,
+	keyType : any meta,
+	valueType : any meta
+|
+	/* Leverage instance types. */
+	if {|mapType|, |keyType|, |valueType|} = {1} then
+	[
+		(mapType's instance + keyType's instance→valueType's instance)'s type;
+	]
+	else
+	[
+		oldKeyType ::= mapType's key type;
+		newKeyType ::= oldKeyType ∪ keyType;
+		newValueType ::= mapType's value type ∪ valueType;
+		lower : [0..∞) :=
+			cast ||mapType||'s lower bound into [ t : [0..∞) | t; ];
+		bound : [0..∞] := ||mapType||'s upper bound;
+		/* If the type intersection of the key type and the new key type is
+		 * ⊥, then the new key cannot be present in the map. Adjust the
+		 * cardinality accordingly.
+		 */
+		if oldKeyType ∩ keyType = ⊥ then
+		[
+		 	lower := cast lower + 1 into [ t : [0..∞) | t; ];
+		 	bound := cast bound + 1 into [ t : [0..∞] | t; ];
+		]
+		/* Otherwise the key *may* be present, but there's no way to
+		 * know for sure. Adjust the cardinality accordingly.
+		 */
+		else
+		[
+		 	bound := cast bound + 1 into [ t : [0..∞] | t; ];
+		];
+		{newKeyType→newValueType | [lower..bound)};
+	];
 ];
