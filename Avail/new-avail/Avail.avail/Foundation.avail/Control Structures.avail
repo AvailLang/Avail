@@ -364,7 +364,7 @@ Semantic restriction "From_to_by_do_" is
 			]
 			else
 			[
-				integer;
+				(start ∪ end) ∩ integer;
 			];
 		];
 	If action[1] ≠ ⊥ ∧ [ ¬subscripts ⊆ action[1]; ] then
@@ -511,7 +511,7 @@ Semantic restriction "From_to_by_do_" is
 			]
 			else
 			[
-				integer;
+				(start ∪ end) ∩ integer;
 			];
 		];
 	If action[1] ≠ ⊥ ∧ [ ¬subscripts ⊆ action[1]; ] then

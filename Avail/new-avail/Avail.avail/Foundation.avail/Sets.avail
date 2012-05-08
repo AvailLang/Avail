@@ -57,6 +57,82 @@ Names
 Body
 
 /**
+ * Strengthen set element addition.
+ * 
+ * Parameters:
+ *    setType -
+ *    valueType -
+ * Returns:
+ *    The strongest possible set type for the given argument types.
+ */
+Semantic restriction "_+_" is
+[
+	setType : set meta,
+	valueType : any meta
+|
+	/* Leverage instance types. */
+	if |setType| = 1 ∧ [ |valueType| = 1; ] then
+	[
+		(setType's instance + valueType's instance)'s type;
+	]
+	else
+	[
+		elementType ::= setType's element type;
+		/* If the element type is an instance type and equal to `valueType`,
+		 * then the value is already present; the set type does not change.
+		 */
+		if |elementType| = 1 ∧ [ elementType = valueType; ] then
+		[
+			setType;
+		]
+		else
+		[
+			union ::= elementType ∪ valueType;
+			sizes ::= ||setType||;
+			/* If the type intersection of the element type and the new type is
+			 * ⊥, then the new element cannot be present in the set. Adjust the
+			 * cardinality accordingly.
+			 */
+			newSizes ::=
+				if elementType ∩ valueType = ⊥ then
+				[
+					cast sizes + 1's type into [ t : whole number's type | t; ];
+				]
+				/* Otherwise the element *may* be present, but there's no way to
+				 * know for sure. Adjust the cardinality accordingly.
+				 */
+				else
+				[
+					cast sizes + [0..1] into [ t : whole number's type | t; ];
+				];
+			{union | newSizes};
+		];
+	];
+];
+
+/**
+ * Strengthen set-to-tuple conversion.
+ * 
+ * Parameters:
+ *    setType -
+ * Returns:
+ *    The strongest possible set type for the given argument types.
+ */
+Semantic restriction "_→tuple" is
+[
+	setType : set meta
+|
+	if |setType| = 1 then
+	[
+		(setType's instance→tuple)'s type;
+	]
+	else
+	[
+		<<>, setType's element type… | ||setType||>;
+	];
+];
+
+/**
  * Is the specified set empty?
  *
  * Parameters:

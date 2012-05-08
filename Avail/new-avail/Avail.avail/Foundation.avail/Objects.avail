@@ -36,8 +36,37 @@ Versions
 Uses
 	"Bootstrap",
 	"Control Structures",
+	"Early Types",
 	"Enumeration Support",
 	"Literals",
+	"Logic",
+	"Maps",
 	"Math",
+	"Sets",
 	"Tuples"
 Body
+
+Semantic restriction "_→object type" is
+[
+	mapType : field type map's type
+|
+	/* Leverage an instance type. */
+	if |mapType| = 1 then
+	[
+		(mapType's instance→object type)'s type;
+	]
+	/* If the enumeration of keys is known, then answer the nearest object type
+	 * supertype with these keys.
+	 */
+	else if [ |mapType's key type| ≠ ∞; ] then
+	[
+		atoms ::= mapType's key type's instances;
+		fieldDefinitions ::= atoms→tuple zip |atoms| of mapType's value type;
+		(fieldDefinitions→object type)'s type;
+	]
+	/* Can't strengthen. */
+	else
+	[
+		⊤;
+	];
+];

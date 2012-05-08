@@ -1378,6 +1378,66 @@ Semantic restriction "_to_" is
 ];
 
 /**
+ * Construct and answer a string that contains the consecutive characters from
+ * `start` (inclusive) to `end` (inclusive). If
+ * `start→code point ≤ end→code point`, then
+ * `result[i]→code point < result[i+1]→code point`; otherwise,
+ * `result[i]→code point > result[i+1]→code point`.
+ * 
+ * Parameters:
+ *    start - The first value of the resulting tuple.
+ *    end - The last value of the resulting tuple.
+ * Returns:
+ *    The interval from `start` (inclusive) to `end` (inclusive).
+ */
+Method "_to_" is
+[
+	start : character,
+	end : character
+|
+	accumulator : string := <>;
+	startCodePoint ::= start→code point;
+	endCodePoint ::= end→code point;
+	step ::= if startCodePoint ≤ endCodePoint then [ 1; ] else [ -1; ];
+	From startCodePoint to endCodePoint by step do
+	[
+		value : code point
+	|
+		accumulator := eject ↑accumulator ++ <value→character>;
+	];
+	cast accumulator into [ t : <character…|1..> | t; ];
+] : <character…|1..>;
+
+/**
+ * `_to_` for characters can only be strengthened when both arguments are
+ * enumerations.
+ * 
+ * Parameters:
+ *    startType -
+ *    endType -
+ * Returns:
+ *    The strongest possible tuple type for the given argument types.
+ */
+Semantic restriction "_to_" is
+[
+	startType : character's type,
+	endType : character's type
+|
+	if |startType| = 1 ∧ [ |endType| = 1; ] then
+	[
+		(startType's instance to endType's instance)'s type;
+	]
+	/* TODO: A case can be added for non-instance enumerations. This isn't
+	 * expected to be very useful, so it's low priority.
+	 */
+	else
+	[
+		/* Can't strengthen. */
+		⊤;
+	];
+];
+
+/**
  * Is `value` an element of `aTuple`?
  * 
  * Parameters:
@@ -1604,4 +1664,113 @@ Semantic restriction "split_before_" is
 			tuple type of tupleType[[1..sizes' upper bound + 1)..upper];
 		<firstType, secondType…|2>;
 	];
+];
+
+/**
+ * Tuple element replacement affects only those elements whose subscripts are
+ * instances of `indexType`. If multiple subscripts could be affected, then
+ * update the element types via type union with `valueType`. If only a single
+ * subscript could be affected, then simply replace the corresponding element
+ * type with `valueType`. Leverage instance types if possible.
+ * 
+ * Parameters:
+ *    tupleType -
+ *    indexType -
+ *    valueType -
+ * Returns:
+ *    The strongest possible tuple type for the given argument types.
+ */
+Semantic restriction "_[_]→_" is
+[
+	tupleType : tuple meta,
+	indexType : natural number's type,
+	valueType : any meta
+|
+	$body : tuple meta;
+	indexLower ::= cast indexType's lower bound into
+		[ t : natural number | t; ];
+	If indexLower > ||tupleType||'s upper bound then
+	[
+		Reject parse, expected:
+			"a subscript ("
+			++ primitive description of indexType's lower bound
+			++ " ≤ theSubscript ≤ "
+			++ primitive description of indexType's upper bound
+			++ ") that could ever be valid ("
+			++ primitive description of ||tupleType||'s lower bound
+			++ " ≤ |theTuple| ≤ "
+			++ primitive description of ||tupleType||'s upper bound
+			++ ")";
+	];
+	/* Use instance types if possible. */
+	If {|tupleType|, |indexType|, |valueType|} = {1} then
+	[
+		aTuple ::= tupleType's instance;
+		index ::= indexType's instance;
+		value ::= valueType's instance;
+		Exit body with (aTuple[index]→value)'s type;
+	];
+	indexUpper ::= indexType's upper bound;
+	leadingTypes : <any meta…|> := tupleType's leading types;
+	defaultType : any meta := tupleType's default type;
+	/* Update any leading types possibly affected by `index`. */
+	If indexLower ≤ |leadingTypes| then
+	[
+		limit ::= indexUpper min |leadingTypes|;
+		From indexLower to limit do
+		[
+			leadingIndex : natural number
+		|
+			original ::= leadingTypes[leadingIndex];
+			/* If only possible element is affected (because the lower and upper
+			 * bound of `index` are equal), then we can simply replace the
+			 * element type with `valueType`. Otherwise we have to weaken the
+			 * affected elements via type union with `valueType`.
+			 */
+			replacement ::= if |{indexLower, indexUpper}| = 1
+				then [ valueType; ]
+				else [ original ∪ valueType; ];
+			newLeadingTypes ::= leadingTypes[leadingIndex]→replacement;
+			leadingTypes := cast newLeadingTypes into [ t : <any meta…|> | t; ];
+		];
+	];
+	/* Extend the leading types. */
+	If indexUpper > |leadingTypes| then
+	[
+		/* If the lower bound of `index` is greater than the number of leading
+		 * types, i.e., the leading types are unaffected by this operation *and*
+		 * there may be intervening element types between the last leading type
+		 * and the first element type affected, then pad the leading types with
+		 * the default type up to the lower bound (exclusive) of `index`.
+		 */
+		padCount ::= indexLower - |leadingTypes| - 1;
+		If padCount > 0 then
+		[
+			count ::= cast padCount into [ t : natural number | t; ];
+			leadingTypes := eject ↑leadingTypes ++ count of defaultType;
+		];
+		/* If the upper bound of `index` is less than the maximum length of the
+		 * tuple, then some elements of the result tuple may have the original
+		 * default type. Extend the leading types to account for the new
+		 * element.
+		 */
+		If indexUpper < ||tupleType||'s upper bound then
+		[
+			newType ::= if |{indexLower, indexUpper}| = 1
+				then [ valueType; ]
+				else [ defaultType ∪ valueType; ];
+			delta ::= if indexLower ≤ |leadingTypes| then [ 0; ] else [ 1; ];
+			count ::= cast indexUpper - (|leadingTypes| max indexLower)
+				into [ t : whole number | t + delta; ];
+			leadingTypes := eject ↑leadingTypes ++ count of newType;
+		]
+		/* The upper bound of `index` exceeds the minimum length of the tuple,
+		 * so just update the default type.
+		 */
+		else
+		[
+			defaultType := eject ↑defaultType ∪ valueType;
+		];
+	];
+	<leadingTypes, defaultType… | ||tupleType||>;
 ];
