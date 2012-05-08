@@ -218,7 +218,7 @@ Semantic restriction "_+_→_" is
 		/* If the type intersection of the key type and the new key type is
 		 * ⊥, then the new key cannot be present in the map. Adjust the
 		 * cardinality accordingly.
-		 */
+		 */ 
 		if oldKeyType ∩ keyType = ⊥ then
 		[
 		 	lower := cast lower + 1 into [ t : [0..∞) | t; ];

@@ -50,7 +50,7 @@ Uses
 Body
 
 /**
- * Is the specified map empty?
+ * Is the specified map empty? 
  *
  * Parameters:
  *    aMap - A map.

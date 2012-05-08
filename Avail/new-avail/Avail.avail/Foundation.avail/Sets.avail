@@ -1053,7 +1053,7 @@ Semantic restriction "_⊄_" is
 Method "group_by_" is
 [
 	aSet : set,
-	action : [⊥]→any
+	action : [⊥]→any 
  |
  	groups : {any→set|} := {};
 	For each aSet do
