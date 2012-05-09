@@ -1037,42 +1037,35 @@ Semantic restriction "_⊄_" is
 		else basicRule;
 	];
 ];
-			
+
 /**
- * Group elements of a set and divide them into a map.
+ * Categorize the elements of `aSet` via `decider`.
  *
  * Parameters:
- *    aSet - set to to group
- *    action - a unary function that takes a parameter general enough to accept
- *    	each element of aSet.  It performs some operation on the element to 
- *      to create a key for the resulting map where the element of aSet will
- *      be mapped.
+ *    aSet - The set to categorize.
+ *    discriminator - A function that accepts each element of the set and
+ *       answers a value that represents the group to which the element belongs.
  * Returns:
- *    A map of sets.
+ *    A map whose keys describe groups and whose elements are the groups
+ *    themselves, i.e., the sets of elements that constitute the described
+ *    group.
  */
 Method "group_by_" is
 [
 	aSet : set,
-	action : [⊥]→any 
- |
- 	groups : {any→set|} := {};
+	discriminator : [⊥]→any
+|
+	groups : {any→set|} := {};
 	For each aSet do
 	[
-	 	element : any
-	 |
-	 	key ::= invoke action with <element>;
-	 	tempSet ::= if key ∈ groups 
-	 		then [groups[key];] else [∅;] + element;
-	    groups := groups + key → tempSet;
+		element : any
+	|
+		key ::= invoke discriminator with <element>;
+		group ::= groups[key] else [ ∅; ] + element;
+		groups := eject ↑groups + key→group;
 	];
 	groups;
- ] : map;
- 
- q::= group {1,2,3,4,5} by [x : integer | x mod 2;];
- Print: "q=";
-Print: primitive description of q;
-Print: "\n";
-
+] : map;
 
 /* Make various boolean-valued set operations bind more tightly than logical
  * negation.

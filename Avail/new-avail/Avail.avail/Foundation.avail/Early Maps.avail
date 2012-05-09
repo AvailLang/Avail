@@ -43,6 +43,7 @@ Uses
 	"Enumeration Support",
 	"Literals"
 Names
+	"_[_]else_"
 Body
 
 /**
@@ -221,16 +222,67 @@ Semantic restriction "_+_→_" is
 		 */ 
 		if oldKeyType ∩ keyType = ⊥ then
 		[
-		 	lower := cast lower + 1 into [ t : [0..∞) | t; ];
-		 	bound := cast bound + 1 into [ t : [0..∞] | t; ];
+			lower := cast lower + 1 into [ t : [0..∞) | t; ];
+			bound := cast bound + 1 into [ t : [0..∞] | t; ];
 		]
 		/* Otherwise the key *may* be present, but there's no way to
 		 * know for sure. Adjust the cardinality accordingly.
 		 */
 		else
 		[
-		 	bound := cast bound + 1 into [ t : [0..∞] | t; ];
+			bound := cast bound + 1 into [ t : [0..∞] | t; ];
 		];
 		{newKeyType→newValueType | [lower..bound)};
+	];
+];
+
+/**
+ * If `key` is a key of `aMap`, then answer its associated value. Otherwise,
+ * invoke `else` and answer its return value.
+ * 
+ * Parameters:
+ *    aMap - A map.
+ *    key - A key.
+ *    default - A function that answers the 
+ */
+Method "_[_]else_" is
+[
+	aMap : map,
+	key : any,
+	default : []→any
+|
+	if key ∈ aMap then [ aMap[key]; ] else default;
+] : any;
+
+/**
+ * Strengthen `_[_]else_`.
+ * 
+ * Parameters:
+ *    mapType -
+ *    keyType -
+ *    default -
+ * Returns:
+ *    The strongest possible type for the given argument types.
+ */
+Semantic restriction "_[_]else_" is
+[
+	mapType : map meta,
+	keyType : any meta,
+	default : []→any's type
+|
+	if {|keyType|, |mapType|, |default|} = {1} then
+	[
+		(mapType's instance[keyType's instance] else default's instance)'s type;
+	]
+	else
+	[
+		if keyType ∩ (mapType's key type) = ⊥ then
+		[
+			default's return type;
+		]
+		else
+		[
+			mapType's value type ∪ default's return type;
+		];
 	];
 ];
