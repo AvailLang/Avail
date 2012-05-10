@@ -81,6 +81,18 @@ public abstract class Interpreter
 	private AvailObject module;
 
 	/**
+	 * Answer the {@linkplain ModuleDescriptor module} context of the
+	 * {@linkplain Interpreter interpreter}.
+	 *
+	 * @return The module undergoing compilation, or {@code null} if the module
+	 *         is no longer undergoing compilation.
+	 */
+	public AvailObject module ()
+	{
+		return module;
+	}
+
+	/**
 	 * Set the {@linkplain ModuleDescriptor module} context of the
 	 * {@linkplain Interpreter interpreter}. This feature is used by the
 	 * compiler to establish transaction boundaries for module parsing.

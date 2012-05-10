@@ -46,7 +46,7 @@ Names
 	"_sizes",
 	"_sizes lower bound",
 	"_sizes upper bound",
-	"||_||",
+	"`|`|_`|`|",
 	"_as tuple",
 	"_as set",
 	"{«_‡,»}"
@@ -78,11 +78,11 @@ Method "_sizes" is [st : setType |
 
 /* Set manipulation primitives... */
 
-Method "||_||" is [s : set |
+Method "`|`|_`|`|" is [s : set |
 	Primitive 100;
 ] : whole number;
 
-Restriction "||_||" is [st : setType |
+Restriction "`|`|_`|`|" is [st : setType |
 	st sizes;
 ] : integerType;
 

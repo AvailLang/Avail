@@ -46,19 +46,19 @@ Uses
 	"Variables"
 Names
 	"[«_‡,»]→_",
-	"<«_‡,»`…|_.._>",
-	"<«_‡,»`…|_..>",
-	"<«_‡,»`…|.._>",
-	"<«_‡,»`…|_>",
-	"<«_‡,»`…|>",
-	"{_|_.._}",
-	"{_|_..}",
-	"{_|.._}",
-	"{_|}",
-	"{_→_|_.._}",
-	"{_→_|_..}",
-	"{_→_|.._}",
-	"{_→_|}"
+	"<«_‡,»`…`|_.._>",
+	"<«_‡,»`…`|_..>",
+	"<«_‡,»`…`|.._>",
+	"<«_‡,»`…`|_>",
+	"<«_‡,»`…`|>",
+	"{_`|_.._}",
+	"{_`|_..}",
+	"{_`|.._}",
+	"{_`|}",
+	"{_→_`|_.._}",
+	"{_→_`|_..}",
+	"{_→_`|.._}",
+	"{_→_`|}"
 Body
 
 /**
@@ -205,7 +205,7 @@ Semantic restriction "<_,_`…|_>" is
  * Returns:
  *    The requested tuple's type.
  */
-Method "<«_‡,»`…|_.._>" is
+Method "<«_‡,»`…`|_.._>" is
 [
 	leadingAndDefaultTypes : <<>, any's type…|natural number>,
 	minimumSize : whole number,
@@ -229,7 +229,7 @@ Method "<«_‡,»`…|_.._>" is
  * Returns:
  *    The requested tuple's type's type.
  */ 
-Semantic restriction "<«_‡,»`…|_.._>" is
+Semantic restriction "<«_‡,»`…`|_.._>" is
 [
 	leadingAndDefaultTypesTypes : <<>, any's type…|natural number>'s type,
 	minimumSizeType : whole number's type,
@@ -297,7 +297,7 @@ Semantic restriction "<«_‡,»`…|_.._>" is
  * Returns:
  *    The requested tuple's type.
  */
-Method "<«_‡,»`…|_..>" is
+Method "<«_‡,»`…`|_..>" is
 [
 	leadingAndDefaultTypes : <<>, any's type…|natural number>,
 	minimumSize : whole number
@@ -318,7 +318,7 @@ Method "<«_‡,»`…|_..>" is
  * Returns:
  *    The requested tuple's type's type.
  */ 
-Semantic restriction "<«_‡,»`…|_..>" is
+Semantic restriction "<«_‡,»`…`|_..>" is
 [
 	leadingAndDefaultTypesTypes : <<>, any's type…|natural number>'s type,
 	minimumSizeType : whole number's type
@@ -384,7 +384,7 @@ Semantic restriction "<«_‡,»`…|_..>" is
  * Returns:
  *    The requested tuple's type.
  */
-Method "<«_‡,»`…|.._>" is
+Method "<«_‡,»`…`|.._>" is
 [
 	leadingAndDefaultTypes : <<>, any's type…|natural number>,
 	maximumSize : [0..∞]
@@ -406,7 +406,7 @@ Method "<«_‡,»`…|.._>" is
  * Returns:
  *    The requested tuple's type's type.
  */ 
-Semantic restriction "<«_‡,»`…|.._>" is
+Semantic restriction "<«_‡,»`…`|.._>" is
 [
 	leadingAndDefaultTypesTypes : <<>, any's type…|natural number>'s type,
 	maximumSizeType : [0..∞]'s type
@@ -471,7 +471,7 @@ Semantic restriction "<«_‡,»`…|.._>" is
  * Returns:
  *    The requested tuple's type's type.
  */
-Method "<«_‡,»`…|_>" is
+Method "<«_‡,»`…`|_>" is
 [
 	leadingAndDefaultTypes : <<>, any's type…|natural number>,
 	exactSize : whole number
@@ -493,7 +493,7 @@ Method "<«_‡,»`…|_>" is
  * Returns:
  *    The requested tuple's type's type.
  */ 
-Semantic restriction "<«_‡,»`…|_>" is
+Semantic restriction "<«_‡,»`…`|_>" is
 [
 	leadingAndDefaultTypesTypes : <<>, any's type…|natural number>'s type,
 	exactSizeType : whole number's type
@@ -558,7 +558,7 @@ Semantic restriction "<«_‡,»`…|_>" is
  * Returns:
  *    The requested tuple's type.
  */
-Method "<«_‡,»`…|>" is
+Method "<«_‡,»`…`|>" is
 [
 	leadingAndDefaultTypes : <<>, any's type…|natural number>
 |
@@ -577,7 +577,7 @@ Method "<«_‡,»`…|>" is
  * Returns:
  *    The requested tuple's type's type.
  */ 
-Semantic restriction "<«_‡,»`…|>" is
+Semantic restriction "<«_‡,»`…`|>" is
 [
 	leadingAndDefaultTypesTypes : <<>, any's type…|natural number>'s type
 |
@@ -639,7 +639,7 @@ Semantic restriction "<«_‡,»`…|>" is
  * Returns:
  *    The requested set type's most specific type. 
  */
-Semantic restriction "{_|_}" is
+Semantic restriction "{_`|_}" is
 [
 	elementTypeType : any meta's type,
 	cardinalityTypeType : whole number meta's type
@@ -664,7 +664,7 @@ Semantic restriction "{_|_}" is
  *    `elementType` and cardinalities, using the supplied minimum and maximum 
  *    provided values, that conform to `cardinalityType`.
  */
-Method "{_|_.._}" is
+Method "{_`|_.._}" is
 [
 	elementType : any's type,
 	minimumSize : whole number,
@@ -695,7 +695,7 @@ Method "{_|_.._}" is
  * Returns:
  *    The instance metatype of the exact set type.
  */
-Semantic restriction "{_|_.._}" is
+Semantic restriction "{_`|_.._}" is
 [
 	elementMeta : any's type's type,
 	minimumSize : whole number's type,
@@ -731,7 +731,7 @@ Semantic restriction "{_|_.._}" is
  *    `elementType` and cardinalities, using the supplied minimum value and 
  *    infinity as the maximum value, that conform to `cardinalityType`.
  */
-Method "{_|_..}" is
+Method "{_`|_..}" is
 [
 	elementType : any's type,
 	minimumSize : whole number
@@ -748,7 +748,7 @@ Method "{_|_..}" is
  * Returns:
  *    The instance metatype of the exact set type.
  */
-Semantic restriction "{_|_..}" is
+Semantic restriction "{_`|_..}" is
 [
 	elementTypeType : any's type's type,
 	minimumSizeType : whole number's type
@@ -770,7 +770,7 @@ Semantic restriction "{_|_..}" is
  *    `elementType` and cardinalities, using the supplied maximum value and 
  *    0 as the minimum value, that conform to `cardinalityType`.
  */
-Method "{_|.._}" is
+Method "{_`|.._}" is
 [
 	elementType : any's type,
 	maximumSize : [0..∞]
@@ -788,7 +788,7 @@ Method "{_|.._}" is
  * Returns:
  *    The instance metatype of the exact set type.
  */
-Semantic restriction "{_|.._}" is
+Semantic restriction "{_`|.._}" is
 [
 	elementTypeType : any's type's type,
 	maximumSizeType : [0..∞]'s type
@@ -806,7 +806,7 @@ Semantic restriction "{_|.._}" is
  * Returns:
  *    The requested set type.
  */
-Method "{_|_}" is
+Method "{_`|_}" is
 [
 	elementType : any's type,
 	exactSize : whole number
@@ -835,7 +835,7 @@ Method "{_|_}" is
  * Returns:
  *    An instance type on a set type.
  */
-Semantic restriction "{_|_}" is
+Semantic restriction "{_`|_}" is
 [
 	elementMeta : any's type's type,
 	exactSize : whole number's type
@@ -866,7 +866,7 @@ Semantic restriction "{_|_}" is
  *    `elementType` and cardinalities, using the supplied maximum value and 
  *    0 as the minimum value, that conform to `cardinalityType`.
  */
-Method "{_|}" is
+Method "{_`|}" is
 [
 	elementType : any's type
 |
@@ -881,7 +881,7 @@ Method "{_|}" is
  * Returns:
  *    The instance metatype of the exact set type.
  */
-Semantic restriction "{_|}" is
+Semantic restriction "{_`|}" is
 [
 	elementTypeType : any's type's type
 |
@@ -898,7 +898,7 @@ Semantic restriction "{_|}" is
  * Returns:
  *    The requested map type's most specific type.
  */
-Semantic restriction "{_→_|_}" is
+Semantic restriction "{_→_`|_}" is
 [
 	keyTypeType : any meta's type,
 	valueTypeType : any meta's type,
@@ -923,7 +923,7 @@ Semantic restriction "{_→_|_}" is
  * Returns:
  *    The requested map type.
  */
-Method "{_→_|_.._}" is
+Method "{_→_`|_.._}" is
 [
 	keyType : any meta,
 	valueType : any meta,
@@ -945,7 +945,7 @@ Method "{_→_|_.._}" is
  * Returns:
  *    The instance metatype of the exact map type.
  */
-Semantic restriction "{_→_|_.._}" is
+Semantic restriction "{_→_`|_.._}" is
 [
 	keyTypeType : any's type's type,
 	valueTypeType : any's type's type,
@@ -969,7 +969,7 @@ Semantic restriction "{_→_|_.._}" is
  * Returns:
  *    The requested map type.
  */
-Method "{_→_|_..}" is
+Method "{_→_`|_..}" is
 [
 	keyType : any meta,
 	valueType : any meta,
@@ -988,7 +988,7 @@ Method "{_→_|_..}" is
  * Returns:
  *    The instance metatype of the exact map type.
  */
-Semantic restriction "{_→_|_..}" is
+Semantic restriction "{_→_`|_..}" is
 [
 	keyTypeType : any's type's type,
 	valueTypeType : any's type's type,
@@ -1010,7 +1010,7 @@ Semantic restriction "{_→_|_..}" is
  * Returns:
  *    The requested map type.
  */
-Method "{_→_|.._}" is
+Method "{_→_`|.._}" is
 [
 	keyType : any meta,
 	valueType : any meta,
@@ -1030,7 +1030,7 @@ Method "{_→_|.._}" is
  * Returns:
  *    The instance metatype of the exact map type.
  */
-Semantic restriction "{_→_|.._}" is
+Semantic restriction "{_→_`|.._}" is
 [
 	keyTypeType : any's type's type,
 	valueTypeType : any's type's type,
@@ -1051,7 +1051,7 @@ Semantic restriction "{_→_|.._}" is
  * Returns:
  *    The requested map type.
  */
-Method "{_→_|_}" is
+Method "{_→_`|_}" is
 [
 	keyType : any meta,
 	valueType : any meta,
@@ -1071,7 +1071,7 @@ Method "{_→_|_}" is
  * Returns:
  *    The requested map type.
  */
-Semantic restriction "{_→_|_}" is
+Semantic restriction "{_→_`|_}" is
 [
 	keyTypeType : any meta's type,
 	valueTypeType : any meta's type,
@@ -1091,7 +1091,7 @@ Semantic restriction "{_→_|_}" is
  * Returns:
  *    The requested map type.
  */
-Method "{_→_|}" is
+Method "{_→_`|}" is
 [
 	keyType : any meta,
 	valueType : any meta
@@ -1108,7 +1108,7 @@ Method "{_→_|}" is
  * Returns:
  *    The requested map type most specific type.
  */
-Semantic restriction "{_→_|}" is
+Semantic restriction "{_→_`|}" is
 [
 	keyTypeType : any meta's type,
 	valueTypeType : any meta's type
@@ -1175,7 +1175,7 @@ Method "_∈_" is
  * Returns:
  *    The cardinality type of the argument's instance.
  */
-Semantic restriction "||_||" is
+Semantic restriction "`|`|_`|`|" is
 [
 	tupleMeta : tuple meta's type
 |
@@ -1190,7 +1190,7 @@ Semantic restriction "||_||" is
  * Returns:
  *    The cardinality type of the argument's instance.
  */
-Semantic restriction "||_||" is
+Semantic restriction "`|`|_`|`|" is
 [
 	setMeta : set meta's type
 |
@@ -1205,7 +1205,7 @@ Semantic restriction "||_||" is
  * Returns:
  *    The cardinality type of the argument's instance.
  */
-Semantic restriction "||_||" is
+Semantic restriction "`|`|_`|`|" is
 [
 	mapMeta : map meta's type
 |
@@ -1220,7 +1220,7 @@ Semantic restriction "||_||" is
  * Returns:
  *    The cardinality type of the argument's instance.
  */
-Semantic restriction "||_||" is
+Semantic restriction "`|`|_`|`|" is
 [
 	bottomMeta : ⊥'s type's type
 |

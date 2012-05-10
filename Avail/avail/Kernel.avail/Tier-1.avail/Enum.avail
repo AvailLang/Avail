@@ -36,11 +36,11 @@ Uses
 	"Tier-0",
 	"Integer"
 Names
-	"|_|",
+	"`|_`|",
 	"_instances"
 Body
 
-Method "|_|" is [t : type |
+Method "`|_`|" is [t : type |
 	Primitive 28;
 ] : [0..∞];
 

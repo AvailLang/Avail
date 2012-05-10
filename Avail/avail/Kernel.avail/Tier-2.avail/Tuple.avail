@@ -64,7 +64,7 @@ Names
 	"code point of_",
 	"`#_",
 	"$_",
-	"<«_‡,»`…|_.._>",
+	"<«_‡,»`…`|_.._>",
 	"first index of_where_",
 	"last index of_where_",
 	"all indexes of_where_",
@@ -634,7 +634,7 @@ Method "_to_" is [a : character, b : character |
 	result;
 ] : string;
 
-Method "<«_‡,»`…|_.._>" is
+Method "<«_‡,»`…`|_.._>" is
 [
 	aTupleOfTypes : tuple [1..∞) like <> default type,
 	cardinalityLower : whole number,

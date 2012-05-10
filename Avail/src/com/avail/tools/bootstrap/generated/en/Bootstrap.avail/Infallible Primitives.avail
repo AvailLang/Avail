@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.05.09 23:03:36.489 -0500
+ * * Last Generated On: 2012.05.10 16:59:40.423 -0500
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -49,11 +49,12 @@ Uses
 	(
 		"$_",
 		"$_@pc=_stack=_[_]caller=_",
-		"<_,_`…|_>",
+		"<_,_`…`|_>",
 		"Assert:_(_)",
 		"Breakpoint",
 		"Clear_",
 		"If_then_",
+		"If|if_then_else_",
 		"Print:_",
 		"Reject parse,expected:_",
 		"Terminate:_",
@@ -123,11 +124,14 @@ Uses
 		"_≤_",
 		"_⊆_",
 		"_⨉_^_",
+		"`|_'s⁇local variables`|",
+		"`|_'s⁇outer variables`|",
+		"`|_`|",
+		"`|`|_`|`|",
 		"concatenate_",
 		"current fiber",
 		"enumeration of_",
 		"function accepting_and returning_",
-		"if~_then_else_",
 		"integer range from_(inclusive=_)to_(inclusive=_)",
 		"ln_",
 		"milliseconds since the Epoch",
@@ -138,12 +142,8 @@ Uses
 		"primitive description of_",
 		"semantic restrictions for_given_",
 		"special atoms",
-		"{_|_}",
-		"{_→_|_}",
-		"|_'s⁇local variables|",
-		"|_'s⁇outer variables|",
-		"|_|",
-		"||_||",
+		"{_`|_}",
+		"{_→_`|_}",
 		"↑_",
 		"∪_",
 		"⎡_⎤",
@@ -392,7 +392,7 @@ Method "_[_]:=_" is
  * Returns:
  *    The cardinality of the membership of the type.
  */
-Method "|_|" is
+Method "`|_`|" is
 [
 	aType : type
 |
@@ -569,7 +569,7 @@ Method "[`…]→_" is
  *    If `predicate` is `true`, then the value produced by invoking
  *    `trueFunction`; otherwise, the value produced by invoking `falseFunction`.
  */
-Method "if~_then_else_" is
+Method "If|if_then_else_" is
 [
 	predicate : boolean,
 	trueFunction : nullary procedure,
@@ -939,7 +939,7 @@ Method "_'s⁇outer variables" is
  * Returns:
  *    The argument's cardinality.
  */
-Method "|_|" is
+Method "`|_`|" is
 [
 	aMap : map
 |
@@ -1049,7 +1049,7 @@ Method "_'s⁇keys" is
  * Returns:
  *    The requested map type.
  */
-Method "{_→_|_}" is
+Method "{_→_`|_}" is
 [
 	keyType : any meta,
 	valueType : any meta,
@@ -1067,7 +1067,7 @@ Method "{_→_|_}" is
  * Returns:
  *    The argument's cardinality requirement.
  */
-Method "||_||" is
+Method "`|`|_`|`|" is
 [
 	aMapType : map meta
 |
@@ -1146,7 +1146,7 @@ Method "_'s⁇bindings" is
  * Returns:
  *    The argument's cardinality.
  */
-Method "|_|" is
+Method "`|_`|" is
 [
 	aSet : set
 |
@@ -1325,7 +1325,7 @@ Method "_→tuple" is
  *    The requested set type. Instances have elements that conform to
  *    `elementType` and cardinalities that conform to `cardinalityType`.
  */
-Method "{_|_}" is
+Method "{_`|_}" is
 [
 	elementType : any meta,
 	cardinalityType : whole number meta
@@ -1342,7 +1342,7 @@ Method "{_|_}" is
  * Returns:
  *    The argument's cardinality requirement.
  */
-Method "||_||" is
+Method "`|`|_`|`|" is
 [
 	aSetType : set meta
 |
@@ -1421,7 +1421,7 @@ Method "special atoms" is
  * Returns:
  *    The argument's cardinality.
  */
-Method "|_|" is
+Method "`|_`|" is
 [
 	aTuple : tuple
 |
@@ -1455,7 +1455,7 @@ Method "concatenate_" is
  * Returns:
  *    The requested tuple type.
  */
-Method "<_,_`…|_>" is
+Method "<_,_`…`|_>" is
 [
 	leadingTypes : tuple of any meta,
 	defaultType : any meta,
@@ -1472,7 +1472,7 @@ Method "<_,_`…|_>" is
  * Returns:
  *    The argument's cardinality requirement.
  */
-Method "||_||" is
+Method "`|`|_`|`|" is
 [
 	aTupleType : tuple meta
 |
@@ -1640,7 +1640,7 @@ Method "_'s⁇arity" is
  * Returns:
  *    The number of locals used by the argument.
  */
-Method "|_'s⁇local variables|" is
+Method "`|_'s⁇local variables`|" is
 [
 	aFunctionImplementation : function implementation
 |
@@ -1655,7 +1655,7 @@ Method "|_'s⁇local variables|" is
  * Returns:
  *    The number of outers used by the argument.
  */
-Method "|_'s⁇outer variables|" is
+Method "`|_'s⁇outer variables`|" is
 [
 	aFunctionImplementation : function implementation
 |
@@ -2308,7 +2308,7 @@ Method "new_[_]" is
  * Returns:
  *    The size of the argument.
  */
-Method "|_|" is
+Method "`|_`|" is
 [
 	anArray : pojo array
 |

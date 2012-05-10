@@ -42,8 +42,8 @@ Names
 	"(_)",
 	"Ignore:_",
 	"From_to_do_",
-	"cast~_into_else_",
-	"cast~_into_"
+	"Cast|cast_into_else_",
+	"Cast|cast_into_"
 Body
 
 /**
@@ -104,7 +104,7 @@ Semantic restriction "(_)" is
  * Returns:
  *    The type union of the return types of `trueFunction` and `falseFunction`.
  */
-Semantic restriction "if~_then_else_" is
+Semantic restriction "If|if_then_else_" is
 [
 	predicate : boolean's type,
 	trueFunction : nullary procedure's type,
@@ -124,7 +124,7 @@ Semantic restriction "if~_then_else_" is
  * Returns:
  *    The return type of `trueFunction`.
  */
-Semantic restriction "if~_then_else_" is
+Semantic restriction "If|if_then_else_" is
 [
 	tautology : true's type's type,
 	trueFunction : nullary procedure's type,
@@ -144,7 +144,7 @@ Semantic restriction "if~_then_else_" is
  * Returns:
  *    The return type of `falseFunction`.
  */
-Semantic restriction "if~_then_else_" is
+Semantic restriction "If|if_then_else_" is
 [
 	contradiction : false's type's type,
 	trueFunction : nullary procedure's type,
@@ -170,7 +170,7 @@ Semantic restriction "if~_then_else_" is
  *    reject - The function to invoke if `value` is not a subtype of the
  *       parameter type of `accept`.
  */
-Method "cast~_into_else_" is
+Method "Cast|cast_into_else_" is
 [
 	value : any,
 	accept : function accepting <⊥> and returning ⊤,
@@ -194,7 +194,7 @@ Method "cast~_into_else_" is
  *    accept - The function to invoke if `value` is a subtype of the its
  *       parameter type.
  */
-Method "cast~_into_" is
+Method "Cast|cast_into_" is
 [
 	value : any,
 	accept : function accepting <⊥> and returning ⊤
@@ -210,9 +210,9 @@ Method "cast~_into_" is
 ] : ⊤;
 
 /**
- * Strengthen the return type of `cast~_into_else` so that it may be used as a
- * value-producing expression. If the type cast is unnecessary, then reject the
- * current parse.
+ * Strengthen the return type of `Cast|cast_into_else` so that it may be used as
+ * a value-producing expression. If the type cast is unnecessary, then reject
+ * the current parse.
  *
  * Parameters:
  *    value -
@@ -221,7 +221,7 @@ Method "cast~_into_" is
  * Returns:
  *    The type union of the return types of `accept` and `reject`.
  */
-Semantic restriction "cast~_into_else_" is
+Semantic restriction "Cast|cast_into_else_" is
 [
 	value : type,
 	accept : (function accepting <⊥> and returning ⊤)'s type,
@@ -265,7 +265,7 @@ Semantic restriction "cast~_into_else_" is
 ];
 
 /**
- * Strengthen the return type of `cast~_into_` so that it may be used as a
+ * Strengthen the return type of `Cast|cast_into_` so that it may be used as a
  * value-producing expression. If the type cast is unnecessary or invalid, then
  * reject the current parse.
  *
@@ -275,7 +275,7 @@ Semantic restriction "cast~_into_else_" is
  * Returns:
  *    The return type of `accept`.
  */
-Semantic restriction "cast~_into_" is
+Semantic restriction "Cast|cast_into_" is
 [
 	value : type,
 	accept : (function accepting <⊥> and returning ⊤)'s type
@@ -335,7 +335,7 @@ with <>;
  * Returns:
  *    ⊥.
  */
-Method "||_||" is
+Method "`|`|_`|`|" is
 [
 	bottomMeta : ⊥'s type
 |
@@ -343,7 +343,7 @@ Method "||_||" is
 ];
 
 /**
- * Strengthen `invoke~_with_` to the invoked function's return type.
+ * Strengthen `Invoke|invoke_with_` to the invoked function's return type.
  *
  * Parameters:
  *    aFunction -
@@ -351,7 +351,7 @@ Method "||_||" is
  * Returns:
  *    The function's return type.
  */
-Semantic restriction "invoke~_with_" is
+Semantic restriction "Invoke|invoke_with_" is
 [
 	aFunction : function meta,
 	arguments : tuple meta

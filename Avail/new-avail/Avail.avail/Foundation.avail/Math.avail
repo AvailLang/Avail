@@ -64,7 +64,7 @@ Forward method "-_" is [number]→number;
 	sum      ::= {"_+_", "_-_"};
 	product  ::= {"_×_", "_÷_", "_mod_"};
 	negation ::= {"-_"};
-	abs      ::= {"|_|"};
+	abs      ::= {"`|_`|"};
 
 	sumAndProduct ::= sum ∪ product;
 
@@ -801,7 +801,7 @@ Grammatical restriction {"_→_"} is <∅, {"double", "extended integer", "float
  * Returns:
  *    The absolute value of `a`.
  */
-Method "|_|" is
+Method "`|_`|" is
 [
 	a : number
 |
@@ -816,7 +816,7 @@ Method "|_|" is
  * Returns:
  *    `double`.
  */
-Semantic restriction "|_|" is
+Semantic restriction "`|_`|" is
 [
 	a : double's type
 |
@@ -831,7 +831,7 @@ Semantic restriction "|_|" is
  * Returns:
  *    `float`.
  */
-Semantic restriction "|_|" is
+Semantic restriction "`|_`|" is
 [
 	a : float's type
 |
@@ -847,7 +847,7 @@ Semantic restriction "|_|" is
  *    A positive integer range that includes the absolute values of all
  *    instances of `a`.
  */
-Semantic restriction "|_|" is
+Semantic restriction "`|_`|" is
 [
 	a : extended integer's type
 |

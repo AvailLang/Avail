@@ -48,7 +48,7 @@ Names
 	"_sizes",
 	"_keyType",
 	"_valueType",
-	"||_||",
+	"`|`|_`|`|",
 	"_[_]`?",
 	"_[_->_]",
 	"_[_->nil]",
@@ -112,11 +112,11 @@ Method "_valueType" is [mt : mapType |
 ] : any type;
 
 
-Method "||_||" is [m : map |
+Method "`|`|_`|`|" is [m : map |
 	Primitive 80;
 ] : integer;
 
-Restriction "||_||" is [mt : mapType |
+Restriction "`|`|_`|`|" is [mt : mapType |
 	mt sizes;
 ];
 

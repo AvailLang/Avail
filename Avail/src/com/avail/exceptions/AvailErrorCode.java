@@ -374,6 +374,19 @@ public enum AvailErrorCode
 	E_DOUBLE_QUESTION_MARK_MUST_FOLLOW_A_SIMPLE_OR_SIMPLE_GROUP (53),
 
 	/**
+	 * An alternation must not contain arguments. It must comprise only simple
+	 * expressions and simple groups.
+	 */
+	E_ALTERNATIVE_MUST_NOT_CONTAIN_ARGUMENTS (54),
+
+	/**
+	 * Compilation is over. The interpreter is now operating in runtime mode.
+	 * This usually means that an attempt was made to modify module metadata at
+	 * runtime.
+	 */
+	E_COMPILATION_IS_OVER (70),
+
+	/**
 	 * A Java {@linkplain Class class} specified by name was either not found by
 	 * the runtime system or not available for reflection.
 	 */

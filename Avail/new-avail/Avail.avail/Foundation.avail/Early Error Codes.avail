@@ -34,18 +34,64 @@ System Module "Early Error Codes"
 Versions
 	"dev"
 Uses
-	"Bootstrap"
+	"Bootstrap",
+	"Early Control Structures",
+	"Early Math",
+	"Literals",
+	"Variables"
 Names
-	"object type extension contains duplicates code",
-	"object type extension did not produce subtype code"
+	"error code_'s⁇name"
+
+	/* Quite a few names are introduced, but all dynamically by the
+	 * "Next error code_" defining method (whose only purpose is to produce
+	 * publicly available methods).
+	 */
 Body
 
-Method "object type extension contains duplicates code" is
+/* The next error code that should be assigned. */
+code : [1000..∞) := 1000;
+
+/* A map from the error codes to their names (corresponding to the method
+ * names).
+ */
+errorNames : {[1000..∞)→string|[0..∞)} := {};
+
+/**
+ * Answer the name of the specified error code.
+ * 
+ * Parameters:
+ *    errorCode - An error code.
+ * Returns:
+ *    The name of the specified error code.
+ */
+Method "error code_'s⁇name" is
 [
-	1000;
+	errorCode : [1000..∞)
+|
+	cast errorNames[errorCode] into [ t : string | t; ];
+] : string;
+
+/**
+ * Define a method named `name` that stably answers the current value of `code`.
+ * Increment `code` (so that every error code method answers a distinct value).
+ * 
+ * Parameters:
+ *    name - The name of the new method.
+ */
+Method "Next error code is_" is
+[
+	name : string
+|
+	next ::= (↑code++);
+	Method name is [ next; ];
+	errorNames := cast eject ↑errorNames + next→name
+		into [ t : {[1000..∞)→string|[1..∞)} | t; ];
+	Publish new name: name;
 ];
 
-Method "object type extension did not produce subtype code" is
-[
-	1001;
-];
+Next error code is "object type extension contains duplicates code";
+Next error code is "object type extension did not produce subtype code";
+Next error code is "object instantiation contains duplicates code";
+Next error code is "object instantiation incomplete code";
+Next error code is "object instantiation did not produce instance code";
+

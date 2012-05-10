@@ -497,7 +497,7 @@ Semantic restriction "{«_→_‡,»}" is
  * Returns:
  *    The range of cardinalities supported by the argument.
  */
-Semantic restriction "|_|" is
+Semantic restriction "`|_`|" is
 [
 	aTupleType : tuple meta
 |
@@ -514,7 +514,7 @@ Semantic restriction "|_|" is
  * Returns:
  *    The range of cardinalities supported by the argument.
  */
-Semantic restriction "|_|" is
+Semantic restriction "`|_`|" is
 [
 	aSetType : set meta
 |
@@ -531,7 +531,7 @@ Semantic restriction "|_|" is
  * Returns:
  *    The range of cardinalities supported by the argument.
  */
-Semantic restriction "|_|" is
+Semantic restriction "`|_`|" is
 [
 	aMapType : map meta
 |

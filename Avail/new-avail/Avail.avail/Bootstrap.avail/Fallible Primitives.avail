@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.05.09 23:03:36.528 -0500
+ * * Last Generated On: 2012.05.10 16:59:40.448 -0500
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -51,7 +51,9 @@ Uses
 		"Exit_with_",
 		"Forward method_is_",
 		"Grammatical restriction_is_",
+		"Invoke|invoke_with_",
 		"Macro_is_",
+		"Publish new name:_",
 		"Raise_",
 		"Restart_",
 		"Restart_with_",
@@ -73,7 +75,6 @@ Uses
 		"constructor_<«_‡,»>",
 		"eject_",
 		"function from_and_",
-		"invoke~_with_",
 		"method_._(«_‡,»)",
 		"read character",
 		"request termination of_",
@@ -373,7 +374,7 @@ Method "_[_]" is
  * Returns:
  *    The value produced by applying the arguments to the function.
  */
-Method "invoke~_with_" is
+Method "Invoke|invoke_with_" is
 [
 	aFunction : function,
 	arguments : tuple
@@ -726,6 +727,24 @@ Method "Raise_" is
 	Primitive 201 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode;
 ] : ⊥;
+
+/**
+ * Introduce `newName` as a public name. This has the same effect as listing
+ * in the "Names" section of the current module, i.e., the module currently
+ * undergoing compilation. This facilitates code generation in some
+ * circumstances. This operation may only be invoked during compilation, i.e.,
+ * as the result of parsing or executing a top-level statement.
+ *
+ * Parameters:
+ *    newName - The name that should be introduced.
+ */
+Method "Publish new name:_" is
+[
+	newName : string
+|
+	Primitive 246 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode;
+] : ⊤;
 
 /**
  * Define the specified semantic restriction. Henceforth whenever the method

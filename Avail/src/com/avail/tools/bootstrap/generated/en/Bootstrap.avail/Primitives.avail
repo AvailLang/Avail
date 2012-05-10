@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.05.09 23:03:36.484 -0500
+ * * Last Generated On: 2012.05.10 16:59:40.420 -0500
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -47,7 +47,7 @@ Uses
 Names
 	"$_",
 	"$_@pc=_stack=_[_]caller=_",
-	"<_,_`…|_>",
+	"<_,_`…`|_>",
 	"Abstract method_is_",
 	"Assert:_(_)",
 	"Breakpoint",
@@ -56,8 +56,11 @@ Names
 	"Forward method_is_",
 	"Grammatical restriction_is_",
 	"If_then_",
+	"If|if_then_else_",
+	"Invoke|invoke_with_",
 	"Macro_is_",
 	"Print:_",
+	"Publish new name:_",
 	"Raise_",
 	"Reject parse,expected:_",
 	"Restart_",
@@ -139,6 +142,10 @@ Names
 	"_≤_",
 	"_⊆_",
 	"_⨉_^_",
+	"`|_'s⁇local variables`|",
+	"`|_'s⁇outer variables`|",
+	"`|_`|",
+	"`|`|_`|`|",
 	"concatenate_",
 	"constructor_<«_‡,»>",
 	"current fiber",
@@ -146,9 +153,7 @@ Names
 	"enumeration of_",
 	"function accepting_and returning_",
 	"function from_and_",
-	"if~_then_else_",
 	"integer range from_(inclusive=_)to_(inclusive=_)",
-	"invoke~_with_",
 	"ln_",
 	"method_._(«_‡,»)",
 	"milliseconds since the Epoch",
@@ -165,12 +170,8 @@ Names
 	"swap_and_",
 	"termination requested",
 	"try_catch_",
-	"{_|_}",
-	"{_→_|_}",
-	"|_'s⁇local variables|",
-	"|_'s⁇outer variables|",
-	"|_|",
-	"||_||",
+	"{_`|_}",
+	"{_→_`|_}",
 	"↑_",
 	"↓_",
 	"↓_:=_",

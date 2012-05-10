@@ -67,7 +67,7 @@ sizesIncompatibleMessage ::=
 	\| function's parameter tuple";
 
 /**
- * `invoke~_with_` should reject improperly sized argument tuples.
+ * `Invoke|invoke_with_` should reject improperly sized argument tuples.
  *
  * Parameters:
  *    functionType -
@@ -75,7 +75,7 @@ sizesIncompatibleMessage ::=
  * Returns:
  *    The function's return type.
  */
-Semantic restriction "invoke~_with_" is
+Semantic restriction "Invoke|invoke_with_" is
 [
 	functionType : function meta,
 	argumentsType : tuple meta

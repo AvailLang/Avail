@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.05.09 23:03:36.542 -0500
+ * * Last Generated On: 2012.05.10 16:59:40.459 -0500
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -45,12 +45,14 @@ Extends
 Uses
 	"Origin"
 Names
+	/*  23 */ "I/O error code",
 	/* 500 */ "Java class not available code",
 	/* 505 */ "Java field not available code",
 	/* 506 */ "Java field reference is ambiguous code",
 	/* 504 */ "Java marshaling failed code",
 	/* 502 */ "Java method not available code",
 	/* 508 */ "Java method reference is ambiguous code",
+	/*  54 */ "alternative must not contain arguments code",
 	/*  35 */ "ambiguous name code",
 	/*   1 */ "cannot add unlike infinities code",
 	/*   4 */ "cannot divide by zero code",
@@ -63,6 +65,7 @@ Names
 	/*   2 */ "cannot subtract like infinities code",
 	/*   8 */ "cannot swap contents of differently typed variables code",
 	/*  51 */ "case insensitive expression canonization code",
+	/*  70 */ "compilation is over code",
 	/*  14 */ "continuation expected stronger type code",
 	/*  36 */ "declaration kind does not support assignment code",
 	/*  37 */ "declaration kind does not support reference code",
@@ -80,7 +83,6 @@ Names
 	/*  25 */ "invalid handle code",
 	/*  26 */ "invalid primitive number code",
 	/*  33 */ "invalid special object number code",
-	/*  23 */ "io error code",
 	/*  21 */ "key not found code",
 	/*  28 */ "local type literal is not a type code",
 	/*  34 */ "macro argument must be a parse node code",
@@ -224,7 +226,7 @@ Method "negative size code" is
 	22;
 ];
 
-Method "io error code" is
+Method "I/O error code" is
 [
 	23;
 ];
@@ -377,6 +379,16 @@ Method "tilde must not follow argument code" is
 Method "double question mark must follow a simple or simple group code" is
 [
 	53;
+];
+
+Method "alternative must not contain arguments code" is
+[
+	54;
+];
+
+Method "compilation is over code" is
+[
+	70;
 ];
 
 Method "Java class not available code" is

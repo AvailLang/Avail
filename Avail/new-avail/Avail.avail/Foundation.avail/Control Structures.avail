@@ -37,8 +37,8 @@ Extends
 	"Early Control Structures" =
 	(
 		"(_)",
-		"cast~_into_else_",
-		"cast~_into_"
+		"Cast|cast_into_else_",
+		"Cast|cast_into_"
 	)
 Uses
 	"Assertions",
@@ -68,12 +68,12 @@ Names
 	"Until_do_",
 	"While_",
 	"While_do_",
-	"cast~_into«_‡or»«else_»",
-	"choose~_from_where«_is_‡and»«and others are_»",
+	"Cast|cast_into«_‡or»«else_»",
+	"Choose|choose_from_where«_is_‡and»«and others are_»",
 	"here",
-	"if~_then_«else if_then_»«else_»",
-	"unless~_then_else_",
-	"unless~_then_«else unless_then_»«else_»",
+	"If|if_then_«else if_then_»«else_»",
+	"Unless|unless_then_else_",
+	"Unless|unless_then_«else unless_then_»«else_»",
 
 	/* This is provided to support implementation of semantic restrictions of
 	 * `map and filter_by_`. Not for export beyond this package.
@@ -809,7 +809,7 @@ Method "Require:_'s⁇keeper is valid" is
  * Returns:
  *    If used as an expression, then the value of the selected action.
  */
-Method "if~_then_«else if_then_»«else_»" is
+Method "If|if_then_«else if_then_»«else_»" is
 [
 	firstPredicate : boolean,
 	firstThen : []→⊤,
@@ -872,7 +872,7 @@ Method "if~_then_«else if_then_»«else_»" is
  * Returns:
  *    The strongest possible type for the expression.
  */
-Semantic restriction "if~_then_«else if_then_»«else_»" is
+Semantic restriction "If|if_then_«else if_then_»«else_»" is
 [
 	firstPredicate : boolean's type,
 	firstThen : []→⊤'s type,
@@ -1026,7 +1026,7 @@ Method "Unless_then_" is
  *    If `predicate` is `false`, then the value produced by invoking
  *    `falseFunction`; otherwise, the value produced by invoking `trueFunction`.
  */
-Method "unless~_then_else_" is
+Method "Unless|unless_then_else_" is
 [
 	predicate : boolean,
 	falseBlock : []→⊤,
@@ -1046,7 +1046,7 @@ Method "unless~_then_else_" is
  * Returns:
  *    The type union of the return types of `falseFunction` and `trueFunction`.
  */
-Semantic restriction "unless~_then_else_" is
+Semantic restriction "Unless|unless_then_else_" is
 [
 	predicate : boolean's type,
 	falseFunction : []→⊤'s type,
@@ -1066,7 +1066,7 @@ Semantic restriction "unless~_then_else_" is
  * Returns:
  *    The return type of `falseFunction`.
  */
-Semantic restriction "unless~_then_else_" is
+Semantic restriction "Unless|unless_then_else_" is
 [
 	contradiction : false's type's type,
 	falseFunction : []→⊤'s type,
@@ -1086,7 +1086,7 @@ Semantic restriction "unless~_then_else_" is
  * Returns:
  *    The return type of `trueFunction`.
  */
-Semantic restriction "unless~_then_else_" is
+Semantic restriction "Unless|unless_then_else_" is
 [
 	tautology : true's type's type,
 	falseFunction : []→⊤'s type,
@@ -1116,7 +1116,7 @@ Semantic restriction "unless~_then_else_" is
  * Returns:
  *    If used as an expression, then the value of the selected action.
  */
-Method "unless~_then_«else unless_then_»«else_»" is
+Method "Unless|unless_then_«else unless_then_»«else_»" is
 [
 	firstPredicate : boolean,
 	firstThen : []→⊤,
@@ -1179,7 +1179,7 @@ Method "unless~_then_«else unless_then_»«else_»" is
  * Returns:
  *    The strongest possible type for the expression.
  */
-Semantic restriction "unless~_then_«else unless_then_»«else_»" is
+Semantic restriction "Unless|unless_then_«else unless_then_»«else_»" is
 [
 	firstPredicate : boolean's type,
 	firstThen : []→⊤'s type,
@@ -1698,7 +1698,7 @@ Semantic restriction "Do_until_alternate with_" is
  * Returns:
  *    The result of whatever function is applied.
  */
-Method "cast~_into«_‡or»«else_»" is
+Method "Cast|cast_into«_‡or»«else_»" is
 [
 	value : any,
 	caseTuple : <[⊥]→⊤…|2..>,
@@ -1731,9 +1731,9 @@ Method "cast~_into«_‡or»«else_»" is
 ] : ⊤;
 
 /**
- * Strengthen the return type of `cast~_into«_‡,»«else_»` so that it may be used
- * as a value-producing expression. If any case is unnecessary or invalid, then
- * reject the current parse.
+ * Strengthen the return type of `Cast|cast_into«_‡,»«else_»` so that it may be
+ * used as a value-producing expression. If any case is unnecessary or invalid,
+ * then reject the current parse.
  *
  * Parameters:
  *    valueType -
@@ -1742,7 +1742,7 @@ Method "cast~_into«_‡or»«else_»" is
  * Returns:
  *    The type union of the return types of all cases and `else`.
  */
-Semantic restriction "cast~_into«_‡or»«else_»" is
+Semantic restriction "Cast|cast_into«_‡or»«else_»" is
 [
 	valueType : any meta,
 	caseTuple : <[⊥]→⊤…|2..>'s type,
@@ -1798,7 +1798,7 @@ Semantic restriction "cast~_into«_‡or»«else_»" is
  * Returns:
  *    The return value of the chosen function.
  */
-Method "choose~_from_where«_is_‡and»«and others are_»" is
+Method "Choose|choose_from_where«_is_‡and»«and others are_»" is
 [
 	value : any,
 	enum : type,
@@ -1853,7 +1853,7 @@ Method "choose~_from_where«_is_‡and»«and others are_»" is
  *    The type union of the return types of the case functions that could
  *    actually run.
  */
-Semantic restriction "choose~_from_where«_is_‡and»«and others are_»" is
+Semantic restriction "Choose|choose_from_where«_is_‡and»«and others are_»" is
 [
 	valueType : any meta,
 	meta : type's type,

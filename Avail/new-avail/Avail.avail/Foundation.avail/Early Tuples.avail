@@ -43,7 +43,7 @@ Uses
 	"Literals",
 	"Variables"
 Names
-	"relevant|_|",
+	"relevant`|_`|",
 	"«_‡++»",
 	"_[_..]",
 	"_[.._]",
@@ -140,7 +140,7 @@ Semantic restriction "«_‡++»" is
  *    The smaller of the argument's cardinality's lower bound and one more than
  *    the size of its leading types.
  */
-Method "relevant|_|" is
+Method "relevant`|_`|" is
 [
 	tupleType : tuple meta
 |

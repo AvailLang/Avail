@@ -48,7 +48,7 @@ Uses
 	"Sets",
 	"Tuples"
 Names
-	"extend_with«_::=_‡,»"
+	"extend_with«_:_‡,»"
 Body
 
 /**
@@ -357,7 +357,7 @@ Semantic restriction "_→tuple" is
  * Returns:
  *    The requested object type.
  */
-Method "extend_with«_::=_‡,»" is
+Method "extend_with«_:_‡,»" is
 [
 	supertype : object meta,
 	newDefinitions : <<atom, any meta…|2>…|1..>
@@ -391,7 +391,7 @@ Method "extend_with«_::=_‡,»" is
  * Return:
  *    The strongest possible object type for the given argument types.
  */
-Semantic restriction "extend_with«_::=_‡,»" is
+Semantic restriction "extend_with«_:_‡,»" is
 [
 	meta : object meta's type,
 	newDefinitionTypes : <<atom, any meta…|2>…|1..>'s type
@@ -437,22 +437,51 @@ Semantic restriction "extend_with«_::=_‡,»" is
 	((supertype→tuple ++ newDefinitions' bindings)→object type)'s type;
 ];
 
+/* TODO */
+Method "a|an_«with«_:=_‡,»»" is
+[
+	objectType : object meta,
+	optional : <<<atom, any meta…|2>…|1..>…|0..1>
+|
+	assignments ::= if optional is empty then [ <>; ] else [ optional[1]; ];
+	fieldAtoms ::= stripe assignments at 1;
+	If |fieldAtoms→set| ≠ |fieldAtoms| then
+	[
+		early failure function(object instantiation contains duplicates code);
+	];
+	If |fieldAtoms| ≠ |objectType→tuple| then
+	[
+		early failure function(object instantiation incomplete code);
+	];
+	newObject ::= assignments→object;
+	If ¬newObject ∈ objectType then
+	[
+		early failure function(
+			object instantiation did not produce instance code);
+	];
+	newObject;
+];
+
 /*
 color ::= new atom "color";
 texture ::= new atom "texture";
 flavor ::= new atom "flavor";
-a ::= extend object with color ::= [0..255];
+a ::= extend object with color : [0..255];
 Print: "a=";
 Print: primitive description of a;
 Print: "\n";
-b ::= extend a
-	with color ::= [1..5],
-	texture ::= enumeration of {"rough", "smooth"};
+b ::= extend a with
+	color : [1..5],
+	texture : enumeration of {"rough", "smooth"};
 Print: "b=";
 Print: primitive description of b;
 Print: "\n";
-c ::= extend b with flavor ::= enumeration of {"salty", "sweet"};
+c ::= extend b with flavor : enumeration of {"salty", "sweet"};
 Print: "c=";
 Print: primitive description of c;
+Print: "\n";
+q ::= a c with color := 5, texture := "rough", flavor := "sweet";
+Print: "q=";
+Print: primitive description of q;
 Print: "\n";
 */

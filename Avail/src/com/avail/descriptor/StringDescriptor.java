@@ -225,6 +225,22 @@ extends TupleDescriptor
 	}
 
 	/**
+	 * A tuple containing just the vertical bar character.
+	 */
+	static AvailObject verticalBar;
+
+	/**
+	 * Return an Avail {@linkplain StringDescriptor string} of size one,
+	 * consisting of just the vertical bar character ("|").
+	 *
+	 * @return A tuple containing just the vertical bar character.
+	 */
+	public static AvailObject verticalBar ()
+	{
+		return verticalBar;
+	}
+
+	/**
 	 * Create any instances statically well-known to the {@linkplain
 	 * AvailRuntime Avail runtime system}.
 	 */
@@ -240,6 +256,7 @@ extends TupleDescriptor
 		questionMark = from("?").makeImmutable();
 		doubleQuestionMark = from("⁇").makeImmutable();
 		tilde = from("~").makeImmutable();
+		verticalBar = from("|").makeImmutable();
 	}
 
 	/**
@@ -258,6 +275,7 @@ extends TupleDescriptor
 		questionMark = null;
 		doubleQuestionMark = null;
 		tilde = null;
+		verticalBar = null;
 	}
 
 	/**

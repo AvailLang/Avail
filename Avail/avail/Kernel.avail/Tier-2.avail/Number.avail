@@ -43,7 +43,7 @@ Names
 
 	"_+_" , "_-_", "-_", "_*_" ,
 	"_/_", "_mod_", "_is odd", "_is even",
-	"_max_", "_min_", "_^_", "|_|",
+	"_max_", "_min_", "_^_", "`|_`|",
 
 	"_++", "_--",
 
@@ -225,7 +225,7 @@ power    can't have <sum U product U negation U power, sum U product>;
 {"_min_"} can't have <{},{"_min_"}>;  /* group min expressions on the left. */
 {"_max_"} can't have <{},{"_max_"}>;  /* group max expressions on the left. */
 
-{"|_|"} can't have <{"|_|"}>;  /* disallow dangerous and redundant ||x|| for abs(abs(x)). */
+{"`|_`|"} can't have <{"`|_`|"}>;  /* disallow dangerous and redundant ||x|| for abs(abs(x)). */
 
 
 Method "_+_" is [a : number, b : number |
@@ -802,16 +802,16 @@ Restriction "_^_" is [
 ] : integerType;
 
 
-Method "|_|" is [a : number |
+Method "`|_`|" is [a : number |
 	/* Compute the absolute value of the argument... */
 	if a < 0 then [0-a;] else [a;];
 ] : number;
 
-Restriction "|_|" is [ aT : double type | aT; ];
+Restriction "`|_`|" is [ aT : double type | aT; ];
 
-Restriction "|_|" is [ aT : float type | aT; ];
+Restriction "`|_`|" is [ aT : float type | aT; ];
 
-Restriction "|_|" is [aT : integerType |
+Restriction "`|_`|" is [aT : integerType |
 	type intersection of (type union of aT and (aT negated)) and [0..INF];
 ] : integerType;
 

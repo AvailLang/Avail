@@ -50,6 +50,7 @@ import com.avail.exceptions.*;
  * parsing.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
 public class MessageSplitter
 {
@@ -1360,6 +1361,143 @@ public class MessageSplitter
 	}
 
 	/**
+	 * An {@code Alternation} is a special {@linkplain Expression expression}
+	 * indicated by interleaved {@linkplain StringDescriptor#verticalBar()
+	 * vertical bars} between {@linkplain Simple simples} and {@linkplain
+	 * Group simple groups}. It may not contain {@linkplain Argument arguments}.
+	 *
+	 * <p>An alternation specifies several alternative parses but does not
+	 * produce any information. No facility is provided to determine which
+	 * alternative occurred during a parse. The message "a|an_" may be parsed as
+	 * either "a_" or "an_".</p>
+	 *
+	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 */
+	final class Alternation
+	extends Expression
+	{
+		/** The alternative {@linkplain Expression expressions}. */
+		private final @NotNull List<Expression> alternatives;
+
+		/**
+		 * The one-based positions in the instruction stream of the labels. All
+		 * but the last correspond to the beginnings of the alternatives. The
+		 * last corresponds to the first instruction beyond the code segment
+		 * associated with the last alternative.
+		 */
+		private final @NotNull int[] branches;
+
+		/**
+		 * Construct a new {@link Alternation}.
+		 *
+		 * @param alternatives
+		 *        The alternative {@linkplain Expression expressions}.
+		 */
+		Alternation (final @NotNull List<Expression> alternatives)
+		{
+			this.alternatives = alternatives;
+			this.branches = new int[alternatives.size()];
+			Arrays.fill(branches, -1);
+		}
+
+		@Override
+		void emitOn (
+			final @NotNull List<Integer> list,
+			final @NotNull boolean caseInsensitive)
+		{
+			/* push current parse position
+			 * push empty list (just to discard)
+			 * branch to @branches[0]
+			 * ...First alternative.
+			 * jump to @branches[N-1] (the last branch label)
+			 * @branches[0]:
+			 * ...Repeat for each alternative, omitting the branch and jump for
+			 * ...the last alternative.
+			 * @branches[N-1]:
+			 * check progress and update saved position, or abort.
+			 * under-pop parse position (remove 2nd from top of stack)
+			 * pop (empty list)
+			 */
+			list.add(saveParsePosition.encoding());
+			list.add(newList.encoding());
+			for (int i = 0; i < alternatives.size(); i++)
+			{
+				// Generate a branch to the next alternative unless this is the
+				// last alternative.
+				if (i < alternatives.size() - 1)
+				{
+					list.add(branch.encodingForOperand(branches[i]));
+				}
+				alternatives.get(i).emitOn(list, caseInsensitive);
+				// Generate a jump to the last label unless this is the last
+				// alternative.
+				if (i < alternatives.size() - 1)
+				{
+					list.add(jump.encodingForOperand(
+						branches[branches.length - 1]));
+				}
+				branches[i] = list.size() + 1;
+			}
+			list.add(ensureParseProgress.encoding());
+			list.add(discardSavedParsePosition.encoding());
+			list.add(pop.encoding());
+		}
+
+		@Override
+		boolean isArgumentOrGroup ()
+		{
+			return false;
+		}
+
+		@Override
+		int underscoreCount ()
+		{
+			return 0;
+		}
+
+		@Override
+		boolean isLowerCase ()
+		{
+			for (final Expression expression : alternatives)
+			{
+				if (!expression.isLowerCase())
+				{
+					return false;
+				}
+			}
+			return true;
+		}
+
+		@Override
+		public void checkType (final AvailObject argumentType)
+			throws SignatureException
+		{
+			assert false :
+				"checkType() should not be called for Alternation expressions";
+		}
+
+		@Override
+		public @NotNull String toString ()
+		{
+			final StringBuilder builder = new StringBuilder();
+			builder.append(getClass().getSimpleName());
+			builder.append("(");
+			boolean first = true;
+			for (final Expression expression : alternatives)
+			{
+				if (!first)
+				{
+					builder.append(',');
+				}
+				builder.append(expression);
+				first = false;
+			}
+			builder.append(")");
+			return builder.toString();
+		}
+	}
+
+	/**
 	 * Construct a new {@link MessageSplitter}, parsing the provided message
 	 * into token strings and generating {@linkplain ParsingOperation parsing
 	 * instructions} for parsing occurrences of this message.
@@ -1567,6 +1705,7 @@ public class MessageSplitter
 	 */
 	Group parseGroup () throws SignatureException
 	{
+		List<Expression> alternatives = new ArrayList<Expression>();
 		final Group group = new Group();
 		while (true)
 		{
@@ -1631,7 +1770,7 @@ public class MessageSplitter
 				}
 				messagePartPosition++;
 				// Try to parse a counter, optional, and/or case-insensitive.
-				Expression subexpression;
+				Expression subexpression = subgroup;
 				if (messagePartPosition <= messageParts.size())
 				{
 					token = messageParts.get(messagePartPosition - 1);
@@ -1683,32 +1822,49 @@ public class MessageSplitter
 						subexpression = new CompletelyOptional(subgroup);
 						messagePartPosition++;
 					}
-					else
+				}
+				if (messagePartPosition <= messageParts.size())
+				{
+					token = messageParts.get(messagePartPosition - 1);
+					// Try to parse a case-insensitive modifier.
+					if (token.equals(StringDescriptor.tilde()))
 					{
-						subexpression = subgroup;
-					}
-					if (messagePartPosition <= messageParts.size())
-					{
-						token = messageParts.get(messagePartPosition - 1);
-						// Try to parse a case-insensitive modifier.
-						if (token.equals(StringDescriptor.tilde()))
+						if (!subexpression.isLowerCase())
 						{
-							if (!subexpression.isLowerCase())
-							{
-								throwSignatureException(
-									E_CASE_INSENSITIVE_EXPRESSION_CANONIZATION);
-							}
-							subexpression = new CaseInsensitive(subexpression);
-							messagePartPosition++;
+							throwSignatureException(
+								E_CASE_INSENSITIVE_EXPRESSION_CANONIZATION);
 						}
+						subexpression = new CaseInsensitive(subexpression);
+						messagePartPosition++;
 					}
+				}
+				// Parse a vertical bar. If no vertical bar occurs, then either
+				// complete an alternation already in progress (including this
+				// most recent expression) or add the subexpression directly to
+				// the group.
+				if (messagePartPosition > messageParts.size()
+					|| !messageParts.get(messagePartPosition - 1)
+						.equals(StringDescriptor.verticalBar()))
+				{
+					if (alternatives.size() > 0)
+					{
+						alternatives.add(subexpression);
+						subexpression = new Alternation(alternatives);
+						alternatives = new ArrayList<Expression>();
+					}
+					group.addExpression(subexpression);
 				}
 				else
 				{
-					subexpression = subgroup;
+					if (subexpression.underscoreCount() > 0)
+					{
+						// Alternations may not contain arguments.
+						throwSignatureException(
+							E_ALTERNATIVE_MUST_NOT_CONTAIN_ARGUMENTS);
+					}
+					alternatives.add(subexpression);
+					messagePartPosition++;
 				}
-				assert subexpression != null;
-				group.addExpression(subexpression);
 			}
 			else
 			{
@@ -1760,7 +1916,27 @@ public class MessageSplitter
 						messagePartPosition++;
 					}
 				}
-				group.addExpression(subexpression);
+				// Parse a vertical bar. If no vertical bar occurs, then either
+				// complete an alternation already in progress (including this
+				// most recent expression) or add the subexpression directly to
+				// the group.
+				if (messagePartPosition > messageParts.size()
+					|| !messageParts.get(messagePartPosition - 1)
+						.equals(StringDescriptor.verticalBar()))
+				{
+					if (alternatives.size() > 0)
+					{
+						alternatives.add(subexpression);
+						subexpression = new Alternation(alternatives);
+						alternatives = new ArrayList<Expression>();
+					}
+					group.addExpression(subexpression);
+				}
+				else
+				{
+					alternatives.add(subexpression);
+					messagePartPosition++;
+				}
 			}
 		}
 	}
