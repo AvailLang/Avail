@@ -41,6 +41,7 @@ import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
+import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.*;
 import com.avail.interpreter.primitive.*;
@@ -100,6 +101,12 @@ public final class BootstrapGenerator
 	 * names of the {@linkplain Primitive primitives}.
 	 */
 	private final @NotNull ResourceBundle primitiveBundle;
+
+	/**
+	 * The {@linkplain ResourceBundle resource bundle} that contains the Avail
+	 * names of the {@linkplain AvailErrorCode primitive error codes}.
+	 */
+	private final @NotNull ResourceBundle errorCodeBundle;
 
 	/**
 	 * Answer the correct {@linkplain File file name} for the {@linkplain
@@ -302,22 +309,29 @@ public final class BootstrapGenerator
 		{
 			if (specialObjects.get(i) != null)
 			{
+				final String nonalphaKey = specialObjectKey(i);
+				if (!specialObjectBundle.containsKey(nonalphaKey)
+					|| specialObjectBundle.getString(nonalphaKey).isEmpty())
+				{
+					System.err.println("missing key/value: " + nonalphaKey);
+					continue;
+				}
+				final String alphaKey = specialObjectAlphabeticKey(i);
 				final String commentKey = specialObjectCommentKey(i);
 				if (specialObjectBundle.containsKey(commentKey))
 				{
 					writer.print(specialObjectBundle.getString(commentKey));
 				}
 				final String key =
-					specialObjectBundle.containsKey(
-						specialObjectAlphabeticKey(i))
-					? specialObjectAlphabeticKey(i)
-					: specialObjectKey(i);
+					specialObjectBundle.containsKey(alphaKey)
+					? alphaKey
+					: nonalphaKey;
 				final String constantName =
 					"_" + specialObjectBundle.getString(key).replace(' ', '_');
 				writer.println(MessageFormat.format(
 					preamble.getString(definingMethodUse.name()),
 					stringify(
-						specialObjectBundle.getString(specialObjectKey(i))),
+						specialObjectBundle.getString(nonalphaKey)),
 					String.format("\n[\n\t%s;\n];\n", constantName)));
 			}
 		}
@@ -451,6 +465,9 @@ public final class BootstrapGenerator
 		else if (Boolean.TRUE.equals(fallible))
 		{
 			names.append("\n\t");
+			names.append(stringify(preamble.getString(
+				primitiveFailureFunctionGetterMethod.name())));
+			names.append(",\n\t");
 			names.append(stringify(preamble.getString(
 				primitiveFailureFunctionSetterMethod.name())));
 		}
@@ -601,7 +618,8 @@ public final class BootstrapGenerator
 	 * @param statements
 	 *        The block's statements.
 	 * @param returnType
-	 *        The return type.
+	 *        The return type, or {@code null} if the return type should not be
+	 *        explicit.
 	 * @return A textual representation of the block (indent=0).
 	 */
 	private @NotNull String block (
@@ -751,6 +769,33 @@ public final class BootstrapGenerator
 		writer.print(specialObjectName(BottomTypeDescriptor.bottom()));
 		writer.println(';');
 		writer.println();
+	}
+
+	/**
+	 * Generate the {@linkplain Primitive primitive} failure function getter.
+	 *
+	 * @param writer
+	 *        The {@linkplain PrintWriter output stream}.
+	 */
+	private void generatePrimitiveFailureFunctionGetter (
+		final @NotNull PrintWriter writer)
+	{
+		final StringBuilder statements = new StringBuilder();
+		statements.append('\t');
+		statements.append(
+			preamble.getString(primitiveFailureFunctionName.name()));
+		statements.append(";\n");
+		final String block = block(
+			"",
+			statements.toString(),
+			FunctionTypeDescriptor.create(
+				TupleDescriptor.from(
+					IntegerRangeTypeDescriptor.naturalNumbers()),
+				BottomTypeDescriptor.bottom()));
+		generateMethod(
+			preamble.getString(primitiveFailureFunctionGetterMethod.name()),
+			block,
+			writer);
 	}
 
 	/**
@@ -933,6 +978,7 @@ public final class BootstrapGenerator
 		{
 			generatePrimitiveFailureMethod(writer);
 			generatePrimitiveFailureFunction(writer);
+			generatePrimitiveFailureFunctionGetter(writer);
 			generatePrimitiveFailureFunctionSetter(writer);
 			generateInvokePrimitiveFailureFunctionMethod(writer);
 			generatePrivateSemanticRestrictionMethod(writer);
@@ -949,6 +995,132 @@ public final class BootstrapGenerator
 					generatePrimitiveMethod(primitive, writer);
 				}
 			}
+		}
+	}
+
+	/**
+	 * Answer the {@linkplain AvailErrorCode primitive error codes} for which
+	 * Avail methods should be generated.
+	 *
+	 * @return The relevant primitive error codes.
+	 */
+	private @NotNull List<AvailErrorCode> errorCodes ()
+	{
+		final AvailErrorCode[] codes = AvailErrorCode.values();
+		final List<AvailErrorCode> relevant = new ArrayList<AvailErrorCode>();
+		for (final AvailErrorCode code : codes)
+		{
+			if (code.nativeCode() > 0)
+			{
+				relevant.add(code);
+			}
+		}
+		return relevant;
+	}
+
+	/**
+	 * A {@linkplain Map map} from localized names to {@linkplain AvailErrorCode
+	 * primitive error codes}.
+	 */
+	private final @NotNull Map<String, AvailErrorCode> errorCodesByName =
+		new HashMap<String, AvailErrorCode>(AvailErrorCode.values().length);
+
+	/**
+	 * A {@linkplain Map map} from {@linkplain AvailErrorCode primitive error
+	 * codes} to localized names.
+	 */
+	private final @NotNull Map<AvailErrorCode, String> namesByErrorCode =
+		new HashMap<AvailErrorCode, String>(AvailErrorCode.values().length);
+
+	/**
+	 * Answer a textual representation of the {@linkplain AvailErrorCode
+	 * primitive error codes} that is satisfactory for use in an Avail
+	 * {@linkplain ModuleDescriptor module} header.
+	 *
+	 * @return The "Names" string.
+	 */
+	private @NotNull String errorCodesNamesString ()
+	{
+		final List<String> names = new ArrayList<String>(
+			errorCodesByName.keySet());
+		Collections.sort(names);
+		final StringBuilder builder = new StringBuilder();
+		for (final String name : names)
+		{
+			final AvailErrorCode code = errorCodesByName.get(name);
+			builder.append("\n\t");
+			builder.append(String.format("/* %3d */", code.nativeCode()));
+			builder.append(" \"");
+			builder.append(name);
+			builder.append("\",");
+		}
+		final String namesString = builder.toString();
+		return namesString.substring(0, namesString.length() - 1);
+	}
+
+	/**
+	 * Generate the preamble for the error codes {@linkplain ModuleDescriptor
+	 * module}.
+	 *
+	 * @param versions
+	 *        The {@linkplain List list} of version strings supported by the
+	 *        module.
+	 * @param writer
+	 *        The {@linkplain PrintWriter output stream}.
+	 */
+	private void generateErrorCodesModulePreamble (
+		final @NotNull List<String> versions,
+		final @NotNull PrintWriter writer)
+	{
+		writer.println(MessageFormat.format(
+			preamble.getString(availCopyright.name()),
+			preamble.getString(errorCodesModuleName.name()),
+			new Date()));
+		writer.println(MessageFormat.format(
+			preamble.getString(generatedModuleNotice.name()),
+			BootstrapGenerator.class.getName(),
+			new Date()));
+		final StringBuilder uses = new StringBuilder();
+		uses.append("\n\t\"");
+		uses.append(preamble.getString(originModuleName.name()));
+		uses.append('"');
+		writer.println(MessageFormat.format(
+			preamble.getString(generalModuleHeader.name()),
+			preamble.getString(errorCodesModuleName.name()),
+			versionString(versions),
+			"",
+			uses.toString(),
+			errorCodesNamesString()));
+	}
+
+	/**
+	 * Generate the body for the error codes {@linkplain ModuleDescriptor
+	 * module}.
+	 *
+	 * @param writer
+	 *        The {@linkplain PrintWriter output stream}.
+	 */
+	private void generateErrorCodesModuleBody (
+		final @NotNull PrintWriter writer)
+	{
+		for (final AvailErrorCode code : errorCodes())
+		{
+			final String key = errorCodeKey(code);
+			if (!errorCodeBundle.containsKey(key)
+				|| errorCodeBundle.getString(key).isEmpty())
+			{
+				System.err.println("missing key/value: " + key);
+				continue;
+			}
+			final String commentKey = errorCodeCommentKey(code);
+			if (errorCodeBundle.containsKey(commentKey))
+			{
+				writer.print(errorCodeBundle.getString(commentKey));
+			}
+			writer.println(MessageFormat.format(
+				preamble.getString(definingMethodUse.name()),
+				stringify(errorCodeBundle.getString(key)),
+				String.format("\n[\n\t%d;\n];\n", code.nativeCode())));
 		}
 	}
 
@@ -980,7 +1152,8 @@ public final class BootstrapGenerator
 			specialObjectsModuleName,
 			primitivesModuleName,
 			infalliblePrimitivesModuleName,
-			falliblePrimitivesModuleName
+			falliblePrimitivesModuleName,
+			errorCodesModuleName
 		};
 		final StringBuilder extended = new StringBuilder();
 		for (final Key key : keys)
@@ -1080,6 +1253,26 @@ public final class BootstrapGenerator
 	}
 
 	/**
+	 * Generate the {@linkplain ModuleDescriptor module} that binds the
+	 * {@linkplain AvailErrorCode primitive error codes} to Avail names.
+	 *
+	 * @param versions
+	 *        The supported versions.
+	 * @throws IOException
+	 *         If the source module could not be written.
+	 */
+	private void generateErrorCodesModule (final @NotNull List<String> versions)
+		throws IOException
+	{
+		final File fileName = moduleFileName(errorCodesModuleName);
+		assert fileName.getPath().endsWith(".avail");
+		final PrintWriter writer = new PrintWriter(fileName, "UTF-8");
+		generateErrorCodesModulePreamble(versions, writer);
+		generateErrorCodesModuleBody(writer);
+		writer.close();
+	}
+
+	/**
 	 * Generate the {@linkplain ModuleDescriptor module} that represents the
 	 * bootstrap package.
 	 *
@@ -1126,6 +1319,7 @@ public final class BootstrapGenerator
 		generatePrimitiveModule(null, versions);
 		generatePrimitiveModule(false, versions);
 		generatePrimitiveModule(true, versions);
+		generateErrorCodesModule(versions);
 		generateRepresentativeModule(versions);
 	}
 
@@ -1154,6 +1348,11 @@ public final class BootstrapGenerator
 			locale,
 			BootstrapGenerator.class.getClassLoader(),
 			control);
+		this.errorCodeBundle = ResourceBundle.getBundle(
+			errorCodesBaseName,
+			locale,
+			BootstrapGenerator.class.getClassLoader(),
+			control);
 
 		// Map localized names to the special objects.
 		for (int i = 0; i < specialObjects.size(); i++)
@@ -1176,7 +1375,8 @@ public final class BootstrapGenerator
 		{
 			if (!primitive.hasFlag(Flag.Private))
 			{
-				final String value = primitiveBundle.getString(primitive.name());
+				final String value = primitiveBundle.getString(
+					primitive.name());
 				if (value != null && !value.isEmpty())
 				{
 					Set<Primitive> set = primitiveNameMap.get(value);
@@ -1187,6 +1387,18 @@ public final class BootstrapGenerator
 					}
 					set.add(primitive);
 				}
+			}
+		}
+
+		// Map localized names to the primitive error codes.
+		for (final AvailErrorCode code : errorCodes())
+		{
+			final String value = errorCodeBundle.getString(
+				errorCodeKey(code));
+			if (value != null && !value.isEmpty())
+			{
+				errorCodesByName.put(value, code);
+				namesByErrorCode.put(code, value);
 			}
 		}
 	}

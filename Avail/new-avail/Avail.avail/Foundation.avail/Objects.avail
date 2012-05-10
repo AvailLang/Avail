@@ -37,6 +37,8 @@ Uses
 	"Assertions",
 	"Bootstrap",
 	"Control Structures",
+	"Early Error Codes",
+	"Early Functions",
 	"Early Types",
 	"Enumeration Support",
 	"Literals",
@@ -45,6 +47,8 @@ Uses
 	"Math",
 	"Sets",
 	"Tuples"
+Names
+	"extend_with«_::=_‡,»"
 Body
 
 /**
@@ -338,44 +342,117 @@ Semantic restriction "_→tuple" is
 	];
 ];
 
-/*
+/**
+ * Construct and answer an object type which is a subtype of `supertype`
+ * augmented by the specified tuple of field definitions.
+ * 
+ * Parameter:
+ *    supertype - An object type that must be a supertype of the answer.
+ *    newDefinitions - A tuple of 2-tuples. Each 2-tuple consists of 1) an atom
+ *       that uniquely identifies the field and 2) the field type, i.e., the
+ *       type of value that instances of the answer may store in the field. If
+ *       the field atom is defined by `supertype`, then the new field type must
+ *       be a subtype of the field type as defined in `supertype`, i.e., it must
+ *       be covariantly specialized.
+ * Returns:
+ *    The requested object type.
+ */
 Method "extend_with«_::=_‡,»" is
 [
 	supertype : object meta,
 	newDefinitions : <<atom, any meta…|2>…|1..>
 |
-	(supertype→tuple ++ newDefinitions)→object type;
+	fieldAtoms ::= stripe newDefinitions at 1;
+	If |fieldAtoms→set| ≠ |fieldAtoms| then
+	[
+		early failure function(object type extension contains duplicates code);
+	];
+	subtype ::= (supertype→tuple ++ newDefinitions)→object type;
+	If ¬subtype ⊆ supertype then
+	[
+		early failure function(
+			object type extension did not produce subtype code);
+	];
+	subtype;
 ] : object meta;
 
+/**
+ * Object type extension statically requires that:
+ *
+ * - Every field atom of the extension is known.
+ * - Each field atom of the extension appears only once during extension.
+ * - Each field atom of the extension is either 1) not present in the supertype
+ *   or 2) specifies a type which covaries with the field type expressed in the
+ *   supertype.
+ *
+ * Parameters:
+ *    meta - The supertype's type.
+ *    newDefinitionTypes - A lexical tuple type.
+ * Return:
+ *    The strongest possible object type for the given argument types.
+ */
 Semantic restriction "extend_with«_::=_‡,»" is
 [
 	meta : object meta's type,
-	newDefinitions : <<atom, any meta…|2>…|1..>'s type
+	newDefinitionTypes : <<atom, any meta…|2>…|1..>'s type
 |
 	supertype ::= meta's instance;
 	oldDefinitions ::= supertype→map;
-	For each newDefinitions[1..|newDefinitions's leading types| + 1] do
+	newDefinitions : field type map := {};
+	From 1 to |newDefinitionTypes' leading types| + 1 do
 	[
-		def : <atom, any meta…|2>'s type
+		index : natural number
 	|
-		If |def[1]| ≠ 1 then
+		def ::= newDefinitionTypes[index];
+		atomType ::= def[1];
+		newType ::= def[2]'s instance;
+		If |atomType| ≠ 1 then
 		[
-			Reject parse, expected: "field atoms to be known statically";
+			Reject parse, expected: "all field atoms to be known statically";
 		];
-		fieldAtom ::= def[1]'s instance;
-		If fieldAtom ∈ oldDefinitions
-			∧ [ ¬def[2] ⊆ oldDefinitions[fieldAtom]; ] then
+		fieldAtom ::= atomType's instance;
+		If fieldAtom ∈ newDefinitions then
 		[
 			Reject parse, expected:
-				"convariant specialization of "
-				++ primitive description of fieldAtom's name
-				++ " (but new field type "
-				++ primitive description of def[2]
-				++ " is not a subtype of "
-				++ primitive description of oldDefinitions[fieldAtom]
+				fieldAtom's name
+				++ " to appear only once during extension (but it already\
+				\| appeared with type = "
+				++ primitive description of newDefinitions[fieldAtom]
 				++ ")";
 		];
+		oldType ::= oldDefinitions[fieldAtom] else [ any; ];
+		If ¬newType ⊆ oldType then
+		[
+			Reject parse, expected:
+				"covariant specialization of "
+				++ fieldAtom's name
+				++ " (but new field type "
+				++ primitive description of newType
+				++ " is not a subtype of "
+				++ primitive description of oldType
+				++ ")";
+		];
+		newDefinitions := eject ↑newDefinitions + fieldAtom→newType;
 	];
-	⊤;
+	((supertype→tuple ++ newDefinitions' bindings)→object type)'s type;
 ];
+
+/*
+color ::= new atom "color";
+texture ::= new atom "texture";
+flavor ::= new atom "flavor";
+a ::= extend object with color ::= [0..255];
+Print: "a=";
+Print: primitive description of a;
+Print: "\n";
+b ::= extend a
+	with color ::= [1..5],
+	texture ::= enumeration of {"rough", "smooth"};
+Print: "b=";
+Print: primitive description of b;
+Print: "\n";
+c ::= extend b with flavor ::= enumeration of {"salty", "sweet"};
+Print: "c=";
+Print: primitive description of c;
+Print: "\n";
 */

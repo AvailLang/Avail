@@ -1,5 +1,5 @@
 /**
- * SpecialObjectNamesGenerator.java
+ * ErrorCodeNamesGenerator.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -35,29 +35,23 @@ package com.avail.tools.bootstrap;
 import static com.avail.tools.bootstrap.Resources.*;
 import java.io.*;
 import java.util.*;
-import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
-import com.avail.descriptor.AvailObject;
+import com.avail.exceptions.AvailErrorCode;
 
 /**
  * Generate a {@linkplain PropertyResourceBundle property resource bundle} that
- * specifies unbound properties for the Avail names of the special objects.
+ * specifies unbound properties for the Avail names of the {@linkplain
+ * AvailErrorCode primitive error codes}.
  *
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
-public final class SpecialObjectNamesGenerator
+public final class ErrorCodeNamesGenerator
 extends PropertiesFileGenerator
 {
-	/* Initialize Avail. */
-	static
-	{
-		AvailObject.clearAllWellKnownObjects();
-		AvailObject.createAllWellKnownObjects();
-	}
-
 	/**
 	 * Write the names of the properties, whose unspecified values should be
-	 * the Avail names of the corresponding special objects.
+	 * the Avail names of the corresponding {@linkplain AvailErrorCode
+	 * primitive error codes}.
 	 *
 	 * @param properties
 	 *        The existing {@linkplain Properties properties}. These should be
@@ -71,42 +65,35 @@ extends PropertiesFileGenerator
 		final @NotNull Properties properties,
 		final @NotNull PrintWriter writer)
 	{
-		final List<AvailObject> specialObjects = AvailRuntime.specialObjects();
 		final Set<String> keys = new HashSet<String>();
-		for (int i = 0; i < specialObjects.size(); i++)
+		for (final AvailErrorCode code : AvailErrorCode.values())
 		{
-			final AvailObject specialObject = specialObjects.get(i);
-			if (specialObject != null)
+			if (code.nativeCode() > 0)
 			{
-				final String text =
-					specialObject.toString().replace("\n", "\n#");
 				writer.print("# ");
-				writer.print(text);
+				writer.print(code.nativeCode());
+				writer.print(" : ");
+				writer.print(code.name());
 				writer.println();
-				final String key = specialObjectKey(i);
+				final String key = errorCodeKey(code);
 				keys.add(key);
 				writer.print(key);
 				writer.print('=');
-				final String specialObjectName = properties.getProperty(key);
-				if (specialObjectName != null)
+				final String errorCodeName = properties.getProperty(key);
+				if (errorCodeName != null)
 				{
-					writer.print(escape(specialObjectName));
+					writer.print(escape(errorCodeName));
+				}
+				// Plug in sensible English language defaults if appropriate.
+				else if (locale.getLanguage().equals("en"))
+				{
+					writer.print(
+						code.name().substring(2).toLowerCase()
+							.replace('_', ' '));
+					writer.print(" code");
 				}
 				writer.println();
-				final String alphabeticKey = specialObjectAlphabeticKey(i);
-				if (properties.containsKey(alphabeticKey))
-				{
-					keys.add(alphabeticKey);
-					writer.print(alphabeticKey);
-					writer.print('=');
-					final String alphabetic =
-						properties.getProperty(alphabeticKey);
-					if (!alphabetic.isEmpty())
-					{
-						writer.println(escape(alphabetic));
-					}
-				}
-				final String commentKey = specialObjectCommentKey(i);
+				final String commentKey = errorCodeCommentKey(code);
 				keys.add(commentKey);
 				writer.print(commentKey);
 				writer.print('=');
@@ -132,14 +119,14 @@ extends PropertiesFileGenerator
 	}
 
 	/**
-	 * Construct a new {@link SpecialObjectNamesGenerator}.
+	 * Construct a new {@link ErrorCodeNamesGenerator}.
 	 *
 	 * @param locale
 	 *        The target {@linkplain Locale locale}.
 	 */
-	public SpecialObjectNamesGenerator (final @NotNull Locale locale)
+	public ErrorCodeNamesGenerator (final @NotNull Locale locale)
 	{
-		super(specialObjectsBaseName, locale);
+		super(errorCodesBaseName, locale);
 	}
 
 	/**
@@ -167,8 +154,8 @@ extends PropertiesFileGenerator
 
 		for (final String language : languages)
 		{
-			final SpecialObjectNamesGenerator generator =
-				new SpecialObjectNamesGenerator(new Locale(language));
+			final ErrorCodeNamesGenerator generator =
+				new ErrorCodeNamesGenerator(new Locale(language));
 			generator.generate();
 		}
 	}

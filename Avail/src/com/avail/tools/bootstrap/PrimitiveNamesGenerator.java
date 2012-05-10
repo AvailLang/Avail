@@ -50,40 +50,13 @@ import com.avail.interpreter.Primitive.Flag;
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
 public final class PrimitiveNamesGenerator
+extends PropertiesFileGenerator
 {
 	/* Initialize Avail. */
 	static
 	{
 		AvailObject.clearAllWellKnownObjects();
 		AvailObject.createAllWellKnownObjects();
-	}
-
-	/** The target {@linkplain Locale locale}. */
-	private final @NotNull Locale locale;
-
-	/**
-	 * The {@linkplain ResourceBundle resource bundle} that contains file
-	 * preamble information.
-	 */
-	private final @NotNull ResourceBundle preambleBundle;
-
-	/**
-	 * Generate the preamble for the properties file. This includes the
-	 * copyright and machine generation warnings.
-	 *
-	 * @param writer
-	 *        The {@linkplain PrintWriter output stream}.
-	 */
-	private void generatePreamble (final @NotNull PrintWriter writer)
-	{
-		writer.println(MessageFormat.format(
-			preambleBundle.getString(propertiesCopyright.name()),
-			localName(primitivesBaseName) + "_" + locale.getLanguage(),
-			new Date()));
-		writer.println(MessageFormat.format(
-			preambleBundle.getString(generatedPropertiesNotice.name()),
-			PrimitiveNamesGenerator.class.getName(),
-			new Date()));
 	}
 
 	/**
@@ -97,7 +70,8 @@ public final class PrimitiveNamesGenerator
 	 * @param writer
 	 *        The {@linkplain PrintWriter output stream}.
 	 */
-	private void generateProperties (
+	@Override
+	protected void generateProperties (
 		final @NotNull Properties properties,
 		final @NotNull PrintWriter writer)
 	{
@@ -201,39 +175,9 @@ public final class PrimitiveNamesGenerator
 				keys.add(key);
 				writer.print(key);
 				writer.print('=');
-				final String value = properties.getProperty(key);
-				writer.println(escape(value));
+				writer.println(escape(properties.getProperty(key)));
 			}
 		}
-	}
-
-	/**
-	 * Generate the target {@linkplain Properties properties} file.
-	 *
-	 * @throws IOException
-	 *         If an exceptional situation arises while reading properties.
-	 */
-	public void generate () throws IOException
-	{
-		final File fileName = new File(String.format(
-			"src/%s_%s.properties",
-			primitivesBaseName.replace('.', '/'),
-			locale.getLanguage()));
-		assert fileName.getPath().endsWith(".properties");
-		final Properties properties = new Properties();
-		try
-		{
-			properties.load(new InputStreamReader(
-				new FileInputStream(fileName), "UTF-8"));
-		}
-		catch (final FileNotFoundException e)
-		{
-			// Ignore. It's okay if the file doesn't already exist.
-		}
-		final PrintWriter writer = new PrintWriter(fileName, "UTF-8");
-		generatePreamble(writer);
-		generateProperties(properties, writer);
-		writer.close();
 	}
 
 	/**
@@ -244,12 +188,7 @@ public final class PrimitiveNamesGenerator
 	 */
 	public PrimitiveNamesGenerator (final @NotNull Locale locale)
 	{
-		this.locale = locale;
-		this.preambleBundle = ResourceBundle.getBundle(
-			preambleBaseName,
-			locale,
-			Resources.class.getClassLoader(),
-			new UTF8ResourceBundleControl());
+		super(primitivesBaseName, locale);
 	}
 
 	/**

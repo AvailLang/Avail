@@ -35,6 +35,7 @@ package com.avail.tools.bootstrap;
 import java.util.ResourceBundle;
 import java.util.regex.Matcher;
 import com.avail.annotations.NotNull;
+import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.Primitive;
 
 /**
@@ -71,6 +72,14 @@ final class Resources
 	 */
 	public static final @NotNull String primitivesBaseName =
 		generatedPackageName + ".PrimitiveNames";
+
+	/**
+	 * The base name of the target {@linkplain ResourceBundle resource bundle}
+	 * that contains the Avail names of the {@linkplain AvailErrorCode primitive
+	 * error codes}.
+	 */
+	public static final @NotNull String errorCodesBaseName =
+		generatedPackageName + ".ErrorCodeNames";
 
 	/**
 	 * Answer the local name of the specified {@linkplain ResourceBundle
@@ -174,6 +183,38 @@ final class Resources
 	}
 
 	/**
+	 * Answer the key for the specified {@linkplain AvailErrorCode primitive
+	 * error code}.
+	 *
+	 * @param code
+	 *        A primitive error code.
+	 * @return A key that may be used to access the Avail name of the primitive
+	 *         error code in the appropriate {@linkplain ResourceBundle resource
+	 *         bundle}.
+	 */
+	public static @NotNull String errorCodeKey (
+		final @NotNull AvailErrorCode code)
+	{
+		return "errorCode" + code.nativeCode();
+	}
+
+	/**
+	 * Answer the key for the specified {@linkplain AvailErrorCode primitive
+	 * error code}'s comment.
+	 *
+	 * @param code
+	 *        A primitive error code.
+	 * @return A key that may be used to access the primitive error code's
+	 *         comment in the appropriate {@linkplain ResourceBundle resource
+	 *         bundle}.
+	 */
+	public static @NotNull String errorCodeCommentKey (
+		final @NotNull AvailErrorCode code)
+	{
+		return errorCodeKey(code) + "_comment";
+	}
+
+	/**
 	 * Escape line feed characters in the argument.
 	 *
 	 * @param propertyValue
@@ -214,6 +255,7 @@ final class Resources
 		primitivesModuleName,
 		infalliblePrimitivesModuleName,
 		falliblePrimitivesModuleName,
+		errorCodesModuleName,
 		generalModuleHeader,
 		representativeModuleName,
 		bootstrapDefiningMethod,
@@ -227,6 +269,7 @@ final class Resources
 		primitiveFailureVariableName,
 		primitiveFailureFunctionName,
 		primitiveFailureFunctionSetterMethod,
+		primitiveFailureFunctionGetterMethod,
 		invokePrimitiveFailureFunctionMethod,
 		invokePrimitiveFailureFunctionMethodUse,
 		primitiveSemanticRestriction,

@@ -1,5 +1,5 @@
 /*
- * Bootstrap.avail
+ * Early Error Codes.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,25 +30,22 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * GENERATED FILE
- * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.05.09 23:03:36.549 -0500
- *
- * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
- */
-
-System Module "Bootstrap"
+System Module "Early Error Codes"
 Versions
 	"dev"
-Extends
-	"Origin",
-	"Special Objects",
-	"Primitives",
-	"Infallible Primitives",
-	"Fallible Primitives",
-	"Error Codes"
 Uses
+	"Bootstrap"
 Names
+	"object type extension contains duplicates code",
+	"object type extension did not produce subtype code"
 Body
 
+Method "object type extension contains duplicates code" is
+[
+	1000;
+];
+
+Method "object type extension did not produce subtype code" is
+[
+	1001;
+];

@@ -54,6 +54,7 @@ Names
 	"right fold_through_",
 	"split_after_",
 	"split_before_",
+	"stripe_at_",
 	"zip_",
 	"_of_",
 	"_to_",
@@ -1663,6 +1664,82 @@ Semantic restriction "split_before_" is
 		secondType ::=
 			tuple type of tupleType[[1..sizes' upper bound + 1)..upper];
 		<firstType, secondType…|2>;
+	];
+];
+
+/**
+ * Compute and answer the specified stripe of `aTuple`.
+ * 
+ * Parameters:
+ *    aTuple - A tuple of non-empty tuples.
+ *    index - The stripe index.
+ * Returns:
+ *    A tuple comprising the `index`-th elements of each element of `aTuple`.
+ */
+Method "stripe_at_" is
+[
+	aTuple : <<any…|1..>…|>,
+	index : natural number
+|
+	map aTuple through [ inner : <any…|1..> | inner[index]; ];
+] : tuple;
+
+/**
+ * Strengthen `stripe_at_`.
+ * 
+ * Parameters:
+ *    tupleType -
+ *    index -
+ * Returns:
+ *    The strongest possible tuple type for the given argument types.
+ */
+Semantic restriction "stripe_at_" is
+[
+	tupleType : <<any…|1..>…|>'s type,
+	index : natural number's type
+|
+	If index's lower bound > ||tupleType||'s upper bound then
+	[
+		Reject parse, expected:
+			"a subscript ("
+			++ primitive description of index's lower bound
+			++ " ≤ theSubscript ≤ "
+			++ primitive description of index's upper bound
+			++ ") that could ever be valid ("
+			++ primitive description of ||tupleType||'s lower bound
+			++ " ≤ |theTuple| ≤ "
+			++ primitive description of ||tupleType||'s upper bound
+			++ ")";
+	];
+	if |tupleType| = 1  ∧ [ |index| = 1; ] then
+	[
+		(stripe tupleType's instance at index's instance)'s type;
+	]
+	else
+	[
+		uncertainty ::= cast index's upper bound - index's lower bound
+			into [ t : whole number | t; ];
+		stripeTypes : <any meta…|> := <>;
+		From 1 to |tupleType's leading types| + 1 do
+		[
+			typeIndex : natural number
+		|
+			innerType ::= tupleType[typeIndex];
+			union : any meta := ⊥;
+			limit ::= uncertainty min (|innerType's leading types| + 1);
+			From 0 to limit do
+			[
+				delta : whole number
+			|
+				innerIndex ::= cast index's lower bound + delta
+					into [ t : natural number | t; ];
+				union := eject ↑union ∪ innerType[innerIndex];
+			];
+			stripeTypes := eject ↑stripeTypes ++ <union>;
+		];
+		nonemptyTypes ::= cast stripeTypes into [ t : <any meta…|1..> | t; ];
+		<nonemptyTypes[1..|nonemptyTypes| - 1], nonemptyTypes[|nonemptyTypes|]…
+			| ||tupleType||>;
 	];
 ];
 
