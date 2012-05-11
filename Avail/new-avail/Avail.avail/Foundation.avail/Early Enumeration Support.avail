@@ -70,5 +70,5 @@ Method "_'s⁇instance" is
 	enum : type
 |
 	Assert: |enum| = 1 ("|enum| ≠ 1");
-	enum's instances→tuple[1];
+	enum's instances→tuple[1]
 ] : any;

@@ -1,5 +1,5 @@
 /**
- * Primitive_200_CatchException.java
+ * P_200_CatchException.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

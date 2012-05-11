@@ -1,5 +1,5 @@
 /**
- * Primitive_248_AddSemanticRestriction.java
+ * P_248_AddSemanticRestriction.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

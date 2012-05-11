@@ -54,7 +54,7 @@ public class L2_PROCESS_INTERRUPT extends L2Operation
 	@Override
 	public void step (final @NotNull L2Interpreter interpreter)
 	{
-		interpreter.interruptProcess();
+		interpreter.processInterrupt();
 	}
 
 	@Override

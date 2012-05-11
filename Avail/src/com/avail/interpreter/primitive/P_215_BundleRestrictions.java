@@ -1,5 +1,5 @@
 /**
- * Primitive_215_BundleRestrictions.java
+ * P_215_BundleRestrictions.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

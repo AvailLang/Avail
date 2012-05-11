@@ -1,5 +1,5 @@
 /**
- * Primitive_292_FloatFloor.java
+ * P_292_FloatFloor.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

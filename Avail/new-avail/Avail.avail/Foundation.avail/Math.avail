@@ -89,16 +89,16 @@ Semantic restriction "_mod_" is type promotion function for
 	a : number,
 	b : number
 |
-	If b = 0 ∧ [ a ∈ extended integer; ] then
+	If b = 0 ∧ [ a ∈ extended integer ] then
 	[
-		Reject parse, expected: cannotDivideByZeroMessage;
+		Reject parse, expected: cannotDivideByZeroMessage
 	];
 	infinities ::= {∞, -∞};
-	If a ∈ infinities ∧ [ b ∈ infinities; ] then
+	If a ∈ infinities ∧ [ b ∈ infinities ] then
 	[
-		Reject parse, expected: cannotDivideTwoInfinitiesMessage;
+		Reject parse, expected: cannotDivideTwoInfinitiesMessage
 	];
-	a mod b;
+	a mod b
 ];
 
 /**
@@ -115,7 +115,7 @@ Method "-_" is
 [
 	a : number
 |
-	0 - a;
+	0 - a
 ];
 
 /**
@@ -134,33 +134,33 @@ Semantic restriction "-_" is
 |
 	if |a| = 1 then
 	[
-		(0 - a's instance)'s type;
+		(0 - a's instance)'s type
 	]
 	else
 	[
 		if a ⊆ extended integer then
 		[
-		 	extended integer;
+		 	extended integer
 		]
 		else
 		[
 			if a ⊆ double then
 			[
-				double;
+				double
 			]
 			else
 			[
 				if a ⊆ float then
 				[
-					float;
+					float
 				]
 				else
 				[
-					number;
-				];
-			];
-		];
-	];
+					number
+				]
+			]
+		]
+	]
 ];
 
 Abstract method "⎣_⎦" is [number]→number;
@@ -178,7 +178,7 @@ Method "⎣_⎦" is
 [
 	value : extended integer
 |
-	value;
+	value
 ] : extended integer;
 
 /**
@@ -196,15 +196,15 @@ Semantic restriction "⎣_⎦" is
 |
 	if |valueType| = 1 then
 	[
-		⎣valueType's instance⎦'s type;
+		⎣valueType's instance⎦'s type
 	]
 	else
 	[
 		/* An innocuous answer that will disappear in a type intersection with
 		 * the answer produced by a more specific semantic restriction.
 		 */
-		number;
-	];
+		number
+	]
 ];
 
 /**
@@ -219,7 +219,7 @@ Semantic restriction "⎣_⎦" is
 [
 	valueType : extended integer's type
 |
-	valueType;
+	valueType
 ];
 
 Abstract method "⎡_⎤" is [number]→number;
@@ -237,7 +237,7 @@ Method "⎡_⎤" is
 [
 	value : extended integer
 |
-	value;
+	value
 ] : extended integer;
 
 /**
@@ -255,15 +255,15 @@ Semantic restriction "⎡_⎤" is
 |
 	if |valueType| = 1 then
 	[
-		⎡valueType's instance⎤'s type;
+		⎡valueType's instance⎤'s type
 	]
 	else
 	[
 		/* An innocuous answer that will disappear in a type intersection with
 		 * the answer produced by a more specific semantic restriction.
 		 */
-		number;
-	];
+		number
+	]
 ];
 
 /**
@@ -278,7 +278,7 @@ Semantic restriction "⎡_⎤" is
 [
 	valueType : extended integer's type
 |
-	valueType;
+	valueType
 ];
 
 /**
@@ -295,7 +295,7 @@ Method "_mod_" is
 	dividend : number,
 	divisor : number
 |
-	dividend - divisor × ⎣dividend ÷ divisor⎦;
+	dividend - divisor × ⎣dividend ÷ divisor⎦
 ] : number;
 
 /**
@@ -312,7 +312,7 @@ Method "_mod_" is
 	dividend : extended integer,
 	divisor : ∞'s type
 |
-	dividend;
+	dividend
 ] : extended integer;
 
 /**
@@ -327,7 +327,7 @@ Method "_is odd" is
 [
 	a : integer
 |
-	a mod 2 = 1;
+	a mod 2 = 1
 ] : boolean;
 
 /**
@@ -345,13 +345,13 @@ Semantic restriction "_is odd" is
 |
 	if |a| = 1 then
 	[
-		a's instance is odd's type;
+		a's instance is odd's type
 	]
 	else
 	[
 		/* Don't strengthen. */
-		⊤;
-	];
+		⊤
+	]
 ];
 
 /**
@@ -366,7 +366,7 @@ Method "_is even" is
 [
 	a : integer
 |
-	a mod 2 = 0;
+	a mod 2 = 0
 ];
 
 /**
@@ -384,13 +384,13 @@ Semantic restriction "_is even" is
 |
 	if |a| = 1 then
 	[
-		a's instance is even's type;
+		a's instance is even's type
 	]
 	else
 	[
 		/* Don't strengthen. */
-		boolean;
-	];
+		boolean
+	]
 ];
 
 /**
@@ -410,15 +410,15 @@ Method "_+_" is
 |
 	lower ::= a's lower bound + b's lower bound - 1;
 	lowerInclusive ::=
-		(a's lower bound is inclusive ∧ [a's lower bound is infinite;])
-		∨ [b's lower bound is inclusive ∧ [b's lower bound is infinite;];];
+		(a's lower bound is inclusive ∧ [a's lower bound is infinite])
+		∨ [b's lower bound is inclusive ∧ [b's lower bound is infinite]];
 	upper ::= a's upper bound + b's upper bound + 1;
 	upperInclusive ::=
-		(a's upper bound is inclusive ∧ [a's upper bound is infinite;])
-		∨ [b's upper bound is inclusive ∧ [b's upper bound is infinite;];];
+		(a's upper bound is inclusive ∧ [a's upper bound is infinite])
+		∨ [b's upper bound is inclusive ∧ [b's upper bound is infinite]];
 	integer range
 		from lower (inclusive=lowerInclusive)
-		to upper (inclusive=upperInclusive);
+		to upper (inclusive=upperInclusive)
 ];
 
 /**
@@ -442,9 +442,9 @@ Method "_×_" is
 		{a's lower bound, a's upper bound},
 		{b's lower bound, b's upper bound}
 	};
-	If bounds = {{0}, {∞}} ∨ [ bounds = {{0}, {-∞}}; ] then
+	If bounds = {{0}, {∞}} ∨ [ bounds = {{0}, {-∞}} ] then
 	[
-		Reject parse, expected: cannotMultiplyMessage;
+		Reject parse, expected: cannotMultiplyMessage
 	]
 	else
 	[
@@ -459,10 +459,10 @@ Method "_×_" is
 			[
 				lower ::= positiveA's lower bound × positiveB's lower bound;
 				lowerInclusive ::= positiveA's lower bound is inclusive
-					∧ [ positiveB's lower bound is inclusive; ];
+					∧ [ positiveB's lower bound is inclusive ];
 				upper ::= positiveA's upper bound × positiveB's upper bound;
 				upperInclusive ::= positiveA's upper bound is inclusive
-					∧ [ positiveB's upper bound is inclusive; ];
+					∧ [ positiveB's upper bound is inclusive ];
 				range ::= integer range
 					from lower (inclusive=lowerInclusive)
 					to upper (inclusive=upperInclusive);
@@ -472,10 +472,10 @@ Method "_×_" is
 			[
 				lower ::= positiveA's upper bound × negativeB's lower bound;
 				lowerInclusive ::= positiveA's upper bound is inclusive
-					∧ [ negativeB's lower bound is inclusive; ];
+					∧ [ negativeB's lower bound is inclusive ];
 				upper ::= positiveA's lower bound × negativeB's upper bound;
 				upperInclusive ::= positiveA's lower bound is inclusive
-					∧ [ negativeB's upper bound is inclusive; ];
+					∧ [ negativeB's upper bound is inclusive ];
 				range ::= integer range
 					from lower (inclusive=lowerInclusive)
 					to upper (inclusive=upperInclusive);
@@ -488,10 +488,10 @@ Method "_×_" is
 			[
 				lower ::= negativeA's lower bound × positiveB's upper bound;
 				lowerInclusive ::= negativeA's lower bound is inclusive
-					∧ [ positiveB's upper bound is inclusive; ];
+					∧ [ positiveB's upper bound is inclusive ];
 				upper ::= negativeA's upper bound × positiveB's lower bound;
 				upperInclusive ::= negativeA's upper bound is inclusive
-					∧ [ positiveB's lower bound is inclusive; ];
+					∧ [ positiveB's lower bound is inclusive ];
 				range ::= integer range
 					from lower (inclusive=lowerInclusive)
 					to upper (inclusive=upperInclusive);
@@ -501,10 +501,10 @@ Method "_×_" is
 			[
 				lower ::= negativeA's upper bound × negativeB's upper bound;
 				lowerInclusive ::= negativeA's upper bound is inclusive
-					∧ [ negativeB's upper bound is inclusive; ];
+					∧ [ negativeB's upper bound is inclusive ];
 				upper ::= negativeA's lower bound × negativeB's lower bound;
 				upperInclusive ::= negativeA's lower bound is inclusive
-					∧ [ negativeB's lower bound is inclusive; ];
+					∧ [ negativeB's lower bound is inclusive ];
 				range ::= integer range
 					from lower (inclusive=lowerInclusive)
 					to upper (inclusive=upperInclusive);
@@ -514,12 +514,12 @@ Method "_×_" is
 		/* Zero is handled specially, to prevent multiplication of 0 and ±∞ by
 		 * one of the preceding clauses.
 		 */
-		If 0's type ⊆ a ∨ [ 0's type ⊆ b; ] then
+		If 0's type ⊆ a ∨ [ 0's type ⊆ b ] then
 		[
 			result := eject ↑result ∪ 0's type;
 		];
-		result;
-	];
+		result
+	]
 ];
 
 /**
@@ -534,7 +534,7 @@ Method "-_" is
 [
 	a : extended integer's type
 |
-	a × -1's type;
+	a × -1's type
 ];
 
 /**
@@ -549,7 +549,7 @@ Semantic restriction "-_" is
 [
 	a : extended integer's type
 |
-	- a;
+	- a
 ];
 
 /**
@@ -568,7 +568,7 @@ Method "_-_" is
 	a : extended integer's type,
 	b : extended integer's type
 |
-	a + (- b);
+	a + (- b)
 ];
 
 /**
@@ -593,9 +593,9 @@ Semantic restriction "_+_" is
 	};
 	If bounds = {{-∞}, {∞}} then
 	[
-		Reject parse, expected: cannotAddMessage;
+		Reject parse, expected: cannotAddMessage
 	];
-	a + b;
+	a + b
 ];
 
 /**
@@ -622,9 +622,9 @@ Semantic restriction "_-_" is
 	};
 	If bounds = {{-∞}, {∞}} then
 	[
-		Reject parse, expected: cannotSubtractMessage;
+		Reject parse, expected: cannotSubtractMessage
 	];
-	a + negated;
+	a + negated
 ];
 
 /**
@@ -643,7 +643,7 @@ Semantic restriction "_×_" is
 	a : extended integer's type,
 	b : extended integer's type
 |
-	a × b;
+	a × b
 ];
 
 /**
@@ -662,16 +662,16 @@ Method "_÷_" is
 	denominator : extended integer
 |
 	/* Produce ⊥ if the numerator range is ⊥ or the denominator is 0. */
-	if numeratorRange = ⊥ ∨ [ denominator = 0; ] then
+	if numeratorRange = ⊥ ∨ [ denominator = 0 ] then
 	[
-		⊥;
+		⊥
 	]
 	else
 	[
 		/* ±∞ divided by any finite nonzero value is 0. */
 		if denominator is infinite then
 		[
-			0's type;
+			0's type
 		]
 		else
 		[
@@ -682,22 +682,20 @@ Method "_÷_" is
 			lowerInclusive ::= numeratorRange's lower bound is inclusive;
 			numeratorMax ::= numeratorRange's upper bound ÷ denominator;
 			upperInclusive ::= numeratorRange's upper bound is inclusive;
-			result ::=
-				if denominator < 0 then
-				[
-					integer range
-						from numeratorMax (inclusive=upperInclusive)
-						to numeratorMin (inclusive=lowerInclusive);
-				]
-				else
-				[
-					integer range
-						from numeratorMin (inclusive=lowerInclusive)
-						to numeratorMax (inclusive=upperInclusive);
-				];
-			result;
-		];
-	];
+			if denominator < 0 then
+			[
+				integer range
+					from numeratorMax (inclusive=upperInclusive)
+					to numeratorMin (inclusive=lowerInclusive)
+			]
+			else
+			[
+				integer range
+					from numeratorMin (inclusive=lowerInclusive)
+					to numeratorMax (inclusive=upperInclusive)
+			]
+		]
+	]
 ];
 
 /**
@@ -719,13 +717,13 @@ Semantic restriction "_÷_" is
 	denominatorSet ::= {b's lower bound, b's upper bound};
 	If denominatorSet = {0} then
 	[
-		Reject parse, expected: cannotDivideByZeroMessage;
+		Reject parse, expected: cannotDivideByZeroMessage
 	];
 	numeratorSet ::= {a's lower bound, a's upper bound};
 	infinities ::= {{∞}, {-∞}};
-	If numeratorSet ∈ infinities ∧ [ denominatorSet ∈ infinities; ] then
+	If numeratorSet ∈ infinities ∧ [ denominatorSet ∈ infinities ] then
 	[
-		Reject parse, expected: cannotDivideTwoInfinitiesMessage;
+		Reject parse, expected: cannotDivideTwoInfinitiesMessage
 	];
 	union : extended integer's type := ⊥;
 	negativeDenominators ::= b ∩ [-∞..-1];
@@ -744,7 +742,7 @@ Semantic restriction "_÷_" is
 		union :=
 			eject ↑union ∪ (a ÷ positiveDenominators' genuine upper bound);
 	];
-	union;
+	union
 ];
 
 /**
@@ -766,28 +764,28 @@ Semantic restriction "_mod_" is
 	denominatorSet ::= {b's lower bound, b's upper bound};
 	If denominatorSet = {0} then
 	[
-		Reject parse, expected: cannotDivideByZeroMessage;
+		Reject parse, expected: cannotDivideByZeroMessage
 	];
 	numeratorSet ::= {a's lower bound, a's upper bound};
 	infinities ::= {{∞}, {-∞}};
-	If numeratorSet ∈ infinities ∧ [ denominatorSet ∈ infinities; ] then
+	If numeratorSet ∈ infinities ∧ [ denominatorSet ∈ infinities ] then
 	[
-		Reject parse, expected: cannotDivideTwoInfinitiesMessage;
+		Reject parse, expected: cannotDivideTwoInfinitiesMessage
 	];
 	if b's lower bound = b's upper bound
 		∧ [ a's lower bound is finite
 		∧ [ a's upper bound is finite
 		∧ [ a's lower bound ÷ b's lower bound
-			= a's upper bound ÷ b's lower bound; ]; ]; ]
+			= a's upper bound ÷ b's lower bound ] ] ]
 	then
 	[
 		[a's lower bound mod b's lower bound
-			.. a's upper bound mod b's lower bound];
+			.. a's upper bound mod b's lower bound]
 	]
 	else
 	[
-		[0..b's upper bound);
-	];
+		[0..b's upper bound)
+	]
 ];
 
 /* Disambiguate `_→_` and several conversion operations. */
@@ -805,7 +803,7 @@ Method "`|_`|" is
 [
 	a : number
 |
-	if a < 0 then [ -a; ] else [ a; ];
+	if a < 0 then [ -a ] else [ a ]
 ] : number;
 
 /**
@@ -820,7 +818,7 @@ Semantic restriction "`|_`|" is
 [
 	a : double's type
 |
-	a;
+	a
 ];
 
 /**
@@ -835,7 +833,7 @@ Semantic restriction "`|_`|" is
 [
 	a : float's type
 |
-	a;
+	a
 ];
 
 /**
@@ -853,12 +851,12 @@ Semantic restriction "`|_`|" is
 |
 	if |a| = 1 then
 	[
-		|a's instance|'s type;
+		|a's instance|'s type
 	]
 	else
 	[
-		([0..∞] ∩ a) ∪ ([0..∞] ∩ - a);
-	];
+		([0..∞] ∩ a) ∪ ([0..∞] ∩ - a)
+	]
 ];
 
 /**
@@ -884,9 +882,9 @@ Method "«_‡«=»?«≤»?«<»?»" is
 |
 	predicates ::=
 		<
-			[ a : number, b : number | a = b; ],
-			[ a : number, b : number | a ≤ b; ],
-			[ a : number, b : number | a < b; ]
+			[ a : number, b : number | a = b ],
+			[ a : number, b : number | a ≤ b ],
+			[ a : number, b : number | a < b ]
 		>;
 	result : boolean := true;
 	From 1 to |args| - 1 do
@@ -904,25 +902,25 @@ Method "«_‡«=»?«≤»?«<»?»" is
 			if arg[predicateIndex] then
 			[
 				predicate := predicates[predicateIndex - 1];
-				false;
+				false
 			]
 			else
 			[
-				true;
-			];
+				true
+			]
 		];
 		Assert: ¬↑predicate is unassigned ("no predicate was selected");
 		if predicate(arg[1], args[index + 1][1]) then
 		[
-			true;
+			true
 		]
 		else
 		[
 			result := false;
-			false;
-		];
+			false
+		]
 	];
-	result;
+	result
 ];
 
 Method "comparison chain semantic restriction function" is
@@ -945,17 +943,17 @@ Method "comparison chain semantic restriction function" is
 				[
 					↑optionCount++;
 				];
-				true;
+				true
 			];
 			If optionCount ≠ 1 then
 			[
 				Reject parse, expected:
-					"exactly one comparison operator between numeric arguments";
+					"exactly one comparison operator between numeric arguments"
 			];
-			true;
+			true
 		];
-		⊤;
-	];
+		⊤
+	]
 ];
 
 Semantic restriction "«_‡«=»?«≤»?«<»?»" is
@@ -984,9 +982,9 @@ Method "«_‡«=»?«≥»?«>»?»" is
 |
 	predicates ::=
 		<
-			[ a : number, b : number | a = b; ],
-			[ a : number, b : number | a ≥ b; ],
-			[ a : number, b : number | a > b; ]
+			[ a : number, b : number | a = b ],
+			[ a : number, b : number | a ≥ b ],
+			[ a : number, b : number | a > b ]
 		>;
 	result : boolean := true;
 	From 1 to |args| - 1 do
@@ -1005,25 +1003,25 @@ Method "«_‡«=»?«≥»?«>»?»" is
 			if arg[predicateIndex] then
 			[
 				predicate := predicates[predicateIndex - 1];
-				false;
+				false
 			]
 			else
 			[
-				true;
-			];
+				true
+			]
 		];
 		Assert: ¬↑predicate is unassigned ("no predicate was selected");
 		if predicate(arg[1], args[index + 1][1]) then
 		[
-			true;
+			true
 		]
 		else
 		[
 			result := false;
-			false;
-		];
+			false
+		]
 	];
-	result;
+	result
 ];
 
 Semantic restriction "«_‡«=»?«≥»?«>»?»" is

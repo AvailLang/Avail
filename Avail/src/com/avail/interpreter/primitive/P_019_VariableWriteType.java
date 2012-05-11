@@ -1,5 +1,5 @@
 /**
- * Primitive_019_VariableWriteType.java
+ * P_019_VariableWriteType.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

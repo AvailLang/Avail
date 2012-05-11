@@ -1,5 +1,5 @@
 /**
- * Primitive_068_RecordNewTypeName.java
+ * P_068_RecordNewTypeName.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

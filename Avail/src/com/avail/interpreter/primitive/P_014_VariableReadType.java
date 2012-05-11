@@ -1,5 +1,5 @@
 /**
- * Primitive_014_VariableReadType.java
+ * P_014_VariableReadType.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

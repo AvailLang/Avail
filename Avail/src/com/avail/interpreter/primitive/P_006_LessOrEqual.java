@@ -1,5 +1,5 @@
 /**
- * Primitive_006_LessOrEqual.java
+ * P_006_LessOrEqual.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

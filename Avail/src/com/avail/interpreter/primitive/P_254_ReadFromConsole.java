@@ -1,5 +1,5 @@
 /**
- * Primitive_254_ReadFromConsole.java
+ * P_254_ReadFromConsole.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

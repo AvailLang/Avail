@@ -1,5 +1,5 @@
 /**
- * Primitive_220_MethodFromName.java
+ * P_220_MethodFromName.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

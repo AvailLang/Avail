@@ -1,5 +1,5 @@
 /**
- * Primitive_072_CompiledCodeOfFunction.java
+ * P_072_CompiledCodeOfFunction.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

@@ -64,7 +64,7 @@ Semantic restriction "_'s⁇default type" is
 [
 	meta : tuple meta's type
 |
-	meta's instance's default type's type;
+	meta's instance's default type's type
 ];
 
 /**
@@ -84,7 +84,7 @@ Semantic restriction "_++_" is
 |
 	typeA ::= metaA's instance;
 	typeB ::= metaB's instance;
-	(typeA ++ typeB)'s type;
+	(typeA ++ typeB)'s type
 ];
 
 /**
@@ -99,7 +99,7 @@ Method "«_‡++»" is
 [
 	tuples : <<>, tuple…|[2..∞)>
 |
-	concatenate tuples;
+	concatenate tuples
 ] : tuple;
 
 /* Don't parse `«_‡++»` recursively. */
@@ -119,15 +119,15 @@ Semantic restriction "«_‡++»" is
 |
 	result : tuple meta := <>'s type;
 	exactSize ::= cast ||tuplesType||'s upper bound
-		into [ t : natural number | t; ];
+		into [ t : natural number | t ];
 	From 1 to exactSize do
 	[
 		index : natural number
 	|
 		result := eject ↑result ++ tuplesType[index];
-		true;
+		true
 	];
-	result;
+	result
 ];
 
 /**
@@ -146,7 +146,7 @@ Method "relevant`|_`|" is
 |
 	lower ::= ||tupleType||'s genuine lower bound max 0;
 	count ::= |tupleType's leading types| + 1;
-	cast lower min count into [ t : whole number | t; ];
+	cast lower min count into [ t : whole number | t ]
 ] : whole number;
 
 /**
@@ -183,7 +183,7 @@ Method "tuple type of_[_.._]" is
 			++ primitive description of ||aTupleType||'s lower bound
 			++ " ≤ |theTuple| ≤ "
 			++ primitive description of tupleEnd
-			++ ")";
+			++ ")"
 	];
 	If minStart - maxEnd > 1 then
 	[
@@ -192,15 +192,15 @@ Method "tuple type of_[_.._]" is
 			++ primitive description of minStart
 			++ ") not to exceed the upper bound of the slice end subscript ("
 			++ primitive description of maxEnd
-			++ ") by more than 1";
+			++ ") by more than 1"
 	];
 	tupleDefaultTypeIndex ::= cast |aTupleType's leading types| + 1
-		into [ t : natural number | t; ];
+		into [ t : natural number | t ];
 	limit ::= maxEnd min tupleEnd min tupleDefaultTypeIndex;
 	minLoopStart ::= (minStart min limit) max 1;
 	maxLoopStart ::= (maxStart min limit) max 1;
 	smearDelta ::= cast maxLoopStart - minLoopStart
-		into [ t : whole number | t; ];
+		into [ t : whole number | t ];
 	/* Build a tuple that represents the leading and default types of the
 	 * resultant tuple type. Each element is the type union of the smear of
 	 * element types within `smearDelta` of the traversal subscript.
@@ -212,31 +212,31 @@ Method "tuple type of_[_.._]" is
 	|
 		union : type := ⊥;
 		smearEnd ::= cast (i + smearDelta) min limit
-			into [ t : natural number | t; ];
+			into [ t : natural number | t ];
 		From i to smearEnd do
 		[
 			j : natural number
 		|
 			union := eject ↑union ∪ aTupleType[j];
-			true;
+			true
 		];
 		types := cast concatenate <types, <union>>
-			into [ t : tuple of any meta | t; ];
-		true;
+			into [ t : tuple of any meta | t ];
+		true
 	];
 	/* Unless `types` is empty, the last element is the default type. */
 	defaultType ::= cast |types|
-		into [ n : natural number | types[n]; ]
-		else [ ⊥; ];
+		into [ n : natural number | types[n] ]
+		else [ ⊥ ];
 	resultMinEnd ::= minEnd min tupleEnd;
 	resultMaxEnd ::= maxEnd min tupleEnd;
 	resultStart ::= cast (resultMinEnd - maxStart + 1) max 0
-		into [ t : whole number | t; ];
+		into [ t : whole number | t ];
 	resultEnd ::= cast ((resultMaxEnd - minStart + 1) max 0) + 1
-		into [ t : [1..∞] | t; ];
+		into [ t : [1..∞] | t ];
 	resultSizes ::= [resultStart..resultEnd);
 	result ::= <types, defaultType…|resultSizes>;
-	result;
+	result
 ] : tuple meta;
 
 /**
@@ -256,7 +256,7 @@ Semantic restriction "_[_.._]" is
 	sliceStart : natural number's type,
 	sliceEnd : whole number's type
 |
-	tuple type of aTupleType[sliceStart..sliceEnd];
+	tuple type of aTupleType[sliceStart..sliceEnd]
 ];
 
 /**
@@ -274,7 +274,7 @@ Method "_[_..]" is
 	aTupleType : tuple meta,
 	sliceStart : natural number
 |
-	aTupleType[sliceStart..relevant |aTupleType|];
+	aTupleType[sliceStart..relevant |aTupleType|]
 ] : tuple of any meta;
 
 /**
@@ -292,7 +292,7 @@ Method "_[_..]" is
 	aTuple : tuple,
 	sliceStart : natural number
 |
-	aTuple[sliceStart..|aTuple|];
+	aTuple[sliceStart..|aTuple|]
 ] : tuple;
 
 /**
@@ -310,7 +310,7 @@ Semantic restriction "_[_..]" is
 	aTupleType : tuple meta,
 	sliceStart : natural number's type
 |
-	tuple type of aTupleType[sliceStart..||aTupleType||];
+	tuple type of aTupleType[sliceStart..||aTupleType||]
 ];
 
 /**
@@ -328,7 +328,7 @@ Method "_[.._]" is
 	aTupleType : tuple meta,
 	sliceEnd : whole number
 |
-	aTupleType[1..sliceEnd];
+	aTupleType[1..sliceEnd]
 ] : tuple;
 
 /**
@@ -346,7 +346,7 @@ Method "_[.._]" is
 	aTuple : tuple,
 	sliceEnd : whole number
 |
-	aTuple[1..sliceEnd];
+	aTuple[1..sliceEnd]
 ] : tuple;
 
 /**
@@ -364,7 +364,7 @@ Semantic restriction "_[.._]" is
 	aTupleType : tuple meta,
 	sliceEnd : whole number's type
 |
-	tuple type of aTupleType[1's type..sliceEnd];
+	tuple type of aTupleType[1's type..sliceEnd]
 ];
 
 /**
@@ -384,11 +384,11 @@ Semantic restriction "concatenate_" is
 		if sizes' upper bound is infinite then
 		[
 			sizes' lower bound max (cast |tupleType's leading types| + 1
-				into [ t : natural number | t; ]);
+				into [ t : natural number | t ])
 		]
 		else
 		[
-			sizes' upper bound;
+			sizes' upper bound
 		];
 	result : tuple meta := <>'s type;
 	From 1 to limit do
@@ -396,18 +396,18 @@ Semantic restriction "concatenate_" is
 		index : natural number
 	|
 		result := eject ↑result ++ tupleType[index];
-		true;
+		true
 	];
 	If sizes' upper bound is infinite then
 	[
 		slice ::= result[1 ..
-			cast ||result||'s upper bound into [ t : whole number | t; ]];
+			cast ||result||'s upper bound into [ t : whole number | t ]];
 		default ::= tupleType's default type;
 		union ::= ∪ default[1 ..
-			cast |default's leading types| + 1 into [ t : whole number | t; ]];
+			cast |default's leading types| + 1 into [ t : whole number | t ]];
 		result := <slice, union… | [||result||'s lower bound..∞)>;
 	];
-	result;
+	result
 ];
 
 /* Disambiguate `_→_` and `_→tuple`. */

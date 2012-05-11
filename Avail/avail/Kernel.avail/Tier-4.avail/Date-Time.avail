@@ -115,7 +115,7 @@ utc ::= time zone new with
 	<minuteDifference,0>,
 	<timeZoneName,"UTC">>;
 	
-Method "UTC" is [utc;];
+Method "UTC" is [utc];
 
 /* Create "Eastern Standard Time" time zone */
 easternStandardTime ::= time zone new with
@@ -123,7 +123,7 @@ easternStandardTime ::= time zone new with
 	<minuteDifference,0>,
 	<timeZoneName,"EST">>;
 	
-Method "EST" is [easternStandardTime;];
+Method "EST" is [easternStandardTime];
 
 /* Create "Eastern Daylight Time" time zone */
 easternDaylightTime ::= time zone new with
@@ -131,7 +131,7 @@ easternDaylightTime ::= time zone new with
 	<minuteDifference,0>,
 	<timeZoneName,"EDT">>;
 	
-Method "EDT" is [easternDaylightTime;];
+Method "EDT" is [easternDaylightTime];
 
 /* Create "Central Standard Time" time zone */
 centralStandardTime ::= time zone new with
@@ -139,7 +139,7 @@ centralStandardTime ::= time zone new with
 	<minuteDifference,0>,
 	<timeZoneName,"CST">>;
 	
-Method "CST" is [centralStandardTime;];
+Method "CST" is [centralStandardTime];
 
 /* Create "Central Daylight Time" time zone */
 centralDaylightTime ::= time zone new with
@@ -147,7 +147,7 @@ centralDaylightTime ::= time zone new with
 	<minuteDifference,0>,
 	<timeZoneName,"CDT">>;
 	
-Method "CDT" is [centralDaylightTime;];
+Method "CDT" is [centralDaylightTime];
 
 /* Create "Mountain Standard Time" time zone */
 mountainStandardTime ::= time zone new with
@@ -155,7 +155,7 @@ mountainStandardTime ::= time zone new with
 	<minuteDifference,0>,
 	<timeZoneName,"MST">>;
 	
-Method "MST" is [mountainStandardTime;];
+Method "MST" is [mountainStandardTime];
 
 /* Create "Mountain Daylight Time" time zone */
 mountainDaylightTime ::= time zone new with
@@ -163,7 +163,7 @@ mountainDaylightTime ::= time zone new with
 	<minuteDifference,0>,
 	<timeZoneName,"MDT">>;
 	
-Method "MDT" is [mountainDaylightTime;];
+Method "MDT" is [mountainDaylightTime];
 
 /* Create "Pacific Standard Time" time zone */
 pacificStandardTime ::= time zone new with
@@ -171,7 +171,7 @@ pacificStandardTime ::= time zone new with
 	<minuteDifference,0>,
 	<timeZoneName,"PST">>;
 	
-Method "PST" is [pacificStandardTime;];
+Method "PST" is [pacificStandardTime];
 
 /* Create "Pacific Daylight Time" time zone */
 pacificDaylightTime ::= time zone new with
@@ -179,7 +179,7 @@ pacificDaylightTime ::= time zone new with
 	<minuteDifference,0>,
 	<timeZoneName,"PDT">>;
 	
-Method "PDT" is [pacificDaylightTime;];
+Method "PDT" is [pacificDaylightTime];
 
 
 /** Time Object **/
@@ -203,7 +203,7 @@ Rule
 	t->hour < 24 & t->hour >= 0 & 
 	t->minute < 60 & t->minute >= 0 & 
 	t->second < 60 & t->second >= 0 &
-	t->millisecond < 1000 & t->millisecond >= 0 ;
+	t->millisecond < 1000 & t->millisecond >= 0
 ];
 
 /* Create a time object h:min:sec:milliseconds «time zone» */
@@ -222,7 +222,7 @@ Method "_:_:_:_«_»" is
 		<minute,min>,
 		<second,sec>,
 		<millisecond,mil>,
-		<timeZoneName,timezn>>;
+		<timeZoneName,timezn>>
 ]:time;
 
 /* Create a time object h:min:sec «time zone»
@@ -238,7 +238,7 @@ Method "_:_:_«_»" is
 	timezn : time zone;
 	if ||tz|| = 0 then [timezn := UTC;] else [timezn := tz[1];];
 	
-	hr:min:sec:0 timezn;
+	hr:min:sec:0 timezn
 ]:time;
 
 /* Create a time object h:min «time zone» 
@@ -254,7 +254,7 @@ Method "_:_«_»" is
 	timezn : time zone;
 	if ||tz|| = 0 then [timezn := UTC;] else [timezn := tz[1];];
 	
-	hr:min:0:0 timezn;
+	hr:min:0:0 timezn
 ]:time;
 
 /* Create time string of structure hh:mm:ss time zone */
@@ -275,7 +275,7 @@ Method "_as string" is
 	if t->second < 10 then [sec := "0" then t->second as basic string;]
 		else [sec := t->second as basic string;];
 		
-	hr then ":" then min then ":" then sec then " " then t->timeZoneName;
+	hr then ":" then min then ":" then sec then " " then t->timeZoneName
 ]:string;
 
 /* Provide a string time of the 12 hour meridiem clock */
@@ -305,7 +305,7 @@ Method "meridiem form of_" is
 	if t->minute < 10 then [min := "0" then t->minute as basic string;]
 		else [min := t->minute as basic string;];
 	
-	hr then ":" then min then " " then ampm;
+	hr then ":" then min then " " then ampm
 ]:string;
 
 /* Returns the current time for optional given time zone (default - UTC) */
@@ -355,7 +355,7 @@ Method "the current time«in_»" is
 			   		<minute,minuteNowUTC>,
 					<second,secondNow>,
 					<millisecond,millisecondNow>,
-					<timeZoneName,tzName>>;
+					<timeZoneName,tzName>>
 	]else
 	[
 		hourNow : integer;
@@ -393,8 +393,8 @@ Method "the current time«in_»" is
 			   		<minute,minuteNow>,
 					<second,secondNow>,
 					<millisecond,millisecondNow>,
-					<timeZoneName,tzName>>;
-	];
+					<timeZoneName,tzName>>
+	]
 		
 ]:time;
 
@@ -417,11 +417,11 @@ Rule
 |
 	d->month < 13 & d->month > 0 & 
 	d->day < 32 & d->day > 0 &
-	d->year < ∞ & d->year > -∞;
+	d->year < ∞ & d->year > -∞
 ];
 
 /* Create a date type */
-Method "a date" is [date;];
+Method "a date" is [date];
 
 /* Creates a string of a date in the form YYYY-MM-DD */
 Method "_as string" is
@@ -437,7 +437,7 @@ Method "_as string" is
 	if dt->day < 10 then [dy := "0" then dt->day as basic string;]
 		else [dy := dt->day as basic string;];
 	
-	dt->year as basic string then "-" then mth then "-" then dy;
+	dt->year as basic string then "-" then mth then "-" then dy
 	
 ]:string;
 
@@ -465,7 +465,7 @@ Rule
 	ts->second < 60 & ts->second >= 0 &
 	ts->month < 13 & ts->month > 0 & 
 	ts->day < 32 & ts->day > 0 &
-	ts->year < ∞ & ts->year > -∞;
+	ts->year < ∞ & ts->year > -∞
 ];
 
 /* Create a timestamp */
@@ -491,7 +491,7 @@ Method "year_month_day_hour_minute_second_«time zone_»" is
 	<minute,min>,
 	<second,sec>,
 	<millisecond,0>,
-	<timeZoneName,timezn>>;
+	<timeZoneName,timezn>>
 	
 ]:timestamp;
 
@@ -522,7 +522,7 @@ Method "_as string" is
 		else [dy := ts->day as basic string;];
 		
 	(ts->year as basic string then "-" then mth then "-") then (dy then "T" then
-		hr then ":" then min then ":" then sec then " " then ts->timeZoneName);
+		hr then ":" then min then ":" then sec then " " then ts->timeZoneName)
 
 ]:string;
 
@@ -537,14 +537,14 @@ unixEpoch ::= timestamp new with
 	<millisecond,0>,
 	<timeZoneName,"UTC">>;
 	
-Method "Unix Epoch" is [unixEpoch;];
+Method "Unix Epoch" is [unixEpoch];
 
 /* Accepts a date and returns an integer of the form YYYYMMDD */
 Method "_size" is
 [
 	dt : date
 |
-	dt->year * 10000 + dt->month * 100 + dt->day;
+	dt->year * 10000 + dt->month * 100 + dt->day
 	
 ]:integer;
 
@@ -559,19 +559,19 @@ Method "_is a leap year" is
 		[
 			if (year mod 400) = 0 then
 			[
-				true;
+				true
 			] else
 			[
-				false;
-			];
+				false
+			]
 		] else
 		[
-			true;
-		];
+			true
+		]
 	] else
 	[
-		false;
-	];
+		false
+	]
 ]:boolean;
 
 /* Checks to see if a valid date */
@@ -586,7 +586,7 @@ Method "valid date month_day_year_" is
 
 	if 0 >= mth | mth > 12 then 
 	[
-		Invalid Month with mth;
+		Invalid Month with mth
 	]
 	else 
 	[
@@ -594,67 +594,67 @@ Method "valid date month_day_year_" is
 		case 1 do
 		[
 			if 0 < dy < 32 then [outcome := true;] else 
-				[Invalid Day with dy;];
+				[Invalid Day with dy];
 		]:
 		case 2 do
 		[
 			ld : integer := 0;
 			if yr is a leap year then [ld := 1;];
 			if 0 < dy < 29 + ld then [outcome := true;] else 
-				[Invalid Day with dy;];
+				[Invalid Day with dy];
 		]:
 		case 3 do
 		[
 			if 0 < dy < 32 then [outcome := true;] else 
-				[Invalid Day with dy;];
+				[Invalid Day with dy];
 		]:
 		case 4 do
 		[
 			if 0 < dy < 31 then [outcome := true;] else 
-				[Invalid Day with dy;];
+				[Invalid Day with dy];
 		]:
 		case 5 do
 		[
 			if 0 < dy < 32 then [outcome := true;] else 
-				[Invalid Day with dy;];
+				[Invalid Day with dy];
 		]:
 		case 6 do
 		[
 			if 0 < dy < 31 then [outcome := true;] else 
-				[Invalid Day with dy;];
+				[Invalid Day with dy];
 		]:
 		case 7 do
 		[
 			if 0 < dy < 32 then [outcome := true;] else 
-				[Invalid Day with dy;];
+				[Invalid Day with dy];
 		]:
 		case 8 do
 		[
 			if 0 < dy < 32 then [outcome := true;] else 
-				[Invalid Day with dy;];
+				[Invalid Day with dy];
 		]:
 		case 9 do
 		[
 			if 0 < dy < 31 then [outcome := true;] else 
-				[Invalid Day with dy;];
+				[Invalid Day with dy];
 		]:
 		case 10 do
 		[
 			if 0 < dy < 32 then [outcome := true;] else 
-				[Invalid Day with dy;];
+				[Invalid Day with dy];
 		]:
 		case 11 do
 		[
 			if 0 < dy < 31 then [outcome := true;] else 
-				[Invalid Day with dy;];
+				[Invalid Day with dy];
 		]:
 		default
 		[
 			if 0 < dy < 32 then [outcome := true;] else 
-				[Invalid Day with dy;];
+				[Invalid Day with dy];
 		];
 	];
-	outcome;
+	outcome
 ]:boolean;
 
 /* Create a date */
@@ -671,12 +671,12 @@ Method "year_month_day_«time zone_»" is
 	[
 		e : Invalid Month
 	|
-		Crash "Received an invalid month while attempting to construct a date";
+		Crash "Received an invalid month while attempting to construct a date"
 	],
 	[
 		e : Invalid Day
 	|
-		Crash "Received an invalid day while attempting to construct a date";
+		Crash "Received an invalid day while attempting to construct a date"
 	] in
 	[
 		boo : boolean := valid date month mth day dy year yr;
@@ -687,8 +687,8 @@ Method "year_month_day_«time zone_»" is
 		date new with <<month,mth>,
         <day,dy>,
         <year,yr>,
-        <timeZoneName,timezn>>;
-	];
+        <timeZoneName,timezn>>
+	]
 ]:any;
 
 Restriction "year_month_day_«time zone_»" is
@@ -698,7 +698,7 @@ Restriction "year_month_day_«time zone_»" is
 	dyType : integer type,
 	tzType : (<time zone…|0..1>) type
 |
-	date;
+	date
 ];
 /* Given a number of days, calculate the month and day in the year */
 Method "Date_days into the year_" is
@@ -788,7 +788,7 @@ Method "Date_days into the year_" is
      date new with <<month,monthNow>,
         <day,daysNow>,
         <year,yearInput>,
-        <timeZoneName,"UTC">>;
+        <timeZoneName,"UTC">>
 
 ]:date;
 
@@ -802,66 +802,66 @@ Method "Date_transformed into number of days into the year" is
 	
 	days : integer :=
 		 /* In January */
-		 if dateInput->month = 1 then 
+		if dateInput->month = 1 then 
 		 [
-		     dateInput->day;
+		     dateInput->day
 		 ]
 		 /* In February */
-		 else if dateInput->month = 2 then 
+		else if dateInput->month = 2 then 
 		 [
-		     dateInput->day + 30;
+		     dateInput->day + 30
 		 ]
 		 /* In March */
-		 else if dateInput->month = 3 then 
+		else if dateInput->month = 3 then 
 		 [
-		     dateInput->day + (58 + leapShift);
+		     dateInput->day + (58 + leapShift)
 		 ] 
 		 /* In April */
-		 else if dateInput->month = 4 then
+		else if dateInput->month = 4 then
 		 [
-		     dateInput->day + (89 + leapShift);
+		     dateInput->day + (89 + leapShift)
 		 ] 
 		 /* In May */
-		 else if dateInput->month = 5 then
+		else if dateInput->month = 5 then
 		 [
-		     dateInput->day + (119 + leapShift);
+		     dateInput->day + (119 + leapShift)
 		 ]
 		 /* In June */
-		 else if dateInput->month = 6 then
+		else if dateInput->month = 6 then
 		 [
-		     dateInput->day + (150 + leapShift);
+		     dateInput->day + (150 + leapShift)
 		 ]
 		 /* In July */
-		 else if dateInput->month = 7 then
+		else if dateInput->month = 7 then
 		 [
-		     dateInput->day + (180 + leapShift);
+		     dateInput->day + (180 + leapShift)
 		 ]
 		 /* In August */
 		else if dateInput->month = 8 then
 		 [
-		     dateInput->day + (211 + leapShift);
+		     dateInput->day + (211 + leapShift)
 		 ]
 		 /* In September */
-		 else if dateInput->month = 9 then
+		else if dateInput->month = 9 then
 		 [
-		     dateInput->day + (242 + leapShift);
+		     dateInput->day + (242 + leapShift)
 		 ]
 		 /* In October */
 		else if dateInput->month = 10 then
 		 [
-		     dateInput->day + (272 + leapShift);
+		     dateInput->day + (272 + leapShift)
 		 ]
 		 /* In November */
 		else if dateInput->month = 11 then
 		 [
-		     dateInput->day + (303 + leapShift);
+		     dateInput->day + (303 + leapShift)
 		 ]
 		  /* In December */
-		 else /* if dateInput->month = 12 */
+		else /* if dateInput->month = 12 */
 		 [
-		     dateInput->day + (333 + leapShift);
+		     dateInput->day + (333 + leapShift)
 		 ];
-	days;
+	days
 ]:integer;
 
 /* Method that returns the current date for optional given time zone 
@@ -871,14 +871,14 @@ Method "today's date«in_»" is
 [
     tz : <time zone…|0..1>
 |
-    /* This method was written on 12/25/2011 ~12:22 am central.  There are 
+    /* This method was written on 12/25/2011 ~12:22 am central.
      * It is known that there are 31,622,400,400 milliseconds in a leap year.  
-     * There has been 10 leap years since 1970.  That is 316,224,000,000
+     * There have been 10 leap years since 1970.  That is 316,224,000,000
      * milliseconds.  That can be subtracted from the current milliseconds.
      * There are 31,536,000,000 milliseconds in a regular year and
-     * In a 4 year cycle (including the leap year),
-     * there is 126,230,400,000 milliseconds.  There has been 10
-     * such 4 year cycles since the Java base date of 1/1/1970.  There has been
+     * in a 4 year cycle (including the leap year),
+     * there are 126,230,400,000 milliseconds.  There have been 10
+     * such 4 year cycles since the Java base date of 1/1/1970.  There have been
      * 29 normal years and 10 leap years in years: [1970,2008].  That is a 
      * total of 1,230,768,000,000 milliseconds.  
      */
@@ -927,7 +927,7 @@ Method "today's date«in_»" is
 		date new with <<month,currentMonthAndDay->month>,
         	<day,currentMonthAndDay->day>,
         	<year,currentMonthAndDay->year>,
-        	<timeZoneName,tzTimeZone>>;
+        	<timeZoneName,tzTimeZone>>
      ] else      
 	 [
         /* Years since last leap year */
@@ -945,8 +945,8 @@ Method "today's date«in_»" is
 		date new with <<month,currentMonthAndDay->month>,
         	<day,currentMonthAndDay->day>,
         	<year,currentMonthAndDay->year>,
-        	<timeZoneName,tzTimeZone>>;
-	];
+        	<timeZoneName,tzTimeZone>>
+	]
 ]:date;
 
 /* Method that returns the current date and time for optional given time zone 
@@ -980,7 +980,7 @@ Method "current date and time«in_»" is
 		<minute,currentTime->minute>,
 		<second,currentTime->second>,
 		<millisecond,currentTime->millisecond>,
-		<timeZoneName,timeZoneString>>;
+		<timeZoneName,timeZoneString>>
 ]:timestamp;
 
 /* Calculate the number of days that have occurred since the Unix Epoch.
@@ -1040,7 +1040,7 @@ Method "days since unix epoch from date_" is
 	 	];
 	 ];
 	 
- 	daysSinceUnixEpoch;
+ 	daysSinceUnixEpoch
 ]:integer;
 
 /* Number of leap years to occur between two years inclusive */
@@ -1072,7 +1072,7 @@ Method "number of leap years between_and_" is
 		];
 	];
 	
-	numOfLeapYears;
+	numOfLeapYears
 
 	
 ]: integer;
@@ -1092,7 +1092,7 @@ Method "Subtract_from_«in_»" is
 	/* Confirm date order is correct */
 	if subtractingDate size > baseDate size then
 	[
-		Crash "The subtracting date must be lesser than the base date";
+		Crash "The subtracting date must be lesser than the base date"
 	];
 	
 	/* Check to see which MMDD is larger */
@@ -1117,7 +1117,7 @@ Method "Subtract_from_«in_»" is
 			case "days" do
 			[		 
 				days since unix epoch from date baseDate -
-					days since unix epoch from date subtractingDate;
+					days since unix epoch from date subtractingDate
 			]:
 			case "months" do
 			[
@@ -1126,25 +1126,25 @@ Method "Subtract_from_«in_»" is
 						baseDDgreaterSubtractingDD do 
 					[ 
 						(baseDate->year - subtractingDate->year) * 12 + 
-						  baseDate->month - subtractingDate->month;
+						  baseDate->month - subtractingDate->month
 					]: 
 					case not baseMDgreaterSubtractingMD & 
 						baseDDgreaterSubtractingDD do
 					[
 						(baseDate->year - subtractingDate->year - 1) * 12 +
-						  12 + baseDate->month - subtractingDate->month;
+						  12 + baseDate->month - subtractingDate->month
 					]:
 					case baseMDgreaterSubtractingMD & 
 						not baseDDgreaterSubtractingDD do
 					[
 						(baseDate->year - subtractingDate->year) * 12 +
-						  ((daysIntoBaseYear - daysIntoSubtractYear) / 30);
+						  ((daysIntoBaseYear - daysIntoSubtractYear) / 30)
 					]:
 					default
 					[
 						(baseDate->year - subtractingDate->year - 1) * 12 +
-						  ((365 + daysIntoBaseYear - daysIntoSubtractYear) / 30);
-					];
+						  ((365 + daysIntoBaseYear - daysIntoSubtractYear) / 30)
+					]
 			]:
 			default
 			[
@@ -1153,18 +1153,18 @@ Method "Subtract_from_«in_»" is
 				[
 					yearShift := 1;
 				];
-				baseDate->year - subtractingDate->year - yearShift;
-			];
+				baseDate->year - subtractingDate->year - yearShift
+			]
 	] else
 	[	
 		if  baseMDgreaterSubtractingMD then 
 		[
-			baseDate->year - subtractingDate->year;
+			baseDate->year - subtractingDate->year
 		] else
 		[
-			baseDate->year - subtractingDate->year - 1;
-		];
-	];	
+			baseDate->year - subtractingDate->year - 1
+		]
+	]
 ]:integer;
 
 /* Convert a string to a date.  Requires form YYYY-MM-DD */
@@ -1174,12 +1174,12 @@ Method "convert_of form YYYY-MM-DD to a date" is
 |
 	if ||dtString|| not = 10  then
 	[  
-		Raise Invalid Date Format with dtString;
+		Raise Invalid Date Format with dtString
 	];
 	
 	if dtString[5] not = $"-" | dtString[5] not = $"-" then
 	[  
-		Raise Invalid Date Format with dtString;
+		Raise Invalid Date Format with dtString
 	];
 	
 	yr : integer;
@@ -1190,7 +1190,7 @@ Method "convert_of form YYYY-MM-DD to a date" is
 	[
 		e : Invalid Numeral
 	|
-		Raise Invalid Date Format with dtString;
+		Raise Invalid Date Format with dtString
 	] in
 	[
 		yr := convert dtString[1..4] to an integer;
@@ -1198,15 +1198,15 @@ Method "convert_of form YYYY-MM-DD to a date" is
 		dy := convert dtString[9..10] to an integer;
 		
 		if not valid date month mth day dy year yr then 
-		[Raise Invalid Date Format with dtString;];
+		[Raise Invalid Date Format with dtString];
 		
-		year yr month mth day dy;
-	]; 
+		year yr month mth day dy
+	]
 ]:any;
 
 Restriction "convert_of form YYYY-MM-DD to a date" is
 [
 	dtStringType : string type
 |
-	date;
+	date
 ];

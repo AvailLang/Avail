@@ -76,7 +76,7 @@ Method "[«_‡,»]→_" is
 	argTypes : tuple of any meta,
 	returnType : type
 |
-	function accepting argTypes and returning returnType;
+	function accepting argTypes and returning returnType
 ] : function meta;
 
 /* Make it easier to specify argument types in semantic restrictions. */
@@ -121,19 +121,19 @@ Semantic restriction "<_,_`…|_>" is
 						++ " in this case.");
 				if leadingTupleLeadingAndDefaultTypes[index] = type then
 				[
-					eject ↑typesTypesInstanceTuple ++ <type>; 
+					eject ↑typesTypesInstanceTuple ++ <type>
 				]
 				else
 				[
-					eject ↑typesTypesInstanceTuple;
-				];
+					eject ↑typesTypesInstanceTuple
+				]
 			]
 			else
 			[
 				eject ↑typesTypesInstanceTuple ++ 
-					<leadingTupleLeadingAndDefaultTypes[index]'s instance>;
+					<leadingTupleLeadingAndDefaultTypes[index]'s instance>
 			];
-		true;
+		true
 	];
 
 	finalDefaultType ::=
@@ -144,21 +144,21 @@ Semantic restriction "<_,_`…|_>" is
 					++ primitive description of defaultTypeType 
 					++ " and has size ≠ 1, however only type is acceptable"
 					++ " in this case.");
-			type; 
+			type
 		]
 		else
 		[
-			defaultTypeType's instance;
+			defaultTypeType's instance
 		];
 
 	cardinalityTypeTypeInstance :: = cardinalityTypeType's instance;
 	bound ::= cast cardinalityTypeTypeInstance's upper bound + 
-		1 into [ t : [0..∞] | t; ];
+		1 into [ t : [0..∞] | t ];
 	lower ::= cardinalityTypeTypeInstance's lower bound;
 	allTypesToUse ::= cast typesTypesInstanceTuple into 
-		[t: <<>,any's type…|[0..∞)> | t;];
+		[t: <<>,any's type…|[0..∞)> | t];
 
-	<allTypesToUse,finalDefaultType…|[lower..bound)>'s type;
+	<allTypesToUse,finalDefaultType…|[lower..bound)>'s type
 ];
 
 /**
@@ -178,11 +178,11 @@ Method "<«_‡,»`…`|_.._>" is
 	maximumSize : [0..∞]
 |
 	typesSize ::= |leadingAndDefaultTypes|;
-	lastLeadingTypeIndex ::= cast typesSize - 1 into [ t : whole number | t; ];
+	lastLeadingTypeIndex ::= cast typesSize - 1 into [ t : whole number | t ];
 	leadingTypes ::= leadingAndDefaultTypes[..lastLeadingTypeIndex];
 	defaultType ::= leadingAndDefaultTypes[typesSize];
-	bound ::= cast maximumSize + 1 into [ t : [0..∞] | t; ];
-	<leadingTypes, defaultType…|[minimumSize..bound)>;
+	bound ::= cast maximumSize + 1 into [ t : [0..∞] | t ];
+	<leadingTypes, defaultType…|[minimumSize..bound)>
 ] : tuple meta;
 
 /**
@@ -220,14 +220,14 @@ Semantic restriction "<«_‡,»`…`|_.._>" is
 						++ primitive description of leadingTypesTypes[index]
 						++ ", however only type is acceptable"
 						++ " in this case.");
-				eject ↑typesTypesInstanceTuple ++ <type>; 
+				eject ↑typesTypesInstanceTuple ++ <type>
 			]
 			else
 			[
 				eject ↑typesTypesInstanceTuple ++ 
-					<leadingTypesTypes[index]'s instance>;
+					<leadingTypesTypes[index]'s instance>
 			];
-		true;
+		true
 	];
 
 	defaultTypeType ::= leadingAndDefaultTypesTypes' default type;
@@ -239,19 +239,19 @@ Semantic restriction "<«_‡,»`…`|_.._>" is
 					++ primitive description of defaultTypeType
 					++ " and has size ≠ 1, however only type is acceptable"
 					++ " in this case.");
-			type; 
+			type
 		]
 		else
 		[
-			defaultTypeType's instance;
+			defaultTypeType's instance
 		];
 
-	bound ::= cast maximumSizeType's upper bound + 1 into [ t : [0..∞] | t; ];
+	bound ::= cast maximumSizeType's upper bound + 1 into [ t : [0..∞] | t ];
 	lower ::= minimumSizeType's lower bound;
 	allTypesToUse ::= cast typesTypesInstanceTuple into 
-		[t: <any's type…|0..∞> | t;];
+		[t: <any's type…|0..∞> | t];
 
-	<allTypesToUse,defaultTypeTypeInstance…|[lower..bound)>'s type;
+	<allTypesToUse,defaultTypeTypeInstance…|[lower..bound)>'s type
 ];
 
 /**
@@ -269,10 +269,10 @@ Method "<«_‡,»`…`|_..>" is
 	minimumSize : whole number
 |
 	typesSize ::= |leadingAndDefaultTypes|;
-	lastLeadingTypeIndex ::= cast typesSize - 1 into [ t : whole number | t; ];
+	lastLeadingTypeIndex ::= cast typesSize - 1 into [ t : whole number | t ];
 	leadingTypes ::= leadingAndDefaultTypes[..lastLeadingTypeIndex];
 	defaultType ::= leadingAndDefaultTypes[typesSize];
-	<leadingTypes, defaultType…|[minimumSize..∞)>;
+	<leadingTypes, defaultType…|[minimumSize..∞)>
 ] : tuple meta;
 
 /**
@@ -307,14 +307,14 @@ Semantic restriction "<«_‡,»`…`|_..>" is
 						++ " has size ≠ 1 and is "
 						++ primitive description of leadingTypesTypes[index]
 						++ ", however only type is acceptable in this case.");
-				eject ↑typesTypesInstanceTuple ++ <type>; 
+				eject ↑typesTypesInstanceTuple ++ <type>
 			]
 			else
 			[
 				eject ↑typesTypesInstanceTuple ++ 
-					<leadingTypesTypes[index]'s instance>;
+					<leadingTypesTypes[index]'s instance>
 			];
-		true;
+		true
 	];
 
 	defaultTypeType ::= leadingAndDefaultTypesTypes' default type;
@@ -326,18 +326,18 @@ Semantic restriction "<«_‡,»`…`|_..>" is
 					++ primitive description of defaultTypeType
 					++ " and has size ≠ 1, however only type is acceptable "
 					++ "in this case.");
-			type; 
+			type
 		]
 		else
 		[
-			defaultTypeType's instance;
+			defaultTypeType's instance
 		];
 
 	lower ::= minimumSizeType's lower bound;
 	allTypesToUse ::= cast typesTypesInstanceTuple into 
-		[t: <any's type…|0..∞> | t;];
+		[t: <any's type…|0..∞> | t];
 
-	<allTypesToUse,defaultTypeTypeInstance…|[lower..∞)>'s type;
+	<allTypesToUse,defaultTypeTypeInstance…|[lower..∞)>'s type
 ];
 
 /**
@@ -356,11 +356,11 @@ Method "<«_‡,»`…`|.._>" is
 	maximumSize : [0..∞]
 |
 	typesSize ::= |leadingAndDefaultTypes|;
-	lastLeadingTypeIndex ::= cast typesSize - 1 into [ t : whole number | t; ];
+	lastLeadingTypeIndex ::= cast typesSize - 1 into [ t : whole number | t ];
 	leadingTypes ::= leadingAndDefaultTypes[..lastLeadingTypeIndex];
 	defaultType ::= leadingAndDefaultTypes[typesSize];
-	bound ::= cast maximumSize + 1 into [ t : [0..∞] | t; ];
-	<leadingTypes, defaultType…|[0..bound)>;
+	bound ::= cast maximumSize + 1 into [ t : [0..∞] | t ];
+	<leadingTypes, defaultType…|[0..bound)>
 ] : tuple meta;
 
 /**
@@ -395,14 +395,14 @@ Semantic restriction "<«_‡,»`…`|.._>" is
 						++ " has size ≠ 1 and is "
 						++ primitive description of leadingTypesTypes[index]
 						++ ", however only type is acceptable in this case.");
-				eject ↑typesTypesInstanceTuple ++ <type>; 
+				eject ↑typesTypesInstanceTuple ++ <type>
 			]
 			else
 			[
 				eject ↑typesTypesInstanceTuple ++ 
-					<leadingTypesTypes[index]'s instance>;
+					<leadingTypesTypes[index]'s instance>
 			];
-		true;
+		true
 	];
 
 	defaultTypeType ::= leadingAndDefaultTypesTypes' default type;
@@ -414,18 +414,18 @@ Semantic restriction "<«_‡,»`…`|.._>" is
 					++ primitive description of defaultTypeType
 					++ " and has size ≠ 1, however only type is acceptable"
 					++ " in this case.");
-			type; 
+			type
 		]
 		else
 		[
-			defaultTypeType's instance;
+			defaultTypeType's instance
 		];
 
-	bound ::= cast maximumSizeType's upper bound + 1 into [ t : [0..∞] | t; ];
+	bound ::= cast maximumSizeType's upper bound + 1 into [ t : [0..∞] | t ];
 	allTypesToUse ::= cast typesTypesInstanceTuple into 
-		[t: <any's type…|0..∞> | t;];
+		[t: <any's type…|0..∞> | t];
 
-	<allTypesToUse,defaultTypeTypeInstance…|[0..bound)>'s type;
+	<allTypesToUse,defaultTypeTypeInstance…|[0..bound)>'s type
 ];
 
 /**
@@ -443,11 +443,11 @@ Method "<«_‡,»`…`|_>" is
 	exactSize : whole number
 |
 	typesSize ::= |leadingAndDefaultTypes|;
-	lastLeadingTypeIndex ::= cast typesSize - 1 into [ t : whole number | t; ];
+	lastLeadingTypeIndex ::= cast typesSize - 1 into [ t : whole number | t ];
 	leadingTypes ::= leadingAndDefaultTypes[..lastLeadingTypeIndex];
 	defaultType ::= leadingAndDefaultTypes[typesSize];
-	bound ::= cast exactSize + 1 into [ t : [0..∞] | t; ];
-	<leadingTypes, defaultType…|[exactSize..bound)>;
+	bound ::= cast exactSize + 1 into [ t : [0..∞] | t ];
+	<leadingTypes, defaultType…|[exactSize..bound)>
 ] : tuple meta;
 
 /**
@@ -482,14 +482,14 @@ Semantic restriction "<«_‡,»`…`|_>" is
 						++ primitive description of leadingTypesTypes[index]
 						++ ", however only type is acceptable "
 						++ "in this case.");
-				eject ↑typesTypesInstanceTuple ++ <type>; 
+				eject ↑typesTypesInstanceTuple ++ <type>
 			]
 			else
 			[
 				eject ↑typesTypesInstanceTuple ++ 
-					<leadingTypesTypes[index]'s instance>;
+					<leadingTypesTypes[index]'s instance>
 			];
-		true;
+		true
 	];
 
 	defaultTypeType ::= leadingAndDefaultTypesTypes' default type;
@@ -501,19 +501,19 @@ Semantic restriction "<«_‡,»`…`|_>" is
 					++ primitive description of defaultTypeType
 					++ " and has size ≠ 1, however only type is acceptable "
 					++ "in this case.");
-			type; 
+			type
 		]
 		else
 		[
-			defaultTypeType's instance;
+			defaultTypeType's instance
 		];
 
 	lower ::= exactSizeType's lower bound;
-	upper ::= cast exactSizeType's upper bound + 1 into [ t : [0..∞] | t; ];
+	upper ::= cast exactSizeType's upper bound + 1 into [ t : [0..∞] | t ];
 	allTypesToUse ::= cast typesTypesInstanceTuple into 
-		[t: <any's type…|0..∞> | t;];
+		[t: <any's type…|0..∞> | t];
 
-	<allTypesToUse,defaultTypeTypeInstance…|[lower..upper)>'s type;
+	<allTypesToUse,defaultTypeTypeInstance…|[lower..upper)>'s type
 ];
 
 /**
@@ -529,10 +529,10 @@ Method "<«_‡,»`…`|>" is
 	leadingAndDefaultTypes : <<>, any's type…|natural number>
 |
 	typesSize ::= |leadingAndDefaultTypes|;
-	lastLeadingTypeIndex ::= cast typesSize - 1 into [ t : whole number | t; ];
+	lastLeadingTypeIndex ::= cast typesSize - 1 into [ t : whole number | t ];
 	leadingTypes ::= leadingAndDefaultTypes[..lastLeadingTypeIndex];
 	defaultType ::= leadingAndDefaultTypes[typesSize];
-	<leadingTypes, defaultType…|whole number>;
+	<leadingTypes, defaultType…|whole number>
 ] : tuple meta;
 
 /**
@@ -564,14 +564,14 @@ Semantic restriction "<«_‡,»`…`|>" is
 						++ " has size ≠ 1 and is "
 						++ primitive description of leadingTypesTypes[index] 
 						++ ", however only type is acceptable in this case.");
-				eject ↑typesTypesInstanceTuple ++ <type>; 
+				eject ↑typesTypesInstanceTuple ++ <type>
 			]
 			else
 			[
 				eject ↑typesTypesInstanceTuple ++ 
-					<leadingTypesTypes[index]'s instance>;
+					<leadingTypesTypes[index]'s instance>
 			];
-		true;
+		true
 	];
 
 	defaultTypeType ::= leadingAndDefaultTypesTypes' default type;
@@ -583,17 +583,17 @@ Semantic restriction "<«_‡,»`…`|>" is
 					++ primitive description of defaultTypeType 
 					++ " and has size ≠ 1, however only type is acceptable"
 					++ " in this case.");
-			type; 
+			type
 		]
 		else
 		[
-			defaultTypeType's instance;
+			defaultTypeType's instance
 		];
 
 	allTypesToUse ::= cast typesTypesInstanceTuple into 
-		[t: <any's type…|0..∞> | t;];
+		[t: <any's type…|0..∞> | t];
 
-	<allTypesToUse,defaultTypeTypeInstance…|[0..∞)>'s type;
+	<allTypesToUse,defaultTypeTypeInstance…|[0..∞)>'s type
 ];
 
 /**
@@ -612,9 +612,9 @@ Semantic restriction "{_`|_}" is
 |
 	cardinalityTypeTypeInstance :: = cardinalityTypeType's instance;
 	bound ::= cast cardinalityTypeTypeInstance's upper bound + 
-		1 into [ t : [0..∞] | t; ];
+		1 into [ t : [0..∞] | t ];
 	lower ::= cardinalityTypeTypeInstance's lower bound;
-	{elementTypeType's instance|[lower..bound)}'s type;
+	{elementTypeType's instance|[lower..bound)}'s type
 ];
 
 /**
@@ -639,16 +639,16 @@ Method "{_`|_.._}" is
 	/* If `elementType` is an enumeration and `exactSize` is the cardinality of
 	 * that enumeration's membership, then build an instance type.
 	 */
-	if |elementType| = minimumSize ∧ [ minimumSize = maximumSize; ] then
+	if |elementType| = minimumSize ∧ [ minimumSize = maximumSize ] then
 	[
-		elementType's instances' type;
+		elementType's instances' type
 	]
 	/* Otherwise just build an ordinary set type. */
 	else
 	[
-		bound ::= cast maximumSize + 1 into [ t : [0..∞] | t; ];
-		{elementType|[minimumSize..bound)};
-	];
+		bound ::= cast maximumSize + 1 into [ t : [0..∞] | t ];
+		{elementType|[minimumSize..bound)}
+	]
 ] : set meta;
 
 /**
@@ -671,17 +671,17 @@ Semantic restriction "{_`|_.._}" is
 	if |elementType| = minimumSize's lower bound
 		∧ [ minimumSize's lower bound = minimumSize's upper bound
 		∧ [ maximumSize's lower bound = maximumSize's upper bound
-		∧ [ minimumSize's lower bound = maximumSize's lower bound; ]; ]; ]
+		∧ [ minimumSize's lower bound = maximumSize's lower bound ] ] ]
 	then
 	[
-		elementType's instances' type's type;
+		elementType's instances' type's type
 	]
 	else
 	[
 		lower ::= minimumSize's lower bound;
-		upper ::= cast maximumSize's upper bound + 1 into [ t : [0..∞] | t; ];
-		{elementType|[lower..upper)}'s type;
-	];
+		upper ::= cast maximumSize's upper bound + 1 into [ t : [0..∞] | t ];
+		{elementType|[lower..upper)}'s type
+	]
 ];
 
 /**
@@ -702,7 +702,7 @@ Method "{_`|_..}" is
 	elementType : any's type,
 	minimumSize : whole number
 |
-	{elementType|[minimumSize..∞)};
+	{elementType|[minimumSize..∞)}
 ] : set meta;
 
 /**
@@ -720,7 +720,7 @@ Semantic restriction "{_`|_..}" is
 	minimumSizeType : whole number's type
 |
 	lower ::= minimumSizeType's lower bound;
-	{elementTypeType's instance|[lower..∞)}'s type;
+	{elementTypeType's instance|[lower..∞)}'s type
 ];
 
 /**
@@ -741,8 +741,8 @@ Method "{_`|.._}" is
 	elementType : any's type,
 	maximumSize : [0..∞]
 |
-	bound ::= cast maximumSize + 1 into [ t : [0..∞] | t; ];
-	{elementType|[0..bound)};
+	bound ::= cast maximumSize + 1 into [ t : [0..∞] | t ];
+	{elementType|[0..bound)}
 ] : set meta;
 
 /**
@@ -759,8 +759,8 @@ Semantic restriction "{_`|.._}" is
 	elementTypeType : any's type's type,
 	maximumSizeType : [0..∞]'s type
 |
-	upper ::= cast maximumSizeType's upper bound + 1 into [ t : [0..∞] | t; ];
-	{elementTypeType's instance|[0..upper)}'s type;
+	upper ::= cast maximumSizeType's upper bound + 1 into [ t : [0..∞] | t ];
+	{elementTypeType's instance|[0..upper)}'s type
 ];
 
 /**
@@ -782,14 +782,14 @@ Method "{_`|_}" is
 	 */
 	if |elementType| = exactSize then
 	[
-		elementType's instances' type;
+		elementType's instances' type
 	]
 	/* Otherwise just build an ordinary set type. */
 	else
 	[
-		bound ::= cast exactSize + 1 into [ t : whole number | t; ];
-		{elementType|[exactSize..bound)};
-	];
+		bound ::= cast exactSize + 1 into [ t : whole number | t ];
+		{elementType|[exactSize..bound)}
+	]
 ] : set meta;
 
 /**
@@ -808,16 +808,16 @@ Semantic restriction "{_`|_}" is
 |
 	elementType ::= elementMeta's instance;
 	if |elementType| = exactSize's lower bound
-		∧ [ exactSize's lower bound = exactSize's upper bound; ]
+		∧ [ exactSize's lower bound = exactSize's upper bound ]
 	then
 	[
-		elementType's instances' type's type;
+		elementType's instances' type's type
 	]
 	else
 	[
-		bound ::= cast exactSize's upper bound + 1 into [ t : [0..∞] | t; ];
-		{elementType|[exactSize's lower bound .. bound)}'s type;
-	];
+		bound ::= cast exactSize's upper bound + 1 into [ t : [0..∞] | t ];
+		{elementType|[exactSize's lower bound .. bound)}'s type
+	]
 ];
 
 /**
@@ -836,7 +836,7 @@ Method "{_`|}" is
 [
 	elementType : any's type
 |
-	{elementType|whole number};
+	{elementType|whole number}
 ] : set meta;
 
 /**
@@ -851,7 +851,7 @@ Semantic restriction "{_`|}" is
 [
 	elementTypeType : any's type's type
 |
-	{elementTypeType's instance|[0..∞)}'s type;
+	{elementTypeType's instance|[0..∞)}'s type
 ];
 
 /**
@@ -872,9 +872,9 @@ Semantic restriction "{_→_`|_}" is
 |
 	cardinalityTypeTypeInstance :: = cardinalityTypeType's instance;
 	bound ::= cast cardinalityTypeTypeInstance's upper bound + 
-	1 into [ t : [0..∞] | t; ];
+	1 into [ t : [0..∞] | t ];
 	lower ::= cardinalityTypeTypeInstance's lower bound;
-	{keyTypeType's instance→valueTypeType's instance|[lower..bound)}'s type;
+	{keyTypeType's instance→valueTypeType's instance|[lower..bound)}'s type
 ];
 
 /**
@@ -896,8 +896,8 @@ Method "{_→_`|_.._}" is
 	minimumSize : whole number,
 	maximumSize : [0..∞]
 |
-	bound ::= cast maximumSize + 1 into [ t : [0..∞] | t; ];
-	{keyType→valueType|[minimumSize..bound)};
+	bound ::= cast maximumSize + 1 into [ t : [0..∞] | t ];
+	{keyType→valueType|[minimumSize..bound)}
 ] : map meta;
 
 /**
@@ -918,9 +918,9 @@ Semantic restriction "{_→_`|_.._}" is
 	minimumSizeType : whole number's type,
 	maximumSizeType : [0..∞]'s type
 |
-	bound ::= cast maximumSizeType's upper bound + 1 into [ t : [0..∞] | t; ];
+	bound ::= cast maximumSizeType's upper bound + 1 into [ t : [0..∞] | t ];
 	lower ::= minimumSizeType's lower bound;
-	{keyTypeType's instance→valueTypeType's instance|[lower..bound)}'s type;
+	{keyTypeType's instance→valueTypeType's instance|[lower..bound)}'s type
 ];
 
 /**
@@ -941,7 +941,7 @@ Method "{_→_`|_..}" is
 	valueType : any meta,
 	minimumSize : whole number
 |
-	{keyType→valueType|[minimumSize..∞)};
+	{keyType→valueType|[minimumSize..∞)}
 ] : map meta;
 
 /**
@@ -961,7 +961,7 @@ Semantic restriction "{_→_`|_..}" is
 	minimumSizeType : whole number's type
 |
 	lower ::= minimumSizeType's lower bound;
-	{keyTypeType's instance→valueTypeType's instance|[lower..∞)}'s type;
+	{keyTypeType's instance→valueTypeType's instance|[lower..∞)}'s type
 ];
 	
 /**
@@ -982,8 +982,8 @@ Method "{_→_`|.._}" is
 	valueType : any meta,
 	maximumSize : [0..∞]
 |
-	bound ::= cast maximumSize + 1 into [ t : [0..∞] | t; ];
-	{keyType→valueType|[0..bound)};
+	bound ::= cast maximumSize + 1 into [ t : [0..∞] | t ];
+	{keyType→valueType|[0..bound)}
 ] : map meta;
 
 /**
@@ -1002,8 +1002,8 @@ Semantic restriction "{_→_`|.._}" is
 	valueTypeType : any's type's type,
 	maximumSizeType : [0..∞]'s type
 |
-	bound ::= cast maximumSizeType's upper bound + 1 into [ t : [0..∞] | t; ];
-	{keyTypeType's instance→valueTypeType's instance|[0..bound)}'s type;
+	bound ::= cast maximumSizeType's upper bound + 1 into [ t : [0..∞] | t ];
+	{keyTypeType's instance→valueTypeType's instance|[0..bound)}'s type
 ];
 
 /**
@@ -1023,8 +1023,8 @@ Method "{_→_`|_}" is
 	valueType : any meta,
 	exactSize : whole number
 |
-	bound ::= cast exactSize + 1 into [ t : whole number | t; ];
-	{keyType→valueType|[exactSize..bound)};
+	bound ::= cast exactSize + 1 into [ t : whole number | t ];
+	{keyType→valueType|[exactSize..bound)}
 ]:map meta;
 
 /**
@@ -1044,7 +1044,7 @@ Semantic restriction "{_→_`|_}" is
 	exactSizeType : whole number's type
 |
 	bound ::= exactSizeType's instance;
-	{keyTypeType's instance→valueTypeType's instance|bound..bound}'s type;
+	{keyTypeType's instance→valueTypeType's instance|bound..bound}'s type
 ];
 
 /**
@@ -1062,7 +1062,7 @@ Method "{_→_`|}" is
 	keyType : any meta,
 	valueType : any meta
 |
-	{keyType→valueType|[0..∞)};
+	{keyType→valueType|[0..∞)}
 ] : map meta;
 
 /**
@@ -1079,7 +1079,7 @@ Semantic restriction "{_→_`|}" is
 	keyTypeType : any meta's type,
 	valueTypeType : any meta's type
 |
-	{keyTypeType's instance→valueTypeType's instance|0..∞}'s type;
+	{keyTypeType's instance→valueTypeType's instance|0..∞}'s type
 ];
 
 /**
@@ -1096,7 +1096,7 @@ Semantic restriction "_∪_" is
 	metaA : type's type,
 	metaB : type's type
 |
-	metaA ∪ metaB;
+	metaA ∪ metaB
 ];
 
 /**
@@ -1113,7 +1113,7 @@ Semantic restriction "_∩_" is
 	metaA : type's type,
 	metaB : type's type
 |
-	metaA ∩ metaB;
+	metaA ∩ metaB
 ];
 
 /**
@@ -1130,7 +1130,7 @@ Method "_∈_" is
 	value : any,
 	aType : type
 |
-	value's type ⊆ aType;
+	value's type ⊆ aType
 ];
 
 /**
@@ -1145,7 +1145,7 @@ Semantic restriction "`|`|_`|`|" is
 [
 	tupleMeta : tuple meta's type
 |
-	||tupleMeta's instance||'s type;
+	||tupleMeta's instance||'s type
 ];
 
 /**
@@ -1160,7 +1160,7 @@ Semantic restriction "`|`|_`|`|" is
 [
 	setMeta : set meta's type
 |
-	||setMeta's instance||'s type;
+	||setMeta's instance||'s type
 ];
 
 /**
@@ -1175,7 +1175,7 @@ Semantic restriction "`|`|_`|`|" is
 [
 	mapMeta : map meta's type
 |
-	||mapMeta's instance||'s type;
+	||mapMeta's instance||'s type
 ];
 
 /**
@@ -1190,5 +1190,5 @@ Semantic restriction "`|`|_`|`|" is
 [
 	bottomMeta : ⊥'s type's type
 |
-	⊥'s type;
+	⊥'s type
 ];

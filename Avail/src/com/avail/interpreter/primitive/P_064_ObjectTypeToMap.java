@@ -1,5 +1,5 @@
 /**
- * Primitive_064_ObjectTypeToMap.java
+ * P_064_ObjectTypeToMap.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

@@ -69,16 +69,16 @@ Semantic restriction "swap_and_" is
 	typeB : variable meta
 |
 	if typeA's read type ⊆ typeB's write type
-		∧ [ typeB's read type ⊆ typeB's write type; ]
+		∧ [ typeB's read type ⊆ typeB's write type ]
 	then
 	[
-		⊤;
+		⊤
 	]
 	else
 	[
 		Reject parse, expected:
-			"variable's read/write types to be cross-compatible";
-	];
+			"variable's read/write types to be cross-compatible"
+	]
 ];
 
 /**
@@ -92,8 +92,8 @@ Method "increment function" is
 	[
 		var : variable
 	|
-		↓var := cast eject var into [ t : number | t + 1; ];
-	] : ⊤;
+		↓var := cast eject var into [ t : number | t + 1 ];
+	] : ⊤
 ];
 
 /**
@@ -110,13 +110,13 @@ Method "increment/decrement semantic restriction" is
 		varType : variable meta
 	|
 		If (¬varType's read type ⊆ number)
-			∨ [ ¬varType's write type ⊆ number; ]
+			∨ [ ¬varType's write type ⊆ number ]
 		then
 		[
-			Reject parse, expected: "variable to accept and yield numbers";
+			Reject parse, expected: "variable to accept and yield numbers"
 		];
-		⊤;
-	];
+		⊤
+	]
 ];
 
 /**
@@ -152,8 +152,8 @@ Method "(_++)" is
 	var : variable
 |
 	value ::= eject var;
-	↓var := cast value into [ t : number | t + 1; ];
-	value;
+	↓var := cast value into [ t : number | t + 1 ];
+	value
 ] : ⊤;
 
 /**
@@ -170,12 +170,12 @@ Semantic restriction "(_++)" is
 	varType : variable meta
 |
 	If (¬varType's read type ⊆ number)
-		∨ [ ¬varType's write type ⊆ number; ]
+		∨ [ ¬varType's write type ⊆ number ]
 	then
 	[
-		Reject parse, expected: "variable to accept and yield numbers";
+		Reject parse, expected: "variable to accept and yield numbers"
 	];
-	varType's read type;
+	varType's read type
 ];
 
 /**
@@ -208,8 +208,8 @@ Method "(++_)" is
 [
 	var : variable
 |
-	↓var := cast eject var into [ t : number | t + 1; ];
-	↓var;
+	↓var := cast eject var into [ t : number | t + 1 ];
+	↓var
 ];
 
 /**
@@ -227,25 +227,25 @@ Semantic restriction "(++_)" is
 	varType : variable meta
 |
 	If (¬varType's read type ⊆ number)
-		∨ [ ¬varType's write type ⊆ number; ]
+		∨ [ ¬varType's write type ⊆ number ]
 	then
 	[
-		Reject parse, expected: "variable to accept and yield numbers";
+		Reject parse, expected: "variable to accept and yield numbers"
 	];
 	readType ::= varType's read type;
 	if readType ⊆ extended integer then
 	[
-		readRange ::= cast readType into [ t : extended integer meta | t; ];
+		readRange ::= cast readType into [ t : extended integer meta | t ];
 		lower ::= readRange's lower bound + 1;
 		upper ::= readRange's upper bound + 1;
 		integer range
 			from lower (inclusive = readRange's lower bound is inclusive)
-			to upper (inclusive = readRange's upper bound is inclusive);
+			to upper (inclusive = readRange's upper bound is inclusive)
 	]
 	else
 	[
-		readType;
-	];
+		readType
+	]
 ];
 
 /**
@@ -259,8 +259,8 @@ Method "decrement function" is
 	[
 		var : variable
 	|
-		↓var := cast eject var into [ t : number | t - 1; ];
-	] : ⊤;
+		↓var := cast eject var into [ t : number | t - 1 ];
+	] : ⊤
 ];
 
 /**
@@ -296,8 +296,8 @@ Method "(_--)" is
 	var : variable
 |
 	value ::= eject var;
-	↓var := cast value into [ t : number | t - 1; ];
-	value;
+	↓var := cast value into [ t : number | t - 1 ];
+	value
 ] : ⊤;
 
 /**
@@ -314,12 +314,12 @@ Semantic restriction "(_--)" is
 	varType : variable meta
 |
 	If (¬varType's read type ⊆ number)
-		∨ [ ¬varType's write type ⊆ number; ]
+		∨ [ ¬varType's write type ⊆ number ]
 	then
 	[
-		Reject parse, expected: "variable to accept and yield numbers";
+		Reject parse, expected: "variable to accept and yield numbers"
 	];
-	varType's read type;
+	varType's read type
 ];
 
 /**
@@ -352,8 +352,8 @@ Method "(--_)" is
 [
 	var : variable
 |
-	↓var := cast eject var into [ t : number | t - 1; ];
-	↓var;
+	↓var := cast eject var into [ t : number | t - 1 ];
+	↓var
 ];
 
 /**
@@ -372,25 +372,25 @@ Semantic restriction "(--_)" is
 	varType : variable meta
 |
 	If (¬varType's read type ⊆ number)
-		∨ [ ¬varType's write type ⊆ number; ]
+		∨ [ ¬varType's write type ⊆ number ]
 	then
 	[
-		Reject parse, expected: "variable to accept and yield numbers";
+		Reject parse, expected: "variable to accept and yield numbers"
 	];
 	readType ::= varType's read type;
 	if readType ⊆ extended integer then
 	[
-		readRange ::= cast readType into [ t : extended integer meta | t; ];
+		readRange ::= cast readType into [ t : extended integer meta | t ];
 		lower ::= readRange's lower bound - 1;
 		upper ::= readRange's upper bound - 1;
 		integer range
 			from lower (inclusive = readRange's lower bound is inclusive)
-			to upper (inclusive = readRange's upper bound is inclusive);
+			to upper (inclusive = readRange's upper bound is inclusive)
 	]
 	else
 	[
-		readType;
-	];
+		readType
+	]
 ];
 
 /* Disallow the variable increment/decrement operations from appearing as the
@@ -398,14 +398,14 @@ Semantic restriction "(--_)" is
  */
 Invoke
 [
-	parens ::= cast <"(_)">→set into [ t : {string|whole number} | t; ];
+	parens ::= cast <"(_)">→set into [ t : {string|whole number} | t ];
 	forbid ::=
 		cast
 			<
 				"_++", "++_", "(_++)", "(++_)",
 				"_--", "--_", "(_--)", "(--_)"
 			>→set
-		into [ t : {string|whole number} | t; ];
+		into [ t : {string|whole number} | t ];
 	Grammatical restriction parens is <forbid>;
 ]
 with <>;
@@ -422,7 +422,7 @@ Semantic restriction "_'s⁇read type" is
 [
 	varType : variable meta's type
 |
-	varType's instance's read type's type;
+	varType's instance's read type's type
 ];
 
 /**
@@ -437,7 +437,7 @@ Semantic restriction "_'s⁇write type" is
 [
 	varType : variable meta's type
 |
-	varType's instance's write type's type;
+	varType's instance's write type's type
 ];
 
 /**
@@ -454,12 +454,12 @@ Semantic restriction "eject_" is
 |
 	if varType's read type = ⊤ then
 	[
-		Reject parse, expected: "variable to have a read type other than ⊤";
+		Reject parse, expected: "variable to have a read type other than ⊤"
 	]
 	else
 	[
-		varType's read type;
-	];
+		varType's read type
+	]
 ];
 
 /**
@@ -475,5 +475,5 @@ Method "_is assigned" is
 [
 	var : variable
 |
-	¬var is unassigned;
+	¬var is unassigned
 ];

@@ -1,5 +1,5 @@
 /**
- * Primitive_071_CreateStubFunction.java
+ * P_071_CreateStubFunction.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

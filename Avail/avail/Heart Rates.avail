@@ -37,7 +37,7 @@ Uses
 Names
 Body
 
-Method "⊤" is [ void; ];
+Method "⊤" is [ void ];
 
 /**
  * An example program that accepts a user's name (first & last) and birthdate
@@ -58,7 +58,7 @@ Method "Heart Rate Calculator" is
 			"what is your date of birth? (YYYY-MM-DD):\n";
 	] until
 	[
-		dob size <= today's date size;
+		dob size <= today's date size
 	] do
 	[
 		Print "Birthdate cannot be in the future\n";

@@ -71,7 +71,7 @@ Method "_⊕_" is
 	a : boolean,
 	b : boolean
 |
-	(a ∧ [¬b;]) ∨ [(¬a) ∧ [b;];];
+	(a ∧ [¬b]) ∨ [(¬a) ∧ [b]]
 ] : boolean;
 
 /**
@@ -90,7 +90,7 @@ Method "_↑_" is
 	a : boolean,
 	b : []→boolean
 |
-	¬(a ∧ b);
+	¬(a ∧ b)
 ] : boolean;
 
 /**
@@ -109,7 +109,7 @@ Method "_↑_" is
 	a : false's type,
 	b : []→boolean
 |
-	true;
+	true
 ] : boolean;
 
 /**
@@ -127,7 +127,7 @@ Semantic restriction "_↑_" is
 	a : false's type's type,
 	b : ([]→boolean)'s type
 |
-	true's type;
+	true's type
 ];
 
 /**
@@ -145,7 +145,7 @@ Semantic restriction "_↑_" is
 	a : true's type's type,
 	b : []→(true's type)'s type
 |
-	false's type;
+	false's type
 ];
 
 /**
@@ -163,14 +163,14 @@ Semantic restriction "_↑_" is
 	a : boolean's type,
 	b : []→(false's type)'s type
 |
-	true's type;
+	true's type
 ];
 
 /* TODO: Eventually move these into a testing module. */
-Assert: ¬(true ↑ [true;]) ("true ↑ true");
-Assert: true ↑ [false;] ("true ↑ false");
-Assert: false ↑ [true;] ("false ↑ true");
-Assert: false ↑ [false;] ("false ↑ false");
+Assert: ¬(true ↑ [true]) ("true ↑ true");
+Assert: true ↑ [false] ("true ↑ false");
+Assert: false ↑ [true] ("false ↑ true");
+Assert: false ↑ [false] ("false ↑ false");
 
 /**
  * Compute and answer the logical NOR of the arguments. This is equivalent to
@@ -188,7 +188,7 @@ Method "_↓_" is
 	a : boolean,
 	b : []→boolean
 |
-	¬(a ∨ b);
+	¬(a ∨ b)
 ] : boolean;
 
 /**
@@ -207,7 +207,7 @@ Method "_↓_" is
 	a : true's type,
 	b : []→boolean
 |
-	false;
+	false
 ] : boolean;
 
 /**
@@ -225,7 +225,7 @@ Semantic restriction "_↓_" is
 	a : true's type's type,
 	b : []→boolean's type
 |
-	false's type;
+	false's type
 ];
 
 /**
@@ -243,7 +243,7 @@ Semantic restriction "_↓_" is
 	a : false's type's type,
 	b : []→(true's type)'s type
 |
-	false's type;
+	false's type
 ];
 
 /**
@@ -261,7 +261,7 @@ Semantic restriction "_↓_" is
 	a : false's type's type,
 	b : []→(false's type)'s type
 |
-	true's type;
+	true's type
 ];
 
 /**
@@ -279,7 +279,7 @@ Semantic restriction "_↓_" is
 	a : boolean's type,
 	b : []→(true's type)'s type
 |
-	false's type;
+	false's type
 ];
 
 /**
@@ -298,7 +298,7 @@ Method "_→_" is
 	a : boolean,
 	b : []→boolean
 |
-	(¬a) ∨ b;
+	(¬a) ∨ b
 ] : boolean;
 
 /**
@@ -317,7 +317,7 @@ Method "_→_" is
 	a : false's type,
 	b : []→boolean
 |
-	true;
+	true
 ] : boolean;
 
 /**
@@ -335,7 +335,7 @@ Semantic restriction "_→_" is
 	a : false's type's type,
 	b : []→boolean's type
 |
-	true's type;
+	true's type
 ];
 
 /**
@@ -353,7 +353,7 @@ Semantic restriction "_→_" is
 	a : boolean's type,
 	b : []→(true's type)'s type
 |
-	true's type;
+	true's type
 ];
 
 /**
@@ -372,7 +372,7 @@ Method "_←_" is
 	a : boolean,
 	b : []→boolean
 |
-	a ∨ [¬b();];
+	a ∨ [¬b()]
 ] : boolean;
 
 /**
@@ -391,7 +391,7 @@ Method "_←_" is
 	a : true's type,
 	b : []→boolean
 |
-	true;
+	true
 ] : boolean;
 
 /**
@@ -409,7 +409,7 @@ Semantic restriction "_←_" is
 	a : true's type's type,
 	b : []→boolean's type
 |
-	true's type;
+	true's type
 ];
 
 /**
@@ -427,7 +427,7 @@ Semantic restriction "_←_" is
 	a : boolean's type,
 	b : []→(false's type)'s type
 |
-	true's type;
+	true's type
 ];
 
 /**
@@ -445,7 +445,7 @@ Method "_↔_" is
 	a : boolean,
 	b : boolean
 |
-	(a ∧ [b;]) ∨ [(¬a) ∧ [¬b;];];
+	(a ∧ [b]) ∨ [(¬a) ∧ [¬b]]
 ] : boolean;
 
 /**
@@ -464,7 +464,7 @@ Method "_↛_" is
 	a : boolean,
 	b : []→boolean
 |
-	a ∧ [¬b();];
+	a ∧ [¬b()]
 ] : boolean;
 
 /**
@@ -483,7 +483,7 @@ Method "_↛_" is
 	a : false's type,
 	b : []→boolean
 |
-	false;
+	false
 ] : boolean;
 
 /**
@@ -501,7 +501,7 @@ Semantic restriction "_↛_" is
 	a : false's type's type,
 	b : []→boolean's type
 |
-	false's type;
+	false's type
 ];
 
 /**
@@ -519,7 +519,7 @@ Semantic restriction "_↛_" is
 	a : boolean's type,
 	b : []→(true's type)'s type
 |
-	false's type;
+	false's type
 ];
 
 /**
@@ -538,7 +538,7 @@ Method "_↚_" is
 	a : boolean,
 	b : []→boolean
 |
-	(¬a) ∧ [b();];
+	(¬a) ∧ [b()]
 ] : boolean;
 
 /**
@@ -557,7 +557,7 @@ Method "_↚_" is
 	a : true's type,
 	b : []→boolean
 |
-	false;
+	false
 ] : boolean;
 
 /**
@@ -575,7 +575,7 @@ Semantic restriction "_↚_" is
 	a : true's type's type,
 	b : []→boolean's type
 |
-	false's type;
+	false's type
 ];
 
 /**
@@ -593,7 +593,7 @@ Semantic restriction "_↚_" is
 	a : boolean's type,
 	b : []→(false's type)'s type
 |
-	false's type;
+	false's type
 ];
 
 /**
@@ -612,7 +612,7 @@ Semantic restriction "_↚_" is
 	a : false's type's type,
 	b : []→(true's type)'s type
 |
-	true's type;
+	true's type
 ];
 
 Grammatical restriction {"¬_"} is
@@ -648,24 +648,24 @@ Semantic restriction "_=_" is
 	if |a| = 1
 		∧ [ |b| = 1
 		∧ [ ¬a's instance ∈ type
-		∧ [ ¬b's instance ∈ type; ]; ]; ]
+		∧ [ ¬b's instance ∈ type ] ] ]
 	then
 	[
-		(a's instance = b's instance)'s type;
+		(a's instance = b's instance)'s type
 	]
 	else
 	[
 		if a ∩ b = ⊥ then
 		[
-			Assert: a ≠ ⊥ ∧ [ b ≠ ⊥; ];
-			false's type;
+			Assert: a ≠ ⊥ ∧ [ b ≠ ⊥ ];
+			false's type
 		]
 		else
 		[
 			/* Don't strengthen. */
-			⊤;
-		];
-	];
+			⊤
+		]
+	]
 ];
 
 /**
@@ -685,22 +685,22 @@ Semantic restriction "_≠_" is
 	if |a| = 1
 		∧ [ |b| = 1
 		∧ [ ¬a's instance ∈ type
-		∧ [ ¬b's instance ∈ type; ]; ]; ]
+		∧ [ ¬b's instance ∈ type ] ] ]
 	then
 	[
-		(a's instance ≠ b's instance)'s type;
+		(a's instance ≠ b's instance)'s type
 	]
 	else
 	[
 		if a ∩ b = ⊥ then
 		[
-			Assert: a ≠ ⊥ ∧ [ b ≠ ⊥; ];
-			true's type;
+			Assert: a ≠ ⊥ ∧ [ b ≠ ⊥ ];
+			true's type
 		]
 		else
 		[
 			/* Don't strengthen. */
-			⊤;
-		];
-	];
+			⊤
+		]
+	]
 ];

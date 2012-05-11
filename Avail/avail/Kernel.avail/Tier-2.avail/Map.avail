@@ -81,19 +81,19 @@ Method "map_from_to_" is [
 		sizes : whole number type,
 		keyType : any type,
 		valueType : any type |
-	{keyType->valueType|sizes};
+	{keyType->valueType|sizes}
 ] : mapType;
 
 
 Method "map from_to_" is [
 		keyType : any type,
 		valueType : any type |
-	map whole number from keyType to valueType;
+	map whole number from keyType to valueType
 ] : mapType;
 
 
 Method "map" is [
-	map from any to any;
+	map from any to any
 ] : mapType;
 
 
@@ -117,7 +117,7 @@ Method "`|`|_`|`|" is [m : map |
 ] : integer;
 
 Restriction "`|`|_`|`|" is [mt : mapType |
-	mt sizes;
+	mt sizes
 ];
 
 Method "_∈_keys" is [k : any, m : map |
@@ -126,29 +126,31 @@ Method "_∈_keys" is [k : any, m : map |
 ] : boolean;	
 
 Method "_[_]`?" is [m : map, k : any |
-	k ∈ m keys;
+	k ∈ m keys
 ] : boolean;
 
 Restriction "_[_]`?" is [mt : mapType, kt : type |
-	if type intersection of mt keyType and kt = terminates | [mt sizes upper bound = 0;] then [
+	if type intersection of mt keyType and kt = terminates
+			| [mt sizes upper bound = 0]
+	then [
 		/* No value of the k argument could ever be in the map. */
-		falseType;
+		falseType
 	] else [
-		boolean;
-	];
+		boolean
+	]
 ];
 
 
 Method "_[_]" is [m : map, k : any |
 	Primitive 82 (failureCode : natural number);
-	Failed;
+	Failed
 ] : any;
 
 Restriction "_[_]" is [mt : mapType, kt : type |
 	if type intersection of mt keyType and kt = terminates then [
 		/* No value of the k argument could ever be in the map. */
-		Fail parse "Argument type is not compatible with map's key type";];
-	mt valueType;
+		Fail parse "Argument type is not compatible with map's key type"];
+	mt valueType
 ];
 
 
@@ -159,10 +161,10 @@ Method "_[_->_]" is [m : map, k : any, v : any |
 
 Restriction "_[_->_]" is [mt : mapType, kt : type, vt : type |
 	sizes ::= cast [mt sizes lower bound .. mt sizes upper bound + 2)
-		into [ i : whole number type | i; ];
+		into [ i : whole number type | i ];
 	map sizes
-		from cast (type union of mt keyType and kt) into [ t : any type | t; ]
-		to cast (type union of mt valueType and vt) into [ t : any type | t; ];
+		from cast (type union of mt keyType and kt) into [ t : any type | t ]
+		to cast (type union of mt valueType and vt) into [ t : any type | t ]
 ];
 
 
@@ -176,7 +178,7 @@ Restriction "_[_->nil]" is [mt : mapType, kt : type |
 	   empty map). */
 	map [(mt sizes lower bound - 1) max 0 .. mt sizes upper bound + 1)
 		from (mt keyType)
-		to (mt valueType);
+		to (mt valueType)
 ];
 
 
@@ -188,7 +190,7 @@ Method "*_[_]:=_" is [mapVar : container, key : any, value : any |
 	*mapVar ?:=
 		cast
 			clearing* mapVar
-		into [m : map | m[key->value];];
+		into [m : map | m[key->value]];
 ] : void;
 
 Restriction "*_[_]:=_" is [mvt : containerType, kt : type, vt : type |
@@ -196,17 +198,17 @@ Restriction "*_[_]:=_" is [mvt : containerType, kt : type, vt : type |
 		cast mvt readType into [mt : mapType |
 			mt sizes upper bound = INF
 				& kt <= mt keyType
-				& vt <= mt valueType;]
-		otherwise [false;];
+				& vt <= mt valueType]
+		otherwise [false];
 	if not good then [
-		Fail parse "types to conform for map replacement";];
-	void;
+		Fail parse "types to conform for map replacement"];
+	void
 ];
 
 
 Method "*_[_]:=nil" is [mapVar : container, k : any |
 	/* Copy map but without the given key.  Store back in mv. */
-	*mapVar ?:= cast *mapVar into [m : map | m[k->nil];];
+	*mapVar ?:= cast *mapVar into [m : map | m[k->nil]];
 ] : void;
 
 Restriction "*_[_]:=nil" is [mvt : containerType, kt : type |
@@ -215,11 +217,11 @@ Restriction "*_[_]:=nil" is [mvt : containerType, kt : type |
 	good ::= mvt readType = mvt writeType &
 		cast mvt readType into [mt : mapType |
 			/* Make sure map can shrink arbitrarily small and still fit in variable. */
-			mt sizes lower bound = 0;]
-		otherwise [false;];
+			mt sizes lower bound = 0]
+		otherwise [false];
 	if not good then [
-		Fail parse "types to conform for map key removal";];
-	void;
+		Fail parse "types to conform for map key removal"];
+	void
 ];
 
 
@@ -227,7 +229,7 @@ Restriction "*_[_]:=nil" is [mvt : containerType, kt : type |
 /* Map constructors... */
 
 emptyMap ::= ([t : <terminates…|0..0> | Primitive 85; ] : map) apply <<>>;
-Method "[->]" is [emptyMap;];
+Method "[->]" is [emptyMap];
 
 Method "«[_->_]»" is [t : <<any…|2..2>…|1..∞> |
 	Primitive 85;
@@ -237,16 +239,16 @@ Method "«[_->_]»" is [t : <<any…|2..2>…|1..∞> |
 
 Restriction "«[_->_]»" is [tt : <<any…|2..2>…|0..∞> type |
 	sizes ::= tt sizes;
-	limit ::= cast sizes upper bound into [ i : natural number | i; ];
+	limit ::= cast sizes upper bound into [ i : natural number | i ];
 	keyType : type := terminates;
 	valueType : type := terminates;
 	From 1 to limit do [ i : natural number |
-		strongType ::= cast tt[i] into [ t : tupleType | t; ];
+		strongType ::= cast tt[i] into [ t : tupleType | t ];
 		keyType := type union of keyType and (strongType[1]);
 		valueType := type union of valueType and (strongType[2]); ];
 	map sizes
-		from cast keyType into [ t : any type | t; ]
-		to cast valueType into [ t : any type | t; ];
+		from cast keyType into [ t : any type | t ]
+		to cast valueType into [ t : any type | t ]
 ];
 
 
@@ -257,7 +259,7 @@ Method "_keys" is [m : map |
 ] : set;
 
 Restriction "_keys" is [mt : mapType |
-	set mt sizes of mt keyType;
+	set mt sizes of mt keyType
 ];
 
 Method "_values" is [m : map |
@@ -265,7 +267,7 @@ Method "_values" is [m : map |
 ] : tuple;
 
 Restriction "_values" is [mt : mapType |
-	tuple mt sizes of mt valueType;
+	tuple mt sizes of mt valueType
 ];
 
 
@@ -280,6 +282,6 @@ Restriction "_do_" is [mt : mapType, bT : functionType |
 		Fail parse "block requires an instance of "
 			then bT[1] as basic string
 			then ", but might be passed an instance of "
-			then mt keyType as basic string;];
-	void;
+			then mt keyType as basic string];
+	void
 ];

@@ -1,5 +1,5 @@
 /**
- * Primitive_080_MapSize.java
+ * P_080_MapSize.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

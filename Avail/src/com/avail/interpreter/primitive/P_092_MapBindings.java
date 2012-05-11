@@ -1,5 +1,5 @@
 /**
- * Primitive_092_MapBindings.java
+ * P_092_MapBindings.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

@@ -53,7 +53,7 @@ Body
 Method "_named_" is [fileType : Input File type, name : string |
 	fileHandle : atom := [theName : string |
 		Primitive 160 (failureCode : natural number);
-		Failed;
+		Failed
 	] : atom (name);
 	Input File new with <
 		<elementType, [Crash "don't call";] : byte>,
@@ -67,7 +67,7 @@ Method "_named_" is [fileType : Input File type, name : string |
 Method "next_from_" is [count : [0..INF], file : Input File |
 	[handle : atom, count : [0..INF] |
 		Primitive 164 (failureCode : natural number);
-		Failed;
+		Failed
 	] : tuple of byte (file -> handle, count);
 ] : tuple of byte;
 

@@ -105,12 +105,12 @@ Restriction "«_‡then»" is [outerTupleType : tupleType |
 	exactSize : whole number := outerTupleType sizes lower bound;
 	Assert exactSize = outerTupleType sizes upper bound;
 	index : natural number := 1;
-	While [index <= exactSize;] loop [
+	While [index <= exactSize] loop [
 		output := concatenate tuple type clearing*↑output
-			and cast outerTupleType[index] into [t : tupleType | t;];
+			and cast outerTupleType[index] into [t : tupleType | t];
 		index := index + 1;
 	];
-	output;
+	output
 ];
 
 
@@ -124,13 +124,12 @@ Method "check_accepts_" is [blkType : functionType, tType : tupleType |
 		Fail parse "block requires an instance of "
 			then blkType[1] as basic string
 			then ", but might be passed an instance of "
-			then union as basic string;];
+			then union as basic string];
 ] : void;
 
 Method "_do_" is [tup : tuple, blk : [terminates]->void |
 	From 1 to ||tup|| do [i : natural number |
-		blk apply <tup[i]>;
-	];
+		blk apply <tup[i]>;];
 ] : void;
 
 Restriction "_do_" is [tType : tupleType, blkType : functionType |
@@ -139,11 +138,11 @@ Restriction "_do_" is [tType : tupleType, blkType : functionType |
 	   no return value).  In the case that the block always terminates
 	   *and* there is at least one item in the tuple for sure, the invocation
 	   of _do_ will also always terminate.  */
-	if tType sizes lower bound > 0 & [blkType result = terminates;] then [
-		terminates;
+	if tType sizes lower bound > 0 & [blkType result = terminates] then [
+		terminates
 	] else [
-		void;
-	];
+		void
+	]
 ];
 	
 
@@ -152,14 +151,14 @@ Method "_collect_" is [t : tuple, blk : [terminates]->any |
 	From 1 to ||t|| do [i : natural number |
 		result := result then <blk apply <t[i]>>;
 	];
-	result;
+	result
 ] : tuple;
 
 Restriction "_collect_" is [tType : tupleType, blkType : functionType |
 	check blkType accepts tType;
 	tuple tType sizes
 		like <>
-		default cast blkType result into [ t : any type | t; ];
+		default cast blkType result into [ t : any type | t ]
 ];
 
 
@@ -171,7 +170,7 @@ Method "_select_" is [t : tuple, blk : [terminates]->boolean |
 			result := result then <t[i]>;
 		];
 	];
-	result;
+	result
 ] : tuple;
 
 Restriction "_select_" is [tType : tupleType, blkType : functionType |
@@ -179,13 +178,13 @@ Restriction "_select_" is [tType : tupleType, blkType : functionType |
 	union ::= type union of tType default type and
 		union of types in tType leading types;
 	sizes ::=
-		if blkType result = trueType then [tType sizes;]
+		if blkType result = trueType then [tType sizes]
 		else [
-			if blkType result = falseType then [[0..0];]
-			else [[0..tType sizes upper bound + 1);];];
+			if blkType result = falseType then [[0..0]]
+			else [[0..tType sizes upper bound + 1)]];
 	tuple sizes
 		like <>
-		default cast union into [ t : any type | t; ];
+		default cast union into [ t : any type | t ]
 ];
 
 
@@ -196,7 +195,7 @@ Method "_reject_" is [t : tuple, blk : [terminates]->boolean |
 			result := result then <t[i]>;
 		];
 	];
-	result;
+	result
 ] : tuple;
 
 Restriction "_reject_" is [tType : tupleType, blkType : functionType |
@@ -204,86 +203,90 @@ Restriction "_reject_" is [tType : tupleType, blkType : functionType |
 	union ::= type union of tType default type and
 		union of types in tType leading types;
 	sizes ::=
-		if blkType result = trueType then [[0..0];]
+		if blkType result = trueType then [[0..0]]
 		else [
-			if blkType result = falseType then [tType sizes;]
-			else [[0..tType sizes upper bound + 1);];];
+			if blkType result = falseType then [tType sizes]
+			else [[0..tType sizes upper bound + 1)]];
 	tuple sizes
 		like <>
-		default cast union into [ t : any type | t; ];
+		default cast union into [ t : any type | t ]
 ];
 
 
 Method "_all_" is [t : tuple, blk : [terminates]->boolean |
 	index : natural number := 1;
 	While [
-		index <= ||t|| & [blk apply <t[index]>;];
+		index <= ||t|| & [blk apply <t[index]>]
 	] loop [
 		index := index + 1;
 	];
-	index > ||t||;
+	index > ||t||
 ] : boolean;
 
 Restriction "_all_" is [tType : tupleType, blkType : functionType |
 	check blkType accepts tType;
-	void;
+	void
 ];
 
 
 Method "_any_" is [t : tuple, blk : [terminates]->boolean |
 	index : natural number := 1;
 	While [
-		index <= ||t|| & [not blk apply <t[index]>;];
+		index <= ||t|| & [not blk apply <t[index]>]
 	] loop [
 		index := index + 1;
 	];
-	index <= ||t||;
+	index <= ||t||
 ] : boolean;
 
 Restriction "_any_" is [tType : tupleType, blkType : functionType |
 	check blkType accepts tType;
-	void;
+	void
 ];
 
 
 Method "_sum_" is [t : tuple, blk : [terminates]->extended integer |
 	sum : extended integer := 0;
 	t do [ element : any | sum := sum + blk apply <element>; ];
-	sum;
+	sum
 ] : extended integer;
 
 Restriction "_sum_" is [tType : tupleType, blkType : functionType |
 	check blkType accepts tType;
-	blkResultType ::= cast blkType result into [intT : integerType | intT; ];
-	integer range tType sizes times blkResultType;
+	blkResultType ::= cast blkType result into [intT : integerType | intT ];
+	integer range tType sizes times blkResultType
 ];
 
 
 Method "_sum" is [t : tuple of extended integer |
 	sum : extended integer := 0;
 	t do [ element : extended integer | sum := sum + element; ];
-	sum;
+	sum
 ] : extended integer;
 
 Restriction "_sum" is [tType : tupleType |
 	currentRange : integerType := [0..0];
 	From 1 to tType sizes lower bound do [i : natural number |
-		elementRange ::= cast tType[i] into [intT : integerType | intT; ];
+		elementRange ::= cast tType[i] into [intT : integerType | intT ];
 		currentRange := integer range currentRange plus elementRange;];
 	broadRange : integerType := currentRange;
 	endOfVariation ::= tType sizes upper bound min (||tType leading types|| + 1);
 	From tType sizes lower bound + 1 to endOfVariation do [i : natural number |
-		elementRange ::= cast tType[i] into [intT : integerType | intT; ];
+		elementRange ::= cast tType[i] into [intT : integerType | intT ];
 		currentRange := integer range currentRange plus elementRange;
 		broadRange := type union of broadRange and currentRange;];
 	/* Now that the variation in the tuple type is over, use multiplication to
 	    calculate the remaining effect on the range. */
-	maximumNumberOfAdditionalElements ::= (tType sizes upper bound - endOfVariation) max 0;
+	maximumNumberOfAdditionalElements ::=
+		(tType sizes upper bound - endOfVariation) max 0;
 	if maximumNumberOfAdditionalElements > 0 then [
-		scaledDeltaRange ::= integer range (cast tType default type into [intT : integerType | intT;])
-			times [maximumNumberOfAdditionalElements..maximumNumberOfAdditionalElements];
-		broadRange := type union of broadRange and (integer range currentRange plus scaledDeltaRange);];
-	broadRange;
+		scaledDeltaRange ::= integer range
+				(cast tType default type into [intT : integerType | intT])
+			times [maximumNumberOfAdditionalElements
+				..maximumNumberOfAdditionalElements];
+		broadRange := type union of broadRange
+			and (integer range currentRange plus scaledDeltaRange);];
+	broadRange
 ] : integerType;
 
 
@@ -292,25 +295,25 @@ Restriction "_sum" is [tType : tupleType |
 Method "_[_]" is [t : tuple, i : natural number |
 	/* Get tuple entry with given index. */
 	Primitive 131 (failureCode : natural number);
-	Failed;
+	Failed
 ] : any;
 
 Restriction "_[_]" is [tType : tupleType, iType : natural number type |
 	Assert iType not = terminates;
 	/* Require that it's at least possible that the subscript is in range. */
 	if iType lower bound > tType sizes upper bound then [
-		Fail parse "Tuple subscript is always out of bounds";];
+		Fail parse "Tuple subscript is always out of bounds"];
 	/* Compute the type union of all the possible types it could be,
 	   depending on what indices could be applied. */
 	possible : type := terminates;
-	low ::= cast iType lower bound into [x : natural number | x;];
-	high ::= cast iType upper bound into [x : [1..INF] | x;];
+	low ::= cast iType lower bound into [x : natural number | x];
+	high ::= cast iType upper bound into [x : [1..INF] | x];
 	From low min (|| tType leading types || + 1)
 		to high min (|| tType leading types || + 1)
 		do [x : natural number |
 			possible := type union of tType[x] and possible;
 		];
-	possible;
+	possible
 ] : type;
 
 
@@ -322,12 +325,12 @@ Method "_to_" is [a : integer, b : integer |
 	From a to b do [i : integer | result := result then <i>;];
 	/* The "«_‡then»" operation is not yet refined with a returns clause.
 	   Cast the type downwards, as we know the entries are all integers. */
-	cast result into [x : tuple of integer | x;];
+	cast result into [x : tuple of integer | x]
 ] : tuple of integer;
 
 Restriction "_to_" is [aRange : integerType, bRange : integerType |
 	if aRange lower bound > bRange upper bound then [
-		<> type;
+		<> type
 	] else [
 		sizes ::= [(bRange lower bound - aRange upper bound + 1) max 0
 			.. bRange upper bound - aRange lower bound + 2);
@@ -344,21 +347,21 @@ Restriction "_to_" is [aRange : integerType, bRange : integerType |
 									range from strongX
 										inclusive true
 										to strongX + uncertainty + 1
-										inclusive false;
-								];
+										inclusive false
+								]
 							])
-						default terminates;
-				];
-			];
+						default terminates
+				]
+			]
 		] else [
 			/* Either the uncertainty of the starting value is arbitrarily
 			   large or we have no static bound on the final tuple length.
 			   Either way, we approximate with a homogeneous tuple... */
 			tuple sizes
 				like <>
-				default [aRange lower bound..bRange upper bound + 1);
-		];
-	];
+				default [aRange lower bound..bRange upper bound + 1)
+		]
+	]
 ] : tupleType;
 
 /* Private subtuple extraction type helper... */
@@ -375,7 +378,7 @@ Method "type of subtuple_from range_to range_" is [
 		/* All possible subtuples that this subrange could represent are out
 		   of bounds for the tuple.  Answer terminates to indicate this
 		   operation will never succeed at runtime. */
-		terminates;
+		terminates
 	] else [
 		limit ::= maxEnd
 			min tt sizes upper bound
@@ -388,21 +391,21 @@ Method "type of subtuple_from range_to range_" is [
 			From index to (index + variance) min limit do [subindex : [1..INF) |
 				u := type union of u and tt[subindex];
 			];
-			u;
+			u
 		];
 		default ::= cast ||resultPattern|| into [n : [1..INF) |
-			resultPattern[n];
+			resultPattern[n]
 		] otherwise [
-			terminates;
+			terminates
 		];
 		clipMinEnd ::= (minEnd max 0) min tt sizes upper bound;
 		clipMaxEnd ::= (maxEnd max 0) min tt sizes upper bound;
 		sizes ::= [(clipMinEnd - maxStart + 1) max 0
 			.. ((clipMaxEnd - minStart + 1) max 0) + 1);
 		tuple sizes
-			like cast resultPattern into [ t : tuple of any type | t; ]
-			default cast default into [ t : any type | t; ];
-	];
+			like cast resultPattern into [ t : tuple of any type | t ]
+			default cast default into [ t : any type | t ]
+	]
 ] : tupleType;
 
 /* Replacement... */
@@ -410,7 +413,7 @@ Method "type of subtuple_from range_to range_" is [
 Method "_[_->_]" is [t : tuple, i : natural number, v : any |
 	/* Answer new tuple with given index set to the given value. */
 	Primitive 132 (failureCode : natural number);
-	Failed;
+	Failed
 ] : tuple;
 
 Restriction "_[_->_]" is [tType : tupleType, iType : integerType, vType : type |
@@ -424,7 +427,7 @@ Restriction "_[_->_]" is [tType : tupleType, iType : integerType, vType : type |
 				/* Since we haven't defined "_[_->_]" with a strong enough
 				   returns clause yet (that's what we're in the middle of
 				   doing!), we have to dynamically cast into tuple of type. */
-				cast newLeading into [y : tuple of type | leading := y;];
+				cast newLeading into [y : tuple of type | leading := y; ];
 			];
 		];
 	];
@@ -434,18 +437,18 @@ Restriction "_[_->_]" is [tType : tupleType, iType : integerType, vType : type |
 		if upper > || leading || & not vType <= default then [
 			weaker ::= type union of default and vType;
 			leading := leading then
-				(|| leading || + 1 to upper collect [x : integer | weaker;]);
+				(|| leading || + 1 to upper collect [x : integer | weaker]);
 		];
 	] otherwise [
 		/* Infinite extension - all indices >= lower bound are weakened to
 		   vType... */
 		if iType upper bound not = INF then [
-			Crash "Inconsistency in returns clause of _[_->_]";];
+			Crash "Inconsistency in returns clause of _[_->_]"];
 		default := type union of default and vType;
 	];
 	tuple tType sizes
-		like cast leading into [ t : tuple of any type | t; ]
-		default cast default into [ t : any type | t; ];
+		like cast leading into [ t : tuple of any type | t ]
+		default cast default into [ t : any type | t ]
 ] : tupleType;
 
 
@@ -461,13 +464,13 @@ Restriction "*_[_]:=_" is [tvt : containerType, it : integerType, vt : type |
 			/* Make sure we can store back any possible result. */
 			vt <= union of types in
 				tt [(it lower bound max 1) min (||tt leading types|| + 1)
-					.. (it upper bound max 0) min (||tt leading types|| + 1)];
+					.. (it upper bound max 0) min (||tt leading types|| + 1)]
 		] otherwise [
-			false;
+			false
 		];
 	if not good then [
-		Fail parse "tuple replacement expression to have appropriate types";];
-	void;
+		Fail parse "tuple replacement expression to have appropriate types"];
+	void
 ];
 
 
@@ -479,29 +482,29 @@ Method "splice_" is [tupleOfTuples : tuple of tuple |
 
 Restriction "splice_" is [ttType : tupleType |
 	limit ::= if ttType sizes upper bound is infinite then [
-		ttType sizes lower bound max (||ttType leading types|| + 1);
+		ttType sizes lower bound max (||ttType leading types|| + 1)
 	] else [
-		ttType sizes upper bound;
+		ttType sizes upper bound
 	];
 	result : tupleType := <> type;
 	From 1 to limit do [i : natural number |
 		result := concatenate tuple type result
-			and cast ttType[i] into [x : tupleType | x;];
+			and cast ttType[i] into [x : tupleType | x];
 	];
 	if ttType sizes upper bound is infinite then [
 		slice ::= result [1 ..
-			cast result sizes upper bound into [w : whole number | w;]];
+			cast result sizes upper bound into [w : whole number | w]];
 		union ::= union of types in
 			(cast ttType default type
 				into [t : tupleType |
-					t[1 .. ||t leading types|| + 1];
+					t[1 .. ||t leading types|| + 1]
 				]
 			);
 		result := tuple [result sizes lower bound .. INF)
-			like cast slice into [ t : tuple of any type | t; ]
-			default cast union into [ t : any type | t; ];
+			like cast slice into [ t : tuple of any type | t ]
+			default cast union into [ t : any type | t ];
 	];
-	result;
+	result
 ];
 
 
@@ -509,7 +512,7 @@ Restriction "splice_" is [ttType : tupleType |
 Method "_[_.._]" is [t : tuple, start : natural number, end : whole number |
 	/* Extract a contiguous region from a tuple. */
 	Primitive 135 (failureCode : natural number);
-	Failed;
+	Failed
 ] : tuple;
 
 Restriction "_[_.._]" is [
@@ -518,31 +521,31 @@ Restriction "_[_.._]" is [
 		endT : integerType |
 	type of subtuple tt
 	from range startT
-	to range endT;
+	to range endT
 ] : tupleType;
 
 
 Method "_[.._]" is [t : tuple, end : whole number |
 	/* Extract a contiguous region from a tuple. */
-	t[1..end];
+	t[1..end]
 ] : tuple;
 
 Restriction "_[.._]" is [tt : tupleType, endT : integerType |
 	type of subtuple tt
 	from range [1..1]
-	to range endT;
+	to range endT
 ] : tupleType;
 
 
 Method "_[_..]" is [t : tuple, start : natural number |
 	/* Extract a contiguous region from a tuple. */
-	t[start..||t||];
+	t[start..||t||]
 ] : tuple;
 
 Restriction "_[_..]" is [tt : tupleType, startT : integerType |
 	type of subtuple tt
 	from range startT
-	to range tt sizes;
+	to range tt sizes
 ] : tupleType;
 
 
@@ -554,7 +557,7 @@ Method "_[_.._->_]" is [
 		replacement : tuple |
 	/* Create a tuple with the given range replaced by replacement.  The
 	   range need not match the size of the replacement. */
-	splice <t[1..start-1], replacement, t[end+1..||t||]>;
+	splice <t[1..start-1], replacement, t[end+1..||t||]>
 ] : tuple;
 
 Restriction "_[_.._->_]" is [
@@ -572,7 +575,7 @@ Restriction "_[_.._->_]" is [
 	concatenate tuple type
 		concatenate tuple type part1
 		and part2
-	and part3;
+	and part3
 ] : tupleType;
 
 
@@ -580,24 +583,24 @@ Restriction "_[_.._->_]" is [
 Forward "_radix_" for [integer, [2..36]]->string;
 Method "_radix_" is [i : integer, rad : [2..36] |
 	if i < 0 then [
-		"-" then -i radix rad;
+		"-" then -i radix rad
 	] else [
 		index ::= i mod rad + 1;
 		digit ::= "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ" [index];
 		if i < rad then [
-			<digit>;
+			<digit>
 		] else [
-			i / rad radix rad then <digit>;
-		];
-	];
+			i / rad radix rad then <digit>
+		]
+	]
 ] : string;
 
 Method "_decimal" is [a : integer |
-	a radix 10;
+	a radix 10
 ] : string;
 
 Method "_hex" is [a : integer |
-	a radix 16;
+	a radix 16
 ] : string;
 
 Method "code point_" is [cp : character code points |
@@ -609,11 +612,11 @@ Method "code point of_" is [c : character |
 ] : character code points;
 
 Method "$_" is [str : tuple [1..1] of character |
-	str [1];
+	str [1]
 ] : character;
 
 Method "`#_" is [str : tuple [1..1] of character |
-	code point of str [1];
+	code point of str [1]
 ] : character code points;
 
 digitZero ::= #"0";
@@ -628,10 +631,10 @@ Method "_to_" is [a : character, b : character |
 	start : whole number := code point of a;
 	end : whole number := code point of b;
 	From start to end do [i : whole number |
-		cp ::= cast i into [narrow : character code points | narrow;];
+		cp ::= cast i into [narrow : character code points | narrow];
 		result := result then <code point cp>;
 	];
-	result;
+	result
 ] : string;
 
 Method "<«_‡,»`…`|_.._>" is
@@ -641,8 +644,10 @@ Method "<«_‡,»`…`|_.._>" is
 	cardinalityUpper : [0..∞]
  |
  	tuple [cardinalityLower..cardinalityUpper+1)
- 		like cast aTupleOfTypes[1..||aTupleOfTypes||-1] into [ t : tuple of any type | t; ]
- 		default cast aTupleOfTypes[||aTupleOfTypes||] into [ t : any type | t; ];
+ 		like cast aTupleOfTypes[1..||aTupleOfTypes||-1]
+ 			into [ t : tuple of any type | t ]
+ 		default cast aTupleOfTypes[||aTupleOfTypes||]
+ 			into [ t : any type | t ]
 ] : tupleType;
 
 Method "first index of_where_" is
@@ -657,12 +662,12 @@ Method "first index of_where_" is
 	[
 		tupleElement : any
 	|
-		if predicate(tupleElement) then [Exit method with i;];
+		if predicate(tupleElement) then [Exit method with i];
 		i := i+1;
 	];
 	
-	0;
-]:whole number;
+	0
+] : whole number;
 
 Restriction "first index of_where_" is
 [
@@ -670,7 +675,7 @@ Restriction "first index of_where_" is
 	predicateType : ([terminates]->boolean) type
 |
 	check predicateType accepts tType;
-	void;
+	void
 ];
 
 
@@ -684,13 +689,13 @@ Method "last index of_where_" is
 	[
 		i : integer
 	|
-		counter : natural number := cast i into [n : natural number | n;];
-		if predicate(t[counter]) then 
-			[Exit method with counter;];
+		counter : natural number := cast i into [n : natural number | n];
+		if predicate(t[counter]) then [
+			Exit method with counter];
 	];
 	
-	0;
-]:whole number;
+	0
+] : whole number;
 
 Restriction "last index of_where_" is
 [
@@ -698,7 +703,7 @@ Restriction "last index of_where_" is
 	predicateType : ([terminates]->boolean) type
 |
 	check predicateType accepts tType;
-	void;
+	void
 ];
 
 
@@ -720,8 +725,8 @@ Method "all indexes of_where_" is
 		];
 		i := i + 1;
 	];
-	indexes;
-]:<natural number…|0..∞>;
+	indexes
+] : <natural number…|0..∞>;
 
 Restriction "all indexes of_where_" is
 [
@@ -729,7 +734,7 @@ Restriction "all indexes of_where_" is
 	predicateType : ([terminates]->boolean) type
 |
 	check predicateType accepts tType;
-	void;
+	void
 ];
 
 
@@ -740,11 +745,11 @@ Method "_includes_" is
 |
 	$method : boolean;
 	
-	if first index of t where [ x : any | x = element;] > 0 then
-		[Exit method with true;];
-	false;
+	if first index of t where [ x : any | x = element] > 0 then [
+		Exit method with true];
+	false
 	
-]:boolean;
+] : boolean;
 
 Restriction "_includes_" is
 [
@@ -753,7 +758,7 @@ Restriction "_includes_" is
 |
 	tupleOftTypes : <type…|0..∞> := tType leading types then <tType default type>;
 	if first index of tupleOftTypes where [ x : type |
-		type intersection of x and elementType not = terminates;] = 0
-	then [false type;]
-	else [boolean;];
-]:boolean type;
+		type intersection of x and elementType not = terminates] = 0
+	then [false type]
+	else [boolean]
+] : boolean type;

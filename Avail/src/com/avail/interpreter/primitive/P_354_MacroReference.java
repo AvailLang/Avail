@@ -1,5 +1,5 @@
 /**
- * Primitive_354_MacroReference.java
+ * P_354_MacroReference.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

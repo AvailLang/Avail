@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Process"
+System Module "Process"
 Extends
 	"Thread",
 	"Semaphore"

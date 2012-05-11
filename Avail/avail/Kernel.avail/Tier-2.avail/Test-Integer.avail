@@ -43,7 +43,7 @@ Body
 
 
 Method "_EQ_" is [a : extended integer type, b : extended integer type |
-	a as range = b as range;
+	a as range = b as range
 ];
 
 Assert integer range INF type plus -INF type EQ terminates;
@@ -73,7 +73,7 @@ Method "phony_+_" is
 	Primitive 1 (failureReason : natural number);
 	/* Print failureReason; */
 	/* Print "Answering 666 instead."; */
-	666;
+	666
 ] : number;
 
 Assert phony 1 + 2 = 3;
@@ -92,12 +92,12 @@ Print [10..20] as basic string  then "\n";
 Print [10..20] negated as basic string  then "\n";
 Print [-10..20] negated as basic string  then "\n";
 Print 0 - 1000 as basic string  then "\n";
-Print [0 - two30;] type result as basic string then "\n";
+Print [0 - two30] type result as basic string then "\n";
 Print 0 - two30 as basic string then "\n";
 Print [two30..two30] negated as basic string then "\n";
 Print [two30..two31] negated as basic string then "\n";
 Print [two31..two31] negated as basic string then "\n";
-Print [0 - two31;] type result as basic string then "\n";
+Print [0 - two31] type result as basic string then "\n";
 Print 0 - two31 as basic string then "\n";
 bigNeg ::= -two31 as basic string then "\n";
 Print two31 as basic string then "\n";
@@ -123,5 +123,5 @@ From 1 to ||bases|| do [lowerSubscript : natural number |
 	];
 ];
 
-Assert [x : extended integer, y : whole number | x ^ y;] type result = extended integer;
-Assert [x : integer, y : whole number | x ^ y;] type result = integer;
+Assert [x : extended integer, y : whole number | x ^ y] type result = extended integer;
+Assert [x : integer, y : whole number | x ^ y] type result = integer;

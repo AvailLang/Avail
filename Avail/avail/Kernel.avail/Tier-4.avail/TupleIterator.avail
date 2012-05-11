@@ -56,7 +56,7 @@ tupleField ::= lookup "tuple";
 	tupleField -> tuple;
 
 Rule [iter : Tuple Iterator |
-	1 <= *iter -> position <= ||iter -> tupleField||;
+	1 <= *iter -> position <= ||iter -> tupleField||
 ];
 
 
@@ -70,32 +70,32 @@ Method "_as Iterator" is [t : tuple |
 	thingsThunk ::= stub block
 		with function type thunkType
 		invoking [t1 : tuple | Halt;];
-	thingsThunk2 ::= cast thingsThunk into [c : []->any | c;];
+	thingsThunk2 ::= cast thingsThunk into [c : []->any | c];
 	Tuple Iterator new with <
 		<tupleField, t>,
 		<position, ↑pos>,
 		<elementType, thingsThunk2>
-	>;
+	>
 ] : Tuple Iterator;
 
 Restriction "_as Iterator" is [tt : tupleType |
 	elemType ::= type union of (union of types in tt leading types)
 		and tt default type;
-	Tuple Iterator altered with <<elementType , []->elemType>>;
+	Tuple Iterator altered with <<elementType , []->elemType>>
 ];
 
 
 Method "_is at end" is [iter : Tuple Iterator |
-	*iter -> position > ||iter -> tupleField||;
+	*iter -> position > ||iter -> tupleField||
 ];
 
 Method "next_" is [iter : Tuple Iterator |
 	result ::= iter -> tupleField [*iter -> position];
 	iter -> position ++;
-	result;
+	result
 ];
 
 Restriction "next_" is [iterType : Tuple Iterator type |
-	iterType -> elementType result;
+	iterType -> elementType result
 ];
 

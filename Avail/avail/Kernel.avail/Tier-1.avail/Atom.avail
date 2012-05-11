@@ -57,14 +57,14 @@ Method "_property[_]`?" is [
 		a : atom,
 		propertyKey : atom |
 	Primitive 122 (failureCode : natural number);
-	Failed;
+	Failed
 ] : boolean;
 
 Method "_property[_]" is [
 		a : atom,
 		propertyKey : atom |
 	Primitive 123  (failureCode : natural number);
-	Failed;
+	Failed
 ] : any;
 
 Method "_property[_]:=_" is [
@@ -72,12 +72,12 @@ Method "_property[_]:=_" is [
 		propertyKey : atom,
 		propertyValue : any |
 	Primitive 124 (failureCode : natural number);
-	Failed;
+	Failed
 ] : void;
 
 Method "_property[_]:=nil" is [
 		a : atom,
 		propertyKey : atom |
 	Primitive 125 (failureCode : natural number);
-	Failed;
+	Failed
 ] : void;

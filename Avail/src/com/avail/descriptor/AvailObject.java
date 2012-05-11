@@ -2287,18 +2287,26 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public int interruptRequestFlag ()
+	public int interruptRequestFlags ()
 	{
-		return descriptor.o_InterruptRequestFlag(this);
+		return descriptor.o_InterruptRequestFlags(this);
 	}
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public void interruptRequestFlag (
-		final int value)
+	public void setInterruptRequestFlag (
+		final BitField value)
 	{
-		descriptor.o_InterruptRequestFlag(this, value);
+		descriptor.o_SetInterruptRequestFlag(this, value);
+	}
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	public void clearInterruptRequestFlags ()
+	{
+		descriptor.o_ClearInterruptRequestFlags(this);
 	}
 
 	/**

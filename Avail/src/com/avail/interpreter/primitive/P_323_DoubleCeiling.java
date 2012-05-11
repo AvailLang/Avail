@@ -1,5 +1,5 @@
 /**
- * Primitive_323_DoubleCeiling.java
+ * P_323_DoubleCeiling.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

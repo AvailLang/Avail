@@ -49,14 +49,14 @@ Body
 	x := x with 9;
 	Assert x = {9,2,4,3,1};
 	x := x without 3 intersect {7,8,2,8,8,8,9,3};
-	if x not = {9,2} then [Crash "Problem in 'without' or 'intersect'.";];
+	if x not = {9,2} then [Crash "Problem in 'without' or 'intersect'."];
 	x := x union {7,6};
-	if x not = {9,6,2,7} then [Crash "Problem in 'union'.";];
+	if x not = {9,6,2,7} then [Crash "Problem in 'union'."];
 	x := x minus {7,2,3};
-	if x not = {9,6} then [Crash "Problem in 'minus'.";];
-	if not x <= x then [Crash "Problem in <=.";];
-	if not x <= x with 99 then [Crash "Problem in <=.";];
-	if not {} <= x then [Crash "Problem in <=.";];
+	if x not = {9,6} then [Crash "Problem in 'minus'."];
+	if not x <= x then [Crash "Problem in <=."];
+	if not x <= x with 99 then [Crash "Problem in <=."];
+	if not {} <= x then [Crash "Problem in <=."];
 ]();
 
 /*

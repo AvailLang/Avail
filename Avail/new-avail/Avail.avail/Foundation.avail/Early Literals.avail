@@ -53,7 +53,7 @@ Method "<«_‡,»>" is
 [
 	elements : tuple
 |
-	elements;
+	elements
 ] : tuple;
 
 /**
@@ -71,7 +71,7 @@ Semantic restriction "<«_‡,»>" is
 [
 	elements : tuple meta
 |
-	elements;
+	elements
 ];
 
 /**
@@ -87,5 +87,5 @@ Method "{«_‡,»}" is
 [
 	elements : <<>, any…|natural number>
 |
-	elements→set;
+	elements→set
 ] : set;

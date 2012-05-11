@@ -55,7 +55,7 @@ Body
 
 
 Restriction "_(«_‡,»)" is [bt : functionType, argsType : tupleType |
-	bt result;
+	bt result
 ];
 
 
@@ -80,7 +80,7 @@ Method "_functionType" is [contType : continuationType |
  */
 Method "Restart_" is [con : continuation |
 	Primitive 58 (failureCode : natural number);
-	Failed;
+	Failed
 ] : terminates;
 
 
@@ -92,7 +92,7 @@ Method "Restart_" is [con : continuation |
  */
 Method "Restart_with_" is [con : continuation, args : tuple |
 	Primitive 56 (failureCode : natural number);
-	Failed;
+	Failed
 ] : terminates;
 
 Restriction "Restart_with_" is [conType : type, argsType : tupleType |
@@ -104,12 +104,13 @@ Restriction "Restart_with_" is [conType : type, argsType : tupleType |
 			& argsType sizes upper bound = numArgs
 			& closType <=
 				block type
-					taking cast argsType[1..numArgs] into [ t : tuple of any type | t; ]
-					and returning void;
-	];
+					taking cast argsType[1..numArgs]
+						into [ t : tuple of any type | t ]
+					and returning void];
 	if not good then [
-		Fail parse "Restart_with_ to be provided arguments that conform to the continuation argument types";];
-	void;
+		Fail parse "Restart_with_ to be provided arguments that conform to\
+			\| the continuation argument types"];
+	void
 ];
 
 /**
@@ -120,17 +121,17 @@ Restriction "Restart_with_" is [conType : type, argsType : tupleType |
  */
 Method "Exit_with_" is [con : continuation, value : any |
 	Primitive 57 (failureCode : natural number);
-	Failed;
+	Failed
 ] : terminates;
 
 Restriction "Exit_with_" is [conType : type, valueType : type |
 	good ::= cast conType into [conType2 : continuationType |
 		conType2 functionType result not = void
-			& valueType <= conType2 functionType result;
-	];
+			& valueType <= conType2 functionType result];
 	if not good then [
-		Fail parse "Exit_with_ to be supplied a value that conforms to the continuation result type";];
-	void;
+		Fail parse "Exit_with_ to be supplied a value that conforms to\
+			\| the continuation result type"];
+	void
 ];
 
 /**
@@ -140,8 +141,8 @@ Restriction "Exit_with_" is [conType : type, valueType : type |
 Method "Exit_" is [con : $[...]->void |
 	[c : continuation, ignored : any |
 		Primitive 57 (failureCode : natural number);
-		Failed;
-	] : terminates apply <con,123>;
+		Failed
+	] : terminates apply <con,123>
 ] : terminates;
 
 
@@ -150,13 +151,14 @@ Method "Exit_" is [con : $[...]->void |
 Method "Loop_" is [block : []->void |
 	$body;
 	block();
-	Restart body;
+	Restart body
 ] : terminates;
 
 Method "Loop_until_" is [block : []->void, predicate : []->boolean |
 	$body;
 	block();
-	if not predicate() then [Restart body;];
+	if not predicate() then [
+		Restart body];
 ] : void;
 
 Method "Loop_until_do_" is
@@ -167,20 +169,23 @@ Method "Loop_until_do_" is
 |
 	$body;
 	block();
-	if not predicate() then [alternateBlock(); Restart body;];
+	if not predicate() then [
+		alternateBlock();
+		Restart body];
 ] : void;
 
 Method "Loop_while_" is [block : []->void, predicate : []->boolean |
 	$body;
 	block();
-	if predicate() then [Restart body;];
+	if predicate() then [
+		Restart body];
 ] : void;
 
 Method "Until_loop_" is [predicate : []->boolean, block : []->void |
 	$body;
 	if not predicate() then [
 		block();
-		Restart body;
+		Restart body
 	];
 ] : void;
 
@@ -188,7 +193,7 @@ Method "While_loop_" is [predicate : []->boolean, block : []->void |
 	$body;
 	if predicate() then [
 		block();
-		Restart body;
+		Restart body
 	];
 ] : void;
 
@@ -201,7 +206,7 @@ Method "From_to_do_" is [start : integer, end : (-INF..INF], blk : [terminates]-
 	$body;
 	if start <= end then [
 		blk apply <start>;
-		Restart body with <start + 1, end, blk>;
+		Restart body with <start + 1, end, blk>
 	];
 ] : void;
 
@@ -217,9 +222,9 @@ Restriction "From_to_do_" is [
 			to endT upper bound + 1
 			inclusive false;
 		if not indices <= blkT[1] then [
-			Fail parse "block of _to_do_ to accept all integers in the range";];
+			Fail parse "block of _to_do_ to accept all integers in the range"];
 	];
-	void;
+	void
 ];
 
 Method "From_to_by_do_" is
@@ -231,11 +236,11 @@ action : [integer]->void
 |
    counter : integer := start;
    if incrementer = 0 then [
-   		Crash "Cannot increment by 0.";
+   		Crash "Cannot increment by 0."
    ];
    guard : [] -> boolean := if incrementer > 0
-   		then [ [counter <= end;]; ]
-   		else [ [counter >= end;]; ];
+   		then [ [counter <= end] ]
+   		else [ [counter >= end] ];
    [
         $body;
 
@@ -243,7 +248,7 @@ action : [integer]->void
         [
            action apply <counter>;
            counter := counter + incrementer;
-           Restart body;
+           Restart body
         ];
    ]();
 ] : void;
@@ -261,33 +266,37 @@ Restriction "From_to_by_do_" is
    endTypeUpper ::= endType upper bound;
    if incrementerType <= [0..0] then
    [
-        Fail parse "The incrementing value must be a non-zero value.";
+        Fail parse "The incrementing value must be a non-zero value."
    ];
    if incrementerType <= (-∞..-1] then
    [
      if startTypeLower < endTypeLower - 1 then
      [
-        Fail parse "The starting count's lowest potential value cannot be lower than the ending count's lowest
-        potential value for a decrementing counter";
+        Fail parse "The starting count's lowest potential value cannot be\
+        	\| lower than the ending count's lowest potential value for a\
+        	\| decrementing counter"
      ];
      if startTypeUpper < endTypeUpper then
      [
-       Fail parse "The starting count's largest potential value cannot be lower than the ending count's largest potential
-       value for a decrementing counter";
+       Fail parse "The starting count's largest potential value cannot be\
+       	\| lower than the ending count's largest potential value for a\
+       	\| decrementing counter"
      ];
   ];
   if incrementerType <= [1..∞) then
   [
      if startTypeLower > endTypeLower then
      [
-        Fail parse "The starting count's lowest potential value cannot be greater than the ending count's lowest potential
-        value for an incrementing counter";
+        Fail parse "The starting count's lowest potential value cannot be\
+        	\| greater than the ending count's lowest potential value for an\
+        	\| incrementing counter"
      ];
      if startTypeUpper > endTypeUpper then
      [
-        Fail parse "The starting count's largest potential value cannot be greater than the ending count's largest
-        potential value for an incrementing counter";
+        Fail parse "The starting count's largest potential value cannot be\
+        	\| greater than the ending count's largest potential value for an\
+        	\| incrementing counter"
      ];
   ];
-  void;
+  void
 ];

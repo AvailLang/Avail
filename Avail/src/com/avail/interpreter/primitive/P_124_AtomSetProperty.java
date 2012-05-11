@@ -1,5 +1,5 @@
 /**
- * Primitive_124_AtomSetProperty.java
+ * P_124_AtomSetProperty.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

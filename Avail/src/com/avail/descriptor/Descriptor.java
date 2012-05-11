@@ -684,9 +684,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_InterruptRequestFlag (
+	void o_SetInterruptRequestFlag (
 		final @NotNull AvailObject object,
-		final int value)
+		final BitField value)
 	{
 		throw unsupportedOperationException();
 	}
@@ -2076,7 +2076,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	int o_InterruptRequestFlag (
+	int o_InterruptRequestFlags (
 		final @NotNull AvailObject object)
 	{
 		throw unsupportedOperationException();
@@ -4495,6 +4495,12 @@ extends AbstractDescriptor
 
 	@Override
 	@NotNull AvailObject o_FieldTuple (final @NotNull AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_ClearInterruptRequestFlags (final @NotNull AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}

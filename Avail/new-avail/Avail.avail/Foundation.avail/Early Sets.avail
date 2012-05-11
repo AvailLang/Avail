@@ -58,7 +58,7 @@ Semantic restriction "_'s⁇element type" is
 	aSetMeta : set's type's type
 |
 	aSetType ::= aSetMeta's instance;
-	aSetType's element type's type;
+	aSetType's element type's type
 ];
 
 /**
@@ -79,8 +79,8 @@ Semantic restriction "_∪_" is
 |
 	lower ::= ||typeA||'s lower bound min ||typeB||'s lower bound;
 	upper ::= cast ||typeA||'s upper bound + ||typeB||'s upper bound
-		into [ t : whole number | t; ];
-	{typeA's element type ∪ typeB's element type | [lower..upper + 1)};
+		into [ t : whole number | t ];
+	{typeA's element type ∪ typeB's element type | [lower..upper + 1)}
 ];
 
 /* Make union left associate. */
@@ -106,12 +106,12 @@ Semantic restriction "_∩_" is
 |
 	innerType ::= typeA's element type ∩ (typeB's element type);
 	upper : [0..∞] := ||typeA||'s upper bound min ||typeB||'s upper bound;
-	If |innerType| ≠ ∞ ∧ [innerType ∩ (type's type) ≠ ⊥;] then
+	If |innerType| ≠ ∞ ∧ [innerType ∩ (type's type) ≠ ⊥] then
 	[
 		/* There are a limited number of possible values. */
 		upper := upper min |innerType|;
 	];
-	{typeA's element type ∩ (typeB's element type) | [0..upper + 1)};
+	{typeA's element type ∩ (typeB's element type) | [0..upper + 1)}
 ];
 
 /* Make intersection left associate. */
@@ -134,11 +134,11 @@ Semantic restriction "_⊆_" is
 	/* If both arguments are instance types, then extract their instances and
 	 * perform the subset operation on them, answering the result's type.
 	 */
-	if |typeA| = 1 ∧ [ |typeB| = 1; ] then
+	if |typeA| = 1 ∧ [ |typeB| = 1 ] then
 	[
 		a ::= typeA's instance;
 		b ::= typeB's instance;
-		(a ⊆ b)'s type;
+		(a ⊆ b)'s type
 	]
 	else
 	[
@@ -152,12 +152,12 @@ Semantic restriction "_⊆_" is
 			[
 				if elementA ∩ elementB = ⊥ then
 				[
-					false's type;
+					false's type
 				]
 				else
 				[
-					⊤;
-				];
+					⊤
+				]
 			];
 		sizesB ::= ||typeB||;
 		/* This is finesse. If `typeB` is definitely the set of all possible
@@ -167,17 +167,17 @@ Semantic restriction "_⊆_" is
 		 */
 		if |elementB| ≠ ∞
 			∧ [ sizesB's lower bound = sizesB's upper bound
-			∧ [ |elementB| = sizesB's lower bound; ]; ]
+			∧ [ |elementB| = sizesB's lower bound ] ]
 		then
 		[
 			if elementA ⊆ elementB then
 			[
-				true's type;
+				true's type
 			]
-			else basicRule;
+			else basicRule
 		]
-		else basicRule;
-	];
+		else basicRule
+	]
 ];
 
 /* Disambiguate `_→_` and `_→set`. */

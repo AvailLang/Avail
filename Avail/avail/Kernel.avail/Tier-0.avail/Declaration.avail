@@ -70,7 +70,7 @@ Method "Restriction_is_" is [
 		name : string,
 		restrictionBlock : ⊶[...]-> type |
 	Primitive 248 (failureCode : natural number);
-	Failed;
+	Failed
 ] : void;
 
 
@@ -80,7 +80,7 @@ Method "Forward_for_" is [
 	/* Declare method without body (for recursion / mutual recursion).  Must be
 	   followed in same module by a legitimate definition. */
 	Primitive 252 (failureCode : natural number);
-	Failed;
+	Failed
 ] : void;
 
 
@@ -88,7 +88,7 @@ Method "Abstract method_for_" is [
 		name : string,
 		bodyType : functionType |
 	Primitive 251 (failureCode : natural number);
-	Failed;
+	Failed
 ] : void;
 
 
@@ -120,11 +120,11 @@ Restriction "_type" is [xt : type |
  * this is an excellent example of parametric result typing.
  */
 Method "(_)" is [arg : any |
-	arg;
+	arg
 ];
 
 Restriction "(_)" is [argType : type |
-	argType;
+	argType
 ];
 
 
@@ -134,11 +134,11 @@ Restriction "(_)" is [argType : type |
  */
 Method "lookup_" is [t : string |
 	Primitive 245 (failureCode : natural number);
-	Failed;
+	Failed
 ] : atom;
 
-Method "falseType" is [ false type; ] : false type type;
-Method "trueType" is [ true type; ] : true type type;
+Method "falseType" is [ false type ] : false type type;
+Method "trueType" is [ true type ] : true type type;
 
 
 /* Runtime assertions... */
@@ -147,7 +147,7 @@ Method "Assert_" is [b : boolean |
 ] : void;
 
 Method "Assert_" is [b : falseType |
-	Crash "A runtime assertion has failed";
+	Crash "A runtime assertion has failed"
 ] : terminates;
 
 Method "Assert_:_" is [b : boolean, message : string |
@@ -155,6 +155,6 @@ Method "Assert_:_" is [b : boolean, message : string |
 ] : void;
 
 Method "Assert_:_" is [b : falseType, message : string |
-	Crash message;
+	Crash message
 ] : terminates;
 

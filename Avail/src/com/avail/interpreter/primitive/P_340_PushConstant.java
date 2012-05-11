@@ -1,5 +1,5 @@
 /**
- * Primitive_340_PushConstant.java
+ * P_340_PushConstant.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

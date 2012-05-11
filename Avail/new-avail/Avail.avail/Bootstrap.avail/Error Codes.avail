@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.05.10 16:59:40.459 -0500
+ * * Last Generated On: 2012.05.11 13:38:57.922 -0500
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -115,7 +115,7 @@ Body
  */
 Method "cannot add unlike infinities code" is
 [
-	1;
+	1
 ];
 
 /**
@@ -123,311 +123,311 @@ Method "cannot add unlike infinities code" is
  */
 Method "cannot subtract like infinities code" is
 [
-	2;
+	2
 ];
 
 Method "cannot multiply zero and infinity code" is
 [
-	3;
+	3
 ];
 
 Method "cannot divide by zero code" is
 [
-	4;
+	4
 ];
 
 Method "cannot divide infinities code" is
 [
-	5;
+	5
 ];
 
 Method "cannot read unassigned variable code" is
 [
-	6;
+	6
 ];
 
 Method "cannot store incorrectly typed value code" is
 [
-	7;
+	7
 ];
 
 Method "cannot swap contents of differently typed variables code" is
 [
-	8;
+	8
 ];
 
 Method "no such process variable code" is
 [
-	9;
+	9
 ];
 
 Method "subscript out of bounds code" is
 [
-	10;
+	10
 ];
 
 Method "incorrect number of arguments code" is
 [
-	11;
+	11
 ];
 
 Method "incorrect argument type code" is
 [
-	12;
+	12
 ];
 
 Method "method return type not as forward declared code" is
 [
-	13;
+	13
 ];
 
 Method "continuation expected stronger type code" is
 [
-	14;
+	14
 ];
 
 Method "primitive not supported code" is
 [
-	15;
+	15
 ];
 
 Method "cannot order not a number code" is
 [
-	16;
+	16
 ];
 
 Method "not enumeration code" is
 [
-	17;
+	17
 ];
 
 Method "object type has no user defined name code" is
 [
-	18;
+	18
 ];
 
 Method "no method code" is
 [
-	19;
+	19
 ];
 
 Method "wrong number of outers code" is
 [
-	20;
+	20
 ];
 
 Method "key not found code" is
 [
-	21;
+	21
 ];
 
 Method "negative size code" is
 [
-	22;
+	22
 ];
 
 Method "I/O error code" is
 [
-	23;
+	23
 ];
 
 Method "permission denied code" is
 [
-	24;
+	24
 ];
 
 Method "invalid handle code" is
 [
-	25;
+	25
 ];
 
 Method "invalid primitive number code" is
 [
-	26;
+	26
 ];
 
 Method "function disagrees with primitive restriction code" is
 [
-	27;
+	27
 ];
 
 Method "local type literal is not a type code" is
 [
-	28;
+	28
 ];
 
 Method "outer type literal is not a type code" is
 [
-	29;
+	29
 ];
 
 Method "unhandled exception code" is
 [
-	30;
+	30
 ];
 
 Method "type restriction must accept only types code" is
 [
-	31;
+	31
 ];
 
 Method "incorrect type for group code" is
 [
-	32;
+	32
 ];
 
 Method "invalid special object number code" is
 [
-	33;
+	33
 ];
 
 Method "macro argument must be a parse node code" is
 [
-	34;
+	34
 ];
 
 Method "ambiguous name code" is
 [
-	35;
+	35
 ];
 
 Method "declaration kind does not support assignment code" is
 [
-	36;
+	36
 ];
 
 Method "declaration kind does not support reference code" is
 [
-	37;
+	37
 ];
 
 Method "expected primitive type code" is
 [
-	38;
+	38
 ];
 
 Method "redefined with same argument types code" is
 [
-	39;
+	39
 ];
 
 Method "result type should covary with arguments code" is
 [
-	40;
+	40
 ];
 
 Method "special atom code" is
 [
-	41;
+	41
 ];
 
 Method "incorrect type for complex group code" is
 [
-	42;
+	42
 ];
 
 Method "incorrect use of double dagger code" is
 [
-	43;
+	43
 ];
 
 Method "unbalanced guillemets code" is
 [
-	44;
+	44
 ];
 
 Method "method name is not canonical code" is
 [
-	45;
+	45
 ];
 
 Method "expected operator after backquote code" is
 [
-	46;
+	46
 ];
 
 Method "incorrect type for boolean group code" is
 [
-	47;
+	47
 ];
 
 Method "incorrect type for counting group code" is
 [
-	48;
+	48
 ];
 
 Method "octothorp must follow a simple group code" is
 [
-	49;
+	49
 ];
 
 Method "question mark must follow a simple group code" is
 [
-	50;
+	50
 ];
 
 Method "case insensitive expression canonization code" is
 [
-	51;
+	51
 ];
 
 Method "tilde must not follow argument code" is
 [
-	52;
+	52
 ];
 
 Method "double question mark must follow a simple or simple group code" is
 [
-	53;
+	53
 ];
 
 Method "alternative must not contain arguments code" is
 [
-	54;
+	54
 ];
 
 Method "compilation is over code" is
 [
-	70;
+	70
 ];
 
 Method "Java class not available code" is
 [
-	500;
+	500
 ];
 
 Method "pojo type is abstract code" is
 [
-	501;
+	501
 ];
 
 Method "Java method not available code" is
 [
-	502;
+	502
 ];
 
 Method "Java marshaling failed code" is
 [
-	504;
+	504
 ];
 
 Method "Java field not available code" is
 [
-	505;
+	505
 ];
 
 Method "Java field reference is ambiguous code" is
 [
-	506;
+	506
 ];
 
 Method "cannot modify final Java field code" is
 [
-	507;
+	507
 ];
 
 Method "Java method reference is ambiguous code" is
 [
-	508;
+	508
 ];
 

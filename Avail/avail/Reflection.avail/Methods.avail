@@ -114,27 +114,27 @@ Method "implementationSet" is [privateImplementationSet;] : primType;
 
 Method "_message" is [bundle : messageBundle |
 	Primitive 211 (failureCode : natural number);
-	Failed;
+	Failed
 ] : atom;
 
 Method "_message parts" is [bundle : messageBundle |
 	Primitive 212 (failureCode : natural number);
-	Failed;
+	Failed
 ] : tuple of string;
 
 Method "_signatures" is [bundle : messageBundle |
 	Primitive 213 (failureCode : natural number);
-	Failed;
+	Failed
 ] : set of signature;
 
 Method "_has restrictions" is [bundle : messageBundle |
 	Primitive 214 (failureCode : natural number);
-	Failed;
+	Failed
 ] : boolean;
 
 Method "_restrictions" is [bundle : messageBundle |
 	Primitive 215 (failureCode : natural number);
-	Failed;
+	Failed
 ] : tuple of set of atom;
 
 
@@ -143,22 +143,22 @@ Method "_restrictions" is [bundle : messageBundle |
 
 Method "_bodyType" is [sig : signature |
 	Primitive 216 (failureCode : natural number);
-	Failed;
+	Failed
 ] : functionType;
 
 Method "_body" is [methSig : methodSignature |
 	Primitive 217 (failureCode : natural number);
-	Failed;
+	Failed
 ] : function;
 
 Method "_requires block" is [sig : signature |
 	Primitive 218 (failureCode : natural number);
-	Failed;
+	Failed
 ] : [...]->boolean;
 
 Method "_returns block" is [sig : signature |
 	Primitive 219 (failureCode : natural number);
-	Failed;
+	Failed
 ] : [...]->type;
 
 
@@ -188,7 +188,7 @@ Method "_complete" is [tree : messageBundleTree |
 	/* Answer the messages that are complete at this point
 	   in the tree.  Answer a map from messages to bundles. */
 	Primitive 207 (failureCode : natural number);
-	Failed;
+	Failed
 ] : map from atom to messageBundle;
 
 Method "_incomplete" is [tree : messageBundleTree |
@@ -196,7 +196,7 @@ Method "_incomplete" is [tree : messageBundleTree |
 	   in the tree.  Answer a map from strings (the next piece
 	   to be parsed) to messageBundleTrees. */
 	Primitive 208 (failureCode : natural number);
-	Failed;
+	Failed
 ] : map from string to messageBundleTree;
 
 
@@ -207,7 +207,7 @@ Method "_incomplete" is [tree : messageBundleTree |
 
 Method "_implementation set" is [message : atom |
 	Primitive 220 (failureCode : natural number);
-	Failed;
+	Failed
 ] : implementationSet;
 
 
@@ -215,7 +215,7 @@ Method "_implementation set" is [message : atom |
 
 Method "_name" is [impSet : implementationSet |
 	Primitive 221 (failureCode : natural number);
-	Failed;
+	Failed
 ] : atom;
 
 

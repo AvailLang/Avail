@@ -56,7 +56,7 @@ Restriction "type union of_and_" is [
 		aT : type,
 		bT : type |
 	/* Metacovariance is guaranteed by the VM.  */
-	type union of aT and bT;
+	type union of aT and bT
 ];
 
 
@@ -72,5 +72,5 @@ Restriction "type intersection of_and_" is [
 		aT : type,
 		bT : type |
 	/* Metacovariance is guaranteed by the VM.  */
-	type intersection of aT and bT;
+	type intersection of aT and bT
 ];

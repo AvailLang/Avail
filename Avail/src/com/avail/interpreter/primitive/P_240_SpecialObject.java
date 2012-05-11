@@ -1,5 +1,5 @@
 /**
- * Primitive_240_SpecialObject.java
+ * P_240_SpecialObject.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

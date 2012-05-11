@@ -1,5 +1,5 @@
 /**
- * Primitive_013_CreateVariableType.java
+ * P_013_CreateVariableType.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

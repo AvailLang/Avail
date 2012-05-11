@@ -38,7 +38,7 @@ Names
 Body
 
 
-Method "⊤" is [ void; ];
+Method "⊤" is [ void ];
 
 /* The BMI Calculator is take from the assignment 2.33 in Java How to Program
  *
@@ -93,7 +93,7 @@ Method "Calculate BMI" is
 		/* Condition to be met for loop to end.  We want the user to have a
 		 * positive weight. 
 		 */
-		weightInPounds >= 0;
+		weightInPounds >= 0
 	] do 
 	[
 		/* Print in the event the user enters a negative or 0 weight. */
@@ -107,7 +107,7 @@ Method "Calculate BMI" is
 		heightInInches := 
 			Ask for an integer with the question, "Enter Height (in inches): ";	
 	] until [ 
-		heightInInches > 0;
+		heightInInches > 0
 	] do [
 		Print "Height must be a positive integer";
 	];
@@ -133,10 +133,10 @@ Method "Calculate BMI" is
 	Print "Your Body Mass Index (BMI) is " 
 		then bmi as basic string then 
 		". " then 
-		if bmi < 18.5 then ["You are underweight.\n";]
-			else if 18.5 <= bmi < 24.9 then ["You are normal.\n";]
-			else if 24.9 <= bmi < 29.9 then ["You are overweight.\n";]
-			else ["You are obese.\n";];
+		if bmi < 18.5 then ["You are underweight.\n"]
+			else if 18.5 <= bmi < 24.9 then ["You are normal.\n"]
+			else if 24.9 <= bmi < 29.9 then ["You are overweight.\n"]
+			else ["You are obese.\n"];
 	
 	/* Print the body type bmi ranges */
 	Print "Body Types";

@@ -58,7 +58,7 @@ Semantic restriction "_'s⁇return type" is
 [
 	functionMeta : function meta's type
 |
-	functionMeta's instance's return type's type;
+	functionMeta's instance's return type's type
 ];
 
 /* These are error messages. */
@@ -92,10 +92,10 @@ Semantic restriction "Invoke|invoke_with_" is
 		validSizes ::= parametersSizes ∩ argumentsSizes;
 		If validSizes = ⊥ then
 		[
-			Reject parse, expected: sizesIncompatibleMessage;
+			Reject parse, expected: sizesIncompatibleMessage
 		];
 	];
-	functionType's return type;
+	functionType's return type
 ];
 
 /**
@@ -143,7 +143,7 @@ Semantic restriction "_(«_‡,»)" is
 		validSizes ::= parametersSizes ∩ argumentsSizes;
 		If validSizes = ⊥ then
 		[
-			Reject parse, expected: sizesIncompatibleMessage;
+			Reject parse, expected: sizesIncompatibleMessage
 		];
 		/* Verify each of the arguments. */
 		From 1 to argumentsSizes' lower bound do
@@ -160,12 +160,12 @@ Semantic restriction "_(«_‡,»)" is
 					++ ") to agree with corresponding function "
 					++ "parameter type ("
 					++ primitive description of parametersType[index]
-					++ ")";
+					++ ")"
 			];
-			true;
+			true
 		];
 	];
-	functionType's return type;
+	functionType's return type
 ];
 
 /**
@@ -192,14 +192,14 @@ Semantic restriction "_[_]" is
 	 */
 	if parametersType = ⊥ then
 	[
-		⊤;
+		⊤
 	]
 	else
 	[
 		limit ::= cast ||parametersType||'s upper bound
-			into [ t : natural number | t; ];
+			into [ t : natural number | t ];
 		start ::= cast index's lower bound
-			into [ t : natural number | t; ];
+			into [ t : natural number | t ];
 		If start > limit then
 		[
 			Reject parse, expected:
@@ -212,7 +212,7 @@ Semantic restriction "_[_]" is
 					||parametersType||'s lower bound
 				++ " ≤ |theFunctionType| ≤ "
 				++ primitive description of limit
-				++ ")";
+				++ ")"
 		];
 		result : any's type := ⊥;
 		end ::= index's upper bound min limit;
@@ -221,7 +221,7 @@ Semantic restriction "_[_]" is
 			subscript : natural number
 		|
 			result := eject ↑result ∪ functionType[subscript];
-			true;
+			true
 		];
 		/* If `result` is ⊥, then we don't know anything about the types of the
 		 * parameters in the specified range. In this case, don't strengthen the
@@ -229,11 +229,11 @@ Semantic restriction "_[_]" is
 		 */
 		if result = ⊥ then
 		[
-			⊤;
+			⊤
 		]
 		else
 		[
-			result's type;
-		];
-	];
+			result's type
+		]
+	]
 ];

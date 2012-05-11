@@ -1,5 +1,5 @@
 /**
- * Primitive_010_GetValue.java
+ * P_010_GetValue.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

@@ -1,5 +1,5 @@
 /**
- * Primitive_165_FileWrite.java
+ * P_165_FileWrite.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

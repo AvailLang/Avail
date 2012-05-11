@@ -95,6 +95,6 @@ Method "_`#_:_(literals=_,`#locals_,`#outers_,stack depth=_)" is [
 		numOuters: whole number,
 		stackSize : whole number |
 	Primitive 188 (failureCode : natural number);
-	Failed;
+	Failed
 ] : compiledCode;
 

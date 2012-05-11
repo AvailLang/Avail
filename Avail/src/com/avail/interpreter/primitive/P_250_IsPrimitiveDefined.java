@@ -1,5 +1,5 @@
 /**
- * Primitive_250_IsPrimitiveDefined.java
+ * P_250_IsPrimitiveDefined.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

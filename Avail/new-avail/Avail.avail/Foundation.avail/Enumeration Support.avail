@@ -58,7 +58,7 @@ Semantic restriction "enumeration of_" is
 |
 	if |setType| = ∞ then
 	[
-		type;
+		type
 	]
 	else
 	[
@@ -68,11 +68,11 @@ Semantic restriction "enumeration of_" is
 		[
 			index : natural number
 		|
-			union := union ∪ cast instances[index] into [ t : set | t; ];
-			true;
+			union := union ∪ cast instances[index] into [ t : set | t ];
+			true
 		];
-		(enumeration of union)'s type;
-	];
+		(enumeration of union)'s type
+	]
 ];
 
 /**
@@ -91,14 +91,14 @@ Semantic restriction "_'s⁇instances" is
 	if |meta| = ∞ then
 	[
 		Assert: meta = type ("|meta| = ∞ ∧ meta ≠ type");
-		set;
+		set
 	]
 	else
 	[
 		if |meta| = 0 then
 		[
 			Assert: meta = ⊥ ("|meta| = 0 ∧ meta ≠ ⊥");
-			∅'s type;
+			∅'s type
 		]
 		else
 		[
@@ -106,18 +106,18 @@ Semantic restriction "_'s⁇instances" is
 			 * because we are dealing with metatypes here.
 			 */
 			Assert: |meta| = 1 ("|meta| > 1");
-			enum ::= cast meta's instance into [ t : any's type | t; ];
+			enum ::= cast meta's instance into [ t : any's type | t ];
 			if |enum| ≠ ∞ then
 			[
-				bound ::= cast |enum| + 1 into [ t : whole number | t; ];
-				{enum|[0..bound)};
+				bound ::= cast |enum| + 1 into [ t : whole number | t ];
+				{enum|[0..bound)}
 			]
 			else
 			[
-				{enum|whole number};
-			];
-		];
-	];
+				{enum|whole number}
+			]
+		]
+	]
 ];
 
 /**
@@ -137,20 +137,20 @@ Semantic restriction "_'s⁇instance" is
 	[
 		union : type := ⊥;
 		instances ::=
-			cast meta's instances into [ t : {any's type|whole number} | t; ];
+			cast meta's instances into [ t : {any's type|whole number} | t ];
 		From 1 to |instances| do
 		[
 			index : natural number
 		|
 			instance ::=
-				cast instances→tuple[index] into [ t : any's type | t; ];
+				cast instances→tuple[index] into [ t : any's type | t ];
 			union := union ∪ instance;
-			true;
+			true
 		];
-		union;
+		union
 	]
 	else
 	[
-		any;
-	];
+		any
+	]
 ];

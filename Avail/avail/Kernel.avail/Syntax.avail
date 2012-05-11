@@ -62,7 +62,7 @@ Method "_yielding_" is [
 
 Method "Macro_is_" is [name : string, block : [...]-> parseNode |
 	Primitive 249 (failureCode : natural number);
-	Failed;
+	Failed
 ] : void;
 
 
@@ -70,7 +70,7 @@ Method "make assignment variable_expression_" is [
 		v : variableUseNode,
 		e : parseNode |
 	Primitive 353 (failureCode : natural number);
-	Crash "Failed to create assignment";
+	Crash "Failed to create assignment"
 ] : parseNode;
 
 
@@ -82,16 +82,16 @@ Method "_expression type" is [
 
 Macro "_:=_" is [v : variableUseNode, e : parseNode |
 	Primitive 353 (failureCode : natural number);
-	Failed;
+	Failed
 ] : parseNode;
 
 
 Macro "(_:=_)" is [v : variableUseNode, e : parseNode |
 	Primitive 350 (failureCode : natural number);
-	Failed;
+	Failed
 ] : parseNode;
 
 Macro "&_" is [v : variableUseNode |
 	Primitive 354 (failureCode : natural number);
-	Failed;
+	Failed
 ] : parseNode;

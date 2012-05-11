@@ -76,7 +76,7 @@ Assert "\(63)a\(74)" = "cat";
 /* Check that characters beyond the Basic Multilingual Page work. */
 "𝄞" check <16r"1D11E">;
 
-Method "𝄞" is ["hello";];
+Method "𝄞" is ["hello"];
 Assert 𝄞 = "hello"; 
 
 /* Now check lines ending with backslash. */

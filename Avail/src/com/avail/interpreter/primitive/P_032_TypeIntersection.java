@@ -1,5 +1,5 @@
 /**
- * Primitive_032_TypeIntersection.java
+ * P_032_TypeIntersection.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

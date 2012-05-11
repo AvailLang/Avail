@@ -57,7 +57,7 @@ Restriction "_[_]" is
 		do [ x : natural number |
 			possible := type union of tt[x] type and possible;
 		];
-	possible;
+	possible
 ];
 
 [

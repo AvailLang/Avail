@@ -1,5 +1,5 @@
 /**
- * Primitive_162_FileOpenReadWrite.java
+ * P_162_FileOpenReadWrite.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

@@ -1,5 +1,5 @@
 /**
- * Primitive_120_CreateAtom.java
+ * P_120_CreateAtom.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

@@ -68,7 +68,7 @@ Method "error code_'s⁇name" is
 [
 	errorCode : [1000..∞)
 |
-	cast errorNames[errorCode] into [ t : string | t; ];
+	cast errorNames[errorCode] into [ t : string | t ]
 ] : string;
 
 /**
@@ -87,10 +87,10 @@ Method "Next error code is_" is
 	 * This involves the construction of a decorator function.
 	 */
 	functionType ::= function accepting <> and returning next's type;
-	implementation ::= new functionType applying [ next; ];
+	implementation ::= new functionType applying [ next ];
 	Method name is implementation;
 	errorNames := cast eject ↑errorNames + next→name
-		into [ t : {[1000..∞)→string|[1..∞)} | t; ];
+		into [ t : {[1000..∞)→string|[1..∞)} | t ];
 	Publish new name: name;
 ];
 

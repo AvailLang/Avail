@@ -2410,39 +2410,45 @@ public abstract class AbstractAvailCompiler
 		final @NotNull ParserState start,
 		final @NotNull Con<AvailObject> originalContinuation)
 	{
-		// The first time we parse at this position the fragmentCache will have
-		// no knowledge about it.
-		if (!fragmentCache.hasStartedParsingAt(start))
+		synchronized (fragmentCache)
 		{
-			fragmentCache.indicateParsingHasStartedAt(start);
-			eventuallyDo(
-				new Continuation0()
-				{
-					@Override
-					public void value ()
+			// The first time we parse at this position the fragmentCache will
+			// have no knowledge about it.
+			if (!fragmentCache.hasStartedParsingAt(start))
+			{
+				fragmentCache.indicateParsingHasStartedAt(start);
+				eventuallyDo(
+					new Continuation0()
 					{
-						parseExpressionUncachedThen(
-							start,
-							new Con<AvailObject>("Uncached expression")
-							{
-								@Override
-								public void value (
-									final ParserState afterExpr,
-									final AvailObject expr)
+						@Override
+						public void value ()
+						{
+							parseExpressionUncachedThen(
+								start,
+								new Con<AvailObject>("Uncached expression")
 								{
-									fragmentCache.addSolution(
-										start,
-										new AvailCompilerCachedSolution(
-											afterExpr,
-											expr));
-								}
-							});
-					}
-				},
-				"Capture expression for caching",
-				start.position);
+									@Override
+									public void value (
+										final ParserState afterExpr,
+										final AvailObject expr)
+									{
+										synchronized (fragmentCache)
+										{
+											fragmentCache.addSolution(
+												start,
+												new AvailCompilerCachedSolution(
+													afterExpr,
+													expr));
+										}
+									}
+								});
+						}
+					},
+					"Capture expression for caching",
+					start.position);
+			}
+			fragmentCache.addAction(start, originalContinuation);
 		}
-		fragmentCache.addAction(start, originalContinuation);
 	}
 
 	/**

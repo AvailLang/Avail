@@ -60,11 +60,11 @@ Method "{_|_}" is [contentType : any type , sizes : whole number type |
 ] : setType;
 
 Method "set_of_" is [sizes : whole number type, contentType : any type |
-	{contentType|sizes};
+	{contentType|sizes}
 ] : setType;
 
 Method "set of_" is [elementType : any type |
-	set whole number of elementType;
+	set whole number of elementType
 ] : setType;
 
 Method "_content type" is [st : setType |
@@ -83,7 +83,7 @@ Method "`|`|_`|`|" is [s : set |
 ] : whole number;
 
 Restriction "`|`|_`|`|" is [st : setType |
-	st sizes;
+	st sizes
 ] : integerType;
 
 
@@ -91,11 +91,11 @@ Restriction "`|`|_`|`|" is [st : setType |
 
 Method "_private plus_" is [a : number, b : number |
 	Primitive 1 (failureCode : natural number);
-	Failed;
+	Failed
 ] : number;
 
 Restriction "_private plus_" is [aT : integerType, bT : integerType |
-	extended integer;
+	extended integer
 ];
 
 
@@ -109,7 +109,7 @@ Method "_as tuple" is [s : set |
 Restriction "_as tuple" is [st : setType |
 	tuple whole number
 		like <>
-		default st content type;
+		default st content type
 ];
 
 Method "_as set" is [t : tuple |
@@ -118,13 +118,15 @@ Method "_as set" is [t : tuple |
 
 Restriction "_as set" is [tt : tupleType |
 	sizes ::= tt sizes;
-	minSize ::= (type union of [1..sizes upper bound private plus 1) and sizes) lower bound;
+	minSize ::= (type union of [1..sizes upper bound private plus 1) and sizes)
+		lower bound;
 	maxSize ::= sizes upper bound;
-	mergedType ::= type union of (union of types in tt leading types) and (tt default type);
+	mergedType ::= type union of (union of types in tt leading types)
+		and (tt default type);
 	range ::= [minSize..maxSize private plus 1);
 	merged : any type;
 	*↑merged ?:= mergedType;
-	set (type intersection of range and whole number) of merged;
+	set (type intersection of range and whole number) of merged
 ] : setType;
 
 <"_lower bound", "_upper bound"> as set can't have <<"_sizes"> as set>;
@@ -133,14 +135,14 @@ Method "_sizes lower bound" is [st : setType |
 	/* This is syntactically overloaded for a stronger return type. */
 	result : [0..INF);
 	* ↑result ?:= (st sizes) lower bound;
-	result;
+	result
 ] : [0..INF);
 
 Method "_sizes upper bound" is [st : setType |
 	/* This is syntactically overloaded for a stronger return type. */
 	result : [0..INF];
 	* ↑result ?:= (st sizes) upper bound;
-	result;
+	result
 ] : [0..INF];
 
 
@@ -149,18 +151,20 @@ Method "_sizes upper bound" is [st : setType |
 
 Method "{«_‡,»}" is [t : tuple |
 	/* Construct a set from the comma-separated tuple of values. */
-	t as set;
+	t as set
 ] : set;
 
 Restriction "{«_‡,»}" is [tt : tupleType |
 	sizes ::= tt sizes;
-	minSize ::= (type union of [1..sizes upper bound private plus 1) and sizes) lower bound;
+	minSize ::= (type union of [1..sizes upper bound private plus 1) and sizes)
+		lower bound;
 	maxSize ::= sizes upper bound;
-	mergedType ::= type union of (union of types in tt leading types) and (tt default type);
+	mergedType ::= type union of (union of types in tt leading types)
+		and (tt default type);
 	range ::= [minSize..maxSize private plus 1);
 	merged : any type;
 	*↑merged ?:= mergedType;
-	set (type intersection of range and whole number) of merged;
+	set (type intersection of range and whole number) of merged
 ] : setType;
 
 Assert ||{}|| = 0;

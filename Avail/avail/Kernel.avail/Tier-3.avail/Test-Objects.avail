@@ -66,11 +66,11 @@ Apple has fields <"shade">;
 
 
 Method "_name" is [f : Fruit |
-	"Fruit";
+	"Fruit"
 ] : string;
 
 Method "_name" is [a : Apple |
-	"Apple";
+	"Apple"
 ] : string;
 
 aFruit ::= Fruit new with <<ripeness, 3>>;

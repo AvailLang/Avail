@@ -1,5 +1,5 @@
 /**
- * Primitive_107_SetIsSubset.java
+ * P_107_SetIsSubset.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

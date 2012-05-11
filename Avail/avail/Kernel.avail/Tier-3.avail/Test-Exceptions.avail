@@ -53,18 +53,18 @@ result ::= lookup "result";
 
 Method "TestA_" is [i : integer |
 	catch [ex : Division By Zero Exception |
-		ex result;
+		ex result
 	] in [
-		if i > 5 then [Raise Division By Zero Exception with i - 10;]
-		else [i + 10;];
-	];
+		if i > 5 then [Raise Division By Zero Exception with i - 10]
+		else [i + 10]
+	]
 ];
 
 Method "Run1" is [
 	1 to 10 collect [i : [1..10] |
-		catch [ex : Division By Zero Exception | 0;]
-		in [TestA i;];
-	];
+		catch [ex : Division By Zero Exception | 0]
+		in [TestA i]
+	]
 ];
 
 Assert Run1 = <11,12,13,14,15,-4,-3,-2,-1,0>;
@@ -72,20 +72,20 @@ Assert Run1 = <11,12,13,14,15,-4,-3,-2,-1,0>;
 
 Method "TestB_" is [i : integer |
 	catch
-		[ex : Division By Zero Exception | ex result;],
-		[ex : Exception | Crash "A general exception was thrown";],
-		[ex : Division By Zero Exception | ex result + 100;]
+		[ex : Division By Zero Exception | ex result],
+		[ex : Exception | Crash "A general exception was thrown"],
+		[ex : Division By Zero Exception | ex result + 100]
 	in [
-		if i > 5 then [Raise Division By Zero Exception with i - 10;]
-		else [i + 10;];
-	];
+		if i > 5 then [Raise Division By Zero Exception with i - 10]
+		else [i + 10]
+	]
 ];
 
 Method "Run2" is [
 	1 to 10 collect [i : [1..10] |
-		catch [ex : Division By Zero Exception | 0;]
-		in [TestB i;];
-	];
+		catch [ex : Division By Zero Exception | 0]
+		in [TestB i]
+	]
 ];
 
 

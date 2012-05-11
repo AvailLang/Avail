@@ -83,7 +83,7 @@ Restriction "«if_then_‡else»else_" is
 	functionResult : type := actionFinalType result;
 	
 	/* Make sure all cases are different - Needs Work */
-/*	repeatConditionTypeEnum ::= cast repeatConditionType into [ x : enum | x; ];
+/*	repeatConditionTypeEnum ::= cast repeatConditionType into [ x : enum | x ];
 	repeatConditionTupleSize : whole number := ||<repeatConditionTypeEnum instance>||;
 	caseTypeSet : set := {};
 	*/
@@ -102,9 +102,9 @@ Restriction "«if_then_‡else»else_" is
 
 	/*if ||caseTypeSet|| not = repeatConditionTupleSize then
 	[
-		Fail parse "Cases cannot be repeated in a Switch case statement.";
+		Fail parse "Cases cannot be repeated in a Switch case statement."
 	];*/
-	functionResult;
+	functionResult
 ] : type;
 
 /* Currently the Switch-case statement has the following functionality:
@@ -175,5 +175,5 @@ Restriction "Switch_«case_do_:»default_" is
 	[
 		Fail parse "Cases cannot be repeated in a Switch case statement.";
 	];*/
-	functionResult;
+	functionResult
 ] : type;

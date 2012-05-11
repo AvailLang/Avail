@@ -38,7 +38,7 @@ Names
 Body
 
 Method "Start«_‡@»End" is [x : tuple |
-	x;
+	x
 ];
 
 Assert Start End = <>;
@@ -49,7 +49,7 @@ Assert Start 1 @ 2 @ 3 End = <1, 2, 3>;
 
 /* Test no arguments. */
 Method "«Spam»" is [x : tuple of tuple like <> |
-	||x||;
+	||x||
 ];
 
 Assert Spam = 1;
@@ -58,7 +58,7 @@ Assert Spam Spam Spam Spam = 4;
 
 /* Test argument to the right of the double-dagger. */
 Method "«!‡_»" is [x : tuple of (tuple [0..1] like <> default integer) |
-	x;
+	x
 ];
 
 Assert !10!20!30! = <<10>,<20>,<30>,<>>;
@@ -71,25 +71,25 @@ Assert ! = <<>>;
 Method "««cat»«dog»»" is [
 		t : tuple of tuple [2..2] of tuple [0..1] of tuple [0..0] of any |
 	t collect [y : tuple [2..2] of tuple |
-		if ||y[1]|| = 1 then [$"c";] else [$"d";];
-	];
+		if ||y[1]|| = 1 then [$"c"] else [$"d"]
+	]
 ] : string;
 
 Restriction "««cat»«dog»»" is [xT : tupleType |
-	limit ::= cast xT sizes upper bound into [lim : [0..INF) | lim;];
+	limit ::= cast xT sizes upper bound into [lim : [0..INF) | lim];
 	good ::= (1 to limit) all [
 			subscript : natural number |
 		cast xT[subscript] into [pairT : tupleType |
 			catCount ::= cast pairT[1] into [catT : tupleType |
-				catT sizes upper bound;];
+				catT sizes upper bound];
 			dogCount ::= cast pairT[2] into [dogT : tupleType |
-				dogT sizes upper bound;];
-			catCount + dogCount = 1;
-		];
+				dogT sizes upper bound];
+			catCount + dogCount = 1
+		]
 	];
 	if not good then [
-		Fail parse "Invalid cat/dog counts";];
-	void;
+		Fail parse "Invalid cat/dog counts"];
+	void
 ];
 
 Assert cat = "c";
@@ -111,7 +111,7 @@ Method "«very»#good" is
 [
 	count : whole number
 |
-	count;
+	count
 ];
 
 Assert good = 0;
@@ -123,7 +123,7 @@ Method "«very‡,»#bad" is
 [
 	count : [3..5]
 |
-	count;
+	count
 ];
 
 Assert very, very, very bad = 3;
@@ -135,7 +135,7 @@ Method "«super»?«extremely»?plaid" is
 	super : boolean,
 	extremely : boolean
 |
-	super & extremely;
+	super & extremely
 ];
 
 Assert plaid = false;
@@ -146,8 +146,8 @@ Assert super extremely plaid = true;
 _token ::= Special Object 115;
 _literalToken ::= Special Object 116;
 
-Method "token" is [ _token; ];
-Method "literal token" is [ _literalToken; ];
+Method "token" is [ _token ];
+Method "literal token" is [ _literalToken ];
 Method "_'s⁇lexeme" is [ aToken : token | Primitive 356; ] : string;
 
 Method "I««really»?like to»eat…«very»#much" is
@@ -157,9 +157,9 @@ Method "I««really»?like to»eat…«very»#much" is
 	very : natural number
 |
 	reallyText ::= if ||really|| = 0
-		then [ ""; ]
+		then [ "" ]
 		else [
-			(if really[1] then [ "really "; ] else [ ""; ]) then "like to "; ];
+			(if really[1] then [ "really " ] else [ "" ]) then "like to " ];
 	veryText : string := "";
 	From 1 to very do [ i : whole number |
 		veryText := veryText then "very "; ];
@@ -169,7 +169,7 @@ Method "I««really»?like to»eat…«very»#much" is
 		then subject's lexeme
 		then " "
 		then veryText
-		then "much";
+		then "much"
 ] : string;
 
 Assert I eat bacon very much = "I eat bacon very much";
@@ -177,7 +177,7 @@ Assert I like to eat tires very much = "I like to eat tires very much";
 Assert I really like to eat perfume very very very much =
 	"I really like to eat perfume very very very much";
 
-Method "chaos~speak~" is [ true; ] : boolean;
+Method "chaos~speak~" is [ true ] : boolean;
 
 Assert chaos speak;
 Assert CHAOS SPEAK;
@@ -189,7 +189,7 @@ Method "I«want some gravy,«please‡,»#»~or else kablam" is
 [
 	please : tuple [1..1] of natural number
 |
-	please[1];
+	please[1]
 ] : natural number;
 
 Assert I want some gravy, please or else kablam = 1;
@@ -200,19 +200,19 @@ Method "«go away»#~«maybe»?~" is
 	begone : [2..5],
 	maybe : boolean
 |
-	begone;
+	begone
 ] : [2..5];
 
 Assert GO AWAY go away = 2;
 Assert go away go away go away go away GO AWAY MAYBE = 5;
 Assert GO AWAY GO AWAY GO AWAY maybe = 3;
 
-Method "«intruder~ALERT»" is [ intruder : tuple [1..∞) of tuple | true; ];
+Method "«intruder~ALERT»" is [ intruder : tuple [1..∞) of tuple | true ];
 
 Assert intruder ALERT;
 Assert InTrUdEr ALERT iNtRuDeR ALERT INTRUDER ALERT intruder ALERT;
 
-Method "«filthy grubby»⁇~maggots" is [ true; ];
+Method "«filthy grubby»⁇~maggots" is [ true ];
 
 Assert maggots;
 Assert filthy grubby maggots;

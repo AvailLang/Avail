@@ -1,5 +1,5 @@
 /**
- * Primitive_102_SetUnion.java
+ * P_102_SetUnion.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

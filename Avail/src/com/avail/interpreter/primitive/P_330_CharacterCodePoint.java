@@ -1,5 +1,5 @@
 /**
- * Primitive_330_CharacterCodePoint.java
+ * P_330_CharacterCodePoint.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

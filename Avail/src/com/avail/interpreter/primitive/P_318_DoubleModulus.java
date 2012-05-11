@@ -1,5 +1,5 @@
 /**
- * Primitive_318_DoubleModulus.java
+ * P_318_DoubleModulus.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

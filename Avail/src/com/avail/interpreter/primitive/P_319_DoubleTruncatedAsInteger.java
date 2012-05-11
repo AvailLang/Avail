@@ -1,5 +1,5 @@
 /**
- * Primitive_319_DoubleTruncatedAsInteger.java
+ * P_319_DoubleTruncatedAsInteger.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

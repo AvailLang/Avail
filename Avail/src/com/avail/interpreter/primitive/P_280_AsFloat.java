@@ -1,5 +1,5 @@
 /**
- * Primitive_280_AsFloat.java
+ * P_280_AsFloat.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

@@ -1134,11 +1134,11 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_InterruptRequestFlag (
+	void o_SetInterruptRequestFlag (
 		final @NotNull AvailObject object,
-		final int value)
+		final BitField value)
 	{
-		o_Traversed(object).interruptRequestFlag(value);
+		o_Traversed(object).setInterruptRequestFlag(value);
 	}
 
 	@Override
@@ -2545,9 +2545,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	int o_InterruptRequestFlag (final AvailObject object)
+	int o_InterruptRequestFlags (final AvailObject object)
 	{
-		return o_Traversed(object).interruptRequestFlag();
+		return o_Traversed(object).interruptRequestFlags();
 	}
 
 	@Override
@@ -4270,5 +4270,11 @@ extends AbstractDescriptor
 	@NotNull AvailObject o_FieldTuple (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).fieldTuple();
+	}
+
+	@Override
+	void o_ClearInterruptRequestFlags (final @NotNull AvailObject object)
+	{
+		o_Traversed(object).clearInterruptRequestFlags();
 	}
 }

@@ -57,7 +57,7 @@ Method "_∈_" is [elem : any, s : set |
 ] : boolean;
 
 Method "_includes_" is [s : set, elem : any |
-	elem ∈ s;
+	elem ∈ s
 ] : boolean;
 
 Method "_union_" is [s1 : set, s2 : set |
@@ -71,12 +71,12 @@ Restriction "_union_" is [st1 : setType, st2 : setType |
 	   be disjoint.  */
 	lowerBound ::= if type intersection of st1 content type and (st2 content type)
 			= terminates then [
-		st1 sizes lower bound + st2 sizes lower bound;
+		st1 sizes lower bound + st2 sizes lower bound
 	] else [
-		st1 sizes lower bound max st2 sizes lower bound;
+		st1 sizes lower bound max st2 sizes lower bound
 	];
 	set [lowerBound .. st1 sizes upper bound + st2 sizes upper bound + 1)
-		of type union of st1 content type and (st2 content type);
+		of type union of st1 content type and (st2 content type)
 ];
 
 Method "_U_" is [s1 : set, s2 : set |
@@ -90,12 +90,12 @@ Restriction "_U_" is [st1 : setType, st2 : setType |
 	   be disjoint.  */
 	lowerBound ::= if type intersection of st1 content type and (st2 content type)
 			= terminates then [
-		st1 sizes lower bound + st2 sizes lower bound;
+		st1 sizes lower bound + st2 sizes lower bound
 	] else [
-		st1 sizes lower bound max st2 sizes lower bound;
+		st1 sizes lower bound max st2 sizes lower bound
 	];
 	set [lowerBound .. st1 sizes upper bound + st2 sizes upper bound + 1)
-		of type union of st1 content type and (st2 content type);
+		of type union of st1 content type and (st2 content type)
 ];
 
 Method "_intersect_" is [s1 : set, s2 : set |
@@ -106,7 +106,7 @@ Restriction "_intersect_" is [st1 : setType, st2 : setType |
 	/* No need to optimize for intersection of content types being terminates, as
 	   the canonization of set types already does this. */
 	set [0 ..  (st1 sizes upper bound min st2 sizes upper bound) + 1)
-		of type intersection of st1 content type and (st2 content type);
+		of type intersection of st1 content type and (st2 content type)
 ];
 
 Method "_minus_" is [s1 : set, s2 : set |
@@ -116,13 +116,13 @@ Method "_minus_" is [s1 : set, s2 : set |
 Restriction "_minus_" is [st1 : setType, st2 : setType |
 	if type intersection of st1 content type and (st2 content type) = terminates then [
 		/* No elements could possibly overlap because terminates is uninstantiable. */
-		st1;
+		st1
 	] else [
 		/* Some elements could overlap. */
 		set [(st1 sizes lower bound - st2 sizes upper bound) max 0
 				 ..  st1 sizes upper bound + 1)
-			of (st1 content type);
-	];
+			of (st1 content type)
+	]
 ];
 
 Method "_with_" is [s : set, element : any |
@@ -131,7 +131,7 @@ Method "_with_" is [s : set, element : any |
 
 Restriction "_with_" is [st : setType, et : type |
 	set [st sizes lower bound .. st sizes upper bound + 2)
-		of cast type union of st content type and et into [ t : any type | t; ];
+		of cast type union of st content type and et into [ t : any type | t ]
 ];
 
 Method "_without_" is [s : set, element : any |
@@ -141,12 +141,12 @@ Method "_without_" is [s : set, element : any |
 Restriction "_without_" is [st : setType, et : type |
 	if type intersection of st content type and et = terminates then [
 		/* The element could not be present because terminates is uninstantiable. */
-		st;
+		st
 	] else [
 		/* The element could be present. */
 		set [(st sizes lower bound - 1) max 0 .. st sizes upper bound + 1)
-			of (st content type);
-	];
+			of (st content type)
+	]
 ];
 
 Method "_<=_" is [s1 : set, s2 : set |
@@ -166,8 +166,8 @@ Restriction "_do_" is [st : setType, bt : functionType |
 		Fail parse "block requires an instance of "
 			then bt[1] as basic string
 			then ", but might be passed an instance of "
-			then st content type as basic string;];
-	void;
+			then st content type as basic string];
+	void
 ];
 
 

@@ -62,7 +62,7 @@ Method "_[_]" is
 	bottom : ⊥'s type,
 	index : natural number
 |
-	⊥;
+	⊥
 ];
 
 /**
@@ -106,27 +106,27 @@ Semantic restriction "<«_‡,»>" is
 			 */
 			if instance's type ⊆ type then
 			[
-				false;
+				false
 			]
 			else
 			[
 				accumulator := concatenate <eject ↑accumulator, <instance>>;
-				true;
-			];
+				true
+			]
 		]
 		else
 		[
-			false;
-		];
+			false
+		]
 	];
 	if |accumulator| = limit then
 	[
-		accumulator's type;
+		accumulator's type
 	]
 	else
 	[
-		elements;
-	];
+		elements
+	]
 ];
 
 /**
@@ -159,12 +159,12 @@ Semantic restriction "_[_]" is
 			" ≤ |theTuple| ≤ ",
 			primitive description of ||aTupleType||'s upper bound,
 			")">;
-		message ::= cast messageTuple into [ t : string | t; ];
-		Reject parse, expected: message;
+		message ::= cast messageTuple into [ t : string | t ];
+		Reject parse, expected: message
 	];
 	union : type := ⊥;
 	limit ::= cast |aTupleType's leading types| + 1
-		into [ t : natural number | t; ];
+		into [ t : natural number | t ];
 	startIndex ::= index's lower bound min limit;
 	endIndex ::= index's upper bound min limit;
 	From startIndex to endIndex do
@@ -172,9 +172,9 @@ Semantic restriction "_[_]" is
 		i : natural number
 	|
 		union := union ∪ aTupleType[i];
-		true;
+		true
 	];
-	union;
+	union
 ];
 
 /**
@@ -209,12 +209,12 @@ Semantic restriction "_[_]" is
 			" ≤ |theTuple| ≤ ",
 			primitive description of ||aTupleType||'s upper bound,
 			")">;
-		message ::= cast messageTuple into [ t : string | t; ];
-		Reject parse, expected: message;
+		message ::= cast messageTuple into [ t : string | t ];
+		Reject parse, expected: message
 	];
 	union : type := ⊥;
 	limit ::= cast |aTupleType's leading types| + 1
-		into [ t : natural number | t; ];
+		into [ t : natural number | t ];
 	startIndex ::= index's lower bound min limit;
 	endIndex ::= index's upper bound min limit;
 	From startIndex to endIndex do
@@ -222,9 +222,9 @@ Semantic restriction "_[_]" is
 		i : natural number
 	|
 		union := union ∪ aTupleType[i];
-		true;
+		true
 	];
-	union's type;
+	union's type
 ];
 
 /* Disambiguate `∪_` and `∪_[_.._]` by forbidding `_[_.._]` as the only argument
@@ -232,7 +232,7 @@ Semantic restriction "_[_]" is
  */
 Invoke
 [
-	cast ::= [ t : {string|whole number} | t; ];
+	cast ::= [ t : {string|whole number} | t ];
 	names ::= cast <"∪_">→set into cast;
 	exclusions ::= cast <"_[_.._]">→set into cast;
 	Grammatical restriction names is <exclusions>;
@@ -282,23 +282,23 @@ Semantic restriction "{«_‡,»}" is
 			 */
 			if instance's type ⊆ type then
 			[
-				false;
+				false
 			]
 			else
 			[
 				accumulator := concatenate <eject ↑accumulator, <instance>>;
-				true;
-			];
+				true
+			]
 		]
 		else
 		[
-			false;
-		];
+			false
+		]
 	];
 	/* If the elements were all instance types, then answer an instance type. */
 	if |accumulator| = limit then
 	[
-		(accumulator→set)'s type;
+		(accumulator→set)'s type
 	]
 	/* Otherwise, the answer cannot be an instance type. Compute the most
 	 * precise possible set type.
@@ -323,7 +323,7 @@ Semantic restriction "{«_‡,»}" is
 		|
 			element ::= elements[outerIndex];
 			types := cast concatenate <eject ↑types, <element>>
-				into [ t : tuple of type | t; ];
+				into [ t : tuple of type | t ];
 			isDistinct : boolean := true;
 			From 1 to |distinct| do
 			[
@@ -332,25 +332,25 @@ Semantic restriction "{«_‡,»}" is
 				if element ∩ distinct[innerIndex] ≠ ⊥ then
 				[
 					isDistinct := false;
-					false;
+					false
 				]
 				else
 				[
-					true;
-				];
+					true
+				]
 			];
 			If isDistinct then
 			[
 				distinct := cast concatenate <eject ↑distinct, <element>> into
-					[ t : tuple of type | t; ];
+					[ t : tuple of type | t ];
 			];
-			true;
+			true
 		];
 		lower ::= |distinct|;
 		upper ::= |types| + 1;
-		union ::= cast ∪ types into [ t : any's type | t; ];
-		{union | [lower..upper)};
-	];
+		union ::= cast ∪ types into [ t : any's type | t ];
+		{union | [lower..upper)}
+	]
 ];
 
 /**
@@ -365,7 +365,7 @@ Method "{«_→_‡,»}" is
 [
 	bindings : key-value tuple
 |
-	bindings→map;
+	bindings→map
 ] : map;
 
 /**
@@ -411,9 +411,9 @@ Semantic restriction "{«_→_‡,»}" is
 				 * `{natural number's type→any's type|1}`, which frequently
 				 * leads to (absurd) runtime type errors.
 				 */
-				if instanceK's type ⊆ type ∨ [ instanceV's type ⊆ type; ] then
+				if instanceK's type ⊆ type ∨ [ instanceV's type ⊆ type ] then
 				[
-					false;
+					false
 				]
 				else
 				[
@@ -424,27 +424,27 @@ Semantic restriction "{«_→_‡,»}" is
 						[
 							t : <<>, <<>, any…|[2..2]>… |whole number>
 						|
-							t;
+							t
 						];
-					true;
-				];
+					true
+				]
 			]
 			else
 			[
-				false;
-			];
+				false
+			]
 		]
 		else
 		[
-			false;
-		];
+			false
+		]
 	];
 	/* If the keys and values were all instance types, then answer an instance
 	 * type.
 	 */
 	if |accumulator| = limit then
 	[
-		(accumulator→map)'s type;
+		(accumulator→map)'s type
 	]
 	/* Otherwise, the answer cannot be an instance type. Compute the most
 	 * precise possible map type.
@@ -473,9 +473,9 @@ Semantic restriction "{«_→_‡,»}" is
 			binding ::= bindings[outerIndex];
 			keyType ::= binding[1];
 			keyTypes := cast concatenate <eject ↑keyTypes, <keyType>>
-				into [ t : tuple of type | t; ];
+				into [ t : tuple of type | t ];
 			valueTypes := cast concatenate <eject ↑valueTypes, <binding[2]>>
-				into [ t : tuple of type | t; ];
+				into [ t : tuple of type | t ];
 			isDistinct : boolean := true;
 			From 1 to |distinct| do
 			[
@@ -484,26 +484,26 @@ Semantic restriction "{«_→_‡,»}" is
 				if keyType ∩ distinct[innerIndex] ≠ ⊥ then
 				[
 					isDistinct := false;
-					false;
+					false
 				]
 				else
 				[
-					true;
-				];
+					true
+				]
 			];
 			If isDistinct then
 			[
 				distinct := cast concatenate <eject ↑distinct, <keyType>>
-					into [ t : tuple of type | t; ];
+					into [ t : tuple of type | t ];
 			];
-			true;
+			true
 		];
 		lower ::= |distinct|;
 		upper ::= |keyTypes| + 1;
-		unionK ::= cast ∪ keyTypes into [ t : any's type | t; ];
-		unionV ::= cast ∪ valueTypes into [ t : any's type | t; ];
-		{unionK → unionV | [lower..upper)};
-	];
+		unionK ::= cast ∪ keyTypes into [ t : any's type | t ];
+		unionV ::= cast ∪ valueTypes into [ t : any's type | t ];
+		{unionK → unionV | [lower..upper)}
+	]
 ];
 
 /**
@@ -520,7 +520,7 @@ Semantic restriction "`|_`|" is
 	aTupleType : tuple meta
 |
 	sizes ::= ||aTupleType||;
-	[sizes' lower bound..sizes' upper bound + 1);
+	[sizes' lower bound..sizes' upper bound + 1)
 ];
 
 /**
@@ -537,7 +537,7 @@ Semantic restriction "`|_`|" is
 	aSetType : set meta
 |
 	sizes ::= ||aSetType||;
-	[sizes' lower bound..sizes' upper bound + 1);
+	[sizes' lower bound..sizes' upper bound + 1)
 ];
 
 /**
@@ -554,7 +554,7 @@ Semantic restriction "`|_`|" is
 	aMapType : map meta
 |
 	sizes ::= ||aMapType||;
-	[sizes' lower bound..sizes' upper bound + 1);
+	[sizes' lower bound..sizes' upper bound + 1)
 ];
 
 /**
@@ -570,7 +570,7 @@ Method "¢…" is
 	aToken : token
 |
 	lexeme ::= aToken's lexeme;
-	lexeme[1];
+	lexeme[1]
 ];
 
 /**
@@ -591,13 +591,13 @@ Method "¢…" is
 	[
 		value : string
 	|
-		value[1];
+		value[1]
 	]
 	else
 	[
 		lexeme ::= aToken's lexeme;
-		lexeme[1];
-	];
+		lexeme[1]
+	]
 ];
 
 /**
@@ -619,16 +619,16 @@ Semantic restriction "¢…" is
 		[
 			literalToken : literal token
 		|
-			cast literalToken's value into [ t : string | t; ]
-			else [ instance's lexeme; ];
+			cast literalToken's value into [ t : string | t ]
+			else [ instance's lexeme ]
 		]
 		else
 		[
-			instance's lexeme;
+			instance's lexeme
 		];
 	If |value| ≠ 1 then
 	[
-		Reject parse, expected: "a character literal to have a length of 1";
+		Reject parse, expected: "a character literal to have a length of 1"
 	];
-	value[1]'s type;
+	value[1]'s type
 ];

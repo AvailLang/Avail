@@ -68,5 +68,5 @@ z ::= [
 z();
 
 
-Method "a/b" is [123;];
+Method "a/b" is [123];
 Assert a/b = 123;

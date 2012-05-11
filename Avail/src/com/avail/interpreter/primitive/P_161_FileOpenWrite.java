@@ -1,5 +1,5 @@
 /**
- * Primitive_161_FileOpenWrite.java
+ * P_161_FileOpenWrite.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

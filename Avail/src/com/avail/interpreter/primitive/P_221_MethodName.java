@@ -1,5 +1,5 @@
 /**
- * Primitive_221_MethodName.java
+ * P_221_MethodName.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

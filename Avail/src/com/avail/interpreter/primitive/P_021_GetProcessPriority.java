@@ -1,5 +1,5 @@
 /**
- * P_207_CompleteMessages.java
+ * P_021_GetProcessPriority.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -31,49 +31,41 @@
  */
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 207:</strong> Answer a collection of all visible
- * {@linkplain MessageBundleDescriptor messages} inside the current
- * {@linkplain MessageBundleTreeDescriptor tree} that expect no more parts
- * than those already encountered. Answer it as a {@linkplain MapDescriptor
- * map} from {@linkplain AtomDescriptor true name} to message bundle
- * (typically only zero or one entry).
+ * <strong>Primitive 21:</strong> Get the priority of a process.
  */
-public class P_207_CompleteMessages extends Primitive
+public class P_021_GetProcessPriority extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_207_CompleteMessages().init(
-		1, CanInline, CannotFail);
+	public final static Primitive instance = new P_021_GetProcessPriority().init(
+		1, CannotFail, CanInline);
 
 	@Override
-	public @NotNull Result attempt (
+	public Result attempt (
 		final @NotNull List<AvailObject> args,
 		final @NotNull Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject bundleTree = args.get(0);
+		final @NotNull AvailObject process = args.get(0);
 		return interpreter.primitiveSuccess(
-			bundleTree.complete().makeImmutable());
+			process.priority());
 	}
 
 	@Override
-	protected @NotNull AvailObject privateBlockTypeRestriction ()
+	protected AvailObject privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				MESSAGE_BUNDLE_TREE.o()),
-			MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
-				IntegerRangeTypeDescriptor.wholeNumbers(),
-				ATOM.o(),
-				MESSAGE_BUNDLE.o()));
+				Types.PROCESS.o()),
+			IntegerRangeTypeDescriptor.wholeNumbers());
 	}
 }

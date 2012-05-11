@@ -214,7 +214,7 @@ extends Descriptor
 		{
 			if (!first)
 			{
-				builder.append("+");
+				builder.append(" ∩ ");
 			}
 			else
 			{
@@ -236,7 +236,7 @@ extends Descriptor
 			final AvailObject fieldTypes = baseType.fieldTypeMap();
 			for (final MapDescriptor.Entry entry : fieldTypes.mapIterable())
 			{
-				if (entry.key.equals(entry.value))
+				if (InstanceTypeDescriptor.on(entry.key).equals(entry.value))
 				{
 					ignoreKeys = ignoreKeys.setWithElementCanDestroy(
 						entry.key,

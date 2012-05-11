@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Engine"
+System Module "Engine"
 Extends
 Uses
 	"Kernel",
@@ -57,7 +57,7 @@ Method "Initialize backtracking" is [
 			current process[topRetry] := here;
 			firstTime := false;
 		] else [
-			Crash "Attempted to backtrack past last retry point.";
+			Crash "Attempted to backtrack past last retry point."
 		];
 	]:void();
 ]:void;
@@ -84,13 +84,13 @@ Method "maybe" is [
 			currentValue := false;
 		];
 	]:void();
-	currentValue;
+	currentValue
 ] : boolean;
 
 Method "fail" is [
 	cast current process [topRetry] into [it : $[]->void |
-		Restart it;
-	];
+		Restart it
+	]
 ] : terminates;
 
 
@@ -103,12 +103,15 @@ Method "capture all_" is [blk : []->any |
 	if maybe then [
 		attempt ::= blk();
 		soFar := soFar then <attempt>;
-		fail;
+		fail
 	];
-	soFar;
-] : tuple
-returns [blkT : functionType |
-	tuple of blkT result;
+	soFar
+] : tuple;
+
+Restriction "capture all_" is [
+		blkT : ([] -> any) type |
+	resultType ::= cast blkT result into [t : any type | t];
+	tuple of resultType
 ];
 
 
@@ -131,15 +134,19 @@ Method "capture first_of_" is [n : whole number, blk : []->any |
 			result ::= blk();
 			soFar := soFar then <result>;
 			if ||soFar|| < n then [
-				fail;
+				fail
 			];
 		];
 	]:void();
 	current process [topRetry] := previousRetry;
-	soFar;
-] : tuple
-returns [nT : integerType, blkT : functionType |
-	tuple [0..nT upper bound + 1) of blkT result;
+	soFar
+] : tuple;
+
+Restriction "capture first_of_" is [
+		nT : integerType,
+		blkT : ([] -> any) type |
+	resultType ::= cast blkT result into [t : any type | t];
+	tuple [0..nT upper bound + 1) of resultType
 ];
 
 
@@ -150,13 +157,15 @@ Method "each_" is [t : tuple |
 	$there : any;
 	From 1 to ||t|| do [i : natural number |
 		if maybe then [
-			Exit there with t[i];
+			Exit there with t[i]
 		];
 	];
-	fail;
-] : any
-returns [tT : tupleType |
-	type union of (union of types in tT leading types) and (tT default type);
+	fail
+] : any;
+
+Restriction "each_" is [
+		tT : tupleType |
+	type union of (union of types in tT leading types) and (tT default type)
 ];
 
 

@@ -72,22 +72,22 @@ returns [ftT : File type type, strT : string type |
 
 Method "_exists" is [filename : string |
 	Primitive 170 (failureCode : natural number);
-	Failed;
+	Failed
 ] : boolean;
 
 Method "_is readable" is [filename : string |
 	Primitive 171 (failureCode : natural number);
-	Failed;
+	Failed
 ] : boolean;
 
 Method "_is writable" is [filename : string |
 	Primitive 172 (failureCode : natural number);
-	Failed;
+	Failed
 ] : boolean;
 
 Method "_is executable" is [filename : string |
 	Primitive 173 (failureCode : natural number);
-	Failed;
+	Failed
 ] : boolean;
 
 
@@ -95,12 +95,12 @@ Method "_is executable" is [filename : string |
 
 Method "Rename_to_" is [source : string, destination : string |
 	Primitive 174 (failureCode : natural number);
-	Failed;
+	Failed
 ] : void;
 
 Method "Unlink_from filesystem" is [filename : string |
 	Primitive 175 (failureCode : natural number);
-	Failed;
+	Failed
 ] : void;
 
 /* Basic accessing... */
@@ -108,14 +108,14 @@ Method "Unlink_from filesystem" is [filename : string |
 Method "_position" is [file: File |
 	[handle : atom |
 		Primitive 167 (failureCode : natural number);
-		Failed;
+		Failed
 	] : [0..INF] (file -> handle);
 ] : [0..INF];
 
 Method "_size" is [file : File |
 	[handle : atom |
 		Primitive 166 (failureCode : natural number);
-		Failed;
+		Failed
 	] : [0..INF] (file -> handle);
 ] : [0..INF];
 
@@ -126,14 +126,14 @@ Method "_is at end" is [file : File |
 Method "_go to_" is [file : File, newPosition : [0..INF] |
 	[handle : atom, newPosition : [0..INF] |
 		Primitive 168 (failureCode : natural number);
-		Failed;
+		Failed
 	] : void (file -> handle, newPosition);
 ] : void;
 
 Method "Close_" is [file : File |
 	[handle : atom |
 		Primitive 163 (failureCode : natural number);
-		Failed;
+		Failed
 	] : void (file -> handle);
 ] : void;
 

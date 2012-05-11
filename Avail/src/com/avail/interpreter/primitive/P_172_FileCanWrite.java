@@ -1,5 +1,5 @@
 /**
- * Primitive_172_FileCanWrite.java
+ * P_172_FileCanWrite.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

@@ -79,7 +79,7 @@ extends TypeDescriptor
 		{
 			if (!first)
 			{
-				builder.append("+");
+				builder.append(" ∩ ");
 			}
 			else
 			{

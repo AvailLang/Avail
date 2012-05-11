@@ -51,7 +51,7 @@ Body
 Method "_named_" is [fileType : Output File type, name : string |
 	fileHandle : atom := [theName : string, append : boolean |
 		Primitive 161 (failureCode : natural number);
-		Failed;
+		Failed
 	] : atom (name, false);
 	Output File new with <
 		<handle, fileHandle>
@@ -63,7 +63,7 @@ Method "_named_" is [fileType : Output File type, name : string |
 Method "Write_to_" is [bytes : tuple of byte, file : Output File |
 	residue ::= ([handle : atom, bytes2 : tuple of byte |
 		Primitive 165 (failureCode : natural number);
-		Failed;
+		Failed
 	] : tuple of byte) (file -> handle, bytes);
 	if ||residue|| > 0 then [Crash "File write didn't finish all bytes.";];
 ] : void;
@@ -77,7 +77,7 @@ Method "Write_to_" is [theByte : byte, file : Output File |
 Method "Synchronize_with underlying device" is [file : Output File |
 	[handle : atom |
 		Primitive 169 (failureCode : natural number);
-		Failed;
+		Failed
 	] : void (file -> handle);
 ] : void;
 

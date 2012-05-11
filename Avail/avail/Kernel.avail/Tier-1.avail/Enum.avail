@@ -46,5 +46,5 @@ Method "`|_`|" is [t : type |
 
 Method "_instances" is [t : type |
 	Primitive 29 (failureCode : natural number);
-	Failed;
+	Failed
 ] : set;

@@ -84,7 +84,7 @@ Restriction "if_then_else_" is [
 			result := fbt result;
 		];
 	];
-	result;
+	result
 ] : type;
 
 
@@ -114,19 +114,19 @@ Method "if_then_" is [bool : boolean, trueBlock : []->void |
    return type to trueType or falseType. */
 
 Method "_&_" is [a : boolean, b : boolean |
-	false;
+	false
 ] : boolean;
 
 Restriction "_&_" is [at : type, bt : type |
 	res : type := boolean;
 	if at = falseType then [res := falseType;];
 	if bt = falseType then [res := falseType;];
-	res;
+	res
 ] : type;
 
 
 Method "_&_" is [a : trueType, b : trueType |
-	true;
+	true
 ] :  trueType;
 
 
@@ -137,7 +137,7 @@ Restriction "_&_" is [at : type, bt : functionType |
 	if at = trueType then [res := bt result;];
 	if at = falseType then [res := falseType;];
 	if bt result = falseType then [res := falseType;];
-	res;
+	res
 ] : type;
 
 
@@ -147,30 +147,30 @@ Method "_&_" is [a : trueType, b : []->boolean |
 ] : boolean;
 
 Restriction "_&_" is [at : type, bt : functionType |
-	bt result;
+	bt result
 ] : type;
 
 
 Method "_&_" is [a : falseType, b : []->boolean |
-	false;
+	false
 ] : falseType;
 
 
 
 Method "_|_" is [a : boolean, b : boolean |
-	true;
+	true
 ] : boolean;
 
 Restriction "_|_" is [at : type, bt : type |
 	res : type := boolean;
 	if at = trueType then [res := trueType;];
 	if bt = trueType then [res := trueType;];
-	res;
+	res
 ] : type;
 
 
 Method "_|_" is [a : falseType, b : falseType |
-	false;
+	false
 ] : falseType;
 
 
@@ -181,12 +181,12 @@ Restriction "_|_" is [at : type, bt : functionType |
 	if at = falseType then [res := bt result;];
 	if at = trueType then [res := trueType;];
 	if bt result = trueType then [res := trueType;];
-	res;
+	res
 ] : type;
 
 
 Method "_|_" is [a : trueType, b :  []->boolean |
-	true;
+	true
 ] : trueType;
 
 
@@ -197,7 +197,7 @@ Method "_|_" is [a : falseType, b :  []->boolean |
 
 
 Restriction "_|_" is [at : type, bt : functionType |
-	bt result;
+	bt result
 ] : type;
 
 
@@ -205,35 +205,35 @@ Restriction "_|_" is [at : type, bt : functionType |
 Abstract method "not_" for [boolean]->boolean;
 
 Method "not_" is [a : trueType |
-	false;
+	false
 ] : falseType;
 
 Method "not_" is [a : falseType |
-	true;
+	true
 ] : trueType;
 
 
 
 Method "_xor_" is [a : boolean, b : boolean |
-	not (a = b);
+	not (a = b)
 ] : boolean;
 
 Restriction "_xor_" is [at : type, bt : type |
 	if at = boolean | bt = boolean then [
-		boolean;
+		boolean
 	] else [
-		if at = bt then [falseType;] else [trueType;];
-	];
+		if at = bt then [falseType] else [trueType]
+	]
 ];
 
 
 
 Method "_implies_" is [a : boolean, b : boolean |
-	true;
+	true
 ] : boolean;
 
 Method "_implies_" is [a : trueType, b : falseType |
-	false;
+	false
 ] : falseType;
 
 Restriction "_implies_" is [at : boolean type, bt : boolean type |
@@ -241,13 +241,13 @@ Restriction "_implies_" is [at : boolean type, bt : boolean type |
 	if at = trueType then [res := bt;];
 	if at = falseType then [res := trueType;];
 	if bt = trueType then [res := trueType;];
-	res;
+	res
 ];
 
 Abstract method "_implies_" for [boolean, []->boolean]->boolean;
 
 Method "_implies_" is [a : falseType, b : []->boolean |
-	true;
+	true
 ] : trueType;
 
 Method "_implies_" is [a : trueType, b : []->boolean |
@@ -260,7 +260,7 @@ Restriction "_implies_" is [at : boolean type, bt : ([]->boolean) type |
 	if at = trueType then [res := bt result;];
 	if at = falseType then [res := trueType;];
 	if bt result = trueType then [res := trueType;];
-	res;
+	res
 ];
 
 
@@ -268,5 +268,5 @@ Restriction "_implies_" is [at : boolean type, bt : ([]->boolean) type |
 /* General purpose... */
 
 Method "_not=_" is [a : any, b : any |
-	not a = b;
+	not a = b
 ] : boolean;

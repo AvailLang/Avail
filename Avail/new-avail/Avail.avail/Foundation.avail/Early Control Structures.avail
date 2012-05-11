@@ -74,7 +74,7 @@ Method "(_)" is
 [
 	value : any
 |
-	value;
+	value
 ];
 
 /**
@@ -90,7 +90,7 @@ Semantic restriction "(_)" is
 [
 	value : type
 |
-	value;
+	value
 ];
 
 /**
@@ -110,7 +110,7 @@ Semantic restriction "If|if_then_else_" is
 	trueFunction : nullary procedure's type,
 	falseFunction : nullary procedure's type
 |
-	trueFunction's return type ∪ falseFunction's return type;
+	trueFunction's return type ∪ falseFunction's return type
 ];
 
 /**
@@ -130,7 +130,7 @@ Semantic restriction "If|if_then_else_" is
 	trueFunction : nullary procedure's type,
 	falseFunction : nullary procedure's type
 |
-	trueFunction's return type;
+	trueFunction's return type
 ];
 
 /**
@@ -150,7 +150,7 @@ Semantic restriction "If|if_then_else_" is
 	trueFunction : nullary procedure's type,
 	falseFunction : nullary procedure's type
 |
-	falseFunction's return type;
+	falseFunction's return type
 ];
 
 /**
@@ -205,7 +205,7 @@ Method "Cast|cast_into_" is
 	]
 	else
 	[
-		Shouldn't happen;
+		Shouldn't happen
 	];
 ] : ⊤;
 
@@ -238,7 +238,7 @@ Semantic restriction "Cast|cast_into_else_" is
 		[
 			message : string
 		|
-			Reject parse, expected: message;
+			Reject parse, expected: message
 		];
 	];
 	If value ∪ accept[1] = value then
@@ -258,10 +258,10 @@ Semantic restriction "Cast|cast_into_else_" is
 		[
 			message : string
 		|
-			Reject parse, expected: message;
+			Reject parse, expected: message
 		];
 	];
-	accept's return type ∪ reject's return type;
+	accept's return type ∪ reject's return type
 ];
 
 /**
@@ -291,7 +291,7 @@ Semantic restriction "Cast|cast_into_" is
 		[
 			message : string
 		|
-			Reject parse, expected: message;
+			Reject parse, expected: message
 		];
 	];
 	If value ∪ accept[1] = value then
@@ -311,10 +311,10 @@ Semantic restriction "Cast|cast_into_" is
 		[
 			message : string
 		|
-			Reject parse, expected: message;
+			Reject parse, expected: message
 		];
 	];
-	accept's return type;
+	accept's return type
 ];
 
 /* Nesting parentheses directly is bad style, and leads to confusing
@@ -322,7 +322,7 @@ Semantic restriction "Cast|cast_into_" is
  */
 Invoke
 [
-	names ::= cast <"(_)">→set into [ t : {string|whole number} | t; ];
+	names ::= cast <"(_)">→set into [ t : {string|whole number} | t ];
 	Grammatical restriction names is <names>;
 ]
 with <>;
@@ -339,7 +339,7 @@ Method "`|`|_`|`|" is
 [
 	bottomMeta : ⊥'s type
 |
-	⊥;
+	⊥
 ];
 
 /**
@@ -356,7 +356,7 @@ Semantic restriction "Invoke|invoke_with_" is
 	aFunction : function meta,
 	arguments : tuple meta
 |
-	aFunction's return type;
+	aFunction's return type
 ];
 
 /**
@@ -383,10 +383,10 @@ Method "From_to_do_" is
 		If value ≤ end then
 		[
 			continue ::= invoke action with <value>;
-			value := cast value + 1 into [ i : natural number | i; ];
+			value := cast value + 1 into [ i : natural number | i ];
 			If continue then
 			[
-				Restart loop;
+				Restart loop
 			];
 		];
 	] : ⊤
@@ -413,7 +413,7 @@ Semantic restriction "From_to_do_" is
 	If lower ≤ end's genuine upper bound then
 	[
 		upper ::= cast end's genuine upper bound + 1
-			into [ t : extended integer | t;] ;
+			into [ t : extended integer | t ];
 		subscripts ::= integer range
 			from lower (inclusive = lower's type ⊆ start)
 			to upper (inclusive = false);
@@ -436,17 +436,17 @@ Semantic restriction "From_to_do_" is
 			[
 				message : string
 			|
-				Reject parse, expected: message;
-			];
+				Reject parse, expected: message
+			]
 		];
 	];
-	⊤;
+	⊤
 ];
 
 /* Don't permit `(_)` as the second argument of `Assert:_(_)`. */
 Invoke
 [
-	cast ::= [ t : {string|whole number} | t; ];
+	cast ::= [ t : {string|whole number} | t ];
 	names ::= cast <"Assert:_(_)">→set into cast;
 	exclusions ::= cast <"(_)">→set into cast;
 	Grammatical restriction names is <∅, exclusions>;

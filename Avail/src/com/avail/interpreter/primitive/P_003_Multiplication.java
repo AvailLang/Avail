@@ -1,5 +1,5 @@
 /**
- * Primitive_003_Multiplication.java
+ * P_003_Multiplication.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

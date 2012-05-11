@@ -1,5 +1,5 @@
 /**
- * Primitive_201_RaiseException.java
+ * P_201_RaiseException.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

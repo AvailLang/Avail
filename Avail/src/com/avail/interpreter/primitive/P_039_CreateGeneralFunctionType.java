@@ -1,5 +1,5 @@
 /**
- * Primitive_039_CreateGeneralFunctionType.java
+ * P_039_CreateGeneralFunctionType.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

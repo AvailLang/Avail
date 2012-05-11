@@ -81,21 +81,21 @@ Method "integer range genuine«lower»?«upper»?\
 		range : extended integer meta's type
 	|
 		instances ::= cast range's instances
-			into [ t : {extended integer meta|whole number} | t; ];
+			into [ t : {extended integer meta|whole number} | t ];
 		Assert: |instances| = 1 ("range should be a single instance");
 		instance ::= cast instances→tuple[1] into
-			[ t : extended integer meta | t; ];
+			[ t : extended integer meta | t ];
 		/* Must accommodate ⊥. It answers ∞ for its lower bound and -∞ for its
 		 * upper bound.
 		 */
 		lower ::= if wantsUpper
-			then [ -∞; ]
-			else [ instance's genuine lower bound; ];
+			then [ -∞ ]
+			else [ instance's genuine lower bound ];
 		upper ::= if wantsLower
-			then [ ∞; ]
-			else [ instance's genuine upper bound; ];
-		integer range from lower (inclusive=true) to upper (inclusive=true);
-	];
+			then [ ∞ ]
+			else [ instance's genuine upper bound ];
+		integer range from lower (inclusive=true) to upper (inclusive=true)
+	]
 ];
 
 /**
@@ -139,7 +139,7 @@ Method "_'s⁇lower bound" is
 	range : extended integer meta
 |
 	Assert: range ≠ ⊥ ("must use `_'s⁇genuine lower bound` for ⊥");
-	range's genuine lower bound;
+	range's genuine lower bound
 ];
 
 /**
@@ -157,7 +157,7 @@ Method "_'s⁇upper bound" is
 	range : extended integer meta
 |
 	Assert: range ≠ ⊥ ("must use `_'s⁇genuine upper bound` for ⊥");
-	range's genuine upper bound;
+	range's genuine upper bound
 ];
 
 /**
@@ -173,15 +173,15 @@ Method "integer range bound semantic restriction function" is
 		range : extended integer meta's type
 	|
 		instances ::= cast range's instances
-			into [ t : {extended integer meta|whole number} | t; ];
+			into [ t : {extended integer meta|whole number} | t ];
 		Assert: |instances| = 1 ("range should be a single instance");
 		instance ::= cast instances→tuple[1] into
-			[ t : extended integer meta | t; ];
+			[ t : extended integer meta | t ];
 		/* Specifically do not accommodate ⊥. */
 		integer range
 			from instance's lower bound (inclusive=true)
-			to instance's upper bound (inclusive=true);
-	];
+			to instance's upper bound (inclusive=true)
+	]
 ];
 
 /**
@@ -226,7 +226,7 @@ Method "[_.._]" is
 |
 	integer range
 		from lowerBound (inclusive=true)
-		to upperBound (inclusive=true);
+		to upperBound (inclusive=true)
 ] : extended integer meta;
 
 /**
@@ -245,7 +245,7 @@ Semantic restriction "[_.._]" is
 |
 	(integer range
 		from lowerBound's lower bound (inclusive=true)
-		to upperBound's upper bound (inclusive=true))'s type;
+		to upperBound's upper bound (inclusive=true))'s type
 ];
 
 /**
@@ -264,7 +264,7 @@ Method "[_.._)" is
 |
 	integer range
 		from lowerBound (inclusive=true)
-		to upperBound (inclusive=false);
+		to upperBound (inclusive=false)
 ] : extended integer meta;
 
 /**
@@ -283,7 +283,7 @@ Semantic restriction "[_.._)" is
 |
 	(integer range
 		from lowerBound's lower bound (inclusive=true)
-		to upperBound's upper bound (inclusive=false))'s type;
+		to upperBound's upper bound (inclusive=false))'s type
 ];
 
 /**
@@ -302,7 +302,7 @@ Method "(_.._]" is
 |
 	integer range
 		from lowerBound (inclusive=false)
-		to upperBound (inclusive=true);
+		to upperBound (inclusive=true)
 ] : extended integer meta;
 
 /**
@@ -321,7 +321,7 @@ Semantic restriction "(_.._]" is
 |
 	(integer range
 		from lowerBound's lower bound (inclusive=false)
-		to upperBound's upper bound (inclusive=true))'s type;
+		to upperBound's upper bound (inclusive=true))'s type
 ];
 
 /**
@@ -340,7 +340,7 @@ Method "(_.._)" is
 |
 	integer range
 		from lowerBound (inclusive=false)
-		to upperBound (inclusive=false);
+		to upperBound (inclusive=false)
 ] : extended integer meta;
 
 /**
@@ -359,7 +359,7 @@ Semantic restriction "(_.._)" is
 |
 	(integer range
 		from lowerBound's lower bound (inclusive=false)
-		to upperBound's upper bound (inclusive=false))'s type;
+		to upperBound's upper bound (inclusive=false))'s type
 ];
 
 /**
@@ -380,7 +380,7 @@ Method "_'s⁇lower bound is inclusive" is
 	range : extended integer meta
 |
 	bound ::= range's lower bound;
-	bound's type ⊆ range;
+	bound's type ⊆ range
 ] : boolean;
 
 /**
@@ -401,7 +401,7 @@ Method "_'s⁇upper bound is inclusive" is
 	range : extended integer meta
 |
 	bound ::= range's upper bound;
-	bound's type ⊆ range;
+	bound's type ⊆ range
 ] : boolean;
 
 /**
@@ -415,17 +415,17 @@ Method "minimum function" is
 	[
 		numbers : <<>, number…|[1..∞)>
 	|
-		min : number := cast numbers[1] into [ t : number | t; ];
+		min : number := cast numbers[1] into [ t : number | t ];
 		From 2 to |numbers| do
 		[
 			index : natural number
 		|
-			n ::= cast numbers[index] into [ t : number | t; ];
-			min := if n ≤ min then [ n; ] else [ min; ];
-			¬(min = -∞);
+			n ::= cast numbers[index] into [ t : number | t ];
+			min := if n ≤ min then [ n ] else [ min ];
+			¬(min = -∞)
 		];
-		min;
-	] : number;
+		min
+	] : number
 ];
 
 /**
@@ -451,7 +451,7 @@ Method "«_‡min»" is minimum function;
 /* Don't parse `«_‡min»` recursively. */
 Invoke
 [
-	cast ::= [ t : {string|whole number} | t; ];
+	cast ::= [ t : {string|whole number} | t ];
 	names ::= cast <"«_‡min»">→set into cast;
 	exclusions ::= cast <"«_‡min»">→set into cast;
 	Grammatical restriction names is <exclusions>;
@@ -469,17 +469,17 @@ Method "maximum function" is
 	[
 		numbers : <<>, number…|[1..∞)>
 	|
-		max : number := cast numbers[1] into [ t : number | t; ];
+		max : number := cast numbers[1] into [ t : number | t ];
 		From 2 to |numbers| do
 		[
 			index : natural number
 		|
-			n ::= cast numbers[index] into [ t : number | t; ];
-			max := if n ≤ max then [ max; ] else [ n; ];
-			¬(max = ∞);
+			n ::= cast numbers[index] into [ t : number | t ];
+			max := if n ≤ max then [ max ] else [ n ];
+			¬(max = ∞)
 		];
-		max;
-	] : number;
+		max
+	] : number
 ];
 
 /**
@@ -505,7 +505,7 @@ Method "«_‡max»" is maximum function;
 /* Don't parse `«_‡max»` recursively. */
 Invoke
 [
-	cast ::= [ t : {string|whole number} | t; ];
+	cast ::= [ t : {string|whole number} | t ];
 	names ::= cast <"«_‡max»">→set into cast;
 	exclusions ::= cast <"«_‡max»">→set into cast;
 	Grammatical restriction names is <exclusions>;
@@ -524,24 +524,24 @@ Method "minimum semantic restriction" is
 	[
 		numbers : <<>, extended integer…|[1..∞)>'s type
 	|
-		first ::= cast numbers[1] into [ t : extended integer meta | t; ];
+		first ::= cast numbers[1] into [ t : extended integer meta | t ];
 		min : extended integer := first's lower bound;
 		minInclusive : boolean := first's lower bound is inclusive;
 		max : extended integer := first's upper bound;
 		maxInclusive : boolean := first's upper bound is inclusive;
 		limit ::= cast |numbers' leading types| + 1
-			into [ t : natural number | t; ];
+			into [ t : natural number | t ];
 		From 2 to limit do
 		[
 			index : natural number
 		|
 			value ::= cast numbers[index]
-				into [ t : extended integer meta | t; ];
+				into [ t : extended integer meta | t ];
 			lower ::= value's lower bound;
 			If lower = min then
 			[
 				minInclusive :=
-					minInclusive ∨ [ value's lower bound is inclusive; ];
+					minInclusive ∨ [ value's lower bound is inclusive ];
 			]
 			else
 			[
@@ -555,7 +555,7 @@ Method "minimum semantic restriction" is
 			If upper = max then
 			[
 				maxInclusive :=
-					maxInclusive ∧ [ value's upper bound is inclusive; ];
+					maxInclusive ∧ [ value's upper bound is inclusive ];
 			]
 			else
 			[
@@ -565,19 +565,19 @@ Method "minimum semantic restriction" is
 					maxInclusive := value's upper bound is inclusive;
 				];
 			];
-			true;
+			true
 		];
-		if (min = max) ∧ [ minInclusive = maxInclusive; ] then
+		if (min = max) ∧ [ minInclusive = maxInclusive ] then
 		[
-			min's type;
+			min's type
 		]
 		else
 		[
 			integer range
 				from min (inclusive=minInclusive)
-				to max (inclusive=maxInclusive);
-		];
-	] : extended integer meta;
+				to max (inclusive=maxInclusive)
+		]
+	] : extended integer meta
 ];
 
 /**
@@ -605,8 +605,8 @@ Method "extremum semantic restriction(float)" is
 	[
 		number : <<>, float…|[2..∞)>'s type
 	|
-		float;
-	];
+		float
+	]
 ];
 
 /**
@@ -621,8 +621,8 @@ Method "extremum semantic restriction(double)" is
 	[
 		number : <<>, double…|[2..∞)>'s type
 	|
-		double;
-	];
+		double
+	]
 ];
 
 /**
@@ -659,24 +659,24 @@ Method "maximum semantic restriction" is
 	[
 		numbers : <<>, extended integer…|[1..∞)>'s type
 	|
-		first ::= cast numbers[1] into [ t : extended integer meta | t; ];
+		first ::= cast numbers[1] into [ t : extended integer meta | t ];
 		min : extended integer := first's lower bound;
 		minInclusive : boolean := first's lower bound is inclusive;
 		max : extended integer := first's upper bound;
 		maxInclusive : boolean := first's upper bound is inclusive;
 		limit ::= cast |numbers' leading types| + 1
-			into [ t : natural number | t; ];
+			into [ t : natural number | t ];
 		From 2 to limit do
 		[
 			index : natural number
 		|
 			value ::= cast numbers[index]
-				into [ t : extended integer meta | t; ];
+				into [ t : extended integer meta | t ];
 			lower ::= value's lower bound;
 			If min = lower then
 			[
 				minInclusive :=
-					minInclusive ∧ [ value's lower bound is inclusive; ];
+					minInclusive ∧ [ value's lower bound is inclusive ];
 			]
 			else
 			[
@@ -690,7 +690,7 @@ Method "maximum semantic restriction" is
 			If max = upper then
 			[
 				maxInclusive :=
-					maxInclusive ∨ [ value's upper bound is inclusive; ];
+					maxInclusive ∨ [ value's upper bound is inclusive ];
 			]
 			else
 			[
@@ -700,19 +700,19 @@ Method "maximum semantic restriction" is
 					maxInclusive := value's upper bound is inclusive;
 				];
 			];
-			true;
+			true
 		];
-		if (min = max) ∧ [ minInclusive = maxInclusive; ] then
+		if (min = max) ∧ [ minInclusive = maxInclusive ] then
 		[
-			min's type;
+			min's type
 		]
 		else
 		[
 			integer range
 				from min (inclusive=minInclusive)
-				to max (inclusive=maxInclusive);
-		];
-	] : extended integer meta;
+				to max (inclusive=maxInclusive)
+		]
+	] : extended integer meta
 ];
 
 /**
@@ -764,7 +764,7 @@ Method "_>_" is
 	a : number,
 	b : number
 |
-	b < a;
+	b < a
 ] : boolean;
 
 /**
@@ -781,13 +781,13 @@ Method "_≥_" is
 	a : number,
 	b : number
 |
-	b ≤ a;
+	b ≤ a
 ] : boolean;
 
 /* Make addition and subtraction left-associative. */
 Invoke
 [
-	cast ::= [ t : {string|whole number} | t; ];
+	cast ::= [ t : {string|whole number} | t ];
 	names ::= cast <"_+_", "_-_">→set into cast;
 	Grammatical restriction names is <∅, names>;
 ]
@@ -805,7 +805,7 @@ Method "_is finite" is
 [
 	a : extended integer
 |
-	false;
+	false
 ] : boolean;
 
 /**
@@ -820,7 +820,7 @@ Method "_is finite" is
 [
 	a : integer
 |
-	true;
+	true
 ] : true's type;
 
 /**
@@ -835,7 +835,7 @@ Method "_is infinite" is
 [
 	a : extended integer
 |
-	true;
+	true
 ] : boolean;
 
 /**
@@ -850,7 +850,7 @@ Method "_is infinite" is
 [
 	a : integer
 |
-	false;
+	false
 ] : false's type;
 
 /**
@@ -872,50 +872,50 @@ Method "type promotion function for_" is
 		a : number's type,
 		b : number's type
 	|
-		if |a| = 1 ∧ [ |b| = 1; ] then
+		if |a| = 1 ∧ [ |b| = 1 ] then
 		[
 			/* The exact values are known statically. Calculate it exactly. */
-			(invoke operator with <a's instance, b's instance>)'s type;
+			(invoke operator with <a's instance, b's instance>)'s type
 		]
 		else
 		[
-			if a ⊆ double ∨ [ b ⊆ double; ] then
+			if a ⊆ double ∨ [ b ⊆ double ] then
 			[
 				/* At least one is known to be double, which forces the result
 				 * to be a double.
 				 */
-				double;
+				double
 			]
 			else
 			[
-				if a = number ∨ [ b = number; ] then
+				if a = number ∨ [ b = number ] then
 				[
 					/* Neither is known to be a double, and at least one is as
 					 * weak as a number.  The weak one might be a double at run
 					 * time, so we can't limit the output type any more.
 					 */
-					number;
+					number
 				]
 				else
 				[
 					/* Neither one is as weak as number. */
-					if a ⊆ float ∨ [ b ⊆ float; ] then
+					if a ⊆ float ∨ [ b ⊆ float ] then
 					[
 						/* Either {float,float} or {float,int}, which each
 						 * produce a float.
 						 */
-						float;
+						float
 					]
 					else
 					[
-						if a ⊆ extended integer ∧ [ b ⊆ extended integer; ]
-						then [ extended integer; ]
-						else [ number; ];
-					];
-				];
-			];
-		];
-	];
+						if a ⊆ extended integer ∧ [ b ⊆ extended integer ]
+						then [ extended integer ]
+						else [ number ]
+					]
+				]
+			]
+		]
+	]
 ];
 
 /* These messages describe arithmetic failure (integers only). */
@@ -933,9 +933,9 @@ Semantic restriction "_+_" is type promotion function for
 |
 	If {a, b} = {-∞, ∞} then
 	[
-		Reject parse, expected: cannotAddMessage;
+		Reject parse, expected: cannotAddMessage
 	];
-	a + b;
+	a + b
 ];
 
 Semantic restriction "_-_" is type promotion function for
@@ -945,9 +945,9 @@ Semantic restriction "_-_" is type promotion function for
 |
 	If {a, b} ∈ {{-∞}, {∞}} then
 	[
-		Reject parse, expected: cannotSubtractMessage;
+		Reject parse, expected: cannotSubtractMessage
 	];
-	a - b;
+	a - b
 ];
 
 Semantic restriction "_×_" is type promotion function for
@@ -956,11 +956,11 @@ Semantic restriction "_×_" is type promotion function for
 	b : number
 |
 	terms ::= {a, b};
-	If terms = {0, ∞} ∨ [ terms = {0, -∞}; ] then
+	If terms = {0, ∞} ∨ [ terms = {0, -∞} ] then
 	[
-		Reject parse, expected: cannotMultiplyMessage;
+		Reject parse, expected: cannotMultiplyMessage
 	];
-	a × b;
+	a × b
 ];
 
 Semantic restriction "_÷_" is type promotion function for
@@ -968,14 +968,14 @@ Semantic restriction "_÷_" is type promotion function for
 	a : number,
 	b : number
 |
-	If b = 0 ∧ [ a's type ⊆ extended integer; ] then
+	If b = 0 ∧ [ a's type ⊆ extended integer ] then
 	[
-		Reject parse, expected: cannotDivideByZeroMessage;
+		Reject parse, expected: cannotDivideByZeroMessage
 	];
 	infinities ::= {∞, -∞};
-	If a ∈ infinities ∧ [ b ∈ infinities; ] then
+	If a ∈ infinities ∧ [ b ∈ infinities ] then
 	[
-		Reject parse, expected: cannotDivideTwoInfinitiesMessage;
+		Reject parse, expected: cannotDivideTwoInfinitiesMessage
 	];
-	a ÷ b;
+	a ÷ b
 ];

@@ -56,7 +56,7 @@ Method "¬_" is
 [
 	predicate : boolean
 |
-	false;
+	false
 ] : boolean;
 
 /**
@@ -71,7 +71,7 @@ Method "¬_" is
 [
 	predicate : false's type
 |
-	true;
+	true
 ] : true's type;
 
 /**
@@ -87,7 +87,7 @@ Semantic restriction "¬_" is
 [
 	predicate : true's type's type
 |
-	false's type;
+	false's type
 ];
 
 /**
@@ -103,7 +103,7 @@ Semantic restriction "¬_" is
 [
 	predicate : false's type's type
 |
-	true's type;
+	true's type
 ];
 
 /**
@@ -139,7 +139,7 @@ Method "_∧_" is
 	a : false's type,
 	b : function accepting <> and returning boolean
 |
-	false;
+	false
 ] : boolean;
 
 /**
@@ -157,7 +157,7 @@ Semantic restriction "_∧_" is
 	a : false's type's type,
 	b : (function accepting <> and returning boolean)'s type
 |
-	false's type;
+	false's type
 ];
 
 /**
@@ -175,7 +175,7 @@ Semantic restriction "_∧_" is
 	a : true's type's type,
 	b : (function accepting <> and returning boolean)'s type
 |
-	b's return type;
+	b's return type
 ];
 
 /**
@@ -193,7 +193,7 @@ Semantic restriction "_∧_" is
 	a : boolean's type,
 	b : (function accepting <> and returning false's type)'s type
 |
-	false's type;
+	false's type
 ];
 
 /**
@@ -229,7 +229,7 @@ Method "_∨_" is
 	a : true's type,
 	b : function accepting <> and returning boolean
 |
-	true;
+	true
 ] : boolean;
 
 /**
@@ -247,7 +247,7 @@ Semantic restriction "_∨_" is
 	a : true's type's type,
 	b : (function accepting <> and returning boolean)'s type
 |
-	true's type;
+	true's type
 ];
 
 /**
@@ -265,7 +265,7 @@ Semantic restriction "_∨_" is
 	a : false's type's type,
 	b : (function accepting <> and returning boolean)'s type
 |
-	b's return type;
+	b's return type
 ];
 
 /**
@@ -283,7 +283,7 @@ Semantic restriction "_∨_" is
 	a : boolean's type,
 	b : (function accepting <> and returning true's type)'s type
 |
-	true's type;
+	true's type
 ];
 
 /**
@@ -300,5 +300,5 @@ Method "_≠_" is
 	a : any,
 	b : any
 |
-	¬a = b;
+	¬a = b
 ] : boolean;

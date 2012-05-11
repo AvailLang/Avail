@@ -1,5 +1,5 @@
 /**
- * Primitive_358_TokenLineNumber.java
+ * P_358_TokenLineNumber.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

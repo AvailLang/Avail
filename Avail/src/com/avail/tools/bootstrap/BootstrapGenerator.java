@@ -332,7 +332,7 @@ public final class BootstrapGenerator
 					preamble.getString(definingMethodUse.name()),
 					stringify(
 						specialObjectBundle.getString(nonalphaKey)),
-					String.format("\n[\n\t%s;\n];\n", constantName)));
+					String.format("\n[\n\t%s\n];\n", constantName)));
 			}
 		}
 	}
@@ -604,7 +604,7 @@ public final class BootstrapGenerator
 					preamble.getString(primitiveFailureFunctionName.name()),
 					preamble.getString(primitiveFailureVariableName.name())));
 			}
-			builder.append(";\n");
+			builder.append("\n");
 		}
 		return builder.toString();
 	}
@@ -764,7 +764,7 @@ public final class BootstrapGenerator
 		writer.print(MessageFormat.format(
 			preamble.getString(primitiveFailureMethodUse.name()),
 			preamble.getString(parameterPrefix.name()) + 1));
-		writer.println(";");
+		writer.println("");
 		writer.print("\t] : ");
 		writer.print(specialObjectName(BottomTypeDescriptor.bottom()));
 		writer.println(';');
@@ -784,7 +784,7 @@ public final class BootstrapGenerator
 		statements.append('\t');
 		statements.append(
 			preamble.getString(primitiveFailureFunctionName.name()));
-		statements.append(";\n");
+		statements.append("\n");
 		final String block = block(
 			"",
 			statements.toString(),
@@ -863,7 +863,7 @@ public final class BootstrapGenerator
 		statements.append(MessageFormat.format(
 			preamble.getString(primitiveFailureMethodUse.name()),
 			preamble.getString(primitiveFailureVariableName.name())));
-		statements.append(";\n");
+		statements.append("\n");
 		final String block = block(
 			primitiveMethodParameterDeclarations(primitive, false),
 			statements.toString(),
@@ -903,7 +903,7 @@ public final class BootstrapGenerator
 		statements.append(MessageFormat.format(
 			preamble.getString(primitiveFailureMethodUse.name()),
 			preamble.getString(primitiveFailureVariableName.name())));
-		statements.append(";\n");
+		statements.append("\n");
 		String block = block(
 			primitiveMethodParameterDeclarations(primitive, false),
 			statements.toString(),
@@ -915,9 +915,11 @@ public final class BootstrapGenerator
 		statements = new StringBuilder();
 		statements.append('\t');
 		statements.append(specialObjectName(BottomTypeDescriptor.bottom()));
-		statements.append(";\n");
+		statements.append("\n");
 		block = block(
-			primitiveMethodParameterDeclarations(P_040_InvokeWithTuple.instance, true),
+			primitiveMethodParameterDeclarations(
+				P_040_InvokeWithTuple.instance,
+				true),
 			statements.toString(),
 			null);
 		writer.append(MessageFormat.format(
@@ -1120,7 +1122,7 @@ public final class BootstrapGenerator
 			writer.println(MessageFormat.format(
 				preamble.getString(definingMethodUse.name()),
 				stringify(errorCodeBundle.getString(key)),
-				String.format("\n[\n\t%d;\n];\n", code.nativeCode())));
+				String.format("\n[\n\t%d\n];\n", code.nativeCode())));
 		}
 	}
 

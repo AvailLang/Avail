@@ -1,5 +1,5 @@
 /**
- * Primitive_002_Subtraction.java
+ * P_002_Subtraction.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

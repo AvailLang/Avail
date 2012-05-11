@@ -1674,9 +1674,9 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	abstract void o_InterruptRequestFlag (
+	abstract void o_SetInterruptRequestFlag (
 		@NotNull AvailObject object,
-		int value);
+		BitField value);
 
 	/**
 	 * @param object
@@ -3251,7 +3251,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract int o_InterruptRequestFlag (AvailObject object);
+	abstract int o_InterruptRequestFlags (AvailObject object);
 
 	/**
 	 * @param object
@@ -5480,7 +5480,7 @@ public abstract class AbstractDescriptor
 	 * @param canDestroy
 	 * @return
 	 */
-	abstract AvailObject o_AppendCanDestroy (
+	abstract @NotNull AvailObject o_AppendCanDestroy (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject newElement,
 		final boolean canDestroy);
@@ -5531,5 +5531,11 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract @NotNull AvailObject o_FieldTuple (
+		final @NotNull AvailObject object);
+
+	/**
+	 * @param object
+	 */
+	abstract void o_ClearInterruptRequestFlags (
 		final @NotNull AvailObject object);
 }

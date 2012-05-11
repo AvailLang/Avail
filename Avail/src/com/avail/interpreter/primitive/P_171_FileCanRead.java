@@ -1,5 +1,5 @@
 /**
- * Primitive_171_FileCanRead.java
+ * P_171_FileCanRead.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

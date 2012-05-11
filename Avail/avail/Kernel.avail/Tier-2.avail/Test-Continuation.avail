@@ -43,7 +43,7 @@ Body
 
 result : integer;
 exit : boolean := false;
-Until [exit;] loop [
+Until [exit] loop [
 	result :=123;
 	exit := true;
 ];

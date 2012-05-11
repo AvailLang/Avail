@@ -1,5 +1,5 @@
 /**
- * Primitive_037_ReturnType.java
+ * P_037_ReturnType.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

@@ -1,5 +1,5 @@
 /**
- * Primitive_020_CurrentTimeMilliseconds.java
+ * P_020_CurrentTimeMilliseconds.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -39,7 +39,7 @@ import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive 20:</strong> Get the current time as milliseconds since
- * the Unix Epoch.<
+ * the Unix Epoch.
  */
 public class P_020_CurrentTimeMilliseconds extends Primitive
 {
@@ -47,7 +47,7 @@ public class P_020_CurrentTimeMilliseconds extends Primitive
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance = new P_020_CurrentTimeMilliseconds().init(
-		0, CannotFail, HasSideEffect);
+		0, CannotFail, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (

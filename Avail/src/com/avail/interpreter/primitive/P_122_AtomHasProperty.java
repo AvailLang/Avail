@@ -1,5 +1,5 @@
 /**
- * Primitive_122_AtomHasProperty.java
+ * P_122_AtomHasProperty.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

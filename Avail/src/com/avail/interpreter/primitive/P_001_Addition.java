@@ -1,5 +1,5 @@
 /**
- * Primitive_001_Addition.java
+ * P_001_Addition.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

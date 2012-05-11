@@ -1,5 +1,5 @@
 /**
- * P_207_CompleteMessages.java
+ * P_075_CreateStubFunctionTakingTuple.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -31,28 +31,26 @@
  */
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 207:</strong> Answer a collection of all visible
- * {@linkplain MessageBundleDescriptor messages} inside the current
- * {@linkplain MessageBundleTreeDescriptor tree} that expect no more parts
- * than those already encountered. Answer it as a {@linkplain MapDescriptor
- * map} from {@linkplain AtomDescriptor true name} to message bundle
- * (typically only zero or one entry).
+ * <strong>Primitive 75:</strong> Construct a {@linkplain FunctionDescriptor
+ * function} that accepts a single argument, a tuple, and invokes the given
+ * function with the elements of that tuple, answering the result.  The new
+ * function should have as strong a type as possible.
  */
-public class P_207_CompleteMessages extends Primitive
+public class P_075_CreateStubFunctionTakingTuple extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_207_CompleteMessages().init(
-		1, CanInline, CannotFail);
+	public final static Primitive instance = new P_075_CreateStubFunctionTakingTuple().init(
+		1, CanFold, CannotFail);
 
 	@Override
 	public @NotNull Result attempt (
@@ -60,9 +58,11 @@ public class P_207_CompleteMessages extends Primitive
 		final @NotNull Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject bundleTree = args.get(0);
+		final AvailObject function = args.get(0);
+		final AvailObject argsType = function.functionType().argsTupleType();
 		return interpreter.primitiveSuccess(
-			bundleTree.complete().makeImmutable());
+			FunctionDescriptor.createStubTakingTupleFrom(
+				function));
 	}
 
 	@Override
@@ -70,10 +70,10 @@ public class P_207_CompleteMessages extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				MESSAGE_BUNDLE_TREE.o()),
-			MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
-				IntegerRangeTypeDescriptor.wholeNumbers(),
-				ATOM.o(),
-				MESSAGE_BUNDLE.o()));
+				FunctionTypeDescriptor.mostGeneralType()),
+			FunctionTypeDescriptor.create(
+				TupleDescriptor.from(
+					BottomTypeDescriptor.bottom()),
+				Types.TOP.o()));
 	}
 }

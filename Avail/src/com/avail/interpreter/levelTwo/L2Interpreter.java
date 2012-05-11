@@ -260,7 +260,8 @@ extends Interpreter
 	 * The {@link L1InstructionStepper} used to simulate execution of level
 	 * one nybblecodes.
 	 */
-	public final L1InstructionStepper levelOneStepper = new L1InstructionStepper(this);
+	public final L1InstructionStepper levelOneStepper =
+		new L1InstructionStepper(this);
 
 	/**
 	 * Whether or not execution has completed.
@@ -290,11 +291,15 @@ extends Interpreter
 	 * Level One interpreter should be able to resume the process later. The
 	 * continuation to use can be found in pointerAt(continuationIndex).
 	 */
-	public void interruptProcess ()
+	public void processInterrupt ()
 	{
 		final int continuationIndex = nextWord();
 		process.continuation(pointerAt(continuationIndex));
-		process.interruptRequestFlag(interruptRequestFlag);
+		// TODO[MvG/TLS]: Really process the interrupt, possibly causing a
+		// context switch to another process.  The simplest approach is to queue
+		// this process, then allow the thread pool to grab the highest priority
+		// available process to run.
+		process.clearInterruptRequestFlags();
 		exitValue = NullDescriptor.nullObject();
 		exitNow = true;
 	}
@@ -847,7 +852,6 @@ extends Interpreter
 	 */
 	private AvailObject run ()
 	{
-		interruptRequestFlag = 0;
 		exitNow = false;
 		while (!exitNow)
 		{
@@ -871,7 +875,9 @@ extends Interpreter
 				while (!chain.equalsNull())
 				{
 					stackString.insert(0, "->");
-					stackString.insert(0, argumentOrLocalRegister(chain.stackp()));
+					stackString.insert(
+						0,
+						argumentOrLocalRegister(chain.stackp()));
 					chain = chain.caller();
 				}
 

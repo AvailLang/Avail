@@ -54,20 +54,20 @@ Method "_is letter" is [c : character |
 	if cp < 128
 		then [
 			65 <= cp <= 90
-				| 97 <= cp <= 122;]
+				| 97 <= cp <= 122]
 		else [
 			if cp < 8192
 				then [
 					192 <= cp <= 214
 						| 216 <= cp <= 246
-						| 248 <= cp <= 8191;]
+						| 248 <= cp <= 8191]
 				else [
 					12352 <= cp <= 12799
 						| 13312 <= cp <= 59391
 						| 65136 <= cp <= 65277
 						| 65313 <= cp <= 65338
 						| 65345 <= cp <= 65370
-						| 65377 <= cp <= 65503;];];];
+						| 65377 <= cp <= 65503]]];
 
 privateIrregularUppercaseSet ::= {
 	256,258,260,262,264,266,268,270,272,274,276,278,280,282,284,286,288,290,292,
@@ -87,7 +87,7 @@ Method "_is uppercase" is [c : character |
 	cp ::= code point of c;
 	if cp < 128
 		then [
-			65 <= cp <= 90;]
+			65 <= cp <= 90]
 		else [
 			if cp < 8192
 				then [
@@ -96,6 +96,6 @@ Method "_is uppercase" is [c : character |
 						| (1025 <= cp <= 1071 & cp not = 1037)
 						| 1329 <= cp <= 1366
 						| 4256 <= cp <= 4293
-						| [privateIrregularUppercaseSet includes cp;];]
+						| [privateIrregularUppercaseSet includes cp]]
 				else [
-					65313 <= cp <= 65338;];];];
+					65313 <= cp <= 65338]]];

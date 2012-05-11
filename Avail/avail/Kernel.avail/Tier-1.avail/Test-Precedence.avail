@@ -44,19 +44,19 @@ Body
 /* Stub test parsing methods. */
 
 Method "_+_" is [a : integer, b : integer |
-	a;
+	a
 ] : integer;
 
 Method "_*_" is [a : integer, b : integer |
-	a;
+	a
 ] : integer;
 
 Method "_*_+_" is [a : integer, b : integer, c : integer |
-	a;
+	a
 ] : integer;
 
 Method "_+_*_" is [a : integer, b : integer, c : integer |
-	a;
+	a
 ] : integer;
 
 

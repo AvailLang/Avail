@@ -227,9 +227,26 @@ extends AbstractAvailCompiler
 					{
 						return;
 					}
-					continuation.value(
-						afterExpression.afterToken(),
-						expression);
+					if (expression.expressionType().equals(TOP.o()))
+					{
+						continuation.value(
+							afterExpression.afterToken(),
+							expression);
+					}
+					else
+					{
+						afterExpression.expected(
+							new Generator<String>()
+							{
+								@Override
+								public String value ()
+								{
+									return String.format(
+										"statement to have type ⊤, not %s.",
+										expression.expressionType());
+								}
+							});
+					}
 				}
 			});
 		if (canBeLabel)
@@ -2630,9 +2647,7 @@ extends AbstractAvailCompiler
 					+ "one has type ⊥");
 				return;
 			}
-			if (!lastStatement.expressionType().equals(TOP.o())
-				&& !lastStatement.isInstanceOfKind(
-					ASSIGNMENT_NODE.mostGeneralType()))
+			if (!lastStatement.expressionType().equals(TOP.o()))
 			{
 				start.expected(
 					new Generator<String>()
@@ -2641,16 +2656,19 @@ extends AbstractAvailCompiler
 						public String value ()
 						{
 							return String.format(
-								"non-last statement \"%s\" "
-								+ " to have type top, not \"%s\".",
+								"statement \"%s\" to have type ⊤, not \"%s\".",
 								lastStatement,
 								lastStatement.expressionType());
 						}
 					});
 				return;
 			}
+			start.expected("more statements or final expression");
 		}
-		start.expected("more statements");
+		else
+		{
+			start.expected("statements or final expression");
+		}
 
 		// Try for more statements.
 		parseInnerStatement(
@@ -2689,6 +2707,30 @@ extends AbstractAvailCompiler
 						null,
 						newStatements,
 						continuation);
+				}
+			});
+
+		// Try for a final value-yielding expression (with no trailing
+		// semicolon).
+		parseExpressionThen(
+			start,
+			new Con<AvailObject>("Final expression")
+			{
+				@Override
+				public void value (
+					final ParserState afterFinalExpression,
+					final AvailObject finalExpression)
+				{
+					if (!finalExpression.expressionType().equals(TOP.o()))
+					{
+						final List<AvailObject> newStatements =
+							new ArrayList<AvailObject>(statements);
+						newStatements.add(finalExpression);
+						attempt(
+							afterFinalExpression,
+							continuation,
+							newStatements);
+					}
 				}
 			});
 	}

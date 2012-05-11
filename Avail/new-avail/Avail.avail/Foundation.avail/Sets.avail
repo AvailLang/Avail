@@ -73,9 +73,9 @@ Semantic restriction "_+_" is
 	valueType : any meta
 |
 	/* Leverage instance types. */
-	if |setType| = 1 ∧ [ |valueType| = 1; ] then
+	if |setType| = 1 ∧ [ |valueType| = 1 ] then
 	[
-		(setType's instance + valueType's instance)'s type;
+		(setType's instance + valueType's instance)'s type
 	]
 	else
 	[
@@ -83,9 +83,9 @@ Semantic restriction "_+_" is
 		/* If the element type is an instance type and equal to `valueType`,
 		 * then the value is already present; the set type does not change.
 		 */
-		if |elementType| = 1 ∧ [ elementType = valueType; ] then
+		if |elementType| = 1 ∧ [ elementType = valueType ] then
 		[
-			setType;
+			setType
 		]
 		else
 		[
@@ -98,18 +98,18 @@ Semantic restriction "_+_" is
 			newSizes ::=
 				if elementType ∩ valueType = ⊥ then
 				[
-					cast sizes + 1's type into [ t : whole number's type | t; ];
+					cast sizes + 1's type into [ t : whole number's type | t ]
 				]
 				/* Otherwise the element *may* be present, but there's no way to
 				 * know for sure. Adjust the cardinality accordingly.
 				 */
 				else
 				[
-					cast sizes + [0..1] into [ t : whole number's type | t; ];
+					cast sizes + [0..1] into [ t : whole number's type | t ]
 				];
-			{union | newSizes};
-		];
-	];
+			{union | newSizes}
+		]
+	]
 ];
 
 /**
@@ -126,12 +126,12 @@ Semantic restriction "_→tuple" is
 |
 	if |setType| = 1 then
 	[
-		(setType's instance→tuple)'s type;
+		(setType's instance→tuple)'s type
 	]
 	else
 	[
-		<<>, setType's element type… | ||setType||>;
-	];
+		<<>, setType's element type… | ||setType||>
+	]
 ];
 
 /**
@@ -146,7 +146,7 @@ Method "_is empty" is
 [
 	aSet : set
 |
-	|aSet| = 0;
+	|aSet| = 0
 ];
 
 /**
@@ -171,7 +171,7 @@ Method "For each_do_" is
 		[
 			Invoke action with <aTuple[index]>;
 			↑index++;
-			Restart loop;
+			Restart loop
 		];
 	]();
 ] : ⊤;
@@ -193,16 +193,16 @@ Method "Require:_accepts_" is
 	If ||action's parameters' type||'s lower bound < 1 then
 	[
 		Reject parse, expected:
-			"repeatedly applied function to accept at least one argument";
+			"repeatedly applied function to accept at least one argument"
 	];
-	If action[1] ≠ ⊥ ∧ [ ¬setType's element type ⊆ action[1]; ] then
+	If action[1] ≠ ⊥ ∧ [ ¬setType's element type ⊆ action[1] ] then
 	[
 		Reject parse, expected:
 			"repeatedly applied function to accept all elements of the set ∈ "
 			++ primitive description of setType
 			++ " (but it only accepts "
 			++ primitive description of action[1]
-			++ ")";
+			++ ")"
 	];
 ] : ⊤;
 
@@ -223,14 +223,14 @@ Semantic restriction "For each_do_" is
 	action : [⊥]→⊤'s type
 |
 	Require: action accepts setType;
-	if ||setType||'s lower bound > 0 ∧ [ action's return type = ⊥; ] then
+	if ||setType||'s lower bound > 0 ∧ [ action's return type = ⊥ ] then
 	[
-		⊥;
+		⊥
 	]
 	else
 	[
-		⊤;
-	];
+		⊤
+	]
 ];
 
 /**
@@ -260,10 +260,10 @@ Method "map_through_" is
 		[
 			result := eject ↑result + invoke transformer with <aTuple[index]>;
 			↑index++;
-			Restart loop;
+			Restart loop
 		];
 	]();
-	result;
+	result
 ] : set;
 
 /**
@@ -289,10 +289,10 @@ Semantic restriction "map_through_" is
 		[
 			Reject parse, expected:
 				"repeatedly applied function to have a return type other than\
-				\| ⊥";
+				\| ⊥"
 		];
 	];
-	{transformer's return type | ||setType||};
+	{transformer's return type | ||setType||}
 ];
 
 /**
@@ -327,10 +327,10 @@ Method "filter_by_" is
 				result := eject ↑result + element;
 			];
 			↑index++;
-			Restart loop;
+			Restart loop
 		];
 	]();
-	result;
+	result
 ] : set;
 
 /**
@@ -350,10 +350,10 @@ Semantic restriction "filter_by_" is
 |
 	Require: predicate accepts setType;
 	sizes ::=
-		if predicate's return type = true's type then [ ||setType||; ]
-		else if [ predicate's return type = false's type; ] then [ 0's type; ]
-		else [ [0..||setType||'s upper bound + 1); ];
-	{setType's element type|sizes};
+		if predicate's return type = true's type then [ ||setType|| ]
+		else if [ predicate's return type = false's type ] then [ 0's type ]
+		else [ [0..||setType||'s upper bound + 1) ];
+	{setType's element type|sizes}
 ];
 
 /**
@@ -401,10 +401,10 @@ Method "map and filter_by_" is
 				]
 			>;
 			↑index++;
-			Restart loop;
+			Restart loop
 		];
 	]();
-	result;
+	result
 ] : set;
 
 /**
@@ -428,12 +428,12 @@ Semantic restriction "map and filter_by_" is
 	If accumulator's return type ≠ ⊤ then
 	[
 		Reject parse, expected:
-			"repeatedly applied function to have return type ⊤";
+			"repeatedly applied function to have return type ⊤"
 	];
 	{
-		cast accumulator[2] into [ t : function meta | t[1]; ]
+		cast accumulator[2] into [ t : function meta | t[1] ]
 		| [0..||setType||'s upper bound + 1)
-	};
+	}
 ];
 
 /**
@@ -460,10 +460,10 @@ Method "any of_satisfies_" is
 	|
 		If invoke predicate with <element> then
 		[
-			Exit body with true;
+			Exit body with true
 		];
 	];
-	false;
+	false
 ] : boolean;
 
 /**
@@ -481,7 +481,7 @@ Semantic restriction "any of_satisfies_" is
 	predicate : [⊥]→boolean's type
 |
 	Require: predicate accepts setType;
-	predicate's return type;
+	predicate's return type
 ];
 
 /**
@@ -508,10 +508,10 @@ Method "each of_satisfies_" is
 	|
 		Unless invoke predicate with <element> then
 		[
-			Exit body with false;
+			Exit body with false
 		];
 	];
-	true;
+	true
 ] : boolean;
 
 /**
@@ -529,7 +529,7 @@ Semantic restriction "each of_satisfies_" is
 	predicate : [⊥]→boolean's type
 |
 	Require: predicate accepts setType;
-	predicate's return type;
+	predicate's return type
 ];
 
 /**
@@ -548,7 +548,7 @@ Method "count of_where_" is
 	aSet : set,
 	predicate : [⊥]→boolean
 |
-	|filter aSet by predicate|;
+	|filter aSet by predicate|
 ] : whole number;
 
 /**
@@ -566,7 +566,7 @@ Semantic restriction "count of_where_" is
 	predicate : [⊥]→boolean's type
 |
 	Require: predicate accepts setType;
-	[0..||setType||'s upper bound + 1);
+	[0..||setType||'s upper bound + 1)
 ];
 
 /**
@@ -583,19 +583,19 @@ Semantic restriction "_∈_" is
 	valueType : any meta,
 	setType : set meta
 |
-	if |valueType| = 1 ∧ [ |setType| = 1; ] then
+	if |valueType| = 1 ∧ [ |setType| = 1 ] then
 	[
-		(valueType's instance ∈ setType's instance)'s type;
+		(valueType's instance ∈ setType's instance)'s type
 	]
-	else if [ valueType ∩ (setType's element type) = ⊥; ] then
+	else if [ valueType ∩ (setType's element type) = ⊥ ] then
 	[
-		false's type;
+		false's type
 	]
 	else
 	[
 		/* Can't strengthen. */
-		⊤;
-	];
+		⊤
+	]
 ];
 
 /**
@@ -612,7 +612,7 @@ Method "_∋_" is
 	aSet : set,
 	value : any
 |
-	value ∈ aSet;
+	value ∈ aSet
 ];
 
 /**
@@ -629,19 +629,19 @@ Semantic restriction "_∋_" is
 	setType : set meta,
 	valueType : any meta
 |
-	if |setType| = 1 ∧ [ |valueType| = 1; ] then
+	if |setType| = 1 ∧ [ |valueType| = 1 ] then
 	[
-		(setType's instance ∋ valueType's instance)'s type;
+		(setType's instance ∋ valueType's instance)'s type
 	]
-	else if [ (setType's element type) ∩ valueType = ⊥; ] then
+	else if [ (setType's element type) ∩ valueType = ⊥ ] then
 	[
-		false's type;
+		false's type
 	]
 	else
 	[
 		/* Can't strengthen. */
-		⊤;
-	];
+		⊤
+	]
 ];
 
 /**
@@ -658,19 +658,19 @@ Semantic restriction "_⊆_" is
 	a : set meta,
 	b : set meta
 |
-	if |a| = 1 ∧ [ |b| = 1; ] then
+	if |a| = 1 ∧ [ |b| = 1 ] then
 	[
-		(a's instance ⊆ b's instance)'s type;
+		(a's instance ⊆ b's instance)'s type
 	]
-	else if [ a's element type ∩ (b's element type) = ⊥; ] then
+	else if [ a's element type ∩ (b's element type) = ⊥ ] then
 	[
-		false's type;
+		false's type
 	]
 	else
 	[
 		/* Can't strengthen. */
-		⊤;
-	];
+		⊤
+	]
 ];
 
 /**
@@ -687,7 +687,7 @@ Method "_⊂_" is
 	a : set,
 	b : set
 |
-	|a| ≠ |b| ∧ [ a ⊆ b; ];
+	|a| ≠ |b| ∧ [ a ⊆ b ]
 ] : boolean;
 
 /**
@@ -707,11 +707,11 @@ Semantic restriction "_⊂_" is
 	/* If both arguments are instance types, then extract their instances and
 	 * perform the subset operation on them, answering the result's type.
 	 */
-	if |typeA| = 1 ∧ [ |typeB| = 1; ] then
+	if |typeA| = 1 ∧ [ |typeB| = 1 ] then
 	[
 		a ::= typeA's instance;
 		b ::= typeB's instance;
-		(a ⊂ b)'s type;
+		(a ⊂ b)'s type
 	]
 	else
 	[
@@ -725,13 +725,13 @@ Semantic restriction "_⊂_" is
 			[
 				if elementA ∩ elementB = ⊥ then
 				[
-					false's type;
+					false's type
 				]
 				else
 				[
 					/* Can't strengthen. */
-					⊤;
-				];
+					⊤
+				]
 			];
 		sizesB ::= ||typeB||;
 		/* This is finesse. If `typeB` is definitely the set of all possible
@@ -741,16 +741,16 @@ Semantic restriction "_⊂_" is
 		 */
 		if |elementB| ≠ ∞
 			∧ [ sizesB's lower bound = sizesB's upper bound
-			∧ [ |elementB| = sizesB's lower bound; ]; ]
+			∧ [ |elementB| = sizesB's lower bound ] ]
 		then
 		[
 			if ||typeA||'s upper bound < |elementB|
-				∧ [ elementA ⊆ elementB; ]
-			then [ true's type; ]
-			else basicRule;
+				∧ [ elementA ⊆ elementB ]
+			then [ true's type ]
+			else basicRule
 		]
-		else basicRule;
-	];
+		else basicRule
+	]
 ];
 
 /**
@@ -767,7 +767,7 @@ Method "_⊇_" is
 	a : set,
 	b : set
 |
-	b ⊆ a;
+	b ⊆ a
 ];
 
 /**
@@ -787,11 +787,11 @@ Semantic restriction "_⊇_" is
 	/* If both arguments are instance types, then extract their instances and
 	 * perform the subset operation on them, answering the result's type.
 	 */
-	if |typeA| = 1 ∧ [ |typeB| = 1; ] then
+	if |typeA| = 1 ∧ [ |typeB| = 1 ] then
 	[
 		a ::= typeA's instance;
 		b ::= typeB's instance;
-		(a ⊆ b)'s type;
+		(a ⊆ b)'s type
 	]
 	else
 	[
@@ -805,12 +805,12 @@ Semantic restriction "_⊇_" is
 			[
 				if elementA ∩ elementB = ⊥ then
 				[
-					false's type;
+					false's type
 				]
 				else
 				[
-					boolean;
-				];
+					boolean
+				]
 			];
 		sizesB ::= ||typeB||;
 		/* This is finesse. If `typeB` is definitely the set of all possible
@@ -820,17 +820,17 @@ Semantic restriction "_⊇_" is
 		 */
 		if |elementB| ≠ ∞
 			∧ [ sizesB's lower bound = sizesB's upper bound
-			∧ [ |elementB| = sizesB's lower bound; ]; ]
+			∧ [ |elementB| = sizesB's lower bound ] ]
 		then
 		[
 			if elementA ⊆ elementB then
 			[
-				true's type;
+				true's type
 			]
-			else basicRule;
+			else basicRule
 		]
-		else basicRule;
-	];
+		else basicRule
+	]
 ];
 
 /**
@@ -847,7 +847,7 @@ Method "_⊃_" is
 	a : set,
 	b : set
 |
-	b ⊂ a;
+	b ⊂ a
 ];
 
 /**
@@ -867,11 +867,11 @@ Semantic restriction "_⊂_" is
 	/* If both arguments are instance types, then extract their instances and
 	 * perform the subset operation on them, answering the result's type.
 	 */
-	if |typeA| = 1 ∧ [ |typeB| = 1; ] then
+	if |typeA| = 1 ∧ [ |typeB| = 1 ] then
 	[
 		a ::= typeA's instance;
 		b ::= typeB's instance;
-		(a ⊂ b)'s type;
+		(a ⊂ b)'s type
 	]
 	else
 	[
@@ -885,13 +885,13 @@ Semantic restriction "_⊂_" is
 			[
 				if elementA ∩ elementB = ⊥ then
 				[
-					false's type;
+					false's type
 				]
 				else
 				[
 					/* Can't strengthen. */
-					⊤;
-				];
+					⊤
+				]
 			];
 		sizesB ::= ||typeB||;
 		/* This is finesse. If `typeB` is definitely the set of all possible
@@ -901,16 +901,16 @@ Semantic restriction "_⊂_" is
 		 */
 		if |elementB| ≠ ∞
 			∧ [ sizesB's lower bound = sizesB's upper bound
-			∧ [ |elementB| = sizesB's lower bound; ]; ]
+			∧ [ |elementB| = sizesB's lower bound ] ]
 		then
 		[
 			if ||typeA||'s upper bound < |elementB|
-				∧ [ elementA ⊆ elementB; ]
-			then [ true's type; ]
-			else basicRule;
+				∧ [ elementA ⊆ elementB ]
+			then [ true's type ]
+			else basicRule
 		]
-		else basicRule;
-	];
+		else basicRule
+	]
 ];
 
 /**
@@ -927,7 +927,7 @@ Method "_∉_" is
 	element : any,
 	aSet : set
 |
-	¬ element ∈ aSet;
+	¬ element ∈ aSet
 ] : boolean;
 
 /**
@@ -944,19 +944,19 @@ Semantic restriction "_∉_" is
 	valueType : any meta,
 	setType : set meta
 |
-	if |valueType| = 1 ∧ [ |setType| = 1; ] then
+	if |valueType| = 1 ∧ [ |setType| = 1 ] then
 	[
-		(valueType's instance ∉ setType's instance)'s type;
+		(valueType's instance ∉ setType's instance)'s type
 	]
-	else if [ valueType ∩ (setType's element type) = ⊥; ] then
+	else if [ valueType ∩ (setType's element type) = ⊥ ] then
 	[
-		true's type;
+		true's type
 	]
 	else
 	[
 		/* Can't strengthen. */
-		⊤;
-	];
+		⊤
+	]
 ];
 
 /**
@@ -973,7 +973,7 @@ Method "_⊄_" is
 	a : set,
 	b : set
 |
-	¬ a ⊂ b;
+	¬ a ⊂ b
 ] : boolean;
 
 /**
@@ -993,11 +993,11 @@ Semantic restriction "_⊄_" is
 	/* If both arguments are instance types, then extract their instances and
 	 * perform the subset operation on them, answering the result's type.
 	 */
-	if |typeA| = 1 ∧ [ |typeB| = 1; ] then
+	if |typeA| = 1 ∧ [ |typeB| = 1 ] then
 	[
 		a ::= typeA's instance;
 		b ::= typeB's instance;
-		(a ⊄ b)'s type;
+		(a ⊄ b)'s type
 	]
 	else
 	[
@@ -1011,13 +1011,13 @@ Semantic restriction "_⊄_" is
 			[
 				if elementA ∩ elementB = ⊥ then
 				[
-					true's type;
+					true's type
 				]
 				else
 				[
 					/* Can't strengthen. */
-					⊤;
-				];
+					⊤
+				]
 			];
 		sizesB ::= ||typeB||;
 		/* This is finesse. If `typeB` is definitely the set of all possible
@@ -1027,16 +1027,16 @@ Semantic restriction "_⊄_" is
 		 */
 		if |elementB| ≠ ∞
 			∧ [ sizesB's lower bound = sizesB's upper bound
-			∧ [ |elementB| = sizesB's lower bound; ]; ]
+			∧ [ |elementB| = sizesB's lower bound ] ]
 		then
 		[
 			if ||typeA||'s upper bound < |elementB|
-				∧ [ elementA ⊆ elementB; ]
-			then [ false's type; ]
-			else basicRule;
+				∧ [ elementA ⊆ elementB ]
+			then [ false's type ]
+			else basicRule
 		]
-		else basicRule;
-	];
+		else basicRule
+	]
 ];
 
 /**
@@ -1062,10 +1062,10 @@ Method "group_by_" is
 		element : any
 	|
 		key ::= invoke discriminator with <element>;
-		group ::= groups[key] else [ ∅; ] + element;
+		group ::= groups[key] else [ ∅ ] + element;
 		groups := eject ↑groups + key→group;
 	];
-	groups;
+	groups
 ] : map;
 
 /**
@@ -1090,14 +1090,14 @@ Semantic restriction "group_by_" is
  	setUpperBound ::= setCardinality's upper bound;
 	keyType ::= discriminatorType's return type;
 	
- 	lowerBound ::= if setCardinality's lower bound = 0 then [0;] else [1;];
+ 	lowerBound ::= if setCardinality's lower bound = 0 then [0] else [1];
 	upperBound ::= if setUpperBound > |keyType| 
-		then [|keyType|;]
-		else [setUpperBound;];
+		then [|keyType|]
+		else [setUpperBound];
 
  	valueType ::= {aSetType's element type | 1..setUpperBound};
 
- 	{keyType→valueType | lowerBound..upperBound};
+ 	{keyType→valueType | lowerBound..upperBound}
  ];
 
 /* Make various boolean-valued set operations bind more tightly than logical

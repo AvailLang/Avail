@@ -53,7 +53,7 @@ Method "⊶block type taking_and returning_" is [args : tupleOfAnyMeta, ret : ty
 ] : functionType;
 
 Method "⊶[«_‡,»]->_" is [types : tupleOfAnyMeta, result : type |
-	⊶block type taking types and returning result;
+	⊶block type taking types and returning result
 ] : functionType;
 
 
@@ -73,11 +73,11 @@ Method "_upper bound" is [range : integerType |
 
 Method "_lower inclusive" is [range : integerType |
 	/* The <= is the subtype relation. */
-	range lower bound type <= range;
+	range lower bound type <= range
 ] : boolean;
 
 Method "_upper inclusive" is [range : integerType |
-	range upper bound type <= range;   /* The <= is the subtype relation. */
+	range upper bound type <= range   /* The <= is the subtype relation. */
 ] : boolean;
 
 Method "range from_inclusive_to_inclusive_" is [
@@ -98,12 +98,12 @@ Restriction "range from_inclusive_to_inclusive_" is [
 		inclusive minT lower inclusive
 		to maxT upper bound
 		inclusive maxT upper inclusive;
-	range type;
+	range type
 ];
 
 
 Method "[_.._]" is [min : extended integer, max : extended integer |
-	range from min inclusive true to max inclusive true;
+	range from min inclusive true to max inclusive true
 ] : integerType;
 
 Restriction "[_.._]" is [
@@ -114,11 +114,11 @@ Restriction "[_.._]" is [
 		inclusive true
 		to maxT upper bound
 		inclusive true;
-	range type;
+	range type
 ];
 
 Method "[_.._)" is [min : extended integer, max : extended integer |
-	range from min inclusive true to max inclusive false;
+	range from min inclusive true to max inclusive false
 ] : integerType;
 
 Restriction "[_.._)" is [
@@ -129,11 +129,11 @@ Restriction "[_.._)" is [
 		inclusive true
 		to maxT upper bound
 		inclusive false;
-	range type;
+	range type
 ];
 
 Method "(_.._]" is [min : extended integer, max : extended integer |
-	range from min inclusive false to max inclusive true;
+	range from min inclusive false to max inclusive true
 ] : integerType;
 
 Restriction "(_.._]" is [
@@ -144,11 +144,11 @@ Restriction "(_.._]" is [
 		inclusive false
 		to maxT upper bound
 		inclusive true;
-	range type;
+	range type
 ];
 
 Method "(_.._)" is [min : extended integer, max : extended integer |
-	range from min inclusive false to max inclusive false;
+	range from min inclusive false to max inclusive false
 ] : integerType;
 
 Restriction "(_.._)" is [
@@ -159,7 +159,7 @@ Restriction "(_.._)" is [
 		inclusive false
 		to maxT upper bound
 		inclusive false;
-	range type;
+	range type
 ];
 
 
@@ -170,34 +170,34 @@ Restriction "(_.._)" is [
 privateInfinity ::= extended integer upper bound;
 
 Method "∞" is [
-	privateInfinity;
+	privateInfinity
 ] : [privateInfinity..privateInfinity];
 
 Method "INF" is [
-	privateInfinity;
+	privateInfinity
 ] : [privateInfinity..privateInfinity];
 
 
 Method "_is finite" is [x : extended integer |
-	false;
+	false
 ] : boolean;
 
 Method "_is finite" is [x : integer |
-	true;
+	true
 ] : trueType;
 
 
 Method "_is infinite" is [x : extended integer |
-	true;
+	true
 ] : boolean;
 
 Method "_is infinite" is [x : integer |
-	false;
+	false
 ] : falseType;
 
 
 Method "byte" is [
-	[0..255];
+	[0..255]
 ] : integerType;
 
 /**
@@ -212,5 +212,5 @@ Method "_as range" is [inputRange : integerType |
 		from inputRange lower bound
 		inclusive inputRange lower inclusive
 		to inputRange upper bound
-		inclusive inputRange upper inclusive;
+		inclusive inputRange upper inclusive
 ];

@@ -44,25 +44,25 @@ Body
 
 /* Test the "_apply_" operation. */
 
-Assert [123;] apply <> = 123;
-Assert [x : integer | <<x>>;] apply <123> = <<123>>;
-Assert [x : any, y : any | <<x>,<y>>;] apply <"hello", 123> = <<"hello">, <123>>;
+Assert [123] apply <> = 123;
+Assert [x : integer | <<x>>] apply <123> = <<123>>;
+Assert [x : any, y : any | <<x>,<y>>] apply <"hello", 123> = <<"hello">, <123>>;
 
 
 /* Test the block evaluation operation "_(«_‡,»)". */
 
-Assert [123;]() = 123;
-Assert [x : integer | <<x>>;] (123) = <<123>>;
-Assert [x : any | [y : any | <<x>,<y>>;];]("hello")(123) = <<"hello">, <123>>;
+Assert [123]() = 123;
+Assert [x : integer | <<x>>] (123) = <<123>>;
+Assert [x : any | [y : any | <<x>,<y>>]]("hello")(123) = <<"hello">, <123>>;
 
 
 /* Test the "cast_into_" method. */
 
 z : integer := 123;
-Assert cast z into [x : [100..200] | x;] = 123;
+Assert cast z into [x : [100..200] | x] = 123;
 
 /* Test its strengthened result type. */
-blockT ::= [cast z into [x : [100..200] | x;] otherwise [456;];] type;
+blockT ::= [cast z into [x : [100..200] | x] otherwise [456]] type;
 t ::= blockT result;
 Assert t <= [100..456];
 Assert 100 type <= t;
@@ -72,7 +72,7 @@ Assert 123 type <= t;
 /* Test that we can invoke a primitive block which fails. */
 addPrim ::= [x : extended integer, y : extended integer |
 	Primitive 1 (ignored : whole number);
-	1000;
+	1000
 ] : number;
 
 Assert addPrim(10,20) = 30;

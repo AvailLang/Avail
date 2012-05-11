@@ -67,7 +67,7 @@ Semantic restriction "Assert:_" is
 [
 	contradiction : false's type's type
 |
-	⊥;
+	⊥
 ];
 
 /**
@@ -85,7 +85,7 @@ Semantic restriction "Assert:_(_)" is
 	contradiction : false's type's type,
 	message : string's type
 |
-	⊥;
+	⊥
 ];
 
 /**
@@ -96,5 +96,5 @@ Semantic restriction "Assert:_(_)" is
 Method "Shouldn't happen" is
 [
 	Assert: false
-		("This should not be possible; debug the VM and/or system library.");
+		("This should not be possible; debug the VM and/or system library.")
 ] : ⊥;

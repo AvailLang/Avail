@@ -250,51 +250,14 @@ extends Descriptor
 	}
 
 	/**
-	 * Create a function that accepts a specific number of arguments and always
-	 * returns the specified constant value.  The arguments may be of any type
-	 * (except top or bottom), and in fact the function types them as "any".
-	 *
-	 * @param numArgs The number of arguments to accept.
-	 * @param constantResult The constant that the new function should always
-	 *                       produce.
-	 * @return A function that takes N arguments and returns a constant.
-	 */
-	public static AvailObject createStubForNumArgsConstantResult (
-		final int numArgs,
-		final @NotNull AvailObject constantResult)
-	{
-		final L1InstructionWriter writer = new L1InstructionWriter();
-
-		final AvailObject [] argTypes = new AvailObject [numArgs];
-		fill(argTypes, ANY.o());
-		writer.argumentTypes(argTypes);
-		writer.returnType(InstanceTypeDescriptor.on(constantResult));
-		writer.write(
-			new L1Instruction(
-				L1Operation.L1_doPushLiteral,
-				writer.addLiteral(constantResult)));
-		writer.primitiveNumber(
-			P_340_PushConstant.instance.primitiveNumber);
-		final AvailObject code = writer.compiledCode();
-		final AvailObject function =
-			FunctionDescriptor.create (
-				code,
-				TupleDescriptor.empty());
-		function.makeImmutable();
-		return function;
-	}
-
-	/**
 	 * Create a function that takes arguments of the specified types, then turns
-	 * around and sends a specific two-argument message.  The first argument of
-	 * that message is specified here, and the second argument is a list of the
-	 * arguments supplied to the function we're creating.  Ensure the send
-	 * returns a value that complies with resultType.
+	 * around and calls the function invocation method with the given function
+	 * and the passed arguments assembled into a tuple.
 	 *
 	 * @param functionType
 	 *        The type to which the resultant function should conform.
 	 * @param function
-	 *        The function which the new function should invoked when itself
+	 *        The function which the new function should invoke when itself
 	 *        invoked.
 	 * @return Any appropriate function.
 	 */
@@ -332,7 +295,60 @@ extends Descriptor
 		final AvailObject code = writer.compiledCode();
 		return FunctionDescriptor.create(
 				code,
-				TupleDescriptor.empty()).makeImmutable();
+				TupleDescriptor.empty())
+			.makeImmutable();
+	}
+
+	/**
+	 * Given a function f, create another function that takes a single argument,
+	 * a tuple, and invokes f with the elements of that tuple, returning the
+	 * result.  The new function's sole argument type should match the types
+	 * expected by f.
+	 *
+	 * @param function
+	 *        The function which the new function should invoke.
+	 * @return An appropriate function of one argument.
+	 */
+	public static AvailObject createStubTakingTupleFrom (
+		final @NotNull AvailObject function)
+	{
+		final AvailObject argTypes = function.functionType().argsTupleType();
+		final int numArgs = argTypes.sizeRange().lowerBound().extractInt();
+		final AvailObject[] argTypesArray = new AvailObject[numArgs];
+		for (int i = 1; i <= numArgs; i++)
+		{
+			argTypesArray[i - 1] = argTypes.typeAtIndex(i);
+		}
+		final AvailObject tupleOfTypes = TupleDescriptor.from(argTypesArray);
+		final AvailObject tupleType =
+			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+				IntegerRangeTypeDescriptor.singleInt(numArgs),
+				tupleOfTypes,
+				BottomTypeDescriptor.bottom());
+		final AvailObject returnType = function.functionType().returnType();
+		final L1InstructionWriter writer = new L1InstructionWriter();
+		writer.argumentTypes(new AvailObject[] {tupleType});
+		writer.returnType(returnType);
+		writer.write(
+			new L1Instruction(
+				L1Operation.L1_doPushLiteral,
+				writer.addLiteral(function)));
+		writer.write(
+			new L1Instruction(
+				L1Operation.L1_doPushLastLocal,
+				1));
+		final AvailObject method =
+			MethodDescriptor.vmFunctionApplyMethod();
+		writer.write(
+			new L1Instruction(
+				L1Operation.L1_doCall,
+				writer.addLiteral(method),
+				writer.addLiteral(returnType)));
+		final AvailObject code = writer.compiledCode();
+		return FunctionDescriptor.create(
+				code,
+				TupleDescriptor.empty())
+			.makeImmutable();
 	}
 
 	/**

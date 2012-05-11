@@ -33,6 +33,8 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.error;
+import static com.avail.descriptor.ProcessDescriptor.IntegerSlots.*;
+import static com.avail.descriptor.ProcessDescriptor.ObjectSlots.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
@@ -76,15 +78,15 @@ extends Descriptor
 		 * Flags indicating the reasons for interrupting this process.  If the
 		 * value is zero then no interrupt is indicated.
 		 */
-		INTERRUPT_REQUEST_FLAG;
+		INTERRUPT_REQUEST_FLAGS;
 
 
 		/**
 		 * Interrupt because this process has executed the specified number of
 		 * nybblecodes.  This can be used to implement single-stepping.
 		 */
-		static final BitField OUT_OF_GAS = bitField(
-			INTERRUPT_REQUEST_FLAG,
+		public static final BitField OUT_OF_GAS = bitField(
+			INTERRUPT_REQUEST_FLAGS,
 			0,
 			1);
 
@@ -94,9 +96,20 @@ extends Descriptor
 		 * than the current one may be ready to schedule, and the process
 		 * scheduling machinery should have an opportunity for determining this.
 		 */
-		static final BitField HIGHER_PRIORITY_READY = bitField(
-			INTERRUPT_REQUEST_FLAG,
+		public static final BitField HIGHER_PRIORITY_READY = bitField(
+			INTERRUPT_REQUEST_FLAGS,
 			1,
+			1);
+
+		/**
+		 * Either this process's priority has been lowered or another process's
+		 * priority has been increased.  Either way, a higher priority process
+		 * than the current one may be ready to schedule, and the process
+		 * scheduling machinery should have an opportunity for determining this.
+		 */
+		public static final BitField TERMINATION_REQUESTED = bitField(
+			INTERRUPT_REQUEST_FLAGS,
+			2,
 			1);
 	}
 
@@ -152,7 +165,7 @@ extends Descriptor
 		RUNNING,
 
 		/**
-		 * The process has been suspended (always on a semaphore).
+		 * The process has been suspended (on a semaphore).
 		 */
 		SUSPENDED,
 
@@ -167,7 +180,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
-		object.setSlot(ObjectSlots.BREAKPOINT_BLOCK, value);
+		object.setSlot(BREAKPOINT_BLOCK, value);
 	}
 
 	@Override @AvailMethod
@@ -175,7 +188,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
-		object.setSlot(ObjectSlots.CONTINUATION, value);
+		object.setSlot(CONTINUATION, value);
 	}
 
 	@Override @AvailMethod
@@ -183,7 +196,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull ExecutionState value)
 	{
-		object.setSlot(IntegerSlots.EXECUTION_STATE, value.ordinal());
+		object.setSlot(EXECUTION_STATE, value.ordinal());
 	}
 
 	@Override @AvailMethod
@@ -191,15 +204,23 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final int value)
 	{
-		object.setSlot(IntegerSlots.HASH_OR_ZERO, value);
+		object.setSlot(HASH_OR_ZERO, value);
+	}
+
+	@Override
+	synchronized void o_ClearInterruptRequestFlags (
+		final @NotNull AvailObject object)
+	{
+		object.setSlot(INTERRUPT_REQUEST_FLAGS, 0);
 	}
 
 	@Override @AvailMethod
-	void o_InterruptRequestFlag (
+	synchronized void o_SetInterruptRequestFlag (
 		final @NotNull AvailObject object,
-		final int value)
+		final BitField field)
 	{
-		object.setSlot(IntegerSlots.INTERRUPT_REQUEST_FLAG, value);
+		assert field.integerSlot == INTERRUPT_REQUEST_FLAGS;
+		object.setSlot(field, 1);
 	}
 
 	@Override @AvailMethod
@@ -207,7 +228,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
-		object.setSlot(ObjectSlots.NAME, value);
+		object.setSlot(NAME, value);
 	}
 
 	@Override @AvailMethod
@@ -215,7 +236,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
-		object.setSlot(ObjectSlots.PRIORITY, value);
+		object.setSlot(PRIORITY, value);
 	}
 
 	@Override @AvailMethod
@@ -223,77 +244,76 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
-		object.setSlot(ObjectSlots.PROCESS_GLOBALS, value);
+		object.setSlot(PROCESS_GLOBALS, value);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_BreakpointBlock (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.BREAKPOINT_BLOCK);
+		return object.slot(BREAKPOINT_BLOCK);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_Continuation (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.CONTINUATION);
+		return object.slot(CONTINUATION);
 	}
 
 	@Override @AvailMethod
 	ExecutionState o_ExecutionState (
 		final @NotNull AvailObject object)
 	{
-		return ExecutionState.values()
-			[object.slot(IntegerSlots.EXECUTION_STATE)];
+		return ExecutionState.values()[object.slot(EXECUTION_STATE)];
 	}
 
 	@Override @AvailMethod
 	int o_HashOrZero (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(IntegerSlots.HASH_OR_ZERO);
+		return object.slot(HASH_OR_ZERO);
 	}
 
 	@Override @AvailMethod
-	int o_InterruptRequestFlag (
+	synchronized int o_InterruptRequestFlags (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(IntegerSlots.INTERRUPT_REQUEST_FLAG);
+		return object.slot(INTERRUPT_REQUEST_FLAGS);
 	}
 
 	@Override @AvailMethod
 	AvailObject o_Name (final AvailObject object)
 	{
-		return object.slot(ObjectSlots.NAME);
+		return object.slot(NAME);
 	}
 
 	@Override @AvailMethod
 	AvailObject o_Priority (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.PRIORITY);
+		return object.slot(PRIORITY);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_ProcessGlobals (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.PROCESS_GLOBALS);
+		return object.slot(PROCESS_GLOBALS);
 	}
 
 	@Override boolean allowsImmutableToMutableReferenceInField (
 		final @NotNull AbstractSlotsEnum e)
 	{
 		return
-			e == ObjectSlots.CONTINUATION
-			|| e == ObjectSlots.NAME
-			|| e == ObjectSlots.PRIORITY
-			|| e == ObjectSlots.PROCESS_GLOBALS
-			|| e == ObjectSlots.BREAKPOINT_BLOCK
-			|| e == IntegerSlots.HASH_OR_ZERO
-			|| e == IntegerSlots.EXECUTION_STATE
-			|| e == IntegerSlots.INTERRUPT_REQUEST_FLAG;
+			e == CONTINUATION
+			|| e == NAME
+			|| e == PRIORITY
+			|| e == PROCESS_GLOBALS
+			|| e == BREAKPOINT_BLOCK
+			|| e == HASH_OR_ZERO
+			|| e == EXECUTION_STATE
+			|| e == INTERRUPT_REQUEST_FLAGS;
 	}
 
 	@Override @AvailMethod
@@ -310,7 +330,7 @@ extends Descriptor
 	int o_Hash (
 		final @NotNull AvailObject object)
 	{
-		int hash = object.slot(IntegerSlots.HASH_OR_ZERO);
+		int hash = object.slot(HASH_OR_ZERO);
 		if (hash == 0)
 		{
 			do
@@ -318,7 +338,7 @@ extends Descriptor
 				hash = AvailRuntime.nextHash();
 			}
 			while (hash == 0);
-			object.setSlot(IntegerSlots.HASH_OR_ZERO, hash);
+			object.setSlot(HASH_OR_ZERO, hash);
 		}
 		return hash;
 	}

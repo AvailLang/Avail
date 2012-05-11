@@ -46,7 +46,7 @@ Body
 
 Method "*_:=_" is [var : container, arg : any |
 	Primitive 11 (failureCode : natural number);
-	Failed;
+	Failed
 ] : void;
 
 Restriction "*_:=_" is [varType : container type, argType : type |
@@ -54,20 +54,20 @@ Restriction "*_:=_" is [varType : container type, argType : type |
 	   will be containerType, so that the content type can be extracted (at link
 	   time). */
 	ok ::= if varType = container
-	then [false;]
+	then [false]
 	else [
 		varTypeAsTypedContainer : containerType;
 		*↑varTypeAsTypedContainer ?:= varType;
-		argType <= varTypeAsTypedContainer writeType;
+		argType <= varTypeAsTypedContainer writeType
 	];
-	if not ok then [ Fail parse "cannot assign to variable"; ];
-	void;
+	if not ok then [ Fail parse "cannot assign to variable" ];
+	void
 ];
 
 
 Method "*_" is [var : container |
 	Primitive 10 (failureCode : natural number);
-	Failed;
+	Failed
 ] : any;
 
 Restriction "*_" is [varType : container type |
@@ -75,20 +75,20 @@ Restriction "*_" is [varType : container type |
 	   container, we must be careful to say the content type is any.  Otherwise
 	   use the content type. */
 	if varType = container
-	then [any;]
+	then [any]
 	else [
 		/* Use the downcasting assignment operator *_?:=_  */
 		varTypeAsTypedContainer : containerType;
 		*↑varTypeAsTypedContainer ?:= varType;
-		varTypeAsTypedContainer readType;
-	];
+		varTypeAsTypedContainer readType
+	]
 ];
 
 Method "clearing*_" is [var : container |
 	/* Extract the current value of the variable, then clear the variable.
 	   Answer the extracted value. */
 	Primitive 18 (failureCode : natural number);
-	Failed;
+	Failed
 ] : any;
 
 Restriction "clearing*_" is [varType : container type |
@@ -96,13 +96,13 @@ Restriction "clearing*_" is [varType : container type |
 	   container, we must be careful to say the content type is any.  Otherwise
 	   use the content type. */
 	if varType = container
-	then [any;]
+	then [any]
 	else [
 		/* Use the downcasting assignment operator *_?:=_  */
 		varTypeAsTypedContainer : containerType;
 		*↑varTypeAsTypedContainer ?:= varType;
-		varTypeAsTypedContainer readType;
-	];
+		varTypeAsTypedContainer readType
+	]
 ];
 
 Method "*_:=nil" is [var : container |
@@ -130,7 +130,7 @@ Method "swap_and_" is [var1 : container, var2 : container |
 	   Let's just use the primitive instead... */
 
 	Primitive 15 (failureCode : natural number);
-	Failed;
+	Failed
 ] : void;
 
 Restriction "swap_and_" is [t1 : container type, t2 : container type |
@@ -138,8 +138,8 @@ Restriction "swap_and_" is [t1 : container type, t2 : container type |
 	   the type constraints.  The container types must, therefore, be known at
 	   the call site. */
 	if t1 readType <= t2 writeType & t2 readType <= t1 writeType then [
-		void;
+		void
 	] else [
-		Fail parse "Container contents can not be swapped.";
-	];
+		Fail parse "Container contents can not be swapped."
+	]
 ];

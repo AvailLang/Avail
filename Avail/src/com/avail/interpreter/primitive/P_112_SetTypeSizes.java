@@ -1,5 +1,5 @@
 /**
- * Primitive_112_SetTypeSizes.java
+ * P_112_SetTypeSizes.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

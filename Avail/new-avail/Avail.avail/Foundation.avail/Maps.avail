@@ -61,7 +61,7 @@ Method "_is empty" is
 [
 	aMap : map
 |
-	|aMap| = 0;
+	|aMap| = 0
 ];
 
 /**
@@ -88,7 +88,7 @@ Method "For each_do_" is
 			binding ::= bindings[index];
 			Invoke action with <binding[1], binding[2]>;
 			↑index++;
-			Restart loop;
+			Restart loop
 		];
 	]();
 ] : ⊤;
@@ -110,25 +110,25 @@ Method "Require:_accepts_" is
 	If ||action's parameters' type||'s lower bound < 2 then
 	[
 		Reject parse, expected:
-			"repeatedly applied function to accept at least two arguments";
+			"repeatedly applied function to accept at least two arguments"
 	];
-	If action[1] ≠ ⊥ ∧ [ ¬mapType's key type ⊆ action[1]; ] then
+	If action[1] ≠ ⊥ ∧ [ ¬mapType's key type ⊆ action[1] ] then
 	[
 		Reject parse, expected:
 			"repeatedly applied function to accept all keys ∈ "
 			++ primitive description of mapType's key type
 			++ " (but it only accepts "
 			++ primitive description of action[1]
-			++ ")";
+			++ ")"
 	];
-	If action[2] ≠ ⊥ ∧ [ ¬mapType's value type ⊆ action[2]; ] then
+	If action[2] ≠ ⊥ ∧ [ ¬mapType's value type ⊆ action[2] ] then
 	[
 		Reject parse, expected:
 			"repeatedly applied function to accept all values ∈ "
 			++ primitive description of mapType's value type
 			++ " (but it only accepts "
 			++ primitive description of action[2]
-			++ ")";
+			++ ")"
 	];
 ] : ⊤;
 
@@ -149,14 +149,14 @@ Semantic restriction "For each_do_" is
 	action : [⊥, ⊥]→⊤'s type
 |
 	Require: action accepts mapType;
-	if ||mapType||'s lower bound > 0 ∧ [ action's return type = ⊥; ] then
+	if ||mapType||'s lower bound > 0 ∧ [ action's return type = ⊥ ] then
 	[
-		⊥;
+		⊥
 	]
 	else
 	[
-		⊤;
-	];
+		⊤
+	]
 ];
 
 /**
@@ -191,10 +191,10 @@ Method "map_through_" is
 			value ::= binding[2];
 			result := eject ↑result + key→invoke transformer with <key, value>;
 			↑index++;
-			Restart loop;
+			Restart loop
 		];
 	]();
-	result;
+	result
 ] : map;
 
 /**
@@ -221,10 +221,10 @@ Semantic restriction "map_through_" is
 		[
 			Reject parse, expected:
 				"repeatedly applied function to have a return type other than\
-				\| ⊥";
+				\| ⊥"
 		];
 	];
-	{mapType's key type → transformer's return type | ||mapType||};
+	{mapType's key type → transformer's return type | ||mapType||}
 ];
 
 /**
@@ -261,10 +261,10 @@ Method "filter_by_" is
 				result := eject ↑result + key→value;
 			];
 			↑index++;
-			Restart loop;
+			Restart loop
 		];
 	]();
-	result;
+	result
 ] : map;
 
 /**
@@ -284,10 +284,10 @@ Semantic restriction "filter_by_" is
 |
 	Require: predicate accepts mapType;
 	sizes ::=
-		if predicate's return type = true's type then [ ||mapType||; ]
-		else if [ predicate's return type = false's type; ] then [ 0's type; ]
-		else [ [0..||mapType||'s upper bound + 1); ];
-	{mapType's key type → mapType's value type|sizes};
+		if predicate's return type = true's type then [ ||mapType|| ]
+		else if [ predicate's return type = false's type ] then [ 0's type ]
+		else [ [0..||mapType||'s upper bound + 1) ];
+	{mapType's key type → mapType's value type|sizes}
 ];
 
 /**
@@ -340,10 +340,10 @@ Method "map and filter_by_" is
 				]
 			>;
 			↑index++;
-			Restart loop;
+			Restart loop
 		];
 	]();
-	result;
+	result
 ] : map;
 
 /**
@@ -368,13 +368,13 @@ Semantic restriction "map and filter_by_" is
 	If accumulator's return type ≠ ⊤ then
 	[
 		Reject parse, expected:
-			"repeatedly applied function to have return type ⊤";
+			"repeatedly applied function to have return type ⊤"
 	];
-	valueType ::= cast accumulator[3] into [ t : function meta | t[1]; ];
+	valueType ::= cast accumulator[3] into [ t : function meta | t[1] ];
 	{
 		mapType's key type → valueType
 		| [0..||mapType||'s upper bound + 1)
-	};
+	}
 ];
 
 /**
@@ -402,10 +402,10 @@ Method "any of_satisfies_" is
 	|
 		If invoke predicate with <key, value> then
 		[
-			Exit body with true;
+			Exit body with true
 		];
 	];
-	false;
+	false
 ] : boolean;
 
 /**
@@ -423,7 +423,7 @@ Semantic restriction "any of_satisfies_" is
 	predicate : [⊥, ⊥]→boolean's type
 |
 	Require: predicate accepts mapType;
-	predicate's return type;
+	predicate's return type
 ];
 
 /**
@@ -451,10 +451,10 @@ Method "each of_satisfies_" is
 	|
 		Unless invoke predicate with <key, value> then
 		[
-			Exit body with false;
+			Exit body with false
 		];
 	];
-	true;
+	true
 ] : boolean;
 
 /**
@@ -472,7 +472,7 @@ Semantic restriction "each of_satisfies_" is
 	predicate : [⊥, ⊥]→boolean's type
 |
 	Require: predicate accepts mapType;
-	predicate's return type;
+	predicate's return type
 ];
 
 /**
@@ -491,7 +491,7 @@ Method "count of_where_" is
 	aMap : map,
 	predicate : [⊥, ⊥]→boolean
 |
-	|filter aMap by predicate|;
+	|filter aMap by predicate|
 ] : whole number;
 
 /**
@@ -509,7 +509,7 @@ Semantic restriction "count of_where_" is
 	predicate : [⊥, ⊥]→boolean's type
 |
 	Require: predicate accepts mapType;
-	[0..||mapType||'s upper bound + 1);
+	[0..||mapType||'s upper bound + 1)
 ];
 
 /**
@@ -526,17 +526,17 @@ Semantic restriction "_∈_" is
 	keyType : any meta,
 	mapType : map meta
 |
-	if |keyType| = 1 ∧ [ |mapType| = 1; ] then
+	if |keyType| = 1 ∧ [ |mapType| = 1 ] then
 	[
-		(keyType's instance ∈ mapType's instance)'s type;
+		(keyType's instance ∈ mapType's instance)'s type
 	]
-	else if [ keyType ∩ (mapType's key type) = ⊥; ] then
+	else if [ keyType ∩ (mapType's key type) = ⊥ ] then
 	[
-		false's type;
+		false's type
 	]
 	else
 	[
 		/* Can't strengthen. */
-		⊤;
-	];
+		⊤
+	]
 ];

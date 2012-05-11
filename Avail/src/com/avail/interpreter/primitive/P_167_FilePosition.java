@@ -1,5 +1,5 @@
 /**
- * Primitive_167_FilePosition.java
+ * P_167_FilePosition.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

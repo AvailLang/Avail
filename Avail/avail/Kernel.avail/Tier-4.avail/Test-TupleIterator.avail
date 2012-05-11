@@ -43,7 +43,7 @@ Body
 x ::= <10,20,30,40> as Iterator;
 y : tuple := <>;
 Until [
-	x is at end;
+	x is at end
 ] loop [
 	y := y then <next x>;
 ];

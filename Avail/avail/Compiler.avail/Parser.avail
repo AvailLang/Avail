@@ -182,20 +182,20 @@ Method "_skip_then_" is [
 Method "complete messages starting with_" is [str : string |
 	OBSOLETE
 	Primitive 209 (failureCode : natural number);
-	Failed;
+	Failed
 ] : map from atom to messageBundle;
 
 
 Method "incomplete messages starting with_" is [str : string |
 	OBSOLETE
 	Primitive 210 (failureCode : natural number);
-	Failed;
+	Failed
 ] : map from string to messageBundleTree;
 
 
 Method "primitive_is defined" is [n : [0..65535] |
 	Primitive 250 (failureCode : natural number);
-	Failed;
+	Failed
 ] : boolean;
 
 

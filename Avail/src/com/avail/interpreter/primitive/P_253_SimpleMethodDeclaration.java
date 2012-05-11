@@ -1,5 +1,5 @@
 /**
- * Primitive_253_SimpleMethodDeclaration.java
+ * P_253_SimpleMethodDeclaration.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

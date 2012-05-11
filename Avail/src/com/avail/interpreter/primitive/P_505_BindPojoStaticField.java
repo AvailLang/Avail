@@ -1,5 +1,5 @@
 /**
- * Primitive_505_BindPojoStaticField.java
+ * P_505_BindPojoStaticField.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

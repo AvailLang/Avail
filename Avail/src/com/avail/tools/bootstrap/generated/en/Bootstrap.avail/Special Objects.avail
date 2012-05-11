@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.05.10 16:59:40.394 -0500
+ * * Last Generated On: 2012.05.11 13:53:55.415 -0500
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -293,7 +293,7 @@ _field_tuple                            ::= special object 120;
  */
 Method "any" is
 [
-	_any;
+	_any
 ];
 
 /**
@@ -331,142 +331,142 @@ Method "any" is
  */
 Method "boolean" is
 [
-	_boolean;
+	_boolean
 ];
 
 Method "character" is
 [
-	_character;
+	_character
 ];
 
 Method "function" is
 [
-	_function;
+	_function
 ];
 
 Method "function meta" is
 [
-	_function_meta;
+	_function_meta
 ];
 
 Method "function implementation" is
 [
-	_function_implementation;
+	_function_implementation
 ];
 
 Method "variable" is
 [
-	_variable;
+	_variable
 ];
 
 Method "variable meta" is
 [
-	_variable_meta;
+	_variable_meta
 ];
 
 Method "continuation" is
 [
-	_continuation;
+	_continuation
 ];
 
 Method "continuation meta" is
 [
-	_continuation_meta;
+	_continuation_meta
 ];
 
 Method "atom" is
 [
-	_atom;
+	_atom
 ];
 
 Method "double" is
 [
-	_double;
+	_double
 ];
 
 Method "extended integer" is
 [
-	_extended_integer;
+	_extended_integer
 ];
 
 Method "float" is
 [
-	_float;
+	_float
 ];
 
 Method "number" is
 [
-	_number;
+	_number
 ];
 
 Method "integer" is
 [
-	_integer;
+	_integer
 ];
 
 Method "extended integer meta" is
 [
-	_extended_integer_meta;
+	_extended_integer_meta
 ];
 
 Method "map meta" is
 [
-	_map_meta;
+	_map_meta
 ];
 
 Method "object" is
 [
-	_object;
+	_object
 ];
 
 Method "object meta" is
 [
-	_object_meta;
+	_object_meta
 ];
 
 Method "fiber" is
 [
-	_fiber;
+	_fiber
 ];
 
 Method "set" is
 [
-	_set;
+	_set
 ];
 
 Method "set meta" is
 [
-	_set_meta;
+	_set_meta
 ];
 
 Method "string" is
 [
-	_string;
+	_string
 ];
 
 Method "⊥" is
 [
-	_bottom;
+	_bottom
 ];
 
 Method "⊥meta" is
 [
-	_bottom_meta;
+	_bottom_meta
 ];
 
 Method "tuple" is
 [
-	_tuple;
+	_tuple
 ];
 
 Method "tuple meta" is
 [
-	_tuple_meta;
+	_tuple_meta
 ];
 
 Method "type" is
 [
-	_type;
+	_type
 ];
 
 /**
@@ -530,157 +530,157 @@ Method "type" is
  */
 Method "⊤" is
 [
-	_top;
+	_top
 ];
 
 Method "whole number" is
 [
-	_whole_number;
+	_whole_number
 ];
 
 Method "natural number" is
 [
-	_natural_number;
+	_natural_number
 ];
 
 Method "code point" is
 [
-	_code_point;
+	_code_point
 ];
 
 Method "map" is
 [
-	_map;
+	_map
 ];
 
 Method "message bundle" is
 [
-	_message_bundle;
+	_message_bundle
 ];
 
 Method "signature" is
 [
-	_signature;
+	_signature
 ];
 
 Method "abstract signature" is
 [
-	_abstract_signature;
+	_abstract_signature
 ];
 
 Method "forward signature" is
 [
-	_forward_signature;
+	_forward_signature
 ];
 
 Method "method signature" is
 [
-	_method_signature;
+	_method_signature
 ];
 
 Method "message bundle tree" is
 [
-	_message_bundle_tree;
+	_message_bundle_tree
 ];
 
 Method "method" is
 [
-	_method;
+	_method
 ];
 
 Method "phrase" is
 [
-	_phrase;
+	_phrase
 ];
 
 Method "expression" is
 [
-	_expression;
+	_expression
 ];
 
 Method "assignment" is
 [
-	_assignment;
+	_assignment
 ];
 
 Method "block" is
 [
-	_block;
+	_block
 ];
 
 Method "literal" is
 [
-	_literal;
+	_literal
 ];
 
 Method "variable reference" is
 [
-	_variable_reference;
+	_variable_reference
 ];
 
 Method "send" is
 [
-	_send;
+	_send
 ];
 
 Method "super cast" is
 [
-	_super_cast;
+	_super_cast
 ];
 
 Method "list" is
 [
-	_list;
+	_list
 ];
 
 Method "variable use" is
 [
-	_variable_use;
+	_variable_use
 ];
 
 Method "declaration" is
 [
-	_declaration;
+	_declaration
 ];
 
 Method "argument" is
 [
-	_argument;
+	_argument
 ];
 
 Method "label" is
 [
-	_label;
+	_label
 ];
 
 Method "local variable" is
 [
-	_local_variable;
+	_local_variable
 ];
 
 Method "local constant" is
 [
-	_local_constant;
+	_local_constant
 ];
 
 Method "module variable" is
 [
-	_module_variable;
+	_module_variable
 ];
 
 Method "module constant" is
 [
-	_module_constant;
+	_module_constant
 ];
 
 Method "primitive failure reason" is
 [
-	_primitive_failure_reason;
+	_primitive_failure_reason
 ];
 
 Method "any meta" is
 [
-	_any_meta;
+	_any_meta
 ];
 
 /**
@@ -688,7 +688,7 @@ Method "any meta" is
  */
 Method "true" is
 [
-	_true;
+	_true
 ];
 
 /**
@@ -697,251 +697,251 @@ Method "true" is
  */
 Method "false" is
 [
-	_false;
+	_false
 ];
 
 Method "tuple of string" is
 [
-	_tuple_of_string;
+	_tuple_of_string
 ];
 
 Method "tuple of type" is
 [
-	_tuple_of_type;
+	_tuple_of_type
 ];
 
 Method "tuple of set of string" is
 [
-	_tuple_of_set_of_string;
+	_tuple_of_set_of_string
 ];
 
 Method "set of string" is
 [
-	_set_of_string;
+	_set_of_string
 ];
 
 Method "primitive failure function" is
 [
-	_primitive_failure_function;
+	_primitive_failure_function
 ];
 
 Method "∅" is
 [
-	_empty_set;
+	_empty_set
 ];
 
 Method "-∞" is
 [
-	_negative_infinity;
+	_negative_infinity
 ];
 
 Method "∞" is
 [
-	_positive_infinity;
+	_positive_infinity
 ];
 
 Method "pojo" is
 [
-	_pojo;
+	_pojo
 ];
 
 Method "null" is
 [
-	_null;
+	_null
 ];
 
 Method "pojo⊥" is
 [
-	_pojo_bottom;
+	_pojo_bottom
 ];
 
 Method "pojo self type" is
 [
-	_pojo_self_type;
+	_pojo_self_type
 ];
 
 Method "pojo meta" is
 [
-	_pojo_meta;
+	_pojo_meta
 ];
 
 Method "pojo array meta" is
 [
-	_pojo_array_meta;
+	_pojo_array_meta
 ];
 
 Method "pojo constructor" is
 [
-	_pojo_constructor;
+	_pojo_constructor
 ];
 
 Method "pojo array" is
 [
-	_pojo_array;
+	_pojo_array
 ];
 
 Method "pojo self" is
 [
-	_pojo_self;
+	_pojo_self
 ];
 
 Method "pojo exception" is
 [
-	_pojo_exception;
+	_pojo_exception
 ];
 
 Method "nullary procedure" is
 [
-	_nullary_procedure;
+	_nullary_procedure
 ];
 
 Method "predicate function" is
 [
-	_predicate_function;
+	_predicate_function
 ];
 
 Method "continuation variable" is
 [
-	_continuation_variable;
+	_continuation_variable
 ];
 
 Method "field map" is
 [
-	_field_map;
+	_field_map
 ];
 
 Method "field type map" is
 [
-	_field_type_map;
+	_field_type_map
 ];
 
 Method "key-value tuple" is
 [
-	_key_value_tuple;
+	_key_value_tuple
 ];
 
 Method "empty map" is
 [
-	_empty_map;
+	_empty_map
 ];
 
 Method "non-empty map" is
 [
-	_non_empty_map;
+	_non_empty_map
 ];
 
 Method "whole number meta" is
 [
-	_whole_number_meta;
+	_whole_number_meta
 ];
 
 Method "non-empty set" is
 [
-	_non_empty_set;
+	_non_empty_set
 ];
 
 Method "tuple of tuple" is
 [
-	_tuple_of_tuple;
+	_tuple_of_tuple
 ];
 
 Method "nybble" is
 [
-	_nybble;
+	_nybble
 ];
 
 Method "tuple of nybble" is
 [
-	_tuple_of_nybble;
+	_tuple_of_nybble
 ];
 
 Method "unsigned short" is
 [
-	_unsigned_short;
+	_unsigned_short
 ];
 
 Method "empty tuple" is
 [
-	_empty_tuple;
+	_empty_tuple
 ];
 
 Method "unary procedure" is
 [
-	_unary_procedure;
+	_unary_procedure
 ];
 
 Method "type of zero" is
 [
-	_type_of_zero;
+	_type_of_zero
 ];
 
 Method "semantic restriction function" is
 [
-	_semantic_restriction_function;
+	_semantic_restriction_function
 ];
 
 Method "tuple of semantic restriction function" is
 [
-	_tuple_of_semantic_restriction_function;
+	_tuple_of_semantic_restriction_function
 ];
 
 Method "macro function" is
 [
-	_macro_function;
+	_macro_function
 ];
 
 Method "type of two" is
 [
-	_type_of_two;
+	_type_of_two
 ];
 
 Method "Euler number" is
 [
-	_Euler_number;
+	_Euler_number
 ];
 
 Method "type of Euler number" is
 [
-	_type_of_Euler_number;
+	_type_of_Euler_number
 ];
 
 Method "phrase meta" is
 [
-	_phrase_meta;
+	_phrase_meta
 ];
 
 Method "set of atom" is
 [
-	_set_of_atom;
+	_set_of_atom
 ];
 
 Method "token" is
 [
-	_token;
+	_token
 ];
 
 Method "literal token" is
 [
-	_literal_token;
+	_literal_token
 ];
 
 Method "tuple of any meta" is
 [
-	_tuple_of_any_meta;
+	_tuple_of_any_meta
 ];
 
 Method "nonnegative integer" is
 [
-	_nonnegative_integer;
+	_nonnegative_integer
 ];
 
 Method "field type tuple" is
 [
-	_field_type_tuple;
+	_field_type_tuple
 ];
 
 Method "field tuple" is
 [
-	_field_tuple;
+	_field_tuple
 ];
 

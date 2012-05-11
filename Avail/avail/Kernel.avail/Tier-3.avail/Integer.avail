@@ -44,7 +44,7 @@ Restriction "_lower bound" is
 	rangeType : integerType type
 |
 	r ::= rangeType instance;
-	[r lower bound..r upper bound];
+	[r lower bound..r upper bound]
 ];
 
 Restriction "_upper bound" is 
@@ -52,7 +52,7 @@ Restriction "_upper bound" is
 	rangeType : integerType type
 |
 	r ::= rangeType instance;
-	[r lower bound..r upper bound];
+	[r lower bound..r upper bound]
 ];
 
 /* Testing */

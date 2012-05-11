@@ -50,8 +50,8 @@ Names
 
 Body
 
-Method "an integer" is [integer;];
-Method "a float" is [float;];
+Method "an integer" is [integer];
+Method "a float" is [float];
 
 /** Conversions **/
 
@@ -87,36 +87,36 @@ Method "_r_" is
 		
 		digValue ::= if digitZero <= dig <= digitNine then 
 		[		
-	 		dig - digitZero;
+	 		dig - digitZero
 		] else if lettera <= dig <= letterz then
 		[
-			dig - lettera + 10;
+			dig - lettera + 10
 		] else if letterA <= dig <= letterZ then 
 		[
-			dig - letterA + 10;
+			dig - letterA + 10
 		] else 
 		[
-			Raise Invalid Character with digits;
+			Raise Invalid Character with digits
 		];
 	
-		if digValue >= radix | digValue < 0 then 
-			[Raise Invalid Numeral with digits;];
+		if digValue >= radix | digValue < 0 then [
+			Raise Invalid Numeral with digits];
 		
 		answer := answer * radix + digValue;
 	];
-	cast answer into [a: whole number | a;];
+	cast answer into [a: whole number | a]
 ];
 
 Restriction "_r_" is [radixType : [2..36] type, digitsType : string type |
 	maxStringSize ::= digitsType sizes upper bound;
 	if maxStringSize is finite then [
 		/* Compute a rough bound based on the string size and radix. */
-		finiteMaxStringSize ::= cast maxStringSize into [w : whole number | w;];
+		finiteMaxStringSize ::= cast maxStringSize into [w : whole number | w];
 		maxRadix ::= radixType upper bound;
-		[0..maxRadix ^ finiteMaxStringSize);
+		[0..maxRadix ^ finiteMaxStringSize)
 	] else [
-		whole number;
-	];
+		whole number
+	]
 ];
 
 /* Convert string to integer */
@@ -130,11 +130,11 @@ Method "convert_to an integer" is
 		
 		stream := stream then (str[2..||str||]);
 
-		(-1) * (10 r stream);
+		(-1) * (10 r stream)
 	] else 
 	[
-			10 r str;
-	];
+		10 r str
+	]
 ]: integer;
 
 /* Convert string to float */
@@ -146,7 +146,7 @@ Method "convert_to a float" is
 	wholeNumStream : string := "";
 	decimalStream : string := "";
 	
-	Until [ str[decimalLocation] = $"."; ]
+	Until [ str[decimalLocation] = $"." ]
 	loop
 	[
 		decimalLocation := decimalLocation + 1;
@@ -163,9 +163,9 @@ Method "convert_to a float" is
 
 	if wholeNum < 0 then
 	[
-		wholeNum - decimalUnit;
+		wholeNum - decimalUnit
 	] else
 	[
-		wholeNum + decimalUnit;
-	];
+		wholeNum + decimalUnit
+	]
 ]: float;

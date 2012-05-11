@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.05.10 16:59:40.448 -0500
+ * * Last Generated On: 2012.05.11 13:53:55.486 -0500
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -77,7 +77,6 @@ Uses
 		"function from_and_",
 		"method_._(«_‡,»)",
 		"read character",
-		"request termination of_",
 		"static method_._(«_‡,»)",
 		"swap_and_",
 		"termination requested",
@@ -102,12 +101,12 @@ _fail_primitive : primitive failure function :=
 	[
 		arg1 : any
 	|
-		Private fail primitive with arg1;
+		Private fail primitive with arg1
 	] : ⊥;
 
 Method "early failure function" is
 [
-	_fail_primitive;
+	_fail_primitive
 ] : primitive failure function;
 
 Method "Set early failure function to_" is
@@ -123,7 +122,7 @@ Method "Private invoke_with«_‡,»" is
 	arguments : tuple
 |
 	Primitive 40 (failureCode : natural number);
-	Private fail primitive with failureCode;
+	Private fail primitive with failureCode
 ] : ⊤;
 
 Method "Private semantic restriction_is_" is
@@ -132,7 +131,7 @@ Method "Private semantic restriction_is_" is
 	restriction : semantic restriction function
 |
 	Primitive 248 (failureCode : natural number);
-	Private fail primitive with failureCode;
+	Private fail primitive with failureCode
 ] : ⊤;
 
 Private semantic restriction "Private invoke_with«_‡,»" is 
@@ -140,7 +139,7 @@ Private semantic restriction "Private invoke_with«_‡,»" is
 	aFunction : function meta,
 	arguments : tuple meta
 |
-	⊥;
+	⊥
 ];
 
 /**
@@ -158,7 +157,7 @@ Method "_+_" is
 	addend : number
 |
 	Primitive 1 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode;
+	Private invoke _fail_primitive with failureCode
 ] : number;
 
 /**
@@ -176,7 +175,7 @@ Method "_-_" is
 	subtrahend : number
 |
 	Primitive 2 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode;
+	Private invoke _fail_primitive with failureCode
 ] : number;
 
 /**
@@ -194,7 +193,7 @@ Method "_×_" is
 	multiplier : number
 |
 	Primitive 3 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode;
+	Private invoke _fail_primitive with failureCode
 ] : number;
 
 /**
@@ -212,7 +211,7 @@ Method "_÷_" is
 	divisor : number
 |
 	Primitive 4 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode;
+	Private invoke _fail_primitive with failureCode
 ] : number;
 
 /**
@@ -228,7 +227,7 @@ Method "↓_" is
 	var : variable
 |
 	Primitive 10 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode;
+	Private invoke _fail_primitive with failureCode
 ] : any;
 
 /**
@@ -244,7 +243,7 @@ Method "↓_:=_" is
 	value : any
 |
 	Primitive 11 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode;
+	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
 /**
@@ -262,7 +261,7 @@ Method "swap_and_" is
 	arg2 : variable
 |
 	Primitive 15 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode;
+	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
 /**
@@ -279,7 +278,7 @@ Method "eject_" is
 	var : variable
 |
 	Primitive 18 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode;
+	Private invoke _fail_primitive with failureCode
 ] : any;
 
 /**
@@ -292,23 +291,8 @@ Method "eject_" is
 Method "termination requested" is
 [
 	Primitive 23 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode;
+	Private invoke _fail_primitive with failureCode
 ] : boolean;
-
-/**
- * Request termination of the specified fiber. Termination is consensual only;
- * cooperation of the fiber is required to affect termination.
- *
- * Parameters:
- *    victim - A fiber.
- */
-Method "request termination of_" is
-[
-	victim : fiber
-|
-	Primitive 24 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode;
-] : ⊤;
 
 /**
  * Answer the value bound to `key` in the specified fiber's environment. Since
@@ -328,7 +312,7 @@ Method "_[_]" is
 	key : atom
 |
 	Primitive 26 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode;
+	Private invoke _fail_primitive with failureCode
 ] : any;
 
 /**
@@ -344,7 +328,7 @@ Method "_'s⁇instances" is
 	enum : type
 |
 	Primitive 29 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode;
+	Private invoke _fail_primitive with failureCode
 ] : set;
 
 /**
@@ -362,7 +346,7 @@ Method "_[_]" is
 	index : natural number
 |
 	Primitive 36 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode;
+	Private invoke _fail_primitive with failureCode
 ] : any meta;
 
 /**
@@ -380,7 +364,7 @@ Method "Invoke|invoke_with_" is
 	arguments : tuple
 |
 	Primitive 40 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode;
+	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
 /**
@@ -400,7 +384,7 @@ Method "Restart_with_" is
 	arguments : tuple
 |
 	Primitive 56 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode;
+	Private invoke _fail_primitive with failureCode
 ] : ⊥;
 
 /**
@@ -420,7 +404,7 @@ Method "Exit_with_" is
 	value : any
 |
 	Primitive 57 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode;
+	Private invoke _fail_primitive with failureCode
 ] : ⊥;
 
 /**
@@ -438,7 +422,7 @@ Method "Restart_" is
 	aContinuation : continuation
 |
 	Primitive 58 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode;
+	Private invoke _fail_primitive with failureCode
 ] : ⊥;
 
 /**
@@ -457,7 +441,7 @@ Method "function from_and_" is
 	outerVariables : tuple
 |
 	Primitive 74 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode;
+	Private invoke _fail_primitive with failureCode
 ] : function;
 
 /**
@@ -475,7 +459,7 @@ Method "_[_]" is
 	key : any
 |
 	Primitive 82 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode;
+	Private invoke _fail_primitive with failureCode
 ] : any;
 
 /**
@@ -493,7 +477,7 @@ Method "_∈_" is
 	key : atom
 |
 	Primitive 122 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode;
+	Private invoke _fail_primitive with failureCode
 ] : boolean;
 
 /**
@@ -512,7 +496,7 @@ Method "_[_]" is
 	key : atom
 |
 	Primitive 123 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode;
+	Private invoke _fail_primitive with failureCode
 ] : any;
 
 /**
@@ -531,7 +515,7 @@ Method "_[_]:=_" is
 	value : any
 |
 	Primitive 124 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode;
+	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
 /**
@@ -548,7 +532,7 @@ Method "_-_" is
 	key : atom
 |
 	Primitive 125 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode;
+	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
 /**
@@ -566,7 +550,7 @@ Method "_[_]" is
 	index : natural number
 |
 	Primitive 131 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode;
+	Private invoke _fail_primitive with failureCode
 ] : any;
 
 /**
@@ -588,7 +572,7 @@ Method "_[_]→_" is
 	value : any
 |
 	Primitive 132 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode;
+	Private invoke _fail_primitive with failureCode
 ] : tuple;
 
 /**
@@ -608,7 +592,7 @@ Method "_[_.._]" is
 	sliceEnd : whole number
 |
 	Primitive 135 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode;
+	Private invoke _fail_primitive with failureCode
 ] : tuple;
 
 /**
@@ -629,7 +613,7 @@ Method "_[_.._]" is
 	sliceEnd : whole number
 |
 	Primitive 142 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode;
+	Private invoke _fail_primitive with failureCode
 ] : tuple of any meta;
 
 /**
@@ -649,7 +633,7 @@ Method "∪_[_.._]" is
 	endIndex : whole number
 |
 	Primitive 143 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode;
+	Private invoke _fail_primitive with failureCode
 ] : any meta;
 
 /**
@@ -679,7 +663,7 @@ Method "_`#_:_(literals=_,`#locals_,`#outers_,stack depth=_)" is
 	maximumStackDepth : whole number
 |
 	Primitive 188 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode;
+	Private invoke _fail_primitive with failureCode
 ] : function implementation;
 
 /**
@@ -701,7 +685,7 @@ Method "try_catch_" is
 	handler : unary procedure
 |
 	Primitive 200 (failureCode : type of zero);
-	Private invoke body with empty tuple;
+	Private invoke body with empty tuple
 ] : ⊤;
 
 /**
@@ -725,7 +709,7 @@ Method "Raise_" is
 	exception : any
 |
 	Primitive 201 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode;
+	Private invoke _fail_primitive with failureCode
 ] : ⊥;
 
 /**
@@ -743,7 +727,7 @@ Method "Publish new name:_" is
 	newName : string
 |
 	Primitive 246 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode;
+	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
 /**
@@ -769,7 +753,7 @@ Method "Semantic restriction_is_" is
 	restriction : semantic restriction function
 |
 	Primitive 248 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode;
+	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
 /**
@@ -794,7 +778,7 @@ Method "Macro_is_" is
 	body : macro function
 |
 	Primitive 249 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode;
+	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
 /**
@@ -812,7 +796,7 @@ Method "Abstract method_is_" is
 	aFunctionType : function meta
 |
 	Primitive 251 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode;
+	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
 /**
@@ -833,7 +817,7 @@ Method "Forward method_is_" is
 	aFunctionType : function meta
 |
 	Primitive 252 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode;
+	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
 /**
@@ -845,7 +829,7 @@ Method "Forward method_is_" is
 Method "read character" is
 [
 	Primitive 254 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode;
+	Private invoke _fail_primitive with failureCode
 ] : character;
 
 /**
@@ -875,7 +859,7 @@ Method "Grammatical restriction_is_" is
 	exclusions : tuple of set of string
 |
 	Primitive 255 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode;
+	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
 /**
@@ -894,7 +878,7 @@ Method "_mod_" is
 	divisor : float
 |
 	Primitive 288 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode;
+	Private invoke _fail_primitive with failureCode
 ] : float;
 
 /**
@@ -913,7 +897,7 @@ Method "_mod_" is
 	divisor : double
 |
 	Primitive 318 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode;
+	Private invoke _fail_primitive with failureCode
 ] : double;
 
 /**
@@ -933,7 +917,7 @@ Method "_<«_‡,»>" is
 	typeParameters : tuple of any meta
 |
 	Primitive 500 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode;
+	Private invoke _fail_primitive with failureCode
 ] : pojo meta;
 
 /**
@@ -972,7 +956,7 @@ Method "constructor_<«_‡,»>" is
 	parameterTypes : tuple of any meta
 |
 	Primitive 502 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode;
+	Private invoke _fail_primitive with failureCode
 ] : pojo constructor;
 
 /**
@@ -993,7 +977,7 @@ Method "_._→variable" is
 	fieldName : string
 |
 	Primitive 504 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode;
+	Private invoke _fail_primitive with failureCode
 ] : variable;
 
 /**
@@ -1014,7 +998,7 @@ Method "_._→variable" is
 	fieldName : string
 |
 	Primitive 505 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode;
+	Private invoke _fail_primitive with failureCode
 ] : variable;
 
 /**
@@ -1056,7 +1040,7 @@ Method "method_._(«_‡,»)" is
 	parameterTypes : tuple of any meta
 |
 	Primitive 506 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode;
+	Private invoke _fail_primitive with failureCode
 ] : function;
 
 /**
@@ -1097,7 +1081,7 @@ Method "static method_._(«_‡,»)" is
 	parameterTypes : tuple of type
 |
 	Primitive 508 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode;
+	Private invoke _fail_primitive with failureCode
 ] : function;
 
 /**
@@ -1115,7 +1099,7 @@ Method "_[_]" is
 	index : natural number
 |
 	Primitive 512 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode;
+	Private invoke _fail_primitive with failureCode
 ] : any;
 
 /**
@@ -1134,6 +1118,6 @@ Method "_[_]:=_" is
 	value : any
 |
 	Primitive 513 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode;
+	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 

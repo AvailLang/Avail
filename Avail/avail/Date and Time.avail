@@ -44,7 +44,7 @@ second ::= new atom "second";
 millisecond ::= new atom "millisecond";
 timeZoneName ::= new atom "timeZoneName";
 
-t : map from atom to type := 
+t : map from atom to (any type) := 
 	[hour -> integer]
 	[minute -> integer]
 	[second -> integer]

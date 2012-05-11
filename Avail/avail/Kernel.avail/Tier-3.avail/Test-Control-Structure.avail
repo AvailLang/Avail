@@ -40,23 +40,23 @@ Names
 Body
 
 switchCase1: string := Switch 1 
-	case 6 do ["huh?";]: 
-	case 9 do ["Nope";]: 
-	default ["meh";];
+	case 6 do ["huh?"]: 
+	case 9 do ["Nope"]: 
+	default ["meh"];
 
 Assert switchCase1 = "meh";
 
 switchCase2: string := Switch [Print "Moo\n";] 
-	case [Print "Who\n";] do ["huh?";]: 
-	case [Print "Moo\n";] do ["Makes Sense";]: 
-	default ["meh";];
+	case [Print "Who\n";] do ["huh?"]: 
+	case [Print "Moo\n";] do ["Makes Sense"]: 
+	default ["meh"];
 
 Assert switchCase2 = "Makes Sense";
 
 switchCase3: string := Switch 2.2 
-	case 2.3 do ["huh?";]: 
-	case 2.2 do ["Makes Sense";]: 
-	default ["meh";];
+	case 2.3 do ["huh?"]: 
+	case 2.2 do ["Makes Sense"]: 
+	default ["meh"];
 
 Assert switchCase3 = "Makes Sense";
 
@@ -64,7 +64,7 @@ switchCase4 : string :=  Switch true
 	case true do
 	[ 
 		c : integer := 1;
-		c as basic string;
+		c as basic string
 	]:
 	default
 	[ 
@@ -72,13 +72,13 @@ switchCase4 : string :=  Switch true
 			case true do
 			[
 				c : integer := 2;
-				c as basic string;
+				c as basic string
 			]:
 			default 
 			[
 				c : integer := 3;
-				c as basic string;
-			];
+				c as basic string
+			]
 	];
 
 Assert switchCase4 = "1";
@@ -90,7 +90,7 @@ if false then [ifThenElseRepeat1 := 1;]
 	else if false then [ifThenElseRepeat1 := 3;]  
  	else [ifThenElseRepeat1 := 4;];
 
- Assert ifThenElseRepeat1 = 4;	
+Assert ifThenElseRepeat1 = 4;	
  
 ifThenElseRepeat2 : integer;
 if false then [ifThenElseRepeat2 := 1;] 
@@ -98,21 +98,21 @@ if false then [ifThenElseRepeat2 := 1;]
 	else if false then [ifThenElseRepeat2 := 3;]  
  	else [ifThenElseRepeat2 := 4;];
 
- Assert ifThenElseRepeat2 = 2;	
+Assert ifThenElseRepeat2 = 2;	
  
 ifThenElseRepeat3 : integer :=
-	if false then [1;] 
-		else if false then [2;]
-		else if false then [3;]  
-	 	else [4;];
+	if false then [1] 
+		else if false then [2]
+		else if false then [3]  
+	 	else [4];
 
- Assert ifThenElseRepeat3 = 4;
+Assert ifThenElseRepeat3 = 4;
  
- ifThenElseRepeat4 : integer :=
-	if false then [1;] 
-		else if false then [2;]
-		else if true then [3;]  
-	 	else [4;];
+ifThenElseRepeat4 : integer :=
+	if false then [1] 
+		else if false then [2]
+		else if true then [3]  
+	 	else [4];
 
- Assert ifThenElseRepeat4 = 3;
+Assert ifThenElseRepeat4 = 3;
  	

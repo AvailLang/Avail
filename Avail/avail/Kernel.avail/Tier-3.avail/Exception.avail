@@ -61,23 +61,23 @@ result ::= lookup "result";
 
 
 Method "_result" is [ex : Exception |
-	ex -> result;
+	ex -> result
 ];
 
 Restriction "_result" is [exType : Exception type |
-	exType -> result;
+	exType -> result
 ];
 
 
 
 Method "_with_" is [et : Exception type, res : any |
-	et new with <<result, res>>;
+	et new with <<result, res>>
 ] : Exception;
 
 Restriction "_with_" is [ett : Exception type type, resT : type |
 	if not (resT <= ett instance -> result) then [
-		Fail parse "exception argument to conform";];
-	ett instance;
+		Fail parse "exception argument to conform"];
+	ett instance
 ];
 
 
@@ -105,8 +105,8 @@ Restriction "_evaluate with handler_" is [
 	   on the Exception subtype, so a dynamic check determines which
 	   handlers to skip over.  */
 	if not ht [1] <= Exception then [
-		Fail parse "handler capable of accepting an exception";];
-	type union of bt result and ht result;
+		Fail parse "handler capable of accepting an exception"];
+	type union of bt result and ht result
 ];
 
 
@@ -120,8 +120,8 @@ Restriction "catch_in_" is [ht : functionType, bt : functionType |
 	   on the Exception subtype, so a dynamic check determines which
 	   handlers to skip over.  */
 	if not ht [1] <= Exception then [
-		Fail parse "handler capable of accepting an exception";];
-	type union of ht result and bt result;
+		Fail parse "handler capable of accepting an exception"];
+	type union of ht result and bt result
 ];
 
 
@@ -153,9 +153,9 @@ Method "handleTuple_do_" is [
 		body
 	else [
 		[
-			handleTuple handlers[2..||handlers||] do body;
-		] evaluate with handler handlers[1];
-	];
+			handleTuple handlers[2..||handlers||] do body
+		] evaluate with handler handlers[1]
+	]
 ] : any;
 
 
@@ -178,25 +178,25 @@ Restriction "catch«_‡,»in_" is [handlersT : tupleType, bodyT : functionType 
 		union of types in handlersT leading types;
 	cast union into [ut : functionType |
 		if not ut[1] <= Exception then [
-			Fail parse "handler to accept an exception";];
+			Fail parse "handler to accept an exception"];
 	] otherwise [
-		Fail parse "All the handler block types must be known statically.";];
+		Fail parse "All the handler block types must be known statically."];
 	merge : type := bodyT result;
 	merge := type union of bodyT result and
 		cast handlersT default type into [handlerT : functionType |
-			handlerT;
+			handlerT
 		] otherwise [
-			void;
+			void
 		];
 	handlersT leading types do [t : type |
 		merge := type union of merge and
 			cast t into [handlerT : functionType |
-				handlerT;
+				handlerT
 			] otherwise [
-				void;
+				void
 			];
 	];
-	merge;
+	merge
 ];
 
 
@@ -207,6 +207,6 @@ Method "Raise_" is [exception : Exception |
 	   exception object, pop the stack to leave the primitive 200 method on
 	   the top, and invoke the handler with the exception object. */
 	Primitive 201 (failureCode : natural number);
-	Crash "No suitable handler was found for the exception";
+	Crash "No suitable handler was found for the exception"
 ] : terminates;
 

@@ -63,7 +63,7 @@ Method "_apply_" is [block : [...]->void, args : tuple |
 	Primitive 40 (failureCode : natural number);
 	Crash "Bad argument tuple during function application (error="
 		++ failureCode as basic string
-		++ ").";
+		++ ")."
 ] : void;
 
 Restriction "_apply_" is [functionT : functionType, argsT : tupleType |
@@ -74,19 +74,20 @@ Restriction "_apply_" is [functionT : functionType, argsT : tupleType |
 	functionSizes ::= functionT arguments type sizes;
 	argsSizes ::= argsT sizes;
 	if argsSizes = terminates then [
-		Fail parse "Some argument expressions must terminate";
+		Fail parse "Some argument expressions must terminate"
 	];
 	validSizes ::= type intersection of functionSizes and argsSizes;
 	if functionSizes not = terminates & validSizes = terminates then [
-		Fail parse "Number of arguments will always be wrong at this function application site";
+		Fail parse "Number of arguments will always be wrong at this function\
+		\| application site"
 	];
 	/* I don't believe the argument types can be checked here in any meaningful
 	 * way.  If a function argument is terminates, an actual function can be
 	 * supplied at runtime that is broader for that (contravariant) argument --
-	 * in fact, any function argument type can be broadened up to an "any", which
-	 * will accept any argument.
+	 * in fact, any function argument type can be broadened up to an "any",
+	 * which will accept any argument.
 	 */
-	functionT result;
+	functionT result
 ];
 
 /**
@@ -96,7 +97,7 @@ Method "_(«_‡,»)" is [block : [...]->void, args : tuple |
 	Primitive 40 (failureCode : natural number);
 	Crash "Bad argument tuple during function application (error="
 		++ (failureCode as basic string)
-		++ ").";
+		++ ")."
 ] : void;
 
 
@@ -125,9 +126,9 @@ Restriction "cast_into_otherwise_" is [
 			++ valType as basic string
 			++ " <= "
 			++ blk1Type[1] as basic string;
-		cast message into [ s : string | Fail parse s; ];
+		cast message into [ s : string | Fail parse s ];
 	];
-	type union of blk1Type result and blk2Type result;
+	type union of blk1Type result and blk2Type result
 ];
 
 
@@ -136,7 +137,7 @@ Method "cast_into_" is [value : any, block : [terminates]->void |
 	if value type <= block type[1] then [
 		block apply <value>;
 	] else [
-		Crash <"Bad dynamic cast of a ", value type, " into a ", block type[1]>;
+		Crash <"Bad dynamic cast of a ", value type, " into a ", block type[1]>
 	];
 ] : void;
 
@@ -147,7 +148,7 @@ Restriction "cast_into_" is [valType : type, blockType : functionType |
 			++ valType as basic string
 			++ " <= "
 			++ blockType[1] as basic string;
-		cast message into [ s : string | Fail parse s; ];
+		cast message into [ s : string | Fail parse s ];
 	];
-	blockType result;
+	blockType result
 ];

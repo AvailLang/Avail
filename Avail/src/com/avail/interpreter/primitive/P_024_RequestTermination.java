@@ -1,5 +1,5 @@
 /**
- * Primitive_024_RequestTermination.java
+ * P_024_RequestTermination.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -32,8 +32,7 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.E_NO_IMPLEMENTATION;
-import static com.avail.interpreter.Primitive.Flag.Unknown;
+import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
@@ -50,7 +49,7 @@ public class P_024_RequestTermination extends Primitive
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance = new P_024_RequestTermination().init(
-		1, Unknown);
+		1, CanInline, CannotFail);
 
 	@Override
 	public @NotNull Result attempt (
@@ -58,9 +57,10 @@ public class P_024_RequestTermination extends Primitive
 		final @NotNull Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		@SuppressWarnings("unused")
-		final AvailObject processObject = args.get(0);
-		return interpreter.primitiveFailure(E_NO_IMPLEMENTATION);
+		final AvailObject process = args.get(0);
+		process.setInterruptRequestFlag(
+			ProcessDescriptor.IntegerSlots.TERMINATION_REQUESTED);
+		return interpreter.primitiveSuccess(NullDescriptor.nullObject());
 	}
 
 	@Override

@@ -71,23 +71,23 @@ Semantic restriction "_→object type" is
 	/* Leverage an instance type. */
 	if |mapType| = 1 then
 	[
-		(mapType's instance→object type)'s type;
+		(mapType's instance→object type)'s type
 	]
 	/* If the enumeration of keys is known and equals the cardinality of the
 	 * map, then answer the nearest object type supertype with these keys.
 	 */
 	else if [ |{||mapType||'s lower bound, ||mapType||'s upper bound}| = 1
-		∧ [ |mapType's key type| = ||mapType||'s lower bound; ]; ] then
+		∧ [ |mapType's key type| = ||mapType||'s lower bound ] ] then
 	[
 		atoms ::= mapType's key type's instances;
 		defs ::= atoms→tuple zip |atoms| of mapType's value type's instance;
-		(defs→object type)'s type;
+		(defs→object type)'s type
 	]
 	/* Can't strengthen. */
 	else
 	[
-		⊤;
-	];
+		⊤
+	]
 ];
 
 /**
@@ -105,7 +105,7 @@ Semantic restriction "_→object type" is
 	/* Leverage an instance type. */
 	if |tupleType| = 1 then
 	[
-		(tupleType's instance→object type)'s type;
+		(tupleType's instance→object type)'s type
 	]
 	else
 	[
@@ -138,20 +138,20 @@ Semantic restriction "_→object type" is
 			if |atomType| = 1 then
 			[
 				fieldAtom ::= atomType's instance;
-				fieldType ::= defs[fieldAtom] else [ ⊥; ] ∪ defType;
+				fieldType ::= defs[fieldAtom] else [ ⊥ ] ∪ defType;
 				defs := eject ↑defs + fieldAtom→fieldType;
 			]
 			/* We know one or more fields with which this type is associated, so
 			 * record this knowledge into `constraints`.
 			 */
-			else if [ |atomType| ≠ ∞; ] then
+			else if [ |atomType| ≠ ∞ ] then
 			[
 				atoms ::= atomType's instances;
 				For each atoms do
 				[
 					fieldAtom : atom
 				|
-					fieldType ::= constraints[fieldAtom] else [ ⊥; ] ∪ defType;
+					fieldType ::= constraints[fieldAtom] else [ ⊥ ] ∪ defType;
 					constraints := eject ↑constraints + fieldAtom→fieldType;
 				];
 			]
@@ -170,10 +170,10 @@ Semantic restriction "_→object type" is
 				fieldAtom : atom,
 				fieldType : any meta
 			|
-				fieldType ∪ constraints[fieldAtom] else [ ⊥; ] ∪ universal;
+				fieldType ∪ constraints[fieldAtom] else [ ⊥ ] ∪ universal
 			];
-		(defs→object type)'s type;
-	];
+		(defs→object type)'s type
+	]
 ];
 
 /**
@@ -191,23 +191,23 @@ Semantic restriction "_→object" is
 	/* Leverage an instance type. */
 	if |mapType| = 1 then
 	[
-		(mapType's instance→object)'s type;
+		(mapType's instance→object)'s type
 	]
 	/* If the enumeration of keys is known and equals the cardinality of the
 	 * map, then answer the nearest object type supertype with these keys.
 	 */
 	else if [ |{||mapType||'s lower bound, ||mapType||'s upper bound}| = 1
-		∧ [ |mapType's key type| = ||mapType||'s lower bound; ]; ] then
+		∧ [ |mapType's key type| = ||mapType||'s lower bound ] ] then
 	[
 		atoms ::= mapType's key type's instances;
 		fieldAssignments ::= atoms→tuple zip |atoms| of mapType's value type;
-		(fieldAssignments→object)'s type;
+		(fieldAssignments→object)'s type
 	]
 	/* Can't strengthen. */
 	else
 	[
-		⊤;
-	];
+		⊤
+	]
 ];
 
 /**
@@ -225,7 +225,7 @@ Semantic restriction "_→object" is
 	/* Leverage an instance type. */
 	if |tupleType| = 1 then
 	[
-		(tupleType's instance→object)'s type;
+		(tupleType's instance→object)'s type
 	]
 	else
 	[
@@ -258,20 +258,20 @@ Semantic restriction "_→object" is
 			if |atomType| = 1 then
 			[
 				fieldAtom ::= atomType's instance;
-				fieldType ::= defs[fieldAtom] else [ ⊥; ] ∪ defType;
+				fieldType ::= defs[fieldAtom] else [ ⊥ ] ∪ defType;
 				defs := eject ↑defs + fieldAtom→fieldType;
 			]
 			/* We know one or more fields with which this type is associated, so
 			 * record this knowledge into `constraints`.
 			 */
-			else if [ |atomType| ≠ ∞; ] then
+			else if [ |atomType| ≠ ∞ ] then
 			[
 				atoms ::= atomType's instances;
 				For each atoms do
 				[
 					fieldAtom : atom
 				|
-					fieldType ::= constraints[fieldAtom] else [ ⊥; ] ∪ defType;
+					fieldType ::= constraints[fieldAtom] else [ ⊥ ] ∪ defType;
 					constraints := eject ↑constraints + fieldAtom→fieldType;
 				];
 			]
@@ -290,10 +290,10 @@ Semantic restriction "_→object" is
 				fieldAtom : atom,
 				fieldType : any meta
 			|
-				fieldType ∪ constraints[fieldAtom] else [ ⊥; ] ∪ universal;
+				fieldType ∪ constraints[fieldAtom] else [ ⊥ ] ∪ universal
 			];
-		defs→object type;
-	];
+		defs→object type
+	]
 ];
 
 /**
@@ -311,13 +311,13 @@ Semantic restriction "_→map" is
 |
 	if |anObjectType| = 1 then
 	[
-		(anObjectType's instance→map)'s type;
+		(anObjectType's instance→map)'s type
 	]
 	/* Can't strengthen. */
 	else
 	[
-		⊤;
-	];
+		⊤
+	]
 ];
 
 /**
@@ -335,13 +335,13 @@ Semantic restriction "_→tuple" is
 |
 	if |anObjectType| = 1 then
 	[
-		(anObjectType's instance→tuple)'s type;
+		(anObjectType's instance→tuple)'s type
 	]
 	/* Can't strengthen. */
 	else
 	[
-		⊤;
-	];
+		⊤
+	]
 ];
 
 /**
@@ -367,15 +367,15 @@ Method "extend_with«_:_‡,»" is
 	fieldAtoms ::= stripe newDefinitions at 1;
 	If |fieldAtoms→set| ≠ |fieldAtoms| then
 	[
-		early failure function(object type extension contains duplicates code);
+		early failure function(object type extension contains duplicates code)
 	];
 	subtype ::= (supertype→tuple ++ newDefinitions)→object type;
 	If ¬subtype ⊆ supertype then
 	[
 		early failure function(
-			object type extension did not produce subtype code);
+			object type extension did not produce subtype code)
 	];
-	subtype;
+	subtype
 ] : object meta;
 
 /**
@@ -410,7 +410,7 @@ Semantic restriction "extend_with«_:_‡,»" is
 		newType ::= def[2]'s instance;
 		If |atomType| ≠ 1 then
 		[
-			Reject parse, expected: "all field atoms to be known statically";
+			Reject parse, expected: "all field atoms to be known statically"
 		];
 		fieldAtom ::= atomType's instance;
 		If fieldAtom ∈ newDefinitions then
@@ -420,9 +420,9 @@ Semantic restriction "extend_with«_:_‡,»" is
 				++ " to appear only once during extension (but it already\
 				\| appeared with type = "
 				++ primitive description of newDefinitions[fieldAtom]
-				++ ")";
+				++ ")"
 		];
-		oldType ::= oldDefinitions[fieldAtom] else [ any; ];
+		oldType ::= oldDefinitions[fieldAtom] else [ any ];
 		If ¬newType ⊆ oldType then
 		[
 			Reject parse, expected:
@@ -432,11 +432,11 @@ Semantic restriction "extend_with«_:_‡,»" is
 				++ primitive description of newType
 				++ " is not a subtype of "
 				++ primitive description of oldType
-				++ ")";
+				++ ")"
 		];
 		newDefinitions := eject ↑newDefinitions + fieldAtom→newType;
 	];
-	((supertype→tuple ++ newDefinitions' bindings)→object type)'s type;
+	((supertype→tuple ++ newDefinitions' bindings)→object type)'s type
 ];
 
 /**
@@ -458,23 +458,23 @@ Method "a|an_«with«_:=_‡,»»" is
 	objectType : object meta,
 	optional : <<<atom, any…|2>…|1..>…|0..1>
 |
-	assignments ::= if optional is empty then [ <>; ] else [ optional[1]; ];
+	assignments ::= if optional is empty then [ <> ] else [ optional[1] ];
 	fieldAtoms ::= stripe assignments at 1;
 	If |fieldAtoms→set| ≠ |fieldAtoms| then
 	[
-		early failure function(object instantiation contains duplicates code);
+		early failure function(object instantiation contains duplicates code)
 	];
 	If |fieldAtoms| ≠ |objectType→tuple| then
 	[
-		early failure function(object instantiation invalid code);
+		early failure function(object instantiation invalid code)
 	];
 	newObject ::= assignments→object;
 	If ¬newObject ∈ objectType then
 	[
 		early failure function(
-			object instantiation did not produce instance code);
+			object instantiation did not produce instance code)
 	];
-	newObject;
+	newObject
 ];
 
 /**
@@ -509,7 +509,7 @@ Semantic restriction "a|an_«with«_:=_‡,»»" is
 		valueType ::= def[2];
 		If |atomType| ≠ 1 then
 		[
-			Reject parse, expected: "all field atoms to be known statically";
+			Reject parse, expected: "all field atoms to be known statically"
 		];
 		fieldAtom ::= atomType's instance;
 		If fieldAtom ∈ assignments then
@@ -519,9 +519,9 @@ Semantic restriction "a|an_«with«_:=_‡,»»" is
 				++ " to appear only once during instantiation (but it already\
 				\| appeared with type = "
 				++ primitive description of assignments[fieldAtom]
-				++ ")";
+				++ ")"
 		];
-		requiredType ::= definitions[fieldAtom] else [ any; ];
+		requiredType ::= definitions[fieldAtom] else [ any ];
 		If ¬valueType ⊆ requiredType then
 		[
 			Reject parse, expected:
@@ -531,11 +531,11 @@ Semantic restriction "a|an_«with«_:=_‡,»»" is
 				++ primitive description of valueType
 				++ " is not a subtype of "
 				++ primitive description of requiredType
-				++ ")";
+				++ ")"
 		];
 		assignments := eject ↑assignments + fieldAtom→valueType;
 	];
-	missing ::= filter definitions' keys by [ a : atom | ¬a ∈ assignments; ];
+	missing ::= filter definitions' keys by [ a : atom | ¬a ∈ assignments ];
 	If |missing| ≠ 0 then
 	[
 		Reject parse, expected:
@@ -543,9 +543,9 @@ Semantic restriction "a|an_«with«_:=_‡,»»" is
 			++ primitive description of objectType
 			++ " (but assignments are missing for "
 			++ primitive description of missing
-			++ ")";
+			++ ")"
 	];
-	assignments→object type;
+	assignments→object type
 ];
 
 /* TODO: [TLS] Document this! */
@@ -561,17 +561,17 @@ Method "«Public»?«Explicit|explicit»?\
 |
 	/* Extract the extensions. */
 	publicDefs ::= if publicOptional is empty
-		then [ <>; ]
-		else [ publicOptional[1]; ];
+		then [ <> ]
+		else [ publicOptional[1] ];
 	privateDefs ::= if privateOptional is empty
-		then [ <>; ]
-		else [ privateOptional[1]; ];
+		then [ <> ]
+		else [ privateOptional[1] ];
 	newDefinitions ::= publicDefs ++ privateDefs;
 	/* Verify the uniqueness of the field atoms. */
 	fieldAtoms ::= stripe newDefinitions at 1;
 	If |fieldAtoms→set| ≠ |fieldAtoms| then
 	[
-		early failure function(object type extension contains duplicates code);
+		early failure function(object type extension contains duplicates code)
 	];
 	/* If necessary, then generate a field definition that guarantees
 	 * uniqueness among object types.
@@ -588,14 +588,14 @@ Method "«Public»?«Explicit|explicit»?\
 	If ¬subtype ⊆ supertype then
 	[
 		early failure function(
-			object type extension did not produce subtype code);
+			object type extension did not produce subtype code)
 	];
 	/* Define the class: give the object type a name, define a method that
 	 * answers the object type, define methods that access the field
 	 * definitions, publish the method and public fields (if appropriate).
 	 */
 	subtype's name := className;
-	Method className is new []→(subtype's type) applying [ subtype; ];
+	Method className is new []→(subtype's type) applying [ subtype ];
 	If public then [ Publish new name: className; ];
 	For each stripe publicDefs at 1 do
 	[
@@ -605,11 +605,11 @@ Method "«Public»?«Explicit|explicit»?\
 		fieldType ::= subtypeMap[fieldAtom];
 		classFunctionType ::= [subtype's type]→(fieldType's type);
 		Method methodName is
-			new classFunctionType applying [ x : any | fieldType; ];
+			new classFunctionType applying [ x : any | fieldType ];
 		instanceFunctionType ::= [subtype]→fieldType;
 		Method methodName is
 			new instanceFunctionType
-			applying [ x : object | x→map[fieldAtom]; ];
+			applying [ x : object | x→map[fieldAtom] ];
 		If public then [ Publish new name: methodName; ];
 	];
 	For each stripe privateDefs at 1 do
@@ -620,11 +620,11 @@ Method "«Public»?«Explicit|explicit»?\
 		fieldType ::= subtypeMap[fieldAtom];
 		classFunctionType ::= [subtype's type]→(fieldType's type);
 		Method methodName is
-			new classFunctionType applying [ x : any | fieldType; ];
+			new classFunctionType applying [ x : any | fieldType ];
 		instanceFunctionType ::= [subtype]→fieldType;
 		Method methodName is
 			new instanceFunctionType
-			applying [ x : object | x→map[fieldAtom]; ];
+			applying [ x : object | x→map[fieldAtom] ];
 	];
 ] : ⊤;
 

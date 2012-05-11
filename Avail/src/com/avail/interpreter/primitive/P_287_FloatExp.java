@@ -1,5 +1,5 @@
 /**
- * Primitive_287_FloatExp.java
+ * P_287_FloatExp.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

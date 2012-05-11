@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.05.10 16:59:40.420 -0500
+ * * Last Generated On: 2012.05.11 13:38:57.870 -0500
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -93,6 +93,7 @@ Names
 	"_'s⁇outer variables",
 	"_'s⁇parameters'type",
 	"_'s⁇primitive number",
+	"_'s⁇priority",
 	"_'s⁇program counter",
 	"_'s⁇read type",
 	"_'s⁇return type",
@@ -123,6 +124,7 @@ Names
 	"_is a primitive",
 	"_is unassigned",
 	"_mod_",
+	"_taking arguments tupled",
 	"_×_",
 	"_÷_",
 	"_→_",
@@ -165,6 +167,7 @@ Names
 	"read character",
 	"request termination of_",
 	"semantic restrictions for_given_",
+	"set_'s⁇priority to_",
 	"special atoms",
 	"static method_._(«_‡,»)",
 	"swap_and_",

@@ -1,5 +1,5 @@
 /**
- * Primitive_350_MacroInnerAssignment.java
+ * P_350_MacroInnerAssignment.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

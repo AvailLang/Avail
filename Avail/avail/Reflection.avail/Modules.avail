@@ -51,17 +51,17 @@ Body
 
 Method "Start new module" is [
 /*	Primitive 0 (failureCode : natural number);  */
-	Failed;
+	Failed
 ] : void;
 
 Method "Commit module" is [
 /*	Primitive 0 (failureCode : natural number);  */
-	Failed;
+	Failed
 ] : void;
 
 Method "Rollback module" is [
 /*	Primitive 0 (failureCode : natural number);  */
-	Failed;
+	Failed
 ] : void;
 
 Method "Define module_" is [blk : []->void |
@@ -76,12 +76,12 @@ Method "Define module_" is [blk : []->void |
 
 Method "Define module variable_is_" is [name : string, var : container |
 /*	Primitive 0 (failureCode : natural number);  */
-	Failed;
+	Failed
 ] : void;
 
 
 Method "Define module constant_is_" is [name : string, val : any |
 /*	Primitive 0 (failureCode : natural number);  */
-	Failed;
+	Failed
 ] : void;
 

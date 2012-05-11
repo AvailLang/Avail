@@ -49,14 +49,14 @@ Restriction "_instances" is
 	result ::= if |eT| = INF then
 		[
 			Assert eT = type;
-			set;
+			set
 		]
 		else
 		[
 			if |eT| = 0 then
 			[
 				Assert eT = terminates;
-				{} type;
+				{} type
 			]
 			else
 			[
@@ -64,18 +64,18 @@ Restriction "_instances" is
 				 * because we are dealing with metatypes here.
 				 */
 				Assert |eT| = 1;
-				instance ::= cast eT instance into [ t : type | t; ];
+				instance ::= cast eT instance into [ t : type | t ];
 				strong : any type;
 				*↑strong ?:= instance;
 				if |instance| not = INF then
 				[
-					set [0..|strong|+1) of strong;
+					set [0..|strong|+1) of strong
 				]
 				else
 				[
-					set [0..INF) of strong;
-				];
-			];
+					set [0..INF) of strong
+				]
+			]
 		];
 	Assert result <= set;
 	Print "\nDEBUG: _instances("
@@ -83,33 +83,33 @@ Restriction "_instances" is
 		then ") ∋ "
 		then result as basic string
 		then "\n";
-	result;
+	result
 ] : set type;
 
 Method "_instance" is
 [
 	e : type
 |
-	if |e| not = 1 then [Crash "Type must have exactly one instance";];
-	e instances as tuple [1];
+	if |e| not = 1 then [Crash "Type must have exactly one instance"];
+	e instances as tuple [1]
 ] : any;
 
 Restriction "_instance" is [eT : type type |
 	result ::= if |eT| not = INF then
 	[
 		union : type := terminates;
-		instances ::= cast eT instances into [ t : set of any type | t; ];
+		instances ::= cast eT instances into [ t : set of any type | t ];
 		instances do
 		[
 			membershipType : any type
 		|
 			union := type union of union and membershipType;
 		];
-		union;
+		union
 	]
 	else
 	[
-		any;
+		any
 	];
 /*
 	Print "\nDEBUG: _instance("
@@ -118,7 +118,7 @@ Restriction "_instance" is [eT : type type |
 		then result as basic string
 		then "\n";
 */
-	result;
+	result
 ] : type;
 
 Assert boolean instances = {false, true};

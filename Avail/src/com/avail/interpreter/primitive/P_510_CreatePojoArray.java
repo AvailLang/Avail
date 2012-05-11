@@ -1,5 +1,5 @@
 /**
- * Primitive_510_CreatePojoArray.java
+ * P_510_CreatePojoArray.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

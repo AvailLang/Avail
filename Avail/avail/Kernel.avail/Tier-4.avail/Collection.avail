@@ -47,7 +47,7 @@ Body
 /* Define class Collection. */
 
 privateElementType ::= lookup "elementType";
-Method "elementType" is [privateElementType;];
+Method "elementType" is [privateElementType];
 
 "Collection" is explicit subtype of Object with
 	elementType->[]->any;
@@ -56,8 +56,8 @@ Abstract method "_do_" for [Collection, [terminates]->void]->void;
 
 Restriction "_do_" is [cType : Collection type, blkType : functionType |
 	if not cType -> elementType result <= blkType[1] then [
-		Fail parse "collection element type to conform to block argument";];
-	void;
+		Fail parse "collection element type to conform to block argument"];
+	void
 ];
 
 
@@ -73,8 +73,8 @@ Restriction "_add_" is [cfType : Collection Factory type, itemType : type |
 	collectionType ::= cfType -> resultType result;
 	elemType ::= collectionType -> elementType result;
 	if not itemType <= elemType then [
-		Fail parse "new element to conform to collection element type";];
-	void;
+		Fail parse "new element to conform to collection element type"];
+	void
 ];
 
 Method "_add all_" is [cf : Collection Factory, c : Collection |
@@ -86,6 +86,6 @@ Restriction "_add all_" is [
 		cType : Collection type |
 	collectionType ::= cfType -> resultType result;
 	if not cType -> elementType <= collectionType -> elementType result then [
-		Fail parse "new elements to conform to collection element type";];
-	void;
+		Fail parse "new elements to conform to collection element type"];
+	void
 ];

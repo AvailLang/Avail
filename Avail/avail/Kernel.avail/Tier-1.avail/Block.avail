@@ -62,11 +62,11 @@ Method "[...]->_" is [result : type |
  * Private tuple constructor (bootstrapping workaround)...
  */
 Method "<«_‡,»>" is [t : tuple |
-	t;
+	t
 ] : tuple;
 
 Restriction "<«_‡,»>" is [tt : tupleType |
-	tt;
+	tt
 ];
 
 
@@ -78,7 +78,7 @@ Method "_arguments type" is [ct : functionType |
 
 Method "_[_]" is [ct : functionType, index : natural number |
 	Primitive 36 (failureCode : natural number);
-	Failed;
+	Failed
 ] : type;
 
 
@@ -89,6 +89,7 @@ Method "_result" is [ct : functionType |
 	Primitive 37;
 ] : type;
 
+
 Method "block type taking_and returning_" is [args : tupleOfAnyMeta, ret : type |
 	Primitive 34;
 ] : functionType;
@@ -97,7 +98,7 @@ Method "block type taking_and returning_" is [args : tupleOfAnyMeta, ret : type 
  * Create a function type.
  */
 Method "[«_‡,»]->_" is [types : tupleOfAnyMeta, result : type |
-	block type taking types and returning result;
+	block type taking types and returning result
 ] : functionType;
 
 
@@ -112,7 +113,7 @@ Method "_privateNumArgs" is [c : compiledCode |
 ] : whole number;
 
 Method "_argument count" is [c : function |
-	c compiledCode privateNumArgs;
+	c compiledCode privateNumArgs
 ] : whole number;
 
 Method "_privateSizes" is [tt : tupleType |
@@ -130,7 +131,7 @@ Method "_privateUpperBound" is [range : integerType |
 /* Here's the implementation of the conditional downcast */
 Method "Private*_`?:=_" is [var : container, arg : any |
 	Primitive 11 (failureCode : natural number);
-	Failed;
+	Failed
 ] : void;
 
 Method "_argument count" is [c : functionType |
@@ -139,7 +140,7 @@ Method "_argument count" is [c : functionType |
 	Assert sizes privateLowerBound = sizes privateUpperBound;
 	result : whole number;
 	Private *↑result ?:= sizes privateLowerBound;
-	result;
+	result
 ] : whole number;
 
 Method "_outerVars" is [c : function |
@@ -155,6 +156,6 @@ Method "function from_outer variables_" is [
 		c : compiledCode,
 		outers : tuple |
 	Primitive 74 (failureCode : natural number);
-	Failed;
+	Failed
 ] : function;
 

@@ -1,5 +1,5 @@
 /**
- * Primitive_050_ContinuationTypeToFunctionType.java
+ * P_050_ContinuationTypeToFunctionType.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

@@ -1,5 +1,5 @@
 /**
- * Primitive_317_DoubleExp.java
+ * P_317_DoubleExp.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

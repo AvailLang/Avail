@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Semaphore"
+System Module "Semaphore"
 Extends
 Uses
 	"Kernel",
@@ -52,8 +52,8 @@ waiters ::= lookup "waiters";
 excessSignals ::= lookup "excessSignals";
 
 "Semaphore" is explicit subtype of Object with
-	[waiters -> & : tuple of process]
-	[excessSignals -> & : integer];
+	waiters -> & : tuple of process,
+	excessSignals -> & : integer;
 
 Method "wait for_" is [sem : Semaphore |
 	/* Answer void.  If this process later gets blown off this semaphore
@@ -63,14 +63,14 @@ Method "wait for_" is [sem : Semaphore |
 /*
 	Primitive 28 (failureCode : natural number);
 */
-	Failed;
+	Failed
 ] : void;
 
 Method "signal_" is [sem : Semaphore |
 /*
 	Primitive 29 (failureCode : natural number);
 */
-	Failed;
+	Failed
 ] : void;
 
 
@@ -85,9 +85,11 @@ Method "_critical section_" is [sem : Semaphore, blk : []->any |
 	wait for sem;
 	result ::= blk();
 	signal sem;
-	result;
-] : any
-returns [st : Semaphore type, blkt : functionType |
-	blkt result;
-];
+	result
+] : any;
 
+Restriction "_critical section_" is [
+		st : Semaphore type,
+		blkt : functionType |
+	blkt result
+];

@@ -49,7 +49,7 @@ Restriction "_(«_‡,»)" is [blkType : functionType, argsType : tupleType |
 	size ::= argsType sizes lower bound;
 	Assert size = argsType sizes upper bound;
 	if blkType arguments type sizes not = argsType sizes then [
-		Fail parse "Argument count could not be determined statically.";];
+		Fail parse "Argument count could not be determined statically."];
 	From 1 to size do [i : natural number |
 		if not argsType[i] <= blkType[i] then [
 			Fail parse "Argument #"
@@ -58,8 +58,8 @@ Restriction "_(«_‡,»)" is [blkType : functionType, argsType : tupleType |
 				then argsType[i] as basic string
 				then ") to be a subtype of ("
 				then blkType[i] as basic string
-				then ") for this function invocation.";];];
-	blkType result;
+				then ") for this function invocation."];];
+	blkType result
 ];
 
 

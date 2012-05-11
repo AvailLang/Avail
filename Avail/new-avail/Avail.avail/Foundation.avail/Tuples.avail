@@ -76,7 +76,7 @@ Method "_is empty" is
 [
 	aTuple : tuple
 |
-	|aTuple| = 0;
+	|aTuple| = 0
 ];
 
 /**
@@ -99,7 +99,7 @@ Method "For each_do_" is
 		[
 			Invoke action with <aTuple[index]>;
 			↑index++;
-			Restart loop;
+			Restart loop
 		];
 	]();
 ] : ⊤;
@@ -125,7 +125,7 @@ Method "For each_do_" is
 		[
 			Invoke action with <aTuple[index], index>;
 			↑index++;
-			Restart loop;
+			Restart loop
 		];
 	]();
 ] : ⊤;
@@ -149,21 +149,21 @@ Method "Require:_accepts_" is
 	If ||action's parameters' type||'s lower bound < 1 then
 	[
 		Reject parse, expected:
-			"repeatedly applied function to accept at least one argument";
+			"repeatedly applied function to accept at least one argument"
 	];
 	union ::= ∪ tupleType[1..|tupleType's leading types| + 1];
-	If action[1] ≠ ⊥ ∧ [ ¬union ⊆ action[1]; ] then
+	If action[1] ≠ ⊥ ∧ [ ¬union ⊆ action[1] ] then
 	[
 		Reject parse, expected:
 			"repeatedly applied function to accept all elements of the tuple ⊆ "
 			++ primitive description of tupleType
 			++ " (but it only accepts "
 			++ primitive description of action[1]
-			++ ")";
+			++ ")"
 	];
 	If ||action's parameters' type||'s lower bound = 2
 		∧ [ action[2] ≠ ⊥
-		∧ [ ¬[1..||tupleType||'s upper bound + 1) ⊆ action[2]; ]; ]
+		∧ [ ¬[1..||tupleType||'s upper bound + 1) ⊆ action[2] ] ]
 	then
 	[
 		Reject parse, expected:
@@ -171,7 +171,7 @@ Method "Require:_accepts_" is
 			++ primitive description of tupleType
 			++ " (but it only accepts "
 			++ primitive description of action[2]
-			++ ")";
+			++ ")"
 	];
 ] : ⊤;
 
@@ -192,14 +192,14 @@ Semantic restriction "For each_do_" is
 	action : function meta
 |
 	Require: action accepts tupleType;
-	if ||tupleType||'s lower bound > 0 ∧ [ action's return type = ⊥; ] then
+	if ||tupleType||'s lower bound > 0 ∧ [ action's return type = ⊥ ] then
 	[
-		⊥;
+		⊥
 	]
 	else
 	[
-		⊤;
-	];
+		⊤
+	]
 ];
 
 /**
@@ -229,10 +229,10 @@ Method "map_through_" is
 			result :=
 				eject ↑result ++ <invoke transformer with <aTuple[index]>>;
 			↑index++;
-			Restart loop;
+			Restart loop
 		];
 	]();
-	result;
+	result
 ] : tuple;
 
 /**
@@ -263,10 +263,10 @@ Method "map_through_" is
 			result := eject ↑result
 				++ <invoke transformer with <aTuple[index], index>>;
 			↑index++;
-			Restart loop;
+			Restart loop
 		];
 	]();
-	result;
+	result
 ] : tuple;
 
 /**
@@ -292,10 +292,10 @@ Semantic restriction "map_through_" is
 		[
 			Reject parse, expected:
 				"repeatedly applied function to have a return type other than\
-				\| ⊥";
+				\| ⊥"
 		];
 	];
-	<<>, transformer's return type… | ||tupleType||>;
+	<<>, transformer's return type… | ||tupleType||>
 ];
 
 /**
@@ -329,10 +329,10 @@ Method "filter_by_" is
 				result := eject ↑result ++ <element>;
 			];
 			↑index++;
-			Restart loop;
+			Restart loop
 		];
 	]();
-	result;
+	result
 ] : tuple;
 
 /**
@@ -367,10 +367,10 @@ Method "filter_by_" is
 				result := eject ↑result ++ <element>;
 			];
 			↑index++;
-			Restart loop;
+			Restart loop
 		];
 	]();
-	result;
+	result
 ] : tuple;
 
 /**
@@ -390,16 +390,16 @@ Semantic restriction "filter_by_" is
 	Require: predicate accepts tupleType;
 	if predicate's return type = true's type then
 	[
-		tupleType;
+		tupleType
 	]
 	else
 	[
 		union ::= ∪ tupleType[1..|tupleType's leading types| + 1];
 		sizes ::=
-			if predicate's return type = false's type then [ 0's type; ]
-			else [ [0..||tupleType||'s upper bound + 1); ];
-		<<>, union…|sizes>;
-	];
+			if predicate's return type = false's type then [ 0's type ]
+			else [ [0..||tupleType||'s upper bound + 1) ];
+		<<>, union…|sizes>
+	]
 ];
 
 /**
@@ -446,10 +446,10 @@ Method "map and filter_by_" is
 				]
 			>;
 			↑index++;
-			Restart loop;
+			Restart loop
 		];
 	]();
-	result;
+	result
 ] : tuple;
 
 /**
@@ -497,10 +497,10 @@ Method "map and filter_by_" is
 				]
 			>;
 			↑index++;
-			Restart loop;
+			Restart loop
 		];
 	]();
-	result;
+	result
 ] : tuple;
 
 /**
@@ -525,13 +525,13 @@ Semantic restriction "map and filter_by_" is
 	If accumulator's return type ≠ ⊤ then
 	[
 		Reject parse, expected:
-			"repeatedly applied function to have return type ⊤";
+			"repeatedly applied function to have return type ⊤"
 	];
 	<
 		<>,
-		cast accumulator[2] into [ t : function meta | t[1]; ]…
+		cast accumulator[2] into [ t : function meta | t[1] ]…
 		| [0..||tupleType||'s upper bound + 1)
-	>;
+	>
 ];
 
 /**
@@ -558,10 +558,10 @@ Method "any of_satisfies_" is
 	|
 		If invoke predicate with <element> then
 		[
-			Exit body with true;
+			Exit body with true
 		];
 	];
-	false;
+	false
 ] : boolean;
 
 /**
@@ -589,10 +589,10 @@ Method "any of_satisfies_" is
 	|
 		If invoke predicate with <element, index> then
 		[
-			Exit body with true;
+			Exit body with true
 		];
 	];
-	false;
+	false
 ] : boolean;
 
 /**
@@ -610,7 +610,7 @@ Semantic restriction "any of_satisfies_" is
 	predicate : […]→boolean's type
 |
 	Require: predicate accepts tupleType;
-	predicate's return type;
+	predicate's return type
 ];
 
 /**
@@ -637,10 +637,10 @@ Method "each of_satisfies_" is
 	|
 		Unless invoke predicate with <element> then
 		[
-			Exit body with false;
+			Exit body with false
 		];
 	];
-	true;
+	true
 ] : boolean;
 
 /**
@@ -668,10 +668,10 @@ Method "each of_satisfies_" is
 	|
 		Unless invoke predicate with <element, index> then
 		[
-			Exit body with false;
+			Exit body with false
 		];
 	];
-	true;
+	true
 ] : boolean;
 
 /**
@@ -689,7 +689,7 @@ Semantic restriction "each of_satisfies_" is
 	predicate : […]→boolean's type
 |
 	Require: predicate accepts tupleType;
-	predicate's return type;
+	predicate's return type
 ];
 
 /**
@@ -708,7 +708,7 @@ Method "count of_where_" is
 	aTuple : tuple,
 	predicate : [⊥]→boolean
 |
-	|filter aTuple by predicate|;
+	|filter aTuple by predicate|
 ] : whole number;
 
 /**
@@ -728,7 +728,7 @@ Method "count of_where_" is
 	aTuple : tuple,
 	predicate : [⊥, ⊥]→boolean
 |
-	|filter aTuple by predicate|;
+	|filter aTuple by predicate|
 ] : whole number;
 
 /**
@@ -746,7 +746,7 @@ Semantic restriction "count of_where_" is
 	predicate : […]→boolean's type
 |
 	Require: predicate accepts tupleType;
-	[0..||tupleType||'s upper bound + 1);
+	[0..||tupleType||'s upper bound + 1)
 ];
 
 /**
@@ -770,13 +770,13 @@ Method "distinct_" is
 		if ¬element ∈ seen then
 		[
 			seen := eject ↑seen + element;
-			true;
+			true
 		]
 		else
 		[
-			false;
-		];
-	];
+			false
+		]
+	]
 ] : tuple;
 
 /* No decent semantic restrictions can be written yet for `distinct_` and
@@ -800,7 +800,7 @@ Method "zip function" is
 		tuples : <tuple…|1..>
 	|
 		accumulator : <tuple…|> := <>;
-		limit ::= min map tuples through [ aTuple : tuple | |aTuple|; ];
+		limit ::= min map tuples through [ aTuple : tuple | |aTuple| ];
 		From 1 to limit do
 		[
 			index : natural number
@@ -814,8 +814,8 @@ Method "zip function" is
 			];
 			accumulator := eject ↑accumulator ++ <group>;
 		];
-		accumulator;
-	] : tuple;
+		accumulator
+	] : tuple
 ] : [<tuple…|1..>]→tuple;
 
 /**
@@ -863,19 +863,19 @@ Method "zip semantic restriction" is
 		/* Leverage an instance type if possible. */
 		if |tuplesType| = 1 then
 		[
-			(zip tuplesType's instance)'s type;
+			(zip tuplesType's instance)'s type
 		]
 		else
 		[
 			types ::= cast tuplesType[1..relevant |tuplesType|]
-				into [ t : <tuple meta…|1..> | t; ];
+				into [ t : <tuple meta…|1..> | t ];
 			/* Find the smallest of the lower bounds of the inputs. */
 			lower ::=
 				min map types through
 				[
 					tupleType : tuple meta
 				|
-					||tupleType||'s lower bound;
+					||tupleType||'s lower bound
 				];
 			/* Find the smallest of the upper bounds of the inputs. */
 			upper ::=
@@ -883,7 +883,7 @@ Method "zip semantic restriction" is
 				[
 					tupleType : tuple meta
 				|
-					||tupleType||'s upper bound;
+					||tupleType||'s upper bound
 				];
 			/* Find the maximum number of element types to scan. */
 			limit ::=
@@ -891,7 +891,7 @@ Method "zip semantic restriction" is
 				[
 					tupleType : tuple meta
 				|
-					|tupleType's leading types| + 1;
+					|tupleType's leading types| + 1
 				];
 			resultTypes : <tuple meta…|> := <>;
 			/* Examine the relevant element types of all inputs. */
@@ -910,17 +910,17 @@ Method "zip semantic restriction" is
 					zipped := eject ↑zipped ++ <tupleType[index]>;
 				];
 				nonempty ::= cast zipped
-					into [ t : <any meta…|1..> | t; ];
+					into [ t : <any meta…|1..> | t ];
 				zippedType ::=
 					<nonempty[1..|nonempty| - 1], nonempty[|nonempty|]…
 						| ||tuplesType||>;
 				resultTypes := eject ↑resultTypes ++ <zippedType>;
 			];
-			nonempty ::= cast resultTypes into [ t : <tuple meta…|1..> | t; ];
+			nonempty ::= cast resultTypes into [ t : <tuple meta…|1..> | t ];
 			resultSizes ::= [lower..upper + 1);
-			<nonempty[1..|nonempty| - 1], nonempty[|nonempty|]… | resultSizes>;
-		];
-	] : type;
+			<nonempty[1..|nonempty| - 1], nonempty[|nonempty|]… | resultSizes>
+		]
+	] : type
 ] : [<tuple…|1..>'s type]→type;
 
 /**
@@ -970,7 +970,7 @@ Method "left fold_through_" is
 	|
 		result := invoke transformer with <aTuple[index], eject ↑result>;
 	];
-	result;
+	result
 ] : any;
 
 /**
@@ -998,11 +998,11 @@ Semantic restriction "left fold_through_" is
 |
 	headType ::= tupleType[1];
 	restType ::= if |tupleType's leading types| > 0
-		then [ ∪ tupleType[2..|tupleType's leading types| + 1]; ]
-		else [ headType; ];
+		then [ ∪ tupleType[2..|tupleType's leading types| + 1] ]
+		else [ headType ];
 	returnType ::= transformer's return type;
 	finalType ::= headType ∪ returnType;
-	If transformer[1] ≠ ⊥ ∧ [ ¬restType ⊆ transformer[1]; ] then
+	If transformer[1] ≠ ⊥ ∧ [ ¬restType ⊆ transformer[1] ] then
 	[
 		Reject parse, expected:
 			"repeatedly applied function's first parameter to accept all\
@@ -1010,9 +1010,9 @@ Semantic restriction "left fold_through_" is
 			++ primitive description of restType
 			++ " (but it only accepts "
 			++ primitive description of transformer[1]
-			++ ")";
+			++ ")"
 	];
-	If transformer[2] ≠ ⊥ ∧ [ ¬finalType ⊆ transformer[2]; ] then
+	If transformer[2] ≠ ⊥ ∧ [ ¬finalType ⊆ transformer[2] ] then
 	[
 		Reject parse, expected:
 			"repeatedly applied function's second parameter to accept the\
@@ -1024,9 +1024,9 @@ Semantic restriction "left fold_through_" is
 			++ primitive description of returnType
 			++ " (but it only accepts "
 			++ primitive description of transformer[2]
-			++ ")";
+			++ ")"
 	];
-	finalType;
+	finalType
 ];
 
 /**
@@ -1056,7 +1056,7 @@ Method "right fold_through_" is
 	|
 		result := invoke transformer with <aTuple[index], eject ↑result>;
 	];
-	result;
+	result
 ] : any;
 
 /**
@@ -1091,7 +1091,7 @@ Semantic restriction "right fold_through_" is
 	restType ::= ∪ tupleType[1..lastIndexEnd - 1];
 	returnType ::= transformer's return type;
 	finalType ::= lastType ∪ returnType;
-	If transformer[1] ≠ ⊥ ∧ [ ¬restType ⊆ transformer[1]; ] then
+	If transformer[1] ≠ ⊥ ∧ [ ¬restType ⊆ transformer[1] ] then
 	[
 		Reject parse, expected:
 			"repeatedly applied function's first parameter to accept all\
@@ -1099,9 +1099,9 @@ Semantic restriction "right fold_through_" is
 			++ primitive description of restType
 			++ " (but it only accepts "
 			++ primitive description of transformer[1]
-			++ ")";
+			++ ")"
 	];
-	If transformer[2] ≠ ⊥ ∧ [ ¬finalType ⊆ transformer[2]; ] then
+	If transformer[2] ≠ ⊥ ∧ [ ¬finalType ⊆ transformer[2] ] then
 	[
 		Reject parse, expected:
 			"repeatedly applied function's second parameter to accept the\
@@ -1113,9 +1113,9 @@ Semantic restriction "right fold_through_" is
 			++ primitive description of returnType
 			++ " (but it only accepts "
 			++ primitive description of transformer[2]
-			++ ")";
+			++ ")"
 	];
-	finalType;
+	finalType
 ];
 
 /**
@@ -1141,10 +1141,10 @@ Method "first index of_where_" is
 	|
 		If invoke predicate with <aTuple[index]> then
 		[
-			Exit body with index;
+			Exit body with index
 		];
 	];
-	0;
+	0
 ] : whole number;
 
 /**
@@ -1162,7 +1162,7 @@ Semantic restriction "first index of_where_" is
 	predicate : [⊥]→boolean's type
 |
 	Require: predicate accepts tupleType;
-	[0..||tupleType||'s upper bound + 1);
+	[0..||tupleType||'s upper bound + 1)
 ];
 
 /**
@@ -1188,10 +1188,10 @@ Method "last index of_where_" is
 	|
 		If invoke predicate with <aTuple[index]> then
 		[
-			Exit body with index;
+			Exit body with index
 		];
 	];
-	0;
+	0
 ] : whole number;
 
 /**
@@ -1209,7 +1209,7 @@ Semantic restriction "last index of_where_" is
 	predicate : [⊥]→boolean's type
 |
 	Require: predicate accepts tupleType;
-	[0..||tupleType||'s upper bound + 1);
+	[0..||tupleType||'s upper bound + 1)
 ];
 
 /**
@@ -1232,7 +1232,7 @@ Method "_of_" is
 		accumulator := eject ↑accumulator ++ <value>;
 	]
 	count times;
-	accumulator;
+	accumulator
 ];
 
 /**
@@ -1249,14 +1249,14 @@ Semantic restriction "_of_" is
 	countType : whole number's type,
 	valueType : any meta
 |
-	if |countType| = 1 ∧ [ |valueType| = 1; ] then
+	if |countType| = 1 ∧ [ |valueType| = 1 ] then
 	[
-		(countType's instance of (valueType's instance))'s type;
+		(countType's instance of (valueType's instance))'s type
 	]
 	else
 	[
-		<<>, valueType…|countType>;
-	];
+		<<>, valueType…|countType>
+	]
 ];
 
 /**
@@ -1276,14 +1276,14 @@ Method "_to_" is
 	end : integer
 |
 	accumulator : <integer…|> := <>;
-	step ::= if start ≤ end then [ 1; ] else [ -1; ];
+	step ::= if start ≤ end then [ 1 ] else [ -1 ];
 	From start to end by step do
 	[
 		value : integer
 	|
 		accumulator := eject ↑accumulator ++ <value>;
 	];
-	cast accumulator into [ t : <integer…|1..> | t; ];
+	cast accumulator into [ t : <integer…|1..> | t ]
 ] : <integer…|1..>;
 
 /**
@@ -1306,9 +1306,9 @@ Semantic restriction "_to_" is
 	/* If `start` and `end` are known precisely, then answer the instance type
 	 * of the result.
 	 */
-	if |start| = 1 ∧ [ |end| = 1; ] then
+	if |start| = 1 ∧ [ |end| = 1 ] then
 	[
-		(start's instance to end's instance)'s type;
+		(start's instance to end's instance)'s type
 	]
 	else
 	[
@@ -1323,50 +1323,50 @@ Semantic restriction "_to_" is
 			max := end's upper bound;
 			sizes := [0 max (end's lower bound - start's upper bound + 1)
 				.. max - min + 2);
-			if uncertainty is finite ∧ [ sizes' upper bound is finite; ]
+			if uncertainty is finite ∧ [ sizes' upper bound is finite ]
 			then
 			[
-				finiteMin ::= cast min into [ t : integer | t; ];
-				finiteMax ::= cast max into [ t : integer | t; ];
+				finiteMin ::= cast min into [ t : integer | t ];
+				finiteMax ::= cast max into [ t : integer | t ];
 				types ::=
 					map finiteMin to finiteMax through
 					[
 						x : integer
 					|
-						[x .. (finiteMax min (x + uncertainty)) + 1);
+						[x .. (finiteMax min (x + uncertainty)) + 1)
 					];
-				<types[1..|types| - 1], types[|types|]…|sizes>;
+				<types[1..|types| - 1], types[|types|]…|sizes>
 			]
 			else
 			[
-				<<>, [min..max + 1)…|sizes>;
-			];
+				<<>, [min..max + 1)…|sizes>
+			]
 		]
 		/* ... the interval is definitely descending ... */
-		else if [ start's lower bound ≥ end's upper bound; ] then
+		else if [ start's lower bound ≥ end's upper bound ] then
 		[
 			min := end's lower bound;
 			max := start's upper bound;
 			sizes := [0 max (start's lower bound - end's upper bound + 1)
 				.. max - min + 2);
-			if uncertainty is finite ∧ [ sizes' upper bound is finite; ]
+			if uncertainty is finite ∧ [ sizes' upper bound is finite ]
 			then
 			[
-				finiteMin ::= cast min into [ t : integer | t; ];
-				finiteMax ::= cast max into [ t : integer | t; ];
+				finiteMin ::= cast min into [ t : integer | t ];
+				finiteMax ::= cast max into [ t : integer | t ];
 				types ::=
 					map finiteMax to finiteMin through
 					[
 						x : integer
 					|
-						[finiteMin max (x - uncertainty) .. x + 1);
+						[finiteMin max (x - uncertainty) .. x + 1)
 					];
-				<types[1..|types| - 1], types[|types|]…|sizes>;
+				<types[1..|types| - 1], types[|types|]…|sizes>
 			]
 			else
 			[
-				<<>, [min..max + 1)…|sizes>;
-			];
+				<<>, [min..max + 1)…|sizes>
+			]
 		]
 		/* ... or the interval's directionality is unknown. In this last case,
 		 * the best that we can do is to produce the type union of the ranges
@@ -1376,9 +1376,9 @@ Semantic restriction "_to_" is
 		[
 			upper ::= |(end's upper bound - start's lower bound)
 				max (start's upper bound - end's lower bound)|;
-			<<>, start ∪ end…|[1..upper + 2)>;
-		];
-	];
+			<<>, start ∪ end…|[1..upper + 2)>
+		]
+	]
 ];
 
 /**
@@ -1402,14 +1402,14 @@ Method "_to_" is
 	accumulator : string := <>;
 	startCodePoint ::= start→code point;
 	endCodePoint ::= end→code point;
-	step ::= if startCodePoint ≤ endCodePoint then [ 1; ] else [ -1; ];
+	step ::= if startCodePoint ≤ endCodePoint then [ 1 ] else [ -1 ];
 	From startCodePoint to endCodePoint by step do
 	[
 		value : code point
 	|
 		accumulator := eject ↑accumulator ++ <value→character>;
 	];
-	cast accumulator into [ t : <character…|1..> | t; ];
+	cast accumulator into [ t : <character…|1..> | t ]
 ] : <character…|1..>;
 
 /**
@@ -1427,9 +1427,9 @@ Semantic restriction "_to_" is
 	startType : character's type,
 	endType : character's type
 |
-	if |startType| = 1 ∧ [ |endType| = 1; ] then
+	if |startType| = 1 ∧ [ |endType| = 1 ] then
 	[
-		(startType's instance to endType's instance)'s type;
+		(startType's instance to endType's instance)'s type
 	]
 	/* TODO: A case can be added for non-instance enumerations. This isn't
 	 * expected to be very useful, so it's low priority.
@@ -1437,8 +1437,8 @@ Semantic restriction "_to_" is
 	else
 	[
 		/* Can't strengthen. */
-		⊤;
-	];
+		⊤
+	]
 ];
 
 /**
@@ -1455,7 +1455,7 @@ Method "_∈_" is
 	value : any,
 	aTuple : tuple
 |
-	any of aTuple satisfies [ element : any | element = value; ];
+	any of aTuple satisfies [ element : any | element = value ]
 ] : boolean;
 
 /**
@@ -1472,19 +1472,19 @@ Semantic restriction "_∈_" is
 	valueType : any meta,
 	tupleType : tuple meta
 |
-	if |valueType| = 1 ∧ [ |tupleType| = 1; ] then
+	if |valueType| = 1 ∧ [ |tupleType| = 1 ] then
 	[
-		(valueType's instance ∈ tupleType's instance)'s type;
+		(valueType's instance ∈ tupleType's instance)'s type
 	]
-	else if [ valueType ∩ (∪ tupleType[1..relevant |tupleType|]) = ⊥; ] then
+	else if [ valueType ∩ (∪ tupleType[1..relevant |tupleType|]) = ⊥ ] then
 	[
-		false's type;
+		false's type
 	]
 	else
 	[
 		/* Can't strengthen. */
-		⊤;
-	];
+		⊤
+	]
 ];
 
 /**
@@ -1503,7 +1503,7 @@ Method "split_after_" is
 	aTuple : tuple,
 	pivot : whole number
 |
-	<aTuple[..pivot], aTuple[pivot + 1..]>;
+	<aTuple[..pivot], aTuple[pivot + 1..]>
 ] : <tuple…|2>;
 
 /**
@@ -1531,20 +1531,20 @@ Semantic restriction "split_after_" is
 			"pivot ∈ "
 			++ primitive description of pivot
 			++ " ever to be valid for the tuple ∈ "
-			++ primitive description of tupleType;
+			++ primitive description of tupleType
 	];
-	if |tupleType| = 1 ∧ [ |pivot| = 1; ] then
+	if |tupleType| = 1 ∧ [ |pivot| = 1 ] then
 	[
-		(split tupleType's instance after pivot's instance)'s type;
+		(split tupleType's instance after pivot's instance)'s type
 	]
 	else
 	[
 		pivotPlusOne ::= cast pivot + 1's type
-			into [ t : natural number's type | t; ];
+			into [ t : natural number's type | t ];
 		firstType ::= tuple type of tupleType[1's type..pivot];
 		secondType ::= tuple type of tupleType[pivotPlusOne..||tupleType||];
-		<firstType, secondType…|2>;
-	];
+		<firstType, secondType…|2>
+	]
 ];
 
 /**
@@ -1563,7 +1563,7 @@ Method "split_before_" is
 	aTuple : tuple,
 	pivot : natural number
 |
-	<aTuple[..pivot - 1], aTuple[pivot..]>;
+	<aTuple[..pivot - 1], aTuple[pivot..]>
 ] : <tuple…|2>;
 
 /**
@@ -1591,20 +1591,20 @@ Semantic restriction "split_before_" is
 			"pivot ∈ "
 			++ primitive description of pivot
 			++ " ever to be valid for the tuple ∈ "
-			++ primitive description of tupleType;
+			++ primitive description of tupleType
 	];
-	if |tupleType| = 1 ∧ [ |pivot| = 1; ] then
+	if |tupleType| = 1 ∧ [ |pivot| = 1 ] then
 	[
-		(split tupleType's instance before pivot's instance)'s type;
+		(split tupleType's instance before pivot's instance)'s type
 	]
 	else
 	[
 		pivotMinusOne ::= cast pivot - 1's type
-			into [ t : whole number's type | t; ];
+			into [ t : whole number's type | t ];
 		firstType ::= tuple type of tupleType[1's type..pivotMinusOne];
 		secondType ::= tuple type of tupleType[pivot..||tupleType||];
-		<firstType, secondType…|2>;
-	];
+		<firstType, secondType…|2>
+	]
 ];
 
 /**
@@ -1628,9 +1628,9 @@ Method "split_before_" is
 	firstIndex ::= first index of aTuple where predicate;
 	splitIndex ::=
 		if firstIndex = 0
-		then [ |aTuple|; ]
-		else [ cast firstIndex - 1 into [ t : whole number | t; ]; ];
-	split aTuple after splitIndex;
+		then [ |aTuple| ]
+		else [ cast firstIndex - 1 into [ t : whole number | t ] ];
+	split aTuple after splitIndex
 ] : <tuple…|2>;
 
 /**
@@ -1656,7 +1656,7 @@ Semantic restriction "split_before_" is
 	returnType ::= predicate's return type;
 	if ||tupleType||'s upper bound = 0 then
 	[
-		<<>, <>>'s type;
+		<<>, <>>'s type
 	]
 	else
 	[
@@ -1666,8 +1666,8 @@ Semantic restriction "split_before_" is
 			<tupleType's leading types, tupleType's default type…|upper>;
 		secondType ::=
 			tuple type of tupleType[[1..sizes' upper bound + 1)..upper];
-		<firstType, secondType…|2>;
-	];
+		<firstType, secondType…|2>
+	]
 ];
 
 /**
@@ -1684,7 +1684,7 @@ Method "stripe_at_" is
 	aTuple : <<any…|1..>…|>,
 	index : natural number
 |
-	map aTuple through [ inner : <any…|1..> | inner[index]; ];
+	map aTuple through [ inner : <any…|1..> | inner[index] ]
 ] : tuple;
 
 /**
@@ -1701,14 +1701,14 @@ Semantic restriction "stripe_at_" is
 	tupleType : <<any…|1..>…|>'s type,
 	index : natural number's type
 |
-	if |tupleType| = 1  ∧ [ |index| = 1; ] then
+	if |tupleType| = 1  ∧ [ |index| = 1 ] then
 	[
-		(stripe tupleType's instance at index's instance)'s type;
+		(stripe tupleType's instance at index's instance)'s type
 	]
 	else
 	[
 		uncertainty ::= cast index's upper bound - index's lower bound
-			into [ t : whole number | t; ];
+			into [ t : whole number | t ];
 		stripeTypes : <any meta…|> := <>;
 		From 1 to |tupleType's leading types| + 1 do
 		[
@@ -1726,7 +1726,7 @@ Semantic restriction "stripe_at_" is
 					++ primitive description of ||innerType||'s lower bound
 					++ " ≤ |theTuple| ≤ "
 					++ primitive description of ||innerType||'s upper bound
-					++ ")";
+					++ ")"
 			];
 			union : any meta := ⊥;
 			limit ::= uncertainty min (|innerType's leading types| + 1);
@@ -1735,15 +1735,15 @@ Semantic restriction "stripe_at_" is
 				delta : whole number
 			|
 				innerIndex ::= cast index's lower bound + delta
-					into [ t : natural number | t; ];
+					into [ t : natural number | t ];
 				union := eject ↑union ∪ innerType[innerIndex];
 			];
 			stripeTypes := eject ↑stripeTypes ++ <union>;
 		];
-		nonemptyTypes ::= cast stripeTypes into [ t : <any meta…|1..> | t; ];
+		nonemptyTypes ::= cast stripeTypes into [ t : <any meta…|1..> | t ];
 		<nonemptyTypes[1..|nonemptyTypes| - 1], nonemptyTypes[|nonemptyTypes|]…
-			| ||tupleType||>;
-	];
+			| ||tupleType||>
+	]
 ];
 
 /**
@@ -1768,7 +1768,7 @@ Semantic restriction "_[_]→_" is
 |
 	$body : tuple meta;
 	indexLower ::= cast indexType's lower bound into
-		[ t : natural number | t; ];
+		[ t : natural number | t ];
 	If indexLower > ||tupleType||'s upper bound then
 	[
 		Reject parse, expected:
@@ -1780,7 +1780,7 @@ Semantic restriction "_[_]→_" is
 			++ primitive description of ||tupleType||'s lower bound
 			++ " ≤ |theTuple| ≤ "
 			++ primitive description of ||tupleType||'s upper bound
-			++ ")";
+			++ ")"
 	];
 	/* Use instance types if possible. */
 	If {|tupleType|, |indexType|, |valueType|} = {1} then
@@ -1788,7 +1788,7 @@ Semantic restriction "_[_]→_" is
 		aTuple ::= tupleType's instance;
 		index ::= indexType's instance;
 		value ::= valueType's instance;
-		Exit body with (aTuple[index]→value)'s type;
+		Exit body with (aTuple[index]→value)'s type
 	];
 	indexUpper ::= indexType's upper bound;
 	leadingTypes : <any meta…|> := tupleType's leading types;
@@ -1808,10 +1808,10 @@ Semantic restriction "_[_]→_" is
 			 * affected elements via type union with `valueType`.
 			 */
 			replacement ::= if |{indexLower, indexUpper}| = 1
-				then [ valueType; ]
-				else [ original ∪ valueType; ];
+				then [ valueType ]
+				else [ original ∪ valueType ];
 			newLeadingTypes ::= leadingTypes[leadingIndex]→replacement;
-			leadingTypes := cast newLeadingTypes into [ t : <any meta…|> | t; ];
+			leadingTypes := cast newLeadingTypes into [ t : <any meta…|> | t ];
 		];
 	];
 	/* Extend the leading types. */
@@ -1826,7 +1826,7 @@ Semantic restriction "_[_]→_" is
 		padCount ::= indexLower - |leadingTypes| - 1;
 		If padCount > 0 then
 		[
-			count ::= cast padCount into [ t : natural number | t; ];
+			count ::= cast padCount into [ t : natural number | t ];
 			leadingTypes := eject ↑leadingTypes ++ count of defaultType;
 		];
 		/* If the upper bound of `index` is less than the maximum length of the
@@ -1837,11 +1837,11 @@ Semantic restriction "_[_]→_" is
 		If indexUpper < ||tupleType||'s upper bound then
 		[
 			newType ::= if |{indexLower, indexUpper}| = 1
-				then [ valueType; ]
-				else [ defaultType ∪ valueType; ];
-			delta ::= if indexLower ≤ |leadingTypes| then [ 0; ] else [ 1; ];
+				then [ valueType ]
+				else [ defaultType ∪ valueType ];
+			delta ::= if indexLower ≤ |leadingTypes| then [ 0 ] else [ 1 ];
 			count ::= cast indexUpper - (|leadingTypes| max indexLower)
-				into [ t : whole number | t + delta; ];
+				into [ t : whole number | t + delta ];
 			leadingTypes := eject ↑leadingTypes ++ count of newType;
 		]
 		/* The upper bound of `index` exceeds the minimum length of the tuple,
@@ -1852,7 +1852,7 @@ Semantic restriction "_[_]→_" is
 			defaultType := eject ↑defaultType ∪ valueType;
 		];
 	];
-	<leadingTypes, defaultType… | ||tupleType||>;
+	<leadingTypes, defaultType… | ||tupleType||>
 ];
 
 /**
@@ -1878,10 +1878,10 @@ Method "group_by_" is
 		element : any
 	|
 		key ::= invoke discriminator with <element>;
-		group ::= groups[key] else [ <>; ] ++ <element>;
+		group ::= groups[key] else [ <> ] ++ <element>;
 		groups := eject ↑groups + key→group;
 	];
-	groups;
+	groups
 ] : map;
 
 /**
@@ -1905,14 +1905,14 @@ Semantic restriction "group_by_" is
 	 	defaultType ::= ∪ aTupleType[1..|aTupleType's leading types| + 1];
 		keyType ::= discriminatorType's return type;
 		
-	 	lowerBound ::= if tupleCardinality's lower bound = 0 then [0;] else [1;];
+	 	lowerBound ::= if tupleCardinality's lower bound = 0 then [0] else [1];
 		upperBound ::= if tupleUpperBound > |keyType| 
-			then [|keyType|;]
-			else [tupleUpperBound;];
+			then [|keyType|]
+			else [tupleUpperBound];
 	
 	 	valueType ::= <defaultType… | 1..tupleUpperBound>;
 	
-	 	{keyType→valueType | lowerBound..upperBound};
+	 	{keyType→valueType | lowerBound..upperBound}
  ];
  
 /**
@@ -1928,8 +1928,8 @@ Semantic restriction "group_by_" is
 [
  	aTuple : tuple
  |
- 	groups ::= group aTuple by [a: any | a;];
- 	map groups through [k : any, t : tuple | |t|;];
+ 	groups ::= group aTuple by [a: any | a];
+ 	map groups through [k : any, t : tuple | |t|]
 ] : map;
  
 /**
@@ -1946,16 +1946,16 @@ Semantic restriction "count for_" is
  	aTupleType : tuple's type
  |
  	if |aTupleType| = 1 then
- 		[(count for aTupleType's instance)'s type;]
+ 		[(count for aTupleType's instance)'s type]
  	else 
  	[
  	   keyType ::= ∪ aTupleType[1..|aTupleType's leading types| + 1];
  	   tupleCardinality ::= ||aTupleType||;
  	   lowerBound ::= if tupleCardinality's lower bound = 0 
- 	     then [0;] else [1;];
+ 	     then [0] else [1];
  	   upperBound ::= tupleCardinality's upper bound;
- 	   {keyType→whole number|lowerBound..upperBound};
-	];
+ 	   {keyType→whole number|lowerBound..upperBound}
+	]
 ];
 
 /**
@@ -1974,6 +1974,6 @@ Method "flatten_" is
  	For each aTupleOfTuples do [t : tuple | 
         newTuple := newTuple ++ t;
  	];
- 	newTuple;
+ 	newTuple
 ]:tuple;
 

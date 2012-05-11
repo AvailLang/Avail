@@ -64,12 +64,12 @@ Semantic restriction "_'s⁇key type" is
 	[
 		aMap ::= mapType's instance;
 		elements ::= aMap's keys;
-		enumeration of elements' type;
+		enumeration of elements' type
 	]
 	else
 	[
-		mapMeta's instance's key type's type;
-	];
+		mapMeta's instance's key type's type
+	]
 ];
 
 /**
@@ -90,12 +90,12 @@ Semantic restriction "_'s⁇value type" is
 	[
 		aMap ::= mapType's instance;
 		elements ::= aMap's values→set;
-		enumeration of elements' type;
+		enumeration of elements' type
 	]
 	else
 	[
-		mapMeta's instance's value type's type;
-	];
+		mapMeta's instance's value type's type
+	]
 ];
 
 /**
@@ -113,14 +113,14 @@ Semantic restriction "_[_]" is
 	mapType : map meta,
 	keyType : any meta
 |
-	if |mapType| = 1 ∧ [ |keyType| = 1; ] then
+	if |mapType| = 1 ∧ [ |keyType| = 1 ] then
 	[
-		mapType's instance[keyType's instance]'s type;
+		mapType's instance[keyType's instance]'s type
 	]
 	else
 	[
-		mapType's value type;
-	];
+		mapType's value type
+	]
 ];
 
 /**
@@ -138,12 +138,12 @@ Semantic restriction "_'s⁇bindings" is
 |
 	if |mapType| = 1 then
 	[
-		mapType's instance's bindings' type;
+		mapType's instance's bindings' type
 	]
 	else
 	[
-		<<>, <mapType's key type, mapType's value type…|2>… | ||mapType||>;
-	];
+		<<>, <mapType's key type, mapType's value type…|2>… | ||mapType||>
+	]
 ];
 
 /**
@@ -161,12 +161,12 @@ Semantic restriction "_'s⁇keys" is
 |
 	if |mapType| = 1 then
 	[
-		mapType's instance's keys' type;
+		mapType's instance's keys' type
 	]
 	else
 	[
-		{mapType's key type | ||mapType||};
-	];
+		{mapType's key type | ||mapType||}
+	]
 ];
 
 /**
@@ -185,7 +185,7 @@ Semantic restriction "_'s⁇values" is
 [
 	mapType : map meta
 |
-	<<>, mapType's value type… | ||mapType||>;
+	<<>, mapType's value type… | ||mapType||>
 ];
 
 /**
@@ -206,7 +206,7 @@ Semantic restriction "_+_→_" is
 	/* Leverage instance types. */
 	if {|mapType|, |keyType|, |valueType|} = {1} then
 	[
-		(mapType's instance + keyType's instance→valueType's instance)'s type;
+		(mapType's instance + keyType's instance→valueType's instance)'s type
 	]
 	else
 	[
@@ -214,7 +214,7 @@ Semantic restriction "_+_→_" is
 		newKeyType ::= oldKeyType ∪ keyType;
 		newValueType ::= mapType's value type ∪ valueType;
 		lower : [0..∞) :=
-			cast ||mapType||'s lower bound into [ t : [0..∞) | t; ];
+			cast ||mapType||'s lower bound into [ t : [0..∞) | t ];
 		bound : [0..∞] := ||mapType||'s upper bound;
 		/* If the type intersection of the key type and the new key type is
 		 * ⊥, then the new key cannot be present in the map. Adjust the
@@ -222,18 +222,18 @@ Semantic restriction "_+_→_" is
 		 */ 
 		if oldKeyType ∩ keyType = ⊥ then
 		[
-			lower := cast lower + 1 into [ t : [0..∞) | t; ];
-			bound := cast bound + 1 into [ t : [0..∞] | t; ];
+			lower := cast lower + 1 into [ t : [0..∞) | t ];
+			bound := cast bound + 1 into [ t : [0..∞] | t ];
 		]
 		/* Otherwise the key *may* be present, but there's no way to
 		 * know for sure. Adjust the cardinality accordingly.
 		 */
 		else
 		[
-			bound := cast bound + 1 into [ t : [0..∞] | t; ];
+			bound := cast bound + 1 into [ t : [0..∞] | t ];
 		];
-		{newKeyType→newValueType | [lower..bound)};
-	];
+		{newKeyType→newValueType | [lower..bound)}
+	]
 ];
 
 /**
@@ -251,7 +251,7 @@ Method "_[_]else_" is
 	key : any,
 	default : []→any
 |
-	if key ∈ aMap then [ aMap[key]; ] else default;
+	if key ∈ aMap then [ aMap[key] ] else default
 ] : any;
 
 /**
@@ -272,17 +272,17 @@ Semantic restriction "_[_]else_" is
 |
 	if {|keyType|, |mapType|, |default|} = {1} then
 	[
-		(mapType's instance[keyType's instance] else default's instance)'s type;
+		(mapType's instance[keyType's instance] else default's instance)'s type
 	]
 	else
 	[
 		if keyType ∩ (mapType's key type) = ⊥ then
 		[
-			default's return type;
+			default's return type
 		]
 		else
 		[
-			mapType's value type ∪ default's return type;
-		];
-	];
+			mapType's value type ∪ default's return type
+		]
+	]
 ];

@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Thread"
+System Module "Thread"
 Extends
 Uses
 	"Kernel"
@@ -63,44 +63,33 @@ Body
 
 
 Method "_priority" is [p : process |
-	Primitive 20 (failureCode : natural number);
-	Failed;
-] : [0..100];
+	Primitive 21;
+] : whole number;
 
 
-Method "_priority_" is [p : process, priority : [0..100] |
-	Primitive 21 (failureCode : natural number);
-	Failed;
+Method "_priority_" is [p : process, priority : whole number |
+	Primitive 22;
 ] : void;
 
-Method "_suspend" is [p : process |
-	Primitive 22 (failureCode : natural number);
-	Failed;
-] : void;
-
-Method "_resume" is [p : process |
-	Primitive 23 (failureCode : natural number);
-	Failed;
-] : void;
-
+/**
+ * Set the termination request flag.  Don't wait for the process to actually
+ * terminate.
+ */
 Method "_terminate" is [p : process |
-	Primitive 24 (failureCode : natural number);
-	Failed;
+	Primitive 24;
 ] : void;
 
 Method "current process" is [
-	Primitive 25 (failureCode : natural number);
-	Failed;
+	Primitive 25;
 ] : process;
 
 Method "_[_]" is [p : process, key : atom |
 	/* Lookup a process variable. */
 	Primitive 26 (failureCode : natural number);
-	Failed;
+	Failed
 ] : any;
 
 Method "_[_]:=_" is [p : process, key : atom, value : any |
 	/* Set a process variable. */
-	Primitive 27 (failureCode : natural number);
-	Failed;
+	Primitive 27;
 ] : void;

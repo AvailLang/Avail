@@ -1,5 +1,5 @@
 /**
- * Primitive_353_MacroAssignmentStatement.java
+ * P_353_MacroAssignmentStatement.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

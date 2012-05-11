@@ -65,21 +65,21 @@ privatePojo ::= Special Object 80;
 
 Method "pojo" is
 [
-	privatePojo;
+	privatePojo
 ] : privatePojo type;
 
 privateNullType ::= Special Object 81;
 
 Method "null type" is
 [
-	privateNullType;
+	privateNullType
 ] : privateNullType type;
 
 privateNull ::= Special Object 82;
 
 Method "null" is
 [
-	privateNull;
+	privateNull
 ] : privateNull type;
 
 {"_type"} can't have <{"null"}>;
@@ -94,14 +94,14 @@ privateSelfObject ::= Special Object 83;
 
 Method "self type" is
 [
-	privateSelfObject;
+	privateSelfObject
 ] : privateSelfObject type;
 
 privatePojoArrayType ::= Special Object 87;
 
 Method "pojo[]" is
 [
-	privatePojoArrayType;
+	privatePojoArrayType
 ];
 
 "Java Class Not Available" is explicit subtype of Exception;
@@ -124,14 +124,14 @@ Method "⊶Java type_parameters_" is
 	Primitive 500 (failureCode : whole number);
 	if failureCode = 500 then
 	[
-		Raise Java Class Not Available with typeName;
+		Raise Java Class Not Available with typeName
 	];
 	if failureCode = 11 then
 	[
-		Raise Incorrect Number of Java Type Parameters with ||typeParameters||;
+		Raise Incorrect Number of Java Type Parameters with ||typeParameters||
 	];
 	Assert failureCode = 12;
-	Raise Incorrect Java Type Parameter with terminates;
+	Raise Incorrect Java Type Parameter with terminates
 ] : pojo type;
 
 Method "Java type_parameters_" is
@@ -139,7 +139,7 @@ Method "Java type_parameters_" is
 	typeName : string,
 	typeParameters : tuple of any type
 |
-	⊶Java type typeName parameters typeParameters;
+	⊶Java type typeName parameters typeParameters
 ] : pojo type;
 
 Restriction "Java type_parameters_" is
@@ -148,7 +148,7 @@ Restriction "Java type_parameters_" is
 	typeParametersType : (tuple of any type) type
 |
 	if |typeNameType| not = 1 then [
-		Fail parse "Java type name is not statically known"; ];
+		Fail parse "Java type name is not statically known"];
 	typeName ::= typeNameType instance;
 
 	typeParametersTypeBounds ::= typeParametersType sizes;
@@ -156,7 +156,7 @@ Restriction "Java type_parameters_" is
 		typeParametersTypeBounds lower bound
 		not = typeParametersTypeBounds upper bound
 	then [
-		Fail parse "argument tuple size must be statically known"; ];
+		Fail parse "argument tuple size must be statically known"];
 
 	typeParametersSize ::= typeParametersTypeBounds upper bound;
 	args : tuple of any type := <>;
@@ -165,19 +165,19 @@ Restriction "Java type_parameters_" is
 			Fail parse
 				"argument type "
 				then i as basic string
-				then " is not statically known"; ];
+				then " is not statically known"];
 		arg ::= typeParametersType[i] instance;
 		args := args then <arg>;
 	];
 
-	(⊶Java type typeName parameters args) type;
+	(⊶Java type typeName parameters args) type
 ];
 
 Method "Java type_" is
 [
 	typeName : string
 |
-	⊶Java type typeName parameters <>;
+	⊶Java type typeName parameters <>
 ] : pojo type;
 
 Restriction "Java type_" is
@@ -185,16 +185,16 @@ Restriction "Java type_" is
 	typeNameType : string type
 |
 	if |typeNameType| not = 1 then [
-		Fail parse "Java type name is not statically known"; ];
+		Fail parse "Java type name is not statically known"];
 	typeName ::= typeNameType instance;
 
 	result : pojo type type;
 	catch [ e : Incorrect Number of Java Type Parameters |
 		Fail parse
 			"incorrect number of Java type parameters for "
-			then typeName; ]
+			then typeName]
 	in [ result := (⊶Java type typeName parameters <>) type; ];
-	result;
+	result
 ];
 
 [
@@ -245,7 +245,7 @@ Method "Java_[]" is
 [
 	aType : any type
 |
-	Java aType [whole number];
+	Java aType [whole number]
 ];
 
 Restriction "Java_[]" is
@@ -253,8 +253,8 @@ Restriction "Java_[]" is
 	aTypeType : type type
 |
 	if |aTypeType| not = 1 then [
-		Fail parse "pojo type is not statically known"; ];
-	(Java (cast aTypeType instance into [ t : any type | t; ]) []) type;
+		Fail parse "pojo type is not statically known" ];
+	(Java (cast aTypeType instance into [ t : any type | t ]) []) type
 ];
 
 [
@@ -277,10 +277,10 @@ Method "constructor of_given_" is
 	Primitive 502 (failureCode : whole number);
 	if failureCode = 501 then
 	[
-		Raise Java Class Is Abstract with aPojoType;
+		Raise Java Class Is Abstract with aPojoType
 	];
 	Assert failureCode = 502;
-	Raise Java Method Not Available with <aPojoType, argTypes>;
+	Raise Java Method Not Available with <aPojoType, argTypes>
 ] : [...]->pojo;
 
 Restriction "constructor of_given_" is
@@ -291,29 +291,29 @@ Restriction "constructor of_given_" is
 	argTypesTypeBounds ::= argTypesType sizes;
 	if argTypesTypeBounds lower bound not = argTypesTypeBounds upper bound then
 	[
-		Fail parse "argument tuple size must be statically known";
+		Fail parse "argument tuple size must be statically known"
 	];
 
 	argTypesSize ::= cast argTypesTypeBounds upper bound into
-		[ b : whole number | b; ];
+		[ b : whole number | b ];
 	args : tuple of any type := <>;
 	From 1 to argTypesSize do [i : natural number |
 		if |argTypesType[i]| not = 1 then [
 			Fail parse
 				"argument type "
 				then i as basic string
-				then " is not statically known"; ];
+				then " is not statically known" ];
 		arg ::= argTypesType[i] instance;
 		args := args then <arg>;
 	];
 
-	block type taking args and returning aPojoTypeType instance;
+	block type taking args and returning aPojoTypeType instance
 ];
 
-Method "jbyte" is [ [-2^7..2^7); ];
-Method "jshort" is [ [-2^15..2^15); ];
-Method "jint" is [ [-2^31..2^31); ];
-Method "jlong" is [ [-2^63..2^63); ];
+Method "jbyte" is [ [-2^7..2^7) ];
+Method "jshort" is [ [-2^15..2^15) ];
+Method "jint" is [ [-2^31..2^31) ];
+Method "jlong" is [ [-2^63..2^63) ];
 
 [
 	jObjectC ::= constructor of pojo given <>;
@@ -348,9 +348,9 @@ Restriction "new_[_]" is
 	sizeRange : whole number type
 |
 	contentType ::= elementType instance;
-	lower ::= cast sizeRange lower bound into [ b : whole number | b; ];
-	upper ::= cast sizeRange upper bound into [ b : whole number | b; ];
-	Java contentType [[lower .. upper+1)];
+	lower ::= cast sizeRange lower bound into [ b : whole number | b ];
+	upper ::= cast sizeRange upper bound into [ b : whole number | b ];
+	Java contentType [[lower .. upper+1)]
 ];
 
 Method "_.length" is
@@ -368,10 +368,10 @@ Method "_[_]" is
 	Primitive 512 (failureCode : natural number);
 	if failureCode = 10 then
 	[
-		Raise Array Subscript Out Of Bounds with index;
+		Raise Array Subscript Out Of Bounds with index
 	];
 	Assert failureCode = 504;
-	Raise Marshaling Failure with <array, index>;
+	Raise Marshaling Failure with <array, index>
 ] : any;
 
 Method "_[_]:=_" is
@@ -383,14 +383,14 @@ Method "_[_]:=_" is
 	Primitive 513 (failureCode : natural number);
 	if failureCode = 7 then
 	[
-		Raise Cannot Store Incorrectly Typed Value with <array, index, value>;
+		Raise Cannot Store Incorrectly Typed Value with <array, index, value>
 	];
 	if failureCode = 10 then
 	[
-		Raise Array Subscript Out Of Bounds with index;
+		Raise Array Subscript Out Of Bounds with index
 	];
 	Assert failureCode = 504;
-	Raise Marshaling Failure with <array, index>;
+	Raise Marshaling Failure with <array, index>
 ] : void;
 
 [
@@ -404,12 +404,12 @@ Method "_[_]:=_" is
 	array[6] := new atom "bar";
 	array[7] := <1, 2, 3>;
 	array[8] := {5, 9, 13};
-	length ::= cast array.length into [ t : 10 type | t; ];
+	length ::= cast array.length into [ t : 10 type | t ];
 	From 1 to length by 1 do
 	[
 		i : integer
 	|
-		index ::= cast i into [ x : [1..10] | x; ];
+		index ::= cast i into [ x : [1..10] | x ];
 		Print "array["
 			then i as basic string
 			then "] = "
@@ -425,7 +425,7 @@ Method "_._" is
 |
 	Primitive 504 (failureCode : natural number);
 	Assert failureCode = 505;
-	Raise Java Field Not Available with <p, fieldName>;
+	Raise Java Field Not Available with <p, fieldName>
 ] : container;
 
 Method "_._" is
@@ -436,14 +436,14 @@ Method "_._" is
 	Primitive 505 (failureCode : natural number);
 	if failureCode = 500 then
 	[
-		Raise Java Class Not Available with pT;
+		Raise Java Class Not Available with pT
 	];
 	if failureCode = 505 then
 	[
-		Raise Java Field Not Available with <pT, fieldName>;
+		Raise Java Field Not Available with <pT, fieldName>
 	];
 	Assert failureCode = 506;
-	Raise Java Field Reference Is Ambiguous with <pT, fieldName>;
+	Raise Java Field Reference Is Ambiguous with <pT, fieldName>
 ] : container;
 
 [
@@ -451,8 +451,8 @@ Method "_._" is
 	pointC ::= constructor of pointT given <jint, jint>;
 	point ::= pointC(10, 20);
 	Print "\npoint = " then point as basic string then "\n";
-	pointX ::= cast point."x" into [ x : &:jint | x; ];
-	pointY ::= cast point."y" into [ y : &:jint | y; ];
+	pointX ::= cast point."x" into [ x : &:jint | x ];
+	pointY ::= cast point."y" into [ y : &:jint | y ];
 	Print "point.x = " then (*pointX) as basic string then "\n";
 	Print "point.y = " then (*pointY) as basic string then "\n";
 	*pointX := 15;
@@ -464,11 +464,11 @@ Method "_._" is
 
 [
 	modifierT ::= Java type "java.lang.reflect.Modifier";
-	field ::= cast modifierT."STATIC" into [ x : &:jint | x; ];
+	field ::= cast modifierT."STATIC" into [ x : &:jint | x ];
 	Assert *field = 8;
 	fusedT ::= type intersection of
 		modifierT and Java type "java.io.Serializable";
-	fusedFieldT ::= cast fusedT."STATIC" into [ x : &:jint | x; ];
+	fusedFieldT ::= cast fusedT."STATIC" into [ x : &:jint | x ];
 	Assert *fusedFieldT = 8;
 ]();
 
@@ -481,10 +481,10 @@ Method "private method_._(_)" is
 	Primitive 506 (failureCode : natural number);
 	if failureCode = 502 then
 	[
-		Raise Java Method Not Available with <pT, methodName, paramTypes>;
+		Raise Java Method Not Available with <pT, methodName, paramTypes>
 	];
 	Assert failureCode = 508;
-	Raise Java Method Reference Is Ambiguous with <pT, methodName, paramTypes>;
+	Raise Java Method Reference Is Ambiguous with <pT, methodName, paramTypes>
 ] : [...]->void;
 
 Method "method_._(«_‡,»)" is
@@ -493,7 +493,7 @@ Method "method_._(«_‡,»)" is
 	methodName : string,
 	paramTypes : tuple of any type
 |
-	private method pT.methodName (paramTypes);
+	private method pT.methodName (paramTypes)
 ] : [...]->void;
 
 Restriction "method_._(«_‡,»)" is
@@ -505,18 +505,18 @@ Restriction "method_._(«_‡,»)" is
 	p ::= pT instance;
 	methodName ::= mT instance;
 	paramTypesSize ::= cast paramT sizes upper bound into
-		[ b : whole number | b; ];
+		[ b : whole number | b ];
 	args : tuple of any type := <>;
 	From 1 to paramTypesSize do [i : natural number |
 		if |paramT[i]| not = 1 then [
 			Fail parse
 				"argument type "
 				then i as basic string
-				then " is not statically known"; ];
+				then " is not statically known"];
 		arg ::= paramT[i] instance;
 		args := args then <arg>;
 	];
-	(private method p.methodName (args)) type;
+	(private method p.methodName (args)) type
 ];
 
 Method "private static method_._(_)" is
@@ -528,10 +528,10 @@ Method "private static method_._(_)" is
 	Primitive 508 (failureCode : natural number);
 	if failureCode = 502 then
 	[
-		Raise Java Method Not Available with <pT, methodName, paramTypes>;
+		Raise Java Method Not Available with <pT, methodName, paramTypes>
 	];
 	Assert failureCode = 508;
-	Raise Java Method Reference Is Ambiguous with <pT, methodName, paramTypes>;
+	Raise Java Method Reference Is Ambiguous with <pT, methodName, paramTypes>
 ] : [...]->void;
 
 Method "static method_._(«_‡,»)" is
@@ -540,7 +540,7 @@ Method "static method_._(«_‡,»)" is
 	methodName : string,
 	paramTypes : tuple of any type
 |
-	private static method pT.methodName (paramTypes);
+	private static method pT.methodName (paramTypes)
 ] : [...]->void;
 
 Restriction "static method_._(«_‡,»)" is
@@ -552,18 +552,18 @@ Restriction "static method_._(«_‡,»)" is
 	p ::= pT instance;
 	methodName ::= mT instance;
 	paramTypesSize ::= cast paramT sizes upper bound into
-		[ b : whole number | b; ];
+		[ b : whole number | b ];
 	args : tuple of any type := <>;
 	From 1 to paramTypesSize do [i : natural number |
 		if |paramT[i]| not = 1 then [
 			Fail parse
 				"argument type "
 				then i as basic string
-				then " is not statically known"; ];
+				then " is not statically known"];
 		arg ::= paramT[i] instance;
 		args := args then <arg>;
 	];
-	(private static method p.methodName (args)) type;
+	(private static method p.methodName (args)) type
 ];
 
 [

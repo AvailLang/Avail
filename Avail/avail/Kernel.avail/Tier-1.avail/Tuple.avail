@@ -60,11 +60,11 @@ Body
 /* Tuple constructor... */
 
 Method "<«_‡,»>" is [t : tuple |
-	t;
+	t
 ] : tuple;
 
 Restriction "<«_‡,»>" is [tType : tupleType |
-	tType;
+	tType
 ] : tupleType;
 
 /* Tuple type constructor... */
@@ -80,19 +80,19 @@ Method "tuple_like_default_" is [
 		sizeRange : whole number type,
 		typeTuple : tupleOfAnyMeta,
 		defaultType : any type |
-	<typeTuple, defaultType…|sizeRange>;
+	<typeTuple, defaultType…|sizeRange>
 ] : tupleType;
 
 Method "tuple_of_" is [sizeRange : whole number type, elementType : any type |
 	tuple sizeRange
 	like <>
-	default elementType;
+	default elementType
 ] : tupleType;
 
 Method "tuple of_" is [elementType : any type |
 	tuple whole number
 		like <>
-		default elementType;
+		default elementType
 ] : tupleType;
 
 
@@ -118,7 +118,7 @@ Method "_private as set" is [t : tuple of string |
 ] : set;
 
 Restriction "_private as set" is [tt : (tuple of string) type |
-	setOfString;
+	setOfString
 ];
 
 <"_lower bound", "_upper bound"> private as set
@@ -133,14 +133,14 @@ Method "_sizes lower bound" is [tt : tupleType |
 	/* This is syntactically overloaded for a stronger return type. */
 	result : [0..INF);
 	* ↑result ?:= (tt sizes) lower bound;
-	result;
+	result
 ] : whole number;
 
 Method "_sizes upper bound" is [tt : tupleType |
 	/* This is syntactically overloaded for a stronger return type. */
 	result : [0..INF];
 	* ↑result ?:= (tt sizes) upper bound;
-	result;
+	result
 ] : [0..INF];
 
 
@@ -154,7 +154,7 @@ Method "`|`|_`|`|" is [t : tuple |
 ] : whole number;
 
 Restriction "`|`|_`|`|" is [tT : tupleType |
-	tT sizes;
+	tT sizes
 ];
 
 
@@ -163,7 +163,7 @@ Restriction "`|`|_`|`|" is [tT : tupleType |
 Method "tuple like_" is [elementTypes : tuple of any type |
 	tuple ||elementTypes|| type
 		like elementTypes
-		default terminates;
+		default terminates
 ] : tupleType;
 
 
@@ -177,9 +177,9 @@ Method "_[_]" is [
 ] : type;
 
 Restriction "_[_]" is [
-	ttt : tupleType type,
-	it : natural number type |
-	type;
+		ttt : tupleType type,
+		it : natural number type |
+	type
 ];
 
 Method "_[_.._]" is [
@@ -188,7 +188,7 @@ Method "_[_.._]" is [
 		end : whole number |
 	/* Indices out of range are simply the type terminates. */
 	Primitive 142 (failureCode : natural number);
-	Failed;
+	Failed
 ] : tuple of type;
 
 
@@ -210,6 +210,6 @@ Method "union of types in_at indices_through_" is [
 		start : natural number,
 		end : whole number |
 	Primitive 143 (failureCode : natural number);
-	Failed;
+	Failed
 ] : type;
 

@@ -1,5 +1,5 @@
 /**
- * Primitive_293_FloatCeiling.java
+ * P_293_FloatCeiling.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

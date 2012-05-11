@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Test"
+System Module "Test"
 Extends
 Uses
 	"Kernel",
@@ -42,11 +42,11 @@ Body
 Initialize backtracking;
 
 
-x ::= capture all [maybe;];
+x ::= capture all [maybe];
 
 Assert x = <true,false>;
 
-y1 ::= capture all [{each (1 to 4), each (1 to 4)};];
+y1 ::= capture all [{each (1 to 4), each (1 to 4)}];
 
 Assert y1 = <
 		{1},{1,2},{1,3},{1,4},
@@ -54,12 +54,12 @@ Assert y1 = <
 		{3,1},{3,2},{3},{3,4},
 		{4,1},{4,2},{4,3},{4}>;
 
-y2 ::= capture first 5 of [{each (1 to 4), each (1 to 4)};];
+y2 ::= capture first 5 of [{each (1 to 4), each (1 to 4)}];
 
 Assert y2 = <{1},{1,2},{1,3},{1,4}, {2,1}>;
 
 
-z ::= capture all [<maybe, each<1,3,5>>;];
+z ::= capture all [<maybe, each<1,3,5>>];
 
 Assert z = <
 		<true,1>,<true,3>,<true,5>,
@@ -73,12 +73,12 @@ Method "_queens" is [n : natural number |
 	From 1 to n do [i : natural number |
 		t := t [i -> each 1 to n];
 		From 1 to i - 1 do [j : natural number |
-			if t[i] = t[j] then [fail;];
-			if |t[i] - t[j]| = i - j then [fail;];
+			if t[i] = t[j] then [fail];
+			if |t[i] - t[j]| = i - j then [fail];
 		];
 	];
-	t;
+	t
 ];
 
-Assert capture first 1 of [5 queens;] = <<1,3,5,2,4>>;
+Assert capture first 1 of [5 queens] = <<1,3,5,2,4>>;
 

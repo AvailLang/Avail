@@ -50,7 +50,7 @@ Body
  */
 
 privateResultType ::= lookup "resultType";
-Method "resultType" is [privateResultType;];
+Method "resultType" is [privateResultType];
 
 "Factory" is explicit subtype of Object with
 	resultType->[]->any;
@@ -58,5 +58,5 @@ Method "resultType" is [privateResultType;];
 Abstract method "_result" for [Factory]->any;
 
 Restriction "_result" is [factoryType : Factory type |
-	factoryType -> resultType result;
+	factoryType -> resultType result
 ] : type;

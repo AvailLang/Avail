@@ -1,5 +1,5 @@
 /**
- * Primitive_045_ShortCircuitHelper.java
+ * P_045_ShortCircuitHelper.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

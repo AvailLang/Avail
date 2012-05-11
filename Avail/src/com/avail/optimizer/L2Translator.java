@@ -1593,20 +1593,17 @@ public class L2Translator implements L1OperationDispatcher
 	}
 
 	/**
-	 * Translate the given {@linkplain CompiledCodeDescriptor Level One
-	 * CompiledCode object} into a sequence of {@linkplain L2Instruction Level
-	 * Two instructions}. The optimization level specifies how hard to try to
-	 * optimize this method. It is roughly equivalent to the level of inlining
-	 * to attempt, or the ratio of code expansion that is permitted. An
-	 * optimization level of zero is the bare minimum, which produces a naïve
-	 * translation to {@linkplain L2ChunkDescriptor Level Two code}. The
-	 * translation creates a counter that the Level Two code decrements each
-	 * time it is invoked.  When it reaches zero, the method will be reoptimized
-	 * with a higher optimization effort.
+	 * Translate the previously supplied {@linkplain CompiledCodeDescriptor
+	 * Level One compiled code object} into a sequence of {@linkplain
+	 * L2Instruction Level Two instructions}. The optimization level specifies
+	 * how hard to try to optimize this method. It is roughly equivalent to the
+	 * level of inlining to attempt, or the ratio of code expansion that is
+	 * permitted. An optimization level of zero is the bare minimum, which
+	 * produces a naïve translation to {@linkplain L2ChunkDescriptor Level Two
+	 * code}. The translation creates a counter that the Level Two code
+	 * decrements each time it is invoked.  When it reaches zero, the method
+	 * will be reoptimized with a higher optimization effort.
 	 *
-	 * @param aCompiledCodeObject
-	 *            A {@linkplain CompiledCodeDescriptor Level One CompiledCode
-	 *            object}.
 	 * @param optLevel
 	 *            The optimization level.
 	 * @param anL2Interpreter

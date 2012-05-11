@@ -141,66 +141,66 @@ privateFalse                       ::= Special Object 71;
 
 
 /* First define all the primitive types... */
-Method "any"                    is [privateAll;];
-Method "atom"                   is [privateAtom;];
-Method "boolean"                is [privateBoolean;];
-Method "character"              is [privateCharacter;];
-Method "function"               is [privateFunction;];
-Method "compiledCode"           is [privateCompiledCode;];
-Method "container"              is [privateContainer;];
-Method "continuation"           is [privateContinuation;];
-Method "double"                 is [privateDouble;];
-Method "extended integer"       is [privateExtendedInteger;];
-Method "float"                  is [privateFloat;];
-Method "integer"                is [privateInteger;];
-Method "number"                 is [privateNumber;];
-Method "process"                is [privateProcess;];
-Method "set"                    is [privateSet;];
-Method "string"                 is [privateString;];
-Method "terminates"             is [privateTerminates;];
-Method "tuple"                  is [privateTuple;];
-Method "tupleOfType"            is [privateTupleOfType;];
-Method "tupleOfAnyMeta"         is [privateTupleOfAnyMeta;];
-Method "void"                   is [privateVoid;];
+Method "any"                    is [privateAll];
+Method "atom"                   is [privateAtom];
+Method "boolean"                is [privateBoolean];
+Method "character"              is [privateCharacter];
+Method "function"               is [privateFunction];
+Method "compiledCode"           is [privateCompiledCode];
+Method "container"              is [privateContainer];
+Method "continuation"           is [privateContinuation];
+Method "double"                 is [privateDouble];
+Method "extended integer"       is [privateExtendedInteger];
+Method "float"                  is [privateFloat];
+Method "integer"                is [privateInteger];
+Method "number"                 is [privateNumber];
+Method "process"                is [privateProcess];
+Method "set"                    is [privateSet];
+Method "string"                 is [privateString];
+Method "terminates"             is [privateTerminates];
+Method "tuple"                  is [privateTuple];
+Method "tupleOfType"            is [privateTupleOfType];
+Method "tupleOfAnyMeta"         is [privateTupleOfAnyMeta];
+Method "void"                   is [privateVoid];
 
-Method "whole number"           is [privateWholeNumber;];
-Method "natural number"         is [privateNaturalNumber;];
-Method "character code points"  is [privateCharacterCodePoints;];
+Method "whole number"           is [privateWholeNumber];
+Method "natural number"         is [privateNaturalNumber];
+Method "character code points"  is [privateCharacterCodePoints];
 
 /* And the meta-types... */
-Method "integerType"            is [privateIntegerType;];
-Method "tupleType"              is [privateTupleType;];
-Method "setType"                is [privateSetType;];
-Method "mapType"                is [privateMapType;];
-Method "functionType"            is [privateFunctionType;];
-Method "containerType"          is [privateContainerType;];
-Method "continuationType"       is [privateContinuationType;];
-Method "terminatesType"         is [privateTerminatesType;];
-Method "type"                   is [privateType;];
+Method "integerType"            is [privateIntegerType];
+Method "tupleType"              is [privateTupleType];
+Method "setType"                is [privateSetType];
+Method "mapType"                is [privateMapType];
+Method "functionType"           is [privateFunctionType];
+Method "containerType"          is [privateContainerType];
+Method "continuationType"       is [privateContinuationType];
+Method "terminatesType"         is [privateTerminatesType];
+Method "type"                   is [privateType];
 
 /* Parse node types... */
-Method "parseNode"              is [privateParseNode;];
-Method "expressionNode"         is [privateExpressionNode;];
-Method "assignmentNode"         is [privateAssignmentNode;];
-Method "blockNode"              is [privateBlockNode;];
-Method "literalNode"            is [privateLiteralNode;];
-Method "referenceNode"          is [privateReferenceNode;];
-Method "sendNode"               is [privateSendNode;];
-Method "superCastNode"          is [privateSuperCastNode;];
-Method "tupleNode"              is [privateTupleNode;];
-Method "variableUseNode"        is [privateVariableUseNode;];
-Method "declarationNode"        is [privateDeclarationNode;];
-Method "argumentNode"           is [privateArgumentNode;];
-Method "labelNode"              is [privateLabelNode;];
-Method "localVariableNode"      is [privateLocalVariableNode;];
-Method "localConstantNode"      is [privateLocalConstantNode;];
-Method "moduleVariableNode"     is [privateModuleVariableNode;];
-Method "moduleConstantNode"     is [privateModuleConstantNode;];
+Method "parseNode"              is [privateParseNode];
+Method "expressionNode"         is [privateExpressionNode];
+Method "assignmentNode"         is [privateAssignmentNode];
+Method "blockNode"              is [privateBlockNode];
+Method "literalNode"            is [privateLiteralNode];
+Method "referenceNode"          is [privateReferenceNode];
+Method "sendNode"               is [privateSendNode];
+Method "superCastNode"          is [privateSuperCastNode];
+Method "tupleNode"              is [privateTupleNode];
+Method "variableUseNode"        is [privateVariableUseNode];
+Method "declarationNode"        is [privateDeclarationNode];
+Method "argumentNode"           is [privateArgumentNode];
+Method "labelNode"              is [privateLabelNode];
+Method "localVariableNode"      is [privateLocalVariableNode];
+Method "localConstantNode"      is [privateLocalConstantNode];
+Method "moduleVariableNode"     is [privateModuleVariableNode];
+Method "moduleConstantNode"     is [privateModuleConstantNode];
 
 
 /* Now the intrinsic constants... */
-Method "true"                   is [privateTrue;];
-Method "false"                  is [privateFalse;];
+Method "true"                   is [privateTrue];
+Method "false"                  is [privateFalse];
 
 
 /* Totally raw bootstrap - deal with system failures. */
@@ -220,7 +220,7 @@ Method "Crash_" is [finalClue : any |
 
 
 Method "Failed" is [
-	Crash "An Avail primitive has failed";
+	Crash "An Avail primitive has failed"
 ] : terminates;
 
 tupleOfSetOfString ::= Special Object 74;
@@ -235,7 +235,7 @@ setOfString ::= Special Object 75;
 
 Method "_can't have_" is [names : setOfString, except : tupleOfSetOfString |
 	Primitive 255 (failureCode : natural number);
-	Failed;
+	Failed
 ] : void;
 
 Method "Print_" is [something : string |

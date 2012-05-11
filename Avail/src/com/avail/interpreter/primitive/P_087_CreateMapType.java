@@ -1,5 +1,5 @@
 /**
- * Primitive_087_CreateMapType.java
+ * P_087_CreateMapType.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

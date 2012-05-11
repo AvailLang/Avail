@@ -71,7 +71,7 @@ Method "private read integer of type_from address_" is [
 		intType : integerType,
 		addr : integer |
 	Primitive 264 (failureCode : natural number);
-	Failed;
+	Failed
 ] : integer
 requires [intTypeT : type, addrT : integerType |
 	addrT lower bound is finite
@@ -87,7 +87,7 @@ Method "private write integer_of type_to address_" is [
 		intType : integerType,
 		addr : integer |
 	Primitive 265 (failureCode : natural number);
-	Failed;
+	Failed
 ] : void
 requires [intT : integerType, intTypeT : type, addrT : integerType |
 	intT lower bound is finite
@@ -101,7 +101,7 @@ Method "private read_bytes from address_" is [
 		count : whole number,
 		addr : integer |
 	Primitive 266 (failureCode : natural number);
-	Failed;
+	Failed
 ] : integer
 requires [countT : integerType, addrT : integerType |
 	addrT lower bound is finite
@@ -116,7 +116,7 @@ Method "private write_to address_" is [
 		bytes : tuple of byte,
 		addr : integer |
 	Primitive 267 (failureCode : natural number);
-	Failed;
+	Failed
 ] : void
 requires [bytesT : tupleType, addrT : integerType |
 	addrT lower bound is finite

@@ -41,7 +41,7 @@ import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.operation.L2_ATTEMPT_INLINE_PRIMITIVE;
-import com.avail.interpreter.primitive.P_001_Addition;
+import com.avail.interpreter.primitive.*;
 import com.avail.optimizer.*;
 
 

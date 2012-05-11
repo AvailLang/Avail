@@ -112,7 +112,7 @@ public abstract class Interpreter
 	 * A collection of bit flags indicating the reason for pausing the
 	 * interpreter between nybblecodes.
 	 */
-	protected volatile int interruptRequestFlag;
+	protected volatile boolean interruptRequestFlag;
 
 	/**
 	 * The {@link ProcessDescriptor} being executed by this interpreter.
@@ -155,7 +155,7 @@ public abstract class Interpreter
 	 */
 	public final boolean isInterruptRequested ()
 	{
-		return interruptRequestFlag != 0;
+		return process.interruptRequestFlags() != 0;
 	}
 
 	/**
@@ -189,7 +189,7 @@ public abstract class Interpreter
 		process.priority(IntegerDescriptor.fromUnsignedByte((short)50));
 		process.continuation(NullDescriptor.nullObject());
 		process.executionState(ExecutionState.RUNNING);
-		process.interruptRequestFlag(0);
+		process.clearInterruptRequestFlags();
 		process.breakpointBlock(NullDescriptor.nullObject());
 		process.processGlobals(MapDescriptor.empty());
 	}

@@ -50,16 +50,16 @@ Abstract method "_is at end" for [Iterator]->boolean;
 Abstract method "next_" for [Iterator]->any;
 
 Restriction "next_" is [iterType : Iterator type |
-	iterType -> elementType result;
+	iterType -> elementType result
 ];
 
 
 Method "_do_" is [iter : Iterator, blk : [terminates]->void |
-	Until [iter is at end;] loop [blk apply <next iter>;];
+	Until [iter is at end] loop [blk apply <next iter>;];
 ];
 
 Restriction "_do_" is [iterType : Iterator type, bt : functionType |
 	if not iterType -> elementType result <= bt[1] then [
-		Fail parse "iterator element type to conform to block argument type";];
-	void;
+		Fail parse "iterator element type to conform to block argument type"];
+	void
 ];

@@ -1,5 +1,5 @@
 /**
- * Primitive_034_CreateFunctionType.java
+ * P_034_CreateFunctionType.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *

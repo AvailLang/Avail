@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.05.10 16:59:40.423 -0500
+ * * Last Generated On: 2012.05.11 13:53:55.450 -0500
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -83,6 +83,7 @@ Uses
 		"_'s⁇outer variables",
 		"_'s⁇parameters'type",
 		"_'s⁇primitive number",
+		"_'s⁇priority",
 		"_'s⁇program counter",
 		"_'s⁇read type",
 		"_'s⁇return type",
@@ -107,6 +108,7 @@ Uses
 		"_^_",
 		"_is a primitive",
 		"_is unassigned",
+		"_taking arguments tupled",
 		"_→_",
 		"_→character",
 		"_→code point",
@@ -140,7 +142,9 @@ Uses
 		"new_applying_",
 		"new↑_",
 		"primitive description of_",
+		"request termination of_",
 		"semantic restrictions for_given_",
+		"set_'s⁇priority to_",
 		"special atoms",
 		"{_`|_}",
 		"{_→_`|_}",
@@ -351,6 +355,54 @@ Method "milliseconds since the Epoch" is
 [
 	Primitive 20;
 ] : whole number;
+
+/**
+ * Extract the priority of a fiber.  The priority is a whole number.  A fiber
+ * with higher priority may receive a larger share of the available CPU time
+ * than one with a low priority.
+ *
+ * Parameters:
+ *    aFiber - The fiber from which to extract the priority.
+ * Returns:
+ *    A whole number representing the priority of the fiber.
+ */
+Method "_'s⁇priority" is
+[
+	aFiber : fiber
+|
+	Primitive 21;
+] : whole number;
+
+/**
+ * Modify the priority of a fiber.  The priority is a whole number.  A fiber
+ * with higher priority may receive a larger share of the available CPU time
+ * than one with a low priority.
+ *
+ * Parameters:
+ *    aFiber - The fiber to reprioritize.
+ *    priority - The new priority.
+ */
+Method "set_'s⁇priority to_" is
+[
+	aFiber : fiber,
+	priority : whole number
+|
+	Primitive 22;
+] : ⊤;
+
+/**
+ * Request termination of the specified fiber. Termination is consensual only;
+ * cooperation of the fiber is required to affect termination.
+ *
+ * Parameters:
+ *    victim - A fiber.
+ */
+Method "request termination of_" is
+[
+	victim : fiber
+|
+	Primitive 24;
+] : ⊤;
 
 /**
  * Answer the current fiber.
@@ -930,6 +982,25 @@ Method "_'s⁇outer variables" is
 |
 	Primitive 73;
 ] : tuple;
+
+/**
+ * Construct and answer a function which takes a single argument, a tuple,
+ * which it decomposes and sends as individual arguments to the given
+ * function.  The new function returns the value produced by the original
+ * function.
+ *
+ * Parameters:
+ *    multiArgumentFunction - The multi-argument function to be invoke.
+ * Returns:
+ *    A function taking a tuple of arguments to pass individually to the
+ *    supplied function.
+ */
+Method "_taking arguments tupled" is
+[
+	multiArgumentFunction : function
+|
+	Primitive 75;
+] : unary procedure;
 
 /**
  * Answer the cardinality of the specified map.

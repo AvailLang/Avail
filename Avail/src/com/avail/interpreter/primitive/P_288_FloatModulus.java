@@ -1,5 +1,5 @@
 /**
- * Primitive_288_FloatModulus.java
+ * P_288_FloatModulus.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
