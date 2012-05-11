@@ -54,7 +54,8 @@ Names
 	"_⊇_",
 	"_⊃_",
 	"_∉_",
-	"_⊄_"
+	"_⊄_",
+	"group_by_"
 Body
 
 /**
@@ -1066,6 +1067,38 @@ Method "group_by_" is
 	];
 	groups;
 ] : map;
+
+/**
+ * Strengthen return type.
+ *
+ * Parameters:
+ *    aSetType - The set to categorize's type.
+ *    discriminator - A function that accepts each element of the set and
+ *       answers a value that represents the group to which the element belongs.
+ * Returns:
+ *    Most specific map type.
+ */
+Semantic restriction "group_by_" is
+[
+	aSetType : set's type,
+	discriminatorType : [⊥]→any's type
+ |
+
+ 	Require: discriminatorType accepts aSetType;
+ 	
+ 	setCardinality ::= ||aSetType||;
+ 	setUpperBound ::= setCardinality's upper bound;
+	keyType ::= discriminatorType's return type;
+	
+ 	lowerBound ::= if setCardinality's lower bound = 0 then [0;] else [1;];
+	upperBound ::= if setUpperBound > |keyType| 
+		then [|keyType|;]
+		else [setUpperBound;];
+
+ 	valueType ::= {aSetType's element type | 1..setUpperBound};
+
+ 	{keyType→valueType | lowerBound..upperBound};
+ ];
 
 /* Make various boolean-valued set operations bind more tightly than logical
  * negation.

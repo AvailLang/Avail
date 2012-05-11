@@ -40,6 +40,7 @@ Uses
 	"Bootstrap",
 	"Control Structures",
 	"Early Functions",
+	"Early Maps",
 	"Early Types",
 	"Enumeration Support",
 	"Literals",
@@ -1851,3 +1852,65 @@ Semantic restriction "_[_]→_" is
 	];
 	<leadingTypes, defaultType… | ||tupleType||>;
 ];
+
+/**
+ * Categorize the elements of `aTuple` via `decider`.
+ *
+ * Parameters:
+ *    aTuple - The tuple to categorize.
+ *    discriminator - A function that accepts each element of the set and
+ *       answers a value that represents the group to which the element belongs.
+ * Returns:
+ *    A map whose keys describe groups and whose elements are the groups
+ *    themselves, i.e., the tuples of elements that constitute the described
+ *    group.
+ */
+Method "group_by_" is
+[
+	aTuple : tuple,
+	discriminator : [⊥]→any
+|
+	groups : {any→tuple|} := {};
+	For each aTuple do
+	[
+		element : any
+	|
+		key ::= invoke discriminator with <element>;
+		group ::= groups[key] else [ <>; ] ++ <element>;
+		groups := eject ↑groups + key→group;
+	];
+	groups;
+] : map;
+
+/**
+ * Strengthen return type.
+ *
+ * Parameters:
+ *    aTupleType - The set to categorize's type.
+ *    discriminator - A function that accepts each element of the set and
+ *       answers a value that represents the group to which the element belongs.
+ * Returns:
+ *    Most specific map type.
+ */
+Semantic restriction "group_by_" is
+[
+	aTupleType : tuple's type,
+	discriminatorType : [⊥]→any's type
+ |
+ 	
+ 	Require: discriminatorType accepts aTupleType;
+ 	
+ 	tupleCardinality ::= ||aTupleType||;
+ 	tupleUpperBound ::= tupleCardinality's upper bound;
+ 	defaultType ::= ∪ aTupleType[1..|aTupleType's leading types| + 1];
+	keyType ::= discriminatorType's return type;
+	
+ 	lowerBound ::= if tupleCardinality's lower bound = 0 then [0;] else [1;];
+	upperBound ::= if tupleUpperBound > |keyType| 
+		then [|keyType|;]
+		else [tupleUpperBound;];
+
+ 	valueType ::= <defaultType… | 1..tupleUpperBound>;
+
+ 	{keyType→valueType | lowerBound..upperBound};
+ ];
