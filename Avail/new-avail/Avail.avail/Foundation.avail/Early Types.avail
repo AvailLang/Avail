@@ -84,40 +84,6 @@ Grammatical restriction {"[«_‡,»]→_"} is <∅, {"_'s⁇type"}>;
 Grammatical restriction {"[`…]→_"} is <{"_'s⁇type"}>;
 
 /**
- * Strengthen function type construction.
- * 
- * Parameters:
- *    argsTupleType - A tuple type whose element types are instance metatypes.
- *    returnMeta - An instance metatype.
- * Returns:
- *    The instance metatype of the exact function type.
- */
-Semantic restriction "[«_‡,»]→_" is
-[
-	argsTupleType : (tuple of any meta)'s type,
-	returnMeta : type's type
-|
-	/* The tuple was constructed lexically, so it doesn't matter which bound
-	 * is used.
-	 */
-	bound ::= cast ||argsTupleType||'s upper bound
-		into [ t : whole number | t; ];
-	argMetas ::= argsTupleType[1..bound];
-	argTypes : tuple of any meta := <>;
-	From 1 to bound do
-	[
-		index : natural number
-	|
-		argType ::= cast argMetas[index]'s instance into [ t : any meta | t; ];
-		argTypes := eject ↑argTypes ++ <argType>;
-		true;
-	];
-	/* `returnMeta` must be an instance type. */
-	returnType ::= returnMeta's instance;
-	(function accepting argTypes and returning returnType)'s type;
-];
-
-/**
  * Tuple type constructor's semantic restriction.
  *
  * Parameters:

@@ -263,7 +263,6 @@ Method "_->_" is [ot : objectType, key : atom |
 Restriction "_->_" is [om : objectMeta, keyT : atom type |
 	/* Require that the atom's static type be at least a union type for which
 	   all instances can be looked up in the static object type. */
-Print "\nGOT HERE: " then om as basic string then "\n";
 	good ::= om instances as tuple all [ot : objectType |
 		keyT instances as tuple all [key : any |
 			ot as map [key]?;];];

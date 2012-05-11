@@ -48,7 +48,9 @@ Uses
 	"Sets",
 	"Tuples"
 Names
-	"extend_with«_:_‡,»"
+	"extend_with«_:_‡,»",
+	"«Public»?«Explicit|explicit»?\
+	\|Class|class_extends_«with public«_:_‡,»»«with private«_:_‡,»»"
 Body
 
 /**
@@ -346,7 +348,7 @@ Semantic restriction "_→tuple" is
  * Construct and answer an object type which is a subtype of `supertype`
  * augmented by the specified tuple of field definitions.
  * 
- * Parameter:
+ * Parameters:
  *    supertype - An object type that must be a supertype of the answer.
  *    newDefinitions - A tuple of 2-tuples. Each 2-tuple consists of 1) an atom
  *       that uniquely identifies the field and 2) the field type, i.e., the
@@ -389,7 +391,7 @@ Method "extend_with«_:_‡,»" is
  *    meta - The supertype's type.
  *    newDefinitionTypes - A lexical tuple type.
  * Return:
- *    The strongest possible object type for the given argument types.
+ *    The strongest possible object metatype for the given argument types.
  */
 Semantic restriction "extend_with«_:_‡,»" is
 [
@@ -437,11 +439,24 @@ Semantic restriction "extend_with«_:_‡,»" is
 	((supertype→tuple ++ newDefinitions' bindings)→object type)'s type;
 ];
 
-/* TODO */
+/**
+ * Construct and answer an object which is an instance of `objectType` and whose
+ * field values are determined by `optional`.
+ * 
+ * Parameters:
+ *    objectType - An object type that must be a supertype of the answer.
+ *    optional - A tuple of field assignments. The outermost tuple may be empty
+ *       (but only to support the case that `objectType = object`), but usually
+ *       contains a single tuple of field assignments. A field assignment is a
+ *       2-tuple that consists of 1) an atom that uniquely identifies the field
+ *       and 2) the field value.
+ * Returns:
+ *    The requested object type.
+ */
 Method "a|an_«with«_:=_‡,»»" is
 [
 	objectType : object meta,
-	optional : <<<atom, any meta…|2>…|1..>…|0..1>
+	optional : <<<atom, any…|2>…|1..>…|0..1>
 |
 	assignments ::= if optional is empty then [ <>; ] else [ optional[1]; ];
 	fieldAtoms ::= stripe assignments at 1;
@@ -451,7 +466,7 @@ Method "a|an_«with«_:=_‡,»»" is
 	];
 	If |fieldAtoms| ≠ |objectType→tuple| then
 	[
-		early failure function(object instantiation incomplete code);
+		early failure function(object instantiation invalid code);
 	];
 	newObject ::= assignments→object;
 	If ¬newObject ∈ objectType then
@@ -462,26 +477,181 @@ Method "a|an_«with«_:=_‡,»»" is
 	newObject;
 ];
 
-/*
+/**
+ * Object instantiation statically requires that:
+ *
+ * - Every field atom of the instantiation tuple is known.
+ * - Each field atom of the instantiation tuple appears only once during
+ *   instantiation.
+ * - An assigned value conforms to the field type.
+ * - An assignment occurs for every field of the object type.
+ *
+ * Parameters:
+ *    meta - The type of the template object type.
+ *    optional - A lexical tuple type.
+ * Return:
+ *    The strongest possible object type for the given argument types.
+ */
+Semantic restriction "a|an_«with«_:=_‡,»»" is
+[
+	meta : object meta's type,
+	optional : <<<atom, any…|2>…|1..>…|0..1>'s type
+|
+	objectType ::= meta's instance;
+	definitions ::= objectType→map;
+	assignments : field type map := {};
+	From 1 to relevant |optional[1]| do
+	[
+		index : natural number
+	|
+		def ::= optional[1][index];
+		atomType ::= def[1];
+		valueType ::= def[2];
+		If |atomType| ≠ 1 then
+		[
+			Reject parse, expected: "all field atoms to be known statically";
+		];
+		fieldAtom ::= atomType's instance;
+		If fieldAtom ∈ assignments then
+		[
+			Reject parse, expected:
+				fieldAtom's name
+				++ " to appear only once during instantiation (but it already\
+				\| appeared with type = "
+				++ primitive description of assignments[fieldAtom]
+				++ ")";
+		];
+		requiredType ::= definitions[fieldAtom] else [ any; ];
+		If ¬valueType ⊆ requiredType then
+		[
+			Reject parse, expected:
+				"valid assignment to "
+				++ fieldAtom's name
+				++ " (but "
+				++ primitive description of valueType
+				++ " is not a subtype of "
+				++ primitive description of requiredType
+				++ ")";
+		];
+		assignments := eject ↑assignments + fieldAtom→valueType;
+	];
+	missing ::= filter definitions' keys by [ a : atom | ¬a ∈ assignments; ];
+	If |missing| ≠ 0 then
+	[
+		Reject parse, expected:
+			"assignments for all fields of "
+			++ primitive description of objectType
+			++ " (but assignments are missing for "
+			++ primitive description of missing
+			++ ")";
+	];
+	assignments→object type;
+];
+
+/* TODO: [TLS] Document this! */
+Method "«Public»?«Explicit|explicit»?\
+		\|Class|class_extends_«with public«_:_‡,»»«with private«_:_‡,»»" is
+[
+	public : boolean,
+	explicit : boolean,
+	className : <character…|1..>,
+	supertype : object meta,
+	publicOptional : <<<atom, any meta…|2>…|1..>…|0..1>,
+	privateOptional : <<<atom, any meta…|2>…|1..>…|0..1>
+|
+	/* Extract the extensions. */
+	publicDefs ::= if publicOptional is empty
+		then [ <>; ]
+		else [ publicOptional[1]; ];
+	privateDefs ::= if privateOptional is empty
+		then [ <>; ]
+		else [ privateOptional[1]; ];
+	newDefinitions ::= publicDefs ++ privateDefs;
+	/* Verify the uniqueness of the field atoms. */
+	fieldAtoms ::= stripe newDefinitions at 1;
+	If |fieldAtoms→set| ≠ |fieldAtoms| then
+	[
+		early failure function(object type extension contains duplicates code);
+	];
+	/* If necessary, then generate a field definition that guarantees
+	 * uniqueness among object types.
+	 */
+	explicitDef : <<atom, any meta…|2>…|0..1> := <>;
+	If explicit then
+	[
+		explicitAtom ::= new atom "explicit-" ++ className;
+		explicitDef := <<explicitAtom, explicitAtom's type>>;
+	];
+	/* Construct and verify the subtype. */
+	subtype ::= (supertype→tuple ++ newDefinitions ++ explicitDef)→object type;
+	subtypeMap ::= subtype→map;
+	If ¬subtype ⊆ supertype then
+	[
+		early failure function(
+			object type extension did not produce subtype code);
+	];
+	/* Define the class: give the object type a name, define a method that
+	 * answers the object type, define methods that access the field
+	 * definitions, publish the method and public fields (if appropriate).
+	 */
+	subtype's name := className;
+	Method className is new []→(subtype's type) applying [ subtype; ];
+	If public then [ Publish new name: className; ];
+	For each stripe publicDefs at 1 do
+	[
+		fieldAtom : atom
+	|
+		methodName ::= "_'s⁇" ++ fieldAtom's name;
+		fieldType ::= subtypeMap[fieldAtom];
+		classFunctionType ::= [subtype's type]→(fieldType's type);
+		Method methodName is
+			new classFunctionType applying [ x : any | fieldType; ];
+		instanceFunctionType ::= [subtype]→fieldType;
+		Method methodName is
+			new instanceFunctionType
+			applying [ x : object | x→map[fieldAtom]; ];
+		If public then [ Publish new name: methodName; ];
+	];
+	For each stripe privateDefs at 1 do
+	[
+		fieldAtom : atom
+	|
+		methodName ::= "_'s⁇" ++ fieldAtom's name;
+		fieldType ::= subtypeMap[fieldAtom];
+		classFunctionType ::= [subtype's type]→(fieldType's type);
+		Method methodName is
+			new classFunctionType applying [ x : any | fieldType; ];
+		instanceFunctionType ::= [subtype]→fieldType;
+		Method methodName is
+			new instanceFunctionType
+			applying [ x : object | x→map[fieldAtom]; ];
+	];
+] : ⊤;
+
 color ::= new atom "color";
 texture ::= new atom "texture";
 flavor ::= new atom "flavor";
-a ::= extend object with color : [0..255];
-Print: "a=";
-Print: primitive description of a;
+
+Class "colorful" extends object
+	with public
+		color : enumeration of
+			{"red", "orange", "yellow", "green", "blue", "indigo", "violet"};
+
+Class "textured" extends object
+	with public
+		texture : enumeration of {"rough", "smooth"};
+
+Class "textured RGB" extends colorful ∩ textured
+	with public
+		color : enumeration of {"red", "green", "blue"};
+
+trgb ::= a textured RGB with color := "green", texture := "smooth";
+Print: "trgb=";
+Print: primitive description of trgb;
 Print: "\n";
-b ::= extend a with
-	color : [1..5],
-	texture : enumeration of {"rough", "smooth"};
-Print: "b=";
-Print: primitive description of b;
+Print: "trgb's color=";
+Print: primitive description of trgb's color;
 Print: "\n";
-c ::= extend b with flavor : enumeration of {"salty", "sweet"};
-Print: "c=";
-Print: primitive description of c;
+Print: "trgb's texture=";
+Print: primitive description of trgb's texture;
 Print: "\n";
-q ::= a c with color := 5, texture := "rough", flavor := "sweet";
-Print: "q=";
-Print: primitive description of q;
-Print: "\n";
-*/

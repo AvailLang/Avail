@@ -48,6 +48,24 @@ Names
 Body
 
 /**
+ * Disambiguate subscript of ⊥. This is a type subscript operation, such as
+ * defined for tuple types or function types, and can consistently answer ⊥.
+ * 
+ * Parameters:
+ *    bottom - ⊥.
+ *    index - The subscript (ignored).
+ * Returns:
+ *    ⊥.
+ */
+Method "_[_]" is
+[
+	bottom : ⊥'s type,
+	index : natural number
+|
+	⊥;
+];
+
+/**
  * If a lexical tuple is built only from expressions with statically well-known
  * runtime values, then answer the instance type of the tuple that contains
  * those statically known elements. This gives lexical tuples of literals and

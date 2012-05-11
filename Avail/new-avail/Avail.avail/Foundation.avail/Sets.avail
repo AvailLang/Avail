@@ -49,13 +49,13 @@ Uses
 	"Math",
 	"Variables"
 Names
+	"group_by_",
 	"_∋_",
 	"_⊂_",
 	"_⊇_",
 	"_⊃_",
 	"_∉_",
-	"_⊄_",
-	"group_by_"
+	"_⊄_"
 Body
 
 /**

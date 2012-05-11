@@ -144,9 +144,9 @@ Method "relevant`|_`|" is
 [
 	tupleType : tuple meta
 |
-	cast
-		||tupleType||'s lower bound min (|tupleType's leading types| + 1)
-	into [ t : whole number | t; ];
+	lower ::= ||tupleType||'s genuine lower bound max 0;
+	count ::= |tupleType's leading types| + 1;
+	cast lower min count into [ t : whole number | t; ];
 ] : whole number;
 
 /**
