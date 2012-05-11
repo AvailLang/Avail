@@ -48,12 +48,13 @@ Uses
 	"Math",
 	"Variables"
 Names
+	"count for_",
 	"distinct_",
 	"first index of_where_",
+	"group_by_",
 	"last index of_where_",
 	"left fold_through_",
 	"right fold_through_",
-	"group_by_",
 	"split_after_",
 	"split_before_",
 	"stripe_at_",
@@ -1898,20 +1899,81 @@ Semantic restriction "group_by_" is
 	aTupleType : tuple's type,
 	discriminatorType : [⊥]→any's type
  |
- 	
  	Require: discriminatorType accepts aTupleType;
- 	
- 	tupleCardinality ::= ||aTupleType||;
- 	tupleUpperBound ::= tupleCardinality's upper bound;
- 	defaultType ::= ∪ aTupleType[1..|aTupleType's leading types| + 1];
-	keyType ::= discriminatorType's return type;
+	 	tupleCardinality ::= ||aTupleType||;
+	 	tupleUpperBound ::= tupleCardinality's upper bound;
+	 	defaultType ::= ∪ aTupleType[1..|aTupleType's leading types| + 1];
+		keyType ::= discriminatorType's return type;
+		
+	 	lowerBound ::= if tupleCardinality's lower bound = 0 then [0;] else [1;];
+		upperBound ::= if tupleUpperBound > |keyType| 
+			then [|keyType|;]
+			else [tupleUpperBound;];
 	
- 	lowerBound ::= if tupleCardinality's lower bound = 0 then [0;] else [1;];
-	upperBound ::= if tupleUpperBound > |keyType| 
-		then [|keyType|;]
-		else [tupleUpperBound;];
-
- 	valueType ::= <defaultType… | 1..tupleUpperBound>;
-
- 	{keyType→valueType | lowerBound..upperBound};
+	 	valueType ::= <defaultType… | 1..tupleUpperBound>;
+	
+	 	{keyType→valueType | lowerBound..upperBound};
  ];
+ 
+/**
+ * Count the elements of a tuple.
+ *
+ * Parameters:
+ *    aTuple - the tuple whose elements you will count
+ * Returns:
+ *    a map with keys that are the elements of the tuple that maps to the values
+ *    that are the counts that each element occurs in the tuple.
+ */
+ Method "count for_" is
+[
+ 	aTuple : tuple
+ |
+ 	groups ::= group aTuple by [a: any | a;];
+ 	map groups through [k : any, t : tuple | |t|;];
+] : map;
+ 
+/**
+ * Strengthen return type.
+ *
+ * Parameters:
+ *    aTupleType - the tuple whose elements you will count
+ * Returns:
+ *    a map type with keys that are the elements of the tuple that maps to the 
+ *    values that are the counts that each element occurs in the tuple.
+ */
+Semantic restriction "count for_" is
+[
+ 	aTupleType : tuple's type
+ |
+ 	if |aTupleType| = 1 then
+ 		[(count for aTupleType's instance)'s type;]
+ 	else 
+ 	[
+ 	   keyType ::= ∪ aTupleType[1..|aTupleType's leading types| + 1];
+ 	   tupleCardinality ::= ||aTupleType||;
+ 	   lowerBound ::= if tupleCardinality's lower bound = 0 
+ 	     then [0;] else [1;];
+ 	   upperBound ::= tupleCardinality's upper bound;
+ 	   {keyType→whole number|lowerBound..upperBound};
+	];
+];
+
+/**
+ * Flatten a tuple of tuples one level 
+ *
+ * Parameters:
+ *    aTupleOfTuples - a tuple of tuples to flatten.
+ * Returns:
+ *    a flattened tuple.
+ */
+Method "flatten_" is
+[
+ 	aTupleOfTuples : <tuple…|>
+ |
+ 	newTuple : tuple := <>;
+ 	For each aTupleOfTuples do [t : tuple | 
+        newTuple := newTuple ++ t;
+ 	];
+ 	newTuple;
+]:tuple;
+
