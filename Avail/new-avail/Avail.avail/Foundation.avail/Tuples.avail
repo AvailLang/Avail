@@ -53,6 +53,7 @@ Names
 	"last index of_where_",
 	"left fold_through_",
 	"right fold_through_",
+	"group_by_",
 	"split_after_",
 	"split_before_",
 	"stripe_at_",
