@@ -1971,9 +1971,72 @@ Method "flatten_" is
  	aTupleOfTuples : <tuple…|>
  |
  	newTuple : tuple := <>;
- 	For each aTupleOfTuples do [t : tuple | 
+ 	For each aTupleOfTuples do 
+ 	[
+ 	 	t : tuple 
+ 	 | 
         newTuple := newTuple ++ t;
  	];
  	newTuple
 ]:tuple;
 
+/**
+ * Strengthen flatten_ return type 
+ *
+ * Parameters:
+ *    aTupleOfTuplesType - a tuple of tuples' type.
+ * Returns:
+ *    a flattened tuple type.
+ */
+Semantic restriction "flatten_" is
+[
+ 	aTupleOfTuplesType : <tuple…|>'s type
+ |
+ 	if |aTupleOfTuplesType| = 1 then
+ 	[
+ 	 	(flatten aTupleOfTuplesType's instance)'s type
+ 	]
+ 	else 
+ 	[
+ 	 	leadingTypes ::= cast aTupleOfTuplesType's leading types into
+ 	 		[t : <tuple's type…|> | t];
+ 	 	defaultType ::= aTupleOfTuplesType's default type;
+ 	 	leadingAndDefaultTypes ::= leadingTypes ++ <defaultType>;
+ 	 	tupleTypes : <tuple's type…|> := <>;
+ 	 	totalUpperBound : [0..∞] := 0;
+ 	 	totalLowerBound : whole number := 0;
+ 	 	For each leadingAndDefaultTypes do
+ 	 	[
+ 	 	 	t : tuple's type
+ 	 	|
+ 	 	 	tupleTypes := tupleTypes ++ 
+ 	 	 		cast t's leading types into [r : <tuple's type…|> | r] ++
+ 	 	 		<cast t's default type into [r : tuple's type | r]>;
+ 	 	 	totalUpperBound := totalUpperBound + ||t||'s upper bound;
+ 	 	 	totalLowerBound := totalLowerBound + 
+ 	 	 		cast ||t||'s lower bound into [w : whole number| w];
+ 	 	];
+ 		card ::= [totalLowerBound..totalUpperBound);
+ 	 	firstLower : [0..∞);
+ 	 	finalDefaultType : any's type; 
+ 	 	finalLeadingTypes ::= if |leadingTypes| ≥ 1 then
+ 	 	[
+ 	 	 	firstLower := cast ||leadingTypes[1]||'s lower bound into
+ 	 	 		[l : whole number | l];
+ 	 	 	if firstLower > 0 then 
+ 	 	 	[
+ 	 	 	 	finalDefaultType := 
+ 	 	 	 		∪ (tupleTypes's type)[firstLower + 1..|tupleTypes|]; 
+ 	 	 	 	leadingTypes[1]'s leading types[1..firstLower]
+ 	 	 	]
+ 	 	 	else 
+ 	 	 	[
+ 	 	 	 	finalDefaultType := 
+ 	 	 	 		∪ (tupleTypes's type)[firstLower + 1..|tupleTypes|];
+ 	 	 	    <>
+ 	 	 	]
+ 	 	]
+ 	 	else [<>];
+ 	 	<finalLeadingTypes,finalDefaultType…|card>
+ 	]
+];
