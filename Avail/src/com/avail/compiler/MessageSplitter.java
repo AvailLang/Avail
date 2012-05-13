@@ -852,6 +852,10 @@ public class MessageSplitter
 				{
 					aStream.append("‡");
 				}
+				else if (expr instanceof Alternation)
+				{
+					//TODO FIX THIS, YO!
+				}
 				else if (expr instanceof Simple)
 				{
 					final AvailObject token =

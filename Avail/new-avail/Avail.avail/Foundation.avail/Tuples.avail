@@ -2013,16 +2013,14 @@ Semantic restriction "flatten_" is
  	 	 		cast t's leading types into [r : <tuple's type…|> | r] ++
  	 	 		<cast t's default type into [r : tuple's type | r]>;
  	 	 	totalUpperBound := totalUpperBound + ||t||'s upper bound;
- 	 	 	totalLowerBound := totalLowerBound + 
- 	 	 		cast ||t||'s lower bound into [w : whole number| w];
+ 	 	 	totalLowerBound := totalLowerBound + ||t||'s lower bound;
  	 	];
  		card ::= [totalLowerBound..totalUpperBound);
  	 	firstLower : [0..∞);
  	 	finalDefaultType : any's type; 
  	 	finalLeadingTypes ::= if |leadingTypes| ≥ 1 then
  	 	[
- 	 	 	firstLower := cast ||leadingTypes[1]||'s lower bound into
- 	 	 		[l : whole number | l];
+ 	 	 	firstLower := ||leadingTypes[1]||'s lower bound;
  	 	 	if firstLower > 0 then 
  	 	 	[
  	 	 	 	finalDefaultType := 

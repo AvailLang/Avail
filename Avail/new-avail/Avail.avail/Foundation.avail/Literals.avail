@@ -44,7 +44,8 @@ Uses
 	"Variables"
 Names
 	"{«_→_‡,»}",
-	"¢…"
+	"¢…",
+	"`|`|_`|`|'s⁇lower bound"
 Body
 
 /**
@@ -555,6 +556,102 @@ Semantic restriction "`|_`|" is
 |
 	sizes ::= ||aMapType||;
 	[sizes' lower bound..sizes' upper bound + 1)
+];
+
+/**
+ * Obtain lower bound of a tuple.
+ *
+ * Parameters:
+ *    aTupleType - tuple type to find the lower bound of.
+ * Returns:
+ *    whole number
+ */
+Method "`|`|_`|`|'s⁇lower bound" is
+[
+ 	aTupleType : tuple's type
+|
+	cast ||aTupleType||'s lower bound into [w : whole number | w]
+]: whole number;
+
+/**
+ * Obtain lower bound of a set.
+ *
+ * Parameters:
+ *    aSetType - set type to find the lower bound of.
+ * Returns:
+ *    whole number
+ */
+Method "`|`|_`|`|'s⁇lower bound" is
+[
+ 	aSetType : set's type
+|
+	cast ||aSetType||'s lower bound into [w : whole number | w]
+]: whole number;
+
+/**
+ * Obtain lower bound of a map.
+ *
+ * Parameters:
+ *    aMapType - map type to find the lower bound of.
+ * Returns:
+ *    whole number
+ */
+Method "`|`|_`|`|'s⁇lower bound" is
+[
+ 	aMapType : map's type
+|
+	cast ||aMapType||'s lower bound into [w : whole number | w]
+]: whole number;
+
+Grammatical restriction {"_'s⁇lower bound"} is <{"`|`|_`|`|"}>;
+
+/**
+ * Strengthen the type of the lower bound of a tuple.
+ *
+ * Parameters:
+ *    aTupleType - the type of the tuple to find the lower bound of.
+ * Returns:
+ *    lower bound's strenghened type
+ */
+
+Semantic restriction "`|`|_`|`|'s⁇lower bound" is
+[
+ 	aTupleTypeType : (tuple's type)'s type
+|
+	instance ::= aTupleTypeType's instance;
+	||instance||
+];
+
+/**
+ * Strengthen the type of the lower bound of a set.
+ *
+ * Parameters:
+ *    aSetType - the type of the set to find the lower bound of.
+ * Returns:
+ *    lower bound's strenghened type
+ */
+Semantic restriction "`|`|_`|`|'s⁇lower bound" is
+[
+ 	aSetTypeType : (set's type)'s type
+|
+	instance ::= aSetTypeType's instance;
+	||instance||
+];
+
+/**
+ * Strengthen the type of the lower bound of a map.
+ *
+ * Parameters:
+ *    aMapType - the type of the map to find the lower bound of.
+ * Returns:
+ *    lower bound's strenghened type
+ */
+Semantic restriction "`|`|_`|`|'s⁇lower bound" is
+[
+ 	aMapTypeType : (map's type)'s type
+|
+	instance ::= aMapTypeType's instance;
+	||instance||
 ];
 
 /**
