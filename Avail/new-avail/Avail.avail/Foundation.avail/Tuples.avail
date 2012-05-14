@@ -48,7 +48,7 @@ Uses
 	"Math",
 	"Variables"
 Names
-	"count for_",
+	"counts for_",
 	"distinct_",
 	"first index of_where_",
 	"group_by_",
@@ -59,7 +59,11 @@ Names
 	"split_before_",
 	"stripe_at_",
 	"zip_",
+	"∑_",
 	"_of_",
+	"_'s⁇head",
+	"_'s⁇last",
+	"_'s⁇tail",
 	"_to_",
 	"«_‡zip»"
 Body
@@ -1924,7 +1928,7 @@ Semantic restriction "group_by_" is
  *    a map with keys that are the elements of the tuple that maps to the values
  *    that are the counts that each element occurs in the tuple.
  */
- Method "count for_" is
+ Method "counts for_" is
 [
  	aTuple : tuple
  |
@@ -1941,12 +1945,12 @@ Semantic restriction "group_by_" is
  *    a map type with keys that are the elements of the tuple that maps to the 
  *    values that are the counts that each element occurs in the tuple.
  */
-Semantic restriction "count for_" is
+Semantic restriction "counts for_" is
 [
  	aTupleType : tuple's type
  |
  	if |aTupleType| = 1 then
- 		[(count for aTupleType's instance)'s type]
+ 		[(counts for aTupleType's instance)'s type]
  	else 
  	[
  	   keyType ::= ∪ aTupleType[1..|aTupleType's leading types| + 1];
@@ -2038,3 +2042,271 @@ Semantic restriction "flatten_" is
  	 	<finalLeadingTypes,finalDefaultType…|card>
  	]
 ];
+
+/**
+ * Obtain the first element of a tuple.
+ *
+ * Parameters:
+ *    aTuple - a tuple.
+ * Returns:
+ *    the first element of the tuple.
+ */   
+Method "_'s⁇head" is
+[
+ 	aTuple : <any…|1..∞>
+ |
+ 	aTuple[1]
+]:any;
+
+/**
+ * Strengthen type.
+ *
+ * Parameters:
+ *    aTupleType - a tuple.
+ * Returns:
+ *    the element's type.
+ */
+Semantic restriction "_'s⁇head" is
+[
+	aTupleType : <any…|1..∞>'s type
+|
+	aTupleType[1]
+]; 
+
+/**
+ * Obtain the sub tuple of a tuple that includes all but the first element of
+ * the original tuple.
+ *
+ * Parameters:
+ *    aTuple - a tuple.
+ * Returns:
+ *    a tuple.
+ */   
+Method "_'s⁇tail" is
+[
+ 	aTuple : <any…|1..∞>
+ |
+ 	size ::= |aTuple|;
+ 	if size > 1 then
+ 	[
+ 		aTuple[2..size]
+ 	]
+ 	else
+ 	[
+ 		<>
+ 	]
+]:any;
+
+/**
+ * Strengthen type.
+ *
+ * Parameters:
+ *    aTuple - a tuple.
+ * Returns:
+ *    a tuple type.
+ */
+Semantic restriction "_'s⁇tail" is
+[
+	aTupleType : <any…|1..∞>'s type
+|
+	leadingTypes ::= aTupleType's leading types;
+	defaultType ::= aTupleType's default type;
+	sizeLeadingTypes ::= |leadingTypes|;
+	bound ::= ||aTupleType||'s upper bound;
+	lower ::= ||aTupleType||'s lower bound;
+	
+	if sizeLeadingTypes > 1 then
+	[
+		<leadingTypes[2..sizeLeadingTypes], defaultType…|[lower-1..bound)>
+	]
+	else
+	[
+	 	<defaultType…|lower-1..bound-1>
+	]
+]; 
+
+/**
+ * Obtain the last element of a tuple.
+ *
+ * Parameters:
+ *    aTuple - a tuple.
+ * Returns:
+ *    the last element of the tuple.
+ */   
+Method "_'s⁇last" is
+[
+ 	aTuple : <any…|1..∞>
+ |
+ 	aTuple[|aTuple|]
+]:any;
+
+/**
+ * Strengthen type.
+ *
+ * Parameters:
+ *    aTupleType - a tuple.
+ * Returns:
+ *    the element's type.
+ */
+Semantic restriction "_'s⁇last" is
+[
+	aTupleType : <any…|1..∞>'s type
+|
+	lower ::= ||aTupleType||'s lower bound;
+	maximum ::= relevant |aTupleType|;
+	∪ aTupleType[lower..maximum]
+]; 
+
+/**
+ * Sum the elements of a tuple of integers.
+ *
+ * Parameters:
+ *    intTuple - a tuple of integers.
+ *
+ * Returns:
+ *    An integer.
+ */
+Method "∑_" is
+[
+	intTuple : <integer…|1..∞>
+|
+	left fold intTuple through 
+	[
+		i : integer,
+		ri : integer
+	|
+		i + ri
+	]
+]: integer;
+
+/**
+ * Strengthen the return type
+ *
+ * Parameters:
+ *    intTupleType - a tuple of integer's type.
+ *
+ * Returns:
+ *    A number.
+ */
+Semantic restriction "∑_" is
+[
+	intTupleType : <integer…|1..∞>'s type
+|
+	leading ::= intTupleType's leading types;
+	defaultType ::= intTupleType's default type;
+	leadingSize ::= |leading|;
+	lowIndex ::= leadingSize min ||leading's type||'s lower bound;
+	lowBound ::= if leadingSize > 0 then 
+	[
+		(∑ (cast (map leading[1..lowIndex] through
+		[
+			i : any's type
+		|
+			x ::= cast i into [it : integer's type | it];
+			cast (x's lower bound) into [n : integer | n]
+		]) into [iTuple : <integer…|1..∞> | iTuple] )) + 
+			((||intTupleType||'s lower bound - lowIndex) max 0) × 
+			defaultType's lower bound
+	]
+	else
+	[
+		((||intTupleType||'s lower bound) max 0) × 
+			defaultType's lower bound
+	];
+	upBound ::= if leadingSize > 0 then 
+	[
+		(∑ (cast (map leading[1..lowIndex] through
+		[
+			i : any's type
+		|
+			x ::= cast i into [it : integer's type | it];
+			cast (x's upper bound) into [n : integer | n]
+		]) into [iTuple : <integer…|1..∞> | iTuple] )) + 
+			(intTupleType's default type's upper bound) ×
+			(||intTupleType||'s upper bound - leadingSize)
+	]
+	else
+	[
+		(intTupleType's default type's upper bound) ×
+			(||intTupleType||'s upper bound - leadingSize)
+	];
+	[lowBound..upBound+1)
+];
+
+/**
+ * Take the product of the elements of a tuple of integers.
+ *
+ * Parameters:
+ *    intTuple - a tuple of integers.
+ *    
+ * Returns:
+ *    An integer.
+ */
+/*TODO - RAA need to move exponentiation from Advanced Math to Math*/
+/*
+Method "∏_" is
+[
+	intTuple : <integer…|1..∞>
+|
+	left fold intTuple through 
+	[
+		i : integer,
+		ri : integer
+	|
+		i × ri
+	]
+]: integer;
+
+/**
+ * Strengthen the return type
+ *
+ * Parameters:
+ *    intTupleType - a tuple of integer's type.
+ *
+ * Returns:
+ *    A number.
+ */
+Semantic restriction "∏_" is
+[
+	intTupleType : <integer…|1..∞>'s type
+|
+	leading ::= intTupleType's leading types;
+	defaultType ::= intTupleType's default type;
+	leadingSize ::= |leading|;
+	lowIndex ::= leadingSize min ||leading's type||'s lower bound;
+	lowBound ::= if leadingSize > 0 then 
+	[
+		(∏ (cast (map leading[1..lowIndex] through
+		[
+			i : any's type
+		|
+			x ::= cast i into [it : integer's type | it];
+			cast (x's lower bound) into [n : integer | n]
+		]) into [iTuple : <integer…|1..∞> | iTuple] )) × 
+			((||intTupleType||'s lower bound - lowIndex) max 0) × 
+			defaultType's lower bound
+	]
+	else
+	[
+		((||intTupleType||'s lower bound) max 0) × 
+			defaultType's lower bound
+	];
+	upBound ::= if leadingSize > 0 then 
+	[
+		(∑ (cast (map leading[1..lowIndex] through
+		[
+			i : any's type
+		|
+			x ::= cast i into [it : integer's type | it];
+			cast (x's upper bound) into [n : integer | n]
+		]) into [iTuple : <integer…|1..∞> | iTuple] )) + 
+			(intTupleType's default type's upper bound) ×
+			(||intTupleType||'s upper bound - leadingSize)
+	]
+	else
+	[
+		(intTupleType's default type's upper bound) ×
+			(||intTupleType||'s upper bound - leadingSize)
+	];
+	[lowBound..upBound+1)
+];*/
