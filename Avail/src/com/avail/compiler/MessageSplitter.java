@@ -42,6 +42,7 @@ import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.compiler.scanning.AvailScanner;
 import com.avail.descriptor.*;
+import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.exceptions.*;
 
 /**
@@ -129,6 +130,20 @@ public class MessageSplitter
 		}
 
 		/**
+		 * If this isn't even a {@link Group} then it doesn't need
+		 * double-wrapping.  Override in Group.
+		 *
+		 * @return {@code true} if this is a group which will generate a tuple
+		 *         of fixed-length tuples, {@code false} if this group will
+		 *         generate a tuple of individual arguments or subgroups (or if
+		 *         this isn't a group).
+		 */
+		boolean needsDoubleWrapping ()
+		{
+			return false;
+		}
+
+		/**
 		 * Answer the number of non-backquoted underscores/ellipses that occur
 		 * in this section of the method name.
 		 *
@@ -189,6 +204,23 @@ public class MessageSplitter
 		{
 			return getClass().getSimpleName();
 		}
+
+		/**
+		 * Pretty-print this part of the message, using the provided argument
+		 * {@linkplain ParseNodeDescriptor nodes}.
+		 *
+		 * @param arguments
+		 *        An {@link Iterator} that provides parse nodes to fill in for
+		 *        arguments and subgroups.
+		 * @param aStream
+		 *        The {@link StringBuilder} on which to print.
+		 * @param indent
+		 *        The indentation level.
+		 */
+		abstract public void printWithArguments (
+			Iterator<AvailObject> arguments,
+			StringBuilder aStream,
+			int indent);
 	}
 
 	/**
@@ -252,6 +284,16 @@ public class MessageSplitter
 		{
 			assert false : "checkType() should not be called for Simple" +
 					" expressions";
+		}
+
+		@Override
+		public void printWithArguments (
+			final Iterator<AvailObject> arguments,
+			final StringBuilder aStream,
+			final int indent)
+		{
+			final AvailObject token = messageParts.get(tokenIndex - 1);
+			aStream.append(token.asNativeString());
 		}
 	}
 
@@ -325,6 +367,19 @@ public class MessageSplitter
 			}
 			return;
 		}
+
+		@Override
+		public void printWithArguments (
+			final Iterator<AvailObject> arguments,
+			final StringBuilder aStream,
+			final int indent)
+		{
+			arguments.next().printOnAvoidingIndent(
+				aStream,
+				new ArrayList<AvailObject>(),
+				indent + 1);
+		}
+
 	}
 
 	/**
@@ -361,6 +416,19 @@ public class MessageSplitter
 			list.add(parseRawToken.encoding());
 			list.add(checkArgument.encodingForOperand(
 				absoluteUnderscoreIndex));
+		}
+
+		@Override
+		public void printWithArguments (
+			final Iterator<AvailObject> arguments,
+			final StringBuilder aStream,
+			final int indent)
+		{
+			// Describe the token that was parsed as this raw token argument.
+			arguments.next().printOnAvoidingIndent(
+				aStream,
+				Collections.<AvailObject>emptyList(),
+				indent + 1);
 		}
 	}
 
@@ -530,6 +598,7 @@ public class MessageSplitter
 		 *         fixed-length tuples, {@code false} if this group will
 		 *         generate a tuple of individual arguments or subgroups.
 		 */
+		@Override
 		boolean needsDoubleWrapping ()
 		{
 			return argumentsBeforeDagger != 1 || argumentsAfterDagger != 0;
@@ -771,17 +840,59 @@ public class MessageSplitter
 			}
 		}
 
+		@Override
+		public void printWithArguments (
+			final Iterator<AvailObject> argumentProvider,
+			final @NotNull StringBuilder aStream,
+			final int indent)
+		{
+			final boolean needsDouble = needsDoubleWrapping();
+			final AvailObject groupArguments = argumentProvider.next();
+			final Iterator<AvailObject> occurrenceProvider =
+				groupArguments.expressionsTuple().iterator();
+			while (occurrenceProvider.hasNext())
+			{
+				final AvailObject occurrence = occurrenceProvider.next();
+				final Iterator<AvailObject> innerIterator;
+				if (needsDouble)
+				{
+					// The occurrence is itself a tuple node containing the
+					// parse nodes to fill in to this group's arguments and
+					// subgroups.
+					assert occurrence.isInstanceOfKind(
+						TUPLE_NODE.mostGeneralType());
+					innerIterator = occurrence.expressionsTuple().iterator();
+				}
+				else
+				{
+					// The argumentObject is a tupleNode of parse nodes.
+					// Each parse node is for the single argument or subgroup
+					// which is left of the double-dagger (and there are no
+					// arguments or subgroups to the right).
+					assert occurrence.isInstanceOfKind(
+						EXPRESSION_NODE.mostGeneralType());
+					final List<AvailObject> argumentNodes =
+						Collections.<AvailObject>singletonList(occurrence);
+					innerIterator = argumentNodes.iterator();
+				}
+				printGroupOccurrence(
+					innerIterator,
+					aStream,
+					indent,
+					occurrenceProvider.hasNext());
+				assert !innerIterator.hasNext();
+			}
+		}
+
 		/**
-		 * Pretty-print this part of the message, using the provided argument
-		 * {@linkplain ParseNodeDescriptor nodes}.
+		 * Pretty-print this part of the message, using the provided iterator
+		 * to supply arguments.  This prints a single occurrence of a repeated
+		 * group.  The completeGroup flag indicates if the double-dagger and
+		 * subsequent subexpressions should also be printed.
 		 *
-		 * @param availObject
-		 *        The arguments to this {@linkplain Group group}, organized as
-		 *        either a single {@linkplain ParseNodeDescriptor parse node} or
-		 *        a {@linkplain TupleNodeDescriptor tuple node} of parse nodes,
-		 *        depending on {@code doubleWrap}. The root group always has
-		 *        {@code doubleWrap} as {@code true}, and passes a synthetic
-		 *        tuple node.
+		 * @param argumentProvider
+		 *        An iterator to provide parse nodes for this group occurrence's
+		 *        arguments and subgroups.
 		 * @param aStream
 		 *        The {@link StringBuilder} on which to print.
 		 * @param indent
@@ -790,36 +901,14 @@ public class MessageSplitter
 		 *        Whether to produce a complete group or just up to the
 		 *        double-dagger. The last repetition of a subgroup uses false
 		 *        for this flag.
-		 * @param doubleWrap
-		 *        Whether to treat the arguments list as a tuple of values or a
-		 *        single value. {@code true} if the group's {@code
-		 *        needsDoubleWrapping()} is true. Forced to {@code true} for the
-		 *        root group.
 		 */
-		public void printWithArguments (
-			final @NotNull AvailObject availObject,
+		public void printGroupOccurrence (
+			final @NotNull Iterator<AvailObject> argumentProvider,
 			final @NotNull StringBuilder aStream,
 			final int indent,
-			final boolean completeGroup,
-			final boolean doubleWrap)
+			final boolean completeGroup)
 		{
 			aStream.append("«");
-			final Iterator<AvailObject> argumentsIterator;
-			if (doubleWrap)
-			{
-				assert availObject.isInstanceOfKind(
-					TUPLE_NODE.mostGeneralType());
-				argumentsIterator = availObject.expressionsTuple().iterator();
-			}
-			else
-			{
-				assert availObject.isInstanceOfKind(
-					EXPRESSION_NODE.mostGeneralType());
-				final List<AvailObject> argumentNodes =
-					Collections.singletonList(availObject);
-				argumentsIterator = argumentNodes.iterator();
-			}
-			boolean isFirst = true;
 			final List<Expression> expressionsToVisit;
 			if (completeGroup && !expressionsAfterDagger.isEmpty())
 			{
@@ -834,81 +923,28 @@ public class MessageSplitter
 			{
 				expressionsToVisit = expressionsBeforeDagger;
 			}
-			for (Expression expr : expressionsToVisit)
+			boolean isFirst = true;
+			for (final Expression expr : expressionsToVisit)
 			{
 				if (!isFirst)
 				{
 					aStream.append(" ");
 				}
-				if (expr instanceof CaseInsensitive)
-				{
-					expr = ((CaseInsensitive) expr).expression;
-				}
-				else if (expr instanceof CompletelyOptional)
-				{
-					expr = ((CompletelyOptional) expr).expression;
-				}
 				if (expr == null)
 				{
+					// Place-holder for the double-dagger.
 					aStream.append("‡");
-				}
-				else if (expr instanceof Alternation)
-				{
-					//TODO FIX THIS, YO!
-				}
-				else if (expr instanceof Simple)
-				{
-					final AvailObject token =
-						messageParts.get(((Simple)expr).tokenIndex - 1);
-					aStream.append(token.asNativeString());
-				}
-				else if (expr instanceof Argument)
-				{
-					final AvailObject argument = argumentsIterator.next();
-					argument.printOnAvoidingIndent(
-						aStream,
-						new ArrayList<AvailObject>(),
-						indent);
-				}
-				else if (expr instanceof Group)
-				{
-					final Group subgroup = (Group) expr;
-					final AvailObject argument = argumentsIterator.next();
-					final AvailObject occurrences = argument.expressionsTuple();
-					for (int i = 1; i <= occurrences.tupleSize(); i++)
-					{
-						if (i > 1)
-						{
-							aStream.append(" ");
-						}
-						subgroup.printWithArguments(
-							occurrences.tupleAt(i),
-							aStream,
-							indent,
-							i != occurrences.tupleSize(),
-							subgroup.needsDoubleWrapping());
-					}
-				}
-				else if (expr instanceof Counter)
-				{
-					final AvailObject argument = argumentsIterator.next();
-					argument.printOnAvoidingIndent(
-						aStream,
-						new ArrayList<AvailObject>(),
-						indent);
 				}
 				else
 				{
-					assert expr instanceof Optional;
-					final AvailObject argument = argumentsIterator.next();
-					argument.printOnAvoidingIndent(
+					expr.printWithArguments(
+						argumentProvider,
 						aStream,
-						new ArrayList<AvailObject>(),
 						indent);
 				}
 				isFirst = false;
 			}
-			assert !argumentsIterator.hasNext();
+			assert !argumentProvider.hasNext();
 			aStream.append("»");
 		}
 	}
@@ -1054,6 +1090,33 @@ public class MessageSplitter
 			builder.append(")");
 			return builder.toString();
 		}
+
+		@Override
+		public void printWithArguments (
+			final @NotNull Iterator<AvailObject> argumentProvider,
+			final StringBuilder aStream,
+			final int indent)
+		{
+			final AvailObject countLiteral = argumentProvider.next();
+			assert countLiteral.isInstanceOf(
+				ParseNodeKind.LITERAL_NODE.mostGeneralType());
+			final int count = countLiteral.token().literal().extractInt();
+			final Iterator<AvailObject> emptyProvider =
+				Collections.<AvailObject>emptyIterator();
+			for (int i = 1; i <= count; i++)
+			{
+				if (i > 1)
+				{
+					aStream.append(" ");
+				}
+				group.printGroupOccurrence(
+					emptyProvider,
+					aStream,
+					indent,
+					isArgumentOrGroup());
+			}
+			aStream.append("#");
+		}
 	}
 
 	/**
@@ -1169,6 +1232,26 @@ public class MessageSplitter
 			builder.append(")");
 			return builder.toString();
 		}
+
+		@Override
+		public void printWithArguments (
+			final Iterator<AvailObject> argumentProvider,
+			final StringBuilder aStream,
+			final int indent)
+		{
+			final AvailObject literal = argumentProvider.next();
+			assert literal.isInstanceOf(
+				ParseNodeKind.LITERAL_NODE.mostGeneralType());
+			final boolean flag = literal.token().literal().extractBoolean();
+			if (flag)
+			{
+				group.printGroupOccurrence(
+					Collections.<AvailObject>emptyIterator(),
+					aStream,
+					indent,
+					true);
+			}
+		}
 	}
 
 	/**
@@ -1251,12 +1334,6 @@ public class MessageSplitter
 		}
 
 		@Override
-		boolean isArgumentOrGroup ()
-		{
-			return false;
-		}
-
-		@Override
 		int underscoreCount ()
 		{
 			assert expression.underscoreCount() == 0;
@@ -1287,6 +1364,19 @@ public class MessageSplitter
 			builder.append(expression);
 			builder.append(")");
 			return builder.toString();
+		}
+
+		@Override
+		public void printWithArguments (
+			final Iterator<AvailObject> argumentProvider,
+			final StringBuilder aStream,
+			final int indent)
+		{
+			expression.printWithArguments(
+				argumentProvider,
+				aStream,
+				indent);
+			aStream.append("?");
 		}
 	}
 
@@ -1361,6 +1451,19 @@ public class MessageSplitter
 			builder.append(expression);
 			builder.append(")");
 			return builder.toString();
+		}
+
+		@Override
+		public void printWithArguments (
+			final Iterator<AvailObject> argumentProvider,
+			final StringBuilder aStream,
+			final int indent)
+		{
+			expression.printWithArguments(
+				argumentProvider,
+				aStream,
+				indent);
+			aStream.append("~");
 		}
 	}
 
@@ -1448,12 +1551,6 @@ public class MessageSplitter
 		}
 
 		@Override
-		boolean isArgumentOrGroup ()
-		{
-			return false;
-		}
-
-		@Override
 		int underscoreCount ()
 		{
 			return 0;
@@ -1498,6 +1595,27 @@ public class MessageSplitter
 			}
 			builder.append(")");
 			return builder.toString();
+		}
+
+		@Override
+		public void printWithArguments (
+			final Iterator<AvailObject> argumentProvider,
+			final StringBuilder aStream,
+			final int indent)
+		{
+			boolean isFirst = true;
+			for (final Expression alternative : alternatives)
+			{
+				if (!isFirst)
+				{
+					aStream.append("|");
+				}
+				alternative.printWithArguments(
+					null,
+					aStream,
+					indent);
+				isFirst = false;
+			}
 		}
 	}
 
@@ -1599,11 +1717,10 @@ public class MessageSplitter
 		final StringBuilder aStream,
 		final int indent)
 	{
-		rootGroup.printWithArguments(
-			TupleNodeDescriptor.newExpressions(sendNode.arguments()),
+		rootGroup.printGroupOccurrence(
+			sendNode.arguments().iterator(),
 			aStream,
 			indent,
-			true,
 			true);
 	}
 

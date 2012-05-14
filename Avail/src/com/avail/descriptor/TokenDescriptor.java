@@ -132,6 +132,15 @@ extends Descriptor
 		LITERAL,
 
 		/**
+		 * A power string token, detected at lexical scanning time. Actually,
+		 * that "scanning time" distinction is a bit vacuous, since lexical
+		 * scanning is fully incremental and on-demand, specifically to support
+		 * power strings. This token type is only applicable for a {@link
+		 * PowerStringTokenDescriptor power string token}.
+		 */
+		POWER_STRING,
+
+		/**
 		 * A single operator character, which is anything that isn't whitespace,
 		 * a keyword character, or an Avail reserved character such as
 		 * semicolon.

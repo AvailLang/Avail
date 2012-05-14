@@ -327,43 +327,11 @@ public enum L1Operation
 	},
 
 	/**
-	 * Expect arguments to have pushed on the stack, followed by the argument
-	 * types with which to perform a method lookup.  The literal index of the
-	 * {@linkplain MethodDescriptor method} is the first
-	 * operand, and the second is the literal index of the type that this call
-	 * site is supposed to produce.  After popping the arguments and argument
-	 * types, push the expected type.  The callee will check its return result
-	 * against this pushed type, leading to a runtime error if they disagree.
-	 */
-	L1Ext_doSuperCall(19, L1OperandType.LITERAL, L1OperandType.LITERAL)
-	{
-		@Override
-		public void dispatch(final L1OperationDispatcher operationDispatcher)
-		{
-			operationDispatcher.L1Ext_doSuperCall();
-		}
-	},
-
-	/**
-	 * Compute the type of the object at the specified depth on the stack, and
-	 * push it.  Used only for arguments to a {@linkplain #L1Ext_doSuperCall
-	 * super call}.
-	 */
-	L1Ext_doGetType(20, L1OperandType.IMMEDIATE)
-	{
-		@Override
-		public void dispatch(final L1OperationDispatcher operationDispatcher)
-		{
-			operationDispatcher.L1Ext_doGetType();
-		}
-	},
-
-	/**
 	 * Duplicate the top stack element (i.e., push another occurrence of the top
 	 * of stack}.  Make the object immutable since it now has an additional
 	 * reference.
 	 */
-	L1Ext_doDuplicate(21)
+	L1Ext_doDuplicate(19)
 	{
 		@Override
 		public void dispatch (final L1OperationDispatcher operationDispatcher)
@@ -375,7 +343,7 @@ public enum L1Operation
 	/**
 	 * An unsupported instruction was encountered.
 	 */
-	L1Ext_doReserved(22)
+	L1Ext_doReserved(20)
 	{
 		@Override
 		public void dispatch(final L1OperationDispatcher operationDispatcher)
@@ -388,7 +356,7 @@ public enum L1Operation
 	 * The nybblecode stream has been exhausted, and all that's left is to
 	 * perform an implicit return to the caller.
 	 */
-	L1Implied_Return(23)
+	L1Implied_Return(21)
 	{
 		@Override
 		public void dispatch(final L1OperationDispatcher operationDispatcher)

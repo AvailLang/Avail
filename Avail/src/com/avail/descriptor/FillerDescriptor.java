@@ -32,6 +32,9 @@
 
 package com.avail.descriptor;
 
+import java.util.List;
+import com.avail.annotations.NotNull;
+
 /**
  * {@code FillerDescriptor} represents an unreachable {@link AvailObject} of
  * arbitrary size. It exists solely to occupy dead space during an object
@@ -40,6 +43,17 @@ package com.avail.descriptor;
 public class FillerDescriptor
 extends Descriptor
 {
+	@Override
+	public void printObjectOnAvoidingIndent (
+		final @NotNull AvailObject object,
+		final @NotNull StringBuilder builder,
+		final @NotNull List<AvailObject> recursionList,
+		final int indent)
+	{
+		builder.append("(*** a destroyed object ***)");
+	}
+
+
 	/**
 	 * Construct a new {@link FillerDescriptor}.
 	 *

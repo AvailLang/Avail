@@ -83,6 +83,7 @@ public class AvailCompilerBipartiteRendezvous
 	 */
 	void addSolution(final AvailCompilerCachedSolution solution)
 	{
+		solution.parseNode.makeImmutable();
 		solutions.add(solution);
 		for (final Con<AvailObject> action : actions)
 		{

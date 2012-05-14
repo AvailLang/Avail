@@ -43,7 +43,6 @@ Names
 	"Get Variable Instruction",
 		"Get Local Instruction",
 		"Get Outer Instruction",
-	"Get Type Instruction",
 	"Label Instruction",
 	"Make Tuple Instruction",
 	"Pop Instruction",
@@ -56,14 +55,12 @@ Names
 	"Set Variable Instruction",
 		"Set Local Instruction",
 		"Set Outer Instruction",
-	"Super Call Instruction",
 
 	"new Call Instruction literal index_type_",
 	"new Close Instruction literal index_number of outers_",
 	"new Get Literal Instruction literal index_",
 	"new Get Local Instruction local index_",
 	"new Get Outer Instruction outer index_",
-	"new Get Type Instruction depth_",
 	"new Label Instruction",
 	"new Make Tuple Instruction count_",
 	"new Pop Instruction",
@@ -74,7 +71,6 @@ Names
 	"new Set Literal Instruction literal index_",
 	"new Set Local Instruction local index_",
 	"new Set Outer Instruction outer index_",
-	"new Super Call Instruction literal index_",
 
 	"_index",
 	"_canClear",
@@ -100,7 +96,6 @@ label ::= lookup "label";
 	"Call Instruction" is explicit subtype of Instruction with
 			[index -> natural number]
 			[typeIndex -> natural number];
-		"Super Call Instruction" is explicit subtype of Call Instruction;
 	"Close Instruction" is explicit subtype of Instruction with
 			[numCopied -> whole number]
 			[index -> natural number];
@@ -112,8 +107,6 @@ label ::= lookup "label";
 			[index -> natural number];
 		"Get Outer Instruction" is explicit subtype of Get Variable Instruction with
 			[index -> natural number];
-	"Get Type Instruction" is explicit subtype of Instruction with
-			[depth -> whole number];
 	"Label Instruction" is explicit subtype of Instruction;
 	"Make Tuple Instruction" is explicit subtype of Instruction with
 			[count -> whole number];
@@ -187,12 +180,6 @@ Method "new Get Outer Instruction outer index_" is [
 	>;
 ];
 
-Method "new Get Type Instruction depth_" is [depthValue : whole number |
-	Get Type Instruction new with <
-		<depth, depthValue>
-	>;
-];
-
 Method "new Label Instruction" is [
 	Label Instruction new with <>;
 ];
@@ -253,15 +240,6 @@ Method "new Set Outer Instruction outer index_" is [outerIndex : natural number 
 	>;
 ];
 
-Method "new Super Call Instruction literal index_type_" is [
-		messageIndex : natural number,
-		theTypeIndex : natural number |
-	Super Call Instruction new with <
-		<index, messageIndex>,
-		<typeIndex, theTypeIndex>
-	>;
-];
-
 
 
 /* Instruction emission methods... */
@@ -286,10 +264,6 @@ Method "_emit instruction_" is [cg : Nybblecode Generator, instr : Get Local Ins
 
 Method "_emit instruction_" is [cg : Nybblecode Generator, instr : Get Outer Instruction |
 	cg get outer instr->index can clear *instr->canClear;
-];
-
-Method "_emit instruction_" is [cg : Nybblecode Generator, instr : Get Type Instruction |
-	cg get type at depth instr->depth;
 ];
 
 Method "_emit instruction_" is [cg : Nybblecode Generator, instr : Label Instruction |
@@ -330,10 +304,6 @@ Method "_emit instruction_" is [cg : Nybblecode Generator, instr : Set Local Ins
 
 Method "_emit instruction_" is [cg : Nybblecode Generator, instr : Set Outer Instruction |
 	cg set outer instr->index;
-];
-
-Method "_emit instruction_" is [cg : Nybblecode Generator, instr : Super Call Instruction |
-	cg super call instr->index type instr->typeIndexx;
 ];
 
 

@@ -853,32 +853,6 @@ public abstract class AbstractDescriptor
 		AvailObject functionType);
 
 	/**
-	 * The {@linkplain TypeDescriptor argument types} have been pushed onto
-	 * the specified {@linkplain ContinuationDescriptor continuation}'s stack.
-	 * Answer whether these arguments are acceptable for invoking a {@linkplain
-	 * FunctionDescriptor function} whose type is the receiver.
-	 *
-	 * @see AvailObject#acceptsArgumentTypesFromContinuation(AvailObject, int, int)
-	 * @param object
-	 *        The receiver.
-	 * @param continuation
-	 *        The continuation whose stack is to be checked.
-	 * @param stackp
-	 *        The stack pointer.
-	 * @param numArgs
-	 *        The number of arguments that have been pushed onto the
-	 *        continuation's stack.
-	 * @return {@code true} if the arguments of the receiver are, pairwise, more
-	 *         general than those within the {@code continuation}'s stack,
-	 *         {@code false} otherwise.
-	 */
-	abstract boolean o_AcceptsArgumentTypesFromContinuation (
-		@NotNull AvailObject object,
-		AvailObject continuation,
-		int stackp,
-		int numArgs);
-
-	/**
 	 * Answer whether these are acceptable {@linkplain TypeDescriptor argument
 	 * types} for invoking a {@linkplain FunctionDescriptor function} whose type
 	 * is the {@code object}.
@@ -1883,26 +1857,6 @@ public abstract class AbstractDescriptor
 	abstract AvailObject o_LocalTypeAt (
 		@NotNull AvailObject object,
 		int index);
-
-	/**
-	 * @param object
-	 * @param argumentTypeList
-	 * @return
-	 */
-	abstract AvailObject o_LookupByTypesFromList (
-		@NotNull AvailObject object,
-		List<AvailObject> argumentTypeList);
-
-	/**
-	 * @param object
-	 * @param continuation
-	 * @param stackp
-	 * @return
-	 */
-	abstract AvailObject o_LookupByTypesFromContinuationStackp (
-		@NotNull AvailObject object,
-		AvailObject continuation,
-		int stackp);
 
 	/**
 	 * @param object
@@ -4512,20 +4466,6 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract AvailObject o_Method (AvailObject object);
-
-	/**
-	 * @param object
-	 * @param superCastType
-	 */
-	abstract void o_SuperCastType (
-		@NotNull AvailObject object,
-		AvailObject superCastType);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	abstract AvailObject o_SuperCastType (AvailObject object);
 
 	/**
 	 * @param object

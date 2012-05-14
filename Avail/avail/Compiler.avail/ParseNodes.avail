@@ -49,7 +49,6 @@ Names
 	"Literal Node",
 	"Reference Node",
 	"Send Node",
-	"Super Cast Node",
 	"Variable Use Node",
 
 	"new Declaration Node variable_",
@@ -64,7 +63,6 @@ Names
 	"new Assignment Node declaration_value_",
 	"new Reference Node declaration_",
 	"new Send Node bundle_arguments_return type_",
-	"new Super Cast Node expression_type_",
 
 	"_variable",
 	"_expression",
@@ -130,9 +128,6 @@ myType ::= lookup "myType";
 			[bundle -> messageBundle]
 			[arguments -> tuple of Parse Node]
 			[returnType -> type];
-	"Super Cast Node" is explicit subtype of Parse Node with
-			[expression -> Parse Node]
-			[myType -> type];
 	"Variable Use Node" is explicit subtype of Parse Node with
 			[declaration -> Declaration Node];
 
@@ -154,8 +149,6 @@ Reference Node has fields
 	<"declaration">;
 Send Node has fields
 	<"bundle", "arguments", "returnType">;
-Super Cast Node has fields
-	<"expression", "myType">;
 Variable Use Node has fields
 	<"declaration">;
 
@@ -276,16 +269,6 @@ Method "new Send Node bundle_arguments_return type_" is [
 ] : Send Node;
 
 
-Method "new Super Cast Node expression_type_" is [
-		expr : Parse Node,
-		castType : type |
-	Super Cast Node new with <
-		<expression, expr>,
-		<myType, castType>
-	>;
-] : Super Cast Node;
-
-
 
 /* Calculating which outer variables are referenced from a Parse Node... */
 
@@ -348,12 +331,6 @@ Method "_accumulate needed outer variables in_" is [
 	];
 ];
 
-Method "_accumulate needed outer variables in_" is [
-		node : Super Cast Node,
-		outers : & : set of Declaration Node |
-	node expression accumulate needed outer variables in outers;
-];
-
 
 
 
@@ -396,9 +373,3 @@ Method "_result type" is [node : Reference Node |
 Method "_result type" is [node : Send Node |
 	node returnType;
 ] : type;
-
-Method "_result type" is [node : Super Cast Node |
-	node myType;
-] : type;
-
-

@@ -409,13 +409,6 @@ extends AbstractTypeDescriptor
 		final AvailObject functionType);
 
 	@Override @AvailMethod
-	abstract boolean o_AcceptsArgumentTypesFromContinuation (
-		final @NotNull AvailObject object,
-		final AvailObject continuation,
-		final int stackp,
-		final int numArgs);
-
-	@Override @AvailMethod
 	abstract boolean o_AcceptsListOfArgTypes (
 		final @NotNull AvailObject object,
 		final List<AvailObject> argTypes);

@@ -68,7 +68,6 @@ primitiveTypes := <
 	literalNode,
 	referenceNode,
 	sendNode,
-	superCastNode,
 	variableDeclarationNode,
 	syntheticConstantNode,
 	initializingDeclarationNode,

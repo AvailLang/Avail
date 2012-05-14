@@ -47,7 +47,6 @@ Names
 	"_get literal_",
 	"_get local_",
 	"_get outer_",
-	"_get type at depth_",
 	"_make tuple_",
 	"_pop",
 	"_push label",
@@ -57,7 +56,6 @@ Names
 	"_set literal_",
 	"_set local_",
 	"_set outer_",
-	"_super call_arg count_type_",
 
 	"_reference variable_",
 	"_use variable_",
@@ -230,15 +228,6 @@ Method "_get outer_" is [
 	gen increase stack by 1;   /* push outer's value */
 ];
 
-Method "_get type at depth_" is [
-		gen : Instruction Generator,
-		depth : whole number |
-	gen add instruction
-		new Get Type Instruction depth depth;
-	gen decrease stack by depth + 1;   /* make sure we can reach the value */
-	gen increase stack by depth + 2;   /* compensate for above, and push the type */
-];
-
 Method "_make tuple_" is [
 		gen : Instruction Generator,
 		count : whole number |
@@ -306,19 +295,6 @@ Method "_set outer_" is [
 	gen add instruction
 		new Set Outer Instruction outer index gen outerMap[outer];
 	gen decrease stack by 1;   /* pop the value */
-];
-
-Method "_super call_arg count_" is [
-		gen : Instruction Generator,
-		msgName : atom,
-		count : whole number,
-		resultType : type |
-	gen add instruction
-		new Super Call Instruction
-			literal index gen index of literal msgName implementation set
-			type resultType;
-	gen decrease stack by count * 2;   /* pop arguments and their types */
-	gen increase stack by 1;   /* push result */
 ];
 
 

@@ -53,13 +53,6 @@ extends Descriptor
 		final @NotNull AvailObject functionType);
 
 	@Override @AvailMethod
-	abstract boolean o_AcceptsArgumentTypesFromContinuation (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject continuation,
-		final int stackp,
-		final int numArgs);
-
-	@Override @AvailMethod
 	abstract boolean o_AcceptsListOfArgTypes (
 		final @NotNull AvailObject object,
 		final @NotNull List<AvailObject> argTypes);

@@ -168,7 +168,9 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 				builder.append('$');
 				builder.append(object.token().string().asNativeString());
 				builder.append(':');
-				object.declaredType().printOnAvoidingIndent(
+				final AvailObject functionType =
+					object.declaredType().functionType();
+				functionType.returnType().printOnAvoidingIndent(
 					builder,
 					recursionList,
 					indent + 1);

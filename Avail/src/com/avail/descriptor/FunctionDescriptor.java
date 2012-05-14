@@ -32,12 +32,9 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static java.util.Arrays.fill;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.interpreter.levelOne.*;
-import com.avail.interpreter.primitive.P_340_PushConstant;
 import com.avail.serialization.SerializerOperation;
 
 /**

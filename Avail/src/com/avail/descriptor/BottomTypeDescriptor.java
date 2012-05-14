@@ -449,16 +449,6 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_AcceptsArgumentTypesFromContinuation (
-		final @NotNull AvailObject object,
-		final AvailObject continuation,
-		final int stackp,
-		final int numArgs)
-	{
-		return true;
-	}
-
-	@Override @AvailMethod
 	boolean o_AcceptsListOfArgTypes (
 		final @NotNull AvailObject object,
 		final List<AvailObject> argTypes)

@@ -239,18 +239,6 @@ abstract class L1StackTracker implements L1OperationDispatcher
 	}
 
 	@Override
-	public void L1Ext_doSuperCall ()
-	{
-		currentDepth += 1 - literalAt(currentOperands[0]).numArgs() * 2;
-	}
-
-	@Override
-	public void L1Ext_doGetType ()
-	{
-		currentDepth++;
-	}
-
-	@Override
 	public void L1Ext_doDuplicate ()
 	{
 		currentDepth++;

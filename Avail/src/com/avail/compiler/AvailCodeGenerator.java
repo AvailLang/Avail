@@ -350,31 +350,6 @@ public class AvailCodeGenerator
 	}
 
 
-
-	/**
-	 * Write a multimethod super-call.  I expect the arguments to have been
-	 * pushed, as well as the types that those arguments should be considered
-	 * for the purpose of lookup.
-	 *
-	 * @param nArgs The number of arguments that the method accepts.
-	 * @param method The method in which to look up the
-	 *                          method being invoked.
-	 * @param returnType The expected return type of the call.
-	 */
-	public void emitSuperCall (
-		final int nArgs,
-		final AvailObject method,
-		final AvailObject returnType)
-	{
-		final int messageIndex = indexOfLiteral(method);
-		final int returnIndex = indexOfLiteral(returnType);
-		instructions.add(new AvailSuperCall(messageIndex, returnIndex));
-		// Pops off all types then all values.
-		decreaseDepth(nArgs + nArgs);
-		// Pushes expected return type, to be overwritten by return value.
-		increaseDepth(1);
-	}
-
 	/**
 	 * Write a regular multimethod call.  I expect my arguments to have been
 	 * pushed already.
@@ -483,27 +458,6 @@ public class AvailCodeGenerator
 		}
 		error("Consistency error - unknown variable.");
 		return;
-	}
-
-	/**
-	 * Emit code to push the type of the value N levels deep in the stack.
-	 *
-	 * @param stackDepth
-	 *        How far down the stack to look for the value whose type should be
-	 *        computed and pushed.
-	 */
-	public void emitGetType (
-		final int stackDepth)
-	{
-		instructions.add(new AvailGetType(stackDepth));
-		decreaseDepth(stackDepth + 1);
-		// make sure there are sufficient elements on the stack by 'testing the
-		// water'.
-		increaseDepth(stackDepth + 1);
-		//  undo the effect of 'testing the water'.
-
-		//  push the type
-		increaseDepth(1);
 	}
 
 	/**

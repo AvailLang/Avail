@@ -60,6 +60,7 @@ public class P_075_CreateStubFunctionTakingTuple extends Primitive
 		assert args.size() == 1;
 		final AvailObject function = args.get(0);
 		final AvailObject argsType = function.functionType().argsTupleType();
+		//TODO [MvG] Finish for currying.
 		return interpreter.primitiveSuccess(
 			FunctionDescriptor.createStubTakingTupleFrom(
 				function));

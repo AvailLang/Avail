@@ -575,13 +575,6 @@ public class L1Decompiler
 		}
 
 		@Override
-		public void L1Ext_doGetType ()
-		{
-			getInteger();
-			pushExpression(null);
-		}
-
-		@Override
 		public void L1Ext_doPushLabel ()
 		{
 			AvailObject label;
@@ -657,46 +650,6 @@ public class L1Decompiler
 				assert duplicateExpression.markerValue().equalsNull();
 				expressionStack.add(assignmentNode);
 			}
-		}
-
-		@Override
-		public void L1Ext_doSuperCall ()
-		{
-			final AvailObject method = code.literalAt(getInteger());
-			final AvailObject type = code.literalAt(getInteger());
-			final AvailObject atom = method.name();
-			int nArgs = 0;
-			final AvailObject str = atom.name();
-			final AvailObject underscore =
-				StringDescriptor.underscore().tupleAt(1);
-			for (int i = 1, end = str.tupleSize(); i <= end; i++)
-			{
-				if (str.tupleAt(i).equals(underscore))
-				{
-					nArgs++;
-				}
-			}
-			final List<AvailObject> types = popExpressions(nArgs);
-			final List<AvailObject> callArgs = popExpressions(nArgs);
-			for (int i = 0; i < nArgs; i++)
-			{
-				final AvailObject typeLiteralNode = types.get(i);
-				if (typeLiteralNode != null)
-				{
-					assert typeLiteralNode.isInstanceOfKind(
-						LITERAL_NODE.mostGeneralType());
-					final AvailObject superCast =
-						SuperCastNodeDescriptor.mutable().create();
-					superCast.expression(callArgs.get(i));
-					superCast.superCastType(typeLiteralNode.token().literal());
-					callArgs.set(i, superCast);
-				}
-			}
-			final AvailObject sendNode = SendNodeDescriptor.from(
-				method,
-				TupleDescriptor.fromCollection(callArgs),
-				type);
-			pushExpression(sendNode);
 		}
 
 		@Override

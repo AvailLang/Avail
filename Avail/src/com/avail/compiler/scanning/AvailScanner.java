@@ -491,115 +491,45 @@ public class AvailScanner
 							case '\"':
 								stringBuilder.append('\"');
 								break;
-							case '(':
-								c = scanner.next();
-								while (c != ')')
-								{
-									int value = 0;
-									int digitCount = 0;
-									while (c != ',' && c != ')')
-									{
-										if (c >= '0' && c <= '9')
-										{
-											value = (value << 4) + c - '0';
-											digitCount++;
-										}
-										else if (c >= 'A' && c <= 'F')
-										{
-											value = (value << 4) + c - 'A' + 10;
-											digitCount++;
-										}
-										else
-										{
-											throw new AvailScannerException(
-												"Expected an upper case hex"
-												+ " digit or comma or closing"
-												+ " parenthesis",
-												scanner);
-										}
-										if (digitCount > 6)
-										{
-											throw new AvailScannerException(
-												"Expected at most six hex"
-												+ " digits per comma-separated"
-												+ " Unicode entry",
-												scanner);
-										}
-										c = scanner.next();
-									}
-									if (digitCount == 0)
-									{
-										throw new AvailScannerException(
-											"Expected a comma-separated list"
-											+ " of Unicode code points, each"
-											+ " being one to six (upper case)"
-											+ " hexadecimal digits",
-											scanner);
-									}
-									assert digitCount >= 1 && digitCount <= 6;
-									if (value
-										> CharacterDescriptor.maxCodePointInt)
-									{
-										throw new AvailScannerException(
-											"The maximum allowed code point for"
-											+ "a Unicode character is U+10FFFF",
-											scanner);
-									}
-									stringBuilder.appendCodePoint(value);
-									assert c == ',' || c == ')';
-									if (c == ',')
-									{
-										c = scanner.next();
-									}
-								}
-								assert c == ')';
-								break;
-							case '[':
-								// TODO: [MvG] Support power strings
-								throw new AvailScannerException(
-									"Power strings are not yet supported",
-									scanner);
 							case '\r':
+								// Treat \r or \r\n in the source as \n.
+								if (!scanner.atEnd())
+								{
+									scanner.peekFor('\n');
+								}
+								//$FALL-THROUGH$
 							case '\n':
 								// A backslash ending a line.  Emit nothing.
 								break;
 							case '|':
 								// Remove all immediately preceding white space
 								// from this line.
-								loop:
-								while (true)
-								{
-									final int codePoint =
-										stringBuilder.codePointBefore(
-											stringBuilder.length());
-									if (Character.isWhitespace(codePoint)
-										&& codePoint != '\r'
-										&& codePoint != '\n')
-									{
-										stringBuilder.setLength(
-											stringBuilder.length() -
-												Character.charCount(codePoint));
-									}
-									else
-									{
-										break loop;
-									}
-								}
+								removeTrailingWhitespaceOnSameLine(
+									stringBuilder);
 								break;
+							case '(':
+								parseUnicodeEscapes(scanner, stringBuilder);
+								break;
+							case '[':
+								throw new AvailScannerException(
+									"Power strings are not yet supported",
+									scanner);
+								// TODO parsePowerString(scanner);
+								// break;
 							default:
 								throw new AvailScannerException(
-									"Backslash escape should be followed by "
-									+ "one of n, r, t, \\, \", (, [, |, or a "
-									+ "line break",
+									"Backslash escape should be followed by"
+									+ " one of n, r, t, \\, \", (, [, |, or a"
+									+ " line break",
 									scanner);
 						}
 					}
 					else if (c == '\r')
 					{
 						// Transform \r or \r\n in the source into \n.
-						if (!scanner.atEnd() && scanner.peekFor('\n'))
+						if (!scanner.atEnd())
 						{
-							scanner.next();
+							scanner.peekFor('\n');
 						}
 						stringBuilder.appendCodePoint('\n');
 					}
@@ -619,6 +549,111 @@ public class AvailScanner
 				final AvailObject availValue = StringDescriptor.from(string);
 				availValue.makeImmutable();
 				scanner.addCurrentLiteralToken(availValue);
+			}
+
+			/**
+			 * Remove trailing non-line-breaking whitespace from the
+			 * stringBuilder.
+			 *
+			 * @param stringBuilder The {@link StringBuilder} to trim.
+			 */
+			private void removeTrailingWhitespaceOnSameLine (
+				final StringBuilder stringBuilder)
+			{
+				while (stringBuilder.length() > 0)
+				{
+					final int codePoint = stringBuilder.codePointBefore(
+						stringBuilder.length());
+					if (Character.isWhitespace(codePoint)
+						&& codePoint != '\r'
+						&& codePoint != '\n')
+					{
+						stringBuilder.setLength(
+							stringBuilder.length() -
+								Character.charCount(codePoint));
+					}
+					else
+					{
+						return;
+					}
+				}
+			}
+
+			/**
+			 * Parse Unicode hexadecimal encoded characters.  The characters
+			 * "\" and "(" were just encountered, so expect a comma-separated
+			 * sequence of upper case hex sequences, each of no more than six
+			 * digits, and having a value between 0 and 0x10FFFF, followed by a
+			 * ")".
+			 *
+			 * @param scanner
+			 *            The source of characters.
+			 * @param stringBuilder
+			 *            The {@link StringBuilder} on which to append the
+			 *            corresponding Unicode characters.
+			 */
+			private void parseUnicodeEscapes (
+				final AvailScanner scanner,
+				final StringBuilder stringBuilder)
+			{
+				int c;
+				c = scanner.next();
+				while (c != ')')
+				{
+					int value = 0;
+					int digitCount = 0;
+					while (c != ',' && c != ')')
+					{
+						if (c >= '0' && c <= '9')
+						{
+							value = (value << 4) + c - '0';
+							digitCount++;
+						}
+						else if (c >= 'A' && c <= 'F')
+						{
+							value = (value << 4) + c - 'A' + 10;
+							digitCount++;
+						}
+						else
+						{
+							throw new AvailScannerException(
+								"Expected an upper case hex  digit or comma or"
+								+ " closing parenthesis",
+								scanner);
+						}
+						if (digitCount > 6)
+						{
+							throw new AvailScannerException(
+								"Expected at most six hex digits per"
+								+ " comma-separated Unicode entry",
+								scanner);
+						}
+						c = scanner.next();
+					}
+					if (digitCount == 0)
+					{
+						throw new AvailScannerException(
+							"Expected a comma-separated list of Unicode code"
+							+ " points, each being one to six (upper case)"
+							+ " hexadecimal digits",
+							scanner);
+					}
+					assert digitCount >= 1 && digitCount <= 6;
+					if (value > CharacterDescriptor.maxCodePointInt)
+					{
+						throw new AvailScannerException(
+							"The maximum allowed code point for a Unicode"
+							+ " character is U+10FFFF",
+							scanner);
+					}
+					stringBuilder.appendCodePoint(value);
+					assert c == ',' || c == ')';
+					if (c == ',')
+					{
+						c = scanner.next();
+					}
+				}
+				assert c == ')';
 			}
 		},
 

@@ -135,31 +135,10 @@ Method "_emit value on_" is [node : Send Node, gen : Instruction Generator |
 	args do [arg : Parse Node |
 		arg emit value on gen;
 	];
-	if (args any [arg : Parse Node | arg type <= Super Cast Node;]) then [
-		/* Emit a super call... */
-		args do [arg : Parse Node |
-			cast arg into [sup : Super Cast Node |
-				gen push literal sup myType;
-			] otherwise [
-				gen get type at depth (||args|| - 1 max 0);
-			];
-		];
-		gen
-			super call (node bundle message)
-			arg count ||args||
-			type node returnType;
-	] else [
-		/* Emit a regular message invocation... */
-		gen
-			call (node bundle message)
-			arg count ||args||
-			type node returnType;
-	];
-];
-
-Method "_emit value on_" is [node : Super Cast Node, gen : Instruction Generator |
-	/* Ignore for now that it's a Super Cast Node.  Use the expression inside. */
-	node expression emit value on gen;
+	gen
+		call (node bundle message)
+		arg count ||args||
+		type node returnType;
 ];
 
 Method "_emit value on_" is [node : Variable Use Node, gen : Instruction Generator |
@@ -213,10 +192,6 @@ Method "_emit effect on_" is [node : Variable Use Node, gen : Instruction Genera
 
 Method "_emit effect on_" is [node : Reference Node, gen : Instruction Generator |
 	Crash "A reference expression by itself can't be a statement";
-];
-
-Method "_emit effect on_" is [node : Super Cast Node, gen : Instruction Generator |
-	Crash "A super cast expression by itself can't be a statement";
 ];
 
 

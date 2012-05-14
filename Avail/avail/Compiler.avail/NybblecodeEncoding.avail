@@ -52,9 +52,7 @@ Names
 	"makeTupleNybbles",
 	"pushLabelNybbles",
 	"getLiteralNybbles",
-	"setLiteralNybbles",
-	"superCallNybbles",
-	"getTypeNybbles"
+	"setLiteralNybbles"
 Body
 
 
@@ -83,6 +81,4 @@ Method "getOuterNybbles" is [<14>;];
 Method "pushLabelNybbles" is [<15,0>;];
 Method "getLiteralNybbles" is [<15,1>;];
 Method "setLiteralNybbles" is [<15,2>;];
-Method "superCallNybbles" is [<15,3>;];
-Method "getTypeNybbles" is [<15,4>;];
 

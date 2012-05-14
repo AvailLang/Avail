@@ -251,19 +251,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_AcceptsArgumentTypesFromContinuation (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject continuation,
-		final int stackp,
-		final int numArgs)
-	{
-		return o_Traversed(object).acceptsArgumentTypesFromContinuation(
-			continuation,
-			stackp,
-			numArgs);
-	}
-
-	@Override
 	boolean o_AcceptsListOfArgTypes (
 		final @NotNull AvailObject object,
 		final @NotNull List<AvailObject> argTypes)
@@ -1356,25 +1343,6 @@ extends AbstractDescriptor
 		final int index)
 	{
 		return o_Traversed(object).localTypeAt(index);
-	}
-
-	@Override
-	@NotNull AvailObject o_LookupByTypesFromList (
-		final @NotNull AvailObject object,
-		final @NotNull List<AvailObject> argumentTypeList)
-	{
-		return o_Traversed(object).lookupByTypesFromList(argumentTypeList);
-	}
-
-	@Override
-	@NotNull AvailObject o_LookupByTypesFromContinuationStackp (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject continuation,
-		final int stackp)
-	{
-		return o_Traversed(object).lookupByTypesFromContinuationStackp(
-			continuation,
-			stackp);
 	}
 
 	@Override
@@ -3246,20 +3214,6 @@ extends AbstractDescriptor
 		final @NotNull AvailObject method)
 	{
 		o_Traversed(object).method(method);
-	}
-
-	@Override
-	@NotNull AvailObject o_SuperCastType (final AvailObject object)
-	{
-		return o_Traversed(object).superCastType();
-	}
-
-	@Override
-	void o_SuperCastType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject superCastType)
-	{
-		o_Traversed(object).superCastType(superCastType);
 	}
 
 	@Override

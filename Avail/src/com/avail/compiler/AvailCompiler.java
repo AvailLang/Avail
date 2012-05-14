@@ -124,29 +124,6 @@ extends AbstractAvailCompiler
 	}
 
 	@Override
-	void parseInnerStatement (
-		final @NotNull ParserState start,
-		final boolean canBeLabel,
-		final List<AvailObject> argDecls,
-		final @NotNull Con<AvailObject> continuation)
-	{
-		parseExpressionThen(
-			start,
-			new Con<AvailObject>("End of statement")
-			{
-				@Override
-				public void value (
-					final ParserState afterExpression,
-					final AvailObject expression)
-				{
-					continuation.value(
-						afterExpression.afterToken(),
-						expression);
-				}
-			});
-	}
-
-	@Override
 	void parseExpressionUncachedThen (
 		final ParserState start,
 		final Con<AvailObject> continuation)

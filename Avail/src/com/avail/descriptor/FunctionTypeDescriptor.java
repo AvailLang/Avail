@@ -355,26 +355,6 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_AcceptsArgumentTypesFromContinuation (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject continuation,
-		final int stackp,
-		final int numArgs)
-	{
-		final AvailObject tupleType = object.argsTupleType();
-		for (int i = 1; i <= numArgs; i++)
-		{
-			final AvailObject argType =
-				continuation.stackAt(stackp + numArgs - i);
-			if (!argType.isSubtypeOf(tupleType.typeAtIndex(i)))
-			{
-				return false;
-			}
-		}
-		return true;
-	}
-
-	@Override @AvailMethod
 	boolean o_AcceptsListOfArgTypes (
 		final @NotNull AvailObject object,
 		final @NotNull List<AvailObject> argTypes)

@@ -565,64 +565,6 @@ implements L1OperationDispatcher
 	}
 
 	@Override
-	public void L1Ext_doSuperCall ()
-	{
-		final AvailObject implementations = literalAt(getInteger());
-		final AvailObject expectedReturnType = literalAt(getInteger());
-		final int numArgs = implementations.numArgs();
-		// Pop the argument types (the types by which to do a lookup)...
-		argsBuffer.clear();
-		for (int i = numArgs; i >= 1; i--)
-		{
-			argsBuffer.add(0, pop());
-		}
-		final AvailObject matching =
-			implementations.lookupByTypesFromList(argsBuffer);
-		if (matching.equalsNull())
-		{
-			error("Ambiguous or invalid lookup");
-			return;
-		}
-		if (matching.isForward())
-		{
-			error("Attempted to execute forward method " +
-				"before it was defined.");
-			return;
-		}
-		if (matching.isAbstract())
-		{
-			error("Attempted to execute an abstract method.");
-			return;
-		}
-		// Pop the arguments themselves...
-		argsBuffer.clear();
-		for (int i = numArgs; i >= 1; i--)
-		{
-			argsBuffer.add(0, pop());
-		}
-		// Leave the expected return type pushed on the stack.  This will be
-		// used when the method returns, and it also helps distinguish label
-		// continuations from call continuations.
-		push(expectedReturnType);
-
-		// Call the method...
-		reifyContinuation();
-		interpreter.invokePossiblePrimitiveWithReifiedCaller(
-			matching.bodyBlock(),
-			pointerAt(CALLER));
-	}
-
-	@Override
-	public void L1Ext_doGetType ()
-	{
-		final int depth = getInteger();
-		final int deepStackp = integerAt(stackpRegister() + depth);
-		final AvailObject value = pointerAt(deepStackp);
-		value.makeImmutable();
-		push(value.kind());
-	}
-
-	@Override
 	public void L1Ext_doDuplicate ()
 	{
 		final int stackp = integerAt(stackpRegister());

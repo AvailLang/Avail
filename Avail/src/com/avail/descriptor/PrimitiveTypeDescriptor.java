@@ -412,6 +412,7 @@ extends TypeDescriptor
 					case METHOD_SIGNATURE:
 					case MODULE:
 					case NUMBER:
+					case POWER_STRING_TOKEN:
 					case PROCESS:
 					case RAW_POJO:
 					case SIGNATURE:

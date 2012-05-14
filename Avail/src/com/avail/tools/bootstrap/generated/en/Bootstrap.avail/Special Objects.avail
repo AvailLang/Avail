@@ -216,7 +216,6 @@ _block                                  ::= special object 54;
 _literal                                ::= special object 55;
 _variable_reference                     ::= special object 56;
 _send                                   ::= special object 57;
-_super_cast                             ::= special object 58;
 _list                                   ::= special object 59;
 _variable_use                           ::= special object 60;
 _declaration                            ::= special object 61;
@@ -647,11 +646,6 @@ Method "variable reference" is
 Method "send" is
 [
 	_send
-];
-
-Method "super cast" is
-[
-	_super_cast
 ];
 
 Method "list" is

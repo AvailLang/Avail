@@ -44,7 +44,6 @@ Names
 	"_get literal_",
 	"_get local_can clear_",
 	"_get outer_can clear_",
-	"_get type at depth_",
 	"_make tuple_",
 	"_pop",
 	"_push label",
@@ -53,8 +52,7 @@ Names
 	"_push outer_is last_",
 	"_set literal_",
 	"_set local_",
-	"_set outer_",
-	"_super call_type_"
+	"_set outer_"
 
 Body
 
@@ -170,11 +168,6 @@ Method "_get outer_can clear_" is [
 	cg put integer outerIndex;
 ];
 
-Method "_get type at depth_" is [cg : Nybblecode Generator, depth : whole number |
-	cg emit getTypeNybbles;
-	cg put integer depth;
-];
-
 Method "_make tuple_" is [cg : Nybblecode Generator, count : whole number |
 	cg emit makeTupleNybbles;
 	cg put integer count;
@@ -224,15 +217,6 @@ Method "_set local_" is [cg : Nybblecode Generator, localIndex : natural number 
 Method "_set outer_" is [cg : Nybblecode Generator, outerIndex : natural number |
 	cg emit setOuterNybbles;
 	cg put integer outerIndex;
-];
-
-Method "_super call_type_" is [
-		cg : Nybblecode Generator,
-		selectorIndex : natural number,
-		typeIndex : nural number |
-	cg emit superCallNybbles;
-	cg put integer selectorIndex;
-	cg put integer typeIndex;
 ];
 
 

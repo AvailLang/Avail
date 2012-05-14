@@ -83,8 +83,7 @@ public class L2_GET_TYPE extends L2Operation
 			destinationOperand.register;
 		if (registers.hasTypeAt(sourceRegister))
 		{
-			final AvailObject type =
-				registers.typeAt(sourceRegister);
+			final AvailObject type = registers.typeAt(sourceRegister);
 			// Apply the rule of metacovariance. It says that given types T1
 			// and T2, T1 <= T2 implies T1 type <= T2 type. It is guaranteed
 			// true for all types in Avail.

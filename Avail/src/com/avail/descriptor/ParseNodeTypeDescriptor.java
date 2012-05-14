@@ -135,18 +135,6 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 		/** The kind of a {@linkplain SequenceNodeDescriptor sequence node}. */
 		SEQUENCE_NODE(PARSE_NODE),
 
-		/**
-		 * The kind of a {@linkplain SuperCastNodeDescriptor super cast node}.
-		 */
-		SUPER_CAST_NODE(EXPRESSION_NODE)
-		{
-			@Override
-			@NotNull AvailObject mostGeneralInnerType ()
-			{
-				return Types.ANY.o();
-			}
-		},
-
 		/** The kind of a {@linkplain TupleNodeDescriptor tuple node}. */
 		TUPLE_NODE(EXPRESSION_NODE)
 		{

@@ -321,42 +321,6 @@ public class L2Translator implements L1OperationDispatcher
 	/**
 	 * Only inline effectively monomorphic messages for now -- i.e., method
 	 * methods where every possible method uses the same primitive
-	 * number.  Return one of the method implementation bodies if it's
-	 * unambiguous and can be inlined (or is a {@code
-	 * Primitive.Flag#SpecialReturnConstant}), otherwise return null.
-	 *
-	 * @param method The {@linkplain MethodDescriptor method}
-	 *               containing the method(s) that may be inlined or invoked.
-	 * @param argTypeRegisters A {@link List} of {@linkplain L2ObjectRegister
-	 *                         registers} holding the types used to look up the
-	 *                         implementation for the call.
-	 * @return A method body (a {@code FunctionDescriptor function}) that
-	 *         exemplifies the primitive that should be inlined.
-	 */
-	private AvailObject primitiveToInlineForArgumentTypeRegisters (
-		final AvailObject method,
-		final List<L2ObjectRegister> argTypeRegisters)
-	{
-		final List<AvailObject> argTypes =
-			new ArrayList<AvailObject>(argTypeRegisters.size());
-		for (final L2ObjectRegister argTypeRegister : argTypeRegisters)
-		{
-			// Map the list of argTypeRegisters to any bound constants,
-			// which must be types.  It's probably an error if one isn't bound
-			// to a type constant, but we'll allow it anyhow for the moment.
-			AvailObject type;
-			type = registers.hasConstantAt(argTypeRegister)
-				? registers.constantAt(argTypeRegister)
-				: ANY.o();
-			argTypes.add(type);
-		}
-		return primitiveToInlineForWithArgumentTypes(method, argTypes);
-	}
-
-
-	/**
-	 * Only inline effectively monomorphic messages for now -- i.e., method
-	 * methods where every possible method uses the same primitive
 	 * number.  Return the primitive number if it's unambiguous and can be
 	 * inlined, otherwise zero.
 	 *
@@ -707,14 +671,10 @@ public class L2Translator implements L1OperationDispatcher
 	 *            The {@linkplain MethodDescriptor method} to invoke.
 	 * @param expectedType
 	 *            The expected return {@linkplain TypeDescriptor type}.
-	 * @param isSuper
-	 *            Whether this is a {@linkplain L1Operation#L1Ext_doSuperCall
-	 *            super call}.
 	 */
 	private void generateCall (
 		final AvailObject method,
-		final AvailObject expectedType,
-		final boolean isSuper)
+		final AvailObject expectedType)
 	{
 		contingentMethods.add(method);
 		final L2ObjectRegister tempCallerRegister = registers.newObject();
@@ -728,19 +688,6 @@ public class L2Translator implements L1OperationDispatcher
 		final L2ObjectRegister expectedTypeReg = registers.newObject();
 		final L2ObjectRegister failureObjectReg = registers.newObject();
 		final int nArgs = method.numArgs();
-		List<L2ObjectRegister> argTypes = null;
-		if (isSuper)
-		{
-			argTypes = new ArrayList<L2ObjectRegister>(nArgs);
-			for (int i = nArgs; i >= 1; i--)
-			{
-				argTypes.add(0, readTopOfStackRegister());
-				preSlots.set(
-					numArgs + numLocals + stackp - 1,
-					registers.fixed(NULL));
-				stackp++;
-			}
-		}
 		final List<L2ObjectRegister> preserved =
 			new ArrayList<L2ObjectRegister>(preSlots);
 		assert preserved.size() == numSlots;
@@ -757,18 +704,9 @@ public class L2Translator implements L1OperationDispatcher
 		stackp--;
 		preSlots.set(numArgs + numLocals + stackp - 1, expectedTypeReg);
 		final AvailObject primFunction;
-		if (isSuper)
-		{
-			primFunction = primitiveToInlineForArgumentTypeRegisters(
-				method,
-				argTypes);
-		}
-		else
-		{
-			primFunction = primitiveToInlineForArgumentRegisters(
-				method,
-				args);
-		}
+		primFunction = primitiveToInlineForArgumentRegisters(
+			method,
+			args);
 
 		final L2Instruction successLabel;
 		successLabel = newLabel("success: " + method.name().name());
@@ -823,22 +761,11 @@ public class L2Translator implements L1OperationDispatcher
 			new L2WritePointerOperand(tempCallerRegister));
 		final L2ObjectRegister function = registers.newObject();
 		// Look it up...
-		if (isSuper)
-		{
-			addInstruction(
-				L2_LOOKUP_BY_TYPES.instance,
-				new L2SelectorOperand(method),
-				new L2ReadVectorOperand(createVector(argTypes)),
-				new L2WritePointerOperand(function));
-		}
-		else
-		{
-			addInstruction(
-				L2_LOOKUP_BY_VALUES.instance,
-				new L2SelectorOperand(method),
-				new L2ReadVectorOperand(createVector(args)),
-				new L2WritePointerOperand(function));
-		}
+		addInstruction(
+			L2_LOOKUP_BY_VALUES.instance,
+			new L2SelectorOperand(method),
+			new L2ReadVectorOperand(createVector(args)),
+			new L2WritePointerOperand(function));
 		// If there was only one possible function to invoke don't bother
 		// looking it up at runtime.
 		if (registers.hasConstantAt(function))
@@ -971,8 +898,7 @@ public class L2Translator implements L1OperationDispatcher
 	{
 		final AvailObject method = code.literalAt(getInteger());
 		final AvailObject expectedType = code.literalAt(getInteger());
-
-		generateCall(method, expectedType, false);
+		generateCall(method, expectedType);
 	}
 
 	@Override
@@ -1259,26 +1185,6 @@ public class L2Translator implements L1OperationDispatcher
 	}
 
 	/**
-	 * [n] - Push the (n+1)st stack element's type.  This is only used by the
-	 * supercast mechanism to produce types for arguments not being cast.  See
-	 * {@link #L1Ext_doSuperCall()}.  This implies the type will be used for a
-	 * lookup and then discarded.  We therefore don't treat the type as
-	 * acquiring a new reference from the stack, so it doesn't have to become
-	 * immutable.  This could be a sticky point with the garbage collector if it
-	 * finds only one reference to the type, but I think it should still work.
-	 */
-	@Override
-	public void L1Ext_doGetType ()
-	{
-		final int index = getInteger();
-		stackp--;
-		addInstruction(
-			L2_GET_TYPE.instance,
-			new L2ReadPointerOperand(stackRegister(stackp + 1 + index, false)),
-			new L2WritePointerOperand(writeTopOfStackRegister()));
-	}
-
-	/**
 	 * Build a continuation which, when restarted, will be just like restarting
 	 * the current continuation.
 	 */
@@ -1339,29 +1245,6 @@ public class L2Translator implements L1OperationDispatcher
 			new L2ReadPointerOperand(tempReg),
 			new L2ReadPointerOperand(readTopOfStackRegister()));
 		stackp++;
-	}
-
-	/**[n] - Send the message at index n in the compiledCode's literals.  Like
-	 * the call instruction, the arguments will have been pushed on the stack in
-	 * order, but unlike call, each argument's type will also have been pushed
-	 * (all arguments are pushed, then all argument types).  These are either
-	 * the arguments' exact types, or constant types (that must be supertypes of
-	 * the arguments' types), or any mixture of the two.  These types will be
-	 * used for method lookup, rather than the argument types.  This supports a
-	 * 'super'-like mechanism in the presence of multi-methods.  Like the call
-	 * instruction, all arguments (and types) are popped, then the expected
-	 * return type is pushed, and the looked up method is started.  When the
-	 * invoked method returns (via an implicit return instruction), the return
-	 * value will be checked against the previously pushed expected type, and
-	 * then the type will be replaced by the return value on the stack.
-	 */
-	@Override
-	public void L1Ext_doSuperCall ()
-	{
-		final AvailObject method = code.literalAt(getInteger());
-		final AvailObject expectedType = code.literalAt(getInteger());
-
-		generateCall(method, expectedType, true);
 	}
 
 	/**

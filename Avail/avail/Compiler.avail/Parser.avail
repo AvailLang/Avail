@@ -118,8 +118,6 @@ Forward "_parse optional leading argument send after_then_" for [
 		Avail Parser, Parse Node, [Parse Node]->void]->void;
 Forward "_parse optional return type after_then_" for [
 		Avail Parser, tuple of Parse Node, [type]->void]->void;
-Forward "_parse optional super cast after_then_" for [
-		Avail Parser, Parse Node, [Parse Node]->void]->void;
 Forward "_parse primitive then_" for [
 		Avail Parser, [[0..65535]]->void]->void;
 Forward "_parse reference then_" for [
@@ -606,19 +604,15 @@ Method "_parse optional leading argument send after_then_" is [
 		p : Avail Parser,
 		leadingArg : Parse Node,
 		c : [Parse Node]->void |
-	/* At this point we don't know if we're the leftmost argument of
-	   a leading argument send.  Try not being one first, then try being
-	   one.  When we try being one, we *must* parse an actual message
-	   send, as the argument might be a cast.  Also, we have to
-	   terminate the "left-recursion" of the grammar this way.  This
-	   left-recursion is implemented as the (guarded) mutual recursion
-	   between "...parse optional leading argument send..." and
-	   "...parse leading argument message...". */
+	/* At this point we don't know if we're the leftmost argument of a leading
+	   argument send.  Try not being one first, then try being one.  When we try
+	   being one, we *must* parse an actual message.  Also, we have to terminate
+	   the "left-recursion" of the grammar this way.  This left-recursion is
+	   implemented as the (guarded) mutual recursion between "...parse optional
+	   leading argument send..." and "...parse leading argument message...".
+	 */
 	c(leadingArg);
-	p parse optional super cast after leadingArg then [
-			maybeSuper : Parse Node |
-		p parse leading argument send after maybeSuper then c;
-	];
+	p parse leading argument send after leadingArg then c;
 ] : void;
 
 
@@ -626,8 +620,7 @@ Method "_parse leading argument send after_then_" is [
 		p : Avail Parser,
 		leadingArgument : Parse Node,
 		c : [Parse Node]->void |
-	/* At this point, leadingArgument could be a super cast expression,
-	   so we *must* parse a leading argument send (starting with that
+	/* We *must* parse a leading argument send (starting with that
 	   argument).  Answer this message send to the continuation, but
 	   also attempt to treat this message send as the leftmost argument
 	   to a leading argument send.  These two solutions are dealt with
@@ -739,41 +732,15 @@ Method "_parse from_complete_incomplete_arguments so far_then_" is [
 					];
 				] otherwise [
 					/* Use the original continuation unfiltered (by this arg,
-					   at least).  This argument isn't a message send or super
-					   cast, so it can't affect precedence filtering. */
+					   at least).  This argument isn't a message send, so it
+					   can't affect precedence filtering. */
 					c;
 				];
-				p parse optional super cast after innerExpr then [
-						castOrSend : Parse Node |
-					p parse from keywordIndex + 1
-						complete subtree complete
-						incomplete subtree incomplete
-						arguments so far (args then <castOrSend>)
-						then filteredContinue;
-				];
-			];
-		];
-	];
-];
-
-
-Method "_parse optional super cast after_then_" is [
-		p : Avail Parser,
-		arg : Parse Node,
-		c : [Parse Node]->void |
-	c(arg);  /* Try it without a cast */
-	p skip ":", ":" then [
-		p parse and evaluate expression then [exprValue : any |
-			cast exprValue into [castType : type |
-				if arg result type <= castType then [
-					c(new Super Cast Node
-						expression arg
-						type castType);
-				] else [
-					p expected "cast type expression to yield a supertype";
-				];
-			] otherwise [
-				p expected "cast type expression to yield a type";
+				p parse from keywordIndex + 1
+					complete subtree complete
+					incomplete subtree incomplete
+					arguments so far (args then <innerExpr>)
+					then filteredContinue;
 			];
 		];
 	];

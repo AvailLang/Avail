@@ -60,7 +60,6 @@ Names
 	"literalNode",
 	"referenceNode",
 	"sendNode",
-	"superCastNode",
 	"tupleNode",
 	"variableUseNode",
 	"declarationNode",
@@ -125,7 +124,7 @@ privateBlockNode                   ::= Special Object 54;
 privateLiteralNode                 ::= Special Object 55;
 privateReferenceNode               ::= Special Object 56;
 privateSendNode                    ::= Special Object 57;
-privateSuperCastNode               ::= Special Object 58;
+
 privateTupleNode                   ::= Special Object 59;
 privateVariableUseNode             ::= Special Object 60;
 privateDeclarationNode             ::= Special Object 61;
@@ -186,7 +185,6 @@ Method "blockNode"              is [privateBlockNode];
 Method "literalNode"            is [privateLiteralNode];
 Method "referenceNode"          is [privateReferenceNode];
 Method "sendNode"               is [privateSendNode];
-Method "superCastNode"          is [privateSuperCastNode];
 Method "tupleNode"              is [privateTupleNode];
 Method "variableUseNode"        is [privateVariableUseNode];
 Method "declarationNode"        is [privateDeclarationNode];

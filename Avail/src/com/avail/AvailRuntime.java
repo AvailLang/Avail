@@ -476,7 +476,7 @@ implements ThreadFactory
 		specialObjects[55] = LITERAL_NODE.mostGeneralType();
 		specialObjects[56] = REFERENCE_NODE.mostGeneralType();
 		specialObjects[57] = SEND_NODE.mostGeneralType();
-		specialObjects[58] = SUPER_CAST_NODE.mostGeneralType();
+		// 58 SUPER_CAST_NODE(⊤)
 		specialObjects[59] = TUPLE_NODE.mostGeneralType();
 		specialObjects[60] = VARIABLE_USE_NODE.mostGeneralType();
 		specialObjects[61] = DECLARATION_NODE.mostGeneralType();

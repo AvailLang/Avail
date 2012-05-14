@@ -1041,7 +1041,6 @@ public class TypeConsistencyTest
 							EMPTY_TUPLE,
 							null);
 						break;
-					case SUPER_CAST_NODE:
 					case VARIABLE_USE_NODE:
 					case ASSIGNMENT_NODE:
 					case LITERAL_NODE:

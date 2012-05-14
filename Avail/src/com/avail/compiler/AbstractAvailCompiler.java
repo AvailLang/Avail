@@ -1347,6 +1347,14 @@ public abstract class AbstractAvailCompiler
 			if (!node1.value.kind().parseNodeKind().equals(
 				node2.value.kind().parseNodeKind()))
 			{
+				// The nodes are different kinds, so present them as what's
+				// different.
+				return;
+			}
+			if (node1.value.kind().parseNodeKindIsUnder(SEND_NODE)
+				&& node1.value.method() != node2.value.method())
+			{
+				// They're sends of different messages, so don't go any deeper.
 				return;
 			}
 			final List<AvailObject> parts1 = new ArrayList<AvailObject>();
@@ -2475,26 +2483,6 @@ public abstract class AbstractAvailCompiler
 	abstract void parseOutermostStatement (
 		final ParserState start,
 		final Con<AvailObject> continuation);
-
-	/**
-	 * Parse a statement within a block, invoking the continuation with it.
-	 * Statements inside a block may be ambiguous, but top level statements may
-	 * not.
-	 *
-	 * @param start
-	 *        Where to start parsing.
-	 * @param canBeLabel
-	 *        Whether this statement can be a label declaration.
-	 * @param argDecls
-	 *        The enclosing block's argument declarations.
-	 * @param continuation
-	 *        What to do with the unambiguous, parsed statement.
-	 */
-	abstract void parseInnerStatement (
-		final @NotNull ParserState start,
-		final boolean canBeLabel,
-		final @NotNull List<AvailObject> argDecls,
-		final @NotNull Con<AvailObject> continuation);
 
 	/**
 	 * Parse an expression, without directly using the

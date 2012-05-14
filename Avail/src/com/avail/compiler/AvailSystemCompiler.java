@@ -165,7 +165,20 @@ extends AbstractAvailCompiler
 			continuation);
 	}
 
-	@Override
+	/**
+	 * Parse a statement within a block, invoking the continuation with it.
+	 * Statements inside a block may be ambiguous, but top level statements may
+	 * not.
+	 *
+	 * @param start
+	 *        Where to start parsing.
+	 * @param canBeLabel
+	 *        Whether this statement can be a label declaration.
+	 * @param argDecls
+	 *        The enclosing block's argument declarations.
+	 * @param continuation
+	 *        What to do with the unambiguous, parsed statement.
+	 */
 	void parseInnerStatement (
 		final @NotNull ParserState start,
 		final boolean canBeLabel,
@@ -2183,11 +2196,9 @@ extends AbstractAvailCompiler
 		}
 
 		// Try to wrap it in a leading-argument message send.
-		parseOptionalSuperCastAfterErrorSuffixThen(
+		attempt(
 			start,
-			node,
-			" in case it's the first argument of a non-keyword-leading message",
-			new Con<AvailObject>("Optional supercast")
+			new Con<AvailObject>("Possible leading argument send")
 			{
 				@Override
 				public void value (
@@ -2197,8 +2208,7 @@ extends AbstractAvailCompiler
 					parseLeadingArgumentSendAfterThen(
 						afterCast,
 						cast,
-						new Con<AvailObject>(
-							"Leading argument send after optional supercast")
+						new Con<AvailObject>("Leading argument send")
 						{
 							@Override
 							public void value (
@@ -2212,7 +2222,8 @@ extends AbstractAvailCompiler
 							}
 						});
 				}
-			});
+			},
+			node);
 	}
 
 	/**
@@ -2371,89 +2382,6 @@ extends AbstractAvailCompiler
 	}
 
 	/**
-	 * An expression was parsed. Now parse the optional supercast clause that
-	 * may follow it to make a supercast node.
-	 *
-	 * @param start
-	 *            Where to start parsing.
-	 * @param expr
-	 *            The expression after which to look for a supercast clause.
-	 * @param errorSuffix
-	 *            A suffix for messages describing what was expected.
-	 * @param continuation
-	 *            What to do with the supercast node, if present, or just the
-	 *            passed expression if not.
-	 */
-	void parseOptionalSuperCastAfterErrorSuffixThen (
-		final ParserState start,
-		final AvailObject expr,
-		final String errorSuffix,
-		final Con<? super AvailObject> continuation)
-	{
-		// Optional, so try it without a super cast.
-		attempt(start, continuation, expr);
-
-		if (!start.peekToken(COLON))
-		{
-			return;
-		}
-		final ParserState afterColon = start.afterToken();
-		if (!afterColon.peekToken(COLON))
-		{
-			start.expected(
-				new Generator<String>()
-				{
-					@Override
-					public String value ()
-					{
-						return ":: to supercast an expression" + errorSuffix;
-					}
-				});
-			return;
-		}
-		final ParserState afterSecondColon = afterColon.afterToken();
-		eventuallyDo(
-			new Continuation0()
-			{
-				@Override
-				public void value ()
-				{
-					parseAndEvaluateExpressionYieldingInstanceOfThen(
-						afterSecondColon,
-						TYPE.o(),
-						new Con<AvailObject>("Type expression of supercast")
-						{
-							@Override
-							public void value (
-								final ParserState afterType,
-								final AvailObject type)
-							{
-								final AvailObject exprType =
-									expr.expressionType();
-								if (exprType.isSubtypeOf(type)
-									&& !exprType.equals(type))
-								{
-									final AvailObject cast =
-										SuperCastNodeDescriptor.create(
-											expr,
-											type);
-									attempt(afterType, continuation, cast);
-								}
-								else
-								{
-									afterType.expected(
-										"supercast type to be strict supertype "
-										+ "of expression's type");
-								}
-							}
-						});
-				}
-			},
-			"Type expression in supercast",
-			afterSecondColon.position);
-	}
-
-	/**
 	 * Parse an argument to a message send. Backtracking will find all valid
 	 * interpretations.
 	 *
@@ -2487,19 +2415,14 @@ extends AbstractAvailCompiler
 			{
 				parseExpressionThen(
 					start,
-					new Con<AvailObject>(
-						"Argument expression (irrespective of supercast)")
+					new Con<AvailObject>("Argument expression")
 					{
 						@Override
 						public void value (
 							final ParserState afterArgument,
 							final AvailObject argument)
 						{
-							parseOptionalSuperCastAfterErrorSuffixThen(
-								afterArgument,
-								argument,
-								explanation,
-								continuation);
+							attempt(afterArgument, continuation, argument);
 						}
 					});
 			}
@@ -2510,11 +2433,7 @@ extends AbstractAvailCompiler
 			// should have been no way to parse any keywords or other arguments
 			// yet, so make sure the position hasn't budged since we started.
 			// Then use the provided first argument.
-			parseOptionalSuperCastAfterErrorSuffixThen(
-				initialTokenPosition,
-				firstArgOrNull,
-				explanation,
-				continuation);
+			attempt(initialTokenPosition, continuation, firstArgOrNull);
 		}
 	}
 

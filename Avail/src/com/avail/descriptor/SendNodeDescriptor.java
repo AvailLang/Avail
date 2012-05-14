@@ -185,46 +185,17 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 		final @NotNull AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
-		boolean anyCasts;
-		anyCasts = false;
 		final AvailObject arguments = object.arguments();
 		for (final AvailObject argNode : arguments)
 		{
 			argNode.emitValueOn(codeGenerator);
-			if (argNode.isInstanceOfKind(SUPER_CAST_NODE.mostGeneralType()))
-			{
-				anyCasts = true;
-			}
 		}
 		final AvailObject method = object.method();
 		method.makeImmutable();
-		if (anyCasts)
-		{
-			for (final AvailObject argNode : arguments)
-			{
-				if (argNode.isInstanceOfKind(SUPER_CAST_NODE.mostGeneralType()))
-				{
-					codeGenerator.emitPushLiteral(argNode.expressionType());
-				}
-				else
-				{
-					codeGenerator.emitGetType(arguments.tupleSize() - 1);
-				}
-			}
-			// We've pushed all argument values and all arguments types onto the
-			// stack.
-			codeGenerator.emitSuperCall(
-				arguments.tupleSize(),
-				method,
-				object.returnType());
-		}
-		else
-		{
-			codeGenerator.emitCall(
-				arguments.tupleSize(),
-				method,
-				object.returnType());
-		}
+		codeGenerator.emitCall(
+			arguments.tupleSize(),
+			method,
+			object.returnType());
 	}
 
 	@Override @AvailMethod
@@ -299,8 +270,7 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 		else
 		{
 			builder.append("SendNode[");
-			builder.append(object.method()
-				.name().name().asNativeString());
+			builder.append(object.method().name().name().asNativeString());
 			builder.append("](");
 			boolean isFirst = true;
 			for (final AvailObject arg : object.argumentsTuple())

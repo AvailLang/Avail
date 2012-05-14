@@ -183,6 +183,14 @@ extends AbstractTypeDescriptor
 		LITERAL_TOKEN(TOKEN),
 
 		/**
+		 * This type is the kind of all {@linkplain PowerStringTokenDescriptor
+		 * power string tokens}, which represent occurrences of power strings
+		 * in the Avail text.  They are discovered during lexical scanning, but
+		 * immediately invoke the compiler
+		 */
+		POWER_STRING_TOKEN(TOKEN),
+
+		/**
 		 * The general kind of {@linkplain ImplementationDescriptor method
 		 * signatures}.
 		 */
@@ -693,16 +701,6 @@ extends AbstractTypeDescriptor
 	boolean o_AcceptsArgTypesFromFunctionType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject functionType)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override @AvailMethod
-	boolean o_AcceptsArgumentTypesFromContinuation (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject continuation,
-		final int stackp,
-		final int numArgs)
 	{
 		throw unsupportedOperationException();
 	}

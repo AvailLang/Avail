@@ -491,35 +491,6 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * The {@linkplain TypeDescriptor argument types} have been pushed onto
-	 * the specified {@linkplain ContinuationDescriptor continuation}'s stack.
-	 * Answer whether these arguments are acceptable for invoking a {@linkplain
-	 * FunctionDescriptor function} whose type is the receiver.
-	 *
-	 * @param continuation
-	 *        The continuation whose stack is to be checked.
-	 * @param stackp
-	 *        The stack pointer.
-	 * @param numArgs
-	 *        The number of arguments that have been pushed onto the
-	 *        continuation's stack.
-	 * @return {@code true} if the arguments of the receiver are, pairwise, more
-	 *         general than those within the {@code continuation}'s stack,
-	 *         {@code false} otherwise.
-	 */
-	public boolean acceptsArgumentTypesFromContinuation (
-		final AvailObject continuation,
-		final int stackp,
-		final int numArgs)
-	{
-		return descriptor.o_AcceptsArgumentTypesFromContinuation(
-			this,
-			continuation,
-			stackp,
-			numArgs);
-	}
-
-	/**
 	 * Answer whether these are acceptable {@linkplain TypeDescriptor argument
 	 * types} for invoking a {@linkplain FunctionDescriptor function} whose type
 	 * is the receiver.
@@ -2864,28 +2835,6 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public AvailObject lookupByTypesFromList (
-		final List<AvailObject> argumentTypeList)
-	{
-		return descriptor.o_LookupByTypesFromList(this, argumentTypeList);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public AvailObject lookupByTypesFromContinuationStackp (
-		final AvailObject continuation,
-		final int stackp)
-	{
-		return descriptor.o_LookupByTypesFromContinuationStackp(
-			this,
-			continuation,
-			stackp);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	public AvailObject lookupByTypesFromTuple (
 		final AvailObject argumentTypeTuple)
 	{
@@ -4854,24 +4803,6 @@ implements Iterable<AvailObject>
 	public void method (final AvailObject method)
 	{
 		descriptor.o_Method(this, method);
-	}
-
-
-	/**
-	 * @return
-	 */
-	public AvailObject superCastType ()
-	{
-		return descriptor.o_SuperCastType(this);
-	}
-
-
-	/**
-	 * @param superCastType
-	 */
-	public void superCastType (final AvailObject superCastType)
-	{
-		descriptor.o_SuperCastType(this, superCastType);
 	}
 
 

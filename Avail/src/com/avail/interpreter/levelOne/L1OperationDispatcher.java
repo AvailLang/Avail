@@ -171,40 +171,6 @@ public interface L1OperationDispatcher
 	void L1Ext_doSetLiteral();
 
 	/**
-	 * [n,m] - Send the message at index n in the compiledCode's literals.
-	 * Like the call instruction, the arguments will have been pushed on the
-	 * stack in order, but unlike call, each argument's type will also have
-	 * been pushed (all arguments are pushed, then all argument types).
-	 * These are either the arguments' exact types, or constant types (that
-	 * must be supertypes of the arguments' types), or any mixture of the
-	 * two. These types will be used for method lookup, rather than the
-	 * argument types. This supports a 'super'-like mechanism in the
-	 * presence of multimethods. Like the call instruction, all arguments
-	 * (and types) are popped, then a sentinel null object is pushed, and
-	 * the looked up method is started. When the invoked method returns (via
-	 * an implicit return instruction), this sentinel will be replaced by
-	 * the result of the call.
-	 */
-	void L1Ext_doSuperCall();
-
-	/**
-	 * [n] - Push the nth stack element's type. This is only used by the
-	 * supercast mechanism to produce types for arguments not being cast.
-	 * See #doSuperCall. This implies the type will be used for a lookup and
-	 * then discarded. We therefore don't treat the type as acquiring a new
-	 * reference from the stack, so it doesn't have to become immutable.
-	 * This could be a sticky point with the garbage collector if it finds
-	 * only one reference to the type, but I think it will still work.
-	 *
-	 * <p>
-	 * Strike that.  The level one state has to have a consistent reference
-	 * count, so we have to make the object immutable in case the type has
-	 * to refer to it.
-	 * </p>
-	 */
-	void L1Ext_doGetType();
-
-	/**
 	 * Duplicate the element at the top of the stack. Make the element
 	 * immutable since there are now at least two references.
 	 */

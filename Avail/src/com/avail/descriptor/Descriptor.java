@@ -152,16 +152,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_AcceptsArgumentTypesFromContinuation (
-		final @NotNull AvailObject object,
-		final AvailObject continuation,
-		final int stackp,
-		final int numArgs)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	boolean o_AcceptsListOfArgTypes (
 		final @NotNull AvailObject object,
 		final List<AvailObject> argTypes)
@@ -873,23 +863,6 @@ extends AbstractDescriptor
 	@NotNull AvailObject o_LocalTypeAt (
 		final @NotNull AvailObject object,
 		final int index)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	@NotNull AvailObject o_LookupByTypesFromList (
-		final @NotNull AvailObject object,
-		final List<AvailObject> argumentTypeList)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	@NotNull AvailObject o_LookupByTypesFromContinuationStackp (
-		final @NotNull AvailObject object,
-		final AvailObject continuation,
-		final int stackp)
 	{
 		throw unsupportedOperationException();
 	}
@@ -3407,22 +3380,6 @@ extends AbstractDescriptor
 	void o_Method (
 		final @NotNull AvailObject object,
 		final AvailObject method)
-	{
-		throw unsupportedOperationException();
-	}
-
-
-	@Override
-	@NotNull AvailObject o_SuperCastType (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-
-	@Override
-	void o_SuperCastType (
-		final @NotNull AvailObject object,
-		final AvailObject superCastType)
 	{
 		throw unsupportedOperationException();
 	}
