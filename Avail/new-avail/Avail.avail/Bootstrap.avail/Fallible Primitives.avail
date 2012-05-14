@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.05.11 13:38:57.906 -0500
+ * * Last Generated On: 2012.05.13 21:20:34.433 -0500
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -58,6 +58,7 @@ Uses
 		"Restart_",
 		"Restart_with_",
 		"Semantic restriction_is_",
+		"_'s⁇arguments",
 		"_'s⁇instances",
 		"_+_",
 		"_-_",
@@ -72,17 +73,28 @@ Uses
 		"_×_",
 		"_÷_",
 		"_∈_",
+		"atom for_",
 		"constructor_<«_‡,»>",
+		"current module",
 		"eject_",
 		"function from_and_",
+		"generate_",
+		"implementation of_for_",
+		"method for_",
 		"method_._(«_‡,»)",
 		"read character",
+		"send_with_",
+		"seq“_”",
 		"static method_._(«_‡,»)",
 		"swap_and_",
 		"termination requested",
 		"try_catch_",
+		"“(_:=_)”",
+		"“[_|Primitive__]:_^_”",
+		"“_:=_”",
+		"“↑_”",
 		"↓_",
-		"↓_:=_",
+		"↓_`?=_",
 		"∪_[_.._]"
 	)
 Names
@@ -237,7 +249,7 @@ Method "↓_" is
  *    var - A variable.
  *    value - The value that should be stored into `var`.
  */
-Method "↓_:=_" is
+Method "↓_`?=_" is
 [
 	var : variable,
 	value : any
@@ -713,9 +725,79 @@ Method "Raise_" is
 ] : ⊥;
 
 /**
- * Introduce `newName` as a public name. This has the same effect as listing
- * in the "Names" section of the current module, i.e., the module currently
- * undergoing compilation. This facilitates code generation in some
+ * Answer the method uniquely named by the specified atom.
+ *
+ * Parameters:
+ *    anAtom - An atom.
+ * Returns:
+ *    The requested method.
+ */
+Method "method for_" is
+[
+	anAtom : atom
+|
+	Primitive 220 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : method;
+
+/**
+ * Lookup an implementation of the specified method given the tuple of parameter
+ * types.
+ *
+ * Parameters:
+ *    aMethod - A method.
+ *    parameterTypes - A tuple of parameter types. This must agree in length
+ *       with the number of parameters expected by the method.
+ * Returns:
+ *    The unique implementation of `aMethod` that best accords with the
+ *    specified parameter types.
+ */
+Method "implementation of_for_" is
+[
+	aMethod : method,
+	parameterTypes : tuple of any meta
+|
+	Primitive 222 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : function;
+
+/**
+ * Answer the module currently undergoing compilation.
+ *
+ * Returns:
+ *    The module currently undergoing compilation.
+ */
+Method "current module" is
+[
+	Primitive 241 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : module;
+
+/**
+ * Answer the atom referenced by the specified name in the module currently
+ * undergoing compilation. If this name already refers to an atom in scope,
+ * i.e., either one 1) imported through the "Uses" or "Extends" sections of the
+ * current modules header, 2) introduced by the "Names" section of the
+ * current modules header, or 3) introduced by dynamic publication then answer
+ * this atom. Otherwise, privately introduce a new atom.
+ *
+ * Parameters:
+ *    localName - The name by which this atom is known locally.
+ * Returns:
+ *    The requested atom.
+ */
+Method "atom for_" is
+[
+	localName : string
+|
+	Primitive 245 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : atom;
+
+/**
+ * Dynamically introduce `newName` as a public name. This has the same effect as
+ * listing in the "Names" section of the current module, i.e., the module
+ * currently undergoing compilation. This facilitates code generation in some
  * circumstances. This operation may only be invoked during compilation, i.e.,
  * as the result of parsing or executing a top-level statement.
  *
@@ -899,6 +981,160 @@ Method "_mod_" is
 	Primitive 318 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode
 ] : double;
+
+/**
+ * Construct and answer an assignment expression.
+ *
+ * Parameters:
+ *    variableUse - A variable use expression.
+ *    valueExpression - An expression.
+ * Returns:
+ *    An expression that describes assigning to the variable indicated by
+ *    `variableUse` the result of running `valueExpression`. The result yields the same
+ *    answer as `valueExpression`.
+ */
+Method "“(_:=_)”" is
+[
+	variableUse : variable use,
+	valueExpression : expression yielding any
+|
+	Primitive 350 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : assignment;
+
+/**
+ * Construct and answer an assignment statement.
+ *
+ * Parameters:
+ *    variableUse - A variable use expression.
+ *    valueExpression - An expression.
+ * Returns:
+ *    A statement that describes assigning to the variable indicated by
+ *    `variableUse` the result of running `valueExpression`.
+ */
+Method "“_:=_”" is
+[
+	variableUse : variable use,
+	valueExpression : expression yielding any
+|
+	Primitive 353 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : sequence;
+
+/**
+ * Construct and answer a value reference expression.
+ *
+ * Parameters:
+ *    variableUse - A variable use expression.
+ * Returns:
+ *    A variable reference expression that answers the variable described by
+ *    `variableUse`.
+ */
+Method "“↑_”" is
+[
+	variableUse : variable use
+|
+	Primitive 354 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : variable reference;
+
+/**
+ * Construct and answer a block from the specified tuple of argument
+ * declarations, primitive linkage number, tuple of statements, return type, and
+ * set of declared exceptions.
+ *
+ * Parameters:
+ *    argumentDeclarations - A tuple of argument declarations.
+ *    primitiveNumber - The primitive linkage number, or 0 for no primitive
+ *       linkage.
+ *    statements - A tuple of statements. Each element except for the last must
+ *       be an assignment, declaration, label, sequence, or ⊤-valued send.
+ *    returnType - The return type.
+ *    exceptions - The set of exceptions that may be raised.
+ * Returns:
+ *    The requested block.
+ */
+Method "“[_|Primitive__]:_^_”" is
+[
+	argumentDeclarations : argument tuple,
+	primitiveNumber : whole number,
+	statements : phrase tuple,
+	returnType : type,
+	exceptions : set
+|
+	Primitive 361 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : block;
+
+/**
+ * Generate and answer a function from the specified block.
+ *
+ * Parameters:
+ *    aBlock - A block. Note that the block is treated as a top-level
+ *       construct, so it must not refer to any outer variable declarations.
+ * Returns:
+ *    The requested function.
+ */
+Method "generate_" is
+[
+	aBlock : block
+|
+	Primitive 362 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : function;
+
+/**
+ * Answer the arguments of the specified block.
+ *
+ * Parameters:
+ *    aBlock - A block.
+ * Returns:
+ *    A tuple of argument declarations.
+ */
+Method "_'s⁇arguments" is
+[
+	aBlock : block
+|
+	Primitive 363 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : argument tuple;
+
+/**
+ * Construct and answer a message send. `aMethod` must refer to an actual
+ * method. The number and types of the argument expressions must satisfy exactly
+ * one of the methods existing signatures.
+ *
+ * Parameters:
+ *    {0} - The target method.
+ *    {1} - The argument expressions, corresponding left-to-right with
+ *       the arguments of the method.
+ * Returns:
+ *    The requested message send.
+ */
+Method "send_with_" is
+[
+	aMethod : method,
+	arguments : expression yielding any tuple
+|
+	Primitive 383 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : send;
+
+/**
+ * Construct and answer a sequence from the specified tuple of statements.
+ *
+ * Parameters:
+ *    statements - A tuple of statements.
+ * Returns:
+ *    The requested sequence.
+ */
+Method "seq“_”" is
+[
+	statements : phrase tuple
+|
+	Primitive 387 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : sequence;
 
 /**
  * Construct and answer a fully parameterized pojo type.

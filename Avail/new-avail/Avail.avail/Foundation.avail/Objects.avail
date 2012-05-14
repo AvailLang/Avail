@@ -45,12 +45,16 @@ Uses
 	"Logic",
 	"Maps",
 	"Math",
+	"Phrases",
 	"Sets",
 	"Tuples"
 Names
+	"a|an_«with«_:=_‡,»»",
 	"extend_with«_:_‡,»",
 	"«Public»?«Explicit|explicit»?\
-	\|Class|class_extends_«with public«_:_‡,»»«with private«_:_‡,»»"
+		\|Class|class_extends_\
+		\|«with public««mutable»?_:_‡,»»\
+		\|«with private««mutable»?_:_‡,»»"
 Body
 
 /**
@@ -440,6 +444,287 @@ Semantic restriction "extend_with«_:_‡,»" is
 ];
 
 /**
+ * Define a class. In Avail, a class is simply a named object type supported by
+ * 1) a generated method that reliably reproduces the object type, 2) generated
+ * methods that provide access to the field definitions, and 3) generated
+ * methods that provide access to instance field values. A class is essentially
+ * only a lexical construct, and is analogous to the distinction between blocks
+ * (lexical) and functions (semantic).
+ * 
+ * Parameters:
+ *    public - `true` if the class should be exported by the defining module,
+ *       `false` otherwise.
+ *    explicit - `true` if the class should have an artificial identity
+ *       introduced (in order to ensure intentional provenance of subtypes),
+ *       `false` otherwise.
+ *    className - The name of the class. A method will be generated with this
+ *       name. This method will answer the object type. The object type will
+ *       also be christened with this name.
+ *    supertype - The supertype of the class. Type intersection may be used here
+ *       to guarantee inheritance from multiple sources.
+ *    publicOptional - The public fields of this class. A method will be
+ *       generated for each public field. Its name is "_'s⁇" ++ the field name.
+ *       These methods should be exported by the defining module.
+ *    privateOptional - The private fields of this class. A method will be
+ *       generated for each public field. Its name is "_'s⁇" ++ the field name.
+ *       These names should not be exported by the defining module.
+ */
+Method "«Public»?«Explicit|explicit»?\
+		\|Class|class_extends_\
+		\|«with public««mutable»?_:_‡,»»\
+		\|«with private««mutable»?_:_‡,»»"
+is
+[
+	public : boolean,
+	explicit : boolean,
+	className : <character…|1..>,
+	supertype : object meta,
+	publicOptional : <<<boolean, atom, any meta…|3>…|1..>…|0..1>,
+	privateOptional : <<<boolean, atom, any meta…|3>…|1..>…|0..1>
+|
+	/* Extract the extensions. */
+	publicTriples : <<boolean, atom, any meta…|3>…|> := <>;
+	publicDefs : <<atom, any meta…|2>…|> := <>;
+	Unless publicOptional is empty then
+	[
+		publicTriples := publicOptional[1];
+		publicDefs := map publicTriples through
+			[
+				fieldTuple : <boolean, atom, any meta…|3>
+			|
+				fieldTuple[2..3]
+			];
+	];
+	privateTriples : <<boolean, atom, any meta…|3>…|> := <>;
+	privateDefs : <<atom, any meta…|2>…|> := <>;
+	Unless privateOptional is empty then
+	[
+		privateTriples := privateOptional[1];
+		privateDefs := map privateTriples through
+			[
+				fieldTuple : <boolean, atom, any meta…|3>
+			|
+				fieldTuple[2..3]
+			];
+	];
+	newDefinitions ::= publicDefs ++ privateDefs;
+	/* Verify the uniqueness of the field atoms. */
+	fieldAtoms ::= stripe newDefinitions at 1;
+	If |fieldAtoms→set| ≠ |fieldAtoms| then
+	[
+		early failure function(object type extension contains duplicates code)
+	];
+	/* If necessary, then generate a field definition that guarantees
+	 * uniqueness among object types.
+	 */
+	explicitDef : <<atom, any meta…|2>…|0..1> := <>;
+	If explicit then
+	[
+		explicitAtom ::= new atom "explicit-" ++ className;
+		explicitDef := <<explicitAtom, explicitAtom's type>>;
+	];
+	/* Construct and verify the subtype. */
+	subtype ::= (supertype→tuple ++ newDefinitions ++ explicitDef)→object type;
+	subtypeMap ::= subtype→map;
+	If ¬subtype ⊆ supertype then
+	[
+		early failure function(
+			object type extension did not produce subtype code)
+	];
+	/* Define the class: give the object type a name, define a method that
+	 * answers the object type, and define methods that access the field
+	 * definitions and values.
+	 */
+	subtype's name := className;
+	Method className is new []→(subtype's type) applying [ subtype ];
+	For each fieldAtoms do
+	[
+		fieldAtom : atom
+	|
+		methodName ::= "_'s⁇" ++ fieldAtom's name;
+		fieldType ::= subtypeMap[fieldAtom];
+		classFunctionType ::= [subtype's type]→(fieldType's type);
+		Method methodName is
+			new classFunctionType applying [ x : any | fieldType ];
+		instanceFunctionType ::= [subtype]→fieldType;
+		Method methodName is
+			new instanceFunctionType
+			applying [ x : object | x→map[fieldAtom] ];
+	];
+	mutators ::= map and filter publicTriples ++ privateTriples by
+		[
+			triple : <boolean, atom, any meta…|3>,
+			accept : [<atom…|1..>]→⊤
+		|
+			If triple[1] then [ accept(<triple[2]>); ];
+		];
+	/* Generate the mutators. */
+	For each mutators do
+	[
+		atoms : <atom…|1..>
+	|
+		/* Construct the name of the mutator method. */
+		methodName : string := "_'s⁇" ++ atoms[1]'s name ++ ":=_";
+		For each atoms' tail do
+		[
+			fieldAtom : atom
+		|
+			methodName := eject ↑methodName ++ "," ++ fieldAtom's name ++ ":=_";
+		];
+		/* Construct the body of the mutator method. */
+		toMapM ::= method for atom for "_→map";
+		ejectM ::= method for atom for "eject_";
+		addBindingM ::= method for atom for "_+_→_";
+		toObjectM ::= method for atom for "_→object";
+		args ::=
+			<arg “`"instance"` : subtype”> ++ map atoms through
+			[
+				fieldAtom : atom,
+				index : natural number
+			|
+				desc ::= primitive description of index;
+				arg “`"arg" ++ desc` : subtypeMap[fieldAtom]”
+			];
+		mapType ::= subtypeMap's type;
+		toMapMSend ::= cast send toMapM with <“↓args[1]”>
+			into [ t : send→any | t ];
+		mapDecl ::= “`"objectMap"` : {atom→any|} := toMapMSend”;
+		assignments ::= map atoms through
+			[
+				fieldAtom : atom,
+				index : natural number
+			|
+				ejectSend ::= cast send ejectM with <“↑“↓mapDecl””>
+					into [ t : send→any | t ];
+				addBindingSend ::= cast send addBindingM
+						with <ejectSend, ‘`fieldAtom`’, “↓args[index + 1]”>
+					into [ t : send→any | t ];
+				““↓mapDecl” := addBindingSend”
+			];
+		last ::= cast send toObjectM with <“↓mapDecl”>
+			into [ t : send→any | t ];
+		statements ::= <mapDecl> ++ assignments ++ <last>;
+		newBlock ::= “[ args | statements ]”;
+		mutatorFunction ::= generate newBlock;
+		Method methodName is mutatorFunction;
+	];
+] : ⊤;
+
+/**
+ * Class definition statically requires that:
+ *
+ * - Every field atom of the extension is known.
+ * - Each field atom of the extension appears only once during extension.
+ * - Each field atom of the extension is either 1) not present in the supertype
+ *   or 2) specifies a type which covaries with the field type expressed in the
+ *   supertype.
+ *
+ * Parameters:
+ *    publicType -
+ *    explicit -
+ *    classNameType -
+ *    meta -
+ *    publicOptional -
+ *    privateOptional -
+ * Return:
+ *    ⊤.
+ */
+Semantic restriction "«Public»?«Explicit|explicit»?\
+	\|Class|class_extends_\
+	\|«with public««mutable»?_:_‡,»»\
+	\|«with private««mutable»?_:_‡,»»"
+is
+[
+	publicType : boolean's type,
+	explicit : boolean's type,
+	classNameType : <character…|1..>'s type,
+	meta : object meta's type,
+	publicOptional : <<<boolean, atom, any meta…|3>…|1..>…|0..1>'s type,
+	privateOptional : <<<boolean, atom, any meta…|3>…|1..>…|0..1>'s type
+|
+	If |classNameType| ≠ 1 then
+	[
+		Reject parse, expected: "class name to be statically known"
+	];
+	public ::= publicType's instance;
+	publicNames ::= current module's public names;
+	className ::= classNameType's instance;
+	If public ∧ [ ¬className ∈ publicNames ] then
+	[
+		Reject parse, expected:
+			"\""
+			++ className
+			++ "\" to be included in the module's \"Names\" section"
+	];
+	supertype ::= meta's instance;
+	oldDefinitions ::= supertype→map;
+	newDefinitions : field type map := {};
+	arePublicFields : boolean := true;
+	For each <publicOptional, privateOptional> do
+	[
+		optional : <<<boolean, atom, any meta…|3>…|1..>…|0..1>'s type
+	|
+		If ¬public
+			∧ [ arePublicFields
+			∧ [ relevant |optional[1]| > 0 ] ]
+		then
+		[
+			Reject parse, expected:
+				"private class not to have public members"
+		];
+		From 1 to relevant |optional[1]| do
+		[
+			index : natural number
+		|
+			def ::= optional[1][index];
+			atomType ::= def[2];
+			newType ::= def[3]'s instance;
+			If |atomType| ≠ 1 then
+			[
+				Reject parse, expected:
+					"all field atoms to be known statically"
+			];
+			fieldAtom ::= atomType's instance;
+			accessorName ::= "_'s⁇" ++ fieldAtom's name;
+			If public
+				∧ [ arePublicFields
+				∧ [ ¬accessorName ∈ publicNames ] ]
+			then
+			[
+				Reject parse, expected:
+					"\""
+					++ accessorName
+					++ "\" to be included in the module's \"Names\" section"
+			];
+			If fieldAtom ∈ newDefinitions then
+			[
+				Reject parse, expected:
+					fieldAtom's name
+					++ " to appear only once during extension (but it already\
+					\| appeared with type = "
+					++ primitive description of newDefinitions[fieldAtom]
+					++ ")"
+			];
+			oldType ::= oldDefinitions[fieldAtom] else [ any ];
+			If ¬newType ⊆ oldType then
+			[
+				Reject parse, expected:
+					"covariant specialization of "
+					++ fieldAtom's name
+					++ " (but new field type "
+					++ primitive description of newType
+					++ " is not a subtype of "
+					++ primitive description of oldType
+					++ ")"
+			];
+			newDefinitions := eject ↑newDefinitions + fieldAtom→newType;
+		];
+		arePublicFields := false;
+	];
+	⊤
+];
+
+/**
  * Construct and answer an object which is an instance of `objectType` and whose
  * field values are determined by `optional`.
  * 
@@ -464,11 +749,25 @@ Method "a|an_«with«_:=_‡,»»" is
 	[
 		early failure function(object instantiation contains duplicates code)
 	];
-	If |fieldAtoms| ≠ |objectType→tuple| then
+	objectMap ::= objectType→map;
+	identityAssignments : <<atom, atom…|2>…|> := <>;
+	For each objectMap do
+	[
+		fieldAtom : atom,
+		fieldType : any meta
+	|
+		If |fieldType| = 1 ∧ [ fieldType's instance = fieldAtom ] then
+		[
+			identityAssignments :=
+				eject ↑identityAssignments ++ <2 of fieldAtom>;
+		];
+	];
+	allAssignments ::= assignments ++ identityAssignments;
+	If |allAssignments| ≠ |objectMap| then
 	[
 		early failure function(object instantiation invalid code)
 	];
-	newObject ::= assignments→object;
+	newObject ::= allAssignments→object;
 	If ¬newObject ∈ objectType then
 	[
 		early failure function(
@@ -535,6 +834,16 @@ Semantic restriction "a|an_«with«_:=_‡,»»" is
 		];
 		assignments := eject ↑assignments + fieldAtom→valueType;
 	];
+	For each definitions do
+	[
+		fieldAtom : atom,
+		fieldType : any meta
+	|
+		If |fieldType| = 1 ∧ [ fieldType's instance = fieldAtom ] then
+		[
+			assignments := eject ↑assignments + fieldAtom→fieldAtom's type;
+		];
+	];
 	missing ::= filter definitions' keys by [ a : atom | ¬a ∈ assignments ];
 	If |missing| ≠ 0 then
 	[
@@ -548,104 +857,32 @@ Semantic restriction "a|an_«with«_:=_‡,»»" is
 	assignments→object type
 ];
 
-/* TODO: [TLS] Document this! */
-Method "«Public»?«Explicit|explicit»?\
-		\|Class|class_extends_«with public«_:_‡,»»«with private«_:_‡,»»" is
-[
-	public : boolean,
-	explicit : boolean,
-	className : <character…|1..>,
-	supertype : object meta,
-	publicOptional : <<<atom, any meta…|2>…|1..>…|0..1>,
-	privateOptional : <<<atom, any meta…|2>…|1..>…|0..1>
-|
-	/* Extract the extensions. */
-	publicDefs ::= if publicOptional is empty
-		then [ <> ]
-		else [ publicOptional[1] ];
-	privateDefs ::= if privateOptional is empty
-		then [ <> ]
-		else [ privateOptional[1] ];
-	newDefinitions ::= publicDefs ++ privateDefs;
-	/* Verify the uniqueness of the field atoms. */
-	fieldAtoms ::= stripe newDefinitions at 1;
-	If |fieldAtoms→set| ≠ |fieldAtoms| then
-	[
-		early failure function(object type extension contains duplicates code)
-	];
-	/* If necessary, then generate a field definition that guarantees
-	 * uniqueness among object types.
-	 */
-	explicitDef : <<atom, any meta…|2>…|0..1> := <>;
-	If explicit then
-	[
-		explicitAtom ::= new atom "explicit-" ++ className;
-		explicitDef := <<explicitAtom, explicitAtom's type>>;
-	];
-	/* Construct and verify the subtype. */
-	subtype ::= (supertype→tuple ++ newDefinitions ++ explicitDef)→object type;
-	subtypeMap ::= subtype→map;
-	If ¬subtype ⊆ supertype then
-	[
-		early failure function(
-			object type extension did not produce subtype code)
-	];
-	/* Define the class: give the object type a name, define a method that
-	 * answers the object type, define methods that access the field
-	 * definitions, publish the method and public fields (if appropriate).
-	 */
-	subtype's name := className;
-	Method className is new []→(subtype's type) applying [ subtype ];
-	If public then [ Publish new name: className; ];
-	For each stripe publicDefs at 1 do
-	[
-		fieldAtom : atom
-	|
-		methodName ::= "_'s⁇" ++ fieldAtom's name;
-		fieldType ::= subtypeMap[fieldAtom];
-		classFunctionType ::= [subtype's type]→(fieldType's type);
-		Method methodName is
-			new classFunctionType applying [ x : any | fieldType ];
-		instanceFunctionType ::= [subtype]→fieldType;
-		Method methodName is
-			new instanceFunctionType
-			applying [ x : object | x→map[fieldAtom] ];
-		If public then [ Publish new name: methodName; ];
-	];
-	For each stripe privateDefs at 1 do
-	[
-		fieldAtom : atom
-	|
-		methodName ::= "_'s⁇" ++ fieldAtom's name;
-		fieldType ::= subtypeMap[fieldAtom];
-		classFunctionType ::= [subtype's type]→(fieldType's type);
-		Method methodName is
-			new classFunctionType applying [ x : any | fieldType ];
-		instanceFunctionType ::= [subtype]→fieldType;
-		Method methodName is
-			new instanceFunctionType
-			applying [ x : object | x→map[fieldAtom] ];
-	];
-] : ⊤;
-
 color ::= new atom "color";
 texture ::= new atom "texture";
 flavor ::= new atom "flavor";
 
 Class "colorful" extends object
-	with public
+	with private
 		color : enumeration of
 			{"red", "orange", "yellow", "green", "blue", "indigo", "violet"};
 
 Class "textured" extends object
-	with public
+	with private
 		texture : enumeration of {"rough", "smooth"};
 
-Class "textured RGB" extends colorful ∩ textured
-	with public
-		color : enumeration of {"red", "green", "blue"};
+/* TODO: [TLS] Complete support for "mutable" and introduce transactional
+ * mutators.
+ */
+Explicit class "textured RGB" extends colorful ∩ textured
+	with private
+		mutable color : enumeration of {"red", "green", "blue"},
+		texture : "smooth"'s type,
+		flavor : enumeration of {"salty", "sweet"};
 
-trgb ::= a textured RGB with color := "green", texture := "smooth";
+trgb ::= a textured RGB with
+	color := "green",
+	texture := "smooth",
+	flavor := "salty";
 Print: "trgb=";
 Print: primitive description of trgb;
 Print: "\n";
@@ -655,3 +892,8 @@ Print: "\n";
 Print: "trgb's texture=";
 Print: primitive description of trgb's texture;
 Print: "\n";
+mutate ::= trgb's color := "blue";
+Print: "mutate=";
+Print: primitive description of mutate;
+Print: "\n";
+

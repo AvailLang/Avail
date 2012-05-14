@@ -157,8 +157,8 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 	@Override
 	public void doSelector()
 	{
-		final AvailObject impSet = _chunk.literalAt(_operand);
-		print("Message(%s)", impSet.name().name().asNativeString());
+		final AvailObject method = _chunk.literalAt(_operand);
+		print("Message(%s)", method.name().name().asNativeString());
 	}
 	@Override
 	public void doReadPointer()

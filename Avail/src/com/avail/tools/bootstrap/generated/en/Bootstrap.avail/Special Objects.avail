@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.05.11 13:53:55.415 -0500
+ * * Last Generated On: 2012.05.13 21:20:34.349 -0500
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -51,6 +51,7 @@ Names
 	/*   1 */ "any",
 	/*  69 */ "any meta",
 	/*  62 */ "argument",
+	/* 122 */ "argument tuple",
 	/*  53 */ "assignment",
 	/*  11 */ "atom",
 	/*  54 */ "block",
@@ -61,10 +62,13 @@ Names
 	/*  10 */ "continuation meta",
 	/*  92 */ "continuation variable",
 	/*  61 */ "declaration",
+	/* 123 */ "declaration tuple",
 	/*  12 */ "double",
 	/*  96 */ "empty map",
 	/* 104 */ "empty tuple",
 	/*  52 */ "expression",
+	/* 126 */ "expression yielding any",
+	/* 125 */ "expression yielding any tuple",
 	/*  13 */ "extended integer",
 	/*  18 */ "extended integer meta",
 	/*  71 */ "false",
@@ -93,6 +97,7 @@ Names
 	/*  45 */ "message bundle tree",
 	/*  46 */ "method",
 	/*  44 */ "method signature",
+	/*  20 */ "module",
 	/*  67 */ "module constant",
 	/*  66 */ "module variable",
 	/*  37 */ "natural number",
@@ -107,6 +112,7 @@ Names
 	/*  23 */ "object meta",
 	/*  50 */ "phrase",
 	/* 113 */ "phrase meta",
+	/* 121 */ "phrase tuple",
 	/*  80 */ "pojo",
 	/*  87 */ "pojo array",
 	/*  85 */ "pojo array meta",
@@ -121,6 +127,7 @@ Names
 	/*  68 */ "primitive failure reason",
 	/* 107 */ "semantic restriction function",
 	/*  57 */ "send",
+	/*  51 */ "sequence",
 	/*  26 */ "set",
 	/*  27 */ "set meta",
 	/* 114 */ "set of atom",
@@ -151,6 +158,7 @@ Names
 	/*  60 */ "variable use",
 	/*  36 */ "whole number",
 	/*  98 */ "whole number meta",
+	/* 124 */ "write-only expression variable",
 	/*  77 */ "∅",
 	/*  79 */ "∞",
 	/*  35 */ "⊤",
@@ -176,6 +184,7 @@ _number                                 ::= special object 16;
 _integer                                ::= special object 17;
 _extended_integer_meta                  ::= special object 18;
 _map_meta                               ::= special object 19;
+_module                                 ::= special object 20;
 _object                                 ::= special object 22;
 _object_meta                            ::= special object 23;
 _fiber                                  ::= special object 25;
@@ -200,6 +209,7 @@ _method_signature                       ::= special object 44;
 _message_bundle_tree                    ::= special object 45;
 _method                                 ::= special object 46;
 _phrase                                 ::= special object 50;
+_sequence                               ::= special object 51;
 _expression                             ::= special object 52;
 _assignment                             ::= special object 53;
 _block                                  ::= special object 54;
@@ -269,6 +279,12 @@ _tuple_of_any_meta                      ::= special object 117;
 _nonnegative_integer                    ::= special object 118;
 _field_type_tuple                       ::= special object 119;
 _field_tuple                            ::= special object 120;
+_phrase_tuple                           ::= special object 121;
+_argument_tuple                         ::= special object 122;
+_declaration_tuple                      ::= special object 123;
+_write_only_expression_variable         ::= special object 124;
+_expression_yielding_any_tuple          ::= special object 125;
+_expression_yielding_any                ::= special object 126;
 
 /**
  * The practical abstract root of the Avail type lattice. `any` is the second
@@ -412,6 +428,11 @@ Method "extended integer meta" is
 Method "map meta" is
 [
 	_map_meta
+];
+
+Method "module" is
+[
+	_module
 ];
 
 Method "object" is
@@ -591,6 +612,11 @@ Method "method" is
 Method "phrase" is
 [
 	_phrase
+];
+
+Method "sequence" is
+[
+	_sequence
 ];
 
 Method "expression" is
@@ -943,5 +969,35 @@ Method "field type tuple" is
 Method "field tuple" is
 [
 	_field_tuple
+];
+
+Method "phrase tuple" is
+[
+	_phrase_tuple
+];
+
+Method "argument tuple" is
+[
+	_argument_tuple
+];
+
+Method "declaration tuple" is
+[
+	_declaration_tuple
+];
+
+Method "write-only expression variable" is
+[
+	_write_only_expression_variable
+];
+
+Method "expression yielding any tuple" is
+[
+	_expression_yielding_any_tuple
+];
+
+Method "expression yielding any" is
+[
+	_expression_yielding_any
 ];
 

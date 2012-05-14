@@ -3315,14 +3315,9 @@ extends AbstractDescriptor
 	@Override
 	void o_ValidateLocally (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject parent,
-		final @NotNull List<AvailObject> outerBlocks,
-		final @NotNull L2Interpreter anAvailInterpreter)
+		final @NotNull AvailObject parent)
 	{
-		o_Traversed(object).validateLocally(
-			parent,
-			outerBlocks,
-			anAvailInterpreter);
+		o_Traversed(object).validateLocally(parent);
 	}
 
 	@Override
@@ -3501,10 +3496,10 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	@NotNull AvailObject o_CheckedExceptions (
+	@NotNull AvailObject o_DeclaredExceptions (
 		final @NotNull AvailObject object)
 	{
-		return o_Traversed(object).checkedExceptions();
+		return o_Traversed(object).declaredExceptions();
 	}
 
 	@Override
@@ -4276,5 +4271,11 @@ extends AbstractDescriptor
 	void o_ClearInterruptRequestFlags (final @NotNull AvailObject object)
 	{
 		o_Traversed(object).clearInterruptRequestFlags();
+	}
+
+	@Override
+	boolean o_IsSystemModule (final @NotNull AvailObject object)
+	{
+		return o_IsSystemModule(object);
 	}
 }

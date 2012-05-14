@@ -491,7 +491,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_CheckedExceptions (final AvailObject object)
+	AvailObject o_DeclaredExceptions (final AvailObject object)
 	{
 		return SetDescriptor.empty();
 	}

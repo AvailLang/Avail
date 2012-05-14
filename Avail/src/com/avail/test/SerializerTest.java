@@ -360,9 +360,11 @@ public final class SerializerTest
 	throws MalformedSerialStreamException
 	{
 		final AvailObject inputModule = ModuleDescriptor.newModule(
-			StringDescriptor.from("Imported"));
+			StringDescriptor.from("Imported"),
+			false);
 		final AvailObject currentModule = ModuleDescriptor.newModule(
-			StringDescriptor.from("Current"));
+			StringDescriptor.from("Current"),
+			false);
 		final AvailObject atom1 = AtomDescriptor.create(
 			StringDescriptor.from("importAtom1"),
 			inputModule);

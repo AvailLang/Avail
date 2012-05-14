@@ -295,7 +295,7 @@ public class L2Translator implements L1OperationDispatcher
 	 * inlined (or is a {@code Primitive.Flag#SpecialReturnConstant}), otherwise
 	 * return null.
 	 *
-	 * @param impSet The {@linkplain MethodDescriptor method}
+	 * @param method The {@linkplain MethodDescriptor method}
 	 *               containing the method(s) that may be inlined or invoked.
 	 * @param args A {@link List} of {@linkplain L2ObjectRegister registers}
 	 *             holding the actual constant values used to look up the
@@ -304,7 +304,7 @@ public class L2Translator implements L1OperationDispatcher
 	 *         exemplifies the primitive that should be inlined.
 	 */
 	private AvailObject primitiveToInlineForArgumentRegisters (
-		final AvailObject impSet,
+		final AvailObject method,
 		final List<L2ObjectRegister> args)
 	{
 		final List<AvailObject> argTypes =
@@ -315,7 +315,7 @@ public class L2Translator implements L1OperationDispatcher
 			type = registers.hasTypeAt(arg) ? registers.typeAt(arg) : ANY.o();
 			argTypes.add(type);
 		}
-		return primitiveToInlineForWithArgumentTypes(impSet, argTypes);
+		return primitiveToInlineForWithArgumentTypes(method, argTypes);
 	}
 
 	/**
@@ -325,7 +325,7 @@ public class L2Translator implements L1OperationDispatcher
 	 * unambiguous and can be inlined (or is a {@code
 	 * Primitive.Flag#SpecialReturnConstant}), otherwise return null.
 	 *
-	 * @param impSet The {@linkplain MethodDescriptor method}
+	 * @param method The {@linkplain MethodDescriptor method}
 	 *               containing the method(s) that may be inlined or invoked.
 	 * @param argTypeRegisters A {@link List} of {@linkplain L2ObjectRegister
 	 *                         registers} holding the types used to look up the
@@ -334,7 +334,7 @@ public class L2Translator implements L1OperationDispatcher
 	 *         exemplifies the primitive that should be inlined.
 	 */
 	private AvailObject primitiveToInlineForArgumentTypeRegisters (
-		final AvailObject impSet,
+		final AvailObject method,
 		final List<L2ObjectRegister> argTypeRegisters)
 	{
 		final List<AvailObject> argTypes =
@@ -350,7 +350,7 @@ public class L2Translator implements L1OperationDispatcher
 				: ANY.o();
 			argTypes.add(type);
 		}
-		return primitiveToInlineForWithArgumentTypes(impSet, argTypes);
+		return primitiveToInlineForWithArgumentTypes(method, argTypes);
 	}
 
 
@@ -360,17 +360,17 @@ public class L2Translator implements L1OperationDispatcher
 	 * number.  Return the primitive number if it's unambiguous and can be
 	 * inlined, otherwise zero.
 	 *
-	 * @param impSet The {@linkplain MethodDescriptor method}
+	 * @param method The {@linkplain MethodDescriptor method}
 	 *               containing the method(s) that may be inlined or invoked.
 	 * @param argTypes The types of the arguments to the call.
 	 * @return One of the (equivalent) primitive method bodies, or null.
 	 */
 	private AvailObject primitiveToInlineForWithArgumentTypes (
-		final AvailObject impSet,
+		final AvailObject method,
 		final List<AvailObject> argTypes)
 	{
 		final List<AvailObject> imps =
-			impSet.implementationsAtOrBelow(argTypes);
+			method.implementationsAtOrBelow(argTypes);
 		AvailObject firstBody = null;
 		for (final AvailObject bundle : imps)
 		{
@@ -541,7 +541,7 @@ public class L2Translator implements L1OperationDispatcher
 	 * @param primitiveFunction
 	 *            A {@linkplain FunctionDescriptor function} for which its
 	 *            primitive might be inlined, or even folded if possible.
-	 * @param impSet
+	 * @param method
 	 *            The method containing the primitive to be invoked.
 	 * @param args
 	 *            The {@link List} of arguments to the primitive function.
@@ -566,7 +566,7 @@ public class L2Translator implements L1OperationDispatcher
 	 */
 	private AvailObject emitInlinePrimitiveAttempt (
 		final AvailObject primitiveFunction,
-		final AvailObject impSet,
+		final AvailObject method,
 		final List<L2ObjectRegister> args,
 		final List<L2ObjectRegister> preserved,
 		final AvailObject expectedType,
@@ -969,10 +969,10 @@ public class L2Translator implements L1OperationDispatcher
 	@Override
 	public void L1_doCall ()
 	{
-		final AvailObject impSet = code.literalAt(getInteger());
+		final AvailObject method = code.literalAt(getInteger());
 		final AvailObject expectedType = code.literalAt(getInteger());
 
-		generateCall(impSet, expectedType, false);
+		generateCall(method, expectedType, false);
 	}
 
 	@Override

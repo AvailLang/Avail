@@ -105,7 +105,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_CheckedExceptions (
+	@NotNull AvailObject o_DeclaredExceptions (
 		final @NotNull AvailObject object)
 	{
 		return object.slot(ObjectSlots.CHECKED_EXCEPTIONS);
@@ -264,11 +264,11 @@ extends TypeDescriptor
 			aStream,
 			recursionList,
 			(indent + 1));
-		if (object.checkedExceptions().setSize() > 0)
+		if (object.declaredExceptions().setSize() > 0)
 		{
 			aStream.append("^");
 			list.clear();
-			for (final AvailObject elem : object.checkedExceptions())
+			for (final AvailObject elem : object.declaredExceptions())
 			{
 				list.add(elem);
 			}
@@ -305,7 +305,7 @@ extends TypeDescriptor
 		{
 			return false;
 		}
-		if (!object.checkedExceptions().equals(aType.checkedExceptions()))
+		if (!object.declaredExceptions().equals(aType.declaredExceptions()))
 		{
 			return false;
 		}
@@ -332,7 +332,7 @@ extends TypeDescriptor
 		{
 			hash = 0x63FC934;
 			hash ^= object.returnType().hash();
-			hash = hash * 23 ^ object.checkedExceptions().hash();
+			hash = hash * 23 ^ object.declaredExceptions().hash();
 			hash = hash * 29 ^ object.argsTupleType().hash();
 			object.hashOrZero(hash);
 		}
@@ -474,7 +474,7 @@ extends TypeDescriptor
 	 * {@linkplain FunctionTypeDescriptor Function types} are contravariant by
 	 * {@linkplain AvailObject#argsTupleType() argument types}, covariant by
 	 * {@linkplain AvailObject#returnType() return type}, and covariant by
-	 * normalized {@linkplain AvailObject#checkedExceptions() raise types}. If
+	 * normalized {@linkplain AvailObject#declaredExceptions() raise types}. If
 	 * {@linkplain AvailObject#numArgs() argument count} differs, they are
 	 * incomparable (i.e., not a subclass).
 	 */
@@ -492,9 +492,9 @@ extends TypeDescriptor
 			return false;
 		}
 		each_outer:
-		for (final AvailObject outer : aFunctionType.checkedExceptions())
+		for (final AvailObject outer : aFunctionType.declaredExceptions())
 		{
-			for (final AvailObject inner : object.checkedExceptions())
+			for (final AvailObject inner : object.declaredExceptions())
 			{
 				if (outer.isSubtypeOf(inner))
 				{
@@ -533,9 +533,9 @@ extends TypeDescriptor
 		final AvailObject returnType =
 			object.returnType().typeIntersection(aFunctionType.returnType());
 		AvailObject exceptions = SetDescriptor.empty();
-		for (final AvailObject outer : object.checkedExceptions())
+		for (final AvailObject outer : object.declaredExceptions())
 		{
-			for (final AvailObject inner : aFunctionType.checkedExceptions())
+			for (final AvailObject inner : aFunctionType.declaredExceptions())
 			{
 				exceptions = exceptions.setWithElementCanDestroy(
 					outer.typeIntersection(inner),
@@ -578,8 +578,8 @@ extends TypeDescriptor
 		final AvailObject returnType =
 			object.returnType().typeUnion(aFunctionType.returnType());
 		final AvailObject exceptions = normalizeExceptionSet(
-			object.checkedExceptions().setUnionCanDestroy(
-				aFunctionType.checkedExceptions(), true));
+			object.declaredExceptions().setUnionCanDestroy(
+				aFunctionType.declaredExceptions(), true));
 		return createWithArgumentTupleType(
 			tupleTypeIntersection,
 			returnType,
@@ -601,7 +601,7 @@ extends TypeDescriptor
 	 *        An exception {@linkplain SetDescriptor set}. Must include only
 	 *        {@linkplain TypeDescriptor types}.
 	 * @return A normalized exception {@linkplain SetDescriptor set}.
-	 * @see AvailObject#checkedExceptions()
+	 * @see AvailObject#declaredExceptions()
 	 */
 	private static @NotNull AvailObject normalizeExceptionSet (
 		final @NotNull AvailObject exceptionSet)

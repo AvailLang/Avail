@@ -821,21 +821,21 @@ public abstract class Interpreter
 			error("Inconsistent forward declaration handling code");
 			return;
 		}
-		final AvailObject impSet = runtime.methodsAt(methodName);
-		assert !impSet.equalsNull();
+		final AvailObject method = runtime.methodsAt(methodName);
+		assert !method.equalsNull();
 		if (!pendingForwards.hasElement(aForward))
 		{
 			error("Inconsistent forward declaration handling code");
 			return;
 		}
-		if (!impSet.includesImplementation(aForward))
+		if (!method.includesImplementation(aForward))
 		{
 			error("Inconsistent forward declaration handling code");
 			return;
 		}
 		pendingForwards = pendingForwards.setWithoutElementCanDestroy(
 			aForward, true);
-		impSet.removeImplementation(aForward);
+		method.removeImplementation(aForward);
 		module.resolvedForwardWithName(aForward, methodName);
 	}
 

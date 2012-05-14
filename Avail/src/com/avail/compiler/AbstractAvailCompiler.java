@@ -1135,48 +1135,6 @@ public abstract class AbstractAvailCompiler
 	}
 
 	/**
-	 * Visit the entire tree with the given {@linkplain Continuation3 block},
-	 * children before parents.  The block takes three arguments: the
-	 * node, its parent, and the list of enclosing block nodes.
-	 *
-	 * @param object
-	 *        The current {@linkplain ParseNodeDescriptor parse node}.
-	 * @param aBlock
-	 *        What to do with each descendant.
-	 * @param parentNode
-	 *        This node's parent.
-	 * @param outerNodes
-	 *        The list of {@linkplain BlockNodeDescriptor blocks} surrounding
-	 *        this node, from outermost to innermost.
-	 */
-	static void treeDoWithParent (
-		final @NotNull AvailObject object,
-		final @NotNull Continuation3<
-			AvailObject, AvailObject, List<AvailObject>> aBlock,
-		final @NotNull AvailObject parentNode,
-		final @NotNull List<AvailObject> outerNodes)
-	{
-		object.childrenDo(
-			new Continuation1<AvailObject>()
-			{
-				@Override
-				public void value (final AvailObject child)
-				{
-					assert child.isInstanceOfKind(PARSE_NODE.mostGeneralType());
-					treeDoWithParent(
-						child,
-						aBlock,
-						object,
-						outerNodes);
-				}
-			});
-		aBlock.value(
-			object,
-			parentNode,
-			outerNodes);
-	}
-
-	/**
 	 * Answer a {@linkplain Generator generator} that will produce the given
 	 * string.
 	 *
@@ -1551,7 +1509,7 @@ public abstract class AbstractAvailCompiler
 			Collections.singletonList(expressionNode),
 			TOP.o(),
 			SetDescriptor.empty());
-		validate(block);
+		BlockNodeDescriptor.recursivelyValidate(block);
 		final AvailCodeGenerator codeGenerator = new AvailCodeGenerator();
 		final AvailObject compiledBlock = block.generate(codeGenerator);
 		// The block is guaranteed context-free (because imported
@@ -1568,35 +1526,6 @@ public abstract class AbstractAvailCompiler
 			function,
 			args);
 		return result;
-	}
-
-	/**
-	 * Ensure that the {@linkplain BlockNodeDescriptor block node} is valid.
-	 * Throw an appropriate exception if it is not.
-	 *
-	 * @param blockNode
-	 *            The {@linkplain BlockNodeDescriptor block node} to validate.
-	 */
-	public void validate (final @NotNull AvailObject blockNode)
-	{
-		final List<AvailObject> blockStack = new ArrayList<AvailObject>(3);
-		treeDoWithParent(
-			blockNode,
-			new Continuation3<AvailObject, AvailObject, List<AvailObject>>()
-			{
-				@Override
-				public void value (
-					final AvailObject node,
-					final AvailObject parent,
-					final List<AvailObject> blockNodes)
-				{
-					node.validateLocally(parent, blockNodes, interpreter);
-				}
-			},
-			null,
-			blockStack);
-		assert blockStack.isEmpty();
-		assert blockNode.neededVariables().tupleSize() == 0;
 	}
 
 	/**
@@ -1641,7 +1570,8 @@ public abstract class AbstractAvailCompiler
 	void startModuleTransaction (final @NotNull AvailObject moduleNameString)
 	{
 		assert module == null;
-		module = ModuleDescriptor.newModule(moduleNameString);
+		module = ModuleDescriptor.newModule(
+			moduleNameString, isSystemCompiler());
 		interpreter.setModule(module);
 	}
 
@@ -1742,9 +1672,9 @@ public abstract class AbstractAvailCompiler
 	{
 		final Mutable<Boolean> valid = new Mutable<Boolean>(true);
 		final AvailObject message = bundle.message();
-		final AvailObject impSet = interpreter.runtime().methodsAt(message);
-		assert !impSet.equalsNull();
-		final AvailObject implementationsTuple = impSet.implementationsTuple();
+		final AvailObject method = interpreter.runtime().methodsAt(message);
+		assert !method.equalsNull();
+		final AvailObject implementationsTuple = method.implementationsTuple();
 		assert implementationsTuple.tupleSize() > 0;
 
 		if (implementationsTuple.tupleAt(1).isMacro())
@@ -1756,7 +1686,7 @@ public abstract class AbstractAvailCompiler
 				stateAfterCall,
 				argumentExpressions,
 				bundle,
-				impSet,
+				method,
 				continuation);
 			return;
 		}
@@ -1768,7 +1698,7 @@ public abstract class AbstractAvailCompiler
 			argTypes.add(argumentExpression.expressionType());
 		}
 		final AvailObject returnType =
-			impSet.validateArgumentTypesInterpreterIfFail(
+			method.validateArgumentTypesInterpreterIfFail(
 				argTypes,
 				interpreter,
 				new Continuation1<Generator<String>>()
@@ -1783,11 +1713,10 @@ public abstract class AbstractAvailCompiler
 				});
 		if (valid.value)
 		{
-			final AvailObject sendNode = SendNodeDescriptor.mutable().create();
-			sendNode.method(impSet);
-			sendNode.arguments(
-				TupleDescriptor.fromCollection(argumentExpressions));
-			sendNode.returnType(returnType);
+			final AvailObject sendNode = SendNodeDescriptor.from(
+				method,
+				TupleDescriptor.fromCollection(argumentExpressions),
+				returnType);
 			attempt(
 				new ParserState(
 					stateAfterCall.position,
@@ -1812,7 +1741,7 @@ public abstract class AbstractAvailCompiler
 	 * @param bundle
 	 *            The {@linkplain MessageBundleDescriptor message bundle} that
 	 *            identifies the message to be sent.
-	 * @param impSet
+	 * @param method
 	 *            The {@linkplain MethodDescriptor method}
 	 *            that contains the macro signature to be invoked.
 	 * @param continuation
@@ -1823,7 +1752,7 @@ public abstract class AbstractAvailCompiler
 		final ParserState stateAfterCall,
 		final List<AvailObject> argumentExpressions,
 		final AvailObject bundle,
-		final AvailObject impSet,
+		final AvailObject method,
 		final Con<AvailObject> continuation);
 
 	/**

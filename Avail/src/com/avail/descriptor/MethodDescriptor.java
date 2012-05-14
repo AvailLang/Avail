@@ -289,38 +289,40 @@ extends Descriptor
 	public enum ObjectSlots implements ObjectSlotsEnum
 	{
 		/**
-		 * The {@linkplain AtomDescriptor atom} that acts as the true name of this
-		 * {@linkplain MethodDescriptor method}.
+		 * The {@linkplain AtomDescriptor atom} that acts as the true name of
+		 * this {@linkplain MethodDescriptor method}.
 		 */
 		NAME,
 
 		/**
-		 * The {@linkplain TupleDescriptor tuple} of {@linkplain ImplementationDescriptor
-		 * signatures} that constitute this multimethod (or multimacro).
+		 * The {@linkplain TupleDescriptor tuple} of {@linkplain
+		 * ImplementationDescriptor signatures} that constitute this multimethod
+		 * (or multimacro).
 		 */
 		IMPLEMENTATIONS_TUPLE,
 
 		/**
-		 * A {@linkplain TupleDescriptor tuple} of {@linkplain IntegerDescriptor integers}
-		 * that encodes a decision tree for selecting the most specific
-		 * multimethod appropriate for the argument types.
+		 * A {@linkplain TupleDescriptor tuple} of {@linkplain IntegerDescriptor
+		 * integers} that encodes a decision tree for selecting the most
+		 * specific multimethod appropriate for the argument types.
 		 */
 		PRIVATE_TESTING_TREE,
 
 		/**
-		 * A {@linkplain TupleDescriptor tuple} of {@linkplain FunctionDescriptor
-		 * functions} which, when invoked with suitable {@linkplain
-		 * TypeDescriptor types} as arguments, will determine whether the call
-		 * arguments have mutually compatible types, and if so produce a type
-		 * to which the call's return value is expected to conform.  This type
-		 * strengthening is <em>assumed</em> to hold at compile time (of the
-		 * call) and <em>checked</em> at runtime.
+		 * A {@linkplain TupleDescriptor tuple} of {@linkplain
+		 * FunctionDescriptor functions} which, when invoked with suitable
+		 * {@linkplain TypeDescriptor types} as arguments, will determine
+		 * whether the call arguments have mutually compatible types, and if so
+		 * produce a type to which the call's return value is expected to
+		 * conform.  This type strengthening is <em>assumed</em> to hold at
+		 * compile time (of the call) and <em>checked</em> at runtime.
 		 */
 		TYPE_RESTRICTIONS_TUPLE,
 
 		/**
-		 * A {@linkplain TupleDescriptor tuple} of {@linkplain TupleTypeDescriptor
-		 * tuple types} below which new signatures may no longer be added.
+		 * A {@linkplain TupleDescriptor tuple} of {@linkplain
+		 * TupleTypeDescriptor tuple types} below which new signatures may no
+		 * longer be added.
 		 */
 		SEALED_ARGUMENTS_TYPES_TUPLE,
 

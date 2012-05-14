@@ -32,12 +32,13 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
+import static com.avail.exceptions.AvailErrorCode.E_COMPILATION_IS_OVER;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import java.util.List;
 import com.avail.annotations.NotNull;
 import com.avail.compiler.AvailCompiler;
 import com.avail.descriptor.*;
-import com.avail.exceptions.AmbiguousNameException;
+import com.avail.exceptions.*;
 import com.avail.interpreter.*;
 
 /**
@@ -62,6 +63,11 @@ public class P_245_LookupName extends Primitive
 	{
 		assert args.size() == 1;
 		final AvailObject name = args.get(0);
+		if (interpreter.module() == null)
+		{
+			return interpreter.primitiveFailure(
+				E_COMPILATION_IS_OVER);
+		}
 		try
 		{
 			return interpreter.primitiveSuccess(

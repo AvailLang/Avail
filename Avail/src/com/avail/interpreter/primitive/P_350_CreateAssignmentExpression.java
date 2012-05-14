@@ -1,5 +1,5 @@
 /**
- * P_350_MacroInnerAssignment.java
+ * P_350_CreateAssignmentExpression.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -32,6 +32,7 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
 import java.util.List;
@@ -45,12 +46,12 @@ import com.avail.interpreter.*;
  * node}. Such a node also produces the assigned value as its result, so it
  * can be embedded as a subexpression.
  */
-public class P_350_MacroInnerAssignment extends Primitive
+public class P_350_CreateAssignmentExpression extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_350_MacroInnerAssignment().init(
+	public final static Primitive instance = new P_350_CreateAssignmentExpression().init(
 		2, CanFold);
 
 	@Override
@@ -88,7 +89,7 @@ public class P_350_MacroInnerAssignment extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				VARIABLE_USE_NODE.mostGeneralType(),
-				PARSE_NODE.mostGeneralType()),
+				EXPRESSION_NODE.create(ANY.o())),
 			ASSIGNMENT_NODE.mostGeneralType());
 	}
 }

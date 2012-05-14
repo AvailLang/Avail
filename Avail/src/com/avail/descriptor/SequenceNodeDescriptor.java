@@ -36,7 +36,6 @@ import java.util.List;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
 
 /**
@@ -172,9 +171,7 @@ public class SequenceNodeDescriptor extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_ValidateLocally (
 		final @NotNull AvailObject object,
-		final AvailObject parent,
-		final List<AvailObject> outerBlocks,
-		final L2Interpreter anAvailInterpreter)
+		final AvailObject parent)
 	{
 		// Do nothing.
 	}
@@ -193,12 +190,13 @@ public class SequenceNodeDescriptor extends ParseNodeDescriptor
 
 
 	/**
-	 * Create a new {@linkplain SequenceNodeDescriptor sequence node} from the given
-	 * {@linkplain TupleDescriptor tuple} of {@linkplain ParseNodeDescriptor statements}.
+	 * Create a new {@linkplain SequenceNodeDescriptor sequence node} from the
+	 * given {@linkplain TupleDescriptor tuple} of {@linkplain
+	 * ParseNodeDescriptor statements}.
 	 *
 	 * @param statements
-	 *        The expressions to assemble into a {@linkplain SequenceNodeDescriptor
-	 *        sequence node}.
+	 *        The expressions to assemble into a {@linkplain
+	 *        SequenceNodeDescriptor sequence node}.
 	 * @return The resulting sequence node.
 	 */
 	public static AvailObject newStatements (final AvailObject statements)

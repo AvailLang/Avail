@@ -864,7 +864,8 @@ public class TypeConsistencyTest
 			}
 			else
 			{
-				parents.add(parseNodeTypeMap.get(parseNodeKind.parentKind()).get(innerNode));
+				parents.add(parseNodeTypeMap.get(
+					parseNodeKind.parentKind()).get(innerNode));
 			}
 			for (final Node parentInnerNode : parentInnerNodes)
 			{
@@ -877,13 +878,61 @@ public class TypeConsistencyTest
 				@Override
 				AvailObject get ()
 				{
-					return parseNodeKind.create(
+					final AvailObject innerType =
 						innerNode == null
 							? BottomTypeDescriptor.bottom()
-							: innerNode.t);
+							: innerNode.t;
+					final AvailObject newType = parseNodeKind.create(innerType);
+					assert newType.expressionType().equals(innerType)
+						: "parse node kind was not parameterized as expected";
+					return newType;
 				}
 			};
 			submap.put(innerNode, newNode);
+		}
+
+		/**
+		 * Deduce the relationships among the inner nodes of the kind, adding a
+		 * parse node kind node for each inner node.
+		 *
+		 * @param kind
+		 *        A {@linkplain ParseNodeKind parse node kind}.
+		 * @param innerNodes
+		 *        The nodes by which to parameterize this parse node kind.
+		 */
+		static void addMultiHelper (
+			final @NotNull ParseNodeKind kind,
+			final @NotNull Node... innerNodes)
+		{
+			for (final Node node : innerNodes)
+			{
+				final List<Node> ancestors = new ArrayList<Node>();
+				if (node == null)
+				{
+					ancestors.addAll(Arrays.asList(innerNodes));
+					ancestors.remove(null);
+				}
+				else
+				{
+					for (final Node possibleAncestor : innerNodes)
+					{
+						if (possibleAncestor != null
+							&& node.allAncestors.contains(possibleAncestor))
+						{
+							ancestors.add(possibleAncestor);
+						}
+					}
+				}
+				assert !ancestors.contains(null);
+				addHelper(
+					String.format(
+						"%s (%s)",
+						kind.name(),
+						node == null ? "BOTTOM" : node.name),
+					kind,
+					node,
+					ancestors.toArray(new Node[ancestors.size()]));
+			}
 		}
 
 		static
@@ -895,26 +944,128 @@ public class TypeConsistencyTest
 			final Node anotherAtomNode = ANOTHER_ATOM_TYPE;
 			for (final ParseNodeKind kind : ParseNodeKind.values())
 			{
-				addHelper(
-					kind.name() + "(TOP)",
-					kind,
-					topNode);
-				addHelper(
-					kind.name() + "(SOME_ATOM_TYPE)",
-					kind,
-					atomNode,
-					topNode);
-				addHelper(
-					kind.name() + "(ANOTHER_ATOM_TYPE)",
-					kind,
-					anotherAtomNode,
-					topNode);
-				addHelper(
-					kind.name() + "(BOTTOM)",
-					kind,
-					null,  // BOTTOM node is not available yet.
-					atomNode,
-					anotherAtomNode);
+				// This is future-proofing (for total coverage of parse node
+				// kinds).
+				switch (kind)
+				{
+					case BLOCK_NODE:
+						addMultiHelper(
+							kind,
+							MOST_GENERAL_FUNCTION,
+							NOTHING_TO_INT_FUNCTION,
+							INT_TO_INT_FUNCTION,
+							INTS_TO_INT_FUNCTION,
+							MOST_SPECIFIC_FUNCTION,
+							null);
+						break;
+					case EXPRESSION_NODE:
+						addMultiHelper(
+							kind,
+							topNode,
+							primitiveTypes.get(Types.ANY),
+							atomNode,
+							anotherAtomNode,
+							MOST_GENERAL_FUNCTION,
+							NOTHING_TO_INT_FUNCTION,
+							INT_TO_INT_FUNCTION,
+							INTS_TO_INT_FUNCTION,
+							MOST_SPECIFIC_FUNCTION,
+							TUPLE,
+							SET,
+							STRING,
+							EXTENDED_INTEGER,
+							ROOT_VARIABLE,
+							INT_VARIABLE,
+							SOME_ATOM_VARIABLE,
+							BOTTOM_VARIABLE,
+							UNIT_STRING,
+							EMPTY_TUPLE,
+							null);
+						break;
+					case MARKER_NODE:
+						break;
+					case ARGUMENT_NODE:
+					case DECLARATION_NODE:
+					case LABEL_NODE:
+					case LOCAL_CONSTANT_NODE:
+					case LOCAL_VARIABLE_NODE:
+					case MODULE_CONSTANT_NODE:
+					case PRIMITIVE_FAILURE_REASON_NODE:
+					case MODULE_VARIABLE_NODE:
+						addMultiHelper(
+							kind,
+							topNode,
+							null);
+						break;
+					case REFERENCE_NODE:
+						addMultiHelper(
+							kind,
+							ROOT_VARIABLE,
+							INT_VARIABLE,
+							SOME_ATOM_VARIABLE,
+							BOTTOM_VARIABLE,
+							null);
+						break;
+					case PARSE_NODE:
+					case SEND_NODE:
+					case SEQUENCE_NODE:
+						addMultiHelper(
+							kind,
+							topNode,
+							primitiveTypes.get(Types.ANY),
+							atomNode,
+							anotherAtomNode,
+							MOST_GENERAL_FUNCTION,
+							NOTHING_TO_INT_FUNCTION,
+							INT_TO_INT_FUNCTION,
+							INTS_TO_INT_FUNCTION,
+							MOST_SPECIFIC_FUNCTION,
+							TUPLE,
+							SET,
+							STRING,
+							EXTENDED_INTEGER,
+							ROOT_VARIABLE,
+							INT_VARIABLE,
+							SOME_ATOM_VARIABLE,
+							BOTTOM_VARIABLE,
+							UNIT_STRING,
+							EMPTY_TUPLE,
+							null);
+						break;
+					case TUPLE_NODE:
+						addMultiHelper(
+							kind,
+							TUPLE,
+							STRING,
+							UNIT_STRING,
+							EMPTY_TUPLE,
+							null);
+						break;
+					case SUPER_CAST_NODE:
+					case VARIABLE_USE_NODE:
+					case ASSIGNMENT_NODE:
+					case LITERAL_NODE:
+						addMultiHelper(
+							kind,
+							primitiveTypes.get(Types.ANY),
+							atomNode,
+							anotherAtomNode,
+							MOST_GENERAL_FUNCTION,
+							NOTHING_TO_INT_FUNCTION,
+							INT_TO_INT_FUNCTION,
+							INTS_TO_INT_FUNCTION,
+							MOST_SPECIFIC_FUNCTION,
+							TUPLE,
+							SET,
+							STRING,
+							EXTENDED_INTEGER,
+							ROOT_VARIABLE,
+							INT_VARIABLE,
+							SOME_ATOM_VARIABLE,
+							BOTTOM_VARIABLE,
+							null);
+						break;
+				}
 			}
 		}
 
@@ -959,10 +1110,11 @@ public class TypeConsistencyTest
 		/** The supernodes in the graph. */
 		final Node [] supernodes;
 
-
 		/** The subnodes in the graph, as an {@link EnumSet}. */
 		private Set<Node> subnodes;
 
+		/** Every node from which this node descends. */
+		final Set<Node> allAncestors;
 
 		/** Every node descended from this on, as an {@link EnumSet}. */
 		Set<Node> allDescendants;
@@ -1003,6 +1155,14 @@ public class TypeConsistencyTest
 			this.name = name;
 			this.supernodes = supernodes;
 			this.index = values.size();
+			final Set<Node> ancestors = new HashSet<Node>();
+			for (final Node supernode : supernodes)
+			{
+				ancestors.addAll(supernode.allAncestors);
+			}
+			ancestors.addAll(Arrays.asList(supernodes));
+			allAncestors = Collections.unmodifiableSet(ancestors);
+			assert !allAncestors.contains(null);
 			values.add(this);
 		}
 

@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.05.11 13:53:55.450 -0500
+ * * Last Generated On: 2012.05.13 21:20:34.390 -0500
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -59,11 +59,17 @@ Uses
 		"Reject parse,expected:_",
 		"Terminate:_",
 		"[`…]→_",
+		"_'s⁇arguments",
 		"_'s⁇arity",
+		"_'s⁇atom",
 		"_'s⁇bindings",
 		"_'s⁇caller",
+		"_'s⁇declaration",
+		"_'s⁇declared exceptions",
+		"_'s⁇declared type",
 		"_'s⁇default type",
 		"_'s⁇element type",
+		"_'s⁇expressions",
 		"_'s⁇function",
 		"_'s⁇function type",
 		"_'s⁇genuine lower bound",
@@ -76,6 +82,7 @@ Uses
 		"_'s⁇line number",
 		"_'s⁇literals",
 		"_'s⁇maximum stack depth",
+		"_'s⁇method",
 		"_'s⁇name",
 		"_'s⁇name:=_",
 		"_'s⁇names",
@@ -85,12 +92,17 @@ Uses
 		"_'s⁇primitive number",
 		"_'s⁇priority",
 		"_'s⁇program counter",
+		"_'s⁇public names",
 		"_'s⁇read type",
+		"_'s⁇referent",
 		"_'s⁇return type",
 		"_'s⁇semantic type",
 		"_'s⁇stack",
 		"_'s⁇stack pointer",
 		"_'s⁇starting position",
+		"_'s⁇statements",
+		"_'s⁇target",
+		"_'s⁇token",
 		"_'s⁇type",
 		"_'s⁇value",
 		"_'s⁇value type",
@@ -126,29 +138,40 @@ Uses
 		"_≤_",
 		"_⊆_",
 		"_⨉_^_",
+		"``_``(_)",
 		"`|_'s⁇local variables`|",
 		"`|_'s⁇outer variables`|",
 		"`|_`|",
 		"`|`|_`|`|",
+		"arg“_:_”",
 		"concatenate_",
 		"current fiber",
 		"enumeration of_",
 		"function accepting_and returning_",
 		"integer range from_(inclusive=_)to_(inclusive=_)",
+		"list(_)",
 		"ln_",
 		"milliseconds since the Epoch",
 		"new atom_",
 		"new_[_]",
 		"new_applying_",
 		"new↑_",
+		"primfail“_:_”",
 		"primitive description of_",
 		"request termination of_",
 		"semantic restrictions for_given_",
 		"set_'s⁇priority to_",
 		"special atoms",
+		"var“_:_”",
 		"{_`|_}",
 		"{_→_`|_}",
+		"‘_’",
+		"“$_:_”",
+		"“_::=_”",
+		"“_:_:=_”",
+		"“↓_”(_)",
 		"↑_",
+		"↓_`?=_'s⁇initialization",
 		"∪_",
 		"⎡_⎤",
 		"⎣_⎦"
@@ -1816,6 +1839,66 @@ Method "_'s⁇literals" is
 ] : tuple;
 
 /**
+ * Answer the specified method implementations function type.
+ *
+ * Parameters:
+ *    {0} - A method implementation.
+ * Returns:
+ *    The requested function type.
+ */
+Method "_'s⁇function type" is
+[
+	anImplementation : signature
+|
+	Primitive 216;
+] : function meta;
+
+/**
+ * Answer the specified method implementations function.
+ *
+ * Parameters:
+ *    {0} - A method implementation.
+ * Returns:
+ *    The requested function.
+ */
+Method "_'s⁇function" is
+[
+	anImplementation : method signature
+|
+	Primitive 217;
+] : function;
+
+/**
+ * Answer the atom that uniquely describes the specified method.
+ *
+ * Parameters:
+ *    aMethod - A method.
+ * Returns:
+ *    The requested atom.
+ */
+Method "_'s⁇atom" is
+[
+	aMethod : method
+|
+	Primitive 221;
+] : atom;
+
+/**
+ * Answer the public names introduced by the specified module.
+ *
+ * Parameters:
+ *    aModule - A module.
+ * Returns:
+ *    A set containing the public names introduced by `aModule`.
+ */
+Method "_'s⁇public names" is
+[
+	aModule : module
+|
+	Primitive 242;
+] : set of string;
+
+/**
  * Compute and answer the semantic restrictions that would run at a call site
  * of `aMethod` applied with the specified tuple of arguments.
  *
@@ -2334,6 +2417,469 @@ Method "_'s⁇value" is
 |
 	Primitive 359;
 ] : any;
+
+/**
+ * Construct and answer a (synthetic) literal token.
+ *
+ * Parameters:
+ *    value - The value of the literal.
+ *    fakeText - The "source" text of the literal.
+ * Returns:
+ *    The requested literal token.
+ */
+Method "``_``(_)" is
+[
+	value : any,
+	fakeText : string
+|
+	Primitive 360;
+] : literal token;
+
+/**
+ * Answer the primitive linkage number of the specified block.
+ *
+ * Parameters:
+ *    aBlock - A block.
+ * Returns:
+ *    The blocks primitive linkage number, or 0 if the block has no primitive
+ *    linkage.
+ */
+Method "_'s⁇primitive number" is
+[
+	aBlock : block
+|
+	Primitive 364;
+] : whole number;
+
+/**
+ * Answer the statements of the specified block.
+ *
+ * Parameters:
+ *    aBlock - A block.
+ * Returns:
+ *    A tuple of statements. These are either assignments, declarations, labels,
+ *    sequences, or ⊤-valued sends.
+ */
+Method "_'s⁇statements" is
+[
+	aBlock : block
+|
+	Primitive 365;
+] : phrase tuple;
+
+/**
+ * Answer the return type of the specified block.
+ *
+ * Parameters:
+ *    aBlock - A block.
+ * Returns:
+ *    The blocks return type.
+ */
+Method "_'s⁇return type" is
+[
+	aBlock : block
+|
+	Primitive 366;
+] : type;
+
+/**
+ * Answer the declared exceptions of the specified block.
+ *
+ * Parameters:
+ *    aBlock - A block.
+ * Returns:
+ *    The blocks set of declared exceptions.
+ */
+Method "_'s⁇declared exceptions" is
+[
+	aBlock : block
+|
+	Primitive 367;
+] : set;
+
+/**
+ * Answer the specified blocks outer variables.
+ *
+ * Parameters:
+ *    {0} - A block.
+ * Returns:
+ *    A tuple of declarations of outer variables required to complete the
+ *    meaning of the block.
+ */
+Method "_'s⁇outer variables" is
+[
+	aBlock : block
+|
+	Primitive 368;
+] : declaration tuple;
+
+/**
+ * Answer the specified assignments target variable.
+ *
+ * Parameters:
+ *    {0} - An assignment.
+ * Returns:
+ *    The assignments target variable.
+ */
+Method "_'s⁇target" is
+[
+	anAssignment : assignment
+|
+	Primitive 369;
+] : variable use;
+
+/**
+ * Answer the specified assignments value expression.
+ *
+ * Parameters:
+ *    {0} - An assignment.
+ * Returns:
+ *    The assignments value expression.
+ */
+Method "_'s⁇value" is
+[
+	anAssignment : assignment
+|
+	Primitive 370;
+] : expression yielding any;
+
+/**
+ * Answer the specified variable references referent.
+ *
+ * Parameters:
+ *    {0} - A variable reference.
+ * Returns:
+ *    The variable use referenced by the argument.
+ */
+Method "_'s⁇referent" is
+[
+	aReference : variable reference
+|
+	Primitive 371;
+] : variable use;
+
+/**
+ * Construct and answer an argument declaration.
+ *
+ * Parameters:
+ *    name - The name of the new constant.
+ *    declaredType - The declared type of the named constant.
+ * Returns:
+ *    The requested argument declaration.
+ */
+Method "arg“_:_”" is
+[
+	name : token,
+	declaredType : any meta
+|
+	Primitive 372;
+] : argument;
+
+/**
+ * Construct and answer a label declaration.
+ *
+ * Parameters:
+ *    name - The name of the new constant.
+ *    declaredType - The declared type of the named constant.
+ * Returns:
+ *    The requested label declaration.
+ */
+Method "“$_:_”" is
+[
+	name : token,
+	declaredType : continuation
+|
+	Primitive 373;
+] : label;
+
+/**
+ * Construct and answer a local constant declaration.
+ *
+ * Parameters:
+ *    name - The name of the new constant.
+ *    declaredType - The initialization expression for the new constant.
+ * Returns:
+ *    The requested local constant declaration.
+ */
+Method "“_::=_”" is
+[
+	name : token,
+	declaredType : expression yielding any
+|
+	Primitive 374;
+] : local constant;
+
+/**
+ * Construct and answer a primitive failure local constant declaration.
+ *
+ * Parameters:
+ *    name - The name of the new constant.
+ *    declaredType - The declared type of the named constant.
+ * Returns:
+ *    The requested primitive failure local constant declaration.
+ */
+Method "primfail“_:_”" is
+[
+	name : token,
+	declaredType : any meta
+|
+	Primitive 375;
+] : primitive failure reason;
+
+/**
+ * Construct and answer a local variable declaration.
+ *
+ * Parameters:
+ *    name - The name of the new variable.
+ *    declaredType - The declared type of the named variable.
+ * Returns:
+ *    The requested local variable declaration.
+ */
+Method "var“_:_”" is
+[
+	name : token,
+	declaredType : any meta
+|
+	Primitive 376;
+] : local variable;
+
+/**
+ * Construct and answer an initialized local variable declaration.
+ *
+ * Parameters:
+ *    name - The name of the new variable.
+ *    declaredType - The declared type of the named variable.
+ *    initializer - The initialization expression.
+ * Returns:
+ *    The requested initialized local variable declaration.
+ */
+Method "“_:_:=_”" is
+[
+	name : token,
+	declaredType : any meta,
+	initializer : expression yielding any
+|
+	Primitive 377;
+] : local variable;
+
+/**
+ * Answer the token that names the entity introduced by the specified
+ * declaration.
+ *
+ * Parameters:
+ *    aDeclaration - A declaration.
+ * Returns:
+ *    The requested token.
+ */
+Method "_'s⁇token" is
+[
+	aDeclaration : declaration
+|
+	Primitive 378;
+] : token;
+
+/**
+ * Answer the declared type of the entity introduced by the specified
+ * declaration.
+ *
+ * Parameters:
+ *    aDeclaration - A declaration.
+ * Returns:
+ *    The requested type.
+ */
+Method "_'s⁇declared type" is
+[
+	aDeclaration : declaration
+|
+	Primitive 379;
+] : any meta;
+
+/**
+ * If the specified declaration has an initialization expression, then store it
+ * into `var`.
+ *
+ * Parameters:
+ *    var - A variable.
+ *    aDeclaration - A declaration.
+ * Returns:
+ *    `true` if `aDeclaration` has an initialization expression and it was
+ *    written into `var`, `false` otherwise.
+ */
+Method "↓_`?=_'s⁇initialization" is
+[
+	var : write-only expression variable,
+	aDeclaration : declaration
+|
+	Primitive 380;
+] : boolean;
+
+/**
+ * Construct and answer a literal expression.
+ *
+ * Parameters:
+ *    aLiteralToken - A literal token.
+ * Returns:
+ *    The requested literal expression.
+ */
+Method "‘_’" is
+[
+	aLiteralToken : literal token
+|
+	Primitive 381;
+] : literal;
+
+/**
+ * Answer the specified literal expressions defining token.
+ *
+ * Parameters:
+ *    {0} - A literal expression.
+ * Returns:
+ *    The requested literal token.
+ */
+Method "_'s⁇token" is
+[
+	aLiteral : literal
+|
+	Primitive 382;
+] : literal token;
+
+/**
+ * Answer the target method of the specified message send.
+ *
+ * Parameters:
+ *    aSend - A message send.
+ * Returns:
+ *    The requested method.
+ */
+Method "_'s⁇method" is
+[
+	aSend : send
+|
+	Primitive 384;
+] : method;
+
+/**
+ * Answer the specified message sends argument expressions.
+ *
+ * Parameters:
+ *    {0} - A message send.
+ * Returns:
+ *    The requested tuple of argument expressions.
+ */
+Method "_'s⁇arguments" is
+[
+	aSend : send
+|
+	Primitive 385;
+] : expression yielding any tuple;
+
+/**
+ * Answer the specified message sends expected return type.
+ *
+ * Parameters:
+ *    {0} - A message send.
+ * Returns:
+ *    The requested type.
+ */
+Method "_'s⁇return type" is
+[
+	aSend : send
+|
+	Primitive 386;
+] : type;
+
+/**
+ * Answer the tuple of statements that constitute the specified sequence.
+ *
+ * Parameters:
+ *    aSequence - A sequence.
+ * Returns:
+ *    The requested tuple of statements.
+ */
+Method "_'s⁇statements" is
+[
+	aSequence : sequence
+|
+	Primitive 388;
+] : phrase tuple;
+
+/**
+ * Construct and answer a list from the specified tuple of expressions.
+ *
+ * Parameters:
+ *    aTuple - A tuple of expressions.
+ * Returns:
+ *    The requested list.
+ */
+Method "list(_)" is
+[
+	aTuple : expression yielding any tuple
+|
+	Primitive 392;
+] : list;
+
+/**
+ * Answer the tuple of expressions that constitute the specified list.
+ *
+ * Parameters:
+ *    aList - A list.
+ * Returns:
+ *    The requested tuple of expressions.
+ */
+Method "_'s⁇expressions" is
+[
+	aList : list
+|
+	Primitive 393;
+] : expression yielding any tuple;
+
+/**
+ * Create a variable use expression from the specified token and declaration.
+ *
+ * Parameters:
+ *    aDeclaration - The declaration that created the referenced entity.
+ *    aToken - A token that names the entity at the point of use.
+ * Returns:
+ *    The requested variable use expression.
+ */
+Method "“↓_”(_)" is
+[
+	aDeclaration : declaration,
+	aToken : token
+|
+	Primitive 394;
+] : variable use;
+
+/**
+ * Answer the specified variable use expressions token.
+ *
+ * Parameters:
+ *    {0} - A variable use expression.
+ * Returns:
+ *    The token that names the referenced entity at the point of use.
+ */
+Method "_'s⁇token" is
+[
+	use : variable use
+|
+	Primitive 395;
+] : token;
+
+/**
+ * Answer the declaration that introduced the entity referenced by the specified
+ * variable use expression.
+ *
+ * Parameters:
+ *    use - A variable use expression.
+ * Returns:
+ *    The requested declaration.
+ */
+Method "_'s⁇declaration" is
+[
+	use : variable use
+|
+	Primitive 396;
+] : declaration;
 
 /**
  * Construct and answer a pojo array type whose element type is `elementType`

@@ -440,7 +440,7 @@ extends AbstractTypeDescriptor
 		final @NotNull AvailObject object);
 
 	@Override @AvailMethod
-	abstract AvailObject o_CheckedExceptions (
+	abstract AvailObject o_DeclaredExceptions (
 		final @NotNull AvailObject object);
 
 	@Override @AvailMethod

@@ -34,11 +34,12 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.Multiplier;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.descriptor.SendNodeDescriptor.ObjectSlots.*;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.compiler.*;
+import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.exceptions.SignatureException;
-import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
 
 /**
@@ -56,20 +57,18 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 	public enum ObjectSlots implements ObjectSlotsEnum
 	{
 		/**
-		 * The expressions yielding the arguments of the multi-method
-		 * invocation.
+		 * The expressions yielding the arguments of the method invocation.
 		 */
 		ARGUMENTS,
 
 		/**
-		 * The {@linkplain MethodDescriptor method} containing
-		 * the multimethods to be invoked.
+		 * The {@linkplain MethodDescriptor method} to be invoked.
 		 */
 		METHOD,
 
 		/**
-		 * What {@linkplain TypeDescriptor type} of {@linkplain AvailObject object}
-		 * this multi-method invocation must return.
+		 * What {@linkplain TypeDescriptor type} of {@linkplain AvailObject
+		 * object} this method invocation must return.
 		 */
 		RETURN_TYPE
 	}
@@ -258,9 +257,7 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_ValidateLocally (
 		final @NotNull AvailObject object,
-		final AvailObject parent,
-		final List<AvailObject> outerBlocks,
-		final L2Interpreter anAvailInterpreter)
+		final AvailObject parent)
 	{
 		// Do nothing.
 	}
@@ -366,5 +363,31 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 	public static SendNodeDescriptor immutable ()
 	{
 		return immutable;
+	}
+
+	/**
+	 * Create a new {@linkplain SendNodeDescriptor send node} from the specified
+	 * argument {@linkplain ParseNodeKind#EXPRESSION_NODE expressions},
+	 * {@linkplain MethodDescriptor method}, and {@linkplain TypeDescriptor
+	 * type}.
+	 *
+	 * @param method
+	 *        The target method.
+	 * @param args
+	 *        A {@linkplain TupleDescriptor tuple} of argument expressions.
+	 * @param returnType
+	 *        The target method's expected return type.
+	 * @return A new send node.
+	 */
+	public static @NotNull AvailObject from (
+		final @NotNull AvailObject method,
+		final @NotNull AvailObject args,
+		final @NotNull AvailObject returnType)
+	{
+		final AvailObject newObject = mutable.create();
+		newObject.setSlot(ARGUMENTS, args);
+		newObject.setSlot(METHOD, method);
+		newObject.setSlot(RETURN_TYPE, returnType);
+		return newObject;
 	}
 }

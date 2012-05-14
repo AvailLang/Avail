@@ -34,10 +34,8 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import java.util.List;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
 
 /**
@@ -63,8 +61,8 @@ public class SuperCastNodeDescriptor extends ParseNodeDescriptor
 		EXPRESSION,
 
 		/**
-		 * The {@linkplain TypeDescriptor type} to consider the expression to be for
-		 * the purpose of multi-method lookup.
+		 * The {@linkplain TypeDescriptor type} to consider the expression to be
+		 * for the purpose of method lookup.
 		 */
 		SUPER_CAST_TYPE
 
@@ -184,9 +182,7 @@ public class SuperCastNodeDescriptor extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_ValidateLocally (
 		final @NotNull AvailObject object,
-		final AvailObject parent,
-		final List<AvailObject> outerBlocks,
-		final L2Interpreter anAvailInterpreter)
+		final AvailObject parent)
 	{
 		if (!parent.isInstanceOfKind(SEND_NODE.mostGeneralType()))
 		{

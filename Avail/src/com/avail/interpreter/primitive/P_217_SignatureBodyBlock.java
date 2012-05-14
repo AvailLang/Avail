@@ -48,8 +48,8 @@ public class P_217_SignatureBodyBlock extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_217_SignatureBodyBlock().init(
-		1, CanFold, CannotFail);
+	public final static Primitive instance =
+		new P_217_SignatureBodyBlock().init(1, CanFold, CannotFail);
 
 	@Override
 	public @NotNull Result attempt (

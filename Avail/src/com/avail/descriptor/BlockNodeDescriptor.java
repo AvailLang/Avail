@@ -41,7 +41,6 @@ import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
-import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
 
 /**
@@ -85,7 +84,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 		 * <em>has not yet been normalized</em> (e.g., removing types that are
 		 * subtypes of types that are also present in the set).
 		 */
-		CHECKED_EXCEPTIONS
+		DECLARED_EXCEPTIONS
 	}
 
 	/**
@@ -161,10 +160,10 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	 * Getter for field checkedExceptions.
 	 */
 	@Override @AvailMethod
-	@NotNull AvailObject o_CheckedExceptions (
+	@NotNull AvailObject o_DeclaredExceptions (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.CHECKED_EXCEPTIONS);
+		return object.slot(ObjectSlots.DECLARED_EXCEPTIONS);
 	}
 
 
@@ -378,9 +377,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_ValidateLocally (
 		final @NotNull AvailObject object,
-		final AvailObject parent,
-		final List<AvailObject> outerBlocks,
-		final L2Interpreter anAvailInterpreter)
+		final AvailObject parent)
 	{
 		// Make sure our neededVariables list has up-to-date information about
 		// the outer variables that are accessed in me, because they have to be
@@ -410,7 +407,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 			labels(object),
 			object.neededVariables(),
 			object.resultType(),
-			object.checkedExceptions());
+			object.declaredExceptions());
 		codeGenerator.stackShouldBeEmpty();
 		codeGenerator.primitive(object.primitive());
 		codeGenerator.stackShouldBeEmpty();
@@ -452,18 +449,18 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	 * Construct a {@linkplain BlockNodeDescriptor block node}.
 	 *
 	 * @param argumentsList
-	 *            The {@linkplain TupleDescriptor tuple} of {@linkplain
+	 *            The {@linkplain List list} of {@linkplain
 	 *            DeclarationNodeDescriptor argument declarations}.
 	 * @param primitive
 	 *            The index of the primitive that the resulting block will
 	 *            invoke.
 	 * @param statementsList
-	 *            The {@linkplain TupleDescriptor tuple} of statement
+	 *            The {@linkplain List list} of statement
 	 *            {@linkplain ParseNodeDescriptor nodes}.
 	 * @param resultType
 	 *            The {@linkplain TypeDescriptor type} that will be returned by
 	 *            the block.
-	 * @param checkedExceptions
+	 * @param declaredExceptions
 	 *            The {@linkplain SetDescriptor set} of exception types that may
 	 *            be raised by this block.  <em>This is not yet normalized.</em>
 	 * @return
@@ -474,7 +471,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 		final int primitive,
 		final List<AvailObject> statementsList,
 		final AvailObject resultType,
-		final AvailObject checkedExceptions)
+		final AvailObject declaredExceptions)
 	{
 		final List<AvailObject> flattenedStatements =
 			new ArrayList<AvailObject>(statementsList.size() + 3);
@@ -509,11 +506,107 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 			ObjectSlots.NEEDED_VARIABLES,
 			NullDescriptor.nullObject());
 		block.setSlot(
-			ObjectSlots.CHECKED_EXCEPTIONS,
-			checkedExceptions);
+			ObjectSlots.DECLARED_EXCEPTIONS,
+			declaredExceptions);
 		block.makeImmutable();
 		return block;
+	}
 
+	/**
+	 * Construct a {@linkplain BlockNodeDescriptor block node}.
+	 *
+	 * @param arguments
+	 *            The {@linkplain TupleDescriptor tuple} of {@linkplain
+	 *            DeclarationNodeDescriptor argument declarations}.
+	 * @param primitive
+	 *            The index of the primitive that the resulting block will
+	 *            invoke.
+	 * @param statements
+	 *            The {@linkplain TupleDescriptor tuple} of statement
+	 *            {@linkplain ParseNodeDescriptor nodes}.
+	 * @param resultType
+	 *            The {@linkplain TypeDescriptor type} that will be returned by
+	 *            the block.
+	 * @param declaredExceptions
+	 *            The {@linkplain SetDescriptor set} of exception types that may
+	 *            be raised by this block.  <em>This is not yet normalized.</em>
+	 * @return
+	 *            A block node.
+	 */
+	public static AvailObject newBlockNode (
+		final AvailObject arguments,
+		final AvailObject primitive,
+		final AvailObject statements,
+		final AvailObject resultType,
+		final AvailObject declaredExceptions)
+	{
+		final List<AvailObject> flattenedStatements =
+			new ArrayList<AvailObject>(statements.tupleSize() + 3);
+		for (final AvailObject statement : statements)
+		{
+			statement.flattenStatementsInto(flattenedStatements);
+		}
+		// Remove useless statements that are just top literals, other than the
+		// final statement.  Actually remove any bare literals, not just top.
+		for (int index = flattenedStatements.size() - 2; index >= 0; index--)
+		{
+			final AvailObject statement = flattenedStatements.get(index);
+			if (statement.isInstanceOfKind(LITERAL_NODE.mostGeneralType()))
+			{
+				flattenedStatements.remove(index);
+			}
+		}
+		final AvailObject block = mutable().create();
+		block.setSlot(
+			ObjectSlots.ARGUMENTS_TUPLE,
+			arguments);
+		block.setSlot(
+			IntegerSlots.PRIMITIVE,
+			primitive.extractInt());
+		block.setSlot(
+			ObjectSlots.STATEMENTS_TUPLE,
+			TupleDescriptor.fromCollection(flattenedStatements));
+		block.setSlot(
+			ObjectSlots.RESULT_TYPE,
+			resultType);
+		block.setSlot(
+			ObjectSlots.NEEDED_VARIABLES,
+			NullDescriptor.nullObject());
+		block.setSlot(
+			ObjectSlots.DECLARED_EXCEPTIONS,
+			declaredExceptions);
+		block.makeImmutable();
+		return block;
+	}
+
+	/**
+	 * Ensure that the {@linkplain BlockNodeDescriptor block node} is valid.
+	 * Throw an appropriate exception if it is not.
+	 *
+	 * @param blockNode
+	 *            The {@linkplain BlockNodeDescriptor block node} to validate.
+	 */
+	public static void recursivelyValidate (
+		final @NotNull AvailObject blockNode)
+	{
+		final List<AvailObject> blockStack = new ArrayList<AvailObject>(3);
+		treeDoWithParent(
+			blockNode,
+			new Continuation3<AvailObject, AvailObject, List<AvailObject>>()
+			{
+				@Override
+				public void value (
+					final AvailObject node,
+					final AvailObject parent,
+					final List<AvailObject> blockNodes)
+				{
+					node.validateLocally(parent);
+				}
+			},
+			null,
+			blockStack);
+		assert blockStack.isEmpty();
+		assert blockNode.neededVariables().tupleSize() == 0;
 	}
 
 	/**

@@ -60,14 +60,14 @@ public class P_220_MethodFromName extends Primitive
 	{
 		assert args.size() == 1;
 		final AvailObject trueName = args.get(0);
-		final AvailObject impSet =
+		final AvailObject method =
 			interpreter.runtime().methodsAt(trueName);
-		if (impSet.equalsNull())
+		if (method.equalsNull())
 		{
 			return interpreter.primitiveFailure(E_NO_METHOD);
 		}
-		impSet.makeImmutable();
-		return interpreter.primitiveSuccess(impSet);
+		method.makeImmutable();
+		return interpreter.primitiveSuccess(method);
 	}
 
 	@Override

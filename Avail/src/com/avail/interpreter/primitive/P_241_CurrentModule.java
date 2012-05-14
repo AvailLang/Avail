@@ -1,5 +1,5 @@
 /**
- * P_354_MacroReference.java
+ * P_241_CurrentModule.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -29,60 +29,52 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.exceptions.AvailErrorCode.E_DECLARATION_KIND_DOES_NOT_SUPPORT_REFERENCE;
-import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.descriptor.TypeDescriptor.Types.MODULE;
+import static com.avail.exceptions.AvailErrorCode.E_COMPILATION_IS_OVER;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
 import java.util.List;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 354:</strong> Transform a {@linkplain
- * VariableUseNodeDescriptor variable use} into a {@linkplain
- * ReferenceNodeDescriptor reference}.
+ * <strong>Primitive 241</strong>: Answer the {@linkplain ModuleDescriptor
+ * module} currently undergoing compilation. Fails at runtime (if compilation is
+ * over).
  *
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
-public class P_354_MacroReference extends Primitive
+public final class P_241_CurrentModule
+extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_354_MacroReference().init(
-		1, CanFold);
+	public final static Primitive instance = new P_241_CurrentModule().init(
+		0, CanInline);
 
 	@Override
-	public @NotNull Result attempt (
+	public Result attempt (
 		final @NotNull List<AvailObject> args,
 		final @NotNull Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final AvailObject variable = args.get(0);
-		final AvailObject declaration = variable.declaration();
-		assert declaration != null;
-		final AvailObject declarationType = declaration.kind();
-		if (!declarationType.parseNodeKindIsUnder(MODULE_VARIABLE_NODE)
-			&& !declarationType.parseNodeKindIsUnder(LOCAL_VARIABLE_NODE))
+		assert args.size() == 0;
+		final AvailObject module = interpreter.module();
+		if (module == null)
 		{
-			return interpreter.primitiveFailure(
-				E_DECLARATION_KIND_DOES_NOT_SUPPORT_REFERENCE);
+			return interpreter.primitiveFailure(E_COMPILATION_IS_OVER);
 		}
-		final AvailObject reference =
-			ReferenceNodeDescriptor.mutable().create();
-		reference.variable(variable);
-		return interpreter.primitiveSuccess(reference);
+		return interpreter.primitiveSuccess(module);
 	}
 
 	@Override
 	protected @NotNull AvailObject privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				VARIABLE_USE_NODE.mostGeneralType()),
-			REFERENCE_NODE.create(
-				VariableTypeDescriptor.mostGeneralType()));
+			TupleDescriptor.from(),
+			MODULE.o());
 	}
 }

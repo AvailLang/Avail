@@ -35,10 +35,8 @@ package com.avail.descriptor;
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
-import java.util.List;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
 
 /**
@@ -190,9 +188,7 @@ public class MarkerNodeDescriptor extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_ValidateLocally (
 		final @NotNull AvailObject object,
-		final AvailObject parent,
-		final List<AvailObject> outerBlocks,
-		final L2Interpreter anAvailInterpreter)
+		final AvailObject parent)
 	{
 		error("Marker nodes should not validateLocally.");
 	}

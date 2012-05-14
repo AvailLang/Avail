@@ -32,10 +32,10 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.PARSE_NODE;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
 
 /**
@@ -239,18 +239,11 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	 * @param parent
 	 *        The {@linkplain ParseNodeDescriptor parse node} which contains the
 	 *        parse node to validate.
-	 * @param outerBlocks
-	 *        A list of {@linkplain BlockNodeDescriptor block nodes} that
-	 *        enclose the parse node to validate.
-	 * @param anAvailInterpreter
-	 *        An {@linkplain L2Interpreter interpreter} to use for validation.
 	 */
 	@Override @AvailMethod
 	abstract void o_ValidateLocally (
 		final @NotNull AvailObject object,
-		final AvailObject parent,
-		final List<AvailObject> outerBlocks,
-		final L2Interpreter anAvailInterpreter);
+		final AvailObject parent);
 
 	@Override @AvailMethod
 	void o_FlattenStatementsInto (
@@ -263,5 +256,47 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	@Override int maximumIndent ()
 	{
 		return Integer.MAX_VALUE;
+	}
+
+	/**
+	 * Visit the entire tree with the given {@linkplain Continuation3 block},
+	 * children before parents.  The block takes three arguments: the
+	 * node, its parent, and the list of enclosing block nodes.
+	 *
+	 * @param object
+	 *        The current {@linkplain ParseNodeDescriptor parse node}.
+	 * @param aBlock
+	 *        What to do with each descendant.
+	 * @param parentNode
+	 *        This node's parent.
+	 * @param outerNodes
+	 *        The list of {@linkplain BlockNodeDescriptor blocks} surrounding
+	 *        this node, from outermost to innermost.
+	 */
+	public static void treeDoWithParent (
+		final @NotNull AvailObject object,
+		final @NotNull Continuation3<
+			AvailObject, AvailObject, List<AvailObject>> aBlock,
+		final @NotNull AvailObject parentNode,
+		final @NotNull List<AvailObject> outerNodes)
+	{
+		object.childrenDo(
+			new Continuation1<AvailObject>()
+			{
+				@Override
+				public void value (final AvailObject child)
+				{
+					assert child.isInstanceOfKind(PARSE_NODE.mostGeneralType());
+					treeDoWithParent(
+						child,
+						aBlock,
+						object,
+						outerNodes);
+				}
+			});
+		aBlock.value(
+			object,
+			parentNode,
+			outerNodes);
 	}
 }

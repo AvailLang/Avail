@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.05.11 13:38:57.922 -0500
+ * * Last Generated On: 2012.05.13 21:20:34.454 -0500
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -54,6 +54,10 @@ Names
 	/* 508 */ "Java method reference is ambiguous code",
 	/*  54 */ "alternative must not contain arguments code",
 	/*  35 */ "ambiguous name code",
+	/* 103 */ "block compilation failed code",
+	/* 100 */ "block contains invalid statements code",
+	/* 101 */ "block is invalid code",
+	/* 102 */ "block must not contain outers code",
 	/*   1 */ "cannot add unlike infinities code",
 	/*   4 */ "cannot divide by zero code",
 	/*   5 */ "cannot divide infinities code",
@@ -80,12 +84,15 @@ Names
 	/*  48 */ "incorrect type for counting group code",
 	/*  32 */ "incorrect type for group code",
 	/*  43 */ "incorrect use of double dagger code",
+	/* 104 */ "invalid arguments for send code",
 	/*  25 */ "invalid handle code",
 	/*  26 */ "invalid primitive number code",
 	/*  33 */ "invalid special object number code",
+	/* 106 */ "invalid type for super cast code",
 	/*  21 */ "key not found code",
 	/*  28 */ "local type literal is not a type code",
 	/*  34 */ "macro argument must be a parse node code",
+	/*  71 */ "method implementation lookup failed code",
 	/*  45 */ "method name is not canonical code",
 	/*  13 */ "method return type not as forward declared code",
 	/*  22 */ "negative size code",
@@ -101,6 +108,7 @@ Names
 	/*  50 */ "question mark must follow a simple group code",
 	/*  39 */ "redefined with same argument types code",
 	/*  40 */ "result type should covary with arguments code",
+	/* 105 */ "sequence contains invalid statements code",
 	/*  41 */ "special atom code",
 	/*  10 */ "subscript out of bounds code",
 	/*  52 */ "tilde must not follow argument code",
@@ -389,6 +397,46 @@ Method "alternative must not contain arguments code" is
 Method "compilation is over code" is
 [
 	70
+];
+
+Method "method implementation lookup failed code" is
+[
+	71
+];
+
+Method "block contains invalid statements code" is
+[
+	100
+];
+
+Method "block is invalid code" is
+[
+	101
+];
+
+Method "block must not contain outers code" is
+[
+	102
+];
+
+Method "block compilation failed code" is
+[
+	103
+];
+
+Method "invalid arguments for send code" is
+[
+	104
+];
+
+Method "sequence contains invalid statements code" is
+[
+	105
+];
+
+Method "invalid type for super cast code" is
+[
+	106
 ];
 
 Method "Java class not available code" is

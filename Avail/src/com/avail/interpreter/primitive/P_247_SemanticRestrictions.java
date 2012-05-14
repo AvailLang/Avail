@@ -58,9 +58,9 @@ public class P_247_SemanticRestrictions extends Primitive
 		final @NotNull Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject impSet = args.get(0);
+		final AvailObject method = args.get(0);
 		final AvailObject argTypes = args.get(1);
-		final AvailObject restrictions = impSet.typeRestrictions();
+		final AvailObject restrictions = method.typeRestrictions();
 		final List<AvailObject> applicable = new ArrayList<AvailObject>();
 		for (int i = restrictions.tupleSize(); i >= 1; i--)
 		{

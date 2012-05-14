@@ -171,7 +171,16 @@ extends Descriptor
 		 * applicable type restriction functions and the types indicated by the
 		 * applicable {@linkplain ImplementationDescriptor method signatures}.
 		 */
-		TYPE_RESTRICTION_FUNCTIONS
+		TYPE_RESTRICTION_FUNCTIONS,
+
+		/** Is this a system {@linkplain ModuleDescriptor module}? */
+		IS_SYSTEM_MODULE
+	}
+
+	@Override @AvailMethod
+	boolean o_IsSystemModule (final @NotNull AvailObject object)
+	{
+		return object.slot(ObjectSlots.IS_SYSTEM_MODULE).extractBoolean();
 	}
 
 	@Override @AvailMethod
@@ -651,10 +660,13 @@ extends Descriptor
 	 *
 	 * @param moduleName
 	 *        The {@linkplain StringDescriptor name} of the module.
+	 * @param isSystemModule
+	 *        {@code true} if this is a system module, {@code false} otherwise.
 	 * @return The new module.
 	 */
 	public static @NotNull AvailObject newModule (
-		final AvailObject moduleName)
+		final @NotNull AvailObject moduleName,
+		final boolean isSystemModule)
 	{
 		final AvailObject emptyMap = MapDescriptor.empty();
 		final AvailObject emptySet = SetDescriptor.empty();
@@ -673,10 +685,12 @@ extends Descriptor
 			ObjectSlots.FILTERED_BUNDLE_TREE,
 			MessageBundleTreeDescriptor.newPc(1));
 		object.setSlot(ObjectSlots.VARIABLE_BINDINGS, emptyMap);
-
 		object.setSlot(
 			ObjectSlots.TYPE_RESTRICTION_FUNCTIONS,
 			MapDescriptor.empty());
+		object.setSlot(
+			ObjectSlots.IS_SYSTEM_MODULE,
+			AtomDescriptor.objectFromBoolean(isSystemModule));
 		return object;
 	}
 

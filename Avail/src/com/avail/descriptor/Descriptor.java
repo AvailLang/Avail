@@ -3493,9 +3493,7 @@ extends AbstractDescriptor
 	@Override
 	void o_ValidateLocally (
 		 final @NotNull AvailObject object,
-		 final AvailObject parent,
-		 final List<AvailObject> outerBlocks,
-		 final L2Interpreter anAvailInterpreter)
+		 final AvailObject parent)
 	{
 		throw unsupportedOperationException();
 	}
@@ -3700,7 +3698,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	@NotNull AvailObject o_CheckedExceptions (
+	@NotNull AvailObject o_DeclaredExceptions (
 		final @NotNull AvailObject object)
 	{
 		throw unsupportedOperationException();
@@ -4501,6 +4499,12 @@ extends AbstractDescriptor
 
 	@Override
 	void o_ClearInterruptRequestFlags (final @NotNull AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	boolean o_IsSystemModule (final @NotNull AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}

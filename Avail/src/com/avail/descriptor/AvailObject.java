@@ -1737,7 +1737,7 @@ implements Iterable<AvailObject>
 	 * correspond,</li>
 	 * <li>The {@linkplain AvailObject#returnType() return types}
 	 * correspond, and</li>
-	 * <li>The {@linkplain AvailObject#checkedExceptions() raise types}
+	 * <li>The {@linkplain AvailObject#declaredExceptions() raise types}
 	 * correspond.</li>
 	 * </ul></p>
 	 */
@@ -4943,21 +4943,15 @@ implements Iterable<AvailObject>
 
 
 	/**
-	 * @param object
 	 * @param parent
-	 * @param outerBlocks
-	 * @param anAvailInterpreter
+	 * @param object
 	 */
 	public void validateLocally (
-		final AvailObject parent,
-		final List<AvailObject> outerBlocks,
-		final L2Interpreter anAvailInterpreter)
+		final AvailObject parent)
 	{
 		descriptor.o_ValidateLocally(
 			this,
-			parent,
-			outerBlocks,
-			anAvailInterpreter);
+			parent);
 	}
 
 
@@ -5193,9 +5187,9 @@ implements Iterable<AvailObject>
 	/**
 	 * @return
 	 */
-	public @NotNull AvailObject checkedExceptions ()
+	public @NotNull AvailObject declaredExceptions ()
 	{
-		return descriptor.o_CheckedExceptions(this);
+		return descriptor.o_DeclaredExceptions(this);
 	}
 
 

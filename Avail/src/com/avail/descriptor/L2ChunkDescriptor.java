@@ -649,9 +649,9 @@ extends Descriptor
 			code.countdownToReoptimize(
 				L2ChunkDescriptor.countdownForNewlyOptimizedCode());
 		}
-		for (final AvailObject impSet : contingentSets)
+		for (final AvailObject method : contingentSets)
 		{
-			impSet.addDependentChunkIndex(index);
+			method.addDependentChunkIndex(index);
 		}
 		chunk.makeImmutable();
 		moveToHead(chunk);
@@ -694,9 +694,9 @@ extends Descriptor
 			}
 		}
 		final Set<AvailObject> impSets = ref.contingentMethods;
-		for (final AvailObject impSet : impSets)
+		for (final AvailObject method : impSets)
 		{
-			impSet.removeDependentChunkIndex(chunkIndex);
+			method.removeDependentChunkIndex(chunkIndex);
 		}
 		ref.contingentMethods.clear();
 	}

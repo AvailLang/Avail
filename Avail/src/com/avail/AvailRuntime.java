@@ -440,7 +440,7 @@ implements ThreadFactory
 		specialObjects[17] = IntegerRangeTypeDescriptor.integers();
 		specialObjects[18] = IntegerRangeTypeDescriptor.meta();
 		specialObjects[19] = MapTypeDescriptor.meta();
-		// 20
+		specialObjects[20] = MODULE.o();
 		// 21
 		specialObjects[22] = ObjectTypeDescriptor.mostGeneralType();
 		specialObjects[23] = ObjectTypeDescriptor.meta();
@@ -469,7 +469,7 @@ implements ThreadFactory
 		specialObjects[45] = MESSAGE_BUNDLE_TREE.o();
 		specialObjects[46] = METHOD.o();
 		specialObjects[50] = PARSE_NODE.mostGeneralType();
-		// 51 MARKER_NODE(⊤)
+		specialObjects[51] = SEQUENCE_NODE.mostGeneralType();
 		specialObjects[52] = EXPRESSION_NODE.mostGeneralType();
 		specialObjects[53] = ASSIGNMENT_NODE.mostGeneralType();
 		specialObjects[54] = BLOCK_NODE.mostGeneralType();
@@ -632,6 +632,31 @@ implements ThreadFactory
 					IntegerRangeTypeDescriptor.singleInt(2),
 					TupleDescriptor.from(ATOM.o()),
 					ANY.o()));
+		specialObjects[121] =
+			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+				IntegerRangeTypeDescriptor.wholeNumbers(),
+				TupleDescriptor.empty(),
+				PARSE_NODE.mostGeneralType());
+		specialObjects[122] =
+			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+				IntegerRangeTypeDescriptor.wholeNumbers(),
+				TupleDescriptor.empty(),
+				ARGUMENT_NODE.mostGeneralType());
+		specialObjects[123] =
+			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+				IntegerRangeTypeDescriptor.wholeNumbers(),
+				TupleDescriptor.empty(),
+				DECLARATION_NODE.mostGeneralType());
+		specialObjects[124] =
+			VariableTypeDescriptor.fromReadAndWriteTypes(
+				TOP.o(),
+				EXPRESSION_NODE.create(BottomTypeDescriptor.bottom()));
+		specialObjects[125] =
+			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+				IntegerRangeTypeDescriptor.wholeNumbers(),
+				TupleDescriptor.empty(),
+				EXPRESSION_NODE.create(ANY.o()));
+		specialObjects[126] = EXPRESSION_NODE.create(ANY.o());
 
 		for (final AvailObject object : specialObjects)
 		{
@@ -925,8 +950,8 @@ implements ThreadFactory
 		runtimeLock.writeLock().lock();
 		try
 		{
-			final AvailObject impSet = methodFor(methodName);
-			impSet.addTypeRestriction(typeRestrictionFunction);
+			final AvailObject method = methodFor(methodName);
+			method.addTypeRestriction(typeRestrictionFunction);
 		}
 		finally
 		{
@@ -955,9 +980,9 @@ implements ThreadFactory
 		runtimeLock.writeLock().lock();
 		try
 		{
-			final AvailObject impSet = methodFor(methodName);
-			impSet.removeTypeRestriction(typeRestrictionFunction);
-			if (impSet.isMethodEmpty())
+			final AvailObject method = methodFor(methodName);
+			method.removeTypeRestriction(typeRestrictionFunction);
+			if (method.isMethodEmpty())
 			{
 				methods = methods.mapWithoutKeyCanDestroy(methodName, true);
 			}

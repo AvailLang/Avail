@@ -37,7 +37,6 @@ import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
 
 /**
@@ -223,9 +222,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_ValidateLocally (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject parent,
-		final @NotNull List<AvailObject> outerBlocks,
-		final @NotNull L2Interpreter interpreter)
+		final @NotNull AvailObject parent)
 	{
 		final AvailObject decl = object.variable().declaration();
 		switch (decl.declarationKind())

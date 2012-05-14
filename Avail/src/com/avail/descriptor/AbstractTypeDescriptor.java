@@ -84,7 +84,7 @@ extends Descriptor
 		final @NotNull AvailObject object);
 
 	@Override @AvailMethod
-	abstract @NotNull AvailObject o_CheckedExceptions (
+	abstract @NotNull AvailObject o_DeclaredExceptions (
 		final @NotNull AvailObject object);
 
 	@Override @AvailMethod

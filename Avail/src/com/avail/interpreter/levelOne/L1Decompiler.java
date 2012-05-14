@@ -153,7 +153,7 @@ public class L1Decompiler
 			code.primitiveNumber(),
 			statements,
 			aCodeObject.functionType().returnType(),
-			aCodeObject.functionType().checkedExceptions());
+			aCodeObject.functionType().declaredExceptions());
 	}
 
 	/**
@@ -238,9 +238,9 @@ public class L1Decompiler
 		@Override
 		public void L1_doCall ()
 		{
-			final AvailObject impSet = code.literalAt(getInteger());
+			final AvailObject method = code.literalAt(getInteger());
 			final AvailObject type = code.literalAt(getInteger());
-			final AvailObject atom = impSet.name();
+			final AvailObject atom = method.name();
 			int nArgs = 0;
 			final AvailObject str = atom.name();
 			final AvailObject underscore =
@@ -253,11 +253,10 @@ public class L1Decompiler
 				}
 			}
 			final List<AvailObject> callArgs = popExpressions(nArgs);
-			final AvailObject sendNode = SendNodeDescriptor.mutable().create();
-			sendNode.arguments(TupleDescriptor.fromCollection(callArgs));
-			sendNode.method(impSet);
-			sendNode.returnType(type);
-
+			final AvailObject sendNode = SendNodeDescriptor.from(
+				method,
+				TupleDescriptor.fromCollection(callArgs),
+				type);
 			pushExpression(sendNode);
 		}
 
@@ -663,9 +662,9 @@ public class L1Decompiler
 		@Override
 		public void L1Ext_doSuperCall ()
 		{
-			final AvailObject impSet = code.literalAt(getInteger());
+			final AvailObject method = code.literalAt(getInteger());
 			final AvailObject type = code.literalAt(getInteger());
-			final AvailObject atom = impSet.name();
+			final AvailObject atom = method.name();
 			int nArgs = 0;
 			final AvailObject str = atom.name();
 			final AvailObject underscore =
@@ -693,10 +692,10 @@ public class L1Decompiler
 					callArgs.set(i, superCast);
 				}
 			}
-			final AvailObject sendNode = SendNodeDescriptor.mutable().create();
-			sendNode.arguments(TupleDescriptor.fromCollection(callArgs));
-			sendNode.method(impSet);
-			sendNode.returnType(type);
+			final AvailObject sendNode = SendNodeDescriptor.from(
+				method,
+				TupleDescriptor.fromCollection(callArgs),
+				type);
 			pushExpression(sendNode);
 		}
 

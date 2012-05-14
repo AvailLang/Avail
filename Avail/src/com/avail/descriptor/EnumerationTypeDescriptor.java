@@ -591,9 +591,9 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_CheckedExceptions (final AvailObject object)
+	AvailObject o_DeclaredExceptions (final AvailObject object)
 	{
-		return getSuperkind(object).checkedExceptions();
+		return getSuperkind(object).declaredExceptions();
 	}
 
 	@Override @AvailMethod

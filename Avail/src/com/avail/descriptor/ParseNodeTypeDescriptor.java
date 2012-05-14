@@ -33,7 +33,8 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.Multiplier;
-import static com.avail.descriptor.TypeDescriptor.Types.TYPE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 import com.avail.annotations.*;
 
@@ -97,41 +98,83 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 		ASSIGNMENT_NODE(EXPRESSION_NODE),
 
 		/** The kind of a {@linkplain BlockNodeDescriptor block node}. */
-		BLOCK_NODE(EXPRESSION_NODE),
+		BLOCK_NODE(EXPRESSION_NODE)
+		{
+			@Override
+			@NotNull AvailObject mostGeneralInnerType ()
+			{
+				return FunctionTypeDescriptor.mostGeneralType();
+			}
+		},
 
 		/** The kind of a {@linkplain LiteralNodeDescriptor literal node}. */
-		LITERAL_NODE(EXPRESSION_NODE),
+		LITERAL_NODE(EXPRESSION_NODE)
+		{
+			@Override
+			@NotNull AvailObject mostGeneralInnerType ()
+			{
+				return Types.ANY.o();
+			}
+		},
 
 		/**
 		 * The kind of a {@linkplain ReferenceNodeDescriptor reference node}.
 		 */
-		REFERENCE_NODE(EXPRESSION_NODE),
+		REFERENCE_NODE(EXPRESSION_NODE)
+		{
+			@Override
+			@NotNull AvailObject mostGeneralInnerType ()
+			{
+				return VariableTypeDescriptor.mostGeneralType();
+			}
+		},
 
 		/** The kind of a {@linkplain SendNodeDescriptor send node}. */
 		SEND_NODE(EXPRESSION_NODE),
 
 		/** The kind of a {@linkplain SequenceNodeDescriptor sequence node}. */
-		SEQUENCE_NODE(EXPRESSION_NODE),
+		SEQUENCE_NODE(PARSE_NODE),
 
 		/**
 		 * The kind of a {@linkplain SuperCastNodeDescriptor super cast node}.
 		 */
-		SUPER_CAST_NODE(EXPRESSION_NODE),
+		SUPER_CAST_NODE(EXPRESSION_NODE)
+		{
+			@Override
+			@NotNull AvailObject mostGeneralInnerType ()
+			{
+				return Types.ANY.o();
+			}
+		},
 
 		/** The kind of a {@linkplain TupleNodeDescriptor tuple node}. */
-		TUPLE_NODE(EXPRESSION_NODE),
+		TUPLE_NODE(EXPRESSION_NODE)
+		{
+			@Override
+			@NotNull AvailObject mostGeneralInnerType ()
+			{
+				return TupleTypeDescriptor.mostGeneralType();
+			}
+		},
 
 		/**
 		 * The kind of a {@linkplain VariableUseNodeDescriptor variable use
 		 * node}.
 		 */
-		VARIABLE_USE_NODE(EXPRESSION_NODE),
+		VARIABLE_USE_NODE(EXPRESSION_NODE)
+		{
+			@Override
+			@NotNull AvailObject mostGeneralInnerType ()
+			{
+				return Types.ANY.o();
+			}
+		},
 
 		/**
 		 * The kind of a {@linkplain DeclarationNodeDescriptor declaration
 		 * node}.
 		 */
-		DECLARATION_NODE(EXPRESSION_NODE),
+		DECLARATION_NODE(PARSE_NODE),
 
 		/** The kind of an argument node. */
 		ARGUMENT_NODE(DECLARATION_NODE),
@@ -167,6 +210,16 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 		public final ParseNodeKind parentKind ()
 		{
 			return parentKind;
+		}
+
+		/**
+		 * The most general inner type for this kind of parse node.
+		 *
+		 * @return The most general inner type for this kind of parse node.
+		 */
+		@NotNull AvailObject mostGeneralInnerType ()
+		{
+			return Types.TOP.o();
 		}
 
 		/**
@@ -209,9 +262,12 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 		final public @NotNull AvailObject create (
 			final @NotNull AvailObject expressionType)
 		{
-			expressionType.makeImmutable();
+			AvailObject boundedExpressionType = expressionType;
 			final AvailObject type = mutable().create();
-			type.setSlot(ObjectSlots.EXPRESSION_TYPE, expressionType);
+			boundedExpressionType = expressionType.typeIntersection(
+				mostGeneralInnerType());
+			boundedExpressionType.makeImmutable();
+			type.setSlot(ObjectSlots.EXPRESSION_TYPE, boundedExpressionType);
 			type.setSlot(IntegerSlots.KIND, ordinal());
 			return type;
 		}
@@ -222,7 +278,7 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 		 */
 		void createWellKnownObjects ()
 		{
-			mostGeneralType = create(Types.TOP.o());
+			mostGeneralType = create(mostGeneralInnerType()).makeImmutable();
 		}
 
 		/**
@@ -557,4 +613,52 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 		return immutable;
 	}
 
+	/**
+	 * Does the specified {@linkplain AvailObject#flattenStatementsInto(List)
+	 * flat} {@linkplain List list} of {@linkplain ParseNodeDescriptor parse
+	 * nodes} contain only statements?
+	 *
+	 * @param flat
+	 *        A flattened list of statements.
+	 * @param resultType
+	 *        The result type of the sequence. Use {@linkplain Types#TOP top}
+	 *        if unconcerned about result type.
+	 * @return {@code true} if the list contains only statements, {@code false}
+	 *         otherwise.
+	 */
+	public static @NotNull boolean containsOnlyStatements (
+		final @NotNull List<AvailObject> flat,
+		final @NotNull AvailObject resultType)
+	{
+		final int statementCount = flat.size();
+		for (int i = 0; i < statementCount; i++)
+		{
+			final AvailObject statement = flat.get(i);
+			final AvailObject kind = statement.kind();
+			assert !kind.parseNodeKindIsUnder(SEQUENCE_NODE);
+			// Handle the literal nil specially. Ignore it.
+			if (!statement.equals(LiteralNodeDescriptor.literalNullObject()))
+			{
+				boolean valid =
+					kind.parseNodeKindIsUnder(ASSIGNMENT_NODE)
+					|| kind.parseNodeKindIsUnder(DECLARATION_NODE)
+					|| kind.parseNodeKindIsUnder(LABEL_NODE)
+					|| kind.parseNodeKindIsUnder(SEND_NODE);
+				if (i + 1 < statementCount)
+				{
+					valid = valid && kind.expressionType().equals(TOP.o());
+				}
+				else
+				{
+					valid = valid && kind.expressionType().isSubtypeOf(
+						resultType);
+				}
+				if (!valid)
+				{
+					return false;
+				}
+			}
+		}
+		return true;
+	}
 }

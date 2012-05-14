@@ -51,6 +51,7 @@ Names
 	"counts for_",
 	"distinct_",
 	"first index of_where_",
+	"flatten_",
 	"group_by_",
 	"last index of_where_",
 	"left fold_through_",
@@ -522,9 +523,69 @@ Method "map and filter_by_" is
 Semantic restriction "map and filter_by_" is
 [
 	tupleType : tuple meta,
-	accumulator : […]→⊤'s type
+	accumulator : [⊥, ⊥]→⊤'s type
 |
-	Require: accumulator accepts tupleType;
+	union ::= ∪ tupleType[1..|tupleType's leading types| + 1];
+	If accumulator[1] ≠ ⊥ ∧ [ ¬union ⊆ accumulator[1] ] then
+	[
+		Reject parse, expected:
+			"repeatedly applied function to accept all elements of the tuple ⊆ "
+			++ primitive description of tupleType
+			++ " (but it only accepts "
+			++ primitive description of accumulator[1]
+			++ ")"
+	];
+	Require: accumulator's keeper is valid;
+	If accumulator's return type ≠ ⊤ then
+	[
+		Reject parse, expected:
+			"repeatedly applied function to have return type ⊤"
+	];
+	<
+		<>,
+		cast accumulator[2] into [ t : function meta | t[1] ]…
+		| [0..||tupleType||'s upper bound + 1)
+	>
+];
+
+/**
+ * Ensure that the function will accept all elements and indices of the tuple
+ * and also an appropriately typed keeper function.
+ *
+ * Parameters:
+ *    tupleType -
+ *    accumulator -
+ * Returns:
+ *    A tuple type with no leading types whose default type is the argument type
+ *    of the keeper function and whose cardinality is
+ *    `[0..||tupleType||'s upper bound + 1)`.
+ */
+Semantic restriction "map and filter_by_" is
+[
+	tupleType : tuple meta,
+	accumulator : [⊥, ⊥, ⊥]→⊤'s type
+|
+	union ::= ∪ tupleType[1..|tupleType's leading types| + 1];
+	If accumulator[1] ≠ ⊥ ∧ [ ¬union ⊆ accumulator[1] ] then
+	[
+		Reject parse, expected:
+			"repeatedly applied function to accept all elements of the tuple ⊆ "
+			++ primitive description of tupleType
+			++ " (but it only accepts "
+			++ primitive description of accumulator[1]
+			++ ")"
+	];
+	If accumulator[2] ≠ ⊥
+		∧ [ ¬[1..||tupleType||'s upper bound + 1) ⊆ accumulator[2] ]
+	then
+	[
+		Reject parse, expected:
+			"repeatedly applied function to accept all indices of the tuple ⊆ "
+			++ primitive description of tupleType
+			++ " (but it only accepts "
+			++ primitive description of accumulator[2]
+			++ ")"
+	];
 	Require: accumulator's keeper is valid;
 	If accumulator's return type ≠ ⊤ then
 	[
@@ -1994,53 +2055,53 @@ Method "flatten_" is
  */
 Semantic restriction "flatten_" is
 [
- 	aTupleOfTuplesType : <tuple…|>'s type
- |
- 	if |aTupleOfTuplesType| = 1 then
- 	[
- 	 	(flatten aTupleOfTuplesType's instance)'s type
- 	]
- 	else 
- 	[
- 	 	leadingTypes ::= cast aTupleOfTuplesType's leading types into
- 	 		[t : <tuple's type…|> | t];
- 	 	defaultType ::= aTupleOfTuplesType's default type;
- 	 	leadingAndDefaultTypes ::= leadingTypes ++ <defaultType>;
- 	 	tupleTypes : <tuple's type…|> := <>;
- 	 	totalUpperBound : [0..∞] := 0;
- 	 	totalLowerBound : whole number := 0;
- 	 	For each leadingAndDefaultTypes do
- 	 	[
- 	 	 	t : tuple's type
- 	 	|
- 	 	 	tupleTypes := tupleTypes ++ 
- 	 	 		cast t's leading types into [r : <tuple's type…|> | r] ++
- 	 	 		<cast t's default type into [r : tuple's type | r]>;
- 	 	 	totalUpperBound := totalUpperBound + ||t||'s upper bound;
- 	 	 	totalLowerBound := totalLowerBound + ||t||'s lower bound;
- 	 	];
- 		card ::= [totalLowerBound..totalUpperBound);
- 	 	firstLower : [0..∞);
- 	 	finalDefaultType : any's type; 
- 	 	finalLeadingTypes ::= if |leadingTypes| ≥ 1 then
- 	 	[
- 	 	 	firstLower := ||leadingTypes[1]||'s lower bound;
- 	 	 	if firstLower > 0 then 
- 	 	 	[
- 	 	 	 	finalDefaultType := 
- 	 	 	 		∪ (tupleTypes's type)[firstLower + 1..|tupleTypes|]; 
- 	 	 	 	leadingTypes[1]'s leading types[1..firstLower]
- 	 	 	]
- 	 	 	else 
- 	 	 	[
- 	 	 	 	finalDefaultType := 
- 	 	 	 		∪ (tupleTypes's type)[firstLower + 1..|tupleTypes|];
- 	 	 	    <>
- 	 	 	]
- 	 	]
- 	 	else [<>];
- 	 	<finalLeadingTypes,finalDefaultType…|card>
- 	]
+	aTupleOfTuplesType : <tuple…|>'s type
+|
+	if |aTupleOfTuplesType| = 1 then
+	[
+		(flatten aTupleOfTuplesType's instance)'s type
+	]
+	else 
+	[
+		leadingTypes ::= cast aTupleOfTuplesType's leading types into
+			[t : <tuple's type…|> | t];
+		defaultType ::= aTupleOfTuplesType's default type;
+		leadingAndDefaultTypes ::= leadingTypes ++ <defaultType>;
+		tupleTypes : <tuple's type…|> := <>;
+		totalUpperBound : [0..∞] := 0;
+		totalLowerBound : whole number := 0;
+		For each leadingAndDefaultTypes do
+		[
+			t : tuple's type
+		|
+			tupleTypes := tupleTypes ++ 
+				cast t's leading types into [r : <tuple's type…|> | r] ++
+				<cast t's default type into [r : tuple's type | r]>;
+			totalUpperBound := totalUpperBound + ||t||'s upper bound;
+			totalLowerBound := totalLowerBound + ||t||'s lower bound;
+		];
+		card ::= [totalLowerBound..totalUpperBound);
+		firstLower : [0..∞);
+		finalDefaultType : any's type; 
+		finalLeadingTypes ::= if |leadingTypes| ≥ 1 then
+		[
+			firstLower := ||leadingTypes[1]||'s lower bound;
+			if firstLower > 0 then 
+			[
+				finalDefaultType := 
+					∪ (tupleTypes's type)[firstLower + 1..|tupleTypes|]; 
+				leadingTypes[1]'s leading types[1..firstLower]
+			]
+			else 
+			[
+				finalDefaultType := 
+					∪ (tupleTypes's type)[firstLower + 1..|tupleTypes|];
+				<>
+			]
+		]
+		else [<>];
+		<finalLeadingTypes,finalDefaultType…|card>
+	]
 ];
 
 /**
@@ -2053,9 +2114,9 @@ Semantic restriction "flatten_" is
  */   
 Method "_'s⁇head" is
 [
- 	aTuple : <any…|1..∞>
- |
- 	aTuple[1]
+	aTuple : <any…|1..∞>
+|
+	aTuple[1]
 ]:any;
 
 /**
@@ -2084,17 +2145,17 @@ Semantic restriction "_'s⁇head" is
  */   
 Method "_'s⁇tail" is
 [
- 	aTuple : <any…|1..∞>
- |
- 	size ::= |aTuple|;
- 	if size > 1 then
- 	[
- 		aTuple[2..size]
- 	]
- 	else
- 	[
- 		<>
- 	]
+	aTuple : <any…|1..∞>
+|
+	size ::= |aTuple|;
+	if size > 1 then
+	[
+		aTuple[2..size]
+	]
+	else
+	[
+		<>
+	]
 ]:<any…|0..∞>;
 
 /**
@@ -2114,7 +2175,6 @@ Semantic restriction "_'s⁇tail" is
 	sizeLeadingTypes ::= |leadingTypes|;
 	bound ::= ||aTupleType||'s upper bound;
 	lower ::= ||aTupleType||'s lower bound;
-	
 	if sizeLeadingTypes > 1 then
 	[
 		<leadingTypes[2..sizeLeadingTypes], defaultType…|[lower-1..bound)>

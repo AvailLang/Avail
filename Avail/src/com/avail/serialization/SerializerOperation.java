@@ -1016,7 +1016,7 @@ public enum SerializerOperation
 			return array(
 				object.argsTupleType(),
 				object.returnType(),
-				object.checkedExceptions().asTuple());
+				object.declaredExceptions().asTuple());
 		}
 
 		@Override

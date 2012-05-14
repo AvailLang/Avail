@@ -829,7 +829,7 @@ extends AbstractAvailCompiler
 		final ParserState stateAfterCall,
 		final List<AvailObject> argumentExpressions,
 		final AvailObject bundle,
-		final AvailObject impSet,
+		final AvailObject method,
 		final Con<AvailObject> continuation)
 	{
 		final Mutable<Boolean> valid = new Mutable<Boolean>(true);
@@ -839,7 +839,7 @@ extends AbstractAvailCompiler
 		{
 			argumentNodeTypes.add(argExpr.kind());
 		}
-		impSet.validateArgumentTypesInterpreterIfFail(
+		method.validateArgumentTypesInterpreterIfFail(
 			argumentNodeTypes,
 			interpreter,
 			new Continuation1<Generator<String>>()
@@ -869,7 +869,7 @@ extends AbstractAvailCompiler
 		}
 		writer.write(new L1Instruction(
 			L1Operation.L1_doCall,
-			writer.addLiteral(impSet),
+			writer.addLiteral(method),
 			writer.addLiteral(PARSE_NODE.mostGeneralType())));
 		writer.argumentTypes();
 		writer.primitiveNumber(0);
@@ -902,7 +902,7 @@ extends AbstractAvailCompiler
 			{
 				stateAfterCall.expected(
 					"macro body ("
-					+ impSet.name().name()
+					+ method.name().name()
 					+ ") to produce a parse node");
 			}
 		}

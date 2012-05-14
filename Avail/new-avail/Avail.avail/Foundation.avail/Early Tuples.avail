@@ -144,10 +144,25 @@ Method "relevant`|_`|" is
 [
 	tupleType : tuple meta
 |
-	lower ::= ||tupleType||'s genuine lower bound max 0;
+	lower ::= ||tupleType||'s lower bound max 0;
 	count ::= |tupleType's leading types| + 1;
 	cast lower min count into [ t : whole number | t ]
 ] : whole number;
+
+/**
+ * There are no relevant element types when the tuple type is ⊥.
+ * 
+ * Parameters:
+ *    tupleType - ⊥.
+ * Returns:
+ *    0.
+ */
+Method "relevant`|_`|" is
+[
+	tupleType : ⊥'s type
+|
+	0
+] : 0's type;
 
 /**
  * Construct and answer the tuple type that represents the specified tuple

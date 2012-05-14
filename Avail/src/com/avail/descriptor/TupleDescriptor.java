@@ -49,6 +49,7 @@ import com.avail.serialization.SerializerOperation;
  * must be defined in all subclasses.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
 public abstract class TupleDescriptor
 extends Descriptor
@@ -936,9 +937,8 @@ extends Descriptor
 	 *        The list of {@linkplain AvailObject Avail objects} from which
 	 *        to construct a tuple.
 	 * @return The corresponding tuple of objects.
-	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
-	public static AvailObject fromCollection (
+	public static @NotNull AvailObject fromCollection (
 		final List<AvailObject> collection)
 	{
 		final int size = collection.size();
@@ -954,6 +954,26 @@ extends Descriptor
 			i++;
 		}
 		return tuple;
+	}
+
+	/**
+	 * Construct a {@linkplain List list} from the specified {@linkplain
+	 * TupleDescriptor tuple}. The elements are not made immutable.
+	 *
+	 * @param tuple
+	 *        A tuple.
+	 * @return The corresponding list of objects.
+	 */
+	public static @NotNull List<AvailObject> toList (
+		final @NotNull AvailObject tuple)
+	{
+		final List<AvailObject> list = new ArrayList<AvailObject>(
+			tuple.tupleSize());
+		for (final AvailObject element : tuple)
+		{
+			list.add(element);
+		}
+		return list;
 	}
 
 	/**

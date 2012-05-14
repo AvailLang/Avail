@@ -747,7 +747,7 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_CheckedExceptions (
+	@NotNull AvailObject o_DeclaredExceptions (
 		final @NotNull AvailObject object)
 	{
 		throw unsupportedOperationException();

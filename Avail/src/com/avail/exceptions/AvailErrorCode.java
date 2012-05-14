@@ -39,6 +39,7 @@ import com.avail.annotations.NotNull;
 import com.avail.compiler.MessageSplitter;
 import com.avail.descriptor.*;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 
 /**
  * {@code AvailErrorCode} is an enumeration of all possible failures of
@@ -385,6 +386,53 @@ public enum AvailErrorCode
 	 * runtime.
 	 */
 	E_COMPILATION_IS_OVER (70),
+
+	/**
+	 * Method lookup failed.
+	 */
+	E_METHOD_IMPLEMENTATION_LOOKUP_FAILED (71),
+
+	/**
+	 * A proposed {@linkplain BlockNodeDescriptor block expression} contains
+	 * one or more invalid statements.
+	 */
+	E_BLOCK_CONTAINS_INVALID_STATEMENTS (100),
+
+	/**
+	 * A {@linkplain BlockNodeDescriptor block expression} is invalid.
+	 */
+	E_BLOCK_IS_INVALID (101),
+
+	/**
+	 * The {@linkplain BlockNodeDescriptor block expression} references outers,
+	 * but must not.
+	 */
+	E_BLOCK_MUST_NOT_CONTAIN_OUTERS (102),
+
+	/**
+	 * The {@linkplain BlockNodeDescriptor block expression} failed compilation.
+	 */
+	E_BLOCK_COMPILATION_FAILED (103),
+
+	/**
+	 * The {@linkplain ParseNodeKind#EXPRESSION_NODE argument expressions}
+	 * provided during dynamic {@linkplain SendNodeDescriptor message send}
+	 * construction were invalid, i.e., they did not conform to any known
+	 * implementation.
+	 */
+	E_INVALID_ARGUMENTS_FOR_SEND (104),
+
+	/**
+	 * A proposed {@linkplain SequenceNodeDescriptor sequence} contains one or
+	 * more invalid statements.
+	 */
+	E_SEQUENCE_CONTAINS_INVALID_STATEMENTS (105),
+
+	/**
+	 * The expression type for a super cast was not a strict supertype of the
+	 * actual {@linkplain ParseNodeKind#EXPRESSION_NODE expression}.
+	 */
+	E_INVALID_TYPE_FOR_SUPER_CAST (106),
 
 	/**
 	 * A Java {@linkplain Class class} specified by name was either not found by

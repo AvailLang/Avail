@@ -36,7 +36,6 @@ import static com.avail.descriptor.AvailObject.Multiplier;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.utility.*;
 
 /**
@@ -194,9 +193,7 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_ValidateLocally (
 		final @NotNull AvailObject object,
-		final AvailObject parent,
-		final List<AvailObject> outerBlocks,
-		final L2Interpreter anAvailInterpreter)
+		final AvailObject parent)
 	{
 		// Do nothing.
 	}
@@ -229,8 +226,8 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 
 
 	/**
-	 * Construct a new {@linkplain MacroSubstitutionNodeDescriptor macro substitution
-	 * node}.
+	 * Construct a new {@linkplain MacroSubstitutionNodeDescriptor macro
+	 * substitution node}.
 	 *
 	 * @param macroName
 	 *            The name of the macro that produced this node.

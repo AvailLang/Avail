@@ -3767,7 +3767,7 @@ public abstract class AbstractDescriptor
 	 * correspond,</li>
 	 * <li>The {@linkplain AvailObject#returnType() return types}
 	 * correspond, and</li>
-	 * <li>The {@linkplain AvailObject#checkedExceptions() raise types}
+	 * <li>The {@linkplain AvailObject#declaredExceptions() raise types}
 	 * correspond.</li>
 	 * </ul></p>
 	 * @see AvailObject#equalsFunctionType(AvailObject)
@@ -4585,14 +4585,10 @@ public abstract class AbstractDescriptor
 	/**
 	 * @param object
 	 * @param parent
-	 * @param outerBlocks
-	 * @param anAvailInterpreter
 	 */
 	abstract void o_ValidateLocally (
 		 @NotNull AvailObject object,
-		 AvailObject parent,
-		 List<AvailObject> outerBlocks,
-		 L2Interpreter anAvailInterpreter);
+		 AvailObject parent);
 
 	/**
 	 * @param object
@@ -4777,7 +4773,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract @NotNull AvailObject o_CheckedExceptions (
+	abstract @NotNull AvailObject o_DeclaredExceptions (
 		@NotNull AvailObject object);
 
 	/**
@@ -5538,4 +5534,10 @@ public abstract class AbstractDescriptor
 	 */
 	abstract void o_ClearInterruptRequestFlags (
 		final @NotNull AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract boolean o_IsSystemModule (final @NotNull AvailObject object);
 }

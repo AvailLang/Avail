@@ -37,22 +37,22 @@ import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
+import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive 355:</strong> Create a variation of a {@linkplain
  * ParseNodeTypeDescriptor parse node type}.  In particular, create a parse
- * node type of the same {@linkplain
- * com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind kind} but with
- * the specified expression type.
+ * node type of the same {@linkplain ParseNodeKind kind} but with the specified
+ * expression type.
  */
 public class P_355_CreateParseNodeType extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_355_CreateParseNodeType().init(
-		2, CanFold, CannotFail);
+	public final static Primitive instance =
+		new P_355_CreateParseNodeType().init(2, CanFold, CannotFail);
 
 	@Override
 	public @NotNull Result attempt (

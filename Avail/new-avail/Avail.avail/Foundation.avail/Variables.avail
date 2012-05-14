@@ -92,7 +92,7 @@ Method "increment function" is
 	[
 		var : variable
 	|
-		↓var := cast eject var into [ t : number | t + 1 ];
+		↓var ?= cast eject var into [ t : number | t + 1 ];
 	] : ⊤
 ];
 
@@ -152,7 +152,7 @@ Method "(_++)" is
 	var : variable
 |
 	value ::= eject var;
-	↓var := cast value into [ t : number | t + 1 ];
+	↓var ?= cast value into [ t : number | t + 1 ];
 	value
 ] : ⊤;
 
@@ -208,7 +208,7 @@ Method "(++_)" is
 [
 	var : variable
 |
-	↓var := cast eject var into [ t : number | t + 1 ];
+	↓var ?= cast eject var into [ t : number | t + 1 ];
 	↓var
 ];
 
@@ -259,7 +259,7 @@ Method "decrement function" is
 	[
 		var : variable
 	|
-		↓var := cast eject var into [ t : number | t - 1 ];
+		↓var ?= cast eject var into [ t : number | t - 1 ];
 	] : ⊤
 ];
 
@@ -296,7 +296,7 @@ Method "(_--)" is
 	var : variable
 |
 	value ::= eject var;
-	↓var := cast value into [ t : number | t - 1 ];
+	↓var ?= cast value into [ t : number | t - 1 ];
 	value
 ] : ⊤;
 
@@ -352,7 +352,7 @@ Method "(--_)" is
 [
 	var : variable
 |
-	↓var := cast eject var into [ t : number | t - 1 ];
+	↓var ?= cast eject var into [ t : number | t - 1 ];
 	↓var
 ];
 

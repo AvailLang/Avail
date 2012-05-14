@@ -242,7 +242,7 @@ extends AbstractAvailCompiler
 								public String value ()
 								{
 									return String.format(
-										"statement to have type ⊤, not %s.",
+										"statement to have type ⊤, not %s",
 										expression.expressionType());
 								}
 							});
@@ -2019,7 +2019,7 @@ extends AbstractAvailCompiler
 		final ParserState stateAfterCall,
 		final List<AvailObject> argumentExpressions,
 		final AvailObject bundle,
-		final AvailObject impSet,
+		final AvailObject method,
 		final Con<AvailObject> continuation)
 	{
 		stateAfterCall.expected(
@@ -2428,7 +2428,10 @@ extends AbstractAvailCompiler
 								final ParserState afterType,
 								final AvailObject type)
 							{
-								if (expr.expressionType().isSubtypeOf(type))
+								final AvailObject exprType =
+									expr.expressionType();
+								if (exprType.isSubtypeOf(type)
+									&& !exprType.equals(type))
 								{
 									final AvailObject cast =
 										SuperCastNodeDescriptor.create(
@@ -2439,8 +2442,8 @@ extends AbstractAvailCompiler
 								else
 								{
 									afterType.expected(
-										"supercast type to be supertype "
-										+ "of expression's type.");
+										"supercast type to be strict supertype "
+										+ "of expression's type");
 								}
 							}
 						});
@@ -2656,7 +2659,7 @@ extends AbstractAvailCompiler
 						public String value ()
 						{
 							return String.format(
-								"statement \"%s\" to have type ⊤, not \"%s\".",
+								"statement \"%s\" to have type ⊤, not \"%s\"",
 								lastStatement,
 								lastStatement.expressionType());
 						}
