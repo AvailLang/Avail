@@ -1102,7 +1102,7 @@ public class MessageSplitter
 				ParseNodeKind.LITERAL_NODE.mostGeneralType());
 			final int count = countLiteral.token().literal().extractInt();
 			final Iterator<AvailObject> emptyProvider =
-				Collections.<AvailObject>emptyIterator();
+				Collections.<AvailObject>emptyList().iterator();
 			for (int i = 1; i <= count; i++)
 			{
 				if (i > 1)
@@ -1246,7 +1246,7 @@ public class MessageSplitter
 			if (flag)
 			{
 				group.printGroupOccurrence(
-					Collections.<AvailObject>emptyIterator(),
+					Collections.<AvailObject>emptyList().iterator(),
 					aStream,
 					indent,
 					true);

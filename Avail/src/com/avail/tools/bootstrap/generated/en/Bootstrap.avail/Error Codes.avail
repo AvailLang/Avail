@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.05.13 21:20:34.454 -0500
+ * * Last Generated On: 2012.05.15 16:38:39.424 -0500
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -84,7 +84,6 @@ Names
 	/*  48 */ "incorrect type for counting group code",
 	/*  32 */ "incorrect type for group code",
 	/*  43 */ "incorrect use of double dagger code",
-	/* 104 */ "invalid arguments for send code",
 	/*  25 */ "invalid handle code",
 	/*  26 */ "invalid primitive number code",
 	/*  33 */ "invalid special object number code",
@@ -422,11 +421,6 @@ Method "block must not contain outers code" is
 Method "block compilation failed code" is
 [
 	103
-];
-
-Method "invalid arguments for send code" is
-[
-	104
 ];
 
 Method "sequence contains invalid statements code" is

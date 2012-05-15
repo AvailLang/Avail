@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.05.13 21:20:34.390 -0500
+ * * Last Generated On: 2012.05.15 16:38:39.379 -0500
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -121,7 +121,6 @@ Uses
 		"_is a primitive",
 		"_is unassigned",
 		"_taking arguments tupled",
-		"_→_",
 		"_→character",
 		"_→code point",
 		"_→double",
@@ -132,6 +131,7 @@ Uses
 		"_→object type",
 		"_→set",
 		"_→tuple",
+		"_⇒_",
 		"_∈_",
 		"_∩_",
 		"_∪_",
@@ -2347,7 +2347,7 @@ Method "Reject parse,expected:_" is
  * Returns:
  *    The requested phrase type.
  */
-Method "_→_" is
+Method "_⇒_" is
 [
 	aPhrase : phrase meta,
 	semanticType : type

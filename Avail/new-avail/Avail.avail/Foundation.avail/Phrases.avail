@@ -38,12 +38,16 @@ Uses
 	"Bootstrap",
 	"Early Control Structures",
 	"Early Types",
+	"Enumeration Support",
 	"Literals"
 Names
 	"``_``",
 	"“↓_”",
 	"“[_|_]”"
 Body
+
+/* Make "_'s type" bind more tightly than phrase type construction. */
+Grammatical restriction {"_⇒_"} is <∅, {"_'s⁇type"}>;
 
 /**
  * Construct and answer a (synthetic) literal token whose artificial source text
@@ -103,3 +107,32 @@ Method "“[_|_]”" is
 		statements
 	] : returnType ^ ∅”
 ] : block;
+
+/**
+ * The requested send node has a semantic type of `returnType`.
+ * 
+ * Parameters:
+ *    aMethod -
+ *    arguments -
+ *    returnType -
+ * Returns:
+ *    `send→returnType`.
+ */
+Semantic restriction "send_with_:_" is
+[
+	aMethod : method's type,
+	arguments : <expression…|>'s type,
+	returnType : type's type
+|
+	/* Parse nodes have identity, so it isn't safe to strengthen more than
+	 * this.
+	 */
+	if |returnType| = 1 then
+	[
+		send⇒(returnType's instance)
+	]
+	else
+	[
+		⊤
+	]
+];

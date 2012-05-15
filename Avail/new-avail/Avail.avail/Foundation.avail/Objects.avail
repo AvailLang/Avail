@@ -301,8 +301,7 @@ Semantic restriction "_→object" is
 ];
 
 /**
- * Static information about objects is extremely limited, so strengthening is
- * really only possible when the argument is an instance type.
+ * Strengthen `_→map`.
  * 
  * Parameters:
  *    anObject -
@@ -317,16 +316,18 @@ Semantic restriction "_→map" is
 	[
 		(anObjectType's instance→map)'s type
 	]
-	/* Can't strengthen. */
 	else
 	[
-		⊤
+		objectMap ::= anObjectType→map;
+		/* Because we can't know what keys and types the subtypes of the
+		 * argument will contain, this is as good as it gets.
+		 */
+		{atom→any | |objectMap|..}
 	]
 ];
 
 /**
- * Static information about object is extremely limited, so strengthening is
- * really only possible when the argument is an instance type.
+ * Strengthen `_→tuple`.
  * 
  * Parameters:
  *    anObjectType -
@@ -341,10 +342,13 @@ Semantic restriction "_→tuple" is
 	[
 		(anObjectType's instance→tuple)'s type
 	]
-	/* Can't strengthen. */
 	else
 	[
-		⊤
+		objectMap ::= anObjectType→map;
+		/* Because we can't know what keys and types the subtypes of the
+		 * argument will contain, this is as good as it gets.
+		 */
+		<<atom, any…|2>…| |objectMap|..>
 	]
 ];
 
@@ -551,13 +555,22 @@ is
 			new instanceFunctionType
 			applying [ x : object | x→map[fieldAtom] ];
 	];
+	/* Determine which mutators to create. */
 	mutators ::= map and filter publicTriples ++ privateTriples by
 		[
 			triple : <boolean, atom, any meta…|3>,
 			accept : [<atom…|1..>]→⊤
 		|
-			If triple[1] then [ accept(<triple[2]>); ];
+			If triple[1] then
+			[
+				accept(<triple[2]>);
+			];
 		];
+	/* Obtain the methods needed for the synthetic mutators. */
+	toMapM ::= method for atom for "_→map";
+	ejectM ::= method for atom for "eject_";
+	addBindingM ::= method for atom for "_+_→_";
+	toObjectM ::= method for atom for "_→object";
 	/* Generate the mutators. */
 	For each mutators do
 	[
@@ -572,10 +585,6 @@ is
 			methodName := eject ↑methodName ++ "," ++ fieldAtom's name ++ ":=_";
 		];
 		/* Construct the body of the mutator method. */
-		toMapM ::= method for atom for "_→map";
-		ejectM ::= method for atom for "eject_";
-		addBindingM ::= method for atom for "_+_→_";
-		toObjectM ::= method for atom for "_→object";
 		args ::=
 			<arg “`"instance"` : subtype”> ++ map atoms through
 			[
@@ -585,24 +594,20 @@ is
 				desc ::= primitive description of index;
 				arg “`"arg" ++ desc` : subtypeMap[fieldAtom]”
 			];
-		mapType ::= subtypeMap's type;
-		toMapMSend ::= cast send toMapM with <“↓args[1]”>
-			into [ t : send→any | t ];
+		toMapMSend ::= send toMapM with <“↓args[1]”> : field map;
 		mapDecl ::= “`"objectMap"` : {atom→any|} := toMapMSend”;
 		assignments ::= map atoms through
 			[
 				fieldAtom : atom,
 				index : natural number
 			|
-				ejectSend ::= cast send ejectM with <“↑“↓mapDecl””>
-					into [ t : send→any | t ];
-				addBindingSend ::= cast send addBindingM
-						with <ejectSend, ‘`fieldAtom`’, “↓args[index + 1]”>
-					into [ t : send→any | t ];
+				ejectSend ::= send ejectM with <“↑“↓mapDecl””> : field map;
+				addBindingSend ::= send addBindingM
+					with <ejectSend, ‘`fieldAtom`’, “↓args[index + 1]”>
+					: field map;
 				““↓mapDecl” := addBindingSend”
 			];
-		last ::= cast send toObjectM with <“↓mapDecl”>
-			into [ t : send→any | t ];
+		last ::= send toObjectM with <“↓mapDecl”> : subtype;
 		statements ::= <mapDecl> ++ assignments ++ <last>;
 		newBlock ::= “[ args | statements ]”;
 		mutatorFunction ::= generate newBlock;
@@ -871,7 +876,7 @@ Class "textured" extends object
 		texture : enumeration of {"rough", "smooth"};
 
 /* TODO: [TLS] Complete support for "mutable" and introduce transactional
- * mutators.
+ * mutators. Access levels of mutators should be checked.
  */
 Explicit class "textured RGB" extends colorful ∩ textured
 	with private
@@ -892,7 +897,7 @@ Print: "\n";
 Print: "trgb's texture=";
 Print: primitive description of trgb's texture;
 Print: "\n";
-mutate ::= trgb's color := "blue";
+mutate : textured RGB := trgb's color := "blue";
 Print: "mutate=";
 Print: primitive description of mutate;
 Print: "\n";

@@ -37,22 +37,19 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.*;
-import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
 import com.avail.compiler.MessageSplitter;
 import com.avail.descriptor.*;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.exceptions.*;
 import com.avail.interpreter.*;
-import com.avail.interpreter.levelTwo.L2Interpreter;
-import com.avail.utility.*;
 
 /**
  * <strong>Primitive 383</strong>: Create a {@linkplain SendNodeDescriptor send
  * expression} from the specified {@linkplain MethodDescriptor method},
  * {@linkplain TupleDescriptor tuple} of {@linkplain
- * ParseNodeKind#EXPRESSION_NODE argument expressions}. The return type is
- * determined by running all appropriate semantic restrictions.
+ * ParseNodeKind#EXPRESSION_NODE argument expressions}, and {@linkplain
+ * TypeDescriptor return type}.
  *
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
@@ -63,16 +60,17 @@ extends Primitive
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final @NotNull static Primitive instance =
-		new P_383_CreateSendExpression().init(2, CanFold);
+		new P_383_CreateSendExpression().init(3, CanFold);
 
 	@Override
 	public @NotNull Result attempt (
 		final @NotNull List<AvailObject> args,
 		final @NotNull Interpreter interpreter)
 	{
-		assert args.size() == 2;
+		assert args.size() == 3;
 		final AvailObject method = args.get(0);
 		final AvailObject sendArgs = args.get(1);
+		final AvailObject returnType = args.get(2);
 		try
 		{
 			final MessageSplitter splitter =
@@ -87,30 +85,6 @@ extends Primitive
 		{
 			assert false : "The method name was extracted from a real method!";
 		}
-		final List<AvailObject> argTypes = new ArrayList<AvailObject>(
-			sendArgs.tupleSize());
-		for (final AvailObject sendArg : sendArgs)
-		{
-			argTypes.add(sendArg.expressionType());
-		}
-		final Mutable<Boolean> valid = new Mutable<Boolean>(true);
-		final AvailObject returnType =
-			method.validateArgumentTypesInterpreterIfFail(
-				argTypes,
-				new L2Interpreter(AvailRuntime.current()),
-				new Continuation1<Generator<String>>()
-				{
-					@Override
-					public void value (
-						final @NotNull Generator<String> errorGenerator)
-					{
-						valid.value = false;
-					}
-				});
-		if (!valid.value)
-		{
-			return interpreter.primitiveFailure(E_INVALID_ARGUMENTS_FOR_SEND);
-		}
 		return interpreter.primitiveSuccess(
 			SendNodeDescriptor.from(method, sendArgs, returnType));
 	}
@@ -124,7 +98,8 @@ extends Primitive
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 					IntegerRangeTypeDescriptor.wholeNumbers(),
 					TupleDescriptor.empty(),
-					EXPRESSION_NODE.create(ANY.o()))),
+					EXPRESSION_NODE.create(ANY.o())),
+				TYPE.o()),
 			SEND_NODE.mostGeneralType());
 	}
 }

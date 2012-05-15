@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.05.13 21:20:34.349 -0500
+ * * Last Generated On: 2012.05.15 16:38:39.351 -0500
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -134,7 +134,6 @@ Names
 	/*  75 */ "set of string",
 	/*  41 */ "signature",
 	/*  28 */ "string",
-	/*  58 */ "super cast",
 	/* 115 */ "token",
 	/*  70 */ "true",
 	/*  32 */ "tuple",

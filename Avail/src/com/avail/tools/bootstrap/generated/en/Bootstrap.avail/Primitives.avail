@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.05.13 21:20:34.384 -0500
+ * * Last Generated On: 2012.05.15 16:38:39.376 -0500
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -139,7 +139,6 @@ Names
 	"_taking arguments tupled",
 	"_×_",
 	"_÷_",
-	"_→_",
 	"_→character",
 	"_→code point",
 	"_→double",
@@ -150,6 +149,7 @@ Names
 	"_→object type",
 	"_→set",
 	"_→tuple",
+	"_⇒_",
 	"_∈_",
 	"_∩_",
 	"_∪_",
@@ -188,7 +188,7 @@ Names
 	"read character",
 	"request termination of_",
 	"semantic restrictions for_given_",
-	"send_with_",
+	"send_with_:_",
 	"seq“_”",
 	"set_'s⁇priority to_",
 	"special atoms",

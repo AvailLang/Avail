@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.05.13 21:20:34.433 -0500
+ * * Last Generated On: 2012.05.15 16:38:39.409 -0500
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -83,7 +83,7 @@ Uses
 		"method for_",
 		"method_._(«_‡,»)",
 		"read character",
-		"send_with_",
+		"send_with_:_",
 		"seq“_”",
 		"static method_._(«_‡,»)",
 		"swap_and_",
@@ -1108,13 +1108,15 @@ Method "_'s⁇arguments" is
  *    {0} - The target method.
  *    {1} - The argument expressions, corresponding left-to-right with
  *       the arguments of the method.
+ *    {2} - The expected (strengthened) return type of the method send.
  * Returns:
  *    The requested message send.
  */
-Method "send_with_" is
+Method "send_with_:_" is
 [
 	aMethod : method,
-	arguments : expression yielding any tuple
+	arguments : expression yielding any tuple,
+	returnType : type
 |
 	Primitive 383 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode

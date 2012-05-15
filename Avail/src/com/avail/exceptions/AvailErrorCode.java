@@ -415,12 +415,9 @@ public enum AvailErrorCode
 	E_BLOCK_COMPILATION_FAILED (103),
 
 	/**
-	 * The {@linkplain ParseNodeKind#EXPRESSION_NODE argument expressions}
-	 * provided during dynamic {@linkplain SendNodeDescriptor message send}
-	 * construction were invalid, i.e., they did not conform to any known
-	 * implementation.
+	 * TODO: Recycle!
 	 */
-	E_INVALID_ARGUMENTS_FOR_SEND (104),
+//	E_??? (104),
 
 	/**
 	 * A proposed {@linkplain SequenceNodeDescriptor sequence} contains one or
