@@ -1188,7 +1188,3 @@ Method "_^_" is
 		if exponent is odd then [ intermediate × base ] else [ intermediate ]
 	]
 ] : double;
-
-Print: "2.1^3.1=";
-Print: primitive description of 2.1^3.1;
-Print: "\n";

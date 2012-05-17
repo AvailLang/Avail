@@ -2303,7 +2303,7 @@ Semantic restriction "∑_" is
  *    An integer.
  */
 /*TODO - RAA need to move exponentiation from Advanced Math to Math*/
-/*
+
 Method "∏_" is
 [
 	intTuple : <integer…|1..∞>
@@ -2325,7 +2325,7 @@ Method "∏_" is
  *
  * Returns:
  *    A number.
- */
+ *//* TODO [RAA]
 Semantic restriction "∏_" is
 [
 	intTupleType : <integer…|1..∞>'s type
@@ -2336,37 +2336,47 @@ Semantic restriction "∏_" is
 	lowIndex ::= leadingSize min ||leading's type||'s lower bound;
 	lowBound ::= if leadingSize > 0 then 
 	[
+		m ::=  map leading[1..lowIndex] through
+		[
+			i : any's type
+		|
+			x::=cast i into [it : integer's type | it];
+Print: "x=";
+Print: primitive description of x;
+			y::= cast (x's lower bound) into [n : integer | n]
+		];
+		∏ (cast x into [iTuple : <integer…|1..∞> | iTuple] )); 
+Print: "y=";
+Print: primitive description of y;
+
+		z::=y × (defaultType's lower bound ^ 
+				((||intTupleType||'s lower bound - lowIndex) max 0));
+Print: "z=";
+Print: primitive description of z;
+		z
+			
+	]
+	else
+	[
+		defaultType's lower bound ^ 
+				((||intTupleType||'s lower bound - lowIndex) max 0)
+	];
+	upBound ::= if leadingSize > 0 then 
+	[
 		(∏ (cast (map leading[1..lowIndex] through
 		[
 			i : any's type
 		|
 			x ::= cast i into [it : integer's type | it];
-			cast (x's lower bound) into [n : integer | n]
-		]) into [iTuple : <integer…|1..∞> | iTuple] )) × 
-			((||intTupleType||'s lower bound - lowIndex) max 0) × 
-			defaultType's lower bound
-	]
-	else
-	[
-		((||intTupleType||'s lower bound) max 0) × 
-			defaultType's lower bound
-	];
-	upBound ::= if leadingSize > 0 then 
-	[
-		(∑ (cast (map leading[1..lowIndex] through
-		[
-			i : any's type
-		|
-			x ::= cast i into [it : integer's type | it];
 			cast (x's upper bound) into [n : integer | n]
-		]) into [iTuple : <integer…|1..∞> | iTuple] )) + 
-			(intTupleType's default type's upper bound) ×
-			(||intTupleType||'s upper bound - leadingSize)
+		]) into [iTuple : <integer…|1..∞> | iTuple] )) × 
+			((intTupleType's default type's upper bound) ^
+			(||intTupleType||'s upper bound - leadingSize))
 	]
 	else
 	[
-		(intTupleType's default type's upper bound) ×
-			(||intTupleType||'s upper bound - leadingSize)
+		((intTupleType's default type's upper bound) ^
+			(||intTupleType||'s upper bound - leadingSize))
 	];
 	[lowBound..upBound+1)
 ];*/
