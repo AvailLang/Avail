@@ -39,6 +39,7 @@ Uses
 	"Assertions",
 	"Bootstrap",
 	"Early Control Structures",
+	"Early Error Codes",
 	"Early Functions",
 	"Early Logic",
 	"Early Sets",
@@ -1188,3 +1189,77 @@ Method "_^_" is
 		if exponent is odd then [ intermediate × base ] else [ intermediate ]
 	]
 ] : double;
+
+digitZero ::= ¢0→code point;
+digitNine ::= ¢9→code point;
+lettera ::= ¢a→code point;
+letterz ::= ¢z→code point;
+letterA ::= ¢A→code point;
+letterZ ::= ¢Z→code point;
+
+/**
+ * Variable-radix string to integer conversion.
+ *
+ * Parameters:
+ *    digits - A `string` of digits in the base. 
+ *    base - The base under which to interpret the digits.
+ * Returns:
+ *    The number represented by the digits as a whole number.
+ */
+Method "_(base_)" is 
+[
+	digits : string,
+	base : [2..36] 
+|
+	answer : integer := 0;
+	From 1 to |digits| do 
+	[
+		index : natural number
+	|
+		char ::= digits[index];
+		dig ::= char→code point;
+
+		digValue ::=
+			if digitZero ≤ dig ≤ digitNine then 
+			[ 
+				dig - digitZero
+			] 
+			else
+			[
+				if lettera ≤ dig ≤ letterz then
+				[
+					dig - lettera + 10
+				]
+				else
+				[
+					if letterA ≤ dig ≤ letterZ then 
+					[
+						dig - letterA + 10
+					]
+					else 
+					[
+						early failure function (invalid argument code)
+					]
+				]
+			];
+
+		If digValue ≥ base ∨ [digValue < 0] then 
+			[early failure function (invalid argument code)];
+
+		answer := answer × base + digValue;
+		true
+	];
+	cast answer into [a: whole number | a]
+];
+
+Semantic restriction "_(base_)" is [baseType : [2..36]'s type, digitsType : string's type |
+	maxStringSize ::= ||digitsType||'s upper bound;
+	if maxStringSize is finite then [
+		/* Compute a rough bound based on the string size and base. */
+		finiteMaxStringSize ::= cast maxStringSize into [w : whole number | w];
+		maxBase ::= baseType's upper bound;
+		[0..maxBase ^ finiteMaxStringSize)
+	] else [
+		whole number
+	]
+];

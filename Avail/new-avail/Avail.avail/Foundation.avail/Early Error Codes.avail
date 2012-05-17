@@ -99,4 +99,5 @@ Next error code is "object type extension did not produce subtype code";
 Next error code is "object instantiation contains duplicates code";
 Next error code is "object instantiation invalid code";
 Next error code is "object instantiation did not produce instance code";
+Next error code is "invalid argument code";
 
