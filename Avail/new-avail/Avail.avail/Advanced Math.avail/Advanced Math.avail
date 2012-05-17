@@ -34,7 +34,7 @@ System Module "Advanced Math"
 Versions
 	"dev"
 Extends
-	"Exponentiation"
+
 Uses
 Names
 Body

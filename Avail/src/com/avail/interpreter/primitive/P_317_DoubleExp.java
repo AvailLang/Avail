@@ -56,8 +56,10 @@ public class P_317_DoubleExp extends Primitive
 		final @NotNull List<AvailObject> args,
 		final @NotNull Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final AvailObject a = args.get(0);
+		assert args.size() == 2;
+		@SuppressWarnings("unused")
+		final AvailObject euler = args.get(0);
+		final AvailObject a = args.get(1);
 		return interpreter.primitiveSuccess(
 			DoubleDescriptor.objectFromDoubleRecycling(
 				exp(a.extractDouble()), a, true));
