@@ -37,6 +37,7 @@ import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
+import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.utility.*;
 
 /**
@@ -97,12 +98,6 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Kind (final AvailObject object)
-	{
-		return REFERENCE_NODE.create(object.expressionType());
-	}
-
-	@Override @AvailMethod
 	int o_Hash (final AvailObject object)
 	{
 		return
@@ -145,6 +140,39 @@ extends ParseNodeDescriptor
 		aBlock.value(object.variable());
 	}
 
+
+	@Override @AvailMethod
+	void o_ValidateLocally (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject parent)
+	{
+		final AvailObject decl = object.variable().declaration();
+		switch (decl.declarationKind())
+		{
+			case ARGUMENT:
+				error("You can't take the reference of an argument");
+				break;
+			case LABEL:
+				error("You can't take the reference of a label");
+				break;
+			case LOCAL_CONSTANT:
+			case MODULE_CONSTANT:
+			case PRIMITIVE_FAILURE_REASON:
+				error("You can't take the reference of a constant");
+				break;
+			case LOCAL_VARIABLE:
+			case MODULE_VARIABLE:
+				// Do nothing.
+				break;
+		}
+	}
+
+	@Override
+	@NotNull ParseNodeKind o_ParseNodeKind (
+		final @NotNull AvailObject object)
+	{
+		return REFERENCE_NODE;
+	}
 
 	@Override
 	public void printObjectOnAvoidingIndent (
@@ -217,31 +245,5 @@ extends ParseNodeDescriptor
 	public static ReferenceNodeDescriptor immutable ()
 	{
 		return immutable;
-	}
-
-	@Override @AvailMethod
-	void o_ValidateLocally (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject parent)
-	{
-		final AvailObject decl = object.variable().declaration();
-		switch (decl.declarationKind())
-		{
-			case ARGUMENT:
-				error("You can't take the reference of an argument");
-				break;
-			case LABEL:
-				error("You can't take the reference of a label");
-				break;
-			case LOCAL_CONSTANT:
-			case MODULE_CONSTANT:
-			case PRIMITIVE_FAILURE_REASON:
-				error("You can't take the reference of a constant");
-				break;
-			case LOCAL_VARIABLE:
-			case MODULE_VARIABLE:
-				// Do nothing.
-				break;
-		}
 	}
 }

@@ -4600,26 +4600,10 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param value
-	 */
-	abstract void o_MacroName (
-		@NotNull AvailObject object,
-		AvailObject value);
-
-	/**
-	 * @param object
 	 * @return
 	 */
 	abstract AvailObject o_MacroName (
 		@NotNull AvailObject object);
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	abstract void o_OutputParseNode (
-		@NotNull AvailObject object,
-		AvailObject value);
 
 	/**
 	 * @param object

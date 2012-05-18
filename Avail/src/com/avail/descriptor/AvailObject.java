@@ -4972,29 +4972,11 @@ implements Iterable<AvailObject>
 
 
 	/**
-	 * @param value
-	 */
-	public void macroName (final AvailObject value)
-	{
-		descriptor.o_MacroName(this, value);
-	}
-
-
-	/**
 	 * @return
 	 */
 	public AvailObject macroName ()
 	{
 		return descriptor.o_MacroName(this);
-	}
-
-
-	/**
-	 * @param value
-	 */
-	public void outputParseNode (final AvailObject value)
-	{
-		descriptor.o_OutputParseNode(this, value);
 	}
 
 

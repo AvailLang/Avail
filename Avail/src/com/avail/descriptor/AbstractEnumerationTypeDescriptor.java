@@ -641,6 +641,10 @@ extends AbstractTypeDescriptor
 	abstract @NotNull AvailObject o_WriteType (
 		final @NotNull AvailObject object);
 
+	@Override @AvailMethod
+	abstract @NotNull AvailObject o_ExpressionType (
+		final @NotNull AvailObject object);
+
 	/**
 	 * Answer a new object instance of this descriptor based on the set of
 	 * objects that will be considered instances of that type. Normalize the

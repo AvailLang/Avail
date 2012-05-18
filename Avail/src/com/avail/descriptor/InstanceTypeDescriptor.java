@@ -38,6 +38,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static java.lang.Math.*;
 import java.util.List;
 import com.avail.annotations.*;
+import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 
 /**
  * My instances are called <em>instance types</em>, the types of individual
@@ -557,25 +558,29 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ArgsTupleType (final AvailObject object)
+	@NotNull AvailObject o_ArgsTupleType (
+		final @NotNull AvailObject object)
 	{
 		return getSuperkind(object).argsTupleType();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_DeclaredExceptions (final AvailObject object)
+	@NotNull AvailObject o_DeclaredExceptions (
+		final @NotNull AvailObject object)
 	{
 		return getSuperkind(object).declaredExceptions();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_FunctionType (final AvailObject object)
+	@NotNull AvailObject o_FunctionType (
+		final @NotNull AvailObject object)
 	{
 		return getSuperkind(object).functionType();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ContentType (final AvailObject object)
+	@NotNull AvailObject o_ContentType (
+		final @NotNull AvailObject object)
 	{
 		/*
 		 * Wow, this is weird.  Ask a set for its type and you get an instance
@@ -591,40 +596,44 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	boolean o_CouldEverBeInvokedWith (
 		final @NotNull AvailObject object,
-		final List<AvailObject> argTypes)
+		final @NotNull List<AvailObject> argTypes)
 	{
 		return getSuperkind(object).couldEverBeInvokedWith(argTypes);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_KeyType (final AvailObject object)
+	@NotNull AvailObject o_KeyType (
+		final @NotNull AvailObject object)
 	{
 		return getSuperkind(object).keyType();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Name (final AvailObject object)
+	@NotNull AvailObject o_Name (
+		final @NotNull AvailObject object)
 	{
 		return getSuperkind(object).name();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Parent (final AvailObject object)
+	@NotNull AvailObject o_Parent (
+		final @NotNull AvailObject object)
 	{
 		// TODO: [MvG] Maybe think about this one.
 		return getSuperkind(object).parent();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ReturnType (final AvailObject object)
+	@NotNull AvailObject o_ReturnType (
+		final @NotNull AvailObject object)
 	{
 		return getSuperkind(object).returnType();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeIntersectionOfContinuationType (
+	@NotNull AvailObject o_TypeIntersectionOfContinuationType (
 		final @NotNull AvailObject object,
-		final AvailObject aContinuationType)
+		final @NotNull AvailObject aContinuationType)
 	{
 		if (getInstance(object).isInstanceOf(aContinuationType))
 		{
@@ -634,9 +643,9 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeIntersectionOfCompiledCodeType (
+	@NotNull AvailObject o_TypeIntersectionOfCompiledCodeType (
 		final @NotNull AvailObject object,
-		final AvailObject aCompiledCodeType)
+		final @NotNull AvailObject aCompiledCodeType)
 	{
 		if (getInstance(object).isInstanceOf(aCompiledCodeType))
 		{
@@ -646,9 +655,9 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeIntersectionOfParseNodeType (
+	@NotNull AvailObject o_TypeIntersectionOfParseNodeType (
 		final @NotNull AvailObject object,
-		final AvailObject aParseNodeType)
+		final @NotNull AvailObject aParseNodeType)
 	{
 		if (getInstance(object).isInstanceOf(aParseNodeType))
 		{
@@ -658,52 +667,63 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeUnionOfContinuationType (
+	@NotNull AvailObject o_TypeUnionOfContinuationType (
 		final @NotNull AvailObject object,
-		final AvailObject aContinuationType)
+		final @NotNull AvailObject aContinuationType)
 	{
 		return getSuperkind(object).typeUnionOfContinuationType(
 			aContinuationType);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeUnionOfCompiledCodeType (
+	@NotNull AvailObject o_TypeUnionOfCompiledCodeType (
 		final @NotNull AvailObject object,
-		final AvailObject aCompiledCodeType)
+		final @NotNull AvailObject aCompiledCodeType)
 	{
 		return getSuperkind(object).typeUnionOfContinuationType(
 			aCompiledCodeType);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TypeUnionOfParseNodeType (
+	@NotNull AvailObject o_TypeUnionOfParseNodeType (
 		final @NotNull AvailObject object,
-		final AvailObject aParseNodeType)
+		final @NotNull AvailObject aParseNodeType)
 	{
 		return getSuperkind(object).typeUnionOfParseNodeType(
 			aParseNodeType);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ValueType (final AvailObject object)
+	@NotNull AvailObject o_ValueType (
+		final @NotNull AvailObject object)
 	{
 		// object must be a map.
 		return getSuperkind(object).valueType();
 	}
 
-	@Override
-	AvailObject o_ReadType (final AvailObject object)
+	@Override @AvailMethod
+	@NotNull AvailObject o_ReadType (
+		final @NotNull AvailObject object)
 	{
 		// object must be a variable
 		return getSuperkind(object).readType();
 	}
 
-
-	@Override
-	AvailObject o_WriteType (final AvailObject object)
+	@Override @AvailMethod
+	@NotNull AvailObject o_WriteType (
+		final @NotNull AvailObject object)
 	{
 		// object must be a variable
 		return getSuperkind(object).writeType();
+	}
+
+	@Override @AvailMethod
+	@NotNull AvailObject o_ExpressionType (
+		final @NotNull AvailObject object)
+	{
+		assert object.isSubtypeOf(ParseNodeKind.PARSE_NODE.mostGeneralType())
+		: "Object is supposed to be a parse node.";
+		return getInstance(object).expressionType();
 	}
 
 

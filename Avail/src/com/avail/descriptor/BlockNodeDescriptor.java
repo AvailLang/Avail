@@ -39,6 +39,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
+import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
 import com.avail.utility.*;
@@ -186,13 +187,6 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 
 
 	@Override @AvailMethod
-	AvailObject o_Kind (final AvailObject object)
-	{
-		return BLOCK_NODE.create(object.expressionType());
-	}
-
-
-	@Override @AvailMethod
 	AvailObject o_ExpressionType (final AvailObject object)
 	{
 		List<AvailObject> argumentTypes;
@@ -264,6 +258,12 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 			&& object.resultType().equals(another.resultType())
 			&& object.neededVariables().equals(another.neededVariables())
 			&& object.primitive() == another.primitive();
+	}
+
+	@Override
+	ParseNodeKind o_ParseNodeKind (final AvailObject object)
+	{
+		return ParseNodeKind.BLOCK_NODE;
 	}
 
 

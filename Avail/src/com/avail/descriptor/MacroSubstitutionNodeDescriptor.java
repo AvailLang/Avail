@@ -33,9 +33,11 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.Multiplier;
+import static com.avail.descriptor.MacroSubstitutionNodeDescriptor.ObjectSlots.*;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
+import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.utility.*;
 
 /**
@@ -71,35 +73,13 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Setter for field macroName.
-	 */
-	@Override @AvailMethod
-	void o_MacroName (
-		final @NotNull AvailObject object,
-		final AvailObject value)
-	{
-		object.setSlot(ObjectSlots.MACRO_NAME, value);
-	}
-
-	/**
 	 * Getter for field macroName.
 	 */
 	@Override @AvailMethod
 	AvailObject o_MacroName (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.MACRO_NAME);
-	}
-
-	/**
-	 * Setter for field outputParseNode.
-	 */
-	@Override @AvailMethod
-	void o_OutputParseNode (
-		final @NotNull AvailObject object,
-		final AvailObject value)
-	{
-		object.setSlot(ObjectSlots.OUTPUT_PARSE_NODE, value);
+		return object.slot(MACRO_NAME);
 	}
 
 	/**
@@ -109,7 +89,7 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 	AvailObject o_OutputParseNode (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.OUTPUT_PARSE_NODE);
+		return object.slot(OUTPUT_PARSE_NODE);
 	}
 
 
@@ -117,13 +97,6 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 	AvailObject o_ExpressionType (final AvailObject object)
 	{
 		return object.outputParseNode().expressionType();
-	}
-
-
-	@Override @AvailMethod
-	AvailObject o_Kind (final AvailObject object)
-	{
-		return object.outputParseNode().kind();
 	}
 
 
@@ -177,7 +150,9 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 		final @NotNull AvailObject object,
 		final Transformer1<AvailObject, AvailObject> aBlock)
 	{
-		object.outputParseNode(aBlock.value(object.outputParseNode()));
+		object.setSlot(
+			OUTPUT_PARSE_NODE,
+			aBlock.value(object.slot(OUTPUT_PARSE_NODE)));
 	}
 
 
@@ -205,6 +180,12 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 		final List<AvailObject> accumulatedStatements)
 	{
 		object.outputParseNode().flattenStatementsInto(accumulatedStatements);
+	}
+
+	@Override
+	@NotNull ParseNodeKind o_ParseNodeKind (final AvailObject object)
+	{
+		return object.slot(OUTPUT_PARSE_NODE).parseNodeKind();
 	}
 
 
@@ -235,13 +216,13 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 	 *            The expression produced by the macro body.
 	 * @return The new macro substitution node.
 	 */
-	public AvailObject fromNameAndNode(
+	public static AvailObject fromNameAndNode(
 		final @NotNull AvailObject macroName,
 		final @NotNull AvailObject outputParseNode)
 	{
 		final AvailObject newNode = mutable().create();
-		newNode.macroName(macroName);
-		newNode.outputParseNode(outputParseNode);
+		newNode.setSlot(MACRO_NAME, macroName);
+		newNode.setSlot(OUTPUT_PARSE_NODE, outputParseNode);
 		newNode.makeImmutable();
 		return newNode;
 	}

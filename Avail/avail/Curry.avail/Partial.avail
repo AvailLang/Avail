@@ -44,25 +44,22 @@ Body
 
 /* Partial function application... */
 
-Method "_taking arguments tupled" is [block : function |
-	/* Convert the block taking N arguments into a block taking one argument
-	   which is a tuple.  We can't just use "[t : tuple | block apply t]",
-	   because the dynamic type must be correct, too.  */
-	Primitive 75;
-] : [terminates]->void;
-
-Restriction "_taking arguments tupled" is [ct : functionType |
-	argTypes ::= ct arguments type [1..ct argument count];
-	
-	
-	x ::= block type taking <tuple like <>> and returning 123 type;
-	y ::= 
+Method "_taking arguments tupled" is [f : function |
+	/* Convert the function taking N arguments into a function taking one
+	 * argument which is a tuple of a suitably strong type.
+	 */
+	stub block with function type
+		[f type arguments type] -> f type result
+	invoking
+		[argsInOne : tuple | f apply argsInOne;]
+] : [...]->void;
 
 
-	block type taking <tuple like (argTypes type)>
-		and returning (ct result)
+Restriction "_taking arguments tupled" is [ft : functionType |
+	[ft arguments type]-> (ft result)
 ];
 
+Print [a : integer, b : integer | a + b] taking arguments tupled (<10, 20>);
 
 
 /* Partial function application... */

@@ -402,7 +402,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		private final boolean isVariable;
 
 		/**
-		 * The instance of the enumeration {@link TypeDescriptor.Types} that
+		 * The instance of the enumeration {@link ParseNodeKind} that
 		 * is associated with this kind of declaration.
 		 */
 		private final ParseNodeKind kindEnumeration;
@@ -436,14 +436,25 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		}
 
 		/**
-		 * Return the {@linkplain PrimitiveTypeDescriptor primitive type} associated
-		 * with this kind of entity.
+		 * Return the instance of the enumeration {@link ParseNodeKind} that is
+		 * associated with this kind of declaration.
+		 *
+		 * @return The associated {@code ParseNodeKind} enumeration value.
+		 */
+		public ParseNodeKind parseNodeKind ()
+		{
+			return kindEnumeration;
+		}
+
+		/**
+		 * Return the {@linkplain PrimitiveTypeDescriptor primitive type}
+		 * associated with this kind of entity.
 		 *
 		 * @param expressionType
 		 *            The type of object produced by some parse node's
 		 *            expression.
-		 * @return The Avail {@linkplain TypeDescriptor type} associated with this
-		 *         kind of entity.
+		 * @return The Avail {@linkplain TypeDescriptor type} associated with
+		 *         this kind of entity.
 		 */
 		public AvailObject parseNodeTypeFor (
 			final @NotNull AvailObject expressionType)
@@ -619,16 +630,6 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Kind (
-			final @NotNull AvailObject object)
-	{
-		final DeclarationKind declarationKind =
-			DeclarationKind.values()[object.slot(
-				IntegerSlots.DECLARATION_KIND)];
-		return declarationKind.parseNodeTypeFor(object.expressionType());
-	}
-
-	@Override @AvailMethod
 	int o_Hash (final AvailObject object)
 	{
 		return
@@ -697,6 +698,13 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject parent)
 	{
 		// Do nothing.
+	}
+
+	@Override
+	ParseNodeKind o_ParseNodeKind (
+		final @NotNull AvailObject object)
+	{
+		return object.declarationKind().parseNodeKind();
 	}
 
 

@@ -148,12 +148,6 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Kind (final AvailObject object)
-	{
-		return SEND_NODE.create(object.expressionType());
-	}
-
-	@Override @AvailMethod
 	int o_Hash (final AvailObject object)
 	{
 		return
@@ -233,6 +227,13 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 		// Do nothing.
 	}
 
+	@Override
+	@NotNull ParseNodeKind o_ParseNodeKind (
+		final @NotNull AvailObject object)
+	{
+		return SEND_NODE;
+	}
+
 
 	/**
 	 * If set to true, print send nodes with extra notation to help visually
@@ -293,6 +294,32 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 
 
 	/**
+	 * Create a new {@linkplain SendNodeDescriptor send node} from the specified
+	 * argument {@linkplain ParseNodeKind#EXPRESSION_NODE expressions},
+	 * {@linkplain MethodDescriptor method}, and {@linkplain TypeDescriptor
+	 * type}.
+	 *
+	 * @param method
+	 *        The target method.
+	 * @param args
+	 *        A {@linkplain TupleDescriptor tuple} of argument expressions.
+	 * @param returnType
+	 *        The target method's expected return type.
+	 * @return A new send node.
+	 */
+	public static @NotNull AvailObject from (
+		final @NotNull AvailObject method,
+		final @NotNull AvailObject args,
+		final @NotNull AvailObject returnType)
+	{
+		final AvailObject newObject = mutable.create();
+		newObject.setSlot(ARGUMENTS, args);
+		newObject.setSlot(METHOD, method);
+		newObject.setSlot(RETURN_TYPE, returnType);
+		return newObject;
+	}
+
+	/**
 	 * Construct a new {@link SendNodeDescriptor}.
 	 *
 	 * @param isMutable Whether my {@linkplain AvailObject instances} can
@@ -333,31 +360,5 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 	public static SendNodeDescriptor immutable ()
 	{
 		return immutable;
-	}
-
-	/**
-	 * Create a new {@linkplain SendNodeDescriptor send node} from the specified
-	 * argument {@linkplain ParseNodeKind#EXPRESSION_NODE expressions},
-	 * {@linkplain MethodDescriptor method}, and {@linkplain TypeDescriptor
-	 * type}.
-	 *
-	 * @param method
-	 *        The target method.
-	 * @param args
-	 *        A {@linkplain TupleDescriptor tuple} of argument expressions.
-	 * @param returnType
-	 *        The target method's expected return type.
-	 * @return A new send node.
-	 */
-	public static @NotNull AvailObject from (
-		final @NotNull AvailObject method,
-		final @NotNull AvailObject args,
-		final @NotNull AvailObject returnType)
-	{
-		final AvailObject newObject = mutable.create();
-		newObject.setSlot(ARGUMENTS, args);
-		newObject.setSlot(METHOD, method);
-		newObject.setSlot(RETURN_TYPE, returnType);
-		return newObject;
 	}
 }

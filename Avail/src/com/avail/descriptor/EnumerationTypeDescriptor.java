@@ -738,15 +738,29 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override
-	AvailObject o_ReadType (final AvailObject object)
+	@NotNull AvailObject o_ReadType (
+		final @NotNull AvailObject object)
 	{
 		return getSuperkind(object).readType();
 	}
 
 	@Override
-	AvailObject o_WriteType (final AvailObject object)
+	@NotNull AvailObject o_WriteType (
+		final @NotNull AvailObject object)
 	{
 		return getSuperkind(object).writeType();
+	}
+
+	@Override
+	@NotNull AvailObject o_ExpressionType (
+		final @NotNull AvailObject object)
+	{
+		AvailObject unionType = BottomTypeDescriptor.bottom();
+		for (final AvailObject instance : getInstances(object))
+		{
+			unionType = unionType.typeUnion(instance.expressionType());
+		}
+		return unionType;
 	}
 
 	/**

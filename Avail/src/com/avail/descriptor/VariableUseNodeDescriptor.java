@@ -38,6 +38,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
+import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.utility.*;
 
 /**
@@ -137,12 +138,6 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Kind (final AvailObject object)
-	{
-		return VARIABLE_USE_NODE.create(object.expressionType());
-	}
-
-	@Override @AvailMethod
 	int o_Hash (final AvailObject object)
 	{
 		return
@@ -196,6 +191,13 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject parent)
 	{
 		// Do nothing.
+	}
+
+	@Override
+	@NotNull ParseNodeKind o_ParseNodeKind (
+		final @NotNull AvailObject object)
+	{
+		return VARIABLE_USE_NODE;
 	}
 
 	@Override

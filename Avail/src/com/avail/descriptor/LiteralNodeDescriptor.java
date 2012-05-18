@@ -36,6 +36,7 @@ import java.util.List;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
+import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.utility.*;
@@ -129,13 +130,6 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Kind (final AvailObject object)
-	{
-		return ParseNodeTypeDescriptor.ParseNodeKind.LITERAL_NODE.create(
-			object.expressionType());
-	}
-
-	@Override @AvailMethod
 	int o_Hash (final AvailObject object)
 	{
 		return
@@ -189,6 +183,12 @@ extends ParseNodeDescriptor
 		final AvailObject parent)
 	{
 		// Do nothing.
+	}
+
+	@Override
+	ParseNodeKind o_ParseNodeKind (final AvailObject object)
+	{
+		return ParseNodeKind.LITERAL_NODE;
 	}
 
 	@Override

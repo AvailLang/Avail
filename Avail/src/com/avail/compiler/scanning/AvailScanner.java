@@ -463,6 +463,8 @@ public class AvailScanner
 			{
 				int c = scanner.next();
 				final StringBuilder stringBuilder = new StringBuilder(40);
+				boolean canErase = true;
+				int erasurePosition = 0;
 				while (c != '\"')
 				{
 					if (c == '\\')
@@ -471,7 +473,7 @@ public class AvailScanner
 						{
 							throw new AvailScannerException(
 								"Encountered end of file after backslash"
-									+ " in string literal",
+								+ " in string literal",
 								scanner);
 						}
 						switch (c = scanner.next())
@@ -500,12 +502,25 @@ public class AvailScanner
 								//$FALL-THROUGH$
 							case '\n':
 								// A backslash ending a line.  Emit nothing.
+								// Allow '\|' to back up to here as long as only
+								// whitespace follows.
+								canErase = true;
 								break;
 							case '|':
 								// Remove all immediately preceding white space
 								// from this line.
-								removeTrailingWhitespaceOnSameLine(
-									stringBuilder);
+								if (canErase)
+								{
+									stringBuilder.setLength(erasurePosition);
+									canErase = false;
+								}
+								else
+								{
+									throw new AvailScannerException(
+										"The input line before \"\\|\" "
+										+ "contains non-whitespace",
+										scanner);
+								}
 								break;
 							case '(':
 								parseUnicodeEscapes(scanner, stringBuilder);
@@ -523,6 +538,7 @@ public class AvailScanner
 									+ " line break",
 									scanner);
 						}
+						erasurePosition = stringBuilder.length();
 					}
 					else if (c == '\r')
 					{
@@ -532,10 +548,24 @@ public class AvailScanner
 							scanner.peekFor('\n');
 						}
 						stringBuilder.appendCodePoint('\n');
+						canErase = true;
+						erasurePosition = stringBuilder.length();
+					}
+					else if (c == '\n')
+					{
+						// Just like a regular character, but limit how much
+						// can be removed by a subsequent '\|'.
+						stringBuilder.appendCodePoint(c);
+						canErase = true;
+						erasurePosition = stringBuilder.length();
 					}
 					else
 					{
 						stringBuilder.appendCodePoint(c);
+						if (!Character.isWhitespace(c))
+						{
+							canErase = false;
+						}
 					}
 					if (scanner.atEnd())
 					{
@@ -549,34 +579,6 @@ public class AvailScanner
 				final AvailObject availValue = StringDescriptor.from(string);
 				availValue.makeImmutable();
 				scanner.addCurrentLiteralToken(availValue);
-			}
-
-			/**
-			 * Remove trailing non-line-breaking whitespace from the
-			 * stringBuilder.
-			 *
-			 * @param stringBuilder The {@link StringBuilder} to trim.
-			 */
-			private void removeTrailingWhitespaceOnSameLine (
-				final StringBuilder stringBuilder)
-			{
-				while (stringBuilder.length() > 0)
-				{
-					final int codePoint = stringBuilder.codePointBefore(
-						stringBuilder.length());
-					if (Character.isWhitespace(codePoint)
-						&& codePoint != '\r'
-						&& codePoint != '\n')
-					{
-						stringBuilder.setLength(
-							stringBuilder.length() -
-								Character.charCount(codePoint));
-					}
-					else
-					{
-						return;
-					}
-				}
 			}
 
 			/**

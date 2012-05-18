@@ -32,10 +32,11 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.PARSE_NODE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
+import com.avail.descriptor.ParseNodeTypeDescriptor.*;
 import com.avail.utility.*;
 
 /**
@@ -62,11 +63,36 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	 * Return the parse node's expression type, which is the type of object that
 	 * will be produced by this parse node.
 	 *
-	 * @return The {@linkplain TypeDescriptor type} of the {@link AvailObject} that
-	 *         will be produced by this parse node.
+	 * @return The {@linkplain TypeDescriptor type} of the {@link AvailObject}
+	 *         that will be produced by this parse node.
 	 */
 	@Override @AvailMethod
-	abstract AvailObject o_ExpressionType (final AvailObject object);
+	abstract @NotNull AvailObject o_ExpressionType (
+		final @NotNull AvailObject object);
+
+	@Override @AvailMethod
+	final @NotNull AvailObject o_Kind (
+		final @NotNull AvailObject object)
+	{
+		return object.parseNodeKind().create(object.expressionType());
+	}
+
+	@Override @AvailMethod
+	boolean o_IsInstanceOfKind (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aType)
+	{
+		if (PARSE_NODE.mostGeneralType().isSubtypeOf(aType))
+		{
+			return true;
+		}
+		if (aType.isSubtypeOf(PARSE_NODE.mostGeneralType()))
+		{
+			return object.parseNodeKind().isSubkindOf(aType.parseNodeKind())
+				&& object.expressionType().isSubtypeOf(aType.expressionType());
+		}
+		return false;
+	}
 
 	/**
 	* The {@link #o_ApparentSendName(AvailObject) apparentSendName} of
@@ -75,7 +101,8 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	 * always the {@link NullDescriptor#nullObject() void} object.
 	 */
 	@Override @AvailMethod
-	AvailObject o_ApparentSendName (final AvailObject object)
+	@NotNull AvailObject o_ApparentSendName (
+		final @NotNull AvailObject object)
 	{
 		return NullDescriptor.nullObject();
 	}
@@ -85,7 +112,7 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	* AbstractDescriptor#o_Hash(AvailObject) hash}.
 	 */
 	@Override @AvailMethod
-	abstract int o_Hash (AvailObject object);
+	abstract int o_Hash (final @NotNull AvailObject object);
 
 	/**
 	 * {@linkplain ParseNodeDescriptor parse nodes} must implement {@link
@@ -94,7 +121,7 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	@Override @AvailMethod
 	abstract boolean o_Equals (
 		final @NotNull AvailObject object,
-		AvailObject another);
+		final @NotNull AvailObject another);
 
 	/**
 	 * Emit the effect of this node.  By default that means to emit the value of
@@ -106,7 +133,7 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	@Override @AvailMethod
 	void o_EmitEffectOn (
 		final @NotNull AvailObject object,
-		final AvailCodeGenerator codeGenerator)
+		final @NotNull AvailCodeGenerator codeGenerator)
 	{
 		object.emitValueOn(codeGenerator);
 		codeGenerator.emitPop();
@@ -122,7 +149,7 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	@Override @AvailMethod
 	abstract void o_EmitValueOn (
 		final @NotNull AvailObject object,
-		AvailCodeGenerator codeGenerator);
+		final @NotNull AvailCodeGenerator codeGenerator);
 
 
 	/**
@@ -253,6 +280,17 @@ public abstract class ParseNodeDescriptor extends Descriptor
 		accumulatedStatements.add(object);
 	}
 
+	/**
+	 * Return the {@linkplain ParseNodeKind parse node kind} that this parse
+	 * node's type implements.
+	 *
+	 * @return The {@linkplain ParseNodeKind kind} of parse node that the
+	 *         object's type would be.
+	 */
+	@Override @AvailMethod
+	abstract ParseNodeKind o_ParseNodeKind (
+		final @NotNull AvailObject object);
+
 	@Override int maximumIndent ()
 	{
 		return Integer.MAX_VALUE;
@@ -275,8 +313,8 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	 */
 	public static void treeDoWithParent (
 		final @NotNull AvailObject object,
-		final @NotNull Continuation3<
-			AvailObject, AvailObject, List<AvailObject>> aBlock,
+		final @NotNull
+			Continuation3<AvailObject, AvailObject, List<AvailObject>> aBlock,
 		final @NotNull AvailObject parentNode,
 		final @NotNull List<AvailObject> outerNodes)
 	{

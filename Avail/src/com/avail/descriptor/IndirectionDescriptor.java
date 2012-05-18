@@ -3342,26 +3342,10 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_MacroName (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		o_Traversed(object).macroName(value);
-	}
-
-	@Override
 	@NotNull AvailObject o_MacroName (
 		final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).macroName();
-	}
-
-	@Override
-	void o_OutputParseNode (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		o_Traversed(object).outputParseNode(value);
 	}
 
 	@Override

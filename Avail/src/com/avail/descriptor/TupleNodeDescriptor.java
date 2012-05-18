@@ -37,6 +37,7 @@ import static com.avail.descriptor.TupleNodeDescriptor.ObjectSlots.*;
 import java.util.*;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
+import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.utility.*;
 
 /**
@@ -110,12 +111,6 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 			object.setSlot(TUPLE_TYPE, tupleType);
 		}
 		return tupleType;
-	}
-
-	@Override @AvailMethod
-	AvailObject o_Kind (final AvailObject object)
-	{
-		return TUPLE_NODE.create(object.expressionType());
 	}
 
 	@Override @AvailMethod
@@ -205,6 +200,13 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 			newParseNode,
 			true);
 		return TupleNodeDescriptor.newExpressions(newTuple);
+	}
+
+	@Override
+	@NotNull ParseNodeKind o_ParseNodeKind (
+		final @NotNull AvailObject object)
+	{
+		return TUPLE_NODE;
 	}
 
 

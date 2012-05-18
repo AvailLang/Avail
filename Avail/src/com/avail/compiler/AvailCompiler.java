@@ -307,9 +307,9 @@ extends AbstractAvailCompiler
 		{
 			final AvailObject latestArgument =
 				argsSoFar.get(argsSoFar.size() - 1);
-			if (latestArgument.isInstanceOfKind(SEND_NODE.mostGeneralType()))
+			final AvailObject methodName = latestArgument.apparentSendName();
+			if (!methodName.equalsNull())
 			{
-				final AvailObject methodName = latestArgument.method().name();
 				if (prefilter.hasKey(methodName))
 				{
 					parseRestOfSendNode(
@@ -863,9 +863,9 @@ extends AbstractAvailCompiler
 			if (replacement.isInstanceOfKind(PARSE_NODE.mostGeneralType()))
 			{
 				final AvailObject substitution =
-					MacroSubstitutionNodeDescriptor.mutable().create();
-				substitution.macroName(bundle.message());
-				substitution.outputParseNode(replacement);
+					MacroSubstitutionNodeDescriptor.fromNameAndNode(
+						bundle.message(),
+						replacement);
 				// Declarations introduced in the macro should now be moved
 				// out of scope.
 				attempt(
@@ -873,7 +873,7 @@ extends AbstractAvailCompiler
 						stateAfterCall.position,
 						stateBeforeCall.scopeMap),
 					continuation,
-					replacement);
+					substitution);
 			}
 			else
 			{

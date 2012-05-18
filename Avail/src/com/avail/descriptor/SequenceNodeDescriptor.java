@@ -36,6 +36,7 @@ import java.util.List;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
+import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.utility.*;
 
 /**
@@ -90,12 +91,6 @@ public class SequenceNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject statements = object.statements();
 		assert statements.tupleSize() > 0;
 		return statements.tupleAt(statements.tupleSize()).expressionType();
-	}
-
-	@Override @AvailMethod
-	AvailObject o_Kind (final AvailObject object)
-	{
-		return SEQUENCE_NODE.create(object.expressionType());
 	}
 
 	@Override @AvailMethod
@@ -186,6 +181,13 @@ public class SequenceNodeDescriptor extends ParseNodeDescriptor
 		{
 			statement.flattenStatementsInto(accumulatedStatements);
 		}
+	}
+
+	@Override
+	@NotNull ParseNodeKind o_ParseNodeKind (
+		final @NotNull AvailObject object)
+	{
+		return SEQUENCE_NODE;
 	}
 
 

@@ -658,4 +658,10 @@ extends AbstractEnumerationTypeDescriptor
 	{
 		return true;
 	}
+
+	@Override
+	AvailObject o_ExpressionType (final @NotNull AvailObject object)
+	{
+		return object;
+	}
 }

@@ -34,7 +34,8 @@ System Module "Object"
 Extends
 Uses
 	"Tier-2",
-	"Enum"
+	"Enum",
+	"Tuple"
 Names
 	"objectType", "objectMeta",
 	"Object",
@@ -156,7 +157,7 @@ Restriction "_new with_" is [oM : objectMeta, tT : tupleType |
 	leading do [leadingType : type |
 		cast leadingType into [pairType : tupleType |
 			cast pairType[1] into [keyType : atom type |
-				valueType ::= cast pairType[2] into [t : any type | t];
+				valueType : any type := pairType[2];
 				if keyType = atom then [
 					Fail parse "Keys for \"_new with_\" must be statically known and proper subtypes of atom."];
 				if ||keyType instances|| > 1 then [
@@ -208,7 +209,7 @@ Restriction "_altered with_" is [oT : objectType, tT : tupleType |
 	leading do [leadingType : type |
 		cast leadingType into [pairType : tupleType |
 			cast pairType[1] into [keyType : atom type |
-				valueType ::= cast pairType[2] into [t: any type | t];
+				valueType ::= pairType[2];
 				if keyType = atom then [
 					Fail parse "Keys for \"_altered with_\" must be statically known and proper subtypes of atom."];
 				if ||keyType instances|| > 1 then [

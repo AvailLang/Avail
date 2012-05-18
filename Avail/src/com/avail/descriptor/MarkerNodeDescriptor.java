@@ -37,6 +37,7 @@ import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
+import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.utility.*;
 
 /**
@@ -92,13 +93,6 @@ public class MarkerNodeDescriptor extends ParseNodeDescriptor
 		return TOP.o();
 	}
 
-	@Override @AvailMethod
-	AvailObject o_Kind (
-			final @NotNull AvailObject object)
-	{
-		return MARKER_NODE.mostGeneralType();
-	}
-
 
 	@Override @AvailMethod
 	void o_EmitValueOn (
@@ -125,6 +119,37 @@ public class MarkerNodeDescriptor extends ParseNodeDescriptor
 			&& object.markerValue().equals(another.markerValue());
 	}
 
+	@Override
+	@NotNull ParseNodeKind o_ParseNodeKind (
+		final @NotNull AvailObject object)
+	{
+		return MARKER_NODE;
+	}
+
+
+	@Override @AvailMethod
+	void o_ChildrenMap (
+		final @NotNull AvailObject object,
+		final Transformer1<AvailObject, AvailObject> aBlock)
+	{
+		error("Marker nodes should not be mapped.");
+	}
+
+	@Override @AvailMethod
+	void o_ChildrenDo (
+		final @NotNull AvailObject object,
+		final Continuation1<AvailObject> aBlock)
+	{
+		error("Marker nodes should not be iterated over.");
+	}
+
+	@Override @AvailMethod
+	void o_ValidateLocally (
+		final @NotNull AvailObject object,
+		final AvailObject parent)
+	{
+		error("Marker nodes should not validateLocally.");
+	}
 
 	/**
 	 * Construct a new {@link MarkerNodeDescriptor}.
@@ -167,29 +192,5 @@ public class MarkerNodeDescriptor extends ParseNodeDescriptor
 	public static MarkerNodeDescriptor immutable ()
 	{
 		return immutable;
-	}
-
-	@Override @AvailMethod
-	void o_ChildrenMap (
-		final @NotNull AvailObject object,
-		final Transformer1<AvailObject, AvailObject> aBlock)
-	{
-		error("Marker nodes should not be mapped.");
-	}
-
-	@Override @AvailMethod
-	void o_ChildrenDo (
-		final @NotNull AvailObject object,
-		final Continuation1<AvailObject> aBlock)
-	{
-		error("Marker nodes should not be iterated over.");
-	}
-
-	@Override @AvailMethod
-	void o_ValidateLocally (
-		final @NotNull AvailObject object,
-		final AvailObject parent)
-	{
-		error("Marker nodes should not validateLocally.");
 	}
 }

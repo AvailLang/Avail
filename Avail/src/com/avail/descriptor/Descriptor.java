@@ -3532,26 +3532,8 @@ extends AbstractDescriptor
 
 
 	@Override
-	void o_MacroName (
-		final @NotNull AvailObject object,
-		final AvailObject value)
-	{
-		throw unsupportedOperationException();
-	}
-
-
-	@Override
 	@NotNull AvailObject o_MacroName (
 		final @NotNull AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-
-	@Override
-	void o_OutputParseNode (
-		final @NotNull AvailObject object,
-		final AvailObject value)
 	{
 		throw unsupportedOperationException();
 	}

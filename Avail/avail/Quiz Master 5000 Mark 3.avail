@@ -196,11 +196,11 @@ Method "calculate score for_" is
  		[
  		 	x : boolean
  		 |
- 		 	x = true;
+ 		 	x = true
  		];
 	score : float := (||correctAnswers|| as float / ||userAnswerOutcomes||)  * 100;
 	
-	score;
+	score
 ]:float;
 
 /**
@@ -222,7 +222,7 @@ Method "calculate weighted score for_" is
  		[
  		 	x : <boolean,whole number…|2..2>
  		 |
- 		 	 x[1] = true;
+ 		 	 x[1] = true
  		];
  	
  	if ||correctAnswers|| > 0 then 
@@ -244,7 +244,7 @@ Method "calculate weighted score for_" is
  	
 	score : float := (scoredPoints as float / totalTestPoints)  * 100;
 	
-	score;
+	score
 ]:float;
 
 /**
@@ -270,7 +270,7 @@ Method "Administer Test" is
 			[
 			 	x : <string,boolean…|2..2> 
 			 |
-			 	x type default type = true type;
+			 	x type default type = true type
 			];
 		Print "\n";
 		Print testQuestions[i];
@@ -311,7 +311,7 @@ Method "Administer Weighted Test" is
 			[
 			 	x : <string,boolean…|2..2> 
 			 |
-			 	x type default type = true type;
+			 	x type default type = true type
 			];
 		Print "\n";
 		Print weightedTestQuestions[i];

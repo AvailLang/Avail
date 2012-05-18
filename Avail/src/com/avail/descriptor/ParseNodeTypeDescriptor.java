@@ -35,6 +35,8 @@ package com.avail.descriptor;
 import static com.avail.descriptor.AvailObject.Multiplier;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.IntegerSlots.*;
 import java.util.List;
 import com.avail.annotations.*;
 
@@ -255,8 +257,8 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 			boundedExpressionType = expressionType.typeIntersection(
 				mostGeneralInnerType());
 			boundedExpressionType.makeImmutable();
-			type.setSlot(ObjectSlots.EXPRESSION_TYPE, boundedExpressionType);
-			type.setSlot(IntegerSlots.KIND, ordinal());
+			type.setSlot(EXPRESSION_TYPE, boundedExpressionType);
+			type.setSlot(KIND, ordinal());
 			return type;
 		}
 
@@ -318,6 +320,44 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 			}
 			return a;
 		}
+
+		/**
+		 * An array where index (t1 * #values) + t2 indicates whether t1 is a
+		 * subkind of t2.
+		 */
+		private static final boolean compatibility[] =
+			new boolean [values().length * values().length];
+
+		static
+		{
+			// Populate the entire compatibility matrix.
+			for (final ParseNodeKind kind1 : values())
+			{
+				for (final ParseNodeKind kind2 : values())
+				{
+					final int index = kind1.ordinal() * values().length
+						+ kind2.ordinal();
+					final boolean compatible =
+						kind1.commonAncestorWith(kind2) == kind2;
+					compatibility[index] = compatible;
+				}
+			}
+		}
+
+		/**
+		 * Answer whether this is a subkind of (or equal to) the specified
+		 * {@link ParseNodeKind}.
+		 *
+		 * @param purportedParent The kind that may be the ancestor.
+		 * @return Whether the receiver descends from the argument.
+		 */
+		final public boolean isSubkindOf (
+			@NotNull final ParseNodeKind purportedParent)
+		{
+			final int index =
+				ordinal() * values().length + purportedParent.ordinal();
+			return compatibility[index];
+		}
 	}
 
 	/**
@@ -331,20 +371,21 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 	@NotNull AvailObject o_ExpressionType (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.EXPRESSION_TYPE);
+		return object.slot(EXPRESSION_TYPE);
 	}
 
 	/**
 	 * Return the {@linkplain ParseNodeKind parse node kind} that this parse
 	 * node type implements.
 	 *
-	 * @return The {@linkplain ParseNodeKind kind} of parse node that the object is.
+	 * @return The {@linkplain ParseNodeKind kind} of parse node that the object
+	 *         is.
 	 */
 	@Override @AvailMethod
 	@NotNull ParseNodeKind o_ParseNodeKind (
 		final @NotNull AvailObject object)
 	{
-		final int ordinal = object.slot(IntegerSlots.KIND);
+		final int ordinal = object.slot(KIND);
 		return ParseNodeKind.values()[ordinal];
 	}
 
@@ -355,8 +396,8 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 	@Override @AvailMethod
 	int o_Hash (final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.EXPRESSION_TYPE).hash()
-			^ (object.slot(IntegerSlots.KIND) * Multiplier);
+		return object.slot(EXPRESSION_TYPE).hash()
+			^ (object.slot(KIND) * Multiplier);
 	}
 
 	/**
@@ -388,8 +429,8 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aParseNodeType)
 	{
-		return object.slot(IntegerSlots.KIND)
-				== aParseNodeType.slot(IntegerSlots.KIND)
+		return object.slot(KIND)
+				== aParseNodeType.slot(KIND)
 			&& object.expressionType().equals(
 				aParseNodeType.expressionType());
  	}
@@ -414,12 +455,9 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aParseNodeType)
 	{
-		final ParseNodeKind myKind =
-			ParseNodeKind.values()[object.slot(IntegerSlots.KIND)];
-		final ParseNodeKind otherKind =
-			ParseNodeKind.values()[aParseNodeType.slot(IntegerSlots.KIND)];
-		final ParseNodeKind ancestor = myKind.commonAncestorWith(otherKind);
-		if (ancestor == myKind)
+		final ParseNodeKind myKind = object.parseNodeKind();
+		final ParseNodeKind otherKind = aParseNodeType.parseNodeKind();
+		if (otherKind.isSubkindOf(myKind))
 		{
 			return aParseNodeType.expressionType().isSubtypeOf(
 				object.expressionType());
@@ -456,10 +494,8 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 		{
 			return aParseNodeType;
 		}
-		final ParseNodeKind myKind = ParseNodeKind
-			.values()[object.slot(IntegerSlots.KIND)];
-		final ParseNodeKind otherKind = ParseNodeKind
-			.values()[aParseNodeType.slot(IntegerSlots.KIND)];
+		final ParseNodeKind myKind = object.parseNodeKind();
+		final ParseNodeKind otherKind = aParseNodeType.parseNodeKind();
 		final ParseNodeKind ancestor = myKind.commonAncestorWith(otherKind);
 		if (ancestor == myKind || ancestor == otherKind)
 		{
@@ -497,9 +533,9 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 			return object;
 		}
 		final ParseNodeKind myKind = ParseNodeKind
-			.values()[object.slot(IntegerSlots.KIND)];
+			.values()[object.slot(KIND)];
 		final ParseNodeKind otherKind = ParseNodeKind
-			.values()[aParseNodeType.slot(IntegerSlots.KIND)];
+			.values()[aParseNodeType.slot(KIND)];
 		final ParseNodeKind ancestor = myKind.commonAncestorWith(otherKind);
 		return ancestor.create(
 			object.expressionType().typeUnion(aParseNodeType.expressionType()));
@@ -510,11 +546,7 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull ParseNodeKind expectedParseNodeKind)
 	{
-		final int ordinal = object.slot(IntegerSlots.KIND);
-		final ParseNodeKind myKind = ParseNodeKind.values()[ordinal];
-		final ParseNodeKind commonAncestor =
-			myKind.commonAncestorWith(expectedParseNodeKind);
-		return commonAncestor == expectedParseNodeKind;
+		return object.parseNodeKind().isSubkindOf(expectedParseNodeKind);
 	}
 
 	@Override
@@ -524,7 +556,7 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 		final @NotNull List<AvailObject> recursionList,
 		final int indent)
 	{
-		final int kindOrdinal = object.slot(IntegerSlots.KIND);
+		final int kindOrdinal = object.slot(KIND);
 		final ParseNodeKind kind = ParseNodeKind.values()[kindOrdinal];
 		final String name = kind.name().toLowerCase().replace('_', ' ');
 		builder.append(name);
