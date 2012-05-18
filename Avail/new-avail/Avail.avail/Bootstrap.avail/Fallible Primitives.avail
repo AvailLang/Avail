@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.05.15 16:38:39.409 -0500
+ * * Last Generated On: 2012.05.17 23:24:25.708 -0500
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -58,7 +58,6 @@ Uses
 		"Restart_",
 		"Restart_with_",
 		"Semantic restriction_is_",
-		"_'s⁇arguments",
 		"_'s⁇instances",
 		"_+_",
 		"_-_",
@@ -90,7 +89,7 @@ Uses
 		"termination requested",
 		"try_catch_",
 		"“(_:=_)”",
-		"“[_|Primitive__]:_^_”",
+		"“[_`|Primitive__]:_^_”",
 		"“_:=_”",
 		"“↑_”",
 		"↓_",
@@ -1054,7 +1053,7 @@ Method "“↑_”" is
  * Returns:
  *    The requested block.
  */
-Method "“[_|Primitive__]:_^_”" is
+Method "“[_`|Primitive__]:_^_”" is
 [
 	argumentDeclarations : argument tuple,
 	primitiveNumber : whole number,
@@ -1082,22 +1081,6 @@ Method "generate_" is
 	Primitive 362 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode
 ] : function;
-
-/**
- * Answer the arguments of the specified block.
- *
- * Parameters:
- *    aBlock - A block.
- * Returns:
- *    A tuple of argument declarations.
- */
-Method "_'s⁇arguments" is
-[
-	aBlock : block
-|
-	Primitive 363 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode
-] : argument tuple;
 
 /**
  * Construct and answer a message send. `aMethod` must refer to an actual

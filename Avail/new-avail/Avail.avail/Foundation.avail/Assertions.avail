@@ -34,7 +34,8 @@ System Module "Assertions"
 Versions
 	"dev"
 Uses
-	"Bootstrap"
+	"Bootstrap",
+	"Early Definers"
 Names
 	"Assert:_",
 	"Shouldn't happen"
@@ -47,7 +48,7 @@ Body
  * Parameters:
  *    predicate - `true`.
  */
-Method "Assert:_" is
+Public method "Assert:_" is
 [
 	predicate : boolean
 |
@@ -93,7 +94,7 @@ Semantic restriction "Assert:_(_)" is
  * It results in an assertion failure. This is obsolete once exceptions are
  * available, and should not be exported beyond this package.
  */
-Method "Shouldn't happen" is
+Public method "Shouldn't happen" is
 [
 	Assert: false
 		("This should not be possible; debug the VM and/or system library.")

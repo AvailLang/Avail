@@ -39,6 +39,7 @@ Extends
 Uses
 	"Bootstrap",
 	"Control Structures",
+	"Early Definers",
 	"Early Functions",
 	"Early Tuples",
 	"Early Types",
@@ -102,7 +103,7 @@ Method "For each_do_" is
  *       key and value types of `mapType`.
  *    mapType - A map type.
  */
-Method "Require:_accepts_" is
+Private method "Require:_accepts_" is
 [
 	action : function meta,
 	mapType : map meta

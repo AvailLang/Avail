@@ -44,6 +44,7 @@ Names
 	"count of_where_",
 	"each of_satisfies_",
 	"filter_by_",
+	"group_by_",
 	"map and filter_by_",
 	"map_through_",
 	"_is empty"

@@ -54,7 +54,7 @@ extends Primitive
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static @NotNull Primitive instance =
-		new P_363_BlockArguments().init(1, CanFold);
+		new P_363_BlockArguments().init(1, CanFold, CannotFail);
 
 	@Override
 	public @NotNull Result attempt (

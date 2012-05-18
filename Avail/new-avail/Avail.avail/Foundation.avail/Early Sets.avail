@@ -180,6 +180,78 @@ Semantic restriction "_⊆_" is
 	]
 ];
 
+/**
+ * Strengthen `_∈_`.
+ * 
+ * Parameters:
+ *    valueType -
+ *    setType -
+ * Returns:
+ *    The strongest possible boolean type.
+ */
+Semantic restriction "_∈_" is
+[
+	valueType : any meta,
+	setType : set meta
+|
+	if |valueType| = 1 ∧ [ |setType| = 1 ] then
+	[
+		(valueType's instance ∈ setType's instance)'s type
+	]
+	else
+	[
+		elementType ::= setType's element type;
+		if valueType ∩ elementType = ⊥ then
+		[
+			false's type
+		]
+		else
+		[
+			if |elementType| = ||setType||'s lower bound
+				∧ [ valueType ⊆ elementType ] then
+			[
+				true's type
+			]
+			else
+			[
+				boolean
+			]
+		]
+	]
+];
+
+/**
+ * If the subtrahend definitely can't contain any of the same elements as the
+ * minuend, then the size of the subtrahend can't be affected (because the
+ * asymmetric difference won't remove any elements).
+ * 
+ * Parameters:
+ *    minuendType -
+ *    subtrahendType -
+ * Returns:
+ *    The strongest possible set type for the given arguments.
+ */
+Semantic restriction "_\\_" is
+[
+	minuendType : set meta,
+	subtrahendType : set meta
+|
+	if |minuendType| = 1 ∧ [ |subtrahendType| = 1 ] then
+	[
+		(minuendType's instance \ subtrahendType's instance)'s type
+	]
+	else
+	[
+		subtrahendUpper ::= 
+			if minuendType's element type ∩ (subtrahendType's element type) = ⊥
+			then [ 0 ]
+			else [ ||subtrahendType||'s upper bound ];
+		lower ::= cast (||minuendType||'s lower bound - subtrahendUpper) max 0
+			into [ t : whole number | t ];
+		{minuendType's element type | lower..||minuendType||'s upper bound}
+	]
+];
+
 /* Disambiguate `_→_` and `_→set`. */
 Grammatical restriction {"_→_"} is <∅, {"set"}>;
 

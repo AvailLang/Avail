@@ -42,7 +42,7 @@ Names
 	"if_then_else_",
 	"if_then_",
 	"_&_",
-	"_|_",
+	"_`|_",
 	"not_",
 	"_xor_",
 	"_not=_",
@@ -105,9 +105,9 @@ Method "if_then_" is [bool : boolean, trueBlock : []->void |
    are the same operators but with a block as the second argument.  */
 
 {"_&_"} can't have <{},{"_&_"}>;
-{"_|_"} can't have <{},{"_|_"}>;
+{"_`|_"} can't have <{},{"_`|_"}>;
 {"_xor_"} can't have <{},{"_xor_"}>;
-{"not_"} can't have <{"_&_", "_|_", "_xor_"}>;
+{"not_"} can't have <{"_&_", "_`|_", "_xor_"}>;
 
 /* Now define the boolean operators.  When the static types are known
    well enough, use that additional static information to strengthen the
@@ -157,11 +157,11 @@ Method "_&_" is [a : falseType, b : []->boolean |
 
 
 
-Method "_|_" is [a : boolean, b : boolean |
+Method "_`|_" is [a : boolean, b : boolean |
 	true
 ] : boolean;
 
-Restriction "_|_" is [at : type, bt : type |
+Restriction "_`|_" is [at : type, bt : type |
 	res : type := boolean;
 	if at = trueType then [res := trueType;];
 	if bt = trueType then [res := trueType;];
@@ -169,14 +169,14 @@ Restriction "_|_" is [at : type, bt : type |
 ] : type;
 
 
-Method "_|_" is [a : falseType, b : falseType |
+Method "_`|_" is [a : falseType, b : falseType |
 	false
 ] : falseType;
 
 
-Abstract method "_|_" for [boolean,  []->boolean]->boolean;
+Abstract method "_`|_" for [boolean,  []->boolean]->boolean;
 
-Restriction "_|_" is [at : type, bt : functionType |
+Restriction "_`|_" is [at : type, bt : functionType |
 	res : type := boolean;
 	if at = falseType then [res := bt result;];
 	if at = trueType then [res := trueType;];
@@ -185,18 +185,18 @@ Restriction "_|_" is [at : type, bt : functionType |
 ] : type;
 
 
-Method "_|_" is [a : trueType, b :  []->boolean |
+Method "_`|_" is [a : trueType, b :  []->boolean |
 	true
 ] : trueType;
 
 
-Method "_|_" is [a : falseType, b :  []->boolean |
+Method "_`|_" is [a : falseType, b :  []->boolean |
 	/* Evaluate b because a leaves it contingent. */
 	Primitive 45;
 ] : boolean;
 
 
-Restriction "_|_" is [at : type, bt : functionType |
+Restriction "_`|_" is [at : type, bt : functionType |
 	bt result
 ] : type;
 

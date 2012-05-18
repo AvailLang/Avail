@@ -37,6 +37,7 @@ Uses
 	"Assertions",
 	"Bootstrap",
 	"Early Control Structures",
+	"Early Definers",
 	"Early Enumeration Support",
 	"Early Literals",
 	"Early Logic"
@@ -69,7 +70,7 @@ Body
  * Returns:
  *    A function that strengthens the integer range bounds methods.
  */
-Method "integer range genuine«lower»?«upper»?\
+Private method "integer range genuine«lower»?«upper»?\
 		\|bound semantic restriction function" is
 [
 	wantsLower : boolean,
@@ -134,7 +135,7 @@ Semantic restriction "_'s⁇genuine upper bound" is
  * Returns:
  *    The lower bound of the argument.
  */
-Method "_'s⁇lower bound" is
+Public method "_'s⁇lower bound" is
 [
 	range : extended integer meta
 |
@@ -152,7 +153,7 @@ Method "_'s⁇lower bound" is
  * Returns:
  *    The upper bound of the argument.
  */
-Method "_'s⁇upper bound" is
+Public method "_'s⁇upper bound" is
 [
 	range : extended integer meta
 |
@@ -167,7 +168,7 @@ Method "_'s⁇upper bound" is
  * Returns:
  *    A function that strengthens the integer range bounds methods.
  */
-Method "integer range bound semantic restriction function" is
+Private method "integer range bound semantic restriction function" is
 [
 	[
 		range : extended integer meta's type
@@ -219,7 +220,7 @@ Semantic restriction "_'s⁇upper bound" is
  * Returns:
  *    The requested integer range.
  */
-Method "[_.._]" is
+Public method "[_.._]" is
 [
 	lowerBound : extended integer,
 	upperBound : extended integer
@@ -257,7 +258,7 @@ Semantic restriction "[_.._]" is
  * Returns:
  *    The requested integer range.
  */
-Method "[_.._)" is
+Public method "[_.._)" is
 [
 	lowerBound : extended integer,
 	upperBound : extended integer
@@ -295,7 +296,7 @@ Semantic restriction "[_.._)" is
  * Returns:
  *    The requested integer range.
  */
-Method "(_.._]" is
+Public method "(_.._]" is
 [
 	lowerBound : extended integer,
 	upperBound : extended integer
@@ -333,7 +334,7 @@ Semantic restriction "(_.._]" is
  * Returns:
  *    The requested integer range.
  */
-Method "(_.._)" is
+Public method "(_.._)" is
 [
 	lowerBound : extended integer,
 	upperBound : extended integer
@@ -375,7 +376,7 @@ Semantic restriction "(_.._)" is
  * Returns:
  *    `false` if the lower bound is infinite and exclusive, `true` otherwise.
  */
-Method "_'s⁇lower bound is inclusive" is
+Public method "_'s⁇lower bound is inclusive" is
 [
 	range : extended integer meta
 |
@@ -396,7 +397,7 @@ Method "_'s⁇lower bound is inclusive" is
  * Returns:
  *    `false` if the upper bound is infinite and exclusive, `true` otherwise.
  */
-Method "_'s⁇upper bound is inclusive" is
+Public method "_'s⁇upper bound is inclusive" is
 [
 	range : extended integer meta
 |
@@ -410,7 +411,7 @@ Method "_'s⁇upper bound is inclusive" is
  * Returns:
  *    The requested function.
  */
-Method "minimum function" is
+Private method "minimum function" is
 [
 	[
 		numbers : <<>, number…|[1..∞)>
@@ -436,7 +437,7 @@ Method "minimum function" is
  * Returns:
  *    The minimum of the specified numbers.
  */
-Method "min_" is minimum function;
+Public method "min_" is minimum function;
 
 /**
  * Answer the minimum of the specified numbers.
@@ -446,7 +447,7 @@ Method "min_" is minimum function;
  * Returns:
  *    The minimum of the specified numbers.
  */
-Method "«_‡min»" is minimum function;
+Public method "«_‡min»" is minimum function;
 
 /* Don't parse `«_‡min»` recursively. */
 Invoke
@@ -464,7 +465,7 @@ with <>;
  * Returns:
  *    The requested function.
  */
-Method "maximum function" is
+Private method "maximum function" is
 [
 	[
 		numbers : <<>, number…|[1..∞)>
@@ -490,7 +491,7 @@ Method "maximum function" is
  * Returns:
  *    The maximum of the specified numbers.
  */
-Method "max_" is maximum function;
+Public method "max_" is maximum function;
 
 /**
  * Answer the maximum of the specified numbers.
@@ -500,7 +501,7 @@ Method "max_" is maximum function;
  * Returns:
  *    The maximum of the specified numbers.
  */
-Method "«_‡max»" is maximum function;
+Public method "«_‡max»" is maximum function;
 
 /* Don't parse `«_‡max»` recursively. */
 Invoke
@@ -519,7 +520,7 @@ with <>;
  * Returns:
  *    The semantic restriction function.
  */
-Method "minimum semantic restriction" is
+Private method "minimum semantic restriction" is
 [
 	[
 		numbers : <<>, extended integer…|[1..∞)>'s type
@@ -600,7 +601,7 @@ Semantic restriction "«_‡min»" is minimum semantic restriction;
  * Returns:
  *    The semantic restriction function.
  */
-Method "extremum semantic restriction(float)" is
+Private method "extremum semantic restriction(float)" is
 [
 	[
 		number : <<>, float…|[2..∞)>'s type
@@ -616,7 +617,7 @@ Method "extremum semantic restriction(float)" is
  * Returns:
  *    The semantic restriction function.
  */
-Method "extremum semantic restriction(double)" is
+Private method "extremum semantic restriction(double)" is
 [
 	[
 		number : <<>, double…|[2..∞)>'s type
@@ -654,7 +655,7 @@ Semantic restriction "«_‡min»" is extremum semantic restriction (double);
  * Returns:
  *    The semantic restriction function.
  */
-Method "maximum semantic restriction" is
+Private method "maximum semantic restriction" is
 [
 	[
 		numbers : <<>, extended integer…|[1..∞)>'s type
@@ -759,7 +760,7 @@ Semantic restriction "«_‡max»" is extremum semantic restriction (double);
  * Returns:
  *    `true` if `a` is greater than `b`, `false` otherwise.
  */
-Method "_>_" is
+Public method "_>_" is
 [
 	a : number,
 	b : number
@@ -776,7 +777,7 @@ Method "_>_" is
  * Returns:
  *    `true` if `a` is greater than or equal to `b`, `false` otherwise.
  */
-Method "_≥_" is
+Public method "_≥_" is
 [
 	a : number,
 	b : number
@@ -801,7 +802,7 @@ with <>;
  * Returns:
  *    `true` if the argument is finite, `false` otherwise.
  */
-Method "_is finite" is
+Public method "_is finite" is
 [
 	a : extended integer
 |
@@ -816,7 +817,7 @@ Method "_is finite" is
  * Returns:
  *    `true` if the argument is finite, `false` otherwise.
  */
-Method "_is finite" is
+Public method "_is finite" is
 [
 	a : integer
 |
@@ -831,7 +832,7 @@ Method "_is finite" is
  * Returns:
  *    `true` if the argument is infinite, `false` otherwise.
  */
-Method "_is infinite" is
+Public method "_is infinite" is
 [
 	a : extended integer
 |
@@ -846,7 +847,7 @@ Method "_is infinite" is
  * Returns:
  *    `true` if the argument is infinite, `false` otherwise.
  */
-Method "_is infinite" is
+Public method "_is infinite" is
 [
 	a : integer
 |
@@ -864,7 +865,7 @@ Method "_is infinite" is
  * Returns:
  *    A function that handles type promotions for the given operator.
  */
-Method "type promotion function for_" is
+Public method "type promotion function for_" is
 [
 	operator : function accepting <number, number> and returning number
 |

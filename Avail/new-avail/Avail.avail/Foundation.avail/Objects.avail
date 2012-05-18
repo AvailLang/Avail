@@ -37,6 +37,7 @@ Uses
 	"Assertions",
 	"Bootstrap",
 	"Control Structures",
+	"Early Definers",
 	"Early Error Codes",
 	"Early Functions",
 	"Early Types",
@@ -53,8 +54,8 @@ Names
 	"extend_with«_:_‡,»",
 	"«Public»?«Explicit|explicit»?\
 		\|Class|class_extends_\
-		\|«with public««mutable»?_:_‡,»»\
-		\|«with private««mutable»?_:_‡,»»"
+		\|«with fields««public»?«reconstructible»?_:_‡,»»\
+		\|«with reconstructors««public»?(«_‡,»)‡,»»"
 Body
 
 /**
@@ -367,7 +368,7 @@ Semantic restriction "_→tuple" is
  * Returns:
  *    The requested object type.
  */
-Method "extend_with«_:_‡,»" is
+Public method "extend_with«_:_‡,»" is
 [
 	supertype : object meta,
 	newDefinitions : <<atom, any meta…|2>…|1..>
@@ -448,6 +449,192 @@ Semantic restriction "extend_with«_:_‡,»" is
 ];
 
 /**
+ * Compute and answer the accessor name for the specified field atom.
+ * 
+ * Parameters:
+ *    fieldAtom - A field atom.
+ * Returns:
+ *    The name of the accessor.
+ */
+Private method "accessor name for_" is
+[
+	fieldAtom : atom
+|
+	"_'s⁇" ++ fieldAtom's name
+] : <character…|4..>;
+
+/**
+ * Generate and install field type and field value accessors for the specified
+ * object type and field atom. Generate and install a semantic restriction for
+ * the field value accessor.
+ * 
+ * Parameters:
+ *    objectType - An object type.
+ *    fieldAtom - A field atom.
+ */
+Private method "generate and install_accessor for_" is
+[
+	objectType : object meta,
+	fieldAtom : atom
+|
+	objectMap ::= objectType→map;
+	methodName ::= accessor name for fieldAtom;
+	fieldType ::= objectMap[fieldAtom];
+	classFunctionType ::= [objectType's type]→(fieldType's type);
+	Method methodName is
+		new classFunctionType
+		applying [ x : object meta | x→map[fieldAtom] ];
+	instanceFunctionType ::= [objectType]→fieldType;
+	Method methodName is
+		new instanceFunctionType
+		applying [ x : object | x→map[fieldAtom] ];
+	restrictionFunctionType ::= [objectType's type]→any meta;
+	Semantic restriction methodName is
+		new restrictionFunctionType
+		applying [ x : object meta | x→map[fieldAtom] ];
+] : ⊤;
+
+/**
+ * Construct and answer the name of the object reconstructor method from the
+ * specified tuple of field atoms.
+ * 
+ * Parameters:
+ *    fieldAtoms - The atoms of the fields migrated by the reconstructor.
+ * Returns:
+ *    The appropriate method name.
+ */
+Private method "reconstructor name for_" is
+[
+	fieldAtoms : <atom…|1..>
+|
+	methodName : <character…|7..> := accessor name for fieldAtoms[1] ++ ":=_";
+	For each fieldAtoms' tail do
+	[
+		fieldAtom : atom
+	|
+		methodName := eject ↑methodName ++ "," ++ fieldAtom's name ++ ":=_";
+	];
+	methodName
+] : <character…|7..>;
+
+/**
+ * Construct and answer a tuple of argument declarations for an object
+ * reconstructor method (or its semantic restriction).
+ * 
+ * Parameters:
+ *    objectType - The object type.
+ *    fieldAtoms - The atoms of the fields migrated by the reconstructor.
+ *    forSemanticRestriction - `true` if the argument declarations should be
+ *       generated for the semantic restriction, `false` if they should be
+ *       generated for the method.
+ * Returns:
+ *    The requested argument declarations. The first declaration is for the
+ *    object type (or metatype) and the remaining correspond to the field atoms.
+ */
+Private method "_reconstructor arguments for_«(for semantic restriction)»?" is
+[
+	objectType : object meta,
+	fieldAtoms : <atom…|1..>,
+	forRestriction : boolean
+|
+	meta ::= if forRestriction then [ objectType's type ] else [ objectType ];
+	objectMap ::= objectType→map;
+	<arg “`"target"` : meta”> ++ map fieldAtoms through
+	[
+		fieldAtom : atom,
+		index : natural number
+	|
+		desc ::= primitive description of index;
+		argType ::= if forRestriction
+			then [ objectMap[fieldAtom]'s type ]
+			else [ objectMap[fieldAtom] ];
+		arg “`"arg" ++ desc` : argType”
+	]
+] : <argument…|2..>;
+
+/* These methods are needed for reconstructor synthesis. */
+toMapM ::= method for $"_→map";
+ejectM ::= method for $"eject_";
+addBindingM ::= method for $"_+_→_";
+toObjectM ::= method for $"_→object";
+toObjectTypeM ::= method for $"_→object type";
+
+/**
+ * Generate and install a reconstructor for the specified object type and tuple
+ * of field atoms.
+ * 
+ * Parameters:
+ *    objectType - An object type.
+ *    fieldAtoms - A field atoms.
+ */
+Private method "generate and install_reconstructor for_" is
+[
+	objectType : object meta,
+	fieldAtoms : <atom…|1..>
+|
+	methodName ::= reconstructor name for fieldAtoms;
+	args ::= objectType reconstructor arguments for fieldAtoms;
+	/* Construct the body of the mutator method. */
+	toMapMSend ::= send toMapM with <“↓args[1]”> : field map;
+	mapDecl ::= “`"objectMap"` : field map := toMapMSend”;
+	assignments ::= map fieldAtoms through
+		[
+			fieldAtom : atom,
+			index : natural number
+		|
+			ejectSend ::= send ejectM with <“↑“↓mapDecl””> : field map;
+			addBindingSend ::= send addBindingM
+				with <ejectSend, ‘`fieldAtom`’, “↓args[index + 1]”>
+				: field map;
+			““↓mapDecl” := addBindingSend”
+		];
+	last ::= send toObjectM with <“↓mapDecl”> : objectType;
+	statements ::= <mapDecl> ++ assignments ++ <last>;
+	newBlock ::= “[ args | statements ]”;
+	reconstructorFunction ::= generate newBlock;
+	Method methodName is reconstructorFunction;
+] : ⊤;
+
+/**
+ * Generate and install a semantic restriction for the reconstructor for the
+ * specified object type and tuple of field atoms.
+ * 
+ * Parameters:
+ *    objectType - An object type.
+ *    fieldAtoms - A field atoms.
+ */
+Private method
+	"generate and install_reconstructor's semantic restriction for_"
+is
+[
+	objectType : object meta,
+	fieldAtoms : <atom…|1..>
+|
+	methodName ::= reconstructor name for fieldAtoms;
+	args ::= objectType reconstructor arguments for fieldAtoms
+		(for semantic restriction);
+	/* Construct the body of the semantic restriction method. */
+	toMapMSend ::= send toMapM with <“↓args[1]”> : field type map;
+	mapDecl ::= “`"objectMap"` : field type map := toMapMSend”;
+	assignments ::= map fieldAtoms through
+		[
+			fieldAtom : atom,
+			index : natural number
+		|
+			ejectSend ::= send ejectM with <“↑“↓mapDecl””> : field type map;
+			addBindingSend ::= send addBindingM
+				with <ejectSend, ‘`fieldAtom`’, “↓args[index + 1]”>
+				: field type map;
+			““↓mapDecl” := addBindingSend”
+		];
+	last ::= send toObjectTypeM with <“↓mapDecl”> : objectType's type;
+	statements ::= <mapDecl> ++ assignments ++ <last>;
+	newBlock ::= “[ args | statements ]”;
+	restrictionFunction ::= cast generate newBlock into [ t : […]→type | t ];
+	Semantic restriction methodName is restrictionFunction;
+];
+
+/**
  * Define a class. In Avail, a class is simply a named object type supported by
  * 1) a generated method that reliably reproduces the object type, 2) generated
  * methods that provide access to the field definitions, and 3) generated
@@ -465,53 +652,39 @@ Semantic restriction "extend_with«_:_‡,»" is
  *       name. This method will answer the object type. The object type will
  *       also be christened with this name.
  *    supertype - The supertype of the class. Type intersection may be used here
- *       to guarantee inheritance from multiple sources.
- *    publicOptional - The public fields of this class. A method will be
- *       generated for each public field. Its name is "_'s⁇" ++ the field name.
- *       These methods should be exported by the defining module.
- *    privateOptional - The private fields of this class. A method will be
- *       generated for each public field. Its name is "_'s⁇" ++ the field name.
- *       These names should not be exported by the defining module.
+ *       to facilitate inheritance from multiple sources.
+ *    optionalExtensions - The extension fields of this class. An accessor will
+ *       be generated for each field. A reconstructor will be generated for each
+ *       field tagged as "reconstructible". Each field tagged as "public" must
+ *       be exported by the defining module.
  */
-Method "«Public»?«Explicit|explicit»?\
-		\|Class|class_extends_\
-		\|«with public««mutable»?_:_‡,»»\
-		\|«with private««mutable»?_:_‡,»»"
+Public method
+	"«Public»?«Explicit|explicit»?\
+	\|Class|class_extends_\
+	\|«with fields««public»?«reconstructible»?_:_‡,»»\
+	\|«with reconstructors««public»?(«_‡,»)‡,»»"
 is
 [
 	public : boolean,
 	explicit : boolean,
 	className : <character…|1..>,
 	supertype : object meta,
-	publicOptional : <<<boolean, atom, any meta…|3>…|1..>…|0..1>,
-	privateOptional : <<<boolean, atom, any meta…|3>…|1..>…|0..1>
+	optionalExtensions : <<<boolean, boolean, atom, any meta…|4>…|1..>…|0..1>,
+	optionalReconstructors : <<<boolean, <atom…|1..>…|2>…|1..>…|0..1>
 |
 	/* Extract the extensions. */
-	publicTriples : <<boolean, atom, any meta…|3>…|> := <>;
-	publicDefs : <<atom, any meta…|2>…|> := <>;
-	Unless publicOptional is empty then
+	extensions : <<boolean, boolean, atom, any meta…|4>…|> := <>;
+	newDefinitions : <<atom, any meta…|2>…|> := <>;
+	Unless optionalExtensions is empty then
 	[
-		publicTriples := publicOptional[1];
-		publicDefs := map publicTriples through
+		extensions := optionalExtensions[1];
+		newDefinitions := map extensions through
 			[
-				fieldTuple : <boolean, atom, any meta…|3>
+				fieldTuple : <boolean, boolean, atom, any meta…|4>
 			|
-				fieldTuple[2..3]
+				fieldTuple[3..4]
 			];
 	];
-	privateTriples : <<boolean, atom, any meta…|3>…|> := <>;
-	privateDefs : <<atom, any meta…|2>…|> := <>;
-	Unless privateOptional is empty then
-	[
-		privateTriples := privateOptional[1];
-		privateDefs := map privateTriples through
-			[
-				fieldTuple : <boolean, atom, any meta…|3>
-			|
-				fieldTuple[2..3]
-			];
-	];
-	newDefinitions ::= publicDefs ++ privateDefs;
 	/* Verify the uniqueness of the field atoms. */
 	fieldAtoms ::= stripe newDefinitions at 1;
 	If |fieldAtoms→set| ≠ |fieldAtoms| then
@@ -541,77 +714,43 @@ is
 	 */
 	subtype's name := className;
 	Method className is new []→(subtype's type) applying [ subtype ];
-	For each fieldAtoms do
+	newFieldAtoms ::= fieldAtoms→set \ supertype→map's keys;
+	For each newFieldAtoms do
 	[
 		fieldAtom : atom
 	|
-		methodName ::= "_'s⁇" ++ fieldAtom's name;
-		fieldType ::= subtypeMap[fieldAtom];
-		classFunctionType ::= [subtype's type]→(fieldType's type);
-		Method methodName is
-			new classFunctionType applying [ x : any | fieldType ];
-		instanceFunctionType ::= [subtype]→fieldType;
-		Method methodName is
-			new instanceFunctionType
-			applying [ x : object | x→map[fieldAtom] ];
+		generate and install subtype accessor for fieldAtom;
 	];
-	/* Determine which mutators to create. */
-	mutators ::= map and filter publicTriples ++ privateTriples by
+	/* Determine which reconstructors to create. */
+	reconstructors : <<atom…|1..>…|> := <>;
+	reconstructors := eject ↑reconstructors ++ map and filter extensions by
 		[
-			triple : <boolean, atom, any meta…|3>,
+			triple : <boolean, boolean, atom, any meta…|4>,
 			accept : [<atom…|1..>]→⊤
 		|
-			If triple[1] then
+			If triple[2] then
 			[
-				accept(<triple[2]>);
+				accept(<triple[3]>);
 			];
 		];
-	/* Obtain the methods needed for the synthetic mutators. */
-	toMapM ::= method for atom for "_→map";
-	ejectM ::= method for atom for "eject_";
-	addBindingM ::= method for atom for "_+_→_";
-	toObjectM ::= method for atom for "_→object";
-	/* Generate the mutators. */
-	For each mutators do
+	Unless optionalReconstructors is empty then
+	[
+		specs ::= optionalReconstructors[1];
+		reconstructors := eject ↑reconstructors ++ map specs through
+			[
+				spec : <boolean, <atom…|1..>…|2>
+			|
+				spec[2]
+			];
+	];
+	/* Generate the reconstructors. */
+	For each reconstructors do
 	[
 		atoms : <atom…|1..>
 	|
-		/* Construct the name of the mutator method. */
-		methodName : string := "_'s⁇" ++ atoms[1]'s name ++ ":=_";
-		For each atoms' tail do
-		[
-			fieldAtom : atom
-		|
-			methodName := eject ↑methodName ++ "," ++ fieldAtom's name ++ ":=_";
-		];
-		/* Construct the body of the mutator method. */
-		args ::=
-			<arg “`"instance"` : subtype”> ++ map atoms through
-			[
-				fieldAtom : atom,
-				index : natural number
-			|
-				desc ::= primitive description of index;
-				arg “`"arg" ++ desc` : subtypeMap[fieldAtom]”
-			];
-		toMapMSend ::= send toMapM with <“↓args[1]”> : field map;
-		mapDecl ::= “`"objectMap"` : {atom→any|} := toMapMSend”;
-		assignments ::= map atoms through
-			[
-				fieldAtom : atom,
-				index : natural number
-			|
-				ejectSend ::= send ejectM with <“↑“↓mapDecl””> : field map;
-				addBindingSend ::= send addBindingM
-					with <ejectSend, ‘`fieldAtom`’, “↓args[index + 1]”>
-					: field map;
-				““↓mapDecl” := addBindingSend”
-			];
-		last ::= send toObjectM with <“↓mapDecl”> : subtype;
-		statements ::= <mapDecl> ++ assignments ++ <last>;
-		newBlock ::= “[ args | statements ]”;
-		mutatorFunction ::= generate newBlock;
-		Method methodName is mutatorFunction;
+		generate and install subtype reconstructor for atoms;
+		generate and install subtype reconstructor's semantic restriction
+			for atoms;
 	];
 ] : ⊤;
 
@@ -629,23 +768,24 @@ is
  *    explicit -
  *    classNameType -
  *    meta -
- *    publicOptional -
- *    privateOptional -
+ *    optionalExtensions -
  * Return:
  *    ⊤.
  */
-Semantic restriction "«Public»?«Explicit|explicit»?\
+Semantic restriction
+	"«Public»?«Explicit|explicit»?\
 	\|Class|class_extends_\
-	\|«with public««mutable»?_:_‡,»»\
-	\|«with private««mutable»?_:_‡,»»"
+	\|«with fields««public»?«reconstructible»?_:_‡,»»\
+	\|«with reconstructors««public»?(«_‡,»)‡,»»"
 is
 [
 	publicType : boolean's type,
 	explicit : boolean's type,
 	classNameType : <character…|1..>'s type,
 	meta : object meta's type,
-	publicOptional : <<<boolean, atom, any meta…|3>…|1..>…|0..1>'s type,
-	privateOptional : <<<boolean, atom, any meta…|3>…|1..>…|0..1>'s type
+	optionalExtensions :
+		<<<boolean, boolean, atom, any meta…|4>…|1..>…|0..1>'s type,
+	optionalReconstructors : <<<boolean, <atom…|1..>…|2>…|1..>…|0..1>'s type
 |
 	If |classNameType| ≠ 1 then
 	[
@@ -664,67 +804,115 @@ is
 	supertype ::= meta's instance;
 	oldDefinitions ::= supertype→map;
 	newDefinitions : field type map := {};
-	arePublicFields : boolean := true;
-	For each <publicOptional, privateOptional> do
+	From 1 to relevant |optionalExtensions[1]| do
 	[
-		optional : <<<boolean, atom, any meta…|3>…|1..>…|0..1>'s type
+		index : natural number
 	|
-		If ¬public
-			∧ [ arePublicFields
-			∧ [ relevant |optional[1]| > 0 ] ]
-		then
+		def ::= optionalExtensions[1][index];
+		publicField ::= def[1]'s instance;
+		reconstructible ::= def[2]'s instance;
+		atomType ::= def[3];
+		newType ::= def[4]'s instance;
+		If |atomType| ≠ 1 then
 		[
 			Reject parse, expected:
-				"private class not to have public members"
+				"all field atoms to be known statically"
 		];
-		From 1 to relevant |optional[1]| do
+		fieldAtom ::= atomType's instance;
+		accessorName ::= accessor name for fieldAtom;
+		If publicField then
 		[
-			index : natural number
-		|
-			def ::= optional[1][index];
-			atomType ::= def[2];
-			newType ::= def[3]'s instance;
-			If |atomType| ≠ 1 then
-			[
-				Reject parse, expected:
-					"all field atoms to be known statically"
-			];
-			fieldAtom ::= atomType's instance;
-			accessorName ::= "_'s⁇" ++ fieldAtom's name;
-			If public
-				∧ [ arePublicFields
-				∧ [ ¬accessorName ∈ publicNames ] ]
-			then
+			If ¬public then
 			[
 				Reject parse, expected:
 					"\""
 					++ accessorName
-					++ "\" to be included in the module's \"Names\" section"
+					++ " to be private (because the class is private)"
 			];
-			If fieldAtom ∈ newDefinitions then
+			If ¬accessorName ∈ publicNames then
 			[
 				Reject parse, expected:
-					fieldAtom's name
-					++ " to appear only once during extension (but it already\
-					\| appeared with type = "
-					++ primitive description of newDefinitions[fieldAtom]
-					++ ")"
+					"\""
+					++ accessorName
+					++ "\" to be included in the module's \"Names\" section\
+					\| (because it is public)"
 			];
-			oldType ::= oldDefinitions[fieldAtom] else [ any ];
-			If ¬newType ⊆ oldType then
+			If reconstructible then
 			[
-				Reject parse, expected:
-					"covariant specialization of "
-					++ fieldAtom's name
-					++ " (but new field type "
-					++ primitive description of newType
-					++ " is not a subtype of "
-					++ primitive description of oldType
-					++ ")"
+				reconstructorName ::= accessorName ++ ":=_";
+				If ¬reconstructorName ∈ publicNames then
+				[
+					Reject parse, expected:
+						"\""
+						++ reconstructorName
+						++ "\" to be included in the module's \"Names\"\
+							\| section (because it is public)"
+				];
 			];
-			newDefinitions := eject ↑newDefinitions + fieldAtom→newType;
 		];
-		arePublicFields := false;
+		If fieldAtom ∈ newDefinitions then
+		[
+			Reject parse, expected:
+				fieldAtom's name
+				++ " to appear only once during extension (but it already\
+				\| appeared with type = "
+				++ primitive description of newDefinitions[fieldAtom]
+				++ ")"
+		];
+		oldType ::= oldDefinitions[fieldAtom] else [ any ];
+		If ¬newType ⊆ oldType then
+		[
+			Reject parse, expected:
+				"covariant specialization of "
+				++ fieldAtom's name
+				++ " (but new field type "
+				++ primitive description of newType
+				++ " is not a subtype of "
+				++ primitive description of oldType
+				++ ")"
+		];
+		newDefinitions := eject ↑newDefinitions + fieldAtom→newType;
+	];
+	From 1 to relevant |optionalReconstructors[1]| do
+	[
+		index : natural number
+	|
+		spec ::= optionalReconstructors[1][index];
+		publicSpec ::= spec[1]'s instance;
+		atomsType ::= spec[2];
+		fieldAtoms : <atom…|> := <>;
+		From 1 to relevant |atomsType| do
+		[
+			atomTypeIndex : natural number
+		|
+			atomType ::= atomsType[atomTypeIndex];
+			If |atomType| ≠ 1 then
+			[
+				Reject parse, expected:
+					"all reconstructor field atoms to be known statically"
+			];
+			fieldAtoms := eject ↑fieldAtoms ++ <atomType's instance>;
+		];
+		nonemptyFieldAtoms ::= cast fieldAtoms into [ t : <atom…|1..> | t ];
+		reconstructorName ::= reconstructor name for nonemptyFieldAtoms;
+		If publicSpec then
+		[
+			If ¬public then
+			[
+				Reject parse, expected:
+					"\""
+					++ reconstructorName
+					++ "\" to be private (because the class is private)"
+			];
+			If ¬reconstructorName ∈ publicNames then
+			[
+				Reject parse, expected:
+					"\""
+					++ reconstructorName
+					++ "\" to be included in the module's \"Names\" section\
+					\| (because it is public)"
+			];
+		];
 	];
 	⊤
 ];
@@ -743,7 +931,7 @@ is
  * Returns:
  *    The requested object type.
  */
-Method "a|an_«with«_:=_‡,»»" is
+Public method "a|an_«with«_:=_‡,»»" is
 [
 	objectType : object meta,
 	optional : <<<atom, any…|2>…|1..>…|0..1>
@@ -862,32 +1050,31 @@ Semantic restriction "a|an_«with«_:=_‡,»»" is
 	assignments→object type
 ];
 
-color ::= new atom "color";
-texture ::= new atom "texture";
-flavor ::= new atom "flavor";
-
 Class "colorful" extends object
-	with private
-		color : enumeration of
+	with fields
+		$color : enumeration of
 			{"red", "orange", "yellow", "green", "blue", "indigo", "violet"};
 
 Class "textured" extends object
-	with private
-		texture : enumeration of {"rough", "smooth"};
+	with fields
+		$texture : enumeration of {"rough", "smooth"};
 
-/* TODO: [TLS] Complete support for "mutable" and introduce transactional
- * mutators. Access levels of mutators should be checked.
+/* TODO: [TLS] Complete support for "reconstructible" and introduce
+ * transactional reconstructors. Access levels of reconstructors should be
+ * checked by the semantic restriction.
  */
 Explicit class "textured RGB" extends colorful ∩ textured
-	with private
-		mutable color : enumeration of {"red", "green", "blue"},
-		texture : "smooth"'s type,
-		flavor : enumeration of {"salty", "sweet"};
+	with fields
+		reconstructible $color : enumeration of {"red", "green", "blue"},
+		$texture : "smooth"'s type,
+		$flavor : enumeration of {"salty", "sweet"}
+	with reconstructors
+		($color, $flavor);
 
-trgb ::= a textured RGB with
-	color := "green",
-	texture := "smooth",
-	flavor := "salty";
+trgb : textured RGB := a textured RGB with
+	$color := "green",
+	$texture := "smooth",
+	$flavor := "salty";
 Print: "trgb=";
 Print: primitive description of trgb;
 Print: "\n";
@@ -897,8 +1084,8 @@ Print: "\n";
 Print: "trgb's texture=";
 Print: primitive description of trgb's texture;
 Print: "\n";
-mutate : textured RGB := trgb's color := "blue";
-Print: "mutate=";
-Print: primitive description of mutate;
+mutated ::= trgb's color := "blue", flavor := "sweet";
+Print: "mutated=";
+Print: primitive description of mutated;
 Print: "\n";
 

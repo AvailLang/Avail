@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.05.15 16:38:39.379 -0500
+ * * Last Generated On: 2012.05.17 23:24:25.667 -0500
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -162,13 +162,13 @@ Uses
 		"semantic restrictions for_given_",
 		"set_'s⁇priority to_",
 		"special atoms",
-		"var“_:_”",
 		"{_`|_}",
 		"{_→_`|_}",
 		"‘_’",
 		"“$_:_”",
 		"“_::=_”",
 		"“_:_:=_”",
+		"“_:_”",
 		"“↓_”(_)",
 		"↑_",
 		"↓_`?=_'s⁇initialization",
@@ -2290,6 +2290,21 @@ Method "_→character" is
 ] : character;
 
 /**
+ * Answer the semantic type of the specified phrase type.
+ *
+ * Parameters:
+ *    phraseType - A phrase type.
+ * Returns:
+ *    The requested semantic type.
+ */
+Method "_'s⁇semantic type" is
+[
+	phraseType : phrase meta
+|
+	Primitive 349;
+] : type;
+
+/**
  * Answer the semantic type of the specified phrase. This is the type of value
  * produced when the content of the phrase is evaluated (by the compiler and/or
  * runtime).
@@ -2434,6 +2449,21 @@ Method "``_``(_)" is
 |
 	Primitive 360;
 ] : literal token;
+
+/**
+ * Answer the arguments of the specified block.
+ *
+ * Parameters:
+ *    aBlock - A block.
+ * Returns:
+ *    A tuple of argument declarations.
+ */
+Method "_'s⁇arguments" is
+[
+	aBlock : block
+|
+	Primitive 363;
+] : argument tuple;
 
 /**
  * Answer the primitive linkage number of the specified block.
@@ -2635,7 +2665,7 @@ Method "primfail“_:_”" is
  * Returns:
  *    The requested local variable declaration.
  */
-Method "var“_:_”" is
+Method "“_:_”" is
 [
 	name : token,
 	declaredType : any meta

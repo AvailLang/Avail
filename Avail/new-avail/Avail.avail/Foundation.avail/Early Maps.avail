@@ -37,6 +37,7 @@ Extends
 Uses
 	"Bootstrap",
 	"Early Control Structures",
+	"Early Definers",
 	"Early Logic",
 	"Early Types",
 	"Early Math",
@@ -95,6 +96,46 @@ Semantic restriction "_'s⁇value type" is
 	else
 	[
 		mapMeta's instance's value type's type
+	]
+];
+
+/**
+ * Strengthen `_∈_`.
+ * 
+ * Parameters:
+ *    keyType -
+ *    mapType -
+ * Returns:
+ *    The strongest possible boolean type.
+ */
+Semantic restriction "_∈_" is
+[
+	keyType : any meta,
+	mapType : map meta
+|
+	if |keyType| = 1 ∧ [ |mapType| = 1 ] then
+	[
+		(keyType's instance ∈ mapType's instance)'s type
+	]
+	else
+	[
+		mapKeyType ::= mapType's key type;
+		if keyType ∩ mapKeyType = ⊥ then
+		[
+			false's type
+		]
+		else
+		[
+			if |mapKeyType| = ||mapType||'s lower bound
+				∧ [ keyType ⊆ mapKeyType ] then
+			[
+				true's type
+			]
+			else
+			[
+				boolean
+			]
+		]
 	]
 ];
 
@@ -244,7 +285,7 @@ Semantic restriction "_+_→_" is
  *    key - A key.
  *    default - A function that answers the 
  */
-Method "_[_]else_" is
+Public method "_[_]else_" is
 [
 	aMap : map,
 	key : any,

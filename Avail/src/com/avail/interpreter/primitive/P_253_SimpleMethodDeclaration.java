@@ -48,8 +48,8 @@ public class P_253_SimpleMethodDeclaration extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_253_SimpleMethodDeclaration().init(
-		2, Private, Unknown);
+	public final static Primitive instance =
+		new P_253_SimpleMethodDeclaration().init(2, Bootstrap, Unknown);
 
 	@Override
 	public @NotNull Result attempt (

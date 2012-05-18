@@ -37,6 +37,7 @@ Extends
 Uses
 	"Bootstrap",
 	"Early Control Structures",
+	"Early Definers",
 	"Early Logic",
 	"Early Math",
 	"Enumeration Support",
@@ -95,7 +96,7 @@ Semantic restriction "_++_" is
  * Returns:
  *    The result of concatenating the lexically specified tuples left-to-right.
  */
-Method "«_‡++»" is
+Public method "«_‡++»" is
 [
 	tuples : <<>, tuple…|[2..∞)>
 |
@@ -140,7 +141,7 @@ Semantic restriction "«_‡++»" is
  *    The smaller of the argument's cardinality's lower bound and one more than
  *    the size of its leading types.
  */
-Method "relevant`|_`|" is
+Public method "relevant`|_`|" is
 [
 	tupleType : tuple meta
 |
@@ -157,7 +158,7 @@ Method "relevant`|_`|" is
  * Returns:
  *    0.
  */
-Method "relevant`|_`|" is
+Public method "relevant`|_`|" is
 [
 	tupleType : ⊥'s type
 |
@@ -175,7 +176,7 @@ Method "relevant`|_`|" is
  * Returns:
  *    The strongest tuple type that can be constructed from the argument types.
  */
-Method "tuple type of_[_.._]" is
+Public method "tuple type of_[_.._]" is
 [
 	aTupleType : tuple meta,
 	sliceStart : natural number's type,
@@ -284,7 +285,7 @@ Semantic restriction "_[_.._]" is
  * Returns:
  *    The requested tuple.
  */
-Method "_[_..]" is
+Public method "_[_..]" is
 [
 	aTupleType : tuple meta,
 	sliceStart : natural number
@@ -302,7 +303,7 @@ Method "_[_..]" is
  * Returns:
  *    The requested tuple.
  */
-Method "_[_..]" is
+Public method "_[_..]" is
 [
 	aTuple : tuple,
 	sliceStart : natural number
@@ -338,7 +339,7 @@ Semantic restriction "_[_..]" is
  * Returns:
  *    The requested tuple.
  */
-Method "_[.._]" is
+Public method "_[.._]" is
 [
 	aTupleType : tuple meta,
 	sliceEnd : whole number
@@ -356,7 +357,7 @@ Method "_[.._]" is
  * Returns:
  *    The requested tuple.
  */
-Method "_[.._]" is
+Public method "_[.._]" is
 [
 	aTuple : tuple,
 	sliceEnd : whole number
@@ -423,6 +424,37 @@ Semantic restriction "concatenate_" is
 		result := <slice, union… | [||result||'s lower bound..∞)>;
 	];
 	result
+];
+
+/**
+ * It's extremely hard to provide a strong bound for set conversion without
+ * chromatic polynomials, and even then it's still expensive. Provide a simple
+ * strengthening: the resulting element type is the type union of all tuple
+ * element types.
+ * 
+ * Parameters:
+ *    tupleType -
+ * Returns:
+ *    A convenient set type.
+ */
+Semantic restriction "_→set" is
+[
+	tupleType : tuple meta
+|
+	if |tupleType| = 1 then
+	[
+		(tupleType's instance→set)'s type
+	]
+	else
+	[
+		/* If the tuple could be empty, then so could the set. Otherwise, the
+		 * set must contain at least one element.
+		 */
+		lower ::= ||tupleType||'s lower bound min 1;
+		typeLimit ::= cast |tupleType's leading types| + 1
+			into [ t : natural number | t ];
+		{∪ tupleType[1..typeLimit] | [lower..||tupleType||'s upper bound + 1)}
+	]
 ];
 
 /* Disambiguate `_→_` and `_→tuple`. */

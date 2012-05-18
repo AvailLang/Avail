@@ -38,14 +38,16 @@ Extends
 Uses
 	"Bootstrap",
 	"Early Control Structures",
+	"Early Definers",
 	"Early Logic",
 	"Early Math",
 	"Enumeration Support",
 	"Variables"
 Names
 	"{«_→_‡,»}",
-	"¢…",
-	"`|`|_`|`|'s⁇lower bound"
+	"`|`|_`|`|'s⁇lower bound",
+	"$…",
+	"¢…"
 Body
 
 /**
@@ -362,7 +364,7 @@ Semantic restriction "{«_‡,»}" is
  * Returns:
  *    A map comprising the specified key-value bindings.
  */
-Method "{«_→_‡,»}" is
+Public method "{«_→_‡,»}" is
 [
 	bindings : key-value tuple
 |
@@ -566,7 +568,7 @@ Semantic restriction "`|_`|" is
  * Returns:
  *    whole number
  */
-Method "`|`|_`|`|'s⁇lower bound" is
+Public method "`|`|_`|`|'s⁇lower bound" is
 [
  	aTupleType : tuple's type
 |
@@ -581,7 +583,7 @@ Method "`|`|_`|`|'s⁇lower bound" is
  * Returns:
  *    whole number
  */
-Method "`|`|_`|`|'s⁇lower bound" is
+Public method "`|`|_`|`|'s⁇lower bound" is
 [
  	aSetType : set's type
 |
@@ -596,7 +598,7 @@ Method "`|`|_`|`|'s⁇lower bound" is
  * Returns:
  *    whole number
  */
-Method "`|`|_`|`|'s⁇lower bound" is
+Public method "`|`|_`|`|'s⁇lower bound" is
 [
  	aMapType : map's type
 |
@@ -655,6 +657,74 @@ Semantic restriction "`|`|_`|`|'s⁇lower bound" is
 ];
 
 /**
+ * Construct an atom literal from an arbitrary token. The atom is obtained via
+ * `atom for_`, i.e., it is looked up using in the current module's context. The
+ * name of the atom is provided by the argument's lexeme.
+ * 
+ * Parameter:
+ *    aToken - An arbitrary token.
+ * Returns:
+ *    An atom.
+ */
+Public method "$…" is
+[
+	aToken : token
+|
+	atom for aToken's lexeme
+] : atom;
+
+/**
+ * Construct an atom literal from an arbitrary token. The atom is obtained via
+ * `atom for_`, i.e., it is looked up using in the current module's context. If
+ * the token is a string literal, then use its value instead of its lexeme for
+ * the name of the atom.
+ * 
+ * Parameter:
+ *    aToken - An arbitrary literal token.
+ * Returns:
+ *    An atom.
+ */
+Public method "$…" is
+[
+	aToken : literal token
+|
+	atom for
+		cast aToken's value into [ value : string | value ]
+		else [ aToken's lexeme ]
+];
+
+/**
+ * Furnish the exact atom. When the semantic restriction is run, the atom will
+ * be introduced into the current module (if it isn't already present). When the
+ * method actually runs, it will find the same atom.
+ * 
+ * Parameters:
+ *    tokenType -
+ * Returns:
+ *    An instance type for the desired atom.
+ */
+Semantic restriction "$…" is
+[
+	tokenType : token's type
+|
+	Assert: |tokenType| = 1 ("token must be statically known");
+	instance ::= tokenType's instance;
+	value ::=
+		cast instance into
+		[
+			literalToken : literal token
+		|
+			cast literalToken's value into [ t : string | t ]
+			else [ instance's lexeme ]
+		]
+		else
+		[
+			instance's lexeme
+		];
+	(atom for value)'s type
+];
+
+/**
  * Construct a character literal from an arbitrary token.
  * 
  * Parameter:
@@ -662,7 +732,7 @@ Semantic restriction "`|`|_`|`|'s⁇lower bound" is
  * Returns:
  *    A character.
  */
-Method "¢…" is
+Public method "¢…" is
 [
 	aToken : token
 |
@@ -680,7 +750,7 @@ Method "¢…" is
  * Returns:
  *    A character.
  */
-Method "¢…" is
+Public method "¢…" is
 [
 	aToken : literal token
 |

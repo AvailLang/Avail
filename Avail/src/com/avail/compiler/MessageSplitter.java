@@ -1841,11 +1841,23 @@ public class MessageSplitter
 			}
 			else if (token.equals(StringDescriptor.underscore()))
 			{
+				if (alternatives.size() > 0)
+				{
+					// Alternations may not contain arguments.
+					throwSignatureException(
+						E_ALTERNATIVE_MUST_NOT_CONTAIN_ARGUMENTS);
+				}
 				group.addExpression(new Argument());
 				messagePartPosition++;
 			}
 			else if (token.equals(StringDescriptor.ellipsis()))
 			{
+				if (alternatives.size() > 0)
+				{
+					// Alternations may not contain arguments.
+					throwSignatureException(
+						E_ALTERNATIVE_MUST_NOT_CONTAIN_ARGUMENTS);
+				}
 				group.addExpression(new RawTokenArgument());
 				messagePartPosition++;
 			}
@@ -1855,6 +1867,12 @@ public class MessageSplitter
 				{
 					// Two daggers were encountered in a group.
 					throwSignatureException(E_INCORRECT_USE_OF_DOUBLE_DAGGER);
+				}
+				if (alternatives.size() > 0)
+				{
+					// Alternations may not contain arguments.
+					throwSignatureException(
+						E_ALTERNATIVE_MUST_NOT_CONTAIN_ARGUMENTS);
 				}
 				group.hasDagger = true;
 				messagePartPosition++;
@@ -1872,6 +1890,11 @@ public class MessageSplitter
 			else if (token.equals(StringDescriptor.tilde()))
 			{
 				throwSignatureException(E_TILDE_MUST_NOT_FOLLOW_ARGUMENT);
+			}
+			else if (token.equals(StringDescriptor.verticalBar()))
+			{
+				throwSignatureException(
+					E_VERTICAL_BAR_MUST_FOLLOW_A_SIMPLE_OR_SIMPLE_GROUP);
 			}
 			else if (token.equals(StringDescriptor.openGuillemet()))
 			{

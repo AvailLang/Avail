@@ -51,7 +51,7 @@ public class P_240_SpecialObject extends Primitive
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance = new P_240_SpecialObject().init(
-		1, Private, CanFold);
+		1, Bootstrap, CanFold);
 
 	@Override
 	public @NotNull Result attempt (

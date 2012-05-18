@@ -36,6 +36,7 @@ Versions
 Extends
 	"Assertions",
 	"Control Structures",
+	"Early Definers",
 	"Enumeration Support",
 	"Literals",
 	"Logic",

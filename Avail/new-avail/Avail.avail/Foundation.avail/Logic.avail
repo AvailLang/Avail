@@ -39,6 +39,7 @@ Uses
 	"Bootstrap",
 	"Assertions",
 	"Early Control Structures",
+	"Early Definers",
 	"Early Literals",
 	"Early Functions",
 	"Early Types",
@@ -66,7 +67,7 @@ Body
  * Returns:
  *    `a` ⊕ `b`.
  */
-Method "_⊕_" is
+Public method "_⊕_" is
 [
 	a : boolean,
 	b : boolean
@@ -85,7 +86,7 @@ Method "_⊕_" is
  * Returns:
  *    `a` ↑ `b`.
  */
-Method "_↑_" is
+Public method "_↑_" is
 [
 	a : boolean,
 	b : []→boolean
@@ -104,7 +105,7 @@ Method "_↑_" is
  * Returns:
  *    `a` ↑ `b`.
  */
-Method "_↑_" is
+Public method "_↑_" is
 [
 	a : false's type,
 	b : []→boolean
@@ -183,7 +184,7 @@ Assert: false ↑ [false] ("false ↑ false");
  * Returns:
  *    `a` ↓ `b`.
  */
-Method "_↓_" is
+Public method "_↓_" is
 [
 	a : boolean,
 	b : []→boolean
@@ -202,7 +203,7 @@ Method "_↓_" is
  * Returns:
  *    `a` ↓ `b`.
  */
-Method "_↓_" is
+Public method "_↓_" is
 [
 	a : true's type,
 	b : []→boolean
@@ -293,7 +294,7 @@ Semantic restriction "_↓_" is
  * Returns:
  *    `a` → `b`.
  */
-Method "_→_" is
+Public method "_→_" is
 [
 	a : boolean,
 	b : []→boolean
@@ -312,7 +313,7 @@ Method "_→_" is
  * Returns:
  *    `a` → `b`.
  */
-Method "_→_" is
+Public method "_→_" is
 [
 	a : false's type,
 	b : []→boolean
@@ -367,7 +368,7 @@ Semantic restriction "_→_" is
  * Returns:
  *    `a` ← `b`.
  */
-Method "_←_" is
+Public method "_←_" is
 [
 	a : boolean,
 	b : []→boolean
@@ -386,7 +387,7 @@ Method "_←_" is
  * Returns:
  *    `a` ← `b`.
  */
-Method "_←_" is
+Public method "_←_" is
 [
 	a : true's type,
 	b : []→boolean
@@ -440,7 +441,7 @@ Semantic restriction "_←_" is
  * Returns:
  *    `a` ↔ `b`.
  */
-Method "_↔_" is
+Public method "_↔_" is
 [
 	a : boolean,
 	b : boolean
@@ -459,7 +460,7 @@ Method "_↔_" is
  * Returns:
  *    `a` ↛ `b`.
  */
-Method "_↛_" is
+Public method "_↛_" is
 [
 	a : boolean,
 	b : []→boolean
@@ -478,7 +479,7 @@ Method "_↛_" is
  * Returns:
  *    `a` ↛ `b`.
  */
-Method "_↛_" is
+Public method "_↛_" is
 [
 	a : false's type,
 	b : []→boolean
@@ -533,7 +534,7 @@ Semantic restriction "_↛_" is
  * Returns:
  *    `a` ↚ `b`.
  */
-Method "_↚_" is
+Public method "_↚_" is
 [
 	a : boolean,
 	b : []→boolean
@@ -552,7 +553,7 @@ Method "_↚_" is
  * Returns:
  *    `a` ↚ `b`.
  */
-Method "_↚_" is
+Public method "_↚_" is
 [
 	a : true's type,
 	b : []→boolean

@@ -38,6 +38,7 @@ Uses
 	"Assertions",
 	"Bootstrap",
 	"Early Control Structures",
+	"Early Definers",
 	"Early Logic",
 	"Early Math",
 	"Early Tuples",
@@ -71,7 +72,7 @@ Body
  * Returns:
  *    The requested function type.
  */
-Method "[«_‡,»]→_" is
+Public method "[«_‡,»]→_" is
 [
 	argTypes : tuple of any meta,
 	returnType : type
@@ -87,13 +88,13 @@ Grammatical restriction {"[`…]→_"} is <{"_'s⁇type"}>;
  * Tuple type constructor's semantic restriction.
  *
  * Parameters:
- *  leadingTypesTypes - the type of a tuple of the types in the tuple
- *  defaultTypeType - 
- *	cardinalityType - The range of allowed cardinalities.
+ *    leadingTypesTypes - the type of a tuple of the types in the tuple
+ *    defaultTypeType -
+ *    cardinalityType - The range of allowed cardinalities.
  * Returns:
  *    The requested tuple's type's type.
- */ 
-Semantic restriction "<_,_`…|_>" is
+ */
+Semantic restriction "<_,_`…`|_>" is
 [
 	leadingTypesTypes : tuple of any meta's type,
 	defaultTypeType : any meta's type,
@@ -171,7 +172,7 @@ Semantic restriction "<_,_`…|_>" is
  * Returns:
  *    The requested tuple's type.
  */
-Method "<«_‡,»`…`|_.._>" is
+Public method "<«_‡,»`…`|_.._>" is
 [
 	leadingAndDefaultTypes : <<>, any's type…|natural number>,
 	minimumSize : whole number,
@@ -263,7 +264,7 @@ Semantic restriction "<«_‡,»`…`|_.._>" is
  * Returns:
  *    The requested tuple's type.
  */
-Method "<«_‡,»`…`|_..>" is
+Public method "<«_‡,»`…`|_..>" is
 [
 	leadingAndDefaultTypes : <<>, any's type…|natural number>,
 	minimumSize : whole number
@@ -350,7 +351,7 @@ Semantic restriction "<«_‡,»`…`|_..>" is
  * Returns:
  *    The requested tuple's type.
  */
-Method "<«_‡,»`…`|.._>" is
+Public method "<«_‡,»`…`|.._>" is
 [
 	leadingAndDefaultTypes : <<>, any's type…|natural number>,
 	maximumSize : [0..∞]
@@ -437,7 +438,7 @@ Semantic restriction "<«_‡,»`…`|.._>" is
  * Returns:
  *    The requested tuple's type's type.
  */
-Method "<«_‡,»`…`|_>" is
+Public method "<«_‡,»`…`|_>" is
 [
 	leadingAndDefaultTypes : <<>, any's type…|natural number>,
 	exactSize : whole number
@@ -524,7 +525,7 @@ Semantic restriction "<«_‡,»`…`|_>" is
  * Returns:
  *    The requested tuple's type.
  */
-Method "<«_‡,»`…`|>" is
+Public method "<«_‡,»`…`|>" is
 [
 	leadingAndDefaultTypes : <<>, any's type…|natural number>
 |
@@ -630,7 +631,7 @@ Semantic restriction "{_`|_}" is
  *    `elementType` and cardinalities, using the supplied minimum and maximum 
  *    provided values, that conform to `cardinalityType`.
  */
-Method "{_`|_.._}" is
+Public method "{_`|_.._}" is
 [
 	elementType : any's type,
 	minimumSize : whole number,
@@ -697,7 +698,7 @@ Semantic restriction "{_`|_.._}" is
  *    `elementType` and cardinalities, using the supplied minimum value and 
  *    infinity as the maximum value, that conform to `cardinalityType`.
  */
-Method "{_`|_..}" is
+Public method "{_`|_..}" is
 [
 	elementType : any's type,
 	minimumSize : whole number
@@ -736,7 +737,7 @@ Semantic restriction "{_`|_..}" is
  *    `elementType` and cardinalities, using the supplied maximum value and 
  *    0 as the minimum value, that conform to `cardinalityType`.
  */
-Method "{_`|.._}" is
+Public method "{_`|.._}" is
 [
 	elementType : any's type,
 	maximumSize : [0..∞]
@@ -832,7 +833,7 @@ Semantic restriction "{_`|_}" is
  *    `elementType` and cardinalities, using the supplied maximum value and 
  *    0 as the minimum value, that conform to `cardinalityType`.
  */
-Method "{_`|}" is
+Public method "{_`|}" is
 [
 	elementType : any's type
 |
@@ -889,7 +890,7 @@ Semantic restriction "{_→_`|_}" is
  * Returns:
  *    The requested map type.
  */
-Method "{_→_`|_.._}" is
+Public method "{_→_`|_.._}" is
 [
 	keyType : any meta,
 	valueType : any meta,
@@ -935,7 +936,7 @@ Semantic restriction "{_→_`|_.._}" is
  * Returns:
  *    The requested map type.
  */
-Method "{_→_`|_..}" is
+Public method "{_→_`|_..}" is
 [
 	keyType : any meta,
 	valueType : any meta,
@@ -976,7 +977,7 @@ Semantic restriction "{_→_`|_..}" is
  * Returns:
  *    The requested map type.
  */
-Method "{_→_`|.._}" is
+Public method "{_→_`|.._}" is
 [
 	keyType : any meta,
 	valueType : any meta,
@@ -1057,7 +1058,7 @@ Semantic restriction "{_→_`|_}" is
  * Returns:
  *    The requested map type.
  */
-Method "{_→_`|}" is
+Public method "{_→_`|}" is
 [
 	keyType : any meta,
 	valueType : any meta
@@ -1191,4 +1192,30 @@ Semantic restriction "`|`|_`|`|" is
 	bottomMeta : ⊥'s type's type
 |
 	⊥'s type
+];
+
+/**
+ * Function type construction can at least statically ensure the correct number
+ * of arguments and the return type.
+ * 
+ * Parameters:
+ *    argTypes -
+ *    returnType -
+ * Returns:
+ *    An instance type on a function type with specific arity and return type.
+ */
+Semantic restriction "[«_‡,»]→_" is
+[
+	argTypes : tuple of any meta's type,
+	returnType : type's type
+|
+	bottoms : <⊥'s type…|> := <>;
+	From 1 to ||argTypes||'s lower bound do
+	[
+		index : natural number
+	|
+		bottoms := eject ↑bottoms ++ <⊥>;
+		true
+	];
+	(function accepting bottoms and returning (returnType's instance))'s type
 ];

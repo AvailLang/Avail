@@ -37,6 +37,7 @@ Extends
 Uses
 	"Bootstrap",
 	"Early Control Structures",
+	"Early Definers",
 	"Early Literals",
 	"Early Logic",
 	"Early Math",
@@ -87,7 +88,7 @@ Semantic restriction "swap_and_" is
  * Returns:
  *    The requested function.
  */
-Method "increment function" is
+Private method "increment function" is
 [
 	[
 		var : variable
@@ -104,7 +105,7 @@ Method "increment function" is
  *    A function that accepts a variable type and requires that it be able to
  *    read/write numbers. It answers ⊤.
  */
-Method "increment/decrement semantic restriction" is
+Private method "increment/decrement semantic restriction" is
 [
 	[
 		varType : variable meta
@@ -125,7 +126,7 @@ Method "increment/decrement semantic restriction" is
  * Parameters:
  *    var - A numeric variable.
  */
-Method "_++" is increment function;
+Public method "_++" is increment function;
 
 /**
  * The autoincrement statement should accept only numeric variables.
@@ -147,7 +148,7 @@ Semantic restriction "_++" is increment/decrement semantic restriction;
  * Returns:
  *    The value of the argument prior to the increment.
  */
-Method "(_++)" is
+Public method "(_++)" is
 [
 	var : variable
 |
@@ -184,7 +185,7 @@ Semantic restriction "(_++)" is
  * Parameters:
  *    var - A numeric variable.
  */
-Method "++_" is increment function;
+Public method "++_" is increment function;
 
 /**
  * The autoincrement statement should accept only numeric variables.
@@ -204,7 +205,7 @@ Semantic restriction "++_" is increment/decrement semantic restriction;
  * Returns:
  *    The value of the argument after the increment.
  */
-Method "(++_)" is
+Public method "(++_)" is
 [
 	var : variable
 |
@@ -254,7 +255,7 @@ Semantic restriction "(++_)" is
  * Returns:
  *    The requested function.
  */
-Method "decrement function" is
+Private method "decrement function" is
 [
 	[
 		var : variable
@@ -269,7 +270,7 @@ Method "decrement function" is
  * Parameters:
  *    var - A numeric variable.
  */
-Method "_--" is decrement function;
+Public method "_--" is decrement function;
 
 /**
  * The autodecrement statement should accept only numeric variables.
@@ -291,7 +292,7 @@ Semantic restriction "_--" is increment/decrement semantic restriction;
  * Returns:
  *    The value of the argument prior to the decrement.
  */
-Method "(_--)" is
+Public method "(_--)" is
 [
 	var : variable
 |
@@ -328,7 +329,7 @@ Semantic restriction "(_--)" is
  * Parameters:
  *    var - A numeric variable.
  */
-Method "--_" is decrement function;
+Public method "--_" is decrement function;
 
 /**
  * The autodecrement statement should accept only numeric variables.
@@ -348,7 +349,7 @@ Semantic restriction "--_" is increment/decrement semantic restriction;
  * Returns:
  *    The value of the argument after the decrement.
  */
-Method "(--_)" is
+Public method "(--_)" is
 [
 	var : variable
 |
@@ -471,7 +472,7 @@ Semantic restriction "eject_" is
  *    `true` if the variable contains a value (i.e. because it has previously
  *    been assigned), `false` otherwise.
  */
-Method "_is assigned" is
+Public method "_is assigned" is
 [
 	var : variable
 |

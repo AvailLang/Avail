@@ -35,7 +35,8 @@ Versions
 	"dev"
 Uses
 	"Assertions",
-	"Bootstrap"
+	"Bootstrap",
+	"Early Definers"
 Names
 	"_'s⁇instance"
 Body
@@ -65,7 +66,7 @@ Semantic restriction "_'s⁇type" is
  * Returns:
  *    The sole instance of the argument.
  */
-Method "_'s⁇instance" is
+Public method "_'s⁇instance" is
 [
 	enum : type
 |

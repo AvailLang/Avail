@@ -36,6 +36,7 @@ Versions
 Uses
 	"Bootstrap",
 	"Early Control Structures",
+	"Early Definers",
 	"Early Literals"
 Names
 	"¬_",
@@ -52,7 +53,7 @@ Body
  * Returns:
  *    ¬`predicate`.
  */
-Method "¬_" is
+Public method "¬_" is
 [
 	predicate : boolean
 |
@@ -67,7 +68,7 @@ Method "¬_" is
  * Returns:
  *    ¬`predicate`.
  */
-Method "¬_" is
+Public method "¬_" is
 [
 	predicate : false's type
 |
@@ -116,7 +117,7 @@ Semantic restriction "¬_" is
  * Returns:
  *    `a` ∧ `b`.
  */
-Method "_∧_" is
+Public method "_∧_" is
 [
 	a : boolean,
 	b : function accepting <> and returning boolean
@@ -134,7 +135,7 @@ Method "_∧_" is
  * Returns:
  *    `a` ∧ `b`.
  */
-Method "_∧_" is
+Public method "_∧_" is
 [
 	a : false's type,
 	b : function accepting <> and returning boolean
@@ -206,7 +207,7 @@ Semantic restriction "_∧_" is
  * Returns:
  *    `a` ∨ `b`.
  */
-Method "_∨_" is
+Public method "_∨_" is
 [
 	a : boolean,
 	b : function accepting <> and returning boolean
@@ -224,7 +225,7 @@ Method "_∨_" is
  * Returns:
  *    `a` ∨ `b`.
  */
-Method "_∨_" is
+Public method "_∨_" is
 [
 	a : true's type,
 	b : function accepting <> and returning boolean
@@ -295,7 +296,7 @@ Semantic restriction "_∨_" is
  * Returns:
  *    `true` if the arguments are not equal, `false` otherwise.
  */
-Method "_≠_" is
+Public method "_≠_" is
 [
 	a : any,
 	b : any

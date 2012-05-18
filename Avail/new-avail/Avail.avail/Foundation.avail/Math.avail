@@ -39,6 +39,7 @@ Uses
 	"Assertions",
 	"Bootstrap",
 	"Early Control Structures",
+	"Early Definers",
 	"Early Error Codes",
 	"Early Functions",
 	"Early Logic",
@@ -54,6 +55,7 @@ Names
 	"_mod_",
 	"-_",
 	"_^_",
+	"_(base_)",
 	"«_‡«=»?«≤»?«<»?»",
 	"«_‡«=»?«≥»?«>»?»"
 Body
@@ -122,7 +124,7 @@ Semantic restriction "_mod_" is type promotion function for
  * Returns:
  *    The negation of the argument.
  */
-Method "-_" is
+Public method "-_" is
 [
 	a : number
 |
@@ -301,7 +303,7 @@ Semantic restriction "⎡_⎤" is
  * Returns:
  *    The remainder.
  */
-Method "_mod_" is
+Public method "_mod_" is
 [
 	dividend : number,
 	divisor : number
@@ -318,7 +320,7 @@ Method "_mod_" is
  * Returns:
  *    The dividend.
  */
-Method "_mod_" is
+Public method "_mod_" is
 [
 	dividend : extended integer,
 	divisor : ∞'s type
@@ -334,7 +336,7 @@ Method "_mod_" is
  * Returns:
  *    `true` if the argument is odd, `false` otherwise.
  */
-Method "_is odd" is
+Public method "_is odd" is
 [
 	a : integer
 |
@@ -373,7 +375,7 @@ Semantic restriction "_is odd" is
  * Returns:
  *    `true` if the argument is even, `false` otherwise.
  */
-Method "_is even" is
+Public method "_is even" is
 [
 	a : integer
 |
@@ -541,7 +543,7 @@ Method "_×_" is
  * Returns:
  *    The negation of the argument, e.g., the negation of [3..5] is [-5..-3].
  */
-Method "-_" is
+Public method "-_" is
 [
 	a : extended integer's type
 |
@@ -887,7 +889,7 @@ Semantic restriction "`|_`|" is
  * Returns:
  *    `true` if the entire chain of comparisons is true, `false` otherwise.
  */
-Method "«_‡«=»?«≤»?«<»?»" is
+Public method "«_‡«=»?«≤»?«<»?»" is
 [
 	args : <<number, boolean…|1..4>…|3..∞>
 |
@@ -934,7 +936,7 @@ Method "«_‡«=»?«≤»?«<»?»" is
 	result
 ];
 
-Method "comparison chain semantic restriction function" is
+Private method "comparison chain semantic restriction function" is
 [
 	[
 		args : <<number, boolean…|1..4>…|3..∞>'s type
@@ -987,7 +989,7 @@ Semantic restriction "«_‡«=»?«≤»?«<»?»" is
  * Returns:
  *    `true` if the entire chain of comparisons is true, `false` otherwise.
  */
-Method "«_‡«=»?«≥»?«>»?»" is
+Public method "«_‡«=»?«≥»?«>»?»" is
 [
 	args : <<number, boolean…|1..4>…|3..∞>
 |
@@ -1136,8 +1138,6 @@ Method "_^_" is
 	]
 ] : extended integer;
 
-/* TODO: [TLS] Port the semantic restriction. Will require modifications. */
-
 /**
  * Compute and answer the result of exponentiating `base` by `exponent`.
  * 
@@ -1206,7 +1206,7 @@ letterZ ::= ¢Z→code point;
  * Returns:
  *    The number represented by the digits as a whole number.
  */
-Method "_(base_)" is 
+Public method "_(base_)" is 
 [
 	digits : string,
 	base : [2..36] 
@@ -1238,13 +1238,13 @@ Method "_(base_)" is
 					]
 					else 
 					[
-						early failure function (invalid argument code)
+						early failure function(invalid argument code)
 					]
 				]
 			];
 
 		If digValue ≥ base ∨ [digValue < 0] then 
-			[early failure function (invalid argument code)];
+			[early failure function(invalid argument code)];
 
 		answer := answer × base + digValue;
 		true
@@ -1252,7 +1252,11 @@ Method "_(base_)" is
 	cast answer into [a: whole number | a]
 ];
 
-Semantic restriction "_(base_)" is [baseType : [2..36]'s type, digitsType : string's type |
+Semantic restriction "_(base_)" is
+[
+	baseType : [2..36]'s type,
+	digitsType : string's type
+|
 	maxStringSize ::= ||digitsType||'s upper bound;
 	if maxStringSize is finite then [
 		/* Compute a rough bound based on the string size and base. */

@@ -39,7 +39,7 @@ Uses
 	"Tuple",
 	"Type"
 Names
-	"{_|_}",
+	"{_`|_}",
 	"set_of_",
 	"set of_",
 	"_content type",
@@ -55,7 +55,7 @@ Body
 
 /* Set type construction / accessing */
 
-Method "{_|_}" is [contentType : any type , sizes : whole number type |
+Method "{_`|_}" is [contentType : any type , sizes : whole number type |
 	Primitive 111;
 ] : setType;
 

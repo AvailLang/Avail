@@ -37,13 +37,14 @@ Extends
 Uses
 	"Bootstrap",
 	"Early Control Structures",
+	"Early Definers",
 	"Early Types",
 	"Enumeration Support",
 	"Literals"
 Names
 	"``_``",
 	"“↓_”",
-	"“[_|_]”"
+	"“[_`|_]”"
 Body
 
 /* Make "_'s type" bind more tightly than phrase type construction. */
@@ -59,7 +60,7 @@ Grammatical restriction {"_⇒_"} is <∅, {"_'s⁇type"}>;
  * Returns:
  *    A literal token that embeds the argument.
  */
-Method "``_``" is
+Public method "``_``" is
 [
 	value : any
 |
@@ -75,7 +76,7 @@ Method "``_``" is
  * Returns:
  *    A variable use expression.
  */
-Method "“↓_”" is
+Public method "“↓_”" is
 [
 	decl : declaration
 |
@@ -92,7 +93,7 @@ Method "“↓_”" is
  * Returns:
  *    A block.
  */
-Method "“[_|_]”" is
+Public method "“[_`|_]”" is
 [
 	args : <argument…|>,
 	statements : <phrase…|>

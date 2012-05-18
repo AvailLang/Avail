@@ -354,8 +354,9 @@ public final class BootstrapGenerator
 			final Primitive primitive = Primitive.byPrimitiveNumber(i);
 			if (primitive != null)
 			{
-				if (!primitive.hasFlag(Flag.Private) &&
-					(fallible == null
+				if (!primitive.hasFlag(Flag.Private)
+					&& !primitive.hasFlag(Flag.Bootstrap)
+					&& (fallible == null
 						|| primitive.hasFlag(Flag.CannotFail) == !fallible))
 				{
 					primitives.add(primitive);
@@ -992,7 +993,8 @@ public final class BootstrapGenerator
 			final List<Primitive> primitives = primitives(fallible);
 			for (final Primitive primitive : primitives)
 			{
-				if (!primitive.hasFlag(Flag.Private))
+				if (!primitive.hasFlag(Flag.Private)
+					&& !primitive.hasFlag(Flag.Bootstrap))
 				{
 					generatePrimitiveMethod(primitive, writer);
 				}
@@ -1375,7 +1377,8 @@ public final class BootstrapGenerator
 		// Map localized names to the primitives.
 		for (final Primitive primitive : primitives(null))
 		{
-			if (!primitive.hasFlag(Flag.Private))
+			if (!primitive.hasFlag(Flag.Private)
+				&& !primitive.hasFlag(Flag.Bootstrap))
 			{
 				final String value = primitiveBundle.getString(
 					primitive.name());

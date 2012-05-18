@@ -36,6 +36,7 @@ Versions
 Uses
 	"Assertions",
 	"Bootstrap",
+	"Early Definers",
 	"Early Literals",
 	"Early Enumeration Support"
 Names
@@ -53,7 +54,7 @@ Body
  * Parameters:
  *    value - An arbitrary value which will be ignored.
  */
-Method "Ignore:_" is
+Public method "Ignore:_" is
 [
 	value : any
 |
@@ -70,7 +71,7 @@ Method "Ignore:_" is
  * Returns:
  *    The argument.
  */
-Method "(_)" is
+Public method "(_)" is
 [
 	value : any
 |
@@ -170,7 +171,7 @@ Semantic restriction "If|if_then_else_" is
  *    reject - The function to invoke if `value` is not a subtype of the
  *       parameter type of `accept`.
  */
-Method "Cast|cast_into_else_" is
+Public method "Cast|cast_into_else_" is
 [
 	value : any,
 	accept : function accepting <⊥> and returning ⊤,
@@ -194,7 +195,7 @@ Method "Cast|cast_into_else_" is
  *    accept - The function to invoke if `value` is a subtype of the its
  *       parameter type.
  */
-Method "Cast|cast_into_" is
+Public method "Cast|cast_into_" is
 [
 	value : any,
 	accept : function accepting <⊥> and returning ⊤
@@ -328,7 +329,7 @@ Invoke
 with <>;
 
 /**
- * The cardinality of ⊥ is also ⊥. This is supplied to disambiguate `||_||`.
+ * The cardinality of ⊥ is also ⊥. This is supplied to disambiguate "`|`|_`|`|".
  * 
  * Parameters:
  *    bottomMeta - ⊥'s type.
@@ -370,7 +371,7 @@ Semantic restriction "Invoke|invoke_with_" is
  *       answers `true`, then continue to iterate; if it answers `false`, then
  *       terminate iteration early.
  */
-Method "From_to_do_" is
+Public method "From_to_do_" is
 [
 	start : natural number,
 	end : integer range from 0 (inclusive=true) to ∞ (inclusive=true),

@@ -39,6 +39,7 @@ Extends
 Uses
 	"Bootstrap",
 	"Control Structures",
+	"Early Definers",
 	"Early Functions",
 	"Early Maps",
 	"Early Types",
@@ -52,7 +53,6 @@ Names
 	"distinct_",
 	"first index of_where_",
 	"flatten_",
-	"group_by_",
 	"last index of_where_",
 	"left fold_through_",
 	"right fold_through_",
@@ -61,6 +61,7 @@ Names
 	"stripe_at_",
 	"zip_",
 	"∑_",
+	"∏_",
 	"_of_",
 	"_'s⁇head",
 	"_'s⁇last",
@@ -146,7 +147,7 @@ Method "For each_do_" is
  *       parameter, if provided, must correspond to `indices`.
  *    tupleType - A tuple type.
  */
-Method "Require:_accepts_" is
+Private method "Require:_accepts_" is
 [
 	action : function meta,
 	tupleType : tuple meta
@@ -823,7 +824,7 @@ Semantic restriction "count of_where_" is
  *    A tuple that contains only the distinct elements of `aTuple`, and in the
  *    order in which they were encountered.
  */
-Method "distinct_" is
+Public method "distinct_" is
 [
 	aTuple : tuple
 |
@@ -859,7 +860,7 @@ Method "distinct_" is
  * Returns:
  *    The requested function.
  */
-Method "zip function" is
+Private method "zip function" is
 [
 	[
 		tuples : <tuple…|1..>
@@ -895,7 +896,7 @@ Method "zip function" is
  * Returns:
  *    The zip of the input tuples.
  */
-Method "zip_" is zip function;
+Public method "zip_" is zip function;
 
 /**
  * Compute and answer the zip of the specified tuples. Given N input tuples, the
@@ -909,7 +910,7 @@ Method "zip_" is zip function;
  * Returns:
  *    The zip of the input tuples.
  */
-Method "«_‡zip»" is zip function;
+Public method "«_‡zip»" is zip function;
 
 /* Don't parse `«_‡zip»` recursively. */
 Grammatical restriction {"«_‡zip»"} is <{"«_‡zip»"}>;
@@ -920,7 +921,7 @@ Grammatical restriction {"«_‡zip»"} is <{"«_‡zip»"}>;
  * Returns:
  *    The semantic restriction function.
  */
-Method "zip semantic restriction" is
+Private method "zip semantic restriction" is
 [
 	[
 		tuplesType : <tuple…|1..>'s type
@@ -1023,7 +1024,7 @@ Semantic restriction "«_‡zip»" is zip semantic restriction;
  *    left-to-right consecutive elements of `aTuple` and 2) the previous results
  *    of applying `transformer`.
  */
-Method "left fold_through_" is
+Public method "left fold_through_" is
 [
 	aTuple : <any…|1..>,
 	transformer : [⊥, ⊥]→any
@@ -1109,7 +1110,7 @@ Semantic restriction "left fold_through_" is
  *    right-to-left consecutive elements of `aTuple` and 2) the previous results
  *    of applying `transformer`.
  */
-Method "right fold_through_" is
+Public method "right fold_through_" is
 [
 	aTuple : <any…|1..>,
 	transformer : [⊥, ⊥]→any
@@ -1194,7 +1195,7 @@ Semantic restriction "right fold_through_" is
  *    The index of the first satisfactory element, or 0 if no element satisfied
  *    the predicate.
  */
-Method "first index of_where_" is
+Public method "first index of_where_" is
 [
 	aTuple : tuple,
 	predicate : [⊥]→boolean
@@ -1241,7 +1242,7 @@ Semantic restriction "first index of_where_" is
  *    The index of the last satisfactory element, or 0 if no element satisfied
  *    the predicate.
  */
-Method "last index of_where_" is
+Public method "last index of_where_" is
 [
 	aTuple : tuple,
 	predicate : [⊥]→boolean
@@ -1286,7 +1287,7 @@ Semantic restriction "last index of_where_" is
  * Returns:
  *    A tuple containing `count` occurrences of `value`.
  */
-Method "_of_" is
+Public method "_of_" is
 [
 	count : whole number,
 	value : any
@@ -1335,7 +1336,7 @@ Semantic restriction "_of_" is
  * Returns:
  *    The interval from `start` (inclusive) to `end` (inclusive).
  */
-Method "_to_" is
+Public method "_to_" is
 [
 	start : integer,
 	end : integer
@@ -1459,7 +1460,7 @@ Semantic restriction "_to_" is
  * Returns:
  *    The interval from `start` (inclusive) to `end` (inclusive).
  */
-Method "_to_" is
+Public method "_to_" is
 [
 	start : character,
 	end : character
@@ -1563,7 +1564,7 @@ Semantic restriction "_∈_" is
  *    A 2-tuple. The first tuple contains the first `pivot` elements of
  *    `aTuple`. The second tuple contains the remaining elements of `aTuple`.
  */
-Method "split_after_" is
+Public method "split_after_" is
 [
 	aTuple : tuple,
 	pivot : whole number
@@ -1623,7 +1624,7 @@ Semantic restriction "split_after_" is
  *    A 2-tuple. The first tuple contains the first `pivot - 1` elements of
  *    `aTuple`. The second tuple contains the remaining elements of `aTuple`.
  */
-Method "split_before_" is
+Public method "split_before_" is
 [
 	aTuple : tuple,
 	pivot : natural number
@@ -1685,7 +1686,7 @@ Semantic restriction "split_before_" is
  *    `predicate` was applied. The second tuple contains the remaining elements
  *    of `aTuple`.
  */
-Method "split_before_" is
+Public method "split_before_" is
 [
 	aTuple : tuple,
 	predicate : [⊥]→boolean
@@ -1744,7 +1745,7 @@ Semantic restriction "split_before_" is
  * Returns:
  *    A tuple comprising the `index`-th elements of each element of `aTuple`.
  */
-Method "stripe_at_" is
+Public method "stripe_at_" is
 [
 	aTuple : <<any…|1..>…|>,
 	index : natural number
@@ -2031,18 +2032,18 @@ Semantic restriction "counts for_" is
  * Returns:
  *    a flattened tuple.
  */
-Method "flatten_" is
+Public method "flatten_" is
 [
- 	aTupleOfTuples : <tuple…|>
- |
- 	newTuple : tuple := <>;
- 	For each aTupleOfTuples do 
- 	[
- 	 	t : tuple 
- 	 | 
-        newTuple := newTuple ++ t;
- 	];
- 	newTuple
+	aTupleOfTuples : <tuple…|>
+|
+	newTuple : tuple := <>;
+	For each aTupleOfTuples do 
+	[
+		t : tuple 
+	|
+		newTuple := newTuple ++ t;
+	];
+	newTuple
 ]:tuple;
 
 /**
@@ -2111,8 +2112,8 @@ Semantic restriction "flatten_" is
  *    aTuple - a tuple.
  * Returns:
  *    the first element of the tuple.
- */   
-Method "_'s⁇head" is
+ */
+Public method "_'s⁇head" is
 [
 	aTuple : <any…|1..∞>
 |
@@ -2143,7 +2144,7 @@ Semantic restriction "_'s⁇head" is
  * Returns:
  *    a tuple.
  */   
-Method "_'s⁇tail" is
+Public method "_'s⁇tail" is
 [
 	aTuple : <any…|1..∞>
 |
@@ -2193,7 +2194,7 @@ Semantic restriction "_'s⁇tail" is
  * Returns:
  *    the last element of the tuple.
  */   
-Method "_'s⁇last" is
+Public method "_'s⁇last" is
 [
  	aTuple : <any…|1..∞>
  |
@@ -2226,7 +2227,7 @@ Semantic restriction "_'s⁇last" is
  * Returns:
  *    An integer.
  */
-Method "∑_" is
+Public method "∑_" is
 [
 	intTuple : <integer…|1..∞>
 |
@@ -2304,7 +2305,7 @@ Semantic restriction "∑_" is
  */
 /*TODO - RAA need to move exponentiation from Advanced Math to Math*/
 
-Method "∏_" is
+Public method "∏_" is
 [
 	intTuple : <integer…|1..∞>
 |

@@ -176,6 +176,12 @@ implements IntegerEnumSlotDescriptionEnum
 		Private,
 
 		/**
+		 * This is a bootstrap primitive. It must be made available to the
+		 * origin module of an Avail system via a special pragma.
+		 */
+		Bootstrap,
+
+		/**
 		 * The primitive is the special exception catching primitive. Its sole
 		 * purpose is to fail, causing an actual continuation to be built. The
 		 * exception raising mechanism searches for such a continuation to find

@@ -41,7 +41,7 @@ Uses
 	"Tuple",
 	"Continuation"
 Names
-	"{_->_|_}",
+	"{_->_`|_}",
 	"map_from_to_",
 	"map from_to_",
 	"map",
@@ -70,7 +70,7 @@ Body
 
 /* mapType construction and manipulation primitives... */
 
-Method "{_->_|_}" is [
+Method "{_->_`|_}" is [
 		keyType : any type,
 		valueType : any type,
 		sizes : whole number type |

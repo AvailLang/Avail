@@ -381,6 +381,12 @@ public enum AvailErrorCode
 	E_ALTERNATIVE_MUST_NOT_CONTAIN_ARGUMENTS (54),
 
 	/**
+	 * A vertical bar (|) may only occur after a keyword, operator, or
+	 * guillemet group which has no arguments or subgroups.
+	 */
+	E_VERTICAL_BAR_MUST_FOLLOW_A_SIMPLE_OR_SIMPLE_GROUP (55),
+
+	/**
 	 * Compilation is over. The interpreter is now operating in runtime mode.
 	 * This usually means that an attempt was made to modify module metadata at
 	 * runtime.

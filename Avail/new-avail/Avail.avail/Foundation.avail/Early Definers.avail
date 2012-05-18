@@ -1,0 +1,170 @@
+/*
+ * Early Definers.avail
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Early Definers"
+Versions
+	"dev"
+Uses
+	"Bootstrap",
+	"Early Literals"
+Names
+	"Private method_is_",
+	"Public method_is_"
+Body
+
+/**
+ * Define a new public method. The semantic restriction ensures that the method
+ * is named in the current module's "Names" section. This should not be used to
+ * extend existing methods.
+ * 
+ * Parameters:
+ *    methodName - The name of the method.
+ *    function - A new implementation of the method.
+ */
+Method "Public method_is_" is
+[
+	methodName : string,
+	function : function
+|
+	Primitive 253 (failureCode : natural number);
+	Invoke early failure function with <failureCode>;
+] : ⊤;
+
+/**
+ * Ensure that the new method is introduced by the module's "Names" section.
+ *
+ * Parameters:
+ *    methodName -
+ *    function -
+ * Returns:
+ *    ⊤.
+ */
+Semantic restriction "Public method_is_" is
+[
+	nameType : string's type,
+	functionType : function meta
+|
+	If |nameType| = 1 then
+	[
+		publicNames ::= current module's public names;
+		methodName ::= nameType's instances→tuple[1];
+		If methodName ∈ publicNames then
+		[
+			/* This is the happy path: do nothing. */
+		]
+		else
+		[
+			Invoke
+			[
+				name : string
+			|
+				messageTuple ::= concatenate <
+					"public method \"",
+					name,
+					"\" to be included in the module's \"Names\" section">;
+				Invoke
+				[
+					messageString : string
+				|
+					Reject parse, expected: messageString
+				]
+				with <messageTuple>;
+			]
+			with <methodName>;
+		];
+	];
+	⊤
+];
+
+/**
+ * Define a new private method. The semantic restriction ensures that the method
+ * is not named in the module's "Names" section. This should not be used to
+ * extend existing methods.
+ * 
+ * Parameters:
+ *    methodName - The name of the method.
+ *    function - A new implementation of the method.
+ */
+Method "Private method_is_" is
+[
+	methodName : string,
+	function : function
+|
+	Primitive 253 (failureCode : natural number);
+	Invoke early failure function with <failureCode>;
+] : ⊤;
+
+/**
+ * Ensure that the new method is not introduced by the module's "Names" section.
+ *
+ * Parameters:
+ *    methodName -
+ *    function -
+ * Returns:
+ *    ⊤.
+ */
+Semantic restriction "Private method_is_" is
+[
+	nameType : string's type,
+	functionType : function meta
+|
+	If |nameType| = 1 then
+	[
+		publicNames ::= current module's public names;
+		methodName ::= nameType's instances→tuple[1];
+		If methodName ∈ publicNames then
+		[
+			Invoke
+			[
+				name : string
+			|
+				messageTuple ::= concatenate <
+					"private method \"",
+					name,
+					"\" not to be included in the module's \"Names\" section">;
+				Invoke
+				[
+					messageString : string
+				|
+					Reject parse, expected: messageString
+				]
+				with <messageTuple>;
+			]
+			with <methodName>;
+		]
+		else
+		[
+			/* This is the happy path: do nothing. */
+		];
+	];
+	⊤
+];

@@ -36,6 +36,7 @@ Versions
 Uses
 	"Bootstrap",
 	"Early Control Structures",
+	"Early Definers",
 	"Early Logic",
 	"Early Math",
 	"Early Tuples",
@@ -108,7 +109,7 @@ Semantic restriction "Invoke|invoke_with_" is
  * Returns:
  *    The value produced by applying the arguments to the function.
  */
-Method "_(«_‡,»)" is
+Public method "_(«_‡,»)" is
 [
 	aFunction : function,
 	arguments : tuple
@@ -236,4 +237,21 @@ Semantic restriction "_[_]" is
 			result's type
 		]
 	]
+];
+
+/**
+ * The constructed function has the requested type.
+ * 
+ * Parameter:
+ *    requestedTypeMeta -
+ *    functionType -
+ * Return:
+ *    The instance of `requestedTypeMeta`.
+ */
+Semantic restriction "new_applying_" is
+[
+	requestedTypeMeta : function meta's type,
+	functionType : function meta
+|
+	requestedTypeMeta's instance
 ];

@@ -36,6 +36,7 @@ Versions
 Uses
 	"Bootstrap",
 	"Early Control Structures",
+	"Early Definers",
 	"Early Math",
 	"Literals",
 	"Variables"
@@ -64,7 +65,7 @@ errorNames : {[1000..∞)→string|[0..∞)} := {};
  * Returns:
  *    The name of the specified error code.
  */
-Method "error code_'s⁇name" is
+Public method "error code_'s⁇name" is
 [
 	errorCode : [1000..∞)
 |
@@ -78,7 +79,7 @@ Method "error code_'s⁇name" is
  * Parameters:
  *    name - The name of the new method.
  */
-Method "Next error code is_" is
+Private method "Next error code is_" is
 [
 	name : string
 |

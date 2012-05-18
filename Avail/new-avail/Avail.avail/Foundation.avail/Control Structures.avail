@@ -43,6 +43,7 @@ Extends
 Uses
 	"Assertions",
 	"Bootstrap",
+	"Early Definers",
 	"Early Functions",
 	"Early Maps",
 	"Early Tuples",
@@ -89,7 +90,7 @@ Body
  * Parameters:
  *    aContinuation - The continuation to exit.
  */
-Method "Exit_" is
+Public method "Exit_" is
 [
 	aContinuation : $[…]→⊤
 |
@@ -177,7 +178,7 @@ Semantic restriction "Restart_with_" is
  *    A continuation which, when restarted, causes `here` to answer the
  *    continuation again.
  */
-Method "here" is
+Public method "here" is
 [
 	$body : $[]→⊥;
 	body
@@ -189,7 +190,7 @@ Method "here" is
  * Parameters:
  *    action - The function that should be invoked repeatedly.
  */
-Method "Repeat_" is
+Public method "Repeat_" is
 [
 	action : []→⊤
 |
@@ -205,7 +206,7 @@ Method "Repeat_" is
  *    action - A function.
  *    count - The number of times to apply `action`.
  */
-Method "Repeat__times" is
+Public method "Repeat__times" is
 [
 	action : []→⊤,
 	count : [0..∞]
@@ -275,7 +276,7 @@ Abstract method "From_to_by_do_" is
  *       answers `true`, then continue to iterate; if it answers `false`, then
  *       terminate iteration early.
  */
-Method "From_to_by_do_" is
+Public method "From_to_by_do_" is
 [
 	start : integer,
 	end : extended integer,
@@ -310,7 +311,7 @@ Method "From_to_by_do_" is
  *       answers `true`, then continue to iterate; if it answers `false`, then
  *       terminate iteration early.
  */
-Method "From_to_by_do_" is
+Public method "From_to_by_do_" is
 [
 	start : integer,
 	end : extended integer,
@@ -437,7 +438,7 @@ Abstract method "From_to_by_do_" is
  *    step - The amount by which to adjust the value after each iteration.
  *    action - A function that accepts a value in the specified range.
  */
-Method "From_to_by_do_" is
+Public method "From_to_by_do_" is
 [
 	start : integer,
 	end : extended integer,
@@ -463,7 +464,7 @@ Method "From_to_by_do_" is
  *    step - The amount by which to adjust the value after each iteration.
  *    action - A function that accepts a value in the specified range.
  */
-Method "From_to_by_do_" is
+Public method "From_to_by_do_" is
 [
 	start : integer,
 	end : extended integer,
@@ -573,7 +574,7 @@ Semantic restriction "From_to_by_do_" is
  *       answers `true`, then continue to iterate; if it answers `false`, then
  *       terminate iteration early.
  */
-Method "From_to_do_" is
+Public method "From_to_do_" is
 [
 	start : integer,
 	end : extended integer,
@@ -632,7 +633,7 @@ Semantic restriction "From_to_do_" is
  *    end - The end value, inclusive.
  *    action - A function that accepts a value in the specified range.
  */
-Method "From_to_do_" is
+Public method "From_to_do_" is
 [
 	start : integer,
 	end : extended integer,
@@ -767,7 +768,7 @@ Semantic restriction "_(«_‡,»)" is
  *    action - A function type whose last parameter type must permit a
  *       one-argument procedure.
  */
-Method "Require:_'s⁇keeper is valid" is
+Public method "Require:_'s⁇keeper is valid" is
 [
 	action : function meta
 |
@@ -809,7 +810,7 @@ Method "Require:_'s⁇keeper is valid" is
  * Returns:
  *    If used as an expression, then the value of the selected action.
  */
-Method "If|if_then_«else if_then_»«else_»" is
+Public method "If|if_then_«else if_then_»«else_»" is
 [
 	firstPredicate : boolean,
 	firstThen : []→⊤,
@@ -1006,7 +1007,7 @@ Semantic restriction "If|if_then_«else if_then_»«else_»" is
  *    predicate - A predicate value.
  *    action - The function to invoke if `predicate` is `false`.
  */
-Method "Unless_then_" is
+Public method "Unless_then_" is
 [
 	predicate : boolean,
 	action : []→⊤
@@ -1026,7 +1027,7 @@ Method "Unless_then_" is
  *    If `predicate` is `false`, then the value produced by invoking
  *    `falseFunction`; otherwise, the value produced by invoking `trueFunction`.
  */
-Method "Unless|unless_then_else_" is
+Public method "Unless|unless_then_else_" is
 [
 	predicate : boolean,
 	falseBlock : []→⊤,
@@ -1116,7 +1117,7 @@ Semantic restriction "Unless|unless_then_else_" is
  * Returns:
  *    If used as an expression, then the value of the selected action.
  */
-Method "Unless|unless_then_«else unless_then_»«else_»" is
+Public method "Unless|unless_then_«else unless_then_»«else_»" is
 [
 	firstPredicate : boolean,
 	firstThen : []→⊤,
@@ -1314,7 +1315,7 @@ Semantic restriction "Unless|unless_then_«else unless_then_»«else_»" is
  *    action - The function to apply repeatedly. It must answer `true` if it
  *       should run again.
  */
-Method "While_" is
+Public method "While_" is
 [
 	action : []→boolean
 |
@@ -1356,7 +1357,7 @@ Semantic restriction "While_" is
  *    action - The function to apply repeatedly. It must answer `false` if it
  *       should run again.
  */
-Method "Until_" is
+Public method "Until_" is
 [
 	action : []→boolean
 |
@@ -1398,7 +1399,7 @@ Semantic restriction "Until_" is
  *    predicate - The function that guards repeated application of `action`.
  *    action - The function to apply whenever `predicate` answers `true`.
  */
-Method "While_do_" is
+Public method "While_do_" is
 [
 	predicate : []→boolean,
 	action : []→⊤
@@ -1444,7 +1445,7 @@ Semantic restriction "While_do_" is
  *    predicate - The function that guards repeated application of `action`.
  *    action - The function to apply whenever `predicate` answers `false`.
  */
-Method "Until_do_" is
+Public method "Until_do_" is
 [
 	predicate : []→boolean,
 	action : []→⊤
@@ -1491,7 +1492,7 @@ Semantic restriction "Until_do_" is
  *       answers `true`.
  *    predicate - The function that guards repeated application of `action`.
  */
-Method "Do_while_" is
+Public method "Do_while_" is
 [
 	action : []→⊤,
 	predicate : []→boolean
@@ -1540,7 +1541,7 @@ Semantic restriction "Do_while_" is
  *    predicate - The function that guards repeated application of `action`.
  *    between - The function to apply between applications of `action`.
  */
-Method "Do_while_alternate with_" is
+Public method "Do_while_alternate with_" is
 [
 	action : []→⊤,
 	predicate : []→boolean,
@@ -1592,7 +1593,7 @@ Semantic restriction "Do_while_alternate with_" is
  *       answers `false`.
  *    predicate - The function that guards repeated application of `action`.
  */
-Method "Do_until_" is
+Public method "Do_until_" is
 [
 	action : []→⊤,
 	predicate : []→boolean
@@ -1641,7 +1642,7 @@ Semantic restriction "Do_until_" is
  *    predicate - The function that guards repeated application of `action`.
  *    between - The function to apply between applications of `action`.
  */
-Method "Do_until_alternate with_" is
+Public method "Do_until_alternate with_" is
 [
 	action : []→⊤,
 	predicate : []→boolean,
@@ -1698,7 +1699,7 @@ Semantic restriction "Do_until_alternate with_" is
  * Returns:
  *    The result of whatever function is applied.
  */
-Method "Cast|cast_into«_‡or»«else_»" is
+Public method "Cast|cast_into«_‡or»«else_»" is
 [
 	value : any,
 	caseTuple : <[⊥]→⊤…|2..>,
@@ -1798,7 +1799,7 @@ Semantic restriction "Cast|cast_into«_‡or»«else_»" is
  * Returns:
  *    The return value of the chosen function.
  */
-Method "Choose|choose_from_where«_is_‡and»«and others are_»" is
+Public method "Choose|choose_from_where«_is_‡and»«and others are_»" is
 [
 	value : any,
 	enum : type,
