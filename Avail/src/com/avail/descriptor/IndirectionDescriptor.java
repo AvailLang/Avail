@@ -1700,14 +1700,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_ReturnType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		o_Traversed(object).returnType(value);
-	}
-
-	@Override
 	@NotNull AvailObject o_SetIntersectionCanDestroy (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject otherSet,
@@ -3189,31 +3181,16 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	@NotNull AvailObject o_Arguments (final AvailObject object)
+	@NotNull AvailObject o_ArgumentsListNode (
+		final @NotNull AvailObject object)
 	{
-		return o_Traversed(object).arguments();
-	}
-
-	@Override
-	void o_Arguments (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject arguments)
-	{
-		o_Traversed(object).arguments(arguments);
+		return o_Traversed(object).argumentsListNode();
 	}
 
 	@Override
 	@NotNull AvailObject o_Method (final AvailObject object)
 	{
 		return o_Traversed(object).method();
-	}
-
-	@Override
-	void o_Method (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject method)
-	{
-		o_Traversed(object).method(method);
 	}
 
 	@Override
@@ -4214,6 +4191,6 @@ extends AbstractDescriptor
 	@Override
 	boolean o_IsSystemModule (final @NotNull AvailObject object)
 	{
-		return o_IsSystemModule(object);
+		return o_Traversed(object).isSystemModule();
 	}
 }

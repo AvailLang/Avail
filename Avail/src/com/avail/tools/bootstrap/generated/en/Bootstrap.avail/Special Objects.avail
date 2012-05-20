@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.05.17 23:24:25.627 -0500
+ * * Last Generated On: 2012.05.19 19:46:33.603 -0500
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -68,7 +68,6 @@ Names
 	/* 104 */ "empty tuple",
 	/*  52 */ "expression",
 	/* 126 */ "expression yielding any",
-	/* 125 */ "expression yielding any tuple",
 	/*  13 */ "extended integer",
 	/*  18 */ "extended integer meta",
 	/*  71 */ "false",
@@ -139,6 +138,7 @@ Names
 	/*  32 */ "tuple",
 	/*  33 */ "tuple meta",
 	/* 117 */ "tuple of any meta",
+	/* 125 */ "tuple of expressions yielding any",
 	/* 102 */ "tuple of nybble",
 	/* 108 */ "tuple of semantic restriction function",
 	/*  74 */ "tuple of set of string",
@@ -281,7 +281,7 @@ _phrase_tuple                           ::= special object 121;
 _argument_tuple                         ::= special object 122;
 _declaration_tuple                      ::= special object 123;
 _write_only_expression_variable         ::= special object 124;
-_expression_yielding_any_tuple          ::= special object 125;
+_tuple_of_expressions_yielding_any      ::= special object 125;
 _expression_yielding_any                ::= special object 126;
 
 /**
@@ -984,9 +984,9 @@ Method "write-only expression variable" is
 	_write_only_expression_variable
 ];
 
-Method "expression yielding any tuple" is
+Method "tuple of expressions yielding any" is
 [
-	_expression_yielding_any_tuple
+	_tuple_of_expressions_yielding_any
 ];
 
 Method "expression yielding any" is

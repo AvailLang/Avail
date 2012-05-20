@@ -77,7 +77,7 @@ implements Iterable<AvailObject>
 		NullDescriptor.createWellKnownObjects();
 		BottomTypeDescriptor.createWellKnownObjects();
 		TupleDescriptor.createWellKnownObjects();
-		TupleNodeDescriptor.createWellKnownObjects();
+		ListNodeDescriptor.createWellKnownObjects();
 		StringDescriptor.createWellKnownObjects();
 		TypeDescriptor.createWellKnownObjects();
 		MapDescriptor.createWellKnownObjects();
@@ -122,7 +122,7 @@ implements Iterable<AvailObject>
 		NullDescriptor.clearWellKnownObjects();
 		BottomTypeDescriptor.clearWellKnownObjects();
 		TupleDescriptor.clearWellKnownObjects();
-		TupleNodeDescriptor.clearWellKnownObjects();
+		ListNodeDescriptor.clearWellKnownObjects();
 		StringDescriptor.clearWellKnownObjects();
 		TypeDescriptor.clearWellKnownObjects();
 		MapDescriptor.clearWellKnownObjects();
@@ -3674,15 +3674,6 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public void returnType (
-		final AvailObject value)
-	{
-		descriptor.o_ReturnType(this, value);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
 	public void scanSubobjects (
 		final AvailSubobjectVisitor visitor)
 	{
@@ -4773,18 +4764,9 @@ implements Iterable<AvailObject>
 	/**
 	 * @return
 	 */
-	public AvailObject arguments ()
+	public AvailObject argumentsListNode ()
 	{
-		return descriptor.o_Arguments(this);
-	}
-
-
-	/**
-	 * @param arguments
-	 */
-	public void arguments (final AvailObject arguments)
-	{
-		descriptor.o_Arguments(this, arguments);
+		return descriptor.o_ArgumentsListNode(this);
 	}
 
 
@@ -4794,15 +4776,6 @@ implements Iterable<AvailObject>
 	public AvailObject method ()
 	{
 		return descriptor.o_Method(this);
-	}
-
-
-	/**
-	 * @param method
-	 */
-	public void method (final AvailObject method)
-	{
-		descriptor.o_Method(this, method);
 	}
 
 
@@ -6067,5 +6040,13 @@ implements Iterable<AvailObject>
 	public @NotNull AvailObject fieldTuple ()
 	{
 		return descriptor.o_FieldTuple(this);
+	}
+
+	/**
+	 * @return
+	 */
+	public boolean isSystemModule ()
+	{
+		return descriptor.o_IsSystemModule(this);
 	}
 }

@@ -1,5 +1,5 @@
 /**
- * TupleNodeDescriptor.java
+ * ListNodeDescriptor.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -33,7 +33,7 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.descriptor.TupleNodeDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.ListNodeDescriptor.ObjectSlots.*;
 import java.util.*;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
@@ -46,7 +46,7 @@ import com.avail.utility.*;
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
-public class TupleNodeDescriptor extends ParseNodeDescriptor
+public class ListNodeDescriptor extends ParseNodeDescriptor
 {
 	/**
 	 * My slots of type {@link AvailObject}.
@@ -138,7 +138,7 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 		{
 			expr.emitValueOn(codeGenerator);
 		}
-		codeGenerator.emitMakeTuple(childNodes.tupleSize());
+		codeGenerator.emitMakeList(childNodes.tupleSize());
 	}
 
 	@Override @AvailMethod
@@ -179,15 +179,15 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Create a new {@code TupleNodeDescriptor tuple node} with one more parse
-	 * node added to the end of the tuple.
+	 * Create a new {@code ListNodeDescriptor list node} with one more parse
+	 * node added to the end of the list.
 	 *
 	 * @param object
-	 *        The tuple node to extend.
+	 *        The list node to extend.
 	 * @param newParseNode
 	 *        The parse node to append.
 	 * @return
-	 *         A new {@code TupleNodeDescriptor tuple node} with the parse node
+	 *         A new {@code ListNodeDescriptor list node} with the parse node
 	 *         appended.
 	 */
 	@Override @AvailMethod
@@ -199,27 +199,27 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject newTuple = oldTuple.appendCanDestroy(
 			newParseNode,
 			true);
-		return TupleNodeDescriptor.newExpressions(newTuple);
+		return ListNodeDescriptor.newExpressions(newTuple);
 	}
 
 	@Override
 	@NotNull ParseNodeKind o_ParseNodeKind (
 		final @NotNull AvailObject object)
 	{
-		return TUPLE_NODE;
+		return LIST_NODE;
 	}
 
 
 	/**
-	 * The empty {@link TupleNodeDescriptor tuple node}.
+	 * The empty {@link ListNodeDescriptor list node}.
 	 */
 	private static AvailObject empty;
 
 
 	/**
-	 * Answer the empty {@link TupleNodeDescriptor tuple node}.
+	 * Answer the empty {@link ListNodeDescriptor list node}.
 	 *
-	 * @return The empty tuple node.
+	 * @return The empty list node.
 	 */
 	public static @NotNull AvailObject empty ()
 	{
@@ -227,7 +227,7 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Create the empty {@link TupleNodeDescriptor tuple node}.
+	 * Create the empty {@link ListNodeDescriptor list node}.
 	 */
 	static void createWellKnownObjects ()
 	{
@@ -236,7 +236,7 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Discard the empty {@link TupleNodeDescriptor tuple node}.
+	 * Discard the empty {@link ListNodeDescriptor list node}.
 	 */
 	static void clearWellKnownObjects ()
 	{
@@ -246,13 +246,14 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 
 
 	/**
-	 * Create a new {@linkplain TupleNodeDescriptor tuple node} from the given {@linkplain
-	 * TupleDescriptor tuple} of {@linkplain ParseNodeDescriptor expressions}.
+	 * Create a new {@linkplain ListNodeDescriptor list node} from the given
+	 * {@linkplain TupleDescriptor tuple} of {@linkplain ParseNodeDescriptor
+	 * expressions}.
 	 *
 	 * @param expressions
-	 *        The expressions to assemble into a {@linkplain TupleNodeDescriptor
-	 *        tuple node}.
-	 * @return The resulting tuple node.
+	 *        The expressions to assemble into a {@linkplain ListNodeDescriptor
+	 *        list node}.
+	 * @return The resulting list node.
 	 */
 	public static AvailObject newExpressions (final AvailObject expressions)
 	{
@@ -263,44 +264,44 @@ public class TupleNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Construct a new {@link TupleNodeDescriptor}.
+	 * Construct a new {@link ListNodeDescriptor}.
 	 *
 	 * @param isMutable Whether my {@linkplain AvailObject instances} can
 	 *                  change.
 	 */
-	public TupleNodeDescriptor (final boolean isMutable)
+	public ListNodeDescriptor (final boolean isMutable)
 	{
 		super(isMutable);
 	}
 
 	/**
-	 * The mutable {@link TupleNodeDescriptor}.
+	 * The mutable {@link ListNodeDescriptor}.
 	 */
-	private static final TupleNodeDescriptor mutable =
-		new TupleNodeDescriptor(true);
+	private static final ListNodeDescriptor mutable =
+		new ListNodeDescriptor(true);
 
 	/**
-	 * Answer the mutable {@link TupleNodeDescriptor}.
+	 * Answer the mutable {@link ListNodeDescriptor}.
 	 *
-	 * @return The mutable {@link TupleNodeDescriptor}.
+	 * @return The mutable {@link ListNodeDescriptor}.
 	 */
-	public static TupleNodeDescriptor mutable ()
+	public static ListNodeDescriptor mutable ()
 	{
 		return mutable;
 	}
 
 	/**
-	 * The immutable {@link TupleNodeDescriptor}.
+	 * The immutable {@link ListNodeDescriptor}.
 	 */
-	private static final TupleNodeDescriptor immutable =
-		new TupleNodeDescriptor(false);
+	private static final ListNodeDescriptor immutable =
+		new ListNodeDescriptor(false);
 
 	/**
-	 * Answer the immutable {@link TupleNodeDescriptor}.
+	 * Answer the immutable {@link ListNodeDescriptor}.
 	 *
-	 * @return The immutable {@link TupleNodeDescriptor}.
+	 * @return The immutable {@link ListNodeDescriptor}.
 	 */
-	public static TupleNodeDescriptor immutable ()
+	public static ListNodeDescriptor immutable ()
 	{
 		return immutable;
 	}

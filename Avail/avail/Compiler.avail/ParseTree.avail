@@ -115,11 +115,11 @@ Method "_emit value on_" is [node : Block Node, gen : Instruction Generator |
 	];
 ];
 
-Method "_emit value on_" is [node : Tuple Node, gen : Instruction Generator |
+Method "_emit value on_" is [node : List Node, gen : Instruction Generator |
 	node expressions do [expr : Parse Node |
 		expr emit value on gen;
 	];
-	gen make tuple ||node expressions||;
+	gen make list ||node expressions||;
 ];
 
 Method "_emit value on_" is [node : Literal Node, gen : Instruction Generator |
@@ -178,8 +178,8 @@ Method "_emit effect on_" is [
 	gen assign variable node variable;
 ];
 
-Method "_emit effect on_" is [node : Tuple Node, gen : Instruction Generator |
-	Crash "A tuple expression by itself can't be a statement";
+Method "_emit effect on_" is [node : List Node, gen : Instruction Generator |
+	Crash "A list expression by itself can't be a statement";
 ];
 
 Method "_emit effect on_" is [node : Literal Node, gen : Instruction Generator |

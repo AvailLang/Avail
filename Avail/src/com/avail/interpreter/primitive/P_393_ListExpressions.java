@@ -43,7 +43,7 @@ import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive 393</strong>: Answer the specified {@linkplain
- * TupleNodeDescriptor list}'s {@linkplain TupleDescriptor tuple} of {@linkplain
+ * ListNodeDescriptor list}'s {@linkplain TupleDescriptor tuple} of {@linkplain
  * ParseNodeKind#EXPRESSION_NODE expressions}.
  *
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
@@ -72,7 +72,7 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				TUPLE_NODE.mostGeneralType()),
+				LIST_NODE.mostGeneralType()),
 			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 				IntegerRangeTypeDescriptor.wholeNumbers(),
 				TupleDescriptor.empty(),

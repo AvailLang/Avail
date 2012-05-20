@@ -43,19 +43,19 @@ import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive 385</strong>: Answer the specified {@linkplain
- * SendNodeDescriptor send expression}'s {@linkplain TupleDescriptor tuple} of
+ * SendNodeDescriptor send expression}'s {@linkplain ListNOdeDescriptor list} of
  * {@linkplain ParseNodeKind#EXPRESSION_NODE argument expressions}.
  *
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
-public final class P_385_SendArguments
+public final class P_385_SendArgumentsList
 extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final @NotNull static Primitive instance =
-		new P_385_SendArguments().init(1, CanFold, CannotFail);
+		new P_385_SendArgumentsList().init(1, CanFold, CannotFail);
 
 	@Override
 	public @NotNull Result attempt (
@@ -64,7 +64,8 @@ extends Primitive
 	{
 		assert args.size() == 1;
 		final AvailObject send = args.get(0);
-		return interpreter.primitiveSuccess(send.arguments());
+		return interpreter.primitiveSuccess(
+			send.argumentsListNode());
 	}
 
 	@Override
@@ -73,9 +74,6 @@ extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				SEND_NODE.mostGeneralType()),
-			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-				IntegerRangeTypeDescriptor.wholeNumbers(),
-				TupleDescriptor.empty(),
-				EXPRESSION_NODE.create(ANY.o())));
+			LIST_NODE.mostGeneralType());
 	}
 }

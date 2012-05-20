@@ -481,7 +481,7 @@ public class AvailCodeGenerator
 	 *
 	 * @param count How many pushed items to pop for the new tuple.
 	 */
-	public void emitMakeTuple (
+	public void emitMakeList (
 		final int count)
 	{
 		instructions.add(new AvailMakeTuple(count));

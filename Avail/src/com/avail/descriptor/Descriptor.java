@@ -1220,14 +1220,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_ReturnType (
-		final @NotNull AvailObject object,
-		final AvailObject value)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	@NotNull AvailObject o_SetIntersectionCanDestroy (
 		final @NotNull AvailObject object,
 		final AvailObject otherSet,
@@ -3347,23 +3339,9 @@ extends AbstractDescriptor
 
 
 	@Override
-	void o_MarkerValue (final @NotNull AvailObject object, final @NotNull AvailObject markerValue)
-	{
-		throw unsupportedOperationException();
-	}
-
-
-	@Override
-	@NotNull AvailObject o_Arguments (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-
-	@Override
-	void o_Arguments (
+	void o_MarkerValue (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject arguments)
+		final @NotNull AvailObject markerValue)
 	{
 		throw unsupportedOperationException();
 	}
@@ -3371,15 +3349,6 @@ extends AbstractDescriptor
 
 	@Override
 	@NotNull AvailObject o_Method(final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-
-	@Override
-	void o_Method (
-		final @NotNull AvailObject object,
-		final AvailObject method)
 	{
 		throw unsupportedOperationException();
 	}
@@ -4444,6 +4413,13 @@ extends AbstractDescriptor
 
 	@Override
 	boolean o_IsSystemModule (final @NotNull AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	@NotNull AvailObject o_ArgumentsListNode (
+		final @NotNull AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}

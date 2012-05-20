@@ -2305,14 +2305,6 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param value
-	 */
-	abstract void o_ReturnType (
-		@NotNull AvailObject object,
-		AvailObject value);
-
-	/**
-	 * @param object
 	 * @param otherSet
 	 * @param canDestroy
 	 * @return
@@ -4441,28 +4433,6 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param arguments
-	 */
-	abstract void o_Arguments (
-		@NotNull AvailObject object,
-		AvailObject arguments);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	abstract AvailObject o_Arguments (AvailObject object);
-
-	/**
-	 * @param object
-	 * @param method
-	 */
-	abstract void o_Method (
-		@NotNull AvailObject object,
-		AvailObject method);
-
-	/**
-	 * @param object
 	 * @return
 	 */
 	abstract AvailObject o_Method (AvailObject object);
@@ -5463,5 +5433,13 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract boolean o_IsSystemModule (final @NotNull AvailObject object);
+	abstract boolean o_IsSystemModule (
+		final @NotNull AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract @NotNull AvailObject o_ArgumentsListNode (
+		final @NotNull AvailObject object);
 }

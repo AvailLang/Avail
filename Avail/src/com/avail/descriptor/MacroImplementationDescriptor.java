@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.TypeDescriptor.Types.MACRO_SIGNATURE;
+import static com.avail.descriptor.MacroImplementationDescriptor.ObjectSlots.*;
 import com.avail.annotations.*;
 
 /**
@@ -45,22 +46,19 @@ import com.avail.annotations.*;
  * will then do what it does and return a suitable parse node.
  *
  * <p>Since the macro is essentially a compile-time construct, there's not much
- * point in letting it have requires/returns clauses, so these are forbidden.
+ * point in letting it have semantic restrictions, so these are forbidden.
  * Instead, the macro is expected to throw a suitable exception if it is being
  * used in an incorrect or unsupported manner.</p>
  *
  * <p>As with methods, repeated arguments of macros are indicated with
- * guillemets
- * («») and the double-dagger (‡).  The type of such an argument for a method is
- * a tuple of tuples whose elements correspond to the underscores (_) and
- * guillemet groups contained therein.  When exactly one underscore or guillemet
- * group occurs within a group, then a simple tuple of values is expected
- * (rather than a tuple of tuples).  Macros expect tuples in a similar way, but
- * the bottom-level pieces being passed are parse nodes rather than values.
- * Thus, a macro operates on parse nodes, and tuples of tuples and parse nodes.
- * Note how this is different from operating on {@linkplain TupleNodeDescriptor
- * tuple <em>nodes</em>}, which are parse nodes which produce tuples of
- * values.</p>
+ * guillemets («») and the double-dagger (‡).  The type of such an argument for
+ * a method is a tuple of tuples whose elements correspond to the underscores
+ * (_) and guillemet groups contained therein.  When exactly one underscore or
+ * guillemet group occurs within a group, then a simple tuple of values is
+ * expected (rather than a tuple of tuples).  Macros expect tuples in an
+ * analogous way, but (1) the bottom-level pieces are always parse nodes, and
+ * (2) the grouping is actually via {@link ListNodeDescriptor list nodes} rather
+ * than tuples.  Thus, a macro always operates on parse nodes.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
@@ -73,9 +71,8 @@ extends ImplementationDescriptor
 	public enum ObjectSlots implements ObjectSlotsEnum
 	{
 		/**
-		 * The {@linkplain FunctionDescriptor function} to invoke to transform the
-		 * argument parse nodes (and tuples of tuples and parse nodes) into a
-		 * suitable replacement parse node.
+		 * The {@linkplain FunctionDescriptor function} to invoke to transform
+		 * the argument parse nodes into a suitable replacement parse node.
 		 */
 		BODY_BLOCK,
 	}
@@ -94,7 +91,7 @@ extends ImplementationDescriptor
 	@NotNull AvailObject o_BodyBlock (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.BODY_BLOCK);
+		return object.slot(BODY_BLOCK);
 	}
 
 	@Override @AvailMethod
@@ -134,7 +131,7 @@ extends ImplementationDescriptor
 		final @NotNull AvailObject bodyBlock)
 	{
 		final AvailObject instance = mutable().create();
-		instance.setSlot(ObjectSlots.BODY_BLOCK, bodyBlock);
+		instance.setSlot(BODY_BLOCK, bodyBlock);
 		instance.makeImmutable();
 		return instance;
 	}

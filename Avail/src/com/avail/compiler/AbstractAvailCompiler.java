@@ -1723,7 +1723,8 @@ public abstract class AbstractAvailCompiler
 		{
 			final AvailObject sendNode = SendNodeDescriptor.from(
 				method,
-				TupleDescriptor.fromCollection(argumentExpressions),
+				ListNodeDescriptor.newExpressions(
+					TupleDescriptor.fromCollection(argumentExpressions)),
 				returnType);
 			attempt(
 				new ParserState(

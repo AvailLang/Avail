@@ -42,7 +42,7 @@ import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 392</strong>: Create a {@linkplain TupleNodeDescriptor
+ * <strong>Primitive 392</strong>: Create a {@linkplain ListNodeDescriptor
  * list} from the specified {@linkplain TupleDescriptor tuple} of {@linkplain
  * ParseNodeKind#EXPRESSION_NODE expressions}.
  *
@@ -65,7 +65,7 @@ extends Primitive
 		assert args.size() == 1;
 		final AvailObject expressions = args.get(0);
 		return interpreter.primitiveSuccess(
-			TupleNodeDescriptor.newExpressions(expressions));
+			ListNodeDescriptor.newExpressions(expressions));
 	}
 
 	@Override
@@ -77,6 +77,6 @@ extends Primitive
 					IntegerRangeTypeDescriptor.wholeNumbers(),
 					TupleDescriptor.empty(),
 					EXPRESSION_NODE.create(ANY.o()))),
-			TUPLE_NODE.mostGeneralType());
+			LIST_NODE.mostGeneralType());
 	}
 }

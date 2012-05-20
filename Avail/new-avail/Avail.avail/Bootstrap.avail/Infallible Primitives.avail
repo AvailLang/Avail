@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.05.17 23:24:25.667 -0500
+ * * Last Generated On: 2012.05.19 19:45:25.446 -0500
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -2789,19 +2789,19 @@ Method "_'s⁇method" is
 ] : method;
 
 /**
- * Answer the specified message sends argument expressions.
+ * Answer the specified message sends list of argument expressions.
  *
  * Parameters:
  *    {0} - A message send.
  * Returns:
- *    The requested tuple of argument expressions.
+ *    The requested list of argument expressions.
  */
 Method "_'s⁇arguments" is
 [
 	aSend : send
 |
 	Primitive 385;
-] : expression yielding any tuple;
+] : list;
 
 /**
  * Answer the specified message sends expected return type.
@@ -2843,7 +2843,7 @@ Method "_'s⁇statements" is
  */
 Method "list(_)" is
 [
-	aTuple : expression yielding any tuple
+	aTuple : tuple of expressions yielding any
 |
 	Primitive 392;
 ] : list;
@@ -2861,7 +2861,7 @@ Method "_'s⁇expressions" is
 	aList : list
 |
 	Primitive 393;
-] : expression yielding any tuple;
+] : tuple of expressions yielding any;
 
 /**
  * Create a variable use expression from the specified token and declaration.

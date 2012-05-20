@@ -57,9 +57,10 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 	public enum ObjectSlots implements ObjectSlotsEnum
 	{
 		/**
-		 * The expressions yielding the arguments of the method invocation.
+		 * A {@link ListNodeDescriptor list node} containing the expressions
+		 * that yield the arguments of the method invocation.
 		 */
-		ARGUMENTS,
+		ARGUMENTS_LIST_NODE,
 
 		/**
 		 * The {@linkplain MethodDescriptor method} to be invoked.
@@ -75,36 +76,13 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 
 
 	/**
-	 * Setter for field arguments.
-	 */
-	@Override @AvailMethod
-	void o_Arguments (
-		final @NotNull AvailObject object,
-		final AvailObject arguments)
-	{
-		object.setSlot(ObjectSlots.ARGUMENTS, arguments);
-	}
-
-	/**
 	 * Getter for field arguments.
 	 */
 	@Override @AvailMethod
-	AvailObject o_Arguments (
+	AvailObject o_ArgumentsListNode (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.ARGUMENTS);
-	}
-
-
-	/**
-	 * Setter for field method.
-	 */
-	@Override @AvailMethod
-	void o_Method (
-		final @NotNull AvailObject object,
-		final AvailObject method)
-	{
-		object.setSlot(ObjectSlots.METHOD, method);
+		return object.slot(ObjectSlots.ARGUMENTS_LIST_NODE);
 	}
 
 	/**
@@ -115,19 +93,6 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 		final @NotNull AvailObject object)
 	{
 		return object.slot(ObjectSlots.METHOD);
-	}
-
-
-	/**
-	 * Setter for field returnType.
-	 */
-	@Override @AvailMethod
-	void o_ReturnType (
-		final @NotNull AvailObject object,
-		final AvailObject returnType)
-	{
-		assert returnType.isType();
-		object.setSlot(ObjectSlots.RETURN_TYPE, returnType);
 	}
 
 	/**
@@ -151,25 +116,25 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 	int o_Hash (final AvailObject object)
 	{
 		return
-			(object.arguments().hash() * Multiplier
-				+ object.method().hash()) * Multiplier
-				+ object.returnType().hash()
+			(object.argumentsListNode().hash() * Multiplier
+				^ object.method().hash()) * Multiplier
+				- object.returnType().hash()
 			^ 0x90E39B4D;
 	}
 
 	@Override @AvailMethod
 	boolean o_Equals (
 		final @NotNull AvailObject object,
-		final AvailObject another)
+		final @NotNull AvailObject another)
 	{
 		return object.kind().equals(another.kind())
-			&& object.arguments().equals(another.arguments())
+			&& object.argumentsListNode().equals(another.argumentsListNode())
 			&& object.method().equals(another.method())
 			&& object.returnType().equals(another.returnType());
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ApparentSendName (final AvailObject object)
+	AvailObject o_ApparentSendName (final @NotNull AvailObject object)
 	{
 		return object.method().name();
 	}
@@ -177,17 +142,18 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_EmitValueOn (
 		final @NotNull AvailObject object,
-		final AvailCodeGenerator codeGenerator)
+		final @NotNull AvailCodeGenerator codeGenerator)
 	{
-		final AvailObject arguments = object.arguments();
-		for (final AvailObject argNode : arguments)
+		final AvailObject arguments = object.argumentsListNode();
+		final AvailObject tuple = arguments.expressionsTuple();
+		for (final AvailObject argNode : tuple)
 		{
 			argNode.emitValueOn(codeGenerator);
 		}
 		final AvailObject method = object.method();
 		method.makeImmutable();
 		codeGenerator.emitCall(
-			arguments.tupleSize(),
+			tuple.tupleSize(),
 			method,
 			object.returnType());
 	}
@@ -195,34 +161,26 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 	@Override @AvailMethod
 	void o_ChildrenMap (
 		final @NotNull AvailObject object,
-		final Transformer1<AvailObject, AvailObject> aBlock)
+		final @NotNull Transformer1<AvailObject, AvailObject> aBlock)
 	{
-		AvailObject arguments = object.arguments();
-		for (int i = 1; i <= arguments.tupleSize(); i++)
-		{
-			arguments = arguments.tupleAtPuttingCanDestroy(
-				i,
-				aBlock.value(arguments.tupleAt(i)),
-				true);
-		}
-		object.arguments(arguments);
+		object.setSlot(
+			ARGUMENTS_LIST_NODE,
+			aBlock.value(
+				object.slot(ARGUMENTS_LIST_NODE)));
 	}
 
 	@Override @AvailMethod
 	void o_ChildrenDo (
 		final @NotNull AvailObject object,
-		final Continuation1<AvailObject> aBlock)
+		final @NotNull Continuation1<AvailObject> aBlock)
 	{
-		for (final AvailObject argument : object.arguments())
-		{
-			aBlock.value(argument);
-		}
+		aBlock.value(object.slot(ARGUMENTS_LIST_NODE));
 	}
 
 	@Override @AvailMethod
 	void o_ValidateLocally (
 		final @NotNull AvailObject object,
-		final AvailObject parent)
+		final @NotNull AvailObject parent)
 	{
 		// Do nothing.
 	}
@@ -274,7 +232,8 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 			builder.append(object.method().name().name().asNativeString());
 			builder.append("](");
 			boolean isFirst = true;
-			for (final AvailObject arg : object.argumentsTuple())
+			for (final AvailObject arg
+				: object.argumentsListNode().expressionsTuple())
 			{
 				if (!isFirst)
 				{
@@ -295,25 +254,26 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 
 	/**
 	 * Create a new {@linkplain SendNodeDescriptor send node} from the specified
-	 * argument {@linkplain ParseNodeKind#EXPRESSION_NODE expressions},
-	 * {@linkplain MethodDescriptor method}, and {@linkplain TypeDescriptor
+	 * {@linkplain MethodDescriptor method}, {@linkplain ListNodeDescriptor
+	 * list node} of argument expressions, and return {@linkplain TypeDescriptor
 	 * type}.
 	 *
 	 * @param method
 	 *        The target method.
-	 * @param args
-	 *        A {@linkplain TupleDescriptor tuple} of argument expressions.
+	 * @param argsListNode
+	 *        A {@linkplain ListNodeDescriptor list node} of argument
+	 *        expressions.
 	 * @param returnType
 	 *        The target method's expected return type.
 	 * @return A new send node.
 	 */
 	public static @NotNull AvailObject from (
 		final @NotNull AvailObject method,
-		final @NotNull AvailObject args,
+		final @NotNull AvailObject argsListNode,
 		final @NotNull AvailObject returnType)
 	{
 		final AvailObject newObject = mutable.create();
-		newObject.setSlot(ARGUMENTS, args);
+		newObject.setSlot(ARGUMENTS_LIST_NODE, argsListNode);
 		newObject.setSlot(METHOD, method);
 		newObject.setSlot(RETURN_TYPE, returnType);
 		return newObject;

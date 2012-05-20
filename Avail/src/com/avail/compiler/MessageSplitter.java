@@ -856,16 +856,16 @@ public class MessageSplitter
 				final Iterator<AvailObject> innerIterator;
 				if (needsDouble)
 				{
-					// The occurrence is itself a tuple node containing the
+					// The occurrence is itself a list node containing the
 					// parse nodes to fill in to this group's arguments and
 					// subgroups.
 					assert occurrence.isInstanceOfKind(
-						TUPLE_NODE.mostGeneralType());
+						LIST_NODE.mostGeneralType());
 					innerIterator = occurrence.expressionsTuple().iterator();
 				}
 				else
 				{
-					// The argumentObject is a tupleNode of parse nodes.
+					// The argumentObject is a listNode of parse nodes.
 					// Each parse node is for the single argument or subgroup
 					// which is left of the double-dagger (and there are no
 					// arguments or subgroups to the right).
@@ -1718,7 +1718,7 @@ public class MessageSplitter
 		final int indent)
 	{
 		rootGroup.printGroupOccurrence(
-			sendNode.arguments().iterator(),
+			sendNode.argumentsListNode().expressionsTuple().iterator(),
 			aStream,
 			indent,
 			true);

@@ -47,7 +47,7 @@ import com.avail.interpreter.*;
 /**
  * <strong>Primitive 383</strong>: Create a {@linkplain SendNodeDescriptor send
  * expression} from the specified {@linkplain MethodDescriptor method},
- * {@linkplain TupleDescriptor tuple} of {@linkplain
+ * {@linkplain ListNodeDescriptor list node} of {@linkplain
  * ParseNodeKind#EXPRESSION_NODE argument expressions}, and {@linkplain
  * TypeDescriptor return type}.
  *
@@ -69,13 +69,14 @@ extends Primitive
 	{
 		assert args.size() == 3;
 		final AvailObject method = args.get(0);
-		final AvailObject sendArgs = args.get(1);
+		final AvailObject argsListNode = args.get(1);
 		final AvailObject returnType = args.get(2);
 		try
 		{
 			final MessageSplitter splitter =
 				new MessageSplitter(method.name().name());
-			if (splitter.numberOfArguments() != sendArgs.tupleSize())
+			if (splitter.numberOfArguments()
+				!= argsListNode.expressionsTuple().tupleSize())
 			{
 				return interpreter.primitiveFailure(
 					E_INCORRECT_NUMBER_OF_ARGUMENTS);
@@ -86,7 +87,10 @@ extends Primitive
 			assert false : "The method name was extracted from a real method!";
 		}
 		return interpreter.primitiveSuccess(
-			SendNodeDescriptor.from(method, sendArgs, returnType));
+			SendNodeDescriptor.from(
+				method,
+				argsListNode,
+				returnType));
 	}
 
 	@Override
@@ -95,10 +99,7 @@ extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				METHOD.o(),
-				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-					IntegerRangeTypeDescriptor.wholeNumbers(),
-					TupleDescriptor.empty(),
-					EXPRESSION_NODE.create(ANY.o())),
+				LIST_NODE.mostGeneralType(),
 				TYPE.o()),
 			SEND_NODE.mostGeneralType());
 	}

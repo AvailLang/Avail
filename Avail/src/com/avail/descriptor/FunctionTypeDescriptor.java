@@ -119,14 +119,6 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	void o_ReturnType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		object.setSlot(ObjectSlots.RETURN_TYPE, value);
-	}
-
-	@Override @AvailMethod
 	@NotNull AvailObject o_ArgsTupleType (
 		final @NotNull AvailObject object)
 	{

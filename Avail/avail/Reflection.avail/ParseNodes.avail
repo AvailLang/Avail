@@ -44,7 +44,7 @@ Names
 	"literalNode",
 	"referenceNode",
 	"sendNode",
-	"tupleNode",
+	"listNode",
 	"variableUseNode",
 	"declarationNode",
 	"argumentNode",
@@ -71,7 +71,7 @@ privateLiteralNode        ::= Special Object 55;
 privateReferenceNode      ::= Special Object 56;
 privateSendNode           ::= Special Object 57;
 
-privateTupleNode          ::= Special Object 59;
+privateListNode           ::= Special Object 59;
 privateVariableUseNode    ::= Special Object 60;
 privateDeclarationNode    ::= Special Object 61;
 privateArgumentNode       ::= Special Object 62;
@@ -89,7 +89,7 @@ Method "blockNode"          is [privateBlockNode;] : primType;
 Method "literalNode"        is [privateLiteralNode;] : primType;
 Method "referenceNode"      is [privateReferenceNode;] : primType;
 Method "sendNode"           is [privateSendNode;] : primType;
-Method "tupleNode"          is [privateTupleNode;] : primType;
+Method "listNode"           is [privateListNode;] : primType;
 Method "variableUseNode"    is [privateVariableUseNode;] : primType;
 Method "declarationNode"    is [privateDeclarationNode;] : primType;
 Method "argumentNode"       is [privateArgumentNode;] : primType;

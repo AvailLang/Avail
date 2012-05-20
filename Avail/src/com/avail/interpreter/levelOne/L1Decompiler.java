@@ -255,7 +255,8 @@ public class L1Decompiler
 			final List<AvailObject> callArgs = popExpressions(nArgs);
 			final AvailObject sendNode = SendNodeDescriptor.from(
 				method,
-				TupleDescriptor.fromCollection(callArgs),
+				ListNodeDescriptor.newExpressions(
+					TupleDescriptor.fromCollection(callArgs)),
 				type);
 			pushExpression(sendNode);
 		}
@@ -335,9 +336,9 @@ public class L1Decompiler
 		{
 			final int count = getInteger();
 			final List<AvailObject> expressions = popExpressions(count);
-			final AvailObject tupleNode = TupleNodeDescriptor.newExpressions(
+			final AvailObject listNode = ListNodeDescriptor.newExpressions(
 				TupleDescriptor.fromCollection(expressions));
-			pushExpression(tupleNode);
+			pushExpression(listNode);
 		}
 
 		@Override

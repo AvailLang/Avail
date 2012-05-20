@@ -122,7 +122,7 @@ Public method "“[_`|_]”" is
 Semantic restriction "send_with_:_" is
 [
 	aMethod : method's type,
-	arguments : <expression…|>'s type,
+	arguments : list's type,
 	returnType : type's type
 |
 	/* Parse nodes have identity, so it isn't safe to strengthen more than

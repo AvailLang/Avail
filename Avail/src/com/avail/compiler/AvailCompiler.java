@@ -439,8 +439,8 @@ extends AbstractAvailCompiler
 				assert successorTrees.tupleSize() == 1;
 				final List<AvailObject> newArgsSoFar =
 					new ArrayList<AvailObject>(argsSoFar);
-				final AvailObject newTupleNode = TupleNodeDescriptor.empty();
-				newArgsSoFar.add(newTupleNode);
+				final AvailObject newListNode = ListNodeDescriptor.empty();
+				newArgsSoFar.add(newListNode);
 				eventuallyDo(
 					new Continuation0()
 					{
@@ -473,8 +473,8 @@ extends AbstractAvailCompiler
 					newArgsSoFar.remove(newArgsSoFar.size() - 1);
 				final AvailObject oldNode =
 					newArgsSoFar.remove(newArgsSoFar.size() - 1);
-				final AvailObject tupleNode = oldNode.copyWith(value);
-				newArgsSoFar.add(tupleNode);
+				final AvailObject listNode = oldNode.copyWith(value);
+				newArgsSoFar.add(listNode);
 				eventuallyDo(
 					new Continuation0()
 					{

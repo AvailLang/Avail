@@ -63,7 +63,7 @@ public enum ParsingOperation
 	},
 
 	/**
-	 * {@code 1} - Push a new {@linkplain TupleNodeDescriptor list} that
+	 * {@code 1} - Push a new {@linkplain ListNodeDescriptor list} that
 	 * contains an {@linkplain TupleDescriptor#empty() empty tuple} of
 	 * {@linkplain ParseNodeDescriptor phrases} onto the parse stack.
 	 */
@@ -78,7 +78,7 @@ public enum ParsingOperation
 
 	/**
 	 * {@code 2} - Pop an argument from the parse stack of the current
-	 * potential message send. Pop a {@linkplain TupleNodeDescriptor list} from
+	 * potential message send. Pop a {@linkplain ListNodeDescriptor list} from
 	 * the parse stack. Append the argument to the list. Push the resultant list
 	 * onto the parse stack.
 	 */

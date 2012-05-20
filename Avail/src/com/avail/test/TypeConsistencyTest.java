@@ -1032,7 +1032,7 @@ public class TypeConsistencyTest
 							EMPTY_TUPLE,
 							null);
 						break;
-					case TUPLE_NODE:
+					case LIST_NODE:
 						addMultiHelper(
 							kind,
 							TUPLE,

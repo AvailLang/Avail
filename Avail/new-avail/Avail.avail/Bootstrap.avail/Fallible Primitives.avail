@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.05.17 23:24:25.708 -0500
+ * * Last Generated On: 2012.05.19 19:45:25.479 -0500
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -1089,8 +1089,8 @@ Method "generate_" is
  *
  * Parameters:
  *    {0} - The target method.
- *    {1} - The argument expressions, corresponding left-to-right with
- *       the arguments of the method.
+ *    {1} - The list phrase containing the argument expressions, corresponding
+ *       left-to-right with the arguments of the method.
  *    {2} - The expected (strengthened) return type of the method send.
  * Returns:
  *    The requested message send.
@@ -1098,7 +1098,7 @@ Method "generate_" is
 Method "send_with_:_" is
 [
 	aMethod : method,
-	arguments : expression yielding any tuple,
+	argumentsList : list,
 	returnType : type
 |
 	Primitive 383 (failureCode : natural number);

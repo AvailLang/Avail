@@ -50,7 +50,7 @@ public enum ParsingConversionRule
 	noConversion(0),
 
 	/**
-	 * {@code 1} - Convert a {@linkplain TupleNodeDescriptor list} into a
+	 * {@code 1} - Convert a {@linkplain ListNodeDescriptor list} into a
 	 * {@linkplain LiteralNodeDescriptor literal node} that yields an
 	 * {@linkplain IntegerDescriptor integer} representing the {@linkplain
 	 * AvailObject#tupleSize() size} of the original list.
@@ -58,7 +58,7 @@ public enum ParsingConversionRule
 	listToSize(1),
 
 	/**
-	 * {@code 2} - Convert a {@linkplain TupleNodeDescriptor list} into a
+	 * {@code 2} - Convert a {@linkplain ListNodeDescriptor list} into a
 	 * {@linkplain LiteralNodeDescriptor literal node} that yields an
 	 * {@linkplain EnumerationTypeDescriptor#booleanObject() boolean}: {@link
 	 * AtomDescriptor#trueObject() true} if the list was nonempty, {@link
