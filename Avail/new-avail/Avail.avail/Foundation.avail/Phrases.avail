@@ -44,6 +44,7 @@ Uses
 Names
 	"``_``",
 	"“↓_”",
+	"“<«_‡,»>”",
 	"“[_`|_]”"
 Body
 
@@ -82,6 +83,21 @@ Public method "“↓_”" is
 |
 	“↓decl” (`decl's token's lexeme`)
 ] : variable use;
+
+/**
+ * Construct and answer a list phrase from the specified tuple.
+ * 
+ * Parameters:
+ *    aTuple - A tuple of expressions.
+ * Returns:
+ *    The requested list.
+ */
+Public method "“<«_‡,»>”" is
+[
+	aTuple : <expression⇒any…|>
+|
+	aTuple→list
+] : list;
 
 /**
  * Construct and answer a block from the specified argument declarations and

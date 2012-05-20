@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.05.19 19:46:33.642 -0500
+ * * Last Generated On: 2012.05.20 11:31:08.751 -0500
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -126,6 +126,7 @@ Uses
 		"_→double",
 		"_→extended integer",
 		"_→float",
+		"_→list",
 		"_→map",
 		"_→object",
 		"_→object type",
@@ -149,7 +150,6 @@ Uses
 		"enumeration of_",
 		"function accepting_and returning_",
 		"integer range from_(inclusive=_)to_(inclusive=_)",
-		"list(_)",
 		"ln_",
 		"milliseconds since the Epoch",
 		"new atom_",
@@ -2841,7 +2841,7 @@ Method "_'s⁇statements" is
  * Returns:
  *    The requested list.
  */
-Method "list(_)" is
+Method "_→list" is
 [
 	aTuple : tuple of expressions yielding any
 |

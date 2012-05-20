@@ -575,20 +575,20 @@ Private method "generate and install_reconstructor for_" is
 	methodName ::= reconstructor name for fieldAtoms;
 	args ::= objectType reconstructor arguments for fieldAtoms;
 	/* Construct the body of the mutator method. */
-	toMapMSend ::= send toMapM with list(<“↓args[1]”>) : field map;
+	toMapMSend ::= send toMapM with “<“↓args[1]”>” : field map;
 	mapDecl ::= “`"objectMap"` : field map := toMapMSend”;
 	assignments ::= map fieldAtoms through
 		[
 			fieldAtom : atom,
 			index : natural number
 		|
-			ejectSend ::= send ejectM with list(<“↑“↓mapDecl””>) : field map;
+			ejectSend ::= send ejectM with “<“↑“↓mapDecl””>” : field map;
 			addBindingSend ::= send addBindingM
-				with list(<ejectSend, ‘`fieldAtom`’, “↓args[index + 1]”>)
+				with “<ejectSend, ‘`fieldAtom`’, “↓args[index + 1]”>”
 				: field map;
 			““↓mapDecl” := addBindingSend”
 		];
-	last ::= send toObjectM with list(<“↓mapDecl”>) : objectType;
+	last ::= send toObjectM with “<“↓mapDecl”>” : objectType;
 	statements ::= <mapDecl> ++ assignments ++ <last>;
 	newBlock ::= “[ args | statements ]”;
 	reconstructorFunction ::= generate newBlock;
@@ -614,22 +614,20 @@ is
 	args ::= objectType reconstructor arguments for fieldAtoms
 		(for semantic restriction);
 	/* Construct the body of the semantic restriction method. */
-	toMapMSend ::= send toMapM with list(<“↓args[1]”>) : field type map;
+	toMapMSend ::= send toMapM with “<“↓args[1]”>” : field type map;
 	mapDecl ::= “`"objectMap"` : field type map := toMapMSend”;
 	assignments ::= map fieldAtoms through
 		[
 			fieldAtom : atom,
 			index : natural number
 		|
-			ejectSend ::= send ejectM
-				with list(<“↑“↓mapDecl””>)
-				: field type map;
+			ejectSend ::= send ejectM with “<“↑“↓mapDecl””>” : field type map;
 			addBindingSend ::= send addBindingM
-				with list(<ejectSend, ‘`fieldAtom`’, “↓args[index + 1]”>)
+				with “<ejectSend, ‘`fieldAtom`’, “↓args[index + 1]”>”
 				: field type map;
 			““↓mapDecl” := addBindingSend”
 		];
-	last ::= send toObjectTypeM with list(<“↓mapDecl”>) : objectType's type;
+	last ::= send toObjectTypeM with “<“↓mapDecl”>” : objectType's type;
 	statements ::= <mapDecl> ++ assignments ++ <last>;
 	newBlock ::= “[ args | statements ]”;
 	restrictionFunction ::= cast generate newBlock into [ t : […]→type | t ];

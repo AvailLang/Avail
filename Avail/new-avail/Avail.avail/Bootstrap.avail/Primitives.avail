@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.05.19 19:45:25.442 -0500
+ * * Last Generated On: 2012.05.20 11:31:08.745 -0500
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -144,6 +144,7 @@ Names
 	"_→double",
 	"_→extended integer",
 	"_→float",
+	"_→list",
 	"_→map",
 	"_→object",
 	"_→object type",
@@ -174,7 +175,6 @@ Names
 	"generate_",
 	"implementation of_for_",
 	"integer range from_(inclusive=_)to_(inclusive=_)",
-	"list(_)",
 	"ln_",
 	"method for_",
 	"method_._(«_‡,»)",
