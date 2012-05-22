@@ -50,6 +50,7 @@ Uses
 	"Math",
 	"Variables"
 Names
+	"_Δ_",
 	"_∋_",
 	"_⊂_",
 	"_⊇_",
@@ -567,6 +568,68 @@ Semantic restriction "count of_where_" is
 |
 	Require: predicate accepts setType;
 	[0..||setType||'s upper bound + 1)
+];
+
+/**
+ * Return the symmetric difference between the two sets, being the set 
+ * containing all elements in each sets but no elements in both. This amounts to 
+ * the set union absent each element of the set intersection.
+ *
+ * Parameters:
+ *    a - A set.
+ *    b - A set.
+ * Returns:
+ *    The set containing the symmetric difference.
+ * Author:
+ *    Leslie Schultz
+ */
+Public method "_Δ_" is
+[
+	a : set,
+	b : set
+|
+	(a ∪ b) \ (a ∩ b)
+];
+
+/**
+ * Strengthen `_Δ_`.
+ * 
+ * Parameters:
+ *    aType -
+ *    bType -
+ * Returns:
+ *    The strongest possible set type.
+ * Author:
+ *    Leslie Schultz
+ */
+Semantic restriction "_Δ_" is
+[
+	aType : set meta,
+	bType : set meta
+|
+	
+	if ( |aType| = 1 ) ∧ [ |bType| = 1 ] then
+	[
+		(aType's instance Δ bType's instance)'s type
+	]
+	else 
+	[
+		aElementType ::= aType's element type;
+		bElementType ::= bType's element type;
+		
+		lowerBound ::=
+			if ((aElementType ∩ bElementType) = ⊥) then
+			[
+				||aType||'s lower bound + ||bType||'s lower bound
+			]
+			else
+			[
+				0
+			];	
+		upperBound ::= (||aType||'s upper bound + ||bType||'s upper bound);
+		
+		{aElementType ∪ bElementType | lowerBound..upperBound}
+	]
 ];
 
 /**

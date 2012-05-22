@@ -79,13 +79,12 @@ Semantic restriction "_∪_" is
 |
 	lower ::= ||typeA||'s lower bound min ||typeB||'s lower bound;
 	upper ::= cast ||typeA||'s upper bound + ||typeB||'s upper bound
-		into [ t : whole number | t ];
+		into [ t : [0..∞] | t ];
 	{typeA's element type ∪ typeB's element type | [lower..upper + 1)}
 ];
 
 /* Make union left associate. */
 Grammatical restriction {"_∪_"} is <∅, {"_∪_"}>;
-
 
 /**
  * The static type of the union of two sets is the set type whose element type
