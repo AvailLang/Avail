@@ -47,6 +47,7 @@ Uses
 	"Enumeration Support",
 	"Literals"
 Names
+	"«_‡=»",
 	"_⊕_",
 	"_↑_",
 	"_↓_",
@@ -56,6 +57,27 @@ Names
 	"_↛_",
 	"_↚_"
 Body
+
+/**
+ * Are all arguments equal?
+ * 
+ * Parameters:
+ *    aTuple - a Tuple.
+ * Returns:
+ *    `true` if all arguments are equal, `false` otherwise.
+ */
+Public method "«_‡=»" is
+[
+	aTuple : <any…|3..>
+|
+	|aTuple→set| = 1
+] : boolean;
+
+/*
+ * Disallow mixing and recursive parsing of equality operations.
+ */
+Grammatical restriction {"«_‡=»"} is <{"«_‡=»", "_=_"}>;
+Grammatical restriction {"_=_"} is <{"«_‡=»", "_=_"}, {"«_‡=»", "_=_"}>;
 
 /**
  * Compute and answer the logical exclusive disjunction, i.e., XOR, of the
@@ -74,6 +96,34 @@ Public method "_⊕_" is
 |
 	(a ∧ [¬b]) ∨ [(¬a) ∧ [b]]
 ] : boolean;
+
+/**
+ * If the truth values of a and b are known, an XOR operation with opposing
+ * truth values will always yield true, and an XOR operation with equal truth
+ * values will always yield false.
+ * 
+ * Parameters:
+ *    aType - boolean's type.
+ *    bType - boolean's type.
+ * Returns:
+ *    `a` ⊕ `b`.
+ * Author:
+ *    Leslie Schultz
+ */
+Semantic restriction "_⊕_" is
+[
+	aType : boolean's type,
+	bType : boolean's type
+|
+	if aType ≠ boolean's type ∧ [bType ≠ boolean's type] then
+	[
+		(aType ≠ bType)'s type
+	]
+	else
+	[
+		⊤
+	]
+];
 
 /**
  * Compute and answer the logical NAND of the arguments. This is equivalent to
