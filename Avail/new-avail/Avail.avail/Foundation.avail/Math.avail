@@ -57,7 +57,7 @@ Names
 	"_^_",
 	"_(base_)",
 	"«_‡«=»?«≤»?«<»?»",
-	"«_‡«=»?«≥»?«>»?»"
+	"«_‡«=»?«≥»?«>»?»",
 Body
 
 Forward method "_mod_" is [number, number]→number;
@@ -1252,6 +1252,9 @@ Public method "_(base_)" is
 	cast answer into [a: whole number | a]
 ];
 
+/**
+ * Strengthen "_(base_)".
+ */
 Semantic restriction "_(base_)" is
 [
 	baseType : [2..36]'s type,
@@ -1267,3 +1270,50 @@ Semantic restriction "_(base_)" is
 		whole number
 	]
 ];
+	
+/**
+ * Convert a string containing a number in base 10 to an integer.
+ * 
+ * Parameter:
+ *    str - A `string` of digits in base 10.
+ * Returns:
+ *    The number represented by the digits as a whole number.
+ */
+Public method "_→integer" is
+[
+	str : string
+|
+	If |str| > 1 ∧ [str[1] = ¢0]
+		then [early failure function(invalid argument code)];
+	
+	if str[1] = ¢- then 
+	[
+		stream : string := "";
+	
+		stream := concatenate <stream, (str[2..|str|])>;
+		(-1) × (stream (base 10))
+	] else 
+	[
+		str (base 10)
+	]
+]: integer;
+
+/**
+ * Convert a string containing a number in base 10 to an extended integer.
+ * 
+ * Parameter:
+ *    str - A `string` of digits in base 10.
+ * Returns:
+ *    The number represented by the digits as a whole number.
+ */
+Public method "_→extended integer" is
+[
+	str : string
+|
+	if str = "∞" then [∞] 
+	else
+	[
+		if str = "-∞" then [-∞]
+		else [str→integer]
+	]
+]: extended integer;
