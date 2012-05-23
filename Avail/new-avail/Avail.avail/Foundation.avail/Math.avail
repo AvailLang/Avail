@@ -57,7 +57,7 @@ Names
 	"_^_",
 	"_(base_)",
 	"«_‡«=»?«≤»?«<»?»",
-	"«_‡«=»?«≥»?«>»?»",
+	"«_‡«=»?«≥»?«>»?»"
 Body
 
 Forward method "_mod_" is [number, number]→number;
