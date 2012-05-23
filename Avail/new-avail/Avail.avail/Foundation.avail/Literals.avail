@@ -45,7 +45,7 @@ Uses
 	"Variables"
 Names
 	"{«_→_‡,»}",
-	"`|`|_`|`|'s⁇lower bound",
+	"⎣`|`|_`|`|⎦",
 	"$…",
 	"¢…"
 Body
@@ -90,7 +90,7 @@ Semantic restriction "<«_‡,»>" is
 	 * value. Therefore asking for either the lower or upper bound would be
 	 * equivalent.
 	 */
-	limit ::= ||elements||'s upper bound;
+	limit ::= ⎡||elements||⎤;
 	accumulator : tuple := <>;
 	From 1 to limit do
 	[
@@ -150,17 +150,17 @@ Semantic restriction "_[_]" is
 	aTupleType : tuple meta,
 	index : natural number's type
 |
-	If ||aTupleType||'s upper bound < index's lower bound then
+	If ⎡||aTupleType||⎤ < ⎣index⎦ then
 	[
 		messageTuple ::= concatenate <
 			"a subscript (",
-			primitive description of index's lower bound,
+			primitive description of ⎣index⎦,
 			" ≤ theSubscript ≤ ",
-			primitive description of index's upper bound,
+			primitive description of ⎡index⎤,
 			") that could ever be valid (",
-			primitive description of ||aTupleType||'s lower bound,
+			primitive description of ⎣||aTupleType||⎦,
 			" ≤ |theTuple| ≤ ",
-			primitive description of ||aTupleType||'s upper bound,
+			primitive description of ⎡||aTupleType||⎤,
 			")">;
 		message ::= cast messageTuple into [ t : string | t ];
 		Reject parse, expected: message
@@ -168,8 +168,8 @@ Semantic restriction "_[_]" is
 	union : type := ⊥;
 	limit ::= cast |aTupleType's leading types| + 1
 		into [ t : natural number | t ];
-	startIndex ::= index's lower bound min limit;
-	endIndex ::= index's upper bound min limit;
+	startIndex ::= ⎣index⎦ min limit;
+	endIndex ::= ⎡index⎤ min limit;
 	From startIndex to endIndex do
 	[
 		i : natural number
@@ -200,17 +200,17 @@ Semantic restriction "_[_]" is
 	index : natural number's type
 |
 	aTupleType ::= aTupleMeta's instance;
-	If ||aTupleType||'s upper bound < index's lower bound then
+	If ⎡||aTupleType||⎤ < ⎣index⎦ then
 	[
 		messageTuple ::= concatenate <
 			"a subscript (",
-			primitive description of index's lower bound,
+			primitive description of ⎣index⎦,
 			" ≤ theSubscript ≤ ",
-			primitive description of index's upper bound,
+			primitive description of ⎡index⎤,
 			") that could ever be valid (",
-			primitive description of ||aTupleType||'s lower bound,
+			primitive description of ⎣||aTupleType||⎦,
 			" ≤ |theTuple| ≤ ",
-			primitive description of ||aTupleType||'s upper bound,
+			primitive description of ⎡||aTupleType||⎤,
 			")">;
 		message ::= cast messageTuple into [ t : string | t ];
 		Reject parse, expected: message
@@ -218,8 +218,8 @@ Semantic restriction "_[_]" is
 	union : type := ⊥;
 	limit ::= cast |aTupleType's leading types| + 1
 		into [ t : natural number | t ];
-	startIndex ::= index's lower bound min limit;
-	endIndex ::= index's upper bound min limit;
+	startIndex ::= ⎣index⎦ min limit;
+	endIndex ::= ⎡index⎤ min limit;
 	From startIndex to endIndex do
 	[
 		i : natural number
@@ -264,7 +264,7 @@ Semantic restriction "{«_‡,»}" is
 	 * value. Therefore asking for either the lower or upper bound would be
 	 * equivalent.
 	 */
-	limit ::= ||elements||'s upper bound;
+	limit ::= ⎡||elements||⎤;
 	accumulator : tuple := <>;
 	/* Check to see if the elements are instance types. */
 	From 1 to limit do
@@ -393,7 +393,7 @@ Semantic restriction "{«_→_‡,»}" is
 	 * value. Therefore asking for either the lower or upper bound would be
 	 * equivalent.
 	 */
-	limit ::= ||bindings||'s upper bound;
+	limit ::= ⎡||bindings||⎤;
 	accumulator : <<>, <<>, any…|[2..2]>… |whole number> := <>;
 	/* Check to see if keys and values are all instance types. */
 	From 1 to limit do
@@ -523,7 +523,7 @@ Semantic restriction "`|_`|" is
 	aTupleType : tuple meta
 |
 	sizes ::= ||aTupleType||;
-	[sizes' lower bound..sizes' upper bound + 1)
+	[⎣sizes⎦..⎡sizes⎤ + 1)
 ];
 
 /**
@@ -540,7 +540,7 @@ Semantic restriction "`|_`|" is
 	aSetType : set meta
 |
 	sizes ::= ||aSetType||;
-	[sizes' lower bound..sizes' upper bound + 1)
+	[⎣sizes⎦..⎡sizes⎤ + 1)
 ];
 
 /**
@@ -557,7 +557,7 @@ Semantic restriction "`|_`|" is
 	aMapType : map meta
 |
 	sizes ::= ||aMapType||;
-	[sizes' lower bound..sizes' upper bound + 1)
+	[⎣sizes⎦..⎡sizes⎤ + 1)
 ];
 
 /**
@@ -568,11 +568,11 @@ Semantic restriction "`|_`|" is
  * Returns:
  *    whole number
  */
-Public method "`|`|_`|`|'s⁇lower bound" is
+Public method "⎣`|`|_`|`|⎦" is
 [
  	aTupleType : tuple's type
 |
-	cast ||aTupleType||'s lower bound into [w : whole number | w]
+	cast ⎣||aTupleType||⎦ into [w : whole number | w]
 ]: whole number;
 
 /**
@@ -583,11 +583,11 @@ Public method "`|`|_`|`|'s⁇lower bound" is
  * Returns:
  *    whole number
  */
-Public method "`|`|_`|`|'s⁇lower bound" is
+Public method "⎣`|`|_`|`|⎦" is
 [
  	aSetType : set's type
 |
-	cast ||aSetType||'s lower bound into [w : whole number | w]
+	cast ⎣||aSetType||⎦ into [w : whole number | w]
 ]: whole number;
 
 /**
@@ -598,14 +598,14 @@ Public method "`|`|_`|`|'s⁇lower bound" is
  * Returns:
  *    whole number
  */
-Public method "`|`|_`|`|'s⁇lower bound" is
+Public method "⎣`|`|_`|`|⎦" is
 [
  	aMapType : map's type
 |
-	cast ||aMapType||'s lower bound into [w : whole number | w]
+	cast ⎣||aMapType||⎦ into [w : whole number | w]
 ]: whole number;
 
-Grammatical restriction {"_'s⁇lower bound"} is <{"`|`|_`|`|"}>;
+Grammatical restriction {"⎣_⎦"} is <{"`|`|_`|`|"}>;
 
 /**
  * Strengthen the type of the lower bound of a tuple.
@@ -616,7 +616,7 @@ Grammatical restriction {"_'s⁇lower bound"} is <{"`|`|_`|`|"}>;
  *    lower bound's strenghened type
  */
 
-Semantic restriction "`|`|_`|`|'s⁇lower bound" is
+Semantic restriction "⎣`|`|_`|`|⎦" is
 [
  	aTupleTypeType : (tuple's type)'s type
 |
@@ -632,7 +632,7 @@ Semantic restriction "`|`|_`|`|'s⁇lower bound" is
  * Returns:
  *    lower bound's strenghened type
  */
-Semantic restriction "`|`|_`|`|'s⁇lower bound" is
+Semantic restriction "⎣`|`|_`|`|⎦" is
 [
  	aSetTypeType : (set's type)'s type
 |
@@ -648,7 +648,7 @@ Semantic restriction "`|`|_`|`|'s⁇lower bound" is
  * Returns:
  *    lower bound's strenghened type
  */
-Semantic restriction "`|`|_`|`|'s⁇lower bound" is
+Semantic restriction "⎣`|`|_`|`|⎦" is
 [
  	aMapTypeType : (map's type)'s type
 |

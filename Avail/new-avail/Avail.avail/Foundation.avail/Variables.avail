@@ -237,11 +237,11 @@ Semantic restriction "(++_)" is
 	if readType ⊆ extended integer then
 	[
 		readRange ::= cast readType into [ t : extended integer meta | t ];
-		lower ::= readRange's lower bound + 1;
-		upper ::= readRange's upper bound + 1;
+		lower ::= ⎣readRange⎦ + 1;
+		upper ::= ⎡readRange⎤ + 1;
 		integer range
-			from lower (inclusive = readRange's lower bound is inclusive)
-			to upper (inclusive = readRange's upper bound is inclusive)
+			from lower (inclusive = ⎣readRange⎦ is inclusive)
+			to upper (inclusive = ⎡readRange⎤ is inclusive)
 	]
 	else
 	[
@@ -382,11 +382,11 @@ Semantic restriction "(--_)" is
 	if readType ⊆ extended integer then
 	[
 		readRange ::= cast readType into [ t : extended integer meta | t ];
-		lower ::= readRange's lower bound - 1;
-		upper ::= readRange's upper bound - 1;
+		lower ::= ⎣readRange⎦ - 1;
+		upper ::= ⎡readRange⎤ - 1;
 		integer range
-			from lower (inclusive = readRange's lower bound is inclusive)
-			to upper (inclusive = readRange's upper bound is inclusive)
+			from lower (inclusive = ⎣readRange⎦ is inclusive)
+			to upper (inclusive = ⎡readRange⎤ is inclusive)
 	]
 	else
 	[

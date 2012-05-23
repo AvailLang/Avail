@@ -59,10 +59,10 @@ Names
 Body
 
 /**
- * Are all arguments equal?
+ * Are all lexical arguments equal?
  * 
  * Parameters:
- *    aTuple - a Tuple.
+ *    aTuple - A tuple.
  * Returns:
  *    `true` if all arguments are equal, `false` otherwise.
  */

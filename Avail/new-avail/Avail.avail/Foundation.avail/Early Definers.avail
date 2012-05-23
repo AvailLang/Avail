@@ -38,7 +38,8 @@ Uses
 	"Early Literals"
 Names
 	"Private method_is_",
-	"Public method_is_"
+	"Public method_is_",
+	"Public atom is_"
 Body
 
 /**
@@ -114,7 +115,7 @@ Semantic restriction "Public method_is_" is
  *    methodName - The name of the method.
  *    function - A new implementation of the method.
  */
-Method "Private method_is_" is
+Public method "Private method_is_" is
 [
 	methodName : string,
 	function : function
@@ -164,6 +165,71 @@ Semantic restriction "Private method_is_" is
 		else
 		[
 			/* This is the happy path: do nothing. */
+		];
+	];
+	⊤
+];
+
+/**
+ * Define a new public atom. The implementation does nothing, but the semantic
+ * restriction ensures that the argument is indeed public.
+ * 
+ * Parameters:
+ *    anAtom - An atom introduced by the current module.
+ */
+Public method "Public atom is_" is
+[
+	anAtom : atom
+|
+	/* No implementation required. */
+];
+
+/**
+ * Ensure that the new atom is introduced by the module's "Names" section.
+ *
+ * Parameters:
+ *    atomType -
+ * Returns:
+ *    ⊤.
+ */
+Semantic restriction "Public atom is_" is
+[
+	atomType : atom's type
+|
+	If |atomType| = 1 then
+	[
+		publicNames ::= current module's public names;
+		atomName : string;
+		Invoke
+		[
+			name : string
+		|
+			atomName := name;
+		]
+		with <atomType's instances→tuple[1]>;
+		If atomName ∈ publicNames then
+		[
+			/* This is the happy path: do nothing. */
+		]
+		else
+		[
+			Invoke
+			[
+				name : string
+			|
+				messageTuple ::= concatenate <
+					"public atom \"",
+					name,
+					"\" to be included in the module's \"Names\" section">;
+				Invoke
+				[
+					messageString : string
+				|
+					Reject parse, expected: messageString
+				]
+				with <messageTuple>;
+			]
+			with <atomName>;
 		];
 	];
 	⊤

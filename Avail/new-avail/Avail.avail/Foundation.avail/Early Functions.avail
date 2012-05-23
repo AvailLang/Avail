@@ -147,7 +147,7 @@ Semantic restriction "_(«_‡,»)" is
 			Reject parse, expected: sizesIncompatibleMessage
 		];
 		/* Verify each of the arguments. */
-		From 1 to argumentsSizes' lower bound do
+		From 1 to ⎣argumentsSizes⎦ do
 		[
 			index : natural number
 		|
@@ -197,9 +197,9 @@ Semantic restriction "_[_]" is
 	]
 	else
 	[
-		limit ::= cast ||parametersType||'s upper bound
+		limit ::= cast ⎡||parametersType||⎤
 			into [ t : natural number | t ];
-		start ::= cast index's lower bound
+		start ::= cast ⎣index⎦
 			into [ t : natural number | t ];
 		If start > limit then
 		[
@@ -207,16 +207,16 @@ Semantic restriction "_[_]" is
 				"a subscript ("
 				++ primitive description of start
 				++ " ≤ theSubscript ≤ "
-				++ primitive description of index's upper bound
+				++ primitive description of ⎡index⎤
 				++ ") that could ever be valid ("
 				++ primitive description of
-					||parametersType||'s lower bound
+					⎣||parametersType||⎦
 				++ " ≤ |theFunctionType| ≤ "
 				++ primitive description of limit
 				++ ")"
 		];
 		result : any's type := ⊥;
-		end ::= index's upper bound min limit;
+		end ::= ⎡index⎤ min limit;
 		From start to end min limit do
 		[
 			subscript : natural number

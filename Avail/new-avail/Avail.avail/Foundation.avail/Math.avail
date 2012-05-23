@@ -423,14 +423,14 @@ Method "_+_" is
 	a : extended integer's type,
 	b : extended integer's type
 |
-	lower ::= a's lower bound + b's lower bound - 1;
+	lower ::= ⎣a⎦ + ⎣b⎦ - 1;
 	lowerInclusive ::=
-		(a's lower bound is inclusive ∧ [a's lower bound is infinite])
-		∨ [b's lower bound is inclusive ∧ [b's lower bound is infinite]];
-	upper ::= a's upper bound + b's upper bound + 1;
+		(⎣a⎦ is inclusive ∧ [⎣a⎦ is infinite])
+		∨ [⎣b⎦ is inclusive ∧ [⎣b⎦ is infinite]];
+	upper ::= ⎡a⎤ + ⎡b⎤ + 1;
 	upperInclusive ::=
-		(a's upper bound is inclusive ∧ [a's upper bound is infinite])
-		∨ [b's upper bound is inclusive ∧ [b's upper bound is infinite]];
+		(⎡a⎤ is inclusive ∧ [⎡a⎤ is infinite])
+		∨ [⎡b⎤ is inclusive ∧ [⎡b⎤ is infinite]];
 	integer range
 		from lower (inclusive=lowerInclusive)
 		to upper (inclusive=upperInclusive)
@@ -454,8 +454,8 @@ Method "_×_" is
 |
 	bounds ::=
 	{
-		{a's lower bound, a's upper bound},
-		{b's lower bound, b's upper bound}
+		{⎣a⎦, ⎡a⎤},
+		{⎣b⎦, ⎡b⎤}
 	};
 	If bounds = {{0}, {∞}} ∨ [ bounds = {{0}, {-∞}} ] then
 	[
@@ -472,12 +472,12 @@ Method "_×_" is
 		[
 			If positiveB ≠ ⊥ then
 			[
-				lower ::= positiveA's lower bound × positiveB's lower bound;
-				lowerInclusive ::= positiveA's lower bound is inclusive
-					∧ [ positiveB's lower bound is inclusive ];
-				upper ::= positiveA's upper bound × positiveB's upper bound;
-				upperInclusive ::= positiveA's upper bound is inclusive
-					∧ [ positiveB's upper bound is inclusive ];
+				lower ::= ⎣positiveA⎦ × ⎣positiveB⎦;
+				lowerInclusive ::= ⎣positiveA⎦ is inclusive
+					∧ [ ⎣positiveB⎦ is inclusive ];
+				upper ::= ⎡positiveA⎤ × ⎡positiveB⎤;
+				upperInclusive ::= ⎡positiveA⎤ is inclusive
+					∧ [ ⎡positiveB⎤ is inclusive ];
 				range ::= integer range
 					from lower (inclusive=lowerInclusive)
 					to upper (inclusive=upperInclusive);
@@ -485,12 +485,12 @@ Method "_×_" is
 			];
 			If negativeB ≠ ⊥ then
 			[
-				lower ::= positiveA's upper bound × negativeB's lower bound;
-				lowerInclusive ::= positiveA's upper bound is inclusive
-					∧ [ negativeB's lower bound is inclusive ];
-				upper ::= positiveA's lower bound × negativeB's upper bound;
-				upperInclusive ::= positiveA's lower bound is inclusive
-					∧ [ negativeB's upper bound is inclusive ];
+				lower ::= ⎡positiveA⎤ × ⎣negativeB⎦;
+				lowerInclusive ::= ⎡positiveA⎤ is inclusive
+					∧ [ ⎣negativeB⎦ is inclusive ];
+				upper ::= ⎣positiveA⎦ × ⎡negativeB⎤;
+				upperInclusive ::= ⎣positiveA⎦ is inclusive
+					∧ [ ⎡negativeB⎤ is inclusive ];
 				range ::= integer range
 					from lower (inclusive=lowerInclusive)
 					to upper (inclusive=upperInclusive);
@@ -501,12 +501,12 @@ Method "_×_" is
 		[
 			If positiveB ≠ ⊥ then
 			[
-				lower ::= negativeA's lower bound × positiveB's upper bound;
-				lowerInclusive ::= negativeA's lower bound is inclusive
-					∧ [ positiveB's upper bound is inclusive ];
-				upper ::= negativeA's upper bound × positiveB's lower bound;
-				upperInclusive ::= negativeA's upper bound is inclusive
-					∧ [ positiveB's lower bound is inclusive ];
+				lower ::= ⎣negativeA⎦ × ⎡positiveB⎤;
+				lowerInclusive ::= ⎣negativeA⎦ is inclusive
+					∧ [ ⎡positiveB⎤ is inclusive ];
+				upper ::= ⎡negativeA⎤ × ⎣positiveB⎦;
+				upperInclusive ::= ⎡negativeA⎤ is inclusive
+					∧ [ ⎣positiveB⎦ is inclusive ];
 				range ::= integer range
 					from lower (inclusive=lowerInclusive)
 					to upper (inclusive=upperInclusive);
@@ -514,12 +514,12 @@ Method "_×_" is
 			];
 			If negativeB ≠ ⊥ then
 			[
-				lower ::= negativeA's upper bound × negativeB's upper bound;
-				lowerInclusive ::= negativeA's upper bound is inclusive
-					∧ [ negativeB's upper bound is inclusive ];
-				upper ::= negativeA's lower bound × negativeB's lower bound;
-				upperInclusive ::= negativeA's lower bound is inclusive
-					∧ [ negativeB's lower bound is inclusive ];
+				lower ::= ⎡negativeA⎤ × ⎡negativeB⎤;
+				lowerInclusive ::= ⎡negativeA⎤ is inclusive
+					∧ [ ⎡negativeB⎤ is inclusive ];
+				upper ::= ⎣negativeA⎦ × ⎣negativeB⎦;
+				upperInclusive ::= ⎣negativeA⎦ is inclusive
+					∧ [ ⎣negativeB⎦ is inclusive ];
 				range ::= integer range
 					from lower (inclusive=lowerInclusive)
 					to upper (inclusive=upperInclusive);
@@ -603,8 +603,8 @@ Semantic restriction "_+_" is
 |
 	bounds ::=
 	{
-		{a's lower bound, a's upper bound},
-		{b's lower bound, b's upper bound}
+		{⎣a⎦, ⎡a⎤},
+		{⎣b⎦, ⎡b⎤}
 	};
 	If bounds = {{-∞}, {∞}} then
 	[
@@ -632,8 +632,8 @@ Semantic restriction "_-_" is
 	negated ::= - b;
 	bounds ::=
 	{
-		{a's lower bound, a's upper bound},
-		{negated's lower bound, negated's upper bound}
+		{⎣a⎦, ⎡a⎤},
+		{⎣negated⎦, ⎡negated⎤}
 	};
 	If bounds = {{-∞}, {∞}} then
 	[
@@ -693,10 +693,10 @@ Method "_÷_" is
 			/* The denominator is finite and nonzero. The numerator may be
 			 * either finite or infinite. The following handles all cases.
 			 */
-			numeratorMin ::= numeratorRange's lower bound ÷ denominator;
-			lowerInclusive ::= numeratorRange's lower bound is inclusive;
-			numeratorMax ::= numeratorRange's upper bound ÷ denominator;
-			upperInclusive ::= numeratorRange's upper bound is inclusive;
+			numeratorMin ::= ⎣numeratorRange⎦ ÷ denominator;
+			lowerInclusive ::= ⎣numeratorRange⎦ is inclusive;
+			numeratorMax ::= ⎡numeratorRange⎤ ÷ denominator;
+			upperInclusive ::= ⎡numeratorRange⎤ is inclusive;
 			if denominator < 0 then
 			[
 				integer range
@@ -729,12 +729,12 @@ Semantic restriction "_÷_" is
 	a : extended integer's type,
 	b : extended integer's type
 |
-	denominatorSet ::= {b's lower bound, b's upper bound};
+	denominatorSet ::= {⎣b⎦, ⎡b⎤};
 	If denominatorSet = {0} then
 	[
 		Reject parse, expected: cannotDivideByZeroMessage
 	];
-	numeratorSet ::= {a's lower bound, a's upper bound};
+	numeratorSet ::= {⎣a⎦, ⎡a⎤};
 	infinities ::= {{∞}, {-∞}};
 	If numeratorSet ∈ infinities ∧ [ denominatorSet ∈ infinities ] then
 	[
@@ -776,30 +776,30 @@ Semantic restriction "_mod_" is
 	a : extended integer's type,
 	b : extended integer's type
 |
-	denominatorSet ::= {b's lower bound, b's upper bound};
+	denominatorSet ::= {⎣b⎦, ⎡b⎤};
 	If denominatorSet = {0} then
 	[
 		Reject parse, expected: cannotDivideByZeroMessage
 	];
-	numeratorSet ::= {a's lower bound, a's upper bound};
+	numeratorSet ::= {⎣a⎦, ⎡a⎤};
 	infinities ::= {{∞}, {-∞}};
 	If numeratorSet ∈ infinities ∧ [ denominatorSet ∈ infinities ] then
 	[
 		Reject parse, expected: cannotDivideTwoInfinitiesMessage
 	];
-	if b's lower bound = b's upper bound
-		∧ [ a's lower bound is finite
-		∧ [ a's upper bound is finite
-		∧ [ a's lower bound ÷ b's lower bound
-			= a's upper bound ÷ b's lower bound ] ] ]
+	if ⎣b⎦ = ⎡b⎤
+		∧ [ ⎣a⎦ is finite
+		∧ [ ⎡a⎤ is finite
+		∧ [ ⎣a⎦ ÷ ⎣b⎦
+			= ⎡a⎤ ÷ ⎣b⎦ ] ] ]
 	then
 	[
-		[a's lower bound mod b's lower bound
-			.. a's upper bound mod b's lower bound]
+		[⎣a⎦ mod ⎣b⎦
+			.. ⎡a⎤ mod ⎣b⎦]
 	]
 	else
 	[
-		[0..b's upper bound)
+		[0..⎡b⎤)
 	]
 ];
 
@@ -943,7 +943,7 @@ Private method "comparison chain semantic restriction function" is
 	[
 		args : <<number, boolean…|1..4>…|3..∞>'s type
 	|
-		exactSize ::= ||args||'s lower bound - 1;
+		exactSize ::= ⎣||args||⎦ - 1;
 		From 1 to exactSize do
 		[
 			index : natural number
@@ -1262,11 +1262,11 @@ Semantic restriction "_(base_)" is
 	baseType : [2..36]'s type,
 	digitsType : string's type
 |
-	maxStringSize ::= ||digitsType||'s upper bound;
+	maxStringSize ::= ⎡||digitsType||⎤;
 	if maxStringSize is finite then [
 		/* Compute a rough bound based on the string size and base. */
 		finiteMaxStringSize ::= cast maxStringSize into [w : whole number | w];
-		maxBase ::= baseType's upper bound;
+		maxBase ::= ⎡baseType⎤;
 		[0..maxBase ^ finiteMaxStringSize)
 	] else [
 		whole number

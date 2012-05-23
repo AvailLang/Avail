@@ -119,7 +119,7 @@ Semantic restriction "«_‡++»" is
 	tuplesType : <<>, tuple…|[2..∞)>'s type
 |
 	result : tuple meta := <>'s type;
-	exactSize ::= cast ||tuplesType||'s upper bound
+	exactSize ::= cast ⎡||tuplesType||⎤
 		into [ t : natural number | t ];
 	From 1 to exactSize do
 	[
@@ -138,14 +138,14 @@ Semantic restriction "«_‡++»" is
  * Parameters:
  *    tupleType - A tuple type.
  * Returns:
- *    The smaller of the argument's cardinality's lower bound and one more than
- *    the size of its leading types.
+ *    The smaller of the lower bound of the argument's cardinality and one more
+ *    than the size of its leading types.
  */
 Public method "relevant`|_`|" is
 [
 	tupleType : tuple meta
 |
-	lower ::= ||tupleType||'s lower bound max 0;
+	lower ::= ⎣||tupleType||⎦ max 0;
 	count ::= |tupleType's leading types| + 1;
 	cast lower min count into [ t : whole number | t ]
 ] : whole number;
@@ -182,11 +182,11 @@ Public method "tuple type of_[_.._]" is
 	sliceStart : natural number's type,
 	sliceEnd : whole number's type
 |
-	minStart ::= 1 max sliceStart's lower bound;
-	maxStart ::= 1 max sliceStart's upper bound;
-	minEnd ::= 0 max sliceEnd's lower bound;
-	maxEnd ::= 0 max sliceEnd's upper bound;
-	tupleEnd ::= ||aTupleType||'s upper bound;
+	minStart ::= 1 max ⎣sliceStart⎦;
+	maxStart ::= 1 max ⎡sliceStart⎤;
+	minEnd ::= 0 max ⎣sliceEnd⎦;
+	maxEnd ::= 0 max ⎡sliceEnd⎤;
+	tupleEnd ::= ⎡||aTupleType||⎤;
 	/* If all possible slices are out of bounds, then answer ⊥. */
 	If minEnd > tupleEnd then
 	[
@@ -196,7 +196,7 @@ Public method "tuple type of_[_.._]" is
 			++ " ≤ sliceEnd ≤ "
 			++ primitive description of maxEnd
 			++ ") that could ever be valid ("
-			++ primitive description of ||aTupleType||'s lower bound
+			++ primitive description of ⎣||aTupleType||⎦
 			++ " ≤ |theTuple| ≤ "
 			++ primitive description of tupleEnd
 			++ ")"
@@ -397,14 +397,14 @@ Semantic restriction "concatenate_" is
 |
 	sizes ::= ||tupleType||;
 	limit ::=
-		if sizes' upper bound is infinite then
+		if ⎡sizes⎤ is infinite then
 		[
-			sizes' lower bound max (cast |tupleType's leading types| + 1
+			⎣sizes⎦ max (cast |tupleType's leading types| + 1
 				into [ t : natural number | t ])
 		]
 		else
 		[
-			sizes' upper bound
+			⎡sizes⎤
 		];
 	result : tuple meta := <>'s type;
 	From 1 to limit do
@@ -414,14 +414,14 @@ Semantic restriction "concatenate_" is
 		result := eject ↑result ++ tupleType[index];
 		true
 	];
-	If sizes' upper bound is infinite then
+	If ⎡sizes⎤ is infinite then
 	[
 		slice ::= result[1 ..
-			cast ||result||'s upper bound into [ t : whole number | t ]];
+			cast ⎡||result||⎤ into [ t : whole number | t ]];
 		default ::= tupleType's default type;
 		union ::= ∪ default[1 ..
 			cast |default's leading types| + 1 into [ t : whole number | t ]];
-		result := <slice, union… | [||result||'s lower bound..∞)>;
+		result := <slice, union… | [⎣||result||⎦..∞)>;
 	];
 	result
 ];
@@ -450,10 +450,10 @@ Semantic restriction "_→set" is
 		/* If the tuple could be empty, then so could the set. Otherwise, the
 		 * set must contain at least one element.
 		 */
-		lower ::= ||tupleType||'s lower bound min 1;
+		lower ::= ⎣||tupleType||⎦ min 1;
 		typeLimit ::= cast |tupleType's leading types| + 1
 			into [ t : natural number | t ];
-		{∪ tupleType[1..typeLimit] | [lower..||tupleType||'s upper bound + 1)}
+		{∪ tupleType[1..typeLimit] | [lower..⎡||tupleType||⎤ + 1)}
 	]
 ];
 

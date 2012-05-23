@@ -153,9 +153,9 @@ Semantic restriction "<_,_`…`|_>" is
 		];
 
 	cardinalityTypeTypeInstance :: = cardinalityTypeType's instance;
-	bound ::= cast cardinalityTypeTypeInstance's upper bound + 
+	bound ::= cast ⎡cardinalityTypeTypeInstance⎤ + 
 		1 into [ t : [0..∞] | t ];
-	lower ::= cardinalityTypeTypeInstance's lower bound;
+	lower ::= ⎣cardinalityTypeTypeInstance⎦;
 	allTypesToUse ::= cast typesTypesInstanceTuple into 
 		[t: <<>,any's type…|[0..∞)> | t];
 
@@ -247,8 +247,8 @@ Semantic restriction "<«_‡,»`…`|_.._>" is
 			defaultTypeType's instance
 		];
 
-	bound ::= cast maximumSizeType's upper bound + 1 into [ t : [0..∞] | t ];
-	lower ::= minimumSizeType's lower bound;
+	bound ::= cast ⎡maximumSizeType⎤ + 1 into [ t : [0..∞] | t ];
+	lower ::= ⎣minimumSizeType⎦;
 	allTypesToUse ::= cast typesTypesInstanceTuple into 
 		[t: <any's type…|0..∞> | t];
 
@@ -334,7 +334,7 @@ Semantic restriction "<«_‡,»`…`|_..>" is
 			defaultTypeType's instance
 		];
 
-	lower ::= minimumSizeType's lower bound;
+	lower ::= ⎣minimumSizeType⎦;
 	allTypesToUse ::= cast typesTypesInstanceTuple into 
 		[t: <any's type…|0..∞> | t];
 
@@ -422,7 +422,7 @@ Semantic restriction "<«_‡,»`…`|.._>" is
 			defaultTypeType's instance
 		];
 
-	bound ::= cast maximumSizeType's upper bound + 1 into [ t : [0..∞] | t ];
+	bound ::= cast ⎡maximumSizeType⎤ + 1 into [ t : [0..∞] | t ];
 	allTypesToUse ::= cast typesTypesInstanceTuple into 
 		[t: <any's type…|0..∞> | t];
 
@@ -509,8 +509,8 @@ Semantic restriction "<«_‡,»`…`|_>" is
 			defaultTypeType's instance
 		];
 
-	lower ::= exactSizeType's lower bound;
-	upper ::= cast exactSizeType's upper bound + 1 into [ t : [0..∞] | t ];
+	lower ::= ⎣exactSizeType⎦;
+	upper ::= cast ⎡exactSizeType⎤ + 1 into [ t : [0..∞] | t ];
 	allTypesToUse ::= cast typesTypesInstanceTuple into 
 		[t: <any's type…|0..∞> | t];
 
@@ -612,9 +612,9 @@ Semantic restriction "{_`|_}" is
 	cardinalityTypeType : whole number meta's type
 |
 	cardinalityTypeTypeInstance :: = cardinalityTypeType's instance;
-	bound ::= cast cardinalityTypeTypeInstance's upper bound + 
+	bound ::= cast ⎡cardinalityTypeTypeInstance⎤ + 
 		1 into [ t : [0..∞] | t ];
-	lower ::= cardinalityTypeTypeInstance's lower bound;
+	lower ::= ⎣cardinalityTypeTypeInstance⎦;
 	{elementTypeType's instance|[lower..bound)}'s type
 ];
 
@@ -669,18 +669,18 @@ Semantic restriction "{_`|_.._}" is
 	maximumSize : [0..∞]'s type
 |
 	elementType ::= elementMeta's instance;
-	if |elementType| = minimumSize's lower bound
-		∧ [ minimumSize's lower bound = minimumSize's upper bound
-		∧ [ maximumSize's lower bound = maximumSize's upper bound
-		∧ [ minimumSize's lower bound = maximumSize's lower bound ] ] ]
+	if |elementType| = ⎣minimumSize⎦
+		∧ [ ⎣minimumSize⎦ = ⎡minimumSize⎤
+		∧ [ ⎣maximumSize⎦ = ⎡maximumSize⎤
+		∧ [ ⎣minimumSize⎦ = ⎣maximumSize⎦ ] ] ]
 	then
 	[
 		elementType's instances' type's type
 	]
 	else
 	[
-		lower ::= minimumSize's lower bound;
-		upper ::= cast maximumSize's upper bound + 1 into [ t : [0..∞] | t ];
+		lower ::= ⎣minimumSize⎦;
+		upper ::= cast ⎡maximumSize⎤ + 1 into [ t : [0..∞] | t ];
 		{elementType|[lower..upper)}'s type
 	]
 ];
@@ -720,7 +720,7 @@ Semantic restriction "{_`|_..}" is
 	elementTypeType : any's type's type,
 	minimumSizeType : whole number's type
 |
-	lower ::= minimumSizeType's lower bound;
+	lower ::= ⎣minimumSizeType⎦;
 	{elementTypeType's instance|[lower..∞)}'s type
 ];
 
@@ -760,7 +760,7 @@ Semantic restriction "{_`|.._}" is
 	elementTypeType : any's type's type,
 	maximumSizeType : [0..∞]'s type
 |
-	upper ::= cast maximumSizeType's upper bound + 1 into [ t : [0..∞] | t ];
+	upper ::= cast ⎡maximumSizeType⎤ + 1 into [ t : [0..∞] | t ];
 	{elementTypeType's instance|[0..upper)}'s type
 ];
 
@@ -808,16 +808,16 @@ Semantic restriction "{_`|_}" is
 	exactSize : whole number's type
 |
 	elementType ::= elementMeta's instance;
-	if |elementType| = exactSize's lower bound
-		∧ [ exactSize's lower bound = exactSize's upper bound ]
+	if |elementType| = ⎣exactSize⎦
+		∧ [ ⎣exactSize⎦ = ⎡exactSize⎤ ]
 	then
 	[
 		elementType's instances' type's type
 	]
 	else
 	[
-		bound ::= cast exactSize's upper bound + 1 into [ t : [0..∞] | t ];
-		{elementType|[exactSize's lower bound .. bound)}'s type
+		bound ::= cast ⎡exactSize⎤ + 1 into [ t : [0..∞] | t ];
+		{elementType|[⎣exactSize⎦ .. bound)}'s type
 	]
 ];
 
@@ -872,9 +872,9 @@ Semantic restriction "{_→_`|_}" is
 	cardinalityTypeType : whole number meta's type
 |
 	cardinalityTypeTypeInstance :: = cardinalityTypeType's instance;
-	bound ::= cast cardinalityTypeTypeInstance's upper bound + 
+	bound ::= cast ⎡cardinalityTypeTypeInstance⎤ + 
 	1 into [ t : [0..∞] | t ];
-	lower ::= cardinalityTypeTypeInstance's lower bound;
+	lower ::= ⎣cardinalityTypeTypeInstance⎦;
 	{keyTypeType's instance→valueTypeType's instance|[lower..bound)}'s type
 ];
 
@@ -919,8 +919,8 @@ Semantic restriction "{_→_`|_.._}" is
 	minimumSizeType : whole number's type,
 	maximumSizeType : [0..∞]'s type
 |
-	bound ::= cast maximumSizeType's upper bound + 1 into [ t : [0..∞] | t ];
-	lower ::= minimumSizeType's lower bound;
+	bound ::= cast ⎡maximumSizeType⎤ + 1 into [ t : [0..∞] | t ];
+	lower ::= ⎣minimumSizeType⎦;
 	{keyTypeType's instance→valueTypeType's instance|[lower..bound)}'s type
 ];
 
@@ -961,7 +961,7 @@ Semantic restriction "{_→_`|_..}" is
 	valueTypeType : any's type's type,
 	minimumSizeType : whole number's type
 |
-	lower ::= minimumSizeType's lower bound;
+	lower ::= ⎣minimumSizeType⎦;
 	{keyTypeType's instance→valueTypeType's instance|[lower..∞)}'s type
 ];
 	
@@ -1003,7 +1003,7 @@ Semantic restriction "{_→_`|.._}" is
 	valueTypeType : any's type's type,
 	maximumSizeType : [0..∞]'s type
 |
-	bound ::= cast maximumSizeType's upper bound + 1 into [ t : [0..∞] | t ];
+	bound ::= cast ⎡maximumSizeType⎤ + 1 into [ t : [0..∞] | t ];
 	{keyTypeType's instance→valueTypeType's instance|[0..bound)}'s type
 ];
 
@@ -1210,7 +1210,7 @@ Semantic restriction "[«_‡,»]→_" is
 	returnType : type's type
 |
 	bottoms : <⊥'s type…|> := <>;
-	From 1 to ||argTypes||'s lower bound do
+	From 1 to ⎣||argTypes||⎦ do
 	[
 		index : natural number
 	|

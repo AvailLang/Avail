@@ -45,6 +45,7 @@ Names
 	"``_``",
 	"“↓_”",
 	"“<«_‡,»>”",
+	"“[_`|_]:_”",
 	"“[_`|_]”"
 Body
 
@@ -100,6 +101,50 @@ Public method "“<«_‡,»>”" is
 ] : list;
 
 /**
+ * Construct and answer a block from the specified argument declarations,
+ * statements, and return type.
+ * 
+ * Parameters:
+ *    args - A tuple of argument declarations.
+ *    statements - A tuple of statements.
+ *    returnType - The return type of the function described by the block.
+ * Returns:
+ *    A block.
+ */
+Public method "“[_`|_]:_”" is
+[
+	args : <argument…|>,
+	statements : <phrase…|>,
+	returnType : type
+|
+	“[
+		args
+	|
+		Primitive 0
+		statements
+	] : returnType ^ ∅”
+] : block;
+
+/**
+ * Strengthen "“[_`|_]:_”".
+ * 
+ * Parameters:
+ *    args -
+ *    statements -
+ *    returnType -
+ * Returns:
+ *    A block yielding the instance of `returnType`.
+ */
+Semantic restriction "“[_`|_]:_”" is
+[
+	args : <argument…|>'s type,
+	statements : <phrase…|>'s type,
+	returnType : type's type
+|
+	block⇒([…]→returnType's instance)
+];
+
+/**
  * Construct and answer a block from the specified argument declarations and
  * statements.
  * 
@@ -144,12 +189,51 @@ Semantic restriction "send_with_:_" is
 	/* Parse nodes have identity, so it isn't safe to strengthen more than
 	 * this.
 	 */
-	if |returnType| = 1 then
-	[
-		send⇒(returnType's instance)
-	]
-	else
-	[
-		⊤
-	]
+	send⇒(returnType's instance)
+];
+
+/**
+ * A block type's semantic type is always a function type.
+ *
+ * Parameters:
+ *    blockType -
+ * Returns:
+ *    `function meta`.
+ */
+Semantic restriction "_'s⁇semantic type" is
+[
+	blockType : block's type's type
+|
+	function meta
+];
+
+/**
+ * A list type's semantic type is always a tuple of expressions yielding any.
+ * 
+ * Parameters:
+ *    listType -
+ * Returns:
+ *    `<expression⇒any…|>`.
+ */
+Semantic restriction "_'s⁇semantic type" is
+[
+	listType : list's type's type
+|
+	<expression⇒any…|>
+];
+
+/**
+ * The function type of a function generated from a block is the same as the
+ * block's semantic type.
+ * 
+ * Parameters:
+ *    blockType -
+ * Returns:
+ *    The semantic type of the argument.
+ */
+Semantic restriction "generate_" is
+[
+	blockType : block's type
+|
+	blockType's semantic type
 ];

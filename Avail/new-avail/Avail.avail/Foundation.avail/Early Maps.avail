@@ -126,7 +126,7 @@ Semantic restriction "_∈_" is
 		]
 		else
 		[
-			if |mapKeyType| = ||mapType||'s lower bound
+			if |mapKeyType| = ⎣||mapType||⎦
 				∧ [ keyType ⊆ mapKeyType ] then
 			[
 				true's type
@@ -254,8 +254,8 @@ Semantic restriction "_+_→_" is
 		oldKeyType ::= mapType's key type;
 		newKeyType ::= oldKeyType ∪ keyType;
 		newValueType ::= mapType's value type ∪ valueType;
-		lower : [0..∞) := ||mapType||'s lower bound;
-		bound : [0..∞] := ||mapType||'s upper bound;
+		lower : [0..∞) := ⎣||mapType||⎦;
+		bound : [0..∞] := ⎡||mapType||⎤;
 		/* If the type intersection of the key type and the new key type is
 		 * ⊥, then the new key cannot be present in the map. Adjust the
 		 * cardinality accordingly.

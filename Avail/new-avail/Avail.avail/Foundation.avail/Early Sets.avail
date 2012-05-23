@@ -42,7 +42,6 @@ Uses
 	"Early Types",
 	"Enumeration Support",
 	"Literals"
-Names
 Body
 
 /**
@@ -77,8 +76,8 @@ Semantic restriction "_∪_" is
 	typeA : set's type,
 	typeB : set's type
 |
-	lower ::= ||typeA||'s lower bound min ||typeB||'s lower bound;
-	upper ::= cast ||typeA||'s upper bound + ||typeB||'s upper bound
+	lower ::= ⎣||typeA||⎦ min ⎣||typeB||⎦;
+	upper ::= cast ⎡||typeA||⎤ + ⎡||typeB||⎤
 		into [ t : [0..∞] | t ];
 	{typeA's element type ∪ typeB's element type | [lower..upper + 1)}
 ];
@@ -104,7 +103,7 @@ Semantic restriction "_∩_" is
 	typeB : set's type
 |
 	innerType ::= typeA's element type ∩ (typeB's element type);
-	upper : [0..∞] := ||typeA||'s upper bound min ||typeB||'s upper bound;
+	upper : [0..∞] := ⎡||typeA||⎤ min ⎡||typeB||⎤;
 	If |innerType| ≠ ∞ ∧ [innerType ∩ (type's type) ≠ ⊥] then
 	[
 		/* There are a limited number of possible values. */
@@ -165,8 +164,8 @@ Semantic restriction "_⊆_" is
 		 * subtype of `typeB`'s element type.
 		 */
 		if |elementB| ≠ ∞
-			∧ [ sizesB's lower bound = sizesB's upper bound
-			∧ [ |elementB| = sizesB's lower bound ] ]
+			∧ [ ⎣sizesB⎦ = ⎡sizesB⎤
+			∧ [ |elementB| = ⎣sizesB⎦ ] ]
 		then
 		[
 			if elementA ⊆ elementB then
@@ -206,7 +205,7 @@ Semantic restriction "_∈_" is
 		]
 		else
 		[
-			if |elementType| = ||setType||'s lower bound
+			if |elementType| = ⎣||setType||⎦
 				∧ [ valueType ⊆ elementType ] then
 			[
 				true's type
@@ -244,10 +243,10 @@ Semantic restriction "_\\_" is
 		subtrahendUpper ::= 
 			if minuendType's element type ∩ (subtrahendType's element type) = ⊥
 			then [ 0 ]
-			else [ ||subtrahendType||'s upper bound ];
-		lower ::= cast (||minuendType||'s lower bound - subtrahendUpper) max 0
+			else [ ⎡||subtrahendType||⎤ ];
+		lower ::= cast (⎣||minuendType||⎦ - subtrahendUpper) max 0
 			into [ t : whole number | t ];
-		{minuendType's element type | lower..||minuendType||'s upper bound}
+		{minuendType's element type | lower..⎡||minuendType||⎤}
 	]
 ];
 

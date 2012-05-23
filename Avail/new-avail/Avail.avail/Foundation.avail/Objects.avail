@@ -81,8 +81,8 @@ Semantic restriction "_→object type" is
 	/* If the enumeration of keys is known and equals the cardinality of the
 	 * map, then answer the nearest object type supertype with these keys.
 	 */
-	else if [ |{||mapType||'s lower bound, ||mapType||'s upper bound}| = 1
-		∧ [ |mapType's key type| = ||mapType||'s lower bound ] ] then
+	else if [ |{⎣||mapType||⎦, ⎡||mapType||⎤}| = 1
+		∧ [ |mapType's key type| = ⎣||mapType||⎦ ] ] then
 	[
 		atoms ::= mapType's key type's instances;
 		defs ::= atoms→tuple zip |atoms| of mapType's value type's instance;
@@ -201,8 +201,8 @@ Semantic restriction "_→object" is
 	/* If the enumeration of keys is known and equals the cardinality of the
 	 * map, then answer the nearest object type supertype with these keys.
 	 */
-	else if [ |{||mapType||'s lower bound, ||mapType||'s upper bound}| = 1
-		∧ [ |mapType's key type| = ||mapType||'s lower bound ] ] then
+	else if [ |{⎣||mapType||⎦, ⎡||mapType||⎤}| = 1
+		∧ [ |mapType's key type| = ⎣||mapType||⎦ ] ] then
 	[
 		atoms ::= mapType's key type's instances;
 		fieldAssignments ::= atoms→tuple zip |atoms| of mapType's value type;
@@ -339,18 +339,13 @@ Semantic restriction "_→tuple" is
 [
 	anObjectType : object meta
 |
-	if |anObjectType| = 1 then
-	[
-		(anObjectType's instance→tuple)'s type
-	]
-	else
-	[
-		objectMap ::= anObjectType→map;
-		/* Because we can't know what keys and types the subtypes of the
-		 * argument will contain, this is as good as it gets.
-		 */
-		<<atom, any…|2>…| |objectMap|..>
-	]
+	objectMap ::= anObjectType→map;
+	/* Note that we can't exploit instance types here, because coversion of an
+	 * object type to a tuple is an unstable operation. Because we can't know
+	 * what keys and types the subtypes of the argument will contain, this is as
+	 * good as it gets.
+	 */
+	<<atom, any…|2>…| |objectMap|..>
 ];
 
 /**
@@ -629,9 +624,8 @@ is
 		];
 	last ::= send toObjectTypeM with “<“↓mapDecl”>” : objectType's type;
 	statements ::= <mapDecl> ++ assignments ++ <last>;
-	newBlock ::= “[ args | statements ]”;
-	restrictionFunction ::= cast generate newBlock into [ t : […]→type | t ];
-	Semantic restriction methodName is restrictionFunction;
+	newBlock ::= “[ args | statements ] : type”;
+	Semantic restriction methodName is generate newBlock;
 ];
 
 /**
@@ -1050,6 +1044,7 @@ Semantic restriction "a|an_«with«_:=_‡,»»" is
 	assignments→object type
 ];
 
+/* TODO: [TLS] Remove when done!
 Class "colorful" extends object
 	with fields
 		$color : enumeration of
@@ -1059,10 +1054,6 @@ Class "textured" extends object
 	with fields
 		$texture : enumeration of {"rough", "smooth"};
 
-/* TODO: [TLS] Complete support for "reconstructible" and introduce
- * transactional reconstructors. Access levels of reconstructors should be
- * checked by the semantic restriction.
- */
 Explicit class "textured RGB" extends colorful ∩ textured
 	with fields
 		reconstructible $color : enumeration of {"red", "green", "blue"},
@@ -1088,4 +1079,4 @@ mutated ::= trgb's color := "blue", flavor := "sweet";
 Print: "mutated=";
 Print: primitive description of mutated;
 Print: "\n";
-
+*/

@@ -237,7 +237,7 @@ Semantic restriction "Repeat__times" is
 	action : []→⊤'s type,
 	count : [0..∞]'s type
 |
-	if count's lower bound = ∞ then
+	if ⎣count⎦ = ∞ then
 	[
 		⊥
 	]
@@ -355,13 +355,13 @@ Semantic restriction "From_to_by_do_" is
 	subscripts ::=
 		if step ⊆ [0..∞) then
 		[
-			(start's lower bound - 1 .. end's upper bound + 1)
+			(⎣start⎦ - 1 .. ⎡end⎤ + 1)
 		]
 		else
 		[
 			if step ⊆ (-∞..-1] then
 			[
-				(end's lower bound - 1 .. start's upper bound + 1)
+				(⎣end⎦ - 1 .. ⎡start⎤ + 1)
 			]
 			else
 			[
@@ -377,17 +377,17 @@ Semantic restriction "From_to_by_do_" is
 			++ primitive description of action[1]
 	];
 	return ::= action's return type;
-	endSet ::= {end's lower bound, end's upper bound};
+	endSet ::= {⎣end⎦, ⎡end⎤};
 	definitelyRuns ::=
 		if step ⊆ [0..∞) then
 		[
-			start's upper bound ≤ end's lower bound
+			⎡start⎤ ≤ ⎣end⎦
 		]
 		else
 		[
 			if step ⊆ (-∞..-1] then
 			[
-				start's lower bound ≥ end's upper bound
+				⎣start⎦ ≥ ⎡end⎤
 			]
 			else
 			[
@@ -502,13 +502,13 @@ Semantic restriction "From_to_by_do_" is
 	subscripts ::=
 		if step ⊆ [0..∞) then
 		[
-			(start's lower bound - 1 .. end's upper bound + 1)
+			(⎣start⎦ - 1 .. ⎡end⎤ + 1)
 		]
 		else
 		[
 			if step ⊆ (-∞..-1] then
 			[
-				(end's lower bound - 1 .. start's upper bound + 1)
+				(⎣end⎦ - 1 .. ⎡start⎤ + 1)
 			]
 			else
 			[
@@ -524,17 +524,17 @@ Semantic restriction "From_to_by_do_" is
 			++ primitive description of action[1]
 	];
 	return ::= action's return type;
-	endSet ::= {end's lower bound, end's upper bound};
+	endSet ::= {⎣end⎦, ⎡end⎤};
 	definitelyRuns ::=
 		if step ⊆ [0..∞) then
 		[
-			start's upper bound ≤ end's lower bound
+			⎡start⎤ ≤ ⎣end⎦
 		]
 		else
 		[
 			if step ⊆ (-∞..-1] then
 			[
-				start's lower bound ≥ end's upper bound
+				⎣start⎦ ≥ ⎡end⎤
 			]
 			else
 			[
@@ -600,7 +600,7 @@ Semantic restriction "From_to_do_" is
 	end : extended integer's type,
 	action : [⊥]→boolean's type
 |
-	subscripts ::= (start's lower bound - 1 .. end's upper bound + 1);
+	subscripts ::= (⎣start⎦ - 1 .. ⎡end⎤ + 1);
 	If action[1] ≠ ⊥ ∧ [ ¬subscripts ⊆ action[1] ] then
 	[
 		Reject parse, expected:
@@ -610,8 +610,8 @@ Semantic restriction "From_to_do_" is
 			++ primitive description of action[1]
 	];
 	return ::= action's return type;
-	endSet ::= {end's lower bound, end's upper bound};
-	definitelyRuns ::= start's upper bound ≤ end's lower bound;
+	endSet ::= {⎣end⎦, ⎡end⎤};
+	definitelyRuns ::= ⎡start⎤ ≤ ⎣end⎦;
 	if (endSet = {∞} ∧ [ return = true's type ])
 		∨ [ definitelyRuns ∧ [ return = ⊥ ] ]
 	then
@@ -665,7 +665,7 @@ Semantic restriction "From_to_do_" is
 	end : extended integer's type,
 	action : [⊥]→⊤'s type
 |
-	subscripts ::= (start's lower bound - 1 .. end's upper bound + 1);
+	subscripts ::= (⎣start⎦ - 1 .. ⎡end⎤ + 1);
 	If action[1] ≠ ⊥ ∧ [ ¬subscripts ⊆ action[1] ] then
 	[
 		Reject parse, expected:
@@ -675,8 +675,8 @@ Semantic restriction "From_to_do_" is
 			++ primitive description of action[1]
 	];
 	return ::= action's return type;
-	endSet ::= {end's lower bound, end's upper bound};
-	definitelyRuns ::= start's upper bound ≤ end's lower bound;
+	endSet ::= {⎣end⎦, ⎡end⎤};
+	definitelyRuns ::= ⎡start⎤ ≤ ⎣end⎦;
 	if endSet = {∞} ∨ [ definitelyRuns ∧ [ return = ⊥ ] ]
 	then
 	[
@@ -738,7 +738,7 @@ Semantic restriction "_(«_‡,»)" is
 			Reject parse, expected: sizesIncompatibleMessage
 		];
 		/* Verify each of the arguments. */
-		From 1 to argumentsSizes' lower bound do
+		From 1 to ⎣argumentsSizes⎦ do
 		[
 			index : natural number
 		|
@@ -774,9 +774,9 @@ Public method "Require:_'s⁇keeper is valid" is
 |
 	parametersType ::= action's parameters' type;
 	parametersSizes ::= ||parametersType||;
-	Assert: parametersSizes' lower bound = parametersSizes' upper bound
+	Assert: ⎣parametersSizes⎦ = ⎡parametersSizes⎤
 		("number of parameters cannot be determined");
-	parametersSize ::= cast parametersSizes' lower bound
+	parametersSize ::= cast ⎣parametersSizes⎦
 		into [ t : natural number | t ];
 	expectedType ::= [⊥]→⊤;
 	If ¬action[parametersSize] ⊆ expectedType then
@@ -964,7 +964,7 @@ Semantic restriction "If|if_then_«else if_then_»«else_»" is
 		 */
 		If keepLooping then
 		[
-			If ||else||'s lower bound = 1 then
+			If ⎣||else||⎦ = 1 then
 			[
 				elseReturnType ::= else[1]'s return type;
 				If ¬ambiguous then
@@ -1271,7 +1271,7 @@ Semantic restriction "Unless|unless_then_«else unless_then_»«else_»" is
 		 */
 		If keepLooping then
 		[
-			If ||else||'s lower bound = 1 then
+			If ⎣||else||⎦ = 1 then
 			[
 				elseReturnType ::= else[1]'s return type;
 				If ¬ambiguous then
@@ -1774,7 +1774,7 @@ Semantic restriction "Cast|cast_into«_‡or»«else_»" is
 		];
 		union := eject ↑union ∪ functionType's return type;
 	];
-	If ||else||'s lower bound = 1 then
+	If ⎣||else||⎦ = 1 then
 	[
 		union := eject ↑union ∪ else[1]'s return type;
 	];
@@ -1915,7 +1915,7 @@ Semantic restriction "Choose|choose_from_where«_is_‡and»«and others are_»"
 			union := eject ↑union ∪ case[2]'s return type;
 		];
 	];
-	If caseEnum ≠ enum ∧ [ ||else||'s lower bound ≠ 1 ] then
+	If caseEnum ≠ enum ∧ [ ⎣||else||⎦ ≠ 1 ] then
 	[
 		allCases ::= enum's instances;
 		handledCases ::= caseEnum's instances;
