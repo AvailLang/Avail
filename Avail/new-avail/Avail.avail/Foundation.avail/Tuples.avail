@@ -1869,8 +1869,8 @@ Semantic restriction "_[_]→_" is
 			leadingIndex : natural number
 		|
 			original ::= leadingTypes[leadingIndex];
-			/* If only possible element is affected (because the lower and upper
-			 * bound of `index` are equal), then we can simply replace the
+			/* If only one possible element is affected (because the lower and
+			 * upper bound of `index` are equal), then we can simply replace the
 			 * element type with `valueType`. Otherwise we have to weaken the
 			 * affected elements via type union with `valueType`.
 			 */
@@ -1965,23 +1965,20 @@ Semantic restriction "group_by_" is
 [
 	aTupleType : tuple's type,
 	discriminatorType : [⊥]→any's type
- |
- 	Require: discriminatorType accepts aTupleType;
-	 	tupleCardinality ::= ||aTupleType||;
-	 	tupleUpperBound ::= ⎡tupleCardinality⎤;
-	 	defaultType ::= ∪ aTupleType[1..|aTupleType's leading types| + 1];
-		keyType ::= discriminatorType's return type;
-		
-	 	lowerBound ::= if ⎣tupleCardinality⎦ = 0 then [0] else [1];
-		upperBound ::= if tupleUpperBound > |keyType| 
-			then [|keyType|]
-			else [tupleUpperBound];
-	
-	 	valueType ::= <defaultType… | 1..tupleUpperBound>;
-	
-	 	{keyType→valueType | lowerBound..upperBound}
- ];
- 
+|
+	Require: discriminatorType accepts aTupleType;
+	tupleCardinality ::= ||aTupleType||;
+	tupleUpperBound ::= ⎡tupleCardinality⎤;
+	defaultType ::= ∪ aTupleType[1..|aTupleType's leading types| + 1];
+	keyType ::= discriminatorType's return type;
+	lowerBound ::= if ⎣tupleCardinality⎦ = 0 then [0] else [1];
+	upperBound ::= if tupleUpperBound > |keyType| 
+		then [|keyType|]
+		else [tupleUpperBound];
+	valueType ::= <defaultType… | 1..tupleUpperBound>;
+	{keyType→valueType | lowerBound..upperBound}
+];
+
 /**
  * Count the elements of a tuple.
  *
@@ -1991,14 +1988,14 @@ Semantic restriction "group_by_" is
  *    a map with keys that are the elements of the tuple that maps to the values
  *    that are the counts that each element occurs in the tuple.
  */
- Method "counts for_" is
+Method "counts for_" is
 [
- 	aTuple : tuple
- |
- 	groups ::= group aTuple by [a: any | a];
- 	map groups through [k : any, t : tuple | |t|]
+	aTuple : tuple
+|
+	groups ::= group aTuple by [a : any | a];
+	map groups through [k : any, t : tuple | |t|]
 ] : map;
- 
+
 /**
  * Strengthen return type.
  *
@@ -2010,18 +2007,19 @@ Semantic restriction "group_by_" is
  */
 Semantic restriction "counts for_" is
 [
- 	aTupleType : tuple's type
- |
- 	if |aTupleType| = 1 then
- 		[(counts for aTupleType's instance)'s type]
- 	else 
- 	[
- 	   keyType ::= ∪ aTupleType[1..|aTupleType's leading types| + 1];
- 	   tupleCardinality ::= ||aTupleType||;
- 	   lowerBound ::= if ⎣tupleCardinality⎦ = 0 
- 	     then [0] else [1];
- 	   upperBound ::= ⎡tupleCardinality⎤;
- 	   {keyType→whole number|lowerBound..upperBound}
+	aTupleType : tuple's type
+|
+	if |aTupleType| = 1 then
+	[
+		(counts for aTupleType's instance)'s type
+	]
+	else
+	[
+		keyType ::= ∪ aTupleType[1..|aTupleType's leading types| + 1];
+		tupleCardinality ::= ||aTupleType||;
+		lowerBound ::= if ⎣tupleCardinality⎦ = 0 then [0] else [1];
+		upperBound ::= ⎡tupleCardinality⎤;
+		{keyType→whole number|lowerBound..upperBound}
 	]
 ];
 
@@ -2045,7 +2043,7 @@ Public method "flatten_" is
 		newTuple := newTuple ++ t;
 	];
 	newTuple
-]:tuple;
+] : tuple;
 
 /**
  * Strengthen flatten_ return type 

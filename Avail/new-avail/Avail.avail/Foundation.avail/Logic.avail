@@ -45,7 +45,8 @@ Uses
 	"Early Types",
 	"Early Sets",
 	"Enumeration Support",
-	"Literals"
+	"Literals",
+	"Math"
 Names
 	"«_‡=»",
 	"_⊕_",
@@ -73,11 +74,14 @@ Public method "«_‡=»" is
 	|aTuple→set| = 1
 ] : boolean;
 
-/*
- * Disallow mixing and recursive parsing of equality operations.
- */
-Grammatical restriction {"«_‡=»"} is <{"«_‡=»", "_=_"}>;
-Grammatical restriction {"_=_"} is <{"«_‡=»", "_=_"}, {"«_‡=»", "_=_"}>;
+/* Disallow mixing and recursive parsing of equality operations. */
+[
+	restrictions ::= {"«_‡=»", "_=_", "«_‡«=»?«≤»?«<»?»", "«_‡«=»?«≥»?«>»?»"};
+	Grammatical restriction {"«_‡=»"} is <restrictions>;
+	Grammatical restriction {"_=_"} is <restrictions, restrictions>;
+	Grammatical restriction
+		{"«_‡«=»?«≤»?«<»?»", "«_‡«=»?«≥»?«>»?»"} is <{"«_‡=»"}>;
+]();
 
 /**
  * Compute and answer the logical exclusive disjunction, i.e., XOR, of the

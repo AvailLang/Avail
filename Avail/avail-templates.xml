@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><templates><template autoinsert="true" context="javadoc" deleted="false" description="Add a Javadoc @author tag." enabled="true" name="@author">@author Todd L Smith &amp;lt;anarakul@gmail.com&amp;gt;</template><template autoinsert="true" context="java" deleted="false" description="Create a new AND clause." enabled="true" name="and">${always} ∧ [ ${maybe} ]</template><template autoinsert="true" context="java" deleted="false" description="New method/macro comment." enabled="true" name="availdoc">/**
+ * ${cursor}
+ *
+ * Parameters:
+ *    arg1 - TODO
+ * Returns:
+ *    TODO
+ */</template><template autoinsert="true" context="java" deleted="false" description="The bottom type." enabled="true" name="bottom">⊥</template><template autoinsert="true" context="java" deleted="false" description="The completely optional parsing operator (⁇)." enabled="true" name="completelyoptional">⁇</template><template autoinsert="true" context="java" deleted="false" description="The logical conjunction operator (∧)." enabled="true" name="conjunction">∧</template><template autoinsert="true" context="java" deleted="false" description="Emit debug print statements for the specified expression." enabled="true" name="debugprint">Print: "${expr}=";
+Print: primitive description of (${expr});
+Print: "\n";</template><template autoinsert="true" context="java" deleted="false" description="The logical disjunction operator (∨)." enabled="true" name="disjunction">∨</template><template autoinsert="true" context="java" deleted="false" description="The element-of operator (∈)." enabled="true" name="elementof">∈</template><template autoinsert="true" context="java" deleted="false" description="The empty set (∅)." enabled="true" name="emptyset">∅</template><template autoinsert="true" context="java" deleted="false" description="If statement." enabled="true" name="if_then_">If ${predicate} then
+[
+	${line_selection}${cursor}
+];</template><template autoinsert="true" context="java" deleted="false" description="If statement/expression." enabled="true" name="if_then_else_">${if:link(If)} ${predicate} then
+[
+	${cursor}
+]
+else
+[
+
+];</template><template autoinsert="true" context="java" deleted="false" description="The set/type intersection operator." enabled="true" name="intersection">∩</template><template autoinsert="true" context="java" deleted="false" description="The left ceiling operator (⎡)." enabled="true" name="leftceiling">⎡</template><template autoinsert="true" context="java" deleted="false" description="The left floor operator (⎣)." enabled="true" name="leftfloor">⎣</template><template autoinsert="true" context="java" deleted="false" description="New Avail method." enabled="true" name="method">Method "${methodName}" is
+[
+	${cursor}
+];</template><template autoinsert="true" context="java" deleted="false" description="New Avail primitive implementation." enabled="true" name="newprimitiveimpl">/**
+ * ${file}
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+package com.avail.interpreter.primitive;
+
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.interpreter.Primitive.Flag.*;
+import java.util.List;
+import com.avail.annotations.NotNull;
+import com.avail.descriptor.*;
+import com.avail.interpreter.*;
+
+/**
+ * &lt;strong&gt;Primitive ${primitiveNumber}&lt;/strong&gt;: TODO: [TLS] Document this!
+ *
+ * @author Todd L Smith &amp;lt;anarakul@gmail.com&amp;gt;
+ */
+public final class ${primary_type_name}
+extends Primitive
+{
+	/**
+	 * The sole instance of this primitive class. Accessed through reflection.
+	 */
+	public final @NotNull static Primitive instance =
+		new ${primary_type_name}().init(${primitiveArgCount}, ${primitiveFlags});
+
+	@Override
+	public @NotNull Result attempt (
+		final @NotNull List&lt;AvailObject&gt; args,
+		final @NotNull Interpreter interpreter)
+	{
+		assert args.size() == ${primitiveArgCount};
+		// TODO: [TLS] Implement this!
+		${cursor}
+	}
+
+	@Override
+	protected @NotNull AvailObject privateBlockTypeRestriction ()
+	{
+		return FunctionTypeDescriptor.create(
+			TupleDescriptor.from(
+				${primitiveArgTypes}),
+			${primitiveReturnType});
+	}
+}
+</template><template autoinsert="true" context="java" deleted="false" description="New Avail file." enabled="true" name="newsysfile">/*
+ * ${file}
+ * Copyright © 1993-${year}, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "${moduleName}"
+Versions
+	/* TODO: Set versions */
+Extends
+	/* TODO: Extended modules */
+Uses
+	/* TODO: Used modules */
+Names
+	/* TODO: Exports */
+Body
+</template><template autoinsert="true" context="java" deleted="false" description="Create a new OR clause." enabled="true" name="or">${always} ∨ [ ${maybe} ]</template><template autoinsert="true" context="java" deleted="false" description="Primitive description of …" enabled="true" name="primdesc">primitive description of ${value}</template><template autoinsert="true" context="java" deleted="false" description="The right arrow." enabled="true" name="rightarrow">→</template><template autoinsert="true" context="java" deleted="false" description="The right ceiling operator (⎤)." enabled="true" name="rightceiling">⎤</template><template autoinsert="true" context="java" deleted="false" description="The right floor operator (⎦)." enabled="true" name="rightfloor">⎦</template><template autoinsert="true" context="java" deleted="false" description="New semantic restriction." enabled="true" name="semrestrict">Semantic restriction "${methodName}" is
+[
+	${cursor}
+];</template><template autoinsert="true" context="java" deleted="false" description="The subset/subtype operator (⊆)." enabled="true" name="subset">⊆</template><template autoinsert="true" context="java" deleted="false" description="The superset/supertype operator (⊇)." enabled="true" name="superset">⊇</template><template autoinsert="true" context="java" deleted="false" description="The multiplication operator (×)." enabled="true" name="times">×</template><template autoinsert="true" context="java" deleted="false" description="The top type." enabled="true" name="top">⊤</template><template autoinsert="true" context="java" deleted="false" description="The set/type union operator." enabled="true" name="union">∪</template><template autoinsert="true" context="java" deleted="false" description="The phrase construction operator (⇒)." enabled="true" name="yields">⇒</template></templates>
