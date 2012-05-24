@@ -81,8 +81,8 @@ Public method "[«_‡,»]→_" is
 ] : function meta;
 
 /* Make it easier to specify argument types in semantic restrictions. */
-Grammatical restriction {"[«_‡,»]→_"} is <∅, {"_'s⁇type"}>;
-Grammatical restriction {"[`…]→_"} is <{"_'s⁇type"}>;
+Grammatical restriction "[«_‡,»]→_" is <∅, {"_'s⁇type"}>;
+Grammatical restriction "[`…]→_" is <{"_'s⁇type"}>;
 
 /**
  * Tuple type constructor's semantic restriction.
@@ -1210,7 +1210,7 @@ Semantic restriction "[«_‡,»]→_" is
 	returnType : type's type
 |
 	bottoms : <⊥'s type…|> := <>;
-	From 1 to ⎣||argTypes||⎦ do
+	From 1 to ⎣argTypes⎦ do
 	[
 		index : natural number
 	|

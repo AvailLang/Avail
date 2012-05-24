@@ -51,465 +51,6 @@ Names
 Body
 
 /**
- * Disambiguate subscript of ⊥. This is a type subscript operation, such as
- * defined for tuple types or function types, and can consistently answer ⊥.
- * 
- * Parameters:
- *    bottom - ⊥.
- *    index - The subscript (ignored).
- * Returns:
- *    ⊥.
- */
-Method "_[_]" is
-[
-	bottom : ⊥'s type,
-	index : natural number
-|
-	⊥
-];
-
-/**
- * If a lexical tuple is built only from expressions with statically well-known
- * runtime values, then answer the instance type of the tuple that contains
- * those statically known elements. This gives lexical tuples of literals and
- * statically well-known elements the same force as lexical literals, e.g.,
- * numbers and strings.
- *
- * Parameters:
- *    elements -
- * Returns:
- *    The most specific possible type of the lexical tuple, possibly an instance
- *    type.
- */
-Semantic restriction "<«_‡,»>" is
-[
-	elements : tuple meta
-|
-	/* Since the argument is derived from a lexically constructed tuple, then
-	 * the cardinality of the argument is guaranteed to be a fixed, finite
-	 * value. Therefore asking for either the lower or upper bound would be
-	 * equivalent.
-	 */
-	limit ::= ⎡||elements||⎤;
-	accumulator : tuple := <>;
-	From 1 to limit do
-	[
-		index : natural number
-	|
-		if |elements[index]| ≠ ∞ then
-		[
-			instance ::= elements[index]'s instance;
-			/* Do not blithely construct a literal-force tuple if any of the
-			 * instances are themselves types. This prevents expressions like
-			 * `<elements[index]>` from asserting the type `<any>'s type` rather
-			 * than `<any's type…|1>`, which frequently leads to (absurd)
-			 * runtime type errors, e.g., if elements[index] has the static type
-			 * [0..5], then the return type verification nybblecode would fail
-			 * because `<[0..5]>` is not a subtype of `<any>`.
-			 */
-			if instance's type ⊆ type then
-			[
-				false
-			]
-			else
-			[
-				accumulator := concatenate <eject ↑accumulator, <instance>>;
-				true
-			]
-		]
-		else
-		[
-			false
-		]
-	];
-	if |accumulator| = limit then
-	[
-		accumulator's type
-	]
-	else
-	[
-		elements
-	]
-];
-
-/**
- * Strengthen the tuple subscript operation. The strongest available static type
- * is the type union of the elements within the slice indicated by the range of
- * the subscript. Forbid any access that could never be correct, i.e., the
- * minimum value of the subscript exceeds the maximum cardinality of the tuple.
- *
- * Parameters:
- *    aTuple -
- *    index -
- * Returns:
- *    The type union of the elements accessible by an actual subscript of the
- *    specified type.
- */
-Semantic restriction "_[_]" is
-[
-	aTupleType : tuple meta,
-	index : natural number's type
-|
-	If ⎡||aTupleType||⎤ < ⎣index⎦ then
-	[
-		messageTuple ::= concatenate <
-			"a subscript (",
-			primitive description of ⎣index⎦,
-			" ≤ theSubscript ≤ ",
-			primitive description of ⎡index⎤,
-			") that could ever be valid (",
-			primitive description of ⎣||aTupleType||⎦,
-			" ≤ |theTuple| ≤ ",
-			primitive description of ⎡||aTupleType||⎤,
-			")">;
-		message ::= cast messageTuple into [ t : string | t ];
-		Reject parse, expected: message
-	];
-	union : type := ⊥;
-	limit ::= cast |aTupleType's leading types| + 1
-		into [ t : natural number | t ];
-	startIndex ::= ⎣index⎦ min limit;
-	endIndex ::= ⎡index⎤ min limit;
-	From startIndex to endIndex do
-	[
-		i : natural number
-	|
-		union := union ∪ aTupleType[i];
-		true
-	];
-	union
-];
-
-/**
- * Strengthen the tuple type subscript operation. The strongest available static
- * type is the instance type of the type union of the elements within the slice
- * indicated by the range of the subscript. Forbid any access that could never
- * be correct, i.e., the minimum value of the subscript exceeds the maximum
- * cardinality of the tuple.
- *
- * Parameters:
- *    aTuple -
- *    index -
- * Returns:
- *    The instance type of the type union of the elements accessible by an
- *    actual subscript of the specified type.
- */
-Semantic restriction "_[_]" is
-[
-	aTupleMeta : tuple meta's type,
-	index : natural number's type
-|
-	aTupleType ::= aTupleMeta's instance;
-	If ⎡||aTupleType||⎤ < ⎣index⎦ then
-	[
-		messageTuple ::= concatenate <
-			"a subscript (",
-			primitive description of ⎣index⎦,
-			" ≤ theSubscript ≤ ",
-			primitive description of ⎡index⎤,
-			") that could ever be valid (",
-			primitive description of ⎣||aTupleType||⎦,
-			" ≤ |theTuple| ≤ ",
-			primitive description of ⎡||aTupleType||⎤,
-			")">;
-		message ::= cast messageTuple into [ t : string | t ];
-		Reject parse, expected: message
-	];
-	union : type := ⊥;
-	limit ::= cast |aTupleType's leading types| + 1
-		into [ t : natural number | t ];
-	startIndex ::= ⎣index⎦ min limit;
-	endIndex ::= ⎡index⎤ min limit;
-	From startIndex to endIndex do
-	[
-		i : natural number
-	|
-		union := union ∪ aTupleType[i];
-		true
-	];
-	union's type
-];
-
-/* Disambiguate `∪_` and `∪_[_.._]` by forbidding `_[_.._]` as the only argument
- * of the former.
- */
-Invoke
-[
-	cast ::= [ t : {string|whole number} | t ];
-	names ::= cast <"∪_">→set into cast;
-	exclusions ::= cast <"_[_.._]">→set into cast;
-	Grammatical restriction names is <exclusions>;
-]
-with <>;
-
-/**
- * If a lexical set is built only from expressions with statically well-known
- * runtime values, then answer the instance type of the set that contains
- * those statically known elements. This gives lexical sets of literals and
- * statically well-known elements the same force as lexical literals, e.g.,
- * numbers and strings.
- *
- * Parameters:
- *    elements -
- * Returns:
- *    The most specific possible type of the lexical set, possibly an instance
- *    type.
- */
-Semantic restriction "{«_‡,»}" is
-[
-	elements : <<>, any…|natural number>'s type
-|
-	/* Since the argument is derived from a lexically constructed tuple, then
-	 * the cardinality of the argument is guaranteed to be a fixed, finite
-	 * value. Therefore asking for either the lower or upper bound would be
-	 * equivalent.
-	 */
-	limit ::= ⎡||elements||⎤;
-	accumulator : tuple := <>;
-	/* Check to see if the elements are instance types. */
-	From 1 to limit do
-	[
-		index : natural number
-	|
-		element ::= elements[index];
-		if |elements[index]| ≠ ∞ then
-		[
-			instance ::= elements[index]'s instance;
-			/* Do not blithely construct a literal-force tuple if any of the
-			 * instances are themselves types. This prevents expressions like
-			 * `{elements[index]}` from asserting the type `{any}'s type` rather
-			 * than `{any's type|1}`, which frequently leads to (absurd)
-			 * runtime type errors, e.g., if elements[index] has the static type
-			 * [0..5], then the return type verification nybblecode would fail
-			 * because `{[0..5]}` is not a subtype of `{any}`.
-			 */
-			if instance's type ⊆ type then
-			[
-				false
-			]
-			else
-			[
-				accumulator := concatenate <eject ↑accumulator, <instance>>;
-				true
-			]
-		]
-		else
-		[
-			false
-		]
-	];
-	/* If the elements were all instance types, then answer an instance type. */
-	if |accumulator| = limit then
-	[
-		(accumulator→set)'s type
-	]
-	/* Otherwise, the answer cannot be an instance type. Compute the most
-	 * precise possible set type.
-	 */
-	else
-	[
-		/* Build a tuple of distinct types encountered during a traversal of
-		 * `elements`. Two types are distinct in this sense if they have no
-		 * common descendants more general than ⊥. This establishes a lower
-		 * bound on the answer's cardinality requirement.
-		 *
-		 * Also note what types have been encountered along the way. At the end
-		 * they will be put into a set to effect deduplication of exact type
-		 * matches. This set establishes an upper bound on the answer's
-		 * cardinality requirement.
-		 */
-		types : tuple of type := <elements[1]>;
-		distinct : tuple of type := <elements[1]>;
-		From 2 to limit do
-		[
-			outerIndex : natural number
-		|
-			element ::= elements[outerIndex];
-			types := cast concatenate <eject ↑types, <element>>
-				into [ t : tuple of type | t ];
-			isDistinct : boolean := true;
-			From 1 to |distinct| do
-			[
-				innerIndex : natural number
-			|
-				if element ∩ distinct[innerIndex] ≠ ⊥ then
-				[
-					isDistinct := false;
-					false
-				]
-				else
-				[
-					true
-				]
-			];
-			If isDistinct then
-			[
-				distinct := cast concatenate <eject ↑distinct, <element>> into
-					[ t : tuple of type | t ];
-			];
-			true
-		];
-		lower ::= |distinct|;
-		upper ::= |types| + 1;
-		union ::= cast ∪ types into [ t : any's type | t ];
-		{union | [lower..upper)}
-	]
-];
-
-/**
- * Construct and answer a map from the lexically specified key-value bindings.
- * 
- * Parameters:
- *    bindings - The key-value bindings that constitute the answer.
- * Returns:
- *    A map comprising the specified key-value bindings.
- */
-Public method "{«_→_‡,»}" is
-[
-	bindings : key-value tuple
-|
-	bindings→map
-] : map;
-
-/**
- * If a lexical map is built only from expressions with statically well-known
- * runtime values, then answer the instance type of the map that contains
- * those statically known elements. This gives lexical maps of literals and
- * statically well-known elements the same force as lexical literals, e.g.,
- * numbers and strings.
- *
- * Parameters:
- *    elements -
- * Returns:
- *    The most specific possible type of the lexical set, possibly an instance
- *    type.
- */
-Semantic restriction "{«_→_‡,»}" is
-[
-	bindings : key-value tuple's type
-|
-	/* Since the argument is derived from a lexically constructed tuple, then
-	 * the cardinality of the argument is guaranteed to be a fixed, finite
-	 * value. Therefore asking for either the lower or upper bound would be
-	 * equivalent.
-	 */
-	limit ::= ⎡||bindings||⎤;
-	accumulator : <<>, <<>, any…|[2..2]>… |whole number> := <>;
-	/* Check to see if keys and values are all instance types. */
-	From 1 to limit do
-	[
-		index : natural number
-	|
-		binding ::= bindings[index];
-		if |binding[1]| ≠ ∞ then
-		[
-			instanceK ::= binding[1]'s instance;
-			if |binding[2]| ≠ ∞ then
-			[
-				instanceV ::= binding[2]'s instance;
-				/* Do not blithely construct a literal-force tuple if any of the
-				 * instances are themselves types. This prevents expressions
-				 * like `{index→elements[index]}` from asserting the type
-				 * `{natural number→any}'s type` rather than
-				 * `{natural number's type→any's type|1}`, which frequently
-				 * leads to (absurd) runtime type errors.
-				 */
-				if instanceK's type ⊆ type ∨ [ instanceV's type ⊆ type ] then
-				[
-					false
-				]
-				else
-				[
-					accumulator :=
-						cast concatenate
-							<eject ↑accumulator, <<instanceK, instanceV>>>
-						into
-						[
-							t : <<>, <<>, any…|[2..2]>… |whole number>
-						|
-							t
-						];
-					true
-				]
-			]
-			else
-			[
-				false
-			]
-		]
-		else
-		[
-			false
-		]
-	];
-	/* If the keys and values were all instance types, then answer an instance
-	 * type.
-	 */
-	if |accumulator| = limit then
-	[
-		(accumulator→map)'s type
-	]
-	/* Otherwise, the answer cannot be an instance type. Compute the most
-	 * precise possible map type.
-	 */
-	else
-	[
-		/* Build a tuple of distinct key types encountered during a traversal of
-		 * `bindings`. Two key types are distinct in this sense if they have no
-		 * common descendants more general than ⊥. This establishes a lower
-		 * bound on the answer's cardinality requirement.
-		 *
-		 * Also note what key types have been encountered along the way. At the
-		 * end they will be put into a set to effect deduplication of exact type
-		 * matches. This set establishes an upper bound on the answer's
-		 * cardinality requirement.
-		 */
-		firstBinding ::= bindings[1];
-		firstKeyType ::= firstBinding[1];
-		distinct : tuple of type := <firstKeyType>;
-		keyTypes : tuple of type := <firstKeyType>;
-		valueTypes : tuple of type := <firstBinding[2]>;
-		From 2 to limit do
-		[
-			outerIndex : natural number
-		|
-			binding ::= bindings[outerIndex];
-			keyType ::= binding[1];
-			keyTypes := cast concatenate <eject ↑keyTypes, <keyType>>
-				into [ t : tuple of type | t ];
-			valueTypes := cast concatenate <eject ↑valueTypes, <binding[2]>>
-				into [ t : tuple of type | t ];
-			isDistinct : boolean := true;
-			From 1 to |distinct| do
-			[
-				innerIndex : natural number
-			|
-				if keyType ∩ distinct[innerIndex] ≠ ⊥ then
-				[
-					isDistinct := false;
-					false
-				]
-				else
-				[
-					true
-				]
-			];
-			If isDistinct then
-			[
-				distinct := cast concatenate <eject ↑distinct, <keyType>>
-					into [ t : tuple of type | t ];
-			];
-			true
-		];
-		lower ::= |distinct|;
-		upper ::= |keyTypes| + 1;
-		unionK ::= cast ∪ keyTypes into [ t : any's type | t ];
-		unionV ::= cast ∪ valueTypes into [ t : any's type | t ];
-		{unionK → unionV | [lower..upper)}
-	]
-];
-
-/**
  * Strengthen the cardinality of a tuple to the range of cardinalities supported
  * by its tuple type.
  * 
@@ -561,99 +102,186 @@ Semantic restriction "`|_`|" is
 ];
 
 /**
- * Obtain lower bound of a tuple.
+ * Answer the lower bound of the argument.
  *
  * Parameters:
- *    aTupleType - tuple type to find the lower bound of.
+ *    aTupleType - A tuple type.
  * Returns:
- *    whole number
+ *    The lower bound of the argument.
  */
-Public method "⎣`|`|_`|`|⎦" is
+Method "⎣_⎦" is
 [
- 	aTupleType : tuple's type
+	aTupleType : tuple meta
 |
-	cast ⎣||aTupleType||⎦ into [w : whole number | w]
-]: whole number;
+	cast ⎣||aTupleType||⎦ into [ w : whole number | w ]
+] : whole number;
 
 /**
- * Obtain lower bound of a set.
+ * Answer the lower bound of the argument.
  *
  * Parameters:
- *    aSetType - set type to find the lower bound of.
+ *    aSetType - A set type.
  * Returns:
- *    whole number
+ *    The lower bound of the argument.
  */
-Public method "⎣`|`|_`|`|⎦" is
+Method "⎣_⎦" is
 [
- 	aSetType : set's type
+	aSetType : set meta
 |
-	cast ⎣||aSetType||⎦ into [w : whole number | w]
-]: whole number;
+	cast ⎣||aSetType||⎦ into [ w : whole number | w ]
+] : whole number;
 
 /**
- * Obtain lower bound of a map.
+ * Answer the lower bound of the argument.
  *
  * Parameters:
- *    aMapType - map type to find the lower bound of.
+ *    aMapType - A map type.
  * Returns:
- *    whole number
+ *    The lower bound of the argument.
  */
-Public method "⎣`|`|_`|`|⎦" is
+Method "⎣_⎦" is
 [
- 	aMapType : map's type
+	aMapType : map meta
 |
-	cast ⎣||aMapType||⎦ into [w : whole number | w]
-]: whole number;
-
-Grammatical restriction {"⎣_⎦"} is <{"`|`|_`|`|"}>;
+	cast ⎣||aMapType||⎦ into [ w : whole number | w ]
+] : whole number;
 
 /**
- * Strengthen the type of the lower bound of a tuple.
+ * Answer the upper bound of the argument.
  *
  * Parameters:
- *    aTupleType - the type of the tuple to find the lower bound of.
+ *    aTupleType - A tuple type.
  * Returns:
- *    lower bound's strenghened type
+ *    The upper bound of the argument.
  */
-
-Semantic restriction "⎣`|`|_`|`|⎦" is
+Method "⎡_⎤" is
 [
- 	aTupleTypeType : (tuple's type)'s type
+	aTupleType : tuple meta
+|
+	⎡||aTupleType||⎤
+] : [0..∞];
+
+/**
+ * Answer the upper bound of the argument.
+ *
+ * Parameters:
+ *    aSetType - A set type.
+ * Returns:
+ *    The upper bound of the argument.
+ */
+Method "⎡_⎤" is
+[
+	aSetType : set meta
+|
+	⎡||aSetType||⎤
+] : [0..∞];
+
+/**
+ * Answer the upper bound of the argument.
+ *
+ * Parameters:
+ *    aMapType - A map type.
+ * Returns:
+ *    The upper bound of the argument.
+ */
+Method "⎡_⎤" is
+[
+	aMapType : map meta
+|
+	⎡||aMapType||⎤
+] : [0..∞];
+
+/**
+ * Strengthen the lower bound for tuple types.
+ *
+ * Parameters:
+ *    aTupleType -
+ * Returns:
+ *    The range of cardinalities of the argument' instance.
+ */
+Semantic restriction "⎣_⎦" is
+[
+	aTupleTypeType : tuple meta's type
+|
+	||aTupleTypeType's instance||
+];
+
+/**
+ * Strengthen the lower bound for set types.
+ *
+ * Parameters:
+ *    aSetType -
+ * Returns:
+ *    The range of cardinalities of the argument' instance.
+ */
+Semantic restriction "⎣_⎦" is
+[
+	aSetTypeType : set meta's type
+|
+	||aSetTypeType's instance||
+];
+
+/**
+ * Strengthen the lower bound for map types.
+ *
+ * Parameters:
+ *    aMapType -
+ * Returns:
+ *    The range of cardinalities of the argument' instance.
+ */
+Semantic restriction "⎣_⎦" is
+[
+	aMapTypeType : map meta's type
+|
+	||aMapTypeType's instance||
+];
+
+/**
+ * Strengthen the upper bound for tuple types.
+ *
+ * Parameters:
+ *    aTupleType -
+ * Returns:
+ *    The range of cardinalities of the argument' instance.
+ */
+Semantic restriction "⎡_⎤" is
+[
+	aTupleTypeType : tuple meta's type
 |
 	instance ::= aTupleTypeType's instance;
-	||instance||
+	[⎣instance⎦ .. ⎡instance⎤]
 ];
 
 /**
- * Strengthen the type of the lower bound of a set.
+ * Strengthen the upper bound for set types.
  *
  * Parameters:
- *    aSetType - the type of the set to find the lower bound of.
+ *    aSetType -
  * Returns:
- *    lower bound's strenghened type
+ *    The range of cardinalities of the argument' instance.
  */
-Semantic restriction "⎣`|`|_`|`|⎦" is
+Semantic restriction "⎡_⎤" is
 [
- 	aSetTypeType : (set's type)'s type
+	aSetTypeType : set meta's type
 |
 	instance ::= aSetTypeType's instance;
-	||instance||
+	[⎣instance⎦ .. ⎡instance⎤]
 ];
 
 /**
- * Strengthen the type of the lower bound of a map.
+ * Strengthen the upper bound for map types.
  *
  * Parameters:
- *    aMapType - the type of the map to find the lower bound of.
+ *    aMapType -
  * Returns:
- *    lower bound's strenghened type
+ *    The range of cardinalities of the argument' instance.
  */
-Semantic restriction "⎣`|`|_`|`|⎦" is
+Semantic restriction "⎡_⎤" is
 [
- 	aMapTypeType : (map's type)'s type
+	aMapTypeType : map meta's type
 |
 	instance ::= aMapTypeType's instance;
-	||instance||
+	[⎣instance⎦ .. ⎡instance⎤]
 ];
 
 /**
@@ -799,3 +427,467 @@ Semantic restriction "¢…" is
 	];
 	value[1]'s type
 ];
+
+/**
+ * Disambiguate subscript of ⊥. This is a type subscript operation, such as
+ * defined for tuple types or function types, and can consistently answer ⊥.
+ * 
+ * Parameters:
+ *    bottom - ⊥.
+ *    index - The subscript (ignored).
+ * Returns:
+ *    ⊥.
+ */
+Method "_[_]" is
+[
+	bottom : ⊥'s type,
+	index : natural number
+|
+	⊥
+];
+
+/**
+ * If a lexical tuple is built only from expressions with statically well-known
+ * runtime values, then answer the instance type of the tuple that contains
+ * those statically known elements. This gives lexical tuples of literals and
+ * statically well-known elements the same force as lexical literals, e.g.,
+ * numbers and strings.
+ *
+ * Parameters:
+ *    elements -
+ * Returns:
+ *    The most specific possible type of the lexical tuple, possibly an instance
+ *    type.
+ */
+Semantic restriction "<«_‡,»>" is
+[
+	elements : tuple meta
+|
+	/* Since the argument is derived from a lexically constructed tuple, then
+	 * the cardinality of the argument is guaranteed to be a fixed, finite
+	 * value. Therefore asking for either the lower or upper bound would be
+	 * equivalent.
+	 */
+	limit ::= ⎡elements⎤;
+	accumulator : tuple := <>;
+	From 1 to limit do
+	[
+		index : natural number
+	|
+		if |elements[index]| ≠ ∞ then
+		[
+			instance ::= elements[index]'s instance;
+			/* Do not blithely construct a literal-force tuple if any of the
+			 * instances are themselves types. This prevents expressions like
+			 * `<elements[index]>` from asserting the type `<any>'s type` rather
+			 * than `<any's type…|1>`, which frequently leads to (absurd)
+			 * runtime type errors, e.g., if elements[index] has the static type
+			 * [0..5], then the return type verification nybblecode would fail
+			 * because `<[0..5]>` is not a subtype of `<any>`.
+			 */
+			if instance's type ⊆ type then
+			[
+				false
+			]
+			else
+			[
+				accumulator := concatenate <eject ↑accumulator, <instance>>;
+				true
+			]
+		]
+		else
+		[
+			false
+		]
+	];
+	if |accumulator| = limit then
+	[
+		accumulator's type
+	]
+	else
+	[
+		elements
+	]
+];
+
+/**
+ * Strengthen the tuple subscript operation. The strongest available static type
+ * is the type union of the elements within the slice indicated by the range of
+ * the subscript. Forbid any access that could never be correct, i.e., the
+ * minimum value of the subscript exceeds the maximum cardinality of the tuple.
+ *
+ * Parameters:
+ *    aTuple -
+ *    index -
+ * Returns:
+ *    The type union of the elements accessible by an actual subscript of the
+ *    specified type.
+ */
+Semantic restriction "_[_]" is
+[
+	aTupleType : tuple meta,
+	index : natural number's type
+|
+	If ⎡aTupleType⎤ < ⎣index⎦ then
+	[
+		messageTuple ::= concatenate <
+			"a subscript (",
+			primitive description of ⎣index⎦,
+			" ≤ theSubscript ≤ ",
+			primitive description of ⎡index⎤,
+			") that could ever be valid (",
+			primitive description of ⎣aTupleType⎦,
+			" ≤ |theTuple| ≤ ",
+			primitive description of ⎡aTupleType⎤,
+			")">;
+		message ::= cast messageTuple into [ t : string | t ];
+		Reject parse, expected: message
+	];
+	union : type := ⊥;
+	limit ::= cast |aTupleType's leading types| + 1
+		into [ t : natural number | t ];
+	startIndex ::= ⎣index⎦ min limit;
+	endIndex ::= ⎡index⎤ min limit;
+	From startIndex to endIndex do
+	[
+		i : natural number
+	|
+		union := union ∪ aTupleType[i];
+		true
+	];
+	union
+];
+
+/**
+ * Strengthen the tuple type subscript operation. The strongest available static
+ * type is the instance type of the type union of the elements within the slice
+ * indicated by the range of the subscript. Forbid any access that could never
+ * be correct, i.e., the minimum value of the subscript exceeds the maximum
+ * cardinality of the tuple.
+ *
+ * Parameters:
+ *    aTuple -
+ *    index -
+ * Returns:
+ *    The instance type of the type union of the elements accessible by an
+ *    actual subscript of the specified type.
+ */
+Semantic restriction "_[_]" is
+[
+	aTupleMeta : tuple meta's type,
+	index : natural number's type
+|
+	aTupleType ::= aTupleMeta's instance;
+	If ⎡aTupleType⎤ < ⎣index⎦ then
+	[
+		messageTuple ::= concatenate <
+			"a subscript (",
+			primitive description of ⎣index⎦,
+			" ≤ theSubscript ≤ ",
+			primitive description of ⎡index⎤,
+			") that could ever be valid (",
+			primitive description of ⎣aTupleType⎦,
+			" ≤ |theTuple| ≤ ",
+			primitive description of ⎡aTupleType⎤,
+			")">;
+		message ::= cast messageTuple into [ t : string | t ];
+		Reject parse, expected: message
+	];
+	union : type := ⊥;
+	limit ::= cast |aTupleType's leading types| + 1
+		into [ t : natural number | t ];
+	startIndex ::= ⎣index⎦ min limit;
+	endIndex ::= ⎡index⎤ min limit;
+	From startIndex to endIndex do
+	[
+		i : natural number
+	|
+		union := union ∪ aTupleType[i];
+		true
+	];
+	union's type
+];
+
+/* Disambiguate `∪_` and `∪_[_.._]` by forbidding `_[_.._]` as the only argument
+ * of the former.
+ */
+Invoke
+[
+	cast ::= [ t : {string|whole number} | t ];
+	names ::= cast <"∪_">→set into cast;
+	exclusions ::= cast <"_[_.._]">→set into cast;
+	Grammatical restriction names is <exclusions>;
+]
+with <>;
+
+/**
+ * If a lexical set is built only from expressions with statically well-known
+ * runtime values, then answer the instance type of the set that contains
+ * those statically known elements. This gives lexical sets of literals and
+ * statically well-known elements the same force as lexical literals, e.g.,
+ * numbers and strings.
+ *
+ * Parameters:
+ *    elements -
+ * Returns:
+ *    The most specific possible type of the lexical set, possibly an instance
+ *    type.
+ */
+Semantic restriction "{«_‡,»}" is
+[
+	elements : <<>, any…|natural number>'s type
+|
+	/* Since the argument is derived from a lexically constructed tuple, then
+	 * the cardinality of the argument is guaranteed to be a fixed, finite
+	 * value. Therefore asking for either the lower or upper bound would be
+	 * equivalent.
+	 */
+	limit ::= ⎡elements⎤;
+	accumulator : tuple := <>;
+	/* Check to see if the elements are instance types. */
+	From 1 to limit do
+	[
+		index : natural number
+	|
+		element ::= elements[index];
+		if |elements[index]| ≠ ∞ then
+		[
+			instance ::= elements[index]'s instance;
+			/* Do not blithely construct a literal-force tuple if any of the
+			 * instances are themselves types. This prevents expressions like
+			 * `{elements[index]}` from asserting the type `{any}'s type` rather
+			 * than `{any's type|1}`, which frequently leads to (absurd)
+			 * runtime type errors, e.g., if elements[index] has the static type
+			 * [0..5], then the return type verification nybblecode would fail
+			 * because `{[0..5]}` is not a subtype of `{any}`.
+			 */
+			if instance's type ⊆ type then
+			[
+				false
+			]
+			else
+			[
+				accumulator := concatenate <eject ↑accumulator, <instance>>;
+				true
+			]
+		]
+		else
+		[
+			false
+		]
+	];
+	/* If the elements were all instance types, then answer an instance type. */
+	if |accumulator| = limit then
+	[
+		(accumulator→set)'s type
+	]
+	/* Otherwise, the answer cannot be an instance type. Compute the most
+	 * precise possible set type.
+	 */
+	else
+	[
+		/* Build a tuple of distinct types encountered during a traversal of
+		 * `elements`. Two types are distinct in this sense if they have no
+		 * common descendants more general than ⊥. This establishes a lower
+		 * bound on the answer's cardinality requirement.
+		 *
+		 * Also note what types have been encountered along the way. At the end
+		 * they will be put into a set to effect deduplication of exact type
+		 * matches. This set establishes an upper bound on the answer's
+		 * cardinality requirement.
+		 */
+		types : tuple of type := <elements[1]>;
+		distinct : tuple of type := <elements[1]>;
+		From 2 to limit do
+		[
+			outerIndex : natural number
+		|
+			element ::= elements[outerIndex];
+			types := cast concatenate <eject ↑types, <element>>
+				into [ t : tuple of type | t ];
+			isDistinct : boolean := true;
+			From 1 to |distinct| do
+			[
+				innerIndex : natural number
+			|
+				if element ∩ distinct[innerIndex] ≠ ⊥ then
+				[
+					isDistinct := false;
+					false
+				]
+				else
+				[
+					true
+				]
+			];
+			If isDistinct then
+			[
+				distinct := cast concatenate <eject ↑distinct, <element>> into
+					[ t : tuple of type | t ];
+			];
+			true
+		];
+		lower ::= |distinct|;
+		upper ::= |types| + 1;
+		union ::= cast ∪ types into [ t : any's type | t ];
+		{union | [lower..upper)}
+	]
+];
+
+/**
+ * Construct and answer a map from the lexically specified key-value bindings.
+ * 
+ * Parameters:
+ *    bindings - The key-value bindings that constitute the answer.
+ * Returns:
+ *    A map comprising the specified key-value bindings.
+ */
+Public method "{«_→_‡,»}" is
+[
+	bindings : key-value tuple
+|
+	bindings→map
+] : map;
+
+/**
+ * If a lexical map is built only from expressions with statically well-known
+ * runtime values, then answer the instance type of the map that contains
+ * those statically known elements. This gives lexical maps of literals and
+ * statically well-known elements the same force as lexical literals, e.g.,
+ * numbers and strings.
+ *
+ * Parameters:
+ *    elements -
+ * Returns:
+ *    The most specific possible type of the lexical set, possibly an instance
+ *    type.
+ */
+Semantic restriction "{«_→_‡,»}" is
+[
+	bindings : key-value tuple's type
+|
+	/* Since the argument is derived from a lexically constructed tuple, then
+	 * the cardinality of the argument is guaranteed to be a fixed, finite
+	 * value. Therefore asking for either the lower or upper bound would be
+	 * equivalent.
+	 */
+	limit ::= ⎡bindings⎤;
+	accumulator : <<>, <<>, any…|[2..2]>… |whole number> := <>;
+	/* Check to see if keys and values are all instance types. */
+	From 1 to limit do
+	[
+		index : natural number
+	|
+		binding ::= bindings[index];
+		if |binding[1]| ≠ ∞ then
+		[
+			instanceK ::= binding[1]'s instance;
+			if |binding[2]| ≠ ∞ then
+			[
+				instanceV ::= binding[2]'s instance;
+				/* Do not blithely construct a literal-force tuple if any of the
+				 * instances are themselves types. This prevents expressions
+				 * like `{index→elements[index]}` from asserting the type
+				 * `{natural number→any}'s type` rather than
+				 * `{natural number's type→any's type|1}`, which frequently
+				 * leads to (absurd) runtime type errors.
+				 */
+				if instanceK's type ⊆ type ∨ [ instanceV's type ⊆ type ] then
+				[
+					false
+				]
+				else
+				[
+					accumulator :=
+						cast concatenate
+							<eject ↑accumulator, <<instanceK, instanceV>>>
+						into
+						[
+							t : <<>, <<>, any…|[2..2]>… |whole number>
+						|
+							t
+						];
+					true
+				]
+			]
+			else
+			[
+				false
+			]
+		]
+		else
+		[
+			false
+		]
+	];
+	/* If the keys and values were all instance types, then answer an instance
+	 * type.
+	 */
+	if |accumulator| = limit then
+	[
+		(accumulator→map)'s type
+	]
+	/* Otherwise, the answer cannot be an instance type. Compute the most
+	 * precise possible map type.
+	 */
+	else
+	[
+		/* Build a tuple of distinct key types encountered during a traversal of
+		 * `bindings`. Two key types are distinct in this sense if they have no
+		 * common descendants more general than ⊥. This establishes a lower
+		 * bound on the answer's cardinality requirement.
+		 *
+		 * Also note what key types have been encountered along the way. At the
+		 * end they will be put into a set to effect deduplication of exact type
+		 * matches. This set establishes an upper bound on the answer's
+		 * cardinality requirement.
+		 */
+		firstBinding ::= bindings[1];
+		firstKeyType ::= firstBinding[1];
+		distinct : tuple of type := <firstKeyType>;
+		keyTypes : tuple of type := <firstKeyType>;
+		valueTypes : tuple of type := <firstBinding[2]>;
+		From 2 to limit do
+		[
+			outerIndex : natural number
+		|
+			binding ::= bindings[outerIndex];
+			keyType ::= binding[1];
+			keyTypes := cast concatenate <eject ↑keyTypes, <keyType>>
+				into [ t : tuple of type | t ];
+			valueTypes := cast concatenate <eject ↑valueTypes, <binding[2]>>
+				into [ t : tuple of type | t ];
+			isDistinct : boolean := true;
+			From 1 to |distinct| do
+			[
+				innerIndex : natural number
+			|
+				if keyType ∩ distinct[innerIndex] ≠ ⊥ then
+				[
+					isDistinct := false;
+					false
+				]
+				else
+				[
+					true
+				]
+			];
+			If isDistinct then
+			[
+				distinct := cast concatenate <eject ↑distinct, <keyType>>
+					into [ t : tuple of type | t ];
+			];
+			true
+		];
+		lower ::= |distinct|;
+		upper ::= |keyTypes| + 1;
+		unionK ::= cast ∪ keyTypes into [ t : any's type | t ];
+		unionV ::= cast ∪ valueTypes into [ t : any's type | t ];
+		{unionK → unionV | [lower..upper)}
+	]
+];
+
+/* Forbid nesting the cardinality range accessor into the lower and upper
+ * bounds operations.
+ */
+Grammatical restriction {"⎣_⎦", "⎡_⎤"} is <{"`|`|_`|`|"}>;

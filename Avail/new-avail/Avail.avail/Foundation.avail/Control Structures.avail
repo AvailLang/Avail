@@ -964,7 +964,7 @@ Semantic restriction "If|if_then_«else if_then_»«else_»" is
 		 */
 		If keepLooping then
 		[
-			If ⎣||else||⎦ = 1 then
+			If ⎣else⎦ = 1 then
 			[
 				elseReturnType ::= else[1]'s return type;
 				If ¬ambiguous then
@@ -1271,7 +1271,7 @@ Semantic restriction "Unless|unless_then_«else unless_then_»«else_»" is
 		 */
 		If keepLooping then
 		[
-			If ⎣||else||⎦ = 1 then
+			If ⎣else⎦ = 1 then
 			[
 				elseReturnType ::= else[1]'s return type;
 				If ¬ambiguous then
@@ -1774,7 +1774,7 @@ Semantic restriction "Cast|cast_into«_‡or»«else_»" is
 		];
 		union := eject ↑union ∪ functionType's return type;
 	];
-	If ⎣||else||⎦ = 1 then
+	If ⎣else⎦ = 1 then
 	[
 		union := eject ↑union ∪ else[1]'s return type;
 	];
@@ -1915,7 +1915,7 @@ Semantic restriction "Choose|choose_from_where«_is_‡and»«and others are_»"
 			union := eject ↑union ∪ case[2]'s return type;
 		];
 	];
-	If caseEnum ≠ enum ∧ [ ⎣||else||⎦ ≠ 1 ] then
+	If caseEnum ≠ enum ∧ [ ⎣else⎦ ≠ 1 ] then
 	[
 		allCases ::= enum's instances;
 		handledCases ::= caseEnum's instances;

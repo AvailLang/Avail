@@ -153,7 +153,7 @@ Private method "Require:_accepts_" is
 	action : function meta,
 	tupleType : tuple meta
 |
-	If ⎣||action's parameters' type||⎦ < 1 then
+	If ⎣action's parameters' type⎦ < 1 then
 	[
 		Reject parse, expected:
 			"repeatedly applied function to accept at least one argument"
@@ -168,9 +168,9 @@ Private method "Require:_accepts_" is
 			++ primitive description of action[1]
 			++ ")"
 	];
-	If ⎣||action's parameters' type||⎦ = 2
+	If ⎣action's parameters' type⎦ = 2
 		∧ [ action[2] ≠ ⊥
-		∧ [ ¬[1..⎡||tupleType||⎤ + 1) ⊆ action[2] ] ]
+		∧ [ ¬[1..⎡tupleType⎤ + 1) ⊆ action[2] ] ]
 	then
 	[
 		Reject parse, expected:
@@ -199,7 +199,7 @@ Semantic restriction "For each_do_" is
 	action : function meta
 |
 	Require: action accepts tupleType;
-	if ⎣||tupleType||⎦ > 0 ∧ [ action's return type = ⊥ ] then
+	if ⎣tupleType⎦ > 0 ∧ [ action's return type = ⊥ ] then
 	[
 		⊥
 	]
@@ -293,7 +293,7 @@ Semantic restriction "map_through_" is
 	transformer : […]→any's type
 |
 	Require: transformer accepts tupleType;
-	If ⎣||tupleType||⎦ > 0 then
+	If ⎣tupleType⎦ > 0 then
 	[
 		If transformer's return type = ⊥ then
 		[
@@ -404,7 +404,7 @@ Semantic restriction "filter_by_" is
 		union ::= ∪ tupleType[1..|tupleType's leading types| + 1];
 		sizes ::=
 			if predicate's return type = false's type then [ 0's type ]
-			else [ [0..⎡||tupleType||⎤ + 1) ];
+			else [ [0..⎡tupleType⎤ + 1) ];
 		<<>, union…|sizes>
 	]
 ];
@@ -520,7 +520,7 @@ Method "map and filter_by_" is
  * Returns:
  *    A tuple type with no leading types whose default type is the argument type
  *    of the keeper function and whose cardinality is
- *    `[0..⎡||tupleType||⎤ + 1)`.
+ *    `[0..⎡tupleType⎤ + 1)`.
  */
 Semantic restriction "map and filter_by_" is
 [
@@ -546,7 +546,7 @@ Semantic restriction "map and filter_by_" is
 	<
 		<>,
 		cast accumulator[2] into [ t : function meta | t[1] ]…
-		| [0..⎡||tupleType||⎤ + 1)
+		| [0..⎡tupleType⎤ + 1)
 	>
 ];
 
@@ -560,7 +560,7 @@ Semantic restriction "map and filter_by_" is
  * Returns:
  *    A tuple type with no leading types whose default type is the argument type
  *    of the keeper function and whose cardinality is
- *    `[0..⎡||tupleType||⎤ + 1)`.
+ *    `[0..⎡tupleType⎤ + 1)`.
  */
 Semantic restriction "map and filter_by_" is
 [
@@ -578,7 +578,7 @@ Semantic restriction "map and filter_by_" is
 			++ ")"
 	];
 	If accumulator[2] ≠ ⊥
-		∧ [ ¬[1..⎡||tupleType||⎤ + 1) ⊆ accumulator[2] ]
+		∧ [ ¬[1..⎡tupleType⎤ + 1) ⊆ accumulator[2] ]
 	then
 	[
 		Reject parse, expected:
@@ -597,7 +597,7 @@ Semantic restriction "map and filter_by_" is
 	<
 		<>,
 		cast accumulator[2] into [ t : function meta | t[1] ]…
-		| [0..⎡||tupleType||⎤ + 1)
+		| [0..⎡tupleType⎤ + 1)
 	>
 ];
 
@@ -805,7 +805,7 @@ Method "count of_where_" is
  *    tupleType -
  *    predicate -
  * Returns:
- *    `[0..⎡||tupleType||⎤ + 1)`.
+ *    `[0..⎡tupleType⎤ + 1)`.
  */
 Semantic restriction "count of_where_" is
 [
@@ -813,7 +813,7 @@ Semantic restriction "count of_where_" is
 	predicate : […]→boolean's type
 |
 	Require: predicate accepts tupleType;
-	[0..⎡||tupleType||⎤ + 1)
+	[0..⎡tupleType⎤ + 1)
 ];
 
 /**
@@ -942,7 +942,7 @@ Private method "zip semantic restriction" is
 				[
 					tupleType : tuple meta
 				|
-					⎣||tupleType||⎦
+					⎣tupleType⎦
 				];
 			/* Find the smallest of the upper bounds of the inputs. */
 			upper ::=
@@ -950,7 +950,7 @@ Private method "zip semantic restriction" is
 				[
 					tupleType : tuple meta
 				|
-					⎡||tupleType||⎤
+					⎡tupleType⎤
 				];
 			/* Find the maximum number of element types to scan. */
 			limit ::=
@@ -1221,7 +1221,7 @@ Public method "first index of_where_" is
  *    tupleType -
  *    predicate -
  * Returns:
- *    `[0..⎡||tupleType||⎤ + 1)`.
+ *    `[0..⎡tupleType⎤ + 1)`.
  */
 Semantic restriction "first index of_where_" is
 [
@@ -1229,7 +1229,7 @@ Semantic restriction "first index of_where_" is
 	predicate : [⊥]→boolean's type
 |
 	Require: predicate accepts tupleType;
-	[0..⎡||tupleType||⎤ + 1)
+	[0..⎡tupleType⎤ + 1)
 ];
 
 /**
@@ -1268,7 +1268,7 @@ Public method "last index of_where_" is
  *    tupleType -
  *    predicate -
  * Returns:
- *    `[0..⎡||tupleType||⎤ + 1)`.
+ *    `[0..⎡tupleType⎤ + 1)`.
  */
 Semantic restriction "last index of_where_" is
 [
@@ -1276,7 +1276,7 @@ Semantic restriction "last index of_where_" is
 	predicate : [⊥]→boolean's type
 |
 	Require: predicate accepts tupleType;
-	[0..⎡||tupleType||⎤ + 1)
+	[0..⎡tupleType⎤ + 1)
 ];
 
 /**
@@ -1592,7 +1592,7 @@ Semantic restriction "split_after_" is
 	tupleType : tuple meta,
 	pivot : whole number's type
 |
-	If ⎣pivot⎦ > ⎡||tupleType||⎤ then
+	If ⎣pivot⎦ > ⎡tupleType⎤ then
 	[
 		Reject parse, expected:
 			"pivot ∈ "
@@ -1652,7 +1652,7 @@ Semantic restriction "split_before_" is
 	tupleType : tuple meta,
 	pivot : natural number's type
 |
-	If ⎣pivot⎦ > ⎡||tupleType||⎤ + 1 then
+	If ⎣pivot⎦ > ⎡tupleType⎤ + 1 then
 	[
 		Reject parse, expected:
 			"pivot ∈ "
@@ -1721,7 +1721,7 @@ Semantic restriction "split_before_" is
 |
 	Require: predicate accepts tupleType;
 	returnType ::= predicate's return type;
-	if ⎡||tupleType||⎤ = 0 then
+	if ⎡tupleType⎤ = 0 then
 	[
 		<<>, <>>'s type
 	]
@@ -1782,7 +1782,7 @@ Semantic restriction "stripe_at_" is
 			typeIndex : natural number
 		|
 			innerType ::= tupleType[typeIndex];
-			If ⎣index⎦ > ⎡||innerType||⎤ then
+			If ⎣index⎦ > ⎡innerType⎤ then
 			[
 				Reject parse, expected:
 					"a subscript ("
@@ -1790,9 +1790,9 @@ Semantic restriction "stripe_at_" is
 					++ " ≤ theSubscript ≤ "
 					++ primitive description of ⎡index⎤
 					++ ") that could ever be valid ("
-					++ primitive description of ⎣||innerType||⎦
+					++ primitive description of ⎣innerType⎦
 					++ " ≤ |theTuple| ≤ "
-					++ primitive description of ⎡||innerType||⎤
+					++ primitive description of ⎡innerType⎤
 					++ ")"
 			];
 			union : any meta := ⊥;
@@ -1836,7 +1836,7 @@ Semantic restriction "_[_]→_" is
 	$body : tuple meta;
 	indexLower ::= cast ⎣indexType⎦ into
 		[ t : natural number | t ];
-	If indexLower > ⎡||tupleType||⎤ then
+	If indexLower > ⎡tupleType⎤ then
 	[
 		Reject parse, expected:
 			"a subscript ("
@@ -1844,9 +1844,9 @@ Semantic restriction "_[_]→_" is
 			++ " ≤ theSubscript ≤ "
 			++ primitive description of ⎡indexType⎤
 			++ ") that could ever be valid ("
-			++ primitive description of ⎣||tupleType||⎦
+			++ primitive description of ⎣tupleType⎦
 			++ " ≤ |theTuple| ≤ "
-			++ primitive description of ⎡||tupleType||⎤
+			++ primitive description of ⎡tupleType⎤
 			++ ")"
 	];
 	/* Use instance types if possible. */
@@ -1901,7 +1901,7 @@ Semantic restriction "_[_]→_" is
 		 * default type. Extend the leading types to account for the new
 		 * element.
 		 */
-		If indexUpper < ⎡||tupleType||⎤ then
+		If indexUpper < ⎡tupleType⎤ then
 		[
 			newType ::= if |{indexLower, indexUpper}| = 1
 				then [ valueType ]
@@ -2077,15 +2077,15 @@ Semantic restriction "flatten_" is
 			tupleTypes := tupleTypes ++ 
 				cast t's leading types into [r : <tuple's type…|> | r] ++
 				<cast t's default type into [r : tuple's type | r]>;
-			totalUpperBound := totalUpperBound + ⎡||t||⎤;
-			totalLowerBound := totalLowerBound + ⎣||t||⎦;
+			totalUpperBound := totalUpperBound + ⎡t⎤;
+			totalLowerBound := totalLowerBound + ⎣t⎦;
 		];
 		card ::= [totalLowerBound..totalUpperBound);
 		firstLower : [0..∞);
 		finalDefaultType : any's type; 
 		finalLeadingTypes ::= if |leadingTypes| ≥ 1 then
 		[
-			firstLower := ⎣||leadingTypes[1]||⎦;
+			firstLower := ⎣leadingTypes[1]⎦;
 			if firstLower > 0 then 
 			[
 				finalDefaultType := 
@@ -2190,8 +2190,8 @@ Semantic restriction "_'s⁇tail" is
 	leadingTypes ::= aTupleType's leading types;
 	defaultType ::= aTupleType's default type;
 	sizeLeadingTypes ::= |leadingTypes|;
-	bound ::= ⎡||aTupleType||⎤;
-	lower ::= ⎣||aTupleType||⎦;
+	bound ::= ⎡aTupleType⎤;
+	lower ::= ⎣aTupleType⎦;
 	if sizeLeadingTypes > 1 then
 	[
 		<leadingTypes[2..sizeLeadingTypes], defaultType…|[lower-1..bound)>
@@ -2229,7 +2229,7 @@ Semantic restriction "_'s⁇last" is
 [
 	aTupleType : <any…|1..∞>'s type
 |
-	lower ::= ⎣||aTupleType||⎦;
+	lower ::= ⎣aTupleType⎦;
 	maximum ::= relevant |aTupleType|;
 	∪ aTupleType[lower..maximum]
 ];
@@ -2265,7 +2265,7 @@ Semantic restriction "∑_" is
 	leading ::= intTupleType's leading types;
 	defaultType ::= intTupleType's default type;
 	leadingSize ::= |leading|;
-	lowIndex ::= leadingSize min ⎣||leading's type||⎦;
+	lowIndex ::= leadingSize min ⎣leading's type⎦;
 	lowBound ::=
 		if leadingSize > 0 then
 		[
@@ -2276,12 +2276,12 @@ Semantic restriction "∑_" is
 				x ::= cast i into [it : integer's type | it];
 				cast (⎣x⎦) into [n : integer | n]
 			]) into [iTuple : <integer…|1..∞> | iTuple])) +
-				((⎣||intTupleType||⎦ - lowIndex) max 0) ×
+				((⎣intTupleType⎦ - lowIndex) max 0) ×
 				⎣defaultType⎦
 		]
 		else
 		[
-			((⎣||intTupleType||⎦) max 0) × ⎣defaultType⎦
+			((⎣intTupleType⎦) max 0) × ⎣defaultType⎦
 		];
 	upBound ::=
 		if leadingSize > 0 then 
@@ -2294,11 +2294,11 @@ Semantic restriction "∑_" is
 				cast (⎡x⎤) into [n : integer | n]
 			]) into [iTuple : <integer…|1..∞> | iTuple])) +
 				⎡intTupleType's default type⎤ ×
-				(⎡||intTupleType||⎤ - leadingSize)
+				(⎡intTupleType⎤ - leadingSize)
 		]
 		else
 		[
-			⎡intTupleType's default type⎤ × (⎡||intTupleType||⎤ - leadingSize)
+			⎡intTupleType's default type⎤ × (⎡intTupleType⎤ - leadingSize)
 		];
 	[lowBound..upBound+1)
 ];
@@ -2341,7 +2341,7 @@ Semantic restriction "∏_" is
 	leading ::= intTupleType's leading types;
 	defaultType ::= intTupleType's default type;
 	leadingSize ::= |leading|;
-	lowIndex ::= leadingSize min ⎣||leading's type||⎦;
+	lowIndex ::= leadingSize min ⎣leading's type⎦;
 	lowBound ::= if leadingSize > 0 then 
 	[
 		m ::=  map leading[1..lowIndex] through
@@ -2358,7 +2358,7 @@ Print: "y=";
 Print: primitive description of y;
 
 		z::=y × (⎣defaultType⎦ ^ 
-				((⎣||intTupleType||⎦ - lowIndex) max 0));
+				((⎣intTupleType⎦ - lowIndex) max 0));
 Print: "z=";
 Print: primitive description of z;
 		z
@@ -2367,7 +2367,7 @@ Print: primitive description of z;
 	else
 	[
 		⎣defaultType⎦ ^ 
-				((⎣||intTupleType||⎦ - lowIndex) max 0)
+				((⎣intTupleType⎦ - lowIndex) max 0)
 	];
 	upBound ::= if leadingSize > 0 then 
 	[
@@ -2379,12 +2379,12 @@ Print: primitive description of z;
 			cast (⎡x⎤) into [n : integer | n]
 		]) into [iTuple : <integer…|1..∞> | iTuple] )) × 
 			((⎡intTupleType's default type⎤) ^
-			(⎡||intTupleType||⎤ - leadingSize))
+			(⎡intTupleType⎤ - leadingSize))
 	]
 	else
 	[
 		((⎡intTupleType's default type⎤) ^
-			(⎡||intTupleType||⎤ - leadingSize))
+			(⎡intTupleType⎤ - leadingSize))
 	];
 	[lowBound..upBound+1)
 ];*/

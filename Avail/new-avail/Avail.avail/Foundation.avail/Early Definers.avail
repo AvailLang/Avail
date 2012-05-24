@@ -234,3 +234,34 @@ Semantic restriction "Public atom is_" is
 	];
 	⊤
 ];
+
+/**
+ * Define the indicated grammatical restrictions. Each element `e` of
+ * `exclusions`, itself a set of method names, corresponds to an argument
+ * position `n` of `methodName`. The compiler rejects parses of source text that
+ * invoke methods named in `e` when they occur grammatically at argument
+ * position `n` of an invocation of the method named by `methodName`.
+ *
+ * Note that "argument position" corresponds to a blank, not to a top-level
+ * repeating sequence (indicated by guillemet notation).
+ *
+ * Parameters:
+ *    methodsName - The name of the method which should be restricted.
+ *    exclusions - A tuple of sets of method names. The method names in the
+ *       `n`-th set are restricted from occurring grammatically at the `n`-th
+ *       argument position of any invocation of the method named by
+ *       `methodName`.
+ */
+Method "Grammatical restriction_is_" is
+[
+	methodName : string,
+	exclusions : tuple of set of string
+|
+	Invoke
+	[
+		methodsToRestrict : set of string
+	|
+		Grammatical restriction methodsToRestrict is exclusions;
+	]
+	with <{methodName}>;
+] : ⊤;

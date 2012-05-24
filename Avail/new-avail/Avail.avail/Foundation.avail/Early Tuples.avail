@@ -104,7 +104,7 @@ Public method "«_‡++»" is
 ] : tuple;
 
 /* Don't parse `«_‡++»` recursively. */
-Grammatical restriction {"«_‡++»"} is <{"«_‡++»"}>;
+Grammatical restriction "«_‡++»" is <{"«_‡++»"}>;
 
 /**
  * Strengthen the lexical tuple concatenation operation.
@@ -119,9 +119,7 @@ Semantic restriction "«_‡++»" is
 	tuplesType : <<>, tuple…|[2..∞)>'s type
 |
 	result : tuple meta := <>'s type;
-	exactSize ::= cast ⎡||tuplesType||⎤
-		into [ t : natural number | t ];
-	From 1 to exactSize do
+	From 1 to ⎡tuplesType⎤ do
 	[
 		index : natural number
 	|
@@ -145,7 +143,7 @@ Public method "relevant`|_`|" is
 [
 	tupleType : tuple meta
 |
-	lower ::= ⎣||tupleType||⎦ max 0;
+	lower ::= ⎣tupleType⎦ max 0;
 	count ::= |tupleType's leading types| + 1;
 	cast lower min count into [ t : whole number | t ]
 ] : whole number;
@@ -186,7 +184,7 @@ Public method "tuple type of_[_.._]" is
 	maxStart ::= 1 max ⎡sliceStart⎤;
 	minEnd ::= 0 max ⎣sliceEnd⎦;
 	maxEnd ::= 0 max ⎡sliceEnd⎤;
-	tupleEnd ::= ⎡||aTupleType||⎤;
+	tupleEnd ::= ⎡aTupleType⎤;
 	/* If all possible slices are out of bounds, then answer ⊥. */
 	If minEnd > tupleEnd then
 	[
@@ -196,7 +194,7 @@ Public method "tuple type of_[_.._]" is
 			++ " ≤ sliceEnd ≤ "
 			++ primitive description of maxEnd
 			++ ") that could ever be valid ("
-			++ primitive description of ⎣||aTupleType||⎦
+			++ primitive description of ⎣aTupleType⎦
 			++ " ≤ |theTuple| ≤ "
 			++ primitive description of tupleEnd
 			++ ")"
@@ -417,11 +415,11 @@ Semantic restriction "concatenate_" is
 	If ⎡sizes⎤ is infinite then
 	[
 		slice ::= result[1 ..
-			cast ⎡||result||⎤ into [ t : whole number | t ]];
+			cast ⎡result⎤ into [ t : whole number | t ]];
 		default ::= tupleType's default type;
 		union ::= ∪ default[1 ..
 			cast |default's leading types| + 1 into [ t : whole number | t ]];
-		result := <slice, union… | [⎣||result||⎦..∞)>;
+		result := <slice, union… | [⎣result⎦..∞)>;
 	];
 	result
 ];
@@ -450,12 +448,12 @@ Semantic restriction "_→set" is
 		/* If the tuple could be empty, then so could the set. Otherwise, the
 		 * set must contain at least one element.
 		 */
-		lower ::= ⎣||tupleType||⎦ min 1;
+		lower ::= ⎣tupleType⎦ min 1;
 		typeLimit ::= cast |tupleType's leading types| + 1
 			into [ t : natural number | t ];
-		{∪ tupleType[1..typeLimit] | [lower..⎡||tupleType||⎤ + 1)}
+		{∪ tupleType[1..typeLimit] | [lower..⎡tupleType⎤ + 1)}
 	]
 ];
 
 /* Disambiguate `_→_` and `_→tuple`. */
-Grammatical restriction {"_→_"} is <∅, {"tuple"}>;
+Grammatical restriction "_→_" is <∅, {"tuple"}>;

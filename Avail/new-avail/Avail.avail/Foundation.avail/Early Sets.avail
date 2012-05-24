@@ -76,14 +76,14 @@ Semantic restriction "_∪_" is
 	typeA : set's type,
 	typeB : set's type
 |
-	lower ::= ⎣||typeA||⎦ min ⎣||typeB||⎦;
-	upper ::= cast ⎡||typeA||⎤ + ⎡||typeB||⎤
+	lower ::= ⎣typeA⎦ min ⎣typeB⎦;
+	upper ::= cast ⎡typeA⎤ + ⎡typeB⎤
 		into [ t : [0..∞] | t ];
 	{typeA's element type ∪ typeB's element type | [lower..upper + 1)}
 ];
 
 /* Make union left associate. */
-Grammatical restriction {"_∪_"} is <∅, {"_∪_"}>;
+Grammatical restriction "_∪_" is <∅, {"_∪_"}>;
 
 /**
  * The static type of the union of two sets is the set type whose element type
@@ -103,7 +103,7 @@ Semantic restriction "_∩_" is
 	typeB : set's type
 |
 	innerType ::= typeA's element type ∩ (typeB's element type);
-	upper : [0..∞] := ⎡||typeA||⎤ min ⎡||typeB||⎤;
+	upper : [0..∞] := ⎡typeA⎤ min ⎡typeB⎤;
 	If |innerType| ≠ ∞ ∧ [innerType ∩ (type's type) ≠ ⊥] then
 	[
 		/* There are a limited number of possible values. */
@@ -113,7 +113,7 @@ Semantic restriction "_∩_" is
 ];
 
 /* Make intersection left associate. */
-Grammatical restriction {"_∩_"} is <∅, {"_∩_"}>;
+Grammatical restriction "_∩_" is <∅, {"_∩_"}>;
 
 /**
  * Strengthen `_⊆_`.
@@ -205,7 +205,7 @@ Semantic restriction "_∈_" is
 		]
 		else
 		[
-			if |elementType| = ⎣||setType||⎦
+			if |elementType| = ⎣setType⎦
 				∧ [ valueType ⊆ elementType ] then
 			[
 				true's type
@@ -243,15 +243,15 @@ Semantic restriction "_\\_" is
 		subtrahendUpper ::= 
 			if minuendType's element type ∩ (subtrahendType's element type) = ⊥
 			then [ 0 ]
-			else [ ⎡||subtrahendType||⎤ ];
-		lower ::= cast (⎣||minuendType||⎦ - subtrahendUpper) max 0
+			else [ ⎡subtrahendType⎤ ];
+		lower ::= cast (⎣minuendType⎦ - subtrahendUpper) max 0
 			into [ t : whole number | t ];
-		{minuendType's element type | lower..⎡||minuendType||⎤}
+		{minuendType's element type | lower..⎡minuendType⎤}
 	]
 ];
 
 /* Disambiguate `_→_` and `_→set`. */
-Grammatical restriction {"_→_"} is <∅, {"set"}>;
+Grammatical restriction "_→_" is <∅, {"set"}>;
 
 /* Make various boolean-valued set (and type) operations bind more tightly than
  * logical negation.

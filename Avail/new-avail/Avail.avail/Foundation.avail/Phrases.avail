@@ -50,7 +50,7 @@ Names
 Body
 
 /* Make "_'s type" bind more tightly than phrase type construction. */
-Grammatical restriction {"_⇒_"} is <∅, {"_'s⁇type"}>;
+Grammatical restriction "_⇒_" is <∅, {"_'s⁇type"}>;
 
 /**
  * Construct and answer a (synthetic) literal token whose artificial source text

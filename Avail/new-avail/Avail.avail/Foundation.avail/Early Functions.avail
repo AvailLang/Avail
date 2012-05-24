@@ -197,7 +197,7 @@ Semantic restriction "_[_]" is
 	]
 	else
 	[
-		limit ::= cast ⎡||parametersType||⎤
+		limit ::= cast ⎡parametersType⎤
 			into [ t : natural number | t ];
 		start ::= cast ⎣index⎦
 			into [ t : natural number | t ];
@@ -210,7 +210,7 @@ Semantic restriction "_[_]" is
 				++ primitive description of ⎡index⎤
 				++ ") that could ever be valid ("
 				++ primitive description of
-					⎣||parametersType||⎦
+					⎣parametersType⎦
 				++ " ≤ |theFunctionType| ≤ "
 				++ primitive description of limit
 				++ ")"

@@ -72,19 +72,23 @@ Forward method "-_" is [number]→number;
 	negation ::= {"-_"};
 	abs      ::= {"`|_`|"};
 	power    ::= {"_^_"};
+	bounds    ::= {"⎣_⎦", "⎡_⎤"};
 
 	sumAndProduct ::= sum ∪ product;
 
 	/* Establish the standard grammatical rules for arithmetic. */
 	Grammatical restriction product is <sum, sumAndProduct>;
 	Grammatical restriction negation is <sumAndProduct ∪ {"∞"}>;
-	
+
 	/* Establish the precedence of exponentiation. */
 	Grammatical restriction power is
 		<sum ∪ product ∪ negation ∪ power, sum ∪ product>;
 
 	/* Forbid nesting of absolute value. */
 	Grammatical restriction abs is <abs>;
+
+	/* Forbid nesting of floor and ceiling. */
+	Grammatical restriction bounds is <bounds>;
 ]();
 
 /* These messages describe arithmetic failure (integers only). */
@@ -804,7 +808,7 @@ Semantic restriction "_mod_" is
 ];
 
 /* Disambiguate `_→_` and several conversion operations. */
-Grammatical restriction {"_→_"} is <∅, {"double", "extended integer", "float"}>;
+Grammatical restriction "_→_" is <∅, {"double", "extended integer", "float"}>;
 
 /**
  * Compute and answer the absolute value of the argument.
@@ -943,7 +947,7 @@ Private method "comparison chain semantic restriction function" is
 	[
 		args : <<number, boolean…|1..4>…|3..∞>'s type
 	|
-		exactSize ::= ⎣||args||⎦ - 1;
+		exactSize ::= ⎣args⎦ - 1;
 		From 1 to exactSize do
 		[
 			index : natural number
@@ -1262,7 +1266,7 @@ Semantic restriction "_(base_)" is
 	baseType : [2..36]'s type,
 	digitsType : string's type
 |
-	maxStringSize ::= ⎡||digitsType||⎤;
+	maxStringSize ::= ⎡digitsType⎤;
 	if maxStringSize is finite then [
 		/* Compute a rough bound based on the string size and base. */
 		finiteMaxStringSize ::= cast maxStringSize into [w : whole number | w];
