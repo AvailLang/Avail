@@ -74,6 +74,28 @@ Public method "«_‡=»" is
 	|aTuple→set| = 1
 ] : boolean;
 
+/**
+ * If there is no valid type intersection (the result of any type intersection 
+ * operation is ⊥) between the types in the tuple, then the equality comparison
+ * will always fail.
+ */
+Semantic restriction "«_‡=»" is
+[
+	aTupleType : <any…|3..>'s type
+|
+	$body : type;
+	intersectionType : type := ⊤;
+	From 1 to |aTupleType's leading types|+1 do
+	[
+		index : natural number
+	|
+		intersectionType := (eject ↑intersectionType) ∩ (aTupleType[index]);
+		If intersectionType = ⊥ then [Exit body with false's type];
+		true
+	];
+	⊤
+] : type;
+
 /* Disallow mixing and recursive parsing of equality operations. */
 [
 	restrictions ::= {"«_‡=»", "_=_", "«_‡«=»?«≤»?«<»?»", "«_‡«=»?«≥»?«>»?»"};
@@ -487,7 +509,8 @@ Semantic restriction "_←_" is
 
 /**
  * Compute and answer the logical biconditional of the arguments. This is the
- * negation of XOR and equivalent to (`a` ∧ `b`) ∨ ((¬`a`) ∧ ¬`b`).
+ * negation of XOR and equivalent to (`a` ∧ `b`) ∨ ((¬`a`) ∧ ¬`b`), which is
+ * a = b.
  *
  * Parameters:
  *    a - A boolean.
@@ -500,8 +523,26 @@ Public method "_↔_" is
 	a : boolean,
 	b : boolean
 |
-	(a ∧ [b]) ∨ [(¬a) ∧ [¬b]]
+	a = b
 ] : boolean;
+
+/**
+ * Type can be strengthened as long as neither argument is of type boolean.
+ */
+Semantic restriction "_↔_" is
+[
+	aType : boolean's type,
+	bType : boolean's type
+|
+	if (aType ≠ boolean) ∧ [bType ≠ boolean] then 
+	[
+		(aType = bType)'s type
+	] 
+	else 
+	[
+		⊤
+	]
+];
 
 /**
  * Compute and answer the material nonimplication of the arguments. This is
