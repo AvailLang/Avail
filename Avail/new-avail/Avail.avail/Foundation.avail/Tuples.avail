@@ -37,6 +37,7 @@ Extends
 	"Collections",
 	"Early Tuples"
 Uses
+	"Assertions",
 	"Bootstrap",
 	"Control Structures",
 	"Early Definers",
@@ -62,6 +63,8 @@ Names
 	"zip_",
 	"∑_",
 	"∏_",
+	"_contains_",
+	"_ends with_",
 	"_of_",
 	"_starts with_",
 	"_to_",
@@ -1555,6 +1558,160 @@ Semantic restriction "_∈_" is
 ];
 
 /**
+ * Is `subtuple` a subsequence of `aTuple`?
+ * 
+ * Parameters:
+ *    subtuple - The search tuple.
+ *    aTuple - The tuple which should be searched for `subtuple`.
+ * Returns:
+ *    `true` if some subsequence of `aTuple` equals `subtuple`, `false`
+ *    otherwise.
+ */
+Method "_⊆_" is
+[
+	subtuple : tuple,
+	aTuple : tuple
+|
+	matched : boolean := false;
+	From 1 to |aTuple| - |subtuple| + 1 do
+	[
+		index : natural number
+	|
+		matched := aTuple[index..index + |subtuple| - 1] = subtuple;
+		¬matched
+	];
+	matched
+] : boolean;
+
+/**
+ * Is `subtuple` a subsequence of `aTuple`?
+ * 
+ * Parameters:
+ *    aTuple - The tuple which should be searched for `subtuple`.
+ *    subtuple - The search tuple.
+ * Returns:
+ *    `true` if some subsequence of `aTuple` equals `subtuple`, `false`
+ *    otherwise.
+ */
+Method "_⊇_" is
+[
+	aTuple : tuple,
+	subtuple : tuple
+|
+	subtuple ⊆ aTuple
+] : boolean;
+
+/**
+ * Answer a function suitable for use as the semantic restriction for
+ * subsequence containment.
+ *
+ * Returns:
+ *    A function suitable for use as the semantic restriction of `_⊆_` and
+ *    `_⊇_`.
+ */
+Private method "subsequence restriction function" is
+[
+	[
+		subtuple : tuple meta,
+		aTuple : tuple meta
+	|
+		if |subtuple| = 1 ∧ [ |aTuple| = 1 ] then
+		[
+			(subtuple's instance ⊆ aTuple's instance)'s type
+		]
+		else if [ ⎣subtuple⎦ > ⎡aTuple⎤ ] then
+		[
+			false's type
+		]
+		else
+		[
+			subtupleElementType ::=
+				∪ subtuple[1..|subtuple's leading types| + 1];
+			elementType ::= ∪ aTuple[1..|aTuple's leading types| + 1];
+			if subtupleElementType ∩ elementType = ⊥ then
+			[
+				false's type
+			]
+			/* Can't strengthen. */
+			else
+			[
+				⊤
+			]
+		]
+	] : type
+] : [tuple meta, tuple meta]→type;
+
+/**
+ * Does `aTuple` start with the subsequence `prefix`?
+ * 
+ * Parameters:
+ *    aTuple - The tuple whose prefix should be checked against `prefix`.
+ *    prefix - The search tuple.
+ * Returns:
+ *    `true` if `aTuple` starts with the subsequence `prefix`, `false`
+ *    otherwise.
+ */
+Public method "_starts with_" is
+[
+	aTuple : tuple,
+	prefix : tuple
+|
+	aTuple[..|prefix| min |aTuple|] = prefix
+] : boolean;
+
+/**
+ * Does `aTuple` end with the subsequence `suffix`?
+ * 
+ * Parameters:
+ *    aTuple - The tuple whose suffix should be checked against `suffix`.
+ *    suffix - The search tuple.
+ * Returns:
+ *    `true` if `aTuple` ends with the subsequence `suffix`, `false`
+ *    otherwise.
+ */
+Public method "_ends with_" is
+[
+	aTuple : tuple,
+	suffix : tuple
+|
+	aTuple[1 max (|aTuple| - (|suffix| min |aTuple|) + 1)..] = suffix
+] : boolean;
+
+/**
+ * If `subtuple` is guaranteed longer than `aTuple` or if the element types of
+ * `subtuple` and `aTuple` are completely disjoint, then `subtuple`'s instance
+ * cannot possibly be a subsequence of `aTuple`'s instance.
+ *
+ * Parameters:
+ *    subtuple -
+ *    aTuple -
+ * Returns:
+ *    The strongest possible boolean type for the given arguments.
+ */
+Semantic restriction "_⊆_" is subsequence restriction function;
+Semantic restriction "_⊇_" is
+[
+	aTuple : tuple meta,
+	subtuple : tuple meta
+|
+	subsequence restriction function(subtuple, aTuple)
+];
+Semantic restriction "_starts with_" is
+[
+	aTuple : tuple meta,
+	subtuple : tuple meta
+|
+	subsequence restriction function(subtuple, aTuple)
+];
+Semantic restriction "_ends with_" is
+[
+	aTuple : tuple meta,
+	subtuple : tuple meta
+|
+	subsequence restriction function(subtuple, aTuple)
+];
+
+/**
  * Split a `aTuple` into two tuples between `pivot` and `pivot + 1` and answer
  * a 2-tuple containing the results.
  *
@@ -2114,7 +2271,7 @@ Semantic restriction "flatten_" is
  */
 Public method "_'s⁇head" is
 [
-	aTuple : <any…|1..∞>
+	aTuple : <any…|1..>
 |
 	aTuple[1]
 ] : any;
@@ -2129,7 +2286,7 @@ Public method "_'s⁇head" is
  */
 Semantic restriction "_'s⁇head" is
 [
-	aTupleType : <any…|1..∞>'s type
+	aTupleType : <any…|1..>'s type
 |
 	aTupleType[1]
 ];
@@ -2191,14 +2348,14 @@ Semantic restriction "_'s⁇tail" is
 	defaultType ::= aTupleType's default type;
 	sizeLeadingTypes ::= |leadingTypes|;
 	bound ::= ⎡aTupleType⎤;
-	lower ::= ⎣aTupleType⎦;
+	lower ::= ⎣aTupleType⎦ - 1;
 	if sizeLeadingTypes > 1 then
 	[
-		<leadingTypes[2..sizeLeadingTypes], defaultType…|[lower-1..bound)>
+		<leadingTypes[2..sizeLeadingTypes], defaultType…|[lower..bound)>
 	]
 	else
 	[
-		<defaultType…|lower-1..bound-1>
+		<defaultType…|lower..bound-1>
 	]
 ];
 
@@ -2212,7 +2369,7 @@ Semantic restriction "_'s⁇tail" is
  */
 Public method "_'s⁇last" is
 [
-	aTuple : <any…|1..∞>
+	aTuple : <any…|1..>
 |
 	aTuple[|aTuple|]
 ] : any;
@@ -2227,11 +2384,10 @@ Public method "_'s⁇last" is
  */
 Semantic restriction "_'s⁇last" is
 [
-	aTupleType : <any…|1..∞>'s type
+	aTupleType : <any…|1..>'s type
 |
-	lower ::= ⎣aTupleType⎦;
-	maximum ::= relevant |aTupleType|;
-	∪ aTupleType[lower..maximum]
+	upper ::= ⎡aTupleType⎤ min (|aTupleType's leading types| + 1);
+	∪ aTupleType[⎣aTupleType⎦..upper]
 ];
 
 /**
