@@ -58,9 +58,6 @@ Names
 	"_(base_)",
 	"«_‡«=»?«≤»?«<»?»",
 	"«_‡«=»?«≥»?«>»?»",
-	"_→integer",
-	"_→extended integer",
-	"_→float",
 	"log_of_"
 Body
 
@@ -1290,7 +1287,7 @@ Semantic restriction "_(base_)" is
  * Returns:
  *    The number represented by the digits as an integer.
  */
-Public method "_→integer" is
+Method "_→integer" is
 [
 	str : string
 |
@@ -1317,7 +1314,7 @@ Public method "_→integer" is
  * Returns:
  *    The number represented by the digits as an extended integer.
  */
-Public method "_→extended integer" is
+Method "_→extended integer" is
 [
 	str : string
 |
@@ -1338,7 +1335,7 @@ Public method "_→extended integer" is
  * Returns:
  *    The number represented by the digits as a float.
  */
-Public method "_→float" is
+Method "_→float" is
 [
 	str : string
 |
