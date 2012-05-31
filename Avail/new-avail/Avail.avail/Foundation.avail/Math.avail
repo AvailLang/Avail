@@ -59,7 +59,9 @@ Names
 	"«_‡«=»?«≤»?«<»?»",
 	"«_‡«=»?«≥»?«>»?»",
 	"_→integer",
-	"_→extended integer"
+	"_→extended integer",
+	"_→float",
+	"log_of_"
 Body
 
 Forward method "_mod_" is [number, number]→number;
@@ -1336,7 +1338,7 @@ Public method "_→extended integer" is
  * Returns:
  *    The number represented by the digits as a float.
  */
-Method "_→float" is
+Public method "_→float" is
 [
 	str : string
 |
@@ -1399,3 +1401,37 @@ Method "_→float" is
 		wholeNum + decimalUnit
 	]
 ]: float;
+
+/**
+ * Calculate the logarithm of the specified number to the specified base.
+ * 
+ * Parameters:
+ *    b - The logarithm base to use.
+ *    n - The number to find a logarithm of.
+ * Returns:
+ *    The logarithm of `n` to base `b`.
+ */
+Public method "log_of_" is
+[
+ b : float,
+ n : float
+|
+	(ln n) ÷ (ln b)
+] : float;
+
+/**
+ * Calculate the logarithm of the specified number to the specified base.
+ * 
+ * Parameters:
+ *    b - The logarithm base to use.
+ *    n - The number to find a logarithm of.
+ * Returns:
+ *    The logarithm of `n` to base `b`.
+ */
+Method "log_of_" is
+[
+ b : double,
+ n : double
+|
+	(ln n) ÷ (ln b)
+] : double;
