@@ -56,7 +56,9 @@ Names
 	"_⊇_",
 	"_⊃_",
 	"_∉_",
-	"_⊄_"
+	"_∌_",
+	"_⊄_",
+	"_⊅_"
 Body
 
 /**
@@ -1122,8 +1124,137 @@ Semantic restriction "group_by_" is
  	{keyType→valueType | lowerBound..upperBound}
  ];
 
+/**
+ * Determines of a set contains an element.
+ *
+ * Parameters:
+ *    aSet - A set
+ *    element - any element
+ * Returns:
+ *    a boolean indicating the outcome of the test.
+ */
+Public method "_∌_" is
+[
+	aSet : set,
+ 	element : any
+|
+	¬ element ∈ aSet
+] : boolean;
+	
+/**
+ * Strengthen `_∌_`.
+ * 
+ * Parameters:
+ *    valueType -
+ *    setType -
+ * Returns:
+ *    The strongest possible boolean type.
+ */
+Semantic restriction "_∌_" is
+[
+	setType : set meta,
+	valueType : any meta
+|
+	if |valueType| = 1 ∧ [ |setType| = 1 ] then
+	[
+		(valueType's instance ∉ setType's instance)'s type
+	]
+	else if [ valueType ∩ (setType's element type) = ⊥ ] then
+	[
+		true's type
+	]
+	else
+	[
+		/* Can't strengthen. */
+		⊤
+	]
+];
+
+/**
+ * Is `a` not a proper subset of `b`?
+ *
+ * Parameters:
+ * 	  b - A set.
+ *    a - A set.
+ *
+ * Returns:
+ *    `true` if `a` is not a proper subset of `b`, `false` otherwise.
+ */
+Public method "_⊅_" is
+[
+	b : set,
+	a : set
+|
+	a ⊄ b
+] : boolean;
+
+/**
+ * Strengthen `_⊅_`.
+ * 
+ * Parameters:
+ * 	  typeA - A set type.
+ *    typeB - A set type.
+ *
+ * Returns:
+ *    A boolean type.
+ */
+Semantic restriction "_⊅_" is
+[
+	typeA : set meta,
+	typeB : set meta
+|
+	/* If both arguments are instance types, then extract their instances and
+	 * perform the subset operation on them, answering the result's type.
+	 */
+	if |typeA| = 1 ∧ [ |typeB| = 1 ] then
+	[
+		a ::= typeA's instance;
+		b ::= typeB's instance;
+		(a ⊄ b)'s type
+	]
+	else
+	[
+		elementA ::= typeA's element type;
+		elementB ::= typeB's element type;
+		/* The basic rule is this: If the type intersection of the element type
+		 * of `typeA` and the element type of `typeB` is ⊥, then the result must
+		 * be true. Otherwise all bets are off.
+		 */
+		basicRule ::=
+			[
+				if elementA ∩ elementB = ⊥ then
+				[
+					true's type
+				]
+				else
+				[
+					/* Can't strengthen. */
+					⊤
+				]
+			];
+		sizesB ::= ||typeB||;
+		/* This is finesse. If `typeB` is definitely the set of all possible
+		 * instances of its (enumeration) element type, then `typeA`'s instances
+		 * must be subsets of `typeB`'s instance if `typeA`'s element type is a
+		 * subtype of `typeB`'s element type.
+		 */
+		if |elementB| ≠ ∞
+			∧ [ ⎣sizesB⎦ = ⎡sizesB⎤
+			∧ [ |elementB| = ⎣sizesB⎦ ] ]
+		then
+		[
+			if ⎡typeA⎤ < |elementB|
+				∧ [ elementA ⊆ elementB ]
+			then [ false's type ]
+			else basicRule
+		]
+		else basicRule
+	]
+];
+
 /* Make various boolean-valued set operations bind more tightly than logical
  * negation.
  */
-Grammatical restriction {"_∋_", "_⊂_", "_⊇_", "_⊃_", "_∉_", "_⊄_"} is
+Grammatical restriction 
+	{"_∋_", "_⊂_", "_⊇_", "_⊃_", "_∉_", "_∌_", "_⊄_","_⊅_"} is
 	<{"¬_"}, ∅>;

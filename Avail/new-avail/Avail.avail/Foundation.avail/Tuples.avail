@@ -50,6 +50,7 @@ Uses
 	"Math",
 	"Variables"
 Names
+	"all indices of_where_",
 	"counts for_",
 	"distinct_",
 	"first index of_where_",
@@ -1274,6 +1275,53 @@ Public method "last index of_where_" is
  *    `[0..⎡tupleType⎤ + 1)`.
  */
 Semantic restriction "last index of_where_" is
+[
+	tupleType : tuple meta,
+	predicate : [⊥]→boolean's type
+|
+	Require: predicate accepts tupleType;
+	[0..⎡tupleType⎤ + 1)
+];
+	
+/**
+ * Compute and answer the index of the last element of `aTuple` that satisfies
+ * the specified predicate.
+ * 
+ * Parameters:
+ *    aTuple - A tuple.
+ *    predicate - A function that accepts the elements of the tuple.
+ * Returns:
+ *    The index of the last satisfactory element, or 0 if no element satisfied
+ *    the predicate.
+ */
+Public method "all indices of_where_" is
+[
+	aTuple : tuple,
+	predicate : [⊥]→boolean
+|
+	indices : <whole number…|0..∞> := <>;
+	From 1 to |aTuple| by 1 do
+	[
+		index : natural number
+	|
+		If invoke predicate with <aTuple[index]> then
+		[
+			indices := indices ++ <index>;
+		];
+	];
+	indices
+] : <whole number…|0..∞>;
+
+/**
+ * Ensure that the function will accept all elements of the tuple.
+ * 
+ * Parameters:
+ *    tupleType -
+ *    predicate -
+ * Returns:
+ *    `[0..⎡tupleType⎤ + 1)`.
+ */
+Semantic restriction "all indices of_where_" is
 [
 	tupleType : tuple meta,
 	predicate : [⊥]→boolean's type
