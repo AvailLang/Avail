@@ -37,10 +37,10 @@ Extends
 	"Collections",
 	"Early Tuples"
 Uses
-	"Assertions",
 	"Bootstrap",
 	"Control Structures",
-	"Early Definers",
+	"Definers",
+	"Early Assertions",
 	"Early Functions",
 	"Early Maps",
 	"Early Types",
@@ -72,6 +72,7 @@ Names
 	"_'s⁇head",
 	"_'s⁇last",
 	"_'s⁇tail",
+	"_[_.._]→_",
 	"«_‡zip»"
 Body
 
@@ -83,7 +84,7 @@ Body
  * Returns:
  *    `true` if the argument is empty, `false` otherwise.
  */
-Method "_is empty" is
+Stable method "_is empty" is
 [
 	aTuple : tuple
 |
@@ -190,12 +191,6 @@ Private method "Require:_accepts_" is
  * Ensure that the function will accept all elements and indices of the tuple.
  * If the tuple is certainly nonempty and the function certainly does not
  * complete if applied, then answer ⊥.
- * 
- * Parameters:
- *    tupleType -
- *    action -
- * Returns:
- *    Either ⊤ or ⊥.
  */
 Semantic restriction "For each_do_" is
 [
@@ -283,13 +278,6 @@ Method "map_through_" is
 /**
  * Ensure that the function will accept all elements and indices of the tuple.
  * If the tuple is certainly nonempty, then the function cannot answer ⊥.
- * 
- * Parameters:
- *    tupleType -
- *    transformer -
- * Returns:
- *    A tuple type with no leading types whose default type is the return type
- *    of `transformer` and whose cardinality is the same as `tupleType`'s.
  */
 Semantic restriction "map_through_" is
 [
@@ -386,12 +374,6 @@ Method "filter_by_" is
 
 /**
  * Ensure that the function will accept all elements and indices of the tuple.
- * 
- * Parameters:
- *    tupleType -
- *    predicate -
- * Returns:
- *    The most specific possible tuple type.
  */
 Semantic restriction "filter_by_" is
 [
@@ -517,14 +499,6 @@ Method "map and filter_by_" is
 /**
  * Ensure that the function will accept all elements of the tuple and also an
  * appropriately typed keeper function.
- *
- * Parameters:
- *    tupleType -
- *    accumulator -
- * Returns:
- *    A tuple type with no leading types whose default type is the argument type
- *    of the keeper function and whose cardinality is
- *    `[0..⎡tupleType⎤ + 1)`.
  */
 Semantic restriction "map and filter_by_" is
 [
@@ -557,14 +531,6 @@ Semantic restriction "map and filter_by_" is
 /**
  * Ensure that the function will accept all elements and indices of the tuple
  * and also an appropriately typed keeper function.
- *
- * Parameters:
- *    tupleType -
- *    accumulator -
- * Returns:
- *    A tuple type with no leading types whose default type is the argument type
- *    of the keeper function and whose cardinality is
- *    `[0..⎡tupleType⎤ + 1)`.
  */
 Semantic restriction "map and filter_by_" is
 [
@@ -668,12 +634,6 @@ Method "any of_satisfies_" is
 
 /**
  * Ensure that the function will accept all elements and indices of the tuple.
- * 
- * Parameters:
- *    tupleType -
- *    predicate -
- * Returns:
- *    The function's return type.
  */
 Semantic restriction "any of_satisfies_" is
 [
@@ -747,12 +707,6 @@ Method "each of_satisfies_" is
 
 /**
  * Ensure that the function will accept all elements and indices of the tuple.
- * 
- * Parameters:
- *    tupleType -
- *    predicate -
- * Returns:
- *    The function's return type.
  */
 Semantic restriction "each of_satisfies_" is
 [
@@ -804,12 +758,6 @@ Method "count of_where_" is
 
 /**
  * Ensure that the function will accept all elements and indices of the tuple.
- * 
- * Parameters:
- *    tupleType -
- *    predicate -
- * Returns:
- *    `[0..⎡tupleType⎤ + 1)`.
  */
 Semantic restriction "count of_where_" is
 [
@@ -829,7 +777,7 @@ Semantic restriction "count of_where_" is
  *    A tuple that contains only the distinct elements of `aTuple`, and in the
  *    order in which they were encountered.
  */
-Public method "distinct_" is
+Public stable method "distinct_" is
 [
 	aTuple : tuple
 |
@@ -994,24 +942,7 @@ Private method "zip semantic restriction" is
 	] : type
 ] : [<tuple…|1..>'s type]→type;
 
-/**
- * Compute the resulting tuple type of a zip.
- * 
- * Parameters:
- *    tupleType - A tuple type whose default type is `tuple`.
- * Returns:
- *    The strongest possible tuple type.
- */
 Semantic restriction "zip_" is zip semantic restriction;
-
-/**
- * Compute the resulting tuple type of a zip.
- * 
- * Parameters:
- *    tupleType - A tuple type whose default type is `tuple`.
- * Returns:
- *    The strongest possible tuple type.
- */
 Semantic restriction "«_‡zip»" is zip semantic restriction;
 
 /**
@@ -1054,13 +985,6 @@ Public method "left fold_through_" is
  *
  * Left fold answers either the tuple's first element or the value produced by
  * the final application of the function.
- * 
- * Parameters:
- *    tupleType -
- *    transformer -
- * Returns:
- *    The type union of the tuple's non-first element types and the function's
- *    return types.
  */
 Semantic restriction "left fold_through_" is
 [
@@ -1140,13 +1064,6 @@ Public method "right fold_through_" is
  *
  * Right fold answers either the tuple's last element or the value produced by
  * the final application of the function.
- * 
- * Parameters:
- *    tupleType -
- *    transformer -
- * Returns:
- *    The type union of the tuple's non-last element types and the function's
- *    return types.
  */
 Semantic restriction "right fold_through_" is
 [
@@ -1220,12 +1137,6 @@ Public method "first index of_where_" is
 
 /**
  * Ensure that the function will accept all elements of the tuple.
- * 
- * Parameters:
- *    tupleType -
- *    predicate -
- * Returns:
- *    `[0..⎡tupleType⎤ + 1)`.
  */
 Semantic restriction "first index of_where_" is
 [
@@ -1267,12 +1178,6 @@ Public method "last index of_where_" is
 
 /**
  * Ensure that the function will accept all elements of the tuple.
- * 
- * Parameters:
- *    tupleType -
- *    predicate -
- * Returns:
- *    `[0..⎡tupleType⎤ + 1)`.
  */
 Semantic restriction "last index of_where_" is
 [
@@ -1339,7 +1244,7 @@ Semantic restriction "all indices of_where_" is
  * Returns:
  *    A tuple containing `count` occurrences of `value`.
  */
-Public method "_of_" is
+Public stable method "_of_" is
 [
 	count : whole number,
 	value : any
@@ -1353,28 +1258,12 @@ Public method "_of_" is
 	accumulator
 ];
 
-/**
- * Strengthen `_of_`.
- * 
- * Parameters:
- *    countType -
- *    valueType -
- * Returns:
- *    The strongest available tuple type.
- */
 Semantic restriction "_of_" is
 [
 	countType : whole number's type,
 	valueType : any meta
 |
-	if |countType| = 1 ∧ [ |valueType| = 1 ] then
-	[
-		(countType's instance of (valueType's instance))'s type
-	]
-	else
-	[
-		<<>, valueType…|countType>
-	]
+	<<>, valueType…|countType>
 ];
 
 /**
@@ -1388,7 +1277,7 @@ Semantic restriction "_of_" is
  * Returns:
  *    The interval from `start` (inclusive) to `end` (inclusive).
  */
-Public method "_to_" is
+Public stable method "_to_" is
 [
 	start : integer,
 	end : integer
@@ -1405,97 +1294,79 @@ Public method "_to_" is
 ] : <integer…|1..>;
 
 /**
- * Construct and answer the tuple type that best describes a particular interval
- * construction. Provide an instance when `start` and `end` are precisely known.
  * Leverage the uncertainty of `start` to produce good leading types when the
  * upper bound of the result's cardinality can be determined.
- * 
- * Parameters:
- *    start -
- *    end -
- * Returns:
- *    The strongest possible tuple type.
  */
 Semantic restriction "_to_" is
 [
 	start : integer's type,
 	end : integer's type
 |
-	/* If `start` and `end` are known precisely, then answer the instance type
-	 * of the result.
-	 */
-	if |start| = 1 ∧ [ |end| = 1 ] then
+	uncertainty ::= ⎡start⎤ - ⎣start⎦;
+	min : extended integer;
+	max : extended integer;
+	sizes : whole number's type;
+	/* There are three cases: the interval is definitely ascending ... */
+	if ⎡start⎤ ≤ ⎣end⎦ then
 	[
-		(start's instance to end's instance)'s type
-	]
-	else
-	[
-		uncertainty ::= ⎡start⎤ - ⎣start⎦;
-		min : extended integer;
-		max : extended integer;
-		sizes : whole number's type;
-		/* There are three cases: the interval is definitely ascending ... */
-		if ⎡start⎤ ≤ ⎣end⎦ then
+		min := ⎣start⎦;
+		max := ⎡end⎤;
+		sizes := [0 max (⎣end⎦ - ⎡start⎤ + 1)
+			.. max - min + 2);
+		if uncertainty is finite ∧ [ ⎡sizes⎤ is finite ]
+		then
 		[
-			min := ⎣start⎦;
-			max := ⎡end⎤;
-			sizes := [0 max (⎣end⎦ - ⎡start⎤ + 1)
-				.. max - min + 2);
-			if uncertainty is finite ∧ [ ⎡sizes⎤ is finite ]
-			then
-			[
-				finiteMin ::= cast min into [ t : integer | t ];
-				finiteMax ::= cast max into [ t : integer | t ];
-				types ::=
-					map finiteMin to finiteMax through
-					[
-						x : integer
-					|
-						[x .. (finiteMax min (x + uncertainty)) + 1)
-					];
-				<types[1..|types| - 1], types[|types|]…|sizes>
-			]
-			else
-			[
-				<<>, [min..max + 1)…|sizes>
-			]
+			finiteMin ::= cast min into [ t : integer | t ];
+			finiteMax ::= cast max into [ t : integer | t ];
+			types ::=
+				map finiteMin to finiteMax through
+				[
+					x : integer
+				|
+					[x .. (finiteMax min (x + uncertainty)) + 1)
+				];
+			<types[1..|types| - 1], types[|types|]…|sizes>
 		]
-		/* ... the interval is definitely descending ... */
-		else if [ ⎣start⎦ ≥ ⎡end⎤ ] then
-		[
-			min := ⎣end⎦;
-			max := ⎡start⎤;
-			sizes := [0 max (⎣start⎦ - ⎡end⎤ + 1)
-				.. max - min + 2);
-			if uncertainty is finite ∧ [ ⎡sizes⎤ is finite ]
-			then
-			[
-				finiteMin ::= cast min into [ t : integer | t ];
-				finiteMax ::= cast max into [ t : integer | t ];
-				types ::=
-					map finiteMax to finiteMin through
-					[
-						x : integer
-					|
-						[finiteMin max (x - uncertainty) .. x + 1)
-					];
-				<types[1..|types| - 1], types[|types|]…|sizes>
-			]
-			else
-			[
-				<<>, [min..max + 1)…|sizes>
-			]
-		]
-		/* ... or the interval's directionality is unknown. In this last case,
-		 * the best that we can do is to produce the type union of the ranges
-		 * and answer a tuple type with this default type.
-		 */
 		else
 		[
-			upper ::= |(⎡end⎤ - ⎣start⎦)
-				max (⎡start⎤ - ⎣end⎦)|;
-			<<>, start ∪ end…|[1..upper + 2)>
+			<<>, [min..max + 1)…|sizes>
 		]
+	]
+	/* ... the interval is definitely descending ... */
+	else if [ ⎣start⎦ ≥ ⎡end⎤ ] then
+	[
+		min := ⎣end⎦;
+		max := ⎡start⎤;
+		sizes := [0 max (⎣start⎦ - ⎡end⎤ + 1)
+			.. max - min + 2);
+		if uncertainty is finite ∧ [ ⎡sizes⎤ is finite ]
+		then
+		[
+			finiteMin ::= cast min into [ t : integer | t ];
+			finiteMax ::= cast max into [ t : integer | t ];
+			types ::=
+				map finiteMax to finiteMin through
+				[
+					x : integer
+				|
+					[finiteMin max (x - uncertainty) .. x + 1)
+				];
+			<types[1..|types| - 1], types[|types|]…|sizes>
+		]
+		else
+		[
+			<<>, [min..max + 1)…|sizes>
+		]
+	]
+	/* ... or the interval's directionality is unknown. In this last case,
+	 * the best that we can do is to produce the type union of the ranges
+	 * and answer a tuple type with this default type.
+	 */
+	else
+	[
+		upper ::= |(⎡end⎤ - ⎣start⎦)
+			max (⎡start⎤ - ⎣end⎦)|;
+		<<>, start ∪ end…|[1..upper + 2)>
 	]
 ];
 
@@ -1512,7 +1383,7 @@ Semantic restriction "_to_" is
  * Returns:
  *    The interval from `start` (inclusive) to `end` (inclusive).
  */
-Public method "_to_" is
+Stable method "_to_" is
 [
 	start : character,
 	end : character
@@ -1531,35 +1402,6 @@ Public method "_to_" is
 ] : <character…|1..>;
 
 /**
- * `_to_` for characters can only be strengthened when both arguments are
- * enumerations.
- * 
- * Parameters:
- *    startType -
- *    endType -
- * Returns:
- *    The strongest possible tuple type for the given argument types.
- */
-Semantic restriction "_to_" is
-[
-	startType : character's type,
-	endType : character's type
-|
-	if |startType| = 1 ∧ [ |endType| = 1 ] then
-	[
-		(startType's instance to endType's instance)'s type
-	]
-	/* TODO: A case can be added for non-instance enumerations. This isn't
-	 * expected to be very useful, so it's low priority.
-	 */
-	else
-	[
-		/* Can't strengthen. */
-		⊤
-	]
-];
-
-/**
  * Is `value` an element of `aTuple`?
  * 
  * Parameters:
@@ -1568,7 +1410,7 @@ Semantic restriction "_to_" is
  * Returns:
  *    `true` if `value` is an element of `aTuple`, `false` otherwise.
  */
-Method "_∈_" is
+Stable method "_∈_" is
 [
 	value : any,
 	aTuple : tuple
@@ -1576,25 +1418,12 @@ Method "_∈_" is
 	any of aTuple satisfies [ element : any | element = value ]
 ] : boolean;
 
-/**
- * Strength `_∈_`.
- * 
- * Parameters:
- *    valueType -
- *    mapType -
- * Returns:
- *    The strongest possible boolean type.
- */
 Semantic restriction "_∈_" is
 [
 	valueType : any meta,
 	tupleType : tuple meta
 |
-	if |valueType| = 1 ∧ [ |tupleType| = 1 ] then
-	[
-		(valueType's instance ∈ tupleType's instance)'s type
-	]
-	else if [ valueType ∩ (∪ tupleType[1..relevant |tupleType|]) = ⊥ ] then
+	if valueType ∩ (∪ tupleType[1..relevant |tupleType|]) = ⊥ then
 	[
 		false's type
 	]
@@ -1729,14 +1558,14 @@ Public method "_ends with_" is
  * If `subtuple` is guaranteed longer than `aTuple` or if the element types of
  * `subtuple` and `aTuple` are completely disjoint, then `subtuple`'s instance
  * cannot possibly be a subsequence of `aTuple`'s instance.
- *
- * Parameters:
- *    subtuple -
- *    aTuple -
- * Returns:
- *    The strongest possible boolean type for the given arguments.
  */
 Semantic restriction "_⊆_" is subsequence restriction function;
+
+/**
+ * If `subtuple` is guaranteed longer than `aTuple` or if the element types of
+ * `subtuple` and `aTuple` are completely disjoint, then `subtuple`'s instance
+ * cannot possibly be a subsequence of `aTuple`'s instance.
+ */
 Semantic restriction "_⊇_" is
 [
 	aTuple : tuple meta,
@@ -1744,6 +1573,12 @@ Semantic restriction "_⊇_" is
 |
 	subsequence restriction function(subtuple, aTuple)
 ];
+
+/**
+ * If `subtuple` is guaranteed longer than `aTuple` or if the element types of
+ * `subtuple` and `aTuple` are completely disjoint, then `subtuple`'s instance
+ * cannot possibly be a subsequence of `aTuple`'s instance.
+ */
 Semantic restriction "_starts with_" is
 [
 	aTuple : tuple meta,
@@ -1751,6 +1586,12 @@ Semantic restriction "_starts with_" is
 |
 	subsequence restriction function(subtuple, aTuple)
 ];
+
+/**
+ * If `subtuple` is guaranteed longer than `aTuple` or if the element types of
+ * `subtuple` and `aTuple` are completely disjoint, then `subtuple`'s instance
+ * cannot possibly be a subsequence of `aTuple`'s instance.
+ */
 Semantic restriction "_ends with_" is
 [
 	aTuple : tuple meta,
@@ -1770,7 +1611,7 @@ Semantic restriction "_ends with_" is
  *    A 2-tuple. The first tuple contains the first `pivot` elements of
  *    `aTuple`. The second tuple contains the remaining elements of `aTuple`.
  */
-Public method "split_after_" is
+Public stable method "split_after_" is
 [
 	aTuple : tuple,
 	pivot : whole number
@@ -1785,12 +1626,6 @@ Public method "split_after_" is
  * smears (i.e., type unions) of the trailing element types of the original
  * tuple type. The pivot is used to determine the cardinality ranges of the
  * these element types.
- * 
- * Parameters:
- *    tupleType - A tuple type.
- *    pivot - The range of possible values of the actual pivot.
- * Returns:
- *    The strongest possible 2-tuple type for the given arguments.
  */
 Semantic restriction "split_after_" is
 [
@@ -1805,18 +1640,11 @@ Semantic restriction "split_after_" is
 			++ " ever to be valid for the tuple ∈ "
 			++ primitive description of tupleType
 	];
-	if |tupleType| = 1 ∧ [ |pivot| = 1 ] then
-	[
-		(split tupleType's instance after pivot's instance)'s type
-	]
-	else
-	[
-		pivotPlusOne ::= cast pivot + 1's type
-			into [ t : natural number's type | t ];
-		firstType ::= tuple type of tupleType[1's type..pivot];
-		secondType ::= tuple type of tupleType[pivotPlusOne..||tupleType||];
-		<firstType, secondType…|2>
-	]
+	pivotPlusOne ::= cast pivot + 1's type
+		into [ t : natural number's type | t ];
+	firstType ::= tuple type of tupleType[1's type..pivot];
+	secondType ::= tuple type of tupleType[pivotPlusOne..||tupleType||];
+	<firstType, secondType…|2>
 ];
 
 /**
@@ -1830,7 +1658,7 @@ Semantic restriction "split_after_" is
  *    A 2-tuple. The first tuple contains the first `pivot - 1` elements of
  *    `aTuple`. The second tuple contains the remaining elements of `aTuple`.
  */
-Public method "split_before_" is
+Public stable method "split_before_" is
 [
 	aTuple : tuple,
 	pivot : natural number
@@ -1845,12 +1673,6 @@ Public method "split_before_" is
  * smears (i.e., type unions) of the trailing element types of the original
  * tuple type. The pivot is used to determine the cardinality ranges of the
  * these element types.
- * 
- * Parameters:
- *    tupleType - A tuple type.
- *    pivot - The range of possible values of the actual pivot.
- * Returns:
- *    The strongest possible 2-tuple type for the given arguments.
  */
 Semantic restriction "split_before_" is
 [
@@ -1865,18 +1687,11 @@ Semantic restriction "split_before_" is
 			++ " ever to be valid for the tuple ∈ "
 			++ primitive description of tupleType
 	];
-	if |tupleType| = 1 ∧ [ |pivot| = 1 ] then
-	[
-		(split tupleType's instance before pivot's instance)'s type
-	]
-	else
-	[
-		pivotMinusOne ::= cast pivot - 1's type
-			into [ t : whole number's type | t ];
-		firstType ::= tuple type of tupleType[1's type..pivotMinusOne];
-		secondType ::= tuple type of tupleType[pivot..||tupleType||];
-		<firstType, secondType…|2>
-	]
+	pivotMinusOne ::= cast pivot - 1's type
+		into [ t : whole number's type | t ];
+	firstType ::= tuple type of tupleType[1's type..pivotMinusOne];
+	secondType ::= tuple type of tupleType[pivot..||tupleType||];
+	<firstType, secondType…|2>
 ];
 
 /**
@@ -1892,7 +1707,7 @@ Semantic restriction "split_before_" is
  *    `predicate` was applied. The second tuple contains the remaining elements
  *    of `aTuple`.
  */
-Public method "split_before_" is
+Method "split_before_" is
 [
 	aTuple : tuple,
 	predicate : [⊥]→boolean
@@ -1912,12 +1727,6 @@ Public method "split_before_" is
  * smears (i.e., type unions) of the trailing element types of the original
  * tuple type. The cardinality of each tuple varies from 0 to the upper bound of
  * `tupleType`'s cardinality range.
- * 
- * Parameters:
- *    tupleType - A tuple type.
- *    predicate - A function type.
- * Returns:
- *    The strongest possible 2-tuple type for the given arguments.
  */
 Semantic restriction "split_before_" is
 [
@@ -1951,7 +1760,7 @@ Semantic restriction "split_before_" is
  * Returns:
  *    A tuple comprising the `index`-th elements of each element of `aTuple`.
  */
-Public method "stripe_at_" is
+Public stable method "stripe_at_" is
 [
 	aTuple : <<any…|1..>…|>,
 	index : natural number
@@ -1960,63 +1769,52 @@ Public method "stripe_at_" is
 ] : tuple;
 
 /**
- * Strengthen `stripe_at_`.
- * 
- * Parameters:
- *    tupleType -
- *    index -
- * Returns:
- *    The strongest possible tuple type for the given argument types.
+ * Reject the parse if the stripe index could never be valid.
  */
 Semantic restriction "stripe_at_" is
 [
 	tupleType : <<any…|1..>…|>'s type,
 	index : natural number's type
 |
-	if |tupleType| = 1  ∧ [ |index| = 1 ] then
+	uncertainty ::= cast ⎡index⎤ - ⎣index⎦
+		into [ t : whole number | t ];
+	stripeTypes : <any meta…|> := <>;
+	From 1 to |tupleType's leading types| + 1 do
 	[
-		(stripe tupleType's instance at index's instance)'s type
-	]
-	else
-	[
-		uncertainty ::= cast ⎡index⎤ - ⎣index⎦
-			into [ t : whole number | t ];
-		stripeTypes : <any meta…|> := <>;
-		From 1 to |tupleType's leading types| + 1 do
+		typeIndex : natural number
+	|
+		innerType ::= tupleType[typeIndex];
+		If ⎣index⎦ > ⎡innerType⎤ then
 		[
-			typeIndex : natural number
-		|
-			innerType ::= tupleType[typeIndex];
-			If ⎣index⎦ > ⎡innerType⎤ then
-			[
-				Reject parse, expected:
-					"a subscript ("
-					++ primitive description of ⎣index⎦
-					++ " ≤ theSubscript ≤ "
-					++ primitive description of ⎡index⎤
-					++ ") that could ever be valid ("
-					++ primitive description of ⎣innerType⎦
-					++ " ≤ |theTuple| ≤ "
-					++ primitive description of ⎡innerType⎤
-					++ ")"
-			];
-			union : any meta := ⊥;
-			limit ::= uncertainty min (|innerType's leading types| + 1);
-			From 0 to limit do
-			[
-				delta : whole number
-			|
-				innerIndex ::= cast ⎣index⎦ + delta
-					into [ t : natural number | t ];
-				union := eject ↑union ∪ innerType[innerIndex];
-			];
-			stripeTypes := eject ↑stripeTypes ++ <union>;
+			Reject parse, expected:
+				"a subscript ("
+				++ primitive description of ⎣index⎦
+				++ " ≤ theSubscript ≤ "
+				++ primitive description of ⎡index⎤
+				++ ") that could ever be valid ("
+				++ primitive description of ⎣innerType⎦
+				++ " ≤ |theTuple| ≤ "
+				++ primitive description of ⎡innerType⎤
+				++ ")"
 		];
-		nonemptyTypes ::= cast stripeTypes into [ t : <any meta…|1..> | t ];
-		<nonemptyTypes[1..|nonemptyTypes| - 1], nonemptyTypes[|nonemptyTypes|]…
-			| ||tupleType||>
-	]
+		union : any meta := ⊥;
+		limit ::= uncertainty min (|innerType's leading types| + 1);
+		From 0 to limit do
+		[
+			delta : whole number
+		|
+			innerIndex ::= cast ⎣index⎦ + delta
+				into [ t : natural number | t ];
+			union := eject ↑union ∪ innerType[innerIndex];
+		];
+		stripeTypes := eject ↑stripeTypes ++ <union>;
+	];
+	nonemptyTypes ::= cast stripeTypes into [ t : <any meta…|1..> | t ];
+	<nonemptyTypes[1..|nonemptyTypes| - 1], nonemptyTypes[|nonemptyTypes|]…
+		| ||tupleType||>
 ];
+
+Method "_[_]→_" is stable at [tuple, natural number, any]→tuple;
 
 /**
  * Tuple element replacement affects only those elements whose subscripts are
@@ -2024,13 +1822,6 @@ Semantic restriction "stripe_at_" is
  * update the element types via type union with `valueType`. If only a single
  * subscript could be affected, then simply replace the corresponding element
  * type with `valueType`. Leverage instance types if possible.
- * 
- * Parameters:
- *    tupleType -
- *    indexType -
- *    valueType -
- * Returns:
- *    The strongest possible tuple type for the given argument types.
  */
 Semantic restriction "_[_]→_" is
 [
@@ -2038,7 +1829,6 @@ Semantic restriction "_[_]→_" is
 	indexType : natural number's type,
 	valueType : any meta
 |
-	$body : tuple meta;
 	indexLower ::= cast ⎣indexType⎦ into
 		[ t : natural number | t ];
 	If indexLower > ⎡tupleType⎤ then
@@ -2053,14 +1843,6 @@ Semantic restriction "_[_]→_" is
 			++ " ≤ |theTuple| ≤ "
 			++ primitive description of ⎡tupleType⎤
 			++ ")"
-	];
-	/* Use instance types if possible. */
-	If {|tupleType|, |indexType|, |valueType|} = {1} then
-	[
-		aTuple ::= tupleType's instance;
-		index ::= indexType's instance;
-		value ::= valueType's instance;
-		Exit body with (aTuple[index]→value)'s type
 	];
 	indexUpper ::= ⎡indexType⎤;
 	leadingTypes : <any meta…|> := tupleType's leading types;
@@ -2128,6 +1910,56 @@ Semantic restriction "_[_]→_" is
 ];
 
 /**
+ * Compute and answer a tuple that is the result of replacing the specified
+ * slice of `aTuple` with `replacement`.
+ * 
+ * Parameters:
+ *    aTuple - A tuple.
+ *    sliceStart - The subscript of the first element of the target slice.
+ *    sliceEnd - The subscript of the last element of the target slice.
+ *    replacement - The tuple that should be spliced into `aTuple` instead of
+ *       the specified slice.
+ * Returns:
+ *    A variant of `aTuple` whose elements from `sliceStart` (inclusive) to
+ *    `sliceEnd` (inclusive) have been replaced with those of `replacement`.
+ *    Elements before `sliceStart` and after `sliceEnd` will be present in the
+ *    answer.
+ */
+Public stable method "_[_.._]→_" is
+[
+	aTuple : tuple,
+	sliceStart : natural number,
+	sliceEnd : whole number,
+	replacement : tuple
+|
+	If sliceEnd < sliceStart - 1 then
+	[
+		early failure function(subscript out of bounds code)
+	];
+	aTuple[..sliceStart - 1] ++ replacement ++ aTuple[sliceEnd + 1..]
+] : tuple;
+
+/**
+ * Reject the parse if the target slice would never be valid.
+ */
+Semantic restriction "_[_.._]→_" is
+[
+	aTuple : tuple meta,
+	sliceStart : natural number's type,
+	sliceEnd : whole number's type,
+	replacement : tuple meta
+|
+	Require: aTuple[sliceStart..sliceEnd] is ever valid;
+	prefixEnd ::= cast sliceStart - 1's type
+		into [ t : whole number's type | t ];
+	prefix ::= tuple type of aTuple[1's type..prefixEnd];
+	suffixStart ::= cast sliceEnd + 1's type
+		into [ t : natural number's type | t ];
+	suffix ::= tuple type of aTuple[suffixStart..||aTuple||];
+	prefix ++ replacement ++ suffix
+];
+
+/**
  * Categorize the elements of `aTuple` via `decider`.
  *
  * Parameters:
@@ -2156,16 +1988,6 @@ Method "group_by_" is
 	groups
 ] : map;
 
-/**
- * Strengthen return type.
- *
- * Parameters:
- *    aTupleType - The set to categorize's type.
- *    discriminator - A function that accepts each element of the set and
- *       answers a value that represents the group to which the element belongs.
- * Returns:
- *    Most specific map type.
- */
 Semantic restriction "group_by_" is
 [
 	aTupleType : tuple's type,
@@ -2193,7 +2015,7 @@ Semantic restriction "group_by_" is
  *    a map with keys that are the elements of the tuple that maps to the values
  *    that are the counts that each element occurs in the tuple.
  */
-Method "counts for_" is
+Public stable method "counts for_" is
 [
 	aTuple : tuple
 |
@@ -2201,42 +2023,26 @@ Method "counts for_" is
 	map groups through [k : any, t : tuple | |t|]
 ] : map;
 
-/**
- * Strengthen return type.
- *
- * Parameters:
- *    aTupleType - the tuple whose elements you will count
- * Returns:
- *    a map type with keys that are the elements of the tuple that maps to the 
- *    values that are the counts that each element occurs in the tuple.
- */
 Semantic restriction "counts for_" is
 [
 	aTupleType : tuple's type
 |
-	if |aTupleType| = 1 then
-	[
-		(counts for aTupleType's instance)'s type
-	]
-	else
-	[
-		keyType ::= ∪ aTupleType[1..|aTupleType's leading types| + 1];
-		tupleCardinality ::= ||aTupleType||;
-		lowerBound ::= if ⎣tupleCardinality⎦ = 0 then [0] else [1];
-		upperBound ::= ⎡tupleCardinality⎤;
-		{keyType→whole number|lowerBound..upperBound}
-	]
+	keyType ::= ∪ aTupleType[1..|aTupleType's leading types| + 1];
+	tupleCardinality ::= ||aTupleType||;
+	lowerBound ::= if ⎣tupleCardinality⎦ = 0 then [0] else [1];
+	upperBound ::= ⎡tupleCardinality⎤;
+	{keyType→whole number|lowerBound..upperBound}
 ];
 
 /**
- * Flatten a tuple of tuples one level 
+ * Flatten a tuple of tuples by a single level.
  *
  * Parameters:
- *    aTupleOfTuples - a tuple of tuples to flatten.
+ *    aTupleOfTuples - A tuple of tuples to flatten.
  * Returns:
- *    a flattened tuple.
+ *    A flattened tuple.
  */
-Public method "flatten_" is
+Public stable method "flatten_" is
 [
 	aTupleOfTuples : <tuple…|>
 |
@@ -2250,63 +2056,48 @@ Public method "flatten_" is
 	newTuple
 ] : tuple;
 
-/**
- * Strengthen flatten_ return type 
- *
- * Parameters:
- *    aTupleOfTuplesType - a tuple of tuples' type.
- * Returns:
- *    a flattened tuple type.
- */
 Semantic restriction "flatten_" is
 [
 	aTupleOfTuplesType : <tuple…|>'s type
 |
-	if |aTupleOfTuplesType| = 1 then
+	leadingTypes ::= cast aTupleOfTuplesType's leading types into
+		[t : <tuple's type…|> | t];
+	defaultType ::= aTupleOfTuplesType's default type;
+	leadingAndDefaultTypes ::= leadingTypes ++ <defaultType>;
+	tupleTypes : <tuple's type…|> := <>;
+	totalUpperBound : [0..∞] := 0;
+	totalLowerBound : whole number := 0;
+	For each leadingAndDefaultTypes do
 	[
-		(flatten aTupleOfTuplesType's instance)'s type
-	]
-	else 
+		t : tuple's type
+	|
+		tupleTypes := tupleTypes ++ 
+			cast t's leading types into [r : <tuple's type…|> | r] ++
+			<cast t's default type into [r : tuple's type | r]>;
+		totalUpperBound := totalUpperBound + ⎡t⎤;
+		totalLowerBound := totalLowerBound + ⎣t⎦;
+	];
+	card ::= [totalLowerBound..totalUpperBound);
+	firstLower : [0..∞);
+	finalDefaultType : any's type; 
+	finalLeadingTypes ::= if |leadingTypes| ≥ 1 then
 	[
-		leadingTypes ::= cast aTupleOfTuplesType's leading types into
-			[t : <tuple's type…|> | t];
-		defaultType ::= aTupleOfTuplesType's default type;
-		leadingAndDefaultTypes ::= leadingTypes ++ <defaultType>;
-		tupleTypes : <tuple's type…|> := <>;
-		totalUpperBound : [0..∞] := 0;
-		totalLowerBound : whole number := 0;
-		For each leadingAndDefaultTypes do
+		firstLower := ⎣leadingTypes[1]⎦;
+		if firstLower > 0 then 
 		[
-			t : tuple's type
-		|
-			tupleTypes := tupleTypes ++ 
-				cast t's leading types into [r : <tuple's type…|> | r] ++
-				<cast t's default type into [r : tuple's type | r]>;
-			totalUpperBound := totalUpperBound + ⎡t⎤;
-			totalLowerBound := totalLowerBound + ⎣t⎦;
-		];
-		card ::= [totalLowerBound..totalUpperBound);
-		firstLower : [0..∞);
-		finalDefaultType : any's type; 
-		finalLeadingTypes ::= if |leadingTypes| ≥ 1 then
-		[
-			firstLower := ⎣leadingTypes[1]⎦;
-			if firstLower > 0 then 
-			[
-				finalDefaultType := 
-					∪ (tupleTypes's type)[firstLower + 1..|tupleTypes|]; 
-				leadingTypes[1]'s leading types[1..firstLower]
-			]
-			else 
-			[
-				finalDefaultType := 
-					∪ (tupleTypes's type)[firstLower + 1..|tupleTypes|];
-				<>
-			]
+			finalDefaultType := 
+				∪ (tupleTypes's type)[firstLower + 1..|tupleTypes|]; 
+			leadingTypes[1]'s leading types[1..firstLower]
 		]
-		else [<>];
-		<finalLeadingTypes,finalDefaultType…|card>
+		else 
+		[
+			finalDefaultType := 
+				∪ (tupleTypes's type)[firstLower + 1..|tupleTypes|];
+			<>
+		]
 	]
+	else [<>];
+	<finalLeadingTypes,finalDefaultType…|card>
 ];
 
 /**
@@ -2317,21 +2108,13 @@ Semantic restriction "flatten_" is
  * Returns:
  *    the first element of the tuple.
  */
-Public method "_'s⁇head" is
+Public stable method "_'s⁇head" is
 [
 	aTuple : <any…|1..>
 |
 	aTuple[1]
 ] : any;
 
-/**
- * Strengthen `_'s⁇head`.
- *
- * Parameters:
- *    aTuple -
- * Returns:
- *    The strongest possible type for the given argument type.
- */
 Semantic restriction "_'s⁇head" is
 [
 	aTupleType : <any…|1..>'s type
@@ -2348,17 +2131,17 @@ Semantic restriction "_'s⁇head" is
  * Returns:
  *    The requested tuple slice.
  */
-Abstract method "_'s⁇tail" is [<any…|1..>]→tuple;
+Public stable abstract method "_'s⁇tail" is [<any…|1..>]→tuple;
 
 /**
- * Answer an empty tuple.
+ * Construct and answer a tuple slice that contains all but the first element.
  *
  * Parameters:
  *    aTuple - A tuple containing a single element.
  * Returns:
  *    An empty tuple.
  */
-Public method "_'s⁇tail" is
+Method "_'s⁇tail" is
 [
 	aTuple : <any…|1>
 |
@@ -2373,21 +2156,13 @@ Public method "_'s⁇tail" is
  * Returns:
  *    The requested tuple slice.
  */
-Public method "_'s⁇tail" is
+Method "_'s⁇tail" is
 [
 	aTuple : <any…|2..>
 |
 	aTuple[2..]
 ] : tuple;
 
-/**
- * Strengthen `_'s⁇tail`.
- *
- * Parameters:
- *    aTuple -
- * Returns:
- *    The strongest possible type for the given argument type.
- */
 Semantic restriction "_'s⁇tail" is
 [
 	aTupleType : <any…|1..>'s type
@@ -2415,21 +2190,13 @@ Semantic restriction "_'s⁇tail" is
  * Returns:
  *    the last element of the tuple.
  */
-Public method "_'s⁇last" is
+Public stable method "_'s⁇last" is
 [
 	aTuple : <any…|1..>
 |
 	aTuple[|aTuple|]
 ] : any;
 
-/**
- * Strengthen `_'s⁇last`.
- *
- * Parameters:
- *    aTuple -
- * Returns:
- *    The strongest possible type for the given argument type.
- */
 Semantic restriction "_'s⁇last" is
 [
 	aTupleType : <any…|1..>'s type
@@ -2446,7 +2213,7 @@ Semantic restriction "_'s⁇last" is
  * Returns:
  *    An integer.
  */
-Public method "∑_" is
+Public stable method "∑_" is
 [
 	intTuple : <integer…|1..∞>
 |
@@ -2516,7 +2283,7 @@ Semantic restriction "∑_" is
  * Returns:
  *    An integer.
  */
-Public method "∏_" is
+Public stable method "∏_" is
 [
 	intTuple : <integer…|1..∞>
 |

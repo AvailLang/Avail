@@ -37,9 +37,9 @@ Extends
 	"Early Logic"
 Uses
 	"Bootstrap",
-	"Assertions",
+	"Definers",
+	"Early Assertions",
 	"Early Control Structures",
-	"Early Definers",
 	"Early Literals",
 	"Early Functions",
 	"Early Types",
@@ -115,26 +115,18 @@ Semantic restriction "«_‡=»" is
  * Returns:
  *    `a` ⊕ `b`.
  */
-Public method "_⊕_" is
+Public stable method "_⊕_" is
 [
 	a : boolean,
 	b : boolean
 |
-	(a ∧ [¬b]) ∨ [(¬a) ∧ [b]]
+	a ≠ b
 ] : boolean;
 
 /**
  * If the truth values of a and b are known, an XOR operation with opposing
  * truth values will always yield true, and an XOR operation with equal truth
  * values will always yield false.
- * 
- * Parameters:
- *    aType - boolean's type.
- *    bType - boolean's type.
- * Returns:
- *    `a` ⊕ `b`.
- * Author:
- *    Leslie Schultz
  */
 Semantic restriction "_⊕_" is
 [
@@ -181,7 +173,7 @@ Public method "_↑_" is
  * Returns:
  *    `a` ↑ `b`.
  */
-Public method "_↑_" is
+Method "_↑_" is
 [
 	a : false's type,
 	b : []→boolean
@@ -243,12 +235,6 @@ Semantic restriction "_↑_" is
 	true's type
 ];
 
-/* TODO: Eventually move these into a testing module. */
-Assert: ¬(true ↑ [true]) ("true ↑ true");
-Assert: true ↑ [false] ("true ↑ false");
-Assert: false ↑ [true] ("false ↑ true");
-Assert: false ↑ [false] ("false ↑ false");
-
 /**
  * Compute and answer the logical NOR of the arguments. This is equivalent to
  * ¬(`a` ∨ `b`). Short-circuit the computation, i.e., only evaluate `b` if `a`
@@ -279,7 +265,7 @@ Public method "_↓_" is
  * Returns:
  *    `a` ↓ `b`.
  */
-Public method "_↓_" is
+Method "_↓_" is
 [
 	a : true's type,
 	b : []→boolean
@@ -389,7 +375,7 @@ Public method "_→_" is
  * Returns:
  *    `a` → `b`.
  */
-Public method "_→_" is
+Method "_→_" is
 [
 	a : false's type,
 	b : []→boolean
@@ -463,7 +449,7 @@ Public method "_←_" is
  * Returns:
  *    `a` ← `b`.
  */
-Public method "_←_" is
+Method "_←_" is
 [
 	a : true's type,
 	b : []→boolean
@@ -518,7 +504,7 @@ Semantic restriction "_←_" is
  * Returns:
  *    `a` ↔ `b`.
  */
-Public method "_↔_" is
+Public stable method "_↔_" is
 [
 	a : boolean,
 	b : boolean
@@ -574,7 +560,7 @@ Public method "_↛_" is
  * Returns:
  *    `a` ↛ `b`.
  */
-Public method "_↛_" is
+Method "_↛_" is
 [
 	a : false's type,
 	b : []→boolean
@@ -648,7 +634,7 @@ Public method "_↚_" is
  * Returns:
  *    `a` ↚ `b`.
  */
-Public method "_↚_" is
+Method "_↚_" is
 [
 	a : true's type,
 	b : []→boolean
@@ -729,12 +715,6 @@ Grammatical restriction {"_↔_", "_⊕_"} is <∅, {"_↔_", "_⊕_"}>;
 
 /**
  * Strengthen for exactly known values (but never for types).
- * 
- * Parameters:
- *    a -
- *    b -
- * Returns:
- *    Either an instance type or ⊤.
  */
 Semantic restriction "_=_" is
 [
@@ -766,12 +746,6 @@ Semantic restriction "_=_" is
 
 /**
  * Strengthen for exactly known values (but never for types).
- * 
- * Parameters:
- *    a -
- *    b -
- * Returns:
- *    Either an instance type or ⊤.
  */
 Semantic restriction "_≠_" is
 [

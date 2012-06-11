@@ -55,14 +55,24 @@ Names
 Body
 
 /**
+ * Does the specified variable contain a value?
+ *
+ * Parameters:
+ *    var - A variable.
+ * Returns:
+ *    `true` if the variable contains a value (i.e. because it has previously
+ *    been assigned), `false` otherwise.
+ */
+Public method "_is assigned" is
+[
+	var : variable
+|
+	¬var is unassigned
+];
+
+/**
  * Two variables may exchange contents iff the read type of each is a subtype of
  * the write type of the other. If this is not the case, then reject the parse.
- * 
- * Parameters:
- *    typeA - A variable type.
- *    typeB - A variable type.
- * Returns:
- *    ⊤.
  */
 Semantic restriction "swap_and_" is
 [
@@ -93,7 +103,7 @@ Private method "increment function" is
 	[
 		var : variable
 	|
-		↓var ?= cast eject var into [ t : number | t + 1 ];
+		var ?= cast eject var into [ t : number | t + 1 ];
 	] : ⊤
 ];
 
@@ -130,11 +140,6 @@ Public method "_++" is increment function;
 
 /**
  * The autoincrement statement should accept only numeric variables.
- * 
- * Parameters:
- *    varType -
- * Returns:
- *    ⊤.
  */
 Semantic restriction "_++" is increment/decrement semantic restriction;
 
@@ -153,18 +158,13 @@ Public method "(_++)" is
 	var : variable
 |
 	value ::= eject var;
-	↓var ?= cast value into [ t : number | t + 1 ];
+	var ?= cast value into [ t : number | t + 1 ];
 	value
 ] : ⊤;
 
 /**
  * Since the increment happens after the value is queried, then simply answer
  * the read type of the variable.
- * 
- * Parameters:
- *    var - A numeric variable type.
- * Returns:
- *    The read type of the variable type.
  */
 Semantic restriction "(_++)" is
 [
@@ -189,11 +189,6 @@ Public method "++_" is increment function;
 
 /**
  * The autoincrement statement should accept only numeric variables.
- * 
- * Parameters:
- *    varType -
- * Returns:
- *    ⊤.
  */
 Semantic restriction "++_" is increment/decrement semantic restriction;
 
@@ -209,19 +204,13 @@ Public method "(++_)" is
 [
 	var : variable
 |
-	↓var ?= cast eject var into [ t : number | t + 1 ];
+	var ?= cast eject var into [ t : number | t + 1 ];
 	↓var
 ];
 
 /**
  * Preserve the read type of the numeric variable. This can actually be
  * tightened for integral types to adjust the bounds of result type by one.
- *
- * Parameters:
- *    var - A numeric variable type.
- * Returns:
- *    The read type of the variable type, or an offset integral type (if the
- *    variable accepts/yields extended integers).
  */
 Semantic restriction "(++_)" is
 [
@@ -260,7 +249,7 @@ Private method "decrement function" is
 	[
 		var : variable
 	|
-		↓var ?= cast eject var into [ t : number | t - 1 ];
+		var ?= cast eject var into [ t : number | t - 1 ];
 	] : ⊤
 ];
 
@@ -274,11 +263,6 @@ Public method "_--" is decrement function;
 
 /**
  * The autodecrement statement should accept only numeric variables.
- * 
- * Parameters:
- *    varType -
- * Returns:
- *    ⊤.
  */
 Semantic restriction "_--" is increment/decrement semantic restriction;
 
@@ -297,18 +281,13 @@ Public method "(_--)" is
 	var : variable
 |
 	value ::= eject var;
-	↓var ?= cast value into [ t : number | t - 1 ];
+	var ?= cast value into [ t : number | t - 1 ];
 	value
 ] : ⊤;
 
 /**
  * Since the decrement happens after the value is queried, then simply answer
  * the read type of the variable.
- * 
- * Parameters:
- *    var - A numeric variable type.
- * Returns:
- *    The read type of the variable type.
  */
 Semantic restriction "(_--)" is
 [
@@ -333,11 +312,6 @@ Public method "--_" is decrement function;
 
 /**
  * The autodecrement statement should accept only numeric variables.
- * 
- * Parameters:
- *    varType -
- * Returns:
- *    ⊤.
  */
 Semantic restriction "--_" is increment/decrement semantic restriction;
 
@@ -353,7 +327,7 @@ Public method "(--_)" is
 [
 	var : variable
 |
-	↓var ?= cast eject var into [ t : number | t - 1 ];
+	var ?= cast eject var into [ t : number | t - 1 ];
 	↓var
 ];
 
@@ -361,12 +335,6 @@ Public method "(--_)" is
  * Preserve the read type of the numeric variable. This can actually be
  * tightened for integral types to adjust the bounds of result type by negative
  * one.
- *
- * Parameters:
- *    var - A numeric variable type.
- * Returns:
- *    The read type of the variable type, or an offset integral type (if the
- *    variable accepts/yields extended integers).
  */
 Semantic restriction "(--_)" is
 [
@@ -410,71 +378,3 @@ Invoke
 	Grammatical restriction parens is <forbid>;
 ]
 with <>;
-
-/**
- * Strengthen `_'s⁇read type`.
- *
- * Parameters:
- *    varType - A variable type.
- * Returns:
- *    The argument's read type's type.
- */
-Semantic restriction "_'s⁇read type" is
-[
-	varType : variable meta's type
-|
-	varType's instance's read type's type
-];
-
-/**
- * Strengthen `_'s⁇write type`.
- *
- * Parameters:
- *    varType - A variable type.
- * Returns:
- *    The argument's write type's type.
- */
-Semantic restriction "_'s⁇write type" is
-[
-	varType : variable meta's type
-|
-	varType's instance's write type's type
-];
-
-/**
- * Strengthen `eject_` to the read type of the argument.
- * 
- * Parameters:
- *    varType - A variable type.
- * Returns:
- *    The read type of the argument.
- */
-Semantic restriction "eject_" is
-[
-	varType : variable meta
-|
-	if varType's read type = ⊤ then
-	[
-		Reject parse, expected: "variable to have a read type other than ⊤"
-	]
-	else
-	[
-		varType's read type
-	]
-];
-
-/**
- * Does the specified variable contain a value?
- *
- * Parameters:
- *    var - A variable.
- * Returns:
- *    `true` if the variable contains a value (i.e. because it has previously
- *    been assigned), `false` otherwise.
- */
-Public method "_is assigned" is
-[
-	var : variable
-|
-	¬var is unassigned
-];

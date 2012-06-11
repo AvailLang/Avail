@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.05.20 11:31:08.751 -0500
+ * * Last Generated On: 2012.06.10 13:58:15.768 -0500
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -142,6 +142,7 @@ Uses
 		"``_``(_)",
 		"`|_'s⁇local variables`|",
 		"`|_'s⁇outer variables`|",
+		"`|_'s⁇parameters`|",
 		"`|_`|",
 		"`|`|_`|`|",
 		"arg“_:_”",
@@ -1882,6 +1883,21 @@ Method "_'s⁇atom" is
 |
 	Primitive 221;
 ] : atom;
+
+/**
+ * Answer the number of parameters required by the specified method.
+ *
+ * Parameters:
+ *    aMethod - A method.
+ * Returns:
+ *    The number of parameters required by the specified method.
+ */
+Method "`|_'s⁇parameters`|" is
+[
+	aMethod : method
+|
+	Primitive 223;
+] : whole number;
 
 /**
  * Answer the public names introduced by the specified module.

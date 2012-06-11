@@ -35,8 +35,8 @@ Versions
 	"dev"
 Uses
 	"Bootstrap",
+	"Definers",
 	"Early Control Structures",
-	"Early Definers",
 	"Early Literals"
 Names
 	"¬_",
@@ -53,7 +53,7 @@ Body
  * Returns:
  *    ¬`predicate`.
  */
-Public method "¬_" is
+Public stable method "¬_" is
 [
 	predicate : boolean
 |
@@ -68,44 +68,12 @@ Public method "¬_" is
  * Returns:
  *    ¬`predicate`.
  */
-Public method "¬_" is
+Method "¬_" is
 [
 	predicate : false's type
 |
 	true
 ] : true's type;
-
-/**
- * If the predicate's type is known statically to be `true`, then the
- * expression's type is known statically to be `false`.
- * 
- * Parameters:
- *    predicate - The type of `true`.
- * Returns:
- *    The type of `false`.
- */
-Semantic restriction "¬_" is
-[
-	predicate : true's type's type
-|
-	false's type
-];
-
-/**
- * If the predicate's type is known statically to be `false`, then the
- * expression's type is known statically to be `true`.
- * 
- * Parameters:
- *    predicate - The type of `false`.
- * Returns:
- *    The type of `true`.
- */
-Semantic restriction "¬_" is
-[
-	predicate : false's type's type
-|
-	true's type
-];
 
 /**
  * Compute and answer the logical conjunction, i.e., AND, of the arguments.
@@ -146,12 +114,6 @@ Public method "_∧_" is
 /**
  * If the left-hand argument of `_∧_` is known statically to be `false`, then
  * the expression is also known statically to be `false`.
- *
- * Parameters:
- *    a - The type of `false`.
- *    b -
- * Returns:
- *    The type of `false`.
  */
 Semantic restriction "_∧_" is
 [
@@ -164,12 +126,6 @@ Semantic restriction "_∧_" is
 /**
  * If the left-hand argument of `_∧_` is known statically to be `true`, then
  * the static type of the expression is `b`'s return type.
- *
- * Parameters:
- *    a - The type of `true`.
- *    b -
- * Returns:
- *    The return type of `b`.
  */
 Semantic restriction "_∧_" is
 [
@@ -182,12 +138,6 @@ Semantic restriction "_∧_" is
 /**
  * If the right-hand argument of `_∧_` is known statically to be `false`, then
  * the expression is also known statically to be `false`.
- *
- * Parameters:
- *    a - 
- *    b - A function type whose instances answer `false`.
- * Returns:
- *    The type of `false`.
  */
 Semantic restriction "_∧_" is
 [
@@ -236,12 +186,6 @@ Public method "_∨_" is
 /**
  * If the left-hand argument of `_∨_` is known statically to be `true`, then
  * the expression is also known statically to be `true`.
- *
- * Parameters:
- *    a - The type of `true`.
- *    b -
- * Returns:
- *    The type of `true`.
  */
 Semantic restriction "_∨_" is
 [
@@ -254,12 +198,6 @@ Semantic restriction "_∨_" is
 /**
  * If the left-hand argument of `_∨_` is known statically to be `false`, then
  * the static type of the expression is `b`'s return type.
- *
- * Parameters:
- *    a - The type of `false`.
- *    b -
- * Returns:
- *    The return type of `b`.
  */
 Semantic restriction "_∨_" is
 [
@@ -272,12 +210,6 @@ Semantic restriction "_∨_" is
 /**
  * If the right-hand argument of `_∨_` is known statically to be `true`, then
  * the expression is also known statically to be `true`.
- *
- * Parameters:
- *    a -
- *    b - A function type whose instances answer `true`.
- * Returns:
- *    The type of `true`.
  */
 Semantic restriction "_∨_" is
 [

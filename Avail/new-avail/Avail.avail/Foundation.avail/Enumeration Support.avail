@@ -36,8 +36,8 @@ Versions
 Extends
 	"Early Enumeration Support"
 Uses
-	"Assertions",
 	"Bootstrap",
+	"Early Assertions",
 	"Early Control Structures",
 	"Early Logic",
 	"Early Math"

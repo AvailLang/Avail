@@ -36,8 +36,8 @@ Versions
 Extends
 Uses
 	"Bootstrap",
+	"Definers",
 	"Early Control Structures",
-	"Early Definers",
 	"Early Logic",
 	"Early Math",
 	"Enumeration Support",
@@ -50,6 +50,7 @@ Names
 	"_[.._]",
 
 	/* Exported for use by Tuples. */
+	"Require:_[_.._]is ever valid",
 	"tuple type of_[_.._]"
 Body
 
@@ -87,6 +88,9 @@ Semantic restriction "_++_" is
 	typeB ::= metaB's instance;
 	(typeA ++ typeB)'s type
 ];
+
+/* Make tuple type concatenation left-associative. */
+Grammatical restriction {"_++_"} is <∅, {"_++_"}>;
 
 /**
  * Concatenate the lexically specified tuples. Answer the result.
@@ -164,6 +168,63 @@ Public method "relevant`|_`|" is
 ] : 0's type;
 
 /**
+ * Check that the tuple type and start and end subscript ranges could ever be
+ * statically valid. Reject the current parse if they are never valid together.
+ * 
+ * Parameters:
+ *    aTuple - A tuple type.
+ *    sliceStart - The integral range of the start subscript.
+ *    sliceEnd - The integral range of the end subscript.
+ */
+Public method "Require:_[_.._]is ever valid" is
+[
+	aTuple : tuple meta,
+	sliceStart : natural number's type,
+	sliceEnd : whole number's type
+|
+	If ⎣sliceStart⎦ > ⎡aTuple⎤ then
+	[
+		Reject parse, expected:
+			"a subscript ("
+			++ primitive description of ⎣sliceStart⎦
+			++ " ≤ sliceStart ≤ "
+			++ primitive description of ⎡sliceStart⎤
+			++ ") that could ever be valid ("
+			++ primitive description of ⎣aTuple⎦
+			++ " ≤ |theTuple| ≤ "
+			++ primitive description of ⎡aTuple⎤
+			++ ")"
+	];
+	If ⎣sliceEnd⎦ > ⎡aTuple⎤ then
+	[
+		Reject parse, expected:
+			"a subscript ("
+			++ primitive description of ⎣sliceEnd⎦
+			++ " ≤ sliceEnd ≤ "
+			++ primitive description of ⎡sliceEnd⎤
+			++ ") that could ever be valid ("
+			++ primitive description of ⎣aTuple⎦
+			++ " ≤ |theTuple| ≤ "
+			++ primitive description of ⎡aTuple⎤
+			++ ")"
+	];
+	If ⎡sliceEnd⎤ < ⎣sliceStart⎦ - 1 then
+	[
+		Reject parse, expected:
+			"a slice end subscript ("
+			++ primitive description of ⎣sliceEnd⎦
+			++ " ≤ theEndSubscript ≤ "
+			++ primitive description of ⎡sliceEnd⎤
+			++ ") not guaranteed more than one less than the start\
+			\| subscript ("
+			++ primitive description of ⎣sliceStart⎦
+			++ " ≤ theStartSubscript ≤ "
+			++ primitive description of ⎡sliceStart⎤
+			++ ")"
+	];
+] : ⊤;
+
+/**
  * Construct and answer the tuple type that represents the specified tuple
  * slice.
  * 
@@ -180,34 +241,12 @@ Public method "tuple type of_[_.._]" is
 	sliceStart : natural number's type,
 	sliceEnd : whole number's type
 |
+	Require: aTupleType[sliceStart..sliceEnd] is ever valid;
 	minStart ::= 1 max ⎣sliceStart⎦;
 	maxStart ::= 1 max ⎡sliceStart⎤;
 	minEnd ::= 0 max ⎣sliceEnd⎦;
 	maxEnd ::= 0 max ⎡sliceEnd⎤;
 	tupleEnd ::= ⎡aTupleType⎤;
-	/* If all possible slices are out of bounds, then answer ⊥. */
-	If minEnd > tupleEnd then
-	[
-		Reject parse, expected:
-			"a subscript ("
-			++ primitive description of minEnd
-			++ " ≤ sliceEnd ≤ "
-			++ primitive description of maxEnd
-			++ ") that could ever be valid ("
-			++ primitive description of ⎣aTupleType⎦
-			++ " ≤ |theTuple| ≤ "
-			++ primitive description of tupleEnd
-			++ ")"
-	];
-	If minStart - maxEnd > 1 then
-	[
-		Reject parse, expected:
-			"the lower bound of the slice start subscript ("
-			++ primitive description of minStart
-			++ ") not to exceed the upper bound of the slice end subscript ("
-			++ primitive description of maxEnd
-			++ ") by more than 1"
-	];
 	tupleDefaultTypeIndex ::= cast |aTupleType's leading types| + 1
 		into [ t : natural number | t ];
 	limit ::= maxEnd min tupleEnd min tupleDefaultTypeIndex;
@@ -252,6 +291,10 @@ Public method "tuple type of_[_.._]" is
 	result ::= <types, defaultType…|resultSizes>;
 	result
 ] : tuple meta;
+
+Method "_[_.._]" is stable at
+	function accepting <tuple, natural number, whole number>
+	and returning tuple;
 
 /**
  * Strengthen the tuple type procuded by `_[_.._]` to the strongest possible
@@ -301,7 +344,7 @@ Public method "_[_..]" is
  * Returns:
  *    The requested tuple.
  */
-Public method "_[_..]" is
+Public stable method "_[_..]" is
 [
 	aTuple : tuple,
 	sliceStart : natural number
@@ -355,7 +398,7 @@ Public method "_[.._]" is
  * Returns:
  *    The requested tuple.
  */
-Public method "_[.._]" is
+Public stable method "_[.._]" is
 [
 	aTuple : tuple,
 	sliceEnd : whole number
@@ -381,14 +424,13 @@ Semantic restriction "_[.._]" is
 	tuple type of aTupleType[1's type..sliceEnd]
 ];
 
-/**
- * Strengthen `concatenate_`.
- * 
- * Parameters:
- *     tupleType -
- * Returns:
- *     The strongest possible type of the resulting tuple.
- */
+/** Bind subscripting and slicing tighter than concatenation. */
+Grammatical restriction {"_[_]", "_[_..]", "_[.._]"} is <{"«_‡++»"}, ∅>;
+Grammatical restriction "_[_.._]" is <{"«_‡++»"}, ∅, ∅>;
+
+Method "concatenate_" is stable at
+	function accepting <tuple of tuple> and returning tuple;
+
 Semantic restriction "concatenate_" is
 [
 	tupleType : tuple of tuple's type
@@ -424,35 +466,41 @@ Semantic restriction "concatenate_" is
 	result
 ];
 
+Method "_→set" is stable at function accepting <tuple> and returning set;
+
 /**
  * It's extremely hard to provide a strong bound for set conversion without
  * chromatic polynomials, and even then it's still expensive. Provide a simple
  * strengthening: the resulting element type is the type union of all tuple
  * element types.
- * 
- * Parameters:
- *    tupleType -
- * Returns:
- *    A convenient set type.
  */
 Semantic restriction "_→set" is
 [
 	tupleType : tuple meta
 |
-	if |tupleType| = 1 then
-	[
-		(tupleType's instance→set)'s type
-	]
-	else
-	[
-		/* If the tuple could be empty, then so could the set. Otherwise, the
-		 * set must contain at least one element.
-		 */
-		lower ::= ⎣tupleType⎦ min 1;
-		typeLimit ::= cast |tupleType's leading types| + 1
-			into [ t : natural number | t ];
-		{∪ tupleType[1..typeLimit] | [lower..⎡tupleType⎤ + 1)}
-	]
+	/* If the tuple could be empty, then so could the set. Otherwise, the
+	 * set must contain at least one element.
+	 */
+	lower ::= ⎣tupleType⎦ min 1;
+	typeLimit ::= cast |tupleType's leading types| + 1
+		into [ t : natural number | t ];
+	{∪ tupleType[1..typeLimit] | [lower..⎡tupleType⎤ + 1)}
+];
+
+Method "_→map" is stable at
+	function accepting <key-value tuple> and returning map;
+
+Semantic restriction "_→map" is
+[
+	tupleType : key-value tuple's type
+|
+	/* If the tuple could be empty, then so could the map. Otherwise, the
+	 * map must contain at least one element.
+	 */
+	lower ::= ⎣tupleType⎦ min 1;
+	typeLimit ::= cast |tupleType's leading types| + 1
+		into [ t : natural number | t ];
+	{tupleType[1][1]→tupleType[1][2] | [lower..⎡tupleType⎤ + 1)}
 ];
 
 /* Disambiguate `_→_` and `_→tuple`. */

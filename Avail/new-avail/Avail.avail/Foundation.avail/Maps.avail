@@ -39,7 +39,7 @@ Extends
 Uses
 	"Bootstrap",
 	"Control Structures",
-	"Early Definers",
+	"Definers",
 	"Early Functions",
 	"Early Tuples",
 	"Early Types",
@@ -513,25 +513,13 @@ Semantic restriction "count of_where_" is
 	[0..⎡mapType⎤ + 1)
 ];
 
-/**
- * Strengthen `_∈_`.
- * 
- * Parameters:
- *    keyType -
- *    mapType -
- * Returns:
- *    The strongest possible boolean type.
- */
+Method "_∈_" is stable at [any, map]→boolean;
 Semantic restriction "_∈_" is
 [
 	keyType : any meta,
 	mapType : map meta
 |
-	if |keyType| = 1 ∧ [ |mapType| = 1 ] then
-	[
-		(keyType's instance ∈ mapType's instance)'s type
-	]
-	else if [ keyType ∩ (mapType's key type) = ⊥ ] then
+	if keyType ∩ (mapType's key type) = ⊥ then
 	[
 		false's type
 	]

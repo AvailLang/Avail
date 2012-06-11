@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.05.20 11:31:08.795 -0500
+ * * Last Generated On: 2012.06.10 13:58:15.818 -0500
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -68,10 +68,12 @@ Uses
 		"_[_]:=_",
 		"_[_]→_",
 		"_`#_:_(literals=_,`#locals_,`#outers_,stack depth=_)",
+		"_`?=_",
 		"_mod_",
 		"_×_",
 		"_÷_",
 		"_∈_",
+		"`|message_'⁇parameters`|",
 		"atom for_",
 		"constructor_<«_‡,»>",
 		"current module",
@@ -79,6 +81,7 @@ Uses
 		"function from_and_",
 		"generate_",
 		"implementation of_for_",
+		"message_contains groups",
 		"method for_",
 		"method_._(«_‡,»)",
 		"read character",
@@ -93,7 +96,6 @@ Uses
 		"“_:=_”",
 		"“↑_”",
 		"↓_",
-		"↓_`?=_",
 		"∪_[_.._]"
 	)
 Names
@@ -248,7 +250,7 @@ Method "↓_" is
  *    var - A variable.
  *    value - The value that should be stored into `var`.
  */
-Method "↓_`?=_" is
+Method "_`?=_" is
 [
 	var : variable,
 	value : any
@@ -759,6 +761,40 @@ Method "implementation of_for_" is
 	Primitive 222 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode
 ] : function;
+
+/**
+ * Compute and answer the number of parameters required by a valid send of a
+ * message `methodName`.
+ *
+ * Parameters:
+ *    methodName - A method name.
+ * Returns:
+ *    The number of parameters required to send the specified message.
+ */
+Method "`|message_'⁇parameters`|" is
+[
+	methodName : string
+|
+	Primitive 224 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : whole number;
+
+/**
+ * Does the specified message contain any lexical groups?
+ *
+ * Parameters:
+ *    methodName - A method name.
+ * Returns:
+ *    `true` if the specified message contains lexical groups, or `false`
+ *    otherwise.
+ */
+Method "message_contains groups" is
+[
+	methodName : string
+|
+	Primitive 225 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : boolean;
 
 /**
  * Answer the module currently undergoing compilation.

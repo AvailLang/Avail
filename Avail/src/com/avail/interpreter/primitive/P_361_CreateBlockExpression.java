@@ -85,17 +85,9 @@ extends Primitive
 			return interpreter.primitiveFailure(
 				E_BLOCK_CONTAINS_INVALID_STATEMENTS);
 		}
-		try
-		{
-			final AvailObject block = newBlockNode(
-				argDecls, primitive, statements, resultType, exceptions);
-			recursivelyValidate(block);
-			return interpreter.primitiveSuccess(block);
-		}
-		catch (final Exception e)
-		{
-			return interpreter.primitiveFailure(E_BLOCK_IS_INVALID);
-		}
+		final AvailObject block = newBlockNode(
+			argDecls, primitive, statements, resultType, exceptions);
+		return interpreter.primitiveSuccess(block);
 	}
 
 	@Override

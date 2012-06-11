@@ -39,7 +39,7 @@ Extends
 Uses
 	"Bootstrap",
 	"Control Structures",
-	"Early Definers",
+	"Definers",
 	"Early Functions",
 	"Early Maps",
 	"Early Tuples",
@@ -61,68 +61,44 @@ Names
 	"_⊅_"
 Body
 
-/**
- * Strengthen set element addition.
- * 
- * Parameters:
- *    setType -
- *    valueType -
- * Returns:
- *    The strongest possible set type for the given argument types.
- */
+Method "_+_" is stable at [set, any]→set;
 Semantic restriction "_+_" is
 [
 	setType : set meta,
 	valueType : any meta
 |
-	/* Leverage instance types. */
-	if |setType| = 1 ∧ [ |valueType| = 1 ] then
+	elementType ::= setType's element type;
+	/* If the element type is an instance type and equal to `valueType`,
+	 * then the value is already present; the set type does not change.
+	 */
+	if |elementType| = 1 ∧ [ elementType = valueType ] then
 	[
-		(setType's instance + valueType's instance)'s type
+		setType
 	]
 	else
 	[
-		elementType ::= setType's element type;
-		/* If the element type is an instance type and equal to `valueType`,
-		 * then the value is already present; the set type does not change.
+		union ::= elementType ∪ valueType;
+		sizes ::= ||setType||;
+		/* If the type intersection of the element type and the new type is
+		 * ⊥, then the new element cannot be present in the set. Adjust the
+		 * cardinality accordingly.
 		 */
-		if |elementType| = 1 ∧ [ elementType = valueType ] then
-		[
-			setType
-		]
-		else
-		[
-			union ::= elementType ∪ valueType;
-			sizes ::= ||setType||;
-			/* If the type intersection of the element type and the new type is
-			 * ⊥, then the new element cannot be present in the set. Adjust the
-			 * cardinality accordingly.
+		newSizes ::=
+			if elementType ∩ valueType = ⊥ then
+			[
+				cast sizes + 1's type into [ t : whole number's type | t ]
+			]
+			/* Otherwise the element *may* be present, but there's no way to
+			 * know for sure. Adjust the cardinality accordingly.
 			 */
-			newSizes ::=
-				if elementType ∩ valueType = ⊥ then
-				[
-					cast sizes + 1's type into [ t : whole number's type | t ]
-				]
-				/* Otherwise the element *may* be present, but there's no way to
-				 * know for sure. Adjust the cardinality accordingly.
-				 */
-				else
-				[
-					cast sizes + [0..1] into [ t : whole number's type | t ]
-				];
-			{union | newSizes}
-		]
+			else
+			[
+				cast sizes + [0..1] into [ t : whole number's type | t ]
+			];
+		{union | newSizes}
 	]
 ];
 
-/**
- * Strengthen set-to-tuple conversion.
- * 
- * Parameters:
- *    setType -
- * Returns:
- *    The strongest possible set type for the given argument types.
- */
 Semantic restriction "_→tuple" is
 [
 	setType : set meta
@@ -141,7 +117,7 @@ Semantic restriction "_→tuple" is
  * Returns:
  *    `true` if the argument is empty, `false` otherwise.
  */
-Method "_is empty" is
+Stable method "_is empty" is
 [
 	aSet : set
 |
@@ -581,7 +557,7 @@ Semantic restriction "count of_where_" is
  * Author:
  *    Leslie Schultz
  */
-Public method "_Δ_" is
+Public stable method "_Δ_" is
 [
 	a : set,
 	b : set
@@ -605,21 +581,14 @@ Semantic restriction "_Δ_" is
 	aType : set meta,
 	bType : set meta
 |
-	if ( |aType| = 1 ) ∧ [ |bType| = 1 ] then
-	[
-		(aType's instance Δ bType's instance)'s type
-	]
-	else
-	[
-		aElementType ::= aType's element type;
-		bElementType ::= bType's element type;
-		lowerBound ::=
-			if (aElementType ∩ bElementType) = ⊥
-			then [ ⎣aType⎦ + ⎣bType⎦ ]
-			else [ 0 ];
-		upperBound ::= (⎡aType⎤ + ⎡bType⎤);
-		{aElementType ∪ bElementType | lowerBound..upperBound}
-	]
+	aElementType ::= aType's element type;
+	bElementType ::= bType's element type;
+	lowerBound ::=
+		if (aElementType ∩ bElementType) = ⊥
+		then [ ⎣aType⎦ + ⎣bType⎦ ]
+		else [ 0 ];
+	upperBound ::= (⎡aType⎤ + ⎡bType⎤);
+	{aElementType ∪ bElementType | lowerBound..upperBound}
 ];
 
 /**
@@ -631,7 +600,7 @@ Semantic restriction "_Δ_" is
  * Returns:
  *    `true` if `aSet` contains `value` as a member, `false` otherwise.
  */
-Public method "_∋_" is
+Public stable method "_∋_" is
 [
 	aSet : set,
 	value : any
@@ -639,54 +608,12 @@ Public method "_∋_" is
 	value ∈ aSet
 ];
 
-/**
- * Strengthen `_∋_`.
- * 
- * Parameters:
- *    setType -
- *    valueType -
- * Returns:
- *    The strongest possible boolean type.
- */
 Semantic restriction "_∋_" is
 [
 	setType : set meta,
 	valueType : any meta
 |
-	if |setType| = 1 ∧ [ |valueType| = 1 ] then
-	[
-		(setType's instance ∋ valueType's instance)'s type
-	]
-	else if [ (setType's element type) ∩ valueType = ⊥ ] then
-	[
-		false's type
-	]
-	else
-	[
-		/* Can't strengthen. */
-		⊤
-	]
-];
-
-/**
- * Strengthen `_⊆_`.
- * 
- * Parameters:
- *    a -
- *    b -
- * Returns:
- *    The strongest possible boolean type.
- */
-Semantic restriction "_⊆_" is
-[
-	a : set meta,
-	b : set meta
-|
-	if |a| = 1 ∧ [ |b| = 1 ] then
-	[
-		(a's instance ⊆ b's instance)'s type
-	]
-	else if [ a's element type ∩ (b's element type) = ⊥ ] then
+	if (setType's element type) ∩ valueType = ⊥ then
 	[
 		false's type
 	]
@@ -706,7 +633,7 @@ Semantic restriction "_⊆_" is
  * Returns:
  *    `true` if `a` is a proper subset of `b`, `false` otherwise.
  */
-Public method "_⊂_" is
+Public stable method "_⊂_" is
 [
 	a : set,
 	b : set
@@ -714,67 +641,34 @@ Public method "_⊂_" is
 	|a| ≠ |b| ∧ [ a ⊆ b ]
 ] : boolean;
 
-/**
- * Strengthen `_⊂_`.
- * 
- * Parameters:
- *    typeA - A set type.
- *    typeB - A set type.
- * Returns:
- *    A boolean type.
- */
 Semantic restriction "_⊂_" is
 [
 	typeA : set meta,
 	typeB : set meta
 |
-	/* If both arguments are instance types, then extract their instances and
-	 * perform the subset operation on them, answering the result's type.
+	elementA ::= typeA's element type;
+	elementB ::= typeB's element type;
+	/* The basic rule is this: If the type intersection of the element type
+	 * of `typeA` and the element type of `typeB` is ⊥, then the result must
+	 * be false. Otherwise all bets are off.
 	 */
-	if |typeA| = 1 ∧ [ |typeB| = 1 ] then
+	basicRule ::=
+		[ if elementA ∩ elementB = ⊥ then [ false's type ] else [ ⊤ ] ];
+	sizesB ::= ||typeB||;
+	/* This is finesse. If `typeB` is definitely the set of all possible
+	 * instances of its (enumeration) element type, then `typeA`'s instances
+	 * must be subsets of `typeB`'s instance if `typeA`'s element type is a
+	 * subtype of `typeB`'s element type.
+	 */
+	if |elementB| ≠ ∞
+		∧ [ ⎣sizesB⎦ = ⎡sizesB⎤
+		∧ [ |elementB| = ⎣sizesB⎦ ] ]
+	then
 	[
-		a ::= typeA's instance;
-		b ::= typeB's instance;
-		(a ⊂ b)'s type
-	]
-	else
-	[
-		elementA ::= typeA's element type;
-		elementB ::= typeB's element type;
-		/* The basic rule is this: If the type intersection of the element type
-		 * of `typeA` and the element type of `typeB` is ⊥, then the result must
-		 * be false. Otherwise all bets are off.
-		 */
-		basicRule ::=
-			[
-				if elementA ∩ elementB = ⊥ then
-				[
-					false's type
-				]
-				else
-				[
-					/* Can't strengthen. */
-					⊤
-				]
-			];
-		sizesB ::= ||typeB||;
-		/* This is finesse. If `typeB` is definitely the set of all possible
-		 * instances of its (enumeration) element type, then `typeA`'s instances
-		 * must be subsets of `typeB`'s instance if `typeA`'s element type is a
-		 * subtype of `typeB`'s element type.
-		 */
-		if |elementB| ≠ ∞
-			∧ [ ⎣sizesB⎦ = ⎡sizesB⎤
-			∧ [ |elementB| = ⎣sizesB⎦ ] ]
-		then
-		[
-			if ⎡typeA⎤ < |elementB|
-				∧ [ elementA ⊆ elementB ]
-			then [ true's type ]
-			else basicRule
-		]
+		if ⎡typeA⎤ < |elementB| ∧ [ elementA ⊆ elementB ] then [ true's type ]
 		else basicRule
 	]
+	else basicRule
 ];
 
 /**
@@ -786,7 +680,7 @@ Semantic restriction "_⊂_" is
  * Returns:
  *    `true` if `a` is a superset of or equal to `b`, `false` otherwise.
  */
-Public method "_⊇_" is
+Public stable method "_⊇_" is
 [
 	a : set,
 	b : set
@@ -794,67 +688,34 @@ Public method "_⊇_" is
 	b ⊆ a
 ];
 
-/**
- * Strengthen `_⊇_`.
- * 
- * Parameters:
- *    typeB - A set type.
- *    typeA - A set type.
- * Returns:
- *    A boolean type.
- */
 Semantic restriction "_⊇_" is
 [
 	typeB : set's type,
 	typeA : set's type
 |
-	/* If both arguments are instance types, then extract their instances and
-	 * perform the subset operation on them, answering the result's type.
+	elementA ::= typeA's element type;
+	elementB ::= typeB's element type;
+	/* The basic rule is this: If the type intersection of the element type
+	 * of `typeA` and the element type of `typeB` is ⊥, then the result must
+	 * be false. Otherwise all bets are off.
 	 */
-	if |typeA| = 1 ∧ [ |typeB| = 1 ] then
+	basicRule ::=
+		[ if elementA ∩ elementB = ⊥ then [ false's type ] else [ boolean ] ];
+	sizesB ::= ||typeB||;
+	/* This is finesse. If `typeB` is definitely the set of all possible
+	 * instances of its (enumeration) element type, then `typeA`'s instances
+	 * must be subsets of `typeB`'s instance if `typeA`'s element type is a
+	 * subtype of `typeB`'s element type.
+	 */
+	if |elementB| ≠ ∞
+		∧ [ ⎣sizesB⎦ = ⎡sizesB⎤
+		∧ [ |elementB| = ⎣sizesB⎦ ] ]
+	then
 	[
-		a ::= typeA's instance;
-		b ::= typeB's instance;
-		(a ⊆ b)'s type
-	]
-	else
-	[
-		elementA ::= typeA's element type;
-		elementB ::= typeB's element type;
-		/* The basic rule is this: If the type intersection of the element type
-		 * of `typeA` and the element type of `typeB` is ⊥, then the result must
-		 * be false. Otherwise all bets are off.
-		 */
-		basicRule ::=
-			[
-				if elementA ∩ elementB = ⊥ then
-				[
-					false's type
-				]
-				else
-				[
-					boolean
-				]
-			];
-		sizesB ::= ||typeB||;
-		/* This is finesse. If `typeB` is definitely the set of all possible
-		 * instances of its (enumeration) element type, then `typeA`'s instances
-		 * must be subsets of `typeB`'s instance if `typeA`'s element type is a
-		 * subtype of `typeB`'s element type.
-		 */
-		if |elementB| ≠ ∞
-			∧ [ ⎣sizesB⎦ = ⎡sizesB⎤
-			∧ [ |elementB| = ⎣sizesB⎦ ] ]
-		then
-		[
-			if elementA ⊆ elementB then
-			[
-				true's type
-			]
-			else basicRule
-		]
+		if elementA ⊆ elementB then [ true's type ]
 		else basicRule
 	]
+	else basicRule
 ];
 
 /**
@@ -866,7 +727,7 @@ Semantic restriction "_⊇_" is
  * Returns:
  *    `true` if `a` is a proper superset of `b`, `false` otherwise.
  */
-Public method "_⊃_" is
+Public stable method "_⊃_" is
 [
 	a : set,
 	b : set
@@ -874,67 +735,34 @@ Public method "_⊃_" is
 	b ⊂ a
 ];
 
-/**
- * Strengthen `_⊂_`.
- * 
- * Parameters:
- *    typeB - A set type.
- *    typeA - A set type.
- * Returns:
- *    A boolean type.
- */
 Semantic restriction "_⊂_" is
 [
 	typeB : set meta,
 	typeA : set meta
 |
-	/* If both arguments are instance types, then extract their instances and
-	 * perform the subset operation on them, answering the result's type.
+	elementA ::= typeA's element type;
+	elementB ::= typeB's element type;
+	/* The basic rule is this: If the type intersection of the element type
+	 * of `typeA` and the element type of `typeB` is ⊥, then the result must
+	 * be false. Otherwise all bets are off.
 	 */
-	if |typeA| = 1 ∧ [ |typeB| = 1 ] then
+	basicRule ::=
+		[ if elementA ∩ elementB = ⊥ then [ false's type ] else [ ⊤ ] ];
+	sizesB ::= ||typeB||;
+	/* This is finesse. If `typeB` is definitely the set of all possible
+	 * instances of its (enumeration) element type, then `typeA`'s instances
+	 * must be subsets of `typeB`'s instance if `typeA`'s element type is a
+	 * subtype of `typeB`'s element type.
+	 */
+	if |elementB| ≠ ∞
+		∧ [ ⎣sizesB⎦ = ⎡sizesB⎤
+		∧ [ |elementB| = ⎣sizesB⎦ ] ]
+	then
 	[
-		a ::= typeA's instance;
-		b ::= typeB's instance;
-		(a ⊂ b)'s type
-	]
-	else
-	[
-		elementA ::= typeA's element type;
-		elementB ::= typeB's element type;
-		/* The basic rule is this: If the type intersection of the element type
-		 * of `typeA` and the element type of `typeB` is ⊥, then the result must
-		 * be false. Otherwise all bets are off.
-		 */
-		basicRule ::=
-			[
-				if elementA ∩ elementB = ⊥ then
-				[
-					false's type
-				]
-				else
-				[
-					/* Can't strengthen. */
-					⊤
-				]
-			];
-		sizesB ::= ||typeB||;
-		/* This is finesse. If `typeB` is definitely the set of all possible
-		 * instances of its (enumeration) element type, then `typeA`'s instances
-		 * must be subsets of `typeB`'s instance if `typeA`'s element type is a
-		 * subtype of `typeB`'s element type.
-		 */
-		if |elementB| ≠ ∞
-			∧ [ ⎣sizesB⎦ = ⎡sizesB⎤
-			∧ [ |elementB| = ⎣sizesB⎦ ] ]
-		then
-		[
-			if ⎡typeA⎤ < |elementB|
-				∧ [ elementA ⊆ elementB ]
-			then [ true's type ]
-			else basicRule
-		]
+		if ⎡typeA⎤ < |elementB| ∧ [ elementA ⊆ elementB ] then [ true's type ]
 		else basicRule
 	]
+	else basicRule
 ];
 
 /**
@@ -946,7 +774,7 @@ Semantic restriction "_⊂_" is
  * Returns:
  *    `true` if `element` is not an element of `aSet`, `false` otherwise.
  */
-Public method "_∉_" is
+Public stable method "_∉_" is
 [
 	element : any,
 	aSet : set
@@ -968,11 +796,7 @@ Semantic restriction "_∉_" is
 	valueType : any meta,
 	setType : set meta
 |
-	if |valueType| = 1 ∧ [ |setType| = 1 ] then
-	[
-		(valueType's instance ∉ setType's instance)'s type
-	]
-	else if [ valueType ∩ (setType's element type) = ⊥ ] then
+	if valueType ∩ (setType's element type) = ⊥ then
 	[
 		true's type
 	]
@@ -992,7 +816,7 @@ Semantic restriction "_∉_" is
  * Returns:
  *    `true` if `a` is not a proper subset of `b`, `false` otherwise.
  */
-Public method "_⊄_" is
+Public stable method "_⊄_" is
 [
 	a : set,
 	b : set
@@ -1000,67 +824,34 @@ Public method "_⊄_" is
 	¬ a ⊂ b
 ] : boolean;
 
-/**
- * Strengthen `_⊄_`.
- * 
- * Parameters:
- *    typeB - A set type.
- *    typeA - A set type.
- * Returns:
- *    A boolean type.
- */
 Semantic restriction "_⊄_" is
 [
 	typeB : set meta,
 	typeA : set meta
 |
-	/* If both arguments are instance types, then extract their instances and
-	 * perform the subset operation on them, answering the result's type.
+	elementA ::= typeA's element type;
+	elementB ::= typeB's element type;
+	/* The basic rule is this: If the type intersection of the element type
+	 * of `typeA` and the element type of `typeB` is ⊥, then the result must
+	 * be true. Otherwise all bets are off.
 	 */
-	if |typeA| = 1 ∧ [ |typeB| = 1 ] then
+	basicRule ::=
+		[ if elementA ∩ elementB = ⊥ then [ true's type ] else [ ⊤ ] ];
+	sizesB ::= ||typeB||;
+	/* This is finesse. If `typeB` is definitely the set of all possible
+	 * instances of its (enumeration) element type, then `typeA`'s instances
+	 * must be subsets of `typeB`'s instance if `typeA`'s element type is a
+	 * subtype of `typeB`'s element type.
+	 */
+	if |elementB| ≠ ∞
+		∧ [ ⎣sizesB⎦ = ⎡sizesB⎤
+		∧ [ |elementB| = ⎣sizesB⎦ ] ]
+	then
 	[
-		a ::= typeA's instance;
-		b ::= typeB's instance;
-		(a ⊄ b)'s type
-	]
-	else
-	[
-		elementA ::= typeA's element type;
-		elementB ::= typeB's element type;
-		/* The basic rule is this: If the type intersection of the element type
-		 * of `typeA` and the element type of `typeB` is ⊥, then the result must
-		 * be true. Otherwise all bets are off.
-		 */
-		basicRule ::=
-			[
-				if elementA ∩ elementB = ⊥ then
-				[
-					true's type
-				]
-				else
-				[
-					/* Can't strengthen. */
-					⊤
-				]
-			];
-		sizesB ::= ||typeB||;
-		/* This is finesse. If `typeB` is definitely the set of all possible
-		 * instances of its (enumeration) element type, then `typeA`'s instances
-		 * must be subsets of `typeB`'s instance if `typeA`'s element type is a
-		 * subtype of `typeB`'s element type.
-		 */
-		if |elementB| ≠ ∞
-			∧ [ ⎣sizesB⎦ = ⎡sizesB⎤
-			∧ [ |elementB| = ⎣sizesB⎦ ] ]
-		then
-		[
-			if ⎡typeA⎤ < |elementB|
-				∧ [ elementA ⊆ elementB ]
-			then [ false's type ]
-			else basicRule
-		]
+		if ⎡typeA⎤ < |elementB| ∧ [ elementA ⊆ elementB ] then [ false's type ]
 		else basicRule
 	]
+	else basicRule
 ];
 
 /**

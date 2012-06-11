@@ -1,0 +1,675 @@
+/*
+ * Definers.avail
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Definers"
+Versions
+	"dev"
+Extends
+	"Early Definers"
+Uses
+	"Bootstrap",
+	"Early Control Structures",
+	"Early Enumeration Support",
+	"Early Literals",
+	"Phrases"
+Names
+	"Method_is stable at_",
+	"Private stable abstract method_is_",
+	"Private stable forward method_is_",
+	"Private stable method_is_",
+	"Public stable abstract method_is_",
+	"Public stable forward method_is_",
+	"Public stable method_is_",
+	"Stable abstract method_is_",
+	"Stable forward method_is_",
+	"Stable method_is_"
+Body
+
+/* These methods are needed for autogeneration of stable method restrictions. */
+equalsM ::= method for atom for "_=_";
+ifThenElseM ::= method for atom for "If|if_then_else_";
+instanceCountM ::= method for atom for "`|_`|";
+instanceM ::= method for atom for "_'s⁇instance";
+setM ::= method for atom for "{«_‡,»}";
+typeM ::= method for atom for "_'s⁇type";
+
+/**
+ * Declare that the method referenced by `methodName` is stable for the given
+ * signature. A stable method produces the same value for the same arguments on
+ * every call. Automatically generate and install a semantic restriction that
+ * will statically strengthen the answer produced at a call site to a precisely
+ * known value when all arguments are themselves precisely known.
+ * 
+ * Parameters:
+ *    methodName - The name of the stable.
+ *    functionType - The signature of the method that is being declared stable.
+ */
+Public method "Method_is stable at_" is
+[
+	methodName : string,
+	functionType : function meta
+|
+	/* The goal is to take an invocation like:
+	 *
+	 *    Method "_[_]→_" is stable at [tuple, natural number, any]→tuple;
+	 *
+	 * And automatically generate something like this:
+	 *
+	 *    Semantic restriction "_[_]→_" is
+	 *    [
+	 *        arg1 : tuple's type,
+	 *        arg2 : natural number's type,
+	 *        arg3 : any's type
+	 *    |
+	 *        if {|arg1|, |arg2|, |arg3|} = {1} then
+	 *        [
+	 *            (arg1's instance[arg2's instance]→arg3's instance)'s type
+	 *        ]
+	 *        else
+	 *        [
+	 *            ⊤
+	 *        ]
+	 *    ] : type;
+	 *
+	 * TODO: [TLS] Should the method name contain any lexical groups, then we
+	 * have to do something more complex:
+	 * 
+	 *    Semantic restriction "«_‡++»" is
+	 *    [
+	 *       arg1 : <tuple…|[2..∞)>'s type
+	 *    |
+	 *        /* `counts` is initialized to the instance counts of the arguments
+	 *         * that do not correspond to lexical groups. (In this case, there
+	 *         * aren't any, so use the empty set.)
+	 *         */
+	 *        counts : set := ∅;
+	 *        /* There will be one such loop for each argument that corresponds
+	 *         * to a lexical group.
+	 *         */
+	 *        From 1 to |arg1| do
+	 *        [
+	 *            index : natural number
+	 *        |
+	 *            counts := eject ↑counts + |arg1[index]|;
+	 *            true
+	 *        ];
+	 *        if counts = {1} then
+	 *        [
+	 *            /* There will be one such loop for each argument that
+	 *             * corresponds to a lexical group.
+	 *             */
+	 *            instances1 : tuple := <>;
+	 *            From 1 to |arg1| do
+	 *            [
+	 *                index : natural number
+	 *            |
+	 *                instances1 :=
+	 *                    eject ↑instances1 ++ <arg1[index]'s instance>;
+	 *                true;
+	 *            ];
+	 *            theMethod ::= method for atom for "«_‡++»";
+	 *            (Invoke implementation of theMethod for <arg1>
+	 *                with <instances1>)'s type
+	 *        ]
+	 *        else
+	 *        [
+	 *            ⊤
+	 *        ]
+	 *    ] : type;
+	 *
+	 * The code below generalizes the above to any method name and set of
+	 * parameter types. Note that we do not actually have to synthesize an
+	 * invocation of "(_)" or "<«_‡,»>".
+	 */
+	theMethod ::= method for atom for methodName;
+	resultType ::= functionType's return type's type;
+	argDecls : <<>, argument…|whole number> := <>;
+	setContents : <<>, send⇒nonnegative integer…|whole number> := <>;
+	instances : <<>, send⇒any…|whole number> := <>;
+	/* Construct the tuples of argument declarations, the contents of the
+	 * instance count set, and the tuple of instances.
+	 */
+	From 1 to |theMethod's parameters| do
+	[
+		index : natural number
+	|
+		argName ::= cast concatenate <"arg", primitive description of index>
+			into [ t : string | t ];
+		argDecl ::= arg “`argName` : functionType[index]'s type”;
+		argDecls := cast concatenate <eject ↑argDecls, <argDecl>>
+			into [ t : <<>, argument…|whole number> | t ];
+		instanceCount ::=
+			send instanceCountM with “<“↓argDecl”>” : nonnegative integer;
+		setContents := cast concatenate <eject ↑setContents, <instanceCount>>
+			into [ t : <<>, send⇒nonnegative integer…|whole number> | t ];
+		instance ::= send instanceM with “<“↓argDecl”>” : any;
+		instances := cast concatenate <eject ↑instances, <instance>>
+			into [ t : <<>, send⇒any…|whole number> | t ];
+		true
+	];
+	instanceCountSet ::= send setM with “<setContents→list>” : set;
+	oneSet ::= send setM with “<“<‘`1`’>”>” : {1}'s type;
+	equals ::= send equalsM with “<instanceCountSet, oneSet>” : boolean;
+	answer ::= send theMethod with instances→list : any;
+	answerType ::= send typeM with “<answer>” : resultType;
+	answerTypeBlock ::= “[<answerType>] : resultType”;
+	cantStrengthenBlock ::= “[<‘`⊤`’>] : ⊤'s type”;
+	branch ::= send ifThenElseM
+		with “<equals, answerTypeBlock, cantStrengthenBlock>” : type;
+	restrictionBlock ::= “[argDecls | <branch>] : type”;
+	restrictionFunction ::= generate restrictionBlock;
+	Semantic restriction methodName is restrictionFunction;
+] : ⊤;
+
+/**
+ * Reject the current parse if the specified message specifies any lexical
+ * groups. Take no action if the actual message is not available.
+ * 
+ * Parameters:
+ *    nameType - The type of the method name.
+ */
+Private method "Require:message_does not specify lexical groups" is
+[
+	nameType : string's type
+|
+	If |nameType| = 1 then
+	[
+		methodName ::= cast nameType's instance into [ t : string | t ];
+		If message methodName contains groups then
+		[
+			messageTuple ::= concatenate <
+				"message name (",
+				primitive description of methodName,
+				") must not specify lexical groups">;
+			Invoke
+			[
+				messageString : string
+			|
+				Reject parse, expected: messageString
+			]
+			with <messageTuple>
+		];
+	];
+] : ⊤;
+
+/**
+ * Reject the current parse if any of the argument's parameter types are
+ * metatypes, i.e., the actual argument is a type, or function types. Take no
+ * action if the argument's parameter types are not available.
+ * 
+ * Parameters:
+ *    functionType - A function type.
+ */
+Private method "Require:_'s⁇parameters are not metatypes or function types" is
+[
+	functionType : function meta
+|
+	parametersType ::= functionType's parameters' type;
+	cast ||parametersType||'s genuine upper bound into
+	[
+		limit : whole number
+	|
+		From 1 to limit do
+		[
+			index : natural number
+		|
+			parameterType ::= parametersType[index];
+			If parameterType = ⊥ then
+			[
+				/* Can't tell anything about this argument. */
+			]
+			else
+			[
+				If parameterType ⊆ type then
+				[
+					messageTuple ::= concatenate <
+						"parameter type (",
+						primitive description of parameterType,
+						") not to be a metatype; metacovariance will allow \
+						\|subtypes of  this type, causing the operation not to \
+						\|be stable">;
+					Invoke
+					[
+						messageString : string
+					|
+						Reject parse, expected: messageString
+					]
+					with <messageTuple>
+				];
+				If parameterType ⊆ function then
+				[
+					messageTuple ::= concatenate <
+						"parameter type (",
+						primitive description of parameterType,
+						") not to be a function type">;
+					Invoke
+					[
+						messageString : string
+					|
+						Reject parse, expected: messageString
+					]
+					with <messageTuple>
+				];
+			];
+			true
+		];
+	]
+	else
+	[
+		/* Can't check the parameter types. */
+	];
+] : ⊤;
+
+/**
+ * If possible, then ensure that the parameters are not types; because of
+ * metacovariance, the operation would not actually be stable.
+ */
+Semantic restriction "Method_is stable at_" is
+[
+	nameType : string's type,
+	functionType : function meta
+|
+	Require: message nameType does not specify lexical groups;
+	Require: functionType's parameters are not metatypes or function types;
+	⊤
+];
+
+/**
+ * Declare a new abstract stable method with the specified name and signature. A
+ * concrete implementation is one whose parameter types and return type are
+ * strictly more specific than the corresponding types of the abstract
+ * signature. A stable method produces the same value for the same arguments on
+ * every call. Automatically generate and install a semantic restriction that
+ * will statically strengthen the answer produced at a call site to a precisely
+ * known value when all arguments are themselves precisely known.
+ *
+ * Parameters:
+ *    methodName - The name of the abstract method to declare.
+ *    aFunctionType - The signature.
+ */
+Public method "Stable abstract method_is_" is
+[
+	methodName : string,
+	aFunctionType : function meta
+|
+	Abstract method methodName is aFunctionType;
+	Method methodName is stable at aFunctionType;
+] : ⊤;
+
+Semantic restriction "Stable abstract method_is_" is
+[
+	nameType : string's type,
+	functionMeta : function meta's type
+|
+	Require: message nameType does not specify lexical groups;
+	If |functionMeta| = 1 then
+	[
+		functionType ::= cast functionMeta's instances→tuple[1] into
+			[ t : function meta | t ];
+		Require: functionType's parameters are not metatypes or function types;
+	];
+	⊤
+];
+
+/**
+ * Declare the intention to locally define a method with the specified name and
+ * signature. If no such method is defined before compilation of the containing
+ * module completes, then the compiler will emit an appropriate error message.
+ *
+ * Recursive methods must be forward declared. Mutually recursive methods must
+ * forward declare all but the lexically first participant in the recursion.
+ * 
+ * Also declare that the method is stable A stable method produces the same
+ * value for the same arguments on every call. Automatically generate and
+ * install a semantic restriction that will statically strengthen the answer
+ * produced at a call site to a precisely known value when all arguments are
+ * themselves precisely known.
+ *
+ * Parameters:
+ *    methodName - The name of the method to forward declare.
+ *    aFunctionType - The signature.
+ */
+Public method "Stable forward method_is_" is
+[
+	methodName : string,
+	aFunctionType : function meta
+|
+	Forward method methodName is aFunctionType;
+	Method methodName is stable at aFunctionType;
+] : ⊤;
+
+Semantic restriction "Stable forward method_is_" is
+[
+	nameType : string's type,
+	functionMeta : function meta's type
+|
+	Require: message nameType does not specify lexical groups;
+	If |functionMeta| = 1 then
+	[
+		functionType ::= cast functionMeta's instances→tuple[1] into
+			[ t : function meta | t ];
+		Require: functionType's parameters are not metatypes or function types;
+	];
+	⊤
+];
+
+/**
+ * Define a new stable method. A stable method produces the same value for the
+ * same arguments on every call. Automatically generate and install a semantic
+ * restriction that will statically strengthen the answer produced at a call
+ * site to a precisely known value when all arguments are themselves precisely
+ * known.
+ * 
+ * Parameters:
+ *    methodName - The name of the new method.
+ *    implementation - An implementation of the method.
+ */
+Public method "Stable method_is_" is
+[
+	methodName : string,
+	implementation : function
+|
+	Method methodName is implementation;
+	Method methodName is stable at implementation's type;
+];
+
+Semantic restriction "Stable method_is_" is
+[
+	nameType : string's type,
+	functionType : function meta
+|
+	Require: message nameType does not specify lexical groups;
+	Require: functionType's parameters are not metatypes or function types;
+	⊤
+];
+
+/**
+ * Declare a new public abstract stable method with the specified name and
+ * signature. A concrete implementation is one whose parameter types and return
+ * type are strictly more specific than the corresponding types of the abstract
+ * signature. A stable method produces the same value for the same arguments on
+ * every call. Automatically generate and install a semantic restriction that
+ * will statically strengthen the answer produced at a call site to a precisely
+ * known value when all arguments are themselves precisely known. The semantic
+ * restriction ensures that the method is named in the current module's "Names"
+ * section. This should not be used to extend existing methods.
+ *
+ * Parameters:
+ *    methodName - The name of the abstract method to declare.
+ *    aFunctionType - The signature.
+ */
+Public method "Public stable abstract method_is_" is
+[
+	methodName : string,
+	aFunctionType : function meta
+|
+	Abstract method methodName is aFunctionType;
+	Method methodName is stable at aFunctionType;
+] : ⊤;
+
+/**
+ * Ensure that the new method is introduced by the module's "Names" section.
+ */
+Semantic restriction "Public stable abstract method_is_" is
+[
+	nameType : string's type,
+	functionMeta : function meta's type
+|
+	Require: nameType is public;
+	Require: message nameType does not specify lexical groups;
+	If |functionMeta| = 1 then
+	[
+		functionType ::= cast functionMeta's instances→tuple[1] into
+			[ t : function meta | t ];
+		Require: functionType's parameters are not metatypes or function types;
+	];
+	⊤
+];
+
+/**
+ * Declare the intention to locally define a public method with the specified
+ * name and signature. If no such method is defined before compilation of the
+ * containing module completes, then the compiler will emit an appropriate error
+ * message.
+ *
+ * Recursive methods must be forward declared. Mutually recursive methods must
+ * forward declare all but the lexically first participant in the recursion.
+ * 
+ * Also declare that the method is stable A stable method produces the same
+ * value for the same arguments on every call. Automatically generate and
+ * install a semantic restriction that will statically strengthen the answer
+ * produced at a call site to a precisely known value when all arguments are
+ * themselves precisely known.
+ *
+ * The semantic restriction ensures that the method is named in the current
+ * module's "Names" section.
+ * 
+ * This should not be used to extend existing methods.
+ *
+ * Parameters:
+ *    methodName - The name of the method to forward declare.
+ *    aFunctionType - The signature.
+ */
+Public method "Public stable forward method_is_" is
+[
+	methodName : string,
+	aFunctionType : function meta
+|
+	Forward method methodName is aFunctionType;
+	Method methodName is stable at aFunctionType;
+] : ⊤;
+
+/**
+ * Ensure that the new method is introduced by the module's "Names" section.
+ */
+Semantic restriction "Public stable forward method_is_" is
+[
+	nameType : string's type,
+	functionMeta : function meta's type
+|
+	Require: nameType is public;
+	Require: message nameType does not specify lexical groups;
+	If |functionMeta| = 1 then
+	[
+		functionType ::= cast functionMeta's instances→tuple[1] into
+			[ t : function meta | t ];
+		Require: functionType's parameters are not metatypes or function types;
+	];
+	⊤
+];
+
+/**
+ * Define a new public stable method. A stable method produces the same value
+ * for the same arguments on every call. Automatically generate and install a
+ * semantic restriction that will statically strengthen the answer produced at a
+ * call site to a precisely known value when all arguments are themselves
+ * precisely known. The semantic restriction ensures that the method is named in
+ * the current module's "Names" section. This should not be used to extend
+ * existing methods.
+ * 
+ * Parameters:
+ *    methodName - The name of the new method.
+ *    implementation - The original implementation of the method.
+ */
+Public method "Public stable method_is_" is
+[
+	methodName : string,
+	implementation : function
+|
+	Method methodName is implementation;
+	Method methodName is stable at implementation's type;
+];
+
+/**
+ * Ensure that the new method is introduced by the module's "Names" section.
+ */
+Semantic restriction "Public stable method_is_" is
+[
+	nameType : string's type,
+	functionType : function meta
+|
+	Require: nameType is public;
+	Require: message nameType does not specify lexical groups;
+	Require: functionType's parameters are not metatypes or function types;
+	⊤
+];
+
+/**
+ * Declare a new private abstract stable method with the specified name and
+ * signature. A concrete implementation is one whose parameter types and return
+ * type are strictly more specific than the corresponding types of the abstract
+ * signature. A stable method produces the same value for the same arguments on
+ * every call. Automatically generate and install a semantic restriction that
+ * will statically strengthen the answer produced at a call site to a precisely
+ * known value when all arguments are themselves precisely known. The semantic
+ * restriction ensures that the method is not named in the current module's
+ * "Names" section. This should not be used to extend existing methods.
+ *
+ * Parameters:
+ *    methodName - The name of the abstract method to declare.
+ *    aFunctionType - The signature.
+ */
+Public method "Private stable abstract method_is_" is
+[
+	methodName : string,
+	aFunctionType : function meta
+|
+	Abstract method methodName is aFunctionType;
+	Method methodName is stable at aFunctionType;
+] : ⊤;
+
+/**
+ * Ensure that the new method is not introduced by the module's "Names" section.
+ */
+Semantic restriction "Private stable abstract method_is_" is
+[
+	nameType : string's type,
+	functionMeta : function meta's type
+|
+	Require: nameType is private;
+	Require: message nameType does not specify lexical groups;
+	If |functionMeta| = 1 then
+	[
+		functionType ::= cast functionMeta's instances→tuple[1] into
+			[ t : function meta | t ];
+		Require: functionType's parameters are not metatypes or function types;
+	];
+	⊤
+];
+
+/**
+ * Declare the intention to locally define a private method with the specified
+ * name and signature. If no such method is defined before compilation of the
+ * containing module completes, then the compiler will emit an appropriate error
+ * message.
+ *
+ * Recursive methods must be forward declared. Mutually recursive methods must
+ * forward declare all but the lexically first participant in the recursion.
+ * 
+ * Also declare that the method is stable A stable method produces the same
+ * value for the same arguments on every call. Automatically generate and
+ * install a semantic restriction that will statically strengthen the answer
+ * produced at a call site to a precisely known value when all arguments are
+ * themselves precisely known.
+ * 
+ * The semantic restriction ensures that the method is not named in the current
+ * module's "Names" section.
+ * 
+ * This should not be used to extend existing methods.
+ *
+ * Parameters:
+ *    methodName - The name of the method to forward declare.
+ *    aFunctionType - The signature.
+ */
+Public method "Private stable forward method_is_" is
+[
+	methodName : string,
+	aFunctionType : function meta
+|
+	Forward method methodName is aFunctionType;
+	Method methodName is stable at aFunctionType;
+] : ⊤;
+
+/**
+ * Ensure that the new method is not introduced by the module's "Names" section.
+ */
+Semantic restriction "Private stable forward method_is_" is
+[
+	nameType : string's type,
+	functionMeta : function meta's type
+|
+	Require: nameType is private;
+	Require: message nameType does not specify lexical groups;
+	If |functionMeta| = 1 then
+	[
+		functionType ::= cast functionMeta's instances→tuple[1] into
+			[ t : function meta | t ];
+		Require: functionType's parameters are not metatypes or function types;
+	];
+	⊤
+];
+
+/**
+ * Define a new private stable method. A stable method produces the same value
+ * for the same arguments on every call. Automatically generate and install a
+ * semantic restriction that will statically strengthen the answer produced at a
+ * call site to a precisely known value when all arguments are themselves
+ * precisely known. The semantic restriction ensures that the method is not
+ * named in the current module's "Names" section. This should not be used to
+ * extend existing methods.
+ * 
+ * Parameters:
+ *    methodName - The name of the new method.
+ *    implementation - The original implementation of the method.
+ */
+Public method "Private stable method_is_" is
+[
+	methodName : string,
+	implementation : function
+|
+	Method methodName is implementation;
+	Method methodName is stable at implementation's type;
+];
+
+/**
+ * Ensure that the new method is not introduced by the module's "Names" section.
+ */
+Semantic restriction "Private stable method_is_" is
+[
+	nameType : string's type,
+	functionType : function meta
+|
+	Require: nameType is private;
+	Require: message nameType does not specify lexical groups;
+	Require: functionType's parameters are not metatypes or function types;
+	⊤
+];

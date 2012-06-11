@@ -35,8 +35,8 @@ Versions
 	"dev"
 Extends
 Uses
-	"Assertions",
 	"Bootstrap",
+	"Early Assertions",
 	"Early Control Structures",
 	"Early Definers",
 	"Early Logic",

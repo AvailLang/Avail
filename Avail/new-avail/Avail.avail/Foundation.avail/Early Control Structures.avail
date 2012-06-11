@@ -34,17 +34,17 @@ System Module "Early Control Structures"
 Versions
 	"dev"
 Uses
-	"Assertions",
 	"Bootstrap",
+	"Early Assertions",
 	"Early Definers",
 	"Early Literals",
 	"Early Enumeration Support"
 Names
-	"(_)",
 	"Ignore:_",
 	"From_to_do_",
 	"Cast|cast_into_else_",
-	"Cast|cast_into_"
+	"Cast|cast_into_",
+	"(_)"
 Body
 
 /**
@@ -81,11 +81,6 @@ Public method "(_)" is
 /**
  * A parenthesized expression should have the same static return type that it
  * would were the parentheses not present.
- *
- * Parameters:
- *    value -
- * Returns:
- *    The argument.
  */
 Semantic restriction "(_)" is
 [
@@ -97,13 +92,6 @@ Semantic restriction "(_)" is
 /**
  * Establish a conditional expression whose static return type is the type union
  * of its two possible functions' return types.
- *
- * Parameters:
- *    predicate - The predicate's type.
- *    trueFunction -
- *    falseFunction -
- * Returns:
- *    The type union of the return types of `trueFunction` and `falseFunction`.
  */
 Semantic restriction "If|if_then_else_" is
 [
@@ -117,13 +105,6 @@ Semantic restriction "If|if_then_else_" is
 /**
  * Strengthen the static return type to that of the function to invoke when the
  * predicate is true (which it is).
- *
- * Parameters:
- *    tautology - The type of `true`.
- *    trueFunction -
- *    falseFunction -
- * Returns:
- *    The return type of `trueFunction`.
  */
 Semantic restriction "If|if_then_else_" is
 [
@@ -137,13 +118,6 @@ Semantic restriction "If|if_then_else_" is
 /**
  * Strengthen the static return type to that of the function to invoke when the
  * predicate is false (which it is).
- *
- * Parameters:
- *    tautology - The type of `false`.
- *    trueFunction -
- *    falseFunction -
- * Returns:
- *    The return type of `falseFunction`.
  */
 Semantic restriction "If|if_then_else_" is
 [
@@ -152,6 +126,16 @@ Semantic restriction "If|if_then_else_" is
 	falseFunction : nullary procedure's type
 |
 	falseFunction's return type
+];
+
+/*
+ * This is used very frequently in the system library, so strengthen it early.
+ */
+Semantic restriction "eject_" is
+[
+	varType : variable meta
+|
+	varType's read type
 ];
 
 /**
@@ -214,13 +198,6 @@ Public method "Cast|cast_into_" is
  * Strengthen the return type of `Cast|cast_into_else` so that it may be used as
  * a value-producing expression. If the type cast is unnecessary, then reject
  * the current parse.
- *
- * Parameters:
- *    value -
- *    accept -
- *    reject -
- * Returns:
- *    The type union of the return types of `accept` and `reject`.
  */
 Semantic restriction "Cast|cast_into_else_" is
 [
@@ -269,12 +246,6 @@ Semantic restriction "Cast|cast_into_else_" is
  * Strengthen the return type of `Cast|cast_into_` so that it may be used as a
  * value-producing expression. If the type cast is unnecessary or invalid, then
  * reject the current parse.
- *
- * Parameters:
- *    value -
- *    accept -
- * Returns:
- *    The return type of `accept`.
  */
 Semantic restriction "Cast|cast_into_" is
 [
@@ -317,7 +288,6 @@ Semantic restriction "Cast|cast_into_" is
 	];
 	accept's return type
 ];
-
 /* Nesting parentheses directly is bad style, and leads to confusing
  * expressions, so forbid it.
  */
@@ -345,12 +315,6 @@ Method "`|`|_`|`|" is
 
 /**
  * Strengthen `Invoke|invoke_with_` to the invoked function's return type.
- *
- * Parameters:
- *    aFunction -
- *    arguments -
- * Returns:
- *    The function's return type.
  */
 Semantic restriction "Invoke|invoke_with_" is
 [
@@ -396,13 +360,6 @@ Public method "From_to_do_" is
 
 /**
  * Sanity check the function's arguments against the implied range of iteration.
- * 
- * Parameters:
- *    start -
- *    end -
- *    action -
- * Returns:
- *    ⊤.
  */
 Semantic restriction "From_to_do_" is
 [

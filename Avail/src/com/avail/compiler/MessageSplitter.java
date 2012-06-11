@@ -130,6 +130,17 @@ public class MessageSplitter
 		}
 
 		/**
+		 * Answer whether or not this a {@linkplain Group group}.
+		 *
+		 * @return {@code true} if and only if this is an argument or group,
+		 *         {@code false} otherwise.
+		 */
+		boolean isGroup ()
+		{
+			return false;
+		}
+
+		/**
 		 * If this isn't even a {@link Group} then it doesn't need
 		 * double-wrapping.  Override in Group.
 		 *
@@ -550,6 +561,12 @@ public class MessageSplitter
 
 		@Override
 		boolean isArgumentOrGroup ()
+		{
+			return true;
+		}
+
+		@Override
+		boolean isGroup ()
 		{
 			return true;
 		}
@@ -1423,6 +1440,12 @@ public class MessageSplitter
 		}
 
 		@Override
+		boolean isGroup ()
+		{
+			return expression.isGroup();
+		}
+
+		@Override
 		int underscoreCount ()
 		{
 			return expression.underscoreCount();
@@ -2158,6 +2181,24 @@ public class MessageSplitter
 				sizes,
 				TupleDescriptor.empty(),
 				functionType.argsTupleType()));
+	}
+
+	/**
+	 * Does the message contain any groups?
+	 *
+	 * @return {@code true} if the message contains any groups, {@code false}
+	 *         otherwise.
+	 */
+	public boolean containsGroups ()
+	{
+		for (final Expression expression : rootGroup.expressionsBeforeDagger)
+		{
+			if (expression.isGroup())
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**

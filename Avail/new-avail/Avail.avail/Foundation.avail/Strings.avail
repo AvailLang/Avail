@@ -1,0 +1,637 @@
+/*
+ * Strings.avail
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Strings"
+Versions
+	"dev"
+Uses
+	"Bootstrap",
+	"Control Structures",
+	"Definers",
+	"Early Assertions",
+	"Early Error Codes",
+	"Early Functions",
+	"Early Types",
+	"Enumeration Support",
+	"Literals",
+	"Logic",
+	"Maps",
+	"Math",
+	"Sets",
+	"Tuples",
+	"Variables"
+Names
+	"format_with_",
+	"format_with«…:=_‡,»",
+	"partially format_with_",
+	"partially format_with«…:=_‡,»"
+Body
+
+/**
+ * Answer the enumeration of variable interpolation modes:
+ * 
+ *    - $description : The result of converting the corresponding argument,
+ *      which may be any value, to a string via `primitive description of_` will
+ *      be copied into the formatted output.
+ *    - $text : The corresponding argument is a string and should be copied
+ *      directly into the formatted output.
+ *
+ * Returns:
+ *    An enumeration of the atoms listed above.
+ */
+Private method "interpolation mode" is
+[
+	enumeration of {$description, $text}
+];
+
+/**
+ * Answer the type of a format site. Each instance is a 4-tuple whose elements
+ * are:
+ *
+ *    [1] The format variable whose value should be interpolated at this site.
+ *    [2] The variable interpolation type.
+ *    [3] The start subscript of the site.
+ *    [4] The end subscript of the site.
+ * 
+ * Returns:
+ *    The tuple type described above.
+ */
+Private method "format site" is
+[
+	<string, interpolation mode, natural number, natural number…|4>
+];
+
+/**
+ * Answer the enumeration of format metacharacters:
+ * 
+ *    - ¢“ : Begins a format site whose interpolation mode is $text.
+ *    - ¢” : Ends a format site whose interpolation mode is $text.
+ *    - ¢‘ : Begins a format site whose interpolation mode is $description.
+ *    - ¢’ : Ends a format site whose interpolation mode is $description.
+ *    - ¢` : Escapes the next format metacharacter.
+ *
+ * Returns:
+ *    An enumeration of the characters listed above.
+ */
+Private method "format metacharacters" is
+[
+	enumeration of {¢“, ¢”, ¢‘, ¢’, ¢`}
+];
+
+/**
+ * Compute and answer the tuple of format sites for the specified template.
+ * 
+ * Parameters:
+ *    template - A template.
+ * Returns:
+ *    A tuple comprising the format sites for the specified template.
+ */
+Private stable method "format sites for_" is
+[
+	template : string
+|
+	sites : <format site…|> := <>;
+	index : natural number := 1;
+	addSite ::=
+		[
+			closeDelimiter : character,
+			interpType : interpolation mode
+		|
+			start ::= index;
+			Do [ ↑index++; ] while
+			[
+				If index > |template| then
+				[
+					early failure function(runaway format variable code)
+				];
+				template[index] ≠ closeDelimiter
+			];
+			If index - start = 1 then
+			[
+				early failure function(empty format variable code)
+			];
+			varName ::= template[start + 1..index - 1];
+			sites := eject ↑sites ++ <<varName, interpType, start, index>>;
+		];
+	While [ index ≤ |template| ] do
+	[
+		char ::= template[index];
+		/* Handle a metacharacter. */
+		Cast template[index] into
+		[
+			metachar : format metacharacters
+		|
+			Choose metachar from format metacharacters where
+				¢‘ is
+				[
+					addSite(¢’, $description);
+				],
+				¢“ is
+				[
+					addSite(¢”, $text);
+				],
+				¢` is
+				[
+					↑index++;
+					If index > |template|
+						∨ [ ¬template[index] ∈ format metacharacters ]
+					then
+					[
+						early failure function(
+							invalid format metacharacter escape code)
+					];
+				],
+				¢’ is
+				[
+					early failure function(
+						invalid format metacharacter use code)
+				],
+				¢” is
+				[
+					early failure function(
+						invalid format metacharacter use code)
+				];
+		]
+		/* The typical case: this is an ordinary character. */
+		else
+		[
+			/* No implementation required. */
+		];
+		/* Each case above must position `index` at the last character of
+		 * interest to it. The following statement skips that character. This
+		 * factoring ensures that progress is always made through the template.
+		 */
+		↑index++;
+	];
+	sites
+] : <format site…|>;
+
+/**
+ * Answer the result of partially formatting the specified template using format
+ * variable bindings contained in the given map. If a format variable does not
+ * have a corresponding binding in the map, then re-emit it into the (partially)
+ * formatted result.
+ *
+ * A template intermixes raw character data with format variable interpolation
+ * sites. An interpolation site begins with either the ¢‘ or ¢“ metacharacter
+ * and ends with the corresponding close metacharacter, either ¢’ or ¢”,
+ * respectively. An interpolation site may contain any character except the
+ * expected close metacharacter. The contents are understood to name a variable
+ * that may appear as a key within the specified map; the associated value is
+ * this variable's value. If an interpolation site uses ¢‘ (and ¢’), then the
+ * value will be converted to a string via `primitive description of_` when it
+ * is copied into the result. If an interpolation site uses ¢“ (and ¢”), then
+ * the value must be a string and will be copied directly into the result. To
+ * escape a metacharacter, precede it immediately by ¢`.
+ *
+ * For example:
+ * 
+ *    Assert:
+ *        partially format "“greeting”, “recipient”!\n"
+ *            with {"greeting"→"Hello"}
+ *        = "Hello, “recipient”!\n";
+ *    Assert:
+ *        partially format
+ *            (partially format "“greeting”, “recipient”!\n"
+ *                with {"greeting"→"Hello"})
+ *            with {"recipient"→"world"}
+ *       = "Hello, world!\n";
+ *
+ * Parameters:
+ *    template - A template string.
+ *    vars - A map from format variables to their bindings.
+ * Returns:
+ *    The result of partially formatting the template usings the specified
+ *    bindings.
+ */
+Public stable method "partially format_with_" is
+[
+	template : string,
+	vars : {string→any|}
+|
+	sites ::= format sites for template;
+	formatted : string := "";
+	index : natural number := 1;
+	For each sites do
+	[
+		site : format site
+	|
+		/* Append any characters between the last site and the previous site
+		 * onto the output.
+		 */
+		formatted := eject ↑formatted ++ template[index..site[3] - 1];
+		/* Interpolate the variable. */
+		var ::= site[1];
+		interpolation ::= choose site[2] from interpolation mode where
+			$description is
+			[
+				primitive description of vars[var] else ["‘" ++ var ++ "’"]
+			],
+			$text is
+			[
+				If var ∈ vars ∧ [ ¬var ∈ string ] then
+				[
+					early failure function(
+						format variable interpolation failed code)
+				];
+				cast vars[var] else ["“" ++ var ++ "”"] into [ t : string | t ]
+			];
+		formatted := eject ↑formatted ++ interpolation;
+		/* Update the template subscript (to point just beyond this site). */
+		index := site[4] + 1;
+	];
+	Assert: 1 ≤ index ≤ |template| + 1;
+	formatted := eject ↑formatted ++ template[index..];
+	formatted
+] : string;
+
+/**
+ * Compute and answer the minimum size of the result of formatting the specified
+ * template.
+ * 
+ * Parameters:
+ *    template - A template.
+ * Returns:
+ *    The minimum size of the formatted string.
+ */
+Private method "minimum`|_after formatting`|" is
+[
+	template : string
+|
+	left fold <|template|> ++ format sites for template through
+	[
+		site : format site,
+		partial : whole number
+	|
+		cast partial - (|site[1]| + 2) into [ t : whole number | t ]
+	]
+] : whole number;
+
+Semantic restriction "partially format_with_" is
+[
+	template : string's type,
+	vars : {string→any|}'s type
+|
+	if |template| = 1 then
+	[
+		<character… | minimum |template's instance after formatting|..>
+	]
+	else
+	[
+		⊤
+	]
+];
+
+/**
+ * Answer the result of fully formatting the specified template using format
+ * variable bindings contained in the given map. The map must contain bindings
+ * for all variables embedded within the template.
+ *
+ * A template intermixes raw character data with format variable interpolation
+ * sites. An interpolation site begins with either the ¢‘ or ¢“ metacharacter
+ * and ends with the corresponding close metacharacter, either ¢’ or ¢”,
+ * respectively. An interpolation site may contain any character except the
+ * expected close metacharacter. The contents are understood to name a variable
+ * that may appear as a key within the specified map; the associated value is
+ * this variable's value. If an interpolation site uses ¢‘ (and ¢’), then the
+ * value will be converted to a string via `primitive description of_` when it
+ * is copied into the result. If an interpolation site uses ¢“ (and ¢”), then
+ * the value must be a string and will be copied directly into the result. To
+ * escape a metacharacter, precede it immediately by ¢`.
+ *
+ * For example:
+ * 
+ *    Assert:
+ *        format "“greeting”, “recipient”!\n"
+ *            with {"greeting"→"Hello", "recipient"→"world"}
+ *        = "Hello, world!\n";
+ *
+ * Parameters:
+ *    template - A template string.
+ *    vars - A map from format variables to their bindings. This map must
+ *       include a binding for every variable mentioned within the template.
+ * Returns:
+ *    The result of formatting the template usings the specified bindings.
+ */
+Public stable method "format_with_" is
+[
+	template : string,
+	vars : {string→any|}
+|
+	sites ::= format sites for template;
+	formatted : string := "";
+	index : natural number := 1;
+	For each sites do
+	[
+		site : format site
+	|
+		/* Append any characters between the last site and the previous site
+		 * onto the output.
+		 */
+		formatted := eject ↑formatted ++ template[index..site[3] - 1];
+		/* Interpolate the variable. */
+		value ::= vars[site[1]] else
+			[ early failure function (missing format variable binding code) ];
+		interpolation ::= choose site[2] from interpolation mode where
+			$description is
+			[
+				primitive description of value
+			],
+			$text is
+			[
+				cast value into [ t : string | t ]
+				else
+				[
+					early failure function(
+						format variable interpolation failed code)
+				]
+			];
+		formatted := eject ↑formatted ++ interpolation;
+		/* Update the template subscript (to point just beyond this site). */
+		index := site[4] + 1;
+	];
+	Assert: 1 ≤ index ≤ |template| + 1;
+	formatted := eject ↑formatted ++ template[index..];
+	formatted
+] : string;
+
+Semantic restriction "format_with_" is
+[
+	template : string's type,
+	vars : {string→any|}'s type
+|
+	if |template| = 1 then
+	[
+		<character… | minimum |template's instance after formatting|..>
+	]
+	else
+	[
+		⊤
+	]
+];
+
+/**
+ * Answer the name of the format variable that should be derived from the
+ * specified token.
+ * 
+ * Parameters:
+ *    aToken - A token.
+ * Returns:
+ *    A format variable name.
+ */
+Private method "format variable for_" is
+[
+	aToken : token
+|
+	cast aToken into
+	[
+		literal : literal token
+	|
+		value ::= literal's value;
+		cast value into [ t : string | t ]
+		else [ primitive description of value ]
+	]
+	else
+	[
+		aToken's lexeme
+	]
+] : string;
+
+/**
+ * Answer the result of partially formatting the specified template using
+ * lexically specified format variable bindings. If a format variable does not
+ * have a corresponding binding, then re-emit it into the (partially) formatted
+ * result.
+ *
+ * A template intermixes raw character data with format variable interpolation
+ * sites. An interpolation site begins with either the ¢‘ or ¢“ metacharacter
+ * and ends with the corresponding close metacharacter, either ¢’ or ¢”,
+ * respectively. An interpolation site may contain any character except the
+ * expected close metacharacter. The contents are understood to name a variable
+ * that may appear as a key within the specified map; the associated value is
+ * this variable's value. If an interpolation site uses ¢‘ (and ¢’), then the
+ * value will be converted to a string via `primitive description of_` when it
+ * is copied into the result. If an interpolation site uses ¢“ (and ¢”), then
+ * the value must be a string and will be copied directly into the result. To
+ * escape a metacharacter, precede it immediately by ¢`.
+ *
+ * For example:
+ * 
+ *    Assert:
+ *        (partially format "“greeting”, “recipient”!\n"
+ *            with greeting := "Hello")
+ *        = "Hello, “recipient”!\n";
+ *    Assert:
+ *        (partially format
+ *            (partially format "“greeting”, “recipient”!\n"
+ *                with greeting := "Hello")
+ *            with recipient := "world")
+ *        = "Hello, world!\n";
+ *
+ * The semantic restriction ensures that every lexically specified binding
+ * corresponds to a format variable embedded within the template.
+ *
+ * Parameters:
+ *    template - A template string.
+ *    bindings - The format variable bindings.
+ * Returns:
+ *    The result of partially formatting the template usings the specified
+ *    bindings.
+ */
+Public method "partially format_with«…:=_‡,»" is
+[
+	template : string,
+	bindings : <<token, any…|2>…|>
+|
+	realBindings ::= map bindings through
+		[
+			binding : <token, any…|2>
+		|
+			<format variable for binding[1], binding[2]>
+		];
+	partially format template with realBindings→map
+] : string;
+
+/**
+ * If the template is statically known, then ensure that 1) each lexical binding
+ * references a valid format variable and 2) each format variable that uses
+ * the $text interpolation mode is actually bound to a string.
+ */
+Semantic restriction "partially format_with«…:=_‡,»" is
+[
+	templateType : string's type,
+	bindings : <<token, any…|2>…|>'s type
+|
+	If |templateType| = 1 then
+	[
+		template ::= templateType's instance;
+		sites ::= format sites for template;
+		templateVars ::= (stripe sites at 1)→set;
+		stringSites ::= filter sites by [site : format site | site[2] = $text];
+		stringVars ::= (stripe stringSites at 1)→set;
+		bindingVars : {string|} := ∅;
+		From 1 to ⎣bindings⎦ do
+		[
+			index : natural number
+		|
+			binding ::= bindings[index];
+			var ::= format variable for binding[1]'s instance;
+			If var ∈ stringVars ∧ [ ¬binding[2] ⊆ string ] then
+			[
+				Reject parse, expected:
+					"format variable "
+					++ (primitive description of var)
+					++ " ∈ string, not "
+					++ (primitive description of binding[2])
+					++ " (because at least one format site requires this)"
+			];
+			bindingVars := eject ↑bindingVars + var;
+		];
+		unmentionedVars ::= bindingVars \ templateVars;
+		If unmentionedVars ≠ ∅ then
+		[
+			Reject parse, expected:
+				"only bindings for format variables, but bindings also include "
+				++ primitive description of unmentionedVars
+		];
+		<character… | minimum |template after formatting|..>
+	]
+	else
+	[
+		⊤
+	]
+];
+
+/**
+ * Answer the result of fully formatting the specified template using lexically
+ * specified format variable bindings.
+ *
+ * A template intermixes raw character data with format variable interpolation
+ * sites. An interpolation site begins with either the ¢‘ or ¢“ metacharacter
+ * and ends with the corresponding close metacharacter, either ¢’ or ¢”,
+ * respectively. An interpolation site may contain any character except the
+ * expected close metacharacter. The contents are understood to name a variable
+ * that may appear as a key within the specified map; the associated value is
+ * this variable's value. If an interpolation site uses ¢‘ (and ¢’), then the
+ * value will be converted to a string via `primitive description of_` when it
+ * is copied into the result. If an interpolation site uses ¢“ (and ¢”), then
+ * the value must be a string and will be copied directly into the result. To
+ * escape a metacharacter, precede it immediately by ¢`.
+ *
+ * For example:
+ * 
+ *    Assert:
+ *        (format "“greeting”, “recipient”!\n"
+ *            with "greeting" := "Hello", "recipient" := "world")
+ *        = "Hello, world!\n";
+ *
+ * The semantic restriction ensures 1) that every lexically specified binding
+ * corresponds to a format variable embedded within the template and 2) that
+ * every format variable is bound.
+ *
+ * Parameters:
+ *    template - A template string.
+ *    bindings - The complete format variable bindings.
+ * Returns:
+ *    The result of formatting the template usings the specified bindings.
+ */
+Public method "format_with«…:=_‡,»" is
+[
+	template : string,
+	bindings : <<token, any…|2>…|>
+|
+	realBindings ::= map bindings through
+		[
+			binding : <token, any…|2>
+		|
+			<format variable for binding[1], binding[2]>
+		];
+	format template with realBindings→map
+] : string;
+
+/**
+ * If the template is statically known, then ensure that 1) each lexical binding
+ * references a valid format variable, 2) each format variable is bound, and
+ * 3) each format variable that uses the $text interpolation mode is actually
+ * bound to a string.
+ */
+Semantic restriction "format_with«…:=_‡,»" is
+[
+	templateType : string's type,
+	bindings : <<token, any…|2>…|>'s type
+|
+	If |templateType| = 1 then
+	[
+		template ::= templateType's instance;
+		sites ::= format sites for template;
+		templateVars ::= (stripe sites at 1)→set;
+		stringSites ::= filter sites by [site : format site | site[2] = $text];
+		stringVars ::= (stripe stringSites at 1)→set;
+		bindingVars : {string|} := ∅;
+		From 1 to ⎣bindings⎦ do
+		[
+			index : natural number
+		|
+			binding ::= bindings[index];
+			var ::= format variable for binding[1]'s instance;
+			If var ∈ stringVars ∧ [ ¬binding[2] ⊆ string ] then
+			[
+				Reject parse, expected:
+					"format variable "
+					++ (primitive description of var)
+					++ " ∈ string, not "
+					++ (primitive description of binding[2])
+					++ " (because at least one format site requires this)"
+			];
+			bindingVars := eject ↑bindingVars + var;
+		];
+		unboundVars ::= templateVars \ bindingVars;
+		If unboundVars ≠ ∅ then
+		[
+			Reject parse, expected:
+				"bindings for format variables "
+				++ primitive description of unboundVars
+		];
+		unmentionedVars ::= bindingVars \ templateVars;
+		If unmentionedVars ≠ ∅ then
+		[
+			Reject parse, expected:
+				"only bindings for format variables, but bindings also include "
+				++ primitive description of unmentionedVars
+		];
+		<character… | minimum |template after formatting|..>
+	]
+	else
+	[
+		⊤
+	]
+];

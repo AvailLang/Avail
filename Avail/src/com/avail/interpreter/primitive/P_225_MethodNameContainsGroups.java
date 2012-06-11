@@ -1,5 +1,5 @@
-/*
- * Early Enumeration Support.avail
+/**
+ * P_225_MethodNameContainsGroups.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,41 +30,58 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Early Enumeration Support"
-Versions
-	"dev"
-Uses
-	"Bootstrap",
-	"Early Assertions",
-	"Early Definers"
-Names
-	"_'s⁇instance"
-Body
+package com.avail.interpreter.primitive;
 
-/*
- * Use the same primitive that implements `_'s⁇type` to implement its semantic
- * restriction function.
- */
-Semantic restriction "_'s⁇type" is
-[
-	value : type
-|
-	Primitive 30;
-] : type;
+import static com.avail.interpreter.Primitive.Flag.*;
+import java.util.List;
+import com.avail.annotations.NotNull;
+import com.avail.compiler.MessageSplitter;
+import com.avail.descriptor.*;
+import com.avail.exceptions.SignatureException;
+import com.avail.interpreter.*;
 
 /**
- * Answer the sole instance of the specified enumeration.
+ * <strong>Primitive 225</strong>: Treating the argument as a {@linkplain
+ * MethodDescriptor method} name, answer whether it contains groups.
  *
- * Parameters:
- *    enum - An enumeration. Anything answered by `_'s⁇type` satisfies this
- *       criterion.
- * Returns:
- *    The sole instance of the argument.
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
-Public method "_'s⁇instance" is
-[
-	enum : type
-|
-	Assert: |enum| = 1 ("|enum| ≠ 1");
-	enum's instances→tuple[1]
-] : any;
+public final class P_225_MethodNameContainsGroups
+extends Primitive
+{
+	/**
+	 * The sole instance of this primitive class. Accessed through reflection.
+	 */
+	public final @NotNull static Primitive instance =
+		new P_225_MethodNameContainsGroups().init(1, CanFold);
+
+	@Override
+	public @NotNull Result attempt (
+		final @NotNull List<AvailObject> args,
+		final @NotNull Interpreter interpreter)
+	{
+		assert args.size() == 1;
+		final AvailObject name = args.get(0);
+		MessageSplitter splitter = null;
+		try
+		{
+			splitter = new MessageSplitter(name);
+		}
+		catch (final SignatureException e)
+		{
+			return interpreter.primitiveFailure(e);
+		}
+		assert splitter != null;
+		return interpreter.primitiveSuccess(AtomDescriptor.objectFromBoolean(
+			splitter.containsGroups()));
+	}
+
+	@Override
+	protected @NotNull AvailObject privateBlockTypeRestriction ()
+	{
+		return FunctionTypeDescriptor.create(
+			TupleDescriptor.from(
+				TupleTypeDescriptor.stringTupleType()),
+			EnumerationTypeDescriptor.booleanObject());
+	}
+}

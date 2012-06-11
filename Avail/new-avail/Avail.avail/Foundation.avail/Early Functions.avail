@@ -35,8 +35,8 @@ Versions
 	"dev"
 Uses
 	"Bootstrap",
+	"Definers",
 	"Early Control Structures",
-	"Early Definers",
 	"Early Logic",
 	"Early Math",
 	"Early Tuples",
@@ -47,14 +47,6 @@ Names
 	"_(«_‡,»)"
 Body
 
-/**
- * Strengthen the return type of a function type.
- * 
- * Parameters:
- *    functionMeta - A function type.
- * Returns:
- *    The argument's return type.
- */
 Semantic restriction "_'s⁇return type" is
 [
 	functionMeta : function meta's type
@@ -68,13 +60,7 @@ sizesIncompatibleMessage ::=
 	\| function's parameter tuple";
 
 /**
- * `Invoke|invoke_with_` should reject improperly sized argument tuples.
- *
- * Parameters:
- *    functionType -
- *    argumentsType -
- * Returns:
- *    The function's return type.
+ * Reject improperly sized argument tuples.
  */
 Semantic restriction "Invoke|invoke_with_" is
 [
@@ -118,14 +104,8 @@ Public method "_(«_‡,»)" is
 ] : ⊤;
 
 /**
- * Strengthen the lexical function application operation. Reject applications
- * whose argument types do not conform to the function's parameter types.
- * 
- * Parameters:
- *    functionType -
- *    argumentsType -
- * Returns:
- *    The function type's return type.
+ * Reject applications whose argument types do not conform to the function's
+ * parameter types.
  */
 Semantic restriction "_(«_‡,»)" is
 [
@@ -169,17 +149,6 @@ Semantic restriction "_(«_‡,»)" is
 	functionType's return type
 ];
 
-/**
- * Strength `_[_]` as much as possible for function types. When very little
- * information is available about the number and types of the parameters, then
- * don't strengthen the result.
- * 
- * Parameter:
- *    functionMeta -
- *    index -
- * Returns:
- *    The strongest type available for the parameters in the given range.
- */
 Semantic restriction "_[_]" is
 [
 	functionMeta : function meta's type,
@@ -239,15 +208,6 @@ Semantic restriction "_[_]" is
 	]
 ];
 
-/**
- * The constructed function has the requested type.
- * 
- * Parameter:
- *    requestedTypeMeta -
- *    functionType -
- * Return:
- *    The instance of `requestedTypeMeta`.
- */
 Semantic restriction "new_applying_" is
 [
 	requestedTypeMeta : function meta's type,

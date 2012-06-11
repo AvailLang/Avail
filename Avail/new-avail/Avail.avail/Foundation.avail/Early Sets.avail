@@ -33,9 +33,9 @@
 System Module "Early Sets"
 Versions
 	"dev"
-Extends
 Uses
 	"Bootstrap",
+	"Definers",
 	"Early Control Structures",
 	"Early Logic",
 	"Early Math",
@@ -54,53 +54,31 @@ Body
  */
 Semantic restriction "_'s⁇element type" is
 [
-	aSetMeta : set's type's type
+	aSetMeta : set meta's type
 |
 	aSetType ::= aSetMeta's instance;
 	aSetType's element type's type
 ];
 
-/**
- * The static type of the union of two sets is the set type whose element type
- * is the type union of the element types of the sets and whose cardinality
- * requirement is the type union of the cardinality requirements of the sets.
- * 
- * Parameters:
- *    typeA - A set type.
- *    typeB - A set type.
- * Returns:
- *    The strongest possible type of the union of the sets.
- */
+Method "_∪_" is stable at [set, set]→set;
 Semantic restriction "_∪_" is
 [
-	typeA : set's type,
-	typeB : set's type
+	typeA : set meta,
+	typeB : set meta
 |
 	lower ::= ⎣typeA⎦ min ⎣typeB⎦;
-	upper ::= cast ⎡typeA⎤ + ⎡typeB⎤
-		into [ t : [0..∞] | t ];
+	upper ::= cast ⎡typeA⎤ + ⎡typeB⎤ into [ t : [0..∞] | t ];
 	{typeA's element type ∪ typeB's element type | [lower..upper + 1)}
 ];
 
 /* Make union left associate. */
 Grammatical restriction "_∪_" is <∅, {"_∪_"}>;
 
-/**
- * The static type of the union of two sets is the set type whose element type
- * is the type union of the element types of the sets and whose cardinality
- * requirement is the type intersection of the cardinality requirements of the
- * sets.
- * 
- * Parameters:
- *    typeA - A set type.
- *    typeB - A set type.
- * Returns:
- *    The strongest possible type of the intersection of the sets.
- */
+Method "_∩_" is stable at [set, set]→set;
 Semantic restriction "_∩_" is
 [
-	typeA : set's type,
-	typeB : set's type
+	typeA : set meta,
+	typeB : set meta
 |
 	innerType ::= typeA's element type ∩ (typeB's element type);
 	upper : [0..∞] := ⎡typeA⎤ min ⎡typeB⎤;
@@ -115,139 +93,84 @@ Semantic restriction "_∩_" is
 /* Make intersection left associate. */
 Grammatical restriction "_∩_" is <∅, {"_∩_"}>;
 
-/**
- * Strengthen `_⊆_`.
- * 
- * Parameters:
- *    typeA - A set type.
- *    typeB - A set type.
- * Returns:
- *    A boolean type.
- */
+Method "_⊆_" is stable at [set, set]→boolean;
 Semantic restriction "_⊆_" is
 [
-	typeA : set's type,
-	typeB : set's type
+	typeA : set meta,
+	typeB : set meta
 |
-	/* If both arguments are instance types, then extract their instances and
-	 * perform the subset operation on them, answering the result's type.
+	elementA ::= typeA's element type;
+	elementB ::= typeB's element type;
+	/* The basic rule is this: If the type intersection of the element type
+	 * of `typeA` and the element type of `typeB` is ⊥, then the result must
+	 * be false. Otherwise all bets are off.
 	 */
-	if |typeA| = 1 ∧ [ |typeB| = 1 ] then
+	basicRule ::=
+		[ if elementA ∩ elementB = ⊥ then [ false's type ] else [ ⊤ ] ];
+	sizesB ::= ||typeB||;
+	/* This is finesse. If `typeB` is definitely the set of all possible
+	 * instances of its (enumeration) element type, then `typeA`'s instances
+	 * must be subsets of `typeB`'s instance if `typeA`'s element type is a
+	 * subtype of `typeB`'s element type.
+	 */
+	if |elementB| ≠ ∞
+		∧ [ ⎣sizesB⎦ = ⎡sizesB⎤
+		∧ [ |elementB| = ⎣sizesB⎦ ] ]
+	then
 	[
-		a ::= typeA's instance;
-		b ::= typeB's instance;
-		(a ⊆ b)'s type
-	]
-	else
-	[
-		elementA ::= typeA's element type;
-		elementB ::= typeB's element type;
-		/* The basic rule is this: If the type intersection of the element type
-		 * of `typeA` and the element type of `typeB` is ⊥, then the result must
-		 * be false. Otherwise all bets are off.
-		 */
-		basicRule ::=
-			[
-				if elementA ∩ elementB = ⊥ then
-				[
-					false's type
-				]
-				else
-				[
-					⊤
-				]
-			];
-		sizesB ::= ||typeB||;
-		/* This is finesse. If `typeB` is definitely the set of all possible
-		 * instances of its (enumeration) element type, then `typeA`'s instances
-		 * must be subsets of `typeB`'s instance if `typeA`'s element type is a
-		 * subtype of `typeB`'s element type.
-		 */
-		if |elementB| ≠ ∞
-			∧ [ ⎣sizesB⎦ = ⎡sizesB⎤
-			∧ [ |elementB| = ⎣sizesB⎦ ] ]
-		then
+		if elementA ⊆ elementB then
 		[
-			if elementA ⊆ elementB then
-			[
-				true's type
-			]
-			else basicRule
+			true's type
 		]
 		else basicRule
 	]
+	else basicRule
 ];
 
-/**
- * Strengthen `_∈_`.
- * 
- * Parameters:
- *    valueType -
- *    setType -
- * Returns:
- *    The strongest possible boolean type.
- */
+Method "_∈_" is stable at [any, set]→boolean;
 Semantic restriction "_∈_" is
 [
 	valueType : any meta,
 	setType : set meta
 |
-	if |valueType| = 1 ∧ [ |setType| = 1 ] then
+	elementType ::= setType's element type;
+	if valueType ∩ elementType = ⊥ then
 	[
-		(valueType's instance ∈ setType's instance)'s type
+		false's type
 	]
 	else
 	[
-		elementType ::= setType's element type;
-		if valueType ∩ elementType = ⊥ then
+		if |elementType| = ⎣setType⎦
+			∧ [ valueType ⊆ elementType ] then
 		[
-			false's type
+			true's type
 		]
 		else
 		[
-			if |elementType| = ⎣setType⎦
-				∧ [ valueType ⊆ elementType ] then
-			[
-				true's type
-			]
-			else
-			[
-				boolean
-			]
+			boolean
 		]
 	]
 ];
+
+Method "_\\_" is stable at [set, set]→set;
 
 /**
  * If the subtrahend definitely can't contain any of the same elements as the
  * minuend, then the size of the subtrahend can't be affected (because the
  * asymmetric difference won't remove any elements).
- * 
- * Parameters:
- *    minuendType -
- *    subtrahendType -
- * Returns:
- *    The strongest possible set type for the given arguments.
  */
 Semantic restriction "_\\_" is
 [
 	minuendType : set meta,
 	subtrahendType : set meta
 |
-	if |minuendType| = 1 ∧ [ |subtrahendType| = 1 ] then
-	[
-		(minuendType's instance \ subtrahendType's instance)'s type
-	]
-	else
-	[
-		subtrahendUpper ::= 
-			if minuendType's element type ∩ (subtrahendType's element type) = ⊥
-			then [ 0 ]
-			else [ ⎡subtrahendType⎤ ];
-		lower ::= cast (⎣minuendType⎦ - subtrahendUpper) max 0
-			into [ t : whole number | t ];
-		{minuendType's element type | lower..⎡minuendType⎤}
-	]
+	subtrahendUpper ::= 
+		if minuendType's element type ∩ (subtrahendType's element type) = ⊥
+		then [ 0 ]
+		else [ ⎡subtrahendType⎤ ];
+	lower ::= cast (⎣minuendType⎦ - subtrahendUpper) max 0
+		into [ t : whole number | t ];
+	{minuendType's element type | lower..⎡minuendType⎤}
 ];
 
 /* Disambiguate `_→_` and `_→set`. */

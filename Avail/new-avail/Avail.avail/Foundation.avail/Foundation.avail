@@ -36,14 +36,16 @@ Versions
 Extends
 	"Assertions",
 	"Control Structures",
-	"Early Definers",
+	"Definers",
 	"Enumeration Support",
 	"Literals",
 	"Logic",
 	"Maps",
 	"Math",
 	"Objects",
+	"Phrases",
 	"Sets",
+	"Strings",
 	"Tuples"
 Body
 

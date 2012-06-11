@@ -37,42 +37,26 @@ Uses
 	"Bootstrap",
 	"Early Literals"
 Names
+	"Private abstract method_is_",
+	"Private forward method_is_",
 	"Private method_is_",
+	"Public abstract method_is_",
+	"Public forward method_is_",
 	"Public method_is_",
-	"Public atom is_"
+	"Require:_is public",
+	"Require:_is private"
 Body
 
 /**
- * Define a new public method. The semantic restriction ensures that the method
- * is named in the current module's "Names" section. This should not be used to
- * extend existing methods.
+ * Reject the current parse is the argument is not included in the current
+ * module's "Names" section. Do nothing if the name is not specifically known.
  * 
  * Parameters:
- *    methodName - The name of the method.
- *    function - A new implementation of the method.
+ *    nameType - The type of the name.
  */
-Method "Public method_is_" is
+Method "Require:_is public" is
 [
-	methodName : string,
-	function : function
-|
-	Primitive 253 (failureCode : natural number);
-	Invoke early failure function with <failureCode>;
-] : ⊤;
-
-/**
- * Ensure that the new method is introduced by the module's "Names" section.
- *
- * Parameters:
- *    methodName -
- *    function -
- * Returns:
- *    ⊤.
- */
-Semantic restriction "Public method_is_" is
-[
-	nameType : string's type,
-	functionType : function meta
+	nameType : string's type
 |
 	If |nameType| = 1 then
 	[
@@ -89,7 +73,7 @@ Semantic restriction "Public method_is_" is
 				name : string
 			|
 				messageTuple ::= concatenate <
-					"public method \"",
+					"public name \"",
 					name,
 					"\" to be included in the module's \"Names\" section">;
 				Invoke
@@ -103,40 +87,18 @@ Semantic restriction "Public method_is_" is
 			with <methodName>;
 		];
 	];
-	⊤
-];
-
-/**
- * Define a new private method. The semantic restriction ensures that the method
- * is not named in the module's "Names" section. This should not be used to
- * extend existing methods.
- * 
- * Parameters:
- *    methodName - The name of the method.
- *    function - A new implementation of the method.
- */
-Public method "Private method_is_" is
-[
-	methodName : string,
-	function : function
-|
-	Primitive 253 (failureCode : natural number);
-	Invoke early failure function with <failureCode>;
 ] : ⊤;
 
 /**
- * Ensure that the new method is not introduced by the module's "Names" section.
- *
+ * Reject the current parse is the argument is included in the current module's
+ * "Names" section. Do nothing if the name is not specifically known.
+ * 
  * Parameters:
- *    methodName -
- *    function -
- * Returns:
- *    ⊤.
+ *    nameType - The type of the name.
  */
-Semantic restriction "Private method_is_" is
+Method "Require:_is private" is
 [
-	nameType : string's type,
-	functionType : function meta
+	nameType : string's type
 |
 	If |nameType| = 1 then
 	[
@@ -149,7 +111,7 @@ Semantic restriction "Private method_is_" is
 				name : string
 			|
 				messageTuple ::= concatenate <
-					"private method \"",
+					"private name \"",
 					name,
 					"\" not to be included in the module's \"Names\" section">;
 				Invoke
@@ -167,71 +129,199 @@ Semantic restriction "Private method_is_" is
 			/* This is the happy path: do nothing. */
 		];
 	];
+] : ⊤;
+
+/**
+ * Declare a new public abstract method with the specified name and signature. A
+ * concrete implementation is one whose parameter types and return type are
+ * strictly more specific than the corresponding types of the abstract
+ * signature. The semantic restriction ensures that the method is named in the
+ * current module's "Names" section. This should not be used to extend existing
+ * methods.
+ *
+ * Parameters:
+ *    methodName - The name of the abstract method to declare.
+ *    aFunctionType - The signature.
+ */
+Method "Public abstract method_is_" is
+[
+	methodName : string,
+	aFunctionType : function meta
+|
+	Primitive 251 (failureCode : natural number);
+	Invoke early failure function with <failureCode>;
+] : ⊤;
+
+/**
+ * Ensure that the new method is introduced by the module's "Names" section.
+ */
+Semantic restriction "Public abstract method_is_" is
+[
+	nameType : string's type,
+	functionMeta : function meta's type
+|
+	Require: nameType is public;
 	⊤
 ];
 
 /**
- * Define a new public atom. The implementation does nothing, but the semantic
- * restriction ensures that the argument is indeed public.
- * 
+ * Declare the intention to locally define a public method with the specified
+ * name and signature. If no such method is defined before compilation of the
+ * containing module completes, then the compiler will emit an appropriate error
+ * message.
+ *
+ * Recursive methods must be forward declared. Mutually recursive methods must
+ * forward declare all but the lexically first participant in the recursion.
+ *
  * Parameters:
- *    anAtom - An atom introduced by the current module.
+ *    methodName - The name of the method to forward declare.
+ *    aFunctionType - The signature.
  */
-Public method "Public atom is_" is
+Method "Public forward method_is_" is
 [
-	anAtom : atom
+	methodName : string,
+	aFunctionType : function meta
 |
-	/* No implementation required. */
+	Primitive 252 (failureCode : natural number);
+	Invoke early failure function with <failureCode>;
+] : ⊤;
+
+/**
+ * Ensure that the new method is introduced by the module's "Names" section.
+ */
+Semantic restriction "Public forward method_is_" is
+[
+	nameType : string's type,
+	functionMeta : function meta's type
+|
+	Require: nameType is public;
+	⊤
 ];
 
 /**
- * Ensure that the new atom is introduced by the module's "Names" section.
+ * Define a new public method. The semantic restriction ensures that the method
+ * is named in the current module's "Names" section. This should not be used to
+ * extend existing methods.
+ * 
+ * Parameters:
+ *    methodName - The name of the new method.
+ *    function - The original implementation of the method.
+ */
+Method "Public method_is_" is
+[
+	methodName : string,
+	function : function
+|
+	Primitive 253 (failureCode : natural number);
+	Invoke early failure function with <failureCode>;
+] : ⊤;
+
+/**
+ * Ensure that the new method is introduced by the module's "Names" section.
+ */
+Semantic restriction "Public method_is_" is
+[
+	nameType : string's type,
+	functionType : function meta
+|
+	Require: nameType is public;
+	⊤
+];
+
+/**
+ * Declare a new private abstract method with the specified name and signature.
+ * A concrete implementation is one whose parameter types and return type are
+ * strictly more specific than the corresponding types of the abstract
+ * signature. The semantic restriction ensures that the method is not named in
+ * the current module's "Names" section. This should not be used to extend
+ * existing methods.
  *
  * Parameters:
- *    atomType -
- * Returns:
- *    ⊤.
+ *    methodName - The name of the abstract method to declare.
+ *    aFunctionType - The signature.
  */
-Semantic restriction "Public atom is_" is
+Method "Private abstract method_is_" is
 [
-	atomType : atom's type
+	methodName : string,
+	aFunctionType : function meta
 |
-	If |atomType| = 1 then
-	[
-		publicNames ::= current module's public names;
-		atomName : string;
-		Invoke
-		[
-			name : string
-		|
-			atomName := name;
-		]
-		with <atomType's instances→tuple[1]>;
-		If atomName ∈ publicNames then
-		[
-			/* This is the happy path: do nothing. */
-		]
-		else
-		[
-			Invoke
-			[
-				name : string
-			|
-				messageTuple ::= concatenate <
-					"public atom \"",
-					name,
-					"\" to be included in the module's \"Names\" section">;
-				Invoke
-				[
-					messageString : string
-				|
-					Reject parse, expected: messageString
-				]
-				with <messageTuple>;
-			]
-			with <atomName>;
-		];
-	];
+	Primitive 251 (failureCode : natural number);
+	Invoke early failure function with <failureCode>;
+] : ⊤;
+
+/**
+ * Ensure that the new method is introduced by the module's "Names" section.
+ */
+Semantic restriction "Private abstract method_is_" is
+[
+	nameType : string's type,
+	functionMeta : function meta's type
+|
+	Require: nameType is private;
+	⊤
+];
+
+/**
+ * Declare the intention to locally define a private method with the specified
+ * name and signature. If no such method is defined before compilation of the
+ * containing module completes, then the compiler will emit an appropriate error
+ * message.
+ *
+ * Recursive methods must be forward declared. Mutually recursive methods must
+ * forward declare all but the lexically first participant in the recursion.
+ *
+ * Parameters:
+ *    methodName - The name of the method to forward declare.
+ *    aFunctionType - The signature.
+ */
+Method "Private forward method_is_" is
+[
+	methodName : string,
+	aFunctionType : function meta
+|
+	Primitive 252 (failureCode : natural number);
+	Invoke early failure function with <failureCode>;
+] : ⊤;
+
+/**
+ * Ensure that the new method is introduced by the module's "Names" section.
+ */
+Semantic restriction "Private forward method_is_" is
+[
+	nameType : string's type,
+	functionMeta : function meta's type
+|
+	Require: nameType is private;
+	⊤
+];
+
+/**
+ * Define a new private method. The semantic restriction ensures that the method
+ * is not named in the module's "Names" section. This should not be used to
+ * extend existing methods.
+ * 
+ * Parameters:
+ *    methodName - The name of the new method.
+ *    function - The original implementation of the method.
+ */
+Public method "Private method_is_" is
+[
+	methodName : string,
+	function : function
+|
+	Primitive 253 (failureCode : natural number);
+	Invoke early failure function with <failureCode>;
+] : ⊤;
+
+/**
+ * Ensure that the new method is not introduced by the module's "Names" section.
+ */
+Semantic restriction "Private method_is_" is
+[
+	nameType : string's type,
+	functionType : function meta
+|
+	Require: nameType is private;
 	⊤
 ];
 

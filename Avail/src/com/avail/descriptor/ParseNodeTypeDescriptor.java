@@ -659,19 +659,19 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 			// Handle the literal nil specially. Ignore it.
 			if (!statement.equals(LiteralNodeDescriptor.literalNullObject()))
 			{
-				boolean valid =
-					kind.parseNodeKindIsUnder(ASSIGNMENT_NODE)
-					|| kind.parseNodeKindIsUnder(DECLARATION_NODE)
-					|| kind.parseNodeKindIsUnder(LABEL_NODE)
-					|| kind.parseNodeKindIsUnder(SEND_NODE);
+				final boolean valid;
 				if (i + 1 < statementCount)
 				{
-					valid = valid && kind.expressionType().equals(TOP.o());
+					valid =
+						(kind.parseNodeKindIsUnder(ASSIGNMENT_NODE)
+							|| kind.parseNodeKindIsUnder(DECLARATION_NODE)
+							|| kind.parseNodeKindIsUnder(LABEL_NODE)
+							|| kind.parseNodeKindIsUnder(SEND_NODE))
+						&& kind.expressionType().equals(TOP.o());
 				}
 				else
 				{
-					valid = valid && kind.expressionType().isSubtypeOf(
-						resultType);
+					valid = kind.expressionType().isSubtypeOf(resultType);
 				}
 				if (!valid)
 				{

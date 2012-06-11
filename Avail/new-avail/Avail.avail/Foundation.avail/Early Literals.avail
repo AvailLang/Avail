@@ -61,11 +61,6 @@ Method "<«_‡,»>" is
  * here is done automatically by the Avail compiler, which examines the lexical
  * arguments and produces instance types for literals and applies semantic
  * restrictions to any method sends.
- *
- * Parameters:
- *    elements - The strengthened tuple type, constructed by the compiler.
- * Returns:
- *    The argument.
  */
 Semantic restriction "<«_‡,»>" is
 [

@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.05.20 11:31:08.745 -0500
+ * * Last Generated On: 2012.06.10 13:58:15.762 -0500
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -133,6 +133,7 @@ Names
 	"_\\_",
 	"_^_",
 	"_`#_:_(literals=_,`#locals_,`#outers_,stack depth=_)",
+	"_`?=_",
 	"_is a primitive",
 	"_is unassigned",
 	"_mod_",
@@ -160,8 +161,10 @@ Names
 	"``_``(_)",
 	"`|_'s⁇local variables`|",
 	"`|_'s⁇outer variables`|",
+	"`|_'s⁇parameters`|",
 	"`|_`|",
 	"`|`|_`|`|",
+	"`|message_'⁇parameters`|",
 	"arg“_:_”",
 	"atom for_",
 	"concatenate_",
@@ -176,6 +179,7 @@ Names
 	"implementation of_for_",
 	"integer range from_(inclusive=_)to_(inclusive=_)",
 	"ln_",
+	"message_contains groups",
 	"method for_",
 	"method_._(«_‡,»)",
 	"milliseconds since the Epoch",
@@ -210,7 +214,6 @@ Names
 	"“↓_”(_)",
 	"↑_",
 	"↓_",
-	"↓_`?=_",
 	"↓_`?=_'s⁇initialization",
 	"∪_",
 	"∪_[_.._]",

@@ -94,11 +94,7 @@ extends TupleDescriptor
 		}
 		if (object.isString())
 		{
-			if (isMutable())
-			{
-				aStream.append("(mut)");
-			}
-			aStream.append("SpliceTuple: \"");
+			aStream.append('"');
 			for (int i = 1, end = object.tupleSize(); i <= end; i++)
 			{
 				final char c = (char) object.tupleAt(i).codePoint();

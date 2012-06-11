@@ -36,10 +36,10 @@ Versions
 Extends
 	"Early Math"
 Uses
-	"Assertions",
 	"Bootstrap",
+	"Definers",
+	"Early Assertions",
 	"Early Control Structures",
-	"Early Definers",
 	"Early Error Codes",
 	"Early Functions",
 	"Early Logic",
@@ -49,6 +49,7 @@ Uses
 	"Literals",
 	"Variables"
 Names
+	"log_of_",
 	"type promotion function for_",
 	"_is odd",
 	"_is even",
@@ -58,11 +59,12 @@ Names
 	"_(base_)",
 	"«_‡«=»?«≤»?«<»?»",
 	"«_‡«=»?«≥»?«>»?»",
-	"log_of_"
+	"_→integer",
+	"_→extended integer"
 Body
 
-Forward method "_mod_" is [number, number]→number;
-Forward method "-_" is [number]→number;
+Public forward method "_mod_" is [number, number]→number;
+Public stable forward method "-_" is [number]→number;
 
 /* Establish grammatical rules. */
 [
@@ -129,7 +131,7 @@ Semantic restriction "_mod_" is type promotion function for
  * Returns:
  *    The negation of the argument.
  */
-Public method "-_" is
+Method "-_" is
 [
 	a : number
 |
@@ -150,38 +152,31 @@ Semantic restriction "-_" is
 [
 	a : number's type
 |
-	if |a| = 1 then
+	if a ⊆ extended integer then
 	[
-		(0 - a's instance)'s type
+	 	extended integer
 	]
 	else
 	[
-		if a ⊆ extended integer then
+		if a ⊆ double then
 		[
-		 	extended integer
+			double
 		]
 		else
 		[
-			if a ⊆ double then
+			if a ⊆ float then
 			[
-				double
+				float
 			]
 			else
 			[
-				if a ⊆ float then
-				[
-					float
-				]
-				else
-				[
-					number
-				]
+				number
 			]
 		]
 	]
 ];
 
-Abstract method "⎣_⎦" is [number]→number;
+Stable abstract method "⎣_⎦" is [number]→number;
 
 /**
  * Compute and answer the floor of the argument. Note that integers and
@@ -200,32 +195,6 @@ Method "⎣_⎦" is
 ] : extended integer;
 
 /**
- * If the exact type of the argument is know statically, then produce an exact
- * answer.
- *
- * Parameters:
- *    valueType - Any numeric type.
- * Returns:
- *    Either an instance type or `number`.
- */
-Semantic restriction "⎣_⎦" is
-[
-	valueType : number's type
-|
-	if |valueType| = 1 then
-	[
-		⎣valueType's instance⎦'s type
-	]
-	else
-	[
-		/* An innocuous answer that will disappear in a type intersection with
-		 * the answer produced by a more specific semantic restriction.
-		 */
-		number
-	]
-];
-
-/**
  * Integers and infinities are their own floors.
  *
  * Parameters:
@@ -240,7 +209,7 @@ Semantic restriction "⎣_⎦" is
 	valueType
 ];
 
-Abstract method "⎡_⎤" is [number]→number;
+Stable abstract method "⎡_⎤" is [number]→number;
 
 /**
  * Compute and answer the ceiling of the argument. Note that integers and
@@ -257,32 +226,6 @@ Method "⎡_⎤" is
 |
 	value
 ] : extended integer;
-
-/**
- * If the exact type of the argument is known statically, then produce an exact
- * answer.
- *
- * Parameters:
- *    valueType - Any numeric type.
- * Returns:
- *    Either an instance type or `number`.
- */
-Semantic restriction "⎡_⎤" is
-[
-	valueType : number's type
-|
-	if |valueType| = 1 then
-	[
-		⎡valueType's instance⎤'s type
-	]
-	else
-	[
-		/* An innocuous answer that will disappear in a type intersection with
-		 * the answer produced by a more specific semantic restriction.
-		 */
-		number
-	]
-];
 
 /**
  * Integers and infinities are their own ceilings.
@@ -308,7 +251,7 @@ Semantic restriction "⎡_⎤" is
  * Returns:
  *    The remainder.
  */
-Public method "_mod_" is
+Method "_mod_" is
 [
 	dividend : number,
 	divisor : number
@@ -325,7 +268,7 @@ Public method "_mod_" is
  * Returns:
  *    The dividend.
  */
-Public method "_mod_" is
+Method "_mod_" is
 [
 	dividend : extended integer,
 	divisor : ∞'s type
@@ -341,36 +284,12 @@ Public method "_mod_" is
  * Returns:
  *    `true` if the argument is odd, `false` otherwise.
  */
-Public method "_is odd" is
+Public stable method "_is odd" is
 [
 	a : integer
 |
 	a mod 2 = 1
 ] : boolean;
-
-/**
- * If the exact type of the argument is known statically, then produce an exact
- * answer.
- *
- * Parameters:
- *    a - An integral type.
- * Returns:
- *    Either an instance type or `number`.
- */
-Semantic restriction "_is odd" is
-[
-	a : integer's type
-|
-	if |a| = 1 then
-	[
-		a's instance is odd's type
-	]
-	else
-	[
-		/* Don't strengthen. */
-		⊤
-	]
-];
 
 /**
  * Is the argument even?
@@ -380,35 +299,11 @@ Semantic restriction "_is odd" is
  * Returns:
  *    `true` if the argument is even, `false` otherwise.
  */
-Public method "_is even" is
+Public stable method "_is even" is
 [
 	a : integer
 |
 	a mod 2 = 0
-];
-
-/**
- * If the exact type of the argument is known statically, then produce an exact
- * answer.
- *
- * Parameters:
- *    a - An integral type.
- * Returns:
- *    Either an instance type or `number`.
- */
-Semantic restriction "_is even" is
-[
-	a : integer's type
-|
-	if |a| = 1 then
-	[
-		a's instance is even's type
-	]
-	else
-	[
-		/* Don't strengthen. */
-		boolean
-	]
 ];
 
 /**
@@ -817,7 +712,7 @@ Grammatical restriction "_→_" is <∅, {"double", "extended integer", "float"}
  * Returns:
  *    The absolute value of `a`.
  */
-Method "`|_`|" is
+Stable method "`|_`|" is
 [
 	a : number
 |
@@ -867,14 +762,7 @@ Semantic restriction "`|_`|" is
 [
 	a : extended integer's type
 |
-	if |a| = 1 then
-	[
-		|a's instance|'s type
-	]
-	else
-	[
-		([0..∞] ∩ a) ∪ ([0..∞] ∩ - a)
-	]
+	([0..∞] ∩ a) ∪ ([0..∞] ∩ -a)
 ];
 
 /**
@@ -1211,7 +1099,7 @@ letterZ ::= ¢Z→code point;
  * Returns:
  *    The number represented by the digits as a whole number.
  */
-Public method "_(base_)" is 
+Public stable method "_(base_)" is 
 [
 	digits : string,
 	base : [2..36] 
@@ -1222,24 +1110,24 @@ Public method "_(base_)" is
 		index : natural number
 	|
 		char ::= digits[index];
-		digit ::= char→code point;
+		dig ::= char→code point;
 
-		digitValue ::=
-			if digitZero ≤ digit ≤ digitNine then 
+		digValue ::=
+			if digitZero ≤ dig ≤ digitNine then 
 			[ 
-				digit - digitZero
+				dig - digitZero
 			] 
 			else
 			[
-				if lettera ≤ digit ≤ letterz then
+				if lettera ≤ dig ≤ letterz then
 				[
-					digit - lettera + 10
+					dig - lettera + 10
 				]
 				else
 				[
-					if letterA ≤ digit ≤ letterZ then 
+					if letterA ≤ dig ≤ letterZ then 
 					[
-						digit - letterA + 10
+						dig - letterA + 10
 					]
 					else 
 					[
@@ -1248,36 +1136,33 @@ Public method "_(base_)" is
 				]
 			];
 
-		If digitValue ≥ base ∨ [digitValue < 0] then 
+		If digValue ≥ base ∨ [digValue < 0] then 
 			[early failure function(invalid argument code)];
 
-		answer := answer × base + digitValue;
+		answer := answer × base + digValue;
 		true
 	];
 	cast answer into [a: whole number | a]
 ];
 
-/**
- * Strengthen "_(base_)".
- */
 Semantic restriction "_(base_)" is
 [
 	baseType : [2..36]'s type,
 	digitsType : string's type
 |
 	maxStringSize ::= ⎡digitsType⎤;
-	If maxStringSize is finite then
+	if maxStringSize is finite then
 	[
 		/* Compute a rough bound based on the string size and base. */
 		finiteMaxStringSize ::= cast maxStringSize into [w : whole number | w];
 		maxBase ::= ⎡baseType⎤;
 		[0..maxBase ^ finiteMaxStringSize)
-	] else
+	]
+	else
 	[
 		whole number
 	]
 ];
-
 
 /**
  * Convert a string containing a number in base 10 to an integer.
@@ -1285,22 +1170,21 @@ Semantic restriction "_(base_)" is
  * Parameter:
  *    str - A `string` of digits in base 10.
  * Returns:
- *    The number represented by the digits as an integer.
+ *    The number represented by the digits as a whole number.
  */
-Method "_→integer" is
+Public stable method "_→integer" is
 [
 	str : string
 |
-	If |str| > 1 ∧ [str[1] = ¢0]
-		then [early failure function(invalid argument code)];
-	
+	If |str| > 1 ∧ [ str[1] = ¢0 ] then
+	[
+		early failure function(invalid argument code)
+	];
 	if str[1] = ¢- then 
 	[
-		stream : string := "";
-	
-		stream := concatenate <stream, (str[2..|str|])>;
-		(-1) × (stream (base 10))
-	] else 
+		-1 × str[2..|str|] (base 10)
+	]
+	else 
 	[
 		str (base 10)
 	]
@@ -1312,17 +1196,17 @@ Method "_→integer" is
  * Parameter:
  *    str - A `string` of digits in base 10.
  * Returns:
- *    The number represented by the digits as an extended integer.
+ *    The number represented by the digits as a whole number.
  */
-Method "_→extended integer" is
+Public stable method "_→extended integer" is
 [
 	str : string
 |
-	if str = "∞" then [∞] 
+	if str = "∞" then [ ∞ ]
 	else
 	[
-		if str = "-∞" then [-∞]
-		else [str→integer]
+		if str = "-∞" then [ -∞ ]
+		else [ str→integer ]
 	]
 ]: extended integer;
 
@@ -1393,7 +1277,8 @@ Method "_→float" is
 	if wholeNum < 0 then
 	[
 		wholeNum - decimalUnit
-	] else
+	]
+	else
 	[
 		wholeNum + decimalUnit
 	]
@@ -1410,8 +1295,8 @@ Method "_→float" is
  */
 Public method "log_of_" is
 [
- b : float,
- n : float
+	b : float,
+	n : float
 |
 	(ln n) ÷ (ln b)
 ] : float;
@@ -1427,8 +1312,8 @@ Public method "log_of_" is
  */
 Method "log_of_" is
 [
- b : double,
- n : double
+	b : double,
+	n : double
 |
 	(ln n) ÷ (ln b)
 ] : double;

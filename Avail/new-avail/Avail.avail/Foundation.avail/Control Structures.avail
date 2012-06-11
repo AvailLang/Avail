@@ -41,9 +41,9 @@ Extends
 		"Cast|cast_into_"
 	)
 Uses
-	"Assertions",
 	"Bootstrap",
-	"Early Definers",
+	"Definers",
+	"Early Assertions",
 	"Early Functions",
 	"Early Maps",
 	"Early Tuples",
@@ -70,7 +70,7 @@ Names
 	"While_",
 	"While_do_",
 	"Cast|cast_into«_‡or»«else_»",
-	"Choose|choose_from_where«_is_‡and»«and others are_»",
+	"Choose|choose_from_where«_is_‡,»«,else_»",
 	"here",
 	"If|if_then_«else if_then_»«else_»",
 	"Unless|unless_then_else_",
@@ -103,12 +103,6 @@ Public method "Exit_" is
 /**
  * Reject the current parse unless the value supplied upon exit of a
  * continuation conforms to its function type's return type.
- * 
- * Parameters:
- *    continuationMeta - A continuation type.
- *    exitType -
- * Returns:
- *    ⊥.
  */
 Semantic restriction "Exit_with_" is
 [
@@ -136,12 +130,6 @@ sizesIncompatibleMessage ::=
 /**
  * Reject the current parse if the argument tuple cannot possibly match the
  * continuation's parameter tuple.
- * 
- * Parameters:
- *    continuationType -
- *    argumentsType -
- * Returns:
- *    ⊥.
  */
 Semantic restriction "Restart_with_" is
 [
@@ -225,12 +213,6 @@ Public method "Repeat__times" is
 
 /**
  * If `count` is ∞, then answer ⊥ (because the loop will never terminate).
- * 
- * Parameters:
- *    action -
- *    count -
- * Returns:
- *    Either ⊤ or ⊥.
  */
 Semantic restriction "Repeat__times" is
 [
@@ -336,14 +318,6 @@ Public method "From_to_by_do_" is
 /**
  * If possible, then enforce that the specified function will accept all values
  * in the implied range.
- * 
- * Parameters:
- *    start -
- *    end -
- *    step -
- *    action -
- * Returns:
- *    Either ⊤ or ⊥.
  */
 Semantic restriction "From_to_by_do_" is
 [
@@ -483,14 +457,6 @@ Public method "From_to_by_do_" is
 /**
  * If possible, then enforce that the specified function will accept all values
  * in the implied range.
- * 
- * Parameters:
- *    start -
- *    end -
- *    step -
- *    action -
- * Returns:
- *    Either ⊤ or ⊥.
  */
 Semantic restriction "From_to_by_do_" is
 [
@@ -586,13 +552,6 @@ Public method "From_to_do_" is
 /**
  * If possible, then enforce that the specified function will accept all values
  * in the implied range.
- * 
- * Parameters:
- *    start -
- *    end -
- *    action -
- * Returns:
- *    Either ⊤ or ⊥.
  */
 Semantic restriction "From_to_do_" is
 [
@@ -651,13 +610,6 @@ Public method "From_to_do_" is
 /**
  * If possible, then enforce that the specified function will accept all values
  * in the implied range.
- * 
- * Parameters:
- *    start -
- *    end -
- *    action -
- * Returns:
- *    Either ⊤ or ⊥.
  */
 Semantic restriction "From_to_do_" is
 [
@@ -710,12 +662,6 @@ Method "_(«_‡,»)" is
 /**
  * Reject the current parse if the argument types do not conform to the
  * continuation's parameter types.
- * 
- * Parameters:
- *    continuationType -
- *    argumentsType -
- * Returns:
- *    ⊥.
  */
 Semantic restriction "_(«_‡,»)" is
 [
@@ -864,14 +810,6 @@ Public method "If|if_then_«else if_then_»«else_»" is
  * an action whose predicate is guaranteed to answer `true` is preceded only by
  * actions whose predicates are guaranteed to answer `false`; in this case,
  * answer this action's return type.
- * 
- * Parameters:
- *    firstPredicate -
- *    firstThen -
- *    elseIfTuple -
- *    else -
- * Returns:
- *    The strongest possible type for the expression.
  */
 Semantic restriction "If|if_then_«else if_then_»«else_»" is
 [
@@ -1039,13 +977,6 @@ Public method "Unless|unless_then_else_" is
 /**
  * Establish a conditional expression whose static return type is the type union
  * of its two possible functions' return types.
- *
- * Parameters:
- *    predicate - The predicate's type.
- *    falseFunction -
- *    trueFunction -
- * Returns:
- *    The type union of the return types of `falseFunction` and `trueFunction`.
  */
 Semantic restriction "Unless|unless_then_else_" is
 [
@@ -1059,13 +990,6 @@ Semantic restriction "Unless|unless_then_else_" is
 /**
  * Strengthen the static return type to that of the function to invoke when the
  * predicate is false (which it is).
- *
- * Parameters:
- *    tautology - The type of `false`.
- *    trueFunction -
- *    falseFunction -
- * Returns:
- *    The return type of `falseFunction`.
  */
 Semantic restriction "Unless|unless_then_else_" is
 [
@@ -1079,13 +1003,6 @@ Semantic restriction "Unless|unless_then_else_" is
 /**
  * Strengthen the static return type to that of the function to invoke when the
  * predicate is true (which it is).
- *
- * Parameters:
- *    tautology - The type of `true`.
- *    trueFunction -
- *    falseFunction -
- * Returns:
- *    The return type of `trueFunction`.
  */
 Semantic restriction "Unless|unless_then_else_" is
 [
@@ -1171,14 +1088,6 @@ Public method "Unless|unless_then_«else unless_then_»«else_»" is
  * an action whose predicate is guaranteed to answer `false` is preceded only by
  * actions whose predicates are guaranteed to answer `true`; in this case,
  * answer this action's return type.
- * 
- * Parameters:
- *    firstPredicate -
- *    firstThen -
- *    elseUnlessTuple -
- *    else -
- * Returns:
- *    The strongest possible type for the expression.
  */
 Semantic restriction "Unless|unless_then_«else unless_then_»«else_»" is
 [
@@ -1329,11 +1238,6 @@ Public method "While_" is
 /**
  * If `action` certainly answers `true`, then answer ⊥ (because the loop will
  * run forever).
- *
- * Parameters:
- *    action -
- * Returns:
- *    Either ⊤ or ⊥.
  */
 Semantic restriction "While_" is
 [
@@ -1371,11 +1275,6 @@ Public method "Until_" is
 /**
  * If `action` certainly answers `false`, then answer ⊥ (because the loop will
  * run forever).
- *
- * Parameters:
- *    action -
- * Returns:
- *    Either ⊤ or ⊥.
  */
 Semantic restriction "Until_" is
 [
@@ -1415,12 +1314,6 @@ Public method "While_do_" is
 /**
  * If `predicate` certainly answers `true`, then answer ⊥ (because the loop will
  * run forever).
- *
- * Parameters:
- *    predicate -
- *    action -
- * Returns:
- *    Either ⊤ or ⊥.
  */
 Semantic restriction "While_do_" is
 [
@@ -1461,12 +1354,6 @@ Public method "Until_do_" is
 /**
  * If `predicate` certainly answers `false`, then answer ⊥ (because the loop
  * will run forever).
- *
- * Parameters:
- *    predicate -
- *    action -
- * Returns:
- *    Either ⊤ or ⊥.
  */
 Semantic restriction "Until_do_" is
 [
@@ -1508,12 +1395,6 @@ Public method "Do_while_" is
 /**
  * If `action` does not terminate or `predicate` certainly answers `true`, then
  * answer ⊥ (because the loop will run forever).
- *
- * Parameters:
- *    predicate -
- *    action -
- * Returns:
- *    Either ⊤ or ⊥.
  */
 Semantic restriction "Do_while_" is
 [
@@ -1559,13 +1440,6 @@ Public method "Do_while_alternate with_" is
 /**
  * If `action` does not terminate or `predicate` certainly answers `true`, then
  * answer ⊥ (because the loop will run forever).
- *
- * Parameters:
- *    predicate -
- *    action -
- *    between -
- * Returns:
- *    Either ⊤ or ⊥.
  */
 Semantic restriction "Do_while_alternate with_" is
 [
@@ -1609,12 +1483,6 @@ Public method "Do_until_" is
 /**
  * If `action` does not terminate or `predicate` certainly answers `false`, then
  * answer ⊥ (because the loop will run forever).
- *
- * Parameters:
- *    predicate -
- *    action -
- * Returns:
- *    Either ⊤ or ⊥.
  */
 Semantic restriction "Do_until_" is
 [
@@ -1660,13 +1528,6 @@ Public method "Do_until_alternate with_" is
 /**
  * If `action` does not terminate or `predicate` certainly answers `false`, then
  * answer ⊥ (because the loop will run forever).
- *
- * Parameters:
- *    predicate -
- *    action -
- *    between -
- * Returns:
- *    Either ⊤ or ⊥.
  */
 Semantic restriction "Do_until_alternate with_" is
 [
@@ -1735,13 +1596,6 @@ Public method "Cast|cast_into«_‡or»«else_»" is
  * Strengthen the return type of `Cast|cast_into«_‡,»«else_»` so that it may be
  * used as a value-producing expression. If any case is unnecessary or invalid,
  * then reject the current parse.
- *
- * Parameters:
- *    valueType -
- *    caseTuple -
- *    else -
- * Returns:
- *    The type union of the return types of all cases and `else`.
  */
 Semantic restriction "Cast|cast_into«_‡or»«else_»" is
 [
@@ -1799,7 +1653,7 @@ Semantic restriction "Cast|cast_into«_‡or»«else_»" is
  * Returns:
  *    The return value of the chosen function.
  */
-Public method "Choose|choose_from_where«_is_‡and»«and others are_»" is
+Public method "Choose|choose_from_where«_is_‡,»«,else_»" is
 [
 	value : any,
 	enum : type,
@@ -1842,19 +1696,8 @@ Public method "Choose|choose_from_where«_is_‡and»«and others are_»" is
  * - Every value of the enumeration is handled by a case, either explicitly or
  *   implicitly by the default case.
  * - Each case's selector occurs only once.
- *
- * Parameters:
- *    valueType - The decider's type.
- *    meta - An enumeration's type.
- *    caseTuple - A tuple type whose default element type is a 2-tuple type
- *       whose first element type's instance is an instance of `meta`'s instance
- *       and whose second element type is an arity-0 function type.
- *    else - A tuple type whose default type is an arity-0 function type.
- * Returns:
- *    The type union of the return types of the case functions that could
- *    actually run.
  */
-Semantic restriction "Choose|choose_from_where«_is_‡and»«and others are_»" is
+Semantic restriction "Choose|choose_from_where«_is_‡,»«,else_»" is
 [
 	valueType : any meta,
 	meta : type's type,

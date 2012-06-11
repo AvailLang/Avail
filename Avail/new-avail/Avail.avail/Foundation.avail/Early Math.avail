@@ -34,10 +34,10 @@ System Module "Early Math"
 Versions
 	"dev"
 Uses
-	"Assertions",
 	"Bootstrap",
+	"Definers",
+	"Early Assertions",
 	"Early Control Structures",
-	"Early Definers",
 	"Early Enumeration Support",
 	"Early Literals",
 	"Early Logic"
@@ -758,7 +758,7 @@ Semantic restriction "«_‡max»" is extremum semantic restriction (double);
  * Returns:
  *    `true` if `a` is greater than `b`, `false` otherwise.
  */
-Public method "_>_" is
+Public stable method "_>_" is
 [
 	a : number,
 	b : number
@@ -775,7 +775,7 @@ Public method "_>_" is
  * Returns:
  *    `true` if `a` is greater than or equal to `b`, `false` otherwise.
  */
-Public method "_≥_" is
+Public stable method "_≥_" is
 [
 	a : number,
 	b : number
@@ -792,6 +792,41 @@ Invoke
 ]
 with <>;
 
+Public abstract method "_is finite" is
+	function accepting <number> and returning boolean;
+Method "_is finite" is stable at
+	function accepting <number> and returning boolean;
+
+/**
+ * Is the argument finite?
+ * 
+ * Parameters:
+ *    a - A double.
+ * Returns:
+ *    `true` if the argument is finite, `false` otherwise.
+ */
+Method "_is finite" is
+[
+	a : double
+|
+	¬a→extended integer ∈ {-∞, ∞}
+];
+
+/**
+ * Is the argument finite?
+ * 
+ * Parameters:
+ *    a - A float.
+ * Returns:
+ *    `true` if the argument is finite, `false` otherwise.
+ */
+Method "_is finite" is
+[
+	a : float
+|
+	¬a→extended integer ∈ {-∞, ∞}
+];
+
 /**
  * Is the argument finite?
  * 
@@ -800,7 +835,7 @@ with <>;
  * Returns:
  *    `true` if the argument is finite, `false` otherwise.
  */
-Public method "_is finite" is
+Method "_is finite" is
 [
 	a : extended integer
 |
@@ -815,12 +850,47 @@ Public method "_is finite" is
  * Returns:
  *    `true` if the argument is finite, `false` otherwise.
  */
-Public method "_is finite" is
+Method "_is finite" is
 [
 	a : integer
 |
 	true
 ] : true's type;
+
+Public abstract method "_is infinite" is
+	function accepting <number> and returning boolean;
+Method "_is infinite" is stable at
+	function accepting <number> and returning boolean;
+
+/**
+ * Is the argument infinite?
+ * 
+ * Parameters:
+ *    a - A double.
+ * Returns:
+ *    `true` if the argument is infinite, `false` otherwise.
+ */
+Method "_is infinite" is
+[
+	a : double
+|
+	a→extended integer ∈ {-∞, ∞}
+];
+
+/**
+ * Is the argument infinite?
+ * 
+ * Parameters:
+ *    a - A float.
+ * Returns:
+ *    `true` if the argument is infinite, `false` otherwise.
+ */
+Method "_is infinite" is
+[
+	a : float
+|
+	a→extended integer ∈ {-∞, ∞}
+];
 
 /**
  * Is the argument infinite?
@@ -830,7 +900,7 @@ Public method "_is finite" is
  * Returns:
  *    `true` if the argument is infinite, `false` otherwise.
  */
-Public method "_is infinite" is
+Method "_is infinite" is
 [
 	a : extended integer
 |
@@ -845,7 +915,7 @@ Public method "_is infinite" is
  * Returns:
  *    `true` if the argument is infinite, `false` otherwise.
  */
-Public method "_is infinite" is
+Method "_is infinite" is
 [
 	a : integer
 |

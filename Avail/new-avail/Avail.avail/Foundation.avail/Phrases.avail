@@ -38,19 +38,23 @@ Uses
 	"Bootstrap",
 	"Early Control Structures",
 	"Early Definers",
-	"Early Types",
-	"Enumeration Support",
-	"Literals"
+	"Early Enumeration Support",
+	"Early Literals"
 Names
 	"``_``",
 	"“↓_”",
 	"“<«_‡,»>”",
 	"“[_`|_]:_”",
-	"“[_`|_]”"
+	"“[_]:_”"
 Body
 
 /* Make "_'s type" bind more tightly than phrase type construction. */
-Grammatical restriction "_⇒_" is <∅, {"_'s⁇type"}>;
+Invoke
+[
+	exclusions ::= cast {"_'s⁇type"} into [ t : {string|whole number} | t ];
+	Grammatical restriction "_⇒_" is <∅, exclusions>;
+]
+with <>;
 
 /**
  * Construct and answer a (synthetic) literal token whose artificial source text
@@ -95,7 +99,7 @@ Public method "“↓_”" is
  */
 Public method "“<«_‡,»>”" is
 [
-	aTuple : <expression⇒any…|>
+	aTuple : <<>, expression⇒any…|whole number>
 |
 	aTuple→list
 ] : list;
@@ -113,8 +117,8 @@ Public method "“<«_‡,»>”" is
  */
 Public method "“[_`|_]:_”" is
 [
-	args : <argument…|>,
-	statements : <phrase…|>,
+	args : <<>, argument…|whole number>,
+	statements : <<>, phrase…|whole number>,
 	returnType : type
 |
 	“[
@@ -125,50 +129,45 @@ Public method "“[_`|_]:_”" is
 	] : returnType ^ ∅”
 ] : block;
 
-/**
- * Strengthen "“[_`|_]:_”".
- * 
- * Parameters:
- *    args -
- *    statements -
- *    returnType -
- * Returns:
- *    A block yielding the instance of `returnType`.
- */
 Semantic restriction "“[_`|_]:_”" is
 [
-	args : <argument…|>'s type,
-	statements : <phrase…|>'s type,
+	args : <<>, argument…|whole number>'s type,
+	statements : <<>, phrase…|whole number>'s type,
 	returnType : type's type
 |
-	block⇒([…]→returnType's instance)
+	block⇒([…]→cast returnType's instance into [ t : type | t ])
 ];
 
 /**
- * Construct and answer a block from the specified argument declarations and
- * statements.
+ * Construct and answer an arity-0 block from the specified statements and
+ * return type.
  * 
  * Parameters:
- *    args - A tuple of argument declarations.
  *    statements - A tuple of statements.
+ *    returnType - The return type of the function described by the block.
  * Returns:
  *    A block.
  */
-Public method "“[_`|_]”" is
+Public method "“[_]:_”" is
 [
-	args : <argument…|>,
-	statements : <phrase…|>
+	statements : <<>, phrase…|whole number>,
+	returnType : type
 |
-	returnType ::= cast statements
-		into [ t : <phrase…|1..> | t[|t|]'s semantic type ]
-		else [ ⊤ ];
 	“[
-		args
+		<>
 	|
 		Primitive 0
 		statements
 	] : returnType ^ ∅”
-] : block;
+];
+
+Semantic restriction "“[_]:_”" is
+[
+	statements : <<>, phrase…|whole number>'s type,
+	returnType : type's type
+|
+	block⇒([…]→cast returnType's instance into [ t : type | t ])
+];
 
 /**
  * The requested send node has a semantic type of `returnType`.
@@ -189,7 +188,7 @@ Semantic restriction "send_with_:_" is
 	/* Parse nodes have identity, so it isn't safe to strengthen more than
 	 * this.
 	 */
-	send⇒(returnType's instance)
+	send⇒cast returnType's instance into [ t : type | t ]
 ];
 
 /**
@@ -219,7 +218,7 @@ Semantic restriction "_'s⁇semantic type" is
 [
 	listType : list's type's type
 |
-	<expression⇒any…|>
+	<<>, expression⇒any…|whole number>
 ];
 
 /**

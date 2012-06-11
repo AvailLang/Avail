@@ -37,8 +37,8 @@ Extends
 	"Early Literals"
 Uses
 	"Bootstrap",
+	"Definers",
 	"Early Control Structures",
-	"Early Definers",
 	"Early Logic",
 	"Early Math",
 	"Enumeration Support",
@@ -50,15 +50,8 @@ Names
 	"¢…"
 Body
 
-/**
- * Strengthen the cardinality of a tuple to the range of cardinalities supported
- * by its tuple type.
- * 
- * Parameters:
- *    aTupleType -
- * Returns:
- *    The range of cardinalities supported by the argument.
- */
+Method "`|_`|" is stable at
+	function accepting <tuple> and returning whole number;
 Semantic restriction "`|_`|" is
 [
 	aTupleType : tuple meta
@@ -67,15 +60,8 @@ Semantic restriction "`|_`|" is
 	[⎣sizes⎦..⎡sizes⎤ + 1)
 ];
 
-/**
- * Strengthen the cardinality of a set to the range of cardinalities supported
- * by its set type.
- * 
- * Parameters:
- *    aSetType -
- * Returns:
- *    The range of cardinalities supported by the argument.
- */
+Method "`|_`|" is stable at
+	function accepting <set> and returning whole number;
 Semantic restriction "`|_`|" is
 [
 	aSetType : set meta
@@ -84,15 +70,8 @@ Semantic restriction "`|_`|" is
 	[⎣sizes⎦..⎡sizes⎤ + 1)
 ];
 
-/**
- * Strengthen the cardinality of a map to the range of cardinalities supported
- * by its map type.
- * 
- * Parameters:
- *    aMapType -
- * Returns:
- *    The range of cardinalities supported by the argument.
- */
+Method "`|_`|" is stable at
+	function accepting <map> and returning whole number;
 Semantic restriction "`|_`|" is
 [
 	aMapType : map meta
@@ -510,18 +489,14 @@ Semantic restriction "<«_‡,»>" is
 	]
 ];
 
+Method "_[_]" is stable at
+	function accepting <tuple, natural number> and returning any;
+
 /**
  * Strengthen the tuple subscript operation. The strongest available static type
  * is the type union of the elements within the slice indicated by the range of
  * the subscript. Forbid any access that could never be correct, i.e., the
  * minimum value of the subscript exceeds the maximum cardinality of the tuple.
- *
- * Parameters:
- *    aTuple -
- *    index -
- * Returns:
- *    The type union of the elements accessible by an actual subscript of the
- *    specified type.
  */
 Semantic restriction "_[_]" is
 [

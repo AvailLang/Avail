@@ -1,5 +1,5 @@
 /**
- * P_362_GenerateFunctionForBlock.java
+ * P_223_MethodParametersCount.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -32,32 +32,29 @@
 
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.BlockNodeDescriptor.*;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.annotations.NotNull;
-import com.avail.compiler.AvailCodeGenerator;
+import com.avail.compiler.MessageSplitter;
 import com.avail.descriptor.*;
+import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 362:</strong> Compile the specified {@linkplain
- * BlockNodeDescriptor block} into a {@linkplain FunctionDescriptor function}.
- * The block is treated as a top-level construct, so it must not refer to any
- * outer variables.
+ * <strong>Primitive 223</strong>: Answer the number of arguments expected by
+ * the specified {@linkplain MethodDescriptor method}.
  *
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
-public final class P_362_GenerateFunctionForBlock
+public final class P_223_MethodParametersCount
 extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static @NotNull Primitive instance =
-		new P_362_GenerateFunctionForBlock().init(1, CanFold);
+	public final @NotNull static Primitive instance =
+		new P_223_MethodParametersCount().init(1, CanFold, CannotFail);
 
 	@Override
 	public @NotNull Result attempt (
@@ -65,38 +62,20 @@ extends Primitive
 		final @NotNull Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject block = args.get(0);
+		final AvailObject method = args.get(0);
+		final AvailObject name = method.name().name();
+		MessageSplitter splitter = null;
 		try
 		{
-			recursivelyValidate(block);
+			splitter = new MessageSplitter(name);
 		}
-		catch (final Exception e)
+		catch (final SignatureException e)
 		{
-			return interpreter.primitiveFailure(E_BLOCK_IS_INVALID);
+			assert false : "The method name was extracted from a real method!";
 		}
-		// The block is treated as a top-level construct, so it must not refer
-		// to any outer variables. Any blocks contained by this block may, of
-		// course, refer to outer variables (so long as they are defined by
-		// this block)!
-		if (block.neededVariables().tupleSize() > 0)
-		{
-			return interpreter.primitiveFailure(
-				E_BLOCK_MUST_NOT_CONTAIN_OUTERS);
-		}
-		final AvailObject compiledCode;
-		try
-		{
-			final AvailCodeGenerator codeGenerator = new AvailCodeGenerator();
-			compiledCode = block.generate(codeGenerator);
-		}
-		catch (final Exception e)
-		{
-			return interpreter.primitiveFailure(E_BLOCK_COMPILATION_FAILED);
-		}
-		final AvailObject function = FunctionDescriptor.create(
-			compiledCode, TupleDescriptor.empty());
-		function.makeImmutable();
-		return interpreter.primitiveSuccess(function);
+		assert splitter != null;
+		return interpreter.primitiveSuccess(IntegerDescriptor.fromInt(
+			splitter.numberOfArguments()));
 	}
 
 	@Override
@@ -104,7 +83,7 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				BLOCK_NODE.mostGeneralType()),
-			FunctionTypeDescriptor.mostGeneralType());
+				METHOD.o()),
+			IntegerRangeTypeDescriptor.wholeNumbers());
 	}
 }

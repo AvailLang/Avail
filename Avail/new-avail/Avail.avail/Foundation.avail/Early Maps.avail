@@ -36,8 +36,8 @@ Versions
 Extends
 Uses
 	"Bootstrap",
+	"Definers",
 	"Early Control Structures",
-	"Early Definers",
 	"Early Logic",
 	"Early Types",
 	"Early Math",
@@ -50,11 +50,6 @@ Body
 /**
  * If the exact map is known, then answer the enumeration of its keys.
  * Otherwise, just answer the key type.
- * 
- * Parameters:
- *    mapMeta -
- * Return:
- *    The argument's instance's key type's type.
  */
 Semantic restriction "_'s⁇key type" is
 [
@@ -76,11 +71,6 @@ Semantic restriction "_'s⁇key type" is
 /**
  * If the exact map is known, then answer the enumeration of its values.
  * Otherwise, just answer the value type.
- * 
- * Parameters:
- *    mapMeta -
- * Return:
- *    The argument's instance's value type's type.
  */
 Semantic restriction "_'s⁇value type" is
 [
@@ -99,128 +89,69 @@ Semantic restriction "_'s⁇value type" is
 	]
 ];
 
+Method "_∈_" is stable at [any, map]→boolean;
+
 /**
- * Strengthen `_∈_`.
- * 
- * Parameters:
- *    keyType -
- *    mapType -
- * Returns:
- *    The strongest possible boolean type.
+ * Use type intersection to determine whether the map could possibly contain
+ * the specified key. In some rare circumstances, it is even possible to
+ * determine if the map *must* contain the key.
  */
 Semantic restriction "_∈_" is
 [
 	keyType : any meta,
 	mapType : map meta
 |
-	if |keyType| = 1 ∧ [ |mapType| = 1 ] then
+	mapKeyType ::= mapType's key type;
+	if keyType ∩ mapKeyType = ⊥ then
 	[
-		(keyType's instance ∈ mapType's instance)'s type
+		false's type
 	]
 	else
 	[
-		mapKeyType ::= mapType's key type;
-		if keyType ∩ mapKeyType = ⊥ then
+		if |mapKeyType| = ⎣mapType⎦
+			∧ [ keyType ⊆ mapKeyType ] then
 		[
-			false's type
+			true's type
 		]
 		else
 		[
-			if |mapKeyType| = ⎣mapType⎦
-				∧ [ keyType ⊆ mapKeyType ] then
-			[
-				true's type
-			]
-			else
-			[
-				boolean
-			]
+			boolean
 		]
 	]
 ];
 
+Method "_[_]" is stable at [map, any]→any;
+
 /**
- * If the exact map and key are known, then provide the exact type of the value.
- * Otherwise, just provide the map's value type.
- * 
- * Parameters:
- *    mapType -
- *    keyType -
- * Returns:
- *    The strongest available value type.
+ * Answer the map's value type.
  */
 Semantic restriction "_[_]" is
 [
 	mapType : map meta,
 	keyType : any meta
 |
-	if |mapType| = 1 ∧ [ |keyType| = 1 ] then
-	[
-		mapType's instance[keyType's instance]'s type
-	]
-	else
-	[
-		mapType's value type
-	]
+	mapType's value type
 ];
 
-/**
- * If the exact map is known, then provide the exact type of the bindings.
- * Otherwise, just provide the closest tuple type.
- * 
- * Parameters:
- *    mapType -
- * Returns:
- *    The strongest available tuple type.
- */
+Method "_'s⁇bindings" is stable at [map]→key-value tuple;
 Semantic restriction "_'s⁇bindings" is
 [
 	mapType : map meta
 |
-	if |mapType| = 1 then
-	[
-		mapType's instance's bindings' type
-	]
-	else
-	[
-		<<>, <mapType's key type, mapType's value type…|2>… | ||mapType||>
-	]
+	<<>, <mapType's key type, mapType's value type…|2>… | ||mapType||>
 ];
 
-/**
- * If the exact map is known, then answer the type of its set of keys.
- * Otherwise, just answer the closest set type.
- * 
- * Parameters:
- *    mapType -
- * Returns:
- *    The strongest available set type.
- */
+Method "_'s⁇keys" is stable at [map]→set;
 Semantic restriction "_'s⁇keys" is
 [
 	mapType : map meta
 |
-	if |mapType| = 1 then
-	[
-		mapType's instance's keys' type
-	]
-	else
-	[
-		{mapType's key type | ||mapType||}
-	]
+	{mapType's key type | ||mapType||}
 ];
 
 /**
- * TODO: We can only do better after primitive 91 is rewritten to either answer
- * a bag (new data type) or a map from values to counts.
- * 
- * If the exact map is known, then answer the type of its tuple of arbitrarily
- * ordered values. Otherwise, just answer the closest tuple type.
- * 
- * Parameters:
- *    mapType -
- * Returns:
- *    The strongest available tuple type.
+ * Note that the values of a map are arbitrarily ordered (by hashing), and no
+ * two invocations on the same map are guaranteed to produce the same tuple.
  */
 Semantic restriction "_'s⁇values" is
 [
@@ -229,51 +160,35 @@ Semantic restriction "_'s⁇values" is
 	<<>, mapType's value type… | ||mapType||>
 ];
 
-/**
- * Strengthen map binding addition.
- * 
- * Parameters:
- *    mapType -
- *    valueType -
- * Returns:
- *    The strongest possible map type for the given argument types.
- */
+Method "_+_→_" is stable at [map, any, any]→map;
 Semantic restriction "_+_→_" is
 [
 	mapType : map meta,
 	keyType : any meta,
 	valueType : any meta
 |
-	/* Leverage instance types. */
-	if {|mapType|, |keyType|, |valueType|} = {1} then
+	oldKeyType ::= mapType's key type;
+	newKeyType ::= oldKeyType ∪ keyType;
+	newValueType ::= mapType's value type ∪ valueType;
+	lower : [0..∞) := ⎣mapType⎦;
+	bound : [0..∞] := ⎡mapType⎤;
+	/* If the type intersection of the key type and the new key type is
+	 * ⊥, then the new key cannot be present in the map. Adjust the
+	 * cardinality accordingly.
+	 */ 
+	if oldKeyType ∩ keyType = ⊥ then
 	[
-		(mapType's instance + keyType's instance→valueType's instance)'s type
+		lower := cast lower + 1 into [ t : [0..∞) | t ];
+		bound := cast bound + 1 into [ t : [0..∞] | t ];
 	]
+	/* Otherwise the key *may* be present, but there's no way to
+	 * know for sure. Adjust the cardinality accordingly.
+	 */
 	else
 	[
-		oldKeyType ::= mapType's key type;
-		newKeyType ::= oldKeyType ∪ keyType;
-		newValueType ::= mapType's value type ∪ valueType;
-		lower : [0..∞) := ⎣mapType⎦;
-		bound : [0..∞] := ⎡mapType⎤;
-		/* If the type intersection of the key type and the new key type is
-		 * ⊥, then the new key cannot be present in the map. Adjust the
-		 * cardinality accordingly.
-		 */ 
-		if oldKeyType ∩ keyType = ⊥ then
-		[
-			lower := cast lower + 1 into [ t : [0..∞) | t ];
-			bound := cast bound + 1 into [ t : [0..∞] | t ];
-		]
-		/* Otherwise the key *may* be present, but there's no way to
-		 * know for sure. Adjust the cardinality accordingly.
-		 */
-		else
-		[
-			bound := cast bound + 1 into [ t : [0..∞] | t ];
-		];
-		{newKeyType→newValueType | [lower..bound)}
-	]
+		bound := cast bound + 1 into [ t : [0..∞] | t ];
+	];
+	{newKeyType→newValueType | [lower..bound)}
 ];
 
 /**
@@ -294,35 +209,18 @@ Public method "_[_]else_" is
 	if key ∈ aMap then [ aMap[key] ] else default
 ] : any;
 
-/**
- * Strengthen `_[_]else_`.
- * 
- * Parameters:
- *    mapType -
- *    keyType -
- *    default -
- * Returns:
- *    The strongest possible type for the given argument types.
- */
 Semantic restriction "_[_]else_" is
 [
 	mapType : map meta,
 	keyType : any meta,
 	default : []→any's type
 |
-	if {|keyType|, |mapType|, |default|} = {1} then
+	if keyType ∩ (mapType's key type) = ⊥ then
 	[
-		(mapType's instance[keyType's instance] else default's instance)'s type
+		default's return type
 	]
 	else
 	[
-		if keyType ∩ (mapType's key type) = ⊥ then
-		[
-			default's return type
-		]
-		else
-		[
-			mapType's value type ∪ default's return type
-		]
+		mapType's value type ∪ default's return type
 	]
 ];

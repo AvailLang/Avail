@@ -1,5 +1,5 @@
 /*
- * Early Enumeration Support.avail
+ * Early Assertions.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,41 +30,61 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Early Enumeration Support"
+System Module "Early Assertions"
 Versions
 	"dev"
 Uses
 	"Bootstrap",
-	"Early Assertions",
 	"Early Definers"
 Names
-	"_'s⁇instance"
+	"Assert:_",
+	"Shouldn't happen"
 Body
 
-/*
- * Use the same primitive that implements `_'s⁇type` to implement its semantic
- * restriction function.
+/**
+ * Early assertion mechanism. This is obsolete once exceptions are available,
+ * and should not be exported beyond this package.
+ * 
+ * Parameters:
+ *    predicate - `true`.
  */
-Semantic restriction "_'s⁇type" is
+Public method "Assert:_" is
 [
-	value : type
+	predicate : boolean
 |
-	Primitive 30;
-] : type;
+	Assert: predicate ("(no description provided)");
+] : ⊤;
 
 /**
- * Answer the sole instance of the specified enumeration.
- *
- * Parameters:
- *    enum - An enumeration. Anything answered by `_'s⁇type` satisfies this
- *       criterion.
- * Returns:
- *    The sole instance of the argument.
+ * Strengthen the return type to ⊥ iff the assertion statement is statically
+ * identifiable as a contradiction.
  */
-Public method "_'s⁇instance" is
+Semantic restriction "Assert:_" is
 [
-	enum : type
+	contradiction : false's type's type
 |
-	Assert: |enum| = 1 ("|enum| ≠ 1");
-	enum's instances→tuple[1]
-] : any;
+	⊥
+];
+
+/**
+ * Strengthen the return type to ⊥ iff the assertion statement is statically
+ * identifiable as a contradiction.
+ */
+Semantic restriction "Assert:_(_)" is
+[
+	contradiction : false's type's type,
+	message : string's type
+|
+	⊥
+];
+
+/**
+ * Declare that the code path that called this method should never be executed.
+ * It results in an assertion failure. This is obsolete once exceptions are
+ * available, and should not be exported beyond this package.
+ */
+Public method "Shouldn't happen" is
+[
+	Assert: false
+		("This should not be possible; debug the VM and/or system library.")
+] : ⊥;
