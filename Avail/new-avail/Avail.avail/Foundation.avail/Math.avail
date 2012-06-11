@@ -1293,7 +1293,7 @@ Method "_→float" is
  * Returns:
  *    The logarithm of `n` to base `b`.
  */
-Public method "log_of_" is
+Public stable method "log_of_" is
 [
 	b : float,
 	n : float
@@ -1310,7 +1310,7 @@ Public method "log_of_" is
  * Returns:
  *    The logarithm of `n` to base `b`.
  */
-Method "log_of_" is
+Stable method "log_of_" is
 [
 	b : double,
 	n : double
