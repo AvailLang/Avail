@@ -689,15 +689,6 @@ is
  * - Each field atom of the extension is either 1) not present in the supertype
  *   or 2) specifies a type which covaries with the field type expressed in the
  *   supertype.
- *
- * Parameters:
- *    publicType -
- *    explicit -
- *    classNameType -
- *    meta -
- *    optionalExtensions -
- * Return:
- *    ⊤.
  */
 Semantic restriction
 	"«Public»?«Explicit|explicit»?\
@@ -904,12 +895,6 @@ Public method "a|an_«with«_:=_‡,»»" is
  *   instantiation.
  * - An assigned value conforms to the field type.
  * - An assignment occurs for every field of the object type.
- *
- * Parameters:
- *    meta - The type of the template object type.
- *    optional - A lexical tuple type.
- * Return:
- *    The strongest possible object type for the given argument types.
  */
 Semantic restriction "a|an_«with«_:=_‡,»»" is
 [

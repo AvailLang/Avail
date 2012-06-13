@@ -111,3 +111,5 @@ Next error code is "invalid format metacharacter escape code" (1008);
 Next error code is "invalid format metacharacter use code" (1009);
 Next error code is "format variable interpolation failed code" (1010);
 Next error code is "missing format variable binding code" (1011);
+Next error code is "inappropriate value code" (1012);
+

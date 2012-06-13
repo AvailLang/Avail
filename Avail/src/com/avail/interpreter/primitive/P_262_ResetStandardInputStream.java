@@ -1,5 +1,5 @@
 /**
- * P_254_ReadFromConsole.java
+ * P_262_ResetStandardInputStream.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -29,11 +29,12 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.CHARACTER;
-import static com.avail.exceptions.AvailErrorCode.E_IO_ERROR;
-import static com.avail.interpreter.Primitive.Flag.Unknown;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.interpreter.Primitive.Flag.*;
 import java.io.*;
 import java.util.List;
 import com.avail.AvailRuntime;
@@ -42,40 +43,36 @@ import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 254:</strong> Read one character
- * from the console.
+ * <strong>Primitive 262</strong>: Reset the standard input stream to the
+ * previously set mark.
+ *
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
-public class P_254_ReadFromConsole extends Primitive
+public final class P_262_ResetStandardInputStream
+extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_254_ReadFromConsole().init(
-		0, Unknown);
+	public final @NotNull static Primitive instance =
+		new P_262_ResetStandardInputStream().init(0, Unknown);
 
 	@Override
-	public Result attempt (
+	public @NotNull Result attempt (
 		final @NotNull List<AvailObject> args,
 		final @NotNull Interpreter interpreter)
 	{
 		assert args.size() == 0;
 		final Reader reader = AvailRuntime.current().standardInputReader();
-		final char[] buffer = new char[1];
-		final int charactersRead;
 		try
 		{
-			charactersRead = reader.read(buffer, 0, 1);
-			if ( charactersRead != 1)
-			{
-				return interpreter.primitiveFailure(E_IO_ERROR);
-			}
+			reader.reset();
 		}
 		catch (final IOException e)
 		{
 			return interpreter.primitiveFailure(E_IO_ERROR);
 		}
-		return interpreter.primitiveSuccess(
-			CharacterDescriptor.fromCodePoint(buffer[0]));
+		return interpreter.primitiveSuccess(NullDescriptor.nullObject());
 	}
 
 	@Override
@@ -83,6 +80,6 @@ public class P_254_ReadFromConsole extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(),
-			CHARACTER.o());
+			TOP.o());
 	}
 }

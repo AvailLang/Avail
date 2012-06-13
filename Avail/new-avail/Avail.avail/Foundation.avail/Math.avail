@@ -1248,13 +1248,13 @@ Method "_→float" is
 			];
 		];
 	]();
-	
+
 	If ¬(↑correctString is assigned) then
 	[
 		If decimalLocation = 1 then
 		[
-		 	correctString := concatenate <"0", str>;
-		 	decimalLocation := 2;
+			correctString := concatenate <"0", str>;
+			decimalLocation := 2;
 		] else
 		[
 			correctString := str;
@@ -1262,7 +1262,7 @@ Method "_→float" is
 	];
 
 	wholeNumStream :=
-		concatenate <wholeNumStream, (correctString[1..(decimalLocation - 1)])>;	
+		concatenate <wholeNumStream, (correctString[1..(decimalLocation - 1)])>;
 
 	decimalStream :=
 		concatenate 

@@ -34,8 +34,10 @@ System Module "Avail"
 Versions
 	"dev"
 Extends
+	"Advanced Math",
 	"Bootstrap",
-	"Foundation"
+	"Foundation",
+	"IO"
 Uses
 Names
 Body

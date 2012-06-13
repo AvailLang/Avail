@@ -228,8 +228,8 @@ implements ThreadFactory
 	}
 
 	/** The {@linkplain Reader standard input reader}. */
-	private @NotNull Reader standardInputReader = new InputStreamReader(
-		standardInputStream);
+	private @NotNull Reader standardInputReader = new BufferedReader(
+		new InputStreamReader(standardInputStream));
 
 	/**
 	 * Answer the {@linkplain Reader standard input reader}.
@@ -284,7 +284,8 @@ implements ThreadFactory
 			if (inputStream != null)
 			{
 				standardInputStream = inputStream;
-				standardInputReader = new InputStreamReader(inputStream);
+				standardInputReader = new BufferedReader(
+					new InputStreamReader(inputStream));
 			}
 		}
 		finally

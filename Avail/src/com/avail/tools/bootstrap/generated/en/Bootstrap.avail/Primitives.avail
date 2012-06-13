@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.06.10 13:58:15.762 -0500
+ * * Last Generated On: 2012.06.13 15:31:16.201 -0500
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -179,6 +179,7 @@ Names
 	"implementation of_for_",
 	"integer range from_(inclusive=_)to_(inclusive=_)",
 	"ln_",
+	"mark for_character|characters of read ahead",
 	"message_contains groups",
 	"method for_",
 	"method_._(«_‡,»)",
@@ -191,6 +192,7 @@ Names
 	"primitive description of_",
 	"read character",
 	"request termination of_",
+	"reset to mark",
 	"semantic restrictions for_given_",
 	"send_with_:_",
 	"seq“_”",

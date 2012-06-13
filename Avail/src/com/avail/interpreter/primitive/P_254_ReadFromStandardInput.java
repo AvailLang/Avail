@@ -1,5 +1,5 @@
-/*
- * Bootstrap.avail
+/**
+ * P_254_ReadFromStandardInput.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -29,26 +29,61 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.primitive;
 
-/*
- * GENERATED FILE
- * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.06.13 15:31:16.279 -0500
- *
- * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
+import static com.avail.descriptor.TypeDescriptor.Types.CHARACTER;
+import static com.avail.exceptions.AvailErrorCode.E_IO_ERROR;
+import static com.avail.interpreter.Primitive.Flag.Unknown;
+import java.io.*;
+import java.util.List;
+import com.avail.AvailRuntime;
+import com.avail.annotations.NotNull;
+import com.avail.descriptor.*;
+import com.avail.interpreter.*;
+
+/**
+ * <strong>Primitive 254:</strong> Read one character from the standard input
+ * stream.
  */
+public class P_254_ReadFromStandardInput
+extends Primitive
+{
+	/**
+	 * The sole instance of this primitive class.  Accessed through reflection.
+	 */
+	public final static Primitive instance =
+		new P_254_ReadFromStandardInput().init(0, Unknown);
 
-System Module "Bootstrap"
-Versions
-	"dev"
-Extends
-	"Origin",
-	"Special Objects",
-	"Primitives",
-	"Infallible Primitives",
-	"Fallible Primitives",
-	"Error Codes"
-Uses
-Names
-Body
+	@Override
+	public Result attempt (
+		final @NotNull List<AvailObject> args,
+		final @NotNull Interpreter interpreter)
+	{
+		assert args.size() == 0;
+		final Reader reader = AvailRuntime.current().standardInputReader();
+		final char[] buffer = new char[1];
+		final int charactersRead;
+		try
+		{
+			charactersRead = reader.read(buffer, 0, 1);
+			if (charactersRead != 1)
+			{
+				return interpreter.primitiveFailure(E_IO_ERROR);
+			}
+		}
+		catch (final IOException e)
+		{
+			return interpreter.primitiveFailure(E_IO_ERROR);
+		}
+		return interpreter.primitiveSuccess(
+			CharacterDescriptor.fromCodePoint(buffer[0]));
+	}
 
+	@Override
+	protected @NotNull AvailObject privateBlockTypeRestriction ()
+	{
+		return FunctionTypeDescriptor.create(
+			TupleDescriptor.from(),
+			CHARACTER.o());
+	}
+}

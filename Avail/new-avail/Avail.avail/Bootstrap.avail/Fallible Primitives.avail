@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.06.10 13:58:15.818 -0500
+ * * Last Generated On: 2012.06.13 15:31:16.251 -0500
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -81,10 +81,12 @@ Uses
 		"function from_and_",
 		"generate_",
 		"implementation of_for_",
+		"mark for_character|characters of read ahead",
 		"message_contains groups",
 		"method for_",
 		"method_._(«_‡,»)",
 		"read character",
+		"reset to mark",
 		"send_with_:_",
 		"seq“_”",
 		"static method_._(«_‡,»)",
@@ -938,10 +940,10 @@ Method "Forward method_is_" is
 ] : ⊤;
 
 /**
- * Read the next character from the console.
+ * Read the next character from the standard input stream.
  *
  * Returns:
- *    The next character from the console.
+ *    The next character from the standard input stream.
  */
 Method "read character" is
 [
@@ -976,6 +978,30 @@ Method "Grammatical restriction_is_" is
 	exclusions : tuple of set of string
 |
 	Primitive 255 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : ⊤;
+
+/**
+ * Mark the standard input stream to allow at least `count` of read ahead.
+ *
+ * Parameters:
+ *    count - The requested number of characters of read ahead.
+ */
+Method "mark for_character|characters of read ahead" is
+[
+	count : whole number
+|
+	Primitive 261 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : ⊤;
+
+/**
+ * Reset the standard input stream to the previously set mark.
+ *
+ */
+Method "reset to mark" is
+[
+	Primitive 262 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 

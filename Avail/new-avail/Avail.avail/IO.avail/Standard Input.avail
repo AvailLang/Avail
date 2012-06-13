@@ -1,0 +1,145 @@
+/*
+ * Standard Input.avail
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Standard Input"
+Versions
+	"dev"
+Uses
+	"Bootstrap",
+	"Foundation"
+Names
+	"read an integer«within_»",
+	"read_character|characters",
+	"read line"
+Body
+
+/**
+ * Read `count` characters from the standard input stream.
+ * 
+ * Parameters:
+ *    count - The desired number of characters.
+ * Returns:
+ *    A string containing `count` characters.
+ */
+Public method "read_character|characters" is
+[
+	count : whole number
+|
+	result : string := "";
+	Repeat
+	[
+		result := eject ↑result ++ <read character>;
+	] count times;
+	result
+] : string;
+
+Semantic restriction "read_character|characters" is
+[
+	count : whole number's type
+|
+	<<>, character…|count>
+];
+
+/**
+ * Read a line of text from the standard input stream. Reading stops once a line
+ * feed ("\(10)") has been consumed. The result does not include any line feeds.
+ *
+ * Returns:
+ *    A line of text (not including any line feeds).
+ */
+Public method "read line" is
+[
+	result : string := "";
+	Until
+	[
+		next ::= read character;
+		result := eject ↑result ++ <next>;
+		next = ¢"\n"
+	];
+	nonempty ::= cast result into [ t : <character…|1..> | t ];
+	nonempty[1..|nonempty| - 1]
+] : string;
+
+integerChars ::= {¢-, ¢0, ¢1, ¢2, ¢3, ¢4, ¢5, ¢6, ¢7, ¢8, ¢9};
+
+/**
+ * Read an integer from the standard input stream. Reading stops once the first
+ * inappropriate character has been peeked.
+ * 
+ * Parameters:
+ *    optionalRange - The range within which the integer must lie. Defaults to
+ *       `integer` if omitted.
+ * Returns:
+ *    An integer within the requested range.
+ */
+Public method "read an integer«within_»" is
+[
+	optionalRange : <integer's type…|0..1>
+|
+	range ::= unless optionalRange is empty
+		then [ optionalRange[1] ]
+		else [ integer ];
+	text : string := "";
+	While
+	[
+		mark for 1 character of read ahead;
+		next ::= read character;
+		text := eject ↑text ++ <next>;
+		next ∈ integerChars
+	];
+	reset to mark;
+	nonempty ::= cast text into [ t : <character…|1..> | t ];
+	value ::= nonempty[1..|nonempty| - 1]→integer;
+	If ¬value ∈ range then
+	[
+		early failure function(inappropriate value code)
+	];
+	value
+] : integer;
+
+/* TODO: [TLS] Remove when done!
+[
+	Print: "Enter a character: ";
+	Print: (primitive description of read character) ++ "\n";
+	Ignore: read character;
+	Print: "Enter 5 characters: ";
+	Print: (primitive description of read 5 characters) ++ "\n";
+	Print: "Enter a line: ";
+	Print: (primitive description of read line) ++ "\n";
+	Print: "Enter an integer: ";
+	Print: (primitive description of read an integer) ++ "\n";
+	Ignore: read character;
+	Print: "Enter an integer ∈ [0..255]: ";
+	Print: (primitive description of read an integer within [0..255]) ++ "\n";
+	Ignore: read character;
+]();
+*/

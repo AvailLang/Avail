@@ -362,6 +362,23 @@ Semantic restriction "(_.._)" is
 ];
 
 /**
+ * Is `value` within `range`?
+ * 
+ * Parameters:
+ *    value - An extended integer.
+ *    range - An integral range.
+ * Returns:
+ *    `true` if `value` is within `range`, `false` otherwise.
+ */
+Method "_∈_" is
+[
+	value : extended integer,
+	range : extended integer meta
+|
+	value's type ⊆ range
+] : boolean;
+
+/**
  * Is the lower bound of the argument inclusive?
  * 
  * Note that integer ranges canonize each bound as inclusive unless the bound is

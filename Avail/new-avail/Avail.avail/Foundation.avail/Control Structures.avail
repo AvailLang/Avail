@@ -36,9 +36,10 @@ Versions
 Extends
 	"Early Control Structures" =
 	(
-		"(_)",
 		"Cast|cast_into_else_",
-		"Cast|cast_into_"
+		"Cast|cast_into_",
+		"Ignore:_",
+		"(_)"
 	)
 Uses
 	"Bootstrap",
