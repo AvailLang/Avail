@@ -64,13 +64,16 @@ Body
  *      be copied into the formatted output.
  *    - $text : The corresponding argument is a string and should be copied
  *      directly into the formatted output.
+ *    - $escape : There is no corresponding argument. There is an escaped
+ *      metacharacter at the format site that should be copied, unescaped, into
+ *      the result.
  *
  * Returns:
  *    An enumeration of the atoms listed above.
  */
 Private method "interpolation mode" is
 [
-	enumeration of {$description, $text}
+	enumeration of {$description, $text, $escape}
 ];
 
 /**
@@ -97,7 +100,7 @@ Private method "format site" is
  *    - ¢” : Ends a format site whose interpolation mode is $text.
  *    - ¢‘ : Begins a format site whose interpolation mode is $description.
  *    - ¢’ : Ends a format site whose interpolation mode is $description.
- *    - ¢` : Escapes the next format metacharacter.
+ *    - ¢` : Indicates a format site whose interpolation mode is $escape.
  *
  * Returns:
  *    An enumeration of the characters listed above.
@@ -161,7 +164,7 @@ Private stable method "format sites for_" is
 				],
 				¢` is
 				[
-					↑index++;
+					start ::= (↑index++);
 					If index > |template|
 						∨ [ ¬template[index] ∈ format metacharacters ]
 					then
@@ -169,6 +172,8 @@ Private stable method "format sites for_" is
 						early failure function(
 							invalid format metacharacter escape code)
 					];
+					escaped ::= <template[index]>;
+					sites := eject ↑sites ++ <<escaped, $escape, start, index>>;
 				],
 				¢’ is
 				[
@@ -264,6 +269,10 @@ Public stable method "partially format_with_" is
 						format variable interpolation failed code)
 				];
 				cast vars[var] else ["“" ++ var ++ "”"] into [ t : string | t ]
+			],
+			$escape is
+			[
+				"`" ++ var
 			];
 		formatted := eject ↑formatted ++ interpolation;
 		/* Update the template subscript (to point just beyond this site). */
@@ -359,21 +368,27 @@ Public stable method "format_with_" is
 		 */
 		formatted := eject ↑formatted ++ template[index..site[3] - 1];
 		/* Interpolate the variable. */
-		value ::= vars[site[1]] else
-			[ early failure function (missing format variable binding code) ];
+		var ::= site[1];
+		fail ::= [early failure function(missing format variable binding code)];
 		interpolation ::= choose site[2] from interpolation mode where
 			$description is
 			[
+				value ::= vars[site[1]] else fail;
 				primitive description of value
 			],
 			$text is
 			[
+				value ::= vars[site[1]] else fail;
 				cast value into [ t : string | t ]
 				else
 				[
 					early failure function(
 						format variable interpolation failed code)
 				]
+			],
+			$escape is
+			[
+				var
 			];
 		formatted := eject ↑formatted ++ interpolation;
 		/* Update the template subscript (to point just beyond this site). */

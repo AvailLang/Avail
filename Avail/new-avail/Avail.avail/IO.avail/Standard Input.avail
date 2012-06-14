@@ -121,12 +121,13 @@ Public method "read an integer«within_»" is
 	value ::= nonempty[1..|nonempty| - 1]→integer;
 	If ¬value ∈ range then
 	[
+		/* TODO: [TLS] Raise a real exception. */
 		early failure function(inappropriate value code)
 	];
 	value
 ] : integer;
 
-/* TODO: [TLS] Remove when done!
+/* TODO: [TLS] Remove when done.
 [
 	Print: "Enter a character: ";
 	Print: (primitive description of read character) ++ "\n";
