@@ -38,6 +38,7 @@ Uses
 	"Early Assertions",
 	"Early Control Structures",
 	"Early Definers",
+	"Early Logic",
 	"Early Math",
 	"Literals",
 	"Variables"
@@ -49,9 +50,6 @@ Names
 	 * publicly available methods).
 	 */
 Body
-
-/* The next error code that should be assigned. */
-code : [1000..∞) := 1000;
 
 /* A map from the error codes to their names (corresponding to the method
  * names).
@@ -74,27 +72,25 @@ Public method "error code_'s⁇name" is
 ] : string;
 
 /**
- * Define a method named `name` that stably answers the current value of `code`.
- * Increment `code` (so that every error code method answers a distinct value).
+ * Define a method named `name` that stably answers `code`.
  * 
  * Parameters:
  *    name - The name of the new method.
- *    check - The error code, provided as a cross-check only.
+ *    code - The error code.
  */
 Private method "Next error code is_(_)" is
 [
 	name : string,
-	check : [1000..∞)
+	code : [1000..∞)
 |
-	next ::= (↑code++);
-	Assert: next = check ("error code cross-check failed");
+	Assert: ¬code ∈ errorNames ("code already in use");
 	/* Strengthen the implementation function's return type to the exact value.
 	 * This involves the construction of a decorator function.
 	 */
-	functionType ::= function accepting <> and returning next's type;
-	implementation ::= new functionType applying [ next ];
+	functionType ::= function accepting <> and returning code's type;
+	implementation ::= new functionType applying [ code ];
 	Method name is implementation;
-	errorNames := cast eject ↑errorNames + next→name
+	errorNames := cast eject ↑errorNames + code→name
 		into [ t : {[1000..∞)→string|[1..∞)} | t ];
 	Publish new name: name;
 ];
@@ -110,6 +106,7 @@ Next error code is "empty format variable code" (1007);
 Next error code is "invalid format metacharacter escape code" (1008);
 Next error code is "invalid format metacharacter use code" (1009);
 Next error code is "format variable interpolation failed code" (1010);
-Next error code is "missing format variable binding code" (1011);
-Next error code is "inappropriate value code" (1012);
+Next error code is "invalid format variable code" (1011);
+Next error code is "missing format variable binding code" (1012);
+Next error code is "inappropriate value code" (1013);
 

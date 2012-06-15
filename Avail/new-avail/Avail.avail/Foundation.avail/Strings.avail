@@ -50,11 +50,22 @@ Uses
 	"Tuples",
 	"Variables"
 Names
+	"format_with unchecked_",
 	"format_with_",
 	"format_with«…:=_‡,»",
 	"partially format_with_",
-	"partially format_with«…:=_‡,»"
+	"partially format_with«…:=_‡,»",
+	"_(base_)",
+	"_→integer"
 Body
+
+/* These are the circled numbers. */
+circledNumbers ::=
+	"①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳㉑㉒㉓㉔㉕\
+	\|㉖㉗㉘㉙㉚㉛㉜㉝㉞㉟㊱㊲㊳㊴㊵㊶㊷㊸㊹㊺㊻㊼㊽㊾㊿";
+
+/* This is a map from circled numbers to their implied numeric values. */
+circledNumberValues ::= (circledNumbers zip 1 to 50)→map;
 
 /**
  * Answer the enumeration of variable interpolation modes:
@@ -101,13 +112,14 @@ Private method "format site" is
  *    - ¢‘ : Begins a format site whose interpolation mode is $description.
  *    - ¢’ : Ends a format site whose interpolation mode is $description.
  *    - ¢` : Indicates a format site whose interpolation mode is $escape.
+ *    - ¢① .. ¢㊿ : Indicates a positional format variable.
  *
  * Returns:
  *    An enumeration of the characters listed above.
  */
 Private method "format metacharacters" is
 [
-	enumeration of {¢“, ¢”, ¢‘, ¢’, ¢`}
+	enumeration of ("“”‘’`" ++ circledNumbers)→set
 ];
 
 /**
@@ -145,6 +157,7 @@ Private stable method "format sites for_" is
 			varName ::= template[start + 1..index - 1];
 			sites := eject ↑sites ++ <<varName, interpType, start, index>>;
 		];
+	invalid ::= [early failure function(invalid format metacharacter use code)];
 	While [ index ≤ |template| ] do
 	[
 		char ::= template[index];
@@ -154,14 +167,8 @@ Private stable method "format sites for_" is
 			metachar : format metacharacters
 		|
 			Choose metachar from format metacharacters where
-				¢‘ is
-				[
-					addSite(¢’, $description);
-				],
-				¢“ is
-				[
-					addSite(¢”, $text);
-				],
+				¢‘ is [ addSite(¢’, $description); ],
+				¢“ is [ addSite(¢”, $text); ],
 				¢` is
 				[
 					start ::= (↑index++);
@@ -175,15 +182,12 @@ Private stable method "format sites for_" is
 					escaped ::= <template[index]>;
 					sites := eject ↑sites ++ <<escaped, $escape, start, index>>;
 				],
-				¢’ is
+				¢’ is invalid,
+				¢” is invalid,
+				else
 				[
-					early failure function(
-						invalid format metacharacter use code)
-				],
-				¢” is
-				[
-					early failure function(
-						invalid format metacharacter use code)
+					Assert: metachar ∈ circledNumberValues;
+					invalid()
 				];
 		]
 		/* The typical case: this is an ordinary character. */
@@ -245,6 +249,8 @@ Public stable method "partially format_with_" is
 |
 	sites ::= format sites for template;
 	formatted : string := "";
+	badType ::=
+		[early failure function(format variable interpolation failed code)];
 	index : natural number := 1;
 	For each sites do
 	[
@@ -263,11 +269,7 @@ Public stable method "partially format_with_" is
 			],
 			$text is
 			[
-				If var ∈ vars ∧ [ ¬var ∈ string ] then
-				[
-					early failure function(
-						format variable interpolation failed code)
-				];
+				If var ∈ vars ∧ [ ¬var ∈ string ] then badType;
 				cast vars[var] else ["“" ++ var ++ "”"] into [ t : string | t ]
 			],
 			$escape is
@@ -358,6 +360,9 @@ Public stable method "format_with_" is
 |
 	sites ::= format sites for template;
 	formatted : string := "";
+	missing ::= [early failure function(missing format variable binding code)];
+	badType ::=
+		[early failure function(format variable interpolation failed code)];
 	index : natural number := 1;
 	For each sites do
 	[
@@ -368,27 +373,20 @@ Public stable method "format_with_" is
 		 */
 		formatted := eject ↑formatted ++ template[index..site[3] - 1];
 		/* Interpolate the variable. */
-		var ::= site[1];
-		fail ::= [early failure function(missing format variable binding code)];
 		interpolation ::= choose site[2] from interpolation mode where
 			$description is
 			[
-				value ::= vars[site[1]] else fail;
+				value ::= vars[site[1]] else missing;
 				primitive description of value
 			],
 			$text is
 			[
-				value ::= vars[site[1]] else fail;
-				cast value into [ t : string | t ]
-				else
-				[
-					early failure function(
-						format variable interpolation failed code)
-				]
+				value ::= vars[site[1]] else missing;
+				cast value into [ t : string | t ] else badType
 			],
 			$escape is
 			[
-				var
+				site[1]
 			];
 		formatted := eject ↑formatted ++ interpolation;
 		/* Update the template subscript (to point just beyond this site). */
@@ -485,7 +483,7 @@ Private method "format variable for_" is
 Public method "partially format_with«…:=_‡,»" is
 [
 	template : string,
-	bindings : <<token, any…|2>…|>
+	bindings : <<token, any…|2>…|1..>
 |
 	realBindings ::= map bindings through
 		[
@@ -504,7 +502,7 @@ Public method "partially format_with«…:=_‡,»" is
 Semantic restriction "partially format_with«…:=_‡,»" is
 [
 	templateType : string's type,
-	bindings : <<token, any…|2>…|>'s type
+	bindings : <<token, any…|2>…|1..>'s type
 |
 	If |templateType| = 1 then
 	[
@@ -569,10 +567,6 @@ Semantic restriction "partially format_with«…:=_‡,»" is
  *            with "greeting" := "Hello", "recipient" := "world")
  *        = "Hello, world!\n";
  *
- * The semantic restriction ensures 1) that every lexically specified binding
- * corresponds to a format variable embedded within the template and 2) that
- * every format variable is bound.
- *
  * Parameters:
  *    template - A template string.
  *    bindings - The complete format variable bindings.
@@ -582,7 +576,7 @@ Semantic restriction "partially format_with«…:=_‡,»" is
 Public method "format_with«…:=_‡,»" is
 [
 	template : string,
-	bindings : <<token, any…|2>…|>
+	bindings : <<token, any…|2>…|1..>
 |
 	realBindings ::= map bindings through
 		[
@@ -602,7 +596,7 @@ Public method "format_with«…:=_‡,»" is
 Semantic restriction "format_with«…:=_‡,»" is
 [
 	templateType : string's type,
-	bindings : <<token, any…|2>…|>'s type
+	bindings : <<token, any…|2>…|1..>'s type
 |
 	If |templateType| = 1 then
 	[
@@ -650,3 +644,294 @@ Semantic restriction "format_with«…:=_‡,»" is
 		⊤
 	]
 ];
+
+/**
+ * Answer the result of fully formatting the specified template using format
+ * variable bindings contained in the given tuple. The tuple must contain
+ * bindings for all variables embedded within the template.
+ *
+ * A template intermixes raw character data with format variable interpolation
+ * sites. An interpolation site begins with either the ¢‘ or ¢“ metacharacter
+ * and ends with the corresponding close metacharacter, either ¢’ or ¢”,
+ * respectively. An interpolation site must contain one of the fifty circled
+ * number characters (¢①, ¢②, ..., ¢㊿). The circled number character is
+ * understood to indicate a subscript within the specified tuple; the value at
+ * this subscript is this variable's value. If an interpolation site uses ¢‘
+ * (and ¢’), then the value will be converted to a string via `primitive
+ * description of_` when it is copied into the result. If an interpolation site
+ * uses ¢“ (and ¢”), then the value must be a string and will be copied directly
+ * into the result. To escape a metacharacter, precede it immediately by ¢`.
+ *
+ * For example:
+ * 
+ *    Assert:
+ *        format "“①”, “②”!\n" with unchecked <"Hello", "world">
+ *        = "Hello, world!\n";
+ *
+ * Parameters:
+ *    template - A template string.
+ *    vars - A tuple of format variable bindings. This tuple must include a
+ *       binding (i.e., subscript) for every variable mentioned within the
+ *       template.
+ * Returns:
+ *    The result of formatting the template usings the specified bindings.
+ */
+Public stable method "format_with unchecked_" is
+[
+	template : string,
+	vars : tuple
+|
+	sites ::= format sites for template;
+	formatted : string := "";
+	badName ::= [early failure function(invalid format variable code)];
+	missing ::= [early failure function(missing format variable binding code)];
+	badType ::=
+		[early failure function(format variable interpolation failed code)];
+	index : natural number := 1;
+	For each sites do
+	[
+		site : format site
+	|
+		/* Append any characters between the last site and the previous site
+		 * onto the output.
+		 */
+		formatted := eject ↑formatted ++ template[index..site[3] - 1];
+		/* Interpolate the variable. */
+		If |site[1]| > 1 then badName;
+		var ::= site[1][1];
+		interpolation ::= choose site[2] from interpolation mode where
+			$description is
+			[
+				varIndex ::= circledNumberValues[var] else badName;
+				value ::= if varIndex ≤ |vars|
+					then [ vars[varIndex] ]
+					else missing;
+				primitive description of value
+			],
+			$text is
+			[
+				varIndex ::= circledNumberValues[var] else badName;
+				value ::= if varIndex ≤ |vars|
+					then [ vars[varIndex] ]
+					else missing;
+				cast value into [ t : string | t ] else badType
+			],
+			$escape is
+			[
+				site[1]
+			];
+		formatted := eject ↑formatted ++ interpolation;
+		/* Update the template subscript (to point just beyond this site). */
+		index := site[4] + 1;
+	];
+	Assert: 1 ≤ index ≤ |template| + 1;
+	formatted := eject ↑formatted ++ template[index..];
+	formatted
+] : string;
+
+Semantic restriction "format_with unchecked_" is
+[
+	template : string's type,
+	vars : tuple's type
+|
+	if |template| = 1 then
+	[
+		<character… | minimum |template's instance after formatting|..>
+	]
+	else
+	[
+		⊤
+	]
+];
+
+/**
+ * Answer the result of fully formatting the specified template using lexically
+ * specified format variable bindings.
+ *
+ * A template intermixes raw character data with format variable interpolation
+ * sites. An interpolation site begins with either the ¢‘ or ¢“ metacharacter
+ * and ends with the corresponding close metacharacter, either ¢’ or ¢”,
+ * respectively. An interpolation site must contain one of the fifty circled
+ * number characters (¢①, ¢②, ..., ¢㊿). The circled number character is
+ * understood to indicate a subscript within the specified tuple; the value at
+ * this subscript is this variable's value. If an interpolation site uses ¢‘
+ * (and ¢’), then the value will be converted to a string via `primitive
+ * description of_` when it is copied into the result. If an interpolation site
+ * uses ¢“ (and ¢”), then the value must be a string and will be copied directly
+ * into the result. To escape a metacharacter, precede it immediately by ¢`.
+ *
+ * For example:
+ * 
+ *    Assert:
+ *        format "“①”, “②”!\n" with "Hello", "world"
+ *        = "Hello, world!\n";
+ *
+ * Parameters:
+ *    template - A template string.
+ *    vars - A tuple of format variable bindings. This tuple must include a
+ *       binding (i.e., subscript) for every variable mentioned within the
+ *       template.
+ * Returns:
+ *    The result of formatting the template usings the specified bindings.
+ */
+Method "format_with«_‡,»" is
+[
+	template : string,
+	vars : <any…|1..50>
+|
+	format template with unchecked vars
+] : string;
+
+/**
+ * If the template is statically known, then ensure that 1) each lexical binding
+ * references a valid format variable, 2) each format variable is bound, and
+ * 3) each format variable that uses the $text interpolation mode is actually
+ * bound to a string.
+ */
+Semantic restriction "format_with«_‡,»" is
+[
+	templateType : string's type,
+	bindingsType : <any…|1..50>'s type
+|
+	if |templateType| = 1 then
+	[
+		template ::= templateType's instance;
+		sites ::= format sites for template;
+		templateVars ::= (stripe sites at 1)→set;
+		stringSites ::= filter sites by [site : format site | site[2] = $text];
+		stringVars ::= (stripe stringSites at 1)→set;
+		bindingVars ::= (map 1 to ⎣bindingsType⎦ through
+			[
+				index : natural number
+			|
+				var ::= <circledNumbers[index]>;
+				bindingType ::= bindingsType[index];
+				If var ∈ stringVars ∧ [ ¬bindingType ⊆ string ] then
+				[
+					Reject parse, expected:
+						"format variable "
+						++ (primitive description of var)
+						++ " ∈ string, not "
+						++ (primitive description of bindingType)
+						++ " (because at least one format site requires this)"
+				];
+				var
+			])→set;
+		unboundVars ::= templateVars \ bindingVars;
+		If unboundVars ≠ ∅ then
+		[
+			Reject parse, expected:
+				"bindings for format variables "
+				++ primitive description of unboundVars
+		];
+		unmentionedVars ::= bindingVars \ templateVars;
+		If unmentionedVars ≠ ∅ then
+		[
+			Reject parse, expected:
+				"only bindings for format variables, but bindings also include "
+				++ primitive description of unmentionedVars
+		];
+		<character… | minimum |template after formatting|..>
+	]
+	else
+	[
+		⊤
+	]
+];
+
+/* Code point constants needed by `_(base_)`. */
+baseAlphabet ::=
+	"0123456789\
+	\|ABCDEFGHIJKLMNOPQRSTUVWXYZ\
+	\|abcdefghijklmnopqrstuvwxyz"→set;
+cp_0 ::= ¢0→code point;
+cp_9 ::= ¢9→code point;
+cp_a ::= ¢a→code point;
+cp_z ::= ¢z→code point;
+cp_A ::= ¢A→code point;
+cp_Z ::= ¢Z→code point;
+
+/**
+ * Convert the specified string to an extended integer.
+ *
+ * Parameters:
+ *    digits - A string of digits, chosen from the alphabet ¢0 .. ¢9 ∪ ¢A .. ¢Z
+ *       ∪ ¢a .. ¢z.
+ *    base - The base for `digits`. This determines which symbols of the
+ *       alphabet are valid, e.g., when `base = 16` then the valid symbols are
+ *       ¢0 .. ¢9 ∪ ¢A .. ¢F ∪ ¢a .. ¢f.
+ * Returns:
+ *    An extended integer.
+ */
+Public stable method "_(base_)" is
+[
+	digits : string,
+	base : [2..36]
+|
+	fail ::= [early failure function(invalid argument code)];
+	If digits is empty then fail;
+	realDigits : string := digits;
+	multiplier : enumeration of {-1, 1} := 1;
+	If digits[1] = ¢- then
+	[
+		If |digits| = 1 then fail;
+		realDigits := digits[2..];
+		multiplier := -1;
+	];
+	answer ::=
+		if realDigits[1] = ¢∞ then [ ∞ ]
+		else
+		[
+			partial : whole number := 0;
+			For each realDigits do
+			[
+				digit : character
+			|
+				If ¬digit ∈ baseAlphabet then fail;
+				cp ::= cast digit→code point into [ t : [cp_0..cp_z] | t ];
+				value ::=
+					if cp_0 ≤ cp ≤ cp_9 then [ cp - cp_0 ]
+					else if [ cp_a ≤ cp ≤ cp_z ] then [ cp - cp_a + 10 ]
+					else if [ cp_A ≤ cp ≤ cp_Z] then [ cp - cp_A + 10 ]
+					else fail;
+				strongValue ::= cast value into [ t : [0..36) | t ];
+				partial := eject ↑partial × base + strongValue;
+			];
+			partial
+		];
+	answer × multiplier
+] : extended integer;
+
+/**
+ * Convert the specified string to an integer.
+ * 
+ * Parameter:
+ *    str - A string of base-10 digits.
+ * Returns:
+ *    An integer.
+ */
+Public stable method "_→integer" is
+[
+	str : string
+|
+	fail ::= [early failure function(invalid argument code)];
+	If |str| > 1 ∧ [ str[1] = ¢0 ] then fail;
+	cast str (base 10) into [ t : integer | t ] else fail
+] : integer;
+
+/**
+ * Convert the specified string to an extended integer.
+ * 
+ * Parameter:
+ *    str - A string of base-10 digits.
+ * Returns:
+ *    An extended integer.
+ */
+Stable method "_→extended integer" is
+[
+	str : string
+|
+	fail ::= [early failure function(invalid argument code)];
+	If |str| > 1 ∧ [ str[1] = ¢0 ] then fail;
+	str (base 10)
+] : extended integer;

@@ -34,7 +34,6 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.error;
 import static java.lang.Math.*;
-import java.util.List;
 import com.avail.annotations.*;
 
 /**
@@ -78,42 +77,6 @@ extends TupleDescriptor
 		 * TODO: [MvG] Document this.
 		 */
 		OBJECT_ZONE_DATA_AT_
-	}
-
-	@Override
-	public void printObjectOnAvoidingIndent (
-		final @NotNull AvailObject object,
-		final @NotNull StringBuilder aStream,
-		final @NotNull List<AvailObject> recursionList,
-		final int indent)
-	{
-		if (object.tupleSize() == 0)
-		{
-			aStream.append("<>");
-			return;
-		}
-		if (object.isString())
-		{
-			aStream.append('"');
-			for (int i = 1, end = object.tupleSize(); i <= end; i++)
-			{
-				final char c = (char) object.tupleAt(i).codePoint();
-				if (c == '\"' || c == '\\')
-				{
-					aStream.append('\\');
-				}
-				aStream.append(c);
-			}
-			aStream.append('"');
-		}
-		else
-		{
-			super.printObjectOnAvoidingIndent(
-				object,
-				aStream,
-				recursionList,
-				indent);
-		}
 	}
 
 	/**

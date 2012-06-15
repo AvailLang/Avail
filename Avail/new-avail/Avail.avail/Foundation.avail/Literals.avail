@@ -453,7 +453,7 @@ Semantic restriction "<«_‡,»>" is
 	[
 		index : natural number
 	|
-		if |elements[index]| ≠ ∞ then
+		if |elements[index]| = 1 then
 		[
 			instance ::= elements[index]'s instance;
 			/* Do not blithely construct a literal-force tuple if any of the
@@ -625,7 +625,7 @@ Semantic restriction "{«_‡,»}" is
 		index : natural number
 	|
 		element ::= elements[index];
-		if |elements[index]| ≠ ∞ then
+		if |elements[index]| = 1 then
 		[
 			instance ::= elements[index]'s instance;
 			/* Do not blithely construct a literal-force tuple if any of the
@@ -754,10 +754,10 @@ Semantic restriction "{«_→_‡,»}" is
 		index : natural number
 	|
 		binding ::= bindings[index];
-		if |binding[1]| ≠ ∞ then
+		if |binding[1]| = 1 then
 		[
 			instanceK ::= binding[1]'s instance;
-			if |binding[2]| ≠ ∞ then
+			if |binding[2]| = 1 then
 			[
 				instanceV ::= binding[2]'s instance;
 				/* Do not blithely construct a literal-force tuple if any of the

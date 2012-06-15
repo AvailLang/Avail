@@ -93,8 +93,8 @@ public class AvailCodeGenerator
 	int maxDepth = 0;
 
 	/**
-	 * A mapping from {@link DeclarationNodeDescriptor.DeclarationKind#LABEL
-	 * label} to {@link AvailLabel}, a pseudo-instruction.
+	 * A mapping from {@link DeclarationKind#LABEL label} to {@link AvailLabel},
+	 * a pseudo-instruction.
 	 */
 	Map<AvailObject, AvailLabel> labelInstructions;
 

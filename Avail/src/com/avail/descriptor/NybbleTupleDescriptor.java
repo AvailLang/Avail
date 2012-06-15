@@ -35,7 +35,6 @@ package com.avail.descriptor;
 import static com.avail.descriptor.AvailObject.Multiplier;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static java.lang.Math.*;
-import java.util.List;
 import com.avail.annotations.*;
 
 /**
@@ -82,58 +81,6 @@ extends TupleDescriptor
 	 * integer slot} that are not considered part of the tuple.
 	 */
 	int unusedNybblesOfLastWord;
-
-	@Override
-	public void printObjectOnAvoidingIndent (
-		final @NotNull AvailObject object,
-		final @NotNull StringBuilder aStream,
-		final @NotNull List<AvailObject> recursionList,
-		final int indent)
-	{
-		if (object.tupleSize() == 0)
-		{
-			aStream.append("<>");
-			return;
-		}
-		if (isMutable())
-		{
-			aStream.append("(mut)");
-		}
-		aStream.append("NybbleTuple with: #[");
-		int rowSize = max(60 - indent * 3 / 2, 8);
-		//  How many equal (shorter by at least 1 on the last) rows are needed?
-		final int rows = (object.tupleSize() + rowSize) / rowSize;
-		//  How many on each row for that layout?
-		rowSize = (object.tupleSize() + rows) / rows;
-		//  Round up to a multiple of eight per row.
-		rowSize = (rowSize + 7) / 8 * 8;
-		int rowStart = 1;
-		while (rowStart <= object.tupleSize())
-		{
-			aStream.append('\n');
-			for (int _count1 = 1; _count1 <= indent; _count1++)
-			{
-				aStream.append('\t');
-			}
-			for (
-					int
-						i = rowStart,
-						end = min(rowStart + rowSize - 1, object.tupleSize());
-					i <= end;
-					i++)
-			{
-				final byte val = object.extractNybbleFromTupleAt(i);
-				assert 0 <= val && val <= 15;
-				aStream.append(Integer.toHexString(val));
-				if (i % 8 == 0)
-				{
-					aStream.append(' ');
-				}
-			}
-			rowStart += rowSize;
-		}
-		aStream.append(']');
-	}
 
 	@Override @AvailMethod
 	boolean o_CompareFromToWithStartingAt (

@@ -58,7 +58,17 @@ Semantic restriction "enumeration of_" is
 |
 	if |setType| = ∞ then
 	[
-		type
+		if ⎣||setType||⎦ = ⎡||setType||⎤
+			∧ [ |setType's element type| = ⎣||setType||⎦
+			∧ [ ¬setType's element type ⊆ type ] ]
+		then
+		[
+			(enumeration of setType's element type's instances)'s type
+		]
+		else
+		[
+			type
+		]
 	]
 	else
 	[

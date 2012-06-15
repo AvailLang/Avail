@@ -494,7 +494,7 @@ extends ExtendedIntegerDescriptor
 	@Override @AvailMethod
 	@NotNull AvailObject o_AddToIntegerCanDestroy (
 		final @NotNull AvailObject object,
-		final AvailObject anInteger,
+		final @NotNull AvailObject anInteger,
 		final boolean canDestroy)
 	{
 		// This routine would be much quicker with access to machine carry
@@ -1290,6 +1290,219 @@ extends ExtendedIntegerDescriptor
 	{
 		return
 			DoubleDescriptor.compareDoubleAndInteger(aDouble, object).reverse();
+	}
+
+	@Override @AvailMethod
+	@NotNull AvailObject o_BitwiseAnd (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anInteger,
+		final boolean canDestroy)
+	{
+		final int objectSize = object.integerSlotsCount();
+		final int anIntegerSize = anInteger.integerSlotsCount();
+		AvailObject output = null;
+		if (canDestroy)
+		{
+			// Choose the most spacious one to destroy, but reject it if it's
+			// immutable. Never choose the smaller one, even if it's the only
+			// one that's mutable. If they're equal sized and mutable it doesn't
+			// matter which we choose.
+			if (objectSize == anIntegerSize)
+			{
+				output =
+					isMutable
+						? object
+						: anInteger.descriptor().isMutable()
+							? anInteger
+							: null;
+			}
+			else if (objectSize > anIntegerSize)
+			{
+				output = isMutable ? object : null;
+			}
+			else
+			{
+				output = anInteger.descriptor().isMutable() ? anInteger : null;
+			}
+		}
+		// Both integers are 32 bits. This is by far the most case case.
+		if (objectSize == 1 && anIntegerSize == 1)
+		{
+			final int result = object.rawSignedIntegerAt(1)
+				& anInteger.rawSignedIntegerAt(1);
+			if (output == null)
+			{
+				output = mutable().create(1);
+			}
+			output.rawSignedIntegerAtPut(1, result);
+			return output;
+		}
+		// If neither of the inputs were suitable for destruction, then allocate
+		// a new one whose size is that of the larger input.
+		if (output == null)
+		{
+			output = mutable().create(max(objectSize, anIntegerSize));
+		}
+		// Handle larger integers.
+		final int outputSize = output.integerSlotsCount();
+		final int extendedObject = object.rawSignedIntegerAt(objectSize) >> 31;
+		final int extendedAnInteger =
+			anInteger.rawSignedIntegerAt(anIntegerSize) >> 31;
+		for (int i = 1; i <= outputSize; i++)
+		{
+			final int objectWord = i > objectSize
+				? extendedObject
+				: object.rawSignedIntegerAt(i);
+			final int anIntegerWord = i > anIntegerSize
+				? extendedAnInteger
+				: anInteger.rawSignedIntegerAt(i);
+			final int result = objectWord & anIntegerWord;
+			output.rawSignedIntegerAtPut(i, result);
+		}
+		output.trimExcessInts();
+		return output;
+	}
+
+	@Override @AvailMethod
+	@NotNull AvailObject o_BitwiseOr (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anInteger,
+		final boolean canDestroy)
+	{
+		final int objectSize = object.integerSlotsCount();
+		final int anIntegerSize = anInteger.integerSlotsCount();
+		AvailObject output = null;
+		if (canDestroy)
+		{
+			// Choose the most spacious one to destroy, but reject it if it's
+			// immutable. Never choose the smaller one, even if it's the only
+			// one that's mutable. If they're equal sized and mutable it doesn't
+			// matter which we choose.
+			if (objectSize == anIntegerSize)
+			{
+				output =
+					isMutable
+						? object
+						: anInteger.descriptor().isMutable()
+							? anInteger
+							: null;
+			}
+			else if (objectSize > anIntegerSize)
+			{
+				output = isMutable ? object : null;
+			}
+			else
+			{
+				output = anInteger.descriptor().isMutable() ? anInteger : null;
+			}
+		}
+		// Both integers are 32 bits. This is by far the most case case.
+		if (objectSize == 1 && anIntegerSize == 1)
+		{
+			final int result = object.rawSignedIntegerAt(1)
+				| anInteger.rawSignedIntegerAt(1);
+			if (output == null)
+			{
+				output = mutable().create(1);
+			}
+			output.rawSignedIntegerAtPut(1, result);
+			return output;
+		}
+		// If neither of the inputs were suitable for destruction, then allocate
+		// a new one whose size is that of the larger input.
+		if (output == null)
+		{
+			output = mutable().create(max(objectSize, anIntegerSize));
+		}
+		// Handle larger integers.
+		final int outputSize = output.integerSlotsCount();
+		final int extendedObject = object.rawSignedIntegerAt(objectSize) >> 31;
+		final int extendedAnInteger =
+			anInteger.rawSignedIntegerAt(anIntegerSize) >> 31;
+		for (int i = 1; i <= outputSize; i++)
+		{
+			final int objectWord = i > objectSize
+				? extendedObject
+				: object.rawSignedIntegerAt(i);
+			final int anIntegerWord = i > anIntegerSize
+				? extendedAnInteger
+				: anInteger.rawSignedIntegerAt(i);
+			final int result = objectWord | anIntegerWord;
+			output.rawSignedIntegerAtPut(i, result);
+		}
+		output.trimExcessInts();
+		return output;
+	}
+
+	@Override @AvailMethod
+	@NotNull AvailObject o_BitwiseXor (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anInteger,
+		final boolean canDestroy)
+	{
+		final int objectSize = object.integerSlotsCount();
+		final int anIntegerSize = anInteger.integerSlotsCount();
+		AvailObject output = null;
+		if (canDestroy)
+		{
+			// Choose the most spacious one to destroy, but reject it if it's
+			// immutable. Never choose the smaller one, even if it's the only
+			// one that's mutable. If they're equal sized and mutable it doesn't
+			// matter which we choose.
+			if (objectSize == anIntegerSize)
+			{
+				output =
+					isMutable
+						? object
+						: anInteger.descriptor().isMutable()
+							? anInteger
+							: null;
+			}
+			else if (objectSize > anIntegerSize)
+			{
+				output = isMutable ? object : null;
+			}
+			else
+			{
+				output = anInteger.descriptor().isMutable() ? anInteger : null;
+			}
+		}
+		// Both integers are 32 bits. This is by far the most case case.
+		if (objectSize == 1 && anIntegerSize == 1)
+		{
+			final int result = object.rawSignedIntegerAt(1)
+				^ anInteger.rawSignedIntegerAt(1);
+			if (output == null)
+			{
+				output = mutable().create(1);
+			}
+			output.rawSignedIntegerAtPut(1, result);
+			return output;
+		}
+		// If neither of the inputs were suitable for destruction, then allocate
+		// a new one whose size is that of the larger input.
+		if (output == null)
+		{
+			output = mutable().create(max(objectSize, anIntegerSize));
+		}
+		// Handle larger integers.
+		final int outputSize = output.integerSlotsCount();
+		final int extendedObject = object.rawSignedIntegerAt(objectSize) >> 31;
+		final int extendedAnInteger =
+			anInteger.rawSignedIntegerAt(anIntegerSize) >> 31;
+		for (int i = 1; i <= outputSize; i++)
+		{
+			final int objectWord = i > objectSize
+				? extendedObject
+				: object.rawSignedIntegerAt(i);
+			final int anIntegerWord = i > anIntegerSize
+				? extendedAnInteger
+				: anInteger.rawSignedIntegerAt(i);
+			final int result = objectWord ^ anIntegerWord;
+			output.rawSignedIntegerAtPut(i, result);
+		}
+		output.trimExcessInts();
+		return output;
 	}
 
 	@Override @AvailMethod

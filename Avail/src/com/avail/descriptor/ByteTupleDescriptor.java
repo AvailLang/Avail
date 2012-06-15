@@ -35,7 +35,6 @@ package com.avail.descriptor;
 import static com.avail.descriptor.AvailObject.Multiplier;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static java.lang.Math.*;
-import java.util.List;
 import com.avail.annotations.*;
 
 /**
@@ -77,55 +76,6 @@ extends TupleDescriptor
 	 * Must be between 0 and 3.
 	 */
 	private final int unusedBytesOfLastWord;
-
-	@Override
-	public void printObjectOnAvoidingIndent (
-		final @NotNull AvailObject object,
-		final @NotNull StringBuilder aStream,
-		final @NotNull List<AvailObject> recursionList,
-		final int indent)
-	{
-		if (isMutable())
-		{
-			aStream.append("(mut) ");
-		}
-		aStream.append("ByteTuple with: #[");
-		int rowSize = max(30 - indent * 3 / 2, 8);
-		rowSize = rowSize + 3 & ~3;
-		//  How many equal (shorter by at least 1 on the last) rows are needed?
-		final int rows = (object.tupleSize() + rowSize) / rowSize;
-		//  How many on each row for that layout?
-		rowSize = (object.tupleSize() + rows) / rows;
-		//  Round up to a multiple of four per row.
-		rowSize = rowSize + 3 & ~3;
-		int rowStart = 1;
-		while (rowStart <= object.tupleSize())
-		{
-			aStream.append('\n');
-			for (int count = 1; count <= indent; count++)
-			{
-				aStream.append('\t');
-			}
-			for (
-					int
-						i = rowStart,
-						end = min(rowStart + rowSize - 1, object.tupleSize());
-					i <= end;
-					i++)
-			{
-				final short val = object.tupleAt(i).extractUnsignedByte();
-				aStream.append(Integer.toHexString(val >> 4));
-				aStream.append(Integer.toHexString(val & 15));
-				if (i % 4 == 0)
-				{
-					aStream.append(' ');
-				}
-				aStream.append(' ');
-			}
-			rowStart += rowSize;
-		}
-		aStream.append(']');
-	}
 
 	@Override @AvailMethod
 	boolean o_CompareFromToWithStartingAt (

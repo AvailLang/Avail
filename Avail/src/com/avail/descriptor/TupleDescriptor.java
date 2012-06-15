@@ -93,6 +93,47 @@ extends Descriptor
 		final List<AvailObject> recursionList,
 		final int indent)
 	{
+		if (object.tupleSize() == 0)
+		{
+			aStream.append("<>");
+			return;
+		}
+		if (object.isString())
+		{
+			aStream.append('"');
+			for (int i = 1, limit = object.tupleSize(); i <= limit; i++)
+			{
+				final AvailObject availChar = object.tupleAt(i);
+				final int c = availChar.codePoint();
+				if (c == '\"' || c == '\\')
+				{
+					aStream.appendCodePoint('\\');
+					aStream.appendCodePoint(c);
+				}
+				else if (c == '\n')
+				{
+					aStream.append("\\n");
+				}
+				else if (c == '\r')
+				{
+					aStream.append("\\r");
+				}
+				else if (c == '\t')
+				{
+					aStream.append("\\t");
+				}
+				else if ((c >= 0 && c < 32) || c == 127)
+				{
+					aStream.append(String.format("\\(%x)", c));
+				}
+				else
+				{
+					aStream.appendCodePoint(c);
+				}
+			}
+			aStream.appendCodePoint('"');
+			return;
+		}
 		final List<String> strings = new ArrayList<String>(object.tupleSize());
 		int totalChars = 0;
 		boolean anyBreaks = false;

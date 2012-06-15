@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.06.13 15:31:16.251 -0500
+ * * Last Generated On: 2012.06.14 18:52:30.148 -0500
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -85,7 +85,7 @@ Uses
 		"message_contains groups",
 		"method for_",
 		"method_._(«_‡,»)",
-		"read character",
+		"next character",
 		"reset to mark",
 		"send_with_:_",
 		"seq“_”",
@@ -945,7 +945,7 @@ Method "Forward method_is_" is
  * Returns:
  *    The next character from the standard input stream.
  */
-Method "read character" is
+Method "next character" is
 [
 	Primitive 254 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode

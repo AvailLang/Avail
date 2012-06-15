@@ -37,9 +37,9 @@ Uses
 	"Bootstrap",
 	"Foundation"
 Names
-	"read an integer«within_»",
-	"read_character|characters",
-	"read line"
+	"next line",
+	"next_",
+	"next_character|characters"
 Body
 
 /**
@@ -50,19 +50,19 @@ Body
  * Returns:
  *    A string containing `count` characters.
  */
-Public method "read_character|characters" is
+Public method "next_character|characters" is
 [
 	count : whole number
 |
 	result : string := "";
 	Repeat
 	[
-		result := eject ↑result ++ <read character>;
+		result := eject ↑result ++ <next character>;
 	] count times;
 	result
 ] : string;
 
-Semantic restriction "read_character|characters" is
+Semantic restriction "next_character|characters" is
 [
 	count : whole number's type
 |
@@ -76,12 +76,12 @@ Semantic restriction "read_character|characters" is
  * Returns:
  *    A line of text (not including any line feeds).
  */
-Public method "read line" is
+Public method "next line" is
 [
 	result : string := "";
 	Until
 	[
-		next ::= read character;
+		next ::= next character;
 		result := eject ↑result ++ <next>;
 		next = ¢"\n"
 	];
@@ -89,58 +89,64 @@ Public method "read line" is
 	nonempty[1..|nonempty| - 1]
 ] : string;
 
-integerChars ::= {¢-, ¢0, ¢1, ¢2, ¢3, ¢4, ¢5, ¢6, ¢7, ¢8, ¢9};
+integerChars ::= "-∞0123456789"→set;
 
 /**
  * Read an integer from the standard input stream. Reading stops once the first
  * inappropriate character has been peeked.
  * 
  * Parameters:
- *    optionalRange - The range within which the integer must lie. Defaults to
- *       `integer` if omitted.
+ *    range - The range within which the extended integer must lie.
  * Returns:
- *    An integer within the requested range.
+ *    An extended integer within the requested range.
  */
-Public method "read an integer«within_»" is
+Public method "next_" is
 [
-	optionalRange : <integer's type…|0..1>
+	range : extended integer's type
 |
-	range ::= unless optionalRange is empty
-		then [ optionalRange[1] ]
-		else [ integer ];
 	text : string := "";
 	While
 	[
 		mark for 1 character of read ahead;
-		next ::= read character;
+		next ::= next character;
 		text := eject ↑text ++ <next>;
 		next ∈ integerChars
 	];
 	reset to mark;
 	nonempty ::= cast text into [ t : <character…|1..> | t ];
-	value ::= nonempty[1..|nonempty| - 1]→integer;
+	value ::= nonempty[1..|nonempty| - 1]→extended integer;
 	If ¬value ∈ range then
 	[
 		/* TODO: [TLS] Raise a real exception. */
 		early failure function(inappropriate value code)
 	];
 	value
-] : integer;
+] : extended integer;
 
-/* TODO: [TLS] Remove when done.
+Semantic restriction "next_" is
+[
+	range : extended integer's type's type
+|
+	range's instance
+];
+
+/*
 [
 	Print: "Enter a character: ";
-	Print: (primitive description of read character) ++ "\n";
-	Ignore: read character;
+	Print: (primitive description of next character) ++ "\n";
+	Ignore: next character;
 	Print: "Enter 5 characters: ";
-	Print: (primitive description of read 5 characters) ++ "\n";
+	Print: (primitive description of next 5 characters) ++ "\n";
 	Print: "Enter a line: ";
-	Print: (primitive description of read line) ++ "\n";
-	Print: "Enter an integer: ";
-	Print: (primitive description of read an integer) ++ "\n";
-	Ignore: read character;
+	Print: (primitive description of next line) ++ "\n";
+	Print: "Enter an extended integer: ";
+	Print: (primitive description of next extended integer) ++ "\n";
+	Ignore: next character;
 	Print: "Enter an integer ∈ [0..255]: ";
-	Print: (primitive description of read an integer within [0..255]) ++ "\n";
-	Ignore: read character;
+	Print: (primitive description of next [0..255]) ++ "\n";
+	Ignore: next character;
+	Print: "Enter a float: ";
+	Print: (primitive description of next float) ++ "\n";
+	Ignore: next character;
 ]();
 */

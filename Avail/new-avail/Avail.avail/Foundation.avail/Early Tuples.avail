@@ -478,13 +478,29 @@ Semantic restriction "_→set" is
 [
 	tupleType : tuple meta
 |
-	/* If the tuple could be empty, then so could the set. Otherwise, the
-	 * set must contain at least one element.
-	 */
-	lower ::= ⎣tupleType⎦ min 1;
 	typeLimit ::= cast |tupleType's leading types| + 1
 		into [ t : natural number | t ];
-	{∪ tupleType[1..typeLimit] | [lower..⎡tupleType⎤ + 1)}
+	union ::= ∪ tupleType[1..typeLimit];
+	if ⎣tupleType⎦ = ⎡tupleType⎤
+		∧ [ |union| = ⎣tupleType⎦
+		∧ [ ¬union ⊆ type ] ]
+	then
+	[
+		/* If the size of the tuple is known, and the type union of its element
+		 * types is an enumeration type which is not itself a metatype, then
+		 * answer a type strong enough to build a statically well known
+		 * enumeration.
+		 */
+		{union | ||tupleType||}
+	]
+	else
+	[
+		/* If the tuple could be empty, then so could the set. Otherwise, the
+		 * set must contain at least one element.
+		 */
+		lower ::= ⎣tupleType⎦ min 1;
+		{union | [lower..⎡tupleType⎤ + 1)}
+	]
 ];
 
 Method "_→map" is stable at
@@ -500,7 +516,21 @@ Semantic restriction "_→map" is
 	lower ::= ⎣tupleType⎦ min 1;
 	typeLimit ::= cast |tupleType's leading types| + 1
 		into [ t : natural number | t ];
-	{tupleType[1][1]→tupleType[1][2] | [lower..⎡tupleType⎤ + 1)}
+	keyType : any meta := ⊥;
+	valueType : any meta := ⊥;
+	From 1 to typeLimit do
+	[
+		index : natural number
+	|
+		bindingType ::= /*cast*/ tupleType[index]
+			/*into [ t : <<>, any…|[2..2]>'s type | t ]*/;
+		keyType := cast eject ↑keyType ∪ bindingType[1]
+			into [ t : any meta | t ];
+		valueType := cast eject ↑valueType ∪ bindingType[2]
+			into [ t : any meta | t ];
+		true
+	];
+	{keyType→valueType | [lower..⎡tupleType⎤ + 1)}
 ];
 
 /* Disambiguate `_→_` and `_→tuple`. */

@@ -36,11 +36,13 @@ import java.util.*;
 import com.avail.annotations.*;
 import com.avail.compiler.AbstractAvailCompiler;
 import com.avail.descriptor.*;
+import com.avail.descriptor.TokenDescriptor;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 
 /**
  * An {@code AvailScanner} converts a stream of characters into a {@link List}
- * of {@linkplain TokenDescriptor tokens}, which are tastier for the compiler.
+ * of {@linkplain TokenDescriptor tokens}, which are tastier for the {@linkplain
+ * AbstractAvailCompiler compiler}.
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
@@ -121,15 +123,17 @@ public class AvailScanner
 	 * add it to my sequence of parsed tokens. In particular, create the token
 	 * and set its:
 	 * <ul>
-	 * <li>{@link TokenDescriptor.IntegerSlots#START start},
-	 * <li>{@link TokenDescriptor.ObjectSlots#STRING string}, and
-	 * <li>{@link TokenDescriptor.IntegerSlots#TOKEN_TYPE_CODE token type} based
-	 * on the passed {@link TokenDescriptor.TokenType}.
+	 * <li>{@link com.avail.descriptor.TokenDescriptor.IntegerSlots#START
+	 * start},</li>
+	 * <li>{@link com.avail.descriptor.TokenDescriptor.ObjectSlots#STRING
+	 * string}, and</li>
+	 * <li>{@link
+	 * com.avail.descriptor.TokenDescriptor.IntegerSlots#TOKEN_TYPE_CODE token
+	 * type} based on the passed {@link TokenType}.</li>
 	 * </ul>
 	 *
 	 * @param tokenType
-	 *            The {@link TokenDescriptor.TokenType enumeration value} to set
-	 *            in the token.
+	 *        The {@link TokenType enumeration value} to set in the token.
 	 * @return The newly added token.
 	 */
 	@InnerAccess

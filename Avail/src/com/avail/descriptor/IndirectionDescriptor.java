@@ -4193,4 +4193,31 @@ extends AbstractDescriptor
 	{
 		return o_Traversed(object).isSystemModule();
 	}
+
+	@Override
+	@NotNull AvailObject o_BitwiseAnd (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anInteger,
+		final boolean canDestroy)
+	{
+		return o_Traversed(object).bitwiseAnd(anInteger, canDestroy);
+	}
+
+	@Override
+	@NotNull AvailObject o_BitwiseOr (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anInteger,
+		final boolean canDestroy)
+	{
+		return o_Traversed(object).bitwiseOr(anInteger, canDestroy);
+	}
+
+	@Override
+	@NotNull AvailObject o_BitwiseXor (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anInteger,
+		final boolean canDestroy)
+	{
+		return o_Traversed(object).bitwiseXor(anInteger, canDestroy);
+	}
 }

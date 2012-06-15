@@ -5442,4 +5442,37 @@ public abstract class AbstractDescriptor
 	 */
 	abstract @NotNull AvailObject o_ArgumentsListNode (
 		final @NotNull AvailObject object);
+
+	/**
+	 * @param object
+	 * @param anInteger
+	 * @param canDestroy
+	 * @return
+	 */
+	abstract @NotNull AvailObject o_BitwiseAnd (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anInteger,
+		final boolean canDestroy);
+
+	/**
+	 * @param object
+	 * @param anInteger
+	 * @param canDestroy
+	 * @return
+	 */
+	abstract @NotNull AvailObject o_BitwiseOr (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anInteger,
+		final boolean canDestroy);
+
+	/**
+	 * @param object
+	 * @param anInteger
+	 * @param canDestroy
+	 * @return
+	 */
+	abstract @NotNull AvailObject o_BitwiseXor (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anInteger,
+		final boolean canDestroy);
 }

@@ -33,7 +33,6 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.*;
-import java.util.List;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.*;
@@ -77,34 +76,6 @@ extends StringDescriptor
 	 * Must be between 0 and 3.
 	 */
 	private final int unusedBytesOfLastWord;
-
-	@Override
-	public void printObjectOnAvoidingIndent (
-		final @NotNull AvailObject object,
-		final @NotNull StringBuilder aStream,
-		final @NotNull List<AvailObject> recursionList,
-		final int indent)
-	{
-		aStream.append('"');
-		for (int i = 1, limit = object.tupleSize(); i <= limit; i++)
-		{
-			final char c = (char) object.rawByteForCharacterAt(i);
-			if (c == '\"' || c == '\\')
-			{
-				aStream.append('\\');
-				aStream.append(c);
-			}
-			else if ((c >= 0 && c < 32) || c == 127)
-			{
-				aStream.append(String.format("\\(%x)", (int)c));
-			}
-			else
-			{
-				aStream.append(c);
-			}
-		}
-		aStream.append('"');
-	}
 
 	@Override @AvailMethod
 	boolean o_CompareFromToWithStartingAt (

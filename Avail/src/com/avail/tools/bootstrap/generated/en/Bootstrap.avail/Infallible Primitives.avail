@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.06.13 15:31:16.206 -0500
+ * * Last Generated On: 2012.06.14 18:52:30.100 -0500
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -118,6 +118,9 @@ Uses
 		"_[_]:=_",
 		"_\\_",
 		"_^_",
+		"_bit∧_",
+		"_bit∨_",
+		"_bit⊕_",
 		"_is a primitive",
 		"_is unassigned",
 		"_taking arguments tupled",
@@ -1232,6 +1235,57 @@ Method "_'s⁇bindings" is
 |
 	Primitive 92;
 ] : key-value tuple;
+
+/**
+ * Compute and answer the bitwise AND of the arguments.
+ *
+ * Parameters:
+ *    arg1 - An integer.
+ *    arg2 - An integer.
+ * Returns:
+ *    The bitwise AND of `arg1` and `arg2`.
+ */
+Method "_bit∧_" is
+[
+	arg1 : integer,
+	arg2 : integer
+|
+	Primitive 97;
+] : integer;
+
+/**
+ * Compute and answer the bitwise OR of the arguments.
+ *
+ * Parameters:
+ *    arg1 - An integer.
+ *    arg2 - An integer.
+ * Returns:
+ *    The bitwise OR of `arg1` and `arg2`.
+ */
+Method "_bit∨_" is
+[
+	arg1 : integer,
+	arg2 : integer
+|
+	Primitive 98;
+] : integer;
+
+/**
+ * Compute and answer the bitwise XOR of the arguments.
+ *
+ * Parameters:
+ *    arg1  An integer.
+ *    arg2 -An integer.
+ * Returns:
+ *    The bitwise XOR of `arg1` and `arg2`.
+ */
+Method "_bit⊕_" is
+[
+	arg1 : integer,
+	arg2 : integer
+|
+	Primitive 99;
+] : integer;
 
 /**
  * Answer the cardinality of the specified set.

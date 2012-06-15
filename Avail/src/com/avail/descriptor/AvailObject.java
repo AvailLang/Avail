@@ -6049,4 +6049,40 @@ implements Iterable<AvailObject>
 	{
 		return descriptor.o_IsSystemModule(this);
 	}
+
+	/**
+	 * @param anInteger
+	 * @param canDestroy
+	 * @return
+	 */
+	public @NotNull AvailObject bitwiseAnd (
+		final @NotNull AvailObject anInteger,
+		final boolean canDestroy)
+	{
+		return descriptor.o_BitwiseAnd(this, anInteger, canDestroy);
+	}
+
+	/**
+	 * @param anInteger
+	 * @param canDestroy
+	 * @return
+	 */
+	public @NotNull AvailObject bitwiseOr (
+		final @NotNull AvailObject anInteger,
+		final boolean canDestroy)
+	{
+		return descriptor.o_BitwiseOr(this, anInteger, canDestroy);
+	}
+
+	/**
+	 * @param anInteger
+	 * @param canDestroy
+	 * @return
+	 */
+	public @NotNull AvailObject bitwiseXor (
+		final @NotNull AvailObject anInteger,
+		final boolean canDestroy)
+	{
+		return descriptor.o_BitwiseXor(this, anInteger, canDestroy);
+	}
 }
