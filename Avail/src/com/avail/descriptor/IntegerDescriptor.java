@@ -491,6 +491,43 @@ extends ExtendedIntegerDescriptor
 			: InfinityDescriptor.negativeInfinity();
 	}
 
+	/**
+	 * Choose the most spacious mutable {@linkplain AvailObject argument}.
+	 *
+	 * @param object
+	 *        An {@linkplain IntegerDescriptor integer}.
+	 * @param another
+	 *        An integer.
+	 * @return One of the arguments, or {@code null} if neither argument was
+	 *         suitable.
+	 */
+	private AvailObject largerMutableOf (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
+	{
+		final int objectSize = object.integerSlotsCount();
+		final int anIntegerSize = another.integerSlotsCount();
+		AvailObject output = null;
+		if (objectSize == anIntegerSize)
+		{
+			output =
+				isMutable
+					? object
+					: another.descriptor().isMutable()
+						? another
+						: null;
+		}
+		else if (objectSize > anIntegerSize)
+		{
+			output = isMutable ? object : null;
+		}
+		else
+		{
+			output = another.descriptor().isMutable() ? another : null;
+		}
+		return output;
+	}
+
 	@Override @AvailMethod
 	@NotNull AvailObject o_AddToIntegerCanDestroy (
 		final @NotNull AvailObject object,
@@ -503,31 +540,9 @@ extends ExtendedIntegerDescriptor
 		// is to use 64-bit.
 		final int objectSize = object.integerSlotsCount();
 		final int anIntegerSize = anInteger.integerSlotsCount();
-		AvailObject output = null;
-		if (canDestroy)
-		{
-			// Choose the most spacious one to destroy, but reject it if it's
-			// immutable. Never choose the smaller one, even if it's the only
-			// one that's mutable. If they're equal sized and mutable it doesn't
-			// matter which we choose.
-			if (objectSize == anIntegerSize)
-			{
-				output =
-					isMutable
-						? object
-						: anInteger.descriptor().isMutable()
-							? anInteger
-							: null;
-			}
-			else if (objectSize > anIntegerSize)
-			{
-				output = isMutable ? object : null;
-			}
-			else
-			{
-				output = anInteger.descriptor().isMutable() ? anInteger : null;
-			}
-		}
+		AvailObject output = canDestroy
+			? largerMutableOf(object, anInteger)
+			: null;
 		if (objectSize == 1 && anIntegerSize == 1)
 		{
 			// See if the (signed) sum will fit in 32 bits, the most common case
@@ -644,6 +659,32 @@ extends ExtendedIntegerDescriptor
 			: InfinityDescriptor.positiveInfinity();
 	}
 
+	/**
+	 * Choose a mutable {@linkplain AvailObject argument}.
+	 *
+	 * @param object
+	 *        An {@link IntegerDescriptor integer}.
+	 * @param another
+	 *        An integer.
+	 * @return One of the arguments, or {@code null} if neither argument is
+	 *         mutable.
+	 */
+	private AvailObject mutableOf (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
+	{
+		AvailObject output = null;
+		if (isMutable)
+		{
+			output = object;
+		}
+		else if (another.descriptor().isMutable())
+		{
+			output = another;
+		}
+		return output;
+	}
+
 	@Override @AvailMethod
 	@NotNull AvailObject o_DivideIntoIntegerCanDestroy (
 		final @NotNull AvailObject object,
@@ -684,18 +725,9 @@ extends ExtendedIntegerDescriptor
 			{
 				// Yes, it fits.  Clobber one of the inputs, or create a new
 				// int-sized object if they were both immutable...
-				AvailObject output = null;
-				if (canDestroy)
-				{
-					if (isMutable)
-					{
-						output = object;
-					}
-					else if (anInteger.descriptor().isMutable())
-					{
-						output = anInteger;
-					}
-				}
+				AvailObject output = canDestroy
+					? mutableOf(object, anInteger)
+					: null;
 				if (output == null)
 				{
 					output = mutable().create(1);
@@ -953,17 +985,7 @@ extends ExtendedIntegerDescriptor
 			{
 				// Yes, it fits.  Clobber one of the inputs, or create a new
 				// int-sized object if they were both immutable...
-				if (canDestroy)
-				{
-					if (isMutable)
-					{
-						output = object;
-					}
-					else if (anInteger.descriptor().isMutable())
-					{
-						output = anInteger;
-					}
-				}
+				output = canDestroy ? mutableOf(object, anInteger) : null;
 				if (output == null)
 				{
 					output = mutable().create(1);
@@ -1110,30 +1132,9 @@ extends ExtendedIntegerDescriptor
 		// is to use 64-bit arithmetic.
 		final int objectSize = object.integerSlotsCount();
 		final int anIntegerSize = anInteger.integerSlotsCount();
-		AvailObject output = null;
-		if (canDestroy)
-		{
-			// Choose the most spacious one to destroy, but reject it if it's
-			// immutable. Never choose the smaller one, even if it's the only
-			// one that's mutable. If they're equal sized and mutable it doesn't
-			// matter which we choose.
-			if (objectSize == anIntegerSize)
-			{
-				output = isMutable
-					? object
-					: anInteger.descriptor().isMutable()
-						? anInteger
-						: null;
-			}
-			else if (objectSize > anIntegerSize)
-			{
-				output = isMutable ? object : null;
-			}
-			else
-			{
-				output = anInteger.descriptor().isMutable() ? anInteger : null;
-			}
-		}
+		AvailObject output = canDestroy
+			? largerMutableOf(object, anInteger)
+			: null;
 		if (objectSize == 1 && anIntegerSize == 1)
 		{
 			// See if the (signed) difference will fit in 32 bits, the most
@@ -1300,31 +1301,9 @@ extends ExtendedIntegerDescriptor
 	{
 		final int objectSize = object.integerSlotsCount();
 		final int anIntegerSize = anInteger.integerSlotsCount();
-		AvailObject output = null;
-		if (canDestroy)
-		{
-			// Choose the most spacious one to destroy, but reject it if it's
-			// immutable. Never choose the smaller one, even if it's the only
-			// one that's mutable. If they're equal sized and mutable it doesn't
-			// matter which we choose.
-			if (objectSize == anIntegerSize)
-			{
-				output =
-					isMutable
-						? object
-						: anInteger.descriptor().isMutable()
-							? anInteger
-							: null;
-			}
-			else if (objectSize > anIntegerSize)
-			{
-				output = isMutable ? object : null;
-			}
-			else
-			{
-				output = anInteger.descriptor().isMutable() ? anInteger : null;
-			}
-		}
+		AvailObject output = canDestroy
+			? largerMutableOf(object, anInteger)
+			: null;
 		// Both integers are 32 bits. This is by far the most case case.
 		if (objectSize == 1 && anIntegerSize == 1)
 		{
@@ -1371,31 +1350,9 @@ extends ExtendedIntegerDescriptor
 	{
 		final int objectSize = object.integerSlotsCount();
 		final int anIntegerSize = anInteger.integerSlotsCount();
-		AvailObject output = null;
-		if (canDestroy)
-		{
-			// Choose the most spacious one to destroy, but reject it if it's
-			// immutable. Never choose the smaller one, even if it's the only
-			// one that's mutable. If they're equal sized and mutable it doesn't
-			// matter which we choose.
-			if (objectSize == anIntegerSize)
-			{
-				output =
-					isMutable
-						? object
-						: anInteger.descriptor().isMutable()
-							? anInteger
-							: null;
-			}
-			else if (objectSize > anIntegerSize)
-			{
-				output = isMutable ? object : null;
-			}
-			else
-			{
-				output = anInteger.descriptor().isMutable() ? anInteger : null;
-			}
-		}
+		AvailObject output = canDestroy
+			? largerMutableOf(object, anInteger)
+			: null;
 		// Both integers are 32 bits. This is by far the most case case.
 		if (objectSize == 1 && anIntegerSize == 1)
 		{
@@ -1442,31 +1399,9 @@ extends ExtendedIntegerDescriptor
 	{
 		final int objectSize = object.integerSlotsCount();
 		final int anIntegerSize = anInteger.integerSlotsCount();
-		AvailObject output = null;
-		if (canDestroy)
-		{
-			// Choose the most spacious one to destroy, but reject it if it's
-			// immutable. Never choose the smaller one, even if it's the only
-			// one that's mutable. If they're equal sized and mutable it doesn't
-			// matter which we choose.
-			if (objectSize == anIntegerSize)
-			{
-				output =
-					isMutable
-						? object
-						: anInteger.descriptor().isMutable()
-							? anInteger
-							: null;
-			}
-			else if (objectSize > anIntegerSize)
-			{
-				output = isMutable ? object : null;
-			}
-			else
-			{
-				output = anInteger.descriptor().isMutable() ? anInteger : null;
-			}
-		}
+		AvailObject output = canDestroy
+			? largerMutableOf(object, anInteger)
+			: null;
 		// Both integers are 32 bits. This is by far the most case case.
 		if (objectSize == 1 && anIntegerSize == 1)
 		{
@@ -1504,6 +1439,7 @@ extends ExtendedIntegerDescriptor
 		output.trimExcessInts();
 		return output;
 	}
+
 
 	@Override @AvailMethod
 	SerializerOperation o_SerializerOperation (
