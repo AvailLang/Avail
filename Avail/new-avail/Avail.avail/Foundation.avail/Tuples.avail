@@ -1964,7 +1964,7 @@ Semantic restriction "_[_.._]→_" is
  *
  * Parameters:
  *    aTuple - The tuple to categorize.
- *    discriminator - A function that accepts each element of the set and
+ *    discriminator - A function that accepts each element of the tuple and
  *       answers a value that represents the group to which the element belongs.
  * Returns:
  *    A map whose keys describe groups and whose elements are the groups
