@@ -40,6 +40,7 @@ import com.avail.descriptor.AbstractNumberDescriptor.*;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.ProcessDescriptor.ExecutionState;
+import com.avail.exceptions.*;
 import com.avail.exceptions.UnsupportedOperationException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Interpreter;
@@ -193,8 +194,9 @@ extends AbstractDescriptor
 
 	@Override
 	void o_AddImplementation (
-		final @NotNull AvailObject object,
-		final AvailObject implementation)
+			final @NotNull AvailObject object,
+			final AvailObject implementation)
+		throws SignatureException
 	{
 		throw unsupportedOperationException();
 	}
@@ -4447,6 +4449,15 @@ extends AbstractDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anInteger,
 		final boolean canDestroy)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_AddSeal (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject methodName,
+		final @NotNull AvailObject sealSignature)
 	{
 		throw unsupportedOperationException();
 	}

@@ -35,6 +35,7 @@ Versions
 	"dev"
 Uses
 	"Bootstrap",
+	"Exceptions",
 	"Foundation"
 Names
 	"next line",
@@ -117,8 +118,7 @@ Public method "next_" is
 	value ::= nonempty[1..|nonempty| - 1]→extended integer;
 	If ¬value ∈ range then
 	[
-		/* TODO: [TLS] Raise a real exception. */
-		early failure function(inappropriate value code)
+		Raise a data-validation exception
 	];
 	value
 ] : extended integer;

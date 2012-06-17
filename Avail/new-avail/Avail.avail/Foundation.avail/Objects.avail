@@ -40,7 +40,6 @@ Uses
 	"Early Assertions",
 	"Early Error Codes",
 	"Early Functions",
-	"Early Types",
 	"Enumeration Support",
 	"Literals",
 	"Logic",
@@ -48,7 +47,8 @@ Uses
 	"Math",
 	"Phrases",
 	"Sets",
-	"Tuples"
+	"Tuples",
+	"Types"
 Names
 	"a|an_«with«_:=_‡,»»",
 	"extend_with«_:_‡,»",

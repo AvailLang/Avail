@@ -64,7 +64,8 @@ public class P_251_AbstractMethodDeclaration extends Primitive
 		{
 			interpreter.addAbstractSignature(
 				interpreter.lookupName(string),
-				blockSignature);
+				blockSignature,
+				true);
 		}
 		catch (final AmbiguousNameException e)
 		{

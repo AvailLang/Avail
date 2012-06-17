@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.06.14 18:52:30.148 -0500
+ * * Last Generated On: 2012.06.17 01:11:45.372 -0500
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -57,6 +57,7 @@ Uses
 		"Raise_",
 		"Restart_",
 		"Restart_with_",
+		"Seal method_at_",
 		"Semantic restriction_is_",
 		"_'s⁇instances",
 		"_+_",
@@ -75,7 +76,7 @@ Uses
 		"_∈_",
 		"`|message_'⁇parameters`|",
 		"atom for_",
-		"constructor_<«_‡,»>",
+		"constructor_<«_‡,»>(fail with_)",
 		"current module",
 		"eject_",
 		"function from_and_",
@@ -84,12 +85,12 @@ Uses
 		"mark for_character|characters of read ahead",
 		"message_contains groups",
 		"method for_",
-		"method_._(«_‡,»)",
+		"method_._(«_‡,»)(fail with_)",
 		"next character",
 		"reset to mark",
 		"send_with_:_",
 		"seq“_”",
-		"static method_._(«_‡,»)",
+		"static method_._(«_‡,»)(fail with_)",
 		"swap_and_",
 		"termination requested",
 		"try_catch_",
@@ -721,7 +722,7 @@ Method "try_catch_" is
  */
 Method "Raise_" is
 [
-	exception : any
+	exception : exception
 |
 	Primitive 201 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode
@@ -797,6 +798,46 @@ Method "message_contains groups" is
 	Primitive 225 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode
 ] : boolean;
+
+/**
+ * Seal the named method at the specified signature. No further implementations
+ * may be added at or below this signature. This facility is provided to secure
+ * methods against dangerous, unscrupulous, or confusing extensions.
+ *
+ * Parameters:
+ *    methodName - The name of the method to seal.
+ *    signature - A tuple of parameter types. This is the signature at which the
+ *       seal will be placed.
+ */
+Method "Seal method_at_" is
+[
+	methodName : string,
+	signature : tuple of any meta
+|
+	Primitive 226 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : ⊤;
+
+/**
+ * Declare an abstract method with the specified name and signature. A concrete
+ * implementation is one whose parameter types and return type are strictly more
+ * specific than the corresponding types of the abstract signature.
+ *
+ * Only extend the grammar of the current module if the atom was introduced by
+ * the current module.
+ *
+ * Parameters:
+ *    methodName - The atom that uniquely names the abstract method to declare.
+ *    signature - The signature.
+ */
+Method "Abstract method_is_" is
+[
+	methodName : atom,
+	signature : function meta
+|
+	Primitive 227 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : ⊤;
 
 /**
  * Answer the module currently undergoing compilation.
@@ -1230,13 +1271,16 @@ Method "_<«_‡,»>" is
  * Parameters:
  *    aPojoType - A pojo type.
  *    parameterTypes - The parameter types accepted by the desired constructor.
+ *    failFunction - The function to apply if an invocation of the constructor
+ *       throws a Java exception.
  * Returns:
  *    The requested constructor invocation function.
  */
-Method "constructor_<«_‡,»>" is
+Method "constructor_<«_‡,»>(fail with_)" is
 [
 	aPojoType : pojo meta,
-	parameterTypes : tuple of any meta
+	parameterTypes : tuple of any meta,
+	failFunction : pojo failure function
 |
 	Primitive 502 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode
@@ -1313,14 +1357,17 @@ Method "_._→variable" is
  *    aPojoType - A pojo type.
  *    methodName - The name of the desired method.
  *    parameterTypes - The parameter types accepted by the desired method.
+ *    failFunction - The function to apply if an invocation of the method
+ *       throws a Java exception.
  * Returns:
  *    The requested instance method invocation function.
  */
-Method "method_._(«_‡,»)" is
+Method "method_._(«_‡,»)(fail with_)" is
 [
 	aPojoType : pojo meta,
 	methodName : string,
-	parameterTypes : tuple of any meta
+	parameterTypes : tuple of any meta,
+	failFunction : pojo failure function
 |
 	Primitive 506 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode
@@ -1354,14 +1401,17 @@ Method "method_._(«_‡,»)" is
  *    aPojoType - A pojo type.
  *    methodName - The name of the desired method.
  *    parameterTypes - The parameter types accepted by the desired method.
+ *    failFunction - The function to apply if an invocation of the method
+ *       throws a Java exception.
  * Returns:
  *    The requested static method invocation function.
  */
-Method "static method_._(«_‡,»)" is
+Method "static method_._(«_‡,»)(fail with_)" is
 [
 	aPojoType : pojo meta,
 	methodName : string,
-	parameterTypes : tuple of type
+	parameterTypes : tuple of type,
+	failFunction : pojo failure function
 |
 	Primitive 508 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode

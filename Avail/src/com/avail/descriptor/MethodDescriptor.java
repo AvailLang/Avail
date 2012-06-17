@@ -33,12 +33,13 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.MethodDescriptor.ObjectSlots.*;
 import static java.lang.Math.max;
 import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailRejectedParseException;
-import com.avail.exceptions.AvailErrorCode;
+import com.avail.exceptions.*;
 import com.avail.interpreter.*;
 import com.avail.interpreter.levelOne.*;
 import com.avail.interpreter.primitive.*;
@@ -113,8 +114,16 @@ extends Descriptor
 			AtomDescriptor.create(
 				StringDescriptor.from("vm crash_"),
 				NullDescriptor.nullObject()));
-		method.addImplementation(
-			MethodImplementationDescriptor.create(newFunction));
+		try
+		{
+			method.addImplementation(
+				MethodImplementationDescriptor.create(newFunction));
+		}
+		catch (final SignatureException e)
+		{
+			assert false : "This should be not possible!";
+			throw new RuntimeException(e);
+		}
 
 		return method;
 	}
@@ -179,84 +188,16 @@ extends Descriptor
 			AtomDescriptor.create(
 				StringDescriptor.from("vm function apply_(«_‡,»)"),
 				NullDescriptor.nullObject()));
-		method.addImplementation(
-			MethodImplementationDescriptor.create(newFunction));
-
-		return method;
-	}
-
-	/**
-	 * An {@linkplain MethodDescriptor method} containing a {@linkplain
-	 * MethodImplementationDescriptor function} that invokes {@link
-	 * P_201_RaiseException}. Needed by some hand-built functions.
-	 */
-	private static AvailObject vmRaiseExceptionMethod;
-
-	/**
-	 * An {@linkplain MethodDescriptor method} containing a {@linkplain
-	 * MethodImplementationDescriptor function} that invokes {@linkplain
-	 * P_201_RaiseException}. Needed by some hand-built functions.
-	 *
-	 * @return A method.
-	 */
-	public static @NotNull AvailObject vmRaiseExceptionMethod ()
-	{
-		return vmRaiseExceptionMethod;
-	}
-
-	/**
-	 * Construct the {@linkplain MethodDescriptor method} for bootstrap
-	 * exception raising.
-	 *
-	 * @return A method.
-	 */
-	private static @NotNull AvailObject newVMRaiseExceptionMethod ()
-	{
-		// Generate a function with linkage to primitive 201.
-		final L1InstructionWriter writer = new L1InstructionWriter();
-		writer.primitiveNumber(
-			P_201_RaiseException.instance.primitiveNumber);
-		writer.argumentTypes(ANY.o());
-		// Declare the primitive failure local.
-		final int failureLocal = writer.createLocal(
-			VariableTypeDescriptor.wrapInnerType(
-				IntegerRangeTypeDescriptor.singleInteger(
-					AvailErrorCode.E_UNHANDLED_EXCEPTION.numericCode())));
-		writer.returnType(BottomTypeDescriptor.bottom());
-		writer.write(
-			new L1Instruction(
-				L1Operation.L1_doPushLiteral,
-				writer.addLiteral(
-					StringDescriptor.from("Exception handler not found"))));
-		writer.write(
-			new L1Instruction(
-				L1Operation.L1_doPushLocal,
-				1));  // Argument #1 is the exception being raised.
-		writer.write(
-			new L1Instruction(
-				L1Operation.L1_doGetLocal,
-				failureLocal));
-		writer.write(
-			new L1Instruction(
-				L1Operation.L1_doMakeTuple,
-				3));
-		writer.write(
-			new L1Instruction(
-				L1Operation.L1_doCall,
-				writer.addLiteral(vmCrashMethod),
-				writer.addLiteral(BottomTypeDescriptor.bottom())));
-		final AvailObject newFunction = FunctionDescriptor.create(
-			writer.compiledCode(),
-			TupleDescriptor.empty());
-		newFunction.makeImmutable();
-
-		// Create the new method.
-		final AvailObject method = newMethodWithName(
-			AtomDescriptor.create(
-				StringDescriptor.from("vm raise_"),
-				NullDescriptor.nullObject()));
-		method.addImplementation(
-			MethodImplementationDescriptor.create(newFunction));
+		try
+		{
+			method.addImplementation(
+				MethodImplementationDescriptor.create(newFunction));
+		}
+		catch (final SignatureException e)
+		{
+			assert false : "This should be not possible!";
+			throw new RuntimeException(e);
+		}
 
 		return method;
 	}
@@ -269,7 +210,6 @@ extends Descriptor
 	{
 		vmCrashMethod = newVMCrashMethod();
 		vmFunctionApplyMethod = newVMFunctionApplyMethod();
-		vmRaiseExceptionMethod = newVMRaiseExceptionMethod();
 	}
 
 	/**
@@ -280,13 +220,13 @@ extends Descriptor
 	{
 		vmCrashMethod = null;
 		vmFunctionApplyMethod = null;
-		vmRaiseExceptionMethod = null;
 	}
 
 	/**
 	 * The fields that are of type {@code AvailObject}.
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	public enum ObjectSlots
+	implements ObjectSlotsEnum
 	{
 		/**
 		 * The {@linkplain AtomDescriptor atom} that acts as the true name of
@@ -340,24 +280,24 @@ extends Descriptor
 	@NotNull AvailObject o_ImplementationsTuple (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.IMPLEMENTATIONS_TUPLE);
+		return object.slot(IMPLEMENTATIONS_TUPLE);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_Name (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.NAME);
+		return object.slot(NAME);
 	}
 
 	@Override boolean allowsImmutableToMutableReferenceInField (
 		final @NotNull AbstractSlotsEnum e)
 	{
-		return e == ObjectSlots.IMPLEMENTATIONS_TUPLE
-			|| e == ObjectSlots.PRIVATE_TESTING_TREE
-			|| e == ObjectSlots.DEPENDENT_CHUNK_INDICES
-			|| e == ObjectSlots.TYPE_RESTRICTIONS_TUPLE
-			|| e == ObjectSlots.SEALED_ARGUMENTS_TYPES_TUPLE;
+		return e == IMPLEMENTATIONS_TUPLE
+			|| e == PRIVATE_TESTING_TREE
+			|| e == DEPENDENT_CHUNK_INDICES
+			|| e == TYPE_RESTRICTIONS_TUPLE
+			|| e == SEALED_ARGUMENTS_TYPES_TUPLE;
 	}
 
 	@Override
@@ -424,19 +364,20 @@ extends Descriptor
 		// Record the fact that the chunk indexed by aChunkIndex depends on
 		// this object not changing.
 		AvailObject indices =
-			object.slot(ObjectSlots.DEPENDENT_CHUNK_INDICES);
+			object.slot(DEPENDENT_CHUNK_INDICES);
 		indices = indices.setWithElementCanDestroy(
 			IntegerDescriptor.fromInt(aChunkIndex),
 			true);
 		object.setSlot(
-			ObjectSlots.DEPENDENT_CHUNK_INDICES,
+			DEPENDENT_CHUNK_INDICES,
 			indices);
 	}
 
 	@Override @AvailMethod
 	void o_AddImplementation (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject implementation)
+			final @NotNull AvailObject object,
+			final @NotNull AvailObject implementation)
+		throws SignatureException
 	{
 		final AvailObject oldTuple = object.implementationsTuple();
 		if (oldTuple.tupleSize() > 0)
@@ -444,13 +385,24 @@ extends Descriptor
 			// Ensure that we're not mixing macro and non-macro signatures.
 			assert implementation.isMacro() == oldTuple.tupleAt(1).isMacro();
 		}
+		final AvailObject seals = object.slot(SEALED_ARGUMENTS_TYPES_TUPLE);
+		final AvailObject bodySignature = implementation.bodySignature();
+		final AvailObject paramTypes = bodySignature.argsTupleType();
+		for (final AvailObject seal : seals)
+		{
+			final AvailObject sealType =
+				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+					IntegerRangeTypeDescriptor.singleInt(seal.tupleSize()),
+					seal,
+					BottomTypeDescriptor.bottom());
+			if (paramTypes.isSubtypeOf(sealType))
+			{
+				throw new SignatureException(AvailErrorCode.E_METHOD_IS_SEALED);
+			}
+		}
 		AvailObject set = oldTuple.asSet();
-		set = set.setWithElementCanDestroy(
-			implementation,
-			true);
-		object.setSlot(
-			ObjectSlots.IMPLEMENTATIONS_TUPLE,
-			set.asTuple());
+		set = set.setWithElementCanDestroy(implementation, true);
+		object.setSlot(IMPLEMENTATIONS_TUPLE, set.asTuple());
 		membershipChanged(object);
 	}
 
@@ -653,11 +605,11 @@ extends Descriptor
 		final int aChunkIndex)
 	{
 		AvailObject indices =
-			object.slot(ObjectSlots.DEPENDENT_CHUNK_INDICES);
+			object.slot(DEPENDENT_CHUNK_INDICES);
 		indices = indices.setWithoutElementCanDestroy(
 			IntegerDescriptor.fromInt(aChunkIndex),
 			true);
-		object.setSlot(ObjectSlots.DEPENDENT_CHUNK_INDICES, indices);
+		object.setSlot(DEPENDENT_CHUNK_INDICES, indices);
 	}
 
 	/**
@@ -674,7 +626,7 @@ extends Descriptor
 			implementationsTuple,
 			implementation);
 		object.setSlot(
-			ObjectSlots.IMPLEMENTATIONS_TUPLE,
+			IMPLEMENTATIONS_TUPLE,
 			implementationsTuple);
 		membershipChanged(object);
 	}
@@ -855,7 +807,7 @@ extends Descriptor
 		final @NotNull AvailObject object)
 	{
 		AvailObject result =
-			object.slot(ObjectSlots.PRIVATE_TESTING_TREE);
+			object.slot(PRIVATE_TESTING_TREE);
 		if (!result.equalsNull())
 		{
 			return result;
@@ -882,7 +834,7 @@ extends Descriptor
 			allIndices,
 			instructions);
 		result = TupleDescriptor.fromIntegerList(instructions);
-		object.setSlot(ObjectSlots.PRIVATE_TESTING_TREE, result);
+		object.setSlot(PRIVATE_TESTING_TREE, result);
 		return result;
 	}
 
@@ -892,9 +844,9 @@ extends Descriptor
 		final @NotNull AvailObject function)
 	{
 		final AvailObject oldTuple =
-			object.slot(ObjectSlots.TYPE_RESTRICTIONS_TUPLE);
+			object.slot(TYPE_RESTRICTIONS_TUPLE);
 		final AvailObject newTuple = oldTuple.appendCanDestroy(function, true);
-		object.setSlot(ObjectSlots.TYPE_RESTRICTIONS_TUPLE, newTuple);
+		object.setSlot(TYPE_RESTRICTIONS_TUPLE, newTuple);
 	}
 
 	@Override @AvailMethod
@@ -903,12 +855,12 @@ extends Descriptor
 		final @NotNull AvailObject function)
 	{
 		final AvailObject oldTuple =
-			object.slot(ObjectSlots.TYPE_RESTRICTIONS_TUPLE);
+			object.slot(TYPE_RESTRICTIONS_TUPLE);
 		final AvailObject newTuple =
 			TupleDescriptor.without(oldTuple, function);
 		assert newTuple.tupleSize() == oldTuple.tupleSize() - 1;
 		object.setSlot(
-			ObjectSlots.TYPE_RESTRICTIONS_TUPLE,
+			TYPE_RESTRICTIONS_TUPLE,
 			newTuple);
 	}
 
@@ -916,18 +868,20 @@ extends Descriptor
 	@NotNull AvailObject o_TypeRestrictions (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.TYPE_RESTRICTIONS_TUPLE);
+		return object.slot(TYPE_RESTRICTIONS_TUPLE);
 	}
 
 	@Override @AvailMethod
 	void o_AddSealedArgumentsType (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject tupleType)
+		final @NotNull AvailObject sealSignature)
 	{
+		assert sealSignature.isTuple();
 		final AvailObject oldTuple =
-			object.slot(ObjectSlots.SEALED_ARGUMENTS_TYPES_TUPLE);
-		final AvailObject newTuple = oldTuple.appendCanDestroy(tupleType, true);
-		object.setSlot(ObjectSlots.SEALED_ARGUMENTS_TYPES_TUPLE, newTuple);
+			object.slot(SEALED_ARGUMENTS_TYPES_TUPLE);
+		final AvailObject newTuple = oldTuple.appendCanDestroy(
+			sealSignature, true);
+		object.setSlot(SEALED_ARGUMENTS_TYPES_TUPLE, newTuple);
 	}
 
 	@Override @AvailMethod
@@ -936,20 +890,18 @@ extends Descriptor
 		final @NotNull AvailObject tupleType)
 	{
 		final AvailObject oldTuple =
-			object.slot(ObjectSlots.SEALED_ARGUMENTS_TYPES_TUPLE);
+			object.slot(SEALED_ARGUMENTS_TYPES_TUPLE);
 		final AvailObject newTuple =
 			TupleDescriptor.without(oldTuple, tupleType);
 		assert newTuple.tupleSize() == oldTuple.tupleSize() - 1;
-		object.setSlot(
-			ObjectSlots.SEALED_ARGUMENTS_TYPES_TUPLE,
-			newTuple);
+		object.setSlot(SEALED_ARGUMENTS_TYPES_TUPLE, newTuple);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_SealedArgumentsTypesTuple (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.SEALED_ARGUMENTS_TYPES_TUPLE);
+		return object.slot(SEALED_ARGUMENTS_TYPES_TUPLE);
 	}
 
 	@Override @AvailMethod
@@ -957,19 +909,19 @@ extends Descriptor
 		final @NotNull AvailObject object)
 	{
 		final AvailObject implementationsTuple =
-			object.slot(ObjectSlots.IMPLEMENTATIONS_TUPLE);
+			object.slot(IMPLEMENTATIONS_TUPLE);
 		if (implementationsTuple.tupleSize() > 0)
 		{
 			return false;
 		}
 		final AvailObject typeRestrictionsTuple =
-			object.slot(ObjectSlots.TYPE_RESTRICTIONS_TUPLE);
+			object.slot(TYPE_RESTRICTIONS_TUPLE);
 		if (typeRestrictionsTuple.tupleSize() > 0)
 		{
 			return false;
 		}
 		final AvailObject sealedArgumentsTypesTuple =
-			object.slot(ObjectSlots.SEALED_ARGUMENTS_TYPES_TUPLE);
+			object.slot(SEALED_ARGUMENTS_TYPES_TUPLE);
 		if (sealedArgumentsTypesTuple.tupleSize() > 0)
 		{
 			return false;
@@ -1193,22 +1145,22 @@ extends Descriptor
 		assert messageName.isAtom();
 		final AvailObject result = mutable().create();
 		result.setSlot(
-			ObjectSlots.IMPLEMENTATIONS_TUPLE,
+			IMPLEMENTATIONS_TUPLE,
 			TupleDescriptor.empty());
 		result.setSlot(
-			ObjectSlots.DEPENDENT_CHUNK_INDICES,
+			DEPENDENT_CHUNK_INDICES,
 			SetDescriptor.empty());
 		result.setSlot(
-			ObjectSlots.NAME,
+			NAME,
 			messageName);
 		result.setSlot(
-			ObjectSlots.PRIVATE_TESTING_TREE,
+			PRIVATE_TESTING_TREE,
 			TupleDescriptor.empty());
 		result.setSlot(
-			ObjectSlots.TYPE_RESTRICTIONS_TUPLE,
+			TYPE_RESTRICTIONS_TUPLE,
 			TupleDescriptor.empty());
 		result.setSlot(
-			ObjectSlots.SEALED_ARGUMENTS_TYPES_TUPLE,
+			SEALED_ARGUMENTS_TYPES_TUPLE,
 			TupleDescriptor.empty());
 		result.makeImmutable();
 		return result;
@@ -1228,7 +1180,7 @@ extends Descriptor
 	{
 		// Invalidate any affected level two chunks.
 		final AvailObject chunkIndices =
-			object.slot(ObjectSlots.DEPENDENT_CHUNK_INDICES);
+			object.slot(DEPENDENT_CHUNK_INDICES);
 		if (chunkIndices.setSize() > 0)
 		{
 			for (final AvailObject chunkIndex : chunkIndices.asTuple())
@@ -1238,12 +1190,12 @@ extends Descriptor
 			}
 			// The chunk invalidations should have removed all dependencies...
 			final AvailObject chunkIndicesAfter =
-				object.slot(ObjectSlots.DEPENDENT_CHUNK_INDICES);
+				object.slot(DEPENDENT_CHUNK_INDICES);
 			assert chunkIndicesAfter.setSize() == 0;
 		}
 		// Clear the privateTestingTree cache.
 		object.setSlot(
-			ObjectSlots.PRIVATE_TESTING_TREE,
+			PRIVATE_TESTING_TREE,
 			NullDescriptor.nullObject());
 	}
 

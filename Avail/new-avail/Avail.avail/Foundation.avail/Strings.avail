@@ -40,7 +40,6 @@ Uses
 	"Early Assertions",
 	"Early Error Codes",
 	"Early Functions",
-	"Early Types",
 	"Enumeration Support",
 	"Literals",
 	"Logic",
@@ -48,11 +47,13 @@ Uses
 	"Math",
 	"Sets",
 	"Tuples",
+	"Types",
 	"Variables"
 Names
 	"format_with unchecked_",
 	"format_with_",
 	"format_with«…:=_‡,»",
+	"format_with«_‡,»",
 	"partially format_with_",
 	"partially format_with«…:=_‡,»",
 	"_(base_)",
@@ -66,6 +67,12 @@ circledNumbers ::=
 
 /* This is a map from circled numbers to their implied numeric values. */
 circledNumberValues ::= (circledNumbers zip 1 to 50)→map;
+
+/* TODO: [TLS] Remove these constants once a macro is available for "$…". */
+description ::= $description;
+text ::= $text;
+escape ::= $escape;
+interpolationMode ::= enumeration of {description, text, escape};
 
 /**
  * Answer the enumeration of variable interpolation modes:
@@ -82,10 +89,7 @@ circledNumberValues ::= (circledNumbers zip 1 to 50)→map;
  * Returns:
  *    An enumeration of the atoms listed above.
  */
-Private method "interpolation mode" is
-[
-	enumeration of {$description, $text, $escape}
-];
+Private method "interpolation mode" is [ interpolationMode ];
 
 /**
  * Answer the type of a format site. Each instance is a 4-tuple whose elements
@@ -167,8 +171,8 @@ Private stable method "format sites for_" is
 			metachar : format metacharacters
 		|
 			Choose metachar from format metacharacters where
-				¢‘ is [ addSite(¢’, $description); ],
-				¢“ is [ addSite(¢”, $text); ],
+				¢‘ is [ addSite(¢’, description); ],
+				¢“ is [ addSite(¢”, text); ],
 				¢` is
 				[
 					start ::= (↑index++);
@@ -180,7 +184,7 @@ Private stable method "format sites for_" is
 							invalid format metacharacter escape code)
 					];
 					escaped ::= <template[index]>;
-					sites := eject ↑sites ++ <<escaped, $escape, start, index>>;
+					sites := eject ↑sites ++ <<escaped, escape, start, index>>;
 				],
 				¢’ is invalid,
 				¢” is invalid,
@@ -263,16 +267,16 @@ Public stable method "partially format_with_" is
 		/* Interpolate the variable. */
 		var ::= site[1];
 		interpolation ::= choose site[2] from interpolation mode where
-			$description is
+			description is
 			[
 				primitive description of vars[var] else ["‘" ++ var ++ "’"]
 			],
-			$text is
+			text is
 			[
 				If var ∈ vars ∧ [ ¬var ∈ string ] then badType;
 				cast vars[var] else ["“" ++ var ++ "”"] into [ t : string | t ]
 			],
-			$escape is
+			escape is
 			[
 				"`" ++ var
 			];
@@ -374,17 +378,17 @@ Public stable method "format_with_" is
 		formatted := eject ↑formatted ++ template[index..site[3] - 1];
 		/* Interpolate the variable. */
 		interpolation ::= choose site[2] from interpolation mode where
-			$description is
+			description is
 			[
 				value ::= vars[site[1]] else missing;
 				primitive description of value
 			],
-			$text is
+			text is
 			[
 				value ::= vars[site[1]] else missing;
 				cast value into [ t : string | t ] else badType
 			],
-			$escape is
+			escape is
 			[
 				site[1]
 			];
@@ -509,7 +513,7 @@ Semantic restriction "partially format_with«…:=_‡,»" is
 		template ::= templateType's instance;
 		sites ::= format sites for template;
 		templateVars ::= (stripe sites at 1)→set;
-		stringSites ::= filter sites by [site : format site | site[2] = $text];
+		stringSites ::= filter sites by [site : format site | site[2] = text];
 		stringVars ::= (stripe stringSites at 1)→set;
 		bindingVars : {string|} := ∅;
 		From 1 to ⎣bindings⎦ do
@@ -603,7 +607,7 @@ Semantic restriction "format_with«…:=_‡,»" is
 		template ::= templateType's instance;
 		sites ::= format sites for template;
 		templateVars ::= (stripe sites at 1)→set;
-		stringSites ::= filter sites by [site : format site | site[2] = $text];
+		stringSites ::= filter sites by [site : format site | site[2] = text];
 		stringVars ::= (stripe stringSites at 1)→set;
 		bindingVars : {string|} := ∅;
 		From 1 to ⎣bindings⎦ do
@@ -700,7 +704,7 @@ Public stable method "format_with unchecked_" is
 		If |site[1]| > 1 then badName;
 		var ::= site[1][1];
 		interpolation ::= choose site[2] from interpolation mode where
-			$description is
+			description is
 			[
 				varIndex ::= circledNumberValues[var] else badName;
 				value ::= if varIndex ≤ |vars|
@@ -708,7 +712,7 @@ Public stable method "format_with unchecked_" is
 					else missing;
 				primitive description of value
 			],
-			$text is
+			text is
 			[
 				varIndex ::= circledNumberValues[var] else badName;
 				value ::= if varIndex ≤ |vars|
@@ -716,7 +720,7 @@ Public stable method "format_with unchecked_" is
 					else missing;
 				cast value into [ t : string | t ] else badType
 			],
-			$escape is
+			escape is
 			[
 				site[1]
 			];
@@ -774,7 +778,7 @@ Semantic restriction "format_with unchecked_" is
  * Returns:
  *    The result of formatting the template usings the specified bindings.
  */
-Method "format_with«_‡,»" is
+Public method "format_with«_‡,»" is
 [
 	template : string,
 	vars : <any…|1..50>
@@ -798,7 +802,7 @@ Semantic restriction "format_with«_‡,»" is
 		template ::= templateType's instance;
 		sites ::= format sites for template;
 		templateVars ::= (stripe sites at 1)→set;
-		stringSites ::= filter sites by [site : format site | site[2] = $text];
+		stringSites ::= filter sites by [site : format site | site[2] = text];
 		stringVars ::= (stripe stringSites at 1)→set;
 		bindingVars ::= (map 1 to ⎣bindingsType⎦ through
 			[

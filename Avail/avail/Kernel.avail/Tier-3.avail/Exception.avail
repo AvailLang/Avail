@@ -56,7 +56,11 @@ Body
 
 result ::= lookup "result";
 
-"Exception" is explicit subtype of Object with
+_exception ::= Special Object 24;
+
+Method "Private Exception" is [ _exception ];
+
+"Exception" is explicit subtype of Private Exception with
 	result->any;
 
 

@@ -39,9 +39,9 @@ Uses
 	"Early Control Structures",
 	"Early Logic",
 	"Early Math",
-	"Early Types",
 	"Enumeration Support",
-	"Literals"
+	"Literals",
+	"Types"
 Body
 
 /**

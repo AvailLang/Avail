@@ -40,8 +40,7 @@ import com.avail.exceptions.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 253:</strong> Method definition, without a type
- * restriction function.
+ * <strong>Primitive 253:</strong> Method definition.
  */
 public class P_253_SimpleMethodDeclaration extends Primitive
 {
@@ -64,7 +63,8 @@ public class P_253_SimpleMethodDeclaration extends Primitive
 		{
 			interpreter.addMethodBody(
 				interpreter.lookupName(string),
-				block);
+				block,
+				true);
 		}
 		catch (final AmbiguousNameException e)
 		{

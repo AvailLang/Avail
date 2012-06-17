@@ -1,5 +1,5 @@
 /**
- * P_201_RaiseException.java
+ * P_226_SealMethod.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -29,42 +29,56 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.avail.interpreter.primitive;
 
-import static com.avail.interpreter.Primitive.Flag.SwitchesContinuation;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
+import com.avail.exceptions.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 201:</strong> Raise an exception. Scan the stack of
- * {@linkplain ContinuationDescriptor continuations} until one is found for
- * a {@linkplain FunctionDescriptor function} whose {@linkplain
- * CompiledCodeDescriptor code} is {@linkplain P_200_CatchException primitive
- * 200}. Get that continuation's second argument (a handler block of one
- * argument), and check if that handler block will accept {@code
- * exceptionValue}. If not, keep looking. If it will accept it, unwind the
- * stack so that the primitive 200 continuation is the top entry, and invoke
- * the handler block with {@code exceptionValue}. If there is no suitable
- * handler block, then fail this primitive.
+ * <strong>Primitive 226</strong>: Seal the named {@linkplain MethodDescriptor
+ * method} at the specified {@linkplain TupleTypeDescriptor signature}. No
+ * further implementations may be added below this signature.
+ *
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
-public class P_201_RaiseException
+public final class P_226_SealMethod
 extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_201_RaiseException().init(
-		1, SwitchesContinuation);
+	public final @NotNull static Primitive instance =
+		new P_226_SealMethod().init(2, Unknown);
 
 	@Override
 	public @NotNull Result attempt (
 		final @NotNull List<AvailObject> args,
 		final @NotNull Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		return interpreter.searchForExceptionHandler(args.get(0));
+		assert args.size() == 2;
+		final AvailObject methodName = args.get(0);
+		final AvailObject sealSignature = args.get(1);
+		try
+		{
+			interpreter.addSeal(
+				interpreter.lookupName(methodName),
+				sealSignature);
+		}
+		catch (final AmbiguousNameException e)
+		{
+			return interpreter.primitiveFailure(e);
+		}
+		catch (final SignatureException e)
+		{
+			return interpreter.primitiveFailure(e);
+		}
+		return interpreter.primitiveSuccess(NullDescriptor.nullObject());
 	}
 
 	@Override
@@ -72,7 +86,11 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				ObjectTypeDescriptor.exceptionType()),
-			BottomTypeDescriptor.bottom());
+				TupleTypeDescriptor.stringTupleType(),
+				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+					IntegerRangeTypeDescriptor.wholeNumbers(),
+					TupleDescriptor.from(),
+					InstanceTypeDescriptor.on(ANY.o()))),
+			TOP.o());
 	}
 }

@@ -43,11 +43,11 @@ Uses
 	"Early Assertions",
 	"Early Functions",
 	"Early Maps",
-	"Early Types",
 	"Enumeration Support",
 	"Literals",
 	"Logic",
 	"Math",
+	"Types",
 	"Variables"
 Names
 	"all indices of_where_",
@@ -2101,12 +2101,12 @@ Semantic restriction "flatten_" is
 ];
 
 /**
- * Obtain the first element of a tuple.
+ * Obtain the first element of the specified tuple.
  *
  * Parameters:
- *    aTuple - a tuple.
+ *    aTuple - A tuple.
  * Returns:
- *    the first element of the tuple.
+ *    The first element of `aTuple`.
  */
 Public stable method "_'s⁇head" is
 [
@@ -2123,8 +2123,9 @@ Semantic restriction "_'s⁇head" is
 ];
 
 /**
- * Construct and answer a tuple slice that contains all but the first element.
- * If the argument contains only one element, then answer an empty tuple.
+ * Construct and answer a tuple slice that contains all but the first element of
+ * the specified tuple. If the argument contains only one element, then answer
+ * an empty tuple.
  *
  * Parameters:
  *    aTuple - A nonempty tuple.
@@ -2134,7 +2135,8 @@ Semantic restriction "_'s⁇head" is
 Public stable abstract method "_'s⁇tail" is [<any…|1..>]→tuple;
 
 /**
- * Construct and answer a tuple slice that contains all but the first element.
+ * Construct and answer a tuple slice that contains all but the first element of
+ * the specified tuple.
  *
  * Parameters:
  *    aTuple - A tuple containing a single element.
@@ -2149,7 +2151,8 @@ Method "_'s⁇tail" is
 ] : <>'s type;
 
 /**
- * Construct and answer a tuple slice that contains all but the first element.
+ * Construct and answer a tuple slice that contains all but the first element of
+ * the specified tuple.
  *
  * Parameters:
  *    aTuple - A tuple containing at least two elements.
@@ -2183,12 +2186,12 @@ Semantic restriction "_'s⁇tail" is
 ];
 
 /**
- * Obtain the last element of a tuple.
+ * Obtain the last element of the specified tuple.
  *
  * Parameters:
- *    aTuple - a tuple.
+ *    aTuple - A tuple.
  * Returns:
- *    the last element of the tuple.
+ *    The last element of a `aTuple`.
  */
 Public stable method "_'s⁇last" is
 [

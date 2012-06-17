@@ -222,14 +222,21 @@ public abstract class Interpreter
 	 * transforming the call-site-specific argument type information into a
 	 * return type for the method.
 	 *
-	 * @param methodName A {@linkplain AtomDescriptor method name}.
-	 * @param bodyBlock The {@linkplain FunctionDescriptor body block}.
-	 * @throws SignatureException If the signature is invalid.
+	 * @param methodName
+	 *        A {@linkplain AtomDescriptor method name}.
+	 * @param bodyBlock
+	 *        The {@linkplain FunctionDescriptor body block}.
+	 * @param extendGrammar
+	 *        {@code true} if the method name should be added to the current
+	 *        module's bundle tree, {@code false} otherwise.
+	 * @throws SignatureException
+	 *         If the signature is invalid.
 	 */
 	public void addMethodBody (
-		final @NotNull AvailObject methodName,
-		final @NotNull AvailObject bodyBlock)
-	throws SignatureException
+			final @NotNull AvailObject methodName,
+			final @NotNull AvailObject bodyBlock,
+			final boolean extendGrammar)
+		throws SignatureException
 	{
 		assert methodName.isAtom();
 		assert bodyBlock.isFunction();
@@ -301,8 +308,11 @@ public abstract class Interpreter
 		}
 		imps.addImplementation(newImp);
 		assert methodName.isAtom();
-		module.filteredBundleTree().includeBundle(
-			MessageBundleDescriptor.newBundle(methodName));
+		if (extendGrammar)
+		{
+			module.filteredBundleTree().includeBundle(
+				MessageBundleDescriptor.newBundle(methodName));
+		}
 	}
 
 
@@ -375,16 +385,20 @@ public abstract class Interpreter
 	 * implementations for it.
 	 *
 	 * @param methodName
-	 *            A {@linkplain AtomDescriptor method name}.
+	 *        A {@linkplain AtomDescriptor method name}.
 	 * @param bodySignature
-	 *            The {@linkplain MethodImplementationDescriptor method signature}.
+	 *        The {@linkplain MethodImplementationDescriptor method signature}.
+	 * @param extendGrammar
+	 *        {@code true} if the method name should be added to the current
+	 *        module's bundle tree, {@code false} otherwise.
 	 * @throws SignatureException
-	 *            If the signature is malformed.
+	 *         If the signature is malformed.
 	 */
 	public void addAbstractSignature (
-		final @NotNull AvailObject methodName,
-		final @NotNull AvailObject bodySignature)
-	throws SignatureException
+			final @NotNull AvailObject methodName,
+			final @NotNull AvailObject bodySignature,
+			final boolean extendGrammar)
+		throws SignatureException
 	{
 		assert methodName.isAtom();
 
@@ -448,8 +462,11 @@ public abstract class Interpreter
 			resolvedForwardWithName(forward, methodName);
 		}
 		imps.addImplementation(newImp);
-		module.filteredBundleTree().includeBundle(
-			MessageBundleDescriptor.newBundle(methodName));
+		if (extendGrammar)
+		{
+			module.filteredBundleTree().includeBundle(
+				MessageBundleDescriptor.newBundle(methodName));
+		}
 	}
 
 	/**
@@ -519,18 +536,17 @@ public abstract class Interpreter
 			MessageBundleDescriptor.newBundle(methodName));
 	}
 
-
-
 	/**
-	 * Add a type restriction to the method associated with the
-	 * given method name.
+	 * Add a type restriction to the method associated with the given method
+	 * name.
 	 *
 	 * @param methodName
-	 *            The method name, an {@linkplain AtomDescriptor atom}.
+	 *        The method name, an {@linkplain AtomDescriptor atom}.
 	 * @param typeRestrictionFunction
-	 *            A {@linkplain FunctionDescriptor function} that validates the
-	 *            static types of arguments at call sites.
-	 * @throws SignatureException if the signature is invalid.
+	 *        A {@linkplain FunctionDescriptor function} that validates the
+	 *        static types of arguments at call sites.
+	 * @throws SignatureException
+	 *         If the signature is invalid.
 	 */
 	public void addTypeRestriction (
 		final AvailObject methodName,
@@ -539,14 +555,12 @@ public abstract class Interpreter
 	{
 		assert methodName.isAtom();
 		assert typeRestrictionFunction.isFunction();
-
 		final MessageSplitter splitter = new MessageSplitter(methodName.name());
 		final int numArgs = splitter.numberOfArguments();
 		if (typeRestrictionFunction.code().numArgs() != numArgs)
 		{
 			throw new SignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS);
 		}
-		//  Make it so we can safely hold onto these things in the VM
 		methodName.makeImmutable();
 		typeRestrictionFunction.makeImmutable();
 		runtime.addTypeRestriction(methodName, typeRestrictionFunction);
@@ -555,7 +569,33 @@ public abstract class Interpreter
 			MessageBundleDescriptor.newBundle(methodName));
 	}
 
-
+	/**
+	 * Add a seal to the method associated with the given method name.
+	 *
+	 * @param methodName
+	 *        The method name, an {@linkplain AtomDescriptor atom}.
+	 * @param seal
+	 *        The signature at which to seal the method.
+	 * @throws SignatureException
+	 *         If the signature is invalid.
+	 */
+	public void addSeal (
+			final @NotNull AvailObject methodName,
+			final @NotNull AvailObject seal)
+		throws SignatureException
+	{
+		assert methodName.isAtom();
+		assert seal.isTuple();
+		final MessageSplitter splitter = new MessageSplitter(methodName.name());
+		if (seal.tupleSize() != splitter.numberOfArguments())
+		{
+			throw new SignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS);
+		}
+		methodName.makeImmutable();
+		seal.makeImmutable();
+		runtime.addSeal(methodName, seal);
+		module.addSeal(methodName, seal);
+	}
 
 	/**
 	 * The modularity scheme should prevent all intermodular method conflicts.
@@ -626,7 +666,7 @@ public abstract class Interpreter
 		final @NotNull String defineMethodName)
 	{
 		assert module != null;
-		final L1InstructionWriter writer = new L1InstructionWriter();
+		L1InstructionWriter writer = new L1InstructionWriter();
 		writer.primitiveNumber(
 			P_253_SimpleMethodDeclaration.instance.primitiveNumber);
 		writer.argumentTypes(
@@ -634,7 +674,7 @@ public abstract class Interpreter
 			FunctionTypeDescriptor.mostGeneralType());
 		writer.returnType(TOP.o());
 		// Declare the local that holds primitive failure information.
-		final int failureLocal = writer.createLocal(
+		int failureLocal = writer.createLocal(
 			VariableTypeDescriptor.wrapInnerType(
 				IntegerRangeTypeDescriptor.naturalNumbers()));
 		writer.write(
@@ -647,15 +687,41 @@ public abstract class Interpreter
 				writer.addLiteral(
 					MethodDescriptor.vmCrashMethod()),
 				writer.addLiteral(BottomTypeDescriptor.bottom())));
-		final AvailObject newFunction = FunctionDescriptor.create(
+		final AvailObject fromStringFunction = FunctionDescriptor.create(
 			writer.compiledCode(),
 			TupleDescriptor.empty());
-		newFunction.makeImmutable();
-		final AvailObject nameTuple = StringDescriptor.from(
+		fromStringFunction.makeImmutable();
+		writer = new L1InstructionWriter();
+		writer.primitiveNumber(
+			P_228_MethodDeclarationFromAtom.instance.primitiveNumber);
+		writer.argumentTypes(
+			ATOM.o(),
+			FunctionTypeDescriptor.mostGeneralType());
+		writer.returnType(TOP.o());
+		// Declare the local that holds primitive failure information.
+		failureLocal = writer.createLocal(
+			VariableTypeDescriptor.wrapInnerType(
+				IntegerRangeTypeDescriptor.naturalNumbers()));
+		writer.write(
+			new L1Instruction(
+				L1Operation.L1_doGetLocal,
+				failureLocal));
+		writer.write(
+			new L1Instruction(
+				L1Operation.L1_doCall,
+				writer.addLiteral(
+					MethodDescriptor.vmCrashMethod()),
+				writer.addLiteral(BottomTypeDescriptor.bottom())));
+		final AvailObject fromAtomFunction = FunctionDescriptor.create(
+			writer.compiledCode(),
+			TupleDescriptor.empty());
+		final AvailObject name = StringDescriptor.from(
 			defineMethodName);
 		try
 		{
-			addMethodBody(lookupName(nameTuple), newFunction);
+			final AvailObject trueName = lookupName(name);
+			addMethodBody(trueName, fromStringFunction, true);
+			addMethodBody(trueName, fromAtomFunction, true);
 		}
 		catch (final AmbiguousNameException e)
 		{
@@ -719,7 +785,7 @@ public abstract class Interpreter
 			StringDescriptor.from(specialObjectName);
 		try
 		{
-			addMethodBody(lookupName(nameTuple), newFunction);
+			addMethodBody(lookupName(nameTuple), newFunction, true);
 		}
 		catch (final AmbiguousNameException e)
 		{

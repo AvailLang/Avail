@@ -42,11 +42,11 @@ Uses
 	"Early Control Structures",
 	"Early Literals",
 	"Early Functions",
-	"Early Types",
 	"Early Sets",
 	"Enumeration Support",
 	"Literals",
-	"Math"
+	"Math",
+	"Types"
 Names
 	"«_‡=»",
 	"_⊕_",

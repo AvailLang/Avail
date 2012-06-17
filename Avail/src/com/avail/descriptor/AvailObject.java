@@ -44,6 +44,7 @@ import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.InfinityDescriptor.IntegerSlots;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.ProcessDescriptor.ExecutionState;
+import com.avail.exceptions.*;
 import com.avail.exceptions.ArithmeticException;
 import com.avail.interpreter.*;
 import com.avail.interpreter.levelTwo.L2Interpreter;
@@ -81,10 +82,10 @@ implements Iterable<AvailObject>
 		StringDescriptor.createWellKnownObjects();
 		TypeDescriptor.createWellKnownObjects();
 		MapDescriptor.createWellKnownObjects();
+		AtomDescriptor.createWellKnownObjects();
 		ObjectTypeDescriptor.createWellKnownObjects();
 		CharacterDescriptor.createWellKnownObjects();
 		SetDescriptor.createWellKnownObjects();
-		AtomDescriptor.createWellKnownObjects();
 		EnumerationTypeDescriptor.createWellKnownObjects();
 		InfinityDescriptor.createWellKnownObjects();
 		IntegerDescriptor.createWellKnownObjects();
@@ -572,16 +573,19 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Add the {@linkplain ImplementationDescriptor signature implementation} to
-	 * the receiver. Causes dependent chunks to be invalidated.
+	 * Add the {@linkplain ImplementationDescriptor implementation} to the
+	 * receiver. Causes dependent chunks to be invalidated.
 	 *
 	 * Macro signatures and non-macro signatures should not be combined in the
 	 * same method.
 	 *
-	 * @param implementation The signature implementation to be added.
+	 * @param implementation The implementation to be added.
+	 * @throws SignatureException
+	 *         If the implementation could not be added.
 	 */
 	public void addImplementation (
-		final AvailObject implementation)
+			final AvailObject implementation)
+		throws SignatureException
 	{
 		descriptor.o_AddImplementation(this, implementation);
 	}
@@ -6084,5 +6088,16 @@ implements Iterable<AvailObject>
 		final boolean canDestroy)
 	{
 		return descriptor.o_BitwiseXor(this, anInteger, canDestroy);
+	}
+
+	/**
+	 * @param methodName
+	 * @param sealSignature
+	 */
+	public void addSeal (
+		final @NotNull AvailObject methodName,
+		final @NotNull AvailObject sealSignature)
+	{
+		descriptor.o_AddSeal(this, methodName, sealSignature);
 	}
 }

@@ -90,6 +90,55 @@ Method "Require:_is public" is
 ] : ⊤;
 
 /**
+ * Reject the current parse is the argument is not included in the current
+ * module's "Names" section. Do nothing if the name is not specifically known.
+ * 
+ * Parameters:
+ *    nameType - The type of the name.
+ */
+Method "Require:_is public" is
+[
+	nameType : atom's type
+|
+	If |nameType| = 1 then
+	[
+		publicNames ::= current module's public names;
+		methodAtom ::= nameType's instances→tuple[1];
+		Invoke
+		[
+			anAtom : atom
+		|
+			methodName ::= anAtom's name;
+			If methodName ∈ publicNames then
+			[
+				/* This is the happy path: do nothing. */
+			]
+			else
+			[
+				Invoke
+				[
+					name : string
+				|
+					messageTuple ::= concatenate <
+						"public name \"",
+						name,
+						"\" to be included in the module's \"Names\" section">;
+					Invoke
+					[
+						messageString : string
+					|
+						Reject parse, expected: messageString
+					]
+					with <messageTuple>;
+				]
+				with <methodName>;
+			];
+		]
+		with <methodAtom>;
+	];
+] : ⊤;
+
+/**
  * Reject the current parse is the argument is included in the current module's
  * "Names" section. Do nothing if the name is not specifically known.
  * 
@@ -132,6 +181,56 @@ Method "Require:_is private" is
 ] : ⊤;
 
 /**
+ * Reject the current parse is the argument is included in the current module's
+ * "Names" section. Do nothing if the name is not specifically known.
+ * 
+ * Parameters:
+ *    nameType - The type of the name.
+ */
+Method "Require:_is private" is
+[
+	nameType : atom's type
+|
+	If |nameType| = 1 then
+	[
+		publicNames ::= current module's public names;
+		methodAtom ::= nameType's instances→tuple[1];
+		Invoke
+		[
+			anAtom : atom
+		|
+			methodName ::= anAtom's name;
+			If methodName ∈ publicNames then
+			[
+				Invoke
+				[
+					name : string
+				|
+					messageTuple ::= concatenate <
+						"private name \"",
+						name,
+						"\" not to be included in the module's \"Names\" \
+						\|section">;
+					Invoke
+					[
+						messageString : string
+					|
+						Reject parse, expected: messageString
+					]
+					with <messageTuple>;
+				]
+				with <methodName>;
+			]
+			else
+			[
+				/* This is the happy path: do nothing. */
+			];
+		]
+		with <methodAtom>;
+	];
+] : ⊤;
+
+/**
  * Declare a new public abstract method with the specified name and signature. A
  * concrete implementation is one whose parameter types and return type are
  * strictly more specific than the corresponding types of the abstract
@@ -158,6 +257,39 @@ Method "Public abstract method_is_" is
 Semantic restriction "Public abstract method_is_" is
 [
 	nameType : string's type,
+	functionMeta : function meta's type
+|
+	Require: nameType is public;
+	⊤
+];
+
+/**
+ * Declare a new public abstract method with the specified name and signature. A
+ * concrete implementation is one whose parameter types and return type are
+ * strictly more specific than the corresponding types of the abstract
+ * signature. The semantic restriction ensures that the method is named in the
+ * current module's "Names" section. This should not be used to extend existing
+ * methods.
+ *
+ * Parameters:
+ *    methodName - The atom that uniquely names the abstract method to declare.
+ *    aFunctionType - The signature.
+ */
+Method "Public abstract method_is_" is
+[
+	methodName : atom,
+	aFunctionType : function meta
+|
+	Primitive 227 (failureCode : natural number);
+	Invoke early failure function with <failureCode>;
+] : ⊤;
+
+/**
+ * Ensure that the new method is introduced by the module's "Names" section.
+ */
+Semantic restriction "Public abstract method_is_" is
+[
+	nameType : atom's type,
 	functionMeta : function meta's type
 |
 	Require: nameType is public;
@@ -229,6 +361,36 @@ Semantic restriction "Public method_is_" is
 ];
 
 /**
+ * Define a new public method. The semantic restriction ensures that the method
+ * is named in the current module's "Names" section. This should not be used to
+ * extend existing methods.
+ * 
+ * Parameters:
+ *    methodName - The atom that uniquely names the new method.
+ *    function - The original implementation of the method.
+ */
+Method "Public method_is_" is
+[
+	methodName : atom,
+	function : function
+|
+	Primitive 228 (failureCode : natural number);
+	Invoke early failure function with <failureCode>;
+] : ⊤;
+
+/**
+ * Ensure that the new method is introduced by the module's "Names" section.
+ */
+Semantic restriction "Public method_is_" is
+[
+	nameType : atom's type,
+	functionType : function meta
+|
+	Require: nameType is public;
+	⊤
+];
+
+/**
  * Declare a new private abstract method with the specified name and signature.
  * A concrete implementation is one whose parameter types and return type are
  * strictly more specific than the corresponding types of the abstract
@@ -255,6 +417,39 @@ Method "Private abstract method_is_" is
 Semantic restriction "Private abstract method_is_" is
 [
 	nameType : string's type,
+	functionMeta : function meta's type
+|
+	Require: nameType is private;
+	⊤
+];
+
+/**
+ * Declare a new private abstract method with the specified name and signature.
+ * A concrete implementation is one whose parameter types and return type are
+ * strictly more specific than the corresponding types of the abstract
+ * signature. The semantic restriction ensures that the method is not named in
+ * the current module's "Names" section. This should not be used to extend
+ * existing methods.
+ *
+ * Parameters:
+ *    methodName - The atom that uniquely names the abstract method to declare.
+ *    aFunctionType - The signature.
+ */
+Method "Private abstract method_is_" is
+[
+	methodName : atom,
+	aFunctionType : function meta
+|
+	Primitive 227 (failureCode : natural number);
+	Invoke early failure function with <failureCode>;
+] : ⊤;
+
+/**
+ * Ensure that the new method is introduced by the module's "Names" section.
+ */
+Semantic restriction "Private abstract method_is_" is
+[
+	nameType : atom's type,
 	functionMeta : function meta's type
 |
 	Require: nameType is private;
@@ -319,6 +514,36 @@ Public method "Private method_is_" is
 Semantic restriction "Private method_is_" is
 [
 	nameType : string's type,
+	functionType : function meta
+|
+	Require: nameType is private;
+	⊤
+];
+
+/**
+ * Define a new private method. The semantic restriction ensures that the method
+ * is not named in the module's "Names" section. This should not be used to
+ * extend existing methods.
+ * 
+ * Parameters:
+ *    methodName - The atom that uniquely names the new method.
+ *    function - The original implementation of the method.
+ */
+Public method "Private method_is_" is
+[
+	methodName : atom,
+	function : function
+|
+	Primitive 228 (failureCode : natural number);
+	Invoke early failure function with <failureCode>;
+] : ⊤;
+
+/**
+ * Ensure that the new method is not introduced by the module's "Names" section.
+ */
+Semantic restriction "Private method_is_" is
+[
+	nameType : atom's type,
 	functionType : function meta
 |
 	Require: nameType is private;

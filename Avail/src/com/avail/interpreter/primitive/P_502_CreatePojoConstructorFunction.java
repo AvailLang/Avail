@@ -49,24 +49,26 @@ import com.avail.interpreter.levelOne.*;
  * FunctionDescriptor function} that when applied will produce a new
  * instance of the pojo type by invoking a reflected Java {@linkplain
  * Constructor constructor} with arguments conforming to the specified
- * types.
+ * types. The last argument is a function that should be invoked with a
+ * pojo-wrapped {@link Exception} in the event that Java raises an exception.
  */
 public class P_502_CreatePojoConstructorFunction extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_502_CreatePojoConstructorFunction().init(
-		2, CanFold);
+	public final static Primitive instance =
+		new P_502_CreatePojoConstructorFunction().init(3, CanFold);
 
 	@Override
 	public @NotNull Result attempt (
 		final @NotNull List<AvailObject> args,
 		final @NotNull Interpreter interpreter)
 	{
-		assert args.size() == 2;
+		assert args.size() == 3;
 		final AvailObject pojoType = args.get(0);
 		final AvailObject paramTypes = args.get(1);
+		final AvailObject failFunction = args.get(2);
 		// Do not attempt to bind a constructor to an abstract pojo type.
 		if (pojoType.isAbstract())
 		{
@@ -118,7 +120,8 @@ public class P_502_CreatePojoConstructorFunction extends Primitive
 		// primitive. This function will be embedded as a literal into
 		// an outer function that holds the (unexposed) constructor pojo.
 		L1InstructionWriter writer = new L1InstructionWriter();
-		writer.primitiveNumber(P_503_InvokePojoConstructor.instance.primitiveNumber);
+		writer.primitiveNumber(
+			P_503_InvokePojoConstructor.instance.primitiveNumber);
 		writer.argumentTypes(
 			RAW_POJO.o(),
 			TupleTypeDescriptor.mostGeneralType(),
@@ -130,12 +133,16 @@ public class P_502_CreatePojoConstructorFunction extends Primitive
 				PojoTypeDescriptor.mostGeneralType()));
 		writer.returnType(PojoTypeDescriptor.mostGeneralType());
 		writer.write(new L1Instruction(
+			L1Operation.L1_doPushLiteral,
+			writer.addLiteral(failFunction)));
+		writer.write(new L1Instruction(
 			L1Operation.L1_doGetLocal,
 			writer.createLocal(VariableTypeDescriptor.wrapInnerType(
 				PojoTypeDescriptor.forClass(Throwable.class)))));
+		writer.write(new L1Instruction(L1Operation.L1_doMakeTuple, 1));
 		writer.write(new L1Instruction(
 			L1Operation.L1_doCall,
-			writer.addLiteral(MethodDescriptor.vmRaiseExceptionMethod()),
+			writer.addLiteral(MethodDescriptor.vmFunctionApplyMethod()),
 			writer.addLiteral(BottomTypeDescriptor.bottom())));
 		final AvailObject innerFunction = FunctionDescriptor.create(
 			writer.compiledCode(),
@@ -194,7 +201,11 @@ public class P_502_CreatePojoConstructorFunction extends Primitive
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 					IntegerRangeTypeDescriptor.wholeNumbers(),
 					TupleDescriptor.empty(),
-					InstanceTypeDescriptor.on(ANY.o()))),
+					InstanceTypeDescriptor.on(ANY.o())),
+				FunctionTypeDescriptor.create(
+					TupleDescriptor.from(
+						PojoTypeDescriptor.forClass(Throwable.class)),
+					BottomTypeDescriptor.bottom())),
 			// TODO: [TLS] Answer a function type that answers pojo and
 			// can raise java.lang.Throwable.
 			FunctionTypeDescriptor.forReturnType(

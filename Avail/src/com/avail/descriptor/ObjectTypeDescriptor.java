@@ -83,7 +83,6 @@ extends TypeDescriptor
 			}
 			else
 			{
-				builder.append("Type(");
 				first = false;
 			}
 			builder.append(name.asNativeString());
@@ -91,10 +90,6 @@ extends TypeDescriptor
 		if (first)
 		{
 			builder.append("Unnamed object type");
-		}
-		else
-		{
-			builder.append(")");
 		}
 		AvailObject ignoreKeys = SetDescriptor.empty();
 		for (final AvailObject baseType : baseTypes)
@@ -522,33 +517,7 @@ extends TypeDescriptor
 	/**
 	 * The most general {@linkplain ObjectTypeDescriptor object type}.
 	 */
-	private static AvailObject MostGeneralType;
-
-	/**
-	 * The metatype of all object types.
-	 */
-	private static AvailObject Meta;
-
-	/**
-	 * Create the top (i.e., most general) {@linkplain ObjectTypeDescriptor
-	 * object type}.
-	 */
-	static void createWellKnownObjects ()
-	{
-		MostGeneralType = objectTypeFromMap(MapDescriptor.empty());
-		MostGeneralType.makeImmutable();
-		Meta = InstanceTypeDescriptor.on(MostGeneralType);
-		Meta.makeImmutable();
-	}
-
-	/**
-	 * Clear any static references to publicly accessible objects.
-	 */
-	static void clearWellKnownObjects ()
-	{
-		MostGeneralType = null;
-		Meta = null;
-	}
+	private static AvailObject mostGeneralType;
 
 	/**
 	 * Answer the top (i.e., most general) {@linkplain ObjectTypeDescriptor
@@ -558,8 +527,13 @@ extends TypeDescriptor
 	 */
 	public static AvailObject mostGeneralType ()
 	{
-		return MostGeneralType;
+		return mostGeneralType;
 	}
+
+	/**
+	 * The metatype of all object types.
+	 */
+	private static AvailObject meta;
 
 	/**
 	 * Answer the metatype for all object types.  This is just an {@linkplain
@@ -570,9 +544,75 @@ extends TypeDescriptor
 	 */
 	public static AvailObject meta ()
 	{
-		return Meta;
+		return meta;
 	}
 
+	/**
+	 * The {@linkplain AtomDescriptor atom} that identifies the {@linkplain
+	 * #exceptionType exception type}.
+	 */
+	private static AvailObject exceptionAtom;
+
+	/**
+	 * Answer the {@linkplain AtomDescriptor atom} that identifies the
+	 * {@linkplain #exceptionType() exception type}.
+	 *
+	 * @return The special exception atom.
+	 */
+	public static AvailObject exceptionAtom ()
+	{
+		return exceptionAtom;
+	}
+
+	/**
+	 * The most general exception type.
+	 */
+	private static AvailObject exceptionType;
+
+	/**
+	 * Answer the most general exception type. This is just an {@linkplain
+	 * InstanceTypeDescriptor instance type} on an {@linkplain
+	 * ObjectTypeDescriptor object type} that contains a well-known {@linkplain
+	 * #exceptionAtom() atom}.
+	 *
+	 * @return The most general exception type.
+	 */
+	public static AvailObject exceptionType ()
+	{
+		return exceptionType;
+	}
+
+	/**
+	 * Create the top (i.e., most general) {@linkplain ObjectTypeDescriptor
+	 * object type}.
+	 */
+	static void createWellKnownObjects ()
+	{
+		mostGeneralType = objectTypeFromMap(MapDescriptor.empty());
+		mostGeneralType.makeImmutable();
+		meta = InstanceTypeDescriptor.on(mostGeneralType);
+		meta.makeImmutable();
+		exceptionAtom = AtomDescriptor.create(
+			StringDescriptor.from("explicit-exception"),
+			NullDescriptor.nullObject());
+		exceptionType = objectTypeFromTuple(
+			TupleDescriptor.from(
+				TupleDescriptor.from(
+					exceptionAtom,
+					InstanceTypeDescriptor.on(exceptionAtom))));
+		setNameForType(exceptionType, StringDescriptor.from("exception"));
+	}
+
+	/**
+	 * Clear any static references to publicly accessible objects.
+	 */
+	static void clearWellKnownObjects ()
+	{
+		mostGeneralType = null;
+		meta = null;
+		exceptionAtom = null;
+		exceptionType = null;
+	}
 
 	/**
 	 * Construct a new {@link ObjectTypeDescriptor}.

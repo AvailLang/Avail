@@ -1,5 +1,5 @@
 /*
- * Early Types.avail
+ * Types.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Early Types"
+System Module "Types"
 Versions
 	"dev"
 Extends

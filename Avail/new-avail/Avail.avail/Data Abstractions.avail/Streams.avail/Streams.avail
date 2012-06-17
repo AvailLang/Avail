@@ -1,5 +1,5 @@
 /*
- * Avail.avail
+ * Streams.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,16 +30,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Avail"
+System Module "Streams"
 Versions
 	"dev"
 Extends
-	"Advanced Math",
-	"Bootstrap",
-	"Data Abstractions",
-	"Foundation",
-	"IO"
-Uses
-Names
+	"Abstract Streams",
+	"Integer Streams"
 Body
-

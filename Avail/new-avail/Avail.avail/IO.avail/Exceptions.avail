@@ -1,5 +1,5 @@
 /*
- * Avail.avail
+ * Exceptions.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,16 +30,24 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Avail"
+System Module "Exceptions"
 Versions
 	"dev"
-Extends
-	"Advanced Math",
-	"Bootstrap",
-	"Data Abstractions",
-	"Foundation",
-	"IO"
 Uses
+	"Bootstrap",
+	"Foundation"
 Names
+	"I/O exception",
+	"data-validation exception"
 Body
 
+/**
+ * An I/O exception is raised when an I/O operation fails.
+ */
+Public explicit class "I/O exception" extends exception;
+
+/**
+ * A data-validation exception is raised when an I/O operation fails to produce
+ * a data item that conforms to imposed semantic rules.
+ */
+Public explicit class "data-validation exception" extends I/O exception;

@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.06.14 18:52:30.175 -0500
+ * * Last Generated On: 2012.06.17 01:11:45.395 -0500
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -92,6 +92,7 @@ Names
 	/*  28 */ "local type literal is not a type code",
 	/*  34 */ "macro argument must be a parse node code",
 	/*  71 */ "method implementation lookup failed code",
+	/*  72 */ "method is sealed code",
 	/*  45 */ "method name is not canonical code",
 	/*  13 */ "method return type not as forward declared code",
 	/*  22 */ "negative size code",
@@ -407,6 +408,11 @@ Method "compilation is over code" is
 Method "method implementation lookup failed code" is
 [
 	71
+];
+
+Method "method is sealed code" is
+[
+	72
 ];
 
 Method "block contains invalid statements code" is

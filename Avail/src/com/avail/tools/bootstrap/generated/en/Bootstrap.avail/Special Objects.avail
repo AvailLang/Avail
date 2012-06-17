@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.06.14 18:52:30.062 -0500
+ * * Last Generated On: 2012.06.17 01:11:45.291 -0500
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -66,6 +66,7 @@ Names
 	/*  12 */ "double",
 	/*  96 */ "empty map",
 	/* 104 */ "empty tuple",
+	/*  24 */ "exception",
 	/*  52 */ "expression",
 	/* 126 */ "expression yielding any",
 	/*  13 */ "extended integer",
@@ -117,6 +118,7 @@ Names
 	/*  85 */ "pojo array meta",
 	/*  86 */ "pojo constructor",
 	/*  89 */ "pojo exception",
+	/* 127 */ "pojo failure function",
 	/*  84 */ "pojo meta",
 	/*  88 */ "pojo self",
 	/*  83 */ "pojo self type",
@@ -186,6 +188,7 @@ _map_meta                               ::= special object 19;
 _module                                 ::= special object 20;
 _object                                 ::= special object 22;
 _object_meta                            ::= special object 23;
+_exception                              ::= special object 24;
 _fiber                                  ::= special object 25;
 _set                                    ::= special object 26;
 _set_meta                               ::= special object 27;
@@ -283,6 +286,7 @@ _declaration_tuple                      ::= special object 123;
 _write_only_expression_variable         ::= special object 124;
 _tuple_of_expressions_yielding_any      ::= special object 125;
 _expression_yielding_any                ::= special object 126;
+_pojo_failure_function                  ::= special object 127;
 
 /**
  * The practical abstract root of the Avail type lattice. `any` is the second
@@ -441,6 +445,11 @@ Method "object" is
 Method "object meta" is
 [
 	_object_meta
+];
+
+Method "exception" is
+[
+	_exception
 ];
 
 Method "fiber" is
@@ -992,5 +1001,10 @@ Method "tuple of expressions yielding any" is
 Method "expression yielding any" is
 [
 	_expression_yielding_any
+];
+
+Method "pojo failure function" is
+[
+	_pojo_failure_function
 ];
 

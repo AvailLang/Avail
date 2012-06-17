@@ -72,7 +72,7 @@ import com.avail.serialization.*;
  * The boolean type itself is merely an enumeration of these two values.  The
  * only thing special about booleans is that they are referenced by the Avail
  * virtual machine.  In fact, this very class, {@code AtomDescriptor}, contains
- * these references in {@link #TrueObject} and {@link #FalseObject}.
+ * these references in {@link #trueObject} and {@link #falseObject}.
  * </p>
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
@@ -186,18 +186,18 @@ extends Descriptor
 	/**
 	 * The atom representing the Avail concept "true".
 	 */
-	private static AvailObject TrueObject;
+	private static AvailObject trueObject;
 
 	/**
 	 * The atom representing the Avail concept "false".
 	 */
-	private static AvailObject FalseObject;
+	private static AvailObject falseObject;
 
 	/**
 	 * The atom used as a property key under which to store information about
 	 * object type names.
 	 */
-	private static AvailObject ObjectTypeNamePropertyKey;
+	private static AvailObject objectTypeNamePropertyKey;
 
 
 	/**
@@ -207,7 +207,7 @@ extends Descriptor
 	 */
 	public static AvailObject trueObject ()
 	{
-		return TrueObject;
+		return trueObject;
 	}
 
 	/**
@@ -217,7 +217,7 @@ extends Descriptor
 	 */
 	public static AvailObject falseObject ()
 	{
-		return FalseObject;
+		return falseObject;
 	}
 
 	/**
@@ -231,7 +231,7 @@ extends Descriptor
 	 */
 	public static AvailObject objectTypeNamePropertyKey ()
 	{
-		return ObjectTypeNamePropertyKey;
+		return objectTypeNamePropertyKey;
 	}
 
 
@@ -240,14 +240,14 @@ extends Descriptor
 	 */
 	static void createWellKnownObjects ()
 	{
-		TrueObject = create(
+		trueObject = create(
 			StringDescriptor.from("true"),
 			NullDescriptor.nullObject());
-		FalseObject = create(
+		falseObject = create(
 			StringDescriptor.from("false"),
 			NullDescriptor.nullObject());
-		ObjectTypeNamePropertyKey = create(
-			StringDescriptor.from("objectNames"),
+		objectTypeNamePropertyKey = create(
+			StringDescriptor.from("object names"),
 			NullDescriptor.nullObject());
 	}
 
@@ -256,15 +256,15 @@ extends Descriptor
 	 */
 	static void clearWellKnownObjects ()
 	{
-		TrueObject = null;
-		FalseObject = null;
-		ObjectTypeNamePropertyKey = null;
+		trueObject = null;
+		falseObject = null;
+		objectTypeNamePropertyKey = null;
 	}
 
 	/**
 	 * Convert a Java <code>boolean</code> into an Avail boolean.  There are
 	 * exactly two Avail booleans, which are just ordinary atoms ({@link
-	 * #TrueObject} and {@link #FalseObject}) which are known by the Avail
+	 * #trueObject} and {@link #falseObject}) which are known by the Avail
 	 * virtual machine.
 	 *
 	 * @param aBoolean A Java <code>boolean</code>
@@ -272,7 +272,7 @@ extends Descriptor
 	 */
 	public static AvailObject objectFromBoolean (final boolean aBoolean)
 	{
-		return aBoolean ? TrueObject : FalseObject;
+		return aBoolean ? trueObject : falseObject;
 	}
 
 	@Override @AvailMethod
@@ -335,11 +335,11 @@ extends Descriptor
 	boolean o_ExtractBoolean (
 		final @NotNull AvailObject object)
 	{
-		if (object.equals(TrueObject))
+		if (object.equals(trueObject))
 		{
 			return true;
 		}
-		assert object.equals(FalseObject);
+		assert object.equals(falseObject);
 		return false;
 	}
 
@@ -412,11 +412,11 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final Class<?> ignoredClassHint)
 	{
-		if (object.equals(TrueObject))
+		if (object.equals(trueObject))
 		{
 			return Boolean.TRUE;
 		}
-		if (object.equals(FalseObject))
+		if (object.equals(falseObject))
 		{
 			return Boolean.FALSE;
 		}

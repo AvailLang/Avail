@@ -39,10 +39,10 @@ Uses
 	"Definers",
 	"Early Control Structures",
 	"Early Logic",
-	"Early Types",
 	"Early Math",
 	"Enumeration Support",
-	"Literals"
+	"Literals",
+	"Types"
 Names
 	"_[_]else_"
 Body

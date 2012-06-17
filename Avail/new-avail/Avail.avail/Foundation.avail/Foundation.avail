@@ -39,7 +39,6 @@ Extends
 	"Definers",
 	"Early Error Codes",
 	"Early Functions",
-	"Early Types",
 	"Enumeration Support",
 	"Literals",
 	"Logic",
@@ -49,6 +48,7 @@ Extends
 	"Phrases",
 	"Sets",
 	"Strings",
-	"Tuples"
+	"Tuples",
+	"Types"
 Body
 

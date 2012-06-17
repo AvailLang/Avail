@@ -1,0 +1,414 @@
+/*
+ * Abstract Streams.avail
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Abstract Streams"
+Versions
+	"dev"
+Extends
+	"Foundation" =
+	(
+		"For each_do_",
+		"_is empty",
+		"_'s⁇head",
+		"_'s⁇tail"
+	)
+Uses
+	"Bootstrap",
+	"Foundation"
+Names
+	"element type",
+	"empty stream",
+	"empty-stream exception",
+	"stream",
+	"stream of_",
+	"_'s⁇element type",
+	"_'s⁇head method is_",
+	"_'s⁇tail method is_"
+Body
+
+/**
+ * Answer the field atom that represents a stream's element type.
+ * 
+ * Returns:
+ *    The requested field atom.
+ */
+Public method "element type" is
+[
+	$"element type"
+];
+
+/**
+ * A stream is an immutable lazy list of arbitarily many elements.
+ */
+Public class "stream" extends object
+	with fields
+		element type : any's type;
+
+/**
+ * Construct and answer a stream type that answers values of the specified type.
+ * 
+ * Parameters:
+ *    elementType - The type of value produced by the desired stream type.
+ * Returns:
+ *    The requested stream type.
+ */
+Public method "stream of_" is
+[
+	elementType : any's type
+|
+	extend stream with element type : elementType's type
+] : stream's type;
+
+/**
+ * An empty-stream exception is raised when an inappropriate operation, like
+ * `_'s⁇head` and `_'s⁇tail`, is performed on an empty stream.
+ */
+Public explicit class "empty-stream exception" extends exception;
+
+/**
+ * Is the specified stream empty?
+ * 
+ * Parameters:
+ *    aStream - A stream.
+ * Returns:
+ *    `true` if the argument is empty, `false` otherwise.
+ */
+Abstract method "_is empty" is [stream]→boolean;
+
+/* Ensure that the private name is looked up in the current module's context. */
+privateHeadName ::= $"private_'s⁇head";
+
+/**
+ * Answer the first element of the specified nonempty stream.
+ * 
+ * Parameters:
+ *    aStream - A nonempty stream.
+ * Returns:
+ *    The first element of the specified stream.
+ */
+Private abstract method privateHeadName is [stream]→any;
+
+/**
+ * Ensure that the specified stream is not empty, then answer its first element.
+ * 
+ * Parameters:
+ *    aStream - A stream.
+ * Returns:
+ *    The first element of the specified stream.
+ * Raises:
+ *    {@"empty-stream exception"} - If the stream is empty.
+ */
+Method "_'s⁇head" is
+[
+	aStream : stream
+|
+	Unless aStream is empty then
+	[
+		private aStream's head
+	]
+	else
+	[
+		Raise an empty-stream exception
+	]
+] : any;
+
+Semantic restriction "_'s⁇head" is
+[
+	streamType : stream's type
+|
+	stream's element type's instance
+];
+
+/**
+ * Define a method to provide the head of a nonempty stream. The public
+ * operation, {@"_'s⁇head"}, does not permit extension (to ensure that streams
+ * are always checked for exhaustion), but the private operation should not be
+ * called directly from client code. This special defining method allows the
+ * private operation to be overridden for specific stream implementations
+ * without exposing it for direct use. These mechanisms cooperate to ensure that
+ * stream exhaustion checking is never bypassed.
+ *
+ * Parameters:
+ *    streamType - The stream's type, as a cross check for the implementation.
+ *    implementation - The new method extension.
+ */
+Public method "_'s⁇head method is_" is
+[
+	streamType : stream's type,
+	implementation : [⊥]→any
+|
+	Private method privateHeadName is implementation;
+];
+
+/**
+ * Ensure that the implementation function accepts a stream.
+ */
+Semantic restriction "_'s⁇head method is_" is
+[
+	streamMeta : stream's type's type,
+	implementationType : [stream]→any's type
+|
+	If implementationType[1] = ⊥ then
+	[
+		Reject parse, expected:
+			"function's parameter types to be statically known"
+	];
+	If implementationType[1] ≠ streamMeta's instance then
+	[
+		Reject parse, expected:
+			"function parameter type ("
+			++ primitive description of implementationType[1]
+			++ ") to equal the stream type ("
+			++ primitive description of streamMeta's instance
+			++ ")"
+	];
+	⊤
+];
+
+/* Ensure that the private name is looked up in the current module's context. */
+privateTailName ::= $"private_'s⁇tail";
+
+/**
+ * Construct and answer a stream that contains all but the first element of the
+ * specified nonempty stream.
+ * 
+ * Parameters:
+ *    aStream - A nonempty stream.
+ * Returns:
+ *    The requested stream.
+ */
+Private abstract method privateTailName is [stream]→stream;
+
+/**
+ * Ensure that the specified stream is not empty, then construct and answer a
+ * stream that contains all but the first element of the specified nonempty
+ * stream.
+ * 
+ * Parameters:
+ *    aStream - A stream.
+ * Returns:
+ *    The requested stream.
+ * Raises:
+ *    {@"empty-stream exception"} - If the stream is empty.
+ */
+Method "_'s⁇tail" is
+[
+	aStream : stream
+|
+	Unless aStream is empty then
+	[
+		private aStream's tail
+	]
+	else
+	[
+		Raise an empty-stream exception
+	]
+] : stream;
+
+Semantic restriction "_'s⁇tail" is
+[
+	streamType : stream's type
+|
+	streamType
+];
+
+/**
+ * Define a method to provide the tail of a nonempty stream. The public
+ * operation, {@"_'s⁇tail"}, does not permit extension (to ensure that streams
+ * are always checked for exhaustion), but the private operation should not be
+ * called directly from client code. This special defining method allows the
+ * private operation to be overridden for specific stream implementations
+ * without exposing it for direct use. These mechanisms cooperate to ensure that
+ * stream exhaustion checking is never bypassed.
+ * 
+ * Parameters:
+ *    streamType - The stream's type, as a cross check for the implementation.
+ *    implementation - The new method extension.
+ */
+Public method "_'s⁇tail method is_" is
+[
+	streamType : stream's type,
+	implementation : [⊥]→stream
+|
+	Private method privateTailName is implementation;
+];
+
+/**
+ * Ensure that the implementation function accepts a stream.
+ */
+Semantic restriction "_'s⁇tail method is_" is
+[
+	streamMeta : stream's type's type,
+	implementationType : [⊥]→stream's type
+|
+	If implementationType[1] = ⊥ then
+	[
+		Reject parse, expected:
+			"function's parameter type to be statically known"
+	];
+	If implementationType[1] ≠ streamMeta's instance then
+	[
+		Reject parse, expected:
+			"function parameter type ("
+			++ primitive description of implementationType[1]
+			++ ") to equal the stream type ("
+			++ primitive description of streamMeta's instance
+			++ ")"
+	];
+	⊤
+];
+
+/**
+ * An empty stream has ⊥ as its element type.
+ */
+Public explicit class "empty stream" extends stream
+	with fields
+		element type : ⊥'s type;
+
+/**
+ * Answer `true`.
+ * 
+ * Parameters:
+ *    aStream - An empty stream.
+ * Returns:
+ *    `true`.
+ */
+Method "_is empty" is
+[
+	aStream : empty stream
+|
+	true
+] : true's type;
+
+/**
+ * Raise an `empty-stream exception`.
+ * 
+ * Parameters:
+ *    aStream - An empty stream.
+ */
+Method "_'s⁇head" is
+[
+	aStream : empty stream
+|
+	Raise an empty-stream exception
+] : ⊥;
+
+Semantic restriction "_'s⁇head" is
+[
+	streamType : empty stream's type
+|
+	Reject parse, expected:
+		"an empty stream not to be asked for its head"
+];
+
+/**
+ * Raise an `empty-stream exception`.
+ * 
+ * Parameters:
+ *    aStream - An empty stream.
+ */
+Method "_'s⁇tail" is
+[
+	aStream : empty stream
+|
+	Raise an empty-stream exception
+] : ⊥;
+
+Semantic restriction "_'s⁇tail" is
+[
+	streamType : empty stream's type
+|
+	Reject parse, expected:
+		"an empty stream not to be asked for its tail"
+];
+
+/* Seal the public operations. */
+Seal method "_is empty" at <empty stream>;
+Seal method "_'s⁇head" at <stream>;
+Seal method "_'s⁇tail" at <stream>;
+
+/**
+ * Iteratively apply `action` to each consecutive element of `aStream`.
+ * 
+ * Parameters:
+ *    aStream - A stream.
+ *    action - A function that accepts the elements of the stream.
+ */
+Method "For each_do_" is
+[
+	aStream : stream,
+	action : [⊥]→⊤
+|
+	rest : stream := aStream;
+	Until [ rest is empty ]
+	do
+	[
+		Invoke action with <rest's head>;
+		rest := eject ↑rest's tail;
+	];
+] : ⊤;
+
+/**
+ * Helper method for semantic restrictions: If `action` does not accept the
+ * element type of `streamType`, then reject the current parse.
+ * 
+ * Parameters:
+ *    action - A function type whose sole parameter must correspond to the
+ *       element type of `streamType`.
+ *    streamType - A stream type.
+ */
+Method "Require:_accepts_" is
+[
+	actionType : [⊥]→⊤'s type,
+	streamType : stream's type
+|
+	elementType ::= streamType's element type's instance;
+	If actionType[1] ≠ ⊥ ∧ [ ¬elementType ⊆ actionType[1] ] then
+	[
+		Reject parse, expected:
+			format
+				"repeatedly applied function to accept all elements ∈ ‘①’ \
+				\|of the stream (but it only accepts ‘②’)"
+			with elementType, actionType[1]
+	];
+] : ⊤;
+
+Semantic restriction "For each_do_" is
+[
+	streamType : stream's type,
+	actionType : [⊥]→⊤'s type
+|
+	Require: actionType accepts streamType;
+	⊤
+];
+
+/* TODO: [TLS] Add `map_through_`, `filter_by_`. */

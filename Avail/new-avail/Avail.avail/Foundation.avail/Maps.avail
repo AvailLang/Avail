@@ -42,11 +42,11 @@ Uses
 	"Definers",
 	"Early Functions",
 	"Early Tuples",
-	"Early Types",
 	"Enumeration Support",
 	"Literals",
 	"Logic",
 	"Math",
+	"Types",
 	"Variables"
 Body
 

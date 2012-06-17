@@ -115,6 +115,7 @@ Method "pojo[]" is
 "Java Field Reference Is Ambiguous" is explicit subtype of Exception;
 "Java Method Not Available" is explicit subtype of Exception;
 "Java Method Reference Is Ambiguous" is explicit subtype of Exception;
+"Java Throwable" is explicit subtype of Exception;
 
 Method "⊶Java type_parameters_" is
 [
@@ -269,10 +270,13 @@ Restriction "Java_[]" is
 	Assert jArrayOfTupleOfString <= jArrayOfAny;
 ]();
 
-Method "constructor of_given_" is
+throwable ::= Java type "java.lang.Throwable";
+
+Method "private constructor of_given_(fail with_)" is
 [
 	aPojoType : pojo type,
-	argTypes : tuple of any type
+	argTypes : tuple of any type,
+	failFunction : [throwable]->terminates
 |
 	Primitive 502 (failureCode : whole number);
 	if failureCode = 501 then
@@ -281,6 +285,15 @@ Method "constructor of_given_" is
 	];
 	Assert failureCode = 502;
 	Raise Java Method Not Available with <aPojoType, argTypes>
+] : [...]->pojo;
+
+Method "constructor of_given_" is
+[
+	aPojoType : pojo type,
+	argTypes : tuple of any type
+|
+	private constructor of aPojoType given argTypes
+		(fail with [ t : throwable | Raise Java Throwable with t ])
 ] : [...]->pojo;
 
 Restriction "constructor of_given_" is
@@ -472,11 +485,12 @@ Method "_._" is
 	Assert *fusedFieldT = 8;
 ]();
 
-Method "private method_._(_)" is
+Method "private method_._(_)(fail with_)" is
 [
 	pT : pojo type,
 	methodName : string,
-	paramTypes : tuple of any type
+	paramTypes : tuple of any type,
+	failFunction : [throwable]->terminates
 |
 	Primitive 506 (failureCode : natural number);
 	if failureCode = 502 then
@@ -494,6 +508,7 @@ Method "method_._(«_‡,»)" is
 	paramTypes : tuple of any type
 |
 	private method pT.methodName (paramTypes)
+		(fail with [ t : throwable | Raise Java Throwable with t ])
 ] : [...]->void;
 
 Restriction "method_._(«_‡,»)" is
@@ -516,14 +531,16 @@ Restriction "method_._(«_‡,»)" is
 		arg ::= paramT[i] instance;
 		args := args then <arg>;
 	];
-	(private method p.methodName (args)) type
+	(private method p.methodName (args)
+		(fail with [ t : throwable | Raise Java Throwable with t ])) type
 ];
 
-Method "private static method_._(_)" is
+Method "private static method_._(_)(fail with_)" is
 [
 	pT : pojo type,
 	methodName : string,
-	paramTypes : tuple of any type
+	paramTypes : tuple of any type,
+	failFunction : [throwable]->terminates
 |
 	Primitive 508 (failureCode : natural number);
 	if failureCode = 502 then
@@ -541,6 +558,7 @@ Method "static method_._(«_‡,»)" is
 	paramTypes : tuple of any type
 |
 	private static method pT.methodName (paramTypes)
+		(fail with [ t : throwable | Raise Java Throwable with t ])
 ] : [...]->void;
 
 Restriction "static method_._(«_‡,»)" is
@@ -563,7 +581,8 @@ Restriction "static method_._(«_‡,»)" is
 		arg ::= paramT[i] instance;
 		args := args then <arg>;
 	];
-	(private static method p.methodName (args)) type
+	(private static method p.methodName (args)
+		(fail with [ t : throwable | Raise Java Throwable with t ])) type
 ];
 
 [

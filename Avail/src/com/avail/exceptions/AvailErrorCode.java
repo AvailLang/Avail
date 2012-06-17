@@ -399,6 +399,12 @@ public enum AvailErrorCode
 	E_METHOD_IMPLEMENTATION_LOOKUP_FAILED (71),
 
 	/**
+	 * The method is sealed at the specified {@linkplain TupleTypeDescriptor
+	 * parameters type}.
+	 */
+	E_METHOD_IS_SEALED (72),
+
+	/**
 	 * A proposed {@linkplain BlockNodeDescriptor block expression} contains
 	 * one or more invalid statements.
 	 */

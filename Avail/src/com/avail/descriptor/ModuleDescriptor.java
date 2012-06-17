@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.ModuleDescriptor.ObjectSlots.*;
 import com.avail.annotations.*;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 
@@ -61,7 +62,8 @@ extends Descriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	public enum ObjectSlots
+	implements ObjectSlotsEnum
 	{
 		/**
 		 * A {@linkplain StringDescriptor string} that names the {@linkplain
@@ -173,6 +175,12 @@ extends Descriptor
 		 */
 		TYPE_RESTRICTION_FUNCTIONS,
 
+		/**
+		 * A {@linkplain MapDescriptor map} from {@linkplain AtomDescriptor true
+		 * names} to {@linkplain TupleDescriptor tuples} of seal points.
+		 */
+		SEALS,
+
 		/** Is this a system {@linkplain ModuleDescriptor module}? */
 		IS_SYSTEM_MODULE
 	}
@@ -180,7 +188,7 @@ extends Descriptor
 	@Override @AvailMethod
 	boolean o_IsSystemModule (final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.IS_SYSTEM_MODULE).extractBoolean();
+		return object.slot(IS_SYSTEM_MODULE).extractBoolean();
 	}
 
 	@Override @AvailMethod
@@ -193,14 +201,14 @@ extends Descriptor
 		: "Don't declare multiple restrictions on same message separately"
 			+ " in module.";
 		AvailObject grammaticalRestrictions = object.slot(
-			ObjectSlots.GRAMMATICAL_RESTRICTIONS);
+			GRAMMATICAL_RESTRICTIONS);
 		grammaticalRestrictions =
 			grammaticalRestrictions.mapAtPuttingCanDestroy(
 				methodName,
 				illegalArgMsgs,
 				true);
 		object.setSlot(
-			ObjectSlots.GRAMMATICAL_RESTRICTIONS,
+			GRAMMATICAL_RESTRICTIONS,
 			grammaticalRestrictions);
 	}
 
@@ -220,12 +228,12 @@ extends Descriptor
 			set = SetDescriptor.empty();
 		}
 		set = set.setWithElementCanDestroy(implementation, true);
-		AvailObject methods = object.slot(ObjectSlots.METHODS);
+		AvailObject methods = object.slot(METHODS);
 		methods = methods.mapAtPuttingCanDestroy(
 			methodName,
 			set,
 			true);
-		object.setSlot(ObjectSlots.METHODS, methods);
+		object.setSlot(METHODS, methods);
 	}
 
 	@Override @AvailMethod
@@ -235,12 +243,12 @@ extends Descriptor
 		final @NotNull AvailObject constantBinding)
 	{
 		AvailObject constantBindings = object.slot(
-			ObjectSlots.CONSTANT_BINDINGS);
+			CONSTANT_BINDINGS);
 		constantBindings = constantBindings.mapAtPuttingCanDestroy(
 			name,
 			constantBinding,
 			true);
-		object.setSlot(ObjectSlots.CONSTANT_BINDINGS, constantBindings);
+		object.setSlot(CONSTANT_BINDINGS, constantBindings);
 	}
 
 	@Override @AvailMethod
@@ -250,12 +258,12 @@ extends Descriptor
 		final @NotNull AvailObject variableBinding)
 	{
 		AvailObject variableBindings = object.slot(
-			ObjectSlots.VARIABLE_BINDINGS);
+			VARIABLE_BINDINGS);
 		variableBindings = variableBindings.mapAtPuttingCanDestroy(
 			name,
 			variableBinding,
 			true);
-		object.setSlot(ObjectSlots.VARIABLE_BINDINGS, variableBindings);
+		object.setSlot(VARIABLE_BINDINGS, variableBindings);
 	}
 
 	@Override @AvailMethod
@@ -266,7 +274,7 @@ extends Descriptor
 	{
 		//  Add the trueName to the current public scope.
 
-		AvailObject names = object.slot(ObjectSlots.NAMES);
+		AvailObject names = object.slot(NAMES);
 		AvailObject set;
 		if (names.hasKey(stringName))
 		{
@@ -281,10 +289,10 @@ extends Descriptor
 			stringName,
 			set,
 			true);
-		object.setSlot(ObjectSlots.NAMES, names);
-		AvailObject visibleNames = object.slot(ObjectSlots.VISIBLE_NAMES);
+		object.setSlot(NAMES, names);
+		AvailObject visibleNames = object.slot(VISIBLE_NAMES);
 		visibleNames = visibleNames.setWithElementCanDestroy(trueName, true);
-		object.setSlot(ObjectSlots.VISIBLE_NAMES, visibleNames);
+		object.setSlot(VISIBLE_NAMES, visibleNames);
 	}
 
 	@Override @AvailMethod
@@ -300,12 +308,12 @@ extends Descriptor
 			error("Can't define a new true name twice in a module", object);
 			return;
 		}
-		AvailObject newNames = object.slot(ObjectSlots.NEW_NAMES);
+		AvailObject newNames = object.slot(NEW_NAMES);
 		newNames = newNames.mapAtPuttingCanDestroy(stringName, trueName, true);
-		object.setSlot(ObjectSlots.NEW_NAMES, newNames);
-		AvailObject visibleNames = object.slot(ObjectSlots.VISIBLE_NAMES);
+		object.setSlot(NEW_NAMES, newNames);
+		AvailObject visibleNames = object.slot(VISIBLE_NAMES);
 		visibleNames = visibleNames.setWithElementCanDestroy(trueName, true);
-		object.setSlot(ObjectSlots.VISIBLE_NAMES, visibleNames);
+		object.setSlot(VISIBLE_NAMES, visibleNames);
 	}
 
 	@Override @AvailMethod
@@ -316,7 +324,7 @@ extends Descriptor
 	{
 		//  Add the trueName to the current private scope.
 
-		AvailObject privateNames = object.slot(ObjectSlots.PRIVATE_NAMES);
+		AvailObject privateNames = object.slot(PRIVATE_NAMES);
 		AvailObject set;
 		if (privateNames.hasKey(stringName))
 		{
@@ -331,10 +339,10 @@ extends Descriptor
 			stringName,
 			set,
 			true);
-		object.setSlot(ObjectSlots.PRIVATE_NAMES, privateNames);
-		AvailObject visibleNames = object.slot(ObjectSlots.VISIBLE_NAMES);
+		object.setSlot(PRIVATE_NAMES, privateNames);
+		AvailObject visibleNames = object.slot(VISIBLE_NAMES);
 		visibleNames = visibleNames.setWithElementCanDestroy(trueName, true);
-		object.setSlot(ObjectSlots.VISIBLE_NAMES, visibleNames);
+		object.setSlot(VISIBLE_NAMES, visibleNames);
 	}
 
 	@Override @AvailMethod
@@ -369,7 +377,7 @@ extends Descriptor
 		final @NotNull AvailObject methodName)
 	{
 		assert forwardImplementation.isInstanceOfKind(FORWARD_SIGNATURE.o());
-		AvailObject methods = object.slot(ObjectSlots.METHODS);
+		AvailObject methods = object.slot(METHODS);
 		assert methods.hasKey(methodName);
 		AvailObject group = methods.mapAt(methodName);
 		assert group.hasElement(forwardImplementation);
@@ -378,7 +386,7 @@ extends Descriptor
 			methodName,
 			group,
 			true);
-		object.setSlot(ObjectSlots.METHODS, methods);
+		object.setSlot(METHODS, methods);
 	}
 
 	/**
@@ -430,7 +438,7 @@ extends Descriptor
 	@NotNull AvailObject o_Name (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.NAME);
+		return object.slot(NAME);
 	}
 
 	@Override @AvailMethod
@@ -438,92 +446,93 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
-		object.setSlot(ObjectSlots.VERSIONS, value);
+		object.setSlot(VERSIONS, value);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_ConstantBindings (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.CONSTANT_BINDINGS);
+		return object.slot(CONSTANT_BINDINGS);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_FilteredBundleTree (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.FILTERED_BUNDLE_TREE);
+		return object.slot(FILTERED_BUNDLE_TREE);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_Methods (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.METHODS);
+		return object.slot(METHODS);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_Versions (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.VERSIONS);
+		return object.slot(VERSIONS);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_Names (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.NAMES);
+		return object.slot(NAMES);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_NewNames (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.NEW_NAMES);
+		return object.slot(NEW_NAMES);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_PrivateNames (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.PRIVATE_NAMES);
+		return object.slot(PRIVATE_NAMES);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_GrammaticalRestrictions (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.GRAMMATICAL_RESTRICTIONS);
+		return object.slot(GRAMMATICAL_RESTRICTIONS);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_VariableBindings (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.VARIABLE_BINDINGS);
+		return object.slot(VARIABLE_BINDINGS);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_VisibleNames (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.VISIBLE_NAMES);
+		return object.slot(VISIBLE_NAMES);
 	}
 
 	@Override boolean allowsImmutableToMutableReferenceInField (
 		final @NotNull AbstractSlotsEnum e)
 	{
-		return e == ObjectSlots.NEW_NAMES
-			|| e == ObjectSlots.NAMES
-			|| e == ObjectSlots.PRIVATE_NAMES
-			|| e == ObjectSlots.VISIBLE_NAMES
-			|| e == ObjectSlots.METHODS
-			|| e == ObjectSlots.GRAMMATICAL_RESTRICTIONS
-			|| e == ObjectSlots.VARIABLE_BINDINGS
-			|| e == ObjectSlots.CONSTANT_BINDINGS
-			|| e == ObjectSlots.FILTERED_BUNDLE_TREE
-			|| e == ObjectSlots.TYPE_RESTRICTION_FUNCTIONS;
+		return e == NEW_NAMES
+			|| e == NAMES
+			|| e == PRIVATE_NAMES
+			|| e == VISIBLE_NAMES
+			|| e == METHODS
+			|| e == GRAMMATICAL_RESTRICTIONS
+			|| e == VARIABLE_BINDINGS
+			|| e == CONSTANT_BINDINGS
+			|| e == FILTERED_BUNDLE_TREE
+			|| e == TYPE_RESTRICTION_FUNCTIONS
+			|| e == SEALS;
 	}
 
 	/**
@@ -546,7 +555,7 @@ extends Descriptor
 		final AvailObject filteredBundleTree =
 			MessageBundleTreeDescriptor.newPc(1);
 		object.setSlot(
-			ObjectSlots.FILTERED_BUNDLE_TREE,
+			FILTERED_BUNDLE_TREE,
 			filteredBundleTree);
 		bundleTree.copyToRestrictedTo(
 			filteredBundleTree,
@@ -558,22 +567,22 @@ extends Descriptor
 		final @NotNull AvailObject object)
 	{
 		object.setSlot(
-			ObjectSlots.METHODS,
+			METHODS,
 			NullDescriptor.nullObject());
 		object.setSlot(
-			ObjectSlots.GRAMMATICAL_RESTRICTIONS,
+			GRAMMATICAL_RESTRICTIONS,
 			NullDescriptor.nullObject());
 		object.setSlot(
-			ObjectSlots.VARIABLE_BINDINGS,
+			VARIABLE_BINDINGS,
 			NullDescriptor.nullObject());
 		object.setSlot(
-			ObjectSlots.CONSTANT_BINDINGS,
+			CONSTANT_BINDINGS,
 			NullDescriptor.nullObject());
 		object.setSlot(
-			ObjectSlots.FILTERED_BUNDLE_TREE,
+			FILTERED_BUNDLE_TREE,
 			NullDescriptor.nullObject());
 		object.setSlot(
-			ObjectSlots.TYPE_RESTRICTION_FUNCTIONS,
+			TYPE_RESTRICTION_FUNCTIONS,
 			NullDescriptor.nullObject());
 	}
 
@@ -615,7 +624,7 @@ extends Descriptor
 			}
 		}
 		final AvailObject typeRestrictions = object.slot(
-			ObjectSlots.TYPE_RESTRICTION_FUNCTIONS);
+			TYPE_RESTRICTION_FUNCTIONS);
 		for (final MapDescriptor.Entry entry : typeRestrictions.mapIterable())
 		{
 			final AvailObject methodName = entry.key;
@@ -626,20 +635,31 @@ extends Descriptor
 					restriction);
 			}
 		}
+		final AvailObject seals = object.slot(SEALS);
+		for (final MapDescriptor.Entry entry : seals.mapIterable())
+		{
+			final AvailObject methodName = entry.key;
+			for (final AvailObject seal : entry.value)
+			{
+				anInterpreter.runtime().removeSeal(
+					methodName,
+					seal);
+			}
+		}
 	}
 
 	@Override @AvailMethod
 	void o_AddTypeRestriction (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject methodNameAtom,
+		final @NotNull AvailObject methodName,
 		final @NotNull AvailObject typeRestrictionFunction)
 	{
 		AvailObject typeRestrictions = object.slot(
-			ObjectSlots.TYPE_RESTRICTION_FUNCTIONS);
+			TYPE_RESTRICTION_FUNCTIONS);
 		AvailObject tuple;
-		if (typeRestrictions.hasKey(methodNameAtom))
+		if (typeRestrictions.hasKey(methodName))
 		{
-			tuple = typeRestrictions.mapAt(methodNameAtom);
+			tuple = typeRestrictions.mapAt(methodName);
 		}
 		else
 		{
@@ -647,12 +667,31 @@ extends Descriptor
 		}
 		tuple = tuple.appendCanDestroy(typeRestrictionFunction, true);
 		typeRestrictions = typeRestrictions.mapAtPuttingCanDestroy(
-			methodNameAtom,
+			methodName,
 			tuple,
 			true);
-		object.setSlot(
-			ObjectSlots.TYPE_RESTRICTION_FUNCTIONS,
-			typeRestrictions);
+		object.setSlot(TYPE_RESTRICTION_FUNCTIONS, typeRestrictions);
+	}
+
+	@Override @AvailMethod
+	void o_AddSeal (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject methodName,
+		final @NotNull AvailObject sealSignature)
+	{
+		AvailObject seals = object.slot(SEALS);
+		AvailObject tuple;
+		if (seals.hasKey(methodName))
+		{
+			tuple = seals.mapAt(methodName);
+		}
+		else
+		{
+			tuple = TupleDescriptor.empty();
+		}
+		tuple = tuple.appendCanDestroy(sealSignature, true);
+		seals = seals.mapAtPuttingCanDestroy(methodName, tuple, true);
+		object.setSlot(SEALS, seals);
 	}
 
 	/**
@@ -671,25 +710,24 @@ extends Descriptor
 		final AvailObject emptyMap = MapDescriptor.empty();
 		final AvailObject emptySet = SetDescriptor.empty();
 		final AvailObject object = mutable().create();
-		object.setSlot(ObjectSlots.NAME, moduleName);
-		object.setSlot(ObjectSlots.VERSIONS, emptySet);
-		object.setSlot(ObjectSlots.NEW_NAMES, emptyMap);
-		object.setSlot(ObjectSlots.NAMES, emptyMap);
-		object.setSlot(ObjectSlots.PRIVATE_NAMES, emptyMap);
-		object.setSlot(ObjectSlots.VISIBLE_NAMES, emptySet);
-		object.setSlot(ObjectSlots.METHODS, emptyMap);
-		object.setSlot(ObjectSlots.GRAMMATICAL_RESTRICTIONS, emptyMap);
-		object.setSlot(ObjectSlots.VARIABLE_BINDINGS, emptyMap);
-		object.setSlot(ObjectSlots.CONSTANT_BINDINGS, emptyMap);
+		object.setSlot(NAME, moduleName);
+		object.setSlot(VERSIONS, emptySet);
+		object.setSlot(NEW_NAMES, emptyMap);
+		object.setSlot(NAMES, emptyMap);
+		object.setSlot(PRIVATE_NAMES, emptyMap);
+		object.setSlot(VISIBLE_NAMES, emptySet);
+		object.setSlot(METHODS, emptyMap);
+		object.setSlot(GRAMMATICAL_RESTRICTIONS, emptyMap);
+		object.setSlot(VARIABLE_BINDINGS, emptyMap);
+		object.setSlot(CONSTANT_BINDINGS, emptyMap);
 		object.setSlot(
-			ObjectSlots.FILTERED_BUNDLE_TREE,
+			FILTERED_BUNDLE_TREE,
 			MessageBundleTreeDescriptor.newPc(1));
-		object.setSlot(ObjectSlots.VARIABLE_BINDINGS, emptyMap);
+		object.setSlot(VARIABLE_BINDINGS, emptyMap);
+		object.setSlot(TYPE_RESTRICTION_FUNCTIONS, MapDescriptor.empty());
+		object.setSlot(SEALS, MapDescriptor.empty());
 		object.setSlot(
-			ObjectSlots.TYPE_RESTRICTION_FUNCTIONS,
-			MapDescriptor.empty());
-		object.setSlot(
-			ObjectSlots.IS_SYSTEM_MODULE,
+			IS_SYSTEM_MODULE,
 			AtomDescriptor.objectFromBoolean(isSystemModule));
 		return object;
 	}

@@ -43,11 +43,11 @@ Uses
 	"Early Functions",
 	"Early Maps",
 	"Early Tuples",
-	"Early Types",
 	"Enumeration Support",
 	"Literals",
 	"Logic",
 	"Math",
+	"Types",
 	"Variables"
 Names
 	"_Δ_",

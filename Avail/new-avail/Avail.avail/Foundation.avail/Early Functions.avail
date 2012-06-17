@@ -40,9 +40,9 @@ Uses
 	"Early Logic",
 	"Early Math",
 	"Early Tuples",
-	"Early Types",
 	"Enumeration Support",
-	"Literals"
+	"Literals",
+	"Types"
 Names
 	"_(«_‡,»)"
 Body

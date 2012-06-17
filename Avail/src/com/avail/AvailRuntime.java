@@ -445,7 +445,7 @@ implements ThreadFactory
 		// 21
 		specialObjects[22] = ObjectTypeDescriptor.mostGeneralType();
 		specialObjects[23] = ObjectTypeDescriptor.meta();
-		// 24
+		specialObjects[24] = ObjectTypeDescriptor.exceptionType();
 		specialObjects[25] = PROCESS.o();
 		specialObjects[26] = SetTypeDescriptor.mostGeneralType();
 		specialObjects[27] = SetTypeDescriptor.meta();
@@ -658,6 +658,11 @@ implements ThreadFactory
 				TupleDescriptor.empty(),
 				EXPRESSION_NODE.create(ANY.o()));
 		specialObjects[126] = EXPRESSION_NODE.create(ANY.o());
+		specialObjects[127] =
+			FunctionTypeDescriptor.create(
+				TupleDescriptor.from(
+					PojoTypeDescriptor.forClass(Throwable.class)),
+				BottomTypeDescriptor.bottom());
 
 		for (final AvailObject object : specialObjects)
 		{
@@ -815,9 +820,9 @@ implements ThreadFactory
 	}
 
 	/**
-	 * Answer the {@linkplain MethodDescriptor method}
-	 * bound to the specified {@linkplain AtomDescriptor method name}.
-	 * If necessary, then create a new method and bind it.
+	 * Answer the {@linkplain MethodDescriptor method} bound to the specified
+	 * {@linkplain AtomDescriptor method name}. If necessary, then create a new
+	 * method and bind it.
 	 *
 	 * @param methodName A {@linkplain AtomDescriptor method name}.
 	 * @return An {@linkplain MethodDescriptor method}.
@@ -960,7 +965,6 @@ implements ThreadFactory
 		}
 	}
 
-
 	/**
 	 * Remove a type restriction from the method associated with the
 	 * given method name.
@@ -977,7 +981,6 @@ implements ThreadFactory
 	{
 		assert methodName.isAtom();
 		assert typeRestrictionFunction.isFunction();
-
 		runtimeLock.writeLock().lock();
 		try
 		{
@@ -994,8 +997,62 @@ implements ThreadFactory
 		}
 	}
 
+	/**
+	 * Add a seal to the method associated with the given method name.
+	 *
+	 * @param methodName
+	 *        The method name, an {@linkplain AtomDescriptor atom}.
+	 * @param sealSignature
+	 *        The signature at which to seal the method.
+	 */
+	public void addSeal (
+		final @NotNull AvailObject methodName,
+		final @NotNull AvailObject sealSignature)
+	{
+		assert methodName.isAtom();
+		assert sealSignature.isTuple();
+		runtimeLock.writeLock().lock();
+		try
+		{
+			final AvailObject method = methodFor(methodName);
+			method.addSealedArgumentsType(sealSignature);
+		}
+		finally
+		{
+			runtimeLock.writeLock().unlock();
+		}
+	}
 
-
+	/**
+	 * Remove a seal from the method associated with the given method name.
+	 *
+	 * @param methodName
+	 *        The method name, an {@linkplain AtomDescriptor atom}.
+	 * @param sealSignature
+	 *        The signature at which to unseal the method. There may be other
+	 *        seals remaining, even at this very signature.
+	 */
+	public void removeSeal (
+		final @NotNull AvailObject methodName,
+		final @NotNull AvailObject sealSignature)
+	{
+		assert methodName.isAtom();
+		assert sealSignature.isTuple();
+		runtimeLock.writeLock().lock();
+		try
+		{
+			final AvailObject method = methodFor(methodName);
+			method.removeSealedArgumentsType(sealSignature);
+			if (method.isMethodEmpty())
+			{
+				methods = methods.mapWithoutKeyCanDestroy(methodName, true);
+			}
+		}
+		finally
+		{
+			runtimeLock.writeLock().unlock();
+		}
+	}
 
 	/**
 	 * The root {@linkplain MessageBundleTreeDescriptor message bundle tree}. It

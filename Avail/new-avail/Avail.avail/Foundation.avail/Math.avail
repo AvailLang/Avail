@@ -44,9 +44,9 @@ Uses
 	"Early Functions",
 	"Early Logic",
 	"Early Sets",
-	"Early Types",
 	"Enumeration Support",
 	"Literals",
+	"Types",
 	"Variables"
 Names
 	"log_of_",

@@ -41,6 +41,7 @@ import com.avail.descriptor.AbstractNumberDescriptor.Sign;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.ProcessDescriptor.ExecutionState;
+import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.serialization.SerializerOperation;
@@ -292,8 +293,9 @@ extends AbstractDescriptor
 
 	@Override
 	void o_AddImplementation (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject implementation)
+			final @NotNull AvailObject object,
+			final @NotNull AvailObject implementation)
+		throws SignatureException
 	{
 		o_Traversed(object).addImplementation(implementation);
 	}
@@ -4219,5 +4221,14 @@ extends AbstractDescriptor
 		final boolean canDestroy)
 	{
 		return o_Traversed(object).bitwiseXor(anInteger, canDestroy);
+	}
+
+	@Override
+	void o_AddSeal (
+		final AvailObject object,
+		final AvailObject methodName,
+		final AvailObject sealSignature)
+	{
+		o_Traversed(object).addSeal(methodName, sealSignature);
 	}
 }

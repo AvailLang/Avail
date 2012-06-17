@@ -48,12 +48,12 @@ Uses
 	"Early Functions",
 	"Early Maps",
 	"Early Tuples",
-	"Early Types",
 	"Early Sets",
 	"Enumeration Support",
 	"Literals",
 	"Logic",
 	"Math",
+	"Types",
 	"Variables"
 Names
 	"Do_until_",

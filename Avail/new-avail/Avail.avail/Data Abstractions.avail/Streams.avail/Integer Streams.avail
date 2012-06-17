@@ -1,0 +1,219 @@
+/*
+ * Integer Streams.avail
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Integer Streams"
+Versions
+	"dev"
+Uses
+	"Abstract Streams",
+	"Bootstrap",
+	"Foundation"
+Names
+	"stream from_to_",
+	"stream from_to_by_"
+Body
+
+/* TODO: [TLS] Remove these constants once a macro is available for "$…". */
+next ::= $next;
+step ::= $step;
+maximum ::= $maximum;
+
+/**
+ * An integer stream is an immutable lazy list of arbitarily many integers. It
+ * tracks the next (unanswered) value, the step value, and the maximum value.
+ */
+Class "integer stream" extends stream
+	with fields
+		element type : integer's type,
+		$next : integer,
+		$step : integer,
+		$maximum : extended integer
+	with reconstructors
+		(element type, $next);
+
+Method "_is empty" is
+[
+	aStream : integer stream
+|
+	aStream's next > aStream's maximum
+] : boolean;
+
+integer stream's head method is
+[
+	aStream : integer stream
+|
+	aStream's next
+] : integer;
+
+integer stream's tail method is
+[
+	aStream : integer stream
+|
+	nextValue ::= aStream's next + aStream's step;
+	/* When the stream is exhausted, the element type will become ⊥, meaning
+	 * that the result will be an instance of `empty stream`.
+	 */
+	aStream's
+		element type := (nextValue - 1..aStream's maximum + 1),
+		next := nextValue
+] : integer stream;
+
+Semantic restriction "For each_do_" is
+[
+	streamType : integer stream's type,
+	actionType : [⊥]→⊤'s type
+|
+	return ::= actionType's return type;
+	endSet ::= {⎣streamType's maximum⎦, ⎡streamType's maximum⎤};
+	step ::= streamType's step;
+	definitelyRuns ::=
+		if step ⊆ [0..∞) then
+		[
+			⎡streamType's next⎤ ≤ ⎣streamType's maximum⎦
+		]
+		else
+		[
+			if step ⊆ (-∞..-1] then
+			[
+				⎣streamType's next⎦ ≥ ⎡streamType's maximum⎤
+			]
+			else
+			[
+				false
+			]
+		];
+	/* These are four circumstances which lead to non-termination:
+	 * 
+	 * 1. The step is 0.
+	 * 2. The step is positive, the end is ∞, and the action answers `true`.
+	 * 3. The step is negative, the end is -∞, and the action answers `true`.
+	 * 4. The action is definitely invoked and it never terminates.
+	 */
+	if step ⊆ [0..0]
+		∨ [ (step ⊆ [0..∞) ∧ [ endSet = {∞} ])
+		∨ [ (step ⊆ (-∞..-1] ∧ [ endSet = {-∞} ])
+		∨ [ definitelyRuns ∧ [ return = ⊥ ] ] ] ]
+	then
+	[
+		⊥
+	]
+	else
+	[
+		⊤
+	]
+];
+
+/**
+ * Construct and answer a stream that lazily produces all consecutive values
+ * between `start` and `end`.
+ * 
+ * Parameters:
+ *    start - The start value, inclusive. This is the first value that will be
+ *       answered by the stream.
+ *    end - The end value, inclusive. This is the last value that will be
+ *       answered by the stream.
+ * Returns:
+ *    The requested stream.
+ */
+Public method "stream from_to_" is
+[
+	start : integer,
+	end : extended integer
+|
+	an integer stream with
+		element type := (start - 1..end + 1),
+		next := start,
+		step := 1,
+		maximum := end
+] : stream of extended integer;
+
+Semantic restriction "stream from_to_" is
+[
+	startType : integer's type,
+	endType : extended integer's type
+|
+	extend integer stream with
+		element type : (⎣startType⎦ - 1..⎡endType⎤ + 1)'s type,
+		next : startType,
+		step : 1's type,
+		maximum : endType
+];
+
+/**
+ * Construct and answer a stream that lazily produces values between `start` and
+ * `end`. For each value <em>v</em> produced, there is some <em>n ∈ integer</em>
+ * such that:
+ *
+ *    aStream ::= stream from start to end by step;
+ *    ...
+ *    v ::= aStream's head;
+ *    Assert: v = start + n × step;
+ *
+ * Note that `end` is not guaranteed to be the last value produced by the
+ * stream. It is only guaranteed that no larger values than `end` will be
+ * answered.
+ * 
+ * Parameters:
+ *    start - The start value, inclusive. This is the first value that will be
+ *       answered by the stream.
+ *    end - The end value, inclusive. No values larger than this will be
+ *       answered by the stream.
+ *    delta - The amount by which successive values anwered by the stream will
+ *       differ.
+ * Returns:
+ *    The requested stream.
+ */
+Public method "stream from_to_by_" is
+[
+	start : integer,
+	end : extended integer,
+	delta : integer
+|
+	an integer stream with
+		element type := (start - 1..end + 1),
+		next := start,
+		step := delta,
+		maximum := end
+] : stream of integer;
+
+Semantic restriction "stream from_to_by_" is
+[
+	startType : integer's type,
+	endType : extended integer's type,
+	stepType : integer's type
+|
+	extend integer stream with
+		element type : (⎣startType⎦ - 1..⎡endType⎤ + 1)'s type,
+		next : startType,
+		step : stepType,
+		maximum : endType
+];

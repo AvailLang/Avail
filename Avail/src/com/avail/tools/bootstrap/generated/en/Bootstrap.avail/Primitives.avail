@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.06.14 18:52:30.095 -0500
+ * * Last Generated On: 2012.06.17 01:11:45.325 -0500
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -65,6 +65,7 @@ Names
 	"Reject parse,expected:_",
 	"Restart_",
 	"Restart_with_",
+	"Seal method_at_",
 	"Semantic restriction_is_",
 	"Terminate:_",
 	"[`…]→_",
@@ -171,7 +172,7 @@ Names
 	"arg“_:_”",
 	"atom for_",
 	"concatenate_",
-	"constructor_<«_‡,»>",
+	"constructor_<«_‡,»>(fail with_)",
 	"current fiber",
 	"current module",
 	"eject_",
@@ -185,7 +186,7 @@ Names
 	"mark for_character|characters of read ahead",
 	"message_contains groups",
 	"method for_",
-	"method_._(«_‡,»)",
+	"method_._(«_‡,»)(fail with_)",
 	"milliseconds since the Epoch",
 	"new atom_",
 	"new_[_]",
@@ -201,7 +202,7 @@ Names
 	"seq“_”",
 	"set_'s⁇priority to_",
 	"special atoms",
-	"static method_._(«_‡,»)",
+	"static method_._(«_‡,»)(fail with_)",
 	"swap_and_",
 	"termination requested",
 	"try_catch_",

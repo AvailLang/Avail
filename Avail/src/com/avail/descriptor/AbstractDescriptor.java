@@ -44,6 +44,7 @@ import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.InfinityDescriptor.IntegerSlots;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.ProcessDescriptor.ExecutionState;
+import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.serialization.SerializerOperation;
@@ -929,19 +930,22 @@ public abstract class AbstractDescriptor
 		int aChunkIndex);
 
 	/**
-	 * Add a {@linkplain ImplementationDescriptor signature implementation} to
-	 * the receiver. Causes dependent chunks to be invalidated.
+	 * Add an {@linkplain ImplementationDescriptor implementation} to the
+	 * receiver. Causes dependent chunks to be invalidated.
 	 *
 	 * Macro signatures and non-macro signatures should not be combined in the
 	 * same method.
 	 *
 	 * @param object The receiver.
-	 * @param implementation The signature implementation to be added.
+	 * @param implementation The implementation to be added.
+	 * @throws SignatureException
+	 *         If the implementation could not be added.
 	 * @see AvailObject#addImplementation(AvailObject)
 	 */
 	abstract void o_AddImplementation (
-		@NotNull AvailObject object,
-		AvailObject implementation);
+			@NotNull AvailObject object,
+			@NotNull AvailObject implementation)
+		throws SignatureException;
 
 	/**
 	 * Add a set of {@linkplain MessageBundleDescriptor grammatical
@@ -5475,4 +5479,14 @@ public abstract class AbstractDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anInteger,
 		final boolean canDestroy);
+
+	/**
+	 * @param object
+	 * @param methodName
+	 * @param sealSignature
+	 */
+	abstract void o_AddSeal (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject methodName,
+		final @NotNull AvailObject sealSignature);
 }

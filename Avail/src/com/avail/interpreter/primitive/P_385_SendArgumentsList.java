@@ -33,7 +33,6 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.annotations.NotNull;
@@ -43,7 +42,7 @@ import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive 385</strong>: Answer the specified {@linkplain
- * SendNodeDescriptor send expression}'s {@linkplain ListNOdeDescriptor list} of
+ * SendNodeDescriptor send expression}'s {@linkplain ListNodeDescriptor list} of
  * {@linkplain ParseNodeKind#EXPRESSION_NODE argument expressions}.
  *
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
