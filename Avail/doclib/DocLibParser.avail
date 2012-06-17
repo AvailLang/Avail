@@ -88,7 +88,7 @@ Method "convert_to html" is
 	 |
 	 	output := output ++ "<li>" ++ p's name ++ " : " ++
 	 		primitive description of p's parameter ++ " - " ++
-	 		p's description ++ "</li><br />\n";
+	 		p's description ++ "</li>\n";
 	];
  	output ++ "</ol>\n"
 ] : string;
