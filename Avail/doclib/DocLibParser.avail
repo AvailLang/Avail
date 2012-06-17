@@ -1,0 +1,264 @@
+/*
+ * DocLibParser.avail
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "DocLibParser"
+Versions
+	"Dev"
+Extends
+
+Uses
+	"Avail"
+Names
+	"document",
+	"method document",
+	"parameter document",
+	"return document"
+
+Body
+
+Public explicit class "document" extends object
+	with fields
+		$name : string,
+		$description : string;
+
+Public class "parameter document" extends document
+	with fields
+		$parameter : type;
+
+Public class "return document" extends document
+with fields
+	$returnType : type;
+
+Public class "method document" extends document
+	with fields
+		$returns : return document,
+		$parameters : <parameter document…|>,
+		$moduleName : string,
+		$hasSemanticRestriction : boolean,
+		$semanticRestrictionModules : <string…|>,
+		$section : string;
+
+
+/**
+ * Takes the parameters of a method from a parameter document object 
+ * and generates html for display on a webpage.
+ *
+ * Parameters:
+ *    params - a tuple of objects of type parameter document
+ * Returns:
+ *    an html string that formats the parameter 
+ */
+Method "convert_to html" is
+[
+ 	params : <parameter document…|>
+ |
+ 	output : string := "<b>Parameters:</b><br />\n" ++
+	 	"<ol class=\"BodyDescription\">\n";
+ 	For each params do [
+ 		p : parameter document
+	 |
+	 	output := output ++ "<li>" ++ p's name ++ " : " ++
+	 		primitive description of p's parameter ++ " - " ++
+	 		p's description ++ "</li><br />\n";
+	];
+ 	output ++ "</ol>\n"
+] : string;
+
+/**
+ * Takes the return type of a method from a return document object and 
+ * generates html for display on a webpage.
+ *
+ * Parameters:
+ *    rType - an object of type return document
+ * Returns:
+ *    an html string that formats the return type 
+ */
+Method "convert_to html" is
+[
+	rType : return document
+ |
+	"<b>Returns:</b><br>\n" ++
+		"<p class=\"BodyDescription\">\n" ++
+ 		primitive description of rType's returnType ++ " - " ++
+ 		rType's description ++ "</p>\n" ++ "</section>"
+] : string;
+
+/**
+ * Takes a method document object and generates html for display on a webpage.
+ *
+ * Parameters:
+ *    mDoc - an object of type method document
+ * Returns:
+ *    an html string that formats the method for the description section of the
+ *    html page.
+ */
+Method "generate html for method description section of_" is
+[
+	mDoc : method document
+ |
+ 	output : string := "<hr />\n" ++ "<p id=\"" ++ mDoc's name ++ "\">\n" ++
+ 		"<strong class=\"FunctionHead\">" ++ mDoc's name ++ "</strong><br />\n"
+		++ "<section class=\"BodyDescription\">\n" ++  mDoc's description ++
+		"<br /><br />\n";
+ 
+	output := output ++ convert mDoc's parameters to html;
+	output ++ convert mDoc's returns to html
+] : string;
+
+p1 : parameter document := a parameter document with
+	$name := "param1",
+	$description := "I'm a this!",
+	$parameter := whole number;
+
+p2 : parameter document := a parameter document with
+	$name := "param2",
+	$description := "I'm a that!",
+	$parameter := string;
+
+ps ::= <p1,p2>;
+/* 	
+Print: "convert ps to html=";
+Print: primitive description of (convert ps to html);
+Print: "\n";*/
+
+r1 : return document := a return document with
+	$name := "return1",
+	$description := "Take what I give you!",
+	$returnType := whole number;
+/*
+Print: "convert r1 to html=";
+Print: primitive description of (convert r1 to html);
+Print: "\n";*/
+
+m1 : method document := a method document with
+	$name := "Strings_times_",
+	$description := "What I do is a secret, shhhhh...",
+	$returns := r1,
+	$parameters := ps,
+	$moduleName := "Nonsense",
+	$hasSemanticRestriction := false,
+	$semanticRestrictionModules := <>,
+	$section := "Test";
+
+Print: "generate html for method description section of=\n";
+Print: (generate html for method description section of m1);
+Print: "\n";
+
+/**
+ * Takes a method document object and generates html for a link on 
+ * a webpage.
+ *
+ * Parameters:
+ *    mDocs - an object of type method document
+ * Returns:
+ *    an html string that formats the method as a link for navigation  
+ *    on the html page.
+ */
+Method "generate html method link from_" is
+[
+	mDoc : method document
+|
+	"<a href=\"#" ++ mDoc's name ++ "\">" ++ mDoc's name ++ "</a><br />\n"
+] : string;
+
+/**
+ * Takes a tuple of method document objects and generates html for links on 
+ * a webpage.
+ *
+ * Parameters:
+ *    mDocs - a tuple of objects of type method document
+ * Returns:
+ *    an html string that formats the method for links creating a navigation  
+ *    bar for the method description section of the html page.
+ */
+Method "generate html navigation bar for methods from_" is
+[
+	mDocs : <method document…|1..>
+|
+	navBar : string := "<aside class=\"MethodList\">\n" ++ 
+		"<h1 class=\"SpecialHeading\">Methods</h1>\n" ++
+		"<nav class=\"OverFlowScroll\">\n";
+
+	For each mDocs do
+	[
+	 	mDoc : method document
+	 |
+	 	navBar := navBar ++ generate html method link from mDoc;
+	];
+
+	navBar ++ "</nav>\n" ++ "</aside>\n"
+] : string;
+
+/**
+ * Takes a tuple of method document objects and generates html for display on 
+ * a webpage.
+ *
+ * Parameters:
+ *    mDocs - a tuple of objects of type method document
+ * Returns:
+ *    an html string that formats the methods for the method navigation bar and 
+ *    the description section of the html page.
+ */
+Method "generate html for methods page from_" is
+[
+	mDocs : <method document…|1..>
+|
+	methodNavBar : string := 
+		generate html navigation bar for methods from mDocs;
+	outputDescriptions : string := "<h2 class=\"SpecialHeading\">" ++ 
+		mDocs[1]'s moduleName ++ "</h2>\n" ++ 
+		"<section class=\"MethodDescription\">";
+	
+	For each mDocs do 
+	[
+	 	mDoc : method document
+	 |
+	 	outputDescriptions := outputDescriptions ++ 
+	 		generate html for method description section of mDoc;
+	];
+
+	methodNavBar ++ outputDescriptions ++ "</section>\n" ++ "</body>"
+] : string;
+
+m2 : method document := a method document with
+$name := "Stuff_Whoops_",
+$description := "Break Stuff!...",
+$returns := r1,
+$parameters := ps,
+$moduleName := "Nonsense",
+$hasSemanticRestriction := false,
+$semanticRestrictionModules := <>,
+$section := "Test";
+
+Print: "generate html for method section of methods m1 and m2\n\n";
+Print: (generate html for methods page from <m1, m2>);
+Print: "\n";
