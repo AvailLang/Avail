@@ -85,10 +85,10 @@ Public method "<…«…=_»>«_»</…>" is
 
 ]: tagged element;
 
-q: tagged element := <b ferret="jello">"fish" <p>"boat"</p> "nope"</b>;
+q: tagged element := <b ferret="jello">"fish"<p>"boat"</p>"nope"</b>;
 Print: "q=";
 Print: primitive description of (q);
-Print: "\n";
+Print: "\n\n";
 
 Forward method "generate_" is [tagged element]→string;
 
@@ -109,16 +109,22 @@ Public method "generate_" is
  	[
  	 	att : <token, string…|2>
  	 |
- 	 	output := output ++ att[1]'s lexeme ++ "=\"" ++ att[2] ++ "\"";
+ 	 	output := output ++ " " ++att[1]'s lexeme ++ "=\"" ++ att[2] ++ "\"";
  	];
  	output := output ++ ">";
  	For each ate's elements do
  	[
  	 	element : any
  	 |
- 	 	if element's type = tagged element then [
- 	 		output := output ++ generate element;
- 	 	] else [ output := output ++ element;];
+ 	 	output := if element's type ⊆ tagged element then [
+ 	 		 output ++ generate cast element into [ e : tagged element | e]
+ 	 	] else if [ element's type ⊆ string ] then  [ 
+ 	 		output ++ cast element into [e : string | e]
+ 	 	] else [
+ 	 		output ++ primitive description of element
+ 	 	];
  	];
 	output ++ "</" ++ ate's tag's lexeme ++ ">"
 ]: string;
+
+Print: generate q;
