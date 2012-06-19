@@ -39,9 +39,10 @@ Uses
 	"Avail"
 Names
 	"<…«…=_»>«_»</…>",
-	"<… />",
+	
 	"abstract tagged element",
 	"empty tagged element",
+	"generate_",
 	"tagged element"
 Body
 
@@ -60,7 +61,7 @@ Public explicit class "tagged element" extends abstract tagged element
 	elements : <any…|>;
 
 /**
- * HTML tag constructor.
+ * Build a tagged element.
  *
  * Parameters:
  *	startElementName : token,
@@ -68,7 +69,7 @@ Public explicit class "tagged element" extends abstract tagged element
  *	contents : <any…|>,
  *	endElementName : token
  * Returns:
- *    string of HTML code
+ *    a tagged element
  */
 Public method "<…«…=_»>«_»</…>" is
 [
@@ -81,4 +82,43 @@ Public method "<…«…=_»>«_»</…>" is
 		tag := startElementName,
 		attributes := atts,
 		elements := contents
+
 ]: tagged element;
+
+q: tagged element := <b ferret="jello">"fish" <p>"boat"</p> "nope"</b>;
+Print: "q=";
+Print: primitive description of (q);
+Print: "\n";
+
+Forward method "generate_" is [tagged element]→string;
+
+/**
+ * Generate a string form of an tagged element
+ *
+ * Parameters:
+ *    ate - tagged element
+ * Returns:
+ *    string representation of a tagged element
+ */
+Public method "generate_" is
+[
+ 	ate : tagged element
+ |
+ 	output : string := "<" ++ ate's tag's lexeme;
+ 	For each ate's attributes do
+ 	[
+ 	 	att : <token, string…|2>
+ 	 |
+ 	 	output := output ++ att[1]'s lexeme ++ "=\"" ++ att[2] ++ "\"";
+ 	];
+ 	output := output ++ ">";
+ 	For each ate's elements do
+ 	[
+ 	 	element : any
+ 	 |
+ 	 	if element's type = tagged element then [
+ 	 		output := output ++ generate element;
+ 	 	] else [ output := output ++ element;];
+ 	];
+	output ++ "</" ++ ate's tag's lexeme ++ ">"
+]: string;
