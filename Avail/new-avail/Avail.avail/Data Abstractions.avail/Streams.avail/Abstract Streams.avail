@@ -50,9 +50,12 @@ Names
 	"empty-stream exception",
 	"stream",
 	"stream of_",
-	"_'s⁇element type",
 	"_'s⁇head method is_",
 	"_'s⁇tail method is_"
+
+	/* We don't include "_'s⁇element type" here because it already exists (as
+	 * a method on set types).
+	 */
 Body
 
 /**
@@ -69,7 +72,7 @@ Public method "element type" is
 /**
  * A stream is an immutable lazy list of arbitarily many elements.
  */
-Public class "stream" extends object
+Public explicit class "stream" extends object
 	with fields
 		element type : any's type;
 
@@ -145,7 +148,7 @@ Semantic restriction "_'s⁇head" is
 [
 	streamType : stream's type
 |
-	stream's element type's instance
+	streamType's element type's instance
 ];
 
 /**

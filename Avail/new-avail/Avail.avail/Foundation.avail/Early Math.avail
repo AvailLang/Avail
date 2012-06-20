@@ -1065,3 +1065,21 @@ Semantic restriction "_÷_" is type promotion function for
 	];
 	a ÷ b
 ];
+
+Abstract method "_→extended integer" is
+	function accepting <number> and returning extended integer;
+
+/**
+ * Answer the argument.
+ * 
+ * Parameters:
+ *    anExtendedInteger - An extended integer.
+ * Returns:
+ *    The argument.
+ */
+Method "_→extended integer" is
+[
+	anExtendedInteger : extended integer
+|
+	anExtendedInteger
+] : extended integer;

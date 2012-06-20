@@ -1,0 +1,174 @@
+/*
+ * Collection Streams.avail
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Collection Streams"
+Versions
+	"dev"
+Uses
+	"Abstract Streams",
+	"Bootstrap",
+	"Foundation"
+Names
+	"stream over_"
+Body
+
+/* TODO: [TLS] Remove these constants once a macro is available for "$…". */
+collection ::= $collection;
+index ::= $index;
+
+/**
+ * A tuple stream operates over the elements of a tuple. It is finite by
+ * definition, since tuples are finite.
+ */
+Class "tuple stream" extends stream
+	with fields
+		element type : any's type,
+		collection : <any…|>,
+		index : natural number
+	with reconstructors
+		(element type, index);
+
+Method "_is empty" is
+[
+	aStream : tuple stream
+|
+	aStream's index > |aStream's collection|
+] : boolean;
+
+tuple stream's head method is
+[
+	aStream : tuple stream
+|
+	aStream's collection[aStream's index]
+] : any;
+
+tuple stream's tail method is
+[
+	aStream : tuple stream
+|
+	nextIndex ::= aStream's index + 1;
+	theTuple ::= aStream's collection;
+	aStream's
+		element type := ∪ theTuple's type[nextIndex..|theTuple|],
+		index := nextIndex
+] : tuple stream;
+
+/**
+ * Construct and answer a stream that produces all elements of the specified
+ * tuple.
+ * 
+ * Parameters:
+ *    aTuple - A tuple.
+ * Returns:
+ *    The requested stream.
+ */
+Public stable method "stream over_" is
+[
+	aTuple : <any…|>
+|
+	a tuple stream with
+		element type := ∪ aTuple's type[1..|aTuple|],
+		collection := aTuple,
+		index := 1
+] : stream of any;
+
+Semantic restriction "stream over_" is
+[
+	tupleType : <any…|>'s type
+|
+	limit ::= ⎡tupleType⎤ min (|tupleType's leading types| + 1);
+	extend tuple stream with
+		element type : ∪ tupleType[1..limit]'s type,
+		collection : tupleType,
+		index : 1's type
+];
+
+/**
+ * Construct and answer a stream that produces all elements of the specified
+ * set, but not in any particular order. This operation is unstable and two
+ * invocations with the same arguments may produce differently ordered streams.
+ * 
+ * Parameters:
+ *    aSet - A set.
+ * Returns:
+ *    The requested stream.
+ */
+Public method "stream over_" is
+[
+	aSet : {any|}
+|
+	a tuple stream with
+		element type := aSet's type's element type,
+		collection := aSet→tuple,
+		index := 1
+] : stream of any;
+
+Semantic restriction "stream over_" is
+[
+	setType : {any|}'s type
+|
+	extend tuple stream with
+		element type : setType's element type's type,
+		collection : <<>, setType's element type… | ||setType||>,
+		index : 1's type
+];
+
+/**
+ * Construct and answer a stream that produces all bindings of the specified
+ * map, but not in any particular order. This operation is unstable and two
+ * invocations with the same arguments may produce differently ordered streams.
+ * 
+ * Parameters:
+ *    aMap - A map.
+ * Returns:
+ *    The requested stream.
+ */
+Public method "stream over_" is
+[
+	aMap : {any→any|}
+|
+	a tuple stream with
+		element type := <aMap's type's key type, aMap's type's value type…|2>,
+		collection := aMap's bindings,
+		index := 1
+] : stream of any;
+
+Semantic restriction "stream over_" is
+[
+	mapType : {any→any|}'s type
+|
+	elementType ::= <mapType's key type, mapType's value type…|2>;
+	extend tuple stream with
+		element type : elementType's type,
+		collection : <<>, elementType… | ||mapType||>,
+		index : 1's type
+];

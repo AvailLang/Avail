@@ -1,5 +1,5 @@
 /*
- * Integer Streams.avail
+ * Counting Streams.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Integer Streams"
+System Module "Counting Streams"
 Versions
 	"dev"
 Uses
@@ -38,8 +38,8 @@ Uses
 	"Bootstrap",
 	"Foundation"
 Names
-	"stream from_to_",
-	"stream from_to_by_"
+	"counting stream from_to_",
+	"counting stream from_to_by_"
 Body
 
 /* TODO: [TLS] Remove these constants once a macro is available for "$…". */
@@ -48,48 +48,71 @@ step ::= $step;
 maximum ::= $maximum;
 
 /**
- * An integer stream is an immutable lazy list of arbitarily many integers. It
- * tracks the next (unanswered) value, the step value, and the maximum value.
+ * A counting number stream is an immutable lazy list of arbitarily many
+ * numbers, each of which is a fixed distance from its neighbors.
  */
-Class "integer stream" extends stream
+Class "counting number stream" extends stream
+	with fields
+		element type : number's type,
+		reconstructible next : number,
+		step : number,
+		maximum : number
+	with reconstructors
+		(element type, next);
+
+/**
+ * An counting integer stream is an immutable lazy list of arbitrarily many
+ * integers, each of which is a fixed distance from its neighbors.
+ */
+Class "counting integer stream" extends counting number stream
 	with fields
 		element type : integer's type,
-		$next : integer,
-		$step : integer,
-		$maximum : extended integer
-	with reconstructors
-		(element type, $next);
+		next : integer,
+		step : integer,
+		maximum : extended integer;
 
 Method "_is empty" is
 [
-	aStream : integer stream
+	aStream : counting number stream
 |
-	aStream's next > aStream's maximum
+	if aStream's step ≥ 0 then
+	[
+		aStream's next > aStream's maximum
+	]
+	else
+	[
+		aStream's next < aStream's maximum
+	]
 ] : boolean;
 
-integer stream's head method is
+counting number stream's head method is
 [
-	aStream : integer stream
+	aStream : counting number stream
 |
 	aStream's next
-] : integer;
+] : number;
 
-integer stream's tail method is
+counting number stream's tail method is
 [
-	aStream : integer stream
+	aStream : counting number stream
 |
 	nextValue ::= aStream's next + aStream's step;
-	/* When the stream is exhausted, the element type will become ⊥, meaning
-	 * that the result will be an instance of `empty stream`.
-	 */
+	aStream's next := nextValue
+] : counting number stream;
+
+counting integer stream's tail method is
+[
+	aStream : counting integer stream
+|
+	nextValue ::= aStream's next + aStream's step;
 	aStream's
 		element type := (nextValue - 1..aStream's maximum + 1),
 		next := nextValue
-] : integer stream;
+] : counting integer stream;
 
 Semantic restriction "For each_do_" is
 [
-	streamType : integer stream's type,
+	streamType : counting integer stream's type,
 	actionType : [⊥]→⊤'s type
 |
 	return ::= actionType's return type;
@@ -144,27 +167,100 @@ Semantic restriction "For each_do_" is
  * Returns:
  *    The requested stream.
  */
-Public method "stream from_to_" is
+Public stable method "counting stream from_to_" is
 [
 	start : integer,
 	end : extended integer
 |
-	an integer stream with
+	an counting integer stream with
 		element type := (start - 1..end + 1),
 		next := start,
 		step := 1,
 		maximum := end
-] : stream of extended integer;
+] : stream of integer;
 
-Semantic restriction "stream from_to_" is
+Semantic restriction "counting stream from_to_" is
 [
 	startType : integer's type,
 	endType : extended integer's type
 |
-	extend integer stream with
+	extend counting integer stream with
 		element type : (⎣startType⎦ - 1..⎡endType⎤ + 1)'s type,
 		next : startType,
 		step : 1's type,
+		maximum : endType
+];
+
+/**
+ * Construct and answer a stream that lazily produces values between `start` and
+ * `end`. For each value <em>v</em> produced, there is some <em>n ∈ number</em>
+ * such that:
+ *
+ *    aStream ::= stream from start to end by step;
+ *    ...
+ *    v ::= aStream's head;
+ *    Assert: v = start + n × step;
+ *
+ * Note that `end` is not guaranteed to be the last value produced by the
+ * stream. It is only guaranteed that no larger values than `end` will be
+ * answered.
+ * 
+ * Parameters:
+ *    start - The start value, inclusive. This is the first value that will be
+ *       answered by the stream.
+ *    end - The end value, inclusive. If `delta ≥ 0`, then no values larger than
+ *       this will be answered by the stream. If `delta < 0`, then no values
+ *       smaller than this will be answered by the stream.
+ *    delta - The amount by which successive values anwered by the stream will
+ *       differ.
+ * Returns:
+ *    The requested stream.
+ */
+Public stable method "counting stream from_to_by_" is
+[
+	start : number,
+	end : number,
+	delta : number
+|
+	elementType ::= cast start + delta into
+		[ t : double | double ],
+		[ t : float | float ],
+		[ t : extended integer | extended integer ]
+		else [ number];
+	a counting number stream with
+		element type := elementType,
+		next := start,
+		step := delta,
+		maximum := end
+] : stream of number;
+
+Semantic restriction "counting stream from_to_by_" is
+[
+	startType : number's type,
+	endType : number's type,
+	deltaType : number's type
+|
+	elementType ::=
+		if startType ⊆ double ∨ [deltaType ⊆ double] then
+		[
+			double
+		]
+		else if [startType ⊆ float ∨ [endType ⊆ float]] then
+		[
+			float
+		]
+		else if [startType⊆extended integer ∧ [endType⊆extended integer]] then
+		[
+			extended integer
+		]
+		else
+		[
+			number
+		];
+	extend counting number stream with
+		element type : elementType's type,
+		next : startType,
+		step : deltaType,
 		maximum : endType
 ];
 
@@ -185,35 +281,37 @@ Semantic restriction "stream from_to_" is
  * Parameters:
  *    start - The start value, inclusive. This is the first value that will be
  *       answered by the stream.
- *    end - The end value, inclusive. No values larger than this will be
- *       answered by the stream.
+ *    end - The end value, inclusive. If `delta ≥ 0`, then no values larger than
+ *       this will be answered by the stream. If `delta < 0`, then no values
+ *       smaller than this will be answered by the stream.
  *    delta - The amount by which successive values anwered by the stream will
  *       differ.
  * Returns:
  *    The requested stream.
  */
-Public method "stream from_to_by_" is
+Public stable method "counting stream from_to_by_" is
 [
 	start : integer,
-	end : extended integer,
+	end : number,
 	delta : integer
 |
-	an integer stream with
-		element type := (start - 1..end + 1),
+	integralEnd ::= end→extended integer;
+	an counting integer stream with
+		element type := (start - 1..integralEnd + 1),
 		next := start,
 		step := delta,
-		maximum := end
+		maximum := integralEnd
 ] : stream of integer;
 
-Semantic restriction "stream from_to_by_" is
+Semantic restriction "counting stream from_to_by_" is
 [
 	startType : integer's type,
 	endType : extended integer's type,
-	stepType : integer's type
+	deltaType : integer's type
 |
-	extend integer stream with
+	extend counting integer stream with
 		element type : (⎣startType⎦ - 1..⎡endType⎤ + 1)'s type,
 		next : startType,
-		step : stepType,
+		step : deltaType,
 		maximum : endType
 ];

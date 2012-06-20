@@ -407,19 +407,74 @@ Private method "generate and install_accessor for_" is
 |
 	objectMap ::= objectType→map;
 	methodName ::= accessor name for fieldAtom;
+	methodAtom ::= atom for methodName;
 	fieldType ::= objectMap[fieldAtom];
-	classFunctionType ::= [objectType's type]→(fieldType's type);
-	Method methodName is
-		new classFunctionType
-		applying [ x : object meta | x→map[fieldAtom] ];
-	instanceFunctionType ::= [objectType]→fieldType;
-	Method methodName is
-		new instanceFunctionType
-		applying [ x : object | x→map[fieldAtom] ];
-	restrictionFunctionType ::= [objectType's type]→any meta;
-	Semantic restriction methodName is
-		new restrictionFunctionType
-		applying [ x : object meta | x→map[fieldAtom] ];
+	defineClassAccessor : boolean := false;
+	defineInstanceAccessor : boolean := false;
+	/* If the method doesn't exist at all, then define it and install
+	 * accessors.
+	 */
+	If ¬method exists named methodAtom then
+	[
+		defineClassAccessor := true;
+		defineInstanceAccessor := true;
+	]
+	/* If the method does already exist, then install accessors for the object
+	 * type iff they are not already present.
+	 */
+	else
+	[
+		theMethod ::= method for methodAtom;
+		defineClassAccessor :=
+			¬theMethod has implementation for <objectType's type>;
+		defineInstanceAccessor :=
+			¬theMethod has implementation for <objectType>;
+	];
+	If defineClassAccessor then
+	[
+		Method methodName is
+			new [objectType's type]→(fieldType's type)
+			applying [ x : object meta | x→map[fieldAtom] ];
+		/* Install a semantic restriction if one does not already exist for this
+		 * signature.
+		 */
+		theMethod ::= method for methodAtom;
+		restrictions ::= semantic restrictions for theMethod
+			given <objectType's type's type>;
+		needToRestrict ::= ¬any of restrictions satisfies
+			[ r : […]→type | r's type[1] = (objectType's type's type) ];
+		If needToRestrict then
+		[
+			Semantic restriction methodName is
+				new [objectType's type's type]→(any meta's type)
+				applying
+				[
+					x : object meta's type
+				|
+					(x's instance→map[fieldAtom])'s type
+				];
+		];
+	];
+	If defineInstanceAccessor then
+	[
+		Method methodName is
+			new [objectType]→fieldType
+			applying [ x : object | x→map[fieldAtom] ];
+		/* Install a semantic restriction if one does not already exist for this
+		 * signature.
+		 */
+		theMethod ::= method for methodAtom;
+		restrictions ::=
+			semantic restrictions for theMethod given <objectType's type>;
+		needToRestrict ::= ¬any of restrictions satisfies
+			[ r : […]→type | r's type[1] = (objectType's type) ];
+		If needToRestrict then
+		[
+			Semantic restriction methodName is
+				new [objectType's type]→any meta
+				applying [ x : object meta | x→map[fieldAtom] ];
+		];
+	];
 ] : ⊤;
 
 /**
@@ -641,8 +696,7 @@ is
 	 */
 	subtype's name := className;
 	Method className is new []→(subtype's type) applying [ subtype ];
-	newFieldAtoms ::= fieldAtoms→set \ supertype→map's keys;
-	For each newFieldAtoms do
+	For each fieldAtoms do
 	[
 		fieldAtom : atom
 	|

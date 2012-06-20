@@ -377,8 +377,7 @@ extends AbstractEnumerationTypeDescriptor
 		// of range).
 		final AvailObject tuple = getInstance(object);
 		assert tuple.isTuple();
-		assert startIndex <= endIndex;
-		if (endIndex <= 0)
+		if (startIndex > endIndex)
 		{
 			return BottomTypeDescriptor.bottom();
 		}

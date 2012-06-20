@@ -70,7 +70,7 @@ Names
 	"Until_do_",
 	"While_",
 	"While_do_",
-	"Cast|cast_into«_‡or»«else_»",
+	"Cast|cast_into«_‡,»«else_»",
 	"Choose|choose_from_where«_is_‡,»«,else_»",
 	"here",
 	"If|if_then_«else if_then_»«else_»",
@@ -1561,7 +1561,7 @@ Semantic restriction "Do_until_alternate with_" is
  * Returns:
  *    The result of whatever function is applied.
  */
-Public method "Cast|cast_into«_‡or»«else_»" is
+Public method "Cast|cast_into«_‡,»«else_»" is
 [
 	value : any,
 	caseTuple : <[⊥]→⊤…|2..>,
@@ -1598,7 +1598,7 @@ Public method "Cast|cast_into«_‡or»«else_»" is
  * used as a value-producing expression. If any case is unnecessary or invalid,
  * then reject the current parse.
  */
-Semantic restriction "Cast|cast_into«_‡or»«else_»" is
+Semantic restriction "Cast|cast_into«_‡,»«else_»" is
 [
 	valueType : any meta,
 	caseTuple : <[⊥]→⊤…|2..>'s type,

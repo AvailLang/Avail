@@ -35,5 +35,6 @@ Versions
 	"dev"
 Extends
 	"Abstract Streams",
-	"Integer Streams"
+	"Collection Streams",
+	"Counting Streams"
 Body

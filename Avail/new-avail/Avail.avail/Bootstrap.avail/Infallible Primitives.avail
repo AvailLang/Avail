@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.06.17 01:11:45.330 -0500
+ * * Last Generated On: 2012.06.19 12:52:29.910 -0500
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -155,6 +155,7 @@ Uses
 		"function accepting_and returning_",
 		"integer range from_(inclusive=_)to_(inclusive=_)",
 		"ln_",
+		"method exists named_",
 		"milliseconds since the Epoch",
 		"new atom_",
 		"new_[_]",
@@ -1952,6 +1953,21 @@ Method "`|_'s⁇parameters`|" is
 |
 	Primitive 223;
 ] : whole number;
+
+/**
+ * Is there a method bound to the specified name?
+ *
+ * Parameters:
+ *    trueName - An atom.
+ * Returns:
+ *    `true` if `trueName` names a method, `false` otherwise.
+ */
+Method "method exists named_" is
+[
+	trueName : atom
+|
+	Primitive 230;
+] : boolean;
 
 /**
  * Answer the public names introduced by the specified module.

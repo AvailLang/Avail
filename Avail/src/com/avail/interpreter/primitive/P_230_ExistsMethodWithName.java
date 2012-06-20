@@ -1,5 +1,5 @@
-/*
- * Origin.avail
+/**
+ * P_230_ExistsMethodWithName.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,24 +30,49 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * GENERATED FILE
- * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.06.19 12:52:29.879 -0500
+package com.avail.interpreter.primitive;
+
+import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.interpreter.Primitive.Flag.*;
+import java.util.List;
+import com.avail.annotations.NotNull;
+import com.avail.descriptor.*;
+import com.avail.interpreter.*;
+
+/**
+ * <strong>Primitive 230</strong>: Does a {@linkplain MethodDescriptor method}
+ * exist with the specified {@linkplain AtomDescriptor true name}?
  *
- * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
+public final class P_230_ExistsMethodWithName
+extends Primitive
+{
+	/**
+	 * The sole instance of this primitive class. Accessed through reflection.
+	 */
+	public final @NotNull static Primitive instance =
+		new P_230_ExistsMethodWithName().init(1, CannotFail, CanFold);
 
-System Module "Origin"
-Versions
-	"dev"
-Extends
-Uses
-Names
-	"Method_is_",
-	"special object_"
-Pragma
-	"bootstrapDefiningMethod=Method_is_",
-	"bootstrapSpecialObject=special object_"
-Body
+	@Override
+	public @NotNull Result attempt (
+		final @NotNull List<AvailObject> args,
+		final @NotNull Interpreter interpreter)
+	{
+		assert args.size() == 1;
+		final AvailObject trueName = args.get(0);
+		final AvailObject method =
+			interpreter.runtime().methodsAt(trueName);
+		return interpreter.primitiveSuccess(AtomDescriptor.objectFromBoolean(
+			!method.equalsNull()));
+	}
 
+	@Override
+	protected @NotNull AvailObject privateBlockTypeRestriction ()
+	{
+		return FunctionTypeDescriptor.create(
+			TupleDescriptor.from(
+				ATOM.o()),
+			EnumerationTypeDescriptor.booleanObject());
+	}
+}

@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.06.17 01:11:45.372 -0500
+ * * Last Generated On: 2012.06.19 12:52:29.942 -0500
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -70,6 +70,7 @@ Uses
 		"_[_]→_",
 		"_`#_:_(literals=_,`#locals_,`#outers_,stack depth=_)",
 		"_`?=_",
+		"_has implementation for_",
 		"_mod_",
 		"_×_",
 		"_÷_",
@@ -838,6 +839,27 @@ Method "Abstract method_is_" is
 	Primitive 227 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
+
+/**
+ * Does the specified method have a unique implementation for the given tuple
+ * of parameter types?
+ *
+ * Parameters:
+ *    aMethod - A method.
+ *    parameterTypes - A tuple of parameter types. This must agree in length
+ *       with the number of parameters expected by the method.
+ * Returns:
+ *    `true` if `aMethod` has a unique implementation for the specified parameter
+ *    types, `false` otherwise.
+ */
+Method "_has implementation for_" is
+[
+	aMethod : method,
+	parameterTypes : tuple of any meta
+|
+	Primitive 229 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : boolean;
 
 /**
  * Answer the module currently undergoing compilation.

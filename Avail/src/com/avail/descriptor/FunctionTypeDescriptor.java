@@ -385,7 +385,7 @@ extends TypeDescriptor
 		final @NotNull AvailObject argTypes)
 	{
 		final AvailObject tupleType = object.argsTupleType();
-		for (int i = 1, end = object.numArgs(); i <= end; i++)
+		for (int i = 1, end = argTypes.tupleSize(); i <= end; i++)
 		{
 			if (!argTypes.tupleAt(i).isSubtypeOf(tupleType.typeAtIndex(i)))
 			{

@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.06.17 01:11:45.325 -0500
+ * * Last Generated On: 2012.06.19 12:52:29.907 -0500
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -138,6 +138,7 @@ Names
 	"_bit∧_",
 	"_bit∨_",
 	"_bit⊕_",
+	"_has implementation for_",
 	"_is a primitive",
 	"_is unassigned",
 	"_mod_",
@@ -185,6 +186,7 @@ Names
 	"ln_",
 	"mark for_character|characters of read ahead",
 	"message_contains groups",
+	"method exists named_",
 	"method for_",
 	"method_._(«_‡,»)(fail with_)",
 	"milliseconds since the Epoch",
