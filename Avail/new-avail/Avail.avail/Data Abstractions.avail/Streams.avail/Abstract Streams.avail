@@ -46,6 +46,8 @@ Extends
 Uses
 	"Foundation"
 Names
+	"an empty stream",
+	"decorated stream",
 	"element type",
 	"empty stream",
 	"empty-stream exception",
@@ -79,7 +81,7 @@ Public method "element type" is [ elementType ];
  * Returns:
  *    The requested field atom.
  */
-Method "decorated stream" is [ decoratedStream ];
+Public method "decorated stream" is [ decoratedStream ];
 
 /**
  * A stream is an immutable lazy list of arbitarily many elements.
@@ -197,12 +199,12 @@ Semantic restriction "_'s⁇head method is_" is
 		Reject parse, expected:
 			"function's parameter types to be statically known"
 	];
-	If implementationType[1] ≠ streamMeta's instance then
+	If ¬implementationType[1] ⊆ streamMeta's instance then
 	[
 		Reject parse, expected:
 			"function parameter type ("
 			++ “implementationType[1]”
-			++ ") to equal the stream type ("
+			++ ") to be a subtype of the stream type ("
 			++ “streamMeta's instance”
 			++ ")"
 	];
@@ -290,12 +292,12 @@ Semantic restriction "_'s⁇tail method is_" is
 		Reject parse, expected:
 			"function's parameter type to be statically known"
 	];
-	If implementationType[1] ≠ streamMeta's instance then
+	If ¬implementationType[1] ⊆ streamMeta's instance then
 	[
 		Reject parse, expected:
 			"function parameter type ("
 			++ “implementationType[1]”
-			++ ") to equal the stream type ("
+			++ ") to be a subtype of the stream type ("
 			++ “streamMeta's instance”
 			++ ")"
 	];
@@ -365,6 +367,16 @@ Semantic restriction "_'s⁇tail" is
 	Reject parse, expected:
 		"an empty stream not to be asked for its tail"
 ];
+
+theEmptyStream ::= an empty stream with element type := ⊥;
+
+/**
+ * Answer an empty stream.
+ * 
+ * Returns:
+ *    An empty stream.
+ */
+Public method "an empty stream" is [ theEmptyStream ];
 
 /* Seal the public operations. */
 Seal method "_is empty" at <empty stream>;
