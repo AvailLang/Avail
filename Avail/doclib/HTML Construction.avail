@@ -38,34 +38,63 @@ Extends
 Uses
 	"Avail"
 Names
+	"<…«…=_»/>",
+	"<!DOCTYPE html>_",
 	"<…«…=_»>«_»</…>",
-	
 	"abstract tagged element",
 	"empty tagged element",
 	"generate_",
-	"tagged element"
+	"tagged element",
+	"heading tagged element"
 Body
 
 attributes ::= $attributes;
 tag ::= $tag;
 Public explicit class "abstract tagged element" extends object
 	with fields
-		tag : token,
-		attributes : <<token, string…|2>…|>;
+		tag : string,
+		attributes : <any…|>;
 
-Public explicit class "empty tagged element" extends abstract tagged element;
+Public explicit class "empty tagged element" extends abstract tagged element
+	with fields
+		attributes : <<string…|2>…|>;
 
 elements ::= $elements;
 Public explicit class "tagged element" extends abstract tagged element
 	with fields
-	elements : <any…|>;
+		attributes : <<string…|2>…|>,
+		elements : <any…|>;
+
+page ::= $page;
+Public explicit class "heading tagged element" extends abstract tagged element
+	with fields
+		page : abstract tagged element;
+
+/**
+ * Build a heading tagged element.
+ *
+ * Parameters:
+ *	toks : <token…|3>,
+ *  ate : abstract tagged element
+ * Returns:
+ *    a heading tagged element
+ */
+Public method "<!DOCTYPE html>_" is
+[
+	ate : abstract tagged element
+|
+	a heading tagged element with
+		tag := "!DOCTYPE html",
+		page := ate,
+		attributes := <>
+]: heading tagged element;
 
 /**
  * Build a tagged element.
  *
  * Parameters:
  *	startElementName : token,
- *	attributes : <<token, string…|2>…|>,
+ *	atts : <<token, string…|2>…|>,
  *	contents : <any…|>,
  *	endElementName : token
  * Returns:
@@ -78,53 +107,229 @@ Public method "<…«…=_»>«_»</…>" is
 	contents : <any…|>,
 	endElementName : token
 |
+	modAtts : <<string…|2>…|> := <>;
+	
+	For each atts do 
+	[
+	 	att : <token, string…|2>
+	 |
+	 	modAtts := modAtts ++ <<att[1]'s lexeme,att[2]>>;
+	];
+	
 	a tagged element with
-		tag := startElementName,
-		attributes := atts,
+		tag := startElementName's lexeme,
+		attributes := modAtts,
 		elements := contents
 
 ]: tagged element;
 
-q: tagged element := <b ferret="jello">"fish"<p>"boat"</p>"nope"</b>;
-Print: "q=";
-Print: primitive description of (q);
-Print: "\n\n";
+/**
+ * Strengthen method.
+ *
+ * Parameters:
+ *	startElementName : token's type,
+ *	atts : <<token, string…|2>…|>'s type,
+ *	contents : <any…|>'s type,
+ *	endElementName : token's type
+ * Returns:
+ *    ⊤
+ */
+Semantic restriction "<…«…=_»>«_»</…>" is
+[
+	startElementNameType : token's type,
+	attsType : <<token, string…|2>…|>'s type,
+	contentsType : <any…|>'s type,
+	endElementNameType : token's type
+|
+	open ::= startElementNameType's instance's lexeme;
+	close ::= endElementNameType's instance's lexeme;
+	
+	if startElementNameType ⊆ literal token then
+	[
+	 	Reject parse, expected:
+		 "\nIn the method call, <…«…=_»>«_»</…>, the token, " ++ 
+		 (primitive description of open) ++ 
+		 	", is a literal token.\n" ++ 
+		 	"The use of literal tokens in <…«…=_»>«_»</…> is not allowed.\n\n"
+	] else if [open ≠ close] then
+	[	 	Reject parse, expected:
+		 "\nIn the method call, <…«…=_»>«_»</…>, the token, " ++ 
+		 	(primitive description of open) ++
+		 	", used in the open tag does not match the token, " ++ 
+		 	(primitive description of close) 
+		 	++ " used in the closing tag.\n\n"
+	] else [
+		⊤
+	]
+];
 
+/**
+ * Build an empty tagged element.
+ *
+ * Parameters:
+ *	startElementName : token
+ *  atts : <<token, string…|2>…|>,
+ * Returns:
+ *    a tagged element
+ */
+Public method "<…«…=_»/>" is
+[
+	startElementName : token,
+	atts : <<token, string…|2>…|>
+|
+	modAtts : <<string…|2>…|> := <>;
+	
+	For each atts do 
+	[
+	 	att : <token, string…|2>
+	 |
+	 	modAtts := modAtts ++ <<att[1]'s lexeme,att[2]>>;
+	];
+
+	an empty tagged element with
+		tag := startElementName's lexeme,
+		attributes := modAtts
+]: empty tagged element;
+
+Abstract method "generate_" is [abstract tagged element]→string;
+Forward method "generate_" is [empty tagged element]→string;
 Forward method "generate_" is [tagged element]→string;
 
 /**
  * Generate a string form of an tagged element
  *
  * Parameters:
- *    ate - tagged element
+ *    ete - empty tagged element
  * Returns:
  *    string representation of a tagged element
  */
 Public method "generate_" is
 [
- 	ate : tagged element
+ 	ete : empty tagged element
  |
- 	output : string := "<" ++ ate's tag's lexeme;
- 	For each ate's attributes do
+ 	output : string := "<" ++ ete's tag;
+ 	For each ete's attributes do
  	[
- 	 	att : <token, string…|2>
+ 	 	att : <string…|2>
  	 |
- 	 	output := output ++ " " ++att[1]'s lexeme ++ "=\"" ++ att[2] ++ "\"";
+ 	 	output := output ++ " " ++att[1] ++ "=\"" ++ att[2] ++ "\"";
+ 	];
+ 	output ++ " />"
+]: string;
+
+/**
+ * Generate a string form of an tagged element
+ *
+ * Parameters:
+ *    te - tagged element
+ * Returns:
+ *    string representation of a tagged element
+ */
+Public method "generate_" is
+[
+ 	te : tagged element
+ |
+ 	output : string := "<" ++ te's tag;
+ 	For each te's attributes do
+ 	[
+ 	 	att : <string…|2>
+ 	 |
+ 	 	output := output ++ " " ++att[1] ++ "=\"" ++ att[2] ++ "\"";
  	];
  	output := output ++ ">";
- 	For each ate's elements do
+ 	For each te's elements do
  	[
  	 	element : any
  	 |
  	 	output := if element's type ⊆ tagged element then [
- 	 		 output ++ generate cast element into [ e : tagged element | e]
+ 	 		 output ++ "\n" ++ "	" ++ generate cast element into 
+ 	 		 	[ e : tagged element | e]
+ 	 	] else if [ element's type ⊆ empty tagged element ] then  [
+ 	 		output ++ "\n" ++ "	" ++ generate cast element into 
+ 	 			[ e : empty tagged element | e]
  	 	] else if [ element's type ⊆ string ] then  [ 
  	 		output ++ cast element into [e : string | e]
  	 	] else [
  	 		output ++ primitive description of element
  	 	];
  	];
-	output ++ "</" ++ ate's tag's lexeme ++ ">"
+	output ++ "</" ++ te's tag ++ ">"
 ]: string;
 
-Print: generate q;
+
+/**
+ * Generate HTML text from a heading tagged element
+*
+* Parameters:
+*    hte - heading tagged element
+* Returns:
+*    string representation of an HTML page code
+*/
+Public method "generate_" is
+[
+	hte : heading tagged element
+|
+	"<" ++ hte's tag ++ ">\n" ++ generate hte's page
+]: string;
+
+t::= <a>"str"</a>;
+
+z ::=
+	<!DOCTYPE html>
+	<html lang="en">	
+		<head>
+			<link href="mystyles.css" rel="stylesheet" />
+			<meta charset="UTF-8" />
+			<title>"Title One"</title>
+		</head>
+		<body>
+			<h1 class="SpecialHeading">"Ima Bigol Heading"</h1>
+			<p>"The text is here!"<br />
+				"This is "<em class="TextColor">"emphatic stuff"</em> ", Yo!"<br />
+				<strong class="BigGaramond">"Strong Stuff"</strong><br />
+				<b class="TableStyle">"bold stuff"</b><br />
+				<i>"italic stuff"</i>
+			</p>
+			<hr />
+			<article>
+				<header>
+					<hgroup>
+						<h1 class="SpecialHeading">"Bable"</h1>
+					</hgroup>
+				</header>
+				<aside class="MyAside">
+					<h1>"This is a link:"</h1>
+					<section>
+						<a href="linktome.html">"Ima Link!"</a>
+						<ol>
+							<li>"First Item"</li>
+							<li>"First Item"</li>
+							<li>"First Item"</li>
+							<li>"First Item"</li>
+							<li>"First Item"</li>
+							<li>"First Item"</li>
+							<li>"First Item"</li>
+							<li>"First Item"</li>
+							<li>"First Item"</li>
+							<li>"First Item"</li>
+							<li>"First Item"</li>
+							<li>"Second Item"</li>
+							<li>"First Item"</li>
+							<li>"First Item"</li>
+							<li>"First Item"</li>
+							<li>"First Item"</li>
+							<li>"First Item"</li>
+							<li>"First Item"</li>
+							<li>"Third Item"</li>
+						</ol>
+					</section>
+				</aside>
+				"I am just writing stuff so the area fills up.  There is
+nothing particularly meaninful to be had here, I just want to
+make this damn aside do something more than just this.  The
+question is will this be enough text to do something interesting.
+I guess we can only wait and see."
+			</article>
+		</body>
+	</html>;
+Print: generate z;
