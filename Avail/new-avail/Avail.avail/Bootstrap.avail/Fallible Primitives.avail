@@ -1,0 +1,1478 @@
+/*
+ * Fallible Primitives.avail
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/*
+ * GENERATED FILE
+ * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
+ * * Last Versioned As: $$Revision$$
+ *
+ * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
+ */
+
+System Module "Fallible Primitives"
+Versions
+	"dev"
+Extends
+Uses
+	"Origin",
+	"Special Objects",
+	"Primitives" =
+	(
+		"Abstract method_is_",
+		"Exit_with_",
+		"Forward method_is_",
+		"Grammatical restriction_is_",
+		"Invoke|invoke_with_",
+		"Macro_is_",
+		"Publish new name:_",
+		"Raise_",
+		"Restart_",
+		"Restart_with_",
+		"Seal method_at_",
+		"Semantic restriction_is_",
+		"_'s⁇instances",
+		"_+_",
+		"_-_",
+		"_._→variable",
+		"_<«_‡,»>",
+		"_[_.._]",
+		"_[_]",
+		"_[_]:=_",
+		"_[_]→_",
+		"_`#_:_(literals=_,`#locals_,`#outers_,stack depth=_)",
+		"_`?=_",
+		"_has implementation for_",
+		"_mod_",
+		"_×_",
+		"_÷_",
+		"_∈_",
+		"`|message_'⁇parameters`|",
+		"atom for_",
+		"constructor_<«_‡,»>(fail with_)",
+		"current module",
+		"eject_",
+		"function from_and_",
+		"generate_",
+		"implementation of_for_",
+		"mark for_character|characters of read ahead",
+		"message_contains groups",
+		"method for_",
+		"method_._(«_‡,»)(fail with_)",
+		"next character",
+		"reset to mark",
+		"send_with_:_",
+		"seq“_”",
+		"static method_._(«_‡,»)(fail with_)",
+		"swap_and_",
+		"termination requested",
+		"try_catch_",
+		"“(_:=_)”",
+		"“[_`|Primitive__]:_^_”",
+		"“_:=_”",
+		"“↑_”",
+		"↓_",
+		"∪_[_.._]"
+	)
+Names
+	"early failure function",
+	"Set early failure function to_"
+Body
+
+Method "Private fail primitive with_" is
+[
+	value : any
+|
+	Primitive 256;
+] : ⊥;
+
+_fail_primitive : primitive failure function :=
+	[
+		arg1 : any
+	|
+		Private fail primitive with arg1
+	] : ⊥;
+
+Method "early failure function" is
+[
+	_fail_primitive
+] : primitive failure function;
+
+Method "Set early failure function to_" is
+[
+	arg1 : primitive failure function
+|
+	_fail_primitive := arg1;
+] : ⊤;
+
+Method "Private invoke_with«_‡,»" is
+[
+	aFunction : function,
+	arguments : tuple
+|
+	Primitive 40 (failureCode : natural number);
+	Private fail primitive with failureCode
+] : ⊤;
+
+Method "Private semantic restriction_is_" is
+[
+	methodName : string,
+	restriction : semantic restriction function
+|
+	Primitive 248 (failureCode : natural number);
+	Private fail primitive with failureCode
+] : ⊤;
+
+Private semantic restriction "Private invoke_with«_‡,»" is 
+[
+	aFunction : function meta,
+	arguments : tuple meta
+|
+	⊥
+];
+
+/**
+ * Compute and answer the sum of the arguments.
+ *
+ * Parameters:
+ *    augend - The augend.
+ *    addend - The addend.
+ * Returns:
+ *    The sum of the augend and the addend.
+ */
+Method "_+_" is
+[
+	augend : number,
+	addend : number
+|
+	Primitive 1 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : number;
+
+/**
+ * Compute and answer the difference of the arguments.
+ *
+ * Parameters:
+ *    minuend - The minuend.
+ *    subtrahend - The subtrahend.
+ * Returns:
+ *    The difference of the minuend and the subtrahend.
+ */
+Method "_-_" is
+[
+	minuend : number,
+	subtrahend : number
+|
+	Primitive 2 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : number;
+
+/**
+ * Compute and answer the product of the arguments.
+ *
+ * Parameters:
+ *    multiplicand - The multiplicand.
+ *    multiplier - The multiplier.
+ * Returns:
+ *    The product of the multiplicand and the multiplier.
+ */
+Method "_×_" is
+[
+	multiplicand : number,
+	multiplier : number
+|
+	Primitive 3 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : number;
+
+/**
+ * Compute and answer the quotient of the arguments.
+ *
+ * Parameters:
+ *    dividend - The dividend.
+ *    divisor - The divisor.
+ * Returns:
+ *    The quotient of the dividend and the divisor.
+ */
+Method "_÷_" is
+[
+	dividend : number,
+	divisor : number
+|
+	Primitive 4 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : number;
+
+/**
+ * Answer the value contained within the specified variable.
+ *
+ * Parameters:
+ *    var - A variable.
+ * Returns:
+ *    The value contained within the specified variable.
+ */
+Method "↓_" is
+[
+	var : variable
+|
+	Primitive 10 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : any;
+
+/**
+ * Store `value` into the specified variable.
+ *
+ * Parameters:
+ *    var - A variable.
+ *    value - The value that should be stored into `var`.
+ */
+Method "_`?=_" is
+[
+	var : variable,
+	value : any
+|
+	Primitive 11 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : ⊤;
+
+/**
+ * Exchange the contents of the two variables. This is more efficient than
+ * using an intermediate variable, and permits additional optimizations by the
+ * virtual machine.
+ *
+ * Parameters:
+ *    arg1 - A variable.
+ *    arg2 - A variable.
+ */
+Method "swap_and_" is
+[
+	arg1 : variable,
+	arg2 : variable
+|
+	Primitive 15 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : ⊤;
+
+/**
+ * Eject and answer the contents of the specified variable. The variable is
+ * in the unassigned state after the primitive completes.
+ *
+ * Parameters:
+ *    var - A variable.
+ * Returns:
+ *    The value ejected from the variable.
+ */
+Method "eject_" is
+[
+	var : variable
+|
+	Primitive 18 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : any;
+
+/**
+ * Has termination of the current fiber been requested?
+ *
+ * Returns:
+ *    `true` if termination of the current fiber has been requested, `false`
+ *    otherwise.
+ */
+Method "termination requested" is
+[
+	Primitive 23 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : boolean;
+
+/**
+ * Answer the value bound to `key` in the specified fiber's environment. Since
+ * the fiber's environment essentially contains fiber-local variables (i.e.
+ * bindings from atoms to arbitrary values), this operation effectively reads a
+ * fiber-local variable.
+ *
+ * Parameters:
+ *    aFiber - The fiber whose environment should be consulted.
+ *    key - The key whose value should be obtained.
+ * Returns:
+ *    The value bound to `key` within the fiber's environment.
+ */
+Method "_[_]" is
+[
+	aFiber : fiber,
+	key : atom
+|
+	Primitive 26 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : any;
+
+/**
+ * Answer the instances of the enumeration.
+ *
+ * Parameters:
+ *    enum - An enumeration.
+ * Returns:
+ *    A set whose members are the instances of the enumeration.
+ */
+Method "_'s⁇instances" is
+[
+	enum : type
+|
+	Primitive 29 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : set;
+
+/**
+ * Answer the `index`-th parameter type of the specified function type.
+ *
+ * Parameters:
+ *    functionType - A function type.
+ *    index - The one-based index of the desired parameter type.
+ * Returns:
+ *    The `index`-th parameter type of the argument.
+ */
+Method "_[_]" is
+[
+	functionType : function meta,
+	index : natural number
+|
+	Primitive 36 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : any meta;
+
+/**
+ * Invoke the function with the given arguments. Answer its result.
+ *
+ * Parameters:
+ *    aFunction - A function.
+ *    arguments - The tuple of arguments.
+ * Returns:
+ *    The value produced by applying the arguments to the function.
+ */
+Method "Invoke|invoke_with_" is
+[
+	aFunction : function,
+	arguments : tuple
+|
+	Primitive 40 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : ⊤;
+
+/**
+ * Restart the continuation with the specified arguments. Execution proceeds as
+ * though the continuation's caller had just invoked the continuation's current
+ * function with the given arguments instead of the original arguments. The
+ * current continuation (in which this primitive was invoked) is completely
+ * replaced by the restarted continuation.
+ *
+ * Parameters:
+ *    aContinuation - The continuation to restart.
+ *    arguments - The new arguments with which to restart `aContinuation`.
+ */
+Method "Restart_with_" is
+[
+	aContinuation : continuation,
+	arguments : tuple
+|
+	Primitive 56 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : ⊥;
+
+/**
+ * Exit the continuation and answer the specified value to the continuation's
+ * caller. Execution proceeds as though the continuation had just returned from
+ * its current function with the supplied value. The current continuation (in
+ * which this primitive was invoked) is completely replaced by the specified
+ * continuation's resumed caller.
+ *
+ * Parameters:
+ *    aContinuation - The continuation to exit.
+ *    value - The value with which to exit `aContinuation`.
+ */
+Method "Exit_with_" is
+[
+	aContinuation : continuation,
+	value : any
+|
+	Primitive 57 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : ⊥;
+
+/**
+ * Restart the continuation with its original arguments. Execution proceeds as
+ * though the continuation's caller had just invoked the continuation's current
+ * function with its original arguments. The current continuation (in which
+ * this primitive was invoked) is completely replaced by the restarted
+ * continuation.
+ *
+ * Parameters:
+ *    aContinuation - The continuation to restart.
+ */
+Method "Restart_" is
+[
+	aContinuation : continuation
+|
+	Primitive 58 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : ⊥;
+
+/**
+ * Construct and answer a function given the specified compiled code and tuple
+ * of captured variables.
+ *
+ * Parameters:
+ *    implementation - The compiled code that describes the algorithm.
+ *    outerVariables - The tuple of outer variables.
+ * Returns:
+ *    The requested function.
+ */
+Method "function from_and_" is
+[
+	implementation : function implementation,
+	outerVariables : tuple
+|
+	Primitive 74 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : function;
+
+/**
+ * Answer the value bound to `aMap` in `key`.
+ *
+ * Parameters:
+ *    aMap - A map.
+ *    key - The key whose bound value should be obtained.
+ * Returns:
+ *    The value bound to `key` in `aMap`.
+ */
+Method "_[_]" is
+[
+	aMap : map,
+	key : any
+|
+	Primitive 82 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : any;
+
+/**
+ * Does `anAtom` have a property whose key is `key`?
+ *
+ * Parameters:
+ *    anAtom - An atom.
+ *    key - The property key.
+ * Returns:
+ *    `true` if `anAtom` has a property whose key is `key`, `false` otherwise.
+ */
+Method "_∈_" is
+[
+	anAtom : atom,
+	key : atom
+|
+	Primitive 122 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : boolean;
+
+/**
+ * Assuming that `anAtom` has a property whose key is `key`, then answer
+ * the property value associated with the `key`.
+ *
+ * Parameters:
+ *    anAtom - An atom.
+ *    key - The property key.
+ * Returns:
+ *    The property value bound to the key.
+ */
+Method "_[_]" is
+[
+	anAtom : atom,
+	key : atom
+|
+	Primitive 123 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : any;
+
+/**
+ * For `anAtom`, establish a property binding from `key` to `value`.
+ * Any previous property binding for `key` is replaced.
+ *
+ * Parameters:
+ *    anAtom - An atom.
+ *    key - The property key.
+ *    value - The property value.
+ */
+Method "_[_]:=_" is
+[
+	anAtom : atom,
+	key : atom,
+	value : any
+|
+	Primitive 124 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : ⊤;
+
+/**
+ * If `anAtom` has a property whose key is `key`, then remove the property.
+ * Otherwise do nothing.
+ *
+ * Parameters:
+ *    anAtom - An atom.
+ *    key - A property key.
+ */
+Method "_-_" is
+[
+	anAtom : atom,
+	key : atom
+|
+	Primitive 125 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : ⊤;
+
+/**
+ * Answer the `index`-th element of `aTuple`.
+ *
+ * Parameters:
+ *    aTuple - A tuple.
+ *    index - The index of the desired element.
+ * Returns:
+ *    The requested element.
+ */
+Method "_[_]" is
+[
+	aTuple : tuple,
+	index : natural number
+|
+	Primitive 131 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : any;
+
+/**
+ * Construct and answer a tuple based on the one provided but such that its
+ * `index`-th element is `value`.
+ *
+ * Parameters:
+ *    aTuple - A tuple.
+ *    index - The one-based index of the element that should (potentially)
+ *       differ in the resultant tuple.
+ *    value - The "replacement" value.
+ * Returns:
+ *    The requested tuple.
+ */
+Method "_[_]→_" is
+[
+	aTuple : tuple,
+	index : natural number,
+	value : any
+|
+	Primitive 132 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : tuple;
+
+/**
+ * Construct and answer a slice (i.e. subtuple) of the specified tuple.
+ *
+ * Parameters:
+ *    aTuple - A tuple.
+ *    sliceStart - The one-based start index (inclusive) of the desired slice.
+ *    sliceEnd - The one-based end index (inclusive) of the desired slice.
+ * Returns:
+ *    The requested tuple.
+ */
+Method "_[_.._]" is
+[
+	aTuple : tuple,
+	sliceStart : natural number,
+	sliceEnd : whole number
+|
+	Primitive 135 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : tuple;
+
+/**
+ * Compute and answer a tuple containing the requested element types. Indices
+ * that are out of bounds report ⊥ as their element type.
+ *
+ * Parameters:
+ *    aTupleType - A tuple type.
+ *    sliceStart - The one-based index (inclusive) of the start of the slice.
+ *    sliceEnd - The one-based index (inclusive) of the end of the slice.
+ * Returns:
+ *    The requested slice of element types.
+ */
+Method "_[_.._]" is
+[
+	aTupleType : tuple meta,
+	sliceStart : natural number,
+	sliceEnd : whole number
+|
+	Primitive 142 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : tuple of any meta;
+
+/**
+ * Compute and answer the type union of the indicated range of element types.
+ *
+ * Parameters:
+ *    aTupleType - A tuple type.
+ *    startIndex - The one-based index (inclusive) of the start of the range.
+ *    endIndex - The one-based index (inclusive) of the end of the range.
+ * Returns:
+ *    The type union of all element types in the specified range.
+ */
+Method "∪_[_.._]" is
+[
+	aTupleType : tuple meta,
+	startIndex : natural number,
+	endIndex : whole number
+|
+	Primitive 143 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : any meta;
+
+/**
+ * Construct and answer a function implementation from the specified arguments.
+ *
+ * Parameters:
+ *    nybblecodes - The Level One instructions as a tuple of nybblecodes.
+ *    primitiveNumber - The primitive number, or `0` if the result should
+ *       not have primitive linkage.
+ *    aFunctionType - The function type of any function able to close the
+ *       result.
+ *    literals - The literals used by the algorithm.
+ *    localsCount - The number of local variables used by the algorithm.
+ *    outersCount - The number of outer variables used by the algorithm.
+ *    maximumStackDepth - The maximum stack depth.
+ * Returns:
+ *    The requested function implementation.
+ */
+Method "_`#_:_(literals=_,`#locals_,`#outers_,stack depth=_)" is
+[
+	nybblecodes : tuple of nybble,
+	primitiveNumber : unsigned short,
+	aFunctionType : function meta,
+	literals : tuple,
+	localsCount : whole number,
+	outersCount : whole number,
+	maximumStackDepth : whole number
+|
+	Primitive 188 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : function implementation;
+
+/**
+ * Execute `body`. If an exception is raised, the virtual machine will scan the
+ * current fiber's chain of continuations to identify invocations of this
+ * primitive. The handler nearest to the end of the continuation chain, i.e.
+ * closest to the raise of the exception, that accepts an argument of the
+ * correct type is invoked with the exception. So `handler` will potentially
+ * run if code run (directly or indirectly) by `body` throws an exception of
+ * the correct type.
+ *
+ * Parameters:
+ *    body - The protected function.
+ *    handler - The exception handler.
+ */
+Method "try_catch_" is
+[
+	body : nullary procedure,
+	handler : unary procedure
+|
+	Primitive 200 (failureCode : type of zero);
+	Private invoke body with empty tuple
+] : ⊤;
+
+/**
+ * Raise `exception` as an exception. The virtual machine scans the current
+ * fiber's chain of continuations to identify an invocation of `try_catch_`
+ * (primitive 200). Extract the second argument from that continuation. This is
+ * an arity-one exception handling function. If it accepts `exception`, then
+ * discard all continuations after this one and then invoke the handler with
+ * `exception`. If the handler does not accept the argument, then the
+ * virtual machine continues scanning the chain of continuations for correctly
+ * typed exception handling functions. If no suitable exception handling
+ * function is found, then the primitive fails.
+ *
+ * Parameters:
+ *    exception - An exception.
+ * Returns:
+ *    ⊥.
+ */
+Method "Raise_" is
+[
+	exception : exception
+|
+	Primitive 201 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : ⊥;
+
+/**
+ * Answer the method uniquely named by the specified atom.
+ *
+ * Parameters:
+ *    anAtom - An atom.
+ * Returns:
+ *    The requested method.
+ */
+Method "method for_" is
+[
+	anAtom : atom
+|
+	Primitive 220 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : method;
+
+/**
+ * Lookup an implementation of the specified method given the tuple of parameter
+ * types.
+ *
+ * Parameters:
+ *    aMethod - A method.
+ *    parameterTypes - A tuple of parameter types. This must agree in length
+ *       with the number of parameters expected by the method.
+ * Returns:
+ *    The unique implementation of `aMethod` that best accords with the
+ *    specified parameter types.
+ */
+Method "implementation of_for_" is
+[
+	aMethod : method,
+	parameterTypes : tuple of any meta
+|
+	Primitive 222 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : function;
+
+/**
+ * Compute and answer the number of parameters required by a valid send of a
+ * message `methodName`.
+ *
+ * Parameters:
+ *    methodName - A method name.
+ * Returns:
+ *    The number of parameters required to send the specified message.
+ */
+Method "`|message_'⁇parameters`|" is
+[
+	methodName : string
+|
+	Primitive 224 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : whole number;
+
+/**
+ * Does the specified message contain any lexical groups?
+ *
+ * Parameters:
+ *    methodName - A method name.
+ * Returns:
+ *    `true` if the specified message contains lexical groups, or `false`
+ *    otherwise.
+ */
+Method "message_contains groups" is
+[
+	methodName : string
+|
+	Primitive 225 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : boolean;
+
+/**
+ * Seal the named method at the specified signature. No further implementations
+ * may be added at or below this signature. This facility is provided to secure
+ * methods against dangerous, unscrupulous, or confusing extensions.
+ *
+ * Parameters:
+ *    methodName - The name of the method to seal.
+ *    signature - A tuple of parameter types. This is the signature at which the
+ *       seal will be placed.
+ */
+Method "Seal method_at_" is
+[
+	methodName : string,
+	signature : tuple of any meta
+|
+	Primitive 226 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : ⊤;
+
+/**
+ * Declare an abstract method with the specified name and signature. A concrete
+ * implementation is one whose parameter types and return type are strictly more
+ * specific than the corresponding types of the abstract signature.
+ *
+ * Only extend the grammar of the current module if the atom was introduced by
+ * the current module.
+ *
+ * Parameters:
+ *    methodName - The atom that uniquely names the abstract method to declare.
+ *    signature - The signature.
+ */
+Method "Abstract method_is_" is
+[
+	methodName : atom,
+	signature : function meta
+|
+	Primitive 227 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : ⊤;
+
+/**
+ * Does the specified method have a unique implementation for the given tuple
+ * of parameter types?
+ *
+ * Parameters:
+ *    aMethod - A method.
+ *    parameterTypes - A tuple of parameter types. This must agree in length
+ *       with the number of parameters expected by the method.
+ * Returns:
+ *    `true` if `aMethod` has a unique implementation for the specified parameter
+ *    types, `false` otherwise.
+ */
+Method "_has implementation for_" is
+[
+	aMethod : method,
+	parameterTypes : tuple of any meta
+|
+	Primitive 229 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : boolean;
+
+/**
+ * Answer the module currently undergoing compilation.
+ *
+ * Returns:
+ *    The module currently undergoing compilation.
+ */
+Method "current module" is
+[
+	Primitive 241 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : module;
+
+/**
+ * Answer the atom referenced by the specified name in the module currently
+ * undergoing compilation. If this name already refers to an atom in scope,
+ * i.e., either one 1) imported through the "Uses" or "Extends" sections of the
+ * current module's header, 2) introduced by the "Names" section of the
+ * current module's header, or 3) introduced by dynamic publication then answer
+ * this atom. Otherwise, privately introduce a new atom.
+ *
+ * Parameters:
+ *    localName - The name by which this atom is known locally.
+ * Returns:
+ *    The requested atom.
+ */
+Method "atom for_" is
+[
+	localName : string
+|
+	Primitive 245 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : atom;
+
+/**
+ * Dynamically introduce `newName` as a public name. This has the same effect as
+ * listing in the "Names" section of the current module, i.e., the module
+ * currently undergoing compilation. This facilitates code generation in some
+ * circumstances. This operation may only be invoked during compilation, i.e.,
+ * as the result of parsing or executing a top-level statement.
+ *
+ * Parameters:
+ *    newName - The name that should be introduced.
+ */
+Method "Publish new name:_" is
+[
+	newName : string
+|
+	Primitive 246 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : ⊤;
+
+/**
+ * Define the specified semantic restriction. Henceforth whenever the method
+ * named by `methodName` is invoked with arguments accepted by `restriction`,
+ * then apply `restriction` with the most specific available types of the actual
+ * arguments. This is determined by the compiler at the method's call site.
+ *
+ * A semantic restriction has two responsibilities. First, it may reject a
+ * method invocation on any appropriate semantic grounds by calling
+ * `Reject parse,expected:_`. Second, it may strengthen the type of value
+ * produced at the call site by answering a subtype of the method's declared
+ * return type.
+ *
+ * Parameters:
+ *    methodName - The name of the method to which the semantic restriction
+ *       applies.
+ *    restriction - The restriction function.
+ */
+Method "Semantic restriction_is_" is
+[
+	methodName : string,
+	restriction : semantic restriction function
+|
+	Primitive 248 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : ⊤;
+
+/**
+ * Define a macro with the specified name and body. A macro is a method invoked
+ * directly by the compiler as a consequence of parsing a sequence of tokens.
+ * The arguments of a macro are parse nodes that structurally represent the
+ * corresponding lexical expressions. The result of a macro is a parse node that
+ * completely replaces the macro invocation; the compiler proceeds as if it had
+ * built this parse node from the original tokens instead of the macro
+ * invocation parse node.
+ *
+ * Macro definitions are parametric by parameter types. They participate in
+ * multiply polymorphic dispatch just as do methods.
+ *
+ * Parameters:
+ *    macroName - The name of the macro to define.
+ *    body - The function that implements the macro.
+ */
+Method "Macro_is_" is
+[
+	macroName : string,
+	body : macro function
+|
+	Primitive 249 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : ⊤;
+
+/**
+ * Declare an abstract method with the specified name and signature. A concrete
+ * implementation is one whose parameter types and return type are strictly more
+ * specific than the corresponding types of the abstract signature.
+ *
+ * Parameters:
+ *    methodName - The name of the abstract method to declare.
+ *    aFunctionType - The signature.
+ */
+Method "Abstract method_is_" is
+[
+	methodName : string,
+	aFunctionType : function meta
+|
+	Primitive 251 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : ⊤;
+
+/**
+ * Declare the intention to locally define a method with the specified name and
+ * signature. If no such method is defined before compilation of the containing
+ * module completes, then the compiler will emit an appropriate error message.
+ *
+ * Recursive methods must be forward declared. Mutually recursive methods must
+ * forward declare all but the lexically first participant in the recursion.
+ *
+ * Parameters:
+ *    methodName - The name of the method to forward declare.
+ *    aFunctionType - The signature.
+ */
+Method "Forward method_is_" is
+[
+	methodName : string,
+	aFunctionType : function meta
+|
+	Primitive 252 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : ⊤;
+
+/**
+ * Read the next character from the standard input stream.
+ *
+ * Returns:
+ *    The next character from the standard input stream.
+ */
+Method "next character" is
+[
+	Primitive 254 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : character;
+
+/**
+ * Define the indicated grammatical restrictions. Each method name in
+ * `methodsToRestrict` must accept the same number of arguments, though not
+ * necessarily the same types (or the same order of types). Each element `e` of
+ * `exclusions`, itself a set of method names, corresponds to an argument
+ * position `n` of any method name in `methodsToRestrict`. The compiler rejects
+ * parses of source text that invoke methods named in `e` when they occur
+ * grammatically at argument position `n` of an invocation of any method named
+ * in `methodsToRestrict`.
+ *
+ * Note that "argument position" corresponds to a blank, not to a top-level
+ * repeating sequence (indicated by guillemet notation).
+ *
+ * Parameters:
+ *    methodsToRestrict - A set of method names, each of which should be
+ *       restricted.
+ *    exclusions - A tuple of sets of method names. The method names in the
+ *       `n`-th set are restricted from occurring grammatically at the `n`-th
+ *       argument position of any invocation of a method named in
+ *       `methodsToRestrict`.
+ */
+Method "Grammatical restriction_is_" is
+[
+	methodsToRestrict : set of string,
+	exclusions : tuple of set of string
+|
+	Primitive 255 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : ⊤;
+
+/**
+ * Mark the standard input stream to allow at least `count` of read ahead.
+ *
+ * Parameters:
+ *    count - The requested number of characters of read ahead.
+ */
+Method "mark for_character|characters of read ahead" is
+[
+	count : whole number
+|
+	Primitive 261 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : ⊤;
+
+/**
+ * Reset the standard input stream to the previously set mark.
+ *
+ */
+Method "reset to mark" is
+[
+	Primitive 262 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : ⊤;
+
+/**
+ * Compute and answer an approximation of `dividend` modulo `divisor`, i.e. the
+ * remainder produced by dividing the arguments.
+ *
+ * Parameters:
+ *    dividend - The dividend.
+ *    divisor - The divisor.
+ * Returns:
+ *    An approximation of `0` mod `divisor`.
+ */
+Method "_mod_" is
+[
+	dividend : float,
+	divisor : float
+|
+	Primitive 288 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : float;
+
+/**
+ * Compute and answer an approximation of `dividend` modulo `divisor`, i.e. the
+ * remainder produced by dividing the arguments.
+ *
+ * Parameters:
+ *    dividend - The dividend.
+ *    divisor - The divisor.
+ * Returns:
+ *    An approximation of `0` mod `divisor`.
+ */
+Method "_mod_" is
+[
+	dividend : double,
+	divisor : double
+|
+	Primitive 318 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : double;
+
+/**
+ * Construct and answer an assignment expression.
+ *
+ * Parameters:
+ *    variableUse - A variable use expression.
+ *    valueExpression - An expression.
+ * Returns:
+ *    An expression that describes assigning to the variable indicated by
+ *    `variableUse` the result of running `valueExpression`. The result yields the same
+ *    answer as `valueExpression`.
+ */
+Method "“(_:=_)”" is
+[
+	variableUse : variable use,
+	valueExpression : expression yielding any
+|
+	Primitive 350 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : assignment;
+
+/**
+ * Construct and answer an assignment statement.
+ *
+ * Parameters:
+ *    variableUse - A variable use expression.
+ *    valueExpression - An expression.
+ * Returns:
+ *    A statement that describes assigning to the variable indicated by
+ *    `variableUse` the result of running `valueExpression`.
+ */
+Method "“_:=_”" is
+[
+	variableUse : variable use,
+	valueExpression : expression yielding any
+|
+	Primitive 353 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : assignment;
+
+/**
+ * Construct and answer a value reference expression.
+ *
+ * Parameters:
+ *    variableUse - A variable use expression.
+ * Returns:
+ *    A variable reference expression that answers the variable described by
+ *    `variableUse`.
+ */
+Method "“↑_”" is
+[
+	variableUse : variable use
+|
+	Primitive 354 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : variable reference;
+
+/**
+ * Construct and answer a block from the specified tuple of argument
+ * declarations, primitive linkage number, tuple of statements, return type, and
+ * set of declared exceptions.
+ *
+ * Parameters:
+ *    argumentDeclarations - A tuple of argument declarations.
+ *    primitiveNumber - The primitive linkage number, or 0 for no primitive
+ *       linkage.
+ *    statements - A tuple of statements. Each element except for the last must
+ *       be an assignment, declaration, label, sequence, or ⊤-valued send.
+ *    returnType - The return type.
+ *    exceptions - The set of exceptions that may be raised.
+ * Returns:
+ *    The requested block.
+ */
+Method "“[_`|Primitive__]:_^_”" is
+[
+	argumentDeclarations : argument tuple,
+	primitiveNumber : unsigned short,
+	statements : phrase tuple,
+	returnType : type,
+	exceptions : set
+|
+	Primitive 361 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : block;
+
+/**
+ * Generate and answer a function from the specified block.
+ *
+ * Parameters:
+ *    aBlock - A block. Note that the block is treated as a top-level
+ *       construct, so it must not refer to any outer variable declarations.
+ * Returns:
+ *    The requested function.
+ */
+Method "generate_" is
+[
+	aBlock : block
+|
+	Primitive 362 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : function;
+
+/**
+ * Construct and answer a message send. `aMethod` must refer to an actual
+ * method. The number and types of the argument expressions must satisfy exactly
+ * one of the method's existing signatures.
+ *
+ * Parameters:
+ *    aMethod - The target method.
+ *    argumentsList - The list phrase containing the argument expressions, corresponding
+ *       left-to-right with the arguments of the method.
+ *    returnType - The expected (strengthened) return type of the method send.
+ * Returns:
+ *    The requested message send.
+ */
+Method "send_with_:_" is
+[
+	aMethod : method,
+	argumentsList : list,
+	returnType : type
+|
+	Primitive 383 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : send;
+
+/**
+ * Construct and answer a sequence from the specified tuple of statements.
+ *
+ * Parameters:
+ *    statements - A tuple of statements.
+ * Returns:
+ *    The requested sequence.
+ */
+Method "seq“_”" is
+[
+	statements : phrase tuple
+|
+	Primitive 387 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : sequence;
+
+/**
+ * Construct and answer a fully parameterized pojo type.
+ *
+ * Parameters:
+ *    javaName - The fully qualified name of the Java class or interface.
+ *    typeParameters - The type arguments. The cardinality of this tuple
+ *       must agree with the number of type parameters required by the Java
+ *       class or interface.
+ * Returns:
+ *    The requested pojo type.
+ */
+Method "_<«_‡,»>" is
+[
+	javaName : string,
+	typeParameters : tuple of any meta
+|
+	Primitive 500 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : pojo meta;
+
+/**
+ * Construct and answer a function that, when applied with arguments
+ * corresponding to the specified parameter types, constructs a new pojo of
+ * the specified type.
+ *
+ * The answered function adapts a reflective invocation of the Java constructor,
+ * if any, that accepts the specified number and types of arguments. To
+ * establish type conformance between Avail types and Java types for the purpose
+ * of reflective constructor lookup and invocation, the following marshaling
+ * rules are applied:
+ *
+ *    - `[-128..127]` is marshaled to Java byte (java.lang.Byte.TYPE).
+ *    - `[-32768..32767]` is marshaled to Java short (java.lang.Short.TYPE).
+ *    - `[-2^31..2^31-1]` is marshaled to Java int (java.lang.Integer.TYPE).
+ *    - `[-2^63..2^63-1]` is marshaled to Java long (java.lang.Long.TYPE).
+ *    - `boolean` is marshaled to Java boolean (java.lang.Boolean.TYPE).
+ *    - `character` is marshaled to Java char (java.lang.Character.TYPE).
+ *    - `float` is marshaled to Java float (java.lang.Float.TYPE).
+ *    - `double` is marshaled to Java double (java.lang.Double.TYPE).
+ *    - `string` is marshaled to java.lang.String.
+ *    - `_[]` is marshaled to java.lang.reflect.Array.newInstance().getClass().
+ *    - `_<«_‡,»>` is marshaled to the reflected Java class or interface.
+ *    - All other values are marshaled to com.avail.descriptor.AvailObject.
+ *
+ * Parameters:
+ *    aPojoType - A pojo type.
+ *    parameterTypes - The parameter types accepted by the desired constructor.
+ *    failFunction - The function to apply if an invocation of the constructor
+ *       throws a Java exception.
+ * Returns:
+ *    The requested constructor invocation function.
+ */
+Method "constructor_<«_‡,»>(fail with_)" is
+[
+	aPojoType : pojo meta,
+	parameterTypes : tuple of any meta,
+	failFunction : pojo failure function
+|
+	Primitive 502 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : pojo constructor;
+
+/**
+ * Construct and answer a variable that, when read or written, will pass
+ * through to the instance field uniquely specified by the given pojo and field
+ * name.
+ *
+ * Parameters:
+ *    aPojo - The pojo whose instance field should be bound to the answered
+ *       variable.
+ *    fieldName - The name of the desired field.
+ * Returns:
+ *    A variable bound to the specified instance field.
+ */
+Method "_._→variable" is
+[
+	aPojo : pojo,
+	fieldName : string
+|
+	Primitive 504 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : variable;
+
+/**
+ * Construct and answer a variable that, when read or written, will pass
+ * through to the static field specified by the given pojo type and field
+ * name.
+ *
+ * Parameters:
+ *    aPojoType - A pojo type whose static field should be bound to the
+ *       answered variable.
+ *    fieldName - The name of the desired field.
+ * Returns:
+ *    A variable bound to the specified static field.
+ */
+Method "_._→variable" is
+[
+	aPojoType : pojo meta,
+	fieldName : string
+|
+	Primitive 505 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : variable;
+
+/**
+ * Construct and answer a function that, when applied with arguments
+ * corresponding to the specified parameter types, invokes a particular
+ * instance method.
+ *
+ * The answered function adapts a reflective invocation of the Java method,
+ * if any, that has the specified name and accepts the specified number and
+ * types of arguments. The receiver is specified as the first argument. To
+ * establish type conformance between Avail types and Java types for the purpose
+ * of reflective method lookup and invocation, the following marshaling rules
+ * are applied:
+ *
+ *    - `[-128..127]` is marshaled to Java byte (java.lang.Byte.TYPE).
+ *    - `[-32768..32767]` is marshaled to Java short (java.lang.Short.TYPE).
+ *    - `[-2^31..2^31-1]` is marshaled to Java int (java.lang.Integer.TYPE).
+ *    - `[-2^63..2^63-1]` is marshaled to Java long (java.lang.Long.TYPE).
+ *    - `boolean` is marshaled to Java boolean (java.lang.Boolean.TYPE).
+ *    - `character` is marshaled to Java char (java.lang.Character.TYPE).
+ *    - `float` is marshaled to Java float (java.lang.Float.TYPE).
+ *    - `double` is marshaled to Java double (java.lang.Double.TYPE).
+ *    - `string` is marshaled to java.lang.String.
+ *    - `_[]` is marshaled to java.lang.reflect.Array.newInstance().getClass().
+ *    - `_<«_‡,»>` is marshaled to the reflected Java class or interface.
+ *    - All other values are marshaled to com.avail.descriptor.AvailObject.
+ *
+ * Parameters:
+ *    aPojoType - A pojo type.
+ *    methodName - The name of the desired method.
+ *    parameterTypes - The parameter types accepted by the desired method.
+ *    failFunction - The function to apply if an invocation of the method
+ *       throws a Java exception.
+ * Returns:
+ *    The requested instance method invocation function.
+ */
+Method "method_._(«_‡,»)(fail with_)" is
+[
+	aPojoType : pojo meta,
+	methodName : string,
+	parameterTypes : tuple of any meta,
+	failFunction : pojo failure function
+|
+	Primitive 506 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : function;
+
+/**
+ * Construct and answer a function that, when applied with arguments
+ * corresponding to the specified parameter types, invokes a particular
+ * static method.
+ *
+ * The answered function adapts a reflective invocation of the Java method,
+ * if any, that has the specified name and accepts the specified number and
+ * types of arguments. To establish type conformance between Avail types and
+ * Java types for the purpose of reflective method lookup and invocation, the
+ * following marshaling rules are applied:
+ *
+ *    - `[-128..127]` is marshaled to Java byte (java.lang.Byte.TYPE).
+ *    - `[-32768..32767]` is marshaled to Java short (java.lang.Short.TYPE).
+ *    - `[-2^31..2^31-1]` is marshaled to Java int (java.lang.Integer.TYPE).
+ *    - `[-2^63..2^63-1]` is marshaled to Java long (java.lang.Long.TYPE).
+ *    - `boolean` is marshaled to Java boolean (java.lang.Boolean.TYPE).
+ *    - `character` is marshaled to Java char (java.lang.Character.TYPE).
+ *    - `float` is marshaled to Java float (java.lang.Float.TYPE).
+ *    - `double` is marshaled to Java double (java.lang.Double.TYPE).
+ *    - `string` is marshaled to java.lang.String.
+ *    - `_[]` is marshaled to java.lang.reflect.Array.newInstance().getClass().
+ *    - `_<«_‡,»>` is marshaled to the reflected Java class or interface.
+ *    - All other values are marshaled to com.avail.descriptor.AvailObject.
+ *
+ * Parameters:
+ *    aPojoType - A pojo type.
+ *    methodName - The name of the desired method.
+ *    parameterTypes - The parameter types accepted by the desired method.
+ *    failFunction - The function to apply if an invocation of the method
+ *       throws a Java exception.
+ * Returns:
+ *    The requested static method invocation function.
+ */
+Method "static method_._(«_‡,»)(fail with_)" is
+[
+	aPojoType : pojo meta,
+	methodName : string,
+	parameterTypes : tuple of type,
+	failFunction : pojo failure function
+|
+	Primitive 508 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : function;
+
+/**
+ * Answer the `index`-th element of the specified pojo array.
+ *
+ * Parameters:
+ *    anArray - A pojo array.
+ *    index - A one-based index into the pojo array.
+ * Returns:
+ *    The `index`-th element of `anArray`.
+ */
+Method "_[_]" is
+[
+	anArray : pojo array,
+	index : natural number
+|
+	Primitive 512 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : any;
+
+/**
+ * Mutate the specified pojo array such that its `index`-th element is
+ * overwritten by `value`.
+ *
+ * Parameters:
+ *    anArray - A pojo array.
+ *    index - A one-based index into the pojo array.
+ *    value - The value that should be written into the pojo array.
+ */
+Method "_[_]:=_" is
+[
+	anArray : pojo array,
+	index : natural number,
+	value : any
+|
+	Primitive 513 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : ⊤;
+
