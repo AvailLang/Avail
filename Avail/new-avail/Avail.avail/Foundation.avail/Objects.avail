@@ -356,7 +356,7 @@ Semantic restriction "extend_with«_:_‡,»" is
 				fieldAtom's name
 				++ " to appear only once during extension (but it already\
 				\| appeared with type = "
-				++ primitive description of newDefinitions[fieldAtom]
+				++ “newDefinitions[fieldAtom]”
 				++ ")"
 		];
 		oldType ::= oldDefinitions[fieldAtom] else [ any ];
@@ -366,9 +366,9 @@ Semantic restriction "extend_with«_:_‡,»" is
 				"covariant specialization of "
 				++ fieldAtom's name
 				++ " (but new field type "
-				++ primitive description of newType
+				++ “newType”
 				++ " is not a subtype of "
-				++ primitive description of oldType
+				++ “oldType”
 				++ ")"
 		];
 		newDefinitions := eject ↑newDefinitions + fieldAtom→newType;
@@ -522,16 +522,16 @@ Private method "_reconstructor arguments for_«(for semantic restriction)»?" is
 |
 	meta ::= if forRestriction then [ objectType's type ] else [ objectType ];
 	objectMap ::= objectType→map;
-	<arg “`"target"` : meta”> ++ map fieldAtoms through
+	<arg «`"target"` : meta»> ++ map fieldAtoms through
 	[
 		fieldAtom : atom,
 		index : natural number
 	|
-		desc ::= primitive description of index;
+		desc ::= “index”;
 		argType ::= if forRestriction
 			then [ objectMap[fieldAtom]'s type ]
 			else [ objectMap[fieldAtom] ];
-		arg “`"arg" ++ desc` : argType”
+		arg «`"arg" ++ desc` : argType»
 	]
 ] : <argument…|2..>;
 
@@ -558,22 +558,22 @@ Private method "generate and install_reconstructor for_" is
 	methodName ::= reconstructor name for fieldAtoms;
 	args ::= objectType reconstructor arguments for fieldAtoms;
 	/* Construct the body of the mutator method. */
-	toMapMSend ::= send toMapM with “<“↓args[1]”>” : field map;
-	mapDecl ::= “`"objectMap"` : field map := toMapMSend”;
+	toMapMSend ::= send toMapM with «<«↓args[1]»>» : field map;
+	mapDecl ::= «`"objectMap"` : field map := toMapMSend»;
 	assignments ::= map fieldAtoms through
 		[
 			fieldAtom : atom,
 			index : natural number
 		|
-			ejectSend ::= send ejectM with “<“↑“↓mapDecl””>” : field map;
+			ejectSend ::= send ejectM with «<«↑«↓mapDecl»»>» : field map;
 			addBindingSend ::= send addBindingM
-				with “<ejectSend, ‘`fieldAtom`’, “↓args[index + 1]”>”
+				with «<ejectSend, ‘`fieldAtom`’, «↓args[index + 1]»>»
 				: field map;
-			““↓mapDecl” := addBindingSend”
+			««↓mapDecl» := addBindingSend»
 		];
-	last ::= send toObjectM with “<“↓mapDecl”>” : objectType;
+	last ::= send toObjectM with «<«↓mapDecl»>» : objectType;
 	statements ::= <mapDecl> ++ assignments ++ <last>;
-	newBlock ::= “[ args | statements ] : objectType”;
+	newBlock ::= «[ args | statements ] : objectType»;
 	reconstructorFunction ::= generate newBlock;
 	Method methodName is reconstructorFunction;
 ] : ⊤;
@@ -597,22 +597,22 @@ is
 	args ::= objectType reconstructor arguments for fieldAtoms
 		(for semantic restriction);
 	/* Construct the body of the semantic restriction method. */
-	toMapMSend ::= send toMapM with “<“↓args[1]”>” : field type map;
-	mapDecl ::= “`"objectMap"` : field type map := toMapMSend”;
+	toMapMSend ::= send toMapM with «<«↓args[1]»>» : field type map;
+	mapDecl ::= «`"objectMap"` : field type map := toMapMSend»;
 	assignments ::= map fieldAtoms through
 		[
 			fieldAtom : atom,
 			index : natural number
 		|
-			ejectSend ::= send ejectM with “<“↑“↓mapDecl””>” : field type map;
+			ejectSend ::= send ejectM with «<«↑«↓mapDecl»»>» : field type map;
 			addBindingSend ::= send addBindingM
-				with “<ejectSend, ‘`fieldAtom`’, “↓args[index + 1]”>”
+				with «<ejectSend, ‘`fieldAtom`’, «↓args[index + 1]»>»
 				: field type map;
-			““↓mapDecl” := addBindingSend”
+			««↓mapDecl» := addBindingSend»
 		];
-	last ::= send toObjectTypeM with “<“↓mapDecl”>” : objectType's type;
+	last ::= send toObjectTypeM with «<«↓mapDecl»>» : objectType's type;
 	statements ::= <mapDecl> ++ assignments ++ <last>;
-	newBlock ::= “[ args | statements ] : type”;
+	newBlock ::= «[ args | statements ] : type»;
 	Semantic restriction methodName is generate newBlock;
 ];
 
@@ -828,7 +828,7 @@ is
 				fieldAtom's name
 				++ " to appear only once during extension (but it already\
 				\| appeared with type = "
-				++ primitive description of newDefinitions[fieldAtom]
+				++ “newDefinitions[fieldAtom]”
 				++ ")"
 		];
 		oldType ::= oldDefinitions[fieldAtom] else [ any ];
@@ -838,9 +838,9 @@ is
 				"covariant specialization of "
 				++ fieldAtom's name
 				++ " (but new field type "
-				++ primitive description of newType
+				++ “newType”
 				++ " is not a subtype of "
-				++ primitive description of oldType
+				++ “oldType”
 				++ ")"
 		];
 		newDefinitions := eject ↑newDefinitions + fieldAtom→newType;
@@ -976,7 +976,7 @@ Semantic restriction "a|an_«with«_:=_‡,»»" is
 				fieldAtom's name
 				++ " to appear only once during instantiation (but it already\
 				\| appeared with type = "
-				++ primitive description of assignments[fieldAtom]
+				++ “assignments[fieldAtom]”
 				++ ")"
 		];
 		requiredType ::= definitions[fieldAtom] else [ any ];
@@ -986,9 +986,9 @@ Semantic restriction "a|an_«with«_:=_‡,»»" is
 				"valid assignment to "
 				++ fieldAtom's name
 				++ " (but "
-				++ primitive description of valueType
+				++ “valueType”
 				++ " is not a subtype of "
-				++ primitive description of requiredType
+				++ “requiredType”
 				++ ")"
 		];
 		assignments := eject ↑assignments + fieldAtom→valueType;
@@ -1008,9 +1008,9 @@ Semantic restriction "a|an_«with«_:=_‡,»»" is
 	[
 		Reject parse, expected:
 			"assignments for all fields of "
-			++ primitive description of objectType
+			++ “objectType”
 			++ " (but assignments are missing for "
-			++ primitive description of missing
+			++ “missing”
 			++ ")"
 	];
 	assignments→object type
@@ -1039,16 +1039,16 @@ trgb : textured RGB := a textured RGB with
 	$texture := "smooth",
 	$flavor := "salty";
 Print: "trgb=";
-Print: primitive description of trgb;
+Print: “trgb”;
 Print: "\n";
 Print: "trgb's color=";
-Print: primitive description of trgb's color;
+Print: “trgb's color”;
 Print: "\n";
 Print: "trgb's texture=";
-Print: primitive description of trgb's texture;
+Print: “trgb's texture”;
 Print: "\n";
 mutated ::= trgb's color := "blue", flavor := "sweet";
 Print: "mutated=";
-Print: primitive description of mutated;
+Print: “mutated”;
 Print: "\n";
 */

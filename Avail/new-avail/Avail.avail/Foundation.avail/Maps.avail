@@ -121,18 +121,18 @@ Private method "Require:_accepts_" is
 	[
 		Reject parse, expected:
 			"repeatedly applied function to accept all keys ∈ "
-			++ primitive description of mapType's key type
+			++ “mapType's key type”
 			++ " (but it only accepts "
-			++ primitive description of action[1]
+			++ “action[1]”
 			++ ")"
 	];
 	If action[2] ≠ ⊥ ∧ [ ¬mapType's value type ⊆ action[2] ] then
 	[
 		Reject parse, expected:
 			"repeatedly applied function to accept all values ∈ "
-			++ primitive description of mapType's value type
+			++ “mapType's value type”
 			++ " (but it only accepts "
-			++ primitive description of action[2]
+			++ “action[2]”
 			++ ")"
 	];
 ] : ⊤;

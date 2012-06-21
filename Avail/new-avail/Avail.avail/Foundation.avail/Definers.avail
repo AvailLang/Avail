@@ -162,30 +162,30 @@ Public method "Method_is stable at_" is
 	[
 		index : natural number
 	|
-		argName ::= cast concatenate <"arg", primitive description of index>
+		argName ::= cast concatenate <"arg", “index”>
 			into [ t : string | t ];
-		argDecl ::= arg “`argName` : functionType[index]'s type”;
+		argDecl ::= arg «`argName` : functionType[index]'s type»;
 		argDecls := cast concatenate <eject ↑argDecls, <argDecl>>
 			into [ t : <<>, argument…|whole number> | t ];
 		instanceCount ::=
-			send instanceCountM with “<“↓argDecl”>” : nonnegative integer;
+			send instanceCountM with «<«↓argDecl»>» : nonnegative integer;
 		setContents := cast concatenate <eject ↑setContents, <instanceCount>>
 			into [ t : <<>, send⇒nonnegative integer…|whole number> | t ];
-		instance ::= send instanceM with “<“↓argDecl”>” : any;
+		instance ::= send instanceM with «<«↓argDecl»>» : any;
 		instances := cast concatenate <eject ↑instances, <instance>>
 			into [ t : <<>, send⇒any…|whole number> | t ];
 		true
 	];
-	instanceCountSet ::= send setM with “<setContents→list>” : set;
-	oneSet ::= send setM with “<“<‘`1`’>”>” : {1}'s type;
-	equals ::= send equalsM with “<instanceCountSet, oneSet>” : boolean;
+	instanceCountSet ::= send setM with «<setContents→list>» : set;
+	oneSet ::= send setM with «<«<‘`1`’>»>» : {1}'s type;
+	equals ::= send equalsM with «<instanceCountSet, oneSet>» : boolean;
 	answer ::= send theMethod with instances→list : any;
-	answerType ::= send typeM with “<answer>” : resultType;
-	answerTypeBlock ::= “[<answerType>] : resultType”;
-	cantStrengthenBlock ::= “[<‘`⊤`’>] : ⊤'s type”;
+	answerType ::= send typeM with «<answer>» : resultType;
+	answerTypeBlock ::= «[<answerType>] : resultType»;
+	cantStrengthenBlock ::= «[<‘`⊤`’>] : ⊤'s type»;
 	branch ::= send ifThenElseM
-		with “<equals, answerTypeBlock, cantStrengthenBlock>” : type;
-	restrictionBlock ::= “[argDecls | <branch>] : type”;
+		with «<equals, answerTypeBlock, cantStrengthenBlock>» : type;
+	restrictionBlock ::= «[argDecls | <branch>] : type»;
 	restrictionFunction ::= generate restrictionBlock;
 	Semantic restriction methodName is restrictionFunction;
 ] : ⊤;
@@ -208,7 +208,7 @@ Private method "Require:message_does not specify lexical groups" is
 		[
 			messageTuple ::= concatenate <
 				"message name (",
-				primitive description of methodName,
+				“methodName”,
 				") must not specify lexical groups">;
 			Invoke
 			[
@@ -253,7 +253,7 @@ Private method "Require:_'s⁇parameters are not metatypes or function types" is
 				[
 					messageTuple ::= concatenate <
 						"parameter type (",
-						primitive description of parameterType,
+						“parameterType”,
 						") not to be a metatype; metacovariance will allow \
 						\|subtypes of  this type, causing the operation not to \
 						\|be stable">;
@@ -269,7 +269,7 @@ Private method "Require:_'s⁇parameters are not metatypes or function types" is
 				[
 					messageTuple ::= concatenate <
 						"parameter type (",
-						primitive description of parameterType,
+						“parameterType”,
 						") not to be a function type">;
 					Invoke
 					[

@@ -1,5 +1,5 @@
 /*
- * Origin.avail
+ * Doclib.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,24 +30,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * GENERATED FILE
- * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Versioned As: $$Revision$$
- *
- * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
- */
-
-System Module "Origin"
+System Module "Doclib"
 Versions
 	"dev"
-Extends
 Uses
+	"DocLibParser"
 Names
-	"Method_is_",
-	"special object_"
-Pragma
-	"bootstrapDefiningMethod=Method_is_",
-	"bootstrapSpecialObject=special object_"
 Body
-

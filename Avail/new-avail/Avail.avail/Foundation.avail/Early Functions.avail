@@ -135,12 +135,12 @@ Semantic restriction "_(«_‡,»)" is
 			[
 				Reject parse, expected:
 					"argument #"
-					++ primitive description of index
+					++ “index”
 					++ " of type ("
-					++ primitive description of argumentsType[index]
+					++ “argumentsType[index]”
 					++ ") to agree with corresponding function "
 					++ "parameter type ("
-					++ primitive description of parametersType[index]
+					++ “parametersType[index]”
 					++ ")"
 			];
 			true
@@ -174,14 +174,13 @@ Semantic restriction "_[_]" is
 		[
 			Reject parse, expected:
 				"a subscript ("
-				++ primitive description of start
+				++ “start”
 				++ " ≤ theSubscript ≤ "
-				++ primitive description of ⎡index⎤
+				++ “⎡index⎤”
 				++ ") that could ever be valid ("
-				++ primitive description of
-					⎣parametersType⎦
+				++ “⎣parametersType⎦”
 				++ " ≤ |theFunctionType| ≤ "
-				++ primitive description of limit
+				++ “limit”
 				++ ")"
 		];
 		result : any's type := ⊥;

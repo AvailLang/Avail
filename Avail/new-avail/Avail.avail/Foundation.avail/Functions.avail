@@ -85,26 +85,26 @@ Public method "_curried" is
 	arguments ::= map 1 to ⎣argumentTypes⎦ through [
 			n : natural number
 		|
-			token ::= `"arg" ++ primitive description of n`;
-			arg “token : argumentTypes[n]”
+			token ::= `"arg" ++ “n”`;
+			arg «token : argumentTypes[n]»
 		];
 	blockToReturn ::=
-		“[ arguments[2..] |
+		«[ arguments[2..] |
 			<
 				send invokeMethod with
-				“<
+				«<
 					originalFunctionConstant,
-					(map arguments through [a : argument | “↓a”])
+					(map arguments through [a : argument | «↓a»])
 						→ list
-				>” : (originalType's return type)
+				>» : (originalType's return type)
 			>
-		] : originalType's return type”;
+		] : originalType's return type»;
 	outerBlock ::=
-		“[ arguments[1..1] |
+		«[ arguments[1..1] |
 			<
 				blockToReturn
 			>
-		] : blockToReturn's semantic type”;
+		] : blockToReturn's semantic type»;
 	generate outerBlock
 ] : function;
 

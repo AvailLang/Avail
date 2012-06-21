@@ -507,13 +507,13 @@ Semantic restriction "_[_]" is
 	[
 		messageTuple ::= concatenate <
 			"a subscript (",
-			primitive description of ⎣index⎦,
+			“⎣index⎦”,
 			" ≤ theSubscript ≤ ",
-			primitive description of ⎡index⎤,
+			“⎡index⎤”,
 			") that could ever be valid (",
-			primitive description of ⎣aTupleType⎦,
+			“⎣aTupleType⎦”,
 			" ≤ |theTuple| ≤ ",
-			primitive description of ⎡aTupleType⎤,
+			“⎡aTupleType⎤”,
 			")">;
 		message ::= cast messageTuple into [ t : string | t ];
 		Reject parse, expected: message
@@ -557,13 +557,13 @@ Semantic restriction "_[_]" is
 	[
 		messageTuple ::= concatenate <
 			"a subscript (",
-			primitive description of ⎣index⎦,
+			“⎣index⎦”,
 			" ≤ theSubscript ≤ ",
-			primitive description of ⎡index⎤,
+			“⎡index⎤”,
 			") that could ever be valid (",
-			primitive description of ⎣aTupleType⎦,
+			“⎣aTupleType⎦”,
 			" ≤ |theTuple| ≤ ",
-			primitive description of ⎡aTupleType⎤,
+			“⎡aTupleType⎤”,
 			")">;
 		message ::= cast messageTuple into [ t : string | t ];
 		Reject parse, expected: message

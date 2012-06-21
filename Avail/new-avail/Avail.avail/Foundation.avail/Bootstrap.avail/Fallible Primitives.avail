@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Versioned As: $$Revision$$
+ * * Last Versioned As: $$Revision: 565 $$
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -76,6 +76,10 @@ Uses
 		"_÷_",
 		"_∈_",
 		"`|message_'⁇parameters`|",
+		"`«(_:=_)`»",
+		"`«[_`|Primitive__]:_^_`»",
+		"`«_:=_`»",
+		"`«↑_`»",
 		"atom for_",
 		"constructor_<«_‡,»>(fail with_)",
 		"current module",
@@ -90,15 +94,11 @@ Uses
 		"next character",
 		"reset to mark",
 		"send_with_:_",
-		"seq“_”",
+		"seq`«_`»",
 		"static method_._(«_‡,»)(fail with_)",
 		"swap_and_",
 		"termination requested",
 		"try_catch_",
-		"“(_:=_)”",
-		"“[_`|Primitive__]:_^_”",
-		"“_:=_”",
-		"“↑_”",
 		"↓_",
 		"∪_[_.._]"
 	)
@@ -1117,7 +1117,7 @@ Method "_mod_" is
  *    `variableUse` the result of running `valueExpression`. The result yields the same
  *    answer as `valueExpression`.
  */
-Method "“(_:=_)”" is
+Method "`«(_:=_)`»" is
 [
 	variableUse : variable use,
 	valueExpression : expression yielding any
@@ -1136,7 +1136,7 @@ Method "“(_:=_)”" is
  *    A statement that describes assigning to the variable indicated by
  *    `variableUse` the result of running `valueExpression`.
  */
-Method "“_:=_”" is
+Method "`«_:=_`»" is
 [
 	variableUse : variable use,
 	valueExpression : expression yielding any
@@ -1154,7 +1154,7 @@ Method "“_:=_”" is
  *    A variable reference expression that answers the variable described by
  *    `variableUse`.
  */
-Method "“↑_”" is
+Method "`«↑_`»" is
 [
 	variableUse : variable use
 |
@@ -1178,7 +1178,7 @@ Method "“↑_”" is
  * Returns:
  *    The requested block.
  */
-Method "“[_`|Primitive__]:_^_”" is
+Method "`«[_`|Primitive__]:_^_`»" is
 [
 	argumentDeclarations : argument tuple,
 	primitiveNumber : unsigned short,
@@ -1238,7 +1238,7 @@ Method "send_with_:_" is
  * Returns:
  *    The requested sequence.
  */
-Method "seq“_”" is
+Method "seq`«_`»" is
 [
 	statements : phrase tuple
 |

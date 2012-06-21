@@ -115,9 +115,9 @@ Semantic restriction "Exit_with_" is
 	[
 		Reject parse, expected:
 			"continuation ("
-			++ primitive description of continuationType
+			++ “continuationType”
 			++ ") to accept value ("
-			++ primitive description of exitType
+			++ “exitType”
 			++ ")"
 	];
 	⊥
@@ -347,9 +347,9 @@ Semantic restriction "From_to_by_do_" is
 	[
 		Reject parse, expected:
 			"repeatedly applied function to accept all values in the range "
-			++ primitive description of subscripts
+			++ “subscripts”
 			++ ", but it only accepts "
-			++ primitive description of action[1]
+			++ “action[1]”
 	];
 	return ::= action's return type;
 	endSet ::= {⎣end⎦, ⎡end⎤};
@@ -486,9 +486,9 @@ Semantic restriction "From_to_by_do_" is
 	[
 		Reject parse, expected:
 			"repeatedly applied function to accept all values in the range "
-			++ primitive description of subscripts
+			++ “subscripts”
 			++ ", but it only accepts "
-			++ primitive description of action[1]
+			++ “action[1]”
 	];
 	return ::= action's return type;
 	endSet ::= {⎣end⎦, ⎡end⎤};
@@ -565,9 +565,9 @@ Semantic restriction "From_to_do_" is
 	[
 		Reject parse, expected:
 			"repeatedly applied function to accept all values in the range "
-			++ primitive description of subscripts
+			++ “subscripts”
 			++ ", but it only accepts "
-			++ primitive description of action[1]
+			++ “action[1]”
 	];
 	return ::= action's return type;
 	endSet ::= {⎣end⎦, ⎡end⎤};
@@ -623,9 +623,9 @@ Semantic restriction "From_to_do_" is
 	[
 		Reject parse, expected:
 			"repeatedly applied function to accept all values in the range "
-			++ primitive description of subscripts
+			++ “subscripts”
 			++ ", but it only accepts "
-			++ primitive description of action[1]
+			++ “action[1]”
 	];
 	return ::= action's return type;
 	endSet ::= {⎣end⎦, ⎡end⎤};
@@ -693,12 +693,12 @@ Semantic restriction "_(«_‡,»)" is
 			[
 				Reject parse, expected:
 					"argument #"
-					++ primitive description of index
+					++ “index”
 					++ " of type ("
-					++ primitive description of argumentsType[index]
+					++ “argumentsType[index]”
 					++ ") to agree with corresponding continuation's "
 					++ "parameter type ("
-					++ primitive description of parametersType[index]
+					++ “parametersType[index]”
 					++ ")"
 			];
 		];
@@ -730,9 +730,9 @@ Public method "Require:_'s⁇keeper is valid" is
 	[
 		Reject parse, expected:
 			"last argument ⊆ "
-			++ primitive description of expectedType
+			++ “expectedType”
 			++ " (but instead it was "
-			++ primitive description of action[parametersSize]
+			++ “action[parametersSize]”
 			++ ")"
 	];
 ];
@@ -1615,17 +1615,17 @@ Semantic restriction "Cast|cast_into«_‡,»«else_»" is
 		[
 			Reject parse, expected:
 				"necessary cast expression, but "
-				++ primitive description of valueType
+				++ “valueType”
 				++ " is a subtype of "
-				++ primitive description of functionType[1]
+				++ “functionType[1]”
 		];
 		If valueType ∩ (functionType[1]) = ⊥ then
 		[
 			Reject parse, expected:
 				"allowed cast expression, but "
-				++ primitive description of valueType
+				++ “valueType”
 				++ " is not a supertype of "
-				++ primitive description of functionType[1]
+				++ “functionType[1]”
 		];
 		union := eject ↑union ∪ functionType's return type;
 	];
@@ -1714,9 +1714,9 @@ Semantic restriction "Choose|choose_from_where«_is_‡,»«,else_»" is
 	[
 		Reject parse, expected:
 			"case selector ("
-			++ primitive description of valueType
+			++ “valueType”
 			++ ") to be an instance of "
-			++ primitive description of meta
+			++ “meta”
 	];
 	enum ::= meta's instance;
 	caseEnum : type := ⊥;
@@ -1730,23 +1730,23 @@ Semantic restriction "Choose|choose_from_where«_is_‡,»«,else_»" is
 		[
 			Reject parse, expected:
 				"all cases to be statically known values, but discovered "
-				++ primitive description of case[1]
+				++ “case[1]”
 		];
 		instance ::= case[1]'s instance;
 		If ¬instance ∈ enum then
 		[
 			Reject parse, expected:
 				"all cases to be instances of "
-				++ primitive description of enum
+				++ “enum”
 				++ ", but "
-				++ primitive description of instance
+				++ “instance”
 				++ " is not"
 		];
 		If case[1] ⊆ caseEnum then
 		[
 			Reject parse, expected:
 				"each case to be unique, but "
-				++ primitive description of instance
+				++ “instance”
 				++ " occurs more than once"
 		];
 		caseEnum := eject ↑caseEnum ∪ case[1];
@@ -1766,7 +1766,7 @@ Semantic restriction "Choose|choose_from_where«_is_‡,»«,else_»" is
 		unhandledCases ::= allCases \ handledCases;
 		Reject parse, expected:
 			"all cases to be handled, but these cases are not: "
-			++ primitive description of unhandledCases
+			++ “unhandledCases”
 	];
 	If ¬valueType ⊆ caseEnum then
 	[

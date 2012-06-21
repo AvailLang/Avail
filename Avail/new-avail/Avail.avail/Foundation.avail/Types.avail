@@ -114,10 +114,9 @@ Semantic restriction "<_,_`…`|_>" is
 			[
 				Assert: leadingTupleLeadingAndDefaultTypes[index] ∈ {type,⊥}
 					("tuple leading type at index: " 
-						++ primitive description of index
+						++ “index”
 						++ " has size ≠ 1 and is "
-						++  primitive description of
-							leadingTupleLeadingAndDefaultTypes[index]
+						++  “leadingTupleLeadingAndDefaultTypes[index]”
 						++ ", however only type or ⊥ is acceptable"
 						++ " in this case.");
 				if leadingTupleLeadingAndDefaultTypes[index] = type then
@@ -142,7 +141,7 @@ Semantic restriction "<_,_`…`|_>" is
 		[
 			Assert: defaultTypeType ∈ {type}
 				("tuple default type is "
-					++ primitive description of defaultTypeType 
+					++ “defaultTypeType” 
 					++ " and has size ≠ 1, however only type is acceptable"
 					++ " in this case.");
 			type
@@ -216,9 +215,9 @@ Semantic restriction "<«_‡,»`…`|_.._>" is
 			[
 				Assert: leadingTypesTypes[index] = type 
 					("tuple leading type at index: "
-						++ primitive description of index
+						++ “index”
 						++ " has size ≠ 1 and is "
-						++ primitive description of leadingTypesTypes[index]
+						++ “leadingTypesTypes[index]”
 						++ ", however only type is acceptable"
 						++ " in this case.");
 				eject ↑typesTypesInstanceTuple ++ <type>
@@ -237,7 +236,7 @@ Semantic restriction "<«_‡,»`…`|_.._>" is
 		[
 			Assert: defaultTypeType = type 
 				("tuple default type is "
-					++ primitive description of defaultTypeType
+					++ “defaultTypeType”
 					++ " and has size ≠ 1, however only type is acceptable"
 					++ " in this case.");
 			type
@@ -304,9 +303,9 @@ Semantic restriction "<«_‡,»`…`|_..>" is
 			[
 				Assert: leadingTypesTypes[index] = type 
 					("tuple leading type at index: "
-						++ primitive description of index
+						++ “index”
 						++ " has size ≠ 1 and is "
-						++ primitive description of leadingTypesTypes[index]
+						++ “leadingTypesTypes[index]”
 						++ ", however only type is acceptable in this case.");
 				eject ↑typesTypesInstanceTuple ++ <type>
 			]
@@ -324,7 +323,7 @@ Semantic restriction "<«_‡,»`…`|_..>" is
 		[
 			Assert: defaultTypeType = type 
 				("tuple default type is "
-					++ primitive description of defaultTypeType
+					++ “defaultTypeType”
 					++ " and has size ≠ 1, however only type is acceptable "
 					++ "in this case.");
 			type
@@ -392,9 +391,9 @@ Semantic restriction "<«_‡,»`…`|.._>" is
 			[
 				Assert: leadingTypesTypes[index] = type 
 					("tuple leading type at index: "
-						++ primitive description of index
+						++ “index”
 						++ " has size ≠ 1 and is "
-						++ primitive description of leadingTypesTypes[index]
+						++ “leadingTypesTypes[index]”
 						++ ", however only type is acceptable in this case.");
 				eject ↑typesTypesInstanceTuple ++ <type>
 			]
@@ -412,7 +411,7 @@ Semantic restriction "<«_‡,»`…`|.._>" is
 		[
 			Assert: defaultTypeType = type 
 				("tuple default type is "
-					++ primitive description of defaultTypeType
+					++ “defaultTypeType”
 					++ " and has size ≠ 1, however only type is acceptable"
 					++ " in this case.");
 			type
@@ -478,9 +477,9 @@ Semantic restriction "<«_‡,»`…`|_>" is
 			[
 				Assert: leadingTypesTypes[index] = type 
 					("tuple leading type at index: "
-						++ primitive description of index
+						++ “index”
 						++ " has size ≠ 1 and is "
-						++ primitive description of leadingTypesTypes[index]
+						++ “leadingTypesTypes[index]”
 						++ ", however only type is acceptable "
 						++ "in this case.");
 				eject ↑typesTypesInstanceTuple ++ <type>
@@ -499,7 +498,7 @@ Semantic restriction "<«_‡,»`…`|_>" is
 		[
 			Assert: defaultTypeType = type 
 				("tuple default type is "
-					++ primitive description of defaultTypeType
+					++ “defaultTypeType”
 					++ " and has size ≠ 1, however only type is acceptable "
 					++ "in this case.");
 			type
@@ -561,9 +560,9 @@ Semantic restriction "<«_‡,»`…`|>" is
 			if |leadingTypesTypes[index]| ≠ 1 then [
 				Assert: leadingTypesTypes[index] = type 
 					("tuple leading type at index: "
-						++ primitive description of index
+						++ “index”
 						++ " has size ≠ 1 and is "
-						++ primitive description of leadingTypesTypes[index] 
+						++ “leadingTypesTypes[index]” 
 						++ ", however only type is acceptable in this case.");
 				eject ↑typesTypesInstanceTuple ++ <type>
 			]
@@ -581,7 +580,7 @@ Semantic restriction "<«_‡,»`…`|>" is
 		[
 			Assert: defaultTypeType = type 
 				("tuple default type is "
-					++ primitive description of defaultTypeType 
+					++ “defaultTypeType” 
 					++ " and has size ≠ 1, however only type is acceptable"
 					++ " in this case.");
 			type

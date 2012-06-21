@@ -78,8 +78,8 @@ interpolationMode ::= enumeration of {description, text, escape};
  * Answer the enumeration of variable interpolation modes:
  * 
  *    - $description : The result of converting the corresponding argument,
- *      which may be any value, to a string via `primitive description of_` will
- *      be copied into the formatted output.
+ *      which may be any value, to a string via `“_”` will be copied into the
+ *      formatted output.
  *    - $text : The corresponding argument is a string and should be copied
  *      directly into the formatted output.
  *    - $escape : There is no corresponding argument. There is an escaped
@@ -221,10 +221,10 @@ Private stable method "format sites for_" is
  * expected close metacharacter. The contents are understood to name a variable
  * that may appear as a key within the specified map; the associated value is
  * this variable's value. If an interpolation site uses ¢‘ (and ¢’), then the
- * value will be converted to a string via `primitive description of_` when it
- * is copied into the result. If an interpolation site uses ¢“ (and ¢”), then
- * the value must be a string and will be copied directly into the result. To
- * escape a metacharacter, precede it immediately by ¢`.
+ * value will be converted to a string via `“_”` when it is copied into the
+ * result. If an interpolation site uses ¢“ (and ¢”), then the value must be a
+ * string and will be copied directly into the result. To escape a
+ * metacharacter, precede it immediately by ¢`.
  *
  * For example:
  * 
@@ -269,7 +269,7 @@ Public stable method "partially format_with_" is
 		interpolation ::= choose site[2] from interpolation mode where
 			description is
 			[
-				primitive description of vars[var] else ["‘" ++ var ++ "’"]
+				“vars[var] else ["‘" ++ var ++ "’"]”
 			],
 			text is
 			[
@@ -338,10 +338,10 @@ Semantic restriction "partially format_with_" is
  * expected close metacharacter. The contents are understood to name a variable
  * that may appear as a key within the specified map; the associated value is
  * this variable's value. If an interpolation site uses ¢‘ (and ¢’), then the
- * value will be converted to a string via `primitive description of_` when it
- * is copied into the result. If an interpolation site uses ¢“ (and ¢”), then
- * the value must be a string and will be copied directly into the result. To
- * escape a metacharacter, precede it immediately by ¢`.
+ * value will be converted to a string via `“_”` when it is copied into the
+ * result. If an interpolation site uses ¢“ (and ¢”), then the value must be a
+ * string and will be copied directly into the result. To escape a
+ * metacharacter, precede it immediately by ¢`.
  *
  * For example:
  * 
@@ -381,7 +381,7 @@ Public stable method "format_with_" is
 			description is
 			[
 				value ::= vars[site[1]] else missing;
-				primitive description of value
+				“value”
 			],
 			text is
 			[
@@ -435,7 +435,7 @@ Private method "format variable for_" is
 	|
 		value ::= literal's value;
 		cast value into [ t : string | t ]
-		else [ primitive description of value ]
+		else [ “value” ]
 	]
 	else
 	[
@@ -456,10 +456,10 @@ Private method "format variable for_" is
  * expected close metacharacter. The contents are understood to name a variable
  * that may appear as a key within the specified map; the associated value is
  * this variable's value. If an interpolation site uses ¢‘ (and ¢’), then the
- * value will be converted to a string via `primitive description of_` when it
- * is copied into the result. If an interpolation site uses ¢“ (and ¢”), then
- * the value must be a string and will be copied directly into the result. To
- * escape a metacharacter, precede it immediately by ¢`.
+ * value will be converted to a string via `“_”` when it is copied into the
+ * result. If an interpolation site uses ¢“ (and ¢”), then the value must be a
+ * string and will be copied directly into the result. To escape a
+ * metacharacter, precede it immediately by ¢`.
  *
  * For example:
  * 
@@ -526,9 +526,9 @@ Semantic restriction "partially format_with«…:=_‡,»" is
 			[
 				Reject parse, expected:
 					"format variable "
-					++ (primitive description of var)
+					++ “var”
 					++ " ∈ string, not "
-					++ (primitive description of binding[2])
+					++ “binding[2]”
 					++ " (because at least one format site requires this)"
 			];
 			bindingVars := eject ↑bindingVars + var;
@@ -538,7 +538,7 @@ Semantic restriction "partially format_with«…:=_‡,»" is
 		[
 			Reject parse, expected:
 				"only bindings for format variables, but bindings also include "
-				++ primitive description of unmentionedVars
+				++ “unmentionedVars”
 		];
 		<character… | minimum |template after formatting|..>
 	]
@@ -559,10 +559,10 @@ Semantic restriction "partially format_with«…:=_‡,»" is
  * expected close metacharacter. The contents are understood to name a variable
  * that may appear as a key within the specified map; the associated value is
  * this variable's value. If an interpolation site uses ¢‘ (and ¢’), then the
- * value will be converted to a string via `primitive description of_` when it
- * is copied into the result. If an interpolation site uses ¢“ (and ¢”), then
- * the value must be a string and will be copied directly into the result. To
- * escape a metacharacter, precede it immediately by ¢`.
+ * value will be converted to a string via `“_”` when it is copied into the
+ * result. If an interpolation site uses ¢“ (and ¢”), then the value must be a
+ * string and will be copied directly into the result. To escape a
+ * metacharacter, precede it immediately by ¢`.
  *
  * For example:
  * 
@@ -620,9 +620,9 @@ Semantic restriction "format_with«…:=_‡,»" is
 			[
 				Reject parse, expected:
 					"format variable "
-					++ (primitive description of var)
+					++ “var”
 					++ " ∈ string, not "
-					++ (primitive description of binding[2])
+					++ “binding[2]”
 					++ " (because at least one format site requires this)"
 			];
 			bindingVars := eject ↑bindingVars + var;
@@ -632,14 +632,14 @@ Semantic restriction "format_with«…:=_‡,»" is
 		[
 			Reject parse, expected:
 				"bindings for format variables "
-				++ primitive description of unboundVars
+				++ “unboundVars”
 		];
 		unmentionedVars ::= bindingVars \ templateVars;
 		If unmentionedVars ≠ ∅ then
 		[
 			Reject parse, expected:
 				"only bindings for format variables, but bindings also include "
-				++ primitive description of unmentionedVars
+				++ “unmentionedVars”
 		];
 		<character… | minimum |template after formatting|..>
 	]
@@ -710,7 +710,7 @@ Public stable method "format_with unchecked_" is
 				value ::= if varIndex ≤ |vars|
 					then [ vars[varIndex] ]
 					else missing;
-				primitive description of value
+				“value”
 			],
 			text is
 			[
@@ -814,9 +814,9 @@ Semantic restriction "format_with«_‡,»" is
 				[
 					Reject parse, expected:
 						"format variable "
-						++ (primitive description of var)
+						++ “var”
 						++ " ∈ string, not "
-						++ (primitive description of bindingType)
+						++ “bindingType”
 						++ " (because at least one format site requires this)"
 				];
 				var
@@ -826,14 +826,14 @@ Semantic restriction "format_with«_‡,»" is
 		[
 			Reject parse, expected:
 				"bindings for format variables "
-				++ primitive description of unboundVars
+				++ “unboundVars”
 		];
 		unmentionedVars ::= bindingVars \ templateVars;
 		If unmentionedVars ≠ ∅ then
 		[
 			Reject parse, expected:
 				"only bindings for format variables, but bindings also include "
-				++ primitive description of unmentionedVars
+				++ “unmentionedVars”
 		];
 		<character… | minimum |template after formatting|..>
 	]

@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Versioned As: $$Revision$$
+ * * Last Versioned As: $$Revision: 565 $$
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -147,7 +147,12 @@ Uses
 		"`|_'s⁇parameters`|",
 		"`|_`|",
 		"`|`|_`|`|",
-		"arg“_:_”",
+		"`«$_:_`»",
+		"`«_::=_`»",
+		"`«_:_:=_`»",
+		"`«_:_`»",
+		"`«↓_`»(_)",
+		"arg`«_:_`»",
 		"concatenate_",
 		"current fiber",
 		"enumeration of_",
@@ -161,7 +166,7 @@ Uses
 		"new_[_]",
 		"new_applying_",
 		"new↑_",
-		"primfail“_:_”",
+		"primfail`«_:_`»",
 		"primitive description of_",
 		"request termination of_",
 		"semantic restrictions for_given_",
@@ -170,11 +175,6 @@ Uses
 		"{_`|_}",
 		"{_→_`|_}",
 		"‘_’",
-		"“$_:_”",
-		"“_::=_”",
-		"“_:_:=_”",
-		"“_:_”",
-		"“↓_”(_)",
 		"↑_",
 		"↓_`?=_'s⁇initialization",
 		"∪_",
@@ -2664,7 +2664,7 @@ Method "_'s⁇referent" is
  * Returns:
  *    The requested argument declaration.
  */
-Method "arg“_:_”" is
+Method "arg`«_:_`»" is
 [
 	name : token,
 	declaredType : any meta
@@ -2681,7 +2681,7 @@ Method "arg“_:_”" is
  * Returns:
  *    The requested label declaration.
  */
-Method "“$_:_”" is
+Method "`«$_:_`»" is
 [
 	name : token,
 	declaredType : continuation
@@ -2698,7 +2698,7 @@ Method "“$_:_”" is
  * Returns:
  *    The requested local constant declaration.
  */
-Method "“_::=_”" is
+Method "`«_::=_`»" is
 [
 	name : token,
 	declaredType : expression yielding any
@@ -2715,7 +2715,7 @@ Method "“_::=_”" is
  * Returns:
  *    The requested primitive failure local constant declaration.
  */
-Method "primfail“_:_”" is
+Method "primfail`«_:_`»" is
 [
 	name : token,
 	declaredType : any meta
@@ -2732,7 +2732,7 @@ Method "primfail“_:_”" is
  * Returns:
  *    The requested local variable declaration.
  */
-Method "“_:_”" is
+Method "`«_:_`»" is
 [
 	name : token,
 	declaredType : any meta
@@ -2750,7 +2750,7 @@ Method "“_:_”" is
  * Returns:
  *    The requested initialized local variable declaration.
  */
-Method "“_:_:=_”" is
+Method "`«_:_:=_`»" is
 [
 	name : token,
 	declaredType : any meta,
@@ -2939,7 +2939,7 @@ Method "_'s⁇expressions" is
  * Returns:
  *    The requested variable use expression.
  */
-Method "“↓_”(_)" is
+Method "`«↓_`»(_)" is
 [
 	aDeclaration : declaration,
 	aToken : token

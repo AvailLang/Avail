@@ -209,9 +209,9 @@ Semantic restriction "Cast|cast_into_else_" is
 	[
 		messageTuple ::= concatenate <
 			"necessary cast expression, but ",
-			primitive description of value,
+			“value”,
 			" is a subtype of ",
-			primitive description of accept[1]>;
+			“accept[1]”>;
 		cast messageTuple into
 		[
 			message : string
@@ -229,9 +229,9 @@ Semantic restriction "Cast|cast_into_else_" is
 	[
 		messageTuple ::= concatenate <
 			"allowed cast expression, but ",
-			primitive description of value,
+			“value”,
 			" is not a supertype of ",
-			primitive description of accept[1]>;
+			“accept[1]”>;
 		cast messageTuple into
 		[
 			message : string
@@ -256,9 +256,9 @@ Semantic restriction "Cast|cast_into_" is
 	[
 		messageTuple ::= concatenate <
 			"necessary cast expression, but ",
-			primitive description of value,
+			“value”,
 			" is a subtype of ",
-			primitive description of accept[1]>;
+			“accept[1]”>;
 		cast messageTuple into
 		[
 			message : string
@@ -276,9 +276,9 @@ Semantic restriction "Cast|cast_into_" is
 	[
 		messageTuple ::= concatenate <
 			"allowed cast expression, but ",
-			primitive description of value,
+			“value”,
 			" is not a supertype of ",
-			primitive description of accept[1]>;
+			“accept[1]”>;
 		cast messageTuple into
 		[
 			message : string
@@ -384,11 +384,11 @@ Semantic restriction "From_to_do_" is
 		[
 			messageTuple ::= concatenate <
 				"repeatedly applied function to accept all integers from ",
-				primitive description of lower,
+				“lower”,
 				" to ",
-				primitive description of end's genuine lower bound,
+				“end's genuine lower bound”,
 				" (but it only accepts ",
-				primitive description of action[1],
+				“action[1]”,
 				")">;
 			cast messageTuple into
 			[

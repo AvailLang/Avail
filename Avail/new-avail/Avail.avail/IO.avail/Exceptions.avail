@@ -34,7 +34,6 @@ System Module "Exceptions"
 Versions
 	"dev"
 Uses
-	"Bootstrap",
 	"Foundation"
 Names
 	"I/O exception",

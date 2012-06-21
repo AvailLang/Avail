@@ -186,40 +186,40 @@ Public method "Require:_[_.._]is ever valid" is
 	[
 		Reject parse, expected:
 			"a subscript ("
-			++ primitive description of ⎣sliceStart⎦
+			++ “⎣sliceStart⎦”
 			++ " ≤ sliceStart ≤ "
-			++ primitive description of ⎡sliceStart⎤
+			++ “⎡sliceStart⎤”
 			++ ") that could ever be valid ("
-			++ primitive description of ⎣aTuple⎦
+			++ “⎣aTuple⎦”
 			++ " ≤ |theTuple| ≤ "
-			++ primitive description of ⎡aTuple⎤
+			++ “⎡aTuple⎤”
 			++ ")"
 	];
 	If ⎣sliceEnd⎦ > ⎡aTuple⎤ then
 	[
 		Reject parse, expected:
 			"a subscript ("
-			++ primitive description of ⎣sliceEnd⎦
+			++ “⎣sliceEnd⎦”
 			++ " ≤ sliceEnd ≤ "
-			++ primitive description of ⎡sliceEnd⎤
+			++ “⎡sliceEnd⎤”
 			++ ") that could ever be valid ("
-			++ primitive description of ⎣aTuple⎦
+			++ “⎣aTuple⎦”
 			++ " ≤ |theTuple| ≤ "
-			++ primitive description of ⎡aTuple⎤
+			++ “⎡aTuple⎤”
 			++ ")"
 	];
 	If ⎡sliceEnd⎤ < ⎣sliceStart⎦ - 1 then
 	[
 		Reject parse, expected:
 			"a slice end subscript ("
-			++ primitive description of ⎣sliceEnd⎦
+			++ “⎣sliceEnd⎦”
 			++ " ≤ theEndSubscript ≤ "
-			++ primitive description of ⎡sliceEnd⎤
+			++ “⎡sliceEnd⎤”
 			++ ") not guaranteed more than one less than the start\
 			\| subscript ("
-			++ primitive description of ⎣sliceStart⎦
+			++ “⎣sliceStart⎦”
 			++ " ≤ theStartSubscript ≤ "
-			++ primitive description of ⎡sliceStart⎤
+			++ “⎡sliceStart⎤”
 			++ ")"
 	];
 ] : ⊤;

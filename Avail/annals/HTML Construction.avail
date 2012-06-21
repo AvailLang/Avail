@@ -147,17 +147,15 @@ Semantic restriction "<…«…=_»>«_»</…>" is
 	if startElementNameType ⊆ literal token then
 	[
 	 	Reject parse, expected:
-		 "\nIn the method call, <…«…=_»>«_»</…>, the token, " ++ 
-		 (primitive description of open) ++ 
-		 	", is a literal token.\n" ++ 
-		 	"The use of literal tokens in <…«…=_»>«_»</…> is not allowed.\n\n"
+			"\nIn the method call, <…«…=_»>«_»</…>, the token, " ++ 
+			“open” ++ ", is a literal token.\n" ++ 
+			"The use of literal tokens in <…«…=_»>«_»</…> is not allowed.\n\n"
 	] else if [open ≠ close] then
 	[	 	Reject parse, expected:
 		 "\nIn the method call, <…«…=_»>«_»</…>, the token, " ++ 
-		 	(primitive description of open) ++
+		 	“open” ++
 		 	", used in the open tag does not match the token, " ++ 
-		 	(primitive description of close) 
-		 	++ " used in the closing tag.\n\n"
+		 	“close” ++ " used in the closing tag.\n\n"
 	] else [
 		⊤
 	]
@@ -250,7 +248,7 @@ Public method "generate_" is
  	 	] else if [ element's type ⊆ string ] then  [ 
  	 		output ++ cast element into [e : string | e]
  	 	] else [
- 	 		output ++ primitive description of element
+ 	 		output ++ “element”
  	 	];
  	];
 	output ++ "</" ++ te's tag ++ ">"

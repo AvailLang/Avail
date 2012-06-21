@@ -174,9 +174,9 @@ Method "Require:_accepts_" is
 	[
 		Reject parse, expected:
 			"repeatedly applied function to accept all elements of the set ∈ "
-			++ primitive description of setType
+			++ “setType”
 			++ " (but it only accepts "
-			++ primitive description of action[1]
+			++ “action[1]”
 			++ ")"
 	];
 ] : ⊤;

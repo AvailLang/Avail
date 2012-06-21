@@ -44,7 +44,6 @@ Extends
 		"_'s⁇tail"
 	)
 Uses
-	"Bootstrap",
 	"Foundation"
 Names
 	"element type",
@@ -202,9 +201,9 @@ Semantic restriction "_'s⁇head method is_" is
 	[
 		Reject parse, expected:
 			"function parameter type ("
-			++ primitive description of implementationType[1]
+			++ “implementationType[1]”
 			++ ") to equal the stream type ("
-			++ primitive description of streamMeta's instance
+			++ “streamMeta's instance”
 			++ ")"
 	];
 	⊤
@@ -295,9 +294,9 @@ Semantic restriction "_'s⁇tail method is_" is
 	[
 		Reject parse, expected:
 			"function parameter type ("
-			++ primitive description of implementationType[1]
+			++ “implementationType[1]”
 			++ ") to equal the stream type ("
-			++ primitive description of streamMeta's instance
+			++ “streamMeta's instance”
 			++ ")"
 	];
 	⊤

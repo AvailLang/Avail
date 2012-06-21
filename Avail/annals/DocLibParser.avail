@@ -86,9 +86,9 @@ Method "convert_to html" is
  	For each params do [
  		p : parameter document
 	 |
-	 	output := output ++ "<li>" ++ p's name ++ " : " ++
-	 		primitive description of p's parameter ++ " - " ++
-	 		p's description ++ "</li>\n";
+	 	output := eject ↑output ++ "<li>" ++ p's name ++ " : " ++
+	 		“p's parameter” ++ " - " ++
+	 		“p's description” ++ "</li>\n";
 	];
  	output ++ "</ol>\n"
 ] : string;
@@ -108,7 +108,7 @@ Method "convert_to html" is
  |
 	"<b>Returns:</b><br>\n" ++
 		"<p class=\"BodyDescription\">\n" ++
- 		primitive description of rType's returnType ++ " - " ++
+ 		“rType's returnType” ++ " - " ++
  		rType's description ++ "</p>\n" ++ "</section>"
 ] : string;
 

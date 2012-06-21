@@ -42,10 +42,10 @@ Uses
 	"Early Literals"
 Names
 	"``_``",
-	"“↓_”",
-	"“<«_‡,»>”",
-	"“[_`|_]:_”",
-	"“[_]:_”"
+	"`«↓_`»",
+	"`«<«_‡,»>`»",
+	"`«[_`|_]:_`»",
+	"`«[_]:_`»"
 Body
 
 /* Make "_'s type" bind more tightly than phrase type construction. */
@@ -58,7 +58,7 @@ with <>;
 
 /**
  * Construct and answer a (synthetic) literal token whose artificial source text
- * is the primitive description of the value.
+ * is the description of the value.
  * 
  * Parameters:
  *    value - Any value, irrespective of whether an Avail compiler would be able
@@ -70,7 +70,7 @@ Public method "``_``" is
 [
 	value : any
 |
-	`value` (primitive description of value)
+	`value` (“value”)
 ] : literal token;
 
 /**
@@ -103,11 +103,11 @@ Semantic restriction "‘_’" is
  * Returns:
  *    A variable use expression.
  */
-Public method "“↓_”" is
+Public method "`«↓_`»" is
 [
 	decl : declaration
 |
-	“↓decl” (`decl's token's lexeme`)
+	«↓decl» (`decl's token's lexeme`)
 ] : variable use;
 
 /**
@@ -118,7 +118,7 @@ Public method "“↓_”" is
  * Returns:
  *    The requested list.
  */
-Public method "“<«_‡,»>”" is
+Public method "`«<«_‡,»>`»" is
 [
 	aTuple : <<>, expression⇒any…|whole number>
 |
@@ -136,21 +136,21 @@ Public method "“<«_‡,»>”" is
  * Returns:
  *    A block.
  */
-Public method "“[_`|_]:_”" is
+Public method "`«[_`|_]:_`»" is
 [
 	args : <<>, argument…|whole number>,
 	statements : <<>, phrase…|whole number>,
 	returnType : type
 |
-	“[
+	«[
 		args
 	|
 		Primitive 0
 		statements
-	] : returnType ^ ∅”
+	] : returnType ^ ∅»
 ] : block;
 
-Semantic restriction "“[_`|_]:_”" is
+Semantic restriction "`«[_`|_]:_`»" is
 [
 	args : <<>, argument…|whole number>'s type,
 	statements : <<>, phrase…|whole number>'s type,
@@ -169,20 +169,20 @@ Semantic restriction "“[_`|_]:_”" is
  * Returns:
  *    A block.
  */
-Public method "“[_]:_”" is
+Public method "`«[_]:_`»" is
 [
 	statements : <<>, phrase…|whole number>,
 	returnType : type
 |
-	“[
+	«[
 		<>
 	|
 		Primitive 0
 		statements
-	] : returnType ^ ∅”
+	] : returnType ^ ∅»
 ];
 
-Semantic restriction "“[_]:_”" is
+Semantic restriction "`«[_]:_`»" is
 [
 	statements : <<>, phrase…|whole number>'s type,
 	returnType : type's type

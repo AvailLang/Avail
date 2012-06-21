@@ -36,9 +36,28 @@ Versions
 Uses
 	"Bootstrap"
 Names
+	"“_”",
 	"<«_‡,»>",
 	"{«_‡,»}"
 Body
+
+/**
+ * Produce a description of the argument. The default implementation uses
+ * `primitive description of_` to obtain a mechanically constructed description
+ * from the Avail virtual machine. Overrides should provide semantic information
+ * that is appropriately localized for the default locale.
+ *
+ * Parameters:
+ *    value - A value.
+ * Returns:
+ *    A description of the argument.
+ */
+Method "“_”" is
+[
+	value : any
+|
+	primitive description of value
+] : string;
 
 /**
  * Construct and answer a tuple from the lexically specified expressions. The

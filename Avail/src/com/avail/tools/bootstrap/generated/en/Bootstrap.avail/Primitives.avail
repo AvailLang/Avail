@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Versioned As: $$Revision$$
+ * * Last Versioned As: $$Revision: 565 $$
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -169,7 +169,16 @@ Names
 	"`|_`|",
 	"`|`|_`|`|",
 	"`|message_'⁇parameters`|",
-	"arg“_:_”",
+	"`«$_:_`»",
+	"`«(_:=_)`»",
+	"`«[_`|Primitive__]:_^_`»",
+	"`«_::=_`»",
+	"`«_:=_`»",
+	"`«_:_:=_`»",
+	"`«_:_`»",
+	"`«↑_`»",
+	"`«↓_`»(_)",
+	"arg`«_:_`»",
 	"atom for_",
 	"concatenate_",
 	"constructor_<«_‡,»>(fail with_)",
@@ -195,13 +204,13 @@ Names
 	"new_applying_",
 	"new↑_",
 	"next character",
-	"primfail“_:_”",
+	"primfail`«_:_`»",
 	"primitive description of_",
 	"request termination of_",
 	"reset to mark",
 	"semantic restrictions for_given_",
 	"send_with_:_",
-	"seq“_”",
+	"seq`«_`»",
 	"set_'s⁇priority to_",
 	"special atoms",
 	"static method_._(«_‡,»)(fail with_)",
@@ -211,15 +220,6 @@ Names
 	"{_`|_}",
 	"{_→_`|_}",
 	"‘_’",
-	"“$_:_”",
-	"“(_:=_)”",
-	"“[_`|Primitive__]:_^_”",
-	"“_::=_”",
-	"“_:=_”",
-	"“_:_:=_”",
-	"“_:_”",
-	"“↑_”",
-	"“↓_”(_)",
 	"↑_",
 	"↓_",
 	"↓_`?=_'s⁇initialization",

@@ -35,7 +35,6 @@ Versions
 	"dev"
 Uses
 	"Abstract Streams",
-	"Bootstrap",
 	"Foundation"
 Names
 	"stream over_"
