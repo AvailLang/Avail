@@ -37,6 +37,8 @@ Extends
 	"Foundation" =
 	(
 		"For each_do_",
+		"map_through_",
+		"filter_by_",
 		"_is empty",
 		"_'s⁇head",
 		"_'s⁇tail"
@@ -58,16 +60,27 @@ Names
 	 */
 Body
 
+/* TODO: [TLS] Remove these constants once a macro is available for "$…". */
+elementType ::= $"element type";
+decoratedStream ::= $"decorated stream";
+transformer ::= $"transformer";
+filter ::= $"filter";
+
 /**
  * Answer the field atom that represents a stream's element type.
  * 
  * Returns:
  *    The requested field atom.
  */
-Public method "element type" is
-[
-	$"element type"
-];
+Public method "element type" is [ elementType ];
+
+/**
+ * Answer the field atom that represents a decorated stream.
+ *
+ * Returns:
+ *    The requested field atom.
+ */
+Method "decorated stream" is [ decoratedStream ];
 
 /**
  * A stream is an immutable lazy list of arbitarily many elements.
@@ -414,4 +427,184 @@ Semantic restriction "For each_do_" is
 	⊤
 ];
 
-/* TODO: [TLS] Add `map_through_`, `filter_by_`. */
+/**
+ * `map_through_` produces mapped streams. A mapped stream decorates another
+ * stream and retains a transformer function. When it is asked for its head,
+ * it answers the result of applying the function to the head of the decorated
+ * stream.
+ */
+Class "mapped stream" extends stream
+	with fields
+		decorated stream : stream,
+		transformer : [⊥]→any;
+
+Method "_is empty" is
+[
+	aStream : mapped stream
+|
+	aStream's decorated stream is empty
+] : boolean;
+
+mapped stream's head method is
+[
+	aStream : mapped stream
+|
+	invoke aStream's transformer with <aStream's decorated stream's head>
+] : any;
+
+mapped stream's tail method is
+[
+	aStream : mapped stream
+|
+	a mapped stream with
+		element type := aStream's element type,
+		decorated stream := aStream's decorated stream's tail,
+		transformer := aStream's transformer
+] : mapped stream;
+
+/**
+ * Construct and answer a stream that applies `theTransformer` to the
+ * consecutive elements of `aStream`. The result is lazy, so `aStream` may be
+ * infinite.
+ * 
+ * Parameters:
+ *    aStream - The source stream.
+ *    theTransformer - A function that accepts the elements of `aStream`.
+ * Returns:
+ *    A stream that applies `transformer` to the head of `aStream` when asked
+ *    for its own head.
+ */
+Method "map_through_" is
+[
+	aStream : stream,
+	theTransformer : [⊥]→any
+|
+	a mapped stream with
+		element type := theTransformer's type's return type,
+		decorated stream := aStream,
+		transformer := theTransformer
+] : stream;
+
+Semantic restriction "map_through_" is
+[
+	streamType : stream's type,
+	transformerType : [⊥]→any's type
+|
+	Require: transformerType accepts streamType;
+	extend stream with element type : transformerType's return type's type
+];
+
+/**
+ * `filtered_by_` produces filtered streams. A filtered stream decorates another
+ * stream and retains a filter function. When it is asked for its head,
+ * it answers the first element of the decorated stream that satisfies the
+ * filter function.
+ */
+Class "filtered stream" extends stream
+	with fields
+		decorated stream : stream,
+		filter : [⊥]→boolean;
+
+/**
+ * A headed filtered stream is a filtered stream that has already been forwarded
+ * to the next element that passes the filter.
+ */
+Explicit class "headed filtered stream" extends filtered stream;
+
+Method "_is empty" is
+[
+	aStream : filtered stream
+|
+	found : boolean := false;
+	remainder : stream := aStream's decorated stream;
+	Until [ found ∨ [ remainder is empty ] ]
+	do
+	[
+		If invoke aStream's filter with <remainder's head> then
+		[
+			found := true;
+		];
+		remainder := eject ↑remainder's tail;
+	];
+	¬found
+] : boolean;
+
+filtered stream's head method is
+[
+	aStream : filtered stream
+|
+	/* There is guaranteed to be a satisfactory element remaining. */
+	remainder : stream := aStream's decorated stream;
+	Until [ invoke aStream's filter with <remainder's head> ]
+	do
+	[
+		remainder := eject ↑remainder's tail;
+	];
+	remainder's head
+] : any;
+
+filtered stream's tail method is
+[
+	aStream : filtered stream
+|
+	/* There is guaranteed to be a satisfactory element remaining. */
+	remainder : stream := aStream's decorated stream's tail;
+	Until [ invoke aStream's filter with <remainder's head> ]
+	do
+	[
+		remainder := eject ↑remainder's tail;
+	];
+	a headed filtered stream with
+		element type := aStream's element type,
+		decorated stream := remainder,
+		filter := aStream's filter
+] : headed filtered stream;
+
+headed filtered stream's head method is
+[
+	aStream : headed filtered stream
+|
+	aStream's decorated stream's head
+] : any;
+
+/**
+ * Construct and answer a stream that applies `theFilter` to `aStream`. The
+ * result is lazy, so `aStream` may be infinite. The result contains only those
+ * elements of `aStream` that pass the specified filter.
+ *
+ * Note that the public stream operations may require an infinite amount of time
+ * to complete when presented with an infinite filtered stream, e.g., consider
+ * that case of:
+ *
+ *    filter stream from 1 to ∞ by [ x : natural number | x < 10 ]
+ *
+ * Which will require infinite computation after advancing beyond the element
+ * `10`.
+ *
+ * Parameters:
+ *    aStream - The source stream.
+ *    predicate - A function that accepts the elements of `aStream` and answer
+ *       `true` iff they should be obtainable via the result stream.
+ * Returns:
+ *    A stream capable of producing exactly those elements of `aStream` for
+ *    which `predicate` answered `true`.
+ */
+Method "filter_by_" is
+[
+	aStream : stream,
+	predicate : [⊥]→boolean
+|
+	a filtered stream with
+		element type := aStream's element type,
+		decorated stream := aStream,
+		filter := predicate
+] : stream;
+
+Semantic restriction "filter_by_" is
+[
+	streamType : stream's type,
+	predicateType : [⊥]→boolean's type
+|
+	Require: predicateType accepts streamType;
+	extend stream with element type : streamType's element type
+];

@@ -118,6 +118,7 @@ extends Descriptor
 		 * value that the callee attempts to return to it. This supports
 		 * link-time type strengthening at call sites.
 		 */
+		@HideFieldInDebugger
 		CALLER,
 
 		/**
