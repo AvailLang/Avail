@@ -65,17 +65,18 @@ extends Descriptor
 		 * case that the hash value actually equals zero, the hash value has to
 		 * be computed every time it is requested.
 		 */
+		@HideFieldInDebugger
 		HASH_OR_ZERO
 	}
 
 	@Override @AvailMethod
-	void o_HashOrZero (final AvailObject object, final int value)
+	void o_HashOrZero (final @NotNull AvailObject object, final int value)
 	{
 		object.setSlot(IntegerSlots.HASH_OR_ZERO, value);
 	}
 
 	@Override @AvailMethod
-	int o_HashOrZero (final AvailObject object)
+	int o_HashOrZero (final @NotNull AvailObject object)
 	{
 		return object.slot(IntegerSlots.HASH_OR_ZERO);
 	}
@@ -331,7 +332,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	int o_Hash (final @NotNull AvailObject object)
 	{
 		// The hash value is stored raw in the object's hashOrZero slot if it
 		// has been computed, otherwise that slot is zero. If a zero is
@@ -349,7 +350,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_Kind (final AvailObject object)
+	@NotNull AvailObject o_Kind (final @NotNull AvailObject object)
 	{
 		final AvailObject tupleOfTypes = object.copyAsMutableObjectTuple();
 		final int tupleSize = object.tupleSize();
@@ -667,10 +668,10 @@ extends Descriptor
 		final boolean canDestroy);
 
 	@Override @AvailMethod
-	abstract int o_TupleIntAt (final AvailObject object, final int index);
+	abstract int o_TupleIntAt (final @NotNull AvailObject object, final int index);
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_AsSet (final AvailObject object)
+	@NotNull AvailObject o_AsSet (final @NotNull AvailObject object)
 	{
 		AvailObject result = SetDescriptor.empty();
 		for (int i = 1, end = object.tupleSize(); i <= end; i++)
@@ -681,13 +682,13 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsTuple (final AvailObject object)
+	boolean o_IsTuple (final @NotNull AvailObject object)
 	{
 		return true;
 	}
 
 	@Override @AvailMethod
-	boolean o_IsByteTuple (final AvailObject object)
+	boolean o_IsByteTuple (final @NotNull AvailObject object)
 	{
 		for (int i = object.tupleSize(); i >= 1; i--)
 		{
@@ -720,7 +721,7 @@ extends Descriptor
 	abstract int o_TupleSize (final @NotNull AvailObject object);
 
 	@Override @AvailMethod
-	boolean o_IsSplice (final AvailObject object)
+	boolean o_IsSplice (final @NotNull AvailObject object)
 	{
 		return false;
 	}
@@ -803,7 +804,7 @@ extends Descriptor
 	 * @param object The object to hash.
 	 * @return The hash value.
 	 */
-	int computeHashForObject (final AvailObject object)
+	int computeHashForObject (final @NotNull AvailObject object)
 	{
 		return object.computeHashFromTo(1, object.tupleSize());
 	}

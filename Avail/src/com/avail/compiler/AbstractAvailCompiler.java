@@ -438,7 +438,7 @@ public abstract class AbstractAvailCompiler
 		 * @param position Where in the parse stream this task operates.
 		 */
 		public ParsingTask (
-			@NotNull final String description,
+			final @NotNull String description,
 			final int position)
 		{
 			this.description = description;
@@ -789,7 +789,7 @@ public abstract class AbstractAvailCompiler
 		AvailObject peekStringLiteral ()
 		{
 			final AvailObject token = peekToken();
-			if (token.isInstanceOfKind(LITERAL_TOKEN.o()))
+			if (token.isInstanceOfKind(LiteralTokenTypeDescriptor.mostGeneralType()))
 			{
 				return token;
 			}
@@ -2490,38 +2490,36 @@ public abstract class AbstractAvailCompiler
 	 * {@linkplain #fragmentCache}.
 	 *
 	 * @param start
-	 *        Where to start parsing.
+	 *            Where to start parsing.
 	 * @param continuation
-	 *        What to do with the expression.
+	 *            What to do with the expression.
 	 */
 	abstract void parseExpressionUncachedThen (
 		final @NotNull ParserState start,
 		final @NotNull Con<AvailObject> continuation);
 
 	/**
-	 * Parse an occurrence of a raw keyword or operator token, then invoke the
-	 * continuation with it.
+	 * Parse and return an occurrence of a raw keyword, literal, or operator
+	 * token.  If no suitable token is present, answer null.  The caller is
+	 * responsible for skipping the token if it was parsed.
 	 *
 	 * @param start
 	 *            Where to start parsing.
-	 * @param continuation
-	 *            What to do after parsing the raw token.  This continuation
-	 *            should expect a token, not a parse node.
+	 * @return
+	 *            The token or {@code null}.
 	 */
-	protected void parseRawTokenThen (
-		final @NotNull ParserState start,
-		final @NotNull Con<AvailObject> continuation)
+	protected AvailObject parseRawTokenOrNull (
+		final @NotNull ParserState start)
 	{
 		final AvailObject token = start.peekToken();
-		if (token.tokenType() == KEYWORD
-			|| token.tokenType() == OPERATOR
-			|| token.tokenType() == LITERAL)
+		switch (token.tokenType())
 		{
-			attempt(start.afterToken(), continuation, token);
-		}
-		else
-		{
-			start.expected("raw token");
+			case KEYWORD:
+			case OPERATOR:
+			case LITERAL:
+				return token;
+			default:
+				return null;
 		}
 	}
 }

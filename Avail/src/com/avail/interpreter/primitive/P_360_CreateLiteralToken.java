@@ -80,6 +80,6 @@ extends Primitive
 			TupleDescriptor.from(
 				ANY.o(),
 				TupleTypeDescriptor.stringTupleType()),
-			LITERAL_TOKEN.o());
+			LiteralTokenTypeDescriptor.mostGeneralType());
 	}
 }

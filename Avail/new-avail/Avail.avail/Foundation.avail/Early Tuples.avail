@@ -297,7 +297,7 @@ Method "_[_.._]" is stable at
 	and returning tuple;
 
 /**
- * Strengthen the tuple type procuded by `_[_.._]` to the strongest possible
+ * Strengthen the tuple type produced by `_[_.._]` to the strongest possible
  * given the argument types.
  *
  * Parameters:
@@ -353,7 +353,7 @@ Public stable method "_[_..]" is
 ] : tuple;
 
 /**
- * Strengthen the tuple type procuded by `_[_..]` to the strongest possible
+ * Strengthen the tuple type produced by `_[_..]` to the strongest possible
  * given the argument types.
  *
  * Parameters:
@@ -407,7 +407,7 @@ Public stable method "_[.._]" is
 ] : tuple;
 
 /**
- * Strengthen the tuple type procuded by `_[.._]` to the strongest possible
+ * Strengthen the tuple type produced by `_[.._]` to the strongest possible
  * given the argument types.
  *
  * Parameters:

@@ -53,6 +53,7 @@ extends TupleDescriptor
 		 * The tuple's hash value or zero if not computed.  If the hash value
 		 * happens to be zero (very rare) we have to recalculate it on demand.
 		 */
+		@HideFieldInDebugger
 		HASH_OR_ZERO;
 
 		static

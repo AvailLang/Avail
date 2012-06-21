@@ -107,13 +107,13 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 
 
 	@Override @AvailMethod
-	AvailObject o_ExpressionType (final AvailObject object)
+	AvailObject o_ExpressionType (final @NotNull AvailObject object)
 	{
 		return object.returnType();
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	int o_Hash (final @NotNull AvailObject object)
 	{
 		return
 			(object.argumentsListNode().hash() * Multiplier

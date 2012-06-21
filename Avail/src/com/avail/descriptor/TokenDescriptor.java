@@ -265,10 +265,20 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
-		return object.kind().equals(another.kind())
-			&& object.string().equals(another.string())
-			&& object.start() == another.start()
-			&& object.tokenType() == another.tokenType();
+		return another.equalsToken(object);
+	}
+
+	@Override @AvailMethod
+	boolean o_EqualsToken (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aToken)
+	{
+		return object.string().equals(aToken.string())
+			&& object.start() == aToken.start()
+			&& object.tokenType() == aToken.tokenType()
+			&& object.isLiteralToken() == aToken.isLiteralToken()
+			&& (!object.isLiteralToken()
+				|| object.literal().equals(aToken.literal()));
 	}
 
 

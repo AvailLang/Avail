@@ -33,7 +33,6 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.error;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.math.BigInteger;
 import java.util.List;
 import com.avail.annotations.*;
@@ -157,13 +156,6 @@ extends TypeDescriptor
 			object.upperBound().hash(),
 			object.lowerInclusive(),
 			object.upperInclusive());
-	}
-
-	@Override @AvailMethod
-	@NotNull AvailObject o_Kind (
-		final @NotNull AvailObject object)
-	{
-		return TYPE.o();
 	}
 
 	@Override @AvailMethod

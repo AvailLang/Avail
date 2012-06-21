@@ -32,7 +32,6 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.TypeDescriptor.Types.TYPE;
 import static com.avail.descriptor.CompiledCodeTypeDescriptor.ObjectSlots.*;
 import java.util.List;
 import com.avail.annotations.*;
@@ -84,6 +83,14 @@ extends TypeDescriptor
 			(indent + 1));
 	}
 
+	@Override
+	boolean o_Equals (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
+	{
+		return another.equalsCompiledCodeType(object);
+	}
+
 	/**
 	 * {@inheritDoc}
 	 *
@@ -107,15 +114,6 @@ extends TypeDescriptor
 	int o_Hash (final @NotNull AvailObject object)
 	{
 		return object.functionType().hash() * 71 ^ 0xA78B01C3;
-	}
-
-	@Override @AvailMethod
-	@NotNull AvailObject o_Kind (
-		final @NotNull AvailObject object)
-	{
-		//  Answer the object's type.
-
-		return TYPE.o();
 	}
 
 	@Override @AvailMethod
@@ -305,7 +303,7 @@ extends TypeDescriptor
 	/**
 	 * The mutable {@link CompiledCodeTypeDescriptor}.
 	 */
-	private static final CompiledCodeTypeDescriptor mutable =
+	private static final TypeDescriptor mutable =
 		new CompiledCodeTypeDescriptor(true);
 
 	/**
@@ -313,7 +311,7 @@ extends TypeDescriptor
 	 *
 	 * @return The mutable {@link CompiledCodeTypeDescriptor}.
 	 */
-	public static CompiledCodeTypeDescriptor mutable ()
+	public static TypeDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -321,7 +319,7 @@ extends TypeDescriptor
 	/**
 	 * The immutable {@link CompiledCodeTypeDescriptor}.
 	 */
-	private static final CompiledCodeTypeDescriptor immutable =
+	private static final TypeDescriptor immutable =
 		new CompiledCodeTypeDescriptor(false);
 
 	/**
@@ -329,7 +327,7 @@ extends TypeDescriptor
 	 *
 	 * @return The immutable {@link CompiledCodeTypeDescriptor}.
 	 */
-	public static CompiledCodeTypeDescriptor immutable ()
+	public static TypeDescriptor immutable ()
 	{
 		return immutable;
 	}

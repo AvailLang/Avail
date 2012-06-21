@@ -60,6 +60,7 @@ extends TupleDescriptor
 		 * actually zero, it will have to be recalculated each time it is
 		 * requested.
 		 */
+		@HideFieldInDebugger
 		HASH_OR_ZERO,
 
 		/**
@@ -236,7 +237,7 @@ extends TupleDescriptor
 		final int nybbleIndex,
 		final byte aNybble)
 	{
-		//  Set the nybble at the given index.  Use little Endian.
+		// Set the nybble at the given index.  Use little Endian.
 		assert nybbleIndex >= 1 && nybbleIndex <= object.tupleSize();
 		assert aNybble >= 0 && aNybble <= 15;
 		object.checkWriteForField(IntegerSlots.RAW_QUAD_AT_);
@@ -317,8 +318,7 @@ extends TupleDescriptor
 		final @NotNull AvailObject object,
 		final int index)
 	{
-		//  Answer the element at the given index in the nybble tuple object.
-
+		// Answer the element at the given index in the nybble tuple object.
 		return IntegerDescriptor.fromUnsignedByte(object.rawNybbleAt(index));
 	}
 
@@ -328,8 +328,8 @@ extends TupleDescriptor
 		final int index,
 		final @NotNull AvailObject aNybbleObject)
 	{
-		//  Set the nybble at the given index to the given object (which should be an AvailObject that's an integer 0<=n<=15).
-
+		// Set the nybble at the given index to the given object (which should
+		// be an AvailObject that's an integer 0<=n<=15).
 		object.rawNybbleAtPut(index, aNybbleObject.extractNybble());
 	}
 
@@ -340,9 +340,9 @@ extends TupleDescriptor
 		final @NotNull AvailObject newValueObject,
 		final boolean canDestroy)
 	{
-		//  Answer a tuple with all the elements of object except at the given index we should
-		//  have newValueObject.  This may destroy the original tuple if canDestroy is true.
-
+		// Answer a tuple with all the elements of object except at the given
+		// index we should have newValueObject.  This may destroy the original
+		// tuple if canDestroy is true.
 		assert nybbleIndex >= 1 && nybbleIndex <= object.tupleSize();
 		if (!newValueObject.isNybble())
 		{
@@ -378,8 +378,8 @@ extends TupleDescriptor
 		final @NotNull AvailObject object,
 		final int index)
 	{
-		//  Answer the integer element at the given index in the nybble tuple object.
-
+		// Answer the integer element at the given index in the nybble tuple
+		// object.
 		return object.rawNybbleAt(index);
 	}
 
@@ -394,8 +394,8 @@ extends TupleDescriptor
 	int o_BitsPerEntry (
 		final @NotNull AvailObject object)
 	{
-		//  Answer approximately how many bits per entry are taken up by this object.
-
+		// Answer approximately how many bits per entry are taken up by this
+		// object.
 		return 4;
 	}
 
@@ -408,7 +408,6 @@ extends TupleDescriptor
 		// See comment in superclass.  This method must produce the same value.
 		// This could eventually be rewritten to do a byte at a time (table
 		// lookup) and to use the square of the current multiplier.
-
 		int hash = 0;
 		for (int nybbleIndex = end; nybbleIndex >= start; nybbleIndex--)
 		{

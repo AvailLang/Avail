@@ -162,7 +162,7 @@ extends AbstractDescriptor
 	 * </p>
 	 */
 	@Override
-	@NotNull AvailObject o_MakeImmutable (final AvailObject object)
+	@NotNull AvailObject o_MakeImmutable (final @NotNull AvailObject object)
 	{
 		if (isMutable)
 		{
@@ -182,7 +182,7 @@ extends AbstractDescriptor
 	 * </p>
 	 */
 	@Override
-	@NotNull AvailObject o_Traversed (final AvailObject object)
+	@NotNull AvailObject o_Traversed (final @NotNull AvailObject object)
 	{
 		final AvailObject next = object.slot(ObjectSlots.INDIRECTION_TARGET);
 		final AvailObject finalObject = next.traversed();
@@ -403,7 +403,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	@NotNull AvailObject o_BinElementAt (final AvailObject object, final int index)
+	@NotNull AvailObject o_BinElementAt (final @NotNull AvailObject object, final int index)
 	{
 		return o_Traversed(object).binElementAt(index);
 	}
@@ -429,7 +429,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_BinHash (final AvailObject object, final int value)
+	void o_BinHash (final @NotNull AvailObject object, final int value)
 	{
 		o_Traversed(object).binHash(value);
 	}
@@ -448,7 +448,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_BinSize (final AvailObject object, final int value)
+	void o_BinSize (final @NotNull AvailObject object, final int value)
 	{
 		o_Traversed(object).binSize(value);
 	}
@@ -462,7 +462,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_BitVector (final AvailObject object, final int value)
+	void o_BitVector (final @NotNull AvailObject object, final int value)
 	{
 		o_Traversed(object).bitVector(value);
 	}
@@ -508,7 +508,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_CodePoint (final AvailObject object, final int value)
+	void o_CodePoint (final @NotNull AvailObject object, final int value)
 	{
 		o_Traversed(object).codePoint(value);
 	}
@@ -714,7 +714,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	@NotNull AvailObject o_ElementAt (final AvailObject object, final int index)
+	@NotNull AvailObject o_ElementAt (final @NotNull AvailObject object, final int index)
 	{
 		return o_Traversed(object).elementAt(index);
 	}
@@ -729,7 +729,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	int o_EndOfZone (final AvailObject object, final int zone)
+	int o_EndOfZone (final @NotNull AvailObject object, final int zone)
 	{
 		return o_Traversed(object).endOfZone(zone);
 	}
@@ -1055,7 +1055,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_Hash (final AvailObject object, final int value)
+	void o_Hash (final @NotNull AvailObject object, final int value)
 	{
 		o_Traversed(object).hash(value);
 	}
@@ -1070,7 +1070,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_HashOrZero (final AvailObject object, final int value)
+	void o_HashOrZero (final @NotNull AvailObject object, final int value)
 	{
 		o_Traversed(object).hashOrZero(value);
 	}
@@ -1117,7 +1117,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_Index (final AvailObject object, final int value)
+	void o_Index (final @NotNull AvailObject object, final int value)
 	{
 		o_Traversed(object).index(value);
 	}
@@ -1131,7 +1131,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_CountdownToReoptimize (final AvailObject object, final int value)
+	void o_CountdownToReoptimize (final @NotNull AvailObject object, final int value)
 	{
 		o_Traversed(object).countdownToReoptimize(value);
 	}
@@ -1170,7 +1170,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_IsSaved (final AvailObject object, final boolean aBoolean)
+	void o_IsSaved (final @NotNull AvailObject object, final boolean aBoolean)
 	{
 		o_Traversed(object).isSaved(aBoolean);
 	}
@@ -1309,15 +1309,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_Literal (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		o_Traversed(object).literal(value);
-	}
-
-	@Override
-	@NotNull AvailObject o_LiteralAt (final AvailObject object, final int index)
+	@NotNull AvailObject o_LiteralAt (final @NotNull AvailObject object, final int index)
 	{
 		return o_Traversed(object).literalAt(index);
 	}
@@ -1435,14 +1427,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_MyType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		o_Traversed(object).myType(value);
-	}
-
-	@Override
 	void o_Name (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
@@ -1467,13 +1451,13 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	@NotNull AvailObject o_OuterTypeAt (final AvailObject object, final int index)
+	@NotNull AvailObject o_OuterTypeAt (final @NotNull AvailObject object, final int index)
 	{
 		return o_Traversed(object).outerTypeAt(index);
 	}
 
 	@Override
-	@NotNull AvailObject o_OuterVarAt (final AvailObject object, final int index)
+	@NotNull AvailObject o_OuterVarAt (final @NotNull AvailObject object, final int index)
 	{
 		return o_Traversed(object).outerVarAt(index);
 	}
@@ -1496,7 +1480,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_Pc (final AvailObject object, final int value)
+	void o_Pc (final @NotNull AvailObject object, final int value)
 	{
 		o_Traversed(object).pc(value);
 	}
@@ -1554,7 +1538,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	short o_RawByteAt (final AvailObject object, final int index)
+	short o_RawByteAt (final @NotNull AvailObject object, final int index)
 	{
 		return o_Traversed(object).rawByteAt(index);
 	}
@@ -1586,7 +1570,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	byte o_RawNybbleAt (final AvailObject object, final int index)
+	byte o_RawNybbleAt (final @NotNull AvailObject object, final int index)
 	{
 		return o_Traversed(object).rawNybbleAt(index);
 	}
@@ -1618,7 +1602,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	int o_RawSignedIntegerAt (final AvailObject object, final int index)
+	int o_RawSignedIntegerAt (final @NotNull AvailObject object, final int index)
 	{
 		return o_Traversed(object).rawSignedIntegerAt(index);
 	}
@@ -1770,19 +1754,19 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_Size (final AvailObject object, final int value)
+	void o_Size (final @NotNull AvailObject object, final int value)
 	{
 		o_Traversed(object).size(value);
 	}
 
 	@Override
-	int o_SizeOfZone (final AvailObject object, final int zone)
+	int o_SizeOfZone (final @NotNull AvailObject object, final int zone)
 	{
 		return o_Traversed(object).sizeOfZone(zone);
 	}
 
 	@Override
-	@NotNull AvailObject o_StackAt (final AvailObject object, final int slotIndex)
+	@NotNull AvailObject o_StackAt (final @NotNull AvailObject object, final int slotIndex)
 	{
 		return o_Traversed(object).stackAt(slotIndex);
 	}
@@ -1797,13 +1781,13 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_Stackp (final AvailObject object, final int value)
+	void o_Stackp (final @NotNull AvailObject object, final int value)
 	{
 		o_Traversed(object).stackp(value);
 	}
 
 	@Override
-	void o_Start (final AvailObject object, final int value)
+	void o_Start (final @NotNull AvailObject object, final int value)
 	{
 		o_Traversed(object).start(value);
 	}
@@ -1817,7 +1801,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	int o_StartOfZone (final AvailObject object, final int zone)
+	int o_StartOfZone (final @NotNull AvailObject object, final int zone)
 	{
 		return o_Traversed(object).startOfZone(zone);
 	}
@@ -1878,7 +1862,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_TokenType (final AvailObject object, final TokenDescriptor.TokenType value)
+	void o_TokenType (final @NotNull AvailObject object, final TokenDescriptor.TokenType value)
 	{
 		o_Traversed(object).tokenType(value);
 	}
@@ -1909,7 +1893,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	@NotNull AvailObject o_TupleAt (final AvailObject object, final int index)
+	@NotNull AvailObject o_TupleAt (final @NotNull AvailObject object, final int index)
 	{
 		return o_Traversed(object).tupleAt(index);
 	}
@@ -1937,7 +1921,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	int o_TupleIntAt (final AvailObject object, final int index)
+	int o_TupleIntAt (final @NotNull AvailObject object, final int index)
 	{
 		return o_Traversed(object).tupleIntAt(index);
 	}
@@ -1951,7 +1935,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	@NotNull AvailObject o_TypeAtIndex (final AvailObject object, final int index)
+	@NotNull AvailObject o_TypeAtIndex (final @NotNull AvailObject object, final int index)
 	{
 		return o_Traversed(object).typeAtIndex(index);
 	}
@@ -2168,7 +2152,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	int o_UntranslatedDataAt (final AvailObject object, final int index)
+	int o_UntranslatedDataAt (final @NotNull AvailObject object, final int index)
 	{
 		return o_Traversed(object).untranslatedDataAt(index);
 	}
@@ -2204,223 +2188,223 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	int o_ZoneForIndex (final AvailObject object, final int index)
+	int o_ZoneForIndex (final @NotNull AvailObject object, final int index)
 	{
 		return o_Traversed(object).zoneForIndex(index);
 	}
 
 	@Override
-	String o_AsNativeString (final AvailObject object)
+	String o_AsNativeString (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).asNativeString();
 	}
 
 	@Override
-	@NotNull AvailObject o_AsSet (final AvailObject object)
+	@NotNull AvailObject o_AsSet (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).asSet();
 	}
 
 	@Override
-	@NotNull AvailObject o_AsTuple (final AvailObject object)
+	@NotNull AvailObject o_AsTuple (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).asTuple();
 	}
 
 	@Override
-	int o_BinHash (final AvailObject object)
+	int o_BinHash (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).binHash();
 	}
 
 	@Override
-	int o_BinSize (final AvailObject object)
+	int o_BinSize (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).binSize();
 	}
 
 	@Override
-	@NotNull AvailObject o_BinUnionTypeOrNull (final AvailObject object)
+	@NotNull AvailObject o_BinUnionTypeOrNull (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).binUnionTypeOrNull();
 	}
 
 	@Override
-	int o_BitsPerEntry (final AvailObject object)
+	int o_BitsPerEntry (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).bitsPerEntry();
 	}
 
 	@Override
-	@NotNull AvailObject o_BodyBlock (final AvailObject object)
+	@NotNull AvailObject o_BodyBlock (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).bodyBlock();
 	}
 
 	@Override
-	@NotNull AvailObject o_BodySignature (final AvailObject object)
+	@NotNull AvailObject o_BodySignature (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).bodySignature();
 	}
 
 	@Override
-	@NotNull AvailObject o_BreakpointBlock (final AvailObject object)
+	@NotNull AvailObject o_BreakpointBlock (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).breakpointBlock();
 	}
 
 	@Override
-	@NotNull AvailObject o_Caller (final AvailObject object)
+	@NotNull AvailObject o_Caller (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).caller();
 	}
 
 	@Override
-	void o_CleanUpAfterCompile (final AvailObject object)
+	void o_CleanUpAfterCompile (final @NotNull AvailObject object)
 	{
 		o_Traversed(object).cleanUpAfterCompile();
 	}
 
 	@Override
-	void o_ClearValue (final AvailObject object)
+	void o_ClearValue (final @NotNull AvailObject object)
 	{
 		o_Traversed(object).clearValue();
 	}
 
 	@Override
-	@NotNull AvailObject o_Function (final AvailObject object)
+	@NotNull AvailObject o_Function (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).function();
 	}
 
 	@Override
-	@NotNull AvailObject o_FunctionType (final AvailObject object)
+	@NotNull AvailObject o_FunctionType (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).functionType();
 	}
 
 	@Override
-	@NotNull AvailObject o_Code (final AvailObject object)
+	@NotNull AvailObject o_Code (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).code();
 	}
 
 	@Override
-	int o_CodePoint (final AvailObject object)
+	int o_CodePoint (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).codePoint();
 	}
 
 	@Override
-	@NotNull AvailObject o_LazyComplete (final AvailObject object)
+	@NotNull AvailObject o_LazyComplete (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).lazyComplete();
 	}
 
 	@Override
-	@NotNull AvailObject o_ConstantBindings (final AvailObject object)
+	@NotNull AvailObject o_ConstantBindings (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).constantBindings();
 	}
 
 	@Override
-	@NotNull AvailObject o_ContentType (final AvailObject object)
+	@NotNull AvailObject o_ContentType (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).contentType();
 	}
 
 	@Override
-	@NotNull AvailObject o_Continuation (final AvailObject object)
+	@NotNull AvailObject o_Continuation (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).continuation();
 	}
 
 	@Override
-	@NotNull AvailObject o_CopyAsMutableContinuation (final AvailObject object)
+	@NotNull AvailObject o_CopyAsMutableContinuation (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).copyAsMutableContinuation();
 	}
 
 	@Override
-	@NotNull AvailObject o_CopyAsMutableObjectTuple (final AvailObject object)
+	@NotNull AvailObject o_CopyAsMutableObjectTuple (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).copyAsMutableObjectTuple();
 	}
 
 	@Override
-	@NotNull AvailObject o_CopyAsMutableSpliceTuple (final AvailObject object)
+	@NotNull AvailObject o_CopyAsMutableSpliceTuple (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).copyAsMutableSpliceTuple();
 	}
 
 	@Override
-	@NotNull AvailObject o_DefaultType (final AvailObject object)
+	@NotNull AvailObject o_DefaultType (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).defaultType();
 	}
 
 	@Override
-	int o_ParsingPc (final AvailObject object)
+	int o_ParsingPc (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).parsingPc();
 	}
 
 	@Override
-	void o_DisplayTestingTree (final AvailObject object)
+	void o_DisplayTestingTree (final @NotNull AvailObject object)
 	{
 		o_Traversed(object).displayTestingTree();
 	}
 
 	@Override
-	@NotNull AvailObject o_EnsureMutable (final AvailObject object)
+	@NotNull AvailObject o_EnsureMutable (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).ensureMutable();
 	}
 
 	@Override
-	boolean o_EqualsNull (final AvailObject object)
+	boolean o_EqualsNull (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).equalsNull();
 	}
 
 	@Override
-	ExecutionState o_ExecutionState (final AvailObject object)
+	ExecutionState o_ExecutionState (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).executionState();
 	}
 
 	@Override
-	void o_Expand (final AvailObject object)
+	void o_Expand (final @NotNull AvailObject object)
 	{
 		o_Traversed(object).expand();
 	}
 
 	@Override
-	boolean o_ExtractBoolean (final AvailObject object)
+	boolean o_ExtractBoolean (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).extractBoolean();
 	}
 
 	@Override
-	short o_ExtractUnsignedByte (final AvailObject object)
+	short o_ExtractUnsignedByte (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).extractUnsignedByte();
 	}
 
 	@Override
-	double o_ExtractDouble (final AvailObject object)
+	double o_ExtractDouble (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).extractDouble();
 	}
 
 	@Override
-	float o_ExtractFloat (final AvailObject object)
+	float o_ExtractFloat (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).extractFloat();
 	}
 
 	@Override
-	int o_ExtractInt (final AvailObject object)
+	int o_ExtractInt (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).extractInt();
 	}
@@ -2435,103 +2419,103 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	byte o_ExtractNybble (final AvailObject object)
+	byte o_ExtractNybble (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).extractNybble();
 	}
 
 	@Override
-	@NotNull AvailObject o_FieldMap (final AvailObject object)
+	@NotNull AvailObject o_FieldMap (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).fieldMap();
 	}
 
 	@Override
-	@NotNull AvailObject o_FieldTypeMap (final AvailObject object)
+	@NotNull AvailObject o_FieldTypeMap (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).fieldTypeMap();
 	}
 
 	@Override
-	@NotNull AvailObject o_FilteredBundleTree (final AvailObject object)
+	@NotNull AvailObject o_FilteredBundleTree (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).filteredBundleTree();
 	}
 
 	@Override
-	int o_GetInteger (final AvailObject object)
+	int o_GetInteger (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).getInteger();
 	}
 
 	@Override
-	@NotNull AvailObject o_GetValue (final AvailObject object)
+	@NotNull AvailObject o_GetValue (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).getValue();
 	}
 
 	@Override
-	int o_Hash (final AvailObject object)
+	int o_Hash (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).hash();
 	}
 
 	@Override
-	int o_HashOrZero (final AvailObject object)
+	int o_HashOrZero (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).hashOrZero();
 	}
 
 	@Override
-	boolean o_HasGrammaticalRestrictions (final AvailObject object)
+	boolean o_HasGrammaticalRestrictions (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).hasGrammaticalRestrictions();
 	}
 
 	@Override
-	@NotNull AvailObject o_ImplementationsTuple (final AvailObject object)
+	@NotNull AvailObject o_ImplementationsTuple (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).implementationsTuple();
 	}
 
 	@Override
-	@NotNull AvailObject o_LazyIncomplete (final AvailObject object)
+	@NotNull AvailObject o_LazyIncomplete (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).lazyIncomplete();
 	}
 
 	@Override
-	int o_Index (final AvailObject object)
+	int o_Index (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).index();
 	}
 
 	@Override
-	int o_InterruptRequestFlags (final AvailObject object)
+	int o_InterruptRequestFlags (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).interruptRequestFlags();
 	}
 
 	@Override
-	int o_InvocationCount (final AvailObject object)
+	int o_InvocationCount (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).invocationCount();
 	}
 
 	@Override
-	boolean o_IsAbstract (final AvailObject object)
+	boolean o_IsAbstract (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).isAbstract();
 	}
 
 	@Override
-	boolean o_IsBoolean (final AvailObject object)
+	boolean o_IsBoolean (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).isBoolean();
 	}
 
 	@Override
-	boolean o_IsUnsignedByte (final AvailObject object)
+	boolean o_IsUnsignedByte (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).isUnsignedByte();
 	}
@@ -2546,97 +2530,97 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_IsCharacter (final AvailObject object)
+	boolean o_IsCharacter (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).isCharacter();
 	}
 
 	@Override
-	boolean o_IsFunction (final AvailObject object)
+	boolean o_IsFunction (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).isFunction();
 	}
 
 	@Override
-	boolean o_IsAtom (final AvailObject object)
+	boolean o_IsAtom (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).isAtom();
 	}
 
 	@Override
-	boolean o_IsExtendedInteger (final AvailObject object)
+	boolean o_IsExtendedInteger (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).isExtendedInteger();
 	}
 
 	@Override
-	boolean o_IsFinite (final AvailObject object)
+	boolean o_IsFinite (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).isFinite();
 	}
 
 	@Override
-	boolean o_IsForward (final AvailObject object)
+	boolean o_IsForward (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).isForward();
 	}
 
 	@Override
-	boolean o_IsMethod (final AvailObject object)
+	boolean o_IsMethod (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).isMethod();
 	}
 
 	@Override
-	boolean o_IsIntegerRangeType (final AvailObject object)
+	boolean o_IsIntegerRangeType (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).isIntegerRangeType();
 	}
 
 	@Override
-	boolean o_IsMap (final AvailObject object)
+	boolean o_IsMap (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).isMap();
 	}
 
 	@Override
-	boolean o_IsMapType (final AvailObject object)
+	boolean o_IsMapType (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).isMapType();
 	}
 
 	@Override
-	boolean o_IsNybble (final AvailObject object)
+	boolean o_IsNybble (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).isNybble();
 	}
 
 	@Override
-	boolean o_IsPositive (final AvailObject object)
+	boolean o_IsPositive (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).isPositive();
 	}
 
 	@Override
-	boolean o_IsSaved (final AvailObject object)
+	boolean o_IsSaved (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).isSaved();
 	}
 
 	@Override
-	boolean o_IsSet (final AvailObject object)
+	boolean o_IsSet (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).isSet();
 	}
 
 	@Override
-	boolean o_IsSetType (final AvailObject object)
+	boolean o_IsSetType (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).isSetType();
 	}
 
 	@Override
-	boolean o_IsSplice (final AvailObject object)
+	boolean o_IsSplice (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).isSplice();
 	}
@@ -2651,415 +2635,415 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_IsSupertypeOfBottom (final AvailObject object)
+	boolean o_IsSupertypeOfBottom (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).isSupertypeOfBottom();
 	}
 
 	@Override
-	boolean o_IsTuple (final AvailObject object)
+	boolean o_IsTuple (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).isTuple();
 	}
 
 	@Override
-	boolean o_IsTupleType (final AvailObject object)
+	boolean o_IsTupleType (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).isTupleType();
 	}
 
 	@Override
-	boolean o_IsType (final AvailObject object)
+	boolean o_IsType (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).isType();
 	}
 
 	@Override
-	boolean o_IsValid (final AvailObject object)
+	boolean o_IsValid (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).isValid();
 	}
 
 	@Override
-	@NotNull AvailObject o_KeysAsSet (final AvailObject object)
+	@NotNull AvailObject o_KeysAsSet (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).keysAsSet();
 	}
 
 	@Override
-	@NotNull AvailObject o_KeyType (final AvailObject object)
+	@NotNull AvailObject o_KeyType (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).keyType();
 	}
 
 	@Override
-	@NotNull AvailObject o_LevelTwoChunk (final AvailObject object)
+	@NotNull AvailObject o_LevelTwoChunk (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).levelTwoChunk();
 	}
 
 	@Override
-	int o_LevelTwoOffset (final AvailObject object)
+	int o_LevelTwoOffset (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).levelTwoOffset();
 	}
 
 	@Override
-	@NotNull AvailObject o_Literal (final AvailObject object)
+	@NotNull AvailObject o_Literal (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).literal();
 	}
 
 	@Override
-	@NotNull AvailObject o_LowerBound (final AvailObject object)
+	@NotNull AvailObject o_LowerBound (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).lowerBound();
 	}
 
 	@Override
-	boolean o_LowerInclusive (final AvailObject object)
+	boolean o_LowerInclusive (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).lowerInclusive();
 	}
 
 	@Override
-	void o_MakeSubobjectsImmutable (final AvailObject object)
+	void o_MakeSubobjectsImmutable (final @NotNull AvailObject object)
 	{
 		o_Traversed(object).makeSubobjectsImmutable();
 	}
 
 	@Override
-	int o_MapSize (final AvailObject object)
+	int o_MapSize (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).mapSize();
 	}
 
 	@Override
-	int o_MaxStackDepth (final AvailObject object)
+	int o_MaxStackDepth (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).maxStackDepth();
 	}
 
 	@Override
-	@NotNull AvailObject o_Message (final AvailObject object)
+	@NotNull AvailObject o_Message (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).message();
 	}
 
 	@Override
-	@NotNull AvailObject o_MessageParts (final AvailObject object)
+	@NotNull AvailObject o_MessageParts (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).messageParts();
 	}
 
 	@Override
-	@NotNull AvailObject o_Methods (final AvailObject object)
+	@NotNull AvailObject o_Methods (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).methods();
 	}
 
 	@Override
-	@NotNull AvailObject o_Name (final AvailObject object)
+	@NotNull AvailObject o_Name (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).name();
 	}
 
 	@Override
-	@NotNull AvailObject o_Names (final AvailObject object)
+	@NotNull AvailObject o_Names (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).names();
 	}
 
 	@Override
-	@NotNull AvailObject o_NewNames (final AvailObject object)
+	@NotNull AvailObject o_NewNames (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).newNames();
 	}
 
 	@Override
-	int o_NumArgs (final AvailObject object)
+	int o_NumArgs (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).numArgs();
 	}
 
 	@Override
-	int o_NumArgsAndLocalsAndStack (final AvailObject object)
+	int o_NumArgsAndLocalsAndStack (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).numArgsAndLocalsAndStack();
 	}
 
 	@Override
-	int o_NumberOfZones (final AvailObject object)
+	int o_NumberOfZones (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).numberOfZones();
 	}
 
 	@Override
-	int o_NumDoubles (final AvailObject object)
+	int o_NumDoubles (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).numDoubles();
 	}
 
 	@Override
-	int o_NumIntegers (final AvailObject object)
+	int o_NumIntegers (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).numIntegers();
 	}
 
 	@Override
-	int o_NumLiterals (final AvailObject object)
+	int o_NumLiterals (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).numLiterals();
 	}
 
 	@Override
-	int o_NumLocals (final AvailObject object)
+	int o_NumLocals (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).numLocals();
 	}
 
 	@Override
-	int o_NumObjects (final AvailObject object)
+	int o_NumObjects (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).numObjects();
 	}
 
 	@Override
-	int o_NumOuters (final AvailObject object)
+	int o_NumOuters (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).numOuters();
 	}
 
 	@Override
-	int o_NumOuterVars (final AvailObject object)
+	int o_NumOuterVars (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).numOuterVars();
 	}
 
 	@Override
-	@NotNull AvailObject o_Nybbles (final AvailObject object)
+	@NotNull AvailObject o_Nybbles (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).nybbles();
 	}
 
 	@Override
-	@NotNull AvailObject o_Parent (final AvailObject object)
+	@NotNull AvailObject o_Parent (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).parent();
 	}
 
 	@Override
-	int o_Pc (final AvailObject object)
+	int o_Pc (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).pc();
 	}
 
 	@Override @Deprecated
-	void o_PostFault (final AvailObject object)
+	void o_PostFault (final @NotNull AvailObject object)
 	{
 		o_Traversed(object).postFault();
 	}
 
 	@Override
-	int o_PrimitiveNumber (final AvailObject object)
+	int o_PrimitiveNumber (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).primitiveNumber();
 	}
 
 	@Override
-	AvailObject o_Priority (final AvailObject object)
+	AvailObject o_Priority (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).priority();
 	}
 
 	@Override
-	@NotNull AvailObject o_PrivateNames (final AvailObject object)
+	@NotNull AvailObject o_PrivateNames (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).privateNames();
 	}
 
 	@Override
-	@NotNull AvailObject o_ProcessGlobals (final AvailObject object)
+	@NotNull AvailObject o_ProcessGlobals (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).processGlobals();
 	}
 
 	@Override
-	void o_ReadBarrierFault (final AvailObject object)
+	void o_ReadBarrierFault (final @NotNull AvailObject object)
 	{
 		o_Traversed(object).readBarrierFault();
 	}
 
 	@Override
-	@NotNull AvailObject o_GrammaticalRestrictions (final AvailObject object)
+	@NotNull AvailObject o_GrammaticalRestrictions (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).grammaticalRestrictions();
 	}
 
 	@Override
-	@NotNull AvailObject o_ReturnType (final AvailObject object)
+	@NotNull AvailObject o_ReturnType (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).returnType();
 	}
 
 	@Override
-	int o_SetSize (final AvailObject object)
+	int o_SetSize (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).setSize();
 	}
 
 	@Override
-	@NotNull AvailObject o_Signature (final AvailObject object)
+	@NotNull AvailObject o_Signature (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).signature();
 	}
 
 	@Override
-	@NotNull AvailObject o_SizeRange (final AvailObject object)
+	@NotNull AvailObject o_SizeRange (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).sizeRange();
 	}
 
 	@Override
-	@NotNull AvailObject o_LazyActions (final AvailObject object)
+	@NotNull AvailObject o_LazyActions (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).lazyActions();
 	}
 
 	@Override
-	int o_Stackp (final AvailObject object)
+	int o_Stackp (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).stackp();
 	}
 
 	@Override
-	int o_Start (final AvailObject object)
+	int o_Start (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).start();
 	}
 
 	@Override
-	AvailObject o_StartingChunk (final AvailObject object)
+	AvailObject o_StartingChunk (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).startingChunk();
 	}
 
 	@Override
-	void o_Step (final AvailObject object)
+	void o_Step (final @NotNull AvailObject object)
 	{
 		o_Traversed(object).step();
 	}
 
 	@Override
-	@NotNull AvailObject o_String (final AvailObject object)
+	@NotNull AvailObject o_String (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).string();
 	}
 
 	@Override
-	@NotNull AvailObject o_TestingTree (final AvailObject object)
+	@NotNull AvailObject o_TestingTree (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).testingTree();
 	}
 
 	@Override
-	TokenDescriptor.TokenType o_TokenType (final AvailObject object)
+	TokenDescriptor.TokenType o_TokenType (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).tokenType();
 	}
 
 	@Override
-	void o_TrimExcessInts (final AvailObject object)
+	void o_TrimExcessInts (final @NotNull AvailObject object)
 	{
 		o_Traversed(object).trimExcessInts();
 	}
 
 	@Override
-	int o_TupleSize (final AvailObject object)
+	int o_TupleSize (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).tupleSize();
 	}
 
 	@Override
-	@NotNull AvailObject o_Kind (final AvailObject object)
+	@NotNull AvailObject o_Kind (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).kind();
 	}
 
 	@Override
-	@NotNull AvailObject o_TypeTuple (final AvailObject object)
+	@NotNull AvailObject o_TypeTuple (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).typeTuple();
 	}
 
 	@Override
-	@NotNull AvailObject o_Unclassified (final AvailObject object)
+	@NotNull AvailObject o_Unclassified (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).unclassified();
 	}
 
 	@Override
-	@NotNull AvailObject o_UpperBound (final AvailObject object)
+	@NotNull AvailObject o_UpperBound (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).upperBound();
 	}
 
 	@Override
-	boolean o_UpperInclusive (final AvailObject object)
+	boolean o_UpperInclusive (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).upperInclusive();
 	}
 
 	@Override
-	@NotNull AvailObject o_Value (final AvailObject object)
+	@NotNull AvailObject o_Value (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).value();
 	}
 
 	@Override
-	@NotNull AvailObject o_ValuesAsTuple (final AvailObject object)
+	@NotNull AvailObject o_ValuesAsTuple (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).valuesAsTuple();
 	}
 
 	@Override
-	@NotNull AvailObject o_ValueType (final AvailObject object)
+	@NotNull AvailObject o_ValueType (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).valueType();
 	}
 
 	@Override
-	@NotNull AvailObject o_VariableBindings (final AvailObject object)
+	@NotNull AvailObject o_VariableBindings (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).variableBindings();
 	}
 
 	@Override
-	@NotNull AvailObject o_Vectors (final AvailObject object)
+	@NotNull AvailObject o_Vectors (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).vectors();
 	}
 
 	@Override
-	void o_Verify (final AvailObject object)
+	void o_Verify (final @NotNull AvailObject object)
 	{
 		o_Traversed(object).verify();
 	}
 
 	@Override
-	@NotNull AvailObject o_VisibleNames (final AvailObject object)
+	@NotNull AvailObject o_VisibleNames (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).visibleNames();
 	}
 
 	@Override
-	@NotNull AvailObject o_Wordcodes (final AvailObject object)
+	@NotNull AvailObject o_Wordcodes (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).wordcodes();
 	}
 
 	@Override
-	@NotNull AvailObject o_ParsingInstructions (final AvailObject object)
+	@NotNull AvailObject o_ParsingInstructions (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).parsingInstructions();
 	}
@@ -3073,7 +3057,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	@NotNull AvailObject o_Expression (final AvailObject object)
+	@NotNull AvailObject o_Expression (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).expression();
 	}
@@ -3087,25 +3071,25 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	@NotNull AvailObject o_Variable (final AvailObject object)
+	@NotNull AvailObject o_Variable (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).variable();
 	}
 
 	@Override
-	@NotNull AvailObject o_ArgumentsTuple (final AvailObject object)
+	@NotNull AvailObject o_ArgumentsTuple (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).argumentsTuple();
 	}
 
 	@Override
-	@NotNull AvailObject o_StatementsTuple (final AvailObject object)
+	@NotNull AvailObject o_StatementsTuple (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).statementsTuple();
 	}
 
 	@Override
-	@NotNull AvailObject o_ResultType (final AvailObject object)
+	@NotNull AvailObject o_ResultType (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).resultType();
 	}
@@ -3119,31 +3103,31 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	@NotNull AvailObject o_NeededVariables (final AvailObject object)
+	@NotNull AvailObject o_NeededVariables (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).neededVariables();
 	}
 
 	@Override
-	int o_Primitive (final AvailObject object)
+	int o_Primitive (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).primitive();
 	}
 
 	@Override
-	@NotNull AvailObject o_DeclaredType (final AvailObject object)
+	@NotNull AvailObject o_DeclaredType (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).declaredType();
 	}
 
 	@Override
-	DeclarationKind o_DeclarationKind (final AvailObject object)
+	DeclarationKind o_DeclarationKind (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).declarationKind();
 	}
 
 	@Override
-	@NotNull AvailObject o_InitializationExpression (final AvailObject object)
+	@NotNull AvailObject o_InitializationExpression (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).initializationExpression();
 	}
@@ -3157,19 +3141,19 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	@NotNull AvailObject o_LiteralObject (final AvailObject object)
+	@NotNull AvailObject o_LiteralObject (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).literalObject();
 	}
 
 	@Override
-	@NotNull AvailObject o_Token (final AvailObject object)
+	@NotNull AvailObject o_Token (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).token();
 	}
 
 	@Override
-	@NotNull AvailObject o_MarkerValue (final AvailObject object)
+	@NotNull AvailObject o_MarkerValue (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).markerValue();
 	}
@@ -3190,25 +3174,25 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	@NotNull AvailObject o_Method (final AvailObject object)
+	@NotNull AvailObject o_Method (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).method();
 	}
 
 	@Override
-	@NotNull AvailObject o_ExpressionsTuple (final AvailObject object)
+	@NotNull AvailObject o_ExpressionsTuple (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).expressionsTuple();
 	}
 
 	@Override
-	@NotNull AvailObject o_Declaration (final AvailObject object)
+	@NotNull AvailObject o_Declaration (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).declaration();
 	}
 
 	@Override
-	@NotNull AvailObject o_ExpressionType (final AvailObject object)
+	@NotNull AvailObject o_ExpressionType (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).expressionType();
 	}
@@ -3350,7 +3334,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_Statements (final AvailObject object)
+	AvailObject o_Statements (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).statements();
 	}
@@ -3364,25 +3348,25 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_LineNumber (final AvailObject object, final int value)
+	void o_LineNumber (final @NotNull AvailObject object, final int value)
 	{
 		o_Traversed(object).lineNumber(value);
 	}
 
 	@Override
-	int o_LineNumber (final AvailObject object)
+	int o_LineNumber (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).lineNumber();
 	}
 
 	@Override
-	AvailObject o_AllBundles (final AvailObject object)
+	AvailObject o_AllBundles (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).allBundles();
 	}
 
 	@Override
-	boolean o_IsSetBin (final AvailObject object)
+	boolean o_IsSetBin (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).isSetBin();
 	}
@@ -3395,19 +3379,19 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_Complete (final AvailObject object)
+	AvailObject o_Complete (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).complete();
 	}
 
 	@Override
-	AvailObject o_Incomplete (final AvailObject object)
+	AvailObject o_Incomplete (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).incomplete();
 	}
 
 	@Override
-	AvailObject o_Actions (final AvailObject object)
+	AvailObject o_Actions (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).actions();
 	}
@@ -3434,7 +3418,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_ArgsTupleType (final AvailObject object)
+	AvailObject o_ArgsTupleType (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).argsTupleType();
 	}
@@ -3448,7 +3432,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_Instances (final AvailObject object)
+	AvailObject o_Instances (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).instances();
 	}
@@ -3462,7 +3446,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_IsEnumeration (final AvailObject object)
+	boolean o_IsEnumeration (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).isEnumeration();
 	}
@@ -3485,7 +3469,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_ComputeSuperkind (final AvailObject object)
+	AvailObject o_ComputeSuperkind (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).computeSuperkind();
 	}
@@ -3550,7 +3534,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	ParseNodeKind o_ParseNodeKind (final AvailObject object)
+	ParseNodeKind o_ParseNodeKind (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).parseNodeKind();
 	}
@@ -3939,7 +3923,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	int o_MapBinValuesHash (final AvailObject object)
+	int o_MapBinValuesHash (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).mapBinValuesHash();
 	}
@@ -4194,6 +4178,75 @@ extends AbstractDescriptor
 	boolean o_IsSystemModule (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).isSystemModule();
+	}
+
+	@Override
+	AvailObject o_LiteralType (final @NotNull AvailObject object)
+	{
+		return o_Traversed(object).literalType();
+	}
+
+	@Override
+	@NotNull AvailObject o_TypeIntersectionOfLiteralTokenType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aLiteralTokenType)
+	{
+		return o_Traversed(object).typeIntersectionOfLiteralTokenType(
+			aLiteralTokenType);
+	}
+
+	@Override
+	AvailObject o_TypeUnionOfLiteralTokenType (
+		final @NotNull AvailObject object,
+		final AvailObject aLiteralTokenType)
+	{
+		return o_Traversed(object).typeUnionOfLiteralTokenType(
+			aLiteralTokenType);
+	}
+
+	@Override
+	boolean o_IsLiteralTokenType (final @NotNull AvailObject object)
+	{
+		return o_Traversed(object).isLiteralTokenType();
+	}
+
+	@Override
+	boolean o_IsLiteralToken (final @NotNull AvailObject object)
+	{
+		return o_Traversed(object).isLiteralToken();
+	}
+
+	@Override
+	boolean o_IsSupertypeOfLiteralTokenType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aLiteralTokenType)
+	{
+		return o_Traversed(object).isSupertypeOfLiteralTokenType(
+			aLiteralTokenType);
+	}
+
+	@Override
+	boolean o_EqualsLiteralTokenType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aLiteralTokenType)
+	{
+		return o_Traversed(object).equalsLiteralTokenType(aLiteralTokenType);
+	}
+
+	@Override
+	boolean o_EqualsObjectType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anObjectType)
+	{
+		return o_Traversed(object).equalsObjectType(anObjectType);
+	}
+
+	@Override
+	boolean o_EqualsToken (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aToken)
+	{
+		return o_Traversed(object).equalsToken(aToken);
 	}
 
 	@Override

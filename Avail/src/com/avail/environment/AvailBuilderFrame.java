@@ -977,7 +977,7 @@ extends JFrame
 		// Set properties of the frame.
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setTitle("Avail Builder");
-		setResizable(false);
+		setResizable(true);
 
 		// Create the menu bar and menus.
 		final JMenuBar menuBar = new JMenuBar();
@@ -1004,12 +1004,21 @@ extends JFrame
 		inputMap.put(KeyStroke.getKeyStroke("F5"), "refresh");
 		actionMap.put("refresh", refreshAction);
 
-		// Get the content pane.
-		final Container contentPane = getContentPane();
+		// Create the left pane.
+		final Container leftPane = new Panel();
+		leftPane.setLayout(new GridBagLayout());
 
-		// Create and establish the layout.
-		final GridBagLayout layout = new GridBagLayout();
-		setLayout(layout);
+		// Create the right pane.
+		final Container rightPane = new Panel();
+		rightPane.setLayout(new GridBagLayout());
+
+		// Create the splitter pane separating left from right.
+		final JSplitPane split = new JSplitPane(
+			JSplitPane.HORIZONTAL_SPLIT,
+			leftPane,
+			rightPane);
+		split.setDividerLocation(200);
+		getContentPane().add(split);
 
 		// Create the constraints.
 		final GridBagConstraints c = new GridBagConstraints();
@@ -1023,11 +1032,16 @@ extends JFrame
 		moduleTreeScrollArea.setVerticalScrollBarPolicy(
 			VERTICAL_SCROLLBAR_AS_NEEDED);
 		moduleTreeScrollArea.setVisible(true);
+		moduleTreeScrollArea.setMinimumSize(new Dimension(100, 0));
 		c.fill = GridBagConstraints.BOTH;
 		c.gridheight = GridBagConstraints.REMAINDER;
 		c.gridx = 0;
 		c.gridy = y++;
-		contentPane.add(moduleTreeScrollArea, c);
+		c.weightx = 1;
+		c.weighty = 1;
+		leftPane.add(moduleTreeScrollArea, c);
+		c.weightx = 0;
+		c.weighty = 0;
 		moduleTree = new JTree(moduleTree());
 		moduleTree.setToolTipText(
 			"All top-level modules, organized by module root.");
@@ -1041,7 +1055,6 @@ extends JFrame
 		moduleTree.setFocusTraversalKeys(
 			BACKWARD_TRAVERSAL_KEYS,
 			Collections.singleton(getAWTKeyStroke("shift TAB")));
-		moduleTree.setPreferredSize(new Dimension(200, 0));
 		moduleTree.getSelectionModel().setSelectionMode(
 			TreeSelectionModel.SINGLE_TREE_SELECTION);
 		moduleTree.setShowsRootHandles(true);
@@ -1103,11 +1116,12 @@ extends JFrame
 		moduleProgress.setStringPainted(true);
 		moduleProgress.setString("Module Progress:");
 		moduleProgress.setValue(0);
-		c.gridwidth = 3;
+		y = 0;
+		c.gridwidth = 1;
 		c.gridheight = 1;
-		c.gridx = 1;
+		c.gridx = 0;
 		c.gridy = y++;
-		contentPane.add(moduleProgress, c);
+		rightPane.add(moduleProgress, c);
 
 		// Create the build progress bar.
 		buildProgress = new JProgressBar(0, 100);
@@ -1120,12 +1134,13 @@ extends JFrame
 		buildProgress.setString("Build Progress:");
 		buildProgress.setValue(0);
 		c.gridy = y++;
-		contentPane.add(buildProgress, c);
+		rightPane.add(buildProgress, c);
 
 		// Create the transcript.
 		final JLabel outputLabel = new JLabel("Build Transcript:");
 		c.gridy = y++;
-		contentPane.add(outputLabel, c);
+		rightPane.add(outputLabel, c);
+
 		final JScrollPane transcriptScrollArea = new JScrollPane();
 		transcriptScrollArea.setHorizontalScrollBarPolicy(
 			HORIZONTAL_SCROLLBAR_AS_NEEDED);
@@ -1133,7 +1148,13 @@ extends JFrame
 			VERTICAL_SCROLLBAR_AS_NEEDED);
 		transcriptScrollArea.setVisible(true);
 		c.gridy = y++;
-		contentPane.add(transcriptScrollArea, c);
+		// Make this row and column be where the excess space goes.
+		c.weightx = 1.0;
+		c.weighty = 1.0;
+		rightPane.add(transcriptScrollArea, c);
+		// And reset the weights...
+		c.weightx = 0.0;
+		c.weighty = 0.0;
 		transcript = new JTextPane();
 		transcript.setToolTipText(
 			"The build transcript. Intermixes characters written to the "
@@ -1149,14 +1170,14 @@ extends JFrame
 		transcript.setFocusTraversalKeys(
 			BACKWARD_TRAVERSAL_KEYS,
 			Collections.singleton(getAWTKeyStroke("shift TAB")));
-		transcript.setPreferredSize(new Dimension(300, 300));
+		transcript.setPreferredSize(new Dimension(0, 500));
 		transcript.setVisible(true);
 		transcriptScrollArea.setViewportView(transcript);
 
 		// Create the input area.
 		final JLabel inputLabel = new JLabel("Console Input:");
 		c.gridy = y++;
-		contentPane.add(inputLabel, c);
+		rightPane.add(inputLabel, c);
 		inputField = new JTextField();
 		inputField.setToolTipText(
 			"Characters entered here form the standard input of the build "
@@ -1175,7 +1196,7 @@ extends JFrame
 			Collections.singleton(getAWTKeyStroke("shift TAB")));
 		inputField.setVisible(true);
 		c.gridy = y++;
-		contentPane.add(inputField, c);
+		rightPane.add(inputField, c);
 
 		// Set up styles for the transcript.
 		final StyledDocument doc = transcript.getStyledDocument();

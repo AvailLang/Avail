@@ -88,12 +88,7 @@ extends TypeDescriptor
 		/**
 		 * The parent type of this primitive type.
 		 */
-		PARENT,
-
-		/**
-		 * The type (i.e., a metatype) of this primitive type.
-		 */
-		MY_TYPE
+		PARENT
 	}
 
 	@Override @AvailMethod
@@ -102,14 +97,6 @@ extends TypeDescriptor
 		final int value)
 	{
 		object.setSlot(IntegerSlots.HASH, value);
-	}
-
-	@Override @AvailMethod
-	void o_MyType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
-	{
-		object.setSlot(ObjectSlots.MY_TYPE, value);
 	}
 
 	@Override @AvailMethod
@@ -236,6 +223,16 @@ extends TypeDescriptor
 		// Parent of the top integer range type is number, so continue
 		// searching there.
 		return NUMBER.o().isSubtypeOf(object);
+	}
+
+	@Override @AvailMethod
+	boolean o_IsSupertypeOfLiteralTokenType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aLiteralTokenType)
+	{
+		// This primitive type is a supertype of aLiteralTokenType if and only
+		// if this primitive type is a supertype of TOKEN.
+		return TOKEN.o().isSubtypeOf(object);
 	}
 
 	@Override @AvailMethod
@@ -374,13 +371,6 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_Kind (
-		final @NotNull AvailObject object)
-	{
-		return object.slot(ObjectSlots.MY_TYPE);
-	}
-
-	@Override @AvailMethod
 	Object o_MarshalToJava (
 		final @NotNull AvailObject object,
 		final Class<?> ignoredClassHint)
@@ -404,7 +394,6 @@ extends TypeDescriptor
 					case ABSTRACT_SIGNATURE:
 					case ATOM:
 					case FORWARD_SIGNATURE:
-					case LITERAL_TOKEN:
 					case MACRO_SIGNATURE:
 					case MESSAGE_BUNDLE:
 					case MESSAGE_BUNDLE_TREE:
@@ -429,9 +418,9 @@ extends TypeDescriptor
 
 	/**
 	 * Create a partially-initialized primitive type with the given name.  The
-	 * type's parent and the type's myType will be set later, to allow circular
-	 * constructions.  Set these fields to the {@linkplain NullDescriptor null
-	 * object} to ensure pointer safety.
+	 * type's parent will be set later, to facilitate arbitrary construction
+	 * order.  Set these fields to the {@linkplain NullDescriptor null object}
+	 * to ensure pointer safety.
 	 *
 	 * @param typeNameString
 	 *            The name to give the object being initialized.
@@ -441,10 +430,9 @@ extends TypeDescriptor
 		final String typeNameString)
 	{
 		final AvailObject name = StringDescriptor.from(typeNameString);
-		final AvailObject object = create();
+		final @NotNull AvailObject object = create();
 		object.setSlot(ObjectSlots.NAME, name);
 		object.setSlot(ObjectSlots.PARENT, NullDescriptor.nullObject());
-		object.setSlot(ObjectSlots.MY_TYPE, NullDescriptor.nullObject());
 		object.setSlot(IntegerSlots.HASH, typeNameString.hashCode());
 		return object;
 	}

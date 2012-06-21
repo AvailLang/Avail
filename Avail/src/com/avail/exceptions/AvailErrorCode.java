@@ -387,6 +387,13 @@ public enum AvailErrorCode
 	E_VERTICAL_BAR_MUST_FOLLOW_A_SIMPLE_OR_SIMPLE_GROUP (55),
 
 	/**
+	 * A {@link Double} {@linkplain Double#NaN not-a-number} or {@link Float}
+	 * {@linkplain Float#NaN not-a-number} can not be converted to an extended
+	 * integer (neither truncation, floor, nor ceiling).
+	 */
+	E_CANNOT_CONVERT_NOT_A_NUMBER_TO_INTEGER (56),
+
+	/**
 	 * Compilation is over. The interpreter is now operating in runtime mode.
 	 * This usually means that an attempt was made to modify module metadata at
 	 * runtime.

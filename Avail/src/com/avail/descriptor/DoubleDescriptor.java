@@ -220,6 +220,7 @@ extends AbstractNumberDescriptor
 		final int indent)
 	{
 		aStream.append(getDouble(object));
+		aStream.append('d');
 	}
 
 	@Override @AvailMethod
@@ -415,7 +416,7 @@ extends AbstractNumberDescriptor
 
 	@Override
 	AvailObject o_DivideIntoDoubleCanDestroy (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject doubleObject,
 		final boolean canDestroy)
 	{
@@ -428,7 +429,7 @@ extends AbstractNumberDescriptor
 
 	@Override
 	AvailObject o_DivideIntoFloatCanDestroy (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject floatObject,
 		final boolean canDestroy)
 	{
@@ -464,7 +465,7 @@ extends AbstractNumberDescriptor
 
 	@Override
 	AvailObject o_MultiplyByDoubleCanDestroy (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject doubleObject,
 		final boolean canDestroy)
 	{
@@ -477,7 +478,7 @@ extends AbstractNumberDescriptor
 
 	@Override
 	AvailObject o_MultiplyByFloatCanDestroy (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject floatObject,
 		final boolean canDestroy)
 	{
@@ -516,7 +517,7 @@ extends AbstractNumberDescriptor
 
 	@Override
 	AvailObject o_SubtractFromDoubleCanDestroy (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject doubleObject,
 		final boolean canDestroy)
 	{
@@ -529,7 +530,7 @@ extends AbstractNumberDescriptor
 
 	@Override
 	AvailObject o_SubtractFromFloatCanDestroy (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject floatObject,
 		final boolean canDestroy)
 	{

@@ -678,8 +678,50 @@ public final class BootstrapGenerator
 				}
 				formatArgs[i - 1] = argName;
 			}
+			// Check if the string uses single-quotes incorrectly.  They should
+			// only be used for quoting brace-brackets, and should be doubled
+			// for all other uses.
+			final String messagePattern = primitiveBundle.getString(commentKey);
+			boolean inQuotes = false;
+			boolean sawBraces = false;
+			boolean isEmpty = true;
+			for (int index = 0; index < messagePattern.length(); index++)
+			{
+				switch (messagePattern.charAt(index))
+				{
+					case '\'':
+						if (inQuotes)
+						{
+							if (!sawBraces && !isEmpty)
+							{
+								System.err.format(
+									"Malformed primitive comment (%s) – "
+									+ "Single-quoted section was not empty "
+									+ "but did not contain any brace "
+									+ "brackets ('{' or '}').\n",
+									commentKey);
+							}
+						}
+						inQuotes = !inQuotes;
+						sawBraces = false;
+						isEmpty = true;
+						break;
+					case '{':
+					case '}':
+						sawBraces = true;
+						//$FALL-THROUGH$
+					default:
+						isEmpty = false;
+				}
+			}
+			if (inQuotes)
+			{
+				System.err.format(
+					"Malformed primitive comment (%s) – contains unclosed "
+					+ "single-quote character");
+			}
 			builder.append(MessageFormat.format(
-				primitiveBundle.getString(commentKey),
+				messagePattern,
 				formatArgs));
 		}
 		return builder.toString();

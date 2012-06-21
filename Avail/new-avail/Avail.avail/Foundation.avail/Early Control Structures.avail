@@ -386,7 +386,7 @@ Semantic restriction "From_to_do_" is
 				"repeatedly applied function to accept all integers from ",
 				primitive description of lower,
 				" to ",
-				primitive description of upper,
+				primitive description of end's genuine lower bound,
 				" (but it only accepts ",
 				primitive description of action[1],
 				")">;

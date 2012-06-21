@@ -118,7 +118,7 @@ extends Descriptor
 		 * value that the callee attempts to return to it. This supports
 		 * link-time type strengthening at call sites.
 		 */
-		@HideFieldInDebugger
+		@HideFieldJustForPrinting
 		CALLER,
 
 		/**
@@ -142,7 +142,6 @@ extends Descriptor
 		 */
 		FRAME_AT_
 	}
-
 
 	@Override @AvailMethod
 	void o_Caller (

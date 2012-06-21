@@ -142,7 +142,7 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ExpressionType (final AvailObject object)
+	AvailObject o_ExpressionType (final @NotNull AvailObject object)
 	{
 		if (!isInline(object))
 		{
@@ -152,7 +152,7 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	int o_Hash (final @NotNull AvailObject object)
 	{
 		return
 			object.variable().hash() * Multiplier
@@ -244,7 +244,7 @@ extends ParseNodeDescriptor
 	}
 
 	@Override
-	ParseNodeKind o_ParseNodeKind (final AvailObject object)
+	ParseNodeKind o_ParseNodeKind (final @NotNull AvailObject object)
 	{
 		return ParseNodeKind.ASSIGNMENT_NODE;
 	}
@@ -268,7 +268,8 @@ extends ParseNodeDescriptor
 	/**
 	 * Create a new {@linkplain AssignmentNodeDescriptor assignment node} using
 	 * the given {@linkplain VariableUseNodeDescriptor variable use} and
-	 * {@linkplain ParseNodeDescriptor expression}.
+	 * {@linkplain ParseNodeDescriptor expression}.  Also indicate whether the
+	 * assignment is inline (produces a value) or not (must be a statement).
 	 *
 	 * @param variableUse
 	 *        A use of the variable into which to assign.

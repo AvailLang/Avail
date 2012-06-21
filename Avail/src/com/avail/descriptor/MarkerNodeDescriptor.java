@@ -87,7 +87,7 @@ public class MarkerNodeDescriptor extends ParseNodeDescriptor
 
 
 	@Override @AvailMethod
-	AvailObject o_ExpressionType (final AvailObject object)
+	AvailObject o_ExpressionType (final @NotNull AvailObject object)
 	{
 		// This shouldn't make a difference.
 		return TOP.o();
@@ -104,7 +104,7 @@ public class MarkerNodeDescriptor extends ParseNodeDescriptor
 
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	int o_Hash (final @NotNull AvailObject object)
 	{
 		return
 			object.markerValue().hash() ^ 0xCBCACACC;

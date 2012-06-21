@@ -149,16 +149,16 @@ extends PojoTypeDescriptor
 
 	@Override
 	@NotNull AvailObject o_TypeIntersectionOfPojoFusedType (
-		@NotNull final AvailObject object,
-		@NotNull final AvailObject aFusedPojoType)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aFusedPojoType)
 	{
 		throw unsupportedOperationException();
 	}
 
 	@Override
 	@NotNull AvailObject o_TypeIntersectionOfPojoUnfusedType (
-		@NotNull final AvailObject object,
-		@NotNull final AvailObject anUnfusedPojoType)
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anUnfusedPojoType)
 	{
 		throw unsupportedOperationException();
 	}

@@ -73,12 +73,7 @@ extends PrimitiveTypeDescriptor
 		/**
 		 * The parent type of this primitive type.
 		 */
-		PARENT,
-
-		/**
-		 * The type (i.e., a metatype) of this primitive type.
-		 */
-		MY_TYPE;
+		PARENT;
 
 		static
 		{
@@ -86,8 +81,6 @@ extends PrimitiveTypeDescriptor
 				== NAME.ordinal();
 			assert PrimitiveTypeDescriptor.ObjectSlots.PARENT.ordinal()
 				== PARENT.ordinal();
-			assert PrimitiveTypeDescriptor.ObjectSlots.MY_TYPE.ordinal()
-				== MY_TYPE.ordinal();
 		}
 	}
 

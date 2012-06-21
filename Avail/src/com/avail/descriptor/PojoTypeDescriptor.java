@@ -626,12 +626,6 @@ extends TypeDescriptor
 	abstract @NotNull AvailObject o_JavaClass (@NotNull AvailObject object);
 
 	@Override @AvailMethod
-	final @NotNull AvailObject o_Kind (final @NotNull AvailObject object)
-	{
-		return TYPE.o();
-	}
-
-	@Override @AvailMethod
 	abstract @NotNull AvailObject o_MakeImmutable (
 		final @NotNull AvailObject object);
 

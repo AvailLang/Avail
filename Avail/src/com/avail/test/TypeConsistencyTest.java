@@ -756,6 +756,65 @@ public class TypeConsistencyTest
 		};
 
 		/**
+		 * The {@linkplain LiteralTokenTypeDescriptor literal token type} whose
+		 * literal type is {@link Types#ANY}.
+		 */
+		static final Node ANY_LITERAL_TOKEN = new Node(
+			"ANY_LITERAL_TOKEN",
+			primitiveTypes.get(Types.TOKEN))
+		{
+			@Override AvailObject get ()
+			{
+				return LiteralTokenTypeDescriptor.mostGeneralType();
+			}
+		};
+
+		/**
+		 * The {@linkplain LiteralTokenTypeDescriptor literal token type} whose
+		 * literal must be an {@linkplain IntegerDescriptor integer}.
+		 */
+		static final Node INT_LITERAL_TOKEN = new Node(
+			"INT_LITERAL_TOKEN",
+			ANY_LITERAL_TOKEN)
+		{
+			@Override AvailObject get ()
+			{
+				return LiteralTokenTypeDescriptor.create(
+					IntegerRangeTypeDescriptor.integers());
+			}
+		};
+
+		/**
+		 * The {@linkplain LiteralTokenTypeDescriptor literal token type} whose
+		 * literal must be a particular {@linkplain AtomDescriptor atom}.
+		 */
+		static final Node SOME_ATOM_LITERAL_TOKEN = new Node(
+			"SOME_ATOM_LITERAL_TOKEN",
+			ANY_LITERAL_TOKEN)
+		{
+			@Override AvailObject get ()
+			{
+				return LiteralTokenTypeDescriptor.create(SOME_ATOM_TYPE.t);
+			}
+		};
+
+		/**
+		 * The most specific {@linkplain LiteralTokenTypeDescriptor literal
+		 * token type}, other than {@linkplain BottomTypeDescriptor bottom}.
+		 */
+		static final Node BOTTOM_LITERAL_TOKEN = new Node(
+			"BOTTOM_LITERAL_TOKEN",
+			INT_LITERAL_TOKEN,
+			SOME_ATOM_LITERAL_TOKEN)
+		{
+			@Override AvailObject get ()
+			{
+				return LiteralTokenTypeDescriptor.create(
+					BottomTypeDescriptor.bottom());
+			}
+		};
+
+		/**
 		 * The metatype for map types.
 		 */
 		static final Node MAP_META = new Node(

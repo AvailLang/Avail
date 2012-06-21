@@ -352,7 +352,7 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 		 * @return Whether the receiver descends from the argument.
 		 */
 		final public boolean isSubkindOf (
-			@NotNull final ParseNodeKind purportedParent)
+			final @NotNull ParseNodeKind purportedParent)
 		{
 			final int index =
 				ordinal() * values().length + purportedParent.ordinal();
@@ -434,13 +434,6 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 			&& object.expressionType().equals(
 				aParseNodeType.expressionType());
  	}
-
-	@Override @AvailMethod
-	@NotNull AvailObject o_Kind (
-		final @NotNull AvailObject object)
-	{
-		return TYPE.o();
-	}
 
 	@Override @AvailMethod
 	boolean o_IsSubtypeOf (
@@ -656,27 +649,23 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 			final AvailObject statement = flat.get(i);
 			final AvailObject kind = statement.kind();
 			assert !kind.parseNodeKindIsUnder(SEQUENCE_NODE);
-			// Handle the literal nil specially. Ignore it.
-			if (!statement.equals(LiteralNodeDescriptor.literalNullObject()))
+			final boolean valid;
+			if (i + 1 < statementCount)
 			{
-				final boolean valid;
-				if (i + 1 < statementCount)
-				{
-					valid =
-						(kind.parseNodeKindIsUnder(ASSIGNMENT_NODE)
-							|| kind.parseNodeKindIsUnder(DECLARATION_NODE)
-							|| kind.parseNodeKindIsUnder(LABEL_NODE)
-							|| kind.parseNodeKindIsUnder(SEND_NODE))
-						&& kind.expressionType().equals(TOP.o());
-				}
-				else
-				{
-					valid = kind.expressionType().isSubtypeOf(resultType);
-				}
-				if (!valid)
-				{
-					return false;
-				}
+				valid =
+					(kind.parseNodeKindIsUnder(ASSIGNMENT_NODE)
+						|| kind.parseNodeKindIsUnder(DECLARATION_NODE)
+						|| kind.parseNodeKindIsUnder(LABEL_NODE)
+						|| kind.parseNodeKindIsUnder(SEND_NODE))
+					&& kind.expressionType().equals(TOP.o());
+			}
+			else
+			{
+				valid = kind.expressionType().isSubtypeOf(resultType);
+			}
+			if (!valid)
+			{
+				return false;
 			}
 		}
 		return true;

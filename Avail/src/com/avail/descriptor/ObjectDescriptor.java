@@ -199,7 +199,7 @@ extends Descriptor
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final StringBuilder builder,
 		final List<AvailObject> recursionList,
 		final int indent)

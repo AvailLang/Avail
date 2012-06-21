@@ -88,7 +88,7 @@ final class SerializerOperand
 	 *            The {@link Serializer} onto which to record the object's
 	 *            parts.
 	 */
-	public void trace (final AvailObject object, final Serializer serializer)
+	public void trace (final @NotNull AvailObject object, final Serializer serializer)
 	{
 		operandEncoding.trace(object, serializer);
 	}
@@ -102,7 +102,7 @@ final class SerializerOperand
 	 * @param object The object to deconstruct and write.
 	 * @param serializer The serializer to which to write the object.
 	 */
-	public void write (final AvailObject object, final Serializer serializer)
+	public void write (final @NotNull AvailObject object, final Serializer serializer)
 	{
 		operandEncoding.write(object, serializer);
 	}

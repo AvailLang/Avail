@@ -81,6 +81,7 @@ implements Iterable<AvailObject>
 		ListNodeDescriptor.createWellKnownObjects();
 		StringDescriptor.createWellKnownObjects();
 		TypeDescriptor.createWellKnownObjects();
+		LiteralTokenTypeDescriptor.createWellKnownObjects();
 		MapDescriptor.createWellKnownObjects();
 		AtomDescriptor.createWellKnownObjects();
 		ObjectTypeDescriptor.createWellKnownObjects();
@@ -100,7 +101,6 @@ implements Iterable<AvailObject>
 		L2ChunkDescriptor.createWellKnownObjects();
 		VariableTypeDescriptor.createWellKnownObjects();
 		ParseNodeTypeDescriptor.createWellKnownObjects();
-		LiteralNodeDescriptor.createWellKnownObjects();
 		RawPojoDescriptor.createWellKnownObjects();
 		PojoTypeDescriptor.createWellKnownObjects();
 		PojoDescriptor.createWellKnownObjects();
@@ -126,6 +126,7 @@ implements Iterable<AvailObject>
 		ListNodeDescriptor.clearWellKnownObjects();
 		StringDescriptor.clearWellKnownObjects();
 		TypeDescriptor.clearWellKnownObjects();
+		LiteralTokenTypeDescriptor.clearWellKnownObjects();
 		MapDescriptor.clearWellKnownObjects();
 		ObjectTypeDescriptor.clearWellKnownObjects();
 		CharacterDescriptor.clearWellKnownObjects();
@@ -145,7 +146,6 @@ implements Iterable<AvailObject>
 		L2ChunkDescriptor.clearWellKnownObjects();
 		VariableTypeDescriptor.clearWellKnownObjects();
 		ParseNodeTypeDescriptor.clearWellKnownObjects();
-		LiteralNodeDescriptor.clearWellKnownObjects();
 		RawPojoDescriptor.clearWellKnownObjects();
 		PojoTypeDescriptor.clearWellKnownObjects();
 		PojoDescriptor.clearWellKnownObjects();
@@ -691,7 +691,8 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Dispatch to the descriptor.
+	 * @param methodName
+	 * @param illegalArgMsgs
 	 */
 	public void addGrammaticalRestrictions (
 		final AvailObject methodName,
@@ -704,7 +705,8 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Dispatch to the descriptor.
+	 * @param methodName
+	 * @param implementation
 	 */
 	public void addMethodImplementation (
 		final AvailObject methodName,
@@ -717,7 +719,8 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Dispatch to the descriptor.
+	 * @param message
+	 * @param bundle
 	 */
 	public void atMessageAddBundle (
 		final AvailObject message,
@@ -730,7 +733,8 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Dispatch to the descriptor.
+	 * @param stringName
+	 * @param trueName
 	 */
 	public void atNameAdd (
 		final AvailObject stringName,
@@ -743,7 +747,8 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Dispatch to the descriptor.
+	 * @param stringName
+	 * @param trueName
 	 */
 	public void atNewNamePut (
 		final AvailObject stringName,
@@ -756,7 +761,8 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * Dispatch to the descriptor.
+	 * @param stringName
+	 * @param trueName
 	 */
 	public void atPrivateNameAdd (
 		final AvailObject stringName,
@@ -2605,7 +2611,20 @@ implements Iterable<AvailObject>
 	public boolean isSupertypeOfIntegerRangeType (
 		final AvailObject anIntegerRangeType)
 	{
-		return descriptor.o_IsSupertypeOfIntegerRangeType(this, anIntegerRangeType);
+		return descriptor.o_IsSupertypeOfIntegerRangeType(
+			this,
+			anIntegerRangeType);
+	}
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	public boolean isSupertypeOfLiteralTokenType (
+		final AvailObject aLiteralTokenType)
+	{
+		return descriptor.o_IsSupertypeOfLiteralTokenType(
+			this,
+			aLiteralTokenType);
 	}
 
 	/**
@@ -2785,15 +2804,6 @@ implements Iterable<AvailObject>
 	public AvailObject literal ()
 	{
 		return descriptor.o_Literal(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public void literal (
-		final AvailObject value)
-	{
-		descriptor.o_Literal(this, value);
 	}
 
 	/**
@@ -3090,15 +3100,6 @@ implements Iterable<AvailObject>
 			this,
 			anInteger,
 			canDestroy);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	public void myType (
-		final AvailObject value)
-	{
-		descriptor.o_MyType(this, value);
 	}
 
 	/**
@@ -3944,10 +3945,9 @@ implements Iterable<AvailObject>
 	 * #minusCanDestroy(AvailObject, boolean) minusCanDestroy}. It
 	 * exists for double-dispatch only.</p>
 	 *
-	 * @param object
-	 *        An integral numeric.
-	 * @param anInfinity
-	 *        An {@linkplain InfinityDescriptor infinity}.
+	 * @param sign
+	 *        The sign of the {@linkplain InfinityDescriptor infinity} from
+	 *        which to subtract.
 	 * @param canDestroy
 	 *        {@code true} if the operation may modify either {@linkplain
 	 *        AvailObject operand}, {@code false} otherwise.
@@ -3972,8 +3972,6 @@ implements Iterable<AvailObject>
 	 * #minusCanDestroy(AvailObject, boolean) minusCanDestroy}. It
 	 * exists for double-dispatch only.</p>
 	 *
-	 * @param object
-	 *        An integral numeric.
 	 * @param anInteger
 	 *        An {@linkplain IntegerDescriptor integer}.
 	 * @param canDestroy
@@ -4829,7 +4827,6 @@ implements Iterable<AvailObject>
 
 
 	/**
-	 * @param object
 	 * @param aBlock
 	 */
 	public void childrenMap (
@@ -4840,7 +4837,6 @@ implements Iterable<AvailObject>
 
 
 	/**
-	 * @param object
 	 * @param aBlock
 	 */
 	public void childrenDo (
@@ -4852,7 +4848,6 @@ implements Iterable<AvailObject>
 
 	/**
 	 * @param parent
-	 * @param object
 	 */
 	public void validateLocally (
 		final AvailObject parent)
@@ -4864,7 +4859,6 @@ implements Iterable<AvailObject>
 
 
 	/**
-	 * @param object
 	 * @param codeGenerator
 	 * @return
 	 */
@@ -5102,8 +5096,9 @@ implements Iterable<AvailObject>
 
 
 	/**
+	 * @return
 	 */
-	public AvailObject argsTupleType ()
+	public @NotNull AvailObject argsTupleType ()
 	{
 		return descriptor.o_ArgsTupleType(this);
 	}
@@ -5113,7 +5108,8 @@ implements Iterable<AvailObject>
 	 * @param anInstanceType
 	 * @return
 	 */
-	public boolean equalsInstanceTypeFor (final AvailObject anInstanceType)
+	public boolean equalsInstanceTypeFor (
+		final @NotNull AvailObject anInstanceType)
 	{
 		return descriptor.o_EqualsInstanceTypeFor(this, anInstanceType);
 	}
@@ -5190,7 +5186,7 @@ implements Iterable<AvailObject>
 
 
 	/**
-	 * @param aType
+	 * @param aCompiledCodeType
 	 * @return
 	 */
 	public boolean equalsCompiledCodeType (final AvailObject aCompiledCodeType)
@@ -5249,13 +5245,13 @@ implements Iterable<AvailObject>
 
 
 	/**
-	 * @param object
+	 * @param anEnumerationType
 	 * @return
 	 */
 	public @NotNull boolean equalsEnumerationType (
-		final @NotNull AvailObject object)
+		final @NotNull AvailObject anEnumerationType)
 	{
-		return descriptor.o_EqualsEnumerationType(this, object);
+		return descriptor.o_EqualsEnumerationType(this, anEnumerationType);
 	}
 
 
@@ -5533,7 +5529,7 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * @param object
+	 * @param sign
 	 * @return
 	 */
 	public @NotNull Order numericCompareToInfinity (
@@ -5543,7 +5539,7 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * @param double1
+	 * @param aDouble
 	 * @return
 	 */
 	public @NotNull Order numericCompareToDouble (final double aDouble)
@@ -5722,7 +5718,6 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * @param object
 	 * @param key
 	 * @param keyHash
 	 * @param canDestroy
@@ -5852,7 +5847,7 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * @param aFusedPojoType
+	 * @param anUnfusedPojoType
 	 * @return
 	 */
 	public AvailObject typeIntersectionOfPojoUnfusedType (
@@ -5874,7 +5869,7 @@ implements Iterable<AvailObject>
 	}
 
 	/**
-	 * @param aFusedPojoType
+	 * @param anUnfusedPojoType
 	 * @return
 	 */
 	public AvailObject typeUnionOfPojoUnfusedType (
@@ -6052,6 +6047,84 @@ implements Iterable<AvailObject>
 	public boolean isSystemModule ()
 	{
 		return descriptor.o_IsSystemModule(this);
+	}
+
+	/**
+	 * @return
+	 */
+	public AvailObject literalType ()
+	{
+		return descriptor.o_LiteralType(this);
+	}
+
+	/**
+	 * @param aLiteralTokenType
+	 * @return
+	 */
+	public AvailObject typeIntersectionOfLiteralTokenType (
+		final @NotNull AvailObject aLiteralTokenType)
+	{
+		return descriptor.o_TypeIntersectionOfLiteralTokenType(
+			this,
+			aLiteralTokenType);
+	}
+
+	/**
+	 * @param aLiteralTokenType
+	 * @return
+	 */
+	public @NotNull AvailObject typeUnionOfLiteralTokenType (
+		final @NotNull AvailObject aLiteralTokenType)
+	{
+		return descriptor.o_TypeUnionOfLiteralTokenType(
+			this,
+			aLiteralTokenType);
+	}
+
+	/**
+	 * @return
+	 */
+	public boolean isLiteralTokenType ()
+	{
+		return descriptor.o_IsLiteralTokenType(this);
+	}
+
+	/**
+	 * @return
+	 */
+	public boolean isLiteralToken ()
+	{
+		return descriptor.o_IsLiteralToken(this);
+	}
+
+	/**
+	 * @param aLiteralTokenType
+	 * @return
+	 */
+	public boolean equalsLiteralTokenType (
+		final @NotNull AvailObject aLiteralTokenType)
+	{
+		return descriptor.o_EqualsLiteralTokenType(this, aLiteralTokenType);
+	}
+
+	/**
+	 * @param anObjectType
+	 * @return
+	 */
+	public boolean equalsObjectType (
+		final @NotNull AvailObject anObjectType)
+	{
+		return descriptor.o_EqualsObjectType(this, anObjectType);
+	}
+
+	/**
+	 * @param aToken
+	 * @return
+	 */
+	public boolean equalsToken (
+		final @NotNull AvailObject aToken)
+	{
+		return descriptor.o_EqualsToken(this, aToken);
 	}
 
 	/**

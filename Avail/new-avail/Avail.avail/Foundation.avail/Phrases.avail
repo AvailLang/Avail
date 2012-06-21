@@ -74,6 +74,27 @@ Public method "``_``" is
 ] : literal token;
 
 /**
+ * Strengthen literal token building to covary with the literal value's type.
+ */
+Semantic restriction "``_``" is
+[
+	value : any meta
+|
+	literal token ⇒ value
+];
+
+/**
+ * Strengthen literal <em>node</em> building to covary with the type of object
+ * inside the passed literal token.
+ */
+Semantic restriction "‘_’" is
+[
+	aLiteralToken : literal token's type
+|
+	literal ⇒ (aLiteralToken's value type)
+];
+
+/**
  * Construct and answer a variable use expression from the specified
  * declaration.
  * 
@@ -101,7 +122,7 @@ Public method "“<«_‡,»>”" is
 [
 	aTuple : <<>, expression⇒any…|whole number>
 |
-	aTuple→list
+	aTuple → list
 ] : list;
 
 /**
@@ -189,6 +210,35 @@ Semantic restriction "send_with_:_" is
 	 * this.
 	 */
 	send⇒cast returnType's instance into [ t : type | t ]
+];
+
+/**
+ * A block type's semantic type is always a function type.
+ *
+ * Parameters:
+ *    blockType -
+ * Returns:
+ *    `function meta`.
+ */
+Semantic restriction "_'s⁇semantic type" is
+[
+	blockType : block's type
+|
+	if |blockType| = 1 then
+	[
+	 	if blockType's instance's type ⊆ type then
+	 	[
+	 	 	function meta
+	 	]
+	 	else
+	 	[
+	 	 	cast blockType's instance into [ t : function meta's type | t ]
+	 	]
+	]
+	else
+	[
+		function meta
+	]
 ];
 
 /**

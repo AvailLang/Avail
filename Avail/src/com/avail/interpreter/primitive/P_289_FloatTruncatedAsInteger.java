@@ -37,6 +37,7 @@ import static java.lang.Math.*;
 import java.util.List;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
+import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.*;
 
 /**
@@ -62,18 +63,30 @@ public class P_289_FloatTruncatedAsInteger extends Primitive
 		// Extract the top two 32-bit sections.  That guarantees 33 bits
 		// of mantissa, which is more than a float actually captures.
 		float f = a.extractFloat();
+		if (Float.isNaN(f))
+		{
+			return interpreter.primitiveFailure(
+				AvailErrorCode.E_CANNOT_CONVERT_NOT_A_NUMBER_TO_INTEGER);
+		}
+		final boolean neg = f < 0.0f;
+		if (Float.isInfinite(f))
+		{
+			// Return the corresponding integral infinity.
+			return interpreter.primitiveSuccess(
+				neg
+					? InfinityDescriptor.negativeInfinity()
+					: InfinityDescriptor.positiveInfinity());
+		}
 		if (f >= -0x80000000L && f <= 0x7FFFFFFFL)
 		{
 			// Common case -- it fits in an int.
 			return interpreter.primitiveSuccess(
 				IntegerDescriptor.fromInt((int)f));
 		}
-		final boolean neg = f < 0.0f;
 		f = abs(f);
 		final int exponent = getExponent(f);
 		final int slots = exponent + 31 / 32;  // probably needs work
-		AvailObject out = IntegerDescriptor.mutable().create(
-			slots);
+		AvailObject out = IntegerDescriptor.mutable().create(slots);
 		f = scalb(f, (1 - slots) * 32);
 		for (int i = slots; i >= 1; --i)
 		{

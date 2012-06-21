@@ -86,7 +86,7 @@ public class SequenceNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ExpressionType (final AvailObject object)
+	AvailObject o_ExpressionType (final @NotNull AvailObject object)
 	{
 		final AvailObject statements = object.statements();
 		assert statements.tupleSize() > 0;
@@ -94,7 +94,7 @@ public class SequenceNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	int o_Hash (final @NotNull AvailObject object)
 	{
 		return object.statements().hash() + 0xE38140CA;
 	}

@@ -46,14 +46,14 @@ switchCase1: string := Switch 1
 
 Assert switchCase1 = "meh";
 
-switchCase2: string := Switch [Print "Moo\n";] 
-	case [Print "Who\n";] do ["huh?"]: 
-	case [Print "Moo\n";] do ["Makes Sense"]: 
+switchCase2: string := Switch "Moo\n"
+	case "Who\n" do ["huh?"]: 
+	case "Moo\n" do ["Makes Sense"]: 
 	default ["meh"];
 
 Assert switchCase2 = "Makes Sense";
 
-switchCase3: string := Switch 2.2 
+switchCase3: string := Switch 2.2
 	case 2.3 do ["huh?"]: 
 	case 2.2 do ["Makes Sense"]: 
 	default ["meh"];
@@ -115,4 +115,4 @@ ifThenElseRepeat4 : integer :=
 	 	else [4];
 
 Assert ifThenElseRepeat4 = 3;
- 	
+	

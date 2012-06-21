@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import java.util.List;
 import static com.avail.descriptor.CompiledCodeDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.CompiledCodeDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.AvailObject.Multiplier;
 import com.avail.annotations.*;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.interpreter.Primitive;
@@ -184,11 +185,6 @@ extends Descriptor
 		FUNCTION_TYPE,
 
 		/**
-		 * The {@linkplain L2ChunkDescriptor level two chunk} to executed on
-		 * behalf of this code.  The premise is that a level two chunk can be
-		 * optimized and executed in place of a naive level one interpretation.
-		 */
-		/**
 		 * The {@linkplain L2ChunkDescriptor level two chunk} that should be
 		 * invoked whenever this code is started.  The chunk may no longer be
 		 * {@linkplain L2ChunkDescriptor.IntegerSlots#VALID valid}, in which
@@ -198,10 +194,18 @@ extends Descriptor
 		STARTING_CHUNK,
 
 		/**
+		 * An {@link AtomDescriptor atom} unique to this {@linkplain
+		 * CompiledCodeDescriptor compiled code}, in which to record information
+		 * such as the file and line number of source code.
+		 */
+		PROPERTY_ATOM,
+
+		/**
 		 * The literal objects that are referred to numerically by some of the
 		 * operands of {@linkplain L1Instruction level one instructions} encoded
 		 * in the {@linkplain #NYBBLES nybblecodes}.  This also includes
 		 */
+		@HideFieldInDebugger
 		LITERAL_AT_
 	}
 
@@ -270,7 +274,8 @@ extends Descriptor
 	{
 		return e == STARTING_CHUNK
 			|| e == TOTAL_INVOCATIONS
-			|| e == COUNTDOWN_TO_REOPTIMIZE;
+			|| e == COUNTDOWN_TO_REOPTIMIZE
+			|| e == PROPERTY_ATOM;
 	}
 
 	@Override @AvailMethod
@@ -286,37 +291,41 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aCompiledCode)
 	{
-		if (object.sameAddressAs(aCompiledCode))
-		{
-			return true;
-		}
+		// Compiled code now (2012.06.14) compares by identity because it may
+		// have to track references to the source code.
+		return object.sameAddressAs(aCompiledCode);
 
-		if (object.hash() != aCompiledCode.hash()
-			|| object.numLiterals() != aCompiledCode.numLiterals()
-			|| !object.nybbles().equals(aCompiledCode.nybbles())
-			|| object.primitiveNumber() != aCompiledCode.primitiveNumber()
-			|| object.numArgsAndLocalsAndStack()
-				!= aCompiledCode.numArgsAndLocalsAndStack()
-			|| object.numLocals() != aCompiledCode.numLocals()
-			|| object.numArgs() != aCompiledCode.numArgs()
-			|| !object.functionType().equals(aCompiledCode.functionType()))
-		{
-			return false;
-		}
-		for (int i = 1, end = object.numLiterals(); i <= end; i++)
-		{
-			if (!object.literalAt(i).equals(aCompiledCode.literalAt(i)))
-			{
-				return false;
-			}
-		}
-		// They're equal, but occupy disjoint storage.  Replace one with an
-		// indirection to the other to reduce storage costs and the need for
-		// subsequent detailed comparisons.
-		object.becomeIndirectionTo(aCompiledCode);
-		// Now that there are at least two references to it.
-		aCompiledCode.makeImmutable();
-		return true;
+//		if (object.sameAddressAs(aCompiledCode))
+//		{
+//			return true;
+//		}
+//
+//		if (object.hash() != aCompiledCode.hash()
+//			|| object.numLiterals() != aCompiledCode.numLiterals()
+//			|| !object.nybbles().equals(aCompiledCode.nybbles())
+//			|| object.primitiveNumber() != aCompiledCode.primitiveNumber()
+//			|| object.numArgsAndLocalsAndStack()
+//				!= aCompiledCode.numArgsAndLocalsAndStack()
+//			|| object.numLocals() != aCompiledCode.numLocals()
+//			|| object.numArgs() != aCompiledCode.numArgs()
+//			|| !object.functionType().equals(aCompiledCode.functionType()))
+//		{
+//			return false;
+//		}
+//		for (int i = 1, end = object.numLiterals(); i <= end; i++)
+//		{
+//			if (!object.literalAt(i).equals(aCompiledCode.literalAt(i)))
+//			{
+//				return false;
+//			}
+//		}
+//		// They're equal, but occupy disjoint storage.  Replace one with an
+//		// indirection to the other to reduce storage costs and the need for
+//		// subsequent detailed comparisons.
+//		object.becomeIndirectionTo(aCompiledCode);
+//		// Now that there are at least two references to it.
+//		aCompiledCode.makeImmutable();
+//		return true;
 	}
 
 	@Override @AvailMethod
@@ -505,7 +514,7 @@ extends Descriptor
 	@Override
 	@AvailMethod @ThreadSafe
 	@NotNull SerializerOperation o_SerializerOperation(
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		return SerializerOperation.COMPILED_CODE;
 	}
@@ -593,6 +602,7 @@ extends Descriptor
 		code.setSlot(PRIMITIVE_NUMBER, primitive);
 		code.setSlot(NYBBLES, nybbles);
 		code.setSlot(FUNCTION_TYPE, functionType);
+		code.setSlot(PROPERTY_ATOM, NullDescriptor.nullObject());
 		code.startingChunk(L2ChunkDescriptor.unoptimizedChunk());
 		code.countdownToReoptimize(L2ChunkDescriptor.countdownForNewCode());
 
@@ -613,25 +623,31 @@ extends Descriptor
 		assert dest == literalsSize + outersSize + locals + 1;
 
 		// Compute the hash.
-		int hash = 0x0B085B25 + code.objectSlotsCount() + nybbles.hash()
-			^ numArgs * 4127;
+		int hash = 0x0B085B25;
+		hash += code.objectSlotsCount() + nybbles.hash() ^ numArgs;
+		hash *= Multiplier;
 		hash += locals * 1237 + stack * 9131 + primitive * 1151;
 		hash ^= functionType.hash();
+		hash *= Multiplier;
 		for (int i = 1; i <= literalsSize; i++)
 		{
-			hash = hash * 2 + literals.tupleAt(i).hash() ^ 0x052B580B;
+			hash += literals.tupleAt(i).hash();
+			hash *= Multiplier;
 		}
 		for (int i = 1; i <= outersSize; i++)
 		{
-			hash = hash * 3 + outerTypes.tupleAt(i).hash() ^ 0x015F5947;
+			hash ^= outerTypes.tupleAt(i).hash();
+			hash *= Multiplier;
 		}
+		hash += 0x052B580B;
 		for (int i = 1; i <= locals; ++ i)
 		{
-			hash = hash * 5 + localTypes.tupleAt(i).hash() ^ 0x01E37808;
+			hash -= localTypes.tupleAt(i).hash();
+			hash *= Multiplier;
 		}
+		hash ^= 0x01E37808;
 		code.setSlot(HASH, hash);
 		code.makeImmutable();
-
 		return code;
 	}
 

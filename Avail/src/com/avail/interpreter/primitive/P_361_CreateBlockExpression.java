@@ -99,7 +99,7 @@ extends Primitive
 					IntegerRangeTypeDescriptor.wholeNumbers(),
 					TupleDescriptor.empty(),
 					ARGUMENT_NODE.mostGeneralType()),
-				IntegerRangeTypeDescriptor.wholeNumbers(),
+				IntegerRangeTypeDescriptor.unsignedShorts(),
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 					IntegerRangeTypeDescriptor.wholeNumbers(),
 					TupleDescriptor.empty(),

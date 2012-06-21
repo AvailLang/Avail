@@ -36,7 +36,6 @@ import java.util.List;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.interpreter.primitive.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
 
 /**
  * Continuation types are the types of {@linkplain ContinuationDescriptor
@@ -144,15 +143,6 @@ extends TypeDescriptor
 		final @NotNull AvailObject object)
 	{
 		return object.functionType().hash() * 11 ^ 0x3E20409;
-	}
-
-	@Override @AvailMethod
-	@NotNull AvailObject o_Kind (
-		final @NotNull AvailObject object)
-	{
-		//  Answer the object's type.
-
-		return TYPE.o();
 	}
 
 	@Override @AvailMethod

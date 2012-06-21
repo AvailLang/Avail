@@ -243,7 +243,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ComputeSuperkind (final AvailObject object)
+	AvailObject o_ComputeSuperkind (final @NotNull AvailObject object)
 	{
 		return getSuperkind(object);
 	}
@@ -465,6 +465,12 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
+	boolean o_IsLiteralTokenType (final @NotNull AvailObject object)
+	{
+		return getInstance(object).isLiteralToken();
+	}
+
+	@Override @AvailMethod
 	boolean o_IsMapType (
 		final @NotNull AvailObject object)
 	{
@@ -492,7 +498,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_Instances (final AvailObject object)
+	@NotNull AvailObject o_Instances (final @NotNull AvailObject object)
 	{
 		return SetDescriptor.empty().setWithElementCanDestroy(
 			getInstance(object),
@@ -627,69 +633,6 @@ extends AbstractEnumerationTypeDescriptor
 		final @NotNull AvailObject object)
 	{
 		return getSuperkind(object).returnType();
-	}
-
-	@Override @AvailMethod
-	@NotNull AvailObject o_TypeIntersectionOfContinuationType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aContinuationType)
-	{
-		if (getInstance(object).isInstanceOf(aContinuationType))
-		{
-			return object;
-		}
-		return BottomTypeDescriptor.bottom();
-	}
-
-	@Override @AvailMethod
-	@NotNull AvailObject o_TypeIntersectionOfCompiledCodeType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aCompiledCodeType)
-	{
-		if (getInstance(object).isInstanceOf(aCompiledCodeType))
-		{
-			return object;
-		}
-		return BottomTypeDescriptor.bottom();
-	}
-
-	@Override @AvailMethod
-	@NotNull AvailObject o_TypeIntersectionOfParseNodeType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aParseNodeType)
-	{
-		if (getInstance(object).isInstanceOf(aParseNodeType))
-		{
-			return object;
-		}
-		return BottomTypeDescriptor.bottom();
-	}
-
-	@Override @AvailMethod
-	@NotNull AvailObject o_TypeUnionOfContinuationType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aContinuationType)
-	{
-		return getSuperkind(object).typeUnionOfContinuationType(
-			aContinuationType);
-	}
-
-	@Override @AvailMethod
-	@NotNull AvailObject o_TypeUnionOfCompiledCodeType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aCompiledCodeType)
-	{
-		return getSuperkind(object).typeUnionOfContinuationType(
-			aCompiledCodeType);
-	}
-
-	@Override @AvailMethod
-	@NotNull AvailObject o_TypeUnionOfParseNodeType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aParseNodeType)
-	{
-		return getSuperkind(object).typeUnionOfParseNodeType(
-			aParseNodeType);
 	}
 
 	@Override @AvailMethod

@@ -292,7 +292,7 @@ extends PojoTypeDescriptor
 
 	@Override @AvailMethod
 	AvailObject o_TypeUnionOfPojoFusedType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aFusedPojoType)
 	{
 		final AvailObject intersectionAncestors = computeUnion(

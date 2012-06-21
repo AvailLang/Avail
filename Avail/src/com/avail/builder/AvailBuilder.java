@@ -97,6 +97,14 @@ public final class AvailBuilder
 		new HashSet<ResolvedModuleName>();
 
 	/**
+	 * The path maintained by the {@linkplain #traceModuleImports(
+	 * ResolvedModuleName, ModuleName) tracer} to prevent recursive tracing, as
+	 * a list to simplify describing a recursive chain of imports.
+	 */
+	private final @NotNull List<ResolvedModuleName> recursionList =
+		new ArrayList<ResolvedModuleName>();
+
+	/**
 	 * The set of module names that have already been encountered and completely
 	 * recursed through.
 	 */
@@ -165,9 +173,10 @@ public final class AvailBuilder
 		}
 
 		// Detect recursion into this module.
+		recursionList.add(resolution);
 		if (recursionSet.contains(resolution))
 		{
-			throw new RecursiveDependencyException(resolution);
+			throw new RecursiveDependencyException(recursionList);
 		}
 
 		// Prevent recursion into this module.
@@ -227,6 +236,7 @@ public final class AvailBuilder
 
 		// Permit reaching (but not scanning) this module again.
 		recursionSet.remove(resolution);
+		recursionList.remove(recursionList.size() - 1);
 	}
 
 	/**

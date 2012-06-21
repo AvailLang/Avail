@@ -32,7 +32,7 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.ReadWriteVariableTypeDescriptor.ObjectSlots.*;
 import java.util.List;
 import com.avail.annotations.*;
 
@@ -70,14 +70,14 @@ extends TypeDescriptor
 	@NotNull AvailObject o_ReadType (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.READ_TYPE);
+		return object.slot(READ_TYPE);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_WriteType (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.WRITE_TYPE);
+		return object.slot(WRITE_TYPE);
 	}
 
 	@Override
@@ -88,12 +88,12 @@ extends TypeDescriptor
 		final int indent)
 	{
 		aStream.append("↑<--(");
-		object.slot(ObjectSlots.READ_TYPE).printOnAvoidingIndent(
+		object.slot(READ_TYPE).printOnAvoidingIndent(
 			aStream,
 			recursionList,
 			(indent + 1));
 		aStream.append(")/(");
-		object.slot(ObjectSlots.WRITE_TYPE).printOnAvoidingIndent(
+		object.slot(WRITE_TYPE).printOnAvoidingIndent(
 			aStream,
 			recursionList,
 			(indent + 1));
@@ -117,10 +117,8 @@ extends TypeDescriptor
 		{
 			return true;
 		}
-		if (aType.readType().equals(
-				object.slot(ObjectSlots.READ_TYPE))
-			&& aType.writeType().equals(
-				object.slot(ObjectSlots.WRITE_TYPE)))
+		if (aType.readType().equals(object.slot(READ_TYPE))
+			&& aType.writeType().equals(object.slot(WRITE_TYPE)))
 		{
 			aType.becomeIndirectionTo(object);
 			return true;
@@ -133,15 +131,8 @@ extends TypeDescriptor
 		final @NotNull AvailObject object)
 	{
 		return
-			(object.slot(ObjectSlots.READ_TYPE).hash() ^ 0xF40149E
-			+ object.slot(ObjectSlots.WRITE_TYPE).hash() ^ 0x5469E1A);
-	}
-
-	@Override @AvailMethod
-	@NotNull AvailObject o_Kind (
-		final @NotNull AvailObject object)
-	{
-		return TYPE.o();
+			(object.slot(READ_TYPE).hash() ^ 0xF40149E
+			+ object.slot(WRITE_TYPE).hash() ^ 0x5469E1A);
 	}
 
 	@Override @AvailMethod
@@ -159,10 +150,8 @@ extends TypeDescriptor
 	{
 		// Variable types are covariant by read capability and contravariant by
 		// write capability.
-		return aVariableType.readType().isSubtypeOf(
-				object.slot(ObjectSlots.READ_TYPE))
-			&& object.slot(ObjectSlots.WRITE_TYPE).isSubtypeOf(
-				aVariableType.writeType());
+		return aVariableType.readType().isSubtypeOf(object.slot(READ_TYPE))
+			&& object.slot(WRITE_TYPE).isSubtypeOf(aVariableType.writeType());
 	}
 
 	@Override @AvailMethod
@@ -190,10 +179,8 @@ extends TypeDescriptor
 		// read type is the type intersection of the two incoming read types and
 		// whose write type is the type union of the two incoming write types.
 		return VariableTypeDescriptor.fromReadAndWriteTypes(
-			object.slot(ObjectSlots.READ_TYPE).typeIntersection(
-				aVariableType.readType()),
-			object.slot(ObjectSlots.WRITE_TYPE).typeUnion(
-				aVariableType.writeType()));
+			object.slot(READ_TYPE).typeIntersection(aVariableType.readType()),
+			object.slot(WRITE_TYPE).typeUnion(aVariableType.writeType()));
 	}
 
 	@Override @AvailMethod
@@ -221,9 +208,8 @@ extends TypeDescriptor
 		// read type is the type union of the two incoming read types and whose
 		// write type is the type intersection of the two incoming write types.
 		return VariableTypeDescriptor.fromReadAndWriteTypes(
-			object.slot(ObjectSlots.READ_TYPE).typeUnion(
-				aVariableType.readType()),
-			object.slot(ObjectSlots.WRITE_TYPE).typeIntersection(
+			object.slot(READ_TYPE).typeUnion(aVariableType.readType()),
+			object.slot(WRITE_TYPE).typeIntersection(
 				aVariableType.writeType()));
 	}
 
@@ -246,8 +232,8 @@ extends TypeDescriptor
 			return VariableTypeDescriptor.wrapInnerType(readType);
 		}
 		final AvailObject result = mutable().create();
-		result.setSlot(ObjectSlots.READ_TYPE, readType);
-		result.setSlot(ObjectSlots.WRITE_TYPE, writeType);
+		result.setSlot(READ_TYPE, readType);
+		result.setSlot(WRITE_TYPE, writeType);
 		result.makeImmutable();
 		return result;
 	}

@@ -36,7 +36,7 @@ import static org.junit.Assert.*;
 import static com.avail.descriptor.TokenDescriptor.TokenType;
 import static com.avail.descriptor.TokenDescriptor.TokenType.*;
 import static com.avail.test.ScannerTest.Case.C;
-import java.util.List;
+import java.util.*;
 import org.junit.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
@@ -359,24 +359,46 @@ public final class ScannerTest
 	{
 		C(""),
 
+		// Integers
 		C("0", L(0,"0")),
 		C("1", L(1,"1")),
 		C("123", L(123,"123")),
 		C("1 2", L(1,"1"), L(2,"2", 2)),
-		C("1.1", L(1.1f,"1.1")),
-		C("1.02", L(1.02f,"1.02")),
-		C("1.02e5", L(1.02e5f,"1.02e5")),
 
+		// Reals and such:
+		C(".", O(".")),
+		C("..", O("."), O(".",1)),
+		C(".f", O("."), K("f",1)),
+		C(".e5", O("."), K("e5",1)),
+		C("5.", L(5,"5"), O(".",1)),
+		C(".5", O("."), L(5,"5",1)),
+		C("5.5", L(5.5d,"5.5")),
+		C("3.14159", L(3.14159d,"3.14159")),
+		C("123.456", L(123.456d,"123.456")),
+		C("0.0 1.1", L(0.0d,"0.0"), L(1.1d,"1.1",4)),
+		C("5e", L(5,"5"), K("e",1)),
+		C("5e5", L(5.0e5d,"5e5")),
+		C("5e+5", L(5.0e5d,"5e+5")),
+		C("5e-5", L(5.0e-5d,"5e-5")),
+		C("1d", L(1.0d,"1d")),
+		C("1ed", L(1,"1"), K("ed",1)),
+		C("1ee", L(1,"1"), K("ee",1)),
+		C("1ef", L(1,"1"), K("ef",1)),
+		C("1e+", L(1,"1"), K("e",1), O("+",2)),
+		C("1e+f", L(1,"1"), K("e",1), O("+",2), K("f",3)),
+		C("1e+g", L(1,"1"), K("e",1), O("+",2), K("g",3)),
+		C("1e+9", L(1e9d,"1e+9")),
+
+		C("7f", L(7.0f,"7f")),
 		C("7d", L(7.0d,"7d")),
 		C("0.1d", L(0.1d,"0.1d")),
 		C("0.05d", L(0.05d,"0.05d")),
-		C("1.02e-8", L(1.02e-8,"1.02e-8")),
-		C("9.99d307", L(9.99e307,"9.99d307")),
-		C("1.", L(1,"1"), O(".",1)),
-		C(".1", O("."), L(1,"1",1)),
-		C("12.34.56", L(12.34f,"12.34"), O(".",5), L(56,"56",6)),
-		C("12.34e56", L(12.34e56,"12.34e56")),
-		C("12.34d56", L(12.34e56d,"12.34d56")),
+		C("1.02e-8d", L(1.02e-8d,"1.02e-8d")),
+		C("1.02e+8d", L(1.02e+8d,"1.02e+8d")),
+		C("9.99e307d", L(9.99e307d,"9.99e307d")),
+		C("12.34.56", L(12.34d,"12.34"), O(".",5), L(56,"56",6)),
+		C("12.34e5", L(12.34e5d,"12.34e5")),
+		C("12.34e5f", L(12.34e5f,"12.34e5f")),
 
 		C("hello", K("hello")),
 		C("hello world", K("hello"), K("world",6)),
@@ -463,6 +485,61 @@ public final class ScannerTest
 						+ c.tokenGenerators.length
 						+ " tokens, not fail with: "
 						+ e);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Test that literal tokens compare content, not just their strings.
+	 */
+	@Test
+	public void testLiteralComparison ()
+	{
+		final AvailObject string = StringDescriptor.from("xxx");
+		final List<AvailObject> literals = new ArrayList<AvailObject>(4);
+		literals.add(LiteralTokenDescriptor.create(
+			string,
+			0,
+			0,
+			LITERAL,
+			FloatDescriptor.fromFloat(1.5f)));
+		literals.add(LiteralTokenDescriptor.create(
+			string,
+			0,
+			0,
+			LITERAL,
+			FloatDescriptor.fromFloat(1.5f)));
+		literals.add(LiteralTokenDescriptor.create(
+			string,
+			0,
+			0,
+			LITERAL,
+			FloatDescriptor.fromFloat(2.5f)));
+		literals.add(LiteralTokenDescriptor.create(
+			string,
+			0,
+			0,
+			LITERAL,
+			DoubleDescriptor.fromDouble(2.5)));
+		for (int i = 0; i < literals.size(); i++)
+		{
+			final AvailObject lit_i = literals.get(i);
+			for (int j = 0; j < literals.size(); j++)
+			{
+				final AvailObject lit_j = literals.get(j);
+				if (lit_i.literal().equals(lit_j.literal()))
+				{
+					assertEquals(
+						"Literals on same value should be equal",
+						lit_i,
+						lit_j);
+				}
+				else
+				{
+					assertFalse(
+						"Literals on different values should be unequal",
+						lit_i.equals(lit_j));
 				}
 			}
 		}

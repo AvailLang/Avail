@@ -709,7 +709,7 @@ extends Descriptor
 	{
 		final AvailObject emptyMap = MapDescriptor.empty();
 		final AvailObject emptySet = SetDescriptor.empty();
-		final AvailObject object = mutable().create();
+		final @NotNull AvailObject object = mutable().create();
 		object.setSlot(NAME, moduleName);
 		object.setSlot(VERSIONS, emptySet);
 		object.setSlot(NEW_NAMES, emptyMap);

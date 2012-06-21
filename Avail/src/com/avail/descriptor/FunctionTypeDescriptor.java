@@ -332,13 +332,6 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_Kind (
-		final @NotNull AvailObject object)
-	{
-		return TYPE.o();
-	}
-
-	@Override @AvailMethod
 	boolean o_AcceptsArgTypesFromFunctionType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject functionType)

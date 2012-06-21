@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.06.19 12:52:29.955 -0500
+ * * Last Versioned As: $$Revision$$
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -59,6 +59,7 @@ Names
 	/* 101 */ "block is invalid code",
 	/* 102 */ "block must not contain outers code",
 	/*   1 */ "cannot add unlike infinities code",
+	/*  56 */ "cannot convert not a number to integer code",
 	/*   4 */ "cannot divide by zero code",
 	/*   5 */ "cannot divide infinities code",
 	/* 507 */ "cannot modify final Java field code",
@@ -398,6 +399,11 @@ Method "alternative must not contain arguments code" is
 Method "vertical bar must follow a simple or simple group code" is
 [
 	55
+];
+
+Method "cannot convert not a number to integer code" is
+[
+	56
 ];
 
 Method "compilation is over code" is

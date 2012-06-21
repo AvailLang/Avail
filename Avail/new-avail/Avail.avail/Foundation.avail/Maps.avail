@@ -46,8 +46,12 @@ Uses
 	"Literals",
 	"Logic",
 	"Math",
+	"Sets",
+	"Tuples",
 	"Types",
 	"Variables"
+Names
+	"counts for_"
 Body
 
 /**
@@ -528,4 +532,140 @@ Semantic restriction "_∈_" is
 		/* Can't strengthen. */
 		⊤
 	]
+];
+
+/**
+ * Categorize the elements of `aTuple` via `discriminator`.
+ *
+ * Parameters:
+ *    aTuple - The tuple to categorize.
+ *    discriminator - A function that accepts each element of the tuple and
+ *       answers a value that represents the group to which the element belongs.
+ * Returns:
+ *    A map whose keys describe groups and whose elements are the groups
+ *    themselves, i.e., the tuples of elements that constitute the described
+ *    group.
+ */
+Method "group_by_" is
+[
+	aTuple : tuple,
+	discriminator : [⊥]→any
+|
+	groups : {any→tuple|} := {};
+	For each aTuple do
+	[
+		element : any
+	|
+		key ::= invoke discriminator with <element>;
+		group ::= groups[key] else [ <> ] ++ <element>;
+		groups := eject ↑groups + key→group;
+	];
+	groups
+] : map;
+
+Semantic restriction "group_by_" is
+[
+	aTupleType : tuple's type,
+	discriminatorType : [⊥]→any's type
+|
+	Require: discriminatorType accepts aTupleType;
+	tupleCardinality ::= ||aTupleType||;
+	tupleUpperBound ::= ⎡tupleCardinality⎤;
+	defaultType ::= ∪ aTupleType[1..|aTupleType's leading types| + 1];
+	keyType ::= discriminatorType's return type;
+	lowerBound ::= if ⎣tupleCardinality⎦ = 0 then [0] else [1];
+	upperBound ::= if tupleUpperBound > |keyType| 
+		then [|keyType|]
+		else [tupleUpperBound];
+	valueType ::= <defaultType… | 1..tupleUpperBound>;
+	{keyType→valueType | lowerBound..upperBound}
+];
+
+/**
+ * Categorize the elements of `aSet` via `discriminator`.
+ *
+ * Parameters:
+ *    aSet - The set to categorize.
+ *    discriminator - A function that accepts each element of the set and
+ *       answers a value that represents the group to which the element belongs.
+ * Returns:
+ *    A map whose keys describe groups and whose elements are the groups
+ *    themselves, i.e., the sets of elements that constitute the described
+ *    group.
+ */
+Method "group_by_" is
+[
+	aSet : set,
+	discriminator : [⊥]→any
+|
+	groups : {any→set|} := {};
+	For each aSet do
+	[
+		element : any
+	|
+		key ::= invoke discriminator with <element>;
+		group ::= groups[key] else [ ∅ ] + element;
+		groups := eject ↑groups + key→group;
+	];
+	groups
+] : map;
+
+/**
+ * Strengthen return type.
+ *
+ * Parameters:
+ *    aSetType - The set to categorize's type.
+ *    discriminator - A function that accepts each element of the set and
+ *       answers a value that represents the group to which the element belongs.
+ * Returns:
+ *    Most specific map type.
+ */
+Semantic restriction "group_by_" is
+[
+	aSetType : set's type,
+	discriminatorType : [⊥]→any's type
+ |
+
+ 	Require: discriminatorType accepts aSetType;
+ 	
+ 	setCardinality ::= ||aSetType||;
+ 	setUpperBound ::= ⎡setCardinality⎤;
+	keyType ::= discriminatorType's return type;
+	
+ 	lowerBound ::= if ⎣setCardinality⎦ = 0 then [0] else [1];
+	upperBound ::= if setUpperBound > |keyType| 
+		then [|keyType|]
+		else [setUpperBound];
+
+ 	valueType ::= {aSetType's element type | 1..setUpperBound};
+
+ 	{keyType→valueType | lowerBound..upperBound}
+ ];
+
+/**
+ * Count the elements of a tuple.
+ *
+ * Parameters:
+ *    aTuple - the tuple whose elements you will count
+ * Returns:
+ *    a map with keys that are the elements of the tuple that maps to the values
+ *    that are the counts that each element occurs in the tuple.
+ */
+Public stable method "counts for_" is
+[
+	aTuple : tuple
+|
+	groups ::= group aTuple by [a : any | a];
+	map groups through [k : any, t : tuple | |t|]
+] : map;
+
+Semantic restriction "counts for_" is
+[
+	aTupleType : tuple's type
+|
+	keyType ::= ∪ aTupleType[1..|aTupleType's leading types| + 1];
+	tupleCardinality ::= ||aTupleType||;
+	lowerBound ::= if ⎣tupleCardinality⎦ = 0 then [0] else [1];
+	upperBound ::= ⎡tupleCardinality⎤;
+	{keyType→whole number|lowerBound..upperBound}
 ];

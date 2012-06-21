@@ -32,7 +32,6 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.descriptor.ObjectTypeDescriptor.ObjectSlots.*;
 import java.util.*;
 import com.avail.annotations.*;
@@ -66,7 +65,7 @@ extends TypeDescriptor
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final StringBuilder builder,
 		final List<AvailObject> recursionList,
 		final int indent)
@@ -136,6 +135,48 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
+	@NotNull AvailObject o_FieldTypeMap (final @NotNull AvailObject object)
+	{
+		return object.slot(FIELD_TYPE_MAP);
+	}
+
+	@Override
+	boolean o_Equals (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject another)
+	{
+		return another.equalsObjectType(object);
+	}
+
+	@Override
+	boolean o_EqualsObjectType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anObjectType)
+	{
+		return object.fieldTypeMap().equals(anObjectType.fieldTypeMap());
+	}
+
+	@Override @AvailMethod
+	int o_Hash (
+		final @NotNull AvailObject object)
+	{
+		return object.fieldTypeMap().hash() * 11 ^ 0xE3561F16;
+	}
+
+	@Override @AvailMethod
+	@NotNull AvailObject o_FieldTypeTuple (final @NotNull AvailObject object)
+	{
+		final AvailObject map = object.slot(FIELD_TYPE_MAP);
+		final List<AvailObject> fieldAssignments = new ArrayList<AvailObject>(
+			map.mapSize());
+		for (final MapDescriptor.Entry entry : map.mapIterable())
+		{
+			fieldAssignments.add(TupleDescriptor.from(entry.key, entry.value));
+		}
+		return TupleDescriptor.fromCollection(fieldAssignments);
+	}
+
+	@Override @AvailMethod
 	boolean o_HasObjectInstance (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject potentialInstance)
@@ -160,39 +201,6 @@ extends TypeDescriptor
 			}
 		}
 		return true;
-	}
-
-	@Override @AvailMethod
-	@NotNull AvailObject o_FieldTypeMap (final @NotNull AvailObject object)
-	{
-		return object.slot(FIELD_TYPE_MAP);
-	}
-
-	@Override @AvailMethod
-	@NotNull AvailObject o_FieldTypeTuple (final @NotNull AvailObject object)
-	{
-		final AvailObject map = object.slot(FIELD_TYPE_MAP);
-		final List<AvailObject> fieldAssignments = new ArrayList<AvailObject>(
-			map.mapSize());
-		for (final MapDescriptor.Entry entry : map.mapIterable())
-		{
-			fieldAssignments.add(TupleDescriptor.from(entry.key, entry.value));
-		}
-		return TupleDescriptor.fromCollection(fieldAssignments);
-	}
-
-	@Override @AvailMethod
-	int o_Hash (
-		final @NotNull AvailObject object)
-	{
-		return object.fieldTypeMap().hash() * 11 ^ 0xE3561F16;
-	}
-
-	@Override @AvailMethod
-	@NotNull AvailObject o_Kind (
-		final @NotNull AvailObject object)
-	{
-		return TYPE.o();
 	}
 
 	@Override @AvailMethod

@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.06.19 12:52:29.942 -0500
+ * * Last Versioned As: $$Revision$$
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -321,7 +321,7 @@ Method "termination requested" is
  *    aFiber - The fiber whose environment should be consulted.
  *    key - The key whose value should be obtained.
  * Returns:
- *    The value bound to `key` within the fibers environment.
+ *    The value bound to `key` within the fiber's environment.
  */
 Method "_[_]" is
 [
@@ -877,8 +877,8 @@ Method "current module" is
  * Answer the atom referenced by the specified name in the module currently
  * undergoing compilation. If this name already refers to an atom in scope,
  * i.e., either one 1) imported through the "Uses" or "Extends" sections of the
- * current modules header, 2) introduced by the "Names" section of the
- * current modules header, or 3) introduced by dynamic publication then answer
+ * current module's header, 2) introduced by the "Names" section of the
+ * current module's header, or 3) introduced by dynamic publication then answer
  * this atom. Otherwise, privately introduce a new atom.
  *
  * Parameters:
@@ -1143,7 +1143,7 @@ Method "“_:=_”" is
 |
 	Primitive 353 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode
-] : sequence;
+] : assignment;
 
 /**
  * Construct and answer a value reference expression.
@@ -1181,7 +1181,7 @@ Method "“↑_”" is
 Method "“[_`|Primitive__]:_^_”" is
 [
 	argumentDeclarations : argument tuple,
-	primitiveNumber : whole number,
+	primitiveNumber : unsigned short,
 	statements : phrase tuple,
 	returnType : type,
 	exceptions : set
@@ -1210,13 +1210,13 @@ Method "generate_" is
 /**
  * Construct and answer a message send. `aMethod` must refer to an actual
  * method. The number and types of the argument expressions must satisfy exactly
- * one of the methods existing signatures.
+ * one of the method's existing signatures.
  *
  * Parameters:
- *    {0} - The target method.
- *    {1} - The list phrase containing the argument expressions, corresponding
+ *    aMethod - The target method.
+ *    argumentsList - The list phrase containing the argument expressions, corresponding
  *       left-to-right with the arguments of the method.
- *    {2} - The expected (strengthened) return type of the method send.
+ *    returnType - The expected (strengthened) return type of the method send.
  * Returns:
  *    The requested message send.
  */

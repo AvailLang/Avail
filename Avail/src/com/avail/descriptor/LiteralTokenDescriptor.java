@@ -34,7 +34,7 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.LiteralTokenDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.LiteralTokenDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.TypeDescriptor.Types.LITERAL_TOKEN;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import com.avail.annotations.*;
 
 /**
@@ -124,26 +124,68 @@ extends TokenDescriptor
 
 	}
 
-
-	@Override @AvailMethod
-	void o_Literal (
-		final @NotNull AvailObject object,
-		final AvailObject value)
-	{
-		object.setSlot(ObjectSlots.LITERAL, value);
-	}
-
 	@Override @AvailMethod
 	AvailObject o_Literal (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.LITERAL);
+		return object.slot(LITERAL);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Kind (final AvailObject object)
+	AvailObject o_Kind (final @NotNull AvailObject object)
 	{
-		return LITERAL_TOKEN.o();
+		return LiteralTokenTypeDescriptor.create(
+			InstanceTypeDescriptor.on(object));
+	}
+
+	@Override @AvailMethod
+	boolean o_IsInstanceOfKind (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aTypeObject)
+	{
+		if (TOKEN.o().isSubtypeOf(aTypeObject))
+		{
+			return true;
+		}
+		if (!aTypeObject.isLiteralTokenType())
+		{
+			return false;
+		}
+		return object.slot(LITERAL).isInstanceOf(aTypeObject.literalType());
+	}
+
+	@Override
+	boolean o_IsLiteralToken (final @NotNull AvailObject object)
+	{
+		return true;
+	}
+
+
+	/**
+	 * Create and initialize a new {@linkplain TokenDescriptor token}.
+	 *
+	 * @param string The token text.
+	 * @param start The token's starting character position in the file.
+	 * @param lineNumber The line number on which the token occurred.
+	 * @param tokenType The type of token to create.
+	 * @param literal The literal.
+	 * @return The new token.
+	 */
+	public static @NotNull AvailObject create (
+		final @NotNull AvailObject string,
+		final int start,
+		final int lineNumber,
+		final @NotNull TokenType tokenType,
+		final @NotNull AvailObject literal)
+	{
+		final AvailObject instance = mutable.create();
+		instance.setSlot(STRING, string);
+		instance.setSlot(LOWER_CASE_STRING, NullDescriptor.nullObject());
+		instance.setSlot(START, start);
+		instance.setSlot(LINE_NUMBER, lineNumber);
+		instance.setSlot(TOKEN_TYPE_CODE, tokenType.ordinal());
+		instance.setSlot(LITERAL, literal);
+		return instance;
 	}
 
 	/**
@@ -188,32 +230,5 @@ extends TokenDescriptor
 	public static LiteralTokenDescriptor immutable ()
 	{
 		return immutable;
-	}
-
-	/**
-	 * Create and initialize a new {@linkplain TokenDescriptor token}.
-	 *
-	 * @param string The token text.
-	 * @param start The token's starting character position in the file.
-	 * @param lineNumber The line number on which the token occurred.
-	 * @param tokenType The type of token to create.
-	 * @param literal The literal.
-	 * @return The new token.
-	 */
-	public static @NotNull AvailObject create (
-		final @NotNull AvailObject string,
-		final int start,
-		final int lineNumber,
-		final @NotNull TokenType tokenType,
-		final @NotNull AvailObject literal)
-	{
-		final AvailObject instance = mutable.create();
-		instance.setSlot(STRING, string);
-		instance.setSlot(LOWER_CASE_STRING, NullDescriptor.nullObject());
-		instance.setSlot(START, start);
-		instance.setSlot(LINE_NUMBER, lineNumber);
-		instance.setSlot(TOKEN_TYPE_CODE, tokenType.ordinal());
-		instance.setSlot(LITERAL, literal);
-		return instance;
 	}
 }

@@ -76,10 +76,10 @@ public class P_350_CreateAssignmentExpression extends Primitive
 			return interpreter.primitiveFailure(
 				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE);
 		}
-		final AvailObject assignment =
-			AssignmentNodeDescriptor.mutable().create();
-		assignment.variable(variable);
-		assignment.expression(expression);
+		final AvailObject assignment = AssignmentNodeDescriptor.from(
+			variable,
+			expression,
+			true);
 		return interpreter.primitiveSuccess(assignment);
 	}
 

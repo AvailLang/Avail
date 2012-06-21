@@ -151,6 +151,13 @@ public class AvailObjectFieldHelper
 		if (name == null)
 		{
 			final StringBuilder builder = new StringBuilder();
+			builder.append(slot.name());
+			if (subscript != -1)
+			{
+				builder.append('[');
+				builder.append(subscript);
+				builder.append(']');
+			}
 			if (value == null)
 			{
 				builder.append(" = Java null");
@@ -184,9 +191,7 @@ public class AvailObjectFieldHelper
 					"*** UNKNOWN FIELD VALUE TYPE: %s ***",
 					value.getClass().getCanonicalName()));
 			}
-			name = slot.name()
-				+ (subscript == -1 ? "" : "[" + subscript + "]")
-				+ builder;
+			name = builder.toString();
 		}
 		return name;
 	}

@@ -572,7 +572,7 @@ enum SerializerOperandEncoding
 	GENERAL_MAP
 	{
 		@Override
-		void trace (final AvailObject object, final Serializer serializer)
+		void trace (final @NotNull AvailObject object, final Serializer serializer)
 		{
 			for (final MapDescriptor.Entry entry : object.mapIterable())
 			{
@@ -582,7 +582,7 @@ enum SerializerOperandEncoding
 		}
 
 		@Override
-		void write (final AvailObject object, final Serializer serializer)
+		void write (final @NotNull AvailObject object, final Serializer serializer)
 		{
 			writeCompressedPositiveInt(object.mapSize(), serializer);
 			for (final MapDescriptor.Entry entry : object.mapIterable())

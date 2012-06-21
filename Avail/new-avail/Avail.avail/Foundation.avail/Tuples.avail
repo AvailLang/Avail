@@ -51,7 +51,6 @@ Uses
 	"Variables"
 Names
 	"all indices of_where_",
-	"counts for_",
 	"distinct_",
 	"first index of_where_",
 	"flatten_",
@@ -89,7 +88,7 @@ Stable method "_is empty" is
 	aTuple : tuple
 |
 	|aTuple| = 0
-];
+] : boolean;
 
 /**
  * Iteratively apply `action` to each consecutive element of `aTuple`.
@@ -153,7 +152,7 @@ Method "For each_do_" is
  *       parameter, if provided, must correspond to `indices`.
  *    tupleType - A tuple type.
  */
-Private method "Require:_accepts_" is
+Method "Require:_accepts_" is
 [
 	action : function meta,
 	tupleType : tuple meta
@@ -1188,6 +1187,7 @@ Semantic restriction "last index of_where_" is
 	[0..⎡tupleType⎤ + 1)
 ];
 	
+	
 /**
  * Compute and answer the index of the last element of `aTuple` that satisfies
  * the specified predicate.
@@ -1268,14 +1268,14 @@ Semantic restriction "_of_" is
 
 /**
  * Construct and answer a tuple that contains the consecutive integers from
- * `start` (inclusive) to `end` (inclusive). If `start ≤ end`, then
- * `result[i] < result[i+1]`; otherwise, `result[i] > result[i+1]`.
+ * `start` (inclusive) up to `end` (inclusive), counting up by 1. If
+ * `end < start`, then answer the empty tuple.
  * 
  * Parameters:
  *    start - The first value of the resulting tuple.
  *    end - The last value of the resulting tuple.
  * Returns:
- *    The interval from `start` (inclusive) to `end` (inclusive).
+ *    The interval from `start` (inclusive) up to `end` (inclusive).
  */
 Public stable method "_to_" is
 [
@@ -1283,8 +1283,7 @@ Public stable method "_to_" is
 	end : integer
 |
 	accumulator : <integer…|> := <>;
-	step ::= if start ≤ end then [ 1 ] else [ -1 ];
-	From start to end by step do
+	From start to end do
 	[
 		value : integer
 	|
@@ -1292,83 +1291,6 @@ Public stable method "_to_" is
 	];
 	cast accumulator into [ t : <integer…|1..> | t ]
 ] : <integer…|1..>;
-
-/**
- * Leverage the uncertainty of `start` to produce good leading types when the
- * upper bound of the result's cardinality can be determined.
- */
-Semantic restriction "_to_" is
-[
-	start : integer's type,
-	end : integer's type
-|
-	uncertainty ::= ⎡start⎤ - ⎣start⎦;
-	min : extended integer;
-	max : extended integer;
-	sizes : whole number's type;
-	/* There are three cases: the interval is definitely ascending ... */
-	if ⎡start⎤ ≤ ⎣end⎦ then
-	[
-		min := ⎣start⎦;
-		max := ⎡end⎤;
-		sizes := [0 max (⎣end⎦ - ⎡start⎤ + 1)
-			.. max - min + 2);
-		if uncertainty is finite ∧ [ ⎡sizes⎤ is finite ]
-		then
-		[
-			finiteMin ::= cast min into [ t : integer | t ];
-			finiteMax ::= cast max into [ t : integer | t ];
-			types ::=
-				map finiteMin to finiteMax through
-				[
-					x : integer
-				|
-					[x .. (finiteMax min (x + uncertainty)) + 1)
-				];
-			<types[1..|types| - 1], types[|types|]…|sizes>
-		]
-		else
-		[
-			<<>, [min..max + 1)…|sizes>
-		]
-	]
-	/* ... the interval is definitely descending ... */
-	else if [ ⎣start⎦ ≥ ⎡end⎤ ] then
-	[
-		min := ⎣end⎦;
-		max := ⎡start⎤;
-		sizes := [0 max (⎣start⎦ - ⎡end⎤ + 1)
-			.. max - min + 2);
-		if uncertainty is finite ∧ [ ⎡sizes⎤ is finite ]
-		then
-		[
-			finiteMin ::= cast min into [ t : integer | t ];
-			finiteMax ::= cast max into [ t : integer | t ];
-			types ::=
-				map finiteMax to finiteMin through
-				[
-					x : integer
-				|
-					[finiteMin max (x - uncertainty) .. x + 1)
-				];
-			<types[1..|types| - 1], types[|types|]…|sizes>
-		]
-		else
-		[
-			<<>, [min..max + 1)…|sizes>
-		]
-	]
-	/* ... or the interval's directionality is unknown. In this last case,
-	 * the best that we can do is to produce the type union of the ranges
-	 * and answer a tuple type with this default type.
-	 */
-	else
-	[
-		upper ::= |(⎡end⎤ - ⎣start⎦)
-			max (⎡start⎤ - ⎣end⎦)|;
-		<<>, start ∪ end…|[1..upper + 2)>
-	]
-];
 
 /**
  * Construct and answer a string that contains the consecutive characters from
@@ -1383,7 +1305,7 @@ Semantic restriction "_to_" is
  * Returns:
  *    The interval from `start` (inclusive) to `end` (inclusive).
  */
-Stable method "_to_" is
+Public stable method "_to_" is
 [
 	start : character,
 	end : character
@@ -1391,8 +1313,7 @@ Stable method "_to_" is
 	accumulator : string := <>;
 	startCodePoint ::= start→code point;
 	endCodePoint ::= end→code point;
-	step ::= if startCodePoint ≤ endCodePoint then [ 1 ] else [ -1 ];
-	From startCodePoint to endCodePoint by step do
+	From startCodePoint to endCodePoint do
 	[
 		value : code point
 	|
@@ -1400,6 +1321,40 @@ Stable method "_to_" is
 	];
 	cast accumulator into [ t : <character…|1..> | t ]
 ] : <character…|1..>;
+
+/**
+ * Leverage the uncertainty of `start` to produce good leading types when the
+ * upper bound of the result's cardinality can be determined.
+ */
+Semantic restriction "_to_" is
+[
+	start : integer's type,
+	end : integer's type
+|
+	min ::= ⎣start⎦;
+	max ::= ⎡end⎤;
+	uncertainty ::= ⎡start⎤ - ⎣start⎦;
+	sizes ::= [0 max (⎣end⎦ - ⎡start⎤ + 1)
+		.. max - min + 2);
+	if uncertainty is finite ∧ [ ⎡sizes⎤ is finite ]
+	then
+	[
+		finiteMin ::= cast min into [ t : integer | t ];
+		finiteMax ::= cast max into [ t : integer | t ];
+		types ::=
+			map finiteMin to finiteMax through
+			[
+				x : integer
+			|
+				[x .. (finiteMax min (x + uncertainty)) + 1)
+			];
+		<types[1..|types| - 1], types[|types|]…|sizes>
+	]
+	else
+	[
+		<<>, [min..max + 1)…|sizes>
+	]
+];
 
 /**
  * Is `value` an element of `aTuple`?
@@ -1957,81 +1912,6 @@ Semantic restriction "_[_.._]→_" is
 		into [ t : natural number's type | t ];
 	suffix ::= tuple type of aTuple[suffixStart..||aTuple||];
 	prefix ++ replacement ++ suffix
-];
-
-/**
- * Categorize the elements of `aTuple` via `decider`.
- *
- * Parameters:
- *    aTuple - The tuple to categorize.
- *    discriminator - A function that accepts each element of the tuple and
- *       answers a value that represents the group to which the element belongs.
- * Returns:
- *    A map whose keys describe groups and whose elements are the groups
- *    themselves, i.e., the tuples of elements that constitute the described
- *    group.
- */
-Method "group_by_" is
-[
-	aTuple : tuple,
-	discriminator : [⊥]→any
-|
-	groups : {any→tuple|} := {};
-	For each aTuple do
-	[
-		element : any
-	|
-		key ::= invoke discriminator with <element>;
-		group ::= groups[key] else [ <> ] ++ <element>;
-		groups := eject ↑groups + key→group;
-	];
-	groups
-] : map;
-
-Semantic restriction "group_by_" is
-[
-	aTupleType : tuple's type,
-	discriminatorType : [⊥]→any's type
-|
-	Require: discriminatorType accepts aTupleType;
-	tupleCardinality ::= ||aTupleType||;
-	tupleUpperBound ::= ⎡tupleCardinality⎤;
-	defaultType ::= ∪ aTupleType[1..|aTupleType's leading types| + 1];
-	keyType ::= discriminatorType's return type;
-	lowerBound ::= if ⎣tupleCardinality⎦ = 0 then [0] else [1];
-	upperBound ::= if tupleUpperBound > |keyType| 
-		then [|keyType|]
-		else [tupleUpperBound];
-	valueType ::= <defaultType… | 1..tupleUpperBound>;
-	{keyType→valueType | lowerBound..upperBound}
-];
-
-/**
- * Count the elements of a tuple.
- *
- * Parameters:
- *    aTuple - the tuple whose elements you will count
- * Returns:
- *    a map with keys that are the elements of the tuple that maps to the values
- *    that are the counts that each element occurs in the tuple.
- */
-Public stable method "counts for_" is
-[
-	aTuple : tuple
-|
-	groups ::= group aTuple by [a : any | a];
-	map groups through [k : any, t : tuple | |t|]
-] : map;
-
-Semantic restriction "counts for_" is
-[
-	aTupleType : tuple's type
-|
-	keyType ::= ∪ aTupleType[1..|aTupleType's leading types| + 1];
-	tupleCardinality ::= ||aTupleType||;
-	lowerBound ::= if ⎣tupleCardinality⎦ = 0 then [0] else [1];
-	upperBound ::= ⎡tupleCardinality⎤;
-	{keyType→whole number|lowerBound..upperBound}
 ];
 
 /**

@@ -751,7 +751,7 @@ public enum SerializerOperation
 	SET(29, TUPLE_OF_OBJECTS.as("tuple of objects"))
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		AvailObject[] decompose (final @NotNull AvailObject object)
 		{
 			return array(object.asTuple());
 		}
@@ -773,7 +773,7 @@ public enum SerializerOperation
 	MAP(30, GENERAL_MAP.as("map contents"))
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		AvailObject[] decompose (final @NotNull AvailObject object)
 		{
 			return array(object);
 		}
@@ -795,7 +795,7 @@ public enum SerializerOperation
 	OBJECT(31, GENERAL_MAP.as("field map"))
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		AvailObject[] decompose (final @NotNull AvailObject object)
 		{
 			return array(object.fieldMap());
 		}
@@ -817,7 +817,7 @@ public enum SerializerOperation
 	OBJECT_TYPE(32, GENERAL_MAP.as("field type map"))
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		AvailObject[] decompose (final @NotNull AvailObject object)
 		{
 			return array(object.fieldTypeMap());
 		}
@@ -842,7 +842,7 @@ public enum SerializerOperation
 		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("module name"))
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		AvailObject[] decompose (final @NotNull AvailObject object)
 		{
 			final AvailObject module = object.issuingModule();
 			if (module.equalsNull())
@@ -878,7 +878,7 @@ public enum SerializerOperation
 	{
 
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		AvailObject[] decompose (final @NotNull AvailObject object)
 		{
 			final int numLocals = object.numLocals();
 			final int numOuters = object.numOuters();
@@ -950,7 +950,7 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("Compiled code"))
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		AvailObject[] decompose (final @NotNull AvailObject object)
 		{
 			return array(
 				object.code());
@@ -975,7 +975,7 @@ public enum SerializerOperation
 		TUPLE_OF_OBJECTS.as("Outer values"))
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		AvailObject[] decompose (final @NotNull AvailObject object)
 		{
 			final int numOuters = object.numOuterVars();
 			final AvailObject outers = ObjectTupleDescriptor.mutable().create(
@@ -1011,7 +1011,7 @@ public enum SerializerOperation
 		TUPLE_OF_OBJECTS.as("Checked exceptions"))
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		AvailObject[] decompose (final @NotNull AvailObject object)
 		{
 			return array(
 				object.argsTupleType(),
@@ -1043,7 +1043,7 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("Default type"))
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		AvailObject[] decompose (final @NotNull AvailObject object)
 		{
 			return array (
 				object.sizeRange(),
@@ -1075,7 +1075,7 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("Upper bound"))
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		AvailObject[] decompose (final @NotNull AvailObject object)
 		{
 			final int flags = (object.lowerInclusive() ? 1 : 0)
 				+ (object.upperInclusive() ? 2 : 0);
@@ -1112,7 +1112,7 @@ public enum SerializerOperation
 		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("method's atom's module name"))
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		AvailObject[] decompose (final @NotNull AvailObject object)
 		{
 			assert object.isInstanceOf(Types.METHOD.o());
 			final AvailObject methodNameAtom = object.name();
@@ -1150,7 +1150,7 @@ public enum SerializerOperation
 		TUPLE_OF_OBJECTS.as("class parameterization"))
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		AvailObject[] decompose (final @NotNull AvailObject object)
 		{
 			assert object.isPojoType();
 			assert !object.isPojoFusedType();
@@ -1199,7 +1199,7 @@ public enum SerializerOperation
 		GENERAL_MAP.as("ancestor parameterizations map"))
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		AvailObject[] decompose (final @NotNull AvailObject object)
 		{
 			assert object.isPojoType();
 			assert object.isPojoFusedType();
@@ -1264,7 +1264,7 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("size range"))
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		AvailObject[] decompose (final @NotNull AvailObject object)
 		{
 			assert object.isPojoArrayType();
 			final AvailObject contentType = object.contentType();
@@ -1296,7 +1296,7 @@ public enum SerializerOperation
 		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("class name"))
 	{
 		@Override
-		AvailObject[] decompose (final AvailObject object)
+		AvailObject[] decompose (final @NotNull AvailObject object)
 		{
 			assert object.isPojoSelfType();
 			final AvailObject rawPojoType = object.javaClass();

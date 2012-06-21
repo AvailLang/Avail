@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.06.19 12:52:29.881 -0500
+ * * Last Versioned As: $$Revision$$
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -88,6 +88,7 @@ Names
 	/*  59 */ "list",
 	/*  55 */ "literal",
 	/* 116 */ "literal token",
+	/*  58 */ "literal token meta",
 	/*  65 */ "local constant",
 	/*  64 */ "local variable",
 	/* 109 */ "macro function",
@@ -149,6 +150,7 @@ Names
 	/*  73 */ "tuple of type",
 	/*  34 */ "type",
 	/* 112 */ "type of Euler number",
+	/*  14 */ "type of tuple of type of any",
 	/* 110 */ "type of two",
 	/* 106 */ "type of zero",
 	/* 105 */ "unary procedure",
@@ -180,6 +182,7 @@ _continuation_meta                      ::= special object 10;
 _atom                                   ::= special object 11;
 _double                                 ::= special object 12;
 _extended_integer                       ::= special object 13;
+_type_of_tuple_of_type_of_any           ::= special object 14;
 _float                                  ::= special object 15;
 _number                                 ::= special object 16;
 _integer                                ::= special object 17;
@@ -218,6 +221,7 @@ _block                                  ::= special object 54;
 _literal                                ::= special object 55;
 _variable_reference                     ::= special object 56;
 _send                                   ::= special object 57;
+_literal_token_meta                     ::= special object 58;
 _list                                   ::= special object 59;
 _variable_use                           ::= special object 60;
 _declaration                            ::= special object 61;
@@ -405,6 +409,11 @@ Method "double" is
 Method "extended integer" is
 [
 	_extended_integer
+];
+
+Method "type of tuple of type of any" is
+[
+	_type_of_tuple_of_type_of_any
 ];
 
 Method "float" is
@@ -654,6 +663,14 @@ Method "variable reference" is
 Method "send" is
 [
 	_send
+];
+
+/**
+ * The type (meta) of the most general literal token type.
+ */
+Method "literal token meta" is
+[
+	_literal_token_meta
 ];
 
 Method "list" is
@@ -948,6 +965,9 @@ Method "token" is
 	_token
 ];
 
+/**
+ * The most general literal token type.
+ */
 Method "literal token" is
 [
 	_literal_token

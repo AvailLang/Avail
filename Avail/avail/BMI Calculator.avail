@@ -118,7 +118,7 @@ Method "Calculate BMI" is
 	 * "as float" converts the integer, 703 to a float.
 	 */
 	 
-	bmi :  float := ((weightInPounds * 703) / (heightInInches^2)) as float;
+	bmi : float := ((weightInPounds * 703) / (heightInInches^2)) as float;
 
 	/* Print statement.  The "_then_" in this print statement concatenates
 	 * the first string, "Your Body Mass Index (BMI) is ", with the second 

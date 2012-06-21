@@ -593,48 +593,40 @@ extends AbstractAvailCompiler
 			{
 				// Parse a raw token and continue.
 				assert successorTrees.tupleSize() == 1;
-				parseRawTokenThen(
-					start,
-					new Con<AvailObject>(
-						"Raw token for ellipsis (…) in some message")
-					{
-						@Override
-						public void value (
-							final ParserState afterToken,
-							final AvailObject newToken)
+				final AvailObject newToken = parseRawTokenOrNull(start);
+				if (newToken != null)
+				{
+					final ParserState afterToken = start.afterToken();
+					final List<AvailObject> newArgsSoFar =
+						new ArrayList<AvailObject>(argsSoFar);
+					final AvailObject syntheticToken =
+						LiteralTokenDescriptor.create(
+							newToken.string(),
+							newToken.start(),
+							newToken.lineNumber(),
+							SYNTHETIC_LITERAL,
+							newToken);
+					final AvailObject literalNode =
+						LiteralNodeDescriptor.fromToken(syntheticToken);
+					newArgsSoFar.add(literalNode);
+					eventuallyDo(
+						new Continuation0()
 						{
-							final List<AvailObject> newArgsSoFar =
-								new ArrayList<AvailObject>(argsSoFar);
-							final AvailObject syntheticToken =
-								LiteralTokenDescriptor.create(
-									newToken.string(),
-									newToken.start(),
-									newToken.lineNumber(),
-									SYNTHETIC_LITERAL,
-									newToken);
-							final AvailObject literalNode =
-								LiteralNodeDescriptor.fromToken(syntheticToken);
-							newArgsSoFar.add(literalNode);
-							eventuallyDo(
-								new Continuation0()
-								{
-									@Override
-									public void value ()
-									{
-										parseRestOfSendNode(
-											afterToken,
-											successorTrees.tupleAt(1),
-											null,
-											initialTokenPosition,
-											Collections.unmodifiableList(
-												newArgsSoFar),
-											continuation);
-									}
-								},
-								"Continue send after raw token for ellipsis",
-								afterToken.position);
-						}
-					});
+							@Override
+							public void value ()
+							{
+								parseRestOfSendNode(
+									afterToken,
+									successorTrees.tupleAt(1),
+									null,
+									initialTokenPosition,
+									Collections.unmodifiableList(newArgsSoFar),
+									continuation);
+							}
+						},
+						"Continue send after raw token for ellipsis",
+						afterToken.position);
+					}
 				break;
 			}
 			case pop:

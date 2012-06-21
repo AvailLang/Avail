@@ -92,7 +92,7 @@ extends Descriptor
 		byteCharacters = new AvailObject[256];
 		for (int i = 0; i <= 255; i++)
 		{
-			final AvailObject object = mutable().create();
+			final @NotNull AvailObject object = mutable().create();
 			object.codePoint(i);
 			object.makeImmutable();
 			byteCharacters[i] = object;

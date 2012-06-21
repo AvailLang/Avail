@@ -230,7 +230,7 @@ extends Descriptor
 					// returns. It may still turn out maximally compact if the
 					// garbage collector adds the newly defunct weak reference
 					// to the queue before the loop exits.
-					final AvailObject object = copiedReference.get();
+					final @NotNull AvailObject object = copiedReference.get();
 					if (object != null)
 					{
 						assert object.descriptor() instanceof RawPojoDescriptor;
@@ -380,7 +380,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	final boolean o_IsRawPojo (final AvailObject object)
+	final boolean o_IsRawPojo (final @NotNull AvailObject object)
 	{
 		return true;
 	}

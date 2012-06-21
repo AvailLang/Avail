@@ -84,7 +84,7 @@ public class ListNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ExpressionType (final AvailObject object)
+	AvailObject o_ExpressionType (final @NotNull AvailObject object)
 	{
 		AvailObject tupleType = object.slot(TUPLE_TYPE);
 		if (tupleType.equalsNull())
@@ -114,7 +114,7 @@ public class ListNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	int o_Hash (final @NotNull AvailObject object)
 	{
 		return object.expressionsTuple().hash() ^ 0xC143E977;
 	}

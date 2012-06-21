@@ -54,6 +54,7 @@ extends TupleDescriptor
 		 * happens to equal zero it will have to be recomputed each time it is
 		 * requested.
 		 */
+		@HideFieldInDebugger
 		HASH_OR_ZERO,
 
 		/**

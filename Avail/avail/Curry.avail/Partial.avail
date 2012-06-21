@@ -64,71 +64,122 @@ Print [a : integer, b : integer | a + b] taking arguments tupled (<10, 20>);
 
 /* Partial function application... */
 
-Method "_curry_" is [block : function, arg : any |
+Method "_curry_" is [f : function, firstArg : any |
 	/* Perform a partial application of the given block.  That is, apply one
-	   argument to the block, producing a block that requires one less
-	   argument.  This is a common feature in functional languages, so it
-	   makes a good test of the sturdiness of Avail's type system.  */
-	bt ::= block type;
-	argTypes ::= 2 to bt argument count collect [i : natural number | bt[i]];
-	newBlockType ::= block type taking argTypes and returning bt result;
+	 * argument to the block, producing a block that requires one less
+	 * argument.  This is a common built-in feature in functional languages, so
+	 * adding it makes a good test of the sturdiness of Avail's type system.
+	 */
+	ft ::= f type;
+	argTypes ::= 2 to ft argument count collect [i : natural number | ft[i]];
+	newBlockType ::= block type taking argTypes and returning ft result;
 	stub block with function type newBlockType
-		invoking [***];
-	stub block taking 2 to block argument count collect [i : natural number |
-		bt[i]]
-		and applying name of block invoker
-		to [args : tuple | block apply <arg> then args]
-		and argument tuple returning (bt result)
-] : function
-requires [cT : functionType, aT : type |
-	/* Requires block to take one or more arguments, and for first argument
-	   type to agree with the passed argument.  */
-	cast cT into [cT2 : functionType |
-		||cT2|| >= 1 & [aT <= cT2[1]]
-	] otherwise [
-		false
-	]
-]
-returns [cT : functionType, aT : type |
-	cast cT into [cT2 : functionType |
-		block type taking 2 to ||cT2|| collect [i : natural number | cT2[i]]
-			and returning (cT2 result)
-	]
+		invoking [t : tuple |
+			f apply (<firstArg> then t);]
+] : function;
+
+Restriction "_curry_" is [ft : functionType, firstArgType : type |
+	if ft argument count = 0 then [
+		Fail parse "Cannot curry a nullary function."];
+	if not firstArgType <= ft[1] then [
+		Fail parse
+			"First argument is not applicable to the function to be curried."];
+	argTypes ::= 2 to ft argument count collect [i : natural number | ft[i]];
+	block type taking argTypes and returning ft result
 ];
 
 
 Forward "curried type for argument types_and result_" for [
-		tuple of type,
+		tuple of (any type),
 		type
-	]->type;
+	]->functionType;
 
 Method "curried type for argument types_and result_" is [
-		argTypes : tuple of type,
+		argTypes : tuple of (any type),
 		result : type |
-	cast ||argTypes|| into [n : natural number |
+	cast ||argTypes|| into [n : [1..∞) |
 		recursiveResult ::=
 			curried type for argument types argTypes[2..n]
 			and result result;
 		[argTypes[1]] -> recursiveResult
-	] otherwise [
-		result
 	]
-] : type;
+] : functionType;
+
+
+Forward "_curried" for [function]->function;
+
+Method "_curried" is [f : function |
+	/* Convert the function taking N arguments into a function taking the first
+	 * argument and returning a function taking the second argument and
+	 * returning... the function taking the final argument and returning the
+	 * result of evaluating the original function with all the provided
+	 * arguments.
+	 */
+	ft ::= f type;
+	argumentCount ::= ft argument count;
+	Assert argumentCount > 0;
+	tt ::= ft arguments type;
+	if argumentCount = 1 then
+	[
+		f
+	]
+	else
+	[
+		argumentTypes ::= 1 to argumentCount collect [n : [1..∞) | tt[n]];
+		newType ::= curried type for argument types argumentTypes
+			and result (ft result);
+		stub block with function type newType
+			invoking [argument : any |
+				(f curry argument) curried];
+	]
+];
+
+
+
 
 
 Forward "_curry of tupled block" for [
 		[terminates]->void
 	] -> [terminates]->void;
 
-Method "_curry of tupled block" is [blk : [terminates]->void |
+Method "_curry of tupled block" is [f : [terminates]->void |
 	/* Given a block that takes a tuple of arguments, convert it to a block
-	   that takes one argument A1, and answers a block that takes one
-	   argument A2,... a block that takes one argument A(n) and answers
-	   the result of calling the original block with the tuple <A1,A2...A(n)>.  */
-
-	result ::= cast blk type [1] into [tt : tupleType |
+	 * that takes one argument A1, and answers a block that takes one
+	 * argument A2,... a block that takes one argument A(n) and answers
+	 * the result of calling the original block with the tuple <A1,A2...A(n)>.
+	 */
+	ft ::= f type;
+	Assert ft argument count = 1;
+	tt ::= cast ft[1] into [t : tupleType | t];
+	innerCount ::= tt sizes lower bound;
+	argumentTypes ::= 1 to innerCount collect [n : natural number | ft[n]];
+	curriedType ::= curried type for argument types argumentTypes
+		result ft result;
+	if innerCount = 1 then
+	[
+		stub block with function type curriedType
+		invoking [argsSizeOne : tuple | f apply argsSizeOne;]
+	] else [
+		Assert innerCount > 1;
+		innerType ::= curried type for argument type
+			***
+		and result 
+		stub block with function type
+			(curried type for argument types<tt[1]> and result 
+		
+	
+	result ::= cast tt[1] 
+	
+	ft ::= f type;
+	argCount ::= ft argument count;
+	argTypes ::= 1 to argCount collect [i : natural number | ft[i]];
+	Assert argCount > 0;
+	result ::= cast ft[1] into [tt : tupleType |
 		size ::= tt sizes lower bound;
 		cast size into [s : [2..INF) |
+			stub block with function type (curried type for argument types ft)
+			inoking [*]
+			
 			stub block taking <tt[1]>
 				and applying name of block invoker
 				to [firstAsTuple : tuple |

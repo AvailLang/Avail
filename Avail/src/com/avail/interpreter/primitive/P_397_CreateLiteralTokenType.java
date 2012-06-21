@@ -1,5 +1,5 @@
-/*
- * Bootstrap.avail
+/**
+ * P_397_CreateLiteralTokenType.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,25 +30,49 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * GENERATED FILE
- * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.06.19 12:52:29.961 -0500
+package com.avail.interpreter.primitive;
+
+import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.interpreter.Primitive.Flag.*;
+import java.util.List;
+import com.avail.annotations.NotNull;
+import com.avail.descriptor.*;
+import com.avail.interpreter.*;
+
+/**
+ * <strong>Primitive 397</strong>: Construct a {@linkplain
+ * LiteralTokenTypeDescriptor literal token type} with the given
+ * parameterization.
  *
- * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
+public final class P_397_CreateLiteralTokenType
+extends Primitive
+{
+	/**
+	 * The sole instance of this primitive class. Accessed through reflection.
+	 */
+	public final @NotNull static Primitive instance =
+		new P_397_CreateLiteralTokenType().init(1, CanFold, CannotFail);
 
-System Module "Bootstrap"
-Versions
-	"dev"
-Extends
-	"Origin",
-	"Special Objects",
-	"Primitives",
-	"Infallible Primitives",
-	"Fallible Primitives",
-	"Error Codes"
-Uses
-Names
-Body
+	@Override
+	public @NotNull Result attempt (
+		final @NotNull List<AvailObject> args,
+		final @NotNull Interpreter interpreter)
+	{
+		assert args.size() == 1;
+		final AvailObject literalValueType = args.get(0);
+		return interpreter.primitiveSuccess(
+			LiteralTokenTypeDescriptor.create(literalValueType));
+	}
 
+	@Override
+	protected @NotNull AvailObject privateBlockTypeRestriction ()
+	{
+		return FunctionTypeDescriptor.create(
+			TupleDescriptor.from(
+				InstanceTypeDescriptor.on(ANY.o())),
+			InstanceTypeDescriptor.on(
+				LiteralTokenTypeDescriptor.mostGeneralType()));
+	}
+}

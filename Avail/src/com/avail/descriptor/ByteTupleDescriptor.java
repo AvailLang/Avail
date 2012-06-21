@@ -55,6 +55,7 @@ extends TupleDescriptor
 		/**
 		 * The hash, or zero ({@code 0}) if the hash has not yet been computed.
 		 */
+		@HideFieldInDebugger
 		HASH_OR_ZERO,
 
 		/**

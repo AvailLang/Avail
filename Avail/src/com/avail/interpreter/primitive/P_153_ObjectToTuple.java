@@ -62,7 +62,7 @@ extends Primitive
 		final @NotNull Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject object = args.get(0);
+		final @NotNull AvailObject object = args.get(0);
 		return interpreter.primitiveSuccess(object.fieldTuple());
 	}
 

@@ -40,6 +40,7 @@ Names
 	 * are introduced here.
 	 */
 	"For each_do_",
+	"Require:_accepts_",
 	"any of_satisfies_",
 	"count of_where_",
 	"each of_satisfies_",

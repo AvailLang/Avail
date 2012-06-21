@@ -94,14 +94,14 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 
 
 	@Override @AvailMethod
-	AvailObject o_ExpressionType (final AvailObject object)
+	AvailObject o_ExpressionType (final @NotNull AvailObject object)
 	{
 		return object.outputParseNode().expressionType();
 	}
 
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	int o_Hash (final @NotNull AvailObject object)
 	{
 		return
 			object.macroName().hash() * Multiplier
@@ -121,7 +121,7 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 
 
 	@Override @AvailMethod
-	AvailObject o_ApparentSendName (final AvailObject object)
+	AvailObject o_ApparentSendName (final @NotNull AvailObject object)
 	{
 		return object.macroName();
 	}
@@ -183,7 +183,7 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	@Override
-	@NotNull ParseNodeKind o_ParseNodeKind (final AvailObject object)
+	@NotNull ParseNodeKind o_ParseNodeKind (final @NotNull AvailObject object)
 	{
 		return object.slot(OUTPUT_PARSE_NODE).parseNodeKind();
 	}

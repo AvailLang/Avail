@@ -33,12 +33,10 @@
 package com.avail.descriptor;
 
 import java.util.List;
-import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.TokenDescriptor.TokenType;
-import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.utility.*;
 
 /**
@@ -50,51 +48,6 @@ import com.avail.utility.*;
 public class LiteralNodeDescriptor
 extends ParseNodeDescriptor
 {
-	/**
-	 * A synthetic {@linkplain LiteralNodeDescriptor literal node} that
-	 * represents a literal {@linkplain NullDescriptor#nullObject() null
-	 * object}. Note that the literal null object is not available to an Avail
-	 * programmer.
-	 */
-	private static AvailObject literalNullObject;
-
-	/**
-	 * Answer a synthetic {@linkplain LiteralNodeDescriptor literal node} that
-	 * represents a literal {@linkplain NullDescriptor#nullObject() null
-	 * object}. Note that the literal null object is not available to an Avail
-	 * programmer
-	 * .
-	 * @return A literal node representing null.
-	 */
-	public static @NotNull AvailObject literalNullObject ()
-	{
-		return literalNullObject;
-	}
-
-	/**
-	 * Create any instances statically well-known to the {@linkplain
-	 * AvailRuntime Avail runtime system}.
-	 */
-	public static void createWellKnownObjects ()
-	{
-		final AvailObject token = LiteralTokenDescriptor.create(
-			StringDescriptor.from("nil"),
-			0,
-			0,
-			TokenType.LITERAL,
-			NullDescriptor.nullObject());
-		literalNullObject = fromToken(token).makeImmutable();
-	}
-
-	/**
-	 * Destroy or reset any instances statically well-known to the {@linkplain
-	 * AvailRuntime Avail runtime system}.
-	 */
-	public static void clearWellKnownObjects ()
-	{
-		literalNullObject = null;
-	}
-
 	/**
 	 * My slots of type {@link AvailObject}.
 	 *
@@ -120,7 +73,7 @@ extends ParseNodeDescriptor
 
 
 	@Override @AvailMethod
-	AvailObject o_ExpressionType (final AvailObject object)
+	AvailObject o_ExpressionType (final @NotNull AvailObject object)
 	{
 		final AvailObject token = object.token();
 		assert token.tokenType() == TokenType.LITERAL
@@ -130,7 +83,7 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	int o_Hash (final @NotNull AvailObject object)
 	{
 		return
 			object.token().hash() ^ 0x9C860C0D;
@@ -186,7 +139,7 @@ extends ParseNodeDescriptor
 	}
 
 	@Override
-	ParseNodeKind o_ParseNodeKind (final AvailObject object)
+	ParseNodeKind o_ParseNodeKind (final @NotNull AvailObject object)
 	{
 		return ParseNodeKind.LITERAL_NODE;
 	}
@@ -198,10 +151,7 @@ extends ParseNodeDescriptor
 		final List<AvailObject> recursionList,
 		final int indent)
 	{
-		object.token().literal().printOnAvoidingIndent(
-			builder,
-			recursionList,
-			indent + 1);
+		builder.append(object.token().string().asNativeString());
 	}
 
 
@@ -214,7 +164,8 @@ extends ParseNodeDescriptor
 	 */
 	public static AvailObject fromToken (final @NotNull AvailObject token)
 	{
-		assert token.isInstanceOfKind(Types.LITERAL_TOKEN.o());
+		assert token.isInstanceOfKind(
+			LiteralTokenTypeDescriptor.mostGeneralType());
 		final AvailObject node = mutable().create();
 		node.setSlot(ObjectSlots.TOKEN, token);
 		node.makeImmutable();

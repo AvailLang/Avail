@@ -96,16 +96,22 @@ extends Exception
 	/**
 	 * Construct a new {@link RecursiveDependencyException}.
 	 *
-	 * @param circularModuleName
-	 *            The module for which a circular dependency was detected.
+	 * @param moduleNamesCycle
+	 *            The sequence of modules in which a circular dependency was
+	 *            detected.
 	 */
 	RecursiveDependencyException (
-		final @NotNull ResolvedModuleName circularModuleName)
+		final @NotNull List<ResolvedModuleName> moduleNamesCycle)
 	{
 		super(
-			"module \""
-			+ circularModuleName.qualifiedName()
-			+ "\" recursively depends upon itself");
-		prependModule(circularModuleName);
+			String.format(
+				"module \""
+				+ moduleNamesCycle.get(0).qualifiedName()
+				+ "\" recursively depends upon itself: %s",
+				moduleNamesCycle));
+		for (final ResolvedModuleName mod : moduleNamesCycle)
+		{
+			prependModule(mod);
+		}
 	}
 }

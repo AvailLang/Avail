@@ -235,13 +235,6 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_Kind (
-		final @NotNull AvailObject object)
-	{
-		return TYPE.o();
-	}
-
-	@Override @AvailMethod
 	@NotNull AvailObject o_TypeAtIndex (
 		final @NotNull AvailObject object,
 		final int index)

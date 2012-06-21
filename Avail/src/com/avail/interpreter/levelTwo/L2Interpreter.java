@@ -164,6 +164,54 @@ extends Interpreter
 	final static boolean debugL2Results = false;
 
 
+	enum FakeStackTraceSlots implements ObjectSlotsEnum
+	{
+		FRAMES
+	}
+
+	/**
+	 * Utility method for decomposing this object in the debugger.  See {@link
+	 * AvailObjectFieldHelper} for instructions to enable this functionality in
+	 * Eclipse.
+	 *
+	 * <p>In particular, an L2Interpreter should present (possible among other
+	 * things) a complete stack trace of the current process, converting the
+	 * deep continuation structure into a list of continuation substitutes
+	 * that <em>do not</em> recursively print the caller chain.</p>
+	 *
+	 * @return An array of {@link AvailObjectFieldHelper} objects that help
+	 *         describe the logical structure of the receiver to the debugger.
+	 */
+	public AvailObjectFieldHelper[] describeForDebugger()
+	{
+		final List<AvailObject> frames = new ArrayList<AvailObject>(50);
+		AvailObject frame = pointers[CALLER.ordinal()];
+		if (frame != null)
+		{
+			while (!frame.equalsNull())
+			{
+				frames.add(frame);
+				frame = frame.caller();
+			}
+		}
+		final AvailObject framesTuple =
+			TupleDescriptor.fromCollection(frames);
+		final AvailObject outerTuple = TupleDescriptor.from(framesTuple);
+		final List<AvailObjectFieldHelper> outerList =
+			new ArrayList<AvailObjectFieldHelper>();
+		assert outerTuple.tupleSize() == FakeStackTraceSlots.values().length;
+		for (final FakeStackTraceSlots field : FakeStackTraceSlots.values())
+		{
+			outerList.add(new AvailObjectFieldHelper(
+				outerTuple,
+				field,
+				-1,
+				outerTuple.tupleAt(field.ordinal() + 1)));
+		}
+		return outerList.toArray(new AvailObjectFieldHelper[outerList.size()]);
+	}
+
+
 	/**
 	 * The {@link L2ChunkDescriptor} being executed.
 	 */

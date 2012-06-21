@@ -174,6 +174,11 @@ extends Descriptor
 		final @NotNull AvailObject anIntegerRangeType);
 
 	@Override @AvailMethod
+	abstract boolean o_IsSupertypeOfLiteralTokenType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aLiteralTokenType);
+
+	@Override @AvailMethod
 	abstract boolean o_IsSupertypeOfMapType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aMapType);
@@ -235,6 +240,10 @@ extends Descriptor
 		final @NotNull AvailObject object);
 
 	@Override @AvailMethod
+	abstract @NotNull AvailObject o_Kind (
+		final @NotNull AvailObject object);
+
+	@Override @AvailMethod
 	abstract @NotNull AvailObject o_LowerBound (
 		final @NotNull AvailObject object);
 
@@ -244,10 +253,6 @@ extends Descriptor
 
 	@Override @AvailMethod
 	abstract @NotNull AvailObject o_Name (
-		final @NotNull AvailObject object);
-
-	@Override @AvailMethod
-	abstract @NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object);
 
 	@Override @AvailMethod
@@ -296,6 +301,11 @@ extends Descriptor
 	abstract @NotNull AvailObject o_TypeIntersectionOfIntegerRangeType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anIntegerRangeType);
+
+	@Override @AvailMethod
+	abstract @NotNull AvailObject o_TypeIntersectionOfLiteralTokenType (
+		AvailObject object,
+		AvailObject aLiteralTokenType);
 
 	@Override @AvailMethod
 	abstract @NotNull AvailObject o_TypeIntersectionOfMapType (
@@ -359,6 +369,11 @@ extends Descriptor
 	abstract @NotNull AvailObject o_TypeUnionOfIntegerRangeType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anIntegerRangeType);
+
+	@Override @AvailMethod
+	abstract @NotNull AvailObject o_TypeUnionOfLiteralTokenType (
+		AvailObject object,
+		AvailObject aLiteralTokenType);
 
 	@Override @AvailMethod
 	abstract @NotNull AvailObject o_TypeUnionOfMapType (

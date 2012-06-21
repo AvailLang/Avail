@@ -613,7 +613,7 @@ extends ExtendedIntegerDescriptor
 
 	@Override
 	AvailObject o_AddToDoubleCanDestroy (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject doubleObject,
 		final boolean canDestroy)
 	{
@@ -629,7 +629,7 @@ extends ExtendedIntegerDescriptor
 
 	@Override
 	AvailObject o_AddToFloatCanDestroy (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject floatObject,
 		final boolean canDestroy)
 	{
@@ -907,7 +907,7 @@ extends ExtendedIntegerDescriptor
 
 	@Override
 	public AvailObject o_DivideIntoDoubleCanDestroy (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject doubleObject,
 		final boolean canDestroy)
 	{
@@ -930,7 +930,7 @@ extends ExtendedIntegerDescriptor
 
 	@Override
 	public AvailObject o_DivideIntoFloatCanDestroy (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject floatObject,
 		final boolean canDestroy)
 	{
@@ -1064,7 +1064,7 @@ extends ExtendedIntegerDescriptor
 
 	@Override
 	public AvailObject o_MultiplyByDoubleCanDestroy (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject doubleObject,
 		final boolean canDestroy)
 	{
@@ -1087,7 +1087,7 @@ extends ExtendedIntegerDescriptor
 
 	@Override
 	public AvailObject o_MultiplyByFloatCanDestroy (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject floatObject,
 		final boolean canDestroy)
 	{
@@ -1208,7 +1208,7 @@ extends ExtendedIntegerDescriptor
 
 	@Override
 	public AvailObject o_SubtractFromDoubleCanDestroy (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject doubleObject,
 		final boolean canDestroy)
 	{
@@ -1226,7 +1226,7 @@ extends ExtendedIntegerDescriptor
 
 	@Override
 	public AvailObject o_SubtractFromFloatCanDestroy (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject floatObject,
 		final boolean canDestroy)
 	{
@@ -1581,7 +1581,7 @@ extends ExtendedIntegerDescriptor
 		immutableByteObjects = new AvailObject [256];
 		for (int i = 0; i <= 255; i++)
 		{
-			final AvailObject object = mutable().create(1);
+			final @NotNull AvailObject object = mutable().create(1);
 			object.rawSignedIntegerAtPut(1, i);
 			object.makeImmutable();
 			immutableByteObjects[i] = object;

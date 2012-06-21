@@ -160,7 +160,7 @@ Method "For each_do_" is
  *       element type of `setType`.
  *    setType - A set type.
  */
-Private method "Require:_accepts_" is
+Method "Require:_accepts_" is
 [
 	action : function meta,
 	setType : set meta
@@ -853,67 +853,6 @@ Semantic restriction "_⊄_" is
 	]
 	else basicRule
 ];
-
-/**
- * Categorize the elements of `aSet` via `decider`.
- *
- * Parameters:
- *    aSet - The set to categorize.
- *    discriminator - A function that accepts each element of the set and
- *       answers a value that represents the group to which the element belongs.
- * Returns:
- *    A map whose keys describe groups and whose elements are the groups
- *    themselves, i.e., the sets of elements that constitute the described
- *    group.
- */
-Method "group_by_" is
-[
-	aSet : set,
-	discriminator : [⊥]→any
-|
-	groups : {any→set|} := {};
-	For each aSet do
-	[
-		element : any
-	|
-		key ::= invoke discriminator with <element>;
-		group ::= groups[key] else [ ∅ ] + element;
-		groups := eject ↑groups + key→group;
-	];
-	groups
-] : map;
-
-/**
- * Strengthen return type.
- *
- * Parameters:
- *    aSetType - The set to categorize's type.
- *    discriminator - A function that accepts each element of the set and
- *       answers a value that represents the group to which the element belongs.
- * Returns:
- *    Most specific map type.
- */
-Semantic restriction "group_by_" is
-[
-	aSetType : set's type,
-	discriminatorType : [⊥]→any's type
- |
-
- 	Require: discriminatorType accepts aSetType;
- 	
- 	setCardinality ::= ||aSetType||;
- 	setUpperBound ::= ⎡setCardinality⎤;
-	keyType ::= discriminatorType's return type;
-	
- 	lowerBound ::= if ⎣setCardinality⎦ = 0 then [0] else [1];
-	upperBound ::= if setUpperBound > |keyType| 
-		then [|keyType|]
-		else [setUpperBound];
-
- 	valueType ::= {aSetType's element type | 1..setUpperBound};
-
- 	{keyType→valueType | lowerBound..upperBound}
- ];
 
 /**
  * Determines of a set contains an element.

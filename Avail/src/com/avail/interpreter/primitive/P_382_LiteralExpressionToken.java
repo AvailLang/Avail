@@ -33,7 +33,6 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.annotations.NotNull;
@@ -72,6 +71,6 @@ extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				LITERAL_NODE.mostGeneralType()),
-			LITERAL_TOKEN.o());
+			LiteralTokenTypeDescriptor.mostGeneralType());
 	}
 }

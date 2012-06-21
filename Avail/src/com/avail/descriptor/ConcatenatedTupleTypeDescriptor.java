@@ -32,7 +32,6 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.descriptor.ConcatenatedTupleTypeDescriptor.ObjectSlots.*;
 import static java.lang.Math.*;
 import com.avail.annotations.*;
@@ -137,13 +136,6 @@ extends TypeDescriptor
 	{
 		becomeRealTupleType(object);
 		return object.hash();
-	}
-
-	@Override @AvailMethod
-	@NotNull AvailObject o_Kind (
-		final @NotNull AvailObject object)
-	{
-		return TYPE.o();
 	}
 
 	/**

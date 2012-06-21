@@ -570,7 +570,9 @@ public abstract class AbstractDescriptor
 		{
 			final int ordinal = Math.min(i, intSlots.length) - 1;
 			final IntegerSlotsEnum slot = intSlots[ordinal];
-			if (getAnnotation((Enum<?>)slot, HideFieldInDebugger.class) == null)
+			if (getAnnotation((Enum<?>)slot, HideFieldInDebugger.class) == null
+				&& getAnnotation((Enum<?>)slot, HideFieldJustForPrinting.class)
+					== null)
 			{
 				builder.append('\n');
 				for (int tab = 0; tab < indent; tab++)
@@ -617,7 +619,9 @@ public abstract class AbstractDescriptor
 		{
 			final int ordinal = Math.min(i, objectSlots.length) - 1;
 			final ObjectSlotsEnum slot = objectSlots[ordinal];
-			if (getAnnotation((Enum<?>)slot, HideFieldInDebugger.class) == null)
+			if (getAnnotation((Enum<?>)slot, HideFieldInDebugger.class) == null
+				&& getAnnotation((Enum<?>)slot, HideFieldJustForPrinting.class)
+					== null)
 			{
 				builder.append('\n');
 				for (int tab = 0; tab < indent; tab++)
@@ -716,7 +720,7 @@ public abstract class AbstractDescriptor
 				final String lookupName = enumAnnotation.lookupMethodName();
 				if (lookupName.isEmpty())
 				{
-					// Look it up by ordinal.
+					// Look it up by ordinal (must be an actual Enum).
 					final IntegerEnumSlotDescriptionEnum[] allValues =
 						describingClass.getEnumConstants();
 					if (0 <= value && value < allValues.length)
@@ -735,24 +739,31 @@ public abstract class AbstractDescriptor
 				else
 				{
 					// Look it up via the specified static lookup method.
+					// It's only required to be an
+					// IntegerEnumSlotDescriptionEnum in this case, not
+					// necessarily an Enum.
 					final Method lookupMethod =
 						describingClass.getMethod(
 							lookupName,
 							Integer.TYPE);
-					@SuppressWarnings("rawtypes")
-					final
-					Enum lookedUp = (Enum)lookupMethod.invoke(null, value);
+					final IntegerEnumSlotDescriptionEnum lookedUp =
+						(IntegerEnumSlotDescriptionEnum)lookupMethod.invoke(
+							null,
+							value);
 					if (lookedUp == null)
 					{
 						builder.append(
 							new Formatter().format(
-								" (enum out of range: 0x%X)",
+								" (enum out of range: 0x%08X)",
 								value & 0xFFFFFFFFL));
 					}
 					else
 					{
-						assert lookedUp.getDeclaringClass()
-							== describingClass;
+						if (lookedUp instanceof Enum)
+						{
+							assert ((Enum<?>)lookedUp).getDeclaringClass()
+								== describingClass;
+						}
 						builder.append(" = ");
 						builder.append(lookedUp.name());
 					}
@@ -1819,14 +1830,6 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param value
-	 */
-	abstract void o_Literal (
-		@NotNull AvailObject object,
-		AvailObject value);
-
-	/**
-	 * @param object
 	 * @param index
 	 * @return
 	 */
@@ -1996,14 +1999,6 @@ public abstract class AbstractDescriptor
 		@NotNull AvailObject object,
 		@NotNull AvailObject anInteger,
 		boolean canDestroy);
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	abstract void o_MyType (
-		@NotNull AvailObject object,
-		AvailObject value);
 
 	/**
 	 * @param object
@@ -5446,6 +5441,81 @@ public abstract class AbstractDescriptor
 	 */
 	abstract @NotNull AvailObject o_ArgumentsListNode (
 		final @NotNull AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract @NotNull AvailObject o_LiteralType (
+		final @NotNull AvailObject object);
+
+	/**
+	 * @param object
+	 * @param aLiteralTokenType
+	 * @return
+	 */
+	abstract AvailObject o_TypeIntersectionOfLiteralTokenType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aLiteralTokenType);
+
+	/**
+	 * @param object
+	 * @param aLiteralTokenType
+	 * @return
+	 */
+	abstract AvailObject o_TypeUnionOfLiteralTokenType(
+		 final @NotNull AvailObject object,
+		 final @NotNull AvailObject aLiteralTokenType);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract boolean o_IsLiteralTokenType (
+		final @NotNull AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract boolean o_IsLiteralToken (
+		final @NotNull AvailObject object);
+
+	/**
+	 * @param object
+	 * @param aLiteralTokenType
+	 * @return
+	 */
+	abstract boolean o_IsSupertypeOfLiteralTokenType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aLiteralTokenType);
+
+	/**
+	 * @param object
+	 * @param aLiteralTokenType
+	 * @return
+	 */
+	abstract boolean o_EqualsLiteralTokenType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aLiteralTokenType);
+
+	/**
+	 * @param object
+	 * @param anObjectType
+	 * @return
+	 */
+	abstract boolean o_EqualsObjectType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject anObjectType);
+
+	/**
+	 * @param object
+	 * @param aToken
+	 * @return
+	 */
+	abstract boolean o_EqualsToken (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aToken);
 
 	/**
 	 * @param object

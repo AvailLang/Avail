@@ -90,7 +90,7 @@ extends AbstractTypeDescriptor
 		 * not accidentally used as procedures – and to ensure that the reader
 		 * of the code knows it.
 		 */
-		TOP(null, "TYPE", TopTypeDescriptor.mutable()),
+		TOP(null, TopTypeDescriptor.mutable()),
 
 		/**
 		 * This is the second-most general type in Avail's type lattice.  It is
@@ -168,19 +168,12 @@ extends AbstractTypeDescriptor
 
 		/**
 		 * {@linkplain TokenDescriptor Tokens} all have the same kind, except
-		 * for {@linkplain #LITERAL_TOKEN literal tokens}.  They are produced by
-		 * a {@linkplain AvailScanner lexical scanner} and are consumed by the
-		 * {@linkplain AbstractAvailCompiler parser}.
+		 * for {@linkplain LiteralTokenDescriptor literal tokens}, which are
+		 * parametrically typed by the type of value they contain.  They are
+		 * produced by a {@linkplain AvailScanner lexical scanner} and are
+		 * consumed by the {@linkplain AbstractAvailCompiler parser}.
 		 */
 		TOKEN(ANY),
-
-		/**
-		 * This type is the kind of all {@linkplain LiteralTokenDescriptor
-		 * literal tokens}, which represent occurrences of values directly
-		 * embedded in Avail text which are extracted during {@linkplain
-		 * AvailScanner lexical scanning}.
-		 */
-		LITERAL_TOKEN(TOKEN),
 
 		/**
 		 * This type is the kind of all {@linkplain PowerStringTokenDescriptor
@@ -257,19 +250,13 @@ extends AbstractTypeDescriptor
 		 * the most general kind of all types.  Since it's a type's type, it can
 		 * also be called a metatype (or often just meta for short).
 		 */
-		TYPE(ANY, "TYPE");
+		TYPE(ANY);
 
 
 		/**
 		 * The {@link Types} object representing this type's supertype.
 		 */
 		public final Types parent;
-
-		/**
-		 * The {@link Types} object representing this type's own type (a
-		 * metatype).
-		 */
-		protected final String myTypeName;
 
 		/**
 		 * The descriptor to instantiate.  This allows {@link TopTypeDescriptor}
@@ -289,45 +276,26 @@ extends AbstractTypeDescriptor
 		 * parent, the name of the new type's type, and the descriptor to use.
 		 *
 		 * @param parent The new type's parent.
-		 * @param myTypeName The new type's type's name.
 		 * @param descriptor The descriptor for the new type.
 		 */
 		Types (
 			final @NotNull Types parent,
-			final @NotNull String myTypeName,
 			final @NotNull PrimitiveTypeDescriptor descriptor)
 		{
 			this.parent = parent;
-			this.myTypeName = myTypeName;
 			this.descriptor = descriptor;
 		}
 
 		/**
 		 * Construct a new {@linkplain Types} instance with the specified
-		 * parent and the name of the new type's type.  Use a {@link
-		 * PrimitiveTypeDescriptor} for the new type's descriptor.
-		 *
-		 * @param parent The new type's parent.
-		 * @param myTypeName The new type's type's name.
-		 */
-		Types (final Types parent, final String myTypeName)
-		{
-			this(
-				parent,
-				myTypeName,
-				PrimitiveTypeDescriptor.mutable());
-		}
-
-		/**
-		 * Construct a new {@linkplain Types} instance with the specified
-		 * parent.  Use {@linkplain #TYPE} for the new type's type, and use
-		 * {@link PrimitiveTypeDescriptor} for the new type's descriptor.
+		 * parent.  Use {@link PrimitiveTypeDescriptor} for the new type's
+		 * descriptor.
 		 *
 		 * @param parent The new type's parent.
 		 */
 		Types (final Types parent)
 		{
-			this(parent,"TYPE");
+			this(parent, PrimitiveTypeDescriptor.mutable());
 		}
 
 		/**
@@ -345,27 +313,16 @@ extends AbstractTypeDescriptor
 		 *
 		 * @param object An AvailObject or null.
 		 */
-		void set_o (final AvailObject object)
+		void set_o (final @NotNull AvailObject object)
 		{
 			this.o = object;
 		}
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (
+	abstract boolean o_Equals (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
-	{
-		/* A type can only be equal to another type, and only if each type is a
-		 * subtype of the other.  This is rewritten in descriptor subclasses for
-		 * efficiency and reversing the direction of the recursion between
-		 * subtype checking and equality checking.
-		 */
-
-		return another.isType()
-			&& object.isSubtypeOf(another)
-			&& another.isSubtypeOf(object);
-	}
+		final @NotNull AvailObject another);
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_InstanceCount (final @NotNull AvailObject object)
@@ -382,17 +339,6 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSubtypeOf (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aType)
-	{
-		/* Check if object (a type) is a subtype of aType (should also be a
-		 * type).
-		 */
-		throw unsupportedOperationException();
-	}
-
-	@Override @AvailMethod
 	boolean o_IsSupertypeOfFunctionType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aFunctionType)
@@ -405,10 +351,8 @@ extends AbstractTypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aVariableType)
 	{
-		/* By default, nothing is a supertype of a variable type unless it
-		 * states otherwise.
-		 */
-
+		// By default, nothing is a supertype of a variable type unless it
+		// states otherwise.
 		return false;
 	}
 
@@ -433,8 +377,18 @@ extends AbstractTypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anIntegerRangeType)
 	{
-		//  By default, nothing is a supertype of an integer range type unless it states otherwise.
+		// By default, nothing is a supertype of an integer range type unless
+		// it states otherwise.
+		return false;
+	}
 
+	@Override
+	boolean o_IsSupertypeOfLiteralTokenType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aLiteralTokenType)
+	{
+		// By default, nothing is a supertype of a literal token type unless it
+		// states otherwise.
 		return false;
 	}
 
@@ -451,10 +405,8 @@ extends AbstractTypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aLazyObjectType)
 	{
-		/* By default, nothing is a supertype of an eager object type unless it
-		 * states otherwise.
-		 */
-
+		// By default, nothing is a supertype of an eager object type unless it
+		// states otherwise.
 		return false;
 	}
 
@@ -485,7 +437,6 @@ extends AbstractTypeDescriptor
 		 * bottom doesn't dispatch this message.  Overridden in
 		 * PrimitiveTypeDescriptor.
 		 */
-
 		return false;
 	}
 
@@ -557,6 +508,14 @@ extends AbstractTypeDescriptor
 	@NotNull AvailObject o_TypeIntersectionOfIntegerRangeType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anIntegerRangeType)
+	{
+		return BottomTypeDescriptor.bottom();
+	}
+
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeIntersectionOfLiteralTokenType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aLiteralTokenType)
 	{
 		return BottomTypeDescriptor.bottom();
 	}
@@ -647,6 +606,14 @@ extends AbstractTypeDescriptor
 		final @NotNull AvailObject anIntegerRangeType)
 	{
 		return object.typeUnion(NUMBER.o());
+	}
+
+	@Override @AvailMethod
+	@NotNull AvailObject o_TypeUnionOfLiteralTokenType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aLiteralTokenType)
+	{
+		return object.typeUnion(TOKEN.o());
 	}
 
 	@Override @AvailMethod
@@ -865,13 +832,6 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_Kind (
-		final @NotNull AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override @AvailMethod
 	@NotNull AvailObject o_Parent (
 		final @NotNull AvailObject object)
 	{
@@ -947,6 +907,12 @@ extends AbstractTypeDescriptor
 		return AvailObject.class;
 	}
 
+	@Override @AvailMethod
+	final @NotNull AvailObject o_Kind (final @NotNull AvailObject object)
+	{
+		return TYPE.o();
+	}
+
 	/**
 	 * Create any cached {@link AvailObject}s.
 	 */
@@ -970,7 +936,6 @@ extends AbstractTypeDescriptor
 				spec.parent == null
 					 ? NullDescriptor.nullObject()
 					: spec.parent.o());
-			o.myType(Types.valueOf(spec.myTypeName).o());
 		}
 		for (final Types spec : Types.values())
 		{

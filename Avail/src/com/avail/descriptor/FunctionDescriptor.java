@@ -237,7 +237,7 @@ extends Descriptor
 	@Override
 	@AvailMethod @ThreadSafe
 	@NotNull SerializerOperation o_SerializerOperation (
-		final AvailObject object)
+		final @NotNull AvailObject object)
 	{
 		if (object.numOuterVars() == 0)
 		{
@@ -359,7 +359,7 @@ extends Descriptor
 		final @NotNull AvailObject code,
 		final @NotNull AvailObject copiedTuple)
 	{
-		final AvailObject object = mutable().create(
+		final @NotNull AvailObject object = mutable().create(
 			copiedTuple.tupleSize());
 		object.code(code);
 		for (int i = copiedTuple.tupleSize(); i >= 1; -- i)

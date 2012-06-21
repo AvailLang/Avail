@@ -374,37 +374,37 @@ extends Descriptor
 
 	@Override @AvailMethod
 	abstract AvailObject o_SubtractFromDoubleCanDestroy (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject doubleObject,
 		final boolean canDestroy);
 
 	@Override @AvailMethod
 	abstract AvailObject o_SubtractFromFloatCanDestroy (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject floatObject,
 		final boolean canDestroy);
 
 	@Override @AvailMethod
 	abstract AvailObject o_MultiplyByDoubleCanDestroy (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject doubleObject,
 		final boolean canDestroy);
 
 	@Override @AvailMethod
 	abstract AvailObject o_MultiplyByFloatCanDestroy (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject floatObject,
 		final boolean canDestroy);
 
 	@Override @AvailMethod
 	abstract AvailObject o_DivideIntoDoubleCanDestroy (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject doubleObject,
 		final boolean canDestroy);
 
 	@Override @AvailMethod
 	abstract AvailObject o_DivideIntoFloatCanDestroy (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject floatObject,
 		final boolean canDestroy);
 

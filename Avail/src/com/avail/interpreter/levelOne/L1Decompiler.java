@@ -108,6 +108,12 @@ public class L1Decompiler
 	@InnerAccess List<AvailObject> statements = new ArrayList<AvailObject>();
 
 	/**
+	 * A flag to indicate that the last instruction was a push of the null
+	 * object.
+	 */
+	@InnerAccess boolean endsWithPushNil = false;
+
+	/**
 	 * Parse the given compiled code object.  Its outer vars map to the given
 	 * Array of expressions, and temp names are allocated via tempBlock.  The
 	 * tempBlock takes a prefix string which can thereby distinguish arguments,
@@ -394,7 +400,11 @@ public class L1Decompiler
 					final AvailObject token =
 						LiteralTokenDescriptor.create(
 							StringDescriptor.from(
-								"OuterOfUncleanConstantFunction#" + i),
+								"OuterOfUncleanConstantFunction#"
+								+ i
+								+ " (with value "
+								+ varObject.toString()
+								+ ")"),
 							0,
 							0,
 							TokenType.LITERAL,
@@ -412,16 +422,29 @@ public class L1Decompiler
 			}
 			else
 			{
-				final AvailObject token =
-					LiteralTokenDescriptor.create(
-						StringDescriptor.from(value.toString()),
-						0,
-						0,
-						TokenType.LITERAL,
-						value);
-				final AvailObject literalNode =
-					LiteralNodeDescriptor.fromToken(token);
-				pushExpression(literalNode);
+				if (value.equalsNull())
+				{
+					// The last "statement" may just push the null object.
+					// Such a statement will be re-synthetized during code
+					// generation, so don't bother reconstructing it now.
+					assert pc > nybbles.tupleSize()
+					: "The null object can only be (implicitly) pushed at the "
+						+ "end of a sequence of statements";
+					endsWithPushNil = true;
+				}
+				else
+				{
+					final AvailObject token =
+						LiteralTokenDescriptor.create(
+							StringDescriptor.from(value.toString()),
+							0,
+							0,
+							TokenType.LITERAL,
+							value);
+					final AvailObject literalNode =
+						LiteralNodeDescriptor.fromToken(token);
+					pushExpression(literalNode);
+				}
 			}
 		}
 
@@ -462,10 +485,10 @@ public class L1Decompiler
 			final AvailObject variableUse = VariableUseNodeDescriptor.newUse(
 				localDecl.token(),
 				localDecl);
-			final AvailObject assignmentNode =
-				AssignmentNodeDescriptor.mutable().create();
-			assignmentNode.variable(variableUse);
-			assignmentNode.expression(valueNode);
+			final AvailObject assignmentNode = AssignmentNodeDescriptor.from(
+				variableUse,
+				valueNode,
+				false);
 			if (expressionStack.isEmpty())
 			{
 				statements.add(assignmentNode);
@@ -657,7 +680,14 @@ public class L1Decompiler
 		public void L1Implied_doReturn ()
 		{
 			assert pc == nybbles.tupleSize() + 1;
-			statements.add(popExpression());
+			if (endsWithPushNil)
+			{
+				// Nothing was left on the expression stack in this case.
+			}
+			else
+			{
+				statements.add(popExpression());
+			}
 			assert expressionStack.size() == 0
 			: "There should be nothing on the stack after a return";
 		}

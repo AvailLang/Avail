@@ -33,6 +33,8 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.Multiplier;
+import static com.avail.descriptor.BlockNodeDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.BlockNodeDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
@@ -113,7 +115,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	AvailObject o_ArgumentsTuple (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.ARGUMENTS_TUPLE);
+		return object.slot(ARGUMENTS_TUPLE);
 	}
 
 	/**
@@ -123,7 +125,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	AvailObject o_StatementsTuple (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.STATEMENTS_TUPLE);
+		return object.slot(STATEMENTS_TUPLE);
 	}
 
 	/**
@@ -133,7 +135,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	AvailObject o_ResultType (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.RESULT_TYPE);
+		return object.slot(RESULT_TYPE);
 	}
 
 	/**
@@ -144,7 +146,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 		final @NotNull AvailObject object,
 		final AvailObject neededVariables)
 	{
-		object.setSlot(ObjectSlots.NEEDED_VARIABLES, neededVariables);
+		object.setSlot(NEEDED_VARIABLES, neededVariables);
 	}
 
 	/**
@@ -154,7 +156,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	AvailObject o_NeededVariables (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.NEEDED_VARIABLES);
+		return object.slot(NEEDED_VARIABLES);
 	}
 
 	/**
@@ -164,7 +166,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	@NotNull AvailObject o_DeclaredExceptions (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.DECLARED_EXCEPTIONS);
+		return object.slot(DECLARED_EXCEPTIONS);
 	}
 
 
@@ -175,19 +177,19 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	int o_Primitive (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(IntegerSlots.PRIMITIVE);
+		return object.slot(PRIMITIVE);
 	}
 
 
 	@Override boolean allowsImmutableToMutableReferenceInField (
 		final @NotNull AbstractSlotsEnum e)
 	{
-		return e == ObjectSlots.NEEDED_VARIABLES;
+		return e == NEEDED_VARIABLES;
 	}
 
 
 	@Override @AvailMethod
-	AvailObject o_ExpressionType (final AvailObject object)
+	AvailObject o_ExpressionType (final @NotNull AvailObject object)
 	{
 		List<AvailObject> argumentTypes;
 		argumentTypes = new ArrayList<AvailObject>(
@@ -236,7 +238,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	int o_Hash (final @NotNull AvailObject object)
 	{
 		return
 			(((object.argumentsTuple().hash() * Multiplier
@@ -261,7 +263,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	@Override
-	ParseNodeKind o_ParseNodeKind (final AvailObject object)
+	ParseNodeKind o_ParseNodeKind (final @NotNull AvailObject object)
 	{
 		return ParseNodeKind.BLOCK_NODE;
 	}
@@ -296,7 +298,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	 * @param object The block node to examine.
 	 * @return A list of between zero and one labels.
 	 */
-	private static List<AvailObject> labels (final AvailObject object)
+	private static List<AvailObject> labels (final @NotNull AvailObject object)
 	{
 		final List<AvailObject> labels = new ArrayList<AvailObject>(1);
 		for (final AvailObject maybeLabel : object.statementsTuple())
@@ -317,7 +319,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	 * @param object The block node to examine.
 	 * @return This block's local variable declarations.
 	 */
-	private static List<AvailObject> locals (final AvailObject object)
+	private static List<AvailObject> locals (final @NotNull AvailObject object)
 	{
 		final List<AvailObject> locals = new ArrayList<AvailObject>(5);
 		for (final AvailObject maybeLocal : object.statementsTuple())
@@ -345,7 +347,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 				aBlock.value(arguments.tupleAt(i)),
 				true);
 		}
-		object.setSlot(ObjectSlots.ARGUMENTS_TUPLE, arguments);
+		object.setSlot(ARGUMENTS_TUPLE, arguments);
 		AvailObject statements = object.statementsTuple();
 		for (int i = 1; i <= statements.tupleSize(); i++)
 		{
@@ -354,7 +356,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 				aBlock.value(statements.tupleAt(i)),
 				true);
 		}
-		object.setSlot(ObjectSlots.STATEMENTS_TUPLE, statements);
+		object.setSlot(STATEMENTS_TUPLE, statements);
 	}
 
 
@@ -452,8 +454,8 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	 *            The {@linkplain List list} of {@linkplain
 	 *            DeclarationNodeDescriptor argument declarations}.
 	 * @param primitive
-	 *            The index of the primitive that the resulting block will
-	 *            invoke.
+	 *            The {@linkplain Primitive#primitiveNumber index} of the
+	 *            primitive that the resulting block will invoke.
 	 * @param statementsList
 	 *            The {@linkplain List list} of statement
 	 *            {@linkplain ParseNodeDescriptor nodes}.
@@ -473,43 +475,12 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 		final AvailObject resultType,
 		final AvailObject declaredExceptions)
 	{
-		final List<AvailObject> flattenedStatements =
-			new ArrayList<AvailObject>(statementsList.size() + 3);
-		for (final AvailObject statement : statementsList)
-		{
-			statement.flattenStatementsInto(flattenedStatements);
-		}
-		// Remove useless statements that are just top literals, other than the
-		// final statement.  Actually remove any bare literals, not just top.
-		for (int index = flattenedStatements.size() - 2; index >= 0; index--)
-		{
-			final AvailObject statement = flattenedStatements.get(index);
-			if (statement.isInstanceOfKind(LITERAL_NODE.mostGeneralType()))
-			{
-				flattenedStatements.remove(index);
-			}
-		}
-		final AvailObject block = mutable().create();
-		block.setSlot(
-			ObjectSlots.ARGUMENTS_TUPLE,
-			TupleDescriptor.fromCollection(argumentsList));
-		block.setSlot(
-			IntegerSlots.PRIMITIVE,
-			primitive);
-		block.setSlot(
-			ObjectSlots.STATEMENTS_TUPLE,
-			TupleDescriptor.fromCollection(flattenedStatements));
-		block.setSlot(
-			ObjectSlots.RESULT_TYPE,
-			resultType);
-		block.setSlot(
-			ObjectSlots.NEEDED_VARIABLES,
-			NullDescriptor.nullObject());
-		block.setSlot(
-			ObjectSlots.DECLARED_EXCEPTIONS,
+		return newBlockNode(
+			TupleDescriptor.fromCollection(argumentsList),
+			IntegerDescriptor.fromInt(primitive),
+			TupleDescriptor.fromCollection(statementsList),
+			resultType,
 			declaredExceptions);
-		block.makeImmutable();
-		return block;
 	}
 
 	/**
@@ -558,22 +529,22 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 		}
 		final AvailObject block = mutable().create();
 		block.setSlot(
-			ObjectSlots.ARGUMENTS_TUPLE,
+			ARGUMENTS_TUPLE,
 			arguments);
 		block.setSlot(
-			IntegerSlots.PRIMITIVE,
+			PRIMITIVE,
 			primitive.extractInt());
 		block.setSlot(
-			ObjectSlots.STATEMENTS_TUPLE,
+			STATEMENTS_TUPLE,
 			TupleDescriptor.fromCollection(flattenedStatements));
 		block.setSlot(
-			ObjectSlots.RESULT_TYPE,
+			RESULT_TYPE,
 			resultType);
 		block.setSlot(
-			ObjectSlots.NEEDED_VARIABLES,
+			NEEDED_VARIABLES,
 			NullDescriptor.nullObject());
 		block.setSlot(
-			ObjectSlots.DECLARED_EXCEPTIONS,
+			DECLARED_EXCEPTIONS,
 			declaredExceptions);
 		block.makeImmutable();
 		return block;
@@ -669,16 +640,33 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 		final int argCount = argumentsTuple.tupleSize();
 		final int primitive = object.primitive();
 		final AvailObject statementsTuple = object.statementsTuple();
+		final int statementsSize = statementsTuple.tupleSize();
+		AvailObject explicitResultType = object.resultType();
+		if (explicitResultType != null)
+		{
+			// Suppress redundant block type declaration.
+			if (statementsSize >= 1
+				&& statementsTuple.tupleAt(statementsSize).expressionType()
+					.equals(explicitResultType))
+			{
+				explicitResultType = null;
+			}
+		}
 		if (argCount == 0
 				&& primitive == 0
-				&& statementsTuple.tupleSize() == 1)
+				&& statementsSize == 1
+				&& explicitResultType == null)
 		{
 			builder.append('[');
 			statementsTuple.tupleAt(1).printOnAvoidingIndent(
 				builder,
 				recursionList,
 				indent + 1);
-			builder.append(";]");
+			if (statementsTuple.tupleAt(1).expressionType().equals(TOP.o()))
+			{
+				builder.append(";");
+			}
+			builder.append("]");
 			return;
 		}
 
@@ -724,13 +712,14 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 			}
 			builder.append(";");
 			builder.append('\n');
-			for (int _count3 = 1; _count3 <= indent; _count3++)
+			for (int i = 1; i <= indent; i++)
 			{
 				builder.append('\t');
 			}
 		}
-		for (final AvailObject statement : statementsTuple)
+		for (int index = 1; index <= statementsSize; index++)
 		{
+			final AvailObject statement = statementsTuple.tupleAt(index);
 			if (skipFailureDeclaration)
 			{
 				assert statement.isInstanceOf(
@@ -744,19 +733,23 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 					builder,
 					recursionList,
 					indent + 2);
-				builder.append(';');
+				if (index < statementsSize
+					|| statement.expressionType().equals(TOP.o()))
+				{
+					builder.append(';');
+				}
 				builder.append('\n');
-				for (int _count5 = 1; _count5 <= indent; _count5++)
+				for (int i = 1; i <= indent; i++)
 				{
 					builder.append('\t');
 				}
 			}
 		}
 		builder.append(']');
-		if (object.resultType() != null)
+		if (explicitResultType != null)
 		{
 			builder.append(" : ");
-			builder.append(object.resultType().toString());
+			builder.append(explicitResultType.toString());
 		}
 	}
 

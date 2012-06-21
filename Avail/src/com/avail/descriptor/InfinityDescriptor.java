@@ -263,7 +263,7 @@ extends ExtendedIntegerDescriptor
 
 	@Override @AvailMethod
 	AvailObject o_AddToDoubleCanDestroy (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject doubleObject,
 		final boolean canDestroy)
 	{
@@ -275,7 +275,7 @@ extends ExtendedIntegerDescriptor
 
 	@Override @AvailMethod
 	AvailObject o_AddToFloatCanDestroy (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject floatObject,
 		final boolean canDestroy)
 	{
@@ -306,7 +306,7 @@ extends ExtendedIntegerDescriptor
 
 	@Override @AvailMethod
 	public AvailObject o_DivideIntoDoubleCanDestroy (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject doubleObject,
 		final boolean canDestroy)
 	{
@@ -318,7 +318,7 @@ extends ExtendedIntegerDescriptor
 
 	@Override @AvailMethod
 	public AvailObject o_DivideIntoFloatCanDestroy (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject floatObject,
 		final boolean canDestroy)
 	{
@@ -358,7 +358,7 @@ extends ExtendedIntegerDescriptor
 
 	@Override @AvailMethod
 	public AvailObject o_MultiplyByDoubleCanDestroy (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject doubleObject,
 		final boolean canDestroy)
 	{
@@ -370,7 +370,7 @@ extends ExtendedIntegerDescriptor
 
 	@Override @AvailMethod
 	public AvailObject o_MultiplyByFloatCanDestroy (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject floatObject,
 		final boolean canDestroy)
 	{
@@ -409,7 +409,7 @@ extends ExtendedIntegerDescriptor
 
 	@Override @AvailMethod
 	public AvailObject o_SubtractFromDoubleCanDestroy (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject doubleObject,
 		final boolean canDestroy)
 	{
@@ -421,7 +421,7 @@ extends ExtendedIntegerDescriptor
 
 	@Override @AvailMethod
 	public AvailObject o_SubtractFromFloatCanDestroy (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject floatObject,
 		final boolean canDestroy)
 	{

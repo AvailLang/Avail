@@ -384,13 +384,13 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_InstanceCount (final AvailObject object)
+	@NotNull AvailObject o_InstanceCount (final @NotNull AvailObject object)
 	{
 		return IntegerDescriptor.zero();
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_Instances (final AvailObject object)
+	@NotNull AvailObject o_Instances (final @NotNull AvailObject object)
 	{
 		return SetDescriptor.empty();
 	}
@@ -407,21 +407,23 @@ extends AbstractEnumerationTypeDescriptor
 	 * </p>
 	 */
 	@Override @AvailMethod
-	AvailObject o_ComputeSuperkind (final AvailObject object)
+	AvailObject o_ComputeSuperkind (final @NotNull AvailObject object)
 	{
 		return object;
 	}
 
 	@Override @AvailMethod
-	AvailObject o_FieldTypeMap (final AvailObject object)
+	AvailObject o_FieldTypeMap (final @NotNull AvailObject object)
 	{
 		// TODO: [MvG] It's unclear what to return here.  Maybe raise an
-		// unchecked exception.
+		// unchecked exception.  Or if we ever implement more precise map types
+		// containing key type -> value type pairs we might be able to change
+		// the object type interface to use one of those instead of a map.
 		return null;
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	int o_Hash (final @NotNull AvailObject object)
 	{
 		return 0x4a22a80a;
 	}
@@ -429,13 +431,13 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	boolean o_HasObjectInstance (
 		final @NotNull AvailObject object,
-		final AvailObject potentialInstance)
+		final @NotNull AvailObject potentialInstance)
 	{
 		return false;
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSetType (final AvailObject object)
+	boolean o_IsSetType (final @NotNull AvailObject object)
 	{
 		return true;
 	}
@@ -443,7 +445,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	boolean o_AcceptsArgTypesFromFunctionType (
 		final @NotNull AvailObject object,
-		final AvailObject functionType)
+		final @NotNull AvailObject functionType)
 	{
 		return true;
 	}
@@ -467,7 +469,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	boolean o_AcceptsTupleOfArgTypes (
 		final @NotNull AvailObject object,
-		final AvailObject argTypes)
+		final @NotNull AvailObject argTypes)
 	{
 		return true;
 	}
@@ -475,25 +477,25 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	boolean o_AcceptsTupleOfArguments (
 		final @NotNull AvailObject object,
-		final AvailObject arguments)
+		final @NotNull AvailObject arguments)
 	{
 		return true;
 	}
 
 	@Override @AvailMethod
-	AvailObject o_DeclaredExceptions (final AvailObject object)
+	AvailObject o_DeclaredExceptions (final @NotNull AvailObject object)
 	{
 		return SetDescriptor.empty();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_FunctionType (final AvailObject object)
+	AvailObject o_FunctionType (final @NotNull AvailObject object)
 	{
 		return object;
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ContentType (final AvailObject object)
+	AvailObject o_ContentType (final @NotNull AvailObject object)
 	{
 		return object;
 	}
@@ -509,7 +511,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsInstanceOf (
 		final @NotNull AvailObject object,
-		final AvailObject aType)
+		final @NotNull AvailObject aType)
 	{
 		// Bottom is an instance of every metatype except for itself.
 		assert aType.isType();
@@ -556,58 +558,11 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_ReturnType (final AvailObject object)
+	@NotNull AvailObject o_ReturnType (final @NotNull AvailObject object)
 	{
 		return object;
 	}
 
-	@Override @AvailMethod
-	AvailObject o_TypeIntersectionOfContinuationType (
-		final @NotNull AvailObject object,
-		final AvailObject aContinuationType)
-	{
-		return object;
-	}
-
-	@Override @AvailMethod
-	AvailObject o_TypeIntersectionOfCompiledCodeType (
-		final @NotNull AvailObject object,
-		final AvailObject aCompiledCodeType)
-	{
-		return object;
-	}
-
-	@Override @AvailMethod
-	AvailObject o_TypeIntersectionOfParseNodeType (
-		final @NotNull AvailObject object,
-		final AvailObject aParseNodeType)
-	{
-		return object;
-	}
-
-	@Override @AvailMethod
-	AvailObject o_TypeUnionOfContinuationType (
-		final @NotNull AvailObject object,
-		final AvailObject aContinuationType)
-	{
-		return aContinuationType;
-	}
-
-	@Override @AvailMethod
-	AvailObject o_TypeUnionOfCompiledCodeType (
-		final @NotNull AvailObject object,
-		final AvailObject aCompiledCodeType)
-	{
-		return aCompiledCodeType;
-	}
-
-	@Override @AvailMethod
-	AvailObject o_TypeUnionOfParseNodeType (
-		final @NotNull AvailObject object,
-		final AvailObject aParseNodeType)
-	{
-		return aParseNodeType;
-	}
 
 	/**
 	 * Bottom is an empty {@linkplain AbstractEnumerationTypeDescriptor
@@ -616,7 +571,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	boolean o_EnumerationIncludesInstance (
 		final @NotNull AvailObject object,
-		final AvailObject potentialInstance)
+		final @NotNull AvailObject potentialInstance)
 	{
 		return false;
 	}
@@ -660,8 +615,16 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override
-	AvailObject o_ExpressionType (final @NotNull AvailObject object)
+	@NotNull AvailObject o_ExpressionType (
+		final @NotNull AvailObject object)
 	{
 		return object;
+	}
+
+	@Override
+	boolean o_IsLiteralTokenType (
+		final @NotNull AvailObject object)
+	{
+		return true;
 	}
 }

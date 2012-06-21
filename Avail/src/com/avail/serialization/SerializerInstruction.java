@@ -46,7 +46,7 @@ final class SerializerInstruction
 	/**
 	 * The {@link AvailObject} to be serialized.
 	 */
-	final AvailObject object;
+	final @NotNull AvailObject object;
 
 	/**
 	 * Answer the {@link AvailObject} that this instruction is serializing.

@@ -531,8 +531,9 @@ Restriction "method_._(«_‡,»)" is
 		arg ::= paramT[i] instance;
 		args := args then <arg>;
 	];
-	(private method p.methodName (args)
-		(fail with [ t : throwable | Raise Java Throwable with t ])) type
+	m ::= private method p.methodName (args)
+		(fail with [ t : throwable | Raise Java Throwable with t ]);
+	m compiledCode functionType
 ];
 
 Method "private static method_._(_)(fail with_)" is
@@ -581,8 +582,10 @@ Restriction "static method_._(«_‡,»)" is
 		arg ::= paramT[i] instance;
 		args := args then <arg>;
 	];
-	(private static method p.methodName (args)
-		(fail with [ t : throwable | Raise Java Throwable with t ])) type
+	m ::= private static method p.methodName (args)
+		(fail with [ t : throwable | Raise Java Throwable with t ]);
+	m compiledCode functionType
+
 ];
 
 [

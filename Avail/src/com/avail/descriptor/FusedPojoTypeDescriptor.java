@@ -233,7 +233,7 @@ extends PojoTypeDescriptor
 
 	@Override
 	AvailObject o_TypeIntersectionOfPojoType (
-		final AvailObject object,
+		final @NotNull AvailObject object,
 		final AvailObject aPojoType)
 	{
 		if (aPojoType.isPojoSelfType())

@@ -73,7 +73,7 @@ extends Descriptor
 
 
 	@Override @AvailMethod
-	boolean o_IsSetBin (final AvailObject object)
+	boolean o_IsSetBin (final @NotNull AvailObject object)
 	{
 		return true;
 	}

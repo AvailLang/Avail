@@ -322,7 +322,8 @@ public class AvailScanner
 	{
 		/**
 		 * A digit was encountered. Scan a (positive) numeric constant. The
-		 * constant may be an integer, float, or double.
+		 * constant may be an integer, float, or double.  Note that if a decimal
+		 * point is present there must be digits on each side of it.
 		 */
 		DIGIT ()
 		{
@@ -331,99 +332,66 @@ public class AvailScanner
 			{
 				scanner.backUp();
 				assert scanner.position() == scanner.startOfToken();
+				boolean isReal = false;  // Might be an integer.
+				boolean singlePrecision = false;  // Default is double.
 				while (scanner.peekIsDigit())
 				{
 					scanner.next();
 				}
-				long mantissa;
-				boolean isDoublePrecision;
-				int decimalExponentPart1;
-				int decimalExponent;
-				int decimalExponentPart2;
-				AvailObject result;
-				long twoTo59;
-				final boolean isDot = scanner.peekFor('.')
-					&& scanner.peekIsDigit();
-				if (isDot
-						|| scanner.peekFor('e')
-						|| scanner.peekFor('d'))
+				if (scanner.peekFor('.'))
 				{
-					scanner.position(scanner.startOfToken());
-					mantissa = 0;
-					decimalExponent = 0;
-					twoTo59 = 0x800000000000000L;
-					isDoublePrecision = false;
-					while (scanner.peekIsDigit())
+					// Decimal point appeared, so fractional digits are
+					// mandatory.  Otherwise expressions like [10..20] would be
+					// horribly, horribly ugly.
+					if (scanner.peekIsDigit())
 					{
-						if (mantissa > twoTo59)
-						{
-							decimalExponent++;
-						}
-						else
-						{
-							mantissa = mantissa * 10 + scanner.nextDigitValue();
-						}
-					}
-					if (scanner.peekFor('.'))
-					{
-						assert isDot;
-						assert scanner.peekIsDigit();
+						isReal = true;
 						while (scanner.peekIsDigit())
 						{
-							if (mantissa <= twoTo59)
-							{
-								mantissa = mantissa * 10
-									+ scanner.nextDigitValue();
-								decimalExponent--;
-							}
-							else
-							{
-								scanner.next();
-							}
+							scanner.next();
 						}
 					}
-					isDoublePrecision = scanner.peekFor('d');
-					if (isDoublePrecision || scanner.peekFor('e'))
+					else
 					{
-						int explicitExponent = 0;
-						final boolean negateExponent = scanner.peekFor('-');
-						if (negateExponent && !scanner.peekIsDigit())
-						{
-							throw new AvailScannerException(
-								"Expected digit after negative sign in"
-								+ " exponent",
-								scanner);
-						}
-						while (scanner.peekIsDigit())
-						{
-							explicitExponent = explicitExponent * 10
-								+ scanner.nextDigitValue();
-							if (explicitExponent > 0x2710)
-							{
-								throw new AvailScannerException(
-									"Literal exponent is (way) out of bounds",
-									scanner);
-							}
-						}
-						decimalExponent = negateExponent ? decimalExponent
-							- explicitExponent : decimalExponent
-							+ explicitExponent;
+						// Put that dot back down.  It's not a decimal point.
+						scanner.backUp();
 					}
-					// The mantissa is in the range of a long, so even if 10**e
-					// would overflow we know that 10**(e/2) will not (unless
-					// the double we're parsing is way out of bounds.
-					decimalExponentPart1 = decimalExponent / 2;
-					decimalExponentPart2 = decimalExponent
-						- decimalExponentPart1;
-					double d = mantissa;
-					d *= Math.pow(10, decimalExponentPart1);
-					d *= Math.pow(10, decimalExponentPart2);
-					result = isDoublePrecision ? DoubleDescriptor
-						.fromDouble(d) : FloatDescriptor
-						.fromFloat((float) d);
 				}
-				else
+				final int beforeE = scanner.position();
+				if (scanner.peekFor('e') || scanner.peekFor('E'))
 				{
+					if (scanner.peekFor('-') || scanner.peekFor('+'))
+					{
+						// Optional exponent sign.
+					}
+					if (scanner.peekIsDigit())
+					{
+						isReal = true;
+						while (scanner.peekIsDigit())
+						{
+							scanner.next();
+						}
+					}
+					else
+					{
+						scanner.position(beforeE);
+					}
+				}
+				if (scanner.peekFor('f') || scanner.peekFor('F'))
+				{
+					isReal = true;
+					singlePrecision = true;
+				}
+				else if (scanner.peekFor('d') || scanner.peekFor('D'))
+				{
+					isReal = true;
+				}
+
+				// Now convert the thing to numeric form.
+				AvailObject result;
+				if (!isReal)
+				{
+					// It's a positive integer.
 					scanner.position(scanner.startOfToken());
 					result = IntegerDescriptor.zero();
 					final AvailObject ten = IntegerDescriptor.ten();
@@ -434,6 +402,39 @@ public class AvailScanner
 							IntegerDescriptor.fromUnsignedByte(
 								scanner.nextDigitValue()),
 							true);
+					}
+				}
+				else
+				{
+					// It's a float or double.
+					final StringBuilder builder = new StringBuilder();
+					final int end = scanner.position();
+					scanner.position(scanner.startOfToken());
+					while (scanner.position() < end)
+					{
+						builder.appendCodePoint(scanner.next());
+					}
+					try
+					{
+						if (singlePrecision)
+						{
+							result = FloatDescriptor.fromFloat(
+								Float.valueOf(builder.toString()));
+						}
+						else
+						{
+							result = DoubleDescriptor.fromDouble(
+								Double.valueOf(builder.toString()));
+						}
+					}
+					catch (final NumberFormatException e)
+					{
+						throw new AvailScannerException(
+							"Malformed floating point constant ("
+								+ builder.toString()
+								+ "): "
+								+ e.toString(),
+							scanner);
 					}
 				}
 				scanner.addCurrentLiteralToken(result);

@@ -435,7 +435,11 @@ implements ThreadFactory
 		specialObjects[11] = ATOM.o();
 		specialObjects[12] = DOUBLE.o();
 		specialObjects[13] = IntegerRangeTypeDescriptor.extendedIntegers();
-		// 14
+		specialObjects[14] = InstanceTypeDescriptor.on(
+			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+				IntegerRangeTypeDescriptor.wholeNumbers(),
+				TupleDescriptor.empty(),
+				InstanceTypeDescriptor.on(ANY.o())));
 		specialObjects[15] = FLOAT.o();
 		specialObjects[16] = NUMBER.o();
 		specialObjects[17] = IntegerRangeTypeDescriptor.integers();
@@ -477,7 +481,8 @@ implements ThreadFactory
 		specialObjects[55] = LITERAL_NODE.mostGeneralType();
 		specialObjects[56] = REFERENCE_NODE.mostGeneralType();
 		specialObjects[57] = SEND_NODE.mostGeneralType();
-		// 58 SUPER_CAST_NODE(⊤)
+		specialObjects[58] = InstanceTypeDescriptor.on(
+			LiteralTokenTypeDescriptor.mostGeneralType());
 		specialObjects[59] = LIST_NODE.mostGeneralType();
 		specialObjects[60] = VARIABLE_USE_NODE.mostGeneralType();
 		specialObjects[61] = DECLARATION_NODE.mostGeneralType();
@@ -605,7 +610,7 @@ implements ThreadFactory
 			IntegerRangeTypeDescriptor.wholeNumbers(),
 			ATOM.o());
 		specialObjects[115] = TOKEN.o();
-		specialObjects[116] = LITERAL_TOKEN.o();
+		specialObjects[116] = LiteralTokenTypeDescriptor.mostGeneralType();
 		specialObjects[117] =
 			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 				IntegerRangeTypeDescriptor.wholeNumbers(),
@@ -664,7 +669,7 @@ implements ThreadFactory
 					PojoTypeDescriptor.forClass(Throwable.class)),
 				BottomTypeDescriptor.bottom());
 
-		for (final AvailObject object : specialObjects)
+		for (final @NotNull AvailObject object : specialObjects)
 		{
 			if (object != null)
 			{

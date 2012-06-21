@@ -42,7 +42,7 @@ import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
 import com.avail.builder.*;
 import com.avail.descriptor.*;
-import com.avail.interpreter.levelOne.L1InstructionWriter;
+import com.avail.interpreter.levelOne.*;
 import com.avail.interpreter.primitive.P_292_FloatFloor;
 import com.avail.serialization.*;
 
@@ -400,11 +400,29 @@ public final class SerializerTest
 		writer.argumentTypes(FLOAT.o());
 		writer.primitiveNumber(P_292_FloatFloor.instance.primitiveNumber);
 		writer.returnType(FLOAT.o());
+		writer.write(
+			new L1Instruction(
+				L1Operation.L1_doPushLiteral,
+				writer.addLiteral(NullDescriptor.nullObject())));
 		final AvailObject code = writer.compiledCode();
 		final AvailObject function = FunctionDescriptor.create(
 			code,
 			TupleDescriptor.empty());
-		checkObject(function);
+		final AvailObject newFunction = roundTrip(function);
+		final AvailObject code2 = newFunction.code();
+		assertEquals(code.numOuters(), code2.numOuters());
+		assertEquals(
+			code.numArgsAndLocalsAndStack(),
+			code2.numArgsAndLocalsAndStack());
+		assertEquals(code.numArgs(), code2.numArgs());
+		assertEquals(code.numLocals(), code2.numLocals());
+		assertEquals(code.primitiveNumber(), code2.primitiveNumber());
+		assertEquals(code.nybbles(), code2.nybbles());
+		assertEquals(code.functionType(), code2.functionType());
+		for (int i = code.numLiterals(); i > 0; i--)
+		{
+			assertEquals(code.literalAt(i), code2.literalAt(i));
+		}
 	}
 
 //	@Test

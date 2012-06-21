@@ -70,16 +70,26 @@ Restriction "<«_‡,»>" is [tt : tupleType |
 ];
 
 
+/* Bootstrap helper */
+Method "private<_,_`…`|_>" is [
+		typeTuple : tupleOfAnyMeta,
+		defaultType : any type,
+		sizeRange : whole number type |
+	Primitive 137;
+] : tupleType;
+
+
 /* Block type constructors / extractors... */
 
 Method "_arguments type" is [ct : functionType |
 	Primitive 35;
-] : tupleType;
+] : (private <<>, any…|whole number>) type;
+
 
 Method "_[_]" is [ct : functionType, index : natural number |
 	Primitive 36 (failureCode : natural number);
 	Failed
-] : type;
+] : any type;
 
 
 /**
@@ -94,11 +104,12 @@ Method "block type taking_and returning_" is [args : tupleOfAnyMeta, ret : type 
 	Primitive 34;
 ] : functionType;
 
+
 /**
  * Create a function type.
  */
 Method "[«_‡,»]->_" is [types : tupleOfAnyMeta, result : type |
-	block type taking types and returning result
+	Primitive 34;
 ] : functionType;
 
 

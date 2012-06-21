@@ -1217,5 +1217,8 @@ Semantic restriction "[«_‡,»]→_" is
 		bottoms := eject ↑bottoms ++ <⊥>;
 		true
 	];
-	(function accepting bottoms and returning (returnType's instance))'s type
+	return ::= if |returnType| = 1
+		then [returnType's instance]
+	    else [⊤];
+	(function accepting bottoms and returning return)'s type
 ];

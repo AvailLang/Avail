@@ -283,7 +283,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Name (final AvailObject object)
+	AvailObject o_Name (final @NotNull AvailObject object)
 	{
 		return object.slot(NAME);
 	}

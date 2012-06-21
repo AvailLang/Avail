@@ -150,15 +150,6 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_Kind (
-		final @NotNull AvailObject object)
-	{
-		//  Answer the object's type.
-
-		return TYPE.o();
-	}
-
-	@Override @AvailMethod
 	boolean o_IsSubtypeOf (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)

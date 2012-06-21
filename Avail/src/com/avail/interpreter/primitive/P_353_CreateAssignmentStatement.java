@@ -83,19 +83,11 @@ public class P_353_CreateAssignmentStatement extends Primitive
 			return interpreter.primitiveFailure(
 				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE);
 		}
-		final AvailObject assignment =
-			AssignmentNodeDescriptor.mutable().create();
-		assignment.variable(variable);
-		assignment.expression(expression);
-		final List<AvailObject> statementsList =
-			new ArrayList<AvailObject>(2);
-		statementsList.add(assignment);
-		statementsList.add(LiteralNodeDescriptor.literalNullObject());
-		final AvailObject statementsTuple =
-			TupleDescriptor.fromCollection(statementsList);
-		final AvailObject sequence =
-			SequenceNodeDescriptor.newStatements(statementsTuple);
-		return interpreter.primitiveSuccess(sequence);
+		final AvailObject assignment = AssignmentNodeDescriptor.from(
+			variable,
+			expression,
+			false);
+		return interpreter.primitiveSuccess(assignment);
 	}
 
 	@Override
@@ -105,6 +97,6 @@ public class P_353_CreateAssignmentStatement extends Primitive
 			TupleDescriptor.from(
 				VARIABLE_USE_NODE.mostGeneralType(),
 				EXPRESSION_NODE.create(ANY.o())),
-			SEQUENCE_NODE.mostGeneralType());
+			ASSIGNMENT_NODE.mostGeneralType());
 	}
 }

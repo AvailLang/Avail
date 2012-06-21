@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.06.19 12:52:29.907 -0500
+ * * Last Versioned As: $$Revision$$
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -142,7 +142,6 @@ Names
 	"_is a primitive",
 	"_is unassigned",
 	"_mod_",
-	"_taking arguments tupled",
 	"_×_",
 	"_÷_",
 	"_→character",
@@ -183,6 +182,7 @@ Names
 	"generate_",
 	"implementation of_for_",
 	"integer range from_(inclusive=_)to_(inclusive=_)",
+	"literal token⇒_",
 	"ln_",
 	"mark for_character|characters of read ahead",
 	"message_contains groups",

@@ -42,6 +42,12 @@ Names
 Body
 
 
+/* Now that set notation exists, improve the precedence. */
+
+{"_result"} can't have <{"block type taking_and returning_"}>;
+
+
+
 
 Method "«_‡++»" is [tuples : tuple of tuple |
 	Primitive 136;

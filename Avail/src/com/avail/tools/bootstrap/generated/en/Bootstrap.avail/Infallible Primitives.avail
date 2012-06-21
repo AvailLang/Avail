@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated On: 2012.06.19 12:52:29.910 -0500
+ * * Last Versioned As: $$Revision$$
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -123,7 +123,6 @@ Uses
 		"_bit⊕_",
 		"_is a primitive",
 		"_is unassigned",
-		"_taking arguments tupled",
 		"_→character",
 		"_→code point",
 		"_→double",
@@ -154,6 +153,7 @@ Uses
 		"enumeration of_",
 		"function accepting_and returning_",
 		"integer range from_(inclusive=_)to_(inclusive=_)",
+		"literal token⇒_",
 		"ln_",
 		"method exists named_",
 		"milliseconds since the Epoch",
@@ -1012,25 +1012,6 @@ Method "_'s⁇outer variables" is
 ] : tuple;
 
 /**
- * Construct and answer a function which takes a single argument, a tuple,
- * which it decomposes and sends as individual arguments to the given
- * function.  The new function returns the value produced by the original
- * function.
- *
- * Parameters:
- *    multiArgumentFunction - The multi-argument function to be invoke.
- * Returns:
- *    A function taking a tuple of arguments to pass individually to the
- *    supplied function.
- */
-Method "_taking arguments tupled" is
-[
-	multiArgumentFunction : function
-|
-	Primitive 75;
-] : unary procedure;
-
-/**
  * Answer the cardinality of the specified map.
  *
  * Parameters:
@@ -1701,7 +1682,7 @@ Method "_++_" is
  * Construct and answer an object type based on the supplied tuple.
  *
  * Parameters:
- *    fieldDefinitions - A tuple whose elements are 2-tuples. Each 2-tuples
+ *    fieldDefinitions - A tuple whose elements are 2-tuples. Each 2-tuple's
  *       first element is an atom (i.e., the field identifier) and its second
  *       element is the value type permitted by the field.
  * Returns:
@@ -1721,7 +1702,7 @@ Method "_→object type" is
  *    anObjectType - An object type.
  * Returns:
  *    A tuple that represents the composition of the object type. Its elements
- *    are 2-tuples. Each 2-tuples first element is an atom (i.e., the field
+ *    are 2-tuples. Each 2-tuple's first element is an atom (i.e., the field
  *    identifier) and its second element is the value type permitted by the
  *    field.
  */
@@ -1736,7 +1717,7 @@ Method "_→tuple" is
  * Construct and answer an object based on the supplied tuple.
  *
  * Parameters:
- *    fieldAssignments - A tuple whose elements are 2-tuples. Each 2-tuples
+ *    fieldAssignments - A tuple whose elements are 2-tuples. Each 2-tuple's
  *       first element is an atom (i.e., the field identifier) and its second
  *       element is associated value.
  * Returns:
@@ -1756,7 +1737,7 @@ Method "_→object" is
  *    anObject - An object.
  * Returns:
  *    A tuple that represents the composition of the object. Its elements are
- *    2-tuples. Each 2-tuples first element is an atom (i.e., the field
+ *    2-tuples. Each 2-tuple's first element is an atom (i.e., the field
  *    identifier) and its second element is associated value.
  */
 Method "_→tuple" is
@@ -1895,10 +1876,10 @@ Method "_'s⁇literals" is
 ] : tuple;
 
 /**
- * Answer the specified method implementations function type.
+ * Answer the specified method implementation's function type.
  *
  * Parameters:
- *    {0} - A method implementation.
+ *    anImplementation - A method implementation.
  * Returns:
  *    The requested function type.
  */
@@ -1910,10 +1891,10 @@ Method "_'s⁇function type" is
 ] : function meta;
 
 /**
- * Answer the specified method implementations function.
+ * Answer the specified method implementation's function.
  *
  * Parameters:
- *    {0} - A method implementation.
+ *    anImplementation - A method implementation.
  * Returns:
  *    The requested function.
  */
@@ -2028,10 +2009,10 @@ Method "_is a primitive" is
  * cooperative termination, e.g. interrupt queues, is supported in ordinary
  * system or application code. This method is provided only for early detection
  * of serious failures in bootstrap code. Real failures in system code outside
- * of the bootstrap package use Avails usual exception handling machinery.
+ * of the bootstrap package use Avail's usual exception handling machinery.
  *
  * Parameters:
- *    {0} - A value, provided to establish context for debugging.
+ *    value - A value, provided to establish context for debugging.
  */
 Method "Terminate:_" is
 [
@@ -2557,7 +2538,7 @@ Method "_'s⁇arguments" is
  * Parameters:
  *    aBlock - A block.
  * Returns:
- *    The blocks primitive linkage number, or 0 if the block has no primitive
+ *    The block's primitive linkage number, or 0 if the block has no primitive
  *    linkage.
  */
 Method "_'s⁇primitive number" is
@@ -2589,7 +2570,7 @@ Method "_'s⁇statements" is
  * Parameters:
  *    aBlock - A block.
  * Returns:
- *    The blocks return type.
+ *    The block's return type.
  */
 Method "_'s⁇return type" is
 [
@@ -2604,7 +2585,7 @@ Method "_'s⁇return type" is
  * Parameters:
  *    aBlock - A block.
  * Returns:
- *    The blocks set of declared exceptions.
+ *    The block's set of declared exceptions.
  */
 Method "_'s⁇declared exceptions" is
 [
@@ -2614,10 +2595,10 @@ Method "_'s⁇declared exceptions" is
 ] : set;
 
 /**
- * Answer the specified blocks outer variables.
+ * Answer the specified block's outer variables.
  *
  * Parameters:
- *    {0} - A block.
+ *    aBlock - A block.
  * Returns:
  *    A tuple of declarations of outer variables required to complete the
  *    meaning of the block.
@@ -2630,12 +2611,12 @@ Method "_'s⁇outer variables" is
 ] : declaration tuple;
 
 /**
- * Answer the specified assignments target variable.
+ * Answer the specified assignment's target variable.
  *
  * Parameters:
- *    {0} - An assignment.
+ *    anAssignment - An assignment.
  * Returns:
- *    The assignments target variable.
+ *    The assignment's target variable.
  */
 Method "_'s⁇target" is
 [
@@ -2645,12 +2626,12 @@ Method "_'s⁇target" is
 ] : variable use;
 
 /**
- * Answer the specified assignments value expression.
+ * Answer the specified assignment's value expression.
  *
  * Parameters:
- *    {0} - An assignment.
+ *    anAssignment - An assignment.
  * Returns:
- *    The assignments value expression.
+ *    The assignment's value expression.
  */
 Method "_'s⁇value" is
 [
@@ -2660,10 +2641,10 @@ Method "_'s⁇value" is
 ] : expression yielding any;
 
 /**
- * Answer the specified variable references referent.
+ * Answer the specified variable reference's referent.
  *
  * Parameters:
- *    {0} - A variable reference.
+ *    aReference - A variable reference.
  * Returns:
  *    The variable use referenced by the argument.
  */
@@ -2845,10 +2826,10 @@ Method "‘_’" is
 ] : literal;
 
 /**
- * Answer the specified literal expressions defining token.
+ * Answer the specified literal expression's defining token.
  *
  * Parameters:
- *    {0} - A literal expression.
+ *    aLiteral - A literal expression.
  * Returns:
  *    The requested literal token.
  */
@@ -2875,10 +2856,10 @@ Method "_'s⁇method" is
 ] : method;
 
 /**
- * Answer the specified message sends list of argument expressions.
+ * Answer the specified message send's list of argument expressions.
  *
  * Parameters:
- *    {0} - A message send.
+ *    aSend - A message send.
  * Returns:
  *    The requested list of argument expressions.
  */
@@ -2890,10 +2871,10 @@ Method "_'s⁇arguments" is
 ] : list;
 
 /**
- * Answer the specified message sends expected return type.
+ * Answer the specified message send's expected return type.
  *
  * Parameters:
- *    {0} - A message send.
+ *    aSend - A message send.
  * Returns:
  *    The requested type.
  */
@@ -2967,10 +2948,10 @@ Method "“↓_”(_)" is
 ] : variable use;
 
 /**
- * Answer the specified variable use expressions token.
+ * Answer the specified variable use expression's token.
  *
  * Parameters:
- *    {0} - A variable use expression.
+ *    use - A variable use expression.
  * Returns:
  *    The token that names the referenced entity at the point of use.
  */
@@ -2996,6 +2977,37 @@ Method "_'s⁇declaration" is
 |
 	Primitive 396;
 ] : declaration;
+
+/**
+ * Construct a suitably parameterized literal token type.
+ *
+ * Parameters:
+ *    literalValue - The literal value's type
+ * Returns:
+ *    A literal token type.
+ */
+Method "literal token⇒_" is
+[
+	literalValue : any meta
+|
+	Primitive 397;
+] : literal token meta;
+
+/**
+ * Extract this literal token type's value type.  That's the type of value
+ * that a conforming literal token can produce.
+ *
+ * Parameters:
+ *    literalTokenType - The literal token type.
+ * Returns:
+ *    The type of value that such a literal token can produce.
+ */
+Method "_'s⁇value type" is
+[
+	literalTokenType : literal token meta
+|
+	Primitive 398;
+] : any meta;
 
 /**
  * Construct and answer a pojo array type whose element type is `elementType`

@@ -73,7 +73,7 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	final @NotNull AvailObject o_Kind (final AvailObject object)
+	final @NotNull AvailObject o_Kind (final @NotNull AvailObject object)
 	{
 		return TYPE.o();
 	}
@@ -139,24 +139,27 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override @AvailMethod
+	final @NotNull AvailObject o_TypeIntersectionOfContinuationType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aContinuationType)
+	{
+		return computeIntersectionWith(object, aContinuationType);
+	}
+
+	@Override @AvailMethod
+	final @NotNull AvailObject o_TypeIntersectionOfCompiledCodeType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aCompiledCodeType)
+	{
+		return computeIntersectionWith(object, aCompiledCodeType);
+	}
+
+	@Override @AvailMethod
 	final @NotNull AvailObject o_TypeIntersectionOfFunctionType (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aFunctionType)
 	{
-		// Make sure the passed canDestroy flag is dropped and false is passed
-		// instead, because this object's layout isn't amenable to this kind of
-		// modification.
 		return computeIntersectionWith(object, aFunctionType);
-	}
-
-	@Override @AvailMethod
-	final @NotNull AvailObject o_TypeIntersectionOfVariableType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aVariableType)
-	{
-		// Answer the most general type that is still at least as specific as
-		// these.  Make it exact first.
-		return computeIntersectionWith(object, aVariableType);
 	}
 
 	@Override @AvailMethod
@@ -164,9 +167,15 @@ extends AbstractTypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anIntegerRangeType)
 	{
-		// Answer the most general type that is still at least as specific as
-		// these.  Make it exact first.
 		return computeIntersectionWith(object, anIntegerRangeType);
+	}
+
+	@Override @AvailMethod
+	final @NotNull AvailObject o_TypeIntersectionOfLiteralTokenType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aLiteralTokenType)
+	{
+		return computeIntersectionWith(object, aLiteralTokenType);
 	}
 
 	@Override @AvailMethod
@@ -174,9 +183,23 @@ extends AbstractTypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aMapType)
 	{
-		// Answer the most general type that is still at least as specific as
-		// these.  Make it exact first.
 		return computeIntersectionWith(object, aMapType);
+	}
+
+	@Override @AvailMethod
+	final @NotNull AvailObject o_TypeIntersectionOfParseNodeType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aParseNodeType)
+	{
+		return computeIntersectionWith(object, aParseNodeType);
+	}
+
+	@Override @AvailMethod
+	final @NotNull AvailObject o_TypeIntersectionOfVariableType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aVariableType)
+	{
+		return computeIntersectionWith(object, aVariableType);
 	}
 
 	@Override @AvailMethod
@@ -184,8 +207,6 @@ extends AbstractTypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anObjectType)
 	{
-		// Answer the most general type that is still at least as specific as
-		// these.  Make it exact first.
 		return computeIntersectionWith(object, anObjectType);
 	}
 
@@ -194,8 +215,6 @@ extends AbstractTypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aPojoType)
 	{
-		// Answer the most general type that is still at least as specific as
-		// these.  Make it exact first.
 		return computeIntersectionWith(object, aPojoType);
 	}
 
@@ -204,8 +223,6 @@ extends AbstractTypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aSetType)
 	{
-		// Answer the most general type that is still at least as specific as
-		// these.  Make it exact first.
 		return computeIntersectionWith(object, aSetType);
 	}
 
@@ -214,8 +231,6 @@ extends AbstractTypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aTupleType)
 	{
-		// Answer the most general type that is still at least as specific as
-		// these.  Make it exact first.
 		return computeIntersectionWith(object, aTupleType);
 	}
 
@@ -226,6 +241,31 @@ extends AbstractTypeDescriptor
 		final @NotNull AvailObject another)
 	{
 		return computeUnionWith(object, another);
+	}
+
+	@Override @AvailMethod
+	final @NotNull AvailObject o_TypeUnionOfContinuationType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aContinuationType)
+	{
+		return computeUnionWith(object, aContinuationType);
+	}
+
+	@Override @AvailMethod
+	final @NotNull AvailObject o_TypeUnionOfCompiledCodeType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aCompiledCodeType)
+	{
+		return computeUnionWith(object, aCompiledCodeType);
+	}
+
+
+	@Override @AvailMethod
+	final @NotNull AvailObject o_TypeUnionOfLiteralTokenType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aLiteralTokenType)
+	{
+		return computeUnionWith(object, aLiteralTokenType);
 	}
 
 	@Override @AvailMethod
@@ -266,6 +306,14 @@ extends AbstractTypeDescriptor
 		final @NotNull AvailObject anObjectType)
 	{
 		return computeUnionWith(object, anObjectType);
+	}
+
+	@Override @AvailMethod
+	final @NotNull AvailObject o_TypeUnionOfParseNodeType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aParseNodeType)
+	{
+		return computeUnionWith(object, aParseNodeType);
 	}
 
 	@Override @AvailMethod
@@ -392,6 +440,10 @@ extends AbstractTypeDescriptor
 		final @NotNull AvailObject object);
 
 	@Override @AvailMethod
+	abstract boolean o_IsLiteralTokenType (
+		final @NotNull AvailObject object);
+
+	@Override @AvailMethod
 	abstract boolean o_IsMapType (
 		final @NotNull AvailObject object);
 
@@ -497,6 +549,14 @@ extends AbstractTypeDescriptor
 		return false;
 	}
 
+	@Override
+	boolean o_IsSupertypeOfLiteralTokenType (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aLiteralTokenType)
+	{
+		return false;
+	}
+
 	@Override @AvailMethod
 	final boolean o_IsSupertypeOfIntegerRangeType (
 		final @NotNull AvailObject object,
@@ -592,36 +652,6 @@ extends AbstractTypeDescriptor
 	@Override @AvailMethod
 	abstract AvailObject o_ReturnType (
 		final @NotNull AvailObject object);
-
-	@Override @AvailMethod
-	abstract AvailObject o_TypeIntersectionOfContinuationType (
-		final @NotNull AvailObject object,
-		final AvailObject aContinuationType);
-
-	@Override @AvailMethod
-	abstract AvailObject o_TypeIntersectionOfCompiledCodeType (
-		final @NotNull AvailObject object,
-		final AvailObject aCompiledCodeType);
-
-	@Override @AvailMethod
-	abstract AvailObject o_TypeIntersectionOfParseNodeType (
-		final @NotNull AvailObject object,
-		final AvailObject aParseNodeType);
-
-	@Override @AvailMethod
-	abstract AvailObject o_TypeUnionOfContinuationType (
-		final @NotNull AvailObject object,
-		final AvailObject aContinuationType);
-
-	@Override @AvailMethod
-	abstract AvailObject o_TypeUnionOfCompiledCodeType (
-		final @NotNull AvailObject object,
-		final AvailObject aCompiledCodeType);
-
-	@Override @AvailMethod
-	abstract AvailObject o_TypeUnionOfParseNodeType (
-		final @NotNull AvailObject object,
-		final AvailObject aParseNodeType);
 
 	@Override @AvailMethod
 	abstract AvailObject o_ValueType (

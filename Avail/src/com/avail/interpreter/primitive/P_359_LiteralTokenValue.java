@@ -65,7 +65,7 @@ public class P_359_LiteralTokenValue extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				LITERAL_TOKEN.o()),
+				LiteralTokenTypeDescriptor.mostGeneralType()),
 			ANY.o());
 	}
 }
