@@ -51,6 +51,7 @@ Extends
 	"Sets",
 	"Strings",
 	"Tuples",
-	"Types"
+	"Types",
+	"Variables"
 Body
 

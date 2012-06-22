@@ -111,13 +111,12 @@ Public stable method "_limited to_elements" is
 	]
 ] : stream;
 
-/* TODO: [TLS] Fix this!
 Semantic restriction "_limited to_elements" is
 [
-	streamType : stream,
+	streamType : stream's type,
 	limit : [0..∞]'s type
 |
-	if [ ⎣limit⎦ = ∞ ] then [ streamType ]
+	if ⎣limit⎦ = ∞ then [ streamType ]
 	else if [ ⎡limit⎤ = 0 ] then [ empty stream ]
 	else
 	[
@@ -127,4 +126,3 @@ Semantic restriction "_limited to_elements" is
 			remaining elements : cast limit into [t : natural number's type | t]
 	]
 ];
-*/

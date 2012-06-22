@@ -1289,8 +1289,8 @@ Public stable method "_to_" is
 	|
 		accumulator := eject ↑accumulator ++ <value>;
 	];
-	cast accumulator into [ t : <integer…|1..> | t ]
-] : <integer…|1..>;
+	accumulator
+] : <integer…|>;
 
 /**
  * Construct and answer a string that contains the consecutive characters from
@@ -1319,8 +1319,8 @@ Public stable method "_to_" is
 	|
 		accumulator := eject ↑accumulator ++ <value→character>;
 	];
-	cast accumulator into [ t : <character…|1..> | t ]
-] : <character…|1..>;
+	accumulator
+] : string;
 
 /**
  * Leverage the uncertainty of `start` to produce good leading types when the
@@ -1334,10 +1334,8 @@ Semantic restriction "_to_" is
 	min ::= ⎣start⎦;
 	max ::= ⎡end⎤;
 	uncertainty ::= ⎡start⎤ - ⎣start⎦;
-	sizes ::= [0 max (⎣end⎦ - ⎡start⎤ + 1)
-		.. max - min + 2);
-	if uncertainty is finite ∧ [ ⎡sizes⎤ is finite ]
-	then
+	sizes ::= [0 max (⎣end⎦ - ⎡start⎤ + 1) .. max - min + 2);
+	if uncertainty is finite ∧ [ ⎡sizes⎤ is finite ] then
 	[
 		finiteMin ::= cast min into [ t : integer | t ];
 		finiteMax ::= cast max into [ t : integer | t ];
@@ -1348,7 +1346,9 @@ Semantic restriction "_to_" is
 			|
 				[x .. (finiteMax min (x + uncertainty)) + 1)
 			];
-		<types[1..|types| - 1], types[|types|]…|sizes>
+		cast types
+		into [t : <integer's type…|1..> | <t[1..|t|-1], t[|t|]…|sizes>]
+		else [<>'s type]
 	]
 	else
 	[

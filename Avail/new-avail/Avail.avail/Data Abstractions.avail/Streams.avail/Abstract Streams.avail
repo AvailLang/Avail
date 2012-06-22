@@ -37,17 +37,21 @@ Extends
 	"Foundation" =
 	(
 		"For each_do_",
+		"concatenate_",
 		"map_through_",
+		"zip_",
 		"filter_by_",
 		"_is empty",
 		"_'s⁇head",
-		"_'s⁇tail"
+		"_'s⁇tail",
+		"«_‡zip»",
+		"«_‡++»"
 	)
 Uses
 	"Foundation"
 Names
 	"an empty stream",
-	"decorated stream",
+	"decorated stream|streams",
 	"element type",
 	"empty stream",
 	"empty-stream exception",
@@ -63,9 +67,10 @@ Body
 
 /* TODO: [TLS] Remove these constants once a macro is available for "$…". */
 elementType ::= $"element type";
-decoratedStream ::= $"decorated stream";
+decoratedStream ::= $"decorated stream|streams";
 transformer ::= $"transformer";
 filter ::= $"filter";
+streamIndex ::= $"stream index";
 
 /**
  * Answer the field atom that represents a stream's element type.
@@ -81,7 +86,16 @@ Public method "element type" is [ elementType ];
  * Returns:
  *    The requested field atom.
  */
-Public method "decorated stream" is [ decoratedStream ];
+Public method "decorated stream|streams" is [ decoratedStream ];
+
+/**
+ * Answer the field atom that represents the stream index of a concatenation
+ * stream.
+ * 
+ * Returns:
+ *    The requested field atom.
+ */
+Method "stream index" is [ streamIndex ];
 
 /**
  * A stream is an immutable lazy list of arbitarily many elements.
@@ -619,3 +633,233 @@ Semantic restriction "filter_by_" is
 	Require: predicateType accepts streamType;
 	extend stream with element type : streamType's element type
 ];
+
+/**
+ * A concatenation stream produces values from a sequenced collection of
+ * streams.
+ */
+Class "concatenation stream" extends stream
+	with fields
+		decorated streams : <stream…|>,
+		stream index : natural number;
+
+Method "_is empty" is
+[
+	aStream : concatenation stream
+|
+	index ::= aStream's stream index;
+	streams ::= aStream's decorated streams;
+	each of streams[index..] satisfies [s : stream | s is empty]
+] : boolean;
+
+concatenation stream's head method is
+[
+	aStream : concatenation stream
+|
+	index : natural number := aStream's stream index;
+	streams ::= aStream's decorated streams;
+	While [ streams[index] is empty ] do [ ↑index++; ];
+	streams[index]'s head
+];
+
+concatenation stream's tail method is
+[
+	aStream : concatenation stream
+|
+	index : natural number := aStream's stream index;
+	streams ::= aStream's decorated streams;
+	While [ streams[index] is empty ] do [ ↑index++; ];
+	a concatenation stream with
+		element type := aStream's element type,
+		decorated streams := streams[index]→(streams[index]'s tail),
+		stream index := index
+];
+
+/**
+ * Construct and answer a stream that produces values from the specified tuple
+ * of streams. The result first produces the values of the first element of the
+ * tuple, then the second, etc.
+ * 
+ * Parameters:
+ *    streams - A tuple of streams.
+ * Returns:
+ *    The requested stream.
+ */
+Stable method "concatenate_" is
+[
+	streams : <stream…|>
+|
+	if |streams| = 0 then [ an empty stream ]
+	else if [ |streams| = 1 ] then [ streams[1] ]
+	else
+	[
+		elementType ::=
+			cast ∪ map streams through [s : stream | s's element type]
+			into [ t : any's type | t ];
+		a concatenation stream with
+			element type := elementType,
+			decorated streams := streams,
+			stream index := 1
+	]
+];
+
+/**
+ * Construct and answer a stream that produces values from the specified tuple
+ * of streams. The result first produces the values of the first lexical
+ * argument, then the second, etc.
+ * 
+ * Parameters:
+ *    streams - A tuple of streams.
+ * Returns:
+ *    The requested stream.
+ */
+Method "«_‡++»" is
+[
+	streams : <stream…|2..>
+|
+	elementType ::=
+		cast ∪ map streams through [s : stream | s's element type]
+		into [ t : any's type | t ];
+	a concatenation stream with
+		element type := elementType,
+		decorated streams := streams,
+		stream index := 1
+] : stream;
+
+/**
+ * Answer a function suitable for use as a semantic restriction for the
+ * `concatenate_` and `«_‡++»` methods.
+ * 
+ * Returns:
+ *    The requested funcion.
+ */
+Private method "concatenation semantic restriction" is
+[
+	[
+		streams : <stream…|>'s type
+	|
+		elementType : any's type's type := ⊥;
+		From 1 to (⎣streams⎦ min (|streams' leading types| + 1)) do
+		[
+			index : natural number
+		|
+			elementType := eject ↑elementType ∪ streams[index]'s element type;
+		];
+		extend concatenation stream with
+			element type : elementType,
+			decorated streams : streams,
+			stream index : 1's type
+	]
+];
+
+Semantic restriction "concatenate_" is concatenation semantic restriction;
+Semantic restriction "«_‡++»" is concatenation semantic restriction;
+
+/**
+ * A zipped stream produces zipped tuples from a sequenced collection of
+ * streams.
+ */
+Explicit class "zipped stream" extends stream
+	with fields
+		element type : tuple's type,
+		decorated streams : <stream…|>;
+
+Method "_is empty" is
+[
+	aStream : zipped stream
+|
+	any of aStream's decorated streams satisfies [s : stream | s is empty]
+] : boolean;
+
+zipped stream's head method is
+[
+	aStream : zipped stream
+|
+	map aStream's decorated streams through [s : stream | s's head]
+] : any;
+
+zipped stream's tail method is
+[
+	aStream : zipped stream
+|
+	a zipped stream with
+		element type := aStream's element type,
+		decorated streams :=
+			map aStream's decorated streams through [s : stream | s's tail]
+] : zipped stream;
+
+/**
+ * Construct and answer the zip of the specified streams. Given N input streams,
+ * the output is the stream whose i-th element contains the i-th element from
+ * each consecutive input stream. Each of the output's tuples has size equal to
+ * the number of inputs.
+ * 
+ * Parameters:
+ *    streams - A tuple of streams.
+ * Returns:
+ *    The requested stream.
+ */
+Method "zip_" is
+[
+	streams : <stream…|1..>
+|
+	types ::= map streams through [s : stream | s's element type];
+	elementType ::= <types[1..|types| - 1], types[|types|]… | |streams|'s type>;
+	a zipped stream with
+		element type := elementType,
+		decorated streams := streams
+] : stream;
+
+/**
+ * Construct and answer the zip of the specified streams. Given N input streams,
+ * the output is the stream whose i-th element contains the i-th element from
+ * each consecutive input stream. Each of the output's tuples has size equal to
+ * the number of inputs.
+ * 
+ * Parameters:
+ *    streams - A tuple of streams.
+ * Returns:
+ *    The requested stream.
+ */
+Method "«_‡zip»" is
+[
+	streams : <stream…|2..>
+|
+	types ::= map streams through [s : stream | s's element type];
+	elementType ::= <types[1..|types| - 1], types[|types|]… | |streams|'s type>;
+	a zipped stream with
+		element type := elementType,
+		decorated streams := streams
+] : stream;
+
+/**
+ * Answer a function suitable for use as a semantic restriction for the `zip_`
+ * and `«_‡zip»` methods.
+ * 
+ * Returns:
+ *    The requested funcion.
+ */
+Private method "zip semantic restriction" is
+[
+	[
+		streams : <stream…|1..>'s type
+	|
+		types : <any's type…|> := <>;
+		From 1 to (⎣streams⎦ min (|streams' leading types| + 1)) do
+		[
+			index : natural number
+		|
+			types := eject ↑types ++ <streams[index]'s element type's instance>;
+		];
+		nonempty ::= cast types into [ t : <any's type…|1..> | t ];
+		elementType ::=
+			<nonempty[1..|nonempty| - 1], nonempty[|nonempty|]…
+				| ||streams||>;
+		extend zipped stream with
+			element type : elementType's type,
+			decorated streams : streams
+	]
+];
+
+Semantic restriction "zip_" is zip semantic restriction;
+Semantic restriction "«_‡zip»" is zip semantic restriction;
