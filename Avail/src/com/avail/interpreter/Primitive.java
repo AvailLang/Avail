@@ -89,7 +89,7 @@ implements IntegerEnumSlotDescriptionEnum
 		CONTINUATION_CHANGED,
 
 		/**
-		 * The current process has been suspended as a consequence of this
+		 * The current fiber has been suspended as a consequence of this
 		 * primitive executing, so the {@linkplain Interpreter interpreter}
 		 * should switch processes now.
 		 */

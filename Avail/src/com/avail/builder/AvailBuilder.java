@@ -146,7 +146,7 @@ public final class AvailBuilder
 	 *            A fully-qualified {@linkplain ModuleName module name}.
 	 * @throws AvailCompilerException
 	 *            If the {@linkplain AbstractAvailCompiler compiler} is unable
-	 *            to process a module declaration for this
+	 *            to fiber a module declaration for this
 	 *            {@linkplain ModuleDescriptor module}.
 	 * @throws RecursiveDependencyException
 	 *            If the specified {@linkplain ModuleDescriptor module}
@@ -242,7 +242,7 @@ public final class AvailBuilder
 	/**
 	 * Compute {@linkplain ModuleDescriptor module} loading order from the
 	 * partial order implicitly specified by {@link #predecessors} and
-	 * {@link #successors}, emptying them in the process.
+	 * {@link #successors}, emptying them in the fiber.
 	 */
 	private void linearizeModuleImports ()
 	{
@@ -314,7 +314,7 @@ public final class AvailBuilder
 	 *        built.</li>
 	 *        </ol>
 	 * @throws AvailCompilerException
-	 *         If the compiler is unable to process a module declaration.
+	 *         If the compiler is unable to fiber a module declaration.
 	 * @throws InterruptedException
 	 *         If the builder thread is interrupted.
 	 * @throws RecursiveDependencyException
@@ -400,7 +400,7 @@ public final class AvailBuilder
 	 *        built.</li>
 	 *        </ol>
 	 * @throws AvailCompilerException
-	 *         If the compiler is unable to process a module declaration.
+	 *         If the compiler is unable to fiber a module declaration.
 	 * @throws RecursiveDependencyException
 	 *         If an encountered module recursively depends upon itself.
 	 * @throws UnresolvedDependencyException

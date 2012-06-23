@@ -41,10 +41,10 @@ import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive 171:</strong> Is the {@linkplain File file} with the
- * specified filename readable by the OS process?
+ * specified filename readable by the OS fiber?
  */
-@Deprecated
-public class P_171_FileCanRead extends Primitive
+public class P_171_FileCanRead
+extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

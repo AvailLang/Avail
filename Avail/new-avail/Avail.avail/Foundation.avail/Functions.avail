@@ -34,12 +34,12 @@ System Module "Functions"
 Versions
 	"dev"
 Extends
+	"Early Functions"
 Uses
 	"Assertions",
 	"Bootstrap",
 	"Early Control Structures",
 	"Early Definers",
-	"Early Functions",
 	"Early Logic",
 	"Enumeration Support",
 	"Literals",

@@ -44,8 +44,8 @@ import com.avail.interpreter.*;
  * <strong>Primitive 174:</strong> Rename the {@linkplain File file} with
  * the specified source filename.
  */
-@Deprecated
-public class P_174_FileRename extends Primitive
+public class P_174_FileRename
+extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

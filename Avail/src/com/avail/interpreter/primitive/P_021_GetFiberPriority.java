@@ -1,5 +1,5 @@
 /**
- * P_026_LookupProcessVariable.java
+ * P_021_GetFiberPriority.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -31,52 +31,41 @@
  */
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.E_NO_SUCH_PROCESS_VARIABLE;
-import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 26:</strong> Lookup the given {@linkplain
- * AtomDescriptor name} (key) in the variables of the given
- * {@linkplain ProcessDescriptor process}.
+ * <strong>Primitive 21:</strong> Get the priority of a fiber.
  */
-public class P_026_LookupProcessVariable extends Primitive
+public class P_021_GetFiberPriority extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_026_LookupProcessVariable().init(
-		2, CanInline);
+	public final static Primitive instance =
+		new P_021_GetFiberPriority().init(1, CannotFail, CanInline);
 
 	@Override
-	public @NotNull Result attempt (
+	public Result attempt (
 		final @NotNull List<AvailObject> args,
 		final @NotNull Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final AvailObject processObject = args.get(0);
-		final AvailObject key = args.get(1);
-		final AvailObject globals = processObject.processGlobals();
-		if (!globals.hasKey(key))
-		{
-			return interpreter.primitiveFailure(
-				E_NO_SUCH_PROCESS_VARIABLE);
-		}
+		assert args.size() == 1;
+		final @NotNull AvailObject fiber = args.get(0);
 		return interpreter.primitiveSuccess(
-			globals.mapAt(key).makeImmutable());
+			fiber.priority());
 	}
 
 	@Override
-	protected @NotNull AvailObject privateBlockTypeRestriction ()
+	protected AvailObject privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				PROCESS.o(),
-				ATOM.o()),
-			ANY.o());
+				Types.FIBER.o()),
+			IntegerRangeTypeDescriptor.wholeNumbers());
 	}
 }

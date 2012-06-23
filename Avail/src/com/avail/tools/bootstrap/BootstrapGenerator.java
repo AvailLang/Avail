@@ -1198,8 +1198,7 @@ public final class BootstrapGenerator
 			specialObjectsModuleName,
 			primitivesModuleName,
 			infalliblePrimitivesModuleName,
-			falliblePrimitivesModuleName,
-			errorCodesModuleName
+			falliblePrimitivesModuleName
 		};
 		final StringBuilder extended = new StringBuilder();
 		for (final Key key : keys)

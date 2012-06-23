@@ -40,7 +40,7 @@ import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
-import com.avail.descriptor.ProcessDescriptor.ExecutionState;
+import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Interpreter;
@@ -1530,11 +1530,11 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_ProcessGlobals (
+	void o_FiberGlobals (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
-		o_Traversed(object).processGlobals(value);
+		o_Traversed(object).fiberGlobals(value);
 	}
 
 	@Override
@@ -2863,9 +2863,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	@NotNull AvailObject o_ProcessGlobals (final @NotNull AvailObject object)
+	@NotNull AvailObject o_FiberGlobals (final @NotNull AvailObject object)
 	{
-		return o_Traversed(object).processGlobals();
+		return o_Traversed(object).fiberGlobals();
 	}
 
 	@Override

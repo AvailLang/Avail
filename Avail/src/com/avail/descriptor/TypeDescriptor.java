@@ -240,10 +240,10 @@ extends AbstractTypeDescriptor
 		RAW_POJO(ANY),
 
 		/**
-		 * {@linkplain ProcessDescriptor Processes} are the way Avail represents
+		 * {@linkplain FiberDescriptor Processes} are the way Avail represents
 		 * independent execution.
 		 */
-		PROCESS(ANY),
+		FIBER(ANY),
 
 		/**
 		 * Types are objects too, so they have to have their own types.  This is

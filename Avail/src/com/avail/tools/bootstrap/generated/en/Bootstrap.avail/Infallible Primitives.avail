@@ -1885,7 +1885,7 @@ Method "_'s⁇literals" is
  */
 Method "_'s⁇function type" is
 [
-	anImplementation : signature
+	anImplementation : method site
 |
 	Primitive 216;
 ] : function meta;
@@ -1900,7 +1900,7 @@ Method "_'s⁇function type" is
  */
 Method "_'s⁇function" is
 [
-	anImplementation : method signature
+	anImplementation : implementation site
 |
 	Primitive 217;
 ] : function;

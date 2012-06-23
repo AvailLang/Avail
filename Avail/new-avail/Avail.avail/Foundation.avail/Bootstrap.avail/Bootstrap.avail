@@ -46,8 +46,7 @@ Extends
 	"Special Objects",
 	"Primitives",
 	"Infallible Primitives",
-	"Fallible Primitives",
-	"Error Codes"
+	"Fallible Primitives"
 Uses
 Names
 Body

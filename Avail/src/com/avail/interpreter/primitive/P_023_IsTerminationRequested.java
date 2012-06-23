@@ -40,7 +40,7 @@ import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive 23:</strong> Has termination been requested for the
- * current {@linkplain ProcessDescriptor process}?
+ * current {@linkplain FiberDescriptor fiber}?
  */
 public class P_023_IsTerminationRequested extends Primitive
 {

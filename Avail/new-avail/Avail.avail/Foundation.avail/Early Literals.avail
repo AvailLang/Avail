@@ -59,6 +59,13 @@ Method "“_”" is
 	primitive description of value
 ] : string;
 
+Method "“_”" is
+[
+	value : ⊥'s type
+|
+	primitive description of value
+] : string;
+
 /**
  * Construct and answer a tuple from the lexically specified expressions. The
  * hard work here is done automatically by the Avail compiler.

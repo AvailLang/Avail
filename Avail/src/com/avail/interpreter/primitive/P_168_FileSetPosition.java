@@ -48,8 +48,8 @@ import com.avail.interpreter.*;
  *
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
-@Deprecated
-public class P_168_FileSetPosition extends Primitive
+public class P_168_FileSetPosition
+extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

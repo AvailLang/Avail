@@ -47,12 +47,12 @@ import com.avail.interpreter.*;
  * ByteTupleDescriptor tuple} of bytes. If fewer bytes are available, then
  * simply return a shorter tuple. If the request amount is infinite, then
  * answer a tuple containing all remaining bytes, or a very large buffer
- * size, whichever is less.
+ * size, whichever is less. Reading begins at the current file position.
  *
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
-@Deprecated
-public class P_164_FileRead extends Primitive
+public class P_164_FileRead
+extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

@@ -356,7 +356,7 @@ extends Descriptor
 	}
 
 	/**
-	 * The interpreter is in the process of resolving this forward declaration.
+	 * The interpreter is in the fiber of resolving this forward declaration.
 	 * Record the fact that this implementation no longer needs to be cleaned up
 	 * if the rest of the module compilation fails.
 	 *

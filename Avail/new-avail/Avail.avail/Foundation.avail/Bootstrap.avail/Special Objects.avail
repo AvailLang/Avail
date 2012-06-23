@@ -47,7 +47,8 @@ Uses
 Names
 	/*  78 */ "-∞",
 	/* 111 */ "Euler number",
-	/*  42 */ "abstract signature",
+	/*  21 */ "VM error codes",
+	/*  42 */ "abstract site",
 	/*   1 */ "any",
 	/*  69 */ "any meta",
 	/*  62 */ "argument",
@@ -78,10 +79,11 @@ Names
 	/*  94 */ "field type map",
 	/* 119 */ "field type tuple",
 	/*  15 */ "float",
-	/*  43 */ "forward signature",
+	/*  43 */ "forward site",
 	/*   4 */ "function",
 	/*   6 */ "function implementation",
 	/*   5 */ "function meta",
+	/*  44 */ "implementation site",
 	/*  17 */ "integer",
 	/*  95 */ "key-value tuple",
 	/*  63 */ "label",
@@ -97,7 +99,7 @@ Names
 	/*  40 */ "message bundle",
 	/*  45 */ "message bundle tree",
 	/*  46 */ "method",
-	/*  44 */ "method signature",
+	/*  41 */ "method site",
 	/*  20 */ "module",
 	/*  67 */ "module constant",
 	/*  66 */ "module variable",
@@ -134,7 +136,6 @@ Names
 	/*  27 */ "set meta",
 	/* 114 */ "set of atom",
 	/*  75 */ "set of string",
-	/*  41 */ "signature",
 	/*  28 */ "string",
 	/* 115 */ "token",
 	/*  70 */ "true",
@@ -189,6 +190,7 @@ _integer                                ::= special object 17;
 _extended_integer_meta                  ::= special object 18;
 _map_meta                               ::= special object 19;
 _module                                 ::= special object 20;
+_VM_error_codes                         ::= special object 21;
 _object                                 ::= special object 22;
 _object_meta                            ::= special object 23;
 _exception                              ::= special object 24;
@@ -207,10 +209,10 @@ _natural_number                         ::= special object 37;
 _code_point                             ::= special object 38;
 _map                                    ::= special object 39;
 _message_bundle                         ::= special object 40;
-_signature                              ::= special object 41;
-_abstract_signature                     ::= special object 42;
-_forward_signature                      ::= special object 43;
-_method_signature                       ::= special object 44;
+_method_site                            ::= special object 41;
+_abstract_site                          ::= special object 42;
+_forward_site                           ::= special object 43;
+_implementation_site                    ::= special object 44;
 _message_bundle_tree                    ::= special object 45;
 _method                                 ::= special object 46;
 _phrase                                 ::= special object 50;
@@ -446,6 +448,11 @@ Method "module" is
 	_module
 ];
 
+Method "VM error codes" is
+[
+	_VM_error_codes
+];
+
 Method "object" is
 [
 	_object
@@ -595,24 +602,24 @@ Method "message bundle" is
 	_message_bundle
 ];
 
-Method "signature" is
+Method "method site" is
 [
-	_signature
+	_method_site
 ];
 
-Method "abstract signature" is
+Method "abstract site" is
 [
-	_abstract_signature
+	_abstract_site
 ];
 
-Method "forward signature" is
+Method "forward site" is
 [
-	_forward_signature
+	_forward_site
 ];
 
-Method "method signature" is
+Method "implementation site" is
 [
-	_method_signature
+	_implementation_site
 ];
 
 Method "message bundle tree" is

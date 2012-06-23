@@ -41,7 +41,7 @@ import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive 256:</strong> Exit the current {@linkplain
- * ProcessDescriptor process}. The specified argument will be converted
+ * FiberDescriptor fiber}. The specified argument will be converted
  * internally into a {@code string} and used to report an error message.
  */
 public class P_256_EmergencyExit extends Primitive
@@ -62,7 +62,7 @@ public class P_256_EmergencyExit extends Primitive
 		final AvailObject errorMessageProducer = args.get(0);
 		error(String.format(
 			"A fiber (%s) has exited: %s",
-			interpreter.process().name(),
+			interpreter.fiber().name(),
 			errorMessageProducer));
 		return interpreter.primitiveSuccess(NullDescriptor.nullObject());
 	}

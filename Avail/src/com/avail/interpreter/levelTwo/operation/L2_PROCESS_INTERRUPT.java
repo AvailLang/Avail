@@ -67,7 +67,7 @@ public class L2_PROCESS_INTERRUPT extends L2Operation
 	@Override
 	public boolean reachesNextInstruction ()
 	{
-		// Process will resume with the given continuation.
+		// Fiber will resume with the given continuation.
 		return false;
 	}
 }

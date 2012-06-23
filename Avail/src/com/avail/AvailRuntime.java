@@ -41,7 +41,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import com.avail.annotations.*;
 import com.avail.builder.*;
 import com.avail.descriptor.*;
-import com.avail.exceptions.SignatureException;
+import com.avail.exceptions.*;
 
 /**
  * An {@code AvailRuntime} comprises the {@linkplain ModuleDescriptor
@@ -446,11 +446,12 @@ implements ThreadFactory
 		specialObjects[18] = IntegerRangeTypeDescriptor.meta();
 		specialObjects[19] = MapTypeDescriptor.meta();
 		specialObjects[20] = MODULE.o();
-		// 21
+		specialObjects[21] = TupleDescriptor.fromIntegerList(
+			AvailErrorCode.allNumericCodes());
 		specialObjects[22] = ObjectTypeDescriptor.mostGeneralType();
 		specialObjects[23] = ObjectTypeDescriptor.meta();
 		specialObjects[24] = ObjectTypeDescriptor.exceptionType();
-		specialObjects[25] = PROCESS.o();
+		specialObjects[25] = FIBER.o();
 		specialObjects[26] = SetTypeDescriptor.mostGeneralType();
 		specialObjects[27] = SetTypeDescriptor.meta();
 		specialObjects[28] = TupleTypeDescriptor.stringTupleType();
@@ -1097,14 +1098,14 @@ implements ThreadFactory
 	 * RandomAccessFile}s open for reading.
 	 */
 	private final Map<AvailObject, RandomAccessFile> openReadableFiles =
-		new HashMap<AvailObject, RandomAccessFile>();
+		new WeakHashMap<AvailObject, RandomAccessFile>();
 
 	/**
 	 * A mapping from {@linkplain AtomDescriptor keys} to {@link
 	 * RandomAccessFile}s open for writing.
 	 */
 	private final Map<AvailObject, RandomAccessFile> openWritableFiles =
-		new HashMap<AvailObject, RandomAccessFile>();
+		new WeakHashMap<AvailObject, RandomAccessFile>();
 
 	/**
 	 * Answer the open readable {@linkplain RandomAccessFile file} associated

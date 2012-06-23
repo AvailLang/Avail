@@ -43,7 +43,7 @@ import com.avail.descriptor.AbstractNumberDescriptor.Sign;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.InfinityDescriptor.IntegerSlots;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
-import com.avail.descriptor.ProcessDescriptor.ExecutionState;
+import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Interpreter;
@@ -2133,7 +2133,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param value
 	 */
-	abstract void o_ProcessGlobals (
+	abstract void o_FiberGlobals (
 		@NotNull AvailObject object,
 		AvailObject value);
 
@@ -3453,7 +3453,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract AvailObject o_ProcessGlobals (AvailObject object);
+	abstract AvailObject o_FiberGlobals (AvailObject object);
 
 	/**
 	 * @param object

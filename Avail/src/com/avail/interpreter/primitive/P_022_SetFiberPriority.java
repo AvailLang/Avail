@@ -1,5 +1,5 @@
 /**
- * P_022_SetProcessPriority.java
+ * P_022_SetFiberPriority.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -39,14 +39,14 @@ import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 22:</strong> Set the priority of a process.
+ * <strong>Primitive 22:</strong> Set the priority of a fiber.
  */
-public class P_022_SetProcessPriority extends Primitive
+public class P_022_SetFiberPriority extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_022_SetProcessPriority().init(
+	public final static Primitive instance = new P_022_SetFiberPriority().init(
 		2, CannotFail);
 
 	@Override
@@ -55,9 +55,9 @@ public class P_022_SetProcessPriority extends Primitive
 		final @NotNull Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final @NotNull AvailObject process = args.get(0);
+		final @NotNull AvailObject fiber = args.get(0);
 		final @NotNull AvailObject priority = args.get(0);
-		process.priority(priority);
+		fiber.priority(priority);
 		return interpreter.primitiveSuccess(
 			NullDescriptor.nullObject());
 	}
@@ -67,7 +67,7 @@ public class P_022_SetProcessPriority extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				Types.PROCESS.o(),
+				Types.FIBER.o(),
 				IntegerRangeTypeDescriptor.wholeNumbers()),
 			Types.TOP.o());
 	}

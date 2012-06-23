@@ -1,5 +1,5 @@
 /**
- * P_025_CurrentProcess.java
+ * P_025_CurrentFiber.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -31,7 +31,7 @@
  */
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.PROCESS;
+import static com.avail.descriptor.TypeDescriptor.Types.FIBER;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.annotations.NotNull;
@@ -40,14 +40,14 @@ import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive 25:</strong> Answer the currently running {@linkplain
- * ProcessDescriptor process}.
+ * FiberDescriptor fiber}.
  */
-public class P_025_CurrentProcess extends Primitive
+public class P_025_CurrentFiber extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_025_CurrentProcess().init(
+	public final static Primitive instance = new P_025_CurrentFiber().init(
 		0, CanInline, CannotFail);
 
 	@Override
@@ -57,7 +57,7 @@ public class P_025_CurrentProcess extends Primitive
 	{
 		assert args.size() == 0;
 		return interpreter.primitiveSuccess(
-			interpreter.process().makeImmutable());
+			interpreter.fiber().makeImmutable());
 	}
 
 	@Override
@@ -65,6 +65,6 @@ public class P_025_CurrentProcess extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(),
-			PROCESS.o());
+			FIBER.o());
 	}
 }

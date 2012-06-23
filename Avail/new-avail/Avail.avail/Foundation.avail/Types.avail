@@ -1218,6 +1218,6 @@ Semantic restriction "[«_‡,»]→_" is
 	];
 	return ::= if |returnType| = 1
 		then [returnType's instance]
-	    else [⊤];
+		else [⊤];
 	(function accepting bottoms and returning return)'s type
 ];

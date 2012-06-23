@@ -100,6 +100,6 @@ extends Primitive
 					IntegerRangeTypeDescriptor.wholeNumbers(),
 					TupleDescriptor.empty(),
 					InstanceTypeDescriptor.on(ANY.o()))),
-			FunctionTypeDescriptor.mostGeneralType());
+			SIGNATURE.o());
 	}
 }

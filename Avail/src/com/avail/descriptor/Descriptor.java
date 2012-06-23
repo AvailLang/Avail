@@ -39,7 +39,7 @@ import com.avail.compiler.*;
 import com.avail.descriptor.AbstractNumberDescriptor.*;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
-import com.avail.descriptor.ProcessDescriptor.ExecutionState;
+import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.exceptions.*;
 import com.avail.exceptions.UnsupportedOperationException;
 import com.avail.interpreter.Interpreter;
@@ -1047,7 +1047,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_ProcessGlobals (
+	void o_FiberGlobals (
 		final @NotNull AvailObject object,
 		final AvailObject value)
 	{
@@ -2321,7 +2321,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	@NotNull AvailObject o_ProcessGlobals (
+	@NotNull AvailObject o_FiberGlobals (
 		final @NotNull AvailObject object)
 	{
 		throw unsupportedOperationException();

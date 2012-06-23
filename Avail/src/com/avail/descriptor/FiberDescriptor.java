@@ -1,5 +1,5 @@
 /**
- * ProcessDescriptor.java
+ * FiberDescriptor.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -33,25 +33,25 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.error;
-import static com.avail.descriptor.ProcessDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.ProcessDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.FiberDescriptor.IntegerSlots.*;
+import static com.avail.descriptor.FiberDescriptor.ObjectSlots.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.descriptor.TypeDescriptor.Types;
 
 /**
- * An Avail {@linkplain ProcessDescriptor process} represents an independently
+ * An Avail {@linkplain FiberDescriptor fiber} represents an independently
  * schedulable flow of control.  Its primary feature is a continuation which is
  * repeatedly replaced with continuations representing successively more
  * advanced states, thereby effecting execution.
  *
- * <p>At the moment (2011.02.03), only one process can be executing at a time,
+ * <p>At the moment (2011.02.03), only one fiber can be executing at a time,
  * but the ultimate goal is to support very many Avail processes running on top
  * of a (smaller) {@link ThreadPoolExecutor}, each thread of which will be
- * executing an Avail process.</p>
+ * executing an Avail fiber.</p>
  */
-public class ProcessDescriptor
+public class FiberDescriptor
 extends Descriptor
 {
 
@@ -61,28 +61,28 @@ extends Descriptor
 	public enum IntegerSlots implements IntegerSlotsEnum
 	{
 		/**
-		 * The hash of this process, which is chosen randomly on demand.
+		 * The hash of this fiber, which is chosen randomly on the first demand.
 		 */
 		HASH_OR_ZERO,
 
 		/**
-		 * The {@linkplain ExecutionState execution state} of the process, indicating
-		 * whether the process is {@linkplain ExecutionState#RUNNING running},
-		 * {@linkplain ExecutionState#SUSPENDED suspended} or {@linkplain
-		 * ExecutionState#TERMINATED terminated}.
+		 * The {@linkplain ExecutionState execution state} of the fiber,
+		 * indicating whether the fiber is {@linkplain ExecutionState#RUNNING
+		 * running}, {@linkplain ExecutionState#SUSPENDED suspended} or
+		 * {@linkplain ExecutionState#TERMINATED terminated}.
 		 */
 		@EnumField(describedBy=ExecutionState.class)
 		EXECUTION_STATE,
 
 		/**
-		 * Flags indicating the reasons for interrupting this process.  If the
+		 * Flags indicating the reasons for interrupting this fiber.  If the
 		 * value is zero then no interrupt is indicated.
 		 */
 		INTERRUPT_REQUEST_FLAGS;
 
 
 		/**
-		 * Interrupt because this process has executed the specified number of
+		 * Interrupt because this fiber has executed the specified number of
 		 * nybblecodes.  This can be used to implement single-stepping.
 		 */
 		public static final BitField OUT_OF_GAS = bitField(
@@ -91,9 +91,9 @@ extends Descriptor
 			1);
 
 		/**
-		 * Either this process's priority has been lowered or another process's
-		 * priority has been increased.  Either way, a higher priority process
-		 * than the current one may be ready to schedule, and the process
+		 * Either this fiber's priority has been lowered or another fiber's
+		 * priority has been increased.  Either way, a higher priority fiber
+		 * than the current one may be ready to schedule, and the fiber
 		 * scheduling machinery should have an opportunity for determining this.
 		 */
 		public static final BitField HIGHER_PRIORITY_READY = bitField(
@@ -102,9 +102,9 @@ extends Descriptor
 			1);
 
 		/**
-		 * Either this process's priority has been lowered or another process's
-		 * priority has been increased.  Either way, a higher priority process
-		 * than the current one may be ready to schedule, and the process
+		 * Either this fiber's priority has been lowered or another fiber's
+		 * priority has been increased.  Either way, a higher priority fiber
+		 * than the current one may be ready to schedule, and the fiber
 		 * scheduling machinery should have an opportunity for determining this.
 		 */
 		public static final BitField TERMINATION_REQUESTED = bitField(
@@ -120,33 +120,33 @@ extends Descriptor
 	{
 		/**
 		 * The current {@linkplain ContinuationDescriptor state of execution} of
-		 * the process.
+		 * the fiber.
 		 */
 		CONTINUATION,
 
 		/**
-		 * The priority of this process, where processes with larger values get
+		 * The priority of this fiber, where processes with larger values get
 		 * at least as much opportunity to run as processes with lower values.
 		 */
 		PRIORITY,
 
 		/**
-		 * The client specified name of the {@linkplain ProcessDescriptor
-		 * process}.
+		 * The client specified name of the {@linkplain FiberDescriptor
+		 * fiber}.
 		 */
 		NAME,
 
 		/**
-		 * A map from {@linkplain AtomDescriptor atoms} to values.  Each process
+		 * A map from {@linkplain AtomDescriptor atoms} to values.  Each fiber
 		 * has its own unique such map, which allows processes to record
-		 * process-specific values.  The atom identities ensure modularity and
+		 * fiber-specific values.  The atom identities ensure modularity and
 		 * non-interference of these keys.
 		 */
 		PROCESS_GLOBALS,
 
 		/**
 		 * Not yet implement.  This will be a block that should be invoked after
-		 * the process executes each nybblecode.  Using {@linkplain
+		 * the fiber executes each nybblecode.  Using {@linkplain
 		 * TopTypeDescriptor the null object} here means run without this
 		 * special single-stepping mode enabled.
 		 */
@@ -154,23 +154,23 @@ extends Descriptor
 	}
 
 	/**
-	 * These are the possible execution states of a {@linkplain ProcessDescriptor
-	 * process}.
+	 * These are the possible execution states of a {@linkplain FiberDescriptor
+	 * fiber}.
 	 */
 	public enum ExecutionState implements IntegerEnumSlotDescriptionEnum
 	{
 		/**
-		 * The process is running or waiting for another process to yield.
+		 * The fiber is running or waiting for another fiber to yield.
 		 */
 		RUNNING,
 
 		/**
-		 * The process has been suspended (on a semaphore).
+		 * The fiber has been suspended.
 		 */
 		SUSPENDED,
 
 		/**
-		 * The process has terminated.  This state is permanent.
+		 * The fiber has terminated.  This state is permanent.
 		 */
 		TERMINATED;
 	}
@@ -240,7 +240,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	void o_ProcessGlobals (
+	void o_FiberGlobals (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
@@ -296,7 +296,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_ProcessGlobals (
+	@NotNull AvailObject o_FiberGlobals (
 		final @NotNull AvailObject object)
 	{
 		return object.slot(PROCESS_GLOBALS);
@@ -355,7 +355,7 @@ extends Descriptor
 	@NotNull AvailObject o_Kind (
 		final @NotNull AvailObject object)
 	{
-		return Types.PROCESS.o();
+		return Types.FIBER.o();
 	}
 
 	/**
@@ -395,49 +395,47 @@ extends Descriptor
 	void o_Step (
 		final @NotNull AvailObject object)
 	{
-		//  Execute one step of the process.
-
 		error("Process stepping is not implemented");
 	}
 
 	/**
-	 * Construct a new {@link ProcessDescriptor}.
+	 * Construct a new {@link FiberDescriptor}.
 	 *
 	 * @param isMutable
 	 *        Does the {@linkplain Descriptor descriptor} represent a mutable
 	 *        object?
 	 */
-	protected ProcessDescriptor (final boolean isMutable)
+	protected FiberDescriptor (final boolean isMutable)
 	{
 		super(isMutable);
 	}
 
 	/**
-	 * The mutable {@link ProcessDescriptor}.
+	 * The mutable {@link FiberDescriptor}.
 	 */
-	private static final ProcessDescriptor mutable = new ProcessDescriptor(true);
+	private static final FiberDescriptor mutable = new FiberDescriptor(true);
 
 	/**
-	 * Answer the mutable {@link ProcessDescriptor}.
+	 * Answer the mutable {@link FiberDescriptor}.
 	 *
-	 * @return The mutable {@link ProcessDescriptor}.
+	 * @return The mutable {@link FiberDescriptor}.
 	 */
-	public static ProcessDescriptor mutable ()
+	public static FiberDescriptor mutable ()
 	{
 		return mutable;
 	}
 
 	/**
-	 * The immutable {@link ProcessDescriptor}.
+	 * The immutable {@link FiberDescriptor}.
 	 */
-	private static final ProcessDescriptor immutable = new ProcessDescriptor(false);
+	private static final FiberDescriptor immutable = new FiberDescriptor(false);
 
 	/**
-	 * Answer the immutable {@link ProcessDescriptor}.
+	 * Answer the immutable {@link FiberDescriptor}.
 	 *
-	 * @return The immutable {@link ProcessDescriptor}.
+	 * @return The immutable {@link FiberDescriptor}.
 	 */
-	public static ProcessDescriptor immutable ()
+	public static FiberDescriptor immutable ()
 	{
 		return immutable;
 	}

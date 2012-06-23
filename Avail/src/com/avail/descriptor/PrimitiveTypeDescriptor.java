@@ -402,7 +402,7 @@ extends TypeDescriptor
 					case MODULE:
 					case NUMBER:
 					case POWER_STRING_TOKEN:
-					case PROCESS:
+					case FIBER:
 					case RAW_POJO:
 					case SIGNATURE:
 					case TOKEN:

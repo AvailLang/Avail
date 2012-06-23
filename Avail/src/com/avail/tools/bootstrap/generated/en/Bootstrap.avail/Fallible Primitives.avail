@@ -75,7 +75,7 @@ Uses
 		"_×_",
 		"_÷_",
 		"_∈_",
-		"`|message_'⁇parameters`|",
+		"`|message_'s⁇parameters`|",
 		"`«(_:=_)`»",
 		"`«[_`|Primitive__]:_^_`»",
 		"`«_:=_`»",
@@ -86,10 +86,10 @@ Uses
 		"eject_",
 		"function from_and_",
 		"generate_",
-		"implementation of_for_",
 		"mark for_character|characters of read ahead",
 		"message_contains groups",
 		"method for_",
+		"method site of_for_",
 		"method_._(«_‡,»)(fail with_)",
 		"next character",
 		"reset to mark",
@@ -757,14 +757,14 @@ Method "method for_" is
  *    The unique implementation of `aMethod` that best accords with the
  *    specified parameter types.
  */
-Method "implementation of_for_" is
+Method "method site of_for_" is
 [
 	aMethod : method,
 	parameterTypes : tuple of any meta
 |
 	Primitive 222 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode
-] : function;
+] : method site;
 
 /**
  * Compute and answer the number of parameters required by a valid send of a
@@ -775,7 +775,7 @@ Method "implementation of_for_" is
  * Returns:
  *    The number of parameters required to send the specified message.
  */
-Method "`|message_'⁇parameters`|" is
+Method "`|message_'s⁇parameters`|" is
 [
 	methodName : string
 |

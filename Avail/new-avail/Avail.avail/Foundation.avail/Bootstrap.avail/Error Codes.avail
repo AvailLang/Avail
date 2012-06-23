@@ -64,7 +64,7 @@ Names
 	/*   5 */ "cannot divide infinities code",
 	/* 507 */ "cannot modify final Java field code",
 	/*   3 */ "cannot multiply zero and infinity code",
-	/*  16 */ "cannot order not a number code",
+	/*  16 */ "cannot order not-a-number code",
 	/*   6 */ "cannot read unassigned variable code",
 	/*   7 */ "cannot store incorrectly typed value code",
 	/*   2 */ "cannot subtract like infinities code",
@@ -97,8 +97,9 @@ Names
 	/*  45 */ "method name is not canonical code",
 	/*  13 */ "method return type not as forward declared code",
 	/*  22 */ "negative size code",
+	/*  73 */ "no implementation code",
 	/*  19 */ "no method code",
-	/*   9 */ "no such process variable code",
+	/*   9 */ "no such fiber variable code",
 	/*  17 */ "not enumeration code",
 	/*  18 */ "object type has no user defined name code",
 	/*  49 */ "octothorp must follow a simple group code",
@@ -166,7 +167,7 @@ Method "cannot swap contents of differently typed variables code" is
 	8
 ];
 
-Method "no such process variable code" is
+Method "no such fiber variable code" is
 [
 	9
 ];
@@ -201,7 +202,7 @@ Method "primitive not supported code" is
 	15
 ];
 
-Method "cannot order not a number code" is
+Method "cannot order not-a-number code" is
 [
 	16
 ];
@@ -419,6 +420,11 @@ Method "method implementation lookup failed code" is
 Method "method is sealed code" is
 [
 	72
+];
+
+Method "no implementation code" is
+[
+	73
 ];
 
 Method "block contains invalid statements code" is

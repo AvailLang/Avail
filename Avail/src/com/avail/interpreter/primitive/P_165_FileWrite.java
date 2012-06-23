@@ -42,15 +42,15 @@ import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive 165:</strong> Write the specified {@linkplain
- * TupleDescriptor tuple} to the {@linkplain RandomAccessFile file}
- * associated with the {@linkplain AtomDescriptor handle}. Answer a
- * {@linkplain ByteTupleDescriptor tuple} containing the bytes that could
- * not be written.
+ * TupleDescriptor tuple} to the {@linkplain RandomAccessFile file} associated
+ * with the {@linkplain AtomDescriptor handle}. Answer a {@linkplain
+ * ByteTupleDescriptor tuple} containing the bytes that could not be written.
+ * Writing begins at the current file position.
  *
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
-@Deprecated
-public class P_165_FileWrite extends Primitive
+public class P_165_FileWrite
+extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

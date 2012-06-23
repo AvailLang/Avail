@@ -43,7 +43,7 @@ import com.avail.interpreter.primitive.*;
 
 /**
  * A {@linkplain ContinuationDescriptor continuation} acts as an immutable
- * execution stack.  A running {@linkplain ProcessDescriptor process}
+ * execution stack.  A running {@linkplain FiberDescriptor fiber}
  * conceptually operates by repeatedly replacing its continuation with a new one
  * (i.e., one derived from the previous state by nybblecode execution rules),
  * performing necessary side-effects as it does so.
@@ -51,7 +51,7 @@ import com.avail.interpreter.primitive.*;
  * <p>
  * A continuation can be {@linkplain
  * P_057_ExitContinuationWithResult exited}, which causes
- * the current process's continuation to be replaced by the specified
+ * the current fiber's continuation to be replaced by the specified
  * continuation's caller.  A return value is supplied to this caller.  A
  * continuation can also be {@linkplain
  * P_056_RestartContinuationWithArguments restarted},

@@ -40,7 +40,7 @@ import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive 24:</strong> Request termination of the given
- * {@linkplain ProcessDescriptor process}. Ignore if the process is already
+ * {@linkplain FiberDescriptor fiber}. Ignore if the fiber is already
  * terminated.
  */
 public class P_024_RequestTermination extends Primitive
@@ -57,9 +57,9 @@ public class P_024_RequestTermination extends Primitive
 		final @NotNull Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final AvailObject process = args.get(0);
-		process.setInterruptRequestFlag(
-			ProcessDescriptor.IntegerSlots.TERMINATION_REQUESTED);
+		final AvailObject fiber = args.get(0);
+		fiber.setInterruptRequestFlag(
+			FiberDescriptor.IntegerSlots.TERMINATION_REQUESTED);
 		return interpreter.primitiveSuccess(NullDescriptor.nullObject());
 	}
 
@@ -68,7 +68,7 @@ public class P_024_RequestTermination extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				PROCESS.o()),
+				FIBER.o()),
 			TOP.o());
 	}
 }

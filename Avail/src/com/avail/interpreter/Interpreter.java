@@ -42,7 +42,7 @@ import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
 import com.avail.compiler.*;
 import com.avail.descriptor.*;
-import com.avail.descriptor.ProcessDescriptor.ExecutionState;
+import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.exceptions.*;
 import com.avail.interpreter.Primitive.*;
 import com.avail.interpreter.levelOne.*;
@@ -115,9 +115,9 @@ public abstract class Interpreter
 	protected volatile boolean interruptRequestFlag;
 
 	/**
-	 * The {@link ProcessDescriptor} being executed by this interpreter.
+	 * The {@link FiberDescriptor} being executed by this interpreter.
 	 */
-	public AvailObject process;
+	public AvailObject fiber;
 
 	/**
 	 * A place to store the result of a primitive when the primitive
@@ -149,22 +149,22 @@ public abstract class Interpreter
 	}
 
 	/**
-	 * Answer true if an interrupt has been requested for this process.
+	 * Answer true if an interrupt has been requested for this fiber.
 	 *
 	 * @return If an interrupt is pending.
 	 */
 	public final boolean isInterruptRequested ()
 	{
-		return process.interruptRequestFlags() != 0;
+		return fiber.interruptRequestFlags() != 0;
 	}
 
 	/**
-	 * Exit the current {@linkplain ProcessDescriptor process} with the
+	 * Exit the current {@linkplain FiberDescriptor fiber} with the
 	 * specified result.
 	 *
 	 * @param finalObject
 	 *            The {@link AvailObject} that is the final result of running
-	 *            the {@linkplain ProcessDescriptor process}.
+	 *            the {@linkplain FiberDescriptor fiber}.
 	 *
 	 */
 	public abstract void exitProcessWith (final AvailObject finalObject);
@@ -180,18 +180,18 @@ public abstract class Interpreter
 	{
 		this.runtime = runtime;
 
-		// Also initialize the process field.
-		process = ProcessDescriptor.mutable().create();
-		process.name(StringDescriptor.from(String.format(
+		// Also initialize the fiber field.
+		fiber = FiberDescriptor.mutable().create();
+		fiber.name(StringDescriptor.from(String.format(
 			"unnamed, creation time = %d, hash = %d",
 			System.currentTimeMillis(),
-			process.hash())));
-		process.priority(IntegerDescriptor.fromUnsignedByte((short)50));
-		process.continuation(NullDescriptor.nullObject());
-		process.executionState(ExecutionState.RUNNING);
-		process.clearInterruptRequestFlags();
-		process.breakpointBlock(NullDescriptor.nullObject());
-		process.processGlobals(MapDescriptor.empty());
+			fiber.hash())));
+		fiber.priority(IntegerDescriptor.fromUnsignedByte((short)50));
+		fiber.continuation(NullDescriptor.nullObject());
+		fiber.executionState(ExecutionState.RUNNING);
+		fiber.clearInterruptRequestFlags();
+		fiber.breakpointBlock(NullDescriptor.nullObject());
+		fiber.fiberGlobals(MapDescriptor.empty());
 	}
 
 	/**
@@ -859,17 +859,17 @@ public abstract class Interpreter
 	}
 
 	/**
-	 * Return the current {@linkplain ProcessDescriptor process}.
+	 * Return the current {@linkplain FiberDescriptor fiber}.
 	 *
-	 * @return The current executing process.
+	 * @return The current executing fiber.
 	 */
-	public AvailObject process ()
+	public AvailObject fiber ()
 	{
-		return process;
+		return fiber;
 	}
 
 	/**
-	 * The given forward is in the process of being resolved. A real
+	 * The given forward is in the fiber of being resolved. A real
 	 * implementation is about to be added to the method tables, so remove the
 	 * forward now.
 	 *
@@ -1169,7 +1169,7 @@ public abstract class Interpreter
 
 	/**
 	 * Run the given function with the provided arguments as a top-level action.
-	 * Run until the entire process completes, then return the result.
+	 * Run until the entire fiber completes, then return the result.
 	 *
 	 * @param aFunction A {@linkplain FunctionDescriptor function} to run.
 	 * @param arguments The arguments for the function.
@@ -1185,6 +1185,6 @@ public abstract class Interpreter
 		return String.format(
 			"%s [%s]",
 			getClass().getSimpleName(),
-			process().name());
+			fiber().name());
 	}
 }

@@ -1,0 +1,200 @@
+/*
+ * Exceptions.avail
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Exceptions"
+Versions
+	"dev"
+Uses
+	"Assertions",
+	"Bootstrap",
+	"Control Structures",
+	"Definers",
+	"Early Error Codes",
+	"Functions",
+	"Literals",
+	"Logic",
+	"Objects",
+	"Tuples",
+	"Types"
+Names
+	"arithmetic exception",
+	"bad primitive exception",
+	"element access exception",
+	"variable use exception"
+
+	/* Quite a few names are introduced, but all dynamically by the
+	 * "Public exception_extends_(_)" defining method.
+	 */
+Body
+
+/* TODO: [TLS] Remove these constants once a macro is available for "$…". */
+errorCode ::= $"error code";
+
+/**
+ * Answer the field atom that represents a stream's element type.
+ * 
+ * Returns:
+ *    The requested field atom.
+ */
+Private method "error code" is [ errorCode ];
+
+/**
+ * A system exception privately contains a system error code.
+ */
+Class "system exception" extends exception
+	with fields
+		error code : natural number;
+
+/* A map from error codes to system exceptions. */
+exceptionsByCode : {natural number→system exception's type|} := {};
+
+/**
+ * Define a new system exception class. Publish the name of the class.
+ * 
+ * Parameters:
+ *    exceptionName - The name of the exception class.
+ *    supertype - The nearest supertype of the new exception class.
+ *    code - The error code that uniquely identifies the system exception.
+ */
+Private method "Exception_(_)extends_" is
+[
+	exceptionName : <character…|1..>,
+	code : natural number,
+	supertype : system exception's type
+|
+	Assert: ¬code ∈ exceptionsByCode ("code " ++ “code” ++ " already in use");
+	Class exceptionName extends supertype
+		with fields
+			error code : code's type;
+	Publish new name: exceptionName;
+	site ::= cast method site of method for atom for exceptionName for <>
+		into [ t : implementation site | t ];
+	implementation ::= cast site's function into [t : []→object meta | t];
+	exceptionType ::= cast implementation()
+		into  [ t : system exception's type | t ];
+	Method "“_”" is
+		new [exceptionType's type]→string
+		applying [ignored : any | exceptionName];
+	Method "“_”" is new [exceptionType]→string applying
+	[
+		ignored : any
+	|
+		(If exceptionName[1] ∈ "AEIOUaeiou"→set then ["an "] else ["a "])
+			++ exceptionName
+	];
+	exceptionsByCode := eject ↑exceptionsByCode + code→exceptionType;
+];
+
+/**
+ * An arithmetic exception describes error conditions related to arithmetic and
+ * manipulation of numbers.
+ */
+Public explicit class "arithmetic exception" extends system exception;
+Exception "cannot add unlike infinities exception" (1)
+	extends arithmetic exception;
+Exception "cannot subtract like infinities exception" (2)
+	extends arithmetic exception;
+Exception "cannot multiply zero and infinity exception" (3)
+	extends arithmetic exception;
+Exception "cannot divide by zero exception" (4) extends arithmetic exception;
+Exception "cannot divide infinities exception" (5) extends arithmetic exception;
+Exception "cannot order not-a-number exception" (16)
+	extends arithmetic exception;
+
+/**
+ * A variable use exception describes error conditions related to usage of
+ * variables.
+ */
+Public explicit class "variable use exception" extends system exception;
+Exception "cannot read unassigned variable exception" (6)
+	extends variable use exception;
+Exception "cannot store incorrectly typed value exception" (7)
+	extends variable use exception;
+Exception "cannot swap contents of differently typed variables exception" (8)
+	extends variable use exception;
+
+/**
+ * An element access exception describes error conditions related to failed
+ * retrieval of an element from a data structure.
+ */
+Public explicit class "element access exception" extends system exception;
+Exception "no such fiber variable exception" (9)
+	extends element access exception;
+Exception "subscript out of bounds exception" (10)
+	extends element access exception;
+Exception "key not found exception" (21) extends element access exception;
+
+/**
+ * A bad primitive exception describes error conditions related to invocations
+ * of nonexistent or not meaningfully implemented primitives.
+ */
+Public explicit class "bad primitive exception" extends system exception;
+Exception "primitive not supported exception" (15)
+	extends bad primitive exception;
+Exception "no implementation exception" (73) extends bad primitive exception;
+
+/**
+ * Ensure that all error codes have corresponding exceptions.
+ */
+Private method "Ensure:all error codes have corresponding exceptions" is [];
+Semantic restriction "Ensure:all error codes have corresponding exceptions" is
+[
+	missingExceptionClasses ::= filter error codes by
+	[
+		errorCode : natural number,
+		errorName : string
+	|
+		¬errorCode ∈ exceptionsByCode
+	];
+	If |missingExceptionClasses| ≠ 0 then
+	[
+		Reject parse, expected:
+			"exception classes to be defined for the following error codes: "
+			++ “missingExceptionClasses”
+	];
+	⊤
+];
+
+/* TODO: [TLS] Reenable until all exceptions have been translated! */
+/*Ensure: all error codes have corresponding exceptions;*/
+
+/* Exceptions are going live! Failures of bootstrap linked primitives will now
+ * raise appropriate exceptions.
+ */
+Set early failure function to
+[
+	errorCode : natural number
+|
+	Assert: errorCode ∈ exceptionsByCode
+		("no exception class for " ++ “errorCode”);
+	Raise an exceptionsByCode[errorCode] with error code := errorCode
+] : ⊥;

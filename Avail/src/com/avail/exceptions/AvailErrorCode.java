@@ -49,9 +49,6 @@ import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
  */
 public enum AvailErrorCode
 {
-	/** The primitive is not implemented. */
-	E_NO_IMPLEMENTATION (-1),
-
 	/**
 	 * Operation is required to fail.
 	 */
@@ -108,9 +105,9 @@ public enum AvailErrorCode
 	E_CANNOT_SWAP_CONTENTS_OF_DIFFERENTLY_TYPED_VARIABLES (8),
 
 	/**
-	 * No such {@linkplain ProcessDescriptor process} variable.
+	 * No such {@linkplain FiberDescriptor fiber} variable.
 	 */
-	E_NO_SUCH_PROCESS_VARIABLE (9),
+	E_NO_SUCH_FIBER_VARIABLE (9),
 
 	/**
 	 * Subscript out of bounds.
@@ -411,6 +408,9 @@ public enum AvailErrorCode
 	 */
 	E_METHOD_IS_SEALED (72),
 
+	/** The primitive is not implemented. */
+	E_NO_IMPLEMENTATION (73),
+
 	/**
 	 * A proposed {@linkplain BlockNodeDescriptor block expression} contains
 	 * one or more invalid statements.
@@ -565,10 +565,30 @@ public enum AvailErrorCode
 	 * numeric code}.
 	 *
 	 * @param numericCode The {@code int} to look up as a numeric code.
-	 * @return The AvailErrorCode or null if not defined.
+	 * @return The error code, or {@code null} if not defined.
 	 */
 	public static AvailErrorCode byNumericCode (final int numericCode)
 	{
 		return byNumericCode.get(numericCode);
+	}
+
+	/**
+	 * Answer all valid {@linkplain #code numeric error codes}.
+	 *
+	 * @return A {@linkplain List list} of all valid numeric error codes.
+	 */
+	public static @NotNull List<Integer> allNumericCodes ()
+	{
+		final List<Integer> codes = new ArrayList<Integer>(values().length);
+		for (final AvailErrorCode code : values())
+		{
+			// All right, not quite *all* of the numeric error codes, just the
+			// ones that are encountered in typical ways.
+			if (code.code > 0)
+			{
+				codes.add(code.code);
+			}
+		}
+		return codes;
 	}
 }

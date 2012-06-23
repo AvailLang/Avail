@@ -43,7 +43,7 @@ import com.avail.descriptor.AbstractNumberDescriptor.Sign;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.InfinityDescriptor.IntegerSlots;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
-import com.avail.descriptor.ProcessDescriptor.ExecutionState;
+import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.exceptions.*;
 import com.avail.exceptions.ArithmeticException;
 import com.avail.interpreter.*;
@@ -3446,18 +3446,17 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public AvailObject processGlobals ()
+	public AvailObject fiberGlobals ()
 	{
-		return descriptor.o_ProcessGlobals(this);
+		return descriptor.o_FiberGlobals(this);
 	}
 
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public void processGlobals (
-		final AvailObject value)
+	public void fiberGlobals (final AvailObject value)
 	{
-		descriptor.o_ProcessGlobals(this, value);
+		descriptor.o_FiberGlobals(this, value);
 	}
 
 	/**

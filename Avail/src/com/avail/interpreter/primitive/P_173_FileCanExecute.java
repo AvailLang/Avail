@@ -41,10 +41,10 @@ import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive 173:</strong> Is the {@linkplain File file} with the
- * specified filename executable by the OS process?
+ * specified filename executable by the OS fiber?
  */
-@Deprecated
-public class P_173_FileCanExecute extends Primitive
+public class P_173_FileCanExecute
+extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

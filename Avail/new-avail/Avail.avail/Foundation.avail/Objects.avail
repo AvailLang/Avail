@@ -759,19 +759,24 @@ is
 		<<<boolean, boolean, atom, any meta…|4>…|1..>…|0..1>'s type,
 	optionalReconstructors : <<<boolean, <atom…|1..>…|2>…|1..>…|0..1>'s type
 |
-	If |classNameType| ≠ 1 then
-	[
-		Reject parse, expected: "class name to be statically known"
-	];
 	public ::= publicType's instance;
 	publicNames ::= current module's public names;
-	className ::= classNameType's instance;
-	If public ∧ [ ¬className ∈ publicNames ] then
+	If public ∧ [ |classNameType| ≠ 1 ] then
 	[
 		Reject parse, expected:
-			"\""
-			++ className
-			++ "\" to be included in the module's \"Names\" section"
+			"public class modifier to be provided only when the class name \
+			\|is statically known"
+	];
+	If |classNameType| = 1 then
+	[
+		className ::= classNameType's instance;
+		If public ∧ [ ¬className ∈ publicNames ] then
+		[
+			Reject parse, expected:
+				"\""
+				++ className
+				++ "\" to be included in the module's \"Names\" section"
+		];
 	];
 	supertype ::= meta's instance;
 	oldDefinitions ::= supertype→map;
@@ -1015,40 +1020,3 @@ Semantic restriction "a|an_«with«_:=_‡,»»" is
 	];
 	assignments→object type
 ];
-
-/* TODO: [TLS] Remove when done!
-Class "colorful" extends object
-	with fields
-		$color : enumeration of
-			{"red", "orange", "yellow", "green", "blue", "indigo", "violet"};
-
-Class "textured" extends object
-	with fields
-		$texture : enumeration of {"rough", "smooth"};
-
-Explicit class "textured RGB" extends colorful ∩ textured
-	with fields
-		reconstructible $color : enumeration of {"red", "green", "blue"},
-		$texture : "smooth"'s type,
-		$flavor : enumeration of {"salty", "sweet"}
-	with reconstructors
-		($color, $flavor);
-
-trgb : textured RGB := a textured RGB with
-	$color := "green",
-	$texture := "smooth",
-	$flavor := "salty";
-Print: "trgb=";
-Print: “trgb”;
-Print: "\n";
-Print: "trgb's color=";
-Print: “trgb's color”;
-Print: "\n";
-Print: "trgb's texture=";
-Print: “trgb's texture”;
-Print: "\n";
-mutated ::= trgb's color := "blue", flavor := "sweet";
-Print: "mutated=";
-Print: “mutated”;
-Print: "\n";
-*/

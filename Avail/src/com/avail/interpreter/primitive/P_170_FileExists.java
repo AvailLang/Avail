@@ -43,8 +43,8 @@ import com.avail.interpreter.*;
  * <strong>Primitive 170:</strong> Does a {@linkplain File file} exists with
  * the specified filename?
  */
-@Deprecated
-public class P_170_FileExists extends Primitive
+public class P_170_FileExists
+extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

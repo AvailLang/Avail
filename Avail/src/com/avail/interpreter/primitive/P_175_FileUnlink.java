@@ -44,8 +44,8 @@ import com.avail.interpreter.*;
  * <strong>Primitive 175:</strong> Unlink the {@linkplain File file} with
  * the specified filename from the filesystem.
  */
-@Deprecated
-public class P_175_FileUnlink extends Primitive
+public class P_175_FileUnlink
+extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.

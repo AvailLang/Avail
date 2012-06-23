@@ -42,7 +42,7 @@ import java.util.logging.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.descriptor.*;
-import com.avail.descriptor.ProcessDescriptor.ExecutionState;
+import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.interpreter.*;
 import com.avail.interpreter.Primitive.*;
 import com.avail.interpreter.levelTwo.register.FixedRegister;
@@ -175,7 +175,7 @@ extends Interpreter
 	 * Eclipse.
 	 *
 	 * <p>In particular, an L2Interpreter should present (possible among other
-	 * things) a complete stack trace of the current process, converting the
+	 * things) a complete stack trace of the current fiber, converting the
 	 * deep continuation structure into a list of continuation substitutes
 	 * that <em>do not</em> recursively print the caller chain.</p>
 	 *
@@ -324,30 +324,30 @@ extends Interpreter
 	@Override
 	public void exitProcessWith (final AvailObject finalObject)
 	{
-		process.executionState(ExecutionState.TERMINATED);
-		process.continuation(NullDescriptor.nullObject());
+		fiber.executionState(ExecutionState.TERMINATED);
+		fiber.continuation(NullDescriptor.nullObject());
 		exitNow = true;
 		exitValue = finalObject;
 		wipeObjectRegisters();
 	}
 
 	/**
-	 * The current process has been asked to pause for an inter-nybblecode
+	 * The current fiber has been asked to pause for an inter-nybblecode
 	 * interrupt for some reason. It has possibly executed several more
-	 * wordcodes since that time, to place the process into a state that's
+	 * wordcodes since that time, to place the fiber into a state that's
 	 * consistent with naive Level One execution semantics. That is, a naive
-	 * Level One interpreter should be able to resume the process later. The
+	 * Level One interpreter should be able to resume the fiber later. The
 	 * continuation to use can be found in pointerAt(continuationIndex).
 	 */
 	public void processInterrupt ()
 	{
 		final int continuationIndex = nextWord();
-		process.continuation(pointerAt(continuationIndex));
+		fiber.continuation(pointerAt(continuationIndex));
 		// TODO[MvG/TLS]: Really process the interrupt, possibly causing a
-		// context switch to another process.  The simplest approach is to queue
-		// this process, then allow the thread pool to grab the highest priority
-		// available process to run.
-		process.clearInterruptRequestFlags();
+		// context switch to another fiber.  The simplest approach is to queue
+		// this fiber, then allow the thread pool to grab the highest priority
+		// available fiber to run.
+		fiber.clearInterruptRequestFlags();
 		exitValue = NullDescriptor.nullObject();
 		exitNow = true;
 	}
@@ -905,7 +905,7 @@ extends Interpreter
 		{
 			/**
 			 * This loop is only exited by a return off the end of the outermost
-			 * context, a suspend or terminate of the current process, or by an
+			 * context, a suspend or terminate of the current fiber, or by an
 			 * inter-nybblecode interrupt. For now there are no inter-nybblecode
 			 * interrupts, but these can be added later. They will probably
 			 * happen on non-primitive method invocations, returns, and backward
@@ -969,8 +969,8 @@ extends Interpreter
 	{
 		pointerAtPut(CALLER, NullDescriptor.nullObject());
 		clearPointerAt(FUNCTION.ordinal());
-		// Keep the process's current continuation clear during execution.
-		process.continuation(NullDescriptor.nullObject());
+		// Keep the fiber's current continuation clear during execution.
+		fiber.continuation(NullDescriptor.nullObject());
 
 		final Result result = invokeFunctionArguments(function, arguments);
 		if (result == SUCCESS)
