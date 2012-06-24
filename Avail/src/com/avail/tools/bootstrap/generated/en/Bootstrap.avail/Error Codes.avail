@@ -64,7 +64,6 @@ Names
 	/*   5 */ "cannot divide infinities code",
 	/* 507 */ "cannot modify final Java field code",
 	/*   3 */ "cannot multiply zero and infinity code",
-	/*  16 */ "cannot order not-a-number code",
 	/*   6 */ "cannot read unassigned variable code",
 	/*   7 */ "cannot store incorrectly typed value code",
 	/*   2 */ "cannot subtract like infinities code",
@@ -76,7 +75,6 @@ Names
 	/*  37 */ "declaration kind does not support reference code",
 	/*  53 */ "double question mark must follow a simple or simple group code",
 	/*  46 */ "expected operator after backquote code",
-	/*  38 */ "expected primitive type code",
 	/*  27 */ "function disagrees with primitive restriction code",
 	/*  12 */ "incorrect argument type code",
 	/*  11 */ "incorrect number of arguments code",
@@ -88,7 +86,6 @@ Names
 	/*  25 */ "invalid handle code",
 	/*  26 */ "invalid primitive number code",
 	/*  33 */ "invalid special object number code",
-	/* 106 */ "invalid type for super cast code",
 	/*  21 */ "key not found code",
 	/*  28 */ "local type literal is not a type code",
 	/*  34 */ "macro argument must be a parse node code",
@@ -101,7 +98,6 @@ Names
 	/*  19 */ "no method code",
 	/*   9 */ "no such fiber variable code",
 	/*  17 */ "not enumeration code",
-	/*  18 */ "object type has no user defined name code",
 	/*  49 */ "octothorp must follow a simple group code",
 	/*  29 */ "outer type literal is not a type code",
 	/*  24 */ "permission denied code",
@@ -202,19 +198,9 @@ Method "primitive not supported code" is
 	15
 ];
 
-Method "cannot order not-a-number code" is
-[
-	16
-];
-
 Method "not enumeration code" is
 [
 	17
-];
-
-Method "object type has no user defined name code" is
-[
-	18
 ];
 
 Method "no method code" is
@@ -310,11 +296,6 @@ Method "declaration kind does not support assignment code" is
 Method "declaration kind does not support reference code" is
 [
 	37
-];
-
-Method "expected primitive type code" is
-[
-	38
 ];
 
 Method "redefined with same argument types code" is
@@ -450,11 +431,6 @@ Method "block compilation failed code" is
 Method "sequence contains invalid statements code" is
 [
 	105
-];
-
-Method "invalid type for super cast code" is
-[
-	106
 ];
 
 Method "Java class not available code" is

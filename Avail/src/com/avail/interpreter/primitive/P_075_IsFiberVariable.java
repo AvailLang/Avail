@@ -1,5 +1,5 @@
 /**
- * P_029_Instances.java
+ * P_075_IsFiberVariable.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -29,40 +29,42 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.TYPE;
-import static com.avail.exceptions.AvailErrorCode.E_NOT_AN_ENUMERATION;
-import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 29:</strong> Obtain the instances of the specified
- * {@linkplain com.avail.descriptor.TypeDescriptor.Types#TYPE type}.
+ * <strong>Primitive 75</strong>: Does the {@linkplain AtomDescriptor name}
+ * refer to a {@linkplain FiberDescriptor fiber}-local variable?
+ *
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
-public class P_029_Instances extends Primitive
+public final class P_075_IsFiberVariable
+extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_029_Instances().init(
-		1, CanFold);
+	public final @NotNull static Primitive instance =
+		new P_075_IsFiberVariable().init(2, CannotFail, CanInline);
 
 	@Override
 	public @NotNull Result attempt (
 		final @NotNull List<AvailObject> args,
 		final @NotNull Interpreter interpreter)
 	{
-		assert args.size() == 1;
-		final AvailObject type = args.get(0);
-		if (!type.isEnumeration())
-		{
-			return interpreter.primitiveFailure(E_NOT_AN_ENUMERATION);
-		}
-		return interpreter.primitiveSuccess(type.instances());
+		assert args.size() == 2;
+		final AvailObject key = args.get(0);
+		final AvailObject fiber = args.get(1);
+		final AvailObject globals = fiber.fiberGlobals();
+		return interpreter.primitiveSuccess(AtomDescriptor.objectFromBoolean(
+			globals.hasKey(key)));
 	}
 
 	@Override
@@ -70,7 +72,8 @@ public class P_029_Instances extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				TYPE.o()),
-			SetTypeDescriptor.mostGeneralType());
+				ATOM.o(),
+				FIBER.o()),
+			EnumerationTypeDescriptor.booleanObject());
 	}
 }

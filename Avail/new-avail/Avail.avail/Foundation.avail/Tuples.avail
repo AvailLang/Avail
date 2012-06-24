@@ -1890,7 +1890,7 @@ Public stable method "_[_.._]→_" is
 |
 	If sliceEnd < sliceStart - 1 then
 	[
-		early failure function(subscript out of bounds code)
+		early failure function(subscript-out-of-bounds code)
 	];
 	aTuple[..sliceStart - 1] ++ replacement ++ aTuple[sliceEnd + 1..]
 ] : tuple;

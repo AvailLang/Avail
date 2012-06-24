@@ -1012,6 +1012,24 @@ Method "_'s⁇outer variables" is
 ] : tuple;
 
 /**
+ * Does `aFiber`'s environment have a value bound to `key`? This effectively
+ * ascertains whether a fiber-local variable exists for the specified fiber.
+ *
+ * Parameters:
+ *    key - The key whose existence should be queried.
+ *    aFiber - The fiber whose environment should be queried.
+ * Returns:
+ *    `true` if the fiber binds a value to `key`, `false` otherwise.
+ */
+Method "_∈_" is
+[
+	key : atom,
+	aFiber : fiber
+|
+	Primitive 75;
+] : boolean;
+
+/**
  * Answer the cardinality of the specified map.
  *
  * Parameters:

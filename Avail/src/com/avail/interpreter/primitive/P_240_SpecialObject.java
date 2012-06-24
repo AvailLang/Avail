@@ -32,7 +32,7 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
-import static com.avail.exceptions.AvailErrorCode.E_INVALID_SPECIAL_OBJECT_NUMBER;
+import static com.avail.exceptions.AvailErrorCode.E_NO_SPECIAL_OBJECT;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.AvailRuntime;
@@ -63,7 +63,7 @@ public class P_240_SpecialObject extends Primitive
 		if (!ordinal.isInt())
 		{
 			return interpreter.primitiveFailure(
-				E_INVALID_SPECIAL_OBJECT_NUMBER);
+				E_NO_SPECIAL_OBJECT);
 		}
 		final int i = ordinal.extractInt();
 
@@ -75,13 +75,13 @@ public class P_240_SpecialObject extends Primitive
 		catch (final ArrayIndexOutOfBoundsException e)
 		{
 			return interpreter.primitiveFailure(
-				E_INVALID_SPECIAL_OBJECT_NUMBER);
+				E_NO_SPECIAL_OBJECT);
 		}
 
 		if (result == null)
 		{
 			return interpreter.primitiveFailure(
-				E_INVALID_SPECIAL_OBJECT_NUMBER);
+				E_NO_SPECIAL_OBJECT);
 		}
 
 		return interpreter.primitiveSuccess(result);

@@ -39,7 +39,6 @@ import com.avail.annotations.NotNull;
 import com.avail.compiler.MessageSplitter;
 import com.avail.descriptor.*;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 
 /**
  * {@code AvailErrorCode} is an enumeration of all possible failures of
@@ -143,27 +142,24 @@ public enum AvailErrorCode
 	E_PRIMITIVE_NOT_SUPPORTED (15),
 
 	/**
-	 * A {@link Double} {@linkplain Double#NaN not-a-number} or {@link Float}
-	 * {@linkplain Float#NaN not-a-number} can not be ordered with respect to
-	 * other numbers.
+	 * TODO: Recycle!
 	 */
-	E_CANNOT_ORDER_NOT_A_NUMBER (16),
+//	E_??? (16),
 
 	/**
 	 * The specified type is not a finite {@linkplain EnumerationTypeDescriptor
 	 * enumeration} of values.
 	 */
-	E_NOT_ENUMERATION (17),
+	E_NOT_AN_ENUMERATION (17),
 
 	/**
-	 * A user-defined {@linkplain ObjectTypeDescriptor object type} has no
-	 * assigned name.
+	 * TODO: Recycle!
 	 */
-	E_OBJECT_TYPE_HAS_NO_USER_DEFINED_NAME (18),
+//	E_??? (18),
 
 	/**
-	 * No {@linkplain MethodDescriptor method} exists for
-	 * the specified {@linkplain AtomDescriptor name}.
+	 * No {@linkplain MethodDescriptor method} exists for the specified
+	 * {@linkplain AtomDescriptor name}.
 	 */
 	E_NO_METHOD (19),
 
@@ -245,7 +241,7 @@ public enum AvailErrorCode
 	 * A {@linkplain AvailRuntime#specialObject(int) special object} number is
 	 * invalid.
 	 */
-	E_INVALID_SPECIAL_OBJECT_NUMBER (33),
+	E_NO_SPECIAL_OBJECT (33),
 
 	/**
 	 * A {@linkplain MacroImplementationDescriptor macro} {@linkplain
@@ -272,11 +268,9 @@ public enum AvailErrorCode
 	E_DECLARATION_KIND_DOES_NOT_SUPPORT_REFERENCE (37),
 
 	/**
-	 * Only primitive types have certain properties, such as a name, a parent,
-	 * and a type.  Well, other things can have names and types, but sometimes a
-	 * primitive type is supposed to be the thing being operated on.
+	 * TODO: Recycle!
 	 */
-	E_EXPECTED_PRIMITIVE_TYPE (38),
+//	E_??? (38),
 
 	/**
 	 * An attempt was made to add a signature with the same argument types as an
@@ -445,10 +439,9 @@ public enum AvailErrorCode
 	E_SEQUENCE_CONTAINS_INVALID_STATEMENTS (105),
 
 	/**
-	 * The expression type for a super cast was not a strict supertype of the
-	 * actual {@linkplain ParseNodeKind#EXPRESSION_NODE expression}.
+	 * TODO: Recycle!
 	 */
-	E_INVALID_TYPE_FOR_SUPER_CAST (106),
+//	E_??? (106),
 
 	/**
 	 * A Java {@linkplain Class class} specified by name was either not found by

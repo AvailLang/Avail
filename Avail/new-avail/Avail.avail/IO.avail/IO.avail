@@ -34,5 +34,6 @@ System Module "IO"
 Versions
 	"dev"
 Extends
+	"Exceptions",
 	"Standard Input"
 Body

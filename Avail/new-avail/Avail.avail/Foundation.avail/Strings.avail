@@ -150,18 +150,18 @@ Private stable method "format sites for_" is
 			[
 				If index > |template| then
 				[
-					early failure function(runaway format variable code)
+					early failure function(runaway-format-variable code)
 				];
 				template[index] ≠ closeDelimiter
 			];
 			If index - start = 1 then
 			[
-				early failure function(empty format variable code)
+				early failure function(empty-format-variable code)
 			];
 			varName ::= template[start + 1..index - 1];
 			sites := eject ↑sites ++ <<varName, interpType, start, index>>;
 		];
-	invalid ::= [early failure function(invalid format metacharacter use code)];
+	invalid ::= [early failure function(invalid-format-metacharacter-use code)];
 	While [ index ≤ |template| ] do
 	[
 		char ::= template[index];
@@ -181,7 +181,7 @@ Private stable method "format sites for_" is
 					then
 					[
 						early failure function(
-							invalid format metacharacter escape code)
+							invalid-format-metacharacter-escape code)
 					];
 					escaped ::= <template[index]>;
 					sites := eject ↑sites ++ <<escaped, escape, start, index>>;
@@ -254,7 +254,7 @@ Public stable method "partially format_with_" is
 	sites ::= format sites for template;
 	formatted : string := "";
 	badType ::=
-		[early failure function(format variable interpolation failed code)];
+		[early failure function(format-variable-interpolation-failed code)];
 	index : natural number := 1;
 	For each sites do
 	[
@@ -364,9 +364,9 @@ Public stable method "format_with_" is
 |
 	sites ::= format sites for template;
 	formatted : string := "";
-	missing ::= [early failure function(missing format variable binding code)];
+	missing ::= [early failure function(missing-format-variable-binding code)];
 	badType ::=
-		[early failure function(format variable interpolation failed code)];
+		[early failure function(format-variable-interpolation-failed code)];
 	index : natural number := 1;
 	For each sites do
 	[
@@ -687,10 +687,10 @@ Public stable method "format_with unchecked_" is
 |
 	sites ::= format sites for template;
 	formatted : string := "";
-	badName ::= [early failure function(invalid format variable code)];
-	missing ::= [early failure function(missing format variable binding code)];
+	badName ::= [early failure function(invalid-format-variable code)];
+	missing ::= [early failure function(missing-format-variable-binding code)];
 	badType ::=
-		[early failure function(format variable interpolation failed code)];
+		[early failure function(format-variable-interpolation-failed code)];
 	index : natural number := 1;
 	For each sites do
 	[
@@ -872,7 +872,7 @@ Public stable method "_(base_)" is
 	digits : string,
 	base : [2..36]
 |
-	fail ::= [early failure function(invalid argument code)];
+	fail ::= [early failure function(invalid-argument code)];
 	If digits is empty then fail;
 	realDigits : string := digits;
 	multiplier : enumeration of {-1, 1} := 1;
@@ -918,7 +918,7 @@ Public stable method "_→integer" is
 [
 	str : string
 |
-	fail ::= [early failure function(invalid argument code)];
+	fail ::= [early failure function(invalid-argument code)];
 	If |str| > 1 ∧ [ str[1] = ¢0 ] then fail;
 	cast str (base 10) into [ t : integer | t ] else fail
 ] : integer;
@@ -935,7 +935,7 @@ Stable method "_→extended integer" is
 [
 	str : string
 |
-	fail ::= [early failure function(invalid argument code)];
+	fail ::= [early failure function(invalid-argument code)];
 	If |str| > 1 ∧ [ str[1] = ¢0 ] then fail;
 	str (base 10)
 ] : extended integer;

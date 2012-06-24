@@ -70,15 +70,16 @@ Public method "error codes" is [ errorCodes ];
  * Define a method named `name` that stably answers `code`.
  * 
  * Parameters:
- *    name - The name of the new method.
+ *    baseName - The name of the new method (without the trailing " code").
  *    code - The error code.
  */
 Private method "Next error code is_(_)" is
 [
-	name : string,
+	baseName : string,
 	code : natural number
 |
 	Assert: ¬code ∈ errorCodes ("code " ++ “code” ++ " already in use");
+	name ::= baseName ++ " code";
 	/* Strengthen the implementation function's return type to the exact value.
 	 * This involves the construction of a decorator function.
 	 */
@@ -90,94 +91,88 @@ Private method "Next error code is_(_)" is
 	Publish new name: name;
 ];
 
-Next error code is "cannot add unlike infinities code" (1);
-Next error code is "cannot subtract like infinities code" (2);
-Next error code is "cannot multiply zero and infinity code" (3);
-Next error code is "cannot divide by zero code" (4);
-Next error code is "cannot divide infinities code" (5);
-Next error code is "cannot read unassigned variable code" (6);
-Next error code is "cannot store incorrectly typed value code" (7);
-Next error code is "cannot swap contents of differently typed variables code" (8);
-Next error code is "no such fiber variable code" (9);
-Next error code is "subscript out of bounds code" (10);
-Next error code is "incorrect number of arguments code" (11);
-Next error code is "incorrect argument type code" (12);
-Next error code is "method return type not as forward declared code" (13);
-Next error code is "continuation expected stronger type code" (14);
-Next error code is "primitive not supported code" (15);
-Next error code is "cannot order not-a-number code" (16);
-Next error code is "not enumeration code" (17);
-Next error code is "object type has no user defined name code" (18);
-Next error code is "no method code" (19);
-Next error code is "wrong number of outers code" (20);
-Next error code is "key not found code" (21);
-Next error code is "negative size code" (22);
-Next error code is "I/O error code" (23);
-Next error code is "permission denied code" (24);
-Next error code is "invalid handle code" (25);
-Next error code is "invalid primitive number code" (26);
-Next error code is "function disagrees with primitive restriction code" (27);
-Next error code is "local type literal is not a type code" (28);
-Next error code is "outer type literal is not a type code" (29);
-Next error code is "unhandled exception code" (30);
-Next error code is "type restriction must accept only types code" (31);
-Next error code is "incorrect type for group code" (32);
-Next error code is "invalid special object number code" (33);
-Next error code is "macro argument must be a parse node code" (34);
-Next error code is "ambiguous name code" (35);
-Next error code is "declaration kind does not support assignment code" (36);
-Next error code is "declaration kind does not support reference code" (37);
-Next error code is "expected primitive type code" (38);
-Next error code is "redefined with same argument types code" (39);
-Next error code is "result type should covary with arguments code" (40);
-Next error code is "special atom code" (41);
-Next error code is "incorrect type for complex group code" (42);
-Next error code is "incorrect use of double dagger code" (43);
-Next error code is "unbalanced guillemets code" (44);
-Next error code is "method name is not canonical code" (45);
-Next error code is "expected operator after backquote code" (46);
-Next error code is "incorrect type for boolean group code" (47);
-Next error code is "incorrect type for counting group code" (48);
-Next error code is "octothorp must follow a simple group code" (49);
-Next error code is "question mark must follow a simple group code" (50);
-Next error code is "case insensitive expression canonization code" (51);
-Next error code is "tilde must not follow argument code" (52);
-Next error code is "double question mark must follow a simple or simple group code" (53);
-Next error code is "alternative must not contain arguments code" (54);
-Next error code is "vertical bar must follow a simple or simple group code" (55);
-Next error code is "cannot convert not a number to integer code" (56);
-Next error code is "compilation is over code" (70);
-Next error code is "method implementation lookup failed code" (71);
-Next error code is "method is sealed code" (72);
-Next error code is "no implementation code" (73);
-Next error code is "block contains invalid statements code" (100);
-Next error code is "block is invalid code" (101);
-Next error code is "block must not contain outers code" (102);
-Next error code is "block compilation failed code" (103);
-Next error code is "sequence contains invalid statements code" (105);
-Next error code is "invalid type for super cast code" (106);
-Next error code is "Java class not available code" (500);
-Next error code is "pojo type is abstract code" (501);
-Next error code is "Java method not available code" (502);
-Next error code is "Java marshaling failed code" (504);
-Next error code is "Java field not available code" (505);
-Next error code is "Java field reference is ambiguous code" (506);
-Next error code is "cannot modify final Java field code" (507);
-Next error code is "Java method reference is ambiguous code" (508);
-Next error code is "object type extension contains duplicates code" (1000);
-Next error code is "object type extension did not produce subtype code" (1001);
-Next error code is "object instantiation contains duplicates code" (1002);
-Next error code is "object instantiation invalid code" (1003);
-Next error code is "object instantiation did not produce instance code" (1004);
-Next error code is "invalid argument code" (1005);
-Next error code is "runaway format variable code" (1006);
-Next error code is "empty format variable code" (1007);
-Next error code is "invalid format metacharacter escape code" (1008);
-Next error code is "invalid format metacharacter use code" (1009);
-Next error code is "format variable interpolation failed code" (1010);
-Next error code is "invalid format variable code" (1011);
-Next error code is "missing format variable binding code" (1012);
-Next error code is "inappropriate value code" (1013);
+Next error code is "cannot-add-unlike-infinities" (1);
+Next error code is "cannot-subtract-like-infinities" (2);
+Next error code is "cannot-multiply-zero-and-infinity" (3);
+Next error code is "cannot-divide-by-zero" (4);
+Next error code is "cannot-divide-infinities" (5);
+Next error code is "cannot-read-unassigned-variable" (6);
+Next error code is "cannot-store-incorrectly-typed-value" (7);
+Next error code is "cannot-swap-contents-of-differently-typed-variables" (8);
+Next error code is "no-such-fiber-variable" (9);
+Next error code is "subscript-out-of-bounds" (10);
+Next error code is "incorrect-number-of-arguments" (11);
+Next error code is "incorrect-argument-type" (12);
+Next error code is "method-return-type-not-as-forward-declared" (13);
+Next error code is "continuation-expected-stronger-type" (14);
+Next error code is "primitive-not-supported" (15);
+Next error code is "not-enumeration" (17);
+Next error code is "no-method" (19);
+Next error code is "wrong-number-of-outers" (20);
+Next error code is "key-not-found" (21);
+Next error code is "negative-size" (22);
+Next error code is "I/O-error" (23);
+Next error code is "permission-denied" (24);
+Next error code is "invalid-handle" (25);
+Next error code is "invalid-primitive-number" (26);
+Next error code is "function-disagrees-with-primitive-restriction" (27);
+Next error code is "local-type-literal-is-not-a-type" (28);
+Next error code is "outer-type-literal-is-not-a-type" (29);
+Next error code is "unhandled-exception" (30);
+Next error code is "type-restriction-must-accept-only-types" (31);
+Next error code is "incorrect-type-for-group" (32);
+Next error code is "invalid-special-object-number" (33);
+Next error code is "macro-argument-must-be-a-parse-node" (34);
+Next error code is "ambiguous-name" (35);
+Next error code is "declaration-kind-does-not-support-assignment" (36);
+Next error code is "declaration-kind-does-not-support-reference" (37);
+Next error code is "redefined-with-same-argument-types" (39);
+Next error code is "result-type-should-covary-with-arguments" (40);
+Next error code is "special-atom" (41);
+Next error code is "incorrect-type-for-complex-group" (42);
+Next error code is "incorrect-use-of-double-dagger" (43);
+Next error code is "unbalanced-guillemets" (44);
+Next error code is "method-name-is-not-canonical" (45);
+Next error code is "expected-operator-after-backquote" (46);
+Next error code is "incorrect-type-for-boolean-group" (47);
+Next error code is "incorrect-type-for-counting-group" (48);
+Next error code is "octothorp-must-follow-a-simple-group" (49);
+Next error code is "question-mark-must-follow-a-simple-group" (50);
+Next error code is "case-insensitive-expression-canonization" (51);
+Next error code is "tilde-must-not-follow-argument" (52);
+Next error code is "double-question-mark-must-follow-a-simple-or-simple-group" (53);
+Next error code is "alternative-must-not-contain-arguments" (54);
+Next error code is "vertical-bar-must-follow-a-simple-or-simple-group" (55);
+Next error code is "cannot-convert-not-a-number-to-integer" (56);
+Next error code is "compilation-is-over" (70);
+Next error code is "method-implementation-lookup-failed" (71);
+Next error code is "method-is-sealed" (72);
+Next error code is "no-implementation" (73);
+Next error code is "block-contains-invalid-statements" (100);
+Next error code is "block-is-invalid" (101);
+Next error code is "block-must-not-contain-outers" (102);
+Next error code is "block-compilation-failed" (103);
+Next error code is "sequence-contains-invalid-statements" (105);
+Next error code is "Java-class-not-available" (500);
+Next error code is "pojo-type-is-abstract" (501);
+Next error code is "Java-method-not-available" (502);
+Next error code is "Java-marshaling-failed" (504);
+Next error code is "Java-field-not-available" (505);
+Next error code is "Java-field-reference-is-ambiguous" (506);
+Next error code is "cannot-modify-final-Java-field" (507);
+Next error code is "Java-method-reference-is-ambiguous" (508);
+Next error code is "object-type-extension-contains-duplicates" (1000);
+Next error code is "object-type-extension-did-not-produce-subtype" (1001);
+Next error code is "object-instantiation-contains-duplicates" (1002);
+Next error code is "object-instantiation-did-not-produce-instance" (1004);
+Next error code is "invalid-argument" (1005);
+Next error code is "runaway-format-variable" (1006);
+Next error code is "empty-format-variable" (1007);
+Next error code is "invalid-format-metacharacter-escape" (1008);
+Next error code is "invalid-format-metacharacter-use" (1009);
+Next error code is "format-variable-interpolation-failed" (1010);
+Next error code is "invalid-format-variable" (1011);
+Next error code is "missing-format-variable-binding" (1012);
 
 /**
  * Ensure that all VM error codes have names.

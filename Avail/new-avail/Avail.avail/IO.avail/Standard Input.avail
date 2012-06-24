@@ -128,24 +128,3 @@ Semantic restriction "next_" is
 |
 	range's instance
 ];
-
-/*
-[
-	Print: "Enter a character: ";
-	Print: “next character” ++ "\n";
-	Ignore: next character;
-	Print: "Enter 5 characters: ";
-	Print: “next 5 characters” ++ "\n";
-	Print: "Enter a line: ";
-	Print: “next line” ++ "\n";
-	Print: "Enter an extended integer: ";
-	Print: “next extended integer” ++ "\n";
-	Ignore: next character;
-	Print: "Enter an integer ∈ [0..255]: ";
-	Print: “next [0..255]” ++ "\n";
-	Ignore: next character;
-	Print: "Enter a float: ";
-	Print: “next float” ++ "\n";
-	Ignore: next character;
-]();
-*/

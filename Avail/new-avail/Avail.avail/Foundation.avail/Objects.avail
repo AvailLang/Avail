@@ -304,13 +304,13 @@ Public method "extend_with«_:_‡,»" is
 	fieldAtoms ::= stripe newDefinitions at 1;
 	If |fieldAtoms→set| ≠ |fieldAtoms| then
 	[
-		early failure function(object type extension contains duplicates code)
+		early failure function(object-type-extension-contains-duplicates code)
 	];
 	subtype ::= (supertype→tuple ++ newDefinitions)→object type;
 	If ¬subtype ⊆ supertype then
 	[
 		early failure function(
-			object type extension did not produce subtype code)
+			object-type-extension-did-not-produce-subtype code)
 	];
 	subtype
 ] : object meta;
@@ -671,7 +671,7 @@ is
 	fieldAtoms ::= stripe newDefinitions at 1;
 	If |fieldAtoms→set| ≠ |fieldAtoms| then
 	[
-		early failure function(object type extension contains duplicates code)
+		early failure function(object-type-extension-contains-duplicates code)
 	];
 	/* If necessary, then generate a field definition that guarantees
 	 * uniqueness among object types.
@@ -688,7 +688,7 @@ is
 	If ¬subtype ⊆ supertype then
 	[
 		early failure function(
-			object type extension did not produce subtype code)
+			object-type-extension-did-not-produce-subtype code)
 	];
 	/* Define the class: give the object type a name, define a method that
 	 * answers the object type, and define methods that access the field
@@ -917,31 +917,26 @@ Public method "a|an_«with«_:=_‡,»»" is
 	fieldAtoms ::= stripe assignments at 1;
 	If |fieldAtoms→set| ≠ |fieldAtoms| then
 	[
-		early failure function(object instantiation contains duplicates code)
+		early failure function(object-instantiation-contains-duplicates code)
 	];
 	objectMap ::= objectType→map;
-	identityAssignments : <<atom, atom…|2>…|> := <>;
+	identityAssignments : <<atom, any…|2>…|> := <>;
 	For each objectMap do
 	[
 		fieldAtom : atom,
 		fieldType : any meta
 	|
-		If |fieldType| = 1 ∧ [ fieldType's instance = fieldAtom ] then
+		If |fieldType| = 1 ∧ [ ¬fieldType ⊆ type ] then
 		[
-			identityAssignments :=
-				eject ↑identityAssignments ++ <2 of fieldAtom>;
+			identityAssignments := eject ↑identityAssignments
+				++ <<fieldAtom, fieldType's instance>>;
 		];
 	];
-	allAssignments ::= assignments ++ identityAssignments;
-	If |allAssignments| ≠ |objectMap| then
-	[
-		early failure function(object instantiation invalid code)
-	];
-	newObject ::= allAssignments→object;
+	newObject ::= (assignments ++ identityAssignments)→object;
 	If ¬newObject ∈ objectType then
 	[
 		early failure function(
-			object instantiation did not produce instance code)
+			object-instantiation-did-not-produce-instance code)
 	];
 	newObject
 ];
@@ -953,7 +948,8 @@ Public method "a|an_«with«_:=_‡,»»" is
  * - Each field atom of the instantiation tuple appears only once during
  *   instantiation.
  * - An assigned value conforms to the field type.
- * - An assignment occurs for every field of the object type.
+ * - An assignment occurs for every field of the object type except those for
+ *   which the exact types are known; these will be supplied automatically.
  */
 Semantic restriction "a|an_«with«_:=_‡,»»" is
 [
@@ -1003,9 +999,9 @@ Semantic restriction "a|an_«with«_:=_‡,»»" is
 		fieldAtom : atom,
 		fieldType : any meta
 	|
-		If |fieldType| = 1 ∧ [ fieldType's instance = fieldAtom ] then
+		If |fieldType| = 1 ∧ [ ¬fieldType ⊆ type ] then
 		[
-			assignments := eject ↑assignments + fieldAtom→fieldAtom's type;
+			assignments := eject ↑assignments + fieldAtom→fieldType;
 		];
 	];
 	missing ::= filter definitions' keys by [ a : atom | ¬a ∈ assignments ];
