@@ -112,7 +112,6 @@ Names
 	/*  52 */ "tilde must not follow argument code",
 	/*  31 */ "type restriction must accept only types code",
 	/*  44 */ "unbalanced guillemets code",
-	/*  30 */ "unhandled exception code",
 	/*  55 */ "vertical bar must follow a simple or simple group code",
 	/*  20 */ "wrong number of outers code"
 Body
@@ -256,11 +255,6 @@ Method "local type literal is not a type code" is
 Method "outer type literal is not a type code" is
 [
 	29
-];
-
-Method "unhandled exception code" is
-[
-	30
 ];
 
 Method "type restriction must accept only types code" is

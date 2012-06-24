@@ -32,17 +32,17 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import static com.avail.exceptions.AvailErrorCode.E_REQUIRED_FAILURE;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
+import java.util.*;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive 200:</strong> Always fail. The Avail failure code
- * invokes the {@linkplain FunctionDescriptor body block}. The handler block
- * is only invoked when an exception is raised.
+ * invokes the {@linkplain FunctionDescriptor body block}. A handler block is
+ * only invoked when an exception is raised.
  */
 public class P_200_CatchException extends Primitive
 {
@@ -60,8 +60,15 @@ public class P_200_CatchException extends Primitive
 		assert args.size() == 2;
 		@SuppressWarnings("unused")
 		final AvailObject bodyBlock = args.get(0);
-		@SuppressWarnings("unused")
-		final AvailObject handlerBlock = args.get(1);
+		final AvailObject handlerBlocks = args.get(1);
+		for (final AvailObject block : handlerBlocks)
+		{
+			if (!block.kind().argsTupleType().typeAtIndex(1).isSubtypeOf(
+				ObjectTypeDescriptor.exceptionType()))
+			{
+				return interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE);
+			}
+		}
 		return interpreter.primitiveFailure(E_REQUIRED_FAILURE);
 	}
 
@@ -73,17 +80,25 @@ public class P_200_CatchException extends Primitive
 				FunctionTypeDescriptor.create(
 					TupleDescriptor.from(),
 					TOP.o()),
-				FunctionTypeDescriptor.create(
-					TupleDescriptor.from(
-						BottomTypeDescriptor.bottom()),
-					TOP.o())),
+				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+					IntegerRangeTypeDescriptor.naturalNumbers(),
+					TupleDescriptor.from(),
+					FunctionTypeDescriptor.create(
+						TupleDescriptor.from(
+							BottomTypeDescriptor.bottom()),
+						TOP.o()))),
 			TOP.o());
 	}
 
 	@Override
 	protected AvailObject privateFailureVariableType ()
 	{
-		return InstanceTypeDescriptor.on(
-			IntegerDescriptor.zero());
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			SetDescriptor.fromCollection(
+				Arrays.asList(new AvailObject[]
+				{
+					IntegerDescriptor.zero(),
+					IntegerDescriptor.fromInt(12)
+				})));
 	}
 }

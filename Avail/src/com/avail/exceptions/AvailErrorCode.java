@@ -219,10 +219,9 @@ public enum AvailErrorCode
 	E_OUTER_TYPE_LITERAL_IS_NOT_A_TYPE (29),
 
 	/**
-	 * Unhandled exception, i.e. no handler was found to accept a raised
-	 * exception.
+	 * TODO: Recycle!
 	 */
-	E_UNHANDLED_EXCEPTION (30),
+//	E_??? (30),
 
 	/**
 	 * The specified type restriction function should expect types as arguments

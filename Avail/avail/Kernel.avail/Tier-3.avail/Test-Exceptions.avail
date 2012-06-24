@@ -72,9 +72,8 @@ Assert Run1 = <11,12,13,14,15,-4,-3,-2,-1,0>;
 
 Method "TestB_" is [i : integer |
 	catch
-		[ex : Division By Zero Exception | ex result],
-		[ex : Exception | Crash "A general exception was thrown"],
-		[ex : Division By Zero Exception | ex result + 100]
+		[ex : Division By Zero Exception | ex result + 100],
+		[ex : Exception | Crash "A general exception was thrown"]
 	in [
 		if i > 5 then [Raise Division By Zero Exception with i - 10]
 		else [i + 10]
@@ -87,7 +86,6 @@ Method "Run2" is [
 		in [TestB i]
 	]
 ];
-
 
 Assert Run2 = <11,12,13,14,15,96,97,98,99,100>;
 

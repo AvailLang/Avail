@@ -54,7 +54,6 @@ Uses
 		"Invoke|invoke_with_",
 		"Macro_is_",
 		"Publish new name:_",
-		"Raise_",
 		"Restart_",
 		"Restart_with_",
 		"Seal method_at_",
@@ -98,7 +97,6 @@ Uses
 		"static method_._(«_‡,»)(fail with_)",
 		"swap_and_",
 		"termination requested",
-		"try_catch_",
 		"↓_",
 		"∪_[_.._]"
 	)
@@ -682,52 +680,6 @@ Method "_`#_:_(literals=_,`#locals_,`#outers_,stack depth=_)" is
 	Primitive 188 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode
 ] : function implementation;
-
-/**
- * Execute `body`. If an exception is raised, the virtual machine will scan the
- * current fiber's chain of continuations to identify invocations of this
- * primitive. The handler nearest to the end of the continuation chain, i.e.
- * closest to the raise of the exception, that accepts an argument of the
- * correct type is invoked with the exception. So `handler` will potentially
- * run if code run (directly or indirectly) by `body` throws an exception of
- * the correct type.
- *
- * Parameters:
- *    body - The protected function.
- *    handler - The exception handler.
- */
-Method "try_catch_" is
-[
-	body : nullary procedure,
-	handler : unary procedure
-|
-	Primitive 200 (failureCode : type of zero);
-	Private invoke body with empty tuple
-] : ⊤;
-
-/**
- * Raise `exception` as an exception. The virtual machine scans the current
- * fiber's chain of continuations to identify an invocation of `try_catch_`
- * (primitive 200). Extract the second argument from that continuation. This is
- * an arity-one exception handling function. If it accepts `exception`, then
- * discard all continuations after this one and then invoke the handler with
- * `exception`. If the handler does not accept the argument, then the
- * virtual machine continues scanning the chain of continuations for correctly
- * typed exception handling functions. If no suitable exception handling
- * function is found, then the primitive fails.
- *
- * Parameters:
- *    exception - An exception.
- * Returns:
- *    ⊥.
- */
-Method "Raise_" is
-[
-	exception : exception
-|
-	Primitive 201 (failureCode : natural number);
-	Private invoke _fail_primitive with failureCode
-] : ⊥;
 
 /**
  * Answer the method uniquely named by the specified atom.

@@ -47,7 +47,7 @@ import com.avail.interpreter.*;
  * exceptionValue}. If not, keep looking. If it will accept it, unwind the
  * stack so that the primitive 200 continuation is the top entry, and invoke
  * the handler block with {@code exceptionValue}. If there is no suitable
- * handler block, then fail this primitive.
+ * handler block, then fail this primitive (with the unhandled exception).
  */
 public class P_201_RaiseException
 extends Primitive
@@ -74,5 +74,11 @@ extends Primitive
 			TupleDescriptor.from(
 				ObjectTypeDescriptor.exceptionType()),
 			BottomTypeDescriptor.bottom());
+	}
+
+	@Override
+	protected @NotNull AvailObject privateFailureVariableType ()
+	{
+		return ObjectTypeDescriptor.exceptionType();
 	}
 }

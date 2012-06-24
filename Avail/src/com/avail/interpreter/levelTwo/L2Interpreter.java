@@ -33,7 +33,6 @@
 package com.avail.interpreter.levelTwo;
 
 import static com.avail.descriptor.AvailObject.error;
-import static com.avail.exceptions.AvailErrorCode.E_UNHANDLED_EXCEPTION;
 import static com.avail.interpreter.Primitive.Result.*;
 import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
 import static java.lang.Math.max;
@@ -163,9 +162,17 @@ extends Interpreter
 	/** Whether to print detailed level two method results. */
 	final static boolean debugL2Results = false;
 
-
-	enum FakeStackTraceSlots implements ObjectSlotsEnum
+	/**
+	 * Fake slots used to show stack traces in the Eclipse Java debugger.
+	 */
+	enum FakeStackTraceSlots
+	implements ObjectSlotsEnum
 	{
+		/**
+		 * The chain of {@linkplain ContinuationDescriptor continuations} of the
+		 * {@linkplain FiberDescriptor fiber} bound to this {@linkplain
+		 * L2Interpreter interpreter}.
+		 */
 		FRAMES
 	}
 
@@ -739,20 +746,24 @@ extends Interpreter
 		{
 			if (continuation.function().code().primitiveNumber() == 200)
 			{
-				final AvailObject handler = continuation.argOrLocalOrStackAt(2);
-				if (exceptionValue.isInstanceOf(
-					handler.kind().argsTupleType().typeAtIndex(1)))
+				final AvailObject handlerTuple =
+					continuation.argOrLocalOrStackAt(2);
+				assert handlerTuple.isTuple();
+				for (final AvailObject handler : handlerTuple)
 				{
-					assert !handler.equalsNull();
-					prepareToResumeContinuation(continuation);
-					return invokeFunctionArguments(
-						handler,
-						Collections.singletonList(exceptionValue));
+					if (exceptionValue.isInstanceOf(
+						handler.kind().argsTupleType().typeAtIndex(1)))
+					{
+						prepareToResumeContinuation(continuation);
+						return invokeFunctionArguments(
+							handler,
+							Collections.singletonList(exceptionValue));
+					}
 				}
 			}
 			continuation = continuation.caller();
 		}
-		return primitiveFailure(E_UNHANDLED_EXCEPTION);
+		return primitiveFailure(exceptionValue);
 	}
 
 	@Override
@@ -854,7 +865,10 @@ extends Interpreter
 				case SUSPENDED:
 					return;
 				case SUCCESS:
-					final AvailObject updatedCaller = caller.ensureMutable();
+					// The caller may have changed, so grab the caller again.
+					final AvailObject currentCaller = pointerAt(CALLER);
+					final AvailObject updatedCaller =
+						currentCaller.ensureMutable();
 					final int stackp = updatedCaller.stackp();
 					final AvailObject expectedType =
 						updatedCaller.stackAt(stackp);

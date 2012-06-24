@@ -48,7 +48,9 @@ Uses
 	"Tuples",
 	"Types"
 Names
-	"Set unhandled exception handler to_",
+	"_'s⁇unhandled exception handler is_",
+	"Guard|guard_«intercept_»",
+	"Raise_",
 
 	/* System exception categories. */
 	"arithmetic exception",
@@ -99,6 +101,135 @@ Private method "error name" is [ errorName ];
  *    The requested field atom.
  */
 Private method "unhandled exception handler" is [ unhandledExceptionHandler ];
+
+/**
+ * Establish `handle` as the function that the specified fiber will apply in
+ * the event of an unhandled exception.
+ * 
+ * Parameters:
+ *    handler - The unhandled exception handler. When an unhandled exception is
+ *       trapped by the VM, the exception machinery will arrange to apply this
+ *       function with the unhandled exception.
+ */
+Public method "_'s⁇unhandled exception handler is_" is
+[
+	aFiber : fiber,
+	handler : [exception]→⊥
+|
+	aFiber[unhandled exception handler] := handler;
+] : ⊤;
+
+/**
+ * Execute `body`. If an exception is raised, the virtual machine will scan the
+ * current fiber's chain of continuations to identify invocations of this
+ * primitive. The continuation nearest to the end of the continuation chain,
+ * i.e., closest to the raise of the exception, that defines a handler that
+ * accepts an argument of the correct type is invoked with the exception. So
+ * an exception handler will potentially run if code run (directly or
+ * indirectly) by `body` throws an exception of the accepted type.
+ *
+ * Parameters:
+ *    body - The protected function.
+ *    handlers - A tuple of exception handlers.
+ */
+Public method "Guard|guard_«intercept_»" is
+[
+	body : []→⊤,
+	handler : <[⊥]→⊤…|1..>
+|
+	Primitive 200
+		(failureCode : enumeration of {0, incorrect-argument-type code});
+	If failureCode = 0 then body
+	else
+	[
+		early failure function(incorrect-argument-type code)
+	];
+] : ⊤;
+
+/**
+ * Reject the current parse if 1) any of the exception handlers aren't or 2) any
+ * earlier handlers hide later handlers (by having a more general type).
+ */
+Semantic restriction "Guard|guard_«intercept_»" is
+[
+	bodyType : []→⊤'s type,
+	handlersType : <[⊥]→⊤…|1..>'s type
+|
+	returnType : type := bodyType's return type;
+	limit ::= ⎣handlersType⎦;
+	From 1 to limit do
+	[
+		index : natural number
+	|
+		handlerType ::= handlersType[index];
+		argType ::= handlerType[1];
+		If argType = ⊥ then
+		[
+			Reject parse, expected: format
+				"exception handler #‘①’'s parameter type to be \
+				\|statically known"
+				with index
+		];
+		If ¬argType ⊆ exception then
+		[
+			Reject parse, expected: format
+				"exception handler to accept only exceptions (not ‘①’)"
+				with argType
+		];
+		hidingArgTypes : <type…|> := <>;
+		From 1 to index - 1 do
+		[
+			inner : natural number
+		|
+			previousArgType ::= handlersType[inner][1];
+			If argType ⊆ previousArgType then
+			[
+				hidingArgTypes := eject ↑hidingArgTypes ++ <previousArgType>;
+			];
+		];
+		If ¬hidingArgTypes is empty then
+		[
+			Reject parse, expected: format
+			"exception handler for ‘①’ to be reachable \
+			\|(but it is hidden by each of: ‘②’)"
+			with argType, hidingArgTypes
+		];
+		returnType := eject ↑returnType ∪ handlerType's return type;
+	];
+	returnType
+];
+
+/**
+ * Raise the specified exception. The virtual machine scans the current fiber's
+ * chain of continuations to identify an invocation of `guard_with handler_`
+ * (primitive 200). Extract the second argument from that continuation. This is
+ * an arity-one exception handling function. If it accepts `anException`, then
+ * discard all continuations after this one and then invoke the handler with
+ * `anException`. If the handler does not accept the argument, then the
+ * virtual machine continues scanning the chain of continuations for correctly
+ * typed exception handling functions. If no suitable exception handling
+ * function is found, then invoke the current fiber's unhandled-exception
+ * exception handler; terminate the current fiber if no such handler exists.
+ *
+ * Parameters:
+ *    exception - An exception.
+ */
+Public method "Raise_" is
+[
+	anException : exception
+|
+	Primitive 201 (unhandledException : exception);
+	If unhandled exception handler ∈ current fiber then
+	[
+		handler ::= cast current fiber[unhandled exception handler]
+			into [ t : [exception]→⊥ | t ];
+		handler(unhandledException)
+	]
+	else
+	[
+		Terminate: "unhandled exception"
+	]
+] : ⊥;
 
 /**
  * A system exception privately contains a system error code.
@@ -434,22 +565,6 @@ Semantic restriction "Ensure:all error codes have corresponding exceptions" is
 
 Ensure: all error codes have corresponding exceptions;
 
-/**
- * Establish the argument as the function that the current fiber will apply in
- * the event of an unhandled exception.
- * 
- * Parameters:
- *    handler - The unhandled exception handler. When an unhandled exception is
- *       trapped by the VM, the exception machinery will arrange to apply this
- *       function with the unhandled exception.
- */
-Public method "Set unhandled exception handler to_" is
-[
-	handler : [exception]→⊥
-|
-	current fiber[unhandled exception handler] := handler;
-] : ⊤;
-
 /* Exceptions are going live! Failures of bootstrap linked primitives will now
  * raise appropriate exceptions.
  */
@@ -460,30 +575,7 @@ Set early failure function to
 	Assert: errorCode ∈ exceptionsByCode
 		("no exception class for " ++ “errorCode”);
 	exceptionType ::= exceptionsByCode[errorCode];
-	newException ::= an exceptionType with
+	Raise an exceptionType with
 		error code := errorCode,
-		error name := exceptionType's error name's instance;
-	If exceptionType ⊆ unhandled-exception exception then
-	[
-		If unhandled exception handler ∈ current fiber then
-		[
-			handler ::= cast current fiber[unhandled exception handler]
-				into [ t : [exception]→⊥ | t ];
-			handler(newException)
-		]
-		else
-		[
-			Terminate: "unhandled exception"
-		]
-	];
-	Raise newException
+		error name := exceptionType's error name's instance
 ] : ⊥;
-
-/* TODO: [TLS] Raise should work differently. "unhandled-exception exception"
- * (which should just be "unhandled exception") should be a special exception
- * that holds onto another exception (the one that was unhandled). The Raise
- * primitive should answer the unhandled exception object instead of
- * E_UNHANDLED_EXCEPTION (which should be removed). Then the logic to deal with
- * unhandled exceptions should be moved into the failure code for Raise (which
- * should be introduced by this module instead of the Bootstrap).
- */

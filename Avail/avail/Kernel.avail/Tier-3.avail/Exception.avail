@@ -85,92 +85,51 @@ Restriction "_with_" is [ett : Exception type type, resT : type |
 ];
 
 
-/* Helper primitive... */
-
-Method "_evaluate with handler_" is [
-		body : []->void,
-		handler : [terminates]->void |
-
-	/* Primitive 200 is a special primitive.  When the Raise_ primitive is
-	   invoked, it scans the stack for a continuation whose function's
-	   code is primitive 200, and it invokes this continuation's second
-	   argument, the handler block, with the argument passed to Raise_.
-	   Aside from that, primitive 200 always fails, so the backup code
-	   should just invoke the body. */
-	Primitive 200 (failureCode : 0 type);
+Method "do_handleTuple_" is
+[
+	body : []->void,
+	handlers : tuple [1..INF) of [terminates]->void
+|
+	Primitive 200 (failureCode : [0..12]);
 	body();
 ] : void;
 
-Restriction "_evaluate with handler_" is [
-		bt : functionType,
-		ht : functionType |
-	/* We require the exception handler to accept some subtype of
+Restriction "do_handleTuple_" is [bodyT : functionType, handlersT : tupleType |
+	/* We require each exception handler to accept some subtype of
 	   Exception.  Only some handlers are applicable, therefore, based
 	   on the Exception subtype, so a dynamic check determines which
 	   handlers to skip over.  */
-	if not ht [1] <= Exception then [
-		Fail parse "handler capable of accepting an exception"];
-	type union of bt result and ht result
-];
-
-
-Method "catch_in_" is [handler : [terminates]->void, body : []->void |
-	body evaluate with handler handler;
-];
-
-Restriction "catch_in_" is [ht : functionType, bt : functionType |
-	/* We require the exception handler to accept some subtype of
-	   Exception.  Only some handlers are applicable, therefore, based
-	   on the Exception subtype, so a dynamic check determines which
-	   handlers to skip over.  */
-	if not ht [1] <= Exception then [
-		Fail parse "handler capable of accepting an exception"];
-	type union of ht result and bt result
-];
-
-
-
-/* Helper method... */
-
-Forward "handleTuple_do_" for [tuple of [terminates]->void, []->void]->void;
-Forward "handleTuple_do_" for [tuple of [terminates]->any, []->any]->any;
-
-Method "handleTuple_do_" is [
-		handlers : tuple of [terminates]->void,
-		body : []->void |
-	/* Treat the last one as innermost. */
-	if handlers = <> then
-		body
-	else [
-		[
-			handleTuple handlers[2..||handlers||] do body;
-		] evaluate with handler handlers[1];
+	union ::= type union of handlersT default type and
+		union of types in handlersT leading types;
+	cast union into [ut : functionType |
+		if not ut[1] <= Exception then [
+			Fail parse "handler to accept an exception"];
+	] otherwise [
+		Fail parse "All the handler block types must be known statically."];
+	merge : type := bodyT result;
+	merge := type union of bodyT result and
+		cast handlersT default type into [handlerT : functionType |
+			handlerT
+		] otherwise [
+			void
+		];
+	handlersT leading types do [t : type |
+		merge := type union of merge and
+			cast t into [handlerT : functionType |
+				handlerT
+			] otherwise [
+				void
+			];
 	];
-] : void;
+	merge
+];
 
-Method "handleTuple_do_" is [
-		handlers : tuple of [terminates]->any,
-		body : []->any |
-	/* Treat the last one as innermost.  This is an override for the case
-	   where the body and all handlers produce a result. */
-	if handlers = <> then
-		body
-	else [
-		[
-			handleTuple handlers[2..||handlers||] do body
-		] evaluate with handler handlers[1]
-	]
-] : any;
-
-
-/**
- * Attach multiple handlers simultaneously.  Treat the last handler as the
- * innermost one.
- */
-Method "catch«_‡,»in_" is [
-		handlers : tuple of [terminates]->void,
-		body : []->void |
-	handleTuple handlers do body;
+Method "catch«_‡,»in_" is
+[
+	handlers : tuple [1..INF) of [terminates]->void,
+	body : []->void
+|
+	do body handleTuple handlers;
 ] : void;
 
 Restriction "catch«_‡,»in_" is [handlersT : tupleType, bodyT : functionType |
@@ -204,13 +163,13 @@ Restriction "catch«_‡,»in_" is [handlersT : tupleType, bodyT : functionType 
 ];
 
 
-Method "Raise_" is [exception : Exception |
+Method "Raise_" is [exception : Private Exception |
 	/* This primitive scans the stack for frames that are failed invocations
 	   of primitive 200 (which always fails).  After finding one whose second
 	   argument (a handler block of one argument) will accept the given
 	   exception object, pop the stack to leave the primitive 200 method on
 	   the top, and invoke the handler with the exception object. */
-	Primitive 201 (failureCode : natural number);
+	Primitive 201 (failureCode : Private Exception);
 	Crash "No suitable handler was found for the exception"
 ] : terminates;
 
