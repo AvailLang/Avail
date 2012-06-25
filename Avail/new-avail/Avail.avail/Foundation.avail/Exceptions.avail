@@ -227,7 +227,7 @@ Public method "Raise_" is
 	]
 	else
 	[
-		Terminate: "unhandled exception"
+		Terminate: "unhandled exception: " ++ “anException”
 	]
 ] : ⊥;
 

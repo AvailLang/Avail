@@ -37,5 +37,24 @@ Extends
 	"Abstract Streams",
 	"Bounded Streams",
 	"Collection Streams",
-	"Counting Streams"
+	"Counting Streams",
+	"Delimited Streams"
+Uses
+	"Foundation"
 Body
+
+/* TODO: [TLS] Finish debugging!
+For each filter counting stream from 1 to 10 by [a:[1..10]|a is odd] do [a:[1..10]|Print: format "a=‘①’\n" with a;];
+
+For each
+	filter
+		stream over "      owls   are  very  smug    indeed"
+			delimited by " "
+	by [ word : string | ¬word is empty ]
+do
+[
+	value : string
+|
+	Print: “value” ++ "\n";
+];
+*/

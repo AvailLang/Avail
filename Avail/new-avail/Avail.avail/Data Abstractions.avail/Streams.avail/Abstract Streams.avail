@@ -38,10 +38,13 @@ Extends
 	(
 		"For each_do_",
 		"concatenate_",
-		"map_through_",
-		"zip_",
+		"drop_from_",
 		"filter_by_",
+		"map_through_",
+		"take_from_",
+		"zip_",
 		"_is empty",
+		"_starts with_",
 		"_'s⁇head",
 		"_'s⁇tail",
 		"«_‡zip»",
@@ -520,7 +523,7 @@ Semantic restriction "map_through_" is
 ];
 
 /**
- * `filtered_by_` produces filtered streams. A filtered stream decorates another
+ * `filter_by_` produces filtered streams. A filtered stream decorates another
  * stream and retains a filter function. When it is asked for its head,
  * it answers the first element of the decorated stream that satisfies the
  * filter function.
@@ -559,29 +562,32 @@ filtered stream's head method is
 	aStream : filtered stream
 |
 	/* There is guaranteed to be a satisfactory element remaining. */
-	remainder : stream := aStream's decorated stream;
-	Until [ invoke aStream's filter with <remainder's head> ]
+	rest : stream := aStream's decorated stream;
+	Until [ rest is empty ∨ [ invoke aStream's filter with <rest's head> ] ]
 	do
 	[
-		remainder := eject ↑remainder's tail;
+		rest := eject ↑rest's tail;
 	];
-	remainder's head
+	rest's head
 ] : any;
 
+/* TODO: [TLS] Wrong! This is wrong whenever the very first element doesn't
+ * satsify the filter.
+ */
 filtered stream's tail method is
 [
 	aStream : filtered stream
 |
-	/* There is guaranteed to be a satisfactory element remaining. */
-	remainder : stream := aStream's decorated stream's tail;
-	Until [ invoke aStream's filter with <remainder's head> ]
+	/* Find a satisfactory element. */
+	rest : stream := aStream's decorated stream's tail;
+	Until [ rest is empty ∨ [ invoke aStream's filter with <rest's head> ] ]
 	do
 	[
-		remainder := eject ↑remainder's tail;
+		rest := eject ↑rest's tail;
 	];
 	a headed filtered stream with
 		element type := aStream's element type,
-		decorated stream := remainder,
+		decorated stream := rest,
 		filter := aStream's filter
 ] : headed filtered stream;
 
@@ -863,3 +869,96 @@ Private method "zip semantic restriction" is
 
 Semantic restriction "zip_" is zip semantic restriction;
 Semantic restriction "«_‡zip»" is zip semantic restriction;
+
+/**
+ * Answer a tuple containing the first `count` elements of `aStream`.
+ * 
+ * Parameters:
+ *    count - The size of the requested tuple.
+ *    aTuple - A stream.
+ * Returns:
+ *    A tuple containing the first `count` elements of `aStream`, preserving the
+ *    original order.
+ */
+Method "take_from_" is
+[
+	count : whole number,
+	aStream : stream
+|
+	rest : stream := aStream;
+	result : tuple := <>;
+	Repeat
+	[
+		result := eject ↑result ++ <rest's head>;
+		rest := eject ↑rest's tail;
+	] count times;
+	result
+] : tuple;
+
+Semantic restriction "take_from_" is
+[
+	count : whole number's type,
+	streamType : stream's type
+|
+	<<>, streamType's element type…|count>
+];
+
+/**
+ * Answer a stream containing every element of `aStream` except for the first
+ * `count` elements.
+ * 
+ * Parameters:
+ *    count - The size of the prefix of `aStream` that should be omitted from
+ *       the result stream.
+ *    aStream - A stream.
+ * Returns:
+ *    A stream containing every element but the first `count` elements of
+ *    `aStream`, preserving the original order.
+ */
+Method "drop_from_" is
+[
+	count : whole number,
+	aStream : stream
+|
+	rest : stream := aStream;
+	Repeat
+	[
+		rest := eject ↑rest's tail;
+	] count times;
+	rest
+] : stream;
+
+Semantic restriction "drop_from_" is
+[
+	count : whole number's type,
+	streamType : stream's type
+|
+	streamType
+];
+
+/**
+ * Does `aStream` start with the subsequence `prefix`?
+ * 
+ * Parameters:
+ *    aStream - The stream whose prefix should be checked against `prefix`.
+ *    prefix - The search tuple.
+ * Returns:
+ *    `true` if `aStream` starts with the subsequence `prefix`, `false`
+ *    otherwise.
+ */
+Method "_starts with_" is
+[
+	aStream : stream,
+	prefix : tuple
+|
+	$body : boolean;
+	rest : stream := aStream;
+	For each prefix do
+	[
+		value : any
+	|
+		If rest's head ≠ value then [ Exit body with false ];
+		rest := eject ↑rest's tail;
+	];
+	true
+] : boolean;

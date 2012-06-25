@@ -53,6 +53,7 @@ Uses
 Names
 	"all indices of_where_",
 	"distinct_",
+	"drop_from_",
 	"first index of_where_",
 	"flatten_",
 	"last index of_where_",
@@ -61,6 +62,7 @@ Names
 	"split_after_",
 	"split_before_",
 	"stripe_at_",
+	"take_from_",
 	"zip_",
 	"∑_",
 	"∏_",
@@ -1768,6 +1770,61 @@ Semantic restriction "stripe_at_" is
 	nonemptyTypes ::= cast stripeTypes into [ t : <any meta…|1..> | t ];
 	<nonemptyTypes[1..|nonemptyTypes| - 1], nonemptyTypes[|nonemptyTypes|]…
 		| ||tupleType||>
+];
+
+/**
+ * Answer a tuple containing the first `count` elements of `aTuple`.
+ * 
+ * Parameters:
+ *    count - The size of the requested tuple.
+ *    aTuple - The source tuple.
+ * Returns:
+ *    A tuple containing the first `count` elements of `aTuple`, preserving the
+ *    original order.
+ */
+Public stable method "take_from_" is
+[
+	count : whole number,
+	aTuple : tuple
+|
+	aTuple[1..count]
+] : tuple;
+
+Semantic restriction "take_from_" is
+[
+	count : whole number's type,
+	tupleType : tuple's type
+|
+	tuple type of tupleType[1's type..count]
+];
+
+/**
+ * Answer a tuple containing every element of `aTuple` except for the first
+ * `count` elements.
+ * 
+ * Parameters:
+ *    count - The size of the prefix of `aTuple` that should be omitted from the
+ *       result tuple.
+ *    aTuple - The source tuple.
+ * Returns:
+ *    A tuple containing every element but the first `count` elements of
+ *    `aTuple`, preserving the original order.
+ */
+Public stable method "drop_from_" is
+[
+	count : whole number,
+	aTuple : tuple
+|
+	aTuple[count + 1..]
+] : tuple;
+
+Semantic restriction "drop_from_" is
+[
+	count : whole number's type,
+	tupleType : tuple's type
+|
+	startType ::= cast count + 1's type into [ t : [1..∞)'s type | t ];
+	tuple type of tupleType[startType..||tupleType||]
 ];
 
 Method "_[_]→_" is stable at [tuple, natural number, any]→tuple;

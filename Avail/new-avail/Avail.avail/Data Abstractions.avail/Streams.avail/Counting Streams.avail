@@ -171,7 +171,7 @@ Public stable method "counting stream from_to_" is
 	start : integer,
 	end : extended integer
 |
-	an counting integer stream with
+	a counting integer stream with
 		element type := (start - 1..end + 1),
 		next := start,
 		step := 1,
@@ -295,7 +295,7 @@ Public stable method "counting stream from_to_by_" is
 	delta : integer
 |
 	integralEnd ::= end→extended integer;
-	an counting integer stream with
+	a counting integer stream with
 		element type := (start - 1..integralEnd + 1),
 		next := start,
 		step := delta,

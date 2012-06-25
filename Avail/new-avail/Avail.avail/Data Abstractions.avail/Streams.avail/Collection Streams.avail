@@ -98,7 +98,7 @@ Public stable method "stream over_" is
 		element type := ∪ aTuple's type[1..|aTuple|],
 		collection := aTuple,
 		index := 1
-] : stream of any;
+] : stream;
 
 Semantic restriction "stream over_" is
 [
@@ -129,7 +129,7 @@ Public method "stream over_" is
 		element type := aSet's type's element type,
 		collection := aSet→tuple,
 		index := 1
-] : stream of any;
+] : stream;
 
 Semantic restriction "stream over_" is
 [
@@ -159,7 +159,7 @@ Public method "stream over_" is
 		element type := <aMap's type's key type, aMap's type's value type…|2>,
 		collection := aMap's bindings,
 		index := 1
-] : stream of any;
+] : stream;
 
 Semantic restriction "stream over_" is
 [
