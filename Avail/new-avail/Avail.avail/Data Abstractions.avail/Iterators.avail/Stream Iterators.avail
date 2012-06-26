@@ -1,5 +1,5 @@
 /*
- * Streams.avail
+ * Stream Iterators.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,54 +30,83 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Streams"
+System Module "Stream Iterators"
 Versions
 	"dev"
-Extends
-	"Abstract Streams" =
+Uses
+	"Abstract Iterators",
+	"Foundation",
+	"Streams" =
 	(
-		"For each_do_",
-		"an empty stream",
-		"concatenate_",
-		"drop from_until_",
-		"drop from_while_",
-		"drop_from_",
-		"element type",
-		"empty stream",
-		"empty-stream exception",
-		"filter_by_",
-		"map_through_",
-		"stream",
-		"stream of_",
-		"take from_until_",
-		"take from_while_",
-		"take_from_",
-		"zip_",
-		"_is empty",
-		"_starts with_",
-		"_'s⁇head",
-		"_'s⁇tail",
-		"«_‡zip»",
-		"«_‡++»",
-		"_'s⁇head method is_",
-		"_'s⁇tail method is_"
-	),
-	"Bounded Streams" =
-	(
-		"_limited to_elements"
-	),
-	"Collection Streams" =
-	(
-		"stream over_"
-	),
-	"Counting Streams" =
-	(
-		"counting stream from_to_",
-		"counting stream from_to_by_"
-	),
-	"Delimited Streams" =
-	(
-		"_delimited by_",
-		"_delimited by any of_"
+		"stream"
 	)
+Names
+	"iterator over_"
 Body
+
+/* TODO: [TLS] Remove these constants once a macro is available for "$…". */
+adaptedStream ::= $"adapted stream";
+
+/**
+ * Answer the field atom that represents an adapted stream.
+ *
+ * Returns:
+ *    The requested field atom.
+ */
+Private method "adapted stream" is [ adaptedStream ];
+
+/**
+ * A stream iterator consumes the elements of a stream.
+ */
+Class "stream iterator" extends iterator
+	with fields
+		adapted stream : ↑stream;
+
+Method "_is exhausted" is
+[
+	anIterator : stream iterator
+|
+	↓anIterator's adapted stream is empty
+] : boolean;
+
+stream iterator's current element method is
+[
+	anIterator : stream iterator
+|
+	↓anIterator's adapted stream's head
+] : any;
+
+stream iterator's advance method is
+[
+	anIterator : stream iterator
+|
+	anIterator's adapted stream ?= ↓anIterator's adapted stream's tail;
+] : ⊤;
+
+/**
+ * Construct and answer an iterator that destructively consumes the elements of
+ * the specified stream.
+ * 
+ * Parameters:
+ *    aStream - A stream.
+ * Returns:
+ *    The requested iterator.
+ */
+Public method "iterator over_" is
+[
+	aStream : stream
+|
+	var ::= new ↑stream;
+	var ?= aStream;
+	a stream iterator with
+		element type := aStream's element type,
+		adapted stream := var
+] : iterator;
+
+Semantic restriction "iterator over_" is
+[
+	streamType : stream's type
+|
+	extend stream iterator with
+		element type : streamType's element type
+];

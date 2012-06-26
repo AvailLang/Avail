@@ -1,0 +1,407 @@
+/*
+ * Abstract Iterators.avail
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Abstract Iterators"
+Versions
+	"dev"
+Extends
+	"Foundation" =
+	(
+		"For each_do_"
+	)
+Uses
+	"Foundation"
+Names
+	"Advance_",
+	"an exhausted iterator",
+	"element type",
+	"exhausted iterator",
+	"exhausted-iterator exception",
+	"iterator",
+	"iterator of_",
+	"_is exhausted",
+	"_'s⁇current element",
+	"_'s⁇current element method is_",
+	"_'s⁇advance method is_"
+Body
+
+/* TODO: [TLS] Remove these constants once a macro is available for "$…". */
+elementType ::= $"element type";
+privateCurrentElementName ::= $"private_'s⁇current element";
+privateAdvanceName ::= $"Private advance_";
+
+/**
+ * Answer the field atom that represents an iterators's element type.
+ * 
+ * Returns:
+ *    The requested field atom.
+ */
+Public method "element type" is [ elementType ];
+
+/**
+ * An iterator is a mutable lazy list of arbitrarily many elements.
+ */
+Public explicit class "iterator" extends object
+	with fields
+		element type : any's type;
+
+/**
+ * Construct and answer an iterator type that answers values of the specified
+ * type.
+ * 
+ * Parameters:
+ *    elementType - The type of value produced by iterators of the answered
+ *       type.
+ * Returns:
+ *    The requested iterator type.
+ */
+Public method "iterator of_" is
+[
+	elementType : any's type
+|
+	extend iterator with element type : elementType's type
+] : iterator's type;
+
+/**
+ * An exhausted-iterator exception is raised when an inappropriate operation,
+ * like `advance_`, is performed on an exhausted iterator.
+ */
+Public explicit class "exhausted-iterator exception" extends exception;
+
+/**
+ * Is the specified iterator exhausted?
+ * 
+ * Parameters:
+ *    anIterator - An iterator.
+ * Returns:
+ *    `true` if the argument is exhausted, `false` otherwise.
+ */
+Abstract method "_is exhausted" is [iterator]→boolean;
+
+/**
+ * Answer the current element of the specified non-exhausted iterator.
+ * 
+ * Parameters:
+ *    anIterator - An iterator.
+ * Returns:
+ *    The current element of the specified iterator.
+ */
+Private abstract method privateCurrentElementName is [iterator]→any;
+
+/**
+ * Ensure that the specified iterator is not exhausted, then answer its current
+ * element.
+ * 
+ * Parameters:
+ *    anIterator - An iterator.
+ * Returns:
+ *    The current element of the specified iterator.
+ * Raises:
+ *    {@"exhausted-iterator exception"} - If the iterator is exhausted.
+ */
+Method "_'s⁇current element" is
+[
+	anIterator : iterator
+|
+	Unless anIterator is exhausted then
+	[
+		private anIterator's current element
+	]
+	else
+	[
+		Raise an exhausted-iterator exception
+	]
+] : any;
+
+Semantic restriction "_'s⁇current element" is
+[
+	iteratorType : iterator's type
+|
+	iteratorType's element type's instance
+];
+
+/**
+ * Define a method to provide the current element of a non-exhausted iterator.
+ * The public operation, {@"_'s⁇current element"}, does not permit extension (to
+ * ensure that iterators are always checked for exhaustion), but the private
+ * operation should not be called directly from client code. This special
+ * defining method allows the private operation to be overridden for specific
+ * iterator implementations without exposing it for direct use. These mechanisms
+ * cooperate to ensure that iterator exhaustion checking is never bypassed.
+ *
+ * Parameters:
+ *    iteratorType - The iterator's type, as a cross check for the
+ *       implementation.
+ *    implementation - The new method extension.
+ */
+Public method "_'s⁇current element method is_" is
+[
+	iteratorType : iterator's type,
+	implementation : [⊥]→any
+|
+	Private method privateCurrentElementName is implementation;
+] : ⊤;
+
+/**
+ * Ensure that the implementation function accepts an iterator.
+ */
+Semantic restriction "_'s⁇current element method is_" is
+[
+	iteratorMeta : iterator's type's type,
+	implementationType : [⊥]→any's type
+|
+	If implementationType[1] = ⊥ then
+	[
+		Reject parse, expected:
+			"function's parameter types to be statically known"
+	];
+	If ¬implementationType[1] ⊆ iteratorMeta's instance then
+	[
+		Reject parse, expected:
+			"function parameter type ("
+			++ “implementationType[1]”
+			++ ") to be a subtype of the iterator type ("
+			++ “iteratorMeta's instance”
+			++ ")"
+	];
+	⊤
+];
+
+/**
+ * Advance the state of the specified non-exhausted iterator.
+ * 
+ * Parameters:
+ *    anIterator - An iterator.
+ */
+Private abstract method privateAdvanceName is [iterator]→⊤;
+
+/**
+ * Ensure that the specified iterator is not exhausted, then advance its state.
+ * 
+ * Parameters:
+ *    anIterator - An iterator.
+ * Raises:
+ *    {@"exhausted-iterator exception"} - If the iterator is exhausted.
+ */
+Method "Advance_" is
+[
+	anIterator : iterator
+|
+	Unless anIterator is exhausted then
+	[
+		Private advance anIterator;
+	]
+	else
+	[
+		Raise an exhausted-iterator exception
+	];
+] : ⊤;
+
+/**
+ * Define a method to advance the state of a non-exhausted iterator. The public
+ * operation, {@"Advance_"}, does not permit extension (to ensure that iterators
+ * are always checked for exhaustion), but the private operation should not be
+ * called directly from client code. This special defining method allows the
+ * private operation to be overridden for specific iterator implementations
+ * without exposing it for direct use. These mechanisms cooperate to ensure that
+ * iterator exhaustion checking is never bypassed.
+ *
+ * Parameters:
+ *    iteratorType - The iterator's type, as a cross check for the
+ *       implementation.
+ *    implementation - The new method extension.
+ */
+Public method "_'s⁇advance method is_" is
+[
+	iteratorType : iterator's type,
+	implementation : [⊥]→⊤
+|
+	Private method privateAdvanceName is implementation;
+] : ⊤;
+
+/**
+ * Ensure that the implementation function accepts an iterator.
+ */
+Semantic restriction "_'s⁇advance method is_" is
+[
+	iteratorMeta : iterator's type's type,
+	implementationType : [⊥]→⊤'s type
+|
+	If implementationType[1] = ⊥ then
+	[
+		Reject parse, expected:
+			"function's parameter types to be statically known"
+	];
+	If ¬implementationType[1] ⊆ iteratorMeta's instance then
+	[
+		Reject parse, expected:
+			"function parameter type ("
+			++ “implementationType[1]”
+			++ ") to be a subtype of the iterator type ("
+			++ “iteratorMeta's instance”
+			++ ")"
+	];
+	⊤
+];
+
+/**
+ * An exhausted iterator has ⊥ as its element type.
+ */
+Public explicit class "exhausted iterator" extends iterator
+	with fields
+		element type : ⊥'s type;
+
+/**
+ * Answer `true`.
+ * 
+ * Parameters:
+ *    anIterator - An exhausted iterator.
+ * Returns:
+ *    `true`.
+ */
+Method "_is exhausted" is
+[
+	anIterator : exhausted iterator
+|
+	true
+] : true's type;
+
+/**
+ * Raise an `exhausted-iterator exception`.
+ * 
+ * Parameters:
+ *    anIterator - An exhausted iterator.
+ */
+Method "_s⁇current element" is
+[
+	anIterator : exhausted iterator
+|
+	Raise an exhausted-iterator exception
+] : ⊥;
+
+Semantic restriction "_s⁇current element" is
+[
+	iteratorType : exhausted iterator's type
+|
+	Reject parse, expected:
+		"an exhausted iterator not to be asked for its current element"
+];
+
+/**
+ * Raise an `exhausted-iterator exception`.
+ * 
+ * Parameters:
+ *    anIterator - An exhausted iterator.
+ */
+Method "Advance_" is
+[
+	anIterator : exhausted iterator
+|
+	Raise an exhausted-iterator exception
+] : ⊥;
+
+Semantic restriction "Advance_" is
+[
+	iteratorType : exhausted iterator's type
+|
+	Reject parse, expected:
+		"an exhausted iterator not to be asked to advance"
+];
+
+theExhaustedIterator ::= an exhausted iterator with element type := ⊥;
+
+/**
+ * Answer an exhausted iterator.
+ *
+ * Returns:
+ *    An exhausted iterator.
+ */
+Public method "an exhausted iterator" is [ theExhaustedIterator ];
+
+/* Seal the public operations. */
+Seal method "_is exhausted" at <exhausted iterator>;
+Seal method "_'s⁇current element" at <iterator>;
+Seal method "Advance_" at <iterator>;
+
+/**
+ * Iteratively apply `action` to each consecutive element of `anIterator`.
+ * 
+ * Parameters:
+ *    anIterator - An iterator.
+ *    action - A function that accepts the elements of the iterator.
+ */
+Method "For each_do_" is
+[
+	anIterator : iterator,
+	action : [⊥]→⊤
+|
+	Until [ anIterator is exhausted ]
+	do
+	[
+		Invoke action with <anIterator's current element>;
+		Advance anIterator;
+	];
+] : ⊤;
+
+/**
+ * Helper method for semantic restrictions: If `action` does not accept the
+ * element type of `iteratorType`, then reject the current parse.
+ * 
+ * Parameters:
+ *    action - A function type whose sole parameter must correspond to the
+ *       element type of `iteratorType`.
+ *    iteratorType - An iterator type.
+ */
+Method "Require:_accepts_" is
+[
+	actionType : [⊥]→⊤'s type,
+	iteratorType : iterator's type
+|
+	elementType ::= iteratorType's element type's instance;
+	If actionType[1] ≠ ⊥ ∧ [ ¬elementType ⊆ actionType[1] ] then
+	[
+		Reject parse, expected:
+			format
+				"repeatedly applied function to accept all elements ∈ ‘①’ \
+				\|of the iterator (but it only accepts ‘②’)"
+			with elementType, actionType[1]
+	];
+] : ⊤;
+
+Semantic restriction "For each_do_" is
+[
+	iteratorType : iterator's type,
+	actionType : [⊥]→⊤'s type
+|
+	Require: actionType accepts iteratorType;
+	⊤
+];

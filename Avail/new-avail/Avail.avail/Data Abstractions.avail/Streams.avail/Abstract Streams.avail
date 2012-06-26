@@ -74,6 +74,8 @@ Body
 
 /* TODO: [TLS] Remove these constants once a macro is available for "$…". */
 elementType ::= $"element type";
+privateHeadName ::= $"private_'s⁇head";
+privateTailName ::= $"private_'s⁇tail";
 decoratedStream ::= $"decorated stream|streams";
 transformer ::= $"transformer";
 filter ::= $"filter";
@@ -115,7 +117,7 @@ Public explicit class "stream" extends object
  * Construct and answer a stream type that answers values of the specified type.
  * 
  * Parameters:
- *    elementType - The type of value produced by the desired stream type.
+ *    elementType - The type of value produced by streams of the answered type.
  * Returns:
  *    The requested stream type.
  */
@@ -141,9 +143,6 @@ Public explicit class "empty-stream exception" extends exception;
  *    `true` if the argument is empty, `false` otherwise.
  */
 Abstract method "_is empty" is [stream]→boolean;
-
-/* Ensure that the private name is looked up in the current module's context. */
-privateHeadName ::= $"private_'s⁇head";
 
 /**
  * Answer the first element of the specified nonempty stream.
@@ -205,7 +204,7 @@ Public method "_'s⁇head method is_" is
 	implementation : [⊥]→any
 |
 	Private method privateHeadName is implementation;
-];
+] : ⊤;
 
 /**
  * Ensure that the implementation function accepts a stream.
@@ -213,7 +212,7 @@ Public method "_'s⁇head method is_" is
 Semantic restriction "_'s⁇head method is_" is
 [
 	streamMeta : stream's type's type,
-	implementationType : [stream]→any's type
+	implementationType : [⊥]→any's type
 |
 	If implementationType[1] = ⊥ then
 	[
@@ -231,9 +230,6 @@ Semantic restriction "_'s⁇head method is_" is
 	];
 	⊤
 ];
-
-/* Ensure that the private name is looked up in the current module's context. */
-privateTailName ::= $"private_'s⁇tail";
 
 /**
  * Construct and answer a stream that contains all but the first element of the
@@ -298,7 +294,7 @@ Public method "_'s⁇tail method is_" is
 	implementation : [⊥]→stream
 |
 	Private method privateTailName is implementation;
-];
+] : ⊤;
 
 /**
  * Ensure that the implementation function accepts a stream.

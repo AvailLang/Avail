@@ -1,5 +1,5 @@
 /*
- * Streams.avail
+ * Iterators.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,54 +30,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Streams"
+System Module "Iterators"
 Versions
 	"dev"
 Extends
-	"Abstract Streams" =
-	(
-		"For each_do_",
-		"an empty stream",
-		"concatenate_",
-		"drop from_until_",
-		"drop from_while_",
-		"drop_from_",
-		"element type",
-		"empty stream",
-		"empty-stream exception",
-		"filter_by_",
-		"map_through_",
-		"stream",
-		"stream of_",
-		"take from_until_",
-		"take from_while_",
-		"take_from_",
-		"zip_",
-		"_is empty",
-		"_starts with_",
-		"_'s⁇head",
-		"_'s⁇tail",
-		"«_‡zip»",
-		"«_‡++»",
-		"_'s⁇head method is_",
-		"_'s⁇tail method is_"
-	),
-	"Bounded Streams" =
-	(
-		"_limited to_elements"
-	),
-	"Collection Streams" =
-	(
-		"stream over_"
-	),
-	"Counting Streams" =
-	(
-		"counting stream from_to_",
-		"counting stream from_to_by_"
-	),
-	"Delimited Streams" =
-	(
-		"_delimited by_",
-		"_delimited by any of_"
-	)
+	"Abstract Iterators",
+	"Stream Iterators"
 Body

@@ -54,6 +54,20 @@ Names
 	"_is assigned"
 Body
 
+Semantic restriction "↓_" is
+[
+	varType : variable meta
+|
+	varType's read type
+];
+
+Semantic restriction "new↑_" is
+[
+	containmentMeta : any meta's type
+|
+	↑containmentMeta's instance
+];
+
 /**
  * Does the specified variable contain a value?
  *

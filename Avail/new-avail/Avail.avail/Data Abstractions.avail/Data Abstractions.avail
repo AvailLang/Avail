@@ -34,5 +34,6 @@ System Module "Data Abstractions"
 Versions
 	"dev"
 Extends
+	"Iterators",
 	"Streams"
 Body
