@@ -53,6 +53,8 @@ Uses
 Names
 	"all indices of_where_",
 	"distinct_",
+	"drop from_until_",
+	"drop from_while_",
 	"drop_from_",
 	"first index of_where_",
 	"flatten_",
@@ -62,6 +64,8 @@ Names
 	"split_after_",
 	"split_before_",
 	"stripe_at_",
+	"take from_until_",
+	"take from_while_",
 	"take_from_",
 	"zip_",
 	"∑_",
@@ -1797,6 +1801,134 @@ Semantic restriction "take_from_" is
 |
 	tuple type of tupleType[1's type..count]
 ];
+
+/**
+ * Answer a tuple containing the prefix of `aTuple` that answered `true` to
+ * `predicate`.
+ *
+ * Parameters:
+ *    aTuple - A tuple.
+ *    predicate - A function that can accept each element of the specified
+ *       tuple. It should answer `true` to keep the element (and continue
+ *       scanning) or `false` to abort.
+ * Returns:
+ *    A tuple containing the prefix of `aTuple` that satisfied `predicate`.
+ */
+Public method "take from_while_" is
+[
+	aTuple : tuple,
+	predicate : [⊥]→boolean
+|
+	firstIndex ::= first index of aTuple where
+		[value : any | ¬invoke predicate with <value>];
+	splitIndex ::=
+		if firstIndex = 0
+		then [ |aTuple| ]
+		else [ cast firstIndex - 1 into [ t : whole number | t ] ];
+	aTuple[1..splitIndex]
+] : tuple;
+
+/**
+ * Answer a semantic restriction suitable for use by the predicated-based
+ * take/drop methods.
+ *
+ * Returns:
+ *    The requested function.
+ */
+Private method "take|drop-while|until semantic restriction" is
+[
+	[
+		tupleType : tuple meta,
+		predicate : [⊥]→boolean's type
+	|
+		Require: predicate accepts tupleType;
+		<∪ tupleType[1..|tupleType's leading types| + 1]…|0..⎡tupleType⎤>
+	]
+];
+
+Semantic restriction "take from_while_" is take-while semantic restriction;
+
+/**
+ * Answer a tuple containing the prefix of `aTuple` that answered `false` to
+ * `predicate`.
+ *
+ * Parameters:
+ *    aTuple - A tuple.
+ *    predicate - A function that can accept each element of the specified
+ *       tuple. It should answer `false` to keep the element (and continue
+ *       scanning) or `true` to abort.
+ * Returns:
+ *    A tuple containing the prefix of `aTuple` that satisfied `predicate`.
+ */
+Public method "take from_until_" is
+[
+	aTuple : tuple,
+	predicate : [⊥]→boolean
+|
+	firstIndex ::= first index of aTuple where predicate;
+	splitIndex ::=
+		if firstIndex = 0
+		then [ |aTuple| ]
+		else [ cast firstIndex - 1 into [ t : whole number | t ] ];
+	aTuple[1..splitIndex]
+] : tuple;
+
+Semantic restriction "take from_until_" is take-until semantic restriction;
+
+/**
+ * Compute and answer the suffix of `aTuple` that begins with the element that
+ * answers `false` to `predicate`.
+ * 
+ * Parameters:
+ *    aTuple - A tuple.
+ *    predicate - A function that can accept each element of the specified
+ *       tuple. It should answer `true` to discard the element (and continue
+ *       scanning) or `false` to abort.
+ * Returns:
+ *    The requested suffix.
+ */
+Public method "drop from_while_" is
+[
+	aTuple : tuple,
+	predicate : [⊥]→boolean
+|
+	firstIndex ::= first index of aTuple where
+		[value : any | ¬invoke predicate with <value>];
+	splitIndex ::=
+		if firstIndex = 0
+		then [ |aTuple| + 1 ]
+		else [ cast firstIndex into [ t : natural number | t ] ];
+	aTuple[splitIndex..]
+] : tuple;
+
+Semantic restriction "drop from_while_" is drop-while semantic restriction;
+
+/**
+ * Compute and answer the suffix of `aTuple` that begins with the element that
+ * answers `true` to `predicate`.
+ * 
+ * Parameters:
+ *    aTuple - A tuple.
+ *    predicate - A function that can accept each element of the specified
+ *       tuple. It should answer `false` to discard the element (and continue
+ *       scanning) or `true` to abort.
+ * Returns:
+ *    The requested suffix.
+ */
+Public method "drop from_until_" is
+[
+	aTuple : tuple,
+	predicate : [⊥]→boolean
+|
+	firstIndex ::= first index of aTuple where predicate;
+	splitIndex ::=
+		if firstIndex = 0
+		then [ |aTuple| + 1 ]
+		else [ cast firstIndex into [ t : natural number | t ] ];
+	aTuple[splitIndex..]
+] : tuple;
+
+Semantic restriction "drop from_until_" is drop-until semantic restriction;
 
 /**
  * Answer a tuple containing every element of `aTuple` except for the first

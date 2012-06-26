@@ -37,10 +37,13 @@ Extends
 	"Foundation" =
 	(
 		"For each_do_",
-		"concatenate_",
+		"drop from_until_",
+		"drop from_while_",
 		"drop_from_",
 		"filter_by_",
 		"map_through_",
+		"take from_until_",
+		"take from_while_",
 		"take_from_",
 		"zip_",
 		"_is empty",
@@ -54,6 +57,7 @@ Uses
 	"Foundation"
 Names
 	"an empty stream",
+	"concatenate_",
 	"decorated stream|streams",
 	"element type",
 	"empty stream",
@@ -620,6 +624,9 @@ headed filtered stream's head method is
  * Which will require infinite computation after advancing beyond the element
  * `10`.
  *
+ * Also, filtered streams are slow in general (because they must rescan for each
+ * public operation). Consider using filtered iterators instead.
+ *
  * Parameters:
  *    aStream - The source stream.
  *    predicate - A function that accepts the elements of `aStream` and answer
@@ -699,7 +706,7 @@ concatenation stream's tail method is
  * Returns:
  *    The requested stream.
  */
-Stable method "concatenate_" is
+Method "concatenate_" is
 [
 	streams : <stream…|>
 |
@@ -715,7 +722,7 @@ Stable method "concatenate_" is
 			decorated streams := streams,
 			stream index := 1
 	]
-];
+] : stream;
 
 /**
  * Construct and answer a stream that produces values from the specified tuple
@@ -908,7 +915,81 @@ Semantic restriction "take_from_" is
 	count : whole number's type,
 	streamType : stream's type
 |
-	<<>, streamType's element type…|count>
+	<<>, streamType's element type's instance…|count>
+];
+
+/**
+ * Answer a tuple containing the prefix of `aStream` that answered `true` to
+ * `predicate`.
+ *
+ * Parameters:
+ *    aTuple - A tuple.
+ *    predicate - A function that can accept each element of the specified
+ *       stream. It should answer `true` to keep the element (and continue
+ *       scanning) or `false` to abort.
+ * Returns:
+ *    A tuple containing the prefix of `aStream` that satisfied `predicate`.
+ */
+Method "take from_while_" is
+[
+	aStream : stream,
+	predicate : [⊥]→boolean
+|
+	result : tuple := <>;
+	rest : stream := aStream;
+	While [ invoke predicate with <rest's head> ]
+	do
+	[
+		result := eject ↑result ++ <rest's head>;
+		rest := eject ↑rest's tail;
+	];
+	result
+] : tuple;
+
+Semantic restriction "take from_while_" is
+[
+	streamType : stream's type,
+	predicate : [⊥]→boolean's type
+|
+	Require: predicate accepts streamType;
+	<streamType's element type's instance…|>
+];
+
+/**
+ * Answer a tuple containing the prefix of `aStream` that answered `false` to
+ * `predicate`.
+ *
+ * Parameters:
+ *    aTuple - A tuple.
+ *    predicate - A function that can accept each element of the specified
+ *       stream. It should answer `false` to keep the element (and continue
+ *       scanning) or `true` to abort.
+ * Returns:
+ *    A tuple containing the prefix of `aStream` that satisfied `predicate`.
+ */
+Method "take from_until_" is
+[
+	aStream : stream,
+	predicate : [⊥]→boolean
+|
+	result : tuple := <>;
+	rest : stream := aStream;
+	Until [ invoke predicate with <rest's head> ]
+	do
+	[
+		result := eject ↑result ++ <rest's head>;
+		rest := eject ↑rest's tail;
+	];
+	result
+] : tuple;
+
+Semantic restriction "take from_until_" is
+[
+	streamType : stream's type,
+	predicate : [⊥]→boolean's type
+|
+	Require: predicate accepts streamType;
+	<streamType's element type's instance…|>
 ];
 
 /**
@@ -942,6 +1023,76 @@ Semantic restriction "drop_from_" is
 	streamType : stream's type
 |
 	streamType
+];
+
+/**
+ * Compute and answer the suffix of `aStream` that begins with the element that
+ * answers `false` to `predicate`.
+ * 
+ * Parameters:
+ *    aTuple - A tuple.
+ *    predicate - A function that can accept each element of the specified
+ *       stream. It should answer `true` to discard the element (and continue
+ *       scanning) or `false` to abort.
+ * Returns:
+ *    The requested suffix.
+ */
+Method "drop from_while_" is
+[
+	aStream : stream,
+	predicate : [⊥]→boolean
+|
+	rest : stream := aStream;
+	While [ invoke predicate with <rest's head> ]
+	do
+	[
+		rest := eject ↑rest's tail;
+	];
+	rest
+] : stream;
+
+Semantic restriction "drop from_while_" is
+[
+	streamType : stream's type,
+	predicate : [⊥]→boolean's type
+|
+	Require: predicate accepts streamType;
+	stream of (streamType's element type's instance)
+];
+
+/**
+ * Compute and answer the suffix of `aStream` that begins with the element that
+ * answers `true` to `predicate`.
+ * 
+ * Parameters:
+ *    aTuple - A tuple.
+ *    predicate - A function that can accept each element of the specified
+ *       stream. It should answer `false` to discard the element (and continue
+ *       scanning) or `true` to abort.
+ * Returns:
+ *    The requested suffix.
+ */
+Method "drop from_until_" is
+[
+	aStream : stream,
+	predicate : [⊥]→boolean
+|
+	rest : stream := aStream;
+	Until [ invoke predicate with <rest's head> ]
+	do
+	[
+		rest := eject ↑rest's tail;
+	];
+	rest
+] : stream;
+
+Semantic restriction "drop from_until_" is
+[
+	streamType : stream's type,
+	predicate : [⊥]→boolean's type
+|
+	Require: predicate accepts streamType;
+	stream of (streamType's element type's instance)
 ];
 
 /**

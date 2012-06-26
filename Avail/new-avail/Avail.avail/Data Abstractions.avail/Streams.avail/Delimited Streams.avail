@@ -135,7 +135,7 @@ Semantic restriction "_delimited by_" is
 	delimiterType : tuple's type
 |
 	extend delimited stream with
-		element type : <streamType's instance's element type…|>'s type,
+		element type : <streamType's element type's instance…|>'s type,
 		decorated stream : streamType,
 		delimiter : delimiterType
 ];

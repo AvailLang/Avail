@@ -166,7 +166,7 @@ Semantic restriction "For each_do_" is
  * Returns:
  *    The requested stream.
  */
-Public stable method "counting stream from_to_" is
+Public method "counting stream from_to_" is
 [
 	start : integer,
 	end : extended integer
@@ -183,9 +183,10 @@ Semantic restriction "counting stream from_to_" is
 	startType : integer's type,
 	endType : extended integer's type
 |
+	elementType ::= (⎣startType⎦ - 1..⎡endType⎤ + 1);
 	extend counting integer stream with
-		element type : (⎣startType⎦ - 1..⎡endType⎤ + 1)'s type,
-		next : startType,
+		element type : elementType's type,
+		next : elementType,
 		step : 1's type,
 		maximum : endType
 ];
@@ -215,7 +216,7 @@ Semantic restriction "counting stream from_to_" is
  * Returns:
  *    The requested stream.
  */
-Public stable method "counting stream from_to_by_" is
+Public method "counting stream from_to_by_" is
 [
 	start : number,
 	end : number,
@@ -258,7 +259,7 @@ Semantic restriction "counting stream from_to_by_" is
 		];
 	extend counting number stream with
 		element type : elementType's type,
-		next : startType,
+		next : elementType,
 		step : deltaType,
 		maximum : endType
 ];
@@ -288,7 +289,7 @@ Semantic restriction "counting stream from_to_by_" is
  * Returns:
  *    The requested stream.
  */
-Public stable method "counting stream from_to_by_" is
+Public method "counting stream from_to_by_" is
 [
 	start : integer,
 	end : number,
@@ -308,8 +309,9 @@ Semantic restriction "counting stream from_to_by_" is
 	endType : extended integer's type,
 	deltaType : integer's type
 |
+	elementType ::= (⎣startType⎦ - 1..⎡endType⎤ + 1);
 	extend counting integer stream with
-		element type : (⎣startType⎦ - 1..⎡endType⎤ + 1)'s type,
+		element type : elementType's type,
 		next : startType,
 		step : deltaType,
 		maximum : endType
