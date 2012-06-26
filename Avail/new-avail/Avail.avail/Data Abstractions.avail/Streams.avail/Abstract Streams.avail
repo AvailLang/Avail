@@ -544,15 +544,15 @@ Method "_is empty" is
 	aStream : filtered stream
 |
 	found : boolean := false;
-	remainder : stream := aStream's decorated stream;
-	Until [ found ∨ [ remainder is empty ] ]
+	rest : stream := aStream's decorated stream;
+	Until [ found ∨ [ rest is empty ] ]
 	do
 	[
-		If invoke aStream's filter with <remainder's head> then
+		If invoke aStream's filter with <rest's head> then
 		[
 			found := true;
 		];
-		remainder := eject ↑remainder's tail;
+		rest := eject ↑rest's tail;
 	];
 	¬found
 ] : boolean;
@@ -563,7 +563,7 @@ filtered stream's head method is
 |
 	/* There is guaranteed to be a satisfactory element remaining. */
 	rest : stream := aStream's decorated stream;
-	Until [ rest is empty ∨ [ invoke aStream's filter with <rest's head> ] ]
+	Until [ invoke aStream's filter with <rest's head> ]
 	do
 	[
 		rest := eject ↑rest's tail;
@@ -578,18 +578,26 @@ filtered stream's tail method is
 [
 	aStream : filtered stream
 |
-	/* Find a satisfactory element. */
-	rest : stream := aStream's decorated stream's tail;
-	Until [ rest is empty ∨ [ invoke aStream's filter with <rest's head> ] ]
+	/* There is guaranteed to be a satisfactory element remaining. */
+	rest : stream := aStream's decorated stream;
+	Until [ invoke aStream's filter with <rest's head> ]
 	do
 	[
 		rest := eject ↑rest's tail;
 	];
-	a headed filtered stream with
-		element type := aStream's element type,
-		decorated stream := rest,
-		filter := aStream's filter
-] : headed filtered stream;
+	rest := eject ↑rest's tail;
+	If rest is empty then [ an empty stream ]
+	else
+	[
+		streamType ::= if invoke aStream's filter with <rest's head>
+			then [ headed filtered stream]
+			else [ filtered stream ];
+		a streamType with
+			element type := aStream's element type,
+			decorated stream := rest,
+			filter := aStream's filter
+	]
+] : stream;
 
 headed filtered stream's head method is
 [
