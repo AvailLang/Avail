@@ -63,9 +63,11 @@ Public class "method document" extends document
 		$returns : return document,
 		$parameters : <parameter document…|>,
 		$moduleName : string,
-		$hasSemanticRestriction : boolean,
-		$semanticRestrictionModules : <string…|>,
-		$section : string;
+		reconstructible $hasSemanticRestriction : boolean,
+		reconstructible $semanticRestrictionModules : <string…|>,
+		reconstructible $section : string
+	with reconstructors
+		(parameters, returns);
 
 
 /**

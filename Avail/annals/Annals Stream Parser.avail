@@ -1,0 +1,165 @@
+/*
+ * Annals Stream Parser.avail
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Annals Stream Parser"
+Versions
+	"Dev"
+Extends
+
+Uses
+	"Avail",
+	"Annals Class Definitions"
+Names
+/* TODO: Exports */
+Body
+
+z ::= "/**
+ * Iteratively apply `action` to each consecutive element of `aTuple`.
+ * 
+ * Parameters:
+ *    aTuple - A tuple.
+ *    action - A function that accepts the elements of the tuple.
+ * Returns:
+ *    ⊤.
+ */
+Method \"For each_do_\" is
+[
+	aTuple : tuple,
+	action : [⊥]→⊤
+|
+	index : natural number := 1;
+	end ::= |aTuple|;
+	[
+		$loop;
+		If index ≤ end then
+		[
+			Invoke action with <aTuple[index]>;
+			↑index++;
+			Restart loop
+		];
+	]();
+] : ⊤;
+
+/**
+ * Construct and answer a stream type that answers values of the specified type.
+ * 
+ * Parameters:
+ *    elementType - The type of value produced by the desired stream type.
+ * Returns:
+ *    The requested stream type.
+ */
+Public method \"stream of_\" is
+[
+	elementType : any's type
+|
+	extend stream with element type : elementType's type
+] : stream's type;";
+
+q ::= stream over z delimited by "/**\n";
+methodTexts : <string…|> := <>;
+For each q do 
+[
+	s : string
+ |
+ 	asterisk : boolean := false;
+ 	str : string := concatenate map s through 
+	[
+		c : character
+	|
+		if c = ¢"\t" /*∨ [c = ¢"\n"]*/
+			then [
+				asterisk := false;
+				""
+			] else if [c = ¢"*"] 
+			then [
+				asterisk := true;
+				""
+			]
+			else [
+				if asterisk = true then [
+					if c = ¢"/" then [ 
+						asterisk := false;
+						""
+					] else [
+						asterisk := false;
+						<c>
+					]
+				] else [
+					<c>
+				]
+			]
+ 	];
+ 	If ¬str is empty then [
+ 		methodTexts := methodTexts ++ <str>;
+ 	];
+];
+
+parsed1MethodTexts : <<string…|>…|> := <>;
+
+For each methodTexts do 
+[
+ 	str : string
+ |
+ 	temp : <string…|> := <>;
+ 	f ::= stream over str delimited by any of 
+ 	<"Parameters:", "Returns:", "Method \"","Public method \"",
+ 	 "\" is", "]:", "] : ">;
+ 	 For each f do
+ 	[ value : string | temp := temp ++ <value>;];
+	parsed1MethodTexts := parsed1MethodTexts ++ <temp>;
+];
+
+For each parsed1MethodTexts do
+[
+ 	tupleOfStrings : <string…|>
+ | 
+ 	topDescription ::= tupleOfStrings[1];
+ 	returnDescription ::= tupleOfStrings[3];
+ 	methodName ::= tupleOfStrings[4];
+ 	returnType ::= tupleOfStrings[6];
+ 	
+ 	Print: "Method Name: " ++ methodName ++ "\n";
+ 	Print: "Main Description: " ++ topDescription ++ "\n";
+ 	Print: "Return Type: " ++ returnType ++ "\n";
+ 	Print: "Return Description: " ++ returnDescription ++ "\n";
+ 	
+ 	/*TODO: [RAA]  
+ 	 * 1) Parse the parameter descriptions from tupleOfStrings[2]
+ 	 * 2) Parse the parameter variable names and types from tupleOfStrings[5]
+ 	 */
+];
+/*
+ *  	 For each f do
+ 	[ value : string | Print: value ++ "\n\n";];
+ 	Print: "---------------\n\n";
+ *
+Print: format "parsed1MethodTexts=‘①’\n" with parsed1MethodTexts;*/
