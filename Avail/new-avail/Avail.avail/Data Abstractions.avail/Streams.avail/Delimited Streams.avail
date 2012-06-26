@@ -37,22 +37,24 @@ Uses
 	"Abstract Streams",
 	"Foundation"
 Names
-	"_delimited by_"
+	"_delimited by_",
+	"_delimited by any of_"
 Body
 
 /* TODO: [TLS] Remove these constants once a macro is available for "$…". */
-delimiter ::= $delimiter;
+_delimiter ::= $"delimiter|delimiters";
+
+Private method "delimiter|delimiters" is [ _delimiter ];
 
 /**
  * A delimited stream answers tuples of elements from its decorated stream.
- * These tuples are separated by occurrences of the delimiter, itself a nonempty
- * tuple.
+ * These tuples are separated by occurrences of the delimiter.
  */
 Class "delimited stream" extends stream
 	with fields
 		element type : tuple's type,
 		reconstructible decorated stream : stream,
-		delimiter : tuple;
+		_delimiter : tuple;
 
 Method "_is empty" is
 [
@@ -138,4 +140,96 @@ Semantic restriction "_delimited by_" is
 		element type : <streamType's element type's instance…|>'s type,
 		decorated stream : streamType,
 		delimiter : delimiterType
+];
+
+/**
+ * A delimited stream answers tuples of elements from its decorated stream.
+ * These tuples are separated by occurrences of any delimiter.
+ */
+Explicit class "multiply delimited stream" extends delimited stream
+	with fields
+		delimiters : <<any…|1..>…|1..>;
+
+multiply delimited stream's head method is
+[
+	aStream : multiply delimited stream
+|
+	head : tuple := <>;
+	rest : stream := aStream's decorated stream;
+	Until
+	[
+		rest is empty ∨ [ any of aStream's delimiters satisfies
+			[ delimiter : tuple | rest starts with delimiter ] ]
+	]
+	do
+	[
+		head := eject ↑head ++ <rest's head>;
+		rest := eject ↑rest's tail;
+	];
+	head
+] : tuple;
+
+multiply delimited stream's tail method is
+[
+	aStream : multiply delimited stream
+|
+	rest : stream := aStream's decorated stream;
+	theDelimiter : tuple;
+	Until
+	[
+		if rest is empty then [ true ]
+		else
+		[
+			index ::= first index of aStream's delimiters where
+				[ delimiter : tuple | rest starts with delimiter ];
+			If index ≠ 0 then
+			[
+				nonzero ::= cast index into [ t : natural number | t ];
+				theDelimiter := aStream's delimiters[nonzero];
+			];
+			↑theDelimiter is assigned
+		]
+	]
+	do
+	[
+		rest := eject ↑rest's tail;
+	];
+	If ¬rest is empty then
+	[
+		rest := drop |theDelimiter| from eject ↑rest;
+	];
+	aStream's decorated stream := rest
+] : multiply delimited stream;
+
+/**
+ * Construct and answer a stream that produces tuples of values from `aStream`.
+ * These tuples are separated by occurrences of `delimiterTuple` (which will
+ * never be produced as output from the answered stream).
+ * 
+ * Parameters:
+ *    aStream - A stream.
+ *    delimiterTuple - The delimiter.
+ * Returns:
+ *    The requested stream.
+ */
+Public method "_delimited by any of_" is
+[
+	aStream : stream,
+	delimitersTuple : <<any…|1..>…|1..>
+|
+	a multiply delimited stream with
+		element type := <aStream's element type…|>,
+		decorated stream := aStream,
+		delimiters := delimitersTuple
+] : stream of tuple;
+
+Semantic restriction "_delimited by any of_" is
+[
+	streamType : stream's type,
+	delimitersType : <<any…|1..>…|1..>'s type
+|
+	extend multiply delimited stream with
+		element type : <streamType's element type's instance…|>'s type,
+		decorated stream : streamType,
+		delimiters : delimitersType
 ];
