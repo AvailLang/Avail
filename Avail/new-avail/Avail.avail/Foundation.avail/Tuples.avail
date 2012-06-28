@@ -1196,22 +1196,21 @@ Semantic restriction "last index of_where_" is
 	
 	
 /**
- * Compute and answer the index of the last element of `aTuple` that satisfies
+ * Compute and answer the indices of all the elements of `aTuple` that satisfies
  * the specified predicate.
  * 
  * Parameters:
  *    aTuple - A tuple.
  *    predicate - A function that accepts the elements of the tuple.
  * Returns:
- *    The index of the last satisfactory element, or 0 if no element satisfied
- *    the predicate.
+ *    The indices of all the satisfactory elements of the predicate.
  */
 Public method "all indices of_where_" is
 [
 	aTuple : tuple,
 	predicate : [⊥]→boolean
 |
-	indices : <whole number…|0..∞> := <>;
+	indices : <natural number…|0..∞> := <>;
 	From 1 to |aTuple| by 1 do
 	[
 		index : natural number
@@ -1222,24 +1221,24 @@ Public method "all indices of_where_" is
 		];
 	];
 	indices
-] : <whole number…|0..∞>;
+] : <natural number…|0..∞>;
 
 /**
  * Ensure that the function will accept all elements of the tuple.
  * 
  * Parameters:
- *    tupleType -
- *    predicate -
+ *    tupleType - the type of the input tuple
+ *    predicateType - the type of the predicate input
  * Returns:
- *    `[0..⎡tupleType⎤ + 1)`.
+ *    The most specific tuple type.
  */
 Semantic restriction "all indices of_where_" is
 [
 	tupleType : tuple meta,
-	predicate : [⊥]→boolean's type
+	predicateType : [⊥]→boolean's type
 |
-	Require: predicate accepts tupleType;
-	<whole number…|0..⎡tupleType⎤ + 1>
+	Require: predicateType accepts tupleType;
+	<natural number…|0..⎡tupleType⎤ + 1>
 ];
 
 /**
