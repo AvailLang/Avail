@@ -1239,7 +1239,7 @@ Semantic restriction "all indices of_where_" is
 	predicate : [⊥]→boolean's type
 |
 	Require: predicate accepts tupleType;
-	[0..⎡tupleType⎤ + 1)
+	<whole number…|0..⎡tupleType⎤ + 1>
 ];
 
 /**
