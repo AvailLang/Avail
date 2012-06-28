@@ -55,7 +55,7 @@ extends Primitive
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final @NotNull static Primitive instance =
-		new P_262_ResetStandardInputStream().init(0, Unknown);
+		new P_262_ResetStandardInputStream().init(0, CanInline);
 
 	@Override
 	public @NotNull Result attempt (

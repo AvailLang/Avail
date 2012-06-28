@@ -67,6 +67,7 @@ public class P_252_ForwardMethodDeclaration extends Primitive
 			interpreter.addForwardStub(
 				interpreter.lookupName(string),
 				blockSignature);
+			interpreter.fixupForPotentiallyInvalidCurrentChunk();
 		}
 		catch (final AmbiguousNameException e)
 		{

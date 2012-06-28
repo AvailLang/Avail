@@ -75,7 +75,8 @@ public class L2_INVOKE extends L2Operation
 		final AvailObject function = interpreter.pointerAt(functionIndex);
 		final AvailObject vect = interpreter.vectorAt(argumentsIndex);
 		interpreter.argsBuffer.clear();
-		for (int i = 1; i <= vect.tupleSize(); i++)
+		final int vectSize = vect.tupleSize();
+		for (int i = 1; i <= vectSize; i++)
 		{
 			interpreter.argsBuffer.add(
 				interpreter.pointerAt(vect.tupleIntAt(i)));

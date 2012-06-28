@@ -70,6 +70,7 @@ extends Primitive
 				atom,
 				blockSignature,
 				atom.issuingModule().equals(interpreter.module()));
+			interpreter.fixupForPotentiallyInvalidCurrentChunk();
 		}
 		catch (final SignatureException e)
 		{

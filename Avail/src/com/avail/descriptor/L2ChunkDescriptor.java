@@ -506,8 +506,7 @@ extends Descriptor
 	 */
 	public static int countdownForNewCode ()
 	{
-		// TODO: [MvG] Set this back to 10, then fix L2 translation!
-		return Integer.MAX_VALUE;
+		return 10;
 	}
 
 	/**

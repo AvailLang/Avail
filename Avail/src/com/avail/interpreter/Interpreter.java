@@ -1117,6 +1117,12 @@ public abstract class Interpreter
 		AvailObject continuation);
 
 	/**
+	 * Deal with the possibility that the current continuation may have just
+	 * been invalidated by invoking a primitive.
+	 */
+	public abstract void fixupForPotentiallyInvalidCurrentChunk ();
+
+	/**
 	 * Prepare to restart the given continuation.  Its new arguments, if any,
 	 * have already been supplied, and all other data has been wiped.  Do not
 	 * tally this as an invocation of the method.

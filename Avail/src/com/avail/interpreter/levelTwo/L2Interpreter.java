@@ -674,6 +674,12 @@ extends Interpreter
 	}
 
 	@Override
+	public void fixupForPotentiallyInvalidCurrentChunk ()
+	{
+		prepareToResumeContinuation(pointerAt(CALLER));
+	}
+
+	@Override
 	public void prepareToRestartContinuation (
 		final AvailObject continuationToRestart)
 	{
@@ -755,9 +761,12 @@ extends Interpreter
 						handler.kind().argsTupleType().typeAtIndex(1)))
 					{
 						prepareToResumeContinuation(continuation);
-						return invokeFunctionArguments(
+						invokeFunctionArguments(
 							handler,
 							Collections.singletonList(exceptionValue));
+						// Catching an exception *always* changes the
+						// continuation.
+						return CONTINUATION_CHANGED;
 					}
 				}
 			}
@@ -865,10 +874,8 @@ extends Interpreter
 				case SUSPENDED:
 					return;
 				case SUCCESS:
-					// The caller may have changed, so grab the caller again.
-					final AvailObject currentCaller = pointerAt(CALLER);
-					final AvailObject updatedCaller =
-						currentCaller.ensureMutable();
+					assert chunk.isValid();
+					final AvailObject updatedCaller = caller.ensureMutable();
 					final int stackp = updatedCaller.stackp();
 					final AvailObject expectedType =
 						updatedCaller.stackAt(stackp);
@@ -965,7 +972,7 @@ extends Interpreter
 					depth,
 					chunk.index(),
 					offset,
-					operation);
+					operation.name());
 			}
 			operation.step(this);
 		}

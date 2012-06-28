@@ -74,6 +74,10 @@ public class P_249_SimpleMacroDeclaration extends Primitive
 		{
 			interpreter.addMacroBody(
 				interpreter.lookupName(string), block);
+			// Even though a macro is always monomorphic and therefore
+			// effectively permanent (and probably unlikely to ever be inlined),
+			// we may as well do the fixup call here.  Designs change.
+			interpreter.fixupForPotentiallyInvalidCurrentChunk();
 		}
 		catch (final AmbiguousNameException e)
 		{

@@ -65,6 +65,7 @@ public class P_253_SimpleMethodDeclaration extends Primitive
 				interpreter.lookupName(string),
 				block,
 				true);
+			interpreter.fixupForPotentiallyInvalidCurrentChunk();
 		}
 		catch (final AmbiguousNameException e)
 		{
