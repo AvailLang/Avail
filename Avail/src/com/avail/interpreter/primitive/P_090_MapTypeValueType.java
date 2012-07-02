@@ -31,7 +31,6 @@
  */
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.annotations.NotNull;
@@ -66,6 +65,6 @@ public class P_090_MapTypeValueType extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				MapTypeDescriptor.meta()),
-			InstanceTypeDescriptor.on(ANY.o()));
+			InstanceMetaDescriptor.anyMeta());
 	}
 }

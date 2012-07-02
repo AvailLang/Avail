@@ -600,7 +600,7 @@ extends TypeDescriptor
 			TupleDescriptor.empty(),
 			CHARACTER.o());
 		StringType.makeImmutable();
-		Meta = InstanceTypeDescriptor.on(MostGeneralType);
+		Meta = InstanceMetaDescriptor.on(MostGeneralType);
 		Meta.makeImmutable();
 	}
 
@@ -701,7 +701,7 @@ extends TypeDescriptor
 			typeTuple.tupleSize());
 		for (int i = 1; i <= limit; i++)
 		{
-			assert typeTuple.tupleAt(i).isInstanceOfKind(TYPE.o());
+			assert typeTuple.tupleAt(i).isType();
 		}
 		final AvailObject result = mutable().create();
 		result.setSlot(ObjectSlots.SIZE_RANGE, sizeRangeKind);

@@ -31,7 +31,6 @@
  */
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.annotations.NotNull;
@@ -72,8 +71,8 @@ public class P_034_CreateFunctionType extends Primitive
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 					IntegerRangeTypeDescriptor.wholeNumbers(),
 					TupleDescriptor.empty(),
-					InstanceTypeDescriptor.on(ANY.o())),
-				TYPE.o()),
+					InstanceMetaDescriptor.anyMeta()),
+				InstanceMetaDescriptor.topMeta()),
 			FunctionTypeDescriptor.meta());
 	}
 }

@@ -131,7 +131,7 @@ public class P_503_InvokePojoConstructor extends Primitive
 					IntegerRangeTypeDescriptor.wholeNumbers(),
 					TupleDescriptor.empty(),
 					RAW_POJO.o()),
-				InstanceTypeDescriptor.on(
+				InstanceMetaDescriptor.on(
 					PojoTypeDescriptor.mostGeneralType())),
 			PojoTypeDescriptor.mostGeneralType());
 	}

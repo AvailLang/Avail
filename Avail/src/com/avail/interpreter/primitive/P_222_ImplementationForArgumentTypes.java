@@ -99,7 +99,7 @@ extends Primitive
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 					IntegerRangeTypeDescriptor.wholeNumbers(),
 					TupleDescriptor.empty(),
-					InstanceTypeDescriptor.on(ANY.o()))),
+					InstanceMetaDescriptor.anyMeta())),
 			SIGNATURE.o());
 	}
 }

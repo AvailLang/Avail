@@ -86,7 +86,8 @@ extends Primitive
 		final AvailObject compiledCode;
 		try
 		{
-			final AvailCodeGenerator codeGenerator = new AvailCodeGenerator();
+			final AvailCodeGenerator codeGenerator = new AvailCodeGenerator(
+				interpreter.module());
 			compiledCode = block.generate(codeGenerator);
 		}
 		catch (final Exception e)
@@ -94,7 +95,8 @@ extends Primitive
 			return interpreter.primitiveFailure(E_BLOCK_COMPILATION_FAILED);
 		}
 		final AvailObject function = FunctionDescriptor.create(
-			compiledCode, TupleDescriptor.empty());
+			compiledCode,
+			TupleDescriptor.empty());
 		function.makeImmutable();
 		return interpreter.primitiveSuccess(function);
 	}

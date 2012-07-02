@@ -336,7 +336,7 @@ extends TypeDescriptor
 			ANY.o(),
 			ANY.o());
 		mostGeneralType.makeImmutable();
-		meta = InstanceTypeDescriptor.on(mostGeneralType);
+		meta = InstanceMetaDescriptor.on(mostGeneralType);
 		meta.makeImmutable();
 	}
 

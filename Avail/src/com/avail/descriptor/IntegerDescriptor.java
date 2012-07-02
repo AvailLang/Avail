@@ -1304,7 +1304,7 @@ extends ExtendedIntegerDescriptor
 		AvailObject output = canDestroy
 			? largerMutableOf(object, anInteger)
 			: null;
-		// Both integers are 32 bits. This is by far the most case case.
+		// Both integers are 32 bits. This is by far the most common case.
 		if (objectSize == 1 && anIntegerSize == 1)
 		{
 			final int result = object.rawSignedIntegerAt(1)
@@ -1353,7 +1353,7 @@ extends ExtendedIntegerDescriptor
 		AvailObject output = canDestroy
 			? largerMutableOf(object, anInteger)
 			: null;
-		// Both integers are 32 bits. This is by far the most case case.
+		// Both integers are 32 bits. This is by far the most common case.
 		if (objectSize == 1 && anIntegerSize == 1)
 		{
 			final int result = object.rawSignedIntegerAt(1)
@@ -1402,7 +1402,7 @@ extends ExtendedIntegerDescriptor
 		AvailObject output = canDestroy
 			? largerMutableOf(object, anInteger)
 			: null;
-		// Both integers are 32 bits. This is by far the most case case.
+		// Both integers are 32 bits. This is by far the most common case.
 		if (objectSize == 1 && anIntegerSize == 1)
 		{
 			final int result = object.rawSignedIntegerAt(1)

@@ -93,7 +93,9 @@ extends Descriptor
 	private static @NotNull AvailObject newVMCrashMethod ()
 	{
 		// Generate a function with linkage to primitive 256.
-		final L1InstructionWriter writer = new L1InstructionWriter();
+		final L1InstructionWriter writer = new L1InstructionWriter(
+			NullDescriptor.nullObject(),
+			0);
 		writer.primitiveNumber(P_256_EmergencyExit.instance.primitiveNumber);
 		writer.argumentTypes(ANY.o());
 		writer.returnType(BottomTypeDescriptor.bottom());
@@ -158,7 +160,9 @@ extends Descriptor
 	private static @NotNull AvailObject newVMFunctionApplyMethod ()
 	{
 		// Generate a function with linkage to primitive 40.
-		final L1InstructionWriter writer = new L1InstructionWriter();
+		final L1InstructionWriter writer = new L1InstructionWriter(
+			NullDescriptor.nullObject(),
+			0);
 		writer.primitiveNumber(
 			P_040_InvokeWithTuple.instance.primitiveNumber);
 		writer.argumentTypes(

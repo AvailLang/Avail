@@ -32,12 +32,13 @@
 
 package com.avail.interpreter.levelOne;
 
-import static com.avail.descriptor.TypeDescriptor.Types.TYPE;
 import java.io.ByteArrayOutputStream;
 import java.util.*;
+import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
+import com.avail.interpreter.levelTwo.L2InstructionWriter;
 
 /**
  * An instance of this class can be used to construct a {@linkplain
@@ -157,7 +158,7 @@ public class L1InstructionWriter
 	{
 		assert argumentTypes != null
 		: "Must declare argument types before allocating locals";
-		assert localType.isInstanceOfKind(TYPE.o());
+		assert localType.isInstanceOf(InstanceMetaDescriptor.topMeta());
 		localTypes.add(localType);
 		return localTypes.size() + argumentTypes.size();
 	}
@@ -204,6 +205,30 @@ public class L1InstructionWriter
 	}
 
 	/**
+	 * The module containing this code.
+	 */
+	final @NotNull AvailObject module;
+
+	/**
+	 * The line number at which this code starts.
+	 */
+	final int startingLineNumber;
+
+	/**
+	 * Create a new {@link L2InstructionWriter Level Two instruction writer}.
+	 *
+	 * @param module The module containing this code.
+	 * @param startingLineNumber Where this code starts in the module.
+	 */
+	public L1InstructionWriter (
+		final @NotNull AvailObject module,
+		final int startingLineNumber)
+	{
+		this.module = module;
+		this.startingLineNumber = startingLineNumber;
+	}
+
+	/**
 	 * The {@linkplain L1StackTracker mechanism} used to ensure the stack is
 	 * correctly balanced at the end and does not pop more than has been pushed.
 	 * It also records the maximum stack depth for correctly sizing {@linkplain
@@ -217,8 +242,6 @@ public class L1InstructionWriter
 			return literals.get(literalIndex - 1);
 		}
 	};
-
-
 
 	/**
 	 * Write a numerically encoded operand.  All operands are encoded the same
@@ -355,6 +378,8 @@ public class L1InstructionWriter
 			primitiveNumber,
 			TupleDescriptor.fromCollection(literals),
 			TupleDescriptor.fromCollection(localTypes),
-			TupleDescriptor.fromCollection(outerTypes));
+			TupleDescriptor.fromCollection(outerTypes),
+			module,
+			startingLineNumber);
 	}
 }

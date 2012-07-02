@@ -526,7 +526,7 @@ public final class BootstrapGenerator
 			}
 			final AvailObject type = parameterTypes.typeAtIndex(i);
 			final AvailObject paramType = forSemanticRestriction
-				? InstanceTypeDescriptor.on(type)
+				? InstanceMetaDescriptor.on(type)
 				: type;
 			final String typeName = specialObjectName(paramType);
 			builder.append('\t');

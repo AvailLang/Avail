@@ -225,8 +225,8 @@ public enum L2OperandType
 	 * registers}, each of which should be treated as being read as though it
 	 * were a {@link #READ_POINTER}.  The specified index identifies a tuple of
 	 * integers in the {@linkplain L2ChunkDescriptor chunk}'s {@linkplain
-	 * L2ChunkDescriptor.ObjectSlots#VECTORS vectors}.  Each integer in that
-	 * tuple is the index of an {@link L2ObjectRegister}.
+	 * com.avail.descriptor.L2ChunkDescriptor.ObjectSlots#VECTORS vectors}.
+	 * Each integer in that tuple is the index of an {@link L2ObjectRegister}.
 	 */
 	READ_VECTOR(true, false)
 	{
@@ -242,8 +242,8 @@ public enum L2OperandType
 	 * registers}, each of which should be treated as being written as though it
 	 * were a {@link #WRITE_POINTER}.  The specified index identifies a tuple of
 	 * integers in the {@linkplain L2ChunkDescriptor chunk}'s {@linkplain
-	 * L2ChunkDescriptor.ObjectSlots#VECTORS vectors}.  Each integer in that
-	 * tuple is the index of an {@link L2ObjectRegister}.
+	 * com.avail.descriptor.L2ChunkDescriptor.ObjectSlots#VECTORS vectors}.
+	 * Each integer in that tuple is the index of an {@link L2ObjectRegister}.
 	 */
 	WRITE_VECTOR(false, true)
 	{
@@ -259,7 +259,8 @@ public enum L2OperandType
 	 * registers}, each of which should be treated as being read and/or written
 	 * as though it were a {@link #READWRITE_POINTER}.  The specified index
 	 * identifies a tuple of integers in the {@linkplain L2ChunkDescriptor
-	 * chunk}'s {@linkplain L2ChunkDescriptor.ObjectSlots#VECTORS}.  Each
+	 * chunk}'s {@linkplain
+	 * com.avail.descriptor.L2ChunkDescriptor.ObjectSlots#VECTORS}.  Each
 	 * integer in that tuple is the index of an {@link L2ObjectRegister}.
 	 */
 	READWRITE_VECTOR(true, true)

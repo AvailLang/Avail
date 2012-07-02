@@ -190,7 +190,14 @@ Public method "Cast|cast_into_" is
 	]
 	else
 	[
-		Shouldn't happen
+		t : tuple := concatenate <
+			"Failed run-time cast: ",
+			(primitive description of value),
+			" was not an instance of ",
+			(primitive description of accept's type[1])>;
+		s : string;
+		↑s ?= t;
+		Assert: false (s)
 	];
 ] : ⊤;
 

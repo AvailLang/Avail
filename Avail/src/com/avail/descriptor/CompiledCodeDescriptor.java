@@ -35,7 +35,7 @@ package com.avail.descriptor;
 import java.util.List;
 import static com.avail.descriptor.CompiledCodeDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.CompiledCodeDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.AvailObject.Multiplier;
+import static com.avail.descriptor.TypeDescriptor.Types.MODULE;
 import com.avail.annotations.*;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.interpreter.Primitive;
@@ -482,6 +482,32 @@ extends Descriptor
 	}
 
 	/**
+	 * Answer the starting line number for this block of code.
+	 */
+	@Override @AvailMethod
+	int o_StartingLineNumber (
+		final @NotNull AvailObject object)
+	{
+		final AvailObject properties = object.slot(PROPERTY_ATOM);
+		final AvailObject lineInteger =
+			properties.getAtomProperty(lineNumberKeyAtom);
+		return lineInteger.equalsNull()
+			? 0
+			: lineInteger.extractInt();
+	}
+
+	/**
+	 * Answer the module in which this code occurs.
+	 */
+	@Override @AvailMethod
+	@NotNull AvailObject o_Module (
+		final @NotNull AvailObject object)
+	{
+		final AvailObject properties = object.slot(PROPERTY_ATOM);
+		return properties.issuingModule();
+	}
+
+	/**
 	 * The object was just scanned, and its pointers converted into valid
 	 * ToSpace pointers.  Do any follow-up activities specific to the kind of
 	 * object it is.
@@ -511,12 +537,54 @@ extends Descriptor
 		}
 	}
 
-	@Override
-	@AvailMethod @ThreadSafe
+	@Override @AvailMethod @ThreadSafe
 	@NotNull SerializerOperation o_SerializerOperation(
 		final @NotNull AvailObject object)
 	{
 		return SerializerOperation.COMPILED_CODE;
+	}
+
+	@Override @AvailMethod
+	@NotNull void o_SetMethodName (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject methodName)
+	{
+		final AvailObject propertyAtom = object.slot(PROPERTY_ATOM);
+		propertyAtom.setAtomProperty(methodNameKeyAtom, methodName);
+		// Now scan all sub-blocks.  Some literals will be functions and some
+		// will be compiled code objects.
+		int counter = 1;
+		for (int i = 1, limit = object.numLiterals(); i <= limit; i++)
+		{
+			final AvailObject literal = object.literalAt(i);
+			final AvailObject subCode;
+			if (literal.isFunction())
+			{
+				subCode = literal.code();
+			}
+			else if (literal.isInstanceOf(
+				CompiledCodeTypeDescriptor.mostGeneralType()))
+			{
+				subCode = literal;
+			}
+			else
+			{
+				subCode = null;
+			}
+			if (subCode != null)
+			{
+				final String prefix = String.format(
+					"[#%d] of ",
+					counter);
+				counter++;
+				final AvailObject parts = TupleDescriptor.from(
+					StringDescriptor.from(prefix),
+					methodName);
+				final AvailObject newName =
+					parts.concatenateTuplesCanDestroy(true);
+				literal.code().setMethodName(newName);
+			}
+		}
 	}
 
 	@Override
@@ -555,6 +623,8 @@ extends Descriptor
 	 * @param literals A tuple of literals.
 	 * @param localTypes A tuple of types of local variables.
 	 * @param outerTypes A tuple of types of outer (captured) variables.
+	 * @param module The module in which the code occurs.
+	 * @param lineNumber The module line number on which this code starts.
 	 * @return The new compiled code object.
 	 */
 	public static AvailObject create (
@@ -565,7 +635,9 @@ extends Descriptor
 		final int primitive,
 		final @NotNull AvailObject literals,
 		final @NotNull AvailObject localTypes,
-		final @NotNull AvailObject outerTypes)
+		final @NotNull AvailObject outerTypes,
+		final @NotNull AvailObject module,
+		final int lineNumber)
 	{
 		if (primitive != 0)
 		{
@@ -591,6 +663,9 @@ extends Descriptor
 		assert 0 <= slotCount && slotCount <= 0xFFFF;
 		assert 0 <= outersSize && outersSize <= 0xFFFF;
 		assert 0 <= primitive && primitive <= 0xFFFF;
+
+		assert module.equalsNull() || module.isInstanceOf(MODULE.o());
+		assert lineNumber >= 0;
 
 		final AvailObject code = mutable().create(
 			literalsSize + outersSize + locals);
@@ -622,34 +697,56 @@ extends Descriptor
 		}
 		assert dest == literalsSize + outersSize + locals + 1;
 
-		// Compute the hash.
-		int hash = 0x0B085B25;
-		hash += code.objectSlotsCount() + nybbles.hash() ^ numArgs;
-		hash *= Multiplier;
-		hash += locals * 1237 + stack * 9131 + primitive * 1151;
-		hash ^= functionType.hash();
-		hash *= Multiplier;
-		for (int i = 1; i <= literalsSize; i++)
-		{
-			hash += literals.tupleAt(i).hash();
-			hash *= Multiplier;
-		}
-		for (int i = 1; i <= outersSize; i++)
-		{
-			hash ^= outerTypes.tupleAt(i).hash();
-			hash *= Multiplier;
-		}
-		hash += 0x052B580B;
-		for (int i = 1; i <= locals; ++ i)
-		{
-			hash -= localTypes.tupleAt(i).hash();
-			hash *= Multiplier;
-		}
-		hash ^= 0x01E37808;
+		final AvailObject propertyAtom = AtomWithPropertiesDescriptor.create(
+			TupleDescriptor.empty(),
+			module);
+		code.setSlot(PROPERTY_ATOM, propertyAtom);
+		propertyAtom.setAtomProperty(
+			lineNumberKeyAtom,
+			IntegerDescriptor.fromInt(lineNumber));
+		int hash = propertyAtom.hash();
+		hash ^= -0x3087B215;
 		code.setSlot(HASH, hash);
 		code.makeImmutable();
 		return code;
 	}
+
+	/**
+	 * The key used to track a method name associated with the code.  This
+	 * name is presented in stack traces.
+	 */
+	static AvailObject methodNameKeyAtom;
+
+	/**
+	 * The key used to track the first line number within the module on which
+	 * this code occurs.
+	 */
+	static AvailObject lineNumberKeyAtom;
+
+	/**
+	 * Create any statically known {@link AvailObject}s related to compiled
+	 * code.
+	 */
+	static void createWellKnownObjects ()
+	{
+		methodNameKeyAtom = AtomDescriptor.create(
+			StringDescriptor.from("code method name key"),
+			NullDescriptor.nullObject());
+		lineNumberKeyAtom = AtomDescriptor.create(
+			StringDescriptor.from("code line number key"),
+			NullDescriptor.nullObject());
+	}
+
+	/**
+	 * Release any statically known {@link AvailObject}s related to compiled
+	 * code.
+	 */
+	static void clearWellKnownObjects ()
+	{
+		methodNameKeyAtom = null;
+		lineNumberKeyAtom = null;
+	}
+
 
 	/**
 	 * Construct a new {@link CompiledCodeDescriptor}.

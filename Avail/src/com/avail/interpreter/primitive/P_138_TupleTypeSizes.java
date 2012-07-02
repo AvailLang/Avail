@@ -69,7 +69,7 @@ public class P_138_TupleTypeSizes extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				TupleTypeDescriptor.meta()),
-			InstanceTypeDescriptor.on(
+			InstanceMetaDescriptor.on(
 				IntegerRangeTypeDescriptor.wholeNumbers()));
 	}
 }

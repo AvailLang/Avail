@@ -69,7 +69,7 @@ public class P_088_MapTypeSizes extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				MapTypeDescriptor.meta()),
-			InstanceTypeDescriptor.on(
+			InstanceMetaDescriptor.on(
 				IntegerRangeTypeDescriptor.wholeNumbers()));
 	}
 }

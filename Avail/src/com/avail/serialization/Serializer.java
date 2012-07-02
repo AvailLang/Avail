@@ -57,6 +57,13 @@ public class Serializer
 		new HashMap<AvailObject, Integer>(1000);
 
 	/**
+	 * Special system {@link AtomDescriptor atoms} that aren't already in the
+	 * list of {@linkplain AvailRuntime#specialAtoms() special atoms}.
+	 */
+	static final Map<AvailObject, Integer> specialAtoms =
+		new HashMap<AvailObject, Integer>(100);
+
+	/**
 	 * This keeps track of all objects that have been encountered.  It's a map
 	 * from each {@link AvailObject} to the {@link SerializerInstruction} that
 	 * will be output for it at the appropriate time.
@@ -197,6 +204,25 @@ public class Serializer
 	}
 
 	/**
+	 * Look up the object.  If it is a {@linkplain AvailRuntime#specialAtoms()
+	 * special atom}, then answer which special atom it is, otherwise answer
+	 * -1.
+	 *
+	 * @param object The object to look up.
+	 * @return The object's zero-based index in {@code encounteredObjects}.
+	 */
+	static int indexOfSpecialAtom (
+		final @NotNull AvailObject object)
+	{
+		final Integer index = specialAtoms.get(object);
+		if (index == null)
+		{
+			return -1;
+		}
+		return index;
+	}
+
+	/**
 	 * Trace an object, ensuring that it and its subobjects will be written out
 	 * in the correct order during actual serialization.  Use the {@link
 	 * #workStack} rather than recursion to avoid Java stack overflow for deep
@@ -227,15 +253,23 @@ public class Serializer
 		else
 		{
 			// Build but don't yet emit the instruction.
-			final Integer specialIndex = specialObjects.get(object);
 			final SerializerOperation operation;
-			if (specialIndex != null)
+			final Integer specialObjectIndex = specialObjects.get(object);
+			if (specialObjectIndex != null)
 			{
 				operation = SerializerOperation.SPECIAL_OBJECT;
 			}
 			else
 			{
-				operation = object.serializerOperation();
+				final Integer specialAtomIndex = specialAtoms.get(object);
+				if (specialAtomIndex != null)
+				{
+					operation = SerializerOperation.SPECIAL_ATOM;
+				}
+				else
+				{
+					operation = object.serializerOperation();
+				}
 			}
 			instruction = new SerializerInstruction(
 				object,
@@ -295,13 +329,23 @@ public class Serializer
 	public static void createWellKnownObjects ()
 	{
 		// Build the inverse of AvailRuntime#specialObjects().
-		final List<AvailObject> list = AvailRuntime.specialObjects();
-		for (int i = 0; i < list.size(); i++)
+		final List<AvailObject> objectList = AvailRuntime.specialObjects();
+		for (int i = 0; i < objectList.size(); i++)
 		{
-			final AvailObject specialObject = list.get(i);
+			final AvailObject specialObject = objectList.get(i);
 			if (specialObject != null)
 			{
 				specialObjects.put(specialObject, i);
+			}
+		}
+		// And build the inverse of AvailRuntime#specialAtoms().
+		final List<AvailObject> atomList = AvailRuntime.specialAtoms();
+		for (int i = 0; i < atomList.size(); i++)
+		{
+			final AvailObject specialAtom = atomList.get(i);
+			if (specialAtom != null)
+			{
+				specialAtoms.put(specialAtom, i);
 			}
 		}
 	}
@@ -312,6 +356,7 @@ public class Serializer
 	public static void clearWellKnownObjects ()
 	{
 		specialObjects.clear();
+		specialAtoms.clear();
 	}
 
 

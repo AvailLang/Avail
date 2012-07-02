@@ -79,6 +79,5 @@ Assert addPrim(10,20) = 30;
 Assert addPrim(INF, -INF) = 1000;
 /* Run it enough times to become optimized. */
 From 1 to 100 do [x : integer |
-	Halt;
 	Assert addPrim(INF, -INF) = 1000;
 ];

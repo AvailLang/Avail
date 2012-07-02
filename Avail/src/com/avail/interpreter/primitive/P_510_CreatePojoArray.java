@@ -31,7 +31,6 @@
  */
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.lang.reflect.Array;
 import java.util.List;
@@ -79,7 +78,7 @@ public class P_510_CreatePojoArray extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				InstanceTypeDescriptor.on(ANY.o()),
+				InstanceMetaDescriptor.anyMeta(),
 				IntegerRangeTypeDescriptor.wholeNumbers()),
 			PojoTypeDescriptor.mostGeneralArrayType());
 	}

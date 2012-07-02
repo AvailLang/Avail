@@ -328,7 +328,7 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject anEnumerationType)
 	{
-		return TYPE.o().isSubtypeOf(object);
+		return InstanceMetaDescriptor.topMeta().isSubtypeOf(object);
 	}
 
 	@Override @AvailMethod
@@ -406,7 +406,6 @@ extends TypeDescriptor
 					case RAW_POJO:
 					case SIGNATURE:
 					case TOKEN:
-					case TYPE:
 						return super.o_MarshalToJava(object, ignoredClassHint);
 				}
 			}

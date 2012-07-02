@@ -33,7 +33,6 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.Multiplier;
-import static com.avail.descriptor.TypeDescriptor.Types.TYPE;
 import java.util.List;
 import com.avail.annotations.*;
 
@@ -311,11 +310,11 @@ extends AbstractEnumerationTypeDescriptor
 			// One more thing:  The special case of another being bottom should
 			// not be treated as being a meta for our purposes, even though
 			// bottom technically is a meta.
-			if (object.isSubtypeOf(TYPE.o())
-				&& another.isSubtypeOf(TYPE.o())
+			if (object.isSubtypeOf(InstanceMetaDescriptor.topMeta())
+				&& another.isSubtypeOf(InstanceMetaDescriptor.topMeta())
 				&& !another.equals(BottomTypeDescriptor.bottom()))
 			{
-				return InstanceTypeDescriptor.on(BottomTypeDescriptor.bottom());
+				return InstanceMetaDescriptor.on(BottomTypeDescriptor.bottom());
 			}
 		}
 		return AbstractEnumerationTypeDescriptor.withInstances(set);

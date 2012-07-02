@@ -32,7 +32,6 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.PARSE_NODE;
-import static com.avail.descriptor.TypeDescriptor.Types.TYPE;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.annotations.NotNull;
@@ -67,6 +66,6 @@ public class P_351_ParseNodeExpressionType extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				PARSE_NODE.mostGeneralType()),
-			TYPE.o());
+			InstanceMetaDescriptor.topMeta());
 	}
 }

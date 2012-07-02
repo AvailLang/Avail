@@ -31,7 +31,6 @@
  */
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
 import java.util.List;
@@ -78,6 +77,6 @@ public class P_036_ParamTypeAt extends Primitive
 			TupleDescriptor.from(
 				FunctionTypeDescriptor.meta(),
 				IntegerRangeTypeDescriptor.naturalNumbers()),
-			InstanceTypeDescriptor.on(ANY.o()));
+			InstanceMetaDescriptor.anyMeta());
 	}
 }

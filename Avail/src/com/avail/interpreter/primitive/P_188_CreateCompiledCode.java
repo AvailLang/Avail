@@ -31,7 +31,6 @@
  */
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.TYPE;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
@@ -95,7 +94,7 @@ public class P_188_CreateCompiledCode extends Primitive
 				false);
 		for (int i = 1; i < nLocals; i++)
 		{
-			if (!localTypes.tupleAt(i).isInstanceOfKind(TYPE.o()))
+			if (!localTypes.tupleAt(i).isType())
 			{
 				return interpreter.primitiveFailure(
 					E_LOCAL_TYPE_LITERAL_IS_NOT_A_TYPE);
@@ -109,7 +108,7 @@ public class P_188_CreateCompiledCode extends Primitive
 				false);
 		for (int i = 1; i < nOuters; i++)
 		{
-			if (!outerTypes.tupleAt(i).isInstanceOfKind(TYPE.o()))
+			if (!outerTypes.tupleAt(i).isType())
 			{
 				return interpreter.primitiveFailure(
 					E_OUTER_TYPE_LITERAL_IS_NOT_A_TYPE);
@@ -128,7 +127,9 @@ public class P_188_CreateCompiledCode extends Primitive
 					nLiteralsTotal - nLocals - nOuters,
 					false),
 				localTypes,
-				outerTypes));
+				outerTypes,
+				interpreter.module(),
+				0));
 	}
 
 	@Override

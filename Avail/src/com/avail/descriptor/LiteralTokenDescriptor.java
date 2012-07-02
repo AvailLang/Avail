@@ -135,7 +135,7 @@ extends TokenDescriptor
 	AvailObject o_Kind (final @NotNull AvailObject object)
 	{
 		return LiteralTokenTypeDescriptor.create(
-			InstanceTypeDescriptor.on(object));
+			AbstractEnumerationTypeDescriptor.withInstance(object));
 	}
 
 	@Override @AvailMethod

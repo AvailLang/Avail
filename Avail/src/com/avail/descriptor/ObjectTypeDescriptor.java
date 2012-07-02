@@ -598,9 +598,9 @@ extends TypeDescriptor
 	{
 		mostGeneralType = objectTypeFromMap(MapDescriptor.empty());
 		mostGeneralType.makeImmutable();
-		meta = InstanceTypeDescriptor.on(mostGeneralType);
+		meta = InstanceMetaDescriptor.on(mostGeneralType);
 		meta.makeImmutable();
-		exceptionAtom = AtomDescriptor.create(
+		exceptionAtom = AtomWithPropertiesDescriptor.create(
 			StringDescriptor.from("explicit-exception"),
 			NullDescriptor.nullObject());
 		exceptionType = objectTypeFromTuple(

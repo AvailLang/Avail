@@ -31,7 +31,6 @@
  */
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
 import java.lang.reflect.TypeVariable;
@@ -129,8 +128,8 @@ public class P_500_CreatePojoType extends Primitive
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 					IntegerRangeTypeDescriptor.wholeNumbers(),
 					TupleDescriptor.empty(),
-					InstanceTypeDescriptor.on(ANY.o()))),
-			InstanceTypeDescriptor.on(
+					InstanceMetaDescriptor.anyMeta())),
+			InstanceMetaDescriptor.on(
 				PojoTypeDescriptor.mostGeneralType()));
 	}
 }

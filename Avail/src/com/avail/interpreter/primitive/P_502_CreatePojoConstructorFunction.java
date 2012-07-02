@@ -119,7 +119,9 @@ public class P_502_CreatePojoConstructorFunction extends Primitive
 		// Create a function wrapper for the pojo constructor invocation
 		// primitive. This function will be embedded as a literal into
 		// an outer function that holds the (unexposed) constructor pojo.
-		L1InstructionWriter writer = new L1InstructionWriter();
+		L1InstructionWriter writer = new L1InstructionWriter(
+			NullDescriptor.nullObject(),
+			0);
 		writer.primitiveNumber(
 			P_503_InvokePojoConstructor.instance.primitiveNumber);
 		writer.argumentTypes(
@@ -129,7 +131,7 @@ public class P_502_CreatePojoConstructorFunction extends Primitive
 				IntegerRangeTypeDescriptor.wholeNumbers(),
 				TupleDescriptor.empty(),
 				RAW_POJO.o()),
-			InstanceTypeDescriptor.on(
+			InstanceMetaDescriptor.on(
 				PojoTypeDescriptor.mostGeneralType()));
 		writer.returnType(PojoTypeDescriptor.mostGeneralType());
 		writer.write(new L1Instruction(
@@ -151,7 +153,9 @@ public class P_502_CreatePojoConstructorFunction extends Primitive
 		// the constructor invocation primitive. Various objects that we do
 		// not want to expose to the Avail program are embedded in this
 		// function as literals.
-		writer = new L1InstructionWriter();
+		writer = new L1InstructionWriter(
+			NullDescriptor.nullObject(),
+			0);
 		writer.argumentTypesTuple(paramTypes);
 		writer.returnType(pojoType);
 		writer.write(new L1Instruction(
@@ -196,12 +200,12 @@ public class P_502_CreatePojoConstructorFunction extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				InstanceTypeDescriptor.on(
+				InstanceMetaDescriptor.on(
 					PojoTypeDescriptor.mostGeneralType()),
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 					IntegerRangeTypeDescriptor.wholeNumbers(),
 					TupleDescriptor.empty(),
-					InstanceTypeDescriptor.on(ANY.o())),
+					InstanceMetaDescriptor.anyMeta()),
 				FunctionTypeDescriptor.create(
 					TupleDescriptor.from(
 						PojoTypeDescriptor.forClass(Throwable.class)),

@@ -68,7 +68,7 @@ public class P_069_TypeNames extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				InstanceTypeDescriptor.on(
+				InstanceMetaDescriptor.on(
 					ObjectTypeDescriptor.mostGeneralType())),
 			SetTypeDescriptor.setTypeForSizesContentType(
 				IntegerRangeTypeDescriptor.wholeNumbers(),

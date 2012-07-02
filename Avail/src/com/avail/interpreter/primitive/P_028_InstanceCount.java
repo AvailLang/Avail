@@ -31,7 +31,6 @@
  */
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.TYPE;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.annotations.NotNull;
@@ -40,7 +39,7 @@ import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive 28:</strong> How many instances does the specified
- * {@linkplain com.avail.descriptor.TypeDescriptor.Types#TYPE type} have?
+ * {@linkplain InstanceMetaDescriptor#topMeta() type} have?
  */
 public class P_028_InstanceCount extends Primitive
 {
@@ -65,7 +64,7 @@ public class P_028_InstanceCount extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				TYPE.o()),
+				InstanceMetaDescriptor.topMeta()),
 			IntegerRangeTypeDescriptor.create(
 				IntegerDescriptor.zero(),
 				true,

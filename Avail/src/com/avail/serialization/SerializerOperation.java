@@ -463,10 +463,33 @@ public enum SerializerOperation
 	},
 
 	/**
+	 * One of the special atoms that the {@link AvailRuntime} maintains.
+	 */
+	SPECIAL_ATOM (18, COMPRESSED_SHORT.as("special atom number"))
+	{
+		@Override
+		@NotNull AvailObject[] decompose (
+			final @NotNull AvailObject object)
+		{
+			return array(
+				IntegerDescriptor.fromInt(
+					Serializer.indexOfSpecialAtom(object)));
+		}
+
+		@Override
+		AvailObject compose (
+			final @NotNull AvailObject[] subobjects,
+			final @NotNull Deserializer deserializer)
+		{
+			return deserializer.specialAtom(subobjects[0].extractInt());
+		}
+	},
+
+	/**
 	 * A {@linkplain CharacterDescriptor character} whose code point fits in an
 	 * unsigned byte (0..255).
 	 */
-	BYTE_CHARACTER (18, BYTE.as("Latin-1 code point"))
+	BYTE_CHARACTER (19, BYTE.as("Latin-1 code point"))
 	{
 		@Override
 		@NotNull AvailObject[] decompose (
@@ -490,7 +513,7 @@ public enum SerializerOperation
 	 * A {@linkplain CharacterDescriptor character} whose code point requires an
 	 * unsigned short (256..65535).
 	 */
-	SHORT_CHARACTER (19,
+	SHORT_CHARACTER (20,
 		UNCOMPRESSED_SHORT.as("BMP code point"))
 	{
 		@Override
@@ -515,7 +538,7 @@ public enum SerializerOperation
 	 * A {@linkplain CharacterDescriptor character} whose code point requires
 	 * three bytes to represent (0..16777215, but technically only 0..1114111).
 	 */
-	LARGE_CHARACTER (20,
+	LARGE_CHARACTER (21,
 		BYTE.as("SMP codepoint high byte"),
 		BYTE.as("SMP codepoint middle byte"),
 		BYTE.as("SMP codepoint low byte"))
@@ -547,7 +570,7 @@ public enum SerializerOperation
 	 * A {@linkplain CharacterDescriptor character} whose code point requires
 	 * three bytes to represent (0..16777215, but technically only 0..1114111).
 	 */
-	FLOAT (21, SIGNED_INT.as("raw bits"))
+	FLOAT (22, SIGNED_INT.as("raw bits"))
 	{
 		@Override
 		@NotNull AvailObject[] decompose (
@@ -574,7 +597,7 @@ public enum SerializerOperation
 	 * A {@linkplain DoubleDescriptor double}.  Convert the raw bits to a long
 	 * and write it in big endian.
 	 */
-	DOUBLE (22,
+	DOUBLE (23,
 		SIGNED_INT.as("upper raw bits"),
 		UNSIGNED_INT.as("lower raw bits"))
 	{
@@ -608,7 +631,7 @@ public enum SerializerOperation
 	 * A {@linkplain TupleDescriptor tuple} of arbitrary objects.  Write the
 	 * size of the tuple then the elements as object identifiers.
 	 */
-	GENERAL_TUPLE (23, TUPLE_OF_OBJECTS.as("tuple elements"))
+	GENERAL_TUPLE (24, TUPLE_OF_OBJECTS.as("tuple elements"))
 	{
 		@Override
 		@NotNull AvailObject[] decompose (
@@ -631,7 +654,7 @@ public enum SerializerOperation
 	 * the range 0..255}.  Write the size of the tuple then the sequence of
 	 * character bytes.
 	 */
-	BYTE_STRING(24,
+	BYTE_STRING(25,
 		BYTE_CHARACTER_TUPLE.as("Latin-1 string"))
 	{
 		@Override
@@ -655,7 +678,7 @@ public enum SerializerOperation
 	 * fall in the range 0..65535.  Write the compressed number of characters
 	 * then each compressed character.
 	 */
-	SHORT_STRING(25,
+	SHORT_STRING(26,
 		COMPRESSED_SHORT_CHARACTER_TUPLE.as("Basic Multilingual Plane string"))
 	{
 		@Override
@@ -679,7 +702,7 @@ public enum SerializerOperation
 	 * points.  Write the compressed number of characters then each compressed
 	 * character.
 	 */
-	ARBITRARY_STRING(26,
+	ARBITRARY_STRING(27,
 		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("arbitrary string"))
 	{
 		@Override
@@ -703,7 +726,7 @@ public enum SerializerOperation
 	 * fall in the range 0..65535.  Write the compressed number of characters
 	 * then each compressed character.
 	 */
-	BYTE_TUPLE(27, UNCOMPRESSED_BYTE_TUPLE.as("tuple of bytes"))
+	BYTE_TUPLE(28, UNCOMPRESSED_BYTE_TUPLE.as("tuple of bytes"))
 	{
 		@Override
 		@NotNull AvailObject[] decompose (
@@ -726,7 +749,7 @@ public enum SerializerOperation
 	 * fall in the range 0..65535.  Write the compressed number of characters
 	 * then each compressed character.
 	 */
-	NYBBLE_TUPLE(28, UNCOMPRESSED_NYBBLE_TUPLE.as("tuple of nybbles"))
+	NYBBLE_TUPLE(29, UNCOMPRESSED_NYBBLE_TUPLE.as("tuple of nybbles"))
 	{
 		@Override
 		@NotNull AvailObject[] decompose (
@@ -748,7 +771,7 @@ public enum SerializerOperation
 	 * A {@linkplain SetDescriptor set}.  Convert it to a tuple and work with
 	 * that, converting it back to a set when deserializing.
 	 */
-	SET(29, TUPLE_OF_OBJECTS.as("tuple of objects"))
+	SET(30, TUPLE_OF_OBJECTS.as("tuple of objects"))
 	{
 		@Override
 		AvailObject[] decompose (final @NotNull AvailObject object)
@@ -770,7 +793,7 @@ public enum SerializerOperation
 	 * ... key[N], value[N]) and work with that, converting it back to a map
 	 * when deserializing.
 	 */
-	MAP(30, GENERAL_MAP.as("map contents"))
+	MAP(31, GENERAL_MAP.as("map contents"))
 	{
 		@Override
 		AvailObject[] decompose (final @NotNull AvailObject object)
@@ -792,7 +815,7 @@ public enum SerializerOperation
 	 * ... key[N], value[N]) and work with that, converting it back to a map
 	 * when deserializing.
 	 */
-	OBJECT(31, GENERAL_MAP.as("field map"))
+	OBJECT(32, GENERAL_MAP.as("field map"))
 	{
 		@Override
 		AvailObject[] decompose (final @NotNull AvailObject object)
@@ -814,7 +837,7 @@ public enum SerializerOperation
 	 * ... key[N], value[N]) and work with that, converting it back to a map
 	 * when deserializing.
 	 */
-	OBJECT_TYPE(32, GENERAL_MAP.as("field type map"))
+	OBJECT_TYPE(33, GENERAL_MAP.as("field type map"))
 	{
 		@Override
 		AvailObject[] decompose (final @NotNull AvailObject object)
@@ -837,7 +860,7 @@ public enum SerializerOperation
 	 * reconstruction, recreating it if it's not present and supposed to have
 	 * been issued by the current module.
 	 */
-	ATOM(33,
+	ATOM(34,
 		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("atom name"),
 		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("module name"))
 	{
@@ -867,14 +890,16 @@ public enum SerializerOperation
 	 * A {@linkplain CompiledCodeDescriptor compiled code object}.  Output any
 	 * information needed to reconstruct the compiled code object.
 	 */
-	COMPILED_CODE (34,
+	COMPILED_CODE (35,
 		COMPRESSED_SHORT.as("Total number of frame slots"),
 		COMPRESSED_SHORT.as("Primitive number"),
 		OBJECT_REFERENCE.as("Function type"),
 		UNCOMPRESSED_NYBBLE_TUPLE.as("Level one nybblecodes"),
 		TUPLE_OF_OBJECTS.as("Regular literals"),
 		TUPLE_OF_OBJECTS.as("Local types"),
-		TUPLE_OF_OBJECTS.as("Outer types"))
+		TUPLE_OF_OBJECTS.as("Outer types"),
+		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("Module name"),
+		UNSIGNED_INT.as("Line number"))
 	{
 
 		@Override
@@ -902,6 +927,10 @@ public enum SerializerOperation
 			{
 				outerTypes.tupleAtPut(i, object.outerTypeAt(i));
 			}
+			final AvailObject module = object.module();
+			final AvailObject moduleName = module.equalsNull()
+				? TupleDescriptor.empty()
+				: module.name();
 			return array(
 				IntegerDescriptor.fromInt(object.numArgsAndLocalsAndStack()),
 				IntegerDescriptor.fromInt(object.primitiveNumber()),
@@ -909,7 +938,9 @@ public enum SerializerOperation
 				object.nybbles(),
 				regularLiterals,
 				localTypes,
-				outerTypes);
+				outerTypes,
+				moduleName,
+				IntegerDescriptor.fromInt(object.startingLineNumber()));
 		}
 
 		@Override
@@ -924,12 +955,17 @@ public enum SerializerOperation
 			final AvailObject regularLiterals = subobjects[4];
 			final AvailObject localTypes = subobjects[5];
 			final AvailObject outerTypes = subobjects[6];
+			final AvailObject moduleName = subobjects[7];
+			final AvailObject lineNumberInteger = subobjects[8];
 
 			final AvailObject numArgsRange =
 				functionType.argsTupleType().sizeRange();
 			final int numArgs = numArgsRange.lowerBound().extractInt();
 			final int numLocals = localTypes.tupleSize();
 
+			final AvailObject module = moduleName.tupleSize() == 0
+				? NullDescriptor.nullObject()
+				: deserializer.moduleNamed(moduleName);
 			return CompiledCodeDescriptor.create(
 				nybbles,
 				localTypes.tupleSize(),
@@ -938,7 +974,9 @@ public enum SerializerOperation
 				primitive,
 				regularLiterals,
 				localTypes,
-				outerTypes);
+				outerTypes,
+				module,
+				lineNumberInteger.extractInt());
 		}
 	},
 
@@ -946,7 +984,7 @@ public enum SerializerOperation
 	 * A {@linkplain FunctionDescriptor function} with no outer (lexically
 	 * captured) variables.
 	 */
-	CLEAN_FUNCTION (35,
+	CLEAN_FUNCTION (36,
 		OBJECT_REFERENCE.as("Compiled code"))
 	{
 		@Override
@@ -970,7 +1008,7 @@ public enum SerializerOperation
 	 * A {@linkplain FunctionDescriptor function} with one or more outer
 	 * (lexically captured) variables.
 	 */
-	GENERAL_FUNCTION (36,
+	GENERAL_FUNCTION (37,
 		OBJECT_REFERENCE.as("Compiled code"),
 		TUPLE_OF_OBJECTS.as("Outer values"))
 	{
@@ -1005,7 +1043,7 @@ public enum SerializerOperation
 	/**
 	 * A {@linkplain FunctionTypeDescriptor function type}.
 	 */
-	FUNCTION_TYPE (37,
+	FUNCTION_TYPE (38,
 		OBJECT_REFERENCE.as("Arguments tuple type"),
 		OBJECT_REFERENCE.as("Return type"),
 		TUPLE_OF_OBJECTS.as("Checked exceptions"))
@@ -1037,7 +1075,7 @@ public enum SerializerOperation
 	/**
 	 * A {@linkplain TupleTypeDescriptor tuple type}.
 	 */
-	TUPLE_TYPE (38,
+	TUPLE_TYPE (39,
 		OBJECT_REFERENCE.as("Tuple sizes"),
 		TUPLE_OF_OBJECTS.as("Leading types"),
 		OBJECT_REFERENCE.as("Default type"))
@@ -1069,7 +1107,7 @@ public enum SerializerOperation
 	/**
 	 * An {@linkplain IntegerRangeTypeDescriptor integer range type}.
 	 */
-	INTEGER_RANGE_TYPE (39,
+	INTEGER_RANGE_TYPE (40,
 		BYTE.as("Inclusive flags"),
 		OBJECT_REFERENCE.as("Lower bound"),
 		OBJECT_REFERENCE.as("Upper bound"))
@@ -1107,7 +1145,7 @@ public enum SerializerOperation
 	 * A reference to a {@linkplain MethodDescriptor method} that should be
 	 * looked up by name during reconstruction.
 	 */
-	METHOD (40,
+	METHOD (41,
 		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("method's atom's name"),
 		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("method's atom's module name"))
 	{
@@ -1145,7 +1183,7 @@ public enum SerializerOperation
 	 * with a juicy class filling, which allows a particularly compact
 	 * representation involving the class name and its parameter types.
 	 */
-	UNFUSED_POJO_TYPE (41,
+	UNFUSED_POJO_TYPE (42,
 		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("class name"),
 		TUPLE_OF_OBJECTS.as("class parameterization"))
 	{
@@ -1195,7 +1233,7 @@ public enum SerializerOperation
 	 * without the juicy class filling, so we have to say how each ancestor is
 	 * parameterized.
 	 */
-	FUSED_POJO_TYPE (42,
+	FUSED_POJO_TYPE (43,
 		GENERAL_MAP.as("ancestor parameterizations map"))
 	{
 		@Override
@@ -1259,7 +1297,7 @@ public enum SerializerOperation
 	 * range of allowable sizes (a much stronger model than Java itself
 	 * supports).
 	 */
-	ARRAY_POJO_TYPE (43,
+	ARRAY_POJO_TYPE (44,
 		OBJECT_REFERENCE.as("content type"),
 		OBJECT_REFERENCE.as("size range"))
 	{
@@ -1292,7 +1330,7 @@ public enum SerializerOperation
 	 * class {@code Enum} with such a self type.  To reconstruct a self type all
 	 * we need is a way to get to the raw Java class, so we serialize its name.
 	 */
-	SELF_POJO_TYPE (44,
+	SELF_POJO_TYPE (45,
 		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("class name"))
 	{
 		@Override

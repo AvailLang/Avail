@@ -33,6 +33,7 @@ package com.avail.descriptor;
 
 import java.util.List;
 import com.avail.annotations.*;
+import com.avail.descriptor.TypeDescriptor.Types;
 
 /**
  * {@code AbstractTypeDescriptor} explicitly defines the responsibilities of all
@@ -240,8 +241,13 @@ extends Descriptor
 		final @NotNull AvailObject object);
 
 	@Override @AvailMethod
-	abstract @NotNull AvailObject o_Kind (
-		final @NotNull AvailObject object);
+	@NotNull AvailObject o_Kind (
+		final @NotNull AvailObject object)
+	{
+		// A type's kind is always ANY, since there are no more metatypes that
+		// are kinds.
+		return Types.ANY.o();
+	}
 
 	@Override @AvailMethod
 	abstract @NotNull AvailObject o_LowerBound (

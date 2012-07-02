@@ -57,7 +57,7 @@ public class P_030_Type extends Primitive
 		assert args.size() == 1;
 		final AvailObject value = args.get(0);
 		return interpreter.primitiveSuccess(
-			InstanceTypeDescriptor.on(value));
+			AbstractEnumerationTypeDescriptor.withInstance(value));
 	}
 
 	@Override
@@ -66,6 +66,6 @@ public class P_030_Type extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				ANY.o()),
-			TYPE.o());
+			InstanceMetaDescriptor.topMeta());
 	}
 }

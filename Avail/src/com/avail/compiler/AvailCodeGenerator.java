@@ -35,10 +35,10 @@ package com.avail.compiler;
 import static com.avail.descriptor.AvailObject.error;
 import java.io.ByteArrayOutputStream;
 import java.util.*;
+import com.avail.annotations.NotNull;
 import com.avail.compiler.instruction.*;
 import com.avail.descriptor.*;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
-import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.primitive.*;
 
@@ -115,7 +115,15 @@ public class AvailCodeGenerator
 	 */
 	int primitive = 0;
 
+	/**
+	 * The module in which this code occurs.
+	 */
+	private AvailObject module = NullDescriptor.nullObject();
 
+	/**
+	 * The line number on which this code starts.
+	 */
+	int lineNumber = 0;
 
 	/**
 	 * Answer the index of the literal, adding it if not already present.
@@ -147,7 +155,13 @@ public class AvailCodeGenerator
 		return numArgs;
 	}
 
-
+	/**
+	 * @return The module in which code generation is deemed to take place.
+	 */
+	public AvailObject module ()
+	{
+		return module;
+	}
 
 	/**
 	 * Finish compilation of the block, answering the resulting compiledCode
@@ -200,7 +214,7 @@ public class AvailCodeGenerator
 			final AvailObject argDeclType = entry.getKey().declaredType();
 			if (i <= numArgs)
 			{
-				assert argDeclType.isInstanceOfKind(Types.TYPE.o());
+				assert argDeclType.isType();
 				argsArray[i - 1] = argDeclType;
 			}
 			else
@@ -241,7 +255,9 @@ public class AvailCodeGenerator
 			primitive,
 			TupleDescriptor.fromCollection(literals),
 			localsTuple,
-			outerTuple);
+			outerTuple,
+			module,
+			lineNumber);
 		code.makeImmutable();
 		return code;
 	}
@@ -271,6 +287,8 @@ public class AvailCodeGenerator
 	 *        A {@linkplain SetDescriptor set} of {@linkplain
 	 *        ObjectTypeDescriptor exception types} that the block is permitted
 	 *        to raise.
+	 * @param theLineNumber
+	 *        The module line number on which this block starts.
 	 */
 	public void startBlock (
 		final AvailObject arguments,
@@ -278,7 +296,8 @@ public class AvailCodeGenerator
 		final List<AvailObject> labels,
 		final AvailObject outerVars,
 		final AvailObject theResultType,
-		final AvailObject theExceptionSet)
+		final AvailObject theExceptionSet,
+		final int theLineNumber)
 	{
 		numArgs = arguments.tupleSize();
 		varMap = new HashMap<AvailObject, Integer>(
@@ -305,6 +324,7 @@ public class AvailCodeGenerator
 		}
 		resultType = theResultType;
 		exceptionSet = theExceptionSet;
+		lineNumber = theLineNumber;
 	}
 
 
@@ -643,5 +663,16 @@ public class AvailCodeGenerator
 				outerData,
 				this);
 		}
+	}
+
+	/**
+	 * Construct a new {@link AvailCodeGenerator}.
+	 *
+	 * @param module The module being compiled.
+	 */
+	public AvailCodeGenerator (
+		final @NotNull AvailObject module)
+	{
+		this.module = module;
 	}
 }

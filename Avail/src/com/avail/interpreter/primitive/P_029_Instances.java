@@ -31,7 +31,6 @@
  */
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.TYPE;
 import static com.avail.exceptions.AvailErrorCode.E_NOT_AN_ENUMERATION;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
 import java.util.List;
@@ -41,7 +40,7 @@ import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive 29:</strong> Obtain the instances of the specified
- * {@linkplain com.avail.descriptor.TypeDescriptor.Types#TYPE type}.
+ * {@linkplain InstanceMetaDescriptor#topMeta() type}.
  */
 public class P_029_Instances extends Primitive
 {
@@ -70,7 +69,7 @@ public class P_029_Instances extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				TYPE.o()),
+				InstanceMetaDescriptor.topMeta()),
 			SetTypeDescriptor.mostGeneralType());
 	}
 }

@@ -198,7 +198,9 @@ public class RegisterSet
 		final AvailObject value)
 	{
 		registerConstants.put(register, value);
-		registerTypes.put(register, InstanceTypeDescriptor.on(value));
+		registerTypes.put(
+			register,
+			AbstractEnumerationTypeDescriptor.withInstance(value));
 		propagateWriteTo(register);
 	}
 

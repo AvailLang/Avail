@@ -31,7 +31,6 @@
  */
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.annotations.NotNull;
@@ -75,9 +74,9 @@ public class P_137_CreateTupleType extends Primitive
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 					IntegerRangeTypeDescriptor.wholeNumbers(),
 					TupleDescriptor.empty(),
-					InstanceTypeDescriptor.on(ANY.o())),
-				InstanceTypeDescriptor.on(ANY.o()),
-				InstanceTypeDescriptor.on(
+					InstanceMetaDescriptor.anyMeta()),
+				InstanceMetaDescriptor.anyMeta(),
+				InstanceMetaDescriptor.on(
 					IntegerRangeTypeDescriptor.wholeNumbers())),
 			TupleTypeDescriptor.meta());
 	}

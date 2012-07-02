@@ -666,7 +666,7 @@ public abstract class Interpreter
 		final @NotNull String defineMethodName)
 	{
 		assert module != null;
-		L1InstructionWriter writer = new L1InstructionWriter();
+		L1InstructionWriter writer = new L1InstructionWriter(module, 0);
 		writer.primitiveNumber(
 			P_253_SimpleMethodDeclaration.instance.primitiveNumber);
 		writer.argumentTypes(
@@ -691,7 +691,7 @@ public abstract class Interpreter
 			writer.compiledCode(),
 			TupleDescriptor.empty());
 		fromStringFunction.makeImmutable();
-		writer = new L1InstructionWriter();
+		writer = new L1InstructionWriter(module, 0);
 		writer.primitiveNumber(
 			P_228_MethodDeclarationFromAtom.instance.primitiveNumber);
 		writer.argumentTypes(
@@ -749,7 +749,7 @@ public abstract class Interpreter
 	{
 		//  Define the method for extracting special objects known to the VM.
 		assert module != null;
-		final L1InstructionWriter writer = new L1InstructionWriter();
+		final L1InstructionWriter writer = new L1InstructionWriter(module, 0);
 		writer.primitiveNumber(P_240_SpecialObject.instance.primitiveNumber);
 		writer.argumentTypes(IntegerRangeTypeDescriptor.naturalNumbers());
 		writer.returnType(ANY.o());

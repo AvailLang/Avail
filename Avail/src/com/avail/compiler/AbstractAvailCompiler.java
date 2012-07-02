@@ -1506,19 +1506,25 @@ public abstract class AbstractAvailCompiler
 	 *
 	 * @param expressionNode
 	 *            A {@linkplain ParseNodeDescriptor parse node}.
+	 * @param lineNumber
+	 *            The line number on which the expression starts.
 	 * @return The result of generating a {@linkplain FunctionDescriptor
 	 *         function} from the argument and evaluating it.
 	 */
-	@NotNull AvailObject evaluate (final @NotNull AvailObject expressionNode)
+	@NotNull AvailObject evaluate (
+		final @NotNull AvailObject expressionNode,
+		final int lineNumber)
 	{
 		final AvailObject block = BlockNodeDescriptor.newBlockNode(
 			Collections.<AvailObject>emptyList(),
 			(short) 0,
 			Collections.singletonList(expressionNode),
 			TOP.o(),
-			SetDescriptor.empty());
+			SetDescriptor.empty(),
+			lineNumber);
 		BlockNodeDescriptor.recursivelyValidate(block);
-		final AvailCodeGenerator codeGenerator = new AvailCodeGenerator();
+		final AvailCodeGenerator codeGenerator = new AvailCodeGenerator(
+			module);
 		final AvailObject compiledBlock = block.generate(codeGenerator);
 		// The block is guaranteed context-free (because imported
 		// variables/values are embedded directly as constants in the generated
@@ -1622,14 +1628,16 @@ public abstract class AbstractAvailCompiler
 	{
 		if (!expr.isInstanceOfKind(DECLARATION_NODE.mostGeneralType()))
 		{
-			evaluate(expr);
+			evaluate(expr, 0);
 			return;
 		}
 		// It's a declaration...
 		final AvailObject name = expr.token().string();
 		if (expr.declarationKind() == LOCAL_CONSTANT)
 		{
-			final AvailObject val = evaluate(expr.initializationExpression());
+			final AvailObject val = evaluate(
+				expr.initializationExpression(),
+				0);
 			module.addConstantBinding(
 				name,
 				val.makeImmutable());
@@ -1640,7 +1648,10 @@ public abstract class AbstractAvailCompiler
 				expr.declaredType());
 			if (!expr.initializationExpression().equalsNull())
 			{
-				var.setValue(evaluate(expr.initializationExpression()));
+				var.setValue(
+					evaluate(
+						expr.initializationExpression(),
+						0));
 			}
 			module.addVariableBinding(
 				name,
@@ -2422,7 +2433,9 @@ public abstract class AbstractAvailCompiler
 				if (expression.expressionType().isSubtypeOf(someType))
 				{
 					// A unique, longest type-correct expression was found.
-					final AvailObject value = evaluate(expression);
+					final AvailObject value = evaluate(
+						expression,
+						start.peekToken().lineNumber());
 					if (value.isInstanceOf(someType))
 					{
 						assert afterExpression.scopeMap ==

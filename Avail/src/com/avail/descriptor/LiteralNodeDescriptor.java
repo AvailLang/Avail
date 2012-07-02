@@ -79,7 +79,8 @@ extends ParseNodeDescriptor
 		assert token.tokenType() == TokenType.LITERAL
 			|| token.tokenType() == TokenType.SYNTHETIC_LITERAL;
 		final AvailObject literal = token.literal();
-		return InstanceTypeDescriptor.on(literal).makeImmutable();
+		return AbstractEnumerationTypeDescriptor.withInstance(literal)
+			.makeImmutable();
 	}
 
 	@Override @AvailMethod

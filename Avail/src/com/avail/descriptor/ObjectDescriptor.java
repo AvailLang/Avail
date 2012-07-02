@@ -181,7 +181,7 @@ extends Descriptor
 			{
 				typeMap = typeMap.mapAtPuttingCanDestroy(
 					entry.key,
-					InstanceTypeDescriptor.on(entry.value),
+					AbstractEnumerationTypeDescriptor.withInstance(entry.value),
 					true);
 			}
 			kind = ObjectTypeDescriptor.objectTypeFromMap(typeMap);

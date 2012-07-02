@@ -64,7 +64,7 @@ public class P_248_AddSemanticRestriction extends Primitive
 		for (int i = function.code().numArgs(); i >= 1; i--)
 		{
 			if (!tupleType.typeAtIndex(i).isInstanceOf(
-				InstanceTypeDescriptor.on(TYPE.o())))
+				InstanceMetaDescriptor.on(InstanceMetaDescriptor.topMeta())))
 			{
 				return interpreter.primitiveFailure(
 					E_TYPE_RESTRICTION_MUST_ACCEPT_ONLY_TYPES);
@@ -94,7 +94,7 @@ public class P_248_AddSemanticRestriction extends Primitive
 			TupleDescriptor.from(
 				TupleTypeDescriptor.stringTupleType(),
 				FunctionTypeDescriptor.forReturnType(
-					TYPE.o())),
+					InstanceMetaDescriptor.topMeta())),
 			TOP.o());
 	}
 }

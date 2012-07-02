@@ -32,6 +32,8 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.AtomDescriptor.IntegerSlots.*;
+import static com.avail.descriptor.AtomDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
 import com.avail.AvailRuntime;
@@ -116,7 +118,7 @@ extends Descriptor
 	@Override boolean allowsImmutableToMutableReferenceInField (
 		final @NotNull AbstractSlotsEnum e)
 	{
-		return e == IntegerSlots.HASH_OR_ZERO;
+		return e == HASH_OR_ZERO;
 	}
 
 	@Override
@@ -147,7 +149,7 @@ extends Descriptor
 			aStream.append(nativeName);
 			aStream.append('"');
 		}
-		final AvailObject issuer = object.slot(ObjectSlots.ISSUING_MODULE);
+		final AvailObject issuer = object.slot(ISSUING_MODULE);
 		if (!issuer.equalsNull())
 		{
 			aStream.append(" (from ");
@@ -176,9 +178,9 @@ extends Descriptor
 		final @NotNull AvailObject issuingModule)
 	{
 		final AvailObject instance = mutable().create();
-		instance.setSlot(ObjectSlots.NAME, name);
-		instance.setSlot(IntegerSlots.HASH_OR_ZERO, 0);
-		instance.setSlot(ObjectSlots.ISSUING_MODULE, issuingModule);
+		instance.setSlot(NAME, name);
+		instance.setSlot(HASH_OR_ZERO, 0);
+		instance.setSlot(ISSUING_MODULE, issuingModule);
 		instance.makeImmutable();
 		return instance;
 	}
@@ -280,7 +282,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
-		object.setSlot(ObjectSlots.NAME, value);
+		object.setSlot(NAME, value);
 	}
 
 
@@ -288,14 +290,14 @@ extends Descriptor
 	@NotNull AvailObject o_Name (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.NAME);
+		return object.slot(NAME);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_IssuingModule (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.ISSUING_MODULE);
+		return object.slot(ISSUING_MODULE);
 	}
 
 	@Override @AvailMethod
@@ -306,12 +308,11 @@ extends Descriptor
 		return another.traversed().sameAddressAs(object);
 	}
 
-
 	@Override @AvailMethod
 	int o_Hash (
 		final @NotNull AvailObject object)
 	{
-		int hash = object.slot(IntegerSlots.HASH_OR_ZERO);
+		int hash = object.slot(HASH_OR_ZERO);
 		if (hash == 0)
 		{
 			do
@@ -319,7 +320,7 @@ extends Descriptor
 				hash = AvailRuntime.nextHash();
 			}
 			while (hash == 0);
-			object.setSlot(IntegerSlots.HASH_OR_ZERO, hash);
+			object.setSlot(HASH_OR_ZERO, hash);
 		}
 		return hash;
 	}
@@ -376,9 +377,9 @@ extends Descriptor
 	{
 		final AvailObject substituteAtom =
 			AtomWithPropertiesDescriptor.createWithNameAndModuleAndHash(
-				object.slot(ObjectSlots.NAME),
-				object.slot(ObjectSlots.ISSUING_MODULE),
-				object.slot(IntegerSlots.HASH_OR_ZERO));
+				object.slot(NAME),
+				object.slot(ISSUING_MODULE),
+				object.slot(HASH_OR_ZERO));
 		object.becomeIndirectionTo(substituteAtom);
 		substituteAtom.setAtomProperty(key, value);
 	}

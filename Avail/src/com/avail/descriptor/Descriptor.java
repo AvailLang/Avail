@@ -2061,6 +2061,12 @@ extends AbstractDescriptor
 		throw unsupportedOperationException();
 	}
 
+	@Override @AvailMethod
+	boolean o_IsInstanceMeta (final @NotNull AvailObject object)
+	{
+		return false;
+	}
+
 	@Override
 	boolean o_IsMethod (
 		final @NotNull AvailObject object)
@@ -4509,6 +4515,41 @@ extends AbstractDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject methodName,
 		final @NotNull AvailObject sealSignature)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	@NotNull AvailObject o_Instance (
+		final @NotNull AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	int o_AllocateFromCounter (
+		final @NotNull AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_SetMethodName (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject methodName)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	int o_StartingLineNumber (
+		final @NotNull AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	AvailObject o_Module (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}

@@ -31,7 +31,6 @@
  */
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
 import java.util.List;
@@ -102,6 +101,6 @@ public class P_142_TupleTypeSequenceOfTypes extends Primitive
 			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 				IntegerRangeTypeDescriptor.wholeNumbers(),
 				TupleDescriptor.empty(),
-				InstanceTypeDescriptor.on(ANY.o())));
+				InstanceMetaDescriptor.anyMeta()));
 	}
 }

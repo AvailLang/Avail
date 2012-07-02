@@ -31,7 +31,6 @@
  */
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
 import java.util.List;
@@ -80,6 +79,6 @@ public class P_143_TupleTypeAtThrough extends Primitive
 				TupleTypeDescriptor.meta(),
 				IntegerRangeTypeDescriptor.naturalNumbers(),
 				IntegerRangeTypeDescriptor.wholeNumbers()),
-			InstanceTypeDescriptor.on(ANY.o()));
+			InstanceMetaDescriptor.anyMeta());
 	}
 }

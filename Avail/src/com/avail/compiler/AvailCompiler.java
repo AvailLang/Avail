@@ -829,7 +829,9 @@ extends AbstractAvailCompiler
 		// Construct code to invoke the method, since it might be a
 		// primitive and we can't invoke that directly as the outermost
 		// function.
-		final L1InstructionWriter writer = new L1InstructionWriter();
+		final L1InstructionWriter writer = new L1InstructionWriter(
+			module,
+			stateBeforeCall.peekToken().lineNumber());
 		for (final AvailObject arg : argumentExpressions)
 		{
 			writer.write(new L1Instruction(

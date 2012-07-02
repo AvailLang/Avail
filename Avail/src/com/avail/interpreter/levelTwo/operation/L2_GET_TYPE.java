@@ -31,7 +31,6 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.descriptor.TypeDescriptor.Types.TYPE;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
@@ -87,12 +86,14 @@ public class L2_GET_TYPE extends L2Operation
 			// Apply the rule of metacovariance. It says that given types T1
 			// and T2, T1 <= T2 implies T1 type <= T2 type. It is guaranteed
 			// true for all types in Avail.
-			final AvailObject meta = InstanceTypeDescriptor.on(type);
+			final AvailObject meta = InstanceMetaDescriptor.on(type);
 			registers.typeAtPut(destinationRegister, meta);
 		}
 		else
 		{
-			registers.typeAtPut(destinationRegister, TYPE.o());
+			registers.typeAtPut(
+				destinationRegister,
+				InstanceMetaDescriptor.topMeta());
 		}
 
 	if (registers.hasConstantAt(sourceRegister))

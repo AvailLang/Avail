@@ -78,7 +78,7 @@ extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				TOKEN.o(),
-				InstanceTypeDescriptor.on(ANY.o()),
+				InstanceMetaDescriptor.anyMeta(),
 				EXPRESSION_NODE.create(ANY.o())),
 			LOCAL_VARIABLE_NODE.mostGeneralType());
 	}

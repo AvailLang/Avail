@@ -2566,6 +2566,12 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	boolean o_IsInstanceMeta (final @NotNull AvailObject object)
+	{
+		return o_Traversed(object).isInstanceMeta();
+	}
+
+	@Override
 	boolean o_IsMethod (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).isMethod();
@@ -4283,5 +4289,40 @@ extends AbstractDescriptor
 		final AvailObject sealSignature)
 	{
 		o_Traversed(object).addSeal(methodName, sealSignature);
+	}
+
+	@Override
+	@NotNull AvailObject o_Instance (
+		final @NotNull AvailObject object)
+	{
+		return o_Traversed(object).instance();
+	}
+
+	@Override
+	int o_AllocateFromCounter (
+		final @NotNull AvailObject object)
+	{
+		return o_Traversed(object).allocateFromCounter();
+	}
+
+	@Override
+	void o_SetMethodName (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject methodName)
+	{
+		o_Traversed(object).setMethodName(methodName);
+	}
+
+	@Override
+	int o_StartingLineNumber (
+		final @NotNull AvailObject object)
+	{
+		return o_Traversed(object).startingLineNumber();
+	}
+
+	@Override
+	AvailObject o_Module (final AvailObject object)
+	{
+		return o_Traversed(object).module();
 	}
 }

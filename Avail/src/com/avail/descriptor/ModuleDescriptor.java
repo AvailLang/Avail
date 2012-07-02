@@ -32,9 +32,10 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.ModuleDescriptor.IntegerSlots.*;
+import static com.avail.descriptor.ModuleDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.descriptor.ModuleDescriptor.ObjectSlots.*;
 import com.avail.annotations.*;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 
@@ -60,10 +61,38 @@ public class ModuleDescriptor
 extends Descriptor
 {
 	/**
+	 * The layout of integer slots for my instances.
+	 */
+	public enum IntegerSlots implements IntegerSlotsEnum
+	{
+		/**
+		 * A composite field containing a {@link #IS_SYSTEM_MODULE} flag
+		 * indicating whether this is a system module, and a 31-bit {@link
+		 * #COUNTER} for generating integers unique to this module.
+		 */
+		FLAGS_AND_COUNTER;
+
+		/**
+		 * A flag indicating if this is a system module.
+		 */
+		static BitField IS_SYSTEM_MODULE = bitField(
+			FLAGS_AND_COUNTER,
+			31,
+			1);
+
+		/**
+		 * A counter for generating numbers unique to a module.
+		 */
+		static BitField COUNTER = bitField(
+			FLAGS_AND_COUNTER,
+			0,
+			30);
+	}
+
+	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots
-	implements ObjectSlotsEnum
+	public enum ObjectSlots implements ObjectSlotsEnum
 	{
 		/**
 		 * A {@linkplain StringDescriptor string} that names the {@linkplain
@@ -179,16 +208,22 @@ extends Descriptor
 		 * A {@linkplain MapDescriptor map} from {@linkplain AtomDescriptor true
 		 * names} to {@linkplain TupleDescriptor tuples} of seal points.
 		 */
-		SEALS,
-
-		/** Is this a system {@linkplain ModuleDescriptor module}? */
-		IS_SYSTEM_MODULE
+		SEALS;
 	}
+
 
 	@Override @AvailMethod
 	boolean o_IsSystemModule (final @NotNull AvailObject object)
 	{
-		return object.slot(IS_SYSTEM_MODULE).extractBoolean();
+		return object.slot(IS_SYSTEM_MODULE) != 0;
+	}
+
+	@Override @AvailMethod
+	int o_AllocateFromCounter (final @NotNull AvailObject object)
+	{
+		final int value = object.slot(COUNTER);
+		object.setSlot(COUNTER, value + 1);
+		return value;
 	}
 
 	@Override @AvailMethod
@@ -532,7 +567,8 @@ extends Descriptor
 			|| e == CONSTANT_BINDINGS
 			|| e == FILTERED_BUNDLE_TREE
 			|| e == TYPE_RESTRICTION_FUNCTIONS
-			|| e == SEALS;
+			|| e == SEALS
+			|| e == FLAGS_AND_COUNTER;
 	}
 
 	/**
@@ -726,9 +762,8 @@ extends Descriptor
 		object.setSlot(VARIABLE_BINDINGS, emptyMap);
 		object.setSlot(TYPE_RESTRICTION_FUNCTIONS, MapDescriptor.empty());
 		object.setSlot(SEALS, MapDescriptor.empty());
-		object.setSlot(
-			IS_SYSTEM_MODULE,
-			AtomDescriptor.objectFromBoolean(isSystemModule));
+		object.setSlot(IS_SYSTEM_MODULE, isSystemModule ? 1 : 0);
+		object.setSlot(COUNTER, 0);
 		return object;
 	}
 

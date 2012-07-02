@@ -278,7 +278,7 @@ extends TypeDescriptor
 			IntegerRangeTypeDescriptor.wholeNumbers(),
 			ANY.o());
 		MostGeneralType.makeImmutable();
-		Meta = InstanceTypeDescriptor.on(MostGeneralType);
+		Meta = InstanceMetaDescriptor.on(MostGeneralType);
 		Meta.makeImmutable();
 	}
 

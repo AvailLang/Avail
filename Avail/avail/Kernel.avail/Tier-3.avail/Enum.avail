@@ -38,7 +38,14 @@ Names
 	"_instance"
 Body
 
-Forward "_instance" for [type]->any;
+Method "_instance" is
+[
+	e : type
+|
+	if |e| not = 1 then [Crash "Type must have exactly one instance"];
+	e instances as tuple [1]
+] : any;
+
 
 /* This method was defined earlier, but we couldn't add the restriction until
    now. */
@@ -64,17 +71,10 @@ Restriction "_instances" is
 				 * because we are dealing with metatypes here.
 				 */
 				Assert |eT| = 1;
-				instance ::= cast eT instance into [ t : type | t ];
-				strong : any type;
-				*↑strong ?:= instance;
-				if |instance| not = INF then
-				[
-					set [0..|strong|+1) of strong
-				]
-				else
-				[
-					set [0..INF) of strong
-				]
+				strong ::= cast eT instance
+					into [ t : any type | t ]
+					otherwise [ any ];
+				set [0..|strong|+1) of strong
 			]
 		];
 	Assert result <= set;
@@ -85,14 +85,6 @@ Restriction "_instances" is
 		then "\n";
 	result
 ] : set type;
-
-Method "_instance" is
-[
-	e : type
-|
-	if |e| not = 1 then [Crash "Type must have exactly one instance"];
-	e instances as tuple [1]
-] : any;
 
 Restriction "_instance" is [eT : type type |
 	result ::= if |eT| not = INF then

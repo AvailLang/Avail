@@ -79,6 +79,6 @@ extends Primitive
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 					IntegerRangeTypeDescriptor.singleInt(2),
 					TupleDescriptor.from(ATOM.o()),
-					InstanceTypeDescriptor.on(ANY.o()))));
+					InstanceMetaDescriptor.anyMeta())));
 	}
 }

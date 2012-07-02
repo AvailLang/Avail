@@ -76,16 +76,17 @@ implements Iterable<AvailObject>
 	public static void createAllWellKnownObjects ()
 	{
 		NullDescriptor.createWellKnownObjects();
+		CharacterDescriptor.createWellKnownObjects();
 		BottomTypeDescriptor.createWellKnownObjects();
 		TupleDescriptor.createWellKnownObjects();
 		ListNodeDescriptor.createWellKnownObjects();
 		StringDescriptor.createWellKnownObjects();
 		TypeDescriptor.createWellKnownObjects();
+		InstanceMetaDescriptor.createWellKnownObjects();
 		LiteralTokenTypeDescriptor.createWellKnownObjects();
 		MapDescriptor.createWellKnownObjects();
 		AtomDescriptor.createWellKnownObjects();
 		ObjectTypeDescriptor.createWellKnownObjects();
-		CharacterDescriptor.createWellKnownObjects();
 		SetDescriptor.createWellKnownObjects();
 		EnumerationTypeDescriptor.createWellKnownObjects();
 		InfinityDescriptor.createWellKnownObjects();
@@ -104,6 +105,7 @@ implements Iterable<AvailObject>
 		RawPojoDescriptor.createWellKnownObjects();
 		PojoTypeDescriptor.createWellKnownObjects();
 		PojoDescriptor.createWellKnownObjects();
+		CompiledCodeDescriptor.createWellKnownObjects();
 		MethodDescriptor.createWellKnownObjects();
 		FloatDescriptor.createWellKnownObjects();
 		DoubleDescriptor.createWellKnownObjects();
@@ -121,15 +123,16 @@ implements Iterable<AvailObject>
 	{
 		Primitive.clearCachedData();
 		NullDescriptor.clearWellKnownObjects();
+		CharacterDescriptor.clearWellKnownObjects();
 		BottomTypeDescriptor.clearWellKnownObjects();
 		TupleDescriptor.clearWellKnownObjects();
 		ListNodeDescriptor.clearWellKnownObjects();
 		StringDescriptor.clearWellKnownObjects();
 		TypeDescriptor.clearWellKnownObjects();
+		InstanceMetaDescriptor.clearWellKnownObjects();
 		LiteralTokenTypeDescriptor.clearWellKnownObjects();
 		MapDescriptor.clearWellKnownObjects();
 		ObjectTypeDescriptor.clearWellKnownObjects();
-		CharacterDescriptor.clearWellKnownObjects();
 		SetDescriptor.clearWellKnownObjects();
 		AtomDescriptor.clearWellKnownObjects();
 		EnumerationTypeDescriptor.clearWellKnownObjects();
@@ -149,6 +152,7 @@ implements Iterable<AvailObject>
 		RawPojoDescriptor.clearWellKnownObjects();
 		PojoTypeDescriptor.clearWellKnownObjects();
 		PojoDescriptor.clearWellKnownObjects();
+		CompiledCodeDescriptor.clearWellKnownObjects();
 		MethodDescriptor.clearWellKnownObjects();
 		FloatDescriptor.clearWellKnownObjects();
 		DoubleDescriptor.clearWellKnownObjects();
@@ -6171,5 +6175,54 @@ implements Iterable<AvailObject>
 		final @NotNull AvailObject sealSignature)
 	{
 		descriptor.o_AddSeal(this, methodName, sealSignature);
+	}
+
+	/**
+	 * @return
+	 */
+	public boolean isInstanceMeta ()
+	{
+		return descriptor.o_IsInstanceMeta(this);
+	}
+
+	/**
+	 * @return
+	 */
+	public AvailObject instance ()
+	{
+		return descriptor.o_Instance(this);
+	}
+
+	/**
+	 * @return
+	 */
+	public int allocateFromCounter ()
+	{
+		return descriptor.o_AllocateFromCounter(this);
+	}
+
+	/**
+	 * @param methodName
+	 */
+	public void setMethodName (
+		final @NotNull AvailObject methodName)
+	{
+		descriptor.o_SetMethodName(this, methodName);
+	}
+
+	/**
+	 * @return
+	 */
+	public int startingLineNumber ()
+	{
+		return descriptor.o_StartingLineNumber(this);
+	}
+
+	/**
+	 * @return
+	 */
+	public @NotNull AvailObject module ()
+	{
+		return descriptor.o_Module(this);
 	}
 }

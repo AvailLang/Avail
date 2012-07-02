@@ -31,7 +31,6 @@
  */
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.TYPE;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.annotations.NotNull;
@@ -69,7 +68,7 @@ public class P_039_CreateGeneralFunctionType extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				TYPE.o()),
+				InstanceMetaDescriptor.topMeta()),
 			FunctionTypeDescriptor.meta());
 	}
 }

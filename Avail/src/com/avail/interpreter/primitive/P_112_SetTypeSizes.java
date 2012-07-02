@@ -68,7 +68,7 @@ public class P_112_SetTypeSizes extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				SetTypeDescriptor.meta()),
-			InstanceTypeDescriptor.on(
+			InstanceMetaDescriptor.on(
 				IntegerRangeTypeDescriptor.wholeNumbers()));
 	}
 }

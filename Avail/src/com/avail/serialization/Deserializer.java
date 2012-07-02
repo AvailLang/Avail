@@ -94,6 +94,17 @@ public class Deserializer
 	}
 
 	/**
+	 * Look up the {@linkplain AvailRuntime#specialAtoms() special atom}.
+	 *
+	 * @param index The special atom's ordinal.
+	 * @return The special atom known to the virtual machine's runtime.
+	 */
+	protected @NotNull AvailObject specialAtom (final int index)
+	{
+		return AvailRuntime.specialAtoms().get(index);
+	}
+
+	/**
 	 * Convert an index into an object.  The object must already have been
 	 * assembled.
 	 *

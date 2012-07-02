@@ -1393,7 +1393,7 @@ public class MessageSplitter
 				argumentProvider,
 				aStream,
 				indent);
-			aStream.append("?");
+			aStream.append("⁇");
 		}
 	}
 

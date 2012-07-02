@@ -67,7 +67,7 @@ public class P_035_ParamType extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				FunctionTypeDescriptor.meta()),
-			InstanceTypeDescriptor.on(
+			InstanceMetaDescriptor.on(
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 					IntegerRangeTypeDescriptor.wholeNumbers(),
 					TupleDescriptor.empty(),

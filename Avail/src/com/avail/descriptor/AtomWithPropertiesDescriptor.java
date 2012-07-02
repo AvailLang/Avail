@@ -32,6 +32,8 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.AtomWithPropertiesDescriptor.IntegerSlots.*;
+import static com.avail.descriptor.AtomWithPropertiesDescriptor.ObjectSlots.*;
 import com.avail.annotations.*;
 import com.avail.serialization.Serializer;
 
@@ -71,7 +73,13 @@ extends AtomDescriptor
 		 * random number (not 0), computed on demand.
 		 */
 		@HideFieldInDebugger
-		HASH_OR_ZERO
+		HASH_OR_ZERO;
+
+		static
+		{
+			assert AtomDescriptor.IntegerSlots.HASH_OR_ZERO.ordinal()
+				== HASH_OR_ZERO.ordinal();
+		}
 	}
 
 	/**
@@ -111,8 +119,9 @@ extends AtomDescriptor
 	@Override boolean allowsImmutableToMutableReferenceInField (
 		final @NotNull AbstractSlotsEnum e)
 	{
-		return e == IntegerSlots.HASH_OR_ZERO
-			|| e == ObjectSlots.PROPERTY_MAP;
+		return super.allowsImmutableToMutableReferenceInField(e)
+			|| e == HASH_OR_ZERO
+			|| e == PROPERTY_MAP;
 	}
 
 	/**
@@ -130,7 +139,7 @@ extends AtomDescriptor
 		final @NotNull AvailObject value)
 	{
 		assert key.isAtom();
-		AvailObject map = object.slot(ObjectSlots.PROPERTY_MAP);
+		AvailObject map = object.slot(PROPERTY_MAP);
 		if (value.equalsNull())
 		{
 			map = map.mapWithoutKeyCanDestroy(key, true);
@@ -139,7 +148,7 @@ extends AtomDescriptor
 		{
 			map = map.mapAtPuttingCanDestroy(key, value, true);
 		}
-		object.setSlot(ObjectSlots.PROPERTY_MAP, map);
+		object.setSlot(PROPERTY_MAP, map);
 	}
 
 
@@ -158,7 +167,7 @@ extends AtomDescriptor
 		final @NotNull AvailObject key)
 	{
 		assert key.isAtom();
-		final AvailObject map = object.slot(ObjectSlots.PROPERTY_MAP);
+		final AvailObject map = object.slot(PROPERTY_MAP);
 		if (map.hasKey(key))
 		{
 			return map.mapAt(key);
@@ -168,21 +177,27 @@ extends AtomDescriptor
 
 	/**
 	 * Create a new atom with the given name.  The name is not globally unique,
-	 * but serves to help to visually distinguish atoms.
+	 * but serves to help to visually distinguish atoms.  In this class, the
+	 * created object already has an empty property map.
 	 *
 	 * @param name
 	 *            A string used to help identify the new atom.
+	 * @param issuingModule
+	 *            Which {@linkplain ModuleDescriptor module} was active when the
+	 *            atom was created.
 	 * @return
 	 *            The new atom, not equal to any object in use before this
 	 *            method was invoked.
 	 */
 	public static @NotNull AvailObject create (
-		final @NotNull AvailObject name)
+		final @NotNull AvailObject name,
+		final @NotNull AvailObject issuingModule)
 	{
 		final AvailObject instance = mutable().create();
-		instance.setSlot(ObjectSlots.NAME, name);
-		instance.setSlot(ObjectSlots.PROPERTY_MAP, MapDescriptor.empty());
-		instance.setSlot(IntegerSlots.HASH_OR_ZERO, 0);
+		instance.setSlot(NAME, name);
+		instance.setSlot(ISSUING_MODULE, issuingModule);
+		instance.setSlot(PROPERTY_MAP, MapDescriptor.empty());
+		instance.setSlot(HASH_OR_ZERO, 0);
 		instance.makeImmutable();
 		return instance;
 	}
@@ -213,10 +228,10 @@ extends AtomDescriptor
 		final int originalHash)
 	{
 		final AvailObject instance = mutable().create();
-		instance.setSlot(ObjectSlots.NAME, name);
-		instance.setSlot(ObjectSlots.ISSUING_MODULE, issuingModule);
-		instance.setSlot(ObjectSlots.PROPERTY_MAP, MapDescriptor.empty());
-		instance.setSlot( IntegerSlots.HASH_OR_ZERO, originalHash);
+		instance.setSlot(NAME, name);
+		instance.setSlot(ISSUING_MODULE, issuingModule);
+		instance.setSlot(PROPERTY_MAP, MapDescriptor.empty());
+		instance.setSlot(HASH_OR_ZERO, originalHash);
 		instance.makeImmutable();
 		return instance;
 	}

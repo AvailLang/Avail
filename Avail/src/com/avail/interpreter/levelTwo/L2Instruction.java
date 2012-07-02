@@ -49,11 +49,11 @@ import com.avail.utility.*;
  *
  * <p>It implements a mechanism for establishing and interrogating the position
  * of the instruction within its {@linkplain L2ChunkDescriptor chunk}'s
- * {@linkplain L2ChunkDescriptor.ObjectSlots#WORDCODES wordcode stream}. It
- * defines responsibilities for interrogating the source and destination
- * {@linkplain L2Register registers} used by the instruction and emitting the
- * instruction on a code generator. Lastly it specifies an entry point for
- * describing type and constant value propagation to a translator.</p>
+ * {@linkplain com.avail.descriptor.L2ChunkDescriptor.ObjectSlots#WORDCODES
+ * wordcode stream}. It defines responsibilities for interrogating the source
+ * and destination {@linkplain L2Register registers} used by the instruction and
+ * emitting the instruction on a code generator. Lastly it specifies an entry
+ * point for describing type and constant value propagation to a translator.</p>
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
@@ -78,17 +78,17 @@ public final class L2Instruction
 
 	/**
 	 * The position of the {@linkplain L2Instruction instruction} in its
-	 * {@linkplain L2ChunkDescriptor.ObjectSlots#WORDCODES wordcode stream}.
+	 * {@linkplain com.avail.descriptor.L2ChunkDescriptor.ObjectSlots#WORDCODES
+	 * wordcode stream}.
 	 */
 	private int offset = -1;
 
 	/**
 	 * Answer the position of the {@linkplain L2Instruction instruction} in its
-	 * {@linkplain L2ChunkDescriptor.ObjectSlots#WORDCODES wordcode stream}.
+	 * {@linkplain com.avail.descriptor.L2ChunkDescriptor.ObjectSlots#WORDCODES
+	 * wordcode stream}.
 	 *
-	 * @return The position of the {@linkplain L2Instruction instruction} in its
-	 *         {@linkplain L2ChunkDescriptor.ObjectSlots#WORDCODES wordcode
-	 *         stream}.
+	 * @return The position of the instruction in its wordcode stream.
 	 */
 	public int offset ()
 	{
@@ -97,13 +97,12 @@ public final class L2Instruction
 
 	/**
 	 * Set the final position of the {@linkplain L2Instruction instruction}
-	 * within its {@linkplain L2ChunkDescriptor.ObjectSlots#WORDCODES wordcode
+	 * within its {@linkplain
+	 * com.avail.descriptor.L2ChunkDescriptor.ObjectSlots#WORDCODES wordcode
 	 * stream}.
 	 *
 	 * @param offset
-	 *        The final position of the {@linkplain L2Instruction instruction}
-	 *        within its {@linkplain L2ChunkDescriptor.ObjectSlots#WORDCODES
-	 *        wordcode stream}.
+	 *        The final position of the instruction within its wordcode stream.
 	 */
 	public void setOffset (final int offset)
 	{

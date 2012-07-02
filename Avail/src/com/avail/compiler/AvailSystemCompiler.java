@@ -506,7 +506,7 @@ extends AbstractAvailCompiler
 					{
 						parseAndEvaluateExpressionYieldingInstanceOfThen(
 							afterColon,
-							TYPE.o(),
+							InstanceMetaDescriptor.topMeta(),
 							finishLabel);
 					}
 				},
@@ -617,7 +617,7 @@ extends AbstractAvailCompiler
 		}
 		parseAndEvaluateExpressionYieldingInstanceOfThen(
 			afterFirstColon,
-			TYPE.o(),
+			InstanceMetaDescriptor.topMeta(),
 			new Con<AvailObject>("Type expression of var : type")
 			{
 				@Override
@@ -767,7 +767,7 @@ extends AbstractAvailCompiler
 		final ParserState afterColon = afterVar.afterToken();
 		parseAndEvaluateExpressionYieldingInstanceOfThen(
 			afterColon,
-			TYPE.o(),
+			InstanceMetaDescriptor.topMeta(),
 			new Con<AvailObject>("Type expression of var : type")
 			{
 				@Override
@@ -910,7 +910,7 @@ extends AbstractAvailCompiler
 		}
 		parseAndEvaluateExpressionYieldingInstanceOfThen(
 			afterArgName.afterToken(),
-			TYPE.o(),
+			InstanceMetaDescriptor.topMeta(),
 			new Con<AvailObject>("Type of block argument")
 			{
 				@Override
@@ -960,13 +960,14 @@ extends AbstractAvailCompiler
 		final ParserState start,
 		final Con<AvailObject> continuation)
 	{
+		final AvailObject scopeOutsideBlock = start.scopeMap;
+		final AvailObject firstToken = start.peekToken();
 		if (!start.peekToken(OPEN_SQUARE))
 		{
 			// Don't suggest a block was expected here unless at least the "["
 			// was present.
 			return;
 		}
-		final AvailObject scopeOutsideBlock = start.scopeMap;
 		parseBlockArgumentsThen(
 			start.afterToken(),
 			new Con<List<AvailObject>>("Block arguments")
@@ -1005,6 +1006,7 @@ extends AbstractAvailCompiler
 										primitive,
 										Collections.<AvailObject>emptyList(),
 										scopeOutsideBlock,
+										firstToken,
 										continuation);
 									return;
 								}
@@ -1032,6 +1034,7 @@ extends AbstractAvailCompiler
 												primitive,
 												statements,
 												scopeOutsideBlock,
+												firstToken,
 												continuation);
 										}
 									});
@@ -1055,16 +1058,19 @@ extends AbstractAvailCompiler
 	 *            The list of statements.
 	 * @param scopeOutsideBlock
 	 *            The scope that existed before the block started to be parsed.
+	 * @param firstToken
+	 *            The first token participating in the block.
 	 * @param continuation
 	 *            What to do with the {@linkplain BlockNodeDescriptor block}.
 	 */
 	@InnerAccess void finishBlockThen (
-		final ParserState afterStatements,
-		final List<AvailObject> arguments,
+		final @NotNull ParserState afterStatements,
+		final @NotNull List<AvailObject> arguments,
 		final int primitiveNumber,
-		final List<AvailObject> statements,
-		final AvailObject scopeOutsideBlock,
-		final Con<AvailObject> continuation)
+		final @NotNull List<AvailObject> statements,
+		final @NotNull AvailObject scopeOutsideBlock,
+		final @NotNull AvailObject firstToken,
+		final @NotNull Con<AvailObject> continuation)
 	{
 		if (!afterStatements.peekToken(
 			CLOSE_SQUARE,
@@ -1154,7 +1160,8 @@ extends AbstractAvailCompiler
 								primitiveNumber,
 								statements,
 								lastStatementType.value,
-								checkedExceptions);
+								checkedExceptions,
+								firstToken.lineNumber());
 						attempt(afterExceptions, continuation, blockNode);
 					}
 				});
@@ -1171,7 +1178,7 @@ extends AbstractAvailCompiler
 
 		parseAndEvaluateExpressionYieldingInstanceOfThen(
 			stateOutsideBlock.afterToken(),
-			TYPE.o(),
+			InstanceMetaDescriptor.topMeta(),
 			new Con<AvailObject>("Block return type declaration")
 			{
 				@Override
@@ -1259,7 +1266,8 @@ extends AbstractAvailCompiler
 											primitiveNumber,
 											statements,
 											returnType,
-											checkedExceptions);
+											checkedExceptions,
+											firstToken.lineNumber());
 									attempt(
 										afterExceptions,
 										continuation,

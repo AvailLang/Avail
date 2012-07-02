@@ -965,7 +965,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		return newDeclaration(
 			MODULE_CONSTANT,
 			token,
-			InstanceTypeDescriptor.on(literalObject),
+			AbstractEnumerationTypeDescriptor.withInstance(literalObject),
 			NullDescriptor.nullObject(),
 			literalObject);
 	}

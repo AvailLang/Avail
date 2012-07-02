@@ -31,7 +31,6 @@
  */
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.annotations.NotNull;
@@ -69,8 +68,8 @@ public class P_111_CreateSetType extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				InstanceTypeDescriptor.on(ANY.o()),
-				InstanceTypeDescriptor.on(
+				InstanceMetaDescriptor.anyMeta(),
+				InstanceMetaDescriptor.on(
 					IntegerRangeTypeDescriptor.wholeNumbers())),
 			SetTypeDescriptor.meta());
 	}

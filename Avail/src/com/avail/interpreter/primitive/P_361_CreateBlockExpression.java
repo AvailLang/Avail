@@ -86,7 +86,12 @@ extends Primitive
 				E_BLOCK_CONTAINS_INVALID_STATEMENTS);
 		}
 		final AvailObject block = newBlockNode(
-			argDecls, primitive, statements, resultType, exceptions);
+			argDecls,
+			primitive,
+			statements,
+			resultType,
+			exceptions,
+			0);
 		return interpreter.primitiveSuccess(block);
 	}
 
@@ -104,7 +109,7 @@ extends Primitive
 					IntegerRangeTypeDescriptor.wholeNumbers(),
 					TupleDescriptor.empty(),
 					PARSE_NODE.mostGeneralType()),
-				TYPE.o(),
+				InstanceMetaDescriptor.topMeta(),
 				SetTypeDescriptor.setTypeForSizesContentType(
 					IntegerRangeTypeDescriptor.wholeNumbers(),
 					// TODO: [MvG] This should be the root exception type.

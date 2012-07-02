@@ -358,7 +358,8 @@ extends Descriptor
 		{
 			tupleOfTypes.tupleAtPuttingCanDestroy(
 				i,
-				InstanceTypeDescriptor.on(object.tupleAt(i)),
+				AbstractEnumerationTypeDescriptor.withInstance(
+					object.tupleAt(i)),
 				true);
 		}
 		return TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(

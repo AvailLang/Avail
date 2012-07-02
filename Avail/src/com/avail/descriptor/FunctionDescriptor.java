@@ -270,7 +270,9 @@ extends Descriptor
 			argTypesArray[i - 1] = argTypes.typeAtIndex(i);
 		}
 		final AvailObject returnType = functionType.returnType();
-		final L1InstructionWriter writer = new L1InstructionWriter();
+		final L1InstructionWriter writer = new L1InstructionWriter(
+			NullDescriptor.nullObject(),
+			0);
 		writer.argumentTypes(argTypesArray);
 		writer.returnType(returnType);
 		writer.write(
@@ -323,7 +325,9 @@ extends Descriptor
 				tupleOfTypes,
 				BottomTypeDescriptor.bottom());
 		final AvailObject returnType = function.functionType().returnType();
-		final L1InstructionWriter writer = new L1InstructionWriter();
+		final L1InstructionWriter writer = new L1InstructionWriter(
+			NullDescriptor.nullObject(),
+			0);
 		writer.argumentTypes(new AvailObject[] {tupleType});
 		writer.returnType(returnType);
 		writer.write(

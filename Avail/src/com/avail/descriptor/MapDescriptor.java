@@ -147,12 +147,21 @@ public class MapDescriptor extends Descriptor
 			for (final MapDescriptor.Entry entry : object.mapIterable())
 			{
 				aStream.append(first ? "\n" : ",\n");
-				for (int i = indent + 1; i > 0; i--)
+				for (int i = indent; i > 0; i--)
 				{
 					aStream.append('\t');
 				}
+				final int entryStart = aStream.length();
 				entry.key.printOnAvoidingIndent(
 					aStream, recursionList, indent + 2);
+				if (aStream.indexOf("\n", entryStart) != -1)
+				{
+					aStream.append("\n");
+					for (int i = indent + 1; i > 0; i--)
+					{
+						aStream.append('\t');
+					}
+				}
 				aStream.append("→");
 				entry.value.printOnAvoidingIndent(
 					aStream, recursionList, indent + 1);

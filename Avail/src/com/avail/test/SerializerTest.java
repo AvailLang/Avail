@@ -196,6 +196,19 @@ public final class SerializerTest
 	}
 
 	/**
+	 * Test serialization of booleans.
+	 *
+	 * @throws MalformedSerialStreamException If the stream is malformed.
+	 */
+	@Test
+	public void testBooleans ()
+	throws MalformedSerialStreamException
+	{
+		checkObject(AtomDescriptor.trueObject());
+		checkObject(AtomDescriptor.falseObject());
+	}
+
+	/**
 	 * Test serialization of various integers.
 	 *
 	 * @throws MalformedSerialStreamException If the stream is malformed.
@@ -396,7 +409,9 @@ public final class SerializerTest
 	public void testFunctions ()
 	throws MalformedSerialStreamException
 	{
-		final L1InstructionWriter writer = new L1InstructionWriter();
+		final L1InstructionWriter writer = new L1InstructionWriter(
+			NullDescriptor.nullObject(),
+			0);
 		writer.argumentTypes(FLOAT.o());
 		writer.primitiveNumber(P_292_FloatFloor.instance.primitiveNumber);
 		writer.returnType(FLOAT.o());

@@ -3226,6 +3226,12 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
+	abstract boolean o_IsInstanceMeta (AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
 	abstract boolean o_IsMethod (AvailObject object);
 
 	/**
@@ -5392,6 +5398,13 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
+	abstract @NotNull AvailObject o_Instance (
+		final @NotNull AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
 	abstract @NotNull AvailObject o_InstanceCount (
 		final @NotNull AvailObject object);
 
@@ -5559,4 +5572,33 @@ public abstract class AbstractDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject methodName,
 		final @NotNull AvailObject sealSignature);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract int o_AllocateFromCounter (
+		final @NotNull AvailObject object);
+
+	/**
+	 * @param object
+	 * @param methodName
+	 */
+	abstract void o_SetMethodName (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject methodName);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract int o_StartingLineNumber (
+		final @NotNull AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract @NotNull AvailObject o_Module (
+		final @NotNull AvailObject object);
 }

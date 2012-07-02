@@ -343,6 +343,13 @@ implements ThreadFactory
 		new AvailObject[150];
 
 	/**
+	 * An unmodifiable {@link List} of the {@linkplain AvailRuntime runtime}'s
+	 * special objects.
+	 */
+	private static final List<AvailObject> specialObjectsList =
+		Collections.unmodifiableList(Arrays.asList(specialObjects));
+
+	/**
 	 * Answer the {@linkplain AvailObject special objects} of the {@linkplain
 	 * AvailRuntime runtime} as an {@linkplain
 	 * Collections#unmodifiableList(List) immutable} {@linkplain List list}.
@@ -353,7 +360,7 @@ implements ThreadFactory
 	@ThreadSafe
 	public static @NotNull List<AvailObject> specialObjects ()
 	{
-		return Collections.unmodifiableList(Arrays.asList(specialObjects));
+		return specialObjectsList;
 	}
 
 	/**
@@ -378,21 +385,32 @@ implements ThreadFactory
 	 * The {@linkplain AtomDescriptor special atoms} known to the {@linkplain
 	 * AvailRuntime runtime}.
 	 */
-	private static final @NotNull List<AvailObject> specialAtoms =
-		new ArrayList<AvailObject>(5);
+	private static final AvailObject[] specialAtoms =
+		new AvailObject[20];
+
+	/**
+	 * The {@linkplain AtomDescriptor special atoms} known to the {@linkplain
+	 * AvailRuntime runtime}.
+	 */
+	private static final @NotNull List<AvailObject> specialAtomsList =
+		Collections.unmodifiableList(Arrays.asList(specialAtoms));
+
+	/**
+	 * The {@link Set} of special {@linkplain AtomDescriptor atoms}.
+	 */
+	private static @NotNull Set<AvailObject> specialAtomsSet;
 
 	/**
 	 * Answer the {@linkplain AtomDescriptor special atoms} known to the
 	 * {@linkplain AvailRuntime runtime} as an {@linkplain
 	 * Collections#unmodifiableList(List) immutable} {@linkplain List list}.
-	 * Some elements may be {@code null}.
 	 *
-	 * @return The special atoms.
+	 * @return The special atoms list.
 	 */
 	@ThreadSafe
-	public static @NotNull List<AvailObject> specialAtoms ()
+	public static @NotNull List<AvailObject> specialAtoms()
 	{
-		return Collections.unmodifiableList(specialAtoms);
+		return specialAtomsList;
 	}
 
 	/**
@@ -407,14 +425,7 @@ implements ThreadFactory
 	@ThreadSafe
 	public static boolean isSpecialAtom (final @NotNull AvailObject atom)
 	{
-		for (final AvailObject specialAtom : specialAtoms)
-		{
-			if (specialAtom.equals(atom))
-			{
-				return true;
-			}
-		}
-		return false;
+		return specialAtomsSet.contains(atom);
 	}
 
 	/**
@@ -435,11 +446,11 @@ implements ThreadFactory
 		specialObjects[11] = ATOM.o();
 		specialObjects[12] = DOUBLE.o();
 		specialObjects[13] = IntegerRangeTypeDescriptor.extendedIntegers();
-		specialObjects[14] = InstanceTypeDescriptor.on(
+		specialObjects[14] = InstanceMetaDescriptor.on(
 			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 				IntegerRangeTypeDescriptor.wholeNumbers(),
 				TupleDescriptor.empty(),
-				InstanceTypeDescriptor.on(ANY.o())));
+				InstanceMetaDescriptor.anyMeta()));
 		specialObjects[15] = FLOAT.o();
 		specialObjects[16] = NUMBER.o();
 		specialObjects[17] = IntegerRangeTypeDescriptor.integers();
@@ -456,12 +467,12 @@ implements ThreadFactory
 		specialObjects[27] = SetTypeDescriptor.meta();
 		specialObjects[28] = TupleTypeDescriptor.stringTupleType();
 		specialObjects[29] = BottomTypeDescriptor.bottom();
-		specialObjects[30] = InstanceTypeDescriptor.on(
+		specialObjects[30] = InstanceMetaDescriptor.on(
 			BottomTypeDescriptor.bottom());
 		// 31
 		specialObjects[32] = TupleTypeDescriptor.mostGeneralType();
 		specialObjects[33] = TupleTypeDescriptor.meta();
-		specialObjects[34] = TYPE.o();
+		specialObjects[34] = InstanceMetaDescriptor.topMeta();
 		specialObjects[35] = TOP.o();
 		specialObjects[36] = IntegerRangeTypeDescriptor.wholeNumbers();
 		specialObjects[37] = IntegerRangeTypeDescriptor.naturalNumbers();
@@ -482,7 +493,7 @@ implements ThreadFactory
 		specialObjects[55] = LITERAL_NODE.mostGeneralType();
 		specialObjects[56] = REFERENCE_NODE.mostGeneralType();
 		specialObjects[57] = SEND_NODE.mostGeneralType();
-		specialObjects[58] = InstanceTypeDescriptor.on(
+		specialObjects[58] = InstanceMetaDescriptor.on(
 			LiteralTokenTypeDescriptor.mostGeneralType());
 		specialObjects[59] = LIST_NODE.mostGeneralType();
 		specialObjects[60] = VARIABLE_USE_NODE.mostGeneralType();
@@ -494,7 +505,7 @@ implements ThreadFactory
 		specialObjects[66] = MODULE_VARIABLE_NODE.mostGeneralType();
 		specialObjects[67] = MODULE_CONSTANT_NODE.mostGeneralType();
 		specialObjects[68] = PRIMITIVE_FAILURE_REASON_NODE.mostGeneralType();
-		specialObjects[69] = InstanceTypeDescriptor.on(ANY.o());
+		specialObjects[69] = InstanceMetaDescriptor.anyMeta();
 		specialObjects[70] = AtomDescriptor.trueObject();
 		specialObjects[71] = AtomDescriptor.falseObject();
 		specialObjects[72] =
@@ -506,7 +517,7 @@ implements ThreadFactory
 			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 				IntegerRangeTypeDescriptor.wholeNumbers(),
 				TupleDescriptor.empty(),
-				TYPE.o());
+				InstanceMetaDescriptor.anyMeta());
 		specialObjects[74] =
 			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 				IntegerRangeTypeDescriptor.wholeNumbers(),
@@ -530,9 +541,9 @@ implements ThreadFactory
 		specialObjects[81] = PojoTypeDescriptor.pojoBottom();
 		specialObjects[82] = PojoDescriptor.nullObject();
 		specialObjects[83] = PojoTypeDescriptor.selfType();
-		specialObjects[84] = InstanceTypeDescriptor.on(
+		specialObjects[84] = InstanceMetaDescriptor.on(
 			PojoTypeDescriptor.mostGeneralType());
-		specialObjects[85] = InstanceTypeDescriptor.on(
+		specialObjects[85] = InstanceMetaDescriptor.on(
 			PojoTypeDescriptor.mostGeneralArrayType());
 		specialObjects[86] = FunctionTypeDescriptor.forReturnType(
 			PojoTypeDescriptor.mostGeneralType());
@@ -554,7 +565,7 @@ implements ThreadFactory
 		specialObjects[94] = MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
 			IntegerRangeTypeDescriptor.wholeNumbers(),
 			ATOM.o(),
-			InstanceTypeDescriptor.on(ANY.o()));
+			InstanceMetaDescriptor.anyMeta());
 		specialObjects[95] =
 			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 				IntegerRangeTypeDescriptor.wholeNumbers(),
@@ -568,7 +579,7 @@ implements ThreadFactory
 			IntegerRangeTypeDescriptor.naturalNumbers(),
 			ANY.o(),
 			ANY.o());
-		specialObjects[98] = InstanceTypeDescriptor.on(
+		specialObjects[98] = InstanceMetaDescriptor.on(
 			IntegerRangeTypeDescriptor.wholeNumbers());
 		specialObjects[99] = SetTypeDescriptor.setTypeForSizesContentType(
 			IntegerRangeTypeDescriptor.naturalNumbers(),
@@ -592,12 +603,14 @@ implements ThreadFactory
 			TOP.o());
 		specialObjects[106] = InstanceTypeDescriptor.on(
 			IntegerDescriptor.zero());
-		specialObjects[107] = FunctionTypeDescriptor.forReturnType(TYPE.o());
+		specialObjects[107] = FunctionTypeDescriptor.forReturnType(
+			InstanceMetaDescriptor.topMeta());
 		specialObjects[108] =
 			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 				IntegerRangeTypeDescriptor.wholeNumbers(),
 				TupleDescriptor.from(),
-				FunctionTypeDescriptor.forReturnType(TYPE.o()));
+				FunctionTypeDescriptor.forReturnType(
+					InstanceMetaDescriptor.topMeta()));
 		specialObjects[109] = FunctionTypeDescriptor.forReturnType(
 			PARSE_NODE.mostGeneralType());
 		specialObjects[110] = InstanceTypeDescriptor.on(
@@ -605,7 +618,7 @@ implements ThreadFactory
 		specialObjects[111] = DoubleDescriptor.fromDouble(Math.E);
 		specialObjects[112] = InstanceTypeDescriptor.on(
 			DoubleDescriptor.fromDouble(Math.E));
-		specialObjects[113] = InstanceTypeDescriptor.on(
+		specialObjects[113] = InstanceMetaDescriptor.on(
 			PARSE_NODE.mostGeneralType());
 		specialObjects[114] = SetTypeDescriptor.setTypeForSizesContentType(
 			IntegerRangeTypeDescriptor.wholeNumbers(),
@@ -616,7 +629,7 @@ implements ThreadFactory
 			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 				IntegerRangeTypeDescriptor.wholeNumbers(),
 				TupleDescriptor.empty(),
-				InstanceTypeDescriptor.on(ANY.o()));
+				InstanceMetaDescriptor.anyMeta());
 		specialObjects[118] =
 			IntegerRangeTypeDescriptor.create(
 				IntegerDescriptor.zero(),
@@ -630,7 +643,7 @@ implements ThreadFactory
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 					IntegerRangeTypeDescriptor.singleInt(2),
 					TupleDescriptor.from(ATOM.o()),
-					InstanceTypeDescriptor.on(ANY.o())));
+					InstanceMetaDescriptor.anyMeta()));
 		specialObjects[120] =
 			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 				IntegerRangeTypeDescriptor.wholeNumbers(),
@@ -670,15 +683,22 @@ implements ThreadFactory
 					PojoTypeDescriptor.forClass(Throwable.class)),
 				BottomTypeDescriptor.bottom());
 
-		for (final @NotNull AvailObject object : specialObjects)
+
+		// Declare all special atoms
+		specialAtoms[0] = AtomDescriptor.trueObject();
+		specialAtoms[1] = AtomDescriptor.falseObject();
+		specialAtoms[2] = PojoTypeDescriptor.selfAtom();
+
+
+		assert specialAtomsSet == null;
+		specialAtomsSet = new HashSet<AvailObject>(specialAtomsList);
+		specialAtomsSet.remove(null);
+		specialAtomsSet = Collections.unmodifiableSet(specialAtomsSet);
+		for (final AvailObject object : specialObjects)
 		{
-			if (object != null)
+			if (object != null && object.isAtom())
 			{
-				object.makeImmutable();
-				if (object.isAtom())
-				{
-					specialAtoms.add(object);
-				}
+				assert specialAtomsSet.contains(object);
 			}
 		}
 	}
@@ -688,11 +708,9 @@ implements ThreadFactory
 	 */
 	public static void clearWellKnownObjects ()
 	{
-		specialAtoms.clear();
-		for (int i = 0; i < specialObjects.length; i++)
-		{
-			specialObjects[i] = null;
-		}
+		Arrays.fill(specialObjects, null);
+		Arrays.fill(specialAtoms, null);
+		specialAtomsSet = null;
 	}
 
 	/**

@@ -105,7 +105,12 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 		@EnumField(
 			describedBy=Primitive.class,
 			lookupMethodName="byPrimitiveNumber")
-		PRIMITIVE
+		PRIMITIVE,
+
+		/**
+		 * The line number on which this block starts.
+		 */
+		STARTING_LINE_NUMBER;
 	}
 
 	/**
@@ -169,7 +174,6 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 		return object.slot(DECLARED_EXCEPTIONS);
 	}
 
-
 	/**
 	 * Getter for field primitive.
 	 */
@@ -180,6 +184,15 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 		return object.slot(PRIMITIVE);
 	}
 
+	/**
+	 * Getter for field startingLineNumber.
+	 */
+	@Override @AvailMethod
+	int o_StartingLineNumber (
+		final @NotNull AvailObject object)
+	{
+		return object.slot(STARTING_LINE_NUMBER);
+	}
 
 	@Override boolean allowsImmutableToMutableReferenceInField (
 		final @NotNull AbstractSlotsEnum e)
@@ -219,7 +232,8 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 		final @NotNull AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
-		final AvailCodeGenerator newGenerator = new AvailCodeGenerator();
+		final AvailCodeGenerator newGenerator = new AvailCodeGenerator(
+			codeGenerator.module());
 		final AvailObject compiledBlock = object.generate(newGenerator);
 		if (object.neededVariables().tupleSize() == 0)
 		{
@@ -393,10 +407,13 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	 * Answer an Avail compiled block compiled from the given block node, using
 	 * the given {@link AvailCodeGenerator}.
 	 *
-	 * @param object The {@linkplain BlockNodeDescriptor block node}.
+	 * @param object
+	 *            The {@linkplain BlockNodeDescriptor block node}.
 	 * @param codeGenerator
 	 *            A {@linkplain AvailCodeGenerator code generator}
-	 * @return An {@link AvailObject} of type {@linkplain FunctionDescriptor function}.
+	 * @return
+	 *            An {@link AvailObject} of type {@linkplain FunctionDescriptor
+	 *            function}.
 	 */
 	@Override @AvailMethod
 	AvailObject o_Generate (
@@ -409,7 +426,8 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 			labels(object),
 			object.neededVariables(),
 			object.resultType(),
-			object.declaredExceptions());
+			object.declaredExceptions(),
+			object.slot(STARTING_LINE_NUMBER));
 		codeGenerator.stackShouldBeEmpty();
 		codeGenerator.primitive(object.primitive());
 		codeGenerator.stackShouldBeEmpty();
@@ -465,22 +483,26 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	 * @param declaredExceptions
 	 *            The {@linkplain SetDescriptor set} of exception types that may
 	 *            be raised by this block.  <em>This is not yet normalized.</em>
+	 * @param lineNumber
+	 *            The line number on which the block starts.
 	 * @return
 	 *            A block node.
 	 */
 	public static AvailObject newBlockNode (
-		final List<AvailObject> argumentsList,
+		final @NotNull List<AvailObject> argumentsList,
 		final int primitive,
-		final List<AvailObject> statementsList,
-		final AvailObject resultType,
-		final AvailObject declaredExceptions)
+		final @NotNull List<AvailObject> statementsList,
+		final @NotNull AvailObject resultType,
+		final @NotNull AvailObject declaredExceptions,
+		final int lineNumber)
 	{
 		return newBlockNode(
 			TupleDescriptor.fromCollection(argumentsList),
 			IntegerDescriptor.fromInt(primitive),
 			TupleDescriptor.fromCollection(statementsList),
 			resultType,
-			declaredExceptions);
+			declaredExceptions,
+			lineNumber);
 	}
 
 	/**
@@ -505,11 +527,12 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	 *            A block node.
 	 */
 	public static AvailObject newBlockNode (
-		final AvailObject arguments,
-		final AvailObject primitive,
-		final AvailObject statements,
-		final AvailObject resultType,
-		final AvailObject declaredExceptions)
+		final @NotNull AvailObject arguments,
+		final @NotNull AvailObject primitive,
+		final @NotNull AvailObject statements,
+		final @NotNull AvailObject resultType,
+		final @NotNull AvailObject declaredExceptions,
+		final int lineNumber)
 	{
 		final List<AvailObject> flattenedStatements =
 			new ArrayList<AvailObject>(statements.tupleSize() + 3);
@@ -528,24 +551,15 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 			}
 		}
 		final AvailObject block = mutable().create();
-		block.setSlot(
-			ARGUMENTS_TUPLE,
-			arguments);
-		block.setSlot(
-			PRIMITIVE,
-			primitive.extractInt());
+		block.setSlot(ARGUMENTS_TUPLE, arguments);
+		block.setSlot(PRIMITIVE, primitive.extractInt());
 		block.setSlot(
 			STATEMENTS_TUPLE,
 			TupleDescriptor.fromCollection(flattenedStatements));
-		block.setSlot(
-			RESULT_TYPE,
-			resultType);
-		block.setSlot(
-			NEEDED_VARIABLES,
-			NullDescriptor.nullObject());
-		block.setSlot(
-			DECLARED_EXCEPTIONS,
-			declaredExceptions);
+		block.setSlot(RESULT_TYPE, resultType);
+		block.setSlot(NEEDED_VARIABLES, NullDescriptor.nullObject());
+		block.setSlot(DECLARED_EXCEPTIONS, declaredExceptions);
+		block.setSlot(STARTING_LINE_NUMBER, lineNumber);
 		block.makeImmutable();
 		return block;
 	}

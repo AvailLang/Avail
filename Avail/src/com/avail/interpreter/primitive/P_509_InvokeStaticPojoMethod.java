@@ -130,7 +130,7 @@ public class P_509_InvokeStaticPojoMethod extends Primitive
 					IntegerRangeTypeDescriptor.wholeNumbers(),
 					TupleDescriptor.empty(),
 					RAW_POJO.o()),
-				TYPE.o()),
+				InstanceMetaDescriptor.topMeta()),
 			TOP.o());
 	}
 

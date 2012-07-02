@@ -32,7 +32,7 @@
 
 package com.avail.descriptor;
 
-import java.util.List;
+import java.util.*;
 import com.avail.annotations.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 
@@ -70,12 +70,6 @@ extends AbstractTypeDescriptor
 		final @NotNull AvailObject object)
 	{
 		return true;
-	}
-
-	@Override @AvailMethod
-	final @NotNull AvailObject o_Kind (final @NotNull AvailObject object)
-	{
-		return TYPE.o();
 	}
 
 	/**
@@ -696,59 +690,62 @@ extends AbstractTypeDescriptor
 	 */
 	public static AvailObject withInstances (final AvailObject instancesSet)
 	{
-		int setSize = instancesSet.setSize();
-		AvailObject normalizedSet = instancesSet;
-		if (setSize >= 2)
+		final int setSize = instancesSet.setSize();
+		if (setSize == 0)
 		{
-			boolean anyTypes = false;
-			for (final AvailObject element : instancesSet)
-			{
-				if (element.isType())
-				{
-					anyTypes = true;
-					break;
-				}
-			}
-			if (anyTypes)
-			{
-				AvailObject typesUnion = BottomTypeDescriptor.bottom();
-				normalizedSet = SetDescriptor.empty();
-				for (final AvailObject element : instancesSet)
-				{
-					if (element.isType())
-					{
-						typesUnion = typesUnion.typeUnion(element);
-					}
-					else
-					{
-						normalizedSet = normalizedSet.setWithElementCanDestroy(
-							element,
-							true);
-					}
-				}
-				normalizedSet = normalizedSet.setWithElementCanDestroy(
-					typesUnion,
-					true);
-				final int newSetSize = normalizedSet.setSize();
-				if (newSetSize == setSize)
-				{
-					assert normalizedSet.equals(instancesSet);
-					normalizedSet = instancesSet;
-				}
-				setSize = newSetSize;
-			}
-		}
-		if (setSize <= 1)
-		{
-			for (final AvailObject element : normalizedSet)
-			{
-				return InstanceTypeDescriptor.on(element);
-			}
 			return BottomTypeDescriptor.bottom();
 		}
-		final AvailObject result = EnumerationTypeDescriptor.fromNormalizedSet(
-			normalizedSet);
-		return result;
+		int typeCount = 0;
+		for (final AvailObject element : instancesSet)
+		{
+			if (element.isType())
+			{
+				typeCount++;
+			}
+		}
+		if (typeCount == 0)
+		{
+			if (setSize == 1)
+			{
+				return InstanceTypeDescriptor.on(
+					instancesSet.iterator().next());
+			}
+			return EnumerationTypeDescriptor.fromNormalizedSet(
+				instancesSet);
+		}
+		if (typeCount == setSize)
+		{
+			// They're all types.
+			final Iterator<AvailObject> iterator = instancesSet.iterator();
+			AvailObject typesUnion = iterator.next();
+			while (iterator.hasNext())
+			{
+				typesUnion = typesUnion.typeUnion(iterator.next());
+			}
+			return InstanceMetaDescriptor.on(typesUnion);
+		}
+		// It's a mix of types and non-types.
+		return ANY.o();
+	}
+
+	/**
+	 * Answer a new object instance of this descriptor based on the single
+	 * object that will be considered an instance of that type. If a type is
+	 * specified, all subtypes will also be considered instances of that type.
+	 *
+	 * @param instance
+	 *            The {@linkplain AvailObject object} which is to be an instance
+	 *            of the new type.
+	 * @return An {@link AvailObject} representing the type whose instance is
+	 *         the object specified in the argument.
+	 */
+	public static AvailObject withInstance (final AvailObject instance)
+	{
+		if (instance.isType())
+		{
+			return InstanceMetaDescriptor.on(instance);
+		}
+		return InstanceTypeDescriptor.on(instance);
 	}
 
 	/**

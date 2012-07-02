@@ -589,25 +589,6 @@ Restriction "static method_._(«_‡,»)" is
 ];
 
 [
-	pointT ::= Java type "java.awt.Point";
-	pointC ::= constructor of pointT given <jint, jint>;
-	dimT ::= Java type "java.awt.Dimension";
-	dimC ::= constructor of dimT given <jint, jint>;
-	rectT ::= Java type "java.awt.Rectangle";
-	rectC ::= constructor of rectT given <pointT, dimT>;
-	rect ::= rectC(pointC(10, 50), dimC(5, 3));
-	Print "\nrect = " then rect as basic string then "\n";
-	hashCodeF ::= method pojo."hashCode" ();
-	Print "rect.hashCode() = " then hashCodeF(rect) as basic string then "\n";
-	rect2 ::= rectC(pointC(20, 0), dimC(3, 5));
-	Print "rect2 = " then rect2 as basic string then "\n";
-	Print "rect2.hashCode() = " then hashCodeF(rect2) as basic string then "\n";
-	addF ::= method rectT."add" (rectT);
-	addF(rect, rect2);
-	Print "rect.add(rect2) = " then rect as basic string then "\n";
-]();
-
-[
 	arraylistT ::= Java type "java.util.ArrayList" parameters <jint>;
 	listC ::= constructor of arraylistT given <>;
 	list ::= listC();

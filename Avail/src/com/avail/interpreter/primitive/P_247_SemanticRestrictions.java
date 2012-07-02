@@ -83,11 +83,11 @@ public class P_247_SemanticRestrictions extends Primitive
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 					IntegerRangeTypeDescriptor.wholeNumbers(),
 					TupleDescriptor.empty(),
-					InstanceTypeDescriptor.on(ANY.o()))),
+					InstanceMetaDescriptor.anyMeta())),
 			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 				IntegerRangeTypeDescriptor.wholeNumbers(),
 				TupleDescriptor.empty(),
 				FunctionTypeDescriptor.forReturnType(
-					TYPE.o())));
+					InstanceMetaDescriptor.topMeta())));
 	}
 }

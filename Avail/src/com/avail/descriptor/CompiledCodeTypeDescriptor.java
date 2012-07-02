@@ -284,7 +284,7 @@ extends TypeDescriptor
 		MostGeneralType = forFunctionType(
 			FunctionTypeDescriptor.mostGeneralType());
 		MostGeneralType.makeImmutable();
-		Meta = InstanceTypeDescriptor.on(MostGeneralType);
+		Meta = InstanceMetaDescriptor.on(MostGeneralType);
 		Meta.makeImmutable();
 	}
 

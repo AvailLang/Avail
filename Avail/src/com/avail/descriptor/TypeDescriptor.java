@@ -243,14 +243,7 @@ extends AbstractTypeDescriptor
 		 * {@linkplain FiberDescriptor Processes} are the way Avail represents
 		 * independent execution.
 		 */
-		FIBER(ANY),
-
-		/**
-		 * Types are objects too, so they have to have their own types.  This is
-		 * the most general kind of all types.  Since it's a type's type, it can
-		 * also be called a metatype (or often just meta for short).
-		 */
-		TYPE(ANY);
+		FIBER(ANY);
 
 
 		/**
@@ -905,12 +898,6 @@ extends AbstractTypeDescriptor
 		// Most Avail types are opaque to Java, and can be characterized by the
 		// class of AvailObject.
 		return AvailObject.class;
-	}
-
-	@Override @AvailMethod
-	final @NotNull AvailObject o_Kind (final @NotNull AvailObject object)
-	{
-		return TYPE.o();
 	}
 
 	/**

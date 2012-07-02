@@ -159,7 +159,8 @@ public class L1Decompiler
 			code.primitiveNumber(),
 			statements,
 			aCodeObject.functionType().returnType(),
-			aCodeObject.functionType().declaredExceptions());
+			aCodeObject.functionType().declaredExceptions(),
+			0);
 	}
 
 	/**

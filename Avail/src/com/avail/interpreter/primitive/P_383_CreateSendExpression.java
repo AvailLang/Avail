@@ -100,7 +100,7 @@ extends Primitive
 			TupleDescriptor.from(
 				METHOD.o(),
 				LIST_NODE.mostGeneralType(),
-				TYPE.o()),
+				InstanceMetaDescriptor.topMeta()),
 			SEND_NODE.mostGeneralType());
 	}
 }

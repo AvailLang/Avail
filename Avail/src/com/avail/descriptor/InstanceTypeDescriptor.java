@@ -149,56 +149,29 @@ extends AbstractEnumerationTypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
-		AvailObject set = SetDescriptor.empty();
-		final AvailObject instance = getInstance(object);
 		if (another.isEnumeration())
 		{
-			// Create a new enumeration containing all non-type elements that
-			// are simultaneously present in object and another, plus the type
-			// intersections of all pairs of types in the product of the sets.
-			// This should even correctly deal with bottom as an element.
-			if (instance.isType())
+			if (another.isInstanceMeta())
 			{
-				for (final AvailObject anotherElement : another.instances())
-				{
-					if (anotherElement.isType())
-					{
-						set = set.setWithElementCanDestroy(
-							anotherElement.typeIntersection(instance),
-							true);
-					}
-				}
+				// Intersection of an instance type and an instance meta is
+				// always bottom.
+				return BottomTypeDescriptor.bottom();
 			}
-			else if (another.instances().hasElement(instance))
+			// Create a new enumeration containing all elements that are
+			// simultaneously present in object and another.
+			if (another.instances().hasElement(getInstance(object)))
 			{
-				set = set.setWithElementCanDestroy(instance, true);
+				return object;
 			}
+			return BottomTypeDescriptor.bottom();
 		}
-		else
+		// Keep the instance if it complies with another, which is not an
+		// enumeration.
+		if (getInstance(object).isInstanceOfKind(another))
 		{
-			// Keep the instance if it complies with another, which is not an
-			// enumeration.
-			if (instance.isInstanceOfKind(another))
-			{
-				set = set.setWithElementCanDestroy(instance, true);
-			}
+			return object;
 		}
-		if (set.setSize() == 0)
-		{
-			// Decide whether this should be bottom or bottom's type
-			// based on whether object and another are both metas.  Note that
-			// object is a meta precisely when its instance is a type.  One more
-			// thing:  The special case of another being bottom should not
-			// be treated as being a meta for our purposes, even though
-			// bottom technically is a meta.
-			if (instance.isType()
-				&& another.isSubtypeOf(TYPE.o())
-				&& !another.equals(BottomTypeDescriptor.bottom()))
-			{
-				return on(BottomTypeDescriptor.bottom());
-			}
-		}
-		return AbstractEnumerationTypeDescriptor.withInstances(set);
+		return BottomTypeDescriptor.bottom();
 	}
 
 	/**
@@ -222,6 +195,11 @@ extends AbstractEnumerationTypeDescriptor
 	{
 		if (another.isEnumeration())
 		{
+			if (another.isInstanceMeta())
+			{
+				// Union of an instance type and an instance meta is any.
+				return ANY.o();
+			}
 			// Create a new enumeration containing all elements from both
 			// enumerations.
 			return AbstractEnumerationTypeDescriptor.withInstances(
@@ -229,17 +207,18 @@ extends AbstractEnumerationTypeDescriptor
 					getInstance(object),
 					false));
 		}
-		if (object.isSubtypeOf(another))
+		// Another is a kind.
+		if (getInstance(object).isInstanceOfKind(another))
 		{
 			return another;
 		}
-		if (another.isSubtypeOf(object))
-		{
-			return object;
-		}
-		// Another isn't an enumeration or instance type or bottom, so reverse
-		// the arguments.
 		return getSuperkind(object).typeUnion(another);
+	}
+
+	@Override
+	@NotNull AvailObject o_Instance (final @NotNull AvailObject object)
+	{
+		return getInstance(object);
 	}
 
 	@Override @AvailMethod
@@ -312,7 +291,6 @@ extends AbstractEnumerationTypeDescriptor
 		return getSuperkind(object).fieldTypeMap();
 	}
 
-
 	@Override @AvailMethod
 	@NotNull AvailObject o_LowerBound (
 		final @NotNull AvailObject object)
@@ -347,7 +325,6 @@ extends AbstractEnumerationTypeDescriptor
 		return true;
 	}
 
-
 	@Override @AvailMethod
 	@NotNull AvailObject o_TypeAtIndex (
 		final @NotNull AvailObject object,
@@ -360,7 +337,8 @@ extends AbstractEnumerationTypeDescriptor
 		assert tuple.isTuple();
 		if (1 <= index && index <= tuple.tupleSize())
 		{
-			return on(tuple.tupleAt(index));
+			return AbstractEnumerationTypeDescriptor.withInstance(
+				tuple.tupleAt(index));
 		}
 		return BottomTypeDescriptor.bottom();
 	}
@@ -388,7 +366,8 @@ extends AbstractEnumerationTypeDescriptor
 		}
 		if (startIndex == endIndex)
 		{
-			return on(tuple.tupleAt(startIndex));
+			return AbstractEnumerationTypeDescriptor.withInstance(
+				tuple.tupleAt(startIndex));
 		}
 		AvailObject set = SetDescriptor.empty();
 		for (
@@ -414,7 +393,8 @@ extends AbstractEnumerationTypeDescriptor
 		{
 			return BottomTypeDescriptor.bottom();
 		}
-		return on(tuple.tupleAt(tupleSize));
+		return AbstractEnumerationTypeDescriptor.withInstance(
+			tuple.tupleAt(tupleSize));
 	}
 
 	@Override @AvailMethod
@@ -510,14 +490,9 @@ extends AbstractEnumerationTypeDescriptor
 		final @NotNull AvailObject object,
 		final AvailObject potentialInstance)
 	{
-		final AvailObject instance = getInstance(object);
-		if (potentialInstance.equals(instance))
+		if (potentialInstance.equals(getInstance(object)))
 		{
 			return true;
-		}
-		if (instance.isType() && potentialInstance.isType())
-		{
-			return potentialInstance.isSubtypeOf(instance);
 		}
 		return false;
 	}
@@ -624,8 +599,7 @@ extends AbstractEnumerationTypeDescriptor
 	@NotNull AvailObject o_Parent (
 		final @NotNull AvailObject object)
 	{
-		// TODO: [MvG] Maybe think about this one.
-		return getSuperkind(object).parent();
+		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod
@@ -678,6 +652,7 @@ extends AbstractEnumerationTypeDescriptor
 	 */
 	public static @NotNull AvailObject on (final @NotNull AvailObject instance)
 	{
+		assert !instance.isType();
 		final AvailObject result = mutable().create();
 		instance.makeImmutable();
 		result.setSlot(INSTANCE, instance);

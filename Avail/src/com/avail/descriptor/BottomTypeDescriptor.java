@@ -531,7 +531,7 @@ extends AbstractEnumerationTypeDescriptor
 		}
 		// Bottom is an instance of every meta (everything that inherits
 		// from TYPE).
-		return aType.isSubtypeOf(TYPE.o());
+		return aType.isSubtypeOf(InstanceMetaDescriptor.topMeta());
 	}
 
 	@Override @AvailMethod
@@ -542,7 +542,7 @@ extends AbstractEnumerationTypeDescriptor
 		assert !aType.equals(bottom);
 		return aType.equals(TOP.o())
 			|| aType.equals(ANY.o())
-			|| aType.isSubtypeOf(TYPE.o());
+			|| aType.isSubtypeOf(InstanceMetaDescriptor.topMeta());
 	}
 
 	@Override @AvailMethod

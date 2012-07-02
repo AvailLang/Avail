@@ -71,7 +71,7 @@ public class P_068_RecordNewTypeName extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				InstanceTypeDescriptor.on(
+				InstanceMetaDescriptor.on(
 					ObjectTypeDescriptor.mostGeneralType()),
 				TupleTypeDescriptor.stringTupleType()),
 			TOP.o());

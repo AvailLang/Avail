@@ -172,14 +172,25 @@ public class TypeConsistencyTest
 			}
 		}
 
-		/** The type of {@code any}. */
-		static final Node ANY_META = new Node(
-			"ANY_META",
-			primitiveTypes.get(Types.TYPE))
+		/** The most general metatype. */
+		static final Node TOP_META = new Node(
+			"TOP_META",
+			primitiveTypes.get(Types.ANY))
 		{
 			@Override AvailObject get ()
 			{
-				return InstanceTypeDescriptor.on(Types.ANY.o());
+				return InstanceMetaDescriptor.topMeta();
+			}
+		};
+
+		/** The type of {@code any}. */
+		static final Node ANY_META = new Node(
+			"ANY_META",
+			TOP_META)
+		{
+			@Override AvailObject get ()
+			{
+				return InstanceMetaDescriptor.anyMeta();
 			}
 		};
 
@@ -674,7 +685,7 @@ public class TypeConsistencyTest
 		{
 			@Override AvailObject get ()
 			{
-				return InstanceTypeDescriptor.on(
+				return InstanceMetaDescriptor.on(
 					IntegerRangeTypeDescriptor.wholeNumbers());
 			}
 		};
@@ -686,12 +697,12 @@ public class TypeConsistencyTest
 		static final Node WHOLE_NUMBER_META_META = new Node(
 			"WHOLE_NUMBER_META_META",
 			ANY_META,
-			primitiveTypes.get(Types.TYPE))
+			TOP_META)
 		{
 			@Override AvailObject get ()
 			{
-				return InstanceTypeDescriptor.on(
-					InstanceTypeDescriptor.on(
+				return InstanceMetaDescriptor.on(
+					InstanceMetaDescriptor.on(
 						IntegerRangeTypeDescriptor.wholeNumbers()));
 			}
 		};
@@ -866,7 +877,7 @@ public class TypeConsistencyTest
 		{
 			@Override AvailObject get ()
 			{
-				return InstanceTypeDescriptor.on(
+				return InstanceMetaDescriptor.on(
 					BottomTypeDescriptor.bottom());
 			}
 		};
@@ -1665,7 +1676,7 @@ public class TypeConsistencyTest
 			for (final Node y : Node.values)
 			{
 				assertT(
-					x.union(y).isInstanceOf(Types.TYPE.o()),
+					x.union(y).isInstanceOf(InstanceMetaDescriptor.topMeta()),
 					"union function: %s, %s",
 					x,
 					y);
@@ -1774,7 +1785,8 @@ public class TypeConsistencyTest
 			for (final Node y : Node.values)
 			{
 				assertT(
-					x.intersect(y).isInstanceOf(Types.TYPE.o()),
+					x.intersect(y).isInstanceOf(
+						InstanceMetaDescriptor.topMeta()),
 					"intersection function: %s, %s",
 					x,
 					y);
@@ -2060,7 +2072,7 @@ public class TypeConsistencyTest
 			@Override
 			AvailObject transform (final AvailObject type)
 			{
-				return InstanceTypeDescriptor.on(type);
+				return InstanceMetaDescriptor.on(type);
 			}
 		});
 	}
@@ -2079,10 +2091,10 @@ public class TypeConsistencyTest
 		{
 			for (final Node y : Node.values)
 			{
-				final AvailObject Tx = InstanceTypeDescriptor.on(x.t);
-				final AvailObject Ty = InstanceTypeDescriptor.on(y.t);
+				final AvailObject Tx = InstanceMetaDescriptor.on(x.t);
+				final AvailObject Ty = InstanceMetaDescriptor.on(y.t);
 				final AvailObject xuy = x.t.typeUnion(y.t);
-				final AvailObject T_xuy = InstanceTypeDescriptor.on(xuy);
+				final AvailObject T_xuy = InstanceMetaDescriptor.on(xuy);
 				final AvailObject TxuTy = Tx.typeUnion(Ty);
 				assertEQ(
 					T_xuy,
@@ -2111,10 +2123,10 @@ public class TypeConsistencyTest
 		{
 			for (final Node y : Node.values)
 			{
-				final AvailObject Tx = InstanceTypeDescriptor.on(x.t);
-				final AvailObject Ty = InstanceTypeDescriptor.on(y.t);
+				final AvailObject Tx = InstanceMetaDescriptor.on(x.t);
+				final AvailObject Ty = InstanceMetaDescriptor.on(y.t);
 				final AvailObject xny = x.t.typeIntersection(y.t);
-				final AvailObject T_xny = InstanceTypeDescriptor.on(xny);
+				final AvailObject T_xny = InstanceMetaDescriptor.on(xny);
 				final AvailObject TxnTy = Tx.typeIntersection(Ty);
 				assertEQ(
 					T_xny,

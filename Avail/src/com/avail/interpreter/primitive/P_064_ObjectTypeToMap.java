@@ -71,6 +71,6 @@ public class P_064_ObjectTypeToMap extends Primitive
 			MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
 				IntegerRangeTypeDescriptor.wholeNumbers(),
 				ATOM.o(),
-				InstanceTypeDescriptor.on(ANY.o())));
+				InstanceMetaDescriptor.anyMeta()));
 	}
 }

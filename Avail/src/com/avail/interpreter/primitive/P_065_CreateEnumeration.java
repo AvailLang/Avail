@@ -31,7 +31,6 @@
  */
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.TYPE;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.*;
 import com.avail.annotations.NotNull;
@@ -68,6 +67,6 @@ public class P_065_CreateEnumeration extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				SetTypeDescriptor.mostGeneralType()),
-			TYPE.o());
+			InstanceMetaDescriptor.topMeta());
 	}
 }

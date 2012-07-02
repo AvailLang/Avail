@@ -42,7 +42,6 @@ import java.util.*;
 import com.avail.annotations.*;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
-import com.avail.interpreter.Primitive.Flag;
 import com.avail.interpreter.Primitive.Result;
 import com.avail.interpreter.levelOne.*;
 import com.avail.interpreter.levelTwo.*;
@@ -492,15 +491,16 @@ public class L2Translator implements L1OperationDispatcher
 	 * primitive, jumping to the successLabel on success.
 	 *
 	 * <p>
-	 * Special case if the flag {@link Primitive.Flag#SpecialReturnConstant}
-	 * is specified:  Always fold it, since it's just a constant.
+	 * Special case if the flag {@link
+	 * com.avail.interpreter.Primitive.Flag#SpecialReturnConstant} is specified:
+	 * Always fold it, since it's just a constant.
 	 * </p>
 	 *
 	 * <p>
-	 * Another special case if the flag {@link Primitive.Flag
-	 * #SpecialReturnSoleArgument} is specified:  Don't generate an inlined
-	 * primitive invocation, but instead generate a move from the argument
-	 * register to the output.
+	 * Another special case if the flag {@link
+	 * com.avail.interpreter.Primitive.Flag#SpecialReturnSoleArgument} is
+	 * specified:  Don't generate an inlined primitive invocation, but instead
+	 * generate a move from the argument register to the output.
 	 * </p>
 	 *
 	 * @param primitiveFunction
