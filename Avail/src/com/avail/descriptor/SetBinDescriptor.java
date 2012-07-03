@@ -71,11 +71,17 @@ extends Descriptor
 		return object.slot(IntegerSlots.BIN_HASH);
 	}
 
-
 	@Override @AvailMethod
 	boolean o_IsSetBin (final @NotNull AvailObject object)
 	{
 		return true;
+	}
+
+	@Override
+	public boolean o_ShowValueInNameForDebugger (
+		final @NotNull AvailObject object)
+	{
+		return false;
 	}
 
 

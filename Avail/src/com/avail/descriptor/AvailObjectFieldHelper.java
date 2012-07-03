@@ -164,18 +164,8 @@ public class AvailObjectFieldHelper
 			}
 			else if (value instanceof AvailObject)
 			{
-				final AbstractDescriptor descriptor =
-					((AvailObject)value).descriptor();
-				String typeName = descriptor.getClass().getSimpleName();
-				if (typeName.matches(".*Descriptor"))
-				{
-					typeName = typeName.substring(0, typeName.length() - 10);
-				}
-				if (descriptor.isMutable())
-				{
-					typeName = typeName + "\u2133";
-				}
-				builder.append(String.format(" (%s) = %s", typeName, value));
+				builder.append(' ');
+				builder.append(((AvailObject)value).nameForDebugger());
 			}
 			else if (value instanceof AvailIntegerValueHelper)
 			{

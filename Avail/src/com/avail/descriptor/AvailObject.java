@@ -258,6 +258,27 @@ implements Iterable<AvailObject>
 		return descriptor.o_DescribeForDebugger(this);
 	}
 
+	/**
+	 * Answer a name suitable for labeling a field containing this object.
+	 *
+	 * @return An Avail {@linkplain StringDescriptor string}.
+	 */
+	public @NotNull String nameForDebugger()
+	{
+		return descriptor.o_NameForDebugger(this);
+	}
+
+	/**
+	 * Answer whether to show value-specific content in the file name for the
+	 * debugger.
+	 *
+	 * @return Whether to show the value.
+	 */
+	public boolean showValueInNameForDebugger()
+	{
+		return descriptor.o_ShowValueInNameForDebugger(this);
+	}
+
 	@Override
 	public String toString ()
 	{
@@ -6224,5 +6245,13 @@ implements Iterable<AvailObject>
 	public @NotNull AvailObject module ()
 	{
 		return descriptor.o_Module(this);
+	}
+
+	/**
+	 * @return
+	 */
+	public @NotNull AvailObject methodName ()
+	{
+		return descriptor.o_MethodName(this);
 	}
 }

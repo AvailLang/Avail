@@ -420,6 +420,20 @@ extends Descriptor
 		return result;
 	}
 
+	@Override
+	@NotNull String o_NameForDebugger (final @NotNull AvailObject object)
+	{
+		return super.o_NameForDebugger(object) + ": "
+			+ object.function().code().methodName();
+	}
+
+	@Override
+	public boolean o_ShowValueInNameForDebugger (
+		final @NotNull AvailObject object)
+	{
+		return false;
+	}
+
 	@Override boolean allowsImmutableToMutableReferenceInField (
 		final @NotNull AbstractSlotsEnum e)
 	{

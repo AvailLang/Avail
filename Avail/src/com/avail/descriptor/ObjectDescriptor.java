@@ -198,6 +198,13 @@ extends Descriptor
 	}
 
 	@Override
+	public boolean o_ShowValueInNameForDebugger (
+		final @NotNull AvailObject object)
+	{
+		return false;
+	}
+
+	@Override
 	public void printObjectOnAvoidingIndent (
 		final @NotNull AvailObject object,
 		final StringBuilder builder,

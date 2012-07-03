@@ -1193,4 +1193,12 @@ public abstract class Interpreter
 			getClass().getSimpleName(),
 			fiber().name());
 	}
+
+	/**
+	 * Create a list of descriptions of the current stack frames ({@linkplain
+	 * ContinuationDescriptor continuations}).
+	 *
+	 * @return A list of {@link String}s, starting with the newest frame.
+	 */
+	public abstract @NotNull List<String> dumpStack ();
 }

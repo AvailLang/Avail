@@ -57,15 +57,18 @@ public class P_253_SimpleMethodDeclaration extends Primitive
 	{
 		assert args.size() == 2;
 		final AvailObject string = args.get(0);
-		final AvailObject block = args.get(1);
+		final AvailObject function = args.get(1);
 
 		try
 		{
 			interpreter.addMethodBody(
 				interpreter.lookupName(string),
-				block,
+				function,
 				true);
 			interpreter.fixupForPotentiallyInvalidCurrentChunk();
+			function.code().setMethodName(
+				StringDescriptor.from(
+					String.format("%s", string)));
 		}
 		catch (final AmbiguousNameException e)
 		{

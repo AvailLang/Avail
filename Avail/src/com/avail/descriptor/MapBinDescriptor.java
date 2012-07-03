@@ -83,6 +83,12 @@ extends Descriptor
 		final @NotNull AvailObject key,
 		final int keyHash);
 
+	@Override
+	public boolean o_ShowValueInNameForDebugger (
+		final @NotNull AvailObject object)
+	{
+		return false;
+	}
 
 	/**
 	 * The level of my objects in their enclosing bin trees.

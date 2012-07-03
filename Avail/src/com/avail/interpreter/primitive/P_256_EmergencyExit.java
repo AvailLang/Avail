@@ -58,12 +58,24 @@ public class P_256_EmergencyExit extends Primitive
 		final @NotNull Interpreter interpreter)
 	{
 		assert args.size() == 1;
-
 		final AvailObject errorMessageProducer = args.get(0);
-		error(String.format(
-			"A fiber (%s) has exited: %s",
-			interpreter.fiber().name(),
-			errorMessageProducer));
+
+		final List<String> stack = interpreter.dumpStack();
+		final StringBuilder builder = new StringBuilder();
+		builder.append(
+			String.format(
+				"A fiber (%s) has exited: %s",
+				interpreter.fiber().name(),
+				errorMessageProducer));
+		for (final String frame : stack)
+		{
+			builder.append(
+				String.format(
+					"%n\t-- %s",
+					frame));
+		}
+		builder.append("\n\n");
+		error(builder.toString());
 		return interpreter.primitiveSuccess(NullDescriptor.nullObject());
 	}
 

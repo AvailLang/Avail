@@ -296,6 +296,13 @@ public abstract class ParseNodeDescriptor extends Descriptor
 		return Integer.MAX_VALUE;
 	}
 
+	@Override
+	public boolean o_ShowValueInNameForDebugger (
+		final @NotNull AvailObject object)
+	{
+		return false;
+	}
+
 	/**
 	 * Visit the entire tree with the given {@linkplain Continuation3 block},
 	 * children before parents.  The block takes three arguments: the

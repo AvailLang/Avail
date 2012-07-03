@@ -4321,8 +4321,21 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_Module (final AvailObject object)
+	@NotNull AvailObject o_Module (final @NotNull AvailObject object)
 	{
 		return o_Traversed(object).module();
+	}
+
+	@Override
+	@NotNull AvailObject o_MethodName (final @NotNull AvailObject object)
+	{
+		return o_Traversed(object).methodName();
+	}
+
+	@Override
+	String o_NameForDebugger (final @NotNull AvailObject object)
+	{
+		final String name = o_Traversed(object).nameForDebugger();
+		return "IND→" + name;
 	}
 }

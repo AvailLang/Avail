@@ -282,7 +282,6 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 		return ParseNodeKind.BLOCK_NODE;
 	}
 
-
 	/**
 	 * Return a {@linkplain List list} of all {@linkplain
 	 * DeclarationNodeDescriptor declaration nodes} defined by this block.

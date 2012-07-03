@@ -730,6 +730,13 @@ extends Descriptor
 		object.setSlot(SEALS, seals);
 	}
 
+	@Override
+	public boolean o_ShowValueInNameForDebugger (
+		final @NotNull AvailObject object)
+	{
+		return false;
+	}
+
 	/**
 	 * Construct a new empty {@linkplain ModuleDescriptor module}.
 	 *

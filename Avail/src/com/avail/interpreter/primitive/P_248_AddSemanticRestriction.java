@@ -75,6 +75,9 @@ public class P_248_AddSemanticRestriction extends Primitive
 			interpreter.addTypeRestriction(
 				interpreter.lookupName(string),
 				function);
+			function.code().setMethodName(
+				StringDescriptor.from(
+					String.format("Semantic restriction of %s", string)));
 		}
 		catch (final AmbiguousNameException e)
 		{

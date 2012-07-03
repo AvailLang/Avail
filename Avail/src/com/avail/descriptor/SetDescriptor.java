@@ -431,6 +431,13 @@ public class SetDescriptor extends Descriptor
 		return result;
 	}
 
+	@Override
+	public boolean o_ShowValueInNameForDebugger (
+		final @NotNull AvailObject object)
+	{
+		return false;
+	}
+
 	/**
 	 * This is the {@link Iterator} subclass used to enumerate Avail {@linkplain
 	 * SetDescriptor sets}.

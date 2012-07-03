@@ -926,6 +926,13 @@ extends Descriptor
 		return super.o_MarshalToJava(object, ignoredClassHint);
 	}
 
+	@Override
+	public boolean o_ShowValueInNameForDebugger (
+		final @NotNull AvailObject object)
+	{
+		return object.isString();
+	}
+
 	/**
 	 * The empty tuple.
 	 */

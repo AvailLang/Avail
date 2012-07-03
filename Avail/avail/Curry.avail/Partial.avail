@@ -79,13 +79,19 @@ Method "_curry_" is [f : function, firstArg : any |
 ] : function;
 
 Restriction "_curry_" is [ft : functionType, firstArgType : type |
-	if ft argument count = 0 then [
-		Fail parse "Cannot curry a nullary function."];
-	if not firstArgType <= ft[1] then [
-		Fail parse
-			"First argument is not applicable to the function to be curried."];
-	argTypes ::= 2 to ft argument count collect [i : natural number | ft[i]];
-	block type taking argTypes and returning ft result
+	argumentsType ::= ft arguments type;
+	if argumentsType sizes lower bound
+			not = argumentsType sizes upper bound then [
+		void
+	] else [
+		if ft argument count = 0 then [
+			Fail parse "Cannot curry a nullary function."];
+		if not firstArgType <= ft[1] then [
+			Fail parse
+				"First argument is not applicable to the function to be curried."];
+		argTypes ::= 2 to ft argument count collect [i : natural number | ft[i]];
+		block type taking argTypes and returning ft result
+	]
 ];
 
 

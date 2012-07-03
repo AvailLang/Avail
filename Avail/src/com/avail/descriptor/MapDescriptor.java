@@ -453,6 +453,13 @@ public class MapDescriptor extends Descriptor
 		return SerializerOperation.MAP;
 	}
 
+	@Override
+	public boolean o_ShowValueInNameForDebugger (
+		final @NotNull AvailObject object)
+	{
+		return false;
+	}
+
 	/**
 	 * {@link MapDescriptor.Entry} exists solely to allow the "foreach" control
 	 * structure to be used on a {@linkplain MapDescriptor map} by suitable use

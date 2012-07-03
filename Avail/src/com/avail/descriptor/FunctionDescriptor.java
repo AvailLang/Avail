@@ -246,6 +246,20 @@ extends Descriptor
 		return SerializerOperation.GENERAL_FUNCTION;
 	}
 
+	@Override
+	@NotNull String o_NameForDebugger (final @NotNull AvailObject object)
+	{
+		return super.o_NameForDebugger(object) + ": "
+			+ object.code().methodName();
+	}
+
+	@Override
+	public boolean o_ShowValueInNameForDebugger (
+		final @NotNull AvailObject object)
+	{
+		return false;
+	}
+
 	/**
 	 * Create a function that takes arguments of the specified types, then turns
 	 * around and calls the function invocation method with the given function

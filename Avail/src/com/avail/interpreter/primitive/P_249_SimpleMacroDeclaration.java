@@ -59,10 +59,10 @@ public class P_249_SimpleMacroDeclaration extends Primitive
 	{
 		assert args.size() == 2;
 		final AvailObject string = args.get(0);
-		final AvailObject block = args.get(1);
-		final AvailObject blockType = block.kind();
+		final AvailObject function = args.get(1);
+		final AvailObject blockType = function.kind();
 		final AvailObject tupleType = blockType.argsTupleType();
-		for (int i = block.code().numArgs(); i >= 1; i--)
+		for (int i = function.code().numArgs(); i >= 1; i--)
 		{
 			if (!tupleType.typeAtIndex(i).parseNodeKindIsUnder(PARSE_NODE))
 			{
@@ -73,11 +73,15 @@ public class P_249_SimpleMacroDeclaration extends Primitive
 		try
 		{
 			interpreter.addMacroBody(
-				interpreter.lookupName(string), block);
+				interpreter.lookupName(string), function);
 			// Even though a macro is always monomorphic and therefore
 			// effectively permanent (and probably unlikely to ever be inlined),
 			// we may as well do the fixup call here.  Designs change.
 			interpreter.fixupForPotentiallyInvalidCurrentChunk();
+			function.code().setMethodName(
+				StringDescriptor.from(
+					String.format("Macro body of %s", string)));
+
 		}
 		catch (final AmbiguousNameException e)
 		{

@@ -1014,4 +1014,33 @@ extends Interpreter
 		offset(theOffset + 1);
 		return word;
 	}
+
+	@Override
+	public @NotNull List<String> dumpStack ()
+	{
+		final List<AvailObject> frames = new ArrayList<AvailObject>(20);
+		for (
+			AvailObject c = currentContinuation();
+			!c.equalsNull();
+			c = c.caller())
+		{
+			frames.add(c);
+		}
+		final List<String> strings = new ArrayList<String>(frames.size());
+		int line = frames.size();
+		for (final AvailObject frame : frames)
+		{
+			final AvailObject code = frame.function().code();
+			strings.add(
+				String.format(
+					"#%d: %s (%s:%d)",
+					line--,
+					code.methodName().asNativeString(),
+					code.module().equalsNull()
+						? "?"
+						: code.module().name().asNativeString(),
+					code.startingLineNumber()));
+		}
+		return strings;
+	}
 }

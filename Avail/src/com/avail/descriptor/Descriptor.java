@@ -4549,8 +4549,35 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_Module (final AvailObject object)
+	@NotNull AvailObject o_Module (final @NotNull AvailObject object)
 	{
 		throw unsupportedOperationException();
+	}
+
+	@Override
+	@NotNull AvailObject o_MethodName (final @NotNull AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	@NotNull String o_NameForDebugger (final @NotNull AvailObject object)
+	{
+		String typeName = getClass().getSimpleName();
+		if (typeName.matches(".*Descriptor"))
+		{
+			typeName = typeName.substring(0, typeName.length() - 10);
+		}
+		if (isMutable())
+		{
+			typeName = typeName + "\u2133";
+		}
+		if (object.showValueInNameForDebugger())
+		{
+			return String.format("(%s) = %s",
+				typeName,
+				object);
+		}
+		return String.format("(%s)", typeName);
 	}
 }

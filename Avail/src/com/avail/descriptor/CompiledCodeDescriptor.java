@@ -549,6 +549,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject methodName)
 	{
+		methodName.makeImmutable();
 		final AvailObject propertyAtom = object.slot(PROPERTY_ATOM);
 		propertyAtom.setAtomProperty(methodNameKeyAtom, methodName);
 		// Now scan all sub-blocks.  Some literals will be functions and some
@@ -582,9 +583,36 @@ extends Descriptor
 					methodName);
 				final AvailObject newName =
 					parts.concatenateTuplesCanDestroy(true);
-				literal.code().setMethodName(newName);
+				subCode.setMethodName(newName);
 			}
 		}
+	}
+
+	@Override @AvailMethod
+	@NotNull AvailObject o_MethodName (
+		final @NotNull AvailObject object)
+	{
+		final AvailObject propertyAtom = object.slot(PROPERTY_ATOM);
+		final AvailObject methodName =
+			propertyAtom.getAtomProperty(methodNameKeyAtom);
+		if (methodName.equalsNull())
+		{
+			return StringDescriptor.from("Unknown function");
+		}
+		return methodName;
+	}
+
+	@Override
+	@NotNull String o_NameForDebugger (final @NotNull AvailObject object)
+	{
+		return super.o_NameForDebugger(object) + ": " + object.methodName();
+	}
+
+	@Override
+	public boolean o_ShowValueInNameForDebugger (
+		final @NotNull AvailObject object)
+	{
+		return false;
 	}
 
 	@Override
