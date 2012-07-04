@@ -37,14 +37,16 @@ Uses
 	"Foundation",
 	"Streams"
 Names
-	"pRNG",
-	"pRNG state"
+	"pRNG"
 Body
 
 /**
  * A pseudorandom number generator employs a deterministic process to produce a
  * sequence of numbers with properties similar to those possessed by a truly
  * random sequence of numbers.
+ *
+ * @type "pRNG"
+ * @subtype "stream"
  */
 Public explicit class "pRNG" extends stream
 	with fields
@@ -52,9 +54,12 @@ Public explicit class "pRNG" extends stream
 
 /**
  * A pseudorandom number generator is never empty.
- * 
- * Returns:
- *    `false`.
+ *
+ * @method "_is empty"
+ * @param "aPRNG" "pRNG"
+ *        A pseudorandom number generator.
+ * @returns "false's type"
+ * @sealed
  */
 Method "_is empty" is
 [

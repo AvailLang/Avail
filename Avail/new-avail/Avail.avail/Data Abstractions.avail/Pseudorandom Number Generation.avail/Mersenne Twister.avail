@@ -87,9 +87,10 @@ Class "Mersenne Twister" extends pRNG
  * Compute and answer the next {@type "Mersenne Twister"} state vector.
  *
  * @method "next state after_"
- * @param "vector"
+ * @param "vector" "<[0.._2_32)…|624>"
  *        A Mersenne Twister state vector.
- * @returns A refreshed Mersenne Twister state vector.
+ * @returns "<[0.._2_32)…|624>"
+ *          A refreshed Mersenne Twister state vector.
  */
 Private method "next state after_" is
 [
@@ -138,9 +139,10 @@ Mersenne Twister's tail method is
  * {@type "Mersenne Twister"} pseudorandom number generator.
  * 
  * @method "untwisted Mersenne Twister from_"
- * @param "seed"
+ * @param "seed" "[0.._2_32)"
  *        A seed.
- * @returns An untwisted Mersenne Twister pseudorandom number generator.
+ * @returns "Mersenne Twister"
+ *          An untwisted Mersenne Twister pseudorandom number generator.
  */
 Private method "untwisted Mersenne Twister from_" is
 [
@@ -167,9 +169,10 @@ Private method "untwisted Mersenne Twister from_" is
  * generator. If no argument is supplied, then the {@"milliseconds since the
  * Epoch" current time} is used to initialize the generator.
  * 
- * @param "optionalSeed"
+ * @param "optionalSeed" "<[0.._2_32)…|0..1>"
  *        An optional seed.
- * @returns A Mersenne Twister pseudorandom number generator.
+ * @returns "Mersenne Twister"
+ *          A Mersenne Twister pseudorandom number generator.
  */
 Public method "a Mersenne Twister«from_»" is
 [
@@ -186,9 +189,10 @@ Public method "a Mersenne Twister«from_»" is
  * Construct and answer a {@type "Mersenne Twister"} pseudorandom number
  * generator. The argument is a seed used to initialize the generator.
  * 
- * @param "seed"
+ * @param "seed" "<[0.._2_32)…|1..>"
  *        A seed.
- * @returns A Mersenne Twister pseudorandom number generator.
+ * @returns "Mersenne Twister"
+ *          A Mersenne Twister pseudorandom number generator.
  */
 Public method "a Mersenne Twister from_" is
 [

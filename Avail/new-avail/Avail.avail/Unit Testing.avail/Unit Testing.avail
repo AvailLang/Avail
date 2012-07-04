@@ -48,13 +48,15 @@ Names
 	/* Runners. */
 	"Run test:_",
 	"Run all tests",
-	"all test metrics",
-	"test metric for_",
+	"report on all tests",
+	"report on_",
 
-	/* Metrics. */
+	/* Reporting. */
+	"unit test failure",
+	"unit test report",
 	"unit test result",
 	"unit test success",
-	"unit test failure",
+	"_'s⁇metrics",
 
 	/* Exceptions. */
 	"expected-a-specific-exception exception",
@@ -73,11 +75,15 @@ _testID ::= $"test ID";
 _body ::= $"body";
 _expectedExceptionType ::= $"expected exception type";
 _unexpectedException ::= $"unexpected exception";
+_metrics ::= $"metrics";
+_statistics ::= $"statistics";
 
 Private method "test ID" is [ _testID ];
 Private method "body" is [ _body ];
 Private method "expected exception type" is [ _expectedExceptionType ];
 Private method "unexpected exception" is [ _unexpectedException ];
+Private method "metrics" is [ _metrics ];
+Private method "statistics" is [ _statistics ];
 
 /**
  * A unit test comprises:
@@ -102,14 +108,14 @@ Class "unit test" extends object
 /**
  * The collection of all unit tests.
  *
- * @global "tests"
+ * @global "tests" "<unit test…|>"
  */
 tests : <unit test…|> := <>;
 
 /**
  * A map from atoms to the indices of the {@global "tests"} that they identify.
  *
- * @global "testsByAtom"
+ * @global "testsByAtom" "{atom→natural number|}"
  */
 testsByAtom : {atom→natural number|} := {};
 
@@ -128,7 +134,6 @@ Public explicit class "unit-test exception" extends exception
  * @type "no-such-test exception"
  * @supertype "unit-test exception"
  * @supertype "element-access exception"
- * @see {@method "Run test_"}
  */
 Public explicit class "no-such-test exception"
 	extends unit-test exception ∩ element-access exception;
@@ -139,8 +144,6 @@ Public explicit class "no-such-test exception"
  * @type "failed-test exception"
  * @supertype "unit-test exception"
  * @supertype "cascade exception"
- * @see {@method "Run test_"}
- * @see {@method "Run all tests"}
  */
 Public explicit class "failed-test exception"
 	extends unit-test exception ∩ cascade exception;
@@ -150,10 +153,8 @@ Public explicit class "failed-test exception"
  * particular exception, but it either didn't raise an exception or raised an
  * exception of the wrong type.
  * 
- * @type "required-test-failure exception"
- * @supertype "failed-test exception"
- * @see {@method "Run test_"}
- * @see {@method "Run all tests"}
+ * @type "expected-a-specific-exception exception"
+ * @supertype "unit-test exception"
  */
 Public explicit class "expected-a-specific-exception exception"
 	extends unit-test exception
@@ -205,16 +206,59 @@ Method "“_”" is
 ] : string;
 
 /**
+ * A unit test report contains a tuple of {@type "unit test result"}s and offers
+ * operations that provide statistical information.
+ * 
+ * @type "unit test report"
+ */
+Public class "unit test report" extends object
+	with fields
+		public metrics : <unit test result…|>;
+
+Method "“_”" is
+[
+	report : unit test report
+|
+	results ::= report's metrics;
+	description ::= left fold <""> ++ results through
+		[
+			result : unit test result,
+			partial : string
+		|
+			partial ++ “result” ++ "\n"
+		];
+	passed ::= new atom "passed";
+	failed ::= new atom "failed";
+	statistics ::= group results by
+		[
+			result : unit test result
+		|
+			cast result into [ t : unit test success | passed ]
+			else [ failed ]
+		];
+	format
+		"“results”\nSUMMARY:\n\
+		\|\tTOTAL:  ‘total’\n\
+		\|\tPASSED: ‘passed’\n\
+		\|\tFAILED: ‘failed’\n"
+	with
+		results := description,
+		total := |results|,
+		passed := |statistics[passed] else [<>]|,
+		failed := |statistics[failed] else [<>]|
+] : string;
+
+/**
  * Run and obtain a {@type "unit test result" test metric} for the specified
  * test.
  *
  * @method "Run test_"
- * @signature "[unit test]→⊤"
  * @param "test" "unit test"
  *        A unit test.
- * @returns A unit test result.
+ * @returns "unit test result"
+ *          A unit test result.
  */
-Private method "private test metric for_" is
+Private method "test metric for_" is
 [
 	test : unit test
 |
@@ -268,18 +312,17 @@ Private method "private test metric for_" is
 ] : unit test result;
 
 /**
- * Run and obtain a {@type "unit test result" test metric} for the specified
- * test.
+ * Run and obtain a {@type "unit test report"} for the specified test.
  *
  * @method "Run test_"
- * @signature "[atom]→⊤"
  * @param "trueName" "atom"
  *        The atom that uniquely identifies the test.
- * @returns A unit test result.
+ * @returns "unit test report"
+ *          A unit test report.
  * @raise "no-such-test exception"
  *        If no such test exists.
  */
-Public method "test metric for_" is
+Public method "report on_" is
 [
 	trueName : atom
 |
@@ -287,47 +330,48 @@ Public method "test metric for_" is
 	[
 		Raise a no-such-test exception with test ID := trueName
 	];
-	private test metric for tests[testsByAtom[trueName]]
-] : unit test result;
+	a unit test report with
+		metrics := <test metric for tests[testsByAtom[trueName]]>
+] : unit test report;
 
 /**
- * Run and obtain a {@type "unit test result" test metric} for the specified
- * test.
+ * Run and obtain a {@type "unit test report"} for the specified test.
  *
  * @method "Run test_"
- * @signature "[string]→⊤"
  * @param "name" "string"
  *        The name of the test. This name will be resolved to an atom in the
  *        context of the current module.
- * @returns A unit test result.
+ * @returns "unit test report"
+ *          A unit test report.
  * @raise "no-such-test exception"
  *        If no such test exists.
  */
-Public method "test metric for_" is
+Public method "report on_" is
 [
 	name : string
 |
-	test metric for atom for name
-] : unit test result;
+	report on atom for name
+] : unit test report;
 
 /**
- * Run and collect {@type "unit test result" test metrics} for all previously
- * declared unit tests.
+ * Run and obtain a {@type "unit test report"} for all previously declared unit
+ * tests.
  * 
- * @method "all test metrics"
- * @signature "[]→<unit test result…|>"
- * @returns A tuple of unit test results.
+ * @method "report on all tests"
+ * @returns "<unit test result…|>"
+ *          A tuple of unit test results.
  */
-Public method "all test metrics" is
+Public method "report on all tests" is
 [
-	map tests through [ test : unit test | private test metric for test ]
-] : <unit test result…|>;
+	a unit test report with
+		metrics :=
+			map tests through [test : unit test | test metric for test]
+] : unit test report;
 
 /**
  * Run the specified test.
  *
  * @method "Run test_"
- * @signature "[unit test]→⊤"
  * @param "test" "unit test"
  *        A unit test.
  * @raises "failed-test exception"
@@ -339,7 +383,7 @@ Private method "Private run test:_" is
 [
 	test : unit test
 |
-	result ::= private test metric for test;
+	result ::= test metric for test;
 	Cast result into
 	[
 		failure : unit test failure
@@ -356,7 +400,6 @@ Private method "Private run test:_" is
  * Run the specified test.
  *
  * @method "Run test_"
- * @signature "[atom]→⊤"
  * @param "trueName" "atom"
  *        The atom that uniquely identifies the test.
  * @raise "no-such-test exception"
@@ -381,7 +424,6 @@ Public method "Run test:_" is
  * Run the specified test.
  *
  * @method "Run test_"
- * @signature "[string]→⊤"
  * @param "name" "string"
  *        The name of the test. This name will be resolved to an atom in the
  *        context of the current module.
@@ -403,7 +445,6 @@ Public method "Run test:_" is
  * Run all previously declared unit tests.
  * 
  * @method "Run all tests"
- * @signature "[]→⊤"
  * @raises "unit-test exception"
  *         If any unit test fails.
  */
@@ -425,7 +466,6 @@ Public explicit class "failed-requirement exception" extends exception;
  * Require that the specified predicate is true.
  *
  * @method "Require:_"
- * @signature "[boolean]→⊤"
  * @param "predicate" "boolean"
  *        A predicate that must be true.
  * @forbid 1 "_=_"
@@ -443,8 +483,8 @@ Method "Require:_" is
 /**
  * Reject the current parse if the requirement could never be true.
  *
- * @restrict "Require:_"
- * @signature "[false's type's type]"
+ * @method "Require:_"
+ * @restrict "[false's type's type]"
  */
 Semantic restriction "Require:_" is
 [
@@ -459,7 +499,6 @@ Grammatical restriction "Require:_" is <{"_=_"}>;
  * Require that the specified predicate is true.
  *
  * @method "Require:_(_)"
- * @signature "[boolean, string]→⊤"
  * @param "predicate" "boolean"
  *        A predicate that must be true.
  * @param "message" "string"
@@ -488,8 +527,8 @@ Method "Require:_(_)" is
 /**
  * Reject the current parse if the requirement could never be true.
  *
- * @restrict "Require:_(_)"
- * @signature "[false's type's type, string's type]"
+ * @method "Require:_(_)"
+ * @restrict "[false's type's type, string's type]"
  */
 Semantic restriction "Require:_(_)" is
 [
@@ -505,7 +544,6 @@ Grammatical restriction "Require:_(_)" is <{"_=_"}, ∅>;
  * Require that the arguments are equal.
  *
  * @method "Require:_=_(_)"
- * @signature "[any, any]→⊤"
  * @param "expected" "any"
  *        A value.
  * @param "actual" "any"
@@ -529,8 +567,8 @@ Public method "Require:_=_" is
 /**
  * Reject the current parse if the arguments are guaranteed unequal.
  *
- * @restrict "Require:_=_(_)"
- * @signature "[any's type, any's type]"
+ * @method "Require:_=_(_)"
+ * @restrict "[any's type, any's type]"
  */
 Semantic restriction "Require:_=_" is
 [
@@ -548,7 +586,6 @@ Semantic restriction "Require:_=_" is
  * Require that the arguments are equal.
  *
  * @method "Require:_=_(_)"
- * @signature "[any, any, string]→⊤"
  * @param "expected" "any"
  *        A value.
  * @param "actual" "any"
@@ -577,8 +614,8 @@ Public method "Require:_=_(_)" is
 /**
  * Reject the current parse if the arguments are guaranteed unequal.
  *
- * @restrict "Require:_=_(_)"
- * @signature "[any's type, any's type, string's type]"
+ * @method "Require:_=_(_)"
+ * @restrict "[any's type, any's type, string's type]"
  */
 Semantic restriction "Require:_=_(_)" is
 [
@@ -597,7 +634,6 @@ Semantic restriction "Require:_=_(_)" is
  * Define a unit test.
  *
  * @method "Test_is_«must raise_»"
- * @signature "[string, []→⊤, <exception…|0..1>]→⊤"
  * @param "name" "string"
  *        The name of the test. This name will be resolved to an atom in the
  *        context of the current module. Since an atom retains its provenance,
@@ -633,8 +669,8 @@ Public method "Test_is_«must raise_»" is
  * <li>The test's return type is not exactly ⊤.</li>
  * </ul>
  * 
- * @restrict "Test_is_«must raise_»"
- * @signature "[string's type, []→⊤'s type, <exception's type…|0..1>'s type]"
+ * @method "Test_is_«must raise_»"
+ * @restrict "[string's type, []→⊤'s type, <exception's type…|0..1>'s type]"
  */
 Semantic restriction "Test_is_«must raise_»" is
 [

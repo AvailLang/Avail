@@ -38,9 +38,4 @@ Uses
 Body
 
 /* Run all unit tests. */
-For each all test metrics do
-[
-	result : unit test result
-|
-	Print: “result” ++ "\n";
-];
+Print: “report on all tests”;
