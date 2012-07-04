@@ -33,8 +33,14 @@
 System Module "Test"
 Versions
 	"dev"
-Extends
 Uses
 	"Avail"
-Names
 Body
+
+/* Run all unit tests. */
+For each all test metrics do
+[
+	result : unit test result
+|
+	Print: “result” ++ "\n";
+];

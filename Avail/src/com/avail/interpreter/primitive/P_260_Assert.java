@@ -63,7 +63,18 @@ public class P_260_Assert extends Primitive
 		final AvailObject failureMessage = args.get(1);
 		if (predicate.equals(AtomDescriptor.falseObject()))
 		{
-			throw new AvailAssertionFailedException(failureMessage);
+			final List<String> stack = interpreter.dumpStack();
+			final StringBuilder builder = new StringBuilder();
+			builder.append(failureMessage.asNativeString());
+			for (final String frame : stack)
+			{
+				builder.append(
+					String.format(
+						"%n\t-- %s",
+						frame));
+			}
+			builder.append("\n\n");
+			throw new AvailAssertionFailedException(builder.toString());
 		}
 		return interpreter.primitiveSuccess(NullDescriptor.nullObject());
 	}

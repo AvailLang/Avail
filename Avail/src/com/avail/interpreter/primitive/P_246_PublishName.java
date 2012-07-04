@@ -33,7 +33,7 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.exceptions.AvailErrorCode.E_COMPILATION_IS_OVER;
 import java.util.List;
 import com.avail.annotations.NotNull;
@@ -57,7 +57,7 @@ extends Primitive
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static @NotNull Primitive instance =
-		new P_246_PublishName().init(1, CanInline);
+		new P_246_PublishName().init(1, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (

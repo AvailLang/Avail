@@ -49,7 +49,7 @@ public class P_024_RequestTermination extends Primitive
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance = new P_024_RequestTermination().init(
-		1, CanInline, CannotFail);
+		1, CanInline, CannotFail, HasSideEffect);
 
 	@Override
 	public @NotNull Result attempt (

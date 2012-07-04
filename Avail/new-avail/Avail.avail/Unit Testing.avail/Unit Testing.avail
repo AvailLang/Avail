@@ -1,0 +1,656 @@
+/*
+ * Unit Testing.avail
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Unit Testing"
+Versions
+	"dev"
+Uses
+	"Foundation"
+Names
+	/* Definers. */
+	"Test_is_«must raise_»",
+
+	/* Tools. */
+	"Require:_",
+	"Require:_(_)",
+	"Require:_=_",
+	"Require:_=_(_)",
+
+	/* Runners. */
+	"Run test:_",
+	"Run all tests",
+	"all test metrics",
+	"test metric for_",
+
+	/* Metrics. */
+	"unit test result",
+	"unit test success",
+	"unit test failure",
+
+	/* Exceptions. */
+	"expected-a-specific-exception exception",
+	"failed-requirement exception",
+	"failed-test exception",
+	"no-such-test exception",
+	"unit-test exception",
+
+	/* Attribute accessors. */
+	"_'s⁇test ID",
+	"_'s⁇expected exception type"
+Body
+
+/* TODO: [TLS] Remove these constants once a macro is available for "$…". */
+_testID ::= $"test ID";
+_body ::= $"body";
+_expectedExceptionType ::= $"expected exception type";
+_unexpectedException ::= $"unexpected exception";
+
+Private method "test ID" is [ _testID ];
+Private method "body" is [ _body ];
+Private method "expected exception type" is [ _expectedExceptionType ];
+Private method "unexpected exception" is [ _unexpectedException ];
+
+/**
+ * A unit test comprises:
+ *
+ * <ul>
+ * <li>The name of the test. This is an atom. Atoms retain their provenance,
+ *     so this permits mention of the module that defined the test. It also
+ *     allows name collisions between modules.</li>
+ * <li>The test function.</li>
+ * <li>A tuple containing an exception type that the test function must raise
+ *     when applied. If this tuple is empty, then the test must succeed.</li>
+ * </ul>
+ *
+ * @type "unit test"
+ */
+Class "unit test" extends object
+	with fields
+		test ID : atom,
+		body : []→⊤,
+		expected exception type : <exception's type…|0..1>;
+
+/**
+ * The collection of all unit tests.
+ *
+ * @global "tests"
+ */
+tests : <unit test…|> := <>;
+
+/**
+ * A map from atoms to the indices of the {@global "tests"} that they identify.
+ *
+ * @global "testsByAtom"
+ */
+testsByAtom : {atom→natural number|} := {};
+
+/**
+ * The root exception type for unit-testing framework exceptions.
+ * 
+ * @type "unit-test exception"
+ */
+Public explicit class "unit-test exception" extends exception
+	with fields
+		public test ID : atom;
+
+/**
+ * An exception that indicates that the specified test does not exist.
+ * 
+ * @type "no-such-test exception"
+ * @supertype "unit-test exception"
+ * @supertype "element-access exception"
+ * @see {@method "Run test_"}
+ */
+Public explicit class "no-such-test exception"
+	extends unit-test exception ∩ element-access exception;
+
+/**
+ * An exception that indicates that the specified test failed.
+ * 
+ * @type "failed-test exception"
+ * @supertype "unit-test exception"
+ * @supertype "cascade exception"
+ * @see {@method "Run test_"}
+ * @see {@method "Run all tests"}
+ */
+Public explicit class "failed-test exception"
+	extends unit-test exception ∩ cascade exception;
+
+/**
+ * An exception that indicates that the specified test was declared to raise a
+ * particular exception, but it either didn't raise an exception or raised an
+ * exception of the wrong type.
+ * 
+ * @type "required-test-failure exception"
+ * @supertype "failed-test exception"
+ * @see {@method "Run test_"}
+ * @see {@method "Run all tests"}
+ */
+Public explicit class "expected-a-specific-exception exception"
+	extends unit-test exception
+	with fields
+		public expected exception type : exception's type;
+
+/**
+ * Though a unit test result is specific to a single unit test, it is only
+ * produced when metrics are requested for an entire test suite.
+ *
+ * @type "unit test result"
+ */
+Public explicit class "unit test result" extends object
+	with fields
+		public test ID : atom;
+
+/**
+ * A unit test success indicates that the specified unit test succeeded.
+ *
+ * @type "unit test success"
+ * @supertype "unit test result"
+ */
+Public explicit class "unit test success" extends unit test result;
+
+/**
+ * A unit test failure indicates that the specified unit test failed. It
+ * includes the failure exception.
+ *
+ * @type "unit test failure"
+ * @supertype "unit test result"
+ */
+Public class "unit test failure" extends unit test result
+	with fields
+		causal exception : unit-test exception;
+
+Method "“_”" is
+[
+	result : unit test success
+|
+	format "PASSED: ‘①’" with result's test ID
+] : string;
+
+Method "“_”" is
+[
+	result : unit test failure
+|
+	format "FAILED: ‘①’ (raised: ‘②’)"
+		with result's test ID, result's causal exception
+] : string;
+
+/**
+ * Run and obtain a {@type "unit test result" test metric} for the specified
+ * test.
+ *
+ * @method "Run test_"
+ * @signature "[unit test]→⊤"
+ * @param "test" "unit test"
+ *        A unit test.
+ * @returns A unit test result.
+ */
+Private method "private test metric for_" is
+[
+	test : unit test
+|
+	id ::= test's test ID;
+	expected ::= test's expected exception type;
+	guard
+	[
+		test's body();
+		if ¬expected is empty then
+		[
+			a unit test failure with
+				test ID := id,
+				causal exception :=
+					an expected-a-specific-exception exception with
+						test ID := id,
+						expected exception type := expected[1]
+		]
+		else
+		[
+			a unit test success with test ID := test's test ID
+		]
+	]
+	intercept
+	[
+		e : exception
+	|
+		if expected is empty then
+		[
+			a unit test failure with
+				test ID := id,
+				causal exception := a failed-test exception with
+					test ID := id,
+					causal exception := e
+		]
+		else if [ ¬e ∈ expected[1] ] then
+		[
+			exceptionType ::=
+				expected-a-specific-exception exception ∩ failed-test exception;
+			a unit test failure with
+				test ID := id,
+				causal exception := an exceptionType with
+					test ID := id,
+					causal exception := e,
+					expected exception type := expected[1]
+		]
+		else
+		[
+			a unit test success with test ID := test's test ID
+		]
+	]
+] : unit test result;
+
+/**
+ * Run and obtain a {@type "unit test result" test metric} for the specified
+ * test.
+ *
+ * @method "Run test_"
+ * @signature "[atom]→⊤"
+ * @param "trueName" "atom"
+ *        The atom that uniquely identifies the test.
+ * @returns A unit test result.
+ * @raise "no-such-test exception"
+ *        If no such test exists.
+ */
+Public method "test metric for_" is
+[
+	trueName : atom
+|
+	Unless trueName ∈ testsByAtom then
+	[
+		Raise a no-such-test exception with test ID := trueName
+	];
+	private test metric for tests[testsByAtom[trueName]]
+] : unit test result;
+
+/**
+ * Run and obtain a {@type "unit test result" test metric} for the specified
+ * test.
+ *
+ * @method "Run test_"
+ * @signature "[string]→⊤"
+ * @param "name" "string"
+ *        The name of the test. This name will be resolved to an atom in the
+ *        context of the current module.
+ * @returns A unit test result.
+ * @raise "no-such-test exception"
+ *        If no such test exists.
+ */
+Public method "test metric for_" is
+[
+	name : string
+|
+	test metric for atom for name
+] : unit test result;
+
+/**
+ * Run and collect {@type "unit test result" test metrics} for all previously
+ * declared unit tests.
+ * 
+ * @method "all test metrics"
+ * @signature "[]→<unit test result…|>"
+ * @returns A tuple of unit test results.
+ */
+Public method "all test metrics" is
+[
+	map tests through [ test : unit test | private test metric for test ]
+] : <unit test result…|>;
+
+/**
+ * Run the specified test.
+ *
+ * @method "Run test_"
+ * @signature "[unit test]→⊤"
+ * @param "test" "unit test"
+ *        A unit test.
+ * @raises "failed-test exception"
+ *         If the test raised an unexpected exception.
+ * @raises "expected-a-specific-exception exception"
+ *         If the test did not raise the expected exception.
+ */
+Private method "Private run test:_" is
+[
+	test : unit test
+|
+	result ::= private test metric for test;
+	Cast result into
+	[
+		failure : unit test failure
+	|
+		Raise failure's causal exception
+	]
+	else
+	[
+		/* No implementation required. */
+	];
+] : ⊤;
+
+/**
+ * Run the specified test.
+ *
+ * @method "Run test_"
+ * @signature "[atom]→⊤"
+ * @param "trueName" "atom"
+ *        The atom that uniquely identifies the test.
+ * @raise "no-such-test exception"
+ *        If no such test exists.
+ * @raises "failed-test exception"
+ *         If the test raised an unexpected exception.
+ * @raises "expected-a-specific-exception exception"
+ *         If the test did not raise the expected exception.
+ */
+Public method "Run test:_" is
+[
+	trueName : atom
+|
+	Unless trueName ∈ testsByAtom then
+	[
+		Raise a no-such-test exception with test ID := trueName
+	];
+	Private run test: tests[testsByAtom[trueName]];
+] : ⊤;
+
+/**
+ * Run the specified test.
+ *
+ * @method "Run test_"
+ * @signature "[string]→⊤"
+ * @param "name" "string"
+ *        The name of the test. This name will be resolved to an atom in the
+ *        context of the current module.
+ * @raise "no-such-test exception"
+ *        If no such test exists.
+ * @raises "failed-test exception"
+ *         If the test raised an unexpected exception.
+ * @raises "expected-a-specific-exception exception"
+ *         If the test did not raise the expected exception.
+ */
+Public method "Run test:_" is
+[
+	name : string
+|
+	Run test: atom for name;
+] : ⊤;
+
+/**
+ * Run all previously declared unit tests.
+ * 
+ * @method "Run all tests"
+ * @signature "[]→⊤"
+ * @raises "unit-test exception"
+ *         If any unit test fails.
+ */
+Public method "Run all tests" is
+[
+	For each tests do [ t : unit test | Private run test: t; ];
+] : ⊤;
+
+/**
+ * An exception that indicates that a unit test requirement failed.
+ * 
+ * @type "failed-requirement exception"
+ * @supertype "unit-test exception"
+ * @see {@method "Require:_"}
+ */
+Public explicit class "failed-requirement exception" extends exception;
+
+/**
+ * Require that the specified predicate is true.
+ *
+ * @method "Require:_"
+ * @signature "[boolean]→⊤"
+ * @param "predicate" "boolean"
+ *        A predicate that must be true.
+ * @forbid 1 "_=_"
+ * @raises "failed-requirement exception"
+ *         If {@param "predicate"} is false.
+ */
+Public method "Require:_" is [ predicate : boolean | ] : ⊤;
+Method "Require:_" is
+[
+	predicate : false's type
+|
+	Raise a failed-requirement exception
+] : ⊥;
+
+/**
+ * Reject the current parse if the requirement could never be true.
+ *
+ * @restrict "Require:_"
+ * @signature "[false's type's type]"
+ */
+Semantic restriction "Require:_" is
+[
+	predicate : false's type's type
+|
+	Reject parse, expected: "a predicate that could ever be true"
+];
+
+Grammatical restriction "Require:_" is <{"_=_"}>;
+
+/**
+ * Require that the specified predicate is true.
+ *
+ * @method "Require:_(_)"
+ * @signature "[boolean, string]→⊤"
+ * @param "predicate" "boolean"
+ *        A predicate that must be true.
+ * @param "message" "string"
+ *        Additional information that should be attached to the exception in the
+ *        event of failure.
+ * @forbid 1 "_=_"
+ * @raises "failed-requirement exception"
+ *         If {@param "predicate"} is false.
+ */
+Public method "Require:_(_)" is
+[
+	predicate : boolean,
+	message : string
+|
+] : ⊤;
+
+Method "Require:_(_)" is
+[
+	predicate : false's type,
+	message : string
+|
+	Raise a failed-requirement exception ∩ descriptive exception with
+		error message := message
+] : ⊥;
+
+/**
+ * Reject the current parse if the requirement could never be true.
+ *
+ * @restrict "Require:_(_)"
+ * @signature "[false's type's type, string's type]"
+ */
+Semantic restriction "Require:_(_)" is
+[
+	predicate : false's type's type,
+	message : string's type
+|
+	Reject parse, expected: "a predicate that could ever be true"
+];
+
+Grammatical restriction "Require:_(_)" is <{"_=_"}, ∅>;
+
+/**
+ * Require that the arguments are equal.
+ *
+ * @method "Require:_=_(_)"
+ * @signature "[any, any]→⊤"
+ * @param "expected" "any"
+ *        A value.
+ * @param "actual" "any"
+ *        A value.
+ * @raises "failed-requirement exception"
+ *         If {@param "expected"} ≠ {@param "value"}.
+ */
+Public method "Require:_=_" is
+[
+	expected : any,
+	actual : any
+|
+	If expected ≠ actual then
+	[
+		Raise a failed-requirement exception ∩ descriptive exception
+			with error message :=
+				format "expected=‘①’, actual=‘②’" with expected, actual
+	];
+] : ⊤;
+
+/**
+ * Reject the current parse if the arguments are guaranteed unequal.
+ *
+ * @restrict "Require:_=_(_)"
+ * @signature "[any's type, any's type]"
+ */
+Semantic restriction "Require:_=_" is
+[
+	expected : any's type,
+	actual : any's type
+|
+	If expected ∩ actual = ⊥ then
+	[
+		Reject parse, expected: "a predicate that could ever be true"
+	];
+	⊤
+];
+
+/**
+ * Require that the arguments are equal.
+ *
+ * @method "Require:_=_(_)"
+ * @signature "[any, any, string]→⊤"
+ * @param "expected" "any"
+ *        A value.
+ * @param "actual" "any"
+ *        A value.
+ * @param "message" "string"
+ *        Additional information that should be attached to the exception in the
+ *        event of failure.
+ * @raises "failed-requirement exception"
+ *         If {@param "expected"} ≠ {@param "value"}.
+ */
+Public method "Require:_=_(_)" is
+[
+	expected : any,
+	actual : any,
+	message : string
+|
+	If expected ≠ actual then
+	[
+		Raise a failed-requirement exception ∩ descriptive exception
+			with error message :=
+				format "‘①’: expected=‘②’, actual=‘③’"
+				with message, expected, actual
+	];
+] : ⊤;
+
+/**
+ * Reject the current parse if the arguments are guaranteed unequal.
+ *
+ * @restrict "Require:_=_(_)"
+ * @signature "[any's type, any's type, string's type]"
+ */
+Semantic restriction "Require:_=_(_)" is
+[
+	expected : any's type,
+	actual : any's type,
+	message : string's type
+|
+	If expected ∩ actual = ⊥ then
+	[
+		Reject parse, expected: "a predicate that could ever be true"
+	];
+	⊤
+];
+
+/**
+ * Define a unit test.
+ *
+ * @method "Test_is_«must raise_»"
+ * @signature "[string, []→⊤, <exception…|0..1>]→⊤"
+ * @param "name" "string"
+ *        The name of the test. This name will be resolved to an atom in the
+ *        context of the current module. Since an atom retains its provenance,
+ *        this permits the unit testing framework to report the module that
+ *        defined the test. This also allows name collisions between modules.
+ * @param "test" "[]→⊤"
+ *        The unit test.
+ * @param "optionalException" "<exception…|0..1>"
+ *        If specified, then {@param "test"} must raise an exception of this
+ *        type when applied. If not specified, then "test" must not raise any
+ *        exceptions.
+ */
+Public method "Test_is_«must raise_»" is
+[
+	name : string,
+	test : []→⊤,
+	optionalException : <exception's type…|0..1>
+|
+	trueName ::= atom for name;
+	tests := eject ↑tests ++ <a unit test with
+		test ID := trueName,
+		body := test,
+		expected exception type := optionalException>;
+	testsByAtom := eject ↑testsByAtom
+		+ trueName→cast |tests| into [ t : natural number | t ];
+] : ⊤;
+
+/**
+ * Reject the current parse if:
+ *
+ * <ul>
+ * <li>The test name is not statically known.</li>
+ * <li>The test's return type is not exactly ⊤.</li>
+ * </ul>
+ * 
+ * @restrict "Test_is_«must raise_»"
+ * @signature "[string's type, []→⊤'s type, <exception's type…|0..1>'s type]"
+ */
+Semantic restriction "Test_is_«must raise_»" is
+[
+	name : string's type,
+	test : []→⊤'s type,
+	optionalException : <exception's type…|0..1>'s type
+|
+	If |name| ≠ 1 then
+	[
+		Reject parse, expected: "test name to be statically known"
+	];
+	If test's return type ≠ ⊤ then
+	[
+		Reject parse, expected:
+			format "test function's return type to be ⊤ (not ‘①’)"
+				with test's return type
+	];
+	⊤
+];

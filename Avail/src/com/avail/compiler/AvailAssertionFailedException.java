@@ -76,7 +76,21 @@ extends RuntimeException
 	public AvailAssertionFailedException (
 		final @NotNull AvailObject assertionString)
 	{
+		assert assertionString.isString();
 		this.assertionString = assertionString;
+	}
+
+	/**
+	 * Construct a new {@link AvailAssertionFailedException}.
+	 *
+	 * @param assertionString
+	 *        The {@linkplain StringDescriptor error message} describing the
+	 *        assertion.
+	 */
+	public AvailAssertionFailedException (
+		final @NotNull String assertionString)
+	{
+		this.assertionString = StringDescriptor.from(assertionString);
 	}
 
 	@Override

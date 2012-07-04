@@ -48,9 +48,13 @@ Uses
 	"Tuples",
 	"Types"
 Names
-	"_'s⁇unhandled exception handler is_",
+	"causal exception",
+	"error message",
 	"Guard|guard_«intercept_»",
 	"Raise_",
+	"_'s⁇causal exception",
+	"_'s⁇error message",
+	"_'s⁇unhandled exception handler is_",
 
 	/* System exception categories. */
 	"arithmetic exception",
@@ -59,8 +63,10 @@ Names
 	"bad-message exception",
 	"bad-phrase exception",
 	"bad-primitive exception",
+	"cascade exception",
 	"code-generation exception",
 	"definition exception",
+	"descriptive exception",
 	"element-access exception",
 	"I/O exception",
 	"instantiation exception",
@@ -74,25 +80,30 @@ Names
 Body
 
 /* TODO: [TLS] Remove these constants once a macro is available for "$…". */
-errorCode ::= $"error code";
-errorName ::= $"error name";
-unhandledExceptionHandler ::= $"unhandled exception handler";
+_errorCode ::= $"error code";
+_errorName ::= $"error name";
+_cause ::= $"causal exception";
+_errorMessage ::= $"error message";
+_unhandledExceptionHandler ::= $"unhandled exception handler";
+
+Private method "error code" is [ _errorCode ];
+Private method "error name" is [ _errorName ];
 
 /**
- * Answer the field atom that represents a system exception's error code.
+ * Answer the field atom that represents an exception's cause.
  * 
  * Returns:
  *    The requested field atom.
  */
-Private method "error code" is [ errorCode ];
+Public method "causal exception" is [ _cause ];
 
 /**
- * Answer the field atom that represents a system exception's name.
- * 
+ * Answer the field atom that represents an error message.
+ *
  * Returns:
  *    The requested field atom.
  */
-Private method "error name" is [ errorName ];
+Public method "error message" is [ _errorMessage ];
 
 /**
  * Answer the field atom that represents a fiber's unhandled exception handler.
@@ -100,7 +111,7 @@ Private method "error name" is [ errorName ];
  * Returns:
  *    The requested field atom.
  */
-Private method "unhandled exception handler" is [ unhandledExceptionHandler ];
+Private method "unhandled exception handler" is [ _unhandledExceptionHandler ];
 
 /**
  * Establish `handle` as the function that the specified fiber will apply in
@@ -261,17 +272,17 @@ exceptionsByCode : {natural number→system exception's type|} := {};
  *    supertype - The nearest supertype of the new exception class.
  *    code - The error code that uniquely identifies the system exception.
  */
-Private method "Exception_(_)extends_" is
+Private method "System exception_(_)extends_" is
 [
 	exceptionBaseName : <character…|1..>,
 	code : natural number,
-	supertype : system exception's type
+	supertype : exception's type
 |
 	Assert: ¬code ∈ exceptionsByCode ("code " ++ “code” ++ " already in use");
 	Assert: ¬exceptionBaseName ends with " exception"
 		(format "\"“①”\" ends with \" exception\"" with exceptionBaseName);
 	exceptionName ::= exceptionBaseName ++ " exception";
-	Class exceptionName extends supertype
+	Class exceptionName extends supertype ∩ system exception
 		with fields
 			error code : code's type,
 			error name : exceptionName's type;
@@ -288,14 +299,14 @@ Private method "Exception_(_)extends_" is
  * An arithmetic exception describes error conditions related to arithmetic and
  * manipulation of numbers.
  */
-Public explicit class "arithmetic exception" extends system exception;
+Public explicit class "arithmetic exception" extends exception;
 
 /**
  * A bad-argument exception describes error conditions related to invoking a
  * method, function, or similar entity with arguments that are correctly typed
  * but not semantically valid.
  */
-Public explicit class "bad-argument exception" extends system exception;
+Public explicit class "bad-argument exception" extends exception;
 
 /**
  * A bad-format exception describes error conditions related to invalid formats
@@ -307,236 +318,236 @@ Public explicit class "bad-format exception" extends bad-argument exception;
  * A message exception describes error conditions related to messages, i.e.,
  * method names.
  */
-Public explicit class "bad-message exception" extends system exception;
+Public explicit class "bad-message exception" extends exception;
 
 /**
  * A bad phrase exception describes error conditions related to phrase
  * construction.
  */
-Public explicit class "bad-phrase exception" extends system exception;
+Public explicit class "bad-phrase exception" extends exception;
 
 /**
  * A bad-primitive exception describes error conditions related to invocations
  * of nonexistent or not meaningfully implemented primitives.
  */
-Public explicit class "bad-primitive exception" extends system exception;
+Public explicit class "bad-primitive exception" extends exception;
 
 /**
  * A code-generation exception describes error conditions related to runtime
  * generation of code.
  */
-Public explicit class "code-generation exception" extends system exception;
+Public explicit class "code-generation exception" extends exception;
 
 /**
  * A definition exception describes error conditions related to defining Avail
  * methods, restrictions, types, and other entities.
  */
-Public explicit class "definition exception" extends system exception;
+Public explicit class "definition exception" extends exception;
 
 /**
  * An element-access exception describes error conditions related to failed
  * retrieval of an object from a larger structure (including the runtime
  * system).
  */
-Public explicit class "element-access exception" extends system exception;
+Public explicit class "element-access exception" extends exception;
 
 /**
  * An I/O exception describes error conditions related to program input or
  * output.
  */
-Public explicit class "I/O exception" extends system exception;
+Public explicit class "I/O exception" extends exception;
 
 /**
  * An invocation exception describes error conditions related to invoking
  * functions, methods, or similar objects with the wrong number or types of
  * arguments.
  */
-Public explicit class "invocation exception" extends system exception;
+Public explicit class "invocation exception" extends exception;
 
 /**
  * An instantiation exception describes error conditions related to
  * instantiating types (particulary user-defined object types).
  */
-Public explicit class "instantiation exception" extends system exception;
+Public explicit class "instantiation exception" extends exception;
 
 /**
  * A security exception describes error conditions related to program
  * permissions.
  */
-Public explicit class "security exception" extends system exception;
+Public explicit class "security exception" extends exception;
 
 /**
  * A variable use exception describes error conditions related to usage of
  * variables.
  */
-Public explicit class "variable-use exception" extends system exception;
+Public explicit class "variable-use exception" extends exception;
 
 /* Define specific exception classes for each of the VM and Foundation error
  * codes.
  */
-Exception "cannot-add-unlike-infinities" (1)
+System exception "cannot-add-unlike-infinities" (1)
 	extends arithmetic exception;
-Exception "cannot-subtract-like-infinities" (2)
+System exception "cannot-subtract-like-infinities" (2)
 	extends arithmetic exception;
-Exception "cannot-multiply-zero-and-infinity" (3)
+System exception "cannot-multiply-zero-and-infinity" (3)
 	extends arithmetic exception;
-Exception "cannot-divide-by-zero" (4)
+System exception "cannot-divide-by-zero" (4)
 	extends arithmetic exception;
-Exception "cannot-divide-infinities" (5)
+System exception "cannot-divide-infinities" (5)
 	extends arithmetic exception;
-Exception "cannot-read-unassigned-variable" (6)
+System exception "cannot-read-unassigned-variable" (6)
 	extends variable-use exception;
-Exception "cannot-store-incorrectly-typed-value" (7)
+System exception "cannot-store-incorrectly-typed-value" (7)
 	extends variable-use exception;
-Exception "cannot-swap-contents-of-differently-typed-variables" (8)
+System exception "cannot-swap-contents-of-differently-typed-variables" (8)
 	extends variable-use exception;
-Exception "no-such-fiber-variable" (9)
+System exception "no-such-fiber-variable" (9)
 	extends element-access exception;
-Exception "subscript-out-of-bounds" (10)
+System exception "subscript-out-of-bounds" (10)
 	extends element-access exception;
-Exception "incorrect-number-of-arguments" (11)
+System exception "incorrect-number-of-arguments" (11)
 	extends invocation exception;
-Exception "incorrect-argument-type" (12)
+System exception "incorrect-argument-type" (12)
 	extends invocation exception;
-Exception "method-return-type-not-as-forward-declared" (13)
+System exception "method-return-type-not-as-forward-declared" (13)
 	extends definition exception;
-Exception "continuation-expected-stronger-type" (14)
+System exception "continuation-expected-stronger-type" (14)
 	extends invocation exception;
-Exception "primitive-not-supported" (15)
+System exception "primitive-not-supported" (15)
 	extends bad-primitive exception;
-Exception "not-enumeration" (17)
+System exception "not-enumeration" (17)
 	extends invocation exception;
-Exception "no-method" (19)
+System exception "no-method" (19)
 	extends element-access exception;
-Exception "wrong-number-of-outers" (20)
+System exception "wrong-number-of-outers" (20)
 	extends code-generation exception;
-Exception "key-not-found" (21)
+System exception "key-not-found" (21)
 	extends element-access exception;
-Exception "negative-size" (22)
+System exception "negative-size" (22)
 	extends bad-argument exception;
-Exception "general-I/O" (23)
+System exception "general-I/O" (23)
 	extends I/O exception;
-Exception "permission-denied" (24)
+System exception "permission-denied" (24)
 	extends security exception;
-Exception "invalid-handle" (25)
+System exception "invalid-handle" (25)
 	extends bad-argument exception;
-Exception "invalid-primitive-number" (26)
+System exception "invalid-primitive-number" (26)
 	extends code-generation exception;
-Exception "function-disagrees-with-primitive-restriction" (27)
+System exception "function-disagrees-with-primitive-restriction" (27)
 	extends code-generation exception;
-Exception "local-type-literal-is-not-a-type" (28)
+System exception "local-type-literal-is-not-a-type" (28)
 	extends code-generation exception;
-Exception "outer-type-literal-is-not-a-type" (29)
+System exception "outer-type-literal-is-not-a-type" (29)
 	extends code-generation exception;
-Exception "unhandled-exception" (30)
+System exception "unhandled-exception" (30)
 	extends system exception;
-Exception "type-restriction-must-accept-only-types" (31)
+System exception "type-restriction-must-accept-only-types" (31)
 	extends definition exception;
-Exception "incorrect-type-for-group" (32)
+System exception "incorrect-type-for-group" (32)
 	extends bad-message exception;
-Exception "no-special-object" (33)
+System exception "no-special-object" (33)
 	extends element-access exception;
-Exception "macro-argument-must-be-a-parse-node" (34)
+System exception "macro-argument-must-be-a-parse-node" (34)
 	extends definition exception;
-Exception "ambiguous-name" (35)
+System exception "ambiguous-name" (35)
 	extends bad-message exception;
-Exception "declaration-kind-does-not-support-assignment" (36)
+System exception "declaration-kind-does-not-support-assignment" (36)
 	extends bad-phrase exception;
-Exception "declaration-kind-does-not-support-reference" (37)
+System exception "declaration-kind-does-not-support-reference" (37)
 	extends bad-phrase exception;
-Exception "redefined-with-same-argument-types" (39)
+System exception "redefined-with-same-argument-types" (39)
 	extends definition exception;
-Exception "result-type-should-covary-with-arguments" (40)
+System exception "result-type-should-covary-with-arguments" (40)
 	extends definition exception;
-Exception "special-atom" (41)
+System exception "special-atom" (41)
 	extends bad-argument exception;
-Exception "incorrect-type-for-complex-group" (42)
+System exception "incorrect-type-for-complex-group" (42)
 	extends bad-message exception;
-Exception "incorrect-use-of-double-dagger" (43)
+System exception "incorrect-use-of-double-dagger" (43)
 	extends bad-message exception;
-Exception "unbalanced-guillemets" (44)
+System exception "unbalanced-guillemets" (44)
 	extends bad-message exception;
-Exception "method-name-is-not-canonical" (45)
+System exception "method-name-is-not-canonical" (45)
 	extends bad-message exception;
-Exception "expected-operator-after-backquote" (46)
+System exception "expected-operator-after-backquote" (46)
 	extends bad-message exception;
-Exception "incorrect-type-for-boolean-group" (47)
+System exception "incorrect-type-for-boolean-group" (47)
 	extends bad-message exception;
-Exception "incorrect-type-for-counting-group" (48)
+System exception "incorrect-type-for-counting-group" (48)
 	extends bad-message exception;
-Exception "octothorp-must-follow-a-simple-group" (49)
+System exception "octothorp-must-follow-a-simple-group" (49)
 	extends bad-message exception;
-Exception "question-mark-must-follow-a-simple-group" (50)
+System exception "question-mark-must-follow-a-simple-group" (50)
 	extends bad-message exception;
-Exception "case-insensitive-expression-canonization" (51)
+System exception "case-insensitive-expression-canonization" (51)
 	extends bad-message exception;
-Exception "tilde-must-not-follow-argument" (52)
+System exception "tilde-must-not-follow-argument" (52)
 	extends bad-message exception;
-Exception "double-question-mark-must-follow-a-simple-or-simple-group" (53)
+System exception "double-question-mark-must-follow-a-simple-or-simple-group" (53)
 	extends bad-message exception;
-Exception "alternative-must-not-contain-arguments" (54)
+System exception "alternative-must-not-contain-arguments" (54)
 	extends bad-message exception;
-Exception "vertical-bar-must-follow-a-simple-or-simple-group" (55)
+System exception "vertical-bar-must-follow-a-simple-or-simple-group" (55)
 	extends bad-message exception;
-Exception "cannot-convert-not-a-number-to-integer" (56)
+System exception "cannot-convert-not-a-number-to-integer" (56)
 	extends bad-argument exception;
-Exception "compilation-is-over" (70)
+System exception "compilation-is-over" (70)
 	extends system exception;
-Exception "method-implementation-lookup-failed" (71)
+System exception "method-implementation-lookup-failed" (71)
 	extends element-access exception;
-Exception "method-is-sealed" (72)
+System exception "method-is-sealed" (72)
 	extends definition exception;
-Exception "no-implementation" (73)
+System exception "no-implementation" (73)
 	extends bad-primitive exception;
-Exception "block-contains-invalid-statements" (100)
+System exception "block-contains-invalid-statements" (100)
 	extends bad-phrase exception;
-Exception "block-is-invalid" (101)
+System exception "block-is-invalid" (101)
 	extends bad-phrase exception;
-Exception "block-must-not-contain-outers" (102)
+System exception "block-must-not-contain-outers" (102)
 	extends bad-phrase exception;
-Exception "block-compilation-failed" (103)
+System exception "block-compilation-failed" (103)
 	extends code-generation exception;
-Exception "sequence-contains-invalid-statements" (105)
+System exception "sequence-contains-invalid-statements" (105)
 	extends bad-phrase exception;
-Exception "Java-class-not-available" (500)
+System exception "Java-class-not-available" (500)
 	extends element-access exception;
-Exception "pojo-type-is-abstract" (501)
+System exception "pojo-type-is-abstract" (501)
 	extends bad-argument exception;
-Exception "Java-method-not-available" (502)
+System exception "Java-method-not-available" (502)
 	extends element-access exception;
-Exception "Java-marshaling-failed" (504)
+System exception "Java-marshaling-failed" (504)
 	extends invocation exception;
-Exception "Java-field-not-available" (505)
+System exception "Java-field-not-available" (505)
 	extends element-access exception;
-Exception "Java-field-reference-is-ambiguous" (506)
+System exception "Java-field-reference-is-ambiguous" (506)
 	extends bad-message exception;
-Exception "cannot-modify-final-Java-field" (507)
+System exception "cannot-modify-final-Java-field" (507)
 	extends variable-use exception;
-Exception "Java-method-reference-is-ambiguous" (508)
+System exception "Java-method-reference-is-ambiguous" (508)
 	extends bad-message exception;
-Exception "object-type-extension-contains-duplicates" (1000)
+System exception "object-type-extension-contains-duplicates" (1000)
 	extends definition exception;
-Exception "object-type-extension-did-not-produce-subtype" (1001)
+System exception "object-type-extension-did-not-produce-subtype" (1001)
 	extends definition exception;
-Exception "object-instantiation-contains-duplicates" (1002)
+System exception "object-instantiation-contains-duplicates" (1002)
 	extends instantiation exception;
-Exception "object-instantiation-did-not-produce-instance" (1004)
+System exception "object-instantiation-did-not-produce-instance" (1004)
 	extends instantiation exception;
-Exception "invalid-argument" (1005)
+System exception "invalid-argument" (1005)
 	extends bad-format exception;
-Exception "runaway-format-variable" (1006)
+System exception "runaway-format-variable" (1006)
 	extends bad-format exception;
-Exception "empty-format-variable" (1007)
+System exception "empty-format-variable" (1007)
 	extends bad-format exception;
-Exception "invalid-format-metacharacter-escape" (1008)
+System exception "invalid-format-metacharacter-escape" (1008)
 	extends bad-format exception;
-Exception "invalid-format-metacharacter-use" (1009)
+System exception "invalid-format-metacharacter-use" (1009)
 	extends bad-format exception;
-Exception "format-variable-interpolation-failed" (1010)
+System exception "format-variable-interpolation-failed" (1010)
 	extends bad-format exception;
-Exception "invalid-format-variable" (1011)
+System exception "invalid-format-variable" (1011)
 	extends bad-format exception;
-Exception "missing-format-variable-binding" (1012)
+System exception "missing-format-variable-binding" (1012)
 	extends bad-format exception;
 
 /**
@@ -564,6 +575,20 @@ Semantic restriction "Ensure:all error codes have corresponding exceptions" is
 ];
 
 Ensure: all error codes have corresponding exceptions;
+
+/**
+ * A cascade exception retains the exception that originally caused it.
+ */
+Public class "cascade exception" extends exception
+	with fields
+		public causal exception : exception;
+
+/**
+ * A descriptive exception holds an error message.
+ */
+Public class "descriptive exception" extends exception
+	with fields
+		public error message : string;
 
 /* Exceptions are going live! Failures of bootstrap linked primitives will now
  * raise appropriate exceptions.

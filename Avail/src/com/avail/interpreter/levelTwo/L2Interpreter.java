@@ -1028,18 +1028,35 @@ extends Interpreter
 		}
 		final List<String> strings = new ArrayList<String>(frames.size());
 		int line = frames.size();
+		final StringBuilder signatureBuilder = new StringBuilder(1000);
 		for (final AvailObject frame : frames)
 		{
 			final AvailObject code = frame.function().code();
+			final AvailObject functionType = code.functionType();
+			final AvailObject paramsType = functionType.argsTupleType();
+			for (
+				int i = 1,
+				limit = paramsType.sizeRange().lowerBound().extractInt();
+				i <= limit;
+				i++)
+			{
+				if (i != 1)
+				{
+					signatureBuilder.append(", ");
+				}
+				signatureBuilder.append(paramsType.typeAtIndex(i));
+			}
 			strings.add(
 				String.format(
-					"#%d: %s (%s:%d)",
+					"#%d: %s [%s] (%s:%d)",
 					line--,
 					code.methodName().asNativeString(),
+					signatureBuilder.toString(),
 					code.module().equalsNull()
 						? "?"
 						: code.module().name().asNativeString(),
 					code.startingLineNumber()));
+			signatureBuilder.setLength(0);
 		}
 		return strings;
 	}

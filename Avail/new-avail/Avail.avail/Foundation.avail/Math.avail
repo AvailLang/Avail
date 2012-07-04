@@ -69,7 +69,7 @@ Public stable forward method "-_" is [number]→number;
 	negation ::= {"-_"};
 	abs      ::= {"`|_`|"};
 	power    ::= {"_^_"};
-	bounds    ::= {"⎣_⎦", "⎡_⎤"};
+	bounds   ::= {"⎣_⎦", "⎡_⎤"};
 
 	sumAndProduct ::= sum ∪ product;
 
@@ -86,6 +86,13 @@ Public stable forward method "-_" is [number]→number;
 
 	/* Forbid nesting of floor and ceiling. */
 	Grammatical restriction bounds is <bounds>;
+
+	/* Make each bitwise operator left-associative with itself (but leave them
+	 * mutually incomparable in precedence).
+	 */
+	Grammatical restriction "_bit∧_" is <∅, {"_bit∧_"}>;
+	Grammatical restriction "_bit∨_" is <∅, {"_bit∨_"}>;
+	Grammatical restriction "_bit⊕_" is <∅, {"_bit⊕_"}>;
 ]();
 
 /* These messages describe arithmetic failure (integers only). */

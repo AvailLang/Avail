@@ -49,7 +49,7 @@ public class P_068_RecordNewTypeName extends Primitive
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance = new P_068_RecordNewTypeName().init(
-		2, CanInline, CannotFail);
+		2, CanInline, CannotFail, HasSideEffect);
 
 	@Override
 	public @NotNull Result attempt (

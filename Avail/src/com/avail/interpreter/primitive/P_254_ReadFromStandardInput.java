@@ -33,7 +33,7 @@ package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.CHARACTER;
 import static com.avail.exceptions.AvailErrorCode.E_IO_ERROR;
-import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.*;
 import java.io.*;
 import java.util.List;
 import com.avail.AvailRuntime;
@@ -52,7 +52,7 @@ extends Primitive
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_254_ReadFromStandardInput().init(0, CanInline);
+		new P_254_ReadFromStandardInput().init(0, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (

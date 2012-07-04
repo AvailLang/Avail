@@ -35,5 +35,6 @@ Versions
 	"dev"
 Extends
 	"Iterators",
+	"Pseudorandom Number Generation",
 	"Streams"
 Body

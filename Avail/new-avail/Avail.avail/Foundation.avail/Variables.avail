@@ -43,6 +43,8 @@ Uses
 	"Early Math",
 	"Enumeration Support"
 Names
+	"(new↑_:=_)",
+	"(new↑_`?=_)",
 	"_++",
 	"++_",
 	"(_++)",
@@ -64,6 +66,78 @@ Semantic restriction "↓_" is
 Semantic restriction "new↑_" is
 [
 	containmentMeta : any meta's type
+|
+	↑containmentMeta's instance
+];
+
+/**
+ * Construct and answer a new variable with the specified containment type and
+ * initial value.
+ *
+ * Parameters:
+ *    containmentType - The containment type.
+ *    initialValue - The initial value.
+ * Returns:
+ *    A new variable capable of retrieving and storing values of the specified
+ *    containment type. The variable contains `initialValue`.
+ */
+Public method "(new↑_:=_)" is
+[
+	containmentType : any meta,
+	initialValue : any
+|
+	var ::= new ↑containmentType;
+	var ?= initialValue;
+	var
+] : variable;
+
+/**
+ * Reject the current parse if the variable type does not accept the initial
+ * value.
+ */
+Semantic restriction "(new↑_:=_)" is
+[
+	containmentMeta : any meta's type,
+	valueType : any meta
+|
+	If ¬valueType's type ⊆ containmentMeta then
+	[
+		messageTuple ::= concatenate <
+			"containment type (",
+			“containmentMeta”,
+			" to support initial value (",
+			“valueType”,
+			")">;
+		Reject parse, expected: cast messageTuple into [t : string | t]
+	];
+	↑containmentMeta's instance
+];
+
+/**
+ * Construct and answer a new variable with the specified containment type and
+ * initial value.
+ *
+ * Parameters:
+ *    containmentType - The containment type.
+ *    initialValue - The initial value.
+ * Returns:
+ *    A new variable capable of retrieving and storing values of the specified
+ *    containment type. The variable contains `initialValue`.
+ */
+Public method "(new↑_`?=_)" is
+[
+	containmentType : any meta,
+	initialValue : any
+|
+	var ::= new ↑containmentType;
+	var ?= initialValue;
+	var
+] : variable;
+
+Semantic restriction "(new↑_`?=_)" is
+[
+	containmentMeta : any meta's type,
+	valueType : any meta
 |
 	↑containmentMeta's instance
 ];

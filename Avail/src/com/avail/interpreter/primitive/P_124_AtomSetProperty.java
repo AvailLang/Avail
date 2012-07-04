@@ -33,7 +33,7 @@ package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM;
-import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
@@ -51,7 +51,7 @@ public class P_124_AtomSetProperty extends Primitive
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance = new P_124_AtomSetProperty().init(
-		3, CanInline);
+		3, CanInline, HasSideEffect);
 
 	@Override
 	public @NotNull Result attempt (
