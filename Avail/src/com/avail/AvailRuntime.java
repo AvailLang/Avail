@@ -517,7 +517,7 @@ implements ThreadFactory
 			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 				IntegerRangeTypeDescriptor.wholeNumbers(),
 				TupleDescriptor.empty(),
-				InstanceMetaDescriptor.anyMeta());
+				InstanceMetaDescriptor.topMeta());
 		specialObjects[74] =
 			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 				IntegerRangeTypeDescriptor.wholeNumbers(),

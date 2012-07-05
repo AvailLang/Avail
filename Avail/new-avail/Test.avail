@@ -37,5 +37,41 @@ Uses
 	"Avail"
 Body
 
-/* Run all unit tests. */
-Print: “report on all tests”;
+[
+	/* Report on all tests. */
+	report ::= report on all tests;
+	For each report's metrics by module do
+	[
+		definer : module,
+		results : <unit test result…|>
+	|
+		Print: left fold <definer's name ++ ":\n"> ++ results through
+			[
+				result : unit test result,
+				partial : string
+			|
+				partial ++ "\t" ++ “result” ++ "\n"
+			];
+		Print: "\n";
+	];
+	/* Report statistics. */
+	passed ::= new atom "passed";
+	failed ::= new atom "failed";
+	statistics ::= group report's metrics by
+		[
+			result : unit test result
+		|
+			cast result into [ t : unit test success | passed ]
+			else [ failed ]
+		];
+	Print:
+		format
+			"SUMMARY:\n\
+			\|\tTOTAL:  ‘total’\n\
+			\|\tPASSED: ‘passed’\n\
+			\|\tFAILED: ‘failed’\n"
+		with
+			total := |report's metrics|,
+			passed := |statistics[passed] else [<>]|,
+			failed := |statistics[failed] else [<>]|;
+]();

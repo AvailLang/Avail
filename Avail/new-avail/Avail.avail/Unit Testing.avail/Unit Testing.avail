@@ -44,6 +44,8 @@ Names
 	"Require:_(_)",
 	"Require:_=_",
 	"Require:_=_(_)",
+	"Require:_raises_",
+	"Require:_raises_(_)",
 
 	/* Runners. */
 	"Run test:_",
@@ -57,6 +59,7 @@ Names
 	"unit test result",
 	"unit test success",
 	"_'s⁇metrics",
+	"_'s⁇metrics by module",
 
 	/* Exceptions. */
 	"expected-a-specific-exception exception",
@@ -247,6 +250,29 @@ Method "“_”" is
 		passed := |statistics[passed] else [<>]|,
 		failed := |statistics[failed] else [<>]|
 ] : string;
+
+/**
+ * Group the {@type "unit test result" test metrics} of the specified {@type
+ * "unit test report"} by defining module.
+ *
+ * @method "_'s⁇metrics by module"
+ * @param "report" "unit test report"
+ *        A unit test report.
+ * @returns "{module→<unit test result…|>|}"
+ *          A map whose keys are modules that defined tests whose metrics are
+ *          present in the unit test report. The values are test metric tuples.
+ */
+Public method "_'s⁇metrics by module" is
+[
+	report : unit test report
+|
+	group report's metrics by
+	[
+		result : unit test result
+	|
+		result's test ID's issuing module
+	]
+] : {module→<unit test result…|>|};
 
 /**
  * Run and obtain a {@type "unit test result" test metric} for the specified
@@ -480,19 +506,6 @@ Method "Require:_" is
 	Raise a failed-requirement exception
 ] : ⊥;
 
-/**
- * Reject the current parse if the requirement could never be true.
- *
- * @method "Require:_"
- * @restrict "[false's type's type]"
- */
-Semantic restriction "Require:_" is
-[
-	predicate : false's type's type
-|
-	Reject parse, expected: "a predicate that could ever be true"
-];
-
 Grammatical restriction "Require:_" is <{"_=_"}>;
 
 /**
@@ -523,20 +536,6 @@ Method "Require:_(_)" is
 	Raise a failed-requirement exception ∩ descriptive exception with
 		error message := message
 ] : ⊥;
-
-/**
- * Reject the current parse if the requirement could never be true.
- *
- * @method "Require:_(_)"
- * @restrict "[false's type's type, string's type]"
- */
-Semantic restriction "Require:_(_)" is
-[
-	predicate : false's type's type,
-	message : string's type
-|
-	Reject parse, expected: "a predicate that could ever be true"
-];
 
 Grammatical restriction "Require:_(_)" is <{"_=_"}, ∅>;
 
@@ -629,6 +628,98 @@ Semantic restriction "Require:_=_(_)" is
 	];
 	⊤
 ];
+
+/**
+ * Require that the `expression` raises an exception of type `exceptionType`
+ * when applied.
+ *
+ * @method "Require:_=_(_)"
+ * @param "aFunction" "[]→⊤"
+ *        A function.
+ * @param "exceptionType" "exception's type"
+ *        An exception type.
+ * @raises "failed-requirement exception"
+ *         If {@param "aFunction"} does not produce an exception of the
+ *         appropriate type.
+ */
+Public method "Require:_raises_" is
+[
+	aFunction : []→⊤,
+	exceptionType : exception's type
+|
+	Guard
+	[
+		aFunction();
+		Raise a failed-requirement exception ∩ descriptive exception
+			with error message :=
+				format "expected ∈ ‘①’ (no exception)"
+				with exceptionType
+	]
+	intercept
+	[
+		e : exception
+	|
+		If ¬e ∈ exceptionType then
+		[
+			Raise a failed-requirement exception
+					∩ cascade exception
+					∩ descriptive exception
+				with
+					causal exception := e,
+					error message :=
+						format "expected ∈ ‘①’, actual=‘②’"
+						with exceptionType, e
+		];
+	];
+] : ⊤;
+
+/**
+ * Require that the `expression` raises an exception of type `exceptionType`
+ * when applied.
+ *
+ * @method "Require:_=_(_)"
+ * @param "aFunction" "[]→⊤"
+ *        A function.
+ * @param "exceptionType" "exception's type"
+ *        An exception type.
+ * @param "message" "string"
+ *        Additional information that should be attached to the exception in the
+ *        event of failure.
+ * @raises "failed-requirement exception"
+ *         If {@param "aFunction"} does not produce an exception of the
+ *         appropriate type.
+ */
+Public method "Require:_raises_(_)" is
+[
+	aFunction : []→⊤,
+	exceptionType : exception's type,
+	message : string
+|
+	Guard
+	[
+		aFunction();
+		Raise a failed-requirement exception ∩ descriptive exception
+			with error message :=
+				format "‘①’: expected ∈ ‘②’ (no exception)"
+				with message, exceptionType
+	]
+	intercept
+	[
+		e : exception
+	|
+		If ¬e ∈ exceptionType then
+		[
+			Raise a failed-requirement exception
+					∩ cascade exception
+					∩ descriptive exception
+				with
+					causal exception := e,
+					error message :=
+						format "‘①’: expected ∈ ‘②’, actual=‘③’"
+						with message, exceptionType, e
+		];
+	];
+] :  ⊤;
 
 /**
  * Define a unit test.

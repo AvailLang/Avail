@@ -1984,6 +1984,21 @@ Method "_'s⁇public names" is
 ] : set of string;
 
 /**
+ * Answer the fully qualified name of the specified module.
+ *
+ * Parameters:
+ *    aModule - A module.
+ * Returns:
+ *    The fully qualified name of `aModule`.
+ */
+Method "_'s⁇name" is
+[
+	aModule : module
+|
+	Primitive 243;
+] : string;
+
+/**
  * Compute and answer the semantic restrictions that would run at a call site
  * of `aMethod` applied with the specified tuple of arguments.
  *

@@ -1,5 +1,5 @@
 /*
- * Avail.avail
+ * Foundation Tests.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,15 +30,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Avail"
+System Module "Foundation Tests"
 Versions
 	"dev"
 Extends
-	"Advanced Math",
-	"Data Abstractions",
-	"Foundation",
-	"Foundation Tests",
-	"IO",
-	"Unit Testing"
+	"Math Test"
 Body
-

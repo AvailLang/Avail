@@ -59,6 +59,7 @@ Uses
 		"Seal method_at_",
 		"Semantic restriction_is_",
 		"_'s⁇instances",
+		"_'s⁇issuing module",
 		"_+_",
 		"_-_",
 		"_._→variable",
@@ -549,6 +550,22 @@ Method "_-_" is
 	Primitive 125 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
+
+/**
+ * Answer the module that issued the specified atom.
+ *
+ * Parameters:
+ *    anAtom - An atom.
+ * Returns:
+ *    The requested module.
+ */
+Method "_'s⁇issuing module" is
+[
+	anAtom : atom
+|
+	Primitive 127 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : module;
 
 /**
  * Answer the `index`-th element of `aTuple`.

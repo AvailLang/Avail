@@ -1,5 +1,5 @@
-/*
- * Avail.avail
+/**
+ * P_127_AtomIssuingModule.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,15 +30,54 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Avail"
-Versions
-	"dev"
-Extends
-	"Advanced Math",
-	"Data Abstractions",
-	"Foundation",
-	"Foundation Tests",
-	"IO",
-	"Unit Testing"
-Body
+package com.avail.interpreter.primitive;
 
+import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.interpreter.Primitive.Flag.*;
+import java.util.List;
+import com.avail.AvailRuntime;
+import com.avail.annotations.NotNull;
+import com.avail.descriptor.*;
+import com.avail.interpreter.*;
+
+/**
+ * <strong>Primitive 127</strong>: Answer the {@linkplain ModuleDescriptor
+ * module} that issued the specified {@linkplain AtomDescriptor atom}.
+ *
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ */
+public final class P_127_AtomIssuingModule
+extends Primitive
+{
+	/**
+	 * The sole instance of this primitive class. Accessed through reflection.
+	 */
+	public final @NotNull static Primitive instance =
+		new P_127_AtomIssuingModule().init(1, CanFold);
+
+	@Override
+	public @NotNull Result attempt (
+		final @NotNull List<AvailObject> args,
+		final @NotNull Interpreter interpreter)
+	{
+		assert args.size() == 1;
+		final AvailObject atom = args.get(0);
+		if (AvailRuntime.isSpecialAtom(atom))
+		{
+			return interpreter.primitiveFailure(E_SPECIAL_ATOM);
+		}
+		final AvailObject issuer = atom.issuingModule();
+		assert !issuer.equalsNull();
+		return interpreter.primitiveSuccess(issuer);
+	}
+
+	@Override
+	protected @NotNull AvailObject privateBlockTypeRestriction ()
+	{
+		return FunctionTypeDescriptor.create(
+			TupleDescriptor.from(
+				ATOM.o()),
+			MODULE.o());
+	}
+}
