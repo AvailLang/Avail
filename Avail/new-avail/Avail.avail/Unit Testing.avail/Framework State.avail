@@ -41,19 +41,9 @@ Names
 	"root suite:=_",
 	"suites by atom",
 	"suites by atom:=_",
-	"tests",
-	"tests:=_",
 	"tests by atom",
 	"tests by atom:=_"
 Body
-
-/**
- * The collection of all unit tests.
- *
- * @global "tests" "<unit test…|>"
- */
-tests : <unit test…|> := <>;
-Public variable ↑tests is "tests";
 
 /**
  * The unit tests, organized by test identifier.
@@ -75,7 +65,7 @@ rootSuite : root unit test suite := a root unit test suite with
 	suite fixture tear down := <>,
 	test fixture setup := <>,
 	test fixture tear down := <>,
-	unit tests := ∅;
+	unit tests := <>;
 Public variable ↑rootSuite is "root suite";
 
 /**

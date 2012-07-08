@@ -443,7 +443,7 @@ Private method "recursively report on all tests in_" is
 		extend test-fixture-setup exception
 			with suite ID : aSuite's suite ID's type
 		on error;
-	results : <unit test result…|> := map aSuite's unit tests→tuple through
+	results : <unit test result…|> := map aSuite's unit tests through
 		[test : unit test | test metric for test];
 	For each aSuite's child suite IDs do
 	[

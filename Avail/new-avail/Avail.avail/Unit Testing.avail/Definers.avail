@@ -96,7 +96,7 @@ Public method "New test suite_extends_" is
 		suite fixture tear down := <>,
 		test fixture setup := <>,
 		test fixture tear down := <>,
-		unit tests := ∅;
+		unit tests := <>;
 	suites by atom := suites by atom + id→suite;
 	childSuites : <atom…|> := parent's child suite IDs ++ <id>;
 	If isRootTestSuite then
@@ -297,9 +297,8 @@ Public method "Test_in_is_«must raise_»" is
 		suite ID := suiteID,
 		body := test,
 		expected exception type := optionalException;
-	tests := tests ++ <unitTest>;
 	tests by atom := tests by atom + trueName→unitTest;
-	suiteTests ::= suite's unit tests + unitTest;
+	suiteTests ::= suite's unit tests ++ <unitTest>;
 	suites by atom := suites by atom + suiteID→suite's unit tests := suiteTests;
 ] : ⊤;
 
