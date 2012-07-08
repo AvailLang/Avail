@@ -692,12 +692,10 @@ Semantic restriction "_mod_" is
 	if ⎣b⎦ = ⎡b⎤
 		∧ [ ⎣a⎦ is finite
 		∧ [ ⎡a⎤ is finite
-		∧ [ ⎣a⎦ ÷ ⎣b⎦
-			= ⎡a⎤ ÷ ⎣b⎦ ] ] ]
+		∧ [ ⎣a⎦ ÷ ⎣b⎦ = ⎡a⎤ ÷ ⎣b⎦ ] ] ]
 	then
 	[
-		[⎣a⎦ mod ⎣b⎦
-			.. ⎡a⎤ mod ⎣b⎦]
+		[⎣a⎦ mod ⎣b⎦ .. ⎡a⎤ mod ⎣b⎦]
 	]
 	else
 	[
@@ -839,6 +837,7 @@ Private method "comparison chain semantic restriction function" is
 		args : <<number, boolean…|1..4>…|3..∞>'s type
 	|
 		exactSize ::= ⎣args⎦ - 1;
+		allEquals : boolean := true;
 		From 1 to exactSize do
 		[
 			index : natural number
@@ -860,7 +859,16 @@ Private method "comparison chain semantic restriction function" is
 				Reject parse, expected:
 					"exactly one comparison operator between numeric arguments"
 			];
+			If arg[2]'s instance ≠ true then
+			[
+				allEquals := false;
+			];
 			true
+		];
+		If allEquals then
+		[
+			Reject parse, expected:
+				"inequality chain to include at least one inequality"
 		];
 		⊤
 	]
@@ -936,15 +944,6 @@ Public method "«_‡«=»?«≥»?«>»?»" is
 
 Semantic restriction "«_‡«=»?«≥»?«>»?»" is
 	comparison chain semantic restriction function;
-
-/* Disambiguate the comparison chains from the binary comparisons. */
-[
-	binary ::= {"_=_", "_≤_", "_<_", "_≥_", "_>_"};
-	chains ::= {"«_‡«=»?«≤»?«<»?»", "«_‡«=»?«≥»?«>»?»"};
-	comparisons ::= binary ∪ chains;
-	Grammatical restriction binary is <comparisons, comparisons>;
-	Grammatical restriction chains is <comparisons>;
-]();
 
 /**
  * Compute and answer the result of exponentiating `base` by `exponent`.

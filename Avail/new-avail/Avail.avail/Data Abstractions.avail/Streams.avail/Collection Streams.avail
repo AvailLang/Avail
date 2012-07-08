@@ -37,7 +37,7 @@ Uses
 	"Abstract Streams",
 	"Foundation"
 Names
-	"stream over_"
+	"a stream over_"
 Body
 
 /* TODO: [TLS] Remove these constants once a macro is available for "$…". */
@@ -90,7 +90,7 @@ tuple stream's tail method is
  * Returns:
  *    The requested stream.
  */
-Public stable method "stream over_" is
+Public stable method "a stream over_" is
 [
 	aTuple : <any…|>
 |
@@ -100,7 +100,7 @@ Public stable method "stream over_" is
 		index := 1
 ] : stream;
 
-Semantic restriction "stream over_" is
+Semantic restriction "a stream over_" is
 [
 	tupleType : <any…|>'s type
 |
@@ -121,7 +121,7 @@ Semantic restriction "stream over_" is
  * Returns:
  *    The requested stream.
  */
-Public method "stream over_" is
+Public method "a stream over_" is
 [
 	aSet : {any|}
 |
@@ -131,7 +131,7 @@ Public method "stream over_" is
 		index := 1
 ] : stream;
 
-Semantic restriction "stream over_" is
+Semantic restriction "a stream over_" is
 [
 	setType : {any|}'s type
 |
@@ -151,7 +151,7 @@ Semantic restriction "stream over_" is
  * Returns:
  *    The requested stream.
  */
-Public method "stream over_" is
+Public method "a stream over_" is
 [
 	aMap : {any→any|}
 |
@@ -161,7 +161,7 @@ Public method "stream over_" is
 		index := 1
 ] : stream;
 
-Semantic restriction "stream over_" is
+Semantic restriction "a stream over_" is
 [
 	mapType : {any→any|}'s type
 |

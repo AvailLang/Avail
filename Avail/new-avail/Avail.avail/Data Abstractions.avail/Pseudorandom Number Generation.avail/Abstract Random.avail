@@ -34,10 +34,16 @@ System Module "Abstract Random"
 Versions
 	"dev"
 Uses
+	"Common",
 	"Foundation",
+	"Iterators",
 	"Streams"
 Names
-	"pRNG"
+	"pRNG",
+	"pRNG of_",
+	"_'s⁇next_",
+	"_'s⁇next element of_",
+	"_'s⁇next binding of_"
 Body
 
 /**
@@ -46,26 +52,204 @@ Body
  * random sequence of numbers.
  *
  * @type "pRNG"
- * @subtype "stream"
  */
-Public explicit class "pRNG" extends stream
+Public explicit class "pRNG" extends iterator
 	with fields
-		element type : number's type;
+		element type : whole number's type;
 
 /**
- * A pseudorandom number generator is never empty.
- *
- * @method "_is empty"
- * @param "aPRNG" "pRNG"
- *        A pseudorandom number generator.
- * @returns "false's type"
- * @sealed
+ * Construct and answer a {@type "pRNG"} type that answers values of the
+ * specified type.
+ * 
+ * @method "pRNG of_"
+ * @param "elementType" "whole number's type"
+ *        The type of value produced by iterators of the answered type.
+ * @returns "pRNG's type"
+ *          The requested pRNG type.
  */
-Method "_is empty" is
+Public method "pRNG of_" is
 [
-	aPRNG : pRNG
+	elementType : whole number's type
 |
-	false
-] : false's type;
+	extend pRNG with element type : elementType's type
+] : pRNG's type;
 
-Seal method "_is empty" at <pRNG>;
+/**
+ * Consume and answer a pseudorandom value from the specified {@type "pRNG"
+ * generator}.
+ *
+ * @method "_'s⁇next_"
+ * @param "rng" "pRNG"
+ *        A pseudorandom number generator.
+ * @param "range" "whole number's type"
+ *        A subtype of the generator's {@method "_'s⁇element type" element
+ *        type}. The result will lie within this range.
+ * @returns "whole number"
+ *          A pseudorandom value that is an instance of {@param "range"}.
+ * @raises "incorrect-argument-type exception"
+ *         If ⎡{@param "range"}⎤ is ∞.
+ */
+Public method "_'s⁇next_" is
+[
+	rng : pRNG,
+	range : integer's type
+|
+	If range = ⊥ ∨ [⎡range⎤ = ∞] then
+	[
+		Raise an incorrect-argument-type exception
+	];
+	delta ::= ⎣range⎦;
+	limit ::= ⎡range⎤;
+	modulus ::= |limit - delta| + 1;
+	quotient : [0..∞] := |limit|;
+	result : whole number := 1;
+	While
+	[
+		result := eject ↑result × rng's current element;
+		quotient := eject ↑quotient ÷ ⎡rng's element type⎤;
+		Advance rng;
+		quotient > 0
+	];
+	cast result mod modulus + delta into [t : integer | t]
+] : integer;
+
+Semantic restriction "_'s⁇next_" is
+[
+	rng : pRNG's type,
+	range : integer's type's type
+|
+	range's instance
+];
+
+/**
+ * Consume a pseudorandom value from the specified {@type "pRNG" generator} and
+ * use it to select an instance of the specified {@param "enum" enumeration}.
+ * 
+ * @method "_'s⁇next_"
+ * @param "rng" "pRNG"
+ *        A pseudorandom number generator.
+ * @param "enum" "type"
+ * @returns "any"
+ *          A pseudorandomly selected instance of {@param "enum"}.
+ */
+Method "_'s⁇next_" is
+[
+	rng : pRNG,
+	enum : type
+|
+	Assert: |enum| is finite;
+	result ::= enum's instances→tuple[rng's next [1..|enum|+1)];
+	Advance rng;
+	result
+] : any;
+
+Method "_'s⁇next_" is
+[
+	rng : pRNG,
+	enum : boolean's type
+|
+	result ::= rng's current element is odd;
+	Advance rng;
+	result
+] : boolean;
+
+Semantic restriction "_'s⁇next_" is
+[
+	rng : pRNG's type,
+	meta : type's type
+|
+	enum ::= meta's instance;
+	if |enum| is finite then [enum] else [⊤]
+];
+
+/**
+ * Consume a pseudorandom value from the specified {@type "pRNG" generator} and
+ * use it to select an element of the specified tuple.
+ * 
+ * @method "_'s⁇next element of_"
+ * @param "rng" "pRNG"
+ *        A pseudorandom number generator.
+ * @param "aTuple" "tuple"
+ *        A non-empty tuple.
+ * @returns "any"
+ *          A pseudorandomly selected element of {@param "aTuple"}.
+ */
+Public method "_'s⁇next element of_" is
+[
+	rng : pRNG,
+	aTuple : <any…|1..>
+|
+	result ::= aTuple[rng's next [1..|aTuple|+1)];
+	Advance rng;
+	result
+] : any;
+
+Semantic restriction "_'s⁇next element of_" is
+[
+	rng : pRNG's type,
+	tupleType : <any…|1..>'s type
+|
+	∪ tupleType[1..⎣tupleType⎦ min (|tupleType's leading types| + 1)]
+];
+
+/**
+ * Consume a pseudorandom value from the specified {@type "pRNG" generator} and
+ * use it to select an element of the specified set.
+ * 
+ * @method "_'s⁇next element of_"
+ * @param "rng" "pRNG"
+ *        A pseudorandom number generator.
+ * @param "aSet" "set"
+ *        A non-empty set.
+ * @returns "any"
+ *          A pseudorandomly selected element of {@param "aSet"}.
+ */
+Method "_'s⁇next element of_" is
+[
+	rng : pRNG,
+	aSet : {any|1..}
+|
+	aTuple ::= aSet→tuple;
+	result ::= aTuple[rng's next [1..|aTuple|+1)];
+	Advance rng;
+	result
+] : any;
+
+Semantic restriction "_'s⁇next element of_" is
+[
+	rng : pRNG's type,
+	setType : {any|1..}'s type
+|
+	setType's element type
+];
+
+/**
+ * Consume a pseudorandom value from the specified {@type "pRNG" generator} and
+ * use it to select a binding of the specified map.
+ * 
+ * @method "_'s⁇next binding of_"
+ * @param "rng" "pRNG"
+ *        A pseudorandom number generator.
+ * @param "aMap" "map"
+ *        A non-empty map.
+ * @returns "any"
+ *          A pseudorandomly selected element of {@param "aMap"}.
+ */
+Public method "_'s⁇next binding of_" is
+[
+	rng : pRNG,
+	aMap : {any→any|1..}
+|
+	aTuple ::= aMap's bindings;
+	result ::= aTuple[rng's next [1..|aTuple|+1)];
+	Advance rng;
+	result
+] : <any…|2>;
+
+Semantic restriction "_'s⁇next binding of_" is
+[
+	rng : pRNG's type,
+	mapType : {any→any|1..}'s type
+|
+	<mapType's key type, mapType's value type…|2>
+];

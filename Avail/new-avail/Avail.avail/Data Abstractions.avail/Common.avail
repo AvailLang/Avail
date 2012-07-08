@@ -1,5 +1,5 @@
 /*
- * Foundation Tests.avail
+ * Common.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,16 +30,39 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Foundation Tests"
+System Module "Common"
 Versions
 	"dev"
-Extends
-	"Common" =
-	(
-		"Foundation|foundation test suite"
-	),
-	"Math Test" =
-	(
-		"math test suite"
-	)
+Uses
+	"Foundation",
+	"Unit Testing"
+Names
+	/* Attributes. */
+	"element type",
+
+	/* Test suite identifiers. */
+	"Data|data abstractions test suite"
 Body
+
+_elementType ::= $"element type";
+_testSuite ::= $"data abstraction test suite";
+
+/**
+ * Answer the field atom that represents an iterators's element type.
+ * 
+ * @method "element type"
+ * @returns "atom"
+ *          The requested field atom.
+ */
+Public method "element type" is [ _elementType ];
+
+/**
+ * Answer the test suite identifier for the data abstractions test suite.
+ *
+ * @method "data abstractions test suite"
+ * @returns "atom"
+ *          The requested test suite identifier.
+ */
+Public method "Data|data abstractions test suite" is [ _testSuite ];
+
+Data abstractions test suite is a new test suite;

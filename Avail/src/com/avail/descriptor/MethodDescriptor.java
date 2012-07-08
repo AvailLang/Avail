@@ -779,7 +779,7 @@ extends Descriptor
 						new Generator<String>()
 						{
 							@Override
-							public String value ()
+							public @NotNull String value ()
 							{
 								return
 									problem.asNativeString()
@@ -789,6 +789,24 @@ extends Descriptor
 							}
 						});
 					anyFailures.value = true;
+				}
+				catch (final Exception e)
+				{
+					failBlock.value(
+						new Generator<String>()
+						{
+							@Override
+							public @NotNull String value ()
+							{
+								return
+									"semantic restriction not to raise an "
+									+ "unhandled exception (while parsing send "
+									+ "of "
+									+ object.name().name().asNativeString()
+									+ "):\n\t"
+									+ e.toString();
+							}
+						});
 				}
 			}
 		}

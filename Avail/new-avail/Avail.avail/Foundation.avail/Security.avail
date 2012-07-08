@@ -1,5 +1,5 @@
 /*
- * Foundation Tests.avail
+ * Security.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,16 +30,30 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Foundation Tests"
+System Module "Security"
 Versions
 	"dev"
-Extends
-	"Common" =
-	(
-		"Foundation|foundation test suite"
-	),
-	"Math Test" =
-	(
-		"math test suite"
-	)
+Uses
+	"Bootstrap",
+	"Definers",
+	"Tuples"
+Names
+	"Completely seal_"
 Body
+
+/**
+ * Completely seal the specified method. No further implementations may be
+ * added at any site within the method.
+ * 
+ * @method "Completely seal_"
+ * @param "methodName" "string"
+ *        The method name. This name will be resolved to an atom in the context
+ *        of the current module.
+ */
+Public method "Completely seal_" is
+[
+	methodName : string
+|
+	theMethod ::= method for atom for methodName;
+	Seal method methodName at |theMethod's parameters| of any;
+] : ⊤;

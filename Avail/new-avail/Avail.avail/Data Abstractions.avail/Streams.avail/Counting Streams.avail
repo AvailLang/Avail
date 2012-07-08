@@ -37,8 +37,8 @@ Uses
 	"Abstract Streams",
 	"Foundation"
 Names
-	"counting stream from_to_",
-	"counting stream from_to_by_"
+	"a counting stream from_to_",
+	"a counting stream from_to_by_"
 Body
 
 /* TODO: [TLS] Remove these constants once a macro is available for "$…". */
@@ -166,7 +166,7 @@ Semantic restriction "For each_do_" is
  * Returns:
  *    The requested stream.
  */
-Public method "counting stream from_to_" is
+Public method "a counting stream from_to_" is
 [
 	start : integer,
 	end : extended integer
@@ -178,7 +178,7 @@ Public method "counting stream from_to_" is
 		maximum := end
 ] : stream of integer;
 
-Semantic restriction "counting stream from_to_" is
+Semantic restriction "a counting stream from_to_" is
 [
 	startType : integer's type,
 	endType : extended integer's type
@@ -216,7 +216,7 @@ Semantic restriction "counting stream from_to_" is
  * Returns:
  *    The requested stream.
  */
-Public method "counting stream from_to_by_" is
+Public method "a counting stream from_to_by_" is
 [
 	start : number,
 	end : number,
@@ -234,7 +234,7 @@ Public method "counting stream from_to_by_" is
 		maximum := end
 ] : stream of number;
 
-Semantic restriction "counting stream from_to_by_" is
+Semantic restriction "a counting stream from_to_by_" is
 [
 	startType : number's type,
 	endType : number's type,
@@ -289,7 +289,7 @@ Semantic restriction "counting stream from_to_by_" is
  * Returns:
  *    The requested stream.
  */
-Public method "counting stream from_to_by_" is
+Public method "a counting stream from_to_by_" is
 [
 	start : integer,
 	end : number,
@@ -303,7 +303,7 @@ Public method "counting stream from_to_by_" is
 		maximum := integralEnd
 ] : stream of integer;
 
-Semantic restriction "counting stream from_to_by_" is
+Semantic restriction "a counting stream from_to_by_" is
 [
 	startType : integer's type,
 	endType : extended integer's type,

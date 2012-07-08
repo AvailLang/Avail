@@ -68,12 +68,12 @@ Extends
 	),
 	"Collection Streams" =
 	(
-		"stream over_"
+		"a stream over_"
 	),
 	"Counting Streams" =
 	(
-		"counting stream from_to_",
-		"counting stream from_to_by_"
+		"a counting stream from_to_",
+		"a counting stream from_to_by_"
 	),
 	"Delimited Streams" =
 	(

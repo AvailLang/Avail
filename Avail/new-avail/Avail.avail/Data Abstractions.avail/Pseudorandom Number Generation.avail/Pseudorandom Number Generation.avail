@@ -35,5 +35,6 @@ Versions
 	"dev"
 Extends
 	"Abstract Random",
-	"Mersenne Twister"
+	"Mersenne Twister",
+	"Test"
 Body

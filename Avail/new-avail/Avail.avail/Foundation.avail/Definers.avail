@@ -49,6 +49,7 @@ Names
 	"Public stable abstract method_is_",
 	"Public stable forward method_is_",
 	"Public stable method_is_",
+	"Public variable_is_",
 	"Stable abstract method_is_",
 	"Stable forward method_is_",
 	"Stable method_is_"
@@ -671,5 +672,50 @@ Semantic restriction "Private stable method_is_" is
 	Require: nameType is private;
 	Require: message nameType does not specify lexical groups;
 	Require: functionType's parameters are not metatypes or function types;
+	⊤
+];
+
+/**
+ * Define a new public variable. Automatically generate an accessor and a
+ * mutator. The semantic restriction ensures that these methods are named in the
+ * current module's "Names" section.
+ *
+ * Parameters:
+ *    var - The variable for which an accessor and a mutator should be
+ *       generated.
+ *    accessorName - The name of the accessor. The name of the mutator will be
+ *    `accessorName` ++ ":=_".
+ */
+Public method "Public variable_is_" is
+[
+	var : variable,
+	accessorName : string
+|
+	readType ::= cast var's type's read type into [t : any's type | t];
+	writeType ::= cast var's type's write type into [t : any's type | t];
+	Method accessorName is
+		new function accepting <> and returning readType
+		applying [ ↓var ];
+	Method cast concatenate <accessorName, ":=_"> into [t : string | t] is
+		new function accepting <writeType> and returning ⊤
+		applying [t : any | var ?= t;];
+] : ⊤;
+
+/**
+ * Ensure that the new methods are introduced by the module's "Names" section.
+ */
+Semantic restriction "Public variable_is_" is
+[
+	var : variable meta,
+	nameType : string's type
+|
+	Require: nameType is public;
+	If |nameType| = 1 then
+	[
+		accessorName ::= cast nameType's instance into [t : string | t];
+		mutatorName ::= cast concatenate <accessorName, ":=_">
+			into [t : string | t];
+		Require: mutatorName's type is public;
+	];
 	⊤
 ];

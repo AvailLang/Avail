@@ -34,6 +34,7 @@ System Module "Abstract Iterators"
 Versions
 	"dev"
 Extends
+	"Common" = ("element type"),
 	"Foundation" =
 	(
 		"For each_do_"
@@ -55,17 +56,8 @@ Names
 Body
 
 /* TODO: [TLS] Remove these constants once a macro is available for "$…". */
-elementType ::= $"element type";
 privateCurrentElementName ::= $"private_'s⁇current element";
 privateAdvanceName ::= $"Private advance_";
-
-/**
- * Answer the field atom that represents an iterators's element type.
- * 
- * Returns:
- *    The requested field atom.
- */
-Public method "element type" is [ elementType ];
 
 /**
  * An iterator is a mutable lazy list of arbitrarily many elements.

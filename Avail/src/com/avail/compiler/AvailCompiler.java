@@ -881,6 +881,13 @@ extends AbstractAvailCompiler
 		{
 			stateAfterCall.expected(e.rejectionString().asNativeString());
 		}
+		catch (final Exception e)
+		{
+			stateAfterCall.expected(
+				"evaluation of macro body not to raise an unhandled "
+				+ "exception:\n\t"
+				+ e);
+		}
 		return;
 	}
 

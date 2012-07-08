@@ -36,6 +36,7 @@ Versions
 Extends
 	"Early Literals"
 Uses
+	"Assertions",
 	"Bootstrap",
 	"Definers",
 	"Early Control Structures",
@@ -124,6 +125,13 @@ Method "⎣_⎦" is
 |
 	cast ⎣||aMapType||⎦ into [ w : whole number | w ]
 ] : whole number;
+
+Method "⎣_⎦" is
+[
+	bottom : ⊥'s type
+|
+	Shouldn't happen
+];
 
 /**
  * Answer the upper bound of the argument.

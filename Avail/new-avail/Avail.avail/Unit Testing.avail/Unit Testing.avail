@@ -33,751 +33,99 @@
 System Module "Unit Testing"
 Versions
 	"dev"
+Extends
+	"Definers" =
+	(
+		"After running each test in_,⁇do_",
+		"After running_,⁇do_",
+		"Before running each test in_,⁇do_",
+		"Before running_,⁇do_",
+		"New test suite_extends_",
+		"Test_in_is_«must raise_»",
+		"_is a new test suite"
+	),
+	"Runners" =
+	(
+		/* Running reports. */
+		"report on all tests",
+		"report on all tests in_",
+		"report on_",
+
+		/* Analyzing reports. */
+		"_'s⁇metrics by module",
+		"_'s⁇metrics by test suite",
+
+		/* Summarizing reports. */
+		"module-oriented“_”",
+		"test suite-oriented“_”"
+	),
+	"Tools" =
+	(
+		/* Tools. */
+		"Require:_",
+		"Require:_(_)",
+		"Require:_=_",
+		"Require:_=_(_)",
+		"Require:_raises_",
+		"Require:_raises_(_)",
+
+		/* Exceptions. */
+		"failed-requirement exception"
+	),
+	"Types" =
+	(
+		/* Core types. */
+		"unit test failure",
+		"unit test report",
+		"unit test result",
+		"unit test success",
+
+		/* Reporting. */
+		"short“_”",
+
+		/* Exceptions. */
+		"expected-a-specific-exception exception",
+		"failed-test exception",
+		"no-such-test exception",
+		"no-such-test-suite exception",
+		"unit-test exception",
+		"test-already-exists exception",
+		"test-suite exception",
+		"test-suite-already-exists exception",
+
+		/* Attribute accessors. */
+		"_'s⁇metrics",
+		"_'s⁇test ID",
+		"_'s⁇expected exception type"
+	)
 Uses
 	"Foundation"
-Names
-	/* Definers. */
-	"Test_is_«must raise_»",
-
-	/* Tools. */
-	"Require:_",
-	"Require:_(_)",
-	"Require:_=_",
-	"Require:_=_(_)",
-	"Require:_raises_",
-	"Require:_raises_(_)",
-
-	/* Runners. */
-	"Run test:_",
-	"Run all tests",
-	"report on all tests",
-	"report on_",
-
-	/* Reporting. */
-	"unit test failure",
-	"unit test report",
-	"unit test result",
-	"unit test success",
-	"_'s⁇metrics",
-	"_'s⁇metrics by module",
-
-	/* Exceptions. */
-	"expected-a-specific-exception exception",
-	"failed-requirement exception",
-	"failed-test exception",
-	"no-such-test exception",
-	"unit-test exception",
-
-	/* Attribute accessors. */
-	"_'s⁇test ID",
-	"_'s⁇expected exception type"
 Body
 
-/* TODO: [TLS] Remove these constants once a macro is available for "$…". */
-_testID ::= $"test ID";
-_body ::= $"body";
-_expectedExceptionType ::= $"expected exception type";
-_unexpectedException ::= $"unexpected exception";
-_metrics ::= $"metrics";
-_statistics ::= $"statistics";
-
-Private method "test ID" is [ _testID ];
-Private method "body" is [ _body ];
-Private method "expected exception type" is [ _expectedExceptionType ];
-Private method "unexpected exception" is [ _unexpectedException ];
-Private method "metrics" is [ _metrics ];
-Private method "statistics" is [ _statistics ];
-
-/**
- * A unit test comprises:
- *
- * <ul>
- * <li>The name of the test. This is an atom. Atoms retain their provenance,
- *     so this permits mention of the module that defined the test. It also
- *     allows name collisions between modules.</li>
- * <li>The test function.</li>
- * <li>A tuple containing an exception type that the test function must raise
- *     when applied. If this tuple is empty, then the test must succeed.</li>
- * </ul>
- *
- * @type "unit test"
- */
-Class "unit test" extends object
-	with fields
-		test ID : atom,
-		body : []→⊤,
-		expected exception type : <exception's type…|0..1>;
-
-/**
- * The collection of all unit tests.
- *
- * @global "tests" "<unit test…|>"
- */
-tests : <unit test…|> := <>;
-
-/**
- * A map from atoms to the indices of the {@global "tests"} that they identify.
- *
- * @global "testsByAtom" "{atom→natural number|}"
- */
-testsByAtom : {atom→natural number|} := {};
-
-/**
- * The root exception type for unit-testing framework exceptions.
- * 
- * @type "unit-test exception"
- */
-Public explicit class "unit-test exception" extends exception
-	with fields
-		public test ID : atom;
-
-/**
- * An exception that indicates that the specified test does not exist.
- * 
- * @type "no-such-test exception"
- * @supertype "unit-test exception"
- * @supertype "element-access exception"
- */
-Public explicit class "no-such-test exception"
-	extends unit-test exception ∩ element-access exception;
-
-/**
- * An exception that indicates that the specified test failed.
- * 
- * @type "failed-test exception"
- * @supertype "unit-test exception"
- * @supertype "cascade exception"
- */
-Public explicit class "failed-test exception"
-	extends unit-test exception ∩ cascade exception;
-
-/**
- * An exception that indicates that the specified test was declared to raise a
- * particular exception, but it either didn't raise an exception or raised an
- * exception of the wrong type.
- * 
- * @type "expected-a-specific-exception exception"
- * @supertype "unit-test exception"
- */
-Public explicit class "expected-a-specific-exception exception"
-	extends unit-test exception
-	with fields
-		public expected exception type : exception's type;
-
-/**
- * Though a unit test result is specific to a single unit test, it is only
- * produced when metrics are requested for an entire test suite.
- *
- * @type "unit test result"
- */
-Public explicit class "unit test result" extends object
-	with fields
-		public test ID : atom;
-
-/**
- * A unit test success indicates that the specified unit test succeeded.
- *
- * @type "unit test success"
- * @supertype "unit test result"
- */
-Public explicit class "unit test success" extends unit test result;
-
-/**
- * A unit test failure indicates that the specified unit test failed. It
- * includes the failure exception.
- *
- * @type "unit test failure"
- * @supertype "unit test result"
- */
-Public class "unit test failure" extends unit test result
-	with fields
-		causal exception : unit-test exception;
-
-Method "“_”" is
-[
-	result : unit test success
-|
-	format "PASSED: ‘①’" with result's test ID
-] : string;
-
-Method "“_”" is
-[
-	result : unit test failure
-|
-	format "FAILED: ‘①’ (raised: ‘②’)"
-		with result's test ID, result's causal exception
-] : string;
-
-/**
- * A unit test report contains a tuple of {@type "unit test result"}s and offers
- * operations that provide statistical information.
- * 
- * @type "unit test report"
- */
-Public class "unit test report" extends object
-	with fields
-		public metrics : <unit test result…|>;
-
-Method "“_”" is
-[
-	report : unit test report
-|
-	results ::= report's metrics;
-	description ::= left fold <""> ++ results through
-		[
-			result : unit test result,
-			partial : string
-		|
-			partial ++ “result” ++ "\n"
-		];
-	passed ::= new atom "passed";
-	failed ::= new atom "failed";
-	statistics ::= group results by
-		[
-			result : unit test result
-		|
-			cast result into [ t : unit test success | passed ]
-			else [ failed ]
-		];
-	format
-		"“results”\nSUMMARY:\n\
-		\|\tTOTAL:  ‘total’\n\
-		\|\tPASSED: ‘passed’\n\
-		\|\tFAILED: ‘failed’\n"
-	with
-		results := description,
-		total := |results|,
-		passed := |statistics[passed] else [<>]|,
-		failed := |statistics[failed] else [<>]|
-] : string;
-
-/**
- * Group the {@type "unit test result" test metrics} of the specified {@type
- * "unit test report"} by defining module.
- *
- * @method "_'s⁇metrics by module"
- * @param "report" "unit test report"
- *        A unit test report.
- * @returns "{module→<unit test result…|>|}"
- *          A map whose keys are modules that defined tests whose metrics are
- *          present in the unit test report. The values are test metric tuples.
- */
-Public method "_'s⁇metrics by module" is
-[
-	report : unit test report
-|
-	group report's metrics by
-	[
-		result : unit test result
-	|
-		result's test ID's issuing module
-	]
-] : {module→<unit test result…|>|};
-
-/**
- * Run and obtain a {@type "unit test result" test metric} for the specified
- * test.
- *
- * @method "Run test_"
- * @param "test" "unit test"
- *        A unit test.
- * @returns "unit test result"
- *          A unit test result.
- */
-Private method "test metric for_" is
-[
-	test : unit test
-|
-	id ::= test's test ID;
-	expected ::= test's expected exception type;
-	guard
-	[
-		test's body();
-		if ¬expected is empty then
-		[
-			a unit test failure with
-				test ID := id,
-				causal exception :=
-					an expected-a-specific-exception exception with
-						test ID := id,
-						expected exception type := expected[1]
-		]
-		else
-		[
-			a unit test success with test ID := test's test ID
-		]
-	]
-	intercept
-	[
-		e : exception
-	|
-		if expected is empty then
-		[
-			a unit test failure with
-				test ID := id,
-				causal exception := a failed-test exception with
-					test ID := id,
-					causal exception := e
-		]
-		else if [ ¬e ∈ expected[1] ] then
-		[
-			exceptionType ::=
-				expected-a-specific-exception exception ∩ failed-test exception;
-			a unit test failure with
-				test ID := id,
-				causal exception := an exceptionType with
-					test ID := id,
-					causal exception := e,
-					expected exception type := expected[1]
-		]
-		else
-		[
-			a unit test success with test ID := test's test ID
-		]
-	]
-] : unit test result;
-
-/**
- * Run and obtain a {@type "unit test report"} for the specified test.
- *
- * @method "Run test_"
- * @param "trueName" "atom"
- *        The atom that uniquely identifies the test.
- * @returns "unit test report"
- *          A unit test report.
- * @raise "no-such-test exception"
- *        If no such test exists.
- */
-Public method "report on_" is
-[
-	trueName : atom
-|
-	Unless trueName ∈ testsByAtom then
-	[
-		Raise a no-such-test exception with test ID := trueName
-	];
-	a unit test report with
-		metrics := <test metric for tests[testsByAtom[trueName]]>
-] : unit test report;
-
-/**
- * Run and obtain a {@type "unit test report"} for the specified test.
- *
- * @method "Run test_"
- * @param "name" "string"
- *        The name of the test. This name will be resolved to an atom in the
- *        context of the current module.
- * @returns "unit test report"
- *          A unit test report.
- * @raise "no-such-test exception"
- *        If no such test exists.
- */
-Public method "report on_" is
-[
-	name : string
-|
-	report on atom for name
-] : unit test report;
-
-/**
- * Run and obtain a {@type "unit test report"} for all previously declared unit
- * tests.
- * 
- * @method "report on all tests"
- * @returns "<unit test result…|>"
- *          A tuple of unit test results.
- */
-Public method "report on all tests" is
-[
-	a unit test report with
-		metrics :=
-			map tests through [test : unit test | test metric for test]
-] : unit test report;
-
-/**
- * Run the specified test.
- *
- * @method "Run test_"
- * @param "test" "unit test"
- *        A unit test.
- * @raises "failed-test exception"
- *         If the test raised an unexpected exception.
- * @raises "expected-a-specific-exception exception"
- *         If the test did not raise the expected exception.
- */
-Private method "Private run test:_" is
-[
-	test : unit test
-|
-	result ::= test metric for test;
-	Cast result into
-	[
-		failure : unit test failure
-	|
-		Raise failure's causal exception
-	]
-	else
-	[
-		/* No implementation required. */
-	];
-] : ⊤;
-
-/**
- * Run the specified test.
- *
- * @method "Run test_"
- * @param "trueName" "atom"
- *        The atom that uniquely identifies the test.
- * @raise "no-such-test exception"
- *        If no such test exists.
- * @raises "failed-test exception"
- *         If the test raised an unexpected exception.
- * @raises "expected-a-specific-exception exception"
- *         If the test did not raise the expected exception.
- */
-Public method "Run test:_" is
-[
-	trueName : atom
-|
-	Unless trueName ∈ testsByAtom then
-	[
-		Raise a no-such-test exception with test ID := trueName
-	];
-	Private run test: tests[testsByAtom[trueName]];
-] : ⊤;
-
-/**
- * Run the specified test.
- *
- * @method "Run test_"
- * @param "name" "string"
- *        The name of the test. This name will be resolved to an atom in the
- *        context of the current module.
- * @raise "no-such-test exception"
- *        If no such test exists.
- * @raises "failed-test exception"
- *         If the test raised an unexpected exception.
- * @raises "expected-a-specific-exception exception"
- *         If the test did not raise the expected exception.
- */
-Public method "Run test:_" is
-[
-	name : string
-|
-	Run test: atom for name;
-] : ⊤;
-
-/**
- * Run all previously declared unit tests.
- * 
- * @method "Run all tests"
- * @raises "unit-test exception"
- *         If any unit test fails.
- */
-Public method "Run all tests" is
-[
-	For each tests do [ t : unit test | Private run test: t; ];
-] : ⊤;
-
-/**
- * An exception that indicates that a unit test requirement failed.
- * 
- * @type "failed-requirement exception"
- * @supertype "unit-test exception"
- * @see {@method "Require:_"}
- */
-Public explicit class "failed-requirement exception" extends exception;
-
-/**
- * Require that the specified predicate is true.
- *
- * @method "Require:_"
- * @param "predicate" "boolean"
- *        A predicate that must be true.
- * @forbid 1 "_=_"
- * @raises "failed-requirement exception"
- *         If {@param "predicate"} is false.
- */
-Public method "Require:_" is [ predicate : boolean | ] : ⊤;
-Method "Require:_" is
-[
-	predicate : false's type
-|
-	Raise a failed-requirement exception
-] : ⊥;
-
-Grammatical restriction "Require:_" is <{"_=_"}>;
-
-/**
- * Require that the specified predicate is true.
- *
- * @method "Require:_(_)"
- * @param "predicate" "boolean"
- *        A predicate that must be true.
- * @param "message" "string"
- *        Additional information that should be attached to the exception in the
- *        event of failure.
- * @forbid 1 "_=_"
- * @raises "failed-requirement exception"
- *         If {@param "predicate"} is false.
- */
-Public method "Require:_(_)" is
-[
-	predicate : boolean,
-	message : string
-|
-] : ⊤;
-
-Method "Require:_(_)" is
-[
-	predicate : false's type,
-	message : string
-|
-	Raise a failed-requirement exception ∩ descriptive exception with
-		error message := message
-] : ⊥;
-
-Grammatical restriction "Require:_(_)" is <{"_=_"}, ∅>;
-
-/**
- * Require that the arguments are equal.
- *
- * @method "Require:_=_(_)"
- * @param "expected" "any"
- *        A value.
- * @param "actual" "any"
- *        A value.
- * @raises "failed-requirement exception"
- *         If {@param "expected"} ≠ {@param "value"}.
- */
-Public method "Require:_=_" is
-[
-	expected : any,
-	actual : any
-|
-	If expected ≠ actual then
-	[
-		Raise a failed-requirement exception ∩ descriptive exception
-			with error message :=
-				format "expected=‘①’, actual=‘②’" with expected, actual
-	];
-] : ⊤;
-
-/**
- * Reject the current parse if the arguments are guaranteed unequal.
- *
- * @method "Require:_=_(_)"
- * @restrict "[any's type, any's type]"
- */
-Semantic restriction "Require:_=_" is
-[
-	expected : any's type,
-	actual : any's type
-|
-	If expected ∩ actual = ⊥ then
-	[
-		Reject parse, expected: "a predicate that could ever be true"
-	];
-	⊤
-];
-
-/**
- * Require that the arguments are equal.
- *
- * @method "Require:_=_(_)"
- * @param "expected" "any"
- *        A value.
- * @param "actual" "any"
- *        A value.
- * @param "message" "string"
- *        Additional information that should be attached to the exception in the
- *        event of failure.
- * @raises "failed-requirement exception"
- *         If {@param "expected"} ≠ {@param "value"}.
- */
-Public method "Require:_=_(_)" is
-[
-	expected : any,
-	actual : any,
-	message : string
-|
-	If expected ≠ actual then
-	[
-		Raise a failed-requirement exception ∩ descriptive exception
-			with error message :=
-				format "‘①’: expected=‘②’, actual=‘③’"
-				with message, expected, actual
-	];
-] : ⊤;
-
-/**
- * Reject the current parse if the arguments are guaranteed unequal.
- *
- * @method "Require:_=_(_)"
- * @restrict "[any's type, any's type, string's type]"
- */
-Semantic restriction "Require:_=_(_)" is
-[
-	expected : any's type,
-	actual : any's type,
-	message : string's type
-|
-	If expected ∩ actual = ⊥ then
-	[
-		Reject parse, expected: "a predicate that could ever be true"
-	];
-	⊤
-];
-
-/**
- * Require that the `expression` raises an exception of type `exceptionType`
- * when applied.
- *
- * @method "Require:_=_(_)"
- * @param "aFunction" "[]→⊤"
- *        A function.
- * @param "exceptionType" "exception's type"
- *        An exception type.
- * @raises "failed-requirement exception"
- *         If {@param "aFunction"} does not produce an exception of the
- *         appropriate type.
- */
-Public method "Require:_raises_" is
-[
-	aFunction : []→⊤,
-	exceptionType : exception's type
-|
-	Guard
-	[
-		aFunction();
-		Raise a failed-requirement exception ∩ descriptive exception
-			with error message :=
-				format "expected ∈ ‘①’ (no exception)"
-				with exceptionType
-	]
-	intercept
-	[
-		e : exception
-	|
-		If ¬e ∈ exceptionType then
-		[
-			Raise a failed-requirement exception
-					∩ cascade exception
-					∩ descriptive exception
-				with
-					causal exception := e,
-					error message :=
-						format "expected ∈ ‘①’, actual=‘②’"
-						with exceptionType, e
-		];
-	];
-] : ⊤;
-
-/**
- * Require that the `expression` raises an exception of type `exceptionType`
- * when applied.
- *
- * @method "Require:_=_(_)"
- * @param "aFunction" "[]→⊤"
- *        A function.
- * @param "exceptionType" "exception's type"
- *        An exception type.
- * @param "message" "string"
- *        Additional information that should be attached to the exception in the
- *        event of failure.
- * @raises "failed-requirement exception"
- *         If {@param "aFunction"} does not produce an exception of the
- *         appropriate type.
- */
-Public method "Require:_raises_(_)" is
-[
-	aFunction : []→⊤,
-	exceptionType : exception's type,
-	message : string
-|
-	Guard
-	[
-		aFunction();
-		Raise a failed-requirement exception ∩ descriptive exception
-			with error message :=
-				format "‘①’: expected ∈ ‘②’ (no exception)"
-				with message, exceptionType
-	]
-	intercept
-	[
-		e : exception
-	|
-		If ¬e ∈ exceptionType then
-		[
-			Raise a failed-requirement exception
-					∩ cascade exception
-					∩ descriptive exception
-				with
-					causal exception := e,
-					error message :=
-						format "‘①’: expected ∈ ‘②’, actual=‘③’"
-						with message, exceptionType, e
-		];
-	];
-] :  ⊤;
-
-/**
- * Define a unit test.
- *
- * @method "Test_is_«must raise_»"
- * @param "name" "string"
- *        The name of the test. This name will be resolved to an atom in the
- *        context of the current module. Since an atom retains its provenance,
- *        this permits the unit testing framework to report the module that
- *        defined the test. This also allows name collisions between modules.
- * @param "test" "[]→⊤"
- *        The unit test.
- * @param "optionalException" "<exception…|0..1>"
- *        If specified, then {@param "test"} must raise an exception of this
- *        type when applied. If not specified, then "test" must not raise any
- *        exceptions.
- */
-Public method "Test_is_«must raise_»" is
-[
-	name : string,
-	test : []→⊤,
-	optionalException : <exception's type…|0..1>
-|
-	trueName ::= atom for name;
-	tests := eject ↑tests ++ <a unit test with
-		test ID := trueName,
-		body := test,
-		expected exception type := optionalException>;
-	testsByAtom := eject ↑testsByAtom
-		+ trueName→cast |tests| into [ t : natural number | t ];
-] : ⊤;
-
-/**
- * Reject the current parse if:
- *
- * <ul>
- * <li>The test name is not statically known.</li>
- * <li>The test's return type is not exactly ⊤.</li>
- * </ul>
- * 
- * @method "Test_is_«must raise_»"
- * @restrict "[string's type, []→⊤'s type, <exception's type…|0..1>'s type]"
- */
-Semantic restriction "Test_is_«must raise_»" is
-[
-	name : string's type,
-	test : []→⊤'s type,
-	optionalException : <exception's type…|0..1>'s type
-|
-	If |name| ≠ 1 then
-	[
-		Reject parse, expected: "test name to be statically known"
-	];
-	If test's return type ≠ ⊤ then
-	[
-		Reject parse, expected:
-			format "test function's return type to be ⊤ (not ‘①’)"
-				with test's return type
-	];
-	⊤
-];
+For each
+	<
+		"After running each test in_,⁇do_",
+		"After running_,⁇do_",
+		"Before running each test in_,⁇do_",
+		"Before running_,⁇do_",
+		"New test suite_extends_",
+		"Test_in_is_«must raise_»",
+		"_is a new test suite",
+		"module-oriented“_”",
+		"report on all tests in_",
+		"report on_",
+		"short“_”",
+		"test suite-oriented“_”",
+		"Require:_",
+		"Require:_(_)",
+		"Require:_=_",
+		"Require:_=_(_)",
+		"Require:_raises_",
+		"Require:_raises_(_)",
+		"_'s⁇metrics",
+		"_'s⁇metrics by module",
+		"_'s⁇metrics by test suite",
+		"_'s⁇test ID",
+		"_'s⁇expected exception type"
+	>
+do [methodName : string | Completely seal methodName; ];

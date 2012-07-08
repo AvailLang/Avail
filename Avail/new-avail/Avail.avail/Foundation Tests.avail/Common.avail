@@ -1,5 +1,5 @@
 /*
- * Foundation Tests.avail
+ * Common.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,16 +30,25 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Foundation Tests"
+System Module "Common"
 Versions
 	"dev"
-Extends
-	"Common" =
-	(
-		"Foundation|foundation test suite"
-	),
-	"Math Test" =
-	(
-		"math test suite"
-	)
+Uses
+	"Foundation",
+	"Unit Testing"
+Names
+	"Foundation|foundation test suite"
 Body
+
+_testSuite ::= $"foundation test suite";
+
+/**
+ * Answer the foundation test suite identifier.
+ * 
+ * @method "foundation test suite"
+ * @returns "atom"
+ *          The requsted test suite identifier.
+ */
+Public method "Foundation|foundation test suite" is [ _testSuite ];
+
+Foundation test suite is a new test suite;

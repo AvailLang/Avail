@@ -35,12 +35,15 @@ Versions
 	"dev"
 Uses
 	"Abstract Random",
+	"Common",
 	"Foundation",
+	"Iterators",
 	"Streams",
 	"Unit Testing"
 Names
 	"a Mersenne Twister from_",
-	"a Mersenne Twister«from_»"
+	"a Mersenne Twister«from_»",
+	"Mersenne Twister test suite"
 Body
 
 /* TODO: [TLS] Remove these constants once a macro is available for "$…". */
@@ -65,7 +68,7 @@ _2_32_1 ::= _2_32 - 1;
  * The Mersenne Twister pseudorandom number generator.
  *
  * @type "Mersenne Twister"
- * @supertype "pRNG"
+ * @supertype "stream"
  * @category "Data Abstractions"
  * @category "Pseudorandom Number Generation"
  * @see
@@ -75,13 +78,20 @@ _2_32_1 ::= _2_32 - 1;
  * {@link "http://doi.acm.org/10.1145/272991.272995" DOI:10.1145/272991.272995}
  * @see {@link "http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/emt.html"}
  */
-Class "Mersenne Twister" extends pRNG
+Class "Mersenne Twister" extends stream
 	with fields
 		element type : [0.._2_32)'s type,
 		mt : <[0.._2_32)…|624>,
 		index : [1..624]
 	with reconstructors
 		(mt, index);
+
+Method "_is empty" is
+[
+	rng : Mersenne Twister
+|
+	false
+] : false's type;
 
 /**
  * Compute and answer the next {@type "Mersenne Twister"} state vector.
@@ -163,6 +173,14 @@ Private method "untwisted Mersenne Twister from_" is
 		index := 1
 ];
 
+Private method "a Mersenne Twister stream from_" is
+[
+	seed : [0.._2_32)
+|
+	rng ::= untwisted Mersenne Twister from seed;
+	rng's mt := next state after rng's mt, index := 1
+] : Mersenne Twister;
+
 /**
  * Construct and answer a {@type "Mersenne Twister"} pseudorandom number
  * generator. The argument, if supplied, is a seed used to initialize the
@@ -181,20 +199,10 @@ Public method "a Mersenne Twister«from_»" is
 	seed ::= if optionalSeed is empty
 		then [ (milliseconds since the Epoch mod (_2_32 - 1)) + 1 ]
 		else [ optionalSeed[1] ];
-	rng ::= untwisted Mersenne Twister from seed;
-	rng's mt := next state after rng's mt, index := 1
-] : Mersenne Twister;
+	(an iterator over a Mersenne Twister stream from seed) as pRNG of [0.._2_32)
+] : pRNG of [0.._2_32);
 
-/**
- * Construct and answer a {@type "Mersenne Twister"} pseudorandom number
- * generator. The argument is a seed used to initialize the generator.
- * 
- * @param "seed" "<[0.._2_32)…|1..>"
- *        A seed.
- * @returns "Mersenne Twister"
- *          A Mersenne Twister pseudorandom number generator.
- */
-Public method "a Mersenne Twister from_" is
+Private method "a Mersenne Twister stream from_" is
 [
 	seed : <[0.._2_32)…|1..>
 |
@@ -233,9 +241,39 @@ Public method "a Mersenne Twister from_" is
 	rng's mt := next state after vector, index := 1
 ] : Mersenne Twister;
 
-Test "Mersenne Twister standard test vectors" is
+/**
+ * Construct and answer a {@type "Mersenne Twister"} pseudorandom number
+ * generator. The argument is a seed used to initialize the generator.
+ * 
+ * @param "seed" "<[0.._2_32)…|1..>"
+ *        A seed.
+ * @returns "Mersenne Twister"
+ *          A Mersenne Twister pseudorandom number generator.
+ */
+Public method "a Mersenne Twister from_" is
 [
-	expected ::= stream over <
+	seed : <[0.._2_32)…|1..>
+|
+	(an iterator over a Mersenne Twister stream from seed) as pRNG of [0.._2_32)
+] : pRNG of [0.._2_32);
+
+/* TODO: [TLS] Remove these constants once a macro is available for "$…". */
+_testSuite ::= $"Mersenne Twister test suite";
+
+/**
+ * Answer the test suite identifier of the Mersenne Twister test suite.
+ * 
+ * @method "Mersenne Twister test suite"
+ * @returns "atom"
+ *          The requested test suite identifier.
+ */
+Public method "Mersenne Twister test suite" is [ _testSuite ];
+
+New test suite Mersenne Twister test suite extends data abstractions test suite;
+
+Test "Mersenne Twister standard test vectors" in Mersenne Twister test suite is
+[
+	expected ::= a stream over <
 		1067595299,  955945823,  477289528, 4107218783, 4228976476, 3344332714,
 		3355579695,  227628506,  810200273, 2591290167, 2560260675, 3242736208,
 		 646746669, 1479517882, 4245472273, 1143372638, 3863670494, 3221021970,
@@ -407,8 +445,8 @@ Test "Mersenne Twister standard test vectors" is
 
 	For each
 			expected
-			zip a Mersenne Twister from <291, 564, 837, 1110>
-			zip counting stream from 1 to ∞ do
+			zip a Mersenne Twister stream from <291, 564, 837, 1110>
+			zip a counting stream from 1 to ∞ do
 	[
 		v : <[0.._2_32), [0.._2_32), natural number…|3>
 	|

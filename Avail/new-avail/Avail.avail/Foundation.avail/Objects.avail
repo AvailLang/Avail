@@ -55,7 +55,8 @@ Names
 	"«Public»?«Explicit|explicit»?\
 		\|Class|class_extends_\
 		\|«with fields««public»?«reconstructible»?_:_‡,»»\
-		\|«with reconstructors««public»?(«_‡,»)‡,»»"
+		\|«with reconstructors««public»?(«_‡,»)‡,»»",
+	"_as_«with«_:=_‡,»»"
 Body
 
 Method "_→object type" is stable at [field type map]→object meta;
@@ -939,7 +940,7 @@ Public method "a|an_«with«_:=_‡,»»" is
 			object-instantiation-did-not-produce-instance code)
 	];
 	newObject
-];
+] : object;
 
 /**
  * Object instantiation statically requires that:
@@ -959,6 +960,132 @@ Semantic restriction "a|an_«with«_:=_‡,»»" is
 	objectType ::= meta's instance;
 	definitions ::= objectType→map;
 	assignments : field type map := {};
+	From 1 to relevant |optional[1]| do
+	[
+		index : natural number
+	|
+		def ::= optional[1][index];
+		atomType ::= def[1];
+		valueType ::= def[2];
+		If |atomType| ≠ 1 then
+		[
+			Reject parse, expected: "all field atoms to be known statically"
+		];
+		fieldAtom ::= atomType's instance;
+		If fieldAtom ∈ assignments then
+		[
+			Reject parse, expected:
+				fieldAtom's name
+				++ " to appear only once during instantiation (but it already\
+				\| appeared with type = "
+				++ “assignments[fieldAtom]”
+				++ ")"
+		];
+		requiredType ::= definitions[fieldAtom] else [ any ];
+		If ¬valueType ⊆ requiredType then
+		[
+			Reject parse, expected:
+				"valid assignment to "
+				++ fieldAtom's name
+				++ " (but "
+				++ “valueType”
+				++ " is not a subtype of "
+				++ “requiredType”
+				++ ")"
+		];
+		assignments := eject ↑assignments + fieldAtom→valueType;
+	];
+	For each definitions do
+	[
+		fieldAtom : atom,
+		fieldType : any meta
+	|
+		If |fieldType| = 1 ∧ [ ¬fieldType ⊆ type ] then
+		[
+			assignments := eject ↑assignments + fieldAtom→fieldType;
+		];
+	];
+	missing ::= filter definitions' keys by [ a : atom | ¬a ∈ assignments ];
+	If |missing| ≠ 0 then
+	[
+		Reject parse, expected:
+			"assignments for all fields of "
+			++ “objectType”
+			++ " (but assignments are missing for "
+			++ “missing”
+			++ ")"
+	];
+	assignments→object type
+];
+
+/**
+ * Given an object and a target object type, answer an object that retains the
+ * field assignments of the original object but which 1) is also an instance of
+ * the new object type and 2) reflects the new (optional) field assignments.
+ * 
+ * Parameters:
+ *    instance - An object.
+ *    objectType - An object type that must be a supertype of the answer.
+ *    optional - An optional tuple of field assignments. A field assignment is
+ *       a 2-tuple that consists of 1) an atom that uniquely identifies the
+ *       field and 2) the field value.
+ * Returns:
+ *    The requested object type.
+ */
+Public method "_as_«with«_:=_‡,»»" is
+[
+	instance : object,
+	objectType : object meta,
+	optional : <<<atom, any…|2>…|1..>…|0..1>
+|
+	assignments ::= if optional is empty then [ <> ] else [ optional[1] ];
+	fieldAtoms ::= stripe assignments at 1;
+	If |fieldAtoms→set| ≠ |fieldAtoms| then
+	[
+		early failure function(object-instantiation-contains-duplicates code)
+	];
+	objectMap ::= objectType→map;
+	identityAssignments : <<atom, any…|2>…|> := <>;
+	For each objectMap do
+	[
+		fieldAtom : atom,
+		fieldType : any meta
+	|
+		If |fieldType| = 1 ∧ [ ¬fieldType ⊆ type ] then
+		[
+			identityAssignments := eject ↑identityAssignments
+				++ <<fieldAtom, fieldType's instance>>;
+		];
+	];
+	newObject ::=
+		(instance→map's bindings ++ assignments ++ identityAssignments)→object;
+	If ¬newObject ∈ objectType then
+	[
+		early failure function(
+			object-instantiation-did-not-produce-instance code)
+	];
+	newObject
+] : object;
+
+/**
+ * Object adoption statically requires that:
+ *
+ * - Every field atom of the instantiation tuple is known.
+ * - Each field atom of the instantiation tuple appears only once during
+ *   instantiation.
+ * - An assigned value conforms to the field type.
+ * - An assignment occurs for every field of the object type except those for
+ *   which the exact types are known; these will be supplied automatically.
+ */
+Semantic restriction "_as_«with«_:=_‡,»»" is
+[
+	instance : object meta,
+	meta : object meta's type,
+	optional : <<<atom, any…|2>…|1..>…|0..1>'s type
+|
+	objectType ::= meta's instance;
+	definitions ::= objectType→map;
+	assignments : field type map := instance→map;
 	From 1 to relevant |optional[1]| do
 	[
 		index : natural number

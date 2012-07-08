@@ -47,6 +47,7 @@ Extends
 	"Math",
 	"Objects",
 	"Phrases",
+	"Security",
 	"Sets",
 	"Strings",
 	"Tuples",

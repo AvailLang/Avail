@@ -96,13 +96,13 @@ Semantic restriction "«_‡=»" is
 	⊤
 ] : type;
 
-/* Disallow mixing and recursive parsing of equality operations. */
+/* Disallow mixing and recursive parsing of comparison operations. */
 [
-	restrictions ::= {"«_‡=»", "_=_", "«_‡«=»?«≤»?«<»?»", "«_‡«=»?«≥»?«>»?»"};
-	Grammatical restriction "«_‡=»" is <restrictions>;
-	Grammatical restriction "_=_" is <restrictions, restrictions>;
-	Grammatical restriction
-		{"«_‡«=»?«≤»?«<»?»", "«_‡«=»?«≥»?«>»?»"} is <{"«_‡=»"}>;
+	binary ::= {"_=_", "_≤_", "_<_", "_≥_", "_>_"};
+	chains ::= {"«_‡=»", "«_‡«=»?«≤»?«<»?»", "«_‡«=»?«≥»?«>»?»"};
+	restrictions ::= binary ∪ chains;
+	Grammatical restriction chains is <restrictions>;
+	Grammatical restriction binary is <restrictions, restrictions>;
 ]();
 
 /**

@@ -1,5 +1,5 @@
 /*
- * Stream Iterators.avail
+ * Test.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,84 +30,89 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Stream Iterators"
+System Module "Test"
 Versions
 	"dev"
 Uses
-	"Abstract Iterators",
+	"Abstract Random",
+	"Common",
+	"Mersenne Twister",
 	"Foundation",
-	"Streams" =
-	(
-		"stream"
-	)
+	"Unit Testing"
 Names
-	"an iterator over_",
-	"stream iterator"
+	"pRNG test suite"
 Body
 
 /* TODO: [TLS] Remove these constants once a macro is available for "$…". */
-adaptedStream ::= $"adapted stream";
+_testSuite ::= $"pRNG test suite";
 
 /**
- * Answer the field atom that represents an adapted stream.
+ * Answer the test suite identifier of the pseudorandom number generation
+ * test suite.
  *
- * Returns:
- *    The requested field atom.
+ * @method "pRNG test suite"
+ * @returns "atom"
+ *          The requested test suite identifier.
  */
-Private method "adapted stream" is [ adaptedStream ];
+Public method "pRNG test suite" is [ _testSuite ];
+
+New test suite pRNG test suite extends data abstractions test suite;
 
 /**
- * A stream iterator consumes the elements of a stream.
- */
-Public class "stream iterator" extends iterator
-	with fields
-		adapted stream : ↑stream;
-
-Method "_is exhausted" is
-[
-	anIterator : stream iterator
-|
-	↓anIterator's adapted stream is empty
-] : boolean;
-
-stream iterator's current element method is
-[
-	anIterator : stream iterator
-|
-	↓anIterator's adapted stream's head
-] : any;
-
-stream iterator's advance method is
-[
-	anIterator : stream iterator
-|
-	anIterator's adapted stream ?= ↓anIterator's adapted stream's tail;
-] : ⊤;
-
-/**
- * Construct and answer an iterator that destructively consumes the elements of
- * the specified stream.
+ * The pseudorandom number generator used by the {@method "pRNG test suite"}.
  * 
- * Parameters:
- *    aStream - A stream.
- * Returns:
- *    The requested iterator.
+ * @gloabl "rng" "pRNG of whole number"
  */
-Public method "an iterator over_" is
-[
-	aStream : stream
-|
-	var ::= new ↑stream;
-	var ?= aStream;
-	a stream iterator with
-		element type := aStream's element type,
-		adapted stream := var
-] : iterator;
+rng : pRNG of whole number;
 
-Semantic restriction "an iterator over_" is
+Before running pRNG test suite, do [ rng := a Mersenne Twister; ];
+After running pRNG test suite, do [ Clear ↑rng; ];
+
+Test "next integer within range" in pRNG test suite is
 [
-	streamType : stream's type
-|
-	extend stream iterator with
-		element type : streamType's element type
+	_2_128 ::= 2^128;
+	Repeat
+	[
+		Require: 1 ≤ rng's next [1..6] ≤ 6;
+		Require: -6 ≤ rng's next [-6..-1] ≤ -1;
+		Require: -10 ≤ rng's next [-10..10] ≤ 10;
+		Require: 0 ≤ rng's next [0.._2_128) ≤ _2_128;
+	] 10 times;
+];
+
+Test "next instance of enumeration" in pRNG test suite is
+[
+	numbers ::= enumeration of (1 to 10)→set;
+	Repeat
+	[
+		Require: rng's next boolean ∈ boolean;
+		Require: rng's next numbers ∈ numbers;
+	] 10 times;
+];
+
+Test "next element of tuple" in pRNG test suite is
+[
+	numbers ::= 1 to 10;
+	Repeat
+	[
+		Require: rng's next element of numbers ∈ numbers;
+	] 10 times;
+];
+
+Test "next element of set" in pRNG test suite is
+[
+	numbers ::= (1 to 10)→set;
+	Repeat
+	[
+		Require: rng's next element of numbers ∈ numbers;
+	] 10 times;
+];
+
+Test "next binding of map" in pRNG test suite is
+[
+	theMap ::= ((1 to 10) zip (1 to 10))→map;
+	Repeat
+	[
+		Require: rng's next binding of theMap[1] ∈ theMap;
+	] 10 times;
 ];

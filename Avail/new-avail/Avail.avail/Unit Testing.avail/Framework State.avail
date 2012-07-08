@@ -1,5 +1,5 @@
 /*
- * Foundation Tests.avail
+ * Framework State.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,16 +30,58 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Foundation Tests"
+System Module "Framework State"
 Versions
 	"dev"
-Extends
-	"Common" =
-	(
-		"Foundation|foundation test suite"
-	),
-	"Math Test" =
-	(
-		"math test suite"
-	)
+Uses
+	"Foundation",
+	"Types"
+Names
+	"root suite",
+	"root suite:=_",
+	"suites by atom",
+	"suites by atom:=_",
+	"tests",
+	"tests:=_",
+	"tests by atom",
+	"tests by atom:=_"
 Body
+
+/**
+ * The collection of all unit tests.
+ *
+ * @global "tests" "<unit test…|>"
+ */
+tests : <unit test…|> := <>;
+Public variable ↑tests is "tests";
+
+/**
+ * The unit tests, organized by test identifier.
+ *
+ * @global "testsByAtom" "{atom→unit test|}"
+ */
+testsByAtom : {atom→unit test|} := {};
+Public variable ↑testsByAtom is "tests by atom";
+
+/**
+ * The root unit test suite.
+ *
+ * @global "rootSuite" "root unit test suite"
+ */
+rootSuite : root unit test suite := a root unit test suite with
+	suite ID := root test suite ID,
+	child suite IDs := <>,
+	suite fixture setup := <>,
+	suite fixture tear down := <>,
+	test fixture setup := <>,
+	test fixture tear down := <>,
+	unit tests := ∅;
+Public variable ↑rootSuite is "root suite";
+
+/**
+ * The declared unit test suites, keyed by atom.
+ *
+ * @global "suitesByAtom" "{atom→unit test suite|}"
+ */
+suitesByAtom : {atom→unit test suite|} := {};
+Public variable ↑suitesByAtom is "suites by atom";

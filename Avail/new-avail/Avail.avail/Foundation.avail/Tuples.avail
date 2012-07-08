@@ -70,9 +70,8 @@ Names
 	"zip_",
 	"∑_",
 	"∏_",
-	"_contains_",
 	"_ends with_",
-	"_of_",
+	"_occurrences⁇of_",
 	"_starts with_",
 	"_to_",
 	"_'s⁇head",
@@ -1250,7 +1249,7 @@ Semantic restriction "all indices of_where_" is
  * Returns:
  *    A tuple containing `count` occurrences of `value`.
  */
-Public stable method "_of_" is
+Public stable method "_occurrences⁇of_" is
 [
 	count : whole number,
 	value : any
@@ -1264,7 +1263,7 @@ Public stable method "_of_" is
 	accumulator
 ];
 
-Semantic restriction "_of_" is
+Semantic restriction "_occurrences⁇of_" is
 [
 	countType : whole number's type,
 	valueType : any meta
@@ -2107,66 +2106,36 @@ Semantic restriction "_[_.._]→_" is
  * Flatten a tuple of tuples by a single level.
  *
  * Parameters:
- *    aTupleOfTuples - A tuple of tuples to flatten.
+ *    aTuple - A tuple of tuples to flatten.
  * Returns:
  *    A flattened tuple.
  */
 Public stable method "flatten_" is
 [
-	aTupleOfTuples : <tuple…|>
+	aTuple : <tuple…|>
 |
 	newTuple : tuple := <>;
-	For each aTupleOfTuples do 
+	For each aTuple do 
 	[
 		t : tuple 
 	|
-		newTuple := newTuple ++ t;
+		newTuple := eject ↑newTuple ++ t;
 	];
 	newTuple
 ] : tuple;
 
 Semantic restriction "flatten_" is
 [
-	aTupleOfTuplesType : <tuple…|>'s type
+	tupleType : <tuple…|>'s type
 |
-	leadingTypes ::= cast aTupleOfTuplesType's leading types into
-		[t : <tuple's type…|> | t];
-	defaultType ::= aTupleOfTuplesType's default type;
-	leadingAndDefaultTypes ::= leadingTypes ++ <defaultType>;
-	tupleTypes : <tuple's type…|> := <>;
-	totalUpperBound : [0..∞] := 0;
-	totalLowerBound : whole number := 0;
-	For each leadingAndDefaultTypes do
+	resultType : tuple meta := <>'s type;
+	From 1 to ⎣tupleType⎦ do
 	[
-		t : tuple's type
+		index : natural number
 	|
-		tupleTypes := tupleTypes ++ 
-			cast t's leading types into [r : <tuple's type…|> | r] ++
-			<cast t's default type into [r : tuple's type | r]>;
-		totalUpperBound := totalUpperBound + ⎡t⎤;
-		totalLowerBound := totalLowerBound + ⎣t⎦;
+		resultType := eject ↑resultType ++ tupleType[index];
 	];
-	card ::= [totalLowerBound..totalUpperBound);
-	firstLower : [0..∞);
-	finalDefaultType : any's type; 
-	finalLeadingTypes ::= if |leadingTypes| ≥ 1 then
-	[
-		firstLower := ⎣leadingTypes[1]⎦;
-		if firstLower > 0 then 
-		[
-			finalDefaultType := 
-				∪ (tupleTypes's type)[firstLower + 1..|tupleTypes|]; 
-			leadingTypes[1]'s leading types[1..firstLower]
-		]
-		else 
-		[
-			finalDefaultType := 
-				∪ (tupleTypes's type)[firstLower + 1..|tupleTypes|];
-			<>
-		]
-	]
-	else [<>];
-	<finalLeadingTypes,finalDefaultType…|card>
+	resultType
 ];
 
 /**

@@ -34,6 +34,7 @@ System Module "Abstract Streams"
 Versions
 	"dev"
 Extends
+	"Common" = ("element type"),
 	"Foundation" =
 	(
 		"For each_do_",
@@ -73,21 +74,12 @@ Names
 Body
 
 /* TODO: [TLS] Remove these constants once a macro is available for "$…". */
-elementType ::= $"element type";
 privateHeadName ::= $"private_'s⁇head";
 privateTailName ::= $"private_'s⁇tail";
 decoratedStream ::= $"decorated stream|streams";
 transformer ::= $"transformer";
 filter ::= $"filter";
 streamIndex ::= $"stream index";
-
-/**
- * Answer the field atom that represents a stream's element type.
- * 
- * Returns:
- *    The requested field atom.
- */
-Public method "element type" is [ elementType ];
 
 /**
  * Answer the field atom that represents a decorated stream.

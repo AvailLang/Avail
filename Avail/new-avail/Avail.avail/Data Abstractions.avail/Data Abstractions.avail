@@ -34,6 +34,10 @@ System Module "Data Abstractions"
 Versions
 	"dev"
 Extends
+	"Common" =
+	(
+		"Data|data abstractions test suite"
+	),
 	"Iterators",
 	"Pseudorandom Number Generation",
 	"Streams"

@@ -34,14 +34,151 @@ System Module "Math Test"
 Versions
 	"dev"
 Uses
+	"Common",
 	"Foundation",
 	"Unit Testing"
+Names
+	"math test suite"
 Body
 
-Test "addition" is
+_testSuite ::= $"math test suite";
+
+/**
+ * Answer the test suite identifier of the math test suite.
+ * 
+ * @method "math test suite"
+ * @returns "atom"
+ *          The requested test suite identifier.
+ */
+Public method "math test suite" is [ _testSuite ];
+
+New test suite math test suite extends foundation test suite;
+
+Test "integer range bounds" in math test suite is
 [
-	Require: 1 + 1 = 2;
-	Require: 1 + -1 = 0;
+	Require: ⎣extended integer⎦ = -∞;
+	Require: ⎣extended integer⎦ is inclusive;
+	Require: ⎡extended integer⎤ = ∞;
+	Require: ⎡extended integer⎤ is inclusive;
+	Require: ⎣integer⎦ = -∞;
+	Require: ¬⎣integer⎦ is inclusive;
+	Require: ⎡integer⎤ = ∞;
+	Require: ¬⎡integer⎤ is inclusive;
+	Require: ⎣whole number⎦ = 0;
+	Require: ⎣whole number⎦ is inclusive;
+	Require: ⎡whole number⎤ = ∞;
+	Require: ¬⎡whole number⎤ is inclusive;
+	Require: ⎣natural number⎦ = 1;
+	Require: ⎣natural number⎦ is inclusive;
+	Require: ⎡natural number⎤ = ∞;
+	Require: ¬⎡natural number⎤ is inclusive;
+	From 1 to 10 do
+	[
+		i : [1..10]
+	|
+		From 1 to 10 do
+		[
+			j : [1..10]
+		|
+			t1 ::= [i..j];
+			t2 ::= [i..j);
+			t3 ::= (i..j];
+			t4 ::= (i..j);
+			If i > j then
+			[
+				Require: t1 = t2 = t3 = t4 = ⊥;
+			]
+			else
+			[
+				Require: ⎣t1⎦ = i;
+				Require: ⎣t1⎦ is inclusive;
+				Require: ⎡t1⎤ = j;
+				Require: ⎡t1⎤ is inclusive;
+				If i = j then [ Require: t2 = t3 = t4 = ⊥; ]
+				else
+				[
+					Require: t2 ≠ ⊥;
+					Require: t3 ≠ ⊥;
+					Require: ⎣t2⎦ = i;
+					Require: ⎣t2⎦ is inclusive;
+					Require: ⎡t2⎤ = j - 1;
+					Require: ⎡t2⎤ is inclusive;
+					Require: ⎣t3⎦ = i + 1;
+					Require: ⎣t3⎦ is inclusive;
+					Require: ⎡t3⎤ = j;
+					Require: ⎡t3⎤ is inclusive;
+					If j - i = 1 then [ Require: t4 = ⊥; ]
+					else
+					[
+						Require: t4 ≠ ⊥;
+						Require: ⎣t4⎦ = i + 1;
+						Require: ⎣t4⎦ is inclusive;
+						Require: ⎡t4⎤ = j - 1;
+						Require: ⎡t4⎤ is inclusive;
+					];
+				];
+			];
+		];
+	];
+	Require: ⊥'s genuine lower bound = ∞;
+	Require: ⊥'s genuine upper bound = -∞;
+];
+
+Test "finite/infinite" in math test suite is
+[
+	From 1 to 10 do [i : [1..10] | Require: i is finite; ];
+	Require: ∞ is infinite;
+	Require: -∞ is infinite;
+];
+
+Test "comparison" in math test suite is
+[
+	From 1 to 10 do
+	[
+		i : [1..10]
+	|
+		Require: i = i;
+		Require: i ≤ i;
+		Require: i ≥ i;
+		Require: i ≤ i + 1;
+		Require: i < i + 1;
+		Require: i ≥ i - 1;
+		Require: i > i - 1;
+		Require: i ≤ ∞;
+		Require: i < ∞;
+		Require: i ≥ -∞;
+		Require: i > -∞;
+		Require: i = i = i;
+		Require: i - 1 ≤ i - 1 < i = i < i + 1 ≤ i + 1;
+		Require: i + 1 ≥ i + 1 > i = i > i - 1 ≥ i - 1;
+	];
+];
+
+Test "negation" in math test suite is
+[
+	For each 1 to 10 ++ <∞> do
+	[
+		i : [1..∞]
+	|
+		Require: -i ≠ i;
+		Require: |-i| = i;
+		Require: -(-i) = i;
+	];
+	Require: -0 = 0;
+];
+
+Test "addition" in math test suite is
+[
+	From 1 to 10 do
+	[
+		i : [1..10]
+	|
+		Require: i + 0 = i;
+		Require: i + -i = 0;
+		Require: i + 1 > i;
+		Require: i + i = i × 2;
+		From 1 to 10 do [j : [1..10] | Require: i + j = j + i; ];
+	];
 	Require: 2147483647 + 1 = 2147483648;
 	Require: 9223372036854775807 + 1 = 9223372036854775808;
 	Require: 1111111111111111111111111 + 1111111111111111111111111
@@ -50,21 +187,32 @@ Test "addition" is
 	Require: ∞ + ∞ = ∞;
 	Require: -∞ + 1 = -∞;
 	Require: -∞ + -∞ = -∞;
+	Require: 1.0f + 1.0f = 2.0f;
+	Require: 1.0d + 1.0d = 2.0d;
+	Require: 1 + 1.0f = 2.0f;
+	Require: 1 + 1.0d = 2.0d;
+	Require: 1.0f + 1.0d = 2.0d;
 ];
 
-Test "cannot add unlike infinities" is
+Test "cannot add unlike infinities" in math test suite is
 [
 	/* Hide ∞ from the compiler. */
 	v : extended integer := ∞;
-	Ignore: v + -v;
-]
-must raise cannot-add-unlike-infinities exception;
+	Require: [v + -v] raises cannot-add-unlike-infinities exception;
+	Require: [-v + v] raises cannot-add-unlike-infinities exception;
+];
 
-Test "subtraction" is
+Test "subtraction" in math test suite is
 [
-	Require: 2 - 1 = 1;
-	Require: 1 - 1 = 0;
-	Require: 1 - -1 = 2;
+	From 1 to 10 do
+	[
+		i : [1..10]
+	|
+		Require: i - 0 = i;
+		Require: i - i = 0;
+		Require: i - -i = i + i;
+		For each 1 to 10 do [j : [1..10] | Require: i - j = -(j - i); ];
+	];
 	Require: -2147483648 - 1 = -2147483649;
 	Require: -9223372036854775808 - 1 = -9223372036854775809;
 	Require: 2222222222222222222222222 - 1111111111111111111111111
@@ -73,9 +221,14 @@ Test "subtraction" is
 	Require: ∞ - -∞ = ∞;
 	Require: -∞ - 1 = -∞;
 	Require: -∞ - ∞ = -∞;
+	Require: 2.0f - 1.0f = 1.0f;
+	Require: 2.0d - 1.0d = 1.0d;
+	Require: 2 - 1.0f = 1.0f;
+	Require: 2 - 1.0d = 1.0d;
+	Require: 2.0f - 1.0d = 1.0d;
 ];
 
-Test "cannot subtract like infinities" is
+Test "cannot subtract like infinities" in math test suite is
 [
 	/* Hide ∞ from the compiler. */
 	v : extended integer := ∞;
@@ -83,7 +236,130 @@ Test "cannot subtract like infinities" is
 	Require: [-v - -v] raises cannot-subtract-like-infinities exception;
 ];
 
-Test "minimum function" is
+Test "multiplication" in math test suite is
+[
+	From 1 to 10 do
+	[
+		i : [1..10]
+	|
+		Require: i × 0 = 0;
+		Require: i × 1 = i;
+		Require: i × -1 = -i;
+		Require: -i × -i = i × i;
+		Require: i × ∞ = ∞;
+		For each 1 to 10 do [j : [1..10] | Require: i × j = j × i; ];
+	];
+	Require: 2 × 2 = 4;
+	Require: 9 × 9 = 81;
+	Require: 65536 × 65536 = 4294967296;
+	Require: 4294967296 × 4294967296 = 18446744073709551616;
+	Require: 18446744073709551616 × 18446744073709551616
+		= 340282366920938463463374607431768211456;
+	Require: 65536 × -65536 = -4294967296;
+	Require: 4294967296 × -4294967296 = -18446744073709551616;
+	Require: 18446744073709551616 × -18446744073709551616
+		= -340282366920938463463374607431768211456;
+	Require: 2.0f × 2.0f = 4.0f;
+	Require: 2.0d × 2.0d = 4.0d;
+	Require: 2 × 2.0f = 4.0f;
+	Require: 2 × 2.0d = 4.0d;
+	Require: 2.0f × 2.0d = 4.0d;
+];
+
+Test "cannot multiply zero and infinity" in math test suite is
+[
+	/* Hide ∞ from the compiler. */
+	v : extended integer := ∞;
+	Require: [0 × v] raises cannot-multiply-zero-and-infinity exception;
+	Require: [v × 0] raises cannot-multiply-zero-and-infinity exception;
+	Require: [0 × -v] raises cannot-multiply-zero-and-infinity exception;
+	Require: [-v × 0] raises cannot-multiply-zero-and-infinity exception;
+];
+
+Test "division" in math test suite is
+[
+	From 1 to 10 do
+	[
+		i : [1..10]
+	|
+		Require: i ÷ 1 = i;
+		Require: i ÷ i = 1;
+		Require: i ÷ -1 = -i;
+		Require: -i ÷ 1 = -i;
+		Require: -i ÷ -1 = i;
+		Require: i ÷ ∞ = 0;
+		For each 1 to 10 do [j : [1..10] | Require: i÷j = j÷i → [i=j]; ];
+	];
+	Require: 4 ÷ 2 = 2;
+	Require: 81 ÷ 9 = 9;
+	Require: 82 ÷ 9 = 9;
+	Require: 89 ÷ 9 = 9;
+	Require: 90 ÷ 9 = 10;
+	Require: 4294967296 ÷ 65536 = 65536;
+	Require: 18446744073709551616 ÷ 4294967296 = 4294967296;
+	Require: 340282366920938463463374607431768211456 ÷ 18446744073709551616
+		= 18446744073709551616;
+	Require: 4294967296 ÷ -65536 = -65536;
+	Require: 18446744073709551616 ÷ -4294967296 = -4294967296;
+	Require: 340282366920938463463374607431768211456 ÷ -18446744073709551616
+		= -18446744073709551616;
+	Require: -2147483648 ÷ -1 = 2147483648;
+	Require: -9223372036854775808 ÷ -1 = 9223372036854775808;
+	Require: 4.0f ÷ 2.0f = 2.0f;
+	Require: 4.0d ÷ 2.0d = 2.0d;
+	Require: 4 ÷ 2.0f = 2.0f;
+	Require: 4 ÷ 2.0d = 2.0d;
+	Require: 4.0f ÷ 2.0d = 2.0d;
+	Ignore: 4.0f ÷ 0;
+	Ignore: 4.0f ÷ 0.0f;
+	Ignore: 4.0d ÷ 0.0d;
+	Ignore: 4.0f ÷ -0.0f;
+	Ignore: 4.0d ÷ -0.0d;
+];
+
+Test "mod" in math test suite is
+[
+	ref ::= flatten 3 of (0 to 9);
+	From 0 to 29 do
+	[
+		i : [0..29]
+	|
+		Require: i mod ∞ = i;
+		Require: i mod 10 = ref[i + 1];
+	];
+];
+
+Test "cannot divide by zero" in math test suite is
+[
+	/* Hide 0 from the compiler. */
+	v : extended integer := 0;
+	Require: [1 ÷ v] raises cannot-divide-by-zero exception;
+	Require: [1 mod v] raises cannot-divide-by-zero exception;
+];
+
+Test "cannot divide infinities" in math test suite is
+[
+	/* Hide ∞ from the compiler. */
+	v : extended integer := ∞;
+	Require: [v ÷ v] raises cannot-divide-infinities exception;
+	Require: [v ÷ -v] raises cannot-divide-infinities exception;
+	Require: [-v ÷ v] raises cannot-divide-infinities exception;
+	Require: [-v ÷ -v] raises cannot-divide-infinities exception;
+];
+
+Test "even/odd" in math test suite is
+[
+	ref ::= flatten 10 of <true, false>;
+	From 1 to 20 do
+	[
+		i : [1..20]
+	|
+		Require: i is odd = ref[i];
+		Require: i is even = ¬ref[i];
+	];
+];
+
+Test "minimum function" in math test suite is
 [
 	Require: min <1, 2, 3, 4, 5> = 1;
 	Require: 1 min 2 min 3 min 4 min 5 = 1;
@@ -95,7 +371,7 @@ Test "minimum function" is
 	Require: -5 min -7 min 10 min 31 min -6 = -7;
 ];
 
-Test "maximum function" is
+Test "maximum function" in math test suite is
 [
 	Require: max <1, 2, 3, 4, 5> = 5;
 	Require: 1 max 2 max 3 max 4 max 5 = 5;
@@ -105,4 +381,26 @@ Test "maximum function" is
 	Require: -∞ max ∞ = ∞;
 	Require: max <-5, -7, 10, 31, -6> = 31;
 	Require: -5 max -7 max 10 max 31 max -6 = 31;
+];
+
+Test "exponentiation" in math test suite is
+[
+	From 1 to 10 do
+	[
+		i : [1..10]
+	|
+		Require: i^0 = 1;
+		Require: i^1 = i;
+		From 2 to 10 do
+		[
+			j : [2..10]
+		|
+			Require: i^j = ∏ j occurrences of i;
+		];
+	];
+	Require: 2^16 = 65536;
+	Require: 2^32 = 4294967296;
+	Require: 2^64 = 18446744073709551616;
+	Require: 2^128 = 340282366920938463463374607431768211456;
+	Require: 10^100 = 10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000;
 ];
