@@ -49,7 +49,11 @@ Names
 
 	/* Summarizing reports. */
 	"module-oriented“_”",
-	"test suite-oriented“_”"
+	"test suite-oriented“_”",
+
+	/* Interrogation. */
+	"all test suites in_",
+	"all tests in_"
 Body
 
 /**
@@ -414,8 +418,58 @@ Private method "Run each_,raising_on error" is
 	];
 ] : ⊤;
 
-Forward method "recursively report on all tests in_"
-	is [root unit test suite]→<unit test result…|>;
+Forward method "recursively visit_,on entering do_,on leaving do_" is
+[root unit test suite,
+	[root unit test suite]→tuple,
+	[root unit test suite]→⊤]→tuple;
+
+/**
+* Recursively visit the specified {@type "root unit test suite"} and its
+* children. Apply {@param "enterAction"} to {@param "aSuite"} and collect its
+* results. Then append the results of applying this method recursively to the
+* child test suites. Before returning, apply {@param "leaveAction"} to {@param
+* "aSuite"}. Answer the recursively computed collection of results.
+*
+* @method "recursively visit_,on entering do_,on leaving do_"
+* @param "aSuite" "root unit test suite"
+*        A unit test suite (possibly the {@method "root suite"}).
+* @param "enterAction" "[root unit test suite]→any"
+*        The function to apply to {@param "aSuite"} upon entry.
+* @param "leaveAction" "[root unit test suite]→⊤"
+*        The function to apply to {@param "aSuite"} before to returning.
+* @returns "tuple"
+*          A tuple of results accumulated by recursively visiting the specified
+*          test suite and its children.
+*/
+Private method "recursively visit_,on entering do_,on leaving do_" is
+[
+	aSuite : root unit test suite,
+	enterAction : [root unit test suite]→tuple,
+	leaveAction : [root unit test suite]→⊤
+|
+	results : tuple := enterAction(aSuite);
+	For each aSuite's child suite IDs do
+	[
+		childID : atom
+	|
+		childResults ::=
+			recursively visit suites by atom[childID],
+			on entering do enterAction,
+			on leaving do leaveAction;
+		results := eject ↑results ++ childResults;
+	];
+	leaveAction(aSuite);
+	results
+] : tuple;
+
+Semantic restriction "recursively visit_,on entering do_,on leaving do_" is
+[
+	aSuite : root unit test suite's type,
+	enterAction : [root unit test suite]→tuple's type,
+	leaveAction : [root unit test suite]→⊤'s type
+|
+	enterAction's return type
+];
 
 /**
  * Recursively report on all {@type "unit test"}s in the specified {@type
@@ -437,26 +491,29 @@ Forward method "recursively report on all tests in_"
  */
 Private method "recursively report on all tests in_" is
 [
-	aSuite : root unit test suite
+	initialSuite : root unit test suite
 |
-	Run each aSuite's suite fixture setup, raising
-		extend test-fixture-setup exception
-			with suite ID : aSuite's suite ID's type
-		on error;
-	results : <unit test result…|> := map aSuite's unit tests through
-		[test : unit test | test metric for test];
-	For each aSuite's child suite IDs do
-	[
-		childID : atom
-	|
-		results := eject ↑results
-			++ recursively report on all tests in suites by atom[childID];
-	];
-	Run each aSuite's suite fixture tear down, raising
-		extend test-fixture-tear-down exception
-			with suite ID : aSuite's suite ID's type
-		on error;
-	results
+	recursively visit initialSuite,
+		on entering do
+		[
+			aSuite : root unit test suite
+		|
+			Run each aSuite's suite fixture setup, raising
+				extend test-fixture-setup exception
+					with suite ID : aSuite's suite ID's type
+				on error;
+			map aSuite's unit tests through
+				[test : unit test | test metric for test]
+		],
+		on leaving do
+		[
+			aSuite : root unit test suite
+		|
+			Run each aSuite's suite fixture tear down, raising
+				extend test-fixture-tear-down exception
+					with suite ID : aSuite's suite ID's type
+				on error;
+		]
 ] : <unit test result…|>;
 
 /**
@@ -481,15 +538,9 @@ Public method "report on all tests in_" is
 |
 	suite ::= suites by atom[trueName] else
 		[Raise a no-such-test-suite exception with suite ID := trueName];
-	Unless suite's parent suite ID = root test suite ID then
-	[
-		Setup: suites by atom[suite's parent suite ID];
-	];
+	Setup: suites by atom[suite's parent suite ID];
 	results ::= recursively report on all tests in suite;
-	Unless suite's parent suite ID = root test suite ID then
-	[
-		Tear down: suites by atom[suite's parent suite ID];
-	];
+	Tear down: suites by atom[suite's parent suite ID];
 	a unit test report with metrics := results
 ] : unit test report;
 
@@ -674,3 +725,73 @@ Public method "test suite-oriented“_”" is
 		passed := |statistics[_passed] else [<>]|,
 		failed := |statistics[_failed] else [<>]|
 ] : string;
+
+/**
+ * Compute and answer the complete collection of {@type "unit test"} identifiers
+ * that denote unit tests recursively contained within the {@type "unit test
+ * suite"} specified by {@param "suiteID"}.
+ *
+ * @method "all tests in_"
+ * @param "suiteID" "atom"
+ *        The test suite identifier.
+ * @returns "<atom…|>"
+ *          The test identifiers of all unit tests comprising the argument.
+ * @raises "no-such-test-suite exception"
+ *         If {@param "suiteID"} does not reference an existing test suite.
+ */
+Public method "all tests in_" is
+[
+	suiteID : atom
+|
+	suite ::= suites by atom[suiteID] else
+		[Raise a no-such-test-suite exception with suite ID := suiteID];
+	recursively visit suite,
+		on entering do
+		[
+			aSuite : root unit test suite
+		|
+			map aSuite's unit tests through
+				[aTest : unit test | aTest's test ID]
+		],
+		on leaving do
+		[
+			aSuite : root unit test suite
+		|
+			/* No implementation required. */
+		]
+] : <atom…|>;
+
+/**
+ * Compute and answer the complete collection of {@type "unit test suite"}
+ * identifiers that denote unit test suites recursively contained within the
+ * unit test suite specified by {@param "suiteID"}.
+ *
+ * @method "all test suites in_"
+ * @param "suiteID" "atom"
+ *        The test suite identifier.
+ * @returns "<atom…|>"
+ *          The test suite identifiers of all unit test suites comprising the
+ *          argument. The result will not contain the argument.
+ * @raises "no-such-test-suite exception"
+ *         If {@param "suiteID"} does not reference an existing test suite.
+ */
+Public method "all test suites in_" is
+[
+	suiteID : atom
+|
+	suite ::= suites by atom[suiteID] else
+		[Raise a no-such-test-suite exception with suite ID := suiteID];
+	recursively visit suite,
+		on entering do
+		[
+			aSuite : root unit test suite
+		|
+			if aSuite's suite ID = suiteID then [<>] else [<aSuite's suite ID>]
+		],
+		on leaving do
+		[
+			aSuite : root unit test suite
+		|
+			/* No implementation required. */
+		]
+] : <atom…|>;

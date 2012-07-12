@@ -63,13 +63,6 @@ Semantic restriction "↓_" is
 	varType's read type
 ];
 
-Semantic restriction "new↑_" is
-[
-	containmentMeta : any meta's type
-|
-	↑containmentMeta's instance
-];
-
 /**
  * Construct and answer a new variable with the specified containment type and
  * initial value.
@@ -110,7 +103,7 @@ Semantic restriction "(new↑_:=_)" is
 			")">;
 		Reject parse, expected: cast messageTuple into [t : string | t]
 	];
-	↑containmentMeta's instance
+	⊤
 ];
 
 /**
@@ -133,14 +126,6 @@ Public method "(new↑_`?=_)" is
 	var ?= initialValue;
 	var
 ] : variable;
-
-Semantic restriction "(new↑_`?=_)" is
-[
-	containmentMeta : any meta's type,
-	valueType : any meta
-|
-	↑containmentMeta's instance
-];
 
 /**
  * Does the specified variable contain a value?

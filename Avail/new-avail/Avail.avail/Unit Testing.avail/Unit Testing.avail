@@ -57,7 +57,11 @@ Extends
 
 		/* Summarizing reports. */
 		"module-oriented“_”",
-		"test suite-oriented“_”"
+		"test suite-oriented“_”",
+
+		/* Interrogation. */
+		"all test suites in_",
+		"all tests in_"
 	),
 	"Tools" =
 	(
@@ -110,7 +114,8 @@ For each
 		"Before running_,⁇do_",
 		"New test suite_extends_",
 		"Test_in_is_«must raise_»",
-		"_is a new test suite",
+		"all test suites in_",
+		"all tests in_",
 		"module-oriented“_”",
 		"report on all tests in_",
 		"report on_",
@@ -122,10 +127,16 @@ For each
 		"Require:_=_(_)",
 		"Require:_raises_",
 		"Require:_raises_(_)",
+		"_is a new test suite",
 		"_'s⁇metrics",
 		"_'s⁇metrics by module",
 		"_'s⁇metrics by test suite",
 		"_'s⁇test ID",
 		"_'s⁇expected exception type"
 	>
-do [methodName : string | Completely seal methodName; ];
+do
+[
+	methodName : string
+|
+	Completely seal methodName;
+];

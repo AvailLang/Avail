@@ -282,7 +282,7 @@ Public class "unit test suite" extends root unit test suite
 		public reconstructible test fixture tear down : <[]→⊤…|>,
 		public reconstructible unit tests : <unit test…|>;
 
-	/**
+/**
  * The root exception type for suite-centric unit-testing framework exceptions.
  *
  * @type "test-suite exception"

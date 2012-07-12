@@ -38,6 +38,7 @@ Extends
 	"Foundation" =
 	(
 		"For each_do_",
+		"concatenate_",
 		"drop from_until_",
 		"drop from_while_",
 		"drop_from_",
@@ -58,9 +59,7 @@ Uses
 	"Foundation"
 Names
 	"an empty stream",
-	"concatenate_",
 	"decorated stream|streams",
-	"element type",
 	"empty stream",
 	"empty-stream exception",
 	"stream",
@@ -386,6 +385,7 @@ theEmptyStream ::= an empty stream with element type := ⊥;
  *    An empty stream.
  */
 Public method "an empty stream" is [ theEmptyStream ];
+Grammatical restriction "a|an_«with«_:=_‡,»»" is <{"empty stream"}, ∅, ∅>;
 
 /* Seal the public operations. */
 Seal method "_is empty" at <empty stream>;
@@ -563,9 +563,6 @@ filtered stream's head method is
 	rest's head
 ] : any;
 
-/* TODO: [TLS] Wrong! This is wrong whenever the very first element doesn't
- * satsify the filter.
- */
 filtered stream's tail method is
 [
 	aStream : filtered stream
@@ -599,7 +596,7 @@ headed filtered stream's head method is
 ] : any;
 
 /**
- * Construct and answer a stream that applies `theFilter` to `aStream`. The
+ * Construct and answer a stream that applies `predicate` to `aStream`. The
  * result is lazy, so `aStream` may be infinite. The result contains only those
  * elements of `aStream` that pass the specified filter.
  *
@@ -617,11 +614,11 @@ headed filtered stream's head method is
  *
  * Parameters:
  *    aStream - The source stream.
- *    predicate - A function that accepts the elements of `aStream` and answer
+ *    predicate - A function that accepts the elements of `aStream` and answers
  *       `true` iff they should be obtainable via the result stream.
  * Returns:
  *    A stream capable of producing exactly those elements of `aStream` for
- *    which `predicate` answered `true`.
+ *    which `predicate` answers `true`.
  */
 Method "filter_by_" is
 [

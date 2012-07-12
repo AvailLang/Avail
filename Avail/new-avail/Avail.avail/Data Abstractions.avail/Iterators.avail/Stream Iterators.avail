@@ -35,14 +35,18 @@ Versions
 	"dev"
 Uses
 	"Abstract Iterators",
+	"Common",
 	"Foundation",
 	"Streams" =
 	(
+		"a counting stream from_to_",
 		"stream"
-	)
+	),
+	"Unit Testing"
 Names
 	"an iterator over_",
-	"stream iterator"
+	"stream iterator",
+	"stream iterator test suite"
 Body
 
 /* TODO: [TLS] Remove these constants once a macro is available for "$…". */
@@ -97,8 +101,7 @@ Public method "an iterator over_" is
 [
 	aStream : stream
 |
-	var ::= new ↑stream;
-	var ?= aStream;
+	var ::= cast (new ↑stream := aStream) into [t : ↑stream | t];
 	a stream iterator with
 		element type := aStream's element type,
 		adapted stream := var
@@ -110,4 +113,78 @@ Semantic restriction "an iterator over_" is
 |
 	extend stream iterator with
 		element type : streamType's element type
+];
+
+/* TODO: [TLS] Remove these constants once a macro is available for "$…". */
+_testSuite ::= $"stream iterator test suite";
+Public method "stream iterator test suite" is [ _testSuite ];
+
+New test suite stream iterator test suite extends data abstractions test suite;
+
+Test "stream iterator basics" in stream iterator test suite is
+[
+	ref ::= 1 to 10;
+	index : natural number := 1;
+	iter ::= an iterator over a counting stream from 1 to 10;
+	For each iter do
+	[
+		element : [1..10]
+	|
+		Require: ref[(↑index++)] = element;
+	];
+	Require: index = (|ref| + 1);
+];
+
+Test "stream iterator(map)" in stream iterator test suite is
+[
+	ref ::= <1, 4, 9, 16, 25, 36, 49, 64, 81, 100>;
+	index : natural number := 1;
+	iter ::= map an iterator over a counting stream from 1 to 10
+		through [i : [1..10] | i × i];
+	For each iter do
+	[
+		element : [1..100]
+	|
+		Require: ref[(↑index++)] = element;
+	];
+	Require: index = (|ref| + 1);
+];
+
+Test "stream iterator(filter)" in stream iterator test suite is
+[
+	ref ::= <2, 4, 6, 8, 10>;
+	index : natural number := 1;
+	iter ::= filter an iterator over a counting stream from 1 to 10
+		by [i : [1..10] | i is even];
+	For each iter do
+	[
+		element : [1..10]
+	|
+		Require: ref[(↑index++)] = element;
+	];
+	Require: index = (|ref| + 1);
+];
+
+Test "stream iterator(concatenation)" in stream iterator test suite is
+[
+	ref ::= 1 to 10;
+	iters ::= <
+		an exhausted iterator,
+		an iterator over a counting stream from 1 to 2,
+		an exhausted iterator,
+		an exhausted iterator,
+		an iterator over a counting stream from 3 to 7,
+		an exhausted iterator,
+		an iterator over a counting stream from 8 to 8,
+		an iterator over a counting stream from 9 to 10,
+		an exhausted iterator>;
+	index : natural number := 1;
+	iter ::= concatenate iters;
+	For each iter do
+	[
+		element : [1..10]
+	|
+		Require: ref[(↑index++)] = element;
+	];
+	Require: index = (|ref| + 1);
 ];
