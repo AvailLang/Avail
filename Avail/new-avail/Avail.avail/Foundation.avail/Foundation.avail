@@ -36,6 +36,7 @@ Versions
 Extends
 	"Assertions",
 	"Bootstrap",
+	"Characters",
 	"Control Structures",
 	"Definers",
 	"Enumeration Support",
