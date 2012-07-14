@@ -93,7 +93,8 @@ bounded stream's tail method is
  *    aStream - A stream.
  *    limit - The effective size of the result.
  * Returns:
- *    A stream capable of producing no more than `limit` elements of `aStream`.
+ *    A stream incapable of producing no more than `limit` elements of
+ *    `aStream`.
  */
 Public stable method "_limited to_elements" is
 [

@@ -1,0 +1,367 @@
+/*
+ * Bounded Iterators.avail
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Bounded Iterators"
+Versions
+	"dev"
+Uses
+	"Abstract Iterators",
+	"Counting Iterators" = ("a counting iterator from_to_"),
+	"Foundation",
+	"Unit Testing"
+Names
+	"bounded iterator test suite",
+	"_limited to_elements"
+Body
+
+/* TODO: [TLS] Remove these constants once a macro is available for "$…". */
+_remainingElements ::= $"remaining elements";
+
+Private method "remaining elements" is [ _remainingElements ];
+
+/**
+ * A bounded iterator artificially limits the number of elements that its
+ * decorated iterator may produce.
+ *
+ * @type "bounded iterator"
+ * @supertype "iterator"
+ */
+Class "bounded iterator" extends iterator
+	with fields
+		decorated iterator : iterator,
+		remaining elements : ↑whole number;
+
+Method "_is exhausted" is
+[
+	anIterator : bounded iterator
+|
+	↓anIterator's remaining elements = 0
+		∨ [anIterator's decorated iterator is exhausted]
+] : boolean;
+
+bounded iterator's current element method is
+[
+	anIterator : bounded iterator
+|
+	anIterator's decorated iterator's current element
+] : any;
+
+bounded iterator's advance method is
+[
+	anIterator : bounded iterator
+|
+	Advance anIterator's decorated iterator;
+	anIterator's remaining elements--;
+] : ⊤;
+
+/**
+ * Construct and answer an {@type "iterator"} that can answer at most the first
+ * {@param "limit"} elements of {@param "anIterator"}.
+ *
+ * @method "_limited to_elements" is
+ * @param "anIterator" "iterator"
+ *        A iterator.
+ * @param "limit" "[0..∞]"
+ *        The effective size of the result.
+ * @returns "iterator"
+ *          A iterator incapable of producing more than {@param "limit"}
+ *          elements of {@param "anIterator"}.
+ */
+Public stable method "_limited to_elements" is
+[
+	anIterator : iterator,
+	limit : [0..∞]
+|
+	if limit = ∞ then [ anIterator ]
+	else if [ limit = 0 ] then [ an exhausted iterator ]
+	else
+	[
+		a bounded iterator with
+			element type := anIterator's element type,
+			decorated iterator := anIterator,
+			remaining elements := cast (↓new ↑whole number ?= limit)
+				into [t : ↑whole number | t]
+	]
+] : iterator;
+
+Semantic restriction "_limited to_elements" is
+[
+	iteratorType : iterator's type,
+	limit : [0..∞]'s type
+|
+	if ⎣limit⎦ = ∞ then [ iteratorType ]
+	else if [ ⎡limit⎤ = 0 ] then [ exhausted iterator ]
+	else
+	[
+		extend bounded iterator with
+			element type : iteratorType's element type,
+			decorated iterator : iteratorType
+	]
+];
+
+/* TODO: [TLS] Remove these constants once a macro is available for "$…". */
+_testSuite ::= $"bounded iterator test suite";
+Public method "bounded iterator test suite" is [ _testSuite ];
+
+New test suite bounded iterator test suite extends iterators test suite;
+
+Test "bounded iterator basics" in bounded iterator test suite is
+[
+	ref ::= 1 to 10;
+	index : natural number := 1;
+	iter ::= a counting iterator from 1 to 100 limited to 10 elements;
+	For each iter do
+	[
+		element : [1..100]
+	|
+		Require: ref[(↑index++)] = element;
+	];
+	Require: (|ref| + 1) = index;
+];
+
+Test "bounded iterator(map)" in bounded iterator test suite is
+[
+	ref ::= <1, 4, 9, 16, 25, 36, 49, 64, 81, 100>;
+	index : natural number := 1;
+	iter ::= map a counting iterator from 1 to 100 limited to 10 elements
+		through [i : [1..100] | i × i];
+	For each iter do
+	[
+		element : [1..10000]
+	|
+		Require: ref[(↑index++)] = element;
+	];
+	Require: (|ref| + 1) = index;
+];
+
+Test "bounded iterator(filter)" in bounded iterator test suite is
+[
+	ref ::= <2, 4, 6, 8, 10>;
+	index : natural number := 1;
+	iter ::= filter a counting iterator from 1 to 100 limited to 10 elements
+		by [i : [1..100] | i is even];
+	For each iter do
+	[
+		element : [1..100]
+	|
+		Require: ref[(↑index++)] = element;
+	];
+	Require: (|ref| + 1) = index;
+];
+
+Test "bounded iterator(concatenation)" in bounded iterator test suite is
+[
+	ref ::= 1 to 10;
+	index : natural number := 1;
+	iters ::= <
+		an exhausted iterator,
+		a counting iterator from 1 to 2,
+		an exhausted iterator,
+		an exhausted iterator,
+		a counting iterator from 3 to 7,
+		an exhausted iterator,
+		a counting iterator from 8 to 8,
+		a counting iterator from 9 to 10,
+		an exhausted iterator>;
+	iter ::= concatenate iters;
+	For each iter do
+	[
+		element : [1..100]
+	|
+		Require: ref[(↑index++)] = element;
+	];
+	Require: (|ref| + 1) = index;
+];
+
+Test "bounded iterator(lexical concatenation)" in bounded iterator test suite is
+[
+	ref ::= 1 to 10;
+	index : natural number := 1;
+	iters ::= <
+		an exhausted iterator,
+		a counting iterator from 1 to 2,
+		an exhausted iterator,
+		an exhausted iterator,
+		a counting iterator from 3 to 7,
+		an exhausted iterator,
+		a counting iterator from 8 to 8,
+		a counting iterator from 9 to 10,
+		an exhausted iterator>;
+	iter ::= iters[1]
+		++ iters[2]
+		++ iters[3]
+		++ iters[4]
+		++ iters[5]
+		++ iters[6]
+		++ iters[7]
+		++ iters[8]
+		++ iters[9];
+	For each iter do
+	[
+		element : [1..100]
+	|
+		Require: ref[(↑index++)] = element;
+	];
+	Require: (|ref| + 1) = index;
+];
+
+Test "bounded iterator(zip)" in bounded iterator test suite is
+[
+	ref ::= <
+		<1, 1>, <2, 4>, <3, 9>, <4, 16>, <5, 25>,
+		<6, 36>, <7, 49>, <8, 64>, <9, 81>, <10, 100>>;
+	index : natural number := 1;
+	iters ::= <
+		a counting iterator from 1 to 100 limited to 10 elements,
+		map a counting iterator from 1 to 100 limited to 10 elements
+			through [n : [1..100] | n × n]>;
+	iter ::= zip iters;
+	For each iter do
+	[
+		element : <[1..100], [1..10000]…|2>
+	|
+		Require: ref[(↑index++)] = element;
+	];
+	Require: (|ref| + 1) = index;
+];
+
+Test "bounded iterator(lexical zip)" in bounded iterator test suite is
+[
+	ref ::= <
+		<1, 1>, <2, 4>, <3, 9>, <4, 16>, <5, 25>,
+		<6, 36>, <7, 49>, <8, 64>, <9, 81>, <10, 100>>;
+	index : natural number := 1;
+	iters ::= <
+		a counting iterator from 1 to 100 limited to 10 elements,
+		map a counting iterator from 1 to 100 limited to 10 elements
+			through [n : [1..100] | n × n]>;
+	iter ::= iters[1] zip iters[2];
+	For each iter do
+	[
+		element : <[1..100], [1..10000]…|2>
+	|
+		Require: ref[(↑index++)] = element;
+	];
+	Require: (|ref| + 1) = index;
+];
+
+Test "bounded iterator(take_from_)" in bounded iterator test suite is
+[
+	ref ::= 1 to 5;
+	index : natural number := 1;
+	iter ::= a counting iterator from 1 to 100 limited to 10 elements;
+	result ::= take 5 from iter;
+	For each result do
+	[
+		element : [1..100]
+	|
+		Require: ref[(↑index++)] = element;
+	];
+	Require: 6 = iter's current element;
+	Require: [take 6 from iter] raises exhausted-iterator exception;
+];
+
+Test "bounded iterator(take from_while_)" in bounded iterator test suite is
+[
+	ref ::= 1 to 5;
+	index : natural number := 1;
+	iter ::= a counting iterator from 1 to 100 limited to 10 elements;
+	result ::= take from iter while [n : [1..100] | n ≤ 5];
+	For each result do
+	[
+		element : [1..100]
+	|
+		Require: ref[(↑index++)] = element;
+	];
+	Require: 6 = iter's current element;
+];
+
+Test "bounded iterator(take from_until_)" in bounded iterator test suite is
+[
+	ref ::= 1 to 5;
+	index : natural number := 1;
+	iter ::= a counting iterator from 1 to 100 limited to 10 elements;
+	result ::= take from iter until [n : [1..100] | n ≥ 6];
+	For each result do
+	[
+		element : [1..100]
+	|
+		Require: ref[(↑index++)] = element;
+	];
+	Require: 6 = iter's current element;
+];
+
+Test "bounded iterator(Drop_from_)" in bounded iterator test suite is
+[
+	ref ::= 6 to 10;
+	index : natural number := 1;
+	iter ::= a counting iterator from 1 to 100 limited to 10 elements;
+	Drop 5 from iter;
+	For each iter do
+	[
+		element : [1..100]
+	|
+		Require: ref[(↑index++)] = element;
+	];
+	Require: (|ref| + 1) = index;
+	Require: [Drop 6 from iter;] raises exhausted-iterator exception;
+];
+
+Test "bounded iterator(Drop from_while_)" in bounded iterator test suite is
+[
+	ref ::= 6 to 10;
+	index : natural number := 1;
+	iter ::= a counting iterator from 1 to 100 limited to 10 elements;
+	Drop from iter while [n : [1..100] | n ≤ 5];
+	For each iter do
+	[
+		element : [1..100]
+	|
+		Require: ref[(↑index++)] = element;
+	];
+	Require: (|ref| + 1) = index;
+];
+
+Test "bounded iterator(Drop from_until_)" in bounded iterator test suite is
+[
+	ref ::= 6 to 10;
+	index : natural number := 1;
+	iter ::= a counting iterator from 1 to 100 limited to 10 elements;
+	Drop from iter until [n : [1..100] | n ≥ 6];
+	For each iter do
+	[
+		element : [1..100]
+	|
+		Require: ref[(↑index++)] = element;
+	];
+	Require: (|ref| + 1) = index;
+];

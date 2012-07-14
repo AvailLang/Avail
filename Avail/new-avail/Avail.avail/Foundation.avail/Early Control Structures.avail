@@ -196,7 +196,7 @@ Public method "Cast|cast_into_" is
 			" was not an instance of ",
 			(primitive description of accept's type[1])>;
 		s : string;
-		↑s ?= t;
+		↓↑s ?= t;
 		Assert: false (s)
 	];
 ] : ⊤;

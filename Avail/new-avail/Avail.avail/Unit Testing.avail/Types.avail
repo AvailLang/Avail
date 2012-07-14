@@ -314,8 +314,8 @@ Public explicit class "no-such-test-suite exception"
  * An exception that indicates that a test fixture setup function failed.
  *
  * @type "test-fixture-setup exception"
- * @subtype "test-suite exception"
- * @subtype "cascade exception"
+ * @supertype "test-suite exception"
+ * @supertype "cascade exception"
  */
 Public explicit class "test-fixture-setup exception"
 	extends test-suite exception ∩ cascade exception;
@@ -324,8 +324,8 @@ Public explicit class "test-fixture-setup exception"
  * An exception that indicates that a test fixture tear-down function failed.
  *
  * @type "test-fixture-tear-down exception"
- * @subtype "test-suite exception"
- * @subtype "cascade exception"
+ * @supertype "test-suite exception"
+ * @supertype "cascade exception"
  */
 Public explicit class "test-fixture-tear-down exception"
 	extends test-suite exception ∩ cascade exception;

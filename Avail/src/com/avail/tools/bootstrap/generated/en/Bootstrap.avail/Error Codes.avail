@@ -112,6 +112,7 @@ Names
 	/*  52 */ "tilde must not follow argument code",
 	/*  31 */ "type restriction must accept only types code",
 	/*  44 */ "unbalanced guillemets code",
+	/*  16 */ "unwind sentinel code",
 	/*  55 */ "vertical bar must follow a simple or simple group code",
 	/*  20 */ "wrong number of outers code"
 Body
@@ -195,6 +196,11 @@ Method "continuation expected stronger type code" is
 Method "primitive not supported code" is
 [
 	15
+];
+
+Method "unwind sentinel code" is
+[
+	16
 ];
 
 Method "not enumeration code" is

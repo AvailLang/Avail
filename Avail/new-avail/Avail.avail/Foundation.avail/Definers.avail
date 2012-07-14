@@ -698,7 +698,7 @@ Public method "Public variable_is_" is
 		applying [ ↓var ];
 	Method cast concatenate <accessorName, ":=_"> into [t : string | t] is
 		new function accepting <writeType> and returning ⊤
-		applying [t : any | var ?= t;];
+		applying [t : any | ↓var ?= t;];
 ] : ⊤;
 
 /**

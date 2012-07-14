@@ -1,5 +1,5 @@
 /*
- * Stream Iterators.avail
+ * Collection Iterators.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,101 +30,160 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Stream Iterators"
+System Module "Collection Iterators"
 Versions
 	"dev"
 Uses
 	"Abstract Iterators",
 	"Foundation",
-	"Streams" =
-	(
-		"a counting stream from_to_",
-		"stream"
-	),
 	"Unit Testing"
 Names
 	"an iterator over_",
-	"stream iterator",
-	"stream iterator test suite"
+	"tuple iterator test suite"
 Body
 
 /* TODO: [TLS] Remove these constants once a macro is available for "$…". */
-adaptedStream ::= $"adapted stream";
+collection ::= $collection;
+index ::= $index;
 
 /**
- * Answer the field atom that represents an adapted stream.
+ * A tuple iterator operates over the elements of a tuple. It is finite by
+ * definition, since tuples are finite.
  *
- * Returns:
- *    The requested field atom.
+ * @type "tuple iterator"
+ * @supertype "iterator"
  */
-Private method "adapted stream" is [ adaptedStream ];
-
-/**
- * A stream iterator consumes the elements of a stream.
- */
-Public class "stream iterator" extends iterator
+Class "tuple iterator" extends iterator
 	with fields
-		adapted stream : ↑stream;
+		element type : any's type,
+		collection : tuple,
+		index : ↑natural number;
 
 Method "_is exhausted" is
 [
-	anIterator : stream iterator
+	anIterator : tuple iterator
 |
-	↓anIterator's adapted stream is empty
+	↓anIterator's index > |anIterator's collection|
 ] : boolean;
 
-stream iterator's current element method is
+tuple iterator's current element method is
 [
-	anIterator : stream iterator
+	anIterator : tuple iterator
 |
-	↓anIterator's adapted stream's head
+	anIterator's collection[↓anIterator's index]
 ] : any;
 
-stream iterator's advance method is
+tuple iterator's advance method is
 [
-	anIterator : stream iterator
+	anIterator : tuple iterator
 |
-	↓anIterator's adapted stream ?= ↓anIterator's adapted stream's tail;
+	anIterator's index++;
 ] : ⊤;
 
 /**
- * Construct and answer an iterator that destructively consumes the elements of
- * the specified stream.
- * 
- * Parameters:
- *    aStream - A stream.
- * Returns:
- *    The requested iterator.
+ * Construct and answer an {@type "iterator"} that produces all elements of the
+ * specified tuple.
+ *
+ * @method "an iterator over_"
+ * @param "aTuple" "tuple"
+ *        A tuple.
+ * @returns "iterator"
+ *          The requested iterator.
  */
 Public method "an iterator over_" is
 [
-	aStream : stream
+	aTuple : tuple
 |
-	var ::= cast (↓new ↑stream := aStream) into [t : ↑stream | t];
-	a stream iterator with
-		element type := aStream's element type,
-		adapted stream := var
+	a tuple iterator with
+		element type := ∪ aTuple's type[1..|aTuple|],
+		collection := aTuple,
+		index := cast (↓new ↑natural number := 1) into [t : ↑natural number | t]
 ] : iterator;
 
 Semantic restriction "an iterator over_" is
 [
-	streamType : stream's type
+	tupleType : tuple's type
 |
-	extend stream iterator with
-		element type : streamType's element type
+	limit ::= ⎡tupleType⎤ min (|tupleType's leading types| + 1);
+	extend tuple iterator with
+		element type : ∪ tupleType[1..limit]'s type,
+		collection : tupleType
+];
+
+/**
+ * Construct and answer an {@type "iterator"} that produces all elements of the
+ * specified set, but not in any particular order. This operation is unstable
+ * and two invocations with the same arguments may produce differently ordered
+ * iterators.
+ *
+ * @method "an iterator over_"
+ * @param "aSet" "set"
+ *        A set.
+ * @returns "iterator"
+ *          The requested iterator.
+ */
+Public method "an iterator over_" is
+[
+	aSet : set
+|
+	a tuple iterator with
+		element type := aSet's type's element type,
+		collection := aSet→tuple,
+		index := cast (↓new ↑natural number := 1) into [t : ↑natural number | t]
+] : iterator;
+
+Semantic restriction "an iterator over_" is
+[
+	setType : set's type
+|
+	extend tuple iterator with
+		element type : setType's element type's type,
+		collection : <<>, setType's element type… | ||setType||>
+];
+
+/**
+ * Construct and answer an {@type "iterator"} that produces all bindings of the
+ * specified map, but not in any particular order. This operation is unstable
+ * and two invocations with the same arguments may produce differently ordered
+ * iterators.
+ *
+ * @method "an iterator over_"
+ * @param "aMap" "map"
+ *        A map.
+ * @returns "iterator"
+ *          The requested iterator.
+ */
+Public method "an iterator over_" is
+[
+	aMap : map
+|
+	a tuple iterator with
+		element type := <aMap's type's key type, aMap's type's value type…|2>,
+		collection := aMap's bindings,
+		index := cast (↓new ↑natural number := 1) into [t : ↑natural number | t]
+] : iterator;
+
+Semantic restriction "an iterator over_" is
+[
+	mapType : map's type
+|
+	elementType ::= <mapType's key type, mapType's value type…|2>;
+	extend tuple iterator with
+		element type : elementType's type,
+		collection : <<>, elementType… | ||mapType||>
 ];
 
 /* TODO: [TLS] Remove these constants once a macro is available for "$…". */
-_testSuite ::= $"stream iterator test suite";
-Public method "stream iterator test suite" is [ _testSuite ];
+_testSuite ::= $"tuple iterator test suite";
+Public method "tuple iterator test suite" is [ _testSuite ];
 
-New test suite stream iterator test suite extends iterators test suite;
+New test suite tuple iterator test suite extends iterators test suite;
 
-Test "stream iterator basics" in stream iterator test suite is
+Test "tuple iterator basics" in tuple iterator test suite is
 [
 	ref ::= 1 to 10;
 	index : natural number := 1;
-	iter ::= an iterator over a counting stream from 1 to 10;
+	iter ::= an iterator over 1 to 10;
 	For each iter do
 	[
 		element : [1..10]
@@ -134,12 +193,11 @@ Test "stream iterator basics" in stream iterator test suite is
 	Require: (|ref| + 1) = index;
 ];
 
-Test "stream iterator(map)" in stream iterator test suite is
+Test "tuple iterator(map)" in tuple iterator test suite is
 [
 	ref ::= <1, 4, 9, 16, 25, 36, 49, 64, 81, 100>;
 	index : natural number := 1;
-	iter ::= map an iterator over a counting stream from 1 to 10
-		through [i : [1..10] | i × i];
+	iter ::= map an iterator over 1 to 10 through [i : [1..10] | i × i];
 	For each iter do
 	[
 		element : [1..100]
@@ -149,11 +207,11 @@ Test "stream iterator(map)" in stream iterator test suite is
 	Require: (|ref| + 1) = index;
 ];
 
-Test "stream iterator(filter)" in stream iterator test suite is
+Test "tuple iterator(filter)" in tuple iterator test suite is
 [
 	ref ::= <2, 4, 6, 8, 10>;
 	index : natural number := 1;
-	iter ::= filter an iterator over a counting stream from 1 to 10
+	iter ::= filter an iterator over 1 to 10
 		by [i : [1..10] | i is even];
 	For each iter do
 	[
@@ -164,19 +222,19 @@ Test "stream iterator(filter)" in stream iterator test suite is
 	Require: (|ref| + 1) = index;
 ];
 
-Test "stream iterator(concatenation)" in stream iterator test suite is
+Test "tuple iterator(concatenation)" in tuple iterator test suite is
 [
 	ref ::= 1 to 10;
 	index : natural number := 1;
 	iters ::= <
 		an exhausted iterator,
-		an iterator over a counting stream from 1 to 2,
+		an iterator over 1 to 2,
 		an exhausted iterator,
 		an exhausted iterator,
-		an iterator over a counting stream from 3 to 7,
+		an iterator over 3 to 7,
 		an exhausted iterator,
-		an iterator over a counting stream from 8 to 8,
-		an iterator over a counting stream from 9 to 10,
+		an iterator over 8 to 8,
+		an iterator over 9 to 10,
 		an exhausted iterator>;
 	iter ::= concatenate iters;
 	For each iter do
@@ -188,19 +246,20 @@ Test "stream iterator(concatenation)" in stream iterator test suite is
 	Require: (|ref| + 1) = index;
 ];
 
-Test "stream iterator(lexical concatenation)" in stream iterator test suite is
+Test "tuple iterator(lexical concatenation)"
+	in tuple iterator test suite is
 [
 	ref ::= 1 to 10;
 	index : natural number := 1;
 	iters ::= <
 		an exhausted iterator,
-		an iterator over a counting stream from 1 to 2,
+		an iterator over 1 to 2,
 		an exhausted iterator,
 		an exhausted iterator,
-		an iterator over a counting stream from 3 to 7,
+		an iterator over 3 to 7,
 		an exhausted iterator,
-		an iterator over a counting stream from 8 to 8,
-		an iterator over a counting stream from 9 to 10,
+		an iterator over 8 to 8,
+		an iterator over 9 to 10,
 		an exhausted iterator>;
 	iter ::= iters[1]
 		++ iters[2]
@@ -220,15 +279,15 @@ Test "stream iterator(lexical concatenation)" in stream iterator test suite is
 	Require: (|ref| + 1) = index;
 ];
 
-Test "stream iterator(zip)" in stream iterator test suite is
+Test "tuple iterator(zip)" in tuple iterator test suite is
 [
 	ref ::= <
 		<1, 1>, <2, 4>, <3, 9>, <4, 16>, <5, 25>,
 		<6, 36>, <7, 49>, <8, 64>, <9, 81>, <10, 100>>;
 	index : natural number := 1;
 	iters ::= <
-		an iterator over a counting stream from 1 to 10,
-		map an iterator over a counting stream from 1 to 10
+		an iterator over 1 to 10,
+		map an iterator over 1 to 10
 			through [n : [1..10] | n × n]>;
 	iter ::= zip iters;
 	For each iter do
@@ -240,15 +299,15 @@ Test "stream iterator(zip)" in stream iterator test suite is
 	Require: (|ref| + 1) = index;
 ];
 
-Test "stream iterator(lexical zip)" in stream iterator test suite is
+Test "tuple iterator(lexical zip)" in tuple iterator test suite is
 [
 	ref ::= <
 		<1, 1>, <2, 4>, <3, 9>, <4, 16>, <5, 25>,
 		<6, 36>, <7, 49>, <8, 64>, <9, 81>, <10, 100>>;
 	index : natural number := 1;
 	iters ::= <
-		an iterator over a counting stream from 1 to 10,
-		map an iterator over a counting stream from 1 to 10
+		an iterator over 1 to 10,
+		map an iterator over 1 to 10
 			through [n : [1..10] | n × n]>;
 	iter ::= iters[1] zip iters[2];
 	For each iter do
@@ -260,11 +319,11 @@ Test "stream iterator(lexical zip)" in stream iterator test suite is
 	Require: (|ref| + 1) = index;
 ];
 
-Test "stream iterator(take_from_)" in stream iterator test suite is
+Test "tuple iterator(take_from_)" in tuple iterator test suite is
 [
 	ref ::= 1 to 5;
 	index : natural number := 1;
-	iter ::= an iterator over a counting stream from 1 to 10;
+	iter ::= an iterator over 1 to 10;
 	result ::= take 5 from iter;
 	For each result do
 	[
@@ -276,11 +335,11 @@ Test "stream iterator(take_from_)" in stream iterator test suite is
 	Require: [take 6 from iter] raises exhausted-iterator exception;
 ];
 
-Test "stream iterator(take from_while_)" in stream iterator test suite is
+Test "tuple iterator(take from_while_)" in tuple iterator test suite is
 [
 	ref ::= 1 to 5;
 	index : natural number := 1;
-	iter ::= an iterator over a counting stream from 1 to 10;
+	iter ::= an iterator over 1 to 10;
 	result ::= take from iter while [n : [1..10] | n ≤ 5];
 	For each result do
 	[
@@ -291,11 +350,11 @@ Test "stream iterator(take from_while_)" in stream iterator test suite is
 	Require: 6 = iter's current element;
 ];
 
-Test "stream iterator(take from_until_)" in stream iterator test suite is
+Test "tuple iterator(take from_until_)" in tuple iterator test suite is
 [
 	ref ::= 1 to 5;
 	index : natural number := 1;
-	iter ::= an iterator over a counting stream from 1 to 10;
+	iter ::= an iterator over 1 to 10;
 	result ::= take from iter until [n : [1..10] | n ≥ 6];
 	For each result do
 	[
@@ -306,11 +365,11 @@ Test "stream iterator(take from_until_)" in stream iterator test suite is
 	Require: 6 = iter's current element;
 ];
 
-Test "stream iterator(Drop_from_)" in stream iterator test suite is
+Test "tuple iterator(Drop_from_)" in tuple iterator test suite is
 [
 	ref ::= 6 to 10;
 	index : natural number := 1;
-	iter ::= an iterator over a counting stream from 1 to 10;
+	iter ::= an iterator over 1 to 10;
 	Drop 5 from iter;
 	For each iter do
 	[
@@ -322,11 +381,11 @@ Test "stream iterator(Drop_from_)" in stream iterator test suite is
 	Require: [Drop 6 from iter;] raises exhausted-iterator exception;
 ];
 
-Test "stream iterator(Drop from_while_)" in stream iterator test suite is
+Test "tuple iterator(Drop from_while_)" in tuple iterator test suite is
 [
 	ref ::= 6 to 10;
 	index : natural number := 1;
-	iter ::= an iterator over a counting stream from 1 to 10;
+	iter ::= an iterator over 1 to 10;
 	Drop from iter while [n : [1..10] | n ≤ 5];
 	For each iter do
 	[
@@ -337,11 +396,11 @@ Test "stream iterator(Drop from_while_)" in stream iterator test suite is
 	Require: (|ref| + 1) = index;
 ];
 
-Test "stream iterator(Drop from_until_)" in stream iterator test suite is
+Test "tuple iterator(Drop from_until_)" in tuple iterator test suite is
 [
 	ref ::= 6 to 10;
 	index : natural number := 1;
-	iter ::= an iterator over a counting stream from 1 to 10;
+	iter ::= an iterator over 1 to 10;
 	Drop from iter until [n : [1..10] | n ≥ 6];
 	For each iter do
 	[

@@ -1,5 +1,5 @@
 /*
- * Delimited Streams.avail
+ * Delimited Iterators.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,12 +30,13 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Delimited Streams"
+System Module "Delimited Iterators"
 Versions
 	"dev"
 Uses
-	"Abstract Streams",
-	"Foundation"
+	"Abstract Iterators",
+	"Foundation",
+	"Unit Testing"
 Names
 	"_delimited by_",
 	"_delimited by any of_"
@@ -47,29 +48,32 @@ _delimiter ::= $"delimiter|delimiters";
 Private method "delimiter|delimiters" is [ _delimiter ];
 
 /**
- * A delimited stream answers tuples of elements from its decorated stream.
+ * A delimited iterator answers tuples of elements from its decorated iterator.
  * These tuples are separated by occurrences of the delimiter.
+ *
+ * @type "delimited iterator"
+ * @supertype "iterator"
  */
-Class "delimited stream" extends stream
+Class "delimited iterator" extends iterator
 	with fields
 		element type : tuple's type,
-		reconstructible decorated stream : stream,
+		decorated iterator : iterator,
 		delimiter : tuple;
 
-Method "_is empty" is
+Method "_is exhausted" is
 [
-	aStream : delimited stream
+	anIterator : delimited iterator
 |
-	aStream's decorated stream is empty
+	anIterator's decorated iterator is exhausted
 ] : boolean;
 
-delimited stream's head method is
+/* TODO: [TLS] Repair the rest of these! It's mid-refactor! */
+delimited iterator's current element method is
 [
-	aStream : delimited stream
+	anIterator : delimited iterator
 |
 	head : tuple := <>;
-	rest : stream := aStream's decorated stream;
-	Until [ rest is empty ∨ [ rest starts with aStream's delimiter ] ]
+	Until [anIterator is exhausted]
 	do
 	[
 		head := eject ↑head ++ <rest's head>;
@@ -78,87 +82,87 @@ delimited stream's head method is
 	head
 ] : tuple;
 
-delimited stream's head method is
+delimited iterator's head method is
 [
-	aStream : extend delimited stream with delimiter : <⊥…|0>
+	anIterator : extend delimited iterator with delimiter : <⊥…|0>
 |
-	<aStream's decorated stream's head>
+	<anIterator's decorated iterator's head>
 ];
 
-delimited stream's tail method is
+delimited iterator's tail method is
 [
-	aStream : delimited stream
+	anIterator : delimited iterator
 |
-	rest : stream := aStream's decorated stream;
-	Until [ rest is empty ∨ [ rest starts with aStream's delimiter ] ]
+	rest : iterator := anIterator's decorated iterator;
+	Until [ rest is empty ∨ [ rest starts with anIterator's delimiter ] ]
 	do
 	[
 		rest := eject ↑rest's tail;
 	];
 	If ¬rest is empty then
 	[
-		rest := drop |aStream's delimiter| from eject ↑rest;
+		rest := drop |anIterator's delimiter| from eject ↑rest;
 	];
-	aStream's decorated stream := rest
-] : delimited stream;
+	anIterator's decorated iterator := rest
+] : delimited iterator;
 
-delimited stream's tail method is
+delimited iterator's tail method is
 [
-	aStream : extend delimited stream with delimiter : <⊥…|0>
+	anIterator : extend delimited iterator with delimiter : <⊥…|0>
 |
-	aStream's decorated stream := (aStream's decorated stream's tail)
-] : delimited stream;
+	anIterator's decorated iterator := (anIterator's decorated iterator's tail)
+] : delimited iterator;
 
 /**
- * Construct and answer a stream that produces tuples of values from `aStream`.
+ * Construct and answer an iterator that produces tuples of values from `anIterator`.
  * These tuples are separated by occurrences of `delimiterTuple` (which will
- * never be produced as output from the answered stream).
+ * never be produced as output from the answered iterator).
  * 
  * Parameters:
- *    aStream - A stream.
+ *    anIterator - A iterator.
  *    delimiterTuple - The delimiter.
  * Returns:
- *    The requested stream.
+ *    The requested iterator.
  */
 Public method "_delimited by_" is
 [
-	aStream : stream,
+	anIterator : iterator,
 	delimiterTuple : tuple
 |
-	a delimited stream with
-		element type := <aStream's element type…|>,
-		decorated stream := aStream,
+	a delimited iterator with
+		element type := <anIterator's element type…|>,
+		decorated iterator := anIterator,
 		delimiter := delimiterTuple
-] : stream of tuple;
+] : iterator of tuple;
 
 Semantic restriction "_delimited by_" is
 [
-	streamType : stream's type,
+	iteratorType : iterator's type,
 	delimiterType : tuple's type
 |
-	extend delimited stream with
-		element type : <streamType's element type's instance…|>'s type,
-		decorated stream : streamType,
+	extend delimited iterator with
+		element type : <iteratorType's element type's instance…|>'s type,
+		decorated iterator : iteratorType,
 		delimiter : delimiterType
 ];
 
 /**
- * A delimited stream answers tuples of elements from its decorated stream.
+ * A delimited iterator answers tuples of elements from its decorated iterator.
  * These tuples are separated by occurrences of any delimiter.
  */
-Explicit class "multiply delimited stream" extends delimited stream
+Explicit class "multiply delimited iterator" extends delimited iterator
 	with fields
 		delimiters : <<any…|1..>…|1..>;
 
-multiply delimited stream's head method is
+multiply delimited iterator's head method is
 [
-	aStream : multiply delimited stream
+	anIterator : multiply delimited iterator
 |
 	head : tuple := <>;
-	rest : stream := aStream's decorated stream;
+	rest : iterator := anIterator's decorated iterator;
 	Until
 	[
-		rest is empty ∨ [ any of aStream's delimiters satisfies
+		rest is empty ∨ [ any of anIterator's delimiters satisfies
 			[ delimiter : tuple | rest starts with delimiter ] ]
 	]
 	do
@@ -169,23 +173,23 @@ multiply delimited stream's head method is
 	head
 ] : tuple;
 
-multiply delimited stream's tail method is
+multiply delimited iterator's tail method is
 [
-	aStream : multiply delimited stream
+	anIterator : multiply delimited iterator
 |
-	rest : stream := aStream's decorated stream;
+	rest : iterator := anIterator's decorated iterator;
 	theDelimiter : tuple;
 	Until
 	[
 		if rest is empty then [ true ]
 		else
 		[
-			index ::= first index of aStream's delimiters where
+			index ::= first index of anIterator's delimiters where
 				[ delimiter : tuple | rest starts with delimiter ];
 			If index ≠ 0 then
 			[
 				nonzero ::= cast index into [ t : natural number | t ];
-				theDelimiter := aStream's delimiters[nonzero];
+				theDelimiter := anIterator's delimiters[nonzero];
 			];
 			↑theDelimiter is assigned
 		]
@@ -198,38 +202,38 @@ multiply delimited stream's tail method is
 	[
 		rest := drop |theDelimiter| from eject ↑rest;
 	];
-	aStream's decorated stream := rest
-] : multiply delimited stream;
+	anIterator's decorated iterator := rest
+] : multiply delimited iterator;
 
 /**
- * Construct and answer a stream that produces tuples of values from `aStream`.
+ * Construct and answer an iterator that produces tuples of values from `anIterator`.
  * These tuples are separated by occurrences of `delimiterTuple` (which will
- * never be produced as output from the answered stream).
+ * never be produced as output from the answered iterator).
  * 
  * Parameters:
- *    aStream - A stream.
+ *    anIterator - A iterator.
  *    delimiterTuple - The delimiter.
  * Returns:
- *    The requested stream.
+ *    The requested iterator.
  */
 Public method "_delimited by any of_" is
 [
-	aStream : stream,
+	anIterator : iterator,
 	delimitersTuple : <<any…|1..>…|1..>
 |
-	a multiply delimited stream with
-		element type := <aStream's element type…|>,
-		decorated stream := aStream,
+	a multiply delimited iterator with
+		element type := <anIterator's element type…|>,
+		decorated iterator := anIterator,
 		delimiters := delimitersTuple
-] : stream of tuple;
+] : iterator of tuple;
 
 Semantic restriction "_delimited by any of_" is
 [
-	streamType : stream's type,
+	iteratorType : iterator's type,
 	delimitersType : <<any…|1..>…|1..>'s type
 |
-	extend multiply delimited stream with
-		element type : <streamType's element type's instance…|>'s type,
-		decorated stream : streamType,
+	extend multiply delimited iterator with
+		element type : <iteratorType's element type's instance…|>'s type,
+		decorated iterator : iteratorType,
 		delimiters : delimitersType
 ];

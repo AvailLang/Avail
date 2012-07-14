@@ -269,7 +269,7 @@ Semantic restriction "a counting stream from_to_by_" is
  * `end`. For each value <em>v</em> produced, there is some <em>n ∈ integer</em>
  * such that:
  *
- *    aStream ::= stream from start to end by step;
+ *    aStream ::= a counting stream from start to end by step;
  *    ...
  *    v ::= aStream's head;
  *    Assert: v = start + n × step;

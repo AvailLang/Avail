@@ -35,5 +35,9 @@ Versions
 	"dev"
 Extends
 	"Abstract Iterators",
+	"Bounded Iterators",
+	"Collection Iterators",
+	"Counting Iterators",
+	/*"Delimited Iterators",*/
 	"Stream Iterators"
 Body

@@ -43,8 +43,8 @@ Uses
 	"Early Math",
 	"Enumeration Support"
 Names
-	"(new↑_:=_)",
-	"(new↑_`?=_)",
+	"(↓new↑_:=_)",
+	"(↓new↑_`?=_)",
 	"_++",
 	"++_",
 	"(_++)",
@@ -74,13 +74,13 @@ Semantic restriction "↓_" is
  *    A new variable capable of retrieving and storing values of the specified
  *    containment type. The variable contains `initialValue`.
  */
-Public method "(new↑_:=_)" is
+Public method "(↓new↑_:=_)" is
 [
 	containmentType : any meta,
 	initialValue : any
 |
 	var ::= new ↑containmentType;
-	var ?= initialValue;
+	↓var ?= initialValue;
 	var
 ] : variable;
 
@@ -88,7 +88,7 @@ Public method "(new↑_:=_)" is
  * Reject the current parse if the variable type does not accept the initial
  * value.
  */
-Semantic restriction "(new↑_:=_)" is
+Semantic restriction "(↓new↑_:=_)" is
 [
 	containmentMeta : any meta's type,
 	valueType : any meta
@@ -117,13 +117,13 @@ Semantic restriction "(new↑_:=_)" is
  *    A new variable capable of retrieving and storing values of the specified
  *    containment type. The variable contains `initialValue`.
  */
-Public method "(new↑_`?=_)" is
+Public method "(↓new↑_`?=_)" is
 [
 	containmentType : any meta,
 	initialValue : any
 |
 	var ::= new ↑containmentType;
-	var ?= initialValue;
+	↓var ?= initialValue;
 	var
 ] : variable;
 
@@ -176,7 +176,7 @@ Private method "increment function" is
 	[
 		var : variable
 	|
-		var ?= cast eject var into [ t : number | t + 1 ];
+		↓var ?= cast eject var into [ t : number | t + 1 ];
 	] : ⊤
 ];
 
@@ -231,7 +231,7 @@ Public method "(_++)" is
 	var : variable
 |
 	value ::= eject var;
-	var ?= cast value into [ t : number | t + 1 ];
+	↓var ?= cast value into [ t : number | t + 1 ];
 	value
 ] : ⊤;
 
@@ -277,7 +277,7 @@ Public method "(++_)" is
 [
 	var : variable
 |
-	var ?= cast eject var into [ t : number | t + 1 ];
+	↓var ?= cast eject var into [ t : number | t + 1 ];
 	↓var
 ];
 
@@ -322,7 +322,7 @@ Private method "decrement function" is
 	[
 		var : variable
 	|
-		var ?= cast eject var into [ t : number | t - 1 ];
+		↓var ?= cast eject var into [ t : number | t - 1 ];
 	] : ⊤
 ];
 
@@ -354,7 +354,7 @@ Public method "(_--)" is
 	var : variable
 |
 	value ::= eject var;
-	var ?= cast value into [ t : number | t - 1 ];
+	↓var ?= cast value into [ t : number | t - 1 ];
 	value
 ] : ⊤;
 
@@ -400,7 +400,7 @@ Public method "(--_)" is
 [
 	var : variable
 |
-	var ?= cast eject var into [ t : number | t - 1 ];
+	↓var ?= cast eject var into [ t : number | t - 1 ];
 	↓var
 ];
 

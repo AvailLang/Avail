@@ -40,6 +40,7 @@ import com.avail.compiler.instruction.*;
 import com.avail.descriptor.*;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.interpreter.Primitive;
+import com.avail.interpreter.Primitive.Flag;
 import com.avail.interpreter.primitive.*;
 
 /**
@@ -659,6 +660,18 @@ public class AvailCodeGenerator
 		{
 			final AvailInstruction instruction = instructions.get(index - 1);
 			instruction.fixFlagsUsingLocalDataOuterDataCodeGenerator(
+				localData,
+				outerData,
+				this);
+		}
+		// Prevent clearing of the primitive failure variable. This is necessary
+		// for primitive 200, but probably also a good idea in general.
+		if (primitive != 0
+			&& !Primitive.byPrimitiveNumber(primitive).hasFlag(Flag.CannotFail))
+		{
+			final AvailInstruction fakeFailureVariableUse =
+				new AvailGetLocalVariable(numArgs + 1);
+			fakeFailureVariableUse.fixFlagsUsingLocalDataOuterDataCodeGenerator(
 				localData,
 				outerData,
 				this);

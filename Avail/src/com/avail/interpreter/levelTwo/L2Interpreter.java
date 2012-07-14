@@ -33,6 +33,7 @@
 package com.avail.interpreter.levelTwo;
 
 import static com.avail.descriptor.AvailObject.error;
+import static com.avail.exceptions.AvailErrorCode.E_UNWIND_SENTINEL;
 import static com.avail.interpreter.Primitive.Result.*;
 import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
 import static java.lang.Math.max;
@@ -750,23 +751,42 @@ extends Interpreter
 		AvailObject continuation = pointerAt(CALLER);
 		while (!continuation.equalsNull())
 		{
-			if (continuation.function().code().primitiveNumber() == 200)
+			final AvailObject code = continuation.function().code();
+			if (code.primitiveNumber() == 200)
 			{
-				final AvailObject handlerTuple =
-					continuation.argOrLocalOrStackAt(2);
-				assert handlerTuple.isTuple();
-				for (final AvailObject handler : handlerTuple)
+				assert code.numArgs() == 2;
+				final AvailObject failureVariable =
+					continuation.argOrLocalOrStackAt(3);
+				// Ignore the frame if it is currently unwinding.
+				if (!failureVariable.getValue().equals(
+					E_UNWIND_SENTINEL.numericCode()))
 				{
-					if (exceptionValue.isInstanceOf(
-						handler.kind().argsTupleType().typeAtIndex(1)))
+					final AvailObject handlerTuple =
+						continuation.argOrLocalOrStackAt(2);
+					assert handlerTuple.isTuple();
+					for (final AvailObject handler : handlerTuple)
 					{
-						prepareToResumeContinuation(continuation);
-						invokeFunctionArguments(
-							handler,
-							Collections.singletonList(exceptionValue));
-						// Catching an exception *always* changes the
-						// continuation.
-						return CONTINUATION_CHANGED;
+						if (exceptionValue.isInstanceOf(
+							handler.kind().argsTupleType().typeAtIndex(1)))
+						{
+							// This is the correct handler. Run it.
+							continuation = continuation.ensureMutable();
+							final AvailObject newVariable =
+								VariableDescriptor.forOuterType(
+									failureVariable.kind());
+							// Mark this frame: we don't want it to handle an
+							// exception raised from within one of its handlers.
+							newVariable.setValue(
+								E_UNWIND_SENTINEL.numericCode());
+							continuation.argOrLocalOrStackAtPut(3, newVariable);
+							prepareToResumeContinuation(continuation);
+							invokeFunctionArguments(
+								handler,
+								Collections.singletonList(exceptionValue));
+							// Catching an exception *always* changes the
+							// continuation.
+							return CONTINUATION_CHANGED;
+						}
 					}
 				}
 			}

@@ -106,6 +106,7 @@ Next error code is "incorrect-argument-type" (12);
 Next error code is "method-return-type-not-as-forward-declared" (13);
 Next error code is "continuation-expected-stronger-type" (14);
 Next error code is "primitive-not-supported" (15);
+Next error code is "unwind-sentinel" (16);
 Next error code is "not-enumeration" (17);
 Next error code is "no-method" (19);
 Next error code is "wrong-number-of-outers" (20);

@@ -69,7 +69,6 @@ Uses
 		"_[_]:=_",
 		"_[_]→_",
 		"_`#_:_(literals=_,`#locals_,`#outers_,stack depth=_)",
-		"_`?=_",
 		"_has implementation for_",
 		"_mod_",
 		"_×_",
@@ -99,6 +98,7 @@ Uses
 		"swap_and_",
 		"termination requested",
 		"↓_",
+		"↓_`?=_",
 		"∪_[_.._]"
 	)
 Names
@@ -253,7 +253,7 @@ Method "↓_" is
  *    var - A variable.
  *    value - The value that should be stored into `var`.
  */
-Method "_`?=_" is
+Method "↓_`?=_" is
 [
 	var : variable,
 	value : any

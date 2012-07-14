@@ -41,12 +41,10 @@ Extends
 		"concatenate_",
 		"drop from_until_",
 		"drop from_while_",
-		"drop_from_",
 		"filter_by_",
 		"map_through_",
 		"take from_until_",
 		"take from_while_",
-		"take_from_",
 		"zip_",
 		"_is empty",
 		"_starts with_",
@@ -60,10 +58,12 @@ Uses
 Names
 	"an empty stream",
 	"decorated stream|streams",
+	"drop«at most»?_from_",
 	"empty stream",
 	"empty-stream exception",
 	"stream",
 	"stream of_",
+	"take«at most»?_from_",
 	"_'s⁇head method is_",
 	"_'s⁇tail method is_"
 
@@ -795,10 +795,10 @@ zipped stream's tail method is
 ] : zipped stream;
 
 /**
- * Construct and answer the zip of the specified streams. Given N input streams,
- * the output is the stream whose i-th element contains the i-th element from
- * each consecutive input stream. Each of the output's tuples has size equal to
- * the number of inputs.
+ * Construct and answer the zip of the specified streams. Given n input streams,
+ * the output is the stream whose i-th element is an n-tuple containing the i-th
+ * element from each consecutive input stream. The answer is empty when any of
+ * the input streams becomes empty.
  * 
  * Parameters:
  *    streams - A tuple of streams.
@@ -817,10 +817,10 @@ Method "zip_" is
 ] : stream;
 
 /**
- * Construct and answer the zip of the specified streams. Given N input streams,
- * the output is the stream whose i-th element contains the i-th element from
- * each consecutive input stream. Each of the output's tuples has size equal to
- * the number of inputs.
+ * Construct and answer the zip of the specified streams. Given n input streams,
+ * the output is the stream whose i-th element is an n-tuple containing the i-th
+ * element from each consecutive input stream. The answer is empty when any of
+ * the input streams becomes empty.
  * 
  * Parameters:
  *    streams - A tuple of streams.
@@ -874,33 +874,50 @@ Semantic restriction "«_‡zip»" is zip semantic restriction;
  * Answer a tuple containing the first `count` elements of `aStream`.
  * 
  * Parameters:
+ *    isLax - `false` if an `empty-stream exception` should be raised if
+ *       `count` exceeds the number of elements remaining, `true` otherwise.
  *    count - The size of the requested tuple.
- *    aTuple - A stream.
+ *    aStream - A stream.
  * Returns:
  *    A tuple containing the first `count` elements of `aStream`, preserving the
  *    original order.
+ * Raises:
+ *    empty-stream exception - If `isLax` is `false` and `aStream` does not
+ *       contain `count` elements.
  */
-Method "take_from_" is
+Method "take«at most»?_from_" is
 [
+	isLax : boolean,
 	count : whole number,
 	aStream : stream
 |
 	rest : stream := aStream;
 	result : tuple := <>;
-	Repeat
+	Guard
 	[
-		result := eject ↑result ++ <rest's head>;
-		rest := eject ↑rest's tail;
-	] count times;
+		Repeat
+		[
+			result := eject ↑result ++ <rest's head>;
+			rest := eject ↑rest's tail;
+		] count times;
+	]
+	intercept
+	[
+		e : empty-stream exception
+	|
+		Unless isLax then [Raise e];
+	];
 	result
 ] : tuple;
 
-Semantic restriction "take_from_" is
+Semantic restriction "take«at most»?_from_" is
 [
+	laxity : boolean's type,
 	count : whole number's type,
 	streamType : stream's type
 |
-	<<>, streamType's element type's instance…|count>
+	min ::= if laxity = true then [0] else [⎣count⎦];
+	<<>, streamType's element type's instance…|[min..⎡count⎤+1)>
 ];
 
 /**
@@ -922,7 +939,7 @@ Method "take from_while_" is
 |
 	result : tuple := <>;
 	rest : stream := aStream;
-	While [ invoke predicate with <rest's head> ]
+	While [¬rest is empty ∧ [invoke predicate with <rest's head>]]
 	do
 	[
 		result := eject ↑result ++ <rest's head>;
@@ -945,7 +962,7 @@ Semantic restriction "take from_while_" is
  * `predicate`.
  *
  * Parameters:
- *    aTuple - A tuple.
+ *    aStream - A stream.
  *    predicate - A function that can accept each element of the specified
  *       stream. It should answer `false` to keep the element (and continue
  *       scanning) or `true` to abort.
@@ -959,7 +976,7 @@ Method "take from_until_" is
 |
 	result : tuple := <>;
 	rest : stream := aStream;
-	Until [ invoke predicate with <rest's head> ]
+	Until [rest is empty ∨ [invoke predicate with <rest's head>]]
 	do
 	[
 		result := eject ↑result ++ <rest's head>;
@@ -982,28 +999,44 @@ Semantic restriction "take from_until_" is
  * `count` elements.
  * 
  * Parameters:
+ *    isLax - `false` if an `empty-stream exception` should be raised if
+ *       `count` exceeds the number of elements remaining, `true` otherwise.
  *    count - The size of the prefix of `aStream` that should be omitted from
  *       the result stream.
  *    aStream - A stream.
  * Returns:
  *    A stream containing every element but the first `count` elements of
  *    `aStream`, preserving the original order.
+ * Raises:
+ *    empty-stream exception - If `isLax` is `false` and `aStream` does not
+ *       contain `count` elements.
  */
-Method "drop_from_" is
+Method "drop«at most»?_from_" is
 [
+	isLax : boolean,
 	count : whole number,
 	aStream : stream
 |
 	rest : stream := aStream;
-	Repeat
+	Guard
 	[
-		rest := eject ↑rest's tail;
-	] count times;
+		Repeat
+		[
+			rest := eject ↑rest's tail;
+		] count times;
+	]
+	intercept
+	[
+		e : empty-stream exception
+	|
+		Unless isLax then [Raise e];
+	];
 	rest
 ] : stream;
 
-Semantic restriction "drop_from_" is
+Semantic restriction "drop«at most»?_from_" is
 [
+	laxity : boolean's type,
 	count : whole number's type,
 	streamType : stream's type
 |
@@ -1015,7 +1048,7 @@ Semantic restriction "drop_from_" is
  * answers `false` to `predicate`.
  * 
  * Parameters:
- *    aTuple - A tuple.
+ *    aStream - A stream.
  *    predicate - A function that can accept each element of the specified
  *       stream. It should answer `true` to discard the element (and continue
  *       scanning) or `false` to abort.
@@ -1028,7 +1061,7 @@ Method "drop from_while_" is
 	predicate : [⊥]→boolean
 |
 	rest : stream := aStream;
-	While [ invoke predicate with <rest's head> ]
+	While [¬rest is empty ∧ [invoke predicate with <rest's head>]]
 	do
 	[
 		rest := eject ↑rest's tail;
@@ -1050,7 +1083,7 @@ Semantic restriction "drop from_while_" is
  * answers `true` to `predicate`.
  * 
  * Parameters:
- *    aTuple - A tuple.
+ *    aStream - A stream.
  *    predicate - A function that can accept each element of the specified
  *       stream. It should answer `false` to discard the element (and continue
  *       scanning) or `true` to abort.
@@ -1063,7 +1096,7 @@ Method "drop from_until_" is
 	predicate : [⊥]→boolean
 |
 	rest : stream := aStream;
-	Until [ invoke predicate with <rest's head> ]
+	Until [rest is empty ∨ [invoke predicate with <rest's head>]]
 	do
 	[
 		rest := eject ↑rest's tail;

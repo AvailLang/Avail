@@ -1,0 +1,558 @@
+/*
+ * Counting Iterators.avail
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Counting Iterators"
+Versions
+	"dev"
+Uses
+	"Abstract Iterators",
+	"Foundation",
+	"Unit Testing"
+Names
+	"a counting iterator from_to_",
+	"a counting iterator from_to_by_",
+	"counting iterator test suite"
+Body
+
+/* TODO: [TLS] Remove these constants once a macro is available for "$…". */
+next ::= $next;
+step ::= $step;
+maximum ::= $maximum;
+
+/**
+ * A counting number iterator is an immutable lazy list of arbitarily many
+ * numbers, each of which is a fixed distance from its neighbors.
+ *
+ * @type "counting number iterator"
+ * @supertype "iterator"
+ */
+Class "counting number iterator" extends iterator
+	with fields
+		element type : number's type,
+		next : ↑number,
+		step : number,
+		maximum : number;
+
+/**
+ * An counting integer iterator is an immutable lazy list of arbitrarily many
+ * integers, each of which is a fixed distance from its neighbors.
+ *
+ * @type "counting integer iterator"
+ * @supertype "iterator"
+ */
+Class "counting integer iterator" extends counting number iterator
+	with fields
+		element type : integer's type,
+		step : integer,
+		maximum : extended integer;
+
+Method "_is exhausted" is
+[
+	anIterator : counting number iterator
+|
+	if anIterator's step ≥ 0 then
+	[
+		↓anIterator's next > anIterator's maximum
+	]
+	else
+	[
+		↓anIterator's next < anIterator's maximum
+	]
+] : boolean;
+
+counting number iterator's current element method is
+[
+	anIterator : counting number iterator
+|
+	↓anIterator's next
+] : number;
+
+counting number iterator's advance method is
+[
+	anIterator : counting number iterator
+|
+	↓anIterator's next ?= ↓anIterator's next + anIterator's step;
+] : ⊤;
+
+Semantic restriction "For each_do_" is
+[
+	iteratorType : counting integer iterator's type,
+	actionType : [⊥]→⊤'s type
+|
+	return ::= actionType's return type;
+	endSet ::= {⎣iteratorType's maximum⎦, ⎡iteratorType's maximum⎤};
+	step ::= iteratorType's step;
+	elementType ::= iteratorType's element type's instance;
+	definitelyRuns ::=
+		if step ⊆ [0..∞) then
+		[
+			⎡elementType⎤ ≤ ⎣iteratorType's maximum⎦
+		]
+		else
+		[
+			if step ⊆ (-∞..-1] then
+			[
+				⎣elementType⎦ ≥ ⎡iteratorType's maximum⎤
+			]
+			else
+			[
+				false
+			]
+		];
+	/* These are four circumstances which lead to non-termination:
+	 * 
+	 * 1. The step is 0.
+	 * 2. The step is positive, the end is ∞, and the action answers `true`.
+	 * 3. The step is negative, the end is -∞, and the action answers `true`.
+	 * 4. The action is definitely invoked and it never terminates.
+	 */
+	if step ⊆ [0..0]
+		∨ [ (step ⊆ [0..∞) ∧ [ endSet = {∞} ])
+		∨ [ (step ⊆ (-∞..-1] ∧ [ endSet = {-∞} ])
+		∨ [ definitelyRuns ∧ [ return = ⊥ ] ] ] ]
+	then
+	[
+		⊥
+	]
+	else
+	[
+		⊤
+	]
+];
+
+/**
+ * Construct and answer an {@type "iterator"} that lazily produces all
+ * consecutive values between {@param "start"} and {@param "end"}.
+ *
+ * @method "a counting iterator from_to_"
+ * @param "start" "integer"
+ *        The start value, inclusive. This is the first value that will be
+ *        answered by the iterator.
+ * @param "end" "extended integer"
+ *        The end value, inclusive. This is the last value that will be
+ *        answered by the iterator.
+ * @returns "iterator of integer"
+ *          The requested iterator.
+ */
+Public method "a counting iterator from_to_" is
+[
+	start : integer,
+	end : extended integer
+|
+	a counting integer iterator with
+		element type := (start - 1..end + 1),
+		next := cast (↓new ↑number := start) into [t : ↑number | t],
+		step := 1,
+		maximum := end
+] : iterator of integer;
+
+Semantic restriction "a counting iterator from_to_" is
+[
+	startType : integer's type,
+	endType : extended integer's type
+|
+	elementType ::= (⎣startType⎦ - 1..⎡endType⎤ + 1);
+	extend counting integer iterator with
+		element type : elementType's type,
+		step : 1's type,
+		maximum : endType
+];
+
+/**
+ * Construct and answer an {@type "iterator"} that lazily produces values
+ * between {@param "start"} and {@param "end"}. For each value <em>v</em>
+ * produced, there is some <em>n ∈ number</em> such that:
+ *
+ *    anIterator ::= a counting iterator from start to end by step;
+ *    ...
+ *    v ::= anIterator's current element;
+ *    Assert: v = start + n × step;
+ *
+ * Note that {@param "end"} is not guaranteed to be the last value produced by
+ * the iterator. It is only guaranteed that no larger values than {@param "end"}
+ * will be answered.
+ *
+ * @method "a counting iterator from_to_by_"
+ * @param "start" "number"
+ *        The start value, inclusive. This is the first value that will be
+ *        answered by the iterator.
+ * @param "end" "number"
+ *        The end value, inclusive. If {@param "delta"} ≥ 0, then no values
+ *        larger than this will be answered by the iterator. If {@param delta}
+ *        < 0, then no values smaller than this will be answered by the
+ *        iterator.
+ * @param "delta" "number"
+ *        The amount by which successive values anwered by the iterator will
+ *        differ.
+ * @returns "iterator of number"
+ *          The requested iterator.
+ */
+Public method "a counting iterator from_to_by_" is
+[
+	start : number,
+	end : number,
+	delta : number
+|
+	elementType ::= cast start + delta into
+		[ t : double | double ],
+		[ t : float | float ],
+		[ t : extended integer | extended integer ]
+		else [ number];
+	a counting number iterator with
+		element type := elementType,
+		next := cast (↓new ↑number := start) into [t : ↑number | t],
+		step := delta,
+		maximum := end
+] : iterator of number;
+
+Semantic restriction "a counting iterator from_to_by_" is
+[
+	startType : number's type,
+	endType : number's type,
+	deltaType : number's type
+|
+	elementType ::=
+		if startType ⊆ double ∨ [deltaType ⊆ double] then
+		[
+			double
+		]
+		else if [startType ⊆ float ∨ [endType ⊆ float]] then
+		[
+			float
+		]
+		else if [startType⊆extended integer ∧ [endType⊆extended integer]] then
+		[
+			extended integer
+		]
+		else
+		[
+			number
+		];
+	extend counting number iterator with
+		element type : elementType's type,
+		step : deltaType,
+		maximum : endType
+];
+
+/**
+ * Construct and answer an {@type "iterator"} that lazily produces values
+ * between {@param "start"} and {@param "end"}. For each value <em>v</em>
+ * produced, there is some <em>n ∈ number</em> such that:
+ *
+ *    anIterator ::= a counting iterator from start to end by step;
+ *    ...
+ *    v ::= anIterator's current element;
+ *    Assert: v = start + n × step;
+ *
+ * Note that {@param "end"} is not guaranteed to be the last value produced by
+ * the iterator. It is only guaranteed that no larger values than {@param "end"}
+ * will be answered.
+ *
+ * @method "a counting iterator from_to_by_"
+ * @param "start" "number"
+ *        The start value, inclusive. This is the first value that will be
+ *        answered by the iterator.
+ * @param "end" "number"
+ *        The end value, inclusive. If {@param "delta"} ≥ 0, then no values
+ *        larger than this will be answered by the iterator. If {@param delta}
+ *        < 0, then no values smaller than this will be answered by the
+ *        iterator.
+ * @param "delta" "number"
+ *        The amount by which successive values anwered by the iterator will
+ *        differ.
+ * @returns "iterator of number"
+ *          The requested iterator.
+ */
+Public method "a counting iterator from_to_by_" is
+[
+	start : integer,
+	end : number,
+	delta : integer
+|
+	integralEnd ::= end→extended integer;
+	a counting integer iterator with
+		element type := (start - 1..integralEnd + 1),
+		next := cast (↓new ↑number := start) into [t : ↑number | t],
+		step := delta,
+		maximum := integralEnd
+] : iterator of integer;
+
+Semantic restriction "a counting iterator from_to_by_" is
+[
+	startType : integer's type,
+	endType : extended integer's type,
+	deltaType : integer's type
+|
+	elementType ::= (⎣startType⎦ - 1..⎡endType⎤ + 1);
+	extend counting integer iterator with
+		element type : elementType's type,
+		step : deltaType,
+		maximum : endType
+];
+
+/* TODO: [TLS] Remove these constants once a macro is available for "$…". */
+_testSuite ::= $"counting iterator test suite";
+Public method "counting iterator test suite" is [ _testSuite ];
+
+New test suite counting iterator test suite extends iterators test suite;
+
+Test "counting iterator basics" in counting iterator test suite is
+[
+	ref ::= 1 to 10;
+	index : natural number := 1;
+	iter ::= a counting iterator from 1 to 10;
+	For each iter do
+	[
+		element : [1..10]
+	|
+		Require: ref[(↑index++)] = element;
+	];
+	Require: (|ref| + 1) = index;
+];
+
+Test "counting iterator(map)" in counting iterator test suite is
+[
+	ref ::= <1, 4, 9, 16, 25, 36, 49, 64, 81, 100>;
+	index : natural number := 1;
+	iter ::= map a counting iterator from 1 to 10 through [i : [1..10] | i × i];
+	For each iter do
+	[
+		element : [1..100]
+	|
+		Require: ref[(↑index++)] = element;
+	];
+	Require: (|ref| + 1) = index;
+];
+
+Test "counting iterator(filter)" in counting iterator test suite is
+[
+	ref ::= <2, 4, 6, 8, 10>;
+	index : natural number := 1;
+	iter ::= filter a counting iterator from 1 to 10
+		by [i : [1..10] | i is even];
+	For each iter do
+	[
+		element : [1..10]
+	|
+		Require: ref[(↑index++)] = element;
+	];
+	Require: (|ref| + 1) = index;
+];
+
+Test "counting iterator(concatenation)" in counting iterator test suite is
+[
+	ref ::= 1 to 10;
+	index : natural number := 1;
+	iters ::= <
+		an exhausted iterator,
+		a counting iterator from 1 to 2,
+		an exhausted iterator,
+		an exhausted iterator,
+		a counting iterator from 3 to 7,
+		an exhausted iterator,
+		a counting iterator from 8 to 8,
+		a counting iterator from 9 to 10,
+		an exhausted iterator>;
+	iter ::= concatenate iters;
+	For each iter do
+	[
+		element : [1..10]
+	|
+		Require: ref[(↑index++)] = element;
+	];
+	Require: (|ref| + 1) = index;
+];
+
+Test "counting iterator(lexical concatenation)"
+	in counting iterator test suite is
+[
+	ref ::= 1 to 10;
+	index : natural number := 1;
+	iters ::= <
+		an exhausted iterator,
+		a counting iterator from 1 to 2,
+		an exhausted iterator,
+		an exhausted iterator,
+		a counting iterator from 3 to 7,
+		an exhausted iterator,
+		a counting iterator from 8 to 8,
+		a counting iterator from 9 to 10,
+		an exhausted iterator>;
+	iter ::= iters[1]
+		++ iters[2]
+		++ iters[3]
+		++ iters[4]
+		++ iters[5]
+		++ iters[6]
+		++ iters[7]
+		++ iters[8]
+		++ iters[9];
+	For each iter do
+	[
+		element : [1..10]
+	|
+		Require: ref[(↑index++)] = element;
+	];
+	Require: (|ref| + 1) = index;
+];
+
+Test "counting iterator(zip)" in counting iterator test suite is
+[
+	ref ::= <
+		<1, 1>, <2, 4>, <3, 9>, <4, 16>, <5, 25>,
+		<6, 36>, <7, 49>, <8, 64>, <9, 81>, <10, 100>>;
+	index : natural number := 1;
+	iters ::= <
+		a counting iterator from 1 to 10,
+		map a counting iterator from 1 to 10
+			through [n : [1..10] | n × n]>;
+	iter ::= zip iters;
+	For each iter do
+	[
+		element : <[1..10], [1..100]…|2>
+	|
+		Require: ref[(↑index++)] = element;
+	];
+	Require: (|ref| + 1) = index;
+];
+
+Test "counting iterator(lexical zip)" in counting iterator test suite is
+[
+	ref ::= <
+		<1, 1>, <2, 4>, <3, 9>, <4, 16>, <5, 25>,
+		<6, 36>, <7, 49>, <8, 64>, <9, 81>, <10, 100>>;
+	index : natural number := 1;
+	iters ::= <
+		a counting iterator from 1 to 10,
+		map a counting iterator from 1 to 10
+			through [n : [1..10] | n × n]>;
+	iter ::= iters[1] zip iters[2];
+	For each iter do
+	[
+		element : <[1..10], [1..100]…|2>
+	|
+		Require: ref[(↑index++)] = element;
+	];
+	Require: (|ref| + 1) = index;
+];
+
+Test "counting iterator(take_from_)" in counting iterator test suite is
+[
+	ref ::= 1 to 5;
+	index : natural number := 1;
+	iter ::= a counting iterator from 1 to 10;
+	result ::= take 5 from iter;
+	For each result do
+	[
+		element : [1..10]
+	|
+		Require: ref[(↑index++)] = element;
+	];
+	Require: 6 = iter's current element;
+	Require: [take 6 from iter] raises exhausted-iterator exception;
+];
+
+Test "counting iterator(take from_while_)" in counting iterator test suite is
+[
+	ref ::= 1 to 5;
+	index : natural number := 1;
+	iter ::= a counting iterator from 1 to 10;
+	result ::= take from iter while [n : [1..10] | n ≤ 5];
+	For each result do
+	[
+		element : [1..10]
+	|
+		Require: ref[(↑index++)] = element;
+	];
+	Require: 6 = iter's current element;
+];
+
+Test "counting iterator(take from_until_)" in counting iterator test suite is
+[
+	ref ::= 1 to 5;
+	index : natural number := 1;
+	iter ::= a counting iterator from 1 to 10;
+	result ::= take from iter until [n : [1..10] | n ≥ 6];
+	For each result do
+	[
+		element : [1..10]
+	|
+		Require: ref[(↑index++)] = element;
+	];
+	Require: 6 = iter's current element;
+];
+
+Test "counting iterator(Drop_from_)" in counting iterator test suite is
+[
+	ref ::= 6 to 10;
+	index : natural number := 1;
+	iter ::= a counting iterator from 1 to 10;
+	Drop 5 from iter;
+	For each iter do
+	[
+		element : [1..10]
+	|
+		Require: ref[(↑index++)] = element;
+	];
+	Require: (|ref| + 1) = index;
+	Require: [Drop 6 from iter;] raises exhausted-iterator exception;
+];
+
+Test "counting iterator(Drop from_while_)" in counting iterator test suite is
+[
+	ref ::= 6 to 10;
+	index : natural number := 1;
+	iter ::= a counting iterator from 1 to 10;
+	Drop from iter while [n : [1..10] | n ≤ 5];
+	For each iter do
+	[
+		element : [1..10]
+	|
+		Require: ref[(↑index++)] = element;
+	];
+	Require: (|ref| + 1) = index;
+];
+
+Test "counting iterator(Drop from_until_)" in counting iterator test suite is
+[
+	ref ::= 6 to 10;
+	index : natural number := 1;
+	iter ::= a counting iterator from 1 to 10;
+	Drop from iter until [n : [1..10] | n ≥ 6];
+	For each iter do
+	[
+		element : [1..10]
+	|
+		Require: ref[(↑index++)] = element;
+	];
+	Require: (|ref| + 1) = index;
+];

@@ -39,6 +39,7 @@ import com.avail.annotations.NotNull;
 import com.avail.compiler.MessageSplitter;
 import com.avail.descriptor.*;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.interpreter.primitive.P_200_CatchException;
 
 /**
  * {@code AvailErrorCode} is an enumeration of all possible failures of
@@ -142,9 +143,10 @@ public enum AvailErrorCode
 	E_PRIMITIVE_NOT_SUPPORTED (15),
 
 	/**
-	 * TODO: Recycle!
+	 * The continuation whose primitive failure variable is set to this value is
+	 * currently running an exception handler.
 	 */
-//	E_??? (16),
+	E_UNWIND_SENTINEL (16),
 
 	/**
 	 * The specified type is not a finite {@linkplain EnumerationTypeDescriptor

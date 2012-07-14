@@ -41,18 +41,29 @@ Extends
 		"concatenate_",
 		"filter_by_",
 		"map_through_",
+		"take from_until_",
+		"take from_while_",
+		"zip_",
+		"«_‡zip»",
 		"«_‡++»"
 	)
 Uses
-	"Foundation"
+	"Common" = ("Data|data abstractions test suite"),
+	"Foundation",
+	"Unit Testing" = ("New test suite_extends_")
 Names
 	"Advance_",
+	"Drop from_until_",
+	"Drop from_while_",
+	"Drop«at most»?_from_",
 	"an exhausted iterator",
 	"decorated iterator|iterators",
 	"exhausted iterator",
 	"exhausted-iterator exception",
 	"iterator",
+	"iterators test suite",
 	"iterator of_",
+	"take«at most»?_from_",
 	"_is exhausted",
 	"_'s⁇current element",
 	"_'s⁇current element method is_",
@@ -66,6 +77,7 @@ decoratedIterator ::= $"decorated iterator|iterators";
 transformer ::= $"transformer";
 filter ::= $"filter";
 iteratorIndex ::= $"iterator index";
+testSuite ::= $"iterators test suite";
 
 /**
  * Answer the field atom that represents a decorated iterator.
@@ -436,7 +448,7 @@ Semantic restriction "For each_do_" is
  * to the current element of the decorated iterator.
  *
  * @type "mapped iterator"
- * @subtype "iterator"
+ * @supertype "iterator"
  */
 Class "mapped iterator" extends iterator
 	with fields
@@ -507,7 +519,7 @@ Semantic restriction "map_through_" is
  * satisfies the filter function.
  *
  * @type "filtered iterator"
- * @subtype "iterator"
+ * @supertype "iterator"
  */
 Class "filtered iterator" extends iterator
 	with fields
@@ -608,7 +620,7 @@ Semantic restriction "filter_by_" is
  * iterators.
  *
  * @type "concatenation iterator"
- * @subtype "iterator"
+ * @supertype "iterator"
  */
 Class "concatenation iterator" extends iterator
 	with fields
@@ -669,7 +681,7 @@ Method "concatenate_" is
 		elementType ::=
 			cast ∪ map iterators through [i : iterator | i's element type]
 			into [t : any's type | t];
-		var ::= cast (new ↑natural number := 1) into [t : ↑natural number | t];
+		var ::= cast (↓new ↑natural number := 1) into [t : ↑natural number | t];
 		a concatenation iterator with
 			element type := elementType,
 			decorated iterators := iterators,
@@ -695,7 +707,7 @@ Method "«_‡++»" is
 	elementType ::=
 		cast ∪ map iterators through [i : iterator | i's element type]
 		into [t : any's type | t];
-	var ::= cast (new ↑natural number := 1) into [t : ↑natural number | t];
+	var ::= cast (↓new ↑natural number := 1) into [t : ↑natural number | t];
 	a concatenation iterator with
 		element type := elementType,
 		decorated iterators := iterators,
@@ -706,7 +718,7 @@ Method "«_‡++»" is
  * Answer a function suitable for use as a semantic restriction for the
  * {@method "concatenate_"} and {@method "«_‡++»"} methods.
  *
- * @returns "[<stream…|>'s type]→(concatenation iterator's type)"
+ * @returns "[<iterator…|>'s type]→(concatenation iterator's type)"
  *          The requested function.
  */
 Private method "concatenation semantic restriction" is
@@ -729,3 +741,382 @@ Private method "concatenation semantic restriction" is
 
 Semantic restriction "concatenate_" is concatenation semantic restriction;
 Semantic restriction "«_‡++»" is concatenation semantic restriction;
+
+/**
+ * A zipped iterator produces zipped tuples from a sequenced collection of
+ * iterators.
+ *
+ * @type "zipped iterator"
+ * @supertype "iterator"
+ */
+Explicit class "zipped iterator" extends iterator
+	with fields
+		element type : tuple's type,
+		decorated iterators : <iterator…|>;
+
+Method "_is exhausted" is
+[
+	anIterator : zipped iterator
+|
+	any of anIterator's decorated iterators
+		satisfies [i : iterator | i is exhausted]
+] : boolean;
+
+zipped iterator's current element method is
+[
+	anIterator : zipped iterator
+|
+	map anIterator's decorated iterators
+		through [i : iterator | i's current element]
+] : any;
+
+zipped iterator's advance method is
+[
+	anIterator : zipped iterator
+|
+	For each anIterator's decorated iterators do [i : iterator | Advance i;];
+] : ⊤;
+
+/**
+ * Construct and answer the zip of the specified {@type "iterator"}s. Given
+ * <em>n</em> input iterators, the output is the iterator whose <em>i</em>-th
+ * element is an <em>n</em>-tuple containing the <em>i</em>-th element from each
+ * consecutive input iterator. The answer is exhausted when any of the input
+ * iterators becomes exhausted.
+ *
+ * @method "zip_"
+ * @param "iterators" "<iterator…|>"
+ *        A tuple of iterators.
+ * @returns "iterator"
+ *          The requested iterator.
+ */
+Method "zip_" is
+[
+	iterators : <iterator…|1..>
+|
+	types ::= map iterators through [i : iterator | i's element type];
+	elementType ::=
+		<types[1..|types| - 1], types[|types|]… | |iterators|'s type>;
+	a zipped iterator with
+		element type := elementType,
+		decorated iterators := iterators
+] : iterator;
+
+/**
+ * Construct and answer the zip of the specified {@type "iterator"}s. Given
+ * <em>n</em> input iterators, the output is the iterator whose <em>i</em>-th
+ * element is an <em>n</em>-tuple containing the <em>i</em>-th element from each
+ * consecutive input iterator. The answer is exhausted when any of the input
+ * iterators becomes exhausted.
+ *
+ * @method "«_‡zip»"
+ * @param "iterators" "<iterator…|>"
+ *        A tuple of iterators.
+ * @returns "iterator"
+ *          The requested iterator.
+ */
+Method "«_‡zip»" is
+[
+	iterators : <iterator…|2..>
+|
+	types ::= map iterators through [i : iterator | i's element type];
+	elementType ::=
+		<types[1..|types| - 1], types[|types|]… | |iterators|'s type>;
+	a zipped iterator with
+		element type := elementType,
+		decorated iterators := iterators
+] : iterator;
+
+/**
+ * Answer a function suitable for use as a semantic restriction for the
+ * {@method "zip_"} and {@method "«_‡zip»"} methods.
+ *
+ * @returns "[<iterator…|>'s type]→(zipped iterator's type)"
+ *          The requested function.
+ */
+Private method "zip semantic restriction" is
+[
+	[
+		iterators : <iterator…|1..>'s type
+	|
+		types : <any's type…|> := <>;
+		From 1 to (⎣iterators⎦ min (|iterators' leading types| + 1)) do
+		[
+			index : natural number
+		|
+			types := eject ↑types
+				++ <iterators[index]'s element type's instance>;
+		];
+		nonempty ::= cast types into [t : <any's type…|1..> | t];
+		elementType ::=
+			<nonempty[1..|nonempty| - 1], nonempty[|nonempty|]…
+				| ||iterators||>;
+		extend zipped iterator with
+			element type : elementType's type,
+			decorated iterators : iterators
+	]
+];
+
+Semantic restriction "zip_" is zip semantic restriction;
+Semantic restriction "«_‡zip»" is zip semantic restriction;
+
+/**
+ * Answer a tuple containing (at most) the first {@param "count"} elements of
+ * {@param "anIterator"}.
+ *
+ * @method "take«at most»?_from_"
+ * @param "isLax" "boolean"
+ *        {@code false} if an {@type "exhausted-iterator exception"} should be
+ *        raised if {@param "count"} exceeds the number of elements remaining,
+ *        {@code true} otherwise.
+ * @param "count" "whole number"
+ *        The size of the requested tuple.
+ * @param "anIterator" "iterator"
+ *        An iterator.
+ * @returns "tuple"
+ *          A tuple containing the first {@param "count"} elements of {@param
+ *          "anIterator"}, preserving the original order.
+ * @raises "exhausted-iterator exception"
+ *         If {@param "isLax"} is {@code false} and {@param "anIterator"} does
+ *         not contain {@param "count"} elements.
+ */
+Method "take«at most»?_from_" is
+[
+	isLax : boolean,
+	count : whole number,
+	anIterator : iterator
+|
+	result : tuple := <>;
+	Guard
+	[
+		Repeat
+		[
+			result := eject ↑result ++ <anIterator's current element>;
+			Advance anIterator;
+		] count times;
+	]
+	intercept
+	[
+		e : exhausted-iterator exception
+	|
+		Unless isLax then [Raise e];
+	];
+	result
+] : tuple;
+
+Semantic restriction "take«at most»?_from_" is
+[
+	laxity : boolean's type,
+	count : whole number's type,
+	iteratorType : iterator's type
+|
+	min ::= if laxity = true then [0] else [⎣count⎦];
+	<<>, iteratorType's element type's instance…|[min..⎡count⎤+1)>
+];
+
+/**
+ * Answer a tuple containing the prefix of {@param "anIterator"} that answered
+ * {@code "true"} to {@param "predicate"}.
+ *
+ * @method "take from_while_"
+ * @param "anIterator" "iterator"
+ *        An iterator.
+ * @param "predicate" "[⊥]→boolean"
+ *        A function that can accept each element of the specified iterator. It
+ *        should answer {@code true} to keep the element (and continue scanning)
+ *        or {@code false} to abort.
+ * @returns "tuple"
+ *          A tuple containing the prefix of {@param "anIterator"} that
+ *          satisfied {@param "predicate"}.
+ */
+Method "take from_while_" is
+[
+	anIterator : iterator,
+	predicate : [⊥]→boolean
+|
+	result : tuple := <>;
+	While
+	[
+		¬anIterator is exhausted
+			∧ [invoke predicate with <anIterator's current element>]
+	]
+	do
+	[
+		result := eject ↑result ++ <anIterator's current element>;
+		Advance anIterator;
+	];
+	result
+] : tuple;
+
+Semantic restriction "take from_while_" is
+[
+	iteratorType : iterator's type,
+	predicate : [⊥]→boolean's type
+|
+	Require: predicate accepts iteratorType;
+	<iteratorType's element type's instance…|>
+];
+
+/**
+ * Answer a tuple containing the prefix of {@param "anIterator"} that answered
+ * {@code "false"} to {@param "predicate"}.
+ *
+ * @method "take from_until_"
+ * @param "anIterator" "iterator"
+ *        An iterator.
+ * @param "predicate" "[⊥]→boolean"
+ *        A function that can accept each element of the specified iterator. It
+ *        should answer {@code false} to keep the element (and continue
+ *        scanning) or {@code true} to abort.
+ * @returns "tuple"
+ *          A tuple containing the prefix of {@param "anIterator"} that
+ *          satisfied {@param "predicate"}.
+ */
+Method "take from_until_" is
+[
+	anIterator : iterator,
+	predicate : [⊥]→boolean
+|
+	result : tuple := <>;
+	Until
+	[
+		anIterator is exhausted
+			∨ [invoke predicate with <anIterator's current element>]
+	]
+	do
+	[
+		result := eject ↑result ++ <anIterator's current element>;
+		Advance anIterator;
+	];
+	result
+] : tuple;
+
+Semantic restriction "take from_until_" is
+[
+	iteratorType : iterator's type,
+	predicate : [⊥]→boolean's type
+|
+	Require: predicate accepts iteratorType;
+	<iteratorType's element type's instance…|>
+];
+
+/**
+ * Forward the specified {@type "iterator"} past (at most) the first {@param
+ * "count"} elements.
+ *
+ * @method "Drop«at most»?_from_"
+ * @param "isLax" "boolean"
+ *        {@code false} if an {@type "exhausted-iterator exception"} should be
+ *        raised if {@param "count"} exceeds the number of elements remaining,
+ *        {@code true} otherwise.
+ * @param "count" "whole number"
+ *        The size of the prefix of {@param "anIterator"} that should be omitted
+ *        from the result iterator.
+ * @param "anIterator" "iterator"
+ *        An iterator.
+ * @raises "exhausted-iterator exception"
+ *         If {@param "isLax"} is {@code false} and {@param "anIterator"} does
+ *         not contain {@param "count"} elements.
+ */
+Method "Drop«at most»?_from_" is
+[
+	isLax : boolean,
+	count : whole number,
+	anIterator : iterator
+|
+	Guard
+	[
+		Repeat [Advance anIterator;] count times;
+	]
+	intercept
+	[
+		e : exhausted-iterator exception
+	|
+		Unless isLax then [Raise e];
+	];
+] : ⊤;
+
+/**
+ * Forward the specified {@type "iterator"} past the prefix of elements that
+ * answer {@code true} to {@param "predicate"}.
+ *
+ * @method "Drop from_while_"
+ * @param "anIterator" "iterator"
+ *        An iterator.
+ * @param "predicate" "[⊥]→boolean"
+ *        A function that can accept each element of the specified iterator. It
+ *        should answer {@code true} to discard the element (and continue
+ *        scanning) or {@code false} to abort.
+ */
+Method "Drop from_while_" is
+[
+	anIterator : iterator,
+	predicate : [⊥]→boolean
+|
+	While
+	[
+		¬anIterator is exhausted
+			∧ [invoke predicate with <anIterator's current element>]
+	]
+	do
+	[
+		Advance anIterator;
+	];
+] : ⊤;
+
+Semantic restriction "Drop from_while_" is
+[
+	iteratorType : iterator's type,
+	predicate : [⊥]→boolean's type
+|
+	Require: predicate accepts iteratorType;
+	⊤
+];
+
+/**
+ * Forward the specified {@type "iterator"} past the prefix of elements that
+ * answer {@code false} to {@param "predicate"}.
+ *
+ * @method "Drop from_while_"
+ * @param "anIterator" "iterator"
+ *        An iterator.
+ * @param "predicate" "[⊥]→boolean"
+ *        A function that can accept each element of the specified iterator. It
+ *        should answer {@code false} to discard the element (and continue
+ *        scanning) or {@code true} to abort.
+ */
+Method "Drop from_until_" is
+[
+	anIterator : iterator,
+	predicate : [⊥]→boolean
+|
+	Until
+	[
+		anIterator is exhausted
+			∨ [invoke predicate with <anIterator's current element>]
+	]
+	do
+	[
+		Advance anIterator;
+	];
+] : ⊤;
+
+Semantic restriction "Drop from_until_" is
+[
+	iteratorType : iterator's type,
+	predicate : [⊥]→boolean's type
+|
+	Require: predicate accepts iteratorType;
+	⊤
+];
+
+/**
+ * Answer the test suite identifier of the iterator test suite.
+ *
+ * @method "iterator test suite"
+ * @returns "atom"
+ *          The requested test suite identifier.
+ */
+Public method "iterators test suite" is [ testSuite ];
+
+New test suite iterators test suite extends data abstractions test suite;

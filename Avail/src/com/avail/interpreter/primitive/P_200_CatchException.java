@@ -98,7 +98,8 @@ public class P_200_CatchException extends Primitive
 				Arrays.asList(new AvailObject[]
 				{
 					IntegerDescriptor.zero(),
-					IntegerDescriptor.fromInt(12)
+					E_INCORRECT_ARGUMENT_TYPE.numericCode(),
+					E_UNWIND_SENTINEL.numericCode()
 				})));
 	}
 }
