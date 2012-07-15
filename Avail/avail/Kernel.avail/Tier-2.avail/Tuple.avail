@@ -501,7 +501,7 @@ Restriction "splice_" is [ttType : tupleType |
 				]
 			);
 		result := tuple [result sizes lower bound .. INF)
-			like cast slice into [ t : tuple of any type | t ]
+			like slice
 			default cast union into [ t : any type | t ];
 	];
 	result

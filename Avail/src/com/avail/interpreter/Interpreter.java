@@ -1188,10 +1188,22 @@ public abstract class Interpreter
 	@Override
 	public String toString ()
 	{
-		return String.format(
-			"%s [%s]",
-			getClass().getSimpleName(),
-			fiber().name());
+		final StringBuilder builder = new StringBuilder();
+		builder.append(
+			String.format(
+				"%s [%s]",
+				getClass().getSimpleName(),
+				fiber().name()));
+		final List<String> stack = dumpStack();
+		for (final String frame : stack)
+		{
+			builder.append(
+				String.format(
+					"%n\t-- %s",
+					frame));
+		}
+		builder.append("\n\n");
+		return builder.toString();
 	}
 
 	/**

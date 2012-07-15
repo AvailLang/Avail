@@ -691,8 +691,7 @@ extends ExtendedIntegerDescriptor
 		final @NotNull AvailObject anInteger,
 		final boolean canDestroy)
 	{
-		// Compute anInteger / object. Round towards ZERO. Expect the division
-		// to take a lot of time, as I haven't optimized it much.
+		// Compute anInteger / object. Round towards negative infinity.
 		if (object.equals(zero()))
 		{
 			throw new ArithmeticException(
@@ -704,17 +703,22 @@ extends ExtendedIntegerDescriptor
 		}
 		if (object.lessThan(zero()))
 		{
+			// a/o for o<0:  use -(a/-o)
 			return object.subtractFromIntegerCanDestroy(zero(), canDestroy)
 				.divideIntoIntegerCanDestroy(anInteger, canDestroy)
 				.subtractFromIntegerCanDestroy(zero(), canDestroy);
 		}
 		if (anInteger.lessThan(zero()))
 		{
-			return object
-				.divideIntoIntegerCanDestroy(
-					anInteger.subtractFromIntegerCanDestroy(zero(), canDestroy),
-					canDestroy)
-				.subtractFromIntegerCanDestroy(zero(), canDestroy);
+			// a/o for a<0, o>0:  use -1-(-1-a)/o
+			// e.g., -9/5  = -1-(-1+9)/5  = -1-8/5 = -2
+			// e.g., -10/5 = -1-(-1+10)/5 = -1-9/5 = -2
+			// e.g., -11/5 = -1-(-1+11)/5 = -1-10/5 = -3
+			final AvailObject minusOneMinusA =
+				negativeOne().minusCanDestroy(anInteger, false);
+			final AvailObject quotient =
+				minusOneMinusA.divideCanDestroy(object, true);
+			return negativeOne().minusCanDestroy(quotient, true);
 		}
 		if (object.isInt() && anInteger.isInt())
 		{
@@ -1586,6 +1590,9 @@ extends ExtendedIntegerDescriptor
 			object.makeImmutable();
 			immutableByteObjects[i] = object;
 		}
+		negativeOne = mutable().create(1);
+		negativeOne.rawSignedIntegerAtPut(1, -1);
+		negativeOne.makeImmutable();
 	}
 
 	/**
@@ -1602,6 +1609,7 @@ extends ExtendedIntegerDescriptor
 		{
 			hashesOfUnsignedBytes[i] = computeHashOfInt(i);
 		}
+		negativeOne = null;
 	}
 
 	/**
@@ -1785,6 +1793,18 @@ extends ExtendedIntegerDescriptor
 
 	/**
 	 * Answer an {@link AvailObject} representing the {@linkplain
+	 * IntegerDescriptor integer} negative one (-1).
+	 *
+	 * @return The Avail integer negative one (-1).
+	 */
+	public static AvailObject negativeOne ()
+	{
+		//  Note that here we can safely return by reference.
+		return negativeOne;
+	}
+
+	/**
+	 * Answer an {@link AvailObject} representing the {@linkplain
 	 * IntegerDescriptor integer} zero (0).
 	 *
 	 * @return The Avail integer zero.
@@ -1875,6 +1895,11 @@ extends ExtendedIntegerDescriptor
 	 * 0..255 inclusive.  Initialized via {@link #clearWellKnownObjects()}.
 	 */
 	static int hashesOfUnsignedBytes[] = null;
+
+	/**
+	 * The Avail integer negative one (-1).
+	 */
+	static AvailObject negativeOne = null;
 
 	/**
 	 * An array of 256 immutable {@linkplain IntegerDescriptor integers},

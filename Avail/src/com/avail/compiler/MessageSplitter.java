@@ -284,9 +284,9 @@ public class MessageSplitter
 		{
 			final StringBuilder builder = new StringBuilder();
 			builder.append(getClass().getSimpleName());
-			builder.append("(");
+			builder.append("(\"");
 			builder.append(messageParts.get(tokenIndex - 1).asNativeString());
-			builder.append(")");
+			builder.append("\")");
 			return builder.toString();
 		}
 

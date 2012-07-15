@@ -296,6 +296,10 @@ Method "floor_" is [value : double |
 ] : double;
 
 Restriction "floor_" is [valueT : type |
+	if valueT <= extended integer then
+	[
+		Fail parse "Floor of integer is unnecessary and potentially misleading."
+	];
 	if |valueT| = 1 then
 	[
 		/* The exact value is known statically.  Calculate it exactly. */

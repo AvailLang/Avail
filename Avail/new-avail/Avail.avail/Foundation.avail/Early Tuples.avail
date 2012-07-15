@@ -296,17 +296,6 @@ Method "_[_.._]" is stable at
 	function accepting <tuple, natural number, whole number>
 	and returning tuple;
 
-/**
- * Strengthen the tuple type produced by `_[_.._]` to the strongest possible
- * given the argument types.
- *
- * Parameters:
- *    aTupleType -
- *    sliceStart -
- *    sliceEnd -
- * Returns:
- *    The strengthened tuple type.
- */
 Semantic restriction "_[_.._]" is
 [
 	aTupleType : tuple meta,
@@ -314,6 +303,74 @@ Semantic restriction "_[_.._]" is
 	sliceEnd : whole number's type
 |
 	tuple type of aTupleType[sliceStart..sliceEnd]
+];
+
+/* Helper for restriction of "_[_.._]" on a tuple type. */
+Private method "tuple meta of_[_.._]" is
+[
+	aTupleMeta : tuple meta's type,
+	sliceStart : natural number's type,
+	sliceEnd : whole number's type
+|
+	aTupleType ::= aTupleMeta's instance;
+	Require: aTupleType[sliceStart..sliceEnd] is ever valid;
+	minStart ::= 1 max ⎣sliceStart⎦;
+	maxStart ::= 1 max ⎡sliceStart⎤;
+	minEnd ::= 0 max ⎣sliceEnd⎦;
+	maxEnd ::= 0 max ⎡sliceEnd⎤;
+	tupleEnd ::= ⎡aTupleType⎤;
+	tupleDefaultTypeIndex ::= cast |aTupleType's leading types| + 1
+		into [ t : natural number | t ];
+	limit ::= maxEnd min tupleEnd min tupleDefaultTypeIndex;
+	minLoopStart ::= (minStart min limit) max 1;
+	maxLoopStart ::= (maxStart min limit) max 1;
+	smearDelta ::= cast maxLoopStart - minLoopStart
+		into [ t : whole number | t ];
+	/* Build a tuple that represents the leading and default types of the
+	 * resultant tuple type. Each element is the type union of the smear of
+	 * element types within `smearDelta` of the traversal subscript.
+	 */
+	types : <<>, any meta's type…|whole number> := <>;
+	From minLoopStart to limit do
+	[
+		i : natural number
+	|
+		union : type := ⊥;
+		smearEnd ::= cast (i + smearDelta) min limit
+			into [ t : natural number | t ];
+		From i to smearEnd do
+		[
+			j : natural number
+		|
+			union := eject ↑union ∪ (aTupleType[j]'s type);
+			true
+		];
+		types := cast concatenate <types, <union>>
+			into [ t : <<>, any meta's type…|whole number> | t ];
+		true
+	];
+	/* Unless `types` is empty, the last element is the default type. */
+	defaultType ::= cast |types|
+		into [ n : natural number | types[n] ]
+		else [ ⊥ ];
+	resultMinEnd ::= minEnd min tupleEnd;
+	resultMaxEnd ::= maxEnd min tupleEnd;
+	resultStart ::= cast (resultMinEnd - maxStart + 1) max 0
+		into [ t : whole number | t ];
+	resultEnd ::= cast ((resultMaxEnd - minStart + 1) max 0) + 1
+		into [ t : [1..∞] | t ];
+	resultSizes ::= [resultStart..resultEnd);
+	result ::= <types, defaultType…|resultSizes>;
+	result
+] : tuple meta;
+
+Semantic restriction "_[_.._]" is
+[
+	aTupleType : tuple meta's type,
+	sliceStart : natural number's type,
+	sliceEnd : whole number's type
+|
+	tuple meta of aTupleType[sliceStart..sliceEnd]
 ];
 
 /**
@@ -386,7 +443,7 @@ Public method "_[.._]" is
 	sliceEnd : whole number
 |
 	aTupleType[1..sliceEnd]
-] : tuple;
+] : tuple of any meta;
 
 /**
  * Construct and answer a slice (i.e., subtuple) that begins at the start of the

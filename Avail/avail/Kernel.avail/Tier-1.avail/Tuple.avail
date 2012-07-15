@@ -130,14 +130,18 @@ Method "_sizes" is [tt : tupleType |
 ] : whole number type;
 
 Method "_sizes lower bound" is [tt : tupleType |
-	/* This is syntactically overloaded for a stronger return type. */
-	result : [0..INF);
+	/* This is syntactically overloaded for a stronger return type, even though
+	 * it isn't the case for terminates.
+	 */
+	result : whole number;
 	* ↑result ?:= (tt sizes) lower bound;
 	result
 ] : whole number;
 
 Method "_sizes upper bound" is [tt : tupleType |
-	/* This is syntactically overloaded for a stronger return type. */
+	/* This is syntactically overloaded for a stronger return type, even though
+	 * it isn't the case for terminates.
+	 */
 	result : [0..INF];
 	* ↑result ?:= (tt sizes) upper bound;
 	result
@@ -189,7 +193,7 @@ Method "_[_.._]" is [
 	/* Indices out of range are simply the type terminates. */
 	Primitive 142 (failureCode : natural number);
 	Failed
-] : tuple of type;
+] : tuple of (any type);
 
 
 /* Union of an entire tuple of types... */

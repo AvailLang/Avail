@@ -90,7 +90,7 @@ Method "do_handleTuple_" is
 	body : []->void,
 	handlers : tuple [1..INF) of [terminates]->void
 |
-	Primitive 200 (failureCode : [0..12]);
+	Primitive 200 (failureCode : [0..16]);
 	body();
 ] : void;
 

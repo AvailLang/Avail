@@ -347,13 +347,6 @@ extends Descriptor
 		return object.slot(VALID) != 0;
 	}
 
-	@Override
-	public boolean o_ShowValueInNameForDebugger (
-		final @NotNull AvailObject object)
-	{
-		return false;
-	}
-
 
 	/**
 	 * A {@link WeakChunkReference} is the mechanism by which {@linkplain

@@ -257,7 +257,7 @@ extends Descriptor
 	public boolean o_ShowValueInNameForDebugger (
 		final @NotNull AvailObject object)
 	{
-		return false;
+		return true;
 	}
 
 	/**

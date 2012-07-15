@@ -38,7 +38,7 @@ Extends
 Uses
 	"Assertions",
 	"Bootstrap",
-	"Early Control Structures",
+	"Control Structures",
 	"Early Definers",
 	"Early Logic",
 	"Enumeration Support",
@@ -48,86 +48,292 @@ Uses
 	"Tuples",
 	"Types"
 Names
-	"_curried"
+	"_(««_»«`_»?‡,»)",
+	"_(_,`…)",
+	"_(`…,_)"
 Body
 
 
 invokeMethod ::= method for atom for "Invoke|invoke_with_";
-flattenMethod ::= method for atom for "flatten_";
 
 /**
- * Convert an n≥2 argument function into a one argument function which returns
- * an n-1 argument function which, when invoked, evaluates the original function
- * with the single argument prepended to the n-1 arguments.
- *
- * More concisely, if f = [a:t, b:t,... | ...] then f curried is
- * [a:t | [b:t,... | f(a,b,...);]
+ * Convert a function of N arguments into a function of M arguments, where
+ * 0 < M < N.  The decisions about which arguments to provide and which to defer
+ * are made by providing an array of <<value>, boolean> pairs.  If the boolean
+ * is false, use the value (i.e., a supplied argument), otherwise expect the
+ * value to be absent (i.e., and empty tuple instead of <value>), and defer this
+ * argument -- the returned function will require it and pass it through.
  *
  * Parameters:
  *    originalFunction - The function to ultimately invoke.
- *
+ *    pairs - The arguments and place-holder underscores.  Either the first
+ *            element must be a size one tuple and the second element is false,
+ *            or the first element is the empty tuple and the second element is
+ *            true.
  * Returns:
- *    A function that takes the first argument destined for the original
- *    function and returns another function that takes the remainder of the
- *    arguments and invokes the original function.
+ *    A function that takes some arguments destined for the original function
+ *    and returns another function that takes the remainder of the arguments and
+ *    invokes the original function.
  */
-Public method "_curried" is
+Private method "_partially evaluate with_" is
 [
-	originalFunction : function
+	originalFunction : function,
+	pairs : <<<any…|0..1>, boolean…|2>…|>
 |
-	Assert: |function| ≥ 1 ("cannot curry a zero argument function");
-
+	originalType ::= originalFunction's type;
+	argumentTypes ::= originalType's parameters' type;
+	Assert: ⎣argumentTypes⎦ = ⎡argumentTypes⎤;
+	Assert: ⎣argumentTypes⎦ = |pairs|;
 	weakOriginalFunctionConstant ::= ‘`originalFunction`("originalFunction")’;
 	originalFunctionConstant ::= cast weakOriginalFunctionConstant
 		into [lit : literal ⇒ function | lit];
-	originalType ::= originalFunction's type;
-	argumentTypes ::= originalType's parameters' type;
-	arguments ::= map 1 to ⎣argumentTypes⎦ through [
+	callArguments : <expression⇒any…|> := <>;
+	argumentDeclarations : <argument⇒⊤…|> := <>;
+	For each pairs do [
+			pair : <<any…|>, boolean…|>,
 			n : natural number
 		|
-			token ::= `"arg" ++ “n”`;
-			arg «token : argumentTypes[n]»
-		];
+			if pair[2] then
+			[
+				/* An underscore. */
+				Assert: |pair[1]| = 0;
+				token ::= `"arg" ++ “n”`;
+				arg ::= arg «token : argumentTypes[n]»;
+				argumentDeclarations := eject ↑argumentDeclarations ++ <arg>;
+				callArguments := eject ↑callArguments ++ <«↓arg»>;
+			]
+			else
+			[
+				/* An actual value. */
+				Assert: |pair[1]| = 1; 
+				literalToken ::= `pair[1][1]`("value" ++ “n”);
+				callArguments := eject ↑callArguments ++ <‘literalToken’>;
+			];
+	];
 	blockToReturn ::=
-		«[ arguments[2..] |
+		«[ argumentDeclarations |
 			<
 				send invokeMethod with
 				«<
 					originalFunctionConstant,
-					(map arguments through [a : argument | «↓a»])
-						→ list
+					(callArguments → list)
 				>» : (originalType's return type)
 			>
 		] : originalType's return type»;
-	outerBlock ::=
-		«[ arguments[1..1] |
-			<
-				blockToReturn
-			>
-		] : blockToReturn's semantic type»;
-	generate outerBlock
+	generate blockToReturn
 ] : function;
 
-Semantic restriction "_curried" is
+/**
+ * Convert a function of N arguments into a function of M arguments, where
+ * 0 < M < N.  The N - M arguments are provided in a function invocation pattern
+ * reminiscent of "_(«_‡,»)", but the unspecified M arguments are literal
+ * underscores.  For example, g ::= f(_,20,_) produces a two-argument function g
+ * from the three-argument function f.  When g is subsequently invoked with two
+ * arguments such as g(10,30), it will invoke f as though it had been invoked as
+ * f(10,20,30).  This is a generalization of currying as found in functional
+ * languages.
+ * 
+ * Parameters:
+ *    originalFunction - The function to ultimately invoke.
+ *    pairs - The arguments and place-holder underscores.  Either the first
+ *            element must be a size one tuple and the second element is false,
+ *            or the first element is the empty tuple and the second element is
+ *            true.  At least one of the pairs must be the former and at least
+ *            one must be the latter, otherwise the useless form f(_,_,_) would
+ *            be allowed, and the form f(5,6,7) would be confused with actual
+ *            function invocation.
+ * Returns:
+ *    A function that takes some arguments destined for the original function
+ *    and returns another function that takes the remainder of the arguments and
+ *    invokes the original function.
+ */
+Public method "_(««_»«`_»?‡,»)" is
 [
-	originalFunction : function meta
+	originalFunction : function,
+	pairs : <<<any…|0..1>, boolean…|2>…|>
 |
-	argumentsType ::= originalFunction's parameters' type;
-	argumentTypes ::= argumentsType[1..⎣argumentsType⎦];
-	
-	If |argumentTypes| < 1 then
+	originalFunction partially evaluate with pairs
+] : function;
+
+
+Semantic restriction "_(««_»«`_»?‡,»)" is
+[
+	originalFunction : function's type,
+	pairs : <<<any…|0..1>, boolean…|2>…|>'s type
+|
+	Assert: ⎣pairs⎦ = ⎡pairs⎤ (
+		"Need a definite number of arguments and underscores");
+	pairTypes ::= pairs[1..⎣pairs⎦];
+	argumentTypes : <any's type…|> := <>;
+	For each pairTypes do [
+			pairType : <<any…|0..1>, boolean…|2>'s type,
+			index : natural number
+		|
+			underscoreType ::= pairType[2];
+			If underscoreType = true's type then
+			[
+				If ¬ ||pairType[1]|| ⊆ [0..0] then
+				[
+					Reject parse, expected:
+						"either no argument or no underscore for partial \
+						\|function application, index " ++ “index” ++
+						".  The arguments were:\n" ++ “pairTypes” ++ "."
+				];
+				argumentType ::= originalFunction[index];
+				argumentTypes := eject ↑argumentTypes ++ <argumentType>;
+			]
+			else if [underscoreType = false's type] then
+			[
+				If ¬ ||pairType[1]|| ⊆ [1..1] then
+				[
+					Reject parse, expected:
+						"either an argument or an underscore for partial \
+						\|function application, at index " ++ “index” ++
+						".  The arguments were:\n" ++ “pairTypes” ++ "."
+				];
+				valueType ::= pairType[1][1];
+				If ¬ valueType ⊆ originalFunction[index] then
+				[
+					Reject parse, expected:
+						"type of argument #" ++ “index” ++
+						" to be a subtype of" ++ “originalFunction[index]” ++
+						", not of type " ++ “valueType”
+				];
+			]
+			else
+			[
+				Reject parse, expected:
+					"statically determined presence or absence of an underscore"
+			];
+	];
+	If |argumentTypes| = 0 then
 	[
 		Reject parse, expected:
-			"function to be curried to accept at least one argument"
+			"at least one underscore for partial function application"
 	];
-	innerType ::= function accepting argumentTypes[2..]
-		and returning (originalFunction's return type);
-	function accepting argumentTypes[1..1]
-		and returning innerType
+	If |argumentTypes| = |pairTypes| then
+	[
+		Reject parse, expected:
+			"at least one argument value for partial function application"
+	];
+	function accepting argumentTypes
+		and returning (originalFunction's return type)
 ];
 
-/* TODO: [TLS] Remove this eventually (to a real testing module). */
-abc ::= [a : integer, b : integer, c : integer | a + b + c];
-bc ::= abc curried(10);
-c ::= bc curried(22);
-Assert: c(333) = 365;
+/**
+ * Partially evaluate a function, providing the first argument.  Answer a
+ * function which takes the remaining arguments and evaluates the original
+ * function with the first argument combined with the remaining arguments.
+ *
+ * Parameters:
+ *    originalFunction - The function to ultimately invoke.
+ *    firstValue - The first argument to supply to the function.
+ * Returns:
+ *    A function that takes the remaining N-1 arguments and invokes the original
+ *    function.
+ */
+Public method "_(_,`…)" is [
+	originalFunction : function,
+	firstValue : any
+|
+	pairs : <<<any…|0..1>, boolean…|2>…|> := <<<firstValue>, false>>;
+	argumentsType ::= originalFunction's type's parameters' type;
+	From 2 to ⎣argumentsType⎦ do [
+		index : natural number
+	|
+		pairs := pairs ++ <<<>, true>>;
+	];
+	originalFunction partially evaluate with pairs
+];
+
+Semantic restriction "_(_,`…)" is
+[
+	originalFunction : function's type,
+	firstValue : any's type
+|
+	argumentsType ::= originalFunction's parameters' type;
+	If ⎣argumentsType⎦ ≠ ⎡argumentsType⎤ then
+	[
+		Reject parse, expected:
+			"function to take a definite number of arguments"
+	];
+	If ⎣argumentsType⎦ < 2 then
+	[
+		Reject parse, expected:
+			"function for partial evaluation to take at least two arguments"
+	];
+	If ¬ firstValue ⊆ argumentsType[1] then
+	[
+		Reject parse, expected:
+			"first argument (" ++ “firstValue” ++ ") to agree with function's \
+			\|first parameter (" ++ “argumentsType[1]” ++ ")"
+	];
+	function accepting argumentsType[2..]
+		and returning (originalFunction's return type)
+] : function's type;
+
+
+Public method "_(`…,_)" is [
+	originalFunction : function,
+	lastValue : any
+|
+	pairs : <<<any…|0..1>, boolean…|2>…|> := <<<lastValue>, false>>;
+	argumentsType ::= originalFunction's type's parameters' type;
+	From 2 to ⎣argumentsType⎦ do [
+		index : natural number
+	|
+		pairs := <<<>, true>> ++ pairs;
+	];
+	originalFunction partially evaluate with pairs
+];
+
+Semantic restriction "_(`…,_)" is
+[
+	originalFunction : function's type,
+	lastValue : any's type
+|
+	argumentsType ::= originalFunction's parameters' type;
+	If ⎣argumentsType⎦ ≠ ⎡argumentsType⎤ then
+	[
+		Reject parse, expected:
+			"function to take a definite number of arguments"
+	];
+	If ⎣argumentsType⎦ < 2 then
+	[
+		Reject parse, expected:
+			"function for partial evaluation to take at least two arguments"
+	];
+	argumentsCount ::= cast ⎣argumentsType⎦ into [n : [2..∞) | n];
+	If ¬ lastValue ⊆ argumentsType[argumentsCount] then
+	[
+		Reject parse, expected:
+			"last argument (" ++ “lastValue” ++ ") to agree with function's \
+			\|last parameter (" ++ “argumentsType[argumentsCount]” ++ ")"
+	];
+	function accepting argumentsType[..argumentsCount - 1]
+		and returning (originalFunction's return type)
+] : function's type;
+
+
+[
+	f ::= [a : integer, b : string, c : float | "ok"];
+	g ::= f(_,"foo",_);
+	Assert: g's type[1] = integer;
+	Assert: g's type[2] = float;
+	Assert: g(10,1.2f) = "ok";
+
+	h ::= f(15,_,1.2f);
+	Assert: h's type[1] = string;
+	Assert: h("cheese") = "ok";
+
+	i ::= f(15,…);
+	Assert: i's type[1] = string;
+	Assert: i's type[2] = float;
+	Assert: i("x", 2.5f) = "ok";
+
+	j ::= f(…,1.7f);
+	Assert: j's type[1] = integer;
+	Assert: j's type[2] = string;
+	Assert: j(45, "x") = "ok";
+]();
+

@@ -113,7 +113,7 @@ public enum SerializerOperation
 			final @NotNull AvailObject[] subobjects,
 			final @NotNull Deserializer deserializer)
 		{
-			return IntegerDescriptor.fromInt(2);
+			return IntegerDescriptor.fromUnsignedByte((short)2);
 		}
 	},
 
@@ -135,7 +135,7 @@ public enum SerializerOperation
 			final @NotNull AvailObject[] subobjects,
 			final @NotNull Deserializer deserializer)
 		{
-			return IntegerDescriptor.fromInt(3);
+			return IntegerDescriptor.fromUnsignedByte((short)3);
 		}
 	},
 
@@ -157,7 +157,7 @@ public enum SerializerOperation
 			final @NotNull AvailObject[] subobjects,
 			final @NotNull Deserializer deserializer)
 		{
-			return IntegerDescriptor.fromInt(4);
+			return IntegerDescriptor.fromUnsignedByte((short)4);
 		}
 	},
 
@@ -179,7 +179,7 @@ public enum SerializerOperation
 			final @NotNull AvailObject[] subobjects,
 			final @NotNull Deserializer deserializer)
 		{
-			return IntegerDescriptor.fromInt(5);
+			return IntegerDescriptor.fromUnsignedByte((short)5);
 		}
 	},
 
@@ -201,7 +201,7 @@ public enum SerializerOperation
 			final @NotNull AvailObject[] subobjects,
 			final @NotNull Deserializer deserializer)
 		{
-			return IntegerDescriptor.fromInt(6);
+			return IntegerDescriptor.fromUnsignedByte((short)6);
 		}
 	},
 
@@ -223,7 +223,7 @@ public enum SerializerOperation
 			final @NotNull AvailObject[] subobjects,
 			final @NotNull Deserializer deserializer)
 		{
-			return IntegerDescriptor.fromInt(7);
+			return IntegerDescriptor.fromUnsignedByte((short)7);
 		}
 	},
 
@@ -245,7 +245,7 @@ public enum SerializerOperation
 			final @NotNull AvailObject[] subobjects,
 			final @NotNull Deserializer deserializer)
 		{
-			return IntegerDescriptor.fromInt(8);
+			return IntegerDescriptor.fromUnsignedByte((short)8);
 		}
 	},
 
@@ -267,7 +267,7 @@ public enum SerializerOperation
 			final @NotNull AvailObject[] subobjects,
 			final @NotNull Deserializer deserializer)
 		{
-			return IntegerDescriptor.fromInt(9);
+			return IntegerDescriptor.fromUnsignedByte((short)9);
 		}
 	},
 
@@ -289,7 +289,7 @@ public enum SerializerOperation
 			final @NotNull AvailObject[] subobjects,
 			final @NotNull Deserializer deserializer)
 		{
-			return IntegerDescriptor.fromInt(10);
+			return IntegerDescriptor.fromUnsignedByte((short)10);
 		}
 	},
 
