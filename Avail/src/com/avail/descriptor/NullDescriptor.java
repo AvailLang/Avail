@@ -243,6 +243,16 @@ extends Descriptor
 	}
 
 	@Override
+	boolean o_BinElementsAreAllInstancesOfKind (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject kind)
+	{
+		// Nil is treated as an empty bin, so its members all satisfy.. any
+		// property whatsoever.
+		return true;
+	}
+
+	@Override
 	@ThreadSafe
 	public void printObjectOnAvoidingIndent (
 		final @NotNull AvailObject object,

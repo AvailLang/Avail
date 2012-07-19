@@ -39,6 +39,7 @@ import static java.lang.Math.*;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.descriptor.TypeDescriptor.Types;
 
 /**
  * My instances are called <em>instance types</em>, the types of individual
@@ -285,6 +286,24 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
+	boolean o_IsInstanceOf (
+		final @NotNull AvailObject object,
+		final AvailObject aType)
+	{
+		if (aType.isInstanceMeta())
+		{
+			// I'm a singular enumeration of a non-type, and aType is an
+			// instance meta (the only sort of meta that exists these
+			// days -- 2012.07.17).  See if my instance (a non-type) is an
+			// instance of aType's instance (a type).
+			return getInstance(object).isInstanceOf(aType.instance());
+		}
+		// I'm a singular enumeration of a non-type, so I could only be an
+		// instance of a meta (already excluded), or of ANY or TOP.
+		return Types.ANY.o().isSubtypeOf(aType);
+	}
+
+	@Override @AvailMethod
 	@NotNull AvailObject o_FieldTypeMap (
 		final @NotNull AvailObject object)
 	{
@@ -477,9 +496,15 @@ extends AbstractEnumerationTypeDescriptor
 		return IntegerDescriptor.one();
 	}
 
+	// TODO[MvG] REMOVE
+	public static long t = 0;
+
 	@Override @AvailMethod
 	@NotNull AvailObject o_Instances (final @NotNull AvailObject object)
 	{
+		t++;  // TODO[MvG] REMOVE
+		if (t%100000 == 0)
+			System.out.println("T=" + t);
 		return SetDescriptor.empty().setWithElementCanDestroy(
 			getInstance(object),
 			true);
@@ -490,11 +515,7 @@ extends AbstractEnumerationTypeDescriptor
 		final @NotNull AvailObject object,
 		final AvailObject potentialInstance)
 	{
-		if (potentialInstance.equals(getInstance(object)))
-		{
-			return true;
-		}
-		return false;
+		return potentialInstance.equals(getInstance(object));
 	}
 
 	@Override @AvailMethod

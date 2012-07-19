@@ -287,11 +287,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final AvailObject aTypeObject)
 	{
-		if (aTypeObject.equals(TOP.o()))
-		{
-			return true;
-		}
-		if (aTypeObject.equals(ANY.o()))
+		if (ANY.o().isSubtypeOf(aTypeObject))
 		{
 			return true;
 		}

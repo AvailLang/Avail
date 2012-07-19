@@ -32,6 +32,8 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.LinearSetBinDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.LinearSetBinDescriptor.IntegerSlots.*;
 import static java.lang.Integer.bitCount;
 import com.avail.annotations.*;
 
@@ -80,7 +82,7 @@ extends SetBinDescriptor
 		final @NotNull AvailObject object,
 		final int subscript)
 	{
-		return object.slot(ObjectSlots.BIN_ELEMENT_AT_, subscript);
+		return object.slot(BIN_ELEMENT_AT_, subscript);
 	}
 
 	@Override @AvailMethod
@@ -91,7 +93,7 @@ extends SetBinDescriptor
 	{
 		//  GENERATED setter method (indexed).
 
-		object.setSlot(ObjectSlots.BIN_ELEMENT_AT_, subscript, value);
+		object.setSlot(BIN_ELEMENT_AT_, subscript, value);
 	}
 
 	@Override @AvailMethod
@@ -131,32 +133,36 @@ extends SetBinDescriptor
 		// replacing the list.
 		final int oldSize = object.variableObjectSlotsCount();
 		AvailObject result;
-		if (myLevel < 7 && oldSize >= 10)
+		if (myLevel < numberOfLevels - 1 && oldSize >= 10)
 		{
 			int bitPosition = bitShift(elementObjectHash, -5 * myLevel) & 31;
 			int bitVector = bitShift(1, bitPosition);
 			for (int i = 1; i <= oldSize; i++)
 			{
-				final AvailObject element = object.binElementAt(i);
+				final AvailObject element = object.slot(BIN_ELEMENT_AT_, i);
 				bitPosition = bitShift(element.hash(), -5 * myLevel) & 31;
 				bitVector |= bitShift(1, bitPosition);
 			}
 			final int newSize = bitCount(bitVector);
-			result = HashedSetBinDescriptor.isMutableLevel(true, myLevel)
-				.create(newSize);
-			result.binHash(0);
-			result.binSize(0);
-			result.binUnionTypeOrNull(NullDescriptor.nullObject());
-			result.bitVector(bitVector);
+			result = HashedSetBinDescriptor.createBin(
+				myLevel,
+				newSize,
+				0,
+				0,
+				bitVector,
+				NullDescriptor.nullObject());
 			for (int i = 1; i <= newSize; i++)
 			{
-				result.binElementAtPut(i, NullDescriptor.nullObject());
+				result.setSlot(
+					HashedSetBinDescriptor.ObjectSlots.BIN_ELEMENT_AT_,
+					i,
+					NullDescriptor.nullObject());
 			}
 			AvailObject localAddResult;
 			for (int i = 0; i <= oldSize; i++)
 			{
-				AvailObject eachElement;
-				int eachHash;
+				final AvailObject eachElement;
+				final int eachHash;
 				if (i == 0)
 				{
 					eachElement = elementObject;
@@ -164,7 +170,7 @@ extends SetBinDescriptor
 				}
 				else
 				{
-					eachElement = object.binElementAt(i);
+					eachElement = object.slot(BIN_ELEMENT_AT_, i);
 					eachHash = eachElement.hash();
 				}
 				assert result.descriptor().isMutable();
@@ -181,33 +187,42 @@ extends SetBinDescriptor
 			assert result.binSize() == oldSize + 1;
 			return result;
 		}
-		//  Make a slightly larger linear bin and populate it.
-		result = LinearSetBinDescriptor.isMutableLevel(true, myLevel)
-			.create(oldSize + 1);
-		result.binHash(object.binHash() + elementObjectHash);
+		// Make a slightly larger linear bin and populate it.
+		result = LinearSetBinDescriptor.createBin(
+			myLevel,
+			oldSize + 1,
+			object.binHash() + elementObjectHash);
 		result.binElementAtPut(oldSize + 1, elementObject);
 		if (canDestroy && isMutable)
 		{
 			for (int i = 1; i <= oldSize; i++)
 			{
-				result.binElementAtPut(i, object.binElementAt(i));
-				object.binElementAtPut(i, NullDescriptor.nullObject());
+				// Clear old bin for safety.
+				result.setSlot(
+					BIN_ELEMENT_AT_,
+					i,
+					object.slot(BIN_ELEMENT_AT_, i));
+				object.setSlot(BIN_ELEMENT_AT_, i, NullDescriptor.nullObject());
 			}
 		}
 		else if (isMutable)
 		{
 			for (int i = 1; i <= oldSize; i++)
 			{
-				result.binElementAtPut(
+				result.setSlot(
+					BIN_ELEMENT_AT_,
 					i,
-					object.binElementAt(i).makeImmutable());
+					object.slot(BIN_ELEMENT_AT_, i).makeImmutable());
 			}
 		}
 		else
 		{
 			for (int i = 1; i <= oldSize; i++)
 			{
-				result.binElementAtPut(i, object.binElementAt(i));
+				result.setSlot(
+					BIN_ELEMENT_AT_,
+					i,
+					object.slot(BIN_ELEMENT_AT_, i));
 			}
 		}
 		return result;
@@ -222,7 +237,7 @@ extends SetBinDescriptor
 		final int limit = object.variableObjectSlotsCount();
 		for (int i = 1; i <= limit; i++)
 		{
-			if (elementObject.equals(object.binElementAt(i)))
+			if (elementObject.equals(object.slot(BIN_ELEMENT_AT_, i)))
 			{
 				return true;
 			}
@@ -244,41 +259,38 @@ extends SetBinDescriptor
 		final int oldSize = object.variableObjectSlotsCount();
 		for (int searchIndex = 1; searchIndex <= oldSize; searchIndex++)
 		{
-			if (object.binElementAt(searchIndex).equals(elementObject))
+			if (object.slot(BIN_ELEMENT_AT_, searchIndex).equals(elementObject))
 			{
-				AvailObject result;
 				if (oldSize == 2)
 				{
-					result = object.binElementAt(3 - searchIndex);
+					final AvailObject survivor =
+						object.slot(BIN_ELEMENT_AT_, 3 - searchIndex);
 					if (!canDestroy)
 					{
-						result.makeImmutable();
+						survivor.makeImmutable();
 					}
-					return result;
+					return survivor;
 				}
-				result = LinearSetBinDescriptor.isMutableLevel(true, level)
-					.create(oldSize - 1);
-				result.binHash(object.binHash() - elementObjectHash);
-				for (int initIndex = 1; initIndex < oldSize; initIndex++)
-				{
-					result.binElementAtPut(
-						initIndex,
-						NullDescriptor.nullObject());
-				}
+				final AvailObject result = LinearSetBinDescriptor.createBin(
+					level,
+					oldSize - 1,
+					object.binHash() - elementObjectHash);
 				for (int copyIndex = 1; copyIndex < searchIndex; copyIndex++)
 				{
-					result.binElementAtPut(
+					result.setSlot(
+						BIN_ELEMENT_AT_,
 						copyIndex,
-						object.binElementAt(copyIndex));
+						object.slot(BIN_ELEMENT_AT_, copyIndex));
 				}
 				for (
-						int copyIndex = searchIndex + 1;
-						copyIndex <= oldSize;
-						copyIndex++)
+					int copyIndex = searchIndex + 1;
+					copyIndex <= oldSize;
+					copyIndex++)
 				{
-					result.binElementAtPut(
+					result.setSlot(
+						BIN_ELEMENT_AT_,
 						copyIndex - 1,
-						object.binElementAt(copyIndex));
+						object.slot(BIN_ELEMENT_AT_, copyIndex));
 				}
 				if (!canDestroy)
 				{
@@ -302,11 +314,11 @@ extends SetBinDescriptor
 		//  Check if object, a bin, holds a subset of aSet's elements.
 
 		for (
-				int physicalIndex = object.variableObjectSlotsCount();
-				physicalIndex >= 1;
-				physicalIndex--)
+			int physicalIndex = object.variableObjectSlotsCount();
+			physicalIndex >= 1;
+			physicalIndex--)
 		{
-			if (!object.binElementAt(physicalIndex).isBinSubsetOf(
+			if (!object.slot(BIN_ELEMENT_AT_, physicalIndex).isBinSubsetOf(
 				potentialSuperset))
 			{
 				return false;
@@ -319,8 +331,7 @@ extends SetBinDescriptor
 	int o_BinSize (
 		final @NotNull AvailObject object)
 	{
-		//  Answer how many elements this bin contains.
-
+		// Answer how many elements this bin contains.
 		return object.variableObjectSlotsCount();
 	}
 
@@ -328,16 +339,75 @@ extends SetBinDescriptor
 	@NotNull AvailObject o_BinUnionKind (
 		final @NotNull AvailObject object)
 	{
-		//  Answer the union of the types of this bin's elements.  I'm supposed
-		//  to be small, so recalculate it per request.
+		// Answer the nearest kind of the union of the types of this bin's
+		// elements.  I'm supposed to be small, so recalculate it per request.
 
-		AvailObject unionKind = object.binElementAt(1).kind();
+		AvailObject unionKind = object.slot(BIN_ELEMENT_AT_, 1).kind();
 		final int limit = object.variableObjectSlotsCount();
 		for (int index = 2; index <= limit; index++)
 		{
-			unionKind = unionKind.typeUnion(object.binElementAt(index).kind());
+			unionKind = unionKind.typeUnion(
+				object.slot(BIN_ELEMENT_AT_, index).kind());
 		}
 		return unionKind;
+	}
+
+	@Override @AvailMethod
+	@NotNull boolean o_BinElementsAreAllInstancesOfKind (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject kind)
+	{
+		final int limit = object.variableObjectSlotsCount();
+		for (int index = 1; index <= limit; index++)
+		{
+			if (!object.slot(BIN_ELEMENT_AT_, index).isInstanceOfKind(kind))
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Create a mutable linear bin at the specified level with the given size
+	 * and bin hash.  The caller is responsible for initializing the elements
+	 * and making them immutable if necessary.
+	 *
+	 * @param level The level of the new bin.
+	 * @param size The number of elements in the new bin.
+	 * @param hash The hash of the bin's elements, or zero if unknown.
+	 * @return A new linear set bin with uninitialized element slots.
+	 */
+	public static @NotNull AvailObject createBin (
+		final byte level,
+		final int size,
+		final int hash)
+	{
+		final AvailObject instance = isMutableLevel(true, level).create(size);
+		instance.setSlot(BIN_HASH, hash);
+		return instance;
+	}
+
+	/**
+	 * Create a mutable 2-element linear bin at the specified level and with the
+	 * specified elements.  The caller is responsible for making the elements
+	 * immutable if necessary.
+	 *
+	 * @param level The level of the new bin.
+	 * @param firstElement The first element of the new bin.
+	 * @param secondElement The second element of the new bin.
+	 * @return A 2-element set bin.
+	 */
+	public static @NotNull AvailObject createPair (
+		final byte level,
+		final @NotNull AvailObject firstElement,
+		final @NotNull AvailObject secondElement)
+	{
+		final AvailObject instance = isMutableLevel(true, level).create(2);
+		instance.setSlot(BIN_ELEMENT_AT_, 1, firstElement);
+		instance.setSlot(BIN_ELEMENT_AT_, 2, secondElement);
+		instance.setSlot(BIN_HASH, firstElement.hash() + secondElement.hash());
+		return instance;
 	}
 
 	/**

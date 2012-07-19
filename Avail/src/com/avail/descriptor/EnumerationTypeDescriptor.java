@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import static com.avail.descriptor.AvailObject.Multiplier;
 import java.util.List;
 import com.avail.annotations.*;
+import com.avail.descriptor.TypeDescriptor.Types;
 
 /**
  * My instances are called <em>enumerations</em>. This descriptor family is
@@ -232,6 +233,31 @@ extends AbstractEnumerationTypeDescriptor
 		return (object.instances().hash() ^ 0x15b5b059) * Multiplier;
 	}
 
+	@Override @AvailMethod
+	boolean o_IsInstanceOf (
+		final @NotNull AvailObject object,
+		final AvailObject aType)
+	{
+		if (aType.isInstanceMeta())
+		{
+			// I'm an enumeration of non-types, and aType is an instance meta
+			// (the only sort of metas that exist these days -- 2012.07.17).
+			// See if my instances comply with aType's instance (a type).
+			final AvailObject aTypeInstance = aType.instance();
+			for (final AvailObject myInstance : getInstances(object))
+			{
+				if (!myInstance.isInstanceOf(aTypeInstance))
+				{
+					return false;
+				}
+			}
+			return true;
+		}
+		// I'm an enumeration of non-types, so I could only be an instance of a
+		// meta (already excluded), or of ANY or TOP.
+		return Types.ANY.o().isSubtypeOf(aType);
+	}
+
 	/**
 	 * Compute the type intersection of the object, which is an {@linkplain
 	 * EnumerationTypeDescriptor enumeration}, and
@@ -397,16 +423,6 @@ extends AbstractEnumerationTypeDescriptor
 		if (object.instances().hasElement(potentialInstance))
 		{
 			return true;
-		}
-		if (potentialInstance.isType())
-		{
-			for (final AvailObject element : object.instances())
-			{
-				if (element.isType() && potentialInstance.isSubtypeOf(element))
-				{
-					return true;
-				}
-			}
 		}
 		return false;
 	}

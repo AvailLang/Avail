@@ -32,9 +32,9 @@
 
 package com.avail.descriptor;
 
-import static java.lang.Integer.bitCount;
 import static com.avail.descriptor.HashedSetBinDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.HashedSetBinDescriptor.ObjectSlots.*;
+import static java.lang.Integer.bitCount;
 import com.avail.annotations.*;
 
 /**
@@ -172,22 +172,42 @@ extends SetBinDescriptor
 
 	@Override @AvailMethod
 	AvailObject o_BinUnionKind (
-			final @NotNull AvailObject object)
+		final @NotNull AvailObject object)
 	{
-		AvailObject union = object.binUnionTypeOrNull();
+		AvailObject union = object.slot(BIN_UNION_TYPE_OR_NULL);
 		if (union.equalsNull())
 		{
-			union = object.binElementAt(1).binUnionKind();
+			union = object.slot(BIN_ELEMENT_AT_, 1).binUnionKind();
 			final int limit = object.variableObjectSlotsCount();
 			for (int i = 2; i <= limit; i++)
 			{
-				union = union.typeUnion(object.binElementAt(i).binUnionKind());
+				union = union.typeUnion(
+					object.slot(BIN_ELEMENT_AT_, i).binUnionKind());
 			}
-			object.binUnionTypeOrNull(union);
+			object.setSlot(BIN_UNION_TYPE_OR_NULL, union);
 		}
 		return union;
 	}
 
+	@Override @AvailMethod
+	boolean o_BinElementsAreAllInstancesOfKind (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject kind)
+	{
+		AvailObject union = object.slot(BIN_UNION_TYPE_OR_NULL);
+		if (union.equalsNull())
+		{
+			union = object.slot(BIN_ELEMENT_AT_, 1).binUnionKind();
+			final int limit = object.variableObjectSlotsCount();
+			for (int i = 2; i <= limit; i++)
+			{
+				union = union.typeUnion(
+					object.slot(BIN_ELEMENT_AT_, i).binUnionKind());
+			}
+			object.setSlot(BIN_UNION_TYPE_OR_NULL, union);
+		}
+		return union.isSubtypeOf(kind);
+	}
 
 	/**
 	 * Add the given element to this bin, potentially modifying it if canDestroy
@@ -207,14 +227,15 @@ extends SetBinDescriptor
 		//  First, grab the appropriate 5 bits from the hash.
 		final int objectEntryCount = object.variableObjectSlotsCount();
 		final int logicalIndex = bitShift(elementObjectHash, -5 * level) & 31;
+		final int logicalBitValue = bitShift(1, logicalIndex);
 		final int vector = object.slot(BIT_VECTOR);
-		final int masked = vector & bitShift(1, logicalIndex) - 1;
+		final int masked = vector & logicalBitValue - 1;
 		final int physicalIndex = bitCount(masked) + 1;
 		AvailObject objectToModify;
 		AvailObject typeUnion;
-		if ((vector & bitShift(1, logicalIndex)) != 0)
+		if ((vector & logicalBitValue) != 0)
 		{
-			AvailObject entry = object.binElementAt(physicalIndex);
+			AvailObject entry = object.slot(BIN_ELEMENT_AT_, physicalIndex);
 			final int previousBinSize = entry.binSize();
 			final int previousHash = entry.binHash();
 			entry = entry.setBinAddingElementHashLevelCanDestroy(
@@ -225,14 +246,24 @@ extends SetBinDescriptor
 			final int delta = entry.binSize() - previousBinSize;
 			if (delta == 0)
 			{
+				if (!canDestroy)
+				{
+					object.makeImmutable();
+				}
 				return object;
 			}
 			//  The element had to be added.
 			final int hashDelta = entry.binHash() - previousHash;
-			final int newSize = object.binSize() + delta;
+			final int newSize = object.slot(BIN_SIZE) + delta;
 			if (canDestroy & isMutable)
 			{
+				// Clobber the object in place.
 				objectToModify = object;
+				objectToModify.setSlot(BIN_HASH, object.binHash() + hashDelta);
+				objectToModify.setSlot(BIN_SIZE, newSize);
+				objectToModify.setSlot(
+					BIN_UNION_TYPE_OR_NULL,
+					NullDescriptor.nullObject());
 			}
 			else
 			{
@@ -240,22 +271,26 @@ extends SetBinDescriptor
 				{
 					object.makeSubobjectsImmutable();
 				}
-				objectToModify =
-					HashedSetBinDescriptor.isMutableLevel(true, level)
-						.create(objectEntryCount);
-				objectToModify.bitVector(vector);
+				objectToModify = HashedSetBinDescriptor.createBin(
+					level,
+					objectEntryCount,
+					newSize,
+					object.binHash() + hashDelta,
+					vector,
+					NullDescriptor.nullObject());
 				final int limit = object.variableObjectSlotsCount();
 				for (int i = 1; i <= limit; i++)
 				{
-					objectToModify.binElementAtPut(i, object.binElementAt(i));
+					objectToModify.setSlot(
+						BIN_ELEMENT_AT_,
+						i,
+						object.slot(BIN_ELEMENT_AT_, i));
 				}
 			}
-			objectToModify.binHash(object.binHash() + hashDelta);
-			objectToModify.binSize(newSize);
-			objectToModify.binUnionTypeOrNull(NullDescriptor.nullObject());
-			objectToModify.binElementAtPut(physicalIndex, entry);
+			objectToModify.setSlot(BIN_ELEMENT_AT_, physicalIndex, entry);
 			return objectToModify;
 		}
+		// Augment object with a new entry.
 		if (!canDestroy & isMutable)
 		{
 			object.makeSubobjectsImmutable();
@@ -265,20 +300,27 @@ extends SetBinDescriptor
 		{
 			typeUnion = typeUnion.typeUnion(elementObject.kind());
 		}
-		objectToModify = HashedSetBinDescriptor.isMutableLevel(true, level)
-			.create(objectEntryCount + 1);
-		objectToModify.binHash(object.binHash() + elementObjectHash);
-		objectToModify.binSize(object.binSize() + 1);
-		objectToModify.binUnionTypeOrNull(typeUnion);
-		objectToModify.bitVector(vector | bitShift(1, logicalIndex));
+		objectToModify = HashedSetBinDescriptor.createBin(
+			level,
+			objectEntryCount + 1,
+			object.binSize() + 1,
+			object.binHash() + elementObjectHash,
+			vector | logicalBitValue,
+			typeUnion);
 		for (int i = 1, end = physicalIndex - 1; i <= end; i++)
 		{
-			objectToModify.binElementAtPut(i, object.binElementAt(i));
+			objectToModify.setSlot(
+				BIN_ELEMENT_AT_,
+				i,
+				object.slot(BIN_ELEMENT_AT_, i));
 		}
-		objectToModify.binElementAtPut(physicalIndex, elementObject);
+		objectToModify.setSlot(BIN_ELEMENT_AT_, physicalIndex, elementObject);
 		for (int i = physicalIndex; i <= objectEntryCount; i++)
 		{
-			objectToModify.binElementAtPut(i + 1, object.binElementAt(i));
+			objectToModify.setSlot(
+				BIN_ELEMENT_AT_,
+				i + 1,
+				object.slot(BIN_ELEMENT_AT_, i));
 		}
 		return objectToModify;
 	}
@@ -292,16 +334,18 @@ extends SetBinDescriptor
 		// First, grab the appropriate 5 bits from the hash.
 
 		final int logicalIndex = bitShift(elementObjectHash, -5 * level) & 31;
+		final int logicalBitValue = bitShift(1, logicalIndex);
 		final int vector = object.slot(BIT_VECTOR);
-		if ((vector & bitShift(1, logicalIndex)) == 0)
+		if ((vector & logicalBitValue) == 0)
 		{
 			return false;
 		}
 		// There's an entry.  Count the 1-bits below it to compute its
 		// zero-relative physicalIndex.
-		final int masked = vector & bitShift(1, logicalIndex) - 1;
+		final int masked = vector & logicalBitValue - 1;
 		final int physicalIndex = bitCount(masked) + 1;
-		return object.binElementAt(physicalIndex).binHasElementWithHash(
+		final AvailObject subBin = object.slot(BIN_ELEMENT_AT_, physicalIndex);
+		return subBin.binHasElementWithHash(
 			elementObject,
 			elementObjectHash);
 	}
@@ -320,8 +364,9 @@ extends SetBinDescriptor
 
 		final int objectEntryCount = object.variableObjectSlotsCount();
 		final int logicalIndex = bitShift(elementObjectHash, -5 * level) & 31;
+		final int logicalBitValue = bitShift(1, logicalIndex);
 		final int vector = object.slot(BIT_VECTOR);
-		if ((vector & bitShift(1, logicalIndex)) == 0)
+		if ((vector & logicalBitValue) == 0)
 		{
 			if (!canDestroy)
 			{
@@ -329,9 +374,10 @@ extends SetBinDescriptor
 			}
 			return object;
 		}
-		final int masked = vector & bitShift(1, logicalIndex) - 1;
+		final int masked = vector & logicalBitValue - 1;
 		final int physicalIndex = bitCount(masked) + 1;
-		final AvailObject oldEntry = object.binElementAt(physicalIndex);
+		final AvailObject oldEntry =
+			object.slot(BIN_ELEMENT_AT_, physicalIndex);
 		final int oldHash = oldEntry.binHash();
 		final int oldSize = oldEntry.binSize();
 		final AvailObject replacementEntry =
@@ -344,32 +390,30 @@ extends SetBinDescriptor
 		AvailObject result;
 		if (replacementEntry.equalsNull())
 		{
+			// Exclude the entire hash entry.
 			if (objectEntryCount == 1)
 			{
 				return NullDescriptor.nullObject();
 			}
-			result = HashedSetBinDescriptor.isMutableLevel(true, level).create(
-				objectEntryCount - 1);
-			result.binHash(object.binHash() + deltaHash);
-			result.binSize(object.binSize() + deltaSize);
-			result.binUnionTypeOrNull(NullDescriptor.nullObject());
-			result.bitVector(vector ^ bitShift(1, logicalIndex));
-			for (int index = objectEntryCount - 1; index >= 1; index--)
-			{
-				result.binElementAtPut(index, NullDescriptor.nullObject());
-			}
+			result = HashedSetBinDescriptor.createBin(
+				level,
+				objectEntryCount - 1,
+				object.binSize() + deltaSize,
+				object.binHash() + deltaHash,
+				vector ^ logicalBitValue,
+				NullDescriptor.nullObject());
 			int writeIndex = 1;
 			for (int readIndex = 1; readIndex <= objectEntryCount; readIndex++)
 			{
 				if (readIndex != physicalIndex)
 				{
-					final AvailObject eachBin = object.binElementAt(
-						readIndex);
+					final AvailObject eachBin =
+						object.slot(BIN_ELEMENT_AT_, readIndex);
 					if (!canDestroy)
 					{
 						eachBin.makeImmutable();
 					}
-					result.binElementAtPut(writeIndex, eachBin);
+					result.setSlot(BIN_ELEMENT_AT_, writeIndex, eachBin);
 					writeIndex++;
 				}
 			}
@@ -378,42 +422,46 @@ extends SetBinDescriptor
 		}
 		else
 		{
-			result = HashedSetBinDescriptor.isMutableLevel(true, level).create(
-				objectEntryCount);
-			result.binHash(object.binHash() + deltaHash);
-			result.binSize(object.binSize() + deltaSize);
-			result.binUnionTypeOrNull(NullDescriptor.nullObject());
-			result.bitVector(vector);
+			// Replace the hash entry.
+			result = HashedSetBinDescriptor.createBin(
+				level,
+				objectEntryCount,
+				object.binSize() + deltaSize,
+				object.binHash() + deltaHash,
+				vector,
+				NullDescriptor.nullObject());
 			for (int index = 1; index <= objectEntryCount; index++)
 			{
-				final AvailObject eachBin = object.binElementAt(index);
 				if (index == physicalIndex)
 				{
-					result.binElementAtPut(index, replacementEntry);
+					result.setSlot(BIN_ELEMENT_AT_, index, replacementEntry);
 				}
 				else
 				{
+					final AvailObject eachBin =
+						object.slot(BIN_ELEMENT_AT_, index);
 					if (!canDestroy)
 					{
 						eachBin.makeImmutable();
 					}
-					result.binElementAtPut(index, eachBin);
+					result.setSlot(BIN_ELEMENT_AT_, index, eachBin);
 				}
 			}
 			for (int index = 1; index <= objectEntryCount; index++)
 			{
-				final AvailObject eachBin = object.binElementAt(index);
 				if (index == physicalIndex)
 				{
-					result.binElementAtPut(index, replacementEntry);
+					result.setSlot(BIN_ELEMENT_AT_, index, replacementEntry);
 				}
 				else
 				{
+					final AvailObject eachBin =
+						object.slot(BIN_ELEMENT_AT_, index);
 					if (!canDestroy)
 					{
 						eachBin.makeImmutable();
 					}
-					result.binElementAtPut(index, eachBin);
+					result.setSlot(BIN_ELEMENT_AT_, index, eachBin);
 				}
 			}
 		}
@@ -428,18 +476,53 @@ extends SetBinDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject potentialSuperset)
 	{
-		for (
-				int index = object.objectSlotsCount()
-					- numberOfFixedObjectSlots;
-				index >= 1;
-				index--)
+		// TODO[MvG] - This could be much quicker in the case that some of the
+		// bins are shared between the sets.  Even if not, we should be able to
+		// avoid traversing some of the hashed layers for each element.
+		final int limit = object.objectSlotsCount() - numberOfFixedObjectSlots;
+		for (int index = 1; index <= limit; index++)
 		{
-			if (!object.binElementAt(index).isBinSubsetOf(potentialSuperset))
+			final AvailObject subBin = object.slot(BIN_ELEMENT_AT_, index);
+			if (!subBin.isBinSubsetOf(potentialSuperset))
 			{
 				return false;
 			}
 		}
 		return true;
+	}
+
+	/**
+	 * Create a new hashed set bin with the given level, local size, total
+	 * recursive number of elements, hash, bit vector, and either the bin union
+	 * kind or null.  The client is responsible for setting the bin elements and
+	 * making things immutable if necessary.
+	 *
+	 * @param level The tree level at which this hashed bin occurs.
+	 * @param localSize The number of slots to allocate.
+	 * @param totalSize The number of elements recursively within me.
+	 * @param hash The hash of this bin.
+	 * @param bitVector The bit vector indicating which hash values are present.
+	 * @param unionKindOrNull
+	 *            Either the null object or the kind that is nearest to the
+	 *            union of the elements' types.
+	 * @return A new hashed set bin with uninitialized sub-bin slots.
+	 */
+	public static @NotNull AvailObject createBin (
+		final byte level,
+		final int localSize,
+		final int totalSize,
+		final int hash,
+		final int bitVector,
+		final @NotNull AvailObject unionKindOrNull)
+	{
+		assert bitCount(bitVector) == localSize;
+		final AvailObject instance =
+			isMutableLevel(true, level).create(localSize);
+		instance.setSlot(BIN_HASH, hash);
+		instance.setSlot(BIN_SIZE, totalSize);
+		instance.setSlot(BIT_VECTOR, bitVector);
+		instance.setSlot(BIN_UNION_TYPE_OR_NULL, unionKindOrNull);
+		return instance;
 	}
 
 	/**

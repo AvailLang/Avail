@@ -3023,12 +3023,10 @@ extends AbstractDescriptor
 			return object;
 		}
 		//  Create a linear bin with two slots.
-		final AvailObject result =
-			LinearSetBinDescriptor.isMutableLevel(true, myLevel)
-				.create(2);
-		result.binHash(object.hash() + elementObject.hash());
-		result.binElementAtPut(1, object);
-		result.binElementAtPut(2, elementObject);
+		final AvailObject result = LinearSetBinDescriptor.createPair(
+			myLevel,
+			object,
+			elementObject);
 		if (!canDestroy)
 		{
 			result.makeImmutable();
@@ -4579,5 +4577,15 @@ extends AbstractDescriptor
 				object);
 		}
 		return String.format("(%s)", typeName);
+	}
+
+	@Override
+	boolean o_BinElementsAreAllInstancesOfKind (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject kind)
+	{
+		// Actual bins (instances of SetBinDescriptor's subclasses) and nil will
+		// override this, but single non-null values act as a singleton bin.
+		return object.isInstanceOfKind(kind);
 	}
 }

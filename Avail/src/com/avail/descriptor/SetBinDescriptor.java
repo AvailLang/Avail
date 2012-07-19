@@ -77,6 +77,16 @@ extends Descriptor
 		return true;
 	}
 
+	/**
+	 * Asked of the top bin of a set.  If the set is large enough to be
+	 * hashed then compute/cache the union's nearest kind, otherwise just
+	 * answer the null object.
+	 */
+	@Override @AvailMethod
+	abstract
+	@NotNull boolean o_BinElementsAreAllInstancesOfKind (
+		final @NotNull AvailObject object, AvailObject kind);
+
 	@Override
 	public boolean o_ShowValueInNameForDebugger (
 		final @NotNull AvailObject object)

@@ -335,41 +335,9 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsInstanceOf (
+	abstract boolean o_IsInstanceOf (
 		final @NotNull AvailObject object,
-		final AvailObject aType)
-	{
-		if (aType.isEnumeration())
-		{
-			final AvailObject myInstances = object.instances();
-			AvailObject interestingTypeInstances = SetDescriptor.empty();
-			for (final AvailObject typeInstance : aType.instances())
-			{
-				if (typeInstance.isType())
-				{
-					interestingTypeInstances =
-						interestingTypeInstances.setWithElementCanDestroy(
-							typeInstance,
-							true);
-				}
-			}
-			outer: for (final AvailObject myInstance : myInstances)
-			{
-				for (final AvailObject typeInstance : interestingTypeInstances)
-				{
-					if (myInstance.isInstanceOf(typeInstance))
-					{
-						continue outer;
-					}
-				}
-				return false;
-			}
-			// All of my instances are instances of the types that are instances
-			// of aType.
-			return true;
-		}
-		return object.isInstanceOfKind(aType);
-	}
+		final AvailObject aType);
 
 	@Override @AvailMethod
 	boolean o_IsInstanceOfKind (

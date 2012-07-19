@@ -4338,4 +4338,12 @@ extends AbstractDescriptor
 		final String name = o_Traversed(object).nameForDebugger();
 		return "IND→" + name;
 	}
+
+	@Override
+	@NotNull boolean o_BinElementsAreAllInstancesOfKind (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject kind)
+	{
+		return o_Traversed(object).binElementsAreAllInstancesOfKind(kind);
+	}
 }

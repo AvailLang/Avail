@@ -129,7 +129,7 @@ extends AbstractEnumerationTypeDescriptor
 			aStream,
 			recursionList,
 			indent);
-		aStream.append(")'s meta");
+		aStream.append(")'s type");
 	}
 
 	@Override
@@ -278,9 +278,15 @@ extends AbstractEnumerationTypeDescriptor
 		return IntegerDescriptor.one();
 	}
 
+	// TODO[MvG] REMOVE
+	public static long m = 0;
+
 	@Override @AvailMethod
 	@NotNull AvailObject o_Instances (final @NotNull AvailObject object)
 	{
+		m++;  // TODO[MvG] REMOVE
+		if (m%100000 == 0)
+			System.out.println("M=" + m);
 		return SetDescriptor.empty().setWithElementCanDestroy(
 			getInstance(object),
 			true);
@@ -291,13 +297,27 @@ extends AbstractEnumerationTypeDescriptor
 		final @NotNull AvailObject object,
 		final AvailObject potentialInstance)
 	{
-		if (!potentialInstance.isType())
-		{
-			return false;
-		}
-		return potentialInstance.isSubtypeOf(getInstance(object));
+		return potentialInstance.isType()
+			&& potentialInstance.isSubtypeOf(getInstance(object));
 	}
 
+	@Override @AvailMethod
+	boolean o_IsInstanceOf (
+		final @NotNull AvailObject object,
+		final AvailObject aType)
+	{
+		if (aType.isInstanceMeta())
+		{
+			// I'm an instance meta on some type, and aType is (also) an
+			// instance meta (the only sort of meta that exists these
+			// days -- 2012.07.17).  See if my instance (a type) is an
+			// instance of aType's instance (also a type, but maybe a meta).
+			return getInstance(object).isInstanceOf(aType.instance());
+		}
+		// I'm a meta, a singular enumeration of a type, so I could only be an
+		// instance of a meta meta (already excluded), or of ANY or TOP.
+		return Types.ANY.o().isSubtypeOf(aType);
+	}
 
 	/**
 	 * Answer a new instance of this descriptor based on some object whose type

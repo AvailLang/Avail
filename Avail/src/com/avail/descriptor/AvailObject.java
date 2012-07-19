@@ -5014,7 +5014,8 @@ implements Iterable<AvailObject>
 	/**
 	 * @param accumulatedStatements
 	 */
-	public void flattenStatementsInto (final List<AvailObject> accumulatedStatements)
+	public void flattenStatementsInto (
+		final List<AvailObject> accumulatedStatements)
 	{
 		descriptor.o_FlattenStatementsInto(this, accumulatedStatements);
 	}
@@ -6253,5 +6254,15 @@ implements Iterable<AvailObject>
 	public @NotNull AvailObject methodName ()
 	{
 		return descriptor.o_MethodName(this);
+	}
+
+	/**
+	 * @param kind
+	 * @return
+	 */
+	public boolean binElementsAreAllInstancesOfKind (
+		final @NotNull AvailObject kind)
+	{
+		return descriptor.o_BinElementsAreAllInstancesOfKind(this, kind);
 	}
 }

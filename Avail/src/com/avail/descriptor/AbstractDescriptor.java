@@ -4571,7 +4571,8 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract AvailObject o_BinUnionKind (AvailObject object);
+	abstract AvailObject o_BinUnionKind (
+		@NotNull AvailObject object);
 
 	/**
 	 * @param object
@@ -5625,4 +5626,13 @@ public abstract class AbstractDescriptor
 	{
 		return true;
 	}
+
+	/**
+	 * @param object
+	 * @param kind TODO
+	 * @return
+	 */
+	abstract boolean o_BinElementsAreAllInstancesOfKind (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject kind);
 }

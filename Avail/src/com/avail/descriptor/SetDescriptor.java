@@ -171,11 +171,7 @@ public class SetDescriptor extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aTypeObject)
 	{
-		if (aTypeObject.equals(TOP.o()))
-		{
-			return true;
-		}
-		if (aTypeObject.equals(ANY.o()))
+		if (ANY.o().isSubtypeOf(aTypeObject))
 		{
 			return true;
 		}
@@ -195,14 +191,15 @@ public class SetDescriptor extends Descriptor
 			// Check the complete membership.
 			for (final AvailObject member : object)
 			{
-				if (!member.isInstanceOf(expectedContentType))
+				if (!expectedContentType.enumerationIncludesInstance(member))
 				{
 					return false;
 				}
 			}
 			return true;
 		}
-		return rootBin(object).binUnionKind().isSubtypeOf(expectedContentType);
+		return rootBin(object).binElementsAreAllInstancesOfKind(
+			expectedContentType);
 	}
 
 	@Override @AvailMethod
