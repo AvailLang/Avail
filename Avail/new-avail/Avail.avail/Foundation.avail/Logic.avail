@@ -62,10 +62,10 @@ Body
 /**
  * Are all lexical arguments equal?
  * 
- * Parameters:
- *    aTuple - A tuple.
- * Returns:
- *    `true` if all arguments are equal, `false` otherwise.
+ * @method "«_‡=»"
+ * @param "<any…|3..>" "aTuple"
+ * @returns boolean
+ *          `true` if all arguments are equal, `false` otherwise.
  */
 Public method "«_‡=»" is
 [
@@ -109,11 +109,10 @@ Semantic restriction "«_‡=»" is
  * Compute and answer the logical exclusive disjunction, i.e., XOR, of the
  * arguments. This is equivalent to (a ∧ ¬b) ∨ ((¬a) ∧ b)
  * 
- * Parameters:
- *    a - A boolean.
- *    b - A boolean.
- * Returns:
- *    `a` ⊕ `b`.
+ * @method "_⊕_"
+ * @param "boolean" "a"
+ * @param "boolean" "b"
+ * @returns "boolean"
  */
 Public stable method "_⊕_" is
 [
@@ -148,11 +147,10 @@ Semantic restriction "_⊕_" is
  * ¬(`a` ∧ `b`). Short-circuit the computation, i.e., only evaluate `b` if `a`
  * is `true`.
  * 
- * Parameters:
- *    a - A boolean.
- *    b - A boolean function.
- * Returns:
- *    `a` ↑ `b`.
+ * @method "_↑_"
+ * @param "boolean" "a"
+ * @param "[]→boolean" "b"
+ * @returns boolean
  */
 Public method "_↑_" is
 [
@@ -167,11 +165,10 @@ Public method "_↑_" is
  * ¬(a ∧ b). Short-circuit the computation, i.e., only evaluate `b` if `a` is
  * `true`.
  * 
- * Parameters:
- *    a - A boolean.
- *    b - A boolean function.
- * Returns:
- *    `a` ↑ `b`.
+ * @method "_↑_"
+ * @param "false's type" "a"
+ * @param "[]→boolean" "b"
+ * @returns boolean
  */
 Method "_↑_" is
 [
@@ -240,11 +237,10 @@ Semantic restriction "_↑_" is
  * ¬(`a` ∨ `b`). Short-circuit the computation, i.e., only evaluate `b` if `a`
  * is `false`.
  *
- * Parameters:
- *    a - A boolean.
- *    b - A boolean function.
- * Returns:
- *    `a` ↓ `b`.
+ * @method "_↓_"
+ * @param "boolean" "a"
+ * @param "[]→boolean" "b"
+ * @returns boolean
  */
 Public method "_↓_" is
 [
@@ -259,11 +255,10 @@ Public method "_↓_" is
  * ¬(`a` ∨ `b`). Short-circuit the computation, i.e., only evaluate `b` if `a`
  * is `false`.
  *
- * Parameters:
- *    a - A boolean.
- *    b - A boolean function.
- * Returns:
- *    `a` ↓ `b`.
+ * @method "_↓_"
+ * @param "true's type" "a"
+ * @param "[]→boolean" "b"
+ * @returns boolean
  */
 Method "_↓_" is
 [
@@ -276,12 +271,6 @@ Method "_↓_" is
 /**
  * If the left-hand argument of `_↓_` is known statically to be `true`, then
  * the expression is known statically to be `false`.
- *
- * Parameters:
- *    a - The type of `true`.
- *    b - A function type whose instances answer a boolean.
- * Returns:
- *    The type of `false`.
  */
 Semantic restriction "_↓_" is
 [
@@ -294,12 +283,6 @@ Semantic restriction "_↓_" is
 /**
  * If the left-hand argument of `_↓_` is known statically to be `false`, then
  * the static type of the expression is the negation of `b`'s return type.
- *
- * Parameters:
- *    a - The type of `false`.
- *    b - A function type whose instances answer `true`.
- * Returns:
- *    The type of `false`.
  */
 Semantic restriction "_↓_" is
 [
@@ -312,12 +295,6 @@ Semantic restriction "_↓_" is
 /**
  * If the left-hand argument of `_↓_` is known statically to be `false`, then
  * the static type of the expression is the negation of `b`'s return type.
- *
- * Parameters:
- *    a - The type of `false`.
- *    b - A function type whose instances answer `false`.
- * Returns:
- *    The type of `true`.
  */
 Semantic restriction "_↓_" is
 [
@@ -330,12 +307,6 @@ Semantic restriction "_↓_" is
 /**
  * If the right-hand argument of `_↓_` is known statically to be `false`, then
  * the static type of the expression is `false`.
- *
- * Parameters:
- *    a - Boolean's type.
- *    b - A function type whose instances answer `true`.
- * Returns:
- *    The type of `false`.
  */
 Semantic restriction "_↓_" is
 [
@@ -350,11 +321,10 @@ Semantic restriction "_↓_" is
  * equivalent of (¬`a`) ∨ `b`. Short-circuit the computation, i.e., only
  * evaluate `b` if `a` is `true`.
  *
- * Parameters:
- *    a - A boolean.
- *    b - A boolean function.
- * Returns:
- *    `a` → `b`.
+ * @method "_→_"
+ * @param "boolean" "a"
+ * @param "[]→boolean" "b"
+ * @returns boolean
  */
 Public method "_→_" is
 [
@@ -369,11 +339,10 @@ Public method "_→_" is
  * equivalent of (¬`a`) ∨ `b`. Short-circuit the computation, i.e., only
  * evaluate `b` if `a` is `true`.
  *
- * Parameters:
- *    a - A boolean.
- *    b - A boolean function.
- * Returns:
- *    `a` → `b`.
+ * @method "_→_"
+ * @param "false's type" "a"
+ * @param "[]→boolean" "b"
+ * @returns boolean
  */
 Method "_→_" is
 [
@@ -386,12 +355,6 @@ Method "_→_" is
 /**
  * If the left-hand argument of `_→_` is known statically to be `false`, then
  * the expression is known statically to be `true`.
- *
- * Parameters:
- *    a - The type of `false`.
- *    b - A function type whose instances answer a boolean.
- * Returns:
- *    The type of `true`.
  */
 Semantic restriction "_→_" is
 [
@@ -404,12 +367,6 @@ Semantic restriction "_→_" is
 /**
  * If the right-hand argument of `_→_` is known statically to be `true`, then
  * the expression is known statically to be `true`.
- *
- * Parameters:
- *    a - The type of `false`.
- *    b - A function type whose instances answer a boolean.
- * Returns:
- *    The type of `true`.
  */
 Semantic restriction "_→_" is
 [
@@ -424,11 +381,10 @@ Semantic restriction "_→_" is
  * equivalent to `a` ∨ ¬`b`. Short-circuit the computation, i.e., only evaluate
  * `b` if `a`  is false.
  *
- * Parameters:
- *    a - A boolean.
- *    b - A boolean function.
- * Returns:
- *    `a` ← `b`.
+ * @method "_←_"
+ * @param "boolean" "a"
+ * @param "[]→boolean" "b"
+ * @returns boolean
  */
 Public method "_←_" is
 [
@@ -443,11 +399,10 @@ Public method "_←_" is
  * equivalent to `a` ∨ ¬`b`. Short-circuit the computation, i.e., only evaluate
  * `b` if `a`  is false.
  *
- * Parameters:
- *    a - A boolean.
- *    b - A boolean function.
- * Returns:
- *    `a` ← `b`.
+ * @method "_←_"
+ * @param "true's type" "a"
+ * @param "[]→boolean" "b"
+ * @returns boolean
  */
 Method "_←_" is
 [
@@ -460,12 +415,6 @@ Method "_←_" is
 /**
  * If the left-hand argument of `_←_` is known statically to be `true`, then
  * the static type of the expression is `true`.
- *
- * Parameters:
- *    a - The type of `true`.
- *    b - A function type whose instances answer a boolean.
- * Returns:
- *    The type of `true`.
  */
 Semantic restriction "_←_" is
 [
@@ -478,12 +427,6 @@ Semantic restriction "_←_" is
 /**
  * If the right-hand argument of `_←_` is known statically to be `false`, then
  * the static type of the expression is `true`.
- *
- * Parameters:
- *    a - boolean's type.
- *    b - A function type whose instances answer `false`.
- * Returns:
- *    The type of `true`.
  */
 Semantic restriction "_←_" is
 [
@@ -498,11 +441,10 @@ Semantic restriction "_←_" is
  * negation of XOR and equivalent to (`a` ∧ `b`) ∨ ((¬`a`) ∧ ¬`b`), which is
  * a = b.
  *
- * Parameters:
- *    a - A boolean.
- *    b - A boolean.
- * Returns:
- *    `a` ↔ `b`.
+ * @method "_↔_"
+ * @param "boolean" "a"
+ * @param "boolean" "b"
+ * @returns boolean
  */
 Public stable method "_↔_" is
 [
@@ -535,11 +477,10 @@ Semantic restriction "_↔_" is
  * equivalent to `a` ∧ ¬`b`. Short-circuit the computation, i.e., only evaluate
  * `b` if `a` is `true`.
  *
- * Parameters:
- *    a - A boolean.
- *    b - A boolean function.
- * Returns:
- *    `a` ↛ `b`.
+ * @method "_↛_"
+ * @param "boolean" "a"
+ * @param "[]→boolean" "b"
+ * @returns boolean
  */
 Public method "_↛_" is
 [
@@ -554,11 +495,10 @@ Public method "_↛_" is
  * equivalent to `a` ∧ ¬`b`. Short-circuit the computation, i.e., only evaluate
  * `b` if `a` is `true`.
  *
- * Parameters:
- *    a - A boolean.
- *    b - A boolean function.
- * Returns:
- *    `a` ↛ `b`.
+ * @method "_↛_"
+ * @param "false's type" "a"
+ * @param "[]→boolean" "b"
+ * @returns boolean
  */
 Method "_↛_" is
 [
@@ -609,11 +549,10 @@ Semantic restriction "_↛_" is
  * equivalent to (¬`a`) ∧ `b`. Short-circuit the computation, i.e., only
  * evaluate `b` if `a` is `false`.
  *
- * Parameters:
- *    a - A boolean.
- *    b - A boolean function.
- * Returns:
- *    `a` ↚ `b`.
+ * @method "_↚_"
+ * @param "boolean" "a"
+ * @param "[]→boolean" "b"
+ * @returns boolean
  */
 Public method "_↚_" is
 [
@@ -628,11 +567,10 @@ Public method "_↚_" is
  * equivalent to (¬`a`) ∧ `b`. Short-circuit the computation, i.e., only
  * evaluate `b` if `a` is `false`.
  *
- * Parameters:
- *    a - A boolean.
- *    b - A boolean function.
- * Returns:
- *    `a` ↚ `b`.
+ * @method "_↚_"
+ * @param "true's type" "a"
+ * @param "[]→boolean" "b"
+ * @returns boolean
  */
 Method "_↚_" is
 [
@@ -645,12 +583,6 @@ Method "_↚_" is
 /**
  * If the left-hand argument of `_↚_` is known statically to be `true`, then
  * the static type of the expression is `false`.
- *
- * Parameters:
- *    a - The type of `true`.
- *    b - A function type whose instances answer a boolean.
- * Returns:
- *    The type of `false`.
  */
 Semantic restriction "_↚_" is
 [
@@ -663,12 +595,6 @@ Semantic restriction "_↚_" is
 /**
  * If the right-hand argument of `_↚_` is known statically to be `false`, then
  * the static type of the expression is `false`.
- *
- * Parameters:
- *    a - The type of boolean.
- *    b - A function type whose instances answer a `false`.
- * Returns:
- *    The type of `false`.
  */
 Semantic restriction "_↚_" is
 [
@@ -682,12 +608,6 @@ Semantic restriction "_↚_" is
  * If the right-hand argument of `_↚_` is known statically to be `true` and the
  * left-hand argument is known statically to be `false`, then the static type
  * of the expression is `true`.
- *
- * Parameters:
- *    a - The type of boolean.
- *    b - A function type whose instances answer a `false`.
- * Returns:
- *    The type of `false`.
  */
 Semantic restriction "_↚_" is
 [
