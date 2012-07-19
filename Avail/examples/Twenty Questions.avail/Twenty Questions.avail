@@ -3,32 +3,42 @@ Extends
 Uses
 	"Avail"
 Names
+	"Play Twenty Questions with input_and output_"
 Body
 
 /**
+ * A node class that contains a string, which is either a question or a guess.
  * 
+ * @type "node"
  */
 Explicit class "node" extends object
 	with fields
 		$str : string;
 
 /**
+ * A question class, which is a subtype of node, that has two child nodes -- one
+ * for the response "no" and one for "yes".
  * 
+ * @type "question"
  */
 Class "question" extends node
 	with fields
 		$yes : ↑node,
 		$no : ↑node;
 
-/**
- * 
- */
 root ::= new ↑node;
 ↓root ?= a node with
 	$str := "Avail";
 
 /**
+ * Play a single game of Twenty Questions using the specified input and output
+ * blocks to handle communication.
  * 
+ * @method "Play Twenty Questions with input_and output_"
+ * @param "input" "[]→string"
+ *        A block that can be invoked to provide a single response to the game.
+ * @param "output" "[string]→⊤"
+ *        A block that can be invoked with a response from the game.
  */
 Method "Play Twenty Questions with input_and output_" is
 [
@@ -44,24 +54,27 @@ Method "Play Twenty Questions with input_and output_" is
 	 	↑count++;
 		output(↓curNode's str);
 		response := input();
-		If response = "n" ∨ [response = "no"] then [curNode := (cast ↓curNode into [q : question | q])'s no;]
-		else if [response = "y" ∨ [response = "yes"]] then [curNode := (cast ↓curNode into [q : question | q])'s yes;];
+		If response = "n" ∨ [response = "no"]
+			then [curNode := (cast ↓curNode into [q : question | q])'s no;]
+		else if [response = "y" ∨ [response = "yes"]]
+			then [curNode := (cast ↓curNode into [q : question | q])'s yes;];
 	];
 	output("Is it " ++ ↓curNode's str ++ "? ");
 	response := input();
 	answer : string;
-	If response = "y" ∨ [response = "yes"] then [Print: "Yay!\n";]
+	If response = "y" ∨ [response = "yes"]
+		then [output("Yay!\n");]
 	else if [response = "n" ∨ [ response = "no"]]
-	then
-	[
-		output("I give up. What was it? ");
-		answer := input();
-		output("Okay. What is a question to distinguish it from "
-			++ ↓curNode's str ++ "? ");
-		response := input();
-		tempNo : node := ↓curNode;
-		tempYes : node := a node with $str := answer;
-		↓curNode ?= a question with
+		then
+		[
+			output("I give up. What was it? ");
+			answer := input();
+			output("Okay. What is a question to distinguish it from "
+				++ ↓curNode's str ++ "? ");
+			response := input();
+			tempNo : node := ↓curNode;
+			tempYes : node := a node with $str := answer;
+			↓curNode ?= a question with
 				$str := response,
 				$no := ↑tempNo,
 				$yes := ↑tempYes;
@@ -69,13 +82,13 @@ Method "Play Twenty Questions with input_and output_" is
 ];
 
 /**
+ * Play a single game of twenty questions, using the console for input/output.
  * 
+ * @method "Play Twenty Questions in the console"
  */
-Method "Play in the console" is
+Method "Play Twenty Questions in the console" is
 [
 	Play Twenty Questions with
 		input [next line]
 		and output [str : string | Print: str;];
-] : ⊤;
-
-Play in the console;
+];
