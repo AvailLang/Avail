@@ -200,9 +200,9 @@ extends Descriptor
 		final @NotNull AvailObject aPojoType);
 
 	@Override @AvailMethod
-	abstract boolean o_IsSupertypeOfPrimitiveType (
+	abstract boolean o_IsSupertypeOfPrimitiveTypeWithOrdinal (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aPrimitiveType);
+		final int aPrimitiveTypeOrdinal);
 
 	@Override @AvailMethod
 	abstract boolean o_IsSupertypeOfSetType (

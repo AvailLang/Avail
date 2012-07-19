@@ -171,7 +171,7 @@ public class SetDescriptor extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aTypeObject)
 	{
-		if (ANY.o().isSubtypeOf(aTypeObject))
+		if (aTypeObject.isSupertypeOfPrimitiveTypeWithOrdinal(ANY.ordinal()))
 		{
 			return true;
 		}
@@ -250,6 +250,17 @@ public class SetDescriptor extends Descriptor
 			return false;
 		}
 		return rootBin(object).isBinSubsetOf(another);
+	}
+
+	/**
+	 * Answer whether all my elements are instances of the specified kind.
+	 */
+	@Override @AvailMethod
+	boolean o_SetElementsAreAllInstancesOfKind (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject kind)
+	{
+		return rootBin(object).binElementsAreAllInstancesOfKind(kind);
 	}
 
 	@Override @AvailMethod

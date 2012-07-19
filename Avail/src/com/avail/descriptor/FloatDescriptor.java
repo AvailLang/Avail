@@ -156,7 +156,7 @@ extends AbstractNumberDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
-		return FLOAT.o().isSubtypeOf(aType);
+		return aType.isSupertypeOfPrimitiveTypeWithOrdinal(FLOAT.ordinal());
 	}
 
 	@Override @AvailMethod

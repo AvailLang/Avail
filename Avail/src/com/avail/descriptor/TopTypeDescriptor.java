@@ -51,12 +51,20 @@ extends PrimitiveTypeDescriptor
 		/**
 		 * The hash of this primitive type, computed at construction time.
 		 */
-		HASH;
+		HASH,
+
+		/**
+		 * This primitive type's (mutually) unique ordinal number.
+		 */
+		PRIMITIVE_TYPE_ORDINAL;
 
 		static
 		{
 			assert PrimitiveTypeDescriptor.IntegerSlots.HASH.ordinal()
 				== HASH.ordinal();
+			assert PrimitiveTypeDescriptor.IntegerSlots.PRIMITIVE_TYPE_ORDINAL
+					.ordinal()
+				== PRIMITIVE_TYPE_ORDINAL.ordinal();
 		}
 	}
 
@@ -98,9 +106,9 @@ extends PrimitiveTypeDescriptor
 
 	@Override
 	@AvailMethod @ThreadSafe
-	boolean o_IsSupertypeOfPrimitiveType (
+	boolean o_IsSupertypeOfPrimitiveTypeWithOrdinal (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aPrimitiveType)
+		final int aPrimitiveTypeOrdinal)
 	{
 		// Check if object (the type top) is a supertype of aPrimitiveType (a
 		// primitive type). Always true.

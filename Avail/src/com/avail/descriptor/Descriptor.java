@@ -788,9 +788,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_IsSupertypeOfPrimitiveType (
+	boolean o_IsSupertypeOfPrimitiveTypeWithOrdinal (
 		final @NotNull AvailObject object,
-		final AvailObject aPrimitiveType)
+		final int aPrimitiveTypeOrdinal)
 	{
 		throw unsupportedOperationException();
 	}
@@ -2737,7 +2737,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_EqualsPrimitiveType (
 		final @NotNull AvailObject object,
-		final AvailObject aType)
+		final @NotNull AvailObject aPrimitiveType)
 	{
 		return false;
 	}
@@ -4587,5 +4587,13 @@ extends AbstractDescriptor
 		// Actual bins (instances of SetBinDescriptor's subclasses) and nil will
 		// override this, but single non-null values act as a singleton bin.
 		return object.isInstanceOfKind(kind);
+	}
+
+	@Override
+	boolean o_SetElementsAreAllInstancesOfKind (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject kind)
+	{
+		throw unsupportedOperationException();
 	}
 }

@@ -32,7 +32,7 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.TypeDescriptor.Types;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.descriptor.AbstractNumberDescriptor.*;
@@ -259,7 +259,7 @@ extends AbstractNumberDescriptor
 	@Override @AvailMethod
 	@NotNull AvailObject o_Kind (final @NotNull AvailObject object)
 	{
-		return Types.DOUBLE.o();
+		return DOUBLE.o();
 	}
 
 	@Override @AvailMethod
@@ -293,7 +293,7 @@ extends AbstractNumberDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
-		return Types.DOUBLE.o().isSubtypeOf(aType);
+		return aType.isSupertypeOfPrimitiveTypeWithOrdinal(DOUBLE.ordinal());
 	}
 
 	@Override

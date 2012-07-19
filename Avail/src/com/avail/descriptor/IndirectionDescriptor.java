@@ -186,7 +186,10 @@ extends AbstractDescriptor
 	{
 		final AvailObject next = object.slot(ObjectSlots.INDIRECTION_TARGET);
 		final AvailObject finalObject = next.traversed();
-		object.setSlot(ObjectSlots.INDIRECTION_TARGET, finalObject);
+		if (!next.sameAddressAs(object))
+		{
+			object.setSlot(ObjectSlots.INDIRECTION_TARGET, finalObject);
+		}
 		return finalObject;
 	}
 
@@ -1267,11 +1270,12 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_IsSupertypeOfPrimitiveType (
+	boolean o_IsSupertypeOfPrimitiveTypeWithOrdinal (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aPrimitiveType)
+		final int aPrimitiveTypeOrdinal)
 	{
-		return o_Traversed(object).isSupertypeOfPrimitiveType(aPrimitiveType);
+		return o_Traversed(object).isSupertypeOfPrimitiveTypeWithOrdinal(
+			aPrimitiveTypeOrdinal);
 	}
 
 	@Override
@@ -4345,5 +4349,13 @@ extends AbstractDescriptor
 		final @NotNull AvailObject kind)
 	{
 		return o_Traversed(object).binElementsAreAllInstancesOfKind(kind);
+	}
+
+	@Override
+	boolean o_SetElementsAreAllInstancesOfKind (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject kind)
+	{
+		return o_Traversed(object).setElementsAreAllInstancesOfKind(kind);
 	}
 }

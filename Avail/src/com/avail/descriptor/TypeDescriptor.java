@@ -420,9 +420,9 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSupertypeOfPrimitiveType (
+	boolean o_IsSupertypeOfPrimitiveTypeWithOrdinal (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aPrimitiveType)
+		final int aPrimitiveTypeOrdinal)
 	{
 		/* Check if object (some specialized type) is a supertype of
 		 * aPrimitiveType (some primitive type).  The only primitive type this
@@ -900,6 +900,8 @@ extends AbstractTypeDescriptor
 		return AvailObject.class;
 	}
 
+	static boolean supertypeTable [][];
+
 	/**
 	 * Create any cached {@link AvailObject}s.
 	 */
@@ -911,11 +913,13 @@ extends AbstractTypeDescriptor
 			final String name = spec == TOP
 				? "⊤"
 				: spec.name().toLowerCase().replace('_', ' ');
-			final AvailObject o =
-				spec.descriptor.createPrimitiveObjectNamed(name);
+			final AvailObject o = spec.descriptor.createPrimitiveObjectNamed(
+				name,
+				spec.ordinal());
 			spec.set_o(o);
 		}
 		// Connect and name the objects.
+		supertypeTable = new boolean [Types.values().length][];
 		for (final Types spec : Types.values())
 		{
 			final AvailObject o = spec.o();
@@ -923,6 +927,14 @@ extends AbstractTypeDescriptor
 				spec.parent == null
 					 ? NullDescriptor.nullObject()
 					: spec.parent.o());
+			final boolean[] row = new boolean [Types.values().length];
+			supertypeTable[spec.ordinal()] = row;
+			Types pointer = spec;
+			while (pointer != null)
+			{
+				row[pointer.ordinal()] = true;
+				pointer = pointer.parent;
+			}
 		}
 		for (final Types spec : Types.values())
 		{
@@ -948,6 +960,7 @@ extends AbstractTypeDescriptor
 		{
 			spec.set_o(null);
 		}
+		supertypeTable = null;
 	}
 
 	/**

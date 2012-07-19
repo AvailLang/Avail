@@ -162,7 +162,7 @@ extends ExtendedIntegerDescriptor
 		final @NotNull AvailObject object,
 		final AvailObject aType)
 	{
-		if (NUMBER.o().isSubtypeOf(aType))
+		if (aType.isSupertypeOfPrimitiveTypeWithOrdinal(NUMBER.ordinal()))
 		{
 			return true;
 		}

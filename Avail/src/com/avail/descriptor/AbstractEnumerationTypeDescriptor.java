@@ -560,9 +560,9 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	final boolean o_IsSupertypeOfPrimitiveType (
+	final boolean o_IsSupertypeOfPrimitiveTypeWithOrdinal (
 		final @NotNull AvailObject object,
-		final AvailObject aPrimitiveType)
+		final int aPrimitiveTypeOrdinal)
 	{
 		return false;
 	}

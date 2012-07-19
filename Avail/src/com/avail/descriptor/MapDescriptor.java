@@ -226,7 +226,7 @@ public class MapDescriptor extends Descriptor
 		final @NotNull AvailObject object,
 		final AvailObject aTypeObject)
 	{
-		if (ANY.o().isSubtypeOf(aTypeObject))
+		if (aTypeObject.isSupertypeOfPrimitiveTypeWithOrdinal(ANY.ordinal()))
 		{
 			return true;
 		}

@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.descriptor.AvailObject.Multiplier;
 import java.util.List;
 import com.avail.annotations.*;
@@ -244,18 +245,25 @@ extends AbstractEnumerationTypeDescriptor
 			// (the only sort of metas that exist these days -- 2012.07.17).
 			// See if my instances comply with aType's instance (a type).
 			final AvailObject aTypeInstance = aType.instance();
-			for (final AvailObject myInstance : getInstances(object))
+			final AvailObject instanceSet = getInstances(object);
+			assert instanceSet.isSet();
+			if (aTypeInstance.isEnumeration())
 			{
-				if (!myInstance.isInstanceOf(aTypeInstance))
+				// Check the complete membership.
+				for (final AvailObject member : instanceSet)
 				{
-					return false;
+					if (!aTypeInstance.enumerationIncludesInstance(member))
+					{
+						return false;
+					}
 				}
+				return true;
 			}
-			return true;
+			return instanceSet.setElementsAreAllInstancesOfKind(aTypeInstance);
 		}
 		// I'm an enumeration of non-types, so I could only be an instance of a
 		// meta (already excluded), or of ANY or TOP.
-		return Types.ANY.o().isSubtypeOf(aType);
+		return aType.isSupertypeOfPrimitiveTypeWithOrdinal(ANY.ordinal());
 	}
 
 	/**

@@ -1784,12 +1784,12 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param aPrimitiveType
+	 * @param aPrimitiveTypeOrdinal
 	 * @return
 	 */
-	abstract boolean o_IsSupertypeOfPrimitiveType (
-		@NotNull AvailObject object,
-		AvailObject aPrimitiveType);
+	abstract boolean o_IsSupertypeOfPrimitiveTypeWithOrdinal (
+		final @NotNull AvailObject object,
+		final int aPrimitiveTypeOrdinal);
 
 	/**
 	 * @param object
@@ -3920,12 +3920,12 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param aType
+	 * @param aPrimitiveType
 	 * @return
 	 */
 	abstract boolean o_EqualsPrimitiveType (
-		@NotNull AvailObject object,
-		AvailObject aType);
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject aPrimitiveType);
 
 	/**
 	 * @param object
@@ -5633,6 +5633,15 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract boolean o_BinElementsAreAllInstancesOfKind (
+		final @NotNull AvailObject object,
+		final @NotNull AvailObject kind);
+
+	/**
+	 * @param object
+	 * @param kind
+	 * @return
+	 */
+	abstract boolean o_SetElementsAreAllInstancesOfKind (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject kind);
 }

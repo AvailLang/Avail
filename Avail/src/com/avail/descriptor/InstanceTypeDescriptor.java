@@ -39,7 +39,6 @@ import static java.lang.Math.*;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
-import com.avail.descriptor.TypeDescriptor.Types;
 
 /**
  * My instances are called <em>instance types</em>, the types of individual
@@ -300,7 +299,7 @@ extends AbstractEnumerationTypeDescriptor
 		}
 		// I'm a singular enumeration of a non-type, so I could only be an
 		// instance of a meta (already excluded), or of ANY or TOP.
-		return Types.ANY.o().isSubtypeOf(aType);
+		return aType.isSupertypeOfPrimitiveTypeWithOrdinal(ANY.ordinal());
 	}
 
 	@Override @AvailMethod

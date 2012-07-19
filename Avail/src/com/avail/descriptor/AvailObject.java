@@ -2690,10 +2690,12 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public boolean isSupertypeOfPrimitiveType (
-		final AvailObject aPrimitiveType)
+	public boolean isSupertypeOfPrimitiveTypeWithOrdinal (
+		final int aPrimitiveTypeOrdinal)
 	{
-		return descriptor.o_IsSupertypeOfPrimitiveType(this, aPrimitiveType);
+		return descriptor.o_IsSupertypeOfPrimitiveTypeWithOrdinal(
+			this,
+			aPrimitiveTypeOrdinal);
 	}
 
 	/**
@@ -6264,5 +6266,15 @@ implements Iterable<AvailObject>
 		final @NotNull AvailObject kind)
 	{
 		return descriptor.o_BinElementsAreAllInstancesOfKind(this, kind);
+	}
+
+	/**
+	 * @param kind
+	 * @return
+	 */
+	public boolean setElementsAreAllInstancesOfKind (
+		final @NotNull AvailObject kind)
+	{
+		return descriptor.o_SetElementsAreAllInstancesOfKind(this, kind);
 	}
 }

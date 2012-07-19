@@ -32,6 +32,8 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.PrimitiveTypeDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.PrimitiveTypeDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 import com.avail.annotations.*;
@@ -72,7 +74,12 @@ extends TypeDescriptor
 		/**
 		 * The hash of this primitive type, computed at construction time.
 		 */
-		HASH
+		HASH,
+
+		/**
+		 * This primitive type's (mutually) unique ordinal number.
+		 */
+		PRIMITIVE_TYPE_ORDINAL
 	}
 
 	/**
@@ -96,7 +103,7 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final int value)
 	{
-		object.setSlot(IntegerSlots.HASH, value);
+		object.setSlot(HASH, value);
 	}
 
 	@Override @AvailMethod
@@ -104,7 +111,7 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
-		object.setSlot(ObjectSlots.NAME, value);
+		object.setSlot(NAME, value);
 	}
 
 	@Override @AvailMethod
@@ -112,28 +119,28 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject value)
 	{
-		object.setSlot(ObjectSlots.PARENT, value);
+		object.setSlot(PARENT, value);
 	}
 
 	@Override @AvailMethod
 	int o_Hash (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(IntegerSlots.HASH);
+		return object.slot(HASH);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_Name (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.NAME);
+		return object.slot(NAME);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_Parent (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.PARENT);
+		return object.slot(PARENT);
 	}
 
 	@Override
@@ -157,11 +164,10 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	boolean o_EqualsPrimitiveType (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aType)
+		final @NotNull AvailObject aPrimitiveType)
 	{
-		//  Primitive types compare by identity.
-
-		return object.sameAddressAs(aType);
+		// Primitive types compare by identity.
+		return object.sameAddressAs(aPrimitiveType);
 	}
 
 	@Override @AvailMethod
@@ -169,9 +175,9 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
-		//  Check if object (a type) is a subtype of aType (should also be a type).
-
-		return aType.isSupertypeOfPrimitiveType(object);
+		// Check if object (a type) is a subtype of aType (should also be a type).
+		return aType.isSupertypeOfPrimitiveTypeWithOrdinal(
+			object.slot(PRIMITIVE_TYPE_ORDINAL));
 	}
 
 	@Override @AvailMethod
@@ -182,7 +188,7 @@ extends TypeDescriptor
 		//  This primitive type is a supertype of aFunctionType if and only if this
 		//  primitive type is a supertype of ANY.
 
-		return ANY.o().isSubtypeOf(object);
+		return object.isSupertypeOfPrimitiveTypeWithOrdinal(ANY.ordinal());
 	}
 
 	@Override @AvailMethod
@@ -192,7 +198,7 @@ extends TypeDescriptor
 	{
 		// A primitive type is a supertype of a variable type if it is a
 		// supertype of ANY.
-		return ANY.o().isSubtypeOf(object);
+		return object.isSupertypeOfPrimitiveTypeWithOrdinal(ANY.ordinal());
 	}
 
 	@Override @AvailMethod
@@ -202,7 +208,7 @@ extends TypeDescriptor
 	{
 		// A primitive type is a supertype of a continuation type if it is a
 		// supertype of ANY.
-		return ANY.o().isSubtypeOf(object);
+		return object.isSupertypeOfPrimitiveTypeWithOrdinal(ANY.ordinal());
 	}
 
 	@Override @AvailMethod
@@ -212,7 +218,7 @@ extends TypeDescriptor
 	{
 		// A primitive type is a supertype of a compiled code type if it is a
 		// supertype of ANY.
-		return ANY.o().isSubtypeOf(object);
+		return object.isSupertypeOfPrimitiveTypeWithOrdinal(ANY.ordinal());
 	}
 
 	@Override @AvailMethod
@@ -222,7 +228,7 @@ extends TypeDescriptor
 	{
 		// Parent of the top integer range type is number, so continue
 		// searching there.
-		return NUMBER.o().isSubtypeOf(object);
+		return object.isSupertypeOfPrimitiveTypeWithOrdinal(NUMBER.ordinal());
 	}
 
 	@Override @AvailMethod
@@ -232,7 +238,7 @@ extends TypeDescriptor
 	{
 		// This primitive type is a supertype of aLiteralTokenType if and only
 		// if this primitive type is a supertype of TOKEN.
-		return TOKEN.o().isSubtypeOf(object);
+		return object.isSupertypeOfPrimitiveTypeWithOrdinal(TOKEN.ordinal());
 	}
 
 	@Override @AvailMethod
@@ -242,7 +248,7 @@ extends TypeDescriptor
 	{
 		// This primitive type is a supertype of aMapType if and only if this
 		// primitive type is a supertype of ANY.
-		return ANY.o().isSubtypeOf(object);
+		return object.isSupertypeOfPrimitiveTypeWithOrdinal(ANY.ordinal());
 	}
 
 	@Override @AvailMethod
@@ -252,7 +258,7 @@ extends TypeDescriptor
 	{
 		// Check if I'm a supertype of the given eager object type.  Only ANY
 		// and its ancestors are supertypes of an object type.
-		return ANY.o().isSubtypeOf(object);
+		return object.isSupertypeOfPrimitiveTypeWithOrdinal(ANY.ordinal());
 	}
 
 	@Override @AvailMethod
@@ -260,7 +266,7 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aParseNodeType)
 	{
-		return ANY.o().isSubtypeOf(object);
+		return object.isSupertypeOfPrimitiveTypeWithOrdinal(ANY.ordinal());
 	}
 
 	@Override
@@ -268,7 +274,7 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aPojoType)
 	{
-		return ANY.o().isSubtypeOf(object);
+		return object.isSupertypeOfPrimitiveTypeWithOrdinal(ANY.ordinal());
 	}
 
 	@Override @AvailMethod
@@ -276,29 +282,17 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aPojoType)
 	{
-		return ANY.o().isSubtypeOf(object);
+		return object.isSupertypeOfPrimitiveTypeWithOrdinal(ANY.ordinal());
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSupertypeOfPrimitiveType (
+	boolean o_IsSupertypeOfPrimitiveTypeWithOrdinal (
 		final @NotNull AvailObject object,
-		final @NotNull AvailObject aPrimitiveType)
+		final int aPrimitiveTypeOrdinal)
 	{
-		// Check if object (a primitive type) is a supertype of aPrimitiveType
-		// (also a primitive type).
-		AvailObject type = aPrimitiveType;
-		while (true)
-		{
-			if (object.equals(type))
-			{
-				return true;
-			}
-			type = type.parent();
-			if (type.equalsNull())
-			{
-				return false;
-			}
-		}
+		final boolean[] row =
+			TypeDescriptor.supertypeTable[aPrimitiveTypeOrdinal];
+		return row[object.slot(PRIMITIVE_TYPE_ORDINAL)];
 	}
 
 	@Override @AvailMethod
@@ -309,7 +303,7 @@ extends TypeDescriptor
 		//  This primitive type is a supertype of aSetType if and only if this
 		//  primitive type is a supertype of ANY.
 
-		return ANY.o().isSubtypeOf(object);
+		return object.isSupertypeOfPrimitiveTypeWithOrdinal(ANY.ordinal());
 	}
 
 	@Override @AvailMethod
@@ -320,7 +314,7 @@ extends TypeDescriptor
 		//  This primitive type is a supertype of aTupleType if and only if this
 		//  primitive type is a supertype of ANY.
 
-		return ANY.o().isSubtypeOf(object);
+		return object.isSupertypeOfPrimitiveTypeWithOrdinal(ANY.ordinal());
 	}
 
 	@Override @AvailMethod
@@ -367,7 +361,7 @@ extends TypeDescriptor
 			assert !another.equals(BottomTypeDescriptor.bottom());
 			return another.computeSuperkind().typeUnion(object);
 		}
-		return object.slot(ObjectSlots.PARENT).typeUnion(another);
+		return object.slot(PARENT).typeUnion(another);
 	}
 
 	@Override @AvailMethod
@@ -423,16 +417,20 @@ extends TypeDescriptor
 	 *
 	 * @param typeNameString
 	 *            The name to give the object being initialized.
+	 * @param ordinal
+	 *            The unique ordinal number for this primitive type.
 	 * @return    The partially initialized type.
 	 */
 	AvailObject createPrimitiveObjectNamed (
-		final String typeNameString)
+		final String typeNameString,
+		final int ordinal)
 	{
 		final AvailObject name = StringDescriptor.from(typeNameString);
 		final @NotNull AvailObject object = create();
-		object.setSlot(ObjectSlots.NAME, name);
-		object.setSlot(ObjectSlots.PARENT, NullDescriptor.nullObject());
-		object.setSlot(IntegerSlots.HASH, typeNameString.hashCode());
+		object.setSlot(NAME, name);
+		object.setSlot(PARENT, NullDescriptor.nullObject());
+		object.setSlot(HASH, typeNameString.hashCode());
+		object.setSlot(PRIMITIVE_TYPE_ORDINAL, ordinal);
 		return object;
 	}
 

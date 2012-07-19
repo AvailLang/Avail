@@ -633,15 +633,16 @@ extends TypeDescriptor
 		}
 		assert sizeRange.lowerBound().isFinite();
 		assert sizeRange.upperBound().isFinite() || !sizeRange.upperInclusive();
-		if (sizeRange.lowerBound().equals(IntegerDescriptor.zero())
-				&& sizeRange.upperBound().equals(IntegerDescriptor.zero()))
+		if (sizeRange.upperBound().equals(IntegerDescriptor.zero())
+				&& sizeRange.lowerBound().equals(IntegerDescriptor.zero()))
 		{
 			return privateTupleTypeForSizesTypesDefaultType(
 				sizeRange,
 				TupleDescriptor.empty(),
 				BottomTypeDescriptor.bottom());
 		}
-		if (IntegerDescriptor.fromInt(typeTuple.tupleSize()).greaterOrEqual(
+		final int typeTupleSize = typeTuple.tupleSize();
+		if (IntegerDescriptor.fromInt(typeTupleSize).greaterOrEqual(
 			sizeRange.upperBound()))
 		{
 			// The (nonempty) tuple hits the end of the range – disregard the
@@ -657,11 +658,11 @@ extends TypeDescriptor
 					false),
 				typeTuple.tupleAt(upper).makeImmutable());
 		}
-		if (typeTuple.tupleSize() > 0
-				&& typeTuple.tupleAt(typeTuple.tupleSize()).equals(defaultType))
+		if (typeTupleSize > 0
+				&& typeTuple.tupleAt(typeTupleSize).equals(defaultType))
 		{
 			//  See how many other redundant entries we can drop.
-			int index = typeTuple.tupleSize() - 1;
+			int index = typeTupleSize - 1;
 			while (index > 0 && typeTuple.tupleAt(index).equals(defaultType))
 			{
 				index--;

@@ -37,7 +37,6 @@ import static com.avail.descriptor.AvailObject.Multiplier;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 import com.avail.annotations.*;
-import com.avail.descriptor.TypeDescriptor.Types;
 
 /**
  * My instances are called <em>instance metas</em>, the types of types.  These
@@ -167,7 +166,7 @@ extends AbstractEnumerationTypeDescriptor
 		}
 		// Another is not an enumeration, and definitely not a meta, and the
 		// only possible superkinds of object (a meta) are ANY and TOP.
-		if (another.isSupertypeOfPrimitiveType(ANY.o()))
+		if (another.isSupertypeOfPrimitiveTypeWithOrdinal(ANY.ordinal()))
 		{
 			return object;
 		}
@@ -316,7 +315,7 @@ extends AbstractEnumerationTypeDescriptor
 		}
 		// I'm a meta, a singular enumeration of a type, so I could only be an
 		// instance of a meta meta (already excluded), or of ANY or TOP.
-		return Types.ANY.o().isSubtypeOf(aType);
+		return aType.isSupertypeOfPrimitiveTypeWithOrdinal(ANY.ordinal());
 	}
 
 	/**

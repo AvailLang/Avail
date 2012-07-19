@@ -143,7 +143,7 @@ extends TokenDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aTypeObject)
 	{
-		if (TOKEN.o().isSubtypeOf(aTypeObject))
+		if (aTypeObject.isSupertypeOfPrimitiveTypeWithOrdinal(TOKEN.ordinal()))
 		{
 			return true;
 		}

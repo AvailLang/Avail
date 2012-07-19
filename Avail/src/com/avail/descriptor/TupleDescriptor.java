@@ -287,7 +287,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final AvailObject aTypeObject)
 	{
-		if (ANY.o().isSubtypeOf(aTypeObject))
+		if (aTypeObject.isSupertypeOfPrimitiveTypeWithOrdinal(ANY.ordinal()))
 		{
 			return true;
 		}
@@ -314,7 +314,8 @@ extends Descriptor
 			}
 		}
 		final AvailObject defaultTypeObject = aTypeObject.defaultType();
-		if (!ANY.o().isSubtypeOf(defaultTypeObject))
+		if (!defaultTypeObject.isSupertypeOfPrimitiveTypeWithOrdinal(
+			ANY.ordinal()))
 		{
 			for (int i = breakIndex + 1; i <= tupleSize; i++)
 			{
