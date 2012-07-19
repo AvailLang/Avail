@@ -1,0 +1,77 @@
+System Module "Twenty Questions"
+Extends
+Uses
+	"Avail"
+Names
+Body
+
+/**
+ * 
+ */
+Explicit class "node" extends object
+	with fields
+		$str : string;
+
+/**
+ * 
+ */
+Class "question" extends node
+	with fields
+		$yes : ↑node,
+		$no : ↑node;
+
+/**
+ * 
+ */
+root ::= new ↑node;
+root ?= a node with
+	$str := "Avail";
+
+/**
+ * 
+ */
+Method "Play Twenty Questions" is
+[
+	response : string;
+	curNode : ↑node := root;
+	While [↓curNode's type ⊆ question]
+	do
+	[
+		Print: ↓curNode's str;
+		response := next line;
+		If response = "n" then [curNode := (cast ↓curNode into [q : question | q])'s no;]
+		else if [response = "y"] then [curNode := (cast ↓curNode into [q : question | q])'s yes;];
+	];
+	Print: "Is it " ++ ↓curNode's str ++ "? ";
+	response := next line;
+	answer : string;
+	If response = "y" then [Print: "Yay!\n";]
+	else if [response = "n"]
+	then
+	[
+		Print: "I give up. What was it? ";
+		answer := next line;
+		Print: "Okay. What is a question to distinguish it from "
+			++ ↓curNode's str ++ "? ";
+		response := next line;
+		tempNo ::= new ↑node;
+		tempNo ?= ↓curNode;
+		tempYes ::= new ↑node;
+		tempYes ?= a node with
+			$str := answer;
+		curNode ?= a question with
+				$str := response,
+				$no := tempNo,
+				$yes := tempYes;
+	];
+];
+
+/**
+ * 
+ */
+Method "Play forever" is
+[
+	Repeat [Play Twenty Questions;]
+] : ⊤;
+
+Play forever;
