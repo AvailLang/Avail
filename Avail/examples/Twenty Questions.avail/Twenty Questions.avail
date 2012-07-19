@@ -24,54 +24,58 @@ Class "question" extends node
  * 
  */
 root ::= new ↑node;
-root ?= a node with
+↓root ?= a node with
 	$str := "Avail";
 
 /**
  * 
  */
-Method "Play Twenty Questions" is
+Method "Play Twenty Questions with input_and output_" is
 [
+	input : []→string,
+	output : [string]→⊤
+|
+	count : integer := 0;
 	response : string;
 	curNode : ↑node := root;
-	While [↓curNode's type ⊆ question]
+	While [count ≤ 20 ∧ [↓curNode's type ⊆ question]]
 	do
 	[
-		Print: ↓curNode's str;
-		response := next line;
-		If response = "n" then [curNode := (cast ↓curNode into [q : question | q])'s no;]
-		else if [response = "y"] then [curNode := (cast ↓curNode into [q : question | q])'s yes;];
+	 	↑count++;
+		output(↓curNode's str);
+		response := input();
+		If response = "n" ∨ [response = "no"] then [curNode := (cast ↓curNode into [q : question | q])'s no;]
+		else if [response = "y" ∨ [response = "yes"]] then [curNode := (cast ↓curNode into [q : question | q])'s yes;];
 	];
-	Print: "Is it " ++ ↓curNode's str ++ "? ";
-	response := next line;
+	output("Is it " ++ ↓curNode's str ++ "? ");
+	response := input();
 	answer : string;
-	If response = "y" then [Print: "Yay!\n";]
-	else if [response = "n"]
+	If response = "y" ∨ [response = "yes"] then [Print: "Yay!\n";]
+	else if [response = "n" ∨ [ response = "no"]]
 	then
 	[
-		Print: "I give up. What was it? ";
-		answer := next line;
-		Print: "Okay. What is a question to distinguish it from "
-			++ ↓curNode's str ++ "? ";
-		response := next line;
-		tempNo ::= new ↑node;
-		tempNo ?= ↓curNode;
-		tempYes ::= new ↑node;
-		tempYes ?= a node with
-			$str := answer;
-		curNode ?= a question with
+		output("I give up. What was it? ");
+		answer := input();
+		output("Okay. What is a question to distinguish it from "
+			++ ↓curNode's str ++ "? ");
+		response := input();
+		tempNo : node := ↓curNode;
+		tempYes : node := a node with $str := answer;
+		↓curNode ?= a question with
 				$str := response,
-				$no := tempNo,
-				$yes := tempYes;
+				$no := ↑tempNo,
+				$yes := ↑tempYes;
 	];
 ];
 
 /**
  * 
  */
-Method "Play forever" is
+Method "Play in the console" is
 [
-	Repeat [Play Twenty Questions;]
+	Play Twenty Questions with
+		input [next line]
+		and output [str : string | Print: str;];
 ] : ⊤;
 
-Play forever;
+Play in the console;
