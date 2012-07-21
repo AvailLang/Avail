@@ -290,10 +290,10 @@ public class L2Translator implements L1OperationDispatcher
 
 	/**
 	 * Only inline effectively monomorphic messages for now -- i.e., methods
-	 * where every possible method uses the same primitive number.  Return one
-	 * of the method implementation bodies if it's unambiguous and can be
-	 * inlined (or is a {@code Primitive.Flag#SpecialReturnConstant}), otherwise
-	 * return null.
+	 * where every possible method uses the same primitive number.  Return all
+	 * of the applicable method implementation bodies if they're unambiguous and
+	 * can be inlined (or is a {@code Primitive.Flag#SpecialReturnConstant}),
+	 * otherwise return null.
 	 *
 	 * @param method The {@linkplain MethodDescriptor method}
 	 *               containing the method(s) that may be inlined or invoked.
@@ -303,7 +303,7 @@ public class L2Translator implements L1OperationDispatcher
 	 * @return A method body (a {@code FunctionDescriptor function}) that
 	 *         exemplifies the primitive that should be inlined.
 	 */
-	private AvailObject primitiveToInlineForArgumentRegisters (
+	private List<AvailObject> primitivesToInlineForArgumentRegisters (
 		final AvailObject method,
 		final List<L2ObjectRegister> args)
 	{
@@ -311,51 +311,53 @@ public class L2Translator implements L1OperationDispatcher
 			new ArrayList<AvailObject>(args.size());
 		for (final L2ObjectRegister arg : args)
 		{
-			AvailObject type;
-			type = registers.hasTypeAt(arg) ? registers.typeAt(arg) : ANY.o();
-			argTypes.add(type);
+			argTypes.add(
+				registers.hasTypeAt(arg) ? registers.typeAt(arg) : ANY.o());
 		}
-		return primitiveToInlineForWithArgumentTypes(method, argTypes);
+		return primitivesToInlineForWithArgumentTypes(method, argTypes);
 	}
 
 	/**
-	 * Only inline effectively monomorphic messages for now -- i.e., method
-	 * methods where every possible method uses the same primitive
-	 * number.  Return the primitive number if it's unambiguous and can be
-	 * inlined, otherwise zero.
+	 * Only inline effectively monomorphic messages for now -- i.e., methods
+	 * where every possible implementation uses the same primitive number.
+	 * Return all possible primitive functions if they would all have the same
+	 * primitive behavior (and they can be inlined), otherwise answer null.
 	 *
-	 * @param method The {@linkplain MethodDescriptor method}
-	 *               containing the method(s) that may be inlined or invoked.
-	 * @param argTypes The types of the arguments to the call.
-	 * @return One of the (equivalent) primitive method bodies, or null.
+	 * @param method
+	 *            The {@linkplain MethodDescriptor method} containing the
+	 *            method(s) that may be inlined or invoked.
+	 * @param argTypes
+	 *            The types of the arguments to the call.
+	 * @return
+	 *            The equivalent applicable primitive method bodies, or null.
 	 */
-	private AvailObject primitiveToInlineForWithArgumentTypes (
+	private List<AvailObject> primitivesToInlineForWithArgumentTypes (
 		final AvailObject method,
 		final List<AvailObject> argTypes)
 	{
 		final List<AvailObject> imps =
 			method.implementationsAtOrBelow(argTypes);
-		AvailObject firstBody = null;
-		for (final AvailObject bundle : imps)
+		final List<AvailObject> bodies = new ArrayList<AvailObject>(2);
+		int existingPrimitiveNumber = -1;
+		for (final AvailObject imp : imps)
 		{
 			// If a forward or abstract method is possible, don't inline.
-			if (!bundle.isMethod())
+			if (!imp.isMethod())
 			{
 				return null;
 			}
-
-			final AvailObject body = bundle.bodyBlock();
-			if (body.code().primitiveNumber() == 0)
-			{
-				return null;
-			}
-
+			final AvailObject body = imp.bodyBlock();
 			final int primitiveNumber = body.code().primitiveNumber();
-			if (firstBody == null)
+			if (primitiveNumber == 0)
 			{
-				firstBody = body;
+				return null;
 			}
-			else if (primitiveNumber != firstBody.code().primitiveNumber())
+			if (bodies.isEmpty())
+			{
+				bodies.add(body);
+				existingPrimitiveNumber = primitiveNumber;
+			}
+			else if (primitiveNumber != existingPrimitiveNumber)
 			{
 				// Another possible implementation has a different primitive
 				// number.  Don't attempt to inline.
@@ -368,7 +370,7 @@ public class L2Translator implements L1OperationDispatcher
 					SpecialReturnConstant))
 				{
 					// It's the push-the-first-literal primitive.
-					if (!firstBody.code().literalAt(1).equals(
+					if (!bodies.get(0).code().literalAt(1).equals(
 						body.code().literalAt(1)))
 					{
 						// The push-the-first-literal primitive methods push
@@ -376,19 +378,20 @@ public class L2Translator implements L1OperationDispatcher
 						return null;
 					}
 				}
+				bodies.add(body);
 			}
 		}
-		if (firstBody == null)
+		if (bodies.isEmpty())
 		{
 			return null;
 		}
 		final Primitive primitive = Primitive.byPrimitiveNumber(
-			firstBody.code().primitiveNumber());
+			existingPrimitiveNumber);
 		if (primitive.hasFlag(SpecialReturnConstant)
 				|| primitive.hasFlag(CanInline)
 				|| primitive.hasFlag(CanFold))
 		{
-			return firstBody;
+			return bodies;
 		}
 		return null;
 	}
@@ -637,29 +640,66 @@ public class L2Translator implements L1OperationDispatcher
 			assert success != CONTINUATION_CHANGED
 			: "This foldable primitive changed the continuation!";
 		}
+		final List<AvailObject> argTypes =
+			new ArrayList<AvailObject>(args.size());
+		for (final L2ObjectRegister arg : args)
+		{
+			assert registers.hasTypeAt(arg);
+			argTypes.add(registers.typeAt(arg));
+		}
+		final AvailObject guaranteedReturnType =
+			primitive.returnTypeGuaranteedByVMForArgumentTypes(argTypes);
+		final boolean skipReturnCheck =
+			guaranteedReturnType.isSubtypeOf(expectedType);
 		final L2ObjectRegister expectedTypeRegister = registers.newObject();
 		moveConstant(expectedType, expectedTypeRegister);
 		if (primitive.hasFlag(CannotFail))
 		{
-			addInstruction(
-				L2_RUN_INFALLIBLE_PRIMITIVE.instance,
-				new L2PrimitiveOperand(primitive),
-				new L2ReadVectorOperand(createVector(args)),
-				new L2ReadPointerOperand(expectedTypeRegister),
-				new L2WritePointerOperand(writeTopOfStackRegister()));
+			if (skipReturnCheck)
+			{
+				addInstruction(
+					L2_RUN_INFALLIBLE_PRIMITIVE_NO_CHECK.instance,
+					new L2PrimitiveOperand(primitive),
+					new L2ReadVectorOperand(createVector(args)),
+					new L2WritePointerOperand(writeTopOfStackRegister()));
+			}
+			else
+			{
+				addInstruction(
+					L2_RUN_INFALLIBLE_PRIMITIVE.instance,
+					new L2PrimitiveOperand(primitive),
+					new L2ReadVectorOperand(createVector(args)),
+					new L2ReadPointerOperand(expectedTypeRegister),
+					new L2WritePointerOperand(writeTopOfStackRegister()));
+			}
 			canFailPrimitive.value = false;
 		}
 		else
 		{
-			addInstruction(
-				L2_ATTEMPT_INLINE_PRIMITIVE.instance,
-				new L2PrimitiveOperand(primitive),
-				new L2ReadVectorOperand(createVector(args)),
-				new L2ReadPointerOperand(expectedTypeRegister),
-				new L2WritePointerOperand(writeTopOfStackRegister()),
-				new L2WritePointerOperand(failureValueRegister),
-				new L2ReadWriteVectorOperand(createVector(preserved)),
-				new L2PcOperand(successLabel));
+			if (skipReturnCheck)
+			{
+				addInstruction(
+					L2_ATTEMPT_INLINE_PRIMITIVE_NO_CHECK.instance,
+					new L2PrimitiveOperand(primitive),
+					new L2ReadVectorOperand(createVector(args)),
+					new L2WritePointerOperand(writeTopOfStackRegister()),
+					new L2WritePointerOperand(failureValueRegister),
+					new L2ReadWriteVectorOperand(createVector(preserved)),
+					new L2PcOperand(successLabel));
+			}
+			else
+			{
+				addInstruction(
+					L2_ATTEMPT_INLINE_PRIMITIVE.instance,
+					new L2PrimitiveOperand(primitive),
+					new L2ReadVectorOperand(createVector(args)),
+					new L2ReadPointerOperand(expectedTypeRegister),
+					new L2WritePointerOperand(writeTopOfStackRegister()),
+					new L2WritePointerOperand(failureValueRegister),
+					new L2ReadWriteVectorOperand(createVector(preserved)),
+					new L2PcOperand(successLabel));
+
+			}
 			canFailPrimitive.value = true;
 		}
 		return null;
@@ -694,9 +734,14 @@ public class L2Translator implements L1OperationDispatcher
 		assert preserved.size() == numSlots;
 		final List<L2ObjectRegister> args =
 			new ArrayList<L2ObjectRegister>(nArgs);
+		final List<AvailObject> argTypes =
+			new ArrayList<AvailObject>(nArgs);
 		for (int i = nArgs; i >= 1; i--)
 		{
-			args.add(0, readTopOfStackRegister());
+			final L2ObjectRegister arg = readTopOfStackRegister();
+			assert registers.hasTypeAt(arg);
+			argTypes.add(0, registers.typeAt(arg));
+			args.add(0, arg);
 			preSlots.set(
 				numArgs + numLocals + stackp - 1,
 				registers.fixed(NULL));
@@ -704,20 +749,18 @@ public class L2Translator implements L1OperationDispatcher
 		}
 		stackp--;
 		preSlots.set(numArgs + numLocals + stackp - 1, expectedTypeReg);
-		final AvailObject primFunction;
-		primFunction = primitiveToInlineForArgumentRegisters(
-			method,
-			args);
+		final List<AvailObject> primFunctions =
+			primitivesToInlineForArgumentRegisters(method, args);
 
 		final L2Instruction successLabel;
 		successLabel = newLabel("success: " + method.name().name());
-		if (primFunction != null)
+		if (primFunctions != null)
 		{
 			// Inline the primitive.  Attempt to fold it if the primitive says
 			// it's foldable and the arguments are all constants.
 			final Mutable<Boolean> canFailPrimitive = new Mutable<Boolean>();
 			final AvailObject folded = emitInlinePrimitiveAttempt(
-				primFunction,
+				primFunctions.get(0),
 				method,
 				args,
 				preserved,
@@ -761,23 +804,29 @@ public class L2Translator implements L1OperationDispatcher
 			new L2PcOperand(postCallLabel),
 			new L2WritePointerOperand(tempCallerRegister));
 		final L2ObjectRegister function = registers.newObject();
-		// Look it up...
-		addInstruction(
-			L2_LOOKUP_BY_VALUES.instance,
-			new L2SelectorOperand(method),
-			new L2ReadVectorOperand(createVector(args)),
-			new L2WritePointerOperand(function));
-		// If there was only one possible function to invoke don't bother
-		// looking it up at runtime.
-		if (registers.hasConstantAt(function))
+		// Look up the method body to invoke.
+		final List<AvailObject> possibleMethods =
+			method.implementationsAtOrBelow(argTypes);
+		if (possibleMethods.size() == 1 && possibleMethods.get(0).isMethod())
 		{
-			// Don't bother to remove the lookup instruction -- it'll evaporate
-			// since nobody will use its result.
-			moveConstant(registers.constantAt(function), function);
+			// If there was only one possible implementation to invoke, don't
+			// bother looking it up at runtime.
+			moveConstant(possibleMethods.get(0).bodyBlock(), function);
 		}
-		// Now invoke what was looked up.
-		if (primFunction != null)
+		else
 		{
+			// Look it up at runtime.
+			addInstruction(
+				L2_LOOKUP_BY_VALUES.instance,
+				new L2SelectorOperand(method),
+				new L2ReadVectorOperand(createVector(args)),
+				new L2WritePointerOperand(function));
+		}
+
+		// Now invoke what was looked up.
+		if (primFunctions != null)
+		{
+			// Already tried the primitive.
 			addInstruction(
 				L2_INVOKE_AFTER_FAILED_PRIMITIVE.instance,
 				new L2ReadPointerOperand(tempCallerRegister),

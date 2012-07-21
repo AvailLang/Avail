@@ -37,7 +37,7 @@ import java.math.BigInteger;
 import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
-import com.avail.compiler.AvailCodeGenerator;
+import com.avail.compiler.*;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
@@ -113,6 +113,7 @@ implements Iterable<AvailObject>
 
 		AvailRuntime.createWellKnownObjects();
 		Serializer.createWellKnownObjects();
+		AbstractAvailCompiler.ExpectedToken.createWellKnownObjects();
 	}
 
 	/**
@@ -160,6 +161,7 @@ implements Iterable<AvailObject>
 
 		AvailRuntime.clearWellKnownObjects();
 		Serializer.clearWellKnownObjects();
+		AbstractAvailCompiler.ExpectedToken.clearWellKnownObjects();
 	}
 
 	/**

@@ -403,21 +403,11 @@ extends Descriptor
 		{
 			object.makeSubobjectsImmutable();
 		}
-		final AvailObject result = mutable().create(
-			object.variableObjectSlotsCount());
-		assert result.objectSlotsCount() == object.objectSlotsCount();
-		result.setSlot(CALLER, object.slot(CALLER));
-		result.setSlot(FUNCTION, object.slot(FUNCTION));
-		result.pc(object.pc());
-		result.stackp(object.stackp());
-		result.levelTwoChunkOffset(
-			object.levelTwoChunk(),
-			object.levelTwoOffset());
-		for (int i = object.numArgsAndLocalsAndStack(); i >= 1; i--)
-		{
-			result.argOrLocalOrStackAtPut(i, object.argOrLocalOrStackAt(i));
-		}
-		return result;
+		return AvailObjectRepresentation.newLike(
+			mutable(),
+			object,
+			0,
+			0);
 	}
 
 	@Override
@@ -529,6 +519,41 @@ extends Descriptor
 		}
 		return cont;
 	}
+
+	/**
+	 * Create a mutable continuation with the specified fields.  Leave the stack
+	 * frame slots uninitialized.
+	 *
+	 * @param frameSize The number of stack frame slots.
+	 * @param function The function being invoked/resumed.
+	 * @param caller The calling continuation of this continuation.
+	 * @param pc The level one program counter.
+	 * @param stackp The level one stack depth register.
+	 * @param levelTwoChunk The level two chunk to execute.
+	 * @param levelTwoOffset The level two chunk offset at which to resume.
+	 * @return A new mutable continuation.
+	 */
+	public static @NotNull AvailObject createExceptFrame (
+		final int frameSize,
+		final @NotNull AvailObject function,
+		final @NotNull AvailObject caller,
+		final int pc,
+		final int stackp,
+		final @NotNull AvailObject levelTwoChunk,
+		final int levelTwoOffset)
+	{
+		final AvailObject code = function.code();
+		assert frameSize == code.numArgsAndLocalsAndStack();
+		final AvailObject cont = mutable().create(frameSize);
+		cont.setSlot(CALLER, caller);
+		cont.setSlot(FUNCTION, function);
+		cont.setSlot(PROGRAM_COUNTER, pc);
+		cont.setSlot(STACK_POINTER, stackp);
+		cont.setSlot(LEVEL_TWO_CHUNK, levelTwoChunk);
+		cont.setSlot(LEVEL_TWO_OFFSET, levelTwoOffset);
+		return cont;
+	}
+
 
 	/**
 	 * Construct a new {@link ContinuationDescriptor}.

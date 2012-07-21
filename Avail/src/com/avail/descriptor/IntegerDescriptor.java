@@ -1590,6 +1590,11 @@ extends ExtendedIntegerDescriptor
 			object.makeImmutable();
 			immutableByteObjects[i] = object;
 		}
+		hashesOfUnsignedBytes = new int [256];
+		for (int i = 0; i <= 255; i++)
+		{
+			hashesOfUnsignedBytes[i] = computeHashOfInt(i);
+		}
 		negativeOne = mutable().create(1);
 		negativeOne.rawSignedIntegerAtPut(1, -1);
 		negativeOne.makeImmutable();
@@ -1604,11 +1609,7 @@ extends ExtendedIntegerDescriptor
 	static void clearWellKnownObjects ()
 	{
 		immutableByteObjects = null;
-		hashesOfUnsignedBytes = new int [256];
-		for (int i = 0; i <= 255; i++)
-		{
-			hashesOfUnsignedBytes[i] = computeHashOfInt(i);
-		}
+		hashesOfUnsignedBytes = null;
 		negativeOne = null;
 	}
 

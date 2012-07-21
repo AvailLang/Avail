@@ -33,7 +33,7 @@
 package com.avail.test;
 
 import java.io.*;
-import org.junit.Before;
+import org.junit.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
 import com.avail.builder.*;
@@ -111,6 +111,17 @@ public class AbstractAvailTest
 		AvailObject.createAllWellKnownObjects();
 		resolver = new RenamesFileParser(new StringReader(""), roots).parse();
 		runtime = new AvailRuntime(resolver);
+	}
+
+	/**
+	 * Test fixture: clear all references to AvailObjects after a test.
+	 */
+	@After
+	public void clearAllWellKnownObjects ()
+	{
+		AvailObject.clearAllWellKnownObjects();
+		runtime.destroy();
+		runtime = null;
 	}
 
 	/**

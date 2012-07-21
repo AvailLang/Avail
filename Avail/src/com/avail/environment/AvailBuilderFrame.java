@@ -283,12 +283,13 @@ extends JFrame
 		{
 			runner = Thread.currentThread();
 			startTimeMillis = System.currentTimeMillis();
+			AvailRuntime runtime = null;
 			try
 			{
-				AvailObject.clearAllWellKnownObjects();
 				AvailObject.createAllWellKnownObjects();
+				runtime = new AvailRuntime(resolver);
 				final AvailBuilder builder = new AvailBuilder(
-					new AvailRuntime(resolver),
+					runtime,
 					new ModuleName(targetModuleName));
 				AvailBuilder.buildTargetInNewAvailThread(
 					builder,
@@ -392,6 +393,11 @@ extends JFrame
 			}
 			finally
 			{
+				if (runtime != null)
+				{
+					runtime.destroy();
+				}
+				AvailObject.clearAllWellKnownObjects();
 				stopTimeMillis = System.currentTimeMillis();
 			}
 		}

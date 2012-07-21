@@ -1,5 +1,5 @@
 /**
- * L2_RUN_INFALLIBLE_PRIMITIVE.java
+ * L2_RUN_INFALLIBLE_PRIMITIVE_NO_CHECK.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -31,22 +31,22 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.descriptor.AvailObject.error;
 import static com.avail.interpreter.Primitive.Result.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import java.util.*;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.*;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.operand.*;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.RegisterSet;
 
 /**
  * Execute a primitive with the provided arguments, writing the result into
- * the specified register.  The primitive must not fail.  Check that the
- * resulting object's type agrees with the provided expected type
- * (TODO [MvG] currently stopping the VM if not).
+ * the specified register.  The primitive must not fail.  Don't check the result
+ * type, since the VM has already guaranteed it is correct.
  *
  * <p>
  * Unlike for {@link L2_INVOKE} and related operations, we do not provide
@@ -56,20 +56,19 @@ import com.avail.optimizer.RegisterSet;
  * Thing, performance-wise.
  * </p>
  */
-public class L2_RUN_INFALLIBLE_PRIMITIVE extends L2Operation
+public class L2_RUN_INFALLIBLE_PRIMITIVE_NO_CHECK extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
 	 */
 	public final static L2Operation instance =
-		new L2_RUN_INFALLIBLE_PRIMITIVE();
+		new L2_RUN_INFALLIBLE_PRIMITIVE_NO_CHECK();
 
 	static
 	{
 		instance.init(
 			PRIMITIVE.is("primitive to run"),
 			READ_VECTOR.is("arguments"),
-			READ_POINTER.is("expected type"),
 			WRITE_POINTER.is("primitive result"));
 	}
 
@@ -78,8 +77,8 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE extends L2Operation
 	{
 		final int primNumber = interpreter.nextWord();
 		final int argsVector = interpreter.nextWord();
-		final int expectedTypeRegister = interpreter.nextWord();
 		final int resultRegister = interpreter.nextWord();
+
 		final AvailObject argsVect = interpreter.vectorAt(argsVector);
 		interpreter.argsBuffer.clear();
 		for (int i = 1; i <= argsVect.tupleSize(); i++)
@@ -96,19 +95,8 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE extends L2Operation
 			primNumber,
 			null,
 			interpreter.argsBuffer);
+
 		assert res == SUCCESS;
-		final AvailObject expectedType =
-			interpreter.pointerAt(expectedTypeRegister);
-		if (!interpreter.primitiveResult.isInstanceOf(expectedType))
-		{
-			// TODO [MvG] - This will have to be handled better some day.
-			error(
-				"primitive %s's result (%s) did not agree with"
-				+ " semantic restriction's expected type (%s)",
-				Primitive.byPrimitiveNumber(primNumber).name(),
-				interpreter.primitiveResult,
-				expectedType);
-		}
 		interpreter.pointerAtPut(
 			resultRegister,
 			interpreter.primitiveResult);
@@ -121,17 +109,25 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE extends L2Operation
 	{
 		final L2PrimitiveOperand primitiveOperand =
 			(L2PrimitiveOperand) instruction.operands[0];
+		final L2ReadVectorOperand argumentsVector =
+			(L2ReadVectorOperand) instruction.operands[1];
 		final L2WritePointerOperand destinationOperand =
-			(L2WritePointerOperand) instruction.operands[3];
+			(L2WritePointerOperand) instruction.operands[2];
+
+		final List<AvailObject> argTypes = new ArrayList<AvailObject>(3);
+		for (final L2ObjectRegister arg : argumentsVector.vector)
+		{
+			assert registers.hasTypeAt(arg);
+			argTypes.add(registers.typeAt(arg));
+		}
+		// We can at least believe what the primitive itself says it returns.
+		final AvailObject guaranteedType =
+			primitiveOperand.primitive.returnTypeGuaranteedByVMForArgumentTypes(
+				argTypes);
 		registers.removeTypeAt(destinationOperand.register);
 		registers.removeConstantAt(destinationOperand.register);
+		registers.typeAtPut(destinationOperand.register, guaranteedType);
 		registers.propagateWriteTo(destinationOperand.register);
-
-		// We can at least believe what the basic primitive signature says
-		// it returns.
-		registers.typeAtPut(
-			destinationOperand.register,
-			primitiveOperand.primitive.blockTypeRestriction().returnType());
 	}
 
 	@Override

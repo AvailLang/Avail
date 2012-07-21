@@ -36,6 +36,7 @@ import static com.avail.descriptor.ModuleDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.ModuleDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
+import java.util.List;
 import com.avail.annotations.*;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 
@@ -735,6 +736,17 @@ extends Descriptor
 		final @NotNull AvailObject object)
 	{
 		return false;
+	}
+
+	@Override
+	public void printObjectOnAvoidingIndent (
+		final @NotNull AvailObject object,
+		final StringBuilder builder,
+		final List<AvailObject> recursionList,
+		final int indent)
+	{
+		builder.append("Module: ");
+		builder.append(object.name().toString());
 	}
 
 	/**

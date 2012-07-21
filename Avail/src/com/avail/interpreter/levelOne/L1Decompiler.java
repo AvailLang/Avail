@@ -247,18 +247,7 @@ public class L1Decompiler
 		{
 			final AvailObject method = code.literalAt(getInteger());
 			final AvailObject type = code.literalAt(getInteger());
-			final AvailObject atom = method.name();
-			int nArgs = 0;
-			final AvailObject str = atom.name();
-			final AvailObject underscore =
-				StringDescriptor.underscore().tupleAt(1);
-			for (int i = 1, end = str.tupleSize(); i <= end; i++)
-			{
-				if (str.tupleAt(i).equals(underscore))
-				{
-					nArgs++;
-				}
-			}
+			final int nArgs = method.numArgs();
 			final List<AvailObject> callArgs = popExpressions(nArgs);
 			final AvailObject sendNode = SendNodeDescriptor.from(
 				method,

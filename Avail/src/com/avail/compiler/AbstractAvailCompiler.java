@@ -251,8 +251,14 @@ public abstract class AbstractAvailCompiler
 		/** End of statement. */
 		SEMICOLON(";", END_OF_STATEMENT);
 
-		/** The {@linkplain StringDescriptor lexeme}. */
-		private final @NotNull AvailObject lexeme;
+		/** The {@linkplain String Java string} form of the lexeme. */
+		private final @NotNull String lexemeString;
+
+		/**
+		 * The {@linkplain StringDescriptor Avail string} form of the
+		 * lexeme.
+		 */
+		private AvailObject lexeme;
 
 		/** The {@linkplain TokenType token type}. */
 		private final @NotNull TokenType tokenType;
@@ -264,6 +270,7 @@ public abstract class AbstractAvailCompiler
 		 */
 		public @NotNull AvailObject lexeme ()
 		{
+			assert lexeme != null;
 			return lexeme;
 		}
 
@@ -280,18 +287,41 @@ public abstract class AbstractAvailCompiler
 		/**
 		 * Construct a new {@link ExpectedToken}.
 		 *
-		 * @param lexeme
-		 *        The {@linkplain StringDescriptor lexeme}, i.e. the text
+		 * @param lexemeString
+		 *        The {@linkplain StringDescriptor lexeme string}, i.e. the text
 		 *        of the token.
 		 * @param tokenType
 		 *        The {@linkplain TokenType token type}.
 		 */
 		ExpectedToken (
-			final @NotNull String lexeme,
+			final @NotNull String lexemeString,
 			final @NotNull TokenType tokenType)
 		{
-			this.lexeme = StringDescriptor.from(lexeme);
+			this.lexemeString = lexemeString;
 			this.tokenType = tokenType;
+		}
+
+		/**
+		 * Release any AvailObjects held statically by this class.
+		 */
+		public static void clearWellKnownObjects ()
+		{
+			for (final ExpectedToken value : values())
+			{
+				value.lexeme = null;
+			}
+		}
+
+		/**
+		 * Create AvailObjects to hold statically by this class.
+		 */
+		public static void createWellKnownObjects ()
+		{
+			for (final ExpectedToken value : values())
+			{
+				assert value.lexeme == null;
+				value.lexeme = StringDescriptor.from(value.lexemeString);
+			}
 		}
 	}
 

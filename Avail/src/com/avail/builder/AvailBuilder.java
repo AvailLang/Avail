@@ -54,7 +54,8 @@ public final class AvailBuilder
 	 * {@linkplain AvailBuilder builder} will install the target
 	 * {@linkplain ModuleDescriptor module} and its dependencies.
 	 */
-	private final @NotNull AvailRuntime runtime;
+	private @NotNull
+	final AvailRuntime runtime;
 
 	/**
 	 * The {@linkplain ModuleName canonical name} of the

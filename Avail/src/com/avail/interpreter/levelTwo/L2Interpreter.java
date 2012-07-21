@@ -41,6 +41,7 @@ import java.util.*;
 import java.util.logging.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
+import com.avail.compiler.AvailAssertionFailedException;
 import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.interpreter.*;
@@ -1019,7 +1020,18 @@ extends Interpreter
 			// Outermost call was a primitive invocation.
 			return primitiveResult;
 		}
-		return run();
+//		return run();
+// TODO [MvG]: Strip handler.
+		try
+		{
+			return run();
+		}
+		catch (final AvailAssertionFailedException e)
+		{
+			function.toString();
+			throw e;
+		}
+// TODO [MvG]: ...up to here.
 	}
 
 	/**

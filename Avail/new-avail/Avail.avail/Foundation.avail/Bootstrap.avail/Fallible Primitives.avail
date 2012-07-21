@@ -1045,7 +1045,7 @@ Method "reset to mark" is
  *    dividend - The dividend.
  *    divisor - The divisor.
  * Returns:
- *    An approximation of `0` mod `divisor`.
+ *    An approximation of `dividend` mod `divisor`.
  */
 Method "_mod_" is
 [

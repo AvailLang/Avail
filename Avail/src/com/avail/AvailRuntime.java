@@ -119,7 +119,7 @@ implements ThreadFactory
 	 * {@linkplain AvailRuntime runtime} should use to resolve unqualified
 	 * {@linkplain ModuleDescriptor module} names.
 	 */
-	private final @NotNull ModuleNameResolver moduleNameResolver;
+	private @NotNull ModuleNameResolver moduleNameResolver;
 
 	/**
 	 * Answer the {@linkplain ModuleNameResolver module name resolver} that this
@@ -1084,7 +1084,7 @@ implements ThreadFactory
 	 * exported by all loaded {@linkplain ModuleDescriptor modules}.
 	 */
 	private @NotNull
-	final AvailObject rootBundleTree = MessageBundleTreeDescriptor.newPc(1);
+	AvailObject rootBundleTree = MessageBundleTreeDescriptor.newPc(1);
 
 	/**
 	 * Answer a copy of the root {@linkplain MessageBundleTreeDescriptor message
@@ -1230,5 +1230,21 @@ implements ThreadFactory
 		}
 
 		return openWritableFiles.get(handle);
+	}
+
+	/**
+	 * Destroy all data structures used by this {@code AvailRuntime}.  Also
+	 * disassociate it from the current {@link Thread}'s local storage.
+	 */
+	public void destroy ()
+	{
+		current.set(null);
+		clearWellKnownObjects();
+		moduleNameResolver = null;
+		modules = null;
+		methods = null;
+		rootBundleTree = null;
+		openReadableFiles.clear();
+		openWritableFiles.clear();
 	}
 }

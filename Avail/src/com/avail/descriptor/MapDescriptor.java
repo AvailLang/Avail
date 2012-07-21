@@ -244,25 +244,56 @@ public class MapDescriptor extends Descriptor
 		final AvailObject valueType = aTypeObject.valueType();
 		final AvailObject rootBin = rootBin(object);
 		final boolean keysMatch =
-			rootBin.mapBinKeyUnionKind().isSubtypeOf(keyType);
+			keyType.equals(ANY.o())
+			|| (!keyType.isEnumeration()
+				&& rootBin.mapBinKeyUnionKind().isSubtypeOf(keyType));
 		final boolean valuesMatch =
-			rootBin.mapBinValueUnionKind().isSubtypeOf(valueType);
-		if (keysMatch && valuesMatch)
+			valueType.equals(ANY.o())
+			|| (!valueType.isEnumeration()
+				&& rootBin.mapBinValueUnionKind().isSubtypeOf(valueType));
+		if (keysMatch)
 		{
-			return true;
-		}
-		// We could produce separate loops for the cases where one or the other
-		// matched, but we'll leave it up to the HotSpot compiler to hoist the
-		// final booleans out.  Or at least rely on hardware branch prediction.
-		for (final Entry entry : object.mapIterable())
-		{
-			if (!keysMatch && !entry.key.isInstanceOf(keyType))
+			if (valuesMatch)
 			{
-				return false;
+				// assert keysMatch && valuesMatch;
+				return true;
 			}
-			if (!valuesMatch && !entry.value.isInstanceOf(valueType))
+			// assert keysMatch && !valuesMatch;
+			for (final Entry entry : object.mapIterable())
 			{
-				return false;
+				if (!entry.value.isInstanceOf(valueType))
+				{
+					return false;
+				}
+			}
+		}
+		else
+		{
+			if (valuesMatch)
+			{
+				// assert !keysMatch && valuesMatch;
+				for (final Entry entry : object.mapIterable())
+				{
+					if (!entry.key.isInstanceOf(keyType))
+					{
+						return false;
+					}
+				}
+			}
+			else
+			{
+				// assert !keysMatch && !valuesMatch;
+				for (final Entry entry : object.mapIterable())
+				{
+					if (!entry.key.isInstanceOf(keyType))
+					{
+						return false;
+					}
+					if (!entry.value.isInstanceOf(valueType))
+					{
+						return false;
+					}
+				}
 			}
 		}
 		return true;

@@ -474,6 +474,7 @@ extends TypeDescriptor
 		Nybbles = null;
 		UnsignedShorts = null;
 		WholeNumbers = null;
+		Meta = null;
 	}
 
 	/**

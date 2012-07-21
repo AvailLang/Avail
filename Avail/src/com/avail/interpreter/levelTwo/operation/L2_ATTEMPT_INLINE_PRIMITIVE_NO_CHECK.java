@@ -1,5 +1,5 @@
 /**
- * L2_RUN_INFALLIBLE_PRIMITIVE.java
+ * L2_ATTEMPT_INLINE_PRIMITIVE_NO_CHECK.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -32,21 +32,23 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.descriptor.AvailObject.error;
-import static com.avail.interpreter.Primitive.Result.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import java.util.*;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.Primitive.*;
+import com.avail.interpreter.Primitive.Result;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.operand.*;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.RegisterSet;
 
 /**
- * Execute a primitive with the provided arguments, writing the result into
- * the specified register.  The primitive must not fail.  Check that the
- * resulting object's type agrees with the provided expected type
- * (TODO [MvG] currently stopping the VM if not).
+ * Attempt to perform the specified primitive, using the provided arguments.
+ * If successful, don't bother to check that the resulting object's type agrees
+ * with the expected type; just write the result to some register and then
+ * jump to the success label.  If the primitive fails, capture the primitive
+ * failure value in some register then continue to the next instruction.
  *
  * <p>
  * Unlike for {@link L2_INVOKE} and related operations, we do not provide
@@ -55,22 +57,33 @@ import com.avail.optimizer.RegisterSet;
  * continuation that reifies the current function execution.  This is a Good
  * Thing, performance-wise.
  * </p>
+ *
+ * <p>
+ * A collection of preserved fields is provided.  Since tampering with a
+ * continuation switches it to use the default level one interpreting chunk,
+ * we can rest assured that anything written to a continuation by optimized
+ * level two code will continue to be free from tampering.  The preserved
+ * fields lists any such registers whose values are preserved across both
+ * successful primitive invocations and failed invocations.
+ * </p>
  */
-public class L2_RUN_INFALLIBLE_PRIMITIVE extends L2Operation
+public class L2_ATTEMPT_INLINE_PRIMITIVE_NO_CHECK extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
 	 */
 	public final static L2Operation instance =
-		new L2_RUN_INFALLIBLE_PRIMITIVE();
+		new L2_ATTEMPT_INLINE_PRIMITIVE_NO_CHECK();
 
 	static
 	{
 		instance.init(
-			PRIMITIVE.is("primitive to run"),
+			PRIMITIVE.is("primitive to attempt"),
 			READ_VECTOR.is("arguments"),
-			READ_POINTER.is("expected type"),
-			WRITE_POINTER.is("primitive result"));
+			WRITE_POINTER.is("primitive result"),
+			WRITE_POINTER.is("primitive failure value"),
+			READWRITE_VECTOR.is("preserved fields"),
+			PC.is("if primitive succeeds"));
 	}
 
 	@Override
@@ -78,8 +91,12 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE extends L2Operation
 	{
 		final int primNumber = interpreter.nextWord();
 		final int argsVector = interpreter.nextWord();
-		final int expectedTypeRegister = interpreter.nextWord();
 		final int resultRegister = interpreter.nextWord();
+		final int failureValueRegister = interpreter.nextWord();
+		@SuppressWarnings("unused")
+		final int unusedPreservedVector = interpreter.nextWord();
+		final int successOffset = interpreter.nextWord();
+
 		final AvailObject argsVect = interpreter.vectorAt(argsVector);
 		interpreter.argsBuffer.clear();
 		for (int i = 1; i <= argsVect.tupleSize(); i++)
@@ -88,30 +105,34 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE extends L2Operation
 				interpreter.pointerAt(argsVect.tupleIntAt(i)));
 		}
 		// Only primitive 340 needs the compiledCode argument, and it's
-		// always folded.  In the case that primitive 340 is known to
-		// produce the wrong type at some site (potentially dead code due to
-		// inlining of an unreachable branch), it is converted to an
-		// explicit failure instruction.  Thus we can pass null.
+		// infallible.  Thus, we can pass null.
 		final Result res = interpreter.attemptPrimitive(
 			primNumber,
 			null,
 			interpreter.argsBuffer);
-		assert res == SUCCESS;
-		final AvailObject expectedType =
-			interpreter.pointerAt(expectedTypeRegister);
-		if (!interpreter.primitiveResult.isInstanceOf(expectedType))
+
+		switch (res)
 		{
-			// TODO [MvG] - This will have to be handled better some day.
-			error(
-				"primitive %s's result (%s) did not agree with"
-				+ " semantic restriction's expected type (%s)",
-				Primitive.byPrimitiveNumber(primNumber).name(),
-				interpreter.primitiveResult,
-				expectedType);
+			case SUCCESS:
+				interpreter.pointerAtPut(
+					resultRegister,
+					interpreter.primitiveResult);
+				interpreter.offset(successOffset);
+				break;
+			case FAILURE:
+				interpreter.pointerAtPut(
+					failureValueRegister,
+					interpreter.primitiveResult);
+				break;
+			case CONTINUATION_CHANGED:
+				error(
+					"attemptPrimitive wordcode should never set up "
+					+ "a new continuation",
+					primNumber);
+				break;
+			default:
+				error("Unrecognized return type from attemptPrimitive()");
 		}
-		interpreter.pointerAtPut(
-			resultRegister,
-			interpreter.primitiveResult);
 	}
 
 	@Override
@@ -121,33 +142,38 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE extends L2Operation
 	{
 		final L2PrimitiveOperand primitiveOperand =
 			(L2PrimitiveOperand) instruction.operands[0];
-		final L2WritePointerOperand destinationOperand =
+		final L2ReadVectorOperand argumentsVector =
+			(L2ReadVectorOperand) instruction.operands[1];
+		final L2WritePointerOperand result =
+			(L2WritePointerOperand) instruction.operands[2];
+		final L2WritePointerOperand failureValue =
 			(L2WritePointerOperand) instruction.operands[3];
-		registers.removeTypeAt(destinationOperand.register);
-		registers.removeConstantAt(destinationOperand.register);
-		registers.propagateWriteTo(destinationOperand.register);
 
-		// We can at least believe what the basic primitive signature says
-		// it returns.
-		registers.typeAtPut(
-			destinationOperand.register,
-			primitiveOperand.primitive.blockTypeRestriction().returnType());
+		final List<AvailObject> argTypes = new ArrayList<AvailObject>(3);
+		for (final L2ObjectRegister arg : argumentsVector.vector)
+		{
+			assert registers.hasTypeAt(arg);
+			argTypes.add(registers.typeAt(arg));
+		}
+		// We can at least believe what the primitive itself says it returns.
+		final AvailObject guaranteedType =
+			primitiveOperand.primitive.returnTypeGuaranteedByVMForArgumentTypes(
+				argTypes);
+
+		registers.removeTypeAt(result.register);
+		registers.removeConstantAt(result.register);
+		registers.typeAtPut(result.register, guaranteedType);
+		registers.propagateWriteTo(result.register);
+		registers.removeTypeAt(failureValue.register);
+		registers.removeConstantAt(failureValue.register);
+		registers.propagateWriteTo(failureValue.register);
+
 	}
 
 	@Override
-	public boolean hasSideEffect (final L2Instruction instruction)
+	public boolean hasSideEffect ()
 	{
-		// It depends on the primitive.
-		assert instruction.operation == this;
-		final L2PrimitiveOperand primitiveOperand =
-			(L2PrimitiveOperand) instruction.operands[0];
-		final Primitive primitive = primitiveOperand.primitive;
-		assert primitive.hasFlag(Flag.CannotFail);
-		final boolean mustKeep = primitive.hasFlag(Flag.HasSideEffect)
-			|| primitive.hasFlag(Flag.CatchException)
-			|| primitive.hasFlag(Flag.Invokes)
-			|| primitive.hasFlag(Flag.SwitchesContinuation)
-			|| primitive.hasFlag(Flag.Unknown);
-		return mustKeep;
+		// It could fail and jump.
+		return true;
 	}
 }

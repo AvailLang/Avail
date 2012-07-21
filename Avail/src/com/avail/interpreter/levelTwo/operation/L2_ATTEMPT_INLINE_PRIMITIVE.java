@@ -101,10 +101,10 @@ public class L2_ATTEMPT_INLINE_PRIMITIVE extends L2Operation
 
 		final AvailObject argsVect = interpreter.vectorAt(argsVector);
 		interpreter.argsBuffer.clear();
-		for (int i1 = 1; i1 <= argsVect.tupleSize(); i1++)
+		for (int i = 1; i <= argsVect.tupleSize(); i++)
 		{
 			interpreter.argsBuffer.add(
-				interpreter.pointerAt(argsVect.tupleIntAt(i1)));
+				interpreter.pointerAt(argsVect.tupleIntAt(i)));
 		}
 		// Only primitive 340 needs the compiledCode argument, and it's
 		// infallible.  Thus, we can pass null.

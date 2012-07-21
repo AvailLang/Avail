@@ -32,6 +32,7 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import java.util.List;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.*;
@@ -74,18 +75,21 @@ public class L2_CREATE_CONTINUATION extends L2Operation
 		final int slotsIndex = interpreter.nextWord();
 		final int wordcodeOffset = interpreter.nextWord();
 		final int destIndex = interpreter.nextWord();
+
 		final AvailObject function = interpreter.pointerAt(functionIndex);
 		final AvailObject code = function.code();
 		final int frameSize = code.numArgsAndLocalsAndStack();
+
 		final AvailObject continuation =
-			ContinuationDescriptor.mutable().create(frameSize);
-		continuation.caller(interpreter.pointerAt(senderIndex));
-		continuation.function(function);
-		continuation.pc(pcIndex);
-		continuation.stackp(frameSize - code.maxStackDepth() + stackpIndex);
-		continuation.levelTwoChunkOffset(
-			interpreter.chunk(),
-			wordcodeOffset);
+			ContinuationDescriptor.createExceptFrame(
+				frameSize,
+				function,
+				interpreter.pointerAt(senderIndex),
+				pcIndex,
+				frameSize - code.maxStackDepth() + stackpIndex,
+				interpreter.chunk(),
+				wordcodeOffset);
+
 		final AvailObject slots = interpreter.vectorAt(slotsIndex);
 		final int size = slots.tupleSize();
 		for (int i = 1; i <= size; i++)

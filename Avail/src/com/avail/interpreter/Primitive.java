@@ -276,6 +276,23 @@ implements IntegerEnumSlotDescriptionEnum
 	}
 
 	/**
+	 * Answer the type of the result that will be produced by a call site with
+	 * the given argument types.  Don't include semantic restrictions defined
+	 * in the Avail code, but if convenient answer something stronger than the
+	 * return type in the primitive's basic function type.
+	 *
+	 * @param argumentTypes
+	 *            A {@link List} of argument {@linkplain TypeDescriptor types}.
+	 * @return
+	 *            The return type guaranteed by the VM at some call site.
+	 */
+	public @NotNull AvailObject returnTypeGuaranteedByVMForArgumentTypes (
+		final @NotNull List<AvailObject> argumentTypes)
+	{
+		return blockTypeRestriction().returnType();
+	}
+
+	/**
 	 * Return an Avail {@linkplain TypeDescriptor type} that a failure variable
 	 * must accept in order to be compliant with this primitive.  A more general
 	 * type is acceptable for the variable.  This type is cached upon first
