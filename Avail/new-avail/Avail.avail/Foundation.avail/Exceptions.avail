@@ -34,10 +34,10 @@ System Module "Exceptions"
 Versions
 	"dev"
 Uses
-	"Assertions",
 	"Bootstrap",
 	"Control Structures",
 	"Definers",
+	"Early Assertions",
 	"Early Error Codes",
 	"Enumeration Support",
 	"Functions",

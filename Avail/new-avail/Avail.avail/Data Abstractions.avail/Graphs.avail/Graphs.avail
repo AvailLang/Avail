@@ -1,5 +1,5 @@
 /*
- * Foundation Tests.avail
+ * Graphs.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,11 +30,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Foundation Tests"
+System Module "Graphs"
 Versions
 	"dev"
 Extends
-	"Common" = ("Foundation|foundation test suite"),
-	"Function Tests" = ("function test suite"),
-	"Math Test" = ("math test suite")
+	"Abstract Graphs"
 Body

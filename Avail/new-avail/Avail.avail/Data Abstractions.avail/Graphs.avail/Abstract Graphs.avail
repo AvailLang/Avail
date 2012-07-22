@@ -1,0 +1,812 @@
+/*
+ * Abstract Graphs.avail
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Abstract Graphs"
+Versions
+	"dev"
+Uses
+	"Common",
+	"Foundation",
+	"Unit Testing"
+Names
+	/* Graph types. */
+	"graph",
+	"graph of_",
+	"graph of_,⁇labeled by_",
+	"labeled graph",
+	"unlabeled graph",
+	"unlabeled graph of_",
+	"_'s⁇edge type",
+	"_'s⁇vertex type",
+
+	/* Edge types. */
+	"edge",
+	"edge from_to_",
+	"edge from_to_,⁇labeled by_",
+	"labeled edge",
+
+	/* Edge constructors. */
+	"an edge from_to_",
+	"an edge from_to_,⁇labeled by_",
+
+	/* Edge accessors. */
+	"_'s⁇destination",
+	"_'s⁇edge label",
+	"_'s⁇source",
+
+	/* Graph accessors. */
+	"_'s⁇edges",
+	"_'s⁇vertices",
+
+	/* Graph manipulation. */
+	"_+_",
+	"_-_",
+
+	/* Exceptions. */
+	"graph exception",
+	"no-such-edge exception",
+	"no-such-vertex exception"
+Body
+
+_vertexType ::= $"vertex type";
+_edgeType ::= $"edge type";
+_predecessors ::= $predecessors;
+_successors ::= $successors;
+_source ::= $source;
+_destination ::= $destination;
+_edgeLabel ::= $"edge label";
+_targetVertex ::= $"target vertex";
+_targetEdge ::= $"target edge";
+
+Private method "vertex type" is [_vertexType];
+Private method "edge type" is [_edgeType];
+Private method "predecessors" is [_predecessors];
+Private method "successors" is [_successors];
+Private method "source" is [_source];
+Private method "destination" is [_destination];
+Private method "edge label" is [_edgeLabel];
+Private method "target vertex" is [_targetVertex];
+Private method "target edge" is [_targetEdge];
+
+/**
+ * A graph comprises vertices and directed edges.
+ *
+ * @type "graph"
+ */
+Public explicit class "graph" extends object
+	with fields
+		public vertex type : any's type;
+
+/**
+ * Compute and answer a {@type "graph"} type whose vertices are values of the
+ * specified type.
+ *
+ * @method "graph of_"
+ * @param "vertexType" "any's type"
+ *        The type of vertices of {@type "graph"}s of the answered type.
+ * @returns "graph's type"
+ *          The requested {@type "graph"} type.
+ */
+Public method "graph of_" is
+[
+	vertexType : any's type
+|
+	extend graph with vertex type : vertexType's type
+] : graph's type;
+
+/**
+ * The edges of an unlabeled graph do not have labels. (The vertices of graphs
+ * must always have labels.)
+ *
+ * @type "unlabeled graph"
+ * @supertype "graph"
+ */
+Public explicit class "unlabeled graph" extends graph;
+
+/**
+ * Compute and answer an {@type "unlabeled graph"} type whose vertices are
+ * values of the specified type.
+ *
+ * @method "unlabeled graph of_"
+ * @param "vertexType" "any's type"
+ *        The type of vertices of {@type "graph"}s of the answered type.
+ * @returns "unlabeled graph's type"
+ *          The requested {@type "unlabeled graph"} type.
+ */
+Public method "unlabeled graph of_" is
+[
+	vertexType : any's type
+|
+	extend unlabeled graph with vertex type : vertexType's type
+] : unlabeled graph's type;
+
+/**
+ * Both the vertices and edges of a labeled graph have labels. A label is a
+ * value associated with the vertex or edge.
+ *
+ * @type "labeled graph"
+ * @supertype "graph"
+ */
+Public explicit class "labeled graph" extends graph
+	with fields
+		public edge type : any's type;
+
+/**
+ * Compute and answer a {@type "labeled graph"} type whose vertices are values
+ * of the specified type.
+ *
+ * @method "labeled graph of_"
+ * @param "vertexType" "any's type"
+ *        The type of vertices of {@type "graph"}s of the answered type.
+ * @returns "labeled graph's type"
+ *          The requested {@type "labeled graph"} type.
+ */
+Public method "graph of_,⁇labeled by_" is
+[
+	vertexType : any's type,
+	edgeType : any's type
+|
+	extend labeled graph with
+		vertex type : vertexType's type,
+		edge type : edgeType's type
+] : labeled graph's type;
+
+/**
+ * An edge specifies a source vertex and a destination vertex.
+ *
+ * @type "edge"
+ * @field "source" "any"
+ *        The source vertex.
+ * @field "destination" "any"
+ *        The destination vertex.
+ */
+Public class "edge" extends object
+	with fields
+		public source : any,
+		public destination : any;
+
+/**
+ * Compute and answer an {@type "edge"} type whose vertices are values of the
+ * specified type.
+ *
+ * @method "edge from_to_"
+ * @param "sourceType" "any's type"
+ *        The type of the source vertex.
+ * @param "destinationType" "any's type"
+ *        The type of the destination vertex.
+ * @returns "edge's type"
+ *          The requested {@type "edge"} type.
+ */
+Public method "edge from_to_" is
+[
+	sourceType : any's type,
+	destinationType : any's type
+|
+	extend edge with
+		source : sourceType,
+		destination : destinationType
+] : edge's type;
+
+/**
+ * Construct and answer an {@type "edge"} using the specified vertices.
+ *
+ * @method "an edge from_to_"
+ * @param "sourceVertex" "any"
+ *        The source vertex.
+ * @param "destinationVertex" "any"
+ *        The destination vertex.
+ * @returns "edge"
+ *          The requested edge.
+ */
+Public method "an edge from_to_" is
+[
+	sourceVertex : any,
+	destinationVertex : any
+|
+	an edge with source := sourceVertex, destination := destinationVertex
+] : edge;
+
+Semantic restriction "an edge from_to_" is
+[
+	sourceType : any's type,
+	destinationType : any's type
+|
+	edge from sourceType to destinationType
+];
+
+/**
+ * A labeled edge augments an {@type "edge"} with a label. A label is an
+ * arbitrary value.
+ *
+ * @type "labeled edge"
+ * @field "edge label" "any"
+ *        A value associated with the edge.
+ */
+Public class "labeled edge" extends edge
+	with fields
+		public edge label : any;
+
+/**
+ * Compute and answer a {@type "labeled edge"} type whose vertices are values of
+ * the specified type.
+ *
+ * @method "edge from_to_,⁇labeled by_"
+ * @param "sourceType" "any's type"
+ *        The type of the source vertex.
+ * @param "destinationType" "any's type"
+ *        The type of the destination vertex.
+ * @param "labelType" "any's type"
+ *        The type of the label.
+ * @returns "labeled edge's type"
+ *          The requested {@type "labeled edge"} type.
+ */
+Public method "edge from_to_,⁇labeled by_" is
+[
+	sourceType : any's type,
+	destinationType : any's type,
+	labelType : any's type
+|
+	extend labeled edge with
+		source : sourceType,
+		destination : destinationType,
+		edge label : labelType
+] : labeled edge's type;
+
+/**
+ * Construct and answer a {@type "labeled edge"} using the specified vertices.
+ *
+ * @method "an edge from_to_,⁇labeled by_"
+ * @param "sourceVertex" "any"
+ *        The source vertex.
+ * @param "destinationVertex" "any"
+ *        The destination vertex.
+ * @param "edgeLabel" "any"
+ *        The label.
+ * @returns "edge"
+ *          The requested edge.
+ */
+Public method "an edge from_to_,⁇labeled by_" is
+[
+	sourceVertex : any,
+	destinationVertex : any,
+	edgeLabel : any
+|
+	an edge with
+		source := sourceVertex,
+		destination := destinationVertex,
+		edge label := edge label
+] : edge;
+
+Semantic restriction "an edge from_to_,⁇labeled by_" is
+[
+	sourceType : any's type,
+	destinationType : any's type,
+	labelType : any's type
+|
+	edge from sourceType to destinationType, labeled by labelType
+];
+
+/**
+ * Answer the {@type "set"} of vertices that comprise the specified {@type
+ * "graph"}.
+ *
+ * @method "|_'s⁇vertices|"
+ * @param "aGraph" "graph"
+ *        A graph.
+ * @returns The {@type "set"} of vertices.
+ */
+Public abstract method "_'s⁇vertices" is [graph]→set;
+
+Semantic restriction "_'s⁇vertices" is
+[
+	graphType : graph's type
+|
+	{graphType's vertex type's instance|}
+];
+
+/**
+ * Answer the {@type "set"} of {@type "edge"}s that comprise the specified
+ * {@type "graph"}.
+ *
+ * @method "|_'s⁇edges|"
+ * @param "aGraph" "graph"
+ *        A graph.
+ * @returns The {@type "set"} of {@type "edge"}s.
+ */
+Public abstract method "_'s⁇edges" is [graph]→{edge|};
+
+Semantic restriction "_'s⁇edges" is
+[
+	graphType : graph's type
+|
+	vertexType ::= graphType's vertex type;
+	edgeType ::=
+		cast graphType into
+		[
+			t : labeled graph's type
+		|
+			edge from vertexType to vertexType, labeled by t's edge type
+		]
+		else
+		[
+			edge from vertexType to vertexType
+		];
+	{edgeType|}
+];
+
+
+/**
+ * A basic unlabled graph represents its vertices and edges using two maps:
+ * {@field "predecessors"}, a map from vertices to their predecessors, and
+ * {@field "successors"}, a map from vertices to their successors.
+ *
+ * @type "basic unlabeled graph"
+ * @supertype "unlabeled graph"
+ * @field "predecessors" "{any→set|}"
+ *        A map from vertices to the sets of predecessor vertices.
+ * @field "successors" "{any→set|}"
+ *        A map from vertices to the sets of successor vertices.
+ */
+Explicit class "basic unlabeled graph" extends unlabeled graph
+	with fields
+		predecessors : {any→set|},
+		successors : {any→set|}
+	with reconstructors
+		(predecessors, successors);
+
+Method "_'s⁇vertices" is
+[
+	aGraph : basic unlabeled graph
+|
+	/* Since both maps must contain the complete set of vertices as keys, we are
+	 * free to answer either key set. We arbitrarily choose the predecessors
+	 * map.
+	 */
+	aGraph's predecessors' keys
+] : set;
+
+Method "_'s⁇edges" is
+[
+	aGraph : basic unlabeled graph
+|
+	edges : {edge|} := ∅;
+	/* The maps are redundant, so we could traverse either (and adjust the
+	 * algorithm suitably). Arbitrarily travese the map of predecessors.
+	 */
+	For each aGraph's predecessors do
+	[
+		vertex : any,
+		incoming : set
+	|
+		edges := eject ↑edges ∪ left fold <∅> ++ incoming→tuple through
+			[
+				predecessor : any,
+				partial : {edge|}
+			|
+				partial + an edge from predecessor to vertex
+			];
+	];
+	edges
+] : {edge|};
+
+/**
+ * Both the vertices and edges of a labeled graph have labels. A label is a
+ * value associated with the vertex or edge.
+ *
+ * @type "labeled graph"
+ * @supertype "graph"
+ * @field "predecessors" "{any→{any→set|}|}"
+ *        A map from vertices to maps from edge labels to sets of predecessor
+ *        vertices.
+ * @field "successors" "{any→{any→set|}|}"
+ *        A map from vertices to maps from edge labels to sets of successor
+ *        vertices.
+ */
+Explicit class "basic labeled graph" extends labeled graph
+	with fields
+		predecessors : {any→{any→set|}|},
+		successors : {any→{any→set|}|}
+	with reconstructors
+		(predecessors, successors);
+
+Method "_'s⁇vertices" is
+[
+	aGraph : basic labeled graph
+|
+	/* Since both maps must contain the complete set of vertices as keys, we are
+	 * free to answer either key set. We arbitrarily choose the predecessors
+	 * map.
+	 */
+	aGraph's predecessors' keys
+] : set;
+
+Method "_'s⁇edges" is
+[
+	aGraph : basic labeled graph
+|
+	edges : {edge|} := ∅;
+	/* The maps are redundant, so we could traverse either (and adjust the
+	 * algorithm suitably). Arbitrarily travese the map of predecessors.
+	 */
+	For each aGraph's predecessors do
+	[
+		vertex : any,
+		labeledPredecessors : {any→set|}
+	|
+		For each labeledPredecessors do
+		[
+			edgeLabel : any,
+			incoming : set
+		|
+			edges := eject ↑edges ∪ left fold <∅> ++ incoming→tuple through
+				[
+					predecessor : any,
+					partial : {edge|}
+				|
+					edge ::= an edge from predecessor to vertex,
+						labeled by edgeLabel;
+					partial + edge
+				];
+		];
+	];
+	edges
+] : {edge|};
+
+/**
+ * Compute and answer a {@type "graph"} that differs from {@param "aGraph"} at
+ * most by the addition of {@param "aVertex"}.
+ *
+ * @method "_+_"
+ * @param "aGraph" "graph"
+ *        A graph.
+ * @param "aVertex" "any"
+ *        A vertex.
+ * @returns "graph"
+ *          A graph based on {@param "aGraph"} that definitely contains {@param
+ *          "aVertex"}.
+ */
+Public abstract method "_+_" is [graph, any]→graph;
+
+Method "_+_" is
+[
+	aGraph : basic unlabeled graph,
+	aVertex : any
+|
+	predecessors ::= aGraph's predecessors;
+	successors ::= aGraph's successors;
+	previous ::= predecessors[aVertex] else [∅];
+	next ::= successors[aVertex] else [∅];
+	Assert: (previous = ∅) ↔ (next = ∅);
+	aGraph's
+		predecessors := predecessors + aVertex→previous,
+		successors := successors + aVertex→next
+] : basic unlabeled graph;
+
+Semantic restriction "_+_" is
+[
+	graphType : unlabeled graph's type,
+	vertexType : any's type
+|
+	unlabeled graph of (graphType's vertex type ∪ vertexType)
+];
+
+Method "_+_" is
+[
+	aGraph : basic labeled graph,
+	aVertex : any
+|
+	predecessors ::= aGraph's predecessors;
+	successors ::= aGraph's successors;
+	previous ::= predecessors[aVertex] else [{}];
+	next ::= successors[aVertex] else [{}];
+	Assert: (previous = {}) ↔ (next = {});
+	aGraph's
+		predecessors := predecessors + aVertex→previous,
+		successors := successors + aVertex→next
+] : basic labeled graph;
+
+Semantic restriction "_+_" is
+[
+	graphType : labeled graph's type,
+	vertexType : any's type
+|
+	graph of (graphType's vertex type ∪ vertexType),
+		labeled by (graphType's edge type)
+];
+
+/**
+ * Compute and answer a {@type "graph"} that differs from {@param "aGraph"} at
+ * most by the subtraction of {@param "aVertex"}.
+ *
+ * @method "_+_"
+ * @param "aGraph" "graph"
+ *        A graph.
+ * @param "aVertex" "any"
+ *        A vertex.
+ * @returns "graph"
+ *          A graph based on {@param "aGraph"} that definitely does not contain
+ *          {@param "aVertex"}.
+ */
+Public abstract method "_-_" is [graph, any]→graph;
+
+Method "_-_" is
+[
+	aGraph : basic unlabeled graph,
+	aVertex : any
+|
+	predecessors : {any→set|} := aGraph's predecessors;
+	successors : {any→set|} := aGraph's successors;
+	previous ::= predecessors[aVertex] else [∅];
+	next ::= successors[aVertex] else [∅];
+	Assert: (previous = ∅) ↔ (next = ∅);
+	For each previous do
+	[
+		predecessor : any
+	|
+		aSet ::= successors[predecessor];
+		successors := eject ↑successors + predecessor→(aSet - aVertex);
+	];
+	For each next do
+	[
+		successor : any
+	|
+		aSet ::= predecessors[successor];
+		predecessors := eject ↑predecessors + successor→(aSet - aVertex);
+	];
+	aGraph's
+		predecessors := predecessors - aVertex,
+		successors := successors - aVertex
+] : basic unlabeled graph;
+
+Semantic restriction "_-_" is
+[
+	graphType : unlabeled graph's type,
+	vertexType : any's type
+|
+	graphType
+];
+
+Method "_-_" is
+[
+	aGraph : basic labeled graph,
+	aVertex : any
+|
+	predecessors : {any→{any→set|}|} := aGraph's predecessors;
+	successors : {any→{any→set|}|} := aGraph's successors;
+	previousLabels ::= predecessors[aVertex] else [{}];
+	nextLabels ::= successors[aVertex] else [{}];
+	Assert: (previousLabels = {}) ↔ (nextLabels = {});
+	For each previousLabels do
+	[
+		edgeLabel : any,
+		previous : set
+	|
+		For each previous do
+		[
+			predecessor : any
+		|
+			aMap : {any→set|} := successors[predecessor];
+			newSet ::= aMap[edgeLabel] - aVertex;
+			aMap :=
+				if newSet = ∅ then
+				[
+					eject ↑aMap - edgeLabel
+				]
+				else
+				[
+					eject ↑aMap + edgeLabel→newSet
+				];
+			successors := eject ↑successors + predecessor→aMap;
+		];
+	];
+	For each nextLabels do
+	[
+		edgeLabel : any,
+		next : set
+	|
+		For each next do
+		[
+			successor : any
+		|
+			aMap : {any→set|} := predecessors[successor];
+			newSet ::= aMap[edgeLabel] - aVertex;
+			aMap :=
+				if newSet = ∅ then
+				[
+					eject ↑aMap - edgeLabel
+				]
+				else
+				[
+					eject ↑aMap + edgeLabel→newSet
+				];
+			predecessors := eject ↑predecessors + successor→aMap;
+		];
+	];
+	aGraph's
+		predecessors := predecessors - aVertex,
+		successors := successors - aVertex
+] : basic labeled graph;
+
+Semantic restriction "_-_" is
+[
+	graphType : labeled graph's type,
+	vertexType : any's type
+|
+	graphType
+];
+
+/**
+ * The root exception type for graph operations.
+ *
+ * @type "graph exception"
+ * @supertype "exception"
+ */
+Public explicit class "graph exception" extends exception;
+
+/**
+ * A no-such-vertex exception is raised when an operation inappropriately
+ * specifies a vertex not present in the target graph.
+ *
+ * @type "no-such-vertex exception"
+ * @supertype "graph exception"
+ */
+Public explicit class "no-such-vertex exception" extends graph exception
+	with fields
+		target vertex : any;
+
+/**
+ * A no-such-vertex exception is raised when an operation inappropriately
+ * specifies an edge not present in the target graph.
+ *
+ * @type "no-such-edge exception"
+ * @supertype "graph exception"
+ */
+Public explicit class "no-such-edge exception" extends graph exception
+	with fields
+		target edge : edge;
+
+/**
+ * Compute and answer a {@type "graph"} that differs from {@param "aGraph"} at
+ * most by the addition of {@param "anEdge"}. If {@param "anEdge"} is already
+ * present, then answer {@param "aGraph"}.
+ *
+ * @method "_+_"
+ * @param "aGraph" "graph"
+ *        A graph.
+ * @param "anEdge" "edge"
+ *        An edge.
+ * @returns "graph"
+ *          A graph based on {@param "aGraph"} that definitely contains {@param
+ *          "anEdge"}.
+ * @raises "no-such-vertex exception"
+ *         If {@param "anEdge"} references vertices that are not present in
+ *         {@param "aGraph"}.
+ */
+Public abstract method "_+_" is [graph, edge]→graph;
+
+Method "_+_" is
+[
+	aGraph : basic unlabeled graph,
+	anEdge : edge
+|
+	predecessors ::= aGraph's predecessors;
+	successors ::= aGraph's successors;
+	previous ::= (predecessors[anEdge's destination] else
+		[
+			Raise a no-such-vertex exception
+				with target vertex := anEdge's destination
+		]) + anEdge's source;
+	next ::= (successors[anEdge's source] else
+		[
+			Raise a no-such-vertex exception
+				with target vertex := anEdge's source
+		]) + anEdge's destination;
+	aGraph's
+		predecessors := predecessors + anEdge's destination→previous,
+		successors := successors + anEdge's source→next
+] : basic unlabeled graph;
+
+Semantic restriction "_+_" is
+[
+	graphType : unlabeled graph's type,
+	edgeType : edge's type
+|
+	graphType
+];
+
+/**
+ * Compute and answer a {@type "graph"} that differs from {@param "aGraph"} at
+ * most by the addition of {@param "anEdge"}. If {@param "anEdge"} is already
+ * present, then answer {@param "aGraph"}.
+ *
+ * @method "_+_"
+ * @param "aGraph" "labeled graph"
+ *        A graph.
+ * @param "anEdge" "edge"
+ *        An edge.
+ * @returns "graph"
+ *          A graph based on {@param "aGraph"} that definitely contains {@param
+ *          "anEdge"}.
+ * @raises "incorrect-argument-type exception"
+ *         If {@param "anEdge"} is not a {@type "labeled edge"}.
+ * @raises "no-such-vertex exception"
+ *         If {@param "anEdge"} references vertices that are not present in
+ *         {@param "aGraph"}.
+ */
+Method "_+_" is
+[
+	aGraph : labeled graph,
+	anEdge : edge
+|
+	Raise an incorrect-argument-type exception
+] : basic labeled graph;
+
+Method "_+_" is
+[
+	aGraph : basic labeled graph,
+	anEdge : labeled edge
+|
+	predecessors ::= aGraph's predecessors;
+	successors ::= aGraph's successors;
+	previousMap : {any→set|} := (predecessors[anEdge's destination] else
+		[
+			Raise a no-such-vertex exception
+				with target vertex := anEdge's destination
+		]);
+	previous ::= (previousMap[anEdge's edge label] else [∅]) + anEdge's source;
+	previousMap := eject ↑previousMap + anEdge's edge label→previous;
+	nextMap : {any→set|} := (successors[anEdge's source] else
+		[
+			Raise a no-such-vertex exception
+				with target vertex := anEdge's source
+		]);
+	next ::= (nextMap[anEdge's edge label] else [∅]) + anEdge's destination;
+	nextMap := eject ↑nextMap + anEdge's edge label→next;
+	aGraph's
+		predecessors := predecessors + anEdge's destination→previousMap,
+		successors := successors + anEdge's source→nextMap
+] : basic labeled graph;
+
+Semantic restriction "_+_" is
+[
+	graphType : labeled graph's type,
+	edgeType : edge's type
+|
+	Unless edgeType ⊆ labeled edge then
+	[
+		Reject parse, expected:
+			format "edge ⊆ ‘①’ to be a subtype of ‘②’"
+				with edgeType, labeled edge
+	];
+	graph of (graphType's vertex type),
+		labeled by (graphType's edge type ∪ edgeType)
+];

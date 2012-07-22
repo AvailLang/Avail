@@ -69,8 +69,8 @@ _2_32_1 ::= _2_32 - 1;
  *
  * @type "Mersenne Twister"
  * @supertype "stream"
- * @category "Data Abstractions"
- * @category "Pseudorandom Number Generation"
+ * @category Data Abstractions
+ * @category Pseudorandom Number Generation
  * @see
  * M. Matsumoto and T. Nishimura, "Mersenne Twister: A 623-dimensionally
  * equidistributed uniform pseudorandom number generator", ACM Trans. on

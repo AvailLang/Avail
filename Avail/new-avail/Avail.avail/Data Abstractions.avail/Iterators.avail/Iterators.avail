@@ -38,6 +38,7 @@ Extends
 	"Bounded Iterators",
 	"Collection Iterators",
 	"Counting Iterators",
-	/*"Delimited Iterators",*/
+	"Delimited Iterators",
+	"Generators",
 	"Stream Iterators"
 Body

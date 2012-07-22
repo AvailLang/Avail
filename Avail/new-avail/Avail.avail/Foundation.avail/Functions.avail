@@ -36,9 +36,9 @@ Versions
 Extends
 	"Early Functions"
 Uses
-	"Assertions",
 	"Bootstrap",
 	"Control Structures",
+	"Early Assertions",
 	"Early Definers",
 	"Early Logic",
 	"Enumeration Support",
@@ -196,7 +196,7 @@ Semantic restriction "_(««_»«`_»?‡,»)" is
 				[
 					Reject parse, expected:
 						"type of argument #" ++ “index” ++
-						" to be a subtype of" ++ “originalFunction[index]” ++
+						" to be a subtype of " ++ “originalFunction[index]” ++
 						", not of type " ++ “valueType”
 				];
 			]
@@ -313,27 +313,3 @@ Semantic restriction "_(`…,_)" is
 	function accepting argumentsType[..argumentsCount - 1]
 		and returning (originalFunction's return type)
 ] : function's type;
-
-
-[
-	f ::= [a : integer, b : string, c : float | "ok"];
-	g ::= f(_,"foo",_);
-	Assert: g's type[1] = integer;
-	Assert: g's type[2] = float;
-	Assert: g(10,1.2f) = "ok";
-
-	h ::= f(15,_,1.2f);
-	Assert: h's type[1] = string;
-	Assert: h("cheese") = "ok";
-
-	i ::= f(15,…);
-	Assert: i's type[1] = string;
-	Assert: i's type[2] = float;
-	Assert: i("x", 2.5f) = "ok";
-
-	j ::= f(…,1.7f);
-	Assert: j's type[1] = integer;
-	Assert: j's type[2] = string;
-	Assert: j(45, "x") = "ok";
-]();
-

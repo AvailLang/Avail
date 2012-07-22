@@ -32,7 +32,7 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.Multiplier;
+import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.BlockNodeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.BlockNodeDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind.*;
@@ -255,10 +255,10 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	int o_Hash (final @NotNull AvailObject object)
 	{
 		return
-			(((object.argumentsTuple().hash() * Multiplier
-				+ object.statementsTuple().hash()) * Multiplier
-				+ object.resultType().hash()) * Multiplier
-				+ object.neededVariables().hash()) * Multiplier
+			(((object.argumentsTuple().hash() * multiplier
+				+ object.statementsTuple().hash()) * multiplier
+				+ object.resultType().hash()) * multiplier
+				+ object.neededVariables().hash()) * multiplier
 				+ object.primitive()
 			^ 0x05E6A04A;
 	}

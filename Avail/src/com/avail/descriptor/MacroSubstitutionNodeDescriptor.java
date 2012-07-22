@@ -32,7 +32,7 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.Multiplier;
+import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.MacroSubstitutionNodeDescriptor.ObjectSlots.*;
 import java.util.List;
 import com.avail.annotations.*;
@@ -104,7 +104,7 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 	int o_Hash (final @NotNull AvailObject object)
 	{
 		return
-			object.macroName().hash() * Multiplier
+			object.macroName().hash() * multiplier
 				+ object.outputParseNode().hash()
 			^ 0x1d50d7f9;
 	}

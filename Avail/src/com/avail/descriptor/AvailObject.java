@@ -484,7 +484,7 @@ implements Iterable<AvailObject>
 	 * row 26. See also pages 19, 20, theorems B and C. The period of the
 	 * cycle based on this multiplicative generator is 2^30.
 	 */
-	public static final int Multiplier = 1664525;
+	public static final int multiplier = 1664525;
 
 	/**
 	 * Construct a new {@link AvailObjectRepresentation}.

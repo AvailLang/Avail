@@ -34,5 +34,111 @@ System Module "Assertions"
 Versions
 	"dev"
 Extends
-	"Early Assertions"
+	"Bootstrap" =
+	(
+		"_∩_",
+		"Semantic restriction_is_",
+		"⊤", "⊥",
+		"boolean", "false",
+		"exception",
+		"string",
+		"_'s⁇type"
+	),
+	"Definers",
+	"Exceptions",
+	"Objects"
+Names
+	"Assert:_",
+	"Assert:_(_)",
+	"Shouldn't happen",
+	"assertion-failed exception"
 Body
+
+/**
+ * An assertion-failed exception indicates that {@method "Assert:_"} or
+ * {@method "Assert:_(_)"} was invoked with a false predicate.
+ */
+Public explicit class "assertion-failed exception" extends exception;
+
+/**
+ * If the argument is {@code false}, then raise an {@type "assertion-failed
+ * exception"}.
+ *
+ * @method "Assert:_"
+ * @param "predicate" "boolean"
+ *        A predicate.
+ * @raises "assertion-failed exception"
+ *         If {@param "predicate"} is {@code false}.
+ */
+Public method "Assert:_" is
+[
+	predicate : boolean
+|
+	/* No implementation required. */
+] : ⊤;
+
+Public method "Assert:_" is
+[
+	predicate : false's type
+|
+	Raise an assertion-failed exception
+] : ⊥;
+
+Semantic restriction "Assert:_" is
+[
+	contradiction : false's type's type
+|
+	⊥
+];
+
+/**
+ * If the argument is {@code false}, then raise an {@type "descriptive
+ * exception" descriptive} {@type "assertion-failed
+ * exception"} that includes the specified {@param "message" error message}.
+ *
+ * @method "Assert:_(_)"
+ * @param "predicate" "boolean"
+ *        A predicate.
+ * @param "message" "string"
+ *        An error message.
+ * @raises "assertion-failed exception"
+ *         If {@param "predicate"} is {@code false}.
+ */
+Public method "Assert:_(_)" is
+[
+	predicate : boolean,
+	message : string
+|
+	/* No implementation required. */
+] : ⊤;
+
+Public method "Assert:_(_)" is
+[
+	predicate : false's type,
+	message : string
+|
+	Raise an assertion-failed exception ∩ descriptive exception
+		with error message := message
+] : ⊥;
+
+Semantic restriction "Assert:_(_)" is
+[
+	contradiction : false's type's type,
+	message : string's type
+|
+	⊥
+];
+
+/**
+ * Declare that the code path that called this method should never be executed.
+ * It results in an assertion failure.
+ *
+ * @method "Shouldn't happen"
+ * @raises "assertion-failed exception"
+ *         Always.
+ */
+Public method "Shouldn't happen" is
+[
+	Raise an assertion-failed exception ∩ descriptive exception
+		with error message := "This should not be possible."
+] : ⊥;

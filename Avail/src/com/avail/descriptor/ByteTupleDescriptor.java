@@ -32,7 +32,7 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.Multiplier;
+import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static java.lang.Math.*;
 import com.avail.annotations.*;
@@ -340,9 +340,9 @@ extends TupleDescriptor
 		{
 			final int itemHash = IntegerDescriptor.hashOfUnsignedByte(
 				object.rawByteAt(index)) ^ PreToggle;
-			hash = hash * Multiplier + itemHash;
+			hash = hash * multiplier + itemHash;
 		}
-		return hash * Multiplier;
+		return hash * multiplier;
 	}
 
 	/**

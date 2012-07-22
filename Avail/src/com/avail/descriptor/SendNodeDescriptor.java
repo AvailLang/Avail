@@ -32,7 +32,7 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.Multiplier;
+import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.SendNodeDescriptor.ObjectSlots.*;
 import java.util.List;
@@ -116,8 +116,8 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 	int o_Hash (final @NotNull AvailObject object)
 	{
 		return
-			(object.argumentsListNode().hash() * Multiplier
-				^ object.method().hash()) * Multiplier
+			(object.argumentsListNode().hash() * multiplier
+				^ object.method().hash()) * multiplier
 				- object.returnType().hash()
 			^ 0x90E39B4D;
 	}

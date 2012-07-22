@@ -32,7 +32,7 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.Multiplier;
+import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ObjectSlots.*;
@@ -397,7 +397,7 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 	int o_Hash (final @NotNull AvailObject object)
 	{
 		return object.slot(EXPRESSION_TYPE).hash()
-			^ (object.slot(KIND) * Multiplier);
+			^ (object.slot(KIND) * multiplier);
 	}
 
 	/**

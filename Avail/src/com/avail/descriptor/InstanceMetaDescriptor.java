@@ -33,7 +33,7 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.InstanceMetaDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.AvailObject.Multiplier;
+import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 import com.avail.annotations.*;
@@ -257,7 +257,7 @@ extends AbstractEnumerationTypeDescriptor
 	int o_Hash (
 		final @NotNull AvailObject object)
 	{
-		return (getInstance(object).hash() - 0x361b5d51) * Multiplier;
+		return (getInstance(object).hash() - 0x361b5d51) * multiplier;
 	}
 
 	@Override @AvailMethod

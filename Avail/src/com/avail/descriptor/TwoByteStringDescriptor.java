@@ -312,9 +312,9 @@ extends StringDescriptor
 				CharacterDescriptor.computeHashOfCharacterWithCodePoint(
 					object.rawShortForCharacterAt(index))
 				^ PreToggle;
-			hash = hash * Multiplier + itemHash;
+			hash = hash * multiplier + itemHash;
 		}
-		return hash * Multiplier;
+		return hash * multiplier;
 	}
 
 	@Override

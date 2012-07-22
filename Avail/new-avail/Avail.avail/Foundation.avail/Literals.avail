@@ -36,9 +36,9 @@ Versions
 Extends
 	"Early Literals"
 Uses
-	"Assertions",
 	"Bootstrap",
 	"Definers",
+	"Early Assertions",
 	"Early Control Structures",
 	"Early Logic",
 	"Early Math",

@@ -155,7 +155,7 @@ extends ParseNodeDescriptor
 	int o_Hash (final @NotNull AvailObject object)
 	{
 		return
-			object.variable().hash() * Multiplier
+			object.variable().hash() * multiplier
 				+ object.expression().hash()
 			^ 0xA71EA854;
 	}

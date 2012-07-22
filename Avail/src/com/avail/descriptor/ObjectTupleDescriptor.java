@@ -32,7 +32,7 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.Multiplier;
+import static com.avail.descriptor.AvailObject.multiplier;
 import com.avail.annotations.*;
 
 /**
@@ -382,9 +382,9 @@ extends TupleDescriptor
 		for (int index = end; index >= start; index--)
 		{
 			final int itemHash = object.tupleAt(index).hash() ^ PreToggle;
-			hash = hash * Multiplier + itemHash;
+			hash = hash * multiplier + itemHash;
 		}
-		return hash * Multiplier;
+		return hash * multiplier;
 	}
 
 	/**

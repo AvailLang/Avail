@@ -54,7 +54,7 @@ Class "delimited stream" extends stream
 	with fields
 		element type : tuple's type,
 		reconstructible decorated stream : stream,
-		delimiter : tuple;
+		delimiter : <any…|1..>;
 
 Method "_is empty" is
 [
@@ -78,13 +78,6 @@ delimited stream's head method is
 	head
 ] : tuple;
 
-delimited stream's head method is
-[
-	aStream : extend delimited stream with delimiter : <⊥…|0>
-|
-	<aStream's decorated stream's head>
-];
-
 delimited stream's tail method is
 [
 	aStream : delimited stream
@@ -102,13 +95,6 @@ delimited stream's tail method is
 	aStream's decorated stream := rest
 ] : delimited stream;
 
-delimited stream's tail method is
-[
-	aStream : extend delimited stream with delimiter : <⊥…|0>
-|
-	aStream's decorated stream := (aStream's decorated stream's tail)
-] : delimited stream;
-
 /**
  * Construct and answer a stream that produces tuples of values from `aStream`.
  * These tuples are separated by occurrences of `delimiterTuple` (which will
@@ -123,7 +109,7 @@ delimited stream's tail method is
 Public method "_delimited by_" is
 [
 	aStream : stream,
-	delimiterTuple : tuple
+	delimiterTuple : <any…|1..>
 |
 	a delimited stream with
 		element type := <aStream's element type…|>,
@@ -134,7 +120,7 @@ Public method "_delimited by_" is
 Semantic restriction "_delimited by_" is
 [
 	streamType : stream's type,
-	delimiterType : tuple's type
+	delimiterType : <any…|1..>'s type
 |
 	extend delimited stream with
 		element type : <streamType's element type's instance…|>'s type,

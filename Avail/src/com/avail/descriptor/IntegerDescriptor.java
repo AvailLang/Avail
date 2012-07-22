@@ -32,7 +32,7 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.Multiplier;
+import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static java.lang.Math.*;
 import static com.avail.descriptor.AbstractNumberDescriptor.Order.*;
@@ -1865,7 +1865,7 @@ extends ExtendedIntegerDescriptor
 	 */
 	static int computeHashOfInt (final int anInt)
 	{
-		return (0x13592884 + anInt) * Multiplier ^ 0x95ffb59f;
+		return (0x13592884 + anInt) * multiplier ^ 0x95ffb59f;
 	}
 
 	/**
@@ -1885,7 +1885,7 @@ extends ExtendedIntegerDescriptor
 		for (int i = anIntegerObject.integerSlotsCount(); i > 0; i--)
 		{
 			output += anIntegerObject.rawSignedIntegerAt(i);
-			output *= Multiplier;
+			output *= multiplier;
 			output ^= 0x95ffb59f;
 		}
 		return output;

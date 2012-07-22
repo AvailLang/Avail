@@ -74,10 +74,12 @@ Names
 	"_occurrences⁇of_",
 	"_starts with_",
 	"_to_",
+	"_to_by_",
 	"_'s⁇head",
 	"_'s⁇last",
 	"_'s⁇tail",
 	"_[_.._]→_",
+	"_[_↔_]",
 	"«_‡zip»"
 Body
 
@@ -1362,6 +1364,88 @@ Semantic restriction "_to_" is
 ];
 
 /**
+ * Construct and answer an interval including elements that lie between {@param
+ * "start"} and {@param "end"}. The actual values included are those which
+ * differ from {@param "start"} by a multiple of {@param "delta"}. If {@param
+ * "delta"} is positive, then the result will include no values greater than
+ * {@param "end"}; if {@param "delta"} is negative, then the result will include
+ * no values less than {@param "end"}.
+ *
+ * @method "_to_by_"
+ * @param "start" "integer"
+ *        The first value of the resulting tuple.
+ * @param "end" "integer"
+ *        The largest (or smallest) allowed value of the resulting tuple. It
+ *        will not be the last value of the resulting tuple unless the
+ *        difference between {@param "start"} and {@param "end"} is a multiple
+ *        of {@param "delta"}.
+ * @param "delta" "integer"
+ *        The difference between two successive elements of the resulting tuple.
+ * @returns "tuple"
+ *          A tuple containing elements on the specified interval.
+ * @raises "incorrect-argument-type"
+ *         If {@param "delta"} is {@code 0}.
+ */
+Public stable method "_to_by_" is
+[
+	start : integer,
+	end : integer,
+	delta : integer
+|
+	accumulator : <integer…|> := <>;
+	From start to end by delta do
+	[
+		value : integer
+	|
+		accumulator := eject ↑accumulator ++ <value>;
+	];
+	accumulator
+] : <integer…|>;
+
+Public method "_to_by_" is
+[
+	start : integer,
+	end : integer,
+	delta : 0's type
+|
+	early failure function(incorrect-argument-type code)
+] : ⊥;
+
+/**
+ * Leverage the uncertainty of `start` to produce good leading types when the
+ * upper bound of the result's cardinality can be determined.
+ */
+Semantic restriction "_to_by_" is
+[
+	start : integer's type,
+	end : integer's type,
+	delta : integer's type
+|
+	min : extended integer;
+	max : extended integer;
+	sizes : whole number's type;
+	If delta ⊆ [0..∞) then
+	[
+		min := ⎣start⎦;
+		max := ⎡end⎤;
+		sizes := [0 max (⎣end⎦ - ⎡start⎤ + 1) .. max - min + 2);
+	]
+	else if [delta ⊆ (-∞..-1]] then
+	[
+		min := ⎣end⎦;
+		max := ⎡start⎤;
+		sizes := [0 max (⎣start⎦ - ⎡end⎤ + 1) .. max - min + 2);
+	]
+	else
+	[
+		min := ⎣start⎦ min ⎣end⎦;
+		max := ⎡start⎤ max ⎡end⎤;
+		sizes := [0 .. max - min + 2);
+	];
+	<<>, [min..max + 1)…|sizes>
+];
+
+/**
  * Is `value` an element of `aTuple`?
  * 
  * Parameters:
@@ -2100,6 +2184,71 @@ Semantic restriction "_[_.._]→_" is
 		into [ t : natural number's type | t ];
 	suffix ::= tuple type of aTuple[suffixStart..||aTuple||];
 	prefix ++ replacement ++ suffix
+];
+
+/**
+ * Compute and answer that is the result of swapping the elements of {@param
+ * "aTuple"} at {@param "index1"} and {@param "index2"}.
+ *
+ * @method "_[_↔_]"
+ * @param "aTuple" "tuple"
+ *        A tuple.
+ * @param "index1" "natural number"
+ *        A subscript.
+ * @param "index2" "natural number"
+ *        A subscript.
+ * @returns "tuple"
+ *          A variant of {@param "aTuple"} whose elements at indices {@param
+ *          "index1"} and {@param "index2"} have been exchanged. No other
+ *          elements are affected.
+ */
+Public stable method "_[_↔_]" is
+[
+	aTuple : tuple,
+	index1 : natural number,
+	index2 : natural number
+|
+	element2 ::= aTuple[index2];
+	temp ::= aTuple[index2]→aTuple[index1];
+	temp[index1]→element2
+] : tuple;
+
+Semantic restriction "_[_↔_]" is
+[
+	aTuple : tuple's type,
+	index1 : natural number's type,
+	index2 : natural number's type
+|
+	If ⎣index1⎦ > ⎡aTuple⎤ then
+	[
+		Reject parse, expected:
+			"a subscript ("
+			++ “⎣index1⎦”
+			++ " ≤ theSubscript ≤ "
+			++ “⎡index1⎤”
+			++ ") that could ever be valid ("
+			++ “⎣aTuple⎦”
+			++ " ≤ |theTuple| ≤ "
+			++ “⎡aTuple⎤”
+			++ ")"
+	];
+	If ⎣index2⎦ > ⎡aTuple⎤ then
+	[
+		Reject parse, expected:
+			"a subscript ("
+			++ “⎣index2⎦”
+			++ " ≤ theSubscript ≤ "
+			++ “⎡index2⎤”
+			++ ") that could ever be valid ("
+			++ “⎣aTuple⎦”
+			++ " ≤ |theTuple| ≤ "
+			++ “⎡aTuple⎤”
+			++ ")"
+	];
+	limit ::= cast ⎣index1⎦ min ⎣index2⎦ into [t : natural number | t];
+	leadingTypes ::= aTuple[1..limit - 1];
+	defaultType ::= ∪ aTuple[limit..|aTuple's leading types| + 1];
+	<leadingTypes, defaultType… | ||aTuple||>
 ];
 
 /**

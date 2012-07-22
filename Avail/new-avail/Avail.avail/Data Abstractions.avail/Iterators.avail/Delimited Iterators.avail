@@ -35,17 +35,24 @@ Versions
 	"dev"
 Uses
 	"Abstract Iterators",
+	"Collection Iterators" = ("an iterator over_"),
 	"Foundation",
 	"Unit Testing"
 Names
+	"delimited iterator test suite",
 	"_delimited by_",
+	/* TODO: [TLS] Implement this! */
 	"_delimited by any of_"
 Body
 
 /* TODO: [TLS] Remove these constants once a macro is available for "$…". */
 _delimiter ::= $"delimiter|delimiters";
+_currentValue ::= $"current value";
+_exhaustionState ::= $"exhaustion state";
 
 Private method "delimiter|delimiters" is [ _delimiter ];
+Private method "current value" is [ _currentValue ];
+Private method "exhaustion state" is [ _exhaustionState ];
 
 /**
  * A delimited iterator answers tuples of elements from its decorated iterator.
@@ -58,87 +65,97 @@ Class "delimited iterator" extends iterator
 	with fields
 		element type : tuple's type,
 		decorated iterator : iterator,
-		delimiter : tuple;
+		delimiter : <any…|1..>,
+		current value : ↑tuple,
+		exhaustion state : ↑boolean;
 
 Method "_is exhausted" is
 [
 	anIterator : delimited iterator
 |
-	anIterator's decorated iterator is exhausted
+	↓anIterator's exhaustion state
 ] : boolean;
 
-/* TODO: [TLS] Repair the rest of these! It's mid-refactor! */
 delimited iterator's current element method is
 [
 	anIterator : delimited iterator
 |
-	head : tuple := <>;
-	Until [anIterator is exhausted]
-	do
+	/* If this is the first inquiry, then advance the iterator (to capture the
+	 * current element).
+	 */
+	If anIterator's current value is unassigned then
 	[
-		head := eject ↑head ++ <rest's head>;
-		rest := eject ↑rest's tail;
+		Advance anIterator;
 	];
-	head
+	↓anIterator's current value
 ] : tuple;
 
-delimited iterator's head method is
-[
-	anIterator : extend delimited iterator with delimiter : <⊥…|0>
-|
-	<anIterator's decorated iterator's head>
-];
-
-delimited iterator's tail method is
+delimited iterator's advance method is
 [
 	anIterator : delimited iterator
 |
-	rest : iterator := anIterator's decorated iterator;
-	Until [ rest is empty ∨ [ rest starts with anIterator's delimiter ] ]
-	do
+	inner ::= anIterator's decorated iterator;
+	If inner is exhausted then
 	[
-		rest := eject ↑rest's tail;
-	];
-	If ¬rest is empty then
+		Clear anIterator's current value;
+		↓anIterator's exhaustion state ?= true;
+	]
+	else
 	[
-		rest := drop |anIterator's delimiter| from eject ↑rest;
+		result : tuple := <>;
+		delimiter ::= anIterator's delimiter;
+		index : natural number := 1;
+		Until [inner is exhausted ∨ [index > |delimiter|]]
+		do
+		[
+			value ::= inner's current element;
+			If value = delimiter[index] then
+			[
+				↑index++;
+			]
+			else
+			[
+				result := eject ↑result ++ delimiter[1..index-1] ++ <value>;
+				index := 1;
+			];
+			Advance inner;
+		];
+		↓anIterator's current value ?= result;
 	];
-	anIterator's decorated iterator := rest
-] : delimited iterator;
-
-delimited iterator's tail method is
-[
-	anIterator : extend delimited iterator with delimiter : <⊥…|0>
-|
-	anIterator's decorated iterator := (anIterator's decorated iterator's tail)
-] : delimited iterator;
+] : ⊤;
 
 /**
- * Construct and answer an iterator that produces tuples of values from `anIterator`.
- * These tuples are separated by occurrences of `delimiterTuple` (which will
- * never be produced as output from the answered iterator).
- * 
- * Parameters:
- *    anIterator - A iterator.
- *    delimiterTuple - The delimiter.
- * Returns:
- *    The requested iterator.
+ * Construct and answer an {@type "iterator"} that produces tuples of values
+ * from {@param "anIterator"}. These tuples are separated by occurrences of
+ * {@param "delimiterTuple"} (which will never be produced as output from the
+ * answered iterator).
+ *
+ * @method "_delimited by_"
+ * @param "anIterator" "iterator"
+ *        An iterator.
+ * @param "delimiterTuple" "tuple"
+ *        The delimiter.
+ * @returns "iterator of tuple"
+ *          The requested iterator.
  */
 Public method "_delimited by_" is
 [
 	anIterator : iterator,
-	delimiterTuple : tuple
+	delimiterTuple : <any…|1..>
 |
 	a delimited iterator with
 		element type := <anIterator's element type…|>,
 		decorated iterator := anIterator,
-		delimiter := delimiterTuple
+		delimiter := delimiterTuple,
+		current value := cast new ↑tuple into [t : ↑tuple | t],
+		exhaustion state :=
+			cast (↓new ↑boolean := false) into [t : ↑boolean | t]
 ] : iterator of tuple;
 
 Semantic restriction "_delimited by_" is
 [
 	iteratorType : iterator's type,
-	delimiterType : tuple's type
+	delimiterType : <any…|1..>'s type
 |
 	extend delimited iterator with
 		element type : <iteratorType's element type's instance…|>'s type,
@@ -146,94 +163,33 @@ Semantic restriction "_delimited by_" is
 		delimiter : delimiterType
 ];
 
-/**
- * A delimited iterator answers tuples of elements from its decorated iterator.
- * These tuples are separated by occurrences of any delimiter.
- */
-Explicit class "multiply delimited iterator" extends delimited iterator
-	with fields
-		delimiters : <<any…|1..>…|1..>;
+/* TODO: [TLS] Remove these constants once a macro is available for "$…". */
+_testSuite ::= $"delimited iterator test suite";
+Public method "delimited iterator test suite" is [ _testSuite ];
 
-multiply delimited iterator's head method is
+New test suite delimited iterator test suite extends iterators test suite;
+
+Test "delimited iterator basics" in delimited iterator test suite is
 [
-	anIterator : multiply delimited iterator
-|
-	head : tuple := <>;
-	rest : iterator := anIterator's decorated iterator;
-	Until
+	ref ::= 1 to 10;
+	d ::= <1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7, 0, 8, 0, 9, 0, 10>;
+	index : natural number := 1;
+	iter ::= an iterator over d delimited by <0>;
+	For each iter do
 	[
-		rest is empty ∨ [ any of anIterator's delimiters satisfies
-			[ delimiter : tuple | rest starts with delimiter ] ]
-	]
-	do
-	[
-		head := eject ↑head ++ <rest's head>;
-		rest := eject ↑rest's tail;
+		element : <[0..10]…|>
+	|
+		Require: <ref[(↑index++)]> = element;
 	];
-	head
-] : tuple;
+	Require: (|ref| + 1) = index;
+];
 
-multiply delimited iterator's tail method is
+Test "delimited iterator(no occurrences)" in delimited iterator test suite is
 [
-	anIterator : multiply delimited iterator
-|
-	rest : iterator := anIterator's decorated iterator;
-	theDelimiter : tuple;
-	Until
-	[
-		if rest is empty then [ true ]
-		else
-		[
-			index ::= first index of anIterator's delimiters where
-				[ delimiter : tuple | rest starts with delimiter ];
-			If index ≠ 0 then
-			[
-				nonzero ::= cast index into [ t : natural number | t ];
-				theDelimiter := anIterator's delimiters[nonzero];
-			];
-			↑theDelimiter is assigned
-		]
-	]
-	do
-	[
-		rest := eject ↑rest's tail;
-	];
-	If ¬rest is empty then
-	[
-		rest := drop |theDelimiter| from eject ↑rest;
-	];
-	anIterator's decorated iterator := rest
-] : multiply delimited iterator;
-
-/**
- * Construct and answer an iterator that produces tuples of values from `anIterator`.
- * These tuples are separated by occurrences of `delimiterTuple` (which will
- * never be produced as output from the answered iterator).
- * 
- * Parameters:
- *    anIterator - A iterator.
- *    delimiterTuple - The delimiter.
- * Returns:
- *    The requested iterator.
- */
-Public method "_delimited by any of_" is
-[
-	anIterator : iterator,
-	delimitersTuple : <<any…|1..>…|1..>
-|
-	a multiply delimited iterator with
-		element type := <anIterator's element type…|>,
-		decorated iterator := anIterator,
-		delimiters := delimitersTuple
-] : iterator of tuple;
-
-Semantic restriction "_delimited by any of_" is
-[
-	iteratorType : iterator's type,
-	delimitersType : <<any…|1..>…|1..>'s type
-|
-	extend multiply delimited iterator with
-		element type : <iteratorType's element type's instance…|>'s type,
-		decorated iterator : iteratorType,
-		delimiters : delimitersType
+	ref ::= 1 to 10;
+	iter ::= an iterator over 1 to 10 delimited by <0>;
+	element ::= iter's current element;
+	Require: ref = element;
+	Advance iter;
+	Require: iter is exhausted;
 ];

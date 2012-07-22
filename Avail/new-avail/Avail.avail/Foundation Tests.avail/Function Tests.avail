@@ -1,5 +1,5 @@
 /*
- * Foundation Tests.avail
+ * Function Tests.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,11 +30,49 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Foundation Tests"
+System Module "Function Tests"
 Versions
 	"dev"
-Extends
-	"Common" = ("Foundation|foundation test suite"),
-	"Function Tests" = ("function test suite"),
-	"Math Test" = ("math test suite")
+Uses
+	"Common",
+	"Foundation",
+	"Unit Testing"
+Names
+	"function test suite"
 Body
+
+_testSuite ::= $"math test suite";
+
+/**
+ * Answer the test suite identifier of the function test suite.
+ *
+ * @method "function test suite"
+ * @returns "atom"
+ *          The requested test suite identifier.
+ */
+Public method "function test suite" is [ _testSuite ];
+
+New test suite function test suite extends foundation test suite;
+
+Test "partial application basics" in function test suite is
+[
+	f ::= [a : integer, b : string, c : float | "ok"];
+	g ::= f(_,"foo",_);
+	Require: g's type[1] = integer;
+	Require: g's type[2] = float;
+	Require: g(10,1.2f) = "ok";
+
+	h ::= f(15,_,1.2f);
+	Require: h's type[1] = string;
+	Require: h("cheese") = "ok";
+
+	i ::= f(15,…);
+	Require: i's type[1] = string;
+	Require: i's type[2] = float;
+	Require: i("x", 2.5f) = "ok";
+
+	j ::= f(…,1.7f);
+	Require: j's type[1] = integer;
+	Require: j's type[2] = string;
+	Require: j(45, "x") = "ok";
+];

@@ -831,9 +831,9 @@ extends Descriptor
 		for (int index = end; index >= start; index--)
 		{
 			final int itemHash = object.tupleAt(index).hash() ^ PreToggle;
-			hash = hash * Multiplier + itemHash;
+			hash = hash * multiplier + itemHash;
 		}
-		return hash * Multiplier;
+		return hash * multiplier;
 	}
 
 	@Override @AvailMethod
@@ -1146,18 +1146,18 @@ extends Descriptor
 	}
 
 	/**
-	 * Compute {@link #Multiplier} raised to the specified power, truncated to
+	 * Compute {@link #multiplier} raised to the specified power, truncated to
 	 * an int.
 	 *
 	 * @param anInteger
-	 *            The exponent by which to raise the base {@link #Multiplier}.
+	 *            The exponent by which to raise the base {@link #multiplier}.
 	 * @return
-	 *            {@link #Multiplier} raised to the specified power.
+	 *            {@link #multiplier} raised to the specified power.
 	 */
 	static int multiplierRaisedTo (final int anInteger)
 	{
 		int result = 1;
-		int power = Multiplier;
+		int power = multiplier;
 		int residue = anInteger;
 		while (residue != 0)
 		{

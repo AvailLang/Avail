@@ -43,7 +43,8 @@ Names
 	"pRNG of_",
 	"_'s⁇next_",
 	"_'s⁇next element of_",
-	"_'s⁇next binding of_"
+	"_'s⁇next binding of_",
+	"_'s⁇next shuffling of_"
 Body
 
 /**
@@ -98,6 +99,9 @@ Public method "_'s⁇next_" is
 	[
 		Raise an incorrect-argument-type exception
 	];
+	/* TODO: [TLS] This algorithm does not uniformly distribute yet.
+	 * Fix this!
+	 */
 	delta ::= ⎣range⎦;
 	limit ::= ⎡range⎤;
 	modulus ::= |limit - delta| + 1;
@@ -252,4 +256,40 @@ Semantic restriction "_'s⁇next binding of_" is
 	mapType : {any→any|1..}'s type
 |
 	<mapType's key type, mapType's value type…|2>
+];
+
+/**
+ * Compute and answer a pseudorandom permutation of the specified tuple.
+ *
+ * @method "_'s⁇next shuffling of_"
+ * @param "rng" "pRNG"
+ *        A pseduorandom number generator.
+ * @param "aTuple" "tuple"
+ *        A tuple.
+ * @returns "tuple"
+ *          A permutation of {@param "aTuple"}.
+ */
+Public method "_'s⁇next shuffling of_" is
+[
+	rng : pRNG,
+	aTuple : tuple
+|
+	result : tuple := aTuple;
+	From |aTuple| to 2 by -1 do
+	[
+		index : [2..∞)
+	|
+		range ::= cast [1..index] into [t : natural number's type | t];
+		randomIndex ::= rng's next range;
+		result := eject ↑result[index↔randomIndex];
+	];
+	result
+] : tuple;
+
+Semantic restriction "_'s⁇next shuffling of_" is
+[
+	rng : pRNG's type,
+	tupleType : tuple's type
+|
+	<<>, ∪ tupleType[1..|tupleType's leading types| + 1]… | ||tupleType||>
 ];

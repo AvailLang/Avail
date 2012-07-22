@@ -633,10 +633,10 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	int o_Hash (final @NotNull AvailObject object)
 	{
 		return
-			(((object.token().hash() * Multiplier
-				+ object.declaredType().hash()) * Multiplier
-				+ object.initializationExpression().hash()) * Multiplier
-				+ object.literalObject().hash()) * Multiplier
+			(((object.token().hash() * multiplier
+				+ object.declaredType().hash()) * multiplier
+				+ object.initializationExpression().hash()) * multiplier
+				+ object.literalObject().hash()) * multiplier
 				+ object.declarationKind().ordinal()
 			^ 0x4C27EB37;
 	}

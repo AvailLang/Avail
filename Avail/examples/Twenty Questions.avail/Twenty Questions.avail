@@ -8,7 +8,7 @@ Body
 
 /**
  * A node class that contains a string, which is either a question or a guess.
- * 
+ *
  * @type "node"
  */
 Explicit class "node" extends object
@@ -18,8 +18,9 @@ Explicit class "node" extends object
 /**
  * A question class, which is a subtype of node, that has two child nodes -- one
  * for the response "no" and one for "yes".
- * 
+ *
  * @type "question"
+ * @subtype "node"
  */
 Class "question" extends node
 	with fields
@@ -27,18 +28,18 @@ Class "question" extends node
 		$no : ↑node;
 
 root ::= new ↑node;
-↓root ?= a node with
-	$str := "Avail";
+↓root ?= a node with $str := "Avail";
 
 /**
  * Play a single game of Twenty Questions using the specified input and output
  * blocks to handle communication.
- * 
+ *
  * @method "Play Twenty Questions with input_and output_"
  * @param "input" "[]→string"
  *        A block that can be invoked to provide a single response to the game.
  * @param "output" "[string]→⊤"
  *        A block that can be invoked with a response from the game.
+ * @see {@link "http://en.wikipedia.org/wiki/Twenty_Questions"}
  */
 Method "Play Twenty Questions with input_and output_" is
 [
@@ -54,30 +55,29 @@ Method "Play Twenty Questions with input_and output_" is
 	 	↑count++;
 		output(↓curNode's str);
 		response := input();
-		If response = "n" ∨ [response = "no"]
+		If response ∈ {"n", "no"}
 			then [curNode := (cast ↓curNode into [q : question | q])'s no;]
-		else if [response = "y" ∨ [response = "yes"]]
+		else if [response ∈ {"y", "yes"}]
 			then [curNode := (cast ↓curNode into [q : question | q])'s yes;];
 	];
-	output("Is it " ++ ↓curNode's str ++ "? ");
+	output(format "Is it “①”? " with ↓curNode's str);
 	response := input();
 	answer : string;
-	If response = "y" ∨ [response = "yes"]
-		then [output("Yay!\n");]
-	else if [response = "n" ∨ [ response = "no"]]
-		then
-		[
-			output("I give up. What was it? ");
-			answer := input();
-			output("Okay. What is a question to distinguish it from "
-				++ ↓curNode's str ++ "? ");
-			response := input();
-			tempNo : node := ↓curNode;
-			tempYes : node := a node with $str := answer;
-			↓curNode ?= a question with
-				$str := response,
-				$no := ↑tempNo,
-				$yes := ↑tempYes;
+	If response ∈ {"y", "yes"} then [output("Yay!\n");]
+	else if [response ∈ {"n", "no"}]
+	then
+	[
+		output("I give up. What was it? ");
+		answer := input();
+		output(format "Okay. What is a question to distinguish it from “①”? "
+			with ↓curNode's str);
+		response := input();
+		tempNo : node := ↓curNode;
+		tempYes : node := a node with $str := answer;
+		↓curNode ?= a question with
+			$str := response,
+			$no := ↑tempNo,
+			$yes := ↑tempYes;
 	];
 ];
 

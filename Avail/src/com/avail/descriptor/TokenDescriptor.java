@@ -32,7 +32,7 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.Multiplier;
+import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.TokenDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.TokenDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
@@ -254,8 +254,8 @@ extends Descriptor
 	int o_Hash (final @NotNull AvailObject object)
 	{
 		return
-			(object.string().hash() * Multiplier
-				+ object.start()) * Multiplier
+			(object.string().hash() * multiplier
+				+ object.start()) * multiplier
 				+ object.tokenType().ordinal()
 			^ 0x62CE7BA2;
 	}

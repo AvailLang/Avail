@@ -1,0 +1,314 @@
+/*
+ * Generators.avail
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Generators"
+Versions
+	"dev"
+Uses
+	"Abstract Iterators",
+	"Common",
+	"Foundation",
+	"Unit Testing"
+Names
+	"generator for_",
+	"generator test suite"
+Body
+
+/* TODO: [TLS] Remove these constants once a macro is available for "$…". */
+_currentValue ::= $"current value";
+_clientState ::= $"client state";
+_executionState ::= $"execution state";
+_resuming ::= $resuming;
+
+Private method "current value" is [_currentValue];
+Private method "client state" is [_clientState];
+Private method "execution state" is [_executionState];
+Private method "resuming" is [_resuming];
+
+/**
+ * A generator iteratively applies a supplied function to produce values. This
+ * function accepts a single argument, a "yield" function. When applied, the
+ * yield function answers a value to the client of the generator. When the
+ * generator is asked for its next value, execution resumes following the yield.
+ * A generator therefore behaves as a limited form of coroutine.
+ *
+ * @type "generator"
+ * @supertype "iterator"
+ */
+Class "generator" extends iterator
+	with fields
+		current value : ↑any,
+		client state : ↑$[any]→⊤,
+		execution state : ↑continuation,
+		resuming : ↑boolean;
+
+Method "_is exhausted" is
+[
+	aGenerator : generator
+|
+	aGenerator's execution state is unassigned
+] : boolean;
+
+generator's current element method is
+[
+	aGenerator : generator
+|
+	↓aGenerator's current value
+] : any;
+
+generator's advance method is
+[
+	aGenerator : generator
+|
+	/* It doesn't matter what value we invoke the function with, so long as we
+	 * don't use an exception. So pass false; it will be ignored.
+	 */
+	[
+		arg : any
+	|
+		$body : ⊤;
+		/* If the argument is an exception, then the generator function raised
+		 * an exception that was caught by the execution state continuation.
+		 * This is that exception. Raise it; it is the client's problem now.
+		 */
+		cast arg into [e : exception | Raise e]
+		else
+		[
+			↓aGenerator's client state ?= body;
+			Restart ↓aGenerator's execution state
+		]
+	] : ⊤ (false);
+] : ⊤;
+
+/**
+ * Construct and answer a {@type "generator"} that produces values via the
+ * specified function. {@param "generatorFunction"} accepts a single argument,
+ * itself a function. In order to yield control and produce a value for the
+ * client, {@param "generatorFunction"} applies its argument to the value that
+ * should be answered. If/when {@param "generatorFunction"} eventually returns,
+ * the generator is considered exhausted.
+ *
+ * @method "generator from_"
+ * @param "generatorFunction" "[⊥]→⊤"
+ *        The generator function. Its argument is a function that, when applied
+ *        to a value, yields control to the client and answers the value.
+ * @returns "generator"
+ *          The requested generator.
+ */
+Public method "generator for_" is
+[
+	generatorFunction : [⊥]→⊤
+|
+	/* On the first run of the internal generator, we simply want to obtain the
+	 * continuation that we are going to repeatedly restart later. This variable
+	 * guards against running the user-supplied generator function until we are
+	 * ready to begin generating values.
+	 */
+	go : boolean := false;
+	/* This variable is true when the yield function has been entered as a
+	 * result of restarting the execution continuation, and false when the yield
+	 * has been entered via direct application from the generator function.
+	 */
+	resume : boolean := false;
+	/* This variable holds the current value. */
+	value : any;
+	/* This variable holds the client continuation. It is exited when the
+	 * generator function yields, and restarted when the generator function
+	 * raises an exception.
+	 */
+	caller : $[any]→⊤;
+	/* This variable holds the execution continuation. It generally corresponds
+	 * to the site of an application of the yield function (though at the
+	 * beginning of the algorithm it has not yet applied the generator
+	 * function).
+	 */
+	state : continuation;
+	state :=
+		[
+			$start;
+			/* On the first run through this function, we just want to capture
+			 * the entry continuation.
+			 */
+			If go then
+			[
+				guard
+				[
+					/* Apply the generator function to the yield function. */
+					Invoke generatorFunction with <
+						[
+							result : any
+						|
+							$continue : ⊤;
+							/* When the yield function is applied, it will
+							 * store the current value, update the execution
+							 * continuation, put the algorithm into resume mode,
+							 * and exit the client continuation.
+							 */
+							Unless resume then
+							[
+								value := result;
+								state := continue;
+								resume := true;
+								Exit caller
+							];
+							/* When the execution continuation is restarted, it
+							 * will put the algorithm into generate mode (rather
+							 * than resume mode) and return control to the
+							 * generator function.
+							 */
+							resume := false;
+						]>;
+					/* Clear the execution continuation to indicate that the
+					 * generator is exhausted.
+					 */
+					Clear ↑state;
+					/* Return control to the client continuation. */
+					Exit caller
+				]
+				intercept
+				[
+					e : exception
+				|
+					/* Clear the execution continuation to indicate that the
+					 * generator is defunct.
+					 */
+					Clear ↑state;
+					/* Restart the client continuation with the exception. The
+					 * continuation will re-raise the exception.
+					 */
+					Restart caller with <e>
+				]
+			];
+			start
+		]();
+	/* Construct the generator. */
+	theGenerator ::= a generator with
+		element type :=
+			cast generatorFunction's type[1] into [t : [⊥]→⊤'s type | t[1]],
+		current value := ↑value,
+		client state := ↑caller,
+		execution state := ↑state,
+		resuming := ↑resume;
+	/* Set the generator up prior to its first real usage. */
+	go := true;
+	Advance theGenerator;
+	theGenerator
+] : generator;
+
+Semantic restriction "generator for_" is
+[
+	functionType : [⊥]→⊤'s type
+|
+	cast functionType[1]
+		into [t : [⊥]→⊤'s type | iterator of t[1]]
+		else
+		[
+			Reject parse, expected: format
+				"generator function to accept [⊥]→⊤ (but it only accepts ‘①’)"
+				with functionType[1]
+		]
+];
+
+/* TODO: [TLS] Remove these constants once a macro is available for "$…". */
+_testSuite ::= $"generator test suite";
+Public method "generator test suite" is [_testSuite];
+
+New test suite generator test suite extends iterators test suite;
+
+Test "generator basics" in generator test suite is
+[
+	ref ::= 1 to 10;
+	index : natural number := 1;
+	iter ::= generator for
+		[
+			yield : [[1..10]]→⊤
+		|
+			From 1 to 10 do [i : [1..10] | yield(i);];
+		];
+	For each iter do
+	[
+		element : [1..10]
+	|
+		Require: ref[(↑index++)] = element;
+	];
+	Require: (|ref| + 1) = index;
+];
+
+Test "generator raises exception" in generator test suite is
+[
+	ref ::= map 10 to 1 by -1 through [i : [1..10] | 10 ÷ i];
+	index : natural number := 1;
+	iter ::= generator for
+		[
+			yield : [[0..10]]→⊤
+		|
+			From 10 to 0 by -1 do [i : [0..10] | yield(10 ÷ i);];
+		];
+	For each iter do
+	[
+		element : [0..10]
+	|
+		Require: ref[(↑index++)] = element;
+	];
+]
+must raise cannot-divide-by-zero exception;
+
+Test "generator with multiple yields" in generator test suite is
+[
+	ref ::= 1 to 10;
+	index : natural number := 1;
+	iter ::= generator for
+		[
+			yield : [[1..10]]→⊤
+		|
+			From 1 to 5 do [i : [1..5] | yield(i);];
+			From 6 to 10 do [i : [6..10] | yield(i);];
+		];
+	For each iter do
+	[
+		element : [1..10]
+	|
+		Require: ref[(↑index++)] = element;
+	];
+	Require: (|ref| + 1) = index;
+];
+
+Test "generator with no yields" in generator test suite is
+[
+	iter ::= generator for
+		[
+			yield : [[1..10]]→⊤
+		|
+			From 1 to 10 do [i : [1..10] | /* Do nothing. */];
+		];
+	Require: iter is exhausted;
+];

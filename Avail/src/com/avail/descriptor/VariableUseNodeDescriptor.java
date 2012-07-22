@@ -32,7 +32,7 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.Multiplier;
+import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
@@ -141,8 +141,8 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 	int o_Hash (final @NotNull AvailObject object)
 	{
 		return
-			((object.isLastUse() ? 1 : 0) * Multiplier
-				+ object.token().hash()) * Multiplier
+			((object.isLastUse() ? 1 : 0) * multiplier
+				+ object.token().hash()) * multiplier
 				+ object.declaration().hash()
 			^ 0x62CE7BA2;
 	}

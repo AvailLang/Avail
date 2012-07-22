@@ -178,17 +178,43 @@ Semantic restriction "_+_→_" is
 	 */ 
 	if oldKeyType ∩ keyType = ⊥ then
 	[
-		lower := lower + 1;
-		bound := bound + 1;
+		lower := eject ↑lower + 1;
+		bound := eject ↑bound + 1;
 	]
 	/* Otherwise the key *may* be present, but there's no way to
 	 * know for sure. Adjust the cardinality accordingly.
 	 */
 	else
 	[
-		bound := bound + 1;
+		bound := eject ↑bound + 1;
 	];
 	{newKeyType→newValueType | [lower..bound)}
+];
+
+Method "_-_" is stable at [map, any]→map;
+Semantic restriction "_-_" is
+[
+	mapType : map meta,
+	keyType : any meta
+|
+	lower : [0..∞) := ⎣mapType⎦;
+	upper : [0..∞] := ⎡mapType⎤ + 1;
+	/* If the type intersection of the key type and the new key type is
+	 * ⊥, then the new key cannot be present in the map. Adjust the
+	 * cardinality accordingly.
+	 */
+	if mapType's key type ∩ keyType = ⊥ then
+	[
+		/* Do nothing. */
+	]
+	/* Otherwise the key *may* be present, but there's no way to
+	 * know for sure. Adjust the cardinality accordingly.
+	 */
+	else
+	[
+		lower := 0 max eject ↑lower - 1;
+	];
+	{mapType's key type→mapType's value type | [lower..upper)}
 ];
 
 /**

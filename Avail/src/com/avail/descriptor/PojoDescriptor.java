@@ -130,7 +130,7 @@ extends Descriptor
 	int o_Hash (final @NotNull AvailObject object)
 	{
 		int hash = object.slot(RAW_POJO).hash() ^ 0x749101DD;
-		hash *= AvailObject.Multiplier;
+		hash *= AvailObject.multiplier;
 		hash += object.slot(KIND).hash();
 		return hash;
 	}

@@ -38,6 +38,7 @@ Extends
 	(
 		"Data|data abstractions test suite"
 	),
+	"Graphs",
 	"Iterators",
 	"Pseudorandom Number Generation",
 	"Streams"

@@ -116,3 +116,16 @@ Test "next binding of map" in pRNG test suite is
 		Require: rng's next binding of theMap[1] ∈ theMap;
 	] 10 times;
 ];
+
+Test "next shuffling" in pRNG test suite is
+[
+	numbers ::= 1 to 10;
+	ref ::= numbers→set;
+	Repeat
+	[
+		shuffled ::= rng's next shuffling of numbers;
+		aSet : set := ∅;
+		For each shuffled do [i : [1..10] | aSet := eject ↑aSet + i;];
+		Require: ref = aSet;
+	] 10 times;
+];
