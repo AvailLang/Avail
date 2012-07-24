@@ -97,9 +97,16 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE extends L2Operation
 			null,
 			interpreter.argsBuffer);
 		assert res == SUCCESS;
+
 		final AvailObject expectedType =
 			interpreter.pointerAt(expectedTypeRegister);
-		if (!interpreter.primitiveResult.isInstanceOf(expectedType))
+		final long start = System.nanoTime();
+		final boolean checkOk =
+			interpreter.primitiveResult.isInstanceOf(expectedType);
+		final long checkTimeNanos = System.nanoTime() - start;
+		Primitive.byPrimitiveNumber(primNumber)
+			.addMicrosecondsCheckingResultType(checkTimeNanos / 1000L);
+		if (!checkOk)
 		{
 			// TODO [MvG] - This will have to be handled better some day.
 			error(

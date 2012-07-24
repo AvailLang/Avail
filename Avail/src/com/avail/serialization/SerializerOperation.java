@@ -113,7 +113,7 @@ public enum SerializerOperation
 			final @NotNull AvailObject[] subobjects,
 			final @NotNull Deserializer deserializer)
 		{
-			return IntegerDescriptor.fromUnsignedByte((short)2);
+			return IntegerDescriptor.two();
 		}
 	},
 

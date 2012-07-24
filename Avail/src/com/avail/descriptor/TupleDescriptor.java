@@ -297,8 +297,7 @@ extends Descriptor
 		}
 		// See if it's an acceptable size...
 		final int tupleSize = object.tupleSize();
-		final AvailObject sizeObject = IntegerDescriptor.fromInt(tupleSize);
-		if (!sizeObject.isInstanceOf(aTypeObject.sizeRange()))
+		if (!aTypeObject.sizeRange().rangeIncludesInt(tupleSize))
 		{
 			return false;
 		}
@@ -874,11 +873,8 @@ extends Descriptor
 	Iterator<AvailObject> o_Iterator (
 		final @NotNull AvailObject object)
 	{
-		final AvailObject selfSnapshot =
-			isMutable
-				? object.copyAsMutableObjectTuple()
-				: object;
-		final int size = selfSnapshot.tupleSize();
+		object.makeImmutable();
+		final int size = object.tupleSize();
 		return new Iterator<AvailObject>()
 		{
 			/**
@@ -900,7 +896,7 @@ extends Descriptor
 					throw new NoSuchElementException();
 				}
 
-				return selfSnapshot.tupleAt(index++);
+				return object.tupleAt(index++);
 			}
 
 			@Override

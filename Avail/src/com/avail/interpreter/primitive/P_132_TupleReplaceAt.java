@@ -34,7 +34,8 @@ package com.avail.interpreter.primitive;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
-import java.util.List;
+import static java.lang.Math.*;
+import java.util.*;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
@@ -84,5 +85,71 @@ public class P_132_TupleReplaceAt extends Primitive
 				IntegerRangeTypeDescriptor.naturalNumbers(),
 				ANY.o()),
 			TupleTypeDescriptor.mostGeneralType());
+	}
+
+	@Override
+	public @NotNull AvailObject returnTypeGuaranteedByVMForArgumentTypes (
+		final @NotNull List<AvailObject> argumentTypes)
+	{
+		final AvailObject originalTupleType = argumentTypes.get(0);
+		final AvailObject subscripts = argumentTypes.get(1);
+		final AvailObject newElementType = argumentTypes.get(2);
+		final AvailObject lowerBound = subscripts.lowerBound();
+		final AvailObject upperBound = subscripts.upperBound();
+		final boolean singleSubscript = lowerBound.equals(upperBound);
+		if (lowerBound.greaterThan(
+				IntegerDescriptor.fromUnsignedByte((short)100))
+			|| (upperBound.isFinite()
+				&& upperBound.greaterThan(
+					IntegerDescriptor.fromUnsignedByte((short)100))))
+		{
+			// Too expensive.  Fall back on the primitive's basic type.
+			return super.returnTypeGuaranteedByVMForArgumentTypes(
+				argumentTypes);
+		}
+		final AvailObject originalTypeTuple = originalTupleType.typeTuple();
+		final int originalTypeTupleSize = originalTypeTuple.tupleSize();
+		final int minSubscript = lowerBound.isInt()
+			? max(lowerBound.extractInt(), 1)
+			: 1;
+		final int maxSubscript = upperBound.isFinite()
+			? min(upperBound.extractInt(), originalTypeTupleSize)
+			: Integer.MAX_VALUE;
+		final List<AvailObject> typeList =
+			TupleDescriptor.toList(originalTypeTuple);
+		for (int i = 1; i < minSubscript; i++)
+		{
+			typeList.add(originalTupleType.typeAtIndex(i));
+		}
+		final int limit = min(maxSubscript, originalTypeTupleSize);
+		for (int i = minSubscript; i <= limit; i++)
+		{
+			if (singleSubscript)
+			{
+				// A single subscript is possible, so that element *must* be
+				// replaced by the new value.
+				assert minSubscript == limit;
+				typeList.add(newElementType);
+			}
+			else
+			{
+				// A non-singular range of subscripts is eligible to be
+				// overwritten, so any element in that range can have either the
+				// old type or the new type.
+				typeList.add(
+					originalTupleType.typeAtIndex(i).typeUnion(newElementType));
+			}
+		}
+		for (int i = limit + 1; i <= originalTypeTupleSize; i++)
+		{
+			typeList.add(originalTupleType.typeAtIndex(i));
+		}
+		final AvailObject newDefaultType = upperBound.isFinite()
+			? originalTupleType.defaultType()
+			: originalTupleType.defaultType().typeUnion(newElementType);
+		return TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+			originalTupleType.sizeRange(),
+			TupleDescriptor.fromCollection(typeList),
+			newDefaultType);
 	}
 }

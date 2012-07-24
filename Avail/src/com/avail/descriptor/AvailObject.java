@@ -6279,4 +6279,21 @@ implements Iterable<AvailObject>
 	{
 		return descriptor.o_SetElementsAreAllInstancesOfKind(this, kind);
 	}
+
+	/**
+	 * @return
+	 */
+	public @NotNull MapDescriptor.MapIterable mapBinIterable ()
+	{
+		return descriptor.o_MapBinIterable(this);
+	}
+
+	/**
+	 * @param anInt
+	 * @return
+	 */
+	public boolean rangeIncludesInt (final int anInt)
+	{
+		return descriptor.o_RangeIncludesInt(this, anInt);
+	}
 }

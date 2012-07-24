@@ -71,4 +71,73 @@ public class P_136_ConcatenateTuples extends Primitive
 					TupleTypeDescriptor.mostGeneralType())),
 			TupleTypeDescriptor.mostGeneralType());
 	}
+
+	@Override
+	public AvailObject returnTypeGuaranteedByVMForArgumentTypes (
+		final List<AvailObject> argumentTypes)
+	{
+		final AvailObject tuplesType = argumentTypes.get(0);
+
+		final AvailObject tuplesSizes = tuplesType.sizeRange();
+		final AvailObject lowerBound = tuplesSizes.lowerBound();
+		final AvailObject upperBound = tuplesSizes.upperBound();
+		if (lowerBound.equals(upperBound))
+		{
+			// A fixed number of subtuples.  Must be finite, of course.
+			if (lowerBound.greaterThan(
+				IntegerDescriptor.fromUnsignedByte((short)100)))
+			{
+				// Too expensive to compute here.
+				return super.returnTypeGuaranteedByVMForArgumentTypes(
+					argumentTypes);
+			}
+			// A (reasonably small) collection of tuple types.
+			assert lowerBound.isInt();
+			final int bound = lowerBound.extractInt();
+			AvailObject concatenatedType =
+				InstanceTypeDescriptor.on(TupleDescriptor.empty());
+			for (int i = 1; i <= bound; i++)
+			{
+				concatenatedType =
+					ConcatenatedTupleTypeDescriptor.concatenatingAnd(
+						concatenatedType,
+						tuplesType.typeAtIndex(i));
+			}
+			return concatenatedType;
+		}
+		// A variable number of subtuples.  See if it's homogeneous.
+		if (tuplesType.typeTuple().tupleSize() == 0)
+		{
+			// The outer tuple type is homogeneous.
+			final AvailObject innerTupleType = tuplesType.defaultType();
+			if (innerTupleType.typeTuple().tupleSize() == 0)
+			{
+				// The inner tuple type is also homogeneous.
+				final AvailObject innerSizes =
+					innerTupleType.sizeRange();
+				final AvailObject minSize =
+					tuplesSizes.lowerBound().timesCanDestroy(
+						innerSizes.lowerBound(),
+						false);
+				final AvailObject maxSize =
+					tuplesSizes.upperBound().timesCanDestroy(
+						innerSizes.upperBound(),
+						false);
+				final AvailObject newSizeRange =
+					IntegerRangeTypeDescriptor.create(
+						minSize,
+						true,
+						maxSize.plusCanDestroy(
+							IntegerDescriptor.one(),
+							true),
+						false);
+				return TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+					newSizeRange,
+					TupleDescriptor.empty(),
+					innerTupleType.defaultType());
+			}
+		}
+		// Too tricky to bother narrowing.
+		return super.returnTypeGuaranteedByVMForArgumentTypes(argumentTypes);
+	}
 }

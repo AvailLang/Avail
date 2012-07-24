@@ -79,9 +79,9 @@ public class P_092_MapBindings extends Primitive
 				TupleDescriptor.from(),
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 					IntegerRangeTypeDescriptor.create(
-						IntegerDescriptor.fromInt(2),
+						IntegerDescriptor.two(),
 						true,
-						IntegerDescriptor.fromInt(2),
+						IntegerDescriptor.two(),
 						true),
 					TupleDescriptor.from(),
 					ANY.o())));

@@ -35,6 +35,8 @@ package com.avail.test;
 import java.io.*;
 import org.junit.*;
 import com.avail.builder.*;
+import com.avail.interpreter.Primitive;
+import com.avail.optimizer.L2Translator;
 
 /**
  * Broad test suite for the Avail compiler, interpreter, and (new) library.
@@ -61,7 +63,14 @@ extends AbstractAvailTest
 	{
 		final long startTime = System.currentTimeMillis();
 		compile(new ModuleName("/avail/Test"));
+		System.out.flush();
 		System.err.printf(
-			"time elapsed = %d%n", System.currentTimeMillis() - startTime);
+			"%ntime elapsed = %dms%n", System.currentTimeMillis() - startTime);
+		System.err.printf("Instructions%n\tGen=%d%n\tKept=%d%n\tRemv=%d%n",
+			L2Translator.generatedInstructionCount,
+			L2Translator.keptInstructionCount,
+			L2Translator.removedInstructionCount);
+		System.err.printf("%nPrimitive return type-check times:%n%s",
+			Primitive.reportReturnCheckTimes());
 	}
 }

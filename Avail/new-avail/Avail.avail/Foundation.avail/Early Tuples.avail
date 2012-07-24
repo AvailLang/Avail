@@ -122,8 +122,8 @@ Semantic restriction "«_‡++»" is
 [
 	tuplesType : <<>, tuple…|[2..∞)>'s type
 |
-	result : tuple meta := <>'s type;
-	From 1 to ⎡tuplesType⎤ do
+	result : tuple meta := tuplesType[1];
+	From 2 to ⎡tuplesType⎤ do
 	[
 		index : natural number
 	|
@@ -546,9 +546,30 @@ Semantic restriction "_→set" is
 		/* If the size of the tuple is known, and the type union of its element
 		 * types is an enumeration type which is not itself a metatype, then
 		 * answer a type strong enough to build a statically well known
-		 * enumeration.
+		 * enumeration.  HOWEVER, we must make sure that there were no
+		 * duplicate singular enumerations by ensuring there were no
+		 * compensating >1 valued enumerations.
 		 */
-		{union | ||tupleType||}
+		allSingularEnumerations : boolean := true;
+		From 1 to ⎣tupleType⎦ do
+		[
+			index : natural number
+		|
+			If |tupleType[index]| ≠ 1 then
+			[
+				allSingularEnumerations := false;
+			];
+			allSingularEnumerations
+		];
+		if allSingularEnumerations then
+		[
+			{union | ||tupleType||}
+		]
+		else
+		[
+			lower ::= ⎣tupleType⎦ min 1;
+			{union | [lower..⎡tupleType⎤ + 1)}
+		]
 	]
 	else
 	[

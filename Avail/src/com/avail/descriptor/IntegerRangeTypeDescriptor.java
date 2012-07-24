@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.AvailObject.error;
 import java.math.BigInteger;
 import java.util.List;
@@ -73,14 +74,14 @@ extends TypeDescriptor
 	@NotNull AvailObject o_LowerBound (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.LOWER_BOUND);
+		return object.slot(LOWER_BOUND);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_UpperBound (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.UPPER_BOUND);
+		return object.slot(UPPER_BOUND);
 	}
 
 	@Override
@@ -91,12 +92,12 @@ extends TypeDescriptor
 		final int indent)
 	{
 		aStream.append(object.lowerInclusive() ? '[' : '(');
-		object.lowerBound().printOnAvoidingIndent(
+		object.slot(LOWER_BOUND).printOnAvoidingIndent(
 			aStream,
 			recursionList,
 			indent + 1);
 		aStream.append("..");
-		object.upperBound().printOnAvoidingIndent(
+		object.slot(UPPER_BOUND).printOnAvoidingIndent(
 			aStream,
 			recursionList,
 			indent + 1);
@@ -116,11 +117,11 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
-		if (!object.lowerBound().equals(another.lowerBound()))
+		if (!object.slot(LOWER_BOUND).equals(another.lowerBound()))
 		{
 			return false;
 		}
-		if (!object.upperBound().equals(another.upperBound()))
+		if (!object.slot(UPPER_BOUND).equals(another.upperBound()))
 		{
 			return false;
 		}
@@ -152,8 +153,8 @@ extends TypeDescriptor
 		final @NotNull AvailObject object)
 	{
 		return IntegerRangeTypeDescriptor.computeHash(
-			object.lowerBound().hash(),
-			object.upperBound().hash(),
+			object.slot(LOWER_BOUND).hash(),
+			object.slot(UPPER_BOUND).hash(),
 			object.lowerInclusive(),
 			object.upperInclusive());
 	}
@@ -198,7 +199,7 @@ extends TypeDescriptor
 		final @NotNull AvailObject possibleSub)
 	{
 		final AvailObject subMinObject = possibleSub.lowerBound();
-		final AvailObject superMinObject = object.lowerBound();
+		final AvailObject superMinObject = object.slot(LOWER_BOUND);
 		if (subMinObject.lessThan(superMinObject))
 		{
 			return false;
@@ -210,7 +211,7 @@ extends TypeDescriptor
 			return false;
 		}
 		final AvailObject subMaxObject = possibleSub.upperBound();
-		final AvailObject superMaxObject = object.upperBound();
+		final AvailObject superMaxObject = object.slot(UPPER_BOUND);
 		if (superMaxObject.lessThan(subMaxObject))
 		{
 			return false;
@@ -245,7 +246,7 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
-		AvailObject minObject = object.lowerBound();
+		AvailObject minObject = object.slot(LOWER_BOUND);
 		boolean isMinInc = object.lowerInclusive();
 		if (another.lowerBound().equals(minObject))
 		{
@@ -256,7 +257,7 @@ extends TypeDescriptor
 			minObject = another.lowerBound();
 			isMinInc = another.lowerInclusive();
 		}
-		AvailObject maxObject = object.upperBound();
+		AvailObject maxObject = object.slot(UPPER_BOUND);
 		boolean isMaxInc = object.upperInclusive();
 		if (another.upperBound().equals(maxObject))
 		{
@@ -296,7 +297,7 @@ extends TypeDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject another)
 	{
-		AvailObject minObject = object.lowerBound();
+		AvailObject minObject = object.slot(LOWER_BOUND);
 		boolean isMinInc = object.lowerInclusive();
 		if (another.lowerBound().equals(minObject))
 		{
@@ -307,7 +308,7 @@ extends TypeDescriptor
 			minObject = another.lowerBound();
 			isMinInc = another.lowerInclusive();
 		}
-		AvailObject maxObject = object.upperBound();
+		AvailObject maxObject = object.slot(UPPER_BOUND);
 		boolean isMaxInc = object.upperInclusive();
 		if (another.upperBound().equals(maxObject))
 		{
@@ -367,6 +368,65 @@ extends TypeDescriptor
 		// If the integer range type is something else, then treat the
 		// type as opaque.
 		return super.o_MarshalToJava(object, ignoredClassHint);
+	}
+
+	@Override
+	boolean o_RangeIncludesInt (
+		final @NotNull AvailObject object,
+		final int anInt)
+	{
+		final AvailObject lower = object.slot(LOWER_BOUND);
+		AvailObject asInteger = null;
+		if (lower.isInt())
+		{
+			if (anInt < lower.extractInt())
+			{
+				return false;
+			}
+		}
+		else if (!lower.isFinite())
+		{
+			if (lower.isPositive())
+			{
+				return false;
+			}
+		}
+		else
+		{
+			asInteger = IntegerDescriptor.fromInt(anInt);
+			if (asInteger.lessThan(lower))
+			{
+				return false;
+			}
+		}
+
+		final AvailObject upper = object.slot(UPPER_BOUND);
+		if (upper.isInt())
+		{
+			if (anInt > upper.extractInt())
+			{
+				return false;
+			}
+		}
+		else if (!upper.isFinite())
+		{
+			if (!upper.isPositive())
+			{
+				return false;
+			}
+		}
+		else
+		{
+			if (asInteger == null)
+			{
+				asInteger = IntegerDescriptor.fromInt(anInt);
+			}
+			if (upper.lessThan(asInteger))
+			{
+				return false;
+			}
+		}
+		return true;
 	}
 
 	/**
@@ -689,8 +749,8 @@ extends TypeDescriptor
 		final IntegerRangeTypeDescriptor descriptor =
 			lookupDescriptor(true, lowInc, highInc);
 		final AvailObject result = descriptor.create();
-		result.setSlot(ObjectSlots.LOWER_BOUND, low);
-		result.setSlot(ObjectSlots.UPPER_BOUND, high);
+		result.setSlot(LOWER_BOUND, low);
+		result.setSlot(UPPER_BOUND, high);
 		result.makeImmutable();
 		return result;
 	}

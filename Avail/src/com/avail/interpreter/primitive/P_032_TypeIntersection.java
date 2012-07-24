@@ -70,4 +70,14 @@ public class P_032_TypeIntersection extends Primitive
 				InstanceMetaDescriptor.topMeta()),
 			InstanceMetaDescriptor.topMeta());
 	}
+
+	@Override
+	public @NotNull AvailObject returnTypeGuaranteedByVMForArgumentTypes (
+		final @NotNull List<AvailObject> argumentTypes)
+	{
+		final AvailObject meta1 = argumentTypes.get(0);
+		final AvailObject meta2 = argumentTypes.get(1);
+
+		return meta1.typeIntersection(meta2);  // by metavariance
+	}
 }

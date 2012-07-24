@@ -78,4 +78,61 @@ public class P_001_Addition extends Primitive
 				NUMBER.o()),
 			NUMBER.o());
 	}
+
+	@Override
+	public @NotNull AvailObject returnTypeGuaranteedByVMForArgumentTypes (
+		final @NotNull List<AvailObject> argumentTypes)
+	{
+		final AvailObject aType = argumentTypes.get(0);
+		final AvailObject bType = argumentTypes.get(1);
+
+		try
+		{
+			if (aType.isEnumeration() && bType.isEnumeration())
+			{
+				final AvailObject aInstances = aType.instances();
+				final AvailObject bInstances = bType.instances();
+				// Compute the Cartesian product as an enumeration if there will
+				// be few enough entries.
+				if (aInstances.setSize() * (long)bInstances.setSize() < 100)
+				{
+					AvailObject answers = SetDescriptor.empty();
+					for (final AvailObject aInstance : aInstances)
+					{
+						for (final AvailObject bInstance : bInstances)
+						{
+							answers = answers.setWithElementCanDestroy(
+								aInstance.plusCanDestroy(bInstance, false),
+								false);
+						}
+					}
+					return AbstractEnumerationTypeDescriptor.withInstances(answers);
+				}
+			}
+			if (aType.isIntegerRangeType() && bType.isIntegerRangeType())
+			{
+				final AvailObject low = aType.lowerBound().plusCanDestroy(
+					bType.lowerBound(),
+					false);
+				final AvailObject high = aType.upperBound().plusCanDestroy(
+					bType.upperBound(),
+					false);
+				final boolean lowInclusive =
+					aType.lowerInclusive() && bType.lowerInclusive();
+				final boolean highInclusive =
+					aType.upperInclusive() && bType.upperInclusive();
+				return IntegerRangeTypeDescriptor.create(
+					low,
+					lowInclusive,
+					high,
+					highInclusive);
+			}
+		}
+		catch (final ArithmeticException e)
+		{
+			// $FALL-THROUGH$
+		}
+		return super.returnTypeGuaranteedByVMForArgumentTypes(
+			argumentTypes);
+	}
 }

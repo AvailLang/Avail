@@ -900,6 +900,19 @@ extends AbstractTypeDescriptor
 		return AvailObject.class;
 	}
 
+	@Override
+	boolean o_RangeIncludesInt (
+		final @NotNull AvailObject object,
+		final int anInt)
+	{
+		return false;
+	}
+
+	/**
+	 * A two-dimensional table of booleans such that supertypeTable[x][y] is
+	 * true precisely when x is a subtype of y.  The indices are ordinals of
+	 * primitive types.
+	 */
 	static boolean supertypeTable [][];
 
 	/**

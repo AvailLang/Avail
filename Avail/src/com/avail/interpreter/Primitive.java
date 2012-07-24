@@ -37,7 +37,7 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 import java.util.regex.*;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.operation.L2_ATTEMPT_INLINE_PRIMITIVE;
@@ -591,5 +591,72 @@ implements IntegerEnumSlotDescriptionEnum
 		assert byPrimitiveNumber[primitiveNumber] == null;
 		byPrimitiveNumber[primitiveNumber] = this;
 		return this;
+	}
+
+	/**
+	 * A performance metric indicating how long was spent checking the return
+	 * result for all invocations of this primitive in level two code.  An
+	 * excessively large value indicates a profitable opportunity for {@link
+	 * #returnTypeGuaranteedByVMForArgumentTypes(List)} to return a stronger
+	 * type, perhaps allowing the level two optimizer to skip more checks.
+	 */
+	@InnerAccess long debugMicrosecondsCheckingResultType = 0L;
+
+	/**
+	 * Record that some number of microseconds were just expended checking the
+	 * type of the value returned by this primitive.
+	 *
+	 * @param deltaMicroseconds
+	 */
+	public void addMicrosecondsCheckingResultType (
+		final long deltaMicroseconds)
+	{
+		debugMicrosecondsCheckingResultType += deltaMicroseconds;
+	}
+
+	/**
+	 * Produce a report showing which primitives cost the most time to have
+	 * their result types checked.
+	 *
+	 * @return The report, a potentially long string.
+	 */
+	public static String reportReturnCheckTimes ()
+	{
+		final StringBuilder builder = new StringBuilder();
+		final List<Primitive> prims = new ArrayList<Primitive>();
+		for (int i = 1; i <= maxPrimitiveNumber; i++)
+		{
+			final Primitive prim = byPrimitiveNumber(i);
+			if (prim != null && prim.debugMicrosecondsCheckingResultType != 0)
+			{
+				prims.add(prim);
+			}
+		}
+		Collections.sort(prims, new Comparator<Primitive>()
+		{
+			@Override
+			public int compare (final Primitive p1, final Primitive p2)
+			{
+				return Long.signum(
+					p2.debugMicrosecondsCheckingResultType
+						- p1.debugMicrosecondsCheckingResultType);
+			}
+		});
+		for (final Primitive prim : prims)
+		{
+			final long microseconds = prim.debugMicrosecondsCheckingResultType;
+			builder.append(String.format(
+				microseconds > 1000000
+					? "%1$ 7.3f s  "
+					: microseconds > 1000
+						? "%2$ 7.3f ms "
+						: "%3$ 3d     µs ",
+					microseconds / 1.0e6,
+					microseconds / 1.0e3,
+					microseconds));
+			builder.append(prim.name());
+			builder.append('\n');
+		}
+		return builder.toString();
 	}
 }

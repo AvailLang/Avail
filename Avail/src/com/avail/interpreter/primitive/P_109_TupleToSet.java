@@ -67,4 +67,43 @@ public class P_109_TupleToSet extends Primitive
 				TupleTypeDescriptor.mostGeneralType()),
 			SetTypeDescriptor.mostGeneralType());
 	}
+
+	@Override
+	public @NotNull AvailObject returnTypeGuaranteedByVMForArgumentTypes (
+		final @NotNull List<AvailObject> argumentTypes)
+	{
+		final AvailObject tupleType = argumentTypes.get(0);
+
+		final AvailObject unionType = tupleType.unionOfTypesAtThrough(
+			1,
+			Integer.MAX_VALUE);
+		unionType.makeImmutable();
+		final AvailObject tupleSizes = tupleType.sizeRange();
+		// Technically, if two tuple entries have disjoint types then the
+		// minimum set size is two.  Generalizing this leads to computing the
+		// Birkhoff chromatic polynomial of the graph whose vertices are the
+		// tuple subscripts and which has edges when two tuple subscript types
+		// are disjoint (their intersection is bottom).  This is the optimum
+		// bound for the minimum size of the resulting set.  The maximum can be
+		// improved by a not yet worked out pigeon hole principle when there are
+		// element types with a small number of possible instances (e.g.,
+		// enumerations) and those sets of instances overlap between many tuple
+		// elements.  We do neither optimization here, but we do note that only
+		// the empty tuple can produce the empty set, and the set size is never
+		// greater than the tuple size.
+		final AvailObject minSize =
+			tupleSizes.lowerBound().equals(IntegerDescriptor.zero())
+				? IntegerDescriptor.zero()
+				: IntegerDescriptor.one();
+		final AvailObject setSizes = IntegerRangeTypeDescriptor.create(
+			minSize,
+			true,
+			tupleSizes.upperBound(),
+			tupleSizes.upperInclusive());
+		final AvailObject setType =
+			SetTypeDescriptor.setTypeForSizesContentType(
+				setSizes,
+				unionType);
+		return setType;
+	}
 }

@@ -68,4 +68,12 @@ public class P_100_SetSize extends Primitive
 				SetTypeDescriptor.mostGeneralType()),
 			IntegerRangeTypeDescriptor.wholeNumbers());
 	}
+
+	@Override
+	public @NotNull AvailObject returnTypeGuaranteedByVMForArgumentTypes (
+		final @NotNull List<AvailObject> argumentTypes)
+	{
+		final AvailObject setType = argumentTypes.get(0);
+		return setType.sizeRange();
+	}
 }

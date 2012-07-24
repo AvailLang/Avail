@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.TupleTypeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static java.lang.Math.*;
 import java.util.List;
@@ -91,21 +92,21 @@ extends TypeDescriptor
 	@NotNull AvailObject o_DefaultType (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.DEFAULT_TYPE);
+		return object.slot(DEFAULT_TYPE);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_SizeRange (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.SIZE_RANGE);
+		return object.slot(SIZE_RANGE);
 	}
 
 	@Override @AvailMethod
 	@NotNull AvailObject o_TypeTuple (
 		final @NotNull AvailObject object)
 	{
-		return object.slot(ObjectSlots.TYPE_TUPLE);
+		return object.slot(TYPE_TUPLE);
 	}
 
 	@Override
@@ -229,9 +230,9 @@ extends TypeDescriptor
 	{
 		return TupleTypeDescriptor
 			.hashOfTupleTypeWithSizesHashTypesHashDefaultTypeHash(
-				object.sizeRange().hash(),
-				object.typeTuple().hash(),
-				object.defaultType().hash());
+				object.slot(SIZE_RANGE).hash(),
+				object.slot(TYPE_TUPLE).hash(),
+				object.slot(DEFAULT_TYPE).hash());
 	}
 
 	@Override @AvailMethod
@@ -245,17 +246,24 @@ extends TypeDescriptor
 		{
 			return BottomTypeDescriptor.bottom();
 		}
-		final AvailObject upper = object.sizeRange().upperBound();
-		if (upper.lessThan(IntegerDescriptor.fromInt(index)))
+		final AvailObject upper = object.slot(SIZE_RANGE).upperBound();
+		if (upper.isInt())
+		{
+			if (upper.extractInt() < index)
+			{
+				return BottomTypeDescriptor.bottom();
+			}
+		}
+		else if (upper.lessThan(IntegerDescriptor.fromInt(index)))
 		{
 			return BottomTypeDescriptor.bottom();
 		}
-		final AvailObject leading = object.typeTuple();
+		final AvailObject leading = object.slot(TYPE_TUPLE);
 		if (index <= leading.tupleSize())
 		{
 			return leading.tupleAt(index);
 		}
-		return object.defaultType();
+		return object.slot(DEFAULT_TYPE);
 	}
 
 	/**
@@ -705,9 +713,9 @@ extends TypeDescriptor
 			assert typeTuple.tupleAt(i).isType();
 		}
 		final AvailObject result = mutable().create();
-		result.setSlot(ObjectSlots.SIZE_RANGE, sizeRangeKind);
-		result.setSlot(ObjectSlots.TYPE_TUPLE, typeTuple);
-		result.setSlot(ObjectSlots.DEFAULT_TYPE, defaultType);
+		result.setSlot(SIZE_RANGE, sizeRangeKind);
+		result.setSlot(TYPE_TUPLE, typeTuple);
+		result.setSlot(DEFAULT_TYPE, defaultType);
 		return result;
 	}
 

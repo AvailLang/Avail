@@ -418,7 +418,7 @@ extends Descriptor
 		AvailObject filteredAllBundles = filteredBundleTree.allBundles();
 		AvailObject filteredUnclassified = filteredBundleTree.unclassified();
 		for (final MapDescriptor.Entry entry
-			: object.allBundles().mapIterable())
+			: object.slot(ALL_BUNDLES).mapIterable())
 		{
 			final AvailObject message = entry.key;
 			final AvailObject bundle = entry.value;
@@ -451,7 +451,7 @@ extends Descriptor
 		final @NotNull AvailObject newBundle)
 	{
 		final AvailObject message = newBundle.message();
-		AvailObject allBundles = object.allBundles();
+		AvailObject allBundles = object.slot(ALL_BUNDLES);
 		if (allBundles.hasKey(message))
 		{
 			return allBundles.mapAt(message);
@@ -479,7 +479,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject bundle)
 	{
-		AvailObject allBundles = object.allBundles();
+		AvailObject allBundles = object.slot(ALL_BUNDLES);
 		final AvailObject message = bundle.message();
 		if (allBundles.hasKey(message))
 		{

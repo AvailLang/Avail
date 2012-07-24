@@ -69,4 +69,20 @@ public class P_065_CreateEnumeration extends Primitive
 				SetTypeDescriptor.mostGeneralType()),
 			InstanceMetaDescriptor.topMeta());
 	}
+
+	@Override
+	public @NotNull AvailObject returnTypeGuaranteedByVMForArgumentTypes (
+		final @NotNull List<AvailObject> argumentTypes)
+	{
+		final AvailObject setType = argumentTypes.get(0);
+		// The type restricting the set's elements (i.e., the set's element
+		// type) has as instances the same objects that might be members of the
+		// enumeration that the primitive would construct.  Therefore, answer
+		// the set's element type's type.  Note that this works especially well
+		// when the set's element type is an enumeration.
+		final AvailObject elementType = setType.contentType();
+		final AvailObject metaType = InstanceMetaDescriptor.on(elementType);
+		metaType.makeImmutable();
+		return metaType;
+	}
 }

@@ -86,7 +86,7 @@ public class P_291_FloatTimesTwoPower extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				FLOAT.o(),
-				InstanceTypeDescriptor.on(IntegerDescriptor.fromInt(2)),
+				InstanceTypeDescriptor.on(IntegerDescriptor.two()),
 				IntegerRangeTypeDescriptor.integers()),
 			FLOAT.o());
 	}

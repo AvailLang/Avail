@@ -38,6 +38,7 @@ import com.avail.annotations.*;
 import com.avail.compiler.*;
 import com.avail.descriptor.AbstractNumberDescriptor.*;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.descriptor.MapDescriptor.MapIterable;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.exceptions.*;
@@ -4593,6 +4594,20 @@ extends AbstractDescriptor
 	boolean o_SetElementsAreAllInstancesOfKind (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject kind)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	public @NotNull MapIterable o_MapBinIterable (
+		final @NotNull AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override boolean o_RangeIncludesInt (
+		final @NotNull AvailObject object,
+		final int anInt)
 	{
 		throw unsupportedOperationException();
 	}

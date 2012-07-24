@@ -522,6 +522,9 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	 * @param declaredExceptions
 	 *            The {@linkplain SetDescriptor set} of exception types that may
 	 *            be raised by this block.  <em>This is not yet normalized.</em>
+	 * @param lineNumber
+	 *            The line number of the current module at which this block
+	 *            begins.
 	 * @return
 	 *            A block node.
 	 */

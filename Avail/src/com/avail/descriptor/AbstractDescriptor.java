@@ -42,6 +42,7 @@ import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.InfinityDescriptor.IntegerSlots;
+import com.avail.descriptor.MapDescriptor.MapIterable;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.exceptions.SignatureException;
@@ -5629,7 +5630,7 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param kind TODO
+	 * @param kind
 	 * @return
 	 */
 	abstract boolean o_BinElementsAreAllInstancesOfKind (
@@ -5644,4 +5645,20 @@ public abstract class AbstractDescriptor
 	abstract boolean o_SetElementsAreAllInstancesOfKind (
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject kind);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract public @NotNull MapIterable o_MapBinIterable (
+		final @NotNull AvailObject object);
+
+	/**
+	 * @param object
+	 * @param anInt
+	 * @return
+	 */
+	abstract boolean o_RangeIncludesInt (
+		final @NotNull AvailObject object,
+		final int anInt);
 }

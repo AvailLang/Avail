@@ -495,15 +495,9 @@ extends AbstractEnumerationTypeDescriptor
 		return IntegerDescriptor.one();
 	}
 
-	// TODO[MvG] REMOVE
-	public static long t = 0;
-
 	@Override @AvailMethod
 	@NotNull AvailObject o_Instances (final @NotNull AvailObject object)
 	{
-		t++;  // TODO[MvG] REMOVE
-		if (t%100000 == 0)
-			System.out.println("T=" + t);
 		return SetDescriptor.empty().setWithElementCanDestroy(
 			getInstance(object),
 			true);
@@ -662,6 +656,14 @@ extends AbstractEnumerationTypeDescriptor
 		return getInstance(object).expressionType();
 	}
 
+	@Override
+	boolean o_RangeIncludesInt (
+		final @NotNull AvailObject object,
+		final int anInt)
+	{
+		final AvailObject instance = getInstance(object);
+		return instance.isInt() && instance.extractInt() == anInt;
+	}
 
 	/**
 	 * Answer a new instance of this descriptor based on some object whose type

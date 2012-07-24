@@ -429,6 +429,11 @@ extends Descriptor
 	abstract @NotNull AvailObject o_ValueType (
 		final @NotNull AvailObject object);
 
+	@Override
+	abstract boolean o_RangeIncludesInt (
+		final @NotNull AvailObject object,
+		final int anInt);
+
 	/**
 	 * Construct a new {@link TypeDescriptor}.
 	 *

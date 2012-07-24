@@ -68,4 +68,12 @@ public class P_030_Type extends Primitive
 				ANY.o()),
 			InstanceMetaDescriptor.topMeta());
 	}
+
+	@Override
+	public @NotNull AvailObject returnTypeGuaranteedByVMForArgumentTypes (
+		final @NotNull List<AvailObject> argumentTypes)
+	{
+		final AvailObject argType = argumentTypes.get(0);
+		return InstanceMetaDescriptor.on(argType);
+	}
 }

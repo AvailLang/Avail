@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import static com.avail.descriptor.LinearMapBinDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.LinearMapBinDescriptor.ObjectSlots.*;
 import com.avail.annotations.*;
+import com.avail.descriptor.MapDescriptor.*;
 
 /**
  * A {@code LinearMapBinDescriptor} is a leaf bin in a {@link MapDescriptor
@@ -460,6 +461,33 @@ extends MapBinDescriptor
 		return valuesHash;
 	}
 
+	@Override
+	public @NotNull MapIterable o_MapBinIterable (
+		final @NotNull AvailObject object)
+	{
+		object.makeImmutable();
+		return new MapIterable()
+		{
+			final int limit = object.variableIntegerSlotsCount();
+			int nextIndex = 1;
+
+			@Override
+			public final Entry next ()
+			{
+				entry.keyHash = object.slot(KEY_HASHES_, nextIndex);
+				entry.key = object.slot(BIN_SLOT_AT_, nextIndex * 2 - 1);
+				entry.value = object.slot(BIN_SLOT_AT_, nextIndex * 2);
+				nextIndex++;
+				return entry;
+			}
+
+			@Override
+			public final boolean hasNext ()
+			{
+				return nextIndex <= limit;
+			}
+		};
+	}
 
 	/**
 	 * Create a bin with a single (key,value) pair in it.

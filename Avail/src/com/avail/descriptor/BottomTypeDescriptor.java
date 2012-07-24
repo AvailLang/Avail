@@ -627,4 +627,12 @@ extends AbstractEnumerationTypeDescriptor
 	{
 		return true;
 	}
+
+	@Override
+	boolean o_RangeIncludesInt (
+		final @NotNull AvailObject object,
+		final int anInt)
+	{
+		return false;
+	}
 }

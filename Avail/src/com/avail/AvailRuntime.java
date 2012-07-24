@@ -614,7 +614,7 @@ implements ThreadFactory
 		specialObjects[109] = FunctionTypeDescriptor.forReturnType(
 			PARSE_NODE.mostGeneralType());
 		specialObjects[110] = InstanceTypeDescriptor.on(
-			IntegerDescriptor.fromInt(2));
+			IntegerDescriptor.two());
 		specialObjects[111] = DoubleDescriptor.fromDouble(Math.E);
 		specialObjects[112] = InstanceTypeDescriptor.on(
 			DoubleDescriptor.fromDouble(Math.E));

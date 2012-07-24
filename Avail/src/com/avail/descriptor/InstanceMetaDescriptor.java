@@ -37,6 +37,7 @@ import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 import com.avail.annotations.*;
+import com.avail.descriptor.TypeDescriptor.Types;
 
 /**
  * My instances are called <em>instance metas</em>, the types of types.  These
@@ -277,15 +278,9 @@ extends AbstractEnumerationTypeDescriptor
 		return IntegerDescriptor.one();
 	}
 
-	// TODO[MvG] REMOVE
-	public static long m = 0;
-
 	@Override @AvailMethod
 	@NotNull AvailObject o_Instances (final @NotNull AvailObject object)
 	{
-		m++;  // TODO[MvG] REMOVE
-		if (m%100000 == 0)
-			System.out.println("M=" + m);
 		return SetDescriptor.empty().setWithElementCanDestroy(
 			getInstance(object),
 			true);
@@ -316,6 +311,15 @@ extends AbstractEnumerationTypeDescriptor
 		// I'm a meta, a singular enumeration of a type, so I could only be an
 		// instance of a meta meta (already excluded), or of ANY or TOP.
 		return aType.isSupertypeOfPrimitiveTypeWithOrdinal(ANY.ordinal());
+	}
+
+	@Override
+	boolean o_RangeIncludesInt (
+		final @NotNull AvailObject object,
+		final int anInt)
+	{
+		// A metatype can't have an integer as an instance.
+		return false;
 	}
 
 	/**

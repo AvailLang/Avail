@@ -31,7 +31,7 @@
  */
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.E_KEY_NOT_FOUND;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
 import java.util.List;
@@ -74,5 +74,33 @@ public class P_082_MapAtKey extends Primitive
 				MapTypeDescriptor.mostGeneralType(),
 				ANY.o()),
 			ANY.o());
+	}
+
+	@Override
+	public @NotNull AvailObject returnTypeGuaranteedByVMForArgumentTypes (
+		final @NotNull List<AvailObject> argumentTypes)
+	{
+		final AvailObject mapType = argumentTypes.get(0);
+		final AvailObject keyType = argumentTypes.get(1);
+		if (mapType.isEnumeration() && keyType.isEnumeration())
+		{
+			AvailObject values = SetDescriptor.empty();
+			final AvailObject keyTypeInstances = keyType.instances();
+			for (final AvailObject mapInstance : mapType.instances())
+			{
+				for (final AvailObject keyInstance : keyTypeInstances)
+				{
+					if (mapInstance.hasKey(keyInstance))
+					{
+						values = values.setWithElementCanDestroy(
+							mapInstance.mapAt(keyInstance),
+							true);
+					}
+				}
+			}
+			return AbstractEnumerationTypeDescriptor.withInstances(values);
+		}
+		// Fall back on the map type's value type.
+		return mapType.valueType();
 	}
 }

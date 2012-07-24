@@ -86,7 +86,7 @@ public class P_321_DoubleTimesTwoPower extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				DOUBLE.o(),
-				InstanceTypeDescriptor.on(IntegerDescriptor.fromInt(2)),
+				InstanceTypeDescriptor.on(IntegerDescriptor.two()),
 				IntegerRangeTypeDescriptor.integers()),
 			DOUBLE.o());
 	}

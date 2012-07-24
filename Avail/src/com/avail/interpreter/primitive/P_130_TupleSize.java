@@ -68,4 +68,12 @@ public class P_130_TupleSize extends Primitive
 				TupleTypeDescriptor.mostGeneralType()),
 			IntegerRangeTypeDescriptor.wholeNumbers());
 	}
+
+	@Override
+	public @NotNull AvailObject returnTypeGuaranteedByVMForArgumentTypes (
+		final @NotNull List<AvailObject> argumentTypes)
+	{
+		final AvailObject tupleType = argumentTypes.get(0);
+		return tupleType.sizeRange();
+	}
 }

@@ -72,9 +72,9 @@ public class P_085_CreateMap extends Primitive
 					TupleDescriptor.from(),
 					TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 						IntegerRangeTypeDescriptor.create(
-							IntegerDescriptor.fromInt(2),
+							IntegerDescriptor.two(),
 							true,
-							IntegerDescriptor.fromInt(2),
+							IntegerDescriptor.two(),
 							true),
 						TupleDescriptor.from(),
 						ANY.o()))),

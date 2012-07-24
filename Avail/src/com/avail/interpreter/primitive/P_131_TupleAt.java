@@ -81,4 +81,25 @@ public class P_131_TupleAt extends Primitive
 				IntegerRangeTypeDescriptor.naturalNumbers()),
 			ANY.o());
 	}
+
+	@Override
+	public @NotNull AvailObject returnTypeGuaranteedByVMForArgumentTypes (
+		final @NotNull List<AvailObject> argumentTypes)
+	{
+		final AvailObject tupleType = argumentTypes.get(0);
+		final AvailObject subscripts = argumentTypes.get(1);
+
+		final AvailObject lower = subscripts.lowerBound();
+		final AvailObject upper = subscripts.upperBound();
+		final int lowerInt = lower.isInt()
+			? lower.extractInt()
+			: 1;
+		final int upperInt = upper.isInt()
+			? upper.extractInt()
+			: Integer.MAX_VALUE;
+		final AvailObject unionType =
+			tupleType.unionOfTypesAtThrough(lowerInt, upperInt);
+		unionType.makeImmutable();
+		return unionType;
+	}
 }

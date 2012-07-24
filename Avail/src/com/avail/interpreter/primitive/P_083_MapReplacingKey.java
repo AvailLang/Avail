@@ -80,4 +80,39 @@ public class P_083_MapReplacingKey extends Primitive
 				ANY.o(),
 				ANY.o()));
 	}
+
+	@Override
+	public @NotNull AvailObject returnTypeGuaranteedByVMForArgumentTypes (
+		final @NotNull List<AvailObject> argumentTypes)
+	{
+		final AvailObject mapType = argumentTypes.get(0);
+		final AvailObject addedKeyType = argumentTypes.get(1);
+		final AvailObject addedValueType = argumentTypes.get(2);
+
+		final AvailObject newKeyType =
+			mapType.keyType().typeUnion(addedKeyType);
+		final AvailObject newValueType =
+			mapType.valueType().typeUnion(addedValueType);
+		final AvailObject oldSizes = mapType.sizeRange();
+		// Now there's at least one element.
+		final AvailObject newMin =
+			oldSizes.lowerBound().equals(IntegerDescriptor.zero())
+				? IntegerDescriptor.one()
+				: oldSizes.lowerBound();
+		// ...and at most one more element.  We add two and make the bound
+		// exclusive to accommodate positive infinity.
+		final AvailObject newMaxPlusOne =
+			oldSizes.upperBound().plusCanDestroy(
+				IntegerDescriptor.two(), false);
+		final AvailObject newSizes = IntegerRangeTypeDescriptor.create(
+			newMin.makeImmutable(),
+			true,
+			newMaxPlusOne.makeImmutable(),
+			false);
+
+		return MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
+			newSizes,
+			newKeyType.makeImmutable(),
+			newValueType.makeImmutable());
+	}
 }

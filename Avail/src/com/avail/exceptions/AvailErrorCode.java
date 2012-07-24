@@ -39,7 +39,6 @@ import com.avail.annotations.NotNull;
 import com.avail.compiler.MessageSplitter;
 import com.avail.descriptor.*;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
-import com.avail.interpreter.primitive.P_200_CatchException;
 
 /**
  * {@code AvailErrorCode} is an enumeration of all possible failures of

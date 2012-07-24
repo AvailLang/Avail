@@ -39,6 +39,7 @@ import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.descriptor.MapDescriptor.MapIterable;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.exceptions.SignatureException;
@@ -4357,5 +4358,20 @@ extends AbstractDescriptor
 		final @NotNull AvailObject kind)
 	{
 		return o_Traversed(object).setElementsAreAllInstancesOfKind(kind);
+	}
+
+	@Override
+	public @NotNull MapIterable o_MapBinIterable (
+		final @NotNull AvailObject object)
+	{
+		return o_Traversed(object).mapBinIterable();
+	}
+
+	@Override
+	boolean o_RangeIncludesInt (
+		final @NotNull AvailObject object,
+		final int anInt)
+	{
+		return o_Traversed(object).rangeIncludesInt(anInt);
 	}
 }

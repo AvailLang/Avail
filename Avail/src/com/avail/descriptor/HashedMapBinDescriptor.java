@@ -35,7 +35,10 @@ package com.avail.descriptor;
 import static java.lang.Integer.bitCount;
 import static com.avail.descriptor.HashedMapBinDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.HashedMapBinDescriptor.ObjectSlots.*;
+import java.util.*;
 import com.avail.annotations.*;
+import com.avail.descriptor.MapDescriptor.MapIterable;
+import com.avail.descriptor.MapDescriptor.Entry;
 
 /**
  * This class implements the internal hashed nodes of a Bagwell Ideal Hash Tree.
@@ -564,6 +567,132 @@ extends MapBinDescriptor
 			object.setSlot(VALUES_HASH_OR_ZERO, valuesHash);
 		}
 		return valuesHash;
+	}
+
+	/**
+	 * A MapIterable used for iterating over the key/value pairs of a map whose
+	 * root bin happens to be hashed.
+	 */
+	public static class HashedMapBinIterable extends MapIterable
+	{
+		/**
+		 * The path through map bins, including the current linear bin.
+		 */
+		final Deque<AvailObject> binStack = new ArrayDeque<AvailObject>();
+
+		/**
+		 * The current position in each bin on the binStack, including the
+		 * linear bin.  It should be the same size as the binStack.  When
+		 * they're both empty it indicates {@code !hasNext()}.
+		 */
+		final Deque<Integer> subscriptStack = new ArrayDeque<Integer>();
+
+		/**
+		 * Construct a new {@link MapIterable} over the keys and values
+		 * recursively contained in the given root bin / null.
+		 *
+		 * @param root The root bin over which to iterate.
+		 */
+		HashedMapBinIterable (final AvailObject root)
+		{
+			followLeftmost(root);
+		}
+
+		/**
+		 * Visit this bin or {@link NullDescriptor#nullObject() null object}.
+		 * In particular, travel down its left spine so that it's positioned at
+		 * the leftmost descendant.
+		 *
+		 * @param bin The bin or null object at which to begin enumerating.
+		 */
+		private void followLeftmost (
+			final @NotNull AvailObject bin)
+		{
+			if (bin.equalsNull())
+			{
+				// The null object may only occur at the top of the bin tree.
+				assert binStack.isEmpty();
+				assert subscriptStack.isEmpty();
+				//entry.keyHash = 0;
+				entry.key = null;
+				entry.value = null;
+			}
+			else
+			{
+				AvailObject currentBin = bin;
+				while (currentBin.isHashedMapBin())
+				{
+					binStack.addLast(currentBin);
+					subscriptStack.addLast(1);
+					currentBin = currentBin.binElementAt(1);
+				}
+				binStack.addLast(currentBin);
+				subscriptStack.addLast(1);
+				assert binStack.size() == subscriptStack.size();
+			}
+		}
+
+		@Override
+		public Entry next ()
+		{
+			assert !binStack.isEmpty();
+			final AvailObject linearBin = binStack.getLast().traversed();
+			final Integer linearIndex = subscriptStack.getLast();
+			entry.keyHash = linearBin.slot(
+				LinearMapBinDescriptor.IntegerSlots.KEY_HASHES_,
+				linearIndex);
+			entry.key = linearBin.binElementAt(linearIndex * 2 - 1);
+			entry.value = linearBin.binElementAt(linearIndex * 2);
+			// Got the result.  Now advance the state...
+			if (linearIndex < linearBin.variableIntegerSlotsCount())
+			{
+				// Continue in same leaf bin.
+				subscriptStack.removeLast();
+				subscriptStack.addLast(linearIndex + 1);
+				return entry;
+			}
+
+			binStack.removeLast();
+			subscriptStack.removeLast();
+			assert binStack.size() == subscriptStack.size();
+			while (true)
+			{
+				if (subscriptStack.isEmpty())
+				{
+					// This was the last entry in the map.
+					return entry;
+				}
+				final AvailObject internalBin = binStack.getLast().traversed();
+				final int internalSubscript = subscriptStack.getLast();
+				final int maxSubscript = internalBin.variableObjectSlotsCount();
+				if (internalSubscript != maxSubscript)
+				{
+					// Continue in current internal (hashed) bin.
+					subscriptStack.addLast(subscriptStack.removeLast() + 1);
+					assert binStack.size() == subscriptStack.size();
+					followLeftmost(
+						binStack.getLast().binElementAt(internalSubscript + 1));
+					assert binStack.size() == subscriptStack.size();
+					return entry;
+				}
+				subscriptStack.removeLast();
+				binStack.removeLast();
+				assert binStack.size() == subscriptStack.size();
+			}
+		}
+
+		@Override
+		public boolean hasNext ()
+		{
+			return !binStack.isEmpty();
+		}
+	}
+
+	@Override
+	public @NotNull MapIterable o_MapBinIterable (
+		final @NotNull AvailObject object)
+	{
+		return new HashedMapBinIterable(object);
 	}
 
 	/**

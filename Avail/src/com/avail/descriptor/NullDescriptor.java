@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 import com.avail.annotations.*;
+import com.avail.descriptor.MapDescriptor.*;
 import com.avail.serialization.SerializerOperation;
 
 /**
@@ -250,6 +251,26 @@ extends Descriptor
 		// Nil is treated as an empty bin, so its members all satisfy.. any
 		// property whatsoever.
 		return true;
+	}
+
+	@Override
+	public @NotNull MapIterable o_MapBinIterable (
+		final @NotNull AvailObject object)
+	{
+		return new MapIterable()
+		{
+			@Override
+			public final Entry next ()
+			{
+				throw new UnsupportedOperationException();
+			}
+
+			@Override
+			public final boolean hasNext ()
+			{
+				return false;
+			}
+		};
 	}
 
 	@Override

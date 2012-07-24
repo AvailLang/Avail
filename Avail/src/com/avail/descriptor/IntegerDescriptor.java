@@ -1800,7 +1800,6 @@ extends ExtendedIntegerDescriptor
 	 */
 	public static AvailObject negativeOne ()
 	{
-		//  Note that here we can safely return by reference.
 		return negativeOne;
 	}
 
@@ -1812,7 +1811,6 @@ extends ExtendedIntegerDescriptor
 	 */
 	public static AvailObject zero ()
 	{
-		//  Note that here we can safely return by reference.
 		return immutableByteObjects[0];
 	}
 
@@ -1824,8 +1822,18 @@ extends ExtendedIntegerDescriptor
 	 */
 	public static AvailObject one ()
 	{
-		//  Note that here we can safely return by reference.
 		return immutableByteObjects[1];
+	}
+
+	/**
+	 * Answer an {@link AvailObject} representing the {@linkplain
+	 * IntegerDescriptor integer} two (2).
+	 *
+	 * @return The Avail integer two.
+	 */
+	public static AvailObject two ()
+	{
+		return immutableByteObjects[2];
 	}
 
 	/**
@@ -1836,7 +1844,6 @@ extends ExtendedIntegerDescriptor
 	 */
 	public static AvailObject ten ()
 	{
-		//  Note that here we can safely return by reference.
 		return immutableByteObjects[10];
 	}
 

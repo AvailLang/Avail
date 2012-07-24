@@ -67,4 +67,15 @@ public class P_037_ReturnType extends Primitive
 				FunctionTypeDescriptor.meta()),
 			InstanceMetaDescriptor.topMeta());
 	}
+
+	@Override
+	public @NotNull AvailObject returnTypeGuaranteedByVMForArgumentTypes (
+		final @NotNull List<AvailObject> argumentTypes)
+	{
+		final AvailObject functionMeta = argumentTypes.get(0);
+
+		final AvailObject functionType = functionMeta.instance();
+		final AvailObject returnType = functionType.returnType();
+		return InstanceMetaDescriptor.on(returnType);
+	}
 }

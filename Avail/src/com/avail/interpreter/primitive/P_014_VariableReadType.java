@@ -67,4 +67,13 @@ public class P_014_VariableReadType extends Primitive
 				VariableTypeDescriptor.meta()),
 			InstanceMetaDescriptor.topMeta());
 	}
+
+	@Override
+	public @NotNull AvailObject returnTypeGuaranteedByVMForArgumentTypes (
+		final @NotNull List<AvailObject> argumentTypes)
+	{
+		final AvailObject varMeta = argumentTypes.get(0);
+		final AvailObject varType = varMeta.instance();
+		return InstanceMetaDescriptor.on(varType.readType());
+	}
 }

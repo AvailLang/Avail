@@ -274,6 +274,9 @@ extends Interpreter
 		}
 	}
 
+	private static final int numberOfFixedRegisters =
+		FixedRegister.values().length;
+
 	/**
 	 * The L2 instruction stream as a tuple of integers.
 	 */
@@ -438,7 +441,7 @@ extends Interpreter
 		final int argumentOrLocalNumber)
 	{
 		// Skip the fixed registers.
-		return FixedRegister.values().length + argumentOrLocalNumber - 1;
+		return numberOfFixedRegisters + argumentOrLocalNumber - 1;
 	}
 
 
@@ -721,7 +724,7 @@ extends Interpreter
 	{
 		final int neededObjectCount = max(
 			theChunk.numObjects(),
-			FixedRegister.values().length + theCode.numArgsAndLocalsAndStack());
+			numberOfFixedRegisters + theCode.numArgsAndLocalsAndStack());
 		if (neededObjectCount > pointers.length)
 		{
 			final AvailObject[] newPointers =

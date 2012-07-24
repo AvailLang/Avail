@@ -31,7 +31,7 @@
  */
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import java.util.List;
@@ -82,5 +82,14 @@ public class P_010_GetValue extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(VariableTypeDescriptor.mostGeneralType()),
 			ANY.o());
+	}
+
+	@Override
+	public @NotNull AvailObject returnTypeGuaranteedByVMForArgumentTypes (
+		final @NotNull List<AvailObject> argumentTypes)
+	{
+		final AvailObject varType = argumentTypes.get(0);
+		final AvailObject readType = varType.readType();
+		return readType.equals(TOP.o()) ? ANY.o() : readType;
 	}
 }

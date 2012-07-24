@@ -234,9 +234,7 @@ public class MapDescriptor extends Descriptor
 		{
 			return false;
 		}
-		//  See if it's an acceptable size...
-		final AvailObject size = IntegerDescriptor.fromInt(object.mapSize());
-		if (!size.isInstanceOf(aTypeObject.sizeRange()))
+		if (!aTypeObject.sizeRange().rangeIncludesInt(object.mapSize()))
 		{
 			return false;
 		}
@@ -285,11 +283,8 @@ public class MapDescriptor extends Descriptor
 				// assert !keysMatch && !valuesMatch;
 				for (final Entry entry : object.mapIterable())
 				{
-					if (!entry.key.isInstanceOf(keyType))
-					{
-						return false;
-					}
-					if (!entry.value.isInstanceOf(valueType))
+					if (!entry.key.isInstanceOf(keyType)
+						|| !entry.value.isInstanceOf(valueType))
 					{
 						return false;
 					}
@@ -474,7 +469,8 @@ public class MapDescriptor extends Descriptor
 	MapDescriptor.MapIterable o_MapIterable (
 		final @NotNull AvailObject object)
 	{
-		return new MapIterable(rootBin(object));
+		return rootBin(object).mapBinIterable();
+		// return new MapIterable(rootBin(object));
 	}
 
 	@Override @AvailMethod @ThreadSafe
@@ -520,11 +516,11 @@ public class MapDescriptor extends Descriptor
 	/**
 	 * {@link MapDescriptor.MapIterable} is returned by {@linkplain
 	 * MapDescriptor#o_MapIterable(AvailObject) mapIterable()} to support use
-	 * of the "foreach" control structure on {@linkplain MapDescriptor maps}.
+	 * of Java's "foreach" control structure on {@linkplain MapDescriptor maps}.
 	 *
 	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
 	 */
-	public static class MapIterable
+	public abstract static class MapIterable
 	implements
 		Iterator<Entry>,
 		Iterable<Entry>
@@ -533,132 +529,30 @@ public class MapDescriptor extends Descriptor
 		 * The {@link Entry} to be reused for each <key, value> pair while
 		 * iterating over this {@link MapDescriptor map}.
 		 */
-		private final Entry entry = new Entry();
+		protected final Entry entry = new Entry();
 
 		/**
-		 * The path through map bins, including the current linear bin.
+		 * Construct a new {@link MapDescriptor.MapIterable}.
 		 */
-		final Deque<AvailObject> binStack = new ArrayDeque<AvailObject>();
-
-		/**
-		 * The current position in each bin on the binStack, including the
-		 * linear bin.  It should be the same size as the binStack.  When
-		 * they're both empty it indicates {@code !hasNext()}.
-		 */
-		final Deque<Integer> subscriptStack = new ArrayDeque<Integer>();
-
-		/**
-		 * Construct a new {@link MapIterable} over the keys and values
-		 * recursively contained in the given root bin / null.
-		 *
-		 * @see ObjectSlots#ROOT_BIN
-		 * @param root The root bin over which to iterate.
-		 */
-		MapIterable (final AvailObject root)
+		protected MapIterable ()
 		{
-			followLeftmost(root);
+			// Nothing
 		}
 
 		/**
-		 * Visit this bin or {@link NullDescriptor#nullObject() null object}.
-		 * In particular, travel down its left spine so that it's positioned at
-		 * the leftmost descendant.
-		 *
-		 * @param bin The bin or null object at which to begin enumerating.
+		 * Convert trivially between an Iterable and an Iterator, since this
+		 * class supports both protocols.
 		 */
-		private void followLeftmost (
-			final @NotNull AvailObject bin)
-		{
-			if (bin.equalsNull())
-			{
-				// The null object may only occur at the top of the bin tree.
-				assert binStack.isEmpty();
-				assert subscriptStack.isEmpty();
-				//entry.keyHash = 0;
-				entry.key = null;
-				entry.value = null;
-			}
-			else
-			{
-				AvailObject currentBin = bin;
-				while (currentBin.isHashedMapBin())
-				{
-					binStack.addLast(currentBin);
-					subscriptStack.addLast(1);
-					currentBin = currentBin.binElementAt(1);
-				}
-				binStack.addLast(currentBin);
-				subscriptStack.addLast(1);
-				assert binStack.size() == subscriptStack.size();
-			}
-		}
-
 		@Override
-		public Entry next ()
+		public MapIterable iterator ()
 		{
-			assert !binStack.isEmpty();
-			final AvailObject linearBin = binStack.getLast().traversed();
-			final Integer linearIndex = subscriptStack.getLast();
-			entry.keyHash = linearBin.slot(
-				LinearMapBinDescriptor.IntegerSlots.KEY_HASHES_,
-				linearIndex);
-			entry.key = linearBin.binElementAt(linearIndex * 2 - 1);
-			entry.value = linearBin.binElementAt(linearIndex * 2);
-			// Got the result.  Now advance the state...
-			if (linearIndex < linearBin.variableIntegerSlotsCount())
-			{
-				// Continue in same leaf bin.
-				subscriptStack.removeLast();
-				subscriptStack.addLast(linearIndex + 1);
-				return entry;
-			}
-
-			binStack.removeLast();
-			subscriptStack.removeLast();
-			assert binStack.size() == subscriptStack.size();
-			while (true)
-			{
-				if (subscriptStack.isEmpty())
-				{
-					// This was the last entry in the map.
-					return entry;
-				}
-				final AvailObject internalBin = binStack.getLast().traversed();
-				final int internalSubscript = subscriptStack.getLast();
-				final int maxSubscript = internalBin.variableObjectSlotsCount();
-				if (internalSubscript != maxSubscript)
-				{
-					// Continue in current internal (hashed) bin.
-					subscriptStack.addLast(subscriptStack.removeLast() + 1);
-					assert binStack.size() == subscriptStack.size();
-					followLeftmost(
-						binStack.getLast().binElementAt(internalSubscript + 1));
-					assert binStack.size() == subscriptStack.size();
-					return entry;
-				}
-				subscriptStack.removeLast();
-				binStack.removeLast();
-				assert binStack.size() == subscriptStack.size();
-			}
-		}
-
-		@Override
-		public boolean hasNext ()
-		{
-			return !binStack.isEmpty();
+			return this;
 		}
 
 		@Override
 		public void remove ()
 		{
 			throw new UnsupportedOperationException();
-		}
-
-		@Override
-		public MapIterable iterator ()
-		{
-			// This is what Java *should* have provided all along.
-			return this;
 		}
 	}
 

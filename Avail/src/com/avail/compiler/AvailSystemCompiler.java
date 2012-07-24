@@ -1480,8 +1480,7 @@ extends AbstractAvailCompiler
 									continuation);
 							}
 						},
-						"Continue send after keyword: "
-							+ keywordString.asNativeString(),
+						"Continue send after a keyword",
 						start.afterToken().position);
 				}
 				else
@@ -1523,8 +1522,7 @@ extends AbstractAvailCompiler
 									continuation);
 							}
 						},
-						"Continue send after keyword: "
-							+ keywordString.asNativeString(),
+						"Continue send after a keyword",
 						start.afterToken().position);
 				}
 				else
@@ -1581,7 +1579,7 @@ extends AbstractAvailCompiler
 								continuation);
 						}
 					},
-					"Continue with instruction " + key,
+					"Continue with an instruction",
 					start.position);
 			}
 		}

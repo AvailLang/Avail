@@ -716,6 +716,15 @@ extends AbstractEnumerationTypeDescriptor
 		return unionType;
 	}
 
+	@Override
+	boolean o_RangeIncludesInt (
+		final @NotNull AvailObject object,
+		final int anInt)
+	{
+		return getInstances(object).hasElement(
+			IntegerDescriptor.fromInt(anInt));
+	}
+
 	/**
 	 * Construct an {@linkplain EnumerationTypeDescriptor enumeration} from a
 	 * {@linkplain SetDescriptor set} with at least two instances.  The set
