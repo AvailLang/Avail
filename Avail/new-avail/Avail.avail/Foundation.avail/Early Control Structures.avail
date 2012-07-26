@@ -208,7 +208,7 @@ Public method "Cast|cast_into_" is
  */
 Semantic restriction "Cast|cast_into_else_" is
 [
-	value : type,
+	value : any meta,
 	accept : (function accepting <⊥> and returning ⊤)'s type,
 	reject : nullary procedure's type
 |
@@ -256,7 +256,7 @@ Semantic restriction "Cast|cast_into_else_" is
  */
 Semantic restriction "Cast|cast_into_" is
 [
-	value : type,
+	value : any meta,
 	accept : (function accepting <⊥> and returning ⊤)'s type
 |
 	If value ⊆ accept[1] then

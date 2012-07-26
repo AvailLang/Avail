@@ -41,7 +41,7 @@ Names
 	"function test suite"
 Body
 
-_testSuite ::= $"math test suite";
+_testSuite ::= $"function test suite";
 
 /**
  * Answer the test suite identifier of the function test suite.

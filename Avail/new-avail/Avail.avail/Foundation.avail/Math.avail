@@ -52,14 +52,13 @@ Names
 	"log_of_",
 	"_is odd",
 	"_is even",
-	"_mod_",
 	"-_",
 	"_^_",
 	"«_‡«=»?«≤»?«<»?»",
 	"«_‡«=»?«≥»?«>»?»"
 Body
 
-Public forward method "_mod_" is [number, number]→number;
+Forward method "_mod_" is [number, number]→number;
 Public stable forward method "-_" is [number]→number;
 
 /* Establish grammatical rules. */

@@ -1,0 +1,122 @@
+/*
+ * Casts.avail
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Casts"
+Versions
+	"dev"
+Uses
+	"Bootstrap",
+	"Control Structures",
+	"Definers",
+	"Exceptions",
+	"Literals",
+	"Logic",
+	"Objects",
+	"Strings",
+	"Types"
+Names
+	"Cast|cast_into_",
+	"bad-cast exception"
+Body
+
+_sourceType ::= $"source type";
+_destinationType ::= $"destination type";
+
+Private method "source type" is [_sourceType];
+Private method "destination type" is [_destinationType];
+
+/**
+ * {@method "Cast|cast_into_"} raises a bad-cast exception when the specified
+ * function does not accept the supplied value.
+ *
+ * @type "bad-cast exception"
+ * @supertype "exception"
+ */
+Public class "bad-cast exception" extends exception
+	with fields
+		source type : type,
+		destination type : type;
+
+/**
+ * If the function {@param "accept"} accepts {@param "value"} as an argument
+ * (based on its runtime type), then invoke {@param "accept"} with {@param
+ * "value"}. Otherwise, raise a {@type "bad-cast exception"}.
+ *
+ * @method "Cast|cast_into_"
+ * @param "value" "any"
+ *        A value.
+ * @param "accept" "[⊥]→⊤"
+ *        The function to invoke if `value` is a subtype of the its parameter
+ *        type.
+ * @returns The result of {@param "accept"}.
+ * @raises "bad-cast exception"
+ *         If {@param "value"} is not an instance of {@param "accept"}'s
+ *         parameter type.
+ */
+Public method "Cast|cast_into_" is
+[
+	value : any,
+	accept : [⊥]→⊤
+|
+	valueType ::= value's type;
+	paramType ::= accept's type[1];
+	if valueType ⊆ paramType then
+	[
+		invoke accept with <value>;
+	]
+	else
+	[
+		Raise a bad-cast exception with
+			source type := valueType,
+			destination type := paramType
+	];
+] : ⊤;
+
+Semantic restriction "Cast|cast_into_" is
+[
+	valueType : any's type,
+	acceptType : [⊥]→⊤'s type
+|
+	If valueType ⊆ acceptType[1] then
+	[
+		Reject parse, expected:
+			format "necessary cast expression, but ‘①’ is a subtype of ‘②’"
+			with valueType, acceptType[1]
+	];
+	If ¬acceptType[1] ⊆ valueType then
+	[
+		Reject parse, expected:
+			format "allowed cast expression, but ‘①’ is not a supertype of ‘②’"
+			with valueType, acceptType[1]
+	];
+	acceptType's return type
+];
