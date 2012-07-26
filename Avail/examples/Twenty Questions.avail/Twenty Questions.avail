@@ -1,10 +1,12 @@
 System Module "Twenty Questions"
 Extends
 Uses
-	"Avail"
+    "Avail"
 Names
-	"Play Twenty Questions with input_and output_"
+    "Play Twenty Questions with input_and output_"
 Body
+
+_str ::= $str;
 
 /**
  * A node class that contains a string, which is either a question or a guess.
@@ -12,8 +14,11 @@ Body
  * @type "node"
  */
 Explicit class "node" extends object
-	with fields
-		$str : string;
+    with fields
+        _str : string;
+
+_yes ::= $yes;
+_no ::= $no;
 
 /**
  * A question class, which is a subtype of node, that has two child nodes -- one
@@ -23,12 +28,12 @@ Explicit class "node" extends object
  * @subtype "node"
  */
 Class "question" extends node
-	with fields
-		$yes : ↑node,
-		$no : ↑node;
+    with fields
+        _yes : ↑node,
+        _no : ↑node;
 
 root ::= new ↑node;
-↓root ?= a node with $str := "Avail";
+↓root ?= a node with _str := "Avail";
 
 /**
  * Play a single game of Twenty Questions using the specified input and output
@@ -43,42 +48,42 @@ root ::= new ↑node;
  */
 Method "Play Twenty Questions with input_and output_" is
 [
-	input : []→string,
-	output : [string]→⊤
+    input : []→string,
+    output : [string]→⊤
 |
-	count : integer := 0;
-	response : string;
-	curNode : ↑node := root;
-	While [count ≤ 20 ∧ [↓curNode's type ⊆ question]]
-	do
-	[
-	 	↑count++;
-		output(↓curNode's str);
-		response := input();
-		If response ∈ {"n", "no"}
-			then [curNode := (cast ↓curNode into [q : question | q])'s no;]
-		else if [response ∈ {"y", "yes"}]
-			then [curNode := (cast ↓curNode into [q : question | q])'s yes;];
-	];
-	output(format "Is it “①”? " with ↓curNode's str);
-	response := input();
-	answer : string;
-	If response ∈ {"y", "yes"} then [output("Yay!\n");]
-	else if [response ∈ {"n", "no"}]
-	then
-	[
-		output("I give up. What was it? ");
-		answer := input();
-		output(format "Okay. What is a question to distinguish it from “①”? "
-			with ↓curNode's str);
-		response := input();
-		tempNo : node := ↓curNode;
-		tempYes : node := a node with $str := answer;
-		↓curNode ?= a question with
-			$str := response,
-			$no := ↑tempNo,
-			$yes := ↑tempYes;
-	];
+    count : integer := 0;
+    response : string;
+    curNode : ↑node := root;
+    While [count ≤ 20 ∧ [↓curNode's type ⊆ question]]
+    do
+    [
+         ↑count++;
+        output(↓curNode's str);
+        response := input();
+        If response ∈ {"n", "no"}
+            then [curNode := (cast ↓curNode into [q : question | q])'s no;]
+        else if [response ∈ {"y", "yes"}]
+            then [curNode := (cast ↓curNode into [q : question | q])'s yes;];
+    ];
+    output(format "Is it “①”? " with ↓curNode's str);
+    response := input();
+    answer : string;
+    If response ∈ {"y", "yes"} then [output("Yay!\n");]
+    else if [response ∈ {"n", "no"}]
+    then
+    [
+        output("I give up. What was it? ");
+        answer := input();
+        output(format "Okay. What is a question to distinguish it from “①”? "
+            with ↓curNode's str);
+        response := input();
+        tempNo : node := ↓curNode;
+        tempYes : node := a node with _str := answer;
+        ↓curNode ?= a question with
+            _str := response,
+            _no := ↑tempNo,
+            _yes := ↑tempYes;
+    ];
 ];
 
 /**
@@ -88,7 +93,7 @@ Method "Play Twenty Questions with input_and output_" is
  */
 Method "Play Twenty Questions in the console" is
 [
-	Play Twenty Questions with
-		input [next line]
-		and output [str : string | Print: str;];
+    Play Twenty Questions with
+        input [next line]
+        and output [str : string | Print: str;];
 ];
