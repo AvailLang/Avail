@@ -78,6 +78,9 @@ Public method "«_‡=»" is
  * If there is no valid type intersection (the result of any type intersection 
  * operation is ⊥) between the types in the tuple, then the equality comparison
  * will always fail.
+ * 
+ * @method "«_‡=»"
+ * @restricts <any…|3..>'s type
  */
 Semantic restriction "«_‡=»" is
 [
@@ -126,6 +129,10 @@ Public stable method "_⊕_" is
  * If the truth values of a and b are known, an XOR operation with opposing
  * truth values will always yield true, and an XOR operation with equal truth
  * values will always yield false.
+ * 
+ * @method "_⊕_"
+ * @restricts boolean's type
+ * @restricts boolean's type
  */
 Semantic restriction "_⊕_" is
 [
@@ -181,12 +188,10 @@ Method "_↑_" is
 /**
  * If the left-hand argument of `_↑_` is known statically to be `false`, then
  * the expression is also known statically to be `true`.
- *
- * Parameters:
- *    a - The type of `false`.
- *    b - A function type whose instances answer a boolean.
- * Returns:
- *    The type of `true`.
+ * 
+ * @method "_↑_"
+ * @restricts false's type's type
+ * @restricts ([]→boolean)'s type
  */
 Semantic restriction "_↑_" is
 [
@@ -200,11 +205,9 @@ Semantic restriction "_↑_" is
  * If the left-hand argument of `_↑_` is known statically to be `true`, then
  * the static type of the expression is the negation of `b`'s return type.
  *
- * Parameters:
- *    a - The type of `true`.
- *    b - A function type whose instances answer `true`.
- * Returns:
- *    The return type of `b`.
+ * @method "_↑_"
+ * @restricts true's type's type
+ * @restricts []→(true's type)'s type
  */
 Semantic restriction "_↑_" is
 [
@@ -218,11 +221,9 @@ Semantic restriction "_↑_" is
  * If the right-hand argument of `_↑_` is known statically to be `true`, then
  * the static type of the expression is the negation of `b`'s return type.
  *
- * Parameters:
- *    a - boolean's type.
- *    b - A function type whose instances answer `false`.
- * Returns:
- *    The type of `true`.
+ * @method "_↑_"
+ * @restricts boolean's type
+ * @restricts []→(false's type)'s type
  */
 Semantic restriction "_↑_" is
 [
@@ -271,6 +272,10 @@ Method "_↓_" is
 /**
  * If the left-hand argument of `_↓_` is known statically to be `true`, then
  * the expression is known statically to be `false`.
+ * 
+ * @method "_↓_"
+ * @restricts true's type's type
+ * @restricts []→boolean's type
  */
 Semantic restriction "_↓_" is
 [
@@ -283,6 +288,10 @@ Semantic restriction "_↓_" is
 /**
  * If the left-hand argument of `_↓_` is known statically to be `false`, then
  * the static type of the expression is the negation of `b`'s return type.
+ * 
+ * @method "_↓_"
+ * @restricts false's type's type
+ * @restricts []→(true's type)'s type
  */
 Semantic restriction "_↓_" is
 [
@@ -295,6 +304,10 @@ Semantic restriction "_↓_" is
 /**
  * If the left-hand argument of `_↓_` is known statically to be `false`, then
  * the static type of the expression is the negation of `b`'s return type.
+ * 
+ * @method "_↓_"
+ * @restricts false's type's type
+ * @restricts []→(false's type)'s type
  */
 Semantic restriction "_↓_" is
 [
@@ -307,6 +320,10 @@ Semantic restriction "_↓_" is
 /**
  * If the right-hand argument of `_↓_` is known statically to be `false`, then
  * the static type of the expression is `false`.
+ * 
+ * @method "_↓_"
+ * @restricts boolean's type
+ * @restricts []→(true's type)'s type
  */
 Semantic restriction "_↓_" is
 [
@@ -355,6 +372,10 @@ Method "_→_" is
 /**
  * If the left-hand argument of `_→_` is known statically to be `false`, then
  * the expression is known statically to be `true`.
+ * 
+ * @method "_→_"
+ * @restricts false's type's type
+ * @restricts []→boolean's type
  */
 Semantic restriction "_→_" is
 [
@@ -367,6 +388,10 @@ Semantic restriction "_→_" is
 /**
  * If the right-hand argument of `_→_` is known statically to be `true`, then
  * the expression is known statically to be `true`.
+ * 
+ * @method "_→_"
+ * @restricts boolean's type
+ * @restricts []→(true's type)'s type
  */
 Semantic restriction "_→_" is
 [
@@ -415,6 +440,10 @@ Method "_←_" is
 /**
  * If the left-hand argument of `_←_` is known statically to be `true`, then
  * the static type of the expression is `true`.
+ * 
+ * @method "_←_"
+ * @restricts true's type's type
+ * @restricts []→boolean's type
  */
 Semantic restriction "_←_" is
 [
@@ -427,6 +456,10 @@ Semantic restriction "_←_" is
 /**
  * If the right-hand argument of `_←_` is known statically to be `false`, then
  * the static type of the expression is `true`.
+ * 
+ * @method "_←_"
+ * @restricts boolean's type
+ * @restricts []→(false's type)'s type
  */
 Semantic restriction "_←_" is
 [
@@ -456,6 +489,10 @@ Public stable method "_↔_" is
 
 /**
  * Type can be strengthened as long as neither argument is of type boolean.
+ * 
+ * @method "_↔_"
+ * @restricts boolean's type
+ * @restricts boolean's type
  */
 Semantic restriction "_↔_" is
 [
@@ -512,11 +549,9 @@ Method "_↛_" is
  * If the left-hand argument of `_↛_` is known statically to be `false`, then
  * the static type of the expression is `false`.
  *
- * Parameters:
- *    a - The type of `false`.
- *    b - A function type whose instances answer a boolean.
- * Returns:
- *    The type of `false`.
+ * @method "_↛_"
+ * @restricts false's type's type
+ * @restricts []→boolean's type
  */
 Semantic restriction "_↛_" is
 [
@@ -530,11 +565,9 @@ Semantic restriction "_↛_" is
  * If the right-hand argument of `_↛_` is known statically to be `true`, then
  * the static type of the expression is `false`.
  *
- * Parameters:
- *    a - The type of boolean.
- *    b - A function type whose instances answer `true`.
- * Returns:
- *    The type of `false`.
+ * @method "_↛_"
+ * @restricts boolean's type
+ * @restricts []→(true's type)'s type
  */
 Semantic restriction "_↛_" is
 [
@@ -583,6 +616,10 @@ Method "_↚_" is
 /**
  * If the left-hand argument of `_↚_` is known statically to be `true`, then
  * the static type of the expression is `false`.
+ * 
+ * @method "_↚_"
+ * @restricts true's type's type
+ * @restricts []→boolean's type
  */
 Semantic restriction "_↚_" is
 [
@@ -595,6 +632,10 @@ Semantic restriction "_↚_" is
 /**
  * If the right-hand argument of `_↚_` is known statically to be `false`, then
  * the static type of the expression is `false`.
+ * 
+ * @method "_↚_"
+ * @restricts boolean's type
+ * @restricts []→(false's type)'s type
  */
 Semantic restriction "_↚_" is
 [
@@ -608,6 +649,10 @@ Semantic restriction "_↚_" is
  * If the right-hand argument of `_↚_` is known statically to be `true` and the
  * left-hand argument is known statically to be `false`, then the static type
  * of the expression is `true`.
+ * 
+ * @method "_↚_"
+ * @restricts false's type's type
+ * @restricts []→(true's type)'s type
  */
 Semantic restriction "_↚_" is
 [
@@ -617,24 +662,66 @@ Semantic restriction "_↚_" is
 	true's type
 ];
 
+/**
+ * Negation has the highest precedence.
+ * 
+ * @method "¬_"
+ * @forbids 1 "_∧_" "_∨_" "_⊕_" "_↑_" "_↓_" "_→_" "_←_" "_↔_" "_↛_" "_↚_"
+ */
 Grammatical restriction "¬_" is
 	<{"_∧_", "_∨_", "_⊕_", "_↑_", "_↓_", "_→_", "_←_", "_↔_", "_↛_", "_↚_"}>;
 
+/**
+ * AND operation is second highest precedence.
+ * 
+ * @method "_∧_"
+ * @forbids 1 "_∨_" "_→_" "_↔_" "_←_" "_⊕_" "_↛_" "_↚_"
+ * @forbids 2 "_∧_" "_∨_" "_⊕_" "_→_" "_↔_" "_←_" "_↛_" "_↚_"
+ */
 Grammatical restriction "_∧_" is
 	<{"_∨_", "_→_", "_↔_", "_←_", "_⊕_", "_↛_", "_↚_"},
 	{"_∧_", "_∨_", "_⊕_", "_→_", "_↔_", "_←_", "_↛_", "_↚_"}>;
-	
+
+/**
+ * OR operation is third highest precedence.
+ * 
+ * @method "_∨_"
+ * @forbids 1 "_∨_" "_→_" "_↔_" "_←_" "_⊕_" "_↛_" "_↚_"
+ * @forbids 2 "_∧_" "_∨_" "_⊕_" "_→_" "_↔_" "_←_" "_↛_" "_↚_"
+ */
 Grammatical restriction "_∨_" is 
 	<{"_→_", "_↔_", "_←_", "_⊕_", "_↛_", "_↚_"},
 	{"_∨_", "_→_", "_↔_", "_←_", "_⊕_", "_↛_", "_↚_"}>;
 
+/**
+ * (Non-)implications and converse (non-)implications share the fourth highest
+ * precedence.
+ * 
+ * @method "_→_"
+ * @method "_←_"
+ * @method "_↛_"
+ * @method "_↚_"
+ * @forbids 1 "_↔_" "_⊕_"
+ * @forbids 2 "_→_" "_↔_" "_←_" "_⊕_" "_↛_" "_↚_"
+ */
 Grammatical restriction {"_→_", "_←_", "_↛_", "_↚_"} is 
-	<{"_↔_", "_⊕_"}, {"_→_","_↔_", "_←_", "_⊕_", "_↛_", "_↚_"}>;
+	<{"_↔_", "_⊕_"}, {"_→_", "_↔_", "_←_", "_⊕_", "_↛_", "_↚_"}>;
 
+/**
+ * Biconditional and XOR operations have the lowest precedence.
+ * 
+ * @method "_↔_"
+ * @method "_⊕_"
+ * @forbids 2 "_↔_" "_⊕_"
+ */
 Grammatical restriction {"_↔_", "_⊕_"} is <∅, {"_↔_", "_⊕_"}>;
 
 /**
  * Strengthen for exactly known values (but never for types).
+ * 
+ * @method "_=_"
+ * @restricts any meta
+ * @restricts any meta
  */
 Semantic restriction "_=_" is
 [
@@ -666,6 +753,10 @@ Semantic restriction "_=_" is
 
 /**
  * Strengthen for exactly known values (but never for types).
+ * 
+ * @method "_≠_"
+ * @restricts any meta
+ * @restricts any meta
  */
 Semantic restriction "_≠_" is
 [
