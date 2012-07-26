@@ -538,9 +538,16 @@ Public method "report on all tests in_" is
 |
 	suite ::= suites by atom[trueName] else
 		[Raise a no-such-test-suite exception with suite ID := trueName];
-	Setup: suites by atom[suite's parent suite ID];
+	isTopLevel ::= suite's parent suite ID = root test suite ID;
+	Unless isTopLevel then
+	[
+		Setup: suites by atom[suite's parent suite ID];
+	];
 	results ::= recursively report on all tests in suite;
-	Tear down: suites by atom[suite's parent suite ID];
+	Unless isTopLevel then
+	[
+		Tear down: suites by atom[suite's parent suite ID];
+	];
 	a unit test report with metrics := results
 ] : unit test report;
 
