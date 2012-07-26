@@ -148,11 +148,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aTypeObject)
 	{
-		if (aTypeObject.equals(TOP.o()))
-		{
-			return true;
-		}
-		if (aTypeObject.equals(ANY.o()))
+		if (aTypeObject.isSupertypeOfPrimitiveTypeWithOrdinal(ANY.ordinal()))
 		{
 			return true;
 		}

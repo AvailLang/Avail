@@ -188,11 +188,7 @@ extends TupleDescriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
-		if (aType.equals(TOP.o()))
-		{
-			return true;
-		}
-		if (aType.equals(ANY.o()))
+		if (aType.isSupertypeOfPrimitiveTypeWithOrdinal(ANY.ordinal()))
 		{
 			return true;
 		}
@@ -201,8 +197,7 @@ extends TupleDescriptor
 			return false;
 		}
 		//  See if it's an acceptable size...
-		final AvailObject size = IntegerDescriptor.fromInt(object.tupleSize());
-		if (!size.isInstanceOf(aType.sizeRange()))
+		if (!aType.sizeRange().rangeIncludesInt(object.tupleSize()))
 		{
 			return false;
 		}

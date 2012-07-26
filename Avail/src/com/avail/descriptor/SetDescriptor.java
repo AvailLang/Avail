@@ -180,8 +180,7 @@ public class SetDescriptor extends Descriptor
 			return false;
 		}
 		// See if it's an acceptable size...
-		final AvailObject size = IntegerDescriptor.fromInt(object.setSize());
-		if (!size.isInstanceOf(aTypeObject.sizeRange()))
+		if (!aTypeObject.sizeRange().rangeIncludesInt(object.setSize()))
 		{
 			return false;
 		}

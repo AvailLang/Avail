@@ -288,7 +288,7 @@ Test "division" in math test suite is
 		Require: -i ÷ 1 = -i;
 		Require: -i ÷ -1 = i;
 		Require: i ÷ ∞ = 0;
-		For each 1 to 10 do [j : [1..10] | Require: i÷j = j÷i → [i=j]; ];
+		For each 1 to 10 do [j : [1..10] | Require: i÷j = j÷i → [i=j]; ];
 	];
 	Require: 4 ÷ 2 = 2;
 	Require: 81 ÷ 9 = 9;

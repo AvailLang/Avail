@@ -356,9 +356,7 @@ extends Descriptor
 		final @NotNull AvailObject object,
 		final @NotNull AvailObject aType)
 	{
-		return aType.equals(TOP.o())
-			|| aType.equals(ANY.o())
-			|| aType.equals(ATOM.o());
+		return aType.isSupertypeOfPrimitiveTypeWithOrdinal(ATOM.ordinal());
 	}
 
 	/**

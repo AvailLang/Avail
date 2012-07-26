@@ -75,7 +75,7 @@ Public stable forward method "-_" is [number]→number;
 
 	/* Establish the standard grammatical rules for arithmetic. */
 	Grammatical restriction product is <sum, sumAndProduct>;
-	Grammatical restriction negation is <sumAndProduct ∪ ext ∪ {"∞"}>;
+	Grammatical restriction negation is <sumAndProduct ∪ ext ∪ {"∞"}>;
 
 	/* Establish the precedence of exponentiation. */
 	Grammatical restriction power is

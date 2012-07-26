@@ -1342,7 +1342,9 @@ Semantic restriction "_to_" is
 	max ::= ⎡end⎤;
 	uncertainty ::= ⎡start⎤ - ⎣start⎦;
 	sizes ::= [0 max (⎣end⎦ - ⎡start⎤ + 1) .. max - min + 2);
-	if uncertainty is finite ∧ [ ⎡sizes⎤ is finite ] then
+	if uncertainty is finite
+		∧ [ sizes ≠ ⊥
+		∧ [ ⎡sizes⎤ is finite ] ] then
 	[
 		finiteMin ::= cast min into [ t : integer | t ];
 		finiteMax ::= cast max into [ t : integer | t ];

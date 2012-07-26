@@ -306,8 +306,7 @@ extends Descriptor
 		final int breakIndex = min(tupleSize, typeTuple.tupleSize());
 		for (int i = 1; i <= breakIndex; i++)
 		{
-			if (!object.tupleAt(i).isInstanceOf(
-				aTypeObject.typeAtIndex(i)))
+			if (!object.tupleAt(i).isInstanceOf(aTypeObject.typeAtIndex(i)))
 			{
 				return false;
 			}

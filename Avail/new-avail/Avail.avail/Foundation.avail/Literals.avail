@@ -133,6 +133,29 @@ Method "⎣_⎦" is
 	Shouldn't happen
 ];
 
+Method "⎡_⎤" is
+[
+	bottom : ⊥'s type
+|
+	Shouldn't happen
+];
+
+Semantic restriction "⎣_⎦" is
+[
+	bottom : ⊥'s type's type
+|
+	Reject parse, expected:
+		"a value other than ⊥'s type for ⎣_⎦."
+];
+
+Semantic restriction "⎡_⎤" is
+[
+	bottom : ⊥'s type's type
+|
+	Reject parse, expected:
+		"a value other than ⊥'s type for ⎡_⎤."
+];
+
 /**
  * Answer the upper bound of the argument.
  *

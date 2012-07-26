@@ -540,8 +540,7 @@ extends AbstractEnumerationTypeDescriptor
 		final @NotNull AvailObject aType)
 	{
 		assert !aType.equals(bottom);
-		return aType.equals(TOP.o())
-			|| aType.equals(ANY.o())
+		return aType.isSupertypeOfPrimitiveTypeWithOrdinal(ANY.ordinal())
 			|| aType.isSubtypeOf(InstanceMetaDescriptor.topMeta());
 	}
 
