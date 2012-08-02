@@ -121,6 +121,13 @@ Public method "Assert:_(_)" is
 		with error message := message
 ] : ⊥;
 
+/**
+ * 
+ * 
+ * @method "Assert:_(_)"
+ * @restricts false's type's type
+ * @restricts string's type
+ */
 Semantic restriction "Assert:_(_)" is
 [
 	contradiction : false's type's type,

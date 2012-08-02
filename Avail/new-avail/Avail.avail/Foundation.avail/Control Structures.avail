@@ -88,8 +88,10 @@ Body
  * returned from its current function. The current continuation is completely
  * replaced by the specified continuation's resumed caller.
  *
- * Parameters:
- *    aContinuation - The continuation to exit.
+ * @method "Exit_"
+ * @param "$[…]→⊤" "aContinuation"
+ *        The continuation to exit.
+ * @returns "⊥"
  */
 Public method "Exit_" is
 [
@@ -104,6 +106,10 @@ Public method "Exit_" is
 /**
  * Reject the current parse unless the value supplied upon exit of a
  * continuation conforms to its function type's return type.
+ * 
+ * @method "Exit_with_"
+ * @restricts "continuation meta"
+ * @restricts "any meta"
  */
 Semantic restriction "Exit_with_" is
 [
@@ -131,6 +137,10 @@ sizesIncompatibleMessage ::=
 /**
  * Reject the current parse if the argument tuple cannot possibly match the
  * continuation's parameter tuple.
+ * 
+ * @method "Restart_with_"
+ * @restricts "continuation meta"
+ * @restricts "tuple meta"
  */
 Semantic restriction "Restart_with_" is
 [
@@ -163,9 +173,10 @@ Semantic restriction "Restart_with_" is
  * causes execution to resume at the point where the continuation is computed
  * and answered.
  * 
- * Returns:
- *    A continuation which, when restarted, causes `here` to answer the
- *    continuation again.
+ * @method "here"
+ * @returns "$[]→⊥"
+ *          A continuation which, when restarted, causes `here` to answer the
+ *          continuation again.
  */
 Public method "here" is
 [
@@ -176,8 +187,10 @@ Public method "here" is
 /**
  * Basic unconditional loop. Repeatedly invoke `action`.
  * 
- * Parameters:
- *    action - The function that should be invoked repeatedly.
+ * @method "Repeat_"
+ * @param "[]→⊤" "action"
+ *        The function that should be invoked repeatedly.
+ * @returns "⊥"
  */
 Public method "Repeat_" is
 [
@@ -191,9 +204,12 @@ Public method "Repeat_" is
 /**
  * Apply the specified function exactly `count` times.
  * 
- * Parameters:
- *    action - A function.
- *    count - The number of times to apply `action`.
+ * @method "Repeat__times"
+ * @param "[]→⊤" "action"
+ *        A function.
+ * @param "[0..∞]" "count"
+ *        The number of times to apply `action`.
+ * @returns "⊤"
  */
 Public method "Repeat__times" is
 [
@@ -214,6 +230,10 @@ Public method "Repeat__times" is
 
 /**
  * If `count` is ∞, then answer ⊥ (because the loop will never terminate).
+ * 
+ * @method "Repeat__times"
+ * @restricts "[]→⊤'s type"
+ * @restricts "[0..∞]'s type"
  */
 Semantic restriction "Repeat__times" is
 [
@@ -235,13 +255,18 @@ Semantic restriction "Repeat__times" is
  * once for every consecutive value = `start` + N × `step` ≤ `end`, aborting if
  * `action` answers `false` after an iteration.
  * 
- * Parameters:
- *    start - The start value, inclusive.
- *    end - The end value, inclusive.
- *    step - The amount by which to adjust the value after each iteration.
- *    action - A function that accepts a value in the specified range. If it
- *       answers `true`, then continue to iterate; if it answers `false`, then
- *       terminate iteration early.
+ * @method "From_to_by_do_"
+ * @param "integer" "start"
+ *        The start value, inclusive.
+ * @param "extended integer" "end"
+ *        The end value, inclusive.
+ * @param "integer" "step"
+ *        The amount by which to adjust the value after each iteration.
+ * @param "[⊥]→boolean" "action"
+ *        A function that accepts a value in the specified range. If it answers
+ *        `true`, then continue to iterate; if it answers `false`, then
+ *        terminate iteration early.
+ * @returns "⊤"
  */
 Abstract method "From_to_by_do_" is
 	[integer, extended integer, integer, [⊥]→boolean]→⊤;
@@ -251,13 +276,18 @@ Abstract method "From_to_by_do_" is
  * once for every consecutive value = `start` + N × `step` ≤ `end`, aborting if
  * `action` answers `false` after an iteration.
  * 
- * Parameters:
- *    start - The start value, inclusive.
- *    end - The end value, inclusive.
- *    step - The amount by which to adjust the value after each iteration.
- *    action - A function that accepts a value in the specified range. If it
- *       answers `true`, then continue to iterate; if it answers `false`, then
- *       terminate iteration early.
+ * @method "From_to_by_do_"
+ * @param "integer" "start"
+ *        The start value, inclusive.
+ * @param "extended integer" "end"
+ *        The end value, inclusive.
+ * @param "[0..∞)" "step"
+ *        The amount by which to adjust the value after each iteration.
+ * @param "[⊥]→boolean" "action"
+ *        A function that accepts a value in the specified range. If it answers
+ *        `true`, then continue to iterate; if it answers `false`, then
+ *        terminate iteration early.
+ * @returns "⊤"
  */
 Public method "From_to_by_do_" is
 [
@@ -286,13 +316,18 @@ Public method "From_to_by_do_" is
  * once for every consecutive value = `start` + N × `step` ≥ `end`, aborting if
  * `action` answers `false` after an iteration.
  * 
- * Parameters:
- *    start - The start value, inclusive.
- *    end - The end value, inclusive.
- *    step - The amount by which to adjust the value after each iteration.
- *    action - A function that accepts a value in the specified range. If it
- *       answers `true`, then continue to iterate; if it answers `false`, then
- *       terminate iteration early.
+ * @method "From_to_by_do_"
+ * @param "integer" "start"
+ *        The start value, inclusive.
+ * @param "extended integer" "end"
+ *        The end value, inclusive.
+ * @param "(-∞..-1]" "step"
+ *        The amount by which to adjust the value after each iteration.
+ * @param "[⊥]→boolean" action
+ *        A function that accepts a value in the specified range. If it answers
+ *        `true`, then continue to iterate; if it answers `false`, then
+ *        terminate iteration early.
+ * @returns "⊤"
  */
 Public method "From_to_by_do_" is
 [
@@ -319,6 +354,12 @@ Public method "From_to_by_do_" is
 /**
  * If possible, then enforce that the specified function will accept all values
  * in the implied range.
+ * 
+ * @method "From_to_by_do_"
+ * @restricts "integer's type"
+ * @restricts "extended integer's type"
+ * @restricts "integer's type"
+ * @restricts "[⊥]→boolean's type"
  */
 Semantic restriction "From_to_by_do_" is
 [
@@ -394,11 +435,16 @@ Semantic restriction "From_to_by_do_" is
  * Counting loop with customizable step. Invoke `action` once for every
  * consecutive value = `start` + N × `step` ≤ `end`.
  * 
- * Parameters:
- *    start - The start value, inclusive.
- *    end - The end value, inclusive.
- *    step - The amount by which to adjust the value after each iteration.
- *    action - A function that accepts a value in the specified range.
+ * @method "From_to_by_do_"
+ * @param "integer" "start"
+ *        The start value, inclusive.
+ * @param "extended integer" "end"
+ *        The end value, inclusive.
+ * @param "integer" "step"
+ *        The amount by which to adjust the value after each iteration.
+ * @param "[⊥]→⊤" "action"
+ *        A function that accepts a value in the specified range.
+ * @returns "⊤"
  */
 Abstract method "From_to_by_do_" is
 	[integer, extended integer, integer, [⊥]→⊤]→⊤;
@@ -407,11 +453,15 @@ Abstract method "From_to_by_do_" is
  * Counting loop with customizable step. Invoke `action` once for every
  * consecutive value = `start` + N × `step` ≤ `end`.
  * 
- * Parameters:
- *    start - The start value, inclusive.
- *    end - The end value, inclusive.
- *    step - The amount by which to adjust the value after each iteration.
- *    action - A function that accepts a value in the specified range.
+ * @method "From_to_by_do_"
+ * @param "integer" "start"
+ *        The start value, inclusive.
+ * @param "extended integer" "end"
+ *        The end value, inclusive.
+ * @param "integer" "step"
+ *        The amount by which to adjust the value after each iteration.
+ * @param "[⊥]→⊤" "action"
+ *        A function that accepts a value in the specified range.
  */
 Public method "From_to_by_do_" is
 [
@@ -433,11 +483,16 @@ Public method "From_to_by_do_" is
  * Counting loop with customizable step. Invoke `action` once for every
  * consecutive value = `start` + N × `step` ≥ `end`.
  * 
- * Parameters:
- *    start - The start value, inclusive.
- *    end - The end value, inclusive.
- *    step - The amount by which to adjust the value after each iteration.
- *    action - A function that accepts a value in the specified range.
+ * @method "From_to_by_do_"
+ * @param "integer" "start"
+ *        The start value, inclusive.
+ * @param "extended integer" "end"
+ *        The end value, inclusive.
+ * @param "integer" "step"
+ *        The amount by which to adjust the value after each iteration.
+ * @param "[⊥]→⊤" "action"
+ *        A function that accepts a value in the specified range.
+ * @returns "⊤"
  */
 Public method "From_to_by_do_" is
 [
@@ -458,6 +513,12 @@ Public method "From_to_by_do_" is
 /**
  * If possible, then enforce that the specified function will accept all values
  * in the implied range.
+ * 
+ * @method "From_to_by_do_"
+ * @restricts "integer's type"
+ * @restricts "extended integer's type"
+ * @restricts "integer's type"
+ * @restricts "[⊥]→⊤'s type"
  */
 Semantic restriction "From_to_by_do_" is
 [
@@ -534,12 +595,15 @@ Semantic restriction "From_to_by_do_" is
  * consecutive number in the range established by `start` and `end`, aborting if
  * `action` answers `false` after an iteration.
  * 
- * Parameters:
- *    start - The start value, inclusive.
- *    end - The end value, inclusive.
- *    action - A function that accepts a value in the specified range. If it
- *       answers `true`, then continue to iterate; if it answers `false`, then
- *       terminate iteration early.
+ * @method "From_to_do_"
+ * @param "integer" "start"
+ *        The start value, inclusive.
+ * @param "extended integer" "end"
+ *        The end value, inclusive.
+ * @param "[⊥]→boolean" "action"
+ *        A function that accepts a value in the specified range. If it answers
+ *        `true`, then continue to iterate; if it answers `false`, then
+ *        terminate iteration early.
  */
 Public method "From_to_do_" is
 [
@@ -553,6 +617,11 @@ Public method "From_to_do_" is
 /**
  * If possible, then enforce that the specified function will accept all values
  * in the implied range.
+ * 
+ * @method "From_to_do_"
+ * @restricts "integer's type"
+ * @restricts "extended integer's type"
+ * @restricts "[⊥]→boolean's type"
  */
 Semantic restriction "From_to_do_" is
 [
@@ -588,10 +657,13 @@ Semantic restriction "From_to_do_" is
  * Counting loop with early exit support. Invoke `action` once for every
  * consecutive number in the range established by `start` and `end`.
  * 
- * Parameters:
- *    start - The start value, inclusive.
- *    end - The end value, inclusive.
- *    action - A function that accepts a value in the specified range.
+ * @method "From_to_do_"
+ * @param "integer" "start"
+ *        The start value, inclusive.
+ * @param "extended integer" "end"
+ *        The end value, inclusive.
+ * @param "[⊥]→⊤" "action"
+ *        A function that accepts a value in the specified range.
  */
 Public method "From_to_do_" is
 [
@@ -611,6 +683,11 @@ Public method "From_to_do_" is
 /**
  * If possible, then enforce that the specified function will accept all values
  * in the implied range.
+ * 
+ * @method "From_to_do_"
+ * @restricts "integer's type"
+ * @restricts "extended integer's type"
+ * @restricts "[⊥]→⊤'s type"
  */
 Semantic restriction "From_to_do_" is
 [
@@ -648,9 +725,11 @@ Semantic restriction "From_to_do_" is
  * current continuation (in which this primitive was invoked) is completely
  * replaced by the restarted continuation.
  *
- * Parameters:
- *    aContinuation - The continuation to restart.
- *    arguments - The new arguments with which to restart `aContinuation`.
+ * @method "_(«_‡,»)"
+ * @param "continuation" "aContinuation"
+ *        The continuation to restart.
+ * @param "tuple" "arguments"
+ *        The new arguments with which to restart `aContinuation`.
  */
 Method "_(«_‡,»)" is
 [
@@ -663,6 +742,10 @@ Method "_(«_‡,»)" is
 /**
  * Reject the current parse if the argument types do not conform to the
  * continuation's parameter types.
+ * 
+ * @method "_(«_‡,»)"
+ * @restricts "continuation meta"
+ * @restricts "tuple meta"
  */
 Semantic restriction "_(«_‡,»)" is
 [
@@ -711,9 +794,10 @@ Semantic restriction "_(«_‡,»)" is
  * `action`'s last parameter does not accept an arity-one procedure, then reject
  * the current parse.
  * 
- * Parameters:
- *    action - A function type whose last parameter type must permit a
- *       one-argument procedure.
+ * @method "Require:_'s⁇keeper is valid"
+ * @param "function meta" "action"
+ *        A function type whose last parameter type must permit a one-argument
+ *        procedure.
  */
 Public method "Require:_'s⁇keeper is valid" is
 [
@@ -743,19 +827,23 @@ Public method "Require:_'s⁇keeper is valid" is
  * predicates answer `true`, then execute the "else" action. If no "else"
  * action is provided, then do not execute any of the action blocks.
  * 
- * Parameters:
- *    firstPredicate - The first predicate. This argument is a raw boolean
- *       rather than a function answering a boolean, because it must always be
- *       evalutated (and hence there is no point deferring its evaluation).
- *    firstThen - The action to perform if `firstPredicate` is `true`.
- *    elseIfTuple - A lexically constructed tuple of 2-tuples. Each 2-tuple has
- *       as its first element a predicate function and as its second element an
- *       action to perform if the predicate function answers `true`.
- *    else - A lexically constructed tuple that optionally contains the action
- *       to perform if `firstPredicate` is `false` and all predicates of
- *       `elseIfTuple` answer `false`.
- * Returns:
- *    If used as an expression, then the value of the selected action.
+ * @method "If|if_then_«else if_then_»«else_»"
+ * @param "boolean" "firstPredicate"
+ *        The first predicate. This argument is a raw boolean rather than a
+ *        function answering a boolean, because it must always be evalutated
+ *        (and hence there is no point deferring its evaluation).
+ * @param "[]→⊤" "firstThen"
+ *        The action to perform if `firstPredicate` is `true`.
+ * @param "<<[]→boolean, []→⊤…|2>…|1..>" "elseIfTuple"
+ *        A lexically constructed tuple of 2-tuples. Each 2-tuple has as its
+ *        first element a predicate function and as its second element an action
+ *        to perform if the predicate function answers `true`.
+ * @param "<[]→⊤…|0..1>" "else"
+ *        A lexically constructed tuple that optionally contains the action to
+ *        perform if `firstPredicate` is `false` and all predicates of
+ *        `elseIfTuple` answer `false`.
+ * @returns "⊤"
+ *          If used as an expression, then the value of the selected action.
  */
 Public method "If|if_then_«else if_then_»«else_»" is
 [
@@ -811,6 +899,12 @@ Public method "If|if_then_«else if_then_»«else_»" is
  * an action whose predicate is guaranteed to answer `true` is preceded only by
  * actions whose predicates are guaranteed to answer `false`; in this case,
  * answer this action's return type.
+ * 
+ * @method "If|if_then_«else if_then_»«else_»"
+ * @restricts "boolean's type"
+ * @restricts "[]→⊤'s type"
+ * @restricts "<<[]→boolean, []→⊤…|2>…|1..>'s type"
+ * @restricts "<[]→⊤…|0..1>'s type"
  */
 Semantic restriction "If|if_then_«else if_then_»«else_»" is
 [
@@ -938,13 +1032,17 @@ Semantic restriction "If|if_then_«else if_then_»«else_»" is
 		]
 	]
 ];
+
 /**
  * Given a predicate value and a function, invoke the specified function only if
  * the predicate is `false`. This is the inverse of `If_then_`.
  * 
- * Parameters:
- *    predicate - A predicate value.
- *    action - The function to invoke if `predicate` is `false`.
+ * @method "Unless_then_"
+ * @param "boolean" "predicate
+ *        A predicate value.
+ * @param "[]→⊤" "action"
+ *        The function to invoke if `predicate` is `false`.
+ * @returns "⊤"
  */
 Public method "Unless_then_" is
 [
@@ -958,13 +1056,17 @@ Public method "Unless_then_" is
  * Given a predicate value and two functions, invoke one of them and answer its
  * result.
  *
- * Parameters:
- *    predicate - A predicate value.
- *    falseFunction - The function to invoke if `predicate` is `false`.
- *    trueFunction - The function to invoke if `trueFunction` is `true`.
- * Returns:
- *    If `predicate` is `false`, then the value produced by invoking
- *    `falseFunction`; otherwise, the value produced by invoking `trueFunction`.
+ * @method "Unless_then_"
+ * @param "boolean" "predicate
+ *        A predicate value.
+ * @param "[]→⊤" "falseFunction"
+ *        The function to invoke if `predicate` is `false`.
+ * @param "[]→⊤" "trueFunction"
+ *        The function to invoke if `trueFunction` is `true`.
+ * @returns "⊤"
+ *          If `predicate` is `false`, then the value produced by invoking
+ *          `falseFunction`; otherwise, the value produced by invoking
+ *          `trueFunction`.
  */
 Public method "Unless|unless_then_else_" is
 [
@@ -978,6 +1080,11 @@ Public method "Unless|unless_then_else_" is
 /**
  * Establish a conditional expression whose static return type is the type union
  * of its two possible functions' return types.
+ * 
+ * @method "Unless|unless_then_else_"
+ * @restricts "boolean's type"
+ * @restricts "[]→⊤'s type"
+ * @restricts "[]→⊤'s type"
  */
 Semantic restriction "Unless|unless_then_else_" is
 [
@@ -991,6 +1098,11 @@ Semantic restriction "Unless|unless_then_else_" is
 /**
  * Strengthen the static return type to that of the function to invoke when the
  * predicate is false (which it is).
+ * 
+ * @method "Unless|unless_then_else_"
+ * @restricts "false's type's type"
+ * @restricts "[]→⊤'s type"
+ * @restricts "[]→⊤'s type"
  */
 Semantic restriction "Unless|unless_then_else_" is
 [
@@ -1004,6 +1116,11 @@ Semantic restriction "Unless|unless_then_else_" is
 /**
  * Strengthen the static return type to that of the function to invoke when the
  * predicate is true (which it is).
+ * 
+ * @method "Unless|unless_then_else_"
+ * @restricts "true's type's type"
+ * @restricts "[]→⊤'s type"
+ * @restricts "[]→⊤'s type"
  */
 Semantic restriction "Unless|unless_then_else_" is
 [
@@ -1021,19 +1138,23 @@ Semantic restriction "Unless|unless_then_else_" is
  * predicates answer `false`, then execute the "else" action. If no "else"
  * action is provided, then do not execute any of the action blocks.
  * 
- * Parameters:
- *    firstPredicate - The first predicate. This argument is a raw boolean
- *       rather than a function answering a boolean, because it must always be
- *       evalutated (and hence there is no point deferring its evaluation).
- *    firstThen - The action to perform if `firstPredicate` is `false`.
- *    elseUnlessTuple - A lexically constructed tuple of 2-tuples. Each 2-tuple
- *       has as its first element a predicate function and as its second element
- *       an action to perform if the predicate function answers `false`.
- *    else - A lexically constructed tuple that optionally contains the action
- *       to perform if `firstPredicate` is `true` and all predicates of
- *       `elseIfTuple` answer `true`.
- * Returns:
- *    If used as an expression, then the value of the selected action.
+ * @method "Unless|unless_then_«else unless_then_»«else_»"
+ * @param "boolean" "firstPredicate"
+ *        The first predicate. This argument is a raw boolean rather than a
+ *        function answering a boolean, because it must always be evalutated
+ *        (and hence there is no point deferring its evaluation).
+ * @param "[]→⊤" "firstThen"
+ *        The action to perform if `firstPredicate` is `false`.
+ * @param "<<[]→boolean, []→⊤…|2>…|1..>" "elseUnlessTuple"
+ *        A lexically constructed tuple of 2-tuples. Each 2-tuple has as its
+ *        first element a predicate function and as its second element an
+ *        action to perform if the predicate function answers `false`.
+ * @param "<[]→⊤…|0..1>" "else"
+ *        A lexically constructed tuple that optionally contains the action to
+ *        perform if `firstPredicate` is `true` and all predicates of
+ *        `elseIfTuple` answer `true`.
+ * @returns "⊤"
+ *          If used as an expression, then the value of the selected action.
  */
 Public method "Unless|unless_then_«else unless_then_»«else_»" is
 [
@@ -1089,6 +1210,12 @@ Public method "Unless|unless_then_«else unless_then_»«else_»" is
  * an action whose predicate is guaranteed to answer `false` is preceded only by
  * actions whose predicates are guaranteed to answer `true`; in this case,
  * answer this action's return type.
+ * 
+ * @method "Unless|unless_then_«else unless_then_»«else_»"
+ * @restricts "boolean's type"
+ * @restricts "[]→⊤'s type"
+ * @restricts "<<[]→boolean, []→⊤…|2>…|1..>'s type"
+ * @restricts "<[]→⊤…|0..1>'s type"
  */
 Semantic restriction "Unless|unless_then_«else unless_then_»«else_»" is
 [
@@ -1221,9 +1348,11 @@ Semantic restriction "Unless|unless_then_«else unless_then_»«else_»" is
  * Basic conditional loop. Invoke `action`. If `action` answers `true`, then
  * repeat.
  * 
- * Parameters:
- *    action - The function to apply repeatedly. It must answer `true` if it
- *       should run again.
+ * @method "While_"
+ * @param "[]→boolean" "action"
+ *        The function to apply repeatedly. It must answer `true` if it should
+ *        run again.
+ * @returns "⊤"
  */
 Public method "While_" is
 [
@@ -1239,6 +1368,9 @@ Public method "While_" is
 /**
  * If `action` certainly answers `true`, then answer ⊥ (because the loop will
  * run forever).
+ * 
+ * @method "While_"
+ * @restricts "[]→boolean's type"
  */
 Semantic restriction "While_" is
 [
@@ -1258,9 +1390,11 @@ Semantic restriction "While_" is
  * Basic conditional loop. Invoke `action`. If `action` answers `false`, then
  * repeat.
  * 
- * Parameters:
- *    action - The function to apply repeatedly. It must answer `false` if it
- *       should run again.
+ * @method "Until_"
+ * @param "[]→boolean" "action"
+ *        The function to apply repeatedly. It must answer `false` if it  should
+ *        run again.
+ * @returns "⊤"
  */
 Public method "Until_" is
 [
@@ -1276,6 +1410,9 @@ Public method "Until_" is
 /**
  * If `action` certainly answers `false`, then answer ⊥ (because the loop will
  * run forever).
+ * 
+ * @method "Until_"
+ * @restricts "[]→boolean's type"
  */
 Semantic restriction "Until_" is
 [
@@ -1295,9 +1432,12 @@ Semantic restriction "Until_" is
  * Basic conditional loop. Invoke `predicate`. If `predicate` answers `true`,
  * then invoke `action` and repeat.
  * 
- * Parameters:
- *    predicate - The function that guards repeated application of `action`.
- *    action - The function to apply whenever `predicate` answers `true`.
+ * @method "While_do_"
+ * @param "[]→boolean" "predicate"
+ *        The function that guards repeated application of `action`.
+ * @param "[]→⊤" "action"
+ *        The function to apply whenever `predicate` answers `true`.
+ * @returns "⊤"
  */
 Public method "While_do_" is
 [
@@ -1315,6 +1455,10 @@ Public method "While_do_" is
 /**
  * If `predicate` certainly answers `true`, then answer ⊥ (because the loop will
  * run forever).
+ * 
+ * @method "While_do_"
+ * @restricts "[]→boolean's type"
+ * @restricts "[]→⊤'s type"
  */
 Semantic restriction "While_do_" is
 [
@@ -1335,9 +1479,12 @@ Semantic restriction "While_do_" is
  * Basic conditional loop. Invoke `predicate`. If `predicate` answers `false`,
  * then invoke `action` and repeat.
  * 
- * Parameters:
- *    predicate - The function that guards repeated application of `action`.
- *    action - The function to apply whenever `predicate` answers `false`.
+ * @method "Until_do_"
+ * @param "[]→boolean" "predicate"
+ *        The function that guards repeated application of `action`.
+ * @param "[]→⊤" "action"
+ *        The function to apply whenever `predicate` answers `false`.
+ * @returns "⊤"
  */
 Public method "Until_do_" is
 [
@@ -1355,6 +1502,10 @@ Public method "Until_do_" is
 /**
  * If `predicate` certainly answers `false`, then answer ⊥ (because the loop
  * will run forever).
+ * 
+ * @method "Until_do_"
+ * @restricts "[]→boolean's type"
+ * @restricts "[]→⊤'s type"
  */
 Semantic restriction "Until_do_" is
 [
@@ -1375,10 +1526,13 @@ Semantic restriction "Until_do_" is
  * Basic conditional loop. Invoke `action` and then `predicate`. If `predicate`
  * answers `true`, then repeat.
  * 
- * Parameters:
- *    action - The function to apply once and then again whenever `predicate`
- *       answers `true`.
- *    predicate - The function that guards repeated application of `action`.
+ * @method "Do_while_"
+ * @param "[]→⊤" "action"
+ *        The function to apply once and then again whenever `predicate` answers
+ *        `true`.
+ * @param "[]→boolean" "predicate"
+ *        The function that guards repeated application of `action`.
+ * @returns "⊤"
  */
 Public method "Do_while_" is
 [
@@ -1396,6 +1550,10 @@ Public method "Do_while_" is
 /**
  * If `action` does not terminate or `predicate` certainly answers `true`, then
  * answer ⊥ (because the loop will run forever).
+ * 
+ * @method "Do_while_"
+ * @restricts "[]→⊤'s type"
+ * @restricts "[]→boolean's type"
  */
 Semantic restriction "Do_while_" is
 [
@@ -1417,11 +1575,14 @@ Semantic restriction "Do_while_" is
  * Conditional loop with alternation. Invoke `action` and then `predicate`. If
  * `predicate` answers `true`, then invoke `between`. Then repeat.
  * 
- * Parameters:
- *    action - The function to apply once and then again repeatedly while
- *       `predicate` answers `true`.
- *    predicate - The function that guards repeated application of `action`.
- *    between - The function to apply between applications of `action`.
+ * @method "Do_while_alternate with_"
+ * @param "[]→⊤" "action"
+ *        The function to apply once and then again repeatedly while
+ *        `predicate` answers `true`.
+ * @param "[]→boolean" "predicate"
+ *        The function that guards repeated application of `action`.
+ * @param "[]→⊤" "between"
+ *        The function to apply between applications of `action`.
  */
 Public method "Do_while_alternate with_" is
 [
@@ -1441,6 +1602,11 @@ Public method "Do_while_alternate with_" is
 /**
  * If `action` does not terminate or `predicate` certainly answers `true`, then
  * answer ⊥ (because the loop will run forever).
+ * 
+ * @method "Do_while_alternate with_"
+ * @restricts "[]→⊤'s type"
+ * @restricts "[]→boolean's type"
+ * @restricts "[]→⊤'s type"
  */
 Semantic restriction "Do_while_alternate with_" is
 [
@@ -1463,10 +1629,12 @@ Semantic restriction "Do_while_alternate with_" is
  * Basic conditional loop. Invoke `action` and then `predicate`. If `predicate`
  * answers `false`, then repeat.
  * 
- * Parameters:
- *    action - The function to apply once and then again whenever `predicate`
- *       answers `false`.
- *    predicate - The function that guards repeated application of `action`.
+ * @method "Do_until_"
+ * @param "[]→⊤" "action"
+ *        The function to apply once and then again whenever `predicate` answers
+ *        `false`.
+ * @param "[]→boolean" "predicate"
+ *        The function that guards repeated application of `action`.
  */
 Public method "Do_until_" is
 [
@@ -1484,6 +1652,10 @@ Public method "Do_until_" is
 /**
  * If `action` does not terminate or `predicate` certainly answers `false`, then
  * answer ⊥ (because the loop will run forever).
+ * 
+ * @method "Do_until_"
+ * @restricts "[]→⊤'s type"
+ * @restricts "[]→boolean's type"
  */
 Semantic restriction "Do_until_" is
 [
@@ -1505,11 +1677,14 @@ Semantic restriction "Do_until_" is
  * Conditional loop with alternation. Invoke `action` and then `predicate`. If
  * `predicate` answers `false`, then invoke `between`. Then repeat.
  * 
- * Parameters:
- *    action - The function to apply once and then again repeatedly while
- *       `predicate` answers `false`.
- *    predicate - The function that guards repeated application of `action`.
- *    between - The function to apply between applications of `action`.
+ * @method "Do_until_alternate with_"
+ * @param "[]→⊤" "action"
+ *        The function to apply once and then again repeatedly while `predicate`
+ *        answers `false`.
+ * @param "[]→boolean" "predicate"
+ *        The function that guards repeated application of `action`.
+ * @param "[]→⊤" "between"
+ *        The function to apply between applications of `action`.
  */
 Public method "Do_until_alternate with_" is
 [
@@ -1529,6 +1704,11 @@ Public method "Do_until_alternate with_" is
 /**
  * If `action` does not terminate or `predicate` certainly answers `false`, then
  * answer ⊥ (because the loop will run forever).
+ * 
+ * @method "Do_until_alternate with_"
+ * @restricts "[]→⊤'s type
+ * @restricts "[]→boolean's type"
+ * @restricts "[]→⊤'s type"
  */
 Semantic restriction "Do_until_alternate with_" is
 [
@@ -1552,14 +1732,17 @@ Semantic restriction "Do_until_alternate with_" is
  * function is specified, then invoke `else`. If `else` is not specified, then
  * do nothing.
  * 
- * Parameters:
- *    value - An arbitrary value.
- *    caseTuple - A tuple of arity-1 functions. The first of these able to
- *       accept `value` will be applied to it.
- *    else - An optional arity-0 function. If provided, then it will be invoked
- *       iff no function of `caseTuple` is able to accept `value`.
- * Returns:
- *    The result of whatever function is applied.
+ * @method "Cast|cast_into«_‡,»«else_»"
+ * @param "any" "value"
+ *        An arbitrary value.
+ * @param "<[⊥]→⊤…|2..>" "caseTuple"
+ *        A tuple of arity-1 functions. The first of these able to accept
+ *        `value` will be applied to it.
+ * @param "<[]→⊤…|0..1>" "else"
+ *        An optional arity-0 function. If provided, then it will be invoked iff
+ *        no function of `caseTuple` is able to accept `value`.
+ * @returns "⊤"
+ *          The result of whatever function is applied.
  */
 Public method "Cast|cast_into«_‡,»«else_»" is
 [
@@ -1597,6 +1780,11 @@ Public method "Cast|cast_into«_‡,»«else_»" is
  * Strengthen the return type of `Cast|cast_into«_‡,»«else_»` so that it may be
  * used as a value-producing expression. If any case is unnecessary or invalid,
  * then reject the current parse.
+ * 
+ * @method "Cast|cast_into«_‡,»«else_»"
+ * @restricts "any meta"
+ * @restricts "<[⊥]→⊤…|2..>'s type"
+ * @restricts "<[]→⊤…|0..1>'s type"
  */
 Semantic restriction "Cast|cast_into«_‡,»«else_»" is
 [
@@ -1643,16 +1831,20 @@ Semantic restriction "Cast|cast_into«_‡,»«else_»" is
  * `else` action. `else` must be provided unless `caseTuple` specifically
  * represents each value of `enum`.
  * 
- * Parameters:
- *    value - An instance of `enum`.
- *    enum - An enumeration.
- *    caseTuple - A tuple of 2-tuples whose first element is an instance of
- *       `enum` and whose second element is an arity-0 function. This function
- *       will be performed if `value` equals the first element.
- *    else - A tuple optionally containing the function to invoke if `value`
- *       does not match any of the cases. This represents the default case.
- * Returns:
- *    The return value of the chosen function.
+ * @method "Choose|choose_from_where«_is_‡,»«,else_»"
+ * @param "any" "value"
+ *        An instance of `enum`.
+ * @param "type" "enum"
+ *        An enumeration.
+ * @param "<<any, []→⊤…|2>…|1..>" "caseTuple"
+ *        A tuple of 2-tuples whose first element is an instance of `enum` and
+ *        whose second element is an arity-0 function. This function will be
+ *        performed if `value` equals the first element.
+ * @param "<[]→⊤…|0..1>" "else"
+ *        A tuple optionally containing the function to invoke if `value` does
+ *        not match any of the cases. This represents the default case.
+ * @returns "⊤"
+ *          The return value of the chosen function.
  */
 Public method "Choose|choose_from_where«_is_‡,»«,else_»" is
 [
@@ -1697,6 +1889,12 @@ Public method "Choose|choose_from_where«_is_‡,»«,else_»" is
  * - Every value of the enumeration is handled by a case, either explicitly or
  *   implicitly by the default case.
  * - Each case's selector occurs only once.
+ * 
+ * @method "Choose|choose_from_where«_is_‡,»«,else_»"
+ * @restricts "any meta"
+ * @restricts "type's type"
+ * @restricts "<<any, []→⊤…|2>…|1..>'s type"
+ * @restricts "<[]→⊤…|0..1>'s type"
  */
 Semantic restriction "Choose|choose_from_where«_is_‡,»«,else_»" is
 [

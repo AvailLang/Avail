@@ -51,8 +51,10 @@ Body
  * Ignore the specified value. This allows the return value of an expression to
  * be discarded, effectively converting it into a statement.
  * 
- * Parameters:
- *    value - An arbitrary value which will be ignored.
+ * @method "Ignore:_"
+ * @param "any" "value"
+ *        An arbitrary value which will be ignored.
+ * @returns "⊤"
  */
 Public method "Ignore:_" is
 [
@@ -66,10 +68,11 @@ Public method "Ignore:_" is
  * the compiler in disambiguating expressions. Used well, it also improves
  * readability of source text by programmers.
  *
- * Parameters:
- *    value - A value, usually produced by a method send expression.
- * Returns:
- *    The argument.
+ * @method "(_)"
+ * @param "any" "value"
+ *        A value, usually produced by a method send expression.
+ * @returns "any"
+ *        The argument.
  */
 Public method "(_)" is
 [
@@ -81,6 +84,9 @@ Public method "(_)" is
 /**
  * A parenthesized expression should have the same static return type that it
  * would were the parentheses not present.
+ * 
+ * @method "(_)"
+ * @restricts "type"
  */
 Semantic restriction "(_)" is
 [
@@ -92,6 +98,11 @@ Semantic restriction "(_)" is
 /**
  * Establish a conditional expression whose static return type is the type union
  * of its two possible functions' return types.
+ * 
+ * @method "If|if_then_else_"
+ * @restricts "boolean's type"
+ * @restricts "nullary procedure's type"
+ * @restricts "nullary procedure's type"
  */
 Semantic restriction "If|if_then_else_" is
 [
@@ -105,6 +116,11 @@ Semantic restriction "If|if_then_else_" is
 /**
  * Strengthen the static return type to that of the function to invoke when the
  * predicate is true (which it is).
+ * 
+ * @method "If|if_then_else_"
+ * @restricts "true's type's type"
+ * @restricts "nullary procedure's type"
+ * @restricts "nullary procedure's type"
  */
 Semantic restriction "If|if_then_else_" is
 [
@@ -118,6 +134,11 @@ Semantic restriction "If|if_then_else_" is
 /**
  * Strengthen the static return type to that of the function to invoke when the
  * predicate is false (which it is).
+ * 
+ * @method "If|if_then_else_"
+ * @restricts "false's type's type"
+ * @restricts "nullary procedure's type"
+ * @restricts "nullary procedure's type"
  */
 Semantic restriction "If|if_then_else_" is
 [
@@ -130,6 +151,12 @@ Semantic restriction "If|if_then_else_" is
 
 /*
  * This is used very frequently in the system library, so strengthen it early.
+ */
+/**
+ * 
+ * 
+ * @method "eject_"
+ * @restricts "variable meta"
  */
 Semantic restriction "eject_" is
 [
@@ -148,12 +175,16 @@ Semantic restriction "eject_" is
  * code, this facility is primarily intended for use by semantic restriction
  * functions. Used in this way it leads to a stronger static type system.
  *
- * Parameters:
- *    value - A value.
- *    accept - The function to invoke if `value` is a subtype of the its
- *       parameter type.
- *    reject - The function to invoke if `value` is not a subtype of the
- *       parameter type of `accept`.
+ * @method "Cast|cast_into_else_"
+ * @param "any" "value"
+ *        A value.
+ * @param "function accepting <⊥> and returning ⊤" "accept"
+ *        The function to invoke if `value` is a subtype of the its parameter
+ *        type.
+ * @param "nullary procedure" "reject"
+ *        The function to invoke if `value` is not a subtype of the parameter
+ *        type of `accept`.
+ * @returns "⊤"
  */
 Public method "Cast|cast_into_else_" is
 [
@@ -174,10 +205,13 @@ Public method "Cast|cast_into_else_" is
  * assertion failure. This is obsolete once exceptions are available, and should
  * not be exported beyond this package.
  *
- * Parameters:
- *    value - A value.
- *    accept - The function to invoke if `value` is a subtype of the its
- *       parameter type.
+ * @method "Cast|cast_into_"
+ * @param "any" "value"
+ *        A value.
+ * @param "function accepting <⊥> and returning ⊤" "accept"
+ *        The function to invoke if `value` is a subtype of the its parameter
+ *        type.
+ * @returns "⊤"
  */
 Public method "Cast|cast_into_" is
 [
@@ -205,6 +239,11 @@ Public method "Cast|cast_into_" is
  * Strengthen the return type of `Cast|cast_into_else` so that it may be used as
  * a value-producing expression. If the type cast is unnecessary, then reject
  * the current parse.
+ * 
+ * @method "Cast|cast_into_else_"
+ * @restricts "any meta"
+ * @restricts "(function accepting <⊥> and returning ⊤)'s type"
+ * @restricts "nullary procedure's type"
  */
 Semantic restriction "Cast|cast_into_else_" is
 [
@@ -253,6 +292,10 @@ Semantic restriction "Cast|cast_into_else_" is
  * Strengthen the return type of `Cast|cast_into_` so that it may be used as a
  * value-producing expression. If the type cast is unnecessary or invalid, then
  * reject the current parse.
+ * 
+ * @method "Cast|cast_into_"
+ * @restricts "any meta"
+ * @restricts "(function accepting <⊥> and returning ⊤)'s type"
  */
 Semantic restriction "Cast|cast_into_" is
 [
@@ -308,10 +351,9 @@ with <>;
 /**
  * The cardinality of ⊥ is also ⊥. This is supplied to disambiguate "`|`|_`|`|".
  * 
- * Parameters:
- *    bottomMeta - ⊥'s type.
- * Returns:
- *    ⊥.
+ * @method "`|`|_`|`|"
+ * @param "⊥'s type" "bottomMeta"
+ * @returns "⊥"
  */
 Method "`|`|_`|`|" is
 [
@@ -322,6 +364,10 @@ Method "`|`|_`|`|" is
 
 /**
  * Strengthen `Invoke|invoke_with_` to the invoked function's return type.
+ * 
+ * @method "Invoke|invoke_with_"
+ * @restricts "function meta"
+ * @restricts "tuple meta"
  */
 Semantic restriction "Invoke|invoke_with_" is
 [
@@ -335,12 +381,16 @@ Semantic restriction "Invoke|invoke_with_" is
  * Basic counting loop with early exit support. Invoke `action` once with each
  * consecutive number in the range established by `start` and `end`.
  * 
- * Parameters:
- *    start - The start value, inclusive.
- *    end - The end value, inclusive.
- *    action - A function that accepts a value in the specified range. If it
- *       answers `true`, then continue to iterate; if it answers `false`, then
- *       terminate iteration early.
+ * @method "From_to_do_"
+ * @param "natural number" "start"
+ *        The start value, inclusive.
+ * @param "integer range from 0 (inclusive=true) to ∞ (inclusive=true)" "end"
+ *        The end value, inclusive.
+ * @param "function accepting <⊥> and returning boolean" "action"
+ *        A function that accepts a value in the specified range. If it answers
+ *        `true`, then continue to iterate; if it answers `false`, then
+ *        terminate iteration early.
+ * @param "⊤"
  */
 Public method "From_to_do_" is
 [
@@ -367,6 +417,12 @@ Public method "From_to_do_" is
 
 /**
  * Sanity check the function's arguments against the implied range of iteration.
+ * 
+ * @method "From_to_do_"
+ * @restricts "natural number's type"
+ * @restricts "(integer range from 0 (inclusive=true) to
+ * ∞ (inclusive=true))'s type"
+ * @restricts "(function accepting <⊥> and returning boolean)'s type"
  */
 Semantic restriction "From_to_do_" is
 [

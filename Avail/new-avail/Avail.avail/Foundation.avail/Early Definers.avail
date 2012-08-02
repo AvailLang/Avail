@@ -51,8 +51,10 @@ Body
  * Reject the current parse is the argument is not included in the current
  * module's "Names" section. Do nothing if the name is not specifically known.
  * 
- * Parameters:
- *    nameType - The type of the name.
+ * @method "Require:_is public"
+ * @param "string's type" "nameType"
+ *        The type of the name.
+ * @returns "⊤"
  */
 Method "Require:_is public" is
 [
@@ -93,8 +95,10 @@ Method "Require:_is public" is
  * Reject the current parse is the argument is not included in the current
  * module's "Names" section. Do nothing if the name is not specifically known.
  * 
- * Parameters:
- *    nameType - The type of the name.
+ * @method "Require:_is public"
+ * @param "atom's type" "nameType"
+ *        The type of the name.
+ * @returns "⊤"
  */
 Method "Require:_is public" is
 [
@@ -142,8 +146,10 @@ Method "Require:_is public" is
  * Reject the current parse is the argument is included in the current module's
  * "Names" section. Do nothing if the name is not specifically known.
  * 
- * Parameters:
- *    nameType - The type of the name.
+ * @method "Require:_is private"
+ * @param "string's type" "nameType"
+ *        The type of the name.
+ * @returns "⊤"
  */
 Method "Require:_is private" is
 [
@@ -184,8 +190,10 @@ Method "Require:_is private" is
  * Reject the current parse is the argument is included in the current module's
  * "Names" section. Do nothing if the name is not specifically known.
  * 
- * Parameters:
- *    nameType - The type of the name.
+ * @method "Require:_is private"
+ * @param "atom's type" "nameType"
+ *        The type of the name.
+ * @returns "⊤"
  */
 Method "Require:_is private" is
 [
@@ -238,9 +246,12 @@ Method "Require:_is private" is
  * current module's "Names" section. This should not be used to extend existing
  * methods.
  *
- * Parameters:
- *    methodName - The name of the abstract method to declare.
- *    aFunctionType - The signature.
+ * @method "Public abstract method_is_"
+ * @param "string" "methodName"
+ *        The name of the abstract method to declare.
+ * @param "function meta" "aFunctionType"
+ *        The signature.
+ * @returns "⊤"
  */
 Method "Public abstract method_is_" is
 [
@@ -253,6 +264,10 @@ Method "Public abstract method_is_" is
 
 /**
  * Ensure that the new method is introduced by the module's "Names" section.
+ * 
+ * @method "Public abstract method_is_"
+ * @restricts "string's type"
+ * @restricts "function meta's type"
  */
 Semantic restriction "Public abstract method_is_" is
 [
@@ -271,9 +286,12 @@ Semantic restriction "Public abstract method_is_" is
  * current module's "Names" section. This should not be used to extend existing
  * methods.
  *
- * Parameters:
- *    methodName - The atom that uniquely names the abstract method to declare.
- *    aFunctionType - The signature.
+ * @method "Public abstract method_is_"
+ * @param "atom" "methodName"
+ *        The atom that uniquely names the abstract method to declare.
+ * @param "function meta" "aFunctionType"
+ *        The signature.
+ * @returns "⊤"
  */
 Method "Public abstract method_is_" is
 [
@@ -286,6 +304,10 @@ Method "Public abstract method_is_" is
 
 /**
  * Ensure that the new method is introduced by the module's "Names" section.
+ * 
+ * @method "Public abstract method_is_"
+ * @restricts "atom's type"
+ * @restricts "function meta's type"
  */
 Semantic restriction "Public abstract method_is_" is
 [
@@ -305,9 +327,12 @@ Semantic restriction "Public abstract method_is_" is
  * Recursive methods must be forward declared. Mutually recursive methods must
  * forward declare all but the lexically first participant in the recursion.
  *
- * Parameters:
- *    methodName - The name of the method to forward declare.
- *    aFunctionType - The signature.
+ * @method "Public forward method_is_"
+ * @param "string" "methodName"
+ *        The name of the method to forward declare.
+ * @param "function meta" "aFunctionType"
+ *        The signature.
+ * @returns "⊤"
  */
 Method "Public forward method_is_" is
 [
@@ -320,6 +345,10 @@ Method "Public forward method_is_" is
 
 /**
  * Ensure that the new method is introduced by the module's "Names" section.
+ * 
+ * @method "Public forward method_is_"
+ * @restricts "string's type"
+ * @restricts "function meta's type"
  */
 Semantic restriction "Public forward method_is_" is
 [
@@ -335,9 +364,12 @@ Semantic restriction "Public forward method_is_" is
  * is named in the current module's "Names" section. This should not be used to
  * extend existing methods.
  * 
- * Parameters:
- *    methodName - The name of the new method.
- *    function - The original implementation of the method.
+ * @method "Public method_is_"
+ * @param "string" "methodName"
+ *        The name of the new method.
+ * @param "function" "function"
+ *        The original implementation of the method.
+ * @returns "⊤"
  */
 Method "Public method_is_" is
 [
@@ -350,6 +382,10 @@ Method "Public method_is_" is
 
 /**
  * Ensure that the new method is introduced by the module's "Names" section.
+ * 
+ * @method "Public method_is_"
+ * @restricts "string's type"
+ * @restricts "function meta"
  */
 Semantic restriction "Public method_is_" is
 [
@@ -365,9 +401,12 @@ Semantic restriction "Public method_is_" is
  * is named in the current module's "Names" section. This should not be used to
  * extend existing methods.
  * 
- * Parameters:
- *    methodName - The atom that uniquely names the new method.
- *    function - The original implementation of the method.
+ * @method "Public method_is_"
+ * @param "atom" "methodName"
+ *        The atom that uniquely names the new method.
+ * @param "function" "function"
+ *        The original implementation of the method.
+ * @returns "⊤"
  */
 Method "Public method_is_" is
 [
@@ -380,6 +419,10 @@ Method "Public method_is_" is
 
 /**
  * Ensure that the new method is introduced by the module's "Names" section.
+ * 
+ * @method "Public method_is_"
+ * @restricts "atom's type"
+ * @restricts "function meta"
  */
 Semantic restriction "Public method_is_" is
 [
@@ -398,9 +441,12 @@ Semantic restriction "Public method_is_" is
  * the current module's "Names" section. This should not be used to extend
  * existing methods.
  *
- * Parameters:
- *    methodName - The name of the abstract method to declare.
- *    aFunctionType - The signature.
+ * @method "Private abstract method_is_"
+ * @param "string" "methodName"
+ *        The name of the abstract method to declare.
+ * @param "function meta" "aFunctionType"
+ *        The signature.
+ * @returns "⊤"
  */
 Method "Private abstract method_is_" is
 [
@@ -413,6 +459,10 @@ Method "Private abstract method_is_" is
 
 /**
  * Ensure that the new method is introduced by the module's "Names" section.
+ * 
+ * @method "Private abstract method_is_"
+ * @restricts "string's type"
+ * @restricts "function meta's type"
  */
 Semantic restriction "Private abstract method_is_" is
 [
@@ -431,9 +481,12 @@ Semantic restriction "Private abstract method_is_" is
  * the current module's "Names" section. This should not be used to extend
  * existing methods.
  *
- * Parameters:
- *    methodName - The atom that uniquely names the abstract method to declare.
- *    aFunctionType - The signature.
+ * @method "Private abstract method_is_"
+ * @param "atom" "methodName"
+ *        The atom that uniquely names the abstract method to declare.
+ * @param "function meta" "aFunctionType"
+ *        The signature.
+ * @return "⊤"
  */
 Method "Private abstract method_is_" is
 [
@@ -446,6 +499,10 @@ Method "Private abstract method_is_" is
 
 /**
  * Ensure that the new method is introduced by the module's "Names" section.
+ * 
+ * @method "Private abstract method_is_"
+ * @restricts "atom's type"
+ * @restricts "function meta's type"
  */
 Semantic restriction "Private abstract method_is_" is
 [
@@ -465,9 +522,11 @@ Semantic restriction "Private abstract method_is_" is
  * Recursive methods must be forward declared. Mutually recursive methods must
  * forward declare all but the lexically first participant in the recursion.
  *
- * Parameters:
- *    methodName - The name of the method to forward declare.
- *    aFunctionType - The signature.
+ * @method "Private forward method_is_"
+ * @param "string" "methodName"
+ *        The name of the method to forward declare.
+ * @param "function meta" "aFunctionType"
+ *        The signature.
  */
 Method "Private forward method_is_" is
 [
@@ -480,6 +539,10 @@ Method "Private forward method_is_" is
 
 /**
  * Ensure that the new method is introduced by the module's "Names" section.
+ * 
+ * @method "Private forward method_is_"
+ * @restricts "string's type"
+ * @restricts "function meta's type"
  */
 Semantic restriction "Private forward method_is_" is
 [
@@ -495,9 +558,12 @@ Semantic restriction "Private forward method_is_" is
  * is not named in the module's "Names" section. This should not be used to
  * extend existing methods.
  * 
- * Parameters:
- *    methodName - The name of the new method.
- *    function - The original implementation of the method.
+ * @method "Private method_is_"
+ * @param "string" "methodName"
+ *        The name of the new method.
+ * @param "function" "function"
+ *        The original implementation of the method.
+ * @returns "⊤"
  */
 Public method "Private method_is_" is
 [
@@ -510,6 +576,10 @@ Public method "Private method_is_" is
 
 /**
  * Ensure that the new method is not introduced by the module's "Names" section.
+ * 
+ * @method "Private method_is_"
+ * @restricts "string's type"
+ * @restricts "function meta"
  */
 Semantic restriction "Private method_is_" is
 [
@@ -525,9 +595,12 @@ Semantic restriction "Private method_is_" is
  * is not named in the module's "Names" section. This should not be used to
  * extend existing methods.
  * 
- * Parameters:
- *    methodName - The atom that uniquely names the new method.
- *    function - The original implementation of the method.
+ * @method "Private method_is_"
+ * @param "atom" "methodName"
+ *        The atom that uniquely names the new method.
+ * @param "function" "function"
+ *        The original implementation of the method.
+ * @returns "⊤"
  */
 Public method "Private method_is_" is
 [
@@ -540,6 +613,10 @@ Public method "Private method_is_" is
 
 /**
  * Ensure that the new method is not introduced by the module's "Names" section.
+ * 
+ * @method "Private method_is_"
+ * @restricts "atom's type"
+ * @restricts "function meta"
  */
 Semantic restriction "Private method_is_" is
 [
@@ -560,12 +637,14 @@ Semantic restriction "Private method_is_" is
  * Note that "argument position" corresponds to a blank, not to a top-level
  * repeating sequence (indicated by guillemet notation).
  *
- * Parameters:
- *    methodsName - The name of the method which should be restricted.
- *    exclusions - A tuple of sets of method names. The method names in the
- *       `n`-th set are restricted from occurring grammatically at the `n`-th
- *       argument position of any invocation of the method named by
- *       `methodName`.
+ * @method "Grammatical restriction_is_"
+ * @param "string" "methodsName"
+ *        The name of the method which should be restricted.
+ * @param "tuple of set of string" "exclusions"
+ *        A tuple of sets of method names. The method names in the `n`-th set
+ *        are restricted from occurring grammatically at the `n`-th argument
+ *        position of any invocation of the method named by `methodName`.
+ * @returns "⊤"
  */
 Method "Grammatical restriction_is_" is
 [

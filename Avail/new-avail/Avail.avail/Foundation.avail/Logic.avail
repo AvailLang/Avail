@@ -64,7 +64,7 @@ Body
  * 
  * @method "«_‡=»"
  * @param "<any…|3..>" "aTuple"
- * @returns boolean
+ * @returns "boolean"
  *          `true` if all arguments are equal, `false` otherwise.
  */
 Public method "«_‡=»" is
@@ -131,8 +131,8 @@ Public stable method "_⊕_" is
  * values will always yield false.
  * 
  * @method "_⊕_"
- * @restricts boolean's type
- * @restricts boolean's type
+ * @restricts "boolean's type"
+ * @restricts "boolean's type"
  */
 Semantic restriction "_⊕_" is
 [
@@ -157,7 +157,7 @@ Semantic restriction "_⊕_" is
  * @method "_↑_"
  * @param "boolean" "a"
  * @param "[]→boolean" "b"
- * @returns boolean
+ * @returns "boolean"
  */
 Public method "_↑_" is
 [
@@ -175,7 +175,7 @@ Public method "_↑_" is
  * @method "_↑_"
  * @param "false's type" "a"
  * @param "[]→boolean" "b"
- * @returns boolean
+ * @returns "boolean"
  */
 Method "_↑_" is
 [
@@ -190,8 +190,8 @@ Method "_↑_" is
  * the expression is also known statically to be `true`.
  * 
  * @method "_↑_"
- * @restricts false's type's type
- * @restricts ([]→boolean)'s type
+ * @restricts "false's type's type"
+ * @restricts "([]→boolean)'s type"
  */
 Semantic restriction "_↑_" is
 [
@@ -206,8 +206,8 @@ Semantic restriction "_↑_" is
  * the static type of the expression is the negation of `b`'s return type.
  *
  * @method "_↑_"
- * @restricts true's type's type
- * @restricts []→(true's type)'s type
+ * @restricts "true's type's type"
+ * @restricts "[]→(true's type)'s type"
  */
 Semantic restriction "_↑_" is
 [
@@ -222,8 +222,8 @@ Semantic restriction "_↑_" is
  * the static type of the expression is the negation of `b`'s return type.
  *
  * @method "_↑_"
- * @restricts boolean's type
- * @restricts []→(false's type)'s type
+ * @restricts "boolean's type"
+ * @restricts "[]→(false's type)'s type"
  */
 Semantic restriction "_↑_" is
 [
@@ -241,7 +241,7 @@ Semantic restriction "_↑_" is
  * @method "_↓_"
  * @param "boolean" "a"
  * @param "[]→boolean" "b"
- * @returns boolean
+ * @returns "boolean"
  */
 Public method "_↓_" is
 [
@@ -259,7 +259,7 @@ Public method "_↓_" is
  * @method "_↓_"
  * @param "true's type" "a"
  * @param "[]→boolean" "b"
- * @returns boolean
+ * @returns "boolean"
  */
 Method "_↓_" is
 [
@@ -274,8 +274,8 @@ Method "_↓_" is
  * the expression is known statically to be `false`.
  * 
  * @method "_↓_"
- * @restricts true's type's type
- * @restricts []→boolean's type
+ * @restricts "true's type's type"
+ * @restricts "[]→boolean's type"
  */
 Semantic restriction "_↓_" is
 [
@@ -290,8 +290,8 @@ Semantic restriction "_↓_" is
  * the static type of the expression is the negation of `b`'s return type.
  * 
  * @method "_↓_"
- * @restricts false's type's type
- * @restricts []→(true's type)'s type
+ * @restricts "false's type's type"
+ * @restricts "[]→(true's type)'s type"
  */
 Semantic restriction "_↓_" is
 [
@@ -306,8 +306,8 @@ Semantic restriction "_↓_" is
  * the static type of the expression is the negation of `b`'s return type.
  * 
  * @method "_↓_"
- * @restricts false's type's type
- * @restricts []→(false's type)'s type
+ * @restricts "false's type's type"
+ * @restricts "[]→(false's type)'s type"
  */
 Semantic restriction "_↓_" is
 [
@@ -322,8 +322,8 @@ Semantic restriction "_↓_" is
  * the static type of the expression is `false`.
  * 
  * @method "_↓_"
- * @restricts boolean's type
- * @restricts []→(true's type)'s type
+ * @restricts "boolean's type"
+ * @restricts "[]→(true's type)'s type"
  */
 Semantic restriction "_↓_" is
 [
@@ -341,7 +341,7 @@ Semantic restriction "_↓_" is
  * @method "_→_"
  * @param "boolean" "a"
  * @param "[]→boolean" "b"
- * @returns boolean
+ * @returns "boolean"
  */
 Public method "_→_" is
 [
@@ -359,7 +359,7 @@ Public method "_→_" is
  * @method "_→_"
  * @param "false's type" "a"
  * @param "[]→boolean" "b"
- * @returns boolean
+ * @returns "boolean"
  */
 Method "_→_" is
 [
@@ -374,8 +374,8 @@ Method "_→_" is
  * the expression is known statically to be `true`.
  * 
  * @method "_→_"
- * @restricts false's type's type
- * @restricts []→boolean's type
+ * @restricts "false's type's type"
+ * @restricts "[]→boolean's type"
  */
 Semantic restriction "_→_" is
 [
@@ -390,8 +390,8 @@ Semantic restriction "_→_" is
  * the expression is known statically to be `true`.
  * 
  * @method "_→_"
- * @restricts boolean's type
- * @restricts []→(true's type)'s type
+ * @restricts "boolean's type"
+ * @restricts "[]→(true's type)'s type"
  */
 Semantic restriction "_→_" is
 [
@@ -409,7 +409,7 @@ Semantic restriction "_→_" is
  * @method "_←_"
  * @param "boolean" "a"
  * @param "[]→boolean" "b"
- * @returns boolean
+ * @returns "boolean"
  */
 Public method "_←_" is
 [
@@ -427,7 +427,7 @@ Public method "_←_" is
  * @method "_←_"
  * @param "true's type" "a"
  * @param "[]→boolean" "b"
- * @returns boolean
+ * @returns "boolean"
  */
 Method "_←_" is
 [
@@ -442,8 +442,8 @@ Method "_←_" is
  * the static type of the expression is `true`.
  * 
  * @method "_←_"
- * @restricts true's type's type
- * @restricts []→boolean's type
+ * @restricts "true's type's type"
+ * @restricts "[]→boolean's type"
  */
 Semantic restriction "_←_" is
 [
@@ -458,8 +458,8 @@ Semantic restriction "_←_" is
  * the static type of the expression is `true`.
  * 
  * @method "_←_"
- * @restricts boolean's type
- * @restricts []→(false's type)'s type
+ * @restricts "boolean's type"
+ * @restricts "[]→(false's type)'s type"
  */
 Semantic restriction "_←_" is
 [
@@ -477,7 +477,7 @@ Semantic restriction "_←_" is
  * @method "_↔_"
  * @param "boolean" "a"
  * @param "boolean" "b"
- * @returns boolean
+ * @returns "boolean"
  */
 Public stable method "_↔_" is
 [
@@ -491,8 +491,8 @@ Public stable method "_↔_" is
  * Type can be strengthened as long as neither argument is of type boolean.
  * 
  * @method "_↔_"
- * @restricts boolean's type
- * @restricts boolean's type
+ * @restricts "boolean's type"
+ * @restricts "boolean's type"
  */
 Semantic restriction "_↔_" is
 [
@@ -517,7 +517,7 @@ Semantic restriction "_↔_" is
  * @method "_↛_"
  * @param "boolean" "a"
  * @param "[]→boolean" "b"
- * @returns boolean
+ * @returns "boolean"
  */
 Public method "_↛_" is
 [
@@ -535,7 +535,7 @@ Public method "_↛_" is
  * @method "_↛_"
  * @param "false's type" "a"
  * @param "[]→boolean" "b"
- * @returns boolean
+ * @returns "boolean"
  */
 Method "_↛_" is
 [
@@ -550,8 +550,8 @@ Method "_↛_" is
  * the static type of the expression is `false`.
  *
  * @method "_↛_"
- * @restricts false's type's type
- * @restricts []→boolean's type
+ * @restricts "false's type's type"
+ * @restricts "[]→boolean's type"
  */
 Semantic restriction "_↛_" is
 [
@@ -566,8 +566,8 @@ Semantic restriction "_↛_" is
  * the static type of the expression is `false`.
  *
  * @method "_↛_"
- * @restricts boolean's type
- * @restricts []→(true's type)'s type
+ * @restricts "boolean's type"
+ * @restricts "[]→(true's type)'s type"
  */
 Semantic restriction "_↛_" is
 [
@@ -585,7 +585,7 @@ Semantic restriction "_↛_" is
  * @method "_↚_"
  * @param "boolean" "a"
  * @param "[]→boolean" "b"
- * @returns boolean
+ * @returns "boolean"
  */
 Public method "_↚_" is
 [
@@ -603,7 +603,7 @@ Public method "_↚_" is
  * @method "_↚_"
  * @param "true's type" "a"
  * @param "[]→boolean" "b"
- * @returns boolean
+ * @returns "boolean"
  */
 Method "_↚_" is
 [
@@ -618,8 +618,8 @@ Method "_↚_" is
  * the static type of the expression is `false`.
  * 
  * @method "_↚_"
- * @restricts true's type's type
- * @restricts []→boolean's type
+ * @restricts "true's type's type"
+ * @restricts "[]→boolean's type"
  */
 Semantic restriction "_↚_" is
 [
@@ -634,8 +634,8 @@ Semantic restriction "_↚_" is
  * the static type of the expression is `false`.
  * 
  * @method "_↚_"
- * @restricts boolean's type
- * @restricts []→(false's type)'s type
+ * @restricts "boolean's type"
+ * @restricts "[]→(false's type)'s type"
  */
 Semantic restriction "_↚_" is
 [
@@ -651,8 +651,8 @@ Semantic restriction "_↚_" is
  * of the expression is `true`.
  * 
  * @method "_↚_"
- * @restricts false's type's type
- * @restricts []→(true's type)'s type
+ * @restricts "false's type's type"
+ * @restricts "[]→(true's type)'s type"
  */
 Semantic restriction "_↚_" is
 [
@@ -720,8 +720,8 @@ Grammatical restriction {"_↔_", "_⊕_"} is <∅, {"_↔_", "_⊕_"}>;
  * Strengthen for exactly known values (but never for types).
  * 
  * @method "_=_"
- * @restricts any meta
- * @restricts any meta
+ * @restricts "any meta"
+ * @restricts "any meta"
  */
 Semantic restriction "_=_" is
 [
@@ -755,8 +755,8 @@ Semantic restriction "_=_" is
  * Strengthen for exactly known values (but never for types).
  * 
  * @method "_≠_"
- * @restricts any meta
- * @restricts any meta
+ * @restricts "any meta"
+ * @restricts "any meta"
  */
 Semantic restriction "_≠_" is
 [

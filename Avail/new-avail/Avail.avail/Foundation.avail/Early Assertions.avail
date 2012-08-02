@@ -45,8 +45,10 @@ Body
  * Early assertion mechanism. This is obsolete once exceptions are available,
  * and should not be exported beyond this package.
  * 
- * Parameters:
- *    predicate - `true`.
+ * @method "Assert:_"
+ * @param "boolean" "predicate"
+ *        `true`.
+ * @returns "⊤"
  */
 Public method "Assert:_" is
 [
@@ -58,6 +60,9 @@ Public method "Assert:_" is
 /**
  * Strengthen the return type to ⊥ iff the assertion statement is statically
  * identifiable as a contradiction.
+ * 
+ * @method "Assert:_"
+ * @restricts "false's type's type"
  */
 Semantic restriction "Assert:_" is
 [
@@ -69,6 +74,10 @@ Semantic restriction "Assert:_" is
 /**
  * Strengthen the return type to ⊥ iff the assertion statement is statically
  * identifiable as a contradiction.
+ * 
+ * @method "Assert:_(_)"
+ * @restricts "false's type's type"
+ * @restricts "string's type"
  */
 Semantic restriction "Assert:_(_)" is
 [
@@ -82,6 +91,9 @@ Semantic restriction "Assert:_(_)" is
  * Declare that the code path that called this method should never be executed.
  * It results in an assertion failure. This is obsolete once exceptions are
  * available, and should not be exported beyond this package.
+ * 
+ * @method "Shouldn't happen"
+ * @returns "⊥"
  */
 Public method "Shouldn't happen" is
 [

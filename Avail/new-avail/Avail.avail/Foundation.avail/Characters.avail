@@ -887,7 +887,14 @@ titlecaseCharacter ::=
 	8109, 8110, 8111, 8124, 8140, 8188
 };
 
-
+/**
+ * Return true if the supplied character is identified as a letter, false
+ * otherwise.
+ *
+ * @method "_is a letter"
+ * @param "character" "c"
+ * @returns "boolean"
+ */
 Public stable method "_is a letter" is 
 [
  	c : character 
@@ -924,8 +931,14 @@ Public stable method "_is a letter" is
 
 ] : boolean;
 
-/* Return true if the supplied character is identified as an uppercase character
+
+/**
+ * Return true if the supplied character is identified as an uppercase character
  * according to the Unicode character description, false otherwise.
+ * 
+ * @method "_is uppercase"
+ * @param "character" "c"
+ * @returns "boolean"
  */
 Public stable method "_is uppercase" is 
 [
@@ -935,8 +948,13 @@ Public stable method "_is uppercase" is
 
 ] : boolean;
 
-/* Return true if the supplied character is identified as a lowercase character
+/**
+ * Return true if the supplied character is identified as a lowercase character
  * according to the Unicode character description, false otherwise.
+ * 
+ * @method "_is lowercase"
+ * @param "character" "c"
+ * @returns "boolean"
  */
 Public stable method "_is lowercase" is 
 [
@@ -946,12 +964,17 @@ Public stable method "_is lowercase" is
 
 ] : boolean;
 
-/* Return true if the supplied character is identified as a titlecase character
+/**
+ * Return true if the supplied character is identified as a titlecase character
  * according to the Unicode character description, false otherwise.
  * 
  * NB: This method will only return true for true titlecase characters, of which
  * there are only a handful; unlike "titlecase_" which returns the corresponding
  * uppercase character if no titlecase character corresponds.
+ * 
+ * @method "_is titlecase"
+ * @param "character" "c"
+ * @returns "boolean"
  */
 Public stable method "_is titlecase" is 
 [
@@ -961,8 +984,13 @@ Public stable method "_is titlecase" is
 
 ] : boolean;
 
-/* If a corresponding uppercase character is available, that character is
+/**
+ * If a corresponding uppercase character is available, that character is
  * returned. Otherwise, the original character is returned.
+ * 
+ * @method "uppercase_"
+ * @param "character" "c"
+ * @returns "boolean"
  */
 Public stable method "uppercase_" is
 [
@@ -971,8 +999,13 @@ Public stable method "uppercase_" is
 	toUpperCase[c→code point] else [c]
 ];
 
-/* If a corresponding lowercase character is available, that character is
+/**
+ * If a corresponding lowercase character is available, that character is
  * returned. Otherwise, the original character is returned.
+ * 
+ * @method "lowercase_"
+ * @param "character" "c"
+ * @returns "boolean"
  */
 Public stable method "lowercase_" is
 [
@@ -981,12 +1014,18 @@ Public stable method "lowercase_" is
 	toLowerCase[c→code point] else [c]
 ];
 
-/* If a corresponding titlecase character is available, that character is
+
+/**
+ * If a corresponding titlecase character is available, that character is
  * returned. Otherwise, the original character is returned.
  * 
  * NB: There are only a handful characters identified as titlecase, but
  * titlecase equivalents, as defined by Unicode, include uppercase characters
  * in the absence of true titlecase equivalents.
+ * 
+ * @method "titlecase_"
+ * @param "character" "c"
+ * @returns "boolean"
  */
 Public stable method "titlecase_" is
 [

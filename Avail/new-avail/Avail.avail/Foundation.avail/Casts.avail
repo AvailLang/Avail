@@ -101,6 +101,13 @@ Public method "Cast|cast_into_" is
 	];
 ] : ⊤;
 
+/**
+ * 
+ * 
+ * @method "Cast|cast_into_"
+ * @restricts "any's type"
+ * @restricts "[⊥]→⊤'s type"
+ */
 Semantic restriction "Cast|cast_into_" is
 [
 	valueType : any's type,
