@@ -411,8 +411,8 @@ Public class "unit test report" extends object
 	with fields
 		public metrics : <unit test result…|>;
 
-_passed ::= new atom "passed";
-_failed ::= new atom "failed";
+_passed ::= $passed;
+_failed ::= $failed;
 
 Method "“_”" is
 [

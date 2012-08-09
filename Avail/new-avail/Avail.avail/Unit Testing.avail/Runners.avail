@@ -612,8 +612,8 @@ Public method "_'s⁇metrics by test suite" is
 	]
 ] : {atom→<unit test result…|>|};
 
-_passed ::= new atom "passed";
-_failed ::= new atom "failed";
+_passed ::= $passed;
+_failed ::= $failed;
 
 /**
  * Generate a module-oriented textual report from the specified {@type

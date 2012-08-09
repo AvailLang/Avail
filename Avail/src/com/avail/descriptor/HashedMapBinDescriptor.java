@@ -355,9 +355,10 @@ extends MapBinDescriptor
 				vector | bitShift(1, logicalIndex));
 			for (int i = 1, end = physicalIndex - 1; i <= end; i++)
 			{
-				objectToModify.binElementAtPut(
+				objectToModify.setSlot(
+					SUB_BINS_,
 					i,
-					object.slot(SUB_BINS_, i));
+					object.slot(SUB_BINS_,i));
 			}
 			final AvailObject newSingleBin =
 				LinearMapBinDescriptor.createSingle(

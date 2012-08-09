@@ -33,9 +33,12 @@
 package com.avail.serialization;
 
 import static com.avail.serialization.SerializerOperandEncoding.*;
+import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
+import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.descriptor.TypeDescriptor.Types;
 
 /**
@@ -599,7 +602,7 @@ public enum SerializerOperation
 	 */
 	DOUBLE (23,
 		SIGNED_INT.as("upper raw bits"),
-		UNSIGNED_INT.as("lower raw bits"))
+		SIGNED_INT.as("lower raw bits"))
 	{
 		@Override
 		@NotNull AvailObject[] decompose (
@@ -861,8 +864,8 @@ public enum SerializerOperation
 	 * been issued by the current module.
 	 */
 	ATOM(34,
-		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("atom name"),
-		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("module name"))
+		OBJECT_REFERENCE.as("atom name"),
+		OBJECT_REFERENCE.as("module name"))
 	{
 		@Override
 		AvailObject[] decompose (final @NotNull AvailObject object)
@@ -898,7 +901,7 @@ public enum SerializerOperation
 		TUPLE_OF_OBJECTS.as("Regular literals"),
 		TUPLE_OF_OBJECTS.as("Local types"),
 		TUPLE_OF_OBJECTS.as("Outer types"),
-		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("Module name"),
+		OBJECT_REFERENCE.as("Module name"),
 		UNSIGNED_INT.as("Line number"))
 	{
 
@@ -990,6 +993,7 @@ public enum SerializerOperation
 		@Override
 		AvailObject[] decompose (final @NotNull AvailObject object)
 		{
+			assert object.numOuterVars() == 0;
 			return array(
 				object.code());
 		}
@@ -1041,9 +1045,280 @@ public enum SerializerOperation
 	},
 
 	/**
+	 * A {@linkplain VariableDescriptor variable}.  Always reconstructed, since
+	 * there is no mechanism for determining to which existing variable it might
+	 * be referring.  The variable is reconstructed in an unassigned state.
+	 */
+	VARIABLE (38,
+		OBJECT_REFERENCE.as("variable type"))
+	{
+		@Override
+		AvailObject[] decompose (final @NotNull AvailObject object)
+		{
+			return array(
+				object.kind());
+		}
+
+		@Override
+		AvailObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			return VariableDescriptor.forOuterType(subobjects[0]);
+		}
+
+		@Override
+		boolean isVariable ()
+		{
+			return true;
+		}
+	},
+
+	/**
+	 * A {@linkplain TokenDescriptor token}.
+	 */
+	TOKEN (39,
+		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("token string"),
+		SIGNED_INT.as("start position"),
+		SIGNED_INT.as("line number"),
+		BYTE.as("token type code"))
+	{
+		@Override
+		AvailObject[] decompose (final @NotNull AvailObject object)
+		{
+			return array(
+				object.string(),
+				IntegerDescriptor.fromInt(object.start()),
+				IntegerDescriptor.fromInt(object.lineNumber()),
+				IntegerDescriptor.fromInt(object.tokenType().ordinal()));
+		}
+
+		@Override
+		AvailObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			final AvailObject string = subobjects[0];
+			final int start = subobjects[1].extractInt();
+			final int lineNumber = subobjects[2].extractInt();
+			final int tokenTypeOrdinal = subobjects[3].extractInt();
+			return TokenDescriptor.create(
+				string,
+				start,
+				lineNumber,
+				TokenType.values()[tokenTypeOrdinal]);
+		}
+	},
+
+	/**
+	 * A {@linkplain LiteralTokenDescriptor literal token}.
+	 */
+	LITERAL_TOKEN (40,
+		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("token string"),
+		OBJECT_REFERENCE.as("literal value"),
+		SIGNED_INT.as("start position"),
+		SIGNED_INT.as("line number"),
+		BYTE.as("token type code"))
+	{
+		@Override
+		AvailObject[] decompose (final @NotNull AvailObject object)
+		{
+			return array(
+				object.string(),
+				object.literal(),
+				IntegerDescriptor.fromInt(object.start()),
+				IntegerDescriptor.fromInt(object.lineNumber()),
+				IntegerDescriptor.fromInt(object.tokenType().ordinal()));
+		}
+
+		@Override
+		AvailObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			final AvailObject string = subobjects[0];
+			final AvailObject literal = subobjects[1];
+			final int start = subobjects[2].extractInt();
+			final int lineNumber = subobjects[3].extractInt();
+			final int tokenTypeOrdinal = subobjects[4].extractInt();
+			return LiteralTokenDescriptor.create(
+				string,
+				start,
+				lineNumber,
+				TokenType.values()[tokenTypeOrdinal],
+				literal);
+		}
+	},
+
+	/**
+	 * This special opcode causes a previously built variable to have a
+	 * previously built value to be assigned to it at this point during
+	 * deserialization.
+	 */
+	ASSIGN_TO_VARIABLE (41,
+		OBJECT_REFERENCE.as("variable to assign"),
+		OBJECT_REFERENCE.as("value to assign"))
+	{
+		@Override
+		@NotNull AvailObject[] decompose (final @NotNull AvailObject object)
+		{
+			return array(
+				object,
+				object.value());
+		}
+
+		@Override
+		AvailObject compose (
+			final @NotNull AvailObject[] subobjects,
+			final @NotNull Deserializer deserializer)
+		{
+			final AvailObject variable = subobjects[0];
+			final AvailObject value = subobjects[1];
+			variable.setValue(value);
+			return NullDescriptor.nullObject();
+		}
+	},
+
+	RESERVED_42 (42)
+	{
+		@Override
+		AvailObject[] decompose (final @NotNull AvailObject object)
+		{
+			throw new RuntimeException("Reserved serializer operation");
+		}
+
+		@Override
+		AvailObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			throw new RuntimeException("Reserved serializer operation");
+		}
+	},
+
+	RESERVED_43 (43)
+	{
+		@Override
+		AvailObject[] decompose (final @NotNull AvailObject object)
+		{
+			throw new RuntimeException("Reserved serializer operation");
+		}
+
+		@Override
+		AvailObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			throw new RuntimeException("Reserved serializer operation");
+		}
+	},
+
+	RESERVED_44 (44)
+	{
+		@Override
+		AvailObject[] decompose (final @NotNull AvailObject object)
+		{
+			throw new RuntimeException("Reserved serializer operation");
+		}
+
+		@Override
+		AvailObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			throw new RuntimeException("Reserved serializer operation");
+		}
+	},
+
+	RESERVED_45 (45)
+	{
+		@Override
+		AvailObject[] decompose (final @NotNull AvailObject object)
+		{
+			throw new RuntimeException("Reserved serializer operation");
+		}
+
+		@Override
+		AvailObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			throw new RuntimeException("Reserved serializer operation");
+		}
+	},
+
+	RESERVED_46 (46)
+	{
+		@Override
+		AvailObject[] decompose (final @NotNull AvailObject object)
+		{
+			throw new RuntimeException("Reserved serializer operation");
+		}
+
+		@Override
+		AvailObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			throw new RuntimeException("Reserved serializer operation");
+		}
+	},
+
+	RESERVED_47 (47)
+	{
+		@Override
+		AvailObject[] decompose (final @NotNull AvailObject object)
+		{
+			throw new RuntimeException("Reserved serializer operation");
+		}
+
+		@Override
+		AvailObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			throw new RuntimeException("Reserved serializer operation");
+		}
+	},
+
+	RESERVED_48 (48)
+	{
+		@Override
+		AvailObject[] decompose (final @NotNull AvailObject object)
+		{
+			throw new RuntimeException("Reserved serializer operation");
+		}
+
+		@Override
+		AvailObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			throw new RuntimeException("Reserved serializer operation");
+		}
+	},
+
+	RESERVED_49 (49)
+	{
+		@Override
+		AvailObject[] decompose (final @NotNull AvailObject object)
+		{
+			throw new RuntimeException("Reserved serializer operation");
+		}
+
+		@Override
+		AvailObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			throw new RuntimeException("Reserved serializer operation");
+		}
+	},
+
+	/**
 	 * A {@linkplain FunctionTypeDescriptor function type}.
 	 */
-	FUNCTION_TYPE (38,
+	FUNCTION_TYPE (50,
 		OBJECT_REFERENCE.as("Arguments tuple type"),
 		OBJECT_REFERENCE.as("Return type"),
 		TUPLE_OF_OBJECTS.as("Checked exceptions"))
@@ -1075,7 +1350,7 @@ public enum SerializerOperation
 	/**
 	 * A {@linkplain TupleTypeDescriptor tuple type}.
 	 */
-	TUPLE_TYPE (39,
+	TUPLE_TYPE (51,
 		OBJECT_REFERENCE.as("Tuple sizes"),
 		TUPLE_OF_OBJECTS.as("Leading types"),
 		OBJECT_REFERENCE.as("Default type"))
@@ -1107,7 +1382,7 @@ public enum SerializerOperation
 	/**
 	 * An {@linkplain IntegerRangeTypeDescriptor integer range type}.
 	 */
-	INTEGER_RANGE_TYPE (40,
+	INTEGER_RANGE_TYPE (52,
 		BYTE.as("Inclusive flags"),
 		OBJECT_REFERENCE.as("Lower bound"),
 		OBJECT_REFERENCE.as("Upper bound"))
@@ -1143,23 +1418,16 @@ public enum SerializerOperation
 
 	/**
 	 * A reference to a {@linkplain MethodDescriptor method} that should be
-	 * looked up by name during reconstruction.
+	 * looked up by name (atom) during reconstruction.
 	 */
-	METHOD (41,
-		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("method's atom's name"),
-		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("method's atom's module name"))
+	METHOD (53,
+		OBJECT_REFERENCE.as("method's atomic name"))
 	{
 		@Override
 		AvailObject[] decompose (final @NotNull AvailObject object)
 		{
 			assert object.isInstanceOf(Types.METHOD.o());
-			final AvailObject methodNameAtom = object.name();
-			final AvailObject module = methodNameAtom.issuingModule();
-			if (module.equalsNull())
-			{
-				throw new RuntimeException("Atom has no issuing module");
-			}
-			return array(methodNameAtom.name(), module.name());
+			return array(object.name());
 		}
 
 		@Override
@@ -1167,12 +1435,7 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			final AvailObject atomName = subobjects[0];
-			final AvailObject moduleName = subobjects[1];
-			final AvailObject atom = lookupAtom(
-				atomName,
-				moduleName,
-				deserializer);
+			final AvailObject atom = subobjects[0];
 			return deserializer.runtime().methodFor(atom);
 		}
 	},
@@ -1182,9 +1445,18 @@ public enum SerializerOperation
 	 * AvailObject#isPojoFusedType()} is false.  This indicates a representation
 	 * with a juicy class filling, which allows a particularly compact
 	 * representation involving the class name and its parameter types.
+	 *
+	 * <p>
+	 * A self pojo type may appear in the parameterization of this class.
+	 * Convert such a self type into a 1-tuple containing the self type's class
+	 * name.  We can't rely on a self pojo type being able to create a proxy for
+	 * itself during serialization, because it is required to be equal to the
+	 * (non-self) type which it parameterizes, leading to problems when
+	 * encountering the self type during tracing.
+	 * </p>
 	 */
-	UNFUSED_POJO_TYPE (42,
-		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("class name"),
+	UNFUSED_POJO_TYPE (54,
+		OBJECT_REFERENCE.as("class name"),
 		TUPLE_OF_OBJECTS.as("class parameterization"))
 	{
 		@Override
@@ -1199,7 +1471,24 @@ public enum SerializerOperation
 				StringDescriptor.from(baseClass.getName());
 			final AvailObject ancestorMap = object.javaAncestors();
 			final AvailObject myParameters = ancestorMap.mapAt(rawPojoType);
-			return array(className, myParameters);
+			final List<AvailObject> processedParameters =
+				new ArrayList<AvailObject>(myParameters.tupleSize());
+			for (final AvailObject parameter : myParameters)
+			{
+				assert !parameter.isTuple();
+				if (parameter.isPojoSelfType())
+				{
+					processedParameters.add(
+						SelfPojoTypeDescriptor.toSerializationProxy(parameter));
+				}
+				else
+				{
+					processedParameters.add(parameter);
+				}
+			}
+			return array(
+				className,
+				TupleDescriptor.fromList(processedParameters));
 		}
 
 		@Override
@@ -1216,14 +1505,30 @@ public enum SerializerOperation
 					subobjects[0].asNativeString(),
 					true,
 					classLoader);
+				final List<AvailObject> processedParameters =
+					new ArrayList<AvailObject>(subobjects[1].tupleSize());
+				for (final AvailObject parameter : subobjects[1])
+				{
+					if (parameter.isTuple())
+					{
+						processedParameters.add(
+							SelfPojoTypeDescriptor.fromSerializationProxy(
+								parameter,
+								classLoader));
+					}
+					else
+					{
+						processedParameters.add(parameter);
+					}
+				}
+				return PojoTypeDescriptor.forClassWithTypeArguments(
+					baseClass,
+					TupleDescriptor.fromList(processedParameters));
 			}
 			catch (final ClassNotFoundException e)
 			{
 				throw new RuntimeException(e);
 			}
-			return PojoTypeDescriptor.forClassWithTypeArguments(
-				baseClass,
-				subobjects[1]);
 		}
 	},
 
@@ -1232,8 +1537,19 @@ public enum SerializerOperation
 	 * AvailObject#isPojoFusedType()} is true.  This indicates a representation
 	 * without the juicy class filling, so we have to say how each ancestor is
 	 * parameterized.
+	 *
+	 * <p>
+	 * We have to pre-convert self pojo types in the parameterizations map,
+	 * otherwise one might be encountered during traversal.  This is bad because
+	 * the self pojo type can be equal to another (non-self) pojo type, and in
+	 * fact almost certainly will be equal to a previously encountered object
+	 * (a pojo type that it's embedded in), so the serializer will think this is
+	 * a cyclic structure.  To avoid this, we convert any occurrence of a self
+	 * type into a tuple of size one, containing the name of the java class or
+	 * interface name.  This is enough to reconstruct the self pojo type.
+	 * </p>
 	 */
-	FUSED_POJO_TYPE (43,
+	FUSED_POJO_TYPE (55,
 		GENERAL_MAP.as("ancestor parameterizations map"))
 	{
 		@Override
@@ -1249,9 +1565,25 @@ public enum SerializerOperation
 					(Class<?>)entry.key.javaObject();
 				final AvailObject className =
 					StringDescriptor.from(baseClass.getName());
+				final List<AvailObject> processedParameters =
+					new ArrayList<AvailObject>(entry.value.tupleSize());
+				for (final AvailObject parameter : entry.value)
+				{
+					assert !parameter.isTuple();
+					if (parameter.isPojoSelfType())
+					{
+						processedParameters.add(
+							SelfPojoTypeDescriptor.toSerializationProxy(
+								parameter));
+					}
+					else
+					{
+						processedParameters.add(parameter);
+					}
+				}
 				symbolicMap = symbolicMap.mapAtPuttingCanDestroy(
 					className,
-					entry.value,
+					TupleDescriptor.fromList(processedParameters),
 					true);
 			}
 			return array(symbolicMap);
@@ -1276,9 +1608,25 @@ public enum SerializerOperation
 						classLoader);
 					final AvailObject rawPojo =
 						RawPojoDescriptor.equalityWrap(baseClass);
+					final List<AvailObject> processedParameters =
+						new ArrayList<AvailObject>(entry.value.tupleSize());
+					for (final AvailObject parameter : entry.value)
+					{
+						if (parameter.isTuple())
+						{
+							processedParameters.add(
+								SelfPojoTypeDescriptor.fromSerializationProxy(
+									parameter,
+									classLoader));
+						}
+						else
+						{
+							processedParameters.add(parameter);
+						}
+					}
 					ancestorMap = ancestorMap.mapAtPuttingCanDestroy(
 						rawPojo,
-						entry.value,
+						TupleDescriptor.fromList(processedParameters),
 						true);
 				}
 			}
@@ -1297,7 +1645,7 @@ public enum SerializerOperation
 	 * range of allowable sizes (a much stronger model than Java itself
 	 * supports).
 	 */
-	ARRAY_POJO_TYPE (44,
+	ARRAY_POJO_TYPE (56,
 		OBJECT_REFERENCE.as("content type"),
 		OBJECT_REFERENCE.as("size range"))
 	{
@@ -1324,25 +1672,22 @@ public enum SerializerOperation
 	},
 
 	/**
-	 * A {@linkplain PojoTypeDescriptor pojo type} representing a "self type"
-	 * for parameterizing a Java class by itself.  For example, in the
-	 * parametric type {@code Enum<E extends Enum<E>>}, we parameterize the
-	 * class {@code Enum} with such a self type.  To reconstruct a self type all
-	 * we need is a way to get to the raw Java class, so we serialize its name.
+	 * A {@linkplain SetDescriptor set} of {@linkplain StringDescriptor class
+	 * names} standing in for a {@linkplain PojoTypeDescriptor pojo type}
+	 * representing a "self type".  A self type is used for for parameterizing a
+	 * Java class by itself.  For example, in the parametric type {@code
+	 * Enum<E extends Enum<E>>}, we parameterize the class {@code Enum} with
+	 * such a self type.  To reconstruct a self type all we need is a way to get
+	 * to the raw Java classes involved, so we serialize their names.
 	 */
-	SELF_POJO_TYPE (45,
-		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("class name"))
+	SELF_POJO_TYPE_REPRESENTATIVE (57,
+		TUPLE_OF_OBJECTS.as("class names"))
 	{
 		@Override
 		AvailObject[] decompose (final @NotNull AvailObject object)
 		{
-			assert object.isPojoSelfType();
-			final AvailObject rawPojoType = object.javaClass();
-			final Class<?> selfClass =
-				(Class<?>)rawPojoType.javaObject();
-			final AvailObject className =
-				StringDescriptor.from(selfClass.getName());
-			return array(className);
+			throw new RuntimeException(
+				"Can't serialize a self pojo type directly");
 		}
 
 		@Override
@@ -1350,22 +1695,326 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			final String className = subobjects[0].asNativeString();
-			final ClassLoader classLoader =
-				deserializer.runtime().classLoader();
-			Class<?> baseClass;
-			try
-			{
-				baseClass = Class.forName(
-					className,
-					true,
-					classLoader);
-			}
-			catch (final ClassNotFoundException e)
-			{
-				throw new RuntimeException(e);
-			}
-			return PojoTypeDescriptor.selfTypeForClass(baseClass);
+			throw new RuntimeException(
+				"Can't serialize a self pojo type directly");
+		}
+	},
+
+	/**
+	 * The bottom {@linkplain PojoTypeDescriptor pojo type}, representing
+	 * the most specific type of pojo.
+	 */
+	BOTTOM_POJO_TYPE (58)
+	{
+		@Override
+		AvailObject[] decompose (final @NotNull AvailObject object)
+		{
+			return array();
+		}
+
+		@Override
+		@NotNull AvailObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			return PojoTypeDescriptor.pojoBottom();
+		}
+	},
+
+	/**
+	 * The bottom {@linkplain PojoTypeDescriptor pojo type}, representing
+	 * the most specific type of pojo.
+	 */
+	COMPILED_CODE_TYPE (59,
+		OBJECT_REFERENCE.as("function type for code type"))
+	{
+		@Override
+		AvailObject[] decompose (final @NotNull AvailObject object)
+		{
+			return array(object.functionType());
+		}
+
+		@Override
+		@NotNull AvailObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			return CompiledCodeTypeDescriptor.forFunctionType(subobjects[0]);
+		}
+	},
+
+	/**
+	 * The bottom {@linkplain PojoTypeDescriptor pojo type}, representing
+	 * the most specific type of pojo.
+	 */
+	CONTINUATION_TYPE (60,
+		OBJECT_REFERENCE.as("function type for continuation type"))
+	{
+		@Override
+		AvailObject[] decompose (final @NotNull AvailObject object)
+		{
+			return array(object.functionType());
+		}
+
+		@Override
+		@NotNull AvailObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			return ContinuationTypeDescriptor.forFunctionType(subobjects[0]);
+		}
+	},
+
+	/**
+	 * An Avail {@link EnumerationTypeDescriptor enumeration}, a type that has
+	 * an explicit finite list of its instances.
+	 */
+	ENUMERATION_TYPE (61,
+		TUPLE_OF_OBJECTS.as("set of instances"))
+	{
+		@Override
+		AvailObject[] decompose (final @NotNull AvailObject object)
+		{
+			return array(object.instances().asTuple());
+		}
+
+		@Override
+		@NotNull AvailObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			return AbstractEnumerationTypeDescriptor.withInstances(
+				subobjects[0].asSet());
+		}
+	},
+
+	/**
+	 * An Avail {@link InstanceTypeDescriptor singular enumeration}, a type that
+	 * has a single (non-type) instance.
+	 */
+	INSTANCE_TYPE (62,
+		OBJECT_REFERENCE.as("type's instance"))
+	{
+		@Override
+		AvailObject[] decompose (final @NotNull AvailObject object)
+		{
+			return array(object.instance());
+		}
+
+		@Override
+		@NotNull AvailObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			return InstanceTypeDescriptor.on(subobjects[0]);
+		}
+	},
+
+	/**
+	 * An Avail {@link InstanceMetaDescriptor instance meta}, a type that
+	 * has an instance i, which is itself a type.  Subtypes of type i are also
+	 * considered instances of this instance meta.
+	 */
+	INSTANCE_META (63,
+		OBJECT_REFERENCE.as("meta's instance"))
+	{
+		@Override
+		AvailObject[] decompose (final @NotNull AvailObject object)
+		{
+			return array(object.instance());
+		}
+
+		@Override
+		@NotNull AvailObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			return InstanceMetaDescriptor.on(subobjects[0]);
+		}
+	},
+
+	/**
+	 * A {@linkplain SetTypeDescriptor set type}.
+	 */
+	SET_TYPE (64,
+		OBJECT_REFERENCE.as("size range"),
+		OBJECT_REFERENCE.as("element type"))
+	{
+		@Override
+		AvailObject[] decompose (final @NotNull AvailObject object)
+		{
+			return array (
+				object.sizeRange(),
+				object.contentType());
+		}
+
+		@Override
+		AvailObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			final AvailObject sizeRange = subobjects[0];
+			final AvailObject contentType = subobjects[1];
+			return SetTypeDescriptor.setTypeForSizesContentType(
+				sizeRange,
+				contentType);
+		}
+	},
+
+	/**
+	 * A {@linkplain MapTypeDescriptor map type}.
+	 */
+	MAP_TYPE (65,
+		OBJECT_REFERENCE.as("size range"),
+		OBJECT_REFERENCE.as("key type"),
+		OBJECT_REFERENCE.as("value type"))
+	{
+		@Override
+		AvailObject[] decompose (final @NotNull AvailObject object)
+		{
+			return array (
+				object.sizeRange(),
+				object.keyType(),
+				object.valueType());
+		}
+
+		@Override
+		AvailObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			final AvailObject sizeRange = subobjects[0];
+			final AvailObject keyType = subobjects[1];
+			final AvailObject valueType = subobjects[2];
+			return MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
+				sizeRange,
+				keyType,
+				valueType);
+		}
+	},
+
+	/**
+	 * A {@linkplain LiteralTokenTypeDescriptor literal token type}.
+	 */
+	LITERAL_TOKEN_TYPE (66,
+		OBJECT_REFERENCE.as("literal type"))
+	{
+		@Override
+		AvailObject[] decompose (final @NotNull AvailObject object)
+		{
+			return array (
+				object.literalType());
+		}
+
+		@Override
+		AvailObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			return LiteralTokenTypeDescriptor.create(subobjects[0]);
+		}
+	},
+
+	/**
+	 * A {@linkplain ParseNodeTypeDescriptor parse node type}.
+	 */
+	PARSE_NODE_TYPE (67,
+		BYTE.as("kind"),
+		OBJECT_REFERENCE.as("expression type"))
+	{
+		@Override
+		AvailObject[] decompose (final @NotNull AvailObject object)
+		{
+			return array (
+				IntegerDescriptor.fromInt(object.parseNodeKind().ordinal()),
+				object.expressionType());
+		}
+
+		@Override
+		AvailObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			final int parseNodeKindOrdinal = subobjects[0].extractInt();
+			final AvailObject expressionType = subobjects[1];
+			final ParseNodeKind parseNodeKind =
+				ParseNodeKind.values()[parseNodeKindOrdinal];
+			return parseNodeKind.create(expressionType);
+		}
+	},
+
+	/**
+	 * A {@linkplain VariableTypeDescriptor variable type} for which the read
+	 * type and write type are equal.
+	 */
+	SIMPLE_VARIABLE_TYPE (68,
+		OBJECT_REFERENCE.as("content type"))
+	{
+		@Override
+		AvailObject[] decompose (final @NotNull AvailObject object)
+		{
+			final AvailObject readType = object.readType();
+			assert readType.equals(object.writeType());
+			return array (
+				readType);
+		}
+
+		@Override
+		AvailObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			return VariableTypeDescriptor.wrapInnerType(subobjects[0]);
+		}
+	},
+
+	/**
+	 * A {@linkplain ReadWriteVariableTypeDescriptor variable type} for which
+	 * the read type and write type are (actually) unequal.
+	 */
+	READ_WRITE_VARIABLE_TYPE (69,
+		OBJECT_REFERENCE.as("content type"))
+	{
+		@Override
+		AvailObject[] decompose (final @NotNull AvailObject object)
+		{
+			final AvailObject readType = object.readType();
+			final AvailObject writeType = object.writeType();
+			assert !readType.equals(writeType);
+			return array (
+				readType,
+				writeType);
+		}
+
+		@Override
+		AvailObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			return VariableTypeDescriptor.fromReadAndWriteTypes(
+				subobjects[0],
+				subobjects[1]);
+		}
+	},
+
+	/**
+	 * The {@linkplain BottomTypeDescriptor bottom type}, more specific than all
+	 * other types.
+	 */
+	BOTTOM_TYPE (70)
+	{
+		@Override
+		AvailObject[] decompose (final @NotNull AvailObject object)
+		{
+			return array();
+		}
+
+		@Override
+		@NotNull AvailObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			return PojoTypeDescriptor.pojoBottom();
 		}
 	};
 
@@ -1382,6 +2031,17 @@ public enum SerializerOperation
 	@NotNull SerializerOperand[] operands ()
 	{
 		return operands;
+	}
+
+	/**
+	 * Answer whether this operation is the serialization of a {@linkplain
+	 * VariableDescriptor variable}.
+	 *
+	 * @return false (true in the relevant enumeration values).
+	 */
+	boolean isVariable ()
+	{
+		return false;
 	}
 
 	/**
@@ -1470,60 +2130,49 @@ public enum SerializerOperation
 		{
 			// An atom in the current module.  Create it if necessary.
 			// Check if it's already defined somewhere...
-			final AvailObject localMatches;
-			if (currentModule.privateNames().hasKey(atomName))
+			final AvailObject trueNames =
+				currentModule.trueNamesForStringName(atomName);
+			if (trueNames.setSize() == 1)
 			{
-				localMatches = currentModule.privateNames().mapAt(atomName);
+				return trueNames.asTuple().tupleAt(1);
 			}
-			else
-			{
-				localMatches = SetDescriptor.empty();
-			}
-
-			if (localMatches.setSize() == 1)
-			{
-				return localMatches.asTuple().tupleAt(1);
-			}
-			else if (localMatches.setSize() == 0)
-			{
-				final AvailObject atom = AtomDescriptor.create(
-					atomName,
-					currentModule);
-				currentModule.atPrivateNameAdd(atomName, atom);
-				return atom;
-			}
-			else
-			{
-				throw new RuntimeException(
-					"Ambiguous local atom name: \""
-					+ atomName.toString() + "\"");
-			}
+			final AvailObject atom = AtomDescriptor.create(
+				atomName,
+				currentModule);
+			atom.makeImmutable();
+			currentModule.atPrivateNameAdd(atomName, atom);
+			return atom;
 		}
 		// An atom in an imported module.
 		final AvailObject module = deserializer.moduleNamed(moduleName);
-		if (module.privateNames().hasKey(atomName))
+		final AvailObject newNames = module.newNames();
+		if (newNames.hasKey(atomName))
 		{
-			final AvailObject atoms = module.privateNames().mapAt(atomName);
-			if (atoms.setSize() == 1)
+			return newNames.mapAt(atomName);
+		}
+		final AvailObject privateNames = module.privateNames();
+		if (privateNames.hasKey(atomName))
+		{
+			final AvailObject candidates = privateNames.mapAt(atomName);
+			if (candidates.setSize() == 1)
 			{
-				return atoms.asTuple().tupleAt(1);
+				return candidates.asTuple().tupleAt(1);
 			}
-			if (atoms.setSize() > 1)
+			if (candidates.setSize() > 1)
 			{
 				throw new RuntimeException(
-					"Ambiguous imported atom \""
-					+ atomName.toString()
-					+ "\" in module \""
-					+ moduleName.toString()
-					+ "\"");
+					String.format(
+						"Ambiguous atom \"%s\" in module %s",
+						atomName,
+						module));
 			}
 		}
+		// This should probably fail more gracefully.
 		throw new RuntimeException(
-			"No such atom \""
-			+ atomName.toString()
-			+ "\" in module \""
-			+ moduleName.toString()
-			+ "\"");
+			String.format(
+				"Unknown atom \"%s\" in module %s",
+				atomName,
+				module));
 	}
 
 	/**

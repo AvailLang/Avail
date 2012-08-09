@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import static com.avail.descriptor.ReadWriteVariableTypeDescriptor.ObjectSlots.*;
 import java.util.List;
 import com.avail.annotations.*;
+import com.avail.serialization.SerializerOperation;
 
 /**
  * A {@code ReadWriteVariableTypeDescriptor read-write variable type} is
@@ -211,6 +212,17 @@ extends TypeDescriptor
 			object.slot(READ_TYPE).typeUnion(aVariableType.readType()),
 			object.slot(WRITE_TYPE).typeIntersection(
 				aVariableType.writeType()));
+	}
+
+	@Override
+	@NotNull SerializerOperation o_SerializerOperation (
+		final @NotNull AvailObject object)
+	{
+		if (object.readType().equals(object.writeType()))
+		{
+			return SerializerOperation.SIMPLE_VARIABLE_TYPE;
+		}
+		return SerializerOperation.READ_WRITE_VARIABLE_TYPE;
 	}
 
 	/**

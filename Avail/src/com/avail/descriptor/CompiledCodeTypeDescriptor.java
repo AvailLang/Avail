@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import static com.avail.descriptor.CompiledCodeTypeDescriptor.ObjectSlots.*;
 import java.util.List;
 import com.avail.annotations.*;
+import com.avail.serialization.SerializerOperation;
 
 /**
  * A {@linkplain CompiledCodeTypeDescriptor compiled code type} is the type for
@@ -211,6 +212,13 @@ extends TypeDescriptor
 				closType2.argsTupleType()),
 				closType1.returnType().typeIntersection(closType2.returnType()));
 		return forFunctionType(union);
+	}
+
+	@Override
+	@NotNull SerializerOperation o_SerializerOperation (
+		final @NotNull AvailObject object)
+	{
+		return SerializerOperation.COMPILED_CODE_TYPE;
 	}
 
 	/**

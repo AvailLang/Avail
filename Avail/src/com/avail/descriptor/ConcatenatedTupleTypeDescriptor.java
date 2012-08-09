@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import static com.avail.descriptor.ConcatenatedTupleTypeDescriptor.ObjectSlots.*;
 import static java.lang.Math.*;
 import com.avail.annotations.*;
+import com.avail.serialization.SerializerOperation;
 
 /**
  * An object instance of {@code ConcatenatedTupleTypeDescriptor} is an
@@ -566,6 +567,14 @@ extends TypeDescriptor
 	{
 		// This is a tupleType.
 		return true;
+	}
+
+	@Override
+	@NotNull SerializerOperation o_SerializerOperation (
+		final @NotNull AvailObject object)
+	{
+		becomeRealTupleType(object);
+		return object.serializerOperation();
 	}
 
 	/**

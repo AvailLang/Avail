@@ -311,6 +311,10 @@ implements ThreadFactory
 	{
 		this.moduleNameResolver = moduleNameResolver;
 		this.classLoader = classLoader;
+		addMethod(MethodDescriptor.vmCrashMethod());
+		addMethod(MethodDescriptor.vmFunctionApplyMethod());
+		addMethod(MethodDescriptor.vmDefinerMethod());
+		addMethod(MethodDescriptor.vmPublishAtomsMethod());
 	}
 
 	/**
@@ -433,6 +437,7 @@ implements ThreadFactory
 	 */
 	public static void createWellKnownObjects ()
 	{
+		// Set up the special objects.
 		specialObjects[1] = ANY.o();
 		specialObjects[2] = EnumerationTypeDescriptor.booleanObject();
 		specialObjects[3] = CHARACTER.o();
@@ -688,7 +693,13 @@ implements ThreadFactory
 		specialAtoms[0] = AtomDescriptor.trueObject();
 		specialAtoms[1] = AtomDescriptor.falseObject();
 		specialAtoms[2] = PojoTypeDescriptor.selfAtom();
-
+		specialAtoms[3] = ObjectTypeDescriptor.exceptionAtom();
+		specialAtoms[4] = MethodDescriptor.vmCrashAtom();
+		specialAtoms[5] = MethodDescriptor.vmFunctionApplyAtom();
+		specialAtoms[6] = MethodDescriptor.vmDefinerAtom();
+		specialAtoms[7] = MethodDescriptor.vmPublishAtomsAtom();
+		specialAtoms[8] = AtomDescriptor.moduleHeaderSectionAtom();
+		specialAtoms[9] = AtomDescriptor.moduleBodySectionAtom();
 
 		assert specialAtomsSet == null;
 		specialAtomsSet = new HashSet<AvailObject>(specialAtomsList);
@@ -840,6 +851,31 @@ implements ThreadFactory
 		finally
 		{
 			runtimeLock.readLock().unlock();
+		}
+	}
+
+	/**
+	 * Add a {@linkplain MethodDescriptor method} to the runtime.
+	 *
+	 * @param method A {@linkplain MethodDescriptor method}.
+	 */
+	@ThreadSafe
+	public void addMethod (
+		final @NotNull AvailObject method)
+	{
+		runtimeLock.writeLock().lock();
+		try
+		{
+			final AvailObject methodName = method.name();
+			assert !methods.hasKey(methodName);
+			methods = methods.mapAtPuttingCanDestroy(
+				methodName,
+				method,
+				true);
+		}
+		finally
+		{
+			runtimeLock.writeLock().unlock();
 		}
 	}
 

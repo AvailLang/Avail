@@ -149,7 +149,7 @@ public class P_132_TupleReplaceAt extends Primitive
 			: originalTupleType.defaultType().typeUnion(newElementType);
 		return TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 			originalTupleType.sizeRange(),
-			TupleDescriptor.fromCollection(typeList),
+			TupleDescriptor.fromList(typeList),
 			newDefaultType);
 	}
 }

@@ -39,6 +39,7 @@ import static java.lang.Math.*;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.serialization.SerializerOperation;
 
 /**
  * My instances are called <em>instance types</em>, the types of individual
@@ -663,6 +664,13 @@ extends AbstractEnumerationTypeDescriptor
 	{
 		final AvailObject instance = getInstance(object);
 		return instance.isInt() && instance.extractInt() == anInt;
+	}
+
+	@Override
+	@NotNull SerializerOperation o_SerializerOperation (
+		final @NotNull AvailObject object)
+	{
+		return SerializerOperation.INSTANCE_TYPE;
 	}
 
 	/**

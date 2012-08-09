@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 import com.avail.annotations.*;
+import com.avail.serialization.SerializerOperation;
 
 /**
  * An object instance of {@code MapTypeDescriptor} is a type which maps may
@@ -268,6 +269,13 @@ extends TypeDescriptor
 			object.sizeRange().typeUnion(aMapType.sizeRange()).makeImmutable(),
 			object.keyType().typeUnion(aMapType.keyType()).makeImmutable(),
 			object.valueType().typeUnion(aMapType.valueType()).makeImmutable());
+	}
+
+	@Override
+	@NotNull SerializerOperation o_SerializerOperation (
+		final @NotNull AvailObject object)
+	{
+		return SerializerOperation.MAP_TYPE;
 	}
 
 	/**

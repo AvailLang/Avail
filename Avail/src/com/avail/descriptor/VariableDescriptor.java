@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.exceptions.*;
+import com.avail.serialization.SerializerOperation;
 
 /**
  * My {@linkplain AvailObject object instances} are variables which can hold
@@ -182,6 +183,13 @@ extends Descriptor
 				AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE);
 		}
 		return value;
+	}
+
+	@Override
+	@NotNull SerializerOperation o_SerializerOperation (
+		final @NotNull AvailObject object)
+	{
+		return SerializerOperation.VARIABLE;
 	}
 
 	/**

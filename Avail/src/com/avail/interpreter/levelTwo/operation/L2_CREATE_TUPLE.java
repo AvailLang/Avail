@@ -107,7 +107,7 @@ public class L2_CREATE_TUPLE extends L2Operation
 		final AvailObject tupleType =
 			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 				sizeRange,
-				TupleDescriptor.fromCollection(types),
+				TupleDescriptor.fromList(types),
 				BottomTypeDescriptor.bottom());
 		tupleType.makeImmutable();
 		registers.typeAtPut(destinationOperand.register, tupleType);
@@ -120,7 +120,7 @@ public class L2_CREATE_TUPLE extends L2Operation
 			{
 				constants.add(registers.constantAt(register));
 			}
-			final AvailObject tuple = TupleDescriptor.fromCollection(
+			final AvailObject tuple = TupleDescriptor.fromList(
 				constants);
 			tuple.makeImmutable();
 			assert tuple.isInstanceOf(tupleType);

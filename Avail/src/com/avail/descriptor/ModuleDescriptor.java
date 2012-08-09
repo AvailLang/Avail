@@ -220,6 +220,16 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
+	void o_IsSystemModule (
+		final @NotNull AvailObject object,
+		final boolean isSystemModule)
+	{
+		object.setSlot(
+			IS_SYSTEM_MODULE,
+			isSystemModule ? 1 : 0);
+	}
+
+	@Override @AvailMethod
 	int o_AllocateFromCounter (final @NotNull AvailObject object)
 	{
 		final int value = object.slot(COUNTER);
@@ -278,6 +288,8 @@ extends Descriptor
 		final @NotNull AvailObject name,
 		final @NotNull AvailObject constantBinding)
 	{
+		assert constantBinding.kind().isSubtypeOf(
+			VariableTypeDescriptor.mostGeneralType());
 		AvailObject constantBindings = object.slot(
 			CONSTANT_BINDINGS);
 		constantBindings = constantBindings.mapAtPuttingCanDestroy(
@@ -293,6 +305,8 @@ extends Descriptor
 		final @NotNull AvailObject name,
 		final @NotNull AvailObject variableBinding)
 	{
+		assert variableBinding.kind().isSubtypeOf(
+			VariableTypeDescriptor.mostGeneralType());
 		AvailObject variableBindings = object.slot(
 			VARIABLE_BINDINGS);
 		variableBindings = variableBindings.mapAtPuttingCanDestroy(
@@ -754,13 +768,10 @@ extends Descriptor
 	 *
 	 * @param moduleName
 	 *        The {@linkplain StringDescriptor name} of the module.
-	 * @param isSystemModule
-	 *        {@code true} if this is a system module, {@code false} otherwise.
 	 * @return The new module.
 	 */
 	public static @NotNull AvailObject newModule (
-		final @NotNull AvailObject moduleName,
-		final boolean isSystemModule)
+		final @NotNull AvailObject moduleName)
 	{
 		final AvailObject emptyMap = MapDescriptor.empty();
 		final AvailObject emptySet = SetDescriptor.empty();
@@ -781,7 +792,6 @@ extends Descriptor
 		object.setSlot(VARIABLE_BINDINGS, emptyMap);
 		object.setSlot(TYPE_RESTRICTION_FUNCTIONS, MapDescriptor.empty());
 		object.setSlot(SEALS, MapDescriptor.empty());
-		object.setSlot(IS_SYSTEM_MODULE, isSystemModule ? 1 : 0);
 		object.setSlot(COUNTER, 0);
 		return object;
 	}

@@ -373,12 +373,12 @@ public class L1InstructionWriter
 			localTypes.size(),
 			stackTracker.maxDepth(),
 			FunctionTypeDescriptor.create(
-				TupleDescriptor.fromCollection(argumentTypes),
+				TupleDescriptor.fromList(argumentTypes),
 				returnType),
 			primitiveNumber,
-			TupleDescriptor.fromCollection(literals),
-			TupleDescriptor.fromCollection(localTypes),
-			TupleDescriptor.fromCollection(outerTypes),
+			TupleDescriptor.fromList(literals),
+			TupleDescriptor.fromList(localTypes),
+			TupleDescriptor.fromList(outerTypes),
 			module,
 			startingLineNumber);
 	}

@@ -120,7 +120,7 @@ extends Descriptor
 		{
 			fieldAssignments.add(TupleDescriptor.from(entry.key, entry.value));
 		}
-		return TupleDescriptor.fromCollection(fieldAssignments);
+		return TupleDescriptor.fromList(fieldAssignments);
 	}
 
 	@Override @AvailMethod

@@ -139,7 +139,11 @@ public class AbstractAvailTest
 		try
 		{
 			final Mutable<ModuleName> lastModule = new Mutable<ModuleName>();
-			final AvailBuilder builder = new AvailBuilder(runtime, target);
+			final Repository repository = Repository.createTemporary();
+			final AvailBuilder builder = new AvailBuilder(
+				runtime,
+				repository,
+				target);
 			AvailBuilder.buildTargetInNewAvailThread(
 				builder,
 				new Continuation4<ModuleName, Long, Long, Long>()

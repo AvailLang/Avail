@@ -438,7 +438,7 @@ public class MessageSplitter
 			// Describe the token that was parsed as this raw token argument.
 			arguments.next().printOnAvoidingIndent(
 				aStream,
-				Collections.<AvailObject>emptyList(),
+				new ArrayList<AvailObject>(),
 				indent + 1);
 		}
 	}
@@ -1718,7 +1718,7 @@ public class MessageSplitter
 	 */
 	public AvailObject messageParts ()
 	{
-		final AvailObject tuple = TupleDescriptor.fromCollection(messageParts);
+		final AvailObject tuple = TupleDescriptor.fromList(messageParts);
 		tuple.makeImmutable();
 		return tuple;
 	}

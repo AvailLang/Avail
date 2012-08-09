@@ -37,6 +37,7 @@ import static com.avail.descriptor.AvailObject.multiplier;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.serialization.SerializerOperation;
 
 /**
  * My instances are called <em>enumerations</em>. This descriptor family is
@@ -723,6 +724,13 @@ extends AbstractEnumerationTypeDescriptor
 	{
 		return getInstances(object).hasElement(
 			IntegerDescriptor.fromInt(anInt));
+	}
+
+	@Override
+	@NotNull SerializerOperation o_SerializerOperation (
+		final @NotNull AvailObject object)
+	{
+		return SerializerOperation.ENUMERATION_TYPE;
 	}
 
 	/**

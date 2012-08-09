@@ -254,7 +254,7 @@ public class AvailCodeGenerator
 				resultType,
 				exceptionSet),
 			primitive,
-			TupleDescriptor.fromCollection(literals),
+			TupleDescriptor.fromList(literals),
 			localsTuple,
 			outerTuple,
 			module,

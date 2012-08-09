@@ -51,6 +51,7 @@ StringGraph ::= Graph of string;
 ]();
 
 gf ::= new StringGraph Factory;
+Print gf;
 gf add node "hello";
 gf add node "there";
 gf add edge from "hello" to "there";

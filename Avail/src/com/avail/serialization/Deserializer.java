@@ -138,6 +138,10 @@ public class Deserializer
 		final @NotNull AvailObject moduleName)
 	{
 		assert moduleName.isString();
+		if (moduleName.equals(currentModule.name()))
+		{
+			return currentModule;
+		}
 		if (!runtime.includesModuleNamed(moduleName))
 		{
 			throw new RuntimeException(
@@ -170,7 +174,7 @@ public class Deserializer
 
 	/**
 	 * Deserialize an object from the {@link #input} and return it.  If there
-	 * are no more objects in the input then answer nil.  If the stream is
+	 * are no more objects in the input then answer null.  If the stream is
 	 * malformed throw a MalformedSerialStreamException.
 	 *
 	 * @return A fully deserialized object or null.
@@ -179,6 +183,7 @@ public class Deserializer
 	public AvailObject deserialize ()
 	throws MalformedSerialStreamException
 	{
+		assert producedObject == null;
 		try
 		{
 			if (input.available() == 0)
@@ -189,7 +194,9 @@ public class Deserializer
 			{
 				SerializerOperation.readObject(this);
 			}
-			return producedObject;
+			final AvailObject temp = producedObject;
+			producedObject = null;
+			return temp;
 		}
 		catch (final IOException e)
 		{
@@ -227,6 +234,7 @@ public class Deserializer
 	protected void recordProducedObject (
 		final @NotNull AvailObject object)
 	{
+		assert producedObject == null;
 		producedObject = object;
 	}
 

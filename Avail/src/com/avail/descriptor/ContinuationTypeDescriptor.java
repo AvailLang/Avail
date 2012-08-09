@@ -36,6 +36,7 @@ import java.util.List;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.interpreter.primitive.*;
+import com.avail.serialization.SerializerOperation;
 
 /**
  * Continuation types are the types of {@linkplain ContinuationDescriptor
@@ -249,6 +250,13 @@ extends TypeDescriptor
 				closType2.argsTupleType()),
 				closType1.returnType().typeIntersection(closType2.returnType()));
 		return forFunctionType(union);
+	}
+
+	@Override
+	@NotNull SerializerOperation o_SerializerOperation (
+		final @NotNull AvailObject object)
+	{
+		return SerializerOperation.CONTINUATION_TYPE;
 	}
 
 	/**

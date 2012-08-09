@@ -192,7 +192,7 @@ extends SetBinDescriptor
 			myLevel,
 			oldSize + 1,
 			object.binHash() + elementObjectHash);
-		result.binElementAtPut(oldSize + 1, elementObject);
+		result.setSlot(BIN_ELEMENT_AT_, oldSize + 1, elementObject);
 		if (canDestroy && isMutable)
 		{
 			for (int i = 1; i <= oldSize; i++)

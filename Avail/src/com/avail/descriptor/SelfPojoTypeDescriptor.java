@@ -49,7 +49,7 @@ import com.avail.serialization.SerializerOperation;
  *
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
-final class SelfPojoTypeDescriptor
+public final class SelfPojoTypeDescriptor
 extends PojoTypeDescriptor
 {
 	/** The layout of the object slots. */
@@ -65,7 +65,7 @@ extends PojoTypeDescriptor
 
 		/**
 		 * A {@linkplain SetDescriptor set} of {@linkplain PojoDescriptor
-		 * pojos} that wrap {@Linkplain Class Java classes and interfaces}. This
+		 * pojos} that wrap {@linkplain Class Java classes and interfaces}. This
 		 * constitutes this type's complete ancestry of Java types. There are no
 		 * {@linkplain TypeDescriptor type parameterization} {@linkplain
 		 * TupleDescriptor tuples} because no Java type may appear multiply in
@@ -187,7 +187,7 @@ extends PojoTypeDescriptor
 	@NotNull SerializerOperation o_SerializerOperation (
 		final @NotNull AvailObject object)
 	{
-		return SerializerOperation.SELF_POJO_TYPE;
+		return SerializerOperation.SELF_POJO_TYPE_REPRESENTATIVE;
 	}
 
 	@Override @AvailMethod
@@ -357,7 +357,7 @@ extends PojoTypeDescriptor
 	 *        pojo self type.
 	 * @param javaAncestors
 	 *        A {@linkplain SetDescriptor set} of {@linkplain PojoDescriptor
-	 *        pojos} that wrap {@Linkplain Class Java classes and interfaces}.
+	 *        pojos} that wrap {@linkplain Class Java classes and interfaces}.
 	 *        This constitutes this type's complete ancestry of Java types.
 	 *        There are no {@linkplain TypeDescriptor type parameterization}
 	 *        {@linkplain TupleDescriptor tuples} because no Java type may
@@ -375,4 +375,87 @@ extends PojoTypeDescriptor
 		newObject.setSlot(JAVA_ANCESTORS, javaAncestors);
 		return newObject.makeImmutable();
 	}
+
+	/**
+	 * Convert a self pojo type to a 2-tuple holding the main class name (or
+	 * null) and a set of ancestor class names.
+	 *
+	 * @param selfPojo The self pojo to convert.
+	 * @return A 2-tuple suitable for serialization.
+	 */
+	public static @NotNull AvailObject toSerializationProxy (
+		final @NotNull AvailObject selfPojo)
+	{
+		assert selfPojo.isPojoSelfType();
+		final AvailObject pojoClass = selfPojo.javaClass();
+		final AvailObject mainClassName;
+		if (pojoClass.equalsNull())
+		{
+			mainClassName = NullDescriptor.nullObject();
+		}
+		else
+		{
+			final Class<?> javaClass =
+				(Class<?>)pojoClass.javaObject();
+			mainClassName = StringDescriptor.from(javaClass.getName());
+		}
+		AvailObject ancestorNames = SetDescriptor.empty();
+		for (final AvailObject ancestor : selfPojo.javaAncestors())
+		{
+			final Class<?> javaClass =
+				(Class<?>)ancestor.javaObject();
+			ancestorNames = ancestorNames.setWithElementCanDestroy(
+				StringDescriptor.from(javaClass.getName()),
+				true);
+		}
+		return TupleDescriptor.from(
+			mainClassName,
+			ancestorNames);
+	}
+
+	/**
+	 * Convert a proxy previously created by {@link
+	 * #toSerializationProxy(AvailObject)} back into a self pojo type.
+	 *
+	 * @param selfPojoProxy
+	 *            A 2-tuple with the class name (or null) and a set of ancestor
+	 *            class names.
+	 * @param classLoader
+	 *            The {@link ClassLoader} used to load any mentioned classes.
+	 * @return A self pojo type.
+	 * @throws ClassNotFoundException If a class can't be loaded.
+	 */
+	public static @NotNull AvailObject fromSerializationProxy (
+		final @NotNull AvailObject selfPojoProxy,
+		final @NotNull ClassLoader classLoader)
+	throws ClassNotFoundException
+	{
+		final AvailObject className = selfPojoProxy.tupleAt(1);
+		final AvailObject mainType;
+		if (className.equalsNull())
+		{
+			mainType = NullDescriptor.nullObject();
+		}
+		else
+		{
+			final Class<?> mainClass = Class.forName(
+				className.asNativeString(),
+				true,
+				classLoader);
+			mainType = RawPojoDescriptor.equalityWrap(mainClass);
+		}
+		AvailObject ancestorTypes = SetDescriptor.empty();
+		for (final AvailObject ancestorClassName : selfPojoProxy.tupleAt(2))
+		{
+			final Class<?> ancestorClass = Class.forName(
+				ancestorClassName.asNativeString(),
+				true,
+				classLoader);
+			ancestorTypes = ancestorTypes.setWithElementCanDestroy(
+				RawPojoDescriptor.equalityWrap(ancestorClass),
+				true);
+		}
+		return SelfPojoTypeDescriptor.create(mainType, ancestorTypes);
+	}
+
 }

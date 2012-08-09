@@ -172,6 +172,7 @@ public final class SerializerTest
 		assertTrue(
 			"Serialization stream was not fully emptied",
 			in.available() == 0);
+		assert deserializer.deserialize() == null;
 		return newObject;
 	}
 
@@ -336,7 +337,7 @@ public final class SerializerTest
 					}
 					if (choice == 2)
 					{
-						newObject = TupleDescriptor.fromCollection(members);
+						newObject = TupleDescriptor.fromList(members);
 					}
 					else if (choice == 3)
 					{
@@ -373,11 +374,11 @@ public final class SerializerTest
 	throws MalformedSerialStreamException
 	{
 		final AvailObject inputModule = ModuleDescriptor.newModule(
-			StringDescriptor.from("Imported"),
-			false);
+			StringDescriptor.from("Imported"));
+		inputModule.isSystemModule(false);
 		final AvailObject currentModule = ModuleDescriptor.newModule(
-			StringDescriptor.from("Current"),
-			false);
+			StringDescriptor.from("Current"));
+		inputModule.isSystemModule(false);
 		final AvailObject atom1 = AtomDescriptor.create(
 			StringDescriptor.from("importAtom1"),
 			inputModule);

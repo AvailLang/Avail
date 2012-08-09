@@ -34,6 +34,7 @@ package com.avail.descriptor;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.serialization.SerializerOperation;
 
 /**
  * {@code AbstractTypeDescriptor} explicitly defines the responsibilities of all
@@ -429,10 +430,14 @@ extends Descriptor
 	abstract @NotNull AvailObject o_ValueType (
 		final @NotNull AvailObject object);
 
-	@Override
+	@Override @AvailMethod
 	abstract boolean o_RangeIncludesInt (
 		final @NotNull AvailObject object,
 		final int anInt);
+
+	@Override @AvailMethod
+	abstract @NotNull SerializerOperation o_SerializerOperation (
+		final @NotNull AvailObject object);
 
 	/**
 	 * Construct a new {@link TypeDescriptor}.

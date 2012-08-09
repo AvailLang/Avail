@@ -39,6 +39,7 @@ import static com.avail.descriptor.ParseNodeTypeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.IntegerSlots.*;
 import java.util.List;
 import com.avail.annotations.*;
+import com.avail.serialization.SerializerOperation;
 
 /**
  * Define the structure and behavior of parse node types.  The parse node types
@@ -540,6 +541,13 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 		final @NotNull ParseNodeKind expectedParseNodeKind)
 	{
 		return object.parseNodeKind().isSubkindOf(expectedParseNodeKind);
+	}
+
+	@Override
+	@NotNull SerializerOperation o_SerializerOperation (
+		final @NotNull AvailObject object)
+	{
+		return SerializerOperation.PARSE_NODE_TYPE;
 	}
 
 	@Override

@@ -35,7 +35,10 @@ Versions
 	"dev"
 Uses
 	"Bootstrap",
-	"Control Structures",
+	"Control Structures" =
+	(
+		"If|if_then_«else if_then_»«else_»"
+	),
 	"Definers",
 	"Exceptions",
 	"Literals",

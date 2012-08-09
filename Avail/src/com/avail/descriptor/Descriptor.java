@@ -4605,9 +4605,18 @@ extends AbstractDescriptor
 		throw unsupportedOperationException();
 	}
 
-	@Override boolean o_RangeIncludesInt (
+	@Override
+	boolean o_RangeIncludesInt (
 		final @NotNull AvailObject object,
 		final int anInt)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_IsSystemModule (
+		final @NotNull AvailObject object,
+		final boolean isSystemModule)
 	{
 		throw unsupportedOperationException();
 	}

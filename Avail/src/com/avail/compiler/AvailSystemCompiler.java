@@ -471,7 +471,7 @@ extends AbstractAvailCompiler
 					final AvailObject contType =
 						ContinuationTypeDescriptor.forFunctionType(
 							FunctionTypeDescriptor.create(
-								TupleDescriptor.fromCollection(argTypes),
+								TupleDescriptor.fromList(argTypes),
 								returnType));
 					final AvailObject label =
 						DeclarationNodeDescriptor.newLabel(
@@ -1129,7 +1129,7 @@ extends AbstractAvailCompiler
 			final AvailObject labelType = labelNode.declaredType();
 			final AvailObject implicitBlockType =
 				FunctionTypeDescriptor.create(
-					TupleDescriptor.fromCollection(argumentTypesList),
+					TupleDescriptor.fromList(argumentTypesList),
 					lastStatementType.value,
 					SetDescriptor.empty());
 			final AvailObject implicitContType =
@@ -1188,7 +1188,7 @@ extends AbstractAvailCompiler
 				{
 					final AvailObject explicitBlockType =
 						FunctionTypeDescriptor.create(
-							TupleDescriptor.fromCollection(argumentTypesList),
+							TupleDescriptor.fromList(argumentTypesList),
 							returnType);
 					if (thePrimitive != null)
 					{
@@ -2699,7 +2699,8 @@ extends AbstractAvailCompiler
 			final AvailObject moduleVarDecl =
 				DeclarationNodeDescriptor.newModuleVariable(
 					token,
-					variableObject);
+					variableObject,
+					NullDescriptor.nullObject());
 			final AvailObject varUse = VariableUseNodeDescriptor.newUse(
 				token,
 				moduleVarDecl);
@@ -2708,12 +2709,16 @@ extends AbstractAvailCompiler
 		}
 		if (module.constantBindings().hasKey(varName))
 		{
-			final AvailObject valueObject =
-				module.constantBindings().mapAt(varName);
+			final AvailObject variableObject = module.constantBindings().mapAt(
+				varName);
 			final AvailObject moduleConstDecl =
-				DeclarationNodeDescriptor.newModuleConstant(token, valueObject);
-			final AvailObject varUse =
-				VariableUseNodeDescriptor.newUse(token, moduleConstDecl);
+				DeclarationNodeDescriptor.newModuleConstant(
+					token,
+					variableObject,
+					NullDescriptor.nullObject());
+			final AvailObject varUse = VariableUseNodeDescriptor.newUse(
+				token,
+				moduleConstDecl);
 			attempt(afterVar, continuation, varUse);
 			return;
 		}

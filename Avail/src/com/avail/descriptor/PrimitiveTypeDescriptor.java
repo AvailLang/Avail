@@ -37,6 +37,7 @@ import static com.avail.descriptor.PrimitiveTypeDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 import com.avail.annotations.*;
+import com.avail.serialization.SerializerOperation;
 
 /**
  * The primitive types of Avail are different from the notion of primitive types
@@ -407,6 +408,15 @@ extends TypeDescriptor
 		assert false
 			: "All cases have been dealt with, and each forces a return";
 		return null;
+	}
+
+	@Override
+	@NotNull SerializerOperation o_SerializerOperation (
+		final @NotNull AvailObject object)
+	{
+		// Any primitive type that can be serialized should occur in the special
+		// objects list.
+		throw unsupportedOperationException();
 	}
 
 	/**

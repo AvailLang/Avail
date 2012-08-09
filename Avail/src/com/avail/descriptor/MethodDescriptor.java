@@ -38,7 +38,7 @@ import static java.lang.Math.max;
 import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
-import com.avail.compiler.AvailRejectedParseException;
+import com.avail.compiler.*;
 import com.avail.exceptions.*;
 import com.avail.interpreter.*;
 import com.avail.interpreter.levelOne.*;
@@ -64,6 +64,23 @@ import com.avail.utility.*;
 public class MethodDescriptor
 extends Descriptor
 {
+	/**
+	 * A special {@linkplain AtomDescriptor atom} used to name the VM's method
+	 * to crash during early bootstrapping problems.
+	 */
+	private static AvailObject vmCrashAtom;
+
+	/**
+	 * Answer the {@linkplain AtomDescriptor atom} used by the VM to name the
+	 * method which is invoked in the event of a bootstrapping problem.
+	 *
+	 * @return The atom.
+	 */
+	public static @NotNull AvailObject vmCrashAtom ()
+	{
+		return vmCrashAtom;
+	}
+
 	/**
 	 * An {@linkplain MethodDescriptor method} containing a {@linkplain
 	 * MethodImplementationDescriptor function} that invokes {@linkplain
@@ -112,10 +129,7 @@ extends Descriptor
 		// essential here, as certain parts of the virtual machine (like the
 		// decompiler) use the name to figure out how many arguments a method
 		// accepts.
-		final AvailObject method = newMethodWithName(
-			AtomDescriptor.create(
-				StringDescriptor.from("vm crash_"),
-				NullDescriptor.nullObject()));
+		final AvailObject method = newMethodWithName(vmCrashAtom);
 		try
 		{
 			method.addImplementation(
@@ -123,11 +137,160 @@ extends Descriptor
 		}
 		catch (final SignatureException e)
 		{
-			assert false : "This should be not possible!";
+			assert false : "This should not be possible!";
 			throw new RuntimeException(e);
 		}
 
 		return method;
+	}
+
+	/**
+	 * The (special) name of the VM-built pre-bootstrap defining method.
+	 */
+	private static @NotNull AvailObject vmDefinerAtom;
+
+	/**
+	 * Answer the (special) {@linkplain AtomDescriptor name} of the VM method
+	 * used to bootstrap new methods.
+	 *
+	 * @return The name of the bootstrap method-defining method.
+	 */
+	public static @NotNull AvailObject vmDefinerAtom ()
+	{
+		return vmDefinerAtom;
+	}
+
+	/**
+	 * The special pre-bootstrap defining method constructed by the VM.
+	 */
+	private static @NotNull AvailObject vmDefinerMethod;
+
+	/**
+	 * Answer the special pre-bootstrap defining method that was created and
+	 * installed into the {@link AvailRuntime} automatically.
+	 *
+	 * @return The bootstrap method-defining method.
+	 */
+	public static @NotNull AvailObject vmDefinerMethod ()
+	{
+		return vmDefinerMethod;
+	}
+
+	/**
+	 * Construct the {@linkplain FunctionDescriptor function} that implements
+	 * string-based method definition.
+	 *
+	 * @return A function.
+	 */
+	public static @NotNull AvailObject newVMStringDefinerFunction ()
+	{
+		final L1InstructionWriter writer = new L1InstructionWriter(
+			NullDescriptor.nullObject(),
+			0);
+		writer.primitiveNumber(
+			P_253_SimpleMethodDeclaration.instance.primitiveNumber);
+		writer.argumentTypes(
+			TupleTypeDescriptor.stringTupleType(),
+			FunctionTypeDescriptor.mostGeneralType());
+		writer.returnType(TOP.o());
+		// Declare the local that holds primitive failure information.
+		final int failureLocal = writer.createLocal(
+			VariableTypeDescriptor.wrapInnerType(
+				IntegerRangeTypeDescriptor.naturalNumbers()));
+		writer.write(
+			new L1Instruction(
+				L1Operation.L1_doGetLocal,
+				failureLocal));
+		writer.write(
+			new L1Instruction(
+				L1Operation.L1_doCall,
+				writer.addLiteral(vmCrashMethod()),
+				writer.addLiteral(BottomTypeDescriptor.bottom())));
+		final AvailObject fromStringFunction = FunctionDescriptor.create(
+			writer.compiledCode(),
+			TupleDescriptor.empty());
+		fromStringFunction.makeImmutable();
+		return fromStringFunction;
+	}
+
+	/**
+	 * Construct the {@linkplain FunctionDescriptor function} that implements
+	 * atom-based method definition.
+	 *
+	 * @return A function.
+	 */
+	public static @NotNull AvailObject newVMAtomDefinerFunction ()
+	{
+		final L1InstructionWriter writer = new L1InstructionWriter(
+			NullDescriptor.nullObject(),
+			0);
+		writer.primitiveNumber(
+			P_228_MethodDeclarationFromAtom.instance.primitiveNumber);
+		writer.argumentTypes(
+			ATOM.o(),
+			FunctionTypeDescriptor.mostGeneralType());
+		writer.returnType(TOP.o());
+		// Declare the local that holds primitive failure information.
+		final int failureLocal = writer.createLocal(
+			VariableTypeDescriptor.wrapInnerType(
+				IntegerRangeTypeDescriptor.naturalNumbers()));
+		writer.write(
+			new L1Instruction(
+				L1Operation.L1_doGetLocal,
+				failureLocal));
+		writer.write(
+			new L1Instruction(
+				L1Operation.L1_doCall,
+				writer.addLiteral(vmCrashMethod()),
+				writer.addLiteral(BottomTypeDescriptor.bottom())));
+		final AvailObject fromAtomFunction = FunctionDescriptor.create(
+			writer.compiledCode(),
+			TupleDescriptor.empty());
+		fromAtomFunction.makeImmutable();
+		return fromAtomFunction;
+	}
+
+	/**
+	 * Construct the {@linkplain MethodDescriptor method}
+	 * for bootstrapping emergency exit.
+	 *
+	 * @return A method.
+	 */
+	private static @NotNull AvailObject newVMDefinerMethod ()
+	{
+		final AvailObject fromStringFunction = newVMStringDefinerFunction();
+		final AvailObject fromAtomFunction = newVMAtomDefinerFunction();
+		final AvailObject method = newMethodWithName(vmDefinerAtom);
+		try
+		{
+			method.addImplementation(
+				MethodImplementationDescriptor.create(fromAtomFunction));
+			method.addImplementation(
+				MethodImplementationDescriptor.create(fromStringFunction));
+		}
+		catch (final SignatureException e)
+		{
+			assert false : "This should not be possible!";
+			throw new RuntimeException(e);
+		}
+
+		return method;
+	}
+
+	/**
+	 * The (special) name of the VM-built function application method.
+	 */
+	private static @NotNull AvailObject vmFunctionApplyAtom;
+
+	/**
+	 * Answer the (special) {@linkplain AtomDescriptor name} of the VM's
+	 * function application method.
+	 *
+	 * @return The name of the VM's function application method.
+	 */
+	public static @NotNull AvailObject vmFunctionApplyAtom ()
+	{
+		return vmFunctionApplyAtom;
 	}
 
 	/**
@@ -188,10 +351,7 @@ extends Descriptor
 		newFunction.makeImmutable();
 
 		// Create the new method.
-		final AvailObject method = newMethodWithName(
-			AtomDescriptor.create(
-				StringDescriptor.from("vm function apply_(«_‡,»)"),
-				NullDescriptor.nullObject()));
+		final AvailObject method = newMethodWithName(vmFunctionApplyAtom);
 		try
 		{
 			method.addImplementation(
@@ -199,7 +359,89 @@ extends Descriptor
 		}
 		catch (final SignatureException e)
 		{
-			assert false : "This should be not possible!";
+			assert false : "This should not be possible!";
+			throw new RuntimeException(e);
+		}
+
+		return method;
+	}
+
+	/**
+	 * The (special) name of the VM-built atom-set publication method.
+	 */
+	private static @NotNull AvailObject vmPublishAtomsAtom;
+
+	/**
+	 * Answer the (special) {@linkplain AtomDescriptor name} of the VM's
+	 * function which publishes a set of atoms from the current module.
+	 *
+	 * @return The name of the VM's function application method.
+	 */
+	public static @NotNull AvailObject vmPublishAtomsAtom ()
+	{
+		return vmPublishAtomsAtom;
+	}
+
+	/**
+	 * An {@linkplain MethodDescriptor method} containing
+	 * a {@linkplain MethodImplementationDescriptor function} that invokes
+	 * {@link P_263_DeclareAllExportedAtoms} (atom-set publication). Needed by
+	 * the module compilation system.
+	 */
+	private static AvailObject vmPublishAtomsMethod;
+
+	/**
+	 * An {@linkplain MethodDescriptor method} containing
+	 * a {@linkplain MethodImplementationDescriptor function} that invokes
+	 * {@link P_263_DeclareAllExportedAtoms} (atom-set publication). Needed by
+	 * the module compilation system.
+	 *
+	 * @return A method.
+	 */
+	public static @NotNull AvailObject vmPublishAtomsMethod ()
+	{
+		return vmPublishAtomsMethod;
+	}
+
+	/**
+	 * Construct the {@linkplain MethodDescriptor method}
+	 * for publishing a set of atoms from the current module.
+	 *
+	 * @return A method.
+	 */
+	private static @NotNull AvailObject newVMPublishAtomsMethod ()
+	{
+		// Generate a function with linkage to primitive 263.
+		final L1InstructionWriter writer = new L1InstructionWriter(
+			NullDescriptor.nullObject(),
+			0);
+		writer.primitiveNumber(
+			P_263_DeclareAllExportedAtoms.instance.primitiveNumber);
+		writer.argumentTypes(
+			SetTypeDescriptor.setTypeForSizesContentType(
+				IntegerRangeTypeDescriptor.wholeNumbers(),
+				ATOM.o()),
+			EnumerationTypeDescriptor.booleanObject());
+		writer.returnType(TOP.o());
+		writer.write(
+			new L1Instruction(
+				L1Operation.L1_doPushLiteral,
+				writer.addLiteral(NullDescriptor.nullObject())));
+		final AvailObject newFunction = FunctionDescriptor.create(
+			writer.compiledCode(),
+			TupleDescriptor.empty());
+		newFunction.makeImmutable();
+
+		// Create the new method.
+		final AvailObject method = newMethodWithName(vmPublishAtomsAtom);
+		try
+		{
+			method.addImplementation(
+				MethodImplementationDescriptor.create(newFunction));
+		}
+		catch (final SignatureException e)
+		{
+			assert false : "This should not be possible!";
 			throw new RuntimeException(e);
 		}
 
@@ -212,8 +454,22 @@ extends Descriptor
 	 */
 	public static void createWellKnownObjects ()
 	{
+		vmCrashAtom = AtomDescriptor.create(
+			StringDescriptor.from("vm crash_"),
+			NullDescriptor.nullObject());
 		vmCrashMethod = newVMCrashMethod();
+		vmFunctionApplyAtom = AtomDescriptor.create(
+			StringDescriptor.from("vm function apply_(«_‡,»)"),
+			NullDescriptor.nullObject());
 		vmFunctionApplyMethod = newVMFunctionApplyMethod();
+		vmDefinerAtom = AtomDescriptor.create(
+			StringDescriptor.from("vm method_is_"),
+			NullDescriptor.nullObject());
+		vmDefinerMethod = newVMDefinerMethod();
+		vmPublishAtomsAtom = AtomDescriptor.create(
+			StringDescriptor.from("vm publish atom set_(public=_)"),
+			NullDescriptor.nullObject());
+		vmPublishAtomsMethod = newVMPublishAtomsMethod();
 	}
 
 	/**
@@ -222,8 +478,14 @@ extends Descriptor
 	 */
 	public static void clearWellKnownObjects ()
 	{
+		vmCrashAtom = null;
 		vmCrashMethod = null;
+		vmFunctionApplyAtom = null;
 		vmFunctionApplyMethod = null;
+		vmDefinerAtom = null;
+		vmDefinerMethod = null;
+		vmPublishAtomsAtom = null;
+		vmPublishAtomsMethod = null;
 	}
 
 	/**
@@ -640,10 +902,25 @@ extends Descriptor
 		final @NotNull AvailObject object)
 	{
 		final AvailObject impsTuple = object.implementationsTuple();
-		assert impsTuple.tupleSize() >= 1;
-		final AvailObject first = impsTuple.tupleAt(1);
-		final AvailObject argsTupleType = first.bodySignature().argsTupleType();
-		return argsTupleType.sizeRange().lowerBound().extractInt();
+		if (impsTuple.tupleSize() >= 1)
+		{
+			final AvailObject firstBody = impsTuple.tupleAt(1).bodySignature();
+			final AvailObject argsTupleType = firstBody.argsTupleType();
+			return argsTupleType.sizeRange().lowerBound().extractInt();
+		}
+		// Deal with it the slow way by using the MessageSplitter.  This allows
+		// the decompiler to continue to work even when a called method has no
+		// implementations.
+		try
+		{
+			final MessageSplitter splitter =
+				new MessageSplitter(object.name().name());
+			return splitter.numberOfArguments();
+		}
+		catch (final SignatureException e)
+		{
+			throw new RuntimeException(e);
+		}
 	}
 
 	/**

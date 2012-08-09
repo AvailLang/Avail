@@ -36,6 +36,7 @@ import static com.avail.descriptor.LiteralTokenDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.LiteralTokenDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import com.avail.annotations.*;
+import com.avail.serialization.SerializerOperation;
 
 /**
  * I represent a token that's a literal representation of some object.
@@ -158,6 +159,13 @@ extends TokenDescriptor
 	boolean o_IsLiteralToken (final @NotNull AvailObject object)
 	{
 		return true;
+	}
+
+	@Override
+	@NotNull SerializerOperation o_SerializerOperation (
+		final @NotNull AvailObject object)
+	{
+		return SerializerOperation.LITERAL_TOKEN;
 	}
 
 

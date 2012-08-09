@@ -6296,4 +6296,14 @@ implements Iterable<AvailObject>
 	{
 		return descriptor.o_RangeIncludesInt(this, anInt);
 	}
+
+	/**
+	 * @param isSystemModule
+	 * @return
+	 */
+	public void isSystemModule (
+		final boolean isSystemModule)
+	{
+		descriptor.o_IsSystemModule(this, isSystemModule);
+	}
 }

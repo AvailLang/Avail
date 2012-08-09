@@ -589,7 +589,7 @@ extends Descriptor
 			vectorTuples.add(vectorTuple);
 		}
 		final AvailObject vectorTuplesTuple =
-			TupleDescriptor.fromCollection(vectorTuples);
+			TupleDescriptor.fromList(vectorTuples);
 		vectorTuplesTuple.makeImmutable();
 		final AvailObject wordcodesTuple =
 			TupleDescriptor.fromIntegerList(theWordcodes);

@@ -389,7 +389,7 @@ Method "_is explicit subtype of«_‡,»«with«_->_‡,»»" is [
 		optionalConditions : tuple [0..1] of
 			tuple [1..INF) of
 				tuple like <atom, any type> |
-	newKey ::= new atom newName;
+	newKey ::= lookup "explicit-" then newName;
 	conditionsMap : map from atom to any type := [newKey -> newKey type];
 	if ||optionalConditions|| > 0 then [
 		optionalConditions[1] do [pair : tuple like <atom, any type> |

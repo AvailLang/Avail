@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 import com.avail.annotations.*;
+import com.avail.serialization.SerializerOperation;
 
 /**
  * A {@code SetTypeDescriptor} object instance is a type that some {@linkplain
@@ -235,6 +236,12 @@ extends TypeDescriptor
 		return true;
 	}
 
+	@Override
+	@NotNull SerializerOperation o_SerializerOperation (
+		final @NotNull AvailObject object)
+	{
+		return SerializerOperation.SET_TYPE;
+	}
 
 	/**
 	 * The most general set type.

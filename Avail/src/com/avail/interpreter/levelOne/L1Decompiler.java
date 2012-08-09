@@ -252,7 +252,7 @@ public class L1Decompiler
 			final AvailObject sendNode = SendNodeDescriptor.from(
 				method,
 				ListNodeDescriptor.newExpressions(
-					TupleDescriptor.fromCollection(callArgs)),
+					TupleDescriptor.fromList(callArgs)),
 				type);
 			pushExpression(sendNode);
 		}
@@ -333,7 +333,7 @@ public class L1Decompiler
 			final int count = getInteger();
 			final List<AvailObject> expressions = popExpressions(count);
 			final AvailObject listNode = ListNodeDescriptor.newExpressions(
-				TupleDescriptor.fromCollection(expressions));
+				TupleDescriptor.fromList(expressions));
 			pushExpression(listNode);
 		}
 
@@ -513,7 +513,8 @@ public class L1Decompiler
 					VariableTypeDescriptor.mostGeneralType());
 				outerDecl = DeclarationNodeDescriptor.newModuleVariable(
 					token,
-					variableObject);
+					variableObject,
+					NullDescriptor.nullObject());
 			}
 			else
 			{
@@ -581,7 +582,8 @@ public class L1Decompiler
 			final AvailObject decl =
 				DeclarationNodeDescriptor.newModuleVariable(
 					globalToken,
-					globalVar);
+					globalVar,
+					NullDescriptor.nullObject());
 			final AvailObject varUse = VariableUseNodeDescriptor.newUse(
 				globalToken,
 				decl);
@@ -639,7 +641,8 @@ public class L1Decompiler
 			final AvailObject decl =
 				DeclarationNodeDescriptor.newModuleVariable(
 					globalToken,
-					globalVar);
+					globalVar,
+					NullDescriptor.nullObject());
 
 			final AvailObject varUse = VariableUseNodeDescriptor.newUse(
 				globalToken,

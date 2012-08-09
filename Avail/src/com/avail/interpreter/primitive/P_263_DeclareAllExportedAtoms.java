@@ -1,5 +1,5 @@
 /**
- * P_247_SemanticRestrictions.java
+ * P_263_DeclareAllExportedAtoms.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -29,28 +29,37 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.*;
+import java.util.List;
 import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 247:</strong> Answer a {@linkplain TupleDescriptor
- * tuple} of restriction {@linkplain FunctionDescriptor functions} that
- * would run for a call site for the specified {@linkplain
- * MethodDescriptor method} and tuple of argument types.
+ * <strong>Primitive 263</strong>: This private primitive is used to ensure that
+ * a module can deserialize correctly.  It forces the given set of atoms to be
+ * included in the current module's {@linkplain
+ * com.avail.descriptor.ModuleDescriptor.ObjectSlots#NAMES public names} or
+ * {@linkplain com.avail.descriptor.ModuleDescriptor.ObjectSlots#PRIVATE_NAMES
+ * private names}, depending on the value of the supplied {@linkplain
+ * EnumerationTypeDescriptor#booleanObject() boolean} ({@link
+ * AtomDescriptor#trueObject() true} for public, {@link
+ * AtomDescriptor#falseObject() false} for private).
+ *
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
-public class P_247_SemanticRestrictions extends Primitive
+public final class P_263_DeclareAllExportedAtoms
+extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_247_SemanticRestrictions().init(
-		2, CanInline, CannotFail);
+	public final @NotNull static Primitive instance =
+		new P_263_DeclareAllExportedAtoms().init(2, CannotFail, Private);
 
 	@Override
 	public @NotNull Result attempt (
@@ -58,20 +67,24 @@ public class P_247_SemanticRestrictions extends Primitive
 		final @NotNull Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject method = args.get(0);
-		final AvailObject argTypes = args.get(1);
-		final AvailObject restrictions = method.typeRestrictions();
-		final List<AvailObject> applicable = new ArrayList<AvailObject>();
-		for (int i = restrictions.tupleSize(); i >= 1; i--)
+		final AvailObject names = args.get(0);
+		final AvailObject isPublic = args.get(1);
+		final AvailObject module = interpreter.module();
+		if (isPublic.extractBoolean())
 		{
-			final AvailObject restriction = restrictions.tupleAt(i);
-			if (restriction.kind().acceptsTupleOfArguments(argTypes))
+			for (final AvailObject name : names)
 			{
-				applicable.add(restriction);
+				module.atNameAdd(name.name(), name);
 			}
 		}
-		return interpreter.primitiveSuccess(
-			TupleDescriptor.fromList(applicable));
+		else
+		{
+			for (final AvailObject name : names)
+			{
+				module.atPrivateNameAdd(name.name(), name);
+			}
+		}
+		return interpreter.primitiveSuccess(NullDescriptor.nullObject());
 	}
 
 	@Override
@@ -79,15 +92,10 @@ public class P_247_SemanticRestrictions extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				METHOD.o(),
-				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+				SetTypeDescriptor.setTypeForSizesContentType(
 					IntegerRangeTypeDescriptor.wholeNumbers(),
-					TupleDescriptor.empty(),
-					InstanceMetaDescriptor.anyMeta())),
-			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-				IntegerRangeTypeDescriptor.wholeNumbers(),
-				TupleDescriptor.empty(),
-				FunctionTypeDescriptor.forReturnType(
-					InstanceMetaDescriptor.topMeta())));
+					ATOM.o()),
+				EnumerationTypeDescriptor.booleanObject()),
+			TOP.o());
 	}
 }

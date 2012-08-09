@@ -201,6 +201,18 @@ extends Descriptor
 	 */
 	private static AvailObject objectTypeNamePropertyKey;
 
+	/**
+	 * The atom used as a tag in module files to indicate that the header
+	 * information follows.
+	 */
+	private static AvailObject moduleHeaderSectionAtom;
+
+	/**
+	 * The atom used as a tag in module files to indicate that the module's
+	 * body follows.
+	 */
+	private static AvailObject moduleBodySectionAtom;
+
 
 	/**
 	 * Answer the atom representing the Avail concept "true".
@@ -236,6 +248,28 @@ extends Descriptor
 		return objectTypeNamePropertyKey;
 	}
 
+	/**
+	 * Answer the atom used to indicate the start of a module header in a
+	 * compiled module file.
+	 *
+	 * @return An atom that's special because it's known by the virtual machine.
+	 */
+	public static AvailObject moduleHeaderSectionAtom ()
+	{
+		return moduleHeaderSectionAtom;
+	}
+
+	/**
+	 * Answer the atom used to indicate the start of a module body in a
+	 * compiled module file.
+	 *
+	 * @return An atom that's special because it's known by the virtual machine.
+	 */
+	public static AvailObject moduleBodySectionAtom ()
+	{
+		return moduleBodySectionAtom;
+	}
+
 
 	/**
 	 * Create the true and false singletons.
@@ -250,6 +284,12 @@ extends Descriptor
 			NullDescriptor.nullObject());
 		objectTypeNamePropertyKey = create(
 			StringDescriptor.from("object names"),
+			NullDescriptor.nullObject());
+		moduleHeaderSectionAtom = create(
+			StringDescriptor.from("Module header section"),
+			NullDescriptor.nullObject());
+		moduleBodySectionAtom = create(
+			StringDescriptor.from("Module body section"),
 			NullDescriptor.nullObject());
 	}
 

@@ -145,7 +145,7 @@ public class P_508_CreatePojoStaticMethodFunction extends Primitive
 				RawPojoDescriptor.equalityWrap(paramClass));
 		}
 		final AvailObject marshaledTypesTuple =
-			TupleDescriptor.fromCollection(marshaledTypePojos);
+			TupleDescriptor.fromList(marshaledTypePojos);
 		// Create a function wrapper for the pojo method invocation
 		// primitive. This function will be embedded as a literal into
 		// an outer function that holds the (unexposed) method pojo.

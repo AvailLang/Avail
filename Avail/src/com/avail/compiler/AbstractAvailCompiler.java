@@ -32,9 +32,9 @@
 package com.avail.compiler;
 
 import static com.avail.compiler.AbstractAvailCompiler.ExpectedToken.*;
-import static com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TokenDescriptor.TokenType.*;
+import static com.avail.descriptor.TupleDescriptor.toList;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.io.*;
 import java.util.*;
@@ -46,7 +46,10 @@ import com.avail.compiler.scanning.*;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.levelOne.*;
 import com.avail.interpreter.levelTwo.L2Interpreter;
+import com.avail.interpreter.primitive.P_240_SpecialObject;
+import com.avail.serialization.*;
 import com.avail.utility.*;
 
 /**
@@ -59,14 +62,267 @@ import com.avail.utility.*;
 public abstract class AbstractAvailCompiler
 {
 	/**
+	 * A module's header information.
+	 */
+	public static class ModuleHeader
+	{
+
+		/**
+		 * The {@link ModuleName} of the module undergoing compilation.
+		 */
+		public final ModuleName moduleName;
+
+		/**
+		 * Whether this is the header of a system module.
+		 */
+		public boolean isSystemModule;
+
+		/**
+		 * The versions for which the module undergoing compilation guarantees
+		 * support.
+		 */
+		public final List<AvailObject> versions =
+			new ArrayList<AvailObject>();
+
+		/**
+		 * The {@linkplain ModuleDescriptor modules} extended by the module
+		 * undergoing compilation. Each element is a {@linkplain TupleDescriptor
+		 * 3-tuple} whose first element is a module {@linkplain StringDescriptor
+		 * name}, whose second element is the {@linkplain SetDescriptor set} of
+		 * {@linkplain MethodImplementationDescriptor method} names to import (and
+		 * re-export), and whose third element is the set of conformant versions.
+		 */
+		public final List<AvailObject> extendedModules =
+			new ArrayList<AvailObject>();
+
+		/**
+		 * The {@linkplain ModuleDescriptor modules} used by the module undergoing
+		 * compilation. Each element is a {@linkplain TupleDescriptor 3-tuple} whose
+		 * first element is a module {@linkplain StringDescriptor name}, whose
+		 * second element is the {@linkplain SetDescriptor set} of {@linkplain
+		 * MethodImplementationDescriptor method} names to import, and whose third
+		 * element is the set of conformant versions.
+		 */
+		public final List<AvailObject> usedModules =
+			new ArrayList<AvailObject>();
+
+		/**
+		 * The {@linkplain AtomDescriptor names} defined and exported by the
+		 * {@linkplain ModuleDescriptor module} undergoing compilation.
+		 */
+		public final List<AvailObject> exportedNames =
+			new ArrayList<AvailObject>();
+
+		/**
+		 * The {@linkplain String pragma strings}.
+		 */
+		public final List<AvailObject> pragmas =
+			new ArrayList<AvailObject>();
+
+		/**
+		 * Construct a new {@link AbstractAvailCompiler.ModuleHeader}.
+		 *
+		 * @param moduleName The {@link ModuleName} of the module.
+		 */
+		public ModuleHeader (
+			final @NotNull ModuleName moduleName)
+		{
+			this.moduleName = moduleName;
+		}
+
+		/**
+		 * @param serializer
+		 */
+		public void serializeHeaderOn (final Serializer serializer)
+		{
+			serializer.serialize(
+				StringDescriptor.from(moduleName.qualifiedName()));
+			serializer.serialize(
+				AtomDescriptor.objectFromBoolean(isSystemModule));
+			serializer.serialize(
+				TupleDescriptor.fromList(versions));
+			serializer.serialize(
+				TupleDescriptor.fromList(extendedModules));
+			serializer.serialize(
+				TupleDescriptor.fromList(usedModules));
+			serializer.serialize(
+				TupleDescriptor.fromList(exportedNames));
+			serializer.serialize(
+				TupleDescriptor.fromList(pragmas));
+		}
+
+		/**
+		 * Extract the module's header information from the {@link
+		 * Deserializer}.
+		 *
+		 * @param deserializer The source of the header information.
+		 * @throws MalformedSerialStreamException if malformed.
+		 */
+		public void deserializeHeaderFrom (final Deserializer deserializer)
+		throws MalformedSerialStreamException
+		{
+			final AvailObject name = deserializer.deserialize();
+			if (!name.asNativeString().equals(moduleName.qualifiedName()))
+			{
+				throw new RuntimeException("Incorrect module name");
+			}
+			isSystemModule = deserializer.deserialize().extractBoolean();
+			versions.clear();
+			versions.addAll(toList(deserializer.deserialize()));
+			extendedModules.clear();
+			extendedModules.addAll(toList(deserializer.deserialize()));
+			usedModules.clear();
+			usedModules.addAll(toList(deserializer.deserialize()));
+			exportedNames.clear();
+			exportedNames.addAll(toList(deserializer.deserialize()));
+			pragmas.clear();
+			pragmas.addAll(toList(deserializer.deserialize()));
+		}
+
+		/**
+		 * Update the given module to correspond with information that has been
+		 * accumulated in this {@link ModuleHeader}.
+		 *
+		 * @param module The module to update.
+		 * @param runtime The current {@link AvailRuntime}.
+		 * @return An error message {@link String} if there was a problem.
+		 */
+		public String applyToModule (
+			final AvailObject module,
+			final AvailRuntime runtime)
+		{
+			final ModuleNameResolver resolver = runtime.moduleNameResolver();
+			final ResolvedModuleName qualifiedName =
+				resolver.resolve(moduleName);
+			module.versions(SetDescriptor.fromCollection(versions));
+			for (final AvailObject modImport : extendedModules)
+			{
+				assert modImport.isTuple();
+				assert modImport.tupleSize() == 3;
+
+				final ResolvedModuleName ref = resolver.resolve(
+					qualifiedName.asSibling(
+						modImport.tupleAt(1).asNativeString()));
+				final AvailObject availRef = StringDescriptor.from(
+					ref.qualifiedName());
+				if (!runtime.includesModuleNamed(availRef))
+				{
+					return
+						"module \"" + ref.qualifiedName()
+						+ "\" to be loaded already";
+				}
+
+				final AvailObject mod = runtime.moduleAt(availRef);
+				final AvailObject reqVersions = modImport.tupleAt(3);
+				if (reqVersions.setSize() > 0)
+				{
+					final AvailObject modVersions = mod.versions();
+					final AvailObject intersection =
+						modVersions.setIntersectionCanDestroy(
+							reqVersions, false);
+					if (intersection.setSize() == 0)
+					{
+						return
+							"version compatibility; module \"" + ref.localName()
+							+ "\" guarantees versions " + modVersions
+							+ " but current module requires " + reqVersions;
+					}
+				}
+
+				final AvailObject modNames = modImport.tupleAt(2).setSize() > 0
+					? modImport.tupleAt(2)
+					: mod.names().keysAsSet();
+				for (final AvailObject strName : modNames)
+				{
+					if (!mod.names().hasKey(strName))
+					{
+						return
+							"module \"" + ref.qualifiedName()
+							+ "\" to export \"" + strName + "\"";
+					}
+					final AvailObject trueNames = mod.names().mapAt(strName);
+					for (final AvailObject trueName : trueNames)
+					{
+						module.atNameAdd(strName, trueName);
+					}
+				}
+			}
+			for (final AvailObject modImport : usedModules)
+			{
+				assert modImport.isTuple();
+				assert modImport.tupleSize() == 3;
+
+				final ResolvedModuleName ref = resolver.resolve(
+					qualifiedName.asSibling(
+						modImport.tupleAt(1).asNativeString()));
+				final AvailObject availRef = StringDescriptor.from(
+					ref.qualifiedName());
+				if (!runtime.includesModuleNamed(availRef))
+				{
+					return
+						"module \"" + ref.qualifiedName()
+						+ "\" to be loaded already";
+				}
+
+				final AvailObject mod = runtime.moduleAt(availRef);
+				final AvailObject reqVersions = modImport.tupleAt(3);
+				if (reqVersions.setSize() > 0)
+				{
+					final AvailObject modVersions = mod.versions();
+					final AvailObject intersection =
+						modVersions.setIntersectionCanDestroy(
+							reqVersions, false);
+					if (intersection.setSize() == 0)
+					{
+						return
+							"version compatibility; module \"" + ref.localName()
+							+ "\" guarantees versions " + modVersions
+							+ " but current module requires " + reqVersions;
+					}
+				}
+
+				final AvailObject modNames = modImport.tupleAt(2).setSize() > 0
+					? modImport.tupleAt(2)
+					: mod.names().keysAsSet();
+				for (final AvailObject strName : modNames)
+				{
+					if (!mod.names().hasKey(strName))
+					{
+						return
+							"module \"" + ref.qualifiedName()
+							+ "\" to export \"" + strName + "\"";
+					}
+					final AvailObject trueNames = mod.names().mapAt(strName);
+					for (final AvailObject trueName : trueNames)
+					{
+						module.atPrivateNameAdd(strName, trueName);
+					}
+				}
+			}
+
+			for (final AvailObject name : exportedNames)
+			{
+				assert name.isString();
+				final AvailObject trueName = AtomDescriptor.create(
+					name,
+					module);
+				module.atNewNamePut(name, trueName);
+				module.atNameAdd(name, trueName);
+			}
+
+			return null;
+		}
+	}
+
+	/**
+	 * The header information for the current module being parsed.
+	 */
+	public final ModuleHeader moduleHeader;
+
+	/**
 	 * The Avail {@linkplain ModuleDescriptor module} undergoing compilation.
 	 */
 	AvailObject module;
-
-	/**
-	 * The {@link ModuleName} of the module undergoing compilation.
-	 */
-	private final ModuleName moduleName;
 
 	/**
 	 * The {@linkplain L2Interpreter interpreter} to use when evaluating
@@ -102,43 +358,6 @@ public abstract class AbstractAvailCompiler
 
 	/** The memoization of results of previous parsing attempts. */
 	@InnerAccess AvailCompilerFragmentCache fragmentCache;
-
-	/**
-	 * The versions for which the module undergoing compilation guarantees
-	 * support.
-	 */
-	@InnerAccess List<AvailObject> versions;
-
-	/**
-	 * The {@linkplain ModuleDescriptor modules} extended by the module
-	 * undergoing compilation. Each element is a {@linkplain TupleDescriptor
-	 * 3-tuple} whose first element is a module {@linkplain StringDescriptor
-	 * name}, whose second element is the {@linkplain SetDescriptor set} of
-	 * {@linkplain MethodImplementationDescriptor method} names to import (and
-	 * re-export), and whose third element is the set of conformant versions.
-	 */
-	public List<AvailObject> extendedModules;
-
-	/**
-	 * The {@linkplain ModuleDescriptor modules} used by the module undergoing
-	 * compilation. Each element is a {@linkplain TupleDescriptor 3-tuple} whose
-	 * first element is a module {@linkplain StringDescriptor name}, whose
-	 * second element is the {@linkplain SetDescriptor set} of {@linkplain
-	 * MethodImplementationDescriptor method} names to import, and whose third
-	 * element is the set of conformant versions.
-	 */
-	public List<AvailObject> usedModules;
-
-	/**
-	 * The {@linkplain AtomDescriptor names} defined and exported by the
-	 * {@linkplain ModuleDescriptor module} undergoing compilation.
-	 */
-	@InnerAccess List<AvailObject> exportedNames;
-
-	/**
-	 * The {@linkplain String pragma strings}.
-	 */
-	@InnerAccess List<AvailObject> pragmas;
 
 	/**
 	 * The {@linkplain Continuation3 action} that should be performed repeatedly
@@ -393,7 +612,7 @@ public abstract class AbstractAvailCompiler
 		final @NotNull List<AvailObject> tokens)
 	{
 		this.interpreter = interpreter;
-		this.moduleName = moduleName;
+		this.moduleHeader = new ModuleHeader(moduleName);
 		this.source = source;
 		this.tokens = tokens;
 	}
@@ -546,6 +765,18 @@ public abstract class AbstractAvailCompiler
 	 * accessed through synchronized methods.
 	 */
 	long workUnitsCompleted = 0;
+
+	/**
+	 * The output stream on which the serializer writes.
+	 */
+	public final ByteArrayOutputStream serializerOutputStream =
+		new ByteArrayOutputStream(1000);
+
+	/**
+	 * The serializer that captures the sequence of bytes representing the
+	 * module during compilation.
+	 */
+	final Serializer serializer = new Serializer(serializerOutputStream);
 
 	/**
 	 * Execute the block, passing a continuation that it should run upon finding
@@ -1017,8 +1248,8 @@ public abstract class AbstractAvailCompiler
 
 			imports.add(TupleDescriptor.from(
 				moduleName,
-				TupleDescriptor.fromCollection(names).asSet(),
-				TupleDescriptor.fromCollection(versions).asSet()));
+				TupleDescriptor.fromList(names).asSet(),
+				TupleDescriptor.fromList(versions).asSet()));
 		}
 		while (state.peekToken(COMMA) && (state = state.afterToken()) != null);
 
@@ -1295,7 +1526,7 @@ public abstract class AbstractAvailCompiler
 		}
 		text.format(
 			"%n(file=\"%s\", line=%d)",
-			moduleName.qualifiedName(),
+			moduleHeader.moduleName.qualifiedName(),
 			token.lineNumber());
 		text.format("%n>>>%s", rowOfDashes);
 		int endOfLine = source.indexOf('\n', (int) charPos);
@@ -1530,49 +1761,6 @@ public abstract class AbstractAvailCompiler
 	}
 
 	/**
-	 * Evaluate a {@linkplain ParseNodeDescriptor parse node} in the module's
-	 * context; lexically enclosing variables are not considered in scope, but
-	 * module variables and constants are in scope.
-	 *
-	 * @param expressionNode
-	 *            A {@linkplain ParseNodeDescriptor parse node}.
-	 * @param lineNumber
-	 *            The line number on which the expression starts.
-	 * @return The result of generating a {@linkplain FunctionDescriptor
-	 *         function} from the argument and evaluating it.
-	 */
-	@NotNull AvailObject evaluate (
-		final @NotNull AvailObject expressionNode,
-		final int lineNumber)
-	{
-		final AvailObject block = BlockNodeDescriptor.newBlockNode(
-			Collections.<AvailObject>emptyList(),
-			(short) 0,
-			Collections.singletonList(expressionNode),
-			TOP.o(),
-			SetDescriptor.empty(),
-			lineNumber);
-		BlockNodeDescriptor.recursivelyValidate(block);
-		final AvailCodeGenerator codeGenerator = new AvailCodeGenerator(
-			module);
-		final AvailObject compiledBlock = block.generate(codeGenerator);
-		// The block is guaranteed context-free (because imported
-		// variables/values are embedded directly as constants in the generated
-		// code), so build a function with no copied data.
-		assert compiledBlock.numOuters() == 0;
-		final AvailObject function = FunctionDescriptor.create(
-			compiledBlock,
-			TupleDescriptor.empty());
-		function.makeImmutable();
-		List<AvailObject> args;
-		args = new ArrayList<AvailObject>();
-		final AvailObject result = interpreter.runFunctionArguments(
-			function,
-			args);
-		return result;
-	}
-
-	/**
 	 * Clear the fragment cache.
 	 */
 	private void privateClearFrags ()
@@ -1614,8 +1802,8 @@ public abstract class AbstractAvailCompiler
 	void startModuleTransaction (final @NotNull AvailObject moduleNameString)
 	{
 		assert module == null;
-		module = ModuleDescriptor.newModule(
-			moduleNameString, isSystemCompiler());
+		module = ModuleDescriptor.newModule(moduleNameString);
+		module.isSystemModule(isSystemCompiler());
 		interpreter.setModule(module);
 	}
 
@@ -1646,6 +1834,65 @@ public abstract class AbstractAvailCompiler
 	}
 
 	/**
+	 * Convert a {@link ParseNodeDescriptor parse node} into a zero-argument
+	 * {@link FunctionDescriptor function}.
+	 *
+	 * @param expressionNode The parse tree to compile to a function.
+	 * @param lineNumber The line number to attach to the new function.
+	 * @return A zero-argument function.
+	 */
+	@NotNull AvailObject createFunctionToRun (
+		final @NotNull AvailObject expressionNode,
+		final int lineNumber)
+	{
+		final AvailObject block = BlockNodeDescriptor.newBlockNode(
+			Collections.<AvailObject>emptyList(),
+			(short) 0,
+			Collections.singletonList(expressionNode),
+			TOP.o(),
+			SetDescriptor.empty(),
+			lineNumber);
+		BlockNodeDescriptor.recursivelyValidate(block);
+		final AvailCodeGenerator codeGenerator = new AvailCodeGenerator(
+			module);
+		final AvailObject compiledBlock = block.generate(codeGenerator);
+		// The block is guaranteed context-free (because imported
+		// variables/values are embedded directly as constants in the generated
+		// code), so build a function with no copied data.
+		assert compiledBlock.numOuters() == 0;
+		final AvailObject function = FunctionDescriptor.create(
+			compiledBlock,
+			TupleDescriptor.empty());
+		function.makeImmutable();
+		return function;
+	}
+
+	/**
+	 * Evaluate a {@linkplain ParseNodeDescriptor parse node} in the module's
+	 * context; lexically enclosing variables are not considered in scope, but
+	 * module variables and constants are in scope.
+	 *
+	 * @param expressionNode
+	 *            A {@linkplain ParseNodeDescriptor parse node}.
+	 * @param lineNumber
+	 *            The line number on which the expression starts.
+	 * @return The result of generating a {@linkplain FunctionDescriptor
+	 *         function} from the argument and evaluating it.
+	 */
+	@NotNull AvailObject evaluate (
+		final @NotNull AvailObject expressionNode,
+		final int lineNumber)
+	{
+		final AvailObject function = createFunctionToRun(
+			expressionNode,
+			lineNumber);
+		final AvailObject result = interpreter.runFunctionArguments(
+			function,
+			Collections.<AvailObject>emptyList());
+		return result;
+	}
+
+	/**
 	 * Evaluate a parse tree node. It's a top-level statement in a module.
 	 * Declarations are handled differently - they cause a variable to be
 	 * declared in the module's scope.
@@ -1658,34 +1905,81 @@ public abstract class AbstractAvailCompiler
 	{
 		if (!expr.isInstanceOfKind(DECLARATION_NODE.mostGeneralType()))
 		{
-			evaluate(expr, 0);
+			// Only record module statements that aren't declarations.  Users of
+			// the module don't care if a module variable or constant is only
+			// reachable from the module's methods.
+			final AvailObject function = createFunctionToRun(expr, 0);
+			serializer.serialize(function);
+			interpreter.runFunctionArguments(
+				function,
+				Collections.<AvailObject>emptyList());
 			return;
 		}
-		// It's a declaration...
+		// It's a declaration (but the parser couldn't previously tell that it
+		// was at module scope)...
 		final AvailObject name = expr.token().string();
-		if (expr.declarationKind() == LOCAL_CONSTANT)
+		switch (expr.declarationKind())
 		{
-			final AvailObject val = evaluate(
-				expr.initializationExpression(),
-				0);
-			module.addConstantBinding(
-				name,
-				val.makeImmutable());
-		}
-		else
-		{
-			final AvailObject var = VariableDescriptor.forInnerType(
-				expr.declaredType());
-			if (!expr.initializationExpression().equalsNull())
+			case LOCAL_CONSTANT:
 			{
-				var.setValue(
-					evaluate(
-						expr.initializationExpression(),
-						0));
+				final AvailObject val = evaluate(
+					expr.initializationExpression(),
+					expr.token().lineNumber());
+				final AvailObject var = VariableDescriptor.forInnerType(
+					AbstractEnumerationTypeDescriptor.withInstance(val));
+				module.addConstantBinding(
+					name,
+					var.makeImmutable());
+				// Create a module variable declaration (i.e., cheat) JUST for
+				// this initializing assignment.
+				final AvailObject decl =
+					DeclarationNodeDescriptor.newModuleVariable(
+						expr.token(),
+						var,
+						expr.initializationExpression());
+				final AvailObject assign = AssignmentNodeDescriptor.from(
+					VariableUseNodeDescriptor.newUse(expr.token(), decl),
+					LiteralNodeDescriptor.syntheticFrom(val),
+					false);
+				final AvailObject function = createFunctionToRun(
+					assign,
+					expr.token().lineNumber());
+				serializer.serialize(function);
+				var.setValue(val);
+				break;
 			}
-			module.addVariableBinding(
-				name,
-				var.makeImmutable());
+			case LOCAL_VARIABLE:
+			{
+				final AvailObject var = VariableDescriptor.forInnerType(
+					expr.declaredType());
+				module.addVariableBinding(
+					name,
+					var.makeImmutable());
+				if (!expr.initializationExpression().equalsNull())
+				{
+					final AvailObject decl =
+						DeclarationNodeDescriptor.newModuleVariable(
+							expr.token(),
+							var,
+							expr.initializationExpression());
+					final AvailObject assign = AssignmentNodeDescriptor.from(
+						VariableUseNodeDescriptor.newUse(expr.token(), decl),
+						expr.initializationExpression(),
+						false);
+					final AvailObject function = createFunctionToRun(
+						assign,
+						expr.token().lineNumber());
+					serializer.serialize(function);
+					var.setValue(
+						evaluate(
+							expr.initializationExpression(),
+							expr.token().lineNumber()));
+				}
+				break;
+			}
+			default:
+				assert false
+				: "Expected top-level declaration to be parsed as local";
 		}
 	}
 
@@ -1765,7 +2059,7 @@ public abstract class AbstractAvailCompiler
 			final AvailObject sendNode = SendNodeDescriptor.from(
 				method,
 				ListNodeDescriptor.newExpressions(
-					TupleDescriptor.fromCollection(argumentExpressions)),
+					TupleDescriptor.fromList(argumentExpressions)),
 				returnType);
 			attempt(
 				new ParserState(
@@ -1806,6 +2100,131 @@ public abstract class AbstractAvailCompiler
 		final Con<AvailObject> continuation);
 
 	/**
+	 * Create the two-argument defining method. The first parameter of the
+	 * method is the name, the second parameter is the {@linkplain
+	 * FunctionDescriptor function}.
+	 *
+	 * @param defineMethodName
+	 *        The name of the defining method.
+	 */
+	void bootstrapDefiningMethod (final String defineMethodName)
+	{
+		// Add the string-based definer.
+		final AvailObject availName = StringDescriptor.from(defineMethodName);
+		final AvailObject nameLiteral =
+			LiteralNodeDescriptor.syntheticFrom(availName);
+		final AvailObject fromStringFunction =
+			MethodDescriptor.newVMStringDefinerFunction();
+		final AvailObject targetMethod = MethodDescriptor.vmDefinerMethod();
+		AvailObject send = SendNodeDescriptor.from(
+			targetMethod,
+			ListNodeDescriptor.newExpressions(TupleDescriptor.from(
+				nameLiteral,
+				LiteralNodeDescriptor.syntheticFrom(fromStringFunction))),
+			TOP.o());
+		evaluateModuleStatement(send);
+
+		// Add the atom-based definer.
+		final AvailObject fromAtomFunction =
+			MethodDescriptor.newVMAtomDefinerFunction();
+		send = SendNodeDescriptor.from(
+			targetMethod,
+			ListNodeDescriptor.newExpressions(TupleDescriptor.from(
+				nameLiteral,
+				LiteralNodeDescriptor.syntheticFrom(fromAtomFunction))),
+			TOP.o());
+		evaluateModuleStatement(send);
+	}
+
+	/**
+	 * Create the one-argument {@linkplain AvailRuntime#specialObject(int)
+	 * special object} method. The parameter is the {@linkplain
+	 * IntegerDescriptor ordinal} of the special object.
+	 *
+	 * @param specialObjectName
+	 *        The name of the {@linkplain AvailRuntime#specialObject(int)
+	 *        special object} method.
+	 */
+	void bootstrapSpecialObjectMethod (final String specialObjectName)
+	{
+		final L1InstructionWriter writer = new L1InstructionWriter(module, 0);
+		writer.primitiveNumber(P_240_SpecialObject.instance.primitiveNumber);
+		writer.argumentTypes(IntegerRangeTypeDescriptor.naturalNumbers());
+		writer.returnType(ANY.o());
+		// Declare the local that holds primitive failure information.
+		writer.createLocal(
+			VariableTypeDescriptor.wrapInnerType(
+				IntegerRangeTypeDescriptor.naturalNumbers()));
+		writer.write(
+			new L1Instruction(
+				L1Operation.L1_doPushLiteral,
+				writer.addLiteral(
+					StringDescriptor.from("no such special object"))));
+		// Push the argument.
+		writer.write(
+			new L1Instruction(
+				L1Operation.L1_doPushLocal,
+				1));
+		writer.write(
+			new L1Instruction(
+				L1Operation.L1_doMakeTuple,
+				2));
+		writer.write(
+			new L1Instruction(
+				L1Operation.L1_doCall,
+				writer.addLiteral(MethodDescriptor.vmCrashMethod()),
+				writer.addLiteral(BottomTypeDescriptor.bottom())));
+		final AvailObject newFunction = FunctionDescriptor.create(
+			writer.compiledCode(),
+			TupleDescriptor.empty());
+		newFunction.makeImmutable();
+
+		// Add the method.
+		final AvailObject availName = StringDescriptor.from(specialObjectName);
+		final AvailObject nameLiteral =
+			LiteralNodeDescriptor.syntheticFrom(availName);
+		final AvailObject targetMethod = MethodDescriptor.vmDefinerMethod();
+		final AvailObject send = SendNodeDescriptor.from(
+			targetMethod,
+			ListNodeDescriptor.newExpressions(TupleDescriptor.from(
+				nameLiteral,
+				LiteralNodeDescriptor.syntheticFrom(newFunction))),
+			TOP.o());
+		evaluateModuleStatement(send);
+	}
+
+	/**
+	 * Serialize a function that will publish all atoms that are currently
+	 * public in the module.
+	 *
+	 * @param isPublic
+	 *        {@code true} if the atoms are public, {@code false} if they are
+	 *        private.
+	 */
+	private void serializePublicationFunction (final boolean isPublic)
+	{
+		// Output a function that publishes the initial public set of atoms.
+		final AvailObject sourceNames =
+			isPublic ? module.names() : module.privateNames();
+		AvailObject names = SetDescriptor.empty();
+		for (final MapDescriptor.Entry entry : sourceNames.mapIterable())
+		{
+			names = names.setUnionCanDestroy(entry.value, false);
+		}
+		final AvailObject send = SendNodeDescriptor.from(
+			MethodDescriptor.vmPublishAtomsMethod(),
+			ListNodeDescriptor.newExpressions(
+				TupleDescriptor.from(
+					LiteralNodeDescriptor.syntheticFrom(names),
+					LiteralNodeDescriptor.syntheticFrom(
+						AtomDescriptor.objectFromBoolean(isPublic)))),
+			TOP.o());
+		final AvailObject function = createFunctionToRun(send, 0);
+		function.makeImmutable();
+		serializer.serialize(function);
+	}
+
+	/**
 	 * Parse a {@linkplain ModuleDescriptor module} and install it into the
 	 * {@linkplain AvailRuntime runtime}.
 	 *
@@ -1838,6 +2257,8 @@ public abstract class AbstractAvailCompiler
 		try
 		{
 			parseModule(resolvedName);
+			serializePublicationFunction(true);
+			commitModuleTransaction();
 		}
 		catch (final AvailCompilerException e)
 		{
@@ -1881,7 +2302,6 @@ public abstract class AbstractAvailCompiler
 				"Encountered exception during compilation ...",
 				Collections.singletonList(errorProducer));
 		}
-		commitModuleTransaction();
 	}
 
 	/**
@@ -1900,7 +2320,6 @@ public abstract class AbstractAvailCompiler
 	throws AvailCompilerException
 	{
 		final AvailRuntime runtime = interpreter.runtime();
-		final ModuleNameResolver resolver = runtime.moduleNameResolver();
 		final long sourceLength = qualifiedName.fileReference().length();
 		final Mutable<AvailObject> interpretation = new Mutable<AvailObject>();
 		final Mutable<ParserState> state = new Mutable<ParserState>();
@@ -1923,135 +2342,20 @@ public abstract class AbstractAvailCompiler
 				(long) token.start(),
 				sourceLength);
 		}
-		module.versions(TupleDescriptor.fromCollection(versions).asSet());
-		for (final AvailObject modImport : extendedModules)
+
+		final String errorString = moduleHeader.applyToModule(module, runtime);
+		if (errorString != null)
 		{
-			assert modImport.isTuple();
-			assert modImport.tupleSize() == 3;
-
-			final ResolvedModuleName ref = resolver.resolve(
-				qualifiedName.asSibling(
-					modImport.tupleAt(1).asNativeString()));
-			final AvailObject availRef = StringDescriptor.from(
-				ref.qualifiedName());
-			if (!runtime.includesModuleNamed(availRef))
-			{
-				state.value.expected(
-					"module \"" + ref.qualifiedName()
-					+ "\" to be loaded already");
-				reportError(qualifiedName);
-				assert false;
-			}
-
-			final AvailObject mod = runtime.moduleAt(availRef);
-			final AvailObject reqVersions = modImport.tupleAt(3);
-			if (reqVersions.setSize() > 0)
-			{
-				final AvailObject modVersions = mod.versions();
-				final AvailObject intersection =
-					modVersions.setIntersectionCanDestroy(
-						reqVersions, false);
-				if (intersection.setSize() == 0)
-				{
-					state.value.expected(
-						"version compatibility; module \"" + ref.localName()
-						+ "\" guarantees versions " + modVersions
-						+ " but current module requires " + reqVersions);
-					reportError(qualifiedName);
-					assert false;
-				}
-			}
-
-			final AvailObject modNames = modImport.tupleAt(2).setSize() > 0
-				? modImport.tupleAt(2)
-				: mod.names().keysAsSet();
-			for (final AvailObject strName : modNames)
-			{
-				if (!mod.names().hasKey(strName))
-				{
-					state.value.expected(
-						"module \"" + ref.qualifiedName()
-						+ "\" to export \"" + strName + "\"");
-					reportError(qualifiedName);
-					assert false;
-				}
-				final AvailObject trueNames = mod.names().mapAt(strName);
-				for (final AvailObject trueName : trueNames)
-				{
-					module.atNameAdd(strName, trueName);
-				}
-			}
-		}
-		for (final AvailObject modImport : usedModules)
-		{
-			assert modImport.isTuple();
-			assert modImport.tupleSize() == 3;
-
-			final ResolvedModuleName ref = resolver.resolve(
-				qualifiedName.asSibling(
-					modImport.tupleAt(1).asNativeString()));
-			final AvailObject availRef = StringDescriptor.from(
-				ref.qualifiedName());
-			if (!runtime.includesModuleNamed(availRef))
-			{
-				state.value.expected(
-					"module \"" + ref.qualifiedName()
-					+ "\" to be loaded already");
-				reportError(qualifiedName);
-				assert false;
-			}
-
-			final AvailObject mod = runtime.moduleAt(availRef);
-			final AvailObject reqVersions = modImport.tupleAt(3);
-			if (reqVersions.setSize() > 0)
-			{
-				final AvailObject modVersions = mod.versions();
-				final AvailObject intersection =
-					modVersions.setIntersectionCanDestroy(
-						reqVersions, false);
-				if (intersection.setSize() == 0)
-				{
-					state.value.expected(
-						"version compatibility; module \"" + ref.localName()
-						+ "\" guarantees versions " + modVersions
-						+ " but current module requires " + reqVersions);
-					reportError(qualifiedName);
-					assert false;
-				}
-			}
-
-			final AvailObject modNames = modImport.tupleAt(2).setSize() > 0
-				? modImport.tupleAt(2)
-				: mod.names().keysAsSet();
-			for (final AvailObject strName : modNames)
-			{
-				if (!mod.names().hasKey(strName))
-				{
-					state.value.expected(
-						"module \"" + ref.qualifiedName()
-						+ "\" to export \"" + strName + "\"");
-					reportError(qualifiedName);
-					assert false;
-				}
-				final AvailObject trueNames = mod.names().mapAt(strName);
-				for (final AvailObject trueName : trueNames)
-				{
-					module.atPrivateNameAdd(strName, trueName);
-				}
-			}
+			state.value.expected(errorString);
+			reportError(qualifiedName);
+			assert false;
 		}
 
-		for (final AvailObject name : exportedNames)
-		{
-			assert name.isString();
-			final AvailObject trueName = AtomDescriptor.create(
-				name,
-				module);
-			module.atNewNamePut(name, trueName);
-			module.atNameAdd(name, trueName);
-		}
+		serializer.serialize(AtomDescriptor.moduleHeaderSectionAtom());
+		moduleHeader.serializeHeaderOn(serializer);
 
-		for (final AvailObject pragmaString : pragmas)
+		serializer.serialize(AtomDescriptor.moduleBodySectionAtom());
+		for (final AvailObject pragmaString : moduleHeader.pragmas)
 		{
 			final String nativeString = pragmaString.asNativeString();
 			final String[] parts = nativeString.split("=", 2);
@@ -2069,11 +2373,11 @@ public abstract class AbstractAvailCompiler
 			}
 			if (pragmaKey.equals("bootstrapDefiningMethod"))
 			{
-				interpreter.bootstrapDefiningMethod(pragmaValue);
+				bootstrapDefiningMethod(pragmaValue);
 			}
 			else if (pragmaKey.equals("bootstrapSpecialObject"))
 			{
-				interpreter.bootstrapSpecialObject(pragmaValue);
+				bootstrapSpecialObjectMethod(pragmaValue);
 			}
 		}
 
@@ -2170,8 +2474,8 @@ public abstract class AbstractAvailCompiler
 
 	/**
 	 * Parse a {@linkplain ModuleDescriptor module} header for the specified
-	 * {@linkplain ModuleName module name}. Populate {@link #extendedModules}
-	 * and {@link #usedModules}.
+	 * {@linkplain ModuleName module name}. Populate {@link
+	 * ModuleHeader#extendedModules} and {@link ModuleHeader#usedModules}.
 	 *
 	 * @param qualifiedName
 	 *        The expected module name.
@@ -2216,13 +2520,6 @@ public abstract class AbstractAvailCompiler
 	{
 		assert workPool.isEmpty();
 
-		// Initialize module structures.
-		versions = new ArrayList<AvailObject>();
-		extendedModules = new ArrayList<AvailObject>();
-		usedModules = new ArrayList<AvailObject>();
-		exportedNames = new ArrayList<AvailObject>();
-		pragmas = new ArrayList<AvailObject>();
-
 		// Create the initial parser state: no tokens have been seen, no names
 		// are in scope.
 		ParserState state = new ParserState(
@@ -2264,9 +2561,9 @@ public abstract class AbstractAvailCompiler
 
 		// Module header section tracking.
 		final List<ExpectedToken> expected = new ArrayList<ExpectedToken>(
-			Arrays.asList(new ExpectedToken[]
-				{ VERSIONS, EXTENDS, USES, NAMES, PRAGMA, BODY }));
-		final Set<AvailObject> seen = new HashSet<AvailObject>(5);
+			Arrays.<ExpectedToken>asList(
+				VERSIONS, EXTENDS, USES, NAMES, PRAGMA, BODY));
+		final Set<AvailObject> seen = new HashSet<AvailObject>(6);
 		final Generator<String> expectedMessage = new Generator<String>()
 		{
 			@Override
@@ -2336,27 +2633,27 @@ public abstract class AbstractAvailCompiler
 			// On VERSIONS, record the versions.
 			else if (lexeme.equals(VERSIONS.lexeme()))
 			{
-				state = parseStringLiterals(state, versions);
+				state = parseStringLiterals(state, moduleHeader.versions);
 			}
 			// On EXTENDS, record the imports.
 			else if (lexeme.equals(EXTENDS.lexeme()))
 			{
-				state = parseImports(state, extendedModules);
+				state = parseImports(state, moduleHeader.extendedModules);
 			}
 			// On USES, record the imports.
 			else if (lexeme.equals(USES.lexeme()))
 			{
-				state = parseImports(state, usedModules);
+				state = parseImports(state, moduleHeader.usedModules);
 			}
 			// On NAMES, record the names.
 			else if (lexeme.equals(NAMES.lexeme()))
 			{
-				state = parseStringLiterals(state, exportedNames);
+				state = parseStringLiterals(state, moduleHeader.exportedNames);
 			}
 			// On PRAGMA, record the pragma strings.
 			else if (lexeme.equals(PRAGMA.lexeme()))
 			{
-				state = parseStringLiterals(state, pragmas);
+				state = parseStringLiterals(state, moduleHeader.pragmas);
 			}
 			// If the parser state is now null, then fail the parse.
 			if (state == null)

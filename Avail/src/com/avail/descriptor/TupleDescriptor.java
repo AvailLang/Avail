@@ -579,7 +579,8 @@ extends Descriptor
 		// given tuple.  Overridden in ObjectTupleDescriptor so that if
 		// isMutable and canDestroy are true then the parts of the tuple outside
 		// the subrange will have their reference counts decremented (i.e.,
-		// destroyed if mutable) and those tuple slots will be set to top.
+		// destroyed if mutable) and those tuple slots will be set to the null
+		// object.
 
 		assert 1 <= start && start <= end + 1;
 		assert 0 <= end && end <= object.tupleSize();
@@ -975,25 +976,23 @@ extends Descriptor
 	 * passed in a list.  The elements are not made immutable first, nor is the
 	 * new tuple necessarily made immutable.
 	 *
-	 * @param collection
+	 * @param list
 	 *        The list of {@linkplain AvailObject Avail objects} from which
 	 *        to construct a tuple.
 	 * @return The corresponding tuple of objects.
 	 */
-	public static @NotNull AvailObject fromCollection (
-		final List<AvailObject> collection)
+	public static @NotNull AvailObject fromList (
+		final List<AvailObject> list)
 	{
-		final int size = collection.size();
+		final int size = list.size();
 		if (size == 0)
 		{
 			return TupleDescriptor.empty();
 		}
 		final AvailObject tuple = ObjectTupleDescriptor.mutable().create(size);
-		int i = 1;
-		for (final AvailObject element : collection)
+		for (int i = 0; i < size; i++)
 		{
-			tuple.tupleAtPut(i, element);
-			i++;
+			tuple.tupleAtPut(i + 1, list.get(i));
 		}
 		return tuple;
 	}

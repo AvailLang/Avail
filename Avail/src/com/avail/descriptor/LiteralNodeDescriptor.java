@@ -175,6 +175,27 @@ extends ParseNodeDescriptor
 
 
 	/**
+	 * Create a {@linkplain LiteralNodeDescriptor literal node} from an
+	 * {@link AvailObject}, the literal value itself.  Automatically wrap the
+	 * value inside a synthetic literal token.
+	 *
+	 * @param literalValue The value that this literal node should produce.
+	 * @return The new literal node.
+	 */
+	public static AvailObject syntheticFrom (
+		final @NotNull AvailObject literalValue)
+	{
+		final AvailObject token = LiteralTokenDescriptor.create(
+			literalValue,
+			0,
+			0,
+			TokenType.SYNTHETIC_LITERAL,
+			literalValue);
+		return fromToken(token);
+	}
+
+
+	/**
 	 * Construct a new {@link LiteralNodeDescriptor}.
 	 *
 	 * @param isMutable Whether my {@linkplain AvailObject instances} can

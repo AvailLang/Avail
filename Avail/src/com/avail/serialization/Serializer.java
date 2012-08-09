@@ -37,6 +37,7 @@ import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.utility.Continuation0;
 import java.io.*;
+import java.security.PublicKey;
 import java.util.*;
 
 /**
@@ -72,6 +73,12 @@ public class Serializer
 		new HashMap<AvailObject, SerializerInstruction>(1000);
 
 	/**
+	 * All variables that must have their values assigned to them upon
+	 * deserialization.  The set is cleared at every checkpoint.
+	 */
+	final Set<AvailObject> variablesToAssign = new HashSet<AvailObject>(100);
+
+	/**
 	 * The number of instructions that have been written to the {@link #output}.
 	 */
 	int instructionsWritten = 0;
@@ -81,7 +88,7 @@ public class Serializer
 	 * instructions} that need to be processed.  It's a stack to ensure depth
 	 * first writing of instructions before their parents.  This mechanism
 	 * avoids using Java's limited stack, since Avail structures may in theory
-	 * be exceptionally deep.  TODO
+	 * be exceptionally deep.
 	 */
 	final Deque<Continuation0> workStack =
 		new ArrayDeque<Continuation0>(1000);
@@ -298,6 +305,13 @@ public class Serializer
 						assert instruction.hasBeenWritten();
 					}
 				}
+
+				@Override
+				public String toString ()
+				{
+					return "Assemble " + instruction.operation + "("
+						+ instruction.object + ")";
+				}
 			});
 			// Push actions for the subcomponents in reverse order to make the
 			// serialized file slightly easier to debug.  Any order is correct.
@@ -316,6 +330,35 @@ public class Serializer
 						operands[index].trace(
 							subobjects[index],
 							Serializer.this);
+					}
+
+					@Override
+					public String toString ()
+					{
+						return "Trace(" + subobjects[index] + ")";
+					}
+				});
+			}
+			if (instruction.operation.isVariable()
+				&& !object.value().equalsNull())
+			{
+				variablesToAssign.add(object);
+				// Output an action to the *start* of the workstack to trace
+				// the variable's value.  This prevents recursion, but ensures
+				// that everything reachable, including through variables, will
+				// be traced.
+				workStack.addFirst(new Continuation0()
+				{
+					@Override
+					public void value ()
+					{
+						traceOne(object.value());
+					}
+
+					@Override
+					public String toString ()
+					{
+						return "TraceVariable(" + object.kind() + ")";
 					}
 				});
 			}
@@ -385,6 +428,22 @@ public class Serializer
 		{
 			workStack.removeLast().value();
 		}
+		// Next, do all variable assignments...
+		for (final AvailObject variable : variablesToAssign)
+		{
+			assert !variable.value().equalsNull();
+			final SerializerInstruction assignment =
+				new SerializerInstruction(
+					variable,
+					SerializerOperation.ASSIGN_TO_VARIABLE);
+			assignment.index(instructionsWritten);
+			instructionsWritten++;
+			assignment.writeTo(this);
+			assert assignment.hasBeenWritten();
+		}
+		variablesToAssign.clear();
+		// Finally, write a checkpoint to say there's something ready for the
+		// deserializer to answer.
 		final SerializerInstruction checkpoint = new SerializerInstruction(
 			object,
 			SerializerOperation.CHECKPOINT);

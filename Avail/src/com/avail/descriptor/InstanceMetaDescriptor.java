@@ -38,6 +38,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.serialization.SerializerOperation;
 
 /**
  * My instances are called <em>instance metas</em>, the types of types.  These
@@ -322,6 +323,265 @@ extends AbstractEnumerationTypeDescriptor
 		return false;
 	}
 
+	@Override
+	AvailObject o_FieldTypeMap (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+
+	@Override
+	AvailObject o_LowerBound (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+
+	@Override
+	boolean o_LowerInclusive (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+
+	@Override
+	AvailObject o_UpperBound (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+
+	@Override
+	boolean o_UpperInclusive (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+
+	@Override
+	AvailObject o_TypeAtIndex (final AvailObject object, final int index)
+	{
+		throw unsupportedOperationException();
+	}
+
+
+	@Override
+	AvailObject o_UnionOfTypesAtThrough (
+		final AvailObject object,
+		final int startIndex,
+		final int endIndex)
+	{
+		throw unsupportedOperationException();
+	}
+
+
+	@Override
+	AvailObject o_DefaultType (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+
+	@Override
+	AvailObject o_SizeRange (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+
+	@Override
+	AvailObject o_TypeTuple (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+
+	@Override
+	boolean o_IsIntegerRangeType (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+
+	@Override
+	boolean o_IsLiteralTokenType (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+
+	@Override
+	boolean o_IsMapType (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+
+	@Override
+	boolean o_IsSetType (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+
+	@Override
+	boolean o_IsTupleType (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+
+	@Override
+	boolean o_AcceptsArgTypesFromFunctionType (
+		final AvailObject object,
+		final AvailObject functionType)
+	{
+		throw unsupportedOperationException();
+	}
+
+
+	@Override
+	boolean o_AcceptsListOfArgTypes (
+		final AvailObject object,
+		final List<AvailObject> argTypes)
+	{
+		throw unsupportedOperationException();
+	}
+
+
+	@Override
+	boolean o_AcceptsListOfArgValues (
+		final AvailObject object,
+		final List<AvailObject> argValues)
+	{
+		throw unsupportedOperationException();
+	}
+
+
+	@Override
+	boolean o_AcceptsTupleOfArgTypes (final AvailObject object, final AvailObject argTypes)
+	{
+		throw unsupportedOperationException();
+	}
+
+
+	@Override
+	boolean o_AcceptsTupleOfArguments (final AvailObject object, final AvailObject arguments)
+	{
+		throw unsupportedOperationException();
+	}
+
+
+	@Override
+	AvailObject o_ArgsTupleType (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+
+	@Override
+	AvailObject o_DeclaredExceptions (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+
+	@Override
+	AvailObject o_FunctionType (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+
+	@Override
+	AvailObject o_ContentType (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+
+	@Override
+	boolean o_CouldEverBeInvokedWith (
+		final AvailObject object,
+		final List<AvailObject> argTypes)
+	{
+		throw unsupportedOperationException();
+	}
+
+
+	@Override
+	AvailObject o_KeyType (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+
+	@Override
+	AvailObject o_Name (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+
+	@Override
+	AvailObject o_Parent (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+
+	@Override
+	AvailObject o_ReturnType (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+
+	@Override
+	AvailObject o_ValueType (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+
+	@Override
+	AvailObject o_ReadType (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+
+	@Override
+	AvailObject o_WriteType (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+
+	@Override
+	AvailObject o_ExpressionType (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+
+	@Override
+	boolean o_HasObjectInstance (
+		final AvailObject object,
+		final AvailObject potentialInstance)
+	{
+		throw unsupportedOperationException();
+	}
+
+
+	@Override
+	@NotNull SerializerOperation o_SerializerOperation (
+		final @NotNull AvailObject object)
+	{
+		return SerializerOperation.INSTANCE_META;
+	}
+
+
 	/**
 	 * Answer a new instance of this descriptor based on some object whose type
 	 * it will represent.
@@ -432,223 +692,5 @@ extends AbstractEnumerationTypeDescriptor
 	public static AbstractEnumerationTypeDescriptor immutable ()
 	{
 		return immutable;
-	}
-
-
-	@Override
-	AvailObject o_FieldTypeMap (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	AvailObject o_LowerBound (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	boolean o_LowerInclusive (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	AvailObject o_UpperBound (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	boolean o_UpperInclusive (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	AvailObject o_TypeAtIndex (final AvailObject object, final int index)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	AvailObject o_UnionOfTypesAtThrough (
-		final AvailObject object,
-		final int startIndex,
-		final int endIndex)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	AvailObject o_DefaultType (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	AvailObject o_SizeRange (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	AvailObject o_TypeTuple (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	boolean o_IsIntegerRangeType (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	boolean o_IsLiteralTokenType (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	boolean o_IsMapType (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	boolean o_IsSetType (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	boolean o_IsTupleType (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	boolean o_AcceptsArgTypesFromFunctionType (
-		final AvailObject object,
-		final AvailObject functionType)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	boolean o_AcceptsListOfArgTypes (
-		final AvailObject object,
-		final List<AvailObject> argTypes)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	boolean o_AcceptsListOfArgValues (
-		final AvailObject object,
-		final List<AvailObject> argValues)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	boolean o_AcceptsTupleOfArgTypes (final AvailObject object, final AvailObject argTypes)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	boolean o_AcceptsTupleOfArguments (final AvailObject object, final AvailObject arguments)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	AvailObject o_ArgsTupleType (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	AvailObject o_DeclaredExceptions (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	AvailObject o_FunctionType (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	AvailObject o_ContentType (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	boolean o_CouldEverBeInvokedWith (
-		final AvailObject object,
-		final List<AvailObject> argTypes)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	AvailObject o_KeyType (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	AvailObject o_Name (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	AvailObject o_Parent (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	AvailObject o_ReturnType (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	AvailObject o_ValueType (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	AvailObject o_ReadType (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	AvailObject o_WriteType (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	AvailObject o_ExpressionType (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	boolean o_HasObjectInstance (
-		final AvailObject object,
-		final AvailObject potentialInstance)
-	{
-		throw unsupportedOperationException();
 	}
 }

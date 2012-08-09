@@ -117,6 +117,7 @@ extends JFrame
 			buildTask = new BuildTask(selectedModule());
 			buildTask.execute();
 			cancelAction.setEnabled(true);
+			cleanAction.setEnabled(false);
 		}
 
 		/**
@@ -162,6 +163,36 @@ extends JFrame
 				SHORT_DESCRIPTION,
 				"Cancel the current build process.");
 			putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("control ESCAPE"));
+		}
+	}
+
+	/**
+	 * A {@code CleanAction} unloads all code from the runtime and empties the
+	 * compiled module repository.
+	 */
+	private final class CleanAction
+	extends AbstractAction
+	{
+		/** The serial version identifier. */
+		private static final long serialVersionUID = 5674981650560448737L;
+
+		@Override
+		public void actionPerformed (final @NotNull ActionEvent event)
+		{
+			assert buildTask == null;
+			repository.clear();
+			System.err.println("Repository has been cleared");
+		}
+
+		/**
+		 * Construct a new {@link CleanAction}.
+		 */
+		public CleanAction ()
+		{
+			super("Clean all");
+			putValue(
+				SHORT_DESCRIPTION,
+				"Unload all code and wipe the compiled module cache.");
 		}
 	}
 
@@ -290,6 +321,7 @@ extends JFrame
 				runtime = new AvailRuntime(resolver);
 				final AvailBuilder builder = new AvailBuilder(
 					runtime,
+					repository,
 					new ModuleName(targetModuleName));
 				AvailBuilder.buildTargetInNewAvailThread(
 					builder,
@@ -451,6 +483,7 @@ extends JFrame
 			inputField.setEnabled(false);
 			cancelAction.setEnabled(false);
 			buildAction.setEnabled(true);
+			cleanAction.setEnabled(true);
 			if (terminator == null)
 			{
 				moduleProgress.setString("Module Progress: 100%");
@@ -793,6 +826,15 @@ extends JFrame
 	/** The {@linkplain CancelAction cancel action}. */
 	@InnerAccess final @NotNull CancelAction cancelAction;
 
+	/** The {@linkplain CleanAction clean action}. */
+	@InnerAccess final @NotNull CleanAction cleanAction;
+
+	/**
+	 * The transient {@link Repository} of compiled modules to load in place
+	 * of Avail source files.
+	 */
+	@InnerAccess final Repository repository;
+
 	/**
 	 * Answer the (invisible) root of the {@linkplain #moduleTree module tree}.
 	 *
@@ -929,15 +971,25 @@ extends JFrame
 		final @NotNull Long position,
 		final @NotNull Long moduleSize)
 	{
-		final int percent = (int) ((position * 100) / moduleSize);
-		moduleProgress.setValue(percent);
-		moduleProgress.setString(String.format(
-			"Module Progress: %s [line %d]: %d / %d bytes (%d%%)",
-			moduleName.qualifiedName(),
-			lineNumber,
-			position,
-			moduleSize,
-			percent));
+		if (lineNumber == -1)
+		{
+			moduleProgress.setValue(0);
+			moduleProgress.setString(String.format(
+				"Loading compiled module: %s",
+				moduleName.qualifiedName()));
+		}
+		else
+		{
+			final int percent = (int) ((position * 100) / moduleSize);
+			moduleProgress.setValue(percent);
+			moduleProgress.setString(String.format(
+				"Compiling module: %s [line %d]: %d / %d bytes (%d%%)",
+				moduleName.qualifiedName(),
+				lineNumber,
+				position,
+				moduleSize,
+				percent));
+		}
 	}
 
 	/**
@@ -977,6 +1029,9 @@ extends JFrame
 		final @NotNull ModuleNameResolver resolver,
 		final String initialTarget)
 	{
+		// Open the repository.
+		repository = Repository.createTemporary();
+
 		// Set module components.
 		this.resolver = resolver;
 
@@ -995,6 +1050,10 @@ extends JFrame
 		cancelAction.setEnabled(false);
 		final JMenuItem cancelItem = new JMenuItem(cancelAction);
 		menu.add(cancelItem);
+		cleanAction = new CleanAction();
+		cleanAction.setEnabled(true);
+		final JMenuItem cleanItem = new JMenuItem(cleanAction);
+		menu.add(cleanItem);
 		menuBar.add(menu);
 		setJMenuBar(menuBar);
 		final JPopupMenu buildPopup = new JPopupMenu("Build");

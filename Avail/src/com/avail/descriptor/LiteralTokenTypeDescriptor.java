@@ -36,6 +36,7 @@ import static com.avail.descriptor.LiteralTokenTypeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 import com.avail.annotations.*;
+import com.avail.serialization.SerializerOperation;
 
 /**
  * I represent the type of some {@link LiteralTokenDescriptor literal tokens}.
@@ -195,6 +196,13 @@ extends TypeDescriptor
 			aLiteralTokenType.literalType());
 		instance.makeImmutable();
 		return LiteralTokenTypeDescriptor.create(instance);
+	}
+
+	@Override
+	@NotNull SerializerOperation o_SerializerOperation (
+		final @NotNull AvailObject object)
+	{
+		return SerializerOperation.LITERAL_TOKEN_TYPE;
 	}
 
 	/**

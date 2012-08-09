@@ -38,6 +38,7 @@ import static com.avail.descriptor.TokenDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
 import com.avail.annotations.*;
 import com.avail.descriptor.Descriptor;
+import com.avail.serialization.SerializerOperation;
 
 
 /**
@@ -281,6 +282,12 @@ extends Descriptor
 				|| object.literal().equals(aToken.literal()));
 	}
 
+	@Override
+	@NotNull SerializerOperation o_SerializerOperation (
+		final @NotNull AvailObject object)
+	{
+		return SerializerOperation.TOKEN;
+	}
 
 	/**
 	 * Create and initialize a new {@linkplain TokenDescriptor token}.

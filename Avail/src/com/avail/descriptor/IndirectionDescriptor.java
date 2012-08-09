@@ -4374,4 +4374,13 @@ extends AbstractDescriptor
 	{
 		return o_Traversed(object).rangeIncludesInt(anInt);
 	}
+
+	@Override
+	void o_IsSystemModule (
+		final @NotNull AvailObject object,
+		final boolean isSystemModule)
+	{
+		o_Traversed(object).isSystemModule(isSystemModule);
+	}
+
 }

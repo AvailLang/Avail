@@ -680,7 +680,7 @@ is
 	explicitDef : <<atom, any meta…|2>…|0..1> := <>;
 	If explicit then
 	[
-		explicitAtom ::= new atom "explicit-" ++ className;
+		explicitAtom ::= atom for "explicit-" ++ className;
 		explicitDef := <<explicitAtom, explicitAtom's type>>;
 	];
 	/* Construct and verify the subtype. */

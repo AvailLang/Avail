@@ -324,6 +324,14 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 					builder,
 					recursionList,
 					indent + 1);
+				if (!object.initializationExpression().equalsNull())
+				{
+					builder.append(" := ");
+					object.initializationExpression().printOnAvoidingIndent(
+						builder,
+						recursionList,
+						indent + 1);
+				}
 			}
 		},
 
@@ -337,7 +345,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 				final AvailObject declarationNode,
 				final AvailCodeGenerator codeGenerator)
 			{
-				codeGenerator.emitPushLiteral(declarationNode.literalObject());
+				codeGenerator.emitGetLiteral(declarationNode.literalObject());
 			}
 
 			@Override
@@ -349,7 +357,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 			{
 				builder.append(object.token().string().asNativeString());
 				builder.append(" ::= ");
-				object.literalObject().printOnAvoidingIndent(
+				object.initializationExpression().printOnAvoidingIndent(
 					builder,
 					recursionList,
 					indent + 1);
@@ -929,21 +937,24 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	 * @param token
 	 *        The {@linkplain TokenDescriptor token} that is the defining
 	 *        occurrence of the name of the module variable being declared.
-	 * @param literalObject
+	 * @param literalVariable
 	 *        The actual {@linkplain VariableDescriptor variable} to be used
 	 *        as a module variable.
+	 * @param initializationExpression
+	 *        The expression (or null) used to initialize this module variable.
 	 * @return The new module variable declaration.
 	 */
 	public static AvailObject newModuleVariable(
 		final AvailObject token,
-		final AvailObject literalObject)
+		final AvailObject literalVariable,
+		final AvailObject initializationExpression)
 	{
 		return newDeclaration(
 			MODULE_VARIABLE,
 			token,
-			literalObject.kind().readType(),
-			NullDescriptor.nullObject(),
-			literalObject);
+			literalVariable.kind().readType(),
+			initializationExpression,
+			literalVariable);
 	}
 
 	/**
@@ -953,21 +964,24 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	 * @param token
 	 *        The {@linkplain TokenDescriptor token} that is the defining
 	 *        occurrence of the name of the module constant being declared.
-	 * @param literalObject
-	 *        The actual {@link AvailObject} that the new module constant has as
-	 *        its value.
+	 * @param literalVariable
+	 *        An actual {@link VariableDescriptor variable} that the new module
+	 *        constant uses to hold its value.
+	 * @param initializationExpression
+	 *        The expression used to initialize this module constant.
 	 * @return The new module constant declaration.
 	 */
 	public static AvailObject newModuleConstant(
 		final AvailObject token,
-		final AvailObject literalObject)
+		final AvailObject literalVariable,
+		final AvailObject initializationExpression)
 	{
 		return newDeclaration(
 			MODULE_CONSTANT,
 			token,
-			AbstractEnumerationTypeDescriptor.withInstance(literalObject),
-			NullDescriptor.nullObject(),
-			literalObject);
+			literalVariable.kind().readType(),
+			initializationExpression,
+			literalVariable);
 	}
 
 

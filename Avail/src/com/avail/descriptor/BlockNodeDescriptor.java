@@ -212,7 +212,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 			argumentTypes.add(argDeclaration.declaredType());
 		}
 		return FunctionTypeDescriptor.create(
-			TupleDescriptor.fromCollection(argumentTypes),
+			TupleDescriptor.fromList(argumentTypes),
 			object.resultType());
 	}
 
@@ -496,9 +496,9 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 		final int lineNumber)
 	{
 		return newBlockNode(
-			TupleDescriptor.fromCollection(argumentsList),
+			TupleDescriptor.fromList(argumentsList),
 			IntegerDescriptor.fromInt(primitive),
-			TupleDescriptor.fromCollection(statementsList),
+			TupleDescriptor.fromList(statementsList),
 			resultType,
 			declaredExceptions,
 			lineNumber);
@@ -557,7 +557,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 		block.setSlot(PRIMITIVE, primitive.extractInt());
 		block.setSlot(
 			STATEMENTS_TUPLE,
-			TupleDescriptor.fromCollection(flattenedStatements));
+			TupleDescriptor.fromList(flattenedStatements));
 		block.setSlot(RESULT_TYPE, resultType);
 		block.setSlot(NEEDED_VARIABLES, NullDescriptor.nullObject());
 		block.setSlot(DECLARED_EXCEPTIONS, declaredExceptions);
@@ -640,7 +640,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 			}
 		});
 		object.neededVariables(
-			TupleDescriptor.fromCollection(
+			TupleDescriptor.fromList(
 				new ArrayList<AvailObject>(neededDeclarations)));
 	}
 
@@ -710,13 +710,15 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 			builder.append('\t');
 		}
 		boolean skipFailureDeclaration = false;
-		if (primitive != 0)
+		final Primitive prim = Primitive.byPrimitiveNumber(primitive);
+		if (prim != null
+			&& !prim.hasFlag(Flag.SpecialReturnConstant)
+			&& !prim.hasFlag(Flag.SpecialReturnSoleArgument))
 		{
 			builder.append('\t');
 			builder.append("Primitive ");
 			builder.append(primitive);
-			final Primitive primObject = Primitive.byPrimitiveNumber(primitive);
-			if (!primObject.hasFlag(Flag.CannotFail))
+			if (!prim.hasFlag(Flag.CannotFail))
 			{
 				builder.append(" (");
 				statementsTuple.tupleAt(1).printOnAvoidingIndent(

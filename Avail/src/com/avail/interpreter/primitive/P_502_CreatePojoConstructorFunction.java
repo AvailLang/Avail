@@ -115,7 +115,7 @@ public class P_502_CreatePojoConstructorFunction extends Primitive
 				RawPojoDescriptor.equalityWrap(paramClass));
 		}
 		final AvailObject marshaledTypesTuple =
-			TupleDescriptor.fromCollection(marshaledTypePojos);
+			TupleDescriptor.fromList(marshaledTypePojos);
 		// Create a function wrapper for the pojo constructor invocation
 		// primitive. This function will be embedded as a literal into
 		// an outer function that holds the (unexposed) constructor pojo.

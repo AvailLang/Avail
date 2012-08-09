@@ -1,21 +1,20 @@
 /**
- * L2Interpreter.java
- * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * L2Interpreter.java Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
  * * Redistributions of source code must retain the above copyright notice, this
- *   list of conditions and the following disclaimer.
+ * list of conditions and the following disclaimer.
  *
  * * Redistributions in binary form must reproduce the above copyright notice,
- *   this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
  *
  * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived from this software
- *   without specific prior written permission.
+ * may be used to endorse or promote products derived from this software without
+ * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -49,12 +48,12 @@ import com.avail.interpreter.levelTwo.register.FixedRegister;
 
 /**
  * This class is used to execute {@linkplain L2ChunkDescriptor level two code},
- * which is a translation of the level one nybblecodes found in {@linkplain
- * CompiledCodeDescriptor compiled code}.
+ * which is a translation of the level one nybblecodes found in
+ * {@linkplain CompiledCodeDescriptor compiled code}.
  *
  * <p>
  * Level one nybblecodes are designed to be compact and very simple, but not
- * particularly efficiently executable.  Level two is designed for a clean model
+ * particularly efficiently executable. Level two is designed for a clean model
  * for optimization, including:
  * <ul>
  * <li>primitive folding.</li>
@@ -78,41 +77,40 @@ import com.avail.interpreter.levelTwo.register.FixedRegister;
  *
  * <p>
  * To accomplish these goals, the stack-oriented architecture of level one maps
- * onto a register transfer language for level two.  At runtime the idealized
+ * onto a register transfer language for level two. At runtime the idealized
  * {@linkplain L2Interpreter interpreter} has an arbitrarily large bank of
  * pointer registers (that point to {@linkplain AvailObject Avail objects}),
- * plus a separate bank for {@code int}s (unboxed 32-bit signed integers), and
- * a similar bank yet for {@code double}s (unboxed double-precision floating
- * point numbers).  Ideally these will map to machine registers, but more likely
- * they will spill into physical arrays of the appropriate type.  Register
- * spilling is a well studied art, and essentially a solved problem.  Better
- * yet, the Java HotSpot optimizer should be able to do at least as good a job
- * as we can, so we should be able to just generate Java bytecodes and leave it
- * at that.
+ * plus a separate bank for {@code int}s (unboxed 32-bit signed integers), and a
+ * similar bank yet for {@code double}s (unboxed double-precision floating point
+ * numbers). Ideally these will map to machine registers, but more likely they
+ * will spill into physical arrays of the appropriate type. Register spilling is
+ * a well studied art, and essentially a solved problem. Better yet, the Java
+ * HotSpot optimizer should be able to do at least as good a job as we can, so
+ * we should be able to just generate Java bytecodes and leave it at that.
  * </p>
  *
  * <p>
  * One of the less intuitive aspects of the level one / level two mapping is how
- * to handle the call stack.  The level one view is of a chain of continuations,
- * but level two doesn't even have a stack!  We bridge this disconnect by
+ * to handle the call stack. The level one view is of a chain of continuations,
+ * but level two doesn't even have a stack! We bridge this disconnect by
  * reserving a register to hold the level one continuation of the
- * <em>caller</em> of the current method.  This is at least vaguely analogous to
+ * <em>caller</em> of the current method. This is at least vaguely analogous to
  * the way that high level languages typically implement their calling
  * conventions using stack frames and such.
  * </p>
  *
  * <p>
  * However, our target is not assembly language (nor something that purports to
- * operate at that level in some platform-neutral way).  Instead, our target
+ * operate at that level in some platform-neutral way). Instead, our target
  * language, level two, is designed for representing and performing
- * optimization.  With this in mind, the level two instruction set includes an
- * instruction that constructs a new continuation from a list of registers.  A
+ * optimization. With this in mind, the level two instruction set includes an
+ * instruction that constructs a new continuation from a list of registers. A
  * corresponding instruction "explodes" a continuation into registers reserved
- * as part of the calling convention (strictly enforced).  During transition
- * from caller to callee (and vice-versa), the only registers that hold usable
- * state are the "architectural" registers – those that hold the state of a
- * continuation being constructed or deconstructed.  This sounds brutally
- * inefficient, but time will tell.  Also, I have devised and implemented
+ * as part of the calling convention (strictly enforced). During transition from
+ * caller to callee (and vice-versa), the only registers that hold usable state
+ * are the "architectural" registers – those that hold the state of a
+ * continuation being constructed or deconstructed. This sounds brutally
+ * inefficient, but time will tell. Also, I have devised and implemented
  * mechanisms to allow deeper inlining than would normally be possible in a
  * traditional system, the explicit construction and deconstruction of
  * continuations being one such mechanism.
@@ -121,38 +119,37 @@ import com.avail.interpreter.levelTwo.register.FixedRegister;
  * <p>
  * Note that unlike languages like C and C++, optimizations below level one are
  * always transparent – other than observations about performance and memory
- * use.  Also note that this was a design constraint for Avail as far back as
+ * use. Also note that this was a design constraint for Avail as far back as
  * 1993, after <span style="font-variant: small-caps;">Self</span>, but before
- * its technological successor Java.  The way in which this is accomplished (or
+ * its technological successor Java. The way in which this is accomplished (or
  * will be more fully accomplished) in Avail is by allowing the generated level
  * two code itself to define how to maintain the "accurate fiction" of a level
- * one interpreter.  If a method is inlined ten layers deep inside an outer
+ * one interpreter. If a method is inlined ten layers deep inside an outer
  * method, a non-inlined call from that inner method requires ten layers of
  * continuations to be constructed prior to the call (to accurately maintain the
- * fiction that it was always simply interpreting level one nybblecodes).  There
+ * fiction that it was always simply interpreting level one nybblecodes). There
  * are ways to avoid or at least postpone this phase transition, but I don't
  * have any solid plans for introducing such a mechanism any time soon.
  * </p>
  *
  * <p>
  * Finally, note that the Avail control structures are defined in terms of
- * multimethod dispatch and continuation resumption.  As of 2011.05.09 they
- * are also <em>implemented</em> that way, but a goal is to perform object
- * escape analysis in such a way that it deeply favors chasing continuations.
- * If successful, a continuation resumption can basically be rewritten as a
- * jump, leading to a more traditional control flow in the typical case, which
- * should be much easier to further optimize (say with SSA) than code which
- * literally passes and resumes continuations.  In those cases that the
- * continuation actually escapes (say, if the continuations are used for
- * backtracking) then it can't dissolve into a simple jump – but it will still
- * execute correctly, just not as quickly.
+ * multimethod dispatch and continuation resumption. As of 2011.05.09 they are
+ * also <em>implemented</em> that way, but a goal is to perform object escape
+ * analysis in such a way that it deeply favors chasing continuations. If
+ * successful, a continuation resumption can basically be rewritten as a jump,
+ * leading to a more traditional control flow in the typical case, which should
+ * be much easier to further optimize (say with SSA) than code which literally
+ * passes and resumes continuations. In those cases that the continuation
+ * actually escapes (say, if the continuations are used for backtracking) then
+ * it can't dissolve into a simple jump – but it will still execute correctly,
+ * just not as quickly.
  * </p>
  *
  *
  * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
-final public class L2Interpreter
-extends Interpreter
+final public class L2Interpreter extends Interpreter
 {
 	/** Whether to print detailed level one debug information. */
 	public final static boolean debugL1 = false;
@@ -166,31 +163,32 @@ extends Interpreter
 	/**
 	 * Fake slots used to show stack traces in the Eclipse Java debugger.
 	 */
-	enum FakeStackTraceSlots
-	implements ObjectSlotsEnum
+	enum FakeStackTraceSlots implements ObjectSlotsEnum
 	{
 		/**
 		 * The chain of {@linkplain ContinuationDescriptor continuations} of the
-		 * {@linkplain FiberDescriptor fiber} bound to this {@linkplain
-		 * L2Interpreter interpreter}.
+		 * {@linkplain FiberDescriptor fiber} bound to this
+		 * {@linkplain L2Interpreter interpreter}.
 		 */
 		FRAMES
 	}
 
 	/**
-	 * Utility method for decomposing this object in the debugger.  See {@link
-	 * AvailObjectFieldHelper} for instructions to enable this functionality in
-	 * Eclipse.
+	 * Utility method for decomposing this object in the debugger. See
+	 * {@link AvailObjectFieldHelper} for instructions to enable this
+	 * functionality in Eclipse.
 	 *
-	 * <p>In particular, an L2Interpreter should present (possible among other
-	 * things) a complete stack trace of the current fiber, converting the
-	 * deep continuation structure into a list of continuation substitutes
-	 * that <em>do not</em> recursively print the caller chain.</p>
+	 * <p>
+	 * In particular, an L2Interpreter should present (possible among other
+	 * things) a complete stack trace of the current fiber, converting the deep
+	 * continuation structure into a list of continuation substitutes that
+	 * <em>do not</em> recursively print the caller chain.
+	 * </p>
 	 *
 	 * @return An array of {@link AvailObjectFieldHelper} objects that help
 	 *         describe the logical structure of the receiver to the debugger.
 	 */
-	public AvailObjectFieldHelper[] describeForDebugger()
+	public AvailObjectFieldHelper[] describeForDebugger ()
 	{
 		final List<AvailObject> frames = new ArrayList<AvailObject>(50);
 		AvailObject frame = pointers[CALLER.ordinal()];
@@ -202,11 +200,9 @@ extends Interpreter
 				frame = frame.caller();
 			}
 		}
-		final AvailObject framesTuple =
-			TupleDescriptor.fromCollection(frames);
+		final AvailObject framesTuple = TupleDescriptor.fromList(frames);
 		final AvailObject outerTuple = TupleDescriptor.from(framesTuple);
-		final List<AvailObjectFieldHelper> outerList =
-			new ArrayList<AvailObjectFieldHelper>();
+		final List<AvailObjectFieldHelper> outerList = new ArrayList<AvailObjectFieldHelper>();
 		assert outerTuple.tupleSize() == FakeStackTraceSlots.values().length;
 		for (final FakeStackTraceSlots field : FakeStackTraceSlots.values())
 		{
@@ -219,7 +215,6 @@ extends Interpreter
 		return outerList.toArray(new AvailObjectFieldHelper[outerList.size()]);
 	}
 
-
 	/**
 	 * The {@link L2ChunkDescriptor} being executed.
 	 */
@@ -229,9 +224,8 @@ extends Interpreter
 	 * Return the currently executing {@linkplain L2ChunkDescriptor level two
 	 * chunk}.
 	 *
-	 * @return
-	 *            The {@linkplain L2ChunkDescriptor level two chunk} that is
-	 *            currently being executed.
+	 * @return The {@linkplain L2ChunkDescriptor level two chunk} that is
+	 *         currently being executed.
 	 */
 	@InnerAccess
 	public AvailObject chunk ()
@@ -240,14 +234,14 @@ extends Interpreter
 	}
 
 	/**
-	 * Start executing a new chunk.  The {@linkplain #offset} at which to
-	 * execute must be set separately.
+	 * Start executing a new chunk. The {@linkplain #offset} at which to execute
+	 * must be set separately.
 	 *
 	 * <p>
 	 * Note that the {@linkplain CompiledCodeDescriptor compiled code} is passed
-	 * in because the {@linkplain L2ChunkDescriptor#unoptimizedChunk()
-	 * default chunk} doesn't inherently know how many registers it needs
-	 * – the answer depends on the level one compiled code being executed.
+	 * in because the {@linkplain L2ChunkDescriptor#unoptimizedChunk() default
+	 * chunk} doesn't inherently know how many registers it needs – the answer
+	 * depends on the level one compiled code being executed.
 	 * </p>
 	 *
 	 * @param chunk
@@ -270,12 +264,12 @@ extends Interpreter
 		if (logger.isLoggable(Level.FINER))
 		{
 			logger.finer(String.format(
-				"executing new chunk (%d)", chunk.index()));
+				"executing new chunk (%d)",
+				chunk.index()));
 		}
 	}
 
-	private static final int numberOfFixedRegisters =
-		FixedRegister.values().length;
+	private static final int numberOfFixedRegisters = FixedRegister.values().length;
 
 	/**
 	 * The L2 instruction stream as a tuple of integers.
@@ -283,7 +277,7 @@ extends Interpreter
 	private AvailObject chunkWords;
 
 	/**
-	 * This chunk's register vectors.  A register vector is a tuple of integers
+	 * This chunk's register vectors. A register vector is a tuple of integers
 	 * that represent {@link #pointers Avail object registers}.
 	 */
 	private AvailObject chunkVectors;
@@ -316,11 +310,11 @@ extends Interpreter
 	public final List<AvailObject> argsBuffer = new ArrayList<AvailObject>();
 
 	/**
-	 * The {@link L1InstructionStepper} used to simulate execution of level
-	 * one nybblecodes.
+	 * The {@link L1InstructionStepper} used to simulate execution of level one
+	 * nybblecodes.
 	 */
-	public final L1InstructionStepper levelOneStepper =
-		new L1InstructionStepper(this);
+	public final L1InstructionStepper levelOneStepper = new L1InstructionStepper(
+		this);
 
 	/**
 	 * Whether or not execution has completed.
@@ -355,7 +349,7 @@ extends Interpreter
 		final int continuationIndex = nextWord();
 		fiber.continuation(pointerAt(continuationIndex));
 		// TODO[MvG/TLS]: Really process the interrupt, possibly causing a
-		// context switch to another fiber.  The simplest approach is to queue
+		// context switch to another fiber. The simplest approach is to queue
 		// this fiber, then allow the thread pool to grab the highest priority
 		// available fiber to run.
 		fiber.clearInterruptRequestFlags();
@@ -389,7 +383,8 @@ extends Interpreter
 	/**
 	 * Jump to a new position in the L2 wordcode stream.
 	 *
-	 * @param newOffset The new position in the L2 wordcode stream.
+	 * @param newOffset
+	 *            The new position in the L2 wordcode stream.
 	 */
 	public void offset (final int newOffset)
 	{
@@ -411,14 +406,13 @@ extends Interpreter
 		return 1;
 	}
 
-
 	/**
 	 * Answer the subscript of the integer register reserved for holding the
 	 * current (virtualized) continuation's {@linkplain AvailObject#stackp()
-	 * stackp} (stack pointer).  While in this register, the value refers to
-	 * the exact pointer register number rather than the value that would be
-	 * stored in a continuation's stackp slot, so adjustments must be made
-	 * during reification and explosion of continuations.
+	 * stackp} (stack pointer). While in this register, the value refers to the
+	 * exact pointer register number rather than the value that would be stored
+	 * in a continuation's stackp slot, so adjustments must be made during
+	 * reification and explosion of continuations.
 	 *
 	 * @return The subscript to use with {@link L2Interpreter#integerAt(int)}.
 	 */
@@ -428,13 +422,13 @@ extends Interpreter
 		return 2;
 	}
 
-
 	/**
 	 * Answer the subscript of the register holding the argument or local with
-	 * the given index (e.g., the first argument is in register 4).
-	 * The arguments come first, then the locals.
+	 * the given index (e.g., the first argument is in register 4). The
+	 * arguments come first, then the locals.
 	 *
-	 * @param argumentOrLocalNumber The one-based argument/local number.
+	 * @param argumentOrLocalNumber
+	 *            The one-based argument/local number.
 	 * @return The subscript to use with {@link L2Interpreter#pointerAt(int)}.
 	 */
 	public final static int argumentOrLocalRegister (
@@ -443,7 +437,6 @@ extends Interpreter
 		// Skip the fixed registers.
 		return numberOfFixedRegisters + argumentOrLocalNumber - 1;
 	}
-
 
 	/**
 	 * Answer the current continuation.
@@ -454,7 +447,6 @@ extends Interpreter
 	{
 		return pointerAt(CALLER);
 	}
-
 
 	/**
 	 * Answer an integer extracted at the current program counter. The program
@@ -489,11 +481,12 @@ extends Interpreter
 	}
 
 	/**
-	 * Read from an object register.  Register zero is reserved for read-only
+	 * Read from an object register. Register zero is reserved for read-only
 	 * use, and always contains the {@linkplain NullDescriptor#nullObject() null
 	 * object}.
 	 *
-	 * @param index The object register index.
+	 * @param index
+	 *            The object register index.
 	 * @return The object in the specified register.
 	 */
 	public AvailObject pointerAt (final int index)
@@ -504,12 +497,14 @@ extends Interpreter
 	}
 
 	/**
-	 * Write to an object register.  Register zero is reserved for read-only
-	 * use, and always contains the {@linkplain NullDescriptor#nullObject() null
+	 * Write to an object register. Register zero is reserved for read-only use,
+	 * and always contains the {@linkplain NullDescriptor#nullObject() null
 	 * object}.
 	 *
-	 * @param index The object register index.
-	 * @param anAvailObject The object to write to the specified register.
+	 * @param index
+	 *            The object register index.
+	 * @param anAvailObject
+	 *            The object to write to the specified register.
 	 */
 	public void pointerAtPut (
 		final int index,
@@ -521,11 +516,12 @@ extends Interpreter
 	}
 
 	/**
-	 * Read from a {@linkplain FixedRegister fixed object register}.  Register
-	 * zero is reserved for read-only use, and always contains the {@linkplain
-	 * NullDescriptor#nullObject() null object}.
+	 * Read from a {@linkplain FixedRegister fixed object register}. Register
+	 * zero is reserved for read-only use, and always contains the
+	 * {@linkplain NullDescriptor#nullObject() null object}.
 	 *
-	 * @param fixedObjectRegister The fixed object register.
+	 * @param fixedObjectRegister
+	 *            The fixed object register.
 	 * @return The object in the specified register.
 	 */
 	public AvailObject pointerAt (
@@ -535,12 +531,14 @@ extends Interpreter
 	}
 
 	/**
-	 * Write to a fixed object register.  Register zero is reserved for
-	 * read-only use, and always contains the {@linkplain
-	 * NullDescriptor#nullObject() null object}.
+	 * Write to a fixed object register. Register zero is reserved for read-only
+	 * use, and always contains the {@linkplain NullDescriptor#nullObject() null
+	 * object}.
 	 *
-	 * @param fixedObjectRegister The fixed object register.
-	 * @param anAvailObject The object to write to the specified register.
+	 * @param fixedObjectRegister
+	 *            The fixed object register.
+	 * @param anAvailObject
+	 *            The object to write to the specified register.
 	 */
 	public void pointerAtPut (
 		final @NotNull FixedRegister fixedObjectRegister,
@@ -550,11 +548,12 @@ extends Interpreter
 	}
 
 	/**
-	 * Write a Java null to an object register.  Register zero is reserved for
-	 * read-only use, and always contains the Avail {@linkplain
-	 * NullDescriptor#nullObject() null object}.
+	 * Write a Java null to an object register. Register zero is reserved for
+	 * read-only use, and always contains the Avail
+	 * {@linkplain NullDescriptor#nullObject() null object}.
 	 *
-	 * @param index The object register index to overwrite.
+	 * @param index
+	 *            The object register index to overwrite.
 	 */
 	public void clearPointerAt (final int index)
 	{
@@ -563,26 +562,23 @@ extends Interpreter
 	}
 
 	/**
-	 * Write {@code null} into each object register except the constant {@link
-	 * FixedRegister#NULL} register.
+	 * Write {@code null} into each object register except the constant
+	 * {@link FixedRegister#NULL} register.
 	 */
 	public void wipeObjectRegisters ()
 	{
 		if (chunk != null)
 		{
-			Arrays.fill(
-				pointers,
-				1,
-				chunk().numObjects(),
-				null);
+			Arrays.fill(pointers, 1, chunk().numObjects(), null);
 		}
 	}
 
 	/**
-	 * Read from an integer register.  The index is one-based.  Entry [0] is
+	 * Read from an integer register. The index is one-based. Entry [0] is
 	 * unused.
 	 *
-	 * @param index The one-based integer-register index.
+	 * @param index
+	 *            The one-based integer-register index.
 	 * @return The int in the specified register.
 	 */
 	public int integerAt (final int index)
@@ -591,13 +587,14 @@ extends Interpreter
 		return integers[index];
 	}
 
-
 	/**
-	 * Write to an integer register.  The index is one-based.  Entry [0] is
+	 * Write to an integer register. The index is one-based. Entry [0] is
 	 * unused.
 	 *
-	 * @param index The one-based integer-register index.
-	 * @param value The value to write to the register.
+	 * @param index
+	 *            The one-based integer-register index.
+	 * @param value
+	 *            The value to write to the register.
 	 */
 	public void integerAtPut (final int index, final int value)
 	{
@@ -606,10 +603,11 @@ extends Interpreter
 	}
 
 	/**
-	 * Answer the vector in the current chunk which has the given index.  A
+	 * Answer the vector in the current chunk which has the given index. A
 	 * vector (at runtime) is simply a tuple of integers.
 	 *
-	 * @param index The vector's index.
+	 * @param index
+	 *            The vector's index.
 	 * @return A tuple of integers.
 	 */
 	public AvailObject vectorAt (final int index)
@@ -617,13 +615,12 @@ extends Interpreter
 		return chunkVectors.tupleAt(index);
 	}
 
-
 	/**
 	 * Return into the specified continuation with the given return value.
-	 * Verify that the return value matches the expected type already pushed
-	 * on the continuation's stack.  If the continuation is {@linkplain
-	 * NullDescriptor#nullObject() the null object} then make sure the value
-	 * gets returned from the main interpreter invocation.
+	 * Verify that the return value matches the expected type already pushed on
+	 * the continuation's stack. If the continuation is
+	 * {@linkplain NullDescriptor#nullObject() the null object} then make sure
+	 * the value gets returned from the main interpreter invocation.
 	 *
 	 * @param caller
 	 *            The {@linkplain ContinuationDescriptor continuation} to
@@ -635,7 +632,7 @@ extends Interpreter
 		final AvailObject caller,
 		final AvailObject value)
 	{
-		// Wipe out the existing registers for safety.  This is technically
+		// Wipe out the existing registers for safety. This is technically
 		// optional, but not doing so may (1) hide bugs, and (2) leak
 		// references to values in registers.
 		wipeObjectRegisters();
@@ -693,9 +690,7 @@ extends Interpreter
 			// The chunk has become invalid, so use the default chunk and tweak
 			// the continuation's chunk information.
 			chunkToRestart = L2ChunkDescriptor.unoptimizedChunk();
-			continuationToRestart.levelTwoChunkOffset(
-				chunkToRestart,
-				1);
+			continuationToRestart.levelTwoChunkOffset(chunkToRestart, 1);
 		}
 		final int numArgs = continuationToRestart.function().code().numArgs();
 		argsBuffer.clear();
@@ -714,9 +709,11 @@ extends Interpreter
 	 * Increase the number of registers if necessary to accommodate the new
 	 * chunk/code.
 	 *
-	 * @param theChunk The {@linkplain L2ChunkDescriptor L2Chunk} about to be
-	 *                 invoked.
-	 * @param theCode The code about to be invoked.
+	 * @param theChunk
+	 *            The {@linkplain L2ChunkDescriptor L2Chunk} about to be
+	 *            invoked.
+	 * @param theCode
+	 *            The code about to be invoked.
 	 */
 	private void makeRoomForChunkRegisters (
 		final AvailObject theChunk,
@@ -727,8 +724,7 @@ extends Interpreter
 			numberOfFixedRegisters + theCode.numArgsAndLocalsAndStack());
 		if (neededObjectCount > pointers.length)
 		{
-			final AvailObject[] newPointers =
-				new AvailObject[neededObjectCount * 2 + 10];
+			final AvailObject[] newPointers = new AvailObject[neededObjectCount * 2 + 10];
 			System.arraycopy(pointers, 0, newPointers, 0, pointers.length);
 			pointers = newPointers;
 		}
@@ -740,8 +736,7 @@ extends Interpreter
 		}
 		if (theChunk.numDoubles() > doubles.length)
 		{
-			final double[] newDoubles =
-				new double[theChunk.numDoubles() * 2 + 10];
+			final double[] newDoubles = new double[theChunk.numDoubles() * 2 + 10];
 			System.arraycopy(doubles, 0, newDoubles, 0, doubles.length);
 			doubles = newDoubles;
 		}
@@ -758,29 +753,28 @@ extends Interpreter
 			if (code.primitiveNumber() == 200)
 			{
 				assert code.numArgs() == 2;
-				final AvailObject failureVariable =
-					continuation.argOrLocalOrStackAt(3);
+				final AvailObject failureVariable = continuation
+					.argOrLocalOrStackAt(3);
 				// Ignore the frame if it is currently unwinding.
 				if (!failureVariable.getValue().equals(
 					E_UNWIND_SENTINEL.numericCode()))
 				{
-					final AvailObject handlerTuple =
-						continuation.argOrLocalOrStackAt(2);
+					final AvailObject handlerTuple = continuation
+						.argOrLocalOrStackAt(2);
 					assert handlerTuple.isTuple();
 					for (final AvailObject handler : handlerTuple)
 					{
-						if (exceptionValue.isInstanceOf(
-							handler.kind().argsTupleType().typeAtIndex(1)))
+						if (exceptionValue.isInstanceOf(handler.kind()
+							.argsTupleType().typeAtIndex(1)))
 						{
 							// This is the correct handler. Run it.
 							continuation = continuation.ensureMutable();
-							final AvailObject newVariable =
-								VariableDescriptor.forOuterType(
-									failureVariable.kind());
+							final AvailObject newVariable = VariableDescriptor
+								.forOuterType(failureVariable.kind());
 							// Mark this frame: we don't want it to handle an
 							// exception raised from within one of its handlers.
-							newVariable.setValue(
-								E_UNWIND_SENTINEL.numericCode());
+							newVariable.setValue(E_UNWIND_SENTINEL
+								.numericCode());
 							continuation.argOrLocalOrStackAtPut(3, newVariable);
 							prepareToResumeContinuation(continuation);
 							invokeFunctionArguments(
@@ -817,18 +811,12 @@ extends Interpreter
 			// The primitive failed.
 			assert !Primitive.byPrimitiveNumber(primNum).hasFlag(
 				Flag.CannotFail);
-			invokeWithoutPrimitiveFunctionArguments(
-				aFunction,
-				args,
-				caller);
+			invokeWithoutPrimitiveFunctionArguments(aFunction, args, caller);
 			pointerAtPut(PRIMITIVE_FAILURE, primitiveResult);
 			return CONTINUATION_CHANGED;
 		}
 		// It wasn't a primitive.
-		invokeWithoutPrimitiveFunctionArguments(
-			aFunction,
-			args,
-			caller);
+		invokeWithoutPrimitiveFunctionArguments(aFunction, args, caller);
 		return CONTINUATION_CHANGED;
 	}
 
@@ -847,8 +835,8 @@ extends Interpreter
 			// aFunction's code.
 			chunkToInvoke = L2ChunkDescriptor.unoptimizedChunk();
 			code.startingChunk(chunkToInvoke);
-			code.countdownToReoptimize(
-				L2ChunkDescriptor.countdownForInvalidatedCode());
+			code.countdownToReoptimize(L2ChunkDescriptor
+				.countdownForInvalidatedCode());
 		}
 		wipeObjectRegisters();
 		setChunk(chunkToInvoke, code);
@@ -867,9 +855,9 @@ extends Interpreter
 	}
 
 	/**
-	 * Start or complete execution of the specified function.  The function is
-	 * permitted to be primitive.  The current continuation must already have
-	 * been reified.  Since that's the case, we can clobber all registers, as
+	 * Start or complete execution of the specified function. The function is
+	 * permitted to be primitive. The current continuation must already have
+	 * been reified. Since that's the case, we can clobber all registers, as
 	 * long as the {@link FixedRegister#CALLER} is set appropriately afterward.
 	 *
 	 * @param theFunction
@@ -900,23 +888,22 @@ extends Interpreter
 					assert chunk.isValid();
 					final AvailObject updatedCaller = caller.ensureMutable();
 					final int stackp = updatedCaller.stackp();
-					final AvailObject expectedType =
-						updatedCaller.stackAt(stackp);
+					final AvailObject expectedType = updatedCaller
+						.stackAt(stackp);
 					if (!primitiveResult.isInstanceOf(expectedType))
 					{
 						// TODO: [MvG] Remove after debugging.
 						primitiveResult.isInstanceOf(expectedType);
 						error(String.format(
 							"Return value (%s) does not agree with "
-							+ "expected type (%s)",
+								+ "expected type (%s)",
 							primitiveResult,
 							expectedType));
 					}
 					updatedCaller.stackAtPut(stackp, primitiveResult);
 					pointerAtPut(CALLER, updatedCaller);
-					setChunk(
-						updatedCaller.levelTwoChunk(),
-						updatedCaller.function().code());
+					setChunk(updatedCaller.levelTwoChunk(), updatedCaller
+						.function().code());
 					offset(updatedCaller.levelTwoOffset());
 					return;
 				case FAILURE:
@@ -928,15 +915,12 @@ extends Interpreter
 					return;
 			}
 		}
-		invokeWithoutPrimitiveFunctionArguments(
-			theFunction,
-			argsBuffer,
-			caller);
+		invokeWithoutPrimitiveFunctionArguments(theFunction, argsBuffer, caller);
 	}
 
 	/**
 	 * Run the interpreter until the outermost function returns, answering the
-	 * result it returns.  Assume the interpreter has already been set up to run
+	 * result it returns. Assume the interpreter has already been set up to run
 	 * something other than a (successful) primitive function at the outermost
 	 * level.
 	 *
@@ -983,10 +967,8 @@ extends Interpreter
 			if (debugL2)
 			{
 				int depth = 0;
-				for (
-					AvailObject c = pointerAt(CALLER);
-					!c.equalsNull();
-					c = c.caller())
+				for (AvailObject c = pointerAt(CALLER); !c.equalsNull(); c = c
+					.caller())
 				{
 					depth++;
 				}
@@ -1039,13 +1021,12 @@ extends Interpreter
 	}
 
 	@Override
-	public @NotNull List<String> dumpStack ()
+	public @NotNull
+	List<String> dumpStack ()
 	{
 		final List<AvailObject> frames = new ArrayList<AvailObject>(20);
-		for (
-			AvailObject c = currentContinuation();
-			!c.equalsNull();
-			c = c.caller())
+		for (AvailObject c = currentContinuation(); !c.equalsNull(); c = c
+			.caller())
 		{
 			frames.add(c);
 		}
@@ -1057,11 +1038,8 @@ extends Interpreter
 			final AvailObject code = frame.function().code();
 			final AvailObject functionType = code.functionType();
 			final AvailObject paramsType = functionType.argsTupleType();
-			for (
-				int i = 1,
-				limit = paramsType.sizeRange().lowerBound().extractInt();
-				i <= limit;
-				i++)
+			for (int i = 1, limit = paramsType.sizeRange().lowerBound()
+				.extractInt(); i <= limit; i++)
 			{
 				if (i != 1)
 				{
@@ -1069,16 +1047,14 @@ extends Interpreter
 				}
 				signatureBuilder.append(paramsType.typeAtIndex(i));
 			}
-			strings.add(
-				String.format(
-					"#%d: %s [%s] (%s:%d)",
-					line--,
-					code.methodName().asNativeString(),
-					signatureBuilder.toString(),
-					code.module().equalsNull()
-						? "?"
-						: code.module().name().asNativeString(),
-					code.startingLineNumber()));
+			strings.add(String.format(
+				"#%d: %s [%s] (%s:%d)",
+				line--,
+				code.methodName().asNativeString(),
+				signatureBuilder.toString(),
+				code.module().equalsNull() ? "?" : code.module().name()
+					.asNativeString(),
+				code.startingLineNumber()));
 			signatureBuilder.setLength(0);
 		}
 		return strings;

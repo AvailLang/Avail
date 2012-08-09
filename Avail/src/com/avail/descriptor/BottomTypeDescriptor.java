@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import java.util.List;
 import com.avail.annotations.*;
+import com.avail.serialization.SerializerOperation;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 
 /**
@@ -633,5 +634,12 @@ extends AbstractEnumerationTypeDescriptor
 		final int anInt)
 	{
 		return false;
+	}
+
+	@Override
+	@NotNull SerializerOperation o_SerializerOperation (
+		final @NotNull AvailObject object)
+	{
+		return SerializerOperation.BOTTOM_TYPE;
 	}
 }

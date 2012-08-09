@@ -719,7 +719,7 @@ extends TypeDescriptor
 			}
 			unionAncestors = unionAncestors.mapAtPuttingCanDestroy(
 				javaClass,
-				TupleDescriptor.fromCollection(intersectionParams),
+				TupleDescriptor.fromList(intersectionParams),
 				true);
 		}
 		return unionAncestors;
@@ -804,7 +804,7 @@ extends TypeDescriptor
 			intersectionAncestors =
 				intersectionAncestors.mapAtPuttingCanDestroy(
 					javaClass.makeImmutable(),
-					TupleDescriptor.fromCollection(unionParams),
+					TupleDescriptor.fromList(unionParams),
 					true);
 		}
 		return intersectionAncestors;
@@ -1117,7 +1117,7 @@ extends TypeDescriptor
 			}
 			return forClassWithTypeArguments(
 				(Class<?>) parameterized.getRawType(),
-				TupleDescriptor.fromCollection(resolved));
+				TupleDescriptor.fromList(resolved));
 		}
 		assert false : "Unsupported generic declaration";
 		return null;
@@ -1207,7 +1207,7 @@ extends TypeDescriptor
 				return null;
 			}
 		}
-		return TupleDescriptor.fromCollection(propagation);
+		return TupleDescriptor.fromList(propagation);
 	}
 
 	/**
@@ -1317,7 +1317,7 @@ extends TypeDescriptor
 					genericSuperinterfaces[i],
 					typeArgs,
 					canon);
-				 computeAncestry(
+				computeAncestry(
 					superinterfaces[i],
 					supertypeParams,
 					ancestry,
@@ -1366,7 +1366,7 @@ extends TypeDescriptor
 			params = Collections.emptyList();
 		}
 		return forClassWithTypeArguments(
-			target, TupleDescriptor.fromCollection(params));
+			target, TupleDescriptor.fromList(params));
 	}
 
 	/**

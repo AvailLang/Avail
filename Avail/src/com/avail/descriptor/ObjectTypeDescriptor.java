@@ -173,7 +173,7 @@ extends TypeDescriptor
 		{
 			fieldAssignments.add(TupleDescriptor.from(entry.key, entry.value));
 		}
-		return TupleDescriptor.fromCollection(fieldAssignments);
+		return TupleDescriptor.fromList(fieldAssignments);
 	}
 
 	@Override @AvailMethod
@@ -406,20 +406,37 @@ extends TypeDescriptor
 		assert aString.isString();
 		final AvailObject propertyKey =
 			AtomDescriptor.objectTypeNamePropertyKey();
+		int leastNames = Integer.MAX_VALUE;
+		AvailObject keyAtomWithLeastNames = null;
+		AvailObject keyAtomNamesMap = null;
 		for (final MapDescriptor.Entry entry
 			: anObjectType.fieldTypeMap().mapIterable())
 		{
 			final AvailObject atom = entry.key;
-			AvailObject namesMap = atom.getAtomProperty(propertyKey);
+			final AvailObject namesMap = atom.getAtomProperty(propertyKey);
 			if (namesMap.equalsNull())
 			{
-				namesMap = MapDescriptor.empty();
+				keyAtomWithLeastNames = atom;
+				keyAtomNamesMap = MapDescriptor.empty();
+				leastNames = 0;
+				break;
 			}
-			namesMap = namesMap.mapAtPuttingCanDestroy(
+			final int mapSize = namesMap.mapSize();
+			if (mapSize < leastNames)
+			{
+				keyAtomWithLeastNames = atom;
+				keyAtomNamesMap = namesMap;
+				leastNames = mapSize;
+			}
+		}
+		if (keyAtomWithLeastNames != null)
+		{
+			assert keyAtomNamesMap != null;
+			keyAtomNamesMap = keyAtomNamesMap.mapAtPuttingCanDestroy(
 				anObjectType,
 				aString,
 				true);
-			atom.setAtomProperty(propertyKey, namesMap);
+			keyAtomWithLeastNames.setAtomProperty(propertyKey, keyAtomNamesMap);
 		}
 	}
 

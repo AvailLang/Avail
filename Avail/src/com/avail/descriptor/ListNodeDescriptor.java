@@ -105,7 +105,7 @@ public class ListNodeDescriptor extends ParseNodeDescriptor
 				types.size());
 			tupleType = TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 				sizes,
-				TupleDescriptor.fromCollection(types),
+				TupleDescriptor.fromList(types),
 				BottomTypeDescriptor.bottom());
 			tupleType.makeImmutable();
 			object.setSlot(TUPLE_TYPE, tupleType);

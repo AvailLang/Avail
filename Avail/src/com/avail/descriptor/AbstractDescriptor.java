@@ -5661,4 +5661,12 @@ public abstract class AbstractDescriptor
 	abstract boolean o_RangeIncludesInt (
 		final @NotNull AvailObject object,
 		final int anInt);
+
+	/**
+	 * @param object
+	 * @param isSystemModule
+	 */
+	abstract void o_IsSystemModule (
+		final @NotNull AvailObject object,
+		final boolean isSystemModule);
 }

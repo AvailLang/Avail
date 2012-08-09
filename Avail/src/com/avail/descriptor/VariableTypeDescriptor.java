@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 import com.avail.annotations.*;
+import com.avail.serialization.SerializerOperation;
 
 /**
  * A {@code VariableTypeDescriptor variable type} is the {@linkplain
@@ -206,6 +207,13 @@ extends TypeDescriptor
 		return VariableTypeDescriptor.fromReadAndWriteTypes(
 			innerType.typeUnion(aVariableType.readType()),
 			innerType.typeIntersection(aVariableType.writeType()));
+	}
+
+	@Override
+	@NotNull SerializerOperation o_SerializerOperation (
+		final @NotNull AvailObject object)
+	{
+		return SerializerOperation.SIMPLE_VARIABLE_TYPE;
 	}
 
 	/**

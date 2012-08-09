@@ -94,7 +94,7 @@ extends PojoTypeDescriptor
 	{
 		/**
 		 * A lazy {@linkplain MapDescriptor map} from {@linkplain PojoDescriptor
-		 * pojos} that wrap {@Linkplain Class Java classes and interfaces} to
+		 * pojos} that wrap {@linkplain Class Java classes and interfaces} to
 		 * their {@linkplain TupleDescriptor type parameterizations}. The
 		 * {@linkplain AvailObject#keysAsSet() keys} constitute this type's
 		 * complete {@linkplain SetDescriptor ancestry} of Java types.

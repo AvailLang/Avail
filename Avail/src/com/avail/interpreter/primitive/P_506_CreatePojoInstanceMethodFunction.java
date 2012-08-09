@@ -146,7 +146,7 @@ public class P_506_CreatePojoInstanceMethodFunction extends Primitive
 				RawPojoDescriptor.equalityWrap(paramClass));
 		}
 		final AvailObject marshaledTypesTuple =
-			TupleDescriptor.fromCollection(marshaledTypePojos);
+			TupleDescriptor.fromList(marshaledTypePojos);
 		// Create a function wrapper for the pojo method invocation
 		// primitive. This function will be embedded as a literal into
 		// an outer function that holds the (unexposed) method pojo.
@@ -194,7 +194,7 @@ public class P_506_CreatePojoInstanceMethodFunction extends Primitive
 			allParamTypes.add(paramType);
 		}
 		writer.argumentTypesTuple(
-			TupleDescriptor.fromCollection(allParamTypes));
+			TupleDescriptor.fromList(allParamTypes));
 		final AvailObject returnType = PojoTypeDescriptor.resolve(
 			method.getGenericReturnType(),
 			pojoType.typeVariables());

@@ -33,7 +33,6 @@
 package com.avail.interpreter;
 
 import static com.avail.descriptor.AvailObject.error;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Result.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import java.util.*;
@@ -45,7 +44,6 @@ import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.exceptions.*;
 import com.avail.interpreter.Primitive.*;
-import com.avail.interpreter.levelOne.*;
 import com.avail.interpreter.primitive.*;
 
 /**
@@ -652,151 +650,6 @@ public abstract class Interpreter
 		final @NotNull AvailObject nameString)
 	{
 		return AtomDescriptor.create(nameString, module);
-	}
-
-	/**
-	 * Create the two-argument defining method. The first parameter of the
-	 * method is the name, the second parameter is the {@linkplain
-	 * FunctionDescriptor block}.
-	 *
-	 * @param defineMethodName
-	 *            The name of the defining method.
-	 */
-	public void bootstrapDefiningMethod (
-		final @NotNull String defineMethodName)
-	{
-		assert module != null;
-		L1InstructionWriter writer = new L1InstructionWriter(module, 0);
-		writer.primitiveNumber(
-			P_253_SimpleMethodDeclaration.instance.primitiveNumber);
-		writer.argumentTypes(
-			TupleTypeDescriptor.stringTupleType(),
-			FunctionTypeDescriptor.mostGeneralType());
-		writer.returnType(TOP.o());
-		// Declare the local that holds primitive failure information.
-		int failureLocal = writer.createLocal(
-			VariableTypeDescriptor.wrapInnerType(
-				IntegerRangeTypeDescriptor.naturalNumbers()));
-		writer.write(
-			new L1Instruction(
-				L1Operation.L1_doGetLocal,
-				failureLocal));
-		writer.write(
-			new L1Instruction(
-				L1Operation.L1_doCall,
-				writer.addLiteral(
-					MethodDescriptor.vmCrashMethod()),
-				writer.addLiteral(BottomTypeDescriptor.bottom())));
-		final AvailObject fromStringFunction = FunctionDescriptor.create(
-			writer.compiledCode(),
-			TupleDescriptor.empty());
-		fromStringFunction.makeImmutable();
-		writer = new L1InstructionWriter(module, 0);
-		writer.primitiveNumber(
-			P_228_MethodDeclarationFromAtom.instance.primitiveNumber);
-		writer.argumentTypes(
-			ATOM.o(),
-			FunctionTypeDescriptor.mostGeneralType());
-		writer.returnType(TOP.o());
-		// Declare the local that holds primitive failure information.
-		failureLocal = writer.createLocal(
-			VariableTypeDescriptor.wrapInnerType(
-				IntegerRangeTypeDescriptor.naturalNumbers()));
-		writer.write(
-			new L1Instruction(
-				L1Operation.L1_doGetLocal,
-				failureLocal));
-		writer.write(
-			new L1Instruction(
-				L1Operation.L1_doCall,
-				writer.addLiteral(
-					MethodDescriptor.vmCrashMethod()),
-				writer.addLiteral(BottomTypeDescriptor.bottom())));
-		final AvailObject fromAtomFunction = FunctionDescriptor.create(
-			writer.compiledCode(),
-			TupleDescriptor.empty());
-		final AvailObject name = StringDescriptor.from(
-			defineMethodName);
-		try
-		{
-			final AvailObject trueName = lookupName(name);
-			addMethodBody(trueName, fromStringFunction, true);
-			addMethodBody(trueName, fromAtomFunction, true);
-		}
-		catch (final AmbiguousNameException e)
-		{
-			assert false
-				: "This bootstrap method should not interfere with anything";
-		}
-		catch (final SignatureException e)
-		{
-			assert false
-				: "This boostrap method should not interfere with anything";
-		}
-	}
-
-	/**
-	 * Create the one-argument {@linkplain AvailRuntime#specialObject(int)
-	 * special object} method. The parameter is the {@linkplain
-	 * IntegerDescriptor ordinal} of the special object.
-	 *
-	 * @param specialObjectName
-	 *            The name of the {@linkplain AvailRuntime#specialObject(int)
-	 *            special object} method.
-	 */
-	public void bootstrapSpecialObject (
-		final @NotNull String specialObjectName)
-	{
-		//  Define the method for extracting special objects known to the VM.
-		assert module != null;
-		final L1InstructionWriter writer = new L1InstructionWriter(module, 0);
-		writer.primitiveNumber(P_240_SpecialObject.instance.primitiveNumber);
-		writer.argumentTypes(IntegerRangeTypeDescriptor.naturalNumbers());
-		writer.returnType(ANY.o());
-		// Declare the local that holds primitive failure information.
-		writer.createLocal(
-			VariableTypeDescriptor.wrapInnerType(
-				IntegerRangeTypeDescriptor.naturalNumbers()));
-		writer.write(
-			new L1Instruction(
-				L1Operation.L1_doPushLiteral,
-				writer.addLiteral(
-					StringDescriptor.from("no such special object"))));
-		// Push the argument.
-		writer.write(
-			new L1Instruction(
-				L1Operation.L1_doPushLocal,
-				1));
-		writer.write(
-			new L1Instruction(
-				L1Operation.L1_doMakeTuple,
-				2));
-		writer.write(
-			new L1Instruction(
-				L1Operation.L1_doCall,
-				writer.addLiteral(
-					MethodDescriptor.vmCrashMethod()),
-				writer.addLiteral(BottomTypeDescriptor.bottom())));
-		final AvailObject newFunction = FunctionDescriptor.create(
-			writer.compiledCode(),
-			TupleDescriptor.empty());
-		newFunction.makeImmutable();
-		final AvailObject nameTuple =
-			StringDescriptor.from(specialObjectName);
-		try
-		{
-			addMethodBody(lookupName(nameTuple), newFunction, true);
-		}
-		catch (final AmbiguousNameException e)
-		{
-			assert false
-				: "This bootstrap method should not interfere with anything";
-		}
-		catch (final SignatureException e)
-		{
-			assert false
-				: "This boostrap method should not interfere with anything";
-		}
 	}
 
 	/**

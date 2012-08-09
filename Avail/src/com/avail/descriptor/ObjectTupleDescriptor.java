@@ -231,7 +231,7 @@ extends TupleDescriptor
 						object.tupleAtPut(i, zeroObject);
 					}
 				}
-				for (int i = endIndex + 1, end = originalSize; i <= end; i++)
+				for (int i = endIndex + 1; i <= originalSize; i++)
 				{
 					object.tupleAt(i).assertObjectUnreachableIfMutable();
 					object.tupleAtPut(i, zeroObject);
@@ -241,12 +241,12 @@ extends TupleDescriptor
 				// dummy header.
 				return object;
 			}
-			for (int i = 1, end = startIndex - 1; i <= end; i++)
+			for (int i = 1; i < startIndex; i++)
 			{
 				object.tupleAt(i).assertObjectUnreachableIfMutable();
 				object.tupleAtPut(i, zeroObject);
 			}
-			for (int i = endIndex + 1, end = originalSize; i <= end; i++)
+			for (int i = endIndex + 1; i <= originalSize; i++)
 			{
 				object.tupleAt(i).assertObjectUnreachableIfMutable();
 				object.tupleAtPut(i, zeroObject);
@@ -258,9 +258,7 @@ extends TupleDescriptor
 		}
 		// Compute the hash ahead of time, because asking an element to hash
 		// might trigger a garbage collection.
-		int newHash = 0;
-		// This is just to assist the type deducer.
-		newHash = object.computeHashFromTo(startIndex, endIndex);
+		final int newHash = object.computeHashFromTo(startIndex, endIndex);
 		AvailObject result;
 		if (endIndex - startIndex < 20)
 		{

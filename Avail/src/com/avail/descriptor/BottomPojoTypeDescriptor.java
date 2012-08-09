@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import java.util.List;
 import com.avail.annotations.*;
+import com.avail.serialization.SerializerOperation;
 
 /**
  * {@code BottomPojoTypeDescriptor} describes the type of Java {@code null},
@@ -191,6 +192,13 @@ extends PojoTypeDescriptor
 	@NotNull AvailObject o_TypeVariables (final @NotNull AvailObject object)
 	{
 		throw unsupportedOperationException();
+	}
+
+	@Override @AvailMethod @ThreadSafe
+	@NotNull SerializerOperation o_SerializerOperation (
+		final @NotNull AvailObject object)
+	{
+		return SerializerOperation.BOTTOM_POJO_TYPE;
 	}
 
 	@Override

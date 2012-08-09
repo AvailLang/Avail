@@ -106,7 +106,8 @@ public class P_001_Addition extends Primitive
 								false);
 						}
 					}
-					return AbstractEnumerationTypeDescriptor.withInstances(answers);
+					return AbstractEnumerationTypeDescriptor.withInstances(
+						answers);
 				}
 			}
 			if (aType.isIntegerRangeType() && bType.isIntegerRangeType())
