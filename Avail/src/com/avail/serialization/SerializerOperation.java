@@ -1179,12 +1179,32 @@ public enum SerializerOperation
 		}
 	},
 
-	RESERVED_42 (42)
+	/**
+	 * The representation of a continuation, which is just its level one state.
+	 */
+	CONTINUATION (42,
+		OBJECT_REFERENCE.as("calling continuation"),
+		OBJECT_REFERENCE.as("continuation's function"),
+		TUPLE_OF_OBJECTS.as("continuation frame slots"),
+		COMPRESSED_SHORT.as("program counter"),
+		COMPRESSED_SHORT.as("stack pointer"))
 	{
 		@Override
 		AvailObject[] decompose (final @NotNull AvailObject object)
 		{
-			throw new RuntimeException("Reserved serializer operation");
+			final int frameSlotCount = object.numArgsAndLocalsAndStack();
+			final List<AvailObject> frameSlotsList =
+				new ArrayList<AvailObject>(frameSlotCount);
+			for (int i = 1; i <= frameSlotCount; i++)
+			{
+				frameSlotsList.add(object.argOrLocalOrStackAt(i));
+			}
+			return array(
+				object.caller(),
+				object.function(),
+				TupleDescriptor.fromList(frameSlotsList),
+				IntegerDescriptor.fromInt(object.pc()),
+				IntegerDescriptor.fromInt(object.stackp()));
 		}
 
 		@Override
@@ -1192,24 +1212,51 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			throw new RuntimeException("Reserved serializer operation");
+			final AvailObject caller = subobjects[0];
+			final AvailObject function = subobjects[1];
+			final AvailObject frameSlots = subobjects[2];
+			final AvailObject pcInteger = subobjects[3];
+			final AvailObject stackpInteger = subobjects[4];
+			final int frameSlotCount = frameSlots.tupleSize();
+			final AvailObject continuation =
+				ContinuationDescriptor.createExceptFrame(
+					frameSlotCount,
+					function,
+					caller,
+					pcInteger.extractInt(),
+					stackpInteger.extractInt(),
+					L2ChunkDescriptor.unoptimizedChunk(),
+					L2ChunkDescriptor.offsetToContinueUnoptimizedChunk());
+			for (int i = 1; i <= frameSlotCount; i++)
+			{
+				continuation.argOrLocalOrStackAtPut(i, frameSlots.tupleAt(i));
+			}
+			continuation.makeImmutable();
+			return continuation;
 		}
 	},
 
-	RESERVED_43 (43)
+	/**
+	 * A reference to a {@linkplain MethodDescriptor method} that should be
+	 * looked up by name (atom) during reconstruction.
+	 */
+	METHOD (43,
+		OBJECT_REFERENCE.as("method's atomic name"))
 	{
 		@Override
 		AvailObject[] decompose (final @NotNull AvailObject object)
 		{
-			throw new RuntimeException("Reserved serializer operation");
+			assert object.isInstanceOf(Types.METHOD.o());
+			return array(object.name());
 		}
 
 		@Override
-		AvailObject compose (
+		@NotNull AvailObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			throw new RuntimeException("Reserved serializer operation");
+			final AvailObject atom = subobjects[0];
+			return deserializer.runtime().methodFor(atom);
 		}
 	},
 
@@ -1416,27 +1463,20 @@ public enum SerializerOperation
 		}
 	},
 
-	/**
-	 * A reference to a {@linkplain MethodDescriptor method} that should be
-	 * looked up by name (atom) during reconstruction.
-	 */
-	METHOD (53,
-		OBJECT_REFERENCE.as("method's atomic name"))
+	RESERVED_53 (53)
 	{
 		@Override
 		AvailObject[] decompose (final @NotNull AvailObject object)
 		{
-			assert object.isInstanceOf(Types.METHOD.o());
-			return array(object.name());
+			throw new RuntimeException("Reserved serializer operation");
 		}
 
 		@Override
-		@NotNull AvailObject compose (
+		AvailObject compose (
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			final AvailObject atom = subobjects[0];
-			return deserializer.runtime().methodFor(atom);
+			throw new RuntimeException("Reserved serializer operation");
 		}
 	},
 

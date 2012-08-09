@@ -40,6 +40,7 @@ import com.avail.annotations.*;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.interpreter.primitive.*;
+import com.avail.serialization.SerializerOperation;
 
 /**
  * A {@linkplain ContinuationDescriptor continuation} acts as an immutable
@@ -422,6 +423,13 @@ extends Descriptor
 		final @NotNull AvailObject object)
 	{
 		return false;
+	}
+
+	@Override
+	@NotNull SerializerOperation o_SerializerOperation (
+		final @NotNull AvailObject object)
+	{
+		return SerializerOperation.CONTINUATION;
 	}
 
 	@Override boolean allowsImmutableToMutableReferenceInField (
