@@ -810,6 +810,7 @@ public abstract class Interpreter
 	 */
 	public @NotNull Result primitiveSuccess (final @NotNull AvailObject result)
 	{
+		assert result != null;
 		primitiveResult = result;
 		return SUCCESS;
 	}

@@ -1,5 +1,5 @@
 /*
- * Avail.avail
+ * Feature Renames (Conversion).avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,16 +30,51 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Avail"
+System Module "Feature Renames (Conversion)"
 Versions
 	"dev"
-Extends
-	"Advanced Math",
-	"Data Abstractions",
-	"Dimensional Analysis",
-	"Foundation",
-	"Foundation Tests",
-	"IO",
-	"Unit Testing"
+Uses
+	"Core" =
+	(
+		"dimensioned quantity",
+		"metric",
+		"unit"
+	),
+	"Foundation" =
+	(
+		"Method_is_",
+		"Semantic restriction_is_",
+		"extend_with«_:_‡,»",
+		"$…",
+		"_'s⁇type",
+		"_-_",
+		"_^_",
+		"_×_"
+	)
+Names
+	"exponentiation atom",
+	"multiplication atom",
+	"subtraction atom",
+	"conversion atom",
+	"_converted to_"
 Body
 
+_subtract ::= $"_-_";
+Method "subtraction atom" is [_subtract];
+
+_times ::= $"_×_";
+Method "multiplication atom" is [_times];
+
+_power ::= $"_^_";
+Method "exponentiation atom" is [_power];
+
+_converter ::= $"_converted to_";
+Method "conversion atom" is [_converter];
+
+Semantic restriction "_converted to_" is
+[
+	quantityType : dimensioned quantity's type,
+	unitType : unit's type
+|
+	extend dimensioned quantity with metric : unitType
+];

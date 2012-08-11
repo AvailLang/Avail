@@ -1,5 +1,5 @@
 /*
- * Avail.avail
+ * Derivation.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,16 +30,51 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Avail"
+System Module "Derivation"
 Versions
 	"dev"
-Extends
-	"Advanced Math",
-	"Data Abstractions",
-	"Dimensional Analysis",
+Uses
+	"Core",
+	"Feature Renames (Unit Exponentiation)",
 	"Foundation",
-	"Foundation Tests",
-	"IO",
-	"Unit Testing"
+	"Types"
 Body
 
+Method "_·_" is
+[
+	x : SI unit,
+	y : SI unit
+|
+	unitMap ::= x's unit map · y's unit map (unit map);
+	unitType ::= cast unitMap
+		into [t : {atom→1's type|1} | base unit]
+		else [derived unit];
+	scaleFactor ::= x's scale factor + y's scale factor;
+	a unitType ∩ SI unit with unit map := unitMap, scale factor := scaleFactor
+] : SI unit;
+
+Method "_/_" is
+[
+	x : SI unit,
+	y : SI unit
+|
+	unitMap ::= x's unit map / y's unit map (unit map);
+	unitType ::= cast unitMap
+		into [t : {atom→1's type|1} | base unit]
+		else [derived unit];
+	scaleFactor ::= x's scale factor - y's scale factor;
+	a unitType ∩ SI unit with unit map := unitMap, scale factor := scaleFactor
+] : SI unit;
+
+Method unit exponentiation atom is
+[
+	theUnit : SI unit,
+	theExponent : integer
+|
+	unitMap ::= theUnit's unit map ^ theExponent (unit map);
+	unitType ::= cast unitMap
+		into [t : {atom→1's type|1} | base unit]
+		else [derived unit];
+	scaleFactor ::= theUnit's scale factor × theExponent;
+	a unitType ∩ SI unit with unit map := unitMap, scale factor := scaleFactor
+] : SI unit;

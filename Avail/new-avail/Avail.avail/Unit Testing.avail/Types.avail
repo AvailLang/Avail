@@ -191,7 +191,7 @@ Public explicit class "no-such-test exception"
  * @supertype "cascade exception"
  */
 Public explicit class "failed-test exception"
-	extends unit-test exception ∩ cascade exception;
+	extends cascade unit-test exception;
 
 /**
  * An exception that indicates that the specified test was declared to raise a
@@ -235,7 +235,7 @@ Public method "short“_”" is
 		cast anException
 		into
 		[
-			e : unit-test exception ∩ cascade exception
+			e : cascade unit-test exception
 		|
 			" [caused by: " ++ “e's causal exception” ++ "]"
 		]
@@ -318,7 +318,7 @@ Public explicit class "no-such-test-suite exception"
  * @supertype "cascade exception"
  */
 Public explicit class "test-fixture-setup exception"
-	extends test-suite exception ∩ cascade exception;
+	extends cascade test-suite exception;
 
 /**
  * An exception that indicates that a test fixture tear-down function failed.
@@ -328,7 +328,7 @@ Public explicit class "test-fixture-setup exception"
  * @supertype "cascade exception"
  */
 Public explicit class "test-fixture-tear-down exception"
-	extends test-suite exception ∩ cascade exception;
+	extends cascade test-suite exception;
 
 /**
  * Though a unit test result is specific to a single unit test, it is only

@@ -80,7 +80,7 @@ Public method "«_‡=»" is
  * will always fail.
  * 
  * @method "«_‡=»"
- * @restricts <any…|3..>'s type
+ * @restricts "<any…|3..>'s type"
  */
 Semantic restriction "«_‡=»" is
 [

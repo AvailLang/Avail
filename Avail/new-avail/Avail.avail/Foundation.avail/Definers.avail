@@ -79,7 +79,7 @@ typeM ::= method for atom for "_'s⁇type";
  */
 Public method "Method_is stable at_" is
 [
-	methodName : string,
+	methodName : atom,
 	functionType : function meta
 |
 	/* The goal is to take an invocation like:
@@ -154,7 +154,7 @@ Public method "Method_is stable at_" is
 	 * parameter types. Note that we do not actually have to synthesize an
 	 * invocation of "(_)" or "<«_‡,»>".
 	 */
-	theMethod ::= method for atom for methodName;
+	theMethod ::= method for methodName;
 	resultType ::= functionType's return type's type;
 	argDecls : <<>, argument…|whole number> := <>;
 	setContents : <<>, send⇒nonnegative integer…|whole number> := <>;
@@ -192,6 +192,26 @@ Public method "Method_is stable at_" is
 	restrictionBlock ::= «[argDecls | <branch>] : type»;
 	restrictionFunction ::= generate restrictionBlock;
 	Semantic restriction methodName is restrictionFunction;
+] : ⊤;
+
+/**
+ * Declare that the method referenced by `methodName` is stable for the given
+ * signature. A stable method produces the same value for the same arguments on
+ * every call. Automatically generate and install a semantic restriction that
+ * will statically strengthen the answer produced at a call site to a precisely
+ * known value when all arguments are themselves precisely known.
+ * 
+ * Parameters:
+ *    methodName - The name of the stable.
+ *    functionType - The signature of the method that is being declared stable.
+ */
+Public method "Method_is stable at_" is
+[
+	methodName : string,
+	functionType : function meta
+|
+	methodAtom ::= atom for methodName;
+	Method methodAtom is stable at functionType;
 ] : ⊤;
 
 /**
@@ -263,7 +283,7 @@ Private method "Require:_'s⁇parameters are not metatypes or function types" is
 						"parameter type (",
 						“parameterType”,
 						") not to be a metatype; metacovariance will allow \
-						\|subtypes of  this type, causing the operation not to \
+						\|subtypes of this type, causing the operation not to \
 						\|be stable">;
 					Invoke
 					[

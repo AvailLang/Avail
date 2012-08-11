@@ -1,0 +1,324 @@
+/*
+ * Optional.avail
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Optional"
+Versions
+	"dev"
+Uses
+	"Common" = ("Data|data abstractions test suite"),
+	"Foundation",
+	"Unit Testing"
+Names
+	"absent",
+	"optional_",
+	"present_",
+	"none",
+	"+_",
+	"When_is present do_",
+	"When|when_is present do_else_",
+	"_'s⁇value"
+Body
+
+_actualValue ::= $"actual value";
+Private method "actual value" is [_actualValue];
+
+/**
+ * The null antipattern is generally to be avoided, because it effectively
+ * asserts the existence of an instance of the bottom type. There are times,
+ * however, when the presence of a value should be structurally optional. The
+ * "optional" type satisfies this niche. Its concrete subtypes, "present" and
+ * "absent", indicate the presence and absence of a value, respectively.
+ *
+ * Note that this facility offers nothing technical beyond what tuple types
+ * provide, though it is intended to satisfy its niche in a more first-order
+ * fashion.
+ *
+ * @type "optional"
+ */
+Explicit class "optional" extends object
+	with fields
+		actual value : <any…|0..1>;
+
+/**
+ * Construct and answer an {@type "optional"} type.
+ *
+ * @method "optional_"
+ * @param "valueType" "any's type"
+ *        The type of value accessible from instances of {@type "present"}
+ *        subtypes of the answer.
+ * @returns "optional's type"
+ *          An {@type "optional"} type parameterized by the argument.
+ */
+Public method "optional_" is
+[
+	valueType : any's type
+|
+	extend optional with actual value : <valueType…|0..1>
+] : optional's type;
+
+Semantic restriction "optional_" is
+[
+	valueMeta : any's type's type
+|
+	(extend optional with actual value : <valueMeta's instance…|0..1>)'s type
+];
+
+/**
+ * "present" is an {@type "optional"} that actually contains a value.
+ *
+ * @type "present"
+ * @supertype "optional"
+ */
+Explicit class "present" extends optional
+	with fields
+		actual value : <any…|1>;
+
+/**
+ * Construct and answer a {@type "present"} type.
+ *
+ * @method "present_"
+ * @param "valueType" "any's type"
+ *        The type of value accessible from instances of subtypes of the answer.
+ * @returns "present's type"
+ *          A {@type "present"} type parameterized by the argument.
+ */
+Public method "present_" is
+[
+	valueType : any's type
+|
+	extend present with actual value : <valueType…|1>
+] : present's type;
+
+Semantic restriction "present_" is
+[
+	valueMeta : any's type's type
+|
+	(extend present with actual value : <valueMeta's instance…|1>)'s type
+];
+
+/**
+ * Construct and answer a {@type "present"} that contains {@param "value"}.
+ *
+ * @method "+_"
+ * @param "value" "any"
+ *        A value.
+ * @returns "present"
+ *          A {@type "present"} that contains {@param "value"}.
+ */
+Public method "+_" is
+[
+	value : any
+|
+	a present with actual value := <value>
+] : present;
+
+Semantic restriction "+_" is
+[
+	valueType : any's type
+|
+	extend present with actual value : <valueType…|1>
+];
+
+/**
+ * "absent" is an {@type "optional"} that does not contain a value.
+ *
+ * @type "absent"
+ * @supertype "optional"
+ */
+Public explicit class "absent" extends optional
+	with fields
+		actual value : <⊥…|0>;
+
+_none ::= an absent with actual value := <>;
+
+/**
+ * Answer the canonical instance of {@type "absent"}.
+ *
+ * @method "none"
+ * @returns "absent"
+ *          An {@type "absent"}.
+ */
+Public method "none" is [_none];
+
+/**
+ * Answer the value encapsulated by the argument.
+ *
+ * @method "_'s⁇value"
+ * @param "anOptional" "optional"
+ *        An {@type "optional"}.
+ * @returns "any"
+ *          The value encapsulated by the argument.
+ */
+Public abstract method "_'s⁇value" is [optional]→any;
+
+/**
+ * Reject the current parse if the argument type is not statically known to be
+ * a subtype of {@type "present"}.
+ *
+ * @method "_'s⁇value"
+ * @restricts "optional's type"
+ */
+Semantic restriction "_'s⁇value" is
+[
+	optionalType : optional's type
+|
+	If optionalType ⊆ absent then
+	[
+		Reject parse, expected:
+			format "value extraction not to be attempted on ‘①’"
+			with optionalType
+	];
+	Unless optionalType ⊆ present then
+	[
+		Reject parse, expected:
+			format
+				"value extraction not to be attempted on ‘①’ \
+				\|(try casting to ‘②’)"
+			with optionalType, present (optionalType's actual value)
+	];
+	optionalType's actual value[1]
+];
+
+/**
+ * Answer the value encapsulated by the argument.
+ *
+ * @method "_'s⁇value"
+ * @param "someValue" "present"
+ *        {@type "present" Some} value.
+ * @returns "any"
+ *          The encapsulated value.
+ */
+Method "_'s⁇value" is
+[
+	someValue : present
+|
+	someValue's actual value[1]
+] : any;
+
+/**
+ * Apply the specified function to the value contained in {@param "anOptional"},
+ * but only if {@param "anOptional"} is a {@type "present"}.
+ *
+ * @method "When_is present do_"
+ * @param "anOptional" "optional"
+ *        An {@type "optional"}.
+ * @param "presentBlock" "[⊥]→⊤"
+ *        The function that should be applied to {@param "anOptional"}'s
+ *        content if {@param "anOptional"} is an instance of {@param "present"}.
+ */
+Public method "When_is present do_" is
+[
+	anOptional : optional,
+	presentBlock : [⊥]→⊤
+|
+	Cast anOptional
+		into [aPresent : present | invoke presentBlock with <aPresent's value>;]
+		else [/* Do nothing. */];
+] : ⊤;
+
+Semantic restriction "When_is present do_" is
+[
+	optionalType : optional's type,
+	presentBlock : [⊥]→⊤'s type
+|
+	Unless optionalType's actual value[1] ⊆ presentBlock[1] then
+	[
+		Reject parse, expected:
+			format "function to accept ‘①’ (but it only accepts ‘②’)"
+			with optionalType's actual value[1], presentBlock[1]
+	];
+	⊤
+];
+
+/**
+ * Apply the specified function to the value contained in {@param "anOptional"},
+ * but only if {@param "anOptional"} is a {@type "present"}. Otherwise, apply
+ * {@param "elseBlock"}.
+ *
+ * @method "When_is present do_"
+ * @param "anOptional" "optional"
+ *        An {@type "optional"}.
+ * @param "presentBlock" "[⊥]→⊤"
+ *        The function to apply to {@param "anOptional"}'s content if {@param
+ *        "anOptional"} is an instance of {@param "present"}.
+ * @param "elseBlock" "[]→⊤"
+ *        The function to apply if {@param "anOptional"} is an instance of
+ *        {@param "absent"}.
+ * @returns "⊤"
+ *          The value, if any, produced by the chosen function.
+ */
+Public method "When|when_is present do_else_" is
+[
+	anOptional : optional,
+	presentBlock : [⊥]→⊤,
+	elseBlock : []→⊤
+|
+	cast anOptional
+		into [aPresent : present | invoke presentBlock with <aPresent's value>;]
+		else elseBlock;
+] : ⊤;
+
+Semantic restriction "When|when_is present do_else_" is
+[
+	optionalType : optional's type,
+	presentBlock : [⊥]→⊤'s type,
+	elseBlock : []→⊤'s type
+|
+	Unless optionalType's actual value[1] ⊆ presentBlock[1] then
+	[
+		Reject parse, expected:
+			format "function to accept ‘①’ (but it only accepts ‘②’)"
+			with optionalType's actual value[1], presentBlock[1]
+	];
+	if optionalType ⊆ present then [presentBlock's return type]
+	else if [optionalType ⊆ absent] then [elseBlock's return type]
+	else [presentBlock's return type ∪ elseBlock's return type]
+];
+
+_testSuite ::= $"optional test suite";
+Private method "optional test suite" is [_testSuite];
+
+New test suite optional test suite extends data abstractions test suite;
+
+Test "optional(present)" in optional test suite is
+[
+	opt : optional 5's type := +5;
+	value ::= when opt is present do [t : 5's type | t] else ["no"];
+	Require: 5 = value;
+];
+
+Test "optional(absent)" in optional test suite is
+[
+	opt : optional 5's type := none;
+	value ::= when opt is present do [t : 5's type | t] else ["no"];
+	Require: "no" = value;
+];

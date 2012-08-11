@@ -666,9 +666,9 @@ extends Descriptor
 				throw new SignatureException(AvailErrorCode.E_METHOD_IS_SEALED);
 			}
 		}
-		AvailObject set = oldTuple.asSet();
-		set = set.setWithElementCanDestroy(implementation, true);
-		object.setSlot(IMPLEMENTATIONS_TUPLE, set.asTuple());
+		final AvailObject newTuple =
+			oldTuple.appendCanDestroy(implementation, true);
+		object.setSlot(IMPLEMENTATIONS_TUPLE, newTuple);
 		membershipChanged(object);
 	}
 

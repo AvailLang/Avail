@@ -138,5 +138,5 @@ do
 [
 	methodName : string
 |
-	Completely seal methodName;
+	Completely seal method methodName;
 ];

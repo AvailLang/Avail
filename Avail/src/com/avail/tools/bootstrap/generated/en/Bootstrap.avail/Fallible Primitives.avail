@@ -106,7 +106,7 @@ Names
 	"Set early failure function to_"
 Body
 
-Method "Private fail primitive with_" is
+Primitive "Private fail primitive with_" is
 [
 	value : any
 |
@@ -120,19 +120,19 @@ _fail_primitive : primitive failure function :=
 		Private fail primitive with arg1
 	] : ⊥;
 
-Method "early failure function" is
+Primitive "early failure function" is
 [
 	_fail_primitive
 ] : primitive failure function;
 
-Method "Set early failure function to_" is
+Primitive "Set early failure function to_" is
 [
 	arg1 : primitive failure function
 |
 	_fail_primitive := arg1;
 ] : ⊤;
 
-Method "Private invoke_with«_‡,»" is
+Primitive "Private invoke_with«_‡,»" is
 [
 	aFunction : function,
 	arguments : tuple
@@ -141,7 +141,7 @@ Method "Private invoke_with«_‡,»" is
 	Private fail primitive with failureCode
 ] : ⊤;
 
-Method "Private semantic restriction_is_" is
+Primitive "Private semantic restriction_is_" is
 [
 	methodName : string,
 	restriction : semantic restriction function
@@ -167,7 +167,7 @@ Private semantic restriction "Private invoke_with«_‡,»" is
  * Returns:
  *    The sum of the augend and the addend.
  */
-Method "_+_" is
+Primitive "_+_" is
 [
 	augend : number,
 	addend : number
@@ -185,7 +185,7 @@ Method "_+_" is
  * Returns:
  *    The difference of the minuend and the subtrahend.
  */
-Method "_-_" is
+Primitive "_-_" is
 [
 	minuend : number,
 	subtrahend : number
@@ -203,7 +203,7 @@ Method "_-_" is
  * Returns:
  *    The product of the multiplicand and the multiplier.
  */
-Method "_×_" is
+Primitive "_×_" is
 [
 	multiplicand : number,
 	multiplier : number
@@ -221,7 +221,7 @@ Method "_×_" is
  * Returns:
  *    The quotient of the dividend and the divisor.
  */
-Method "_÷_" is
+Primitive "_÷_" is
 [
 	dividend : number,
 	divisor : number
@@ -238,7 +238,7 @@ Method "_÷_" is
  * Returns:
  *    The value contained within the specified variable.
  */
-Method "↓_" is
+Primitive "↓_" is
 [
 	var : variable
 |
@@ -253,7 +253,7 @@ Method "↓_" is
  *    var - A variable.
  *    value - The value that should be stored into `var`.
  */
-Method "↓_`?=_" is
+Primitive "↓_`?=_" is
 [
 	var : variable,
 	value : any
@@ -271,7 +271,7 @@ Method "↓_`?=_" is
  *    arg1 - A variable.
  *    arg2 - A variable.
  */
-Method "swap_and_" is
+Primitive "swap_and_" is
 [
 	arg1 : variable,
 	arg2 : variable
@@ -289,7 +289,7 @@ Method "swap_and_" is
  * Returns:
  *    The value ejected from the variable.
  */
-Method "eject_" is
+Primitive "eject_" is
 [
 	var : variable
 |
@@ -304,7 +304,7 @@ Method "eject_" is
  *    `true` if termination of the current fiber has been requested, `false`
  *    otherwise.
  */
-Method "termination requested" is
+Primitive "termination requested" is
 [
 	Primitive 23 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode
@@ -322,7 +322,7 @@ Method "termination requested" is
  * Returns:
  *    The value bound to `key` within the fiber's environment.
  */
-Method "_[_]" is
+Primitive "_[_]" is
 [
 	aFiber : fiber,
 	key : atom
@@ -339,7 +339,7 @@ Method "_[_]" is
  * Returns:
  *    A set whose members are the instances of the enumeration.
  */
-Method "_'s⁇instances" is
+Primitive "_'s⁇instances" is
 [
 	enum : type
 |
@@ -356,7 +356,7 @@ Method "_'s⁇instances" is
  * Returns:
  *    The `index`-th parameter type of the argument.
  */
-Method "_[_]" is
+Primitive "_[_]" is
 [
 	functionType : function meta,
 	index : natural number
@@ -374,7 +374,7 @@ Method "_[_]" is
  * Returns:
  *    The value produced by applying the arguments to the function.
  */
-Method "Invoke|invoke_with_" is
+Primitive "Invoke|invoke_with_" is
 [
 	aFunction : function,
 	arguments : tuple
@@ -394,7 +394,7 @@ Method "Invoke|invoke_with_" is
  *    aContinuation - The continuation to restart.
  *    arguments - The new arguments with which to restart `aContinuation`.
  */
-Method "Restart_with_" is
+Primitive "Restart_with_" is
 [
 	aContinuation : continuation,
 	arguments : tuple
@@ -414,7 +414,7 @@ Method "Restart_with_" is
  *    aContinuation - The continuation to exit.
  *    value - The value with which to exit `aContinuation`.
  */
-Method "Exit_with_" is
+Primitive "Exit_with_" is
 [
 	aContinuation : continuation,
 	value : any
@@ -433,7 +433,7 @@ Method "Exit_with_" is
  * Parameters:
  *    aContinuation - The continuation to restart.
  */
-Method "Restart_" is
+Primitive "Restart_" is
 [
 	aContinuation : continuation
 |
@@ -451,7 +451,7 @@ Method "Restart_" is
  * Returns:
  *    The requested function.
  */
-Method "function from_and_" is
+Primitive "function from_and_" is
 [
 	implementation : function implementation,
 	outerVariables : tuple
@@ -469,7 +469,7 @@ Method "function from_and_" is
  * Returns:
  *    The value bound to `key` in `aMap`.
  */
-Method "_[_]" is
+Primitive "_[_]" is
 [
 	aMap : map,
 	key : any
@@ -487,7 +487,7 @@ Method "_[_]" is
  * Returns:
  *    `true` if `anAtom` has a property whose key is `key`, `false` otherwise.
  */
-Method "_∈_" is
+Primitive "_∈_" is
 [
 	anAtom : atom,
 	key : atom
@@ -506,7 +506,7 @@ Method "_∈_" is
  * Returns:
  *    The property value bound to the key.
  */
-Method "_[_]" is
+Primitive "_[_]" is
 [
 	anAtom : atom,
 	key : atom
@@ -524,7 +524,7 @@ Method "_[_]" is
  *    key - The property key.
  *    value - The property value.
  */
-Method "_[_]:=_" is
+Primitive "_[_]:=_" is
 [
 	anAtom : atom,
 	key : atom,
@@ -542,7 +542,7 @@ Method "_[_]:=_" is
  *    anAtom - An atom.
  *    key - A property key.
  */
-Method "_-_" is
+Primitive "_-_" is
 [
 	anAtom : atom,
 	key : atom
@@ -559,7 +559,7 @@ Method "_-_" is
  * Returns:
  *    The requested module.
  */
-Method "_'s⁇issuing module" is
+Primitive "_'s⁇issuing module" is
 [
 	anAtom : atom
 |
@@ -576,7 +576,7 @@ Method "_'s⁇issuing module" is
  * Returns:
  *    The requested element.
  */
-Method "_[_]" is
+Primitive "_[_]" is
 [
 	aTuple : tuple,
 	index : natural number
@@ -597,7 +597,7 @@ Method "_[_]" is
  * Returns:
  *    The requested tuple.
  */
-Method "_[_]→_" is
+Primitive "_[_]→_" is
 [
 	aTuple : tuple,
 	index : natural number,
@@ -617,7 +617,7 @@ Method "_[_]→_" is
  * Returns:
  *    The requested tuple.
  */
-Method "_[_.._]" is
+Primitive "_[_.._]" is
 [
 	aTuple : tuple,
 	sliceStart : natural number,
@@ -638,7 +638,7 @@ Method "_[_.._]" is
  * Returns:
  *    The requested slice of element types.
  */
-Method "_[_.._]" is
+Primitive "_[_.._]" is
 [
 	aTupleType : tuple meta,
 	sliceStart : natural number,
@@ -658,7 +658,7 @@ Method "_[_.._]" is
  * Returns:
  *    The type union of all element types in the specified range.
  */
-Method "∪_[_.._]" is
+Primitive "∪_[_.._]" is
 [
 	aTupleType : tuple meta,
 	startIndex : natural number,
@@ -684,7 +684,7 @@ Method "∪_[_.._]" is
  * Returns:
  *    The requested function implementation.
  */
-Method "_`#_:_(literals=_,`#locals_,`#outers_,stack depth=_)" is
+Primitive "_`#_:_(literals=_,`#locals_,`#outers_,stack depth=_)" is
 [
 	nybblecodes : tuple of nybble,
 	primitiveNumber : unsigned short,
@@ -706,7 +706,7 @@ Method "_`#_:_(literals=_,`#locals_,`#outers_,stack depth=_)" is
  * Returns:
  *    The requested method.
  */
-Method "method for_" is
+Primitive "method for_" is
 [
 	anAtom : atom
 |
@@ -726,7 +726,7 @@ Method "method for_" is
  *    The unique implementation of `aMethod` that best accords with the
  *    specified parameter types.
  */
-Method "method site of_for_" is
+Primitive "method site of_for_" is
 [
 	aMethod : method,
 	parameterTypes : tuple of any meta
@@ -744,7 +744,7 @@ Method "method site of_for_" is
  * Returns:
  *    The number of parameters required to send the specified message.
  */
-Method "`|message_'s⁇parameters`|" is
+Primitive "`|message_'s⁇parameters`|" is
 [
 	methodName : string
 |
@@ -761,7 +761,7 @@ Method "`|message_'s⁇parameters`|" is
  *    `true` if the specified message contains lexical groups, or `false`
  *    otherwise.
  */
-Method "message_contains groups" is
+Primitive "message_contains groups" is
 [
 	methodName : string
 |
@@ -779,7 +779,7 @@ Method "message_contains groups" is
  *    signature - A tuple of parameter types. This is the signature at which the
  *       seal will be placed.
  */
-Method "Seal method_at_" is
+Primitive "Seal method_at_" is
 [
 	methodName : string,
 	signature : tuple of any meta
@@ -800,7 +800,7 @@ Method "Seal method_at_" is
  *    methodName - The atom that uniquely names the abstract method to declare.
  *    signature - The signature.
  */
-Method "Abstract method_is_" is
+Primitive "Abstract method_is_" is
 [
 	methodName : atom,
 	signature : function meta
@@ -821,7 +821,7 @@ Method "Abstract method_is_" is
  *    `true` if `aMethod` has a unique implementation for the specified parameter
  *    types, `false` otherwise.
  */
-Method "_has implementation for_" is
+Primitive "_has implementation for_" is
 [
 	aMethod : method,
 	parameterTypes : tuple of any meta
@@ -831,12 +831,38 @@ Method "_has implementation for_" is
 ] : boolean;
 
 /**
+ * Define the specified semantic restriction. Henceforth whenever the method
+ * named by `methodName` is invoked with arguments accepted by `restriction`,
+ * then apply `restriction` with the most specific available types of the actual
+ * arguments. This is determined by the compiler at the method's call site.
+ *
+ * A semantic restriction has two responsibilities. First, it may reject a
+ * method invocation on any appropriate semantic grounds by calling
+ * `Reject parse,expected:_`. Second, it may strengthen the type of value
+ * produced at the call site by answering a subtype of the method's declared
+ * return type.
+ *
+ * Parameters:
+ *    methodName - The name of the method to which the semantic restriction
+ *       applies.
+ *    restriction - The restriction function.
+ */
+Primitive "Semantic restriction_is_" is
+[
+	methodName : atom,
+	restriction : semantic restriction function
+|
+	Primitive 231 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : ⊤;
+
+/**
  * Answer the module currently undergoing compilation.
  *
  * Returns:
  *    The module currently undergoing compilation.
  */
-Method "current module" is
+Primitive "current module" is
 [
 	Primitive 241 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode
@@ -855,7 +881,7 @@ Method "current module" is
  * Returns:
  *    The requested atom.
  */
-Method "atom for_" is
+Primitive "atom for_" is
 [
 	localName : string
 |
@@ -873,7 +899,7 @@ Method "atom for_" is
  * Parameters:
  *    newName - The name that should be introduced.
  */
-Method "Publish new name:_" is
+Primitive "Publish new name:_" is
 [
 	newName : string
 |
@@ -898,7 +924,7 @@ Method "Publish new name:_" is
  *       applies.
  *    restriction - The restriction function.
  */
-Method "Semantic restriction_is_" is
+Primitive "Semantic restriction_is_" is
 [
 	methodName : string,
 	restriction : semantic restriction function
@@ -923,7 +949,7 @@ Method "Semantic restriction_is_" is
  *    macroName - The name of the macro to define.
  *    body - The function that implements the macro.
  */
-Method "Macro_is_" is
+Primitive "Macro_is_" is
 [
 	macroName : string,
 	body : macro function
@@ -941,7 +967,7 @@ Method "Macro_is_" is
  *    methodName - The name of the abstract method to declare.
  *    aFunctionType - The signature.
  */
-Method "Abstract method_is_" is
+Primitive "Abstract method_is_" is
 [
 	methodName : string,
 	aFunctionType : function meta
@@ -962,7 +988,7 @@ Method "Abstract method_is_" is
  *    methodName - The name of the method to forward declare.
  *    aFunctionType - The signature.
  */
-Method "Forward method_is_" is
+Primitive "Forward method_is_" is
 [
 	methodName : string,
 	aFunctionType : function meta
@@ -977,7 +1003,7 @@ Method "Forward method_is_" is
  * Returns:
  *    The next character from the standard input stream.
  */
-Method "next character" is
+Primitive "next character" is
 [
 	Primitive 254 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode
@@ -1004,7 +1030,7 @@ Method "next character" is
  *       argument position of any invocation of a method named in
  *       `methodsToRestrict`.
  */
-Method "Grammatical restriction_is_" is
+Primitive "Grammatical restriction_is_" is
 [
 	methodsToRestrict : set of string,
 	exclusions : tuple of set of string
@@ -1019,7 +1045,7 @@ Method "Grammatical restriction_is_" is
  * Parameters:
  *    count - The requested number of characters of read ahead.
  */
-Method "mark for_character|characters of read ahead" is
+Primitive "mark for_character|characters of read ahead" is
 [
 	count : whole number
 |
@@ -1031,7 +1057,7 @@ Method "mark for_character|characters of read ahead" is
  * Reset the standard input stream to the previously set mark.
  *
  */
-Method "reset to mark" is
+Primitive "reset to mark" is
 [
 	Primitive 262 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode
@@ -1047,7 +1073,7 @@ Method "reset to mark" is
  * Returns:
  *    An approximation of `dividend` mod `divisor`.
  */
-Method "_mod_" is
+Primitive "_mod_" is
 [
 	dividend : float,
 	divisor : float
@@ -1066,7 +1092,7 @@ Method "_mod_" is
  * Returns:
  *    An approximation of `0` mod `divisor`.
  */
-Method "_mod_" is
+Primitive "_mod_" is
 [
 	dividend : double,
 	divisor : double
@@ -1086,7 +1112,7 @@ Method "_mod_" is
  *    `variableUse` the result of running `valueExpression`. The result yields the same
  *    answer as `valueExpression`.
  */
-Method "`«(_:=_)`»" is
+Primitive "`«(_:=_)`»" is
 [
 	variableUse : variable use,
 	valueExpression : expression yielding any
@@ -1105,7 +1131,7 @@ Method "`«(_:=_)`»" is
  *    A statement that describes assigning to the variable indicated by
  *    `variableUse` the result of running `valueExpression`.
  */
-Method "`«_:=_`»" is
+Primitive "`«_:=_`»" is
 [
 	variableUse : variable use,
 	valueExpression : expression yielding any
@@ -1123,7 +1149,7 @@ Method "`«_:=_`»" is
  *    A variable reference expression that answers the variable described by
  *    `variableUse`.
  */
-Method "`«↑_`»" is
+Primitive "`«↑_`»" is
 [
 	variableUse : variable use
 |
@@ -1147,7 +1173,7 @@ Method "`«↑_`»" is
  * Returns:
  *    The requested block.
  */
-Method "`«[_`|Primitive__]:_^_`»" is
+Primitive "`«[_`|Primitive__]:_^_`»" is
 [
 	argumentDeclarations : argument tuple,
 	primitiveNumber : unsigned short,
@@ -1168,7 +1194,7 @@ Method "`«[_`|Primitive__]:_^_`»" is
  * Returns:
  *    The requested function.
  */
-Method "generate_" is
+Primitive "generate_" is
 [
 	aBlock : block
 |
@@ -1189,7 +1215,7 @@ Method "generate_" is
  * Returns:
  *    The requested message send.
  */
-Method "send_with_:_" is
+Primitive "send_with_:_" is
 [
 	aMethod : method,
 	argumentsList : list,
@@ -1207,7 +1233,7 @@ Method "send_with_:_" is
  * Returns:
  *    The requested sequence.
  */
-Method "seq`«_`»" is
+Primitive "seq`«_`»" is
 [
 	statements : phrase tuple
 |
@@ -1226,7 +1252,7 @@ Method "seq`«_`»" is
  * Returns:
  *    The requested pojo type.
  */
-Method "_<«_‡,»>" is
+Primitive "_<«_‡,»>" is
 [
 	javaName : string,
 	typeParameters : tuple of any meta
@@ -1267,7 +1293,7 @@ Method "_<«_‡,»>" is
  * Returns:
  *    The requested constructor invocation function.
  */
-Method "constructor_<«_‡,»>(fail with_)" is
+Primitive "constructor_<«_‡,»>(fail with_)" is
 [
 	aPojoType : pojo meta,
 	parameterTypes : tuple of any meta,
@@ -1289,7 +1315,7 @@ Method "constructor_<«_‡,»>(fail with_)" is
  * Returns:
  *    A variable bound to the specified instance field.
  */
-Method "_._→variable" is
+Primitive "_._→variable" is
 [
 	aPojo : pojo,
 	fieldName : string
@@ -1310,7 +1336,7 @@ Method "_._→variable" is
  * Returns:
  *    A variable bound to the specified static field.
  */
-Method "_._→variable" is
+Primitive "_._→variable" is
 [
 	aPojoType : pojo meta,
 	fieldName : string
@@ -1353,7 +1379,7 @@ Method "_._→variable" is
  * Returns:
  *    The requested instance method invocation function.
  */
-Method "method_._(«_‡,»)(fail with_)" is
+Primitive "method_._(«_‡,»)(fail with_)" is
 [
 	aPojoType : pojo meta,
 	methodName : string,
@@ -1397,7 +1423,7 @@ Method "method_._(«_‡,»)(fail with_)" is
  * Returns:
  *    The requested static method invocation function.
  */
-Method "static method_._(«_‡,»)(fail with_)" is
+Primitive "static method_._(«_‡,»)(fail with_)" is
 [
 	aPojoType : pojo meta,
 	methodName : string,
@@ -1417,7 +1443,7 @@ Method "static method_._(«_‡,»)(fail with_)" is
  * Returns:
  *    The `index`-th element of `anArray`.
  */
-Method "_[_]" is
+Primitive "_[_]" is
 [
 	anArray : pojo array,
 	index : natural number
@@ -1435,7 +1461,7 @@ Method "_[_]" is
  *    index - A one-based index into the pojo array.
  *    value - The value that should be written into the pojo array.
  */
-Method "_[_]:=_" is
+Primitive "_[_]:=_" is
 [
 	anArray : pojo array,
 	index : natural number,

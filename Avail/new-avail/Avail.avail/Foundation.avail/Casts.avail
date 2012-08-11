@@ -34,9 +34,11 @@ System Module "Casts"
 Versions
 	"dev"
 Uses
+	"Assertions",
 	"Bootstrap",
 	"Control Structures" =
 	(
+		"From_to_do_",
 		"If|if_then_«else if_then_»«else_»"
 	),
 	"Definers",
@@ -45,8 +47,11 @@ Uses
 	"Logic",
 	"Objects",
 	"Strings",
+	"Tuples",
 	"Types"
 Names
+	"Cast|cast each of_into_",
+	"Cast|cast each of_into_else_",
 	"Cast|cast_into_",
 	"bad-cast exception"
 Body
@@ -105,8 +110,8 @@ Public method "Cast|cast_into_" is
 ] : ⊤;
 
 /**
- * 
- * 
+ * Reject the parse if the cast is either unnecessary or disallowed.
+ *
  * @method "Cast|cast_into_"
  * @restricts "any's type"
  * @restricts "[⊥]→⊤'s type"
@@ -129,4 +134,183 @@ Semantic restriction "Cast|cast_into_" is
 			with valueType, acceptType[1]
 	];
 	acceptType's return type
+];
+
+/**
+ * If the function {@param "accept"} accepts each element of {@param "values"},
+ * respectively, as an argument (based on its runtime type), then invoke {@param
+ * "accept"} with {@param "values"}. Otherwise, raise a {@type "bad-cast
+ * exception"}.
+ *
+ * @method "Cast|cast each of_into_"
+ * @param "values" "tuple"
+ *        A tuple.
+ * @param "accept" "function"
+ *        The function to invoke if each element of {@param "values"} is a
+ *        subtype of the corresponding parameter type.
+ * @returns The result of {@param "accept"}.
+ * @raises "bad-cast exception"
+ *         If any element of {@param "values"} is not an instance of the
+ *         corresponding parameter type of {@param "accept"}.
+ */
+Public method "Cast|cast each of_into_" is
+[
+	values : tuple,
+	accept : function
+|
+	valueTypes ::= map values through [t : any | t's type];
+	paramTypes ::= accept's type's parameters' type[1..];
+	Assert: |valueTypes| = |paramTypes|;
+	zipped ::= valueTypes zip paramTypes;
+	ok ::= each of zipped satisfies [t : <type…|2> | t[1] ⊆ t[2]];
+	if ok then
+	[
+		invoke accept with values;
+	]
+	else
+	[
+		Raise a bad-cast exception with
+			source type := valueTypes' type,
+			destination type := paramTypes' type
+	];
+];
+
+/**
+ * Reject the parse if the cast is either unnecessary or disallowed.
+ *
+ * @method "Cast|cast each of_into_"
+ * @restricts "any's type"
+ * @restricts "function's type"
+ */
+Semantic restriction "Cast|cast each of_into_" is
+[
+	valuesType : tuple meta,
+	acceptType : function meta
+|
+	If ⎣valuesType⎦ ≠ ⎡valuesType⎤ then
+	[
+		Reject parse, expected:
+			"number of inputs to be known exactly"
+	];
+	paramsType ::= acceptType's parameters' type;
+	If ⎣paramsType⎦ ≠ ⎡paramsType⎤ then
+	[
+		Reject parse, expected:
+			"function signature to be known exactly"
+	];
+	If ⎣valuesType⎦ ≠ ⎣paramsType⎦ then
+	[
+		Reject parse, expected:
+			"number of inputs to match number of function parameters"
+	];
+	From 1 to ⎣valuesType⎦ do
+	[
+		index : natural number
+	|
+		valueType ::= valuesType[index];
+		paramType ::= paramsType[index];
+		If valueType ⊆ paramType then
+		[
+			Reject parse, expected:
+				format "necessary cast expression, but ‘①’ is a subtype of ‘②’"
+				with valueType, paramType
+		];
+		If ¬paramType ⊆ valueType then
+		[
+			Reject parse, expected:
+				format
+					"allowed cast expression, but ‘①’ is not a supertype of \
+					\|‘②’"
+				with valueType, paramType
+		];
+	];
+	acceptType's return type
+];
+
+/**
+ * If the function {@param "accept"} accepts each element of {@param "values"},
+ * respectively, as an argument (based on its runtime type), then invoke {@param
+ * "accept"} with {@param "values"}. Otherwise, apply {@param "reject"}.
+ *
+ * @method "Cast|cast each of_into_else_"
+ * @param "values" "tuple"
+ *        A tuple.
+ * @param "accept" "function"
+ *        The function to invoke if each element of {@param "values"} is a
+ *        subtype of the corresponding parameter type.
+ * @param "reject" "[]→⊤"
+ *        The function to invoke if any element of {@param "values"} is not a
+ *        subtype of the corresponding parameter type of {@param "accept"}.
+ * @returns The result of {@param "accept"} or {@param "reject"}.
+ */
+Public method "Cast|cast each of_into_else_" is
+[
+	values : tuple,
+	accept : function,
+	reject : []→⊤
+|
+	valueTypes ::= map values through [t : any | t's type];
+	paramTypes ::= accept's type's parameters' type[1..];
+	Assert: |valueTypes| = |paramTypes|;
+	zipped ::= valueTypes zip paramTypes;
+	ok ::= each of zipped satisfies [t : <type…|2> | t[1] ⊆ t[2]];
+	if ok then
+	[
+		invoke accept with values;
+	]
+	else reject;
+];
+
+/**
+ * Reject the parse if the cast is either unnecessary or disallowed.
+ *
+ * @method "Cast|cast each of_into_else_"
+ * @restricts "any's type"
+ * @restricts "function's type"
+ * @restricts "[]→⊤'s type"
+ */
+Semantic restriction "Cast|cast each of_into_else_" is
+[
+	valuesType : tuple meta,
+	acceptType : function meta,
+	rejectType : []→⊤'s type
+|
+	If ⎣valuesType⎦ ≠ ⎡valuesType⎤ then
+	[
+		Reject parse, expected:
+			"number of inputs to be known exactly"
+	];
+	paramsType ::= acceptType's parameters' type;
+	If ⎣paramsType⎦ ≠ ⎡paramsType⎤ then
+	[
+		Reject parse, expected:
+			"function signature to be known exactly"
+	];
+	If ⎣valuesType⎦ ≠ ⎣paramsType⎦ then
+	[
+		Reject parse, expected:
+			"number of inputs to match number of function parameters"
+	];
+	From 1 to ⎣valuesType⎦ do
+	[
+		index : natural number
+	|
+		valueType ::= valuesType[index];
+		paramType ::= paramsType[index];
+		If valueType ⊆ paramType then
+		[
+			Reject parse, expected:
+				format "necessary cast expression, but ‘①’ is a subtype of ‘②’"
+				with valueType, paramType
+		];
+		If ¬paramType ⊆ valueType then
+		[
+			Reject parse, expected:
+				format
+					"allowed cast expression, but ‘①’ is not a supertype of \
+					\|‘②’"
+				with valueType, paramType
+		];
+	];
+	acceptType's return type ∪ rejectType's return type
 ];

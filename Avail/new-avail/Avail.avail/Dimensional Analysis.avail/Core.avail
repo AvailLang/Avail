@@ -1,0 +1,1242 @@
+/*
+ * Core.avail
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Core"
+Versions
+	"dev"
+Uses
+	"Foundation"
+Names
+	/* Types. */
+	"base unit",
+	"derived unit",
+	"dimensioned quantity",
+	"no-such-conversion exception",
+	"scalar",
+	"unit",
+	"unit conversion function",
+
+	/* Field atoms. */
+	"extent",
+	"metric",
+	"unit map",
+
+	/* Definers. */
+	"Prefer_for printing_",
+	"Prefer_for printing_in a dimensioned quantity",
+	"_has symbol_",
+	"_(_)is a base unit",
+	"_(_)is a derived unit equivalent to_",
+
+	/* Derivation. */
+	"_·_",
+	"_/_",
+	"_^_",
+
+	/* Derivation helpers. */
+	"_·_(unit map)",
+	"_/_(unit map)",
+	"_^_(unit map)",
+
+	/* Constructors. */
+	/* TODO: [TLS] Change "@__" to "__", because the former is stupid. */
+	"@__",
+
+	/* Extraction. */
+	"_'s⁇unit map",
+	"_'s⁇extent",
+	"_'s⁇metric",
+
+	/* Arithmetic. */
+	"-_",
+	"_+_",
+	"_-_",
+	"_×_",
+	"_÷_",
+
+	/* Conversion. */
+	"Conversion method is_,⁇inverse is_",
+	"_converted to_"
+Body
+
+_unitMap ::= $"unit map";
+_extent ::= $extent;
+_metric ::= $metric;
+_sourceUnit ::= $"source unit";
+_targetUnit ::= $"target unit";
+
+Public method "unit map" is [_unitMap];
+Public method "extent" is [_extent];
+Public method "metric" is [_metric];
+Private method "source unit" is [_sourceUnit];
+Private method "target unit" is [_targetUnit];
+
+/**
+ * A unit is a measurement quantum along some dimensional axis.
+ *
+ * @type "unit"
+ */
+Public class "unit" extends object
+	with fields
+		public unit map : {atom→integer|};
+
+/**
+ * A base unit is metrically irreducible; though it may be reduced to smaller
+ * quanta, it may not be reduced to simpler terms. Examples of base units are
+ * meters (m), seconds (s), or grams (g).
+ *
+ * @type "base unit"
+ * @supertype "unit"
+ */
+Public explicit class "base unit" extends unit
+	with fields
+		unit map : {atom→1's type|1};
+
+/**
+ * A derived unit is an algebraic composition of base units. Examples of derived
+ * units are newtons (kg·m/s²) or hertz (1/s).
+ *
+ * @type "derived unit"
+ * @supertype "unit"
+ */
+Public explicit class "derived unit" extends unit;
+
+/**
+ * Scalar is a necessary singularity endemic to the system of type {@type
+ * "unit"}s. It represents the absence of meaningful dimensional axes, yet it
+ * must be present to support intermediate stages of derivation.
+ *
+ * @type "scalar"
+ * @supertype "unit"
+ */
+Public class "scalar" extends derived unit
+	with fields
+		unit map : {}'s type;
+
+/**
+ * A dimensioned quantity combines a numeric extent with a {@type "unit"}.
+ * Examples of dimensioned quantities are 4m (four meters), 10 kilograms (ten
+ * kilograms), and 20N (twenty Newtons).
+ *
+ * @type "dimensioned quantity"
+ */
+Public class "dimensioned quantity" extends object
+	with fields
+		public extent : number,
+		public metric : unit;
+
+/**
+ * Construct and answer a {@type "dimensioned quantity"} type with the specified
+ * {@type "number" extent} type and {@type "unit" metric}.
+ *
+ * @method "__"
+ * @param "magnitudeType" "number's type"
+ *        The magnitude type.
+ * @param "theUnit" "unit"
+ *        The {@type "unit" metric}.
+ * @returns "dimensioned quantity"
+ *          The requested {@type "dimensioned quantity"} type.
+ */
+Public method "@__" is
+[
+	magnitudeType : number's type,
+	theUnit : unit
+|
+	extend dimensioned quantity with
+		extent : magnitudeType,
+		metric : theUnit's type
+] : dimensioned quantity's type;
+
+Semantic restriction "@__" is
+[
+	magnitudeType : number's type's type,
+	unitType : unit's type
+|
+	(if |unitType| = 1 then
+	[
+		@ magnitudeType's instance unitType's instance
+	]
+	else
+	[
+		extend dimensioned quantity with extent : magnitudeType's instance
+	])'s type
+];
+
+/**
+ * Construct and answer a {@type "dimensioned quantity"} with the specified
+ * {@type "number" extent} and {@type "unit" metric}.
+ *
+ * @method "__"
+ * @param "magnitude" "number"
+ *        The magnitude of the answer.
+ * @param "theUnit" "unit"
+ *        The {@type "unit"} of measurement of the answer.
+ * @returns "dimensioned quantity"
+ *          The requested {@type "dimensioned quantity"}.
+ */
+Public stable method "@__" is
+[
+	magnitude : number,
+	theUnit : unit
+|
+	a dimensioned quantity with extent := magnitude, metric := theUnit
+] : dimensioned quantity;
+
+Semantic restriction "@__" is
+[
+	magnitudeType : number's type,
+	unitType : unit's type
+|
+	if |unitType| = 1 then
+	[
+		@ magnitudeType (unitType's instance)
+	]
+	else
+	[
+		extend dimensioned quantity
+			with extent : magnitudeType,
+			metric : unitType
+	]
+];
+
+/**
+ * A map from {@type "unit"}s to the names that should be used to describe them.
+ *
+ * @global "namesByUnit" "{unit→string|}"
+ */
+namesByUnit : {unit→string|} := {};
+
+Method "“_”" is
+[
+	arg : unit
+|
+	namesByUnit[arg] else [primitive description of arg]
+];
+
+/**
+ * Prefer {@param "name"} for printing the specified {@type "unit"}.
+ *
+ * @method "Prefer_for printing_"
+ * @param "name" "string"
+ *        The preferred print representation of {@param "aUnit"}.
+ * @param "aUnit" "unit"
+ *        A {@type "unit"}.
+ */
+Public method "Prefer_for printing_" is
+[
+	symbol : string,
+	aUnit : unit
+|
+	namesByUnit := eject ↑namesByUnit + aUnit→symbol;
+] : ⊤;
+
+/**
+ * A map from {@type "unit"}s to the symbols that should be used to describe
+ * them.
+ *
+ * @global "symbolsByUnit" "{unit→string|}"
+ */
+symbolsByUnit : {unit→string|} := {};
+
+Method "“_”" is
+[
+	arg : dimensioned quantity
+|
+	desc ::= symbolsByUnit[arg's metric]
+		else [" " ++ primitive description of arg's metric];
+	“arg's extent” ++ desc
+] : string;
+
+/**
+ * Prefer {@param "symbol"} for printing {@type "dimensioned quantity"
+ * dimensioned quantities} of the specified {@type "unit"}.
+ *
+ * @method "Prefer_for printing_in a dimensioned quantity"
+ * @param "symbol" "string"
+ *        The preferred print representation of {@param "aUnit"} (when it
+ *        occurs as part of a {@type "dimensioned quantity"}).
+ * @param "aUnit" "unit"
+ *        A {@type "unit"}.
+ */
+Public method "Prefer_for printing_in a dimensioned quantity" is
+[
+	symbol : string,
+	aUnit : unit
+|
+	symbolsByUnit := eject ↑symbolsByUnit + aUnit→symbol;
+] : ⊤;
+
+/**
+ * TODO: [TLS] This mechanism should be reworked when locales are introduced.
+ *
+ * Establish {@param "symbol"} as a notation for the specified {@type "unit"}
+ * type. In particular, define a method {@param "symbol"} that answers
+ * {@param "aUnit"} when its message is sent. Unless a preferred print
+ * presentation for this unit has already been established, then establish the
+ * specified symbol as the preferred print representation.
+ *
+ * @method "_has symbol_"
+ * @param "aUnit" "unit"
+ *        A {@type "unit"}.
+ * @param "symbol" "string"
+ *        A symbol which represents the specified {@type "unit"}.
+ */
+Public method "_has symbol_" is
+[
+	aUnit : unit,
+	symbol : <character…|1..>
+|
+	/* Generate a factory method. */
+	Method symbol is generate «[ <> | <‘`aUnit`’> ] : aUnit's type»;
+	/* Set the preferred print representation. */
+	Unless aUnit ∈ symbolsByUnit then
+	[
+		Prefer symbol for printing aUnit in a dimensioned quantity;
+	];
+] : ⊤;
+
+/**
+ * Define a {@type "base unit"}.
+ *
+ * @method "_(_)is a base unit"
+ * @param "name" "string"
+ *        The name of the {@type "base unit"}, e.g., meters, seconds, grams.
+ * @param "symbol" "string"
+ *        A symbol which represents the defined {@type "base unit"}.
+ */
+Public method "_(_)is a base unit" is
+[
+	name : <character…|1..>,
+	symbol : <character…|1..>
+|
+	id ::= atom for name;
+	def ::= {id → 1};
+	unitType ::= extend base unit with unit map : def's type;
+	aUnit ::= a unitType with unit map := def;
+	aUnit has symbol name;
+	aUnit has symbol symbol;
+	Unless aUnit ∈ namesByUnit then
+	[
+		Prefer name for printing aUnit;
+		Prefer symbol for printing aUnit in a dimensioned quantity;
+	];
+] : ⊤;
+
+/**
+ * Compute and answer the product of the specified unit maps.
+ *
+ * @method "_·_(unit map)"
+ * @param "x" "{atom→integer|}"
+ *        A unit map.
+ * @param "y" "{atom→integer|}"
+ *        A unit map.
+ * @returns The product of the arguments.
+ */
+Public stable method "_·_(unit map)" is
+[
+	mapX : {atom→integer|},
+	mapY : {atom→integer|}
+|
+	differenceKeys ::= mapX's keys Δ mapY's keys;
+	intersectionKeys ::= mapX's keys ∩ mapY's keys;
+	unitMap : {atom→integer|} := {};
+	For each differenceKeys do
+	[
+		key : atom
+	|
+		exponent ::= mapX[key] else [mapY[key]];
+		unitMap := eject ↑unitMap + key→exponent;
+	];
+	For each intersectionKeys do
+	[
+		key : atom
+	|
+		exponent ::= mapX[key] + mapY[key];
+		Unless exponent = 0 then
+		[
+			unitMap := eject ↑unitMap + key→exponent;
+		];
+	];
+	unitMap
+] : {atom→integer|};
+
+Seal method "_·_(unit map)" at <any, any>;
+
+/**
+ * Compute and answer the product of the specified {@type "unit"}s.
+ *
+ * @method "_·_"
+ * @param "x" "unit"
+ *        A {@type "unit"}.
+ * @param "y" "unit"
+ *        A {@type "unit"}.
+ * @returns The product of the arguments.
+ */
+Public stable method "_·_" is
+[
+	x : unit,
+	y : unit
+|
+	unitMap ::= x's unit map · y's unit map (unit map);
+	unitType ::= cast unitMap
+		into [t : {atom→1's type|1} | base unit]
+		else [derived unit];
+	a unitType with unit map := unitMap
+] : unit;
+
+/**
+ * Compute and answer the quotient of the specified unit maps. This is the
+ * same as the {@method "_·_" product} of {@param "mapX"} and the reciprocal of
+ * {@param "mapY"}.
+ *
+ * @method "_/_(unit map)"
+ * @param "mapX" "{atom→integer|}"
+ *        A unit map.
+ * @param "mapY" "{atom→integer|}"
+ *        A unit map.
+ * @returns The quotient of the arguments.
+ */
+Public stable method "_/_(unit map)" is
+[
+	mapX : {atom→integer|},
+	mapY : {atom→integer|}
+|
+	inverseY ::= map mapY through
+		[
+			key : atom,
+			exponent : integer
+		|
+			-exponent
+		];
+	mapX · inverseY (unit map)
+] : {atom→integer|};
+
+Seal method "_/_(unit map)" at <any, any>;
+
+/**
+ * Compute and answer the quotient of the specified {@type "unit"}s. This is the
+ * same as the {@method "_·_" product} of {@param "x"} and the reciprocal of
+ * {@param "y"}.
+ *
+ * @method "_/_"
+ * @param "x" "unit"
+ *        A {@type "unit"}.
+ * @param "y" "unit"
+ *        A {@type "unit"}.
+ * @returns The quotient of the arguments.
+ */
+Public stable method "_/_" is
+[
+	x : unit,
+	y : unit
+|
+	unitMap ::= x's unit map / y's unit map (unit map);
+	unitType ::= cast unitMap
+		into [t : {atom→1's type|1} | base unit]
+		else [derived unit];
+	a unitType with unit map := unitMap
+] : unit;
+
+/**
+ * Compute and answer the result of raising the specified unit maps to the
+ * specified power.
+ *
+ * @method "_^_"
+ * @param "unitMap" "{atom→integer|}"
+ *        A unit map.
+ * @param "theExponent" "integer"
+ *        The exponent.
+ * @returns "unit"
+ *          The result of the exponentiation.
+ */
+Public stable method "_^_(unit map)" is
+[
+	unitMap : {atom→integer|},
+	theExponent : integer
+|
+	map unitMap through
+		[
+			key : atom,
+			exponent : integer
+		|
+			theExponent × exponent
+		]
+] : {atom→integer|};
+
+Seal method "_^_(unit map)" at <any, any>;
+
+/**
+ * Compute and answer the result of raising the specified {@type "unit"} to the
+ * specified power.
+ *
+ * @method "_^_"
+ * @param "theUnit" "unit"
+ *        A {@type "unit"}.
+ * @param "theExponent" "integer"
+ *        The exponent.
+ * @returns "unit"
+ *          The result of the exponentiation.
+ */
+Public stable method "_^_" is
+[
+	theUnit : unit,
+	theExponent : integer
+|
+	unitMap ::= theUnit's unit map ^ theExponent (unit map);
+	unitType ::= cast unitMap
+		into [t : {atom→1's type|1} | base unit]
+		else [derived unit];
+	a unitType with unit map := unitMap
+] : unit;
+
+[
+	product ::= {"_·_", "_/_"};
+	power   ::= {"_^_"};
+
+	/* Establish the precedence of multiplicative derivation. */
+	Grammatical restriction product is <∅, product>;
+
+	/* Establish the precedence of exponentiation. */
+	Grammatical restriction power is <product ∪ power, product>;
+]();
+
+/**
+ * Define a {@type "derived unit"}.
+ *
+ * @method "_(_)is a derived unit equivalent to_"
+ * @param "name" "string"
+ *        The name of the {@type "derived unit"}, e.g., newtons, hertz.
+ * @param "symbol" "string"
+ *        A symbol which represents the defined {@type "dervied unit"}.
+ * @param "aUnit" "unit"
+ *        An equivalent {@type "unit"}, usually obtained from a lexical
+ *        expression.
+ */
+Public method "_(_)is a derived unit equivalent to_" is
+[
+	name : <character…|1..>,
+	symbol : <character…|1..>,
+	aUnit : unit
+|
+	aUnit has symbol name;
+	aUnit has symbol symbol;
+	Unless aUnit ∈ namesByUnit then
+	[
+		Prefer name for printing aUnit;
+		Prefer symbol for printing aUnit in a dimensioned quantity;
+	];
+] : ⊤;
+
+/**
+ * Compute and answer the sum of the {@type "dimensioned quantity" arguments}.
+ *
+ * @method "_+_"
+ * @param "augend" "dimensioned quantity"
+ *        A {@type "dimensioned quantity"}.
+ * @param "addend" "dimensioned quantity"
+ *        A {@type "dimensioned quantity"}.
+ * @returns "dimensioned quantity"
+ *          The sum of {@param "augend"} and {@param "addend"}.
+ */
+Public stable method "_+_" is
+[
+	augend : dimensioned quantity,
+	addend : dimensioned quantity
+|
+	/* The arguments have equal units, so we can choose either. */
+	@ (augend's extent + addend's extent) (augend's metric)
+] : dimensioned quantity;
+
+Semantic restriction "_+_" is
+[
+	x : dimensioned quantity's type,
+	y : dimensioned quantity's type
+|
+	If x's metric ≠ y's metric then
+	[
+		Reject parse, expected:
+			format "units to be equal (but ‘①’ and ‘②’ are not equal)"
+			with x's metric's instance, y's metric's instance
+	];
+	numericType ::=
+		type promotion function for
+		[
+			a : number,
+			b : number
+		|
+			If {a, b} = {-∞, ∞} then
+			[
+				Reject parse, expected: "magnitudes not to be unlike infinities"
+			];
+			a + b
+		](x's extent, y's extent);
+	@ numericType (x's metric's instance)
+];
+
+/**
+ * Compute and answer the difference of the {@type "dimensioned quantity"
+ * arguments}.
+ *
+ * @method "_-_"
+ * @param "minuend" "dimensioned quantity"
+ *        A {@type "dimensioned quantity"}.
+ * @param "subtrahend" "dimensioned quantity"
+ *        A {@type "dimensioned quantity"}.
+ * @returns "dimensioned quantity"
+ *          The difference of {@param "minuend"} and {@param "subtrahend"}.
+ */
+Public stable method "_-_" is
+[
+	minuend : dimensioned quantity,
+	subtrahend : dimensioned quantity
+|
+	/* The arguments have equal units, so we can choose either. */
+	@ (minuend's extent - subtrahend's extent) (minuend's metric)
+] : dimensioned quantity;
+
+Semantic restriction "_-_" is
+[
+	x : dimensioned quantity's type,
+	y : dimensioned quantity's type
+|
+	If x's metric ≠ y's metric then
+	[
+		Reject parse, expected:
+			format "units to be equal (but ‘①’ and ‘②’ are not equal)"
+			with x's metric's instance, y's metric's instance
+	];
+	numericType ::=
+		type promotion function for
+		[
+			a : number,
+			b : number
+		|
+			If {a, b} ∈ {{-∞}, {∞}} then
+			[
+				Reject parse, expected: "magnitudes not to be like infinities"
+			];
+			a - b
+		](x's extent, y's extent);
+	@ numericType (x's metric's instance)
+];
+
+/**
+ * Compute and answer the product of the {@type "dimensioned quantity"
+ * arguments}.
+ *
+ * @method "_×_"
+ * @param "multiplicand" "dimensioned quantity"
+ *        A {@type "dimensioned quantity"}.
+ * @param "multiplier" "dimensioned quantity"
+ *        A {@type "dimensioned quantity"}.
+ * @returns "any"
+ *          The product of {@param "multiplicand"} and {@param "multiplier"}. If
+ *          the result is a {@type "scalar"}, then its extent will be returned
+ *          (i.e., it will be normalized to a {@type "number"}).
+ */
+Public stable method "_×_" is
+[
+	multiplicand : dimensioned quantity,
+	multiplier : dimensioned quantity
+|
+	newExtent ::= multiplicand's extent × multiplier's extent;
+	newUnit ::= multiplicand's metric · multiplier's metric;
+	product ::= @ newExtent newUnit;
+	cast newUnit
+		into [t : scalar | newExtent]
+		else [product]
+] : any;
+
+Semantic restriction "_×_" is
+[
+	x : dimensioned quantity's type,
+	y : dimensioned quantity's type
+|
+	numericType ::=
+		type promotion function for
+		[
+			a : number,
+			b : number
+		|
+			terms ::= {a, b};
+			If terms = {0, ∞} ∨ [ terms = {0, -∞} ] then
+			[
+				Reject parse, expected: "terms not be 0 and ±∞"
+			];
+			a × b
+		](x's extent, y's extent);
+	if {|x's metric|, |y's metric|} = {1} then
+	[
+		unitX ::= x's metric's instance;
+		unitY ::= y's metric's instance;
+		resultUnit ::= (unitX · unitY);
+		cast resultUnit
+			into [t : scalar | numericType]
+			else [@ numericType resultUnit]
+	]
+	else
+	[
+		⊤
+	]
+];
+
+/**
+ * Compute and answer the product of the {@type "dimensioned quantity"} and the
+ * {@type "number"}.
+ *
+ * @method "_×_"
+ * @param "multiplicand" "dimensioned quantity"
+ *        A {@type "dimensioned quantity"}.
+ * @param "multiplier" "number"
+ *        A {@type "number"}.
+ * @returns "dimensioned quantity"
+ *          The product of {@param "multiplicand"} and {@param "multiplier"}.
+ */
+Public stable method "_×_" is
+[
+	multiplicand : dimensioned quantity,
+	multiplier : number
+|
+	@ (multiplicand's extent × multiplier) (multiplicand's metric)
+] : dimensioned quantity;
+
+Semantic restriction "_×_" is
+[
+	x : dimensioned quantity's type,
+	y : number's type
+|
+	numericType ::=
+		type promotion function for
+		[
+			a : number,
+			b : number
+		|
+			terms ::= {a, b};
+			If terms = {0, ∞} ∨ [ terms = {0, -∞} ] then
+			[
+				Reject parse, expected: "terms not be 0 and ±∞"
+			];
+			a × b
+		](x's extent, y);
+	if |x's metric| = 1 then
+	[
+		@ numericType (x's metric's instance)
+	]
+	else
+	[
+		extend dimensioned quantity with extent : numericType
+	]
+];
+
+/**
+ * Compute and answer the product of the {@type "dimensioned quantity"} and the
+ * {@type "number"}.
+ *
+ * @method "_×_"
+ * @param "multiplicand" "number"
+ *        A {@type "number"}.
+ * @param "multiplier" "dimensioned quantity"
+ *        A {@type "dimensioned quantity"}.
+ * @returns "dimensioned quantity"
+ *          The product of {@param "multiplicand"} and {@param "multiplier"}.
+ */
+Public stable method "_×_" is
+[
+	multiplicand : number,
+	multiplier : dimensioned quantity
+|
+	@ (multiplicand × multiplier's extent) (multiplier's metric)
+] : dimensioned quantity;
+
+Semantic restriction "_×_" is
+[
+	x : number's type,
+	y : dimensioned quantity's type
+|
+	numericType ::=
+		type promotion function for
+		[
+			a : number,
+			b : number
+		|
+			terms ::= {a, b};
+			If terms = {0, ∞} ∨ [ terms = {0, -∞} ] then
+			[
+				Reject parse, expected: "terms not be 0 and ±∞"
+			];
+			a × b
+		](x, y's extent);
+	if |y's metric| = 1 then
+	[
+		@ numericType (y's metric's instance)
+	]
+	else
+	[
+		extend dimensioned quantity with extent : numericType
+	]
+];
+
+/**
+ * Compute and answer the quotient of the {@type "dimensioned quantity"
+ * arguments}.
+ *
+ * @method "_÷_"
+ * @param "dividend" "dimensioned quantity"
+ *        A {@type "dimensioned quantity"}.
+ * @param "divisor" "dimensioned quantity"
+ *        A {@type "dimensioned quantity"}.
+ * @returns "any"
+ *          The quotient of {@param "dividend"} and {@param "divisor"}. If the
+ *          result is a {@type "scalar"}, then its extent will be returned
+ *          (i.e., it will be normalized to a {@type "number"}).
+ */
+Public stable method "_÷_" is
+[
+	dividend : dimensioned quantity,
+	divisor : dimensioned quantity
+|
+	newExtent ::= dividend's extent ÷ divisor's extent;
+	newUnit ::= dividend's metric / divisor's metric;
+	quotient ::= @ newExtent newUnit;
+	cast newUnit
+		into [t : scalar | newExtent]
+		else [quotient]
+] : any;
+
+Semantic restriction "_÷_" is
+[
+	x : dimensioned quantity's type,
+	y : dimensioned quantity's type
+|
+	numericType ::=
+		type promotion function for
+		[
+			a : number,
+			b : number
+		|
+			If b = 0 ∧ [ a's type ⊆ extended integer ] then
+			[
+				Reject parse, expected: "denominator not to be 0"
+			];
+			infinities ::= {∞, -∞};
+			If a ∈ infinities ∧ [ b ∈ infinities ] then
+			[
+				Reject parse, expected:
+					"either numerator or denominator to be finite"
+			];
+			a ÷ b
+		](x's extent, y's extent);
+	if {|x's metric|, |y's metric|} = {1} then
+	[
+		unitX ::= x's metric's instance;
+		unitY ::= y's metric's instance;
+		resultUnit ::= (unitX / unitY);
+		cast resultUnit
+			into [t : scalar | numericType]
+			else [@ numericType resultUnit]
+	]
+	else
+	[
+		⊤
+	]
+];
+
+/**
+ * Compute and answer the quotient of the {@type "dimensioned quantity"} and the
+ * {@type "number"}.
+ *
+ * @method "_÷_"
+ * @param "dividend" "dimensioned quantity"
+ *        A {@type "dimensioned quantity"}.
+ * @param "divisor" "number"
+ *        A {@type "number"}.
+ * @returns "dimensioned quantity"
+ *          The quotient of {@param "dividend"} and {@param "divisor"}.
+ */
+Public stable method "_÷_" is
+[
+	dividend : dimensioned quantity,
+	divisor : number
+|
+	@ (dividend's extent ÷ divisor) (dividend's metric)
+] : dimensioned quantity;
+
+Semantic restriction "_÷_" is
+[
+	x : dimensioned quantity's type,
+	y : number's type
+|
+	numericType ::=
+		type promotion function for
+		[
+			a : number,
+			b : number
+		|
+			If b = 0 ∧ [ a's type ⊆ extended integer ] then
+			[
+				Reject parse, expected: "denominator not to be 0"
+			];
+			infinities ::= {∞, -∞};
+			If a ∈ infinities ∧ [ b ∈ infinities ] then
+			[
+				Reject parse, expected:
+					"either numerator or denominator to be finite"
+			];
+			a ÷ b
+		](x's extent, y);
+	if |x's metric| = 1 then
+	[
+		@ numericType (x's metric's instance)
+	]
+	else
+	[
+		extend dimensioned quantity with extent : numericType
+	]
+];
+
+/**
+ * Compute and answer the quotient of the {@type "number"} and the {@type
+ * "dimensioned quantity"}.
+ *
+ * @method "_÷_"
+ * @param "dividend" "number"
+ *        A {@type "number"}.
+ * @param "divisor" "dimensioned quantity"
+ *        A {@type "dimensioned quantity"}.
+ * @returns "dimensioned quantity"
+ *          The quotient of {@param "dividend"} and {@param "divisor"}.
+ */
+Public stable method "_÷_" is
+[
+	dividend : number,
+	divisor : dimensioned quantity
+|
+	@ (dividend ÷ divisor's extent) (a scalar / divisor's metric)
+] : dimensioned quantity;
+
+Semantic restriction "_÷_" is
+[
+	x : number's type,
+	y : dimensioned quantity's type
+|
+	numericType ::=
+		type promotion function for
+		[
+			a : number,
+			b : number
+		|
+			If b = 0 ∧ [ a's type ⊆ extended integer ] then
+			[
+				Reject parse, expected: "denominator not to be 0"
+			];
+			infinities ::= {∞, -∞};
+			If a ∈ infinities ∧ [ b ∈ infinities ] then
+			[
+				Reject parse, expected:
+					"either numerator or denominator to be finite"
+			];
+			a ÷ b
+		](x, y's extent);
+	if |y's metric| = 1 then
+	[
+		@ numericType (a scalar / y's metric's instance)
+	]
+	else
+	[
+		extend dimensioned quantity with extent : numericType
+	]
+];
+
+/**
+ * Compute and answer the negation of the {@type "dimensioned quantity"
+ * argument}.
+ *
+ * @method "-_"
+ * @param "x" "dimensioned quantity"
+ *        A {@type "dimensioned quantity"}.
+ * @returns "dimensioned quantity"
+ *          The negation of {@param "x"}.
+ */
+Public stable method "-_" is
+[
+	x : dimensioned quantity
+|
+	@ (-x's extent) (x's metric)
+] : dimensioned quantity;
+
+Semantic restriction "-_" is
+[
+	x : dimensioned quantity's type
+|
+	numericType ::=
+		type promotion function for
+		[
+			a : number,
+			b : number
+		|
+			0 - b
+		](0's type, x's extent);
+	@ numericType (x's metric's instance)
+];
+
+[
+	sum      ::= {"_+_", "_-_"};
+	product  ::= {"_×_", "_÷_"};
+	negation ::= {"-_"};
+
+	/* Establish the standard grammatical rules for arithmetic. */
+	Grammatical restriction sum is <∅, sum>;
+	Grammatical restriction product is <sum, sum ∪ product>;
+	Grammatical restriction negation is <sum ∪ product ∪ negation>;
+]();
+
+/**
+ * An arity-2 function that answers a {@type "dimensioned quantity"} when
+ * applied with a {@type "dimensioned quantity"} and a {@type "unit"}.
+ *
+ * @type "unit conversion function"
+ * @supertype "[⊥, ⊥]→dimensioned quantity"
+ */
+Public method "unit conversion function" is
+[
+	[⊥, ⊥]→dimensioned quantity
+];
+
+/**
+ * A no-such-conversion exception is raised by {@method "_converted to_"} when
+ * no conversion function is defined for the specified {@type "unit"}s.
+ *
+ * @type "no-such-conversion exception"
+ * @supertype "exception"
+ */
+Public explicit class "no-such-conversion exception" extends exception
+	with fields
+		source unit : unit,
+		target unit : unit;
+
+/**
+ * The table of defined conversions.
+ *
+ * @global "converters" "{<unit, unit…|2> → unit conversion function}"
+ */
+converters : {<unit, unit…|2> → unit conversion function|} := {};
+
+/**
+ * Convert the specified {@type "dimensioned quantity"} to the specified {@type
+ * "unit"}s and answer the result.
+ *
+ * @method "_converted to_"
+ * @param "quantity" "dimensioned quantity"
+ *        A {@type "dimensioned quantity"}.
+ * @param "targetUnit" "unit"
+ *        The {@type "unit" metric} of the result.
+ * @returns "dimensioned quantity"
+ *          The result of the conversion.
+ * @raises "no-such-conversion exception"
+ *         If no conversion function was previously defined for the specified
+ *         {@type "unit"}s via {@method "Conversion method is_inverse is_"}.
+ * @see "Conversion method is_inverse is_"
+ */
+Public stable method "_converted to_" is
+[
+	quantity : dimensioned quantity,
+	targetUnit : unit
+|
+	key ::= <quantity's metric, targetUnit>;
+	converter ::= converters[key] else
+		[
+			Raise a no-such-conversion exception with
+				source unit := key[1],
+				target unit := key[2]
+		];
+	invoke converter with <quantity, targetUnit>
+] : dimensioned quantity;
+
+/**
+ * Reject the current parse if the {@type "unit" metrics} are well-known but no
+ * conversion function has been defined prior to this send.
+ *
+ * @method "_converted to_"
+ * @restricts "dimensioned quantity's type"
+ * @restricts "unit's type"
+ */
+Semantic restriction "_converted to_" is
+[
+	quantityType : dimensioned quantity's type,
+	unitType : unit's type
+|
+	If {|quantityType's metric|, |unitType|} = {1} then
+	[
+		key ::= <quantityType's metric's instance, unitType's instance>;
+		Unless key ∈ converters then
+		[
+			Reject parse, expected:
+				format
+					"conversion function for ‘①’ → ‘②’ to have been previously\
+					\| defined"
+				with key[1], key[2]
+		];
+	];
+	extend dimensioned quantity with metric : unitType
+];
+
+Seal method "_converted to_" at <dimensioned quantity, unit>;
+
+/**
+ * Define {@method "_converted to_" methods} for converting {@type
+ * "dimensioned quantity" dimensioned quantities} between two compatible {@type
+ * "unit" metrics}.
+ *
+ * @method "Conversion method is_inverse is_"
+ * @param "aFunction" "[⊥, ⊥]→dimensioned quantity"
+ *        A function whose first parameter type is a subtypes of {@type
+ *        "dimensioned quantity"} and whose second parameter type is a subtype
+ *        of {@type "unit"}. This function must return a {@type "dimensioned
+ *        quantity"} whose metric equals the second parameter type.
+ * @param "inverseFunction" "[⊥, ⊥]→dimensioned quantity"
+ *        A function whose first parameter type is a subtype of {@type
+ *        "dimensioned quantity"} having a metric that equals the second
+ *        parameter type of {@param "aFunction"} and whose second parameter type
+ *        equals the metric of the first parameter type of same. This function
+ *        must return a {@type "dimensioned quantity"} whose metric equals the
+ *        second parameter type.
+ * @see "_converted to_"
+ */
+Public method "Conversion method is_,⁇inverse is_" is
+[
+	aFunction : unit conversion function,
+	inverseFunction : unit conversion function
+|
+	functionParams ::= aFunction's type's parameters' type[1..];
+	inverseParams ::= inverseFunction's type's parameters' type[1..];
+	Cast each of
+		<
+			functionParams[1], functionParams[2],
+			inverseParams[1], inverseParams[2]
+		>
+	into
+	[
+		quantityType : dimensioned quantity's type,
+		unitType : unit's type,
+		crossQuantityType : dimensioned quantity's type,
+		crossUnitType : unit's type
+	|
+		Assert: quantityType's metric = crossUnitType;
+		Assert: unitType = crossQuantityType's metric;
+		key ::= <quantityType's metric's instance, unitType's instance>;
+		converters := eject ↑converters + key→aFunction;
+		converters := eject ↑converters + <key[2], key[1]>→inverseFunction;
+	];
+] : ⊤;
+
+/**
+ * Reject the current parse if:
+ *
+ * <ul>
+ * <li>The first function's parameter types are not subtypes of {@type
+ *     "dimensioned quantity"} and {@type "unit"}, respectively.</li>
+ * <li>The first function's parameter types' metrics are not precisely
+ *     statically known.</li>
+ * <li>The first function's return type's metric is not equal to its second
+ *     parameter type.</li>
+ * <li>The second function's parameter types' metrics are not the reordering of
+ *     the first function's parameter types' metrics.</li>
+ * <li>The second function's return type's metric is not equal to its second
+ *     parameter type.</li>
+ * </ul>
+ *
+ * @method "Conversion method is_inverse is_"
+ * @restricts "[⊥, ⊥]→dimensioned quantity's type"
+ * @restricts "[⊥, ⊥]→dimensioned quantity's type"
+ */
+Semantic restriction "Conversion method is_,⁇inverse is_" is
+[
+	functionType : unit conversion function's type,
+	inverseType : unit conversion function's type
+|
+	$body : ⊤'s type;
+	If ⊥ ∈ {functionType[1], functionType[2]} then
+	[
+		Exit body with ⊤
+	];
+	Unless functionType[1] ⊆ dimensioned quantity ∧ [functionType[2] ⊆ unit]
+	then
+	[
+		Reject parse, expected:
+			format
+				"first function to accept a dimensioned quantity and a unit \
+				\|(but it accepts ‘①’ and ‘②’)"
+			with functionType[1], functionType[2]
+	];
+	strong1 ::= cast functionType[1] into [t : dimensioned quantity's type | t];
+	strong2 ::= cast functionType[2] into [t : unit's type | t];
+	Unless |strong1's metric| = 1 ∧ [|strong2| = 1] then
+	[
+		Reject parse, expected:
+			"units to be statically known"
+	];
+	Unless functionType's return type's metric = strong2 then
+	[
+		Reject parse, expected:
+			format
+				"first function to return a dimensioned quantity with the same \
+				\|metric as its second parameter (‘①’) (but it returns ‘②’)"
+			with strong2, functionType's return type
+	];
+	inverse1 ::= cast inverseType[1] into [t : dimensioned quantity's type | t];
+	Unless <inverse1's metric, inverseType[2]> = <strong2, strong1's metric>
+	then
+	[
+		Reject parse, expected:
+			format
+				"second function's parameter types to be ‘①’ \
+				\|(not ‘②’)"
+			with
+				<
+					extend dimensioned quantity with metric : strong2,
+					strong1's metric
+				>,
+				<
+					inverse1,
+					inverseType[2]
+				>
+	];
+	Unless inverseType's return type's metric = inverseType[2] then
+	[
+		Reject parse, expected:
+			format
+				"second function to return a dimensioned quantity with the same\
+				\| metric as its second parameter (‘①’) (but it returns ‘②’)"
+			with inverseType[2], inverseType's return type
+	];
+	⊤
+];

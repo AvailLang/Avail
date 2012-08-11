@@ -53,7 +53,6 @@ Extends
 		"If|if_then_else_",
 		"Invoke|invoke_with_",
 		"Macro_is_",
-		"Method_is_",
 		"Print:_",
 		"Publish new name:_",
 		"Reject parse,expected:_",
@@ -297,6 +296,8 @@ Extends
 	),
 	"Casts" =
 	(
+		"Cast|cast each of_into_",
+		"Cast|cast each of_into_else_",
 		"Cast|cast_into_",
 		"bad-cast exception"
 	),
@@ -352,6 +353,7 @@ Extends
 	"Definers" =
 	(
 		"Method_is stable at_",
+		"Method_is_",
 		"Private abstract method_is_",
 		"Private forward method_is_",
 		"Private method_is_",
@@ -365,6 +367,8 @@ Extends
 		"Public stable forward method_is_",
 		"Public stable method_is_",
 		"Public variable_is_",
+		"Require:_is private",
+		"Require:_is public",
 		"Stable abstract method_is_",
 		"Stable forward method_is_",
 		"Stable method_is_"
@@ -406,6 +410,7 @@ Extends
 		"cannot-subtract-like-infinities exception",
 		"cannot-swap-contents-of-differently-typed-variables exception",
 		"cascade exception",
+		"cascade_",
 		"case-insensitive-expression-canonization exception",
 		"causal exception",
 		"code-generation exception",
@@ -415,6 +420,7 @@ Extends
 		"declaration-kind-does-not-support-reference exception",
 		"definition exception",
 		"descriptive exception",
+		"descriptive_",
 		"double-question-mark-must-follow-a-simple-or-simple-group exception",
 		"element-access exception",
 		"empty-format-variable exception",
@@ -525,6 +531,7 @@ Extends
 		"log_of_",
 		"max_",
 		"min_",
+		"type promotion function for_",
 		"-_",
 		"[_.._]",
 		"[_.._)",
@@ -563,7 +570,7 @@ Extends
 	),
 	"Security" =
 	(
-		"Completely seal_"
+		"Completely seal method_"
 	),
 	"Sets" =
 	(

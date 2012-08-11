@@ -48,10 +48,13 @@ Uses
 	"Tuples",
 	"Types"
 Names
-	"causal exception",
-	"error message",
 	"Guard|guard_«intercept_»",
 	"Raise_",
+	"cascade_",
+	"causal exception",
+	"descriptive_",
+	"error message",
+	"try_else_",
 	"_'s⁇causal exception",
 	"_'s⁇error message",
 	"_'s⁇unhandled exception handler is_",
@@ -241,6 +244,45 @@ Public method "Raise_" is
 		Terminate: "unhandled exception: " ++ “anException”
 	]
 ] : ⊥;
+
+/**
+ * Attempt {@param "protected"}. If it does not raise an {@type "exception"},
+ * then answer its result. Otherwise, answer the result of applying {@param
+ * "else"}.
+ *
+ * @method "try_else_"
+ * @param "protected" "[]→any"
+ *         The function whose answer is preferred.
+ * @param "else" "[]→any"
+ *         The function whose answer will be returned if {@param "protected"}
+ *         raises an {@type "exception"}.
+ * @return "any"
+ *         If possible, then the answer obtained by applying {@param
+ *         "protected"}. Otherwise, the answer obtained by applying {@param
+ *         "else"}.
+ */
+Public method "try_else_" is
+[
+	protected : []→any,
+	else : []→any
+|
+	guard protected
+	intercept
+	[
+		e : exception
+	|
+		else()
+	]
+] : any;
+
+Semantic restriction "try_else_" is
+[
+	protected : []→any's type,
+	else : []→any's type
+|
+	if protected's return type = ⊥ then [else's return type]
+	else [protected's return type ∪ else's return type]
+];
 
 /**
  * A system exception privately contains a system error code.
@@ -586,11 +628,65 @@ Public class "cascade exception" extends exception
 		public causal exception : exception;
 
 /**
+ * Construct and answer the type intersection of the argument and {@type
+ * "cascade exception"}.
+ *
+ * @method "cascade_"
+ * @param "exceptionType" "exception's type"
+ *        An exception type.
+ * @returns "cascade exception"
+ *          An exception type that is a subtype of both {@type "cascade
+ *          exception"} and {@param "exceptionType"}.
+ */
+Public method "cascade_" is
+[
+	exceptionType : exception's type
+|
+	cascade exception ∩ exceptionType
+] : cascade exception 's type;
+
+Grammatical restriction "cascade_" is <{"exception"}>;
+
+Semantic restriction "cascade_" is
+[
+	exceptionMeta : exception's type's type
+|
+	((cascade exception) ∩ (exceptionMeta's instance))'s type
+];
+
+/**
  * A descriptive exception holds an error message.
  */
 Public class "descriptive exception" extends exception
 	with fields
 		public error message : string;
+
+/**
+ * Construct and answer the type intersection of the argument and {@type
+ * "descriptive exception"}.
+ *
+ * @method "descriptive_"
+ * @param "exceptionType" "exception's type"
+ *        An exception type.
+ * @returns "descriptive exception"
+ *          An exception type that is a subtype of both {@type "descriptive
+ *          exception"} and {@param "exceptionType"}.
+ */
+Public method "descriptive_" is
+[
+	exceptionType : exception's type
+|
+	descriptive exception ∩ exceptionType
+] : descriptive exception's type;
+
+Grammatical restriction "descriptive_" is <{"exception"}>;
+
+Semantic restriction "descriptive_" is
+[
+	exceptionMeta : exception's type's type
+|
+	((descriptive exception) ∩ (exceptionMeta's instance))'s type
+];
 
 /* Exceptions are going live! Failures of bootstrap linked primitives will now
  * raise appropriate exceptions.

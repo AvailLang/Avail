@@ -44,10 +44,10 @@ Versions
 Extends
 Uses
 Names
-	"Method_is_",
+	"Primitive_is_",
 	"special object_"
 Pragma
-	"bootstrapDefiningMethod=Method_is_",
+	"bootstrapDefiningMethod=Primitive_is_",
 	"bootstrapSpecialObject=special object_"
 Body
 

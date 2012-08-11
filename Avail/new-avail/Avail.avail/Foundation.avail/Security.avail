@@ -38,19 +38,19 @@ Uses
 	"Definers",
 	"Tuples"
 Names
-	"Completely seal_"
+	"Completely seal method_"
 Body
 
 /**
  * Completely seal the specified method. No further implementations may be
  * added at any site within the method.
  * 
- * @method "Completely seal_"
+ * @method "Completely seal method_"
  * @param "methodName" "string"
  *        The method name. This name will be resolved to an atom in the context
  *        of the current module.
  */
-Public method "Completely seal_" is
+Public method "Completely seal method_" is
 [
 	methodName : string
 |

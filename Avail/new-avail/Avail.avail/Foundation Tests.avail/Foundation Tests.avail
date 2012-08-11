@@ -36,5 +36,5 @@ Versions
 Extends
 	"Common" = ("Foundation|foundation test suite"),
 	"Function Tests" = ("function test suite"),
-	"Math Test" = ("math test suite")
+	"Math Tests" = ("math test suite")
 Body

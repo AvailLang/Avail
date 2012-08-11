@@ -305,11 +305,11 @@ Public method "Test_in_is_«must raise_»" is
 /**
  * Reject the current parse if the test's return type is not exactly ⊤.
  * 
- * @restrict "Test_in_is_«must raise_»"
- * @param "name" "string's type"
- * @param "suiteID" "atom's type"
- * @param "test" "[]→⊤'s type"
- * @param "optionalException" "<exception's type…|0..1>'s type"
+ * @method "Test_in_is_«must raise_»"
+ * @restricts "string's type"
+ * @restricts "atom's type"
+ * @restricts "[]→⊤'s type"
+ * @restricts "<exception's type…|0..1>'s type"
  */
 Semantic restriction "Test_in_is_«must raise_»" is
 [

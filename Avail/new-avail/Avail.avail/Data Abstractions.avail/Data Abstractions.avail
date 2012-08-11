@@ -40,6 +40,7 @@ Extends
 	),
 	"Graphs",
 	"Iterators",
+	"Optional",
 	"Pseudorandom Number Generation",
 	"Streams"
 Body

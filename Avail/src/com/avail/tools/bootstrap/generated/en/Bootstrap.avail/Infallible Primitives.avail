@@ -194,7 +194,7 @@ Body
  *    `true` if the first argument is strictly less than the second argument,
  *    `false` otherwise.
  */
-Method "_<_" is
+Primitive "_<_" is
 [
 	arg1 : number,
 	arg2 : number
@@ -212,7 +212,7 @@ Method "_<_" is
  *    `true` if the first argument is less than or equal to the second
  *    argument, `false` otherwise.
  */
-Method "_≤_" is
+Primitive "_≤_" is
 [
 	arg1 : number,
 	arg2 : number
@@ -236,7 +236,7 @@ Method "_≤_" is
  * Returns:
  *    The requested integral range type.
  */
-Method "integer range from_(inclusive=_)to_(inclusive=_)" is
+Primitive "integer range from_(inclusive=_)to_(inclusive=_)" is
 [
 	lowerBound : extended integer,
 	lowerBoundInclusive : boolean,
@@ -254,7 +254,7 @@ Method "integer range from_(inclusive=_)to_(inclusive=_)" is
  * Returns:
  *    The lower bound of the argument.
  */
-Method "_'s⁇genuine lower bound" is
+Primitive "_'s⁇genuine lower bound" is
 [
 	range : extended integer meta
 |
@@ -269,7 +269,7 @@ Method "_'s⁇genuine lower bound" is
  * Returns:
  *    The upper  bound of the argument.
  */
-Method "_'s⁇genuine upper bound" is
+Primitive "_'s⁇genuine upper bound" is
 [
 	range : extended integer meta
 |
@@ -282,7 +282,7 @@ Method "_'s⁇genuine upper bound" is
  * Parameters:
  *    var - A variable.
  */
-Method "Clear_" is
+Primitive "Clear_" is
 [
 	var : variable
 |
@@ -297,7 +297,7 @@ Method "Clear_" is
  * Returns:
  *    The requested variable type.
  */
-Method "↑_" is
+Primitive "↑_" is
 [
 	containmentType : any meta
 |
@@ -314,7 +314,7 @@ Method "↑_" is
  *    The most general type that describes values that can be read from
  *    instances of `varType`.
  */
-Method "_'s⁇read type" is
+Primitive "_'s⁇read type" is
 [
 	varType : variable meta
 |
@@ -330,7 +330,7 @@ Method "_'s⁇read type" is
  *    A new variable capable of retrieving and storing values of the specified
  *    containment type.
  */
-Method "new↑_" is
+Primitive "new↑_" is
 [
 	containmentType : any meta
 |
@@ -346,7 +346,7 @@ Method "new↑_" is
  *    `true` if the variable does not contain a value (i.e. because it has
  *    never previously been assigned), `false` otherwise.
  */
-Method "_is unassigned" is
+Primitive "_is unassigned" is
 [
 	var : variable
 |
@@ -363,7 +363,7 @@ Method "_is unassigned" is
  *    The most general type that describes values that can be written to
  *    instances of `varType`.
  */
-Method "_'s⁇write type" is
+Primitive "_'s⁇write type" is
 [
 	varType : variable meta
 |
@@ -379,7 +379,7 @@ Method "_'s⁇write type" is
  *    The current time as the number of milliseconds which have elapsed since
  *    the Unix Epoch.
  */
-Method "milliseconds since the Epoch" is
+Primitive "milliseconds since the Epoch" is
 [
 	Primitive 20;
 ] : whole number;
@@ -394,7 +394,7 @@ Method "milliseconds since the Epoch" is
  * Returns:
  *    A whole number representing the priority of the fiber.
  */
-Method "_'s⁇priority" is
+Primitive "_'s⁇priority" is
 [
 	aFiber : fiber
 |
@@ -410,7 +410,7 @@ Method "_'s⁇priority" is
  *    aFiber - The fiber to reprioritize.
  *    priority - The new priority.
  */
-Method "set_'s⁇priority to_" is
+Primitive "set_'s⁇priority to_" is
 [
 	aFiber : fiber,
 	priority : whole number
@@ -425,7 +425,7 @@ Method "set_'s⁇priority to_" is
  * Parameters:
  *    victim - A fiber.
  */
-Method "request termination of_" is
+Primitive "request termination of_" is
 [
 	victim : fiber
 |
@@ -438,7 +438,7 @@ Method "request termination of_" is
  * Returns:
  *    The current fiber.
  */
-Method "current fiber" is
+Primitive "current fiber" is
 [
 	Primitive 25;
 ] : fiber;
@@ -454,7 +454,7 @@ Method "current fiber" is
  *    key - The key whose value should be (over)written.
  *    value - The new value.
  */
-Method "_[_]:=_" is
+Primitive "_[_]:=_" is
 [
 	aFiber : fiber,
 	key : atom,
@@ -472,7 +472,7 @@ Method "_[_]:=_" is
  * Returns:
  *    The cardinality of the membership of the type.
  */
-Method "`|_`|" is
+Primitive "`|_`|" is
 [
 	aType : type
 |
@@ -488,7 +488,7 @@ Method "`|_`|" is
  * Returns:
  *    The precise instance type of the supplied value.
  */
-Method "_'s⁇type" is
+Primitive "_'s⁇type" is
 [
 	value : any
 |
@@ -505,7 +505,7 @@ Method "_'s⁇type" is
  * Returns:
  *    The type union of the arguments.
  */
-Method "_∪_" is
+Primitive "_∪_" is
 [
 	arg1 : type,
 	arg2 : type
@@ -523,7 +523,7 @@ Method "_∪_" is
  * Returns:
  *    The type intersection of the arguments.
  */
-Method "_∩_" is
+Primitive "_∩_" is
 [
 	arg1 : type,
 	arg2 : type
@@ -543,7 +543,7 @@ Method "_∩_" is
  *    `true` if the first argument is a subtype of, or the same type as, the
  *    second argument, `false` otherwise.
  */
-Method "_⊆_" is
+Primitive "_⊆_" is
 [
 	arg1 : type,
 	arg2 : type
@@ -563,7 +563,7 @@ Method "_⊆_" is
  *    whose types conform to the parameter types and whose return value
  *    conforms to the return type.
  */
-Method "function accepting_and returning_" is
+Primitive "function accepting_and returning_" is
 [
 	parameterTypes : tuple of any meta,
 	returnType : type
@@ -581,7 +581,7 @@ Method "function accepting_and returning_" is
  *    A fixed-size tuple type whose element types correspond to the parameter
  *    types of the argument.
  */
-Method "_'s⁇parameters'type" is
+Primitive "_'s⁇parameters'type" is
 [
 	functionType : function meta
 |
@@ -596,7 +596,7 @@ Method "_'s⁇parameters'type" is
  * Returns:
  *    The return type of the argument.
  */
-Method "_'s⁇return type" is
+Primitive "_'s⁇return type" is
 [
 	functionType : function meta
 |
@@ -612,7 +612,7 @@ Method "_'s⁇return type" is
  * Returns:
  *    The type union of the elements of the argument.
  */
-Method "∪_" is
+Primitive "∪_" is
 [
 	tupleOfTypes : tuple of type
 |
@@ -630,7 +630,7 @@ Method "∪_" is
  *    The requested function type. Instances of this type answer values of the
  *    specified return type.
  */
-Method "[`…]→_" is
+Primitive "[`…]→_" is
 [
 	returnType : type
 |
@@ -649,7 +649,7 @@ Method "[`…]→_" is
  *    If `predicate` is `true`, then the value produced by invoking
  *    `trueFunction`; otherwise, the value produced by invoking `falseFunction`.
  */
-Method "If|if_then_else_" is
+Primitive "If|if_then_else_" is
 [
 	predicate : boolean,
 	trueFunction : nullary procedure,
@@ -666,7 +666,7 @@ Method "If|if_then_else_" is
  *    predicate - A predicate value.
  *    trueBlock - The function to invoke if `predicate` is `true`.
  */
-Method "If_then_" is
+Primitive "If_then_" is
 [
 	predicate : boolean,
 	trueBlock : nullary procedure
@@ -694,7 +694,7 @@ Method "If_then_" is
  * Returns:
  *    The requested continuation.
  */
-Method "$_@pc=_stack=_[_]caller=_" is
+Primitive "$_@pc=_stack=_[_]caller=_" is
 [
 	aFunction : function,
 	programCounter : natural number,
@@ -713,7 +713,7 @@ Method "$_@pc=_stack=_[_]caller=_" is
  * Returns:
  *    The argument's current function's type.
  */
-Method "_'s⁇function type" is
+Primitive "_'s⁇function type" is
 [
 	aContinuation : continuation meta
 |
@@ -729,7 +729,7 @@ Method "_'s⁇function type" is
  * Returns:
  *    The requested continuation type.
  */
-Method "$_" is
+Primitive "$_" is
 [
 	functionType : function meta
 |
@@ -747,7 +747,7 @@ Method "$_" is
  *    A variable that, if assigned, holds the argument's caller. If unassigned,
  *    then the argument has no caller.
  */
-Method "_'s⁇caller" is
+Primitive "_'s⁇caller" is
 [
 	aContinuation : continuation
 |
@@ -763,7 +763,7 @@ Method "_'s⁇caller" is
  *    The argument's current function. This is the function whose execution
  *    will be resumed if the continuation is resumed.
  */
-Method "_'s⁇function" is
+Primitive "_'s⁇function" is
 [
 	aContinuation : continuation
 |
@@ -780,7 +780,7 @@ Method "_'s⁇function" is
  * Returns:
  *    The argument's Level One program counter.
  */
-Method "_'s⁇program counter" is
+Primitive "_'s⁇program counter" is
 [
 	aContinuation : continuation
 |
@@ -797,7 +797,7 @@ Method "_'s⁇program counter" is
  * Returns:
  *    The argument's stack pointer.
  */
-Method "_'s⁇stack pointer" is
+Primitive "_'s⁇stack pointer" is
 [
 	aContinuation : continuation
 |
@@ -817,7 +817,7 @@ Method "_'s⁇stack pointer" is
  * Returns:
  *    The argument's stack.
  */
-Method "_'s⁇stack" is
+Primitive "_'s⁇stack" is
 [
 	aContinuation : continuation
 |
@@ -833,7 +833,7 @@ Method "_'s⁇stack" is
  * Returns:
  *    `true` if the arguments are equal, `false` otherwise.
  */
-Method "_=_" is
+Primitive "_=_" is
 [
 	arg1 : any,
 	arg2 : any
@@ -850,7 +850,7 @@ Method "_=_" is
  * Returns:
  *    The requested object.
  */
-Method "_→object" is
+Primitive "_→object" is
 [
 	fieldsToValues : field map
 |
@@ -866,7 +866,7 @@ Method "_→object" is
  * Returns:
  *    The requested map.
  */
-Method "_→map" is
+Primitive "_→map" is
 [
 	anObject : object
 |
@@ -882,7 +882,7 @@ Method "_→map" is
  * Returns:
  *    The requested object type.
  */
-Method "_→object type" is
+Primitive "_→object type" is
 [
 	fieldsToTypes : field type map
 |
@@ -898,7 +898,7 @@ Method "_→object type" is
  * Returns:
  *    The requested map.
  */
-Method "_→map" is
+Primitive "_→map" is
 [
 	anObjectType : object meta
 |
@@ -914,7 +914,7 @@ Method "_→map" is
  * Returns:
  *    The requested enumeration.
  */
-Method "enumeration of_" is
+Primitive "enumeration of_" is
 [
 	instances : set
 |
@@ -931,7 +931,7 @@ Method "enumeration of_" is
  *    name - The name that should be bound to the object type. This will replace
  *       a previously bound name.
  */
-Method "_'s⁇name:=_" is
+Primitive "_'s⁇name:=_" is
 [
 	anObjectType : object meta,
 	name : string
@@ -949,7 +949,7 @@ Method "_'s⁇name:=_" is
  *    The set of locally most-specific names bound to the specified object
  *    type.
  */
-Method "_'s⁇names" is
+Primitive "_'s⁇names" is
 [
 	anObjectType : object meta
 |
@@ -969,7 +969,7 @@ Method "_'s⁇names" is
  * Returns:
  *    The requested function.
  */
-Method "new_applying_" is
+Primitive "new_applying_" is
 [
 	aFunctionType : function meta,
 	functionToApply : function
@@ -987,7 +987,7 @@ Method "new_applying_" is
  * Returns:
  *    The argument's implementation.
  */
-Method "_'s⁇implementation" is
+Primitive "_'s⁇implementation" is
 [
 	aFunction : function
 |
@@ -1004,7 +1004,7 @@ Method "_'s⁇implementation" is
  * Returns:
  *    The argument's outer variables.
  */
-Method "_'s⁇outer variables" is
+Primitive "_'s⁇outer variables" is
 [
 	aFunction : function
 |
@@ -1021,7 +1021,7 @@ Method "_'s⁇outer variables" is
  * Returns:
  *    `true` if the fiber binds a value to `key`, `false` otherwise.
  */
-Method "_∈_" is
+Primitive "_∈_" is
 [
 	key : atom,
 	aFiber : fiber
@@ -1037,7 +1037,7 @@ Method "_∈_" is
  * Returns:
  *    The argument's cardinality.
  */
-Method "`|_`|" is
+Primitive "`|_`|" is
 [
 	aMap : map
 |
@@ -1053,7 +1053,7 @@ Method "`|_`|" is
  * Returns:
  *    `true` if `key` if a key of `aMap`, `false` otherwise.
  */
-Method "_∈_" is
+Primitive "_∈_" is
 [
 	key : any,
 	aMap : map
@@ -1074,7 +1074,7 @@ Method "_∈_" is
  * Returns:
  *    The requested map.
  */
-Method "_+_→_" is
+Primitive "_+_→_" is
 [
 	aMap : map,
 	key : any,
@@ -1094,7 +1094,7 @@ Method "_+_→_" is
  * Returns:
  *    The requested map.
  */
-Method "_-_" is
+Primitive "_-_" is
 [
 	aMap : map,
 	key : any
@@ -1113,7 +1113,7 @@ Method "_-_" is
  * Returns:
  *    The requested map.
  */
-Method "_→map" is
+Primitive "_→map" is
 [
 	bindings : key-value tuple
 |
@@ -1128,7 +1128,7 @@ Method "_→map" is
  * Returns:
  *    The argument's keys.
  */
-Method "_'s⁇keys" is
+Primitive "_'s⁇keys" is
 [
 	aMap : map
 |
@@ -1147,7 +1147,7 @@ Method "_'s⁇keys" is
  * Returns:
  *    The requested map type.
  */
-Method "{_→_`|_}" is
+Primitive "{_→_`|_}" is
 [
 	keyType : any meta,
 	valueType : any meta,
@@ -1165,7 +1165,7 @@ Method "{_→_`|_}" is
  * Returns:
  *    The argument's cardinality requirement.
  */
-Method "`|`|_`|`|" is
+Primitive "`|`|_`|`|" is
 [
 	aMapType : map meta
 |
@@ -1181,7 +1181,7 @@ Method "`|`|_`|`|" is
  * Returns:
  *    The argument's key type.
  */
-Method "_'s⁇key type" is
+Primitive "_'s⁇key type" is
 [
 	aMapType : map meta
 |
@@ -1197,7 +1197,7 @@ Method "_'s⁇key type" is
  * Returns:
  *    The argument's value type.
  */
-Method "_'s⁇value type" is
+Primitive "_'s⁇value type" is
 [
 	aMapType : map meta
 |
@@ -1213,7 +1213,7 @@ Method "_'s⁇value type" is
  * Returns:
  *    The argument's values.
  */
-Method "_'s⁇values" is
+Primitive "_'s⁇values" is
 [
 	aMapType : map
 |
@@ -1229,7 +1229,7 @@ Method "_'s⁇values" is
  * Returns:
  *    The argument's bindings.
  */
-Method "_'s⁇bindings" is
+Primitive "_'s⁇bindings" is
 [
 	aMapType : map
 |
@@ -1245,7 +1245,7 @@ Method "_'s⁇bindings" is
  * Returns:
  *    The bitwise AND of `arg1` and `arg2`.
  */
-Method "_bit∧_" is
+Primitive "_bit∧_" is
 [
 	arg1 : integer,
 	arg2 : integer
@@ -1262,7 +1262,7 @@ Method "_bit∧_" is
  * Returns:
  *    The bitwise OR of `arg1` and `arg2`.
  */
-Method "_bit∨_" is
+Primitive "_bit∨_" is
 [
 	arg1 : integer,
 	arg2 : integer
@@ -1279,7 +1279,7 @@ Method "_bit∨_" is
  * Returns:
  *    The bitwise XOR of `arg1` and `arg2`.
  */
-Method "_bit⊕_" is
+Primitive "_bit⊕_" is
 [
 	arg1 : integer,
 	arg2 : integer
@@ -1295,7 +1295,7 @@ Method "_bit⊕_" is
  * Returns:
  *    The argument's cardinality.
  */
-Method "`|_`|" is
+Primitive "`|_`|" is
 [
 	aSet : set
 |
@@ -1311,7 +1311,7 @@ Method "`|_`|" is
  * Returns:
  *    `true` if `element` is an element of `aSet`, `false` otherwise.
  */
-Method "_∈_" is
+Primitive "_∈_" is
 [
 	element : any,
 	aSet : set
@@ -1329,7 +1329,7 @@ Method "_∈_" is
  * Returns:
  *    The set union of the arguments.
  */
-Method "_∪_" is
+Primitive "_∪_" is
 [
 	arg1 : set,
 	arg2 : set
@@ -1347,7 +1347,7 @@ Method "_∪_" is
  * Returns:
  *    The set intersection of the arguments.
  */
-Method "_∩_" is
+Primitive "_∩_" is
 [
 	arg1 : set,
 	arg2 : set
@@ -1367,7 +1367,7 @@ Method "_∩_" is
  * Returns:
  *    The asymmetric set difference of `minuend` and `subtrahend`.
  */
-Method "_\\_" is
+Primitive "_\\_" is
 [
 	minuend : set,
 	subtrahend : set
@@ -1386,7 +1386,7 @@ Method "_\\_" is
  *    A set that contains the same elements as `aSet` but also contains
  *    `newElement`.
  */
-Method "_+_" is
+Primitive "_+_" is
 [
 	aSet : set,
 	newElement : any
@@ -1405,7 +1405,7 @@ Method "_+_" is
  *    A set that contains the same elements as `aSet` except that it does
  *    not contain `oldElement`.
  */
-Method "_-_" is
+Primitive "_-_" is
 [
 	aSet : set,
 	oldElement : any
@@ -1422,7 +1422,7 @@ Method "_-_" is
  * Returns:
  *    `true` if `arg1` is a subset of or equal to `arg2`, `false` otherwise.
  */
-Method "_⊆_" is
+Primitive "_⊆_" is
 [
 	arg1 : set,
 	arg2 : set
@@ -1439,7 +1439,7 @@ Method "_⊆_" is
  * Returns:
  *    The requested set.
  */
-Method "_→set" is
+Primitive "_→set" is
 [
 	aTuple : tuple
 |
@@ -1456,7 +1456,7 @@ Method "_→set" is
  * Returns:
  *    The requested tuple.
  */
-Method "_→tuple" is
+Primitive "_→tuple" is
 [
 	aSet : set
 |
@@ -1474,7 +1474,7 @@ Method "_→tuple" is
  *    The requested set type. Instances have elements that conform to
  *    `elementType` and cardinalities that conform to `cardinalityType`.
  */
-Method "{_`|_}" is
+Primitive "{_`|_}" is
 [
 	elementType : any meta,
 	cardinalityType : whole number meta
@@ -1491,7 +1491,7 @@ Method "{_`|_}" is
  * Returns:
  *    The argument's cardinality requirement.
  */
-Method "`|`|_`|`|" is
+Primitive "`|`|_`|`|" is
 [
 	aSetType : set meta
 |
@@ -1507,7 +1507,7 @@ Method "`|`|_`|`|" is
  * Returns:
  *    The argument's element type.
  */
-Method "_'s⁇element type" is
+Primitive "_'s⁇element type" is
 [
 	aSetType : set meta
 |
@@ -1527,7 +1527,7 @@ Method "_'s⁇element type" is
  *    A new atom, distinct from every other atom answered by a different
  *    invocation of this primitive.
  */
-Method "new atom_" is
+Primitive "new atom_" is
 [
 	debugName : string
 |
@@ -1542,7 +1542,7 @@ Method "new atom_" is
  * Returns:
  *    The argument's debug name.
  */
-Method "_'s⁇name" is
+Primitive "_'s⁇name" is
 [
 	anAtom : atom
 |
@@ -1557,7 +1557,7 @@ Method "_'s⁇name" is
  * Returns:
  *    The special atoms.
  */
-Method "special atoms" is
+Primitive "special atoms" is
 [
 	Primitive 126;
 ] : set of atom;
@@ -1570,7 +1570,7 @@ Method "special atoms" is
  * Returns:
  *    The argument's cardinality.
  */
-Method "`|_`|" is
+Primitive "`|_`|" is
 [
 	aTuple : tuple
 |
@@ -1586,7 +1586,7 @@ Method "`|_`|" is
  * Returns:
  *    The requested tuple.
  */
-Method "concatenate_" is
+Primitive "concatenate_" is
 [
 	tupleOfTuples : tuple of tuple
 |
@@ -1604,7 +1604,7 @@ Method "concatenate_" is
  * Returns:
  *    The requested tuple type.
  */
-Method "<_,_`…`|_>" is
+Primitive "<_,_`…`|_>" is
 [
 	leadingTypes : tuple of any meta,
 	defaultType : any meta,
@@ -1621,7 +1621,7 @@ Method "<_,_`…`|_>" is
  * Returns:
  *    The argument's cardinality requirement.
  */
-Method "`|`|_`|`|" is
+Primitive "`|`|_`|`|" is
 [
 	aTupleType : tuple meta
 |
@@ -1637,7 +1637,7 @@ Method "`|`|_`|`|" is
  * Returns:
  *    The argument's leading element types.
  */
-Method "_'s⁇leading types" is
+Primitive "_'s⁇leading types" is
 [
 	aTupleType : tuple meta
 |
@@ -1652,7 +1652,7 @@ Method "_'s⁇leading types" is
  * Returns:
  *    The argument's default element type.
  */
-Method "_'s⁇default type" is
+Primitive "_'s⁇default type" is
 [
 	aTupleType : tuple meta
 |
@@ -1669,7 +1669,7 @@ Method "_'s⁇default type" is
  * Returns:
  *    The requested element type, or ⊥ if `index` is out of bounds.
  */
-Method "_[_]" is
+Primitive "_[_]" is
 [
 	aTupleType : tuple meta,
 	index : natural number
@@ -1688,7 +1688,7 @@ Method "_[_]" is
  * Returns:
  *    The requested tuple type.
  */
-Method "_++_" is
+Primitive "_++_" is
 [
 	arg1 : tuple meta,
 	arg2 : tuple meta
@@ -1706,7 +1706,7 @@ Method "_++_" is
  * Returns:
  *    The requested object type.
  */
-Method "_→object type" is
+Primitive "_→object type" is
 [
 	fieldDefinitions : field type tuple
 |
@@ -1724,7 +1724,7 @@ Method "_→object type" is
  *    identifier) and its second element is the value type permitted by the
  *    field.
  */
-Method "_→tuple" is
+Primitive "_→tuple" is
 [
 	anObjectType : object meta
 |
@@ -1741,7 +1741,7 @@ Method "_→tuple" is
  * Returns:
  *    The requested object.
  */
-Method "_→object" is
+Primitive "_→object" is
 [
 	fieldAssignments : field tuple
 |
@@ -1758,7 +1758,7 @@ Method "_→object" is
  *    2-tuples. Each 2-tuple's first element is an atom (i.e., the field
  *    identifier) and its second element is associated value.
  */
-Method "_→tuple" is
+Primitive "_→tuple" is
 [
 	anObject : object
 |
@@ -1774,7 +1774,7 @@ Method "_→tuple" is
  * Returns:
  *    The argument's arity.
  */
-Method "_'s⁇arity" is
+Primitive "_'s⁇arity" is
 [
 	aFunctionImplementation : function implementation
 |
@@ -1789,7 +1789,7 @@ Method "_'s⁇arity" is
  * Returns:
  *    The number of locals used by the argument.
  */
-Method "`|_'s⁇local variables`|" is
+Primitive "`|_'s⁇local variables`|" is
 [
 	aFunctionImplementation : function implementation
 |
@@ -1804,7 +1804,7 @@ Method "`|_'s⁇local variables`|" is
  * Returns:
  *    The number of outers used by the argument.
  */
-Method "`|_'s⁇outer variables`|" is
+Primitive "`|_'s⁇outer variables`|" is
 [
 	aFunctionImplementation : function implementation
 |
@@ -1821,7 +1821,7 @@ Method "`|_'s⁇outer variables`|" is
  * Returns:
  *    The argument's maximum stack depth.
  */
-Method "_'s⁇maximum stack depth" is
+Primitive "_'s⁇maximum stack depth" is
 [
 	aFunctionImplementation : function implementation
 |
@@ -1837,7 +1837,7 @@ Method "_'s⁇maximum stack depth" is
  * Returns:
  *    The argument's nybblecodes.
  */
-Method "_'s⁇nybblecodes" is
+Primitive "_'s⁇nybblecodes" is
 [
 	aFunctionImplementation : function implementation
 |
@@ -1853,7 +1853,7 @@ Method "_'s⁇nybblecodes" is
  * Returns:
  *    The argument's function type.
  */
-Method "_'s⁇function type" is
+Primitive "_'s⁇function type" is
 [
 	aFunctionImplementation : function implementation
 |
@@ -1871,7 +1871,7 @@ Method "_'s⁇function type" is
  *    The argument's primitive number, or `0` if the argument does not have
  *    primitive linkage.
  */
-Method "_'s⁇primitive number" is
+Primitive "_'s⁇primitive number" is
 [
 	aFunctionImplementation : function implementation
 |
@@ -1886,7 +1886,7 @@ Method "_'s⁇primitive number" is
  * Returns:
  *    A tuple containing the argument's supporting literals.
  */
-Method "_'s⁇literals" is
+Primitive "_'s⁇literals" is
 [
 	aFunctionImplementation : function implementation
 |
@@ -1901,7 +1901,7 @@ Method "_'s⁇literals" is
  * Returns:
  *    The requested function type.
  */
-Method "_'s⁇function type" is
+Primitive "_'s⁇function type" is
 [
 	anImplementation : method site
 |
@@ -1916,7 +1916,7 @@ Method "_'s⁇function type" is
  * Returns:
  *    The requested function.
  */
-Method "_'s⁇function" is
+Primitive "_'s⁇function" is
 [
 	anImplementation : implementation site
 |
@@ -1931,7 +1931,7 @@ Method "_'s⁇function" is
  * Returns:
  *    The requested atom.
  */
-Method "_'s⁇atom" is
+Primitive "_'s⁇atom" is
 [
 	aMethod : method
 |
@@ -1946,7 +1946,7 @@ Method "_'s⁇atom" is
  * Returns:
  *    The number of parameters required by the specified method.
  */
-Method "`|_'s⁇parameters`|" is
+Primitive "`|_'s⁇parameters`|" is
 [
 	aMethod : method
 |
@@ -1961,7 +1961,7 @@ Method "`|_'s⁇parameters`|" is
  * Returns:
  *    `true` if `trueName` names a method, `false` otherwise.
  */
-Method "method exists named_" is
+Primitive "method exists named_" is
 [
 	trueName : atom
 |
@@ -1976,7 +1976,7 @@ Method "method exists named_" is
  * Returns:
  *    A set containing the public names introduced by `aModule`.
  */
-Method "_'s⁇public names" is
+Primitive "_'s⁇public names" is
 [
 	aModule : module
 |
@@ -1991,7 +1991,7 @@ Method "_'s⁇public names" is
  * Returns:
  *    The fully qualified name of `aModule`.
  */
-Method "_'s⁇name" is
+Primitive "_'s⁇name" is
 [
 	aModule : module
 |
@@ -2009,7 +2009,7 @@ Method "_'s⁇name" is
  * Returns:
  *    The requested semantic restrictions.
  */
-Method "semantic restrictions for_given_" is
+Primitive "semantic restrictions for_given_" is
 [
 	aMethod : method,
 	arguments : tuple of any meta
@@ -2025,7 +2025,7 @@ Method "semantic restrictions for_given_" is
  * Returns:
  *    `true` if the argument denotes a valid primitive, `false` otherwise.
  */
-Method "_is a primitive" is
+Primitive "_is a primitive" is
 [
 	primitiveNumber : unsigned short
 |
@@ -2047,7 +2047,7 @@ Method "_is a primitive" is
  * Parameters:
  *    value - A value, provided to establish context for debugging.
  */
-Method "Terminate:_" is
+Primitive "Terminate:_" is
 [
 	value : any
 |
@@ -2062,7 +2062,7 @@ Method "Terminate:_" is
  * This method exists to facilitate debugging of the Avail virtual machine, and
  * will be withdrawn once the implementation is considered sufficiently stable.
  */
-Method "Breakpoint" is
+Primitive "Breakpoint" is
 [
 	Primitive 257;
 ] : ⊤;
@@ -2073,7 +2073,7 @@ Method "Breakpoint" is
  * Parameters:
  *    text - A string.
  */
-Method "Print:_" is
+Primitive "Print:_" is
 [
 	text : string
 |
@@ -2093,7 +2093,7 @@ Method "Print:_" is
  *    A mechanically constructed, possibly non-localized,
  *    implementation-specific description of the argument.
  */
-Method "primitive description of_" is
+Primitive "primitive description of_" is
 [
 	value : any
 |
@@ -2111,7 +2111,7 @@ Method "primitive description of_" is
  *    message - Text describing the assertion failure, ignored unless
  *       `predicate` is `false`.
  */
-Method "Assert:_(_)" is
+Primitive "Assert:_(_)" is
 [
 	predicate : boolean,
 	message : string
@@ -2128,7 +2128,7 @@ Method "Assert:_(_)" is
  * Returns:
  *    A `float` whose value approximates the argument.
  */
-Method "_→float" is
+Primitive "_→float" is
 [
 	aNumber : number
 |
@@ -2144,7 +2144,7 @@ Method "_→float" is
  * Returns:
  *    A `double` whose value approximates the argument.
  */
-Method "_→double" is
+Primitive "_→double" is
 [
 	aNumeric : number
 |
@@ -2160,7 +2160,7 @@ Method "_→double" is
  * Returns:
  *    An approximation of ln `x`.
  */
-Method "ln_" is
+Primitive "ln_" is
 [
 	x : float
 |
@@ -2177,7 +2177,7 @@ Method "ln_" is
  * Returns:
  *    An approximation of e^`x`.
  */
-Method "_^_" is
+Primitive "_^_" is
 [
 	eulerNumber : type of Euler number,
 	x : float
@@ -2194,7 +2194,7 @@ Method "_^_" is
  * Returns:
  *    The requested value.
  */
-Method "_→extended integer" is
+Primitive "_→extended integer" is
 [
 	aFloat : float
 |
@@ -2212,7 +2212,7 @@ Method "_→extended integer" is
  * Returns:
  *    The requested value.
  */
-Method "_⨉_^_" is
+Primitive "_⨉_^_" is
 [
 	a : float,
 	two : type of two,
@@ -2231,7 +2231,7 @@ Method "_⨉_^_" is
  *    If the `0` is ±∞ or not-a-number, then `x`, otherwise the floor of
  *    `x`.
  */
-Method "⎣_⎦" is
+Primitive "⎣_⎦" is
 [
 	x : float
 |
@@ -2248,7 +2248,7 @@ Method "⎣_⎦" is
  *    If the `0` is ±∞ or not-a-number, then `x`, otherwise the ceiling of
  *    `x`.
  */
-Method "⎡_⎤" is
+Primitive "⎡_⎤" is
 [
 	x : float
 |
@@ -2264,7 +2264,7 @@ Method "⎡_⎤" is
  * Returns:
  *    An approximation of ln `x`.
  */
-Method "ln_" is
+Primitive "ln_" is
 [
 	x : double
 |
@@ -2281,7 +2281,7 @@ Method "ln_" is
  * Returns:
  *    An approximation of e^`x`.
  */
-Method "_^_" is
+Primitive "_^_" is
 [
 	eulerNumber : type of Euler number,
 	x : double
@@ -2298,7 +2298,7 @@ Method "_^_" is
  * Returns:
  *    The requested value.
  */
-Method "_→extended integer" is
+Primitive "_→extended integer" is
 [
 	aDouble : double
 |
@@ -2316,7 +2316,7 @@ Method "_→extended integer" is
  * Returns:
  *    The requested value.
  */
-Method "_⨉_^_" is
+Primitive "_⨉_^_" is
 [
 	a : double,
 	two : type of two,
@@ -2335,7 +2335,7 @@ Method "_⨉_^_" is
  *    If the `0` is ±∞ or not-a-number, then `x`, otherwise the floor of
  *    `x`.
  */
-Method "⎣_⎦" is
+Primitive "⎣_⎦" is
 [
 	x : double
 |
@@ -2352,7 +2352,7 @@ Method "⎣_⎦" is
  *    If the `0` is ±∞ or not-a-number, then `x`, otherwise the ceiling of
  *    `x`.
  */
-Method "⎡_⎤" is
+Primitive "⎡_⎤" is
 [
 	x : double
 |
@@ -2367,7 +2367,7 @@ Method "⎡_⎤" is
  * Returns:
  *    The Unicode code point that encodes the argument.
  */
-Method "_→code point" is
+Primitive "_→code point" is
 [
 	aCharacter : character
 |
@@ -2382,7 +2382,7 @@ Method "_→code point" is
  * Returns:
  *    The character encoded by the argument.
  */
-Method "_→character" is
+Primitive "_→character" is
 [
 	codePoint : code point
 |
@@ -2397,7 +2397,7 @@ Method "_→character" is
  * Returns:
  *    The requested semantic type.
  */
-Method "_'s⁇semantic type" is
+Primitive "_'s⁇semantic type" is
 [
 	phraseType : phrase meta
 |
@@ -2415,7 +2415,7 @@ Method "_'s⁇semantic type" is
  *    A type that describes all values producible by evaluations of the
  *    argument.
  */
-Method "_'s⁇semantic type" is
+Primitive "_'s⁇semantic type" is
 [
 	node : phrase
 |
@@ -2445,7 +2445,7 @@ Method "_'s⁇semantic type" is
  *    expected - A description of the cause of rejection, worded to sound good
  *       after "Expected...".
  */
-Method "Reject parse,expected:_" is
+Primitive "Reject parse,expected:_" is
 [
 	expected : string
 |
@@ -2462,7 +2462,7 @@ Method "Reject parse,expected:_" is
  * Returns:
  *    The requested phrase type.
  */
-Method "_⇒_" is
+Primitive "_⇒_" is
 [
 	aPhrase : phrase meta,
 	semanticType : type
@@ -2479,7 +2479,7 @@ Method "_⇒_" is
  * Returns:
  *    The source text of `aToken`.
  */
-Method "_'s⁇lexeme" is
+Primitive "_'s⁇lexeme" is
 [
 	aToken : token
 |
@@ -2495,7 +2495,7 @@ Method "_'s⁇lexeme" is
  * Returns:
  *    The zero-based starting position of `aToken`.
  */
-Method "_'s⁇starting position" is
+Primitive "_'s⁇starting position" is
 [
 	aToken : token
 |
@@ -2511,7 +2511,7 @@ Method "_'s⁇starting position" is
  * Returns:
  *    The one-based line number of `aToken`.
  */
-Method "_'s⁇line number" is
+Primitive "_'s⁇line number" is
 [
 	aToken : token
 |
@@ -2526,7 +2526,7 @@ Method "_'s⁇line number" is
  * Returns:
  *    The literal value produced by `aLiteralToken`.
  */
-Method "_'s⁇value" is
+Primitive "_'s⁇value" is
 [
 	aLiteralToken : literal token
 |
@@ -2542,7 +2542,7 @@ Method "_'s⁇value" is
  * Returns:
  *    The requested literal token.
  */
-Method "``_``(_)" is
+Primitive "``_``(_)" is
 [
 	value : any,
 	fakeText : string
@@ -2558,7 +2558,7 @@ Method "``_``(_)" is
  * Returns:
  *    A tuple of argument declarations.
  */
-Method "_'s⁇arguments" is
+Primitive "_'s⁇arguments" is
 [
 	aBlock : block
 |
@@ -2574,7 +2574,7 @@ Method "_'s⁇arguments" is
  *    The block's primitive linkage number, or 0 if the block has no primitive
  *    linkage.
  */
-Method "_'s⁇primitive number" is
+Primitive "_'s⁇primitive number" is
 [
 	aBlock : block
 |
@@ -2590,7 +2590,7 @@ Method "_'s⁇primitive number" is
  *    A tuple of statements. These are either assignments, declarations, labels,
  *    sequences, or ⊤-valued sends.
  */
-Method "_'s⁇statements" is
+Primitive "_'s⁇statements" is
 [
 	aBlock : block
 |
@@ -2605,7 +2605,7 @@ Method "_'s⁇statements" is
  * Returns:
  *    The block's return type.
  */
-Method "_'s⁇return type" is
+Primitive "_'s⁇return type" is
 [
 	aBlock : block
 |
@@ -2620,7 +2620,7 @@ Method "_'s⁇return type" is
  * Returns:
  *    The block's set of declared exceptions.
  */
-Method "_'s⁇declared exceptions" is
+Primitive "_'s⁇declared exceptions" is
 [
 	aBlock : block
 |
@@ -2636,7 +2636,7 @@ Method "_'s⁇declared exceptions" is
  *    A tuple of declarations of outer variables required to complete the
  *    meaning of the block.
  */
-Method "_'s⁇outer variables" is
+Primitive "_'s⁇outer variables" is
 [
 	aBlock : block
 |
@@ -2651,7 +2651,7 @@ Method "_'s⁇outer variables" is
  * Returns:
  *    The assignment's target variable.
  */
-Method "_'s⁇target" is
+Primitive "_'s⁇target" is
 [
 	anAssignment : assignment
 |
@@ -2666,7 +2666,7 @@ Method "_'s⁇target" is
  * Returns:
  *    The assignment's value expression.
  */
-Method "_'s⁇value" is
+Primitive "_'s⁇value" is
 [
 	anAssignment : assignment
 |
@@ -2681,7 +2681,7 @@ Method "_'s⁇value" is
  * Returns:
  *    The variable use referenced by the argument.
  */
-Method "_'s⁇referent" is
+Primitive "_'s⁇referent" is
 [
 	aReference : variable reference
 |
@@ -2697,7 +2697,7 @@ Method "_'s⁇referent" is
  * Returns:
  *    The requested argument declaration.
  */
-Method "arg`«_:_`»" is
+Primitive "arg`«_:_`»" is
 [
 	name : token,
 	declaredType : any meta
@@ -2714,7 +2714,7 @@ Method "arg`«_:_`»" is
  * Returns:
  *    The requested label declaration.
  */
-Method "`«$_:_`»" is
+Primitive "`«$_:_`»" is
 [
 	name : token,
 	declaredType : continuation
@@ -2731,7 +2731,7 @@ Method "`«$_:_`»" is
  * Returns:
  *    The requested local constant declaration.
  */
-Method "`«_::=_`»" is
+Primitive "`«_::=_`»" is
 [
 	name : token,
 	declaredType : expression yielding any
@@ -2748,7 +2748,7 @@ Method "`«_::=_`»" is
  * Returns:
  *    The requested primitive failure local constant declaration.
  */
-Method "primfail`«_:_`»" is
+Primitive "primfail`«_:_`»" is
 [
 	name : token,
 	declaredType : any meta
@@ -2765,7 +2765,7 @@ Method "primfail`«_:_`»" is
  * Returns:
  *    The requested local variable declaration.
  */
-Method "`«_:_`»" is
+Primitive "`«_:_`»" is
 [
 	name : token,
 	declaredType : any meta
@@ -2783,7 +2783,7 @@ Method "`«_:_`»" is
  * Returns:
  *    The requested initialized local variable declaration.
  */
-Method "`«_:_:=_`»" is
+Primitive "`«_:_:=_`»" is
 [
 	name : token,
 	declaredType : any meta,
@@ -2801,7 +2801,7 @@ Method "`«_:_:=_`»" is
  * Returns:
  *    The requested token.
  */
-Method "_'s⁇token" is
+Primitive "_'s⁇token" is
 [
 	aDeclaration : declaration
 |
@@ -2817,7 +2817,7 @@ Method "_'s⁇token" is
  * Returns:
  *    The requested type.
  */
-Method "_'s⁇declared type" is
+Primitive "_'s⁇declared type" is
 [
 	aDeclaration : declaration
 |
@@ -2835,7 +2835,7 @@ Method "_'s⁇declared type" is
  *    `true` if `aDeclaration` has an initialization expression and it was
  *    written into `var`, `false` otherwise.
  */
-Method "↓_`?=_'s⁇initialization" is
+Primitive "↓_`?=_'s⁇initialization" is
 [
 	var : write-only expression variable,
 	aDeclaration : declaration
@@ -2851,7 +2851,7 @@ Method "↓_`?=_'s⁇initialization" is
  * Returns:
  *    The requested literal expression.
  */
-Method "‘_’" is
+Primitive "‘_’" is
 [
 	aLiteralToken : literal token
 |
@@ -2866,7 +2866,7 @@ Method "‘_’" is
  * Returns:
  *    The requested literal token.
  */
-Method "_'s⁇token" is
+Primitive "_'s⁇token" is
 [
 	aLiteral : literal
 |
@@ -2881,7 +2881,7 @@ Method "_'s⁇token" is
  * Returns:
  *    The requested method.
  */
-Method "_'s⁇method" is
+Primitive "_'s⁇method" is
 [
 	aSend : send
 |
@@ -2896,7 +2896,7 @@ Method "_'s⁇method" is
  * Returns:
  *    The requested list of argument expressions.
  */
-Method "_'s⁇arguments" is
+Primitive "_'s⁇arguments" is
 [
 	aSend : send
 |
@@ -2911,7 +2911,7 @@ Method "_'s⁇arguments" is
  * Returns:
  *    The requested type.
  */
-Method "_'s⁇return type" is
+Primitive "_'s⁇return type" is
 [
 	aSend : send
 |
@@ -2926,7 +2926,7 @@ Method "_'s⁇return type" is
  * Returns:
  *    The requested tuple of statements.
  */
-Method "_'s⁇statements" is
+Primitive "_'s⁇statements" is
 [
 	aSequence : sequence
 |
@@ -2941,7 +2941,7 @@ Method "_'s⁇statements" is
  * Returns:
  *    The requested list.
  */
-Method "_→list" is
+Primitive "_→list" is
 [
 	aTuple : tuple of expressions yielding any
 |
@@ -2956,7 +2956,7 @@ Method "_→list" is
  * Returns:
  *    The requested tuple of expressions.
  */
-Method "_'s⁇expressions" is
+Primitive "_'s⁇expressions" is
 [
 	aList : list
 |
@@ -2972,7 +2972,7 @@ Method "_'s⁇expressions" is
  * Returns:
  *    The requested variable use expression.
  */
-Method "`«↓_`»(_)" is
+Primitive "`«↓_`»(_)" is
 [
 	aDeclaration : declaration,
 	aToken : token
@@ -2988,7 +2988,7 @@ Method "`«↓_`»(_)" is
  * Returns:
  *    The token that names the referenced entity at the point of use.
  */
-Method "_'s⁇token" is
+Primitive "_'s⁇token" is
 [
 	use : variable use
 |
@@ -3004,7 +3004,7 @@ Method "_'s⁇token" is
  * Returns:
  *    The requested declaration.
  */
-Method "_'s⁇declaration" is
+Primitive "_'s⁇declaration" is
 [
 	use : variable use
 |
@@ -3019,7 +3019,7 @@ Method "_'s⁇declaration" is
  * Returns:
  *    A literal token type.
  */
-Method "literal token⇒_" is
+Primitive "literal token⇒_" is
 [
 	literalValue : any meta
 |
@@ -3035,7 +3035,7 @@ Method "literal token⇒_" is
  * Returns:
  *    The type of value that such a literal token can produce.
  */
-Method "_'s⁇value type" is
+Primitive "_'s⁇value type" is
 [
 	literalTokenType : literal token meta
 |
@@ -3052,7 +3052,7 @@ Method "_'s⁇value type" is
  * Returns:
  *    The requested pojo array type.
  */
-Method "_[_]" is
+Primitive "_[_]" is
 [
 	elementType : any meta,
 	cardinalityRequirement : whole number meta
@@ -3070,7 +3070,7 @@ Method "_[_]" is
  *    A new pojo array that can store and answer `length` elements conforming
  *    to `elementType`.
  */
-Method "new_[_]" is
+Primitive "new_[_]" is
 [
 	elementType : any meta,
 	length : whole number
@@ -3086,7 +3086,7 @@ Method "new_[_]" is
  * Returns:
  *    The size of the argument.
  */
-Method "`|_`|" is
+Primitive "`|_`|" is
 [
 	anArray : pojo array
 |

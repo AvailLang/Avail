@@ -34,7 +34,8 @@ System Module "Early Literals"
 Versions
 	"dev"
 Uses
-	"Bootstrap"
+	"Bootstrap",
+	"Very Early Definers"
 Names
 	"“_”",
 	"<«_‡,»>",

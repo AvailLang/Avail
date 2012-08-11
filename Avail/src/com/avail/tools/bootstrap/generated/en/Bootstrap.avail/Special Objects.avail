@@ -315,7 +315,7 @@ _pojo_failure_function                  ::= special object 127;
  *    - As the field type of an object type.
  *    - As the type parameter of a pojo type.
  */
-Method "any" is
+Primitive "any" is
 [
 	_any
 ];
@@ -353,162 +353,162 @@ Method "any" is
  * the standard `true` and `false` atoms and also the "unknown" atom. New
  * logical operations could then be written in terms of this new enumeration.
  */
-Method "boolean" is
+Primitive "boolean" is
 [
 	_boolean
 ];
 
-Method "character" is
+Primitive "character" is
 [
 	_character
 ];
 
-Method "function" is
+Primitive "function" is
 [
 	_function
 ];
 
-Method "function meta" is
+Primitive "function meta" is
 [
 	_function_meta
 ];
 
-Method "function implementation" is
+Primitive "function implementation" is
 [
 	_function_implementation
 ];
 
-Method "variable" is
+Primitive "variable" is
 [
 	_variable
 ];
 
-Method "variable meta" is
+Primitive "variable meta" is
 [
 	_variable_meta
 ];
 
-Method "continuation" is
+Primitive "continuation" is
 [
 	_continuation
 ];
 
-Method "continuation meta" is
+Primitive "continuation meta" is
 [
 	_continuation_meta
 ];
 
-Method "atom" is
+Primitive "atom" is
 [
 	_atom
 ];
 
-Method "double" is
+Primitive "double" is
 [
 	_double
 ];
 
-Method "extended integer" is
+Primitive "extended integer" is
 [
 	_extended_integer
 ];
 
-Method "type of tuple of type of any" is
+Primitive "type of tuple of type of any" is
 [
 	_type_of_tuple_of_type_of_any
 ];
 
-Method "float" is
+Primitive "float" is
 [
 	_float
 ];
 
-Method "number" is
+Primitive "number" is
 [
 	_number
 ];
 
-Method "integer" is
+Primitive "integer" is
 [
 	_integer
 ];
 
-Method "extended integer meta" is
+Primitive "extended integer meta" is
 [
 	_extended_integer_meta
 ];
 
-Method "map meta" is
+Primitive "map meta" is
 [
 	_map_meta
 ];
 
-Method "module" is
+Primitive "module" is
 [
 	_module
 ];
 
-Method "VM error codes" is
+Primitive "VM error codes" is
 [
 	_VM_error_codes
 ];
 
-Method "object" is
+Primitive "object" is
 [
 	_object
 ];
 
-Method "object meta" is
+Primitive "object meta" is
 [
 	_object_meta
 ];
 
-Method "exception" is
+Primitive "exception" is
 [
 	_exception
 ];
 
-Method "fiber" is
+Primitive "fiber" is
 [
 	_fiber
 ];
 
-Method "set" is
+Primitive "set" is
 [
 	_set
 ];
 
-Method "set meta" is
+Primitive "set meta" is
 [
 	_set_meta
 ];
 
-Method "string" is
+Primitive "string" is
 [
 	_string
 ];
 
-Method "⊥" is
+Primitive "⊥" is
 [
 	_bottom
 ];
 
-Method "⊥meta" is
+Primitive "⊥meta" is
 [
 	_bottom_meta
 ];
 
-Method "tuple" is
+Primitive "tuple" is
 [
 	_tuple
 ];
 
-Method "tuple meta" is
+Primitive "tuple meta" is
 [
 	_tuple_meta
 ];
 
-Method "type" is
+Primitive "type" is
 [
 	_type
 ];
@@ -572,102 +572,102 @@ Method "type" is
  * reflective query of a continuation''s temporaries that would answer nil will
  * instead produce a variable whose read type is `⊥`.
  */
-Method "⊤" is
+Primitive "⊤" is
 [
 	_top
 ];
 
-Method "whole number" is
+Primitive "whole number" is
 [
 	_whole_number
 ];
 
-Method "natural number" is
+Primitive "natural number" is
 [
 	_natural_number
 ];
 
-Method "code point" is
+Primitive "code point" is
 [
 	_code_point
 ];
 
-Method "map" is
+Primitive "map" is
 [
 	_map
 ];
 
-Method "message bundle" is
+Primitive "message bundle" is
 [
 	_message_bundle
 ];
 
-Method "method site" is
+Primitive "method site" is
 [
 	_method_site
 ];
 
-Method "abstract site" is
+Primitive "abstract site" is
 [
 	_abstract_site
 ];
 
-Method "forward site" is
+Primitive "forward site" is
 [
 	_forward_site
 ];
 
-Method "implementation site" is
+Primitive "implementation site" is
 [
 	_implementation_site
 ];
 
-Method "message bundle tree" is
+Primitive "message bundle tree" is
 [
 	_message_bundle_tree
 ];
 
-Method "method" is
+Primitive "method" is
 [
 	_method
 ];
 
-Method "phrase" is
+Primitive "phrase" is
 [
 	_phrase
 ];
 
-Method "sequence" is
+Primitive "sequence" is
 [
 	_sequence
 ];
 
-Method "expression" is
+Primitive "expression" is
 [
 	_expression
 ];
 
-Method "assignment" is
+Primitive "assignment" is
 [
 	_assignment
 ];
 
-Method "block" is
+Primitive "block" is
 [
 	_block
 ];
 
-Method "literal" is
+Primitive "literal" is
 [
 	_literal
 ];
 
-Method "variable reference" is
+Primitive "variable reference" is
 [
 	_variable_reference
 ];
 
-Method "send" is
+Primitive "send" is
 [
 	_send
 ];
@@ -675,62 +675,62 @@ Method "send" is
 /**
  * The type (meta) of the most general literal token type.
  */
-Method "literal token meta" is
+Primitive "literal token meta" is
 [
 	_literal_token_meta
 ];
 
-Method "list" is
+Primitive "list" is
 [
 	_list
 ];
 
-Method "variable use" is
+Primitive "variable use" is
 [
 	_variable_use
 ];
 
-Method "declaration" is
+Primitive "declaration" is
 [
 	_declaration
 ];
 
-Method "argument" is
+Primitive "argument" is
 [
 	_argument
 ];
 
-Method "label" is
+Primitive "label" is
 [
 	_label
 ];
 
-Method "local variable" is
+Primitive "local variable" is
 [
 	_local_variable
 ];
 
-Method "local constant" is
+Primitive "local constant" is
 [
 	_local_constant
 ];
 
-Method "module variable" is
+Primitive "module variable" is
 [
 	_module_variable
 ];
 
-Method "module constant" is
+Primitive "module constant" is
 [
 	_module_constant
 ];
 
-Method "primitive failure reason" is
+Primitive "primitive failure reason" is
 [
 	_primitive_failure_reason
 ];
 
-Method "any meta" is
+Primitive "any meta" is
 [
 	_any_meta
 ];
@@ -738,7 +738,7 @@ Method "any meta" is
 /**
  * The special atom that represents truth. `true` is an instance of `boolean`.
  */
-Method "true" is
+Primitive "true" is
 [
 	_true
 ];
@@ -747,227 +747,227 @@ Method "true" is
  * The special atom that represents falsehood. `false` is an instance of
  * `boolean`.
  */
-Method "false" is
+Primitive "false" is
 [
 	_false
 ];
 
-Method "tuple of string" is
+Primitive "tuple of string" is
 [
 	_tuple_of_string
 ];
 
-Method "tuple of type" is
+Primitive "tuple of type" is
 [
 	_tuple_of_type
 ];
 
-Method "tuple of set of string" is
+Primitive "tuple of set of string" is
 [
 	_tuple_of_set_of_string
 ];
 
-Method "set of string" is
+Primitive "set of string" is
 [
 	_set_of_string
 ];
 
-Method "primitive failure function" is
+Primitive "primitive failure function" is
 [
 	_primitive_failure_function
 ];
 
-Method "∅" is
+Primitive "∅" is
 [
 	_empty_set
 ];
 
-Method "-∞" is
+Primitive "-∞" is
 [
 	_negative_infinity
 ];
 
-Method "∞" is
+Primitive "∞" is
 [
 	_positive_infinity
 ];
 
-Method "pojo" is
+Primitive "pojo" is
 [
 	_pojo
 ];
 
-Method "null" is
+Primitive "null" is
 [
 	_null
 ];
 
-Method "pojo⊥" is
+Primitive "pojo⊥" is
 [
 	_pojo_bottom
 ];
 
-Method "pojo self type" is
+Primitive "pojo self type" is
 [
 	_pojo_self_type
 ];
 
-Method "pojo meta" is
+Primitive "pojo meta" is
 [
 	_pojo_meta
 ];
 
-Method "pojo array meta" is
+Primitive "pojo array meta" is
 [
 	_pojo_array_meta
 ];
 
-Method "pojo constructor" is
+Primitive "pojo constructor" is
 [
 	_pojo_constructor
 ];
 
-Method "pojo array" is
+Primitive "pojo array" is
 [
 	_pojo_array
 ];
 
-Method "pojo self" is
+Primitive "pojo self" is
 [
 	_pojo_self
 ];
 
-Method "pojo exception" is
+Primitive "pojo exception" is
 [
 	_pojo_exception
 ];
 
-Method "nullary procedure" is
+Primitive "nullary procedure" is
 [
 	_nullary_procedure
 ];
 
-Method "predicate function" is
+Primitive "predicate function" is
 [
 	_predicate_function
 ];
 
-Method "continuation variable" is
+Primitive "continuation variable" is
 [
 	_continuation_variable
 ];
 
-Method "field map" is
+Primitive "field map" is
 [
 	_field_map
 ];
 
-Method "field type map" is
+Primitive "field type map" is
 [
 	_field_type_map
 ];
 
-Method "key-value tuple" is
+Primitive "key-value tuple" is
 [
 	_key_value_tuple
 ];
 
-Method "empty map" is
+Primitive "empty map" is
 [
 	_empty_map
 ];
 
-Method "non-empty map" is
+Primitive "non-empty map" is
 [
 	_non_empty_map
 ];
 
-Method "whole number meta" is
+Primitive "whole number meta" is
 [
 	_whole_number_meta
 ];
 
-Method "non-empty set" is
+Primitive "non-empty set" is
 [
 	_non_empty_set
 ];
 
-Method "tuple of tuple" is
+Primitive "tuple of tuple" is
 [
 	_tuple_of_tuple
 ];
 
-Method "nybble" is
+Primitive "nybble" is
 [
 	_nybble
 ];
 
-Method "tuple of nybble" is
+Primitive "tuple of nybble" is
 [
 	_tuple_of_nybble
 ];
 
-Method "unsigned short" is
+Primitive "unsigned short" is
 [
 	_unsigned_short
 ];
 
-Method "empty tuple" is
+Primitive "empty tuple" is
 [
 	_empty_tuple
 ];
 
-Method "unary procedure" is
+Primitive "unary procedure" is
 [
 	_unary_procedure
 ];
 
-Method "type of zero" is
+Primitive "type of zero" is
 [
 	_type_of_zero
 ];
 
-Method "semantic restriction function" is
+Primitive "semantic restriction function" is
 [
 	_semantic_restriction_function
 ];
 
-Method "tuple of semantic restriction function" is
+Primitive "tuple of semantic restriction function" is
 [
 	_tuple_of_semantic_restriction_function
 ];
 
-Method "macro function" is
+Primitive "macro function" is
 [
 	_macro_function
 ];
 
-Method "type of two" is
+Primitive "type of two" is
 [
 	_type_of_two
 ];
 
-Method "Euler number" is
+Primitive "Euler number" is
 [
 	_Euler_number
 ];
 
-Method "type of Euler number" is
+Primitive "type of Euler number" is
 [
 	_type_of_Euler_number
 ];
 
-Method "phrase meta" is
+Primitive "phrase meta" is
 [
 	_phrase_meta
 ];
 
-Method "set of atom" is
+Primitive "set of atom" is
 [
 	_set_of_atom
 ];
 
-Method "token" is
+Primitive "token" is
 [
 	_token
 ];
@@ -975,62 +975,62 @@ Method "token" is
 /**
  * The most general literal token type.
  */
-Method "literal token" is
+Primitive "literal token" is
 [
 	_literal_token
 ];
 
-Method "tuple of any meta" is
+Primitive "tuple of any meta" is
 [
 	_tuple_of_any_meta
 ];
 
-Method "nonnegative integer" is
+Primitive "nonnegative integer" is
 [
 	_nonnegative_integer
 ];
 
-Method "field type tuple" is
+Primitive "field type tuple" is
 [
 	_field_type_tuple
 ];
 
-Method "field tuple" is
+Primitive "field tuple" is
 [
 	_field_tuple
 ];
 
-Method "phrase tuple" is
+Primitive "phrase tuple" is
 [
 	_phrase_tuple
 ];
 
-Method "argument tuple" is
+Primitive "argument tuple" is
 [
 	_argument_tuple
 ];
 
-Method "declaration tuple" is
+Primitive "declaration tuple" is
 [
 	_declaration_tuple
 ];
 
-Method "write-only expression variable" is
+Primitive "write-only expression variable" is
 [
 	_write_only_expression_variable
 ];
 
-Method "tuple of expressions yielding any" is
+Primitive "tuple of expressions yielding any" is
 [
 	_tuple_of_expressions_yielding_any
 ];
 
-Method "expression yielding any" is
+Primitive "expression yielding any" is
 [
 	_expression_yielding_any
 ];
 
-Method "pojo failure function" is
+Primitive "pojo failure function" is
 [
 	_pojo_failure_function
 ];

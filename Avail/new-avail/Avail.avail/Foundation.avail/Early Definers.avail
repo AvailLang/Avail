@@ -33,6 +33,8 @@
 System Module "Early Definers"
 Versions
 	"dev"
+Extends
+	"Very Early Definers"
 Uses
 	"Bootstrap",
 	"Early Literals"
