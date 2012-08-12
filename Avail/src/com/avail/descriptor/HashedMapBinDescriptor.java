@@ -140,7 +140,7 @@ extends MapBinDescriptor
 	 *
 	 * @param object A hashed bin used by maps.
 	 */
-	static void check (final @NotNull AvailObject object)
+	static void check (final AvailObject object)
 	{
 		if (shouldCheck)
 		{
@@ -165,8 +165,8 @@ extends MapBinDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_BinElementAt (
-		final @NotNull AvailObject object,
+	AvailObject o_BinElementAt (
+		final AvailObject object,
 		final int subscript)
 	{
 		return object.slot(SUB_BINS_, subscript);
@@ -174,16 +174,16 @@ extends MapBinDescriptor
 
 	@Override @AvailMethod
 	void o_BinElementAtPut (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int subscript,
-		final @NotNull AvailObject value)
+		final AvailObject value)
 	{
 		object.setSlot(SUB_BINS_, subscript, value);
 	}
 
 	@Override @AvailMethod
 	void o_BinSize (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int value)
 	{
 		object.setSlot(BIN_SIZE, value);
@@ -191,7 +191,7 @@ extends MapBinDescriptor
 
 	@Override @AvailMethod
 	void o_BitVector (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int value)
 	{
 		object.setSlot(BIT_VECTOR, value);
@@ -199,7 +199,7 @@ extends MapBinDescriptor
 
 	@Override @AvailMethod
 	int o_BinSize (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.slot(BIN_SIZE);
 	}
@@ -212,7 +212,7 @@ extends MapBinDescriptor
 	 *            and value type information.
 	 */
 	private void computeKeyAndValueKinds (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		AvailObject keyType = BottomTypeDescriptor.bottom();
 		AvailObject valueType = BottomTypeDescriptor.bottom();
@@ -229,8 +229,8 @@ extends MapBinDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_MapBinKeyUnionKind (
-		final @NotNull AvailObject object)
+	AvailObject o_MapBinKeyUnionKind (
+		final AvailObject object)
 	{
 		AvailObject keyType = object.slot(BIN_KEY_UNION_KIND_OR_NULL);
 		if (keyType.equalsNull())
@@ -242,8 +242,8 @@ extends MapBinDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_MapBinValueUnionKind (
-		final @NotNull AvailObject object)
+	AvailObject o_MapBinValueUnionKind (
+		final AvailObject object)
 	{
 		AvailObject valueType = object.slot(BIN_VALUE_UNION_KIND_OR_NULL);
 		if (valueType.equalsNull())
@@ -255,7 +255,7 @@ extends MapBinDescriptor
 	}
 
 	@Override boolean allowsImmutableToMutableReferenceInField (
-		final @NotNull AbstractSlotsEnum e)
+		final AbstractSlotsEnum e)
 	{
 		return e == VALUES_HASH_OR_ZERO
 			|| e == BIN_KEY_UNION_KIND_OR_NULL
@@ -263,8 +263,8 @@ extends MapBinDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_MakeImmutable (
-		final @NotNull AvailObject object)
+	AvailObject o_MakeImmutable (
+		final AvailObject object)
 	{
 		if (isMutable)
 		{
@@ -281,11 +281,11 @@ extends MapBinDescriptor
 	 * other references exists.
 	 */
 	@Override @AvailMethod
-	@NotNull AvailObject o_MapBinAtHashPutLevelCanDestroy (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject key,
+	AvailObject o_MapBinAtHashPutLevelCanDestroy (
+		final AvailObject object,
+		final AvailObject key,
 		final int keyHash,
-		final @NotNull AvailObject value,
+		final AvailObject value,
 		final byte myLevel,
 		final boolean canDestroy)
 	{
@@ -395,9 +395,9 @@ extends MapBinDescriptor
 	}
 
 	@Override
-	@NotNull AvailObject o_MapBinAtHash (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject key,
+	AvailObject o_MapBinAtHash (
+		final AvailObject object,
+		final AvailObject key,
 		final int keyHash)
 	{
 		// First, grab the appropriate 5 bits from the hash.
@@ -421,9 +421,9 @@ extends MapBinDescriptor
 	 * bin.  The bin may be modified if it's mutable and canDestroy.
 	 */
 	@Override @AvailMethod
-	@NotNull AvailObject o_MapBinRemoveKeyHashCanDestroy (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject key,
+	AvailObject o_MapBinRemoveKeyHashCanDestroy (
+		final AvailObject object,
+		final AvailObject key,
 		final int keyHash,
 		final boolean canDestroy)
 	{
@@ -529,8 +529,8 @@ extends MapBinDescriptor
 	 */
 	@Override @AvailMethod
 	boolean o_IsBinSubsetOf (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject potentialSuperset)
+		final AvailObject object,
+		final AvailObject potentialSuperset)
 	{
 		final int size = object.variableObjectSlotsCount();
 		for (int index = 1; index <= size; index++)
@@ -546,7 +546,7 @@ extends MapBinDescriptor
 
 	@Override
 	boolean o_IsHashedMapBin (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return true;
 	}
@@ -554,7 +554,7 @@ extends MapBinDescriptor
 
 	@Override
 	int o_MapBinValuesHash (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		int valuesHash = object.slot(VALUES_HASH_OR_ZERO);
 		if (valuesHash == 0)
@@ -607,7 +607,7 @@ extends MapBinDescriptor
 		 * @param bin The bin or null object at which to begin enumerating.
 		 */
 		private void followLeftmost (
-			final @NotNull AvailObject bin)
+			final AvailObject bin)
 		{
 			if (bin.equalsNull())
 			{
@@ -690,8 +690,8 @@ extends MapBinDescriptor
 	}
 
 	@Override
-	public @NotNull MapIterable o_MapBinIterable (
-		final @NotNull AvailObject object)
+	public MapIterable o_MapBinIterable (
+		final AvailObject object)
 	{
 		return new HashedMapBinIterable(object);
 	}
@@ -701,7 +701,7 @@ extends MapBinDescriptor
 	 * @param bitVector
 	 * @return
 	 */
-	static @NotNull AvailObject createLevelBitVector (
+	static AvailObject createLevelBitVector (
 		final byte myLevel,
 		final int bitVector)
 	{

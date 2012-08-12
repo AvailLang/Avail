@@ -56,9 +56,9 @@ public class P_513_PojoArraySet extends Primitive
 		3, CanFold);
 
 	@Override
-	public @NotNull Result attempt (
-		final @NotNull List<AvailObject> args,
-		final @NotNull Interpreter interpreter)
+	public Result attempt (
+		final List<AvailObject> args,
+		final Interpreter interpreter)
 	{
 		assert args.size() == 3;
 		final AvailObject pojo = args.get(0);

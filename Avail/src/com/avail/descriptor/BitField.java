@@ -107,7 +107,7 @@ implements Comparable<BitField>
 	 *            The number of bits this {@code BitField} occupies.
 	 */
 	public BitField (
-		final @NotNull IntegerSlotsEnum integerSlot,
+		final IntegerSlotsEnum integerSlot,
 		final int shift,
 		final int bits)
 	{
@@ -126,10 +126,10 @@ implements Comparable<BitField>
 	}
 
 	@Override
-	public int compareTo (final @NotNull BitField bitField)
+	public int compareTo (final @Nullable BitField bitField)
 	{
 		assert integerSlot == bitField.integerSlot
-		: "Bit fields of different slots are incomparable";
+			: "Bit fields of different slots are incomparable";
 		// Order by descending shift values.
 		return bitField.shift - shift;
 	}

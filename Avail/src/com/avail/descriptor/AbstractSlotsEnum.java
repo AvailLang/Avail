@@ -32,6 +32,8 @@
 
 package com.avail.descriptor;
 
+import com.avail.annotations.Nullable;
+
 /**
  * The {@code AbstractSlotsEnum} is an interface that helps ensure that object
  * representations and access are consistent and correct.  In particular, some
@@ -55,7 +57,7 @@ public interface AbstractSlotsEnum
 	 *
 	 * @return A string that names this enumeration value.
 	 */
-	public String name();
+	public @Nullable String name ();
 
 	/**
 	 * Answer an integer that identifies this enumeration value uniquely within
@@ -65,5 +67,5 @@ public interface AbstractSlotsEnum
 	 *
 	 * @return The enumeration value's ordinal number.
 	 */
-	public int ordinal();
+	public int ordinal ();
 }

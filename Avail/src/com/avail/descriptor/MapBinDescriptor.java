@@ -62,38 +62,38 @@ extends Descriptor
 
 	@Override @AvailMethod
 	int o_MapBinKeysHash (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.slot(IntegerSlots.KEYS_HASH);
 	}
 
 	@Override @AvailMethod
 	abstract int o_MapBinValuesHash (
-		final @NotNull AvailObject object);
+		final AvailObject object);
 
 	@Override
 	boolean o_IsHashedMapBin (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return false;
 	}
 
 	@Override
 	abstract AvailObject o_MapBinAtHash (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject key,
+		final AvailObject object,
+		final AvailObject key,
 		final int keyHash);
 
 	@Override
 	public boolean o_ShowValueInNameForDebugger (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return false;
 	}
 
 	@Override
-	abstract public @NotNull MapIterable o_MapBinIterable (
-		final @NotNull AvailObject object);
+	abstract public MapIterable o_MapBinIterable (
+		final AvailObject object);
 
 	/**
 	 * The level of my objects in their enclosing bin trees.

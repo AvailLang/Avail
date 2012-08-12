@@ -32,7 +32,7 @@
 
 package com.avail.builder;
 
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 import com.avail.descriptor.ModuleDescriptor;
 
 /**
@@ -50,20 +50,20 @@ import com.avail.descriptor.ModuleDescriptor;
 public class ModuleName
 {
 	/** The fully-qualified module name. */
-	private final @NotNull String qualifiedName;
+	private final String qualifiedName;
 
 	/**
 	 * Answer the fully-qualified module name.
 	 *
 	 * @return The fully-qualified module name.
 	 */
-	public @NotNull String qualifiedName ()
+	public String qualifiedName ()
 	{
 		return qualifiedName;
 	}
 
 	/** The logical root name of the {@linkplain ModuleName module name}. */
-	private final @NotNull String moduleRoot;
+	private final String moduleRoot;
 
 	/**
 	 * Answer the logical root name of the {@linkplain ModuleName module name}.
@@ -71,7 +71,7 @@ public class ModuleName
 	 * @return the moduleRoot
 	 *         The logical root name of the {@linkplain ModuleName module name}.
 	 */
-	public @NotNull String moduleRoot ()
+	public String moduleRoot ()
 	{
 		return moduleRoot;
 	}
@@ -80,7 +80,7 @@ public class ModuleName
 	 * The fully-qualified package name of the {@linkplain ModuleName module
 	 * name}.
 	 */
-	private final @NotNull String packageName;
+	private final String packageName;
 
 	/**
 	 * Answer the fully-qualified package name of the {@linkplain ModuleName
@@ -89,7 +89,7 @@ public class ModuleName
 	 * @return The fully-qualified package name of the {@linkplain ModuleName
 	 *         module name}.
 	 */
-	public @NotNull String packageName ()
+	public String packageName ()
 	{
 		return packageName;
 	}
@@ -98,7 +98,7 @@ public class ModuleName
 	 * The local name of the {@linkplain ModuleDescriptor module} referenced by
 	 * this {@linkplain ModuleName module name}.
 	 */
-	private final @NotNull String localName;
+	private final String localName;
 
 	/**
 	 * Answer the local name of the {@linkplain ModuleDescriptor module}
@@ -107,7 +107,7 @@ public class ModuleName
 	 * @return The local name of the {@linkplain ModuleDescriptor module}
 	 *         referenced by this {@linkplain ModuleName module name}.
 	 */
-	public @NotNull String localName ()
+	public String localName ()
 	{
 		return localName;
 	}
@@ -120,7 +120,7 @@ public class ModuleName
 	 * @throws IllegalArgumentException
 	 *         If the argument was malformed.
 	 */
-	public ModuleName (final @NotNull String qualifiedName)
+	public ModuleName (final String qualifiedName)
 		throws IllegalArgumentException
 	{
 		this.qualifiedName = qualifiedName;
@@ -156,15 +156,15 @@ public class ModuleName
 	 *         If the argument was malformed.
 	 */
 	public ModuleName (
-			final @NotNull String packageName,
-			final @NotNull String localName)
+			final String packageName,
+			final String localName)
 		throws IllegalArgumentException
 	{
 		this(packageName + "/" + localName);
 	}
 
 	@Override
-	public boolean equals (final Object obj)
+	public boolean equals (final @Nullable Object obj)
 	{
 		if (obj instanceof ModuleName)
 		{

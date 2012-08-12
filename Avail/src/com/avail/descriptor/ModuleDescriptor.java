@@ -214,14 +214,14 @@ extends Descriptor
 
 
 	@Override @AvailMethod
-	boolean o_IsSystemModule (final @NotNull AvailObject object)
+	boolean o_IsSystemModule (final AvailObject object)
 	{
 		return object.slot(IS_SYSTEM_MODULE) != 0;
 	}
 
 	@Override @AvailMethod
 	void o_IsSystemModule (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final boolean isSystemModule)
 	{
 		object.setSlot(
@@ -230,7 +230,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	int o_AllocateFromCounter (final @NotNull AvailObject object)
+	int o_AllocateFromCounter (final AvailObject object)
 	{
 		final int value = object.slot(COUNTER);
 		object.setSlot(COUNTER, value + 1);
@@ -239,9 +239,9 @@ extends Descriptor
 
 	@Override @AvailMethod
 	void o_AddGrammaticalMessageRestrictions (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject methodName,
-		final @NotNull AvailObject illegalArgMsgs)
+		final AvailObject object,
+		final AvailObject methodName,
+		final AvailObject illegalArgMsgs)
 	{
 		assert !object.grammaticalRestrictions().hasKey(methodName)
 		: "Don't declare multiple restrictions on same message separately"
@@ -260,9 +260,9 @@ extends Descriptor
 
 	@Override @AvailMethod
 	void o_AddMethodImplementation (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject methodName,
-		final @NotNull AvailObject implementation)
+		final AvailObject object,
+		final AvailObject methodName,
+		final AvailObject implementation)
 	{
 		AvailObject set;
 		if (object.methods().hasKey(methodName))
@@ -284,9 +284,9 @@ extends Descriptor
 
 	@Override @AvailMethod
 	void o_AddConstantBinding (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject name,
-		final @NotNull AvailObject constantBinding)
+		final AvailObject object,
+		final AvailObject name,
+		final AvailObject constantBinding)
 	{
 		assert constantBinding.kind().isSubtypeOf(
 			VariableTypeDescriptor.mostGeneralType());
@@ -301,9 +301,9 @@ extends Descriptor
 
 	@Override @AvailMethod
 	void o_AddVariableBinding (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject name,
-		final @NotNull AvailObject variableBinding)
+		final AvailObject object,
+		final AvailObject name,
+		final AvailObject variableBinding)
 	{
 		assert variableBinding.kind().isSubtypeOf(
 			VariableTypeDescriptor.mostGeneralType());
@@ -318,9 +318,9 @@ extends Descriptor
 
 	@Override @AvailMethod
 	void o_AtNameAdd (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject stringName,
-		final @NotNull AvailObject trueName)
+		final AvailObject object,
+		final AvailObject stringName,
+		final AvailObject trueName)
 	{
 		//  Add the trueName to the current public scope.
 
@@ -347,9 +347,9 @@ extends Descriptor
 
 	@Override @AvailMethod
 	void o_AtNewNamePut (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject stringName,
-		final @NotNull AvailObject trueName)
+		final AvailObject object,
+		final AvailObject stringName,
+		final AvailObject trueName)
 	{
 		//  Set up this true name, which is local to the module.
 
@@ -368,9 +368,9 @@ extends Descriptor
 
 	@Override @AvailMethod
 	void o_AtPrivateNameAdd (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject stringName,
-		final @NotNull AvailObject trueName)
+		final AvailObject object,
+		final AvailObject stringName,
+		final AvailObject trueName)
 	{
 		//  Add the trueName to the current private scope.
 
@@ -397,8 +397,8 @@ extends Descriptor
 
 	@Override @AvailMethod
 	boolean o_NameVisible (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject trueName)
+		final AvailObject object,
+		final AvailObject trueName)
 	{
 		//  Check if the given trueName is visible in this module.
 
@@ -422,9 +422,9 @@ extends Descriptor
 	 */
 	@Override @AvailMethod
 	void o_ResolvedForwardWithName (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject forwardImplementation,
-		final @NotNull AvailObject methodName)
+		final AvailObject object,
+		final AvailObject forwardImplementation,
+		final AvailObject methodName)
 	{
 		assert forwardImplementation.isInstanceOfKind(FORWARD_SIGNATURE.o());
 		AvailObject methods = object.slot(METHODS);
@@ -453,8 +453,8 @@ extends Descriptor
 	 */
 	@Override @AvailMethod
 	AvailObject o_TrueNamesForStringName (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject stringName)
+		final AvailObject object,
+		final AvailObject stringName)
 	{
 		assert stringName.isTuple();
 		if (object.newNames().hasKey(stringName))
@@ -485,92 +485,92 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_Name (
-		final @NotNull AvailObject object)
+	AvailObject o_Name (
+		final AvailObject object)
 	{
 		return object.slot(NAME);
 	}
 
 	@Override @AvailMethod
 	void o_Versions (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
+		final AvailObject object,
+		final AvailObject value)
 	{
 		object.setSlot(VERSIONS, value);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_ConstantBindings (
-		final @NotNull AvailObject object)
+	AvailObject o_ConstantBindings (
+		final AvailObject object)
 	{
 		return object.slot(CONSTANT_BINDINGS);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_FilteredBundleTree (
-		final @NotNull AvailObject object)
+	AvailObject o_FilteredBundleTree (
+		final AvailObject object)
 	{
 		return object.slot(FILTERED_BUNDLE_TREE);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_Methods (
-		final @NotNull AvailObject object)
+	AvailObject o_Methods (
+		final AvailObject object)
 	{
 		return object.slot(METHODS);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_Versions (
-		final @NotNull AvailObject object)
+	AvailObject o_Versions (
+		final AvailObject object)
 	{
 		return object.slot(VERSIONS);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_Names (
-		final @NotNull AvailObject object)
+	AvailObject o_Names (
+		final AvailObject object)
 	{
 		return object.slot(NAMES);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_NewNames (
-		final @NotNull AvailObject object)
+	AvailObject o_NewNames (
+		final AvailObject object)
 	{
 		return object.slot(NEW_NAMES);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_PrivateNames (
-		final @NotNull AvailObject object)
+	AvailObject o_PrivateNames (
+		final AvailObject object)
 	{
 		return object.slot(PRIVATE_NAMES);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_GrammaticalRestrictions (
-		final @NotNull AvailObject object)
+	AvailObject o_GrammaticalRestrictions (
+		final AvailObject object)
 	{
 		return object.slot(GRAMMATICAL_RESTRICTIONS);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_VariableBindings (
-		final @NotNull AvailObject object)
+	AvailObject o_VariableBindings (
+		final AvailObject object)
 	{
 		return object.slot(VARIABLE_BINDINGS);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_VisibleNames (
-		final @NotNull AvailObject object)
+	AvailObject o_VisibleNames (
+		final AvailObject object)
 	{
 		return object.slot(VISIBLE_NAMES);
 	}
 
 	@Override boolean allowsImmutableToMutableReferenceInField (
-		final @NotNull AbstractSlotsEnum e)
+		final AbstractSlotsEnum e)
 	{
 		return e == NEW_NAMES
 			|| e == NAMES
@@ -600,8 +600,8 @@ extends Descriptor
 	 */
 	@Override @AvailMethod
 	void o_BuildFilteredBundleTreeFrom (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject bundleTree)
+		final AvailObject object,
+		final AvailObject bundleTree)
 	{
 		final AvailObject filteredBundleTree =
 			MessageBundleTreeDescriptor.newPc(1);
@@ -615,7 +615,7 @@ extends Descriptor
 
 	@Override @AvailMethod
 	void o_CleanUpAfterCompile (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		object.setSlot(
 			METHODS,
@@ -639,30 +639,30 @@ extends Descriptor
 
 	@Override @AvailMethod
 	boolean o_Equals (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+		final AvailObject object,
+		final AvailObject another)
 	{
 		// Compare by address (identity).
 		return another.traversed().sameAddressAs(object);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_Kind (final @NotNull AvailObject object)
+	AvailObject o_Kind (final AvailObject object)
 	{
 		return MODULE.o();
 	}
 
 	@Override @AvailMethod
 	int o_Hash (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.name().hash() * 173 ^ 0xDF383F8C;
 	}
 
 	@Override @AvailMethod
 	void o_RemoveFrom (
-		final @NotNull AvailObject object,
-		final @NotNull L2Interpreter anInterpreter)
+		final AvailObject object,
+		final L2Interpreter anInterpreter)
 	{
 		for (final MapDescriptor.Entry entry : object.methods().mapIterable())
 		{
@@ -701,9 +701,9 @@ extends Descriptor
 
 	@Override @AvailMethod
 	void o_AddTypeRestriction (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject methodName,
-		final @NotNull AvailObject typeRestrictionFunction)
+		final AvailObject object,
+		final AvailObject methodName,
+		final AvailObject typeRestrictionFunction)
 	{
 		AvailObject typeRestrictions = object.slot(
 			TYPE_RESTRICTION_FUNCTIONS);
@@ -726,9 +726,9 @@ extends Descriptor
 
 	@Override @AvailMethod
 	void o_AddSeal (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject methodName,
-		final @NotNull AvailObject sealSignature)
+		final AvailObject object,
+		final AvailObject methodName,
+		final AvailObject sealSignature)
 	{
 		AvailObject seals = object.slot(SEALS);
 		AvailObject tuple;
@@ -747,14 +747,14 @@ extends Descriptor
 
 	@Override
 	public boolean o_ShowValueInNameForDebugger (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return false;
 	}
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final StringBuilder builder,
 		final List<AvailObject> recursionList,
 		final int indent)
@@ -770,12 +770,12 @@ extends Descriptor
 	 *        The {@linkplain StringDescriptor name} of the module.
 	 * @return The new module.
 	 */
-	public static @NotNull AvailObject newModule (
-		final @NotNull AvailObject moduleName)
+	public static AvailObject newModule (
+		final AvailObject moduleName)
 	{
 		final AvailObject emptyMap = MapDescriptor.empty();
 		final AvailObject emptySet = SetDescriptor.empty();
-		final @NotNull AvailObject object = mutable().create();
+		final AvailObject object = mutable().create();
 		object.setSlot(NAME, moduleName);
 		object.setSlot(VERSIONS, emptySet);
 		object.setSlot(NEW_NAMES, emptyMap);

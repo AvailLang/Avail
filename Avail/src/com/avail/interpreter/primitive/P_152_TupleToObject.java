@@ -58,8 +58,8 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final @NotNull List<AvailObject> args,
-		final @NotNull Interpreter interpreter)
+		final List<AvailObject> args,
+		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
 		final AvailObject tuple = args.get(0);
@@ -68,7 +68,7 @@ extends Primitive
 	}
 
 	@Override
-	protected @NotNull AvailObject privateBlockTypeRestriction ()
+	protected AvailObject privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

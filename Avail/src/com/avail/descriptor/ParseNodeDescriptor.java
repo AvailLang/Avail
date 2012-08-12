@@ -67,20 +67,20 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	 *         that will be produced by this parse node.
 	 */
 	@Override @AvailMethod
-	abstract @NotNull AvailObject o_ExpressionType (
-		final @NotNull AvailObject object);
+	abstract AvailObject o_ExpressionType (
+		final AvailObject object);
 
 	@Override @AvailMethod
-	final @NotNull AvailObject o_Kind (
-		final @NotNull AvailObject object)
+	final AvailObject o_Kind (
+		final AvailObject object)
 	{
 		return object.parseNodeKind().create(object.expressionType());
 	}
 
 	@Override @AvailMethod
 	boolean o_IsInstanceOfKind (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aType)
+		final AvailObject object,
+		final AvailObject aType)
 	{
 		if (PARSE_NODE.mostGeneralType().isSubtypeOf(aType))
 		{
@@ -101,8 +101,8 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	 * always the {@link NullDescriptor#nullObject() void} object.
 	 */
 	@Override @AvailMethod
-	@NotNull AvailObject o_ApparentSendName (
-		final @NotNull AvailObject object)
+	AvailObject o_ApparentSendName (
+		final AvailObject object)
 	{
 		return NullDescriptor.nullObject();
 	}
@@ -112,7 +112,7 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	* AbstractDescriptor#o_Hash(AvailObject) hash}.
 	 */
 	@Override @AvailMethod
-	abstract int o_Hash (final @NotNull AvailObject object);
+	abstract int o_Hash (final AvailObject object);
 
 	/**
 	 * {@linkplain ParseNodeDescriptor parse nodes} must implement {@link
@@ -120,8 +120,8 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	 */
 	@Override @AvailMethod
 	abstract boolean o_Equals (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another);
+		final AvailObject object,
+		final AvailObject another);
 
 	/**
 	 * Emit the effect of this node.  By default that means to emit the value of
@@ -132,8 +132,8 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	 */
 	@Override @AvailMethod
 	void o_EmitEffectOn (
-		final @NotNull AvailObject object,
-		final @NotNull AvailCodeGenerator codeGenerator)
+		final AvailObject object,
+		final AvailCodeGenerator codeGenerator)
 	{
 		object.emitValueOn(codeGenerator);
 		codeGenerator.emitPop();
@@ -148,8 +148,8 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	 */
 	@Override @AvailMethod
 	abstract void o_EmitValueOn (
-		final @NotNull AvailObject object,
-		final @NotNull AvailCodeGenerator codeGenerator);
+		final AvailObject object,
+		final AvailCodeGenerator codeGenerator);
 
 
 	/**
@@ -186,7 +186,7 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	 */
 	@Override @AvailMethod
 	AvailObject o_CopyMutableParseNode (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		if (isMutable())
 		{
@@ -240,7 +240,7 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	 */
 	@Override @AvailMethod
 	abstract void o_ChildrenMap (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final Transformer1<AvailObject, AvailObject> aBlock);
 
 	/**
@@ -255,7 +255,7 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	 */
 	@Override @AvailMethod
 	abstract void o_ChildrenDo (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final Continuation1<AvailObject> aBlock);
 
 	/**
@@ -269,12 +269,12 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	 */
 	@Override @AvailMethod
 	abstract void o_ValidateLocally (
-		final @NotNull AvailObject object,
-		final AvailObject parent);
+		final AvailObject object,
+		final @Nullable AvailObject parent);
 
 	@Override @AvailMethod
 	void o_FlattenStatementsInto (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final List<AvailObject> accumulatedStatements)
 	{
 		accumulatedStatements.add(object);
@@ -289,7 +289,7 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	 */
 	@Override @AvailMethod
 	abstract ParseNodeKind o_ParseNodeKind (
-		final @NotNull AvailObject object);
+		final AvailObject object);
 
 	@Override int maximumIndent ()
 	{
@@ -298,7 +298,7 @@ public abstract class ParseNodeDescriptor extends Descriptor
 
 	@Override
 	public boolean o_ShowValueInNameForDebugger (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return false;
 	}
@@ -313,24 +313,25 @@ public abstract class ParseNodeDescriptor extends Descriptor
 	 * @param aBlock
 	 *        What to do with each descendant.
 	 * @param parentNode
-	 *        This node's parent.
+	 *        This node's parent, or {@code null}.
 	 * @param outerNodes
 	 *        The list of {@linkplain BlockNodeDescriptor blocks} surrounding
 	 *        this node, from outermost to innermost.
 	 */
 	public static void treeDoWithParent (
-		final @NotNull AvailObject object,
-		final @NotNull
+		final AvailObject object,
+		final
 			Continuation3<AvailObject, AvailObject, List<AvailObject>> aBlock,
-		final @NotNull AvailObject parentNode,
-		final @NotNull List<AvailObject> outerNodes)
+		final @Nullable AvailObject parentNode,
+		final List<AvailObject> outerNodes)
 	{
 		object.childrenDo(
 			new Continuation1<AvailObject>()
 			{
 				@Override
-				public void value (final AvailObject child)
+				public void value (final @Nullable AvailObject child)
 				{
+					assert child != null;
 					assert child.isInstanceOfKind(PARSE_NODE.mostGeneralType());
 					treeDoWithParent(
 						child,

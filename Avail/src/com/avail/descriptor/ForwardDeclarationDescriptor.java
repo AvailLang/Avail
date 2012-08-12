@@ -75,42 +75,42 @@ extends ImplementationDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_BodySignature (final @NotNull AvailObject object)
+	AvailObject o_BodySignature (final AvailObject object)
 	{
 		return object.slot(BODY_SIGNATURE);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_Signature (final @NotNull AvailObject object)
+	AvailObject o_Signature (final AvailObject object)
 	{
 		return object.slot(BODY_SIGNATURE);
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final @NotNull AvailObject object)
+	int o_Hash (final AvailObject object)
 	{
 		return object.slot(BODY_SIGNATURE).hash() * 19
 			^ object.slot(METHOD_NAME).hash() * 757;
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_Kind (
-		final @NotNull AvailObject object)
+	AvailObject o_Kind (
+		final AvailObject object)
 	{
 		return Types.FORWARD_SIGNATURE.o();
 	}
 
 	@Override @AvailMethod
-	boolean o_IsForward (final @NotNull AvailObject object)
+	boolean o_IsForward (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override
 	void printObjectOnAvoidingIndent (
-		final @NotNull AvailObject object,
-		final @NotNull StringBuilder builder,
-		final @NotNull List<AvailObject> recursionList,
+		final AvailObject object,
+		final StringBuilder builder,
+		final List<AvailObject> recursionList,
 		final int indent)
 	{
 		object.slot(METHOD_NAME).printOnAvoidingIndent(

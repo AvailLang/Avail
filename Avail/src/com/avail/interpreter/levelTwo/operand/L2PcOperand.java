@@ -60,7 +60,7 @@ public class L2PcOperand extends L2Operand
 	 * @param label The target label.
 	 */
 	public L2PcOperand (
-		final @NotNull L2Instruction label)
+		final L2Instruction label)
 	{
 		assert label.operation == L2_LABEL.instance;
 		this.label = label;
@@ -80,7 +80,7 @@ public class L2PcOperand extends L2Operand
 
 	@Override
 	public L2PcOperand transformRegisters (
-		final @NotNull Transformer2<L2Register, L2OperandType, L2Register>
+		final Transformer2<L2Register, L2OperandType, L2Register>
 			transformer)
 	{
 		return this;
@@ -99,7 +99,7 @@ public class L2PcOperand extends L2Operand
 
 	@Override
 	public void emitOn (
-		final @NotNull L2CodeGenerator codeGenerator)
+		final L2CodeGenerator codeGenerator)
 	{
 		codeGenerator.emitWordcodeOffsetOf(label);
 	}

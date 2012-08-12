@@ -51,7 +51,7 @@ public class L2SelectorOperand extends L2Operand
 	/**
 	 * The actual {@linkplain MethodDescriptor method}.
 	 */
-	public final @NotNull AvailObject method;
+	public final AvailObject method;
 
 	/**
 	 * Construct a new {@link L2SelectorOperand} with the specified {@linkplain
@@ -60,7 +60,7 @@ public class L2SelectorOperand extends L2Operand
 	 * @param method The method to invoke.
 	 */
 	public L2SelectorOperand (
-		final @NotNull AvailObject method)
+		final AvailObject method)
 	{
 		this.method = method;
 	}
@@ -79,7 +79,7 @@ public class L2SelectorOperand extends L2Operand
 
 	@Override
 	public L2SelectorOperand transformRegisters (
-		final @NotNull Transformer2<L2Register, L2OperandType, L2Register>
+		final Transformer2<L2Register, L2OperandType, L2Register>
 			transformer)
 	{
 		return this;
@@ -87,7 +87,7 @@ public class L2SelectorOperand extends L2Operand
 
 	@Override
 	public void emitOn (
-		final @NotNull L2CodeGenerator codeGenerator)
+		final L2CodeGenerator codeGenerator)
 	{
 		codeGenerator.emitLiteral(method);
 	}

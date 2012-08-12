@@ -53,9 +53,9 @@ public class P_319_DoubleTruncatedAsInteger extends Primitive
 		1, CanFold, CannotFail);
 
 	@Override
-	public @NotNull Result attempt (
-		final @NotNull List<AvailObject> args,
-		final @NotNull Interpreter interpreter)
+	public Result attempt (
+		final List<AvailObject> args,
+		final Interpreter interpreter)
 	{
 		final AvailObject a = args.get(0);
 		assert args.size() == 1;
@@ -91,7 +91,7 @@ public class P_319_DoubleTruncatedAsInteger extends Primitive
 	}
 
 	@Override
-	protected @NotNull AvailObject privateBlockTypeRestriction ()
+	protected AvailObject privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

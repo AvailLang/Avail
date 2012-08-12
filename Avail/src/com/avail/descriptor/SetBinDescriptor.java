@@ -58,7 +58,7 @@ extends Descriptor
 
 	@Override @AvailMethod
 	void o_BinHash (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int value)
 	{
 		object.setSlot(IntegerSlots.BIN_HASH, value);
@@ -66,13 +66,13 @@ extends Descriptor
 
 	@Override @AvailMethod
 	int o_BinHash (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.slot(IntegerSlots.BIN_HASH);
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSetBin (final @NotNull AvailObject object)
+	boolean o_IsSetBin (final AvailObject object)
 	{
 		return true;
 	}
@@ -84,12 +84,12 @@ extends Descriptor
 	 */
 	@Override @AvailMethod
 	abstract
-	@NotNull boolean o_BinElementsAreAllInstancesOfKind (
-		final @NotNull AvailObject object, AvailObject kind);
+	boolean o_BinElementsAreAllInstancesOfKind (
+		final AvailObject object, AvailObject kind);
 
 	@Override
 	public boolean o_ShowValueInNameForDebugger (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return false;
 	}

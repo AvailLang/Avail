@@ -96,7 +96,7 @@ public class Serializer
 	/**
 	 * The {@link OutputStream} on which to write the serialized objects.
 	 */
-	final @NotNull OutputStream output;
+	final OutputStream output;
 
 	/**
 	 * Output an unsigned byte.  It must be in the range 0 ≤ n ≤ 255.
@@ -164,7 +164,7 @@ public class Serializer
 	 * @return The object's zero-based index in {@code encounteredObjects}.
 	 */
 	SerializerInstruction instructionForObject (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return encounteredObjects.get(object);
 	}
@@ -182,7 +182,7 @@ public class Serializer
 	 *            object.
 	 */
 	int indexOfExistingObject (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		final SerializerInstruction instruction =
 			encounteredObjects.get(object);
@@ -200,7 +200,7 @@ public class Serializer
 	 * @return The object's zero-based index in {@code encounteredObjects}.
 	 */
 	static int indexOfSpecialObject (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		final Integer index = specialObjects.get(object);
 		if (index == null)
@@ -219,7 +219,7 @@ public class Serializer
 	 * @return The object's zero-based index in {@code encounteredObjects}.
 	 */
 	static int indexOfSpecialAtom (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		final Integer index = specialAtoms.get(object);
 		if (index == null)
@@ -250,7 +250,7 @@ public class Serializer
 	 * @param object The object to trace.
 	 */
 	void traceOne (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		final SerializerInstruction instruction;
 		if (encounteredObjects.containsKey(object))
@@ -409,7 +409,7 @@ public class Serializer
 	 * @param output An {@link OutputStream} on which to write the module.
 	 */
 	public Serializer (
-		final @NotNull OutputStream output)
+		final OutputStream output)
 	{
 		this.output = output;
 	}
@@ -421,7 +421,7 @@ public class Serializer
 	 * @param object An object to serialize.
 	 */
 	public void serialize (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		traceOne(object);
 		while (!workStack.isEmpty())

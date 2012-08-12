@@ -375,7 +375,7 @@ public enum L1Operation
 	/**
 	 * This operation's collection of {@linkplain L1OperandType operand types}.
 	 */
-	private final @NotNull L1OperandType [] operandTypes;
+	private final L1OperandType [] operandTypes;
 
 	/**
 	 * Return this operation's collection of {@linkplain L1OperandType operand
@@ -401,7 +401,7 @@ public enum L1Operation
 	 */
 	L1Operation (
 		final int ordinalCheck,
-		final @NotNull L1OperandType ... operandTypes)
+		final L1OperandType ... operandTypes)
 	{
 		assert ordinalCheck == ordinal();
 		this.operandTypes = operandTypes;
@@ -422,7 +422,7 @@ public enum L1Operation
 	 * @param stream The {@link ByteArrayOutputStream} on which to write the
 	 *               nybble(s) representing this operation.
 	 */
-	public void writeTo (final @NotNull ByteArrayOutputStream stream)
+	public void writeTo (final ByteArrayOutputStream stream)
 	{
 		final int nybble = ordinal();
 		if (nybble < 16)

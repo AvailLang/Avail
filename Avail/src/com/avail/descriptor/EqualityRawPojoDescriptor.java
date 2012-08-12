@@ -65,7 +65,7 @@ extends RawPojoDescriptor
 	}
 
 	@Override boolean allowsImmutableToMutableReferenceInField (
-		final @NotNull AbstractSlotsEnum e)
+		final AbstractSlotsEnum e)
 	{
 		// Indices are allowed to move because of compaction (triggered by the
 		// Java garbage collector).
@@ -75,16 +75,16 @@ extends RawPojoDescriptor
 
 	@Override @AvailMethod
 	boolean o_Equals (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+		final AvailObject object,
+		final AvailObject another)
 	{
 		return another.equalsEqualityRawPojo(object);
 	}
 
 	@Override @AvailMethod
 	boolean o_EqualsEqualityRawPojo (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aRawPojo)
+		final AvailObject object,
+		final AvailObject aRawPojo)
 	{
 		pojosLock.lock();
 		try
@@ -112,14 +112,14 @@ extends RawPojoDescriptor
 
 	@Override @AvailMethod
 	boolean o_EqualsRawPojo (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aRawPojo)
+		final AvailObject object,
+		final AvailObject aRawPojo)
 	{
 		return false;
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final @NotNull AvailObject object)
+	int o_Hash (final AvailObject object)
 	{
 		// Objects eligible for semantic equality comparison must satisfy the
 		// contract for Object.hashCode().
@@ -127,8 +127,8 @@ extends RawPojoDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_MakeImmutable (
-		final @NotNull AvailObject object)
+	AvailObject o_MakeImmutable (
+		final AvailObject object)
 	{
 		object.descriptor = immutable;
 		return object;
@@ -136,9 +136,9 @@ extends RawPojoDescriptor
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-		final @NotNull AvailObject object,
-		final @NotNull StringBuilder builder,
-		final @NotNull List<AvailObject> recursionList,
+		final AvailObject object,
+		final StringBuilder builder,
+		final List<AvailObject> recursionList,
 		final int indent)
 	{
 		builder.append("equality raw pojo@");
@@ -160,7 +160,7 @@ extends RawPojoDescriptor
 	}
 
 	/** The mutable {@link EqualityRawPojoDescriptor}. */
-	private static final @NotNull EqualityRawPojoDescriptor mutable =
+	private static final EqualityRawPojoDescriptor mutable =
 		new EqualityRawPojoDescriptor(true);
 
 	/**
@@ -168,12 +168,12 @@ extends RawPojoDescriptor
 	 *
 	 * @return The mutable {@code EqualityRawPojoDescriptor}.
 	 */
-	public static @NotNull EqualityRawPojoDescriptor mutable ()
+	public static EqualityRawPojoDescriptor mutable ()
 	{
 		return mutable;
 	}
 
 	/** The immutable {@link EqualityRawPojoDescriptor}. */
-	private static final @NotNull EqualityRawPojoDescriptor immutable =
+	private static final EqualityRawPojoDescriptor immutable =
 		new EqualityRawPojoDescriptor(false);
 }

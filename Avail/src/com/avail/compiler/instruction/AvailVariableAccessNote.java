@@ -32,6 +32,7 @@
 
 package com.avail.compiler.instruction;
 
+import com.avail.annotations.Nullable;
 import com.avail.descriptor.BlockNodeDescriptor;
 
 
@@ -51,13 +52,13 @@ public class AvailVariableAccessNote
 	 * The most recently encountered instruction, if any, that pushes the
 	 * variable itself onto the stack.
 	 */
-	AvailPushVariable _previousPush;
+	AvailPushVariable previousPush;
 
 	/**
 	 * The most recently encountered instruction, if any, that pushes the
 	 * variable's value onto the stack.
 	 */
-	AvailGetVariable _previousGet;
+	AvailGetVariable previousGet;
 
 
 	/**
@@ -69,18 +70,20 @@ public class AvailVariableAccessNote
 	 */
 	public AvailGetVariable previousGet ()
 	{
-		return _previousGet;
+		return previousGet;
 	}
 
 	/**
 	 * Record a get instruction for the variable being tracked by this {@code
 	 * AvailVariableAccessNote}.
 	 *
-	 * @param aGetInstruction The {@link AvailGetVariable} that was encountered.
+	 * @param aGetInstruction
+	 *        The {@link AvailGetVariable} that was encountered, or {@code
+	 *        null}.
 	 */
-	public void previousGet (final AvailGetVariable aGetInstruction)
+	public void previousGet (final @Nullable AvailGetVariable aGetInstruction)
 	{
-		_previousGet = aGetInstruction;
+		previousGet = aGetInstruction;
 	}
 
 	/**
@@ -92,7 +95,7 @@ public class AvailVariableAccessNote
 	 */
 	public AvailPushVariable previousPush ()
 	{
-		return _previousPush;
+		return previousPush;
 	}
 
 	/**
@@ -104,6 +107,6 @@ public class AvailVariableAccessNote
 	 */
 	public void previousPush (final AvailPushVariable aPushInstruction)
 	{
-		_previousPush = aPushInstruction;
+		previousPush = aPushInstruction;
 	}
 }

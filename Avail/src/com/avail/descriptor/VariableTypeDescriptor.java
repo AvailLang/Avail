@@ -63,24 +63,24 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_ReadType (
-		final @NotNull AvailObject object)
+	AvailObject o_ReadType (
+		final AvailObject object)
 	{
 		return object.slot(ObjectSlots.INNER_TYPE);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_WriteType (
-		final @NotNull AvailObject object)
+	AvailObject o_WriteType (
+		final AvailObject object)
 	{
 		return object.slot(ObjectSlots.INNER_TYPE);
 	}
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-		final @NotNull AvailObject object,
-		final @NotNull StringBuilder aStream,
-		final @NotNull List<AvailObject> recursionList,
+		final AvailObject object,
+		final StringBuilder aStream,
+		final List<AvailObject> recursionList,
 		final int indent)
 	{
 		aStream.append("↑");
@@ -92,16 +92,16 @@ extends TypeDescriptor
 
 	@Override @AvailMethod
 	boolean o_Equals (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+		final AvailObject object,
+		final AvailObject another)
 	{
 		return another.equalsVariableType(object);
 	}
 
 	@Override @AvailMethod
 	boolean o_EqualsVariableType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aType)
+		final AvailObject object,
+		final AvailObject aType)
 	{
 		if (object.sameAddressAs(aType))
 		{
@@ -120,7 +120,7 @@ extends TypeDescriptor
 
 	@Override @AvailMethod
 	int o_Hash (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.slot(ObjectSlots.INNER_TYPE).hash()
 			* 17 ^ 0x613E420;
@@ -128,16 +128,16 @@ extends TypeDescriptor
 
 	@Override @AvailMethod
 	boolean o_IsSubtypeOf (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aType)
+		final AvailObject object,
+		final AvailObject aType)
 	{
 		return aType.isSupertypeOfVariableType(object);
 	}
 
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfVariableType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aVariableType)
+		final AvailObject object,
+		final AvailObject aVariableType)
 	{
 		final AvailObject innerType = object.slot(ObjectSlots.INNER_TYPE);
 
@@ -148,9 +148,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeIntersection (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+	AvailObject o_TypeIntersection (
+		final AvailObject object,
+		final AvailObject another)
 	{
 		if (object.isSubtypeOf(another))
 		{
@@ -164,9 +164,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeIntersectionOfVariableType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aVariableType)
+	AvailObject o_TypeIntersectionOfVariableType (
+		final AvailObject object,
+		final AvailObject aVariableType)
 	{
 		final AvailObject innerType = object.slot(ObjectSlots.INNER_TYPE);
 
@@ -179,9 +179,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeUnion (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+	AvailObject o_TypeUnion (
+		final AvailObject object,
+		final AvailObject another)
 	{
 		if (object.isSubtypeOf(another))
 		{
@@ -195,9 +195,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeUnionOfVariableType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aVariableType)
+	AvailObject o_TypeUnionOfVariableType (
+		final AvailObject object,
+		final AvailObject aVariableType)
 	{
 		final AvailObject innerType = object.slot(ObjectSlots.INNER_TYPE);
 
@@ -210,8 +210,8 @@ extends TypeDescriptor
 	}
 
 	@Override
-	@NotNull SerializerOperation o_SerializerOperation (
-		final @NotNull AvailObject object)
+	SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.SIMPLE_VARIABLE_TYPE;
 	}
@@ -225,8 +225,8 @@ extends TypeDescriptor
 	 * @return
 	 *            The new variable type.
 	 */
-	public static @NotNull AvailObject wrapInnerType (
-		final @NotNull AvailObject innerType)
+	public static AvailObject wrapInnerType (
+		final AvailObject innerType)
 	{
 		final AvailObject result = mutable().create();
 		result.setSlot(
@@ -246,9 +246,9 @@ extends TypeDescriptor
 	 *        The write type.
 	 * @return The new variable type.
 	 */
-	public static @NotNull AvailObject fromReadAndWriteTypes (
-		final @NotNull AvailObject readType,
-		final @NotNull AvailObject writeType)
+	public static AvailObject fromReadAndWriteTypes (
+		final AvailObject readType,
+		final AvailObject writeType)
 	{
 		if (readType.equals(writeType))
 		{
@@ -273,7 +273,7 @@ extends TypeDescriptor
 	/**
 	 * The mutable {@link VariableTypeDescriptor}.
 	 */
-	private static final @NotNull VariableTypeDescriptor mutable =
+	private static final VariableTypeDescriptor mutable =
 		new VariableTypeDescriptor(true);
 
 	/**
@@ -281,7 +281,7 @@ extends TypeDescriptor
 	 *
 	 * @return The mutable {@link VariableTypeDescriptor}.
 	 */
-	public static @NotNull VariableTypeDescriptor mutable ()
+	public static VariableTypeDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -289,7 +289,7 @@ extends TypeDescriptor
 	/**
 	 * The immutable {@link VariableTypeDescriptor}.
 	 */
-	private static final @NotNull VariableTypeDescriptor immutable =
+	private static final VariableTypeDescriptor immutable =
 		new VariableTypeDescriptor(false);
 
 	/**
@@ -297,7 +297,7 @@ extends TypeDescriptor
 	 *
 	 * @return The immutable {@link VariableTypeDescriptor}.
 	 */
-	public static @NotNull VariableTypeDescriptor immutable ()
+	public static VariableTypeDescriptor immutable ()
 	{
 		return immutable;
 	}
@@ -315,7 +315,7 @@ extends TypeDescriptor
 	 * @return The most general {@linkplain ReadWriteVariableTypeDescriptor
 	 *         variable type}.
 	 */
-	public static @NotNull AvailObject mostGeneralType ()
+	public static AvailObject mostGeneralType ()
 	{
 		return mostGeneralType;
 	}
@@ -334,7 +334,7 @@ extends TypeDescriptor
 	 *         The instance type containing the most general {@linkplain
 	 *         ReadWriteVariableTypeDescriptor variable} metatype.
 	 */
-	public static @NotNull AvailObject meta ()
+	public static AvailObject meta ()
 	{
 		return meta;
 	}

@@ -49,7 +49,7 @@ public class L2CommentOperand extends L2Operand
 	/**
 	 * The actual comment {@link String}.
 	 */
-	public final @NotNull String comment;
+	public final String comment;
 
 	/**
 	 * Construct a new {@link L2CommentOperand} with the specified comment
@@ -58,7 +58,7 @@ public class L2CommentOperand extends L2Operand
 	 * @param comment The comment string.
 	 */
 	public L2CommentOperand (
-		final @NotNull String comment)
+		final String comment)
 	{
 		this.comment = comment;
 	}
@@ -77,7 +77,7 @@ public class L2CommentOperand extends L2Operand
 
 	@Override
 	public L2CommentOperand transformRegisters (
-		final @NotNull Transformer2<L2Register, L2OperandType, L2Register>
+		final Transformer2<L2Register, L2OperandType, L2Register>
 			transformer)
 	{
 		return this;
@@ -85,7 +85,7 @@ public class L2CommentOperand extends L2Operand
 
 	@Override
 	public void emitOn (
-		final @NotNull L2CodeGenerator codeGenerator)
+		final L2CodeGenerator codeGenerator)
 	{
 		// emit nothing
 	}

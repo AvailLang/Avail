@@ -61,7 +61,7 @@ extends RuntimeException
 	 *
 	 * @return The reason the parse was rejected.
 	 */
-	public @NotNull AvailObject rejectionString ()
+	public AvailObject rejectionString ()
 	{
 		return rejectionString;
 	}
@@ -74,7 +74,7 @@ extends RuntimeException
 	 *        a particular parse was rejected.
 	 */
 	public AvailRejectedParseException (
-		final @NotNull AvailObject rejectionString)
+		final AvailObject rejectionString)
 	{
 		this.rejectionString = rejectionString;
 	}

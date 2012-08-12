@@ -34,7 +34,7 @@ package com.avail.builder;
 import java.io.*;
 import java.util.*;
 import com.avail.*;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 import com.avail.compiler.*;
 import com.avail.compiler.AbstractAvailCompiler.ModuleHeader;
 import com.avail.descriptor.*;
@@ -56,15 +56,13 @@ public final class AvailBuilder
 	 * {@linkplain AvailBuilder builder} will install the target
 	 * {@linkplain ModuleDescriptor module} and its dependencies.
 	 */
-	private @NotNull
-	final AvailRuntime runtime;
+	private final AvailRuntime runtime;
 
 	/**
 	 * The {@link Repository} of compiled modules to populate and reuse in order
 	 * to accelerate builds.
 	 */
-	private @NotNull
-	final Repository repository;
+	private final Repository repository;
 
 	/**
 	 * The {@linkplain ModuleName canonical name} of the
@@ -72,12 +70,10 @@ public final class AvailBuilder
 	 * builder} must (recursively) load into the {@linkplain AvailRuntime
 	 * runtime}.
 	 */
-	private final @NotNull
-	ModuleName target;
+	private final ModuleName target;
 
 	/** An {@linkplain L2Interpreter interpreter}. */
-	private final @NotNull
-	L2Interpreter interpreter;
+	private final L2Interpreter interpreter;
 
 	/**
 	 * Construct a new {@link AvailBuilder}.
@@ -96,9 +92,9 @@ public final class AvailBuilder
 	 *            the {@linkplain AvailRuntime runtime}.
 	 */
 	public AvailBuilder (
-		final @NotNull AvailRuntime runtime,
-		final @NotNull Repository repository,
-		final @NotNull ModuleName target)
+		final AvailRuntime runtime,
+		final Repository repository,
+		final ModuleName target)
 	{
 		this.runtime = runtime;
 		this.repository = repository;
@@ -111,7 +107,7 @@ public final class AvailBuilder
 	 * {@linkplain #traceModuleImports(ResolvedModuleName, ModuleName) tracer}
 	 * to prevent recursive tracing.
 	 */
-	private final @NotNull
+	private final
 	Set<ResolvedModuleName> recursionSet = new HashSet<ResolvedModuleName>();
 
 	/**
@@ -120,35 +116,35 @@ public final class AvailBuilder
 	 * to prevent recursive tracing, as a list to simplify describing a
 	 * recursive chain of imports.
 	 */
-	private final @NotNull
+	private final
 	List<ResolvedModuleName> recursionList = new ArrayList<ResolvedModuleName>();
 
 	/**
 	 * The set of module names that have already been encountered and completely
 	 * recursed through.
 	 */
-	private final @NotNull
+	private final
 	Set<ResolvedModuleName> completionSet = new HashSet<ResolvedModuleName>();
 
 	/**
 	 * A {@linkplain Map map} from {@linkplain ResolvedModuleName resolved
 	 * module names} to their predecessors.
 	 */
-	private final @NotNull
+	private final
 	Map<ResolvedModuleName, Set<ResolvedModuleName>> predecessors = new HashMap<ResolvedModuleName, Set<ResolvedModuleName>>();
 
 	/**
 	 * A {@linkplain Map map} from {@linkplain ResolvedModuleName resolved
 	 * module names} to their successors.
 	 */
-	private final @NotNull
+	private final
 	Map<ResolvedModuleName, Set<ResolvedModuleName>> successors = new HashMap<ResolvedModuleName, Set<ResolvedModuleName>>();
 
 	/**
 	 * The {@linkplain ModuleName dependencies} of the {@linkplain #target
 	 * target}.
 	 */
-	private final @NotNull
+	private final
 	List<ModuleName> dependencies = new ArrayList<ModuleName>();
 
 	/**
@@ -157,8 +153,8 @@ public final class AvailBuilder
 	 *
 	 * @param resolvedSuccessor
 	 *            The resolved named of the module using or extending this
-	 *            module, or null if this module is the start of the recursive
-	 *            resolution (i.e., it will be the last one compiled).
+	 *            module, or {@code null} if this module is the start of the
+	 *            recursive resolution (i.e., it will be the last one compiled).
 	 * @param qualifiedName
 	 *            A fully-qualified {@linkplain ModuleName module name}.
 	 * @throws AvailCompilerException
@@ -173,14 +169,15 @@ public final class AvailBuilder
 	 *             could not be resolved to a module.
 	 */
 	private void traceModuleImports (
-		final ResolvedModuleName resolvedSuccessor,
-		final @NotNull ModuleName qualifiedName) throws AvailCompilerException,
+		final @Nullable ResolvedModuleName resolvedSuccessor,
+		final ModuleName qualifiedName) throws AvailCompilerException,
 		RecursiveDependencyException, UnresolvedDependencyException
 	{
 		final ResolvedModuleName resolution = runtime.moduleNameResolver()
 			.resolve(qualifiedName);
 		if (resolution == null)
 		{
+			assert resolvedSuccessor != null;
 			throw new UnresolvedDependencyException(
 				resolvedSuccessor,
 				qualifiedName.localName());
@@ -333,9 +330,9 @@ public final class AvailBuilder
 	 *             If a module name could not be resolved.
 	 */
 	public static void buildTargetInNewAvailThread (
-		final @NotNull AvailBuilder builder,
-		final @NotNull Continuation4<ModuleName, Long, Long, Long> localTracker,
-		final @NotNull Continuation3<ModuleName, Long, Long> globalTracker)
+		final AvailBuilder builder,
+		final Continuation4<ModuleName, Long, Long, Long> localTracker,
+		final Continuation3<ModuleName, Long, Long> globalTracker)
 		throws AvailCompilerException, InterruptedException,
 		RecursiveDependencyException, UnresolvedDependencyException
 	{
@@ -418,8 +415,8 @@ public final class AvailBuilder
 	 *             If the repository contains invalid serialized module data.
 	 */
 	public void buildTarget (
-		final @NotNull Continuation4<ModuleName, Long, Long, Long> localTracker,
-		final @NotNull Continuation3<ModuleName, Long, Long> globalTracker)
+		final Continuation4<ModuleName, Long, Long, Long> localTracker,
+		final Continuation3<ModuleName, Long, Long> globalTracker)
 		throws AvailCompilerException, RecursiveDependencyException,
 		UnresolvedDependencyException, MalformedSerialStreamException
 	{
@@ -531,11 +528,15 @@ public final class AvailBuilder
 						{
 							@Override
 							public void value (
-								final @NotNull ModuleName moduleName2,
-								final @NotNull Long lineNumber,
-								final @NotNull Long localPosition,
-								final @NotNull Long moduleSize)
+								final @Nullable ModuleName moduleName2,
+								final @Nullable Long lineNumber,
+								final @Nullable Long localPosition,
+								final @Nullable Long moduleSize)
 							{
+								assert moduleName2 != null;
+								assert lineNumber != null;
+								assert localPosition != null;
+								assert moduleSize != null;
 								assert moduleName.equals(moduleName2);
 								localTracker.value(
 									moduleName,

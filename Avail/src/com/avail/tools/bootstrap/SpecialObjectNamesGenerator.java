@@ -68,8 +68,8 @@ extends PropertiesFileGenerator
 	 */
 	@Override
 	protected void generateProperties (
-		final @NotNull Properties properties,
-		final @NotNull PrintWriter writer)
+		final Properties properties,
+		final PrintWriter writer)
 	{
 		final List<AvailObject> specialObjects = AvailRuntime.specialObjects();
 		final Set<String> keys = new HashSet<String>();
@@ -137,7 +137,7 @@ extends PropertiesFileGenerator
 	 * @param locale
 	 *        The target {@linkplain Locale locale}.
 	 */
-	public SpecialObjectNamesGenerator (final @NotNull Locale locale)
+	public SpecialObjectNamesGenerator (final Locale locale)
 	{
 		super(specialObjectsBaseName, locale);
 	}
@@ -152,7 +152,7 @@ extends PropertiesFileGenerator
 	 * @throws Exception
 	 *         If anything should go wrong.
 	 */
-	public static void main (final @NotNull String[] args)
+	public static void main (final String[] args)
 		throws Exception
 	{
 		final String[] languages;

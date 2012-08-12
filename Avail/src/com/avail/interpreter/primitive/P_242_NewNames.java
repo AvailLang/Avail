@@ -51,13 +51,13 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static @NotNull Primitive instance =
+	public final static Primitive instance =
 		new P_242_NewNames().init(1, CanInline, CannotFail);
 
 	@Override
 	public Result attempt (
-		final @NotNull List<AvailObject> args,
-		final @NotNull Interpreter interpreter)
+		final List<AvailObject> args,
+		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
 		final AvailObject module = args.get(0);
@@ -65,7 +65,7 @@ extends Primitive
 	}
 
 	@Override
-	protected @NotNull AvailObject privateBlockTypeRestriction ()
+	protected AvailObject privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

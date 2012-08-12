@@ -56,13 +56,13 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static @NotNull Primitive instance =
+	public final static Primitive instance =
 		new P_246_PublishName().init(1, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (
-		final @NotNull List<AvailObject> args,
-		final @NotNull Interpreter interpreter)
+		final List<AvailObject> args,
+		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
 		final AvailObject name = args.get(0);

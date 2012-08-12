@@ -116,16 +116,16 @@ extends Descriptor
 	}
 
 	@Override boolean allowsImmutableToMutableReferenceInField (
-		final @NotNull AbstractSlotsEnum e)
+		final AbstractSlotsEnum e)
 	{
 		return e == HASH_OR_ZERO;
 	}
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-		final @NotNull AvailObject object,
-		final @NotNull StringBuilder aStream,
-		final @NotNull List<AvailObject> recursionList,
+		final AvailObject object,
+		final StringBuilder aStream,
+		final List<AvailObject> recursionList,
 		final int indent)
 	{
 		final String nativeName = object.name().asNativeString();
@@ -173,9 +173,9 @@ extends Descriptor
 	 *            The new atom, not equal to any object in use before this
 	 *            method was invoked.
 	 */
-	public static @NotNull AvailObject create (
-		final @NotNull AvailObject name,
-		final @NotNull AvailObject issuingModule)
+	public static AvailObject create (
+		final AvailObject name,
+		final AvailObject issuingModule)
 	{
 		final AvailObject instance = mutable().create();
 		instance.setSlot(NAME, name);
@@ -319,38 +319,38 @@ extends Descriptor
 
 	@Override @AvailMethod
 	void o_Name (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
+		final AvailObject object,
+		final AvailObject value)
 	{
 		object.setSlot(NAME, value);
 	}
 
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_Name (
-		final @NotNull AvailObject object)
+	AvailObject o_Name (
+		final AvailObject object)
 	{
 		return object.slot(NAME);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_IssuingModule (
-		final @NotNull AvailObject object)
+	AvailObject o_IssuingModule (
+		final AvailObject object)
 	{
 		return object.slot(ISSUING_MODULE);
 	}
 
 	@Override @AvailMethod
 	boolean o_Equals (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+		final AvailObject object,
+		final AvailObject another)
 	{
 		return another.traversed().sameAddressAs(object);
 	}
 
 	@Override @AvailMethod
 	int o_Hash (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		int hash = object.slot(HASH_OR_ZERO);
 		if (hash == 0)
@@ -366,15 +366,15 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_Kind (
-		final @NotNull AvailObject object)
+	AvailObject o_Kind (
+		final AvailObject object)
 	{
 		return ATOM.o();
 	}
 
 	@Override @AvailMethod
 	boolean o_ExtractBoolean (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		if (object.equals(trueObject))
 		{
@@ -386,15 +386,15 @@ extends Descriptor
 
 	@Override @AvailMethod
 	boolean o_IsAtom (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override @AvailMethod
 	boolean o_IsInstanceOfKind (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aType)
+		final AvailObject object,
+		final AvailObject aType)
 	{
 		return aType.isSupertypeOfPrimitiveTypeWithOrdinal(ATOM.ordinal());
 	}
@@ -409,7 +409,7 @@ extends Descriptor
 	 */
 	@Override @AvailMethod
 	void o_SetAtomProperty (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailObject key,
 		final AvailObject value)
 	{
@@ -432,24 +432,24 @@ extends Descriptor
 	 */
 	@Override @AvailMethod
 	AvailObject o_GetAtomProperty (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject key)
+		final AvailObject object,
+		final AvailObject key)
 	{
 		return NullDescriptor.nullObject();
 	}
 
 	@Override
 	@AvailMethod @ThreadSafe
-	@NotNull SerializerOperation o_SerializerOperation (
-		final @NotNull AvailObject object)
+	SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.ATOM;
 	}
 
 	@Override
 	Object o_MarshalToJava (
-		final @NotNull AvailObject object,
-		final Class<?> ignoredClassHint)
+		final AvailObject object,
+		final @Nullable Class<?> ignoredClassHint)
 	{
 		if (object.equals(trueObject))
 		{

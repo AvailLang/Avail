@@ -51,12 +51,12 @@ extends Exception
 	/**
 	 * The module that contained an unresolved reference to another module.
 	 */
-	private final @NotNull ResolvedModuleName referringModuleName;
+	private final ResolvedModuleName referringModuleName;
 
 	/**
 	 * The name of the module that could not be resolved.
 	 */
-	private final @NotNull String unresolvedModuleName;
+	private final String unresolvedModuleName;
 
 	/**
 	 * Answer the name of the {@linkplain ModuleDescriptor module} that could
@@ -64,7 +64,7 @@ extends Exception
 	 *
 	 * @return A {@linkplain String} naming the unresolved local module.
 	 */
-	public @NotNull ResolvedModuleName referringModuleName()
+	public ResolvedModuleName referringModuleName()
 	{
 		return referringModuleName;
 	}
@@ -75,7 +75,7 @@ extends Exception
 	 *
 	 * @return A {@linkplain String} naming the unresolved local module.
 	 */
-	public @NotNull String unresolvedModuleName()
+	public String unresolvedModuleName()
 	{
 		return unresolvedModuleName;
 	}
@@ -90,8 +90,8 @@ extends Exception
 	 *            The name of the module which could not be resolved.
 	 */
 	UnresolvedDependencyException (
-		final @NotNull ResolvedModuleName referringModuleName,
-		final @NotNull String unresolvedModuleName)
+		final ResolvedModuleName referringModuleName,
+		final String unresolvedModuleName)
 	{
 		super(
 			"module \""

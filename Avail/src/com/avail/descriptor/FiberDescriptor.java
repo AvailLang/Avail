@@ -177,31 +177,31 @@ extends Descriptor
 
 	@Override @AvailMethod
 	void o_BreakpointBlock (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
+		final AvailObject object,
+		final AvailObject value)
 	{
 		object.setSlot(BREAKPOINT_BLOCK, value);
 	}
 
 	@Override @AvailMethod
 	void o_Continuation (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
+		final AvailObject object,
+		final AvailObject value)
 	{
 		object.setSlot(CONTINUATION, value);
 	}
 
 	@Override @AvailMethod
 	void o_ExecutionState (
-		final @NotNull AvailObject object,
-		final @NotNull ExecutionState value)
+		final AvailObject object,
+		final ExecutionState value)
 	{
 		object.setSlot(EXECUTION_STATE, value.ordinal());
 	}
 
 	@Override @AvailMethod
 	void o_HashOrZero (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int value)
 	{
 		object.setSlot(HASH_OR_ZERO, value);
@@ -209,14 +209,14 @@ extends Descriptor
 
 	@Override
 	synchronized void o_ClearInterruptRequestFlags (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		object.setSlot(INTERRUPT_REQUEST_FLAGS, 0);
 	}
 
 	@Override @AvailMethod
 	synchronized void o_SetInterruptRequestFlag (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final BitField field)
 	{
 		assert field.integerSlot == INTERRUPT_REQUEST_FLAGS;
@@ -225,85 +225,85 @@ extends Descriptor
 
 	@Override @AvailMethod
 	void o_Name (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
+		final AvailObject object,
+		final AvailObject value)
 	{
 		object.setSlot(NAME, value);
 	}
 
 	@Override @AvailMethod
 	void o_Priority (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
+		final AvailObject object,
+		final AvailObject value)
 	{
 		object.setSlot(PRIORITY, value);
 	}
 
 	@Override @AvailMethod
 	void o_FiberGlobals (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
+		final AvailObject object,
+		final AvailObject value)
 	{
 		object.setSlot(PROCESS_GLOBALS, value);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_BreakpointBlock (
-		final @NotNull AvailObject object)
+	AvailObject o_BreakpointBlock (
+		final AvailObject object)
 	{
 		return object.slot(BREAKPOINT_BLOCK);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_Continuation (
-		final @NotNull AvailObject object)
+	AvailObject o_Continuation (
+		final AvailObject object)
 	{
 		return object.slot(CONTINUATION);
 	}
 
 	@Override @AvailMethod
 	ExecutionState o_ExecutionState (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return ExecutionState.values()[object.slot(EXECUTION_STATE)];
 	}
 
 	@Override @AvailMethod
 	int o_HashOrZero (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.slot(HASH_OR_ZERO);
 	}
 
 	@Override @AvailMethod
 	synchronized int o_InterruptRequestFlags (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.slot(INTERRUPT_REQUEST_FLAGS);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Name (final @NotNull AvailObject object)
+	AvailObject o_Name (final AvailObject object)
 	{
 		return object.slot(NAME);
 	}
 
 	@Override @AvailMethod
 	AvailObject o_Priority (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.slot(PRIORITY);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_FiberGlobals (
-		final @NotNull AvailObject object)
+	AvailObject o_FiberGlobals (
+		final AvailObject object)
 	{
 		return object.slot(PROCESS_GLOBALS);
 	}
 
 	@Override boolean allowsImmutableToMutableReferenceInField (
-		final @NotNull AbstractSlotsEnum e)
+		final AbstractSlotsEnum e)
 	{
 		return
 			e == CONTINUATION
@@ -318,8 +318,8 @@ extends Descriptor
 
 	@Override @AvailMethod
 	boolean o_Equals (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+		final AvailObject object,
+		final AvailObject another)
 	{
 		//  Compare processes by address (identity).
 
@@ -328,7 +328,7 @@ extends Descriptor
 
 	@Override @AvailMethod
 	int o_Hash (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		int hash = object.slot(HASH_OR_ZERO);
 		if (hash == 0)
@@ -344,16 +344,16 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_MakeImmutable (
-		final @NotNull AvailObject object)
+	AvailObject o_MakeImmutable (
+		final AvailObject object)
 	{
 		object.descriptor = immutable();
 		return object;
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_Kind (
-		final @NotNull AvailObject object)
+	AvailObject o_Kind (
+		final AvailObject object)
 	{
 		return Types.FIBER.o();
 	}
@@ -366,7 +366,7 @@ extends Descriptor
 	 */
 	@Override @AvailMethod
 	int o_GetInteger (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		final AvailObject contObject = object.continuation();
 		int pc = contObject.pc();
@@ -393,7 +393,7 @@ extends Descriptor
 
 	@Override @AvailMethod
 	void o_Step (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		error("Process stepping is not implemented");
 	}

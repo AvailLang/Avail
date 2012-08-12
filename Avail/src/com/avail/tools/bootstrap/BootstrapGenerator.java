@@ -39,7 +39,7 @@ import java.io.*;
 import java.text.MessageFormat;
 import java.util.*;
 import com.avail.AvailRuntime;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 import com.avail.descriptor.*;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.Primitive;
@@ -55,13 +55,13 @@ import com.avail.interpreter.primitive.*;
 public final class BootstrapGenerator
 {
 	/** The Avail special objects. */
-	private static final @NotNull List<AvailObject> specialObjects;
+	private static final List<AvailObject> specialObjects;
 
 	/**
 	 * A {@linkplain Map map} from the special objects to their indices.
 	 */
 	private static final
-	@NotNull Map<AvailObject, Integer> specialObjectIndexMap;
+	Map<AvailObject, Integer> specialObjectIndexMap;
 
 	/* Capture the special objects. */
 	static
@@ -82,31 +82,31 @@ public final class BootstrapGenerator
 	}
 
 	/** The target {@linkplain Locale locale}. */
-	private final @NotNull Locale locale;
+	private final Locale locale;
 
 	/**
 	 * The {@linkplain ResourceBundle resource bundle} that contains file
 	 * preambleBaseName information.
 	 */
-	private final @NotNull ResourceBundle preamble;
+	private final ResourceBundle preamble;
 
 	/**
 	 * The {@linkplain ResourceBundle resource bundle} that contains the Avail
 	 * names of the special objects.
 	 */
-	private final @NotNull ResourceBundle specialObjectBundle;
+	private final ResourceBundle specialObjectBundle;
 
 	/**
 	 * The {@linkplain ResourceBundle resource bundle} that contains the Avail
 	 * names of the {@linkplain Primitive primitives}.
 	 */
-	private final @NotNull ResourceBundle primitiveBundle;
+	private final ResourceBundle primitiveBundle;
 
 	/**
 	 * The {@linkplain ResourceBundle resource bundle} that contains the Avail
 	 * names of the {@linkplain AvailErrorCode primitive error codes}.
 	 */
-	private final @NotNull ResourceBundle errorCodeBundle;
+	private final ResourceBundle errorCodeBundle;
 
 	/**
 	 * Answer the correct {@linkplain File file name} for the {@linkplain
@@ -115,7 +115,7 @@ public final class BootstrapGenerator
 	 * @param key The module name key.
 	 * @return The file name.
 	 */
-	private final @NotNull File moduleFileName (final @NotNull Key key)
+	private final File moduleFileName (final Key key)
 	{
 		return new File(String.format(
 			"src/%s/%s/%s.avail/%s.avail",
@@ -133,8 +133,8 @@ public final class BootstrapGenerator
 	 * @param versions The versions.
 	 * @return The version string.
 	 */
-	private @NotNull String versionString (
-		final @NotNull List<String> versions)
+	private String versionString (
+		final List<String> versions)
 	{
 		final StringBuilder builder = new StringBuilder();
 		for (final String version : versions)
@@ -157,8 +157,8 @@ public final class BootstrapGenerator
 	 *        The {@linkplain PrintWriter output stream}.
 	 */
 	private void generateOriginModulePreamble (
-		final @NotNull List<String> versions,
-		final @NotNull PrintWriter writer)
+		final List<String> versions,
+		final PrintWriter writer)
 	{
 		writer.println(MessageFormat.format(
 			preamble.getString(availCopyright.name()),
@@ -179,13 +179,13 @@ public final class BootstrapGenerator
 	/**
 	 * A {@linkplain Map map} from localized names to Avail special objects.
 	 */
-	private final @NotNull Map<String, AvailObject> specialObjectsByName =
+	private final Map<String, AvailObject> specialObjectsByName =
 		new HashMap<String, AvailObject>(specialObjects.size());
 
 	/**
 	 * A {@linkplain Map map} from Avail special objects to localized names.
 	 */
-	private final @NotNull Map<AvailObject, String> namesBySpecialObject =
+	private final Map<AvailObject, String> namesBySpecialObject =
 		new HashMap<AvailObject, String>(specialObjects.size());
 
 	/**
@@ -194,8 +194,8 @@ public final class BootstrapGenerator
 	 * @param specialObject A special object.
 	 * @return The localized name of the special object.
 	 */
-	private @NotNull String specialObjectName (
-		final @NotNull AvailObject specialObject)
+	private String specialObjectName (
+		final AvailObject specialObject)
 	{
 		final String name = namesBySpecialObject.get(specialObject);
 		assert name != null :
@@ -210,7 +210,7 @@ public final class BootstrapGenerator
 	 *
 	 * @return The "Names" string.
 	 */
-	private @NotNull String specialObjectsNamesString ()
+	private String specialObjectsNamesString ()
 	{
 		final List<String> names = new ArrayList<String>(
 			new ArrayList<String>(specialObjectsByName.keySet()));
@@ -240,8 +240,8 @@ public final class BootstrapGenerator
 	 *        The {@linkplain PrintWriter output stream}.
 	 */
 	private void generateSpecialObjectModulePreamble (
-		final @NotNull List<String> versions,
-		final @NotNull PrintWriter writer)
+		final List<String> versions,
+		final PrintWriter writer)
 	{
 		writer.println(MessageFormat.format(
 			preamble.getString(availCopyright.name()),
@@ -270,7 +270,7 @@ public final class BootstrapGenerator
 	 *        The {@linkplain PrintWriter output stream}.
 	 */
 	private void generateSpecialObjectModuleBody (
-		final @NotNull PrintWriter writer)
+		final PrintWriter writer)
 	{
 		// Find the length of the longest name.
 		int length = 0;
@@ -346,7 +346,7 @@ public final class BootstrapGenerator
 	 *        null} if all primitives should be answered.
 	 * @return The selected primitives.
 	 */
-	private @NotNull List<Primitive> primitives (final Boolean fallible)
+	private List<Primitive> primitives (final @Nullable Boolean fallible)
 	{
 		final List<Primitive> primitives = new ArrayList<Primitive>();
 		for (int i = 1; i <= Primitive.maxPrimitiveNumber; i++)
@@ -370,7 +370,7 @@ public final class BootstrapGenerator
 	 * A {@linkplain Map map} from localized names to Avail {@linkplain
 	 * Primitive primitives}.
 	 */
-	private final @NotNull Map<String, Set<Primitive>> primitiveNameMap =
+	private final Map<String, Set<Primitive>> primitiveNameMap =
 		new HashMap<String, Set<Primitive>>(specialObjects.size());
 
 	/**
@@ -381,8 +381,8 @@ public final class BootstrapGenerator
 	 * @param primitives The primitives.
 	 * @return The "Names" string.
 	 */
-	private @NotNull String primitivesNamesString (
-		final @NotNull List<Primitive> primitives)
+	private String primitivesNamesString (
+		final List<Primitive> primitives)
 	{
 		final Set<Primitive> wanted = new HashSet<Primitive>(primitives);
 		final List<String> names = new ArrayList<String>(
@@ -420,9 +420,9 @@ public final class BootstrapGenerator
 	 *        The {@linkplain PrintWriter output stream}.
 	 */
 	private void generatePrimitiveModulePreamble (
-		final Boolean fallible,
-		final @NotNull List<String> versions,
-		final @NotNull PrintWriter writer)
+		final @Nullable Boolean fallible,
+		final List<String> versions,
+		final PrintWriter writer)
 	{
 		final Key key;
 		if (fallible == null)
@@ -493,8 +493,8 @@ public final class BootstrapGenerator
 	 * @return The textual representation of the primitive method's parameters
 	 *         (indent=1).
 	 */
-	private @NotNull String primitiveMethodParameterDeclarations (
-		final @NotNull Primitive primitive,
+	private String primitiveMethodParameterDeclarations (
+		final Primitive primitive,
 		final boolean forSemanticRestriction)
 	{
 		final StringBuilder builder = new StringBuilder();
@@ -551,8 +551,8 @@ public final class BootstrapGenerator
 	 * @return The textual representation of the primitive's statements
 	 *         (indent=1).
 	 */
-	private @NotNull String primitiveMethodStatements (
-		final @NotNull Primitive primitive)
+	private String primitiveMethodStatements (
+		final Primitive primitive)
 	{
 		final StringBuilder builder = new StringBuilder();
 		builder.append('\t');
@@ -623,10 +623,10 @@ public final class BootstrapGenerator
 	 *        explicit.
 	 * @return A textual representation of the block (indent=0).
 	 */
-	private @NotNull String block (
-		final @NotNull String declarations,
-		final @NotNull String statements,
-		final AvailObject returnType)
+	private String block (
+		final String declarations,
+		final String statements,
+		final @Nullable AvailObject returnType)
 	{
 		final StringBuilder builder = new StringBuilder();
 		builder.append("\n[\n");
@@ -652,8 +652,8 @@ public final class BootstrapGenerator
 	 *        A primitive.
 	 * @return A textual representation of the comment (indent=0).
 	 */
-	private @NotNull String primitiveComment (
-		final @NotNull Primitive primitive)
+	private String primitiveComment (
+		final Primitive primitive)
 	{
 		final StringBuilder builder = new StringBuilder();
 		final String commentKey = primitiveCommentKey(primitive);
@@ -738,9 +738,9 @@ public final class BootstrapGenerator
 	 *        The {@linkplain PrintWriter output stream}.
 	 */
 	private void generateMethod (
-		final @NotNull String name,
-		final @NotNull String block,
-		final @NotNull PrintWriter writer)
+		final String name,
+		final String block,
+		final PrintWriter writer)
 	{
 		writer.print(MessageFormat.format(
 			preamble.getString(definingMethodUse.name()),
@@ -759,7 +759,7 @@ public final class BootstrapGenerator
 	 *        The {@linkplain PrintWriter output stream}.
 	 */
 	private void generatePrimitiveFailureMethod (
-		final @NotNull PrintWriter writer)
+		final PrintWriter writer)
 	{
 		final Primitive primitive = P_256_EmergencyExit.instance;
 		final StringBuilder statements = new StringBuilder();
@@ -785,7 +785,7 @@ public final class BootstrapGenerator
 	 *        The {@linkplain PrintWriter output stream}.
 	 */
 	private void generatePrimitiveFailureFunction (
-		final @NotNull PrintWriter writer)
+		final PrintWriter writer)
 	{
 		final AvailObject functionType = FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
@@ -821,7 +821,7 @@ public final class BootstrapGenerator
 	 *        The {@linkplain PrintWriter output stream}.
 	 */
 	private void generatePrimitiveFailureFunctionGetter (
-		final @NotNull PrintWriter writer)
+		final PrintWriter writer)
 	{
 		final StringBuilder statements = new StringBuilder();
 		statements.append('\t');
@@ -848,7 +848,7 @@ public final class BootstrapGenerator
 	 *        The {@linkplain PrintWriter output stream}.
 	 */
 	private void generatePrimitiveFailureFunctionSetter (
-		final @NotNull PrintWriter writer)
+		final PrintWriter writer)
 	{
 		final String argName = preamble.getString(parameterPrefix.name()) + 1;
 		final StringBuilder declarations = new StringBuilder();
@@ -887,7 +887,7 @@ public final class BootstrapGenerator
 	 *        The {@linkplain PrintWriter output stream}.
 	 */
 	private void generateInvokePrimitiveFailureFunctionMethod (
-		final @NotNull PrintWriter writer)
+		final PrintWriter writer)
 	{
 		final Primitive primitive = P_040_InvokeWithTuple.instance;
 		final StringBuilder statements = new StringBuilder();
@@ -927,7 +927,7 @@ public final class BootstrapGenerator
 	 *        The {@linkplain PrintWriter output stream}.
 	 */
 	private void generatePrivateSemanticRestrictionMethod (
-		final @NotNull PrintWriter writer)
+		final PrintWriter writer)
 	{
 		final Primitive primitive = P_248_AddSemanticRestriction.instance;
 		StringBuilder statements = new StringBuilder();
@@ -983,8 +983,8 @@ public final class BootstrapGenerator
 	 *        The {@linkplain PrintWriter output stream}.
 	 */
 	private void generatePrimitiveMethod (
-		final @NotNull Primitive primitive,
-		final @NotNull PrintWriter writer)
+		final Primitive primitive,
+		final PrintWriter writer)
 	{
 		final String name = primitive.name();
 		if (!primitiveBundle.containsKey(name)
@@ -1014,8 +1014,8 @@ public final class BootstrapGenerator
 	 *        The {@linkplain PrintWriter output stream}.
 	 */
 	private void generatePrimitiveModuleBody (
-		final Boolean fallible,
-		final @NotNull PrintWriter writer)
+		final @Nullable Boolean fallible,
+		final PrintWriter writer)
 	{
 		// Generate the module variable that holds the primitive failure
 		// function.
@@ -1050,7 +1050,7 @@ public final class BootstrapGenerator
 	 *
 	 * @return The relevant primitive error codes.
 	 */
-	private @NotNull List<AvailErrorCode> errorCodes ()
+	private List<AvailErrorCode> errorCodes ()
 	{
 		final AvailErrorCode[] codes = AvailErrorCode.values();
 		final List<AvailErrorCode> relevant = new ArrayList<AvailErrorCode>();
@@ -1068,14 +1068,14 @@ public final class BootstrapGenerator
 	 * A {@linkplain Map map} from localized names to {@linkplain AvailErrorCode
 	 * primitive error codes}.
 	 */
-	private final @NotNull Map<String, AvailErrorCode> errorCodesByName =
+	private final Map<String, AvailErrorCode> errorCodesByName =
 		new HashMap<String, AvailErrorCode>(AvailErrorCode.values().length);
 
 	/**
 	 * A {@linkplain Map map} from {@linkplain AvailErrorCode primitive error
 	 * codes} to localized names.
 	 */
-	private final @NotNull Map<AvailErrorCode, String> namesByErrorCode =
+	private final Map<AvailErrorCode, String> namesByErrorCode =
 		new HashMap<AvailErrorCode, String>(AvailErrorCode.values().length);
 
 	/**
@@ -1085,7 +1085,7 @@ public final class BootstrapGenerator
 	 *
 	 * @return The "Names" string.
 	 */
-	private @NotNull String errorCodesNamesString ()
+	private String errorCodesNamesString ()
 	{
 		final List<String> names = new ArrayList<String>(
 			errorCodesByName.keySet());
@@ -1115,8 +1115,8 @@ public final class BootstrapGenerator
 	 *        The {@linkplain PrintWriter output stream}.
 	 */
 	private void generateErrorCodesModulePreamble (
-		final @NotNull List<String> versions,
-		final @NotNull PrintWriter writer)
+		final List<String> versions,
+		final PrintWriter writer)
 	{
 		writer.println(MessageFormat.format(
 			preamble.getString(availCopyright.name()),
@@ -1147,7 +1147,7 @@ public final class BootstrapGenerator
 	 *        The {@linkplain PrintWriter output stream}.
 	 */
 	private void generateErrorCodesModuleBody (
-		final @NotNull PrintWriter writer)
+		final PrintWriter writer)
 	{
 		for (final AvailErrorCode code : errorCodes())
 		{
@@ -1181,8 +1181,8 @@ public final class BootstrapGenerator
 	 *        The {@linkplain PrintWriter output stream}.
 	 */
 	private void generateRepresentativeModulePreamble (
-		final @NotNull List<String> versions,
-		final @NotNull PrintWriter writer)
+		final List<String> versions,
+		final PrintWriter writer)
 	{
 		writer.println(MessageFormat.format(
 			preamble.getString(availCopyright.name()),
@@ -1229,7 +1229,7 @@ public final class BootstrapGenerator
 	 *         If the source module could not be written.
 	 */
 	private void generateOriginModule (
-			final @NotNull List<String> versions)
+			final List<String> versions)
 		throws IOException
 	{
 		final File fileName = moduleFileName(originModuleName);
@@ -1249,7 +1249,7 @@ public final class BootstrapGenerator
 	 *         If the source module could not be written.
 	 */
 	private void generateSpecialObjectsModule (
-			final @NotNull List<String> versions)
+			final List<String> versions)
 		throws IOException
 	{
 		final File fileName = moduleFileName(specialObjectsModuleName);
@@ -1274,8 +1274,8 @@ public final class BootstrapGenerator
 	 *         If the source module could not be written.
 	 */
 	private void generatePrimitiveModule (
-			final Boolean fallible,
-			final @NotNull List<String> versions)
+			final @Nullable Boolean fallible,
+			final List<String> versions)
 		throws IOException
 	{
 		final Key key;
@@ -1306,7 +1306,7 @@ public final class BootstrapGenerator
 	 * @throws IOException
 	 *         If the source module could not be written.
 	 */
-	private void generateErrorCodesModule (final @NotNull List<String> versions)
+	private void generateErrorCodesModule (final List<String> versions)
 		throws IOException
 	{
 		final File fileName = moduleFileName(errorCodesModuleName);
@@ -1327,7 +1327,7 @@ public final class BootstrapGenerator
 	 *         If the source module could not be written.
 	 */
 	private void generateRepresentativeModule (
-			final @NotNull List<String> versions)
+			final List<String> versions)
 		throws IOException
 	{
 		final File fileName = moduleFileName(representativeModuleName);
@@ -1345,7 +1345,7 @@ public final class BootstrapGenerator
 	 * @throws IOException
 	 *         If any of the source modules could not be written.
 	 */
-	public void generate (final @NotNull List<String> versions)
+	public void generate (final List<String> versions)
 		throws IOException
 	{
 		final File languagePath = new File(String.format(
@@ -1373,7 +1373,7 @@ public final class BootstrapGenerator
 	 *
 	 * @param locale The target {@linkplain Locale locale}.
 	 */
-	public BootstrapGenerator (final @NotNull Locale locale)
+	public BootstrapGenerator (final Locale locale)
 	{
 		this.locale = locale;
 		final UTF8ResourceBundleControl control =
@@ -1461,7 +1461,7 @@ public final class BootstrapGenerator
 	 * @throws Exception
 	 *         If anything should go wrong.
 	 */
-	public static void main (final @NotNull String[] args)
+	public static void main (final String[] args)
 		throws Exception
 	{
 		final List<String> languages = new ArrayList<String>();

@@ -75,8 +75,8 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TupleAt (
-		final @NotNull AvailObject object,
+	AvailObject o_TupleAt (
+		final AvailObject object,
 		final int subscript)
 	{
 		return object.slot(ObjectSlots.TUPLE_AT_, subscript);
@@ -84,19 +84,19 @@ extends TupleDescriptor
 
 	@Override @AvailMethod
 	void o_TupleAtPut (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int subscript,
-		final @NotNull AvailObject value)
+		final AvailObject value)
 	{
 		object.setSlot(ObjectSlots.TUPLE_AT_, subscript, value);
 	}
 
 	@Override @AvailMethod
 	boolean o_CompareFromToWithStartingAt (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
-		final @NotNull AvailObject anotherObject,
+		final AvailObject anotherObject,
 		final int startIndex2)
 	{
 		// Compare sections of two tuples.
@@ -110,10 +110,10 @@ extends TupleDescriptor
 
 	@Override @AvailMethod
 	boolean o_CompareFromToWithObjectTupleStartingAt (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
-		final @NotNull AvailObject anObjectTuple,
+		final AvailObject anObjectTuple,
 		final int startIndex2)
 	{
 		// Compare sections of two object tuples.
@@ -137,16 +137,16 @@ extends TupleDescriptor
 
 	@Override @AvailMethod
 	boolean o_Equals (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+		final AvailObject object,
+		final AvailObject another)
 	{
 		return another.equalsObjectTuple(object);
 	}
 
 	@Override @AvailMethod
 	boolean o_EqualsObjectTuple (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject anObjectTuple)
+		final AvailObject object,
+		final AvailObject anObjectTuple)
 	{
 		// Compare this object tuple and the given object tuple.
 		//
@@ -188,8 +188,8 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_CopyTupleFromToCanDestroy (
-		final @NotNull AvailObject object,
+	AvailObject o_CopyTupleFromToCanDestroy (
+		final AvailObject object,
 		final int startIndex,
 		final int endIndex,
 		final boolean canDestroy)
@@ -294,8 +294,8 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TruncateTo (
-		final @NotNull AvailObject object,
+	AvailObject o_TruncateTo (
+		final AvailObject object,
 		final int newTupleSize)
 	{
 		// Shrink the current object on the right.  Assumes that elements beyond
@@ -320,10 +320,10 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TupleAtPuttingCanDestroy (
-		final @NotNull AvailObject object,
+	AvailObject o_TupleAtPuttingCanDestroy (
+		final AvailObject object,
 		final int index,
-		final @NotNull AvailObject newValueObject,
+		final AvailObject newValueObject,
 		final boolean canDestroy)
 	{
 		// Answer a tuple with all the elements of object except at the given
@@ -345,7 +345,7 @@ extends TupleDescriptor
 
 	@Override @AvailMethod
 	int o_TupleIntAt (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int index)
 	{
 		// Answer the integer element at the given index in the tuple object.
@@ -354,7 +354,7 @@ extends TupleDescriptor
 
 	@Override @AvailMethod
 	int o_TupleSize (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		// Answer the number of elements in the object (as a Java int).
 		return object.variableObjectSlotsCount();
@@ -362,7 +362,7 @@ extends TupleDescriptor
 
 	@Override @AvailMethod
 	int o_BitsPerEntry (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		// Answer approximately how many bits per entry are taken up by this
 		// object.
@@ -371,7 +371,7 @@ extends TupleDescriptor
 
 	@Override @AvailMethod
 	int o_ComputeHashFromTo (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int start,
 		final int end)
 	{

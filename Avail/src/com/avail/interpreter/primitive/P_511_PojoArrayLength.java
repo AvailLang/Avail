@@ -51,9 +51,9 @@ public class P_511_PojoArrayLength extends Primitive
 		1, CannotFail, CanFold);
 
 	@Override
-	public @NotNull Result attempt (
-		final @NotNull List<AvailObject> args,
-		final @NotNull Interpreter interpreter)
+	public Result attempt (
+		final List<AvailObject> args,
+		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
 		final AvailObject pojo = args.get(0);
@@ -64,7 +64,7 @@ public class P_511_PojoArrayLength extends Primitive
 	}
 
 	@Override
-	protected @NotNull AvailObject privateBlockTypeRestriction ()
+	protected AvailObject privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

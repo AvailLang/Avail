@@ -55,7 +55,8 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 	 *
 	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	public enum ObjectSlots
+	implements ObjectSlotsEnum
 	{
 		/**
 		 * The type of value that this expression would produce.
@@ -68,7 +69,8 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 	 *
 	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
 	 */
-	public enum IntegerSlots implements IntegerSlotsEnum
+	public enum IntegerSlots
+	implements IntegerSlotsEnum
 	{
 		/**
 		 * The {@linkplain ParseNodeKind kind} of parse node, encoded as an
@@ -84,7 +86,8 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 	 *
 	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
 	 */
-	public enum ParseNodeKind implements IntegerEnumSlotDescriptionEnum
+	public enum ParseNodeKind
+	implements IntegerEnumSlotDescriptionEnum
 	{
 		/** The root parse node kind. */
 		PARSE_NODE(null),
@@ -104,7 +107,7 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 		BLOCK_NODE(EXPRESSION_NODE)
 		{
 			@Override
-			@NotNull AvailObject mostGeneralInnerType ()
+			AvailObject mostGeneralInnerType ()
 			{
 				return FunctionTypeDescriptor.mostGeneralType();
 			}
@@ -114,7 +117,7 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 		LITERAL_NODE(EXPRESSION_NODE)
 		{
 			@Override
-			@NotNull AvailObject mostGeneralInnerType ()
+			AvailObject mostGeneralInnerType ()
 			{
 				return Types.ANY.o();
 			}
@@ -126,7 +129,7 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 		REFERENCE_NODE(EXPRESSION_NODE)
 		{
 			@Override
-			@NotNull AvailObject mostGeneralInnerType ()
+			AvailObject mostGeneralInnerType ()
 			{
 				return VariableTypeDescriptor.mostGeneralType();
 			}
@@ -142,7 +145,7 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 		LIST_NODE(EXPRESSION_NODE)
 		{
 			@Override
-			@NotNull AvailObject mostGeneralInnerType ()
+			AvailObject mostGeneralInnerType ()
 			{
 				return TupleTypeDescriptor.mostGeneralType();
 			}
@@ -155,7 +158,7 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 		VARIABLE_USE_NODE(EXPRESSION_NODE)
 		{
 			@Override
-			@NotNull AvailObject mostGeneralInnerType ()
+			AvailObject mostGeneralInnerType ()
 			{
 				return Types.ANY.o();
 			}
@@ -208,7 +211,7 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 		 *
 		 * @return The most general inner type for this kind of parse node.
 		 */
-		@NotNull AvailObject mostGeneralInnerType ()
+		AvailObject mostGeneralInnerType ()
 		{
 			return Types.TOP.o();
 		}
@@ -226,9 +229,10 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 		/**
 		 * Construct a new {@link ParseNodeKind}.
 		 *
-		 * @param parentKind The kind of parse node of which this is the type.
+		 * @param parentKind
+		 *        The kind of parse node of which this is the type.
 		 */
-		ParseNodeKind(final ParseNodeKind parentKind)
+		ParseNodeKind(final @Nullable ParseNodeKind parentKind)
 		{
 			this.parentKind = parentKind;
 			if (parentKind == null)
@@ -250,8 +254,8 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 		 *            which is of the type being constructed.
 		 * @return The new parse node type, whose kind is the receiver.
 		 */
-		final public @NotNull AvailObject create (
-			final @NotNull AvailObject expressionType)
+		final public AvailObject create (
+			final AvailObject expressionType)
 		{
 			AvailObject boundedExpressionType = expressionType;
 			final AvailObject type = mutable().create();
@@ -290,7 +294,7 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 		 * @return The new parse node type, whose kind is the receiver and whose
 		 *         expression type is {@linkplain TypeDescriptor.Types#TOP top}.
 		 */
-		final public @NotNull AvailObject mostGeneralType ()
+		final public AvailObject mostGeneralType ()
 		{
 			return mostGeneralType;
 		}
@@ -302,8 +306,8 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 		 * @param another The other {@link ParseNodeKind}.
 		 * @return The nearest common ancestor (a {@link ParseNodeKind}).
 		 */
-		final public @NotNull ParseNodeKind commonAncestorWith (
-			final @NotNull ParseNodeKind another)
+		final public ParseNodeKind commonAncestorWith (
+			final ParseNodeKind another)
 		{
 			ParseNodeKind a = this;
 			ParseNodeKind b = another;
@@ -353,7 +357,7 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 		 * @return Whether the receiver descends from the argument.
 		 */
 		final public boolean isSubkindOf (
-			final @NotNull ParseNodeKind purportedParent)
+			final ParseNodeKind purportedParent)
 		{
 			final int index =
 				ordinal() * values().length + purportedParent.ordinal();
@@ -369,8 +373,8 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 	 *         will be produced by a parse node of this type.
 	 */
 	@Override @AvailMethod
-	@NotNull AvailObject o_ExpressionType (
-		final @NotNull AvailObject object)
+	AvailObject o_ExpressionType (
+		final AvailObject object)
 	{
 		return object.slot(EXPRESSION_TYPE);
 	}
@@ -383,8 +387,8 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 	 *         is.
 	 */
 	@Override @AvailMethod
-	@NotNull ParseNodeKind o_ParseNodeKind (
-		final @NotNull AvailObject object)
+	ParseNodeKind o_ParseNodeKind (
+		final AvailObject object)
 	{
 		final int ordinal = object.slot(KIND);
 		return ParseNodeKind.values()[ordinal];
@@ -395,7 +399,7 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 	* AbstractDescriptor#o_Hash(AvailObject) hash}.
 	 */
 	@Override @AvailMethod
-	int o_Hash (final @NotNull AvailObject object)
+	int o_Hash (final AvailObject object)
 	{
 		return object.slot(EXPRESSION_TYPE).hash()
 			^ (object.slot(KIND) * multiplier);
@@ -411,8 +415,8 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 	 */
 	@Override @AvailMethod
 	boolean o_Equals (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+		final AvailObject object,
+		final AvailObject another)
 	{
 		return another.equalsParseNodeType(object);
 	}
@@ -427,8 +431,8 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 	 */
 	@Override @AvailMethod
 	boolean o_EqualsParseNodeType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aParseNodeType)
+		final AvailObject object,
+		final AvailObject aParseNodeType)
 	{
 		return object.slot(KIND)
 				== aParseNodeType.slot(KIND)
@@ -438,16 +442,16 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 
 	@Override @AvailMethod
 	boolean o_IsSubtypeOf (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aType)
+		final AvailObject object,
+		final AvailObject aType)
 	{
 		return aType.isSupertypeOfParseNodeType(object);
 	}
 
 	@Override @AvailMethod
-	@NotNull boolean o_IsSupertypeOfParseNodeType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aParseNodeType)
+	boolean o_IsSupertypeOfParseNodeType (
+		final AvailObject object,
+		final AvailObject aParseNodeType)
 	{
 		final ParseNodeKind myKind = object.parseNodeKind();
 		final ParseNodeKind otherKind = aParseNodeType.parseNodeKind();
@@ -460,9 +464,9 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeIntersection (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+	AvailObject o_TypeIntersection (
+		final AvailObject object,
+		final AvailObject another)
 	{
 		if (object.isSubtypeOf(another))
 		{
@@ -476,9 +480,9 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeIntersectionOfParseNodeType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aParseNodeType)
+	AvailObject o_TypeIntersectionOfParseNodeType (
+		final AvailObject object,
+		final AvailObject aParseNodeType)
 	{
 		if (object.isSubtypeOf(aParseNodeType))
 		{
@@ -506,17 +510,17 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeUnion (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+	AvailObject o_TypeUnion (
+		final AvailObject object,
+		final AvailObject another)
 	{
 		return another.typeUnionOfParseNodeType(object);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeUnionOfParseNodeType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aParseNodeType)
+	AvailObject o_TypeUnionOfParseNodeType (
+		final AvailObject object,
+		final AvailObject aParseNodeType)
 	{
 		if (object.isSubtypeOf(aParseNodeType))
 		{
@@ -537,24 +541,24 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 
 	@Override @AvailMethod
 	boolean o_ParseNodeKindIsUnder (
-		final @NotNull AvailObject object,
-		final @NotNull ParseNodeKind expectedParseNodeKind)
+		final AvailObject object,
+		final ParseNodeKind expectedParseNodeKind)
 	{
 		return object.parseNodeKind().isSubkindOf(expectedParseNodeKind);
 	}
 
 	@Override
-	@NotNull SerializerOperation o_SerializerOperation (
-		final @NotNull AvailObject object)
+	SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.PARSE_NODE_TYPE;
 	}
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-		final @NotNull AvailObject object,
-		final @NotNull StringBuilder builder,
-		final @NotNull List<AvailObject> recursionList,
+		final AvailObject object,
+		final StringBuilder builder,
+		final List<AvailObject> recursionList,
 		final int indent)
 	{
 		final int kindOrdinal = object.slot(KIND);
@@ -647,9 +651,9 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 	 * @return {@code true} if the list contains only statements, {@code false}
 	 *         otherwise.
 	 */
-	public static @NotNull boolean containsOnlyStatements (
-		final @NotNull List<AvailObject> flat,
-		final @NotNull AvailObject resultType)
+	public static boolean containsOnlyStatements (
+		final List<AvailObject> flat,
+		final AvailObject resultType)
 	{
 		final int statementCount = flat.size();
 		for (int i = 0; i < statementCount; i++)

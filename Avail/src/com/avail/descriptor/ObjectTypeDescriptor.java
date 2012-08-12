@@ -65,7 +65,7 @@ extends TypeDescriptor
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final StringBuilder builder,
 		final List<AvailObject> recursionList,
 		final int indent)
@@ -135,36 +135,36 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_FieldTypeMap (final @NotNull AvailObject object)
+	AvailObject o_FieldTypeMap (final AvailObject object)
 	{
 		return object.slot(FIELD_TYPE_MAP);
 	}
 
 	@Override
 	boolean o_Equals (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+		final AvailObject object,
+		final AvailObject another)
 	{
 		return another.equalsObjectType(object);
 	}
 
 	@Override
 	boolean o_EqualsObjectType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject anObjectType)
+		final AvailObject object,
+		final AvailObject anObjectType)
 	{
 		return object.fieldTypeMap().equals(anObjectType.fieldTypeMap());
 	}
 
 	@Override @AvailMethod
 	int o_Hash (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.fieldTypeMap().hash() * 11 ^ 0xE3561F16;
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_FieldTypeTuple (final @NotNull AvailObject object)
+	AvailObject o_FieldTypeTuple (final AvailObject object)
 	{
 		final AvailObject map = object.slot(FIELD_TYPE_MAP);
 		final List<AvailObject> fieldAssignments = new ArrayList<AvailObject>(
@@ -178,8 +178,8 @@ extends TypeDescriptor
 
 	@Override @AvailMethod
 	boolean o_HasObjectInstance (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject potentialInstance)
+		final AvailObject object,
+		final AvailObject potentialInstance)
 	{
 		final AvailObject typeMap = object.fieldTypeMap();
 		final AvailObject instMap = potentialInstance.fieldMap();
@@ -205,16 +205,16 @@ extends TypeDescriptor
 
 	@Override @AvailMethod
 	boolean o_IsSubtypeOf (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aType)
+		final AvailObject object,
+		final AvailObject aType)
 	{
 		return aType.isSupertypeOfObjectType(object);
 	}
 
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfObjectType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject anObjectType)
+		final AvailObject object,
+		final AvailObject anObjectType)
 	{
 		final AvailObject m1 = object.fieldTypeMap();
 		final AvailObject m2 = anObjectType.fieldTypeMap();
@@ -239,9 +239,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeIntersection (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+	AvailObject o_TypeIntersection (
+		final AvailObject object,
+		final AvailObject another)
 	{
 		if (object.isSubtypeOf(another))
 		{
@@ -260,9 +260,9 @@ extends TypeDescriptor
 	 * types.
 	 */
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeIntersectionOfObjectType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject anObjectType)
+	AvailObject o_TypeIntersectionOfObjectType (
+		final AvailObject object,
+		final AvailObject anObjectType)
 	{
 		final AvailObject map1 = object.fieldTypeMap();
 		final AvailObject map2 = anObjectType.fieldTypeMap();
@@ -300,9 +300,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeUnion (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+	AvailObject o_TypeUnion (
+		final AvailObject object,
+		final AvailObject another)
 	{
 		if (object.isSubtypeOf(another))
 		{
@@ -321,9 +321,9 @@ extends TypeDescriptor
 	 * Here we're finding the nearest common ancestor of two eager object types.
 	 */
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeUnionOfObjectType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject anObjectType)
+	AvailObject o_TypeUnionOfObjectType (
+		final AvailObject object,
+		final AvailObject anObjectType)
 	{
 		final AvailObject map1 = object.fieldTypeMap();
 		final AvailObject map2 = anObjectType.fieldTypeMap();
@@ -344,8 +344,8 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod @ThreadSafe
-	@NotNull SerializerOperation o_SerializerOperation (
-		final @NotNull AvailObject object)
+	SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.OBJECT_TYPE;
 	}
@@ -359,7 +359,7 @@ extends TypeDescriptor
 	 * @return The new {@linkplain ObjectTypeDescriptor object type}.
 	 */
 	public static AvailObject objectTypeFromMap (
-		final @NotNull AvailObject map)
+		final AvailObject map)
 	{
 		final AvailObject result = mutable().create();
 		result.setSlot(FIELD_TYPE_MAP, map);
@@ -377,7 +377,7 @@ extends TypeDescriptor
 	 * @return The new object type.
 	 */
 	public static AvailObject objectTypeFromTuple (
-		final @NotNull AvailObject tuple)
+		final AvailObject tuple)
 	{
 		AvailObject map = MapDescriptor.empty();
 		for (final AvailObject fieldDefinition : tuple)
@@ -400,8 +400,8 @@ extends TypeDescriptor
 	 * @param aString A name.
 	 */
 	public static void setNameForType (
-		final @NotNull AvailObject anObjectType,
-		final @NotNull AvailObject aString)
+		final AvailObject anObjectType,
+		final AvailObject aString)
 	{
 		assert aString.isString();
 		final AvailObject propertyKey =
@@ -452,7 +452,7 @@ extends TypeDescriptor
 	 *         A set of object types corresponding to those names.
 	 */
 	public static AvailObject namesAndBaseTypesForType (
-		final @NotNull AvailObject anObjectType)
+		final AvailObject anObjectType)
 	{
 		final AvailObject propertyKey =
 			AtomDescriptor.objectTypeNamePropertyKey();
@@ -517,7 +517,7 @@ extends TypeDescriptor
 	 *         known.
 	 */
 	public static AvailObject namesForType (
-		final @NotNull AvailObject anObjectType)
+		final AvailObject anObjectType)
 	{
 		return namesAndBaseTypesForType(anObjectType).tupleAt(1);
 	}
@@ -534,7 +534,7 @@ extends TypeDescriptor
 	 *         specific named type is known.
 	 */
 	public static AvailObject namedBaseTypesForType (
-		final @NotNull AvailObject anObjectType)
+		final AvailObject anObjectType)
 	{
 		return namesAndBaseTypesForType(anObjectType).tupleAt(2);
 	}
@@ -652,7 +652,7 @@ extends TypeDescriptor
 	}
 
 	/** The mutable {@link ObjectTypeDescriptor}. */
-	private static final @NotNull ObjectTypeDescriptor mutable =
+	private static final ObjectTypeDescriptor mutable =
 		new ObjectTypeDescriptor(true);
 
 	/**
@@ -660,13 +660,13 @@ extends TypeDescriptor
 	 *
 	 * @return The mutable {@link ObjectTypeDescriptor}.
 	 */
-	public static @NotNull ObjectTypeDescriptor mutable ()
+	public static ObjectTypeDescriptor mutable ()
 	{
 		return mutable;
 	}
 
 	/** The immutable {@link ObjectTypeDescriptor}. */
-	private static final @NotNull ObjectTypeDescriptor immutable =
+	private static final ObjectTypeDescriptor immutable =
 		new ObjectTypeDescriptor(false);
 
 	/**
@@ -674,7 +674,7 @@ extends TypeDescriptor
 	 *
 	 * @return The immutable {@link ObjectTypeDescriptor}.
 	 */
-	public static @NotNull ObjectTypeDescriptor immutable ()
+	public static ObjectTypeDescriptor immutable ()
 	{
 		return immutable;
 	}

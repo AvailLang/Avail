@@ -99,7 +99,7 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override @AvailMethod
 	AvailObject o_Token (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.slot(ObjectSlots.USE_TOKEN);
 	}
@@ -109,7 +109,7 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override @AvailMethod
 	AvailObject o_Declaration (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.slot(ObjectSlots.DECLARATION);
 	}
@@ -117,7 +117,7 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	void o_IsLastUse (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final boolean isLastUse)
 	{
 		object.setSlot(IntegerSlots.LAST_USE, isLastUse ? 1 : 0);
@@ -125,20 +125,20 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	boolean o_IsLastUse (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.slot(IntegerSlots.LAST_USE) != 0;
 	}
 
 
 	@Override @AvailMethod
-	AvailObject o_ExpressionType (final @NotNull AvailObject object)
+	AvailObject o_ExpressionType (final AvailObject object)
 	{
 		return object.declaration().declaredType();
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final @NotNull AvailObject object)
+	int o_Hash (final AvailObject object)
 	{
 		return
 			((object.isLastUse() ? 1 : 0) * multiplier
@@ -149,7 +149,7 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	boolean o_Equals (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailObject another)
 	{
 		return object.kind().equals(another.kind())
@@ -160,7 +160,7 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	void o_EmitValueOn (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
 		final AvailObject declaration = object.declaration();
@@ -171,7 +171,7 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	void o_ChildrenMap (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final Transformer1<AvailObject, AvailObject> aBlock)
 	{
 		// Do nothing.
@@ -179,7 +179,7 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	void o_ChildrenDo (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final Continuation1<AvailObject> aBlock)
 	{
 		// Do nothing.
@@ -187,22 +187,22 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	void o_ValidateLocally (
-		final @NotNull AvailObject object,
-		final AvailObject parent)
+		final AvailObject object,
+		final @Nullable AvailObject parent)
 	{
 		// Do nothing.
 	}
 
 	@Override
-	@NotNull ParseNodeKind o_ParseNodeKind (
-		final @NotNull AvailObject object)
+	ParseNodeKind o_ParseNodeKind (
+		final AvailObject object)
 	{
 		return VARIABLE_USE_NODE;
 	}
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final StringBuilder builder,
 		final List<AvailObject> recursionList,
 		final int indent)

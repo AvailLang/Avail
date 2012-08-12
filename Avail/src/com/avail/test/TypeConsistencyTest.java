@@ -38,7 +38,7 @@ import java.io.PrintStream;
 import java.lang.reflect.Array;
 import java.util.*;
 import org.junit.*;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 import com.avail.descriptor.*;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.interpreter.Primitive;
@@ -912,10 +912,10 @@ public class TypeConsistencyTest
 		 *            An array of parent nodes of the innerNode.
 		 */
 		static void addHelper (
-			final @NotNull String nodeName,
-			final @NotNull ParseNodeKind parseNodeKind,
-			final Node innerNode,
-			final @NotNull Node... parentInnerNodes)
+			final String nodeName,
+			final ParseNodeKind parseNodeKind,
+			final @Nullable Node innerNode,
+			final Node... parentInnerNodes)
 		{
 			final Map<Node, Node> submap;
 			if (parseNodeTypeMap.containsKey(parseNodeKind))
@@ -971,8 +971,8 @@ public class TypeConsistencyTest
 		 *        The nodes by which to parameterize this parse node kind.
 		 */
 		static void addMultiHelper (
-			final @NotNull ParseNodeKind kind,
-			final @NotNull Node... innerNodes)
+			final ParseNodeKind kind,
+			final Node... innerNodes)
 		{
 			for (final Node node : innerNodes)
 			{
@@ -1926,7 +1926,7 @@ public class TypeConsistencyTest
 	 * @param relation The covariant {@linkplain TypeRelation} to check.
 	 */
 	public void checkCovariance (
-		final @NotNull TypeRelation relation)
+		final TypeRelation relation)
 	{
 		for (final Node x : Node.values)
 		{
@@ -1954,7 +1954,7 @@ public class TypeConsistencyTest
 	 * @param relation The contravariant {@linkplain TypeRelation} to check.
 	 */
 	public void checkContravariance (
-		final @NotNull TypeRelation relation)
+		final TypeRelation relation)
 	{
 		for (final Node x : Node.values)
 		{

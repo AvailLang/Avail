@@ -46,19 +46,19 @@ import com.avail.builder.*;
 public final class ModuleNameResolverTest
 {
 	/** The root of the library path. */
-	private static final @NotNull String libraryPath =
+	private static final String libraryPath =
 		new File("avail").getAbsolutePath();
 
 	/** The root of the experimental path. */
-	private static final @NotNull String experimentalPath =
+	private static final String experimentalPath =
 		new File("experimental").getAbsolutePath();
 
 	/** The Avail module path. */
-	private static final @NotNull String modulePath =
+	private static final String modulePath =
 		"avail=" + libraryPath + ";experimental=" + experimentalPath;
 
 	/** The Avail module path roots. */
-	private static final @NotNull ModuleRoots roots =
+	private static final ModuleRoots roots =
 		new ModuleRoots(modulePath);
 
 	/**

@@ -63,15 +63,15 @@ extends Descriptor
 
 	@Override
 	void o_Code (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
+		final AvailObject object,
+		final AvailObject value)
 	{
 		object.setSlot(ObjectSlots.CODE, value);
 	}
 
 	@Override
-	@NotNull AvailObject o_OuterVarAt (
-		final @NotNull AvailObject object,
+	AvailObject o_OuterVarAt (
+		final AvailObject object,
 		final int subscript)
 	{
 		return object.slot(ObjectSlots.OUTER_VAR_AT_, subscript);
@@ -79,25 +79,25 @@ extends Descriptor
 
 	@Override
 	void o_OuterVarAtPut (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int subscript,
-		final @NotNull AvailObject value)
+		final AvailObject value)
 	{
 		object.setSlot(ObjectSlots.OUTER_VAR_AT_, subscript, value);
 	}
 
 	@Override
-	@NotNull AvailObject o_Code (
-		final @NotNull AvailObject object)
+	AvailObject o_Code (
+		final AvailObject object)
 	{
 		return object.slot(ObjectSlots.CODE);
 	}
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-		final @NotNull AvailObject object,
-		final @NotNull StringBuilder aStream,
-		final @NotNull List<AvailObject> recursionList,
+		final AvailObject object,
+		final StringBuilder aStream,
+		final List<AvailObject> recursionList,
 		final int indent)
 	{
 		if (isMutable)
@@ -116,16 +116,16 @@ extends Descriptor
 
 	@Override
 	boolean o_Equals (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+		final AvailObject object,
+		final AvailObject another)
 	{
 		return another.equalsFunction(object);
 	}
 
 	@Override
 	boolean o_EqualsFunction (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aFunction)
+		final AvailObject object,
+		final AvailObject aFunction)
 	{
 		if (!object.code().equals(aFunction.code()))
 		{
@@ -153,7 +153,7 @@ extends Descriptor
 
 	@Override
 	int o_Hash (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		// Answer a 32-bit hash value. If outer vars of mutable functions can
 		// peel away when executed (last use of an outer var of a mutable
@@ -172,7 +172,7 @@ extends Descriptor
 
 	@Override
 	boolean o_IsFunction (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return true;
 	}
@@ -183,16 +183,16 @@ extends Descriptor
 	 * FunctionTypeDescriptor function type}.
 	 */
 	@Override
-	@NotNull AvailObject o_Kind (
-		final @NotNull AvailObject object)
+	AvailObject o_Kind (
+		final AvailObject object)
 	{
 		return object.slot(ObjectSlots.CODE).functionType();
 	}
 
 	@Override
 	boolean o_ContainsBlock (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aFunction)
+		final AvailObject object,
+		final AvailObject aFunction)
 	{
 		//  Answer true if either I am aFunction or I contain aFunction.
 
@@ -205,7 +205,7 @@ extends Descriptor
 
 	@Override
 	boolean o_OptionallyNilOuterVar (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int index)
 	{
 		// This one's kind of tricky. An outer variable is being used by the
@@ -229,15 +229,15 @@ extends Descriptor
 	 */
 	@Override
 	int o_NumOuterVars (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.variableObjectSlotsCount();
 	}
 
 	@Override
 	@AvailMethod @ThreadSafe
-	@NotNull SerializerOperation o_SerializerOperation (
-		final @NotNull AvailObject object)
+	SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		if (object.numOuterVars() == 0)
 		{
@@ -247,7 +247,7 @@ extends Descriptor
 	}
 
 	@Override
-	@NotNull String o_NameForDebugger (final @NotNull AvailObject object)
+	String o_NameForDebugger (final AvailObject object)
 	{
 		return super.o_NameForDebugger(object) + ": "
 			+ object.code().methodName();
@@ -255,7 +255,7 @@ extends Descriptor
 
 	@Override
 	public boolean o_ShowValueInNameForDebugger (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return true;
 	}
@@ -273,8 +273,8 @@ extends Descriptor
 	 * @return Any appropriate function.
 	 */
 	public static AvailObject createStubWithArgTypes (
-		final @NotNull AvailObject functionType,
-		final @NotNull AvailObject function)
+		final AvailObject functionType,
+		final AvailObject function)
 	{
 		final AvailObject argTypes = functionType.argsTupleType();
 		final int numArgs = argTypes.sizeRange().lowerBound().extractInt();
@@ -323,7 +323,7 @@ extends Descriptor
 	 * @return An appropriate function of one argument.
 	 */
 	public static AvailObject createStubTakingTupleFrom (
-		final @NotNull AvailObject function)
+		final AvailObject function)
 	{
 		final AvailObject argTypes = function.functionType().argsTupleType();
 		final int numArgs = argTypes.sizeRange().lowerBound().extractInt();
@@ -374,10 +374,10 @@ extends Descriptor
 	 * @return A function.
 	 */
 	public static AvailObject create (
-		final @NotNull AvailObject code,
-		final @NotNull AvailObject copiedTuple)
+		final AvailObject code,
+		final AvailObject copiedTuple)
 	{
-		final @NotNull AvailObject object = mutable().create(
+		final AvailObject object = mutable().create(
 			copiedTuple.tupleSize());
 		object.code(code);
 		for (int i = copiedTuple.tupleSize(); i >= 1; -- i)

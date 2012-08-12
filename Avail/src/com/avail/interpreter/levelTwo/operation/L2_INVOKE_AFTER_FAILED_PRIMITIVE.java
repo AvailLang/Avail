@@ -74,7 +74,7 @@ public class L2_INVOKE_AFTER_FAILED_PRIMITIVE extends L2Operation
 	}
 
 	@Override
-	public void step (final @NotNull L2Interpreter interpreter)
+	public void step (final L2Interpreter interpreter)
 	{
 		// The continuation is required to have already been reified.
 		final int callerIndex = interpreter.nextWord();

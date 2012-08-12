@@ -51,16 +51,16 @@ public class P_340_PushConstant extends Primitive
 		-1, SpecialReturnConstant, Private, CannotFail);
 
 	@Override
-	public @NotNull Result attempt (
-		final @NotNull List<AvailObject> args,
-		final @NotNull Interpreter interpreter)
+	public Result attempt (
+		final List<AvailObject> args,
+		final Interpreter interpreter)
 	{
 		return interpreter.primitiveSuccess(
 			interpreter.primitiveCompiledCodeBeingAttempted().literalAt(1));
 	}
 
 	@Override
-	protected @NotNull AvailObject privateBlockTypeRestriction ()
+	protected AvailObject privateBlockTypeRestriction ()
 	{
 		// This primitive is suitable for any block signature.
 		return BottomTypeDescriptor.bottom();

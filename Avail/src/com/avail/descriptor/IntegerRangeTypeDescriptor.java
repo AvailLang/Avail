@@ -71,24 +71,24 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_LowerBound (
-		final @NotNull AvailObject object)
+	AvailObject o_LowerBound (
+		final AvailObject object)
 	{
 		return object.slot(LOWER_BOUND);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_UpperBound (
-		final @NotNull AvailObject object)
+	AvailObject o_UpperBound (
+		final AvailObject object)
 	{
 		return object.slot(UPPER_BOUND);
 	}
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-		final @NotNull AvailObject object,
-		final @NotNull StringBuilder aStream,
-		final @NotNull List<AvailObject> recursionList,
+		final AvailObject object,
+		final StringBuilder aStream,
+		final List<AvailObject> recursionList,
 		final int indent)
 	{
 		aStream.append(object.lowerInclusive() ? '[' : '(');
@@ -106,16 +106,16 @@ extends TypeDescriptor
 
 	@Override @AvailMethod
 	boolean o_Equals (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+		final AvailObject object,
+		final AvailObject another)
 	{
 		return another.equalsIntegerRangeType(object);
 	}
 
 	@Override @AvailMethod
 	boolean o_EqualsIntegerRangeType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+		final AvailObject object,
+		final AvailObject another)
 	{
 		if (!object.slot(LOWER_BOUND).equals(another.lowerBound()))
 		{
@@ -150,7 +150,7 @@ extends TypeDescriptor
 	 */
 	@Override @AvailMethod
 	int o_Hash (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return IntegerRangeTypeDescriptor.computeHash(
 			object.slot(LOWER_BOUND).hash(),
@@ -161,22 +161,22 @@ extends TypeDescriptor
 
 	@Override @AvailMethod
 	boolean o_LowerInclusive (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return lowerInclusive;
 	}
 
 	@Override @AvailMethod
 	boolean o_UpperInclusive (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return upperInclusive;
 	}
 
 	@Override @AvailMethod
 	boolean o_IsSubtypeOf (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aType)
+		final AvailObject object,
+		final AvailObject aType)
 	{
 		// Check if object (a type) is a subtype of aType (should also be a type).
 		return aType.isSupertypeOfIntegerRangeType(object);
@@ -195,8 +195,8 @@ extends TypeDescriptor
 	 */
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfIntegerRangeType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject possibleSub)
+		final AvailObject object,
+		final AvailObject possibleSub)
 	{
 		final AvailObject subMinObject = possibleSub.lowerBound();
 		final AvailObject superMinObject = object.slot(LOWER_BOUND);
@@ -226,9 +226,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeIntersection (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+	AvailObject o_TypeIntersection (
+		final AvailObject object,
+		final AvailObject another)
 	{
 		if (object.isSubtypeOf(another))
 		{
@@ -242,9 +242,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeIntersectionOfIntegerRangeType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+	AvailObject o_TypeIntersectionOfIntegerRangeType (
+		final AvailObject object,
+		final AvailObject another)
 	{
 		AvailObject minObject = object.slot(LOWER_BOUND);
 		boolean isMinInc = object.lowerInclusive();
@@ -277,9 +277,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeUnion (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+	AvailObject o_TypeUnion (
+		final AvailObject object,
+		final AvailObject another)
 	{
 		if (object.isSubtypeOf(another))
 		{
@@ -293,9 +293,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeUnionOfIntegerRangeType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+	AvailObject o_TypeUnionOfIntegerRangeType (
+		final AvailObject object,
+		final AvailObject another)
 	{
 		AvailObject minObject = object.slot(LOWER_BOUND);
 		boolean isMinInc = object.lowerInclusive();
@@ -328,22 +328,22 @@ extends TypeDescriptor
 
 	@Override @AvailMethod
 	boolean o_IsIntegerRangeType (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override @AvailMethod @ThreadSafe
-	@NotNull SerializerOperation o_SerializerOperation(
-		final @NotNull AvailObject object)
+	SerializerOperation o_SerializerOperation(
+		final AvailObject object)
 	{
 		return SerializerOperation.INTEGER_RANGE_TYPE;
 	}
 
 	@Override
 	Object o_MarshalToJava (
-		final @NotNull AvailObject object,
-		final Class<?> ignoredClassHint)
+		final AvailObject object,
+		final @Nullable Class<?> ignoredClassHint)
 	{
 		if (object.isSubtypeOf(PojoTypeDescriptor.byteRange()))
 		{
@@ -372,7 +372,7 @@ extends TypeDescriptor
 
 	@Override
 	boolean o_RangeIncludesInt (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int anInt)
 	{
 		final AvailObject lower = object.slot(LOWER_BOUND);
@@ -699,9 +699,9 @@ extends TypeDescriptor
 	 *            The new normalized integer range type.
 	 */
 	public static AvailObject create (
-		final @NotNull AvailObject lowerBound,
+		final AvailObject lowerBound,
 		final boolean lowerInclusive,
-		final @NotNull AvailObject upperBound,
+		final AvailObject upperBound,
 		final boolean upperInclusive)
 	{
 		if (lowerBound.sameAddressAs(upperBound))

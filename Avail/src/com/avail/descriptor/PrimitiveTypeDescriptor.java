@@ -101,7 +101,7 @@ extends TypeDescriptor
 
 	@Override @AvailMethod
 	void o_Hash (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int value)
 	{
 		object.setSlot(HASH, value);
@@ -109,46 +109,46 @@ extends TypeDescriptor
 
 	@Override @AvailMethod
 	void o_Name (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
+		final AvailObject object,
+		final AvailObject value)
 	{
 		object.setSlot(NAME, value);
 	}
 
 	@Override @AvailMethod
 	void o_Parent (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
+		final AvailObject object,
+		final AvailObject value)
 	{
 		object.setSlot(PARENT, value);
 	}
 
 	@Override @AvailMethod
 	int o_Hash (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.slot(HASH);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_Name (
-		final @NotNull AvailObject object)
+	AvailObject o_Name (
+		final AvailObject object)
 	{
 		return object.slot(NAME);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_Parent (
-		final @NotNull AvailObject object)
+	AvailObject o_Parent (
+		final AvailObject object)
 	{
 		return object.slot(PARENT);
 	}
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-		final @NotNull AvailObject object,
-		final @NotNull StringBuilder aStream,
-		final @NotNull List<AvailObject> recursionList,
+		final AvailObject object,
+		final StringBuilder aStream,
+		final List<AvailObject> recursionList,
 		final int indent)
 	{
 		aStream.append(object.name().asNativeString());
@@ -156,16 +156,16 @@ extends TypeDescriptor
 
 	@Override @AvailMethod
 	boolean o_Equals (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+		final AvailObject object,
+		final AvailObject another)
 	{
 		return another.equalsPrimitiveType(object);
 	}
 
 	@Override @AvailMethod
 	boolean o_EqualsPrimitiveType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aPrimitiveType)
+		final AvailObject object,
+		final AvailObject aPrimitiveType)
 	{
 		// Primitive types compare by identity.
 		return object.sameAddressAs(aPrimitiveType);
@@ -173,8 +173,8 @@ extends TypeDescriptor
 
 	@Override @AvailMethod
 	boolean o_IsSubtypeOf (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aType)
+		final AvailObject object,
+		final AvailObject aType)
 	{
 		// Check if object (a type) is a subtype of aType (should also be a type).
 		return aType.isSupertypeOfPrimitiveTypeWithOrdinal(
@@ -183,8 +183,8 @@ extends TypeDescriptor
 
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfFunctionType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aFunctionType)
+		final AvailObject object,
+		final AvailObject aFunctionType)
 	{
 		//  This primitive type is a supertype of aFunctionType if and only if this
 		//  primitive type is a supertype of ANY.
@@ -194,8 +194,8 @@ extends TypeDescriptor
 
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfVariableType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aVariableType)
+		final AvailObject object,
+		final AvailObject aVariableType)
 	{
 		// A primitive type is a supertype of a variable type if it is a
 		// supertype of ANY.
@@ -204,8 +204,8 @@ extends TypeDescriptor
 
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfContinuationType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aContinuationType)
+		final AvailObject object,
+		final AvailObject aContinuationType)
 	{
 		// A primitive type is a supertype of a continuation type if it is a
 		// supertype of ANY.
@@ -214,8 +214,8 @@ extends TypeDescriptor
 
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfCompiledCodeType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aCompiledCodeType)
+		final AvailObject object,
+		final AvailObject aCompiledCodeType)
 	{
 		// A primitive type is a supertype of a compiled code type if it is a
 		// supertype of ANY.
@@ -224,8 +224,8 @@ extends TypeDescriptor
 
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfIntegerRangeType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject anIntegerRangeType)
+		final AvailObject object,
+		final AvailObject anIntegerRangeType)
 	{
 		// Parent of the top integer range type is number, so continue
 		// searching there.
@@ -234,8 +234,8 @@ extends TypeDescriptor
 
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfLiteralTokenType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aLiteralTokenType)
+		final AvailObject object,
+		final AvailObject aLiteralTokenType)
 	{
 		// This primitive type is a supertype of aLiteralTokenType if and only
 		// if this primitive type is a supertype of TOKEN.
@@ -244,8 +244,8 @@ extends TypeDescriptor
 
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfMapType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aMapType)
+		final AvailObject object,
+		final AvailObject aMapType)
 	{
 		// This primitive type is a supertype of aMapType if and only if this
 		// primitive type is a supertype of ANY.
@@ -254,8 +254,8 @@ extends TypeDescriptor
 
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfObjectType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject anEagerObjectType)
+		final AvailObject object,
+		final AvailObject anEagerObjectType)
 	{
 		// Check if I'm a supertype of the given eager object type.  Only ANY
 		// and its ancestors are supertypes of an object type.
@@ -264,31 +264,31 @@ extends TypeDescriptor
 
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfParseNodeType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aParseNodeType)
+		final AvailObject object,
+		final AvailObject aParseNodeType)
 	{
 		return object.isSupertypeOfPrimitiveTypeWithOrdinal(ANY.ordinal());
 	}
 
 	@Override
 	boolean o_IsSupertypeOfPojoBottomType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aPojoType)
+		final AvailObject object,
+		final AvailObject aPojoType)
 	{
 		return object.isSupertypeOfPrimitiveTypeWithOrdinal(ANY.ordinal());
 	}
 
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfPojoType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aPojoType)
+		final AvailObject object,
+		final AvailObject aPojoType)
 	{
 		return object.isSupertypeOfPrimitiveTypeWithOrdinal(ANY.ordinal());
 	}
 
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfPrimitiveTypeWithOrdinal (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int aPrimitiveTypeOrdinal)
 	{
 		final boolean[] row =
@@ -298,8 +298,8 @@ extends TypeDescriptor
 
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfSetType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aSetType)
+		final AvailObject object,
+		final AvailObject aSetType)
 	{
 		//  This primitive type is a supertype of aSetType if and only if this
 		//  primitive type is a supertype of ANY.
@@ -309,8 +309,8 @@ extends TypeDescriptor
 
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfTupleType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aTupleType)
+		final AvailObject object,
+		final AvailObject aTupleType)
 	{
 		//  This primitive type is a supertype of aTupleType if and only if this
 		//  primitive type is a supertype of ANY.
@@ -320,16 +320,16 @@ extends TypeDescriptor
 
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfEnumerationType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject anEnumerationType)
+		final AvailObject object,
+		final AvailObject anEnumerationType)
 	{
 		return InstanceMetaDescriptor.topMeta().isSubtypeOf(object);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeIntersection (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+	AvailObject o_TypeIntersection (
+		final AvailObject object,
+		final AvailObject another)
 	{
 		if (object.isSubtypeOf(another))
 		{
@@ -343,9 +343,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeUnion (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+	AvailObject o_TypeUnion (
+		final AvailObject object,
+		final AvailObject another)
 	{
 		if (object.isSubtypeOf(another))
 		{
@@ -367,8 +367,8 @@ extends TypeDescriptor
 
 	@Override @AvailMethod
 	Object o_MarshalToJava (
-		final @NotNull AvailObject object,
-		final Class<?> ignoredClassHint)
+		final AvailObject object,
+		final @Nullable Class<?> ignoredClassHint)
 	{
 		for (final Types type : Types.values())
 		{
@@ -407,12 +407,12 @@ extends TypeDescriptor
 		}
 		assert false
 			: "All cases have been dealt with, and each forces a return";
-		return null;
+		throw new RuntimeException();
 	}
 
 	@Override
-	@NotNull SerializerOperation o_SerializerOperation (
-		final @NotNull AvailObject object)
+	SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		// Any primitive type that can be serialized should occur in the special
 		// objects list.
@@ -436,7 +436,7 @@ extends TypeDescriptor
 		final int ordinal)
 	{
 		final AvailObject name = StringDescriptor.from(typeNameString);
-		final @NotNull AvailObject object = create();
+		final AvailObject object = create();
 		object.setSlot(NAME, name);
 		object.setSlot(PARENT, NullDescriptor.nullObject());
 		object.setSlot(HASH, typeNameString.hashCode());

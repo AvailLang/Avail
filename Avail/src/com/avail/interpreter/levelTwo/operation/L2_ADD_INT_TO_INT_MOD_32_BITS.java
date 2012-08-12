@@ -59,7 +59,7 @@ public class L2_ADD_INT_TO_INT_MOD_32_BITS extends L2Operation
 	}
 
 	@Override
-	public void step (final @NotNull L2Interpreter interpreter)
+	public void step (final L2Interpreter interpreter)
 	{
 		@SuppressWarnings("unused")
 		final int bitIndex = interpreter.nextWord();

@@ -165,7 +165,7 @@ public abstract class L2Operation
 	 *            The named operand types that this operation expects.
 	 */
 	public void init (
-		final @NotNull L2NamedOperandType... theNamedOperandTypes)
+		final L2NamedOperandType... theNamedOperandTypes)
 	{
 		assert namedOperandTypes == null;
 		namedOperandTypes = theNamedOperandTypes;
@@ -189,15 +189,15 @@ public abstract class L2Operation
 	 *            to perform this operation.
 	 */
 	public abstract void step (
-		final @NotNull L2Interpreter interpreter);
+		final L2Interpreter interpreter);
 
 	/**
 	 * @param instruction
 	 * @param registers
 	 */
 	public void propagateTypesInFor (
-		final @NotNull L2Instruction instruction,
-		final @NotNull RegisterSet registers)
+		final L2Instruction instruction,
+		final RegisterSet registers)
 	{
 		// By default just record that the destinations have been overwritten.
 		for (final L2Register destinationRegister
@@ -252,7 +252,7 @@ public abstract class L2Operation
 	 *            being performed.
 	 * @return Whether that L2Instruction has any side effect.
 	 */
-	public boolean hasSideEffect (final @NotNull L2Instruction instruction)
+	public boolean hasSideEffect (final L2Instruction instruction)
 	{
 		assert instruction.operation == this;
 		return hasSideEffect();

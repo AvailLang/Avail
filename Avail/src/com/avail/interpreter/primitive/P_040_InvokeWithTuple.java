@@ -55,9 +55,9 @@ public class P_040_InvokeWithTuple extends Primitive
 		2, Invokes);
 
 	@Override
-	public @NotNull Result attempt (
-		final @NotNull List<AvailObject> args,
-		final @NotNull Interpreter interpreter)
+	public Result attempt (
+		final List<AvailObject> args,
+		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
 		final AvailObject block = args.get(0);
@@ -89,7 +89,7 @@ public class P_040_InvokeWithTuple extends Primitive
 	}
 
 	@Override
-	protected @NotNull AvailObject privateBlockTypeRestriction ()
+	protected AvailObject privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

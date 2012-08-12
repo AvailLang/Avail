@@ -72,8 +72,8 @@ extends PropertiesFileGenerator
 	 */
 	@Override
 	protected void generateProperties (
-		final @NotNull Properties properties,
-		final @NotNull PrintWriter writer)
+		final Properties properties,
+		final PrintWriter writer)
 	{
 		final Set<String> keys = new HashSet<String>();
 		for (
@@ -186,7 +186,7 @@ extends PropertiesFileGenerator
 	 * @param locale
 	 *        The target {@linkplain Locale locale}.
 	 */
-	public PrimitiveNamesGenerator (final @NotNull Locale locale)
+	public PrimitiveNamesGenerator (final Locale locale)
 	{
 		super(primitivesBaseName, locale);
 	}
@@ -201,7 +201,7 @@ extends PropertiesFileGenerator
 	 * @throws Exception
 	 *         If anything should go wrong.
 	 */
-	public static void main (final @NotNull String[] args)
+	public static void main (final String[] args)
 		throws Exception
 	{
 		final String[] languages;

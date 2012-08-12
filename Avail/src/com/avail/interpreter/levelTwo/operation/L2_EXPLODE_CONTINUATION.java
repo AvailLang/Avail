@@ -59,7 +59,7 @@ public class L2_EXPLODE_CONTINUATION extends L2Operation
 	}
 
 	@Override
-	public void step (final @NotNull L2Interpreter interpreter)
+	public void step (final L2Interpreter interpreter)
 	{
 		// Expand the current continuation's slots into the specified vector
 		// of destination registers.  Also explode the level one pc, stack

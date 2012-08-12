@@ -76,7 +76,7 @@ extends Descriptor
 	 *
 	 * @return The atom.
 	 */
-	public static @NotNull AvailObject vmCrashAtom ()
+	public static AvailObject vmCrashAtom ()
 	{
 		return vmCrashAtom;
 	}
@@ -96,7 +96,7 @@ extends Descriptor
 	 *
 	 * @return A method.
 	 */
-	public static @NotNull AvailObject vmCrashMethod ()
+	public static AvailObject vmCrashMethod ()
 	{
 		return vmCrashMethod;
 	}
@@ -107,7 +107,7 @@ extends Descriptor
 	 *
 	 * @return A method.
 	 */
-	private static @NotNull AvailObject newVMCrashMethod ()
+	private static AvailObject newVMCrashMethod ()
 	{
 		// Generate a function with linkage to primitive 256.
 		final L1InstructionWriter writer = new L1InstructionWriter(
@@ -147,7 +147,7 @@ extends Descriptor
 	/**
 	 * The (special) name of the VM-built pre-bootstrap defining method.
 	 */
-	private static @NotNull AvailObject vmDefinerAtom;
+	private static AvailObject vmDefinerAtom;
 
 	/**
 	 * Answer the (special) {@linkplain AtomDescriptor name} of the VM method
@@ -155,7 +155,7 @@ extends Descriptor
 	 *
 	 * @return The name of the bootstrap method-defining method.
 	 */
-	public static @NotNull AvailObject vmDefinerAtom ()
+	public static AvailObject vmDefinerAtom ()
 	{
 		return vmDefinerAtom;
 	}
@@ -163,7 +163,7 @@ extends Descriptor
 	/**
 	 * The special pre-bootstrap defining method constructed by the VM.
 	 */
-	private static @NotNull AvailObject vmDefinerMethod;
+	private static AvailObject vmDefinerMethod;
 
 	/**
 	 * Answer the special pre-bootstrap defining method that was created and
@@ -171,7 +171,7 @@ extends Descriptor
 	 *
 	 * @return The bootstrap method-defining method.
 	 */
-	public static @NotNull AvailObject vmDefinerMethod ()
+	public static AvailObject vmDefinerMethod ()
 	{
 		return vmDefinerMethod;
 	}
@@ -182,7 +182,7 @@ extends Descriptor
 	 *
 	 * @return A function.
 	 */
-	public static @NotNull AvailObject newVMStringDefinerFunction ()
+	public static AvailObject newVMStringDefinerFunction ()
 	{
 		final L1InstructionWriter writer = new L1InstructionWriter(
 			NullDescriptor.nullObject(),
@@ -219,7 +219,7 @@ extends Descriptor
 	 *
 	 * @return A function.
 	 */
-	public static @NotNull AvailObject newVMAtomDefinerFunction ()
+	public static AvailObject newVMAtomDefinerFunction ()
 	{
 		final L1InstructionWriter writer = new L1InstructionWriter(
 			NullDescriptor.nullObject(),
@@ -256,7 +256,7 @@ extends Descriptor
 	 *
 	 * @return A method.
 	 */
-	private static @NotNull AvailObject newVMDefinerMethod ()
+	private static AvailObject newVMDefinerMethod ()
 	{
 		final AvailObject fromStringFunction = newVMStringDefinerFunction();
 		final AvailObject fromAtomFunction = newVMAtomDefinerFunction();
@@ -280,7 +280,7 @@ extends Descriptor
 	/**
 	 * The (special) name of the VM-built function application method.
 	 */
-	private static @NotNull AvailObject vmFunctionApplyAtom;
+	private static AvailObject vmFunctionApplyAtom;
 
 	/**
 	 * Answer the (special) {@linkplain AtomDescriptor name} of the VM's
@@ -288,7 +288,7 @@ extends Descriptor
 	 *
 	 * @return The name of the VM's function application method.
 	 */
-	public static @NotNull AvailObject vmFunctionApplyAtom ()
+	public static AvailObject vmFunctionApplyAtom ()
 	{
 		return vmFunctionApplyAtom;
 	}
@@ -309,7 +309,7 @@ extends Descriptor
 	 *
 	 * @return A method.
 	 */
-	public static @NotNull AvailObject vmFunctionApplyMethod ()
+	public static AvailObject vmFunctionApplyMethod ()
 	{
 		return vmFunctionApplyMethod;
 	}
@@ -320,7 +320,7 @@ extends Descriptor
 	 *
 	 * @return A method.
 	 */
-	private static @NotNull AvailObject newVMFunctionApplyMethod ()
+	private static AvailObject newVMFunctionApplyMethod ()
 	{
 		// Generate a function with linkage to primitive 40.
 		final L1InstructionWriter writer = new L1InstructionWriter(
@@ -369,7 +369,7 @@ extends Descriptor
 	/**
 	 * The (special) name of the VM-built atom-set publication method.
 	 */
-	private static @NotNull AvailObject vmPublishAtomsAtom;
+	private static AvailObject vmPublishAtomsAtom;
 
 	/**
 	 * Answer the (special) {@linkplain AtomDescriptor name} of the VM's
@@ -377,7 +377,7 @@ extends Descriptor
 	 *
 	 * @return The name of the VM's function application method.
 	 */
-	public static @NotNull AvailObject vmPublishAtomsAtom ()
+	public static AvailObject vmPublishAtomsAtom ()
 	{
 		return vmPublishAtomsAtom;
 	}
@@ -398,7 +398,7 @@ extends Descriptor
 	 *
 	 * @return A method.
 	 */
-	public static @NotNull AvailObject vmPublishAtomsMethod ()
+	public static AvailObject vmPublishAtomsMethod ()
 	{
 		return vmPublishAtomsMethod;
 	}
@@ -409,7 +409,7 @@ extends Descriptor
 	 *
 	 * @return A method.
 	 */
-	private static @NotNull AvailObject newVMPublishAtomsMethod ()
+	private static AvailObject newVMPublishAtomsMethod ()
 	{
 		// Generate a function with linkage to primitive 263.
 		final L1InstructionWriter writer = new L1InstructionWriter(
@@ -543,21 +543,21 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_ImplementationsTuple (
-		final @NotNull AvailObject object)
+	AvailObject o_ImplementationsTuple (
+		final AvailObject object)
 	{
 		return object.slot(IMPLEMENTATIONS_TUPLE);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_Name (
-		final @NotNull AvailObject object)
+	AvailObject o_Name (
+		final AvailObject object)
 	{
 		return object.slot(NAME);
 	}
 
 	@Override boolean allowsImmutableToMutableReferenceInField (
-		final @NotNull AbstractSlotsEnum e)
+		final AbstractSlotsEnum e)
 	{
 		return e == IMPLEMENTATIONS_TUPLE
 			|| e == PRIVATE_TESTING_TREE
@@ -568,9 +568,9 @@ extends Descriptor
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-		final @NotNull AvailObject object,
-		final @NotNull StringBuilder aStream,
-		final @NotNull List<AvailObject> recursionList,
+		final AvailObject object,
+		final StringBuilder aStream,
+		final List<AvailObject> recursionList,
 		final int indent)
 	{
 		final int size = object.implementationsTuple().tupleSize();
@@ -586,8 +586,8 @@ extends Descriptor
 
 	@Override @AvailMethod
 	boolean o_Equals (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+		final AvailObject object,
+		final AvailObject another)
 	{
 		// Methods compare by identity.
 		return another.traversed().sameAddressAs(object);
@@ -595,7 +595,7 @@ extends Descriptor
 
 	@Override @AvailMethod
 	int o_Hash (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.name().hash() + 0x61AF3FC;
 	}
@@ -607,8 +607,8 @@ extends Descriptor
 	 * slots to be mutable even when I'm immutable.
 	 */
 	@Override @AvailMethod
-	@NotNull AvailObject o_MakeImmutable (
-		final @NotNull AvailObject object)
+	AvailObject o_MakeImmutable (
+		final AvailObject object)
 	{
 		object.descriptor = immutable();
 		object.name().makeImmutable();
@@ -616,15 +616,15 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_Kind (
-		final @NotNull AvailObject object)
+	AvailObject o_Kind (
+		final AvailObject object)
 	{
 		return METHOD.o();
 	}
 
 	@Override @AvailMethod
 	void o_AddDependentChunkIndex (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int aChunkIndex)
 	{
 		// Record the fact that the chunk indexed by aChunkIndex depends on
@@ -641,8 +641,8 @@ extends Descriptor
 
 	@Override @AvailMethod
 	void o_AddImplementation (
-			final @NotNull AvailObject object,
-			final @NotNull AvailObject implementation)
+			final AvailObject object,
+			final AvailObject implementation)
 		throws SignatureException
 	{
 		final AvailObject oldTuple = object.implementationsTuple();
@@ -679,8 +679,8 @@ extends Descriptor
 	 */
 	@Override @AvailMethod
 	List<AvailObject> o_FilterByTypes (
-		final @NotNull AvailObject object,
-		final @NotNull List<AvailObject> argTypes)
+		final AvailObject object,
+		final List<AvailObject> argTypes)
 	{
 		List<AvailObject> result;
 		result = new ArrayList<AvailObject>(3);
@@ -713,8 +713,8 @@ extends Descriptor
 	 */
 	@Override @AvailMethod
 	List<AvailObject> o_ImplementationsAtOrBelow (
-		final @NotNull AvailObject object,
-		final @NotNull List<AvailObject> argTypes)
+		final AvailObject object,
+		final List<AvailObject> argTypes)
 	{
 		List<AvailObject> result;
 		result = new ArrayList<AvailObject>(3);
@@ -735,8 +735,8 @@ extends Descriptor
 	 */
 	@Override @AvailMethod
 	boolean o_IncludesImplementation (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject imp)
+		final AvailObject object,
+		final AvailObject imp)
 	{
 		for (final AvailObject signature : object.implementationsTuple())
 		{
@@ -755,9 +755,9 @@ extends Descriptor
 	 * argument types than we need, to allow the tuple to be a reusable buffer.
 	 */
 	@Override @AvailMethod
-	@NotNull AvailObject o_LookupByTypesFromTuple (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject argumentTypeTuple)
+	AvailObject o_LookupByTypesFromTuple (
+		final AvailObject object,
+		final AvailObject argumentTypeTuple)
 	{
 		final AvailObject impsTuple = object.implementationsTuple();
 		final AvailObject tree = object.testingTree();
@@ -791,9 +791,9 @@ extends Descriptor
 	 * a lookup error occurs).
 	 */
 	@Override @AvailMethod
-	@NotNull AvailObject o_LookupByValuesFromList (
-		final @NotNull AvailObject object,
-		final @NotNull List<AvailObject> argumentList)
+	AvailObject o_LookupByValuesFromList (
+		final AvailObject object,
+		final List<AvailObject> argumentList)
 	{
 		final AvailObject impsTuple = object.implementationsTuple();
 		final AvailObject tree = object.testingTree();
@@ -829,9 +829,9 @@ extends Descriptor
 	 * buffer).
 	 */
 	@Override @AvailMethod
-	@NotNull AvailObject o_LookupByValuesFromTuple (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject argumentTuple)
+	AvailObject o_LookupByValuesFromTuple (
+		final AvailObject object,
+		final AvailObject argumentTuple)
 	{
 		final AvailObject impsTuple = object.implementationsTuple();
 		final AvailObject tree = object.testingTree();
@@ -867,7 +867,7 @@ extends Descriptor
 	 */
 	@Override @AvailMethod
 	void o_RemoveDependentChunkIndex (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int aChunkIndex)
 	{
 		AvailObject indices =
@@ -884,8 +884,8 @@ extends Descriptor
 	 */
 	@Override @AvailMethod
 	void o_RemoveImplementation (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject implementation)
+		final AvailObject object,
+		final AvailObject implementation)
 	{
 		AvailObject implementationsTuple = object.implementationsTuple();
 		implementationsTuple = TupleDescriptor.without(
@@ -899,7 +899,7 @@ extends Descriptor
 
 	@Override @AvailMethod
 	int o_NumArgs (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		final AvailObject impsTuple = object.implementationsTuple();
 		if (impsTuple.tupleSize() >= 1)
@@ -936,11 +936,11 @@ extends Descriptor
 	 * </p>
 	 */
 	@Override @AvailMethod
-	@NotNull AvailObject o_ValidateArgumentTypesInterpreterIfFail (
-		final @NotNull AvailObject object,
-		final @NotNull List<AvailObject> argTypes,
-		final @NotNull Interpreter anAvailInterpreter,
-		final @NotNull Continuation1<Generator<String>> failBlock)
+	AvailObject o_ValidateArgumentTypesInterpreterIfFail (
+		final AvailObject object,
+		final List<AvailObject> argTypes,
+		final Interpreter anAvailInterpreter,
+		final Continuation1<Generator<String>> failBlock)
 	{
 		// Filter the implementations down to those that are locally most
 		// specific.  Fail if more than one survives.
@@ -1056,7 +1056,7 @@ extends Descriptor
 						new Generator<String>()
 						{
 							@Override
-							public @NotNull String value ()
+							public String value ()
 							{
 								return
 									problem.asNativeString()
@@ -1073,7 +1073,7 @@ extends Descriptor
 						new Generator<String>()
 						{
 							@Override
-							public @NotNull String value ()
+							public String value ()
 							{
 								return
 									"semantic restriction not to raise an "
@@ -1102,8 +1102,8 @@ extends Descriptor
 	 * integers.
 	 */
 	@Override @AvailMethod
-	@NotNull AvailObject o_TestingTree (
-		final @NotNull AvailObject object)
+	AvailObject o_TestingTree (
+		final AvailObject object)
 	{
 		AvailObject result =
 			object.slot(PRIVATE_TESTING_TREE);
@@ -1139,8 +1139,8 @@ extends Descriptor
 
 	@Override @AvailMethod
 	void o_AddTypeRestriction (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject function)
+		final AvailObject object,
+		final AvailObject function)
 	{
 		final AvailObject oldTuple =
 			object.slot(TYPE_RESTRICTIONS_TUPLE);
@@ -1150,8 +1150,8 @@ extends Descriptor
 
 	@Override @AvailMethod
 	void o_RemoveTypeRestriction (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject function)
+		final AvailObject object,
+		final AvailObject function)
 	{
 		final AvailObject oldTuple =
 			object.slot(TYPE_RESTRICTIONS_TUPLE);
@@ -1164,16 +1164,16 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeRestrictions (
-		final @NotNull AvailObject object)
+	AvailObject o_TypeRestrictions (
+		final AvailObject object)
 	{
 		return object.slot(TYPE_RESTRICTIONS_TUPLE);
 	}
 
 	@Override @AvailMethod
 	void o_AddSealedArgumentsType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject sealSignature)
+		final AvailObject object,
+		final AvailObject sealSignature)
 	{
 		assert sealSignature.isTuple();
 		final AvailObject oldTuple =
@@ -1185,8 +1185,8 @@ extends Descriptor
 
 	@Override @AvailMethod
 	void o_RemoveSealedArgumentsType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject tupleType)
+		final AvailObject object,
+		final AvailObject tupleType)
 	{
 		final AvailObject oldTuple =
 			object.slot(SEALED_ARGUMENTS_TYPES_TUPLE);
@@ -1197,15 +1197,15 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_SealedArgumentsTypesTuple (
-		final @NotNull AvailObject object)
+	AvailObject o_SealedArgumentsTypesTuple (
+		final AvailObject object)
 	{
 		return object.slot(SEALED_ARGUMENTS_TYPES_TUPLE);
 	}
 
 	@Override @AvailMethod
 	boolean o_IsMethodEmpty (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		final AvailObject implementationsTuple =
 			object.slot(IMPLEMENTATIONS_TUPLE);
@@ -1229,8 +1229,8 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod @ThreadSafe
-	@NotNull SerializerOperation o_SerializerOperation (
-		final @NotNull AvailObject object)
+	SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.METHOD;
 	}
@@ -1267,10 +1267,10 @@ extends Descriptor
 	 *            An output list of Integer-encoded instructions.
 	 */
 	static public void createTestingTree (
-		final @NotNull AvailObject[] imps,
-		final @NotNull List<Integer> positives,
-		final @NotNull List<Integer> possible,
-		final @NotNull List<Integer> instructions)
+		final AvailObject[] imps,
+		final List<Integer> positives,
+		final List<Integer> possible,
+		final List<Integer> instructions)
 	{
 		if (possible.isEmpty())
 		{
@@ -1475,7 +1475,7 @@ extends Descriptor
 	 * @param object The method that changed.
 	 */
 	private static void membershipChanged (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		// Invalidate any affected level two chunks.
 		final AvailObject chunkIndices =

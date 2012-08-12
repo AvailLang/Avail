@@ -50,7 +50,7 @@ implements Iterable<L2ObjectRegister>
 	 * The {@linkplain List list} of aggregated {@linkplain L2ObjectRegister
 	 * object registers}.
 	 */
-	private final @NotNull List<L2ObjectRegister> registers;
+	private final List<L2ObjectRegister> registers;
 
 	/**
 	 * Answer the {@linkplain List list} of aggregated {@linkplain
@@ -71,7 +71,7 @@ implements Iterable<L2ObjectRegister>
 	 *        L2ObjectRegister object registers}.
 	 */
 	public L2RegisterVector (
-		final @NotNull List<L2ObjectRegister> registers)
+		final List<L2ObjectRegister> registers)
 	{
 		this.registers = registers;
 	}
@@ -85,7 +85,7 @@ implements Iterable<L2ObjectRegister>
 	 *         register} contains a constant value, {@code false} otherwise.
 	 */
 	public boolean allRegistersAreConstantsIn (
-		final @NotNull RegisterSet registerSet)
+		final RegisterSet registerSet)
 	{
 		for (final L2ObjectRegister register : registers)
 		{

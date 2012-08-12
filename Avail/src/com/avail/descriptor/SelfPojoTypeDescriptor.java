@@ -78,8 +78,8 @@ extends PojoTypeDescriptor
 
 	@Override @AvailMethod
 	boolean o_EqualsPojoType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aPojoType)
+		final AvailObject object,
+		final AvailObject aPojoType)
 	{
 		// Callers have ensured that aPojoType is either an unfused pojo type
 		// or a self type.
@@ -89,7 +89,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final @NotNull AvailObject object)
+	int o_Hash (final AvailObject object)
 	{
 		// Note that this definition produces a value compatible with an unfused
 		// pojo type; this is necessary to permit comparison between an unfused
@@ -98,7 +98,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsAbstract (final @NotNull AvailObject object)
+	boolean o_IsAbstract (final AvailObject object)
 	{
 		final AvailObject javaClass = object.slot(JAVA_CLASS);
 		return javaClass.equalsNull()
@@ -107,7 +107,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsPojoArrayType (final @NotNull AvailObject object)
+	boolean o_IsPojoArrayType (final AvailObject object)
 	{
 		return object.slot(JAVA_CLASS).equals(
 			RawPojoDescriptor.equalityWrap(
@@ -115,21 +115,21 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsPojoFusedType (final @NotNull AvailObject object)
+	boolean o_IsPojoFusedType (final AvailObject object)
 	{
 		return object.slot(JAVA_CLASS).equalsNull();
 	}
 
 	@Override @AvailMethod
-	boolean o_IsPojoSelfType (final @NotNull AvailObject object)
+	boolean o_IsPojoSelfType (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfPojoType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aPojoType)
+		final AvailObject object,
+		final AvailObject aPojoType)
 	{
 		// Check type compatibility by computing the set intersection of the
 		// ancestry of the arguments. If the result is not equal to the
@@ -143,19 +143,19 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_JavaAncestors (final @NotNull AvailObject object)
+	AvailObject o_JavaAncestors (final AvailObject object)
 	{
 		return object.slot(JAVA_ANCESTORS);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_JavaClass (final @NotNull AvailObject object)
+	AvailObject o_JavaClass (final AvailObject object)
 	{
 		return object.slot(JAVA_CLASS);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_MakeImmutable (final @NotNull AvailObject object)
+	AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		object.descriptor = immutable;
 		object.slot(JAVA_CLASS).makeImmutable();
@@ -164,15 +164,15 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_PojoSelfType (final @NotNull AvailObject object)
+	AvailObject o_PojoSelfType (final AvailObject object)
 	{
 		return object;
 	}
 
 	@Override
 	Object o_MarshalToJava (
-		final @NotNull AvailObject object,
-		final Class<?> ignoredClassHint)
+		final AvailObject object,
+		final @Nullable Class<?> ignoredClassHint)
 	{
 		final AvailObject javaClass = object.slot(JAVA_CLASS);
 		if (javaClass.equalsNull())
@@ -184,16 +184,16 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod @ThreadSafe
-	@NotNull SerializerOperation o_SerializerOperation (
-		final @NotNull AvailObject object)
+	SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.SELF_POJO_TYPE_REPRESENTATIVE;
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeIntersectionOfPojoType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aPojoType)
+	AvailObject o_TypeIntersectionOfPojoType (
+		final AvailObject object,
+		final AvailObject aPojoType)
 	{
 		final AvailObject other = aPojoType.pojoSelfType();
 		final AvailObject ancestors = object.slot(JAVA_ANCESTORS);
@@ -222,25 +222,25 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeIntersectionOfPojoFusedType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aFusedPojoType)
+	AvailObject o_TypeIntersectionOfPojoFusedType (
+		final AvailObject object,
+		final AvailObject aFusedPojoType)
 	{
 		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeIntersectionOfPojoUnfusedType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject anUnfusedPojoType)
+	AvailObject o_TypeIntersectionOfPojoUnfusedType (
+		final AvailObject object,
+		final AvailObject anUnfusedPojoType)
 	{
 		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeUnionOfPojoType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aPojoType)
+	AvailObject o_TypeUnionOfPojoType (
+		final AvailObject object,
+		final AvailObject aPojoType)
 	{
 		final AvailObject intersection =
 			object.slot(JAVA_ANCESTORS).setIntersectionCanDestroy(
@@ -249,32 +249,32 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeUnionOfPojoFusedType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aFusedPojoType)
+	AvailObject o_TypeUnionOfPojoFusedType (
+		final AvailObject object,
+		final AvailObject aFusedPojoType)
 	{
 		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeUnionOfPojoUnfusedType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject anUnfusedPojoType)
+	AvailObject o_TypeUnionOfPojoUnfusedType (
+		final AvailObject object,
+		final AvailObject anUnfusedPojoType)
 	{
 		throw unsupportedOperationException();
 	}
 
 	@Override
-	@NotNull AvailObject o_TypeVariables (final @NotNull AvailObject object)
+	AvailObject o_TypeVariables (final AvailObject object)
 	{
 		return MapDescriptor.empty();
 	}
 
 	@Override
 	void printObjectOnAvoidingIndent (
-		final @NotNull AvailObject object,
-		final @NotNull StringBuilder builder,
-		final @NotNull List<AvailObject> recursionList,
+		final AvailObject object,
+		final StringBuilder builder,
+		final List<AvailObject> recursionList,
 		final int indent)
 	{
 		final AvailObject javaClass = object.slot(JAVA_CLASS);
@@ -293,9 +293,11 @@ extends PojoTypeDescriptor
 				{
 					@Override
 					public int compare (
-						final @NotNull AvailObject o1,
-						final @NotNull AvailObject o2)
+						final @Nullable AvailObject o1,
+						final @Nullable AvailObject o2)
 					{
+						assert o1 != null;
+						assert o2 != null;
 						final Class<?> c1 = (Class<?>) o1.javaObject();
 						final Class<?> c2 = (Class<?>) o2.javaObject();
 						return c1.getName().compareTo(c2.getName());
@@ -330,7 +332,7 @@ extends PojoTypeDescriptor
 	}
 
 	/** The mutable {@link SelfPojoTypeDescriptor}. */
-	private final static @NotNull SelfPojoTypeDescriptor mutable =
+	private final static SelfPojoTypeDescriptor mutable =
 		new SelfPojoTypeDescriptor(true);
 
 	/**
@@ -338,13 +340,13 @@ extends PojoTypeDescriptor
 	 *
 	 * @return The mutable {@code SelfPojoTypeDescriptor}.
 	 */
-	static @NotNull SelfPojoTypeDescriptor mutable ()
+	static SelfPojoTypeDescriptor mutable ()
 	{
 		return mutable;
 	}
 
 	/** The immutable {@link SelfPojoTypeDescriptor}. */
-	private final static @NotNull SelfPojoTypeDescriptor immutable =
+	private final static SelfPojoTypeDescriptor immutable =
 		new SelfPojoTypeDescriptor(false);
 
 	/**
@@ -366,9 +368,9 @@ extends PojoTypeDescriptor
 	 *        types to omit type parameterization information.
 	 * @return The requested pojo type.
 	 */
-	static @NotNull AvailObject create (
-		final @NotNull AvailObject javaClass,
-		final @NotNull AvailObject javaAncestors)
+	static AvailObject create (
+		final AvailObject javaClass,
+		final AvailObject javaAncestors)
 	{
 		final AvailObject newObject = mutable.create();
 		newObject.setSlot(JAVA_CLASS, javaClass);
@@ -383,8 +385,8 @@ extends PojoTypeDescriptor
 	 * @param selfPojo The self pojo to convert.
 	 * @return A 2-tuple suitable for serialization.
 	 */
-	public static @NotNull AvailObject toSerializationProxy (
-		final @NotNull AvailObject selfPojo)
+	public static AvailObject toSerializationProxy (
+		final AvailObject selfPojo)
 	{
 		assert selfPojo.isPojoSelfType();
 		final AvailObject pojoClass = selfPojo.javaClass();
@@ -425,9 +427,9 @@ extends PojoTypeDescriptor
 	 * @return A self pojo type.
 	 * @throws ClassNotFoundException If a class can't be loaded.
 	 */
-	public static @NotNull AvailObject fromSerializationProxy (
-		final @NotNull AvailObject selfPojoProxy,
-		final @NotNull ClassLoader classLoader)
+	public static AvailObject fromSerializationProxy (
+		final AvailObject selfPojoProxy,
+		final ClassLoader classLoader)
 	throws ClassNotFoundException
 	{
 		final AvailObject className = selfPojoProxy.tupleAt(1);

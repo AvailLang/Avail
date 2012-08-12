@@ -57,7 +57,7 @@ extends AvailException
 	 * @param errorCode
 	 *        The {@linkplain AvailErrorCode error code}.
 	 */
-	public SignatureException (final @NotNull AvailErrorCode errorCode)
+	public SignatureException (final AvailErrorCode errorCode)
 	{
 		super(errorCode);
 	}
@@ -73,8 +73,8 @@ extends AvailException
 	 *        SignatureException exception}.
 	 */
 	public SignatureException (
-		final @NotNull AvailErrorCode errorCode,
-		final @NotNull Throwable cause)
+		final AvailErrorCode errorCode,
+		final Throwable cause)
 	{
 		super(errorCode, cause);
 	}

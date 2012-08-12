@@ -118,7 +118,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override @AvailMethod
 	AvailObject o_ArgumentsTuple (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.slot(ARGUMENTS_TUPLE);
 	}
@@ -128,7 +128,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override @AvailMethod
 	AvailObject o_StatementsTuple (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.slot(STATEMENTS_TUPLE);
 	}
@@ -138,7 +138,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override @AvailMethod
 	AvailObject o_ResultType (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.slot(RESULT_TYPE);
 	}
@@ -148,7 +148,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override @AvailMethod
 	void o_NeededVariables (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailObject neededVariables)
 	{
 		object.setSlot(NEEDED_VARIABLES, neededVariables);
@@ -159,7 +159,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override @AvailMethod
 	AvailObject o_NeededVariables (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.slot(NEEDED_VARIABLES);
 	}
@@ -168,8 +168,8 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	 * Getter for field checkedExceptions.
 	 */
 	@Override @AvailMethod
-	@NotNull AvailObject o_DeclaredExceptions (
-		final @NotNull AvailObject object)
+	AvailObject o_DeclaredExceptions (
+		final AvailObject object)
 	{
 		return object.slot(DECLARED_EXCEPTIONS);
 	}
@@ -179,7 +179,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override @AvailMethod
 	int o_Primitive (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.slot(PRIMITIVE);
 	}
@@ -189,20 +189,20 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override @AvailMethod
 	int o_StartingLineNumber (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.slot(STARTING_LINE_NUMBER);
 	}
 
 	@Override boolean allowsImmutableToMutableReferenceInField (
-		final @NotNull AbstractSlotsEnum e)
+		final AbstractSlotsEnum e)
 	{
 		return e == NEEDED_VARIABLES;
 	}
 
 
 	@Override @AvailMethod
-	AvailObject o_ExpressionType (final @NotNull AvailObject object)
+	AvailObject o_ExpressionType (final AvailObject object)
 	{
 		List<AvailObject> argumentTypes;
 		argumentTypes = new ArrayList<AvailObject>(
@@ -221,7 +221,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override @AvailMethod
 	void o_EmitEffectOn (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
 		return;
@@ -229,7 +229,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	void o_EmitValueOn (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
 		final AvailCodeGenerator newGenerator = new AvailCodeGenerator(
@@ -252,7 +252,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final @NotNull AvailObject object)
+	int o_Hash (final AvailObject object)
 	{
 		return
 			(((object.argumentsTuple().hash() * multiplier
@@ -265,7 +265,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	boolean o_Equals (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailObject another)
 	{
 		return object.kind().equals(another.kind())
@@ -277,7 +277,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	@Override
-	ParseNodeKind o_ParseNodeKind (final @NotNull AvailObject object)
+	ParseNodeKind o_ParseNodeKind (final AvailObject object)
 	{
 		return ParseNodeKind.BLOCK_NODE;
 	}
@@ -291,7 +291,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	 * @return The list of declarations.
 	 */
 	private static List<AvailObject> allLocallyDefinedVariables (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		final List<AvailObject> declarations = new ArrayList<AvailObject>(10);
 		for (final AvailObject argumentDeclaration : object.argumentsTuple())
@@ -311,7 +311,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	 * @param object The block node to examine.
 	 * @return A list of between zero and one labels.
 	 */
-	private static List<AvailObject> labels (final @NotNull AvailObject object)
+	private static List<AvailObject> labels (final AvailObject object)
 	{
 		final List<AvailObject> labels = new ArrayList<AvailObject>(1);
 		for (final AvailObject maybeLabel : object.statementsTuple())
@@ -332,7 +332,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	 * @param object The block node to examine.
 	 * @return This block's local variable declarations.
 	 */
-	private static List<AvailObject> locals (final @NotNull AvailObject object)
+	private static List<AvailObject> locals (final AvailObject object)
 	{
 		final List<AvailObject> locals = new ArrayList<AvailObject>(5);
 		for (final AvailObject maybeLocal : object.statementsTuple())
@@ -349,7 +349,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	void o_ChildrenMap (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final Transformer1<AvailObject, AvailObject> aBlock)
 	{
 		AvailObject arguments = object.argumentsTuple();
@@ -375,7 +375,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	void o_ChildrenDo (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final Continuation1<AvailObject> aBlock)
 	{
 		for (final AvailObject argument : object.argumentsTuple())
@@ -391,8 +391,8 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	void o_ValidateLocally (
-		final @NotNull AvailObject object,
-		final AvailObject parent)
+		final AvailObject object,
+		final @Nullable AvailObject parent)
 	{
 		// Make sure our neededVariables list has up-to-date information about
 		// the outer variables that are accessed in me, because they have to be
@@ -416,7 +416,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override @AvailMethod
 	AvailObject o_Generate (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
 		codeGenerator.startBlock(
@@ -488,11 +488,11 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	 *            A block node.
 	 */
 	public static AvailObject newBlockNode (
-		final @NotNull List<AvailObject> argumentsList,
+		final List<AvailObject> argumentsList,
 		final int primitive,
-		final @NotNull List<AvailObject> statementsList,
-		final @NotNull AvailObject resultType,
-		final @NotNull AvailObject declaredExceptions,
+		final List<AvailObject> statementsList,
+		final AvailObject resultType,
+		final AvailObject declaredExceptions,
 		final int lineNumber)
 	{
 		return newBlockNode(
@@ -529,11 +529,11 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	 *            A block node.
 	 */
 	public static AvailObject newBlockNode (
-		final @NotNull AvailObject arguments,
-		final @NotNull AvailObject primitive,
-		final @NotNull AvailObject statements,
-		final @NotNull AvailObject resultType,
-		final @NotNull AvailObject declaredExceptions,
+		final AvailObject arguments,
+		final AvailObject primitive,
+		final AvailObject statements,
+		final AvailObject resultType,
+		final AvailObject declaredExceptions,
 		final int lineNumber)
 	{
 		final List<AvailObject> flattenedStatements =
@@ -574,7 +574,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	 *            The {@linkplain BlockNodeDescriptor block node} to validate.
 	 */
 	public static void recursivelyValidate (
-		final @NotNull AvailObject blockNode)
+		final AvailObject blockNode)
 	{
 		final List<AvailObject> blockStack = new ArrayList<AvailObject>(3);
 		treeDoWithParent(
@@ -583,10 +583,11 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 			{
 				@Override
 				public void value (
-					final AvailObject node,
-					final AvailObject parent,
-					final List<AvailObject> blockNodes)
+					final @Nullable AvailObject node,
+					final @Nullable AvailObject parent,
+					final @Nullable List<AvailObject> blockNodes)
 				{
+					assert node != null;
 					node.validateLocally(parent);
 				}
 			},
@@ -603,7 +604,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 	 * @param object The current {@linkplain BlockNodeDescriptor block node}.
 	 */
 	private void collectNeededVariablesOfOuterBlocks (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		final Set<AvailObject> neededDeclarations = new HashSet<AvailObject>();
 		final Set<AvailObject> providedByMe = new HashSet<AvailObject>();
@@ -611,8 +612,9 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 		object.childrenDo(new Continuation1<AvailObject>()
 		{
 			@Override
-			public void value (final AvailObject node)
+			public void value (final @Nullable AvailObject node)
 			{
+				assert node != null;
 				assert !node.isInstanceOfKind(SEQUENCE_NODE.mostGeneralType())
 				: "Sequence nodes should have been eliminated by this point";
 				if (node.isInstanceOfKind(BLOCK_NODE.mostGeneralType()))
@@ -646,7 +648,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final StringBuilder builder,
 		final List<AvailObject> recursionList,
 		final int indent)

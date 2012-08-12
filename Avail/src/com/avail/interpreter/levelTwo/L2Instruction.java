@@ -33,7 +33,7 @@
 package com.avail.interpreter.levelTwo;
 
 import java.util.*;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.operation.L2_LABEL;
@@ -63,18 +63,18 @@ public final class L2Instruction
 	/**
 	 * The {@link L2Operation} whose execution this instruction represents.
 	 */
-	public final @NotNull L2Operation operation;
+	public final L2Operation operation;
 
 	/**
 	 * The {@link L2Operand}s to supply to the operation.
 	 */
-	public final @NotNull L2Operand[] operands;
+	public final L2Operand[] operands;
 
 	/**
 	 * An optional action to perform in place of the regular {@link
 	 * #propagateTypesFor(L2Translator)}.
 	 */
-	public final @NotNull Continuation0 propagationAction;
+	public final Continuation0 propagationAction;
 
 	/**
 	 * The position of the {@linkplain L2Instruction instruction} in its
@@ -120,8 +120,8 @@ public final class L2Instruction
 	 *            {@link L2OperandType}s.
 	 */
 	public L2Instruction (
-		final @NotNull L2Operation operation,
-		final @NotNull L2Operand... operands)
+		final L2Operation operation,
+		final L2Operand... operands)
 	{
 		this(null, operation, operands);
 	}
@@ -141,9 +141,9 @@ public final class L2Instruction
 	 *            {@link L2OperandType}s.
 	 */
 	public L2Instruction (
-		final @NotNull Continuation0 propagationAction,
-		final @NotNull L2Operation operation,
-		final @NotNull L2Operand... operands)
+		final @Nullable Continuation0 propagationAction,
+		final L2Operation operation,
+		final L2Operand... operands)
 	{
 		final L2NamedOperandType[] operandTypes = operation.namedOperandTypes;
 		assert operandTypes.length == operands.length;
@@ -162,7 +162,7 @@ public final class L2Instruction
 	 *
 	 * @return The source {@linkplain L2Register registers}.
 	 */
-	public @NotNull List<L2Register> sourceRegisters ()
+	public List<L2Register> sourceRegisters ()
 	{
 		final List<L2Register> sourceRegisters = new ArrayList<L2Register>();
 		for (final L2Operand operand : operands)
@@ -192,7 +192,7 @@ public final class L2Instruction
 	 *
 	 * @return The source {@linkplain L2Register registers}.
 	 */
-	public @NotNull List<L2Register> destinationRegisters ()
+	public List<L2Register> destinationRegisters ()
 	{
 		final List<L2Register> destinationRegisters =
 			new ArrayList<L2Register>();
@@ -226,7 +226,7 @@ public final class L2Instruction
 	 *
 	 * @return A {@link List} of label {@link L2Instruction instructions}.
 	 */
-	public @NotNull List<L2Instruction> targetLabels ()
+	public List<L2Instruction> targetLabels ()
 	{
 		List<L2Instruction> labels = Collections.emptyList();
 		for (final L2Operand operand : operands)
@@ -250,7 +250,7 @@ public final class L2Instruction
 	 * @param codeGenerator A {@linkplain L2CodeGenerator code generator}.
 	 */
 	public void emitOn (
-		final @NotNull L2CodeGenerator codeGenerator)
+		final L2CodeGenerator codeGenerator)
 	{
 		if (operation.shouldEmit())
 		{
@@ -280,7 +280,7 @@ public final class L2Instruction
 	 *
 	 * @param translator The {@linkplain L2Translator translator}.
 	 */
-	public void propagateTypesFor (final @NotNull L2Translator translator)
+	public void propagateTypesFor (final L2Translator translator)
 	{
 		if (propagationAction == null)
 		{
@@ -303,8 +303,8 @@ public final class L2Instruction
 	 * @return
 	 *            The resulting {@link L2Instruction}.
 	 */
-	public @NotNull L2Instruction transformRegisters (
-		final @NotNull Transformer2<L2Register, L2OperandType, L2Register>
+	public L2Instruction transformRegisters (
+		final Transformer2<L2Register, L2OperandType, L2Register>
 			transformer)
 	{
 		final L2Operand[] newOperands = new L2Operand[operands.length];

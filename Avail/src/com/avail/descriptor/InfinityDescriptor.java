@@ -73,7 +73,7 @@ extends ExtendedIntegerDescriptor
 	 * @param anInfinity The infinity to examine.
 	 * @return The {@code Sign} of the infinity.
 	 */
-	private static Sign getSign (final @NotNull AvailObject anInfinity)
+	private static Sign getSign (final AvailObject anInfinity)
 	{
 		return anInfinity.slot(IntegerSlots.SIGN) == Sign.POSITIVE.ordinal()
 			? Sign.POSITIVE
@@ -82,9 +82,9 @@ extends ExtendedIntegerDescriptor
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-		final @NotNull AvailObject object,
-		final @NotNull StringBuilder aStream,
-		final @NotNull List<AvailObject> recursionList,
+		final AvailObject object,
+		final StringBuilder aStream,
+		final List<AvailObject> recursionList,
 		final int indent)
 	{
 		if (!object.isPositive())
@@ -96,33 +96,33 @@ extends ExtendedIntegerDescriptor
 
 	@Override @AvailMethod
 	boolean o_Equals (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+		final AvailObject object,
+		final AvailObject another)
 	{
 		return another.equalsInfinity(getSign(object));
 	}
 
 	@Override @AvailMethod
 	boolean o_EqualsInfinity (
-		final @NotNull AvailObject object,
-		final @NotNull Sign sign)
+		final AvailObject object,
+		final Sign sign)
 	{
 		return object.slot(IntegerSlots.SIGN) == sign.ordinal();
 	}
 
 	@Override @AvailMethod
-	@NotNull Order o_NumericCompareToInteger (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject anInteger)
+	Order o_NumericCompareToInteger (
+		final AvailObject object,
+		final AvailObject anInteger)
 	{
 		// Infinities are either above or below all integer, depending on sign.
 		return getSign(object) == Sign.POSITIVE ? MORE : LESS;
 	}
 
 	@Override @AvailMethod
-	@NotNull Order o_NumericCompareToInfinity (
-		final @NotNull AvailObject object,
-		final @NotNull Sign sign)
+	Order o_NumericCompareToInfinity (
+		final AvailObject object,
+		final Sign sign)
 	{
 		return DoubleDescriptor.compareDoubles(
 			getSign(object).limitDouble(),
@@ -131,8 +131,8 @@ extends ExtendedIntegerDescriptor
 
 	@Override @AvailMethod
 	boolean o_IsInstanceOfKind (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aType)
+		final AvailObject object,
+		final AvailObject aType)
 	{
 		if (aType.isSupertypeOfPrimitiveTypeWithOrdinal(NUMBER.ordinal()))
 		{
@@ -151,7 +151,7 @@ extends ExtendedIntegerDescriptor
 
 	@Override @AvailMethod
 	int o_Hash (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		// Answer the object's hash value.
 		return object.isPositive() ? 0x14B326DA : 0xBF9302D;
@@ -159,21 +159,21 @@ extends ExtendedIntegerDescriptor
 
 	@Override @AvailMethod
 	boolean o_IsFinite (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return false;
 	}
 
 	@Override @AvailMethod
 	AvailObject o_Kind (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return IntegerRangeTypeDescriptor.singleInteger(object);
 	}
 
 	@Override @AvailMethod
 	double o_ExtractDouble (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.isPositive()
 			? Double.POSITIVE_INFINITY
@@ -182,7 +182,7 @@ extends ExtendedIntegerDescriptor
 
 	@Override @AvailMethod
 	float o_ExtractFloat (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.isPositive()
 			? Float.POSITIVE_INFINITY
@@ -191,8 +191,8 @@ extends ExtendedIntegerDescriptor
 
 	@Override @AvailMethod
 	AvailObject o_DivideCanDestroy (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aNumber,
+		final AvailObject object,
+		final AvailObject aNumber,
 		final boolean canDestroy)
 	{
 		return aNumber.divideIntoInfinityCanDestroy(
@@ -201,9 +201,9 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_MinusCanDestroy (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aNumber,
+	AvailObject o_MinusCanDestroy (
+		final AvailObject object,
+		final AvailObject aNumber,
 		final boolean canDestroy)
 	{
 		return aNumber.subtractFromInfinityCanDestroy(
@@ -212,18 +212,18 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_PlusCanDestroy (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aNumber,
+	AvailObject o_PlusCanDestroy (
+		final AvailObject object,
+		final AvailObject aNumber,
 		final boolean canDestroy)
 	{
 		return aNumber.addToInfinityCanDestroy(getSign(object), canDestroy);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TimesCanDestroy (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aNumber,
+	AvailObject o_TimesCanDestroy (
+		final AvailObject object,
+		final AvailObject aNumber,
 		final boolean canDestroy)
 	{
 		return aNumber.multiplyByInfinityCanDestroy(
@@ -233,15 +233,15 @@ extends ExtendedIntegerDescriptor
 
 	@Override @AvailMethod
 	boolean o_IsPositive (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.slot(IntegerSlots.SIGN) == Sign.POSITIVE.ordinal();
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_AddToInfinityCanDestroy (
-		final @NotNull AvailObject object,
-		final @NotNull Sign sign,
+	AvailObject o_AddToInfinityCanDestroy (
+		final AvailObject object,
+		final Sign sign,
 		final boolean canDestroy)
 	{
 		if (sign == getSign(object))
@@ -254,8 +254,8 @@ extends ExtendedIntegerDescriptor
 
 	@Override @AvailMethod
 	AvailObject o_AddToIntegerCanDestroy (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject anInteger,
+		final AvailObject object,
+		final AvailObject anInteger,
 		final boolean canDestroy)
 	{
 		return object;
@@ -263,7 +263,7 @@ extends ExtendedIntegerDescriptor
 
 	@Override @AvailMethod
 	AvailObject o_AddToDoubleCanDestroy (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailObject doubleObject,
 		final boolean canDestroy)
 	{
@@ -275,7 +275,7 @@ extends ExtendedIntegerDescriptor
 
 	@Override @AvailMethod
 	AvailObject o_AddToFloatCanDestroy (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailObject floatObject,
 		final boolean canDestroy)
 	{
@@ -286,9 +286,9 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_DivideIntoInfinityCanDestroy (
-		final @NotNull AvailObject object,
-		final @NotNull Sign sign,
+	AvailObject o_DivideIntoInfinityCanDestroy (
+		final AvailObject object,
+		final Sign sign,
 		final boolean canDestroy)
 	{
 		throw new ArithmeticException(
@@ -296,9 +296,9 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_DivideIntoIntegerCanDestroy (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject anInteger,
+	AvailObject o_DivideIntoIntegerCanDestroy (
+		final AvailObject object,
+		final AvailObject anInteger,
 		final boolean canDestroy)
 	{
 		return IntegerDescriptor.zero();
@@ -306,7 +306,7 @@ extends ExtendedIntegerDescriptor
 
 	@Override @AvailMethod
 	public AvailObject o_DivideIntoDoubleCanDestroy (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailObject doubleObject,
 		final boolean canDestroy)
 	{
@@ -318,7 +318,7 @@ extends ExtendedIntegerDescriptor
 
 	@Override @AvailMethod
 	public AvailObject o_DivideIntoFloatCanDestroy (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailObject floatObject,
 		final boolean canDestroy)
 	{
@@ -330,8 +330,8 @@ extends ExtendedIntegerDescriptor
 
 	@Override @AvailMethod
 	AvailObject o_MultiplyByInfinityCanDestroy (
-		final @NotNull AvailObject object,
-		final @NotNull Sign sign,
+		final AvailObject object,
+		final Sign sign,
 		final boolean canDestroy)
 	{
 		return (sign == Sign.POSITIVE) == object.isPositive()
@@ -341,8 +341,8 @@ extends ExtendedIntegerDescriptor
 
 	@Override @AvailMethod
 	AvailObject o_MultiplyByIntegerCanDestroy (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject anInteger,
+		final AvailObject object,
+		final AvailObject anInteger,
 		final boolean canDestroy)
 	{
 		if (anInteger.equals(IntegerDescriptor.zero()))
@@ -358,7 +358,7 @@ extends ExtendedIntegerDescriptor
 
 	@Override @AvailMethod
 	public AvailObject o_MultiplyByDoubleCanDestroy (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailObject doubleObject,
 		final boolean canDestroy)
 	{
@@ -370,7 +370,7 @@ extends ExtendedIntegerDescriptor
 
 	@Override @AvailMethod
 	public AvailObject o_MultiplyByFloatCanDestroy (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailObject floatObject,
 		final boolean canDestroy)
 	{
@@ -381,9 +381,9 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_SubtractFromInfinityCanDestroy (
-		final @NotNull AvailObject object,
-		final @NotNull Sign sign,
+	AvailObject o_SubtractFromInfinityCanDestroy (
+		final AvailObject object,
+		final Sign sign,
 		final boolean canDestroy)
 	{
 		if (sign != getSign(object))
@@ -397,9 +397,9 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_SubtractFromIntegerCanDestroy (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject anInteger,
+	AvailObject o_SubtractFromIntegerCanDestroy (
+		final AvailObject object,
+		final AvailObject anInteger,
 		final boolean canDestroy)
 	{
 		return object.isPositive()
@@ -409,7 +409,7 @@ extends ExtendedIntegerDescriptor
 
 	@Override @AvailMethod
 	public AvailObject o_SubtractFromDoubleCanDestroy (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailObject doubleObject,
 		final boolean canDestroy)
 	{
@@ -421,7 +421,7 @@ extends ExtendedIntegerDescriptor
 
 	@Override @AvailMethod
 	public AvailObject o_SubtractFromFloatCanDestroy (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailObject floatObject,
 		final boolean canDestroy)
 	{
@@ -432,16 +432,16 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull Order o_NumericCompare (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+	Order o_NumericCompare (
+		final AvailObject object,
+		final AvailObject another)
 	{
 		return another.numericCompareToInfinity(getSign(object)).reverse();
 	}
 
 	@Override @AvailMethod
-	@NotNull Order o_NumericCompareToDouble (
-		final @NotNull AvailObject object,
+	Order o_NumericCompareToDouble (
+		final AvailObject object,
 		final double double1)
 	{
 		return DoubleDescriptor.compareDoubles(

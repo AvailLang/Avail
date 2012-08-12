@@ -54,10 +54,10 @@ extends AbstractAvailObject
 	private final static boolean shouldCheckSlots = false;
 
 	/** An {@code int} array encoding all of my digital state. */
-	private @NotNull int[] intSlots;
+	private int[] intSlots;
 
 	/** An array of all my references to other {@link AvailObject}s. */
-	private @NotNull AvailObject[] objectSlots;
+	private AvailObject[] objectSlots;
 
 	/**
 	 * Turn the receiver into an {@linkplain IndirectionDescriptor indirection}
@@ -69,7 +69,7 @@ extends AbstractAvailObject
 	 * @param anotherObject An object.
 	 */
 	final void becomeIndirectionTo (
-		final @NotNull AvailObject anotherObject)
+		final AvailObject anotherObject)
 	{
 		// Yes, this is really gross, but it's the simplest way to ensure that
 		// objectSlots can remain private ...
@@ -127,7 +127,7 @@ extends AbstractAvailObject
 
 	@Override
 	final int slot (
-		final @NotNull BitField bitField)
+		final BitField bitField)
 	{
 //		verifyToSpaceAddress();
 		checkSlot(bitField.integerSlot);
@@ -137,7 +137,7 @@ extends AbstractAvailObject
 
 	@Override
 	final void setSlot (
-		final @NotNull BitField bitField,
+		final BitField bitField,
 		final int anInteger)
 	{
 		checkWriteForField(bitField.integerSlot);
@@ -159,7 +159,7 @@ extends AbstractAvailObject
 	 */
 	@Override
 	final short byteSlotAt (
-		final @NotNull IntegerSlotsEnum field,
+		final IntegerSlotsEnum field,
 		final int byteSubscript)
 	{
 //		verifyToSpaceAddress();
@@ -181,7 +181,7 @@ extends AbstractAvailObject
 	 */
 	@Override
 	final void byteSlotAtPut (
-		final @NotNull IntegerSlotsEnum field,
+		final IntegerSlotsEnum field,
 		final int byteSubscript,
 		final short aByte)
 	{
@@ -200,7 +200,7 @@ extends AbstractAvailObject
 
 	@Override
 	final int shortSlotAt (
-		final @NotNull IntegerSlotsEnum field,
+		final IntegerSlotsEnum field,
 		final int shortIndex)
 	{
 //		verifyToSpaceAddress();
@@ -211,7 +211,7 @@ extends AbstractAvailObject
 
 	@Override
 	final void shortSlotAtPut (
-		final @NotNull IntegerSlotsEnum field,
+		final IntegerSlotsEnum field,
 		final int shortIndex,
 		final int aShort)
 	{
@@ -233,7 +233,7 @@ extends AbstractAvailObject
 	}
 
 	@Override
-	final int slot (final @NotNull IntegerSlotsEnum field)
+	final int slot (final IntegerSlotsEnum field)
 	{
 //		verifyToSpaceAddress();
 		checkSlot(field);
@@ -242,7 +242,7 @@ extends AbstractAvailObject
 
 	@Override
 	final void setSlot (
-		final @NotNull IntegerSlotsEnum field,
+		final IntegerSlotsEnum field,
 		final int anInteger)
 	{
 		checkWriteForField(field);
@@ -253,7 +253,7 @@ extends AbstractAvailObject
 
 	@Override
 	final int slot (
-		final @NotNull IntegerSlotsEnum field,
+		final IntegerSlotsEnum field,
 		final int subscript)
 	{
 //		verifyToSpaceAddress();
@@ -263,7 +263,7 @@ extends AbstractAvailObject
 
 	@Override
 	final void setSlot (
-		final @NotNull IntegerSlotsEnum field,
+		final IntegerSlotsEnum field,
 		final int subscript,
 		final int anInteger)
 	{
@@ -281,7 +281,7 @@ extends AbstractAvailObject
 
 	@Override
 	final AvailObject slot (
-		final @NotNull ObjectSlotsEnum field)
+		final ObjectSlotsEnum field)
 	{
 //		verifyToSpaceAddress();
 		checkSlot(field);
@@ -292,8 +292,8 @@ extends AbstractAvailObject
 
 	@Override
 	final void setSlot (
-		final @NotNull ObjectSlotsEnum field,
-		final @NotNull AvailObject anAvailObject)
+		final ObjectSlotsEnum field,
+		final AvailObject anAvailObject)
 	{
 //		verifyToSpaceAddress();
 		checkSlot(field);
@@ -303,7 +303,7 @@ extends AbstractAvailObject
 
 	@Override
 	final AvailObject slot (
-		final @NotNull ObjectSlotsEnum field,
+		final ObjectSlotsEnum field,
 		final int subscript)
 	{
 //		verifyToSpaceAddress();
@@ -315,9 +315,9 @@ extends AbstractAvailObject
 
 	@Override
 	final void setSlot (
-		final @NotNull ObjectSlotsEnum field,
+		final ObjectSlotsEnum field,
 		final int subscript,
-		final @NotNull AvailObject anAvailObject)
+		final AvailObject anAvailObject)
 	{
 //		verifyToSpaceAddress();
 		checkSlot(field);
@@ -413,8 +413,8 @@ extends AbstractAvailObject
 	 * @return A new object.
 	 */
 	static AvailObject newLike (
-		final @NotNull AbstractDescriptor descriptor,
-		final @NotNull AvailObjectRepresentation objectToCopy,
+		final AbstractDescriptor descriptor,
+		final AvailObjectRepresentation objectToCopy,
 		final int deltaObjectSlots,
 		final int deltaIntegerSlots)
 	{
@@ -477,7 +477,7 @@ extends AbstractAvailObject
 	 * @param intSlotsCount The number of integer slots to allocate.
 	 */
 	protected AvailObjectRepresentation (
-		final @NotNull AbstractDescriptor descriptor,
+		final AbstractDescriptor descriptor,
 		final int objectSlotsSize,
 		final int intSlotsCount)
 	{

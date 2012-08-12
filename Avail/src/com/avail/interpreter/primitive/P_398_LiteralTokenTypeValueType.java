@@ -50,13 +50,13 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final @NotNull static Primitive instance =
+	public final static Primitive instance =
 		new P_398_LiteralTokenTypeValueType().init(1, CanFold, CannotFail);
 
 	@Override
-	public @NotNull Result attempt (
-		final @NotNull List<AvailObject> args,
-		final @NotNull Interpreter interpreter)
+	public Result attempt (
+		final List<AvailObject> args,
+		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
 		final AvailObject literalTokenType = args.get(0);
@@ -65,7 +65,7 @@ extends Primitive
 	}
 
 	@Override
-	protected @NotNull AvailObject privateBlockTypeRestriction ()
+	protected AvailObject privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

@@ -36,6 +36,7 @@ import static com.avail.compiler.AbstractAvailCompiler.ExpectedToken.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TokenDescriptor.TokenType.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static java.lang.Math.exp;
 import java.util.*;
 import com.avail.annotations.*;
 import com.avail.builder.ModuleName;
@@ -97,18 +98,20 @@ extends AbstractAvailCompiler
 			{
 				@Override
 				public void value (
-					final ParserState ignored,
-					final Con<AvailObject> whenFoundStatement)
+					final @Nullable ParserState ignored,
+					final @Nullable Con<AvailObject> whenFoundStatement)
 				{
+					assert whenFoundStatement != null;
 					parseDeclarationThen(
 						start,
 						new Con<AvailObject>("Semicolon after declaration")
 						{
 							@Override
 							public void value (
-								final ParserState afterDeclaration,
-								final AvailObject declaration)
+								final @Nullable ParserState afterDeclaration,
+								final @Nullable AvailObject declaration)
 							{
+								assert afterDeclaration != null;
 								if (afterDeclaration.peekToken(
 									SEMICOLON,
 									"; to end declaration statement"))
@@ -127,9 +130,10 @@ extends AbstractAvailCompiler
 						{
 							@Override
 							public void value (
-								final ParserState afterAssignment,
-								final AvailObject assignment)
+								final @Nullable ParserState afterAssignment,
+								final @Nullable AvailObject assignment)
 							{
+								assert afterAssignment != null;
 								if (afterAssignment.peekToken(
 									SEMICOLON,
 									"; to end assignment statement"))
@@ -146,8 +150,8 @@ extends AbstractAvailCompiler
 						{
 							@Override
 							public void value (
-								final ParserState afterExpression,
-								final AvailObject expression)
+								final @Nullable ParserState afterExpression,
+								final @Nullable AvailObject expression)
 							{
 								if (!afterExpression.peekToken(
 									SEMICOLON,
@@ -175,15 +179,15 @@ extends AbstractAvailCompiler
 	 * @param canBeLabel
 	 *        Whether this statement can be a label declaration.
 	 * @param argDecls
-	 *        The enclosing block's argument declarations.
+	 *        The enclosing block's argument declarations, or {@code null}.
 	 * @param continuation
 	 *        What to do with the unambiguous, parsed statement.
 	 */
 	void parseInnerStatement (
-		final @NotNull ParserState start,
+		final ParserState start,
 		final boolean canBeLabel,
-		final @NotNull List<AvailObject> argDecls,
-		final @NotNull Con<AvailObject> continuation)
+		final @Nullable List<AvailObject> argDecls,
+		final Con<AvailObject> continuation)
 	{
 		parseDeclarationThen(
 			start,
@@ -191,9 +195,10 @@ extends AbstractAvailCompiler
 			{
 				@Override
 				public void value (
-					final ParserState afterDeclaration,
-					final AvailObject declaration)
+					final @Nullable ParserState afterDeclaration,
+					final @Nullable AvailObject declaration)
 				{
+					assert afterDeclaration != null;
 					if (afterDeclaration.peekToken(
 						SEMICOLON,
 						"; to end declaration statement"))
@@ -212,9 +217,11 @@ extends AbstractAvailCompiler
 			{
 				@Override
 				public void value (
-					final ParserState afterAssignment,
-					final AvailObject assignment)
+					final @Nullable ParserState afterAssignment,
+					final @Nullable AvailObject assignment)
 				{
+					assert afterAssignment != null;
+					assert assignment != null;
 					if (afterAssignment.peekToken(
 						SEMICOLON,
 						"; to end assignment statement"))
@@ -231,9 +238,11 @@ extends AbstractAvailCompiler
 			{
 				@Override
 				public void value (
-					final ParserState afterExpression,
-					final AvailObject expression)
+					final @Nullable ParserState afterExpression,
+					final @Nullable AvailObject expression)
 				{
+					assert afterExpression != null;
+					assert expression != null;
 					if (!afterExpression.peekToken(
 						SEMICOLON,
 						"; to end statement"))
@@ -271,9 +280,10 @@ extends AbstractAvailCompiler
 				{
 					@Override
 					public void value (
-						final ParserState afterDeclaration,
-						final AvailObject label)
+						final @Nullable ParserState afterDeclaration,
+						final @Nullable AvailObject label)
 					{
+						assert afterDeclaration != null;
 						if (afterDeclaration.peekToken(
 							SEMICOLON,
 							"; to end label statement"))
@@ -311,9 +321,11 @@ extends AbstractAvailCompiler
 			{
 				@Override
 				public void value (
-					final ParserState afterVar,
-					final AvailObject varUse)
+					final @Nullable ParserState afterVar,
+					final @Nullable AvailObject varUse)
 				{
+					assert afterVar != null;
+					assert varUse != null;
 					if (!afterVar.peekToken(COLON, ":= for assignment"))
 					{
 						return;
@@ -331,7 +343,7 @@ extends AbstractAvailCompiler
 						new Mutable<AvailObject>();
 					final AvailObject declaration = varUse.declaration();
 					boolean ok = false;
-					if (declaration == null)
+					if (declaration.equalsNull())
 					{
 						start.expected("variable to have been declared");
 					}
@@ -374,9 +386,11 @@ extends AbstractAvailCompiler
 						{
 							@Override
 							public void value (
-								final ParserState afterExpr,
-								final AvailObject expr)
+								final @Nullable ParserState afterExpr,
+								final @Nullable AvailObject expr)
 							{
+								assert afterExpr != null;
+								assert expr != null;
 								if (afterExpr.peekToken().tokenType()
 										!= END_OF_STATEMENT)
 								{
@@ -431,14 +445,14 @@ extends AbstractAvailCompiler
 	 * @param start
 	 *        Where to start parsing
 	 * @param argDecls
-	 *        The enclosing block's argument declarations.
+	 *        The enclosing block's argument declarations, or {@code null}.
 	 * @param continuation
 	 *        What to do after parsing a label.
 	 */
 	void parseLabelThen (
-		final @NotNull ParserState start,
-		final @NotNull List<AvailObject> argDecls,
-		final @NotNull Con<AvailObject> continuation)
+		final ParserState start,
+		final @Nullable List<AvailObject> argDecls,
+		final Con<AvailObject> continuation)
 	{
 		assert argDecls != null;
 		if (!start.peekToken(
@@ -459,9 +473,11 @@ extends AbstractAvailCompiler
 			{
 				@Override
 				public void value (
-					final ParserState afterExpression,
-					final AvailObject returnType)
+					final @Nullable ParserState afterExpression,
+					final @Nullable AvailObject returnType)
 				{
+					assert afterExpression != null;
+					assert returnType != null;
 					final List<AvailObject> argTypes =
 						new ArrayList<AvailObject>(argDecls.size());
 					for (final AvailObject decl : argDecls)
@@ -577,9 +593,12 @@ extends AbstractAvailCompiler
 					{
 						@Override
 						public void value (
-							final ParserState afterInitExpression,
-							final AvailObject initExpression)
+							final @Nullable ParserState afterInitExpression,
+							final @Nullable AvailObject initExpression)
 						{
+							assert afterInitExpression != null;
+							assert initExpression != null;
+
 							final AvailObject constantDeclaration =
 								DeclarationNodeDescriptor.newConstant(
 									localName,
@@ -622,9 +641,12 @@ extends AbstractAvailCompiler
 			{
 				@Override
 				public void value (
-					final ParserState afterType,
-					final AvailObject type)
+					final @Nullable ParserState afterType,
+					final @Nullable AvailObject type)
 				{
+					assert afterType != null;
+					assert type != null;
+
 					if (type.equals(TOP.o())
 						|| type.equals(BottomTypeDescriptor.bottom()))
 					{
@@ -675,9 +697,12 @@ extends AbstractAvailCompiler
 						{
 							@Override
 							public void value (
-								final ParserState afterInit,
-								final AvailObject initExpr)
+								final @Nullable ParserState afterInit,
+								final @Nullable AvailObject initExpr)
 							{
+								assert afterInit != null;
+								assert initExpr != null;
+
 								if (initExpr.expressionType().equals(TOP.o()))
 								{
 									afterInit.expected(
@@ -772,9 +797,12 @@ extends AbstractAvailCompiler
 			{
 				@Override
 				public void value (
-					final @NotNull ParserState afterType,
-					final @NotNull AvailObject type)
+					final @Nullable ParserState afterType,
+					final @Nullable AvailObject type)
 				{
+					assert afterType != null;
+					assert type != null;
+
 					if (type.equals(TOP.o())
 						|| type.equals(BottomTypeDescriptor.bottom()))
 					{
@@ -828,9 +856,10 @@ extends AbstractAvailCompiler
 				{
 					@Override
 					public void value (
-						final ParserState afterArgument,
-						final AvailObject arg)
+						final @Nullable ParserState afterArgument,
+						final @Nullable AvailObject arg)
 					{
+						assert afterArgument != null;
 						final List<AvailObject> newArgsSoFar =
 							new ArrayList<AvailObject>(argsSoFar);
 						newArgsSoFar.add(arg);
@@ -874,9 +903,10 @@ extends AbstractAvailCompiler
 			{
 				@Override
 				public void value (
-					final ParserState afterFirstArg,
-					final AvailObject firstArg)
+					final @Nullable ParserState afterFirstArg,
+					final @Nullable AvailObject firstArg)
 				{
+					assert afterFirstArg != null;
 					parseAdditionalBlockArgumentsAfterThen(
 						afterFirstArg,
 						Collections.singletonList(firstArg),
@@ -915,9 +945,12 @@ extends AbstractAvailCompiler
 			{
 				@Override
 				public void value (
-					final ParserState afterArgType,
-					final AvailObject type)
+					final @Nullable ParserState afterArgType,
+					final @Nullable AvailObject type)
 				{
+					assert afterArgType != null;
+					assert type != null;
+
 					if (type.equals(TOP.o())
 						|| type.equals(BottomTypeDescriptor.bottom()))
 					{
@@ -974,9 +1007,12 @@ extends AbstractAvailCompiler
 			{
 				@Override
 				public void value (
-					final ParserState afterArguments,
-					final List<AvailObject> arguments)
+					final @Nullable ParserState afterArguments,
+					final @Nullable List<AvailObject> arguments)
 				{
+					assert afterArguments != null;
+					assert arguments != null;
+
 					parseOptionalPrimitiveForArgCountThen(
 						afterArguments,
 						arguments.size(),
@@ -984,9 +1020,13 @@ extends AbstractAvailCompiler
 						{
 							@Override
 							public void value (
-								final ParserState afterOptionalPrimitive,
-								final AvailObject primitiveAndFailure)
+								final @Nullable
+									ParserState afterOptionalPrimitive,
+								final @Nullable AvailObject primitiveAndFailure)
 							{
+								assert afterOptionalPrimitive != null;
+								assert primitiveAndFailure != null;
+
 								// The primitiveAndFailure is either a 1-tuple
 								// with the (CannotFail) primitive number, or a
 								// 2-tuple with the primitive number and the
@@ -1025,9 +1065,13 @@ extends AbstractAvailCompiler
 									{
 										@Override
 										public void value (
-											final ParserState afterStatements,
-											final List<AvailObject> statements)
+											final @Nullable
+												ParserState afterStatements,
+											final @Nullable
+												List<AvailObject> statements)
 										{
+											assert afterStatements != null;
+											assert statements != null;
 											finishBlockThen(
 												afterStatements,
 												arguments,
@@ -1064,13 +1108,13 @@ extends AbstractAvailCompiler
 	 *            What to do with the {@linkplain BlockNodeDescriptor block}.
 	 */
 	@InnerAccess void finishBlockThen (
-		final @NotNull ParserState afterStatements,
-		final @NotNull List<AvailObject> arguments,
+		final ParserState afterStatements,
+		final List<AvailObject> arguments,
 		final int primitiveNumber,
-		final @NotNull List<AvailObject> statements,
-		final @NotNull AvailObject scopeOutsideBlock,
-		final @NotNull AvailObject firstToken,
-		final @NotNull Con<AvailObject> continuation)
+		final List<AvailObject> statements,
+		final AvailObject scopeOutsideBlock,
+		final AvailObject firstToken,
+		final Con<AvailObject> continuation)
 	{
 		if (!afterStatements.peekToken(
 			CLOSE_SQUARE,
@@ -1151,9 +1195,11 @@ extends AbstractAvailCompiler
 				{
 					@Override
 					public void value(
-						final ParserState afterExceptions,
-						final AvailObject checkedExceptions)
+						final @Nullable ParserState afterExceptions,
+						final @Nullable AvailObject checkedExceptions)
 					{
+						assert afterExceptions != null;
+						assert checkedExceptions != null;
 						final AvailObject blockNode =
 							BlockNodeDescriptor.newBlockNode(
 								arguments,
@@ -1183,9 +1229,11 @@ extends AbstractAvailCompiler
 			{
 				@Override
 				public void value (
-					final ParserState afterReturnType,
-					final AvailObject returnType)
+					final @Nullable ParserState afterReturnType,
+					final @Nullable AvailObject returnType)
 				{
+					assert afterReturnType != null;
+					assert returnType != null;
 					final AvailObject explicitBlockType =
 						FunctionTypeDescriptor.create(
 							TupleDescriptor.fromList(argumentTypesList),
@@ -1257,9 +1305,12 @@ extends AbstractAvailCompiler
 							{
 								@Override
 								public void value(
-									final ParserState afterExceptions,
-									final AvailObject checkedExceptions)
+									final @Nullable ParserState afterExceptions,
+									final @Nullable
+										AvailObject checkedExceptions)
 								{
+									assert afterExceptions != null;
+									assert checkedExceptions != null;
 									final AvailObject blockNode =
 										BlockNodeDescriptor.newBlockNode(
 											arguments,
@@ -1331,9 +1382,11 @@ extends AbstractAvailCompiler
 			{
 				@Override
 				public void value (
-					final ParserState afterException,
-					final AvailObject exceptionType)
+					final @Nullable ParserState afterException,
+					final @Nullable AvailObject exceptionType)
 				{
+					assert afterException != null;
+					assert exceptionType != null;
 					final AvailObject newExceptionSet =
 						exceptionsAlready.setWithElementCanDestroy(
 							exceptionType,
@@ -1366,9 +1419,11 @@ extends AbstractAvailCompiler
 			{
 				@Override
 				public void value (
-					final ParserState afterSubexpression,
-					final AvailObject subexpression)
+					final @Nullable ParserState afterSubexpression,
+					final @Nullable AvailObject subexpression)
 				{
+					assert afterSubexpression != null;
+					assert subexpression != null;
 					parseOptionalLeadingArgumentSendAfterThen(
 						afterSubexpression,
 						subexpression,
@@ -1388,8 +1443,8 @@ extends AbstractAvailCompiler
 	 * @param bundleTree
 	 *            The bundle tree used to parse at this position.
 	 * @param firstArgOrNull
-	 *            Either null or an argument that must be consumed before any
-	 *            keywords (or completion of a send).
+	 *            Either {@code null} or an argument that must be consumed
+	 *            before any keywords (or completion of a send).
 	 * @param initialTokenPosition
 	 *            The parse position where the send node started to be
 	 *            processed. Does not count the position of the first argument
@@ -1406,7 +1461,7 @@ extends AbstractAvailCompiler
 	void parseRestOfSendNode (
 		final ParserState start,
 		final AvailObject bundleTree,
-		final AvailObject firstArgOrNull,
+		final @Nullable AvailObject firstArgOrNull,
 		final ParserState initialTokenPosition,
 		final List<AvailObject> argsSoFar,
 		final Con<AvailObject> continuation)
@@ -1593,8 +1648,8 @@ extends AbstractAvailCompiler
 	 * @param instruction
 	 *            The {@linkplain MessageSplitter instruction} to execute.
 	 * @param firstArgOrNull
-	 *            Either the already-parsed first argument or null. If we're
-	 *            looking for leading-argument message sends to wrap an
+	 *            Either the already-parsed first argument or {@code null}. If
+	 *            we're looking for leading-argument message sends to wrap an
 	 *            expression then this is not-null before the first argument
 	 *            position is encountered, otherwise it's null and we should
 	 *            reject attempts to start with an argument (before a keyword).
@@ -1614,13 +1669,13 @@ extends AbstractAvailCompiler
 	 *            message send}.
 	 */
 	void runParsingInstructionThen (
-		final @NotNull ParserState start,
+		final ParserState start,
 		final int instruction,
-		final @NotNull AvailObject firstArgOrNull,
-		final @NotNull List<AvailObject> argsSoFar,
-		final @NotNull ParserState initialTokenPosition,
-		final @NotNull AvailObject successorTrees,
-		final @NotNull Con<AvailObject> continuation)
+		final @Nullable AvailObject firstArgOrNull,
+		final List<AvailObject> argsSoFar,
+		final ParserState initialTokenPosition,
+		final AvailObject successorTrees,
+		final Con<AvailObject> continuation)
 	{
 		final ParsingOperation op = ParsingOperation.decode(instruction);
 		switch (op)
@@ -1638,9 +1693,10 @@ extends AbstractAvailCompiler
 					{
 						@Override
 						public void value (
-							final ParserState afterArg,
-							final AvailObject newArg)
+							final @Nullable ParserState afterArg,
+							final @Nullable AvailObject newArg)
 						{
+							assert afterArg != null;
 							final List<AvailObject> newArgsSoFar =
 								new ArrayList<AvailObject>(argsSoFar);
 							newArgsSoFar.add(newArg);
@@ -2061,8 +2117,8 @@ extends AbstractAvailCompiler
 	 *        false} otherwise.
 	 */
 	private void expectedKeywordsOf (
-		final @NotNull ParserState where,
-		final @NotNull AvailObject incomplete,
+		final ParserState where,
+		final AvailObject incomplete,
 		final boolean caseInsensitive)
 	{
 		where.expected(
@@ -2200,9 +2256,11 @@ extends AbstractAvailCompiler
 			{
 				@Override
 				public void value (
-					final ParserState afterCast,
-					final AvailObject cast)
+					final @Nullable ParserState afterCast,
+					final @Nullable AvailObject cast)
 				{
+					assert afterCast != null;
+					assert cast != null;
 					parseLeadingArgumentSendAfterThen(
 						afterCast,
 						cast,
@@ -2210,9 +2268,11 @@ extends AbstractAvailCompiler
 						{
 							@Override
 							public void value (
-								final ParserState afterSend,
-								final AvailObject leadingSend)
+								final @Nullable ParserState afterSend,
+								final @Nullable AvailObject leadingSend)
 							{
+								assert afterSend != null;
+								assert leadingSend != null;
 								parseOptionalLeadingArgumentSendAfterThen(
 									afterSend,
 									leadingSend,
@@ -2337,9 +2397,12 @@ extends AbstractAvailCompiler
 			{
 				@Override
 				public void value (
-					final @NotNull ParserState afterDeclaration,
-					final @NotNull AvailObject declaration)
+					final @Nullable ParserState afterDeclaration,
+					final @Nullable AvailObject declaration)
 				{
+					assert afterDeclaration != null;
+					assert declaration != null;
+
 					if (!prim.failureVariableType().isSubtypeOf(
 						declaration.declaredType()))
 					{
@@ -2388,8 +2451,8 @@ extends AbstractAvailCompiler
 	 * @param explanation
 	 *            A {@link String} indicating why it's parsing an argument.
 	 * @param firstArgOrNull
-	 *            Either a parse node to use as the argument, or null if we
-	 *            should parse one now.
+	 *            Either a parse node to use as the argument, or {@code null} if
+	 *            we should parse one now.
 	 * @param initialTokenPosition
 	 *            The position at which we started parsing the message send.
 	 *            Does not include the first argument if there were no leading
@@ -2400,7 +2463,7 @@ extends AbstractAvailCompiler
 	void parseSendArgumentWithExplanationThen (
 		final ParserState start,
 		final String explanation,
-		final AvailObject firstArgOrNull,
+		final @Nullable AvailObject firstArgOrNull,
 		final ParserState initialTokenPosition,
 		final Con<AvailObject> continuation)
 	{
@@ -2417,9 +2480,11 @@ extends AbstractAvailCompiler
 					{
 						@Override
 						public void value (
-							final ParserState afterArgument,
-							final AvailObject argument)
+							final @Nullable ParserState afterArgument,
+							final @Nullable AvailObject argument)
 						{
+							assert afterArgument != null;
+							assert argument != null;
 							attempt(afterArgument, continuation, argument);
 						}
 					});
@@ -2487,12 +2552,15 @@ extends AbstractAvailCompiler
 				{
 					@Override
 					public void value (
-						final ParserState afterVar,
-						final AvailObject var)
+						final @Nullable ParserState afterVar,
+						final @Nullable AvailObject var)
 					{
+						assert afterVar != null;
+						assert var != null;
+
 						final AvailObject declaration = var.declaration();
 						String suffix = null;
-						if (declaration == null)
+						if (declaration.equalsNull())
 						{
 							suffix = " to have been declared";
 						}
@@ -2547,7 +2615,7 @@ extends AbstractAvailCompiler
 	void parseStatementsThen (
 		final ParserState start,
 		final boolean canHaveLabel,
-		final List<AvailObject> argDecls,
+		final @Nullable List<AvailObject> argDecls,
 		final List<AvailObject> statements,
 		final Con<List<AvailObject>> continuation)
 	{
@@ -2599,9 +2667,12 @@ extends AbstractAvailCompiler
 			{
 				@Override
 				public void value (
-					final ParserState afterStatement,
-					final AvailObject newStatement)
+					final @Nullable ParserState afterStatement,
+					final @Nullable AvailObject newStatement)
 				{
+					assert afterStatement != null;
+					assert newStatement != null;
+
 					if (newStatement.kind().parseNodeKindIsUnder(
 						DECLARATION_NODE))
 					{
@@ -2638,9 +2709,11 @@ extends AbstractAvailCompiler
 			{
 				@Override
 				public void value (
-					final ParserState afterFinalExpression,
-					final AvailObject finalExpression)
+					final @Nullable ParserState afterFinalExpression,
+					final @Nullable AvailObject finalExpression)
 				{
+					assert afterFinalExpression != null;
+					assert finalExpression != null;
 					if (!finalExpression.expressionType().equals(TOP.o()))
 					{
 						final List<AvailObject> newStatements =

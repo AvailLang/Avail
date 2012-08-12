@@ -137,7 +137,7 @@ public class AvailScanner
 	 * @return The newly added token.
 	 */
 	@InnerAccess
-	@NotNull AvailObject addCurrentToken (
+	AvailObject addCurrentToken (
 		final TokenDescriptor.TokenType tokenType)
 	{
 		final AvailObject token = TokenDescriptor.create(
@@ -159,7 +159,7 @@ public class AvailScanner
 	 * @return The newly added token.
 	 */
 	@InnerAccess
-	@NotNull AvailObject addCurrentLiteralToken (
+	AvailObject addCurrentLiteralToken (
 		final AvailObject anAvailObject)
 	{
 		final AvailObject token = LiteralTokenDescriptor.create(
@@ -871,8 +871,8 @@ public class AvailScanner
 	 * @return A {@linkplain List list} of {@linkplain TokenDescriptor tokens}
 	 *         terminated by a token of type {@link TokenType#END_OF_FILE}.
 	 */
-	public @NotNull List<AvailObject> scanString (
-		final @NotNull String string,
+	public List<AvailObject> scanString (
+		final String string,
 		final boolean stopAfterBodyTokenFlag)
 	{
 		inputString = string;

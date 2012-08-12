@@ -61,9 +61,9 @@ public class P_506_CreatePojoInstanceMethodFunction extends Primitive
 		new P_506_CreatePojoInstanceMethodFunction().init(4, CanFold);
 
 	@Override
-	public @NotNull Result attempt (
-		final @NotNull List<AvailObject> args,
-		final @NotNull Interpreter interpreter)
+	public Result attempt (
+		final List<AvailObject> args,
+		final Interpreter interpreter)
 	{
 		assert args.size() == 4;
 		final AvailObject pojoType = args.get(0);
@@ -233,7 +233,7 @@ public class P_506_CreatePojoInstanceMethodFunction extends Primitive
 	}
 
 	@Override
-	protected @NotNull AvailObject privateBlockTypeRestriction ()
+	protected AvailObject privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

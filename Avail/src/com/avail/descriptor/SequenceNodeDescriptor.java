@@ -68,7 +68,7 @@ public class SequenceNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override @AvailMethod
 	void o_Statements (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailObject statementsTuple)
 	{
 		assert statementsTuple.tupleSize() > 0;
@@ -80,13 +80,13 @@ public class SequenceNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override @AvailMethod
 	AvailObject o_Statements (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.slot(ObjectSlots.STATEMENTS);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ExpressionType (final @NotNull AvailObject object)
+	AvailObject o_ExpressionType (final AvailObject object)
 	{
 		final AvailObject statements = object.statements();
 		assert statements.tupleSize() > 0;
@@ -94,14 +94,14 @@ public class SequenceNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final @NotNull AvailObject object)
+	int o_Hash (final AvailObject object)
 	{
 		return object.statements().hash() + 0xE38140CA;
 	}
 
 	@Override @AvailMethod
 	boolean o_Equals (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailObject another)
 	{
 		return object.kind().equals(another.kind())
@@ -110,7 +110,7 @@ public class SequenceNodeDescriptor extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	void o_EmitValueOn (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
 		final AvailObject statements = object.statements();
@@ -125,7 +125,7 @@ public class SequenceNodeDescriptor extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	void o_EmitEffectOn (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
 		for (final AvailObject statement : object.statements())
@@ -136,7 +136,7 @@ public class SequenceNodeDescriptor extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	void o_ChildrenMap (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final Transformer1<AvailObject, AvailObject> aBlock)
 	{
 		AvailObject statements = object.statements();
@@ -153,7 +153,7 @@ public class SequenceNodeDescriptor extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	void o_ChildrenDo (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final Continuation1<AvailObject> aBlock)
 	{
 		for (final AvailObject statement : object.statements())
@@ -165,8 +165,8 @@ public class SequenceNodeDescriptor extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	void o_ValidateLocally (
-		final @NotNull AvailObject object,
-		final AvailObject parent)
+		final AvailObject object,
+		final @Nullable AvailObject parent)
 	{
 		// Do nothing.
 	}
@@ -174,7 +174,7 @@ public class SequenceNodeDescriptor extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	void o_FlattenStatementsInto (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final List<AvailObject> accumulatedStatements)
 	{
 		for (final AvailObject statement : object.statements())
@@ -184,8 +184,8 @@ public class SequenceNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	@Override
-	@NotNull ParseNodeKind o_ParseNodeKind (
-		final @NotNull AvailObject object)
+	ParseNodeKind o_ParseNodeKind (
+		final AvailObject object)
 	{
 		return SEQUENCE_NODE;
 	}

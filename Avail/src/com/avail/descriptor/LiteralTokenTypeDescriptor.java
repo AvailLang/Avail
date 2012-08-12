@@ -67,22 +67,22 @@ extends TypeDescriptor
 
 	@Override @AvailMethod
 	AvailObject o_LiteralType (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.slot(LITERAL_TYPE);
 	}
 
 	@Override @AvailMethod int o_Hash(
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.slot(LITERAL_TYPE).hash() ^ 0xF47FF1B1;
 	}
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-		final @NotNull AvailObject object,
-		final @NotNull StringBuilder aStream,
-		final @NotNull List<AvailObject> recursionList,
+		final AvailObject object,
+		final StringBuilder aStream,
+		final List<AvailObject> recursionList,
 		final int indent)
 	{
 		aStream.append("literal token⇒");
@@ -94,31 +94,31 @@ extends TypeDescriptor
 
 	@Override
 	boolean o_IsLiteralTokenType (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override
 	boolean o_Equals (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+		final AvailObject object,
+		final AvailObject another)
 	{
 		return another.equalsLiteralTokenType(object);
 	}
 
 	@Override
 	boolean o_EqualsLiteralTokenType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aLiteralTokenType)
+		final AvailObject object,
+		final AvailObject aLiteralTokenType)
 	{
 		return object.literalType().equals(aLiteralTokenType.literalType());
 	}
 
 	@Override
 	boolean o_IsSubtypeOf (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aType)
+		final AvailObject object,
+		final AvailObject aType)
 	{
 		// Check if object (a type) is a subtype of aType (should also be a
 		// type).
@@ -127,17 +127,17 @@ extends TypeDescriptor
 
 	@Override
 	boolean o_IsSupertypeOfLiteralTokenType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aLiteralTokenType)
+		final AvailObject object,
+		final AvailObject aLiteralTokenType)
 	{
 		return aLiteralTokenType.literalType().isSubtypeOf(
 			object.literalType());
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeIntersection (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+	AvailObject o_TypeIntersection (
+		final AvailObject object,
+		final AvailObject another)
 	{
 		if (object.equals(another))
 		{
@@ -155,9 +155,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeIntersectionOfLiteralTokenType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aLiteralTokenType)
+	AvailObject o_TypeIntersectionOfLiteralTokenType (
+		final AvailObject object,
+		final AvailObject aLiteralTokenType)
 	{
 		// Note that the 'inner' type must be made immutable in case one of the
 		// input literal token types is mutable (and may be destroyed
@@ -170,8 +170,8 @@ extends TypeDescriptor
 
 	@Override
 	AvailObject o_TypeUnion (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+		final AvailObject object,
+		final AvailObject another)
 	{
 		if (object.isSubtypeOf(another))
 		{
@@ -185,9 +185,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeUnionOfLiteralTokenType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aLiteralTokenType)
+	AvailObject o_TypeUnionOfLiteralTokenType (
+		final AvailObject object,
+		final AvailObject aLiteralTokenType)
 	{
 		// Note that the 'inner' type must be made immutable in case one of the
 		// input literal token types is mutable (and may be destroyed
@@ -199,8 +199,8 @@ extends TypeDescriptor
 	}
 
 	@Override
-	@NotNull SerializerOperation o_SerializerOperation (
-		final @NotNull AvailObject object)
+	SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.LITERAL_TOKEN_TYPE;
 	}
@@ -213,7 +213,7 @@ extends TypeDescriptor
 	 * @return A {@link LiteralTokenTypeDescriptor literal token type}.
 	 */
 	public static AvailObject create (
-		final @NotNull AvailObject literalType)
+		final AvailObject literalType)
 	{
 		final AvailObject instance = mutable.create();
 		instance.setSlot(LITERAL_TYPE, literalType.makeImmutable());

@@ -53,9 +53,9 @@ public class P_083_MapReplacingKey extends Primitive
 		3, CanFold, CannotFail);
 
 	@Override
-	public @NotNull Result attempt (
-		final @NotNull List<AvailObject> args,
-		final @NotNull Interpreter interpreter)
+	public Result attempt (
+		final List<AvailObject> args,
+		final Interpreter interpreter)
 	{
 		assert args.size() == 3;
 		final AvailObject map = args.get(0);
@@ -68,7 +68,7 @@ public class P_083_MapReplacingKey extends Primitive
 	}
 
 	@Override
-	protected @NotNull AvailObject privateBlockTypeRestriction ()
+	protected AvailObject privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
@@ -82,8 +82,8 @@ public class P_083_MapReplacingKey extends Primitive
 	}
 
 	@Override
-	public @NotNull AvailObject returnTypeGuaranteedByVMForArgumentTypes (
-		final @NotNull List<AvailObject> argumentTypes)
+	public AvailObject returnTypeGuaranteedByVMForArgumentTypes (
+		final List<AvailObject> argumentTypes)
 	{
 		final AvailObject mapType = argumentTypes.get(0);
 		final AvailObject addedKeyType = argumentTypes.get(1);

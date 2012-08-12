@@ -157,27 +157,27 @@ extends Descriptor
 
 	@Override
 	boolean allowsImmutableToMutableReferenceInField (
-		final @NotNull AbstractSlotsEnum e)
+		final AbstractSlotsEnum e)
 	{
 		return e == LOWER_CASE_STRING;
 	}
 
 	@Override @AvailMethod
 	void o_String (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
+		final AvailObject object,
+		final AvailObject value)
 	{
 		object.setSlot(STRING, value);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_String (final @NotNull AvailObject object)
+	AvailObject o_String (final AvailObject object)
 	{
 		return object.slot(STRING);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_LowerCaseString (final @NotNull AvailObject object)
+	AvailObject o_LowerCaseString (final AvailObject object)
 	{
 		AvailObject lowerCase = object.slot(LOWER_CASE_STRING);
 		if (lowerCase.equalsNull())
@@ -192,14 +192,14 @@ extends Descriptor
 
 	@Override @AvailMethod
 	void o_Start (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int value)
 	{
 		object.setSlot(START, value);
 	}
 
 	@Override @AvailMethod
-	int o_Start (final @NotNull AvailObject object)
+	int o_Start (final AvailObject object)
 	{
 		return object.slot(START);
 	}
@@ -209,7 +209,7 @@ extends Descriptor
 	 */
 	@Override @AvailMethod
 	void o_LineNumber (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int value)
 	{
 		object.setSlot(LINE_NUMBER, value);
@@ -219,7 +219,7 @@ extends Descriptor
 	 * Getter for field lineNumber.
 	 */
 	@Override @AvailMethod
-	int o_LineNumber (final @NotNull AvailObject object)
+	int o_LineNumber (final AvailObject object)
 	{
 		return object.slot(LINE_NUMBER);
 	}
@@ -229,8 +229,8 @@ extends Descriptor
 	 */
 	@Override @AvailMethod
 	void o_TokenType (
-		final @NotNull AvailObject object,
-		final @NotNull TokenType value)
+		final AvailObject object,
+		final TokenType value)
 	{
 		object.setSlot(TOKEN_TYPE_CODE, value.ordinal());
 	}
@@ -239,20 +239,20 @@ extends Descriptor
 	 * Getter for field tokenTypeCode.
 	 */
 	@Override @AvailMethod
-	@NotNull TokenType o_TokenType (final @NotNull AvailObject object)
+	TokenType o_TokenType (final AvailObject object)
 	{
 		final int index = object.slot(TOKEN_TYPE_CODE);
 		return TokenType.values()[index];
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_Kind (final @NotNull AvailObject object)
+	AvailObject o_Kind (final AvailObject object)
 	{
 		return TOKEN.o();
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final @NotNull AvailObject object)
+	int o_Hash (final AvailObject object)
 	{
 		return
 			(object.string().hash() * multiplier
@@ -263,16 +263,16 @@ extends Descriptor
 
 	@Override @AvailMethod
 	boolean o_Equals (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+		final AvailObject object,
+		final AvailObject another)
 	{
 		return another.equalsToken(object);
 	}
 
 	@Override @AvailMethod
 	boolean o_EqualsToken (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aToken)
+		final AvailObject object,
+		final AvailObject aToken)
 	{
 		return object.string().equals(aToken.string())
 			&& object.start() == aToken.start()
@@ -283,8 +283,8 @@ extends Descriptor
 	}
 
 	@Override
-	@NotNull SerializerOperation o_SerializerOperation (
-		final @NotNull AvailObject object)
+	SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.TOKEN;
 	}
@@ -298,11 +298,11 @@ extends Descriptor
 	 * @param tokenType The type of token to create.
 	 * @return The new token.
 	 */
-	public static @NotNull AvailObject create (
-		final @NotNull AvailObject string,
+	public static AvailObject create (
+		final AvailObject string,
 		final int start,
 		final int lineNumber,
-		final @NotNull TokenType tokenType)
+		final TokenType tokenType)
 	{
 		final AvailObject instance = mutable.create();
 		instance.setSlot(STRING, string);

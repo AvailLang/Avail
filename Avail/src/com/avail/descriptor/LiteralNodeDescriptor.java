@@ -66,14 +66,14 @@ extends ParseNodeDescriptor
 	 */
 	@Override @AvailMethod
 	AvailObject o_Token (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.slot(ObjectSlots.TOKEN);
 	}
 
 
 	@Override @AvailMethod
-	AvailObject o_ExpressionType (final @NotNull AvailObject object)
+	AvailObject o_ExpressionType (final AvailObject object)
 	{
 		final AvailObject token = object.token();
 		assert token.tokenType() == TokenType.LITERAL
@@ -84,7 +84,7 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final @NotNull AvailObject object)
+	int o_Hash (final AvailObject object)
 	{
 		return
 			object.token().hash() ^ 0x9C860C0D;
@@ -92,7 +92,7 @@ extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	boolean o_Equals (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailObject another)
 	{
 		return object.kind().equals(another.kind())
@@ -101,7 +101,7 @@ extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	void o_EmitEffectOn (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
 		// Do nothing.
@@ -109,7 +109,7 @@ extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	void o_EmitValueOn (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
 		codeGenerator.emitPushLiteral(object.token().literal());
@@ -117,7 +117,7 @@ extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	void o_ChildrenMap (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final Transformer1<AvailObject, AvailObject> aBlock)
 	{
 		// Do nothing.
@@ -125,7 +125,7 @@ extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	void o_ChildrenDo (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final Continuation1<AvailObject> aBlock)
 	{
 		// Do nothing.
@@ -133,21 +133,21 @@ extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	void o_ValidateLocally (
-		final @NotNull AvailObject object,
-		final AvailObject parent)
+		final AvailObject object,
+		final @Nullable AvailObject parent)
 	{
 		// Do nothing.
 	}
 
 	@Override
-	ParseNodeKind o_ParseNodeKind (final @NotNull AvailObject object)
+	ParseNodeKind o_ParseNodeKind (final AvailObject object)
 	{
 		return ParseNodeKind.LITERAL_NODE;
 	}
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final StringBuilder builder,
 		final List<AvailObject> recursionList,
 		final int indent)
@@ -163,7 +163,7 @@ extends ParseNodeDescriptor
 	 * @param token The token that describes the literal.
 	 * @return The new literal node.
 	 */
-	public static AvailObject fromToken (final @NotNull AvailObject token)
+	public static AvailObject fromToken (final AvailObject token)
 	{
 		assert token.isInstanceOfKind(
 			LiteralTokenTypeDescriptor.mostGeneralType());
@@ -183,7 +183,7 @@ extends ParseNodeDescriptor
 	 * @return The new literal node.
 	 */
 	public static AvailObject syntheticFrom (
-		final @NotNull AvailObject literalValue)
+		final AvailObject literalValue)
 	{
 		final AvailObject token = LiteralTokenDescriptor.create(
 			literalValue,

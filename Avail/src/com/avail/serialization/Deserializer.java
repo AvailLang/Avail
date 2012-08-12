@@ -33,7 +33,7 @@
 package com.avail.serialization;
 
 import com.avail.AvailRuntime;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 import com.avail.descriptor.*;
 import java.io.*;
 import java.util.*;
@@ -88,7 +88,7 @@ public class Deserializer
 	 * @param index The special object's ordinal.
 	 * @return The special object known to the virtual machine's runtime.
 	 */
-	protected @NotNull AvailObject specialObject (final int index)
+	protected AvailObject specialObject (final int index)
 	{
 		return AvailRuntime.specialObject(index);
 	}
@@ -99,7 +99,7 @@ public class Deserializer
 	 * @param index The special atom's ordinal.
 	 * @return The special atom known to the virtual machine's runtime.
 	 */
-	protected @NotNull AvailObject specialAtom (final int index)
+	protected AvailObject specialAtom (final int index)
 	{
 		return AvailRuntime.specialAtoms().get(index);
 	}
@@ -111,7 +111,7 @@ public class Deserializer
 	 * @param index The zero-based index at which to fetch the object.
 	 * @return The already constructed object at the specified index.
 	 */
-	protected @NotNull AvailObject objectFromIndex (final int index)
+	protected AvailObject objectFromIndex (final int index)
 	{
 		return assembledObjects.get(index);
 	}
@@ -122,7 +122,7 @@ public class Deserializer
 	 * @param newObject The object that should be recorded.
 	 */
 	protected void addObject (
-		final @NotNull AvailObject newObject)
+		final AvailObject newObject)
 	{
 		assembledObjects.add(newObject);
 	}
@@ -134,8 +134,8 @@ public class Deserializer
 	 * @param moduleName The {@link StringDescriptor name} of the module.
 	 * @return The module with the specified name.
 	 */
-	public @NotNull AvailObject moduleNamed (
-		final @NotNull AvailObject moduleName)
+	public AvailObject moduleNamed (
+		final AvailObject moduleName)
 	{
 		assert moduleName.isString();
 		if (moduleName.equals(currentModule.name()))
@@ -157,7 +157,7 @@ public class Deserializer
 	 * @param module The active {@link ModuleDescriptor module}.
 	 */
 	public void currentModule (
-		final @NotNull AvailObject module)
+		final AvailObject module)
 	{
 		currentModule = module;
 	}
@@ -167,7 +167,7 @@ public class Deserializer
 	 *
 	 * @return The current module.
 	 */
-	public @NotNull AvailObject currentModule ()
+	public AvailObject currentModule ()
 	{
 		return currentModule;
 	}
@@ -177,10 +177,10 @@ public class Deserializer
 	 * are no more objects in the input then answer null.  If the stream is
 	 * malformed throw a MalformedSerialStreamException.
 	 *
-	 * @return A fully deserialized object or null.
+	 * @return A fully deserialized object or {@code null}.
 	 * @throws MalformedSerialStreamException If the stream is malformed.
 	 */
-	public AvailObject deserialize ()
+	public @Nullable AvailObject deserialize ()
 	throws MalformedSerialStreamException
 	{
 		assert producedObject == null;
@@ -207,7 +207,7 @@ public class Deserializer
 	/**
 	 * The stream from which bytes are read.
 	 */
-	private final @NotNull InputStream input;
+	private final InputStream input;
 
 	/**
 	 * Construct a new {@link Deserializer}.
@@ -219,8 +219,8 @@ public class Deserializer
 	 *            objects during deserialization.
 	 */
 	public Deserializer (
-		final @NotNull InputStream input,
-		final @NotNull AvailRuntime runtime)
+		final InputStream input,
+		final AvailRuntime runtime)
 	{
 		this.input = input;
 		this.runtime = runtime;
@@ -232,7 +232,7 @@ public class Deserializer
 	 * @param object The object that was produced.
 	 */
 	protected void recordProducedObject (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		assert producedObject == null;
 		producedObject = object;

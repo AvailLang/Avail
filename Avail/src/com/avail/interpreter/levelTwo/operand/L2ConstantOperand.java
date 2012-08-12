@@ -51,7 +51,7 @@ public class L2ConstantOperand extends L2Operand
 	/**
 	 * The actual constant value.
 	 */
-	public final @NotNull AvailObject object;
+	public final AvailObject object;
 
 	/**
 	 * Construct a new {@link L2ConstantOperand} with the specified {@link
@@ -60,7 +60,7 @@ public class L2ConstantOperand extends L2Operand
 	 * @param object The constant value.
 	 */
 	public L2ConstantOperand (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		this.object = object;
 	}
@@ -79,7 +79,7 @@ public class L2ConstantOperand extends L2Operand
 
 	@Override
 	public L2ConstantOperand transformRegisters (
-		final @NotNull Transformer2<L2Register, L2OperandType, L2Register>
+		final Transformer2<L2Register, L2OperandType, L2Register>
 			transformer)
 	{
 		return this;
@@ -87,7 +87,7 @@ public class L2ConstantOperand extends L2Operand
 
 	@Override
 	public void emitOn (
-		final @NotNull L2CodeGenerator codeGenerator)
+		final L2CodeGenerator codeGenerator)
 	{
 		codeGenerator.emitLiteral(object);
 	}

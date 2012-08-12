@@ -57,28 +57,28 @@ extends ImplementationDescriptor
 
 	@Override @AvailMethod
 	AvailObject o_BodySignature (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.bodyBlock().kind();
 	}
 
 	@Override @AvailMethod
 	AvailObject o_BodyBlock (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.slot(ObjectSlots.BODY_BLOCK);
 	}
 
 	@Override @AvailMethod
 	int o_Hash (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return (object.bodyBlock().hash() * 19) ^ 0x70B2B1A9;
 	}
 
 	@Override @AvailMethod
 	AvailObject o_Kind (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		//  Answer the object's type.
 
@@ -87,7 +87,7 @@ extends ImplementationDescriptor
 
 	@Override @AvailMethod
 	boolean o_IsMethod (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return true;
 	}
@@ -104,7 +104,7 @@ extends ImplementationDescriptor
 	 *            A method signature.
 	 */
 	public static AvailObject create (
-		final @NotNull AvailObject bodyBlock)
+		final AvailObject bodyBlock)
 	{
 		final AvailObject instance = mutable().create();
 		instance.setSlot(ObjectSlots.BODY_BLOCK, bodyBlock);

@@ -66,16 +66,16 @@ extends TypeDescriptor
 
 	@Override @AvailMethod
 	boolean o_Equals (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+		final AvailObject object,
+		final AvailObject another)
 	{
 		return another.equalsTupleType(object);
 	}
 
 	@Override @AvailMethod
 	boolean o_EqualsTupleType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aTupleType)
+		final AvailObject object,
+		final AvailObject aTupleType)
 	{
 		// Tuple types are equal iff their sizeRange, typeTuple, and defaultType
 		// match.
@@ -104,8 +104,8 @@ extends TypeDescriptor
 	 */
 	@Override @AvailMethod
 	boolean o_IsBetterRepresentationThan (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject anotherObject)
+		final AvailObject object,
+		final AvailObject anotherObject)
 	{
 		return false;
 	}
@@ -119,8 +119,8 @@ extends TypeDescriptor
 	 */
 	@Override @AvailMethod
 	boolean o_IsBetterRepresentationThanTupleType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aTupleType)
+		final AvailObject object,
+		final AvailObject aTupleType)
 	{
 		return false;
 	}
@@ -133,7 +133,7 @@ extends TypeDescriptor
 	 */
 	@Override @AvailMethod
 	int o_Hash (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		becomeRealTupleType(object);
 		return object.hash();
@@ -144,8 +144,8 @@ extends TypeDescriptor
 	 * Answer bottom if the index is definitely out of bounds.
 	 */
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeAtIndex (
-		final @NotNull AvailObject object,
+	AvailObject o_TypeAtIndex (
+		final AvailObject object,
 		final int index)
 	{
 		if (index <= 0)
@@ -196,8 +196,8 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_UnionOfTypesAtThrough (
-		final @NotNull AvailObject object,
+	AvailObject o_UnionOfTypesAtThrough (
+		final AvailObject object,
 		final int startIndex,
 		final int endIndex)
 	{
@@ -250,7 +250,7 @@ extends TypeDescriptor
 	 *            tuple type} to transform
 	 */
 	private void becomeRealTupleType (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		final AvailObject part1 = object.slot(FIRST_TUPLE_TYPE);
 		final AvailObject size1 = part1.sizeRange().upperBound();
@@ -309,8 +309,8 @@ extends TypeDescriptor
 	 * computing a type union.
 	 */
 	@Override @AvailMethod
-	@NotNull AvailObject o_DefaultType (
-		final @NotNull AvailObject object)
+	AvailObject o_DefaultType (
+		final AvailObject object)
 	{
 		final AvailObject a = object.slot(FIRST_TUPLE_TYPE);
 		final AvailObject b = object.slot(SECOND_TUPLE_TYPE);
@@ -343,8 +343,8 @@ extends TypeDescriptor
 	 * for its answer.
 	 */
 	@Override @AvailMethod
-	@NotNull AvailObject o_SizeRange (
-		final @NotNull AvailObject object)
+	AvailObject o_SizeRange (
+		final AvailObject object)
 	{
 		final AvailObject a = object.slot(FIRST_TUPLE_TYPE).sizeRange();
 		final AvailObject b = object.slot(SECOND_TUPLE_TYPE).sizeRange();
@@ -365,8 +365,8 @@ extends TypeDescriptor
 	 * it allocates objects.
 	 */
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeTuple (
-		final @NotNull AvailObject object)
+	AvailObject o_TypeTuple (
+		final AvailObject object)
 	{
 		becomeRealTupleType(object);
 		return object.typeTuple();
@@ -377,8 +377,8 @@ extends TypeDescriptor
 	 */
 	@Override @AvailMethod
 	boolean o_IsSubtypeOf (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aType)
+		final AvailObject object,
+		final AvailObject aType)
 	{
 		return aType.isSupertypeOfTupleType(object);
 	}
@@ -390,8 +390,8 @@ extends TypeDescriptor
 	 */
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfTupleType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aTupleType)
+		final AvailObject object,
+		final AvailObject aTupleType)
 	{
 		if (object.equals(aTupleType))
 		{
@@ -439,9 +439,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeIntersection (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+	AvailObject o_TypeIntersection (
+		final AvailObject object,
+		final AvailObject another)
 	{
 		if (object.isSubtypeOf(another))
 		{
@@ -455,9 +455,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeIntersectionOfTupleType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aTupleType)
+	AvailObject o_TypeIntersectionOfTupleType (
+		final AvailObject object,
+		final AvailObject aTupleType)
 	{
 		final AvailObject newSizesObject =
 			object.sizeRange().typeIntersection(aTupleType.sizeRange());
@@ -503,9 +503,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeUnion (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+	AvailObject o_TypeUnion (
+		final AvailObject object,
+		final AvailObject another)
 	{
 		if (object.isSubtypeOf(another))
 		{
@@ -519,9 +519,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeUnionOfTupleType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aTupleType)
+	AvailObject o_TypeUnionOfTupleType (
+		final AvailObject object,
+		final AvailObject aTupleType)
 	{
 		final AvailObject newSizesObject = object.sizeRange().typeUnion(
 			aTupleType.sizeRange());
@@ -563,15 +563,15 @@ extends TypeDescriptor
 
 	@Override @AvailMethod
 	boolean o_IsTupleType (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		// This is a tupleType.
 		return true;
 	}
 
 	@Override
-	@NotNull SerializerOperation o_SerializerOperation (
-		final @NotNull AvailObject object)
+	SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		becomeRealTupleType(object);
 		return object.serializerOperation();
@@ -592,9 +592,9 @@ extends TypeDescriptor
 	 *            all the concatenations of instances of the two given tuple
 	 *            types.
 	 */
-	public static @NotNull AvailObject concatenatingAnd (
-		final @NotNull AvailObject firstObject,
-		final @NotNull AvailObject secondObject)
+	public static AvailObject concatenatingAnd (
+		final AvailObject firstObject,
+		final AvailObject secondObject)
 	{
 		assert firstObject.isTupleType() && secondObject.isTupleType();
 		final AvailObject result = mutable().create();

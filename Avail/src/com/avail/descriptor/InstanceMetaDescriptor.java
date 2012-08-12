@@ -93,8 +93,8 @@ extends AbstractEnumerationTypeDescriptor
 	 * @param object An instance type.
 	 * @return The instance represented by the given instance type.
 	 */
-	private static @NotNull AvailObject getInstance (
-		final @NotNull AvailObject object)
+	private static AvailObject getInstance (
+		final AvailObject object)
 	{
 		return object.slot(INSTANCE);
 	}
@@ -112,17 +112,17 @@ extends AbstractEnumerationTypeDescriptor
 	 *            an {@linkplain AbstractEnumerationTypeDescriptor enumeration})
 	 *            that is nearest the specified instance meta.
 	 */
-	private static @NotNull AvailObject getSuperkind (
-		final @NotNull AvailObject object)
+	private static AvailObject getSuperkind (
+		final AvailObject object)
 	{
 		return ANY.o();
 	}
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-		final @NotNull AvailObject object,
-		final @NotNull StringBuilder aStream,
-		final @NotNull List<AvailObject> recursionList,
+		final AvailObject object,
+		final StringBuilder aStream,
+		final List<AvailObject> recursionList,
 		final int indent)
 	{
 		aStream.append("(");
@@ -134,7 +134,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override
-	@NotNull AvailObject o_Instance (final @NotNull AvailObject object)
+	AvailObject o_Instance (final AvailObject object)
 	{
 		return getInstance(object);
 	}
@@ -153,9 +153,9 @@ extends AbstractEnumerationTypeDescriptor
 	 *            another.
 	 */
 	@Override final
-	@NotNull AvailObject computeIntersectionWith (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+	AvailObject computeIntersectionWith (
+		final AvailObject object,
+		final AvailObject another)
 	{
 		if (another.equals(BottomTypeDescriptor.bottom()))
 		{
@@ -190,9 +190,9 @@ extends AbstractEnumerationTypeDescriptor
 	 *            object} and {@code another}.
 	 */
 	@Override final
-	@NotNull AvailObject computeUnionWith (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+	AvailObject computeUnionWith (
+		final AvailObject object,
+		final AvailObject another)
 	{
 		if (another.equals(BottomTypeDescriptor.bottom()))
 		{
@@ -207,13 +207,13 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsInstanceMeta (final @NotNull AvailObject object)
+	boolean o_IsInstanceMeta (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ComputeSuperkind (final @NotNull AvailObject object)
+	AvailObject o_ComputeSuperkind (final AvailObject object)
 	{
 		return getSuperkind(object);
 	}
@@ -228,8 +228,8 @@ extends AbstractEnumerationTypeDescriptor
 	 */
 	@Override @AvailMethod
 	boolean o_Equals (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+		final AvailObject object,
+		final AvailObject another)
 	{
 		final boolean equal = another.isInstanceMeta()
 			&& getInstance(object).equals(another.instance());
@@ -249,29 +249,29 @@ extends AbstractEnumerationTypeDescriptor
 	 */
 	@Override @AvailMethod
 	boolean o_EqualsInstanceTypeFor (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject anObject)
+		final AvailObject object,
+		final AvailObject anObject)
 	{
 		return false;
 	}
 
 	@Override @AvailMethod
 	int o_Hash (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return (getInstance(object).hash() - 0x361b5d51) * multiplier;
 	}
 
 	@Override @AvailMethod
 	boolean o_IsSubtypeOf (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aType)
+		final AvailObject object,
+		final AvailObject aType)
 	{
 		return getInstance(object).isInstanceOf(aType);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_InstanceCount (final @NotNull AvailObject object)
+	AvailObject o_InstanceCount (final AvailObject object)
 	{
 		// Technically my instance are the instance I specify, which is a type,
 		// plus all subtypes of it.  However, to distinguish metas from kinds
@@ -280,7 +280,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_Instances (final @NotNull AvailObject object)
+	AvailObject o_Instances (final AvailObject object)
 	{
 		return SetDescriptor.empty().setWithElementCanDestroy(
 			getInstance(object),
@@ -289,7 +289,7 @@ extends AbstractEnumerationTypeDescriptor
 
 	@Override @AvailMethod
 	boolean o_EnumerationIncludesInstance (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailObject potentialInstance)
 	{
 		return potentialInstance.isType()
@@ -298,7 +298,7 @@ extends AbstractEnumerationTypeDescriptor
 
 	@Override @AvailMethod
 	boolean o_IsInstanceOf (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailObject aType)
 	{
 		if (aType.isInstanceMeta())
@@ -316,7 +316,7 @@ extends AbstractEnumerationTypeDescriptor
 
 	@Override
 	boolean o_RangeIncludesInt (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int anInt)
 	{
 		// A metatype can't have an integer as an instance.
@@ -575,8 +575,8 @@ extends AbstractEnumerationTypeDescriptor
 
 
 	@Override
-	@NotNull SerializerOperation o_SerializerOperation (
-		final @NotNull AvailObject object)
+	SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.INSTANCE_META;
 	}
@@ -589,7 +589,7 @@ extends AbstractEnumerationTypeDescriptor
 	 * @param instance The object whose type to represent.
 	 * @return An {@link AvailObject} representing the type of the argument.
 	 */
-	public static @NotNull AvailObject on (final @NotNull AvailObject instance)
+	public static AvailObject on (final AvailObject instance)
 	{
 		assert instance.isType();
 		final AvailObject result = mutable().create();

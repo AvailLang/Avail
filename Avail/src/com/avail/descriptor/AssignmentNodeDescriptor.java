@@ -92,7 +92,7 @@ extends ParseNodeDescriptor
 	 */
 	@Override @AvailMethod
 	void o_Variable (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailObject value)
 	{
 		object.setSlot(ObjectSlots.VARIABLE, value);
@@ -103,7 +103,7 @@ extends ParseNodeDescriptor
 	 */
 	@Override @AvailMethod
 	AvailObject o_Variable (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.slot(ObjectSlots.VARIABLE);
 	}
@@ -113,7 +113,7 @@ extends ParseNodeDescriptor
 	 */
 	@Override @AvailMethod
 	void o_Expression (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailObject value)
 	{
 		object.setSlot(ObjectSlots.EXPRESSION, value);
@@ -124,7 +124,7 @@ extends ParseNodeDescriptor
 	 */
 	@Override @AvailMethod
 	AvailObject o_Expression (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.slot(ObjectSlots.EXPRESSION);
 	}
@@ -136,13 +136,13 @@ extends ParseNodeDescriptor
 	 * @return {@code true} if the object represents an inline assignment,
 	 *         {@code false} otherwise.
 	 */
-	private boolean isInline (final @NotNull AvailObject object)
+	private boolean isInline (final AvailObject object)
 	{
 		return object.slot(IntegerSlots.IS_INLINE) == 1;
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ExpressionType (final @NotNull AvailObject object)
+	AvailObject o_ExpressionType (final AvailObject object)
 	{
 		if (!isInline(object))
 		{
@@ -152,7 +152,7 @@ extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final @NotNull AvailObject object)
+	int o_Hash (final AvailObject object)
 	{
 		return
 			object.variable().hash() * multiplier
@@ -162,7 +162,7 @@ extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	boolean o_Equals (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailObject another)
 	{
 		return object.kind().equals(another.kind())
@@ -172,7 +172,7 @@ extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	void o_EmitEffectOn (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
 		final AvailObject declaration = object.variable().declaration();
@@ -186,7 +186,7 @@ extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	void o_EmitValueOn (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
 		final AvailObject declaration = object.variable().declaration();
@@ -201,7 +201,7 @@ extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	void o_ChildrenMap (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final Transformer1<AvailObject, AvailObject> aBlock)
 	{
 		object.expression(aBlock.value(object.expression()));
@@ -210,7 +210,7 @@ extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	void o_ChildrenDo (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final Continuation1<AvailObject> aBlock)
 	{
 		aBlock.value(object.expression());
@@ -219,8 +219,8 @@ extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	void o_ValidateLocally (
-		final @NotNull AvailObject object,
-		final AvailObject parent)
+		final AvailObject object,
+		final @Nullable AvailObject parent)
 	{
 		final AvailObject variable = object.variable();
 		final DeclarationKind kind = variable.declaration().declarationKind();
@@ -244,14 +244,14 @@ extends ParseNodeDescriptor
 	}
 
 	@Override
-	ParseNodeKind o_ParseNodeKind (final @NotNull AvailObject object)
+	ParseNodeKind o_ParseNodeKind (final AvailObject object)
 	{
 		return ParseNodeKind.ASSIGNMENT_NODE;
 	}
 
 	@Override
 	void printObjectOnAvoidingIndent (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final StringBuilder builder,
 		final List<AvailObject> recursionList,
 		final int indent)

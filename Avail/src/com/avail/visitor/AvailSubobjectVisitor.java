@@ -51,6 +51,6 @@ public abstract class AvailSubobjectVisitor
 	 * @param childObject An object referred to by the {@code parentObject}.
 	 */
 	public abstract void invoke (
-		final @NotNull AvailObject parentObject,
-		final @NotNull AvailObject childObject);
+		final AvailObject parentObject,
+		final AvailObject childObject);
 }

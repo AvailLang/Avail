@@ -48,7 +48,7 @@ extends AvailSubobjectVisitor
 	/**
 	 * An object which we should <em>not</em> recurse into if encountered.
 	 */
-	private final @NotNull AvailObject exclusion;
+	private final AvailObject exclusion;
 
 	/**
 	 * Construct a new {@link AvailMarkUnreachableSubobjectVisitor}.
@@ -59,15 +59,15 @@ extends AvailSubobjectVisitor
 	 *        is necessary, as it's always already immutable.
 	 */
 	public AvailMarkUnreachableSubobjectVisitor (
-		final @NotNull AvailObject excludedObject)
+		final AvailObject excludedObject)
 	{
 		exclusion = excludedObject;
 	}
 
 	@Override
 	public void invoke (
-		final @NotNull AvailObject parentObject,
-		final @NotNull AvailObject childObject)
+		final AvailObject parentObject,
+		final AvailObject childObject)
 	{
 //		if (!canDestroyObjects())
 //		{

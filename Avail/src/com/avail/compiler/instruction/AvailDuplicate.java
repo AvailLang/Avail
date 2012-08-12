@@ -46,7 +46,7 @@ public class AvailDuplicate
 extends AvailInstruction
 {
 	@Override
-	public void writeNybblesOn (final @NotNull ByteArrayOutputStream aStream)
+	public void writeNybblesOn (final ByteArrayOutputStream aStream)
 	{
 		L1Operation.L1Ext_doDuplicate.writeTo(aStream);
 	}

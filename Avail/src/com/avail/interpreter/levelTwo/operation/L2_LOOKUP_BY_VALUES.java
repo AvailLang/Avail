@@ -64,7 +64,7 @@ public class L2_LOOKUP_BY_VALUES extends L2Operation
 	}
 
 	@Override
-	public void step (final @NotNull L2Interpreter interpreter)
+	public void step (final L2Interpreter interpreter)
 	{
 		final int selectorIndex = interpreter.nextWord();
 		final int argumentsIndex = interpreter.nextWord();

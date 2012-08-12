@@ -64,17 +64,17 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_FunctionType (
-		final @NotNull AvailObject object)
+	AvailObject o_FunctionType (
+		final AvailObject object)
 	{
 		return object.slot(FUNCTION_TYPE);
 	}
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-		final @NotNull AvailObject object,
-		final @NotNull StringBuilder aStream,
-		final @NotNull List<AvailObject> recursionList,
+		final AvailObject object,
+		final StringBuilder aStream,
+		final List<AvailObject> recursionList,
 		final int indent)
 	{
 		aStream.append('¢');
@@ -86,8 +86,8 @@ extends TypeDescriptor
 
 	@Override
 	boolean o_Equals (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+		final AvailObject object,
+		final AvailObject another)
 	{
 		return another.equalsCompiledCodeType(object);
 	}
@@ -101,8 +101,8 @@ extends TypeDescriptor
 	 */
 	@Override @AvailMethod
 	boolean o_EqualsCompiledCodeType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aType)
+		final AvailObject object,
+		final AvailObject aType)
 	{
 		if (object.sameAddressAs(aType))
 		{
@@ -112,15 +112,15 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final @NotNull AvailObject object)
+	int o_Hash (final AvailObject object)
 	{
 		return object.functionType().hash() * 71 ^ 0xA78B01C3;
 	}
 
 	@Override @AvailMethod
 	boolean o_IsSubtypeOf (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aType)
+		final AvailObject object,
+		final AvailObject aType)
 	{
 		return aType.isSupertypeOfCompiledCodeType(object);
 	}
@@ -134,8 +134,8 @@ extends TypeDescriptor
 	 */
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfCompiledCodeType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aCompiledCodeType)
+		final AvailObject object,
+		final AvailObject aCompiledCodeType)
 	{
 		final AvailObject subFunctionType = aCompiledCodeType.functionType();
 		final AvailObject superFunctionType = object.functionType();
@@ -143,9 +143,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeIntersection (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+	AvailObject o_TypeIntersection (
+		final AvailObject object,
+		final AvailObject another)
 	{
 		if (object.isSubtypeOf(another))
 		{
@@ -159,9 +159,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeIntersectionOfCompiledCodeType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aCompiledCodeType)
+	AvailObject o_TypeIntersectionOfCompiledCodeType (
+		final AvailObject object,
+		final AvailObject aCompiledCodeType)
 	{
 		final AvailObject closType1 = object.functionType();
 		final AvailObject closType2 = aCompiledCodeType.functionType();
@@ -180,9 +180,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeUnion (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+	AvailObject o_TypeUnion (
+		final AvailObject object,
+		final AvailObject another)
 	{
 		if (object.isSubtypeOf(another))
 		{
@@ -196,9 +196,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeUnionOfCompiledCodeType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aCompiledCodeType)
+	AvailObject o_TypeUnionOfCompiledCodeType (
+		final AvailObject object,
+		final AvailObject aCompiledCodeType)
 	{
 		final AvailObject closType1 = object.functionType();
 		final AvailObject closType2 = aCompiledCodeType.functionType();
@@ -215,8 +215,8 @@ extends TypeDescriptor
 	}
 
 	@Override
-	@NotNull SerializerOperation o_SerializerOperation (
-		final @NotNull AvailObject object)
+	SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.COMPILED_CODE_TYPE;
 	}
@@ -233,8 +233,8 @@ extends TypeDescriptor
 	 * @return
 	 *            A new {@linkplain CompiledCodeTypeDescriptor}.
 	 */
-	public static @NotNull AvailObject forFunctionType (
-		final @NotNull AvailObject functionType)
+	public static AvailObject forFunctionType (
+		final AvailObject functionType)
 	{
 		functionType.makeImmutable();
 		final AvailObject result = mutable().create();

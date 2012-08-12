@@ -117,21 +117,21 @@ extends PojoTypeDescriptor
 
 	@Override
 	boolean allowsImmutableToMutableReferenceInField (
-		final @NotNull AbstractSlotsEnum e)
+		final AbstractSlotsEnum e)
 	{
 		return e == HASH_OR_ZERO;
 	}
 
 	@Override
-	@NotNull AvailObject o_ContentType (final @NotNull AvailObject object)
+	AvailObject o_ContentType (final AvailObject object)
 	{
 		return object.slot(CONTENT_TYPE);
 	}
 
 	@Override @AvailMethod
 	boolean o_EqualsPojoType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aPojoType)
+		final AvailObject object,
+		final AvailObject aPojoType)
 	{
 		if (aPojoType.equalsPojoBottomType())
 		{
@@ -154,7 +154,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final @NotNull AvailObject object)
+	int o_Hash (final AvailObject object)
 	{
 		int hash = object.slot(HASH_OR_ZERO);
 		if (hash == 0)
@@ -169,37 +169,37 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsAbstract (final @NotNull AvailObject object)
+	boolean o_IsAbstract (final AvailObject object)
 	{
 		return false;
 	}
 
 	@Override @AvailMethod
-	boolean o_IsPojoArrayType (final @NotNull AvailObject object)
+	boolean o_IsPojoArrayType (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override @AvailMethod
-	boolean o_IsPojoFusedType (final @NotNull AvailObject object)
+	boolean o_IsPojoFusedType (final AvailObject object)
 	{
 		return false;
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_JavaAncestors (final @NotNull AvailObject object)
+	AvailObject o_JavaAncestors (final AvailObject object)
 	{
 		return object.slot(JAVA_ANCESTORS);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_JavaClass (final @NotNull AvailObject object)
+	AvailObject o_JavaClass (final AvailObject object)
 	{
 		return RawPojoDescriptor.equalityWrap(PojoArray.class);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_MakeImmutable (final @NotNull AvailObject object)
+	AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		object.descriptor = immutable;
 		object.slot(JAVA_ANCESTORS).makeImmutable();
@@ -210,8 +210,8 @@ extends PojoTypeDescriptor
 
 	@Override
 	Object o_MarshalToJava (
-		final @NotNull AvailObject object,
-		final Class<?> classHint)
+		final AvailObject object,
+		final @Nullable Class<?> classHint)
 	{
 		final AvailObject elementType = object.slot(CONTENT_TYPE);
 		return Array.newInstance(
@@ -219,7 +219,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_PojoSelfType (final @NotNull AvailObject object)
+	AvailObject o_PojoSelfType (final AvailObject object)
 	{
 		return SelfPojoTypeDescriptor.create(
 			RawPojoDescriptor.equalityWrap(PojoArray.class),
@@ -227,22 +227,22 @@ extends PojoTypeDescriptor
 	}
 
 	@Override
-	@NotNull AvailObject o_SizeRange (final @NotNull AvailObject object)
+	AvailObject o_SizeRange (final AvailObject object)
 	{
 		return object.slot(SIZE_RANGE);
 	}
 
 	@Override @AvailMethod @ThreadSafe
-	@NotNull SerializerOperation o_SerializerOperation (
-		final @NotNull AvailObject object)
+	SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.ARRAY_POJO_TYPE;
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeIntersectionOfPojoType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aPojoType)
+	AvailObject o_TypeIntersectionOfPojoType (
+		final AvailObject object,
+		final AvailObject aPojoType)
 	{
 		if (aPojoType.isPojoSelfType())
 		{
@@ -263,25 +263,25 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeIntersectionOfPojoFusedType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aFusedPojoType)
+	AvailObject o_TypeIntersectionOfPojoFusedType (
+		final AvailObject object,
+		final AvailObject aFusedPojoType)
 	{
 		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeIntersectionOfPojoUnfusedType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject anUnfusedPojoType)
+	AvailObject o_TypeIntersectionOfPojoUnfusedType (
+		final AvailObject object,
+		final AvailObject anUnfusedPojoType)
 	{
 		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeUnionOfPojoType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aPojoType)
+	AvailObject o_TypeUnionOfPojoType (
+		final AvailObject object,
+		final AvailObject aPojoType)
 	{
 		if (aPojoType.isPojoSelfType())
 		{
@@ -292,7 +292,7 @@ extends PojoTypeDescriptor
 
 	@Override @AvailMethod
 	AvailObject o_TypeUnionOfPojoFusedType (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailObject aFusedPojoType)
 	{
 		final AvailObject intersectionAncestors = computeUnion(
@@ -307,9 +307,9 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeUnionOfPojoUnfusedType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject anUnfusedPojoType)
+	AvailObject o_TypeUnionOfPojoUnfusedType (
+		final AvailObject object,
+		final AvailObject anUnfusedPojoType)
 	{
 		if (anUnfusedPojoType.isPojoSelfType())
 		{
@@ -328,16 +328,16 @@ extends PojoTypeDescriptor
 	}
 
 	@Override
-	@NotNull AvailObject o_TypeVariables (final @NotNull AvailObject object)
+	AvailObject o_TypeVariables (final AvailObject object)
 	{
 		return MapDescriptor.empty();
 	}
 
 	@Override
 	void printObjectOnAvoidingIndent (
-		final @NotNull AvailObject object,
-		final @NotNull StringBuilder builder,
-		final @NotNull List<AvailObject> recursionList,
+		final AvailObject object,
+		final StringBuilder builder,
+		final List<AvailObject> recursionList,
 		final int indent)
 	{
 		object.slot(CONTENT_TYPE).printOnAvoidingIndent(
@@ -378,7 +378,7 @@ extends PojoTypeDescriptor
 	}
 
 	/** The mutable {@link ArrayPojoTypeDescriptor}. */
-	private final static @NotNull ArrayPojoTypeDescriptor mutable =
+	private final static ArrayPojoTypeDescriptor mutable =
 		new ArrayPojoTypeDescriptor(true);
 
 	/**
@@ -386,13 +386,13 @@ extends PojoTypeDescriptor
 	 *
 	 * @return The mutable {@code ArrayPojoTypeDescriptor}.
 	 */
-	static @NotNull ArrayPojoTypeDescriptor mutable ()
+	static ArrayPojoTypeDescriptor mutable ()
 	{
 		return mutable;
 	}
 
 	/** The immutable {@link ArrayPojoTypeDescriptor}. */
-	private final static @NotNull ArrayPojoTypeDescriptor immutable =
+	private final static ArrayPojoTypeDescriptor immutable =
 		new ArrayPojoTypeDescriptor(false);
 
 	/**
@@ -411,9 +411,9 @@ extends PojoTypeDescriptor
 	 *        IntegerRangeTypeDescriptor#wholeNumbers() whole number}.
 	 * @return The requested pojo array type.
 	 */
-	static @NotNull AvailObject create (
-		final @NotNull AvailObject elementType,
-		final @NotNull AvailObject sizeRange)
+	static AvailObject create (
+		final AvailObject elementType,
+		final AvailObject sizeRange)
 	{
 		AvailObject javaAncestors = PojoTypeDescriptor.arrayBaseAncestorMap();
 		javaAncestors = javaAncestors.mapAtPuttingCanDestroy(

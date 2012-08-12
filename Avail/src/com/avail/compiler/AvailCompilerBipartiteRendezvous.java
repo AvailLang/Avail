@@ -67,13 +67,13 @@ public class AvailCompilerBipartiteRendezvous
 	 * The solutions that have been encountered so far, and will be passed to
 	 * new actions when they arrive.
 	 */
-	final @NotNull List<AvailCompilerCachedSolution> solutions =
+	final List<AvailCompilerCachedSolution> solutions =
 		new ArrayList<AvailCompilerCachedSolution>(3);
 
 	/**
 	 * The actions that are waiting to run when new solutions arrive.
 	 */
-	final @NotNull List<Con<AvailObject>> actions =
+	final List<Con<AvailObject>> actions =
 		new ArrayList<Con<AvailObject>>(3);
 
 	/**

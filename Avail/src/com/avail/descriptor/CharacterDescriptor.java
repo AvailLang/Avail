@@ -69,7 +69,7 @@ extends Descriptor
 	private static AvailObject[] byteCharacters;
 
 	/** The hashes of the first 256 Unicode characters. */
-	private static final @NotNull int[] hashesOfByteCharacters = new int[256];
+	private static final int[] hashesOfByteCharacters = new int[256];
 
 	/**
 	 * The maximum code point value as an {@code int}.
@@ -92,7 +92,7 @@ extends Descriptor
 		byteCharacters = new AvailObject[256];
 		for (int i = 0; i <= 255; i++)
 		{
-			final @NotNull AvailObject object = mutable().create();
+			final AvailObject object = mutable().create();
 			object.codePoint(i);
 			object.makeImmutable();
 			byteCharacters[i] = object;
@@ -115,7 +115,7 @@ extends Descriptor
 	 * @return An {@link AvailObject}.
 	 */
 	@ThreadSafe
-	public static @NotNull AvailObject fromCodePoint (final int codePoint)
+	public static AvailObject fromCodePoint (final int codePoint)
 	{
 		if (codePoint >= 0 && codePoint <= 255)
 		{
@@ -136,7 +136,7 @@ extends Descriptor
 	 * @return An {@link AvailObject}.
 	 */
 	@ThreadSafe
-	public static @NotNull AvailObject fromByteCodePoint (
+	public static AvailObject fromByteCodePoint (
 		final short codePoint)
 	{
 		// Provided separately so it can return more efficiently by constant
@@ -208,14 +208,14 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	int o_CodePoint (final @NotNull AvailObject object)
+	int o_CodePoint (final AvailObject object)
 	{
 		return object.slot(IntegerSlots.CODE_POINT);
 	}
 
 	@Override @AvailMethod
 	void o_CodePoint (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int value)
 	{
 		object.setSlot(IntegerSlots.CODE_POINT, value);
@@ -224,8 +224,8 @@ extends Descriptor
 	@Override
 	@AvailMethod @ThreadSafe
 	boolean o_Equals (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+		final AvailObject object,
+		final AvailObject another)
 	{
 		return another.equalsCharacterWithCodePoint(object.codePoint());
 	}
@@ -233,7 +233,7 @@ extends Descriptor
 	@Override
 	@AvailMethod @ThreadSafe
 	boolean o_EqualsCharacterWithCodePoint (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int otherCodePoint)
 	{
 		return object.codePoint() == otherCodePoint;
@@ -241,7 +241,7 @@ extends Descriptor
 
 	@Override
 	@AvailMethod @ThreadSafe
-	int o_Hash (final @NotNull AvailObject object)
+	int o_Hash (final AvailObject object)
 	{
 		final int codePoint = object.codePoint();
 		if (codePoint >= 0 && codePoint <= 255)
@@ -253,22 +253,22 @@ extends Descriptor
 
 	@Override
 	@AvailMethod @ThreadSafe
-	boolean o_IsCharacter (final @NotNull AvailObject object)
+	boolean o_IsCharacter (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override
 	@AvailMethod @ThreadSafe
-	@NotNull AvailObject o_Kind (final @NotNull AvailObject object)
+	AvailObject o_Kind (final AvailObject object)
 	{
 		return CHARACTER.o();
 	}
 
 	@Override
 	@AvailMethod @ThreadSafe
-	@NotNull SerializerOperation o_SerializerOperation (
-		final @NotNull AvailObject object)
+	SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		final int codePoint = object.slot(IntegerSlots.CODE_POINT);
 		if (codePoint < 256)
@@ -284,8 +284,8 @@ extends Descriptor
 
 	@Override
 	Object o_MarshalToJava (
-		final @NotNull AvailObject object,
-		final Class<?> classHint)
+		final AvailObject object,
+		final @Nullable Class<?> classHint)
 	{
 		final int codePoint = object.slot(IntegerSlots.CODE_POINT);
 		// Force marshaling to Java's primitive int type.
@@ -316,9 +316,9 @@ extends Descriptor
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-		final @NotNull AvailObject object,
-		final @NotNull StringBuilder aStream,
-		final @NotNull List<AvailObject> recursionList,
+		final AvailObject object,
+		final StringBuilder aStream,
+		final List<AvailObject> recursionList,
 		final int indent)
 	{
 		aStream.append("¢");

@@ -56,8 +56,8 @@ extends Primitive
 
 	@Override
 	public Result attempt (
-		final @NotNull List<AvailObject> args,
-		final @NotNull Interpreter interpreter)
+		final List<AvailObject> args,
+		final Interpreter interpreter)
 	{
 		assert args.size() == 0;
 		final Reader reader = AvailRuntime.current().standardInputReader();
@@ -80,7 +80,7 @@ extends Primitive
 	}
 
 	@Override
-	protected @NotNull AvailObject privateBlockTypeRestriction ()
+	protected AvailObject privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(),

@@ -130,8 +130,8 @@ public class AvailObjectFieldHelper
 	 *            The value found in that slot of the object.
 	 */
 	public AvailObjectFieldHelper (
-		final @NotNull AvailObject parentObject,
-		final @NotNull AbstractSlotsEnum slot,
+		final AvailObject parentObject,
+		final AbstractSlotsEnum slot,
 		final int subscript,
 		final Object value)
 	{

@@ -251,56 +251,56 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	int o_ParsingPc (final @NotNull AvailObject object)
+	int o_ParsingPc (final AvailObject object)
 	{
 		return object.slot(PARSING_PC);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_AllBundles (final @NotNull AvailObject object)
+	AvailObject o_AllBundles (final AvailObject object)
 	{
 		return object.slot(ALL_BUNDLES);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_Unclassified (final @NotNull AvailObject object)
+	AvailObject o_Unclassified (final AvailObject object)
 	{
 		return object.slot(UNCLASSIFIED);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_LazyComplete (final @NotNull AvailObject object)
+	AvailObject o_LazyComplete (final AvailObject object)
 	{
 		return object.slot(LAZY_COMPLETE);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_LazyIncomplete (final @NotNull AvailObject object)
+	AvailObject o_LazyIncomplete (final AvailObject object)
 	{
 		return object.slot(LAZY_INCOMPLETE);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_LazyIncompleteCaseInsensitive (
-		final @NotNull AvailObject object)
+	AvailObject o_LazyIncompleteCaseInsensitive (
+		final AvailObject object)
 	{
 		return object.slot(LAZY_INCOMPLETE_CASE_INSENSITIVE);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_LazyActions (final @NotNull AvailObject object)
+	AvailObject o_LazyActions (final AvailObject object)
 	{
 		return object.slot(LAZY_ACTIONS);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_LazyPrefilterMap (final @NotNull AvailObject object)
+	AvailObject o_LazyPrefilterMap (final AvailObject object)
 	{
 		return object.slot(LAZY_PREFILTER_MAP);
 	}
 
 	@Override boolean allowsImmutableToMutableReferenceInField (
-		final @NotNull AbstractSlotsEnum e)
+		final AbstractSlotsEnum e)
 	{
 		return e == LAZY_COMPLETE
 			|| e == LAZY_INCOMPLETE
@@ -317,8 +317,8 @@ extends Descriptor
 	 * down to immutable descendants).
 	 */
 	@Override @AvailMethod
-	@NotNull AvailObject o_MakeImmutable (
-		final @NotNull AvailObject object)
+	AvailObject o_MakeImmutable (
+		final AvailObject object)
 	{
 		object.descriptor = immutable();
 		// Don't bother scanning subobjects. They're allowed to be mutable even
@@ -328,14 +328,14 @@ extends Descriptor
 
 	@Override @AvailMethod
 	boolean o_Equals (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+		final AvailObject object,
+		final AvailObject another)
 	{
 		return another.traversed().sameAddressAs(object);
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final @NotNull AvailObject object)
+	int o_Hash (final AvailObject object)
 	{
 		int hash = object.slot(HASH_OR_ZERO);
 		if (hash == 0)
@@ -351,27 +351,27 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_Kind (final @NotNull AvailObject object)
+	AvailObject o_Kind (final AvailObject object)
 	{
 		return MESSAGE_BUNDLE_TREE.o();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Complete (final @NotNull AvailObject object)
+	AvailObject o_Complete (final AvailObject object)
 	{
 		object.expand();
 		return object.lazyComplete();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Incomplete (final @NotNull AvailObject object)
+	AvailObject o_Incomplete (final AvailObject object)
 	{
 		object.expand();
 		return object.lazyIncomplete();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Actions (final @NotNull AvailObject object)
+	AvailObject o_Actions (final AvailObject object)
 	{
 		object.expand();
 		return object.lazyActions();
@@ -382,9 +382,9 @@ extends Descriptor
 	 */
 	@Override @AvailMethod
 	void o_AtMessageAddBundle (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject message,
-		final @NotNull AvailObject bundle)
+		final AvailObject object,
+		final AvailObject message,
+		final AvailObject bundle)
 	{
 		AvailObject allBundles = object.slot(ALL_BUNDLES);
 		allBundles = allBundles.mapAtPuttingCanDestroy(
@@ -408,9 +408,9 @@ extends Descriptor
 	 */
 	@Override @AvailMethod
 	void o_CopyToRestrictedTo (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject filteredBundleTree,
-		final @NotNull AvailObject visibleNames)
+		final AvailObject object,
+		final AvailObject filteredBundleTree,
+		final AvailObject visibleNames)
 	{
 		assert object.parsingPc() == 1;
 		assert filteredBundleTree.parsingPc() == 1;
@@ -446,9 +446,9 @@ extends Descriptor
 	 * message.  Answer the new or existing bundle.
 	 */
 	@Override @AvailMethod
-	@NotNull AvailObject o_IncludeBundle (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject newBundle)
+	AvailObject o_IncludeBundle (
+		final AvailObject object,
+		final AvailObject newBundle)
 	{
 		final AvailObject message = newBundle.message();
 		AvailObject allBundles = object.slot(ALL_BUNDLES);
@@ -476,8 +476,8 @@ extends Descriptor
 	 */
 	@Override @AvailMethod
 	boolean o_RemoveBundle (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject bundle)
+		final AvailObject object,
+		final AvailObject bundle)
 	{
 		AvailObject allBundles = object.slot(ALL_BUNDLES);
 		final AvailObject message = bundle.message();
@@ -517,7 +517,7 @@ extends Descriptor
 	 * Expand the bundle tree if there's anything unclassified in it.
 	 */
 	@Override @AvailMethod
-	void o_Expand (final @NotNull AvailObject object)
+	void o_Expand (final AvailObject object)
 	{
 		final AvailObject unclassified = object.slot(UNCLASSIFIED);
 		if (unclassified.mapSize() == 0)

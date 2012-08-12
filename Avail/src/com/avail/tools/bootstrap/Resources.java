@@ -50,27 +50,27 @@ final class Resources
 	 * The base name of the {@linkplain ResourceBundle resource bundle} that
 	 * contains the preamble.
 	 */
-	public static final @NotNull String preambleBaseName =
+	public static final String preambleBaseName =
 		Resources.class.getPackage().getName() + ".Preamble";
 
 	/**
 	 * The name of the package that should contain the generated output.
 	 */
-	public static final @NotNull String generatedPackageName =
+	public static final String generatedPackageName =
 		Resources.class.getPackage().getName() + ".generated";
 
 	/**
 	 * The base name of the {@linkplain ResourceBundle resource bundle} that
 	 * contains the Avail names of the special objects.
 	 */
-	public static final @NotNull String specialObjectsBaseName =
+	public static final String specialObjectsBaseName =
 		generatedPackageName + ".SpecialObjectNames";
 
 	/**
 	 * The base name of the target {@linkplain ResourceBundle resource bundle}
 	 * that contains the Avail names of the primitives.
 	 */
-	public static final @NotNull String primitivesBaseName =
+	public static final String primitivesBaseName =
 		generatedPackageName + ".PrimitiveNames";
 
 	/**
@@ -78,7 +78,7 @@ final class Resources
 	 * that contains the Avail names of the {@linkplain AvailErrorCode primitive
 	 * error codes}.
 	 */
-	public static final @NotNull String errorCodesBaseName =
+	public static final String errorCodesBaseName =
 		generatedPackageName + ".ErrorCodeNames";
 
 	/**
@@ -88,7 +88,7 @@ final class Resources
 	 * @param bundleName A resource bundle base name.
 	 * @return The local name, e.g. the name following the last period (.).
 	 */
-	public static @NotNull String localName (final @NotNull String bundleName)
+	public static String localName (final String bundleName)
 	{
 		return bundleName.substring(bundleName.lastIndexOf('.') + 1);
 	}
@@ -100,7 +100,7 @@ final class Resources
 	 *        A {@linkplain String string}.
 	 * @return The argument embedded in double quotes (").
 	 */
-	public static @NotNull String stringify (final @NotNull String string)
+	public static String stringify (final String string)
 	{
 		return "\"" + string + "\"";
 	}
@@ -114,7 +114,7 @@ final class Resources
 	 *         object in the appropriate {@linkplain ResourceBundle resource
 	 *         bundle}.
 	 */
-	public static @NotNull String specialObjectKey (final int index)
+	public static String specialObjectKey (final int index)
 	{
 		return "specialObject" + index;
 	}
@@ -130,7 +130,7 @@ final class Resources
 	 *         ResourceBundle resource bundle}. This name should be suitable for
 	 *         use as a variable name in a system module.
 	 */
-	public static @NotNull String specialObjectAlphabeticKey (final int index)
+	public static String specialObjectAlphabeticKey (final int index)
 	{
 		return specialObjectKey(index) + "_alphabetic";
 	}
@@ -143,7 +143,7 @@ final class Resources
 	 * @return A key that may be used to access the special object's comment in
 	 *         the appropriate {@linkplain ResourceBundle resource bundle}.
 	 */
-	public static @NotNull String specialObjectCommentKey (final int index)
+	public static String specialObjectCommentKey (final int index)
 	{
 		return specialObjectKey(index) + "_comment";
 	}
@@ -160,8 +160,8 @@ final class Resources
 	 *         {@code index}-th parameter in the appropriate {@linkplain
 	 *         ResourceBundle resource bundle}.
 	 */
-	public static @NotNull String primitiveParameterNameKey (
-		final @NotNull Primitive primitive,
+	public static String primitiveParameterNameKey (
+		final Primitive primitive,
 		final int index)
 	{
 		return primitive.name() + "_" + (index - 1);
@@ -176,8 +176,8 @@ final class Resources
 	 * @return A key that may be used to access the primitive method's comment
 	 *         in the appropriate {@linkplain ResourceBundle resource bundle}.
 	 */
-	public static @NotNull String primitiveCommentKey (
-		final @NotNull Primitive primitive)
+	public static String primitiveCommentKey (
+		final Primitive primitive)
 	{
 		return primitive.name() + "_comment";
 	}
@@ -192,8 +192,8 @@ final class Resources
 	 *         error code in the appropriate {@linkplain ResourceBundle resource
 	 *         bundle}.
 	 */
-	public static @NotNull String errorCodeKey (
-		final @NotNull AvailErrorCode code)
+	public static String errorCodeKey (
+		final AvailErrorCode code)
 	{
 		return "errorCode" + code.nativeCode();
 	}
@@ -208,8 +208,8 @@ final class Resources
 	 *         comment in the appropriate {@linkplain ResourceBundle resource
 	 *         bundle}.
 	 */
-	public static @NotNull String errorCodeCommentKey (
-		final @NotNull AvailErrorCode code)
+	public static String errorCodeCommentKey (
+		final AvailErrorCode code)
 	{
 		return errorCodeKey(code) + "_comment";
 	}
@@ -221,7 +221,7 @@ final class Resources
 	 *        A property value that will be written to a properties file.
 	 * @return An appropriately escaped property value.
 	 */
-	public static @NotNull String escape (final @NotNull String propertyValue)
+	public static String escape (final String propertyValue)
 	{
 		String newValue = propertyValue.replace("\n", "\\n\\\n");
 		if (newValue.indexOf('\n') != newValue.lastIndexOf('\n'))

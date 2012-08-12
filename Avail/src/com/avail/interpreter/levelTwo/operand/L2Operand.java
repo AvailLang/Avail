@@ -60,7 +60,7 @@ public abstract class L2Operand
 	 * @param dispatcher The {@code L2OperandDispatcher} visiting the receiver.
 	 */
 	public abstract void dispatchOperand (
-		final @NotNull L2OperandDispatcher dispatcher);
+		final L2OperandDispatcher dispatcher);
 
 	/**
 	 * Invoke the {@link Transformer2 transformer} with each {@link L2Register}
@@ -74,14 +74,14 @@ public abstract class L2Operand
 	 *            The transformed version of the receiver.
 	 */
 	public abstract L2Operand transformRegisters (
-		final @NotNull Transformer2<L2Register, L2OperandType, L2Register>
+		final Transformer2<L2Register, L2OperandType, L2Register>
 			transformer);
 
 	/**
 	 * @param codeGenerator
 	 */
 	public abstract void emitOn (
-		final @NotNull L2CodeGenerator codeGenerator);
+		final L2CodeGenerator codeGenerator);
 
 	@Override
 	public abstract String toString ();

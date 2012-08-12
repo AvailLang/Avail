@@ -60,7 +60,7 @@ public class L2_UPDATE_CONTINUATION_PC_AND_STACKP extends L2Operation
 	}
 
 	@Override
-	public void step (final @NotNull L2Interpreter interpreter)
+	public void step (final L2Interpreter interpreter)
 	{
 		// TODO [MvG] Implement.
 		@SuppressWarnings("unused")

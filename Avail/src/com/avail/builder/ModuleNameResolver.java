@@ -37,7 +37,7 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 import com.avail.descriptor.ModuleDescriptor;
 
 /**
@@ -83,17 +83,17 @@ public final class ModuleNameResolver
 	 * The standard extension for Avail {@linkplain ModuleDescriptor module}
 	 * source files.
 	 */
-	public static final @NotNull String availExtension = ".avail";
+	public static final String availExtension = ".avail";
 
 	/** The {@linkplain ModuleRoots Avail module roots}. */
-	private final @NotNull ModuleRoots moduleRoots;
+	private final ModuleRoots moduleRoots;
 
 	/**
 	 * Answer the {@linkplain ModuleRoots Avail module roots}.
 	 *
 	 * @return The {@linkplain ModuleRoots Avail module roots}.
 	 */
-	public @NotNull ModuleRoots moduleRoots ()
+	public ModuleRoots moduleRoots ()
 	{
 		return moduleRoots;
 	}
@@ -103,7 +103,7 @@ public final class ModuleNameResolver
 	 *
 	 * @param roots The Avail {@linkplain ModuleRoots module roots}.
 	 */
-	ModuleNameResolver (final @NotNull ModuleRoots roots)
+	ModuleNameResolver (final ModuleRoots roots)
 	{
 		this.moduleRoots = roots;
 	}
@@ -112,7 +112,7 @@ public final class ModuleNameResolver
 	 * A {@linkplain Map map} from fully-qualified module names to their
 	 * canonical names.
 	 */
-	private final @NotNull Map<String, String> renames =
+	private final Map<String, String> renames =
 		new HashMap<String, String>();
 
 	/**
@@ -123,7 +123,7 @@ public final class ModuleNameResolver
 	 * @return {@code true} if there is a rule to transform the fully-qualified
 	 *         module name into another one, {@code false} otherwise.
 	 */
-	boolean hasRenameRuleFor (final @NotNull String modulePath)
+	boolean hasRenameRuleFor (final String modulePath)
 	{
 		return renames.containsKey(modulePath);
 	}
@@ -135,8 +135,8 @@ public final class ModuleNameResolver
 	 * @param substitutePath The canonical name.
 	 */
 	void addRenameRule (
-		final @NotNull String modulePath,
-		final @NotNull String substitutePath)
+		final String modulePath,
+		final String substitutePath)
 	{
 		assert !renames.containsKey(modulePath);
 		renames.put(modulePath, substitutePath);
@@ -150,9 +150,9 @@ public final class ModuleNameResolver
 	 * @param localName A local module name.
 	 * @return A filename that specifies the module within the package.
 	 */
-	private @NotNull String filenameFor (
-		final @NotNull String packageName,
-		final @NotNull String localName)
+	private String filenameFor (
+		final String packageName,
+		final String localName)
 	{
 		return packageName + "/" + localName + availExtension;
 	}
@@ -166,8 +166,8 @@ public final class ModuleNameResolver
 	 * @return The canonical name that should be used in place of the
 	 *         fully-qualified {@linkplain ModuleName module name}.
 	 */
-	private @NotNull ModuleName canonicalNameFor (
-		final @NotNull ModuleName qualifiedName)
+	private ModuleName canonicalNameFor (
+		final ModuleName qualifiedName)
 	{
 		final String substitute = renames.get(qualifiedName.qualifiedName());
 		if (substitute != null)
@@ -185,9 +185,10 @@ public final class ModuleNameResolver
 	 *
 	 * @param qualifiedName
 	 *        A fully-qualified {@linkplain ModuleName module name}.
-	 * @return A {@linkplain ResolvedModuleName resolved module name}.
+	 * @return A {@linkplain ResolvedModuleName resolved module name}, or {@code
+	 *         null} if resolution failed.
 	 */
-	public ResolvedModuleName resolve (final @NotNull ModuleName qualifiedName)
+	public @Nullable ResolvedModuleName resolve (final ModuleName qualifiedName)
 	{
 		File resolution = null;
 

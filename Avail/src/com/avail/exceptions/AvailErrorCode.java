@@ -517,7 +517,7 @@ public enum AvailErrorCode
 	 *
 	 * @return The {@linkplain AvailObject numeric error code}.
 	 */
-	public @NotNull AvailObject numericCode ()
+	public AvailObject numericCode ()
 	{
 		return IntegerDescriptor.fromInt(code);
 	}
@@ -570,7 +570,7 @@ public enum AvailErrorCode
 	 *
 	 * @return A {@linkplain List list} of all valid numeric error codes.
 	 */
-	public static @NotNull List<Integer> allNumericCodes ()
+	public static List<Integer> allNumericCodes ()
 	{
 		final List<Integer> codes = new ArrayList<Integer>(values().length);
 		for (final AvailErrorCode code : values())

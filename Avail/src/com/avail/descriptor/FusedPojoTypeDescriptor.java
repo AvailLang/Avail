@@ -97,7 +97,7 @@ extends PojoTypeDescriptor
 
 	@Override
 	boolean allowsImmutableToMutableReferenceInField (
-		final @NotNull AbstractSlotsEnum e)
+		final AbstractSlotsEnum e)
 	{
 		return e == HASH_OR_ZERO
 			|| e == TYPE_VARIABLES
@@ -106,8 +106,8 @@ extends PojoTypeDescriptor
 
 	@Override
 	boolean o_EqualsPojoType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aPojoType)
+		final AvailObject object,
+		final AvailObject aPojoType)
 	{
 		if (aPojoType.isPojoSelfType())
 		{
@@ -149,7 +149,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final @NotNull AvailObject object)
+	int o_Hash (final AvailObject object)
 	{
 		int hash = object.slot(HASH_OR_ZERO);
 		if (hash == 0)
@@ -164,37 +164,37 @@ extends PojoTypeDescriptor
 	}
 
 	@Override
-	boolean o_IsAbstract (final @NotNull AvailObject object)
+	boolean o_IsAbstract (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override @AvailMethod
-	boolean o_IsPojoArrayType (final @NotNull AvailObject object)
+	boolean o_IsPojoArrayType (final AvailObject object)
 	{
 		return false;
 	}
 
 	@Override
-	boolean o_IsPojoFusedType (final @NotNull AvailObject object)
+	boolean o_IsPojoFusedType (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override
-	@NotNull AvailObject o_JavaAncestors (final @NotNull AvailObject object)
+	AvailObject o_JavaAncestors (final AvailObject object)
 	{
 		return object.slot(JAVA_ANCESTORS);
 	}
 
 	@Override
-	@NotNull AvailObject o_JavaClass (final @NotNull AvailObject object)
+	AvailObject o_JavaClass (final AvailObject object)
 	{
 		return NullDescriptor.nullObject();
 	}
 
 	@Override
-	@NotNull AvailObject o_MakeImmutable (final @NotNull AvailObject object)
+	AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		object.descriptor = immutable;
 		object.slot(JAVA_ANCESTORS).makeImmutable();
@@ -203,15 +203,15 @@ extends PojoTypeDescriptor
 
 	@Override
 	Object o_MarshalToJava (
-		final @NotNull AvailObject object,
-		final Class<?> ignoredClassHint)
+		final AvailObject object,
+		final @Nullable Class<?> ignoredClassHint)
 	{
 		// TODO: [TLS] Answer the nearest mutual parent of the leaf types.
 		return Object.class;
 	}
 
 	@Override
-	@NotNull AvailObject o_PojoSelfType (final @NotNull AvailObject object)
+	AvailObject o_PojoSelfType (final AvailObject object)
 	{
 		AvailObject selfType = object.slot(SELF_TYPE);
 		if (selfType.equalsNull())
@@ -225,15 +225,15 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod @ThreadSafe
-	@NotNull SerializerOperation o_SerializerOperation (
-		final @NotNull AvailObject object)
+	SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.FUSED_POJO_TYPE;
 	}
 
 	@Override
 	AvailObject o_TypeIntersectionOfPojoType (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailObject aPojoType)
 	{
 		if (aPojoType.isPojoSelfType())
@@ -250,9 +250,9 @@ extends PojoTypeDescriptor
 	}
 
 	@Override
-	@NotNull AvailObject o_TypeIntersectionOfPojoFusedType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aFusedPojoType)
+	AvailObject o_TypeIntersectionOfPojoFusedType (
+		final AvailObject object,
+		final AvailObject aFusedPojoType)
 	{
 		final AvailObject intersection =
 			computeIntersection(object, aFusedPojoType);
@@ -266,9 +266,9 @@ extends PojoTypeDescriptor
 	}
 
 	@Override
-	@NotNull AvailObject o_TypeIntersectionOfPojoUnfusedType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject anUnfusedPojoType)
+	AvailObject o_TypeIntersectionOfPojoUnfusedType (
+		final AvailObject object,
+		final AvailObject anUnfusedPojoType)
 	{
 		final Class<?> otherJavaClass =
 			(Class<?>) object.javaClass().javaObject();
@@ -312,9 +312,9 @@ extends PojoTypeDescriptor
 	}
 
 	@Override
-	@NotNull AvailObject o_TypeUnionOfPojoType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aPojoType)
+	AvailObject o_TypeUnionOfPojoType (
+		final AvailObject object,
+		final AvailObject aPojoType)
 	{
 		if (aPojoType.isPojoSelfType())
 		{
@@ -324,9 +324,9 @@ extends PojoTypeDescriptor
 	}
 
 	@Override
-	@NotNull AvailObject o_TypeUnionOfPojoFusedType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aFusedPojoType)
+	AvailObject o_TypeUnionOfPojoFusedType (
+		final AvailObject object,
+		final AvailObject aFusedPojoType)
 	{
 		final AvailObject intersectionAncestors = computeUnion(
 			object, aFusedPojoType);
@@ -340,9 +340,9 @@ extends PojoTypeDescriptor
 	}
 
 	@Override
-	@NotNull AvailObject o_TypeUnionOfPojoUnfusedType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject anUnfusedPojoType)
+	AvailObject o_TypeUnionOfPojoUnfusedType (
+		final AvailObject object,
+		final AvailObject anUnfusedPojoType)
 	{
 		final AvailObject intersectionAncestors = computeUnion(
 			object, anUnfusedPojoType);
@@ -356,7 +356,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override
-	@NotNull AvailObject o_TypeVariables (final @NotNull AvailObject object)
+	AvailObject o_TypeVariables (final AvailObject object)
 	{
 		AvailObject typeVars = object.slot(TYPE_VARIABLES);
 		if (typeVars.equalsNull())
@@ -385,9 +385,9 @@ extends PojoTypeDescriptor
 
 	@Override
 	void printObjectOnAvoidingIndent (
-		final @NotNull AvailObject object,
-		final @NotNull StringBuilder builder,
-		final @NotNull List<AvailObject> recursionList,
+		final AvailObject object,
+		final StringBuilder builder,
+		final List<AvailObject> recursionList,
 		final int indent)
 	{
 		final AvailObject ancestors = object.slot(JAVA_ANCESTORS);
@@ -399,9 +399,11 @@ extends PojoTypeDescriptor
 			{
 				@Override
 				public int compare (
-					final @NotNull AvailObject o1,
-					final @NotNull AvailObject o2)
+					final @Nullable AvailObject o1,
+					final @Nullable AvailObject o2)
 				{
+					assert o1 != null;
+					assert o2 != null;
 					final Class<?> c1 = (Class<?>) o1.javaObject();
 					final Class<?> c2 = (Class<?>) o2.javaObject();
 					return c1.getName().compareTo(c2.getName());
@@ -450,7 +452,7 @@ extends PojoTypeDescriptor
 	}
 
 	/** The mutable {@link FusedPojoTypeDescriptor}. */
-	private final static @NotNull FusedPojoTypeDescriptor mutable =
+	private final static FusedPojoTypeDescriptor mutable =
 		new FusedPojoTypeDescriptor(true);
 
 	/**
@@ -458,13 +460,13 @@ extends PojoTypeDescriptor
 	 *
 	 * @return The mutable {@code FusedPojoTypeDescriptor}.
 	 */
-	static @NotNull FusedPojoTypeDescriptor mutable ()
+	static FusedPojoTypeDescriptor mutable ()
 	{
 		return mutable;
 	}
 
 	/** The immutable {@link FusedPojoTypeDescriptor}. */
-	private final static @NotNull FusedPojoTypeDescriptor immutable =
+	private final static FusedPojoTypeDescriptor immutable =
 		new FusedPojoTypeDescriptor(false);
 
 	/**
@@ -479,8 +481,8 @@ extends PojoTypeDescriptor
 	 *        complete {@linkplain SetDescriptor ancestry} of Java types.
 	 * @return The requested pojo type.
 	 */
-	static @NotNull AvailObject create (
-		final @NotNull AvailObject javaAncestors)
+	static AvailObject create (
+		final AvailObject javaAncestors)
 	{
 		final AvailObject newObject = mutable.create();
 		newObject.setSlot(HASH_OR_ZERO, 0);

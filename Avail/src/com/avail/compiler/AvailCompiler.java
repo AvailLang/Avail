@@ -36,7 +36,7 @@ import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TokenDescriptor.TokenType.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 import com.avail.builder.ModuleName;
 import com.avail.descriptor.*;
 import com.avail.interpreter.levelOne.*;
@@ -92,8 +92,8 @@ extends AbstractAvailCompiler
 			{
 				@Override
 				public void value (
-					final ParserState ignored,
-					final Con<AvailObject> whenFoundStatement)
+					final @Nullable ParserState ignored,
+					final @Nullable Con<AvailObject> whenFoundStatement)
 				{
 					parseExpressionThen(
 						start,
@@ -101,8 +101,8 @@ extends AbstractAvailCompiler
 						{
 							@Override
 							public void value (
-								final ParserState afterExpression,
-								final AvailObject expression)
+								final @Nullable ParserState afterExpression,
+								final @Nullable AvailObject expression)
 							{
 								if (expression.expressionType().equals(TOP.o()))
 								{
@@ -133,9 +133,11 @@ extends AbstractAvailCompiler
 			{
 				@Override
 				public void value (
-					final ParserState afterSubexpression,
-					final AvailObject subexpression)
+					final @Nullable ParserState afterSubexpression,
+					final @Nullable AvailObject subexpression)
 				{
+					assert afterSubexpression != null;
+					assert subexpression != null;
 					parseOptionalLeadingArgumentSendAfterThen(
 						afterSubexpression,
 						subexpression,
@@ -154,8 +156,8 @@ extends AbstractAvailCompiler
 	 * @param bundleTree
 	 *            The bundle tree used to parse at this position.
 	 * @param firstArgOrNull
-	 *            Either null or an argument that must be consumed before any
-	 *            keywords (or completion of a send).
+	 *            Either{@code null} or an argument that must be consumed before
+	 *            any keywords (or completion of a send).
 	 * @param initialTokenPosition
 	 *            The parse position where the send node started to be
 	 *            processed. Does not count the position of the first argument
@@ -172,7 +174,7 @@ extends AbstractAvailCompiler
 	void parseRestOfSendNode (
 		final ParserState start,
 		final AvailObject bundleTree,
-		final AvailObject firstArgOrNull,
+		final @Nullable AvailObject firstArgOrNull,
 		final ParserState initialTokenPosition,
 		final List<AvailObject> argsSoFar,
 		final Con<AvailObject> continuation)
@@ -361,8 +363,8 @@ extends AbstractAvailCompiler
 	 * @param instruction
 	 *            The {@linkplain MessageSplitter instruction} to execute.
 	 * @param firstArgOrNull
-	 *            Either the already-parsed first argument or null. If we're
-	 *            looking for leading-argument message sends to wrap an
+	 *            Either the already-parsed first argument or {@code null}. If
+	 *            we're looking for leading-argument message sends to wrap an
 	 *            expression then this is not-null before the first argument
 	 *            position is encountered, otherwise it's null and we should
 	 *            reject attempts to start with an argument (before a keyword).
@@ -374,16 +376,16 @@ extends AbstractAvailCompiler
 	 *            started out non-null) then the position is of the token
 	 *            following the first argument.
 	 * @param successorTrees
-	 *            The {@linkplain MessageBundleTreeDescriptor bundle trees} at which
-	 *            to continue parsing.
+	 *            The {@linkplain MessageBundleTreeDescriptor bundle trees} at
+	 *            which to continue parsing.
 	 * @param continuation
-	 *            What to do with a complete {@linkplain SendNodeDescriptor message
-	 *            send}.
+	 *            What to do with a complete {@linkplain SendNodeDescriptor
+	 *            message send}.
 	 */
 	void runParsingInstructionThen (
 		final ParserState start,
 		final int instruction,
-		final AvailObject firstArgOrNull,
+		final @Nullable AvailObject firstArgOrNull,
 		final List<AvailObject> argsSoFar,
 		final ParserState initialTokenPosition,
 		final AvailObject successorTrees,
@@ -405,9 +407,10 @@ extends AbstractAvailCompiler
 					{
 						@Override
 						public void value (
-							final ParserState afterArg,
-							final AvailObject newArg)
+							final @Nullable ParserState afterArg,
+							final @Nullable AvailObject newArg)
 						{
+							assert afterArg != null;
 							final List<AvailObject> newArgsSoFar =
 								new ArrayList<AvailObject>(argsSoFar);
 							newArgsSoFar.add(newArg);
@@ -814,7 +817,7 @@ extends AbstractAvailCompiler
 			new Continuation1<Generator<String>>()
 			{
 				@Override
-				public void value (final Generator<String> arg)
+				public void value (final @Nullable Generator<String> arg)
 				{
 					stateAfterCall.expected(
 						"parse node types to agree with macro types");
@@ -906,8 +909,8 @@ extends AbstractAvailCompiler
 	 *        false} otherwise.
 	 */
 	private void expectedKeywordsOf (
-		final @NotNull ParserState where,
-		final @NotNull AvailObject incomplete,
+		final ParserState where,
+		final AvailObject incomplete,
 		final boolean caseInsensitive)
 	{
 		where.expected(
@@ -1045,9 +1048,11 @@ extends AbstractAvailCompiler
 			{
 				@Override
 				public void value (
-					final ParserState afterSend,
-					final AvailObject leadingSend)
+					final @Nullable ParserState afterSend,
+					final @Nullable AvailObject leadingSend)
 				{
+					assert afterSend != null;
+					assert leadingSend != null;
 					parseOptionalLeadingArgumentSendAfterThen(
 						afterSend,
 						leadingSend,
@@ -1065,8 +1070,8 @@ extends AbstractAvailCompiler
 	 * @param explanation
 	 *            A {@link String} indicating why it's parsing an argument.
 	 * @param firstArgOrNull
-	 *            Either a parse node to use as the argument, or null if we
-	 *            should parse one now.
+	 *            Either a parse node to use as the argument, or {@code null if
+	 *            we should parse one now.
 	 * @param initialTokenPosition
 	 *            The position at which we started parsing the message send.
 	 *            Does not include the first argument if there were no leading
@@ -1077,7 +1082,7 @@ extends AbstractAvailCompiler
 	void parseSendArgumentWithExplanationThen (
 		final ParserState start,
 		final String explanation,
-		final AvailObject firstArgOrNull,
+		final @Nullable AvailObject firstArgOrNull,
 		final ParserState initialTokenPosition,
 		final Con<AvailObject> continuation)
 	{

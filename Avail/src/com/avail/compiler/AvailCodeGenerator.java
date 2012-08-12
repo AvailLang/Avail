@@ -666,15 +666,20 @@ public class AvailCodeGenerator
 		}
 		// Prevent clearing of the primitive failure variable. This is necessary
 		// for primitive 200, but probably also a good idea in general.
-		if (primitive != 0
-			&& !Primitive.byPrimitiveNumber(primitive).hasFlag(Flag.CannotFail))
+		if (primitive != 0)
 		{
-			final AvailInstruction fakeFailureVariableUse =
-				new AvailGetLocalVariable(numArgs + 1);
-			fakeFailureVariableUse.fixFlagsUsingLocalDataOuterDataCodeGenerator(
-				localData,
-				outerData,
-				this);
+			final Primitive prim = Primitive.byPrimitiveNumber(primitive);
+			assert prim != null;
+			if (!prim.hasFlag(Flag.CannotFail))
+			{
+				final AvailInstruction fakeFailureVariableUse =
+					new AvailGetLocalVariable(numArgs + 1);
+				fakeFailureVariableUse
+					.fixFlagsUsingLocalDataOuterDataCodeGenerator(
+						localData,
+						outerData,
+						this);
+			}
 		}
 	}
 
@@ -684,7 +689,7 @@ public class AvailCodeGenerator
 	 * @param module The module being compiled.
 	 */
 	public AvailCodeGenerator (
-		final @NotNull AvailObject module)
+		final AvailObject module)
 	{
 		this.module = module;
 	}

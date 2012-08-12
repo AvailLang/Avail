@@ -83,7 +83,7 @@ public final class ScannerTest
 		 *            lexical scanning.
 		 */
 		private Case (
-			final @NotNull String inputString,
+			final String inputString,
 			final Generator<AvailObject>... tokenGenerators)
 		{
 			this.inputString = inputString;
@@ -101,7 +101,7 @@ public final class ScannerTest
 		 * @return The new {@link Case}.
 		 */
 		static Case C (
-			final @NotNull String inputString,
+			final String inputString,
 			final Generator<AvailObject>... tokenGenerators)
 		{
 			return new Case(inputString, tokenGenerators);
@@ -180,7 +180,7 @@ public final class ScannerTest
 	 *            constructed.
 	 * @return The new keyword token.
 	 */
-	static @NotNull Generator<AvailObject> K (final @NotNull String string)
+	static Generator<AvailObject> K (final String string)
 	{
 		return T(string, KEYWORD);
 	}
@@ -198,8 +198,8 @@ public final class ScannerTest
 	 *            within the entire input string.
 	 * @return The new keyword token.
 	 */
-	static @NotNull Generator<AvailObject> K (
-		final @NotNull String string,
+	static Generator<AvailObject> K (
+		final String string,
 		final int start)
 	{
 		return T(string, KEYWORD, start);
@@ -215,8 +215,8 @@ public final class ScannerTest
 	 *            constructed.  An operator token is always a single character.
 	 * @return The new operator token.
 	 */
-	static @NotNull Generator<AvailObject> O (
-		final @NotNull String string)
+	static Generator<AvailObject> O (
+		final String string)
 	{
 		assert string.codePointCount(0, string.length()) == 1;
 		return T(string, OPERATOR);
@@ -235,8 +235,8 @@ public final class ScannerTest
 	 *            within the entire input string.
 	 * @return The new operator token.
 	 */
-	static @NotNull Generator<AvailObject> O (
-		final @NotNull String string,
+	static Generator<AvailObject> O (
+		final String string,
 		final int start)
 	{
 		return T(string, OPERATOR, start);
@@ -255,9 +255,9 @@ public final class ScannerTest
 	 *            have been constructed.
 	 * @return The new operator token.
 	 */
-	static @NotNull Generator<AvailObject> L (
-		final @NotNull Object object,
-		final @NotNull String string)
+	static Generator<AvailObject> L (
+		final Object object,
+		final String string)
 	{
 		return L (object, string, 0);
 	}
@@ -277,9 +277,9 @@ public final class ScannerTest
 	 *            token within the entire input string.
 	 * @return The new operator token.
 	 */
-	static @NotNull Generator<AvailObject> L (
-		final @NotNull Object object,
-		final @NotNull String string,
+	static Generator<AvailObject> L (
+		final Object object,
+		final String string,
 		final int start)
 	{
 		return new Generator<AvailObject>()
@@ -312,6 +312,7 @@ public final class ScannerTest
 						+ object.getClass().getCanonicalName());
 					literal = null;
 				}
+				assert literal != null;
 				final AvailObject token =
 					LiteralTokenDescriptor.create(
 						StringDescriptor.from(string),

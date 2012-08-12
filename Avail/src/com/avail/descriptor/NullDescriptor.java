@@ -73,7 +73,7 @@ extends Descriptor
 	 * @return The sole instance of the null object.
 	 */
 	@ThreadSafe
-	public static @NotNull AvailObject nullObject ()
+	public static AvailObject nullObject ()
 	{
 		return soleInstance;
 	}
@@ -81,15 +81,15 @@ extends Descriptor
 	@Override
 	@AvailMethod @ThreadSafe
 	boolean o_Equals (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+		final AvailObject object,
+		final AvailObject another)
 	{
 		return another.equalsNull();
 	}
 
 	@Override
 	@AvailMethod @ThreadSafe
-	boolean o_EqualsNull (final @NotNull AvailObject object)
+	boolean o_EqualsNull (final AvailObject object)
 	{
 		//  There is only one top.
 		return true;
@@ -97,7 +97,7 @@ extends Descriptor
 
 	@Override
 	@AvailMethod @ThreadSafe
-	int o_Hash (final @NotNull AvailObject object)
+	int o_Hash (final AvailObject object)
 	{
 		// The null object should hash to zero, because the only place it can
 		// appear in a data structure is as a filler object.  This currently
@@ -108,15 +108,15 @@ extends Descriptor
 
 	@Override
 	@AvailMethod @ThreadSafe
-	@NotNull AvailObject o_Kind (final @NotNull AvailObject object)
+	AvailObject o_Kind (final AvailObject object)
 	{
 		return TOP.o();
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_SetBinAddingElementHashLevelCanDestroy (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject elementObject,
+	AvailObject o_SetBinAddingElementHashLevelCanDestroy (
+		final AvailObject object,
+		final AvailObject elementObject,
 		final int elementObjectHash,
 		final byte myLevel,
 		final boolean canDestroy)
@@ -135,8 +135,8 @@ extends Descriptor
 	@Override
 	@AvailMethod @ThreadSafe
 	boolean o_IsBinSubsetOf (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject potentialSuperset)
+		final AvailObject object,
+		final AvailObject potentialSuperset)
 	{
 		// Top can't actually be a member of a set, so treat it as a
 		// structural component indicating an empty bin within a set.
@@ -146,9 +146,9 @@ extends Descriptor
 
 	@Override
 	@AvailMethod @ThreadSafe
-	@NotNull AvailObject o_BinRemoveElementHashCanDestroy (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject elementObject,
+	AvailObject o_BinRemoveElementHashCanDestroy (
+		final AvailObject object,
+		final AvailObject elementObject,
 		final int elementObjectHash,
 		final boolean canDestroy)
 	{
@@ -159,7 +159,7 @@ extends Descriptor
 
 	@Override
 	@AvailMethod @ThreadSafe
-	int o_BinHash (final @NotNull AvailObject object)
+	int o_BinHash (final AvailObject object)
 	{
 		// The null object acting as a size-zero bin has a bin hash which is the
 		// sum of the elements' hashes, which in this case is zero.
@@ -168,7 +168,7 @@ extends Descriptor
 
 	@Override
 	@AvailMethod @ThreadSafe
-	int o_BinSize (final @NotNull AvailObject object)
+	int o_BinSize (final AvailObject object)
 	{
 		// The null object acts as an empty bin.
 		return 0;
@@ -176,26 +176,26 @@ extends Descriptor
 
 	@Override
 	@AvailMethod @ThreadSafe
-	@NotNull AvailObject o_BinUnionKind (
-		final @NotNull AvailObject object)
+	AvailObject o_BinUnionKind (
+		final AvailObject object)
 	{
 		// The null object acts as an empty bin.
 		return BottomTypeDescriptor.bottom();
 	}
 
 	@Override @AvailMethod @ThreadSafe
-	@NotNull SerializerOperation o_SerializerOperation (
-		final @NotNull AvailObject object)
+	SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.NULL_OBJECT;
 	}
 
 	@Override
 	AvailObject o_MapBinAtHashPutLevelCanDestroy (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject key,
+		final AvailObject object,
+		final AvailObject key,
 		final int keyHash,
-		final @NotNull AvailObject value,
+		final AvailObject value,
 		final byte myLevel,
 		final boolean canDestroy)
 	{
@@ -208,22 +208,22 @@ extends Descriptor
 
 	@Override
 	AvailObject o_MapBinKeyUnionKind (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return BottomTypeDescriptor.bottom();
 	}
 
 	@Override
 	AvailObject o_MapBinValueUnionKind (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return BottomTypeDescriptor.bottom();
 	}
 
 	@Override
-	@NotNull AvailObject o_MapBinAtHash (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject key,
+	AvailObject o_MapBinAtHash (
+		final AvailObject object,
+		final AvailObject key,
 		final int keyHash)
 	{
 		return nullObject();
@@ -231,22 +231,22 @@ extends Descriptor
 
 	@Override
 	int o_MapBinKeysHash (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return 0;
 	}
 
 	@Override
 	int o_MapBinValuesHash (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return 0;
 	}
 
 	@Override
 	boolean o_BinElementsAreAllInstancesOfKind (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject kind)
+		final AvailObject object,
+		final AvailObject kind)
 	{
 		// Nil is treated as an empty bin, so its members all satisfy.. any
 		// property whatsoever.
@@ -254,8 +254,8 @@ extends Descriptor
 	}
 
 	@Override
-	public @NotNull MapIterable o_MapBinIterable (
-		final @NotNull AvailObject object)
+	public MapIterable o_MapBinIterable (
+		final AvailObject object)
 	{
 		return new MapIterable()
 		{
@@ -276,9 +276,9 @@ extends Descriptor
 	@Override
 	@ThreadSafe
 	public void printObjectOnAvoidingIndent (
-		final @NotNull AvailObject object,
-		final @NotNull StringBuilder builder,
-		final @NotNull List<AvailObject> recursionList,
+		final AvailObject object,
+		final StringBuilder builder,
+		final List<AvailObject> recursionList,
 		final int indent)
 	{
 		builder.append("nil");
@@ -297,7 +297,7 @@ extends Descriptor
 	}
 
 	/** The mutable {@link NullDescriptor}. */
-	private static final @NotNull NullDescriptor mutable =
+	private static final NullDescriptor mutable =
 		new NullDescriptor(true);
 
 	/**
@@ -321,7 +321,7 @@ extends Descriptor
 	 * @return An immutable {@link NullDescriptor}.
 	 */
 	@ThreadSafe
-	public static @NotNull NullDescriptor immutable ()
+	public static NullDescriptor immutable ()
 	{
 		return immutable;
 	}

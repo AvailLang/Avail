@@ -54,7 +54,7 @@ public class L2_JUMP_IF_LESS_THAN_CONSTANT extends L2Operation
 	}
 
 	@Override
-	public void step (final @NotNull L2Interpreter interpreter)
+	public void step (final L2Interpreter interpreter)
 	{
 		@SuppressWarnings("unused")
 		final int doIndex = interpreter.nextWord();

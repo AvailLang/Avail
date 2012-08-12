@@ -48,7 +48,7 @@ extends AbstractNumberDescriptor
 
 	@Override @AvailMethod
 	boolean o_IsExtendedInteger (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return true;
 	}

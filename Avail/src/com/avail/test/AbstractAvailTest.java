@@ -35,7 +35,7 @@ package com.avail.test;
 import java.io.*;
 import org.junit.*;
 import com.avail.AvailRuntime;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 import com.avail.builder.*;
 import com.avail.compiler.*;
 import com.avail.descriptor.*;
@@ -59,14 +59,13 @@ public class AbstractAvailTest
 	 * @return The text of the specified Avail source file, or {@code null} if
 	 *         the source could not be retrieved.
 	 */
-	private static String readSourceFile (
-		final @NotNull File sourceFile)
+	private static @Nullable String readSourceFile (final File sourceFile)
 	{
+		Reader sourceReader = null;
 		try
 		{
 			final char[] sourceBuffer = new char[(int) sourceFile.length()];
-			final Reader sourceReader =
-				new BufferedReader(new FileReader(sourceFile));
+			sourceReader = new BufferedReader(new FileReader(sourceFile));
 
 			int offset = 0;
 			int bytesRead = -1;
@@ -88,7 +87,7 @@ public class AbstractAvailTest
 	 * The {@linkplain ModuleRoots Avail module roots}. This should be set by a
 	 * static initializer in each subclass.
 	 */
-	protected static @NotNull ModuleRoots roots;
+	protected static ModuleRoots roots;
 
 	/** The {@linkplain ModuleNameResolver module name resolver}. */
 	private ModuleNameResolver resolver;
@@ -133,7 +132,7 @@ public class AbstractAvailTest
 	 * @throws Exception
 	 *         If an {@linkplain Exception exception} occurs.
 	 */
-	protected void compile (final @NotNull ModuleName target)
+	protected void compile (final ModuleName target)
 		throws Exception
 	{
 		try
@@ -150,22 +149,26 @@ public class AbstractAvailTest
 				{
 					@Override
 					public void value (
-						final @NotNull ModuleName moduleName,
-						final @NotNull Long lineNumber,
-						final @NotNull Long position,
-						final @NotNull Long moduleSize)
+						final @Nullable ModuleName moduleName,
+						final @Nullable Long lineNumber,
+						final @Nullable Long position,
+						final @Nullable Long moduleSize)
 					{
-						 System.out.printf("%nline %d", lineNumber);
+						assert lineNumber != null;
+						System.out.printf("%nline %d", lineNumber);
 					}
 				},
 				new Continuation3<ModuleName, Long, Long>()
 				{
 					@Override
 					public void value (
-						final @NotNull ModuleName moduleName,
-						final @NotNull Long position,
-						final @NotNull Long globalCodeSize)
+						final @Nullable ModuleName moduleName,
+						final @Nullable Long position,
+						final @Nullable Long globalCodeSize)
 					{
+						assert moduleName != null;
+						assert position != null;
+						assert globalCodeSize != null;
 						if (!moduleName.equals(lastModule.value))
 						{
 							lastModule.value = moduleName;

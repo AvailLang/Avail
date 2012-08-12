@@ -50,9 +50,9 @@ public class P_065_CreateEnumeration extends Primitive
 		1, CanFold, CannotFail);
 
 	@Override
-	public @NotNull Result attempt (
-		final @NotNull List<AvailObject> args,
-		final @NotNull Interpreter interpreter)
+	public Result attempt (
+		final List<AvailObject> args,
+		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
 		final AvailObject instanceSet = args.get(0);
@@ -62,7 +62,7 @@ public class P_065_CreateEnumeration extends Primitive
 	}
 
 	@Override
-	protected @NotNull AvailObject privateBlockTypeRestriction()
+	protected AvailObject privateBlockTypeRestriction()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
@@ -71,8 +71,8 @@ public class P_065_CreateEnumeration extends Primitive
 	}
 
 	@Override
-	public @NotNull AvailObject returnTypeGuaranteedByVMForArgumentTypes (
-		final @NotNull List<AvailObject> argumentTypes)
+	public AvailObject returnTypeGuaranteedByVMForArgumentTypes (
+		final List<AvailObject> argumentTypes)
 	{
 		final AvailObject setType = argumentTypes.get(0);
 		// The type restricting the set's elements (i.e., the set's element

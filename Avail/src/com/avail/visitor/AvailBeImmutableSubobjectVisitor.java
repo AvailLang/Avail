@@ -48,8 +48,8 @@ extends AvailSubobjectVisitor
 {
 	@Override
 	public void invoke (
-		final @NotNull AvailObject parentObject,
-		final @NotNull AvailObject childObject)
+		final AvailObject parentObject,
+		final AvailObject childObject)
 	{
 		childObject.makeImmutable();
 	}

@@ -98,13 +98,13 @@ extends Descriptor
 
 	@Override
 	boolean allowsImmutableToMutableReferenceInField (
-		final @NotNull AbstractSlotsEnum e)
+		final AbstractSlotsEnum e)
 	{
 		return e == HASH_OR_ZERO;
 	}
 
 	@Override
-	void o_ClearValue (final @NotNull AvailObject object)
+	void o_ClearValue (final AvailObject object)
 	{
 		throw new VariableSetException(
 			AvailErrorCode.E_CANNOT_MODIFY_FINAL_JAVA_FIELD);
@@ -112,8 +112,8 @@ extends Descriptor
 
 	@Override @AvailMethod
 	boolean o_Equals (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+		final AvailObject object,
+		final AvailObject another)
 	{
 		return another.equalsPojoField(
 			object.slot(FIELD), object.slot(RECEIVER));
@@ -121,35 +121,35 @@ extends Descriptor
 
 	@Override @AvailMethod
 	boolean o_EqualsPojoField (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject field,
-		final @NotNull AvailObject receiver)
+		final AvailObject object,
+		final AvailObject field,
+		final AvailObject receiver)
 	{
 		return object.slot(FIELD).equals(field)
 			&& object.slot(RECEIVER).equals(receiver);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_GetValue (final @NotNull AvailObject object)
+	AvailObject o_GetValue (final AvailObject object)
 	{
 		return object.slot(CACHED_VALUE);
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final @NotNull AvailObject object)
+	int o_Hash (final AvailObject object)
 	{
 		return object.slot(FIELD).hash()
 			* object.slot(RECEIVER).hash() ^ 0x2199C0C3;
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_Kind (final @NotNull AvailObject object)
+	AvailObject o_Kind (final AvailObject object)
 	{
 		return object.slot(KIND);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_MakeImmutable (final @NotNull AvailObject object)
+	AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		object.descriptor = immutable;
 		object.slot(FIELD).makeImmutable();
@@ -161,24 +161,24 @@ extends Descriptor
 
 	@Override
 	void o_SetValue (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject newValue)
+		final AvailObject object,
+		final AvailObject newValue)
 	{
 		throw new VariableSetException(
 			AvailErrorCode.E_CANNOT_MODIFY_FINAL_JAVA_FIELD);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_Value (final @NotNull AvailObject object)
+	AvailObject o_Value (final AvailObject object)
 	{
 		return object.slot(CACHED_VALUE);
 	}
 
 	@Override
 	void printObjectOnAvoidingIndent (
-		final @NotNull AvailObject object,
-		final @NotNull StringBuilder builder,
-		final @NotNull List<AvailObject> recursionList,
+		final AvailObject object,
+		final StringBuilder builder,
+		final List<AvailObject> recursionList,
 		final int indent)
 	{
 		final Field field = (Field) object.slot(FIELD).javaObject();
@@ -243,11 +243,11 @@ extends Descriptor
 	 *        The variable type.
 	 * @return A new variable of the specified type.
 	 */
-	private static @NotNull AvailObject forOuterType (
-		final @NotNull AvailObject field,
-		final @NotNull AvailObject receiver,
-		final @NotNull AvailObject cachedValue,
-		final @NotNull AvailObject outerType)
+	private static AvailObject forOuterType (
+		final AvailObject field,
+		final AvailObject receiver,
+		final AvailObject cachedValue,
+		final AvailObject outerType)
 	{
 		final AvailObject newObject = mutable.create();
 		newObject.setSlot(HASH_OR_ZERO, 0);
@@ -273,10 +273,10 @@ extends Descriptor
 	 *        The types of values that can be read.
 	 * @return A new variable able to read values of the specified types.
 	 */
-	static @NotNull AvailObject forInnerType (
-		final @NotNull AvailObject field,
-		final @NotNull AvailObject receiver,
-		final @NotNull AvailObject innerType)
+	static AvailObject forInnerType (
+		final AvailObject field,
+		final AvailObject receiver,
+		final AvailObject innerType)
 	{
 		final Field javaField = (Field) field.javaObject();
 		assert Modifier.isFinal(javaField.getModifiers());

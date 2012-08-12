@@ -68,7 +68,7 @@ extends RuntimeException
 	 *
 	 * @return The reason the scanner could not complete its work.
 	 */
-	public @NotNull String failureString ()
+	public String failureString ()
 	{
 		return failureString;
 	}
@@ -108,7 +108,7 @@ extends RuntimeException
 	 *            The AvailScanner that failed, positioned to the failure point.
 	 */
 	public AvailScannerException (
-		final @NotNull String failureString,
+		final String failureString,
 		final AvailScanner failedScanner)
 	{
 		this.failureString = failureString;

@@ -61,7 +61,7 @@ public class L2_REENTER_L2_CHUNK extends L2Operation
 	}
 
 	@Override
-	public void step (final @NotNull L2Interpreter interpreter)
+	public void step (final L2Interpreter interpreter)
 	{
 		error("Re-enter chunk wordcode is not executable\n");
 	}

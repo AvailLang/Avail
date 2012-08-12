@@ -56,8 +56,8 @@ extends Thread
 	 *        The {@code Runnable runnable} that the new thread should execute.
 	 */
 	AvailThread (
-		final @NotNull AvailRuntime runtime,
-		final @NotNull Runnable runnable)
+		final AvailRuntime runtime,
+		final Runnable runnable)
 	{
 		super(runnable);
 		AvailRuntime.setCurrent(runtime);

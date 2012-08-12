@@ -57,7 +57,7 @@ public class L2_CREATE_SET extends L2Operation
 	}
 
 	@Override
-	public void step (final @NotNull L2Interpreter interpreter)
+	public void step (final L2Interpreter interpreter)
 	{
 		@SuppressWarnings("unused")
 		final int valuesIndex = interpreter.nextWord();

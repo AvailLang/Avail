@@ -53,9 +53,9 @@ public class P_510_CreatePojoArray extends Primitive
 		2, CannotFail, CanFold);
 
 	@Override
-	public @NotNull Result attempt (
-		final @NotNull List<AvailObject> args,
-		final @NotNull Interpreter interpreter)
+	public Result attempt (
+		final List<AvailObject> args,
+		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
 		final AvailObject elementType = args.get(0);
@@ -74,7 +74,7 @@ public class P_510_CreatePojoArray extends Primitive
 	}
 
 	@Override
-	protected @NotNull AvailObject privateBlockTypeRestriction ()
+	protected AvailObject privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

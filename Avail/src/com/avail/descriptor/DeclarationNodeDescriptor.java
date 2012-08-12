@@ -119,7 +119,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 
 			@Override
 			public void print (
-				final @NotNull AvailObject object,
+				final AvailObject object,
 				final StringBuilder builder,
 				final List<AvailObject> recursionList,
 				final int indent)
@@ -144,7 +144,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 			 */
 			@Override
 			public void emitEffectForOn (
-				final @NotNull AvailObject object,
+				final AvailObject object,
 				final AvailCodeGenerator codeGenerator)
 			{
 				codeGenerator.emitLabelDeclaration(object);
@@ -160,7 +160,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 
 			@Override
 			public void print (
-				final @NotNull AvailObject object,
+				final AvailObject object,
 				final StringBuilder builder,
 				final List<AvailObject> recursionList,
 				final int indent)
@@ -221,7 +221,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 
 			@Override
 			public void print (
-				final @NotNull AvailObject object,
+				final AvailObject object,
 				final StringBuilder builder,
 				final List<AvailObject> recursionList,
 				final int indent)
@@ -268,7 +268,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 
 			@Override
 			public void print (
-				final @NotNull AvailObject object,
+				final AvailObject object,
 				final StringBuilder builder,
 				final List<AvailObject> recursionList,
 				final int indent)
@@ -313,7 +313,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 
 			@Override
 			public void print (
-				final @NotNull AvailObject object,
+				final AvailObject object,
 				final StringBuilder builder,
 				final List<AvailObject> recursionList,
 				final int indent)
@@ -350,7 +350,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 
 			@Override
 			public void print (
-				final @NotNull AvailObject object,
+				final AvailObject object,
 				final StringBuilder builder,
 				final List<AvailObject> recursionList,
 				final int indent)
@@ -389,7 +389,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 
 			@Override
 			public void print (
-				final @NotNull AvailObject object,
+				final AvailObject object,
 				final StringBuilder builder,
 				final List<AvailObject> recursionList,
 				final int indent)
@@ -465,7 +465,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		 *         this kind of entity.
 		 */
 		public AvailObject parseNodeTypeFor (
-			final @NotNull AvailObject expressionType)
+			final AvailObject expressionType)
 		{
 			return kindEnumeration.create(expressionType);
 		}
@@ -518,7 +518,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		 * @param codeGenerator Where to emit the declaration.
 		 */
 		public void emitEffectForOn (
-			final @NotNull AvailObject object,
+			final AvailObject object,
 			final AvailCodeGenerator codeGenerator)
 		{
 			return;
@@ -533,7 +533,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 		 * @param indent The indentation depth.
 		 */
 		public abstract void print (
-			final @NotNull AvailObject object,
+			final AvailObject object,
 			final StringBuilder builder,
 			final List<AvailObject> recursionList,
 			final int indent);
@@ -544,7 +544,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override @AvailMethod
 	AvailObject o_Token (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.slot(ObjectSlots.TOKEN);
 	}
@@ -554,7 +554,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override @AvailMethod
 	AvailObject o_DeclaredType (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.slot(ObjectSlots.DECLARED_TYPE);
 	}
@@ -564,7 +564,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override @AvailMethod
 	void o_InitializationExpression (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailObject initializationExpression)
 	{
 		object.setSlot(
@@ -577,7 +577,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override @AvailMethod
 	AvailObject o_InitializationExpression (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.slot(ObjectSlots.INITIALIZATION_EXPRESSION);
 	}
@@ -587,7 +587,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override @AvailMethod
 	AvailObject o_LiteralObject (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.slot(ObjectSlots.LITERAL_OBJECT);
 	}
@@ -597,7 +597,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override @AvailMethod
 	DeclarationKind o_DeclarationKind (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return DeclarationKind.values()[object.slot(
 			IntegerSlots.DECLARATION_KIND)];
@@ -605,7 +605,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 
 
 	@Override @AvailMethod
-	AvailObject o_ExpressionType (final @NotNull AvailObject object)
+	AvailObject o_ExpressionType (final AvailObject object)
 	{
 		return TOP.o();
 	}
@@ -618,7 +618,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override @AvailMethod
 	void o_EmitEffectOn (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
 		object.declarationKind().emitEffectForOn(object, codeGenerator);
@@ -630,7 +630,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override @AvailMethod
 	void o_EmitValueOn (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
 		object.emitEffectOn(codeGenerator);
@@ -638,7 +638,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final @NotNull AvailObject object)
+	int o_Hash (final AvailObject object)
 	{
 		return
 			(((object.token().hash() * multiplier
@@ -651,7 +651,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	boolean o_Equals (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailObject another)
 	{
 		return object.sameAddressAs(another.traversed());
@@ -675,7 +675,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	void o_ChildrenMap (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final Transformer1<AvailObject, AvailObject> aBlock)
 	{
 		AvailObject expression = object.initializationExpression();
@@ -689,7 +689,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	void o_ChildrenDo (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final Continuation1<AvailObject> aBlock)
 	{
 		final AvailObject expression = object.initializationExpression();
@@ -702,15 +702,15 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	void o_ValidateLocally (
-		final @NotNull AvailObject object,
-		final AvailObject parent)
+		final AvailObject object,
+		final @Nullable AvailObject parent)
 	{
 		// Do nothing.
 	}
 
 	@Override
 	ParseNodeKind o_ParseNodeKind (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.declarationKind().parseNodeKind();
 	}
@@ -718,7 +718,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final StringBuilder builder,
 		final List<AvailObject> recursionList,
 		final int indent)

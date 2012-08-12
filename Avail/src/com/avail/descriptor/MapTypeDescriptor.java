@@ -75,31 +75,31 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_KeyType (
-		final @NotNull AvailObject object)
+	AvailObject o_KeyType (
+		final AvailObject object)
 	{
 		return object.slot(ObjectSlots.KEY_TYPE);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_SizeRange (
-		final @NotNull AvailObject object)
+	AvailObject o_SizeRange (
+		final AvailObject object)
 	{
 		return object.slot(ObjectSlots.SIZE_RANGE);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_ValueType (
-		final @NotNull AvailObject object)
+	AvailObject o_ValueType (
+		final AvailObject object)
 	{
 		return object.slot(ObjectSlots.VALUE_TYPE);
 	}
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-		final @NotNull AvailObject object,
-		final @NotNull StringBuilder aStream,
-		final @NotNull List<AvailObject> recursionList,
+		final AvailObject object,
+		final StringBuilder aStream,
+		final List<AvailObject> recursionList,
 		final int indent)
 	{
 		if (object.keyType().equals(ANY.o())
@@ -136,16 +136,16 @@ extends TypeDescriptor
 
 	@Override @AvailMethod
 	boolean o_Equals (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+		final AvailObject object,
+		final AvailObject another)
 	{
 		return another.equalsMapType(object);
 	}
 
 	@Override @AvailMethod
 	boolean o_EqualsMapType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aMapType)
+		final AvailObject object,
+		final AvailObject aMapType)
 	{
 		//  Map types are equal iff their sizeRange, keyType, and valueType match.
 
@@ -158,7 +158,7 @@ extends TypeDescriptor
 
 	@Override @AvailMethod
 	int o_Hash (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		//  Answer a 32-bit integer that is always the same for equal objects, but
 		//  statistically different for different objects.
@@ -171,15 +171,15 @@ extends TypeDescriptor
 
 	@Override @AvailMethod
 	boolean o_IsMapType (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override @AvailMethod
 	boolean o_IsSubtypeOf (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aType)
+		final AvailObject object,
+		final AvailObject aType)
 	{
 		// Check if object (a type) is a subtype of aType (should also be a
 		// type).
@@ -188,8 +188,8 @@ extends TypeDescriptor
 
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfMapType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aMapType)
+		final AvailObject object,
+		final AvailObject aMapType)
 	{
 		//  Map type A is a subtype of B if and only if their size ranges are covariant
 		//  and their key types and value types are each covariant.
@@ -198,9 +198,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeIntersection (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+	AvailObject o_TypeIntersection (
+		final AvailObject object,
+		final AvailObject another)
 	{
 		//  Answer the most general type that is still at least as specific as these.
 
@@ -216,9 +216,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeIntersectionOfMapType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aMapType)
+	AvailObject o_TypeIntersectionOfMapType (
+		final AvailObject object,
+		final AvailObject aMapType)
 	{
 		//  Answer the most general type that is still at least as specific as these.
 		//
@@ -233,9 +233,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeUnion (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+	AvailObject o_TypeUnion (
+		final AvailObject object,
+		final AvailObject another)
 	{
 		//  Answer the most specific type that is still at least as general as these.
 
@@ -255,9 +255,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeUnionOfMapType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aMapType)
+	AvailObject o_TypeUnionOfMapType (
+		final AvailObject object,
+		final AvailObject aMapType)
 	{
 		//  Answer the most specific type that is still at least as general as these.
 		//
@@ -272,8 +272,8 @@ extends TypeDescriptor
 	}
 
 	@Override
-	@NotNull SerializerOperation o_SerializerOperation (
-		final @NotNull AvailObject object)
+	SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.MAP_TYPE;
 	}
@@ -366,9 +366,9 @@ extends TypeDescriptor
 	 * @return The requested map type.
 	 */
 	public static AvailObject mapTypeForSizesKeyTypeValueType (
-		final @NotNull AvailObject sizeRange,
-		final @NotNull AvailObject keyType,
-		final @NotNull AvailObject valueType)
+		final AvailObject sizeRange,
+		final AvailObject keyType,
+		final AvailObject valueType)
 	{
 		if (sizeRange.equals(BottomTypeDescriptor.bottom()))
 		{

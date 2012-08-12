@@ -66,16 +66,16 @@ extends JFrame
 	private static final long serialVersionUID = 5144194637595188046L;
 
 	/** The {@linkplain Style style} to use for standard output. */
-	private static final @NotNull String outputStyleName = "output";
+	private static final String outputStyleName = "output";
 
 	/** The {@linkplain Style style} to use for standard error. */
-	private static final @NotNull String errorStyleName = "error";
+	private static final String errorStyleName = "error";
 
 	/** The {@linkplain Style style} to use for standard input. */
-	private static final @NotNull String inputStyleName = "input";
+	private static final String inputStyleName = "input";
 
 	/** The {@linkplain Style style} to use for notifications. */
-	private static final @NotNull String infoStyleName = "info";
+	private static final String infoStyleName = "info";
 
 	/**
 	 * A {@code BuildAction} launches a {@linkplain BuildTask build task} in a
@@ -88,7 +88,7 @@ extends JFrame
 		private static final long serialVersionUID = -204031361554497888L;
 
 		@Override
-		public void actionPerformed (final @NotNull ActionEvent event)
+		public void actionPerformed (final @Nullable ActionEvent event)
 		{
 			// Update the UI.
 			setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
@@ -114,10 +114,14 @@ extends JFrame
 			inputStream.clear();
 
 			// Build the target module in a Swing worker thread.
-			buildTask = new BuildTask(selectedModule());
-			buildTask.execute();
-			cancelAction.setEnabled(true);
-			cleanAction.setEnabled(false);
+			final String selectedModule = selectedModule();
+			if (selectedModule != null)
+			{
+				buildTask = new BuildTask(selectedModule);
+				buildTask.execute();
+				cancelAction.setEnabled(true);
+				cleanAction.setEnabled(false);
+			}
 		}
 
 		/**
@@ -144,7 +148,7 @@ extends JFrame
 		private static final long serialVersionUID = 4866074044124292436L;
 
 		@Override
-		public void actionPerformed (final @NotNull ActionEvent event)
+		public void actionPerformed (final @Nullable ActionEvent event)
 		{
 			final BuildTask task = buildTask;
 			if (task != null)
@@ -177,7 +181,7 @@ extends JFrame
 		private static final long serialVersionUID = 5674981650560448737L;
 
 		@Override
-		public void actionPerformed (final @NotNull ActionEvent event)
+		public void actionPerformed (final @Nullable ActionEvent event)
 		{
 			assert buildTask == null;
 			repository.clear();
@@ -207,7 +211,7 @@ extends JFrame
 		private static final long serialVersionUID = -3755146238252467204L;
 
 		@Override
-		public void actionPerformed (final @NotNull ActionEvent event)
+		public void actionPerformed (final @Nullable ActionEvent event)
 		{
 			if (inputField.isFocusOwner())
 			{
@@ -239,7 +243,7 @@ extends JFrame
 		private static final long serialVersionUID = 8414764326820529464L;
 
 		@Override
-		public void actionPerformed (final @NotNull ActionEvent event)
+		public void actionPerformed (final @Nullable ActionEvent event)
 		{
 			final String selection = selectedModule();
 			moduleTree.setModel(new DefaultTreeModel(moduleTree()));
@@ -281,7 +285,7 @@ extends JFrame
 		 * The fully-qualified name of the target {@linkplain ModuleDescriptor
 		 * module}.
 		 */
-		private final @NotNull String targetModuleName;
+		private final String targetModuleName;
 
 		/**
 		 * The {@linkplain Thread thread} running the {@linkplain BuildTask
@@ -310,7 +314,7 @@ extends JFrame
 		private Throwable terminator;
 
 		@Override
-		protected Void doInBackground () throws Exception
+		protected @Nullable Void doInBackground () throws Exception
 		{
 			runner = Thread.currentThread();
 			startTimeMillis = System.currentTimeMillis();
@@ -329,11 +333,15 @@ extends JFrame
 					{
 						@Override
 						public void value (
-							final @NotNull ModuleName moduleName,
-							final @NotNull Long lineNumber,
-							final @NotNull Long position,
-							final @NotNull Long moduleSize)
+							final @Nullable ModuleName moduleName,
+							final @Nullable Long lineNumber,
+							final @Nullable Long position,
+							final @Nullable Long moduleSize)
 						{
+							assert moduleName != null;
+							assert lineNumber != null;
+							assert position != null;
+							assert moduleSize != null;
 							if (Thread.currentThread().isInterrupted())
 							{
 								assert runner == Thread.currentThread();
@@ -357,10 +365,13 @@ extends JFrame
 					{
 						@Override
 						public void value (
-							final @NotNull ModuleName moduleName,
-							final @NotNull Long position,
-							final @NotNull Long globalCodeSize)
+							final @Nullable ModuleName moduleName,
+							final @Nullable Long position,
+							final @Nullable Long globalCodeSize)
 						{
+							assert moduleName != null;
+							assert position != null;
+							assert globalCodeSize != null;
 							if (Thread.currentThread().isInterrupted())
 							{
 								assert runner == Thread.currentThread();
@@ -499,7 +510,7 @@ extends JFrame
 		 *        The fully-qualified name of the target {@linkplain
 		 *        ModuleDescriptor module}.
 		 */
-		public BuildTask (final @NotNull String targetModuleName)
+		public BuildTask (final String targetModuleName)
 		{
 			this.targetModuleName = targetModuleName;
 		}
@@ -516,10 +527,10 @@ extends JFrame
 		 * The {@linkplain StyledDocument styled document} underlying the
 		 * {@linkplain #transcript}.
 		 */
-		final @NotNull StyledDocument doc;
+		final StyledDocument doc;
 
 		/** The print {@linkplain Style style}. */
-		final @NotNull String style;
+		final String style;
 
 		/**
 		 * Update the {@linkplain #transcript}.
@@ -557,7 +568,7 @@ extends JFrame
 		}
 
 		@Override
-		public void write (final @NotNull byte[] b) throws IOException
+		public void write (final @Nullable byte[] b) throws IOException
 		{
 			super.write(b);
 			updateTranscript();
@@ -565,7 +576,7 @@ extends JFrame
 
 		@Override
 		public synchronized void write (
-			final @NotNull byte[] b,
+			final @Nullable byte[] b,
 			final int off,
 			final int len)
 		{
@@ -598,7 +609,7 @@ extends JFrame
 		 * The {@linkplain StyledDocument styled document} underlying the
 		 * {@linkplain #transcript}.
 		 */
-		final @NotNull StyledDocument doc;
+		final StyledDocument doc;
 
 		/**
 		 * Clear the {@linkplain BuildInputStream input stream}. All pending
@@ -684,7 +695,7 @@ extends JFrame
 
 		@Override
 		public synchronized int read (
-			final byte[] readBuffer,
+			final @Nullable byte[] readBuffer,
 			final int start,
 			final int requestSize)
 		{
@@ -750,8 +761,8 @@ extends JFrame
 	 * @return The text of the specified Avail source file, or {@code null} if
 	 *         the source could not be retrieved.
 	 */
-	@InnerAccess static String readSourceFile (
-		final @NotNull File sourceFile)
+	@InnerAccess @Nullable static String readSourceFile (
+		final File sourceFile)
 	{
 		try
 		{
@@ -780,54 +791,54 @@ extends JFrame
 	 */
 
 	/** The {@linkplain ModuleNameResolver module name resolver}. */
-	@InnerAccess final @NotNull ModuleNameResolver resolver;
+	@InnerAccess final ModuleNameResolver resolver;
 
 	/** The current {@linkplain BuildTask build task}. */
-	@InnerAccess volatile @NotNull BuildTask buildTask;
+	@InnerAccess volatile BuildTask buildTask;
 
 	/** The {@linkplain BuildInputStream standard input stream}. */
-	@InnerAccess @NotNull BuildInputStream inputStream;
+	@InnerAccess BuildInputStream inputStream;
 
 	/*
 	 * UI components.
 	 */
 
 	/** The {@linkplain ModuleDescriptor module} {@linkplain JTree tree}. */
-	@InnerAccess final @NotNull JTree moduleTree;
+	@InnerAccess final JTree moduleTree;
 
 	/**
 	 * The {@linkplain JProgressBar progress bar} that displays compilation
 	 * progress of the current {@linkplain ModuleDescriptor module}.
 	 */
-	@InnerAccess final @NotNull JProgressBar moduleProgress;
+	@InnerAccess final JProgressBar moduleProgress;
 
 	/**
 	 * The {@linkplain JProgressBar progress bar} that displays the overall
 	 * build progress.
 	 */
-	@InnerAccess final @NotNull JProgressBar buildProgress;
+	@InnerAccess final JProgressBar buildProgress;
 
 	/**
 	 * The {@linkplain JTextPane text area} that displays the {@linkplain
 	 * AvailBuilder build} transcript.
 	 */
-	@InnerAccess final @NotNull JTextPane transcript;
+	@InnerAccess final JTextPane transcript;
 
 	/** The {@linkplain JTextField text field} that accepts standard input. */
-	@InnerAccess final @NotNull JTextField inputField;
+	@InnerAccess final JTextField inputField;
 
 	/*
 	 * Actions.
 	 */
 
 	/** The {@linkplain BuildAction build action}. */
-	@InnerAccess final @NotNull BuildAction buildAction;
+	@InnerAccess final BuildAction buildAction;
 
 	/** The {@linkplain CancelAction cancel action}. */
-	@InnerAccess final @NotNull CancelAction cancelAction;
+	@InnerAccess final CancelAction cancelAction;
 
 	/** The {@linkplain CleanAction clean action}. */
-	@InnerAccess final @NotNull CleanAction cleanAction;
+	@InnerAccess final CleanAction cleanAction;
 
 	/**
 	 * The transient {@link Repository} of compiled modules to load in place
@@ -840,7 +851,7 @@ extends JFrame
 	 *
 	 * @return The root of the module tree.
 	 */
-	@InnerAccess @NotNull TreeNode moduleTree ()
+	@InnerAccess TreeNode moduleTree ()
 	{
 		final ModuleRoots roots = resolver.moduleRoots();
 		final DefaultMutableTreeNode treeRoot = new DefaultMutableTreeNode();
@@ -855,9 +866,10 @@ extends JFrame
 			{
 				@Override
 				public boolean accept (
-					final @NotNull File dir,
-					final @NotNull String name)
+					final @Nullable File dir,
+					final @Nullable String name)
 				{
+					assert name != null;
 					return name.endsWith(extension);
 				}
 			});
@@ -882,7 +894,7 @@ extends JFrame
 	 * @return A tree path, or {@code null} if the module name is not present in
 	 *         the tree.
 	 */
-	@InnerAccess TreePath modulePath (final String moduleName)
+	@InnerAccess @Nullable TreePath modulePath (final String moduleName)
 	{
 		final String[] path = moduleName.split("/");
 		assert path.length == 3;
@@ -919,7 +931,7 @@ extends JFrame
 	 * @return A fully-qualified module name, or {@code null} if no module is
 	 *         selected.
 	 */
-	@InnerAccess String selectedModule ()
+	@InnerAccess @Nullable String selectedModule ()
 	{
 		final TreePath path = moduleTree.getSelectionPath();
 		if (path == null)
@@ -966,10 +978,10 @@ extends JFrame
 	 *        The module size, in bytes.
 	 */
 	@InnerAccess void updateModuleProgress (
-		final @NotNull ModuleName moduleName,
-		final @NotNull Long lineNumber,
-		final @NotNull Long position,
-		final @NotNull Long moduleSize)
+		final ModuleName moduleName,
+		final Long lineNumber,
+		final Long position,
+		final Long moduleSize)
 	{
 		if (lineNumber == -1)
 		{
@@ -1003,9 +1015,9 @@ extends JFrame
 	 *        The module size, in bytes.
 	 */
 	@InnerAccess void updateBuildProgress (
-		final @NotNull ModuleName moduleName,
-		final @NotNull Long position,
-		final @NotNull Long globalCodeSize)
+		final ModuleName moduleName,
+		final Long position,
+		final Long globalCodeSize)
 	{
 		final int percent = (int) ((position * 100) / globalCodeSize);
 		buildProgress.setValue(percent);
@@ -1026,7 +1038,7 @@ extends JFrame
 	 *        empty string.
 	 */
 	@InnerAccess AvailBuilderFrame (
-		final @NotNull ModuleNameResolver resolver,
+		final ModuleNameResolver resolver,
 		final String initialTarget)
 	{
 		// Open the repository.
@@ -1128,7 +1140,7 @@ extends JFrame
 		moduleTree.addTreeSelectionListener(new TreeSelectionListener()
 		{
 			@Override
- 			public void valueChanged (final @NotNull TreeSelectionEvent event)
+ 			public void valueChanged (final @Nullable TreeSelectionEvent event)
 			{
 				if (buildAction.isEnabled()
 					&& moduleTree.getLastSelectedPathComponent() == null)
@@ -1140,7 +1152,7 @@ extends JFrame
 		moduleTree.addMouseListener(new MouseAdapter()
 		{
 			@Override
-			public void mouseClicked (final @NotNull MouseEvent e)
+			public void mouseClicked (final @Nullable MouseEvent e)
 			{
 				if (buildAction.isEnabled()
 					&& e.getClickCount() == 2
@@ -1291,7 +1303,7 @@ extends JFrame
 	 * @throws Exception
 	 *         If something goes wrong.
 	 */
-	public static void main (final @NotNull String[] args) throws Exception
+	public static void main (final String[] args) throws Exception
 	{
 		final ModuleRoots roots = new ModuleRoots(
 			System.getProperty("availRoots", ""));

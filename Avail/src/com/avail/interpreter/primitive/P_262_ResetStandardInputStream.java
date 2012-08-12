@@ -54,13 +54,13 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final @NotNull static Primitive instance =
+	public final static Primitive instance =
 		new P_262_ResetStandardInputStream().init(0, CanInline, HasSideEffect);
 
 	@Override
-	public @NotNull Result attempt (
-		final @NotNull List<AvailObject> args,
-		final @NotNull Interpreter interpreter)
+	public Result attempt (
+		final List<AvailObject> args,
+		final Interpreter interpreter)
 	{
 		assert args.size() == 0;
 		final Reader reader = AvailRuntime.current().standardInputReader();
@@ -76,7 +76,7 @@ extends Primitive
 	}
 
 	@Override
-	protected @NotNull AvailObject privateBlockTypeRestriction ()
+	protected AvailObject privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(),

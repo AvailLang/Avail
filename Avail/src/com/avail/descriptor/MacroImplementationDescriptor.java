@@ -81,37 +81,37 @@ extends ImplementationDescriptor
 	 * Answer my signature.
 	 */
 	@Override @AvailMethod
-	@NotNull AvailObject o_BodySignature (
-		final @NotNull AvailObject object)
+	AvailObject o_BodySignature (
+		final AvailObject object)
 	{
 		return object.bodyBlock().kind();
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_BodyBlock (
-		final @NotNull AvailObject object)
+	AvailObject o_BodyBlock (
+		final AvailObject object)
 	{
 		return object.slot(BODY_BLOCK);
 	}
 
 	@Override @AvailMethod
 	int o_Hash (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		final int hash = object.bodyBlock().hash() ^ 0x67f6ec56;
 		return hash;
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_Kind (
-		final @NotNull AvailObject object)
+	AvailObject o_Kind (
+		final AvailObject object)
 	{
 		return MACRO_SIGNATURE.o();
 	}
 
 	@Override @AvailMethod
 	boolean o_IsMacro (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return true;
 	}
@@ -128,7 +128,7 @@ extends ImplementationDescriptor
 	 *            A macro signature.
 	 */
 	public static AvailObject create (
-		final @NotNull AvailObject bodyBlock)
+		final AvailObject bodyBlock)
 	{
 		final AvailObject instance = mutable().create();
 		instance.setSlot(BODY_BLOCK, bodyBlock);

@@ -59,7 +59,7 @@ public class L2_UPDATE_CONTINUATION_SLOT extends L2Operation
 	}
 
 	@Override
-	public void step (final @NotNull L2Interpreter interpreter)
+	public void step (final L2Interpreter interpreter)
 	{
 		// TODO [MvG] Implement.
 		@SuppressWarnings("unused")

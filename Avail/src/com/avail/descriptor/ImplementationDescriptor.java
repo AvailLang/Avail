@@ -54,8 +54,8 @@ public abstract class ImplementationDescriptor
 extends Descriptor
 {
 	@Override @AvailMethod
-	abstract @NotNull AvailObject o_BodySignature (
-		final @NotNull AvailObject object);
+	abstract AvailObject o_BodySignature (
+		final AvailObject object);
 
 	/**
 	 * {@inheritDoc}
@@ -67,44 +67,44 @@ extends Descriptor
 	 */
 	@Override @AvailMethod
 	boolean o_Equals (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+		final AvailObject object,
+		final AvailObject another)
 	{
 		return another.traversed().sameAddressAs(object);
 	}
 
 	@Override @AvailMethod
 	abstract int o_Hash (
-		final @NotNull AvailObject object);
+		final AvailObject object);
 
 	@Override @AvailMethod
-	abstract @NotNull AvailObject o_Kind (
-		final @NotNull AvailObject object);
+	abstract AvailObject o_Kind (
+		final AvailObject object);
 
 	@Override @AvailMethod
 	boolean o_IsAbstract (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return false;
 	}
 
 	@Override @AvailMethod
 	boolean o_IsForward (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return false;
 	}
 
 	@Override @AvailMethod
 	boolean o_IsMethod (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return false;
 	}
 
 	@Override @AvailMethod
 	boolean o_IsMacro (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return false;
 	}

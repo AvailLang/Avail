@@ -70,24 +70,24 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_ContentType (
-		final @NotNull AvailObject object)
+	AvailObject o_ContentType (
+		final AvailObject object)
 	{
 		return object.slot(ObjectSlots.CONTENT_TYPE);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_SizeRange (
-		final @NotNull AvailObject object)
+	AvailObject o_SizeRange (
+		final AvailObject object)
 	{
 		return object.slot(ObjectSlots.SIZE_RANGE);
 	}
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-		final @NotNull AvailObject object,
-		final @NotNull StringBuilder aStream,
-		final @NotNull List<AvailObject> recursionList,
+		final AvailObject object,
+		final StringBuilder aStream,
+		final List<AvailObject> recursionList,
 		final int indent)
 	{
 		if (object.contentType().equals(ANY.o())
@@ -120,16 +120,16 @@ extends TypeDescriptor
 
 	@Override @AvailMethod
 	boolean o_Equals (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+		final AvailObject object,
+		final AvailObject another)
 	{
 		return another.equalsSetType(object);
 	}
 
 	@Override @AvailMethod
 	boolean o_EqualsSetType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aSetType)
+		final AvailObject object,
+		final AvailObject aSetType)
 	{
 		//  Set types are equal iff both their sizeRange and contentType match.
 
@@ -142,7 +142,7 @@ extends TypeDescriptor
 
 	@Override @AvailMethod
 	int o_Hash (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		//  Answer a 32-bit integer that is always the same for equal objects, but
 		//  statistically different for different objects.
@@ -152,8 +152,8 @@ extends TypeDescriptor
 
 	@Override @AvailMethod
 	boolean o_IsSubtypeOf (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aType)
+		final AvailObject object,
+		final AvailObject aType)
 	{
 		//  Check if object (a type) is a subtype of aType (should also be a type).
 
@@ -162,8 +162,8 @@ extends TypeDescriptor
 
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfSetType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aSetType)
+		final AvailObject object,
+		final AvailObject aSetType)
 	{
 		//  Set type A is a subtype of B if and only if their size ranges are covariant
 		//  and their content types are covariant.
@@ -172,9 +172,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeIntersection (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+	AvailObject o_TypeIntersection (
+		final AvailObject object,
+		final AvailObject another)
 	{
 		//  Answer the most general type that is still at least as specific as these.
 
@@ -190,9 +190,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeIntersectionOfSetType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aSetType)
+	AvailObject o_TypeIntersectionOfSetType (
+		final AvailObject object,
+		final AvailObject aSetType)
 	{
 		return SetTypeDescriptor.setTypeForSizesContentType(
 			object.sizeRange().typeIntersection(aSetType.sizeRange()),
@@ -200,9 +200,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeUnion (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+	AvailObject o_TypeUnion (
+		final AvailObject object,
+		final AvailObject another)
 	{
 		if (object.equals(another))
 		{
@@ -220,9 +220,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeUnionOfSetType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aSetType)
+	AvailObject o_TypeUnionOfSetType (
+		final AvailObject object,
+		final AvailObject aSetType)
 	{
 		return SetTypeDescriptor.setTypeForSizesContentType(
 			object.sizeRange().typeUnion(aSetType.sizeRange()),
@@ -231,14 +231,14 @@ extends TypeDescriptor
 
 	@Override @AvailMethod
 	boolean o_IsSetType (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override
-	@NotNull SerializerOperation o_SerializerOperation (
-		final @NotNull AvailObject object)
+	SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.SET_TYPE;
 	}
@@ -300,9 +300,9 @@ extends TypeDescriptor
 	 * @return
 	 *            An immutable set type as specified.
 	 */
-	public static @NotNull AvailObject setTypeForSizesContentType (
-		final @NotNull AvailObject sizeRange,
-		final @NotNull AvailObject contentType)
+	public static AvailObject setTypeForSizesContentType (
+		final AvailObject sizeRange,
+		final AvailObject contentType)
 	{
 		if (sizeRange.equals(BottomTypeDescriptor.bottom()))
 		{

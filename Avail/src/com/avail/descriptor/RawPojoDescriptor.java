@@ -56,7 +56,7 @@ extends Descriptor
 	 * The {@linkplain List list} of all {@linkplain Object pojos} accessible
 	 * from Avail.
 	 */
-	@InnerAccess static final @NotNull List<Object> allPojosStrongly =
+	@InnerAccess static final List<Object> allPojosStrongly =
 		new ArrayList<Object>(100);
 
 	/**
@@ -94,7 +94,7 @@ extends Descriptor
 		 * @param referent The {@linkplain RawPojoDescriptor referent}.
 		 */
 		WeakPojoReference (
-			final @NotNull AvailObject referent)
+			final AvailObject referent)
 		{
 			super(referent, recyclingQueue);
 			assert referent.isRawPojo();
@@ -116,7 +116,7 @@ extends Descriptor
 	 * references} to {@linkplain Object pojos} wrapped in {@linkplain
 	 * AvailObject Avail objects}.
 	 */
-	private static final @NotNull List<WeakPojoReference> allPojosWeakly =
+	private static final List<WeakPojoReference> allPojosWeakly =
 		new ArrayList<WeakPojoReference>(100);
 
 	/**
@@ -138,7 +138,7 @@ extends Descriptor
 	 *
 	 * @return A raw pojo that represents {@code Object}.
 	 */
-	public static @NotNull AvailObject rawObjectClass ()
+	public static AvailObject rawObjectClass ()
 	{
 		return rawObjectClass;
 	}
@@ -151,7 +151,7 @@ extends Descriptor
 	 *
 	 * @return The {@code null} pojo.
 	 */
-	public static @NotNull AvailObject rawNullObject ()
+	public static AvailObject rawNullObject ()
 	{
 		return rawNullObject;
 	}
@@ -230,7 +230,7 @@ extends Descriptor
 					// returns. It may still turn out maximally compact if the
 					// garbage collector adds the newly defunct weak reference
 					// to the queue before the loop exits.
-					final @NotNull AvailObject object = copiedReference.get();
+					final AvailObject object = copiedReference.get();
 					if (object != null)
 					{
 						assert object.descriptor() instanceof RawPojoDescriptor;
@@ -262,7 +262,7 @@ extends Descriptor
 	}
 
 	@Override boolean allowsImmutableToMutableReferenceInField (
-		final @NotNull AbstractSlotsEnum e)
+		final AbstractSlotsEnum e)
 	{
 		// Indices are allowed to move because of compaction (triggered by the
 		// Java garbage collector).
@@ -276,8 +276,8 @@ extends Descriptor
 	 * @param object An object.
 	 * @return A pojo.
 	 */
-	private static final @NotNull Object getPojo (
-		final @NotNull AvailObject object)
+	private static final Object getPojo (
+		final AvailObject object)
 	{
 		pojosLock.lock();
 		try
@@ -295,16 +295,16 @@ extends Descriptor
 
 	@Override @AvailMethod
 	boolean o_Equals (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+		final AvailObject object,
+		final AvailObject another)
 	{
 		return another.equalsRawPojo(object);
 	}
 
 	@Override @AvailMethod
 	boolean o_EqualsEqualityRawPojo (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aRawPojo)
+		final AvailObject object,
+		final AvailObject aRawPojo)
 	{
 		return false;
 	}
@@ -318,8 +318,8 @@ extends Descriptor
 	 *        A raw pojo.
 	 */
 	protected static void coalesce (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aRawPojo)
+		final AvailObject object,
+		final AvailObject aRawPojo)
 	{
 		final AvailObject keeper;
 		final AvailObject loser;
@@ -344,8 +344,8 @@ extends Descriptor
 
 	@Override @AvailMethod
 	boolean o_EqualsRawPojo (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aRawPojo)
+		final AvailObject object,
+		final AvailObject aRawPojo)
 	{
 		pojosLock.lock();
 		try
@@ -372,7 +372,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final @NotNull AvailObject object)
+	int o_Hash (final AvailObject object)
 	{
 		// This ensures that mutations of the wrapped pojo do not corrupt hashed
 		// Avail data structures.
@@ -380,26 +380,26 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	final boolean o_IsRawPojo (final @NotNull AvailObject object)
+	final boolean o_IsRawPojo (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override @AvailMethod
-	final Object o_JavaObject (final @NotNull AvailObject object)
+	final Object o_JavaObject (final AvailObject object)
 	{
 		return getPojo(object);
 	}
 
 	@Override @AvailMethod
-	final @NotNull AvailObject o_Kind (final @NotNull AvailObject object)
+	final AvailObject o_Kind (final AvailObject object)
 	{
 		return RAW_POJO.o();
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_MakeImmutable (
-		final @NotNull AvailObject object)
+	AvailObject o_MakeImmutable (
+		final AvailObject object)
 	{
 		object.descriptor = immutable;
 		return object;
@@ -407,17 +407,17 @@ extends Descriptor
 
 	@Override
 	final Object o_MarshalToJava (
-		final @NotNull AvailObject object,
-		final Class<?> ignoredClassHint)
+		final AvailObject object,
+		final @Nullable Class<?> ignoredClassHint)
 	{
 		return getPojo(object);
 	}
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-		final @NotNull AvailObject object,
-		final @NotNull StringBuilder builder,
-		final @NotNull List<AvailObject> recursionList,
+		final AvailObject object,
+		final StringBuilder builder,
+		final List<AvailObject> recursionList,
 		final int indent)
 	{
 		builder.append("raw pojo@");
@@ -439,7 +439,7 @@ extends Descriptor
 	}
 
 	/** The mutable {@link RawPojoDescriptor}. */
-	private static final @NotNull RawPojoDescriptor mutable =
+	private static final RawPojoDescriptor mutable =
 		new RawPojoDescriptor(true);
 
 	/**
@@ -447,13 +447,13 @@ extends Descriptor
 	 *
 	 * @return The mutable {@code RawPojoDescriptor}.
 	 */
-	public static @NotNull RawPojoDescriptor mutable ()
+	public static RawPojoDescriptor mutable ()
 	{
 		return mutable;
 	}
 
 	/** The immutable {@link RawPojoDescriptor}. */
-	private static final @NotNull RawPojoDescriptor immutable =
+	private static final RawPojoDescriptor immutable =
 		new RawPojoDescriptor(false);
 
 	/**
@@ -466,9 +466,9 @@ extends Descriptor
 	 *        The {@linkplain RawPojoDescriptor descriptor} to instantiate.
 	 * @return The new {@linkplain PojoDescriptor Avail pojo}.
 	 */
-	private static @NotNull AvailObject wrap (
-		final Object pojo,
-		final @NotNull RawPojoDescriptor descriptor)
+	private static AvailObject wrap (
+		final @Nullable Object pojo,
+		final RawPojoDescriptor descriptor)
 	{
 		pojosLock.lock();
 		try
@@ -496,7 +496,7 @@ extends Descriptor
 	 * @param pojo A pojo, possibly {@code null}.
 	 * @return The new {@linkplain PojoDescriptor Avail pojo}.
 	 */
-	public static @NotNull AvailObject identityWrap (final Object pojo)
+	public static AvailObject identityWrap (final @Nullable Object pojo)
 	{
 		return wrap(pojo, mutable);
 	}
@@ -508,7 +508,7 @@ extends Descriptor
 	 * @param pojo A pojo, possibly {@code null}.
 	 * @return The new {@linkplain PojoDescriptor Avail pojo}.
 	 */
-	public static @NotNull AvailObject equalityWrap (final Object pojo)
+	public static AvailObject equalityWrap (final Object pojo)
 	{
 		return wrap(pojo, EqualityRawPojoDescriptor.mutable());
 	}

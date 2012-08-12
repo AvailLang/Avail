@@ -48,16 +48,16 @@ import com.avail.annotations.NotNull;
 abstract class PropertiesFileGenerator
 {
 	/** The base name of the {@linkplain ResourceBundle resource bundle}. */
-	protected final @NotNull String baseName;
+	protected final String baseName;
 
 	/** The target {@linkplain Locale locale}. */
-	protected final @NotNull Locale locale;
+	protected final Locale locale;
 
 	/**
 	 * The {@linkplain ResourceBundle resource bundle} that contains file
 	 * preamble information.
 	 */
-	protected final @NotNull ResourceBundle preambleBundle;
+	protected final ResourceBundle preambleBundle;
 
 	/**
 	 * Generate the preamble for the properties file. This includes the
@@ -66,7 +66,7 @@ abstract class PropertiesFileGenerator
 	 * @param writer
 	 *        The {@linkplain PrintWriter output stream}.
 	 */
-	protected void generatePreamble (final @NotNull PrintWriter writer)
+	protected void generatePreamble (final PrintWriter writer)
 	{
 		writer.println(MessageFormat.format(
 			preambleBundle.getString(propertiesCopyright.name()),
@@ -89,8 +89,8 @@ abstract class PropertiesFileGenerator
 	 *        The {@linkplain PrintWriter output stream}.
 	 */
 	protected abstract void generateProperties (
-		final @NotNull Properties properties,
-		final @NotNull PrintWriter writer);
+		final Properties properties,
+		final PrintWriter writer);
 
 	/**
 	 * Generate the target {@linkplain Properties properties} file.
@@ -130,8 +130,8 @@ abstract class PropertiesFileGenerator
 	 *        The target {@linkplain Locale locale}.
 	 */
 	protected PropertiesFileGenerator (
-		final @NotNull String baseName,
-		final @NotNull Locale locale)
+		final String baseName,
+		final Locale locale)
 	{
 		this.baseName = baseName;
 		this.locale = locale;

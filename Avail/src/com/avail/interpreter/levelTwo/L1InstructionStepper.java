@@ -69,7 +69,7 @@ implements L1OperationDispatcher
 	 *            The {@link L2Interpreter} on whose behalf to step through
 	 *            level one nybblecode instructions.
 	 */
-	public L1InstructionStepper (final @NotNull L2Interpreter interpreter)
+	public L1InstructionStepper (final L2Interpreter interpreter)
 	{
 		this.interpreter = interpreter;
 		argsBuffer = interpreter.argsBuffer;
@@ -103,7 +103,7 @@ implements L1OperationDispatcher
 	 * @param index Which object register to read.
 	 * @return The value from that register.
 	 */
-	private @NotNull AvailObject pointerAt (final int index)
+	private AvailObject pointerAt (final int index)
 	{
 		return interpreter.pointerAt(index);
 	}
@@ -116,7 +116,7 @@ implements L1OperationDispatcher
 	 */
 	private void pointerAtPut (
 		final int index,
-		final @NotNull AvailObject value)
+		final AvailObject value)
 	{
 		interpreter.pointerAtPut(index, value);
 	}
@@ -127,7 +127,7 @@ implements L1OperationDispatcher
 	 * @param fixedRegister Which fixed object register to read.
 	 * @return The value from that register.
 	 */
-	private @NotNull AvailObject pointerAt (
+	private AvailObject pointerAt (
 		final FixedRegister fixedRegister)
 	{
 		return interpreter.pointerAt(fixedRegister);
@@ -141,7 +141,7 @@ implements L1OperationDispatcher
 	 */
 	private void pointerAtPut (
 		final FixedRegister fixedRegister,
-		final @NotNull AvailObject value)
+		final AvailObject value)
 	{
 		interpreter.pointerAtPut(fixedRegister, value);
 	}
@@ -162,7 +162,7 @@ implements L1OperationDispatcher
 	 *
 	 * @param value The value to push on the virtualized stack.
 	 */
-	private final void push (final @NotNull AvailObject value)
+	private final void push (final AvailObject value)
 	{
 		int stackp = integerAt(stackpRegister());
 		stackp--;
@@ -178,7 +178,7 @@ implements L1OperationDispatcher
 	 *
 	 * @return The value popped off the virtualized stack.
 	 */
-	private final @NotNull AvailObject pop ()
+	private final AvailObject pop ()
 	{
 		final int stackp = integerAt(stackpRegister());
 		assert stackp <= argumentOrLocalRegister(
@@ -200,7 +200,7 @@ implements L1OperationDispatcher
 	 *            The literal extracted from the specified literal slot of
 	 *            the code.
 	 */
-	private final @NotNull AvailObject literalAt (final int literalIndex)
+	private final AvailObject literalAt (final int literalIndex)
 	{
 		final AvailObject function = pointerAt(FUNCTION);
 		final AvailObject code = function.code();

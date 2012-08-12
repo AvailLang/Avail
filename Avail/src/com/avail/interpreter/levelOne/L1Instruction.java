@@ -45,10 +45,10 @@ import com.avail.annotations.NotNull;
 public class L1Instruction
 {
 	/** The {@link L1Operation}. */
-	private final @NotNull L1Operation operation;
+	private final L1Operation operation;
 
 	/** The operands. */
-	private final @NotNull int [] operands;
+	private final int [] operands;
 
 	/**
 	 * Answer the {@link L1Operation}.
@@ -77,7 +77,7 @@ public class L1Instruction
 	 * @param operands The operands.
 	 */
 	public L1Instruction (
-		final @NotNull L1Operation operation,
+		final L1Operation operation,
 		final int ... operands)
 	{
 		assert operation.operandTypes().length == operands.length;

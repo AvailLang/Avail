@@ -53,21 +53,21 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public static final @NotNull Primitive instance =
+	public static final Primitive instance =
 		new P_153_ObjectToTuple().init(1, CanFold, CannotFail);
 
 	@Override
-	public @NotNull Result attempt (
-		final @NotNull List<AvailObject> args,
-		final @NotNull Interpreter interpreter)
+	public Result attempt (
+		final List<AvailObject> args,
+		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final @NotNull AvailObject object = args.get(0);
+		final AvailObject object = args.get(0);
 		return interpreter.primitiveSuccess(object.fieldTuple());
 	}
 
 	@Override
-	protected @NotNull AvailObject privateBlockTypeRestriction ()
+	protected AvailObject privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

@@ -83,45 +83,45 @@ extends Descriptor
 	}
 
 	@Override boolean allowsImmutableToMutableReferenceInField (
-		final @NotNull AbstractSlotsEnum e)
+		final AbstractSlotsEnum e)
 	{
 		return e == ObjectSlots.VALUE
 			|| e == IntegerSlots.HASH_OR_ZERO;
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_Value (
-		final @NotNull AvailObject object)
+	AvailObject o_Value (
+		final AvailObject object)
 	{
 		return object.slot(ObjectSlots.VALUE);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_Kind (
-		final @NotNull AvailObject object)
+	AvailObject o_Kind (
+		final AvailObject object)
 	{
 		return object.slot(ObjectSlots.KIND);
 	}
 
 	@Override @AvailMethod
 	boolean o_Equals (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+		final AvailObject object,
+		final AvailObject another)
 	{
 		return another.equalsVariable(object);
 	}
 
 	@Override @AvailMethod
 	boolean o_EqualsVariable (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aVariable)
+		final AvailObject object,
+		final AvailObject aVariable)
 	{
 		return object.sameAddressAs(aVariable);
 	}
 
 	@Override @AvailMethod
 	int o_Hash (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		int hash = object.slot(IntegerSlots.HASH_OR_ZERO);
 		if (hash == 0)
@@ -137,8 +137,8 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_MakeImmutable (
-		final @NotNull AvailObject object)
+	AvailObject o_MakeImmutable (
+		final AvailObject object)
 	{
 		// If I am being frozen (a variable), I don't need to freeze my current
 		// value.  I do, on the other hand, have to freeze my kind object.
@@ -149,8 +149,8 @@ extends Descriptor
 
 	@Override @AvailMethod
 	void o_SetValue (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject newValue)
+		final AvailObject object,
+		final AvailObject newValue)
 	{
 		final AvailObject outerKind = object.slot(ObjectSlots.KIND);
 		if (!newValue.isInstanceOf(outerKind.writeType()))
@@ -163,7 +163,7 @@ extends Descriptor
 
 	@Override @AvailMethod
 	void o_ClearValue (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		// Clear the variable (make it have no current value).
 		// Eventually, the previous contents should drop a reference.
@@ -171,8 +171,8 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_GetValue (
-		final @NotNull AvailObject object)
+	AvailObject o_GetValue (
+		final AvailObject object)
 	{
 		// Answer the current value of the variable.  Fail if no value is
 		// currently assigned.
@@ -186,8 +186,8 @@ extends Descriptor
 	}
 
 	@Override
-	@NotNull SerializerOperation o_SerializerOperation (
-		final @NotNull AvailObject object)
+	SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.VARIABLE;
 	}
@@ -202,8 +202,8 @@ extends Descriptor
 	 * @return
 	 *            A new variable able to hold the specified type of objects.
 	 */
-	public static @NotNull AvailObject forInnerType (
-		final @NotNull AvailObject innerType)
+	public static AvailObject forInnerType (
+		final AvailObject innerType)
 	{
 		return VariableDescriptor.forOuterType(
 			VariableTypeDescriptor.wrapInnerType(innerType));
@@ -219,8 +219,8 @@ extends Descriptor
 	 * @return
 	 *            A new variable of the given type.
 	 */
-	public static @NotNull AvailObject forOuterType (
-		final @NotNull AvailObject outerType)
+	public static AvailObject forOuterType (
+		final AvailObject outerType)
 	{
 		final AvailObject result = mutable().create();
 		result.setSlot(ObjectSlots.KIND, outerType);

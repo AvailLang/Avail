@@ -85,10 +85,10 @@ extends TupleDescriptor
 
 	@Override @AvailMethod
 	boolean o_CompareFromToWithStartingAt (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
-		final @NotNull AvailObject anotherObject,
+		final AvailObject anotherObject,
 		final int startIndex2)
 	{
 		return anotherObject.compareFromToWithNybbleTupleStartingAt(
@@ -100,10 +100,10 @@ extends TupleDescriptor
 
 	@Override @AvailMethod
 	boolean o_CompareFromToWithNybbleTupleStartingAt (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
-		final @NotNull AvailObject aNybbleTuple,
+		final AvailObject aNybbleTuple,
 		final int startIndex2)
 	{
 		if (object.sameAddressAs(aNybbleTuple) && startIndex1 == startIndex2)
@@ -129,16 +129,16 @@ extends TupleDescriptor
 
 	@Override @AvailMethod
 	boolean o_Equals (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+		final AvailObject object,
+		final AvailObject another)
 	{
 		return another.equalsNybbleTuple(object);
 	}
 
 	@Override @AvailMethod
 	boolean o_EqualsNybbleTuple (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aNybbleTuple)
+		final AvailObject object,
+		final AvailObject aNybbleTuple)
 	{
 		//  First, check for object-structure (address) identity.
 
@@ -173,8 +173,8 @@ extends TupleDescriptor
 
 	@Override @AvailMethod
 	boolean o_IsBetterRepresentationThan (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject anotherObject)
+		final AvailObject object,
+		final AvailObject anotherObject)
 	{
 		// Given two objects that are known to be equal, is the first one in a
 		// better form (more compact, more efficient, older generation) than the
@@ -185,8 +185,8 @@ extends TupleDescriptor
 
 	@Override @AvailMethod
 	boolean o_IsInstanceOfKind (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aType)
+		final AvailObject object,
+		final AvailObject aType)
 	{
 		if (aType.isSupertypeOfPrimitiveTypeWithOrdinal(ANY.ordinal()))
 		{
@@ -228,7 +228,7 @@ extends TupleDescriptor
 
 	@Override @AvailMethod
 	void o_RawNybbleAtPut (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int nybbleIndex,
 		final byte aNybble)
 	{
@@ -246,8 +246,8 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_MakeImmutable (
-		final @NotNull AvailObject object)
+	AvailObject o_MakeImmutable (
+		final AvailObject object)
 	{
 		if (isMutable)
 		{
@@ -258,7 +258,7 @@ extends TupleDescriptor
 
 	@Override @AvailMethod
 	byte o_ExtractNybbleFromTupleAt (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int nybbleIndex)
 	{
 		// Get the element at the given index in the tuple object, and extract
@@ -275,7 +275,7 @@ extends TupleDescriptor
 
 	@Override @AvailMethod
 	short o_RawByteAt (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int byteIndex)
 	{
 		// Answer the byte at the given byte-index.  This is actually two
@@ -285,7 +285,7 @@ extends TupleDescriptor
 
 	@Override @AvailMethod
 	void o_RawByteAtPut (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int byteIndex,
 		final short anInteger)
 	{
@@ -296,7 +296,7 @@ extends TupleDescriptor
 
 	@Override @AvailMethod
 	byte o_RawNybbleAt (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int nybbleIndex)
 	{
 		// Answer the nybble at the given index in the nybble tuple object.
@@ -309,8 +309,8 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TupleAt (
-		final @NotNull AvailObject object,
+	AvailObject o_TupleAt (
+		final AvailObject object,
 		final int index)
 	{
 		// Answer the element at the given index in the nybble tuple object.
@@ -319,9 +319,9 @@ extends TupleDescriptor
 
 	@Override @AvailMethod
 	void o_TupleAtPut (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int index,
-		final @NotNull AvailObject aNybbleObject)
+		final AvailObject aNybbleObject)
 	{
 		// Set the nybble at the given index to the given object (which should
 		// be an AvailObject that's an integer 0<=n<=15).
@@ -329,10 +329,10 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TupleAtPuttingCanDestroy (
-		final @NotNull AvailObject object,
+	AvailObject o_TupleAtPuttingCanDestroy (
+		final AvailObject object,
 		final int nybbleIndex,
-		final @NotNull AvailObject newValueObject,
+		final AvailObject newValueObject,
 		final boolean canDestroy)
 	{
 		// Answer a tuple with all the elements of object except at the given
@@ -370,7 +370,7 @@ extends TupleDescriptor
 
 	@Override @AvailMethod
 	int o_TupleIntAt (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int index)
 	{
 		// Answer the integer element at the given index in the nybble tuple
@@ -380,14 +380,14 @@ extends TupleDescriptor
 
 	@Override @AvailMethod
 	int o_TupleSize (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.variableIntegerSlotsCount() * 8 - unusedNybblesOfLastWord;
 	}
 
 	@Override @AvailMethod
 	int o_BitsPerEntry (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		// Answer approximately how many bits per entry are taken up by this
 		// object.
@@ -396,7 +396,7 @@ extends TupleDescriptor
 
 	@Override @AvailMethod
 	int o_ComputeHashFromTo (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int start,
 		final int end)
 	{
@@ -439,7 +439,7 @@ extends TupleDescriptor
 	 *            same sequence of integers as the argument.
 	 */
 	AvailObject copyAsMutableByteTuple (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		final AvailObject result =
 			ByteTupleDescriptor.mutableObjectOfSize(object.tupleSize());

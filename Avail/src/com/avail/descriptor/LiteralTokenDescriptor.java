@@ -127,13 +127,13 @@ extends TokenDescriptor
 
 	@Override @AvailMethod
 	AvailObject o_Literal (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.slot(LITERAL);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Kind (final @NotNull AvailObject object)
+	AvailObject o_Kind (final AvailObject object)
 	{
 		return LiteralTokenTypeDescriptor.create(
 			AbstractEnumerationTypeDescriptor.withInstance(object));
@@ -141,8 +141,8 @@ extends TokenDescriptor
 
 	@Override @AvailMethod
 	boolean o_IsInstanceOfKind (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aTypeObject)
+		final AvailObject object,
+		final AvailObject aTypeObject)
 	{
 		if (aTypeObject.isSupertypeOfPrimitiveTypeWithOrdinal(TOKEN.ordinal()))
 		{
@@ -156,14 +156,14 @@ extends TokenDescriptor
 	}
 
 	@Override
-	boolean o_IsLiteralToken (final @NotNull AvailObject object)
+	boolean o_IsLiteralToken (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override
-	@NotNull SerializerOperation o_SerializerOperation (
-		final @NotNull AvailObject object)
+	SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.LITERAL_TOKEN;
 	}
@@ -179,12 +179,12 @@ extends TokenDescriptor
 	 * @param literal The literal.
 	 * @return The new token.
 	 */
-	public static @NotNull AvailObject create (
-		final @NotNull AvailObject string,
+	public static AvailObject create (
+		final AvailObject string,
 		final int start,
 		final int lineNumber,
-		final @NotNull TokenType tokenType,
-		final @NotNull AvailObject literal)
+		final TokenType tokenType,
+		final AvailObject literal)
 	{
 		final AvailObject instance = mutable.create();
 		instance.setSlot(STRING, string);

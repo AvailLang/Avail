@@ -50,7 +50,7 @@ public class L2PrimitiveOperand extends L2Operand
 	/**
 	 * The actual {@link Primitive}.
 	 */
-	public final @NotNull Primitive primitive;
+	public final Primitive primitive;
 
 	/**
 	 * Construct a new {@link L2PrimitiveOperand} for the specified {@link
@@ -59,7 +59,7 @@ public class L2PrimitiveOperand extends L2Operand
 	 * @param primitive The primitive to invoke.
 	 */
 	public L2PrimitiveOperand (
-		final @NotNull Primitive primitive)
+		final Primitive primitive)
 	{
 		this.primitive = primitive;
 	}
@@ -78,7 +78,7 @@ public class L2PrimitiveOperand extends L2Operand
 
 	@Override
 	public L2PrimitiveOperand transformRegisters (
-		final @NotNull Transformer2<L2Register, L2OperandType, L2Register>
+		final Transformer2<L2Register, L2OperandType, L2Register>
 			transformer)
 	{
 		return this;
@@ -86,7 +86,7 @@ public class L2PrimitiveOperand extends L2Operand
 
 	@Override
 	public void emitOn (
-		final @NotNull L2CodeGenerator codeGenerator)
+		final L2CodeGenerator codeGenerator)
 	{
 		codeGenerator.emitPrimitiveNumber(primitive.primitiveNumber);
 	}

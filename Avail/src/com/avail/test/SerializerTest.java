@@ -39,7 +39,7 @@ import java.io.*;
 import java.util.*;
 import org.junit.*;
 import com.avail.AvailRuntime;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 import com.avail.builder.*;
 import com.avail.descriptor.*;
 import com.avail.interpreter.levelOne.*;
@@ -161,8 +161,7 @@ public final class SerializerTest
 	 * @return The result of serializing and deserializing the argument.
 	 * @throws MalformedSerialStreamException If the stream is malformed.
 	 */
-	private @NotNull AvailObject roundTrip (
-		final @NotNull AvailObject object)
+	private @Nullable AvailObject roundTrip (final AvailObject object)
 	throws MalformedSerialStreamException
 	{
 		prepareToWrite();
@@ -188,11 +187,11 @@ public final class SerializerTest
 	 *            original.
 	 * @throws MalformedSerialStreamException If the stream is malformed.
 	 */
-	private void checkObject (
-		final @NotNull AvailObject object)
+	private void checkObject (final AvailObject object)
 	throws MalformedSerialStreamException
 	{
 		final AvailObject newObject = roundTrip(object);
+		assertNotNull(newObject);
 		assertEquals(object, newObject);
 	}
 
@@ -425,6 +424,8 @@ public final class SerializerTest
 			code,
 			TupleDescriptor.empty());
 		final AvailObject newFunction = roundTrip(function);
+		assertNotNull(newFunction);
+		assert newFunction != null;
 		final AvailObject code2 = newFunction.code();
 		assertEquals(code.numOuters(), code2.numOuters());
 		assertEquals(

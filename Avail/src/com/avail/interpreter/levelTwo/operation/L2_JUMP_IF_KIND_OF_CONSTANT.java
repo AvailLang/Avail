@@ -54,7 +54,7 @@ public class L2_JUMP_IF_KIND_OF_CONSTANT extends L2Operation
 	}
 
 	@Override
-	public void step (final @NotNull L2Interpreter interpreter)
+	public void step (final L2Interpreter interpreter)
 	{
 		final int doIndex = interpreter.nextWord();
 		final int valueIndex = interpreter.nextWord();

@@ -80,7 +80,7 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override @AvailMethod
 	AvailObject o_ArgumentsListNode (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.slot(ObjectSlots.ARGUMENTS_LIST_NODE);
 	}
@@ -90,7 +90,7 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override @AvailMethod
 	AvailObject o_Method (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.slot(ObjectSlots.METHOD);
 	}
@@ -100,20 +100,20 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override @AvailMethod
 	AvailObject o_ReturnType (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.slot(ObjectSlots.RETURN_TYPE);
 	}
 
 
 	@Override @AvailMethod
-	AvailObject o_ExpressionType (final @NotNull AvailObject object)
+	AvailObject o_ExpressionType (final AvailObject object)
 	{
 		return object.returnType();
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final @NotNull AvailObject object)
+	int o_Hash (final AvailObject object)
 	{
 		return
 			(object.argumentsListNode().hash() * multiplier
@@ -124,8 +124,8 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	boolean o_Equals (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+		final AvailObject object,
+		final AvailObject another)
 	{
 		return object.kind().equals(another.kind())
 			&& object.argumentsListNode().equals(another.argumentsListNode())
@@ -134,15 +134,15 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ApparentSendName (final @NotNull AvailObject object)
+	AvailObject o_ApparentSendName (final AvailObject object)
 	{
 		return object.method().name();
 	}
 
 	@Override @AvailMethod
 	void o_EmitValueOn (
-		final @NotNull AvailObject object,
-		final @NotNull AvailCodeGenerator codeGenerator)
+		final AvailObject object,
+		final AvailCodeGenerator codeGenerator)
 	{
 		final AvailObject arguments = object.argumentsListNode();
 		final AvailObject tuple = arguments.expressionsTuple();
@@ -160,8 +160,8 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	void o_ChildrenMap (
-		final @NotNull AvailObject object,
-		final @NotNull Transformer1<AvailObject, AvailObject> aBlock)
+		final AvailObject object,
+		final Transformer1<AvailObject, AvailObject> aBlock)
 	{
 		object.setSlot(
 			ARGUMENTS_LIST_NODE,
@@ -171,23 +171,23 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	void o_ChildrenDo (
-		final @NotNull AvailObject object,
-		final @NotNull Continuation1<AvailObject> aBlock)
+		final AvailObject object,
+		final Continuation1<AvailObject> aBlock)
 	{
 		aBlock.value(object.slot(ARGUMENTS_LIST_NODE));
 	}
 
 	@Override @AvailMethod
 	void o_ValidateLocally (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject parent)
+		final AvailObject object,
+		final @Nullable AvailObject parent)
 	{
 		// Do nothing.
 	}
 
 	@Override
-	@NotNull ParseNodeKind o_ParseNodeKind (
-		final @NotNull AvailObject object)
+	ParseNodeKind o_ParseNodeKind (
+		final AvailObject object)
 	{
 		return SEND_NODE;
 	}
@@ -201,7 +201,7 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final StringBuilder builder,
 		final List<AvailObject> recursionList,
 		final int indent)
@@ -267,10 +267,10 @@ public class SendNodeDescriptor extends ParseNodeDescriptor
 	 *        The target method's expected return type.
 	 * @return A new send node.
 	 */
-	public static @NotNull AvailObject from (
-		final @NotNull AvailObject method,
-		final @NotNull AvailObject argsListNode,
-		final @NotNull AvailObject returnType)
+	public static AvailObject from (
+		final AvailObject method,
+		final AvailObject argsListNode,
+		final AvailObject returnType)
 	{
 		final AvailObject newObject = mutable.create();
 		newObject.setSlot(ARGUMENTS_LIST_NODE, argsListNode);

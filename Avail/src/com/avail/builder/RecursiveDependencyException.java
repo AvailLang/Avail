@@ -53,7 +53,7 @@ extends Exception
 	 * The path that the {@linkplain AvailBuilder builder} followed to encounter
 	 * the dependency recursion.
 	 */
-	private final @NotNull List<ResolvedModuleName> recursionPath =
+	private final List<ResolvedModuleName> recursionPath =
 		new ArrayList<ResolvedModuleName>(10);
 
 	/**
@@ -63,7 +63,7 @@ extends Exception
 	 *
 	 * @return A {@linkplain ResolvedModuleName module name}.
 	 */
-	public @NotNull ResolvedModuleName recursiveDependent ()
+	public ResolvedModuleName recursiveDependent ()
 	{
 		return recursionPath.get(recursionPath.size() - 1);
 	}
@@ -75,7 +75,7 @@ extends Exception
 	 * @return The path that the {@linkplain AvailBuilder builder} followed to
 	 *         reach the dependency recursion.
 	 */
-	public @NotNull List<ResolvedModuleName> recursionPath ()
+	public List<ResolvedModuleName> recursionPath ()
 	{
 		return Collections.unmodifiableList(recursionPath);
 	}
@@ -88,7 +88,7 @@ extends Exception
 	 *            The {@code ResolvedModuleName} to prepend.
 	 */
 	void prependModule (
-		final @NotNull ResolvedModuleName previousResolvedModuleName)
+		final ResolvedModuleName previousResolvedModuleName)
 	{
 		recursionPath.add(0, previousResolvedModuleName);
 	}
@@ -101,7 +101,7 @@ extends Exception
 	 *            detected.
 	 */
 	RecursiveDependencyException (
-		final @NotNull List<ResolvedModuleName> moduleNamesCycle)
+		final List<ResolvedModuleName> moduleNamesCycle)
 	{
 		super(
 			String.format(

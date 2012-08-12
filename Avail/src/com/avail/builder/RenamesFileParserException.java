@@ -51,7 +51,7 @@ extends Exception
 	 *
 	 * @param message The detail message.
 	 */
-	RenamesFileParserException (final @NotNull String message)
+	RenamesFileParserException (final String message)
 	{
 		super(message);
 	}
@@ -62,7 +62,7 @@ extends Exception
 	 * @param cause The original {@link Throwable} that caused this {@linkplain
 	 *              RenamesFileParserException exception}.
 	 */
-	RenamesFileParserException (final @NotNull Throwable cause)
+	RenamesFileParserException (final Throwable cause)
 	{
 		super(cause);
 	}

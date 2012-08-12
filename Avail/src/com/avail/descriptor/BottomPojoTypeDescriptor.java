@@ -48,34 +48,34 @@ final class BottomPojoTypeDescriptor
 extends PojoTypeDescriptor
 {
 	@Override @AvailMethod
-	boolean o_EqualsPojoBottomType (final @NotNull AvailObject object)
+	boolean o_EqualsPojoBottomType (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override @AvailMethod
 	boolean o_EqualsPojoType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aPojoType)
+		final AvailObject object,
+		final AvailObject aPojoType)
 	{
 		return aPojoType.equalsPojoBottomType();
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final @NotNull AvailObject object)
+	int o_Hash (final AvailObject object)
 	{
 		return 0x496FFE01;
 	}
 
 	@Override @AvailMethod
-	boolean o_IsAbstract (final @NotNull AvailObject object)
+	boolean o_IsAbstract (final AvailObject object)
 	{
 		// Pojo bottom has an instance: null.
 		return false;
 	}
 
 	@Override
-	boolean o_IsPojoArrayType (final @NotNull AvailObject object)
+	boolean o_IsPojoArrayType (final AvailObject object)
 	{
 		// Pojo bottom is the most specific pojo type, so it is also a pojo
 		// array type.
@@ -83,7 +83,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsPojoFusedType (final @NotNull AvailObject object)
+	boolean o_IsPojoFusedType (final AvailObject object)
 	{
 		// Pojo bottom is the intersection of any two unrelated pojo types, so
 		// it is a pojo fusion type.
@@ -92,41 +92,41 @@ extends PojoTypeDescriptor
 
 	@Override @AvailMethod
 	boolean o_IsSubtypeOf (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aPojoType)
+		final AvailObject object,
+		final AvailObject aPojoType)
 	{
 		return aPojoType.isSupertypeOfPojoBottomType(object);
 	}
 
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfPojoType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aPojoType)
+		final AvailObject object,
+		final AvailObject aPojoType)
 	{
 		return aPojoType.equalsPojoBottomType();
 	}
 
 	@Override
-	@NotNull AvailObject o_JavaAncestors (final @NotNull AvailObject object)
+	AvailObject o_JavaAncestors (final AvailObject object)
 	{
 		return NullDescriptor.nullObject();
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_JavaClass (final @NotNull AvailObject object)
+	AvailObject o_JavaClass (final AvailObject object)
 	{
 		return RawPojoDescriptor.rawNullObject();
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_MakeImmutable (final @NotNull AvailObject object)
+	AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		object.descriptor = immutable;
 		return object;
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_PojoSelfType (final @NotNull AvailObject object)
+	AvailObject o_PojoSelfType (final AvailObject object)
 	{
 		// The pojo bottom type is its own self type.
 		return object;
@@ -134,78 +134,78 @@ extends PojoTypeDescriptor
 
 	@Override
 	Object o_MarshalToJava (
-		final @NotNull AvailObject object,
-		final Class<?> ignoredClassHint)
+		final AvailObject object,
+		final @Nullable Class<?> ignoredClassHint)
 	{
 		return Object.class;
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeIntersectionOfPojoType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aPojoType)
+	AvailObject o_TypeIntersectionOfPojoType (
+		final AvailObject object,
+		final AvailObject aPojoType)
 	{
 		return object;
 	}
 
 	@Override
-	@NotNull AvailObject o_TypeIntersectionOfPojoFusedType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aFusedPojoType)
+	AvailObject o_TypeIntersectionOfPojoFusedType (
+		final AvailObject object,
+		final AvailObject aFusedPojoType)
 	{
 		throw unsupportedOperationException();
 	}
 
 	@Override
-	@NotNull AvailObject o_TypeIntersectionOfPojoUnfusedType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject anUnfusedPojoType)
+	AvailObject o_TypeIntersectionOfPojoUnfusedType (
+		final AvailObject object,
+		final AvailObject anUnfusedPojoType)
 	{
 		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeUnionOfPojoType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aPojoType)
+	AvailObject o_TypeUnionOfPojoType (
+		final AvailObject object,
+		final AvailObject aPojoType)
 	{
 		return aPojoType;
 	}
 
 	@Override
-	@NotNull AvailObject o_TypeUnionOfPojoFusedType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aFusedPojoType)
+	AvailObject o_TypeUnionOfPojoFusedType (
+		final AvailObject object,
+		final AvailObject aFusedPojoType)
 	{
 		throw unsupportedOperationException();
 	}
 
 	@Override
-	@NotNull AvailObject o_TypeUnionOfPojoUnfusedType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject anUnfusedPojoType)
+	AvailObject o_TypeUnionOfPojoUnfusedType (
+		final AvailObject object,
+		final AvailObject anUnfusedPojoType)
 	{
 		throw unsupportedOperationException();
 	}
 
 	@Override
-	@NotNull AvailObject o_TypeVariables (final @NotNull AvailObject object)
+	AvailObject o_TypeVariables (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod @ThreadSafe
-	@NotNull SerializerOperation o_SerializerOperation (
-		final @NotNull AvailObject object)
+	SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.BOTTOM_POJO_TYPE;
 	}
 
 	@Override
 	void printObjectOnAvoidingIndent (
-		final @NotNull AvailObject object,
-		final @NotNull StringBuilder builder,
-		final @NotNull List<AvailObject> recursionList,
+		final AvailObject object,
+		final StringBuilder builder,
+		final List<AvailObject> recursionList,
 		final int indent)
 	{
 		builder.append("pojo ⊥");
@@ -224,7 +224,7 @@ extends PojoTypeDescriptor
 	}
 
 	/** The mutable {@link BottomPojoTypeDescriptor}. */
-	private final static @NotNull BottomPojoTypeDescriptor mutable =
+	private final static BottomPojoTypeDescriptor mutable =
 		new BottomPojoTypeDescriptor(true);
 
 	/**
@@ -232,12 +232,12 @@ extends PojoTypeDescriptor
 	 *
 	 * @return The mutable {@code BottomPojoTypeDescriptor}.
 	 */
-	static @NotNull BottomPojoTypeDescriptor mutable ()
+	static BottomPojoTypeDescriptor mutable ()
 	{
 		return mutable;
 	}
 
 	/** The immutable {@link BottomPojoTypeDescriptor}. */
-	private final static @NotNull BottomPojoTypeDescriptor immutable =
+	private final static BottomPojoTypeDescriptor immutable =
 		new BottomPojoTypeDescriptor(false);
 }

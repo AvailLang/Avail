@@ -65,7 +65,7 @@ import com.avail.descriptor.ModuleDescriptor;
 public final class ModuleRoots
 {
 	/** The Avail {@linkplain ModuleDescriptor module} path. */
-	private final @NotNull String modulePath;
+	private final String modulePath;
 
 	/**
 	 * Answer the Avail {@linkplain ModuleDescriptor module} path.
@@ -73,7 +73,7 @@ public final class ModuleRoots
 	 * @return The Avail {@linkplain ModuleDescriptor module} path.
 	 */
 	@ThreadSafe
-	public @NotNull String modulePath ()
+	public String modulePath ()
 	{
 		return modulePath;
 	}
@@ -83,7 +83,7 @@ public final class ModuleRoots
 	 * File#isAbsolute() absolute} pathnames of {@linkplain File directories}
 	 * (containing Avail {@linkplain ModuleDescriptor modules}).
 	 */
-	private final @NotNull Map<String, File> rootMap =
+	private final Map<String, File> rootMap =
 		new LinkedHashMap<String, File>();
 
 	/**
@@ -134,7 +134,7 @@ public final class ModuleRoots
 	 * @return The logical root names.
 	 */
 	@ThreadSafe
-	public @NotNull Set<String> rootNames ()
+	public Set<String> rootNames ()
 	{
 		return Collections.unmodifiableSet(rootMap.keySet());
 	}
@@ -150,7 +150,7 @@ public final class ModuleRoots
 	 *         logical root name, or {@code null} if no such binding exists.
 	 */
 	@ThreadSafe
-	public File rootDirectoryFor (final @NotNull String rootName)
+	public File rootDirectoryFor (final String rootName)
 	{
 		return rootMap.get(rootName);
 	}
@@ -166,7 +166,7 @@ public final class ModuleRoots
 	 *         malformed.
 	 */
 	@ThreadSafe
-	public ModuleRoots (final @NotNull String modulePath)
+	public ModuleRoots (final String modulePath)
 	{
 		this.modulePath = modulePath;
 		parseAvailModulePath();

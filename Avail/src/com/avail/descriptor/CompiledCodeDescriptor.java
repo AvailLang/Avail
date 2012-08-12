@@ -212,7 +212,7 @@ extends Descriptor
 
 	@Override @AvailMethod
 	void o_Hash (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int value)
 	{
 		object.setSlot(HASH, value);
@@ -220,7 +220,7 @@ extends Descriptor
 
 	@Override @AvailMethod
 	void o_CountdownToReoptimize (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int value)
 	{
 		object.setSlot(COUNTDOWN_TO_REOPTIMIZE, value);
@@ -228,49 +228,49 @@ extends Descriptor
 
 	@Override @AvailMethod
 	long o_TotalInvocations (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.slot(TOTAL_INVOCATIONS) & 0xFFFFFFFFL;
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_LiteralAt (
-		final @NotNull AvailObject object,
+	AvailObject o_LiteralAt (
+		final AvailObject object,
 		final int subscript)
 	{
 		return object.slot(LITERAL_AT_, subscript);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_FunctionType (
-		final @NotNull AvailObject object)
+	AvailObject o_FunctionType (
+		final AvailObject object)
 	{
 		return object.slot(FUNCTION_TYPE);
 	}
 
 	@Override @AvailMethod
 	int o_Hash (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.slot(HASH);
 	}
 
 	@Override @AvailMethod
 	int o_InvocationCount (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.slot(COUNTDOWN_TO_REOPTIMIZE);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_Nybbles (
-		final @NotNull AvailObject object)
+	AvailObject o_Nybbles (
+		final AvailObject object)
 	{
 		return object.slot(NYBBLES);
 	}
 
 	@Override boolean allowsImmutableToMutableReferenceInField (
-		final @NotNull AbstractSlotsEnum e)
+		final AbstractSlotsEnum e)
 	{
 		return e == STARTING_CHUNK
 			|| e == TOTAL_INVOCATIONS
@@ -280,16 +280,16 @@ extends Descriptor
 
 	@Override @AvailMethod
 	boolean o_Equals (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+		final AvailObject object,
+		final AvailObject another)
 	{
 		return another.equalsCompiledCode(object);
 	}
 
 	@Override @AvailMethod
 	boolean o_EqualsCompiledCode (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aCompiledCode)
+		final AvailObject object,
+		final AvailObject aCompiledCode)
 	{
 		// Compiled code now (2012.06.14) compares by identity because it may
 		// have to track references to the source code.
@@ -329,8 +329,8 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_Kind (
-		final @NotNull AvailObject object)
+	AvailObject o_Kind (
+		final AvailObject object)
 	{
 		return CompiledCodeTypeDescriptor.forFunctionType(
 			object.functionType());
@@ -338,8 +338,8 @@ extends Descriptor
 
 	@Override @AvailMethod
 	boolean o_ContainsBlock (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aFunction)
+		final AvailObject object,
+		final AvailObject aFunction)
 	{
 		// Answer true if either I am aFunction's code or I contain aFunction or
 		// its code.
@@ -358,8 +358,8 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_LocalTypeAt (
-		final @NotNull AvailObject object,
+	AvailObject o_LocalTypeAt (
+		final AvailObject object,
 		final int index)
 	{
 		assert 1 <= index && index <= object.numLocals();
@@ -370,8 +370,8 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_OuterTypeAt (
-		final @NotNull AvailObject object,
+	AvailObject o_OuterTypeAt (
+		final AvailObject object,
 		final int index)
 	{
 		assert 1 <= index && index <= object.numOuters();
@@ -384,8 +384,8 @@ extends Descriptor
 
 	@Override @AvailMethod
 	void o_StartingChunk (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
+		final AvailObject object,
+		final AvailObject value)
 	{
 		object.setSlot(
 			STARTING_CHUNK,
@@ -394,7 +394,7 @@ extends Descriptor
 
 	@Override @AvailMethod
 	int o_MaxStackDepth (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return
 			object.numArgsAndLocalsAndStack()
@@ -404,7 +404,7 @@ extends Descriptor
 
 	@Override @AvailMethod
 	int o_NumArgs (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return (short)object.slot(NUM_ARGS);
 	}
@@ -419,35 +419,35 @@ extends Descriptor
 	 */
 	@Override @AvailMethod
 	int o_NumArgsAndLocalsAndStack (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.slot(FRAME_SLOTS);
 	}
 
 	@Override @AvailMethod
 	int o_NumLiterals (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.variableObjectSlotsCount();
 	}
 
 	@Override @AvailMethod
 	int o_NumLocals (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.slot(NUM_LOCALS);
 	}
 
 	@Override @AvailMethod
 	int o_NumOuters (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.slot(NUM_OUTERS);
 	}
 
 	@Override @AvailMethod
 	int o_PrimitiveNumber (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		//  Answer the primitive number I should try before falling back on
 		//  the Avail code.  Zero indicates not-a-primitive.
@@ -455,8 +455,8 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_StartingChunk (
-		final @NotNull AvailObject object)
+	AvailObject o_StartingChunk (
+		final AvailObject object)
 	{
 		return object.slot(STARTING_CHUNK);
 	}
@@ -470,7 +470,7 @@ extends Descriptor
 	 */
 	@Override @AvailMethod
 	void o_TallyInvocation (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		int counter = object.slot(TOTAL_INVOCATIONS);
 		counter++;
@@ -486,7 +486,7 @@ extends Descriptor
 	 */
 	@Override @AvailMethod
 	int o_StartingLineNumber (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		final AvailObject properties = object.slot(PROPERTY_ATOM);
 		final AvailObject lineInteger =
@@ -500,8 +500,8 @@ extends Descriptor
 	 * Answer the module in which this code occurs.
 	 */
 	@Override @AvailMethod
-	@NotNull AvailObject o_Module (
-		final @NotNull AvailObject object)
+	AvailObject o_Module (
+		final AvailObject object)
 	{
 		final AvailObject properties = object.slot(PROPERTY_ATOM);
 		return properties.issuingModule();
@@ -521,7 +521,7 @@ extends Descriptor
 	 */
 	@Override @AvailMethod @Deprecated
 	void o_PostFault (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		final AvailObject chunk = object.startingChunk();
 		if (chunk.isValid())
@@ -538,16 +538,16 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod @ThreadSafe
-	@NotNull SerializerOperation o_SerializerOperation(
-		final @NotNull AvailObject object)
+	SerializerOperation o_SerializerOperation(
+		final AvailObject object)
 	{
 		return SerializerOperation.COMPILED_CODE;
 	}
 
 	@Override @AvailMethod
-	@NotNull void o_SetMethodName (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject methodName)
+	void o_SetMethodName (
+		final AvailObject object,
+		final AvailObject methodName)
 	{
 		methodName.makeImmutable();
 		final AvailObject propertyAtom = object.slot(PROPERTY_ATOM);
@@ -589,8 +589,8 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_MethodName (
-		final @NotNull AvailObject object)
+	AvailObject o_MethodName (
+		final AvailObject object)
 	{
 		final AvailObject propertyAtom = object.slot(PROPERTY_ATOM);
 		final AvailObject methodName =
@@ -603,21 +603,21 @@ extends Descriptor
 	}
 
 	@Override
-	@NotNull String o_NameForDebugger (final @NotNull AvailObject object)
+	String o_NameForDebugger (final AvailObject object)
 	{
 		return super.o_NameForDebugger(object) + ": " + object.methodName();
 	}
 
 	@Override
 	public boolean o_ShowValueInNameForDebugger (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return false;
 	}
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final StringBuilder builder,
 		final List<AvailObject> recursionList,
 		final int indent)
@@ -656,15 +656,15 @@ extends Descriptor
 	 * @return The new compiled code object.
 	 */
 	public static AvailObject create (
-		final @NotNull AvailObject nybbles,
+		final AvailObject nybbles,
 		final int locals,
 		final int stack,
-		final @NotNull AvailObject functionType,
+		final AvailObject functionType,
 		final int primitive,
-		final @NotNull AvailObject literals,
-		final @NotNull AvailObject localTypes,
-		final @NotNull AvailObject outerTypes,
-		final @NotNull AvailObject module,
+		final AvailObject literals,
+		final AvailObject localTypes,
+		final AvailObject outerTypes,
+		final @Nullable AvailObject module,
 		final int lineNumber)
 	{
 		if (primitive != 0)
@@ -727,7 +727,7 @@ extends Descriptor
 
 		final AvailObject propertyAtom = AtomWithPropertiesDescriptor.create(
 			TupleDescriptor.empty(),
-			module);
+			module != null ? module : NullDescriptor.nullObject());
 		code.setSlot(PROPERTY_ATOM, propertyAtom);
 		propertyAtom.setAtomProperty(
 			lineNumberKeyAtom,

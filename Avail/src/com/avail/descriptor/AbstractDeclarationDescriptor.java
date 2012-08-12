@@ -60,29 +60,29 @@ extends ImplementationDescriptor
 
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_BodySignature (
-		final @NotNull AvailObject object)
+	AvailObject o_BodySignature (
+		final AvailObject object)
 	{
 		return object.signature();
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_Signature (
-		final @NotNull AvailObject object)
+	AvailObject o_Signature (
+		final AvailObject object)
 	{
 		return object.slot(ObjectSlots.BODY_SIGNATURE);
 	}
 
 	@Override @AvailMethod
 	int o_Hash (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return (object.signature().hash() * 19) ^ 0x201FE782;
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_Kind (
-		final @NotNull AvailObject object)
+	AvailObject o_Kind (
+		final AvailObject object)
 	{
 		return Types.ABSTRACT_SIGNATURE.o();
 	}
@@ -90,7 +90,7 @@ extends ImplementationDescriptor
 
 	@Override @AvailMethod
 	boolean o_IsAbstract (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return true;
 	}
@@ -106,7 +106,7 @@ extends ImplementationDescriptor
 	 *            An abstract method signature.
 	 */
 	public static AvailObject create (
-		final @NotNull AvailObject bodySignature)
+		final AvailObject bodySignature)
 	{
 		final AvailObject instance = mutable().create();
 		instance.setSlot(ObjectSlots.BODY_SIGNATURE, bodySignature);

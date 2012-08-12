@@ -154,7 +154,6 @@ public class RegisterSet
 	 *
 	 * @return The root compiled code being translated.
 	 */
-	@NotNull
 	public AvailObject code ()
 	{
 		return translator.code;
@@ -469,7 +468,7 @@ public class RegisterSet
 	 * @return The {@link L2ObjectRegister} named by the registerEnum.
 	 */
 	L2ObjectRegister fixed (
-		final @NotNull FixedRegister registerEnum)
+		final FixedRegister registerEnum)
 	{
 		return architecturalRegisters.get(registerEnum.ordinal());
 	}

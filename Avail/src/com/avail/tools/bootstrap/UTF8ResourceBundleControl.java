@@ -37,7 +37,7 @@ import java.net.*;
 import java.security.*;
 import java.util.*;
 import java.util.ResourceBundle.Control;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 
 /**
  * {@code UTF8ResourceBundleControl} permits the reading of UTF-8-encoded
@@ -49,11 +49,11 @@ final class UTF8ResourceBundleControl
 extends Control
 {
 	@Override
-	public ResourceBundle newBundle (
-			final @NotNull String baseName,
-			final @NotNull Locale locale,
-			final @NotNull String format,
-			final @NotNull ClassLoader loader,
+	public @Nullable ResourceBundle newBundle (
+			final @Nullable String baseName,
+			final @Nullable Locale locale,
+			final @Nullable String format,
+			final @Nullable ClassLoader loader,
 			final boolean reload)
 		throws IllegalAccessException, InstantiationException, IOException
 	{

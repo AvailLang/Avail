@@ -77,7 +77,7 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override @AvailMethod
 	AvailObject o_MacroName (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.slot(MACRO_NAME);
 	}
@@ -87,21 +87,21 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override @AvailMethod
 	AvailObject o_OutputParseNode (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.slot(OUTPUT_PARSE_NODE);
 	}
 
 
 	@Override @AvailMethod
-	AvailObject o_ExpressionType (final @NotNull AvailObject object)
+	AvailObject o_ExpressionType (final AvailObject object)
 	{
 		return object.outputParseNode().expressionType();
 	}
 
 
 	@Override @AvailMethod
-	int o_Hash (final @NotNull AvailObject object)
+	int o_Hash (final AvailObject object)
 	{
 		return
 			object.macroName().hash() * multiplier
@@ -112,7 +112,7 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	boolean o_Equals (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailObject another)
 	{
 		return object.macroName().equals(another.macroName())
@@ -121,7 +121,7 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 
 
 	@Override @AvailMethod
-	AvailObject o_ApparentSendName (final @NotNull AvailObject object)
+	AvailObject o_ApparentSendName (final AvailObject object)
 	{
 		return object.macroName();
 	}
@@ -129,7 +129,7 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	void o_EmitEffectOn (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
 		object.outputParseNode().emitEffectOn(codeGenerator);
@@ -138,7 +138,7 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	void o_EmitValueOn (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
 		object.outputParseNode().emitValueOn(codeGenerator);
@@ -147,7 +147,7 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	void o_ChildrenMap (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final Transformer1<AvailObject, AvailObject> aBlock)
 	{
 		object.setSlot(
@@ -158,7 +158,7 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	void o_ChildrenDo (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final Continuation1<AvailObject> aBlock)
 	{
 		aBlock.value(object.outputParseNode());
@@ -167,8 +167,8 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	void o_ValidateLocally (
-		final @NotNull AvailObject object,
-		final AvailObject parent)
+		final AvailObject object,
+		final @Nullable AvailObject parent)
 	{
 		// Do nothing.
 	}
@@ -176,14 +176,14 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	void o_FlattenStatementsInto (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final List<AvailObject> accumulatedStatements)
 	{
 		object.outputParseNode().flattenStatementsInto(accumulatedStatements);
 	}
 
 	@Override
-	@NotNull ParseNodeKind o_ParseNodeKind (final @NotNull AvailObject object)
+	ParseNodeKind o_ParseNodeKind (final AvailObject object)
 	{
 		return object.slot(OUTPUT_PARSE_NODE).parseNodeKind();
 	}
@@ -191,7 +191,7 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final StringBuilder builder,
 		final List<AvailObject> recursionList,
 		final int indent)
@@ -217,8 +217,8 @@ public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 	 * @return The new macro substitution node.
 	 */
 	public static AvailObject fromNameAndNode(
-		final @NotNull AvailObject macroName,
-		final @NotNull AvailObject outputParseNode)
+		final AvailObject macroName,
+		final AvailObject outputParseNode)
 	{
 		final AvailObject newNode = mutable().create();
 		newNode.setSlot(MACRO_NAME, macroName);

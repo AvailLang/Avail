@@ -53,9 +53,9 @@ public class P_132_TupleReplaceAt extends Primitive
 		3, CanFold);
 
 	@Override
-	public @NotNull Result attempt (
-		final @NotNull List<AvailObject> args,
-		final @NotNull Interpreter interpreter)
+	public Result attempt (
+		final List<AvailObject> args,
+		final Interpreter interpreter)
 	{
 		assert args.size() == 3;
 		final AvailObject tuple = args.get(0);
@@ -77,7 +77,7 @@ public class P_132_TupleReplaceAt extends Primitive
 	}
 
 	@Override
-	protected @NotNull AvailObject privateBlockTypeRestriction ()
+	protected AvailObject privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
@@ -88,8 +88,8 @@ public class P_132_TupleReplaceAt extends Primitive
 	}
 
 	@Override
-	public @NotNull AvailObject returnTypeGuaranteedByVMForArgumentTypes (
-		final @NotNull List<AvailObject> argumentTypes)
+	public AvailObject returnTypeGuaranteedByVMForArgumentTypes (
+		final List<AvailObject> argumentTypes)
 	{
 		final AvailObject originalTupleType = argumentTypes.get(0);
 		final AvailObject subscripts = argumentTypes.get(1);

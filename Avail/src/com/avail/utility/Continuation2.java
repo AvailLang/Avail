@@ -32,6 +32,7 @@
 
 package com.avail.utility;
 
+import com.avail.annotations.Nullable;
 import com.avail.utility.Continuation2;
 
 /**
@@ -50,5 +51,5 @@ public interface Continuation2<X, Y>
 	 * @param arg1 The first argument.
 	 * @param arg2 The second argument.
 	 */
-	public void value (X arg1, Y arg2);
+	public void value (@Nullable X arg1, @Nullable Y arg2);
 }

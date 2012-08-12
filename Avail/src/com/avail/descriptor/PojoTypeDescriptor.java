@@ -98,7 +98,7 @@ extends TypeDescriptor
 		 *        A Java class or interface.
 		 * @return A locally canonical raw pojo corresponding to the argument.
 		 */
-		public @NotNull AvailObject canonize (final @NotNull Class<?> javaClass)
+		public AvailObject canonize (final Class<?> javaClass)
 		{
 			AvailObject rawPojo = get(javaClass);
 			if (rawPojo == null)
@@ -146,13 +146,13 @@ extends TypeDescriptor
 	private static final class LRUCacheKey
 	{
 		/** The {@linkplain Class Java class or interface}. */
-		public final @NotNull Class<?> javaClass;
+		public final Class<?> javaClass;
 
 		/** The type arguments. */
-		public final @NotNull AvailObject typeArgs;
+		public final AvailObject typeArgs;
 
 		@Override
-		public boolean equals (final @NotNull Object obj)
+		public boolean equals (final @Nullable Object obj)
 		{
 			if (obj instanceof LRUCacheKey)
 			{
@@ -178,8 +178,8 @@ extends TypeDescriptor
 		 *        The type arguments.
 		 */
 		public LRUCacheKey (
-			final @NotNull Class<?> javaClass,
-			final @NotNull AvailObject typeArgs)
+			final Class<?> javaClass,
+			final AvailObject typeArgs)
 		{
 			this.javaClass = javaClass;
 			this.typeArgs = typeArgs;
@@ -195,7 +195,7 @@ extends TypeDescriptor
 	 *
 	 * @return The most general pojo type.
 	 */
-	public static @NotNull AvailObject mostGeneralType ()
+	public static AvailObject mostGeneralType ()
 	{
 		return mostGeneralType;
 	}
@@ -212,7 +212,7 @@ extends TypeDescriptor
 	 *
 	 * @return The most general pojo array type.
 	 */
-	public static @NotNull AvailObject mostGeneralArrayType ()
+	public static AvailObject mostGeneralArrayType ()
 	{
 		return mostGeneralArrayType;
 	}
@@ -229,7 +229,7 @@ extends TypeDescriptor
 	 *
 	 * @return The most specific pojo type.
 	 */
-	public static @NotNull AvailObject pojoBottom ()
+	public static AvailObject pojoBottom ()
 	{
 		return pojoBottom;
 	}
@@ -248,7 +248,7 @@ extends TypeDescriptor
 	 *
 	 * @return The pojo self type atom.
 	 */
-	public static @NotNull AvailObject selfAtom ()
+	public static AvailObject selfAtom ()
 	{
 		return selfAtom;
 	}
@@ -265,7 +265,7 @@ extends TypeDescriptor
 	 *
 	 * @return The pojo self type atom.
 	 */
-	public static @NotNull AvailObject selfType ()
+	public static AvailObject selfType ()
 	{
 		return selfType;
 	}
@@ -284,7 +284,7 @@ extends TypeDescriptor
 	 *
 	 * @return The map for array pojo types.
 	 */
-	static @NotNull AvailObject arrayBaseAncestorMap ()
+	static AvailObject arrayBaseAncestorMap ()
 	{
 		return arrayBaseAncestorMap;
 	}
@@ -382,8 +382,8 @@ extends TypeDescriptor
 	 * @param key An {@code LRUCacheKey}.
 	 * @return A pojo type.
 	 */
-	@InnerAccess static @NotNull AvailObject computeValue (
-		final @NotNull LRUCacheKey key)
+	@InnerAccess static AvailObject computeValue (
+		final LRUCacheKey key)
 	{
 		// Java allows the operations defined in java.lang.Object to be
 		// performed on interface types, so interfaces are implicitly subtypes
@@ -406,15 +406,15 @@ extends TypeDescriptor
 	 * {@linkplain PojoTypeDescriptor Pojo types} are somewhat expensive
 	 * to build, so cache them for efficiency.
 	 */
-	private static final @NotNull LRUCache<LRUCacheKey, AvailObject> cache =
+	private static final LRUCache<LRUCacheKey, AvailObject> cache =
 		new LRUCache<LRUCacheKey, AvailObject>(
 			1000,
 			10,
 			new Transformer1<LRUCacheKey, AvailObject>()
 			{
 				@Override
-				public @NotNull AvailObject value (
-					final @NotNull LRUCacheKey key)
+				public AvailObject value (
+					final LRUCacheKey key)
 				{
 					return computeValue(key);
 				}
@@ -504,8 +504,8 @@ extends TypeDescriptor
 
 	@Override @AvailMethod
 	final boolean o_Equals (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+		final AvailObject object,
+		final AvailObject another)
 	{
 		// Short circuit if the arguments are reference identical.
 		if (another.traversed().sameAddressAs(object))
@@ -523,42 +523,42 @@ extends TypeDescriptor
 
 	@Override @AvailMethod
 	abstract boolean o_EqualsPojoType (
-		@NotNull AvailObject object,
-		@NotNull AvailObject aPojoType);
+		AvailObject object,
+		AvailObject aPojoType);
 
 	@Override @AvailMethod
-	abstract boolean o_IsAbstract (@NotNull AvailObject object);
+	abstract boolean o_IsAbstract (AvailObject object);
 
 	@Override @AvailMethod
-	abstract boolean o_IsPojoArrayType (@NotNull AvailObject object);
+	abstract boolean o_IsPojoArrayType (AvailObject object);
 
 	@Override @AvailMethod
-	abstract boolean o_IsPojoFusedType (@NotNull AvailObject object);
+	abstract boolean o_IsPojoFusedType (AvailObject object);
 
 	@Override @AvailMethod
-	boolean o_IsPojoSelfType (final @NotNull AvailObject object)
+	boolean o_IsPojoSelfType (final AvailObject object)
 	{
 		return false;
 	}
 
 	@Override @AvailMethod
-	final boolean o_IsPojoType (final @NotNull AvailObject object)
+	final boolean o_IsPojoType (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override @AvailMethod
 	boolean o_IsSubtypeOf (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aType)
+		final AvailObject object,
+		final AvailObject aType)
 	{
 		return aType.isSupertypeOfPojoType(object);
 	}
 
 	@Override @AvailMethod
 	final boolean o_IsSupertypeOfPojoBottomType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aPojoType)
+		final AvailObject object,
+		final AvailObject aPojoType)
 	{
 		// Every pojo type is a supertype of pojo bottom.
 		return true;
@@ -566,8 +566,8 @@ extends TypeDescriptor
 
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfPojoType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aPojoType)
+		final AvailObject object,
+		final AvailObject aPojoType)
 	{
 		// If aPojoType is a self type, then answer whether object's self type
 		// is a supertype of aPojoType.
@@ -617,31 +617,31 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	abstract int o_Hash (@NotNull AvailObject object);
+	abstract int o_Hash (AvailObject object);
 
 	@Override @AvailMethod
-	abstract @NotNull AvailObject o_JavaAncestors (@NotNull AvailObject object);
+	abstract AvailObject o_JavaAncestors (AvailObject object);
 
 	@Override @AvailMethod
-	abstract @NotNull AvailObject o_JavaClass (@NotNull AvailObject object);
+	abstract AvailObject o_JavaClass (AvailObject object);
 
 	@Override @AvailMethod
-	abstract @NotNull AvailObject o_MakeImmutable (
-		final @NotNull AvailObject object);
+	abstract AvailObject o_MakeImmutable (
+		final AvailObject object);
 
 	@Override @AvailMethod
-	abstract @NotNull Object o_MarshalToJava (
-		final @NotNull AvailObject object,
-		final Class<?> ignoredClassHint);
+	abstract Object o_MarshalToJava (
+		final AvailObject object,
+		final @Nullable Class<?> ignoredClassHint);
 
 	@Override @AvailMethod
-	abstract @NotNull AvailObject o_PojoSelfType (
-		@NotNull AvailObject object);
+	abstract AvailObject o_PojoSelfType (
+		AvailObject object);
 
 	@Override @AvailMethod
-	final @NotNull AvailObject o_TypeIntersection (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+	final AvailObject o_TypeIntersection (
+		final AvailObject object,
+		final AvailObject another)
 	{
 		if (object.isSubtypeOf(another))
 		{
@@ -655,19 +655,19 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	abstract @NotNull AvailObject o_TypeIntersectionOfPojoType (
-		@NotNull AvailObject object,
-		@NotNull AvailObject aPojoType);
+	abstract AvailObject o_TypeIntersectionOfPojoType (
+		AvailObject object,
+		AvailObject aPojoType);
 
 	@Override
-	abstract @NotNull AvailObject o_TypeIntersectionOfPojoFusedType (
-		@NotNull AvailObject object,
-		@NotNull AvailObject aFusedPojoType);
+	abstract AvailObject o_TypeIntersectionOfPojoFusedType (
+		AvailObject object,
+		AvailObject aFusedPojoType);
 
 	@Override
-	abstract @NotNull AvailObject o_TypeIntersectionOfPojoUnfusedType (
-		@NotNull AvailObject object,
-		@NotNull AvailObject anUnfusedPojoType);
+	abstract AvailObject o_TypeIntersectionOfPojoUnfusedType (
+		AvailObject object,
+		AvailObject anUnfusedPojoType);
 
 	/**
 	 * Compute the intersection of two {@linkplain PojoTypeDescriptor
@@ -682,9 +682,9 @@ extends TypeDescriptor
 	 *        Another pojo type.
 	 * @return A new ancestry map.
 	 */
-	protected static @NotNull AvailObject computeIntersection (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aPojoType)
+	protected static AvailObject computeIntersection (
+		final AvailObject object,
+		final AvailObject aPojoType)
 	{
 		final AvailObject ancestors = object.javaAncestors();
 		final AvailObject otherAncestors = aPojoType.javaAncestors();
@@ -726,9 +726,9 @@ extends TypeDescriptor
 	}
 
 	@Override
-	final @NotNull AvailObject o_TypeUnion (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+	final AvailObject o_TypeUnion (
+		final AvailObject object,
+		final AvailObject another)
 	{
 		if (object.isSubtypeOf(another))
 		{
@@ -742,23 +742,23 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	abstract @NotNull AvailObject o_TypeUnionOfPojoType (
-		@NotNull AvailObject object,
-		@NotNull AvailObject aPojoType);
+	abstract AvailObject o_TypeUnionOfPojoType (
+		AvailObject object,
+		AvailObject aPojoType);
 
 	@Override @AvailMethod
-	abstract @NotNull AvailObject o_TypeUnionOfPojoFusedType (
-		@NotNull AvailObject object,
-		@NotNull AvailObject aFusedPojoType);
+	abstract AvailObject o_TypeUnionOfPojoFusedType (
+		AvailObject object,
+		AvailObject aFusedPojoType);
 
 	@Override @AvailMethod
-	abstract @NotNull AvailObject o_TypeUnionOfPojoUnfusedType (
-		@NotNull AvailObject object,
-		@NotNull AvailObject anUnfusedPojoType);
+	abstract AvailObject o_TypeUnionOfPojoUnfusedType (
+		AvailObject object,
+		AvailObject anUnfusedPojoType);
 
 	@Override @AvailMethod
-	abstract @NotNull AvailObject o_TypeVariables (
-		@NotNull AvailObject object);
+	abstract AvailObject o_TypeVariables (
+		AvailObject object);
 
 	/**
 	 * Compute the union of two {@linkplain PojoTypeDescriptor pojo
@@ -773,9 +773,9 @@ extends TypeDescriptor
 	 *        Another pojo type.
 	 * @return A new ancestry map.
 	 */
-	protected static @NotNull AvailObject computeUnion (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aPojoType)
+	protected static AvailObject computeUnion (
+		final AvailObject object,
+		final AvailObject aPojoType)
 	{
 		// Find the intersection of the key sets and the union of their
 		// parameterizations.
@@ -821,8 +821,8 @@ extends TypeDescriptor
 	 *         those elements that do not have any subtypes also present in the
 	 *         ancestry.
 	 */
-	protected static @NotNull Set<AvailObject> childlessAmong (
-		final @NotNull AvailObject ancestry)
+	protected static Set<AvailObject> childlessAmong (
+		final AvailObject ancestry)
 	{
 		final Set<AvailObject> childless = new HashSet<AvailObject>();
 		for (final AvailObject ancestor : ancestry)
@@ -858,8 +858,8 @@ extends TypeDescriptor
 	 *         NullDescriptor nil} if there is not a single most specific type
 	 *         (this can only happen for interfaces).
 	 */
-	protected static @NotNull AvailObject mostSpecificOf (
-		final @NotNull AvailObject ancestry)
+	protected static AvailObject mostSpecificOf (
+		final AvailObject ancestry)
 	{
 		AvailObject answer = RawPojoDescriptor.rawObjectClass();
 		Class<?> mostSpecific = Object.class;
@@ -891,9 +891,9 @@ extends TypeDescriptor
 
 	@Override
 	abstract void printObjectOnAvoidingIndent (
-		@NotNull AvailObject object,
-		@NotNull StringBuilder builder,
-		@NotNull List<AvailObject> recursionList,
+		AvailObject object,
+		StringBuilder builder,
+		List<AvailObject> recursionList,
 		int indent);
 
 	/**
@@ -919,9 +919,9 @@ extends TypeDescriptor
 	 *        object must conform.
 	 * @return An Avail Object.
 	 */
-	public static @NotNull AvailObject unmarshal (
-		final Object object,
-		final @NotNull AvailObject type)
+	public static AvailObject unmarshal (
+		final @Nullable Object object,
+		final AvailObject type)
 	{
 		if (object == null)
 		{
@@ -1001,9 +1001,9 @@ extends TypeDescriptor
 	 *        their {@linkplain TypeDescriptor types}.
 	 * @return An Avail type.
 	 */
-	public static @NotNull AvailObject resolve (
-		final @NotNull Type type,
-		final @NotNull AvailObject typeVars)
+	public static AvailObject resolve (
+		final Type type,
+		final AvailObject typeVars)
 	{
 		// If type is a Java class or interface, then answer a pojo type.
 		if (type instanceof Class<?>)
@@ -1057,7 +1057,7 @@ extends TypeDescriptor
 				else
 				{
 					assert false : "There are only nine primitive types!";
-					return null;
+					throw new RuntimeException();
 				}
 			}
 			else if (aClass.equals(String.class))
@@ -1097,7 +1097,7 @@ extends TypeDescriptor
 				assert false :
 					"There should only be three contexts that can define a "
 					+ "type variable!";
-				return null;
+				throw new RuntimeException();
 			}
 			final AvailObject name = StringDescriptor.from(
 				javaClass.getName() + "." + var.getName());
@@ -1120,7 +1120,7 @@ extends TypeDescriptor
 				TupleDescriptor.fromList(resolved));
 		}
 		assert false : "Unsupported generic declaration";
-		return null;
+		throw new RuntimeException();
 	}
 
 	/**
@@ -1143,11 +1143,11 @@ extends TypeDescriptor
 	 * @return The type arguments of the target.
 	 */
 	private static
-	@NotNull AvailObject computeTypeArgumentsOf (
-		final @NotNull ParameterizedType target,
-		final @NotNull TypeVariableMap vars,
-		final @NotNull AvailObject typeArgs,
-		final @NotNull Canon canon)
+	AvailObject computeTypeArgumentsOf (
+		final ParameterizedType target,
+		final TypeVariableMap vars,
+		final AvailObject typeArgs,
+		final Canon canon)
 	{
 		final Type[] args = target.getActualTypeArguments();
 		final List<AvailObject> propagation = new ArrayList<AvailObject>(2);
@@ -1204,7 +1204,7 @@ extends TypeDescriptor
 			else
 			{
 				assert false : "Unsupported generic declaration";
-				return null;
+				throw new RuntimeException();
 			}
 		}
 		return TupleDescriptor.fromList(propagation);
@@ -1227,11 +1227,11 @@ extends TypeDescriptor
 	 *        type dependency.
 	 * @return The type parameters of the specified supertype.
 	 */
-	private static @NotNull AvailObject computeSupertypeParameters (
-		final @NotNull Class<?> target,
-		final @NotNull Type supertype,
-		final @NotNull AvailObject typeArgs,
-		final @NotNull Canon canon)
+	private static AvailObject computeSupertypeParameters (
+		final Class<?> target,
+		final Type supertype,
+		final AvailObject typeArgs,
+		final Canon canon)
 	{
 		// class Target<...> extends GenericSupertype { ... }
 		//
@@ -1259,7 +1259,7 @@ extends TypeDescriptor
 		else
 		{
 			assert false : "Unsupported generic declaration";
-			return null;
+			throw new RuntimeException();
 		}
 	}
 
@@ -1279,10 +1279,10 @@ extends TypeDescriptor
 	 *        collection of ancestors.
 	 */
 	@InnerAccess static void computeAncestry (
-		final @NotNull Class<?> target,
-		final @NotNull AvailObject typeArgs,
-		final @NotNull Mutable<AvailObject> ancestry,
-		final @NotNull Canon canon)
+		final Class<?> target,
+		final AvailObject typeArgs,
+		final Mutable<AvailObject> ancestry,
+		final Canon canon)
 	{
 		final AvailObject javaClass = canon.canonize(target);
 		ancestry.value = ancestry.value.mapAtPuttingCanDestroy(
@@ -1337,9 +1337,9 @@ extends TypeDescriptor
 	 *        Avail types}, not just pojo types.
 	 * @return The requested pojo type.
 	 */
-	public static @NotNull AvailObject forClassWithTypeArguments (
-		final @NotNull Class<?> target,
-		final @NotNull AvailObject typeArgs)
+	public static AvailObject forClassWithTypeArguments (
+		final Class<?> target,
+		final AvailObject typeArgs)
 	{
 		return cache.get(new LRUCacheKey(target, typeArgs));
 	}
@@ -1352,7 +1352,7 @@ extends TypeDescriptor
 	 *        A Java class or interface.
 	 * @return The requested pojo type.
 	 */
-	public static @NotNull AvailObject forClass (final @NotNull Class<?> target)
+	public static AvailObject forClass (final Class<?> target)
 	{
 		final int paramCount = target.getTypeParameters().length;
 		final List<AvailObject> params;
@@ -1384,9 +1384,9 @@ extends TypeDescriptor
 	 *        IntegerRangeTypeDescriptor#wholeNumbers() whole number}.
 	 * @return The requested pojo type.
 	 */
-	public static @NotNull AvailObject forArrayTypeWithSizeRange (
-		final @NotNull AvailObject elementType,
-		final @NotNull AvailObject sizeRange)
+	public static AvailObject forArrayTypeWithSizeRange (
+		final AvailObject elementType,
+		final AvailObject sizeRange)
 	{
 		assert sizeRange.isSubtypeOf(IntegerRangeTypeDescriptor.wholeNumbers());
 		return ArrayPojoTypeDescriptor.create(elementType, sizeRange);
@@ -1406,7 +1406,7 @@ extends TypeDescriptor
 	 *            A fused pojo type.
 	 */
 	public static AvailObject fusedTypeFromAncestorMap (
-		final @NotNull AvailObject ancestorMap)
+		final AvailObject ancestorMap)
 	{
 		assert ancestorMap.isMap();
 		return FusedPojoTypeDescriptor.create(ancestorMap);
@@ -1426,9 +1426,9 @@ extends TypeDescriptor
 	 *        collection of ancestors.
 	 */
 	private static void computeUnparameterizedAncestry (
-		final @NotNull Class<?> target,
-		final @NotNull Set<AvailObject> ancestors,
-		final @NotNull Canon canon)
+		final Class<?> target,
+		final Set<AvailObject> ancestors,
+		final Canon canon)
 	{
 		if (target != null)
 		{
@@ -1454,8 +1454,8 @@ extends TypeDescriptor
 	 *        parameters.
 	 * @return The requested pojo type.
 	 */
-	public static @NotNull AvailObject selfTypeForClass (
-		final @NotNull Class<?> target)
+	public static AvailObject selfTypeForClass (
+		final Class<?> target)
 	{
 		final Canon canon = new Canon();
 		final Set<AvailObject> ancestors = new HashSet<AvailObject>(5);

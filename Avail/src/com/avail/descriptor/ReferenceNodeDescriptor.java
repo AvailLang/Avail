@@ -70,7 +70,7 @@ extends ParseNodeDescriptor
 	 */
 	@Override @AvailMethod
 	void o_Variable (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailObject variable)
 	{
 		object.setSlot(ObjectSlots.VARIABLE, variable);
@@ -81,7 +81,7 @@ extends ParseNodeDescriptor
 	 */
 	@Override @AvailMethod
 	AvailObject o_Variable (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.slot(ObjectSlots.VARIABLE);
 	}
@@ -91,14 +91,14 @@ extends ParseNodeDescriptor
 	 * variable type.
 	 */
 	@Override @AvailMethod
-	AvailObject o_ExpressionType (final @NotNull AvailObject object)
+	AvailObject o_ExpressionType (final AvailObject object)
 	{
 		return VariableTypeDescriptor.wrapInnerType(
 			object.variable().expressionType());
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final @NotNull AvailObject object)
+	int o_Hash (final AvailObject object)
 	{
 		return
 			object.variable().hash() ^ 0xE7FA9B3F;
@@ -106,7 +106,7 @@ extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	boolean o_Equals (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailObject another)
 	{
 		return object.kind().equals(another.kind())
@@ -115,7 +115,7 @@ extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	void o_EmitValueOn (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
 		final AvailObject declaration = object.variable().declaration();
@@ -126,7 +126,7 @@ extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	void o_ChildrenMap (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final Transformer1<AvailObject, AvailObject> aBlock)
 	{
 		object.variable(aBlock.value(object.variable()));
@@ -134,7 +134,7 @@ extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	void o_ChildrenDo (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final Continuation1<AvailObject> aBlock)
 	{
 		aBlock.value(object.variable());
@@ -143,8 +143,8 @@ extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	void o_ValidateLocally (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject parent)
+		final AvailObject object,
+		final @Nullable AvailObject parent)
 	{
 		final AvailObject decl = object.variable().declaration();
 		switch (decl.declarationKind())
@@ -168,15 +168,15 @@ extends ParseNodeDescriptor
 	}
 
 	@Override
-	@NotNull ParseNodeKind o_ParseNodeKind (
-		final @NotNull AvailObject object)
+	ParseNodeKind o_ParseNodeKind (
+		final AvailObject object)
 	{
 		return REFERENCE_NODE;
 	}
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final StringBuilder builder,
 		final List<AvailObject> recursionList,
 		final int indent)
@@ -196,7 +196,7 @@ extends ParseNodeDescriptor
 	 * @return The new reference node.
 	 */
 	public static AvailObject fromUse (
-		final @NotNull AvailObject variableUse)
+		final AvailObject variableUse)
 	{
 		final AvailObject newReferenceNode = mutable().create();
 		newReferenceNode.variable(variableUse);

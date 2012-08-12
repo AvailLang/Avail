@@ -76,7 +76,7 @@ public class MessageSplitter
 	 * double dagger, to ensure it is not used in a special way. A backquote
 	 * may also escape another backquote.
 	 */
-	final @NotNull List<AvailObject> messageParts =
+	final List<AvailObject> messageParts =
 		new ArrayList<AvailObject>(10);
 
 	/** The current one-based parsing position in the list of tokens. */
@@ -92,11 +92,11 @@ public class MessageSplitter
 	 * can parse a specific keyword, recursively parse an argument, branch for
 	 * backtracking, and manipulate a stack of parse nodes.
 	 */
-	private final @NotNull List<Integer> instructions =
+	private final List<Integer> instructions =
 		new ArrayList<Integer>(10);
 
 	/** The top-most {@linkplain Group group}. */
-	final @NotNull Group rootGroup;
+	final Group rootGroup;
 
 	/**
 	 * An {@code Expression} represents a structural view of part of the
@@ -114,7 +114,7 @@ public class MessageSplitter
 		 *        Should keywords be matched case insensitively?
 		 */
 		abstract void emitOn (
-			final @NotNull List<Integer> list,
+			final List<Integer> list,
 			final boolean caseInsensitive);
 
 		/**
@@ -207,11 +207,11 @@ public class MessageSplitter
 		 * @throws SignatureException
 		 *        If the argument type is inappropriate.
 		 */
-		public abstract void checkType (final @NotNull AvailObject argumentType)
+		public abstract void checkType (final AvailObject argumentType)
 			throws SignatureException;
 
 		@Override
-		public @NotNull String toString ()
+		public String toString ()
 		{
 			return getClass().getSimpleName();
 		}
@@ -229,7 +229,7 @@ public class MessageSplitter
 		 *        The indentation level.
 		 */
 		abstract public void printWithArguments (
-			Iterator<AvailObject> arguments,
+			@Nullable Iterator<AvailObject> arguments,
 			StringBuilder aStream,
 			int indent);
 	}
@@ -262,7 +262,7 @@ public class MessageSplitter
 
 		@Override
 		void emitOn (
-			final @NotNull List<Integer> list,
+			final List<Integer> list,
 			final boolean caseInsensitive)
 		{
 			// Parse the specific keyword.
@@ -280,7 +280,7 @@ public class MessageSplitter
 		}
 
 		@Override
-		public @NotNull String toString ()
+		public String toString ()
 		{
 			final StringBuilder builder = new StringBuilder();
 			builder.append(getClass().getSimpleName());
@@ -291,7 +291,7 @@ public class MessageSplitter
 		}
 
 		@Override
-		public void checkType (final @NotNull AvailObject argumentType)
+		public void checkType (final AvailObject argumentType)
 		{
 			assert false : "checkType() should not be called for Simple" +
 					" expressions";
@@ -299,7 +299,7 @@ public class MessageSplitter
 
 		@Override
 		public void printWithArguments (
-			final Iterator<AvailObject> arguments,
+			final @Nullable Iterator<AvailObject> arguments,
 			final StringBuilder aStream,
 			final int indent)
 		{
@@ -346,7 +346,7 @@ public class MessageSplitter
 
 		@Override
 		void emitOn (
-			final @NotNull List<Integer> list,
+			final List<Integer> list,
 			final boolean caseInsensitive)
 		{
 			// First, parse an argument subexpression. Next, record it in a list
@@ -368,7 +368,7 @@ public class MessageSplitter
 		 * BottomTypeDescriptor#bottom() bottom}.
 		 */
 		@Override
-		public void checkType (final @NotNull AvailObject argumentType)
+		public void checkType (final AvailObject argumentType)
 			throws SignatureException
 		{
 			if (argumentType.equals(BottomTypeDescriptor.bottom()))
@@ -381,10 +381,11 @@ public class MessageSplitter
 
 		@Override
 		public void printWithArguments (
-			final Iterator<AvailObject> arguments,
+			final @Nullable Iterator<AvailObject> arguments,
 			final StringBuilder aStream,
 			final int indent)
 		{
+			assert arguments != null;
 			arguments.next().printOnAvoidingIndent(
 				aStream,
 				new ArrayList<AvailObject>(),
@@ -413,7 +414,7 @@ public class MessageSplitter
 
 		@Override
 		void emitOn (
-			final @NotNull List<Integer> list,
+			final List<Integer> list,
 			final boolean caseInsensitive)
 		{
 			// First, parse a raw token. Next, record it in a list of lists
@@ -431,10 +432,11 @@ public class MessageSplitter
 
 		@Override
 		public void printWithArguments (
-			final Iterator<AvailObject> arguments,
+			final @Nullable Iterator<AvailObject> arguments,
 			final StringBuilder aStream,
 			final int indent)
 		{
+			assert arguments != null;
 			// Describe the token that was parsed as this raw token argument.
 			arguments.next().printOnAvoidingIndent(
 				aStream,
@@ -505,7 +507,7 @@ public class MessageSplitter
 		 * StringDescriptor#doubleDagger() double dagger}, or in the entire
 		 * subexpression if no double dagger is present.
 		 */
-		final @NotNull List<Expression> expressionsBeforeDagger =
+		final List<Expression> expressionsBeforeDagger =
 			new ArrayList<Expression>();
 
 		/**
@@ -513,7 +515,7 @@ public class MessageSplitter
 		 * StringDescriptor#doubleDagger() double dagger}, or an empty list if
 		 * no double dagger is present.
 		 */
-		final @NotNull List<Expression> expressionsAfterDagger =
+		final List<Expression> expressionsAfterDagger =
 			new ArrayList<Expression>();
 
 		/**
@@ -539,7 +541,7 @@ public class MessageSplitter
 		 *
 		 * @param e The expression to add.
 		 */
-		void addExpression (final @NotNull Expression e)
+		void addExpression (final Expression e)
 		{
 			if (!hasDagger)
 			{
@@ -623,7 +625,7 @@ public class MessageSplitter
 
 		@Override
 		void emitOn (
-			final @NotNull List<Integer> list,
+			final List<Integer> list,
 			final boolean caseInsensitive)
 		{
 			if (!needsDoubleWrapping())
@@ -732,7 +734,7 @@ public class MessageSplitter
 		}
 
 		@Override
-		public @NotNull String toString ()
+		public String toString ()
 		{
 			final List<String> strings = new ArrayList<String>();
 			for (final Expression e : expressionsBeforeDagger)
@@ -769,7 +771,7 @@ public class MessageSplitter
 		 * this group.
 		 */
 		@Override
-		public void checkType (final @NotNull AvailObject argumentType)
+		public void checkType (final AvailObject argumentType)
 			throws SignatureException
 		{
 			// Always expect a tuple of solutions here.
@@ -859,10 +861,11 @@ public class MessageSplitter
 
 		@Override
 		public void printWithArguments (
-			final Iterator<AvailObject> argumentProvider,
-			final @NotNull StringBuilder aStream,
+			final @Nullable Iterator<AvailObject> argumentProvider,
+			final StringBuilder aStream,
 			final int indent)
 		{
+			assert argumentProvider != null;
 			final boolean needsDouble = needsDoubleWrapping();
 			final AvailObject groupArguments = argumentProvider.next();
 			final Iterator<AvailObject> occurrenceProvider =
@@ -920,8 +923,8 @@ public class MessageSplitter
 		 *        for this flag.
 		 */
 		public void printGroupOccurrence (
-			final @NotNull Iterator<AvailObject> argumentProvider,
-			final @NotNull StringBuilder aStream,
+			final Iterator<AvailObject> argumentProvider,
+			final StringBuilder aStream,
 			final int indent,
 			final boolean completeGroup)
 		{
@@ -988,7 +991,7 @@ public class MessageSplitter
 	extends Expression
 	{
 		/** The {@linkplain Group group} whose occurrences should be counted. */
-		final @NotNull Group group;
+		final Group group;
 
 		/**
 		 * The one-based position in the instruction stream to branch to in
@@ -1012,14 +1015,14 @@ public class MessageSplitter
 		 *        The {@linkplain Group group} whose occurrences should be
 		 *        counted.
 		 */
-		Counter (final @NotNull Group group)
+		Counter (final Group group)
 		{
 			this.group = group;
 		}
 
 		@Override
 		void emitOn (
-			final @NotNull List<Integer> list,
+			final List<Integer> list,
 			final boolean caseInsensitive)
 		{
 			/* push current parse position
@@ -1085,7 +1088,7 @@ public class MessageSplitter
 		}
 
 		@Override
-		public void checkType (final @NotNull AvailObject argumentType)
+		public void checkType (final AvailObject argumentType)
 			throws SignatureException
 		{
 			if (!argumentType.isSubtypeOf(
@@ -1098,7 +1101,7 @@ public class MessageSplitter
 		}
 
 		@Override
-		public @NotNull String toString ()
+		public String toString ()
 		{
 			final StringBuilder builder = new StringBuilder();
 			builder.append(getClass().getSimpleName());
@@ -1110,10 +1113,11 @@ public class MessageSplitter
 
 		@Override
 		public void printWithArguments (
-			final @NotNull Iterator<AvailObject> argumentProvider,
+			final @Nullable Iterator<AvailObject> argumentProvider,
 			final StringBuilder aStream,
 			final int indent)
 		{
+			assert argumentProvider != null;
 			final AvailObject countLiteral = argumentProvider.next();
 			assert countLiteral.isInstanceOf(
 				ParseNodeKind.LITERAL_NODE.mostGeneralType());
@@ -1155,7 +1159,7 @@ public class MessageSplitter
 	extends Expression
 	{
 		/** The governed {@linkplain Group group}. */
-		final @NotNull Group group;
+		final Group group;
 
 		/**
 		 * The one-based position in the instruction stream to branch to in
@@ -1170,14 +1174,14 @@ public class MessageSplitter
 		 * @param group
 		 *        The governed {@linkplain Group group}.
 		 */
-		Optional (final @NotNull Group group)
+		Optional (final Group group)
 		{
 			this.group = group;
 		}
 
 		@Override
 		void emitOn (
-			final @NotNull List<Integer> list,
+			final List<Integer> list,
 			final boolean caseInsensitive)
 		{
 			/* push current parse position
@@ -1227,7 +1231,7 @@ public class MessageSplitter
 		}
 
 		@Override
-		public void checkType (final @NotNull AvailObject argumentType)
+		public void checkType (final AvailObject argumentType)
 			throws SignatureException
 		{
 			if (!argumentType.isSubtypeOf(
@@ -1240,7 +1244,7 @@ public class MessageSplitter
 		}
 
 		@Override
-		public @NotNull String toString ()
+		public String toString ()
 		{
 			final StringBuilder builder = new StringBuilder();
 			builder.append(getClass().getSimpleName());
@@ -1252,10 +1256,11 @@ public class MessageSplitter
 
 		@Override
 		public void printWithArguments (
-			final Iterator<AvailObject> argumentProvider,
+			final @Nullable Iterator<AvailObject> argumentProvider,
 			final StringBuilder aStream,
 			final int indent)
 		{
+			assert argumentProvider != null;
 			final AvailObject literal = argumentProvider.next();
 			assert literal.isInstanceOf(
 				ParseNodeKind.LITERAL_NODE.mostGeneralType());
@@ -1289,7 +1294,7 @@ public class MessageSplitter
 	extends Expression
 	{
 		/** The governed {@linkplain Expression expression}. */
-		final @NotNull Expression expression;
+		final Expression expression;
 
 		/**
 		 * The one-based position in the instruction stream to branch to in
@@ -1304,14 +1309,14 @@ public class MessageSplitter
 		 * @param expression
 		 *        The governed {@linkplain Expression expression}.
 		 */
-		CompletelyOptional (final @NotNull Expression expression)
+		CompletelyOptional (final Expression expression)
 		{
 			this.expression = expression;
 		}
 
 		@Override
 		void emitOn (
-			final @NotNull List<Integer> list,
+			final List<Integer> list,
 			final boolean caseInsensitive)
 		{
 			/* push current parse position
@@ -1364,7 +1369,7 @@ public class MessageSplitter
 		}
 
 		@Override
-		public void checkType (final @NotNull AvailObject argumentType)
+		public void checkType (final AvailObject argumentType)
 			throws SignatureException
 		{
 			assert false :
@@ -1373,7 +1378,7 @@ public class MessageSplitter
 		}
 
 		@Override
-		public @NotNull String toString ()
+		public String toString ()
 		{
 			final StringBuilder builder = new StringBuilder();
 			builder.append(getClass().getSimpleName());
@@ -1385,7 +1390,7 @@ public class MessageSplitter
 
 		@Override
 		public void printWithArguments (
-			final Iterator<AvailObject> argumentProvider,
+			final @Nullable Iterator<AvailObject> argumentProvider,
 			final StringBuilder aStream,
 			final int indent)
 		{
@@ -1427,7 +1432,7 @@ public class MessageSplitter
 
 		@Override
 		void emitOn (
-			final @NotNull List<Integer> list,
+			final List<Integer> list,
 			final boolean caseInsensitive)
 		{
 			expression.emitOn(list, true);
@@ -1459,14 +1464,14 @@ public class MessageSplitter
 		}
 
 		@Override
-		public void checkType (final @NotNull AvailObject argumentType)
+		public void checkType (final AvailObject argumentType)
 			throws SignatureException
 		{
 			expression.checkType(argumentType);
 		}
 
 		@Override
-		public @NotNull String toString ()
+		public String toString ()
 		{
 			final StringBuilder builder = new StringBuilder();
 			builder.append(getClass().getSimpleName());
@@ -1478,7 +1483,7 @@ public class MessageSplitter
 
 		@Override
 		public void printWithArguments (
-			final Iterator<AvailObject> argumentProvider,
+			final @Nullable Iterator<AvailObject> argumentProvider,
 			final StringBuilder aStream,
 			final int indent)
 		{
@@ -1507,7 +1512,7 @@ public class MessageSplitter
 	extends Expression
 	{
 		/** The alternative {@linkplain Expression expressions}. */
-		private final @NotNull List<Expression> alternatives;
+		private final List<Expression> alternatives;
 
 		/**
 		 * The one-based positions in the instruction stream of the labels. All
@@ -1515,7 +1520,7 @@ public class MessageSplitter
 		 * last corresponds to the first instruction beyond the code segment
 		 * associated with the last alternative.
 		 */
-		private final @NotNull int[] branches;
+		private final int[] branches;
 
 		/**
 		 * Construct a new {@link Alternation}.
@@ -1523,7 +1528,7 @@ public class MessageSplitter
 		 * @param alternatives
 		 *        The alternative {@linkplain Expression expressions}.
 		 */
-		Alternation (final @NotNull List<Expression> alternatives)
+		Alternation (final List<Expression> alternatives)
 		{
 			this.alternatives = alternatives;
 			this.branches = new int[alternatives.size()];
@@ -1532,8 +1537,8 @@ public class MessageSplitter
 
 		@Override
 		void emitOn (
-			final @NotNull List<Integer> list,
-			final @NotNull boolean caseInsensitive)
+			final List<Integer> list,
+			final boolean caseInsensitive)
 		{
 			/* push current parse position
 			 * push empty list (just to discard)
@@ -1601,7 +1606,7 @@ public class MessageSplitter
 		}
 
 		@Override
-		public @NotNull String toString ()
+		public String toString ()
 		{
 			final StringBuilder builder = new StringBuilder();
 			builder.append(getClass().getSimpleName());
@@ -1622,7 +1627,7 @@ public class MessageSplitter
 
 		@Override
 		public void printWithArguments (
-			final Iterator<AvailObject> argumentProvider,
+			final @Nullable Iterator<AvailObject> argumentProvider,
 			final StringBuilder aStream,
 			final int indent)
 		{
@@ -1653,7 +1658,7 @@ public class MessageSplitter
 	 * @throws SignatureException
 	 *         If the message name is malformed.
 	 */
-	public MessageSplitter (final @NotNull AvailObject messageName)
+	public MessageSplitter (final AvailObject messageName)
 		throws SignatureException
 	{
 		this.messageName = messageName;
@@ -2156,7 +2161,7 @@ public class MessageSplitter
 	 *            If the function type is inappropriate for the method name.
 	 */
 	public void checkImplementationSignature (
-			final @NotNull AvailObject functionType)
+			final AvailObject functionType)
 		throws SignatureException
 	{
 		final AvailObject argsTupleType = functionType.argsTupleType();
@@ -2208,7 +2213,7 @@ public class MessageSplitter
 	 * @throws SignatureException Always, with the given error code.
 	 */
 	void throwSignatureException (
-			final @NotNull AvailErrorCode errorCode)
+			final AvailErrorCode errorCode)
 		throws SignatureException
 	{
 		throw new SignatureException(errorCode);

@@ -90,10 +90,10 @@ extends TupleDescriptor
 	 */
 	@Override @AvailMethod
 	boolean o_CompareFromToWithStartingAt (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
-		final @NotNull AvailObject anotherObject,
+		final AvailObject anotherObject,
 		final int startIndex2)
 	{
 		if (object.sameAddressAs(anotherObject) && startIndex1 == startIndex2)
@@ -128,10 +128,10 @@ extends TupleDescriptor
 
 	@Override @AvailMethod
 	boolean o_CompareFromToWithByteStringStartingAt (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
-		final @NotNull AvailObject aByteString,
+		final AvailObject aByteString,
 		final int startIndex2)
 	{
 		for (
@@ -165,10 +165,10 @@ extends TupleDescriptor
 
 	@Override @AvailMethod
 	boolean o_CompareFromToWithByteTupleStartingAt (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
-		final @NotNull AvailObject aByteTuple,
+		final AvailObject aByteTuple,
 		final int startIndex2)
 	{
 		for (
@@ -202,10 +202,10 @@ extends TupleDescriptor
 
 	@Override @AvailMethod
 	boolean o_CompareFromToWithNybbleTupleStartingAt (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
-		final @NotNull AvailObject aNybbleTuple,
+		final AvailObject aNybbleTuple,
 		final int startIndex2)
 	{
 		if (object.sameAddressAs(aNybbleTuple) && startIndex1 == startIndex2)
@@ -248,10 +248,10 @@ extends TupleDescriptor
 	 */
 	@Override @AvailMethod
 	boolean o_CompareFromToWithObjectTupleStartingAt (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
-		final @NotNull AvailObject anObjectTuple,
+		final AvailObject anObjectTuple,
 		final int startIndex2)
 	{
 		if (object.sameAddressAs(anObjectTuple) && startIndex1 == startIndex2)
@@ -289,8 +289,8 @@ extends TupleDescriptor
 
 	@Override @AvailMethod
 	boolean o_Equals (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+		final AvailObject object,
+		final AvailObject another)
 	{
 		//  Compare this splice tuple and the given tuple.
 
@@ -299,8 +299,8 @@ extends TupleDescriptor
 
 	@Override @AvailMethod
 	boolean o_EqualsAnyTuple (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject anotherTuple)
+		final AvailObject object,
+		final AvailObject anotherTuple)
 	{
 		//  Compare this splice tuple and the given tuple.
 		//
@@ -345,7 +345,7 @@ extends TupleDescriptor
 
 	@Override @AvailMethod
 	int o_EndOfZone (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int zone)
 	{
 		// Answer the ending index for the given zone.
@@ -357,7 +357,7 @@ extends TupleDescriptor
 
 	@Override @AvailMethod
 	int o_EndSubtupleIndexInZone (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int zone)
 	{
 		// Answer the ending index into the subtuple for the given zone.
@@ -376,11 +376,11 @@ extends TupleDescriptor
 	 * true.
 	 */
 	@Override
-	public @NotNull AvailObject
+	public AvailObject
 		o_ForZoneSetSubtupleStartSubtupleIndexEndOfZone (
-			final @NotNull AvailObject object,
+			final AvailObject object,
 			final int zone,
-			final @NotNull AvailObject newSubtuple,
+			final AvailObject newSubtuple,
 			final int startSubtupleIndex,
 			final int endOfZone)
 	{
@@ -406,9 +406,9 @@ extends TupleDescriptor
 	 */
 	@Override @AvailMethod
 	void o_SetSubtupleForZoneTo (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int zoneIndex,
-		final @NotNull AvailObject newTuple)
+		final AvailObject newTuple)
 	{
 		assert isMutable;
 		object.setSlot(
@@ -422,7 +422,7 @@ extends TupleDescriptor
 	 */
 	@Override @AvailMethod
 	int o_SizeOfZone (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int zone)
 	{
 		if (zone == 1)
@@ -445,7 +445,7 @@ extends TupleDescriptor
 	 */
 	@Override @AvailMethod
 	int o_StartOfZone (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int zone)
 	{
 		if (zone == 1)
@@ -464,7 +464,7 @@ extends TupleDescriptor
 	 */
 	@Override @AvailMethod
 	int o_StartSubtupleIndexInZone (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int zone)
 	{
 		return object.slot(
@@ -477,8 +477,8 @@ extends TupleDescriptor
 	 * 'unclipped'.
 	 */
 	@Override @AvailMethod
-	@NotNull AvailObject o_SubtupleForZone (
-		final @NotNull AvailObject object,
+	AvailObject o_SubtupleForZone (
+		final AvailObject object,
 		final int zone)
 	{
 		return object.slot(
@@ -492,7 +492,7 @@ extends TupleDescriptor
 	 */
 	@Override @AvailMethod
 	int o_TranslateToZone (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int tupleIndex,
 		final int zoneIndex)
 	{
@@ -507,7 +507,7 @@ extends TupleDescriptor
 	 */
 	@Override @AvailMethod
 	int o_ZoneForIndex (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int index)
 	{
 		int high = object.numberOfZones();
@@ -533,7 +533,7 @@ extends TupleDescriptor
 	 */
 	@Override @AvailMethod
 	int o_NumberOfZones (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.variableObjectSlotsCount();
 	}
@@ -545,8 +545,8 @@ extends TupleDescriptor
 	 * other optimizations hold).
 	 */
 	@Override @AvailMethod
-	@NotNull AvailObject o_CopyTupleFromToCanDestroy (
-		final @NotNull AvailObject object,
+	AvailObject o_CopyTupleFromToCanDestroy (
+		final AvailObject object,
 		final int start,
 		final int end,
 		final boolean canDestroy)
@@ -604,8 +604,8 @@ extends TupleDescriptor
 	 * Answer the element at the given index in the tuple object.
 	 */
 	@Override @AvailMethod
-	@NotNull AvailObject o_TupleAt (
-		final @NotNull AvailObject object,
+	AvailObject o_TupleAt (
+		final AvailObject object,
 		final int index)
 	{
 		if (index < 1 || index > object.tupleSize())
@@ -625,9 +625,9 @@ extends TupleDescriptor
 	 */
 	@Override @AvailMethod
 	void o_TupleAtPut (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int index,
-		final @NotNull AvailObject anObject)
+		final AvailObject anObject)
 	{
 		error("This message is not appropriate for a SpliceTuple", object);
 		return;
@@ -639,10 +639,10 @@ extends TupleDescriptor
 	 * canDestroy is true.
 	 */
 	@Override @AvailMethod
-	@NotNull AvailObject o_TupleAtPuttingCanDestroy (
-		final @NotNull AvailObject object,
+	AvailObject o_TupleAtPuttingCanDestroy (
+		final AvailObject object,
 		final int index,
-		final @NotNull AvailObject newValueObject,
+		final AvailObject newValueObject,
 		final boolean canDestroy)
 	{
 		assert index >= 1 && index <= object.tupleSize();
@@ -671,7 +671,7 @@ extends TupleDescriptor
 	 */
 	@Override @AvailMethod
 	int o_TupleIntAt (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int index)
 	{
 		if (index < 1 || index > object.tupleSize())
@@ -689,7 +689,7 @@ extends TupleDescriptor
 	 */
 	@Override @AvailMethod
 	int o_TupleSize (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.endOfZone(object.numberOfZones());
 	}
@@ -702,7 +702,7 @@ extends TupleDescriptor
 	 */
 	@Override @AvailMethod
 	int o_BitsPerEntry (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return 33;
 	}
@@ -710,7 +710,7 @@ extends TupleDescriptor
 
 	@Override @AvailMethod
 	boolean o_IsSplice (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return true;
 	}
@@ -720,7 +720,7 @@ extends TupleDescriptor
 	 */
 	@Override @AvailMethod
 	int o_ComputeHashFromTo (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int startIndex,
 		final int endIndex)
 	{
@@ -758,8 +758,8 @@ extends TupleDescriptor
 	 * Answer a mutable copy of object that is also a splice tuple.
 	 */
 	@Override @AvailMethod
-	@NotNull AvailObject o_CopyAsMutableSpliceTuple (
-		final @NotNull AvailObject object)
+	AvailObject o_CopyAsMutableSpliceTuple (
+		final AvailObject object)
 	{
 		if (isMutable)
 		{
@@ -801,7 +801,7 @@ extends TupleDescriptor
 	 */
 	@Override @AvailMethod
 	void o_Verify (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		assert object.tupleSize() > 0;
 		for (int i = object.numberOfZones(); i >= 1; i--)

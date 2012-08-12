@@ -35,7 +35,7 @@ package com.avail.builder;
 import java.io.*;
 import java.util.*;
 import com.avail.AvailRuntime;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 
 /**
  * A {@code Repository} keeps pre-compiled versions of modules.  It tracks
@@ -154,7 +154,7 @@ public class Repository
 	 * @return Whether there is a valid compiled form of the module.
 	 */
 	public synchronized boolean hasKey (
-		final @NotNull String sourceFileName,
+		final String sourceFileName,
 		final long sourceLastModified)
 	{
 		final CompiledModulePointer body = map.get(sourceFileName);
@@ -179,8 +179,8 @@ public class Repository
 	 * @return Either {@code null} or a byte array representing the compiled
 	 *         module.
 	 */
-	public synchronized byte[] get (
-		final @NotNull String sourceFileName,
+	public synchronized @Nullable byte[] get (
+		final String sourceFileName,
 		final long sourceLastModified)
 	{
 		final CompiledModulePointer body = map.get(sourceFileName);

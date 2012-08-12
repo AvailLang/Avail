@@ -97,8 +97,8 @@ extends Descriptor
 
 	@Override @AvailMethod
 	void o_AddGrammaticalRestrictions (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject restrictions)
+		final AvailObject object,
+		final AvailObject restrictions)
 	{
 		assert restrictions.isTuple();
 		restrictions.makeImmutable();
@@ -117,8 +117,8 @@ extends Descriptor
 
 	@Override @AvailMethod
 	void o_RemoveGrammaticalRestrictions (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject obsoleteRestrictions)
+		final AvailObject object,
+		final AvailObject obsoleteRestrictions)
 	{
 		assert obsoleteRestrictions.isTuple();
 		AvailObject reduced = object.slot(ObjectSlots.GRAMMATICAL_RESTRICTIONS);
@@ -136,7 +136,7 @@ extends Descriptor
 
 	@Override @AvailMethod
 	boolean o_HasGrammaticalRestrictions (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		final AvailObject restrictions =
 			object.slot(ObjectSlots.GRAMMATICAL_RESTRICTIONS);
@@ -151,44 +151,44 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_GrammaticalRestrictions (
-		final @NotNull AvailObject object)
+	AvailObject o_GrammaticalRestrictions (
+		final AvailObject object)
 	{
 		return object.slot(ObjectSlots.GRAMMATICAL_RESTRICTIONS);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_Message (
-		final @NotNull AvailObject object)
+	AvailObject o_Message (
+		final AvailObject object)
 	{
 		return object.slot(ObjectSlots.MESSAGE);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_MessageParts (
-		final @NotNull AvailObject object)
+	AvailObject o_MessageParts (
+		final AvailObject object)
 	{
 		return object.slot(ObjectSlots.MESSAGE_PARTS);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_ParsingInstructions (
-		final @NotNull AvailObject object)
+	AvailObject o_ParsingInstructions (
+		final AvailObject object)
 	{
 		return object.slot(ObjectSlots.PARSING_INSTRUCTIONS);
 	}
 
 	@Override boolean allowsImmutableToMutableReferenceInField (
-		final @NotNull AbstractSlotsEnum e)
+		final AbstractSlotsEnum e)
 	{
 		return e == ObjectSlots.GRAMMATICAL_RESTRICTIONS;
 	}
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-		final @NotNull AvailObject object,
-		final @NotNull StringBuilder aStream,
-		final @NotNull List<AvailObject> recursionList,
+		final AvailObject object,
+		final StringBuilder aStream,
+		final List<AvailObject> recursionList,
 		final int indent)
 	{
 		// The existing implementations are also printed in parentheses to help
@@ -205,22 +205,22 @@ extends Descriptor
 
 	@Override @AvailMethod
 	boolean o_Equals (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+		final AvailObject object,
+		final AvailObject another)
 	{
 		return another.traversed().sameAddressAs(object);
 	}
 
 	@Override @AvailMethod
 	int o_Hash (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.message().hash() ^ 0x312CAB9;
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_Kind (
-		final @NotNull AvailObject object)
+	AvailObject o_Kind (
+		final AvailObject object)
 	{
 		return MESSAGE_BUNDLE.o();
 	}

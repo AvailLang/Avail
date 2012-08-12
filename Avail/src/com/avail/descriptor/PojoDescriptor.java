@@ -100,16 +100,16 @@ extends Descriptor
 
 	@Override @AvailMethod
 	boolean o_Equals (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+		final AvailObject object,
+		final AvailObject another)
 	{
 		return another.equalsPojo(object);
 	}
 
 	@Override @AvailMethod
 	boolean o_EqualsPojo (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aPojo)
+		final AvailObject object,
+		final AvailObject aPojo)
 	{
 		if (!object.slot(RAW_POJO).equals(aPojo.slot(RAW_POJO))
 			|| !object.slot(KIND).equals(aPojo.slot(KIND)))
@@ -127,7 +127,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final @NotNull AvailObject object)
+	int o_Hash (final AvailObject object)
 	{
 		int hash = object.slot(RAW_POJO).hash() ^ 0x749101DD;
 		hash *= AvailObject.multiplier;
@@ -136,19 +136,19 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsPojo (final @NotNull AvailObject object)
+	boolean o_IsPojo (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_Kind (final @NotNull AvailObject object)
+	AvailObject o_Kind (final AvailObject object)
 	{
 		return object.slot(KIND);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_MakeImmutable (final @NotNull AvailObject object)
+	AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		object.descriptor = immutable();
 		object.slot(RAW_POJO).makeImmutable();
@@ -158,30 +158,30 @@ extends Descriptor
 
 	@Override
 	Object o_MarshalToJava (
-		final @NotNull AvailObject object,
-		final Class<?> ignoredClassHint)
+		final AvailObject object,
+		final @Nullable Class<?> ignoredClassHint)
 	{
 		return object.slot(RAW_POJO).javaObject();
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_RawPojo (final @NotNull AvailObject object)
+	AvailObject o_RawPojo (final AvailObject object)
 	{
 		return object.slot(RAW_POJO);
 	}
 
 	@Override
 	public boolean o_ShowValueInNameForDebugger (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return false;
 	}
 
 	@Override
 	void printObjectOnAvoidingIndent (
-		final @NotNull AvailObject object,
-		final @NotNull StringBuilder builder,
-		final @NotNull List<AvailObject> recursionList,
+		final AvailObject object,
+		final StringBuilder builder,
+		final List<AvailObject> recursionList,
 		final int indent)
 	{
 		builder.append(String.valueOf(object.slot(RAW_POJO).javaObject()));
@@ -203,7 +203,7 @@ extends Descriptor
 	}
 
 	/** The mutable {@link PojoDescriptor}. */
-	private static final @NotNull PojoDescriptor mutable =
+	private static final PojoDescriptor mutable =
 		new PojoDescriptor(true);
 
 	/**
@@ -211,13 +211,13 @@ extends Descriptor
 	 *
 	 * @return The mutable {@code PojoDescriptor}.
 	 */
-	public static @NotNull PojoDescriptor mutable ()
+	public static PojoDescriptor mutable ()
 	{
 		return mutable;
 	}
 
 	/** The immutable {@link PojoDescriptor}. */
-	private static final @NotNull PojoDescriptor immutable =
+	private static final PojoDescriptor immutable =
 		new PojoDescriptor(false);
 
 	/**
@@ -225,7 +225,7 @@ extends Descriptor
 	 *
 	 * @return The immutable {@code PojoDescriptor}.
 	 */
-	public static @NotNull PojoDescriptor immutable ()
+	public static PojoDescriptor immutable ()
 	{
 		return immutable;
 	}
@@ -239,9 +239,9 @@ extends Descriptor
 	 * @param pojoType A pojo type.
 	 * @return The new {@linkplain PojoDescriptor Avail pojo}.
 	 */
-	public static @NotNull AvailObject newPojo (
-		final @NotNull AvailObject rawPojo,
-		final @NotNull AvailObject pojoType)
+	public static AvailObject newPojo (
+		final AvailObject rawPojo,
+		final AvailObject pojoType)
 	{
 		final AvailObject newObject = mutable.create();
 		newObject.setSlot(RAW_POJO, rawPojo);

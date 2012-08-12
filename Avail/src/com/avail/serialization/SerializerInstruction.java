@@ -46,14 +46,14 @@ final class SerializerInstruction
 	/**
 	 * The {@link AvailObject} to be serialized.
 	 */
-	final @NotNull AvailObject object;
+	final AvailObject object;
 
 	/**
 	 * Answer the {@link AvailObject} that this instruction is serializing.
 	 *
 	 * @return The AvailObject to serialize.
 	 */
-	@NotNull AvailObject object ()
+	AvailObject object ()
 	{
 		return object;
 	}
@@ -109,7 +109,7 @@ final class SerializerInstruction
 	 *
 	 * @return The {@code SerializerOperation} used to decompose the object.
 	 */
-	@NotNull SerializerOperation operation ()
+	SerializerOperation operation ()
 	{
 		return operation;
 	}
@@ -123,7 +123,7 @@ final class SerializerInstruction
 	 * @return The array of {@code AvailObject}s for my operation's operands to
 	 *         interpret.
 	 */
-	@NotNull AvailObject[] decomposed ()
+	AvailObject[] decomposed ()
 	{
 		return operation.decompose(object);
 	}
@@ -133,7 +133,7 @@ final class SerializerInstruction
 	 *
 	 * @param serializer Where to write the instruction.
 	 */
-	void writeTo (final @NotNull Serializer serializer)
+	void writeTo (final Serializer serializer)
 	{
 		operation.writeObject(object, serializer);
 	}
@@ -148,8 +148,8 @@ final class SerializerInstruction
 	 *            for serialization.
 	 */
 	public SerializerInstruction (
-		final @NotNull AvailObject object,
-		final @NotNull SerializerOperation operation)
+		final AvailObject object,
+		final SerializerOperation operation)
 	{
 		this.object = object;
 		this.operation = operation;

@@ -94,8 +94,8 @@ extends SetBinDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_BinElementAt (
-		final @NotNull AvailObject object,
+	AvailObject o_BinElementAt (
+		final AvailObject object,
 		final int subscript)
 	{
 		return object.slot(BIN_ELEMENT_AT_, subscript);
@@ -103,9 +103,9 @@ extends SetBinDescriptor
 
 	@Override @AvailMethod
 	void o_BinElementAtPut (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int subscript,
-		final @NotNull AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED setter method (indexed).
 
@@ -114,7 +114,7 @@ extends SetBinDescriptor
 
 	@Override @AvailMethod
 	void o_BinSize (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int value)
 	{
 		object.setSlot(BIN_SIZE, value);
@@ -122,15 +122,15 @@ extends SetBinDescriptor
 
 	@Override @AvailMethod
 	void o_BinUnionTypeOrNull (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject value)
+		final AvailObject object,
+		final AvailObject value)
 	{
 		object.setSlot(BIN_UNION_TYPE_OR_NULL, value);
 	}
 
 	@Override @AvailMethod
 	void o_BitVector (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int value)
 	{
 		object.setSlot(BIT_VECTOR, value);
@@ -138,27 +138,27 @@ extends SetBinDescriptor
 
 	@Override @AvailMethod
 	int o_BinSize (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.slot(BIN_SIZE);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_BinUnionTypeOrNull (
-		final @NotNull AvailObject object)
+	AvailObject o_BinUnionTypeOrNull (
+		final AvailObject object)
 	{
 		return object.slot(BIN_UNION_TYPE_OR_NULL);
 	}
 
 	@Override boolean allowsImmutableToMutableReferenceInField (
-		final @NotNull AbstractSlotsEnum e)
+		final AbstractSlotsEnum e)
 	{
 		return e == BIN_UNION_TYPE_OR_NULL;
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_MakeImmutable (
-		final @NotNull AvailObject object)
+	AvailObject o_MakeImmutable (
+		final AvailObject object)
 	{
 		//  Make the object immutable so it can be shared safely.
 
@@ -172,7 +172,7 @@ extends SetBinDescriptor
 
 	@Override @AvailMethod
 	AvailObject o_BinUnionKind (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		AvailObject union = object.slot(BIN_UNION_TYPE_OR_NULL);
 		if (union.equalsNull())
@@ -191,8 +191,8 @@ extends SetBinDescriptor
 
 	@Override @AvailMethod
 	boolean o_BinElementsAreAllInstancesOfKind (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject kind)
+		final AvailObject object,
+		final AvailObject kind)
 	{
 		AvailObject union = object.slot(BIN_UNION_TYPE_OR_NULL);
 		if (union.equalsNull())
@@ -216,9 +216,9 @@ extends SetBinDescriptor
 	 * exists.
 	 */
 	@Override @AvailMethod
-	@NotNull AvailObject o_SetBinAddingElementHashLevelCanDestroy (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject elementObject,
+	AvailObject o_SetBinAddingElementHashLevelCanDestroy (
+		final AvailObject object,
+		final AvailObject elementObject,
 		final int elementObjectHash,
 		final byte myLevel,
 		final boolean canDestroy)
@@ -327,8 +327,8 @@ extends SetBinDescriptor
 
 	@Override @AvailMethod
 	boolean o_BinHasElementWithHash (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject elementObject,
+		final AvailObject object,
+		final AvailObject elementObject,
 		final int elementObjectHash)
 	{
 		// First, grab the appropriate 5 bits from the hash.
@@ -355,9 +355,9 @@ extends SetBinDescriptor
 	 * resulting bin.  The bin may be modified if it's mutable and canDestroy.
 	 */
 	@Override @AvailMethod
-	@NotNull AvailObject o_BinRemoveElementHashCanDestroy (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject elementObject,
+	AvailObject o_BinRemoveElementHashCanDestroy (
+		final AvailObject object,
+		final AvailObject elementObject,
 		final int elementObjectHash,
 		final boolean canDestroy)
 	{
@@ -473,8 +473,8 @@ extends SetBinDescriptor
 	 */
 	@Override @AvailMethod
 	boolean o_IsBinSubsetOf (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject potentialSuperset)
+		final AvailObject object,
+		final AvailObject potentialSuperset)
 	{
 		// TODO[MvG] - This could be much quicker in the case that some of the
 		// bins are shared between the sets.  Even if not, we should be able to
@@ -507,13 +507,13 @@ extends SetBinDescriptor
 	 *            union of the elements' types.
 	 * @return A new hashed set bin with uninitialized sub-bin slots.
 	 */
-	public static @NotNull AvailObject createBin (
+	public static AvailObject createBin (
 		final byte level,
 		final int localSize,
 		final int totalSize,
 		final int hash,
 		final int bitVector,
-		final @NotNull AvailObject unionKindOrNull)
+		final AvailObject unionKindOrNull)
 	{
 		assert bitCount(bitVector) == localSize;
 		final AvailObject instance =

@@ -207,7 +207,7 @@ public class L1InstructionWriter
 	/**
 	 * The module containing this code.
 	 */
-	final @NotNull AvailObject module;
+	final AvailObject module;
 
 	/**
 	 * The line number at which this code starts.
@@ -221,7 +221,7 @@ public class L1InstructionWriter
 	 * @param startingLineNumber Where this code starts in the module.
 	 */
 	public L1InstructionWriter (
-		final @NotNull AvailObject module,
+		final AvailObject module,
 		final int startingLineNumber)
 	{
 		this.module = module;

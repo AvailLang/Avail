@@ -51,9 +51,9 @@ public class P_257_BreakPoint extends Primitive
 		0, Unknown, CannotFail);
 
 	@Override
-	public @NotNull Result attempt (
-		final @NotNull List<AvailObject> args,
-		final @NotNull Interpreter interpreter)
+	public Result attempt (
+		final List<AvailObject> args,
+		final Interpreter interpreter)
 	{
 		// Throw and catch a RuntimeException.  A sensibly configured
 		// debugger will pause during the throw. There are also ample
@@ -71,7 +71,7 @@ public class P_257_BreakPoint extends Primitive
 	}
 
 	@Override
-	protected @NotNull AvailObject privateBlockTypeRestriction ()
+	protected AvailObject privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(),

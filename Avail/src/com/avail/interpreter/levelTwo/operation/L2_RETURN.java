@@ -56,7 +56,7 @@ public class L2_RETURN extends L2Operation
 	}
 
 	@Override
-	public void step (final @NotNull L2Interpreter interpreter)
+	public void step (final L2Interpreter interpreter)
 	{
 		// Return to the calling continuation with the given value.
 		final int continuationIndex = interpreter.nextWord();

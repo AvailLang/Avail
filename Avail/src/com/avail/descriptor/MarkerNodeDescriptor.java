@@ -69,7 +69,7 @@ public class MarkerNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override @AvailMethod
 	void o_MarkerValue (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailObject markerValue)
 	{
 		object.setSlot(ObjectSlots.MARKER_VALUE, markerValue);
@@ -80,14 +80,14 @@ public class MarkerNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override @AvailMethod
 	AvailObject o_MarkerValue (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.slot(ObjectSlots.MARKER_VALUE);
 	}
 
 
 	@Override @AvailMethod
-	AvailObject o_ExpressionType (final @NotNull AvailObject object)
+	AvailObject o_ExpressionType (final AvailObject object)
 	{
 		// This shouldn't make a difference.
 		return TOP.o();
@@ -96,7 +96,7 @@ public class MarkerNodeDescriptor extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	void o_EmitValueOn (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
 		assert false : "A marker node can not generate code.";
@@ -104,7 +104,7 @@ public class MarkerNodeDescriptor extends ParseNodeDescriptor
 
 
 	@Override @AvailMethod
-	int o_Hash (final @NotNull AvailObject object)
+	int o_Hash (final AvailObject object)
 	{
 		return
 			object.markerValue().hash() ^ 0xCBCACACC;
@@ -112,7 +112,7 @@ public class MarkerNodeDescriptor extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	boolean o_Equals (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailObject another)
 	{
 		return object.kind().equals(another.kind())
@@ -120,8 +120,8 @@ public class MarkerNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	@Override
-	@NotNull ParseNodeKind o_ParseNodeKind (
-		final @NotNull AvailObject object)
+	ParseNodeKind o_ParseNodeKind (
+		final AvailObject object)
 	{
 		return MARKER_NODE;
 	}
@@ -129,7 +129,7 @@ public class MarkerNodeDescriptor extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	void o_ChildrenMap (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final Transformer1<AvailObject, AvailObject> aBlock)
 	{
 		error("Marker nodes should not be mapped.");
@@ -137,7 +137,7 @@ public class MarkerNodeDescriptor extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	void o_ChildrenDo (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final Continuation1<AvailObject> aBlock)
 	{
 		error("Marker nodes should not be iterated over.");
@@ -145,8 +145,8 @@ public class MarkerNodeDescriptor extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	void o_ValidateLocally (
-		final @NotNull AvailObject object,
-		final AvailObject parent)
+		final AvailObject object,
+		final @Nullable AvailObject parent)
 	{
 		error("Marker nodes should not validateLocally.");
 	}

@@ -55,7 +55,7 @@ extends AvailRuntimeException
 	 * @param errorCode
 	 *        The {@linkplain AvailErrorCode error code}.
 	 */
-	public ArithmeticException (final @NotNull AvailErrorCode errorCode)
+	public ArithmeticException (final AvailErrorCode errorCode)
 	{
 		super(errorCode);
 	}
@@ -71,8 +71,8 @@ extends AvailRuntimeException
 	 *        ArithmeticException exception}.
 	 */
 	public ArithmeticException (
-		final @NotNull AvailErrorCode errorCode,
-		final @NotNull Throwable cause)
+		final AvailErrorCode errorCode,
+		final Throwable cause)
 	{
 		super(errorCode, cause);
 	}

@@ -69,7 +69,7 @@ public class ListNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	@Override boolean allowsImmutableToMutableReferenceInField (
-		final @NotNull AbstractSlotsEnum e)
+		final AbstractSlotsEnum e)
 	{
 		return e == TUPLE_TYPE;
 	}
@@ -78,13 +78,13 @@ public class ListNodeDescriptor extends ParseNodeDescriptor
 	 * Getter for field expressionsTuple.
 	 */
 	@Override @AvailMethod
-	AvailObject o_ExpressionsTuple (final @NotNull AvailObject object)
+	AvailObject o_ExpressionsTuple (final AvailObject object)
 	{
 		return object.slot(ObjectSlots.EXPRESSIONS_TUPLE);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ExpressionType (final @NotNull AvailObject object)
+	AvailObject o_ExpressionType (final AvailObject object)
 	{
 		AvailObject tupleType = object.slot(TUPLE_TYPE);
 		if (tupleType.equalsNull())
@@ -114,14 +114,14 @@ public class ListNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final @NotNull AvailObject object)
+	int o_Hash (final AvailObject object)
 	{
 		return object.expressionsTuple().hash() ^ 0xC143E977;
 	}
 
 	@Override @AvailMethod
 	boolean o_Equals (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailObject another)
 	{
 		return object.kind().equals(another.kind())
@@ -130,7 +130,7 @@ public class ListNodeDescriptor extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	void o_EmitValueOn (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
 		final AvailObject childNodes = object.expressionsTuple();
@@ -143,7 +143,7 @@ public class ListNodeDescriptor extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	void o_ChildrenMap (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final Transformer1<AvailObject, AvailObject> aBlock)
 	{
 		AvailObject expressions = object.expressionsTuple();
@@ -160,7 +160,7 @@ public class ListNodeDescriptor extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	void o_ChildrenDo (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final Continuation1<AvailObject> aBlock)
 	{
 		for (final AvailObject expression : object.expressionsTuple())
@@ -172,8 +172,8 @@ public class ListNodeDescriptor extends ParseNodeDescriptor
 
 	@Override @AvailMethod
 	void o_ValidateLocally (
-		final @NotNull AvailObject object,
-		final AvailObject parent)
+		final AvailObject object,
+		final @Nullable AvailObject parent)
 	{
 		// Do nothing.
 	}
@@ -192,7 +192,7 @@ public class ListNodeDescriptor extends ParseNodeDescriptor
 	 */
 	@Override @AvailMethod
 	AvailObject o_CopyWith (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailObject newParseNode)
 	{
 		final AvailObject oldTuple = object.slot(EXPRESSIONS_TUPLE);
@@ -203,8 +203,8 @@ public class ListNodeDescriptor extends ParseNodeDescriptor
 	}
 
 	@Override
-	@NotNull ParseNodeKind o_ParseNodeKind (
-		final @NotNull AvailObject object)
+	ParseNodeKind o_ParseNodeKind (
+		final AvailObject object)
 	{
 		return LIST_NODE;
 	}
@@ -221,7 +221,7 @@ public class ListNodeDescriptor extends ParseNodeDescriptor
 	 *
 	 * @return The empty list node.
 	 */
-	public static @NotNull AvailObject empty ()
+	public static AvailObject empty ()
 	{
 		return empty;
 	}

@@ -52,7 +52,7 @@ extends AvailRuntimeException
 	 *
 	 * @param errorCode An {@linkplain AvailErrorCode error code}.
 	 */
-	public VariableSetException (final @NotNull AvailErrorCode errorCode)
+	public VariableSetException (final AvailErrorCode errorCode)
 	{
 		super(errorCode);
 	}
@@ -67,8 +67,8 @@ extends AvailRuntimeException
 	 *        VariableSetException exception}.
 	 */
 	public VariableSetException (
-		final @NotNull AvailErrorCode errorCode,
-		final @NotNull Throwable cause)
+		final AvailErrorCode errorCode,
+		final Throwable cause)
 	{
 		super(errorCode, cause);
 	}

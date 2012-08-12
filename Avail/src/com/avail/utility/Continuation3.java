@@ -32,6 +32,8 @@
 
 package com.avail.utility;
 
+import com.avail.annotations.Nullable;
+
 /**
  * Implementors of {@code Continuation3} provide a single arbitrary operation
  * that accepts three arguments.
@@ -50,5 +52,5 @@ public interface Continuation3<X, Y, Z>
 	 * @param arg2 The second argument.
 	 * @param arg3 The third argument.
 	 */
-	public void value (X arg1, Y arg2, Z arg3);
+	public void value (@Nullable X arg1, @Nullable Y arg2, @Nullable Z arg3);
 }

@@ -252,8 +252,8 @@ final public class L2Interpreter extends Interpreter
 	 *            behalf to start executing the chunk.
 	 */
 	private void setChunk (
-		final @NotNull AvailObject chunk,
-		final @NotNull AvailObject code)
+		final AvailObject chunk,
+		final AvailObject code)
 	{
 		this.chunk = chunk;
 		chunkWords = chunk.wordcodes();
@@ -364,7 +364,7 @@ final public class L2Interpreter extends Interpreter
 	 *            An {@link AvailRuntime}.
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
-	public L2Interpreter (final @NotNull AvailRuntime runtime)
+	public L2Interpreter (final AvailRuntime runtime)
 	{
 		super(runtime);
 		pointers[0] = NullDescriptor.nullObject();
@@ -508,7 +508,7 @@ final public class L2Interpreter extends Interpreter
 	 */
 	public void pointerAtPut (
 		final int index,
-		final @NotNull AvailObject anAvailObject)
+		final AvailObject anAvailObject)
 	{
 		assert index > 0;
 		assert anAvailObject != null;
@@ -525,7 +525,7 @@ final public class L2Interpreter extends Interpreter
 	 * @return The object in the specified register.
 	 */
 	public AvailObject pointerAt (
-		final @NotNull FixedRegister fixedObjectRegister)
+		final FixedRegister fixedObjectRegister)
 	{
 		return pointerAt(fixedObjectRegister.ordinal());
 	}
@@ -541,8 +541,8 @@ final public class L2Interpreter extends Interpreter
 	 *            The object to write to the specified register.
 	 */
 	public void pointerAtPut (
-		final @NotNull FixedRegister fixedObjectRegister,
-		final @NotNull AvailObject anAvailObject)
+		final FixedRegister fixedObjectRegister,
+		final AvailObject anAvailObject)
 	{
 		pointerAtPut(fixedObjectRegister.ordinal(), anAvailObject);
 	}
@@ -744,7 +744,7 @@ final public class L2Interpreter extends Interpreter
 
 	@Override
 	public Result searchForExceptionHandler (
-		final @NotNull AvailObject exceptionValue)
+		final AvailObject exceptionValue)
 	{
 		AvailObject continuation = pointerAt(CALLER);
 		while (!continuation.equalsNull())
@@ -822,9 +822,9 @@ final public class L2Interpreter extends Interpreter
 
 	@Override
 	public void invokeWithoutPrimitiveFunctionArguments (
-		final @NotNull AvailObject aFunction,
+		final AvailObject aFunction,
 		final List<AvailObject> args,
-		final @NotNull AvailObject caller)
+		final AvailObject caller)
 	{
 		final AvailObject code = aFunction.code();
 		code.tallyInvocation();
@@ -866,8 +866,8 @@ final public class L2Interpreter extends Interpreter
 	 *            The calling continuation.
 	 */
 	public void invokePossiblePrimitiveWithReifiedCaller (
-		final @NotNull AvailObject theFunction,
-		final @NotNull AvailObject caller)
+		final AvailObject theFunction,
+		final AvailObject caller)
 	{
 		final AvailObject theCode = theFunction.code();
 		final int primNum = theCode.primitiveNumber();
@@ -1021,8 +1021,7 @@ final public class L2Interpreter extends Interpreter
 	}
 
 	@Override
-	public @NotNull
-	List<String> dumpStack ()
+	public List<String> dumpStack ()
 	{
 		final List<AvailObject> frames = new ArrayList<AvailObject>(20);
 		for (AvailObject c = currentContinuation(); !c.equalsNull(); c = c

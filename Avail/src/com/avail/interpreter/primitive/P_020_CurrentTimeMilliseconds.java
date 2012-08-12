@@ -51,8 +51,8 @@ public class P_020_CurrentTimeMilliseconds extends Primitive
 
 	@Override
 	public Result attempt (
-		final @NotNull List<AvailObject> args,
-		final @NotNull Interpreter interpreter)
+		final List<AvailObject> args,
+		final Interpreter interpreter)
 	{
 		assert args.size() == 0;
 		return interpreter.primitiveSuccess(

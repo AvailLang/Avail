@@ -117,7 +117,7 @@ extends AtomDescriptor
 	}
 
 	@Override boolean allowsImmutableToMutableReferenceInField (
-		final @NotNull AbstractSlotsEnum e)
+		final AbstractSlotsEnum e)
 	{
 		return super.allowsImmutableToMutableReferenceInField(e)
 			|| e == HASH_OR_ZERO
@@ -134,9 +134,9 @@ extends AtomDescriptor
 	 */
 	@Override @AvailMethod
 	void o_SetAtomProperty (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject key,
-		final @NotNull AvailObject value)
+		final AvailObject object,
+		final AvailObject key,
+		final AvailObject value)
 	{
 		assert key.isAtom();
 		AvailObject map = object.slot(PROPERTY_MAP);
@@ -162,9 +162,9 @@ extends AtomDescriptor
 	 * </p>
 	 */
 	@Override @AvailMethod
-	@NotNull AvailObject o_GetAtomProperty (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject key)
+	AvailObject o_GetAtomProperty (
+		final AvailObject object,
+		final AvailObject key)
 	{
 		assert key.isAtom();
 		final AvailObject map = object.slot(PROPERTY_MAP);
@@ -189,9 +189,9 @@ extends AtomDescriptor
 	 *            The new atom, not equal to any object in use before this
 	 *            method was invoked.
 	 */
-	public static @NotNull AvailObject create (
-		final @NotNull AvailObject name,
-		final @NotNull AvailObject issuingModule)
+	public static AvailObject create (
+		final AvailObject name,
+		final AvailObject issuingModule)
 	{
 		final AvailObject instance = mutable().create();
 		instance.setSlot(NAME, name);
@@ -222,9 +222,9 @@ extends AtomDescriptor
 	 *            The new atom, not equal to any object in use before this
 	 *            method was invoked.
 	 */
-	public static @NotNull AvailObject createWithNameAndModuleAndHash (
-		final @NotNull AvailObject name,
-		final @NotNull AvailObject issuingModule,
+	public static AvailObject createWithNameAndModuleAndHash (
+		final AvailObject name,
+		final AvailObject issuingModule,
 		final int originalHash)
 	{
 		final AvailObject instance = mutable().create();

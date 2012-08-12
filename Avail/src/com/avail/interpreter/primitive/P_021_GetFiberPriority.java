@@ -51,11 +51,11 @@ public class P_021_GetFiberPriority extends Primitive
 
 	@Override
 	public Result attempt (
-		final @NotNull List<AvailObject> args,
-		final @NotNull Interpreter interpreter)
+		final List<AvailObject> args,
+		final Interpreter interpreter)
 	{
 		assert args.size() == 1;
-		final @NotNull AvailObject fiber = args.get(0);
+		final AvailObject fiber = args.get(0);
 		return interpreter.primitiveSuccess(
 			fiber.priority());
 	}

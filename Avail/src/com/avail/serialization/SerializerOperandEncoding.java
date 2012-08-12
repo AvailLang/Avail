@@ -56,15 +56,15 @@ enum SerializerOperandEncoding
 	{
 		@Override
 		void write (
-			final @NotNull AvailObject object,
-			final @NotNull Serializer serializer)
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			serializer.writeByte(object.extractUnsignedByte());
 		}
 
 		@Override
-		@NotNull AvailObject read (
-			final @NotNull Deserializer deserializer)
+		AvailObject read (
+			final Deserializer deserializer)
 		{
 			return IntegerDescriptor.fromInt(deserializer.readByte());
 		}
@@ -91,8 +91,8 @@ enum SerializerOperandEncoding
 	{
 		@Override
 		void write (
-			final @NotNull AvailObject object,
-			final @NotNull Serializer serializer)
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			final int shortValue = object.extractInt();
 			assert (shortValue & 0xFFFF) == shortValue;
@@ -113,8 +113,8 @@ enum SerializerOperandEncoding
 		}
 
 		@Override
-		@NotNull AvailObject read (
-			final @NotNull Deserializer deserializer)
+		AvailObject read (
+			final Deserializer deserializer)
 		{
 			final int firstByte = deserializer.readByte();
 			final int intValue;
@@ -150,15 +150,15 @@ enum SerializerOperandEncoding
 	{
 		@Override
 		void write (
-			final @NotNull AvailObject object,
-			final @NotNull Serializer serializer)
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			serializer.writeShort(object.extractUnsignedShort());
 		}
 
 		@Override
-		@NotNull AvailObject read (
-			final @NotNull Deserializer deserializer)
+		AvailObject read (
+			final Deserializer deserializer)
 		{
 			return IntegerDescriptor.fromInt(deserializer.readShort());
 		}
@@ -175,16 +175,16 @@ enum SerializerOperandEncoding
 	{
 		@Override
 		void write (
-			final @NotNull AvailObject object,
-			final @NotNull Serializer serializer)
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			final int intValue = object.extractInt();
 			serializer.writeInt(intValue);
 		}
 
 		@Override
-		@NotNull AvailObject read (
-			final @NotNull Deserializer deserializer)
+		AvailObject read (
+			final Deserializer deserializer)
 		{
 			return IntegerDescriptor.fromInt(deserializer.readInt());
 		}
@@ -200,8 +200,8 @@ enum SerializerOperandEncoding
 	{
 		@Override
 		void write (
-			final @NotNull AvailObject object,
-			final @NotNull Serializer serializer)
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			final long longValue = object.extractLong();
 			assert (longValue & 0xFFFFFFFFL) == longValue;
@@ -209,8 +209,8 @@ enum SerializerOperandEncoding
 		}
 
 		@Override
-		@NotNull AvailObject read (
-			final @NotNull Deserializer deserializer)
+		AvailObject read (
+			final Deserializer deserializer)
 		{
 			final int intValue = deserializer.readInt();
 			final long longValue = intValue & 0xFFFFFFFFL;
@@ -228,8 +228,8 @@ enum SerializerOperandEncoding
 	{
 		@Override
 		void trace (
-			final @NotNull AvailObject object,
-			final @NotNull Serializer serializer)
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			// Visit the object.
 			serializer.traceOne(object);
@@ -237,8 +237,8 @@ enum SerializerOperandEncoding
 
 		@Override
 		void write (
-			final @NotNull AvailObject object,
-			final @NotNull Serializer serializer)
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			final SerializerInstruction instruction =
 				serializer.instructionForObject(object);
@@ -249,8 +249,8 @@ enum SerializerOperandEncoding
 		}
 
 		@Override
-		@NotNull AvailObject read (
-			final @NotNull Deserializer deserializer)
+		AvailObject read (
+			final Deserializer deserializer)
 		{
 			final int index = readCompressedPositiveInt(deserializer);
 			return deserializer.objectFromIndex(index);
@@ -268,8 +268,8 @@ enum SerializerOperandEncoding
 	{
 		@Override
 		void write (
-			final @NotNull AvailObject object,
-			final @NotNull Serializer serializer)
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			final int slotsCount = object.integerSlotsCount();
 			writeCompressedPositiveInt(slotsCount, serializer);
@@ -280,9 +280,7 @@ enum SerializerOperandEncoding
 		}
 
 		@Override
-		@NotNull
-		final AvailObject read (
-			final @NotNull Deserializer deserializer)
+		final AvailObject read (final Deserializer deserializer)
 		{
 			final int slotsCount = readCompressedPositiveInt(deserializer);
 			final AvailObject newInteger =
@@ -305,8 +303,8 @@ enum SerializerOperandEncoding
 	{
 		@Override
 		void trace (
-			final @NotNull AvailObject object,
-			final @NotNull Serializer serializer)
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			// Visit the *elements* of the tuple.
 			final int tupleSize = object.tupleSize();
@@ -318,8 +316,8 @@ enum SerializerOperandEncoding
 
 		@Override
 		void write (
-			final @NotNull AvailObject object,
-			final @NotNull Serializer serializer)
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			final int tupleSize = object.tupleSize();
 			writeCompressedPositiveInt(tupleSize, serializer);
@@ -332,9 +330,7 @@ enum SerializerOperandEncoding
 		}
 
 		@Override
-		@NotNull
-		final AvailObject read (
-			final @NotNull Deserializer deserializer)
+		final AvailObject read (final Deserializer deserializer)
 		{
 			final int tupleSize = readCompressedPositiveInt(deserializer);
 			final AvailObject newTuple =
@@ -360,8 +356,8 @@ enum SerializerOperandEncoding
 	{
 		@Override
 		void write (
-			final @NotNull AvailObject object,
-			final @NotNull Serializer serializer)
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			final int tupleSize = object.tupleSize();
 			writeCompressedPositiveInt(tupleSize, serializer);
@@ -372,9 +368,7 @@ enum SerializerOperandEncoding
 		}
 
 		@Override
-		@NotNull
-		final AvailObject read (
-			final @NotNull Deserializer deserializer)
+		final AvailObject read (final Deserializer deserializer)
 		{
 			final int tupleSize = readCompressedPositiveInt(deserializer);
 			return StringDescriptor.mutableByteStringFromGenerator(
@@ -406,8 +400,8 @@ enum SerializerOperandEncoding
 	{
 		@Override
 		void write (
-			final @NotNull AvailObject object,
-			final @NotNull Serializer serializer)
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			final int tupleSize = object.tupleSize();
 			writeCompressedPositiveInt(tupleSize, serializer);
@@ -420,9 +414,7 @@ enum SerializerOperandEncoding
 		}
 
 		@Override
-		@NotNull
-		final AvailObject read (
-			final @NotNull Deserializer deserializer)
+		final AvailObject read (final Deserializer deserializer)
 		{
 			final int tupleSize = readCompressedPositiveInt(deserializer);
 			return StringDescriptor.mutableTwoByteStringFromGenerator(
@@ -449,8 +441,8 @@ enum SerializerOperandEncoding
 	{
 		@Override
 		void write (
-			final @NotNull AvailObject object,
-			final @NotNull Serializer serializer)
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			final int tupleSize = object.tupleSize();
 			writeCompressedPositiveInt(tupleSize, serializer);
@@ -463,9 +455,7 @@ enum SerializerOperandEncoding
 		}
 
 		@Override
-		@NotNull
-		final AvailObject read (
-			final @NotNull Deserializer deserializer)
+		final AvailObject read (final Deserializer deserializer)
 		{
 			final int tupleSize = readCompressedPositiveInt(deserializer);
 			final AvailObject[] elementsArray = new AvailObject[tupleSize];
@@ -486,8 +476,8 @@ enum SerializerOperandEncoding
 	{
 		@Override
 		void write (
-			final @NotNull AvailObject object,
-			final @NotNull Serializer serializer)
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			final int tupleSize = object.tupleSize();
 			writeCompressedPositiveInt(tupleSize, serializer);
@@ -498,9 +488,7 @@ enum SerializerOperandEncoding
 		}
 
 		@Override
-		@NotNull
-		final AvailObject read (
-			final @NotNull Deserializer deserializer)
+		final AvailObject read (final Deserializer deserializer)
 		{
 			final int tupleSize = readCompressedPositiveInt(deserializer);
 			final AvailObject tuple =
@@ -523,8 +511,8 @@ enum SerializerOperandEncoding
 	{
 		@Override
 		void write (
-			final @NotNull AvailObject object,
-			final @NotNull Serializer serializer)
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			final int tupleSize = object.tupleSize();
 			writeCompressedPositiveInt(tupleSize, serializer);
@@ -542,9 +530,7 @@ enum SerializerOperandEncoding
 		}
 
 		@Override
-		@NotNull
-		final AvailObject read (
-			final @NotNull Deserializer deserializer)
+		final AvailObject read (final Deserializer deserializer)
 		{
 			final int tupleSize = readCompressedPositiveInt(deserializer);
 			final AvailObject tuple =
@@ -572,7 +558,7 @@ enum SerializerOperandEncoding
 	GENERAL_MAP
 	{
 		@Override
-		void trace (final @NotNull AvailObject object, final Serializer serializer)
+		void trace (final AvailObject object, final Serializer serializer)
 		{
 			for (final MapDescriptor.Entry entry : object.mapIterable())
 			{
@@ -582,7 +568,7 @@ enum SerializerOperandEncoding
 		}
 
 		@Override
-		void write (final @NotNull AvailObject object, final Serializer serializer)
+		void write (final AvailObject object, final Serializer serializer)
 		{
 			writeCompressedPositiveInt(object.mapSize(), serializer);
 			for (final MapDescriptor.Entry entry : object.mapIterable())
@@ -625,8 +611,8 @@ enum SerializerOperandEncoding
 	 *            The {@link Serializer} with which to trace the object.
 	 */
 	void trace (
-		final @NotNull AvailObject object,
-		final @NotNull Serializer serializer)
+		final AvailObject object,
+		final Serializer serializer)
 	{
 		// do nothing
 	}
@@ -640,8 +626,8 @@ enum SerializerOperandEncoding
 	 *            The {@link Serializer} on which to encode the object.
 	 */
 	abstract void write (
-		final @NotNull AvailObject object,
-		final @NotNull Serializer serializer);
+		final AvailObject object,
+		final Serializer serializer);
 
 	/**
 	 * Read an operand of the appropriate kind from the {@link
@@ -650,8 +636,8 @@ enum SerializerOperandEncoding
 	 * @param deserializer  The {@code Deserializer} from which to read.
 	 * @return An AvailObject suitable for this kind of operand.
 	 */
-	abstract @NotNull AvailObject read (
-		final @NotNull Deserializer deserializer);
+	abstract AvailObject read (
+		final Deserializer deserializer);
 
 	/**
 	 * Write an unsigned integer in the range 0..2<sup>31</sup>-1.  Use a form
@@ -662,7 +648,7 @@ enum SerializerOperandEncoding
 	 */
 	void writeCompressedPositiveInt (
 		final int index,
-		final @NotNull Serializer serializer)
+		final Serializer serializer)
 	{
 		assert index >= 0 : "Expected a positive int to write";
 		if (index < 128)
@@ -710,7 +696,7 @@ enum SerializerOperandEncoding
 	 * @return
 	 */
 	int readCompressedPositiveInt (
-		final @NotNull Deserializer deserializer)
+		final Deserializer deserializer)
 	{
 		final int firstByte = deserializer.readByte();
 		if (firstByte < 128)
@@ -740,8 +726,8 @@ enum SerializerOperandEncoding
 	 * @param roleName The purpose of this operand within its operation.
 	 * @return The new operand.
 	 */
-	@NotNull SerializerOperand as (
-		final @NotNull String roleName)
+	SerializerOperand as (
+		final String roleName)
 	{
 		return new SerializerOperand(this, roleName);
 	}

@@ -54,7 +54,7 @@ extends RuntimeException
 	 * ModuleDescriptor module} undergoing {@linkplain AbstractAvailCompiler
 	 * compilation}.
 	 */
-	private final @NotNull ModuleName moduleName;
+	private final ModuleName moduleName;
 
 	/**
 	 * Answer the {@linkplain ModuleName fully-qualified name} of the
@@ -64,7 +64,7 @@ extends RuntimeException
 	 * @return A {@linkplain ModuleName module name}.
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
-	public @NotNull ModuleName moduleName ()
+	public ModuleName moduleName ()
 	{
 		return moduleName;
 	}
@@ -127,10 +127,10 @@ extends RuntimeException
 	 *        encapsulated position.
 	 */
 	AvailCompilerException (
-		final @NotNull ModuleName moduleName,
+		final ModuleName moduleName,
 		final long position,
 		final long endOfErrorLine,
-		final @NotNull String errorText)
+		final String errorText)
 	{
 		super(errorText);
 		this.moduleName     = moduleName;

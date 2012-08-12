@@ -38,7 +38,7 @@ import static com.avail.exceptions.AvailErrorCode.*;
 import java.util.*;
 import java.util.logging.*;
 import com.avail.AvailRuntime;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 import com.avail.compiler.*;
 import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
@@ -54,11 +54,11 @@ import com.avail.interpreter.primitive.*;
 public abstract class Interpreter
 {
 	/** A {@linkplain Logger logger}. */
-	public static final @NotNull Logger logger =
+	public static final Logger logger =
 		Logger.getLogger(Interpreter.class.getCanonicalName());
 
 	/** An {@link AvailRuntime}. */
-	private final @NotNull AvailRuntime runtime;
+	private final AvailRuntime runtime;
 
 	/**
 	 * Answer the {@link AvailRuntime} that the {@linkplain Interpreter
@@ -67,7 +67,7 @@ public abstract class Interpreter
 	 * @return An {@link AvailRuntime}.
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
-	public @NotNull AvailRuntime runtime ()
+	public AvailRuntime runtime ()
 	{
 		return runtime;
 	}
@@ -85,7 +85,7 @@ public abstract class Interpreter
 	 * @return The module undergoing compilation, or {@code null} if the module
 	 *         is no longer undergoing compilation.
 	 */
-	public AvailObject module ()
+	public @Nullable AvailObject module ()
 	{
 		return module;
 	}
@@ -98,13 +98,13 @@ public abstract class Interpreter
 	 * @param module A {@linkplain ModuleDescriptor module}, or {@code
 	 *               null} to disestablish the transaction.
 	 */
-	public void setModule (final @NotNull AvailObject module)
+	public void setModule (final @Nullable AvailObject module)
 	{
 		this.module = module;
 	}
 
 	/** The unresolved forward method declarations. */
-	private @NotNull AvailObject pendingForwards = SetDescriptor.empty();
+	private AvailObject pendingForwards = SetDescriptor.empty();
 
 	/**
 	 * A collection of bit flags indicating the reason for pausing the
@@ -174,7 +174,7 @@ public abstract class Interpreter
 	 * @param runtime An {@link AvailRuntime}.
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
-	protected Interpreter (final @NotNull AvailRuntime runtime)
+	protected Interpreter (final AvailRuntime runtime)
 	{
 		this.runtime = runtime;
 
@@ -231,8 +231,8 @@ public abstract class Interpreter
 	 *         If the signature is invalid.
 	 */
 	public void addMethodBody (
-			final @NotNull AvailObject methodName,
-			final @NotNull AvailObject bodyBlock,
+			final AvailObject methodName,
+			final AvailObject bodyBlock,
 			final boolean extendGrammar)
 		throws SignatureException
 	{
@@ -325,8 +325,8 @@ public abstract class Interpreter
 	 * @throws SignatureException If the signature is malformed.
 	 */
 	public void addForwardStub (
-		final @NotNull AvailObject methodName,
-		final @NotNull AvailObject bodySignature)
+		final AvailObject methodName,
+		final AvailObject bodySignature)
 	throws SignatureException
 	{
 		methodName.makeImmutable();
@@ -393,8 +393,8 @@ public abstract class Interpreter
 	 *         If the signature is malformed.
 	 */
 	public void addAbstractSignature (
-			final @NotNull AvailObject methodName,
-			final @NotNull AvailObject bodySignature,
+			final AvailObject methodName,
+			final AvailObject bodySignature,
 			final boolean extendGrammar)
 		throws SignatureException
 	{
@@ -578,8 +578,8 @@ public abstract class Interpreter
 	 *         If the signature is invalid.
 	 */
 	public void addSeal (
-			final @NotNull AvailObject methodName,
-			final @NotNull AvailObject seal)
+			final AvailObject methodName,
+			final AvailObject seal)
 		throws SignatureException
 	{
 		assert methodName.isAtom();
@@ -614,8 +614,8 @@ public abstract class Interpreter
 	 *            name.
 	 */
 	public void atDisallowArgumentMessages (
-		final @NotNull AvailObject methodName,
-		final @NotNull AvailObject illegalArgMsgs)
+		final AvailObject methodName,
+		final AvailObject illegalArgMsgs)
 	throws SignatureException
 	{
 		methodName.makeImmutable();
@@ -646,8 +646,8 @@ public abstract class Interpreter
 	 * @return
 	 *            A new atom.
 	 */
-	public @NotNull AvailObject createAtom (
-		final @NotNull AvailObject nameString)
+	public AvailObject createAtom (
+		final AvailObject nameString)
 	{
 		return AtomDescriptor.create(nameString, module);
 	}
@@ -689,8 +689,8 @@ public abstract class Interpreter
 	 * @throws AmbiguousNameException
 	 *            If the string could represent several different true names.
 	 */
-	public @NotNull AvailObject lookupName (
-			final @NotNull AvailObject stringName)
+	public AvailObject lookupName (
+			final AvailObject stringName)
 		throws AmbiguousNameException
 	{
 		assert stringName.isString();
@@ -730,8 +730,8 @@ public abstract class Interpreter
 	 * @param methodName A {@linkplain AtomDescriptor method name}.
 	 */
 	public void resolvedForwardWithName (
-		final @NotNull AvailObject aForward,
-		final @NotNull AvailObject methodName)
+		final AvailObject aForward,
+		final AvailObject methodName)
 	{
 		assert methodName.isAtom();
 
@@ -768,8 +768,8 @@ public abstract class Interpreter
 	 *            An {@linkplain ImplementationDescriptor implementation}.
 	 */
 	public void removeMethodNamedImplementation (
-		final @NotNull AvailObject methodName,
-		final @NotNull AvailObject implementation)
+		final AvailObject methodName,
+		final AvailObject implementation)
 	{
 		assert methodName.isAtom();
 
@@ -808,7 +808,7 @@ public abstract class Interpreter
 	 *        The result of performing a {@linkplain Primitive primitive}.
 	 * @return Primitive {@linkplain Result#SUCCESS success}.
 	 */
-	public @NotNull Result primitiveSuccess (final @NotNull AvailObject result)
+	public Result primitiveSuccess (final AvailObject result)
 	{
 		assert result != null;
 		primitiveResult = result;
@@ -824,7 +824,7 @@ public abstract class Interpreter
 	 *        An {@link AvailErrorCode}.
 	 * @return Primitive {@linkplain Result#FAILURE failure}.
 	 */
-	public @NotNull Result primitiveFailure (final @NotNull AvailErrorCode code)
+	public Result primitiveFailure (final AvailErrorCode code)
 	{
 		primitiveResult = code.numericCode();
 		return FAILURE;
@@ -840,8 +840,8 @@ public abstract class Interpreter
 	 *        An {@linkplain AvailException exception}.
 	 * @return Primitive {@linkplain Result#FAILURE failure}.
 	 */
-	public @NotNull Result primitiveFailure (
-		final @NotNull AvailException exception)
+	public Result primitiveFailure (
+		final AvailException exception)
 	{
 		primitiveResult = exception.numericCode();
 		return FAILURE;
@@ -858,8 +858,8 @@ public abstract class Interpreter
 	 *        A {@linkplain AvailRuntimeException runtime exception}.
 	 * @return Primitive {@linkplain Result#FAILURE failure}.
 	 */
-	public @NotNull Result primitiveFailure (
-		final @NotNull AvailRuntimeException exception)
+	public Result primitiveFailure (
+		final AvailRuntimeException exception)
 	{
 		primitiveResult = exception.numericCode();
 		return FAILURE;
@@ -873,7 +873,7 @@ public abstract class Interpreter
 	 *        The result of performing a {@linkplain Primitive primitive}.
 	 * @return Primitive {@linkplain Result#FAILURE failure}.
 	 */
-	public @NotNull Result primitiveFailure (final @NotNull AvailObject result)
+	public Result primitiveFailure (final AvailObject result)
 	{
 		primitiveResult = result;
 		return FAILURE;
@@ -909,7 +909,7 @@ public abstract class Interpreter
 	 */
 	public final Result attemptPrimitive (
 		final int primitiveNumber,
-		final @NotNull AvailObject compiledCode,
+		final @Nullable AvailObject compiledCode,
 		final List<AvailObject> args)
 	{
 		final Primitive primitive =
@@ -1025,7 +1025,7 @@ public abstract class Interpreter
 	public abstract void invokeWithoutPrimitiveFunctionArguments (
 		AvailObject aFunction,
 		List<AvailObject> args,
-		final @NotNull AvailObject caller);
+		final AvailObject caller);
 
 	/**
 	 * Run the given function with the provided arguments as a top-level action.
@@ -1066,5 +1066,5 @@ public abstract class Interpreter
 	 *
 	 * @return A list of {@link String}s, starting with the newest frame.
 	 */
-	public abstract @NotNull List<String> dumpStack ();
+	public abstract List<String> dumpStack ();
 }

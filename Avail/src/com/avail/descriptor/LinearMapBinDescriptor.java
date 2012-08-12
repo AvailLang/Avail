@@ -91,7 +91,7 @@ extends MapBinDescriptor
 	}
 
 	@Override boolean allowsImmutableToMutableReferenceInField (
-		final @NotNull AbstractSlotsEnum e)
+		final AbstractSlotsEnum e)
 	{
 		return e == IntegerSlots.VALUES_HASH_OR_ZERO;
 	}
@@ -114,7 +114,7 @@ extends MapBinDescriptor
 	 *
 	 * @param object A linear map bin.
 	 */
-	static void check (final @NotNull AvailObject object)
+	static void check (final AvailObject object)
 	{
 		if (shouldCheckConsistency)
 		{
@@ -142,8 +142,8 @@ extends MapBinDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_BinElementAt (
-		final @NotNull AvailObject object,
+	AvailObject o_BinElementAt (
+		final AvailObject object,
 		final int subscript)
 	{
 		return object.slot(BIN_SLOT_AT_, subscript);
@@ -151,16 +151,16 @@ extends MapBinDescriptor
 
 	@Override @AvailMethod
 	void o_BinElementAtPut (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int subscript,
-		final @NotNull AvailObject value)
+		final AvailObject value)
 	{
 		object.setSlot(BIN_SLOT_AT_, subscript, value);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_MakeImmutable (
-		final @NotNull AvailObject object)
+	AvailObject o_MakeImmutable (
+		final AvailObject object)
 	{
 		if (isMutable)
 		{
@@ -172,16 +172,16 @@ extends MapBinDescriptor
 
 	@Override @AvailMethod
 	int o_BinSize (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		// Answer how many (key,value) pairs this bin contains.
 		return object.variableIntegerSlotsCount();
 	}
 
 	@Override
-	@NotNull AvailObject o_MapBinAtHash (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject key,
+	AvailObject o_MapBinAtHash (
+		final AvailObject object,
+		final AvailObject key,
 		final int keyHash)
 	{
 		final int limit = object.variableIntegerSlotsCount();
@@ -198,11 +198,11 @@ extends MapBinDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_MapBinAtHashPutLevelCanDestroy (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject key,
+	AvailObject o_MapBinAtHashPutLevelCanDestroy (
+		final AvailObject object,
+		final AvailObject key,
 		final int keyHash,
-		final @NotNull AvailObject value,
+		final AvailObject value,
 		final byte myLevel,
 		final boolean canDestroy)
 	{
@@ -348,9 +348,9 @@ extends MapBinDescriptor
 	 * bin.  The bin may be modified if it's mutable and canDestroy.
 	 */
 	@Override @AvailMethod
-	@NotNull AvailObject o_MapBinRemoveKeyHashCanDestroy (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject key,
+	AvailObject o_MapBinRemoveKeyHashCanDestroy (
+		final AvailObject object,
+		final AvailObject key,
 		final int keyHash,
 		final boolean canDestroy)
 	{
@@ -409,8 +409,8 @@ extends MapBinDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_MapBinKeyUnionKind (
-		final @NotNull AvailObject object)
+	AvailObject o_MapBinKeyUnionKind (
+		final AvailObject object)
 	{
 		// Answer the union of the types of this bin's keys.  I'm supposed to be
 		// small, so recalculate it per request.
@@ -425,8 +425,8 @@ extends MapBinDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_MapBinValueUnionKind (
-		final @NotNull AvailObject object)
+	AvailObject o_MapBinValueUnionKind (
+		final AvailObject object)
 	{
 		// Answer the union of the types of this bin's values.  I'm supposed to
 		// be small, so recalculate it per request.
@@ -442,7 +442,7 @@ extends MapBinDescriptor
 
 	@Override @AvailMethod
 	int o_MapBinValuesHash (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		int valuesHash = object.slot(VALUES_HASH_OR_ZERO);
 		if (valuesHash == 0)
@@ -462,8 +462,8 @@ extends MapBinDescriptor
 	}
 
 	@Override
-	public @NotNull MapIterable o_MapBinIterable (
-		final @NotNull AvailObject object)
+	public MapIterable o_MapBinIterable (
+		final AvailObject object)
 	{
 		object.makeImmutable();
 		return new MapIterable()
@@ -498,10 +498,10 @@ extends MapBinDescriptor
 	 * @param myLevel The level at which to label the bin.
 	 * @return The new bin with only (key,value) in it.
 	 */
-	public static @NotNull AvailObject createSingle (
-		final @NotNull AvailObject key,
+	public static AvailObject createSingle (
+		final AvailObject key,
 		final int keyHash,
-		final @NotNull AvailObject value,
+		final AvailObject value,
 		final byte myLevel)
 	{
 		//trace("%nnew Single");

@@ -89,31 +89,31 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_DefaultType (
-		final @NotNull AvailObject object)
+	AvailObject o_DefaultType (
+		final AvailObject object)
 	{
 		return object.slot(DEFAULT_TYPE);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_SizeRange (
-		final @NotNull AvailObject object)
+	AvailObject o_SizeRange (
+		final AvailObject object)
 	{
 		return object.slot(SIZE_RANGE);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeTuple (
-		final @NotNull AvailObject object)
+	AvailObject o_TypeTuple (
+		final AvailObject object)
 	{
 		return object.slot(TYPE_TUPLE);
 	}
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-		final @NotNull AvailObject object,
-		final @NotNull StringBuilder aStream,
-		final @NotNull List<AvailObject> recursionList,
+		final AvailObject object,
+		final StringBuilder aStream,
+		final List<AvailObject> recursionList,
 		final int indent)
 	{
 		if (object.typeTuple().tupleSize() == 0)
@@ -174,8 +174,8 @@ extends TypeDescriptor
 
 	@Override @AvailMethod
 	boolean o_Equals (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+		final AvailObject object,
+		final AvailObject another)
 	{
 		return another.equalsTupleType(object);
 	}
@@ -190,8 +190,8 @@ extends TypeDescriptor
 	 */
 	@Override @AvailMethod
 	boolean o_EqualsTupleType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aTupleType)
+		final AvailObject object,
+		final AvailObject aTupleType)
 	{
 		if (object.sameAddressAs(aTupleType))
 		{
@@ -210,23 +210,23 @@ extends TypeDescriptor
 
 	@Override @AvailMethod
 	boolean o_IsBetterRepresentationThan (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject anotherObject)
+		final AvailObject object,
+		final AvailObject anotherObject)
 	{
 		return !anotherObject.isBetterRepresentationThanTupleType(object);
 	}
 
 	@Override @AvailMethod
 	boolean o_IsBetterRepresentationThanTupleType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aTupleType)
+		final AvailObject object,
+		final AvailObject aTupleType)
 	{
 		return true;
 	}
 
 	@Override @AvailMethod
 	int o_Hash (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return TupleTypeDescriptor
 			.hashOfTupleTypeWithSizesHashTypesHashDefaultTypeHash(
@@ -236,8 +236,8 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeAtIndex (
-		final @NotNull AvailObject object,
+	AvailObject o_TypeAtIndex (
+		final AvailObject object,
 		final int index)
 	{
 		// Answer what type the given index would have in an object instance of
@@ -276,8 +276,8 @@ extends TypeDescriptor
 	 * </p>
 	 */
 	@Override @AvailMethod
-	@NotNull AvailObject o_UnionOfTypesAtThrough (
-		final @NotNull AvailObject object,
+	AvailObject o_UnionOfTypesAtThrough (
+		final AvailObject object,
 		final int startIndex,
 		final int endIndex)
 	{
@@ -308,8 +308,8 @@ extends TypeDescriptor
 
 	@Override @AvailMethod
 	boolean o_IsSubtypeOf (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aType)
+		final AvailObject object,
+		final AvailObject aType)
 	{
 		return aType.isSupertypeOfTupleType(object);
 	}
@@ -325,8 +325,8 @@ extends TypeDescriptor
 	 */
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfTupleType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aTupleType)
+		final AvailObject object,
+		final AvailObject aTupleType)
 	{
 		if (object.equals(aTupleType))
 		{
@@ -373,9 +373,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeIntersection (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+	AvailObject o_TypeIntersection (
+		final AvailObject object,
+		final AvailObject another)
 	{
 		if (object.isSubtypeOf(another))
 		{
@@ -389,9 +389,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeIntersectionOfTupleType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aTupleType)
+	AvailObject o_TypeIntersectionOfTupleType (
+		final AvailObject object,
+		final AvailObject aTupleType)
 	{
 		AvailObject newSizesObject =
 			object.sizeRange().typeIntersection(aTupleType.sizeRange());
@@ -454,9 +454,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeUnion (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+	AvailObject o_TypeUnion (
+		final AvailObject object,
+		final AvailObject another)
 	{
 		if (object.isSubtypeOf(another))
 		{
@@ -470,9 +470,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeUnionOfTupleType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aTupleType)
+	AvailObject o_TypeUnionOfTupleType (
+		final AvailObject object,
+		final AvailObject aTupleType)
 	{
 		final AvailObject newSizesObject =
 			object.sizeRange().typeUnion(aTupleType.sizeRange());
@@ -515,23 +515,23 @@ extends TypeDescriptor
 
 	@Override @AvailMethod
 	boolean o_IsTupleType (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		// I am a tupleType, so answer true.
 		return true;
 	}
 
 	@Override @AvailMethod @ThreadSafe
-	@NotNull SerializerOperation o_SerializerOperation (
-		final @NotNull AvailObject object)
+	SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.TUPLE_TYPE;
 	}
 
 	@Override
 	Object o_MarshalToJava (
-		final @NotNull AvailObject object,
-		final Class<?> ignoredClassHint)
+		final AvailObject object,
+		final @Nullable Class<?> ignoredClassHint)
 	{
 		if (object.isSubtypeOf(StringType))
 		{
@@ -630,10 +630,10 @@ extends TypeDescriptor
 	 * @param defaultType The types of remaining elements of conforming tuples.
 	 * @return A canonized tuple type with the specified properties.
 	 */
-	public static @NotNull AvailObject tupleTypeForSizesTypesDefaultType (
-		final @NotNull AvailObject sizeRange,
-		final @NotNull AvailObject typeTuple,
-		final @NotNull AvailObject defaultType)
+	public static AvailObject tupleTypeForSizesTypesDefaultType (
+		final AvailObject sizeRange,
+		final AvailObject typeTuple,
+		final AvailObject defaultType)
 	{
 		if (sizeRange.equals(BottomTypeDescriptor.bottom()))
 		{
@@ -694,9 +694,9 @@ extends TypeDescriptor
 	 * @return A tuple type with the specified properties.
 	 */
 	private static AvailObject privateTupleTypeForSizesTypesDefaultType (
-		final @NotNull AvailObject sizeRange,
-		final @NotNull AvailObject typeTuple,
-		final @NotNull AvailObject defaultType)
+		final AvailObject sizeRange,
+		final AvailObject typeTuple,
+		final AvailObject defaultType)
 	{
 		assert sizeRange.lowerBound().isFinite();
 		assert sizeRange.upperBound().isFinite() || !sizeRange.upperInclusive();

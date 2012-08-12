@@ -78,8 +78,8 @@ extends SetBinDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_BinElementAt (
-		final @NotNull AvailObject object,
+	AvailObject o_BinElementAt (
+		final AvailObject object,
 		final int subscript)
 	{
 		return object.slot(BIN_ELEMENT_AT_, subscript);
@@ -87,9 +87,9 @@ extends SetBinDescriptor
 
 	@Override @AvailMethod
 	void o_BinElementAtPut (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int subscript,
-		final @NotNull AvailObject value)
+		final AvailObject value)
 	{
 		//  GENERATED setter method (indexed).
 
@@ -97,8 +97,8 @@ extends SetBinDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_MakeImmutable (
-		final @NotNull AvailObject object)
+	AvailObject o_MakeImmutable (
+		final AvailObject object)
 	{
 		if (isMutable)
 		{
@@ -109,9 +109,9 @@ extends SetBinDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_SetBinAddingElementHashLevelCanDestroy (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject elementObject,
+	AvailObject o_SetBinAddingElementHashLevelCanDestroy (
+		final AvailObject object,
+		final AvailObject elementObject,
 		final int elementObjectHash,
 		final byte myLevel,
 		final boolean canDestroy)
@@ -230,8 +230,8 @@ extends SetBinDescriptor
 
 	@Override @AvailMethod
 	boolean o_BinHasElementWithHash (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject elementObject,
+		final AvailObject object,
+		final AvailObject elementObject,
 		final int elementObjectHash)
 	{
 		final int limit = object.variableObjectSlotsCount();
@@ -250,9 +250,9 @@ extends SetBinDescriptor
 	 * resulting bin.  The bin may be modified if it's mutable and canDestroy.
 	 */
 	@Override @AvailMethod
-	@NotNull AvailObject o_BinRemoveElementHashCanDestroy (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject elementObject,
+	AvailObject o_BinRemoveElementHashCanDestroy (
+		final AvailObject object,
+		final AvailObject elementObject,
 		final int elementObjectHash,
 		final boolean canDestroy)
 	{
@@ -308,8 +308,8 @@ extends SetBinDescriptor
 
 	@Override @AvailMethod
 	boolean o_IsBinSubsetOf (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject potentialSuperset)
+		final AvailObject object,
+		final AvailObject potentialSuperset)
 	{
 		//  Check if object, a bin, holds a subset of aSet's elements.
 
@@ -329,15 +329,15 @@ extends SetBinDescriptor
 
 	@Override @AvailMethod
 	int o_BinSize (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		// Answer how many elements this bin contains.
 		return object.variableObjectSlotsCount();
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_BinUnionKind (
-		final @NotNull AvailObject object)
+	AvailObject o_BinUnionKind (
+		final AvailObject object)
 	{
 		// Answer the nearest kind of the union of the types of this bin's
 		// elements.  I'm supposed to be small, so recalculate it per request.
@@ -353,9 +353,9 @@ extends SetBinDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull boolean o_BinElementsAreAllInstancesOfKind (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject kind)
+	boolean o_BinElementsAreAllInstancesOfKind (
+		final AvailObject object,
+		final AvailObject kind)
 	{
 		final int limit = object.variableObjectSlotsCount();
 		for (int index = 1; index <= limit; index++)
@@ -378,7 +378,7 @@ extends SetBinDescriptor
 	 * @param hash The hash of the bin's elements, or zero if unknown.
 	 * @return A new linear set bin with uninitialized element slots.
 	 */
-	public static @NotNull AvailObject createBin (
+	public static AvailObject createBin (
 		final byte level,
 		final int size,
 		final int hash)
@@ -398,10 +398,10 @@ extends SetBinDescriptor
 	 * @param secondElement The second element of the new bin.
 	 * @return A 2-element set bin.
 	 */
-	public static @NotNull AvailObject createPair (
+	public static AvailObject createPair (
 		final byte level,
-		final @NotNull AvailObject firstElement,
-		final @NotNull AvailObject secondElement)
+		final AvailObject firstElement,
+		final AvailObject secondElement)
 	{
 		final AvailObject instance = isMutableLevel(true, level).create(2);
 		instance.setSlot(BIN_ELEMENT_AT_, 1, firstElement);

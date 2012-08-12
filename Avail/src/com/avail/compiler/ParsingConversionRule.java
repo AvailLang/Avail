@@ -96,7 +96,7 @@ public enum ParsingConversionRule
 	 * @param number The rule number.
 	 * @return The appropriate parsing conversion rule.
 	 */
-	public static @NotNull ParsingConversionRule ruleNumber (final int number)
+	public static ParsingConversionRule ruleNumber (final int number)
 	{
 		switch (number)
 		{

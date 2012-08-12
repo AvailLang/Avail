@@ -174,7 +174,7 @@ public enum ParsingOperation
 		}
 
 		@Override
-		public @NotNull List<Integer> successorPcs (
+		public List<Integer> successorPcs (
 			final int instruction,
 			final int currentPc)
 		{
@@ -195,7 +195,7 @@ public enum ParsingOperation
 		}
 
 		@Override
-		public @NotNull List<Integer> successorPcs (
+		public List<Integer> successorPcs (
 			final int instruction,
 			final int currentPc)
 		{
@@ -256,7 +256,7 @@ public enum ParsingOperation
 		}
 
 		@Override
-		public @NotNull ParsingConversionRule conversionRule (
+		public ParsingConversionRule conversionRule (
 			final int instruction)
 		{
 			return ruleNumber(operand(instruction));
@@ -359,7 +359,7 @@ public enum ParsingOperation
 	 * @param currentPc The current program counter.
 	 * @return The list of successor program counters.
 	 */
-	public @NotNull List<Integer> successorPcs (
+	public List<Integer> successorPcs (
 		final int instruction,
 		final int currentPc)
 	{
@@ -387,7 +387,7 @@ public enum ParsingOperation
 	 * @param instruction A coded instruction.
 	 * @return The conversion rule, or {@code 0} if the assumption was false.
 	 */
-	public @NotNull ParsingConversionRule conversionRule (final int instruction)
+	public ParsingConversionRule conversionRule (final int instruction)
 	{
 		return noConversion;
 	}
@@ -399,7 +399,7 @@ public enum ParsingOperation
 	 * @param instruction A coded instruction.
 	 * @return The decoded operation.
 	 */
-	public static @NotNull ParsingOperation decode (final int instruction)
+	public static ParsingOperation decode (final int instruction)
 	{
 		final int selector = instruction & (distinctInstructions - 1);
 		if (instruction > distinctInstructions)

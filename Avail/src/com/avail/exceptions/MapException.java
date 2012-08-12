@@ -57,7 +57,7 @@ extends AvailRuntimeException
 	 * @param errorCode
 	 *        The {@linkplain AvailErrorCode error code}.
 	 */
-	public MapException (final @NotNull AvailErrorCode errorCode)
+	public MapException (final AvailErrorCode errorCode)
 	{
 		super(errorCode);
 	}
@@ -73,8 +73,8 @@ extends AvailRuntimeException
 	 *        MapException exception}.
 	 */
 	public MapException (
-		final @NotNull AvailErrorCode errorCode,
-		final @NotNull Throwable cause)
+		final AvailErrorCode errorCode,
+		final Throwable cause)
 	{
 		super(errorCode, cause);
 	}

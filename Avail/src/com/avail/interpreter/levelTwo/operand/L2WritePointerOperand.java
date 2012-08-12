@@ -50,7 +50,7 @@ public class L2WritePointerOperand extends L2Operand
 	/**
 	 * The actual {@link L2ObjectRegister}.
 	 */
-	public final @NotNull L2ObjectRegister register;
+	public final L2ObjectRegister register;
 
 	/**
 	 * Construct a new {@link L2WritePointerOperand} with the specified
@@ -59,7 +59,7 @@ public class L2WritePointerOperand extends L2Operand
 	 * @param register The object register.
 	 */
 	public L2WritePointerOperand (
-		final @NotNull L2ObjectRegister register)
+		final L2ObjectRegister register)
 	{
 		this.register = register;
 	}
@@ -78,7 +78,7 @@ public class L2WritePointerOperand extends L2Operand
 
 	@Override
 	public L2WritePointerOperand transformRegisters (
-		final @NotNull Transformer2<L2Register, L2OperandType, L2Register>
+		final Transformer2<L2Register, L2OperandType, L2Register>
 			transformer)
 	{
 		return new L2WritePointerOperand(
@@ -87,7 +87,7 @@ public class L2WritePointerOperand extends L2Operand
 
 	@Override
 	public void emitOn (
-		final @NotNull L2CodeGenerator codeGenerator)
+		final L2CodeGenerator codeGenerator)
 	{
 		codeGenerator.emitObjectRegister(register);
 	}

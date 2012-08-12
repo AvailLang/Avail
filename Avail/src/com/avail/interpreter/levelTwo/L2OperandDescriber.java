@@ -75,8 +75,8 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 	 * @param arguments The arguments to substitute in the format string.
 	 */
 	private void print (
-		final @NotNull String format,
-		final @NotNull Object... arguments)
+		final String format,
+		final Object... arguments)
 	{
 		_description.append(String.format(format, arguments));
 	}

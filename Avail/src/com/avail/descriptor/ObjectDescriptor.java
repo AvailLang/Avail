@@ -99,19 +99,19 @@ extends Descriptor
 
 	@Override
 	boolean allowsImmutableToMutableReferenceInField (
-		final @NotNull AbstractSlotsEnum e)
+		final AbstractSlotsEnum e)
 	{
 		return e == KIND;
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_FieldMap (final @NotNull AvailObject object)
+	AvailObject o_FieldMap (final AvailObject object)
 	{
 		return object.slot(FIELD_MAP);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_FieldTuple (final @NotNull AvailObject object)
+	AvailObject o_FieldTuple (final AvailObject object)
 	{
 		final AvailObject map = object.slot(FIELD_MAP);
 		final List<AvailObject> fieldAssignments = new ArrayList<AvailObject>(
@@ -125,16 +125,16 @@ extends Descriptor
 
 	@Override @AvailMethod
 	boolean o_Equals (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+		final AvailObject object,
+		final AvailObject another)
 	{
 		return another.equalsObject(object);
 	}
 
 	@Override @AvailMethod
 	boolean o_EqualsObject (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject anObject)
+		final AvailObject object,
+		final AvailObject anObject)
 	{
 		if (object.sameAddressAs(anObject))
 		{
@@ -145,8 +145,8 @@ extends Descriptor
 
 	@Override @AvailMethod
 	boolean o_IsInstanceOfKind (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aTypeObject)
+		final AvailObject object,
+		final AvailObject aTypeObject)
 	{
 		if (aTypeObject.isSupertypeOfPrimitiveTypeWithOrdinal(ANY.ordinal()))
 		{
@@ -157,15 +157,15 @@ extends Descriptor
 
 	@Override @AvailMethod
 	int o_Hash (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		// Answer the object's hash value.
 		return computeHashFromFieldMapHash(object.fieldMap().hash());
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_Kind (
-		final @NotNull AvailObject object)
+	AvailObject o_Kind (
+		final AvailObject object)
 	{
 		AvailObject kind = object.slot(KIND);
 		if (kind.equalsNull())
@@ -187,22 +187,22 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod @ThreadSafe
-	@NotNull SerializerOperation o_SerializerOperation (
-		final @NotNull AvailObject object)
+	SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.OBJECT;
 	}
 
 	@Override
 	public boolean o_ShowValueInNameForDebugger (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return false;
 	}
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final StringBuilder builder,
 		final List<AvailObject> recursionList,
 		final int indent)
@@ -284,8 +284,8 @@ extends Descriptor
 	 * @param map A map from keys to their corresponding values.
 	 * @return The new object.
 	 */
-	public static @NotNull AvailObject objectFromMap (
-		final @NotNull AvailObject map)
+	public static AvailObject objectFromMap (
+		final AvailObject map)
 	{
 		final AvailObject result = mutable().create();
 		result.setSlot(FIELD_MAP, map);
@@ -303,8 +303,8 @@ extends Descriptor
 	 *        value.
 	 * @return The new object.
 	 */
-	public static @NotNull AvailObject objectFromTuple (
-		final @NotNull AvailObject tuple)
+	public static AvailObject objectFromTuple (
+		final AvailObject tuple)
 	{
 		AvailObject map = MapDescriptor.empty();
 		for (final AvailObject fieldAssignment : tuple)

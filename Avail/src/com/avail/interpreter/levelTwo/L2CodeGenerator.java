@@ -53,7 +53,7 @@ import com.avail.interpreter.levelTwo.register.*;
 public final class L2CodeGenerator
 {
 	/** A {@linkplain Logger logger}. */
-	private static final @NotNull Logger logger =
+	private static final Logger logger =
 		Logger.getLogger(L2CodeGenerator.class.getCanonicalName());
 
 	/**
@@ -61,14 +61,14 @@ public final class L2CodeGenerator
 	 * L2ChunkDescriptor chunk} undergoing {@linkplain L2CodeGenerator code
 	 * generation}.
 	 */
-	private final @NotNull List<L2NamedOperandType> expectedNamedOperandTypes =
+	private final List<L2NamedOperandType> expectedNamedOperandTypes =
 		new ArrayList<L2NamedOperandType>(10);
 
 	/**
 	 * The {@linkplain AvailObject literals} that will be embedded into the
 	 * created {@linkplain L2ChunkDescriptor chunk}.
 	 */
-	private final @NotNull List<AvailObject> literals =
+	private final List<AvailObject> literals =
 		new ArrayList<AvailObject>(20);
 
 	/**
@@ -77,7 +77,7 @@ public final class L2CodeGenerator
 	 *
 	 * @param literal A {@linkplain AvailObject literal}.
 	 */
-	public void emitLiteral (final @NotNull AvailObject literal)
+	public void emitLiteral (final AvailObject literal)
 	{
 		final L2NamedOperandType expected = expectedNamedOperandTypes.remove(0);
 		final L2OperandType expectedOperandType = expected.operandType();
@@ -98,7 +98,7 @@ public final class L2CodeGenerator
 	 * L2ObjectRegister object registers}, grouped by {@linkplain
 	 * L2RegisterVector register vector}.
 	 */
-	private final @NotNull List<List<Integer>> vectors =
+	private final List<List<Integer>> vectors =
 		new ArrayList<List<Integer>>(20);
 
 	/**
@@ -106,7 +106,7 @@ public final class L2CodeGenerator
 	 * integers at index x, this {@link Map} contains the integer x at that list
 	 * of integers.
 	 */
-	private final @NotNull Map<List<Integer>, Integer> inverseVectors =
+	private final Map<List<Integer>, Integer> inverseVectors =
 		new HashMap<List<Integer>, Integer>(20);
 
 	/**
@@ -116,7 +116,7 @@ public final class L2CodeGenerator
 	 *
 	 * @param registerVector A {@linkplain L2RegisterVector register vector}.
 	 */
-	public void emitVector (final @NotNull L2RegisterVector registerVector)
+	public void emitVector (final L2RegisterVector registerVector)
 	{
 		final L2NamedOperandType expected = expectedNamedOperandTypes.remove(0);
 		final L2OperandType expectedOperandType = expected.operandType();
@@ -156,7 +156,7 @@ public final class L2CodeGenerator
 	 * @param objectRegister An {@linkplain L2ObjectRegister object register}.
 	 */
 	public void emitObjectRegister (
-		final @NotNull L2ObjectRegister objectRegister)
+		final L2ObjectRegister objectRegister)
 	{
 		final L2NamedOperandType expected = expectedNamedOperandTypes.remove(0);
 		final L2OperandType expectedOperandType = expected.operandType();
@@ -187,7 +187,7 @@ public final class L2CodeGenerator
 	 *        An {@linkplain L2IntegerRegister integer register}.
 	 */
 	public void emitIntegerRegister (
-		final @NotNull L2IntegerRegister integerRegister)
+		final L2IntegerRegister integerRegister)
 	{
 		final L2NamedOperandType expected = expectedNamedOperandTypes.remove(0);
 		final L2OperandType expectedOperandType = expected.operandType();
@@ -215,7 +215,7 @@ public final class L2CodeGenerator
 	 *
 	 * @param floatRegister An {@linkplain L2FloatRegister float register}.
 	 */
-	public void emitFloatRegister (final @NotNull L2FloatRegister floatRegister)
+	public void emitFloatRegister (final L2FloatRegister floatRegister)
 	{
 		final int index = floatRegister.finalIndex();
 		if (index != -1)
@@ -230,8 +230,8 @@ public final class L2CodeGenerator
 	 * methods} upon which the {@linkplain L2ChunkDescriptor chunk}
 	 * is dependent.
 	 */
-	private @NotNull
-	final Set<AvailObject> contingentImpSets = new HashSet<AvailObject>();
+	private final Set<AvailObject> contingentImpSets =
+		new HashSet<AvailObject>();
 
 	/**
 	 * Merge the specified {@link Set} of {@linkplain
@@ -244,7 +244,7 @@ public final class L2CodeGenerator
 	 *            methods}.
 	 */
 	public void addContingentMethods (
-		final @NotNull Set<AvailObject> setOfImpSets)
+		final Set<AvailObject> setOfImpSets)
 	{
 		contingentImpSets.addAll(setOfImpSets);
 	}
@@ -254,7 +254,7 @@ public final class L2CodeGenerator
 	 * L2ChunkDescriptor chunk} undergoing {@linkplain L2CodeGenerator code
 	 * generation}.
 	 */
-	private @NotNull List<Integer> wordcodes = new ArrayList<Integer>(20);
+	private List<Integer> wordcodes = new ArrayList<Integer>(20);
 
 	/**
 	 * Emit the specified wordcode into the instruction stream.
@@ -316,7 +316,7 @@ public final class L2CodeGenerator
 	 * @param operation
 	 *            The {@link L2Operation} to record.
 	 */
-	public void emitL2Operation (final @NotNull L2Operation operation)
+	public void emitL2Operation (final L2Operation operation)
 	{
 		assert expectedNamedOperandTypes.isEmpty();
 		wordcodes.add(operation.ordinal());
@@ -335,7 +335,7 @@ public final class L2CodeGenerator
 	 *        emitted.
 	 */
 	public void setInstructions (
-		final @NotNull List<L2Instruction> instructions)
+		final List<L2Instruction> instructions)
 	{
 		// Generate the instructions, but be prepared to discard the generated
 		// wordcodes. The wordcodes are generated as useless side-effect on this
@@ -374,8 +374,7 @@ public final class L2CodeGenerator
 	 *        code} currently undergoing translation to Level Two.
 	 * @return The translated {@linkplain L2ChunkDescriptor chunk}.
 	 */
-	@NotNull
-	public AvailObject createChunkFor (final @NotNull AvailObject code)
+	public AvailObject createChunkFor (final AvailObject code)
 	{
 		assert expectedNamedOperandTypes.isEmpty();
 		if (logger.isLoggable(Level.FINE))

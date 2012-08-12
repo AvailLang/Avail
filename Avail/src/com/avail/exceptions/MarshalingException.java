@@ -63,7 +63,7 @@ extends AvailRuntimeException
 	 *        The proximal {@linkplain Throwable cause} of the {@code
 	 *        MarshalingException exception}.
 	 */
-	public MarshalingException (final @NotNull Throwable cause)
+	public MarshalingException (final Throwable cause)
 	{
 		super(E_JAVA_MARSHALING_FAILED, cause);
 	}

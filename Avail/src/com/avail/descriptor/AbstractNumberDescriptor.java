@@ -253,158 +253,158 @@ extends Descriptor
 
 	@Override @AvailMethod
 	abstract boolean o_Equals (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailObject another);
 
 	@Override @AvailMethod
 	abstract Order o_NumericCompare (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another);
+		final AvailObject object,
+		final AvailObject another);
 
 	@Override @AvailMethod
 	abstract boolean o_IsInstanceOfKind (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailObject aType);
 
 	@Override @AvailMethod
 	abstract int o_Hash (
-		final @NotNull AvailObject object);
+		final AvailObject object);
 
 	@Override @AvailMethod
-	abstract @NotNull AvailObject o_DivideCanDestroy (
-		final @NotNull AvailObject object,
+	abstract AvailObject o_DivideCanDestroy (
+		final AvailObject object,
 		final AvailObject aNumber,
 		final boolean canDestroy);
 
 	@Override @AvailMethod
-	abstract @NotNull AvailObject o_MinusCanDestroy (
-		final @NotNull AvailObject object,
+	abstract AvailObject o_MinusCanDestroy (
+		final AvailObject object,
 		final AvailObject aNumber,
 		final boolean canDestroy);
 
 	@Override @AvailMethod
-	abstract @NotNull AvailObject o_PlusCanDestroy (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aNumber,
+	abstract AvailObject o_PlusCanDestroy (
+		final AvailObject object,
+		final AvailObject aNumber,
 		final boolean canDestroy);
 
 	@Override @AvailMethod
-	abstract @NotNull AvailObject o_TimesCanDestroy (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aNumber,
+	abstract AvailObject o_TimesCanDestroy (
+		final AvailObject object,
+		final AvailObject aNumber,
 		final boolean canDestroy);
 
 
 	// Double-dispatched operations.
 
 	@Override @AvailMethod
-	abstract @NotNull Order o_NumericCompareToInteger (
-		final @NotNull AvailObject object,
+	abstract Order o_NumericCompareToInteger (
+		final AvailObject object,
 		final AvailObject anInteger);
 
 	@Override @AvailMethod
-	abstract @NotNull Order o_NumericCompareToInfinity (
-		final @NotNull AvailObject object,
-		final @NotNull InfinityDescriptor.Sign sign);
+	abstract Order o_NumericCompareToInfinity (
+		final AvailObject object,
+		final InfinityDescriptor.Sign sign);
 
 	@Override @AvailMethod
-	abstract @NotNull Order o_NumericCompareToDouble (
-		final @NotNull AvailObject object,
+	abstract Order o_NumericCompareToDouble (
+		final AvailObject object,
 		final double double1);
 
 	@Override @AvailMethod
-	abstract @NotNull AvailObject o_AddToInfinityCanDestroy (
-		final @NotNull AvailObject object,
-		final @NotNull Sign sign,
+	abstract AvailObject o_AddToInfinityCanDestroy (
+		final AvailObject object,
+		final Sign sign,
 		final boolean canDestroy);
 
 	@Override @AvailMethod
-	abstract @NotNull AvailObject o_AddToIntegerCanDestroy (
-		final @NotNull AvailObject object,
+	abstract AvailObject o_AddToIntegerCanDestroy (
+		final AvailObject object,
 		final AvailObject anInteger,
 		final boolean canDestroy);
 
 	@Override @AvailMethod
-	abstract @NotNull AvailObject o_AddToDoubleCanDestroy (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject doubleObject,
+	abstract AvailObject o_AddToDoubleCanDestroy (
+		final AvailObject object,
+		final AvailObject doubleObject,
 		final boolean canDestroy);
 
 	@Override @AvailMethod
-	abstract @NotNull AvailObject o_AddToFloatCanDestroy (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject floatObject,
+	abstract AvailObject o_AddToFloatCanDestroy (
+		final AvailObject object,
+		final AvailObject floatObject,
 		boolean canDestroy);
 
 	@Override @AvailMethod
-	abstract @NotNull AvailObject o_DivideIntoInfinityCanDestroy (
-		final @NotNull AvailObject object,
-		final @NotNull Sign sign,
+	abstract AvailObject o_DivideIntoInfinityCanDestroy (
+		final AvailObject object,
+		final Sign sign,
 		final boolean canDestroy);
 
 	@Override @AvailMethod
-	abstract @NotNull AvailObject o_DivideIntoIntegerCanDestroy (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject anInteger,
+	abstract AvailObject o_DivideIntoIntegerCanDestroy (
+		final AvailObject object,
+		final AvailObject anInteger,
 		final boolean canDestroy);
 
 	@Override @AvailMethod
-	abstract @NotNull AvailObject o_MultiplyByInfinityCanDestroy (
-		final @NotNull AvailObject object,
-		final @NotNull Sign sign,
+	abstract AvailObject o_MultiplyByInfinityCanDestroy (
+		final AvailObject object,
+		final Sign sign,
 		final boolean canDestroy);
 
 	@Override @AvailMethod
-	abstract @NotNull AvailObject o_MultiplyByIntegerCanDestroy (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject anInteger,
+	abstract AvailObject o_MultiplyByIntegerCanDestroy (
+		final AvailObject object,
+		final AvailObject anInteger,
 		final boolean canDestroy);
 
 	@Override @AvailMethod
-	abstract @NotNull AvailObject o_SubtractFromInfinityCanDestroy (
-		final @NotNull AvailObject object,
-		final @NotNull Sign sign,
+	abstract AvailObject o_SubtractFromInfinityCanDestroy (
+		final AvailObject object,
+		final Sign sign,
 		final boolean canDestroy);
 
 	@Override @AvailMethod
-	abstract @NotNull AvailObject o_SubtractFromIntegerCanDestroy (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject anInteger,
+	abstract AvailObject o_SubtractFromIntegerCanDestroy (
+		final AvailObject object,
+		final AvailObject anInteger,
 		final boolean canDestroy);
 
 	@Override @AvailMethod
 	abstract AvailObject o_SubtractFromDoubleCanDestroy (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailObject doubleObject,
 		final boolean canDestroy);
 
 	@Override @AvailMethod
 	abstract AvailObject o_SubtractFromFloatCanDestroy (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailObject floatObject,
 		final boolean canDestroy);
 
 	@Override @AvailMethod
 	abstract AvailObject o_MultiplyByDoubleCanDestroy (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailObject doubleObject,
 		final boolean canDestroy);
 
 	@Override @AvailMethod
 	abstract AvailObject o_MultiplyByFloatCanDestroy (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailObject floatObject,
 		final boolean canDestroy);
 
 	@Override @AvailMethod
 	abstract AvailObject o_DivideIntoDoubleCanDestroy (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailObject doubleObject,
 		final boolean canDestroy);
 
 	@Override @AvailMethod
 	abstract AvailObject o_DivideIntoFloatCanDestroy (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailObject floatObject,
 		final boolean canDestroy);
 

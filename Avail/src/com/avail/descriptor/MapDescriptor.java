@@ -88,8 +88,8 @@ public class MapDescriptor extends Descriptor
 	 * @param object The map from which to extract the root bin.
 	 * @return The map's bin.
 	 */
-	private static @NotNull AvailObject rootBin (
-		final @NotNull AvailObject object)
+	private static AvailObject rootBin (
+		final AvailObject object)
 	{
 		return object.slot(ObjectSlots.ROOT_BIN);
 	}
@@ -105,17 +105,17 @@ public class MapDescriptor extends Descriptor
 	 *            The root bin for the map, or the null object.
 	 */
 	private static void rootBin (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject bin)
+		final AvailObject object,
+		final AvailObject bin)
 	{
 		object.setSlot(ObjectSlots.ROOT_BIN, bin);
 	}
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-		final @NotNull AvailObject object,
-		final @NotNull StringBuilder aStream,
-		final @NotNull List<AvailObject> recursionList,
+		final AvailObject object,
+		final StringBuilder aStream,
+		final List<AvailObject> recursionList,
 		final int indent)
 	{
 		boolean multiline = false;
@@ -178,15 +178,15 @@ public class MapDescriptor extends Descriptor
 
 	@Override @AvailMethod
 	boolean o_Equals (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+		final AvailObject object,
+		final AvailObject another)
 	{
 		return another.equalsMap(object);
 	}
 
 	@Override @AvailMethod
 	boolean o_EqualsMap (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailObject aMap)
 	{
 		if (object.sameAddressAs(aMap))
@@ -223,7 +223,7 @@ public class MapDescriptor extends Descriptor
 
 	@Override @AvailMethod
 	boolean o_IsInstanceOfKind (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailObject aTypeObject)
 	{
 		if (aTypeObject.isSupertypeOfPrimitiveTypeWithOrdinal(ANY.ordinal()))
@@ -296,7 +296,7 @@ public class MapDescriptor extends Descriptor
 
 	@Override @AvailMethod
 	int o_Hash (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		// A map's hash is a simple function of its rootBin's keysHash and
 		// valuesHash.
@@ -310,14 +310,14 @@ public class MapDescriptor extends Descriptor
 
 	@Override @AvailMethod
 	boolean o_IsMap (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_Kind (
-		final @NotNull AvailObject object)
+	AvailObject o_Kind (
+		final AvailObject object)
 	{
 		final int size = object.mapSize();
 		final AvailObject sizeRange = InstanceTypeDescriptor.on(
@@ -330,8 +330,8 @@ public class MapDescriptor extends Descriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_MapAt (
-		final @NotNull AvailObject object,
+	AvailObject o_MapAt (
+		final AvailObject object,
 		final AvailObject keyObject)
 	{
 		// Answer the value of the map at the specified key.  Fail if the key is
@@ -347,8 +347,8 @@ public class MapDescriptor extends Descriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_MapAtPuttingCanDestroy (
-		final @NotNull AvailObject object,
+	AvailObject o_MapAtPuttingCanDestroy (
+		final AvailObject object,
 		final AvailObject keyObject,
 		final AvailObject newValueObject,
 		final boolean canDestroy)
@@ -377,8 +377,8 @@ public class MapDescriptor extends Descriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_KeysAsSet (
-		final @NotNull AvailObject object)
+	AvailObject o_KeysAsSet (
+		final AvailObject object)
 	{
 		// Answer a set with all my keys.  Mark the keys as immutable because
 		// they'll be shared with the new set.
@@ -397,8 +397,8 @@ public class MapDescriptor extends Descriptor
 	 * they'll be shared with the new tuple.
 	 */
 	@Override @AvailMethod
-	@NotNull AvailObject o_ValuesAsTuple (
-		final @NotNull AvailObject object)
+	AvailObject o_ValuesAsTuple (
+		final AvailObject object)
 	{
 		final int size = object.mapSize();
 		final AvailObject result = ObjectTupleDescriptor.mutable().create(size);
@@ -419,8 +419,8 @@ public class MapDescriptor extends Descriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_MapWithoutKeyCanDestroy (
-		final @NotNull AvailObject object,
+	AvailObject o_MapWithoutKeyCanDestroy (
+		final AvailObject object,
 		final AvailObject keyObject,
 		final boolean canDestroy)
 	{
@@ -450,7 +450,7 @@ public class MapDescriptor extends Descriptor
 
 	@Override @AvailMethod
 	boolean o_HasKey (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final AvailObject key)
 	{
 		// Answer whether the map has the given key.
@@ -459,7 +459,7 @@ public class MapDescriptor extends Descriptor
 
 	@Override @AvailMethod
 	int o_MapSize (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		// Answer how many elements are in the set.  Delegate to the rootBin.
 		return rootBin(object).binSize();
@@ -467,22 +467,22 @@ public class MapDescriptor extends Descriptor
 
 	@Override @AvailMethod
 	MapDescriptor.MapIterable o_MapIterable (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return rootBin(object).mapBinIterable();
 		// return new MapIterable(rootBin(object));
 	}
 
 	@Override @AvailMethod @ThreadSafe
-	@NotNull SerializerOperation o_SerializerOperation (
-		final @NotNull AvailObject object)
+	SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.MAP;
 	}
 
 	@Override
 	public boolean o_ShowValueInNameForDebugger (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return false;
 	}
@@ -599,8 +599,8 @@ public class MapDescriptor extends Descriptor
 	 *        A tuple of key-value bindings, i.e. 2-element tuples.
 	 * @return A new map.
 	 */
-	public static @NotNull AvailObject newWithBindings (
-		final @NotNull AvailObject tupleOfBindings)
+	public static AvailObject newWithBindings (
+		final AvailObject tupleOfBindings)
 	{
 		assert tupleOfBindings.isTuple();
 		AvailObject newMap = EmptyMap;
@@ -623,8 +623,8 @@ public class MapDescriptor extends Descriptor
 	 * @param rootBin The rootBin to use in the new map.
 	 * @return A new mutable map.
 	 */
-	public static @NotNull AvailObject createFromBin (
-		final @NotNull AvailObject rootBin)
+	public static AvailObject createFromBin (
+		final AvailObject rootBin)
 	{
 		final AvailObject newMap = MapDescriptor.mutable().create();
 		rootBin(newMap, rootBin);
@@ -645,9 +645,9 @@ public class MapDescriptor extends Descriptor
 	 *        otherwise.
 	 * @return The resultant map.
 	 */
-	public static @NotNull AvailObject combineMapsCanDestroy (
-		final @NotNull AvailObject destination,
-		final @NotNull AvailObject source,
+	public static AvailObject combineMapsCanDestroy (
+		final AvailObject destination,
+		final AvailObject source,
 		final boolean canDestroy)
 	{
 		assert destination.isMap();

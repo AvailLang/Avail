@@ -91,42 +91,42 @@ extends TypeDescriptor
 
 	@Override @AvailMethod
 	int o_HashOrZero (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.slot(IntegerSlots.HASH_OR_ZERO);
 	}
 
 	@Override @AvailMethod
 	void o_HashOrZero (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int value)
 	{
 		object.setSlot(IntegerSlots.HASH_OR_ZERO, value);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_DeclaredExceptions (
-		final @NotNull AvailObject object)
+	AvailObject o_DeclaredExceptions (
+		final AvailObject object)
 	{
 		return object.slot(ObjectSlots.CHECKED_EXCEPTIONS);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_ReturnType (
-		final @NotNull AvailObject object)
+	AvailObject o_ReturnType (
+		final AvailObject object)
 	{
 		return object.slot(ObjectSlots.RETURN_TYPE);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_ArgsTupleType (
-		final @NotNull AvailObject object)
+	AvailObject o_ArgsTupleType (
+		final AvailObject object)
 	{
 		return object.slot(ObjectSlots.ARGS_TUPLE_TYPE);
 	}
 
 	@Override boolean allowsImmutableToMutableReferenceInField (
-		final @NotNull AbstractSlotsEnum e)
+		final AbstractSlotsEnum e)
 	{
 		return e == IntegerSlots.HASH_OR_ZERO;
 	}
@@ -141,9 +141,9 @@ extends TypeDescriptor
 	 * @param indent What level to indent subsequent lines.
 	 */
 	private static void printListOnAvoidingIndent (
-		final @NotNull List<AvailObject> objects,
-		final @NotNull StringBuilder aStream,
-		final @NotNull List<AvailObject> recursionList,
+		final List<AvailObject> objects,
+		final StringBuilder aStream,
+		final List<AvailObject> recursionList,
 		final int indent)
 	{
 		final int objectCount = objects.size();
@@ -202,9 +202,9 @@ extends TypeDescriptor
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-		final @NotNull AvailObject object,
-		final @NotNull StringBuilder aStream,
-		final @NotNull List<AvailObject> recursionList,
+		final AvailObject object,
+		final StringBuilder aStream,
+		final List<AvailObject> recursionList,
 		final int indent)
 	{
 		aStream.append('[');
@@ -270,16 +270,16 @@ extends TypeDescriptor
 
 	@Override @AvailMethod
 	boolean o_Equals (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+		final AvailObject object,
+		final AvailObject another)
 	{
 		return another.equalsFunctionType(object);
 	}
 
 	@Override @AvailMethod
 	boolean o_EqualsFunctionType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aType)
+		final AvailObject object,
+		final AvailObject aType)
 	{
 		if (object.sameAddressAs(aType))
 		{
@@ -317,7 +317,7 @@ extends TypeDescriptor
 	 */
 	@Override @AvailMethod
 	int o_Hash (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		int hash = object.hashOrZero();
 		if (hash == 0)
@@ -333,16 +333,16 @@ extends TypeDescriptor
 
 	@Override @AvailMethod
 	boolean o_AcceptsArgTypesFromFunctionType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject functionType)
+		final AvailObject object,
+		final AvailObject functionType)
 	{
 		return functionType.argsTupleType().isSubtypeOf(object.argsTupleType());
 	}
 
 	@Override @AvailMethod
 	boolean o_AcceptsListOfArgTypes (
-		final @NotNull AvailObject object,
-		final @NotNull List<AvailObject> argTypes)
+		final AvailObject object,
+		final List<AvailObject> argTypes)
 	{
 		final AvailObject tupleType = object.argsTupleType();
 		for (int i = 1, end = argTypes.size(); i <= end; i++)
@@ -357,8 +357,8 @@ extends TypeDescriptor
 
 	@Override @AvailMethod
 	boolean o_AcceptsListOfArgValues (
-		final @NotNull AvailObject object,
-		final @NotNull List<AvailObject> argValues)
+		final AvailObject object,
+		final List<AvailObject> argValues)
 	{
 		final AvailObject tupleType = object.argsTupleType();
 		for (int i = 1, end = argValues.size(); i <= end; i++)
@@ -374,8 +374,8 @@ extends TypeDescriptor
 
 	@Override @AvailMethod
 	boolean o_AcceptsTupleOfArgTypes (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject argTypes)
+		final AvailObject object,
+		final AvailObject argTypes)
 	{
 		final AvailObject tupleType = object.argsTupleType();
 		for (int i = 1, end = argTypes.tupleSize(); i <= end; i++)
@@ -390,8 +390,8 @@ extends TypeDescriptor
 
 	@Override @AvailMethod
 	boolean o_AcceptsTupleOfArguments (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject arguments)
+		final AvailObject object,
+		final AvailObject arguments)
 	{
 		return arguments.isInstanceOf(object.argsTupleType());
 	}
@@ -407,8 +407,8 @@ extends TypeDescriptor
 	 */
 	@Override @AvailMethod
 	boolean o_CouldEverBeInvokedWith (
-		final @NotNull AvailObject object,
-		final @NotNull List<AvailObject> argTypes)
+		final AvailObject object,
+		final List<AvailObject> argTypes)
 	{
 		final AvailObject tupleType = object.argsTupleType();
 		for (int i = 1, end = argTypes.size(); i <= end; i++)
@@ -427,8 +427,8 @@ extends TypeDescriptor
 
 	@Override @AvailMethod
 	boolean o_IsSubtypeOf (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aType)
+		final AvailObject object,
+		final AvailObject aType)
 	{
 		return aType.isSupertypeOfFunctionType(object);
 	}
@@ -445,8 +445,8 @@ extends TypeDescriptor
 	 */
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfFunctionType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aFunctionType)
+		final AvailObject object,
+		final AvailObject aFunctionType)
 	{
 		if (object.equals(aFunctionType))
 		{
@@ -472,9 +472,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeIntersection (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+	AvailObject o_TypeIntersection (
+		final AvailObject object,
+		final AvailObject another)
 	{
 		if (object.isSubtypeOf(another))
 		{
@@ -488,9 +488,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeIntersectionOfFunctionType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aFunctionType)
+	AvailObject o_TypeIntersectionOfFunctionType (
+		final AvailObject object,
+		final AvailObject aFunctionType)
 	{
 		final AvailObject tupleTypeUnion =
 			object.slot(ObjectSlots.ARGS_TUPLE_TYPE).typeUnion(
@@ -515,9 +515,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeUnion (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+	AvailObject o_TypeUnion (
+		final AvailObject object,
+		final AvailObject another)
 	{
 		if (object.isSubtypeOf(another))
 		{
@@ -531,9 +531,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeUnionOfFunctionType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aFunctionType)
+	AvailObject o_TypeUnionOfFunctionType (
+		final AvailObject object,
+		final AvailObject aFunctionType)
 	{
 		// Subobjects may be shared with result.
 		object.makeSubobjectsImmutable();
@@ -552,8 +552,8 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod @ThreadSafe
-	@NotNull SerializerOperation o_SerializerOperation (
-		final @NotNull AvailObject object)
+	SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.FUNCTION_TYPE;
 	}
@@ -568,8 +568,8 @@ extends TypeDescriptor
 	 * @return A normalized exception {@linkplain SetDescriptor set}.
 	 * @see AvailObject#declaredExceptions()
 	 */
-	private static @NotNull AvailObject normalizeExceptionSet (
-		final @NotNull AvailObject exceptionSet)
+	private static AvailObject normalizeExceptionSet (
+		final AvailObject exceptionSet)
 	{
 		// This is probably the most common case -- no checked exceptions.
 		// Return the argument.
@@ -635,10 +635,10 @@ extends TypeDescriptor
 	 *        ObjectTypeDescriptor exception types} that an instance may raise.
 	 * @return A {@linkplain FunctionTypeDescriptor function type}.
 	 */
-	public static @NotNull AvailObject createWithArgumentTupleType (
-		final @NotNull AvailObject argsTupleType,
-		final @NotNull AvailObject returnType,
-		final @NotNull AvailObject exceptionSet)
+	public static AvailObject createWithArgumentTupleType (
+		final AvailObject argsTupleType,
+		final AvailObject returnType,
+		final AvailObject exceptionSet)
 	{
 		assert argsTupleType.isTupleType();
 		final AvailObject exceptionsReduced =
@@ -670,10 +670,10 @@ extends TypeDescriptor
 	 *        ObjectTypeDescriptor exception types} that an instance may raise.
 	 * @return A {@linkplain FunctionTypeDescriptor function type}.
 	 */
-	public static @NotNull AvailObject create (
-		final @NotNull AvailObject argTypes,
-		final @NotNull AvailObject returnType,
-		final @NotNull AvailObject exceptionSet)
+	public static AvailObject create (
+		final AvailObject argTypes,
+		final AvailObject returnType,
+		final AvailObject exceptionSet)
 	{
 		final AvailObject tupleType =
 			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
@@ -698,9 +698,9 @@ extends TypeDescriptor
 	 *        should produce.
 	 * @return A {@linkplain FunctionTypeDescriptor function type}.
 	 */
-	public static @NotNull AvailObject create (
-		final @NotNull AvailObject argTypes,
-		final @NotNull AvailObject returnType)
+	public static AvailObject create (
+		final AvailObject argTypes,
+		final AvailObject returnType)
 	{
 		return create(
 			argTypes,
@@ -719,8 +719,8 @@ extends TypeDescriptor
 	 * @return
 	 *            A {@linkplain FunctionTypeDescriptor function type}
 	 */
-	public static @NotNull AvailObject forReturnType (
-		final @NotNull AvailObject returnType)
+	public static AvailObject forReturnType (
+		final AvailObject returnType)
 	{
 		return createWithArgumentTupleType(
 			BottomTypeDescriptor.bottom(),

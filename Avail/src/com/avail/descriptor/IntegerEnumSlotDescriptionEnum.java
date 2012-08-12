@@ -32,6 +32,8 @@
 
 package com.avail.descriptor;
 
+import com.avail.annotations.Nullable;
+
 /**
  * The {@code IntegerEnumSlotDescriptionEnum} is an interface that constrains an
  * enumeration used to describe the values that can occur in a particular
@@ -52,7 +54,7 @@ public interface IntegerEnumSlotDescriptionEnum
 	 *
 	 * @return A string that names this enumeration value.
 	 */
-	public String name();
+	public @Nullable String name();
 
 	/**
 	 * Answer an integer that identifies this enumeration value uniquely within

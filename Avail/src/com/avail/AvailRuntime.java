@@ -58,7 +58,7 @@ implements ThreadFactory
 	 * The {@linkplain InheritableThreadLocal thread-local} {@linkplain
 	 * AvailRuntime Avail runtime}
 	 */
-	private static final @NotNull InheritableThreadLocal<AvailRuntime> current =
+	private static final InheritableThreadLocal<AvailRuntime> current =
 		new InheritableThreadLocal<AvailRuntime>();
 
 	/**
@@ -69,7 +69,7 @@ implements ThreadFactory
 	 * @param runtime
 	 *        An Avail runtime.
 	 */
-	static final void setCurrent (final @NotNull AvailRuntime runtime)
+	static final void setCurrent (final AvailRuntime runtime)
 	{
 		current.set(runtime);
 	}
@@ -89,15 +89,16 @@ implements ThreadFactory
 	}
 
 	@Override
-	public @NotNull AvailThread newThread (final @NotNull Runnable runnable)
+	public AvailThread newThread (final @Nullable Runnable runnable)
 	{
+		assert runnable != null;
 		return new AvailThread(this, runnable);
 	}
 
 	/**
 	 * A general purpose {@linkplain Random pseudo-random number generator}.
 	 */
-	private static final @NotNull Random rng = new Random();
+	private static final Random rng = new Random();
 
 	/**
 	 * Answer a new value suitable for use as the {@linkplain AvailObject#hash()
@@ -119,7 +120,7 @@ implements ThreadFactory
 	 * {@linkplain AvailRuntime runtime} should use to resolve unqualified
 	 * {@linkplain ModuleDescriptor module} names.
 	 */
-	private @NotNull ModuleNameResolver moduleNameResolver;
+	private ModuleNameResolver moduleNameResolver;
 
 	/**
 	 * Answer the {@linkplain ModuleNameResolver module name resolver} that this
@@ -128,7 +129,7 @@ implements ThreadFactory
 	 *
 	 * @return A {@linkplain ModuleNameResolver module name resolver}.
 	 */
-	public @NotNull ModuleNameResolver moduleNameResolver ()
+	public ModuleNameResolver moduleNameResolver ()
 	{
 		return moduleNameResolver;
 	}
@@ -139,7 +140,7 @@ implements ThreadFactory
 	 * @return The Avail {@linkplain ModuleRoots module roots}.
 	 */
 	@ThreadSafe
-	public @NotNull ModuleRoots moduleRoots ()
+	public ModuleRoots moduleRoots ()
 	{
 		return moduleNameResolver.moduleRoots();
 	}
@@ -148,7 +149,7 @@ implements ThreadFactory
 	 * The {@linkplain ClassLoader class loader} that should be used to locate
 	 * and load Java {@linkplain Class classes}.
 	 */
-	private final @NotNull ClassLoader classLoader;
+	private final ClassLoader classLoader;
 
 	/**
 	 * Answer the {@linkplain ClassLoader class loader} that should be used to
@@ -156,13 +157,13 @@ implements ThreadFactory
 	 *
 	 * @return A class loader.
 	 */
-	public @NotNull ClassLoader classLoader ()
+	public ClassLoader classLoader ()
 	{
 		return classLoader;
 	}
 
 	/** The {@linkplain PrintStream standard output stream}. */
-	private @NotNull PrintStream standardOutputStream = System.out;
+	private PrintStream standardOutputStream = System.out;
 
 	/**
 	 * Answer the {@linkplain PrintStream standard output stream}.
@@ -170,7 +171,7 @@ implements ThreadFactory
 	 * @return The standard output stream.
 	 */
 	@ThreadSafe
-	public @NotNull PrintStream standardOutputStream ()
+	public PrintStream standardOutputStream ()
 	{
 		runtimeLock.readLock().lock();
 		try
@@ -184,7 +185,7 @@ implements ThreadFactory
 	}
 
 	/** The {@linkplain PrintStream standard error stream}. */
-	private @NotNull PrintStream standardErrorStream = System.err;
+	private PrintStream standardErrorStream = System.err;
 
 	/**
 	 * Answer the {@linkplain PrintStream standard error stream}.
@@ -192,7 +193,7 @@ implements ThreadFactory
 	 * @return The standard error stream.
 	 */
 	@ThreadSafe
-	public @NotNull PrintStream standardErrorStream ()
+	public PrintStream standardErrorStream ()
 	{
 		runtimeLock.readLock().lock();
 		try
@@ -206,7 +207,7 @@ implements ThreadFactory
 	}
 
 	/** The {@linkplain InputStream standard input stream}. */
-	private @NotNull InputStream standardInputStream = System.in;
+	private InputStream standardInputStream = System.in;
 
 	/**
 	 * Answer the {@linkplain PrintStream standard input stream}.
@@ -214,7 +215,7 @@ implements ThreadFactory
 	 * @return The standard input stream.
 	 */
 	@ThreadSafe
-	public @NotNull InputStream standardInputStream ()
+	public InputStream standardInputStream ()
 	{
 		runtimeLock.readLock().lock();
 		try
@@ -228,7 +229,7 @@ implements ThreadFactory
 	}
 
 	/** The {@linkplain Reader standard input reader}. */
-	private @NotNull Reader standardInputReader = new BufferedReader(
+	private Reader standardInputReader = new BufferedReader(
 		new InputStreamReader(standardInputStream));
 
 	/**
@@ -237,7 +238,7 @@ implements ThreadFactory
 	 * @return The standard input reader.
 	 */
 	@ThreadSafe
-	public @NotNull Reader standardInputReader ()
+	public Reader standardInputReader ()
 	{
 		runtimeLock.readLock().lock();
 		try
@@ -306,8 +307,8 @@ implements ThreadFactory
 	 *        locate and dynamically load Java {@linkplain Class classes}.
 	 */
 	public AvailRuntime (
-		final @NotNull ModuleNameResolver moduleNameResolver,
-		final @NotNull ClassLoader classLoader)
+		final ModuleNameResolver moduleNameResolver,
+		final ClassLoader classLoader)
 	{
 		this.moduleNameResolver = moduleNameResolver;
 		this.classLoader = classLoader;
@@ -326,7 +327,7 @@ implements ThreadFactory
 	 *        {@linkplain AvailRuntime runtime} should use to resolve
 	 *        unqualified {@linkplain ModuleDescriptor module} names.
 	 */
-	public AvailRuntime (final @NotNull ModuleNameResolver moduleNameResolver)
+	public AvailRuntime (final ModuleNameResolver moduleNameResolver)
 	{
 		this(moduleNameResolver, AvailRuntime.class.getClassLoader());
 	}
@@ -336,14 +337,14 @@ implements ThreadFactory
 	 * {@linkplain AvailRuntime runtime} data structures against dangerous
 	 * concurrent access.
 	 */
-	private final @NotNull ReentrantReadWriteLock runtimeLock =
+	private final ReentrantReadWriteLock runtimeLock =
 		new ReentrantReadWriteLock();
 
 	/**
 	 * The {@linkplain AvailObject special objects} of the {@linkplain
 	 * AvailRuntime runtime}.
 	 */
-	private static final @NotNull AvailObject[] specialObjects =
+	private static final AvailObject[] specialObjects =
 		new AvailObject[150];
 
 	/**
@@ -362,7 +363,7 @@ implements ThreadFactory
 	 * @return The special objects.
 	 */
 	@ThreadSafe
-	public static @NotNull List<AvailObject> specialObjects ()
+	public static List<AvailObject> specialObjects ()
 	{
 		return specialObjectsList;
 	}
@@ -396,13 +397,13 @@ implements ThreadFactory
 	 * The {@linkplain AtomDescriptor special atoms} known to the {@linkplain
 	 * AvailRuntime runtime}.
 	 */
-	private static final @NotNull List<AvailObject> specialAtomsList =
+	private static final List<AvailObject> specialAtomsList =
 		Collections.unmodifiableList(Arrays.asList(specialAtoms));
 
 	/**
 	 * The {@link Set} of special {@linkplain AtomDescriptor atoms}.
 	 */
-	private static @NotNull Set<AvailObject> specialAtomsSet;
+	private static Set<AvailObject> specialAtomsSet;
 
 	/**
 	 * Answer the {@linkplain AtomDescriptor special atoms} known to the
@@ -412,7 +413,7 @@ implements ThreadFactory
 	 * @return The special atoms list.
 	 */
 	@ThreadSafe
-	public static @NotNull List<AvailObject> specialAtoms()
+	public static List<AvailObject> specialAtoms()
 	{
 		return specialAtomsList;
 	}
@@ -427,7 +428,7 @@ implements ThreadFactory
 	 *         {@code false} otherwise.
 	 */
 	@ThreadSafe
-	public static boolean isSpecialAtom (final @NotNull AvailObject atom)
+	public static boolean isSpecialAtom (final AvailObject atom)
 	{
 		return specialAtomsSet.contains(atom);
 	}
@@ -729,7 +730,7 @@ implements ThreadFactory
 	 * {@linkplain MapDescriptor map} from {@linkplain TupleDescriptor module
 	 * names} to {@linkplain ModuleDescriptor modules}.
 	 */
-	private @NotNull AvailObject modules = MapDescriptor.empty();
+	private AvailObject modules = MapDescriptor.empty();
 
 	/**
 	 * Add the specified {@linkplain ModuleDescriptor module} to the
@@ -738,7 +739,7 @@ implements ThreadFactory
 	 * @param aModule A {@linkplain ModuleDescriptor module}.
 	 */
 	@ThreadSafe
-	public void addModule (final @NotNull AvailObject aModule)
+	public void addModule (final AvailObject aModule)
 	{
 		runtimeLock.writeLock().lock();
 		try
@@ -782,7 +783,7 @@ implements ThreadFactory
 	 *          {@linkplain TupleDescriptor name}, {@code false} otherwise.
 	 */
 	@ThreadSafe
-	public boolean includesModuleNamed (final @NotNull AvailObject moduleName)
+	public boolean includesModuleNamed (final AvailObject moduleName)
 	{
 		assert moduleName.isString();
 
@@ -805,7 +806,7 @@ implements ThreadFactory
 	 * @return A {@linkplain ModuleDescriptor module}.
 	 */
 	@ThreadSafe
-	public @NotNull AvailObject moduleAt (final @NotNull AvailObject moduleName)
+	public AvailObject moduleAt (final AvailObject moduleName)
 	{
 		assert moduleName.isString();
 
@@ -827,7 +828,7 @@ implements ThreadFactory
 	 * {@linkplain AtomDescriptor method name} to {@linkplain
 	 * MethodDescriptor method}.
 	 */
-	private @NotNull AvailObject methods = MapDescriptor.empty();
+	private AvailObject methods = MapDescriptor.empty();
 
 	/**
 	 * Are there any {@linkplain MethodDescriptor methods} bound to
@@ -839,7 +840,7 @@ implements ThreadFactory
 	 *         AtomDescriptor selector}, {@code false} otherwise.
 	 */
 	@ThreadSafe
-	public boolean hasMethodsAt (final @NotNull AvailObject selector)
+	public boolean hasMethodsAt (final AvailObject selector)
 	{
 		assert selector.isAtom();
 
@@ -861,7 +862,7 @@ implements ThreadFactory
 	 */
 	@ThreadSafe
 	public void addMethod (
-		final @NotNull AvailObject method)
+		final AvailObject method)
 	{
 		runtimeLock.writeLock().lock();
 		try
@@ -888,8 +889,8 @@ implements ThreadFactory
 	 * @return An {@linkplain MethodDescriptor method}.
 	 */
 	@ThreadSafe
-	public @NotNull AvailObject methodFor (
-		final @NotNull AvailObject methodName)
+	public AvailObject methodFor (
+		final AvailObject methodName)
 	{
 		runtimeLock.writeLock().lock();
 		try
@@ -928,7 +929,7 @@ implements ThreadFactory
 	 *            or {@linkplain NullDescriptor the null object}.
 	 */
 	@ThreadSafe
-	public @NotNull AvailObject methodsAt (final @NotNull AvailObject selector)
+	public AvailObject methodsAt (final AvailObject selector)
 	{
 		assert selector.isAtom();
 
@@ -959,8 +960,8 @@ implements ThreadFactory
 	 */
 	@ThreadSafe
 	public void removeMethod (
-		final @NotNull AvailObject selector,
-		final @NotNull AvailObject implementation)
+		final AvailObject selector,
+		final AvailObject implementation)
 	{
 		assert selector.isAtom();
 
@@ -1066,8 +1067,8 @@ implements ThreadFactory
 	 *        The signature at which to seal the method.
 	 */
 	public void addSeal (
-		final @NotNull AvailObject methodName,
-		final @NotNull AvailObject sealSignature)
+		final AvailObject methodName,
+		final AvailObject sealSignature)
 	{
 		assert methodName.isAtom();
 		assert sealSignature.isTuple();
@@ -1093,8 +1094,8 @@ implements ThreadFactory
 	 *        seals remaining, even at this very signature.
 	 */
 	public void removeSeal (
-		final @NotNull AvailObject methodName,
-		final @NotNull AvailObject sealSignature)
+		final AvailObject methodName,
+		final AvailObject sealSignature)
 	{
 		assert methodName.isAtom();
 		assert sealSignature.isTuple();
@@ -1119,8 +1120,7 @@ implements ThreadFactory
 	 * contains the {@linkplain MessageBundleDescriptor message bundles}
 	 * exported by all loaded {@linkplain ModuleDescriptor modules}.
 	 */
-	private @NotNull
-	AvailObject rootBundleTree = MessageBundleTreeDescriptor.newPc(1);
+	private AvailObject rootBundleTree = MessageBundleTreeDescriptor.newPc(1);
 
 	/**
 	 * Answer a copy of the root {@linkplain MessageBundleTreeDescriptor message
@@ -1132,7 +1132,7 @@ implements ThreadFactory
 	 *         modules}.
 	 */
 	@ThreadSafe
-	public @NotNull AvailObject rootBundleTree ()
+	public AvailObject rootBundleTree ()
 	{
 		runtimeLock.readLock().lock();
 		try
@@ -1170,7 +1170,7 @@ implements ThreadFactory
 	 *         {@linkplain AtomDescriptor atom}, or {@code null} if no such
 	 *         association exists.
 	 */
-	public RandomAccessFile getReadableFile (final @NotNull AvailObject handle)
+	public @Nullable RandomAccessFile getReadableFile (final AvailObject handle)
 	{
 		assert handle.isAtom();
 		return openReadableFiles.get(handle);
@@ -1184,8 +1184,8 @@ implements ThreadFactory
 	 * @param file An open {@linkplain RandomAccessFile file}.
 	 */
 	public void putReadableFile (
-		final @NotNull AvailObject handle,
-		final @NotNull RandomAccessFile file)
+		final AvailObject handle,
+		final RandomAccessFile file)
 	{
 		assert handle.isAtom();
 		openReadableFiles.put(handle, file);
@@ -1198,7 +1198,7 @@ implements ThreadFactory
 	 *
 	 * @param handle A {@linkplain AtomDescriptor handle}.
 	 */
-	public void forgetReadableFile (final @NotNull AvailObject handle)
+	public void forgetReadableFile (final AvailObject handle)
 	{
 		assert handle.isAtom();
 		openReadableFiles.remove(handle);
@@ -1213,7 +1213,7 @@ implements ThreadFactory
 	 *         {@linkplain AtomDescriptor atom}, or {@code null} if no such
 	 *         association exists.
 	 */
-	public RandomAccessFile getWritableFile (final @NotNull AvailObject handle)
+	public @Nullable RandomAccessFile getWritableFile (final AvailObject handle)
 	{
 		assert handle.isAtom();
 		return openWritableFiles.get(handle);
@@ -1227,8 +1227,8 @@ implements ThreadFactory
 	 * @param file An open {@linkplain RandomAccessFile file}.
 	 */
 	public void putWritableFile (
-		final @NotNull AvailObject handle,
-		final @NotNull RandomAccessFile file)
+		final AvailObject handle,
+		final RandomAccessFile file)
 	{
 		assert handle.isAtom();
 		openWritableFiles.put(handle, file);
@@ -1241,7 +1241,7 @@ implements ThreadFactory
 	 *
 	 * @param handle A {@linkplain AtomDescriptor handle}.
 	 */
-	public void forgetWritableFile (final @NotNull AvailObject handle)
+	public void forgetWritableFile (final AvailObject handle)
 	{
 		assert handle.isAtom();
 		openWritableFiles.remove(handle);
@@ -1256,7 +1256,7 @@ implements ThreadFactory
 	 *         {@linkplain AtomDescriptor atom}, or {@code null} if no such
 	 *         association exists.
 	 */
-	public RandomAccessFile getOpenFile (final @NotNull AvailObject handle)
+	public @Nullable RandomAccessFile getOpenFile (final AvailObject handle)
 	{
 		assert handle.isAtom();
 		final RandomAccessFile file = openReadableFiles.get(handle);

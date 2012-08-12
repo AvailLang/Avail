@@ -68,24 +68,24 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_ReadType (
-		final @NotNull AvailObject object)
+	AvailObject o_ReadType (
+		final AvailObject object)
 	{
 		return object.slot(READ_TYPE);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_WriteType (
-		final @NotNull AvailObject object)
+	AvailObject o_WriteType (
+		final AvailObject object)
 	{
 		return object.slot(WRITE_TYPE);
 	}
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-		final @NotNull AvailObject object,
-		final @NotNull StringBuilder aStream,
-		final @NotNull List<AvailObject> recursionList,
+		final AvailObject object,
+		final StringBuilder aStream,
+		final List<AvailObject> recursionList,
 		final int indent)
 	{
 		aStream.append("↑<--(");
@@ -103,16 +103,16 @@ extends TypeDescriptor
 
 	@Override @AvailMethod
 	boolean o_Equals (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+		final AvailObject object,
+		final AvailObject another)
 	{
 		return another.equalsVariableType(object);
 	}
 
 	@Override @AvailMethod
 	boolean o_EqualsVariableType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aType)
+		final AvailObject object,
+		final AvailObject aType)
 	{
 		if (object.sameAddressAs(aType))
 		{
@@ -129,7 +129,7 @@ extends TypeDescriptor
 
 	@Override @AvailMethod
 	int o_Hash (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return
 			(object.slot(READ_TYPE).hash() ^ 0xF40149E
@@ -138,16 +138,16 @@ extends TypeDescriptor
 
 	@Override @AvailMethod
 	boolean o_IsSubtypeOf (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aType)
+		final AvailObject object,
+		final AvailObject aType)
 	{
 		return aType.isSupertypeOfVariableType(object);
 	}
 
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfVariableType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aVariableType)
+		final AvailObject object,
+		final AvailObject aVariableType)
 	{
 		// Variable types are covariant by read capability and contravariant by
 		// write capability.
@@ -156,9 +156,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeIntersection (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+	AvailObject o_TypeIntersection (
+		final AvailObject object,
+		final AvailObject another)
 	{
 		if (object.isSubtypeOf(another))
 		{
@@ -172,9 +172,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeIntersectionOfVariableType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aVariableType)
+	AvailObject o_TypeIntersectionOfVariableType (
+		final AvailObject object,
+		final AvailObject aVariableType)
 	{
 		// The intersection of two variable types is variable type whose
 		// read type is the type intersection of the two incoming read types and
@@ -185,9 +185,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeUnion (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+	AvailObject o_TypeUnion (
+		final AvailObject object,
+		final AvailObject another)
 	{
 		if (object.isSubtypeOf(another))
 		{
@@ -201,9 +201,9 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TypeUnionOfVariableType (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aVariableType)
+	AvailObject o_TypeUnionOfVariableType (
+		final AvailObject object,
+		final AvailObject aVariableType)
 	{
 		// The union of two variable types is a variable type whose
 		// read type is the type union of the two incoming read types and whose
@@ -215,8 +215,8 @@ extends TypeDescriptor
 	}
 
 	@Override
-	@NotNull SerializerOperation o_SerializerOperation (
-		final @NotNull AvailObject object)
+	SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		if (object.readType().equals(object.writeType()))
 		{
@@ -235,9 +235,9 @@ extends TypeDescriptor
 	 *        The write type.
 	 * @return The new variable type.
 	 */
-	static @NotNull AvailObject fromReadAndWriteTypes (
-		final @NotNull AvailObject readType,
-		final @NotNull AvailObject writeType)
+	static AvailObject fromReadAndWriteTypes (
+		final AvailObject readType,
+		final AvailObject writeType)
 	{
 		if (readType.equals(writeType))
 		{
@@ -265,7 +265,7 @@ extends TypeDescriptor
 	/**
 	 * The mutable {@link ReadWriteVariableTypeDescriptor}.
 	 */
-	private static final @NotNull ReadWriteVariableTypeDescriptor mutable =
+	private static final ReadWriteVariableTypeDescriptor mutable =
 		new ReadWriteVariableTypeDescriptor(true);
 
 	/**
@@ -273,7 +273,7 @@ extends TypeDescriptor
 	 *
 	 * @return The mutable {@link ReadWriteVariableTypeDescriptor}.
 	 */
-	public static @NotNull ReadWriteVariableTypeDescriptor mutable ()
+	public static ReadWriteVariableTypeDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -281,7 +281,7 @@ extends TypeDescriptor
 	/**
 	 * The immutable {@link ReadWriteVariableTypeDescriptor}.
 	 */
-	private static final @NotNull ReadWriteVariableTypeDescriptor immutable =
+	private static final ReadWriteVariableTypeDescriptor immutable =
 		new ReadWriteVariableTypeDescriptor(false);
 
 	/**
@@ -289,7 +289,7 @@ extends TypeDescriptor
 	 *
 	 * @return The immutable {@link ReadWriteVariableTypeDescriptor}.
 	 */
-	public static @NotNull ReadWriteVariableTypeDescriptor immutable ()
+	public static ReadWriteVariableTypeDescriptor immutable ()
 	{
 		return immutable;
 	}

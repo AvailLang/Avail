@@ -55,7 +55,7 @@ public class L2_MAKE_IMMUTABLE extends L2Operation
 	}
 
 	@Override
-	public void step (final @NotNull L2Interpreter interpreter)
+	public void step (final L2Interpreter interpreter)
 	{
 		final int objectIndex = interpreter.nextWord();
 		interpreter.pointerAt(objectIndex).makeImmutable();

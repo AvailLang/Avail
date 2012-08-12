@@ -78,7 +78,7 @@ public class L2ImmediateOperand extends L2Operand
 
 	@Override
 	public L2ImmediateOperand transformRegisters (
-		final @NotNull Transformer2<L2Register, L2OperandType, L2Register>
+		final Transformer2<L2Register, L2OperandType, L2Register>
 			transformer)
 	{
 		return this;
@@ -86,7 +86,7 @@ public class L2ImmediateOperand extends L2Operand
 
 	@Override
 	public void emitOn (
-		final @NotNull L2CodeGenerator codeGenerator)
+		final L2CodeGenerator codeGenerator)
 	{
 		codeGenerator.emitImmediate(value);
 	}

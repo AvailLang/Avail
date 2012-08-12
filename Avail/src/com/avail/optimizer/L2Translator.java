@@ -145,7 +145,7 @@ public class L2Translator implements L1OperationDispatcher
 	 *
 	 * @param code The {@linkplain CompiledCodeDescriptor code} to translate.
 	 */
-	public L2Translator (final AvailObject code)
+	public L2Translator (final @Nullable AvailObject code)
 	{
 		this.code = code;
 		registers = new RegisterSet(this);
@@ -156,17 +156,17 @@ public class L2Translator implements L1OperationDispatcher
 	 * L2Operation} and variable number of {@link L2Operand}s.  Also give it an
 	 * alternative way to propagate register type/value information.
 	 *
-	 * @param propagationAction The propagation action perform.
+	 * @param propagationAction The propagation action, or {@code null}.
 	 * @param operation The operation to invoke.
 	 * @param operands The operands of the instruction.
 	 */
 	private void addInstruction (
-		final Continuation0 propagationAction,
+		final @Nullable Continuation0 propagationAction,
 		final L2Operation operation,
 		final L2Operand... operands)
 	{
 		assert operation != L2_LABEL.instance
-		: "Use newLabel() and addLabel(...) to add a label";
+			: "Use newLabel() and addLabel(...) to add a label";
 		final L2Instruction instruction =
 			new L2Instruction(propagationAction, operation, operands);
 		final L2Instruction normalizedInstruction =
@@ -301,9 +301,10 @@ public class L2Translator implements L1OperationDispatcher
 	 *             holding the actual constant values used to look up the
 	 *             implementation for the call.
 	 * @return A method body (a {@code FunctionDescriptor function}) that
-	 *         exemplifies the primitive that should be inlined.
+	 *         exemplifies the primitive that should be inlined, or {@code
+	 *         null}.
 	 */
-	private List<AvailObject> primitivesToInlineForArgumentRegisters (
+	private @Nullable List<AvailObject> primitivesToInlineForArgumentRegisters (
 		final AvailObject method,
 		final List<L2ObjectRegister> args)
 	{
@@ -329,9 +330,10 @@ public class L2Translator implements L1OperationDispatcher
 	 * @param argTypes
 	 *            The types of the arguments to the call.
 	 * @return
-	 *            The equivalent applicable primitive method bodies, or null.
+	 *            The equivalent applicable primitive method bodies, or {@code
+	 *            null}.
 	 */
-	private List<AvailObject> primitivesToInlineForWithArgumentTypes (
+	private @Nullable List<AvailObject> primitivesToInlineForWithArgumentTypes (
 		final AvailObject method,
 		final List<AvailObject> argTypes)
 	{
@@ -449,8 +451,8 @@ public class L2Translator implements L1OperationDispatcher
 	 * @param destinationRegister Where to write the AvailObject.
 	 */
 	private void moveRegister (
-		final @NotNull L2ObjectRegister sourceRegister,
-		final @NotNull L2ObjectRegister destinationRegister)
+		final L2ObjectRegister sourceRegister,
+		final L2ObjectRegister destinationRegister)
 	{
 		// Elide if the registers are the same.
 		if (sourceRegister != destinationRegister)
@@ -470,8 +472,8 @@ public class L2Translator implements L1OperationDispatcher
 	 * @param destinationRegister Where to move it.
 	 */
 	private void moveConstant (
-		final @NotNull AvailObject value,
-		final @NotNull L2ObjectRegister destinationRegister)
+		final AvailObject value,
+		final L2ObjectRegister destinationRegister)
 	{
 		if (value.equalsNull())
 		{
@@ -530,9 +532,10 @@ public class L2Translator implements L1OperationDispatcher
 	 *            A {@linkplain Mutable Mutable<Boolean>} that this method sets
 	 *            if a fallible primitive was inlined.
 	 * @return
-	 *            The value if the primitive was folded, otherwise null.
+	 *            The value if the primitive was folded, otherwise {@code
+	 *            null}.
 	 */
-	private AvailObject emitInlinePrimitiveAttempt (
+	private @Nullable AvailObject emitInlinePrimitiveAttempt (
 		final AvailObject primitiveFunction,
 		final AvailObject method,
 		final List<L2ObjectRegister> args,
@@ -1511,8 +1514,12 @@ public class L2Translator implements L1OperationDispatcher
 			new Comparator<L2Register>()
 			{
 				@Override
-				public int compare (final L2Register r1, final L2Register r2)
+				public int compare (
+					final @Nullable L2Register r1,
+					final @Nullable L2Register r2)
 				{
+					assert r1 != null;
+					assert r2 != null;
 					return (int)(r2.uniqueValue - r1.uniqueValue);
 				}
 			});
@@ -1544,7 +1551,7 @@ public class L2Translator implements L1OperationDispatcher
 	 */
 	public void translateOptimizationFor (
 		final int optLevel,
-		final @NotNull L2Interpreter anL2Interpreter)
+		final L2Interpreter anL2Interpreter)
 	{
 		optimizationLevel = optLevel;
 		interpreter = anL2Interpreter;

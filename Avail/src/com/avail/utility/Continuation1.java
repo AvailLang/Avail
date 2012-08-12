@@ -32,6 +32,8 @@
 
 package com.avail.utility;
 
+import com.avail.annotations.Nullable;
+
 
 /**
  * Implementors of {@code Continuation3} provide a single arbitrary operation
@@ -47,5 +49,5 @@ public interface Continuation1<X>
 	 *
 	 * @param arg The first argument.
 	 */
-	public void value (X arg);
+	public void value (@Nullable X arg);
 }

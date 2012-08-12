@@ -80,10 +80,10 @@ extends TupleDescriptor
 
 	@Override @AvailMethod
 	boolean o_CompareFromToWithStartingAt (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
-		final @NotNull AvailObject anotherObject,
+		final AvailObject anotherObject,
 		final int startIndex2)
 	{
 		//  Compare sections of two tuples.
@@ -97,10 +97,10 @@ extends TupleDescriptor
 
 	@Override @AvailMethod
 	boolean o_CompareFromToWithByteTupleStartingAt (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
-		final @NotNull AvailObject aByteTuple,
+		final AvailObject aByteTuple,
 		final int startIndex2)
 	{
 		if (object.sameAddressAs(aByteTuple) && startIndex1 == startIndex2)
@@ -122,16 +122,16 @@ extends TupleDescriptor
 
 	@Override @AvailMethod
 	boolean o_Equals (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+		final AvailObject object,
+		final AvailObject another)
 	{
 		return another.equalsByteTuple(object);
 	}
 
 	@Override @AvailMethod
 	boolean o_EqualsByteTuple (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aByteTuple)
+		final AvailObject object,
+		final AvailObject aByteTuple)
 	{
 		// First, check for object-structure (address) identity.
 		if (object.sameAddressAs(aByteTuple))
@@ -164,15 +164,15 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsByteTuple (final @NotNull AvailObject object)
+	boolean o_IsByteTuple (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override @AvailMethod
 	boolean o_IsInstanceOfKind (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aType)
+		final AvailObject object,
+		final AvailObject aType)
 	{
 		if (aType.isSupertypeOfPrimitiveTypeWithOrdinal(ANY.ordinal()))
 		{
@@ -213,8 +213,8 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_MakeImmutable (
-		final @NotNull AvailObject object)
+	AvailObject o_MakeImmutable (
+		final AvailObject object)
 	{
 		//  Make the object immutable so it can be shared safely.
 
@@ -227,7 +227,7 @@ extends TupleDescriptor
 
 	@Override @AvailMethod
 	short o_RawByteAt (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int index)
 	{
 		//  Answer the byte at the given index.
@@ -237,7 +237,7 @@ extends TupleDescriptor
 
 	@Override @AvailMethod
 	void o_RawByteAtPut (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int index,
 		final short anInteger)
 	{
@@ -247,8 +247,8 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TupleAt (
-		final @NotNull AvailObject object,
+	AvailObject o_TupleAt (
+		final AvailObject object,
 		final int index)
 	{
 		//  Answer the element at the given index in the tuple object.
@@ -259,9 +259,9 @@ extends TupleDescriptor
 
 	@Override @AvailMethod
 	void o_TupleAtPut (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int index,
-		final @NotNull AvailObject aByteObject)
+		final AvailObject aByteObject)
 	{
 		// Set the byte at the given index to the given object (which should be
 		// an AvailObject that's an integer 0<=n<=255.
@@ -271,10 +271,10 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TupleAtPuttingCanDestroy (
-		final @NotNull AvailObject object,
+	AvailObject o_TupleAtPuttingCanDestroy (
+		final AvailObject object,
 		final int index,
-		final @NotNull AvailObject newValueObject,
+		final AvailObject newValueObject,
 		final boolean canDestroy)
 	{
 		// Answer a tuple with all the elements of object except at the given
@@ -305,7 +305,7 @@ extends TupleDescriptor
 
 	@Override @AvailMethod
 	int o_TupleIntAt (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int index)
 	{
 		//  Answer the integer element at the given index in the tuple object.
@@ -315,7 +315,7 @@ extends TupleDescriptor
 
 	@Override @AvailMethod
 	int o_BitsPerEntry (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		//  Answer approximately how many bits per entry are taken up by this object.
 
@@ -324,7 +324,7 @@ extends TupleDescriptor
 
 	@Override @AvailMethod
 	int o_ComputeHashFromTo (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int start,
 		final int end)
 	{
@@ -346,8 +346,8 @@ extends TupleDescriptor
 	 * @param object The byte tuple to copy.
 	 * @return The new mutable byte tuple.
 	 */
-	private @NotNull AvailObject copyAsMutableByteTuple (
-		final @NotNull AvailObject object)
+	private AvailObject copyAsMutableByteTuple (
+		final AvailObject object)
 	{
 		final AvailObject result = mutableObjectOfSize(object.tupleSize());
 		assert result.integerSlotsCount() == object.integerSlotsCount();
@@ -365,7 +365,7 @@ extends TupleDescriptor
 
 	@Override @AvailMethod
 	int o_TupleSize (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.variableIntegerSlotsCount() * 4 - unusedBytesOfLastWord;
 	}
@@ -377,7 +377,7 @@ extends TupleDescriptor
 	 * @param size The number of bytes in the resulting tuple.
 	 * @return A byte tuple with the specified number of bytes (initially zero).
 	 */
-	public static @NotNull AvailObject mutableObjectOfSize (
+	public static AvailObject mutableObjectOfSize (
 		final int size)
 	{
 		final ByteTupleDescriptor descriptor = isMutableSize(true, size);
@@ -393,7 +393,7 @@ extends TupleDescriptor
 	 * @param size The number of bytes in conformant tuples.
 	 * @return A {@code ByteTupleDescriptor}.
 	 */
-	private static @NotNull ByteTupleDescriptor isMutableSize (
+	private static ByteTupleDescriptor isMutableSize (
 		final boolean flag,
 		final int size)
 	{

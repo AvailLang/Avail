@@ -79,10 +79,10 @@ extends StringDescriptor
 
 	@Override @AvailMethod
 	boolean o_CompareFromToWithStartingAt (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
-		final @NotNull AvailObject anotherObject,
+		final AvailObject anotherObject,
 		final int startIndex2)
 	{
 		//  Compare sections of two tuples.  My instance is a string.
@@ -96,10 +96,10 @@ extends StringDescriptor
 
 	@Override @AvailMethod
 	boolean o_CompareFromToWithByteStringStartingAt (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
-		final @NotNull AvailObject aByteString,
+		final AvailObject aByteString,
 		final int startIndex2)
 	{
 		//  Compare sections of two byte strings.
@@ -123,16 +123,16 @@ extends StringDescriptor
 
 	@Override @AvailMethod
 	boolean o_Equals (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+		final AvailObject object,
+		final AvailObject another)
 	{
 		return another.equalsByteString(object);
 	}
 
 	@Override @AvailMethod
 	boolean o_EqualsByteString (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aByteString)
+		final AvailObject object,
+		final AvailObject aByteString)
 	{
 		//  First, check for object-structure (address) identity.
 
@@ -168,14 +168,14 @@ extends StringDescriptor
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
 	@Override @AvailMethod
-	boolean o_IsString (final @NotNull AvailObject object)
+	boolean o_IsString (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_MakeImmutable (
-		final @NotNull AvailObject object)
+	AvailObject o_MakeImmutable (
+		final AvailObject object)
 	{
 		//  Make the object immutable so it can be shared safely.
 
@@ -188,7 +188,7 @@ extends StringDescriptor
 
 	@Override @AvailMethod
 	short o_RawByteForCharacterAt (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int index)
 	{
 		//  Answer the byte that encodes the character at the given index.
@@ -198,7 +198,7 @@ extends StringDescriptor
 
 	@Override @AvailMethod
 	void o_RawByteForCharacterAtPut (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int index,
 		final short anInteger)
 	{
@@ -208,8 +208,8 @@ extends StringDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TupleAt (
-		final @NotNull AvailObject object,
+	AvailObject o_TupleAt (
+		final AvailObject object,
 		final int index)
 	{
 		// Answer the element at the given index in the tuple object.  It's a
@@ -222,9 +222,9 @@ extends StringDescriptor
 
 	@Override @AvailMethod
 	void o_TupleAtPut (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int index,
-		final @NotNull AvailObject aCharacterObject)
+		final AvailObject aCharacterObject)
 	{
 		// Set the byte at the given index to the given object (which should be
 		// an AvailObject that's a one-byte character).
@@ -234,10 +234,10 @@ extends StringDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TupleAtPuttingCanDestroy (
-		final @NotNull AvailObject object,
+	AvailObject o_TupleAtPuttingCanDestroy (
+		final AvailObject object,
 		final int index,
-		final @NotNull AvailObject newValueObject,
+		final AvailObject newValueObject,
 		final boolean canDestroy)
 	{
 		// Answer a tuple with all the elements of object except at the given
@@ -279,7 +279,7 @@ extends StringDescriptor
 
 	@Override @AvailMethod
 	int o_TupleIntAt (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int index)
 	{
 		//  Answer the integer element at the given index in the tuple object.
@@ -290,7 +290,7 @@ extends StringDescriptor
 
 	@Override @AvailMethod
 	int o_TupleSize (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		// Answer the number of elements in the object (as a Smalltalk Integer).
 		return object.variableIntegerSlotsCount() * 4 - unusedBytesOfLastWord;
@@ -298,7 +298,7 @@ extends StringDescriptor
 
 	@Override @AvailMethod
 	int o_BitsPerEntry (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		// Answer approximately how many bits per entry are taken up by this
 		// object.
@@ -315,7 +315,7 @@ extends StringDescriptor
 	 */
 	@Override @AvailMethod
 	int o_ComputeHashFromTo (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int start,
 		final int end)
 	{
@@ -332,16 +332,16 @@ extends StringDescriptor
 
 	@Override
 	@AvailMethod @ThreadSafe
-	@NotNull SerializerOperation o_SerializerOperation (
-		final @NotNull AvailObject object)
+	SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.BYTE_STRING;
 	}
 
 	@Override
 	Object o_MarshalToJava (
-		final @NotNull AvailObject object,
-		final Class<?> ignoredClassHint)
+		final AvailObject object,
+		final @Nullable Class<?> ignoredClassHint)
 	{
 		return object.asNativeString();
 	}
@@ -353,8 +353,8 @@ extends StringDescriptor
 	 * @param object The {@linkplain AvailObject receiver}.
 	 * @return A mutable copy of the {@linkplain AvailObject receiver}.
 	 */
-	private @NotNull AvailObject copyAsMutableByteString (
-		final @NotNull AvailObject object)
+	private AvailObject copyAsMutableByteString (
+		final AvailObject object)
 	{
 		final AvailObject result = mutableObjectOfSize(object.tupleSize());
 		assert result.integerSlotsCount() == object.integerSlotsCount();
@@ -377,8 +377,8 @@ extends StringDescriptor
 	 * @param object The {@linkplain AvailObject receiver}.
 	 * @return A mutable copy of the {@linkplain AvailObject receiver}.
 	 */
-	private @NotNull AvailObject copyAsMutableTwoByteString (
-		final @NotNull AvailObject object)
+	private AvailObject copyAsMutableTwoByteString (
+		final AvailObject object)
 	{
 		final AvailObject result =
 			TwoByteStringDescriptor.mutableObjectOfSize(object.tupleSize());
@@ -399,7 +399,7 @@ extends StringDescriptor
 	 * @param size The desired number of elements.
 	 * @return A new {@linkplain ByteStringDescriptor object}.
 	 */
-	private @NotNull AvailObject mutableObjectOfSize (final int size)
+	private AvailObject mutableObjectOfSize (final int size)
 	{
 		if (!isMutable)
 		{
@@ -423,7 +423,7 @@ extends StringDescriptor
 	 *        The desired number of elements.
 	 * @return A {@linkplain ByteStringDescriptor descriptor}.
 	 */
-	private static @NotNull ByteStringDescriptor isMutableSize (
+	private static ByteStringDescriptor isMutableSize (
 		final boolean flag,
 		final int size)
 	{
@@ -470,8 +470,8 @@ extends StringDescriptor
 	 *            A corresponding Avail {@linkplain ByteStringDescriptor
 	 *            string}.
 	 */
-	static @NotNull AvailObject mutableObjectFromNativeByteString(
-		final @NotNull String aNativeByteString)
+	static AvailObject mutableObjectFromNativeByteString(
+		final String aNativeByteString)
 	{
 		return generateByteString(
 			aNativeByteString.length(),
@@ -499,9 +499,9 @@ extends StringDescriptor
 	 * @param generator A generator to provide code points to store.
 	 * @return The new Avail {@linkplain ByteStringDescriptor string}.
 	 */
-	static @NotNull AvailObject generateByteString(
+	static AvailObject generateByteString(
 		final int size,
-		final @NotNull Generator<Integer> generator)
+		final Generator<Integer> generator)
 	{
 		final ByteStringDescriptor descriptor = isMutableSize(true, size);
 		final AvailObject result = descriptor.mutableObjectOfSize(size);

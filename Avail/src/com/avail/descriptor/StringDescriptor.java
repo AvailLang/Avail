@@ -49,8 +49,8 @@ public abstract class StringDescriptor
 extends TupleDescriptor
 {
 	@Override @AvailMethod @ThreadSafe
-	@NotNull SerializerOperation o_SerializerOperation (
-		final @NotNull AvailObject object)
+	SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		final int size = object.tupleSize();
 		for (int i = 1; i <= size; i++)
@@ -303,8 +303,8 @@ extends TupleDescriptor
 	 * @param aNativeString A Java {@link String}.
 	 * @return A corresponding Avail {@linkplain StringDescriptor string}.
 	 */
-	public static @NotNull AvailObject from (
-		final @NotNull String aNativeString)
+	public static AvailObject from (
+		final String aNativeString)
 	{
 		final int charCount = aNativeString.length();
 		if (charCount == 0)
@@ -367,9 +367,9 @@ extends TupleDescriptor
 	 * @param generator A generator to provide code points to store.
 	 * @return The new Avail {@linkplain ByteStringDescriptor string}.
 	 */
-	public static @NotNull AvailObject mutableByteStringFromGenerator(
+	public static AvailObject mutableByteStringFromGenerator(
 		final int size,
-		final @NotNull Generator<Integer> generator)
+		final Generator<Integer> generator)
 	{
 		return ByteStringDescriptor.generateByteString(
 			size,
@@ -387,9 +387,9 @@ extends TupleDescriptor
 	 * @param generator A generator to provide code points to store.
 	 * @return The new Avail {@linkplain TwoByteStringDescriptor string}.
 	 */
-	public static @NotNull AvailObject mutableTwoByteStringFromGenerator(
+	public static AvailObject mutableTwoByteStringFromGenerator(
 		final int size,
-		final @NotNull Generator<Integer> generator)
+		final Generator<Integer> generator)
 	{
 		return TwoByteStringDescriptor.generateTwoByteString(
 			size,

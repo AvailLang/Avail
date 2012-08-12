@@ -57,7 +57,7 @@ public class L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO extends L2Operation
 	}
 
 	@Override
-	public void step (final @NotNull L2Interpreter interpreter)
+	public void step (final L2Interpreter interpreter)
 	{
 		final AvailObject theFunction = interpreter.pointerAt(FUNCTION);
 		final AvailObject theCode = theFunction.code();

@@ -65,7 +65,7 @@ public class LRUCache<K, V>
 	 * The {@linkplain ReentrantLock lock} responsible for guarding
 	 * access to internal {@linkplain LRUCache cache} structures.
 	 */
-	@InnerAccess final @NotNull ReentrantLock lock = new ReentrantLock();
+	@InnerAccess final ReentrantLock lock = new ReentrantLock();
 
 	/**
 	 * Acquire the {@linkplain ReentrantLock lock}.
@@ -88,7 +88,7 @@ public class LRUCache<K, V>
 	 * SoftReference soft references} to previously garbage-collected cached
 	 * values.
 	 */
-	private final @NotNull ReferenceQueue<V> defunctReferences =
+	private final ReferenceQueue<V> defunctReferences =
 		new ReferenceQueue<V>();
 
 	/**
@@ -119,7 +119,7 @@ public class LRUCache<K, V>
 
 		@Override
 		protected boolean removeEldestEntry (
-			final @NotNull Map.Entry<K, V> eldest)
+			final @Nullable Map.Entry<K, V> eldest)
 		{
 			return size() > capacity;
 		}
@@ -130,7 +130,7 @@ public class LRUCache<K, V>
 	 * detailed invariant checking. This causes significant slowdown and should
 	 * not be used in a production application.
 	 */
-	private static final @NotNull String checkInvariantsProperty =
+	private static final String checkInvariantsProperty =
 		String.format(
 			"%s.checkInvariants",
 			LRUCache.class.getCanonicalName());
@@ -216,7 +216,7 @@ public class LRUCache<K, V>
 
 		@Override
 		protected boolean removeEldestEntry (
-			final @NotNull Map.Entry<K, SoftReference<V>> eldest)
+			final @Nullable Map.Entry<K, SoftReference<V>> eldest)
 		{
 			assert lock.isHeldByCurrentThread();
 			assert this == softMap;
@@ -263,7 +263,7 @@ public class LRUCache<K, V>
 	 * to {@linkplain SoftReference softly held} cached values. All cached
 	 * values are ultimately retrieved from this map.
 	 */
-	@InnerAccess final @NotNull SoftCacheMap softMap;
+	@InnerAccess final SoftCacheMap softMap;
 
 	/**
 	 * A mapping from {@linkplain SoftReference softly held} cached values to
@@ -271,7 +271,7 @@ public class LRUCache<K, V>
 	 * {@linkplain #softMap primary map} after the garbage collector has
 	 * reclaimed the cached values.
 	 */
-	@InnerAccess final @NotNull Map<SoftReference<V>, K> keysBySoftReference =
+	@InnerAccess final Map<SoftReference<V>, K> keysBySoftReference =
 		new HashMap<SoftReference<V>, K>();
 
 	/**
@@ -294,13 +294,13 @@ public class LRUCache<K, V>
 	 * The access-ordered {@linkplain StrongCacheMap map} which maps access keys
 	 * to strongly held cached values.
 	 */
-	private final @NotNull StrongCacheMap strongMap;
+	private final StrongCacheMap strongMap;
 
 	/**
 	 * The {@linkplain Transformer1 transformer} responsible for producing new
 	 * values from user-supplied keys. Must not produce {@code null}.
 	 */
-	@InnerAccess final @NotNull Transformer1<K, V> transformer;
+	@InnerAccess final Transformer1<K, V> transformer;
 
 	/**
 	 * Answer the {@linkplain Transformer1 transformer} responsible for
@@ -308,7 +308,7 @@ public class LRUCache<K, V>
 	 *
 	 * @return A {@linkplain Transformer1 transformer}.
 	 */
-	public @NotNull Transformer1<K, V> transformer ()
+	public Transformer1<K, V> transformer ()
 	{
 		return transformer;
 	}
@@ -341,7 +341,7 @@ public class LRUCache<K, V>
 		 * The {@linkplain ReentrantLock lock} that guards access to this
 		 * {@linkplain ValueFuture future}.
 		 */
-		private final @NotNull ReentrantLock computationLock =
+		private final ReentrantLock computationLock =
 			new ReentrantLock();
 
 		/**
@@ -349,7 +349,7 @@ public class LRUCache<K, V>
 		 * be notified that execution of the user-supplied {@linkplain
 		 * Transformer1 transformer} has completed.
 		 */
-		private final @NotNull Condition completionCondition =
+		private final Condition completionCondition =
 			computationLock.newCondition();
 
 		@Override
@@ -386,7 +386,7 @@ public class LRUCache<K, V>
 		 *
 		 * @param result The result.
 		 */
-		void setResult (final V result)
+		void setResult (final @Nullable V result)
 		{
 			computationLock.lock();
 			try
@@ -468,7 +468,7 @@ public class LRUCache<K, V>
 		}
 
 		@Override
-		public V get (final long timeout, final TimeUnit unit)
+		public V get (final long timeout, final @Nullable TimeUnit unit)
 			throws InterruptedException, ExecutionException, TimeoutException
 		{
 			throw new UnsupportedOperationException();
@@ -480,7 +480,7 @@ public class LRUCache<K, V>
 	 * whose values are currently being computed by threads accessing the
 	 * {@linkplain LRUCache cache}.
 	 */
-	private final @NotNull Map<K, ValueFuture> futures;
+	private final Map<K, ValueFuture> futures;
 
 	/**
 	 * Construct a new {@link LRUCache}.
@@ -496,13 +496,14 @@ public class LRUCache<K, V>
 	 *                    not produce {@code null}.
 	 * @param retirementAction The {@linkplain Continuation2 action} responsible
 	 *                         for retiring a binding expired from the
-	 *                         {@linkplain LRUCache cache}.
+	 *                         {@linkplain LRUCache cache}, or {@code null} if
+	 *                         no such action should be performed.
 	 */
 	public LRUCache (
 		final int capacity,
 		final int strongCapacity,
-		final @NotNull Transformer1<K, V> transformer,
-		final Continuation2<K, V> retirementAction)
+		final Transformer1<K, V> transformer,
+		final @Nullable Continuation2<K, V> retirementAction)
 	{
 		assert capacity > 0;
 		assert strongCapacity <= capacity;
@@ -533,7 +534,7 @@ public class LRUCache<K, V>
 	public LRUCache (
 		final int capacity,
 		final int strongCapacity,
-		final @NotNull Transformer1<K, V> transformer)
+		final Transformer1<K, V> transformer)
 	{
 		this(capacity, strongCapacity, transformer, null);
 	}
@@ -652,7 +653,7 @@ public class LRUCache<K, V>
 	 * @return The value to which the specified key is mapped, or {@code null}
 	 *         if no value has been mapped.
 	 */
-	public V poll (final K key)
+	public @Nullable V poll (final K key)
 	{
 		lock();
 		try
@@ -698,7 +699,7 @@ public class LRUCache<K, V>
 	 *         execution of the user-supplied {@linkplain Transformer1
 	 *         transformer}.
 	 */
-	public V get (final @NotNull K key) throws RuntimeException
+	public V get (final K key) throws RuntimeException
 	{
 		assert key != null;
 

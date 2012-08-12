@@ -34,7 +34,7 @@ package com.avail.builder;
 
 import java.io.*;
 import java.util.*;
-import com.avail.annotations.NotNull;
+import com.avail.annotations.*;
 import com.avail.descriptor.ModuleDescriptor;
 
 /**
@@ -51,7 +51,7 @@ extends ModuleName
 	 * The {@linkplain ModuleNameResolver#resolve(ModuleName) resolved}
 	 * {@linkplain File file reference}.
 	 */
-	private final @NotNull File fileReference;
+	private final File fileReference;
 
 	/**
 	 * Answer the {@linkplain ModuleNameResolver#resolve(ModuleName) resolved}
@@ -60,7 +60,7 @@ extends ModuleName
 	 * @return The {@linkplain ModuleNameResolver#resolve(ModuleName) resolved}
 	 *         {@linkplain File file reference}.
 	 */
-	public @NotNull File fileReference ()
+	public File fileReference ()
 	{
 		return fileReference;
 	}
@@ -91,7 +91,7 @@ extends ModuleName
 	 * @param localName A local module name.
 	 * @return A {@linkplain ModuleName module name}.
 	 */
-	public @NotNull ModuleName asSibling (final @NotNull String localName)
+	public ModuleName asSibling (final String localName)
 	{
 		final String packageName = isPackage()
 			? qualifiedName()
@@ -110,7 +110,7 @@ extends ModuleName
 	 *         If the {@linkplain ResolvedModuleName receiver} does not
 	 *         represent a {@linkplain #isPackage() package}.
 	 */
-	public @NotNull Collection<ModuleName> contents ()
+	public Collection<ModuleName> contents ()
 	{
 		if (!isPackage)
 		{
@@ -123,8 +123,8 @@ extends ModuleName
 		{
 			@Override
 			public boolean accept (
-				final @NotNull File dir,
-				final @NotNull String name)
+				final @Nullable File dir,
+				final @Nullable String name)
 			{
 				return name.endsWith(extension)
 					&& !name.equals(localName() + extension);
@@ -154,9 +154,9 @@ extends ModuleName
 	 *        {@linkplain File file reference}.
 	 */
 	ResolvedModuleName (
-		final @NotNull ModuleName qualifiedName,
+		final ModuleName qualifiedName,
 		final boolean isPackage,
-		final @NotNull File fileReference)
+		final File fileReference)
 	{
 		super(qualifiedName.qualifiedName());
 		this.isPackage = isPackage;

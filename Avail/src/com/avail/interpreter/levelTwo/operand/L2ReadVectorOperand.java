@@ -50,7 +50,7 @@ public class L2ReadVectorOperand extends L2Operand
 	/**
 	 * The actual {@link L2RegisterVector}.
 	 */
-	public final @NotNull L2RegisterVector vector;
+	public final L2RegisterVector vector;
 
 	/**
 	 * Construct a new {@link L2ReadVectorOperand} with the specified {@link
@@ -59,7 +59,7 @@ public class L2ReadVectorOperand extends L2Operand
 	 * @param vector The register vector.
 	 */
 	public L2ReadVectorOperand (
-		final @NotNull L2RegisterVector vector)
+		final L2RegisterVector vector)
 	{
 		this.vector = vector;
 	}
@@ -78,7 +78,7 @@ public class L2ReadVectorOperand extends L2Operand
 
 	@Override
 	public L2ReadVectorOperand transformRegisters (
-		final @NotNull Transformer2<L2Register, L2OperandType, L2Register>
+		final Transformer2<L2Register, L2OperandType, L2Register>
 			transformer)
 	{
 		final List<L2ObjectRegister> newRegisters =
@@ -95,7 +95,7 @@ public class L2ReadVectorOperand extends L2Operand
 
 	@Override
 	public void emitOn (
-		final @NotNull L2CodeGenerator codeGenerator)
+		final L2CodeGenerator codeGenerator)
 	{
 		codeGenerator.emitVector(vector);
 	}

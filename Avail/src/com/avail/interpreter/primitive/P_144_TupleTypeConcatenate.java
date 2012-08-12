@@ -52,9 +52,9 @@ public class P_144_TupleTypeConcatenate extends Primitive
 		2, CanFold, CannotFail);
 
 	@Override
-	public @NotNull Result attempt (
-		final @NotNull List<AvailObject> args,
-		final @NotNull Interpreter interpreter)
+	public Result attempt (
+		final List<AvailObject> args,
+		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
 		final AvailObject tupleType1 = args.get(0);
@@ -66,7 +66,7 @@ public class P_144_TupleTypeConcatenate extends Primitive
 	}
 
 	@Override
-	protected @NotNull AvailObject privateBlockTypeRestriction ()
+	protected AvailObject privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(

@@ -216,7 +216,7 @@ implements IntegerEnumSlotDescriptionEnum
 	 * @return The {@link Result} code indicating success or failure (or special
 	 *         circumstance).
 	 */
-	public abstract @NotNull Result attempt (
+	public abstract Result attempt (
 		List<AvailObject> args,
 		Interpreter interpreter);
 
@@ -232,7 +232,7 @@ implements IntegerEnumSlotDescriptionEnum
 	 *             A function type that restricts the type of a block that uses
 	 *             this primitive.
 	 */
-	protected abstract @NotNull AvailObject privateBlockTypeRestriction ();
+	protected abstract AvailObject privateBlockTypeRestriction ();
 
 	/**
 	 * A {@linkplain FunctionTypeDescriptor function type} that restricts the
@@ -259,7 +259,7 @@ implements IntegerEnumSlotDescriptionEnum
 	 *            A function type that restricts the type of a block that uses
 	 *            this primitive.
 	 */
-	public final @NotNull AvailObject blockTypeRestriction ()
+	public final AvailObject blockTypeRestriction ()
 	{
 		if (cachedBlockTypeRestriction == null)
 		{
@@ -286,8 +286,8 @@ implements IntegerEnumSlotDescriptionEnum
 	 * @return
 	 *            The return type guaranteed by the VM at some call site.
 	 */
-	public @NotNull AvailObject returnTypeGuaranteedByVMForArgumentTypes (
-		final @NotNull List<AvailObject> argumentTypes)
+	public AvailObject returnTypeGuaranteedByVMForArgumentTypes (
+		final List<AvailObject> argumentTypes)
 	{
 		return blockTypeRestriction().returnType();
 	}
@@ -306,7 +306,7 @@ implements IntegerEnumSlotDescriptionEnum
 	 *             A type which is at least as specific as the type of the
 	 *             failure variable declared in a block using this primitive.
 	 */
-	protected @NotNull AvailObject privateFailureVariableType ()
+	protected AvailObject privateFailureVariableType ()
 	{
 		return IntegerRangeTypeDescriptor.naturalNumbers();
 	}
@@ -328,7 +328,7 @@ implements IntegerEnumSlotDescriptionEnum
 	 *             A type which is at least as specific as the type of the
 	 *             failure variable declared in a block using this primitive.
 	 */
-	public final @NotNull AvailObject failureVariableType ()
+	public final AvailObject failureVariableType ()
 	{
 		if (cachedFailureVariableType == null)
 		{
@@ -368,7 +368,7 @@ implements IntegerEnumSlotDescriptionEnum
 	 * The flags that indicate to the {@link L2Translator} how an invocation of
 	 * this primitive should be handled.
 	 */
-	private @NotNull EnumSet<Flag> primitiveFlags;
+	private EnumSet<Flag> primitiveFlags;
 
 	/**
 	 * Test whether the specified {@link Flag} is set for this primitive.
@@ -376,7 +376,7 @@ implements IntegerEnumSlotDescriptionEnum
 	 * @param flag The {@code Flag} to test.
 	 * @return Whether that {@code Flag} is set for this primitive.
 	 */
-	public final boolean hasFlag (final @NotNull Flag flag)
+	public final boolean hasFlag (final Flag flag)
 	{
 		return primitiveFlags.contains(flag);
 	}
@@ -473,10 +473,11 @@ implements IntegerEnumSlotDescriptionEnum
 	 * @param primitiveNumber The primitive number for which to search.
 	 * @return The primitive with the specified primitive number.
 	 */
-	public static Primitive byPrimitiveNumber(final int primitiveNumber)
+	public static @Nullable Primitive byPrimitiveNumber (
+		final int primitiveNumber)
 	{
-		if (primitiveNumber < 1
-			|| primitiveNumber > maxPrimitiveNumber)
+		assert primitiveNumber >= 0 && primitiveNumber <= maxPrimitiveNumber;
+		if (primitiveNumber == 0)
 		{
 			return null;
 		}
@@ -571,7 +572,7 @@ implements IntegerEnumSlotDescriptionEnum
 	 */
 	protected Primitive init (
 		final int theArgCount,
-		final @NotNull Flag ... flags)
+		final Flag ... flags)
 	{
 		assert primitiveNumber == 0;
 		final String className = this.getClass().getName();
@@ -635,8 +636,12 @@ implements IntegerEnumSlotDescriptionEnum
 		Collections.sort(prims, new Comparator<Primitive>()
 		{
 			@Override
-			public int compare (final Primitive p1, final Primitive p2)
+			public int compare (
+				final @Nullable Primitive p1,
+				final @Nullable Primitive p2)
 			{
+				assert p1 != null;
+				assert p2 != null;
 				return Long.signum(
 					p2.debugMicrosecondsCheckingResultType
 						- p1.debugMicrosecondsCheckingResultType);

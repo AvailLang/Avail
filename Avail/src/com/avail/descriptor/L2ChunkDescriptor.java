@@ -192,15 +192,15 @@ extends Descriptor
 
 	@Override @AvailMethod
 	void o_Index (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int value)
 	{
 		object.setSlot(INDEX, value);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_LiteralAt (
-		final @NotNull AvailObject object,
+	AvailObject o_LiteralAt (
+		final AvailObject object,
 		final int subscript)
 	{
 		return object.slot(LITERAL_AT_, subscript);
@@ -208,48 +208,48 @@ extends Descriptor
 
 	@Override @AvailMethod
 	int o_Index (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.slot(INDEX);
 	}
 
 	@Override @AvailMethod
 	int o_NumDoubles (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.slot(NUM_DOUBLES);
 	}
 
 	@Override @AvailMethod
 	int o_NumIntegers (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.slot(NUM_INTEGERS);
 	}
 
 	@Override @AvailMethod
 	int o_NumObjects (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.slot(NUM_OBJECTS);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_Vectors (
-		final @NotNull AvailObject object)
+	AvailObject o_Vectors (
+		final AvailObject object)
 	{
 		return object.slot(VECTORS);
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_Wordcodes (
-		final @NotNull AvailObject object)
+	AvailObject o_Wordcodes (
+		final AvailObject object)
 	{
 		return object.slot(WORDCODES);
 	}
 
 	@Override boolean allowsImmutableToMutableReferenceInField (
-		final @NotNull AbstractSlotsEnum e)
+		final AbstractSlotsEnum e)
 	{
 		return e == WORDCODES
 			|| e == VECTORS
@@ -259,9 +259,9 @@ extends Descriptor
 
 	@Override
 	public void printObjectOnAvoidingIndent (
-		final @NotNull AvailObject object,
-		final @NotNull StringBuilder aStream,
-		final @NotNull List<AvailObject> recursionList,
+		final AvailObject object,
+		final StringBuilder aStream,
+		final List<AvailObject> recursionList,
 		final int indent)
 	{
 		//  Print this chunk on the given stream.
@@ -312,15 +312,15 @@ extends Descriptor
 
 	@Override @AvailMethod
 	boolean o_Equals (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+		final AvailObject object,
+		final AvailObject another)
 	{
 		return another.traversed().sameAddressAs(object);
 	}
 
 	@Override @AvailMethod
 	void o_IsSaved (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final boolean aBoolean)
 	{
 		object.setSlot(SAVED, aBoolean ? 1 : 0);
@@ -328,21 +328,21 @@ extends Descriptor
 
 	@Override @AvailMethod
 	int o_Hash (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return IntegerDescriptor.computeHashOfInt(object.index());
 	}
 
 	@Override @AvailMethod
 	boolean o_IsSaved (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.slot(SAVED) != 0;
 	}
 
 	@Override @AvailMethod
 	boolean o_IsValid (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.slot(VALID) != 0;
 	}
@@ -529,7 +529,7 @@ extends Descriptor
 	 *
 	 * @param chunk A {@linkplain L2ChunkDescriptor Level Two chunk}.
 	 */
-	public static void moveToHead (final @NotNull AvailObject chunk)
+	public static void moveToHead (final AvailObject chunk)
 	{
 		// Do nothing for now.
 		// TODO: [MvG] Move it to the head of a ring that holds chunks weakly

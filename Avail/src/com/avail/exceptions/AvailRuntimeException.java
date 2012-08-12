@@ -49,14 +49,14 @@ extends RuntimeException
 	private static final long serialVersionUID = -8826389456392434347L;
 
 	/** The {@linkplain AvailErrorCode error code}. */
-	private final @NotNull AvailErrorCode errorCode;
+	private final AvailErrorCode errorCode;
 
 	/**
 	 * Answer the {@linkplain AvailErrorCode error code}.
 	 *
 	 * @return The {@linkplain AvailErrorCode error code}.
 	 */
-	public @NotNull AvailErrorCode errorCode ()
+	public AvailErrorCode errorCode ()
 	{
 		return errorCode;
 	}
@@ -67,7 +67,7 @@ extends RuntimeException
 	 *
 	 * @return The {@linkplain AvailObject numeric error code}.
 	 */
-	public @NotNull AvailObject numericCode ()
+	public AvailObject numericCode ()
 	{
 		return errorCode.numericCode();
 	}
@@ -79,7 +79,7 @@ extends RuntimeException
 	 * @param errorCode
 	 *        The {@linkplain AvailErrorCode error code}.
 	 */
-	protected AvailRuntimeException (final @NotNull AvailErrorCode errorCode)
+	protected AvailRuntimeException (final AvailErrorCode errorCode)
 	{
 		this.errorCode = errorCode;
 	}
@@ -95,8 +95,8 @@ extends RuntimeException
 	 *        AvailRuntimeException exception}.
 	 */
 	protected AvailRuntimeException (
-		final @NotNull AvailErrorCode errorCode,
-		final @NotNull Throwable cause)
+		final AvailErrorCode errorCode,
+		final Throwable cause)
 	{
 		super(cause);
 		this.errorCode = errorCode;

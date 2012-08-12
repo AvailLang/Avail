@@ -61,7 +61,7 @@ public class L2_GET_VARIABLE_CLEARING extends L2Operation
 	}
 
 	@Override
-	public void step (final @NotNull L2Interpreter interpreter)
+	public void step (final L2Interpreter interpreter)
 	{
 		final int getIndex = interpreter.nextWord();
 		final int destIndex = interpreter.nextWord();

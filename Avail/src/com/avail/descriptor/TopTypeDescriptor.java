@@ -95,8 +95,8 @@ extends PrimitiveTypeDescriptor
 	@Override
 	@AvailMethod @ThreadSafe
 	boolean o_IsSubtypeOf (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aType)
+		final AvailObject object,
+		final AvailObject aType)
 	{
 		// Check if object (the type top) is a subtype of aType (may also be
 		// top).
@@ -107,7 +107,7 @@ extends PrimitiveTypeDescriptor
 	@Override
 	@AvailMethod @ThreadSafe
 	boolean o_IsSupertypeOfPrimitiveTypeWithOrdinal (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int aPrimitiveTypeOrdinal)
 	{
 		// Check if object (the type top) is a supertype of aPrimitiveType (a

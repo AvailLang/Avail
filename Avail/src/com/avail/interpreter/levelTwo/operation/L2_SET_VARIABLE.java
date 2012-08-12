@@ -56,7 +56,7 @@ public class L2_SET_VARIABLE extends L2Operation
 	}
 
 	@Override
-	public void step (final @NotNull L2Interpreter interpreter)
+	public void step (final L2Interpreter interpreter)
 	{
 		final int setIndex = interpreter.nextWord();
 		final int sourceIndex = interpreter.nextWord();

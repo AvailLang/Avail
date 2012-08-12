@@ -80,10 +80,10 @@ extends StringDescriptor
 
 	@Override @AvailMethod
 	boolean o_CompareFromToWithStartingAt (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
-		final @NotNull AvailObject anotherObject,
+		final AvailObject anotherObject,
 		final int startIndex2)
 	{
 		return anotherObject.compareFromToWithTwoByteStringStartingAt(
@@ -95,10 +95,10 @@ extends StringDescriptor
 
 	@Override @AvailMethod
 	boolean o_CompareFromToWithTwoByteStringStartingAt (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
-		final @NotNull AvailObject aTwoByteString,
+		final AvailObject aTwoByteString,
 		final int startIndex2)
 	{
 		if (object.sameAddressAs(aTwoByteString) && startIndex1 == startIndex2)
@@ -120,16 +120,16 @@ extends StringDescriptor
 
 	@Override @AvailMethod
 	boolean o_Equals (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject another)
+		final AvailObject object,
+		final AvailObject another)
 	{
 		return another.equalsTwoByteString(object);
 	}
 
 	@Override @AvailMethod
 	boolean o_EqualsTwoByteString (
-		final @NotNull AvailObject object,
-		final @NotNull AvailObject aTwoByteString)
+		final AvailObject object,
+		final AvailObject aTwoByteString)
 	{
 		//  First, check for object-structure (address) identity.
 
@@ -166,7 +166,7 @@ extends StringDescriptor
 	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
 	 */
 	@Override @AvailMethod
-	boolean o_IsString (final @NotNull AvailObject object)
+	boolean o_IsString (final AvailObject object)
 	{
 		return true;
 	}
@@ -175,8 +175,8 @@ extends StringDescriptor
 	 * Make the object immutable so it can be shared safely.
 	 */
 	@Override @AvailMethod
-	@NotNull AvailObject o_MakeImmutable (
-		final @NotNull AvailObject object)
+	AvailObject o_MakeImmutable (
+		final AvailObject object)
 	{
 		if (isMutable)
 		{
@@ -190,7 +190,7 @@ extends StringDescriptor
 	 */
 	@Override @AvailMethod
 	int o_RawShortForCharacterAt (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int index)
 	{
 		return object.shortSlotAt(IntegerSlots.RAW_QUAD_AT_, index);
@@ -198,7 +198,7 @@ extends StringDescriptor
 
 	@Override @AvailMethod
 	void o_RawShortForCharacterAtPut (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int index,
 		final int anInteger)
 	{
@@ -207,8 +207,8 @@ extends StringDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TupleAt (
-		final @NotNull AvailObject object,
+	AvailObject o_TupleAt (
+		final AvailObject object,
 		final int index)
 	{
 		// Answer the element at the given index in the tuple object.  It's a
@@ -221,9 +221,9 @@ extends StringDescriptor
 
 	@Override @AvailMethod
 	void o_TupleAtPut (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int index,
-		final @NotNull AvailObject aCharacterObject)
+		final AvailObject aCharacterObject)
 	{
 		// Set the short at the given index to the given object (which should be
 		// an AvailObject that's a two-byte character).
@@ -235,10 +235,10 @@ extends StringDescriptor
 	}
 
 	@Override @AvailMethod
-	@NotNull AvailObject o_TupleAtPuttingCanDestroy (
-		final @NotNull AvailObject object,
+	AvailObject o_TupleAtPuttingCanDestroy (
+		final AvailObject object,
 		final int index,
-		final @NotNull AvailObject newValueObject,
+		final AvailObject newValueObject,
 		final boolean canDestroy)
 	{
 		//  Answer a tuple with all the elements of object except at the given index we should
@@ -272,7 +272,7 @@ extends StringDescriptor
 
 	@Override @AvailMethod
 	int o_TupleIntAt (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int index)
 	{
 		//  Answer the integer element at the given index in the tuple object.
@@ -283,14 +283,14 @@ extends StringDescriptor
 
 	@Override @AvailMethod
 	int o_TupleSize (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		return object.variableIntegerSlotsCount() * 2 - unusedShortsOfLastWord;
 	}
 
 	@Override @AvailMethod
 	int o_BitsPerEntry (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		// Answer approximately how many bits per entry are taken up by this
 		// object.
@@ -299,7 +299,7 @@ extends StringDescriptor
 
 	@Override @AvailMethod
 	int o_ComputeHashFromTo (
-		final @NotNull AvailObject object,
+		final AvailObject object,
 		final int start,
 		final int end)
 	{
@@ -319,8 +319,8 @@ extends StringDescriptor
 
 	@Override
 	Object o_MarshalToJava (
-		final @NotNull AvailObject object,
-		final Class<?> ignoredClassHint)
+		final AvailObject object,
+		final @Nullable Class<?> ignoredClassHint)
 	{
 		return object.asNativeString();
 	}
@@ -379,7 +379,7 @@ extends StringDescriptor
 	 *            with the same content as the argument.
 	 */
 	AvailObject copyAsMutableTwoByteString (
-		final @NotNull AvailObject object)
+		final AvailObject object)
 	{
 		final AvailObject result = mutableObjectOfSize(object.tupleSize());
 		assert result.integerSlotsCount() == object.integerSlotsCount();
@@ -454,9 +454,9 @@ extends StringDescriptor
 	 * @param generator A generator to provide code points to store.
 	 * @return The new Avail {@linkplain TwoByteStringDescriptor string}.
 	 */
-	static @NotNull AvailObject generateTwoByteString(
+	static AvailObject generateTwoByteString(
 		final int size,
-		final @NotNull Generator<Integer> generator)
+		final Generator<Integer> generator)
 	{
 		final AvailObject result =
 			TwoByteStringDescriptor.mutableObjectOfSize(size);

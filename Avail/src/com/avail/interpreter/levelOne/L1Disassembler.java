@@ -148,9 +148,9 @@ public class L1Disassembler
 	 *        The indentation level.
 	 */
 	public void disassemble (
-		final @NotNull AvailObject theCode,
-		final @NotNull StringBuilder theBuilder,
-		final @NotNull List<AvailObject> theRecursionList,
+		final AvailObject theCode,
+		final StringBuilder theBuilder,
+		final List<AvailObject> theRecursionList,
 		final int theIndent)
 	{
 		this.code = theCode;

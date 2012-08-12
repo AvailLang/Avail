@@ -58,8 +58,8 @@ extends RuntimeException
 	 *        The name of the unsupported operation.
 	 */
 	public UnsupportedOperationException (
-		final @NotNull Class<? extends AbstractDescriptor> descriptorClass,
-		final @NotNull String messageName)
+		final Class<? extends AbstractDescriptor> descriptorClass,
+		final String messageName)
 	{
 		super(String.format(
 			"%s does not meaningfully implement %s",
