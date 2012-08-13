@@ -140,14 +140,18 @@ Semantic restriction "_∈_" is
 	]
 	else
 	[
-		if |elementType| = ⎣setType⎦
-			∧ [ valueType ⊆ elementType ] then
+		if (¬elementType ∈ type)
+			∧ [|elementType| = ⎣setType⎦
+			∧ [|elementType| = ⎡setType⎤
+			∧ [valueType ⊆ elementType]]]
+		then
 		[
 			true's type
 		]
 		else
 		[
-			boolean
+			/* Can't strengthen. */
+			⊤
 		]
 	]
 ];

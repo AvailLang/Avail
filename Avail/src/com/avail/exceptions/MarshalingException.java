@@ -33,7 +33,6 @@
 package com.avail.exceptions;
 
 import static com.avail.exceptions.AvailErrorCode.E_JAVA_MARSHALING_FAILED;
-import com.avail.annotations.NotNull;
 import com.avail.descriptor.AvailObject;
 
 /**

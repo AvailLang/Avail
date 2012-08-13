@@ -33,7 +33,6 @@ package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import com.avail.annotations.NotNull;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.*;

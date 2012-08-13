@@ -35,7 +35,6 @@ import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
 import java.util.List;
-import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 

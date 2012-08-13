@@ -34,7 +34,6 @@ package com.avail.compiler;
 
 import static com.avail.compiler.ParsingConversionRule.*;
 import java.util.*;
-import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 
 /**

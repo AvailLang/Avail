@@ -36,7 +36,6 @@ import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
 import java.lang.reflect.Constructor;
 import java.util.*;
-import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.exceptions.MarshalingException;
 import com.avail.interpreter.*;

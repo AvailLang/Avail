@@ -36,7 +36,6 @@ import static com.avail.tools.bootstrap.Resources.*;
 import java.io.*;
 import java.util.*;
 import com.avail.AvailRuntime;
-import com.avail.annotations.NotNull;
 import com.avail.descriptor.AvailObject;
 
 /**

@@ -32,7 +32,6 @@
 package com.avail.interpreter.levelTwo;
 
 import java.util.*;
-import com.avail.annotations.NotNull;
 import com.avail.descriptor.L2ChunkDescriptor;
 import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.optimizer.*;

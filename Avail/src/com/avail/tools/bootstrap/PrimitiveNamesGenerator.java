@@ -37,7 +37,6 @@ import static com.avail.tools.bootstrap.Resources.Key.*;
 import java.io.*;
 import java.text.MessageFormat;
 import java.util.*;
-import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;

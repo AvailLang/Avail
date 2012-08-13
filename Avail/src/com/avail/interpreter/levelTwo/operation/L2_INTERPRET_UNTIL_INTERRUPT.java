@@ -35,7 +35,6 @@ import static com.avail.interpreter.levelTwo.L2Interpreter.*;
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
 import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
 import java.util.logging.Level;
-import com.avail.annotations.NotNull;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelOne.L1Operation;

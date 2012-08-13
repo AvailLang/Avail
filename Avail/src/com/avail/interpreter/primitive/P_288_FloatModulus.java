@@ -36,7 +36,6 @@ import static com.avail.exceptions.AvailErrorCode.E_CANNOT_DIVIDE_BY_ZERO;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
 import static java.lang.Math.floor;
 import java.util.List;
-import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 

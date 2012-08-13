@@ -37,7 +37,8 @@ Uses
 	"Core",
 	"Definers",
 	"Derivation",
-	"Foundation"
+	"Foundation",
+	"Printing"
 Names
 	"degree Celsius", "℃"
 
@@ -55,10 +56,10 @@ Body
 
 /* Define the SI derived units. */
 "radian" ("rad") is an SI derived unit equivalent to m/m;
-"steradian" ("sr") is an SI derived unit equivalent to m^2/m^2;
+"steradian" ("sr") is an SI derived unit equivalent to m²/m²;
 "hertz" ("Hz") is an SI derived unit equivalent to s^-1;
-"newton" ("N") is an SI derived unit equivalent to kg·m/s^2;
-"pascal" ("Pa") is an SI derived unit equivalent to N/m^2;
+"newton" ("N") is an SI derived unit equivalent to kg·m/s²;
+"pascal" ("Pa") is an SI derived unit equivalent to N/m²;
 "joule" ("J") is an SI derived unit equivalent to N·m;
 "watt" ("W") is an SI derived unit equivalent to J/s;
 "coulomb" ("C") is an SI derived unit equivalent to s·A;
@@ -67,10 +68,10 @@ Body
 "ohm" ("Ω") is an SI derived unit equivalent to V/A;
 "siemens" ("S") is an SI derived unit equivalent to Ω^-1;
 "weber" ("Wb") is an SI derived unit equivalent to J/A;
-"tesla" ("T") is an SI derived unit equivalent to V·s/m^2;
+"tesla" ("T") is an SI derived unit equivalent to V·s/m²;
 "henry" ("H") is an SI derived unit equivalent to V·s/A;
 "lumen" ("lm") is an SI derived unit equivalent to cd·sr;
-"lux" ("lx") is an SI derived unit equivalent to lm/m^2;
+"lux" ("lx") is an SI derived unit equivalent to lm/m²;
 "becquerel" ("Bq") is an SI derived unit equivalent to s^-1;
 "gray" ("Gy") is an SI derived unit equivalent to J/kg;
 "sievert" ("Sv") is an SI derived unit equivalent to J/kg;
@@ -78,8 +79,6 @@ Body
 
 /* Define degree Celsius specially. */
 "degree Celsius" ("℃") is a base unit;
-/* TODO: [TLS] Fix this! The semantic restriction is failing. */
-/*
 Conversion method
 	is
 	[
@@ -95,4 +94,3 @@ Conversion method
 	|
 		@ (quantity's extent - 273.15d) ℃
 	] : @ double degree Celsius;
-*/

@@ -37,7 +37,6 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
-import com.avail.annotations.NotNull;
 import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.ModuleDescriptor;
 

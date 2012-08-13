@@ -34,7 +34,6 @@ package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
-import com.avail.annotations.NotNull;
 import com.avail.interpreter.levelTwo.*;
 
 public class L2_RESUME_CONTINUATION extends L2Operation

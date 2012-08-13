@@ -32,8 +32,6 @@
 
 package com.avail.descriptor;
 
-import com.avail.annotations.NotNull;
-
 /**
  * This class assists with the presentation of {@link AvailObject}s in the
  * Eclipse debugger.  Since AvailObjects have a uniform structure consisting of

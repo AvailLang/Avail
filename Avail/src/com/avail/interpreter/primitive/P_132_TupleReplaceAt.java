@@ -36,7 +36,6 @@ import static com.avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
 import static java.lang.Math.*;
 import java.util.*;
-import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 

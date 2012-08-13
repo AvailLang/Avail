@@ -32,7 +32,6 @@
 
 package com.avail.visitor;
 
-import com.avail.annotations.NotNull;
 import com.avail.descriptor.AvailObject;
 
 /**

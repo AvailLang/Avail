@@ -61,6 +61,8 @@ Names
 	"_·_",
 	"_/_",
 	"_^_",
+	"_²",
+	"_³",
 
 	/* Derivation helpers. */
 	"_·_(unit map)",
@@ -83,6 +85,12 @@ Names
 	"_×_",
 	"_÷_",
 
+	/* Comparison. */
+	"_<_",
+	"_≤_",
+	"_>_",
+	"_≥_",
+
 	/* Conversion. */
 	"Conversion method is_,⁇inverse is_",
 	"_converted to_"
@@ -93,12 +101,14 @@ _extent ::= $extent;
 _metric ::= $metric;
 _sourceUnit ::= $"source unit";
 _targetUnit ::= $"target unit";
+_preferredSymbol ::= $"preferred symbol";
 
 Public method "unit map" is [_unitMap];
 Public method "extent" is [_extent];
 Public method "metric" is [_metric];
 Private method "source unit" is [_sourceUnit];
 Private method "target unit" is [_targetUnit];
+Private method "preferred symbol" is [_preferredSymbol];
 
 /**
  * A unit is a measurement quantum along some dimensional axis.
@@ -235,13 +245,6 @@ Semantic restriction "@__" is
  */
 namesByUnit : {unit→string|} := {};
 
-Method "“_”" is
-[
-	arg : unit
-|
-	namesByUnit[arg] else [primitive description of arg]
-];
-
 /**
  * Prefer {@param "name"} for printing the specified {@type "unit"}.
  *
@@ -267,15 +270,6 @@ Public method "Prefer_for printing_" is
  */
 symbolsByUnit : {unit→string|} := {};
 
-Method "“_”" is
-[
-	arg : dimensioned quantity
-|
-	desc ::= symbolsByUnit[arg's metric]
-		else [" " ++ primitive description of arg's metric];
-	“arg's extent” ++ desc
-] : string;
-
 /**
  * Prefer {@param "symbol"} for printing {@type "dimensioned quantity"
  * dimensioned quantities} of the specified {@type "unit"}.
@@ -292,8 +286,106 @@ Public method "Prefer_for printing_in a dimensioned quantity" is
 	symbol : string,
 	aUnit : unit
 |
+	Cast aUnit into
+	[
+		baseUnit : base unit
+	|
+		unitAtom ::= baseUnit's unit map's keys→tuple[1];
+		unitAtom[preferred symbol] := symbol;
+	]
+	else
+	[
+		/* No implementation required. */
+	];
 	symbolsByUnit := eject ↑symbolsByUnit + aUnit→symbol;
 ] : ⊤;
+
+/**
+ * Construct and answer a description of the specified unit map (as the product
+ * of powers of base units).
+ *
+ * @method "unit map“_”"
+ * @param "unitMap" "{atom→integer|}"
+ *        A unit map.
+ * @returns "string"
+ *          The requested unit map.
+ */
+Private method "unit map“_”" is
+[
+	unitMap : {atom→integer|}
+|
+	if unitMap ∈ {atom→1's type|1} then
+	[
+		/* This is an unnamed base unit. Answer its atom's preferred symbol. */
+		unitAtom ::= unitMap's keys→tuple[1];
+		desc ::= unitAtom[preferred symbol] else [unitAtom's name];
+		cast desc into [t : string | t]
+	]
+	else
+	[
+		/* This is an unnamed derived unit. Compose its description from its
+		 * base units.
+		 */
+		expr ::= left fold <""> ++ unitMap's keys→tuple through
+			[
+				unitAtom : atom,
+				partial : string
+			|
+				exponent ::= unitMap[unitAtom];
+				name ::= unitAtom[preferred symbol] else [unitAtom's name];
+				strongName ::= cast name into [t : string | t];
+				term ::=
+					if exponent = 1 then [strongName]
+					else if [exponent = 2] then [strongName ++ "²"]
+					else if [exponent = 3] then [strongName ++ "³"]
+					else [strongName ++ "^" ++ “exponent”];
+				partial ++ "·" ++ term
+			];
+		expr[2..]
+	]
+] : string;
+
+Method "“_”" is
+[
+	arg : unit
+|
+	namesByUnit[arg] else
+	[
+		desc ::= unit map “arg's unit map”;
+		/* Cache the description for faster access next time. */
+		namesByUnit := eject ↑namesByUnit + arg→desc;
+		desc
+	]
+];
+
+Method "“_”" is
+[
+	arg : scalar
+|
+	"(scalar)"
+];
+
+Method "“_”" is
+[
+	arg : dimensioned quantity
+|
+	desc ::=
+		symbolsByUnit[arg's metric] else
+		[
+			short ::= unit map “arg's metric's unit map”;
+			/* Cache the description for faster access next time. */
+			symbolsByUnit := eject ↑symbolsByUnit + arg's metric→short;
+			short
+		];
+	“arg's extent” ++ desc
+] : string;
+
+Method "“_”" is
+[
+	arg : extend dimensioned quantity with metric : scalar
+|
+	“arg's extent”
+];
 
 /**
  * TODO: [TLS] This mechanism should be reworked when locales are introduced.
@@ -316,7 +408,7 @@ Public method "_has symbol_" is
 	symbol : <character…|1..>
 |
 	/* Generate a factory method. */
-	Method symbol is generate «[ <> | <‘`aUnit`’> ] : aUnit's type»;
+	Method symbol is generate «[ <> | <‘`aUnit` ("")’> ] : aUnit's type»;
 	/* Set the preferred print representation. */
 	Unless aUnit ∈ symbolsByUnit then
 	[
@@ -518,15 +610,49 @@ Public stable method "_^_" is
 	a unitType with unit map := unitMap
 ] : unit;
 
+/**
+ * Compute and answer the result of squaring the specified {@type "unit"}.
+ *
+ * @method "_²"
+ * @param "theUnit" "unit"
+ *        A {@type "unit"}.
+ * @returns "unit"
+ *          The result of the exponentiation.
+ */
+Public stable method "_²" is
 [
-	product ::= {"_·_", "_/_"};
-	power   ::= {"_^_"};
+	theUnit : unit
+|
+	theUnit^2
+] : unit;
+
+/**
+ * Compute and answer the result of cubing the specified {@type "unit"}.
+ *
+ * @method "_³"
+ * @param "theUnit" "unit"
+ *        A {@type "unit"}.
+ * @returns "unit"
+ *          The result of the exponentiation.
+ */
+Public stable method "_³" is
+[
+	theUnit : unit
+|
+	theUnit^3
+] : unit;
+
+[
+	product     ::= {"_·_", "_/_"};
+	power       ::= {"_^_"};
+	superscript ::= {"_²", "_³"};
 
 	/* Establish the precedence of multiplicative derivation. */
 	Grammatical restriction product is <∅, product>;
 
 	/* Establish the precedence of exponentiation. */
 	Grammatical restriction power is <product ∪ power, product>;
+	Grammatical restriction superscript is <product ∪ power ∪ superscript>;
 ]();
 
 /**
@@ -1020,6 +1146,116 @@ Semantic restriction "-_" is
 ]();
 
 /**
+ * Is {@param "a"} < {@param "b"}?
+ *
+ * @method "_<_"
+ * @param "a" "dimensioned quantity"
+ *        A {@type "dimensioned quantity"}.
+ * @param "b" "dimensioned quantity"
+ *        A {@type "dimensioned quantity"}.
+ * @returns "boolean"
+ *          {@method "true"} if {@param "a"} < {@param "b"}, {@method "false"}
+ *          otherwise.
+ */
+Public method "_<_" is
+[
+	a : dimensioned quantity,
+	b : dimensioned quantity
+|
+	a's extent < b's extent
+] : boolean;
+
+/**
+ * Is {@param "a"} ≤ {@param "b"}?
+ *
+ * @method "_≤_"
+ * @param "a" "dimensioned quantity"
+ *        A {@type "dimensioned quantity"}.
+ * @param "b" "dimensioned quantity"
+ *        A {@type "dimensioned quantity"}.
+ * @returns "boolean"
+ *          {@method "true"} if {@param "a"} ≤ {@param "b"}, {@method "false"}
+ *          otherwise.
+ */
+Public method "_≤_" is
+[
+	a : dimensioned quantity,
+	b : dimensioned quantity
+|
+	a's extent ≤ b's extent
+] : boolean;
+
+/**
+ * Is {@param "a"} > {@param "b"}?
+ *
+ * @method "_>_"
+ * @param "a" "dimensioned quantity"
+ *        A {@type "dimensioned quantity"}.
+ * @param "b" "dimensioned quantity"
+ *        A {@type "dimensioned quantity"}.
+ * @returns "boolean"
+ *          {@method "true"} if {@param "a"} > {@param "b"}, {@method "false"}
+ *          otherwise.
+ */
+Public method "_>_" is
+[
+	a : dimensioned quantity,
+	b : dimensioned quantity
+|
+	a's extent > b's extent
+] : boolean;
+
+/**
+ * Is {@param "a"} ≥ {@param "b"}?
+ *
+ * @method "_≥_"
+ * @param "a" "dimensioned quantity"
+ *        A {@type "dimensioned quantity"}.
+ * @param "b" "dimensioned quantity"
+ *        A {@type "dimensioned quantity"}.
+ * @returns "boolean"
+ *          {@method "true"} if {@param "a"} ≥ {@param "b"}, {@method "false"}
+ *          otherwise.
+ */
+Public method "_≥_" is
+[
+	a : dimensioned quantity,
+	b : dimensioned quantity
+|
+	a's extent ≥ b's extent
+] : boolean;
+
+Private method "comparison restriction function" is
+[
+	[
+		a : dimensioned quantity's type,
+		b : dimensioned quantity's type
+	|
+		metricA ::= a's metric;
+		metricB ::= b's metric;
+		If {|metricA|, |metricB|} = {1}
+			∧ [metricA's instance ≠ metricB's instance]
+		then
+		[
+			Reject parse, expected:
+				format
+					"dimensioned quantities to have equal units \
+					\|(but ‘①’ and ‘②’ are not equal)"
+				with
+					metricA's instance, metricB's instance
+		];
+		⊤
+	]
+] : [dimensioned quantity's type, dimensioned quantity's type]→type;
+
+Semantic restriction "_=_" is comparison restriction function;
+Semantic restriction "_≠_" is comparison restriction function;
+Semantic restriction "_<_" is comparison restriction function;
+Semantic restriction "_≤_" is comparison restriction function;
+Semantic restriction "_>_" is comparison restriction function;
+Semantic restriction "_≥_" is comparison restriction function;
+
+/**
  * An arity-2 function that answers a {@type "dimensioned quantity"} when
  * applied with a {@type "dimensioned quantity"} and a {@type "unit"}.
  *
@@ -1166,6 +1402,8 @@ Public method "Conversion method is_,⁇inverse is_" is
  *     "dimensioned quantity"} and {@type "unit"}, respectively.</li>
  * <li>The first function's parameter types' metrics are not precisely
  *     statically known.</li>
+ * <li>The first function's first parameter type's metric is not equal to its
+ *     second parameter type.</li>
  * <li>The first function's return type's metric is not equal to its second
  *     parameter type.</li>
  * <li>The second function's parameter types' metrics are not the reordering of
@@ -1204,13 +1442,23 @@ Semantic restriction "Conversion method is_,⁇inverse is_" is
 		Reject parse, expected:
 			"units to be statically known"
 	];
+	Unless strong1's metric ≠ strong2 then
+	[
+		Reject parse, expected:
+			format
+				"first function's parameter's metrics not to be equal \
+				\|(but both are ‘①’)"
+			with strong2's instance
+	];
 	Unless functionType's return type's metric = strong2 then
 	[
 		Reject parse, expected:
 			format
 				"first function to return a dimensioned quantity with the same \
 				\|metric as its second parameter (‘①’) (but it returns ‘②’)"
-			with strong2, functionType's return type
+			with
+				strong2's instance,
+				functionType's return type's metric's instance
 	];
 	inverse1 ::= cast inverseType[1] into [t : dimensioned quantity's type | t];
 	Unless <inverse1's metric, inverseType[2]> = <strong2, strong1's metric>
@@ -1236,7 +1484,9 @@ Semantic restriction "Conversion method is_,⁇inverse is_" is
 			format
 				"second function to return a dimensioned quantity with the same\
 				\| metric as its second parameter (‘①’) (but it returns ‘②’)"
-			with inverseType[2], inverseType's return type
+			with
+				inverseType[2]'s instance,
+				inverseType's return type's metric's instance
 	];
 	⊤
 ];

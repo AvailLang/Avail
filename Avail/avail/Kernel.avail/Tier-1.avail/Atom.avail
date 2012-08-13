@@ -44,7 +44,6 @@ Names
 	"_property[_]:=nil"
 Body
 
-
 Method "new atom_" is [name : string |
 	Primitive 120;
 ] : atom;
@@ -53,11 +52,17 @@ Method "_name" is [a : atom |
 	Primitive 121;
 ] : string;
 
+Method "_∈_" is [
+		propertyK : atom,
+		a : atom |
+	Primitive 122 (failureCode : natural number);
+	Failed
+] : boolean;
+
 Method "_property[_]`?" is [
 		a : atom,
 		propertyKey : atom |
-	Primitive 122 (failureCode : natural number);
-	Failed
+	propertyKey ∈ a
 ] : boolean;
 
 Method "_property[_]" is [

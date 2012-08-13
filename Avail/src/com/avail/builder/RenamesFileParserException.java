@@ -32,8 +32,6 @@
 
 package com.avail.builder;
 
-import com.avail.annotations.NotNull;
-
 /**
  * {@code RenamesFileParserException} is thrown by a {@link RenamesFileParser}
  * when a {@linkplain RenamesFileParser#parse() parse} fails for any reason.

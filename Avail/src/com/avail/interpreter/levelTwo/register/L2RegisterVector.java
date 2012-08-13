@@ -33,7 +33,6 @@
 package com.avail.interpreter.levelTwo.register;
 
 import java.util.*;
-import com.avail.annotations.NotNull;
 import com.avail.optimizer.RegisterSet;
 
 /**

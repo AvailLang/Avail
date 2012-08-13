@@ -33,8 +33,6 @@
 package com.avail.descriptor;
 
 import java.util.List;
-import com.avail.annotations.NotNull;
-
 /**
  * {@code FillerDescriptor} represents an unreachable {@link AvailObject} of
  * arbitrary size. It exists solely to occupy dead space during an object

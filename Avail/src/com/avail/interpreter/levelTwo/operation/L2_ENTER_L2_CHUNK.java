@@ -33,7 +33,6 @@ package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_VECTOR;
-import com.avail.annotations.NotNull;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.optimizer.RegisterSet;
 

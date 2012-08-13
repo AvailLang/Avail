@@ -39,7 +39,6 @@ import static com.avail.test.ScannerTest.Case.C;
 import java.util.*;
 import org.junit.*;
 import com.avail.AvailRuntime;
-import com.avail.annotations.NotNull;
 import com.avail.compiler.scanning.*;
 import com.avail.descriptor.*;
 import com.avail.utility.Generator;

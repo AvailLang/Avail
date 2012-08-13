@@ -36,7 +36,6 @@ import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.interpreter.levelTwo.L2Interpreter.debugL1;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import java.util.*;
-import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.operand.*;

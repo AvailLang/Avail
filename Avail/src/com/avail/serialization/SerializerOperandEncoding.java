@@ -32,7 +32,6 @@
 
 package com.avail.serialization;
 
-import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.utility.*;
 import java.io.*;

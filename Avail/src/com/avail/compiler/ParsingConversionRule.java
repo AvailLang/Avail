@@ -32,7 +32,6 @@
 
 package com.avail.compiler;
 
-import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 
 /**

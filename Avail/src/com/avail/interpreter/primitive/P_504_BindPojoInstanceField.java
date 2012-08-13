@@ -35,7 +35,6 @@ import static com.avail.exceptions.AvailErrorCode.E_JAVA_FIELD_NOT_AVAILABLE;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
 import java.lang.reflect.*;
 import java.util.List;
-import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 

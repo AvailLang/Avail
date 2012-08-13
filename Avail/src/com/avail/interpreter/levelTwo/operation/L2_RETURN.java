@@ -33,7 +33,6 @@ package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
 import static com.avail.interpreter.levelTwo.register.FixedRegister.CALLER;
-import com.avail.annotations.NotNull;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.levelTwo.*;
 

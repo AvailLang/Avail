@@ -33,7 +33,6 @@
 package com.avail.serialization;
 
 import com.avail.AvailRuntime;
-import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.utility.Continuation0;
 import java.io.*;

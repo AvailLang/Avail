@@ -35,7 +35,6 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.E_KEY_NOT_FOUND;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
 import java.util.List;
-import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 

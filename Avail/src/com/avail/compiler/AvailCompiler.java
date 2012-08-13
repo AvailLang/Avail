@@ -1070,7 +1070,7 @@ extends AbstractAvailCompiler
 	 * @param explanation
 	 *            A {@link String} indicating why it's parsing an argument.
 	 * @param firstArgOrNull
-	 *            Either a parse node to use as the argument, or {@code null if
+	 *            Either a parse node to use as the argument, or {@code null} if
 	 *            we should parse one now.
 	 * @param initialTokenPosition
 	 *            The position at which we started parsing the message send.

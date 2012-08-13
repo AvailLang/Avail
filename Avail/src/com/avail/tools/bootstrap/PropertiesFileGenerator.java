@@ -37,8 +37,6 @@ import static com.avail.tools.bootstrap.Resources.Key.*;
 import java.io.*;
 import java.text.MessageFormat;
 import java.util.*;
-import com.avail.annotations.NotNull;
-
 /**
  * {@code PropertiesFileGenerator} defines state and operations common to the
  * Avail properties file generators.

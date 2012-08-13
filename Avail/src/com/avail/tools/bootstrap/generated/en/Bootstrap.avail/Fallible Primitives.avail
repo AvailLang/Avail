@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Versioned As: $$Revision: 565 $$
+ * * Last Versioned As: $$Revision: 623 $$
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -482,15 +482,15 @@ Primitive "_[_]" is
  * Does `anAtom` have a property whose key is `key`?
  *
  * Parameters:
- *    anAtom - An atom.
  *    key - The property key.
+ *    anAtom - An atom.
  * Returns:
  *    `true` if `anAtom` has a property whose key is `key`, `false` otherwise.
  */
 Primitive "_∈_" is
 [
-	anAtom : atom,
-	key : atom
+	key : atom,
+	anAtom : atom
 |
 	Primitive 122 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode

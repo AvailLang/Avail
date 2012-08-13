@@ -32,7 +32,6 @@
 
 package com.avail.builder;
 
-import com.avail.annotations.NotNull;
 import com.avail.descriptor.ModuleDescriptor;
 
 /**

@@ -41,6 +41,10 @@ Extends
 		"Shouldn't happen",
 		"assertion-failed exception"
 	),
+	"Atoms" =
+	(
+		"_[_]else_"
+	),
 	"Bootstrap" =
 	(
 		"Abstract method_is_",

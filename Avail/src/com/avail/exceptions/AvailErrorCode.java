@@ -35,7 +35,6 @@ package com.avail.exceptions;
 import java.lang.reflect.*;
 import java.util.*;
 import com.avail.AvailRuntime;
-import com.avail.annotations.NotNull;
 import com.avail.compiler.MessageSplitter;
 import com.avail.descriptor.*;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;

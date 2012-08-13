@@ -36,7 +36,6 @@ import static com.avail.exceptions.AvailErrorCode.E_CONTINUATION_EXPECTED_STRONG
 import static com.avail.interpreter.Primitive.Flag.SwitchesContinuation;
 import static com.avail.interpreter.Primitive.Result.CONTINUATION_CHANGED;
 import java.util.List;
-import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 

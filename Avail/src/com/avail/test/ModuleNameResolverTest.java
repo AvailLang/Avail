@@ -35,7 +35,6 @@ package com.avail.test;
 import static org.junit.Assert.assertEquals;
 import java.io.*;
 import org.junit.Test;
-import com.avail.annotations.NotNull;
 import com.avail.builder.*;
 
 /**

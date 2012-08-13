@@ -33,8 +33,6 @@
 package com.avail.interpreter.levelOne;
 
 import java.util.Arrays;
-import com.avail.annotations.NotNull;
-
 /**
  * {@code L1Instruction} combines an {@link L1Operation} with the operands.
  * It represents the smallest atomic step that the Avail interpreter can

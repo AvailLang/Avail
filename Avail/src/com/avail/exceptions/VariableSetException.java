@@ -32,7 +32,6 @@
 
 package com.avail.exceptions;
 
-import com.avail.annotations.NotNull;
 import com.avail.descriptor.AvailObject;
 
 /**

@@ -34,7 +34,6 @@ package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import com.avail.annotations.NotNull;
 import com.avail.interpreter.levelTwo.*;
 
 public class L2_SUBTRACT_INT_FROM_INT_MOD_32_BITS extends L2Operation

@@ -32,7 +32,6 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import com.avail.annotations.NotNull;
 import com.avail.descriptor.VariableDescriptor;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.operand.*;

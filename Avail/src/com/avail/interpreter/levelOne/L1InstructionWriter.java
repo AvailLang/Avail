@@ -34,7 +34,6 @@ package com.avail.interpreter.levelOne;
 
 import java.io.ByteArrayOutputStream;
 import java.util.*;
-import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;

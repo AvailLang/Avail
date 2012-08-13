@@ -32,7 +32,6 @@
 
 package com.avail.interpreter.levelTwo;
 
-import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Primitive;
 

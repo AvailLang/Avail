@@ -33,7 +33,6 @@
 package com.avail.compiler;
 
 import java.io.File;
-import com.avail.annotations.NotNull;
 import com.avail.builder.ModuleName;
 import com.avail.descriptor.ModuleDescriptor;
 

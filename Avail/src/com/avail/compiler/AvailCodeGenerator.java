@@ -35,7 +35,6 @@ package com.avail.compiler;
 import static com.avail.descriptor.AvailObject.error;
 import java.io.ByteArrayOutputStream;
 import java.util.*;
-import com.avail.annotations.NotNull;
 import com.avail.compiler.instruction.*;
 import com.avail.descriptor.*;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;

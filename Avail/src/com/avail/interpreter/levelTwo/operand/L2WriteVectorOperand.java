@@ -33,7 +33,6 @@
 package com.avail.interpreter.levelTwo.operand;
 
 import java.util.*;
-import com.avail.annotations.NotNull;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.*;
 import com.avail.utility.*;

@@ -523,14 +523,26 @@ Semantic restriction "_∈_" is
 	keyType : any meta,
 	mapType : map meta
 |
-	if keyType ∩ (mapType's key type) = ⊥ then
+	mapKeyType ::= mapType's key type;
+	if keyType ∩ mapKeyType = ⊥ then
 	[
 		false's type
 	]
 	else
 	[
-		/* Can't strengthen. */
-		⊤
+		if (¬mapKeyType ∈ type)
+			∧ [|mapKeyType| = ⎣mapType⎦
+			∧ [|mapKeyType| = ⎡mapType⎤
+			∧ [keyType ⊆ mapKeyType]]]
+		then
+		[
+			true's type
+		]
+		else
+		[
+			/* Can't strengthen. */
+			⊤
+		]
 	]
 ];
 

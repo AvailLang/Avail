@@ -32,8 +32,6 @@
 
 package com.avail;
 
-import com.avail.annotations.NotNull;
-
 /**
  * An {@code AvailThread} is a {@linkplain Thread thread} managed by a
  * particular {@linkplain AvailRuntime Avail runtime}. Instances may obtain the

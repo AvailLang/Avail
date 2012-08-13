@@ -33,7 +33,6 @@
 package com.avail.compiler;
 
 import java.util.*;
-import com.avail.annotations.NotNull;
 import com.avail.compiler.AbstractAvailCompiler.Con;
 import com.avail.descriptor.*;
 

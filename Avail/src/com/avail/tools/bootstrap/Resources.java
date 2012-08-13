@@ -34,7 +34,6 @@ package com.avail.tools.bootstrap;
 
 import java.util.ResourceBundle;
 import java.util.regex.Matcher;
-import com.avail.annotations.NotNull;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.Primitive;
 

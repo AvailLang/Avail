@@ -34,7 +34,6 @@ package com.avail.interpreter.primitive;
 import static com.avail.exceptions.AvailErrorCode.E_NOT_AN_ENUMERATION;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
 import java.util.List;
-import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 

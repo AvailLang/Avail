@@ -36,7 +36,6 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
-import com.avail.annotations.NotNull;
 import com.avail.compiler.MessageSplitter;
 import com.avail.descriptor.*;
 import com.avail.exceptions.SignatureException;

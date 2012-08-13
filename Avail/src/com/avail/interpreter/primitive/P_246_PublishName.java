@@ -36,7 +36,6 @@ import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.exceptions.AvailErrorCode.E_COMPILATION_IS_OVER;
 import java.util.List;
-import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.exceptions.AmbiguousNameException;
 import com.avail.interpreter.*;

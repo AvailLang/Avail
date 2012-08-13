@@ -35,7 +35,6 @@ package com.avail.interpreter.levelTwo;
 import static java.lang.Math.max;
 import java.util.*;
 import java.util.logging.*;
-import com.avail.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.optimizer.L2Translator;
 import com.avail.interpreter.levelTwo.operation.L2_LABEL;
