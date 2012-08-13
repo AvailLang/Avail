@@ -269,7 +269,9 @@ final public class L2Interpreter extends Interpreter
 		}
 	}
 
-	private static final int numberOfFixedRegisters = FixedRegister.values().length;
+	/** The number of fixed object registers in level two. */
+	private static final int numberOfFixedRegisters =
+		FixedRegister.values().length;
 
 	/**
 	 * The L2 instruction stream as a tuple of integers.

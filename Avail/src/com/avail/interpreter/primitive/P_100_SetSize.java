@@ -69,7 +69,7 @@ public class P_100_SetSize extends Primitive
 	}
 
 	@Override
-	public AvailObject returnTypeGuaranteedByVMForArgumentTypes (
+	public AvailObject returnTypeGuaranteedByVM (
 		final List<AvailObject> argumentTypes)
 	{
 		final AvailObject setType = argumentTypes.get(0);

@@ -1,5 +1,5 @@
 /**
- * P_130_TupleSize.java
+ * L2_SET_VARIABLE_NO_CHECK.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -29,50 +29,60 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.primitive;
+package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
 import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.optimizer.RegisterSet;
 
 /**
- * <strong>Primitive 130:</strong> Answer the size of the {@linkplain
- * TupleDescriptor tuple}.
+ * Assign a value to a {@linkplain VariableDescriptor variable} <em>without</em>
+ * checking that it's of the correct type.
  */
-public class P_130_TupleSize extends Primitive
+public class L2_SET_VARIABLE_NO_CHECK extends L2Operation
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * Initialize the sole instance.
 	 */
-	public final static Primitive instance = new P_130_TupleSize().init(
-		1, CanFold, CannotFail);
+	public final static L2Operation instance = new L2_SET_VARIABLE_NO_CHECK();
 
-	@Override
-	public Result attempt (
-		final List<AvailObject> args,
-		final Interpreter interpreter)
+	static
 	{
-		assert args.size() == 1;
-		final AvailObject tuple = args.get(0);
-		return interpreter.primitiveSuccess(
-			IntegerDescriptor.fromInt(tuple.tupleSize()));
+		instance.init(
+			READ_POINTER.is("variable"),
+			READ_POINTER.is("value to write"));
 	}
 
 	@Override
-	protected AvailObject privateBlockTypeRestriction ()
+	public void step (final L2Interpreter interpreter)
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				TupleTypeDescriptor.mostGeneralType()),
-			IntegerRangeTypeDescriptor.wholeNumbers());
+		final int setIndex = interpreter.nextWord();
+		final int sourceIndex = interpreter.nextWord();
+		interpreter.pointerAt(setIndex).setValueNoCheck(
+			interpreter.pointerAt(sourceIndex));
 	}
 
 	@Override
-	public AvailObject returnTypeGuaranteedByVM (
-		final List<AvailObject> argumentTypes)
+	public void propagateTypesInFor (
+		final L2Instruction instruction,
+		final RegisterSet registers)
 	{
-		final AvailObject tupleType = argumentTypes.get(0);
-		return tupleType.sizeRange();
+		final L2ReadPointerOperand variableOperand =
+			(L2ReadPointerOperand) instruction.operands[0];
+		// If we haven't already guaranteed that this is a variable then we
+		// are probably not doing things right.
+		assert registers.hasTypeAt(variableOperand.register);
+		final AvailObject varType = registers.typeAt(
+			variableOperand.register);
+		assert varType.isSubtypeOf(
+			VariableTypeDescriptor.mostGeneralType());
+	}
+
+	@Override
+	public boolean hasSideEffect ()
+	{
+		return true;
 	}
 }

@@ -300,7 +300,7 @@ extends AbstractEnumerationTypeDescriptor
 		}
 		// I'm a singular enumeration of a non-type, so I could only be an
 		// instance of a meta (already excluded), or of ANY or TOP.
-		return aType.isSupertypeOfPrimitiveTypeWithOrdinal(ANY.ordinal());
+		return aType.isSupertypeOfPrimitiveTypeEnum(ANY);
 	}
 
 	@Override @AvailMethod

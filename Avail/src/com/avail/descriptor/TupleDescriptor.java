@@ -287,7 +287,7 @@ extends Descriptor
 		final AvailObject object,
 		final AvailObject aTypeObject)
 	{
-		if (aTypeObject.isSupertypeOfPrimitiveTypeWithOrdinal(ANY.ordinal()))
+		if (aTypeObject.isSupertypeOfPrimitiveTypeEnum(ANY))
 		{
 			return true;
 		}
@@ -312,8 +312,8 @@ extends Descriptor
 			}
 		}
 		final AvailObject defaultTypeObject = aTypeObject.defaultType();
-		if (!defaultTypeObject.isSupertypeOfPrimitiveTypeWithOrdinal(
-			ANY.ordinal()))
+		if (!defaultTypeObject.isSupertypeOfPrimitiveTypeEnum(
+			ANY))
 		{
 			for (int i = breakIndex + 1; i <= tupleSize; i++)
 			{

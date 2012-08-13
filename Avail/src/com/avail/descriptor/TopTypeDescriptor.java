@@ -106,9 +106,9 @@ extends PrimitiveTypeDescriptor
 
 	@Override
 	@AvailMethod @ThreadSafe
-	boolean o_IsSupertypeOfPrimitiveTypeWithOrdinal (
+	boolean o_IsSupertypeOfPrimitiveTypeEnum (
 		final AvailObject object,
-		final int aPrimitiveTypeOrdinal)
+		final Types primitiveTypeEnum)
 	{
 		// Check if object (the type top) is a supertype of aPrimitiveType (a
 		// primitive type). Always true.

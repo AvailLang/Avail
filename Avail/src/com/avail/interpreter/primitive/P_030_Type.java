@@ -69,7 +69,7 @@ public class P_030_Type extends Primitive
 	}
 
 	@Override
-	public AvailObject returnTypeGuaranteedByVMForArgumentTypes (
+	public AvailObject returnTypeGuaranteedByVM (
 		final List<AvailObject> argumentTypes)
 	{
 		final AvailObject argType = argumentTypes.get(0);

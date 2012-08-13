@@ -36,7 +36,6 @@ import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
 import com.avail.utility.Continuation0;
 import java.io.*;
-import java.security.PublicKey;
 import java.util.*;
 
 /**

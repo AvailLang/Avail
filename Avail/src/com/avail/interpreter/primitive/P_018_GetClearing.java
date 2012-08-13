@@ -81,7 +81,7 @@ public class P_018_GetClearing extends Primitive
 	}
 
 	@Override
-	public AvailObject returnTypeGuaranteedByVMForArgumentTypes (
+	public AvailObject returnTypeGuaranteedByVM (
 		final List<AvailObject> argumentTypes)
 	{
 		final AvailObject varType = argumentTypes.get(0);

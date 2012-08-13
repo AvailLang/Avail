@@ -156,7 +156,7 @@ extends AbstractNumberDescriptor
 		final AvailObject object,
 		final AvailObject aType)
 	{
-		return aType.isSupertypeOfPrimitiveTypeWithOrdinal(FLOAT.ordinal());
+		return aType.isSupertypeOfPrimitiveTypeEnum(FLOAT);
 	}
 
 	@Override @AvailMethod

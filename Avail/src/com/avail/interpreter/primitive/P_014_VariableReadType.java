@@ -68,7 +68,7 @@ public class P_014_VariableReadType extends Primitive
 	}
 
 	@Override
-	public AvailObject returnTypeGuaranteedByVMForArgumentTypes (
+	public AvailObject returnTypeGuaranteedByVM (
 		final List<AvailObject> argumentTypes)
 	{
 		final AvailObject varMeta = argumentTypes.get(0);

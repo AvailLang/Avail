@@ -293,7 +293,7 @@ extends AbstractNumberDescriptor
 		final AvailObject object,
 		final AvailObject aType)
 	{
-		return aType.isSupertypeOfPrimitiveTypeWithOrdinal(DOUBLE.ordinal());
+		return aType.isSupertypeOfPrimitiveTypeEnum(DOUBLE);
 	}
 
 	@Override

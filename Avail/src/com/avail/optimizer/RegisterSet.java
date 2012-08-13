@@ -34,7 +34,6 @@ package com.avail.optimizer;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
-import com.avail.annotations.*;
 import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.operand.L2Operand;

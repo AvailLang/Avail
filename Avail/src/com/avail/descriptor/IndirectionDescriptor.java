@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.IndirectionDescriptor.ObjectSlots.*;
 import java.math.BigInteger;
 import java.util.*;
 import com.avail.annotations.*;
@@ -42,6 +43,7 @@ import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.MapDescriptor.MapIterable;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Interpreter;
@@ -128,7 +130,7 @@ extends AbstractDescriptor
 	@Override boolean allowsImmutableToMutableReferenceInField (
 		final AbstractSlotsEnum e)
 	{
-		return e == ObjectSlots.INDIRECTION_TARGET;
+		return e == INDIRECTION_TARGET;
 	}
 
 	@Override
@@ -151,7 +153,7 @@ extends AbstractDescriptor
 	{
 		// Manually constructed scanning method.
 
-		visitor.invoke(object, object.slot(ObjectSlots.INDIRECTION_TARGET));
+		visitor.invoke(object, object.slot(INDIRECTION_TARGET));
 	}
 
 	/**
@@ -169,9 +171,9 @@ extends AbstractDescriptor
 		if (isMutable)
 		{
 			object.descriptor = immutable();
-			object.slot(ObjectSlots.INDIRECTION_TARGET).makeImmutable();
+			return object.slot(INDIRECTION_TARGET).makeImmutable();
 		}
-		return object;
+		return object.slot(INDIRECTION_TARGET);
 	}
 
 	/**
@@ -186,11 +188,11 @@ extends AbstractDescriptor
 	@Override
 	AvailObject o_Traversed (final AvailObject object)
 	{
-		final AvailObject next = object.slot(ObjectSlots.INDIRECTION_TARGET);
+		final AvailObject next = object.slot(INDIRECTION_TARGET);
 		final AvailObject finalObject = next.traversed();
 		if (!next.sameAddressAs(object))
 		{
-			object.setSlot(ObjectSlots.INDIRECTION_TARGET, finalObject);
+			object.setSlot(INDIRECTION_TARGET, finalObject);
 		}
 		return finalObject;
 	}
@@ -1272,12 +1274,12 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_IsSupertypeOfPrimitiveTypeWithOrdinal (
+	boolean o_IsSupertypeOfPrimitiveTypeEnum (
 		final AvailObject object,
-		final int aPrimitiveTypeOrdinal)
+		final Types primitiveTypeEnum)
 	{
-		return o_Traversed(object).isSupertypeOfPrimitiveTypeWithOrdinal(
-			aPrimitiveTypeOrdinal);
+		return o_Traversed(object).isSupertypeOfPrimitiveTypeEnum(
+			primitiveTypeEnum);
 	}
 
 	@Override
@@ -1735,6 +1737,14 @@ extends AbstractDescriptor
 		final AvailObject newValue)
 	{
 		o_Traversed(object).setValue(newValue);
+	}
+
+	@Override
+	void o_SetValueNoCheck (
+		final AvailObject object,
+		final AvailObject newValue)
+	{
+		o_Traversed(object).setValueNoCheck(newValue);
 	}
 
 	@Override
@@ -3171,14 +3181,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_MarkerValue (
-		final AvailObject object,
-		final AvailObject markerValue)
-	{
-		o_Traversed(object).markerValue(markerValue);
-	}
-
-	@Override
 	AvailObject o_ArgumentsListNode (
 		final AvailObject object)
 	{
@@ -4384,4 +4386,10 @@ extends AbstractDescriptor
 		o_Traversed(object).isSystemModule(isSystemModule);
 	}
 
+	@Override
+	boolean o_IsMarkerNode (
+		final AvailObject object)
+	{
+		return o_Traversed(object).isMarkerNode();
+	}
 }

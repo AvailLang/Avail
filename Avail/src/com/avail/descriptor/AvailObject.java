@@ -44,6 +44,7 @@ import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.InfinityDescriptor.IntegerSlots;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.exceptions.*;
 import com.avail.exceptions.ArithmeticException;
 import com.avail.interpreter.*;
@@ -2690,12 +2691,12 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	public boolean isSupertypeOfPrimitiveTypeWithOrdinal (
-		final int aPrimitiveTypeOrdinal)
+	public boolean isSupertypeOfPrimitiveTypeEnum (
+		final Types primitiveTypeEnum)
 	{
-		return descriptor.o_IsSupertypeOfPrimitiveTypeWithOrdinal(
+		return descriptor.o_IsSupertypeOfPrimitiveTypeEnum(
 			this,
-			aPrimitiveTypeOrdinal);
+			primitiveTypeEnum);
 	}
 
 	/**
@@ -3783,6 +3784,15 @@ implements Iterable<AvailObject>
 	/**
 	 * Dispatch to the descriptor.
 	 */
+	public void setValueNoCheck (
+		final AvailObject newValue)
+	{
+		descriptor.o_SetValueNoCheck(this, newValue);
+	}
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
 	public AvailObject setWithElementCanDestroy (
 		final AvailObject newElementObject,
 		final boolean canDestroy)
@@ -4777,15 +4787,6 @@ implements Iterable<AvailObject>
 	public AvailObject markerValue ()
 	{
 		return descriptor.o_MarkerValue(this);
-	}
-
-
-	/**
-	 * @param markerValue
-	 */
-	public void markerValue (final AvailObject markerValue)
-	{
-		descriptor.o_MarkerValue(this, markerValue);
 	}
 
 
@@ -6296,11 +6297,18 @@ implements Iterable<AvailObject>
 
 	/**
 	 * @param isSystemModule
-	 * @return
 	 */
 	public void isSystemModule (
 		final boolean isSystemModule)
 	{
 		descriptor.o_IsSystemModule(this, isSystemModule);
+	}
+
+	/**
+	 * @return
+	 */
+	public boolean isMarkerNode ()
+	{
+		return descriptor.o_IsMarkerNode(this);
 	}
 }

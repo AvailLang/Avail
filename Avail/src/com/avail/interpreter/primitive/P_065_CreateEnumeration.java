@@ -70,7 +70,7 @@ public class P_065_CreateEnumeration extends Primitive
 	}
 
 	@Override
-	public AvailObject returnTypeGuaranteedByVMForArgumentTypes (
+	public AvailObject returnTypeGuaranteedByVM (
 		final List<AvailObject> argumentTypes)
 	{
 		final AvailObject setType = argumentTypes.get(0);

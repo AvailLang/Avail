@@ -32,11 +32,11 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.EnumerationTypeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.descriptor.AvailObject.multiplier;
 import java.util.List;
 import com.avail.annotations.*;
-import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.serialization.SerializerOperation;
 
 /**
@@ -111,7 +111,7 @@ extends AbstractEnumerationTypeDescriptor
 	static final
 	AvailObject getInstances (final AvailObject object)
 	{
-		return object.slot(ObjectSlots.INSTANCES);
+		return object.slot(INSTANCES);
 	}
 
 	/**
@@ -125,7 +125,7 @@ extends AbstractEnumerationTypeDescriptor
 	static final
 	AvailObject getSuperkind (final AvailObject object)
 	{
-		AvailObject cached = object.slot(ObjectSlots.CACHED_SUPERKIND);
+		AvailObject cached = object.slot(CACHED_SUPERKIND);
 		if (cached.equalsNull())
 		{
 			cached = BottomTypeDescriptor.bottom();
@@ -133,7 +133,7 @@ extends AbstractEnumerationTypeDescriptor
 			{
 				cached = cached.typeUnion(instance.kind());
 			}
-			object.setSlot(ObjectSlots.CACHED_SUPERKIND, cached);
+			object.setSlot(CACHED_SUPERKIND, cached);
 		}
 		return cached;
 	}
@@ -141,7 +141,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override boolean allowsImmutableToMutableReferenceInField (
 		final AbstractSlotsEnum e)
 	{
-		return e == ObjectSlots.CACHED_SUPERKIND;
+		return e == CACHED_SUPERKIND;
 	}
 
 	@Override @AvailMethod
@@ -264,7 +264,7 @@ extends AbstractEnumerationTypeDescriptor
 		}
 		// I'm an enumeration of non-types, so I could only be an instance of a
 		// meta (already excluded), or of ANY or TOP.
-		return aType.isSupertypeOfPrimitiveTypeWithOrdinal(ANY.ordinal());
+		return aType.isSupertypeOfPrimitiveTypeEnum(ANY);
 	}
 
 	/**
@@ -646,7 +646,7 @@ extends AbstractEnumerationTypeDescriptor
 		final AvailObject anotherObject)
 	{
 		// An enumeration with a cached superkind is pretty good.
-		return !object.slot(ObjectSlots.CACHED_SUPERKIND).equalsNull();
+		return !object.slot(CACHED_SUPERKIND).equalsNull();
 	}
 
 	@Override @AvailMethod
@@ -747,12 +747,8 @@ extends AbstractEnumerationTypeDescriptor
 	{
 		assert normalizedSet.setSize() > 1;
 		final AvailObject result = EnumerationTypeDescriptor.mutable().create();
-		result.setSlot(
-			ObjectSlots.INSTANCES,
-			normalizedSet.makeImmutable());
-		result.setSlot(
-			ObjectSlots.CACHED_SUPERKIND,
-			NullDescriptor.nullObject());
+		result.setSlot(INSTANCES, normalizedSet.makeImmutable());
+		result.setSlot(CACHED_SUPERKIND, NullDescriptor.nullObject());
 		return result;
 	}
 

@@ -32,9 +32,11 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.MarkerNodeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
+import java.util.List;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
@@ -65,24 +67,13 @@ public class MarkerNodeDescriptor extends ParseNodeDescriptor
 
 
 	/**
-	 * Setter for field markerValue.
-	 */
-	@Override @AvailMethod
-	void o_MarkerValue (
-		final AvailObject object,
-		final AvailObject markerValue)
-	{
-		object.setSlot(ObjectSlots.MARKER_VALUE, markerValue);
-	}
-
-	/**
 	 * Getter for field markerValue.
 	 */
 	@Override @AvailMethod
 	AvailObject o_MarkerValue (
 		final AvailObject object)
 	{
-		return object.slot(ObjectSlots.MARKER_VALUE);
+		return object.slot(MARKER_VALUE);
 	}
 
 
@@ -93,6 +84,17 @@ public class MarkerNodeDescriptor extends ParseNodeDescriptor
 		return TOP.o();
 	}
 
+	@Override
+	void printObjectOnAvoidingIndent (
+		final AvailObject object,
+		final StringBuilder builder,
+		final List<AvailObject> recursionList,
+		final int indent)
+	{
+		builder.append("Marker(");
+		builder.append(object.markerValue());
+		builder.append(")");
+	}
 
 	@Override @AvailMethod
 	void o_EmitValueOn (
@@ -106,8 +108,7 @@ public class MarkerNodeDescriptor extends ParseNodeDescriptor
 	@Override @AvailMethod
 	int o_Hash (final AvailObject object)
 	{
-		return
-			object.markerValue().hash() ^ 0xCBCACACC;
+		return object.markerValue().hash() ^ 0xCBCACACC;
 	}
 
 	@Override @AvailMethod
@@ -126,6 +127,12 @@ public class MarkerNodeDescriptor extends ParseNodeDescriptor
 		return MARKER_NODE;
 	}
 
+	@Override
+	boolean o_IsMarkerNode (
+		final AvailObject object)
+	{
+		return true;
+	}
 
 	@Override @AvailMethod
 	void o_ChildrenMap (
@@ -149,6 +156,22 @@ public class MarkerNodeDescriptor extends ParseNodeDescriptor
 		final @Nullable AvailObject parent)
 	{
 		error("Marker nodes should not validateLocally.");
+	}
+
+	/**
+	 * Create a {@linkplain MarkerNodeDescriptor marker node} wrapping the given
+	 * {@link AvailObject}.
+	 *
+	 * @param markerValue The value to wrap.
+	 * @return A new immutable marker node.
+	 */
+	public static AvailObject create (
+		final AvailObject markerValue)
+	{
+		final AvailObject instance = mutable().create();
+		instance.setSlot(MARKER_VALUE, markerValue);
+		instance.makeImmutable();
+		return instance;
 	}
 
 	/**

@@ -198,7 +198,7 @@ extends TupleDescriptor
 		// given tuple.  If canDestroy and isMutable are true, go ahead and
 		// clobber all fields of the original tuple that don't make it into the
 		// subrange.  Replace these clobbered fields with the integer 0 (always
-		// immutable) after dropping the refcount on replaced objects.
+		// immutable) after dropping the reference count on replaced objects.
 
 		assert 1 <= startIndex && startIndex <= endIndex + 1;
 		final int originalSize = object.tupleSize();

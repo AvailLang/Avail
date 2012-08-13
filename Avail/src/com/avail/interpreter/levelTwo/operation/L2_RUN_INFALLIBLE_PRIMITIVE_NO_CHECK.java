@@ -121,7 +121,7 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE_NO_CHECK extends L2Operation
 		}
 		// We can at least believe what the primitive itself says it returns.
 		final AvailObject guaranteedType =
-			primitiveOperand.primitive.returnTypeGuaranteedByVMForArgumentTypes(
+			primitiveOperand.primitive.returnTypeGuaranteedByVM(
 				argTypes);
 		registers.removeTypeAt(destinationOperand.register);
 		registers.removeConstantAt(destinationOperand.register);

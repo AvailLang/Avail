@@ -33,12 +33,20 @@
 package com.avail.utility;
 
 import java.util.*;
+import com.avail.annotations.*;
 
 /**
  * This is an implementation of an immutable {@link List} for which {@link
  * #append(List, Object)}, the non-destructive append operation, takes constant
- * time.  Iterating over the entire list takes linear time, and does not use
- * recursion.
+ * time.  There is also a {@link #withoutLast(List)} operation for producing a
+ * list with its rightmost element removed.  Iterating over the entire list
+ * takes linear time, and does not use recursion.
+ *
+ * <p>
+ * The implementation should be thread-safe if the lists that are supplied as
+ * prefixes are themselves thread-safe.  Do not change any of those lists after
+ * constructing {@code PrefixSharingList}s from them.
+ * </p>
  *
  * @param <E> The type of elements in the list.
  *
@@ -50,7 +58,7 @@ public class PrefixSharingList<E> extends AbstractList<E>
 	private final int size;
 
 	/** A list containing the first size-1 elements.  Do not modify it. */
-	private final List<E> allButLast;
+	private final @Nullable List<E> allButLast;
 
 	/** The last element of this list. */
 	private final E lastElement;
@@ -59,7 +67,7 @@ public class PrefixSharingList<E> extends AbstractList<E>
 	 * A lazily computed ArrayList containing (at least) all the elements of
 	 * this {@link PrefixSharingList}.
 	 */
-	private ArrayList<E> cachedFlatListOrMore;
+	private volatile @Nullable List<E> cachedFlatListOrMore;
 
 	@Override
 	public int size ()
@@ -84,7 +92,7 @@ public class PrefixSharingList<E> extends AbstractList<E>
 
 	/**
 	 * If the flattened form of this list isn't already cached in {@link
-	 * #cachedFlatListOrMore} then computed it and cache it.  Also record this
+	 * #cachedFlatListOrMore} then compute it and cache it.  Also record this
 	 * flattened list in any prefixes that are themselves {@link
 	 * PrefixSharingList}s.  That implies the prefixes may end up with more
 	 * elements in their flattened representations than they really represent,
@@ -97,6 +105,11 @@ public class PrefixSharingList<E> extends AbstractList<E>
 	 * references within the flat list (the strong references from {@link
 	 * #lastElement} will prevent useful elements from disappearing).
 	 * </p>
+	 *
+	 * <p>
+	 * An invariant of the class is that either the {@link #allButLast} must be
+	 * non-null or the {@link #cachedFlatListOrMore} must be non-null (or both).
+	 * </p>
 	 */
 	private void cacheFlatListOrMore ()
 	{
@@ -104,29 +117,47 @@ public class PrefixSharingList<E> extends AbstractList<E>
 		{
 			return;
 		}
-		cachedFlatListOrMore = new ArrayList<E>(size);
+		final ArrayList<E> flatList = new ArrayList<E>(size);
 		PrefixSharingList<E> pointer = this;
 		while (true)
 		{
-			cachedFlatListOrMore.add(0, lastElement);
+			flatList.add(0, pointer.lastElement);
 			if (pointer.allButLast instanceof PrefixSharingList<?>)
 			{
 				pointer = (PrefixSharingList<E>)pointer.allButLast;
-				if (pointer.cachedFlatListOrMore != null)
+				final @Nullable List<E> pointerFlatList =
+					pointer.cachedFlatListOrMore;
+				if (pointerFlatList != null)
 				{
-					cachedFlatListOrMore.addAll(
+					flatList.addAll(
 						0,
-						pointer.cachedFlatListOrMore);
-					return;
+						pointerFlatList.subList(0, pointer.size));
+					break;
 				}
-				pointer.cachedFlatListOrMore = cachedFlatListOrMore;
 			}
 			else
 			{
-				cachedFlatListOrMore.addAll(
-					0,
-					pointer.allButLast);
-				return;
+				flatList.addAll(0, pointer.allButLast);
+				break;
+			}
+		}
+		// Replace the cached flat lists until we hit a non-PrefixSharingList
+		// or a PrefixSharingList with its flat list already set.
+		pointer = this;
+		while (true)
+		{
+			if (pointer.cachedFlatListOrMore != null)
+			{
+				break;
+			}
+			pointer.cachedFlatListOrMore = flatList;
+			if (pointer.allButLast instanceof PrefixSharingList<?>)
+			{
+				pointer = (PrefixSharingList<E>)pointer.allButLast;
+			}
+			else
+			{
+				break;
 			}
 		}
 	}
@@ -135,6 +166,9 @@ public class PrefixSharingList<E> extends AbstractList<E>
 	public Iterator<E> iterator ()
 	{
 		cacheFlatListOrMore();
+		final int mySize = size;
+		final @Nullable List<E> flatList = cachedFlatListOrMore;
+		assert flatList != null;
 
 		return new Iterator<E>()
 		{
@@ -143,17 +177,17 @@ public class PrefixSharingList<E> extends AbstractList<E>
 			@Override
 			public boolean hasNext ()
 			{
-				return position < size;
+				return position < mySize;
 			}
 
 			@Override
 			public E next ()
 			{
-				if (position >= size)
+				if (position >= mySize)
 				{
 					throw new NoSuchElementException();
 				}
-				return cachedFlatListOrMore.get(position++);
+				return flatList.get(position++);
 			}
 
 			@Override
@@ -174,9 +208,28 @@ public class PrefixSharingList<E> extends AbstractList<E>
 		final List<E> allButLast,
 		final E lastElement)
 	{
+		this.size = allButLast.size() + 1;
 		this.allButLast = allButLast;
 		this.lastElement = lastElement;
-		this.size = allButLast.size() + 1;
+	}
+
+	/**
+	 * Construct a new {@link PrefixSharingList} truncated to the specified
+	 * size.
+	 *
+	 * @param originalList An immutable list.
+	 * @param size The size of the resulting list.
+	 */
+	private PrefixSharingList (
+		final List<E> originalList,
+		final int size)
+	{
+		assert !(originalList instanceof PrefixSharingList<?>);
+		assert size <= originalList.size();
+		this.size = size;
+		this.allButLast = null;
+		this.lastElement = allButLast.get(size - 1);
+		this.cachedFlatListOrMore = allButLast;
 	}
 
 	/**
@@ -196,5 +249,49 @@ public class PrefixSharingList<E> extends AbstractList<E>
 			return Collections.singletonList(lastElement);
 		}
 		return new PrefixSharingList<E2>(allButLast, lastElement);
+	}
+
+	/**
+	 * Produce a new immutable list based on the given list, but with the
+	 * last element excluded.  Try to avoid creating new objects if possible.
+	 *
+	 * @param originalList The original list.
+	 * @return An immutable list containing all but the last element of the
+	 *         original.
+	 */
+	public static <E2> List<E2> withoutLast (
+		final List<E2> originalList)
+	{
+		if (originalList instanceof PrefixSharingList<?>)
+		{
+			final PrefixSharingList<E2>strongOriginal =
+				(PrefixSharingList<E2>)originalList;
+			if (strongOriginal.allButLast != null)
+			{
+				return strongOriginal.allButLast;
+			}
+			return new PrefixSharingList<E2>(
+				strongOriginal.cachedFlatListOrMore,
+				originalList.size() - 1);
+		}
+		if (originalList.size() <= 1)
+		{
+			return Collections.<E2>emptyList();
+		}
+		return new PrefixSharingList<E2>(
+			originalList,
+			originalList.size() - 1);
+	}
+
+	/**
+	 * Answer the last element of the given non-empty list.
+	 *
+	 * @param list The list.
+	 * @return The last element of that list.
+	 */
+	public static <E2> E2 last (
+		final List<E2> list)
+	{
+		return list.get(list.size() - 1);
 	}
 }

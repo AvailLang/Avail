@@ -168,6 +168,15 @@ extends Descriptor
 			AvailErrorCode.E_CANNOT_MODIFY_FINAL_JAVA_FIELD);
 	}
 
+	@Override
+	void o_SetValueNoCheck (
+		final AvailObject object,
+		final AvailObject newValue)
+	{
+		throw new VariableSetException(
+			AvailErrorCode.E_CANNOT_MODIFY_FINAL_JAVA_FIELD);
+	}
+
 	@Override @AvailMethod
 	AvailObject o_Value (final AvailObject object)
 	{

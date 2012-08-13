@@ -171,7 +171,7 @@ public class SetDescriptor extends Descriptor
 		final AvailObject object,
 		final AvailObject aTypeObject)
 	{
-		if (aTypeObject.isSupertypeOfPrimitiveTypeWithOrdinal(ANY.ordinal()))
+		if (aTypeObject.isSupertypeOfPrimitiveTypeEnum(ANY))
 		{
 			return true;
 		}
@@ -526,7 +526,8 @@ public class SetDescriptor extends Descriptor
 					subscriptStack.removeLast();
 					subscriptStack.addLast(subscript + 1);
 					assert binStack.size() == subscriptStack.size();
-					followLeftmost(binStack.getLast().binElementAt(subscript + 1));
+					followLeftmost(
+						binStack.getLast().binElementAt(subscript + 1));
 					assert binStack.size() == subscriptStack.size() + 1;
 					return result;
 				}

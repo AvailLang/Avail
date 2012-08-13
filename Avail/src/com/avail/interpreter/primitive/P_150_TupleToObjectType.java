@@ -81,4 +81,50 @@ extends Primitive
 						InstanceMetaDescriptor.anyMeta()))),
 			ObjectTypeDescriptor.meta());
 	}
+
+	@Override
+	public AvailObject returnTypeGuaranteedByVM (
+		final List<AvailObject> argumentTypes)
+	{
+		final AvailObject tupleType = argumentTypes.get(0);
+		final AvailObject tupleSizes = tupleType.sizeRange();
+		final AvailObject tupleSizeLowerBound = tupleSizes.lowerBound();
+		if (!tupleSizeLowerBound.equals(tupleSizes.upperBound())
+			|| !tupleSizeLowerBound.isInt())
+		{
+			// Variable number of <key,value> pairs.  Give up.
+			return super.returnTypeGuaranteedByVM(argumentTypes);
+		}
+		final int tupleSize = tupleSizeLowerBound.extractInt();
+		AvailObject fieldTypeMap = MapDescriptor.empty();
+		for (int i = 1; i <= tupleSize; i++)
+		{
+			final AvailObject pairType = tupleType.typeAtIndex(i);
+			assert pairType.sizeRange().lowerBound().extractInt() == 2;
+			assert pairType.sizeRange().upperBound().extractInt() == 2;
+			final AvailObject keyType = pairType.typeAtIndex(1);
+			if (!keyType.isEnumeration()
+				|| !keyType.instanceCount().equals(IntegerDescriptor.one()))
+			{
+				// Can only strengthen if all key atoms are statically known.
+				return super.returnTypeGuaranteedByVM(argumentTypes);
+			}
+			final AvailObject keyValue = keyType.instance();
+			if (fieldTypeMap.hasKey(keyValue))
+			{
+				// In case the semantics of this situation change.  Give up.
+				return super.returnTypeGuaranteedByVM(argumentTypes);
+			}
+			assert keyValue.isAtom();
+			final AvailObject valueMeta = pairType.typeAtIndex(2);
+			assert valueMeta.isInstanceMeta();
+			final AvailObject valueType = valueMeta.instance();
+			fieldTypeMap = fieldTypeMap.mapAtPuttingCanDestroy(
+				keyValue,
+				valueType,
+				true);
+		}
+		return InstanceMetaDescriptor.on(
+			ObjectTypeDescriptor.objectTypeFromMap(fieldTypeMap));
+	}
 }

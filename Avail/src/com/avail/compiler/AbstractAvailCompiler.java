@@ -36,6 +36,7 @@ import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TokenDescriptor.TokenType.*;
 import static com.avail.descriptor.TupleDescriptor.toList;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.utility.PrefixSharingList.*;
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.*;
@@ -1071,7 +1072,9 @@ public abstract class AbstractAvailCompiler
 		@Nullable AvailObject peekStringLiteral ()
 		{
 			final AvailObject token = peekToken();
-			if (token.isInstanceOfKind(LiteralTokenTypeDescriptor.mostGeneralType()))
+			if (token.isInstanceOfKind(
+				LiteralTokenTypeDescriptor.create(
+					TupleTypeDescriptor.stringTupleType())))
 			{
 				return token;
 			}
@@ -1991,6 +1994,926 @@ public abstract class AbstractAvailCompiler
 			default:
 				assert false
 				: "Expected top-level declaration to be parsed as local";
+		}
+	}
+
+	/**
+	 * Report that the parser was expecting one of several keywords. The
+	 * keywords are keys of the {@linkplain MapDescriptor map} argument
+	 * {@code incomplete}.
+	 *
+	 * @param where
+	 *        Where the keywords were expected.
+	 * @param incomplete
+	 *        A map of partially parsed keywords, where the keys are the strings
+	 *        that were expected at this position.
+	 * @param caseInsensitive
+	 *        {@code true} if the parsed keywords are case-insensitive, {@code
+	 *        false} otherwise.
+	 */
+	void expectedKeywordsOf (
+		final ParserState where,
+		final AvailObject incomplete,
+		final boolean caseInsensitive)
+	{
+		where.expected(
+			new Generator<String>()
+			{
+				@Override
+				public String value ()
+				{
+					final StringBuilder builder = new StringBuilder(200);
+					if (caseInsensitive)
+					{
+						builder.append(
+							"one of the following case-insensitive internal "
+							+ "keywords:");
+					}
+					else
+					{
+						builder.append(
+							"one of the following internal keywords:");
+					}
+					final List<String> sorted = new ArrayList<String>(
+						incomplete.mapSize());
+					for (final MapDescriptor.Entry entry
+						: incomplete.mapIterable())
+					{
+						sorted.add(entry.key.asNativeString());
+					}
+					Collections.sort(sorted);
+					boolean startOfLine = true;
+					builder.append("\n\t");
+					final int leftColumn = 4 + 4; // ">>> " and a tab.
+					int column = leftColumn;
+					for (final String s : sorted)
+					{
+						if (!startOfLine)
+						{
+							builder.append("  ");
+							column += 2;
+						}
+						startOfLine = false;
+						final int lengthBefore = builder.length();
+						builder.append(s);
+						column += builder.length() - lengthBefore;
+						if (column + 2 + s.length() > 80)
+						{
+							builder.append("\n\t");
+							column = leftColumn;
+							startOfLine = true;
+						}
+					}
+					return builder.toString();
+				}
+			});
+	}
+
+	/**
+	 * Parse a send node. To prevent infinite left-recursion and false
+	 * ambiguity, we only allow a send with a leading keyword to be parsed from
+	 * here, since leading underscore sends are dealt with iteratively
+	 * afterward.
+	 *
+	 * @param start
+	 *            Where to start parsing.
+	 * @param continuation
+	 *            What to do after parsing a complete send node.
+	 */
+	protected void parseLeadingKeywordSendThen (
+		final ParserState start,
+		final Con<AvailObject> continuation)
+	{
+		parseRestOfSendNode(
+			start,
+			interpreter.rootBundleTree(),
+			null,
+			start,
+			false,  // Nothing consumed yet.
+			Collections.<AvailObject> emptyList(),
+			continuation);
+	}
+
+	/**
+	 * Parse a send node whose leading argument has already been parsed.
+	 *
+	 * @param start
+	 *            Where to start parsing.
+	 * @param leadingArgument
+	 *            The argument that was already parsed.
+	 * @param initialTokenPosition
+	 *            Where the leading argument started.
+	 * @param continuation
+	 *            What to do after parsing a send node.
+	 */
+	void parseLeadingArgumentSendAfterThen (
+		final ParserState start,
+		final AvailObject leadingArgument,
+		final ParserState initialTokenPosition,
+		final Con<AvailObject> continuation)
+	{
+		assert start.position != initialTokenPosition.position;
+		assert leadingArgument != null;
+		parseRestOfSendNode(
+			start,
+			interpreter.rootBundleTree(),
+			leadingArgument,
+			initialTokenPosition,
+			false,  // Leading argument does not yet count as something parsed.
+			Collections.<AvailObject> emptyList(),
+			continuation);
+	}
+
+	/**
+	 * Parse an expression with an optional lead-argument message send around
+	 * it. Backtracking will find all valid interpretations.
+	 *
+	 * @param startOfLeadingArgument
+	 *            Where the leading argument started.
+	 * @param afterLeadingArgument
+	 *            Just after the leading argument.
+	 * @param node
+	 *            An expression that acts as the first argument for a potential
+	 *            leading-argument message send, or possibly a chain of them.
+	 * @param continuation
+	 *            What to do with either the passed node, or the node wrapped in
+	 *            suitable leading-argument message sends.
+	 */
+	void parseOptionalLeadingArgumentSendAfterThen (
+		final ParserState startOfLeadingArgument,
+		final ParserState afterLeadingArgument,
+		final AvailObject node,
+		final Con<AvailObject> continuation)
+	{
+		// It's optional, so try it with no wrapping.
+		attempt(afterLeadingArgument, continuation, node);
+
+		// Don't wrap it if its type is top.
+		if (node.expressionType().equals(TOP.o()))
+		{
+			return;
+		}
+
+		// Try to wrap it in a leading-argument message send.
+		attempt(
+			afterLeadingArgument,
+			new Con<AvailObject>("Possible leading argument send")
+			{
+				@Override
+				public void value (
+					final ParserState afterLeadingArgument2,
+					final AvailObject node2)
+				{
+					parseLeadingArgumentSendAfterThen(
+						afterLeadingArgument2,
+						node2,
+						startOfLeadingArgument,
+						new Con<AvailObject>("Leading argument send")
+						{
+							@Override
+							public void value (
+								final ParserState afterSend,
+								final AvailObject leadingSend)
+							{
+								parseOptionalLeadingArgumentSendAfterThen(
+									startOfLeadingArgument,
+									afterSend,
+									leadingSend,
+									continuation);
+							}
+						});
+				}
+			},
+			node);
+	}
+
+	/**
+	 * We've parsed part of a send. Try to finish the job.
+	 *
+	 * @param start
+	 *            Where to start parsing.
+	 * @param bundleTree
+	 *            The bundle tree used to parse at this position.
+	 * @param firstArgOrNull
+	 *            Either null or an argument that must be consumed before any
+	 *            keywords (or completion of a send).
+	 * @param consumedAnything
+	 *            Whether any actual tokens have been consumed so far for this
+	 *            send node.  That includes any leading argument.
+	 * @param initialTokenPosition
+	 *            The parse position where the send node started to be
+	 *            processed. Does not count the position of the first argument
+	 *            if there are no leading keywords.
+	 * @param argsSoFar
+	 *            The list of arguments parsed so far. I do not modify it. This
+	 *            is a stack of expressions that the parsing instructions will
+	 *            assemble into a list that correlates with the top-level
+	 *            non-backquoted underscores and guillemet groups in the message
+	 *            name.
+	 * @param continuation
+	 *            What to do with a fully parsed send node.
+	 */
+	void parseRestOfSendNode (
+		final ParserState start,
+		final AvailObject bundleTree,
+		final @Nullable AvailObject firstArgOrNull,
+		final ParserState initialTokenPosition,
+		final boolean consumedAnything,
+		final List<AvailObject> argsSoFar,
+		final Con<AvailObject> continuation)
+	{
+		bundleTree.expand();
+		final AvailObject complete = bundleTree.lazyComplete();
+		final AvailObject incomplete = bundleTree.lazyIncomplete();
+		final AvailObject caseInsensitive =
+			bundleTree.lazyIncompleteCaseInsensitive();
+		final AvailObject actions = bundleTree.lazyActions();
+		final AvailObject prefilter = bundleTree.lazyPrefilterMap();
+		final boolean anyComplete = complete.mapSize() > 0;
+		final boolean anyIncomplete = incomplete.mapSize() > 0;
+		final boolean anyCaseInsensitive = caseInsensitive.mapSize() > 0;
+		final boolean anyActions = actions.mapSize() > 0;
+		final boolean anyPrefilter = prefilter.mapSize() > 0;
+
+		if (!(anyComplete
+			|| anyIncomplete
+			|| anyCaseInsensitive
+			|| anyActions
+			|| anyPrefilter))
+		{
+			return;
+		}
+		if (anyComplete && consumedAnything && firstArgOrNull == null)
+		{
+			// There are complete messages, we didn't leave a leading argument
+			// stranded, and we made progress in the file (i.e., the message
+			// send does not consist of exactly zero tokens).  It *should* be
+			// powerful enough to parse calls of "_" (i.e., the implicit
+			// conversion operation), but only if there is a grammatical
+			// restriction to prevent run-away left-recursion.  A type
+			// restriction won't be checked soon enough to prevent the
+			// recursion.
+			for (final MapDescriptor.Entry entry : complete.mapIterable())
+			{
+				if (interpreter.runtime().hasMethodsAt(entry.key))
+				{
+					completedSendNode(
+						initialTokenPosition,
+						start,
+						argsSoFar,
+						entry.value,
+						continuation);
+				}
+			}
+		}
+		if (anyIncomplete
+			&& firstArgOrNull == null
+			&& !start.atEnd())
+		{
+			final AvailObject keywordToken = start.peekToken();
+			if (keywordToken.tokenType() == KEYWORD
+				|| keywordToken.tokenType() == OPERATOR)
+			{
+				final AvailObject keywordString = keywordToken.string();
+				if (incomplete.hasKey(keywordString))
+				{
+					final AvailObject subtree = incomplete.mapAt(keywordString);
+					eventuallyDo(
+						new Continuation0()
+						{
+							@Override
+							public void value ()
+							{
+								parseRestOfSendNode(
+									start.afterToken(),
+									subtree,
+									null,
+									initialTokenPosition,
+									true,  // Just consumed a token
+									argsSoFar,
+									continuation);
+							}
+						},
+						"Continue send after a keyword",
+						start.afterToken().position);
+				}
+				else
+				{
+					expectedKeywordsOf(start, incomplete, false);
+				}
+			}
+			else
+			{
+				expectedKeywordsOf(start, incomplete, false);
+			}
+		}
+		if (anyCaseInsensitive
+			&& firstArgOrNull == null
+			&& !start.atEnd())
+		{
+			final AvailObject keywordToken = start.peekToken();
+			if (keywordToken.tokenType() == KEYWORD
+					|| keywordToken.tokenType() == OPERATOR)
+			{
+				final AvailObject keywordString =
+					keywordToken.lowerCaseString();
+				if (caseInsensitive.hasKey(keywordString))
+				{
+					final AvailObject subtree =
+						caseInsensitive.mapAt(keywordString);
+					eventuallyDo(
+						new Continuation0()
+						{
+							@Override
+							public void value ()
+							{
+								parseRestOfSendNode(
+									start.afterToken(),
+									subtree,
+									null,
+									initialTokenPosition,
+									true,  // Just consumed a token.
+									argsSoFar,
+									continuation);
+							}
+						},
+						"Continue send after a keyword",
+						start.afterToken().position);
+				}
+				else
+				{
+					expectedKeywordsOf(start, caseInsensitive, true);
+				}
+			}
+			else
+			{
+				expectedKeywordsOf(start, caseInsensitive, true);
+			}
+		}
+		if (anyPrefilter)
+		{
+			final AvailObject latestArgument = last(argsSoFar);
+			if (latestArgument.isInstanceOfKind(SEND_NODE.mostGeneralType()))
+			{
+				final AvailObject methodName = latestArgument.method().name();
+				if (prefilter.hasKey(methodName))
+				{
+					parseRestOfSendNode(
+						start,
+						prefilter.mapAt(methodName),
+						firstArgOrNull,
+						initialTokenPosition,
+						consumedAnything,
+						argsSoFar,
+						continuation);
+					// Don't allow normal action processing, as it would ignore
+					// the restriction which we've been so careful to prefilter.
+					return;
+				}
+			}
+		}
+		if (anyActions)
+		{
+			for (final MapDescriptor.Entry entry : actions.mapIterable())
+			{
+				final AvailObject key = entry.key;
+				final AvailObject value = entry.value;
+				eventuallyDo(
+					new Continuation0()
+					{
+						@Override
+						public void value ()
+						{
+							runParsingInstructionThen(
+								start,
+								key.extractInt(),
+								firstArgOrNull,
+								argsSoFar,
+								initialTokenPosition,
+								consumedAnything,
+								value,
+								continuation);
+						}
+					},
+					"Continue with an instruction",
+					start.position);
+			}
+		}
+	}
+
+	/**
+	 * Execute one non-keyword-parsing instruction, then run the continuation.
+	 *
+	 * @param start
+	 *            Where to start parsing.
+	 * @param instruction
+	 *            The {@linkplain MessageSplitter instruction} to execute.
+	 * @param firstArgOrNull
+	 *            Either the already-parsed first argument or null. If we're
+	 *            looking for leading-argument message sends to wrap an
+	 *            expression then this is not-null before the first argument
+	 *            position is encountered, otherwise it's null and we should
+	 *            reject attempts to start with an argument (before a keyword).
+	 * @param argsSoFar
+	 *            The message arguments that have been parsed so far.
+	 * @param initialTokenPosition
+	 *            The position at which parsing of this message started. If it
+	 *            was parsed as a leading argument send (i.e., firtArgOrNull
+	 *            started out non-null) then the position is of the token
+	 *            following the first argument.
+	 * @param consumedAnything
+	 *            Whether any tokens or arguments have been consumed yet.
+	 * @param successorTrees
+	 *            The {@linkplain TupleDescriptor tuple} of {@linkplain
+	 *            MessageBundleTreeDescriptor bundle trees} at which to continue
+	 *            parsing.
+	 * @param continuation
+	 *            What to do with a complete {@linkplain SendNodeDescriptor
+	 *            message send}.
+	 */
+	void runParsingInstructionThen (
+		final ParserState start,
+		final int instruction,
+		final @Nullable AvailObject firstArgOrNull,
+		final List<AvailObject> argsSoFar,
+		final ParserState initialTokenPosition,
+		final boolean consumedAnything,
+		final AvailObject successorTrees,
+		final Con<AvailObject> continuation)
+	{
+		final ParsingOperation op = ParsingOperation.decode(instruction);
+		switch (op)
+		{
+			case parseArgument:
+			{
+				// Parse an argument and continue.
+				assert successorTrees.tupleSize() == 1;
+				parseSendArgumentWithExplanationThen(
+					start,
+					" (an argument of some message)",
+					firstArgOrNull,
+					firstArgOrNull == null
+						&& initialTokenPosition.position != start.position,
+					new Con<AvailObject>("Argument of message send")
+					{
+						@Override
+						public void value (
+							final ParserState afterArg,
+							final AvailObject newArg)
+						{
+							final List<AvailObject> newArgsSoFar =
+								append(argsSoFar, newArg);
+							eventuallyDo(
+								new Continuation0()
+								{
+									@Override
+									public void value ()
+									{
+										parseRestOfSendNode(
+											afterArg,
+											successorTrees.tupleAt(1),
+											null,
+											initialTokenPosition,
+											/* Arg was consumed if it's not a
+											 * leading argument... */
+											firstArgOrNull == null,
+											newArgsSoFar,
+											continuation);
+									}
+								},
+								"Continue send after argument",
+								afterArg.position);
+						}
+					});
+				break;
+			}
+			case newList:
+			{
+				// Push an empty list node and continue.
+				assert successorTrees.tupleSize() == 1;
+				final List<AvailObject> newArgsSoFar =
+					append(argsSoFar, ListNodeDescriptor.empty());
+				eventuallyDo(
+					new Continuation0()
+					{
+						@Override
+						public void value ()
+						{
+							parseRestOfSendNode(
+								start,
+								successorTrees.tupleAt(1),
+								firstArgOrNull,
+								initialTokenPosition,
+								consumedAnything,
+								newArgsSoFar,
+								continuation);
+						}
+					},
+					"Continue send after push empty",
+					start.position);
+				break;
+			}
+			case appendArgument:
+			{
+				// Append the item that's the last thing to the list that's the
+				// second last thing. Pop both and push the new list (the
+				// original list must not change), then continue.
+				assert successorTrees.tupleSize() == 1;
+				final AvailObject value = last(argsSoFar);
+				final List<AvailObject> poppedOnce = withoutLast(argsSoFar);
+				final AvailObject oldNode = last(poppedOnce);
+				final AvailObject listNode = oldNode.copyWith(value);
+				final List<AvailObject> newArgsSoFar =
+					append(withoutLast(poppedOnce), listNode);
+				eventuallyDo(
+					new Continuation0()
+					{
+						@Override
+						public void value ()
+						{
+							parseRestOfSendNode(
+								start,
+								successorTrees.tupleAt(1),
+								firstArgOrNull,
+								initialTokenPosition,
+								consumedAnything,
+								newArgsSoFar,
+								continuation);
+						}
+					},
+					"Continue send after append",
+					start.position);
+				break;
+			}
+			case saveParsePosition:
+			{
+				// Push current parse position.
+				assert successorTrees.tupleSize() == 1;
+				final AvailObject marker = MarkerNodeDescriptor.create(
+					IntegerDescriptor.fromInt(
+						firstArgOrNull == null
+							? start.position
+							: initialTokenPosition.position));
+				final List<AvailObject> newArgsSoFar =
+					PrefixSharingList.append(argsSoFar, marker);
+				eventuallyDo(
+					new Continuation0()
+					{
+						@Override
+						public void value ()
+						{
+							parseRestOfSendNode(
+								start,
+								successorTrees.tupleAt(1),
+								firstArgOrNull,
+								initialTokenPosition,
+								consumedAnything,
+								newArgsSoFar,
+								continuation);
+						}
+					},
+					"Continue send after push parse position",
+					start.position);
+				break;
+			}
+			case discardSavedParsePosition:
+			{
+				// Under-pop saved parse position (from 2nd-to-top of stack).
+				assert successorTrees.tupleSize() == 1;
+				final AvailObject oldTop = last(argsSoFar);
+				final List<AvailObject> poppedOnce = withoutLast(argsSoFar);
+				assert last(poppedOnce).isMarkerNode();
+				final List<AvailObject> newArgsSoFar =
+					append(withoutLast(poppedOnce), oldTop);
+				eventuallyDo(
+					new Continuation0()
+					{
+						@Override
+						public void value ()
+						{
+							parseRestOfSendNode(
+								start,
+								successorTrees.tupleAt(1),
+								firstArgOrNull,
+								initialTokenPosition,
+								consumedAnything,
+								newArgsSoFar,
+								continuation);
+						}
+					},
+					"Continue send after underpop saved position",
+					start.position);
+				break;
+			}
+			case ensureParseProgress:
+			{
+				// Check parse progress (abort if parse position is still equal
+				// to value at 2nd-to-top of stack). Also update the entry to
+				// be the new parse position.
+				assert successorTrees.tupleSize() == 1;
+				final AvailObject top = last(argsSoFar);
+				final List<AvailObject> poppedOnce = withoutLast(argsSoFar);
+				final AvailObject oldMarker = last(poppedOnce);
+				if (oldMarker.markerValue().extractInt() == start.position)
+				{
+					// No progress has been made.  Reject this path.
+					return;
+				}
+				final AvailObject newMarker = MarkerNodeDescriptor.create(
+					IntegerDescriptor.fromInt(start.position));
+				final List<AvailObject> newArgsSoFar =
+					append(
+						append(withoutLast(poppedOnce), newMarker),
+						top);
+				eventuallyDo(
+					new Continuation0()
+					{
+						@Override
+						public void value ()
+						{
+							parseRestOfSendNode(
+								start,
+								successorTrees.tupleAt(1),
+								firstArgOrNull,
+								initialTokenPosition,
+								consumedAnything,
+								newArgsSoFar,
+								continuation);
+						}
+					},
+					"Continue send after check parse progress",
+					start.position);
+				break;
+			}
+			case parseRawToken:
+				// Parse a raw token and continue.
+				assert successorTrees.tupleSize() == 1;
+				if (firstArgOrNull != null)
+				{
+					// Starting with a parseRawToken can't cause unbounded
+					// left-recursion, so treat it more like reading an expected
+					// token than like parseArgument.  Thus, if a firstArgument
+					// has been provided (i.e., we're attempting to parse a
+					// leading-argument message to wrap a leading expression),
+					// then reject the parse.
+					break;
+				}
+				final AvailObject newToken = parseRawTokenOrNull(start);
+				if (newToken != null)
+				{
+					final ParserState afterToken = start.afterToken();
+					final AvailObject syntheticToken =
+						LiteralTokenDescriptor.create(
+							newToken.string(),
+							newToken.start(),
+							newToken.lineNumber(),
+							SYNTHETIC_LITERAL,
+							newToken);
+					final AvailObject literalNode =
+						LiteralNodeDescriptor.fromToken(syntheticToken);
+					final List<AvailObject> newArgsSoFar =
+						append(argsSoFar, literalNode);
+					eventuallyDo(
+						new Continuation0()
+						{
+							@Override
+							public void value ()
+							{
+								parseRestOfSendNode(
+									afterToken,
+									successorTrees.tupleAt(1),
+									null,
+									initialTokenPosition,
+									true,
+									newArgsSoFar,
+									continuation);
+							}
+						},
+						"Continue send after raw token for ellipsis",
+						afterToken.position);
+				}
+				break;
+			case pop:
+			{
+				// Pop the parse stack.
+				assert successorTrees.tupleSize() == 1;
+				final List<AvailObject> newArgsSoFar = withoutLast(argsSoFar);
+				eventuallyDo(
+					new Continuation0()
+					{
+						@Override
+						public void value ()
+						{
+							parseRestOfSendNode(
+								start,
+								successorTrees.tupleAt(1),
+								firstArgOrNull,
+								initialTokenPosition,
+								consumedAnything,
+								newArgsSoFar,
+								continuation);
+						}
+					},
+					"Continue send after pop",
+					start.position);
+				break;
+			}
+			case branch:
+				// $FALL-THROUGH$
+				// Fall through.  The successorTrees will be different
+				// for the jump versus parallel-branch.
+			case jump:
+				for (int i = successorTrees.tupleSize(); i >= 1; i--)
+				{
+					final AvailObject successorTree = successorTrees.tupleAt(i);
+					eventuallyDo(
+						new Continuation0()
+						{
+							@Override
+							public void value ()
+							{
+								parseRestOfSendNode(
+									start,
+									successorTree,
+									firstArgOrNull,
+									initialTokenPosition,
+									consumedAnything,
+									argsSoFar,
+									continuation);
+							}
+						},
+						"Continue send after branch or jump",
+						start.position);
+				}
+				break;
+			case parsePart:
+				assert false
+				: "parse-token instruction should not be dispatched";
+				break;
+			case checkArgument:
+			{
+				// CheckArgument.  An actual argument has just been parsed (and
+				// pushed).  Make sure it satisfies any grammatical
+				// restrictions.  The message bundle tree's lazy prefilter map
+				// deals with that efficiently.
+				assert successorTrees.tupleSize() == 1;
+				assert firstArgOrNull == null;
+				eventuallyDo(
+					new Continuation0()
+					{
+						@Override
+						public void value ()
+						{
+							parseRestOfSendNode(
+								start,
+								successorTrees.tupleAt(1),
+								firstArgOrNull,
+								initialTokenPosition,
+								consumedAnything,
+								argsSoFar,
+								continuation);
+						}
+					},
+					"Continue send after checkArgument",
+					start.position);
+				break;
+			}
+			case convert:
+			{
+				// Convert the argument.
+				assert successorTrees.tupleSize() == 1;
+				final AvailObject target = last(argsSoFar);
+				final AvailObject replacement;
+				switch (op.conversionRule(instruction))
+				{
+					case noConversion:
+						replacement = target;
+						break;
+					case listToSize:
+					{
+						final AvailObject expressions =
+							target.expressionsTuple();
+						final AvailObject count = IntegerDescriptor.fromInt(
+							expressions.tupleSize());
+						final AvailObject token =
+							LiteralTokenDescriptor.create(
+								StringDescriptor.from(count.toString()),
+								initialTokenPosition.peekToken().start(),
+								initialTokenPosition.peekToken().lineNumber(),
+								LITERAL,
+								count);
+						final AvailObject literalNode =
+							LiteralNodeDescriptor.fromToken(token);
+						replacement = literalNode;
+						break;
+					}
+					case listToNonemptiness:
+					{
+						final AvailObject expressions =
+							target.expressionsTuple();
+						final AvailObject nonempty =
+							AtomDescriptor.objectFromBoolean(
+								expressions.tupleSize() > 0);
+						final AvailObject token =
+							LiteralTokenDescriptor.create(
+								StringDescriptor.from(nonempty.toString()),
+								initialTokenPosition.peekToken().start(),
+								initialTokenPosition.peekToken().lineNumber(),
+								LITERAL,
+								nonempty);
+						final AvailObject literalNode =
+							LiteralNodeDescriptor.fromToken(token);
+						replacement = literalNode;
+						break;
+					}
+					default:
+					{
+						replacement = target;
+						assert false : "Conversion rule not handled";
+						break;
+					}
+				}
+				final List<AvailObject> newArgsSoFar =
+					append(withoutLast(argsSoFar), replacement);
+				eventuallyDo(
+					new Continuation0()
+					{
+						@Override
+						public void value ()
+						{
+							parseRestOfSendNode(
+								start,
+								successorTrees.tupleAt(1),
+								firstArgOrNull,
+								initialTokenPosition,
+								consumedAnything,
+								newArgsSoFar,
+								continuation);
+						}
+					},
+					"Continue send after conversion",
+					start.position);
+				break;
+			}
+			default:
+				assert false : "Reserved parsing instruction";
+		}
+	}
+
+	/**
+	 * Parse an argument to a message send. Backtracking will find all valid
+	 * interpretations.
+	 *
+	 * @param start
+	 *            Where to start parsing.
+	 * @param explanation
+	 *            A {@link String} indicating why it's parsing an argument.
+	 * @param firstArgOrNull
+	 *            Either a parse node to use as the argument, or null if we
+	 *            should parse one now.
+	 * @param canReallyParse
+	 *            Whether any tokens may be consumed.  This should be false
+	 *            specifically when the leftmost argument of a leading-argument
+	 *            message is being parsed.
+	 * @param continuation
+	 *            What to do with the argument.
+	 */
+	void parseSendArgumentWithExplanationThen (
+		final ParserState start,
+		final String explanation,
+		final @Nullable AvailObject firstArgOrNull,
+		final boolean canReallyParse,
+		final Con<AvailObject> continuation)
+	{
+		if (firstArgOrNull == null)
+		{
+			// There was no leading argument, or it has already been accounted
+			// for.  If we haven't actually consumed anything yet then don't
+			// allow a *leading* argument to be parsed here.  That would lead
+			// to ambiguous left-recursive parsing.
+			if (canReallyParse)
+			{
+				parseExpressionThen(
+					start,
+					new Con<AvailObject>("Argument expression")
+					{
+						@Override
+						public void value (
+							final ParserState afterArgument,
+							final AvailObject argument)
+						{
+							attempt(afterArgument, continuation, argument);
+						}
+					});
+			}
+		}
+		else
+		{
+			// We're parsing a message send with a leading argument, and that
+			// argument was explicitly provided to the parser.  We should
+			// consume the provided first argument now.
+			assert !canReallyParse;
+			attempt(start, continuation, firstArgOrNull);
 		}
 	}
 

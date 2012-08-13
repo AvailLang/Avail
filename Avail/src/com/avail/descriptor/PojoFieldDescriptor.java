@@ -223,6 +223,27 @@ extends Descriptor
 		}
 	}
 
+	@Override
+	void o_SetValueNoCheck (
+		final AvailObject object,
+		final AvailObject newValue)
+	{
+		// Actually check this write anyhow.  Just in case.
+		final Object receiver = object.slot(RECEIVER).javaObject();
+		final Field field = (Field) object.slot(FIELD).javaObject();
+		final Class<?> classHint = field.getType();
+		try
+		{
+			field.set(receiver, newValue.marshalToJava(classHint));
+		}
+		catch (final Exception e)
+		{
+			throw new VariableSetException(
+				AvailErrorCode.E_JAVA_MARSHALING_FAILED,
+				e);
+		}
+	}
+
 	@Override @AvailMethod
 	AvailObject o_Value (final AvailObject object)
 	{

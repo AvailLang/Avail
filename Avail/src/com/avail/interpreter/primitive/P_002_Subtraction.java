@@ -79,7 +79,7 @@ public class P_002_Subtraction extends Primitive
 	}
 
 	@Override
-	public AvailObject returnTypeGuaranteedByVMForArgumentTypes (
+	public AvailObject returnTypeGuaranteedByVM (
 		final List<AvailObject> argumentTypes)
 	{
 		final AvailObject aType = argumentTypes.get(0);
@@ -130,7 +130,7 @@ public class P_002_Subtraction extends Primitive
 		{
 			// $FALL-THROUGH$
 		}
-		return super.returnTypeGuaranteedByVMForArgumentTypes(
+		return super.returnTypeGuaranteedByVM(
 			argumentTypes);
 	}
 }

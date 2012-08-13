@@ -72,7 +72,7 @@ public class P_136_ConcatenateTuples extends Primitive
 	}
 
 	@Override
-	public AvailObject returnTypeGuaranteedByVMForArgumentTypes (
+	public AvailObject returnTypeGuaranteedByVM (
 		final List<AvailObject> argumentTypes)
 	{
 		final AvailObject tuplesType = argumentTypes.get(0);
@@ -87,7 +87,7 @@ public class P_136_ConcatenateTuples extends Primitive
 				IntegerDescriptor.fromUnsignedByte((short)100)))
 			{
 				// Too expensive to compute here.
-				return super.returnTypeGuaranteedByVMForArgumentTypes(
+				return super.returnTypeGuaranteedByVM(
 					argumentTypes);
 			}
 			// A (reasonably small) collection of tuple types.
@@ -137,6 +137,6 @@ public class P_136_ConcatenateTuples extends Primitive
 			}
 		}
 		// Too tricky to bother narrowing.
-		return super.returnTypeGuaranteedByVMForArgumentTypes(argumentTypes);
+		return super.returnTypeGuaranteedByVM(argumentTypes);
 	}
 }

@@ -168,7 +168,7 @@ extends AbstractEnumerationTypeDescriptor
 		}
 		// Another is not an enumeration, and definitely not a meta, and the
 		// only possible superkinds of object (a meta) are ANY and TOP.
-		if (another.isSupertypeOfPrimitiveTypeWithOrdinal(ANY.ordinal()))
+		if (another.isSupertypeOfPrimitiveTypeEnum(ANY))
 		{
 			return object;
 		}
@@ -311,7 +311,7 @@ extends AbstractEnumerationTypeDescriptor
 		}
 		// I'm a meta, a singular enumeration of a type, so I could only be an
 		// instance of a meta meta (already excluded), or of ANY or TOP.
-		return aType.isSupertypeOfPrimitiveTypeWithOrdinal(ANY.ordinal());
+		return aType.isSupertypeOfPrimitiveTypeEnum(ANY);
 	}
 
 	@Override

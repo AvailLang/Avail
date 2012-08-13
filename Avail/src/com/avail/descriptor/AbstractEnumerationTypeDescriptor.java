@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import java.util.*;
 import com.avail.annotations.*;
+import com.avail.descriptor.TypeDescriptor.Types;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 
 /**
@@ -560,9 +561,9 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	final boolean o_IsSupertypeOfPrimitiveTypeWithOrdinal (
+	final boolean o_IsSupertypeOfPrimitiveTypeEnum (
 		final AvailObject object,
-		final int aPrimitiveTypeOrdinal)
+		final Types primitiveTypeEnum)
 	{
 		return false;
 	}

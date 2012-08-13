@@ -651,7 +651,7 @@ public class L2Translator implements L1OperationDispatcher
 			argTypes.add(registers.typeAt(arg));
 		}
 		final AvailObject guaranteedReturnType =
-			primitive.returnTypeGuaranteedByVMForArgumentTypes(argTypes);
+			primitive.returnTypeGuaranteedByVM(argTypes);
 		final boolean skipReturnCheck =
 			guaranteedReturnType.isSubtypeOf(expectedType);
 		final L2ObjectRegister expectedTypeRegister = registers.newObject();
@@ -1179,7 +1179,7 @@ public class L2Translator implements L1OperationDispatcher
 		final L2ObjectRegister local =
 			registers.argumentOrLocal(localIndex);
 		addInstruction(
-			L2_SET_VARIABLE.instance,
+			L2_SET_VARIABLE_NO_CHECK.instance,
 			new L2ReadPointerOperand(local),
 			new L2ReadPointerOperand(readTopOfStackRegister()));
 		stackp++;
@@ -1201,7 +1201,7 @@ public class L2Translator implements L1OperationDispatcher
 			new L2ReadPointerOperand(registers.fixed(FUNCTION)),
 			new L2WritePointerOperand(tempReg));
 		addInstruction(
-			L2_SET_VARIABLE.instance,
+			L2_SET_VARIABLE_NO_CHECK.instance,
 			new L2ReadPointerOperand(tempReg),
 			new L2ReadPointerOperand(readTopOfStackRegister()));
 		stackp++;
@@ -1294,7 +1294,7 @@ public class L2Translator implements L1OperationDispatcher
 		final L2ObjectRegister tempReg = registers.newObject();
 		moveConstant(constant, tempReg);
 		addInstruction(
-			L2_SET_VARIABLE.instance,
+			L2_SET_VARIABLE_NO_CHECK.instance,
 			new L2ReadPointerOperand(tempReg),
 			new L2ReadPointerOperand(readTopOfStackRegister()));
 		stackp++;

@@ -651,7 +651,7 @@ extends Descriptor
 	 * @param literals A tuple of literals.
 	 * @param localTypes A tuple of types of local variables.
 	 * @param outerTypes A tuple of types of outer (captured) variables.
-	 * @param module The module in which the code occurs.
+	 * @param module The module in which the code, or nil.
 	 * @param lineNumber The module line number on which this code starts.
 	 * @return The new compiled code object.
 	 */
@@ -664,7 +664,7 @@ extends Descriptor
 		final AvailObject literals,
 		final AvailObject localTypes,
 		final AvailObject outerTypes,
-		final @Nullable AvailObject module,
+		final AvailObject module,
 		final int lineNumber)
 	{
 		if (primitive != 0)
@@ -727,7 +727,7 @@ extends Descriptor
 
 		final AvailObject propertyAtom = AtomWithPropertiesDescriptor.create(
 			TupleDescriptor.empty(),
-			module != null ? module : NullDescriptor.nullObject());
+			module);
 		code.setSlot(PROPERTY_ATOM, propertyAtom);
 		propertyAtom.setAtomProperty(
 			lineNumberKeyAtom,

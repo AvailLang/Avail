@@ -174,7 +174,7 @@ extends TupleDescriptor
 		final AvailObject object,
 		final AvailObject aType)
 	{
-		if (aType.isSupertypeOfPrimitiveTypeWithOrdinal(ANY.ordinal()))
+		if (aType.isSupertypeOfPrimitiveTypeEnum(ANY))
 		{
 			return true;
 		}

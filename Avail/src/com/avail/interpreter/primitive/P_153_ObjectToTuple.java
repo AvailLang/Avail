@@ -39,7 +39,7 @@ import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 151:</strong> Answer the field assignments of the specified
+ * <strong>Primitive 153:</strong> Answer the field assignments of the specified
  * {@linkplain ObjectDescriptor object}. A field assignment is a 2-tuple whose
  * first element is an {@linkplain AtomDescriptor atom} that represents the
  * field and whose second element is its value.

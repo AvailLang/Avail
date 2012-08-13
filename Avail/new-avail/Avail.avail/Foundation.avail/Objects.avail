@@ -79,7 +79,7 @@ Semantic restriction "_→object type" is
 	/* If the enumeration of keys is known and equals the cardinality of the
 	 * map, then answer the nearest object type supertype with these keys.
 	 */
-	if |{⎣mapType⎦, ⎡mapType⎤}| = 1
+	if ⎣mapType⎦ = ⎡mapType⎤
 		∧ [ |mapType's key type| = ⎣mapType⎦ ] then
 	[
 		atoms ::= mapType's key type's instances;
@@ -172,7 +172,7 @@ Semantic restriction "_→object" is
 	/* If the enumeration of keys is known and equals the cardinality of the
 	 * map, then answer the nearest object type supertype with these keys.
 	 */
-	if |{⎣mapType⎦, ⎡mapType⎤}| = 1
+	if ⎣mapType⎦ = ⎡mapType⎤
 		∧ [ |mapType's key type| = ⎣mapType⎦ ] then
 	[
 		atoms ::= mapType's key type's instances;

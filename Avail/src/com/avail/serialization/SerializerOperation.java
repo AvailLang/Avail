@@ -1259,6 +1259,9 @@ public enum SerializerOperation
 		}
 	},
 
+	/**
+	 * Reserved for future use.
+	 */
 	RESERVED_44 (44)
 	{
 		@Override
@@ -1276,6 +1279,9 @@ public enum SerializerOperation
 		}
 	},
 
+	/**
+	 * Reserved for future use.
+	 */
 	RESERVED_45 (45)
 	{
 		@Override
@@ -1293,6 +1299,9 @@ public enum SerializerOperation
 		}
 	},
 
+	/**
+	 * Reserved for future use.
+	 */
 	RESERVED_46 (46)
 	{
 		@Override
@@ -1310,6 +1319,9 @@ public enum SerializerOperation
 		}
 	},
 
+	/**
+	 * Reserved for future use.
+	 */
 	RESERVED_47 (47)
 	{
 		@Override
@@ -1327,6 +1339,9 @@ public enum SerializerOperation
 		}
 	},
 
+	/**
+	 * Reserved for future use.
+	 */
 	RESERVED_48 (48)
 	{
 		@Override
@@ -1344,6 +1359,9 @@ public enum SerializerOperation
 		}
 	},
 
+	/**
+	 * Reserved for future use.
+	 */
 	RESERVED_49 (49)
 	{
 		@Override
@@ -1462,6 +1480,9 @@ public enum SerializerOperation
 		}
 	},
 
+	/**
+	 * Reserved for future use.
+	 */
 	RESERVED_53 (53)
 	{
 		@Override

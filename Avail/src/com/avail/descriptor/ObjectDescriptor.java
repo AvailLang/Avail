@@ -148,7 +148,7 @@ extends Descriptor
 		final AvailObject object,
 		final AvailObject aTypeObject)
 	{
-		if (aTypeObject.isSupertypeOfPrimitiveTypeWithOrdinal(ANY.ordinal()))
+		if (aTypeObject.isSupertypeOfPrimitiveTypeEnum(ANY))
 		{
 			return true;
 		}

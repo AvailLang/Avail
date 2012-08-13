@@ -35,7 +35,6 @@ import static com.avail.descriptor.AvailObject.error;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import java.util.*;
 import com.avail.descriptor.AvailObject;
-import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Result;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.operand.*;
@@ -156,7 +155,7 @@ public class L2_ATTEMPT_INLINE_PRIMITIVE_NO_CHECK extends L2Operation
 		}
 		// We can at least believe what the primitive itself says it returns.
 		final AvailObject guaranteedType =
-			primitiveOperand.primitive.returnTypeGuaranteedByVMForArgumentTypes(
+			primitiveOperand.primitive.returnTypeGuaranteedByVM(
 				argTypes);
 
 		registers.removeTypeAt(result.register);

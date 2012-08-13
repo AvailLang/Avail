@@ -71,7 +71,7 @@ public class P_032_TypeIntersection extends Primitive
 	}
 
 	@Override
-	public AvailObject returnTypeGuaranteedByVMForArgumentTypes (
+	public AvailObject returnTypeGuaranteedByVM (
 		final List<AvailObject> argumentTypes)
 	{
 		final AvailObject meta1 = argumentTypes.get(0);

@@ -39,7 +39,7 @@ import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 150:</strong> Convert a {@linkplain TupleDescriptor tuple}
+ * <strong>Primitive 152:</strong> Convert a {@linkplain TupleDescriptor tuple}
  * of field assignment into an {@linkplain ObjectDescriptor object}. A field
  * assignment is a 2-tuple whose first element is an {@linkplain AtomDescriptor
  * atom} that represents the field and whose second element is its value.
@@ -79,5 +79,48 @@ extends Primitive
 						TupleDescriptor.from(ATOM.o()),
 						ANY.o()))),
 			ObjectTypeDescriptor.mostGeneralType());
+	}
+
+	@Override
+	public AvailObject returnTypeGuaranteedByVM (
+		final List<AvailObject> argumentTypes)
+	{
+		final AvailObject tupleType = argumentTypes.get(0);
+		final AvailObject tupleSizes = tupleType.sizeRange();
+		final AvailObject tupleSizeLowerBound = tupleSizes.lowerBound();
+		if (!tupleSizeLowerBound.equals(tupleSizes.upperBound())
+			|| !tupleSizeLowerBound.isInt())
+		{
+			// Variable number of <key,value> pairs.  Give up.
+			return super.returnTypeGuaranteedByVM(argumentTypes);
+		}
+		final int tupleSize = tupleSizeLowerBound.extractInt();
+		AvailObject fieldTypeMap = MapDescriptor.empty();
+		for (int i = 1; i <= tupleSize; i++)
+		{
+			final AvailObject pairType = tupleType.typeAtIndex(i);
+			assert pairType.sizeRange().lowerBound().extractInt() == 2;
+			assert pairType.sizeRange().upperBound().extractInt() == 2;
+			final AvailObject keyType = pairType.typeAtIndex(1);
+			if (!keyType.isEnumeration()
+				|| !keyType.instanceCount().equals(IntegerDescriptor.one()))
+			{
+				// Can only strengthen if all key atoms are statically known.
+				return super.returnTypeGuaranteedByVM(argumentTypes);
+			}
+			final AvailObject keyValue = keyType.instance();
+			if (fieldTypeMap.hasKey(keyValue))
+			{
+				// In case the semantics of this situation change.  Give up.
+				return super.returnTypeGuaranteedByVM(argumentTypes);
+			}
+			assert keyValue.isAtom();
+			final AvailObject valueType = pairType.typeAtIndex(2);
+			fieldTypeMap = fieldTypeMap.mapAtPuttingCanDestroy(
+				keyValue,
+				valueType,
+				true);
+		}
+		return ObjectTypeDescriptor.objectTypeFromMap(fieldTypeMap);
 	}
 }

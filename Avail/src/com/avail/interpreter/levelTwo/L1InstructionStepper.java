@@ -36,7 +36,6 @@ import static com.avail.descriptor.AvailObject.error;
 import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
 import static com.avail.interpreter.levelTwo.L2Interpreter.*;
 import java.util.*;
-import com.avail.annotations.*;
 import com.avail.descriptor.*;
 import com.avail.interpreter.levelOne.*;
 import com.avail.interpreter.levelTwo.operation.L2_INTERPRET_UNTIL_INTERRUPT;

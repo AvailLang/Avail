@@ -32,7 +32,6 @@
 
 package com.avail.descriptor;
 
-import com.avail.annotations.*;
 
 /**
  * {@code AbstractAvailObject} specifies the essential layout and storage

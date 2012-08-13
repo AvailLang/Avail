@@ -41,6 +41,7 @@ import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.MapDescriptor.MapIterable;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.exceptions.*;
 import com.avail.exceptions.UnsupportedOperationException;
 import com.avail.interpreter.Interpreter;
@@ -789,9 +790,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_IsSupertypeOfPrimitiveTypeWithOrdinal (
+	boolean o_IsSupertypeOfPrimitiveTypeEnum (
 		final AvailObject object,
-		final int aPrimitiveTypeOrdinal)
+		final Types primitiveTypeEnum)
 	{
 		throw unsupportedOperationException();
 	}
@@ -1244,6 +1245,14 @@ extends AbstractDescriptor
 
 	@Override
 	void o_SetValue (
+		final AvailObject object,
+		final AvailObject newValue)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_SetValueNoCheck (
 		final AvailObject object,
 		final AvailObject newValue)
 	{
@@ -3328,15 +3337,6 @@ extends AbstractDescriptor
 
 
 	@Override
-	void o_MarkerValue (
-		final AvailObject object,
-		final AvailObject markerValue)
-	{
-		throw unsupportedOperationException();
-	}
-
-
-	@Override
 	AvailObject o_Method(final AvailObject object)
 	{
 		throw unsupportedOperationException();
@@ -4619,5 +4619,12 @@ extends AbstractDescriptor
 		final boolean isSystemModule)
 	{
 		throw unsupportedOperationException();
+	}
+
+	@Override
+	boolean o_IsMarkerNode (
+		final AvailObject object)
+	{
+		return false;
 	}
 }

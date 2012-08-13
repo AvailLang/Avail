@@ -87,7 +87,7 @@ public class P_132_TupleReplaceAt extends Primitive
 	}
 
 	@Override
-	public AvailObject returnTypeGuaranteedByVMForArgumentTypes (
+	public AvailObject returnTypeGuaranteedByVM (
 		final List<AvailObject> argumentTypes)
 	{
 		final AvailObject originalTupleType = argumentTypes.get(0);
@@ -103,7 +103,7 @@ public class P_132_TupleReplaceAt extends Primitive
 					IntegerDescriptor.fromUnsignedByte((short)100))))
 		{
 			// Too expensive.  Fall back on the primitive's basic type.
-			return super.returnTypeGuaranteedByVMForArgumentTypes(
+			return super.returnTypeGuaranteedByVM(
 				argumentTypes);
 		}
 		final AvailObject originalTypeTuple = originalTupleType.typeTuple();

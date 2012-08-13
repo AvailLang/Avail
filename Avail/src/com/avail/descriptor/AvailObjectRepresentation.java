@@ -32,7 +32,6 @@
 
 package com.avail.descriptor;
 
-import com.avail.annotations.*;
 import com.avail.visitor.AvailMarkUnreachableSubobjectVisitor;
 
 /**

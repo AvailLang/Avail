@@ -177,8 +177,8 @@ extends TypeDescriptor
 		final AvailObject aType)
 	{
 		// Check if object (a type) is a subtype of aType (should also be a type).
-		return aType.isSupertypeOfPrimitiveTypeWithOrdinal(
-			object.slot(PRIMITIVE_TYPE_ORDINAL));
+		return aType.isSupertypeOfPrimitiveTypeEnum(
+			Types.values()[object.slot(PRIMITIVE_TYPE_ORDINAL)]);
 	}
 
 	@Override @AvailMethod
@@ -189,7 +189,7 @@ extends TypeDescriptor
 		//  This primitive type is a supertype of aFunctionType if and only if this
 		//  primitive type is a supertype of ANY.
 
-		return object.isSupertypeOfPrimitiveTypeWithOrdinal(ANY.ordinal());
+		return object.isSupertypeOfPrimitiveTypeEnum(ANY);
 	}
 
 	@Override @AvailMethod
@@ -199,7 +199,7 @@ extends TypeDescriptor
 	{
 		// A primitive type is a supertype of a variable type if it is a
 		// supertype of ANY.
-		return object.isSupertypeOfPrimitiveTypeWithOrdinal(ANY.ordinal());
+		return object.isSupertypeOfPrimitiveTypeEnum(ANY);
 	}
 
 	@Override @AvailMethod
@@ -209,7 +209,7 @@ extends TypeDescriptor
 	{
 		// A primitive type is a supertype of a continuation type if it is a
 		// supertype of ANY.
-		return object.isSupertypeOfPrimitiveTypeWithOrdinal(ANY.ordinal());
+		return object.isSupertypeOfPrimitiveTypeEnum(ANY);
 	}
 
 	@Override @AvailMethod
@@ -219,7 +219,7 @@ extends TypeDescriptor
 	{
 		// A primitive type is a supertype of a compiled code type if it is a
 		// supertype of ANY.
-		return object.isSupertypeOfPrimitiveTypeWithOrdinal(ANY.ordinal());
+		return object.isSupertypeOfPrimitiveTypeEnum(ANY);
 	}
 
 	@Override @AvailMethod
@@ -229,7 +229,7 @@ extends TypeDescriptor
 	{
 		// Parent of the top integer range type is number, so continue
 		// searching there.
-		return object.isSupertypeOfPrimitiveTypeWithOrdinal(NUMBER.ordinal());
+		return object.isSupertypeOfPrimitiveTypeEnum(NUMBER);
 	}
 
 	@Override @AvailMethod
@@ -239,7 +239,7 @@ extends TypeDescriptor
 	{
 		// This primitive type is a supertype of aLiteralTokenType if and only
 		// if this primitive type is a supertype of TOKEN.
-		return object.isSupertypeOfPrimitiveTypeWithOrdinal(TOKEN.ordinal());
+		return object.isSupertypeOfPrimitiveTypeEnum(TOKEN);
 	}
 
 	@Override @AvailMethod
@@ -249,7 +249,7 @@ extends TypeDescriptor
 	{
 		// This primitive type is a supertype of aMapType if and only if this
 		// primitive type is a supertype of ANY.
-		return object.isSupertypeOfPrimitiveTypeWithOrdinal(ANY.ordinal());
+		return object.isSupertypeOfPrimitiveTypeEnum(ANY);
 	}
 
 	@Override @AvailMethod
@@ -259,7 +259,7 @@ extends TypeDescriptor
 	{
 		// Check if I'm a supertype of the given eager object type.  Only ANY
 		// and its ancestors are supertypes of an object type.
-		return object.isSupertypeOfPrimitiveTypeWithOrdinal(ANY.ordinal());
+		return object.isSupertypeOfPrimitiveTypeEnum(ANY);
 	}
 
 	@Override @AvailMethod
@@ -267,7 +267,7 @@ extends TypeDescriptor
 		final AvailObject object,
 		final AvailObject aParseNodeType)
 	{
-		return object.isSupertypeOfPrimitiveTypeWithOrdinal(ANY.ordinal());
+		return object.isSupertypeOfPrimitiveTypeEnum(ANY);
 	}
 
 	@Override
@@ -275,7 +275,7 @@ extends TypeDescriptor
 		final AvailObject object,
 		final AvailObject aPojoType)
 	{
-		return object.isSupertypeOfPrimitiveTypeWithOrdinal(ANY.ordinal());
+		return object.isSupertypeOfPrimitiveTypeEnum(ANY);
 	}
 
 	@Override @AvailMethod
@@ -283,16 +283,16 @@ extends TypeDescriptor
 		final AvailObject object,
 		final AvailObject aPojoType)
 	{
-		return object.isSupertypeOfPrimitiveTypeWithOrdinal(ANY.ordinal());
+		return object.isSupertypeOfPrimitiveTypeEnum(ANY);
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSupertypeOfPrimitiveTypeWithOrdinal (
+	boolean o_IsSupertypeOfPrimitiveTypeEnum (
 		final AvailObject object,
-		final int aPrimitiveTypeOrdinal)
+		final Types primitiveTypeEnum)
 	{
 		final boolean[] row =
-			TypeDescriptor.supertypeTable[aPrimitiveTypeOrdinal];
+			TypeDescriptor.supertypeTable[primitiveTypeEnum.ordinal()];
 		return row[object.slot(PRIMITIVE_TYPE_ORDINAL)];
 	}
 
@@ -304,7 +304,7 @@ extends TypeDescriptor
 		//  This primitive type is a supertype of aSetType if and only if this
 		//  primitive type is a supertype of ANY.
 
-		return object.isSupertypeOfPrimitiveTypeWithOrdinal(ANY.ordinal());
+		return object.isSupertypeOfPrimitiveTypeEnum(ANY);
 	}
 
 	@Override @AvailMethod
@@ -315,7 +315,7 @@ extends TypeDescriptor
 		//  This primitive type is a supertype of aTupleType if and only if this
 		//  primitive type is a supertype of ANY.
 
-		return object.isSupertypeOfPrimitiveTypeWithOrdinal(ANY.ordinal());
+		return object.isSupertypeOfPrimitiveTypeEnum(ANY);
 	}
 
 	@Override @AvailMethod

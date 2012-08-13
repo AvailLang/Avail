@@ -68,7 +68,7 @@ public class P_037_ReturnType extends Primitive
 	}
 
 	@Override
-	public AvailObject returnTypeGuaranteedByVMForArgumentTypes (
+	public AvailObject returnTypeGuaranteedByVM (
 		final List<AvailObject> argumentTypes)
 	{
 		final AvailObject functionMeta = argumentTypes.get(0);

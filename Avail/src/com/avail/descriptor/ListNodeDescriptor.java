@@ -113,6 +113,27 @@ public class ListNodeDescriptor extends ParseNodeDescriptor
 		return tupleType;
 	}
 
+	@Override
+	void printObjectOnAvoidingIndent (
+		final AvailObject object,
+		final StringBuilder builder,
+		final List<AvailObject> recursionList,
+		final int indent)
+	{
+		builder.append("List(");
+		boolean first = true;
+		for (final AvailObject element : object.expressionsTuple())
+		{
+			if (!first)
+			{
+				builder.append(", ");
+			}
+			builder.append(element);
+			first = false;
+		}
+		builder.append(")");
+	}
+
 	@Override @AvailMethod
 	int o_Hash (final AvailObject object)
 	{

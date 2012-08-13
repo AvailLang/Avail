@@ -45,6 +45,7 @@ import com.avail.descriptor.InfinityDescriptor.IntegerSlots;
 import com.avail.descriptor.MapDescriptor.MapIterable;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Interpreter;
@@ -1785,12 +1786,12 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param aPrimitiveTypeOrdinal
+	 * @param primitiveTypeEnum
 	 * @return
 	 */
-	abstract boolean o_IsSupertypeOfPrimitiveTypeWithOrdinal (
+	abstract boolean o_IsSupertypeOfPrimitiveTypeEnum (
 		final AvailObject object,
-		final int aPrimitiveTypeOrdinal);
+		final Types primitiveTypeEnum);
 
 	/**
 	 * @param object
@@ -2351,6 +2352,14 @@ public abstract class AbstractDescriptor
 	 * @param newValue
 	 */
 	abstract void o_SetValue (
+		AvailObject object,
+		AvailObject newValue);
+
+	/**
+	 * @param object
+	 * @param newValue
+	 */
+	abstract void o_SetValueNoCheck (
 		AvailObject object,
 		AvailObject newValue);
 
@@ -4425,14 +4434,6 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param markerValue
-	 */
-	abstract void o_MarkerValue (
-		AvailObject object,
-		AvailObject markerValue);
-
-	/**
-	 * @param object
 	 * @return
 	 */
 	abstract AvailObject o_MarkerValue (AvailObject object);
@@ -5669,4 +5670,11 @@ public abstract class AbstractDescriptor
 	abstract void o_IsSystemModule (
 		final AvailObject object,
 		final boolean isSystemModule);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract boolean o_IsMarkerNode (
+		final AvailObject object);
 }

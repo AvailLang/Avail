@@ -396,7 +396,7 @@ extends Descriptor
 		final AvailObject object,
 		final AvailObject aType)
 	{
-		return aType.isSupertypeOfPrimitiveTypeWithOrdinal(ATOM.ordinal());
+		return aType.isSupertypeOfPrimitiveTypeEnum(ATOM);
 	}
 
 	/**

@@ -81,7 +81,7 @@ public class P_083_MapReplacingKey extends Primitive
 	}
 
 	@Override
-	public AvailObject returnTypeGuaranteedByVMForArgumentTypes (
+	public AvailObject returnTypeGuaranteedByVM (
 		final List<AvailObject> argumentTypes)
 	{
 		final AvailObject mapType = argumentTypes.get(0);

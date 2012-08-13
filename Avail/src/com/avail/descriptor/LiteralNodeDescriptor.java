@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailCodeGenerator;
@@ -153,6 +154,22 @@ extends ParseNodeDescriptor
 		final int indent)
 	{
 		builder.append(object.token().string().asNativeString());
+	}
+
+
+	/**
+	 * Create a {@linkplain LiteralNodeDescriptor literal node} from a {@linkplain
+	 * LiteralTokenDescriptor literal token}.
+	 *
+	 * @param token The token that describes the literal.
+	 * @return The new literal node.
+	 */
+	public static AvailObject fromTokenForDecompiler (final AvailObject token)
+	{
+		final AvailObject node = mutable().create();
+		node.setSlot(ObjectSlots.TOKEN, token);
+		node.makeImmutable();
+		return node;
 	}
 
 

@@ -425,9 +425,9 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSupertypeOfPrimitiveTypeWithOrdinal (
+	boolean o_IsSupertypeOfPrimitiveTypeEnum (
 		final AvailObject object,
-		final int aPrimitiveTypeOrdinal)
+		final Types primitiveTypeEnum)
 	{
 		/* Check if object (some specialized type) is a supertype of
 		 * aPrimitiveType (some primitive type).  The only primitive type this

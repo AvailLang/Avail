@@ -144,7 +144,7 @@ extends TokenDescriptor
 		final AvailObject object,
 		final AvailObject aTypeObject)
 	{
-		if (aTypeObject.isSupertypeOfPrimitiveTypeWithOrdinal(TOKEN.ordinal()))
+		if (aTypeObject.isSupertypeOfPrimitiveTypeEnum(TOKEN))
 		{
 			return true;
 		}

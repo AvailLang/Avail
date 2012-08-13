@@ -286,7 +286,7 @@ implements IntegerEnumSlotDescriptionEnum
 	 * @return
 	 *            The return type guaranteed by the VM at some call site.
 	 */
-	public AvailObject returnTypeGuaranteedByVMForArgumentTypes (
+	public AvailObject returnTypeGuaranteedByVM (
 		final List<AvailObject> argumentTypes)
 	{
 		return blockTypeRestriction().returnType();
@@ -598,7 +598,7 @@ implements IntegerEnumSlotDescriptionEnum
 	 * A performance metric indicating how long was spent checking the return
 	 * result for all invocations of this primitive in level two code.  An
 	 * excessively large value indicates a profitable opportunity for {@link
-	 * #returnTypeGuaranteedByVMForArgumentTypes(List)} to return a stronger
+	 * #returnTypeGuaranteedByVM(List)} to return a stronger
 	 * type, perhaps allowing the level two optimizer to skip more checks.
 	 */
 	@InnerAccess long debugMicrosecondsCheckingResultType = 0L;

@@ -162,6 +162,20 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
+	void o_SetValueNoCheck (
+		final AvailObject object,
+		final AvailObject newValue)
+	{
+//		final AvailObject outerKind = object.slot(ObjectSlots.KIND);
+//		if (!newValue.isInstanceOf(outerKind.writeType()))
+//		{
+//			throw new VariableSetException(
+//				AvailErrorCode.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE);
+//		}
+		object.setSlot(ObjectSlots.VALUE, newValue);
+	}
+
+	@Override @AvailMethod
 	void o_ClearValue (
 		final AvailObject object)
 	{

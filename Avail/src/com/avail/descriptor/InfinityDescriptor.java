@@ -134,7 +134,7 @@ extends ExtendedIntegerDescriptor
 		final AvailObject object,
 		final AvailObject aType)
 	{
-		if (aType.isSupertypeOfPrimitiveTypeWithOrdinal(NUMBER.ordinal()))
+		if (aType.isSupertypeOfPrimitiveTypeEnum(NUMBER))
 		{
 			return true;
 		}

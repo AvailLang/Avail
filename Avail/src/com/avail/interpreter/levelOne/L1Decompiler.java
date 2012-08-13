@@ -563,8 +563,8 @@ public class L1Decompiler
 		public void L1Ext_doDuplicate ()
 		{
 			final AvailObject rightSide = popExpression();
-			final AvailObject marker = MarkerNodeDescriptor.mutable().create();
-			marker.markerValue(NullDescriptor.nullObject());
+			final AvailObject marker = MarkerNodeDescriptor.create(
+				NullDescriptor.nullObject());
 			pushExpression(marker);
 			pushExpression(rightSide);
 		}
@@ -751,16 +751,15 @@ public class L1Decompiler
 			new ArrayList<AvailObject>(aFunction.numOuterVars());
 		for (int i = 1; i <= aFunction.numOuterVars(); i++)
 		{
-			final AvailObject varObject = aFunction.outerVarAt(i);
-
+			final AvailObject outerObject = aFunction.outerVarAt(i);
 			final AvailObject token = LiteralTokenDescriptor.create(
 				StringDescriptor.from("Outer#" + i),
 				0,
 				0,
-				TokenType.LITERAL,
-				varObject);
+				TokenType.SYNTHETIC_LITERAL,
+				outerObject);
 			final AvailObject literalNode =
-				LiteralNodeDescriptor.fromToken(token);
+				LiteralNodeDescriptor.fromTokenForDecompiler(token);
 			functionOuters.add(literalNode);
 		}
 		return new L1Decompiler().parseWithOuterVarsTempGenerator(

@@ -49,7 +49,7 @@ Body
 
 
 
-Method "«_‡++»" is [tuples : tuple of tuple |
+Method "«_‡++»" is [tuples : tuple [2..∞) of tuple |
 	Primitive 136;
 ] : tuple;
 
