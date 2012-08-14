@@ -2161,9 +2161,11 @@ public abstract class AbstractAvailCompiler
 			{
 				@Override
 				public void value (
-					final ParserState afterLeadingArgument2,
-					final AvailObject node2)
+					final @Nullable ParserState afterLeadingArgument2,
+					final @Nullable AvailObject node2)
 				{
+					assert afterLeadingArgument2 != null;
+					assert node2 != null;
 					parseLeadingArgumentSendAfterThen(
 						afterLeadingArgument2,
 						node2,
@@ -2172,9 +2174,11 @@ public abstract class AbstractAvailCompiler
 						{
 							@Override
 							public void value (
-								final ParserState afterSend,
-								final AvailObject leadingSend)
+								final @Nullable ParserState afterSend,
+								final @Nullable AvailObject leadingSend)
 							{
+								assert afterSend != null;
+								assert leadingSend != null;
 								parseOptionalLeadingArgumentSendAfterThen(
 									startOfLeadingArgument,
 									afterSend,
@@ -2458,9 +2462,11 @@ public abstract class AbstractAvailCompiler
 					{
 						@Override
 						public void value (
-							final ParserState afterArg,
-							final AvailObject newArg)
+							final @Nullable ParserState afterArg,
+							final @Nullable AvailObject newArg)
 						{
+							assert afterArg != null;
+							assert newArg != null;
 							final List<AvailObject> newArgsSoFar =
 								append(argsSoFar, newArg);
 							eventuallyDo(
@@ -2899,9 +2905,11 @@ public abstract class AbstractAvailCompiler
 					{
 						@Override
 						public void value (
-							final ParserState afterArgument,
-							final AvailObject argument)
+							final @Nullable ParserState afterArgument,
+							final @Nullable AvailObject argument)
 						{
+							assert afterArgument != null;
+							assert argument != null;
 							attempt(afterArgument, continuation, argument);
 						}
 					});

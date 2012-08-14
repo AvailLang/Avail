@@ -114,6 +114,7 @@ public class P_188_CreateCompiledCode extends Primitive
 			}
 		}
 
+		final AvailObject module = interpreter.module();
 		return interpreter.primitiveSuccess(
 			CompiledCodeDescriptor.create(
 				nybs,
@@ -127,7 +128,7 @@ public class P_188_CreateCompiledCode extends Primitive
 					false),
 				localTypes,
 				outerTypes,
-				interpreter.module(),
+				module != null ? module : NullDescriptor.nullObject(),
 				0));
 	}
 

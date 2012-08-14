@@ -83,7 +83,7 @@ minusM ::= method for subtraction atom;
 powerM ::= method for exponentiation atom;
 extentM ::= method for $"_'s⁇extent";
 timesM ::= method for multiplication atom;
-juxtapositionM ::= method for atom for "@__";
+juxtapositionM ::= method for atom for "__";
 
 /**
  * Construct and answer a scaling function suitable for converting between

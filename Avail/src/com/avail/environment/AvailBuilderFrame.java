@@ -185,7 +185,18 @@ extends JFrame
 		{
 			assert buildTask == null;
 			repository.clear();
-			System.err.println("Repository has been cleared");
+			final StyledDocument doc = transcript.getStyledDocument();
+			try
+			{
+				doc.insertString(
+					doc.getLength(),
+					String.format("Repository has been cleared.%n"),
+					doc.getStyle(infoStyleName));
+			}
+			catch (final BadLocationException e)
+			{
+				assert false : "This never happens.";
+			}
 		}
 
 		/**
@@ -471,7 +482,7 @@ extends JFrame
 				doc.insertString(
 					doc.getLength(),
 					String.format(
-						"%s (%d.%03ds).",
+						"%s (%d.%03ds).%n",
 						status,
 						durationMillis / 1000,
 						durationMillis % 1000),

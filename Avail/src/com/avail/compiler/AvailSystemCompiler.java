@@ -860,6 +860,7 @@ extends AbstractAvailCompiler
 						final @Nullable AvailObject arg)
 					{
 						assert afterArgument != null;
+						assert arg != null;
 						parseAdditionalBlockArgumentsAfterThen(
 							afterArgument,
 							append(argsSoFar, arg),

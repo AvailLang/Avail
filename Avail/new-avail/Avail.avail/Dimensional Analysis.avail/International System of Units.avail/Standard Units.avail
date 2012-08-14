@@ -82,15 +82,15 @@ Body
 Conversion method
 	is
 	[
-		quantity : @ number degree Celsius,
+		quantity : number degree Celsius,
 		target : kelvin's type
 	|
-		@ (quantity's extent + 273.15d) K
-	] : @ double kelvin
+		(quantity's extent + 273.15d) K
+	] : double kelvin
 	inverse is
 	[
-		quantity : @ number kelvin,
+		quantity : number kelvin,
 		target : degree Celsius's type
 	|
-		@ (quantity's extent - 273.15d) ℃
-	] : @ double degree Celsius;
+		(quantity's extent - 273.15d) ℃
+	] : double degree Celsius;

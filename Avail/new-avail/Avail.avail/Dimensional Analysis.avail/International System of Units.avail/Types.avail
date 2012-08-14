@@ -76,7 +76,7 @@ Public class "SI dimensioned quantity" extends dimensioned quantity
 		extent : double,
 		metric : SI unit;
 
-Method "@__" is
+Method "__" is
 [
 	magnitudeType : number's type,
 	theUnit : SI unit
@@ -84,14 +84,14 @@ Method "@__" is
 	extend SI dimensioned quantity with metric : theUnit's type
 ] : SI dimensioned quantity's type;
 
-Semantic restriction "@__" is
+Semantic restriction "__" is
 [
 	magnitudeType : number's type's type,
 	unitType : SI unit's type
 |
 	(if |unitType| = 1 then
 	[
-		@ double unitType's instance
+		double unitType's instance
 	]
 	else
 	[
@@ -99,7 +99,7 @@ Semantic restriction "@__" is
 	])'s type
 ];
 
-Method "@__" is
+Method "__" is
 [
 	magnitude : number,
 	theUnit : SI unit
@@ -107,7 +107,7 @@ Method "@__" is
 	a dimensioned quantity with extent := magnitude→double, metric := theUnit
 ] : SI dimensioned quantity;
 
-Method "@__" is
+Method "__" is
 [
 	magnitude : double,
 	theUnit : SI unit
@@ -115,14 +115,14 @@ Method "@__" is
 	a dimensioned quantity with extent := magnitude, metric := theUnit
 ] : SI dimensioned quantity;
 
-Semantic restriction "@__" is
+Semantic restriction "__" is
 [
 	magnitudeType : number's type,
 	unitType : SI unit's type
 |
 	if |unitType| = 1 then
 	[
-		@ double (unitType's instance)
+		double (unitType's instance)
 	]
 	else
 	[

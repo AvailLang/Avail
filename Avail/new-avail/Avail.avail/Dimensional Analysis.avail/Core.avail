@@ -40,10 +40,13 @@ Names
 	"base unit",
 	"derived unit",
 	"dimensioned quantity",
-	"no-such-conversion exception",
 	"scalar",
 	"unit",
 	"unit conversion function",
+
+	/* Exceptions. */
+	"incompatible-quantities exception",
+	"no-such-conversion exception",
 
 	/* Field atoms. */
 	"extent",
@@ -70,13 +73,15 @@ Names
 	"_^_(unit map)",
 
 	/* Constructors. */
-	/* TODO: [TLS] Change "@__" to "__", because the former is stupid. */
-	"@__",
+	"__",
 
 	/* Extraction. */
 	"_'s⁇unit map",
 	"_'s⁇extent",
 	"_'s⁇metric",
+	"_'s⁇incompatible quantities",
+	"_'s⁇source unit",
+	"_'s⁇target unit",
 
 	/* Arithmetic. */
 	"-_",
@@ -90,15 +95,21 @@ Names
 	"_≤_",
 	"_>_",
 	"_≥_",
+	"«_‡«=»?«≤»?«<»?»",
+	"«_‡«=»?«≥»?«>»?»",
 
 	/* Conversion. */
 	"Conversion method is_,⁇inverse is_",
-	"_converted to_"
+	"_converted to_",
+
+	/* Utilities. */
+	"Require:_and_are compatible"
 Body
 
 _unitMap ::= $"unit map";
 _extent ::= $extent;
 _metric ::= $metric;
+_incompatibleQuantities ::= $"incompatible quantities";
 _sourceUnit ::= $"source unit";
 _targetUnit ::= $"target unit";
 _preferredSymbol ::= $"preferred symbol";
@@ -106,6 +117,7 @@ _preferredSymbol ::= $"preferred symbol";
 Public method "unit map" is [_unitMap];
 Public method "extent" is [_extent];
 Public method "metric" is [_metric];
+Private method "incompatible quantities" is [_incompatibleQuantities];
 Private method "source unit" is [_sourceUnit];
 Private method "target unit" is [_targetUnit];
 Private method "preferred symbol" is [_preferredSymbol];
@@ -176,7 +188,7 @@ Public class "dimensioned quantity" extends object
  * @returns "dimensioned quantity"
  *          The requested {@type "dimensioned quantity"} type.
  */
-Public method "@__" is
+Public method "__" is
 [
 	magnitudeType : number's type,
 	theUnit : unit
@@ -186,14 +198,14 @@ Public method "@__" is
 		metric : theUnit's type
 ] : dimensioned quantity's type;
 
-Semantic restriction "@__" is
+Semantic restriction "__" is
 [
 	magnitudeType : number's type's type,
 	unitType : unit's type
 |
 	(if |unitType| = 1 then
 	[
-		@ magnitudeType's instance unitType's instance
+		magnitudeType's instance unitType's instance
 	]
 	else
 	[
@@ -213,7 +225,7 @@ Semantic restriction "@__" is
  * @returns "dimensioned quantity"
  *          The requested {@type "dimensioned quantity"}.
  */
-Public stable method "@__" is
+Public stable method "__" is
 [
 	magnitude : number,
 	theUnit : unit
@@ -221,14 +233,14 @@ Public stable method "@__" is
 	a dimensioned quantity with extent := magnitude, metric := theUnit
 ] : dimensioned quantity;
 
-Semantic restriction "@__" is
+Semantic restriction "__" is
 [
 	magnitudeType : number's type,
 	unitType : unit's type
 |
 	if |unitType| = 1 then
 	[
-		@ magnitudeType (unitType's instance)
+		magnitudeType (unitType's instance)
 	]
 	else
 	[
@@ -683,6 +695,41 @@ Public method "_(_)is a derived unit equivalent to_" is
 ] : ⊤;
 
 /**
+ * An incompatible-quantities exception is raised whenever an operation is
+ * performed on two or more incompatible quantities.
+ *
+ * @type "incompatible-quantities exception"
+ * @supertype "exception"
+ */
+Public explicit class "incompatible-quantities exception" extends exception
+	with fields
+		public incompatible quantities : <dimensioned quantity…|2>;
+
+/**
+ * If the arguments do not have the same {@type "unit"}s, then raise an
+ * {@type "incompatible-quantities exception"}.
+ *
+ * @method "Require:_and_are compatible"
+ * @param "a" "dimensioned quantity"
+ *        A {@type "dimensioned quantity"}.
+ * @param "b" "dimensioned quantity"
+ *        A {@type "dimensioned quantity"}.
+ * @raises "incompatible-quantities exception"
+ *         If {@param "a"} and {@param "b"} have different {@type "unit"}s.
+ */
+Public method "Require:_and_are compatible" is
+[
+	a : dimensioned quantity,
+	b : dimensioned quantity
+|
+	If a's metric ≠ b's metric then
+	[
+		Raise an incompatible-quantities exception with
+			incompatible quantities := <a, b>
+	];
+] : ⊤;
+
+/**
  * Compute and answer the sum of the {@type "dimensioned quantity" arguments}.
  *
  * @method "_+_"
@@ -692,27 +739,40 @@ Public method "_(_)is a derived unit equivalent to_" is
  *        A {@type "dimensioned quantity"}.
  * @returns "dimensioned quantity"
  *          The sum of {@param "augend"} and {@param "addend"}.
+ * @raises "incompatible-quantities exception"
+ *         If the arguments are incompatible.
  */
 Public stable method "_+_" is
 [
 	augend : dimensioned quantity,
 	addend : dimensioned quantity
 |
-	/* The arguments have equal units, so we can choose either. */
-	@ (augend's extent + addend's extent) (augend's metric)
+	Require: augend and addend are compatible;
+	(augend's extent + addend's extent) (augend's metric)
 ] : dimensioned quantity;
+
+Method "Require:_and_are compatible" is
+[
+	x : unit's type,
+	y : unit's type
+|
+	If x ∩ y = ⊥ then
+	[
+		metricX ::= if |x| = 1 then [x's instance] else [x];
+		metricY ::= if |y| = 1 then [y's instance] else [y];
+		Reject parse, expected:
+			format
+				"units to be compatible (but ‘①’ and ‘②’ are not compatible)"
+			with metricX, metricY
+	];
+];
 
 Semantic restriction "_+_" is
 [
 	x : dimensioned quantity's type,
 	y : dimensioned quantity's type
 |
-	If x's metric ≠ y's metric then
-	[
-		Reject parse, expected:
-			format "units to be equal (but ‘①’ and ‘②’ are not equal)"
-			with x's metric's instance, y's metric's instance
-	];
+	Require: x's metric and y's metric are compatible;
 	numericType ::=
 		type promotion function for
 		[
@@ -725,7 +785,7 @@ Semantic restriction "_+_" is
 			];
 			a + b
 		](x's extent, y's extent);
-	@ numericType (x's metric's instance)
+	numericType (x's metric's instance)
 ];
 
 /**
@@ -739,14 +799,16 @@ Semantic restriction "_+_" is
  *        A {@type "dimensioned quantity"}.
  * @returns "dimensioned quantity"
  *          The difference of {@param "minuend"} and {@param "subtrahend"}.
+ * @raises "incompatible-quantities exception"
+ *         If the arguments are incompatible.
  */
 Public stable method "_-_" is
 [
 	minuend : dimensioned quantity,
 	subtrahend : dimensioned quantity
 |
-	/* The arguments have equal units, so we can choose either. */
-	@ (minuend's extent - subtrahend's extent) (minuend's metric)
+	Require: minuend and subtrahend are compatible;
+	(minuend's extent - subtrahend's extent) (minuend's metric)
 ] : dimensioned quantity;
 
 Semantic restriction "_-_" is
@@ -754,12 +816,7 @@ Semantic restriction "_-_" is
 	x : dimensioned quantity's type,
 	y : dimensioned quantity's type
 |
-	If x's metric ≠ y's metric then
-	[
-		Reject parse, expected:
-			format "units to be equal (but ‘①’ and ‘②’ are not equal)"
-			with x's metric's instance, y's metric's instance
-	];
+	Require: x's metric and y's metric are compatible;
 	numericType ::=
 		type promotion function for
 		[
@@ -772,7 +829,7 @@ Semantic restriction "_-_" is
 			];
 			a - b
 		](x's extent, y's extent);
-	@ numericType (x's metric's instance)
+	numericType (x's metric's instance)
 ];
 
 /**
@@ -796,7 +853,7 @@ Public stable method "_×_" is
 |
 	newExtent ::= multiplicand's extent × multiplier's extent;
 	newUnit ::= multiplicand's metric · multiplier's metric;
-	product ::= @ newExtent newUnit;
+	product ::= newExtent newUnit;
 	cast newUnit
 		into [t : scalar | newExtent]
 		else [product]
@@ -827,7 +884,7 @@ Semantic restriction "_×_" is
 		resultUnit ::= (unitX · unitY);
 		cast resultUnit
 			into [t : scalar | numericType]
-			else [@ numericType resultUnit]
+			else [numericType resultUnit]
 	]
 	else
 	[
@@ -852,7 +909,7 @@ Public stable method "_×_" is
 	multiplicand : dimensioned quantity,
 	multiplier : number
 |
-	@ (multiplicand's extent × multiplier) (multiplicand's metric)
+	(multiplicand's extent × multiplier) (multiplicand's metric)
 ] : dimensioned quantity;
 
 Semantic restriction "_×_" is
@@ -875,7 +932,7 @@ Semantic restriction "_×_" is
 		](x's extent, y);
 	if |x's metric| = 1 then
 	[
-		@ numericType (x's metric's instance)
+		numericType (x's metric's instance)
 	]
 	else
 	[
@@ -900,7 +957,7 @@ Public stable method "_×_" is
 	multiplicand : number,
 	multiplier : dimensioned quantity
 |
-	@ (multiplicand × multiplier's extent) (multiplier's metric)
+	(multiplicand × multiplier's extent) (multiplier's metric)
 ] : dimensioned quantity;
 
 Semantic restriction "_×_" is
@@ -923,7 +980,7 @@ Semantic restriction "_×_" is
 		](x, y's extent);
 	if |y's metric| = 1 then
 	[
-		@ numericType (y's metric's instance)
+		numericType (y's metric's instance)
 	]
 	else
 	[
@@ -952,7 +1009,7 @@ Public stable method "_÷_" is
 |
 	newExtent ::= dividend's extent ÷ divisor's extent;
 	newUnit ::= dividend's metric / divisor's metric;
-	quotient ::= @ newExtent newUnit;
+	quotient ::= newExtent newUnit;
 	cast newUnit
 		into [t : scalar | newExtent]
 		else [quotient]
@@ -988,7 +1045,7 @@ Semantic restriction "_÷_" is
 		resultUnit ::= (unitX / unitY);
 		cast resultUnit
 			into [t : scalar | numericType]
-			else [@ numericType resultUnit]
+			else [numericType resultUnit]
 	]
 	else
 	[
@@ -1013,7 +1070,7 @@ Public stable method "_÷_" is
 	dividend : dimensioned quantity,
 	divisor : number
 |
-	@ (dividend's extent ÷ divisor) (dividend's metric)
+	(dividend's extent ÷ divisor) (dividend's metric)
 ] : dimensioned quantity;
 
 Semantic restriction "_÷_" is
@@ -1041,7 +1098,7 @@ Semantic restriction "_÷_" is
 		](x's extent, y);
 	if |x's metric| = 1 then
 	[
-		@ numericType (x's metric's instance)
+		numericType (x's metric's instance)
 	]
 	else
 	[
@@ -1066,7 +1123,7 @@ Public stable method "_÷_" is
 	dividend : number,
 	divisor : dimensioned quantity
 |
-	@ (dividend ÷ divisor's extent) (a scalar / divisor's metric)
+	(dividend ÷ divisor's extent) (a scalar / divisor's metric)
 ] : dimensioned quantity;
 
 Semantic restriction "_÷_" is
@@ -1094,7 +1151,7 @@ Semantic restriction "_÷_" is
 		](x, y's extent);
 	if |y's metric| = 1 then
 	[
-		@ numericType (a scalar / y's metric's instance)
+		numericType (a scalar / y's metric's instance)
 	]
 	else
 	[
@@ -1116,7 +1173,7 @@ Public stable method "-_" is
 [
 	x : dimensioned quantity
 |
-	@ (-x's extent) (x's metric)
+	(-x's extent) (x's metric)
 ] : dimensioned quantity;
 
 Semantic restriction "-_" is
@@ -1131,7 +1188,7 @@ Semantic restriction "-_" is
 		|
 			0 - b
 		](0's type, x's extent);
-	@ numericType (x's metric's instance)
+	numericType (x's metric's instance)
 ];
 
 [
@@ -1156,12 +1213,15 @@ Semantic restriction "-_" is
  * @returns "boolean"
  *          {@method "true"} if {@param "a"} < {@param "b"}, {@method "false"}
  *          otherwise.
+ * @raises "incompatible-quantities exception"
+ *         If the arguments are incompatible.
  */
 Public method "_<_" is
 [
 	a : dimensioned quantity,
 	b : dimensioned quantity
 |
+	Require: a and b are compatible;
 	a's extent < b's extent
 ] : boolean;
 
@@ -1176,12 +1236,15 @@ Public method "_<_" is
  * @returns "boolean"
  *          {@method "true"} if {@param "a"} ≤ {@param "b"}, {@method "false"}
  *          otherwise.
+ * @raises "incompatible-quantities exception"
+ *         If the arguments are incompatible.
  */
 Public method "_≤_" is
 [
 	a : dimensioned quantity,
 	b : dimensioned quantity
 |
+	Require: a and b are compatible;
 	a's extent ≤ b's extent
 ] : boolean;
 
@@ -1196,12 +1259,15 @@ Public method "_≤_" is
  * @returns "boolean"
  *          {@method "true"} if {@param "a"} > {@param "b"}, {@method "false"}
  *          otherwise.
+ * @raises "incompatible-quantities exception"
+ *         If the arguments are incompatible.
  */
 Public method "_>_" is
 [
 	a : dimensioned quantity,
 	b : dimensioned quantity
 |
+	Require: a and b are compatible;
 	a's extent > b's extent
 ] : boolean;
 
@@ -1216,12 +1282,15 @@ Public method "_>_" is
  * @returns "boolean"
  *          {@method "true"} if {@param "a"} ≥ {@param "b"}, {@method "false"}
  *          otherwise.
+ * @raises "incompatible-quantities exception"
+ *         If the arguments are incompatible.
  */
 Public method "_≥_" is
 [
 	a : dimensioned quantity,
 	b : dimensioned quantity
 |
+	Require: a and b are compatible;
 	a's extent ≥ b's extent
 ] : boolean;
 
@@ -1231,22 +1300,10 @@ Private method "comparison restriction function" is
 		a : dimensioned quantity's type,
 		b : dimensioned quantity's type
 	|
-		metricA ::= a's metric;
-		metricB ::= b's metric;
-		If {|metricA|, |metricB|} = {1}
-			∧ [metricA's instance ≠ metricB's instance]
-		then
-		[
-			Reject parse, expected:
-				format
-					"dimensioned quantities to have equal units \
-					\|(but ‘①’ and ‘②’ are not equal)"
-				with
-					metricA's instance, metricB's instance
-		];
+		Require: a's metric and b's metric are compatible;
 		⊤
 	]
-] : [dimensioned quantity's type, dimensioned quantity's type]→type;
+];
 
 Semantic restriction "_=_" is comparison restriction function;
 Semantic restriction "_≠_" is comparison restriction function;
@@ -1254,6 +1311,244 @@ Semantic restriction "_<_" is comparison restriction function;
 Semantic restriction "_≤_" is comparison restriction function;
 Semantic restriction "_>_" is comparison restriction function;
 Semantic restriction "_≥_" is comparison restriction function;
+
+Semantic restriction "«_‡=»" is
+[
+	aTupleType : <dimensioned quantity…|3..>'s type
+|
+	ref ::= aTupleType[1];
+	From 2 to |aTupleType's leading types|+1 do
+	[
+		index : natural number
+	|
+		arg ::= aTupleType[index];
+		If arg ∩ ref = ⊥ then
+		[
+			refMetric ::= if |ref's metric| = 1
+				then [ref's metric's instance]
+				else [ref's metric];
+			argMetric ::= if |arg's metric| = 1
+				then [arg's metric's instance]
+				else [arg's metric];
+			Reject parse, expected:
+				format
+					"all dimensioned quantities to have compatible units \
+					\|(but ‘①’ and ‘②’ are not compatible)"
+				with
+					refMetric, argMetric
+		];
+	];
+	⊤
+] : type;
+
+/* This table of functions is used by the inequality operations. */
+predicates ::=
+<
+	[ a : number, b : number | a < b ],
+	[ a : number, b : number | a ≤ b ],
+	[ a : number, b : number | a = b ],
+	[ a : number, b : number | a ≥ b ],
+	[ a : number, b : number | a > b ]
+>;
+
+/**
+ * Compute and answer the boolean value of the sequence of equals, less than or
+ * equal, and less than operators.
+ * 
+ * @method "«_‡«=»?«≤»?«<»?»"
+ * @param "args" "<<dimensioned quantity, boolean…|1..4>…|3..∞>"
+ *        A tuple whose elements are a sequence of 4-tuples following by an
+ *        ending 1-tuple. The first element of these 1,4-tuples is a {@type
+ *        "dimensioned quantity"}. If present, the second element will be a
+ *        boolean that indicates that this {@type "dimensioned quantity"} should
+ *        be checked for equality with the next {@type "dimensioned quantity"}.
+ *        If present, the third element will be a boolean that indicates that
+ *        this {@type "dimensioned quantity"} should be compared against the
+ *        next {@type "dimensioned quantity"} to see if it is less than or
+ *        equal. If present, the fourth element will be a boolean that indicates
+ *        this this {@type "dimensioned quantity"} should be compared against
+ *        the next {@type "dimensioned quantity"} to see if it is strictly less.
+ * @returns "boolean"
+ *          {@method "true"} if the entire chain of comparisons is true,
+ *          {@method "false"} otherwise.
+ * @raises "incompatible-quantities exception"
+ *         If the arguments are incompatible.
+ */
+Public method "«_‡«=»?«≤»?«<»?»" is
+[
+	args : <<dimensioned quantity, boolean…|1..4>…|3..∞>
+|
+	result : boolean := true;
+	From 1 to |args| - 1 do
+	[
+		index : natural number
+	|
+		arg ::= args[index];
+		Assert: |arg| = 4 ("args ≠ <aNumber, isEqual, isLess, isLessEqual>");
+		/* Determine which predicate to apply. */
+		predicate : [number, number]→boolean;
+		From 2 to 4 do
+		[
+			predicateIndex : [2..4]
+		|
+			if arg[predicateIndex] then
+			[
+				predicate := predicates[3 - (predicateIndex - 2)];
+				false
+			]
+			else
+			[
+				true
+			]
+		];
+		Assert: ¬↑predicate is unassigned ("no predicate was selected");
+		a ::= arg[1];
+		b ::= args[index + 1][1];
+		Require: a and b are compatible;
+		if predicate(a's extent, b's extent) then
+		[
+			true
+		]
+		else
+		[
+			result := false;
+			false
+		]
+	];
+	result
+];
+
+/**
+ * Compute and answer the boolean value of the sequence of equals, greater than
+ * or equal, and greater than operators.
+ * 
+ * @method "«_‡«=»?«≥»?«>»?»"
+ * @param "args" "<<dimensioned quantity, boolean…|1..4>…|3..∞>"
+ *        A tuple whose elements are a sequence of 4-tuples following by an
+ *        ending 1-tuple. The first element of these 1,4-tuples is a {@type
+ *        "dimensioned quantity"}. If present, the second element will be a
+ *        boolean that indicates that this {@type "dimensioned quantity"} should
+ *        be checked for equality with the next {@type "dimensioned quantity"}.
+ *        If present, the third element will be a boolean that indicates that
+ *        this {@type "dimensioned quantity"} should be compared against the
+ *        next {@type "dimensioned quantity"} to see if it is greater than or
+ *        equal. If present, the fourth element will be a boolean that indicates
+ *        this this {@type "dimensioned quantity"} should be compared against
+ *        the next {@type "dimensioned quantity"} to see if it is strictly
+ *        greater.
+ * @returns "boolean"
+ *          {@method "true"} if the entire chain of comparisons is true,
+ *          {@method "false"} otherwise.
+ * @raises "incompatible-quantities exception"
+ *         If the arguments are incompatible.
+ */
+Public method "«_‡«=»?«≥»?«>»?»" is
+[
+	args : <<dimensioned quantity, boolean…|1..4>…|3..∞>
+|
+	result : boolean := true;
+	From 1 to |args| - 1 do
+	[
+		index : natural number
+	|
+		arg ::= args[index];
+		Assert: |arg| = 4
+			("args ≠ <aNumber, isEqual, isGreater, isGreaterEqual>");
+		/* Determine which predicate to apply. */
+		predicate : [number, number]→boolean;
+		From 2 to 4 do
+		[
+			predicateIndex : [2..4]
+		|
+			if arg[predicateIndex] then
+			[
+				predicate := predicates[3 + (predicateIndex - 2)];
+				false
+			]
+			else
+			[
+				true
+			]
+		];
+		Assert: ¬↑predicate is unassigned ("no predicate was selected");
+		a ::= arg[1];
+		b ::= args[index + 1][1];
+		Require: a and b are compatible;
+		if predicate(a's extent, b's extent) then
+		[
+			true
+		]
+		else
+		[
+			result := false;
+			false
+		]
+	];
+	result
+];
+
+Private method "inequality chain restriction function" is
+[
+	[
+		args : <<dimensioned quantity, boolean…|1..4>…|3..∞>'s type
+	|
+		exactSize ::= ⎣args⎦ - 1;
+		allEquals : boolean := true;
+		ref ::= args[1][1];
+		From 1 to exactSize do
+		[
+			index : natural number
+		|
+			arg ::= args[index];
+			If index > 1 ∧ [arg[1] ∩ ref = ⊥] then
+			[
+				Require: ref's metric and arg[1]'s metric are compatible;
+			];
+			optionCount : whole number := 0;
+			From 2 to 4 do
+			[
+				optionIndex : [2..4]
+			|
+				If arg[optionIndex]'s instance then
+				[
+					↑optionCount++;
+				];
+				true
+			];
+			If optionCount ≠ 1 then
+			[
+				Reject parse, expected:
+					"exactly one comparison operator between dimensioned \
+					\|quantity arguments"
+			];
+			If ¬arg[2]'s instance then
+			[
+				allEquals := false;
+			];
+			true
+		];
+		If allEquals then
+		[
+			Reject parse, expected:
+				"inequality chain to include at least one inequality"
+		];
+		⊤
+	]
+];
+
+Semantic restriction "«_‡«=»?«≤»?«<»?»" is
+	inequality chain restriction function;
+Semantic restriction "«_‡«=»?«≥»?«>»?»" is
+	inequality chain restriction function;
+
+/* Disallow mixing and recursive parsing of comparison operations. */
+[
+	binary ::= {"_=_", "_≤_", "_<_", "_≥_", "_>_"};
+	chains ::= {"«_‡=»", "«_‡«=»?«≤»?«<»?»", "«_‡«=»?«≥»?«>»?»"};
+	restrictions ::= binary ∪ chains;
+	Grammatical restriction chains is <restrictions>;
+	Grammatical restriction binary is <restrictions, restrictions>;
+]();
 
 /**
  * An arity-2 function that answers a {@type "dimensioned quantity"} when
@@ -1276,8 +1571,8 @@ Public method "unit conversion function" is
  */
 Public explicit class "no-such-conversion exception" extends exception
 	with fields
-		source unit : unit,
-		target unit : unit;
+		public source unit : unit,
+		public target unit : unit;
 
 /**
  * The table of defined conversions.

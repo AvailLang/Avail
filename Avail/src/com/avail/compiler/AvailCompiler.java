@@ -36,6 +36,7 @@ import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TokenDescriptor.TokenType.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
+import com.avail.annotations.Nullable;
 import com.avail.builder.ModuleName;
 import com.avail.descriptor.*;
 import com.avail.interpreter.levelOne.*;
@@ -91,18 +92,21 @@ extends AbstractAvailCompiler
 			{
 				@Override
 				public void value (
-					final ParserState ignored,
-					final Con<AvailObject> whenFoundStatement)
+					final @Nullable ParserState ignored,
+					final @Nullable Con<AvailObject> whenFoundStatement)
 				{
+					assert whenFoundStatement != null;
 					parseExpressionThen(
 						start,
 						new Con<AvailObject>("End of statement")
 						{
 							@Override
 							public void value (
-								final ParserState afterExpression,
-								final AvailObject expression)
+								final @Nullable ParserState afterExpression,
+								final @Nullable AvailObject expression)
 							{
+								assert afterExpression != null;
+								assert expression != null;
 								if (expression.expressionType().equals(TOP.o()))
 								{
 									whenFoundStatement.value(
@@ -132,9 +136,11 @@ extends AbstractAvailCompiler
 			{
 				@Override
 				public void value (
-					final ParserState afterSubexpression,
-					final AvailObject subexpression)
+					final @Nullable ParserState afterSubexpression,
+					final @Nullable AvailObject subexpression)
 				{
+					assert afterSubexpression != null;
+					assert subexpression != null;
 					parseOptionalLeadingArgumentSendAfterThen(
 						start,
 						afterSubexpression,
@@ -168,7 +174,7 @@ extends AbstractAvailCompiler
 			new Continuation1<Generator<String>>()
 			{
 				@Override
-				public void value (final Generator<String> arg)
+				public void value (final @Nullable Generator<String> arg)
 				{
 					stateAfterCall.expected(
 						"parse node types to agree with macro types");

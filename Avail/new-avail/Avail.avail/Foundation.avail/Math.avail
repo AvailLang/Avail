@@ -766,6 +766,16 @@ Semantic restriction "`|_`|" is
 	([0..∞] ∩ a) ∪ ([0..∞] ∩ -a)
 ];
 
+/* This table of functions is used by the inequality operations. */
+predicates ::=
+<
+	[ a : number, b : number | a < b ],
+	[ a : number, b : number | a ≤ b ],
+	[ a : number, b : number | a = b ],
+	[ a : number, b : number | a ≥ b ],
+	[ a : number, b : number | a > b ]
+>;
+
 /**
  * Compute and answer the boolean value of the sequence of equals, less than or
  * equal, and less than operators.
@@ -787,12 +797,6 @@ Public method "«_‡«=»?«≤»?«<»?»" is
 [
 	args : <<number, boolean…|1..4>…|3..∞>
 |
-	predicates ::=
-		<
-			[ a : number, b : number | a = b ],
-			[ a : number, b : number | a ≤ b ],
-			[ a : number, b : number | a < b ]
-		>;
 	result : boolean := true;
 	From 1 to |args| - 1 do
 	[
@@ -808,7 +812,7 @@ Public method "«_‡«=»?«≤»?«<»?»" is
 		|
 			if arg[predicateIndex] then
 			[
-				predicate := predicates[predicateIndex - 1];
+				predicate := predicates[3 - (predicateIndex - 2)];
 				false
 			]
 			else
@@ -858,7 +862,7 @@ Private method "comparison chain semantic restriction function" is
 				Reject parse, expected:
 					"exactly one comparison operator between numeric arguments"
 			];
-			If arg[2]'s instance ≠ true then
+			If ¬arg[2]'s instance then
 			[
 				allEquals := false;
 			];
@@ -897,12 +901,6 @@ Public method "«_‡«=»?«≥»?«>»?»" is
 [
 	args : <<number, boolean…|1..4>…|3..∞>
 |
-	predicates ::=
-		<
-			[ a : number, b : number | a = b ],
-			[ a : number, b : number | a ≥ b ],
-			[ a : number, b : number | a > b ]
-		>;
 	result : boolean := true;
 	From 1 to |args| - 1 do
 	[
@@ -919,7 +917,7 @@ Public method "«_‡«=»?«≥»?«>»?»" is
 		|
 			if arg[predicateIndex] then
 			[
-				predicate := predicates[predicateIndex - 1];
+				predicate := predicates[3 + (predicateIndex - 2)];
 				false
 			]
 			else
