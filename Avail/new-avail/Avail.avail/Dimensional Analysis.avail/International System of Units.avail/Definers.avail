@@ -125,6 +125,9 @@ Private method "SI scaling function for_" is
 	cast generate newBlock into [t : unit conversion function | t]
 ] : unit conversion function;
 
+_conversionAtom ::= $"_converted to_";
+Private method "conversion atom" is [_conversionAtom];
+
 /**
  * Define an SI {@type "base unit"}. This makes available not only the unscaled
  * {@type "base unit"}, but also all prefixed long names and short symbols, as
@@ -158,9 +161,16 @@ Public method "_(_)is an SI base unit" is
 				scale factor := prefix[3];
 			impl ::= generate «[ <> | <‘`aUnit` ("")’> ] : aUnit's type»;
 			Method longName is impl;
-			Method shortName is impl;
-			Publish new name: longName;
-			Publish new name: shortName;
+			publicNames ::= current module's public names;
+			Unless longName ∈ publicNames then [Publish new name: longName;];
+			Unless longName = shortName then
+			[
+				Method shortName is impl;
+				Unless shortName ∈ publicNames then
+				[
+					Publish new name: shortName;
+				];
+			];
 			Prefer longName for printing aUnit;
 			Prefer shortName for printing aUnit in a dimensioned quantity;
 			aUnit
@@ -213,9 +223,16 @@ Public method "_(_)is an SI derived unit equivalent to_" is
 				scale factor := baseScaleFactor + prefix[3];
 			impl ::= generate «[ <> | <‘`aUnit` ("")’> ] : aUnit's type»;
 			Method longName is impl;
-			Method shortName is impl;
-			Publish new name: longName;
-			Publish new name: shortName;
+			publicNames ::= current module's public names;
+			Unless longName ∈ publicNames then [Publish new name: longName;];
+			Unless longName = shortName then
+			[
+				Method shortName is impl;
+				Unless shortName ∈ publicNames then
+				[
+					Publish new name: shortName;
+				];
+			];
 			Prefer longName for printing aUnit;
 			Prefer shortName for printing aUnit in a dimensioned quantity;
 			aUnit

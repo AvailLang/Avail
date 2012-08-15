@@ -53,6 +53,7 @@ Names
 	"_is odd",
 	"_is even",
 	"-_",
+	"𝛑",
 	"«_‡«=»?«≤»?«<»?»",
 	"«_‡«=»?«≥»?«>»?»"
 Body
@@ -1116,3 +1117,13 @@ Stable method "log_of_" is
 |
 	(ln n) ÷ (ln b)
 ] : double;
+
+/**
+ * Answer an approximation of 𝛑, the ratio of the circumference of a circle to
+ * its diameter.
+ *
+ * @method "𝛑"
+ * @returns "3.141592653589793d's type"
+ *          {@code 3.141592653589793d}.
+ */
+Public method "𝛑" is [3.141592653589793d];

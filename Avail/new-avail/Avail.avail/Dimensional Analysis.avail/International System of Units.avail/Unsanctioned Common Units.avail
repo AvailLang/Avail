@@ -1,5 +1,5 @@
 /*
- * Feature Renames (Conversion).avail
+ * Unsanctioned Common Units.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,51 +30,35 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Feature Renames (Conversion)"
+System Module "Unsanctioned Common Units"
 Versions
 	"dev"
 Uses
-	"Core" =
-	(
-		"dimensioned quantity",
-		"metric",
-		"unit"
-	),
-	"Foundation" =
-	(
-		"Method_is_",
-		"Semantic restriction_is_",
-		"extend_with«_:_‡,»",
-		"$…",
-		"_'s⁇type",
-		"_-_",
-		"_^_",
-		"_×_"
-	)
+	"Core",
+	"Definers",
+	"Derivation",
+	"Foundation",
+	"Printing",
+	"Standard Units"
 Names
-	"exponentiation atom",
-	"multiplication atom",
-	"subtraction atom",
-	"conversion atom",
-	"_converted to_"
+	"Ångström", "Å"
 Body
 
-_subtract ::= $"_-_";
-Method "subtraction atom" is [_subtract];
+"Ångström" ("Å") is a base unit;
+Conversion rule: 1 m ≍ 10^10 Å;
 
-_times ::= $"_×_";
-Method "multiplication atom" is [_times];
+"barn" ("b") is a base unit;
+Conversion rule: 1 m² ≍ 10^28 b;
 
-_power ::= $"_^_";
-Method "exponentiation atom" is [_power];
+"bar" ("bar") is a base unit;
+Conversion rule: 1 bar ≍ 100000 Pa;
 
-_converter ::= $"_converted to_";
-Method "conversion atom" is [_converter];
+"millibar" ("mbar") is a base unit;
+Conversion rule: 1 mbar ≍ 100 Pa;
+Conversion rule: 1 bar ≍ 1000 mbar;
 
-Semantic restriction "_converted to_" is
-[
-	quantityType : dimensioned quantity's type,
-	unitType : unit's type
-|
-	extend dimensioned quantity with metric : unitType
-];
+"atmosphere" ("atm") is a base unit;
+Conversion rule: 1 atm ≍ 101325 Pa;
+Conversion rule: 1 bar ≍ 0.987 atm;
+
+"barye" ("Ba") is an SI derived unit equivalent to dPa;

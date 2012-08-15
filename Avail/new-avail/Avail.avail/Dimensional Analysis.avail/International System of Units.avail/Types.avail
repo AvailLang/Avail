@@ -73,7 +73,7 @@ Public class "SI unit" extends unit
  */
 Public class "SI dimensioned quantity" extends dimensioned quantity
 	with fields
-		extent : double,
+		extent : number,
 		metric : SI unit;
 
 Method "__" is
@@ -91,7 +91,7 @@ Semantic restriction "__" is
 |
 	(if |unitType| = 1 then
 	[
-		double unitType's instance
+		number unitType's instance
 	]
 	else
 	[
@@ -104,7 +104,7 @@ Method "__" is
 	magnitude : number,
 	theUnit : SI unit
 |
-	a dimensioned quantity with extent := magnitude→double, metric := theUnit
+	a dimensioned quantity with extent := magnitude, metric := theUnit
 ] : SI dimensioned quantity;
 
 Method "__" is
@@ -122,7 +122,7 @@ Semantic restriction "__" is
 |
 	if |unitType| = 1 then
 	[
-		double (unitType's instance)
+		number (unitType's instance)
 	]
 	else
 	[

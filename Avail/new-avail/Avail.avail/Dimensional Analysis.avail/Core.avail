@@ -34,12 +34,14 @@ System Module "Core"
 Versions
 	"dev"
 Uses
+	"Feature Renames (Conversion)",
 	"Foundation"
 Names
 	/* Types. */
 	"base unit",
 	"derived unit",
 	"dimensioned quantity",
+	"dimensioned_",
 	"scalar",
 	"unit",
 	"unit conversion function",
@@ -91,6 +93,7 @@ Names
 	"_÷_",
 
 	/* Comparison. */
+	"_≍_",
 	"_<_",
 	"_≤_",
 	"_>_",
@@ -100,6 +103,7 @@ Names
 
 	/* Conversion. */
 	"Conversion method is_,⁇inverse is_",
+	"Conversion rule:_≍_",
 	"_converted to_",
 
 	/* Utilities. */
@@ -175,6 +179,30 @@ Public class "dimensioned quantity" extends object
 	with fields
 		public extent : number,
 		public metric : unit;
+
+/**
+ * Construct and answer a {@type "dimensioned quantity"} type with the specified
+ * {@type "number" extent} type.
+ *
+ * @method "dimensioned_"
+ * @param "magnitudeType" "number's type"
+ *        The magnitude type.
+ * @returns "dimensioned quantity"
+ *          The requested {@type "dimensioned quantity"} type.
+ */
+Public method "dimensioned_" is
+[
+	magnitudeType : number's type
+|
+	extend dimensioned quantity with extent : magnitudeType
+] : dimensioned quantity's type;
+
+Semantic restriction "dimensioned_" is
+[
+	magnitudeType : number's type's type
+|
+	(extend dimensioned quantity with extent : magnitudeType's instance)'s type
+];
 
 /**
  * Construct and answer a {@type "dimensioned quantity"} type with the specified
@@ -447,7 +475,7 @@ Public method "_(_)is a base unit" is
 	unitType ::= extend base unit with unit map : def's type;
 	aUnit ::= a unitType with unit map := def;
 	aUnit has symbol name;
-	aUnit has symbol symbol;
+	Unless name = symbol then [aUnit has symbol symbol;];
 	Unless aUnit ∈ namesByUnit then
 	[
 		Prefer name for printing aUnit;
@@ -686,7 +714,7 @@ Public method "_(_)is a derived unit equivalent to_" is
 	aUnit : unit
 |
 	aUnit has symbol name;
-	aUnit has symbol symbol;
+	Unless name = symbol then [aUnit has symbol symbol;];
 	Unless aUnit ∈ namesByUnit then
 	[
 		Prefer name for printing aUnit;
@@ -1640,14 +1668,12 @@ Semantic restriction "_converted to_" is
 	extend dimensioned quantity with metric : unitType
 ];
 
-Seal method "_converted to_" at <dimensioned quantity, unit>;
-
 /**
  * Define {@method "_converted to_" methods} for converting {@type
  * "dimensioned quantity" dimensioned quantities} between two compatible {@type
  * "unit" metrics}.
  *
- * @method "Conversion method is_inverse is_"
+ * @method "Conversion method is_,⁇inverse is_"
  * @param "aFunction" "[⊥, ⊥]→dimensioned quantity"
  *        A function whose first parameter type is a subtypes of {@type
  *        "dimensioned quantity"} and whose second parameter type is a subtype
@@ -1785,3 +1811,98 @@ Semantic restriction "Conversion method is_,⁇inverse is_" is
 	];
 	⊤
 ];
+
+/**
+ * Are the arguments equivalent? That is, do they represent the same dimensioned
+ * quantity after conversion?
+ *
+ * @method "_≍_"
+ * @param "a" "dimensioned quantity"
+ *        A {@type "dimensioned quantity"}.
+ * @param "b" "dimensioned quantity"
+ *        A {@type "dimensioned quantity"}.
+ * @returns "boolean"
+ *          {@method "true"} if the arguments are equivalent, {@method "false"}
+ *          otherwise.
+ * @raises "no-such-conversion exception"
+ *         If no conversion function was previously defined for the specified
+ *         {@type "unit"}s via {@method "Conversion method is_inverse is_"}.
+ */
+Public method "_≍_" is
+[
+	a : dimensioned quantity,
+	b : dimensioned quantity
+|
+	a converted to b's metric = b
+] : boolean;
+
+Completely seal method "_≍_";
+
+/* These methods are needed for scaling function synthesis. */
+extentM ::= method for $"_'s⁇extent";
+juxtapositionM ::= method for atom for "__";
+
+Private method "function for scaling from_to_by_using_" is
+[
+	a : unit,
+	b : unit,
+	scaleFactor : number,
+	scaleOperator : method
+|
+	/* Construct the argument declarations. The first argument is a dimensioned
+	 * quantity, the second is the target unit.
+	 */
+	qA ::= extend dimensioned quantity with metric : (a's type);
+	qB ::= extend dimensioned quantity with metric : (b's type);
+	args ::= <arg «`"quantity"` : qA», arg «`"aUnit"` : b's type»>;
+	/* Construct the expression to obtain the scaled magnitude. */
+	extentSend ::= send extentM with «<«↓args[1]»>» : number;
+	scaled ::= send scaleOperator with «<extentSend, ‘`scaleFactor`’>» : number;
+	/* Construct the expression to obtain the resultant dimensioned quantity. */
+	juxtapositionSend ::= send juxtapositionM
+		with «<scaled, «↓args[2]»>»
+		: qB;
+	/* Construct and answer the requested function. */
+	newBlock ::= «[ args | <juxtapositionSend> ] : dimensioned quantity»;
+	cast generate newBlock into [t : unit conversion function | t]
+] : unit conversion function;
+
+/* These methods are needed for conversion rule synthesis. */
+timesM ::= method for multiplication atom;
+divideM ::= method for division atom;
+
+/**
+ * Define {@method "_converted to_" methods} for converting {@type
+ * "dimensioned quantity" dimensioned quantities} between two compatible {@type
+ * "unit" metrics} that differ only by a multiplicative constant.
+ *
+ * @method "Conversion rule:_≍_"
+ * @param "a" "dimensioned (1's type)"
+ *        A {@type "dimensioned quantity"} whose extent is {@code 1}.
+ * @param "b" "dimensioned quantity"
+ *        A {@type "dimensioned quantity"} equivalent to {@param "a"} but
+ *        expressed in different {@type "unit"}s.
+ * @see "_converted to_"
+ */
+Public method "Conversion rule:_≍_" is
+[
+	a : dimensioned (1's type),
+	b : dimensioned quantity
+|
+	metricA ::= a's metric;
+	metricB ::= b's metric;
+	scaleFactor ::= b's extent;
+	op1 ::= if 0 ≤ scaleFactor ≤ 1 then [divideM] else [timesM];
+	op2 ::= if 0 ≤ scaleFactor ≤ 1 then [timesM] else [divideM];
+	Conversion method
+		is function for scaling
+			from metricA
+			to metricB
+			by scaleFactor
+			using op1
+		inverse is function for scaling
+			from metricB
+			to metricA
+			by scaleFactor
+			using op2;
+] : ⊤;

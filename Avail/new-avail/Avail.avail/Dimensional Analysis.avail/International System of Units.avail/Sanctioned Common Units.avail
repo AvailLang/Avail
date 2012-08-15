@@ -1,5 +1,5 @@
 /*
- * International System of Units.avail
+ * Sanctioned Common Units.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,21 +30,60 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "International System of Units"
+System Module "Sanctioned Common Units"
 Versions
 	"dev"
-Extends
-	"Definers" =
-	(
-		"_(_)is an SI base unit",
-		"_(_)is an SI derived unit equivalent to_"
-	),
-	"Sanctioned Common Units",
-	"Standard Units",
-	"Types" =
-	(
-		"SI dimensioned quantity",
-		"SI unit"
-	),
-	"Unsanctioned Common Units"
+Uses
+	"Core",
+	"Definers",
+	"Derivation",
+	"Foundation",
+	"Printing",
+	"Standard Units"
+Names
+	/* Time. */
+	"day", "d",
+	"hour", "h",
+	"minute", "min",
+
+	/* Angle. */
+	"degree of arc", "°",
+	"minute of arc", "′",
+	"second of arc", "″",
+
+	/* Volume (with SI prefix forms). */
+	"liter", "L",
+
+	/* Mass (with SI prefix forms). */
+	"tonne", "t"
 Body
+
+"minute" ("min") is a base unit;
+Conversion rule: 1 min ≍ 60 s;
+
+"hour" ("h") is a base unit;
+Conversion rule: 1 h ≍ 3600 s;
+Conversion rule: 1 h ≍ 60 min;
+
+"day" ("d") is a base unit;
+/* Note that the space is required between "1" and "d" to prevent the lexer from
+ * interpreting the expression as a double.
+ */
+Conversion rule: 1 d ≍ 86400 s;
+Conversion rule: 1 d ≍ 1440 min;
+Conversion rule: 1 d ≍ 24 h;
+
+"degree of arc" ("°") is a base unit;
+Conversion rule: 1° ≍ (𝛑 ÷ 180) rad;
+
+"minute of arc" ("′") is a base unit;
+Conversion rule: 1′ ≍ (𝛑 ÷ 10800) rad;
+Conversion rule: 1° ≍ 60′;
+
+"second of arc" ("″") is a base unit;
+Conversion rule: 1″ ≍ (𝛑 ÷ 648000) rad;
+Conversion rule: 1′ ≍ 60″;
+Conversion rule: 1° ≍ 3600″;
+
+"liter" ("L") is an SI derived unit equivalent to dm³;
+"tonne" ("t") is an SI derived unit equivalent to Mg;
