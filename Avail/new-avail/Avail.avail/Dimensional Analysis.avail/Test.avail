@@ -1,5 +1,5 @@
 /*
- * International System of Units.avail
+ * Test.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,25 +30,39 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "International System of Units"
+System Module "Test"
 Versions
 	"dev"
-Extends
-	"Definers" =
-	(
-		"_(_)is an SI base unit",
-		"_(_)is an SI derived unit equivalent to_"
-	),
-	"Sanctioned Common Units",
-	"Standard Units",
-	"Test" =
-	(
-		"SI test suite"
-	),
-	"Types" =
-	(
-		"SI dimensioned quantity",
-		"SI unit"
-	),
-	"Unsanctioned Common Units"
+Uses
+	"Core",
+	"Foundation",
+	"International System of Units",
+	"Unit Testing"
 Body
+
+Test "comparison" in dimensional analysis test suite is
+[
+	From 1 to 10 do
+	[
+		i : [1..10]
+	|
+		q ::= i m;
+		Require: q = q;
+		Require: q ≤ q;
+		Require: q ≥ q;
+		Require: q ≤ q + 1 m;
+		Require: q < q + 1 m;
+		Require: q ≥ q - 1 m;
+		Require: q > q - 1 m;
+		Require: q ≤ ∞ m;
+		Require: q < ∞ m;
+		Require: q ≥ -∞ m;
+		Require: q > -∞ m;
+		Require: q = q = q;
+		/* TODO: [TLS] Resolve the ambiguity. */
+		/*
+		Require: q - 1 m ≤ q - 1 m < q = q < q + 1 m ≤ q + 1 m;
+		Require: q + 1 m ≥ q + 1 m > q = q > q - 1 m ≥ q - 1 m;
+		*/
+	];
+];

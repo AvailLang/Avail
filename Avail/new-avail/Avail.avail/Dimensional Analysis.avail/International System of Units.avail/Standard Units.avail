@@ -55,8 +55,8 @@ Body
 "mole" ("mol") is an SI base unit;
 
 /* Define the SI derived units. */
-"radian" ("rad") is an SI derived unit equivalent to m/m;
-"steradian" ("sr") is an SI derived unit equivalent to m²/m²;
+"radian" ("rad") is an SI base unit;
+"steradian" ("sr") is an SI derived unit equivalent to rad²;
 "hertz" ("Hz") is an SI derived unit equivalent to s^-1;
 "newton" ("N") is an SI derived unit equivalent to kg·m/s²;
 "pascal" ("Pa") is an SI derived unit equivalent to N/m²;

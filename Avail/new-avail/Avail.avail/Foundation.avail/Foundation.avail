@@ -326,7 +326,8 @@ Extends
 		"group_by_",
 		"map and filter_by_",
 		"map_through_",
-		"_is empty"
+		"_is empty",
+		"_[_]else_"
 	),
 	"Control Structures" =
 	(
@@ -370,6 +371,7 @@ Extends
 		"Public stable abstract method_is_",
 		"Public stable forward method_is_",
 		"Public stable method_is_",
+		"Public read-only variable_is_",
 		"Public variable_is_",
 		"Require:_is private",
 		"Require:_is public",
@@ -527,8 +529,7 @@ Extends
 	),
 	"Maps" =
 	(
-		"counts for_",
-		"_[_]else_"
+		"counts for_"
 	),
 	"Math" =
 	(

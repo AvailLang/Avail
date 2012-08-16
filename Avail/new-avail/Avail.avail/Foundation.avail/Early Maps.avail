@@ -34,8 +34,10 @@ System Module "Early Maps"
 Versions
 	"dev"
 Extends
+	"Collections" = ("_[_]else_")
 Uses
 	"Bootstrap",
+	"Collections" = ("_[_]else_"),
 	"Definers",
 	"Early Control Structures",
 	"Early Logic",
@@ -43,8 +45,6 @@ Uses
 	"Literals",
 	"Math",
 	"Types"
-Names
-	"_[_]else_"
 Body
 
 /**
@@ -226,7 +226,7 @@ Semantic restriction "_-_" is
  *    key - A key.
  *    default - A function that answers the 
  */
-Public method "_[_]else_" is
+Method "_[_]else_" is
 [
 	aMap : map,
 	key : any,

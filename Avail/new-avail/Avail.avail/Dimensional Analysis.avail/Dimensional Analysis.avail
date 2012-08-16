@@ -36,5 +36,6 @@ Versions
 Extends
 	"Core",
 	"International System of Units"
-Names
+Uses
+	"Test"
 Body

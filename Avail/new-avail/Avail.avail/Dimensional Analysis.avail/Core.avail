@@ -35,7 +35,8 @@ Versions
 	"dev"
 Uses
 	"Feature Renames (Conversion)",
-	"Foundation"
+	"Foundation",
+	"Unit Testing"
 Names
 	/* Types. */
 	"base unit",
@@ -107,7 +108,17 @@ Names
 	"_converted to_",
 
 	/* Utilities. */
-	"Require:_and_are compatible"
+	"Require:_and_are compatible",
+
+	/* Test suites. */
+	"Dimensional|dimensional analysis test suite",
+
+	/* Printing (private). */
+	"unit map“_”",
+
+	/* State (private). */
+	"names by unit",
+	"symbols by unit"
 Body
 
 _unitMap ::= $"unit map";
@@ -284,6 +295,7 @@ Semantic restriction "__" is
  * @global "namesByUnit" "{unit→string|}"
  */
 namesByUnit : {unit→string|} := {};
+Public read-only variable ↑namesByUnit is "names by unit";
 
 /**
  * Prefer {@param "name"} for printing the specified {@type "unit"}.
@@ -309,6 +321,7 @@ Public method "Prefer_for printing_" is
  * @global "symbolsByUnit" "{unit→string|}"
  */
 symbolsByUnit : {unit→string|} := {};
+Public read-only variable ↑symbolsByUnit is "symbols by unit";
 
 /**
  * Prefer {@param "symbol"} for printing {@type "dimensioned quantity"
@@ -340,6 +353,12 @@ Public method "Prefer_for printing_in a dimensioned quantity" is
 	symbolsByUnit := eject ↑symbolsByUnit + aUnit→symbol;
 ] : ⊤;
 
+/* This table is used by "unit map“_”". The first character can technically be
+ * anything, since the algorithm doesn't use it, but it's best to use
+ * superscript one (¹).
+ */
+prettyPowers ::= "¹²³⁴⁵⁶⁷⁸⁹";
+
 /**
  * Construct and answer a description of the specified unit map (as the product
  * of powers of base units).
@@ -350,7 +369,7 @@ Public method "Prefer_for printing_in a dimensioned quantity" is
  * @returns "string"
  *          The requested unit map.
  */
-Private method "unit map“_”" is
+Public method "unit map“_”" is
 [
 	unitMap : {atom→integer|}
 |
@@ -371,14 +390,15 @@ Private method "unit map“_”" is
 				unitAtom : atom,
 				partial : string
 			|
-				exponent ::= unitMap[unitAtom];
-				name ::= unitAtom[preferred symbol] else [unitAtom's name];
-				strongName ::= cast name into [t : string | t];
+				pow ::= unitMap[unitAtom];
+				name ::=
+					cast unitAtom[preferred symbol] else [unitAtom's name]
+					into [t : string | t];
 				term ::=
-					if exponent = 1 then [strongName]
-					else if [exponent = 2] then [strongName ++ "²"]
-					else if [exponent = 3] then [strongName ++ "³"]
-					else [strongName ++ "^" ++ “exponent”];
+					cast pow into
+					[t : 1's type | name],
+					[t : [2..9] | name ++ prettyPowers[t..t]]
+					else [name ++ "^" ++ “pow”];
 				partial ++ "·" ++ term
 			];
 		expr[2..]
@@ -389,13 +409,7 @@ Method "“_”" is
 [
 	arg : unit
 |
-	namesByUnit[arg] else
-	[
-		desc ::= unit map “arg's unit map”;
-		/* Cache the description for faster access next time. */
-		namesByUnit := eject ↑namesByUnit + arg→desc;
-		desc
-	]
+	namesByUnit[arg] else [unit map “arg's unit map”]
 ];
 
 Method "“_”" is
@@ -409,15 +423,9 @@ Method "“_”" is
 [
 	arg : dimensioned quantity
 |
-	desc ::=
-		symbolsByUnit[arg's metric] else
-		[
-			short ::= unit map “arg's metric's unit map”;
-			/* Cache the description for faster access next time. */
-			symbolsByUnit := eject ↑symbolsByUnit + arg's metric→short;
-			short
-		];
-	“arg's extent” ++ desc
+	desc ::= symbolsByUnit[arg's metric]
+		else [unit map “arg's metric's unit map”];
+	“arg's extent” ++ " " ++ desc
 ] : string;
 
 Method "“_”" is
@@ -1223,11 +1231,12 @@ Semantic restriction "-_" is
 	sum      ::= {"_+_", "_-_"};
 	product  ::= {"_×_", "_÷_"};
 	negation ::= {"-_"};
+	jux      ::= {"__"};
 
 	/* Establish the standard grammatical rules for arithmetic. */
 	Grammatical restriction sum is <∅, sum>;
 	Grammatical restriction product is <sum, sum ∪ product>;
-	Grammatical restriction negation is <sum ∪ product ∪ negation>;
+	Grammatical restriction negation is <sum ∪ product ∪ negation ∪ jux>;
 ]();
 
 /**
@@ -1906,3 +1915,16 @@ Public method "Conversion rule:_≍_" is
 			by scaleFactor
 			using op2;
 ] : ⊤;
+
+_testSuite ::= $"dimensional analysis test suite";
+
+/**
+ * Answer the dimensional analysis test suite identifier.
+ * 
+ * @method "dimensional analysis test suite"
+ * @returns "atom"
+ *          The requsted test suite identifier.
+ */
+Public method "Dimensional|dimensional analysis test suite" is [_testSuite];
+
+Dimensional analysis test suite is a new test suite;

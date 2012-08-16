@@ -39,3 +39,33 @@ Uses
 	"Foundation",
 	"Types"
 Body
+
+Method "“_”" is
+[
+	arg : SI unit
+|
+	names by unit[arg] else
+	[
+		desc ::= unit map “arg's unit map”;
+		scale ::= if arg's scale factor = 1
+			then [""]
+			else ["10^" ++ “arg's scale factor” ++ " "];
+		scale ++ desc
+	]
+];
+
+Method "“_”" is
+[
+	arg : SI dimensioned quantity
+|
+	if arg's metric ∈ symbols by unit then
+	[
+		“arg's extent” ++ " " ++ symbols by unit[arg's metric]
+	]
+	else
+	[
+		desc ::= unit map “arg's metric's unit map”;
+		scaled ::= arg's extent × 10^arg's metric's scale factor;
+		“scaled” ++ " " ++ desc
+	]
+];

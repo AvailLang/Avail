@@ -36,6 +36,7 @@ Versions
 Extends
 Uses
 	"Bootstrap",
+	"Collections" = ("_[_]else_"),
 	"Definers",
 	"Early Control Structures",
 	"Early Logic",
@@ -613,3 +614,31 @@ Semantic restriction "_→map" is
 
 /* Disambiguate `_→_` and `_→tuple`. */
 Grammatical restriction "_→_" is <∅, {"tuple"}>;
+
+/**
+ * If {@param "index"} is a valid subscript for {@param "aTuple"}, then answer
+ * the corresponding element. Otherwise, answer the result obtained by applying
+ * {@param "else"}.
+ *
+ * @method "_[_]else_"
+ * @param "aTuple" "tuple"
+ *        A {@type "tuple"}.
+ * @param "index" "integer"
+ *        An {@type "integer"}.
+ * @param "else" "[]→any"
+ *        The function to apply if {@param "index"} is not a valid subscript
+ *        into {@param "aTuple"}.
+ * @returns "any"
+ *          The {@param "index"}-th element of {@param "aTuple"}, or the result
+ *          of applying {@param "else"} (if {@param "index"} is invalid).
+ */
+Method "_[_]else_" is
+[
+	aTuple : tuple,
+	index : integer,
+	else : function accepting <> and returning any
+|
+	if index ∈ [1..|aTuple|]
+	then [aTuple[cast index into [t : natural number | t]]]
+	else else
+] : any;

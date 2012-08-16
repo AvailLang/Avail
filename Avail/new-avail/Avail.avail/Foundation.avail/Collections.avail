@@ -33,8 +33,6 @@
 System Module "Collections"
 Versions
 	"dev"
-Extends
-Uses
 Names
 	/* The implementations are provided by Tuples, Sets, and Maps, but the names
 	 * are introduced here.
@@ -48,5 +46,6 @@ Names
 	"group_by_",
 	"map and filter_by_",
 	"map_through_",
-	"_is empty"
+	"_is empty",
+	"_[_]else_"
 Body

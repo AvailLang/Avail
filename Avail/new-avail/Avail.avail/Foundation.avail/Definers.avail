@@ -49,6 +49,7 @@ Names
 	"Public stable abstract method_is_",
 	"Public stable forward method_is_",
 	"Public stable method_is_",
+	"Public read-only variable_is_",
 	"Public variable_is_",
 	"Stable abstract method_is_",
 	"Stable forward method_is_",
@@ -780,10 +781,10 @@ Semantic restriction "Private stable method_is_" is
  *
  * @method "Public variable_is_"
  * @param "variable" "var"
- *        The variable for which an accessor and a mutator should be  generated.
+ *        The variable for which an accessor and a mutator should be generated.
  * @param "string" "accessorName"
  *        The name of the accessor. The name of the mutator will be 
- *        `accessorName` ++ ":=_".
+ *        {@param "accessorName"} ++ ":=_".
  * @returns "⊤"
  */
 Public method "Public variable_is_" is
@@ -821,5 +822,44 @@ Semantic restriction "Public variable_is_" is
 			into [t : string | t];
 		Require: mutatorName's type is public;
 	];
+	⊤
+];
+
+/**
+ * Define a new public variable. Automatically generate an accessor. The
+ * semantic restriction ensures that these methods are named in the current
+ * module's "Names" section.
+ *
+ * @method "Public read-only variable_is_"
+ * @param "variable" "var"
+ *        The variable for which an accessor should be generated.
+ * @param "string" "accessorName"
+ *        The name of the accessor.
+ * @returns "⊤"
+ */
+Public method "Public read-only variable_is_" is
+[
+	var : variable,
+	accessorName : string
+|
+	readType ::= cast var's type's read type into [t : any's type | t];
+	Method accessorName is
+		new function accepting <> and returning readType
+		applying [ ↓var ];
+] : ⊤;
+
+/**
+ * Ensure that the new methods are introduced by the module's "Names" section.
+ * 
+ * @method "Public variable_is_"
+ * @restricts "variable meta"
+ * @restricts "string's type"
+ */
+Semantic restriction "Public read-only variable_is_" is
+[
+	var : variable meta,
+	nameType : string's type
+|
+	Require: nameType is public;
 	⊤
 ];
