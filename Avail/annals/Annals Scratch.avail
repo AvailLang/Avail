@@ -1,0 +1,255 @@
+/*
+ * Annals Stream Parser.avail
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Annals Stream Parser"
+Versions
+	"Dev"
+Extends
+
+Uses
+	"Avail",
+	"Annals Class Definitions"
+Names
+/* TODO: Exports */
+Body
+
+z ::= "/**
+ * Method: For each_do_
+ * 
+ * Description:
+ *	Iteratively apply `action` to each consecutive element of `aTuple`.
+ * 
+ * Parameters:
+ *	@param aTuple: tuple : A tuple.
+ *	@param action: action : [⊥]→⊤ : A function that accepts the elements of 
+ *		the tuple.
+ * Returns:
+ *	⊤ : No value.
+ * Category:
+ *	Tuples
+ */
+Method \"For each_do_\" is
+[
+	aTuple : tuple,
+	action : [⊥]→⊤
+|
+	index : natural number := 1;
+	end ::= |aTuple|;
+	[
+		$loop;
+		If index ≤ end then
+		[
+			Invoke action with <aTuple[index]>;
+			↑index++;
+			Restart loop
+		];
+	]();
+] : ⊤;
+
+/**
+ * Method: stream of_
+ * 
+ * Description:
+ * Construct and answer a stream type that answers values of the specified type.
+ * 
+ * Parameters:
+ * 	@param elementType : any's type : The type of value produced by the desired 
+ * 		stream type.
+ * Returns:
+ *	stream's type : The requested stream type.
+ * Category:
+ *	Streams
+ */
+Public method \"stream of_\" is
+[
+	elementType : any's type
+|
+	extend stream with element type : elementType's type
+] : stream's type;";
+
+
+
+
+/*Print: "sticky in the bicky\n";
+Print: remove all ¢"i" in "sticky in the bicky"; Print : "\n";
+Print: replace all ¢"i" with ¢"a" in "sticky in the bicky"; Print : "\n";
+Print: replace all "ick" with "ar" in "sticky in the bicky"; Print : "\n";
+Print: replace all "ick" with "" in "sticky in the bicky"; Print : "\n";
+
+Print: replace all "aba" with "Q" in "ababacde"; Print : "\n";
+Print: replace all "aba" with "Q" in "ababacdeab"; Print : "\n";
+Print: "\n";*/
+/* create stream from the string, dividing the stream by each method*/ 
+q ::= stream over z delimited by "/**\n";
+
+/* Walk through the strings an remove key useless characters */
+methodTexts : <string…|> := <>;
+
+For each q do 
+[
+	s : string
+ |
+ 	asterisk : boolean := false;
+	str : string := replace all " * " with "" in s;
+	str := replace all " *\t" with "" in str;
+	str := remove all ¢"\t" in str;
+	str := remove all ¢"\n" in str;
+
+ 	If ¬str is empty then [
+ 		methodTexts := methodTexts ++ <str>;
+ 	];
+];
+
+Print: "\n\n";
+
+/* Parse each method stream into key parts:
+ * 1) description
+ * 2) parameters grouping
+ * 3) return description
+ * 4) method body
+ * 5) return type
+ */
+parsed1MethodTexts : <<string…|>…|> := <>;
+
+For each methodTexts do 
+[
+ 	str : string
+ |
+ 	temp : <string…|> := <>;
+ 	parts ::= stream over str delimited by any of 
+ 	<"Method: ", "Description:","Parameters:", "Returns:", "Category:","*/">;
+ 	Print: format "parts=‘①’\n" with parts;
+ 	 For each parts do
+ 	[ value : string | temp := temp ++ <value>;];
+	parsed1MethodTexts := parsed1MethodTexts ++ <temp>;
+];
+
+/* Divide out each section into its separate parts.  Partition the parameters
+ * description and variable names.  
+ */
+For each parsed1MethodTexts do
+[
+ 	tupleOfStrings : <string…|>
+ | 
+	methodName ::= tupleOfStrings[2];
+ 	topDescription ::= tupleOfStrings[3];
+ 	returnDescription ::= tupleOfStrings[5];
+ 	category ::= tupleOfStrings[6];
+ 	
+ 	/* Break up parameter descriptions */
+ 	params1 ::= stream over tupleOfStrings[3] delimited by any of 
+ 		<"@param ", "@param">;
+ 	param1Tuple : <<string…|3>…|> := <>;
+ 	
+ 	For each params1 do
+ 	[
+ 	 	value : string
+ 	 |
+ 	 	tempTup : <string…|> := <>;
+ 	 	For each stream over value delimited by any of <": "," : "> do
+ 	 	[
+ 	 	 	sub : string
+ 	 	 |
+ 	 	 	tempTup := tempTup ++ <sub>;
+ 	 	];
+
+ 	 	If |tempTup| = 3 then 
+ 	 	[
+ 	 	 	param1Tuple := param1Tuple ++ <<tempTup[1],tempTup[2],tempTup[3]>>;
+ 	 	];
+ 	];
+ 	
+ 	Print: "Method Name: " ++ methodName ++ "\n";
+ 	Print: "Main Description: " ++ topDescription ++ "\n";
+ 	Print: "Parameters: " ++ tupleOfStrings[4] ++ "\n";
+
+ 	For each param1Tuple do
+ 	[
+ 	 	tup : <string…|3>
+ 	 |
+ 		Print: "Input name: " ++ tup[1] ++ "\n";
+ 		Print: "Input type: " ++ tup[1] ++ "\n";
+ 		Print: "Input description: " ++ tup[3] ++ "\n";
+ 	];
+ 
+ 
+ 	
+ 	
+ 	Print: "Return Description: " ++ returnDescription ++ "\n";
+ 	Print: "\n";
+ 	Print: "Category: " ++ category ++ "\n";
+ 	Print: "\n";
+ 	
+ 	/*TODO: [RAA]  
+ 	 * Parse the parameter types from tupleOfStrings[5]
+ 	 */
+];
+Method "/**«_»\
+		\|@method_\
+		\|«@public»\
+		\|«@category_»\
+		\|«@see_»\
+		\|«@param_»\
+		\|@returns_\
+		\|«@raises_»\
+		\|«@author_»*/" is
+[
+ 	description : <string…|0..1>,
+ 	name : string,
+ 	visibility : boolean,
+ 	categories : <string…|1..>,
+ 	see : <string…|>
+ 	parameters : <string…|>,
+ 	return : string,
+ 	raises : <string…|>,
+ 	authors : <string
+ | 
+]
+
+Store the doc block initial line number and module name
+Strip out /**, */, *s
+Strip out newlines and extra whitespace
+Separate the doc block into lines between (and including) @ signs
+for each line, call parse to tag
+	
+Method "parse_to tag" is
+[
+	line : string
+|
+	if line ⊈ <¢@, character…|2..>
+		/* description */
+		parse line as description
+	else
+		/* has a tag */
+		parse the first word, starting after @ and until a space, as the tag,
+		then call something to parse the rest according to what the tag was
+]

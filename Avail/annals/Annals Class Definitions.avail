@@ -336,9 +336,9 @@ Public explicit class "library component" extends component
  *  the supertype of the class.
  * @field "fields" "<<string…|3>…|>"
  *  the class fields
- *   1) the field name
- *   2) the field type
- *   3) the field description
+ *   <li>1) the field name</li>
+ *   <li>2) the field type</li>
+ *   <li>3) the field description</li>
  *   
  * @author Richard Arriaga
  */

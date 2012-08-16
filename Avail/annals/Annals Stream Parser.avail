@@ -29,283 +29,320 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+	
+keyCharacters ::= {¢/, ¢@, ¢*, ¢"\n"}; /* Special parse characters */
+/* Special keywords using @ symbols */
+keyWords ::= 
+	{@type,@supertype,@field,@category,@param,@raises,@restricts,@returns,
+	 @forbids,@category,@pubilc,@method,@see,@author,@link,@code};
+openCommentCount : whole number := 0;
+newLineCount : whole number := 0;
+buffer : <character…|> := <>;
+inAnnalsType : boolean := false; 
+annalsType : string := "";
+annalsObjectName: string :"";
 
-System Module "Annals Stream Parser"
-Versions
-	"Dev"
-Extends
+/* TODO - create global variables for maps of classes and methods */
 
-Uses
-	"Avail",
-	"Annals Class Definitions"
-Names
-/* TODO: Exports */
-Body
-
-z ::= "/**
- * Iteratively apply `action` to each consecutive element of `aTuple`.
- * 
- *	Parameters:
- *    @param aTuple: A tuple.
- *    @param action: A function that accepts the elements of the tuple.
- *	Returns:
- *		⊤.
+/**
+ *
+ * @method "_is a key character"
+ * @categories ""
+ * @param
+ * @returnType
+ * @raises
  */
-Method \"For each_do_\" is
+Private method "_is a key character" is
 [
-	aTuple : tuple,
-	action : [⊥]→⊤
+ 	char : character;
+ |
+ 	element ∈ keyCharacters
+]:boolean;
+
+/**
+ *
+ * @method "Increment the open comment count"
+ * @categories ""
+ * @param
+ * @returnType
+ * @raises
+ */
+Private method "Increment the open comment count" is
+[
+ |
+ 	openCommentCount := openCommentCount + 1;
+]:⊤;
+
+/**
+ *
+ * @method "Decrement the open comment count"
+ * @categories ""
+ * @param
+ * @returnType
+ * @raises
+ */
+Private method "Decrement the open comment count" is
+[
 |
-	index : natural number := 1;
-	end ::= |aTuple|;
-	[
-		$loop;
-		If index ≤ end then
-		[
-			Invoke action with <aTuple[index]>;
-			↑index++;
-			Restart loop
-		];
-	]();
-] : ⊤;
+	openCommentCount := openCommentCount - 1;
+]:⊤;
 
 /**
- * Construct and answer a stream type that answers values of the specified type.
- * 
- * Parameters:
- *    @param elementType: The type of value produced by the desired stream 
- *    	type.
- * Returns:
- *    The requested stream type.
+ *
+ * @method "Increment the new line count"
+ * @categories ""
+ * @param
+ * @returnType
+ * @raises
  */
-Public method \"stream of_\" is
+Private method "Increment the new line count" is
 [
-	elementType : any's type
 |
-	extend stream with element type : elementType's type
-] : stream's type;";
+	newLineCount := newLineCount + 1;
+]:⊤;
 
 /**
- * Replace all occurences of a character in a string with another character.
- * 
- * Parameters:
- * 	@param origChar : the character to be replaced
- * 	@param newChar : the replacing character
- * 	@param aString: The string to replace characters in
+ *
+ * @method "Clear the buffer"
+ * @categories ""
+ * @param
+ * @returnType
+ * @raises
  */
-Private method "replace all_with_in_" is
+Private method "Clear the buffer" is
 [
- 	origChar : character,
- 	newChar : character,
- 	aString : string
  |
- 	concatenate map aString through 
+	buffer := <>;:= <>;
+]:⊤;
+
+/**
+ *
+ * @method "_is not exhausted"
+ * @categories ""
+ * @param
+ * @returnType
+ * @raises
+ */
+Private method "_is not exhausted" is
+[
+ 	iter : iterator
+ |
+ 	iter is exhausted
+]:boolean;
+
+/**
+ * Determine what is to be done when "/" is reached in the iterator.
+ * @method "Handle forward slash key word buffer_"
+ * @categories ""
+ * @param
+ * @returnType
+ * @raises
+ */
+Method "Handle forward slash key word buffer using_"
+[
+	keyBuffer : <character…|>
+ |
+	Choose keyBuffer from enumeration of {"/*", "/**"} where
+	"/*" is
 	[
-		c : character
-	 |
-		if c = origChar then [<newChar>] else [<c>]
-	]
-]: string;
-
-/**
- * Remove all occurences of a character in a string.
- * 
- * Parameters:
- * 	@param origChar : the character to be replaced
- * 	@param aString: The string to replace characters in
- */
-Private method "remove all_in_" is
-[
- 	origChar : character,
- 	aString : string
- |
- 	concatenate map aString through 
+	 	/* Just a new comment, increment count only */
+	 	Increment the open comment count;
+	],
+	"/**" is
 	[
-		c : character
-	 |
-		if c = origChar then [""] else [<c>]
-	]
-]: string;
-
-/**
- * Replace a substring within a string with a new substring
- * 
- * Parameters:
- * 	@param origSubString - string to find and replace
- * 	@param newSubString - replacement string
- * 	@param aString - string to search for substring
- */
-Private method "replace all_with_in_" is
-[
- 	origSubString : <character…|1..>,
- 	newSubString : string,
- 	aString : string
- |
- 	If |aString| < |origSubString| then [aString]
+	 	if openCommentCount > 0 then
+	 	[
+	 	 	/* Start of a nested comment */
+	 	 	Increment the open comment count;
+	 	]
 	 	else
 	 	[
-	 	 	startCharOrig ::= all indices of aString where
-	 	 	[
-	 	 	 	c : character
-	 	 	 |
-	 	 	 	c = origSubString[1]
-	 	 	];
-	 	 	if startCharOrig is empty then [aString]
-	 	 		else
-	 	 		[
-	 	 		 	position : natural number := 1;
-	 	 		 	i : whole number := |origSubString|;
-	 	 		 	j : whole number := |newSubString|;
-	 	 		 	returnString : string := "";
-	 	 		 	For each startCharOrig do
-	 	 		 	[
-	 	 		 	 	n : natural number
-	 	 		 	 |
-	 	 		 	 	If n ≠ 1 then [
-	 	 		 	 		returnString := 
-	 	 		 	 			returnString ++ aString[position..n-1];
-	 	 		 		];
-	 	 		 		if aString[n..n+i-1] = origSubString[1..i] then
-	 	 		 		[
-	 	 		 		 	returnString := returnString ++ newSubString;
-	 	 		 			position := n + i;
-	 	 		 		] else
-	 	 		 		[
-	 	 		 		 	position := n;
-	 	 		 		];
-	 	 		 	];
-	 	 		 	returnString ++ aString[position..|aString|]
-	 	 		]
+	 	 	/* Start of annals object comment, clear buffer */
+	  		increment the open comment count;
+	 		Clear the buffer;
+		 	 	/*Do something cool, like start an Annals object*/
 	 	]
- 	
-]:string;
+	],
+	else [/* Do nothing */];
+]:⊤;
 
-
-Print: "sticky in the bicky\n";
-Print: remove all ¢"i" in "sticky in the bicky"; Print : "\n";
-Print: replace all ¢"i" with ¢"a" in "sticky in the bicky"; Print : "\n";
-Print: replace all "ick" with "ar" in "sticky in the bicky"; Print : "\n";
-Print: replace all "ick" with "" in "sticky in the bicky"; Print : "\n";
-Print: replace all "" with "ar" in "sticky in the bicky"; Print : "\n";
-Print: "\n";
-/* create stream from the string, dividing the stream by each method*/ 
-q ::= stream over z delimited by "/**\n";
-
-/* Walk through the strings an remove key useless characters */
-methodTexts : <string…|> := <>;
-
-For each q do 
+/**
+ * Determine what is to be done when "@" is reached in the iterator.
+ * @method "Handle the @ key word buffer_"
+ * @categories ""
+ * @param
+ * @returnType
+ * @raises
+ */
+Method "Handle the @ key word buffer using_"
 [
-	s : string
+	keyBuffer : <character…|>
  |
- 	asterisk : boolean := false;
- 	str : string := concatenate map s through 
+	/* TODO - RAA - Handle @ tags */
+	Choose keyBuffer from enumeration of keyWords where
+	"@type" is
+	[],
+	"@supertype" is
+	[],
+	"@field" is
+	[],
+	"@category" is
+	[],
+	"@param" is
+	[],
+	"@raises" is
+	[],
+	"@restricts" is
+	[],
+	"@returns" is
+	[],
+	"@forbids" is
+	[],
+	"@category" is
+	[],
+	"@pubilc" is
+	[],
+	"@method" is
+	[],
+	"@see" is
+	[],
+	"@author" is
+	[],
+	"@link" is
+	[],
+	"@code" is
+	[],
+	else [/* do nothing */];
+]:⊤;
+
+/**
+ * Determine what is to be done when "*" is reached in the iterator.
+ * @method "Handle the asterisk key word buffer_"
+ * @categories ""
+ * @param
+ * @returnType
+ * @raises
+ */
+Private method "Handle the asterisk key word buffer using_" is
+[
+	keyBuffer : <character…|>
+|
+	Choose keyBuffer from enumeration of {"/*", "/**"} where
+	"*/" is
 	[
-		c : character
-	|
-		if c = ¢"\t" /*∨ [c = ¢"\n"]*/
-			then [
-				asterisk := false;
-				""
-			] else if [c = ¢"*"] 
-			then [
-				asterisk := true;
-				""
-			]
-			else [
-				if asterisk = true then [
-					if c = ¢"/" then [ 
-						asterisk := false;
-						""
-					] else [
-						asterisk := false;
-						<c>
-					]
-				] else [
-					<c>
-				]
-			]
- 	];
- 	If ¬str is empty then [
- 		methodTexts := methodTexts ++ <str>;
- 	];
-];
+	 	if openCommentCount = 0 then
+	 	[ /* ERROR!  Do something error-like*/]
+	 	else if [openCommentCount > 1] then
+	 	[
+	 	 	/* Close of a nested comment */
+	 	 	Decrement the open comment count;
+	 	]
+	 	else
+	 	[
+	 	 	/* Closing of a non-nested comment */
+	 	 	Decrement the open comment count;
+	 		if inAnnalsType then
+	 		[
+	 		 	/* Wrap up annals object creation */
+	 		]
+	 		else
+	 		[
+	 		 	/* Not an annals object comment, clear buffer */
+	 		 	Clear the buffer;
+	 		]
+	 	];
+	],
+	else [/* Do nothing */];
+]:⊤;
 
-/* Parse each method stream into key parts:
- * 1) description
- * 2) parameters grouping
- * 3) return description
- * 4) method body
- * 5) return type
+/* TODO - THIS CAN POTENTIALLY BE REFACTORED FURTHER!!! */
+
+/**
+ * Avail document main parsing method
+ * @method "Parse the Avail document_"
+ * @categories ""
+ * @param
+ * @returnType
+ * @raises
  */
-parsed1MethodTexts : <<string…|>…|> := <>;
-
-For each methodTexts do 
+Public method "Parse the Avail document_" is
 [
- 	str : string
+ 	availSourceDoc : string
  |
- 	temp : <string…|> := <>;
- 	parts ::= stream over str delimited by any of 
- 	<"Parameters:", "Returns:", "Method \"","Public method \"",
- 	 "\" is", "]:", "] : ">;
- 	 For each parts do
- 	[ value : string | temp := temp ++ <value>;];
-	parsed1MethodTexts := parsed1MethodTexts ++ <temp>;
-];
-
-/* Divide out each section into its separate parts.  Partition the parameters
- * description and variable names.  
- */
-For each parsed1MethodTexts do
-[
- 	tupleOfStrings : <string…|>
- | 
- 	topDescription ::= tupleOfStrings[1];
- 	returnDescription ::= tupleOfStrings[3];
- 	methodName ::= tupleOfStrings[4];
- 	returnType ::= tupleOfStrings[6];
- 	
- 	/* Break up parameter descriptions */
- 	parmetersDescriptions : <string…|> := <>;
- 	
- 	params1 ::= stream over tupleOfStrings[2] delimited by "@param";
- 	param1Tuple : <<string…|2>…|> := <>;
- 	
- 	For each params1 do
- 	[
- 	 	value : string
- 	 |
- 	 	tempTup : <string…|> := <>;
- 	 	For each stream over value delimited by ": " do
- 	 	[
- 	 	 	sub : string
- 	 	 |
- 	 	 	tempTup := tempTup ++ <sub>;
- 	 	];
-
- 	 	If |tempTup| = 2 then 
- 	 	[
- 	 	 	param1Tuple := param1Tuple ++ <<tempTup[1],tempTup[2]>>;
- 	 	];
- 	];
- 	
- 	Print: "Method Name: " ++ methodName ++ "\n";
- 	Print: "Main Description: " ++ topDescription ++ "\n";
-
- 	For each param1Tuple do
- 	[
- 	 	tup : <string…|2>
- 	 |
- 		Print: "Input name: " ++ tup[1] ++ "\n";
- 		Print: "Input description: " ++ tup[2] ++ "\n";
- 	];
- 	Print: "Return Type: " ++ returnType ++ "\n";
- 	Print: "Return Description: " ++ returnDescription ++ "\n";
- 	Print: "\n";
- 	Print: format "tupleOfStrings[5]=‘①’\n" with tupleOfStrings[5];
- 	
- 	/*TODO: [RAA]  
- 	 * Parse the parameter types from tupleOfStrings[5]
- 	 */
-];
-
+ 	theIterator : iterator := an iterator over availSourceDoc;
+	
+	While [ theIterator is not exhausted ] 
+	do
+	[
+	 	If theIterator's current value is a key character then
+	 	[
+	 	 	tempKeyBuffer : <character…|> := <>;
+		 	 	
+ 	 	 	Choose theIterator's current value 
+ 	 	 		from enumeration of keyCharacters where
+ 	 	 	¢"\n" is 
+ 	 	 	[
+ 	 	 	 	Increment the new line count;
+ 	 	 	 	Advance theIterator;
+ 	 	 	 ],
+ 	 	 	¢/ is
+ 	 	 	[/* TODO - maybe able to pull out and create method. */
+				While 
+					[theIterator is not exhausted ∨ 
+					 	theIterator's current value ∉ {¢" ",¢"\n"}
+					]
+					do
+					[
+					 	buffer := buffer ++ <theIterator's current value>;
+					 	tempKeyBuffer := tempKeyBuffer ++ 
+					 		<theIterator's current value>;
+					Advance theIterator;
+					];
+				Handle the forward slash key word buffer using tempKeyBuffer;
+			], 
+ 	 	 	¢@
+ 	 	 	[ 
+ 	 	 	 	if inAnnalsType then
+ 	 	 	 	[
+					While 
+					[theIterator is not exhausted ∨ 
+					 	theIterator's current value ∉ {¢" ",¢"\n"}
+					]
+					do
+					[
+					 	buffer := buffer ++ <theIterator's current value>;
+					 	tempKeyBuffer := tempKeyBuffer ++ 
+					 		<theIterator's current value>;
+					Advance theIterator;
+					];
+					Handle the @ key word buffer using tempKeyBuffer;
+				]
+				else 
+				[
+					/* Not an annals object comment, clear buffer */
+				 	Clear the buffer;
+				];
+ 	 	 	], 
+ 	 	 	¢*
+ 	 	 	[ 
+				While 
+				[theIterator is not exhausted ∨ 
+				 	theIterator's current value ∉ {¢" ",¢"\n"}
+				]
+				do
+				[
+				 	buffer := buffer ++ <theIterator's current value>;
+				 	tempKeyBuffer := tempKeyBuffer ++ 
+				 		<theIterator's current value>;
+				Advance theIterator;
+				];
+				Handle the asterisk key word buffer using tempKeyBuffer;
+			];
+	 	 ]
+	 	else
+	 	[
+	 	 	buffer := buffer ++ <theIterator's current value>;
+	 		Advance theIterator;
+	 	];	
+	];
+]:⊤;
