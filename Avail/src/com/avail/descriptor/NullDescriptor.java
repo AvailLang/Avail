@@ -36,6 +36,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.descriptor.MapDescriptor.*;
+import com.avail.descriptor.SetDescriptor.*;
 import com.avail.serialization.SerializerOperation;
 
 /**
@@ -254,7 +255,7 @@ extends Descriptor
 	}
 
 	@Override
-	public MapIterable o_MapBinIterable (
+	MapIterable o_MapBinIterable (
 		final AvailObject object)
 	{
 		return new MapIterable()
@@ -267,6 +268,27 @@ extends Descriptor
 
 			@Override
 			public final boolean hasNext ()
+			{
+				return false;
+			}
+		};
+	}
+
+	@Override
+	SetIterator o_SetBinIterator (
+		final AvailObject object)
+	{
+		// The null object acts like a bin of size zero.
+		return new SetDescriptor.SetIterator()
+		{
+			@Override
+			public AvailObject next ()
+			{
+				throw new UnsupportedOperationException();
+			}
+
+			@Override
+			public boolean hasNext ()
 			{
 				return false;
 			}

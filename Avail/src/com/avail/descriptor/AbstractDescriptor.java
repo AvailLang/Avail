@@ -45,6 +45,7 @@ import com.avail.descriptor.InfinityDescriptor.IntegerSlots;
 import com.avail.descriptor.MapDescriptor.MapIterable;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
+import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.Interpreter;
@@ -246,6 +247,32 @@ public abstract class AbstractDescriptor
 			return value >>> -leftShift;
 		}
 		return 0;
+	}
+
+	/**
+	 * Note: This is a logical shift *without* Java's implicit modulus on the
+	 * shift amount.
+	 *
+	 * @param value The value to shift.
+	 * @param leftShift The amount to shift left. If negative, shift right by
+	 *                  the corresponding positive amount.
+	 * @return The shifted integer, modulus 2^64 then cast to {@code long}.
+	 */
+	protected static long bitShift (final long value, final int leftShift)
+	{
+		if (leftShift >= 64)
+		{
+			return 0L;
+		}
+		if (leftShift >= 0)
+		{
+			return value << leftShift;
+		}
+		if (leftShift > -64)
+		{
+			return value >>> -leftShift;
+		}
+		return 0L;
 	}
 
 	/**
@@ -5651,7 +5678,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract public MapIterable o_MapBinIterable (
+	abstract MapIterable o_MapBinIterable (
 		final AvailObject object);
 
 	/**
@@ -5676,5 +5703,25 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract boolean o_IsMarkerNode (
+		final AvailObject object);
+
+	/**
+	 * @param object
+	 * @param shiftFactor
+	 * @param truncationBits
+	 * @param canDestroy
+	 * @return
+	 */
+	abstract AvailObject o_BitShiftLeftTruncatingToBits (
+		final AvailObject object,
+		final AvailObject shiftFactor,
+		final AvailObject truncationBits,
+		final boolean canDestroy);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract SetIterator o_SetBinIterator (
 		final AvailObject object);
 }

@@ -1444,6 +1444,168 @@ extends ExtendedIntegerDescriptor
 		return output;
 	}
 
+	/**
+	 * Shift the given positive number to the left by the specified shift factor
+	 * (number of bits), then truncate the representation to force bits above
+	 * the specified position to be zeroed.  The shift factor may be
+	 * negative, indicating a right shift by the corresponding positive amount,
+	 * in which case truncation will still happen.
+	 *
+	 * <p>
+	 * For example, shifting the binary number 1011<sub>2</sub> to the left by 2
+	 * positions will produce 101100<sub>2</sub>, then truncating it to, say 5
+	 * bits, would produce 01100<sub>2</sub>.  For a second example, the
+	 * positive number 110101 can be shifted left by -2 positions (which is a
+	 * right shift of 2) to get 1101, and a subsequent truncation to 10 bits
+	 * would leave it unaffected.
+	 * </p>
+	 *
+	 * @param object
+	 *            The non-negative integer to shift and mask.
+	 * @param shiftFactor
+	 *            How much to shift left (may be negative to indicate a right
+	 *            shift).
+	 * @param truncationBits
+	 *            A positive integer indicating how many low-order bits of the
+	 *            shifted value should be preserved.
+	 * @param canDestroy
+	 *            Whether it is permitted to alter the original object if it
+	 *            happens to be mutable.
+	 * @return (object × 2<sup>shiftFactor</sup>) mod 2<sup>truncationBits</sup>
+	 */
+	@Override @AvailMethod
+	AvailObject o_BitShiftLeftTruncatingToBits (
+		final AvailObject object,
+		final AvailObject shiftFactor,
+		final AvailObject truncationBits,
+		final boolean canDestroy)
+	{
+		if (!truncationBits.isInt())
+		{
+			throw new ArithmeticException(
+				AvailErrorCode.E_SHIFT_AND_TRUNCATE_REQUIRES_NON_NEGATIVE);
+		}
+		final int truncationInt = truncationBits.extractInt();
+		if (truncationInt < 0)
+		{
+			throw new ArithmeticException(
+				AvailErrorCode.E_SHIFT_AND_TRUNCATE_REQUIRES_NON_NEGATIVE);
+		}
+		final Order sign = object.numericCompareToInteger(zero());
+		if (sign == LESS)
+		{
+			throw new ArithmeticException(
+				AvailErrorCode.E_SHIFT_AND_TRUNCATE_REQUIRES_NON_NEGATIVE);
+		}
+		if (sign == EQUAL)
+		{
+			if (!canDestroy & isMutable())
+			{
+				object.makeImmutable();
+			}
+			// 0*2^n = 0
+			return object;
+		}
+		if (!shiftFactor.isInt())
+		{
+			if (shiftFactor.numericCompareToInteger(zero()) == MORE)
+			{
+				throw new ArithmeticException(
+					AvailErrorCode.E_TOO_LARGE_TO_REPRESENT);
+			}
+			// e.g., 123 >> 999999999999999999 is 0
+			return zero();
+		}
+		final int shiftInt = shiftFactor.extractInt();
+		if (object.isLong())
+		{
+			final long baseLong = object.extractLong();
+			final long shiftedLong = bitShift(baseLong, shiftInt);
+			if (shiftInt < 0
+				|| truncationInt < 64
+				|| bitShift(shiftedLong, -shiftInt) == baseLong)
+			{
+				// Either a right shift, or a left shift that didn't lose bits,
+				// or a left shift that will fit in a long after the truncation.
+				// In these cases the result will still be a long.
+				long resultLong = bitShift(baseLong, shiftInt);
+				if (truncationInt < 64)
+				{
+					resultLong &= (1 << truncationInt) - 1;
+				}
+				if (canDestroy && isMutable())
+				{
+					if (resultLong == (int)resultLong)
+					{
+						// Fits in an int.  Try to recycle.
+						if (object.integerSlotsCount() == 1)
+						{
+							object.rawSignedIntegerAtPut(1, (int)resultLong);
+							return object;
+						}
+					}
+					else
+					{
+						// *Fills* a long.  Try to recycle.
+						if (object.integerSlotsCount() == 2)
+						{
+							object.rawSignedIntegerAtPut(
+								1,
+								(int)resultLong);
+							object.rawSignedIntegerAtPut(
+								2,
+								(int)(resultLong >> 32L));
+							return object;
+						}
+					}
+				}
+				// Fall back and create a new integer object.
+				return fromLong(resultLong);
+			}
+		}
+		// Answer doesn't (necessarily) fit in a long.
+		final int sourceSlots = object.integerSlotsCount();
+		int estimatedBits = (sourceSlots << 5) + shiftInt;
+		estimatedBits = min(estimatedBits, truncationInt + 1);
+		estimatedBits = max(estimatedBits, 1);
+		final int slotCount = (estimatedBits + 31) >> 5;
+		final AvailObject result = create(slotCount);
+		final int shortShift = shiftInt & 31;
+		int sourceIndex = slotCount - (shiftInt >> 5);
+		long accumulator = 0xDEADCAFEBABEBEEFL;
+		// We range from slotCount+1 to 1 to pre-load the accumulator.
+		for (int destIndex = slotCount + 1; destIndex >= 1; destIndex--)
+		{
+			final int nextWord =
+				(1 <= sourceIndex && sourceIndex <= sourceSlots)
+					? object.rawSignedIntegerAt(sourceIndex)
+					: 0;
+			accumulator <<= 32;
+			accumulator |= nextWord << shortShift;
+			if (destIndex <= slotCount)
+			{
+				result.rawSignedIntegerAtPut(
+					destIndex,
+					(int)(accumulator >> 32));
+			}
+			sourceIndex--;
+		}
+		// Mask it if necessary to truncate some upper bits.
+		int mask = (1 << (truncationInt & 31)) - 1;
+		for (
+			int destIndex = truncationInt >> 5;
+			destIndex <= slotCount;
+			destIndex++)
+		{
+			result.rawSignedIntegerAtPut(
+				destIndex,
+				result.rawSignedIntegerAt(destIndex) & mask);
+			// Completely wipe any higher ints.
+			mask = 0;
+		}
+		result.trimExcessInts();
+		return result;
+	}
 
 	@Override @AvailMethod
 	SerializerOperation o_SerializerOperation (
@@ -1704,7 +1866,7 @@ extends ExtendedIntegerDescriptor
 		truncated = abs(truncated);
 		final int exponent = getExponent(truncated);
 		final int slots = exponent + 31 / 32;  // probably needs work
-		AvailObject out = IntegerDescriptor.mutable().create(slots);
+		AvailObject out = mutable().create(slots);
 		truncated = scalb(truncated, (1 - slots) * 32);
 		for (int i = slots; i >= 1; --i)
 		{
@@ -1716,7 +1878,7 @@ extends ExtendedIntegerDescriptor
 		out.trimExcessInts();
 		if (neg)
 		{
-			out = IntegerDescriptor.zero().noFailMinusCanDestroy(out, true);
+			out = zero().noFailMinusCanDestroy(out, true);
 		}
 		return out;
 	}

@@ -92,7 +92,7 @@ extends Descriptor
 	}
 
 	@Override
-	abstract public MapIterable o_MapBinIterable (
+	abstract MapIterable o_MapBinIterable (
 		final AvailObject object);
 
 	/**

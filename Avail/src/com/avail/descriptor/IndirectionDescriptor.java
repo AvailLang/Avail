@@ -43,6 +43,7 @@ import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.MapDescriptor.MapIterable;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
+import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.Interpreter;
@@ -4364,7 +4365,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public MapIterable o_MapBinIterable (
+	MapIterable o_MapBinIterable (
 		final AvailObject object)
 	{
 		return o_Traversed(object).mapBinIterable();
@@ -4391,5 +4392,25 @@ extends AbstractDescriptor
 		final AvailObject object)
 	{
 		return o_Traversed(object).isMarkerNode();
+	}
+
+	@Override
+	AvailObject o_BitShiftLeftTruncatingToBits (
+		final AvailObject object,
+		final AvailObject shiftFactor,
+		final AvailObject truncationBits,
+		final boolean canDestroy)
+	{
+		return o_Traversed(object).bitShiftLeftTruncatingToBits(
+			shiftFactor,
+			truncationBits,
+			canDestroy);
+	}
+
+	@Override
+	SetIterator o_SetBinIterator (
+		final AvailObject object)
+	{
+		return o_Traversed(object).setBinIterator();
 	}
 }

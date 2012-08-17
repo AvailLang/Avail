@@ -110,6 +110,7 @@ Invoke [
 		<15, "primitive-not-supported">,
 		<16, "unwind-sentinel">,
 		<17, "not-enumeration">,
+		<18, "shift-and-truncate-requires-non-negative">,
 		<19, "no-method">,
 		<20, "wrong-number-of-outers">,
 		<21, "key-not-found">,

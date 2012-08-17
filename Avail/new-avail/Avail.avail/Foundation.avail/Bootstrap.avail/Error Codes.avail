@@ -107,11 +107,13 @@ Names
 	/*  39 */ "redefined with same argument types code",
 	/*  40 */ "result type should covary with arguments code",
 	/* 105 */ "sequence contains invalid statements code",
+	/*  18 */ "shift and truncate requires non negative code",
 	/*  41 */ "special atom code",
 	/*  10 */ "subscript out of bounds code",
 	/*  52 */ "tilde must not follow argument code",
 	/*  31 */ "type restriction must accept only types code",
 	/*  44 */ "unbalanced guillemets code",
+	/*  30 */ "unhandled exception code",
 	/*  16 */ "unwind sentinel code",
 	/*  55 */ "vertical bar must follow a simple or simple group code",
 	/*  20 */ "wrong number of outers code"
@@ -208,6 +210,11 @@ Primitive "not enumeration code" is
 	17
 ];
 
+Primitive "shift and truncate requires non negative code" is
+[
+	18
+];
+
 Primitive "no method code" is
 [
 	19
@@ -261,6 +268,11 @@ Primitive "local type literal is not a type code" is
 Primitive "outer type literal is not a type code" is
 [
 	29
+];
+
+Primitive "unhandled exception code" is
+[
+	30
 ];
 
 Primitive "type restriction must accept only types code" is

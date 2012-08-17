@@ -1,5 +1,5 @@
 /**
- * P_099_BitwiseXor.java
+ * P_096_BitShiftWithTruncation.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -38,29 +38,36 @@ import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 99</strong>: Compute the bitwise EXCLUSIVE OR of the
- * {@linkplain IntegerDescriptor arguments}.
+ * <strong>Primitive 96</strong>: Given a positive integer B, a shift factor S,
+ * and a truncation bit count T, shift B to the left by S bits (treating a
+ * negative factor as a right shift), then truncate the result to the bottom
+ * T bits by zeroing the rest.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
  */
-public final class P_099_BitwiseXor
+public final class P_096_BitShiftWithTruncation
 extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_099_BitwiseXor().init(2, CanFold, CannotFail);
+		new P_096_BitShiftWithTruncation().init(3, CanFold, CannotFail);
 
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 2;
-		final AvailObject a = args.get(0);
-		final AvailObject b = args.get(1);
-		return interpreter.primitiveSuccess(a.bitwiseXor(b, true));
+		assert args.size() == 3;
+		final AvailObject baseInteger = args.get(0);
+		final AvailObject shiftFactor = args.get(1);
+		final AvailObject truncationBits = args.get(2);
+		return interpreter.primitiveSuccess(
+			baseInteger.bitShiftLeftTruncatingToBits(
+				shiftFactor,
+				truncationBits,
+				true));
 	}
 
 	@Override
@@ -68,8 +75,9 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
+				IntegerRangeTypeDescriptor.wholeNumbers(),
 				IntegerRangeTypeDescriptor.integers(),
-				IntegerRangeTypeDescriptor.integers()),
-			IntegerRangeTypeDescriptor.integers());
+				IntegerRangeTypeDescriptor.wholeNumbers()),
+			IntegerRangeTypeDescriptor.wholeNumbers());
 	}
 }

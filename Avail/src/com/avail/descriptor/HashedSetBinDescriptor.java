@@ -35,7 +35,9 @@ package com.avail.descriptor;
 import static com.avail.descriptor.HashedSetBinDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.HashedSetBinDescriptor.ObjectSlots.*;
 import static java.lang.Integer.bitCount;
+import java.util.*;
 import com.avail.annotations.*;
+import com.avail.descriptor.SetDescriptor.SetIterator;
 
 /**
  * TODO: [MvG] Document this type!
@@ -231,7 +233,7 @@ extends SetBinDescriptor
 		final int vector = object.slot(BIT_VECTOR);
 		final int masked = vector & logicalBitValue - 1;
 		final int physicalIndex = bitCount(masked) + 1;
-		AvailObject objectToModify;
+		final AvailObject objectToModify;
 		AvailObject typeUnion;
 		if ((vector & logicalBitValue) != 0)
 		{
@@ -489,6 +491,103 @@ extends SetBinDescriptor
 			}
 		}
 		return true;
+	}
+
+	/**
+	 * A {@link SetIterator} for iterating over a set whose root bin happens to
+	 * be hashed.
+	 */
+	static class HashedSetBinIterator extends SetIterator
+	{
+		/**
+		 * The path through set bins, excluding the leaf (non-bin) element.
+		 */
+		final Deque<AvailObject> binStack = new ArrayDeque<AvailObject>();
+
+		/**
+		 * The position navigated through each bin.  It should always contain
+		 * the same number of elements as in binStack.
+		 */
+		final Deque<Integer> subscriptStack = new ArrayDeque<Integer>();
+
+		/**
+		 * The next value that will returned by {@link #next()}, or null if the
+		 * iterator is exhausted.
+		 */
+		AvailObject currentElement;
+
+		/**
+		 * Construct a new {@link SetIterator} over the elements recursively
+		 * contained in the given bin / null / single object.
+		 *
+		 * @param root The root bin over which to iterate.
+		 */
+		HashedSetBinIterator (final AvailObject root)
+		{
+			followLeftmost(root);
+		}
+
+		/**
+		 * Visit this bin or element.  In particular, travel down its left spine
+		 * so that it's positioned at the leftmost descendant.  Return the
+		 * (non-bin) element at the bottom of the spine, which may be the
+		 * argument itself.
+		 *
+		 * @param binOrElement The bin or element to begin enumerating.
+		 */
+		private void followLeftmost (final AvailObject binOrElement)
+		{
+			AvailObject current = binOrElement;
+			while (current.isSetBin())
+			{
+				binStack.addLast(current);
+				subscriptStack.addLast(1);
+				current = current.binElementAt(1);
+			}
+			assert binStack.size() == subscriptStack.size();
+			currentElement = current;
+		}
+
+		@Override
+		public AvailObject next ()
+		{
+			assert currentElement != null;
+			final AvailObject result = currentElement;
+			assert !binStack.isEmpty();
+			assert binStack.size() == subscriptStack.size();
+			do
+			{
+				final AvailObject leafBin = binStack.getLast();
+				final int nextIndex = subscriptStack.removeLast() + 1;
+				if (nextIndex <= leafBin.variableObjectSlotsCount())
+				{
+					// Advance along the bin.
+					subscriptStack.add(nextIndex);
+					assert binStack.size() == subscriptStack.size();
+					followLeftmost(leafBin.binElementAt(nextIndex));
+					return result;
+				}
+				// Exhausted the bin.
+				binStack.removeLast();
+				assert binStack.size() == subscriptStack.size();
+			}
+			while (!binStack.isEmpty());
+			currentElement = null;
+			return result;
+		}
+
+		@Override
+		public boolean hasNext ()
+		{
+			return currentElement != null;
+		}
+	}
+
+	@Override
+	SetIterator o_SetBinIterator (
+		final AvailObject object)
+	{
+		return new HashedSetBinIterator(object);
 	}
 
 	/**

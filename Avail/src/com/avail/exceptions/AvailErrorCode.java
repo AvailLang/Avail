@@ -153,9 +153,9 @@ public enum AvailErrorCode
 	E_NOT_AN_ENUMERATION (17),
 
 	/**
-	 * TODO: Recycle!
+	 * The shift and truncate operation operates on non-negative integers.
 	 */
-//	E_??? (18),
+	E_SHIFT_AND_TRUNCATE_REQUIRES_NON_NEGATIVE(18),
 
 	/**
 	 * No {@linkplain MethodDescriptor method} exists for the specified
@@ -219,9 +219,9 @@ public enum AvailErrorCode
 	E_OUTER_TYPE_LITERAL_IS_NOT_A_TYPE (29),
 
 	/**
-	 * TODO: Recycle!
+	 * A computation would produce a value too large to represent.
 	 */
-//	E_??? (30),
+	E_TOO_LARGE_TO_REPRESENT (30),
 
 	/**
 	 * The specified type restriction function should expect types as arguments

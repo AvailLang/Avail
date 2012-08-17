@@ -36,6 +36,7 @@ import static com.avail.descriptor.LinearSetBinDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.LinearSetBinDescriptor.IntegerSlots.*;
 import static java.lang.Integer.bitCount;
 import com.avail.annotations.*;
+import com.avail.descriptor.SetDescriptor.SetIterator;
 
 /**
  * A {@code LinearSetBinDescriptor} is a leaf bin in a {@link SetDescriptor
@@ -366,6 +367,31 @@ extends SetBinDescriptor
 			}
 		}
 		return true;
+	}
+
+	@Override
+	SetIterator o_SetBinIterator (
+		final AvailObject object)
+	{
+		return new SetIterator()
+		{
+			final int limit = object.variableObjectSlotsCount();
+
+			int index = 1;
+
+			@Override
+			public AvailObject next ()
+			{
+				assert index <= limit;
+				return object.binElementAt(index++);
+			}
+
+			@Override
+			public boolean hasNext ()
+			{
+				return index <= limit;
+			}
+		};
 	}
 
 	/**

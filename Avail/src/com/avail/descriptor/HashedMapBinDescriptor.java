@@ -574,7 +574,7 @@ extends MapBinDescriptor
 	 * A MapIterable used for iterating over the key/value pairs of a map whose
 	 * root bin happens to be hashed.
 	 */
-	public static class HashedMapBinIterable extends MapIterable
+	static class HashedMapBinIterable extends MapIterable
 	{
 		/**
 		 * The path through map bins, including the current linear bin.
@@ -690,7 +690,7 @@ extends MapBinDescriptor
 	}
 
 	@Override
-	public MapIterable o_MapBinIterable (
+	MapIterable o_MapBinIterable (
 		final AvailObject object)
 	{
 		return new HashedMapBinIterable(object);

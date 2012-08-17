@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
 import com.avail.annotations.*;
+import com.avail.descriptor.MapDescriptor.*;
 import com.avail.serialization.SerializerOperation;
 
 /**
@@ -446,103 +447,13 @@ public class SetDescriptor extends Descriptor
 	}
 
 	/**
-	 * This is the {@link Iterator} subclass used to enumerate Avail {@linkplain
-	 * SetDescriptor sets}.
-	 *
-	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+	 * A {@link SetIterator} is returned when a {@link SetDescriptor set} is
+	 * asked for its {@link AvailObject#iterator()}.  Among other uses, this is
+	 * useful when combined with Java's "foreach" control structure.
 	 */
-	private static class SetIterator implements Iterator<AvailObject>
+	public abstract static class SetIterator
+	implements Iterator<AvailObject>
 	{
-		/**
-		 * The path through set bins to the current leaf non-bin.
-		 */
-		final Deque<AvailObject> binStack = new ArrayDeque<AvailObject>();
-
-		/**
-		 * The position navigated through each bin.  It should contain one
-		 * fewer than the number of elements in binStack, except when they're
-		 * both empty, indicating {@code !hasNext()}.
-		 */
-		final Deque<Integer> subscriptStack = new ArrayDeque<Integer>();
-
-		/**
-		 * Construct a new {@link SetIterator} over the elements recursively
-		 * contained in the given bin / null / single object.
-		 *
-		 * @see ObjectSlots#ROOT_BIN
-		 * @param root The root bin over which to iterate.
-		 */
-		SetIterator (final AvailObject root)
-		{
-			followLeftmost(root);
-		}
-
-		/**
-		 * Visit this bin or element.  In particular, travel down its left spine
-		 * so that it's positioned at the leftmost descendant.
-		 *
-		 * @param binOrElement The bin or element to begin enumerating.
-		 */
-		private void followLeftmost (final AvailObject binOrElement)
-		{
-			if (binOrElement.equalsNull())
-			{
-				assert binStack.isEmpty();
-				assert subscriptStack.isEmpty();
-			}
-			else
-			{
-				binStack.addLast(binOrElement);
-				AvailObject currentBinOrElement = binOrElement;
-				while (currentBinOrElement.isSetBin())
-				{
-					subscriptStack.addLast(1);
-					currentBinOrElement = currentBinOrElement.binElementAt(1);
-					binStack.addLast(currentBinOrElement);
-				}
-				assert binStack.size() == subscriptStack.size() + 1;
-			}
-		}
-
-		@Override
-		public AvailObject next ()
-		{
-			assert !binStack.isEmpty();
-			final AvailObject result = binStack.removeLast();
-			assert binStack.size() == subscriptStack.size();
-			while (true)
-			{
-				if (subscriptStack.isEmpty())
-				{
-					return result;
-				}
-				final int subscript = subscriptStack.getLast();
-				final AvailObject bin = binStack.getLast().traversed();
-				final int maxSubscript = bin.objectSlotsCount()
-					- bin.descriptor().numberOfFixedObjectSlots;
-				if (subscript != maxSubscript)
-				{
-					assert !binStack.isEmpty();
-					subscriptStack.removeLast();
-					subscriptStack.addLast(subscript + 1);
-					assert binStack.size() == subscriptStack.size();
-					followLeftmost(
-						binStack.getLast().binElementAt(subscript + 1));
-					assert binStack.size() == subscriptStack.size() + 1;
-					return result;
-				}
-				subscriptStack.removeLast();
-				binStack.removeLast();
-				assert binStack.size() == subscriptStack.size();
-			}
-		}
-
-		@Override
-		public boolean hasNext ()
-		{
-			return !binStack.isEmpty();
-		}
-
 		@Override
 		public void remove ()
 		{
@@ -551,10 +462,10 @@ public class SetDescriptor extends Descriptor
 	}
 
 	@Override @AvailMethod
-	Iterator<AvailObject> o_Iterator (
+	SetIterator o_Iterator (
 		final AvailObject object)
 	{
-		return new SetIterator(rootBin(object));
+		return rootBin(object).setBinIterator();
 	}
 
 	@Override @AvailMethod
@@ -565,7 +476,7 @@ public class SetDescriptor extends Descriptor
 		final AvailObject result = ObjectTupleDescriptor.mutable().create(size);
 		for (int i = 1; i <= size; i++)
 		{
-			// Initialize it for when do use our own garbage collection again.
+			// Initialize it for when we use our own garbage collection again.
 			result.tupleAtPut(i, NullDescriptor.nullObject());
 		}
 		int index = 1;

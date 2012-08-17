@@ -44,6 +44,7 @@ import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.InfinityDescriptor.IntegerSlots;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
+import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.exceptions.*;
 import com.avail.exceptions.ArithmeticException;
@@ -6310,5 +6311,31 @@ implements Iterable<AvailObject>
 	public boolean isMarkerNode ()
 	{
 		return descriptor.o_IsMarkerNode(this);
+	}
+
+	/**
+	 * @param shiftFactor
+	 * @param truncationBits
+	 * @param canDestroy
+	 * @return
+	 */
+	public AvailObject bitShiftLeftTruncatingToBits (
+		final AvailObject shiftFactor,
+		final AvailObject truncationBits,
+		final boolean canDestroy)
+	{
+		return descriptor.o_BitShiftLeftTruncatingToBits(
+			this,
+			shiftFactor,
+			truncationBits,
+			canDestroy);
+	}
+
+	/**
+	 * @return
+	 */
+	public SetIterator setBinIterator ()
+	{
+		return descriptor.o_SetBinIterator (this);
 	}
 }

@@ -461,6 +461,8 @@ System exception "unwind-sentinel" (16)
 	extends system exception;
 System exception "not-enumeration" (17)
 	extends invocation exception;
+System exception "shift-and-truncate-requires-non-negative" (18)
+	extends arithmetic exception;
 System exception "no-method" (19)
 	extends element-access exception;
 System exception "wrong-number-of-outers" (20)

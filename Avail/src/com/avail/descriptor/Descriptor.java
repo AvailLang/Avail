@@ -38,9 +38,10 @@ import com.avail.annotations.*;
 import com.avail.compiler.*;
 import com.avail.descriptor.AbstractNumberDescriptor.*;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
-import com.avail.descriptor.MapDescriptor.MapIterable;
+import com.avail.descriptor.MapDescriptor.*;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
+import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.exceptions.*;
 import com.avail.exceptions.UnsupportedOperationException;
@@ -4599,7 +4600,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public MapIterable o_MapBinIterable (
+	MapIterable o_MapBinIterable (
 		final AvailObject object)
 	{
 		throw unsupportedOperationException();
@@ -4626,5 +4627,40 @@ extends AbstractDescriptor
 		final AvailObject object)
 	{
 		return false;
+	}
+
+	@Override
+	AvailObject o_BitShiftLeftTruncatingToBits (
+		final AvailObject object,
+		final AvailObject shiftFactor,
+		final AvailObject truncationBits,
+		final boolean canDestroy)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	SetIterator o_SetBinIterator (
+		final AvailObject object)
+	{
+		// By default an object acts like a bin of size one.
+		return new SetDescriptor.SetIterator()
+		{
+			private boolean hasNext = true;
+
+			@Override
+			public AvailObject next ()
+			{
+				assert hasNext;
+				hasNext = false;
+				return object;
+			}
+
+			@Override
+			public boolean hasNext ()
+			{
+				return hasNext;
+			}
+		};
 	}
 }

@@ -470,7 +470,6 @@ public class MapDescriptor extends Descriptor
 		final AvailObject object)
 	{
 		return rootBin(object).mapBinIterable();
-		// return new MapIterable(rootBin(object));
 	}
 
 	@Override @AvailMethod @ThreadSafe

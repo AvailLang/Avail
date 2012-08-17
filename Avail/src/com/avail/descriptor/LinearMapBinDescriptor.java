@@ -462,7 +462,7 @@ extends MapBinDescriptor
 	}
 
 	@Override
-	public MapIterable o_MapBinIterable (
+	MapIterable o_MapBinIterable (
 		final AvailObject object)
 	{
 		object.makeImmutable();
