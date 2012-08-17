@@ -1064,6 +1064,36 @@ Primitive "reset to mark" is
 ] : ⊤;
 
 /**
+ * Define the indicated grammatical restrictions. Each method name in
+ * `methodsToRestrict` must accept the same number of arguments, though not
+ * necessarily the same types (or the same order of types). Each element `e` of
+ * `exclusions`, itself a set of method names, corresponds to an argument
+ * position `n` of any method name in `methodsToRestrict`. The compiler rejects
+ * parses of source text that invoke methods named in `e` when they occur
+ * grammatically at argument position `n` of an invocation of any method named
+ * in `methodsToRestrict`.
+ *
+ * Note that "argument position" corresponds to a blank, not to a top-level
+ * repeating sequence (indicated by guillemet notation).
+ *
+ * Parameters:
+ *    methodsToRestrict - A set of method names, each of which should be
+ *       restricted.
+ *    exclusions - A tuple of sets of method names. The method names in the
+ *       `n`-th set are restricted from occurring grammatically at the `n`-th
+ *       argument position of any invocation of a method named in
+ *       `methodsToRestrict`.
+ */
+Primitive "Grammatical restriction_is_" is
+[
+	methodsToRestrict : set of atom,
+	exclusions : tuple of set of atom
+|
+	Primitive 264 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : ⊤;
+
+/**
  * Compute and answer an approximation of `dividend` modulo `divisor`, i.e. the
  * remainder produced by dividing the arguments.
  *

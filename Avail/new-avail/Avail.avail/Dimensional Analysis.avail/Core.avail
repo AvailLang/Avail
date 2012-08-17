@@ -35,6 +35,7 @@ Versions
 	"dev"
 Uses
 	"Feature Renames (Conversion)",
+	"Feature Renames (Inequalities)",
 	"Foundation",
 	"Unit Testing"
 Names
@@ -88,6 +89,8 @@ Names
 
 	/* Arithmetic. */
 	"-_",
+	"`|_`|",
+	"_mod_",
 	"_+_",
 	"_-_",
 	"_×_",
@@ -821,7 +824,14 @@ Semantic restriction "_+_" is
 			];
 			a + b
 		](x's extent, y's extent);
-	numericType (x's metric's instance)
+	if |x's metric| = 1 then
+	[
+		numericType (x's metric's instance)
+	]
+	else
+	[
+		dimensioned numericType
+	]
 ];
 
 /**
@@ -865,7 +875,14 @@ Semantic restriction "_-_" is
 			];
 			a - b
 		](x's extent, y's extent);
-	numericType (x's metric's instance)
+	if |x's metric| = 1 then
+	[
+		numericType (x's metric's instance)
+	]
+	else
+	[
+		dimensioned numericType
+	]
 ];
 
 /**
@@ -972,7 +989,7 @@ Semantic restriction "_×_" is
 	]
 	else
 	[
-		extend dimensioned quantity with extent : numericType
+		dimensioned numericType
 	]
 ];
 
@@ -1020,7 +1037,7 @@ Semantic restriction "_×_" is
 	]
 	else
 	[
-		extend dimensioned quantity with extent : numericType
+		dimensioned numericType
 	]
 ];
 
@@ -1138,7 +1155,7 @@ Semantic restriction "_÷_" is
 	]
 	else
 	[
-		extend dimensioned quantity with extent : numericType
+		dimensioned numericType
 	]
 ];
 
@@ -1191,7 +1208,88 @@ Semantic restriction "_÷_" is
 	]
 	else
 	[
-		extend dimensioned quantity with extent : numericType
+		dimensioned numericType
+	]
+];
+
+/**
+ * Compute and answer the remainder after dividing the dividend by the divisor.
+ * 
+ * @method "_mod_"
+ * @param "dividend" "dimensioned quantity"
+ *        The dividend.
+ * @param "divisor" "number"
+ *        The divisor.
+ * @returns "dimensioned quantity"
+ *          The remainder.
+ */
+Public stable method "_mod_" is
+[
+	dividend : dimensioned quantity,
+	divisor : number
+|
+	(dividend's extent mod divisor) (dividend's metric)
+] : dimensioned quantity;
+
+Semantic restriction "_mod_" is
+[
+	x : dimensioned quantity's type,
+	y : number's type
+|
+	numericType ::=
+		type promotion function for
+		[
+			a : number,
+			b : number
+		|
+			If b = 0 ∧ [ a's type ⊆ extended integer ] then
+			[
+				Reject parse, expected: "denominator not to be 0"
+			];
+			infinities ::= {∞, -∞};
+			If a ∈ infinities ∧ [ b ∈ infinities ] then
+			[
+				Reject parse, expected:
+					"either numerator or denominator to be finite"
+			];
+			a mod b
+		](x's extent, y);
+	if |x's metric| = 1 then
+	[
+		numericType (x's metric's instance)
+	]
+	else
+	[
+		dimensioned numericType
+	]
+];
+
+Semantic restriction "_mod_" is
+[
+	q : dimensioned extended integer's type,
+	b : extended integer's type
+|
+	a ::= q's extent;
+	numericType ::=
+		if ⎣b⎦ = ⎡b⎤
+			∧ [ ⎣a⎦ is finite
+			∧ [ ⎡a⎤ is finite
+			∧ [ ⎣a⎦ ÷ ⎣b⎦ = ⎡a⎤ ÷ ⎣b⎦ ] ] ]
+		then
+		[
+			[⎣a⎦ mod ⎣b⎦ .. ⎡a⎤ mod ⎣b⎦]
+		]
+		else
+		[
+			[0..⎡b⎤)
+		];
+	if |q's metric| = 1 then
+	[
+		numericType (q's metric's instance)
+	]
+	else
+	[
+		dimensioned numericType
 	]
 ];
 
@@ -1224,19 +1322,113 @@ Semantic restriction "-_" is
 		|
 			0 - b
 		](0's type, x's extent);
-	numericType (x's metric's instance)
+	if |x's metric| = 1 then
+	[
+		numericType (x's metric's instance)
+	]
+	else
+	[
+		dimensioned numericType
+	]
+];
+
+/**
+ * Compute and answer the absolute value of the argument.
+ * 
+ * @method "`|_`|"
+ * @param "x" "dimensioned quantity"
+ *        A {@type "dimensioned quantity"}.
+ * @returns "dimensioned quantity"
+ *          The absolute value of {@param "x"}.
+ */
+Public stable method "`|_`|" is
+[
+	x : dimensioned quantity
+|
+	|x's extent| x's metric
+] : dimensioned quantity;
+
+Semantic restriction "`|_`|" is
+[
+	x : dimensioned quantity's type
+|
+	numericType ::=
+		cast x's extent into [t : extended integer's type | [0..∞]]
+		else [x's extent];
+	if |x's metric| = 1 then
+	[
+		numericType (x's metric's instance)
+	]
+	else
+	[
+		dimensioned numericType
+	]
+];
+
+/**
+ * Compute and answer the floor of the argument.
+ * 
+ * @method "⎣_⎦"
+ * @param "quantity" "dimensioned extended integer"
+ *        An integral {@type "dimensioned quantity"}.
+ * @returns "dimensioned extended integer"
+ *          The floor of the argument.
+ */
+Stable abstract method "⎣_⎦" is [dimensioned quantity]→dimensioned quantity;
+
+Method "⎣_⎦" is
+[
+	quantity : dimensioned extended integer
+|
+	quantity
+] : dimensioned extended integer;
+
+Semantic restriction "⎣_⎦" is
+[
+	valueType : dimensioned extended integer's type
+|
+	valueType
+];
+
+/**
+ * Compute and answer the ceiling of the argument.
+ * 
+ * @method "⎣_⎦"
+ * @param "quantity" "dimensioned extended integer"
+ *        An integral {@type "dimensioned quantity"}.
+ * @returns "dimensioned extended integer"
+ *          The ceiling of the argument.
+ */
+Stable abstract method "⎡_⎤" is [dimensioned quantity]→dimensioned quantity;
+
+Method "⎡_⎤" is
+[
+	quantity : dimensioned extended integer
+|
+	quantity
+] : dimensioned extended integer;
+
+Semantic restriction "⎡_⎤" is
+[
+	valueType : dimensioned extended integer's type
+|
+	valueType
 ];
 
 [
 	sum      ::= {"_+_", "_-_"};
-	product  ::= {"_×_", "_÷_"};
+	product  ::= {"_×_", "_÷_", "_mod_"};
 	negation ::= {"-_"};
 	jux      ::= {"__"};
+	abs      ::= {"`|_`|"};
+	bounds   ::= {"⎣_⎦", "⎡_⎤"};
 
 	/* Establish the standard grammatical rules for arithmetic. */
 	Grammatical restriction sum is <∅, sum>;
 	Grammatical restriction product is <sum, sum ∪ product>;
 	Grammatical restriction negation is <sum ∪ product ∪ negation ∪ jux>;
+	Grammatical restriction abs is <abs>;
+	Grammatical restriction bounds is <bounds>;
 ]();
 
 /**
@@ -1580,11 +1772,24 @@ Semantic restriction "«_‡«=»?«≥»?«>»?»" is
 
 /* Disallow mixing and recursive parsing of comparison operations. */
 [
-	binary ::= {"_=_", "_≤_", "_<_", "_≥_", "_>_"};
-	chains ::= {"«_‡=»", "«_‡«=»?«≤»?«<»?»", "«_‡«=»?«≥»?«>»?»"};
+	binary ::=
+		{
+			$"_=_", $"_≤_", $"_<_", $"_≥_", $"_>_",
+			less-than atom, less-than-equal atom,
+			greater-than atom, greater-than-equal atom
+		};
+	chains ::=
+		{
+			$"«_‡=»", $"«_‡«=»?«≤»?«<»?»", $"«_‡«=»?«≥»?«>»?»",
+			chained less-than atom, chained greater-than atom
+		};
 	restrictions ::= binary ∪ chains;
 	Grammatical restriction chains is <restrictions>;
 	Grammatical restriction binary is <restrictions, restrictions>;
+	Grammatical restriction $"Require:_=_" is
+		<restrictions, restrictions>;
+	Grammatical restriction $"Require:_=_(_)" is
+		<restrictions, restrictions, ∅>;
 ]();
 
 /**

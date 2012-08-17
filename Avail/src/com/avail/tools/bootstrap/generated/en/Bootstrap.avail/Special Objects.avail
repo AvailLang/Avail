@@ -145,6 +145,7 @@ Names
 	/* 125 */ "tuple of expressions yielding any",
 	/* 102 */ "tuple of nybble",
 	/* 108 */ "tuple of semantic restriction function",
+	/* 128 */ "tuple of set of atom",
 	/*  74 */ "tuple of set of string",
 	/*  72 */ "tuple of string",
 	/* 100 */ "tuple of tuple",
@@ -293,6 +294,7 @@ _write_only_expression_variable         ::= special object 124;
 _tuple_of_expressions_yielding_any      ::= special object 125;
 _expression_yielding_any                ::= special object 126;
 _pojo_failure_function                  ::= special object 127;
+_tuple_of_set_of_atom                   ::= special object 128;
 
 /**
  * The practical abstract root of the Avail type lattice. `any` is the second
@@ -1033,5 +1035,10 @@ Primitive "expression yielding any" is
 Primitive "pojo failure function" is
 [
 	_pojo_failure_function
+];
+
+Primitive "tuple of set of atom" is
+[
+	_tuple_of_set_of_atom
 ];
 

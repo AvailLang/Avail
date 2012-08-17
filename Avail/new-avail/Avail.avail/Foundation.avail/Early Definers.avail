@@ -54,7 +54,7 @@ Body
  * module's "Names" section. Do nothing if the name is not specifically known.
  * 
  * @method "Require:_is public"
- * @param "string's type" "nameType"
+ * @param "nameType" "string's type"
  *        The type of the name.
  * @returns "⊤"
  */
@@ -98,7 +98,7 @@ Method "Require:_is public" is
  * module's "Names" section. Do nothing if the name is not specifically known.
  * 
  * @method "Require:_is public"
- * @param "atom's type" "nameType"
+ * @param "nameType" "atom's type"
  *        The type of the name.
  * @returns "⊤"
  */
@@ -149,7 +149,7 @@ Method "Require:_is public" is
  * "Names" section. Do nothing if the name is not specifically known.
  * 
  * @method "Require:_is private"
- * @param "string's type" "nameType"
+ * @param "nameType" "string's type"
  *        The type of the name.
  * @returns "⊤"
  */
@@ -193,7 +193,7 @@ Method "Require:_is private" is
  * "Names" section. Do nothing if the name is not specifically known.
  * 
  * @method "Require:_is private"
- * @param "atom's type" "nameType"
+ * @param "nameType" "atom's type"
  *        The type of the name.
  * @returns "⊤"
  */
@@ -249,9 +249,9 @@ Method "Require:_is private" is
  * methods.
  *
  * @method "Public abstract method_is_"
- * @param "string" "methodName"
+ * @param "methodName" "string"
  *        The name of the abstract method to declare.
- * @param "function meta" "aFunctionType"
+ * @param "aFunctionType" "function meta"
  *        The signature.
  * @returns "⊤"
  */
@@ -289,9 +289,9 @@ Semantic restriction "Public abstract method_is_" is
  * methods.
  *
  * @method "Public abstract method_is_"
- * @param "atom" "methodName"
+ * @param "methodName" "atom"
  *        The atom that uniquely names the abstract method to declare.
- * @param "function meta" "aFunctionType"
+ * @param "aFunctionType" "function meta"
  *        The signature.
  * @returns "⊤"
  */
@@ -330,9 +330,9 @@ Semantic restriction "Public abstract method_is_" is
  * forward declare all but the lexically first participant in the recursion.
  *
  * @method "Public forward method_is_"
- * @param "string" "methodName"
+ * @param "methodName" "string"
  *        The name of the method to forward declare.
- * @param "function meta" "aFunctionType"
+ * @param "aFunctionType" "function meta"
  *        The signature.
  * @returns "⊤"
  */
@@ -367,7 +367,7 @@ Semantic restriction "Public forward method_is_" is
  * extend existing methods.
  * 
  * @method "Public method_is_"
- * @param "string" "methodName"
+ * @param "methodName" "string"
  *        The name of the new method.
  * @param "function" "function"
  *        The original implementation of the method.
@@ -404,7 +404,7 @@ Semantic restriction "Public method_is_" is
  * extend existing methods.
  * 
  * @method "Public method_is_"
- * @param "atom" "methodName"
+ * @param "methodName" "atom"
  *        The atom that uniquely names the new method.
  * @param "function" "function"
  *        The original implementation of the method.
@@ -444,9 +444,9 @@ Semantic restriction "Public method_is_" is
  * existing methods.
  *
  * @method "Private abstract method_is_"
- * @param "string" "methodName"
+ * @param "methodName" "string"
  *        The name of the abstract method to declare.
- * @param "function meta" "aFunctionType"
+ * @param "aFunctionType" "function meta"
  *        The signature.
  * @returns "⊤"
  */
@@ -484,9 +484,9 @@ Semantic restriction "Private abstract method_is_" is
  * existing methods.
  *
  * @method "Private abstract method_is_"
- * @param "atom" "methodName"
+ * @param "methodName" "atom"
  *        The atom that uniquely names the abstract method to declare.
- * @param "function meta" "aFunctionType"
+ * @param "aFunctionType" "function meta"
  *        The signature.
  * @return "⊤"
  */
@@ -525,9 +525,9 @@ Semantic restriction "Private abstract method_is_" is
  * forward declare all but the lexically first participant in the recursion.
  *
  * @method "Private forward method_is_"
- * @param "string" "methodName"
+ * @param "methodName" "string"
  *        The name of the method to forward declare.
- * @param "function meta" "aFunctionType"
+ * @param "aFunctionType" "function meta"
  *        The signature.
  */
 Method "Private forward method_is_" is
@@ -561,7 +561,7 @@ Semantic restriction "Private forward method_is_" is
  * extend existing methods.
  * 
  * @method "Private method_is_"
- * @param "string" "methodName"
+ * @param "methodName" "string"
  *        The name of the new method.
  * @param "function" "function"
  *        The original implementation of the method.
@@ -598,7 +598,7 @@ Semantic restriction "Private method_is_" is
  * extend existing methods.
  * 
  * @method "Private method_is_"
- * @param "atom" "methodName"
+ * @param "methodName" "atom"
  *        The atom that uniquely names the new method.
  * @param "function" "function"
  *        The original implementation of the method.
@@ -640,9 +640,9 @@ Semantic restriction "Private method_is_" is
  * repeating sequence (indicated by guillemet notation).
  *
  * @method "Grammatical restriction_is_"
- * @param "string" "methodsName"
+ * @param "methodsName" "string"
  *        The name of the method which should be restricted.
- * @param "tuple of set of string" "exclusions"
+ * @param "exclusions" "tuple of set of string"
  *        A tuple of sets of method names. The method names in the `n`-th set
  *        are restricted from occurring grammatically at the `n`-th argument
  *        position of any invocation of the method named by `methodName`.
@@ -656,6 +656,39 @@ Method "Grammatical restriction_is_" is
 	Invoke
 	[
 		methodsToRestrict : set of string
+	|
+		Grammatical restriction methodsToRestrict is exclusions;
+	]
+	with <{methodName}>;
+] : ⊤;
+
+/**
+ * Define the indicated grammatical restrictions. Each element `e` of
+ * `exclusions`, itself a set of method names, corresponds to an argument
+ * position `n` of `methodName`. The compiler rejects parses of source text that
+ * invoke methods named in `e` when they occur grammatically at argument
+ * position `n` of an invocation of the method named by `methodName`.
+ *
+ * Note that "argument position" corresponds to a blank, not to a top-level
+ * repeating sequence (indicated by guillemet notation).
+ *
+ * @method "Grammatical restriction_is_"
+ * @param "methodsName" "atom"
+ *        The name of the method which should be restricted.
+ * @param "exclusions" "tuple of set of string"
+ *        A tuple of sets of method names. The method names in the `n`-th set
+ *        are restricted from occurring grammatically at the `n`-th argument
+ *        position of any invocation of the method named by `methodName`.
+ * @returns "⊤"
+ */
+Method "Grammatical restriction_is_" is
+[
+	methodName : atom,
+	exclusions : tuple of set of atom
+|
+	Invoke
+	[
+		methodsToRestrict : set of atom
 	|
 		Grammatical restriction methodsToRestrict is exclusions;
 	]

@@ -247,7 +247,7 @@ Semantic restriction "⎡_⎤" is
 ];
 
 /**
- * Compute and answer the remainder after dividing the divident by the divisor.
+ * Compute and answer the remainder after dividing the dividend by the divisor.
  * 
  * Parameters:
  *    dividend - The dividend.
@@ -264,7 +264,7 @@ Method "_mod_" is
 ] : number;
 
 /**
- * Compute and answer the remainder after dividing the divident by the divisor.
+ * Compute and answer the remainder after dividing the dividend by the divisor.
  * 
  * Parameters:
  *    dividend - The dividend.

@@ -688,6 +688,13 @@ implements ThreadFactory
 				TupleDescriptor.from(
 					PojoTypeDescriptor.forClass(Throwable.class)),
 				BottomTypeDescriptor.bottom());
+		specialObjects[128] =
+			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+				IntegerRangeTypeDescriptor.wholeNumbers(),
+				TupleDescriptor.empty(),
+				SetTypeDescriptor.setTypeForSizesContentType(
+					IntegerRangeTypeDescriptor.wholeNumbers(),
+					ATOM.o()));
 
 
 		// Declare all special atoms

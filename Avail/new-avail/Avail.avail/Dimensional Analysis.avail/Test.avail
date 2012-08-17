@@ -42,11 +42,10 @@ Body
 
 Test "comparison" in dimensional analysis test suite is
 [
-	From 1 to 10 do
+	For each map 1 to 10 through [i : [1..10] | i m] do
 	[
-		i : [1..10]
+		q : [1..10] m
 	|
-		q ::= i m;
 		Require: q = q;
 		Require: q ≤ q;
 		Require: q ≥ q;
@@ -59,10 +58,105 @@ Test "comparison" in dimensional analysis test suite is
 		Require: q ≥ -∞ m;
 		Require: q > -∞ m;
 		Require: q = q = q;
-		/* TODO: [TLS] Resolve the ambiguity. */
-		/*
 		Require: q - 1 m ≤ q - 1 m < q = q < q + 1 m ≤ q + 1 m;
 		Require: q + 1 m ≥ q + 1 m > q = q > q - 1 m ≥ q - 1 m;
-		*/
 	];
 ];
+
+Test "negation" in dimensional analysis test suite is
+[
+	For each map 1 to 10 through [i : [1..10] | i s] do
+	[
+		q : [1..∞] s
+	|
+		Require: -q ≠ q;
+		Require: |-q| = q;
+		Require: -(-q) = q;
+	];
+	Require: -0 mol = 0 mol;
+];
+
+Test "addition" in dimensional analysis test suite is
+[
+	For each map 1 to 10 through [i : [1..10] | i K] do
+	[
+		q : [1..10] K
+	|
+		Require: q + 0 K = q;
+		Require: q + -q = 0 K;
+		Require: q + 1 K > q;
+		Require: q + q = q × 2;
+		From 1 to 10 do [i : [1..10] | Require: q + i K = i K + q; ];
+	];
+	Require: 2147483647 m + 1 m = 2147483648 m;
+	Require: 9223372036854775807 s + 1 s = 9223372036854775808 s;
+	Require: 1111111111111111111111111 A + 1111111111111111111111111 A
+		= 2222222222222222222222222 A;
+	Require: ∞ m + 1 m = ∞ m;
+	Require: ∞ m + ∞ m = ∞ m;
+	Require: -∞ m + 1 m = -∞ m;
+	Require: -∞ m + -∞ m = -∞ m;
+	Require: 1.0f s + 1.0f s = 2.0f s;
+	Require: 1.0d s + 1.0d s = 2.0d s;
+	Require: 1 s + 1.0f s = 2.0f s;
+	Require: 1 s + 1.0d s = 2.0d s;
+	Require: 1.0f s + 1.0d s = 2.0d s;
+];
+
+Test "cannot add unlike infinities" in dimensional analysis test suite is
+[
+	/* Hide ∞ from the compiler. */
+	v : dimensioned extended integer := ∞ m;
+	Require: [v + -v] raises cannot-add-unlike-infinities exception;
+	Require: [-v + v] raises cannot-add-unlike-infinities exception;
+];
+
+Test "cannot add unlike units" in dimensional analysis test suite is
+[
+	u : dimensioned integer := 1 m;
+	v : dimensioned integer := 1 cd;
+	Ignore: u + v;
+]
+must raise incompatible-quantities exception;
+
+Test "subtraction" in dimensional analysis test suite is
+[
+	For each map 1 to 10 through [i : [1..10] | i cd] do
+	[
+		q : [1..10] cd
+	|
+		Require: q - 0 cd = q;
+		Require: q - q = 0 cd;
+		Require: q - -q = q + q;
+		For each 1 to 10 do [i : [1..10] | Require: q - i cd = -(i cd - q); ];
+	];
+	Require: -2147483648 m - 1 m = -2147483649 m;
+	Require: -9223372036854775808 s - 1 s = -9223372036854775809 s;
+	Require: 2222222222222222222222222 A - 1111111111111111111111111 A
+		= 1111111111111111111111111 A;
+	Require: ∞ m - 1 m = ∞ m;
+	Require: ∞ m - -∞ m = ∞ m;
+	Require: -∞ m - 1 m = -∞ m;
+	Require: -∞ m - ∞ m = -∞ m;
+	Require: 2.0f m - 1.0f m = 1.0f m;
+	Require: 2.0d m - 1.0d m = 1.0d m;
+	Require: 2 m - 1.0f m = 1.0f m;
+	Require: 2 m - 1.0d m = 1.0d m;
+	Require: 2.0f m - 1.0d m = 1.0d m;
+];
+
+Test "cannot subtract like infinities" in dimensional analysis test suite is
+[
+	/* Hide ∞ from the compiler. */
+	v : dimensioned extended integer := ∞ mol;
+	Require: [v - v] raises cannot-subtract-like-infinities exception;
+	Require: [-v - -v] raises cannot-subtract-like-infinities exception;
+];
+
+Test "cannot subtract unlike units" in dimensional analysis test suite is
+[
+	u : dimensioned integer := 1 m;
+	v : dimensioned integer := 1 cd;
+	Ignore: u - v;
+]
+must raise incompatible-quantities exception;
