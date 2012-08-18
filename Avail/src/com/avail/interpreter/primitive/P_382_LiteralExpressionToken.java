@@ -43,7 +43,7 @@ import com.avail.interpreter.*;
  * literal token} from which the specified {@linkplain LiteralNodeDescriptor
  * literal expression} was built.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_382_LiteralExpressionToken
 extends Primitive

@@ -43,7 +43,7 @@ import com.avail.interpreter.*;
  * of outer {@linkplain DeclarationNodeDescriptor declarations} needed by the
  * specified {@linkplain BlockNodeDescriptor block} to complete its meaning.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_368_BlockNeededVariables
 extends Primitive

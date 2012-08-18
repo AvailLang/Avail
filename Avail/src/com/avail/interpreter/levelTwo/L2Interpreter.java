@@ -147,7 +147,7 @@ import com.avail.interpreter.levelTwo.register.FixedRegister;
  * </p>
  *
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 final public class L2Interpreter extends Interpreter
 {
@@ -364,7 +364,7 @@ final public class L2Interpreter extends Interpreter
 	 *
 	 * @param runtime
 	 *            An {@link AvailRuntime}.
-	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
 	public L2Interpreter (final AvailRuntime runtime)
 	{

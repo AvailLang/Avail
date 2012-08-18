@@ -48,7 +48,7 @@ import com.avail.exceptions.*;
  * same protocol as any other variable, but reads and writes are of the pojo's
  * field.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class PojoFieldDescriptor
 extends Descriptor

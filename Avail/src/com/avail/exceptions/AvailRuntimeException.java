@@ -39,7 +39,7 @@ import com.avail.descriptor.AvailObject;
  * RuntimeException runtime exceptions} that are specific to the implementation
  * of {@link AvailObject} and its numerous primitive operations.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public abstract class AvailRuntimeException
 extends RuntimeException

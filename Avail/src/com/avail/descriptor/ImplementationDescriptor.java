@@ -48,7 +48,7 @@ import com.avail.annotations.*;
  * If a macro definition is present, it must be the only signature.
  * </p>
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public abstract class ImplementationDescriptor
 extends Descriptor

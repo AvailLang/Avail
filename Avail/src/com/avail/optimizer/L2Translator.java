@@ -56,7 +56,7 @@ import com.avail.utility.*;
  * optimizes as it does so, folding and inlining method invocations whenever
  * possible.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class L2Translator implements L1OperationDispatcher
 {

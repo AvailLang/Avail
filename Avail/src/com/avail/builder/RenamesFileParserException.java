@@ -36,7 +36,7 @@ package com.avail.builder;
  * {@code RenamesFileParserException} is thrown by a {@link RenamesFileParser}
  * when a {@linkplain RenamesFileParser#parse() parse} fails for any reason.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class RenamesFileParserException
 extends Exception

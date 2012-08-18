@@ -44,7 +44,7 @@ import com.avail.interpreter.*;
  * SendNodeDescriptor send expression}'s {@linkplain ListNodeDescriptor list} of
  * {@linkplain ParseNodeKind#EXPRESSION_NODE argument expressions}.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_385_SendArgumentsList
 extends Primitive

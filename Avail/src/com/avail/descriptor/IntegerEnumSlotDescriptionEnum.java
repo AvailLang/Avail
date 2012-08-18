@@ -45,7 +45,7 @@ import com.avail.annotations.Nullable;
  * intended to be enums, but Java doesn't provide a way to subcategorize enums.
  * </p>
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public interface IntegerEnumSlotDescriptionEnum
 {

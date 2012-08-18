@@ -44,7 +44,7 @@ import com.avail.serialization.SerializerOperation;
 /**
  * I represent a token scanned from Avail source code.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class TokenDescriptor
 extends Descriptor
@@ -101,7 +101,7 @@ extends Descriptor
 	 * An enumeration that lists the basic kinds of tokens that can be
 	 * encountered.
 	 *
-	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
 	public enum TokenType
 	implements IntegerEnumSlotDescriptionEnum

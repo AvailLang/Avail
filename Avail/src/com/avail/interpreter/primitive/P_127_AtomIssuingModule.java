@@ -44,7 +44,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 127</strong>: Answer the {@linkplain ModuleDescriptor
  * module} that issued the specified {@linkplain AtomDescriptor atom}.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_127_AtomIssuingModule
 extends Primitive

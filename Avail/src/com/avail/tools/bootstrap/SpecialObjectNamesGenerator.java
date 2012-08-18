@@ -42,7 +42,7 @@ import com.avail.descriptor.AvailObject;
  * Generate a {@linkplain PropertyResourceBundle property resource bundle} that
  * specifies unbound properties for the Avail names of the special objects.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class SpecialObjectNamesGenerator
 extends PropertiesFileGenerator

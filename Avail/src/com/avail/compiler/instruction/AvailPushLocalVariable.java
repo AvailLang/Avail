@@ -42,7 +42,7 @@ import java.util.List;
 /**
  * Push either a local variable (the variable itself) or an argument.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class AvailPushLocalVariable extends AvailPushVariable
 {

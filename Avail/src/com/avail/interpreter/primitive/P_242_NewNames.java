@@ -42,7 +42,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 242:</strong> Answer the introduced public names of the
  * specified {@linkplain ModuleDescriptor module}.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_242_NewNames
 extends Primitive

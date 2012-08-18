@@ -39,7 +39,7 @@ import org.junit.Test;
 /**
  * Check that the development environment is configured correctly.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class EnvironmentConfigurationTest
 {

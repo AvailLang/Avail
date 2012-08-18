@@ -41,7 +41,7 @@ package com.avail.interpreter.levelTwo;
  * operands, increasing the descriptiveness of the level two instruction set.
  * The names are not used in any way at runtime.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class L2NamedOperandType
 {

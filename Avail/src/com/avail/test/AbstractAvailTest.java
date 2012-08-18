@@ -45,7 +45,7 @@ import com.avail.utility.*;
  * {@code AbstractAvailTest} defines state and behavior common to actual Avail
  * library test classes.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public class AbstractAvailTest
 {

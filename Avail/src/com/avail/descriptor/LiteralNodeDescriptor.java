@@ -44,7 +44,7 @@ import com.avail.utility.*;
  * My instances are occurrences of literals parsed from Avail source code.  At
  * the moment only strings and non-negative numbers are supported.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class LiteralNodeDescriptor
 extends ParseNodeDescriptor
@@ -52,7 +52,7 @@ extends ParseNodeDescriptor
 	/**
 	 * My slots of type {@link AvailObject}.
 	 *
-	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
 	public enum ObjectSlots implements ObjectSlotsEnum
 	{

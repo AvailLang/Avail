@@ -40,7 +40,7 @@ import com.avail.interpreter.levelTwo.*;
  * Add the value in one int register to another int register, truncating the
  * result to fit in the second register.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class L2_ADD_INT_TO_INT_MOD_32_BITS extends L2Operation
 {

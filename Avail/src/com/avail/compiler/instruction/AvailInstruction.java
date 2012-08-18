@@ -48,7 +48,7 @@ import static com.avail.descriptor.AvailObject.*;
  * information that affects the precise nybblecodes that will ultimately be
  * emitted.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public abstract class AvailInstruction
 {

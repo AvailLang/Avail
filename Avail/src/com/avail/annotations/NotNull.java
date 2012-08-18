@@ -57,7 +57,7 @@ import java.lang.annotation.Target;
  * initialized, it must not and must never contain {@code null}.</li>
  * </ul></p>
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Retention(RetentionPolicy.CLASS)
 @Target({

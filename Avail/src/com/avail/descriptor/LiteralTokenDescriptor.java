@@ -44,7 +44,7 @@ import com.avail.serialization.SerializerOperation;
  * <p>In addition to the state inherited from {@link TokenDescriptor}, I add a
  * field to hold the literal value itself.</p>
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class LiteralTokenDescriptor
 extends TokenDescriptor
@@ -53,7 +53,7 @@ extends TokenDescriptor
 	 * My slots of type {@link AvailObject}.  Note that they have to start the
 	 * same as in my superclass {@link TokenDescriptor}.
 	 *
-	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
 	public enum ObjectSlots
 	implements ObjectSlotsEnum

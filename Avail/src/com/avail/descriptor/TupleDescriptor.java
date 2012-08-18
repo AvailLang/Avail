@@ -48,8 +48,8 @@ import com.avail.serialization.SerializerOperation;
  * defines a {@link IntegerSlots#HASH_OR_ZERO HASH_OR_ZERO} integer slot which
  * must be defined in all subclasses.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public abstract class TupleDescriptor
 extends Descriptor
@@ -699,7 +699,7 @@ extends Descriptor
 	}
 
 	/**
-	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
 	@Override @AvailMethod
 	boolean o_IsString (final AvailObject object)
@@ -866,7 +866,7 @@ extends Descriptor
 	}
 
 	/**
-	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
 	@Override
 	public Iterator<AvailObject> o_Iterator (final AvailObject object)

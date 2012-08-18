@@ -49,7 +49,7 @@ import com.avail.exceptions.*;
  * #specialObject(int) special objects} that define an Avail system. It also
  * manages global resources, such as file connections.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class AvailRuntime
 implements ThreadFactory
@@ -377,7 +377,7 @@ implements ThreadFactory
 	 * @return An {@link AvailObject}.
 	 * @throws ArrayIndexOutOfBoundsException
 	 *         If the ordinal is out of bounds.
-	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
 	@ThreadSafe
 	public static AvailObject specialObject (final int ordinal)

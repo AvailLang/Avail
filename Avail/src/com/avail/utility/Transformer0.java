@@ -36,7 +36,7 @@ package com.avail.utility;
  * Implementors of {@code Transformer0} provide a single arbitrary operation
  * that accepts zero arguments and produces a result.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
  * @param <X> The type of value produced by the operation.
  */

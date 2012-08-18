@@ -39,7 +39,7 @@ import com.avail.interpreter.levelTwo.*;
  * Add the value in one int register to another int register, jumping to the
  * specified target if the result not fit in an int.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class L2_ADD_INT_TO_INT extends L2Operation
 {

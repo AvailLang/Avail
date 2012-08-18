@@ -65,8 +65,8 @@ import com.avail.visitor.*;
  * AbstractDescriptor} have the prefix "o_", both to make them stand out better
  * and to indicate the additional first argument.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class AvailObject
 extends AvailObjectRepresentation
@@ -2070,7 +2070,7 @@ implements Iterable<AvailObject>
 	 * AvailObject receiver}.
 	 *
 	 * @return A 64-bit signed Java {@code long}
-	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
 	public long extractLong ()
 	{

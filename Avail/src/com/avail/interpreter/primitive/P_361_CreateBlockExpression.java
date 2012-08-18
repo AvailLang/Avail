@@ -48,7 +48,7 @@ import com.avail.interpreter.*;
  * argument declarations}, primitive number, statements, result type, and
  * exception set.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_361_CreateBlockExpression
 extends Primitive

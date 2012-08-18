@@ -66,7 +66,7 @@ import com.avail.interpreter.*;
 /**
  * &lt;strong&gt;Primitive ${primitiveNumber}&lt;/strong&gt;: TODO: [TLS] Document this!
  *
- * @author Todd L Smith &amp;lt;anarakul@gmail.com&amp;gt;
+ * @author Todd L Smith &amp;lt;todd@availlang.org&amp;gt;
  */
 public final class ${primary_type_name}
 extends Primitive

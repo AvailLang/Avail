@@ -43,7 +43,7 @@ import com.avail.descriptor.AvailObject;
  * the effort to parse a subexpression starting at a specific token is reused
  * when backtracking.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class AvailCompilerFragmentCache
 {

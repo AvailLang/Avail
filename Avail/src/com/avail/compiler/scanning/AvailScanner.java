@@ -44,7 +44,7 @@ import com.avail.descriptor.TokenDescriptor.TokenType;
  * of {@linkplain TokenDescriptor tokens}, which are tastier for the {@linkplain
  * AbstractAvailCompiler compiler}.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class AvailScanner
 {
@@ -316,7 +316,7 @@ public class AvailScanner
 	 * An enumeration of actions to be performed based on the next character
 	 * encountered.
 	 *
-	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
 	enum ScannerAction
 	{

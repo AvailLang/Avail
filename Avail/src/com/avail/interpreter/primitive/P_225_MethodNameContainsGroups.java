@@ -43,7 +43,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 225</strong>: Treating the argument as a {@linkplain
  * MethodDescriptor method} name, answer whether it contains groups.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_225_MethodNameContainsGroups
 extends Primitive

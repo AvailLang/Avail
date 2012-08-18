@@ -39,7 +39,7 @@ import com.avail.descriptor.AvailObject;
  * {@code MarshalingException} indicates that an error occurred during the
  * marshaling of an {@linkplain AvailObject Avail object} to Java.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class MarshalingException
 extends AvailRuntimeException

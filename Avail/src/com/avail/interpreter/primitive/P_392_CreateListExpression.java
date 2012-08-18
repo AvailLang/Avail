@@ -45,7 +45,7 @@ import com.avail.interpreter.*;
  * list} from the specified {@linkplain TupleDescriptor tuple} of {@linkplain
  * ParseNodeKind#EXPRESSION_NODE expressions}.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_392_CreateListExpression
 extends Primitive

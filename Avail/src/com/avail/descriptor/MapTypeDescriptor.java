@@ -45,7 +45,7 @@ import com.avail.serialization.SerializerOperation;
  * must be within the indicates size range and have keys and values of the
  * specified {@linkplain TypeDescriptor types}.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class MapTypeDescriptor
 extends TypeDescriptor

@@ -47,7 +47,7 @@ import com.avail.serialization.SerializerOperation;
  * covariantly constraints a literal token's type with the type of the value it
  * contains.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class LiteralTokenTypeDescriptor
 extends TypeDescriptor

@@ -55,7 +55,7 @@ import com.avail.test.TypeConsistencyTest;
  * properties}, such as closure under type union.
  * </p>
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public abstract class TypeDescriptor
 extends AbstractTypeDescriptor
@@ -73,7 +73,7 @@ extends AbstractTypeDescriptor
 	 * method.
 	 * </p>
 	 *
-	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
 	public enum Types
 	{

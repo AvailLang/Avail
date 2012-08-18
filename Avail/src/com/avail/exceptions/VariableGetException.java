@@ -38,7 +38,7 @@ import com.avail.descriptor.AvailObject;
  * {@code VariableGetException} is thrown when {@link AvailObject#getValue}
  * fails for any reason.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class VariableGetException
 extends AvailRuntimeException

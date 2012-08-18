@@ -39,7 +39,7 @@ import com.avail.descriptor.MapDescriptor.MapIterable;
  * This abstract class organizes the idea of nodes in a Bagwell Ideal Hash Tree
  * used to implement hashed maps.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public abstract class MapBinDescriptor
 extends Descriptor

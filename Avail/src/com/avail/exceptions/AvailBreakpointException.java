@@ -40,7 +40,7 @@ import com.avail.interpreter.primitive.*;
  * Java debugger may be configured to trap when this exception is raised,
  * thereby permitting VM-debugging within the context of specific Avail code.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class AvailBreakpointException
 extends RuntimeException

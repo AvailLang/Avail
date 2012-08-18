@@ -49,7 +49,7 @@ import com.avail.serialization.SerializerOperation;
  * methods normalize the representation to an invariant {@linkplain
  * VariableTypeDescriptor variable type descriptor}.</p>
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @see VariableTypeDescriptor
  */
 public final class ReadWriteVariableTypeDescriptor

@@ -42,7 +42,7 @@ import com.avail.descriptor.ModuleDescriptor;
  * {@linkplain ModuleDescriptor module} that has been resolved to an
  * {@linkplain File#isAbsolute() absolute} {@linkplain File file reference}.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class ResolvedModuleName
 extends ModuleName

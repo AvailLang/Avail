@@ -86,7 +86,7 @@ import com.avail.visitor.AvailSubobjectVisitor;
  * other just-in-time optimizations.
  * </p>
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public final class IndirectionDescriptor
 extends AbstractDescriptor
@@ -199,7 +199,7 @@ extends AbstractDescriptor
 	}
 
 	/**
-	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
 	@Override
 	Iterator<AvailObject> o_Iterator (final AvailObject object)
@@ -2427,7 +2427,7 @@ extends AbstractDescriptor
 	}
 
 	/**
-	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
 	@Override
 	long o_ExtractLong (final AvailObject object)
@@ -2538,7 +2538,7 @@ extends AbstractDescriptor
 	}
 
 	/**
-	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
 	@Override
 	boolean o_IsByteTuple (final AvailObject object)
@@ -2649,7 +2649,7 @@ extends AbstractDescriptor
 	}
 
 	/**
-	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
 	@Override
 	boolean o_IsString (final AvailObject object)

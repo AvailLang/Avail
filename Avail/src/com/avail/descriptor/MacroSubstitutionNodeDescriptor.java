@@ -46,14 +46,14 @@ import com.avail.utility.*;
  * macro} to its argument {@linkplain ParseNodeDescriptor expressions} to
  * produce an {@linkplain ObjectSlots#OUTPUT_PARSE_NODE output parse node}.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class MacroSubstitutionNodeDescriptor extends ParseNodeDescriptor
 {
 	/**
 	 * My slots of type {@link AvailObject}.
 	 *
-	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
 	public enum ObjectSlots implements ObjectSlotsEnum
 	{

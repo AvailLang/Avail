@@ -44,7 +44,7 @@ import com.avail.annotations.*;
  * and a {@linkplain PojoTypeDescriptor pojo type} that describes the pojo
  * contextually.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class PojoDescriptor
 extends Descriptor

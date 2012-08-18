@@ -36,7 +36,7 @@ package com.avail.utility;
  * Implementors of {@code Transformer3} provide a single arbitrary operation
  * that accepts three arguments and produces a result.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
  * @param <W> The type of the first argument to the operation.
  * @param <X> The type of the second argument to the operation.

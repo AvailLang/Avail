@@ -40,7 +40,7 @@ import com.avail.descriptor.ModuleDescriptor;
  * AvailBuilder builder} when a recursive {@linkplain ModuleDescriptor module}
  * dependency is discovered.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class RecursiveDependencyException
 extends Exception

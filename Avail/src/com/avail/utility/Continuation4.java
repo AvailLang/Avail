@@ -38,7 +38,7 @@ import com.avail.annotations.Nullable;
  * Implementors of {@code Continuation4} provide a single arbitrary operation
  * that accepts three arguments.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @param <W> The type of the first argument.
  * @param <X> The type of the second argument.
  * @param <Y> The type of the third argument.

@@ -39,7 +39,7 @@ package com.avail;
  * New instances should be obtained through the factory method
  * {@link AvailRuntime#newThread(Runnable)}.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class AvailThread
 extends Thread

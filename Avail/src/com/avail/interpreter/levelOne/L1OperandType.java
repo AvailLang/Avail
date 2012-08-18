@@ -42,7 +42,7 @@ import com.avail.descriptor.*;
  * L1OperandType}s  These operand types say how to interpret some integer that
  * occurs as the encoding of an actual operand of an instruction.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public enum L1OperandType
 {

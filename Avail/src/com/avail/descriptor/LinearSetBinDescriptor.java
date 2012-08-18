@@ -44,7 +44,7 @@ import com.avail.descriptor.SetDescriptor.SetIterator;
  * in no particular order.  If more elements need to be stored, a {@linkplain
  * HashedSetBinDescriptor hashed bin} will be used instead.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class LinearSetBinDescriptor
 extends SetBinDescriptor

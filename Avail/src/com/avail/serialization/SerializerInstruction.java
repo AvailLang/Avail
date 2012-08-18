@@ -38,7 +38,7 @@ import com.avail.descriptor.*;
  * A {@code SerializerInstruction} combines an {@link AvailObject} and a
  * {@link SerializerOperation} suitable for serializing it.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 final class SerializerInstruction
 {

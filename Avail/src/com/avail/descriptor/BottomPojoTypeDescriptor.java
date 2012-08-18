@@ -42,7 +42,7 @@ import com.avail.serialization.SerializerOperation;
  * describes the most specific Java reference type. Its only proper subtype is
  * Avail's own {@linkplain BottomTypeDescriptor bottom type}.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 final class BottomPojoTypeDescriptor
 extends PojoTypeDescriptor

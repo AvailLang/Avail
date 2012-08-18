@@ -43,7 +43,7 @@ import com.avail.interpreter.*;
  * VariableUseNodeDescriptor variable use} into a {@linkplain
  * ReferenceNodeDescriptor reference}.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public class P_354_CreateReferenceExpression extends Primitive
 {

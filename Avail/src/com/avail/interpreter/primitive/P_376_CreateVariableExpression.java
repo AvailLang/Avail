@@ -45,7 +45,7 @@ import com.avail.interpreter.*;
  * ParseNodeKind#LOCAL_VARIABLE_NODE local variable declaration} from the
  * specified {@linkplain TokenDescriptor token} and type.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_376_CreateVariableExpression
 extends Primitive

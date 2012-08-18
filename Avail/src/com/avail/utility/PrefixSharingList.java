@@ -50,7 +50,7 @@ import com.avail.annotations.*;
  *
  * @param <E> The type of elements in the list.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class PrefixSharingList<E> extends AbstractList<E>
 {

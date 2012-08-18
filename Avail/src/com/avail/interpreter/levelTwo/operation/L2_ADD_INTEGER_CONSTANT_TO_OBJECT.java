@@ -39,7 +39,7 @@ import com.avail.interpreter.levelTwo.*;
 /**
  * Add the value of a constant to the specified object register.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class L2_ADD_INTEGER_CONSTANT_TO_OBJECT extends L2Operation
 {

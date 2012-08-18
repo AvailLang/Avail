@@ -44,7 +44,7 @@ import com.avail.interpreter.*;
  * {@linkplain RandomAccessFile file} associated with the specified
  * {@linkplain AtomDescriptor handle}. Supports 64-bit file sizes.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public class P_166_FileSize
 extends Primitive

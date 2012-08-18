@@ -42,8 +42,8 @@ import com.avail.descriptor.SetDescriptor.SetIterator;
 /**
  * TODO: [MvG] Document this type!
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
- * @author Todd Smith &lt;anarakul@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd Smith &lt;todd@availlang.org&gt;
  */
 public final class HashedSetBinDescriptor
 extends SetBinDescriptor

@@ -44,7 +44,7 @@ import com.avail.interpreter.*;
  * method} at the specified {@linkplain TupleTypeDescriptor signature}. No
  * further implementations may be added below this signature.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_226_SealMethod
 extends Primitive

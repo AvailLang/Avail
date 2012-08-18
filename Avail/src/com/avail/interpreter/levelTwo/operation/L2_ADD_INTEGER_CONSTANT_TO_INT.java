@@ -40,7 +40,7 @@ import com.avail.interpreter.levelTwo.*;
  * Extract an int from the specified constant, and add it to an int register,
  * jumping to the target label if the result won't fit in an int.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class L2_ADD_INTEGER_CONSTANT_TO_INT extends L2Operation
 {

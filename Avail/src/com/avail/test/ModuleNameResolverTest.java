@@ -40,7 +40,7 @@ import com.avail.builder.*;
 /**
  * Unit tests for {@link ModuleNameResolver}.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class ModuleNameResolverTest
 {

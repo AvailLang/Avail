@@ -40,7 +40,7 @@ import com.avail.descriptor.ModuleDescriptor;
  * An {@code AvailCompilerException} is thrown by the {@linkplain
  * AbstractAvailCompiler Avail compiler} when compilation fails for any reason.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public class AvailCompilerException
 extends RuntimeException
@@ -61,7 +61,7 @@ extends RuntimeException
 	 * AbstractAvailCompiler compilation}.
 	 *
 	 * @return A {@linkplain ModuleName module name}.
-	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
 	public ModuleName moduleName ()
 	{

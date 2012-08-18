@@ -50,7 +50,7 @@ import com.avail.serialization.SerializerOperation;
  * {@link Serializable} describes <strong>1)</strong> any interface that extends
  * both and <strong>2)</strong> any class that implements both.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 final class FusedPojoTypeDescriptor
 extends PojoTypeDescriptor

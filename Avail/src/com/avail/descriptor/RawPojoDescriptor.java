@@ -46,7 +46,7 @@ import com.avail.annotations.*;
  * universally, but the implementation mechanisms frequently require raw pojos
  * (especially for defining {@linkplain PojoTypeDescriptor pojo types}).
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @see EqualityRawPojoDescriptor
  */
 public class RawPojoDescriptor

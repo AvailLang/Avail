@@ -57,7 +57,7 @@ import com.avail.utility.*;
  * {@code AvailBuilderFrame} is a simple Ui for the {@linkplain AvailBuilder
  * Avail builder}.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public class AvailBuilderFrame
 extends JFrame

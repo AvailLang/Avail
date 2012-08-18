@@ -38,7 +38,7 @@ import com.avail.descriptor.AtomDescriptor;
  * An {@code AmbiguousNameException} is thrown when a simple string name could
  * represent multiple {@linkplain AtomDescriptor true names}.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class AmbiguousNameException
 extends AvailException

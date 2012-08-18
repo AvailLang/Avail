@@ -44,7 +44,7 @@ import com.avail.interpreter.levelTwo.register.*;
  * associated register is being read or written or both, and how to interpret
  * the raw {@code int} that encodes such an operand.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public enum L2OperandType
 {

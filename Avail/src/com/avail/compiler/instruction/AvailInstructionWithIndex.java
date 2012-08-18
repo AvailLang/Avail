@@ -38,7 +38,7 @@ import com.avail.compiler.instruction.AvailInstruction;
  * This abstract subclass of {@link AvailInstruction} introduces a generic
  * index whose interpretation is left to subclasses.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public abstract class AvailInstructionWithIndex extends AvailInstruction
 {

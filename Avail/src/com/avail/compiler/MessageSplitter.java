@@ -50,8 +50,8 @@ import com.avail.exceptions.*;
  * of {@linkplain ParsingOperation instructions} that can be used directly for
  * parsing.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public class MessageSplitter
 {
@@ -1506,7 +1506,7 @@ public class MessageSplitter
 	 * alternative occurred during a parse. The message "a|an_" may be parsed as
 	 * either "a_" or "an_".</p>
 	 *
-	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
 	final class Alternation
 	extends Expression

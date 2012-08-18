@@ -44,7 +44,7 @@ import com.avail.interpreter.*;
  * MethodDescriptor method} name, answer the number of arguments expected for a
  * valid send of the name.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_224_MethodNameParametersCount
 extends Primitive

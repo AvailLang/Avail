@@ -41,7 +41,7 @@ import com.avail.descriptor.*;
  * combined with the {@linkplain ParserState position and state} of the parser
  * after the parse node was parsed.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class AvailCompilerCachedSolution
 {

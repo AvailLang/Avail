@@ -42,7 +42,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 379</strong>: Answer the {@linkplain TypeDescriptor type}
  * of the specified {@linkplain DeclarationNodeDescriptor declaration}.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_379_DeclarationType
 extends Primitive

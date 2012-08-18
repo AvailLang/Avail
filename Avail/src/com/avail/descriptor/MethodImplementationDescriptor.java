@@ -39,7 +39,7 @@ import com.avail.annotations.*;
  * An object instance of {@code MethodImplementationDescriptor} represents a
  * function in the collection of available functions for this method hierarchy.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class MethodImplementationDescriptor
 extends ImplementationDescriptor

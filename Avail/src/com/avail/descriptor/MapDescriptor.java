@@ -64,7 +64,7 @@ import com.avail.serialization.SerializerOperation;
  * their hashed equivalents.
  * </p>
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class MapDescriptor extends Descriptor
 {
@@ -491,7 +491,7 @@ public class MapDescriptor extends Descriptor
 	 * structure to be used on a {@linkplain MapDescriptor map} by suitable use
 	 * of {@linkplain MapDescriptor#o_MapIterable(AvailObject) mapIterable()}.
 	 *
-	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
 	public static class Entry
 	{
@@ -517,7 +517,7 @@ public class MapDescriptor extends Descriptor
 	 * MapDescriptor#o_MapIterable(AvailObject) mapIterable()} to support use
 	 * of Java's "foreach" control structure on {@linkplain MapDescriptor maps}.
 	 *
-	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
 	public abstract static class MapIterable
 	implements

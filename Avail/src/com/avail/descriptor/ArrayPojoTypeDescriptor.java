@@ -54,7 +54,7 @@ import com.avail.serialization.SerializerOperation;
  * SetTypeDescriptor set types}, and {@linkplain MapTypeDescriptor map
  * types}.</p>
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 final class ArrayPojoTypeDescriptor
 extends PojoTypeDescriptor
@@ -66,7 +66,7 @@ extends PojoTypeDescriptor
 	 * java.io.Serializable}, as required by the Java language specification.
 	 * The type parameter is used to specify the element type.
 	 *
-	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 * @param <T> The element type.
 	 */
 	static final class PojoArray<T>

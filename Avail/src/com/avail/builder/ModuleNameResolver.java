@@ -75,7 +75,7 @@ import com.avail.descriptor.ModuleDescriptor;
  *
  * <p>An instance is obtained via {@link RenamesFileParser#parse()}.</p>
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class ModuleNameResolver
 {

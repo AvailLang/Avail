@@ -39,7 +39,7 @@ import com.avail.interpreter.levelOne.L1Operation;
  * {@code AvailDuplicate} models the {@link
  * L1Operation#L1Ext_doDuplicate duplicate} nybblecode.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public class AvailDuplicate
 extends AvailInstruction

@@ -36,7 +36,7 @@ package com.avail.serialization;
  * A problem occurred while using a {@link Deserializer}, indicating an invalid
  * sequence of bytes.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class MalformedSerialStreamException extends Exception
 {

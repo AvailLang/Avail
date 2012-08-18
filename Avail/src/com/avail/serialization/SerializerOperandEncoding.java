@@ -41,7 +41,7 @@ import java.io.*;
  * {@link SerializerOperation}.  It assists in the disassembly and reassembly
  * of the various kinds of objects encountered in Avail.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 enum SerializerOperandEncoding
 {

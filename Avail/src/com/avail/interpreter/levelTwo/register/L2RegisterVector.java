@@ -39,8 +39,8 @@ import com.avail.optimizer.RegisterSet;
  * {@code L2RegisterVector} aggregates {@linkplain L2ObjectRegister object
  * registers} for convenient manipulation.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public class L2RegisterVector
 implements Iterable<L2ObjectRegister>

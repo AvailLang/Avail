@@ -42,7 +42,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 75</strong>: Does the {@linkplain AtomDescriptor name}
  * refer to a {@linkplain FiberDescriptor fiber}-local variable?
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_075_IsFiberVariable
 extends Primitive

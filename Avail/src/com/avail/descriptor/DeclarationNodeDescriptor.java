@@ -44,14 +44,14 @@ import com.avail.utility.*;
 /**
  * My instances represent assignment statements.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 {
 	/**
 	 * My slots of type {@link AvailObject}.
 	 *
-	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
 	public enum ObjectSlots implements ObjectSlotsEnum
 	{
@@ -83,7 +83,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * My slots of type {@linkplain Integer int}.
 	 *
-	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
 	public enum IntegerSlots implements IntegerSlotsEnum
 	{
@@ -100,7 +100,7 @@ public class DeclarationNodeDescriptor extends ParseNodeDescriptor
 	 * values (for module constants), and fixed variable objects (for module
 	 * variables).
 	 *
-	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
 	public enum DeclarationKind implements IntegerEnumSlotDescriptionEnum
 	{

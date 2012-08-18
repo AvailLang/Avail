@@ -49,7 +49,7 @@ import com.avail.serialization.*;
 /**
  * Unit tests for object serialization.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public final class SerializerTest
 {

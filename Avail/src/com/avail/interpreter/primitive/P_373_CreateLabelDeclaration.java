@@ -46,7 +46,7 @@ import com.avail.interpreter.*;
  * TokenDescriptor token} and {@linkplain ContinuationTypeDescriptor
  * continuation type}.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_373_CreateLabelDeclaration
 extends Primitive

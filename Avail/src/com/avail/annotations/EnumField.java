@@ -40,7 +40,7 @@ import com.avail.descriptor.*;
  * used to describe an integer value embedded in an integer slot that has this
  * annotation.  This is used for pretty-printing {@linkplain AvailObject}s.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD})

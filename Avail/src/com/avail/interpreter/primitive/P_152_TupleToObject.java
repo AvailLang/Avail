@@ -44,7 +44,7 @@ import com.avail.interpreter.*;
  * assignment is a 2-tuple whose first element is an {@linkplain AtomDescriptor
  * atom} that represents the field and whose second element is its value.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_152_TupleToObject
 extends Primitive

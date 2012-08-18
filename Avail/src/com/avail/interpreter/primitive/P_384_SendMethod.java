@@ -43,7 +43,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 384</strong>: Answer the {@linkplain SendNodeDescriptor
  * send expression}'s target {@linkplain MethodDescriptor method}.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_384_SendMethod
 extends Primitive

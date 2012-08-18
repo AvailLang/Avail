@@ -42,7 +42,7 @@ import java.util.List;
 /**
  * Push the value of an outer (lexically captured) variable.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class AvailGetOuterVariable extends AvailGetVariable
 {

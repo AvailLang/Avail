@@ -40,7 +40,7 @@ import com.avail.annotations.*;
  * ExtendedIntegerDescriptor}, {@link FloatDescriptor}, and {@link
  * DoubleDescriptor}.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public abstract class AbstractNumberDescriptor
 extends Descriptor

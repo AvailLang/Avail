@@ -40,7 +40,7 @@ import com.avail.interpreter.levelTwo.*;
  * Create a map from the specified key object registers and the corresponding
  * value object registers (writing the map into a specified object register).
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class L2_CREATE_MAP extends L2Operation
 {

@@ -44,7 +44,7 @@ import com.avail.interpreter.*;
  * BlockNodeDescriptor block}'s {@linkplain SetDescriptor set} of declared
  * exceptions.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_367_BlockDeclaredExceptions
 extends Primitive

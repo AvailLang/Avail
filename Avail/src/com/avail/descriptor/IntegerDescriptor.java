@@ -58,7 +58,7 @@ import com.avail.serialization.SerializerOperation;
  * long} can be represented with at most two slots.
  * </p>
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class IntegerDescriptor
 extends ExtendedIntegerDescriptor
@@ -1781,7 +1781,7 @@ extends ExtendedIntegerDescriptor
 	 *
 	 * @param aLong A Java {@code long}.
 	 * @return An {@link AvailObject}.
-	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
 	public static AvailObject fromLong (final long aLong)
 	{

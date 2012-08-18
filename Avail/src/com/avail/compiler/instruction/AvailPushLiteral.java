@@ -41,7 +41,7 @@ import java.io.ByteArrayOutputStream;
  * particular object (known at code generation time, undoubtedly earlier) onto a
  * {@linkplain ContinuationDescriptor continuation}'s stack.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class AvailPushLiteral extends AvailInstructionWithIndex
 {

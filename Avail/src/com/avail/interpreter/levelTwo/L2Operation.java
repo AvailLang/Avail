@@ -44,7 +44,7 @@ import com.avail.interpreter.levelTwo.register.*;
  * necessary to boost performance of frequently executed code.  Technically
  * level two is an optional part of the implementation, but modern hardware
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public abstract class L2Operation
 {

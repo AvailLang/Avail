@@ -85,7 +85,7 @@ package com.avail.descriptor;
  * <li>In the Debug perspective, go to the Variables view.  Select the tool bar
  * icon whose hover help is Show Logical Structure.</li>
  * </ol>
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class AvailObjectFieldHelper
 {

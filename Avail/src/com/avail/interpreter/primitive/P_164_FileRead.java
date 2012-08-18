@@ -48,7 +48,7 @@ import com.avail.interpreter.*;
  * answer a tuple containing all remaining bytes, or a very large buffer
  * size, whichever is less. Reading begins at the current file position.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public class P_164_FileRead
 extends Primitive

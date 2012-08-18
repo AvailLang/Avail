@@ -87,7 +87,7 @@ import com.avail.visitor.AvailSubobjectVisitor;
  * argument.  Code generation will eventually make this relatively onerous task
  * more tractable and less error prone.</p>
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public abstract class AbstractDescriptor
 {
@@ -3154,7 +3154,7 @@ public abstract class AbstractDescriptor
 	 *
 	 * @param object An {@link AvailObject}.
 	 * @return A 64-bit signed Java {@code long}
-	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
 	/**
 	 * @param object
@@ -4338,7 +4338,7 @@ public abstract class AbstractDescriptor
 	 *
 	 * @param object An {@link AvailObject}.
 	 * @return An {@linkplain Iterator iterator}.
-	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
 	/**
 	 * @param object

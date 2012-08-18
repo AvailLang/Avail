@@ -46,7 +46,7 @@ import com.avail.interpreter.*;
  * ByteTupleDescriptor tuple} containing the bytes that could not be written.
  * Writing begins at the current file position.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public class P_165_FileWrite
 extends Primitive

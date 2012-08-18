@@ -43,7 +43,7 @@ import com.avail.interpreter.*;
  * VariableUseNodeDescriptor target variable} of the {@linkplain
  * AssignmentNodeDescriptor assignment}.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_369_AssignmentTarget
 extends Primitive

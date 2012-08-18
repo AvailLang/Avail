@@ -41,7 +41,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 398</strong>: Extract the type of value that can be inside
  * a literal token that satisfies this literal token type.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public final class P_398_LiteralTokenTypeValueType
 extends Primitive

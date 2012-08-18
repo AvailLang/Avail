@@ -39,7 +39,7 @@ import java.lang.annotation.*;
  * is primarily useful to indicate that fields and methods should be accessible
  * by inner classes but not other classes defined in the same file or package.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Retention(RetentionPolicy.CLASS)
 @Target({

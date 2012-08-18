@@ -42,7 +42,7 @@ import com.avail.descriptor.*;
  * CompiledCodeDescriptor compiled code object} into a textual representation
  * of its sequence of {@linkplain L1Instruction level one instructions}.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class L1Disassembler
 {

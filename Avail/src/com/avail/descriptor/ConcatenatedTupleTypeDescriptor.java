@@ -43,7 +43,7 @@ import com.avail.serialization.SerializerOperation;
  * TupleTypeDescriptor tuple type} when computing the static type of the
  * concatenation of two tuples.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class ConcatenatedTupleTypeDescriptor
 extends TypeDescriptor

@@ -39,7 +39,7 @@ import com.avail.annotations.*;
  * This is a representation for {@linkplain TupleDescriptor tuples} that can
  * consist of arbitrary {@link AvailObject}s.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class ObjectTupleDescriptor
 extends TupleDescriptor

@@ -42,7 +42,7 @@ import com.avail.utility.*;
  * An {@code L2WriteVectorOperand} is an operand of type {@link
  * L2OperandType#WRITE_VECTOR}.  It holds an {@link L2RegisterVector}.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class L2WriteVectorOperand extends L2Operand
 {

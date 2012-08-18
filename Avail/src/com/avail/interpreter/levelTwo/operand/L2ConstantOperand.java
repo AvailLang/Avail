@@ -43,7 +43,7 @@ import com.avail.utility.*;
  * L2OperandType#CONSTANT}.  It also holds the actual {@link AvailObject} that
  * is the constant.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class L2ConstantOperand extends L2Operand
 {

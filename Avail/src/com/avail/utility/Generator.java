@@ -38,7 +38,7 @@ import com.avail.utility.Generator;
  * I represent the ability to generate something in the future, when my {@link
  * #value()} operation is invoked.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @param <X> The kind of thing to generate.
  */
 public abstract class Generator <X>

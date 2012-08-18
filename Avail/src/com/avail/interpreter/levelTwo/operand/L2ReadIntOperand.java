@@ -42,7 +42,7 @@ import com.avail.utility.*;
  * L2OperandType#READ_INT}.  It holds the actual {@link L2IntegerRegister} that
  * is to be accessed.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class L2ReadIntOperand extends L2Operand
 {

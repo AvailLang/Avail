@@ -46,8 +46,8 @@ import com.avail.interpreter.levelTwo.register.*;
  * produce a {@linkplain L2ChunkDescriptor Level Two Avail chunk} from a
  * {@linkplain CompiledCodeDescriptor compiled Level One code object}.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class L2CodeGenerator
 {

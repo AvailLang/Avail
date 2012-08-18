@@ -70,7 +70,7 @@ import com.avail.interpreter.levelTwo.register.*;
  * moveToHead() at appropriate times.
  * </p>
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class L2ChunkDescriptor
 extends Descriptor
@@ -355,7 +355,7 @@ extends Descriptor
 	 * strong or soft references to it), the index reserved for that chunk
 	 * becomes eligible for recycling.
 	 *
-	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
 	static class WeakChunkReference extends WeakReference<AvailObject>
 	{

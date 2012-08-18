@@ -42,7 +42,7 @@ import com.avail.exceptions.AvailErrorCode;
  * specifies unbound properties for the Avail names of the {@linkplain
  * AvailErrorCode primitive error codes}.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class ErrorCodeNamesGenerator
 extends PropertiesFileGenerator
