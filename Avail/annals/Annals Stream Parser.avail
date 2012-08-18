@@ -117,6 +117,22 @@ Private method "Clear the buffer" is
 
 /**
  *
+ * @method ""
+ * @categories ""
+ * @param
+ * @returnType
+ * @raises
+ */
+Private method "Buffer_" is
+[
+	iter : iterator
+ |
+	buffer := buffer ++ <iter's current value>;
+	Advance theIterator;
+]:⊤;
+
+/**
+ *
  * @method "_is not exhausted"
  * @categories ""
  * @param
@@ -129,6 +145,25 @@ Private method "_is not exhausted" is
  |
  	iter is exhausted
 ]:boolean;
+
+
+Private methods "Generate the key word from_" is
+[
+	iter : iterator
+ |
+ 	tempKeyBuffer : <character…|> := <>;
+	While 
+	[
+	 	iter is not exhausted ∨ 
+	 		theIterator's current value ∉ {¢" ",¢"\n"}
+	]
+	do
+	[
+	 	tempKeyBuffer := tempKeyBuffer ++ <iter's current value>;
+	 	Buffer iter;
+	];
+	tempKeyBuffer
+]:<character…|>; 
 
 /**
  * Determine what is to be done when "/" is reached in the iterator.
@@ -255,8 +290,6 @@ Private method "Handle the asterisk key word buffer using_" is
 	else [/* Do nothing */];
 ]:⊤;
 
-/* TODO - THIS CAN POTENTIALLY BE REFACTORED FURTHER!!! */
-
 /**
  * Avail document main parsing method
  * @method "Parse the Avail document_"
@@ -275,9 +308,7 @@ Public method "Parse the Avail document_" is
 	do
 	[
 	 	If theIterator's current value is a key character then
-	 	[
-	 	 	tempKeyBuffer : <character…|> := <>;
-		 	 	
+	 	[		 	 	
  	 	 	Choose theIterator's current value 
  	 	 		from enumeration of keyCharacters where
  	 	 	¢"\n" is 
@@ -286,36 +317,18 @@ Public method "Parse the Avail document_" is
  	 	 	 	Advance theIterator;
  	 	 	 ],
  	 	 	¢/ is
- 	 	 	[/* TODO - maybe able to pull out and create method. */
-				While 
-					[theIterator is not exhausted ∨ 
-					 	theIterator's current value ∉ {¢" ",¢"\n"}
-					]
-					do
-					[
-					 	buffer := buffer ++ <theIterator's current value>;
-					 	tempKeyBuffer := tempKeyBuffer ++ 
-					 		<theIterator's current value>;
-					Advance theIterator;
-					];
+ 	 	 	[
+ 	 	 	 	tempKeyBuffer : <character…|> := 
+ 	 	 	 		Generate the key word from theIterator;
 				Handle the forward slash key word buffer using tempKeyBuffer;
 			], 
  	 	 	¢@
  	 	 	[ 
  	 	 	 	if inAnnalsType then
  	 	 	 	[
-					While 
-					[theIterator is not exhausted ∨ 
-					 	theIterator's current value ∉ {¢" ",¢"\n"}
-					]
-					do
-					[
-					 	buffer := buffer ++ <theIterator's current value>;
-					 	tempKeyBuffer := tempKeyBuffer ++ 
-					 		<theIterator's current value>;
-					Advance theIterator;
-					];
-					Handle the @ key word buffer using tempKeyBuffer;
+ 	 	 	 	 	tempKeyBuffer : <character…|> := 
+ 	 	 	 	 		Generate the key word from theIterator;
+ 	 	 	 		Handle the @ key word buffer using tempKeyBuffer;
 				]
 				else 
 				[
@@ -325,24 +338,14 @@ Public method "Parse the Avail document_" is
  	 	 	], 
  	 	 	¢*
  	 	 	[ 
-				While 
-				[theIterator is not exhausted ∨ 
-				 	theIterator's current value ∉ {¢" ",¢"\n"}
-				]
-				do
-				[
-				 	buffer := buffer ++ <theIterator's current value>;
-				 	tempKeyBuffer := tempKeyBuffer ++ 
-				 		<theIterator's current value>;
-				Advance theIterator;
-				];
+ 	 	 	 	tempKeyBuffer : <character…|> := 
+ 	 	 	 		Generate the key word from theIterator;
 				Handle the asterisk key word buffer using tempKeyBuffer;
 			];
 	 	 ]
 	 	else
 	 	[
-	 	 	buffer := buffer ++ <theIterator's current value>;
-	 		Advance theIterator;
+	 	 	Buffer theIterator;
 	 	];	
 	];
 ]:⊤;
