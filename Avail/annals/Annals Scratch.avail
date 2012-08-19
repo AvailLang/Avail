@@ -253,3 +253,5 @@ Method "parse_to tag" is
 		parse the first word, starting after @ and until a space, as the tag,
 		then call something to parse the rest according to what the tag was
 ]
+
+Test
