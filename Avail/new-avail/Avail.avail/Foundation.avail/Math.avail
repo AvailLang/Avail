@@ -1089,7 +1089,7 @@ Method "_^_" is
  * 
  * Parameters:
  *    b - The logarithm base to use.
- *    n - The number to find a logarithm of.
+ *    n - The number whose logarithm should be computed.
  * Returns:
  *    The logarithm of `n` to base `b`.
  */
@@ -1106,7 +1106,7 @@ Public stable method "log_of_" is
  * 
  * Parameters:
  *    b - The logarithm base to use.
- *    n - The number to find a logarithm of.
+ *    n - The number whose logarithm should be computed.
  * Returns:
  *    The logarithm of `n` to base `b`.
  */
