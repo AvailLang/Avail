@@ -1,5 +1,5 @@
 /*
- * Avail.avail
+ * Feature Renames (Conversion).avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,15 +30,34 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Avail"
+System Module "Feature Renames (Conversion)"
 Versions
 	"dev"
-Extends
-	"Advanced Math",
-	"Data Abstractions",
-	"Foundation",
-	"Foundation Tests",
-	"IO",
-	"Unit Testing"
+Uses
+	"Avail" =
+	(
+		"Method_is_",
+		"$…",
+		"_-_",
+		"_^_",
+		"_×_",
+		"_÷_"
+	)
+Names
+	"division atom",
+	"exponentiation atom",
+	"multiplication atom",
+	"subtraction atom"
 Body
 
+_subtract ::= $"_-_";
+Method "subtraction atom" is [_subtract];
+
+_times ::= $"_×_";
+Method "multiplication atom" is [_times];
+
+_divide ::= $"_÷_";
+Method "division atom" is [_divide];
+
+_power ::= $"_^_";
+Method "exponentiation atom" is [_power];

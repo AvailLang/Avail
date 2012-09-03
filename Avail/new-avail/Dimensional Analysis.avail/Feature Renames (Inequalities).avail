@@ -1,5 +1,5 @@
 /*
- * Feature Renames (Unit Exponentiation).avail
+ * Feature Renames (Inequalities).avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,22 +30,44 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Feature Renames (Unit Exponentiation)"
+System Module "Feature Renames (Inequalities)"
 Versions
 	"dev"
 Uses
-	"Core" =
-	(
-		"_^_"
-	),
-	"Foundation" =
+	"Avail" =
 	(
 		"Method_is_",
-		"$…"
+		"$…",
+		"_<_",
+		"_≤_",
+		"_>_",
+		"_≥_",
+		"«_‡«=»?«≤»?«<»?»",
+		"«_‡«=»?«≥»?«>»?»"
 	)
 Names
-	"unit exponentiation atom"
+	"chained less-than atom",
+	"chained greater-than atom",
+	"greater-than atom",
+	"greater-than-equal atom",
+	"less-than atom",
+	"less-than-equal atom"
 Body
 
-_power ::= $"_^_";
-Method "unit exponentiation atom" is [_power];
+_lessThan ::= $"_<_";
+Method "less-than atom" is [_lessThan];
+
+_lessThanEqual ::= $"_≤_";
+Method "less-than-equal atom" is [_lessThanEqual];
+
+_chainedLessThan ::= $"«_‡«=»?«≤»?«<»?»";
+Method "chained less-than atom" is [_chainedLessThan];
+
+_greaterThan ::= $"_>_";
+Method "greater-than atom" is [_greaterThan];
+
+_greaterThanEqual ::= $"_≥_";
+Method "greater-than-equal atom" is [_greaterThanEqual];
+
+_chainedGreaterThan ::= $"«_‡«=»?«≥»?«>»?»";
+Method "chained greater-than atom" is [_chainedGreaterThan];

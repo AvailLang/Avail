@@ -1,5 +1,5 @@
 /*
- * Sanctioned Common Units.avail
+ * Unsanctioned Common Units.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,60 +30,35 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Sanctioned Common Units"
+System Module "Unsanctioned Common Units"
 Versions
 	"dev"
 Uses
+	"Avail",
 	"Core",
 	"Definers",
 	"Derivation",
-	"Foundation",
 	"Printing",
 	"Standard Units"
 Names
-	/* Time. */
-	"day", "d",
-	"hour", "h",
-	"minute", "min",
-
-	/* Angle. */
-	"degree of arc", "°",
-	"minute of arc", "′",
-	"second of arc", "″",
-
-	/* Volume (with SI prefix forms). */
-	"liter", "L",
-
-	/* Mass (with SI prefix forms). */
-	"tonne", "t"
+	"Ångström", "Å"
 Body
 
-"minute" ("min") is a base unit;
-Conversion rule: 1 min ≍ 60 s;
+"Ångström" ("Å") is a base unit;
+Conversion rule: 1 m ≍ 10^10 Å;
 
-"hour" ("h") is a base unit;
-Conversion rule: 1 h ≍ 3600 s;
-Conversion rule: 1 h ≍ 60 min;
+"barn" ("b") is a base unit;
+Conversion rule: 1 m² ≍ 10^28 b;
 
-"day" ("d") is a base unit;
-/* Note that the space is required between "1" and "d" to prevent the lexer from
- * interpreting the expression as a double.
- */
-Conversion rule: 1 d ≍ 86400 s;
-Conversion rule: 1 d ≍ 1440 min;
-Conversion rule: 1 d ≍ 24 h;
+"bar" ("bar") is a base unit;
+Conversion rule: 1 bar ≍ 100000 Pa;
 
-"degree of arc" ("°") is a base unit;
-Conversion rule: 1° ≍ (𝛑 ÷ 180) rad;
+"millibar" ("mbar") is a base unit;
+Conversion rule: 1 mbar ≍ 100 Pa;
+Conversion rule: 1 bar ≍ 1000 mbar;
 
-"minute of arc" ("′") is a base unit;
-Conversion rule: 1′ ≍ (𝛑 ÷ 10800) rad;
-Conversion rule: 1° ≍ 60′;
+"atmosphere" ("atm") is a base unit;
+Conversion rule: 1 atm ≍ 101325 Pa;
+Conversion rule: 1 bar ≍ 0.987 atm;
 
-"second of arc" ("″") is a base unit;
-Conversion rule: 1″ ≍ (𝛑 ÷ 648000) rad;
-Conversion rule: 1′ ≍ 60″;
-Conversion rule: 1° ≍ 3600″;
-
-"liter" ("L") is an SI derived unit equivalent to dm³;
-"tonne" ("t") is an SI derived unit equivalent to Mg;
+"barye" ("Ba") is an SI derived unit equivalent to dPa;
