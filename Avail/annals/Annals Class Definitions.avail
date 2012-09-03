@@ -39,33 +39,55 @@ Uses
 	"Avail"
 Names
 	"annals document",
+	"class",
+	"component",
 	"document",
 	"grammatical restriction",
+	"library component",
+	"methodContainer",
 	"method document",
+	"method implementation",
 	"method signature document",
+	"module",
 	"parameter document",
 	"return document",
-	"semantic restriction document",
+	"semantic restriction",
 	"signature document"
 
 Body
 
 /* Class Atom Definitions */
 
-parameters ::= $parameters;  	/* @param */
-name ::= $name;		 		 	/* @method @type */
-raises ::= $raises;  			/* @raises */
-restricts ::= $restricts;		/* @restricts */
-returnType ::= $returnType;		/* @returns */
-categories ::= $categories;		/* @category */
-forbids ::= $forbids;			/* @forbids */
-supertype ::= supertype;		/* @supertype */
-authors ::= $authors;			/* @author */
-classFields ::= $classFields;	/* @field */
-references ::= $references;		/* @see */
-description ::= $description;	/* general description of anything. */
-isPublic ::= $isPublic;			/* @public */
-module ::= $module;				/* @module the module documentation block */
+authors ::= $authors;				/* @author */
+categories ::= $categories;			/* categories associated with object */
+category :: = $category;			/* @category */
+classFields ::= $classFields;		/* @field */
+description ::= $description;		/* general description of anything. */
+exports ::= $exports;				/* */
+fieldName ::= $fieldName; 			/* */
+fields ::= $fields;					/* */
+fieldType ::= $fieldType; 			/* */
+fieldDescription ::= $fieldDescription; 	/* */
+forbids ::= $forbids;				/* @forbids */
+grammaticalRestrictions ::= $grammaticalRestrictions; /* */
+isPublic ::= $isPublic;				/* @public */
+methodImplementations ::= $methodImplementations; /* */
+module ::= $module;					/* @module the module documentation block */
+name ::= $name;		 			 	/* @method @type */
+parameters ::= $parameters; 	 	/* @param */
+raise ::= $raise;					/* exception handling */
+raises ::= $raises;  				/* @raises */
+references ::= $references;			/* @see */
+restricts ::= $restricts;			/* @restricts */
+restrictType ::= $restrictType;		/* restriction type */
+returnType ::= $returnType;			/* @returns */
+semanticRestrictions ::= $semanticRestrictions; /* */
+supertype ::= $supertype;			/* @supertype */
+typeName ::= $typeName;				/* */
+varDescription ::= $varDescription;	/* parameter fields */
+varName ::= $varName;				/* parameter fields */
+varType ::= $varType;				/* parameter fields */
+
 
 /**
  * Class hierarchy root.
@@ -84,14 +106,14 @@ Explicit class "element" extends object;
  * @type "@public"
  * @supertype {@type "element" element}
  * @category Annals
- * @field "visibility" "boolean"
+ * @field "isPublic" "boolean"
  * 	true for public false for private. 
  *
  * @author Richard Arriaga
  */
 Explicit class "@public" extends element
 	with fields
-		visibility : boolean;
+		isPublic : boolean;
 
 /**
  * A class that defines the author tag.
@@ -187,7 +209,7 @@ Explicit class "@returns" extends element
  */
 Explicit class "@raises" extends element
 	with fields
-		raisesType : string;
+		raise : string;
 
 /**
  * A class that defines the restricts tag.
@@ -202,7 +224,7 @@ Explicit class "@raises" extends element
  */
 Explicit class "@restricts" extends element
 	with fields
-		restrictType: string
+		restrictType: string;
 
 /**
  * A class that defines the forbids tag.
@@ -217,7 +239,7 @@ Explicit class "@restricts" extends element
  */
 Explicit class "@forbids" extends element
 	with fields
-		forbiddenExpressions : ↑{string…|0..∞};
+		forbids : ↑{string|0..∞};
 
 /**
  * A class that defines the field tag.
@@ -258,7 +280,7 @@ Explicit class "@supertype" extends element
 /**
  * Common set of fields shared by all classes used in Annals.
  * 
- * @type "component details"
+ * @type "component"
  * @supertype {@type "object" object}
  * @category Annals
  * 
@@ -297,7 +319,7 @@ Public explicit class "component" extends object
  */
 Public explicit class "module" extends component
 	with fields
-		exports : <string…|1..>,
+		exports : <string…|1..>;
 		
 		
 /**
@@ -389,7 +411,7 @@ Public explicit class "method implementation" extends component
  * @author Richard Arriaga
  */
 Public explicit class "semantic restriction" 
-	extends component details
+	extends component
 		with fields
 			restricts: <@restricts…|1..>;
 
@@ -407,7 +429,7 @@ Public explicit class "semantic restriction"
  * @author Richard Arriaga
  */
 Public explicit class "grammatical restriction" 
-	extends component details
+	extends component
 		with fields
 			forbids : {natural number → @forbids|1..};
 
@@ -436,11 +458,10 @@ Public explicit class "grammatical restriction"
  * @author Richard Arriaga
  */
 
-Public explicit class "method" extends library component
+Public explicit class "methodContainer" extends library component
 	with fields
 		parameters : <@param…|>,
 		raises : <@raises…|>,
-		methodImplementations : ↑<library method implementation…|>,
-		semanticRestrictions : ↑<library semantic restriction…|>,
-		grammaticalRestrictions : ↑<library grammatical restrictions…|>;
-
+		methodImplementations : ↑<method implementation…|>,
+		semanticRestrictions : ↑<semantic restriction…|>,
+		grammaticalRestrictions : ↑<grammatical restriction…|>;
