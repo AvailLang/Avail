@@ -53,7 +53,7 @@ import com.avail.serialization.SerializerOperation;
  * the set.  The depth of the bin in the hash tree determines which hash bits
  * are used.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class SetDescriptor extends Descriptor
 {

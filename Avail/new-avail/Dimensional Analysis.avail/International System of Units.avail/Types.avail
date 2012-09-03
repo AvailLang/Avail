@@ -34,8 +34,8 @@ System Module "Types"
 Versions
 	"dev"
 Uses
-	"Core",
-	"Foundation"
+	"Avail",
+	"Core"
 Names
 	/* Types. */
 	"SI dimensioned quantity",

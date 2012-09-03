@@ -47,7 +47,7 @@ import com.avail.interpreter.*;
  * {@linkplain VariableTypeDescriptor variable}. Answer {@linkplain
  * AtomDescriptor#trueObject()} if a value was stored.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_380_DeclarationInitializingExpression
 extends Primitive

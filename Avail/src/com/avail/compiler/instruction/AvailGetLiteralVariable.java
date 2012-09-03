@@ -38,7 +38,7 @@ import java.io.ByteArrayOutputStream;
 /**
  * Push the value of a variable found in a literal.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class AvailGetLiteralVariable extends AvailInstructionWithIndex
 {

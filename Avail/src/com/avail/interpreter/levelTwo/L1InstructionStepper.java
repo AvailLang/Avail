@@ -46,7 +46,7 @@ import com.avail.interpreter.levelTwo.register.FixedRegister;
  * execution of the {@link L2_INTERPRET_UNTIL_INTERRUPT} instruction, on behalf
  * of a {@link L2Interpreter}.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public final class L1InstructionStepper
 implements L1OperationDispatcher

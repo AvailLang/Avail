@@ -67,10 +67,6 @@ Names
 	"_'s⁇edges",
 	"_'s⁇vertices",
 
-	/* Graph manipulation. */
-	"_+_",
-	"_-_",
-
 	/* Exceptions. */
 	"graph exception",
 	"no-such-edge exception",
@@ -494,7 +490,7 @@ Method "_'s⁇edges" is
  *          A graph based on {@param "aGraph"} that definitely contains {@param
  *          "aVertex"}.
  */
-Public abstract method "_+_" is [graph, any]→graph;
+Abstract method "_+_" is [graph, any]→graph;
 
 Method "_+_" is
 [
@@ -556,7 +552,7 @@ Semantic restriction "_+_" is
  *          A graph based on {@param "aGraph"} that definitely does not contain
  *          {@param "aVertex"}.
  */
-Public abstract method "_-_" is [graph, any]→graph;
+Abstract method "_-_" is [graph, any]→graph;
 
 Method "_-_" is
 [
@@ -711,7 +707,7 @@ Public explicit class "no-such-edge exception" extends graph exception
  *         If {@param "anEdge"} references vertices that are not present in
  *         {@param "aGraph"}.
  */
-Public abstract method "_+_" is [graph, edge]→graph;
+Abstract method "_+_" is [graph, edge]→graph;
 
 Method "_+_" is
 [

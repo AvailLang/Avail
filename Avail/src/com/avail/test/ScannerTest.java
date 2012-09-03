@@ -46,7 +46,7 @@ import com.avail.utility.Generator;
 /**
  * Unit tests for the {@link AvailScanner}.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public final class ScannerTest
 {
@@ -54,7 +54,7 @@ public final class ScannerTest
 	 * A {@code Case} consists of a string to be lexically scanned, and a
 	 * description of the exact tokens that should be produced.
 	 *
-	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
 	static class Case
 	{

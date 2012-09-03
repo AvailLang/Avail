@@ -44,7 +44,7 @@ import com.avail.descriptor.BlockNodeDescriptor;
  * also tracks the most recent instruction which pushes that variable's
  * <em>value</em> on the stack.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class AvailVariableAccessNote
 {

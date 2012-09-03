@@ -42,7 +42,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 230</strong>: Does a {@linkplain MethodDescriptor method}
  * exist with the specified {@linkplain AtomDescriptor true name}?
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_230_ExistsMethodWithName
 extends Primitive

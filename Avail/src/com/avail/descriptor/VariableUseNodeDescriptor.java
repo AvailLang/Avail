@@ -45,14 +45,14 @@ import com.avail.utility.*;
  * My instances represent the use of some {@linkplain DeclarationNodeDescriptor
  * declared entity}.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 {
 	/**
 	 * My slots of type {@link AvailObject}.
 	 *
-	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
 	public enum ObjectSlots implements ObjectSlotsEnum
 	{
@@ -72,7 +72,7 @@ public class VariableUseNodeDescriptor extends ParseNodeDescriptor
 	/**
 	 * My slots of type {@linkplain Integer int}.
 	 *
-	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
 	public enum IntegerSlots implements IntegerSlotsEnum
 	{

@@ -72,7 +72,7 @@ import com.avail.descriptor.ModuleDescriptor;
  * <p>Note that some operating systems may have difficulty resolving certain
  * <em>moduleId</em>s if they contain arbitrary Unicode characters.</p>
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class RenamesFileParser
 {

@@ -47,14 +47,14 @@ import com.avail.utility.*;
  * stack.  It should never occur as part of a composite {@linkplain
  * ParseNodeDescriptor parse node}, and is not capable of emitting code.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class MarkerNodeDescriptor extends ParseNodeDescriptor
 {
 	/**
 	 * My slots of type {@link AvailObject}.
 	 *
-	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
 	public enum ObjectSlots implements ObjectSlotsEnum
 	{

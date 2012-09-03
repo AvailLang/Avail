@@ -43,7 +43,7 @@ import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
  * {@code AvailErrorCode} is an enumeration of all possible failures of
  * operations on {@linkplain AvailObject Avail objects}.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public enum AvailErrorCode
 {

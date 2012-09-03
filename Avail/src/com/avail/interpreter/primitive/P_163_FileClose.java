@@ -44,7 +44,7 @@ import com.avail.interpreter.*;
  * file} associated with the specified {@linkplain AtomDescriptor handle}.
  * Forget the association between the handle and the file.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public class P_163_FileClose
 extends Primitive

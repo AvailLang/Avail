@@ -44,7 +44,7 @@ import com.avail.interpreter.*;
  * for reading. Answer a {@linkplain AtomDescriptor handle} that uniquely
  * identifies the file.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public class P_160_FileOpenRead
 extends Primitive

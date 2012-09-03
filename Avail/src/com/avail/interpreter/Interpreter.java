@@ -49,7 +49,7 @@ import com.avail.interpreter.primitive.*;
 /**
  * This is the abstraction for execution Avail code.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public abstract class Interpreter
 {
@@ -65,7 +65,7 @@ public abstract class Interpreter
 	 * receiver} uses to locate and store Avail runtime elements.
 	 *
 	 * @return An {@link AvailRuntime}.
-	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
 	public AvailRuntime runtime ()
 	{
@@ -172,7 +172,7 @@ public abstract class Interpreter
 	 * Construct a new {@link Interpreter}.
 	 *
 	 * @param runtime An {@link AvailRuntime}.
-	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
 	protected Interpreter (final AvailRuntime runtime)
 	{

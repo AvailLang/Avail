@@ -41,7 +41,7 @@ import com.avail.utility.*;
  * An {@code L2CommentOperand} holds a descriptive string during level two
  * translation, but this operand emits no actual data into the wordcode stream.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class L2CommentOperand extends L2Operand
 {

@@ -45,7 +45,7 @@ import com.avail.interpreter.*;
  * with the specified {@linkplain AtomDescriptor handle}. Supports 64-bit
  * file sizes and positions.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public class P_168_FileSetPosition
 extends Primitive

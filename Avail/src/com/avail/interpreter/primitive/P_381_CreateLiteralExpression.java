@@ -43,7 +43,7 @@ import com.avail.interpreter.*;
  * literal expression} from the specified {@linkplain LiteralTokenDescriptor
  * literal token}.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_381_CreateLiteralExpression
 extends Primitive

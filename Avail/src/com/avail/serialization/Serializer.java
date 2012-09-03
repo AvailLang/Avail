@@ -43,7 +43,7 @@ import java.util.*;
  * {@link #serialize(AvailObject)} into a stream of bytes which, when replayed
  * in a {@link Deserializer}, will reconstruct an analogous series of objects.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class Serializer
 {

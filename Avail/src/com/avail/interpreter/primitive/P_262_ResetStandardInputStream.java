@@ -45,7 +45,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 262</strong>: Reset the standard input stream to the
  * previously set mark.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_262_ResetStandardInputStream
 extends Primitive

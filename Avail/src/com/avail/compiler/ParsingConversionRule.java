@@ -39,7 +39,7 @@ import com.avail.descriptor.*;
  * top of the parsing stack from one {@linkplain ParseNodeDescriptor phrase} to
  * another.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public enum ParsingConversionRule
 {

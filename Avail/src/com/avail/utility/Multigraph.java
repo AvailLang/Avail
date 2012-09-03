@@ -52,7 +52,7 @@ import com.avail.utility.Multigraph.Edge;
  * @param <V> The type of vertices of the graph.
  * @param <E> The type of {@link Edge}s in the graph.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class Multigraph<V, E extends Edge<V>>
 {
@@ -66,7 +66,7 @@ public class Multigraph<V, E extends Edge<V>>
 	 * graph.  Subclasses may supply different equality semantics.
 	 * </p>
 	 *
-	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 * @param <V2>
 	 */
 	public static class Edge<V2>

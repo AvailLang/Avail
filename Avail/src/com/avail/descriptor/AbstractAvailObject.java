@@ -40,7 +40,7 @@ package com.avail.descriptor;
  * storage capability, identity comparison by object address, indirection
  * capability, and descriptor access.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 abstract class AbstractAvailObject
 {

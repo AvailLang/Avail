@@ -45,7 +45,7 @@ import com.avail.annotations.*;
  * This representation is particularly useful for {@linkplain
  * CompiledCodeDescriptor compiled code}, which uses nybblecodes.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class NybbleTupleDescriptor
 extends TupleDescriptor

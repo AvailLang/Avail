@@ -43,7 +43,7 @@ import java.util.List;
  * Set the value of a variable found in the function's list of captured outer
  * variables.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class AvailSetOuterVariable extends AvailInstructionWithIndex
 {

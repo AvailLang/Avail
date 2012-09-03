@@ -40,7 +40,7 @@ import com.avail.utility.*;
  * A {@linkplain TupleDescriptor tuple} implementation that consists entirely of
  * two-byte characters.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 class TwoByteStringDescriptor
 extends StringDescriptor
@@ -163,7 +163,7 @@ extends StringDescriptor
 	}
 
 	/**
-	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
 	@Override @AvailMethod
 	boolean o_IsString (final AvailObject object)

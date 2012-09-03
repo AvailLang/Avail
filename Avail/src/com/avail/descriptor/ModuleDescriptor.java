@@ -55,8 +55,8 @@ import com.avail.interpreter.levelTwo.L2Interpreter;
  * <li>variables and constants private to the module.</li>
  * </ul>
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public class ModuleDescriptor
 extends Descriptor

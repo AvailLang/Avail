@@ -43,7 +43,7 @@ import com.avail.interpreter.*;
  * SendNodeDescriptor send expression}'s expected {@linkplain TypeDescriptor
  * return type}.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_386_SendReturnType
 extends Primitive

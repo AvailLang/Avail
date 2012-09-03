@@ -45,7 +45,7 @@ import com.avail.serialization.SerializerOperation;
  * reference type. This is any real Java class or interface that can be loaded
  * via Avail's {@linkplain ClassLoader class loader}.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 final class UnfusedPojoTypeDescriptor
 extends PojoTypeDescriptor

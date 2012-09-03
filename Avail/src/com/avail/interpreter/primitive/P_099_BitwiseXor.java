@@ -41,7 +41,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 99</strong>: Compute the bitwise EXCLUSIVE OR of the
  * {@linkplain IntegerDescriptor arguments}.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_099_BitwiseXor
 extends Primitive

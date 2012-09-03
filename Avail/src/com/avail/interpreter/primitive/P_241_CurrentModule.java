@@ -44,7 +44,7 @@ import com.avail.interpreter.*;
  * module} currently undergoing compilation. Fails at runtime (if compilation is
  * over).
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_241_CurrentModule
 extends Primitive

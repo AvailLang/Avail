@@ -40,8 +40,8 @@ import com.avail.optimizer.L2Translator;
  * L2Operation level two Avail operation} in the {@linkplain L2Translator
  * translator}.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public class L2Register
 {

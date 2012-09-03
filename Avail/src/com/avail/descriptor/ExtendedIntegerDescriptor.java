@@ -39,8 +39,8 @@ import com.avail.annotations.*;
  * that are extended integers.  That includes all integers and positive and
  * negative infinity.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
- * @author Todd Smith &lt;anarakul@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd Smith &lt;todd@availlang.org&gt;
  */
 public abstract class ExtendedIntegerDescriptor
 extends AbstractNumberDescriptor

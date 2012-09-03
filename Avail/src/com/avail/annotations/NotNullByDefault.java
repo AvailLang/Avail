@@ -39,7 +39,7 @@ import java.lang.annotation.*;
  * should infer that elements within the indicated domain not specifically
  * annotated for nullability are {@link NotNull} by default.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Retention(RetentionPolicy.CLASS)
 @Target({

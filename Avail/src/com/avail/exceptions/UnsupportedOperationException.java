@@ -39,7 +39,7 @@ import com.avail.descriptor.*;
  * AvailObject Avail object}'s {@linkplain Descriptor descriptor} is asked to
  * perform an unsupported operation.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class UnsupportedOperationException
 extends RuntimeException

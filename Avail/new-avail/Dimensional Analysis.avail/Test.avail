@@ -34,10 +34,9 @@ System Module "Test"
 Versions
 	"dev"
 Uses
+	"Avail",
 	"Core",
-	"Foundation",
-	"International System of Units",
-	"Unit Testing"
+	"International System of Units"
 Body
 
 Test "comparison" in dimensional analysis test suite is

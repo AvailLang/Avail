@@ -45,7 +45,7 @@ import com.avail.utility.*;
  * to be pushed on the stack.  Note that this does not work for arguments or
  * constants or labels, as no actual variable object is created for those.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class ReferenceNodeDescriptor
 extends ParseNodeDescriptor
@@ -53,7 +53,7 @@ extends ParseNodeDescriptor
 	/**
 	 * My slots of type {@link AvailObject}.
 	 *
-	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
 	public enum ObjectSlots implements ObjectSlotsEnum
 	{

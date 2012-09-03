@@ -37,7 +37,7 @@ package com.avail.interpreter.levelTwo.register;
  * {@code L2IntegerRegister} models the conceptual usage of a register that can
  * store a machine integer.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public class L2IntegerRegister
 extends L2Register

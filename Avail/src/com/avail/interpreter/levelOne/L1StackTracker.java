@@ -40,7 +40,7 @@ import com.avail.descriptor.AvailObject;
  * An {@code L1StackTracker} verifies the integrity of a sequence of {@link
  * L1Instruction}s and calculates how big a stack will be necessary.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 abstract class L1StackTracker implements L1OperationDispatcher
 {

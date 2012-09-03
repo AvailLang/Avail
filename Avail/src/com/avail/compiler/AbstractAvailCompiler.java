@@ -58,7 +58,7 @@ import com.avail.utility.*;
  * say, a system version with a hard-coded basic syntax and a non-system version
  * with no hard-coded syntax but macro capability.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public abstract class AbstractAvailCompiler
 {
@@ -647,7 +647,7 @@ public abstract class AbstractAvailCompiler
 	 * @param <AnswerType>
 	 *        The type of the second parameter of the {@linkplain
 	 *        Con#value(ParserState, Object)} method.
-	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
 	abstract class Con<AnswerType>
 	implements Continuation2<ParserState, AnswerType>
@@ -687,7 +687,7 @@ public abstract class AbstractAvailCompiler
 	 * Comparable} interface) which will favor processing of the leftmost
 	 * available tasks first.
 	 *
-	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
 	abstract class ParsingTask implements Runnable, Comparable<ParsingTask>
 	{
@@ -898,7 +898,7 @@ public abstract class AbstractAvailCompiler
 	 * {@link ParserState} instances are immutable and keep track of a current
 	 * {@link #position} and {@link #scopeMap} during parsing.
 	 *
-	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
 	class ParserState
 	{
@@ -1214,7 +1214,7 @@ public abstract class AbstractAvailCompiler
 	 *        The initially empty list of imports to populate.
 	 * @return The parser state after the list of imports, or {@code null} if
 	 *         the list of imports is malformed.
-	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
 	private static @Nullable ParserState parseImports (
 		final ParserState start,
@@ -3434,7 +3434,7 @@ public abstract class AbstractAvailCompiler
 	 *        The expected module name.
 	 * @throws AvailCompilerException
 	 *         If compilation fails.
-	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
 	public void parseModuleHeader (final ModuleName qualifiedName)
 		throws AvailCompilerException

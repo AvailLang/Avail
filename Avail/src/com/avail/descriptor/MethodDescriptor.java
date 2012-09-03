@@ -59,7 +59,7 @@ import com.avail.utility.*;
  * {@linkplain MacroImplementationDescriptor macro signatures} or all non-macro
  * {@linkplain ImplementationDescriptor signatures}, but not both.</p>
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class MethodDescriptor
 extends Descriptor

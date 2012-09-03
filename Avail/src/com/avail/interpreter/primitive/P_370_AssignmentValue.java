@@ -45,7 +45,7 @@ import com.avail.interpreter.*;
  * AssignmentNodeDescriptor assignment}'s {@linkplain
  * ParseNodeKind#EXPRESSION_NODE value expression}.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_370_AssignmentValue
 extends Primitive

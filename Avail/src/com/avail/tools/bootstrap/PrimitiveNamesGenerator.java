@@ -46,7 +46,7 @@ import com.avail.interpreter.Primitive.Flag;
  * specifies unbound properties for the Avail names of the {@linkplain Primitive
  * primitives}.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class PrimitiveNamesGenerator
 extends PropertiesFileGenerator

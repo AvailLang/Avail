@@ -47,7 +47,7 @@ import com.avail.interpreter.primitive.*;
  * ParseNodeDescriptor parse tree} into the corresponding {@linkplain
  * CompiledCodeDescriptor compiled code}.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class AvailCodeGenerator
 {

@@ -42,7 +42,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 364</strong>: Answer the primitive linkage number of the
  * specified {@linkplain BlockNodeDescriptor block}.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_364_BlockPrimitiveNumber
 extends Primitive

@@ -42,7 +42,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 243</strong>: Answer the {@linkplain StringDescriptor name}
  * of the specified {@linkplain ModuleDescriptor module}.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_243_ModuleName
 extends Primitive

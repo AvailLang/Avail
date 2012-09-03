@@ -44,7 +44,7 @@ import com.avail.interpreter.*;
  * LiteralTokenDescriptor literal token} with the specified literal value and
  * supposed "source text".
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_360_CreateLiteralToken
 extends Primitive

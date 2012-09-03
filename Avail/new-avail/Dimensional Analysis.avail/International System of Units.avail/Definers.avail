@@ -34,9 +34,9 @@ System Module "Definers"
 Versions
 	"dev"
 Uses
+	"Avail",
 	"Core",
 	"Feature Renames (Conversion)",
-	"Foundation",
 	"Types"
 Names
 	"prefixes",

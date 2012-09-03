@@ -38,7 +38,7 @@ import java.util.Arrays;
  * It represents the smallest atomic step that the Avail interpreter can
  * conceptually execute.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class L1Instruction
 {

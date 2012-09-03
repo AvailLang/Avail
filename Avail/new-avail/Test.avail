@@ -34,7 +34,8 @@ System Module "Test"
 Versions
 	"dev"
 Uses
-	"Avail"
+	"Avail",
+	"Dimensional Analysis"
 Body
 
 /* Report on all tests. */

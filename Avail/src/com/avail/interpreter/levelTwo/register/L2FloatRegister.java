@@ -37,7 +37,7 @@ package com.avail.interpreter.levelTwo.register;
  * {@code L2FloatRegister} models the conceptual usage of a register that can
  * store a machine floating-point number.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public class L2FloatRegister
 extends L2Register

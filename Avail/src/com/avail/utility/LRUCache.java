@@ -55,7 +55,7 @@ import com.avail.annotations.*;
  * simultaneous computation of values by racing {@linkplain Thread threads} that
  * present the same keys.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @param <K> The type of the keys.
  * @param <V> The type of the values.
  */

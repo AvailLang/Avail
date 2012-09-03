@@ -44,7 +44,7 @@ import com.avail.serialization.SerializerOperation;
  * That is, a compiled code type is a subtype of another if and only if the
  * first's related function type is a subtype of another's function type.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public class CompiledCodeTypeDescriptor
 extends TypeDescriptor

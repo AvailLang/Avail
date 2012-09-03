@@ -45,7 +45,7 @@ import com.avail.interpreter.*;
  * TokenDescriptor token} and {@linkplain DeclarationNodeDescriptor
  * declaration}.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_394_CreateVariableUse
 extends Primitive

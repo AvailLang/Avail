@@ -44,7 +44,7 @@ import com.avail.interpreter.*;
  * of {@linkplain ParseNodeKind#ARGUMENT_NODE argument declarations} for the
  * specified {@linkplain BlockNodeDescriptor block}.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_363_BlockArguments
 extends Primitive

@@ -44,14 +44,14 @@ import com.avail.utility.*;
  * My instances represent {@linkplain ParseNodeDescriptor parse nodes} which will
  * generate tuples directly at runtime.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class ListNodeDescriptor extends ParseNodeDescriptor
 {
 	/**
 	 * My slots of type {@link AvailObject}.
 	 *
-	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
 	public enum ObjectSlots implements ObjectSlotsEnum
 	{

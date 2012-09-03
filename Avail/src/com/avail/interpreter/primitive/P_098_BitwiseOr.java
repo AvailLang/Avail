@@ -41,7 +41,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 98</strong>: Compute the bitwise OR of the {@linkplain
  * IntegerDescriptor arguments}.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_098_BitwiseOr
 extends Primitive

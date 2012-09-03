@@ -38,7 +38,7 @@ import com.avail.visitor.AvailMarkUnreachableSubobjectVisitor;
  * {@code AvailObjectRepresentation} is the representation used for all Avail
  * objects.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 abstract class AvailObjectRepresentation
 extends AbstractAvailObject

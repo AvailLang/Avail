@@ -43,7 +43,7 @@ import com.avail.interpreter.*;
 /**
  * <strong>Primitive 231</strong>: Add a type restriction function.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_231_AddSemanticRestrictionForAtom
 extends Primitive

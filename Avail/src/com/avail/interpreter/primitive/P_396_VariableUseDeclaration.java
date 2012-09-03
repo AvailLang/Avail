@@ -43,7 +43,7 @@ import com.avail.interpreter.*;
  * DeclarationNodeDescriptor declaration} that created the entity referenced by
  * this {@linkplain VariableUseNodeDescriptor variable use}.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_396_VariableUseDeclaration
 extends Primitive

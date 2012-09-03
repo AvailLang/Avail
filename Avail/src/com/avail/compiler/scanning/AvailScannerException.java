@@ -39,7 +39,7 @@ import com.avail.descriptor.*;
  * an {@link AvailScanner} attempts to convert an Avail source file into a
  * sequence of {@linkplain TokenDescriptor tokens}.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class AvailScannerException
 extends RuntimeException

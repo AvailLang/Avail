@@ -41,7 +41,7 @@ import com.avail.descriptor.*;
  * meaningfully supported by a particular {@linkplain AbstractDescriptor
  * descriptor}.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Retention(RetentionPolicy.CLASS)
 @Target({ ElementType.METHOD })

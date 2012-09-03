@@ -41,7 +41,7 @@ import com.avail.optimizer.L2Translator;
 /**
  * Broad test suite for the Avail compiler, interpreter, and (new) library.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public class NewAvailTest
 extends AbstractAvailTest

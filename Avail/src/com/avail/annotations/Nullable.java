@@ -38,7 +38,7 @@ import java.lang.annotation.*;
  * {@code NotNull} annotation indicates that the annotated target may be {@code
  * null} when evaluated.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Retention(RetentionPolicy.CLASS)
 @Target({

@@ -39,7 +39,7 @@ import com.avail.descriptor.AvailObject;
  * exceptions} that are specific to the implementation of {@link AvailObject}
  * and its numerous primitive operations.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public abstract class AvailException
 extends Exception

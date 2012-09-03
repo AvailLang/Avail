@@ -43,7 +43,7 @@ import com.avail.interpreter.*;
  * negative factor as a right shift), then truncate the result to the bottom
  * T bits by zeroing the rest.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public final class P_096_BitShiftWithTruncation
 extends Primitive

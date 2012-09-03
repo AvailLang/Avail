@@ -39,7 +39,7 @@ import com.avail.descriptor.ContinuationDescriptor;
 /**
  * Push a variable of some sort.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public abstract class AvailPushVariable extends AvailInstructionWithIndex
 {

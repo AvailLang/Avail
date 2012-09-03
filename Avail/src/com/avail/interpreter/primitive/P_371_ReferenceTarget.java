@@ -43,7 +43,7 @@ import com.avail.interpreter.*;
  * VariableUseNodeDescriptor target variable} of the specified {@linkplain
  * ReferenceNodeDescriptor reference}.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_371_ReferenceTarget
 extends Primitive

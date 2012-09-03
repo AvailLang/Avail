@@ -38,7 +38,7 @@ import com.avail.descriptor.*;
  * An {@code AvailAssertionFailedException} is thrown when an Avail assertion
  * fails.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public class AvailAssertionFailedException
 extends RuntimeException

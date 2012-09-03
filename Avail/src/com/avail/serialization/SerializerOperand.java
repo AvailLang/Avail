@@ -40,7 +40,7 @@ import com.avail.descriptor.*;
  * appropriate form, and it knows how to describe the relationship between the
  * parent object and this part of it.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 final class SerializerOperand
 {

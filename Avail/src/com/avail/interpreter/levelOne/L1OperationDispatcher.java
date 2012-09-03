@@ -41,7 +41,7 @@ import com.avail.descriptor.NullDescriptor;
  * L1Operation#dispatch(L1OperationDispatcher) dispatch} to a suitable one of
  * my methods.
  *
- * @author Mark van Gulik&lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik&lt;mark@availlang.org&gt;
  */
 public interface L1OperationDispatcher
 {

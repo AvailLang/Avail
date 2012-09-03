@@ -38,7 +38,7 @@ import java.io.ByteArrayOutputStream;
 /**
  * Assign to a variable that's captured as a literal in the code.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class AvailSetLiteralVariable extends AvailInstructionWithIndex
 {

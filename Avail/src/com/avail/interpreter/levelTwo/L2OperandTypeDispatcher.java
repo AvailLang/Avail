@@ -43,7 +43,7 @@ import com.avail.interpreter.levelTwo.register.*;
  * An {@link L2OperandTypeDispatcher} acts as a visitor for the operands of
  * {@linkplain L2Instruction level two instructions}.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 interface L2OperandTypeDispatcher
 {

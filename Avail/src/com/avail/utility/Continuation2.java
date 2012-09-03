@@ -39,7 +39,7 @@ import com.avail.utility.Continuation2;
  * Implementors of {@code Continuation2} provide a single arbitrary operation
  * that accepts two arguments.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @param <X> The type of the first argument.
  * @param <Y> The type of the second argument.
  */

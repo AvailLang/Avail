@@ -40,7 +40,7 @@ import com.avail.descriptor.*;
  * a problem with the signature itself, or perhaps an inconsistency between it
  * and other signatures already installed in the system.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @see ImplementationDescriptor
  */
 public final class SignatureException

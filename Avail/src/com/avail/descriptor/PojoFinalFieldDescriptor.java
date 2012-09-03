@@ -52,7 +52,7 @@ import com.avail.exceptions.*;
  * final} by caching the value and not retaining the reflected field directly.
  * </p>
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class PojoFinalFieldDescriptor
 extends Descriptor

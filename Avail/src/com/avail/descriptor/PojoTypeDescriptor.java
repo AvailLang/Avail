@@ -62,7 +62,7 @@ import com.avail.utility.*;
  * programmer sees Java as though it supported multiple inheritance of classes.
  * </p>
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public abstract class PojoTypeDescriptor
 extends TypeDescriptor

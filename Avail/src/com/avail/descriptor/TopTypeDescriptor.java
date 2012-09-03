@@ -38,7 +38,7 @@ import com.avail.annotations.*;
  * {@code TopTypeDescriptor} implements the type of the {@linkplain
  * NullDescriptor#nullObject() null object}.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class TopTypeDescriptor
 extends PrimitiveTypeDescriptor

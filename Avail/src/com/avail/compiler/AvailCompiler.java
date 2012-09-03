@@ -46,7 +46,7 @@ import com.avail.utility.*;
 /**
  * I parse a source file to create a {@linkplain ModuleDescriptor module}.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class AvailCompiler
 extends AbstractAvailCompiler

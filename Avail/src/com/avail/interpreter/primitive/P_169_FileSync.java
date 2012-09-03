@@ -44,7 +44,7 @@ import com.avail.interpreter.*;
  * the writable {@linkplain RandomAccessFile file} to synchronize with the
  * underlying device.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public class P_169_FileSync
 extends Primitive

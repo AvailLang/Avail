@@ -57,7 +57,7 @@ import com.avail.utility.*;
  * {@code AvailBuilderFrame} is a simple Ui for the {@linkplain AvailBuilder
  * Avail builder}.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public class AvailBuilderFrame
 extends JFrame
@@ -1244,10 +1244,6 @@ extends JFrame
 		c.weightx = 0.0;
 		c.weighty = 0.0;
 		transcript = new JTextPane();
-		transcript.setToolTipText(
-			"The build transcript. Intermixes characters written to the "
-			+ "standard output and standard error, as well as characters read "
-			+ "from the standard input stream.");
 		transcript.setBorder(BorderFactory.createEtchedBorder());
 		transcript.setEditable(false);
 		transcript.setEnabled(true);

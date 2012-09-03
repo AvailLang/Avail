@@ -64,8 +64,8 @@ import com.avail.visitor.*;
  * message to an {@linkplain AvailObject} will also indicate a problem until a
  * suitable implementation is added to AvailObject.</p>
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public class Descriptor
 extends AbstractDescriptor
@@ -114,7 +114,7 @@ extends AbstractDescriptor
 	 * A special enumeration used to visit all object slots within an instance
 	 * of the receiver.
 	 *
-	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
 	enum FakeObjectSlotsForScanning implements ObjectSlotsEnum
 	{
@@ -1952,7 +1952,7 @@ extends AbstractDescriptor
 	 *
 	 * @param object An {@link AvailObject}.
 	 * @return A 64-bit signed Java {@code long}
-	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
 	@Override
 	long o_ExtractLong (final AvailObject object)
@@ -2931,7 +2931,7 @@ extends AbstractDescriptor
 	 * @param object An {@link AvailObject}.
 	 * @return {@code true} if the argument is an Avail string, {@code false}
 	 *         otherwise.
-	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
 	@Override
 	boolean o_IsString (final AvailObject object)
@@ -3198,7 +3198,7 @@ extends AbstractDescriptor
 	 *
 	 * @param object An {@link AvailObject}.
 	 * @return An {@linkplain Iterator iterator}.
-	 * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
 	@Override
 	Iterator<AvailObject> o_Iterator (

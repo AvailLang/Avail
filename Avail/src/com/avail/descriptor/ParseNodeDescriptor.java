@@ -43,7 +43,7 @@ import com.avail.utility.*;
  * I'm used to implement the abstract notion of parse nodes.  All concrete parse
  * nodes are below me in the hierarchy.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public abstract class ParseNodeDescriptor extends Descriptor
 {

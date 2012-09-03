@@ -44,7 +44,7 @@ import com.avail.interpreter.*;
  * first element is an {@linkplain AtomDescriptor atom} that represents the
  * field and whose second element is its value.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_153_ObjectToTuple
 extends Primitive

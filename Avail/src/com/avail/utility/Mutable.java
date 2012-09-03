@@ -51,7 +51,7 @@ package com.avail.utility;
  * assignments like "<code>x = 5;</code>" become "<code>x.value = 5;</code>".
  * Java's autoboxing takes care of the rest.
  *
- * @author Mark van Gulik&lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik&lt;mark@availlang.org&gt;
  * @param <T> The type of mutable object.
  */
 public class Mutable<T>

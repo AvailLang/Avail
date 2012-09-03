@@ -41,7 +41,7 @@ import com.avail.utility.*;
  * An {@code L2Operand} knows its {@link L2OperandType} and any specific value
  * that needs to be captured for that type of operand.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public abstract class L2Operand
 {

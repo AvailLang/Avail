@@ -70,7 +70,7 @@ import com.avail.serialization.SerializerOperation;
  * types ensure this condition holds for all objects.
  * </p>
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class InstanceMetaDescriptor
 extends AbstractEnumerationTypeDescriptor

@@ -44,7 +44,7 @@ import com.avail.serialization.SerializerOperation;
  * lower and upper bounds, and flags to indicate whether those bounds are to be
  * treated as inclusive or exclusive of the bounds themselves.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class IntegerRangeTypeDescriptor
 extends TypeDescriptor

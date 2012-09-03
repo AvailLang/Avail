@@ -51,7 +51,7 @@ import java.lang.annotation.Target;
  * method is side-effect free or internally locked is unspecified.</li>
  * </ul></p>
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Retention(RetentionPolicy.CLASS)
 @Target({

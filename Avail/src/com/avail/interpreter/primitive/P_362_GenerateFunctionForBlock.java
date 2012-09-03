@@ -47,7 +47,7 @@ import com.avail.interpreter.*;
  * The block is treated as a top-level construct, so it must not refer to any
  * outer variables.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_362_GenerateFunctionForBlock
 extends Primitive

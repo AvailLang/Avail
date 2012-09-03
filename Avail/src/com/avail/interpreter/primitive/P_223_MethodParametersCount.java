@@ -44,7 +44,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 223</strong>: Answer the number of arguments expected by
  * the specified {@linkplain MethodDescriptor method}.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_223_MethodParametersCount
 extends Primitive

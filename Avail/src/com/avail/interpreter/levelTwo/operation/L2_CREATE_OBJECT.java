@@ -43,7 +43,7 @@ import com.avail.interpreter.levelTwo.*;
  * ObjectDescriptor user-defined object} and write it into the specified object
  * register.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class L2_CREATE_OBJECT extends L2Operation
 {

@@ -39,7 +39,7 @@ import com.avail.descriptor.AvailObject;
  * object as unreachable.  Also recurse into the children, but avoid a specific
  * object during the recursion.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public final class AvailMarkUnreachableSubobjectVisitor
 extends AvailSubobjectVisitor

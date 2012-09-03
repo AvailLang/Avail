@@ -49,7 +49,7 @@ import com.avail.interpreter.*;
  * AtomDescriptor#trueObject() true} for public, {@link
  * AtomDescriptor#falseObject() false} for private).
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public final class P_263_DeclareAllExportedAtoms
 extends Primitive

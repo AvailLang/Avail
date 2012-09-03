@@ -49,7 +49,7 @@ import com.avail.exceptions.ArithmeticException;
  * {@linkplain IntegerRangeTypeDescriptor integer range types}, specifically by
  * their appearance as inclusive or exclusive bounds.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class InfinityDescriptor
 extends ExtendedIntegerDescriptor

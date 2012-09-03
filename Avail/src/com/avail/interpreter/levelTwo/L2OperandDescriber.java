@@ -39,7 +39,7 @@ import com.avail.interpreter.Primitive;
  * An {@code L2OperandDescriber} uses the {@link L2OperandTypeDispatcher}
  * mechanism to describe one of the operands of a level two instruction.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 class L2OperandDescriber implements L2OperandTypeDispatcher
 {

@@ -43,14 +43,14 @@ import com.avail.utility.*;
  * My instances represent a sequence of {@linkplain ParseNodeDescriptor parse
  * nodes} to be treated as statements, except possibly the last one.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class SequenceNodeDescriptor extends ParseNodeDescriptor
 {
 	/**
 	 * My slots of type {@link AvailObject}.
 	 *
-	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
 	public enum ObjectSlots implements ObjectSlotsEnum
 	{

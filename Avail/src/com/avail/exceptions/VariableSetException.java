@@ -38,7 +38,7 @@ import com.avail.descriptor.AvailObject;
  * {@code VariableSetException} is thrown when {@link AvailObject#setValue}
  * fails for any reason.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class VariableSetException
 extends AvailRuntimeException

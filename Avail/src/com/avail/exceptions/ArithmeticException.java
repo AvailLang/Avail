@@ -37,7 +37,7 @@ import com.avail.descriptor.*;
 /**
  * An {@code ArithmeticException} is thrown by arithmetic operations.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @see InfinityDescriptor
  * @see IntegerDescriptor
  */

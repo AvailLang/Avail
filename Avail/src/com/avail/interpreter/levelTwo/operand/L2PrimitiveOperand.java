@@ -42,7 +42,7 @@ import com.avail.utility.*;
  * An {@code L2PrimitiveOperand} is an operand of type {@link
  * L2OperandType#PRIMITIVE}.  The specific {@link Primitive} is captured.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class L2PrimitiveOperand extends L2Operand
 {

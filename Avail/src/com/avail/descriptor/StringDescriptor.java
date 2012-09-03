@@ -41,7 +41,7 @@ import com.avail.utility.Generator;
  * {@code StringDescriptor} has Avail strings as its instances. The actual
  * representation of Avail strings is determined by subclasses.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @see ByteStringDescriptor
  * @see TwoByteStringDescriptor
  */

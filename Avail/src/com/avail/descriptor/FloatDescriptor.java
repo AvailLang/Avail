@@ -40,7 +40,7 @@ import com.avail.serialization.SerializerOperation;
 /**
  * A boxed, identityless Avail representation of IEEE-754 floating point values.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class FloatDescriptor
 extends AbstractNumberDescriptor

@@ -49,7 +49,7 @@ import com.avail.descriptor.*;
  * blocks require labels.
  * </p>
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class AvailLabel extends AvailInstruction
 {

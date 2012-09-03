@@ -43,8 +43,8 @@ import com.avail.serialization.SerializerOperation;
  * substitution principle, yet this organization is still useful to see the
  * aggregate capabilities of Avail types.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public abstract class AbstractTypeDescriptor
 extends Descriptor

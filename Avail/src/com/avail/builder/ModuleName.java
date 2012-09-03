@@ -45,7 +45,7 @@ import com.avail.descriptor.ModuleDescriptor;
  * <strong>X</strong>, and <strong>Z</strong> is a module or package within
  * </strong>Y</strong>.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public class ModuleName
 {

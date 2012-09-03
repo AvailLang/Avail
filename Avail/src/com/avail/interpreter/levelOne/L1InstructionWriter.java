@@ -44,7 +44,7 @@ import com.avail.interpreter.levelTwo.L2InstructionWriter;
  * CompiledCodeDescriptor compiled code object} without detailed knowledge of
  * the level one nybblecode instruction set.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class L1InstructionWriter
 {

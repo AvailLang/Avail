@@ -42,7 +42,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 366</strong>: Answer the specified {@linkplain
  * BlockNodeDescriptor block}'s return {@linkplain TypeDescriptor type}.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_366_BlockReturnType
 extends Primitive

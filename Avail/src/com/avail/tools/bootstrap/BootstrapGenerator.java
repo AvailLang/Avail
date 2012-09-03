@@ -50,7 +50,7 @@ import com.avail.interpreter.primitive.*;
  * Generate the Avail system {@linkplain ModuleDescriptor modules} that
  * bind the infallible and fallible {@linkplain Primitive primitives}.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class BootstrapGenerator
 {

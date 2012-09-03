@@ -44,7 +44,7 @@ import com.avail.interpreter.*;
  * AbstractDeclarationDescriptor abstract}. This identifies responsibility for
  * implementations that want to be concrete.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_227_AbstractMethodDeclarationForAtom
 extends Primitive

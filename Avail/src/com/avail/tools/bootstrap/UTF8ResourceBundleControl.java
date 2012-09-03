@@ -43,7 +43,7 @@ import com.avail.annotations.*;
  * {@code UTF8ResourceBundleControl} permits the reading of UTF-8-encoded
  * Java properties files.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 final class UTF8ResourceBundleControl
 extends Control

@@ -47,7 +47,7 @@ import com.avail.utility.*;
  * installs into an {@linkplain AvailRuntime Avail runtime} a target
  * {@linkplain ModuleDescriptor module} and each of its dependencies.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class AvailBuilder
 {

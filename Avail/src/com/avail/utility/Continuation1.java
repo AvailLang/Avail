@@ -39,7 +39,7 @@ import com.avail.annotations.Nullable;
  * Implementors of {@code Continuation3} provide a single arbitrary operation
  * that accepts one argument.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @param <X> The type of the argument.
  */
 public interface Continuation1<X>

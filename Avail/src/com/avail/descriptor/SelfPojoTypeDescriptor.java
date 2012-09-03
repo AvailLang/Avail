@@ -47,7 +47,7 @@ import com.avail.serialization.SerializerOperation;
  * parameter, {@code E}, extends {@code Enum}'s self type. A pojo self type is
  * used to break the recursive dependency.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class SelfPojoTypeDescriptor
 extends PojoTypeDescriptor

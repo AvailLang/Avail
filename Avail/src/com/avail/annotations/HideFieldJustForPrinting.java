@@ -41,7 +41,7 @@ import java.lang.annotation.*;
  * that annotation also prevents the field from showing up in the debugger when
  * using the Eclipse debugger's "Show Logical Structure".
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD})

@@ -47,7 +47,7 @@ import com.avail.interpreter.*;
  * same effect as listing the string in the "Names" section of the current
  * module. Fails if called at runtime (rather than during compilation).
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_246_PublishName
 extends Primitive

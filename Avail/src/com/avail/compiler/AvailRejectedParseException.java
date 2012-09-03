@@ -38,7 +38,7 @@ import com.avail.descriptor.*;
  * An {@code AvailCompilerException} is thrown by the {@linkplain
  * AbstractAvailCompiler Avail compiler} when compilation fails for any reason.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public class AvailRejectedParseException
 extends RuntimeException

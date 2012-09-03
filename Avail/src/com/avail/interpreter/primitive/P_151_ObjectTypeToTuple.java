@@ -45,7 +45,7 @@ import com.avail.interpreter.*;
  * represents the field and whose second element is the value {@linkplain
  * TypeDescriptor type}.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_151_ObjectTypeToTuple
 extends Primitive

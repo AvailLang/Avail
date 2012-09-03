@@ -48,7 +48,7 @@ package com.avail.descriptor;
  * these uses disjoint.
  * </p>
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public interface IntegerSlotsEnum extends AbstractSlotsEnum
 {

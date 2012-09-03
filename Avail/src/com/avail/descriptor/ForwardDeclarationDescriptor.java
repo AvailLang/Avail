@@ -50,7 +50,7 @@ import com.avail.descriptor.TypeDescriptor.Types;
  * meaningless because a "call-site" for a macro causes the body to execute
  * immediately.</p>
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class ForwardDeclarationDescriptor
 extends ImplementationDescriptor

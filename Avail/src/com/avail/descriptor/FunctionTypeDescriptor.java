@@ -44,8 +44,8 @@ import com.avail.serialization.SerializerOperation;
  * that may be produced upon successful execution, and the types of exceptions
  * that may be raised to signal unsuccessful execution.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public class FunctionTypeDescriptor
 extends TypeDescriptor

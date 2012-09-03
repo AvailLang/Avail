@@ -55,8 +55,8 @@ import com.avail.utility.*;
  * emitting the instruction on a code generator. Lastly it specifies an entry
  * point for describing type and constant value propagation to a translator.</p>
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class L2Instruction
 {

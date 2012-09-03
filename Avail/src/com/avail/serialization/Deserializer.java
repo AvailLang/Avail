@@ -43,7 +43,7 @@ import java.util.*;
  * had been previously {@linkplain Serializer#serialize(AvailObject) serialized}
  * with a {@link Serializer}.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class Deserializer
 {

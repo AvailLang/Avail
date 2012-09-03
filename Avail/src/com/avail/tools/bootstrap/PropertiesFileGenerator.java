@@ -41,7 +41,7 @@ import java.util.*;
  * {@code PropertiesFileGenerator} defines state and operations common to the
  * Avail properties file generators.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 abstract class PropertiesFileGenerator
 {

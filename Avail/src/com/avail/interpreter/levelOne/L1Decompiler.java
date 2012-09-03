@@ -45,7 +45,7 @@ import com.avail.utility.Transformer1;
  * compiled code} object into an equivalent {@linkplain ParseNodeDescriptor
  * parse tree}.
  *
- * @author Mark van Gulik &lt;anarakul@gmail.com&gt;
+ * @author Mark van Gulik &lt;todd@availlang.org&gt;
  */
 public class L1Decompiler
 {

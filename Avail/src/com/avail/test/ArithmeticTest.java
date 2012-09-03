@@ -40,7 +40,7 @@ import com.avail.descriptor.FloatDescriptor;
 /**
  * Unit tests for the Avail arithmetic types.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public final class ArithmeticTest
 {

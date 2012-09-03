@@ -60,7 +60,7 @@ import com.avail.annotations.*;
  * (2) the grouping is actually via {@link ListNodeDescriptor list nodes} rather
  * than tuples.  Thus, a macro always operates on parse nodes.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class MacroImplementationDescriptor
 extends ImplementationDescriptor

@@ -294,7 +294,7 @@ Explicit class "@supertype" extends element
  * @field "author" "string"
  *  who created the class
  *
- * @author {@link "rawr@avail.org" Richard Arriaga}
+ * @author {@link "mailto:rich@availlang.org" Richard Arriaga}
  */
 Public explicit class "component" extends object
 	with fields

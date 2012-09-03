@@ -44,7 +44,7 @@ import com.avail.interpreter.*;
  * that names the entity introduced by the {@linkplain DeclarationNodeDescriptor
  * declaration}.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_378_DeclarationToken
 extends Primitive

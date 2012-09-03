@@ -38,8 +38,8 @@ import com.avail.descriptor.AvailObject;
  * {@code L2ObjectRegister} models the conceptual usage of a register that can
  * store an {@linkplain AvailObject Avail object}.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class L2ObjectRegister
 extends L2Register

@@ -60,7 +60,7 @@ import com.avail.serialization.SerializerOperation;
  * P_058_RestartContinuation with the original arguments}.
  * </p>
  *
- * @author Mark van Gulik&lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik&lt;mark@availlang.org&gt;
  */
 public class ContinuationDescriptor
 extends Descriptor

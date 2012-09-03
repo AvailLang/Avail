@@ -45,7 +45,7 @@ import com.avail.interpreter.*;
  * sequence} from the specified {@linkplain TupleDescriptor tuple} of
  * statements.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_387_CreateSequenceOfStatements
 extends Primitive

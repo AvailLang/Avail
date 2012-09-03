@@ -38,7 +38,7 @@ import com.avail.descriptor.AvailObject;
  * I provide an {@link #invoke(AvailObject, AvailObject)} operation which
  * supports the ability to visit the object fields of AvailObjects.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public abstract class AvailSubobjectVisitor
 {

@@ -46,7 +46,7 @@ import com.avail.interpreter.*;
  * have a unique implementation for the specified {@linkplain TupleDescriptor
  * tuple} of parameter {@linkplain TypeDescriptor types}?
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_229_MethodHasImplementationForArgumentTypes
 extends Primitive

@@ -46,14 +46,14 @@ import com.avail.serialization.SerializerOperation;
  * are all parameterized by expression type, but they also have a relationship
  * to each other based on a fiat hierarchy.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class ParseNodeTypeDescriptor extends TypeDescriptor
 {
 	/**
 	 * My slots of type {@link AvailObject}.
 	 *
-	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
 	public enum ObjectSlots
 	implements ObjectSlotsEnum
@@ -67,7 +67,7 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 	/**
 	 * My slots of type {@linkplain Integer int}.
 	 *
-	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
 	public enum IntegerSlots
 	implements IntegerSlotsEnum
@@ -84,7 +84,7 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 	/**
 	 * My hierarchy of kinds of parse nodes.
 	 *
-	 * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
 	public enum ParseNodeKind
 	implements IntegerEnumSlotDescriptionEnum

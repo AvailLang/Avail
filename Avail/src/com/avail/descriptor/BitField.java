@@ -41,7 +41,7 @@ import com.avail.annotations.*;
  * IntegerSlotsEnum integer slot}.  It is instantiated from a {@link BitField}
  * annotation.
  *
- * @author Mark van Gulik &lt;ghoul137@gmail.com&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 final class BitField
 implements Comparable<BitField>

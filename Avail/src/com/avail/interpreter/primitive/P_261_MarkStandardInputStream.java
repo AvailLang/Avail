@@ -46,7 +46,7 @@ import com.avail.interpreter.*;
  * specified number of characters to be read ahead (and put back by a subsequent
  * reset).
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_261_MarkStandardInputStream
 extends Primitive

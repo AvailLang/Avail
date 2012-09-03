@@ -42,7 +42,7 @@ import com.avail.annotations.*;
  * than referential equality. It is used only for immutable reflective classes
  * and exists only to support certain recursive comparison operations.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @see RawPojoDescriptor
  */
 final class EqualityRawPojoDescriptor

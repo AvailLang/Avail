@@ -49,7 +49,7 @@ import com.avail.interpreter.*;
  * distinction is only apparent when guillemet notation is used to accept
  * tuples of arguments.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_264_GrammaticalRestrictionFromAtoms
 extends Primitive

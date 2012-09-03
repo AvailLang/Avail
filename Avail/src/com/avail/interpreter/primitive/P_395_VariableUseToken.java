@@ -43,7 +43,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive 395</strong>: Answer the specified {@linkplain
  * VariableUseNodeDescriptor variable use}'s {@linkplain TokenDescriptor token}.
  *
- * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class P_395_VariableUseToken
 extends Primitive
