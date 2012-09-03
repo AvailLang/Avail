@@ -1244,10 +1244,6 @@ extends JFrame
 		c.weightx = 0.0;
 		c.weighty = 0.0;
 		transcript = new JTextPane();
-		transcript.setToolTipText(
-			"The build transcript. Intermixes characters written to the "
-			+ "standard output and standard error, as well as characters read "
-			+ "from the standard input stream.");
 		transcript.setBorder(BorderFactory.createEtchedBorder());
 		transcript.setEditable(false);
 		transcript.setEnabled(true);
