@@ -107,12 +107,12 @@ Public method "next_" is
 	text : string := "";
 	While
 	[
-		mark for 1 character of read ahead;
+		Mark for 1 character of read ahead;
 		next ::= next character;
 		text := eject ↑text ++ <next>;
 		next ∈ integerChars
 	];
-	reset to mark;
+	Reset to mark;
 	nonempty ::= cast text into [ t : <character…|1..> | t ];
 	value ::= nonempty[1..|nonempty| - 1]→extended integer;
 	If ¬value ∈ range then

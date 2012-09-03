@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Versioned As: $$Revision: 623 $$
+ * * Last Versioned As: $$Revision$$
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -59,9 +59,11 @@ Names
 	"If|if_then_else_",
 	"Invoke|invoke_with_",
 	"Macro_is_",
+	"Mark for_character|characters of read ahead",
 	"Print:_",
 	"Publish new name:_",
 	"Reject parse,expected:_",
+	"Reset to mark",
 	"Restart_",
 	"Restart_with_",
 	"Seal method_at_",
@@ -192,7 +194,6 @@ Names
 	"integer range from_(inclusive=_)to_(inclusive=_)",
 	"literal token⇒_",
 	"ln_",
-	"mark for_character|characters of read ahead",
 	"message_contains groups",
 	"method exists named_",
 	"method for_",
@@ -207,7 +208,6 @@ Names
 	"primfail`«_:_`»",
 	"primitive description of_",
 	"request termination of_",
-	"reset to mark",
 	"semantic restrictions for_given_",
 	"send_with_:_",
 	"seq`«_`»",
