@@ -51,7 +51,8 @@ Uses
 	"Types",
 	"Variables"
 Names
-	"counts for_"
+	"counts for_",
+	"integrate_and_with_"
 Body
 
 /**
@@ -680,4 +681,114 @@ Semantic restriction "counts for_" is
 	lowerBound ::= if ⎣tupleCardinality⎦ = 0 then [0] else [1];
 	upperBound ::= ⎡tupleCardinality⎤;
 	{keyType→whole number|lowerBound..upperBound}
+];
+
+/**
+ * Combine two maps.  If there are duplicate keys, perform action block to
+ * handle duplicates.  
+ * @method "Integrate_and_with_"
+ * @categories "Annals"
+ * @param "baseMap" "map" base map to add new bindings to.
+ * @param "supplementMap" "map" secondary map that provides new map bindings
+ * @param "action" "[⊥,⊥,⊥]→map" action to perform in the event that there is a
+ * 		duplicate key.  Inputs are [map,any,any]
+ * @returnType "map" the resultant map
+ * @raises
+ */
+Public method "integrate_and_with_" is
+[
+ 	baseMap : map,
+ 	supplementMap : map,
+ 	action : [⊥,⊥,⊥]→map
+ |
+ 	baseMapkeys ::= baseMap's keys;
+ 	newMap : map := baseMap;
+ 	For each supplementMap do
+ 	[
+ 	 	supplementKey : any,
+ 	 	supplementValue : any
+ 	 |
+ 	 	if baseMapkeys ∋ supplementKey then
+ 	 	[
+ 	 	 	newMap := Invoke action with 
+ 	 	 		<newMap,supplementKey,supplementValue>;
+ 	 	]
+ 	 	else [newMap := newMap + supplementKey→supplementValue;];
+ 	];
+ 	newMap
+ ]:map;
+
+/**
+ *
+ * @method "Integrate_and_with_"
+ * @categories "Annals"
+ * @restricts ""
+ * @raises
+ */
+Semantic restriction "integrate_and_with_" is
+[
+	baseMapType : map's type,
+	supplementMapType : map's type,
+	actionType : [⊥,⊥,⊥]→map's type
+ |
+ 	if ⎣actionType's parameters' type⎦ < 3 then
+	[
+		Reject parse, expected:
+			"\nFunction to accept three arguments. Only received"
+			++ “⎣actionType's parameters' type⎦”
+			++ " arguments.\n\n"
+	]
+ 	/*else if [¬supplementMapType ⊆ baseMapType] then
+ 	[
+		Reject parse, expected:
+			"\nIncompatible map types.  Supplemental map type is not a"
+			++ " subtype of the base map type"
+			++ “supplementMapType” ++ "⊈" ++ “baseMapType” ++ ".\n\n"
+
+ 	]*/
+ 	else if [actionType[1] ≠ ⊥ ∧ [ ¬baseMapType ⊆ actionType[1] ]] then
+	[
+		Reject parse, expected:
+			"\nFunction to accept for input 1, "
+			++ “baseMapType”
+			++ " (but it only accepts "
+			++ “actionType[1]”
+			++ ")\n\n"
+	]
+	else if [actionType[2] ≠ ⊥ ∧ 
+		[ ¬supplementMapType's key type ⊆ actionType[2]]] 
+	then
+	[
+		Reject parse, expected:
+			"\nRepeatedly applied function to accept all key ∈ "
+			++ “supplementMapType's key type”
+			++ " (but it only accepts "
+			++ “actionType[2]”
+			++ ")\n\n"
+	]
+	else if [actionType[3] ≠ ⊥ ∧ 
+		[ ¬supplementMapType's value type ⊆ actionType[3]]] 
+	then
+	[
+		Reject parse, expected:
+			"\nRepeatedly applied function to accept all values ∈ "
+			++ “supplementMapType's value type”
+			++ " (but it only accepts "
+			++ “actionType[3]”
+			++ ")\n\n"
+	]
+	else if [⎣baseMapType⎦ > 0 ∨ [⎣supplementMapType⎦ > 0]] then
+	[
+		If actionType's return type = ⊥ then
+		[
+			Reject parse, expected:
+				"Repeatedly applied function to have a return type other than"
+				++ "⊥\n\n"
+		];
+	];
+	newKeyType ::= supplementMapType's key type ∪ baseMapType's key type;
+	newValueType ::= supplementMapType's value type ∪ baseMapType's value type;
+	lowerBound ::= ⎣baseMapType⎦ max ⎣supplementMapType⎦;
+	upperBound ::= ⎡baseMapType⎤ + ⎡supplementMapType⎤;
+	{newKeyType → newValueType | lowerBound..upperBound}
 ];
