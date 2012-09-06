@@ -63,6 +63,7 @@ Names
 	"Print:_",
 	"Publish new name:_",
 	"Reject parse,expected:_",
+	"Remove_[_]",
 	"Reset to mark",
 	"Restart_",
 	"Restart_with_",

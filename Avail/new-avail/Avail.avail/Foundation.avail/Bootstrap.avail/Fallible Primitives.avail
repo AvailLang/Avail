@@ -55,6 +55,7 @@ Uses
 		"Macro_is_",
 		"Mark for_character|characters of read ahead",
 		"Publish new name:_",
+		"Remove_[_]",
 		"Reset to mark",
 		"Restart_",
 		"Restart_with_",
@@ -461,6 +462,22 @@ Primitive "function from_and_" is
 ] : function;
 
 /**
+ * Remove the binding indicated by `key` from `aFiber`'s environment.
+ *
+ * Parameters:
+ *    aFiber - The fiber whose environment should be updated.
+ *    key - The key whose binding should be removed.
+ */
+Primitive "Remove_[_]" is
+[
+	aFiber : fiber,
+	key : atom
+|
+	Primitive 76 (failureCode : natural number);
+	Private invoke _fail_primitive with failureCode
+] : ⊤;
+
+/**
  * Answer the value bound to `aMap` in `key`.
  *
  * Parameters:
@@ -535,14 +552,13 @@ Primitive "_[_]:=_" is
 ] : ⊤;
 
 /**
- * If `anAtom` has a property whose key is `key`, then remove the property.
- * Otherwise do nothing.
+ * Remove from `anAtom` the property whose key is `key`.
  *
  * Parameters:
  *    anAtom - An atom.
  *    key - A property key.
  */
-Primitive "_-_" is
+Primitive "Remove_[_]" is
 [
 	anAtom : atom,
 	key : atom
