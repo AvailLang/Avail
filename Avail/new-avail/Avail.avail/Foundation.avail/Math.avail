@@ -1049,7 +1049,7 @@ Method "_^_" is
 	/*  Uses the identities: b^(2x) = (b^2)^x; and: b^(2x+1) = (b^2)^x*b. */
 	if exponent = 0 then
 	[
-		1.0f
+		1.0→float
 	]
 	else
 	[
@@ -1075,7 +1075,7 @@ Method "_^_" is
 	/*  Uses the identities: b^(2x) = (b^2)^x; and: b^(2x+1) = (b^2)^x*b. */
 	if exponent = 0 then
 	[
-		1.0d
+		1.0
 	]
 	else
 	[
@@ -1123,7 +1123,7 @@ Stable method "log_of_" is
  * its diameter.
  *
  * @method "π"
- * @returns "3.141592653589793d's type"
- *          {@code 3.141592653589793d}.
+ * @returns "3.141592653589793's type"
+ *          {@code 3.141592653589793}.
  */
-Public method "π" is [3.141592653589793d];
+Public method "π" is [3.141592653589793];

@@ -588,7 +588,7 @@ Method "_^_" is [base : extended integer, exponent : whole number |
 Method "_^_" is [base : float, exponent : whole number |
 	/*  Uses identities b^(2x) = (b^2)^x, and b^(2x+1) = (b^2)^x*b  */
 	if exponent = 0 then [
-		1.0f
+		1.0 as float
 	] else [
 		temp ::= (base*base)^(exponent/2);
 		if exponent is odd then [temp*base] else [temp]
@@ -598,7 +598,7 @@ Method "_^_" is [base : float, exponent : whole number |
 Method "_^_" is [base : double, exponent : whole number |
 	/*  Uses identities b^(2x) = (b^2)^x, and b^(2x+1) = (b^2)^x*b  */
 	if exponent = 0 then [
-		1.0d
+		1.0
 	] else [
 		temp ::= (base*base)^(exponent/2);
 		if exponent is odd then [temp*base] else [temp]

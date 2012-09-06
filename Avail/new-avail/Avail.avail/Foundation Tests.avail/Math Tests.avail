@@ -187,11 +187,11 @@ Test "addition" in math test suite is
 	Require: ∞ + ∞ = ∞;
 	Require: -∞ + 1 = -∞;
 	Require: -∞ + -∞ = -∞;
-	Require: 1.0f + 1.0f = 2.0f;
-	Require: 1.0d + 1.0d = 2.0d;
-	Require: 1 + 1.0f = 2.0f;
-	Require: 1 + 1.0d = 2.0d;
-	Require: 1.0f + 1.0d = 2.0d;
+	Require: (1.0→float) + (1.0→float) = (2.0→float);
+	Require: 1.0 + 1.0 = 2.0;
+	Require: 1 + (1.0→float) = (2.0→float);
+	Require: 1 + 1.0 = 2.0;
+	Require: (1.0→float) + 1.0 = 2.0;
 ];
 
 Test "cannot add unlike infinities" in math test suite is
@@ -221,11 +221,11 @@ Test "subtraction" in math test suite is
 	Require: ∞ - -∞ = ∞;
 	Require: -∞ - 1 = -∞;
 	Require: -∞ - ∞ = -∞;
-	Require: 2.0f - 1.0f = 1.0f;
-	Require: 2.0d - 1.0d = 1.0d;
-	Require: 2 - 1.0f = 1.0f;
-	Require: 2 - 1.0d = 1.0d;
-	Require: 2.0f - 1.0d = 1.0d;
+	Require: (2.0→float) - (1.0→float) = (1.0→float);
+	Require: 2.0 - 1.0 = 1.0;
+	Require: 2 - (1.0→float) = (1.0→float);
+	Require: 2 - 1.0 = 1.0;
+	Require: (2.0→float) - 1.0 = 1.0;
 ];
 
 Test "cannot subtract like infinities" in math test suite is
@@ -259,11 +259,11 @@ Test "multiplication" in math test suite is
 	Require: 4294967296 × -4294967296 = -18446744073709551616;
 	Require: 18446744073709551616 × -18446744073709551616
 		= -340282366920938463463374607431768211456;
-	Require: 2.0f × 2.0f = 4.0f;
-	Require: 2.0d × 2.0d = 4.0d;
-	Require: 2 × 2.0f = 4.0f;
-	Require: 2 × 2.0d = 4.0d;
-	Require: 2.0f × 2.0d = 4.0d;
+	Require: (2.0→float) × (2.0→float) = (4.0→float);
+	Require: 2.0 × 2.0 = 4.0;
+	Require: 2 × (2.0→float) = (4.0→float);
+	Require: 2 × 2.0 = 4.0;
+	Require: (2.0→float) × 2.0 = 4.0;
 ];
 
 Test "cannot multiply zero and infinity" in math test suite is
@@ -305,16 +305,16 @@ Test "division" in math test suite is
 		= -18446744073709551616;
 	Require: -2147483648 ÷ -1 = 2147483648;
 	Require: -9223372036854775808 ÷ -1 = 9223372036854775808;
-	Require: 4.0f ÷ 2.0f = 2.0f;
-	Require: 4.0d ÷ 2.0d = 2.0d;
-	Require: 4 ÷ 2.0f = 2.0f;
-	Require: 4 ÷ 2.0d = 2.0d;
-	Require: 4.0f ÷ 2.0d = 2.0d;
-	Ignore: 4.0f ÷ 0;
-	Ignore: 4.0f ÷ 0.0f;
-	Ignore: 4.0d ÷ 0.0d;
-	Ignore: 4.0f ÷ -0.0f;
-	Ignore: 4.0d ÷ -0.0d;
+	Require: (4.0→float) ÷ (2.0→float) = (2.0→float);
+	Require: 4.0 ÷ 2.0 = 2.0;
+	Require: 4 ÷ (2.0→float) = (2.0→float);
+	Require: 4 ÷ 2.0 = 2.0;
+	Require: (4.0→float) ÷ 2.0 = 2.0;
+	Ignore: (4.0→float) ÷ 0;
+	Ignore: (4.0→float) ÷ (0.0→float);
+	Ignore: 4.0 ÷ 0.0;
+	Ignore: (4.0→float) ÷ -(0.0→float);
+	Ignore: 4.0 ÷ -0.0;
 ];
 
 Test "mod" in math test suite is

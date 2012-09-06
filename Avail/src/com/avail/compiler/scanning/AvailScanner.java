@@ -333,7 +333,6 @@ public class AvailScanner
 				scanner.backUp();
 				assert scanner.position() == scanner.startOfToken();
 				boolean isReal = false;  // Might be an integer.
-				boolean singlePrecision = false;  // Default is double.
 				while (scanner.peekIsDigit())
 				{
 					scanner.next();
@@ -377,15 +376,6 @@ public class AvailScanner
 						scanner.position(beforeE);
 					}
 				}
-				if (scanner.peekFor('f') || scanner.peekFor('F'))
-				{
-					isReal = true;
-					singlePrecision = true;
-				}
-				else if (scanner.peekFor('d') || scanner.peekFor('D'))
-				{
-					isReal = true;
-				}
 
 				// Now convert the thing to numeric form.
 				AvailObject result;
@@ -416,16 +406,8 @@ public class AvailScanner
 					}
 					try
 					{
-						if (singlePrecision)
-						{
-							result = FloatDescriptor.fromFloat(
-								Float.valueOf(builder.toString()));
-						}
-						else
-						{
-							result = DoubleDescriptor.fromDouble(
-								Double.valueOf(builder.toString()));
-						}
+						result = DoubleDescriptor.fromDouble(
+							Double.valueOf(builder.toString()));
 					}
 					catch (final NumberFormatException e)
 					{
