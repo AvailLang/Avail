@@ -325,7 +325,7 @@ Private method "Perform first pass parse on Annals comment from_" is
  	 	 		from enumeration of keyCharacters where
  	 	 	¢"\n" is 
  	 	 	[
- 	 	 	 	Process new line character from theIterator;
+ 	 	 	 	Process new line character from iter;
  	 	 	 ],
  	 	 	¢/ is
  	 	 	[
@@ -346,7 +346,25 @@ Private method "Perform first pass parse on Annals comment from_" is
  	 	 	¢@ is
  	 	 	[/*TODO need to consume keyword and use it as key in map. following*/
  	 	 	 /* bits get added to set at value location in map.*/
- 	 	 	 	parameterMap := first pass parse iter
+ 	 	 	 
+ 	 	 	 	tempKeyBuffer : <character…|> := 
+ 	 	 	 		Generate the key word from iter;
+ 	 	 	
+ 	 	 		if tempKeyBuffer ∈ keywords then
+ 	 	 		[
+ 	 	 	 		parameterMap := integrate parameter and 
+ 	 	 	 			first pass iter parse commercial at keyword with
+ 	 	 	 			[
+ 	 	 	 		 		pMap : {string→{string|1..}|},
+ 	 	 	 		 		k : string,
+ 	 	 	 		 		v : {string|1..}
+ 	 	 	 		 	|
+ 	 	 	 		 		pMap + k→pmap[k] ∪ v
+ 	 	 	 		 	];
+ 	 	 		]
+ 	 	 		else
+ 	 	 		[
+ 	 	 		]
  	 	 	 
  	 	 	 	if inAnnalsType then
  	 	 	 	[

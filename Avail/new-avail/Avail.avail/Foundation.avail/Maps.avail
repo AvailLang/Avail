@@ -51,7 +51,8 @@ Uses
 	"Types",
 	"Variables"
 Names
-	"counts for_"
+	"counts for_",
+	"integrate_and_with_"
 Body
 
 /**
@@ -694,7 +695,7 @@ Semantic restriction "counts for_" is
  * @returnType "map" the resultant map
  * @raises
  */
-Private method "integrate_and_with_" is
+Public method "integrate_and_with_" is
 [
  	baseMap : map,
  	supplementMap : map,
@@ -737,14 +738,14 @@ Semantic restriction "integrate_and_with_" is
 			++ “⎣actionType's parameters' type⎦”
 			++ " arguments.\n\n"
 	]
- 	else if [¬supplementMapType ⊆ baseMapType] then
+ 	/*else if [¬supplementMapType ⊆ baseMapType] then
  	[
 		Reject parse, expected:
 			"\nIncompatible map types.  Supplemental map type is not a"
 			++ " subtype of the base map type"
 			++ “supplementMapType” ++ "⊈" ++ “baseMapType” ++ ".\n\n"
 
- 	]
+ 	]*/
  	else if [actionType[1] ≠ ⊥ ∧ [ ¬baseMapType ⊆ actionType[1] ]] then
 	[
 		Reject parse, expected:
@@ -755,7 +756,7 @@ Semantic restriction "integrate_and_with_" is
 			++ ")\n\n"
 	]
 	else if [actionType[2] ≠ ⊥ ∧ 
-		[ ¬supplementMapType's key type ⊆ actionType[2] ]] 
+		[ ¬supplementMapType's key type ⊆ actionType[2]]] 
 	then
 	[
 		Reject parse, expected:
@@ -766,7 +767,7 @@ Semantic restriction "integrate_and_with_" is
 			++ ")\n\n"
 	]
 	else if [actionType[3] ≠ ⊥ ∧ 
-		[ ¬supplementMapType's value type ⊆ actionType[3] ]] 
+		[ ¬supplementMapType's value type ⊆ actionType[3]]] 
 	then
 	[
 		Reject parse, expected:
@@ -785,25 +786,9 @@ Semantic restriction "integrate_and_with_" is
 				++ "⊥\n\n"
 		];
 	];
+	newKeyType ::= supplementMapType's key type ∪ baseMapType's key type;
+	newValueType ::= supplementMapType's value type ∪ baseMapType's value type;
 	lowerBound ::= ⎣baseMapType⎦ max ⎣supplementMapType⎦;
 	upperBound ::= ⎡baseMapType⎤ + ⎡supplementMapType⎤;
-	{baseMapType's key type → baseMapType's value type | lowerBound..upperBound}
+	{newKeyType → newValueType | lowerBound..upperBound}
 ];
-
-/*	
-m1 : {integer→string|} := {1→"ab",2→"bc",3→"de"};
-m2 : {integer→string|} := {4→"gh",5→"ij",2→"kl"};
-
-m3 ::= integrate m1 and m2 with 
-[
- 	m : {integer→string|},
- 	k : integer,
- 	v : string
- |
- 	mNew : {integer→string|} := m - k;
- 	mNew + k→v
-];
-Print: "m3=";
-Print: “m3”;
-Print: "\n";
-*/

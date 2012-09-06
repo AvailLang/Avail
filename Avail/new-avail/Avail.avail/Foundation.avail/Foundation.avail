@@ -529,7 +529,8 @@ Extends
 	),
 	"Maps" =
 	(
-		"counts for_"
+		"counts for_",
+		"integrate_and_with_"
 	),
 	"Math" =
 	(
