@@ -48,10 +48,11 @@ Body
 /**
  * Compute and answer the logical negation, i.e., NOT, of the argument.
  *
- * Parameters:
- *    predicate - A boolean.
- * Returns:
- *    ¬`predicate`.
+ * @method "¬_"
+ * @param "predicate" "boolean"
+ *        A boolean.
+ * @returns "boolean"
+ *          ¬`predicate`.
  */
 Public stable method "¬_" is
 [
@@ -63,10 +64,11 @@ Public stable method "¬_" is
 /**
  * Compute and answer the logical negation, i.e., NOT, of the argument.
  *
- * Parameters:
- *    predicate - A boolean.
- * Returns:
- *    ¬`predicate`.
+ * @method "¬_"
+ * @param "predicate" "false's type"
+ *        A boolean.
+ * @returns "true's type"
+ *          ¬`predicate`.
  */
 Method "¬_" is
 [
@@ -79,11 +81,13 @@ Method "¬_" is
  * Compute and answer the logical conjunction, i.e., AND, of the arguments.
  * Short-circuit the computation, i.e., only evaluate `b` if `a` is `true`.
  * 
- * Parameters:
- *    a - A boolean.
- *    b - A boolean function.
- * Returns:
- *    `a` ∧ `b`.
+ * @method "_∧_"
+ * @param "a" "boolean"
+ *        A boolean.
+ * @param "b" "function accepting <> and returning boolean"
+ *        A boolean function.
+ * @returns "boolean"
+ *          `a` ∧ `b`.
  */
 Public method "_∧_" is
 [
@@ -97,11 +101,13 @@ Public method "_∧_" is
  * Compute and answer the logical conjunction, i.e., AND, of the arguments.
  * Short-circuit the computation, i.e., only evaluate `b` if `a` is `true`.
  * 
- * Parameters:
- *    a - A boolean.
- *    b - A boolean function.
- * Returns:
- *    `a` ∧ `b`.
+ * @method "_∧_"
+ * @param "a" "false's type"
+ *        A boolean.
+ * @param "b" "function accepting <> and returning boolean"
+ *        A boolean function.
+ * @returns "boolean"
+ *          `a` ∧ `b`.
  */
 Public method "_∧_" is
 [
@@ -114,6 +120,10 @@ Public method "_∧_" is
 /**
  * If the left-hand argument of `_∧_` is known statically to be `false`, then
  * the expression is also known statically to be `false`.
+ * 
+ * @method "_∧_"
+ * @restricts "false's type's type"
+ * @restricts "(function accepting <> and returning boolean)'s type"
  */
 Semantic restriction "_∧_" is
 [
@@ -126,6 +136,10 @@ Semantic restriction "_∧_" is
 /**
  * If the left-hand argument of `_∧_` is known statically to be `true`, then
  * the static type of the expression is `b`'s return type.
+ * 
+ * @method "_∧_"
+ * @restricts "true's type's type"
+ * @restricts "(function accepting <> and returning boolean)'s type"
  */
 Semantic restriction "_∧_" is
 [
@@ -138,6 +152,10 @@ Semantic restriction "_∧_" is
 /**
  * If the right-hand argument of `_∧_` is known statically to be `false`, then
  * the expression is also known statically to be `false`.
+ * 
+ * @method "_∧_"
+ * @restricts "boolean's type"
+ * @restricts "(function accepting <> and returning false's type)'s type"
  */
 Semantic restriction "_∧_" is
 [
@@ -151,10 +169,12 @@ Semantic restriction "_∧_" is
  * Compute and answer the logical disjunction, i.e., OR, of the arguments.
  * Short-circuit the computation, i.e., only evaluate `b` if `a` is `false`.
  * 
- * Parameters:
- *    a - A boolean.
- *    b - A boolean function.
- * Returns:
+ * @method "_∨_"
+ * @param "a" "boolean"
+ *        A boolean.
+ * @param "b" "function accepting <> and returning boolean"
+ *        A boolean function.
+ * @returns "boolean"
  *    `a` ∨ `b`.
  */
 Public method "_∨_" is
@@ -169,10 +189,11 @@ Public method "_∨_" is
  * Compute and answer the logical conjunction, i.e., OR, of the arguments.
  * Short-circuit the computation, i.e., only evaluate `b` if `a` is `false`.
  * 
- * Parameters:
- *    a - A boolean.
- *    b - A boolean function.
- * Returns:
+ * @method "_∨_"
+ * @param "a" "true's type"
+ * @param "b" "function accepting <> and returning boolean"
+ *        A boolean function.
+ * @returns "boolean"
  *    `a` ∨ `b`.
  */
 Public method "_∨_" is
@@ -186,6 +207,10 @@ Public method "_∨_" is
 /**
  * If the left-hand argument of `_∨_` is known statically to be `true`, then
  * the expression is also known statically to be `true`.
+ * 
+ * @method "_∨_"
+ * @restricts "true's type's type"
+ * @restricts "(function accepting <> and returning boolean)'s type"
  */
 Semantic restriction "_∨_" is
 [
@@ -198,6 +223,10 @@ Semantic restriction "_∨_" is
 /**
  * If the left-hand argument of `_∨_` is known statically to be `false`, then
  * the static type of the expression is `b`'s return type.
+ * 
+ * @method "_∨_"
+ * @restricts "false's type's type"
+ * @restricts "(function accepting <> and returning boolean)'s type"
  */
 Semantic restriction "_∨_" is
 [
@@ -210,6 +239,10 @@ Semantic restriction "_∨_" is
 /**
  * If the right-hand argument of `_∨_` is known statically to be `true`, then
  * the expression is also known statically to be `true`.
+ * 
+ * @method "_∨_"
+ * @restricts "boolean's type"
+ * @restricts "(function accepting <> and returning true's type)'s type"
  */
 Semantic restriction "_∨_" is
 [
@@ -222,10 +255,12 @@ Semantic restriction "_∨_" is
 /**
  * Are the arguments unequal?
  * 
- * Parameters:
- *    a - A value.
- *    b - A value.
- * Returns:
+ * @method "_≠_"
+ * @param "a" "any"
+ *        A value.
+ * @param "b" "any"
+ *        A value.
+ * @returns "boolean"
  *    `true` if the arguments are not equal, `false` otherwise.
  */
 Public method "_≠_" is

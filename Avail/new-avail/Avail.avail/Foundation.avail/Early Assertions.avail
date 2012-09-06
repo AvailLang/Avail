@@ -46,7 +46,7 @@ Body
  * and should not be exported beyond this package.
  * 
  * @method "Assert:_"
- * @param "boolean" "predicate"
+ * @param "predicate" "boolean"
  *        `true`.
  * @returns "⊤"
  */

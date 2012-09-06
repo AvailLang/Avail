@@ -937,7 +937,7 @@ Public stable method "_is a letter" is
  * according to the Unicode character description, false otherwise.
  * 
  * @method "_is uppercase"
- * @param "character" "c"
+ * @param "c" "character"
  * @returns "boolean"
  */
 Public stable method "_is uppercase" is 
@@ -953,7 +953,7 @@ Public stable method "_is uppercase" is
  * according to the Unicode character description, false otherwise.
  * 
  * @method "_is lowercase"
- * @param "character" "c"
+ * @param "c" "character"
  * @returns "boolean"
  */
 Public stable method "_is lowercase" is 
@@ -973,7 +973,7 @@ Public stable method "_is lowercase" is
  * uppercase character if no titlecase character corresponds.
  * 
  * @method "_is titlecase"
- * @param "character" "c"
+ * @param "c" "character"
  * @returns "boolean"
  */
 Public stable method "_is titlecase" is 
@@ -989,7 +989,7 @@ Public stable method "_is titlecase" is
  * returned. Otherwise, the original character is returned.
  * 
  * @method "uppercase_"
- * @param "character" "c"
+ * @param "c" "character"
  * @returns "boolean"
  */
 Public stable method "uppercase_" is
@@ -1004,7 +1004,7 @@ Public stable method "uppercase_" is
  * returned. Otherwise, the original character is returned.
  * 
  * @method "lowercase_"
- * @param "character" "c"
+ * @param "c" "character"
  * @returns "boolean"
  */
 Public stable method "lowercase_" is
@@ -1024,7 +1024,7 @@ Public stable method "lowercase_" is
  * in the absence of true titlecase equivalents.
  * 
  * @method "titlecase_"
- * @param "character" "c"
+ * @param "c" "character"
  * @returns "boolean"
  */
 Public stable method "titlecase_" is
