@@ -465,30 +465,3 @@ Public explicit class "methodContainer" extends library component
 		methodImplementations : ↑<method implementation…|>,
 		semanticRestrictions : ↑<semantic restriction…|>,
 		grammaticalRestrictions : ↑<grammatical restriction…|>;
-		
-		m1 ::= {1→1,2→2,3→3,5→7};
-		m2 ::= {4→4,5→5,2→4};
-
-		m3 ::= integrate m1 and m2 with 
-		[
-		 	m : {integer→integer|},
-		 	k : integer,
-		 	v : integer
-		 |
-		 	if m[k] < v then [
-		 		mNew : {integer→integer|} := m - k;
-		 		mNew + k→v
-		 	] else [m]
-		];
-		Print: "m3=";
-		Print: “m3”;
-		Print: "\n";
-		Print: "m3 type=";
-		Print: “m3's type”;
-		Print: "\n";
-		Print: "m3 key=";
-		Print: “m3's keys”;
-		Print: "\n";
-
-
-		/* TODO make key type, type union of both maps keys.  Look at set union implementation  *
