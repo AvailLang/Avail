@@ -393,6 +393,9 @@ Method "integer range_times_" is [aT : integerType, bT : integerType |
 		posAs : integerType := type intersection of aT and [1..INF];
 		posBs : integerType := type intersection of bT and [1..INF];
 		range : integerType := terminates;
+		/* This does not work for inclusive infinite bounds. See the
+		 * implementation in new library.
+		 */
 		if posAs not = terminates then [
 			if posBs not = terminates then [
 				range := type union of range and

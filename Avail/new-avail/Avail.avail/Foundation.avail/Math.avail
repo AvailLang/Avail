@@ -375,27 +375,21 @@ Method "_×_" is
 			If positiveB ≠ ⊥ then
 			[
 				lower ::= ⎣positiveA⎦ × ⎣positiveB⎦;
-				lowerInclusive ::= ⎣positiveA⎦ is inclusive
-					∧ [ ⎣positiveB⎦ is inclusive ];
 				upper ::= ⎡positiveA⎤ × ⎡positiveB⎤;
-				upperInclusive ::= ⎡positiveA⎤ is inclusive
-					∧ [ ⎡positiveB⎤ is inclusive ];
+				isInfinite ::= ∞ ∈ positiveA ∨ [∞ ∈ positiveB];
 				range ::= integer range
-					from lower (inclusive=lowerInclusive)
-					to upper (inclusive=upperInclusive);
+					from lower (inclusive=true)
+					to upper + 1 (inclusive=isInfinite);
 				result := eject ↑result ∪ range;
 			];
 			If negativeB ≠ ⊥ then
 			[
 				lower ::= ⎡positiveA⎤ × ⎣negativeB⎦;
-				lowerInclusive ::= ⎡positiveA⎤ is inclusive
-					∧ [ ⎣negativeB⎦ is inclusive ];
+				isInfinite ::= ∞ ∈ positiveA ∨ [-∞ ∈ negativeB];
 				upper ::= ⎣positiveA⎦ × ⎡negativeB⎤;
-				upperInclusive ::= ⎣positiveA⎦ is inclusive
-					∧ [ ⎡negativeB⎤ is inclusive ];
 				range ::= integer range
-					from lower (inclusive=lowerInclusive)
-					to upper (inclusive=upperInclusive);
+					from lower - 1 (inclusive=isInfinite)
+					to upper (inclusive=true);
 				result := eject ↑result ∪ range;
 			];
 		];
@@ -404,27 +398,21 @@ Method "_×_" is
 			If positiveB ≠ ⊥ then
 			[
 				lower ::= ⎣negativeA⎦ × ⎡positiveB⎤;
-				lowerInclusive ::= ⎣negativeA⎦ is inclusive
-					∧ [ ⎡positiveB⎤ is inclusive ];
+				isInfinite ::= -∞ ∈ negativeA ∨ [∞ ∈ positiveB];
 				upper ::= ⎡negativeA⎤ × ⎣positiveB⎦;
-				upperInclusive ::= ⎡negativeA⎤ is inclusive
-					∧ [ ⎣positiveB⎦ is inclusive ];
 				range ::= integer range
-					from lower (inclusive=lowerInclusive)
-					to upper (inclusive=upperInclusive);
+					from lower - 1 (inclusive=isInfinite)
+					to upper (inclusive=true);
 				result := eject ↑result ∪ range;
 			];
 			If negativeB ≠ ⊥ then
 			[
 				lower ::= ⎡negativeA⎤ × ⎡negativeB⎤;
-				lowerInclusive ::= ⎡negativeA⎤ is inclusive
-					∧ [ ⎡negativeB⎤ is inclusive ];
 				upper ::= ⎣negativeA⎦ × ⎣negativeB⎦;
-				upperInclusive ::= ⎣negativeA⎦ is inclusive
-					∧ [ ⎣negativeB⎦ is inclusive ];
+				isInfinite ::= -∞ ∈ negativeA ∨ [-∞ ∈ negativeB];
 				range ::= integer range
-					from lower (inclusive=lowerInclusive)
-					to upper (inclusive=upperInclusive);
+					from lower (inclusive=true)
+					to upper + 1 (inclusive=isInfinite);
 				result := eject ↑result ∪ range;
 			];
 		];
@@ -466,7 +454,7 @@ Semantic restriction "-_" is
 [
 	a : extended integer's type
 |
-	- a
+	-a
 ];
 
 /**
@@ -616,17 +604,16 @@ Method "_÷_" is
 ];
 
 /**
- * Compute and answer the integer range type of the quotient of the argument
- * types.
+ * Compute and answer the integer range type of the quotient.
  * 
  * Parameters:
- *    a - An integral type.
- *    b - An integral type.
+ *    numeratorRange - An integral type.
+ *    denomintor - An integral type.
  * Returns:
  *    The narrowest integer range type general enough to hold all possible
- *    quotients of the arguments' instances.
+ *    quotients of `numeratorRange`'s instances and `denominator`.
  */
-Semantic restriction "_÷_" is
+Method "_÷_" is
 [
 	a : extended integer's type,
 	b : extended integer's type
@@ -660,6 +647,25 @@ Semantic restriction "_÷_" is
 			eject ↑union ∪ (a ÷ positiveDenominators' genuine upper bound);
 	];
 	union
+];
+
+/**
+ * Compute and answer the integer range type of the quotient of the argument
+ * types.
+ * 
+ * Parameters:
+ *    a - An integral type.
+ *    b - An integral type.
+ * Returns:
+ *    The narrowest integer range type general enough to hold all possible
+ *    quotients of the arguments' instances.
+ */
+Semantic restriction "_÷_" is
+[
+	a : extended integer's type,
+	b : extended integer's type
+|
+	a ÷ b
 ];
 
 /**

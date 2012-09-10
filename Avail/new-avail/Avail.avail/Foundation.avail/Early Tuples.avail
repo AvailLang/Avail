@@ -65,7 +65,8 @@ Semantic restriction "_'s⁇default type" is
 [
 	meta : tuple meta's type
 |
-	meta's instance's default type's type
+	t ::= meta's instance;
+	(∪ t[1 max ⎣t⎦..⎡t⎤])'s type
 ];
 
 /**
@@ -189,7 +190,7 @@ Public method "Require:_[_.._]is ever valid" is
 	sliceStart : natural number's type,
 	sliceEnd : whole number's type
 |
-	If ⎣sliceStart⎦ > ⎡aTuple⎤ then
+	If ⎣sliceStart⎦ > ⎡aTuple⎤+1 then
 	[
 		Reject parse, expected:
 			"a subscript ("

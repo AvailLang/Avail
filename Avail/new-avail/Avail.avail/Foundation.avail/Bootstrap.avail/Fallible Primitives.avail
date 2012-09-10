@@ -678,7 +678,7 @@ Primitive "∪_[_.._]" is
 [
 	aTupleType : tuple meta,
 	startIndex : natural number,
-	endIndex : whole number
+	endIndex : nonnegative integer
 |
 	Primitive 143 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode

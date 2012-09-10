@@ -60,6 +60,8 @@ Names
 	"flatten_",
 	"last index of_where_",
 	"left fold_through_",
+	"quicksort_",
+	"quicksort_with_",
 	"right fold_through_",
 	"split_after_",
 	"split_before_",
@@ -68,7 +70,7 @@ Names
 	"take from_while_",
 	"take_from_",
 	"zip_",
-	"∑_",
+	"Σ_",
 	"∏_",
 	"_ends with_",
 	"_occurrences⁇of_",
@@ -2405,12 +2407,59 @@ Semantic restriction "_'s⁇last" is
  * Returns:
  *    An integer.
  */
-Public stable method "∑_" is
+Public stable method "Σ_" is
 [
-	intTuple : <integer…|1..∞>
+	intTuple : <extended integer…|1..∞>
 |
-	left fold intTuple through [ i : integer, ri : integer | i + ri ]
-] : integer;
+	left fold intTuple through
+		[i : extended integer, ri : extended integer | i + ri]
+] : extended integer;
+
+/**
+ * Compute and answer the best bounds of the specified summation.
+ *
+ * @method "Σ_"
+ * @param "intTupleType" "<extended integer…|1..∞>'s type"
+ *        A tuple type whose default type is {@type "extended integer"}.
+ * @returns "extended integer's type"
+ *          The strongest integer range that can be computed for the argument.
+ */
+Method "Σ_" is
+[
+	intTupleType : <extended integer…|1..∞>'s type
+|
+	leading ::= intTupleType's leading types;
+	defaultType ::= intTupleType's default type;
+	leadingSize ::= |leading|;
+	lowIndex ::= leadingSize min ⎣leading's type⎦;
+	lowBound ::=
+		if leadingSize > 0 then
+		[
+			t ::= cast leading[1..lowIndex]
+				into [t : <extended integer meta…|1..> | t];
+			(Σ map t through [i : extended integer meta | ⎣i⎦])
+				+ ((⎣intTupleType⎦ - lowIndex) max 0)
+				× ⎣defaultType⎦
+		]
+		else
+		[
+			⎣intTupleType⎦ × ⎣defaultType⎦
+		];
+	upBound ::=
+		if leadingSize > 0 then 
+		[
+			t ::= cast leading[1..lowIndex]
+				into [t : <extended integer meta…|1..> | t];
+			(Σ map t through [i : extended integer meta | ⎡i⎤])
+				+ ⎡intTupleType's default type⎤
+				× (⎡intTupleType⎤ - leadingSize)
+		]
+		else
+		[
+			⎡intTupleType's default type⎤ × (⎡intTupleType⎤ - leadingSize)
+		];
+	[lowBound..upBound]
+] : extended integer's type;
 
 /**
  * Strengthen the return type
@@ -2421,49 +2470,11 @@ Public stable method "∑_" is
  * Returns:
  *    A number.
  */
-Semantic restriction "∑_" is
+Semantic restriction "Σ_" is
 [
-	intTupleType : <integer…|1..∞>'s type
+	intTupleType : <extended integer…|1..∞>'s type
 |
-	leading ::= intTupleType's leading types;
-	defaultType ::= intTupleType's default type;
-	leadingSize ::= |leading|;
-	lowIndex ::= leadingSize min ⎣leading's type⎦;
-	lowBound ::=
-		if leadingSize > 0 then
-		[
-			(∑ (cast (map leading[1..lowIndex] through
-			[
-				i : any meta
-			|
-				x ::= cast i into [it : integer's type | it];
-				cast (⎣x⎦) into [n : integer | n]
-			]) into [iTuple : <integer…|1..∞> | iTuple])) +
-				((⎣intTupleType⎦ - lowIndex) max 0) ×
-				⎣defaultType⎦
-		]
-		else
-		[
-			((⎣intTupleType⎦) max 0) × ⎣defaultType⎦
-		];
-	upBound ::=
-		if leadingSize > 0 then 
-		[
-			(∑ (cast (map leading[1..lowIndex] through
-			[
-				i : any meta
-			|
-				x ::= cast i into [it : integer's type | it];
-				cast (⎡x⎤) into [n : integer | n]
-			]) into [iTuple : <integer…|1..∞> | iTuple])) +
-				⎡intTupleType's default type⎤ ×
-				(⎡intTupleType⎤ - leadingSize)
-		]
-		else
-		[
-			⎡intTupleType's default type⎤ × (⎡intTupleType⎤ - leadingSize)
-		];
-	[lowBound..upBound+1)
+	Σ intTupleType
 ];
 
 /**
@@ -2551,3 +2562,201 @@ Print: “z”;
 	];
 	[lowBound..upBound+1)
 ];*/
+
+/**
+ * Construct and answer a sorted variant of {@param "numbers"} using the
+ * quicksort algorithm.
+ *
+ * When overriding {@method "quicksort_"}, only target tuple types that contain
+ * at least two elements. Not only do the trivial cases of 0 and 1 elements have
+ * a simple universal implementation, the 0-element (i.e., empty tuple) case
+ * causes ambiguous resolution if multiple overrides exist that will accept it.
+ *
+ * @method "quicksort_"
+ * @param "numbers" "<number…|>"
+ *        A tuple of numbers.
+ * @returns "<number…|>"
+ *          A tuple of numbers in ascending order.
+ */
+Public abstract method "quicksort_" is [<number…|>]→<number…|>;
+
+/* Give quicksort higher precedence than concatenation. */
+Grammatical restriction "quicksort_" is <{"«_‡++»"}>;
+
+Semantic restriction "quicksort_" is
+[
+	tupleType : tuple meta
+|
+	union ::= ∪ tupleType[1..|tupleType's leading types|+1];
+	<<>, union… | ||tupleType||>
+];
+
+Method "quicksort_" is
+[
+	trivial : <⊥…|0>
+|
+	trivial
+] : <number…|0>;
+
+Method "quicksort_" is
+[
+	trivial : <number…|1>
+|
+	trivial
+] : <number…|1>;
+
+Seal method "quicksort_" at <<any…|0..1>>;
+
+Method "quicksort_" is
+[
+	numbers : <number…|2..>
+|
+	/* Choose the median of the first, middle, and last elements as the
+	 * pivot.
+	 */
+	size ::= |numbers|;
+	halfSize ::= |numbers| ÷ 2;
+	pivotIndex : natural number :=
+		if numbers[1] > numbers[size] then [1]
+		else [size];
+	pivotIndex :=
+		if numbers[pivotIndex] < numbers[halfSize] then [pivotIndex]
+		else [halfSize];
+	pivot ::= numbers[pivotIndex];
+	withoutPivot ::= numbers[..pivotIndex-1] ++ numbers[pivotIndex+1..];
+	lesser ::= filter withoutPivot by [n : number | n ≤ pivot];
+	greater ::= filter withoutPivot by [n : number | n > pivot];
+	quicksort lesser ++ <pivot> ++ quicksort greater
+];
+
+/**
+ * Construct and answer a sorted variant of {@param "aTuple"} using the
+ * quicksort algorithm and specified comparison function.
+ *
+ * @method "quicksort_with_"
+ * @param "aTuple" "tuple"
+ *        A tuple.
+ * @param "comparator" "[⊥, ⊥]→boolean"
+ *        A comparison function that accepts two elements of {@param "aTuple"}
+ *        and answers {@code "true"} if the first ≤ second and {@code "false"}
+ *        otherwise.
+ * @returns "tuple"
+ *          A sorted variant of {@param "aTuple"}.
+ */
+Public abstract method "quicksort_with_" is [tuple, [⊥, ⊥]→boolean]→tuple;
+
+Semantic restriction "quicksort_with_" is
+[
+	tupleType : tuple meta,
+	comparator : [⊥, ⊥]→boolean's type
+|
+	union ::= ∪ tupleType[1..|tupleType's leading types|+1];
+	If comparator[1] ≠ ⊥ ∧ [¬union ⊆ comparator[1]] then
+	[
+		Reject parse, expected:
+			"first parameter of comparison function to accept all elements ∈ "
+			++ “union”
+			++ " of the specified tuple (but it only accepts "
+			++ “comparator[1]”
+			++ ")"
+	];
+	If comparator[2] ≠ ⊥ ∧ [¬union ⊆ comparator[2]] then
+	[
+		Reject parse, expected:
+			"second parameter of comparison function to accept all elements ∈ "
+			++ “union”
+			++ " of the specified tuple (but it only accepts "
+			++ “comparator[2]”
+			++ ")"
+	];
+	<<>, union… | ||tupleType||>
+];
+
+Method "quicksort_with_" is
+[
+	trivial : <any…|0..1>,
+	comparator : [⊥, ⊥]→boolean
+|
+	trivial
+] : <any…|0..1>;
+
+Method "quicksort_with_" is
+[
+	aTuple : <any…|2..>,
+	comparator : [⊥, ⊥]→boolean
+|
+	/* Choose the median of the first, middle, and last elements as the
+	 * pivot.
+	 */
+	size ::= |aTuple|;
+	halfSize ::= |aTuple| ÷ 2;
+	pivotIndex : natural number :=
+		if invoke comparator with <aTuple[1], aTuple[size]>
+		then [1]
+		else [size];
+	pivotIndex :=
+		if ¬invoke comparator with <aTuple[pivotIndex], aTuple[halfSize]>
+		then [pivotIndex]
+		else [halfSize];
+	pivot ::= aTuple[pivotIndex];
+	withoutPivot ::= aTuple[..pivotIndex-1] ++ aTuple[pivotIndex+1..];
+	lesser ::= filter withoutPivot by
+		[a : any | invoke comparator with <a, pivot>];
+	greater ::= filter withoutPivot by
+		[a : any | ¬invoke comparator with <a, pivot>];
+	quicksort lesser with comparator
+		++ <pivot>
+		++ quicksort greater with comparator
+];
+
+Seal method "quicksort_with_" at <tuple, [⊥, ⊥]→boolean>;
+
+/**
+ * Construct and answer a tuple like {@param "aTuple"}, but with the leftmost
+ * occurrence of {@param "doomed"} removed.
+ *
+ * @method "_-_"
+ * @param "aTuple" "tuple"
+ *        A tuple.
+ * @param "doomed" "any"
+ *        A value.
+ * @returns "tuple"
+ *          The requested tuple, which will be {@param "aTuple"} if there were
+ *          no occurrences of {@param "doomed"}.
+ */
+Method "_-_" is
+[
+	aTuple : tuple,
+	doomed : any
+|
+	index ::= first index of aTuple where [a : any | a = doomed];
+	cast index into [i : natural number | aTuple[..i-1] ++ aTuple[i+1..]]
+	else [aTuple]
+] : tuple;
+
+Semantic restriction "_-_" is
+[
+	tupleType : tuple meta,
+	element : any meta
+|
+	allDisjoint : boolean := true;
+	From 1 to |tuple's leading types| + 1 do
+	[
+		index : natural number
+	|
+		If tupleType[index] ∩ element ≠ ⊥ then
+		[
+			allDisjoint := false;
+		];
+		allDisjoint
+	];
+	If allDisjoint then
+	[
+		tupleType
+	]
+	else
+	[
+		union ::= ∪ tupleType[1..|tupleType's leading types|+1];
+		<union… | 0 max (⎣tupleType⎦-1).. ⎡tupleType⎤>
+	]
+];

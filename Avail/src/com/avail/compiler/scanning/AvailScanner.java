@@ -396,7 +396,7 @@ public class AvailScanner
 				}
 				else
 				{
-					// It's a float or double.
+					// It's a double.
 					final StringBuilder builder = new StringBuilder();
 					final int end = scanner.position();
 					scanner.position(scanner.startOfToken());

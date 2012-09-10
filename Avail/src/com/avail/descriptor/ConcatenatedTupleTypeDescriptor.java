@@ -232,6 +232,8 @@ extends TypeDescriptor
 			object.slot(FIRST_TUPLE_TYPE)
 				.unionOfTypesAtThrough(startIndex, endIndex);
 		final int startInSecond = startIndex - firstUpper.extractInt();
+		// TODO: This could fail if the lower bound lies outside the range of a
+		// 32-bit Java int.
 		final int endInSecond = endIndex
 			- object.slot(FIRST_TUPLE_TYPE)
 				.sizeRange().lowerBound().extractInt();

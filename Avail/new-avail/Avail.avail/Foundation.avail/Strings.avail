@@ -939,3 +939,26 @@ Stable method "_→extended integer" is
 	If |str| > 1 ∧ [ str[1] = ¢0 ] then fail;
 	str (base 10)
 ] : extended integer;
+
+Method "quicksort_" is
+[
+	strings : <string…|>
+|
+	quicksort strings with
+	[
+		s1 : string,
+		s2 : string
+	|
+		$body : boolean;
+		From 1 to |s1| min |s2| do
+		[
+			index : natural number
+		|
+			cp1 ::= s1[index]→code point;
+			cp2 ::= s2[index]→code point;
+			If cp1 < cp2 then [Exit body with true]
+			else if [cp1 > cp2] then [Exit body with false];
+		];
+		|s1| ≤ |s2|
+	]
+] : <string…|>;
