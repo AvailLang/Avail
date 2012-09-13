@@ -355,7 +355,7 @@ public class L1InstructionWriter
 		if (primitiveNumber != 0)
 		{
 			final Primitive primitive =
-				Primitive.byPrimitiveNumber(primitiveNumber);
+				Primitive.byPrimitiveNumberOrFail(primitiveNumber);
 			if (!primitive.hasFlag(Flag.CannotFail))
 			{
 				// Make sure the first local is set up as a primitive failure

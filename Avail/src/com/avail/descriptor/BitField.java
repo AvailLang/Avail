@@ -128,6 +128,7 @@ implements Comparable<BitField>
 	@Override
 	public int compareTo (final @Nullable BitField bitField)
 	{
+		assert bitField != null;
 		assert integerSlot == bitField.integerSlot
 			: "Bit fields of different slots are incomparable";
 		// Order by descending shift values.

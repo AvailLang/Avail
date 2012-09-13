@@ -210,6 +210,48 @@ Semantic restriction "⎡_⎤" is
 	integer range bound semantic restriction function;
 
 /**
+ * Is the lower bound of the argument inclusive?
+ * 
+ * Note that integer ranges canonize each bound as inclusive unless the bound is
+ * ±∞. So `(3..6)` is really `[4..5]` and will answer `true` if asked whether
+ * its lower bound is inclusive. But `(-∞..0]` will answer `false` if asked
+ * whether its lower bound is inclusive.
+ * 
+ * Parameters:
+ *    range - An integer range.
+ * Returns:
+ *    `false` if the lower bound is infinite and exclusive, `true` otherwise.
+ */
+Public method "⎣_⎦is inclusive" is
+[
+	range : extended integer meta
+|
+	bound ::= ⎣range⎦;
+	bound's type ⊆ range
+] : boolean;
+
+/**
+ * Is the upper bound of the argument inclusive?
+ * 
+ * Note that integer ranges canonize each bound as inclusive unless the bound is
+ * ±∞. So `(3..6)` is really `[4..5]` and will answer `true` if asked whether
+ * its upper bound is inclusive. But `[0..∞)` will answer `false` if asked
+ * whether its upper bound is inclusive.
+ * 
+ * Parameters:
+ *    range - An integer range.
+ * Returns:
+ *    `false` if the upper bound is infinite and exclusive, `true` otherwise.
+ */
+Public method "⎡_⎤is inclusive" is
+[
+	range : extended integer meta
+|
+	bound ::= ⎡range⎤;
+	bound's type ⊆ range
+] : boolean;
+
+/**
  * Construct and answer an integer range type with the specified bounds.
  * 
  * Parameters:
@@ -243,8 +285,9 @@ Semantic restriction "[_.._]" is
 	upperBound : extended integer meta
 |
 	(integer range
-		from ⎣lowerBound⎦ (inclusive=true)
-		to ⎡upperBound⎤ (inclusive=true))'s type
+		from ⎣lowerBound⎦ (inclusive=⎣lowerBound⎦ is inclusive)
+		to ⎡upperBound⎤ (inclusive=⎡upperBound⎤ is inclusive)
+	)'s type
 ];
 
 /**
@@ -281,7 +324,7 @@ Semantic restriction "[_.._)" is
 	upperBound : extended integer meta
 |
 	(integer range
-		from ⎣lowerBound⎦ (inclusive=true)
+		from ⎣lowerBound⎦ (inclusive=⎣lowerBound⎦ is inclusive)
 		to ⎡upperBound⎤ (inclusive=false))'s type
 ];
 
@@ -320,7 +363,8 @@ Semantic restriction "(_.._]" is
 |
 	(integer range
 		from ⎣lowerBound⎦ (inclusive=false)
-		to ⎡upperBound⎤ (inclusive=true))'s type
+		to ⎡upperBound⎤ (inclusive=⎡upperBound⎤ is inclusive)
+	)'s type
 ];
 
 /**
@@ -376,48 +420,6 @@ Method "_∈_" is
 	range : extended integer meta
 |
 	value's type ⊆ range
-] : boolean;
-
-/**
- * Is the lower bound of the argument inclusive?
- * 
- * Note that integer ranges canonize each bound as inclusive unless the bound is
- * ±∞. So `(3..6)` is really `[4..5]` and will answer `true` if asked whether
- * its lower bound is inclusive. But `(-∞..0]` will answer `false` if asked
- * whether its lower bound is inclusive.
- * 
- * Parameters:
- *    range - An integer range.
- * Returns:
- *    `false` if the lower bound is infinite and exclusive, `true` otherwise.
- */
-Public method "⎣_⎦is inclusive" is
-[
-	range : extended integer meta
-|
-	bound ::= ⎣range⎦;
-	bound's type ⊆ range
-] : boolean;
-
-/**
- * Is the upper bound of the argument inclusive?
- * 
- * Note that integer ranges canonize each bound as inclusive unless the bound is
- * ±∞. So `(3..6)` is really `[4..5]` and will answer `true` if asked whether
- * its upper bound is inclusive. But `[0..∞)` will answer `false` if asked
- * whether its upper bound is inclusive.
- * 
- * Parameters:
- *    range - An integer range.
- * Returns:
- *    `false` if the upper bound is infinite and exclusive, `true` otherwise.
- */
-Public method "⎡_⎤is inclusive" is
-[
-	range : extended integer meta
-|
-	bound ::= ⎡range⎤;
-	bound's type ⊆ range
 ] : boolean;
 
 /**

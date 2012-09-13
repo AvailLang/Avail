@@ -267,9 +267,9 @@ implements ThreadFactory
 	 */
 	@ThreadSafe
 	public void setStandardStreams (
-		final PrintStream outputStream,
-		final PrintStream errorStream,
-		final InputStream inputStream)
+		final @Nullable PrintStream outputStream,
+		final @Nullable PrintStream errorStream,
+		final @Nullable InputStream inputStream)
 	{
 		runtimeLock.writeLock().lock();
 		try

@@ -194,14 +194,14 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 		/**
 		 * The kind of parse node that this kind is a child of.
 		 */
-		final ParseNodeKind parentKind;
+		final @Nullable ParseNodeKind parentKind;
 
 		/**
 		 * Answer the kind of parse node of which this object is the type.
 		 *
 		 * @return My parent parse node kind.
 		 */
-		public final ParseNodeKind parentKind ()
+		public final @Nullable ParseNodeKind parentKind ()
 		{
 			return parentKind;
 		}
@@ -232,7 +232,7 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 		 * @param parentKind
 		 *        The kind of parse node of which this is the type.
 		 */
-		ParseNodeKind(final @Nullable ParseNodeKind parentKind)
+		ParseNodeKind (final @Nullable ParseNodeKind parentKind)
 		{
 			this.parentKind = parentKind;
 			if (parentKind == null)

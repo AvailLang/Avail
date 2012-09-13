@@ -86,14 +86,8 @@ public class AvailCompilerCachedSolution
 		final StringBuilder builder = new StringBuilder();
 		builder.append("Solution(@");
 		builder.append(endState.position);
-		if (endState.scopeMap.name() == null)
-		{
-			builder.append(", no bindings");
-		}
-		else
-		{
-			builder.append(", last binding=" + endState.scopeMap.name());
-		}
+		builder.append(": ");
+		builder.append(endState.scopeMap);
 		builder.append(") = ");
 		builder.append(parseNode().toString());
 		return builder.toString();

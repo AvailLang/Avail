@@ -811,7 +811,7 @@ final public class L2Interpreter extends Interpreter
 				return result;
 			}
 			// The primitive failed.
-			assert !Primitive.byPrimitiveNumber(primNum).hasFlag(
+			assert !Primitive.byPrimitiveNumberOrFail(primNum).hasFlag(
 				Flag.CannotFail);
 			invokeWithoutPrimitiveFunctionArguments(aFunction, args, caller);
 			pointerAtPut(PRIMITIVE_FAILURE, primitiveResult);

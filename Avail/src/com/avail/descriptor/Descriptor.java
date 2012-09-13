@@ -4663,4 +4663,13 @@ extends AbstractDescriptor
 			}
 		};
 	}
+
+	@Override
+	AvailObject o_BitShift (
+		final AvailObject object,
+		final AvailObject shiftFactor,
+		final boolean canDestroy)
+	{
+		throw unsupportedOperationException();
+	}
 }

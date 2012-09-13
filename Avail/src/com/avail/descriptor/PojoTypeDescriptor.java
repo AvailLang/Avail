@@ -1430,18 +1430,16 @@ extends TypeDescriptor
 		final Set<AvailObject> ancestors,
 		final Canon canon)
 	{
-		if (target != null)
+		ancestors.add(canon.canonize(target));
+		final Class<?> superclass = target.getSuperclass();
+		if (superclass != null)
 		{
-			ancestors.add(canon.canonize(target));
-			final Class<?> superclass = target.getSuperclass();
-			if (superclass != null)
-			{
-				computeUnparameterizedAncestry(superclass, ancestors, canon);
-			}
-			for (final Class<?> superinterface : target.getInterfaces())
-			{
-				computeUnparameterizedAncestry(superinterface, ancestors, canon);
-			}
+			computeUnparameterizedAncestry(superclass, ancestors, canon);
+		}
+		for (final Class<?> superinterface : target.getInterfaces())
+		{
+			assert superinterface != null;
+			computeUnparameterizedAncestry(superinterface, ancestors, canon);
 		}
 	}
 

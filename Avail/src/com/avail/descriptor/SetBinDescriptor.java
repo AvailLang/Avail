@@ -33,7 +33,6 @@
 package com.avail.descriptor;
 
 import com.avail.annotations.*;
-import com.avail.descriptor.MapDescriptor.MapIterable;
 
 /**
  * This abstract class organizes the idea of nodes in a Bagwell Ideal Hash Tree

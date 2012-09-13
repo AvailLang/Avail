@@ -84,6 +84,6 @@ public class L2_MOVE_OUTER_VARIABLE extends L2Operation
 		registers.propagateWriteTo(destination);
 		registers.typeAtPut(
 			destination,
-			registers.code().outerTypeAt(outerIndexOperand.value));
+			registers.codeOrFail().outerTypeAt(outerIndexOperand.value));
 	}
 }

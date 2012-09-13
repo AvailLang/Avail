@@ -112,7 +112,7 @@ extends Descriptor
 		 */
 		@EnumField(
 			describedBy=Primitive.class,
-			lookupMethodName="byPrimitiveNumber")
+			lookupMethodName="byPrimitiveNumberOrNull")
 		PRIMITIVE_NUMBER,
 
 		/**
@@ -672,7 +672,7 @@ extends Descriptor
 			// Sanity check for primitive blocks.  Use this to hunt incorrectly
 			// specified primitive signatures.
 			assert primitive == (primitive & 0xFFFF);
-			final Primitive prim = Primitive.byPrimitiveNumber(primitive);
+			final Primitive prim = Primitive.byPrimitiveNumberOrFail(primitive);
 			final AvailObject restrictionSignature =
 				prim.blockTypeRestriction();
 			assert restrictionSignature.isSubtypeOf(functionType);

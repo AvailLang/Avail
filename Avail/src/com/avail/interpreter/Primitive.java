@@ -466,6 +466,25 @@ implements IntegerEnumSlotDescriptionEnum
 		}
 	}
 
+	/**
+	 * Answer the primitive with the given number.
+	 *
+	 * @param primitiveNumber The primitive number to look up.  Must be between
+	 *           0 and {@link #maxPrimitiveNumber}.
+	 * @return The primitive.
+	 *
+	 * @throws RuntimeException if the primitive is not valid.
+	 */
+	public static Primitive byPrimitiveNumberOrFail (
+		final int primitiveNumber)
+	{
+		final Primitive primitive = byPrimitiveNumberOrNull(primitiveNumber);
+		if (primitive == null)
+		{
+			throw new RuntimeException("Illegal primitive number: "+ primitive);
+		}
+		return primitive;
+	}
 
 	/**
 	 * Locate the primitive that has the specified primitive number.
@@ -473,7 +492,7 @@ implements IntegerEnumSlotDescriptionEnum
 	 * @param primitiveNumber The primitive number for which to search.
 	 * @return The primitive with the specified primitive number.
 	 */
-	public static @Nullable Primitive byPrimitiveNumber (
+	public static @Nullable Primitive byPrimitiveNumberOrNull (
 		final int primitiveNumber)
 	{
 		assert primitiveNumber >= 0 && primitiveNumber <= maxPrimitiveNumber;
@@ -627,7 +646,7 @@ implements IntegerEnumSlotDescriptionEnum
 		final List<Primitive> prims = new ArrayList<Primitive>();
 		for (int i = 1; i <= maxPrimitiveNumber; i++)
 		{
-			final Primitive prim = byPrimitiveNumber(i);
+			final Primitive prim = byPrimitiveNumberOrNull(i);
 			if (prim != null && prim.debugMicrosecondsCheckingResultType != 0)
 			{
 				prims.add(prim);

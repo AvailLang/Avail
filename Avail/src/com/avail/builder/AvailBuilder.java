@@ -290,8 +290,9 @@ public final class AvailBuilder
 		long globalCodeSize = 0L;
 		for (final ModuleName moduleName : dependencies)
 		{
-			globalCodeSize += resolver.resolve(moduleName).fileReference()
-				.length();
+			final ResolvedModuleName resolution = resolver.resolve(moduleName);
+			assert resolution != null;  //TODO[MvG] - needs work.
+			globalCodeSize += resolution.fileReference().length();
 		}
 		return globalCodeSize;
 	}
@@ -433,8 +434,14 @@ public final class AvailBuilder
 				globalPosition.value,
 				globalCodeSize);
 			final ResolvedModuleName resolved = resolver.resolve(moduleName);
-			if (!runtime.includesModuleNamed(StringDescriptor.from(resolved
-				.qualifiedName())))
+			if (resolved == null)
+			{
+				throw new RuntimeException(
+					"Can't resolve module: " + moduleName);
+			}
+			if (!runtime.includesModuleNamed(
+				StringDescriptor.from(
+					resolved.qualifiedName())))
 			{
 				final File fileReference = resolved.fileReference();
 				final String filePath = fileReference.getAbsolutePath();
@@ -465,8 +472,9 @@ public final class AvailBuilder
 					try
 					{
 						AvailObject tag = deserializer.deserialize();
-						if (!tag.equals(
-							AtomDescriptor.moduleHeaderSectionAtom()))
+						if (tag != null &&
+							!tag.equals(
+								AtomDescriptor.moduleHeaderSectionAtom()))
 						{
 							throw new RuntimeException(
 								"Expected module header tag");
@@ -483,7 +491,8 @@ public final class AvailBuilder
 						}
 
 						tag = deserializer.deserialize();
-						if (!tag.equals(AtomDescriptor.moduleBodySectionAtom()))
+						if (tag != null &&
+							!tag.equals(AtomDescriptor.moduleBodySectionAtom()))
 						{
 							throw new RuntimeException(
 								"Expected module body tag");

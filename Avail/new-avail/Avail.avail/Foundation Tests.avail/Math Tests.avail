@@ -414,3 +414,37 @@ Test "precedence" in math test suite is
 	Require: 2^8 × 4 - 1 = 1023;
 	Require: 2 × (2 + 1) = 6;
 ];
+
+Test "bit∧" in math test suite is
+[
+	Require: 0 bit∧ 0 = 0;
+	Require: 0 bit∧ 1 = 0;
+	Require: 1 bit∧ 0 = 0;
+	Require: 1 bit∧ 1 = 1;
+	Require: 15 bit∧ 30 = 14;
+	Require: -4 bit∧ 15 = 12;
+	Require: -4 bit∧ -16 = -16;
+	Require: -4 bit∧ -15 = -16;
+	Require: (1<<100) bit∧ (1<<120) = 0;
+	Require: (1<<100) bit∧ (1<<120-1) = 1<<100;
+	Require: "0101010101001010101010000110101101010101101010100101010" (base 2)
+		bit∧ "1001010101010101110010101010101010010100101001010110101" (base 2)
+		   = "0001010101000000100010000010101000010100101000000100000" (base 2);
+	/* Some power-of-two boundary conditions. */
+	From 1 to 100 do
+	[
+		i : natural number
+	|
+		power : integer := 1<<i;
+		Require: power bit∧ power = power;
+		Require: power bit∧ (power - 1) = 0;
+		Require: power bit∧ (power + 1) = power;
+		Require: (power - 1) bit∧ (power - 1) = (power - 1);
+		neg ::= -power;
+		Require: neg bit∧ neg = neg;
+		Require: neg bit∧ (neg + 1) = neg;
+		Require: neg bit∧ (neg - 1) = neg × 2;
+		Require: (neg - 1) bit∧ (neg - 1) = neg - 1;
+		Require: neg bit∧ power = power;
+	];
+];

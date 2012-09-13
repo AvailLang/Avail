@@ -119,7 +119,7 @@ public class L2_ATTEMPT_INLINE_PRIMITIVE extends L2Operation
 			final boolean checkOk =
 				interpreter.primitiveResult.isInstanceOf(expectedType);
 			final long checkTimeNanos = System.nanoTime() - start;
-			Primitive.byPrimitiveNumber(primNumber)
+			Primitive.byPrimitiveNumberOrFail(primNumber)
 				.addMicrosecondsCheckingResultType(checkTimeNanos / 1000L);
 			if (!checkOk)
 			{
@@ -127,7 +127,7 @@ public class L2_ATTEMPT_INLINE_PRIMITIVE extends L2Operation
 				error(
 					"primitive %s's result (%s) did not agree with"
 					+ " semantic restriction's expected type (%s)",
-					Primitive.byPrimitiveNumber(primNumber).name(),
+					Primitive.byPrimitiveNumberOrFail(primNumber).name(),
 					interpreter.primitiveResult,
 					expectedType);
 			}

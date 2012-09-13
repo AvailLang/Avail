@@ -104,7 +104,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 		 */
 		@EnumField(
 			describedBy=Primitive.class,
-			lookupMethodName="byPrimitiveNumber")
+			lookupMethodName="byPrimitiveNumberOrNull")
 		PRIMITIVE,
 
 		/**
@@ -659,16 +659,12 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 		final int primitive = object.primitive();
 		final AvailObject statementsTuple = object.statementsTuple();
 		final int statementsSize = statementsTuple.tupleSize();
-		AvailObject explicitResultType = object.resultType();
-		if (explicitResultType != null)
+		@Nullable AvailObject explicitResultType = object.resultType();
+		if (statementsSize >= 1
+			&& statementsTuple.tupleAt(statementsSize).expressionType()
+				.equals(explicitResultType))
 		{
-			// Suppress redundant block type declaration.
-			if (statementsSize >= 1
-				&& statementsTuple.tupleAt(statementsSize).expressionType()
-					.equals(explicitResultType))
-			{
-				explicitResultType = null;
-			}
+			explicitResultType = null;
 		}
 		if (argCount == 0
 				&& primitive == 0
@@ -712,7 +708,7 @@ public class BlockNodeDescriptor extends ParseNodeDescriptor
 			builder.append('\t');
 		}
 		boolean skipFailureDeclaration = false;
-		final Primitive prim = Primitive.byPrimitiveNumber(primitive);
+		final Primitive prim = Primitive.byPrimitiveNumberOrNull(primitive);
 		if (prim != null
 			&& !prim.hasFlag(Flag.SpecialReturnConstant)
 			&& !prim.hasFlag(Flag.SpecialReturnSoleArgument))

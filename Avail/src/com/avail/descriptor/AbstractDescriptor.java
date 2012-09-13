@@ -276,6 +276,35 @@ public abstract class AbstractDescriptor
 	}
 
 	/**
+	 * Note: This is an arithmetic (i.e., signed) shift *without* Java's
+	 * implicit modulus on the shift amount.
+	 *
+	 * @param value The value to shift.
+	 * @param leftShift The amount to shift left. If negative, shift right by
+	 *                  the corresponding positive amount.
+	 * @return The shifted integer, modulus 2^64 then cast to {@code long}.
+	 */
+	protected static long arithmeticBitShift (
+		final long value,
+		final int leftShift)
+	{
+		if (leftShift >= 64)
+		{
+			return 0L;
+		}
+		if (leftShift >= 0)
+		{
+			return value << leftShift;
+		}
+		if (leftShift > -64)
+		{
+			return value >> -leftShift;
+		}
+		// Preserve the sign.
+		return value >> 63;
+	}
+
+	/**
 	 * Construct a new {@linkplain AbstractDescriptor descriptor}.
 	 *
 	 * @param isMutable Does the {@linkplain AbstractDescriptor descriptor}
@@ -342,7 +371,7 @@ public abstract class AbstractDescriptor
 	 * @param annotationClass The {@link Class} of the {@code Annotation} type.
 	 * @return
 	 */
-	private static <A extends Annotation> A getAnnotation (
+	private static @Nullable <A extends Annotation> A getAnnotation (
 		final Enum<? extends Enum<?>> enumConstant,
 		final Class<A> annotationClass)
 	{
@@ -358,6 +387,7 @@ public abstract class AbstractDescriptor
 				"Enum class didn't recognize its own instance",
 				e);
 		}
+		assert annotationClass != null;
 		return slotMirror.getAnnotation(annotationClass);
 	}
 
@@ -609,6 +639,7 @@ public abstract class AbstractDescriptor
 					builder.append('\t');
 				}
 				final String slotName = slot.name();
+				assert slotName != null;
 				int value;
 				if (slotName.charAt(slotName.length() - 1) == '_')
 				{
@@ -658,6 +689,7 @@ public abstract class AbstractDescriptor
 					builder.append('\t');
 				}
 				final String slotName = slot.name();
+				assert slotName != null;
 				if (slotName.charAt(slotName.length() - 1) == '_')
 				{
 					final int subscript = i - objectSlots.length + 1;
@@ -5724,4 +5756,15 @@ public abstract class AbstractDescriptor
 	 */
 	abstract SetIterator o_SetBinIterator (
 		final AvailObject object);
+
+	/**
+	 * @param object
+	 * @param shiftFactor
+	 * @param canDestroy
+	 * @return
+	 */
+	abstract AvailObject o_BitShift (
+		final AvailObject object,
+		final AvailObject shiftFactor,
+		final boolean canDestroy);
 }

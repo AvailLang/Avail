@@ -1,5 +1,5 @@
 /**
- * P_263_DeclareAllExportedAtoms.java
+ * P_095_BitShift.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -32,33 +32,26 @@
 
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 263</strong>: This private primitive is used to ensure that
- * a module can deserialize correctly.  It forces the given set of atoms to be
- * included in the current module's {@linkplain
- * com.avail.descriptor.ModuleDescriptor.ObjectSlots#NAMES public names} or
- * {@linkplain com.avail.descriptor.ModuleDescriptor.ObjectSlots#PRIVATE_NAMES
- * private names}, depending on the value of the supplied {@linkplain
- * EnumerationTypeDescriptor#booleanObject() boolean} ({@link
- * AtomDescriptor#trueObject() true} for public, {@link
- * AtomDescriptor#falseObject() false} for private).
+ * <strong>Primitive 95</strong>: Given any integer B, and a shift factor S,
+ * compute ⎣B×2<sup>S</sup>⎦.  This is the left-shift operation, but when S
+ * is negative it acts as a right-shift.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class P_263_DeclareAllExportedAtoms
+public final class P_095_BitShift
 extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_263_DeclareAllExportedAtoms().init(2, CannotFail, Private);
+		new P_095_BitShift().init(2, CanFold, CannotFail);
 
 	@Override
 	public Result attempt (
@@ -66,26 +59,12 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		assert args.size() == 2;
-		final AvailObject names = args.get(0);
-		final AvailObject isPublic = args.get(1);
-		final AvailObject module = interpreter.module();
-
-		assert module != null;
-		if (isPublic.extractBoolean())
-		{
-			for (final AvailObject name : names)
-			{
-				module.atNameAdd(name.name(), name);
-			}
-		}
-		else
-		{
-			for (final AvailObject name : names)
-			{
-				module.atPrivateNameAdd(name.name(), name);
-			}
-		}
-		return interpreter.primitiveSuccess(NullDescriptor.nullObject());
+		final AvailObject baseInteger = args.get(0);
+		final AvailObject shiftFactor = args.get(1);
+		return interpreter.primitiveSuccess(
+			baseInteger.bitShift(
+				shiftFactor,
+				true));
 	}
 
 	@Override
@@ -93,10 +72,8 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				SetTypeDescriptor.setTypeForSizesContentType(
-					IntegerRangeTypeDescriptor.wholeNumbers(),
-					ATOM.o()),
-				EnumerationTypeDescriptor.booleanObject()),
-			TOP.o());
+				IntegerRangeTypeDescriptor.integers(),
+				IntegerRangeTypeDescriptor.integers()),
+			IntegerRangeTypeDescriptor.integers());
 	}
 }

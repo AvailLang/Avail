@@ -167,7 +167,7 @@ Semantic restriction "_[_]" is
 	else
 	[
 		limit ::= cast ⎡parametersType⎤
-			into [ t : natural number | t ];
+			into [ t : whole number | t ];
 		start ::= cast ⎣index⎦
 			into [ t : natural number | t ];
 		If start > limit then

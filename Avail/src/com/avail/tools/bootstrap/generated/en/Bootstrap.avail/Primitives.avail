@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Versioned As: $$Revision: 623 $$
+ * * Last Versioned As: $$Revision$$
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -124,6 +124,7 @@ Names
 	"_+_→_",
 	"_-_",
 	"_._→variable",
+	"_<<_",
 	"_<<_keeping_bits",
 	"_<_",
 	"_<«_‡,»>",

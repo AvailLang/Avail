@@ -6338,4 +6338,16 @@ implements Iterable<AvailObject>
 	{
 		return descriptor.o_SetBinIterator (this);
 	}
+
+	/**
+	 * @param shiftFactor
+	 * @param canDestroy
+	 * @return
+	 */
+	public AvailObject bitShift (
+		final AvailObject shiftFactor,
+		final boolean canDestroy)
+	{
+		return descriptor.o_BitShift(this, shiftFactor, canDestroy);
+	}
 }

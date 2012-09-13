@@ -121,6 +121,7 @@ extends ModuleName
 		final List<ModuleName> contents = new ArrayList<ModuleName>();
 		final File[] files = parent.listFiles(new FilenameFilter()
 		{
+			@SuppressWarnings("null")
 			@Override
 			public boolean accept (
 				final @Nullable File dir,

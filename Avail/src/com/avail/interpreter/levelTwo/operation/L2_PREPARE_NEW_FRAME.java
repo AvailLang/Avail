@@ -94,7 +94,7 @@ public class L2_PREPARE_NEW_FRAME extends L2Operation
 		if (code.primitiveNumber() != 0)
 		{
 			// A failed primitive.
-			assert !Primitive.byPrimitiveNumber(code.primitiveNumber())
+			assert !Primitive.byPrimitiveNumberOrFail(code.primitiveNumber())
 				.hasFlag(Flag.CannotFail);
 			final AvailObject primitiveFailureValue =
 				interpreter.pointerAt(PRIMITIVE_FAILURE);

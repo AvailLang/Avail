@@ -34,6 +34,7 @@ package com.avail.optimizer;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
+import com.avail.annotations.Nullable;
 import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
@@ -83,13 +84,14 @@ public class RegisterSet
 		this.translator = translator;
 		final int numFixed = L2Translator.firstArgumentRegisterIndex;
 		final int numRegisters;
-		if (code() == null)
+		final AvailObject code = codeOrNull();
+		if (code == null)
 		{
 			numRegisters = numFixed;
 		}
 		else
 		{
-			numRegisters = numFixed + code().numArgsAndLocalsAndStack();
+			numRegisters = numFixed + code.numArgsAndLocalsAndStack();
 		}
 		architecturalRegisters = new ArrayList<L2ObjectRegister>(numRegisters);
 		for (int i = 0; i < numFixed; i++)
@@ -149,13 +151,26 @@ public class RegisterSet
 
 	/**
 	 * Answer the base {@linkplain CompiledCodeDescriptor compiled code} for
-	 * which this chunk is being constructed.
+	 * which this chunk is being constructed.  Answer null when generating the
+	 * default chunk.
 	 *
 	 * @return The root compiled code being translated.
 	 */
-	public AvailObject code ()
+	public @Nullable AvailObject codeOrNull ()
 	{
-		return translator.code;
+		return translator.codeOrNull();
+	}
+
+	/**
+	 * Answer the base {@linkplain CompiledCodeDescriptor compiled code} for
+	 * which this chunk is being constructed.  Fail if it's null, which happens
+	 * when the default chunk is being generated.
+	 *
+	 * @return The root compiled code being translated.
+	 */
+	public AvailObject codeOrFail ()
+	{
+		return translator.codeOrFail();
 	}
 
 	/**
@@ -503,7 +518,7 @@ public class RegisterSet
 	L2ObjectRegister argumentOrLocal (
 		final int argumentNumber)
 	{
-		final AvailObject code = code();
+		final AvailObject code = codeOrFail();
 		assert argumentNumber <= code.numArgs() + code.numLocals();
 		return continuationSlot(argumentNumber);
 	}

@@ -94,7 +94,7 @@ public class L2_INVOKE_AFTER_FAILED_PRIMITIVE extends L2Operation
 		final AvailObject codeToCall = function.code();
 		final int primNum = codeToCall.primitiveNumber();
 		assert primNum != 0;
-		assert !Primitive.byPrimitiveNumber(primNum).hasFlag(
+		assert !Primitive.byPrimitiveNumberOrFail(primNum).hasFlag(
 			Flag.CannotFail);
 		interpreter.invokeWithoutPrimitiveFunctionArguments(
 			function,
