@@ -1,5 +1,5 @@
 /*
- * Test.avail
+ * US Customary Units.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,29 +30,69 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Test"
+System Module "US Customary Units"
 Versions
 	"dev"
 Uses
-	"Core",
-	"Definers",
-	"Derivation",
-	"Foundation",
-	"Printing",
-	"Unit Testing"
+	"Avail",
+	"Core"
 Names
-	"SI test suite"
+	/* Length. */
+	"point", "p",
+	"pica", "P",
+	"inch", "in",
+	"foot", "ft",
+	"yard", "yd",
+	"mile", "mi"
 Body
 
-_testSuite ::= $"SI test suite";
+"point" ("p") is a base unit;
 
-/**
- * Answer the SI test suite identifier.
- * 
- * @method "SI test suite"
- * @returns "atom"
- *          The requsted test suite identifier.
+/* TODO: [TLS] Pica should use "P̸", but Avail can't call the method yet. Maybe
+ * we need Unicode 6 (i.e., Java 7) to resolve this problem?
  */
-Public method "SI test suite" is [_testSuite];
+"pica" ("P") is a base unit;
+Conversion rule: 1 P ≍ 12 p;
 
-New test suite SI test suite extends dimensional analysis test suite;
+"inch" ("in") is a base unit;
+Conversion rule: 1 in ≍ 6 P;
+Conversion rule: 1 in ≍ 72 p;
+
+"foot" ("ft") is a base unit;
+Conversion rule: 1 ft ≍ 12 in;
+Conversion rule: 1 ft ≍ 72 P;
+Conversion rule: 1 ft ≍ 864 p;
+
+"yard" ("yd") is a base unit;
+Conversion rule: 1 yd ≍ 3 ft;
+Conversion rule: 1 yd ≍ 36 in;
+Conversion rule: 1 yd ≍ 216 P;
+Conversion rule: 1 yd ≍ 2592 p;
+
+"mile" ("mi") is a base unit;
+Conversion rule: 1 mi ≍ 1760 yd;
+Conversion rule: 1 mi ≍ 5280 ft;
+Conversion rule: 1 mi ≍ 63360 in;
+Conversion rule: 1 mi ≍ 380160 P;
+Conversion rule: 1 mi ≍ 4561920 p;
+
+/*
+1 point (p)		352.777778 µm
+1 pica (P̸)	12 p	4.233333 mm
+1 inch (in)	6 P̸	2.54 cm
+1 foot (ft)	12 in	0.3048 m[8]
+1 yard (yd)	3 ft	0.9144 m[8]
+1 mile (mi)	5280 ft or 1760 yd	1.609344 km
+US Survey
+1 link (li)	33⁄50 ft or 7.92 in	0.2012 m
+1 (survey) foot (ft)	1200⁄3937 m	0.30480061 m[8]
+1 rod (rd)	25 li or 16.5 ft	5.02921 m
+1 chain (ch)	4 rd	20.11684 m
+1 furlong (fur)	10 ch	201.1684 m
+1 survey (or statute) mile (mi)	8 fur	1.609347 km[8]
+1 league (lea)	3 mi	4.828042 km
+Nautical
+1 fathom (ftm)	2 yd	1.8288 m
+1 cable (cb)	120 ftm or 1.091 fur	219.456 m
+1 nautical mile (NM or nmi)	8.439 cb or 1.151 mi	1.852 km
+*/

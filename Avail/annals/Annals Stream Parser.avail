@@ -29,125 +29,166 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-	
+
+System Module "Annals Stream Parser"
+Versions
+"Dev"
+Extends
+
+Uses
+	"Avail",
+	"Annals Class Definitions"
+Names
+	"Parse the Avail document_"
+
+Body
+
+
+
 keyCharacters ::= {¢/, ¢@, ¢*, ¢"\n"}; /* Special parse characters */
 /* Special keywords using @ symbols */
-keyWords ::= 
-	{@type,@supertype,@field,@category,@param,@raises,@restricts,@returns,
-	 @forbids,@category,@pubilc,@method,@see,@author,@link,@code};
+keywords ::= 
+	{"@type","@supertype","@field","@category","@param","@raises","@restricts",
+	"@returns","@forbids","@pubilc","@method","@see","@author",
+	"@link","@code"};
 openCommentCount : whole number := 0;
 newLineCount : whole number := 0;
 buffer : <character…|> := <>;
 inAnnalsType : boolean := false; 
 annalsType : string := "";
-annalsObjectName: string :"";
+annalsObjectName : string := "";
 
-/* TODO - create global variables for maps of classes and methods */
+classMap : {string→class|} := {};
+methodMap : {string→methodContainer|} := {};
 
 /**
- *
+ * Checks to see if the input character is one of the key characters defined
+ * in the global variable set, keyCharacters.
  * @method "_is a key character"
  * @categories ""
- * @param
- * @returnType
+ * @param "char" character
+ * @returnType boolean
  * @raises
  */
 Private method "_is a key character" is
 [
- 	char : character;
+ 	char : character
  |
- 	element ∈ keyCharacters
+ 	char ∈ keyCharacters
 ]:boolean;
 
 /**
- *
+ * Creates the enumeration of the global variable keywords.
+ * @method "comment keywords"
+ * @categories "Annals"
+ * @returnType enumeration of keywords
+ * @raises
+ */
+Private method "comment keywords" is [enumeration of keywords];
+
+/**
+ * Creates the enumeration of open comment strings.
+ * @method "open comment strings"
+ * @categories "Annals"
+ * @returnType enumeration of open comment strings
+ * @raises
+ */
+Private method "open comment strings" is [enumeration of {"/*","/**"}];
+
+/**
+ * Updates the globla variable, openCommentCount.  It adds one to the count.
  * @method "Increment the open comment count"
- * @categories ""
- * @param
- * @returnType
+ * @categories Annals""
+ * @returnType ⊤
  * @raises
  */
 Private method "Increment the open comment count" is
 [
- |
  	openCommentCount := openCommentCount + 1;
 ]:⊤;
 
 /**
- *
+ * Updates the globla variable, openCommentCount.  It subtracts one from the 
+ * count.
  * @method "Decrement the open comment count"
- * @categories ""
- * @param
- * @returnType
+ * @categories Annals""
+ * @returnType ⊤
  * @raises
  */
 Private method "Decrement the open comment count" is
 [
-|
-	openCommentCount := openCommentCount - 1;
+ 	 	openCommentCount := cast (openCommentCount - 1) into 
+ 	 		[w : whole number | w];
 ]:⊤;
 
 /**
- *
+ * Updates the globla variable, newLineCount.  It adds one to the count.
  * @method "Increment the new line count"
- * @categories ""
- * @param
- * @returnType
+ * @categories Annals""
+ * @returnType ⊤
  * @raises
  */
 Private method "Increment the new line count" is
 [
-|
 	newLineCount := newLineCount + 1;
 ]:⊤;
 
 /**
- *
+ * Clears the global variable, buffer, of all its contents.
  * @method "Clear the buffer"
- * @categories ""
- * @param
- * @returnType
+ * @categories Annals""
+ * @returnType ⊤
  * @raises
  */
 Private method "Clear the buffer" is
 [
- |
-	buffer := <>;:= <>;
+	buffer := <>;
 ]:⊤;
 
 /**
- *
- * @method ""
- * @categories ""
- * @param
- * @returnType
+ * Update the global variable, buffer, with the current element on the iterator.
+ * Proceed to advance the iterator.
+ * @method "Buffer_"
+ * @categories "Annals"
+ * @param "iter" iterator
+ * @returnType ⊤
  * @raises
  */
 Private method "Buffer_" is
 [
 	iter : iterator
  |
-	buffer := buffer ++ <iter's current value>;
-	Advance theIterator;
+	buffer := buffer ++ 
+		<cast (iter's current element) into [c : character | c]>;
+	Advance iter;
 ]:⊤;
 
 /**
- *
+ * Checks to see if the iterator is not exhausted.
  * @method "_is not exhausted"
- * @categories ""
- * @param
- * @returnType
+ * @categories "Annals"
+ * @param "iter" iterator
+ * @returnType boolean
  * @raises
  */
 Private method "_is not exhausted" is
 [
  	iter : iterator
  |
- 	iter is exhausted
+ 	¬iter is exhausted
 ]:boolean;
 
-
-Private methods "Generate the key word from_" is
+/**
+ * Starting with the current character on the iterator, reads until a new line
+ * or a space is reached. Adds each character to a temporary buffer, not
+ * including the terminating character (the new line or space).
+ * @method "Generate the key word from_"
+ * @categories "Annals"
+ * @param "iter" iterator
+ * @returnType <character…|>
+ * @raises
+ */
+Private method "Generate the key word from_" is
 [
 	iter : iterator
  |
@@ -155,73 +196,314 @@ Private methods "Generate the key word from_" is
 	While 
 	[
 	 	iter is not exhausted ∨ 
-	 		theIterator's current value ∉ {¢" ",¢"\n"}
+	 		[iter's current element ∉ {¢" ",¢"\n"}]
 	]
 	do
 	[
-	 	tempKeyBuffer := tempKeyBuffer ++ <iter's current value>;
+	 	tempKeyBuffer := tempKeyBuffer ++ 
+	 		<cast (iter's current element) into [c : character | c]>;
 	 	Buffer iter;
 	];
 	tempKeyBuffer
 ]:<character…|>; 
 
 /**
- * Determine what is to be done when "/" is reached in the iterator.
- * @method "Handle forward slash key word buffer_"
- * @categories ""
- * @param
+ * Determine what is to be done when "*" is reached in the iterator.
+ * @method "Handle the asterisk key word buffer using the_"
+ * @categories "Annals"
+ * @param "keyBuffer" <character…|>
  * @returnType
  * @raises
  */
-Method "Handle forward slash key word buffer using_"
+Private method "Handle the asterisk key word buffer using the_" is
 [
 	keyBuffer : <character…|>
  |
-	Choose keyBuffer from enumeration of {"/*", "/**"} where
+	if keyBuffer = "*/" then
+	[
+	 	if openCommentCount = 0 then
+	 	[ /* ERROR!  Do something error-like*/]
+	 	else if [openCommentCount > 1] then
+	 	[
+	 	 	/* Close of a nested comment */
+	 	 	Decrement the open comment count;
+	 	]
+	 	else
+	 	[
+	 	 	/* Closing of a non-nested comment */
+	 	 	Decrement the open comment count;
+	 		if inAnnalsType then
+	 		[
+	 		 	/* TODO Wrap up annals object creation */
+	 		 	inAnnalsType := false;
+	 		]
+	 		else
+	 		[
+	 		 	/* Not an annals object comment, clear buffer */
+	 		 	Clear the buffer;
+	 		];
+	 	];
+	] else [/* Do nothing */];
+]:⊤;
+
+
+/**
+* Perform necessary operations when encountering a new line character.
+* @method "Process new line character from_"
+* @categories "Annals"
+* @param "iter" iterator
+* @returnType ⊤
+* @raises
+*/
+Private method "Process new line character from_" is
+[
+	iter : iterator
+|
+	Increment the new line count;
+	if inAnnalsType then
+	[
+		While 
+		[
+		 	iter is not exhausted ∧ 
+		 		[iter's current element ∈ {¢" ",¢*}]
+		]
+		do
+		[
+		 	if iter's current element = ¢* then
+		 	[
+		 	 	Advance iter;
+		 	 	if iter's current element = ¢/ then
+		 	 	[
+		 	 	 	Handle the asterisk key word buffer using the "*/";
+		 	 	] else [/*Do nothing*/];
+		 	]
+		 	else
+		 	[
+		 	 	Advance iter;
+		 	];
+		];
+	/* TODO Be more creative here to ensure not lots of white space before \n*/
+	 	if (buffer[cast ((|buffer|)-1) into [ n : natural number | n]]) = ¢" " 
+	 		then [/*do nothing*/]
+	 	else [buffer := buffer ++ <¢" ">;];
+	]
+	else [/* do nothing */];
+]:⊤;
+
+/**
+ * Obtain basic components from Annals object on first pass when appropriate
+ * comment type reached.
+ * @method "Obtain Annals comment components from_"
+ * @categories "Annals"
+ * @param "iter" iterator
+ * @returnType "{string→{string|1..}|}" A map of the keywords to a set of all
+ * 		there corresponding contents.  Single occurence keywords, suchas 
+ * 		method, will contain a single element set.
+ * @raises
+ */
+Private method "Perform first pass parse on Annals comment from_" is
+[
+ 	iter : iterator
+ |
+ /* TODO Major refactoring and realignment of process flow.  When an annals comment */
+ /* is reached, consume the entire comment into components in a tuple.  Then */
+ /* go back and process each component.*/
+ 	exitConditionMet : boolean := false;
+	parameterMap : {string→{string|1..}|} := {};
+ 
+ 	While 
+ 	[
+ 	 	iter is not exhausted ∧ [¬exitConditionMet]
+ 	]
+ 	do
+ 	[
+	 	If (cast (theIterator's current element) into [c : character | c]) 
+	 		is a key character then
+	 	[		 	 	
+ 	 	 	Choose (cast (theIterator's current element) into 
+ 	 	 		[c : enumeration of keyCharacters | c]) 
+ 	 	 		from enumeration of keyCharacters where
+ 	 	 	¢"\n" is 
+ 	 	 	[
+ 	 	 	 	Process new line character from iter;
+ 	 	 	 ],
+ 	 	 	¢/ is
+ 	 	 	[
+ 	 	 	 	
+ 	 	 	 	tempKeyBuffer : <character…|> := 
+ 	 	 	 		Generate the key word from theIterator;
+				Handle the forward slash key word buffer using the tempKeyBuffer
+					from theIterator;
+				/*TODO ignore comment function required*/
+			], 
+ 	 	 	¢* is
+ 	 	 	[ 
+ 	 	 	 	tempKeyBuffer : <character…|> := 
+ 	 	 	 		Generate the key word from theIterator;
+				Handle the asterisk key word buffer using the tempKeyBuffer;
+				/* TODO create is close comment method returns boolean */
+			],
+ 	 	 	¢@ is
+ 	 	 	[/*TODO need to consume keyword and use it as key in map. following*/
+ 	 	 	 /* bits get added to set at value location in map.*/
+ 	 	 	 
+ 	 	 	 	tempKeyBuffer : <character…|> := 
+ 	 	 	 		Generate the key word from iter;
+ 	 	 	
+ 	 	 		if tempKeyBuffer ∈ keywords then
+ 	 	 		[
+ 	 	 	 		parameterMap := integrate parameter and 
+ 	 	 	 			first pass iter parse commercial at keyword with
+ 	 	 	 			[
+ 	 	 	 		 		pMap : {string→{string|1..}|},
+ 	 	 	 		 		k : string,
+ 	 	 	 		 		v : {string|1..}
+ 	 	 	 		 	|
+ 	 	 	 		 		pMap + k→pmap[k] ∪ v
+ 	 	 	 		 	];
+ 	 	 		]
+ 	 	 		else
+ 	 	 		[
+ 	 	 		]
+ 	 	 	 
+ 	 	 	 	if inAnnalsType then
+ 	 	 	 	[
+ 	 	 	 	 	tempKeyBuffer : <character…|> := 
+ 	 	 	 	 		Generate the key word from theIterator;
+ 	 	 	 		Handle the tag key word buffer using the tempKeyBuffer;
+				]
+				else 
+				[
+					
+				];
+ 	 	 	]; /* No else: do nothing here as anything after main description */
+			/* belongs to an @ keyword. */ 
+	 	 ]
+	 	else
+	 	[
+	 	 	/* do nothing as keycharacter choose statements consumes entire */
+			/* comment and processes appropriately.*/
+	 	];	
+	];
+ 	parameterMap
+]: {string→{string|1..}|};
+
+/**
+* Progress through a comment not capturing any of the iterator's elements.
+* @method "Bypass current comment from_"
+* @categories "Annals"
+* @param "iter" iterator
+* @returnType string
+* @raises
+*/
+Private method "Bypass current comment from_" is
+[
+	iter : iterator
+|
+	endComment : boolean := false;
+	While 
+	[
+	 	iter is not exhausted ∧ [endComment = false]
+	]
+	do
+	[
+	 	if iter's current element = ¢* then
+	 	[
+	 	 	Advance iter;
+	 	 	if iter's current element = ¢/ then
+	 	 	[
+	 	 	 	if openCommentCount = 0 then
+	 	 		 	[ /* ERROR!  Do something error-like*/]
+	 	 		else if [openCommentCount > 1] then
+	 	 	 	[
+	 	 			/* Close of a nested comment */
+	 	 			Decrement the open comment count;
+	 	 		]
+	 	 		else
+	 	 		[
+	 	 		 	/* Closing of a non-nested comment */
+	 	 			Decrement the open comment count;
+	 	 			endComment := true;
+	 	 		];
+	 	 	 
+	 	 	] else [/*Do nothing*/];
+	 	]
+	 	else if [iter's current element = ¢/] then
+	 	[
+	 	 	Advance iter;
+	 	 	If iter's current element = ¢* then
+	 	 	[
+	 	 	 	Increment the open comment count;
+	 	 	];
+	 	];
+	 ];
+]:⊤;
+
+/**
+ * Determine what is to be done when "/" is reached in the iterator.
+ * @method "Handle the forward slash key word buffer using the_from_"
+ * @categories "Annals"
+ * @param "keyBuffer" <character…|>
+ * @param "iter" iterator
+ * @returnType
+ * @raises
+ */
+Private method "Handle the forward slash key word buffer using the_from_" is
+[
+	keyBuffer : <character…|>,
+	iter: iterator
+ |
+	Choose (cast keyBuffer into [c : open comment strings | c]) 
+		from open comment strings where
 	"/*" is
 	[
-	 	/* Just a new comment, increment count only */
+	 	/* Just a new comment, increment count and bypass rest of comment */
 	 	Increment the open comment count;
+	 	Bypass current comment from iter;
 	],
 	"/**" is
 	[
 	 	if openCommentCount > 0 then
 	 	[
-	 	 	/* Start of a nested comment */
+	 	 	/* TODO Start of a nested comment, advance iterator until comment close */
 	 	 	Increment the open comment count;
+	 	 	Bypass current comment from iter;
 	 	]
 	 	else
 	 	[
 	 	 	/* Start of annals object comment, clear buffer */
-	  		increment the open comment count;
+	  		Increment the open comment count;
+	  		inAnnalsType := true;
 	 		Clear the buffer;
-		 	 	/*Do something cool, like start an Annals object*/
-	 	]
+		 	commentDescription : string := Obtain comment description from iter;
+		 	tempKeyBuffer : <character…|> := 
+		 		Generate the key word from iter;
+		 	
+	 	];
 	],
-	else [/* Do nothing */];
+	else [/* TODO do nothing? */];
 ]:⊤;
 
 /**
  * Determine what is to be done when "@" is reached in the iterator.
- * @method "Handle the @ key word buffer_"
- * @categories ""
- * @param
+ * @method "Handle the tag key word buffer using the_"
+ * @categories "Annals"
+ * @param "keyBuffer" <character…|>
  * @returnType
  * @raises
  */
-Method "Handle the @ key word buffer using_"
+Private method "Handle the tag key word buffer using the_" is
 [
 	keyBuffer : <character…|>
  |
 	/* TODO - RAA - Handle @ tags */
-	Choose keyBuffer from enumeration of keyWords where
+	Choose (cast keyBuffer into [c : comment keywords | c])
+		from comment keywords where
 	"@type" is
 	[],
 	"@supertype" is
 	[],
 	"@field" is
-	[],
-	"@category" is
 	[],
 	"@param" is
 	[],
@@ -251,50 +533,10 @@ Method "Handle the @ key word buffer using_"
 ]:⊤;
 
 /**
- * Determine what is to be done when "*" is reached in the iterator.
- * @method "Handle the asterisk key word buffer_"
- * @categories ""
- * @param
- * @returnType
- * @raises
- */
-Private method "Handle the asterisk key word buffer using_" is
-[
-	keyBuffer : <character…|>
-|
-	Choose keyBuffer from enumeration of {"/*", "/**"} where
-	"*/" is
-	[
-	 	if openCommentCount = 0 then
-	 	[ /* ERROR!  Do something error-like*/]
-	 	else if [openCommentCount > 1] then
-	 	[
-	 	 	/* Close of a nested comment */
-	 	 	Decrement the open comment count;
-	 	]
-	 	else
-	 	[
-	 	 	/* Closing of a non-nested comment */
-	 	 	Decrement the open comment count;
-	 		if inAnnalsType then
-	 		[
-	 		 	/* Wrap up annals object creation */
-	 		]
-	 		else
-	 		[
-	 		 	/* Not an annals object comment, clear buffer */
-	 		 	Clear the buffer;
-	 		]
-	 	];
-	],
-	else [/* Do nothing */];
-]:⊤;
-
-/**
- * Avail document main parsing method
+ * Avail document main parsing method.
  * @method "Parse the Avail document_"
- * @categories ""
- * @param
+ * @categories "Annals"
+ * @param "availSourceDoc" string
  * @returnType
  * @raises
  */
@@ -307,28 +549,36 @@ Public method "Parse the Avail document_" is
 	While [ theIterator is not exhausted ] 
 	do
 	[
-	 	If theIterator's current value is a key character then
+	 	If (cast (theIterator's current element) into [c : character | c]) 
+	 		is a key character then
 	 	[		 	 	
- 	 	 	Choose theIterator's current value 
+ 	 	 	Choose (cast (theIterator's current element) into 
+ 	 	 		[c : enumeration of keyCharacters | c]) 
  	 	 		from enumeration of keyCharacters where
  	 	 	¢"\n" is 
  	 	 	[
- 	 	 	 	Increment the new line count;
- 	 	 	 	Advance theIterator;
+ 	 	 	 	Process new line character from theIterator;
  	 	 	 ],
  	 	 	¢/ is
  	 	 	[
  	 	 	 	tempKeyBuffer : <character…|> := 
  	 	 	 		Generate the key word from theIterator;
-				Handle the forward slash key word buffer using tempKeyBuffer;
+				Handle the forward slash key word buffer using the tempKeyBuffer
+					from theIterator;
 			], 
- 	 	 	¢@
+ 	 	 	¢* is
+ 	 	 	[ 
+ 	 	 	 	tempKeyBuffer : <character…|> := 
+ 	 	 	 		Generate the key word from theIterator;
+				Handle the asterisk key word buffer using the tempKeyBuffer;
+			],
+ 	 	 	¢@ is
  	 	 	[ 
  	 	 	 	if inAnnalsType then
  	 	 	 	[
  	 	 	 	 	tempKeyBuffer : <character…|> := 
  	 	 	 	 		Generate the key word from theIterator;
- 	 	 	 		Handle the @ key word buffer using tempKeyBuffer;
+ 	 	 	 		Handle the tag key word buffer using the tempKeyBuffer;
 				]
 				else 
 				[
@@ -336,16 +586,14 @@ Public method "Parse the Avail document_" is
 				 	Clear the buffer;
 				];
  	 	 	], 
- 	 	 	¢*
- 	 	 	[ 
- 	 	 	 	tempKeyBuffer : <character…|> := 
- 	 	 	 		Generate the key word from theIterator;
-				Handle the asterisk key word buffer using tempKeyBuffer;
-			];
+			else [/* do nothing */];
 	 	 ]
 	 	else
 	 	[
-	 	 	Buffer theIterator;
+	 	 	if inAnnalsType then [Buffer theIterator;]
+	 	 	else [Advance theIterator;];
 	 	];	
 	];
 ]:⊤;
+
+Print: format "5's type ⊆ integer=‘①’\n" with (5's type ⊆ integer);

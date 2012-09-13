@@ -34,10 +34,9 @@ System Module "Core"
 Versions
 	"dev"
 Uses
+	"Avail",
 	"Feature Renames (Conversion)",
-	"Feature Renames (Inequalities)",
-	"Foundation",
-	"Unit Testing"
+	"Feature Renames (Inequalities)"
 Names
 	/* Types. */
 	"base unit",
@@ -67,9 +66,6 @@ Names
 	/* Derivation. */
 	"_·_",
 	"_/_",
-	"_^_",
-	"_²",
-	"_³",
 
 	/* Derivation helpers. */
 	"_·_(unit map)",
@@ -95,6 +91,17 @@ Names
 	"_-_",
 	"_×_",
 	"_÷_",
+
+	/* Derivation and arithmetic. */
+	"_^_",
+	"_²",
+	"_³",
+	"_⁴",
+	"_⁵",
+	"_⁶",
+	"_⁷",
+	"_⁸",
+	"_⁹",
 
 	/* Comparison. */
 	"_≍_",
@@ -661,42 +668,24 @@ Public stable method "_^_" is
 	a unitType with unit map := unitMap
 ] : unit;
 
-/**
- * Compute and answer the result of squaring the specified {@type "unit"}.
- *
- * @method "_²"
- * @param "theUnit" "unit"
- *        A {@type "unit"}.
- * @returns "unit"
- *          The result of the exponentiation.
- */
-Public stable method "_²" is
+From 2 to |prettyPowers| do
 [
-	theUnit : unit
+	index : [2..|prettyPowers|]
 |
-	theUnit^2
-] : unit;
-
-/**
- * Compute and answer the result of cubing the specified {@type "unit"}.
- *
- * @method "_³"
- * @param "theUnit" "unit"
- *        A {@type "unit"}.
- * @returns "unit"
- *          The result of the exponentiation.
- */
-Public stable method "_³" is
-[
-	theUnit : unit
-|
-	theUnit^3
-] : unit;
+	exponent ::= index;
+	Stable method "_" ++ prettyPowers[index..index] is
+	[
+		theUnit : unit
+	|
+		theUnit ^ exponent
+	] : unit;
+];
 
 [
 	product     ::= {"_·_", "_/_"};
 	power       ::= {"_^_"};
-	superscript ::= {"_²", "_³"};
+	superscript ::=
+		(map prettyPowers[2..] through [x : character | "_" ++ <x>])→set;
 
 	/* Establish the precedence of multiplicative derivation. */
 	Grammatical restriction product is <∅, product>;
@@ -1291,6 +1280,84 @@ Semantic restriction "_mod_" is
 	[
 		dimensioned numericType
 	]
+];
+
+/**
+ * Compute and answer the exponentiation of {@param "base"} and {@param
+ * "power"}.
+ *
+ * @method "_^_"
+ * @param "base" "dimensioned quantity"
+ *        The {@type "dimensioned quantity" base}.
+ * @param "power" "whole number"
+ *        The {@type "whole number" exponent}.
+ * @returns "dimensioned quantity"
+ *          The {@type "dimensioned quantity" result} of the exponentiation.
+ */
+Public stable method "_^_" is
+[
+	base : dimensioned quantity,
+	power : whole number
+|
+	(base's extent ^ power) (base's metric ^ power)
+] : dimensioned quantity;
+
+Semantic restriction "_^_" is
+[
+	base : dimensioned quantity's type,
+	power : whole number's type
+|
+	numericType ::=
+		type promotion function for
+		[
+			a : number,
+			b : number
+		|
+			a ^ b
+		](base's extent, power);
+	if |base's metric| = 1 then
+	[
+		numericType (base's metric's instance)
+	]
+	else
+	[
+		dimensioned numericType
+	]
+];
+
+From 2 to |prettyPowers| do
+[
+	index : [2..|prettyPowers|]
+|
+	exponent ::= index;
+	name ::= "_" ++ prettyPowers[index..index];
+	Stable method name is
+	[
+		base : dimensioned quantity
+	|
+		(base's extent ^ exponent) (base's metric ^ exponent)
+	] : dimensioned quantity;
+	Semantic restriction name is
+	[
+		base : dimensioned quantity's type
+	|
+		numericType ::=
+			type promotion function for
+			[
+				a : number,
+				b : number
+			|
+				a ^ b
+			](base's extent, exponent's type);
+		if |base's metric| = 1 then
+		[
+			numericType (base's metric's instance)
+		]
+		else
+		[
+			dimensioned numericType
+		]
+	];
 ];
 
 /**

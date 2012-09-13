@@ -1,5 +1,5 @@
 /*
- * Printing.avail
+ * Sanctioned Common Units.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,42 +30,60 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Printing"
+System Module "Sanctioned Common Units"
 Versions
 	"dev"
 Uses
+	"Avail",
 	"Core",
 	"Definers",
-	"Foundation",
-	"Types"
+	"Derivation",
+	"Printing",
+	"Standard Units"
+Names
+	/* Time. */
+	"day", "d",
+	"hour", "h",
+	"minute", "min",
+
+	/* Angle. */
+	"degree of arc", "°",
+	"minute of arc", "′",
+	"second of arc", "″",
+
+	/* Volume (with SI prefix forms). */
+	"liter", "L",
+
+	/* Mass (with SI prefix forms). */
+	"tonne", "t"
 Body
 
-Method "“_”" is
-[
-	arg : SI unit
-|
-	names by unit[arg] else
-	[
-		desc ::= unit map “arg's unit map”;
-		scale ::= if arg's scale factor = 1
-			then [""]
-			else ["10^" ++ “arg's scale factor” ++ " "];
-		scale ++ desc
-	]
-];
+"minute" ("min") is a base unit;
+Conversion rule: 1 min ≍ 60 s;
 
-Method "“_”" is
-[
-	arg : SI dimensioned quantity
-|
-	if arg's metric ∈ symbols by unit then
-	[
-		“arg's extent” ++ " " ++ symbols by unit[arg's metric]
-	]
-	else
-	[
-		desc ::= unit map “arg's metric's unit map”;
-		scaled ::= arg's extent × 10^arg's metric's scale factor;
-		“scaled” ++ " " ++ desc
-	]
-];
+"hour" ("h") is a base unit;
+Conversion rule: 1 h ≍ 3600 s;
+Conversion rule: 1 h ≍ 60 min;
+
+"day" ("d") is a base unit;
+/* Note that the space is required between "1" and "d" to prevent the lexer from
+ * interpreting the expression as a double.
+ */
+Conversion rule: 1 d ≍ 86400 s;
+Conversion rule: 1 d ≍ 1440 min;
+Conversion rule: 1 d ≍ 24 h;
+
+"degree of arc" ("°") is a base unit;
+Conversion rule: 1° ≍ (π ÷ 180) rad;
+
+"minute of arc" ("′") is a base unit;
+Conversion rule: 1′ ≍ (π ÷ 10800) rad;
+Conversion rule: 1° ≍ 60′;
+
+"second of arc" ("″") is a base unit;
+Conversion rule: 1″ ≍ (π ÷ 648000) rad;
+Conversion rule: 1′ ≍ 60″;
+Conversion rule: 1° ≍ 3600″;
+
+"liter" ("L") is an SI derived unit equivalent to dm³;
+"tonne" ("t") is an SI derived unit equivalent to Mg;

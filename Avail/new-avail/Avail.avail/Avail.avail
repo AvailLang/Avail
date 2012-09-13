@@ -36,7 +36,6 @@ Versions
 Extends
 	"Advanced Math",
 	"Data Abstractions",
-	"Dimensional Analysis",
 	"Foundation",
 	"Foundation Tests",
 	"IO",

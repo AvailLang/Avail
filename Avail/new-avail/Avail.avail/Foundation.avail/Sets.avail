@@ -99,6 +99,21 @@ Semantic restriction "_+_" is
 	]
 ];
 
+Semantic restriction "_-_" is
+[
+	setType : set meta,
+	value : any meta
+|
+	if setType's element type ∩ value = ⊥ then
+	[
+		setType
+	]
+	else
+	[
+		{setType's element type | 0 max (⎣setType⎦-1) .. ⎡setType⎤}
+	]
+];
+
 Semantic restriction "_→tuple" is
 [
 	setType : set meta

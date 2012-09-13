@@ -50,6 +50,9 @@ Body
 /**
  * If the exact map is known, then answer the enumeration of its keys.
  * Otherwise, just answer the key type.
+ * 
+ * @method "_'s⁇key type"
+ * @restricts "map meta's type"
  */
 Semantic restriction "_'s⁇key type" is
 [
@@ -71,6 +74,9 @@ Semantic restriction "_'s⁇key type" is
 /**
  * If the exact map is known, then answer the enumeration of its values.
  * Otherwise, just answer the value type.
+ * 
+ * @method "_'s⁇value type"
+ * @restricts "map meta's type"
  */
 Semantic restriction "_'s⁇value type" is
 [
@@ -95,6 +101,10 @@ Method "_∈_" is stable at [any, map]→boolean;
  * Use type intersection to determine whether the map could possibly contain
  * the specified key. In some rare circumstances, it is even possible to
  * determine if the map *must* contain the key.
+ * 
+ * @method "_∈_"
+ * @restricts "any meta"
+ * @restricts "map meta"
  */
 Semantic restriction "_∈_" is
 [
@@ -124,6 +134,10 @@ Method "_[_]" is stable at [map, any]→any;
 
 /**
  * Answer the map's value type.
+ * 
+ * @method "_[_]"
+ * @restricts "map meta"
+ * @restricts "any meta"
  */
 Semantic restriction "_[_]" is
 [
@@ -134,6 +148,12 @@ Semantic restriction "_[_]" is
 ];
 
 Method "_'s⁇bindings" is stable at [map]→key-value tuple;
+
+/**
+ * 
+ * @method "_'s⁇bindings"
+ * @restricts "map meta"
+ */
 Semantic restriction "_'s⁇bindings" is
 [
 	mapType : map meta
@@ -142,6 +162,12 @@ Semantic restriction "_'s⁇bindings" is
 ];
 
 Method "_'s⁇keys" is stable at [map]→set;
+
+/**
+ * 
+ * @method "_'s⁇keys"
+ * @restricts "map meta"
+ */
 Semantic restriction "_'s⁇keys" is
 [
 	mapType : map meta
@@ -152,6 +178,9 @@ Semantic restriction "_'s⁇keys" is
 /**
  * Note that the values of a map are arbitrarily ordered (by hashing), and no
  * two invocations on the same map are guaranteed to produce the same tuple.
+ * 
+ * @method "_'s⁇values"
+ * @restricts "map meta"
  */
 Semantic restriction "_'s⁇values" is
 [
@@ -161,6 +190,14 @@ Semantic restriction "_'s⁇values" is
 ];
 
 Method "_+_→_" is stable at [map, any, any]→map;
+
+/**
+ * 
+ * @method "_+_→_"
+ * @restricts "map meta"
+ * @restricts "any meta"
+ * @restricts "any meta"
+ */
 Semantic restriction "_+_→_" is
 [
 	mapType : map meta,
@@ -192,6 +229,13 @@ Semantic restriction "_+_→_" is
 ];
 
 Method "_-_" is stable at [map, any]→map;
+
+/**
+ * 
+ * @method "_-_"
+ * @restricts "map meta"
+ * @restricts "any meta"
+ */
 Semantic restriction "_-_" is
 [
 	mapType : map meta,
@@ -221,10 +265,14 @@ Semantic restriction "_-_" is
  * If `key` is a key of `aMap`, then answer its associated value. Otherwise,
  * invoke `else` and answer its return value.
  * 
- * Parameters:
- *    aMap - A map.
- *    key - A key.
- *    default - A function that answers the 
+ * @method "_[_]else_"
+ * @param "aMap" "map"
+ *        A map.
+ * @param "key" "any"
+ *        A key.
+ * @param "default" "[]→any"
+ *        A function that answers the 
+ * @returns "any"
  */
 Method "_[_]else_" is
 [
@@ -235,6 +283,13 @@ Method "_[_]else_" is
 	if key ∈ aMap then [ aMap[key] ] else default
 ] : any;
 
+/**
+ * 
+ * @method "_[_]else_"
+ * @restricts "map meta"
+ * @restricts "any meta"
+ * @restricts "[]→any's type"
+ */
 Semantic restriction "_[_]else_" is
 [
 	mapType : map meta,

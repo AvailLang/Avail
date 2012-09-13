@@ -290,7 +290,7 @@ extends TypeDescriptor
 			return object.typeAtIndex(startIndex);
 		}
 		final AvailObject upper = object.sizeRange().upperBound();
-		if (upper.isFinite() && startIndex > upper.extractInt())
+		if (IntegerDescriptor.fromInt(startIndex).greaterThan(upper))
 		{
 			return BottomTypeDescriptor.bottom();
 		}

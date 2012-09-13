@@ -1,5 +1,5 @@
 /*
- * Derivation.avail
+ * Feature Renames (Unit Exponentiation).avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,51 +30,22 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Derivation"
+System Module "Feature Renames (Unit Exponentiation)"
 Versions
 	"dev"
 Uses
-	"Core",
-	"Feature Renames (Unit Exponentiation)",
-	"Foundation",
-	"Types"
+	"Avail" =
+	(
+		"Method_is_",
+		"$…"
+	),
+	"Core" =
+	(
+		"_^_"
+	)
+Names
+	"unit exponentiation atom"
 Body
 
-Method "_·_" is
-[
-	x : SI unit,
-	y : SI unit
-|
-	unitMap ::= x's unit map · y's unit map (unit map);
-	unitType ::= cast unitMap
-		into [t : {atom→1's type|1} | base unit]
-		else [derived unit];
-	scaleFactor ::= x's scale factor + y's scale factor;
-	a unitType ∩ SI unit with unit map := unitMap, scale factor := scaleFactor
-] : SI unit;
-
-Method "_/_" is
-[
-	x : SI unit,
-	y : SI unit
-|
-	unitMap ::= x's unit map / y's unit map (unit map);
-	unitType ::= cast unitMap
-		into [t : {atom→1's type|1} | base unit]
-		else [derived unit];
-	scaleFactor ::= x's scale factor - y's scale factor;
-	a unitType ∩ SI unit with unit map := unitMap, scale factor := scaleFactor
-] : SI unit;
-
-Method unit exponentiation atom is
-[
-	theUnit : SI unit,
-	theExponent : integer
-|
-	unitMap ::= theUnit's unit map ^ theExponent (unit map);
-	unitType ::= cast unitMap
-		into [t : {atom→1's type|1} | base unit]
-		else [derived unit];
-	scaleFactor ::= theUnit's scale factor × theExponent;
-	a unitType ∩ SI unit with unit map := unitMap, scale factor := scaleFactor
-] : SI unit;
+_power ::= $"_^_";
+Method "unit exponentiation atom" is [_power];

@@ -48,10 +48,11 @@ Body
  * from the Avail virtual machine. Overrides should provide semantic information
  * that is appropriately localized for the default locale.
  *
- * Parameters:
- *    value - A value.
- * Returns:
- *    A description of the argument.
+ * @method "“_”"
+ * @param "value" "any"
+ *        A value.
+ * @returns "string"
+ *          A description of the argument.
  */
 Method "“_”" is
 [
@@ -60,6 +61,14 @@ Method "“_”" is
 	primitive description of value
 ] : string;
 
+/**
+ * 
+ * @method "“_”"
+ * @param "value" "⊥'s type"
+ *        A value.
+ * @returns "string"
+ *          A description of the argument.
+ */
 Method "“_”" is
 [
 	value : ⊥'s type
@@ -71,10 +80,10 @@ Method "“_”" is
  * Construct and answer a tuple from the lexically specified expressions. The
  * hard work here is done automatically by the Avail compiler.
  *
- * Parameters:
- *    elements - The desired tuple, lexically constructed by the compiler.
- * Returns:
- *    The argument.
+ * @param "elements" "tuple"
+ *        The desired tuple, lexically constructed by the compiler.
+ * @returns "tuple"
+ *          The argument.
  */
 Method "<«_‡,»>" is
 [
@@ -88,6 +97,9 @@ Method "<«_‡,»>" is
  * here is done automatically by the Avail compiler, which examines the lexical
  * arguments and produces instance types for literals and applies semantic
  * restrictions to any method sends.
+ * 
+ * @method "<«_‡,»>"
+ * @restricts "tuple meta"
  */
 Semantic restriction "<«_‡,»>" is
 [
@@ -99,11 +111,12 @@ Semantic restriction "<«_‡,»>" is
 /**
  * Construct and answer a set from the lexically specified expressions.
  *
- * Parameters:
- *    elements - A tuple, lexically constructed by the compiler, whose elements
- *       should be unique members of the answer.
- * Returns:
- *    The requested set.
+ * @method "{«_‡,»}"
+ * @param "elements" "<<>, any…|natural number>"
+ *        A tuple, lexically constructed by the compiler, whose elements
+ *        should be unique members of the answer.
+ * @erturns "set"
+ *          The requested set.
  */
 Method "{«_‡,»}" is
 [

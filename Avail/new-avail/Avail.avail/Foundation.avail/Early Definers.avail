@@ -410,7 +410,7 @@ Semantic restriction "Public method_is_" is
  *        The original implementation of the method.
  * @returns "⊤"
  */
-Method "Public method_is_" is
+Public method "Public method_is_" is
 [
 	methodName : atom,
 	function : function
@@ -450,7 +450,7 @@ Semantic restriction "Public method_is_" is
  *        The signature.
  * @returns "⊤"
  */
-Method "Private abstract method_is_" is
+Public method "Private abstract method_is_" is
 [
 	methodName : string,
 	aFunctionType : function meta
@@ -490,7 +490,7 @@ Semantic restriction "Private abstract method_is_" is
  *        The signature.
  * @return "⊤"
  */
-Method "Private abstract method_is_" is
+Public method "Private abstract method_is_" is
 [
 	methodName : atom,
 	aFunctionType : function meta
@@ -530,7 +530,7 @@ Semantic restriction "Private abstract method_is_" is
  * @param "aFunctionType" "function meta"
  *        The signature.
  */
-Method "Private forward method_is_" is
+Public method "Private forward method_is_" is
 [
 	methodName : string,
 	aFunctionType : function meta

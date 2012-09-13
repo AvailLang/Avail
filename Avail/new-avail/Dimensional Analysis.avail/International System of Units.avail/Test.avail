@@ -1,5 +1,5 @@
 /*
- * Feature Renames (Conversion).avail
+ * Test.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,34 +30,28 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Feature Renames (Conversion)"
+System Module "Test"
 Versions
 	"dev"
 Uses
-	"Foundation" =
-	(
-		"Method_is_",
-		"$…",
-		"_-_",
-		"_^_",
-		"_×_",
-		"_÷_"
-	)
+	"Avail",
+	"Core",
+	"Definers",
+	"Derivation",
+	"Printing"
 Names
-	"division atom",
-	"exponentiation atom",
-	"multiplication atom",
-	"subtraction atom"
+	"SI test suite"
 Body
 
-_subtract ::= $"_-_";
-Method "subtraction atom" is [_subtract];
+_testSuite ::= $"SI test suite";
 
-_times ::= $"_×_";
-Method "multiplication atom" is [_times];
+/**
+ * Answer the SI test suite identifier.
+ * 
+ * @method "SI test suite"
+ * @returns "atom"
+ *          The requsted test suite identifier.
+ */
+Public method "SI test suite" is [_testSuite];
 
-_divide ::= $"_÷_";
-Method "division atom" is [_divide];
-
-_power ::= $"_^_";
-Method "exponentiation atom" is [_power];
+New test suite SI test suite extends dimensional analysis test suite;

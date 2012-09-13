@@ -48,8 +48,8 @@ public class P_143_TupleTypeAtThrough extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_143_TupleTypeAtThrough().init(
-		3, CanFold);
+	public final static Primitive instance =
+		new P_143_TupleTypeAtThrough().init(3, CanFold);
 
 	@Override
 	public Result attempt (
@@ -60,12 +60,14 @@ public class P_143_TupleTypeAtThrough extends Primitive
 		final AvailObject tupleType = args.get(0);
 		final AvailObject startIndex = args.get(1);
 		final AvailObject endIndex = args.get(2);
-		if (!startIndex.isInt() || !endIndex.isInt())
-		{
-			return interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS);
-		}
-		final int startInt = startIndex.extractInt();
-		final int endInt = endIndex.extractInt();
+		final int startInt =
+			startIndex.isInt()
+			? startIndex.extractInt()
+			: Integer.MAX_VALUE;
+		final int endInt =
+			endIndex.equals(InfinityDescriptor.positiveInfinity())
+			? Integer.MAX_VALUE
+			: endIndex.extractInt();
 		return interpreter.primitiveSuccess(
 			tupleType.unionOfTypesAtThrough(startInt, endInt));
 	}
@@ -77,7 +79,11 @@ public class P_143_TupleTypeAtThrough extends Primitive
 			TupleDescriptor.from(
 				TupleTypeDescriptor.meta(),
 				IntegerRangeTypeDescriptor.naturalNumbers(),
-				IntegerRangeTypeDescriptor.wholeNumbers()),
+				IntegerRangeTypeDescriptor.create(
+					IntegerDescriptor.zero(),
+					true,
+					InfinityDescriptor.positiveInfinity(),
+					true)),
 			InstanceMetaDescriptor.anyMeta());
 	}
 }

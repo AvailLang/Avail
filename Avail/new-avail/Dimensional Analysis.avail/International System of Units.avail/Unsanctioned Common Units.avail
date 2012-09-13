@@ -1,5 +1,5 @@
 /*
- * Feature Renames (Inequalities).avail
+ * Unsanctioned Common Units.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,44 +30,35 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Feature Renames (Inequalities)"
+System Module "Unsanctioned Common Units"
 Versions
 	"dev"
 Uses
-	"Foundation" =
-	(
-		"Method_is_",
-		"$…",
-		"_<_",
-		"_≤_",
-		"_>_",
-		"_≥_",
-		"«_‡«=»?«≤»?«<»?»",
-		"«_‡«=»?«≥»?«>»?»"
-	)
+	"Avail",
+	"Core",
+	"Definers",
+	"Derivation",
+	"Printing",
+	"Standard Units"
 Names
-	"chained less-than atom",
-	"chained greater-than atom",
-	"greater-than atom",
-	"greater-than-equal atom",
-	"less-than atom",
-	"less-than-equal atom"
+	"Ångström", "Å"
 Body
 
-_lessThan ::= $"_<_";
-Method "less-than atom" is [_lessThan];
+"Ångström" ("Å") is a base unit;
+Conversion rule: 1 m ≍ 10^10 Å;
 
-_lessThanEqual ::= $"_≤_";
-Method "less-than-equal atom" is [_lessThanEqual];
+"barn" ("b") is a base unit;
+Conversion rule: 1 m² ≍ 10^28 b;
 
-_chainedLessThan ::= $"«_‡«=»?«≤»?«<»?»";
-Method "chained less-than atom" is [_chainedLessThan];
+"bar" ("bar") is a base unit;
+Conversion rule: 1 bar ≍ 100000 Pa;
 
-_greaterThan ::= $"_>_";
-Method "greater-than atom" is [_greaterThan];
+"millibar" ("mbar") is a base unit;
+Conversion rule: 1 mbar ≍ 100 Pa;
+Conversion rule: 1 bar ≍ 1000 mbar;
 
-_greaterThanEqual ::= $"_≥_";
-Method "greater-than-equal atom" is [_greaterThanEqual];
+"atmosphere" ("atm") is a base unit;
+Conversion rule: 1 atm ≍ 101325 Pa;
+Conversion rule: 1 bar ≍ 0.987 atm;
 
-_chainedGreaterThan ::= $"«_‡«=»?«≥»?«>»?»";
-Method "chained greater-than atom" is [_chainedGreaterThan];
+"barye" ("Ba") is an SI derived unit equivalent to dPa;

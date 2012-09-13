@@ -68,3 +68,30 @@ Method "_[_]else_" is
 	then [anAtom[key]]
 	else else
 ] : any;
+
+/**
+ * Answer the value associated with the property {@param "key"} of {@param
+ * "aFiber"}. If no such property exists, then answer the result of applying
+ * {@param "else"}.
+ *
+ * @method "_[_]else_"
+ * @param "aFiber" "fiber"
+ *        A fiber.
+ * @param "key" "atom"
+ *        The property key.
+ * @param "else" "[]→any"
+ *        The function to apply if {@param "key"} is not a property of {@param
+ *        "aFiber"}.
+ * @returns Either the requested property value or the result of applying
+ *          {@param "else"}.
+ */
+Method "_[_]else_" is
+[
+	aFiber : fiber,
+	key : atom,
+	else : function accepting <> and returning any
+|
+	if key ∈ aFiber
+	then [aFiber[key]]
+	else else
+] : any;

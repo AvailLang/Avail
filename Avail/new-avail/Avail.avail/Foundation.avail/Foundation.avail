@@ -57,9 +57,12 @@ Extends
 		"If|if_then_else_",
 		"Invoke|invoke_with_",
 		"Macro_is_",
+		"Mark for_character|characters of read ahead",
 		"Print:_",
 		"Publish new name:_",
 		"Reject parse,expected:_",
+		"Remove_[_]",
+		"Reset to mark",
 		"Restart_",
 		"Restart_with_",
 		"Seal method_at_",
@@ -110,7 +113,6 @@ Extends
 		"local variable",
 		"macro function",
 		"map",
-		"mark for_character|characters of read ahead",
 		"message bundle",
 		"message bundle tree",
 		"message_contains groups",
@@ -147,7 +149,6 @@ Extends
 		"primitive description of_",
 		"primitive failure reason",
 		"request termination of_",
-		"reset to mark",
 		"semantic restrictions for_given_",
 		"send",
 		"send_with_:_",
@@ -531,7 +532,8 @@ Extends
 	),
 	"Maps" =
 	(
-		"counts for_"
+		"counts for_",
+		"integrate_and_with_"
 	),
 	"Math" =
 	(
@@ -546,7 +548,7 @@ Extends
 		"(_.._)",
 		"⎣_⎦is inclusive",
 		"⎡_⎤is inclusive",
-		"𝛑",
+		"π",
 		"_is finite",
 		"_is infinite",
 		"_>_",
@@ -614,6 +616,8 @@ Extends
 		"flatten_",
 		"last index of_where_",
 		"left fold_through_",
+		"quicksort_",
+		"quicksort_with_",
 		"relevant`|_`|",
 		"right fold_through_",
 		"split_after_",
@@ -623,7 +627,7 @@ Extends
 		"take from_while_",
 		"take_from_",
 		"zip_",
-		"∑_",
+		"Σ_",
 		"∏_",
 		"_ends with_",
 		"_occurrences⁇of_",

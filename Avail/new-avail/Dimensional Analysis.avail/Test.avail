@@ -34,10 +34,9 @@ System Module "Test"
 Versions
 	"dev"
 Uses
+	"Avail",
 	"Core",
-	"Foundation",
-	"International System of Units",
-	"Unit Testing"
+	"International System of Units"
 Body
 
 Test "comparison" in dimensional analysis test suite is
@@ -96,11 +95,11 @@ Test "addition" in dimensional analysis test suite is
 	Require: ∞ m + ∞ m = ∞ m;
 	Require: -∞ m + 1 m = -∞ m;
 	Require: -∞ m + -∞ m = -∞ m;
-	Require: 1.0f s + 1.0f s = 2.0f s;
-	Require: 1.0d s + 1.0d s = 2.0d s;
-	Require: 1 s + 1.0f s = 2.0f s;
-	Require: 1 s + 1.0d s = 2.0d s;
-	Require: 1.0f s + 1.0d s = 2.0d s;
+	Require: (1.0→float) s + (1.0→float) s = (2.0→float) s;
+	Require: 1.0 s + 1.0 s = 2.0 s;
+	Require: 1 s + (1.0→float) s = (2.0→float) s;
+	Require: 1 s + 1.0 s = 2.0 s;
+	Require: (1.0→float) s + 1.0 s = 2.0 s;
 ];
 
 Test "cannot add unlike infinities" in dimensional analysis test suite is
@@ -138,11 +137,11 @@ Test "subtraction" in dimensional analysis test suite is
 	Require: ∞ m - -∞ m = ∞ m;
 	Require: -∞ m - 1 m = -∞ m;
 	Require: -∞ m - ∞ m = -∞ m;
-	Require: 2.0f m - 1.0f m = 1.0f m;
-	Require: 2.0d m - 1.0d m = 1.0d m;
-	Require: 2 m - 1.0f m = 1.0f m;
-	Require: 2 m - 1.0d m = 1.0d m;
-	Require: 2.0f m - 1.0d m = 1.0d m;
+	Require: (2.0→float) m - (1.0→float) m = (1.0→float) m;
+	Require: 2.0 m - 1.0 m = 1.0 m;
+	Require: 2 m - (1.0→float) m = (1.0→float) m;
+	Require: 2 m - 1.0 m = 1.0 m;
+	Require: (2.0→float) m - 1.0 m = 1.0 m;
 ];
 
 Test "cannot subtract like infinities" in dimensional analysis test suite is

@@ -34,10 +34,10 @@ System Module "Standard Units"
 Versions
 	"dev"
 Uses
+	"Avail",
 	"Core",
 	"Definers",
 	"Derivation",
-	"Foundation",
 	"Printing"
 Names
 	"degree Celsius", "℃"
@@ -85,12 +85,12 @@ Conversion method
 		quantity : number degree Celsius,
 		target : kelvin's type
 	|
-		(quantity's extent + 273.15d) K
+		(quantity's extent + 273.15) K
 	] : double kelvin
 	inverse is
 	[
 		quantity : number kelvin,
 		target : degree Celsius's type
 	|
-		(quantity's extent - 273.15d) ℃
+		(quantity's extent - 273.15) ℃
 	] : double degree Celsius;
