@@ -98,6 +98,10 @@ public class MessageSplitter
 	/** The top-most {@linkplain Group group}. */
 	final Group rootGroup;
 
+	/** An {@link Iterator} (of {@link AvailObject}s) that's always at end. */
+	final static Iterator<AvailObject> emptyIterator =
+		Collections.<AvailObject>emptyList().iterator();
+
 	/**
 	 * An {@code Expression} represents a structural view of part of the
 	 * message name.
@@ -223,14 +227,14 @@ public class MessageSplitter
 		 * @param arguments
 		 *        An {@link Iterator} that provides parse nodes to fill in for
 		 *        arguments and subgroups.
-		 * @param aStream
+		 * @param builder
 		 *        The {@link StringBuilder} on which to print.
 		 * @param indent
 		 *        The indentation level.
 		 */
 		abstract public void printWithArguments (
 			@Nullable Iterator<AvailObject> arguments,
-			StringBuilder aStream,
+			StringBuilder builder,
 			int indent);
 	}
 
@@ -300,11 +304,11 @@ public class MessageSplitter
 		@Override
 		public void printWithArguments (
 			final @Nullable Iterator<AvailObject> arguments,
-			final StringBuilder aStream,
+			final StringBuilder builder,
 			final int indent)
 		{
 			final AvailObject token = messageParts.get(tokenIndex - 1);
-			aStream.append(token.asNativeString());
+			builder.append(token.asNativeString());
 		}
 	}
 
@@ -382,12 +386,12 @@ public class MessageSplitter
 		@Override
 		public void printWithArguments (
 			final @Nullable Iterator<AvailObject> arguments,
-			final StringBuilder aStream,
+			final StringBuilder builder,
 			final int indent)
 		{
 			assert arguments != null;
 			arguments.next().printOnAvoidingIndent(
-				aStream,
+				builder,
 				new ArrayList<AvailObject>(),
 				indent + 1);
 		}
@@ -433,13 +437,13 @@ public class MessageSplitter
 		@Override
 		public void printWithArguments (
 			final @Nullable Iterator<AvailObject> arguments,
-			final StringBuilder aStream,
+			final StringBuilder builder,
 			final int indent)
 		{
 			assert arguments != null;
 			// Describe the token that was parsed as this raw token argument.
 			arguments.next().printOnAvoidingIndent(
-				aStream,
+				builder,
 				new ArrayList<AvailObject>(),
 				indent + 1);
 		}
@@ -862,7 +866,7 @@ public class MessageSplitter
 		@Override
 		public void printWithArguments (
 			final @Nullable Iterator<AvailObject> argumentProvider,
-			final StringBuilder aStream,
+			final StringBuilder builder,
 			final int indent)
 		{
 			assert argumentProvider != null;
@@ -897,7 +901,7 @@ public class MessageSplitter
 				}
 				printGroupOccurrence(
 					innerIterator,
-					aStream,
+					builder,
 					indent,
 					occurrenceProvider.hasNext());
 				assert !innerIterator.hasNext();
@@ -913,7 +917,7 @@ public class MessageSplitter
 		 * @param argumentProvider
 		 *        An iterator to provide parse nodes for this group occurrence's
 		 *        arguments and subgroups.
-		 * @param aStream
+		 * @param builder
 		 *        The {@link StringBuilder} on which to print.
 		 * @param indent
 		 *        The indentation level.
@@ -924,11 +928,11 @@ public class MessageSplitter
 		 */
 		public void printGroupOccurrence (
 			final Iterator<AvailObject> argumentProvider,
-			final StringBuilder aStream,
+			final StringBuilder builder,
 			final int indent,
 			final boolean completeGroup)
 		{
-			aStream.append("«");
+			builder.append("«");
 			final List<Expression> expressionsToVisit;
 			if (completeGroup && !expressionsAfterDagger.isEmpty())
 			{
@@ -948,24 +952,24 @@ public class MessageSplitter
 			{
 				if (!isFirst)
 				{
-					aStream.append(" ");
+					builder.append(" ");
 				}
 				if (expr == null)
 				{
 					// Place-holder for the double-dagger.
-					aStream.append("‡");
+					builder.append("‡");
 				}
 				else
 				{
 					expr.printWithArguments(
 						argumentProvider,
-						aStream,
+						builder,
 						indent);
 				}
 				isFirst = false;
 			}
 			assert !argumentProvider.hasNext();
-			aStream.append("»");
+			builder.append("»");
 		}
 	}
 
@@ -1114,7 +1118,7 @@ public class MessageSplitter
 		@Override
 		public void printWithArguments (
 			final @Nullable Iterator<AvailObject> argumentProvider,
-			final StringBuilder aStream,
+			final StringBuilder builder,
 			final int indent)
 		{
 			assert argumentProvider != null;
@@ -1122,21 +1126,19 @@ public class MessageSplitter
 			assert countLiteral.isInstanceOf(
 				ParseNodeKind.LITERAL_NODE.mostGeneralType());
 			final int count = countLiteral.token().literal().extractInt();
-			final Iterator<AvailObject> emptyProvider =
-				Collections.<AvailObject>emptyList().iterator();
 			for (int i = 1; i <= count; i++)
 			{
 				if (i > 1)
 				{
-					aStream.append(" ");
+					builder.append(" ");
 				}
 				group.printGroupOccurrence(
-					emptyProvider,
-					aStream,
+					emptyIterator,
+					builder,
 					indent,
 					isArgumentOrGroup());
 			}
-			aStream.append("#");
+			builder.append("#");
 		}
 	}
 
@@ -1257,7 +1259,7 @@ public class MessageSplitter
 		@Override
 		public void printWithArguments (
 			final @Nullable Iterator<AvailObject> argumentProvider,
-			final StringBuilder aStream,
+			final StringBuilder builder,
 			final int indent)
 		{
 			assert argumentProvider != null;
@@ -1268,8 +1270,8 @@ public class MessageSplitter
 			if (flag)
 			{
 				group.printGroupOccurrence(
-					Collections.<AvailObject>emptyList().iterator(),
-					aStream,
+					emptyIterator,
+					builder,
 					indent,
 					true);
 			}
@@ -1391,14 +1393,14 @@ public class MessageSplitter
 		@Override
 		public void printWithArguments (
 			final @Nullable Iterator<AvailObject> argumentProvider,
-			final StringBuilder aStream,
+			final StringBuilder builder,
 			final int indent)
 		{
 			expression.printWithArguments(
 				argumentProvider,
-				aStream,
+				builder,
 				indent);
-			aStream.append("⁇");
+			builder.append("⁇");
 		}
 	}
 
@@ -1484,14 +1486,14 @@ public class MessageSplitter
 		@Override
 		public void printWithArguments (
 			final @Nullable Iterator<AvailObject> argumentProvider,
-			final StringBuilder aStream,
+			final StringBuilder builder,
 			final int indent)
 		{
 			expression.printWithArguments(
 				argumentProvider,
-				aStream,
+				builder,
 				indent);
-			aStream.append("~");
+			builder.append("~");
 		}
 	}
 
@@ -1514,6 +1516,15 @@ public class MessageSplitter
 		/** The alternative {@linkplain Expression expressions}. */
 		private final List<Expression> alternatives;
 
+		/**
+		 * Answer my {@link List} of {@linkplain #alternatives}.
+		 *
+		 * @return My alternative {@linkplain Expression expressions}.
+		 */
+		List<Expression> alternatives ()
+		{
+			return alternatives;
+		}
 		/**
 		 * The one-based positions in the instruction stream of the labels. All
 		 * but the last correspond to the beginnings of the alternatives. The
@@ -1628,7 +1639,7 @@ public class MessageSplitter
 		@Override
 		public void printWithArguments (
 			final @Nullable Iterator<AvailObject> argumentProvider,
-			final StringBuilder aStream,
+			final StringBuilder builder,
 			final int indent)
 		{
 			boolean isFirst = true;
@@ -1636,11 +1647,11 @@ public class MessageSplitter
 			{
 				if (!isFirst)
 				{
-					aStream.append("|");
+					builder.append("|");
 				}
 				alternative.printWithArguments(
 					null,
-					aStream,
+					builder,
 					indent);
 				isFirst = false;
 			}
@@ -1669,23 +1680,26 @@ public class MessageSplitter
 	final class NumberedChoice
 	extends Expression
 	{
-		/** The governed {@linkplain Alternation alternation}. */
+		/**
+		 * The alternation expression, exactly one alternative of which must be
+		 * chosen.
+		 */
 		final Alternation alternation;
 
 		/**
 		 * The branch targets that are the starts of parsing of each
-		 * alternative.  The first branch target skips the first alternative,
-		 * landing right on a branch to the next target.  The last branch target
-		 * is omitted, as the final alternative is neither prefixed with a
-		 * branch past it, nor suffixed with a jump to the exit label.
+		 * alternative.  Each alternative starts with a branch to skip it by
+		 * landing on the next branch.  The last alternative doesn't have a
+		 * branch.  Thus for A alternatives there are A-1 branches, each with a
+		 * distinct target.  These targets are set during the first pass of code
+		 * generation.
 		 */
 		int [] branchTargets;
-lllllllllllllllll
+
 		/**
-		 * lllllllllll
-		 * The one-based position in the instruction stream to branch to in
-		 * order to parse zero occurrences of this group. Set during the first
-		 * pass of code generation.
+		 * The one-based position in the instruction stream to branch to when
+		 * an alternative is chosen.  Set during the first pass of code
+		 * generation.
 		 */
 		int exitTarget = -1;
 
@@ -1697,13 +1711,8 @@ lllllllllllllllll
 		public NumberedChoice (final Alternation alternation)
 		{
 			this.alternation = alternation;
-			this.alternativeStarts
-		}
-		Alternation (final List<Expression> alternatives)
-		{
-			this.alternatives = alternatives;
-			this.branches = new int[alternatives.size()];
-			Arrays.fill(branches, -1);
+			branchTargets = new int[alternation.alternatives().size() - 1];
+			Arrays.fill(branchTargets, -1);
 		}
 
 		@Override
@@ -1711,22 +1720,26 @@ lllllllllllllllll
 			final List<Integer> list,
 			final boolean caseInsensitive)
 		{
-			/* branch to @2nd.
+			/* branch to @target1.
 			 * ...do first alternative.
 			 * push literal 1.
 			 * jump to @done.
-			 * @2nd:
-			 * branch to @3rd.
+			 * @target1:
+			 *
+			 * branch to @target2.
 			 * ...do second alternative.
 			 * push literal 2.
 			 * jump to @done.
-			 * @3rd:
+			 * @target2:
 			 * ...
-			 * @N-1st:
-			 * branch to @Nth.
+			 * @targetN-2nd:
+			 *
+			 * branch to @targetN-1st.
 			 * ...do N-1st alternative.
 			 * push literal N-1.
 			 * jump to @done.
+			 * @targetN-1st:
+			 *
 			 * ;;;no branch
 			 * ...do Nth alternative.
 			 * push literal N.
@@ -1734,21 +1747,24 @@ lllllllllllllllll
 			 * @done:
 			 * ...
 			 */
-			8888
-			list.add(saveParsePosition.encoding());
-			list.add(newList.encoding());
-			list.add(branch.encodingForOperand(groupSkip));
-			list.add(newList.encoding());
-			for (final Expression expression : group.expressionsBeforeDagger)
+			for (int index = 0; index <= branchTargets.length; index++)
 			{
-				assert !expression.isArgumentOrGroup();
-				expression.emitOn(list, caseInsensitive);
+				final boolean last = index == branchTargets.length;
+				if (!last)
+				{
+					list.add(branch.encodingForOperand(branchTargets[index]));
+				}
+				final Expression alternative =
+					alternation.alternatives().get(index);
+				alternative.emitOn(list, caseInsensitive);
+				pushIntegerLiteral.encodingForOperand(index + 1);
+				if (!last)
+				{
+					list.add(jump.encodingForOperand(exitTarget));
+					branchTargets[index] = list.size() + 1;
+				}
 			}
-			list.add(appendArgument.encoding());
-			list.add(ensureParseProgress.encoding());
-			groupSkip = list.size() + 1;
-			list.add(discardSavedParsePosition.encoding());
-			list.add(convert.encodingForOperand(listToNonemptiness.number()));
+			exitTarget = list.size() + 1;
 		}
 
 		@Override
@@ -1775,11 +1791,16 @@ lllllllllllllllll
 			throws SignatureException
 		{
 			if (!argumentType.isSubtypeOf(
-				EnumerationTypeDescriptor.booleanObject()))
+				IntegerRangeTypeDescriptor.create(
+					IntegerDescriptor.one(),
+					true,
+					IntegerDescriptor.fromInt(
+						alternation.alternatives().size()),
+					true)))
 			{
 				// The declared type of the subexpression must be a subtype of
-				// boolean.
-				throwSignatureException(E_INCORRECT_TYPE_FOR_BOOLEAN_GROUP);
+				// [1..N] where N is the number of alternatives.
+				throwSignatureException(E_INCORRECT_TYPE_FOR_NUMBERED_CHOICE);
 			}
 		}
 
@@ -1789,7 +1810,7 @@ lllllllllllllllll
 			final StringBuilder builder = new StringBuilder();
 			builder.append(getClass().getSimpleName());
 			builder.append("(");
-			builder.append(group);
+			builder.append(alternation);
 			builder.append(")");
 			return builder.toString();
 		}
@@ -1797,22 +1818,22 @@ lllllllllllllllll
 		@Override
 		public void printWithArguments (
 			final @Nullable Iterator<AvailObject> argumentProvider,
-			final StringBuilder aStream,
+			final StringBuilder builder,
 			final int indent)
 		{
 			assert argumentProvider != null;
 			final AvailObject literal = argumentProvider.next();
 			assert literal.isInstanceOf(
 				ParseNodeKind.LITERAL_NODE.mostGeneralType());
-			final boolean flag = literal.token().literal().extractBoolean();
-			if (flag)
-			{
-				group.printGroupOccurrence(
-					Collections.<AvailObject>emptyList().iterator(),
-					aStream,
-					indent,
-					true);
-			}
+			final int index = literal.token().literal().extractInt();
+			builder.append('«');
+			final Expression alternative =
+				alternation.alternatives().get(index - 1);
+			alternative.printWithArguments(
+				emptyIterator,
+				builder,
+				indent);
+			builder.append("»!");
 		}
 	}
 
@@ -1903,7 +1924,7 @@ lllllllllllllllll
 	 * @param sendNode
 	 *        The {@linkplain SendNodeDescriptor send node} that is being
 	 *        printed.
-	 * @param aStream
+	 * @param builder
 	 *        A {@link StringBuilder} on which to pretty-print the send of my
 	 *        message with the given arguments.
 	 * @param indent
@@ -1911,12 +1932,12 @@ lllllllllllllllll
 	 */
 	public void printSendNodeOnIndent(
 		final AvailObject sendNode,
-		final StringBuilder aStream,
+		final StringBuilder builder,
 		final int indent)
 	{
 		rootGroup.printGroupOccurrence(
 			sendNode.argumentsListNode().expressionsTuple().iterator(),
-			aStream,
+			builder,
 			indent,
 			true);
 	}
@@ -2160,7 +2181,6 @@ lllllllllllllllll
 					else if (token.equals(
 						StringDescriptor.exclamationMark()))
 					{
-						final Alternation alternation;
 						if (subgroup.underscoreCount() > 0
 							|| subgroup.hasDagger
 							|| (subgroup.expressionsBeforeDagger.size() != 1)
@@ -2174,7 +2194,7 @@ lllllllllllllllll
 								E_EXCLAMATION_MARK_MUST_FOLLOW_AN_ALTERNATION_GROUP);
 						}
 						subexpression = new NumberedChoice(
-							subgroup.expressionsBeforeDagger.get(0));
+							(Alternation)(subgroup.expressionsBeforeDagger.get(0)));
 					}
 				}
 				if (messagePartPosition <= messageParts.size())

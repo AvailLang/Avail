@@ -2776,6 +2776,8 @@ public abstract class AbstractAvailCompiler
 				}
 				break;
 			case parsePart:
+				// $FALL-THROUGH$
+			case parsePartCaseInsensitive:
 				assert false
 				: "parse-token instruction should not be dispatched";
 				break;
@@ -2884,8 +2886,42 @@ public abstract class AbstractAvailCompiler
 					start.position);
 				break;
 			}
-			default:
-				assert false : "Reserved parsing instruction";
+			case pushIntegerLiteral:
+			{
+				final AvailObject integerValue = IntegerDescriptor.fromInt(
+					op.integerToPush(instruction));
+				final AvailObject token =
+					LiteralTokenDescriptor.create(
+						StringDescriptor.from(integerValue.toString()),
+						initialTokenPosition.peekToken().start(),
+						initialTokenPosition.peekToken().lineNumber(),
+						LITERAL,
+						integerValue);
+				final AvailObject literalNode =
+					LiteralNodeDescriptor.fromToken(token);
+				final List<AvailObject> newArgsSoFar =
+					append(argsSoFar, literalNode);
+				eventuallyDo(
+					new Continuation0()
+					{
+						@Override
+						public void value ()
+						{
+							parseRestOfSendNode(
+								start,
+								successorTrees.tupleAt(1),
+								firstArgOrNull,
+								initialTokenPosition,
+								consumedAnything,
+								newArgsSoFar,
+								continuation);
+						}
+					},
+					"Continue send after conversion",
+					start.position);
+
+				break;
+			}
 		}
 	}
 
