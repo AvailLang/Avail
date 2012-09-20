@@ -475,7 +475,7 @@ implements ThreadFactory
 		specialObjects[29] = BottomTypeDescriptor.bottom();
 		specialObjects[30] = InstanceMetaDescriptor.on(
 			BottomTypeDescriptor.bottom());
-		// 31
+		specialObjects[31] = NONTYPE.o();
 		specialObjects[32] = TupleTypeDescriptor.mostGeneralType();
 		specialObjects[33] = TupleTypeDescriptor.meta();
 		specialObjects[34] = InstanceMetaDescriptor.topMeta();
