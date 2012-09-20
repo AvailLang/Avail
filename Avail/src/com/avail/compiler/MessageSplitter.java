@@ -1648,6 +1648,175 @@ public class MessageSplitter
 	}
 
 	/**
+	 * A {@code NumberedChoice} is a special subgroup (i.e., not a root group)
+	 * indicated by an {@linkplain StringDescriptor#exclamationMark()
+	 * exclamation mark} following a {@linkplain Group group}.  It may not
+	 * contain {@linkplain Argument arguments} or subgroups and it may not
+	 * contain a {@linkplain StringDescriptor#doubleDagger() double dagger}.
+	 * The group contains an {@link Alternation}, and parsing the group causes
+	 * exactly one of the alternatives to be parsed.  The 1-based index of the
+	 * alternative is produced as a literal constant argument.
+	 *
+	 * <p>
+	 * For example, consider parsing a send of the message
+	 * "my«cheese|bacon|Elvis»!" from the string "my bacon cheese".  The bacon
+	 * token will be parsed, causing this to be an invocation of the message
+	 * with the single argument 2 (indicating the second choice).  The cheese
+	 * token is not considered part of this message send (and will lead to a
+	 * failed parse if some method like "_cheese" is not present.
+	 * </p>
+	 */
+	final class NumberedChoice
+	extends Expression
+	{
+		/** The governed {@linkplain Alternation alternation}. */
+		final Alternation alternation;
+
+		/**
+		 * The branch targets that are the starts of parsing of each
+		 * alternative.  The first branch target skips the first alternative,
+		 * landing right on a branch to the next target.  The last branch target
+		 * is omitted, as the final alternative is neither prefixed with a
+		 * branch past it, nor suffixed with a jump to the exit label.
+		 */
+		int [] branchTargets;
+lllllllllllllllll
+		/**
+		 * lllllllllll
+		 * The one-based position in the instruction stream to branch to in
+		 * order to parse zero occurrences of this group. Set during the first
+		 * pass of code generation.
+		 */
+		int exitTarget = -1;
+
+		/**
+		 * Construct a new {@link NumberedChoice}.
+		 *
+		 * @param alternation The enclosed {@link Alternation}.
+		 */
+		public NumberedChoice (final Alternation alternation)
+		{
+			this.alternation = alternation;
+			this.alternativeStarts
+		}
+		Alternation (final List<Expression> alternatives)
+		{
+			this.alternatives = alternatives;
+			this.branches = new int[alternatives.size()];
+			Arrays.fill(branches, -1);
+		}
+
+		@Override
+		void emitOn (
+			final List<Integer> list,
+			final boolean caseInsensitive)
+		{
+			/* branch to @2nd.
+			 * ...do first alternative.
+			 * push literal 1.
+			 * jump to @done.
+			 * @2nd:
+			 * branch to @3rd.
+			 * ...do second alternative.
+			 * push literal 2.
+			 * jump to @done.
+			 * @3rd:
+			 * ...
+			 * @N-1st:
+			 * branch to @Nth.
+			 * ...do N-1st alternative.
+			 * push literal N-1.
+			 * jump to @done.
+			 * ;;;no branch
+			 * ...do Nth alternative.
+			 * push literal N.
+			 * ;;;no jump
+			 * @done:
+			 * ...
+			 */
+			8888
+			list.add(saveParsePosition.encoding());
+			list.add(newList.encoding());
+			list.add(branch.encodingForOperand(groupSkip));
+			list.add(newList.encoding());
+			for (final Expression expression : group.expressionsBeforeDagger)
+			{
+				assert !expression.isArgumentOrGroup();
+				expression.emitOn(list, caseInsensitive);
+			}
+			list.add(appendArgument.encoding());
+			list.add(ensureParseProgress.encoding());
+			groupSkip = list.size() + 1;
+			list.add(discardSavedParsePosition.encoding());
+			list.add(convert.encodingForOperand(listToNonemptiness.number()));
+		}
+
+		@Override
+		boolean isArgumentOrGroup ()
+		{
+			return true;
+		}
+
+		@Override
+		int underscoreCount ()
+		{
+			assert alternation.underscoreCount() == 0;
+			return 0;
+		}
+
+		@Override
+		boolean isLowerCase ()
+		{
+			return alternation.isLowerCase();
+		}
+
+		@Override
+		public void checkType (final AvailObject argumentType)
+			throws SignatureException
+		{
+			if (!argumentType.isSubtypeOf(
+				EnumerationTypeDescriptor.booleanObject()))
+			{
+				// The declared type of the subexpression must be a subtype of
+				// boolean.
+				throwSignatureException(E_INCORRECT_TYPE_FOR_BOOLEAN_GROUP);
+			}
+		}
+
+		@Override
+		public String toString ()
+		{
+			final StringBuilder builder = new StringBuilder();
+			builder.append(getClass().getSimpleName());
+			builder.append("(");
+			builder.append(group);
+			builder.append(")");
+			return builder.toString();
+		}
+
+		@Override
+		public void printWithArguments (
+			final @Nullable Iterator<AvailObject> argumentProvider,
+			final StringBuilder aStream,
+			final int indent)
+		{
+			assert argumentProvider != null;
+			final AvailObject literal = argumentProvider.next();
+			assert literal.isInstanceOf(
+				ParseNodeKind.LITERAL_NODE.mostGeneralType());
+			final boolean flag = literal.token().literal().extractBoolean();
+			if (flag)
+			{
+				group.printGroupOccurrence(
+					Collections.<AvailObject>emptyList().iterator(),
+					aStream,
+					indent,
+					true);
+			}
+		}
+	}
+
+	/**
 	 * Construct a new {@link MessageSplitter}, parsing the provided message
 	 * into token strings and generating {@linkplain ParsingOperation parsing
 	 * instructions} for parsing occurrences of this message.
@@ -1924,6 +2093,11 @@ public class MessageSplitter
 				throwSignatureException(
 					E_VERTICAL_BAR_MUST_FOLLOW_A_SIMPLE_OR_SIMPLE_GROUP);
 			}
+			else if (token.equals(StringDescriptor.exclamationMark()))
+			{
+				throwSignatureException(
+					E_EXCLAMATION_MARK_MUST_FOLLOW_AN_ALTERNATION_GROUP);
+			}
 			else if (token.equals(StringDescriptor.openGuillemet()))
 			{
 				// Eat the open guillemet, parse a subgroup, eat the (mandatory)
@@ -1959,15 +2133,10 @@ public class MessageSplitter
 					}
 					else if (token.equals(StringDescriptor.questionMark()))
 					{
-						if (subgroup.underscoreCount() > 0)
+						if (subgroup.underscoreCount() > 0
+							|| subgroup.hasDagger)
 						{
 							// Optional group may not contain arguments.
-							throwSignatureException(
-								E_QUESTION_MARK_MUST_FOLLOW_A_SIMPLE_GROUP);
-						}
-						if (subgroup.hasDagger)
-						{
-							// Optional group may not contain double dagger.
 							throwSignatureException(
 								E_QUESTION_MARK_MUST_FOLLOW_A_SIMPLE_GROUP);
 						}
@@ -1977,22 +2146,35 @@ public class MessageSplitter
 					else if (token.equals(
 						StringDescriptor.doubleQuestionMark()))
 					{
-						if (subgroup.underscoreCount() > 0)
+						if (subgroup.underscoreCount() > 0
+							|| subgroup.hasDagger)
 						{
 							// Completely optional group may not contain
-							// arguments.
-							throwSignatureException(
-								E_DOUBLE_QUESTION_MARK_MUST_FOLLOW_A_SIMPLE_OR_SIMPLE_GROUP);
-						}
-						if (subgroup.hasDagger)
-						{
-							// Completely optional group may not contain double
-							// dagger.
+							// arguments or double daggers.
 							throwSignatureException(
 								E_DOUBLE_QUESTION_MARK_MUST_FOLLOW_A_SIMPLE_OR_SIMPLE_GROUP);
 						}
 						subexpression = new CompletelyOptional(subgroup);
 						messagePartPosition++;
+					}
+					else if (token.equals(
+						StringDescriptor.exclamationMark()))
+					{
+						final Alternation alternation;
+						if (subgroup.underscoreCount() > 0
+							|| subgroup.hasDagger
+							|| (subgroup.expressionsBeforeDagger.size() != 1)
+							|| !(subgroup.expressionsBeforeDagger.get(0)
+								instanceof Alternation))
+						{
+							// Numbered choice group may not contain
+							// underscores.  The group must also consist of an
+							// alternation.
+							throwSignatureException(
+								E_EXCLAMATION_MARK_MUST_FOLLOW_AN_ALTERNATION_GROUP);
+						}
+						subexpression = new NumberedChoice(
+							subgroup.expressionsBeforeDagger.get(0));
 					}
 				}
 				if (messagePartPosition <= messageParts.size())

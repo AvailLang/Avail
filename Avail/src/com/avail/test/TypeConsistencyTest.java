@@ -104,6 +104,7 @@ import com.avail.interpreter.Primitive;
  * </tr><tr>
  *     <td>Metacovariance</td>
  *     <td>&forall;<sub>x,y&isin;T</sub>&thinsp;(x&sube;y &rarr; T(x)&sube;T(y))</td>
+ *     <td>&forall;<sub>b&isin;T,a</sub>&thinsp;(a&isin;b &rarr; T(a)&isin;T(b))</td>
  * </tr><tr>
  *     <td>Type union metainvariance</td>
  *     <td>&forall;<sub>x,y&isin;T</sub>&thinsp;(T(x)&cup;T(y) = T(x&cup;y))</td>

@@ -267,9 +267,10 @@ public enum AvailErrorCode
 	E_DECLARATION_KIND_DOES_NOT_SUPPORT_REFERENCE (37),
 
 	/**
-	 * TODO: Recycle!
+	 * An exclamation mark (!) may only occur after a guillemet group containing
+	 * an alternation.
 	 */
-//	E_??? (38),
+	E_EXCLAMATION_MARK_MUST_FOLLOW_AN_ALTERNATION_GROUP (38),
 
 	/**
 	 * An attempt was made to add a signature with the same argument types as an
