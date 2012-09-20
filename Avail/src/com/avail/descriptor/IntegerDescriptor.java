@@ -1528,7 +1528,7 @@ extends ExtendedIntegerDescriptor
 				// Either a right shift, or a left shift that didn't lose bits,
 				// or a left shift that will fit in a long after the truncation.
 				// In these cases the result will still be a long.
-				long resultLong = bitShift(baseLong, shiftInt);
+				long resultLong = shiftedLong;
 				if (truncationInt < 64)
 				{
 					resultLong &= (1 << truncationInt) - 1;
@@ -1569,7 +1569,7 @@ extends ExtendedIntegerDescriptor
 		estimatedBits = min(estimatedBits, truncationInt + 1);
 		estimatedBits = max(estimatedBits, 1);
 		final int slotCount = (estimatedBits + 31) >> 5;
-		final AvailObject result = create(slotCount);
+		final AvailObject result = mutable().create(slotCount);
 		final int shortShift = shiftInt & 31;
 		int sourceIndex = slotCount - (shiftInt >> 5);
 		long accumulator = 0xDEADCAFEBABEBEEFL;
@@ -1602,6 +1602,124 @@ extends ExtendedIntegerDescriptor
 				result.rawSignedIntegerAt(destIndex) & mask);
 			// Completely wipe any higher ints.
 			mask = 0;
+		}
+		result.trimExcessInts();
+		return result;
+	}
+
+	/**
+	 * Shift the given integer to the left by the specified shift factor
+	 * (number of bits).  The shift factor may be negative, indicating a right
+	 * shift by the corresponding positive amount.
+	 *
+	 * @param object
+	 *            The integer to shift.
+	 * @param shiftFactor
+	 *            How much to shift left (may be negative to indicate a right
+	 *            shift).
+	 * @param canDestroy
+	 *            Whether it is permitted to alter the original object if it
+	 *            happens to be mutable.
+	 * @return ⎣object × 2<sup>shiftFactor</sup>⎦
+	 */
+	@Override @AvailMethod
+	AvailObject o_BitShift (
+		final AvailObject object,
+		final AvailObject shiftFactor,
+		final boolean canDestroy)
+	{
+		if (object.equals(IntegerDescriptor.zero()))
+		{
+			if (!canDestroy & isMutable())
+			{
+				object.makeImmutable();
+			}
+			// 0*2^n = 0
+			return object;
+		}
+		if (!shiftFactor.isInt())
+		{
+			if (shiftFactor.numericCompareToInteger(zero()) == MORE)
+			{
+				// e.g., 123 << 999999999999999999 is too big
+				throw new ArithmeticException(
+					AvailErrorCode.E_TOO_LARGE_TO_REPRESENT);
+			}
+			// e.g., 123 >> 999999999999999999 is 0
+			return zero();
+		}
+		final int shiftInt = shiftFactor.extractInt();
+		if (object.isLong())
+		{
+			final long baseLong = object.extractLong();
+			final long shiftedLong = arithmeticBitShift(baseLong, shiftInt);
+			if (shiftInt < 0
+				|| arithmeticBitShift(shiftedLong, -shiftInt) == baseLong)
+			{
+				// Either a right shift, or a left shift that didn't lose bits.
+				// In these cases the result will still be a long.
+				final long resultLong = shiftedLong;
+				if (canDestroy && isMutable())
+				{
+					if (resultLong == (int)resultLong)
+					{
+						// Fits in an int.  Try to recycle.
+						if (object.integerSlotsCount() == 1)
+						{
+							object.rawSignedIntegerAtPut(1, (int)resultLong);
+							return object;
+						}
+					}
+					else
+					{
+						// *Fills* a long.  Try to recycle.
+						if (object.integerSlotsCount() == 2)
+						{
+							object.rawSignedIntegerAtPut(
+								1,
+								(int)resultLong);
+							object.rawSignedIntegerAtPut(
+								2,
+								(int)(resultLong >> 32L));
+							return object;
+						}
+					}
+				}
+				// Fall back and create a new integer object.
+				return fromLong(resultLong);
+			}
+		}
+		// Answer doesn't (necessarily) fit in a long.
+		final int sourceSlots = object.integerSlotsCount();
+		int estimatedBits = (sourceSlots << 5) + shiftInt;
+		estimatedBits = max(estimatedBits, 1);
+		final int slotCount = (estimatedBits + 31) >> 5;
+		final AvailObject result = mutable().create(slotCount);
+		final int shortShift = shiftInt & 31;
+		int sourceIndex = slotCount - (shiftInt >> 5);
+		long accumulator = 0xDEADCAFEBABEBEEFL;
+		final int signExtension =
+			object.numericCompareToInteger(IntegerDescriptor.zero()) == LESS
+				? -1
+				: 0;
+		// We range from slotCount+1 to 1 to pre-load the accumulator.
+		for (int destIndex = slotCount + 1; destIndex >= 1; destIndex--)
+		{
+			final int nextWord =
+				sourceIndex < 1
+					? 0
+					: sourceIndex > sourceSlots
+						? signExtension
+						: object.rawSignedIntegerAt(sourceIndex);
+			accumulator <<= 32;
+			accumulator |= (nextWord & 0xFFFFFFFFL) << shortShift;
+			if (destIndex <= slotCount)
+			{
+				result.rawSignedIntegerAtPut(
+					destIndex,
+					(int)(accumulator >> 32));
+			}
+			sourceIndex--;
 		}
 		result.trimExcessInts();
 		return result;
@@ -1812,31 +1930,36 @@ extends ExtendedIntegerDescriptor
 		final BigInteger bigInteger)
 	{
 		final byte[] bytes = bigInteger.toByteArray();
-		if (bytes.length <= 8)
+		if (bytes.length < 8)
 		{
 			return fromLong(bigInteger.longValue());
 		}
-		final int intCount = (bytes.length + 3) >> 2;
+		final int signByte = ((bytes[0] >> 7) & 1) * 255;
+		final int intCount = (bytes.length + 4) >> 2;
 		final AvailObject result = mutable().create(intCount);
 		// Start with the least significant bits.
 		int byteIndex = bytes.length - 1;
-		for (int destIndex = 1; destIndex < intCount; destIndex++)
+		for (int destIndex = 1; destIndex <= intCount; destIndex++)
 		{
-			final int intValue =
-				(bytes[byteIndex] & 255) +
-				((bytes[byteIndex - 1] & 255) << 8) +
-				((bytes[byteIndex - 2] & 255) << 16) +
-				((bytes[byteIndex - 3] & 255) << 24);
+			int intValue;
+			if (byteIndex >= 3)
+			{
+				intValue = (bytes[byteIndex] & 255);
+				intValue += (bytes[byteIndex - 1] & 255) << 8;
+				intValue += (bytes[byteIndex - 2] & 255) << 16;
+				intValue += (bytes[byteIndex - 3] & 255) << 24;
+			}
+			else
+			{
+				// Do the highest order int specially, low to high bytes.
+				intValue = (byteIndex >= 0 ? bytes[byteIndex] : signByte) & 255;
+				intValue += ((byteIndex >= 1 ? bytes[byteIndex - 1] : signByte) & 255) << 8;
+				intValue += ((byteIndex >= 2 ? bytes[byteIndex - 2] : signByte) & 255) << 16;
+				intValue += ((byteIndex >= 3 ? bytes[byteIndex - 3] : signByte) & 255) << 24;
+			}
 			result.rawSignedIntegerAtPut(destIndex, intValue);
 			byteIndex -= 4;
 		}
-		// Do the highest order int specially, low to high bytes.
-		final int signByte = ((bytes[byteIndex] >> 7) & 1) * 255;
-		int intValue = bytes[byteIndex] & 255;
-		intValue += (byteIndex >= 1 ? bytes[byteIndex - 1] : signByte) << 8;
-		intValue += (byteIndex >= 2 ? bytes[byteIndex - 2] : signByte) << 8;
-		intValue += (byteIndex >= 3 ? bytes[byteIndex - 3] : signByte) << 8;
-		result.rawSignedIntegerAtPut(intCount, intValue);
 		result.trimExcessInts();
 		return result;
 	}

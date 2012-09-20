@@ -44,6 +44,7 @@ Uses
 	"Early Functions",
 	"Early Logic",
 	"Early Sets",
+	"Early Tuples",
 	"Enumeration Support",
 	"Literals",
 	"Types",
@@ -375,27 +376,21 @@ Method "_×_" is
 			If positiveB ≠ ⊥ then
 			[
 				lower ::= ⎣positiveA⎦ × ⎣positiveB⎦;
-				lowerInclusive ::= ⎣positiveA⎦ is inclusive
-					∧ [ ⎣positiveB⎦ is inclusive ];
 				upper ::= ⎡positiveA⎤ × ⎡positiveB⎤;
-				upperInclusive ::= ⎡positiveA⎤ is inclusive
-					∧ [ ⎡positiveB⎤ is inclusive ];
+				isInfinite ::= ∞ ∈ positiveA ∨ [∞ ∈ positiveB];
 				range ::= integer range
-					from lower (inclusive=lowerInclusive)
-					to upper (inclusive=upperInclusive);
+					from lower (inclusive=true)
+					to upper + 1 (inclusive=isInfinite);
 				result := eject ↑result ∪ range;
 			];
 			If negativeB ≠ ⊥ then
 			[
 				lower ::= ⎡positiveA⎤ × ⎣negativeB⎦;
-				lowerInclusive ::= ⎡positiveA⎤ is inclusive
-					∧ [ ⎣negativeB⎦ is inclusive ];
+				isInfinite ::= ∞ ∈ positiveA ∨ [-∞ ∈ negativeB];
 				upper ::= ⎣positiveA⎦ × ⎡negativeB⎤;
-				upperInclusive ::= ⎣positiveA⎦ is inclusive
-					∧ [ ⎡negativeB⎤ is inclusive ];
 				range ::= integer range
-					from lower (inclusive=lowerInclusive)
-					to upper (inclusive=upperInclusive);
+					from lower - 1 (inclusive=isInfinite)
+					to upper (inclusive=true);
 				result := eject ↑result ∪ range;
 			];
 		];
@@ -404,27 +399,21 @@ Method "_×_" is
 			If positiveB ≠ ⊥ then
 			[
 				lower ::= ⎣negativeA⎦ × ⎡positiveB⎤;
-				lowerInclusive ::= ⎣negativeA⎦ is inclusive
-					∧ [ ⎡positiveB⎤ is inclusive ];
+				isInfinite ::= -∞ ∈ negativeA ∨ [∞ ∈ positiveB];
 				upper ::= ⎡negativeA⎤ × ⎣positiveB⎦;
-				upperInclusive ::= ⎡negativeA⎤ is inclusive
-					∧ [ ⎣positiveB⎦ is inclusive ];
 				range ::= integer range
-					from lower (inclusive=lowerInclusive)
-					to upper (inclusive=upperInclusive);
+					from lower - 1 (inclusive=isInfinite)
+					to upper (inclusive=true);
 				result := eject ↑result ∪ range;
 			];
 			If negativeB ≠ ⊥ then
 			[
 				lower ::= ⎡negativeA⎤ × ⎡negativeB⎤;
-				lowerInclusive ::= ⎡negativeA⎤ is inclusive
-					∧ [ ⎡negativeB⎤ is inclusive ];
 				upper ::= ⎣negativeA⎦ × ⎣negativeB⎦;
-				upperInclusive ::= ⎣negativeA⎦ is inclusive
-					∧ [ ⎣negativeB⎦ is inclusive ];
+				isInfinite ::= -∞ ∈ negativeA ∨ [-∞ ∈ negativeB];
 				range ::= integer range
-					from lower (inclusive=lowerInclusive)
-					to upper (inclusive=upperInclusive);
+					from lower (inclusive=true)
+					to upper + 1 (inclusive=isInfinite);
 				result := eject ↑result ∪ range;
 			];
 		];
@@ -466,7 +455,7 @@ Semantic restriction "-_" is
 [
 	a : extended integer's type
 |
-	- a
+	-a
 ];
 
 /**
@@ -616,17 +605,16 @@ Method "_÷_" is
 ];
 
 /**
- * Compute and answer the integer range type of the quotient of the argument
- * types.
+ * Compute and answer the integer range type of the quotient.
  * 
  * Parameters:
- *    a - An integral type.
- *    b - An integral type.
+ *    numeratorRange - An integral type.
+ *    denomintor - An integral type.
  * Returns:
  *    The narrowest integer range type general enough to hold all possible
- *    quotients of the arguments' instances.
+ *    quotients of `numeratorRange`'s instances and `denominator`.
  */
-Semantic restriction "_÷_" is
+Method "_÷_" is
 [
 	a : extended integer's type,
 	b : extended integer's type
@@ -660,6 +648,25 @@ Semantic restriction "_÷_" is
 			eject ↑union ∪ (a ÷ positiveDenominators' genuine upper bound);
 	];
 	union
+];
+
+/**
+ * Compute and answer the integer range type of the quotient of the argument
+ * types.
+ * 
+ * Parameters:
+ *    a - An integral type.
+ *    b - An integral type.
+ * Returns:
+ *    The narrowest integer range type general enough to hold all possible
+ *    quotients of the arguments' instances.
+ */
+Semantic restriction "_÷_" is
+[
+	a : extended integer's type,
+	b : extended integer's type
+|
+	a ÷ b
 ];
 
 /**
@@ -1049,7 +1056,7 @@ Method "_^_" is
 	/*  Uses the identities: b^(2x) = (b^2)^x; and: b^(2x+1) = (b^2)^x*b. */
 	if exponent = 0 then
 	[
-		1.0f
+		1.0→float
 	]
 	else
 	[
@@ -1075,7 +1082,7 @@ Method "_^_" is
 	/*  Uses the identities: b^(2x) = (b^2)^x; and: b^(2x+1) = (b^2)^x*b. */
 	if exponent = 0 then
 	[
-		1.0d
+		1.0
 	]
 	else
 	[
@@ -1123,7 +1130,451 @@ Stable method "log_of_" is
  * its diameter.
  *
  * @method "π"
- * @returns "3.141592653589793d's type"
- *          {@code 3.141592653589793d}.
+ * @returns "3.141592653589793's type"
+ *          {@code 3.141592653589793}.
  */
-Public method "π" is [3.141592653589793d];
+Public method "π" is [3.141592653589793];
+
+
+/**
+ * Strengthen the result type of bitshift.
+ *
+ * Parameters:
+ *    baseInteger - An integer to shift.
+ *    shiftFactor - How many bit positions by which to shift left (negative for
+ *       a right shift).
+ * Returns:
+ *    The value baseInteger * (2<sup>shiftFactor</sup>).
+ */
+Semantic restriction "_<<_" is
+[
+	baseIntegerType : integer's type,
+	shiftFactorType : integer's type
+|
+	low : extended integer := ∞;
+	high : extended integer := -∞;
+	innerBlock ::= [base : extended integer, shift : extended integer |
+		shifted ::= cast base into
+			[
+				baseInteger : integer
+			|
+				cast shift into
+				[
+					shiftInteger : integer
+				|
+					/* Finite case. */
+					baseInteger << shiftInteger
+				]
+				else
+				[
+					/* Arbitrarily large shift. */
+					if shift = ∞ then
+					[
+						/* Arbitrarily large left shift. */
+						if baseInteger > 0 then [∞]
+						else
+						[
+							if baseInteger < 0 then [-∞] else [0]
+						]
+					]
+					else
+					[
+						/* Arbitrarily large right shift. */
+						if baseInteger ≥ 0 then [0] else [-1]
+					]
+				]
+			]
+			else
+			[
+				/* Arbitrarily large (±) number to shift. */
+				cast shift into
+				[
+					shiftInteger : integer
+				|
+					/* Arbitrarily large number shifted finitely. */
+					base
+				]
+				else
+				[
+					/* Both the base and the shift are arbitrarily large. */
+					if shift = ∞ then
+					[
+						base
+					]
+					else
+					[
+						if base = ∞ then [0] else [-1]
+					]
+				]
+			];
+		low := low min shifted;
+		high := high max shifted;
+	];
+	/* Feed the block some characteristic values to compute the extrema. */
+	outerBlock ::= [
+		base : extended integer
+	|
+		If 0 ∈ shiftFactorType then [innerBlock(base, 0);];
+		If -1 ∈ shiftFactorType then [innerBlock(base, -1);];
+		If 1 ∈ shiftFactorType then [innerBlock(base, 1);];
+		innerBlock(base, ⎣shiftFactorType⎦);
+		innerBlock(base, ⎡shiftFactorType⎤);
+	];
+
+	If 0 ∈ baseIntegerType then [outerBlock(0);];
+	If -1 ∈ baseIntegerType then [outerBlock(-1);];
+	If 1 ∈ baseIntegerType then [outerBlock(1);];
+	outerBlock(⎣baseIntegerType⎦);
+	outerBlock(⎡baseIntegerType⎤);
+	(low - 1 .. high + 1)
+] : integer's type;
+
+/* TODO [MvG] Remove - TEMPORARY TESTS */
+Assert: 1 << 0 = 1;
+Assert: 1 << 1 = 2;
+Assert: 1 << 2 = 4;
+Assert: 3 << 3 = 24;
+Assert: 0 << 0 = 0;
+Assert: 0 << 3 = 0;
+x : [13..19] := 17;
+y : [-3..4] := 0;
+z : [13 << -3 .. 19 << 4] := x << y;
+Assert: z = 17;
+y := 4;
+Assert: x << y = 272;
+y := -3;
+Assert: x << y = 2;
+xi : integer := x;
+yi : integer := y;
+z2 : integer := xi << yi;
+Assert: z2 = 2;
+z3 : [0..∞) := x << yi;
+Assert: z3 = 2;
+z4 : integer := xi << y;
+Assert: z4 = 2;
+
+
+Private forward method "_positive range pairs"
+	is [whole number's type] → <whole number's type…|0..∞>;
+
+/**
+ * Compute the ranges as for "_range pairs" (below), but with the knowledge that
+ * the range is whole number or a subtype.
+ */
+Private method "_positive range pairs" is
+[
+	range : whole number's type
+|
+	$outer : <whole number's type…|0..∞>;
+	If range = ⊥ then
+	[
+		Exit outer with <>
+	];
+	cast ⎣range⎦ into
+	[
+		low : [0..∞)
+	|
+		/* Find the biggest string of rightmost one-bits that can be added to
+		 * low without causing any internal carry and without exceeding the
+		 * range.
+		 */
+		lowBits : integer;
+		Cast ⎡range⎤ into
+		[
+			high : [1..∞)
+		|
+			If low = 0 then
+			[
+				/* Range is [0..n]. */
+				lowBits := high;
+				[
+					$here;
+					If lowBits bit∧ (lowBits + 1) ≠ 0 then
+					[
+						/* Not yet of the form 2^n-1 */
+						lowBits := lowBits bit∨ (lowBits << -1);
+						Restart here
+					];
+				]();
+			]
+			else
+			[
+				lowBits := (-1 - low) bit∧ (low - 1);
+			];
+		]
+		else
+		[
+			If ⎡range⎤ = 0 then
+			[
+				Assert: range = [0..0];
+				Exit outer with <range>
+			];
+			Assert: ⎡range⎤ = ∞;
+			If low = 0 then
+			[
+				Assert: range = [0..∞);
+				Exit outer with <range>
+			];
+			/* Find the next higher power of two. */
+			boundary : integer := low;
+			[
+				$here;
+				If boundary bit∧ (boundary + 1) ≠ 0 then
+				[
+					boundary := boundary bit∨ (boundary << -1);
+					Restart here
+				];
+			]();
+			Exit outer with
+				[low .. boundary] positive range pairs
+					++ <[boundary + 1..∞)>
+		];
+		strongLowBits : whole number :=
+			cast lowBits into [x : whole number | x];
+		[
+			$loop : <whole number's type…|0..∞>;
+			subrangeEnd ::= low + strongLowBits;
+			If subrangeEnd ∈ range then
+			[
+				Exit outer with
+					<[low .. low + strongLowBits]>
+					++ (low + strongLowBits .. ⎡range⎤ + 1)
+						positive range pairs
+			];
+			Assert: strongLowBits ≠ 0;
+			strongLowBits := strongLowBits << -1;
+			Restart loop
+		] : <whole number's type…|0..∞> ()
+	]
+] : <whole number's type…|0..∞>;
+
+/**
+ * Decompose an integer type into a tuple of contiguous smaller integer types.
+ * When the lower and upper bounds of a subrange are each finite, they must have
+ * the form a*2^b and a*2^b + 2^b-1.  The lower bound ensures the bottom b bits
+ * are zero, and the upper bound is the same but with the bottom b bits all one.
+ * The low and high values may be the same, indicating a range consisting of a
+ * single value.
+ *
+ * In the special case that the upper end of the subrange is ∞, the lower end
+ * must be a non-negative power of two.  In the case that the lower end is -∞,
+ * the upper end must be one less than the negation of a power of two.
+ * 
+ * Produce the minimum number of such ranges.
+ */
+Private method "_range pairs" is
+[
+	range : integer's type
+|
+	rangeKind ::= (⎣range⎦ - 1 .. ⎡range⎤ + 1);
+	pairs : <integer's type…|> := <>;
+	complementOfNegative ::= ((-1)'s type - rangeKind) ∩ [0..∞);
+	subranges ::= complementOfNegative positive range pairs;
+	From 1 to |subranges| do
+	[
+		n : natural number
+	|
+		subcomplement ::= Cast (-1)'s type - subranges[n]
+			into [x : integer's type | x];
+		pairs := <subcomplement> ++ pairs;
+		true
+	];
+	positiveRegion ::= rangeKind ∩ [0..∞);
+	pairs := pairs ++ positiveRegion positive range pairs;
+	pairs
+] : <extended integer's type…|0..∞>;
+
+/* TODO [MvG] Remove - TEMPORARY TESTS */
+Assert: [0..0] range pairs = <[0..0]>;
+Assert: [0..10] range pairs = <[0..7], [8..9], [10..10]>;
+Assert: [10..20] range pairs = <[10..11], [12..15], [16..19], [20..20]>;
+Assert: [-10..0] range pairs = <[-10..-9], [-8..-1], [0..0]>;
+Assert: [-20..-10] range pairs = <[-20..-17], [-16..-13], [-12..-11], [-10..-10]>;
+Assert: [-21..11] range pairs = <[-21..-21], [-20..-17], [-16..-1], [0..7], [8..11]>;
+Assert: [0..∞) range pairs = <[0..∞)>;
+Assert: [10..∞) range pairs = <[10..11], [12..15], [16..∞)>;
+Assert: integer range pairs = <(-∞..-1], [0..∞)>;
+Assert: enumeration of {-6, 4, 5, 6, 7} range pairs = <[-6..-5], [-4..-1], [0..7]>;
+
+
+
+/**
+ * Strengthen bitwise-and operation.
+ */
+Semantic restriction "_bit∧_" is
+[
+	arg1 : integer's type,
+	arg2 : integer's type
+|
+	values : {extended integer|0..∞} := ∅;
+	include ::=
+	[
+		x : extended integer,
+		y : extended integer
+	|
+		$includeLabel : ⊤;
+		exit ::= [
+			moreValues : {extended integer|0..∞}
+		|
+			values := values ∪ moreValues;
+			Exit includeLabel with 123
+		];
+		If x = ∞ then
+		[
+			If y ≥ 0 then
+			[
+				/* For some finite positive y, there exists a large positive
+				 * number (implied by x) that has enough low zero bits to
+				 * produce zero.  Similarly, there is a large positive number
+				 * which is able to preserve all of y's bits.  Finally, when
+				 * y is also arbitrarily large it can conspire with x to
+				 * produce any whole number.
+				 */
+				exit({0, y})
+			];
+			/* Arbitrarily large positive integers can mask a negative
+			 * number to ensure arbitrarily large positive integers are
+			 * possible.  Other limits will determine how low a (positive)
+			 * value can be produced.
+			 */
+			exit({x})
+		];
+		If x = -∞ then
+		[
+			If y ≥ 0 then
+			[
+				/* An arbitrarily large magnitude negative x can preserve any
+				 * positive y.  It could also knock it down to zero.
+				 */
+				exit({0, y})
+			];
+			/* An arbitrarily large magnitude negative x can preserve any
+			 * bits of y, but it can also zero any finite combination of
+			 * bits, keeping it negative.
+			 */
+			exit({x, y})
+		];
+		If x ≥ 0 then
+		[
+			/* A particular finite positive x. */
+			If y ∈ {∞, -∞} then
+			[
+				exit({0, x})
+			];
+			Cast x into
+			[
+				xi : integer
+			|
+				Cast y into
+				[
+					yi : integer
+				|
+					exit({xi bit∧ yi})
+				]
+			]
+		];
+		/* A particular finite negative x. */
+		If y = ∞ then
+		[
+			exit({y})
+		];
+		If y = -∞ then
+		[
+			exit({x, y})
+		];
+		Cast x into
+		[
+			xi : integer
+		|
+			Cast y into
+			[
+				yi : integer
+			|
+				exit({xi bit∧ yi})
+			]
+		]
+	] : ⊤;
+	arg1Ranges ::= arg1 range pairs;
+	arg2Ranges ::= arg2 range pairs;
+	From 1 to |arg1Ranges| do
+	[
+		i1 : natural number
+	|
+		subrange1 ::= arg1Ranges[i1];
+		From 1 to |arg2Ranges| do
+		[
+			i2 : natural number
+		|
+			subrange2 ::= arg2Ranges[i2];
+			include(⎣subrange1⎦, ⎣subrange2⎦);
+			include(⎣subrange1⎦, ⎡subrange2⎤);
+			include(⎡subrange1⎤, ⎣subrange2⎦);
+			include(⎡subrange1⎤, ⎡subrange2⎤);
+			true
+		];
+		true
+	];
+	contentType ::= values' type's element type;
+	(⎣contentType⎦ - 1 .. ⎡contentType⎤ + 1)
+] : integer's type;
+
+/* TODO [MvG] Remove - TEMPORARY TESTS */
+Assert: 0 bit∧ 0 = 0;
+Assert: 0 bit∧ 1 = 0;
+Assert: 1 bit∧ 0 = 0;
+Assert: 1 bit∧ 1 = 1;
+Assert: 15 bit∧ 30 = 14;
+
+
+
+
+/**
+ * Strengthen the result type of bounded bitshift, primarily based on the
+ * truncation bit count.
+
+ * Given a positive integer B, a shift factor S, and a truncation bit count T,
+ * shift B to the left by S bits (treating a negative factor as a right shift),
+ * then truncate the result to the bottom T bits by zeroing the rest.
+ *
+ * Parameters:
+ *    baseInteger - A non-negative integer to shift and mask.
+ *    shiftFactor - How many bit positions to shift left by (negative for a
+ *       right shift).
+ *    truncationBits - The number of low-order bits to preserve after the shift
+ *       (must be ≥ 0).
+ * Returns:
+ *    The value baseInteger * (2<sup>shiftFactor</sup>) mod
+ *    (2^<sup>truncationBits</sup>).
+ */
+Semantic restriction "_<<_keeping_bits" is
+[
+	baseInteger : whole number's type,
+	shiftFactor : integer's type,
+	truncationBits : whole number's type
+|
+	high : [0..∞] := ∞;
+	If ⎡baseInteger⎤ ≠ ∞ ∧ [ ⎡shiftFactor⎤ ≠ ∞ ] then
+	[
+		finiteBaseMax : whole number;
+		↓↑finiteBaseMax ?= ⎡baseInteger⎤;
+		finiteShiftMax : integer;
+		↓↑finiteShiftMax ?= ⎡shiftFactor⎤;
+		high := finiteBaseMax << finiteShiftMax;
+	];
+	finiteBaseMin : whole number;
+	↓↑finiteBaseMin ?= ⎣baseInteger⎦;
+	finiteShiftMin : integer;
+	↓↑finiteShiftMin ?= ⎣shiftFactor⎦;
+	low : whole number := finiteBaseMin << finiteShiftMin;
+	If ⎡truncationBits⎤ ≠ ∞ then
+	[
+		finiteTruncationMax : whole number;
+		↓↑finiteTruncationMax ?= ⎡truncationBits⎤;
+		high := high min ((1 << finiteTruncationMax) - 1);
+	];
+	finiteTruncationMin : whole number;
+	↓↑finiteTruncationMin ?= ⎣truncationBits⎦;
+	mask : whole number := (1 << finiteTruncationMin) - 1;
+	low := low bit∧ mask;
+	[low..high+1)
+] : whole number's type;

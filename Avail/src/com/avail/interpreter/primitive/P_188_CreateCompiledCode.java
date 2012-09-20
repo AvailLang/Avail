@@ -70,7 +70,7 @@ public class P_188_CreateCompiledCode extends Primitive
 
 		if (primitiveInt != 0)
 		{
-			final Primitive prim = Primitive.byPrimitiveNumber(
+			final Primitive prim = Primitive.byPrimitiveNumberOrNull(
 				primitiveInt);
 			if (prim == null || prim.hasFlag(Private))
 			{

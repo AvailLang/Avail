@@ -79,7 +79,7 @@ public class L2_REPORT_INVALID_RETURN_TYPE extends L2Operation
 		error(
 			"primitive %s's result (%s) did not agree with"
 			+ " semantic restriction's expected type (%s)",
-			Primitive.byPrimitiveNumber(primitiveNumber).name(),
+			Primitive.byPrimitiveNumberOrFail(primitiveNumber).name(),
 			actualValue,
 			expectedType);
 	}

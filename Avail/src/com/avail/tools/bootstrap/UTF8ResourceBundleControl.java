@@ -59,6 +59,8 @@ extends Control
 	{
 		final String bundleName = toBundleName(baseName, locale);
 		ResourceBundle bundle = null;
+		assert format != null;
+		assert loader != null;
 		if (format.equals("java.class"))
 		{
 			try

@@ -41,9 +41,12 @@ Names
 	"_'s⁇instance"
 Body
 
-/*
+/**
  * Use the same primitive that implements `_'s⁇type` to implement its semantic
  * restriction function.
+ * 
+ * @method "_'s⁇type"
+ * @restricts "type"
  */
 Semantic restriction "_'s⁇type" is
 [
@@ -55,11 +58,12 @@ Semantic restriction "_'s⁇type" is
 /**
  * Answer the sole instance of the specified enumeration.
  *
- * Parameters:
- *    enum - An enumeration. Anything answered by `_'s⁇type` satisfies this
- *       criterion.
- * Returns:
- *    The sole instance of the argument.
+ * @method "_'s⁇instance"
+ * @param "enum" "type"
+ *        An enumeration. Anything answered by `_'s⁇type` satisfies this 
+ *        criterion.
+ * @returns "any"
+ *          The sole instance of the argument.
  */
 Public method "_'s⁇instance" is
 [

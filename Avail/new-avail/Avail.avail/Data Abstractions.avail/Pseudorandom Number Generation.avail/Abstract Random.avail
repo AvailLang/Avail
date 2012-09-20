@@ -279,8 +279,7 @@ Public method "_'s⁇next shuffling of_" is
 	[
 		index : [2..∞)
 	|
-		range ::= cast [1..index] into [t : natural number's type | t];
-		randomIndex ::= rng's next range;
+		randomIndex ::= rng's next [1..index];
 		result := eject ↑result[index↔randomIndex];
 	];
 	result

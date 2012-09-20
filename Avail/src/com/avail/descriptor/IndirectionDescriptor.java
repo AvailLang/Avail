@@ -4413,4 +4413,13 @@ extends AbstractDescriptor
 	{
 		return o_Traversed(object).setBinIterator();
 	}
+
+	@Override
+	AvailObject o_BitShift (
+		final AvailObject object,
+		final AvailObject shiftFactor,
+		final boolean canDestroy)
+	{
+		return o_Traversed(object).bitShift(shiftFactor, canDestroy);
+	}
 }

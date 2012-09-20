@@ -60,18 +60,18 @@ Test "partial application basics" in function test suite is
 	g ::= f(_,"foo",_);
 	Require: g's type[1] = integer;
 	Require: g's type[2] = float;
-	Require: g(10,1.2f) = "ok";
+	Require: g(10, 1.2→float) = "ok";
 
-	h ::= f(15,_,1.2f);
+	h ::= f(15, _, 1.2→float);
 	Require: h's type[1] = string;
 	Require: h("cheese") = "ok";
 
-	i ::= f(15,…);
+	i ::= f(15, …);
 	Require: i's type[1] = string;
 	Require: i's type[2] = float;
-	Require: i("x", 2.5f) = "ok";
+	Require: i("x", 2.5→float) = "ok";
 
-	j ::= f(…,1.7f);
+	j ::= f(…, 1.7→float);
 	Require: j's type[1] = integer;
 	Require: j's type[2] = string;
 	Require: j(45, "x") = "ok";

@@ -32,7 +32,7 @@
 package com.avail.interpreter.primitive;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.AvailRuntime;
@@ -49,8 +49,8 @@ public class P_125_AtomRemoveProperty extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_125_AtomRemoveProperty().init(
-		2, CanInline, HasSideEffect);
+	public final static Primitive instance =
+		new P_125_AtomRemoveProperty().init(2, CanInline, HasSideEffect);
 
 	@Override
 	public Result attempt (
@@ -64,6 +64,11 @@ public class P_125_AtomRemoveProperty extends Primitive
 			|| AvailRuntime.isSpecialAtom(propertyKey))
 		{
 			return interpreter.primitiveFailure(E_SPECIAL_ATOM);
+		}
+		final AvailObject propertyValue = atom.getAtomProperty(propertyKey);
+		if (propertyValue.equalsNull())
+		{
+			return interpreter.primitiveFailure(E_KEY_NOT_FOUND);
 		}
 		atom.setAtomProperty(propertyKey, NullDescriptor.nullObject());
 		return interpreter.primitiveSuccess(NullDescriptor.nullObject());

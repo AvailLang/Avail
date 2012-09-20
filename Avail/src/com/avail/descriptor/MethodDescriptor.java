@@ -1019,7 +1019,9 @@ extends Descriptor
 					{
 						builder.format("%n\t\t%s", sig);
 					}
-					return builder.toString();
+					final String builderString = builder.toString();
+					builder.close();
+					return builderString;
 				}
 			});
 			return NullDescriptor.nullObject();

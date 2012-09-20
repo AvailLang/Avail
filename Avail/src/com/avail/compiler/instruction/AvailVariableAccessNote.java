@@ -52,13 +52,13 @@ public class AvailVariableAccessNote
 	 * The most recently encountered instruction, if any, that pushes the
 	 * variable itself onto the stack.
 	 */
-	AvailPushVariable previousPush;
+	@Nullable AvailPushVariable previousPush;
 
 	/**
 	 * The most recently encountered instruction, if any, that pushes the
 	 * variable's value onto the stack.
 	 */
-	AvailGetVariable previousGet;
+	@Nullable AvailGetVariable previousGet;
 
 
 	/**
@@ -68,7 +68,7 @@ public class AvailVariableAccessNote
 	 * @return The most recently encountered {@link AvailGetVariable} for the
 	 *         variable being analyzed.
 	 */
-	public AvailGetVariable previousGet ()
+	public @Nullable AvailGetVariable previousGet ()
 	{
 		return previousGet;
 	}
@@ -93,7 +93,7 @@ public class AvailVariableAccessNote
 	 * @return The most recently encountered {@link AvailPushVariable} for the
 	 *         variable being analyzed.
 	 */
-	public AvailPushVariable previousPush ()
+	public @Nullable AvailPushVariable previousPush ()
 	{
 		return previousPush;
 	}

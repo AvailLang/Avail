@@ -81,7 +81,7 @@ extends PropertiesFileGenerator
 			primitiveNumber++)
 		{
 			final Primitive primitive =
-				Primitive.byPrimitiveNumber(primitiveNumber);
+				Primitive.byPrimitiveNumberOrNull(primitiveNumber);
 			if (primitive != null && !primitive.hasFlag(Flag.Private))
 			{
 				keys.add(primitive.name());

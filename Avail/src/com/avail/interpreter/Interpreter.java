@@ -206,8 +206,10 @@ public abstract class Interpreter
 		final int primitiveNumber,
 		final int argCount)
 	{
-		final int expected =
-			Primitive.byPrimitiveNumber(primitiveNumber).argCount();
+		final Primitive primitive =
+			Primitive.byPrimitiveNumberOrNull(primitiveNumber);
+		assert primitive != null;
+		final int expected = primitive.argCount();
 		return expected == -1 || expected == argCount;
 	}
 
@@ -795,7 +797,7 @@ public abstract class Interpreter
 	 */
 	public boolean supportsPrimitive (final int primitiveNumber)
 	{
-		final Primitive primitive = Primitive.byPrimitiveNumber(
+		final Primitive primitive = Primitive.byPrimitiveNumberOrNull(
 			primitiveNumber);
 		return primitive != null && !primitive.hasFlag(Flag.Private);
 	}
@@ -913,7 +915,7 @@ public abstract class Interpreter
 		final List<AvailObject> args)
 	{
 		final Primitive primitive =
-			Primitive.byPrimitiveNumber(primitiveNumber);
+			Primitive.byPrimitiveNumberOrFail(primitiveNumber);
 		if (logger.isLoggable(Level.FINER))
 		{
 			logger.finer(String.format(

@@ -136,6 +136,7 @@ public final class ModuleNameResolverTest
 			final ResolvedModuleName modName = renames.resolve(
 				new ModuleName(
 					"/avail" + packageName, localName));
+			assert modName != null;
 			final File actual = modName.fileReference();
 			assertEquals(expected, actual);
 		}

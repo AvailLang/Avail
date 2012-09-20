@@ -697,26 +697,29 @@ Semantic restriction "counts for_" is
  */
 Public method "integrate_and_with_" is
 [
- 	baseMap : map,
- 	supplementMap : map,
- 	action : [⊥,⊥,⊥]→map
- |
- 	baseMapkeys ::= baseMap's keys;
- 	newMap : map := baseMap;
- 	For each supplementMap do
- 	[
- 	 	supplementKey : any,
- 	 	supplementValue : any
- 	 |
- 	 	if baseMapkeys ∋ supplementKey then
- 	 	[
- 	 	 	newMap := Invoke action with 
- 	 	 		<newMap,supplementKey,supplementValue>;
- 	 	]
- 	 	else [newMap := newMap + supplementKey→supplementValue;];
- 	];
- 	newMap
- ]:map;
+	baseMap : map,
+	supplementMap : map,
+	action : [⊥,⊥,⊥]→map
+|
+	baseMapkeys ::= baseMap's keys;
+	newMap : map := baseMap;
+	For each supplementMap do
+	[
+		supplementKey : any,
+		supplementValue : any
+	|
+		newMap :=
+			if baseMapkeys ∋ supplementKey then
+			[
+				invoke action with <newMap, supplementKey, supplementValue>
+			]
+			else
+			[
+				newMap + supplementKey→supplementValue
+			];
+	];
+	newMap
+] : map;
 
 /**
  *

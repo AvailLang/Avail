@@ -72,7 +72,7 @@ import com.avail.interpreter.Primitive;
  *         &forall;<sub>x,y&isin;T</sub>&thinsp;(x&sube;y&thinsp;&and;&thinsp;y&sube;x
  *         = (x=y))</td>
  * </tr><tr>
- *     <td>Union function</td>
+ *     <td>Union closure</td>
  *     <td>&forall;<sub>x,y&isin;T</sub>&thinsp;(x&cup;y&thinsp;&isin;&thinsp;T)</td>
  * </tr><tr>
  *     <td>Union reflexivity</td>
@@ -84,7 +84,7 @@ import com.avail.interpreter.Primitive;
  *     <td>Union associativity</td>
  *     <td>&forall;<sub>x,y,z&isin;T</sub>&thinsp;(x&cup;y)&cup;z = x&cup;(y&cup;z)</td>
  * </tr><tr>
- *     <td>Intersection function</td>
+ *     <td>Intersection closure</td>
  *     <td>&forall;<sub>x,y&isin;T</sub>&thinsp;(x&cap;y&thinsp;&isin;&thinsp;T)</td>
  * </tr><tr>
  *     <td>Intersection reflexivity</td>
@@ -194,10 +194,21 @@ public class TypeConsistencyTest
 			}
 		};
 
+		/** The type of {@code nontype}. */
+		static final Node NONTYPE_META = new Node(
+			"NONTYPE_META",
+			ANY_META)
+		{
+			@Override AvailObject get ()
+			{
+				return InstanceMetaDescriptor.on(Types.NONTYPE.o());
+			}
+		};
+
 		/** The type {@code tuple} */
 		static final Node TUPLE = new Node(
 			"TUPLE",
-			primitiveTypes.get(Types.ANY))
+			primitiveTypes.get(Types.NONTYPE))
 		{
 			@Override AvailObject get ()
 			{
@@ -238,7 +249,7 @@ public class TypeConsistencyTest
 		/** The type {@code set} */
 		static final Node SET = new Node(
 			"SET",
-			primitiveTypes.get(Types.ANY))
+			primitiveTypes.get(Types.NONTYPE))
 		{
 			@Override AvailObject get ()
 			{
@@ -249,7 +260,7 @@ public class TypeConsistencyTest
 		/** The most general function type. */
 		static final Node MOST_GENERAL_FUNCTION = new Node(
 			"MOST_GENERAL_FUNCTION",
-			primitiveTypes.get(Types.ANY))
+			primitiveTypes.get(Types.NONTYPE))
 		{
 			@Override AvailObject get ()
 			{
@@ -378,7 +389,7 @@ public class TypeConsistencyTest
 		 */
 		static final Node OBJECT_TYPE = new Node(
 			"OBJECT_TYPE",
-			primitiveTypes.get(Types.ANY))
+			primitiveTypes.get(Types.NONTYPE))
 		{
 			@Override AvailObject get ()
 			{
@@ -442,7 +453,7 @@ public class TypeConsistencyTest
 		 */
 		static final Node MOST_GENERAL_POJO = new Node(
 			"MOST_GENERAL_POJO",
-			primitiveTypes.get(Types.ANY))
+			primitiveTypes.get(Types.NONTYPE))
 		{
 			@Override
 			AvailObject get ()
@@ -644,7 +655,7 @@ public class TypeConsistencyTest
 		 */
 		static final Node FUNCTION_META = new Node(
 			"FUNCTION_META",
-			ANY_META)
+			NONTYPE_META)
 		{
 			@Override AvailObject get ()
 			{
@@ -657,7 +668,7 @@ public class TypeConsistencyTest
 		 */
 		static final Node CONTINUATION_META = new Node(
 			"CONTINUATION_META",
-			ANY_META)
+			NONTYPE_META)
 		{
 			@Override AvailObject get ()
 			{
@@ -670,7 +681,7 @@ public class TypeConsistencyTest
 		 */
 		static final Node INTEGER_META = new Node(
 			"INTEGER_META",
-			ANY_META)
+			NONTYPE_META)
 		{
 			@Override AvailObject get ()
 			{
@@ -712,7 +723,7 @@ public class TypeConsistencyTest
 		 */
 		static final Node ROOT_VARIABLE = new Node(
 			"ROOT_VARIABLE",
-			primitiveTypes.get(Types.ANY))
+			primitiveTypes.get(Types.NONTYPE))
 		{
 			@Override AvailObject get ()
 			{
@@ -830,7 +841,7 @@ public class TypeConsistencyTest
 		 */
 		static final Node MAP_META = new Node(
 			"MAP_META",
-			ANY_META)
+			NONTYPE_META)
 		{
 			@Override AvailObject get ()
 			{
@@ -843,7 +854,7 @@ public class TypeConsistencyTest
 		 */
 		static final Node SET_META = new Node(
 			"SET_META",
-			ANY_META)
+			NONTYPE_META)
 		{
 			@Override AvailObject get ()
 			{
@@ -856,7 +867,7 @@ public class TypeConsistencyTest
 		 */
 		static final Node TUPLE_META = new Node(
 			"TUPLE_META",
-			ANY_META)
+			NONTYPE_META)
 		{
 			@Override AvailObject get ()
 			{
@@ -930,7 +941,7 @@ public class TypeConsistencyTest
 			final List<Node> parents = new ArrayList<Node>();
 			if (parseNodeKind.parentKind() == null)
 			{
-				parents.add(primitiveTypes.get(Types.ANY));
+				parents.add(primitiveTypes.get(Types.NONTYPE));
 			}
 			else
 			{
@@ -1010,6 +1021,8 @@ public class TypeConsistencyTest
 			// Include all parse node types.  Include a minimal diamond of types
 			// for each parse node kind.
 			final Node topNode = primitiveTypes.get(Types.TOP);
+			final Node anyNode = primitiveTypes.get(Types.ANY);
+			final Node nontypeNode = primitiveTypes.get(Types.NONTYPE);
 			final Node atomNode = SOME_ATOM_TYPE;
 			final Node anotherAtomNode = ANOTHER_ATOM_TYPE;
 			for (final ParseNodeKind kind : ParseNodeKind.values())
@@ -1032,7 +1045,8 @@ public class TypeConsistencyTest
 						addMultiHelper(
 							kind,
 							topNode,
-							primitiveTypes.get(Types.ANY),
+							anyNode,
+							nontypeNode,
 							atomNode,
 							anotherAtomNode,
 							MOST_GENERAL_FUNCTION,
@@ -1082,7 +1096,8 @@ public class TypeConsistencyTest
 						addMultiHelper(
 							kind,
 							topNode,
-							primitiveTypes.get(Types.ANY),
+							anyNode,
+							nontypeNode,
 							atomNode,
 							anotherAtomNode,
 							MOST_GENERAL_FUNCTION,
@@ -1116,7 +1131,8 @@ public class TypeConsistencyTest
 					case LITERAL_NODE:
 						addMultiHelper(
 							kind,
-							primitiveTypes.get(Types.ANY),
+							anyNode,
+							nontypeNode,
 							atomNode,
 							anotherAtomNode,
 							MOST_GENERAL_FUNCTION,
@@ -1669,7 +1685,7 @@ public class TypeConsistencyTest
 	 * </nobr></span>
 	 */
 	@Test
-	public void testUnionFunction ()
+	public void testUnionClosure ()
 	{
 		for (final Node x : Node.values)
 		{
@@ -1677,7 +1693,7 @@ public class TypeConsistencyTest
 			{
 				assertT(
 					x.union(y).isInstanceOf(InstanceMetaDescriptor.topMeta()),
-					"union function: %s, %s",
+					"union closure: %s, %s",
 					x,
 					y);
 			}
@@ -1778,7 +1794,7 @@ public class TypeConsistencyTest
 	 * </nobr></span>
 	 */
 	@Test
-	public void testIntersectionFunction ()
+	public void testIntersectionClosure ()
 	{
 		for (final Node x : Node.values)
 		{
@@ -1787,7 +1803,7 @@ public class TypeConsistencyTest
 				assertT(
 					x.intersect(y).isInstanceOf(
 						InstanceMetaDescriptor.topMeta()),
-					"intersection function: %s, %s",
+					"intersection closure: %s, %s",
 					x,
 					y);
 			}

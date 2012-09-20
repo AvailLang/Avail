@@ -148,6 +148,7 @@ extends AbstractAvailCompiler
 						start,
 						new Con<AvailObject>("Semicolon after expression")
 						{
+							@SuppressWarnings("null")
 							@Override
 							public void value (
 								final @Nullable ParserState afterExpression,
@@ -1033,7 +1034,7 @@ extends AbstractAvailCompiler
 								final int primitive =
 									primitiveAndFailure.tupleIntAt(1);
 								final Primitive thePrimitive =
-									Primitive.byPrimitiveNumber(primitive);
+									Primitive.byPrimitiveNumberOrNull(primitive);
 								if (thePrimitive != null
 									&& thePrimitive.hasFlag(Flag.CannotFail))
 								{
@@ -1123,7 +1124,7 @@ extends AbstractAvailCompiler
 
 		final ParserState afterClose = afterStatements.afterToken();
 		final Primitive thePrimitive =
-			Primitive.byPrimitiveNumber(primitiveNumber);
+			Primitive.byPrimitiveNumberOrNull(primitiveNumber);
 		if (statements.isEmpty()
 			&& thePrimitive != null
 			&& !thePrimitive.hasFlag(Flag.CannotFail))
@@ -1517,7 +1518,9 @@ extends AbstractAvailCompiler
 			return;
 		}
 
-		final Primitive prim = Primitive.byPrimitiveNumber(primitiveNumber);
+		final Primitive prim =
+			Primitive.byPrimitiveNumberOrNull(primitiveNumber);
+		assert prim != null;
 		if (!interpreter.primitiveAcceptsThisManyArguments(
 			primitiveNumber, argCount))
 		{

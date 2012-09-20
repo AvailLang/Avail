@@ -68,7 +68,7 @@ public class L2Translator implements L1OperationDispatcher
 	/**
 	 * The current {@link CompiledCodeDescriptor compiled code} being optimized.
 	 */
-	@InnerAccess AvailObject code;
+	@InnerAccess @Nullable AvailObject code;
 
 	/**
 	 * The nybblecodes being optimized.
@@ -227,9 +227,25 @@ public class L2Translator implements L1OperationDispatcher
 	 *
 	 * @return The code being translated.
 	 */
-	public AvailObject code ()
+	public @Nullable AvailObject codeOrNull ()
 	{
 		return code;
+	}
+
+	/**
+	 * Return the {@linkplain CompiledCodeDescriptor compiled Level One code}
+	 * being translated.
+	 *
+	 * @return The code being translated.
+	 */
+	public AvailObject codeOrFail ()
+	{
+		final AvailObject c = code;
+		if (c == null)
+		{
+			throw new RuntimeException("L2Translator code was null");
+		}
+		return c;
 	}
 
 	/**
@@ -368,7 +384,7 @@ public class L2Translator implements L1OperationDispatcher
 			else
 			{
 				// Same primitive number.
-				if (Primitive.byPrimitiveNumber(primitiveNumber).hasFlag(
+				if (Primitive.byPrimitiveNumberOrFail(primitiveNumber).hasFlag(
 					SpecialReturnConstant))
 				{
 					// It's the push-the-first-literal primitive.
@@ -387,7 +403,7 @@ public class L2Translator implements L1OperationDispatcher
 		{
 			return null;
 		}
-		final Primitive primitive = Primitive.byPrimitiveNumber(
+		final Primitive primitive = Primitive.byPrimitiveNumberOrFail(
 			existingPrimitiveNumber);
 		if (primitive.hasFlag(SpecialReturnConstant)
 				|| primitive.hasFlag(CanInline)
@@ -547,7 +563,7 @@ public class L2Translator implements L1OperationDispatcher
 	{
 		final int primitiveNumber = primitiveFunction.code().primitiveNumber();
 		final Primitive primitive =
-			Primitive.byPrimitiveNumber(primitiveNumber);
+			Primitive.byPrimitiveNumberOrFail(primitiveNumber);
 		if (primitive.hasFlag(SpecialReturnConstant))
 		{
 			// Use the first literal as the return value.
@@ -1608,7 +1624,7 @@ public class L2Translator implements L1OperationDispatcher
 		final int prim = code.primitiveNumber();
 		if (prim != 0)
 		{
-			assert !Primitive.byPrimitiveNumber(prim).hasFlag(
+			assert !Primitive.byPrimitiveNumberOrFail(prim).hasFlag(
 				CannotFail);
 			// Move the primitive failure value into the first local.
 			addInstruction(
@@ -1619,9 +1635,9 @@ public class L2Translator implements L1OperationDispatcher
 					registers.fixed(PRIMITIVE_FAILURE)));
 		}
 		for (
-				int stackSlot = 1, end = code.maxStackDepth();
-				stackSlot <= end;
-				stackSlot++)
+			int stackSlot = 1, end = code.maxStackDepth();
+			stackSlot <= end;
+			stackSlot++)
 		{
 			moveConstant(
 				NullDescriptor.nullObject(),

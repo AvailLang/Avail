@@ -1,5 +1,5 @@
 /**
- * P_027_SetFiberVariable.java
+ * P_095_BitShift.java
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -29,42 +29,42 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.avail.interpreter.primitive;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive 27:</strong> Associate the given value with the given
- * {@linkplain AtomDescriptor name} (key) in the variables of the
- * given {@linkplain FiberDescriptor fiber}.
+ * <strong>Primitive 95</strong>: Given any integer B, and a shift factor S,
+ * compute ⎣B×2<sup>S</sup>⎦.  This is the left-shift operation, but when S
+ * is negative it acts as a right-shift.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class P_027_SetFiberVariable extends Primitive
+public final class P_095_BitShift
+extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
+	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_027_SetFiberVariable().init(
-		3, CanInline, HasSideEffect, CannotFail);
+	public final static Primitive instance =
+		new P_095_BitShift().init(2, CanFold, CannotFail);
 
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
 		final Interpreter interpreter)
 	{
-		assert args.size() == 3;
-		final AvailObject fiber = args.get(0);
-		final AvailObject key = args.get(1);
-		final AvailObject value = args.get(2);
-		fiber.fiberGlobals(
-			fiber.fiberGlobals().mapAtPuttingCanDestroy(
-				key.makeImmutable(),
-				value.makeImmutable(),
+		assert args.size() == 2;
+		final AvailObject baseInteger = args.get(0);
+		final AvailObject shiftFactor = args.get(1);
+		return interpreter.primitiveSuccess(
+			baseInteger.bitShift(
+				shiftFactor,
 				true));
-		return interpreter.primitiveSuccess(NullDescriptor.nullObject());
 	}
 
 	@Override
@@ -72,9 +72,8 @@ public class P_027_SetFiberVariable extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				FIBER.o(),
-				ATOM.o(),
-				ANY.o()),
-			TOP.o());
+				IntegerRangeTypeDescriptor.integers(),
+				IntegerRangeTypeDescriptor.integers()),
+			IntegerRangeTypeDescriptor.integers());
 	}
 }

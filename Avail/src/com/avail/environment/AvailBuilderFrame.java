@@ -789,6 +789,7 @@ extends JFrame
 				offset += bytesRead;
 			}
 
+			sourceReader.close();
 			return new String(sourceBuffer, 0, offset);
 		}
 		catch (final IOException e)
@@ -1162,6 +1163,7 @@ extends JFrame
 		});
 		moduleTree.addMouseListener(new MouseAdapter()
 		{
+			@SuppressWarnings("null")
 			@Override
 			public void mouseClicked (final @Nullable MouseEvent e)
 			{

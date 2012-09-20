@@ -351,7 +351,7 @@ public final class BootstrapGenerator
 		final List<Primitive> primitives = new ArrayList<Primitive>();
 		for (int i = 1; i <= Primitive.maxPrimitiveNumber; i++)
 		{
-			final Primitive primitive = Primitive.byPrimitiveNumber(i);
+			final Primitive primitive = Primitive.byPrimitiveNumberOrNull(i);
 			if (primitive != null)
 			{
 				if (!primitive.hasFlag(Flag.Private)

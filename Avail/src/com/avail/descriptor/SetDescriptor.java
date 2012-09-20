@@ -35,7 +35,6 @@ package com.avail.descriptor;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
 import com.avail.annotations.*;
-import com.avail.descriptor.MapDescriptor.*;
 import com.avail.serialization.SerializerOperation;
 
 /**
@@ -172,7 +171,7 @@ public class SetDescriptor extends Descriptor
 		final AvailObject object,
 		final AvailObject aTypeObject)
 	{
-		if (aTypeObject.isSupertypeOfPrimitiveTypeEnum(ANY))
+		if (aTypeObject.isSupertypeOfPrimitiveTypeEnum(NONTYPE))
 		{
 			return true;
 		}

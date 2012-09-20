@@ -569,8 +569,8 @@ extends Descriptor
 	 * @return
 	 *            The new level two chunk.
 	 */
-	public static AvailObject allocate(
-		final AvailObject code,
+	public static AvailObject allocate (
+		final @Nullable AvailObject code,
 		final List<AvailObject> listOfLiterals,
 		final List<List<Integer>> listOfVectors,
 		final int numObjects,

@@ -186,10 +186,10 @@ extends TypeDescriptor
 		final AvailObject object,
 		final AvailObject aFunctionType)
 	{
-		//  This primitive type is a supertype of aFunctionType if and only if this
-		//  primitive type is a supertype of ANY.
+		// This primitive type is a supertype of aFunctionType if and only if
+		// this primitive type is a supertype of NONTYPE.
 
-		return object.isSupertypeOfPrimitiveTypeEnum(ANY);
+		return object.isSupertypeOfPrimitiveTypeEnum(NONTYPE);
 	}
 
 	@Override @AvailMethod
@@ -198,8 +198,8 @@ extends TypeDescriptor
 		final AvailObject aVariableType)
 	{
 		// A primitive type is a supertype of a variable type if it is a
-		// supertype of ANY.
-		return object.isSupertypeOfPrimitiveTypeEnum(ANY);
+		// supertype of NONTYPE.
+		return object.isSupertypeOfPrimitiveTypeEnum(NONTYPE);
 	}
 
 	@Override @AvailMethod
@@ -208,8 +208,8 @@ extends TypeDescriptor
 		final AvailObject aContinuationType)
 	{
 		// A primitive type is a supertype of a continuation type if it is a
-		// supertype of ANY.
-		return object.isSupertypeOfPrimitiveTypeEnum(ANY);
+		// supertype of NONTYPE.
+		return object.isSupertypeOfPrimitiveTypeEnum(NONTYPE);
 	}
 
 	@Override @AvailMethod
@@ -218,8 +218,8 @@ extends TypeDescriptor
 		final AvailObject aCompiledCodeType)
 	{
 		// A primitive type is a supertype of a compiled code type if it is a
-		// supertype of ANY.
-		return object.isSupertypeOfPrimitiveTypeEnum(ANY);
+		// supertype of NONTYPE.
+		return object.isSupertypeOfPrimitiveTypeEnum(NONTYPE);
 	}
 
 	@Override @AvailMethod
@@ -248,8 +248,8 @@ extends TypeDescriptor
 		final AvailObject aMapType)
 	{
 		// This primitive type is a supertype of aMapType if and only if this
-		// primitive type is a supertype of ANY.
-		return object.isSupertypeOfPrimitiveTypeEnum(ANY);
+		// primitive type is a supertype of NONTYPE.
+		return object.isSupertypeOfPrimitiveTypeEnum(NONTYPE);
 	}
 
 	@Override @AvailMethod
@@ -257,9 +257,9 @@ extends TypeDescriptor
 		final AvailObject object,
 		final AvailObject anEagerObjectType)
 	{
-		// Check if I'm a supertype of the given eager object type.  Only ANY
+		// Check if I'm a supertype of the given eager object type. Only NONTYPE
 		// and its ancestors are supertypes of an object type.
-		return object.isSupertypeOfPrimitiveTypeEnum(ANY);
+		return object.isSupertypeOfPrimitiveTypeEnum(NONTYPE);
 	}
 
 	@Override @AvailMethod
@@ -267,7 +267,7 @@ extends TypeDescriptor
 		final AvailObject object,
 		final AvailObject aParseNodeType)
 	{
-		return object.isSupertypeOfPrimitiveTypeEnum(ANY);
+		return object.isSupertypeOfPrimitiveTypeEnum(NONTYPE);
 	}
 
 	@Override
@@ -275,7 +275,7 @@ extends TypeDescriptor
 		final AvailObject object,
 		final AvailObject aPojoType)
 	{
-		return object.isSupertypeOfPrimitiveTypeEnum(ANY);
+		return object.isSupertypeOfPrimitiveTypeEnum(NONTYPE);
 	}
 
 	@Override @AvailMethod
@@ -283,7 +283,7 @@ extends TypeDescriptor
 		final AvailObject object,
 		final AvailObject aPojoType)
 	{
-		return object.isSupertypeOfPrimitiveTypeEnum(ANY);
+		return object.isSupertypeOfPrimitiveTypeEnum(NONTYPE);
 	}
 
 	@Override @AvailMethod
@@ -302,9 +302,9 @@ extends TypeDescriptor
 		final AvailObject aSetType)
 	{
 		//  This primitive type is a supertype of aSetType if and only if this
-		//  primitive type is a supertype of ANY.
+		//  primitive type is a supertype of NONTYPE.
 
-		return object.isSupertypeOfPrimitiveTypeEnum(ANY);
+		return object.isSupertypeOfPrimitiveTypeEnum(NONTYPE);
 	}
 
 	@Override @AvailMethod
@@ -313,9 +313,9 @@ extends TypeDescriptor
 		final AvailObject aTupleType)
 	{
 		//  This primitive type is a supertype of aTupleType if and only if this
-		//  primitive type is a supertype of ANY.
+		//  primitive type is a supertype of NONTYPE.
 
-		return object.isSupertypeOfPrimitiveTypeEnum(ANY);
+		return object.isSupertypeOfPrimitiveTypeEnum(NONTYPE);
 	}
 
 	@Override @AvailMethod
@@ -395,6 +395,7 @@ extends TypeDescriptor
 					case METHOD:
 					case METHOD_SIGNATURE:
 					case MODULE:
+					case NONTYPE:
 					case NUMBER:
 					case POWER_STRING_TOKEN:
 					case FIBER:

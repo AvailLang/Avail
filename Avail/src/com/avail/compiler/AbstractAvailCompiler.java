@@ -161,32 +161,35 @@ public abstract class AbstractAvailCompiler
 		public void deserializeHeaderFrom (final Deserializer deserializer)
 		throws MalformedSerialStreamException
 		{
-			final AvailObject name = deserializer.deserialize();
-			if (!name.asNativeString().equals(moduleName.qualifiedName()))
+			AvailObject object = deserializer.deserialize();
+			assert object != null;
+			if (!object.asNativeString().equals(moduleName.qualifiedName()))
 			{
 				throw new RuntimeException("Incorrect module name");
 			}
-			isSystemModule = deserializer.deserialize().extractBoolean();
-			AvailObject tuple = deserializer.deserialize();
-			assert tuple != null;
+			object = deserializer.deserialize();
+			assert object != null;
+			isSystemModule = object.extractBoolean();
+			object = deserializer.deserialize();
+			assert object != null;
 			versions.clear();
-			versions.addAll(toList(tuple));
-			tuple = deserializer.deserialize();
-			assert tuple != null;
+			versions.addAll(toList(object));
+			object = deserializer.deserialize();
+			assert object != null;
 			extendedModules.clear();
-			extendedModules.addAll(toList(tuple));
-			tuple = deserializer.deserialize();
-			assert tuple != null;
+			extendedModules.addAll(toList(object));
+			object = deserializer.deserialize();
+			assert object != null;
 			usedModules.clear();
-			usedModules.addAll(toList(tuple));
-			tuple = deserializer.deserialize();
-			assert tuple != null;
+			usedModules.addAll(toList(object));
+			object = deserializer.deserialize();
+			assert object != null;
 			exportedNames.clear();
-			exportedNames.addAll(toList(tuple));
-			tuple = deserializer.deserialize();
-			assert tuple != null;
+			exportedNames.addAll(toList(object));
+			object = deserializer.deserialize();
+			assert object != null;
 			pragmas.clear();
-			pragmas.addAll(toList(tuple));
+			pragmas.addAll(toList(object));
 		}
 
 		/**
@@ -205,6 +208,7 @@ public abstract class AbstractAvailCompiler
 			final ModuleNameResolver resolver = runtime.moduleNameResolver();
 			final ResolvedModuleName qualifiedName =
 				resolver.resolve(moduleName);
+			assert qualifiedName != null;
 			module.versions(SetDescriptor.fromCollection(versions));
 			for (final AvailObject modImport : extendedModules)
 			{
@@ -214,6 +218,7 @@ public abstract class AbstractAvailCompiler
 				final ResolvedModuleName ref = resolver.resolve(
 					qualifiedName.asSibling(
 						modImport.tupleAt(1).asNativeString()));
+				assert ref != null;
 				final AvailObject availRef = StringDescriptor.from(
 					ref.qualifiedName());
 				if (!runtime.includesModuleNamed(availRef))
@@ -266,6 +271,7 @@ public abstract class AbstractAvailCompiler
 				final ResolvedModuleName ref = resolver.resolve(
 					qualifiedName.asSibling(
 						modImport.tupleAt(1).asNativeString()));
+				assert ref != null;
 				final AvailObject availRef = StringDescriptor.from(
 					ref.qualifiedName());
 				if (!runtime.includesModuleNamed(availRef))
@@ -1240,6 +1246,10 @@ public abstract class AbstractAvailCompiler
 			{
 				state = state.afterToken();
 				state = parseStringLiterals(state, versions);
+				if (state == null)
+				{
+					return null;
+				}
 				if (!state.peekToken(
 					CLOSE_PARENTHESIS,
 					"a close parenthesis following acceptable versions"))
@@ -1261,6 +1271,10 @@ public abstract class AbstractAvailCompiler
 				}
 				state = state.afterToken();
 				state = parseStringLiterals(state, names);
+				if (state == null)
+				{
+					return null;
+				}
 				if (!state.peekToken(
 					CLOSE_PARENTHESIS,
 					"a close parenthesis following import list"))
@@ -1274,10 +1288,16 @@ public abstract class AbstractAvailCompiler
 				moduleName,
 				TupleDescriptor.fromList(names).asSet(),
 				TupleDescriptor.fromList(versions).asSet()));
+			if (state.peekToken(COMMA))
+			{
+				state = state.afterToken();
+			}
+			else
+			{
+				return state;
+			}
 		}
-		while (state.peekToken(COMMA) && (state = state.afterToken()) != null);
-
-		return state;
+		while (true);
 	}
 
 	/**
@@ -1311,6 +1331,7 @@ public abstract class AbstractAvailCompiler
 				sourceBuilder.append(buffer, 0, charsRead);
 			}
 			source = sourceBuilder.toString();
+			reader.close();
 		}
 		catch (final IOException e)
 		{
@@ -1549,11 +1570,13 @@ public abstract class AbstractAvailCompiler
 			source = source + "\n";
 			endOfLine = source.length() - 1;
 		}
+		final String textString = text.toString();
+		text.close();
 		throw new AvailCompilerException(
 			qualifiedName,
 			charPos,
 			endOfLine,
-			text.toString());
+			textString);
 	}
 
 	/**
@@ -3346,6 +3369,7 @@ public abstract class AbstractAvailCompiler
 				state.value,
 				new Con<AvailObject>("Outermost statement")
 				{
+					@SuppressWarnings("null")
 					@Override
 					public void value (
 						final @Nullable ParserState afterStatement,
@@ -3421,6 +3445,7 @@ public abstract class AbstractAvailCompiler
 				formatter.format("%n\t%s", forward);
 			}
 			state.value.expected(formatter.toString());
+			formatter.close();
 			reportError(qualifiedName);
 		}
 	}
@@ -3718,6 +3743,7 @@ public abstract class AbstractAvailCompiler
 		parseExpressionThen(startWithoutScope, new Con<AvailObject>(
 			"Evaluate expression")
 		{
+			@SuppressWarnings("null")
 			@Override
 			public void value (
 				final @Nullable ParserState afterExpression,

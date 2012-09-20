@@ -667,7 +667,7 @@ public class AvailCodeGenerator
 		// for primitive 200, but probably also a good idea in general.
 		if (primitive != 0)
 		{
-			final Primitive prim = Primitive.byPrimitiveNumber(primitive);
+			final Primitive prim = Primitive.byPrimitiveNumberOrNull(primitive);
 			assert prim != null;
 			if (!prim.hasFlag(Flag.CannotFail))
 			{

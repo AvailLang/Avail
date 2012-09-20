@@ -47,10 +47,8 @@ Body
 /**
  * Strengthen `_'s⁇element type`.
  * 
- * Parameters:
- *    aSetMeta -
- * Returns:
- *    The strongest possible element type.
+ * @method "_'s⁇element type"
+ * @restricts "set meta's type"
  */
 Semantic restriction "_'s⁇element type" is
 [
@@ -61,6 +59,13 @@ Semantic restriction "_'s⁇element type" is
 ];
 
 Method "_∪_" is stable at [set, set]→set;
+
+/**
+ * 
+ * @method "_∪_"
+ * @restricts "set meta"
+ * @restricts "set meta"
+ */
 Semantic restriction "_∪_" is
 [
 	typeA : set meta,
@@ -71,10 +76,22 @@ Semantic restriction "_∪_" is
 	{typeA's element type ∪ typeB's element type | [lower..upper + 1)}
 ];
 
-/* Make union left associate. */
+/**
+ * Make union left associate.
+ * 
+ * @method "_∪_"
+ * @forbids 2 "_∪_"
+ */
 Grammatical restriction "_∪_" is <∅, {"_∪_"}>;
 
 Method "_∩_" is stable at [set, set]→set;
+
+/**
+ * 
+ * @method "_∩_"
+ * @restricts "set meta"
+ * @restricts "set meta"
+ */
 Semantic restriction "_∩_" is
 [
 	typeA : set meta,
@@ -90,10 +107,22 @@ Semantic restriction "_∩_" is
 	{typeA's element type ∩ (typeB's element type) | [0..upper + 1)}
 ];
 
-/* Make intersection left associate. */
+/**
+ * Make intersection left associate.
+ *
+ * @method "_∩_"
+ * @forbids 2 "_∩_"
+ */
 Grammatical restriction "_∩_" is <∅, {"_∩_"}>;
 
 Method "_⊆_" is stable at [set, set]→boolean;
+
+/**
+ * 
+ * @method "_⊆_"
+ * @restricts "set meta"
+ * @restricts "set meta"
+ */
 Semantic restriction "_⊆_" is
 [
 	typeA : set meta,
@@ -128,6 +157,13 @@ Semantic restriction "_⊆_" is
 ];
 
 Method "_∈_" is stable at [any, set]→boolean;
+
+/**
+ * 
+ * @method "_∈_"
+ * @restricts "any meta"
+ * @restricts "set meta"
+ */
 Semantic restriction "_∈_" is
 [
 	valueType : any meta,
@@ -162,6 +198,10 @@ Method "_\\_" is stable at [set, set]→set;
  * If the subtrahend definitely can't contain any of the same elements as the
  * minuend, then the size of the subtrahend can't be affected (because the
  * asymmetric difference won't remove any elements).
+ * 
+ * @method "_\\_"
+ * @restricts "set meta"
+ * @restricts "set meta"
  */
 Semantic restriction "_\\_" is
 [
@@ -177,10 +217,22 @@ Semantic restriction "_\\_" is
 	{minuendType's element type | lower..⎡minuendType⎤}
 ];
 
-/* Disambiguate `_→_` and `_→set`. */
+/**
+ * Disambiguate `_→_` and `_→set`.
+ * 
+ * @method "_→_"
+ * @forbids 2 "set"
+ */
 Grammatical restriction "_→_" is <∅, {"set"}>;
 
-/* Make various boolean-valued set (and type) operations bind more tightly than
+/**
+ * Make various boolean-valued set (and type) operations bind more tightly than
  * logical negation.
+ * 
+ * @method "_∈_"
+ * @forbids 1 "¬_"
+ * 
+ * @method "_⊆_"
+ * @forbids 1 "¬_"
  */
 Grammatical restriction {"_∈_", "_⊆_"} is <{"¬_"}, ∅>;

@@ -267,9 +267,9 @@ implements ThreadFactory
 	 */
 	@ThreadSafe
 	public void setStandardStreams (
-		final PrintStream outputStream,
-		final PrintStream errorStream,
-		final InputStream inputStream)
+		final @Nullable PrintStream outputStream,
+		final @Nullable PrintStream errorStream,
+		final @Nullable InputStream inputStream)
 	{
 		runtimeLock.writeLock().lock();
 		try
@@ -475,7 +475,7 @@ implements ThreadFactory
 		specialObjects[29] = BottomTypeDescriptor.bottom();
 		specialObjects[30] = InstanceMetaDescriptor.on(
 			BottomTypeDescriptor.bottom());
-		// 31
+		specialObjects[31] = NONTYPE.o();
 		specialObjects[32] = TupleTypeDescriptor.mostGeneralType();
 		specialObjects[33] = TupleTypeDescriptor.meta();
 		specialObjects[34] = InstanceMetaDescriptor.topMeta();

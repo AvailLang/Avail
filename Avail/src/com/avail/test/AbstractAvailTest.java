@@ -74,6 +74,7 @@ public class AbstractAvailTest
 			{
 				offset += bytesRead;
 			}
+			sourceReader.close();
 
 			return new String(sourceBuffer, 0, offset);
 		}

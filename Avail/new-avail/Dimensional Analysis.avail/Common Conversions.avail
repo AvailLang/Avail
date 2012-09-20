@@ -40,9 +40,9 @@ Uses
 	"US Customary Units"
 Body
 
-Conversion rule: 1 p ≍ 352.777778e-6d m;
-Conversion rule: 1 P ≍ 4.233333e-3d m;
-Conversion rule: 1 in ≍ 2.54e-2d m;
-Conversion rule: 1 ft ≍ 3.048e-1d m;
-Conversion rule: 1 yd ≍ 9.144e-1d m;
-Conversion rule: 1 mi ≍ 1.609344e3d m;
+Conversion rule: 1 p ≍ 352.777778e-6 m;
+Conversion rule: 1 P ≍ 4.233333e-3 m;
+Conversion rule: 1 in ≍ 2.54e-2 m;
+Conversion rule: 1 ft ≍ 3.048e-1 m;
+Conversion rule: 1 yd ≍ 9.144e-1 m;
+Conversion rule: 1 mi ≍ 1.609344e3 m;

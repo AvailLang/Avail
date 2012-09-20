@@ -223,6 +223,7 @@ public class LRUCache<K, V>
 
 			if (size() > capacity)
 			{
+				assert eldest != null;
 				final K key = eldest.getKey();
 				final SoftReference<V> reference = eldest.getValue();
 				assert softMap.containsKey(key);

@@ -151,7 +151,8 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 	@Override
 	public void doPrimitive()
 	{
-		print("Prim(%s)", Primitive.byPrimitiveNumber((short)_operand).name());
+		print("Prim(%s)", Primitive.byPrimitiveNumberOrFail(
+			(short)_operand).name());
 	}
 	@Override
 	public void doSelector()

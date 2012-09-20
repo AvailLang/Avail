@@ -105,10 +105,15 @@ extends AbstractTypeDescriptor
 		ANY(TOP),
 
 		/**
+		 * This is the kind of all nontypes.
+		 */
+		NONTYPE(ANY),
+
+		/**
 		 * This is the kind of all {@linkplain AtomDescriptor atoms}.  Atoms
 		 * have fiat identity and their corresponding type structure is trivial.
 		 */
-		ATOM(ANY),
+		ATOM(NONTYPE),
 
 		/**
 		 * This is the kind of all {@linkplain CharacterDescriptor characters},
@@ -116,7 +121,7 @@ extends AbstractTypeDescriptor
 		 * standard.  Note that all characters in the supplementary multilingual
 		 * planes are explicitly supported.
 		 */
-		CHARACTER(ANY),
+		CHARACTER(NONTYPE),
 
 		/**
 		 * {@code Number} is the generalization of all numeric types, which
@@ -125,7 +130,7 @@ extends AbstractTypeDescriptor
 		 * contain both {@linkplain IntegerDescriptor integers} and the signed
 		 * {@linkplain InfinityDescriptor integral infinities}),
 		 */
-		NUMBER(ANY),
+		NUMBER(NONTYPE),
 
 		/**
 		 * The type of all double-precision floating point numbers.  This
@@ -149,13 +154,13 @@ extends AbstractTypeDescriptor
 		 * All {@linkplain MethodDescriptor methods} are
 		 * of this kind.
 		 */
-		METHOD(ANY),
+		METHOD(NONTYPE),
 
 		/**
 		 * This is the kind of all {@linkplain MessageBundleDescriptor message
 		 * bundles}, which are used during parsing of Avail code.
 		 */
-		MESSAGE_BUNDLE(ANY),
+		MESSAGE_BUNDLE(NONTYPE),
 
 		/**
 		 * This is the kind of all {@linkplain MessageBundleTreeDescriptor
@@ -164,7 +169,7 @@ extends AbstractTypeDescriptor
 		 * parsing method or macro invocations that start with the same tokens
 		 * and arguments.
 		 */
-		MESSAGE_BUNDLE_TREE(ANY),
+		MESSAGE_BUNDLE_TREE(NONTYPE),
 
 		/**
 		 * {@linkplain TokenDescriptor Tokens} all have the same kind, except
@@ -173,13 +178,13 @@ extends AbstractTypeDescriptor
 		 * produced by a {@linkplain AvailScanner lexical scanner} and are
 		 * consumed by the {@linkplain AbstractAvailCompiler parser}.
 		 */
-		TOKEN(ANY),
+		TOKEN(NONTYPE),
 
 		/**
 		 * This type is the kind of all {@linkplain PowerStringTokenDescriptor
 		 * power string tokens}, which represent occurrences of power strings
 		 * in the Avail text.  They are discovered during lexical scanning, but
-		 * immediately invoke the compiler
+		 * immediately invoke the {@linkplain AbstractAvailCompiler compiler}.
 		 */
 		POWER_STRING_TOKEN(TOKEN),
 
@@ -187,7 +192,7 @@ extends AbstractTypeDescriptor
 		 * The general kind of {@linkplain ImplementationDescriptor method
 		 * signatures}.
 		 */
-		SIGNATURE(ANY),
+		SIGNATURE(NONTYPE),
 
 		/**
 		 * The specific kind of a signature which is an {@linkplain
@@ -225,7 +230,7 @@ extends AbstractTypeDescriptor
 		 * need for modules to be placed in sets and maps maintained by the
 		 * runtime, so the type story has to at least be consistent.
 		 */
-		MODULE(ANY),
+		MODULE(NONTYPE),
 
 		/**
 		 * A {@linkplain PojoDescriptor POJO} is a Plain Old Java {@linkplain
@@ -237,13 +242,13 @@ extends AbstractTypeDescriptor
 		 * and doing other things that occasionally require their kind to be
 		 * extracted.
 		 */
-		RAW_POJO(ANY),
+		RAW_POJO(NONTYPE),
 
 		/**
 		 * {@linkplain FiberDescriptor Processes} are the way Avail represents
 		 * independent execution.
 		 */
-		FIBER(ANY);
+		FIBER(NONTYPE);
 
 
 		/**
@@ -571,7 +576,7 @@ extends AbstractTypeDescriptor
 		final AvailObject object,
 		final AvailObject aFunctionType)
 	{
-		return object.typeUnion(ANY.o());
+		return object.typeUnion(NONTYPE.o());
 	}
 
 	@Override @AvailMethod
@@ -579,7 +584,7 @@ extends AbstractTypeDescriptor
 		final AvailObject object,
 		final AvailObject aVariableType)
 	{
-		return object.typeUnion(ANY.o());
+		return object.typeUnion(NONTYPE.o());
 	}
 
 	@Override @AvailMethod
@@ -587,7 +592,7 @@ extends AbstractTypeDescriptor
 		final AvailObject object,
 		final AvailObject aContinuationType)
 	{
-		return object.typeUnion(ANY.o());
+		return object.typeUnion(NONTYPE.o());
 	}
 
 	@Override @AvailMethod
@@ -595,7 +600,7 @@ extends AbstractTypeDescriptor
 		final AvailObject object,
 		final AvailObject aCompiledCodeType)
 	{
-		return object.typeUnion(ANY.o());
+		return object.typeUnion(NONTYPE.o());
 	}
 
 	@Override @AvailMethod
@@ -619,7 +624,7 @@ extends AbstractTypeDescriptor
 		final AvailObject object,
 		final AvailObject aMapType)
 	{
-		return object.typeUnion(ANY.o());
+		return object.typeUnion(NONTYPE.o());
 	}
 
 	@Override @AvailMethod
@@ -627,7 +632,7 @@ extends AbstractTypeDescriptor
 		final AvailObject object,
 		final AvailObject anEagerObjectType)
 	{
-		return object.typeUnion(ANY.o());
+		return object.typeUnion(NONTYPE.o());
 	}
 
 	@Override @AvailMethod
@@ -635,7 +640,7 @@ extends AbstractTypeDescriptor
 		final AvailObject object,
 		final AvailObject aParseNodeType)
 	{
-		return object.typeUnion(ANY.o());
+		return object.typeUnion(NONTYPE.o());
 	}
 
 	@Override @AvailMethod
@@ -643,7 +648,7 @@ extends AbstractTypeDescriptor
 		final AvailObject object,
 		final AvailObject aPojoType)
 	{
-		return object.typeUnion(ANY.o());
+		return object.typeUnion(NONTYPE.o());
 	}
 
 	@Override @AvailMethod
@@ -651,7 +656,7 @@ extends AbstractTypeDescriptor
 		final AvailObject object,
 		final AvailObject aSetType)
 	{
-		return object.typeUnion(ANY.o());
+		return object.typeUnion(NONTYPE.o());
 	}
 
 	@Override @AvailMethod
@@ -659,7 +664,7 @@ extends AbstractTypeDescriptor
 		final AvailObject object,
 		final AvailObject aTupleType)
 	{
-		return object.typeUnion(ANY.o());
+		return object.typeUnion(NONTYPE.o());
 	}
 
 	@Override @AvailMethod

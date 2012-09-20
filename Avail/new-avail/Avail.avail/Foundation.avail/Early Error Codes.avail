@@ -52,7 +52,8 @@ Names
 	 */
 Body
 
-/* A map from the error codes to their names (corresponding to the method
+/** 
+ * A map from the error codes to their names (corresponding to the method
  * names).
  */
 errorCodes : {natural number→string|whole number} := {};
@@ -61,17 +62,20 @@ errorCodes : {natural number→string|whole number} := {};
  * Answer the map from "Foundation" error codes to their names. These methods
  * correspond to the method names by which the error codes may be referenced.
  *
- * Returns:
- *    The requested map.
+ * @method "error codes"
+ * @returns "{natural number→string|whole number}"
+ *          The requested map.
  */
 Public method "error codes" is [ errorCodes ];
 
 /**
  * Define a method named `name` that stably answers `code`.
  * 
- * Parameters:
- *    baseName - The name of the new method (without the trailing " code").
- *    code - The error code.
+ * @method "Next error code is_(_)"
+ * @param "baseName" "string"
+ *        The name of the new method (without the trailing " code").
+ * @param "code" "natural number"
+ *        The error code.
  */
 Private method "Next error code is_(_)" is
 [
@@ -191,8 +195,15 @@ Invoke [
 
 /**
  * Ensure that all VM error codes have names.
+ * 
+ * @method "Ensure:all VM error codes are named"
  */
 Private method "Ensure:all VM error codes are named" is [];
+
+/**
+ * 
+ * @method "Ensure:all VM error codes are named"
+ */
 Semantic restriction "Ensure:all VM error codes are named" is
 [
 	unnamedErrorCodes : <<>, natural number…|whole number> := <>;

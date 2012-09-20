@@ -58,27 +58,24 @@ Body
 /**
  * Strengthen `_'s⁇default type`.
  * 
- * Parameters:
- *    meta -
- * Return:
- *    The tuple type's default type's type.
+ * @method "_'s⁇default type"
+ * @restricts "tuple meta's type"
  */
 Semantic restriction "_'s⁇default type" is
 [
 	meta : tuple meta's type
 |
-	meta's instance's default type's type
+	t ::= meta's instance;
+	(∪ t[1 max ⎣t⎦..⎡t⎤])'s type
 ];
 
 /**
  * Strengthen concatenation of tuple types. This is the most specific type whose
  * instance encompasses all possible concatenations of the two types.
  * 
- * Parameters:
- *    metaA -
- *    metaB -
- * Returns:
- *    The strengthened tuple metatype.
+ * @method "_++_"
+ * @restricts "tuple meta's type"
+ * @restricts "tuple meta's type"
  */
 Semantic restriction "_++_" is
 [
@@ -90,15 +87,21 @@ Semantic restriction "_++_" is
 	(typeA ++ typeB)'s type
 ];
 
-/* Make tuple type concatenation left-associative. */
+/**
+ * Make tuple type concatenation left-associative.
+ * 
+ * @method "_++_"
+ * @forbids 2 "_++_"
+ */
 Grammatical restriction {"_++_"} is <∅, {"_++_"}>;
 
 /**
  * Concatenate the lexically specified tuples. Answer the result.
  * 
- * Parameters:
- *    tuples - Some tuples.
- * Returns:
+ * @method "«_‡++»"
+ * @param "tuples" "<<>, tuple…|[2..∞)>"
+ *        Some tuples.
+ * @returns "tuple"
  *    The result of concatenating the lexically specified tuples left-to-right.
  */
 Public method "«_‡++»" is
@@ -108,16 +111,19 @@ Public method "«_‡++»" is
 	concatenate tuples
 ] : tuple;
 
-/* Don't parse `«_‡++»` recursively. */
+/**
+ * Don't parse `«_‡++»` recursively.
+ * 
+ * @method "«_‡++»"
+ * @forbids 1 "«_‡++»"
+ */
 Grammatical restriction "«_‡++»" is <{"«_‡++»"}>;
 
 /**
  * Strengthen the lexical tuple concatenation operation.
  * 
- * Parameters:
- *    tuplesType -
- * Returns:
- *    The strongest type available for the argument type.
+ * @method "«_‡++»"
+ * @restricts "<<>, tuple…|[2..∞)>'s type"
  */
 Semantic restriction "«_‡++»" is
 [
@@ -138,9 +144,10 @@ Semantic restriction "«_‡++»" is
  * Compute and answer the minimum size of `tupleType` for efficient traversal of
  * its relevant element types.
  * 
- * Parameters:
- *    tupleType - A tuple type.
- * Returns:
+ * @method "relevant`|_`|"
+ * @param "tupleType" "tuple meta"
+ *        A tuple type.
+ * @returns "whole number"
  *    The smaller of the lower bound of the argument's cardinality and one more
  *    than the size of its leading types.
  */
@@ -183,7 +190,7 @@ Public method "Require:_[_.._]is ever valid" is
 	sliceStart : natural number's type,
 	sliceEnd : whole number's type
 |
-	If ⎣sliceStart⎦ > ⎡aTuple⎤ then
+	If ⎣sliceStart⎦ > ⎡aTuple⎤+1 then
 	[
 		Reject parse, expected:
 			"a subscript ("

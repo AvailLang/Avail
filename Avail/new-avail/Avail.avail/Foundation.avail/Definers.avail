@@ -72,9 +72,9 @@ typeM ::= method for atom for "_'s⁇type";
  * known value when all arguments are themselves precisely known.
  * 
  * @method "Method_is stable at_"
- * @param "string" "methodName"
+ * @param "methodName" "string"
  *        The name of the stable.
- * @param "function meta" "functionType" 
+ * @param "functionType" "function meta"
  *        The signature of the method that is being declared stable.
  * @returns "⊤"
  */
@@ -202,9 +202,12 @@ Public method "Method_is stable at_" is
  * will statically strengthen the answer produced at a call site to a precisely
  * known value when all arguments are themselves precisely known.
  * 
- * Parameters:
- *    methodName - The name of the stable.
- *    functionType - The signature of the method that is being declared stable.
+ * @method "Method_is stable at_"
+ * @param "methodName" "string"
+ *        The name of the stable.
+ * @param "functionType" "function meta"
+ *        The signature of the method that is being declared stable.
+ * @returns "⊤"
  */
 Public method "Method_is stable at_" is
 [
@@ -220,7 +223,7 @@ Public method "Method_is stable at_" is
  * groups. Take no action if the actual message is not available.
  * 
  * @method "Require:message_does not specify lexical groups"
- * @param "string's type" "nameType"
+ * @param "nameType" "string's type"
  *        The type of the method name.
  * @returns "⊤"
  */
@@ -254,7 +257,7 @@ Private method "Require:message_does not specify lexical groups" is
  * action if the argument's parameter types are not available.
  * 
  * @method "Require:_'s⁇parameters are not metatypes or function types"
- * @param "function meta" "functionType"
+ * @param "functionType" "function meta"
  *        A function type.
  * @returns "⊤"
  */
@@ -346,9 +349,9 @@ Semantic restriction "Method_is stable at_" is
  * known value when all arguments are themselves precisely known.
  *
  * @method "Stable abstract method_is_"
- * @param "string" "methodName"
+ * @param "methodName" "string"
  *        The name of the abstract method to declare.
- * @param "function meta" "aFunctionType"
+ * @param "aFunctionType" "function meta"
  *        The signature.
  * @returns "⊤"
  */
@@ -398,9 +401,9 @@ Semantic restriction "Stable abstract method_is_" is
  * themselves precisely known.
  *
  * @method "Stable forward method_is_"
- * @param "string" "methodName"
+ * @param "methodName" "string"
  *        The name of the method to forward declare.
- * @param "function meta" "aFunctionType"
+ * @param "aFunctionType" "function meta"
  *        The signature.
  * @returns "⊤"
  */
@@ -442,9 +445,9 @@ Semantic restriction "Stable forward method_is_" is
  * known.
  * 
  * @method "Stable method_is_"
- * @param "string" "methodName"
+ * @param "methodName" "string"
  *        The name of the new method.
- * @param "function" "implementation"
+ * @param "implementation" "function"
  *        An implementation of the method.
  */
 Public method "Stable method_is_" is
@@ -485,9 +488,9 @@ Semantic restriction "Stable method_is_" is
  * section. This should not be used to extend existing methods.
  *
  * @method "Public stable abstract method_is_"
- * @param "string" "methodName"
+ * @param "methodName" "string"
  *        The name of the abstract method to declare.
- * @param "function meta" "aFunctionType"
+ * @param "aFunctionType" "function meta"
  *        The signature.
  */
 Public method "Public stable abstract method_is_" is
@@ -543,9 +546,9 @@ Semantic restriction "Public stable abstract method_is_" is
  * This should not be used to extend existing methods.
  *
  * @method "Public stable forward method_is_"
- * @param "string" "methodName"
+ * @param "methodName" "string"
  *        The name of the method to forward declare.
- * @param "function meta" "aFunctionType"
+ * @param "aFunctionType" "function meta"
  *        The signature.
  * @returns "⊤"
  */
@@ -591,9 +594,9 @@ Semantic restriction "Public stable forward method_is_" is
  * existing methods.
  * 
  * @method "Public stable method_is_"
- * @param "string" "methodName"
+ * @param "methodName" "string"
  *        The name of the new method.
- * @param "function" "implementation"
+ * @param "implementation" "function"
  *        The original implementation of the method.
  */
 Public method "Public stable method_is_" is
@@ -635,9 +638,9 @@ Semantic restriction "Public stable method_is_" is
  * "Names" section. This should not be used to extend existing methods.
  *
  * @method "Private stable abstract method_is_"
- * @param "string" "methodName"
+ * @param "methodName" "string"
  *        The name of the abstract method to declare.
- * @param "function meta" "aFunctionType"
+ * @param "aFunctionType" "function meta"
  *        The signature.
  * @returns "⊤"
  */
@@ -694,9 +697,9 @@ Semantic restriction "Private stable abstract method_is_" is
  * This should not be used to extend existing methods.
  *
  * @method "Private stable forward method_is_"
- * @param "string" "methodName"
+ * @param "methodName" "string"
  *        The name of the method to forward declare.
- * @param "function meta" "aFunctionType"
+ * @param "aFunctionType" "function meta"
  *        The signature.
  * @returns "⊤"
  */
@@ -742,9 +745,9 @@ Semantic restriction "Private stable forward method_is_" is
  * extend existing methods.
  * 
  * @method "Private stable method_is_"
- * @param "string" "methodName"
+ * @param "methodName" "string"
  *        The name of the new method.
- * @param "function" "implementation"
+ * @param "implementation" "function"
  *        The original implementation of the method.
  */
 Public method "Private stable method_is_" is
@@ -780,9 +783,9 @@ Semantic restriction "Private stable method_is_" is
  * current module's "Names" section.
  *
  * @method "Public variable_is_"
- * @param "variable" "var"
+ * @param "var" "variable"
  *        The variable for which an accessor and a mutator should be generated.
- * @param "string" "accessorName"
+ * @param "accessorName" "string"
  *        The name of the accessor. The name of the mutator will be 
  *        {@param "accessorName"} ++ ":=_".
  * @returns "⊤"
@@ -831,9 +834,9 @@ Semantic restriction "Public variable_is_" is
  * module's "Names" section.
  *
  * @method "Public read-only variable_is_"
- * @param "variable" "var"
+ * @param "var" "variable"
  *        The variable for which an accessor should be generated.
- * @param "string" "accessorName"
+ * @param "accessorName" "string"
  *        The name of the accessor.
  * @returns "⊤"
  */

@@ -69,6 +69,8 @@ extends Primitive
 		final AvailObject names = args.get(0);
 		final AvailObject isPublic = args.get(1);
 		final AvailObject module = interpreter.module();
+
+		assert module != null;
 		if (isPublic.extractBoolean())
 		{
 			for (final AvailObject name : names)
