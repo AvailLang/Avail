@@ -107,6 +107,7 @@ Names
 	/*  97 */ "non-empty map",
 	/*  99 */ "non-empty set",
 	/* 118 */ "nonnegative integer",
+	/*  31 */ "nontype",
 	/*  81 */ "null",
 	/*  90 */ "nullary procedure",
 	/*  16 */ "number",
@@ -201,6 +202,7 @@ _set_meta                               ::= special object 27;
 _string                                 ::= special object 28;
 _bottom                                 ::= special object 29;
 _bottom_meta                            ::= special object 30;
+_nontype                                ::= special object 31;
 _tuple                                  ::= special object 32;
 _tuple_meta                             ::= special object 33;
 _type                                   ::= special object 34;
@@ -498,6 +500,11 @@ Primitive "⊥" is
 Primitive "⊥meta" is
 [
 	_bottom_meta
+];
+
+Primitive "nontype" is
+[
+	_nontype
 ];
 
 Primitive "tuple" is

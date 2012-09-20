@@ -203,6 +203,7 @@ extends AbstractEnumerationTypeDescriptor
 			return on(
 				getInstance(object).typeUnion(another.instance()));
 		}
+		// Unless another is top, then the answer will be any.
 		return ANY.o().typeUnion(another);
 	}
 

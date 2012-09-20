@@ -171,7 +171,7 @@ public class SetDescriptor extends Descriptor
 		final AvailObject object,
 		final AvailObject aTypeObject)
 	{
-		if (aTypeObject.isSupertypeOfPrimitiveTypeEnum(ANY))
+		if (aTypeObject.isSupertypeOfPrimitiveTypeEnum(NONTYPE))
 		{
 			return true;
 		}
