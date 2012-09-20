@@ -39,8 +39,12 @@ Uses
 	"Bootstrap",
 	"Early Assertions",
 	"Early Control Structures",
+	"Early Definers",
+	"Early Literals",
 	"Early Logic",
 	"Early Math"
+Names
+	"{«_‡,»}ᵀ"
 Body
 
 /**
@@ -78,7 +82,7 @@ Semantic restriction "enumeration of_" is
 		[
 			index : natural number
 		|
-			union := union ∪ cast instances[index] into [ t : set | t ];
+			union := union ∪ cast instances[index] into [t : set | t];
 			true
 		];
 		(enumeration of union)'s type
@@ -150,5 +154,44 @@ Semantic restriction "_'s⁇instance" is
 	else
 	[
 		any
+	]
+];
+
+/**
+ * Construct and answer an enumeration whose instances are the lexically
+ * specified values.
+ *
+ * @method "{«_‡,»}ᵀ"
+ * @param "instances" "<nontype…|>"
+ *        The instances of the resultant type.
+ * @returns "type"
+ *          The requested enumeration.
+ */
+Public method "{«_‡,»}ᵀ" is
+[
+	instances : <<>, nontype…|whole number>
+|
+	enumeration of instances→set
+] : type;
+
+Semantic restriction "{«_‡,»}ᵀ" is
+[
+	instances : <<>, nontype…|whole number>'s type
+|
+	if |instances| = 1 then
+	[
+		(enumeration of instances's instance→set)'s type
+	]
+	else
+	[
+		union : type := ⊥;
+		From 1 to ⎣||instances||⎦ do
+		[
+			index : natural number
+		|
+			union := union ∪ instances[index];
+			true
+		];
+		union's type
 	]
 ];
