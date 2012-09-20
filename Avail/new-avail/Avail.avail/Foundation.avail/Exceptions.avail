@@ -501,6 +501,8 @@ System exception "declaration-kind-does-not-support-assignment" (36)
 	extends bad-phrase exception;
 System exception "declaration-kind-does-not-support-reference" (37)
 	extends bad-phrase exception;
+System exception "exclamation-mark-must-follow-an-alternation-group-code" (38)
+	extends bad-message exception;
 System exception "redefined-with-same-argument-types" (39)
 	extends definition exception;
 System exception "result-type-should-covary-with-arguments" (40)
@@ -537,6 +539,8 @@ System exception "vertical-bar-must-follow-a-simple-or-simple-group" (55)
 	extends bad-message exception;
 System exception "cannot-convert-not-a-number-to-integer" (56)
 	extends bad-argument exception;
+System exception "incorrect-type-for-numbered-choice-code" (57)
+	extends bad-message exception;
 System exception "compilation-is-over" (70)
 	extends system exception;
 System exception "method-implementation-lookup-failed" (71)
