@@ -875,7 +875,7 @@ Public stable method "_(base_)" is
 	fail ::= [early failure function(invalid-argument code)];
 	If digits is empty then fail;
 	realDigits : string := digits;
-	multiplier : enumeration of {-1, 1} := 1;
+	multiplier : {-1, 1}ᵀ := 1;
 	If digits[1] = ¢- then
 	[
 		If |digits| = 1 then fail;

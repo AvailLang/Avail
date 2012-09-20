@@ -1394,7 +1394,7 @@ Assert: [-21..11] range pairs = <[-21..-21], [-20..-17], [-16..-1], [0..7], [8..
 Assert: [0..∞) range pairs = <[0..∞)>;
 Assert: [10..∞) range pairs = <[10..11], [12..15], [16..∞)>;
 Assert: integer range pairs = <(-∞..-1], [0..∞)>;
-Assert: enumeration of {-6, 4, 5, 6, 7} range pairs = <[-6..-5], [-4..-1], [0..7]>;
+Assert: {-6, 4, 5, 6, 7}ᵀ range pairs = <[-6..-5], [-4..-1], [0..7]>;
 
 
 
