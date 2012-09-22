@@ -157,9 +157,9 @@ Public method "Method_is stable at_" is
 	 */
 	theMethod ::= method for methodName;
 	resultType ::= functionType's return type's type;
-	argDecls : <<>, argument…|whole number> := <>;
-	setContents : <<>, send⇒nonnegative integer…|whole number> := <>;
-	instances : <<>, send⇒any…|whole number> := <>;
+	argDecls : <<>, argument phrase…|whole number> := <>;
+	setContents : <<>, send phrase⇒nonnegative integer…|whole number> := <>;
+	instances : <<>, send phrase⇒any…|whole number> := <>;
 	/* Construct the tuples of argument declarations, the contents of the
 	 * instance count set, and the tuple of instances.
 	 */
@@ -167,24 +167,28 @@ Public method "Method_is stable at_" is
 	[
 		index : natural number
 	|
-		argName ::= cast concatenate <"arg", “index”>
-			into [ t : string | t ];
+		argName ::= cast concatenate <"arg", “index”> into [t : string | t];
 		argDecl ::= arg «`argName` : functionType[index]'s type»;
 		argDecls := cast concatenate <eject ↑argDecls, <argDecl>>
-			into [ t : <<>, argument…|whole number> | t ];
+			into [t : <<>, argument phrase…|whole number> | t];
 		instanceCount ::=
 			send instanceCountM with «<«↓argDecl»>» : nonnegative integer;
-		setContents := cast concatenate <eject ↑setContents, <instanceCount>>
-			into [ t : <<>, send⇒nonnegative integer…|whole number> | t ];
+		setContents :=
+			cast concatenate <eject ↑setContents, <instanceCount>> into
+			[
+				t : <<>, send phrase⇒nonnegative integer…|whole number>
+			|
+				t
+			];
 		instance ::= send instanceM with «<«↓argDecl»>» : any;
 		instances := cast concatenate <eject ↑instances, <instance>>
-			into [ t : <<>, send⇒any…|whole number> | t ];
+			into [t : <<>, send phrase⇒any…|whole number> | t];
 		true
 	];
-	instanceCountSet ::= send setM with «<setContents→list>» : set;
+	instanceCountSet ::= send setM with «<setContents→list phrase>» : set;
 	oneSet ::= send setM with «<«<‘`1`’>»>» : {1}'s type;
 	equals ::= send equalsM with «<instanceCountSet, oneSet>» : boolean;
-	answer ::= send theMethod with instances→list : any;
+	answer ::= send theMethod with instances→list phrase : any;
 	answerType ::= send typeM with «<answer>» : resultType;
 	answerTypeBlock ::= «[<answerType>] : resultType»;
 	cantStrengthenBlock ::= «[<‘`⊤`’>] : ⊤'s type»;

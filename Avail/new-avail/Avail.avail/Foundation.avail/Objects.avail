@@ -534,7 +534,7 @@ Private method "_reconstructor arguments for_«(for semantic restriction)»?" is
 			else [ objectMap[fieldAtom] ];
 		arg «`"arg" ++ desc` : argType»
 	]
-] : <argument…|2..>;
+] : <argument phrase…|2..>;
 
 /* These methods are needed for reconstructor synthesis. */
 toMapM ::= method for $"_→map";

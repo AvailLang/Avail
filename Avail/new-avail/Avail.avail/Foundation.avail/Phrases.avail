@@ -91,7 +91,7 @@ Semantic restriction "‘_’" is
 [
 	aLiteralToken : literal token's type
 |
-	literal ⇒ (aLiteralToken's value type)
+	literal phrase ⇒ (aLiteralToken's value type)
 ];
 
 /**
@@ -105,10 +105,10 @@ Semantic restriction "‘_’" is
  */
 Public method "`«↓_`»" is
 [
-	decl : declaration
+	decl : declaration phrase
 |
 	«↓decl» (`decl's token's lexeme`)
-] : variable use;
+] : variable use phrase;
 
 /**
  * Construct and answer a list phrase from the specified tuple.
@@ -120,10 +120,10 @@ Public method "`«↓_`»" is
  */
 Public method "`«<«_‡,»>`»" is
 [
-	aTuple : <<>, expression⇒any…|whole number>
+	aTuple : <<>, expression phrase⇒any…|whole number>
 |
-	aTuple → list
-] : list;
+	aTuple → list phrase
+] : list phrase;
 
 /**
  * Construct and answer a block from the specified argument declarations,
@@ -138,7 +138,7 @@ Public method "`«<«_‡,»>`»" is
  */
 Public method "`«[_`|_]:_`»" is
 [
-	args : <<>, argument…|whole number>,
+	args : <<>, argument phrase…|whole number>,
 	statements : <<>, phrase…|whole number>,
 	returnType : type
 |
@@ -148,15 +148,15 @@ Public method "`«[_`|_]:_`»" is
 		Primitive 0
 		statements
 	] : returnType ^ ∅»
-] : block;
+] : block phrase;
 
 Semantic restriction "`«[_`|_]:_`»" is
 [
-	args : <<>, argument…|whole number>'s type,
+	args : <<>, argument phrase…|whole number>'s type,
 	statements : <<>, phrase…|whole number>'s type,
 	returnType : type's type
 |
-	block⇒([…]→cast returnType's instance into [ t : type | t ])
+	block phrase⇒([…]→cast returnType's instance into [ t : type | t ])
 ];
 
 /**
@@ -187,7 +187,7 @@ Semantic restriction "`«[_]:_`»" is
 	statements : <<>, phrase…|whole number>'s type,
 	returnType : type's type
 |
-	block⇒([…]→cast returnType's instance into [ t : type | t ])
+	block phrase⇒([…]→cast returnType's instance into [ t : type | t ])
 ];
 
 /**
@@ -203,13 +203,13 @@ Semantic restriction "`«[_]:_`»" is
 Semantic restriction "send_with_:_" is
 [
 	aMethod : method's type,
-	arguments : list's type,
+	arguments : list phrase's type,
 	returnType : type's type
 |
 	/* Parse nodes have identity, so it isn't safe to strengthen more than
 	 * this.
 	 */
-	send⇒cast returnType's instance into [ t : type | t ]
+	send phrase⇒cast returnType's instance into [ t : type | t ]
 ];
 
 /**
@@ -222,18 +222,18 @@ Semantic restriction "send_with_:_" is
  */
 Semantic restriction "_'s⁇semantic type" is
 [
-	blockType : block's type
+	blockType : block phrase's type
 |
 	if |blockType| = 1 then
 	[
-	 	if blockType's instance's type ⊆ type then
-	 	[
-	 	 	function meta
-	 	]
-	 	else
-	 	[
-	 	 	cast blockType's instance into [ t : function meta's type | t ]
-	 	]
+		if blockType's instance's type ⊆ type then
+		[
+			function meta
+		]
+		else
+		[
+			cast blockType's instance into [ t : function meta's type | t ]
+		]
 	]
 	else
 	[
@@ -251,7 +251,7 @@ Semantic restriction "_'s⁇semantic type" is
  */
 Semantic restriction "_'s⁇semantic type" is
 [
-	blockType : block's type's type
+	blockType : block phrase's type's type
 |
 	function meta
 ];
@@ -266,9 +266,9 @@ Semantic restriction "_'s⁇semantic type" is
  */
 Semantic restriction "_'s⁇semantic type" is
 [
-	listType : list's type's type
+	listType : list phrase's type's type
 |
-	<<>, expression⇒any…|whole number>
+	<<>, expression phrase⇒any…|whole number>
 ];
 
 /**
@@ -282,7 +282,7 @@ Semantic restriction "_'s⁇semantic type" is
  */
 Semantic restriction "generate_" is
 [
-	blockType : block's type
+	blockType : block phrase's type
 |
 	blockType's semantic type
 ];

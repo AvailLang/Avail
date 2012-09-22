@@ -1160,12 +1160,12 @@ Primitive "_mod_" is
  */
 Primitive "`«(_:=_)`»" is
 [
-	variableUse : variable use,
+	variableUse : variable use phrase,
 	valueExpression : expression yielding any
 |
 	Primitive 350 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode
-] : assignment;
+] : assignment phrase;
 
 /**
  * Construct and answer an assignment statement.
@@ -1179,12 +1179,12 @@ Primitive "`«(_:=_)`»" is
  */
 Primitive "`«_:=_`»" is
 [
-	variableUse : variable use,
+	variableUse : variable use phrase,
 	valueExpression : expression yielding any
 |
 	Primitive 353 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode
-] : assignment;
+] : assignment phrase;
 
 /**
  * Construct and answer a value reference expression.
@@ -1197,11 +1197,11 @@ Primitive "`«_:=_`»" is
  */
 Primitive "`«↑_`»" is
 [
-	variableUse : variable use
+	variableUse : variable use phrase
 |
 	Primitive 354 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode
-] : variable reference;
+] : variable reference phrase;
 
 /**
  * Construct and answer a block from the specified tuple of argument
@@ -1229,7 +1229,7 @@ Primitive "`«[_`|Primitive__]:_^_`»" is
 |
 	Primitive 361 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode
-] : block;
+] : block phrase;
 
 /**
  * Generate and answer a function from the specified block.
@@ -1242,7 +1242,7 @@ Primitive "`«[_`|Primitive__]:_^_`»" is
  */
 Primitive "generate_" is
 [
-	aBlock : block
+	aBlock : block phrase
 |
 	Primitive 362 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode
@@ -1264,12 +1264,12 @@ Primitive "generate_" is
 Primitive "send_with_:_" is
 [
 	aMethod : method,
-	argumentsList : list,
+	argumentsList : list phrase,
 	returnType : type
 |
 	Primitive 383 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode
-] : send;
+] : send phrase;
 
 /**
  * Construct and answer a sequence from the specified tuple of statements.
@@ -1285,7 +1285,7 @@ Primitive "seq`«_`»" is
 |
 	Primitive 387 (failureCode : natural number);
 	Private invoke _fail_primitive with failureCode
-] : sequence;
+] : sequence phrase;
 
 /**
  * Construct and answer a fully parameterized pojo type.
