@@ -1,0 +1,320 @@
+/*
+ * Stacks Stream Parser.avail
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Stacks Stream Parser"
+Versions
+"Dev"
+Extends
+
+Uses
+	"Avail",
+	"Annals Class Definitions"
+Names
+	"Parse the Avail document_"
+
+Body
+
+keyCharacters ::= {¢/, ¢@, ¢*, ¢"\n"}; /* Special parse characters */
+/* Special keywords using @ symbols */
+keywords ::= 
+	{"@type","@supertype","@field","@category","@param","@raises","@restricts",
+	"@returns","@forbids","@pubilc","@method","@see","@author",
+	"@link","@code"};
+openCommentCount : whole number := 0;
+newLineCount : whole number := 0;
+buffer : <character…|> := <>;
+inAnnalsType : boolean := false; 
+annalsType : string := "";
+annalsObjectName : string := "";
+
+classMap : {string→class|} := {};
+methodMap : {string→methodContainer|} := {};
+
+/**
+ * Checks to see if the input character is one of the key characters defined
+ * in the global variable set, keyCharacters.
+ * @method "_is a key character"
+ * @categories "Stacks"
+ * @param "char" character
+ * @returnType boolean
+ * @raises
+ */
+Private method "_is a key character" is
+[
+ 	char : character
+ |
+ 	char ∈ keyCharacters
+]:boolean;
+
+/**
+ * Creates the enumeration of the global variable keywords.
+ * @method "comment keywords"
+ * @categories "Stacks"
+ * @returnType enumeration of keywords
+ * @raises
+ */
+Private method "comment keywords" is [enumeration of keywords];
+
+/**
+ * Creates the enumeration of open comment strings.
+ * @method "open comment strings"
+ * @categories "Stacks"
+ * @returnType enumeration of open comment strings
+ * @raises
+ */
+Private method "open comment strings" is [enumeration of {"/*","/**"}];
+
+/**
+ * Updates the globla variable, openCommentCount.  It adds one to the count.
+ * @method "Increment the open comment count"
+ * @categories "Stacks"
+ * @returnType ⊤
+ * @raises
+ */
+Private method "Increment the open comment count" is
+[
+ 	openCommentCount := openCommentCount + 1;
+]:⊤;
+
+/**
+ * Updates the globla variable, openCommentCount.  It subtracts one from the 
+ * count.
+ * @method "Decrement the open comment count"
+ * @categories "Stacks"
+ * @returnType ⊤
+ * @raises
+ */
+Private method "Decrement the open comment count" is
+[
+ 	 	openCommentCount := cast (openCommentCount - 1) into 
+ 	 		[w : whole number | w];
+]:⊤;
+
+/**
+ * Updates the globla variable, newLineCount.  It adds one to the count.
+ * @method "Increment the new line count"
+ * @categories "Stacks"
+ * @returnType ⊤
+ * @raises
+ */
+Private method "Increment the new line count" is
+[
+	newLineCount := newLineCount + 1;
+]:⊤;
+
+/**
+ * Checks to see if the iterator is not exhausted.
+ * @method "_is not exhausted"
+ * @categories "Annals"
+ * @param "iter" iterator
+ * @returnType boolean
+ * @raises
+ */
+Private method "_is not exhausted" is
+[
+ 	iter : iterator
+ |
+ 	¬iter is exhausted
+]:boolean;
+
+/**
+ * Clears the global variable, buffer, of all its contents.
+ * @method "Clear the buffer"
+ * @categories Stacks""
+ * @returnType ⊤
+ * @raises
+ */
+Private method "Clear the buffer" is
+[
+	buffer := <>;
+]:⊤;
+
+/**
+ * Update the global variable, buffer, with the current element on the iterator.
+ * Proceed to advance the iterator.
+ * @method "Buffer_"
+ * @categories "Stacks"
+ * @param "iter" iterator
+ * @returnType ⊤
+ * @raises
+ */
+Private method "Buffer_" is
+[
+	iter : iterator
+ |
+	buffer := buffer ++ 
+		<cast (iter's current element) into [c : character | c]>;
+	Advance iter;
+]:⊤;
+
+/**
+ * Given an iterator at the start of a comment, collect all the characters until
+ * the open comment count is 0.
+ * @method "buffer comment from_"
+ * @categories "Stacks"
+ * @param "iter" iterator
+ * @returnType "string"  The entire comment less the opening * on a new line.
+ */
+Private method "buffer comment from_" is
+[
+ 	iter : iterator
+ |
+ 	atNewLine : boolean := true;
+	While 
+	[
+	 	iter is not exhausted ∧ 
+	 		[openCommentCount ≠ 0]
+	]
+	do
+	[
+	 	prevChar : character := cast (iter's current element) 
+	 		into [c : character | c];
+	 	/* Simply buffer characters that are not special */
+		While 
+		[
+		 	iter's current element ∉ {¢*,¢/,¢"\n"}
+		]
+		do
+		[
+		 	/* Set appropriate at new line condition.  No longer at a new line
+		 	 * once a non-blank character is reached. */
+		 	If atNewLine ∧ [prevChar ≠ ¢" "] then [atNewLine := false;];
+		 	/* Preserve the current element of the iterator. */
+		 	prevChar := cast (iter's current element) into [c : character | c];
+		 	Buffer iter;
+		];
+		/* The * is a special character that has multiple implications */
+		if iter's current element = ¢* then
+		[
+		 	prevChar := cast (iter's current element) into [c : character | c];
+		 	Advance iter;
+			/* The * is not the first non-blank character on this line.*/
+		 	if atNewLine = false then
+		 	[
+		 	 	/* This indicates a closing of a comment */
+		 		if iter's current element = ¢/ then
+		 		[
+		 		 	/* The closing of a nested comment */
+		 		 	if openCommentCount > 1 then
+		 		 	[
+		 		 	 	/*Capture everything from the nested comment*/
+		 		 	 	Decrement the open comment count;
+		 		 	 	buffer := buffer ++ <prevChar,
+		 		 	 		cast (iter's current element) 
+		 		 	 		into [c : character | c]>;
+		 		 	 	Advance iter;
+		 		 	]
+		 		 	/* Closing the top level comment, all loops will end.*/
+		 		 	else
+		 		 	[Decrement the open comment count;];
+		 		]
+		 		/* The * character isn't doing anything special but is actually
+		 		 * part of text.  Buffer it.*/
+		 		else
+		 		[
+		 		 	buffer := buffer ++ <prevChar, 
+		 		 	cast (iter's current element) into [c : character | c]>;
+		 		 	Advance iter;
+		 		];
+		 	]
+		 	/* The * is the first non-blank char on the line 
+		 	 * Don't buffer it if it is not closing a nested comment */
+		 	else
+		 	[
+	 	 	 	/* A comment is being closed*/
+				if iter's current element = ¢/ then
+				[
+				 	/*Nested comment being closed preserve entire comment*/ 
+				 	if openCommentCount > 1 then
+				 	[
+				 	 	Decrement the open comment count;
+				 	 	buffer := buffer ++ <prevChar,
+				 	 		cast (iter's current element) 
+				 	 		into [c : character | c]>;
+				 	 	Advance iter;
+				 	]
+				 	/* Closing the top level comment, all loops will end.*/
+				 	else
+				 	[Decrement the open comment count;];
+				]
+				/* Nothing special about next charThe * does not get captured 
+				 * as it is the first non-blank character in the new line*/
+				else
+				[
+				 	/* Do nothing, let loop run*/
+				];
+		 	];
+		]
+		else if [iter's current element = ¢/] then
+		[
+		 	prevChar := cast (iter's current element) into [c : character | c];
+		 	Advance iter;
+			/* Open of a nested comment.  Capture open comment syntax*/
+			if iter's current element = ¢* then 
+			[
+			 	Increment the open comment count;
+			 	buffer := buffer ++ <prevChar,
+		 	 		cast (iter's current element) 
+		 	 		into [c : character | c]>;
+		 	 	Advance iter;
+			]
+			/* Nothing special about character,/, buffer it.*/
+			else [buffer := buffer ++ <prevChar>;];
+		]
+		/* Start of a new line, indicate this here. */
+		else if [iter's current element = ¢"\n"] then
+		[
+		 	atNewLine := true;
+			/* Capture the new line character */
+			buffer := buffer ++ <cast (iter's current element) 
+				into [c : character | c]>;
+			Advance iter;
+		]
+		else [/* Outer loop will end, do nothing.*/];	
+	];
+]:⊤;
+
+/* Stuck in a loop - debug*/
+test ::= 
+"
+ * Given an iterator at the start of a comment, collect all the characters until 
+ * the open comment count is 0. 
+ * @method \"buffer comment from_\"
+ * @categories \"Stacks\"
+ * @param \"iter\" iterator 
+ * @returnType \"string\"  The entire comment less the opening * on a new line. 
+ */";
+ Print: test; Print: "\n";
+ it : iterator := an iterator over test;
+ openCommentCount :=1;
+buffer comment from it;
+Print: buffer;
