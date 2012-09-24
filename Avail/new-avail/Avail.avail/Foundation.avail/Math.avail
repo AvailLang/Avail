@@ -55,8 +55,8 @@ Names
 	"_is even",
 	"-_",
 	"π",
-	"«_‡«=»?«≤»?«<»?»",
-	"«_‡«=»?«≥»?«>»?»"
+	"«_‡«=|≤|<»!»",
+	"«_‡«=|≥|>»!»"
 Body
 
 Forward method "_mod_" is [number, number]→number;
@@ -789,21 +789,17 @@ predicates ::=
  * equal, and less than operators.
  * 
  * Parameters:
- *    args - A tuple whose elements are a sequence of 4-tuples following by an
- *       ending 1-tuple. The first element of these 1,4-tuples is a number.
- *       If present, the second element will be a boolean that indicates that
- *       this number should be checked for equality with the next number. If
- *       present, the third element will be a boolean that indicates that this
- *       number should be compared against the next number to see if it is less
- *       than or equal. If present, the fourth element will be a boolean that
- *       indicates this this number should be compared against the next number
- *       to see if it is strictly less.
+ *    args - A tuple whose elements are a sequence of 2-tuples following by an
+ *       ending 1-tuple. The first element of these 1,2-tuples is a number.
+ *       If present, the second element will be an integer in the range [1..3]
+ *       to indicate =, ≤, or <, respectively, as the comparison to be checked
+ *       with the next number.
  * Returns:
  *    `true` if the entire chain of comparisons is true, `false` otherwise.
  */
-Public method "«_‡«=»?«≤»?«<»?»" is
+Public method "«_‡«=|≤|<»!»" is
 [
-	args : <<number, boolean…|1..4>…|3..∞>
+	args : <<number, [1..3]…|1..2>…|3..∞>
 |
 	result : boolean := true;
 	From 1 to |args| - 1 do
@@ -811,24 +807,9 @@ Public method "«_‡«=»?«≤»?«<»?»" is
 		index : natural number
 	|
 		arg ::= args[index];
-		Assert: |arg| = 4 ("args ≠ <aNumber, isEqual, isLess, isLessEqual>");
+		Assert: |arg| = 2 ("args ≠ <aNumber, comparisonOperatorSubscript>");
 		/* Determine which predicate to apply. */
-		predicate : [number, number]→boolean;
-		From 2 to 4 do
-		[
-			predicateIndex : [2..4]
-		|
-			if arg[predicateIndex] then
-			[
-				predicate := predicates[3 - (predicateIndex - 2)];
-				false
-			]
-			else
-			[
-				true
-			]
-		];
-		Assert: ¬↑predicate is unassigned ("no predicate was selected");
+		predicate ::= predicates[4 - arg[2]];
 		if predicate(arg[1], args[index + 1][1]) then
 		[
 			true
@@ -842,50 +823,24 @@ Public method "«_‡«=»?«≤»?«<»?»" is
 	result
 ];
 
+/**
+ * Note that this accepts a very broad type of argument (so it's applicable for
+ * non-numeric uses of this selector), but a very specific numbered choice of
+ * operator (i.e., only "=").  It always rejects the parse if it's just a chain
+ * of equalities, since there's a separate operator for that which can deal with
+ * non-numerics.
+ */
 Private method "comparison chain semantic restriction function" is
 [
 	[
-		args : <<number, boolean…|1..4>…|3..∞>'s type
+		args : <<any, [1..1]…|1..2>…|3..∞>'s type
 	|
-		exactSize ::= ⎣args⎦ - 1;
-		allEquals : boolean := true;
-		From 1 to exactSize do
-		[
-			index : natural number
-		|
-			arg ::= args[index];
-			optionCount : whole number := 0;
-			From 2 to 4 do
-			[
-				optionIndex : [2..4]
-			|
-				If arg[optionIndex]'s instance then
-				[
-					↑optionCount++;
-				];
-				true
-			];
-			If optionCount ≠ 1 then
-			[
-				Reject parse, expected:
-					"exactly one comparison operator between numeric arguments"
-			];
-			If ¬arg[2]'s instance then
-			[
-				allEquals := false;
-			];
-			true
-		];
-		If allEquals then
-		[
-			Reject parse, expected:
-				"inequality chain to include at least one inequality"
-		];
-		⊤
+		Reject parse, expected:
+			"inequality chain to include at least one inequality"
 	]
 ];
 
-Semantic restriction "«_‡«=»?«≤»?«<»?»" is
+Semantic restriction "«_‡«=|≤|<»!»" is
 	comparison chain semantic restriction function;
 
 /**
@@ -905,9 +860,9 @@ Semantic restriction "«_‡«=»?«≤»?«<»?»" is
  * Returns:
  *    `true` if the entire chain of comparisons is true, `false` otherwise.
  */
-Public method "«_‡«=»?«≥»?«>»?»" is
+Public method "«_‡«=|≥|>»!»" is
 [
-	args : <<number, boolean…|1..4>…|3..∞>
+	args : <<number, [1..3]…|1..2>…|3..∞>
 |
 	result : boolean := true;
 	From 1 to |args| - 1 do
@@ -915,25 +870,9 @@ Public method "«_‡«=»?«≥»?«>»?»" is
 		index : natural number
 	|
 		arg ::= args[index];
-		Assert: |arg| = 4
-			("args ≠ <aNumber, isEqual, isGreater, isGreaterEqual>");
+		Assert: |arg| = 2 ("args ≠ <aNumber, comparisonOperatorSubscript>");
 		/* Determine which predicate to apply. */
-		predicate : [number, number]→boolean;
-		From 2 to 4 do
-		[
-			predicateIndex : [2..4]
-		|
-			if arg[predicateIndex] then
-			[
-				predicate := predicates[3 + (predicateIndex - 2)];
-				false
-			]
-			else
-			[
-				true
-			]
-		];
-		Assert: ¬↑predicate is unassigned ("no predicate was selected");
+		predicate ::= predicates[2 + arg[2]];
 		if predicate(arg[1], args[index + 1][1]) then
 		[
 			true
@@ -947,7 +886,7 @@ Public method "«_‡«=»?«≥»?«>»?»" is
 	result
 ];
 
-Semantic restriction "«_‡«=»?«≥»?«>»?»" is
+Semantic restriction "«_‡«=|≥|>»!»" is
 	comparison chain semantic restriction function;
 
 /**

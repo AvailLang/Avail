@@ -42,8 +42,8 @@ Uses
 		"_≤_",
 		"_>_",
 		"_≥_",
-		"«_‡«=»?«≤»?«<»?»",
-		"«_‡«=»?«≥»?«>»?»"
+		"«_‡«=|≤|<»!»",
+		"«_‡«=|≥|>»!»"
 	)
 Names
 	"chained less-than atom",
@@ -60,7 +60,7 @@ Method "less-than atom" is [_lessThan];
 _lessThanEqual ::= $"_≤_";
 Method "less-than-equal atom" is [_lessThanEqual];
 
-_chainedLessThan ::= $"«_‡«=»?«≤»?«<»?»";
+_chainedLessThan ::= $"«_‡«=|≤|<»!»";
 Method "chained less-than atom" is [_chainedLessThan];
 
 _greaterThan ::= $"_>_";
@@ -69,5 +69,5 @@ Method "greater-than atom" is [_greaterThan];
 _greaterThanEqual ::= $"_≥_";
 Method "greater-than-equal atom" is [_greaterThanEqual];
 
-_chainedGreaterThan ::= $"«_‡«=»?«≥»?«>»?»";
+_chainedGreaterThan ::= $"«_‡«=|≥|>»!»";
 Method "chained greater-than atom" is [_chainedGreaterThan];

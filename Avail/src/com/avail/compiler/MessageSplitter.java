@@ -1757,7 +1757,7 @@ public class MessageSplitter
 				final Expression alternative =
 					alternation.alternatives().get(index);
 				alternative.emitOn(list, caseInsensitive);
-				pushIntegerLiteral.encodingForOperand(index + 1);
+				list.add(pushIntegerLiteral.encodingForOperand(index + 1));
 				if (!last)
 				{
 					list.add(jump.encodingForOperand(exitTarget));
@@ -2195,6 +2195,7 @@ public class MessageSplitter
 						}
 						subexpression = new NumberedChoice(
 							(Alternation)(subgroup.expressionsBeforeDagger.get(0)));
+						messagePartPosition++;
 					}
 				}
 				if (messagePartPosition <= messageParts.size())
