@@ -432,8 +432,8 @@ Method "Require:_accepts_" is
 	[
 		Reject parse, expected:
 			format
-				"repeatedly applied function to accept all elements ∈ ‘①’ \
-				\|of the stream (but it only accepts ‘②’)"
+				"repeatedly applied function to accept all elements ∈ “①” \
+				\|of the stream (but it only accepts “②”)"
 			with elementType, actionType[1]
 	];
 ] : ⊤;

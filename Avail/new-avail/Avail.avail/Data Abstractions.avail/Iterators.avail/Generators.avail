@@ -233,7 +233,7 @@ Semantic restriction "generator for_" is
 		else
 		[
 			Reject parse, expected: format
-				"generator function to accept [⊥]→⊤ (but it only accepts ‘①’)"
+				"generator function to accept [⊥]→⊤ (but it only accepts “①”)"
 				with functionType[1]
 		]
 ];

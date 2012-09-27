@@ -449,6 +449,6 @@ Test "Mersenne Twister standard test vectors" in Mersenne Twister test suite is
 	[
 		v : <[0.._2_32), [0.._2_32), natural number…|3>
 	|
-		Require: v[1] = v[2] (format "#‘①’" with v[3]);
+		Require: v[1] = v[2] (format "#“①”" with v[3]);
 	];
 ];

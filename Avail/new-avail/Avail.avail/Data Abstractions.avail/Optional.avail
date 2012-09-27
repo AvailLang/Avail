@@ -194,15 +194,15 @@ Semantic restriction "_'s⁇value" is
 	If optionalType ⊆ absent then
 	[
 		Reject parse, expected:
-			format "value extraction not to be attempted on ‘①’"
+			format "value extraction not to be attempted on “①”"
 			with optionalType
 	];
 	Unless optionalType ⊆ present then
 	[
 		Reject parse, expected:
 			format
-				"value extraction not to be attempted on ‘①’ \
-				\|(try casting to ‘②’)"
+				"value extraction not to be attempted on “①” \
+				\|(try casting to “②”)"
 			with optionalType, present (optionalType's actual value)
 	];
 	optionalType's actual value[1]
@@ -253,7 +253,7 @@ Semantic restriction "When_is present do_" is
 	Unless optionalType's actual value[1] ⊆ presentBlock[1] then
 	[
 		Reject parse, expected:
-			format "function to accept ‘①’ (but it only accepts ‘②’)"
+			format "function to accept “①” (but it only accepts “②”)"
 			with optionalType's actual value[1], presentBlock[1]
 	];
 	⊤
@@ -296,7 +296,7 @@ Semantic restriction "When|when_is present do_else_" is
 	Unless optionalType's actual value[1] ⊆ presentBlock[1] then
 	[
 		Reject parse, expected:
-			format "function to accept ‘①’ (but it only accepts ‘②’)"
+			format "function to accept “①” (but it only accepts “②”)"
 			with optionalType's actual value[1], presentBlock[1]
 	];
 	if optionalType ⊆ present then [presentBlock's return type]

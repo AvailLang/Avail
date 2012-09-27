@@ -180,14 +180,14 @@ Semantic restriction "Guard|guard_«intercept_»" is
 		If argType = ⊥ then
 		[
 			Reject parse, expected: format
-				"exception handler #‘①’'s parameter type to be \
+				"exception handler #“①”'s parameter type to be \
 				\|statically known"
 				with index
 		];
 		If ¬argType ⊆ exception then
 		[
 			Reject parse, expected: format
-				"exception handler to accept only exceptions (not ‘①’)"
+				"exception handler to accept only exceptions (not “①”)"
 				with argType
 		];
 		hidingArgTypes : <type…|> := <>;
@@ -204,8 +204,8 @@ Semantic restriction "Guard|guard_«intercept_»" is
 		If ¬hidingArgTypes is empty then
 		[
 			Reject parse, expected: format
-			"exception handler for ‘①’ to be reachable \
-			\|(but it is hidden by each of: ‘②’)"
+			"exception handler for “①” to be reachable \
+			\|(but it is hidden by each of: “②”)"
 			with argType, hidingArgTypes
 		];
 		returnType := eject ↑returnType ∪ handlerType's return type;
@@ -322,7 +322,7 @@ Private method "System exception_(_)extends_" is
 |
 	Assert: ¬code ∈ exceptionsByCode ("code " ++ “code” ++ " already in use");
 	Assert: ¬exceptionBaseName ends with " exception"
-		(format "\"“①”\" ends with \" exception\"" with exceptionBaseName);
+		(format "\"‘①’\" ends with \" exception\"" with exceptionBaseName);
 	exceptionName ::= exceptionBaseName ++ " exception";
 	Class exceptionName extends supertype ∩ system exception
 		with fields
@@ -618,7 +618,7 @@ Semantic restriction "Ensure:all error codes have corresponding exceptions" is
 		Reject parse, expected:
 			format
 				"exception classes to be defined for the following \
-				\|error codes: ‘①’"
+				\|error codes: “①”"
 			with missingExceptionClasses
 	];
 	⊤

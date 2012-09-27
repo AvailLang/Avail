@@ -255,8 +255,8 @@ Semantic restriction "_[_]" is
 	[
 		Reject parse, expected:
 			format
-				"a subscript ‘①’ ≤ theSubscript ≤ ‘②’ that could ever be \
-				\|valid for the given sequence (‘③’ ≤ |theSequence| ≤ ‘④’)"
+				"a subscript “①” ≤ theSubscript ≤ “②” that could ever be \
+				\|valid for the given sequence (“③” ≤ |theSequence| ≤ “④”)"
 			with
 				⎣index⎦, ⎡index⎤,
 				⎣sizes⎦, ⎡sizes⎤

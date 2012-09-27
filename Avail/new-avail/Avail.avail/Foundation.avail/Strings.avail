@@ -111,10 +111,10 @@ Private method "format site" is
 /**
  * Answer the enumeration of format metacharacters:
  * 
- *    - ¢“ : Begins a format site whose interpolation mode is $text.
- *    - ¢” : Ends a format site whose interpolation mode is $text.
- *    - ¢‘ : Begins a format site whose interpolation mode is $description.
- *    - ¢’ : Ends a format site whose interpolation mode is $description.
+ *    - ¢“ : Begins a format site whose interpolation mode is $description.
+ *    - ¢” : Ends a format site whose interpolation mode is $description.
+ *    - ¢‘ : Begins a format site whose interpolation mode is $text.
+ *    - ¢’ : Ends a format site whose interpolation mode is $text.
  *    - ¢` : Indicates a format site whose interpolation mode is $escape.
  *    - ¢① .. ¢㊿ : Indicates a positional format variable.
  *
@@ -171,8 +171,8 @@ Private stable method "format sites for_" is
 			metachar : format metacharacters
 		|
 			Choose metachar from format metacharacters where
-				¢‘ is [ addSite(¢’, description); ],
-				¢“ is [ addSite(¢”, text); ],
+				¢‘ is [ addSite(¢’, text); ],
+				¢“ is [ addSite(¢”, description); ],
 				¢` is
 				[
 					start ::= (↑index++);
@@ -220,21 +220,21 @@ Private stable method "format sites for_" is
  * respectively. An interpolation site may contain any character except the
  * expected close metacharacter. The contents are understood to name a variable
  * that may appear as a key within the specified map; the associated value is
- * this variable's value. If an interpolation site uses ¢‘ (and ¢’), then the
+ * this variable's value. If an interpolation site uses ¢“ (and ¢”), then the
  * value will be converted to a string via `“_”` when it is copied into the
- * result. If an interpolation site uses ¢“ (and ¢”), then the value must be a
+ * result. If an interpolation site uses ¢‘ (and ¢’), then the value must be a
  * string and will be copied directly into the result. To escape a
  * metacharacter, precede it immediately by ¢`.
  *
  * For example:
  * 
  *    Assert:
- *        partially format "“greeting”, “recipient”!\n"
+ *        partially format "‘greeting’, ‘recipient’!\n"
  *            with {"greeting"→"Hello"}
- *        = "Hello, “recipient”!\n";
+ *        = "Hello, ‘recipient’!\n";
  *    Assert:
  *        partially format
- *            (partially format "“greeting”, “recipient”!\n"
+ *            (partially format "‘greeting’, ‘recipient’!\n"
  *                with {"greeting"→"Hello"})
  *            with {"recipient"→"world"}
  *       = "Hello, world!\n";
@@ -269,12 +269,12 @@ Public stable method "partially format_with_" is
 		interpolation ::= choose site[2] from interpolation mode where
 			description is
 			[
-				“vars[var] else ["‘" ++ var ++ "’"]”
+				“vars[var] else ["“" ++ var ++ "”"]”
 			],
 			text is
 			[
 				If var ∈ vars ∧ [ ¬var ∈ string ] then badType;
-				cast vars[var] else ["“" ++ var ++ "”"] into [ t : string | t ]
+				cast vars[var] else ["‘" ++ var ++ "’"] into [ t : string | t ]
 			],
 			escape is
 			[
@@ -337,16 +337,16 @@ Semantic restriction "partially format_with_" is
  * respectively. An interpolation site may contain any character except the
  * expected close metacharacter. The contents are understood to name a variable
  * that may appear as a key within the specified map; the associated value is
- * this variable's value. If an interpolation site uses ¢‘ (and ¢’), then the
+ * this variable's value. If an interpolation site uses ¢“ (and ¢”), then the
  * value will be converted to a string via `“_”` when it is copied into the
- * result. If an interpolation site uses ¢“ (and ¢”), then the value must be a
+ * result. If an interpolation site uses ¢‘ (and ¢’), then the value must be a
  * string and will be copied directly into the result. To escape a
  * metacharacter, precede it immediately by ¢`.
  *
  * For example:
  * 
  *    Assert:
- *        format "“greeting”, “recipient”!\n"
+ *        format "‘greeting’, ‘recipient’!\n"
  *            with {"greeting"→"Hello", "recipient"→"world"}
  *        = "Hello, world!\n";
  *
@@ -455,21 +455,21 @@ Private method "format variable for_" is
  * respectively. An interpolation site may contain any character except the
  * expected close metacharacter. The contents are understood to name a variable
  * that may appear as a key within the specified map; the associated value is
- * this variable's value. If an interpolation site uses ¢‘ (and ¢’), then the
+ * this variable's value. If an interpolation site uses ¢“ (and ¢”), then the
  * value will be converted to a string via `“_”` when it is copied into the
- * result. If an interpolation site uses ¢“ (and ¢”), then the value must be a
+ * result. If an interpolation site uses ¢‘ (and ¢’), then the value must be a
  * string and will be copied directly into the result. To escape a
  * metacharacter, precede it immediately by ¢`.
  *
  * For example:
  * 
  *    Assert:
- *        (partially format "“greeting”, “recipient”!\n"
+ *        (partially format "‘greeting’, ‘recipient’!\n"
  *            with greeting := "Hello")
  *        = "Hello, “recipient”!\n";
  *    Assert:
  *        (partially format
- *            (partially format "“greeting”, “recipient”!\n"
+ *            (partially format "‘greeting’, ‘recipient’!\n"
  *                with greeting := "Hello")
  *            with recipient := "world")
  *        = "Hello, world!\n";
@@ -558,16 +558,16 @@ Semantic restriction "partially format_with«…:=_‡,»" is
  * respectively. An interpolation site may contain any character except the
  * expected close metacharacter. The contents are understood to name a variable
  * that may appear as a key within the specified map; the associated value is
- * this variable's value. If an interpolation site uses ¢‘ (and ¢’), then the
+ * this variable's value. If an interpolation site uses ¢“ (and ¢”), then the
  * value will be converted to a string via `“_”` when it is copied into the
- * result. If an interpolation site uses ¢“ (and ¢”), then the value must be a
+ * result. If an interpolation site uses ¢‘ (and ¢’), then the value must be a
  * string and will be copied directly into the result. To escape a
  * metacharacter, precede it immediately by ¢`.
  *
  * For example:
  * 
  *    Assert:
- *        (format "“greeting”, “recipient”!\n"
+ *        (format "‘greeting’, ‘recipient’!\n"
  *            with "greeting" := "Hello", "recipient" := "world")
  *        = "Hello, world!\n";
  *
@@ -660,16 +660,16 @@ Semantic restriction "format_with«…:=_‡,»" is
  * respectively. An interpolation site must contain one of the fifty circled
  * number characters (¢①, ¢②, ..., ¢㊿). The circled number character is
  * understood to indicate a subscript within the specified tuple; the value at
- * this subscript is this variable's value. If an interpolation site uses ¢‘
- * (and ¢’), then the value will be converted to a string via `primitive
+ * this subscript is this variable's value. If an interpolation site uses ¢“
+ * (and ¢”), then the value will be converted to a string via `primitive
  * description of_` when it is copied into the result. If an interpolation site
- * uses ¢“ (and ¢”), then the value must be a string and will be copied directly
+ * uses ¢‘ (and ¢’), then the value must be a string and will be copied directly
  * into the result. To escape a metacharacter, precede it immediately by ¢`.
  *
  * For example:
  * 
  *    Assert:
- *        format "“①”, “②”!\n" with unchecked <"Hello", "world">
+ *        format "‘①’, ‘②’!\n" with unchecked <"Hello", "world">
  *        = "Hello, world!\n";
  *
  * Parameters:
@@ -758,16 +758,16 @@ Semantic restriction "format_with unchecked_" is
  * respectively. An interpolation site must contain one of the fifty circled
  * number characters (¢①, ¢②, ..., ¢㊿). The circled number character is
  * understood to indicate a subscript within the specified tuple; the value at
- * this subscript is this variable's value. If an interpolation site uses ¢‘
- * (and ¢’), then the value will be converted to a string via `primitive
+ * this subscript is this variable's value. If an interpolation site uses ¢“
+ * (and ¢”), then the value will be converted to a string via `primitive
  * description of_` when it is copied into the result. If an interpolation site
- * uses ¢“ (and ¢”), then the value must be a string and will be copied directly
+ * uses ¢‘ (and ¢’), then the value must be a string and will be copied directly
  * into the result. To escape a metacharacter, precede it immediately by ¢`.
  *
  * For example:
  * 
  *    Assert:
- *        format "“①”, “②”!\n" with "Hello", "world"
+ *        format "‘①’, ‘②’!\n" with "Hello", "world"
  *        = "Hello, world!\n";
  *
  * Parameters:
