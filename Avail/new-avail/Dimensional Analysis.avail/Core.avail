@@ -109,8 +109,8 @@ Names
 	"_≤_",
 	"_>_",
 	"_≥_",
-	"«_‡«=»?«≤»?«<»?»",
-	"«_‡«=»?«≥»?«>»?»",
+	"«_‡«=|≤|<»!»",
+	"«_‡«=|≥|>»!»",
 
 	/* Conversion. */
 	"Conversion method is_,⁇inverse is_",
@@ -1651,28 +1651,22 @@ predicates ::=
  * Compute and answer the boolean value of the sequence of equals, less than or
  * equal, and less than operators.
  * 
- * @method "«_‡«=»?«≤»?«<»?»"
- * @param "args" "<<dimensioned quantity, boolean…|1..4>…|3..∞>"
- *        A tuple whose elements are a sequence of 4-tuples following by an
- *        ending 1-tuple. The first element of these 1,4-tuples is a {@type
- *        "dimensioned quantity"}. If present, the second element will be a
- *        boolean that indicates that this {@type "dimensioned quantity"} should
- *        be checked for equality with the next {@type "dimensioned quantity"}.
- *        If present, the third element will be a boolean that indicates that
- *        this {@type "dimensioned quantity"} should be compared against the
- *        next {@type "dimensioned quantity"} to see if it is less than or
- *        equal. If present, the fourth element will be a boolean that indicates
- *        this this {@type "dimensioned quantity"} should be compared against
- *        the next {@type "dimensioned quantity"} to see if it is strictly less.
+ * @method "«_‡«=|≤|<»!»"
+ * @param "args" "<<dimensioned quantity, [1..3]…|1..2>…|3..∞>"
+ *        A tuple whose elements are a sequence of 2-tuples following by an
+ *        ending 1-tuple. The first element of these 1,2-tuples is a {@type
+ *        "dimensioned quantity"}. If present, the second element is 1, 2, or 3,
+ *        indicating a comparison to the successive {@type "dimensioned
+ *        quantity"} by =, ≤, or <, respectively.
  * @returns "boolean"
  *          {@method "true"} if the entire chain of comparisons is true,
  *          {@method "false"} otherwise.
  * @raises "incompatible-quantities exception"
  *         If the arguments are incompatible.
  */
-Public method "«_‡«=»?«≤»?«<»?»" is
+Public method "«_‡«=|≤|<»!»" is
 [
-	args : <<dimensioned quantity, boolean…|1..4>…|3..∞>
+	args : <<dimensioned quantity, [1..3]…|1..2>…|3..∞>
 |
 	result : boolean := true;
 	From 1 to |args| - 1 do
@@ -1680,24 +1674,9 @@ Public method "«_‡«=»?«≤»?«<»?»" is
 		index : natural number
 	|
 		arg ::= args[index];
-		Assert: |arg| = 4 ("args ≠ <aNumber, isEqual, isLess, isLessEqual>");
+		Assert: |arg| = 2 ("args ≠ <aNumber, comparisonOperatorSubscript>");
 		/* Determine which predicate to apply. */
-		predicate : [number, number]→boolean;
-		From 2 to 4 do
-		[
-			predicateIndex : [2..4]
-		|
-			if arg[predicateIndex] then
-			[
-				predicate := predicates[3 - (predicateIndex - 2)];
-				false
-			]
-			else
-			[
-				true
-			]
-		];
-		Assert: ¬↑predicate is unassigned ("no predicate was selected");
+		predicate ::= predicates[4 - arg[2]];
 		a ::= arg[1];
 		b ::= args[index + 1][1];
 		Require: a and b are compatible;
@@ -1718,29 +1697,22 @@ Public method "«_‡«=»?«≤»?«<»?»" is
  * Compute and answer the boolean value of the sequence of equals, greater than
  * or equal, and greater than operators.
  * 
- * @method "«_‡«=»?«≥»?«>»?»"
- * @param "args" "<<dimensioned quantity, boolean…|1..4>…|3..∞>"
- *        A tuple whose elements are a sequence of 4-tuples following by an
- *        ending 1-tuple. The first element of these 1,4-tuples is a {@type
- *        "dimensioned quantity"}. If present, the second element will be a
- *        boolean that indicates that this {@type "dimensioned quantity"} should
- *        be checked for equality with the next {@type "dimensioned quantity"}.
- *        If present, the third element will be a boolean that indicates that
- *        this {@type "dimensioned quantity"} should be compared against the
- *        next {@type "dimensioned quantity"} to see if it is greater than or
- *        equal. If present, the fourth element will be a boolean that indicates
- *        this this {@type "dimensioned quantity"} should be compared against
- *        the next {@type "dimensioned quantity"} to see if it is strictly
- *        greater.
+ * @method "«_‡«=|≥|>»!»"
+ * @param "args" "<<dimensioned quantity, [1..3]…|1..2>…|3..∞>"
+ *        A tuple whose elements are a sequence of 2-tuples following by an
+ *        ending 1-tuple. The first element of these 1,2-tuples is a {@type
+ *        "dimensioned quantity"}. If present, the second element is 1, 2, or 3,
+ *        indicating a comparison to the successive {@type "dimensioned
+ *        quantity"} by =, ≥, or >, respectively.
  * @returns "boolean"
  *          {@method "true"} if the entire chain of comparisons is true,
  *          {@method "false"} otherwise.
  * @raises "incompatible-quantities exception"
  *         If the arguments are incompatible.
  */
-Public method "«_‡«=»?«≥»?«>»?»" is
+Public method "«_‡«=|≥|>»!»" is
 [
-	args : <<dimensioned quantity, boolean…|1..4>…|3..∞>
+	args : <<dimensioned quantity, [1..3]…|1..2>…|3..∞>
 |
 	result : boolean := true;
 	From 1 to |args| - 1 do
@@ -1748,25 +1720,9 @@ Public method "«_‡«=»?«≥»?«>»?»" is
 		index : natural number
 	|
 		arg ::= args[index];
-		Assert: |arg| = 4
-			("args ≠ <aNumber, isEqual, isGreater, isGreaterEqual>");
+		Assert: |arg| = 2 ("args ≠ <aNumber, comparisonOperatorSubscript>");
 		/* Determine which predicate to apply. */
-		predicate : [number, number]→boolean;
-		From 2 to 4 do
-		[
-			predicateIndex : [2..4]
-		|
-			if arg[predicateIndex] then
-			[
-				predicate := predicates[3 + (predicateIndex - 2)];
-				false
-			]
-			else
-			[
-				true
-			]
-		];
-		Assert: ¬↑predicate is unassigned ("no predicate was selected");
+		predicate ::= predicates[2 + arg[2]];
 		a ::= arg[1];
 		b ::= args[index + 1][1];
 		Require: a and b are compatible;
@@ -1786,7 +1742,7 @@ Public method "«_‡«=»?«≥»?«>»?»" is
 Private method "inequality chain restriction function" is
 [
 	[
-		args : <<dimensioned quantity, boolean…|1..4>…|3..∞>'s type
+		args : <<dimensioned quantity, [1..3]…|1..2>…|3..∞>'s type
 	|
 		exactSize ::= ⎣args⎦ - 1;
 		allEquals : boolean := true;
@@ -1800,28 +1756,11 @@ Private method "inequality chain restriction function" is
 			[
 				Require: ref's metric and arg[1]'s metric are compatible;
 			];
-			optionCount : whole number := 0;
-			From 2 to 4 do
-			[
-				optionIndex : [2..4]
-			|
-				If arg[optionIndex]'s instance then
-				[
-					↑optionCount++;
-				];
-				true
-			];
-			If optionCount ≠ 1 then
-			[
-				Reject parse, expected:
-					"exactly one comparison operator between dimensioned \
-					\|quantity arguments"
-			];
-			If ¬arg[2]'s instance then
+			If ¬ 1 ∈ arg[2] then
 			[
 				allEquals := false;
 			];
-			true
+			allEquals
 		];
 		If allEquals then
 		[
@@ -1832,9 +1771,9 @@ Private method "inequality chain restriction function" is
 	]
 ];
 
-Semantic restriction "«_‡«=»?«≤»?«<»?»" is
+Semantic restriction "«_‡«=|≤|<»!»" is
 	inequality chain restriction function;
-Semantic restriction "«_‡«=»?«≥»?«>»?»" is
+Semantic restriction "«_‡«=|≥|>»!»" is
 	inequality chain restriction function;
 
 /* Disallow mixing and recursive parsing of comparison operations. */
@@ -1847,7 +1786,7 @@ Semantic restriction "«_‡«=»?«≥»?«>»?»" is
 		};
 	chains ::=
 		{
-			$"«_‡=»", $"«_‡«=»?«≤»?«<»?»", $"«_‡«=»?«≥»?«>»?»",
+			$"«_‡=»", $"«_‡«=|≤|<»!»", $"«_‡«=|≥|>»!»",
 			chained less-than atom, chained greater-than atom
 		};
 	restrictions ::= binary ∪ chains;

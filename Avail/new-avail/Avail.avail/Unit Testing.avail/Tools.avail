@@ -288,7 +288,7 @@ Public method "Require:_raises_(_)" is
 	comparisons ::=
 		{
 			"_≤_", "_<_", "_≥_", "_>_",
-			"_=_", "«_‡=»", "«_‡«=»?«≤»?«<»?»", "«_‡«=»?«≥»?«>»?»"
+			"_=_", "«_‡=»", "«_‡«=|≤|<»!»", "«_‡«=|≥|>»!»"
 		};
 	Grammatical restriction "Require:_" is <{"_=_"}>;
 	Grammatical restriction "Require:_(_)" is <{"_=_"}, ∅>;

@@ -102,7 +102,7 @@ Semantic restriction "«_‡=»" is
 /* Disallow mixing and recursive parsing of comparison operations. */
 [
 	binary ::= {"_=_", "_≤_", "_<_", "_≥_", "_>_"};
-	chains ::= {"«_‡=»", "«_‡«=»?«≤»?«<»?»", "«_‡«=»?«≥»?«>»?»"};
+	chains ::= {"«_‡=»", "«_‡«=|≤|<»!»", "«_‡«=|≥|>»!»"};
 	restrictions ::= binary ∪ chains;
 	Grammatical restriction chains is <restrictions>;
 	Grammatical restriction binary is <restrictions, restrictions>;
