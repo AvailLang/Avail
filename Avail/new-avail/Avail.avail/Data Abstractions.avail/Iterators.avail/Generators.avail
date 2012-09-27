@@ -163,7 +163,7 @@ Public method "generator for_" is
 				guard
 				[
 					/* Apply the generator function to the yield function. */
-					Invoke generatorFunction with <
+					generatorFunction(
 						[
 							result : any
 						|
@@ -186,7 +186,7 @@ Public method "generator for_" is
 							 * generator function.
 							 */
 							resume := false;
-						]>;
+						]);
 					/* Clear the execution continuation to indicate that the
 					 * generator is exhausted.
 					 */

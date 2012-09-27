@@ -1918,7 +1918,7 @@ Public stable method "_converted to_" is
 				source unit := key[1],
 				target unit := key[2]
 		];
-	invoke converter with <quantity, targetUnit>
+	converter(quantity, targetUnit)
 ] : dimensioned quantity;
 
 /**

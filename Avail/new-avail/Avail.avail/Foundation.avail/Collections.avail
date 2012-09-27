@@ -37,7 +37,7 @@ Names
 	/* The implementations are provided by Tuples, Sets, and Maps, but the names
 	 * are introduced here.
 	 */
-	"For each_do_",
+	"For each of⁇_do_",
 	"Require:_accepts_",
 	"any of_satisfies_",
 	"count of_where_",

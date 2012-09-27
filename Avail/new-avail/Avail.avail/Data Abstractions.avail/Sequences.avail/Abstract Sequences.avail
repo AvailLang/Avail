@@ -1,0 +1,483 @@
+/*
+ * Abstract Sequences.avail
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Abstract Sequences"
+Versions
+	"dev"
+Extends
+	"Common" = ("element type"),
+	"Foundation" =
+	(
+		"For each of⁇_do_",
+		"concatenate_",
+		"drop from_until_",
+		"drop from_while_",
+		"filter_by_",
+		"map_through_",
+		"take from_until_",
+		"take from_while_",
+		"zip_",
+		"`|_`|",
+		"_[_]",
+		"_[_.._]",
+		"_[_..]",
+		"_[.._]",
+		"⎣_⎦",
+		"⎡_⎤",
+		"«_‡zip»",
+		"«_‡++»"
+	)
+Uses
+	"Common" = ("Data|data abstractions test suite"),
+	"Foundation",
+	"Unit Testing" = ("New test suite_extends_")
+Names
+	"an empty sequence",
+	"empty sequence",
+	"sequence",
+	"sequence«_»of_",
+	"_'s⁇subscript method is_",
+	"_[_]else_"
+Body
+
+/* TODO: [TLS] Remove these constants once a macro is available for "$…". */
+_sequenceSize ::= $"sequence size";
+Private method "sequence size" is [_sequenceSize];
+
+/**
+ * A sequence is an ordered collection whose elements may be referenced via an
+ * integral subscript. A sequence behaves like a tuple, but its elements need
+ * not (and generally should not) be directly stored. Instead, a subscript
+ * operation causes execution of an algorithm that yields the requested element.
+ * Unlike a tuple, a sequence may be infinite in size.
+ *
+ * @type "sequence"
+ */
+Public explicit class "sequence" extends object
+	with fields
+		element type : any's type,
+		sequence size : [0..∞];
+
+/**
+ * Construct and answer a sequence type whose elements are of the specified
+ * type.
+ *
+ * @method "sequence«_»of_"
+ * @param "optionalSize" "<[0..∞]'s type…|0..1>"
+ *        If specified, then the size restriction for instances; defaults to
+ *        [0..∞].
+ * @param "elementType" "any's type"
+ *        The type of value produced by sequences of the answered type.
+ * @returns "sequence's type"
+ *          The requested sequence type.
+ */
+Public method "sequence«_»of_" is
+[
+	optionalSizes : <[0..∞]'s type…|0..1>,
+	elementType : any's type
+|
+	sizes ::= optionalSizes[1] else [[0..∞]];
+	extend sequence with
+		element type : elementType's type,
+		sequence size : sizes
+] : sequence's type;
+
+/**
+ * Answer the lower bound of the cardinality restriction for instances of the
+ * specified {@type "sequence"} type.
+ *
+ * @method "⎣_⎦"
+ * @param "sequenceType" "sequence's type"
+ *        A {@type "sequence"} type.
+ * @returns The lower bound of {@param "sequenceType"}'s cardinality
+ *          restriction.
+ */
+Method "⎣_⎦" is
+[
+	sequenceType : sequence's type
+|
+	⎣sequenceType's sequence size⎦
+] : [0..∞];
+
+/**
+ * Answer the upper bound of the cardinality restriction for instances of the
+ * specified {@type "sequence"} type.
+ *
+ * @method "⎣_⎦"
+ * @param "sequenceType" "sequence's type"
+ *        A {@type "sequence"} type.
+ * @returns The upper bound of {@param "sequenceType"}'s cardinality
+ *          restriction.
+ */
+Method "⎡_⎤" is
+[
+	sequenceType : sequence's type
+|
+	⎡sequenceType's sequence size⎤
+] : [0..∞];
+
+/**
+ * Answer the cardinality of {@param "aSequence"}.
+ *
+ * @method "`|_`|"
+ * @param "aSequence" "sequence"
+ *        A {@type "sequence"}.
+ * @returns "[0..∞]"
+ *          The number of elements contained by {@param "aSequence"}.
+ */
+Method "`|_`|" is
+[
+	aSequence : sequence
+|
+	aSequence's sequence size
+] : [0..∞];
+
+Semantic restriction "`|_`|" is
+[
+	sequenceType : sequence's type
+|
+	sequenceType's sequence size
+];
+
+/* TODO: [TLS] Remove these constants once a macro is available for "$…". */
+_privateSubscriptName ::= $"private_[_]";
+Abstract method _privateSubscriptName is [sequence, natural number]→any;
+
+/**
+ * Define a method to subscript a sequence. The public operation, {@method
+ * "_[_]"}, does not permit extension (to ensure that subscripts are always
+ * checked for validity), but the private operation should not be called
+ * directly from client code. This special defining method allows the private
+ * operation to be overridden for specific sequence implementations without
+ * exposing it for direct use. These mechanisms cooperate to ensure that
+ * subscript validity checking is never bypassed.
+ *
+ * @method "_'s⁇subscript method is_"
+ * @param "sequenceType" "sequence's type"
+ *        The sequence's type, as a cross check for the implementation.
+ * @param "implementation" "[⊥]→any"
+ *        The new method extension.
+ */
+Public method "_'s⁇subscript method is_" is
+[
+	sequenceType : sequence's type,
+	implementation : [⊥, natural number]→any
+|
+	Private method _privateSubscriptName is implementation;
+] : ⊤;
+
+Semantic restriction "_'s⁇subscript method is_" is
+[
+	sequenceMeta : sequence's type's type,
+	implementationType : [⊥, natural number]→any's type
+|
+	If implementationType[1] = ⊥ then
+	[
+		Reject parse, expected:
+			"function's parameter types to be statically known"
+	];
+	If ¬implementationType[1] ⊆ sequenceMeta's instance then
+	[
+		Reject parse, expected:
+			"function parameter type ("
+			++ “implementationType[1]”
+			++ ") to be a subtype of the sequence type ("
+			++ “sequenceMeta's instance”
+			++ ")"
+	];
+	⊤
+];
+
+/**
+ * Answer the {@param "index"}-th element of {@param "aSequence"}.
+ *
+ * @method "_[_]"
+ * @param "aSequence" "sequence"
+ *        A {@type "sequence"}.
+ * @param "index" "natural number"
+ *        The one-based index of the desired element.
+ * @returns "any"
+ *          The requested element.
+ * @raises "subscript-out-of-bounds exception"
+ *         If {@param "index"} exceeds the size of {@param "aSequence"}.
+ */
+Method "_[_]" is
+[
+	aSequence : sequence,
+	index : natural number
+|
+	if index ∈ [1..|aSequence|] then
+	[
+		private aSequence[index]
+	]
+	else
+	[
+		Raise a subscript-out-of-bounds exception
+	]
+] : any;
+
+Semantic restriction "_[_]" is
+[
+	sequenceType : sequence's type,
+	index : natural number's type
+|
+	sizes ::= sequenceType's sequence size;
+	If ⎣index⎦ > ⎡sizes⎤ then
+	[
+		Reject parse, expected:
+			format
+				"a subscript ‘①’ ≤ theSubscript ≤ ‘②’ that could ever be \
+				\|valid for the given sequence (‘③’ ≤ |theSequence| ≤ ‘④’)"
+			with
+				⎣index⎦, ⎡index⎤,
+				⎣sizes⎦, ⎡sizes⎤
+	];
+	sequenceType's element type's instance
+];
+
+/**
+ * If {@param "index"} is a valid subscript for {@param "aSequence"}, then
+ * answer the corresponding element. Otherwise, answer the result obtained by
+ * applying {@param "else"}.
+ *
+ * @method "_[_]else_"
+ * @param "aSequence" "tuple"
+ *        A {@type "sequence"}.
+ * @param "index" "integer"
+ *        An {@type "integer"}.
+ * @param "else" "[]→any"
+ *        The function to apply if {@param "index"} is not a valid subscript
+ *        into {@param "aSequence"}.
+ * @returns "any"
+ *          The {@param "index"}-th element of {@param "aSequence"}, or the
+ *          result of applying {@param "else"} (if {@param "index"} is invalid).
+ */
+Method "_[_]else_" is
+[
+	aSequence : sequence,
+	index : integer,
+	else : []→any
+|
+	if index ∈ [1..|aSequence|]
+	then [aSequence[cast index into [t : natural number | t]]]
+	else else
+] : any;
+
+Semantic restriction "_[_]else_" is
+[
+	sequenceType : sequence's type,
+	index : integer's type,
+	else : []→any's type
+|
+	if ⎣index⎦ > ⎡sequenceType⎤ ∨ [⎡index⎤ < 1] then
+	[
+		else's return type
+	]
+	else
+	[
+		elementType ::= sequenceType's element type's instance;
+		if index ⊆ [1..⎣sequenceType⎦] then
+		[
+			elementType
+		]
+		else
+		[
+			elementType ∪ else's return type
+		]
+	]
+];
+
+/**
+ * An empty sequence has ⊥ as its element type.
+ *
+ * @type "empty sequence"
+ * @supertype "sequence"
+ */
+Public explicit class "empty sequence" extends sequence
+	with fields
+		element type : ⊥'s type,
+		sequence size : 0's type;
+
+/**
+ * Answer {@code 0}.
+ *
+ * @method "`|_`|"
+ * @param "aSequence" "empty sequence"
+ *        An {@type "empty sequence"}.
+ * @returns "0's type"
+ *          {@code 0}.
+ */
+Method "`|_`|" is
+[
+	aSequence : empty sequence
+|
+	0
+] : 0's type;
+
+/**
+ * Raise a {@type "subscript-out-of-bounds exception"}.
+ *
+ * @method "_[_]"
+ * @param "aSequence" "empty sequence"
+ *        An {@type "empty sequence"}.
+ * @param "index" "natural number"
+ *        A proposed subscript, guaranteed to be out of range.
+ * @raises "subscript-out-of-bounds exception"
+ *         Always.
+ */
+Method "_[_]" is
+[
+	aSequence : empty sequence,
+	index : natural number
+|
+	Raise a subscript-out-of-bounds exception
+] : ⊥;
+
+_theEmptySequence ::=
+	an empty sequence with element type := ⊥, sequence size := 0;
+
+/**
+ * Answer an {@type "empty sequence"}.
+ *
+ * @method "an empty sequence"
+ * @returns "empty sequence"
+ *          An {@type "empty sequence"}.
+ */
+Public method "an empty sequence" is [_theEmptySequence];
+
+/* Seal the public operations. */
+Seal method "_[_]" at <sequence, natural number>;
+
+/* TODO: [TLS] Remove these constants once a macro is available for "$…". */
+_decoratedSequence ::= $"decorated sequence|sequences";
+_indexOffset ::= $"index offset";
+Private method "decorated sequence|sequences" is [_decoratedSequence];
+Private method "index offset" is [_indexOffset];
+
+/**
+ * A sliced sequence is a lazy window onto another sequence. The elements of
+ * the decorated sequences are renumbered starting at {@code 1}.
+ *
+ * @type "sliced sequence"
+ * @supertype "sequence"
+ */
+Explicit class "sliced sequence" extends sequence
+	with fields
+		decorated sequence : sequence,
+		index offset : whole number;
+
+sliced sequence's subscript method is
+[
+	aSequence : sliced sequence,
+	index : natural number
+|
+	aSequence's decorated sequence[aSequence's index offset + index]
+] : any;
+
+/**
+ * Answer the requested {@type "sequence" subsequence} of {@param "aSequence"}.
+ *
+ * @method "_[_.._]"
+ * @param "aSequence" "sequence"
+ *        A {@type "sequence"}.
+ * @param "startIndex" "natural number"
+ *        The index of the start of the {@type "sequence" subsequence}.
+ * @param "endIndex" "whole number"
+ *        The index of the end of the {@type "sequence" subsequence}. May be
+ *        {@code 1} less than {@param "startIndex"} (to indicate an empty
+ *        sequence).
+ * @returns "sequence"
+ *          The requested {@type "sequence"}.
+ */
+Method "_[_.._]" is
+[
+	aSequence : sequence,
+	startIndex : natural number,
+	endIndex : [0..∞]
+|
+	size ::= endIndex - startIndex + 1;
+	If size ≤ 0 then
+	[
+		Raise a subscript-out-of-bounds exception
+	];
+	if size = 0 then [an empty sequence]
+	else
+	[
+		a sliced sequence with
+			element type := aSequence's element type,
+			sequence size := cast size into [t : natural number | t],
+			decorated sequence := aSequence,
+			index offset := startIndex - 1
+	]
+] : sequence;
+
+/**
+ * Answer the requested {@type "sequence" subsequence} of {@param "aSequence"}.
+ *
+ * @method "_[_..]"
+ * @param "aSequence" "sequence"
+ *        A {@type "sequence"}.
+ * @param "startIndex" "natural number"
+ *        The index of the start of the {@type "sequence" subsequence}.
+ * @returns "sequence"
+ *          The {@type "subsequence"} beginning at {@param "startIndex"} and
+ *          ending at |{@param "aSequence"}|.
+ */
+Method "_[_..]" is
+[
+	aSequence : sequence,
+	startIndex : natural number
+|
+	aSequence[startIndex .. |aSequence|]
+] : sequence;
+
+/**
+ * Answer the requested {@type "sequence" subsequence} of {@param "aSequence"}.
+ *
+ * @method "_[.._]"
+ * @param "aSequence" "sequence"
+ *        A {@type "sequence"}.
+ * @param "endIndex" "natural number"
+ *        The index of the end of the {@type "sequence" subsequence}.
+ * @returns "sequence"
+ *          The {@type "subsequence"} beginning at {@code 1} and ending at
+ *          {@param "endIndex"}.
+ */
+Method "_[_..]" is
+[
+	aSequence : sequence,
+	endIndex : [0..∞]
+|
+	aSequence[1 .. endIndex]
+] : sequence;
+
+/* TODO: [TLS] Write semantic restrictions for the slice constructors. */

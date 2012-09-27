@@ -37,7 +37,7 @@ Extends
 	"Common" = ("element type"),
 	"Foundation" =
 	(
-		"For each_do_",
+		"For each of⁇_do_",
 		"concatenate_",
 		"drop from_until_",
 		"drop from_while_",
@@ -399,7 +399,7 @@ Seal method "_'s⁇tail" at <stream>;
  *    aStream - A stream.
  *    action - A function that accepts the elements of the stream.
  */
-Method "For each_do_" is
+Method "For each of⁇_do_" is
 [
 	aStream : stream,
 	action : [⊥]→⊤
@@ -408,7 +408,7 @@ Method "For each_do_" is
 	Until [ rest is empty ]
 	do
 	[
-		Invoke action with <rest's head>;
+		action(rest's head);
 		rest := eject ↑rest's tail;
 	];
 ] : ⊤;
@@ -438,7 +438,7 @@ Method "Require:_accepts_" is
 	];
 ] : ⊤;
 
-Semantic restriction "For each_do_" is
+Semantic restriction "For each of⁇_do_" is
 [
 	streamType : stream's type,
 	actionType : [⊥]→⊤'s type
@@ -469,7 +469,7 @@ mapped stream's head method is
 [
 	aStream : mapped stream
 |
-	invoke aStream's transformer with <aStream's decorated stream's head>
+	aStream's transformer(aStream's decorated stream's head)
 ] : any;
 
 mapped stream's tail method is
@@ -540,7 +540,7 @@ Method "_is empty" is
 	Until [ found ∨ [ rest is empty ] ]
 	do
 	[
-		If invoke aStream's filter with <rest's head> then
+		If aStream's filter(rest's head) then
 		[
 			found := true;
 		];
@@ -555,7 +555,7 @@ filtered stream's head method is
 |
 	/* There is guaranteed to be a satisfactory element remaining. */
 	rest : stream := aStream's decorated stream;
-	Until [ invoke aStream's filter with <rest's head> ]
+	Until [ aStream's filter(rest's head) ]
 	do
 	[
 		rest := eject ↑rest's tail;
@@ -569,7 +569,7 @@ filtered stream's tail method is
 |
 	/* There is guaranteed to be a satisfactory element remaining. */
 	rest : stream := aStream's decorated stream;
-	Until [ invoke aStream's filter with <rest's head> ]
+	Until [ aStream's filter(rest's head) ]
 	do
 	[
 		rest := eject ↑rest's tail;
@@ -578,7 +578,7 @@ filtered stream's tail method is
 	If rest is empty then [ an empty stream ]
 	else
 	[
-		streamType ::= if invoke aStream's filter with <rest's head>
+		streamType ::= if aStream's filter(rest's head)
 			then [ headed filtered stream]
 			else [ filtered stream ];
 		a streamType with
@@ -939,7 +939,7 @@ Method "take from_while_" is
 |
 	result : tuple := <>;
 	rest : stream := aStream;
-	While [¬rest is empty ∧ [invoke predicate with <rest's head>]]
+	While [¬rest is empty ∧ [predicate(rest's head)]]
 	do
 	[
 		result := eject ↑result ++ <rest's head>;
@@ -976,7 +976,7 @@ Method "take from_until_" is
 |
 	result : tuple := <>;
 	rest : stream := aStream;
-	Until [rest is empty ∨ [invoke predicate with <rest's head>]]
+	Until [rest is empty ∨ [predicate(rest's head)]]
 	do
 	[
 		result := eject ↑result ++ <rest's head>;
@@ -1061,7 +1061,7 @@ Method "drop from_while_" is
 	predicate : [⊥]→boolean
 |
 	rest : stream := aStream;
-	While [¬rest is empty ∧ [invoke predicate with <rest's head>]]
+	While [¬rest is empty ∧ [predicate(rest's head)]]
 	do
 	[
 		rest := eject ↑rest's tail;
@@ -1096,7 +1096,7 @@ Method "drop from_until_" is
 	predicate : [⊥]→boolean
 |
 	rest : stream := aStream;
-	Until [rest is empty ∨ [invoke predicate with <rest's head>]]
+	Until [rest is empty ∨ [predicate(rest's head)]]
 	do
 	[
 		rest := eject ↑rest's tail;

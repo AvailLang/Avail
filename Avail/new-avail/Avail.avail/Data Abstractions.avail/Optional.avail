@@ -241,7 +241,7 @@ Public method "When_is present do_" is
 	presentBlock : [⊥]→⊤
 |
 	Cast anOptional
-		into [aPresent : present | invoke presentBlock with <aPresent's value>;]
+		into [aPresent : present | presentBlock(aPresent's value);]
 		else [/* Do nothing. */];
 ] : ⊤;
 
@@ -283,7 +283,7 @@ Public method "When|when_is present do_else_" is
 	elseBlock : []→⊤
 |
 	cast anOptional
-		into [aPresent : present | invoke presentBlock with <aPresent's value>;]
+		into [aPresent : present | presentBlock(aPresent's value);]
 		else elseBlock;
 ] : ⊤;
 

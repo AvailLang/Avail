@@ -588,7 +588,7 @@ Primitive "_'s⁇issuing module" is
  *
  * Parameters:
  *    aTuple - A tuple.
- *    index - The index of the desired element.
+ *    index - The one-based index of the desired element.
  * Returns:
  *    The requested element.
  */

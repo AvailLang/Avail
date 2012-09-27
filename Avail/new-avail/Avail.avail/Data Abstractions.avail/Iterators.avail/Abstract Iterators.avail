@@ -37,7 +37,7 @@ Extends
 	"Common" = ("element type"),
 	"Foundation" =
 	(
-		"For each_do_",
+		"For each of⁇_do_",
 		"concatenate_",
 		"filter_by_",
 		"map_through_",
@@ -160,7 +160,7 @@ Method "_'s⁇current element" is
 [
 	anIterator : iterator
 |
-	Unless anIterator is exhausted then
+	unless anIterator is exhausted then
 	[
 		private anIterator's current element
 	]
@@ -296,6 +296,7 @@ Semantic restriction "_'s⁇advance method is_" is
  * An exhausted iterator has ⊥ as its element type.
  *
  * @type "exhausted iterator"
+ * @supertype "iterator"
  */
 Public explicit class "exhausted iterator" extends iterator
 	with fields
@@ -306,8 +307,9 @@ Public explicit class "exhausted iterator" extends iterator
  *
  * @method "_is exhausted"
  * @param "anIterator" "exhausted iterator"
- *        An exhausted iterator.
- * @returns {@code true}.
+ *        An {@type "exhausted iterator"}.
+ * @returns "true's type"
+ *          {@code true}.
  */
 Method "_is exhausted" is
 [
@@ -317,7 +319,7 @@ Method "_is exhausted" is
 ] : true's type;
 
 /**
- * Raise an `exhausted-iterator exception`.
+ * Raise an {@type "exhausted-iterator exception"}.
  *
  * @method "_s⁇current element"
  * @param "anIterator" "exhausted iterator"
@@ -386,13 +388,13 @@ Seal method "Advance_" at <iterator>;
  * Iteratively apply {@param "action"} to each consecutive element of {@param
  * "anIterator"}.
  *
- * @method "For each_do_"
+ * @method "For each of⁇_do_"
  * @param "anIterator" "iterator"
  *        An iterator.
  * @param "action" "[⊥]→⊤"
  *        A function that accepts the elements of the iterator.
  */
-Method "For each_do_" is
+Method "For each of⁇_do_" is
 [
 	anIterator : iterator,
 	action : [⊥]→⊤
@@ -400,7 +402,7 @@ Method "For each_do_" is
 	Until [ anIterator is exhausted ]
 	do
 	[
-		Invoke action with <anIterator's current element>;
+		action(anIterator's current element);
 		Advance anIterator;
 	];
 ] : ⊤;
@@ -432,7 +434,7 @@ Method "Require:_accepts_" is
 	];
 ] : ⊤;
 
-Semantic restriction "For each_do_" is
+Semantic restriction "For each of⁇_do_" is
 [
 	iteratorType : iterator's type,
 	actionType : [⊥]→⊤'s type
@@ -535,7 +537,7 @@ Method "_is exhausted" is
 	Until [found ∨ [inner is exhausted]]
 	do
 	[
-		If invoke anIterator's filter with <inner's current element> then
+		If anIterator's filter(inner's current element) then
 		[
 			found := true;
 		]
@@ -937,8 +939,7 @@ Method "take from_while_" is
 	result : tuple := <>;
 	While
 	[
-		¬anIterator is exhausted
-			∧ [invoke predicate with <anIterator's current element>]
+		¬anIterator is exhausted ∧ [predicate(anIterator's current element)]
 	]
 	do
 	[
@@ -980,8 +981,7 @@ Method "take from_until_" is
 	result : tuple := <>;
 	Until
 	[
-		anIterator is exhausted
-			∨ [invoke predicate with <anIterator's current element>]
+		anIterator is exhausted ∨ [predicate(anIterator's current element)]
 	]
 	do
 	[
@@ -1055,8 +1055,7 @@ Method "Drop from_while_" is
 |
 	While
 	[
-		¬anIterator is exhausted
-			∧ [invoke predicate with <anIterator's current element>]
+		¬anIterator is exhausted ∧ [predicate(anIterator's current element)]
 	]
 	do
 	[
@@ -1092,8 +1091,7 @@ Method "Drop from_until_" is
 |
 	Until
 	[
-		anIterator is exhausted
-			∨ [invoke predicate with <anIterator's current element>]
+		anIterator is exhausted ∨ [predicate(anIterator's current element)]
 	]
 	do
 	[

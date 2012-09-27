@@ -43,6 +43,7 @@ Uses
 	),
 	"Definers",
 	"Exceptions",
+	"Functions",
 	"Literals",
 	"Logic",
 	"Objects",
@@ -99,7 +100,7 @@ Public method "Cast|cast_into_" is
 	paramType ::= accept's type[1];
 	if valueType ⊆ paramType then
 	[
-		invoke accept with <value>;
+		accept(value);
 	]
 	else
 	[
