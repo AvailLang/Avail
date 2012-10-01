@@ -649,3 +649,31 @@ Method "_[_]else_" is
 	then [aTuple[cast index into [t : natural number | t]]]
 	else else
 ] : any;
+
+Semantic restriction "_[_]else_" is
+[
+	tupleType : tuple meta,
+	index : integer's type,
+	else : (function accepting <> and returning any)'s type
+|
+	if ⎣index⎦ > ⎡tupleType⎤ ∨ [⎡index⎤ < 1] then
+	[
+		else's return type
+	]
+	else
+	[
+		min ::= cast ⎣index⎦ max 1
+			into [t : natural number | t];
+		max ::= cast ⎡index⎤ min (|tupleType's leading types| + 1)
+			into [t : whole number | t];
+		union ::= ∪ tupleType[min..max];
+		if index ⊆ [1..⎣tupleType⎦] then
+		[
+			union
+		]
+		else
+		[
+			union ∪ else's return type
+		]
+	]
+];

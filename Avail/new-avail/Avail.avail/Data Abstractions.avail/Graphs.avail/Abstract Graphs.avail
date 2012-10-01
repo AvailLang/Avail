@@ -800,7 +800,7 @@ Semantic restriction "_+_" is
 	Unless edgeType ⊆ labeled edge then
 	[
 		Reject parse, expected:
-			format "edge ⊆ ‘①’ to be a subtype of ‘②’"
+			format "edge ⊆ “①” to be a subtype of “②”"
 				with edgeType, labeled edge
 	];
 	graph of (graphType's vertex type),

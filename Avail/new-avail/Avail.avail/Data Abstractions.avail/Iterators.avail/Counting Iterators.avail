@@ -103,7 +103,7 @@ counting number iterator's advance method is
 	↓anIterator's next ?= ↓anIterator's next + anIterator's step;
 ] : ⊤;
 
-Semantic restriction "For each_do_" is
+Semantic restriction "For each of⁇_do_" is
 [
 	iteratorType : counting integer iterator's type,
 	actionType : [⊥]→⊤'s type

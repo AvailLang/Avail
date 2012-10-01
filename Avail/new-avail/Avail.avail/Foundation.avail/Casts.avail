@@ -43,6 +43,7 @@ Uses
 	),
 	"Definers",
 	"Exceptions",
+	"Functions",
 	"Literals",
 	"Logic",
 	"Objects",
@@ -99,7 +100,7 @@ Public method "Cast|cast_into_" is
 	paramType ::= accept's type[1];
 	if valueType ⊆ paramType then
 	[
-		invoke accept with <value>;
+		accept(value);
 	]
 	else
 	[
@@ -124,13 +125,13 @@ Semantic restriction "Cast|cast_into_" is
 	If valueType ⊆ acceptType[1] then
 	[
 		Reject parse, expected:
-			format "necessary cast expression, but ‘①’ is a subtype of ‘②’"
+			format "necessary cast expression, but “①” is a subtype of “②”"
 			with valueType, acceptType[1]
 	];
 	If ¬acceptType[1] ⊆ valueType then
 	[
 		Reject parse, expected:
-			format "allowed cast expression, but ‘①’ is not a supertype of ‘②’"
+			format "allowed cast expression, but “①” is not a supertype of “②”"
 			with valueType, acceptType[1]
 	];
 	acceptType's return type
@@ -212,15 +213,15 @@ Semantic restriction "Cast|cast each of_into_" is
 		If valueType ⊆ paramType then
 		[
 			Reject parse, expected:
-				format "necessary cast expression, but ‘①’ is a subtype of ‘②’"
+				format "necessary cast expression, but “①” is a subtype of “②”"
 				with valueType, paramType
 		];
 		If ¬paramType ⊆ valueType then
 		[
 			Reject parse, expected:
 				format
-					"allowed cast expression, but ‘①’ is not a supertype of \
-					\|‘②’"
+					"allowed cast expression, but “①” is not a supertype of \
+					\|“②”"
 				with valueType, paramType
 		];
 	];
@@ -300,15 +301,15 @@ Semantic restriction "Cast|cast each of_into_else_" is
 		If valueType ⊆ paramType then
 		[
 			Reject parse, expected:
-				format "necessary cast expression, but ‘①’ is a subtype of ‘②’"
+				format "necessary cast expression, but “①” is a subtype of “②”"
 				with valueType, paramType
 		];
 		If ¬paramType ⊆ valueType then
 		[
 			Reject parse, expected:
 				format
-					"allowed cast expression, but ‘①’ is not a supertype of \
-					\|‘②’"
+					"allowed cast expression, but “①” is not a supertype of \
+					\|“②”"
 				with valueType, paramType
 		];
 	];

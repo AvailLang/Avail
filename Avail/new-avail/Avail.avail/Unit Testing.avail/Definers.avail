@@ -162,7 +162,7 @@ Private method "fixture semantic restriction function" is
 		If test's return type ≠ ⊤ then
 		[
 			Reject parse, expected:
-				format "test function's return type to be ⊤ (not ‘①’)"
+				format "test function's return type to be ⊤ (not “①”)"
 					with test's return type
 		];
 		⊤
@@ -321,7 +321,7 @@ Semantic restriction "Test_in_is_«must raise_»" is
 	If test's return type ≠ ⊤ then
 	[
 		Reject parse, expected:
-			format "test function's return type to be ⊤ (not ‘①’)"
+			format "test function's return type to be ⊤ (not “①”)"
 				with test's return type
 	];
 	⊤

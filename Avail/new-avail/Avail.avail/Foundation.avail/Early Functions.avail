@@ -141,7 +141,8 @@ Semantic restriction "_(«_‡,»)" is
 		[
 			index : natural number
 		|
-			If ¬argumentsType[index] ⊆ parametersType[index] then
+			parameterType ::= parametersType[index];
+			If parameterType ≠ ⊥ ∧ [¬argumentsType[index] ⊆ parameterType] then
 			[
 				Reject parse, expected:
 					"argument #"

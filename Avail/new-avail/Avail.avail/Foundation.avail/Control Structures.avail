@@ -301,7 +301,7 @@ Public method "From_to_by_do_" is
 		$loop;
 		If value ≤ end then
 		[
-			continue ::= invoke action with <value>;
+			continue ::= action(value);
 			value := eject ↑value + step;
 			If continue then
 			[
@@ -341,7 +341,7 @@ Public method "From_to_by_do_" is
 		$loop;
 		If value ≥ end then
 		[
-			continue ::= invoke action with <value>;
+			continue ::= action(value);
 			value := eject ↑value + step;
 			If continue then
 			[
@@ -474,7 +474,7 @@ Public method "From_to_by_do_" is
 	[
 		value : integer
 	|
-		Invoke action with <value>;
+		action(value);
 		true
 	];
 ];
@@ -505,7 +505,7 @@ Public method "From_to_by_do_" is
 	[
 		value : integer
 	|
-		Invoke action with <value>;
+		action(value);
 		true
 	];
 ];
@@ -675,7 +675,7 @@ Public method "From_to_do_" is
 	[
 		value : integer
 	|
-		Invoke action with <value>;
+		action(value);
 		true
 	];
 ];
@@ -1755,18 +1755,11 @@ Public method "Cast|cast_into«_‡,»«else_»" is
 		$body;
 		if index > |caseTuple| then
 		[
-			if |else| = 0 then
-			[
-				/* Do nothing. */
-			]
-			else
-			[
-				invoke else[1] with <>;
-			];
+			(else[1] else [[]])();
 		]
 		else if [ value ∈ caseTuple[index]'s type[1] ] then
 		[
-			invoke caseTuple[index] with <value>;
+			caseTuple[index](value);
 		]
 		else
 		[
@@ -1858,18 +1851,11 @@ Public method "Choose|choose_from_where«_is_‡,»«,else_»" is
 		$body;
 		if index > |caseTuple| then
 		[
-			if |else| = 0 then
-			[
-				/* Do nothing. */
-			]
-			else
-			[
-				invoke else[1] with <>;
-			];
+			(else[1] else [[]])();
 		]
 		else if [ caseTuple[index][1] = value ] then
 		[
-			invoke caseTuple[index][2] with <>;
+			caseTuple[index][2]();
 		]
 		else
 		[

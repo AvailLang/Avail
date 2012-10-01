@@ -653,8 +653,8 @@ Public method "module-oriented“_”" is
 		statistics ::= group results by discriminator;
 		desc := eject ↑desc
 			++ format
-				"\t(summary: total=‘total’, passed=‘passed’, \
-				\|failed=‘failed’)\n\n"
+				"\t(summary: total=“total”, passed=“passed”, \
+				\|failed=“failed”)\n\n"
 			with
 				total := |results|,
 				passed := |statistics[_passed] else [<>]|,
@@ -663,10 +663,10 @@ Public method "module-oriented“_”" is
 	/* Report statistics. */
 	statistics ::= group report's metrics by discriminator;
 	format
-		"“breakdown”SUMMARY:\n\
-		\|\tTOTAL:  ‘total’\n\
-		\|\tPASSED: ‘passed’\n\
-		\|\tFAILED: ‘failed’\n"
+		"‘breakdown’SUMMARY:\n\
+		\|\tTOTAL:  “total”\n\
+		\|\tPASSED: “passed”\n\
+		\|\tFAILED: “failed”\n"
 	with
 		breakdown := desc,
 		total := |report's metrics|,
@@ -712,8 +712,8 @@ Public method "test suite-oriented“_”" is
 		statistics ::= group results by discriminator;
 		desc := eject ↑desc
 			++ format
-				"\t(summary: total=‘total’, passed=‘passed’, \
-				\|failed=‘failed’)\n\n"
+				"\t(summary: total=“total”, passed=“passed”, \
+				\|failed=“failed”)\n\n"
 			with
 				total := |results|,
 				passed := |statistics[_passed] else [<>]|,
@@ -722,10 +722,10 @@ Public method "test suite-oriented“_”" is
 	/* Report statistics. */
 	statistics ::= group report's metrics by discriminator;
 	format
-		"“breakdown”SUMMARY:\n\
-		\|\tTOTAL:  ‘total’\n\
-		\|\tPASSED: ‘passed’\n\
-		\|\tFAILED: ‘failed’\n"
+		"‘breakdown’SUMMARY:\n\
+		\|\tTOTAL:  “total”\n\
+		\|\tPASSED: “passed”\n\
+		\|\tFAILED: “failed”\n"
 	with
 		breakdown := desc,
 		total := |report's metrics|,

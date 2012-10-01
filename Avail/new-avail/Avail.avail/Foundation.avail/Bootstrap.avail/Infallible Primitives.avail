@@ -130,7 +130,7 @@ Uses
 		"_→double",
 		"_→extended integer",
 		"_→float",
-		"_→list",
+		"_→list phrase",
 		"_→map",
 		"_→object",
 		"_→object type",
@@ -2604,7 +2604,7 @@ Primitive "``_``(_)" is
  */
 Primitive "_'s⁇arguments" is
 [
-	aBlock : block
+	aBlock : block phrase
 |
 	Primitive 363;
 ] : argument tuple;
@@ -2620,7 +2620,7 @@ Primitive "_'s⁇arguments" is
  */
 Primitive "_'s⁇primitive number" is
 [
-	aBlock : block
+	aBlock : block phrase
 |
 	Primitive 364;
 ] : whole number;
@@ -2636,7 +2636,7 @@ Primitive "_'s⁇primitive number" is
  */
 Primitive "_'s⁇statements" is
 [
-	aBlock : block
+	aBlock : block phrase
 |
 	Primitive 365;
 ] : phrase tuple;
@@ -2651,7 +2651,7 @@ Primitive "_'s⁇statements" is
  */
 Primitive "_'s⁇return type" is
 [
-	aBlock : block
+	aBlock : block phrase
 |
 	Primitive 366;
 ] : type;
@@ -2666,7 +2666,7 @@ Primitive "_'s⁇return type" is
  */
 Primitive "_'s⁇declared exceptions" is
 [
-	aBlock : block
+	aBlock : block phrase
 |
 	Primitive 367;
 ] : set;
@@ -2682,7 +2682,7 @@ Primitive "_'s⁇declared exceptions" is
  */
 Primitive "_'s⁇outer variables" is
 [
-	aBlock : block
+	aBlock : block phrase
 |
 	Primitive 368;
 ] : declaration tuple;
@@ -2697,10 +2697,10 @@ Primitive "_'s⁇outer variables" is
  */
 Primitive "_'s⁇target" is
 [
-	anAssignment : assignment
+	anAssignment : assignment phrase
 |
 	Primitive 369;
-] : variable use;
+] : variable use phrase;
 
 /**
  * Answer the specified assignment's value expression.
@@ -2712,7 +2712,7 @@ Primitive "_'s⁇target" is
  */
 Primitive "_'s⁇value" is
 [
-	anAssignment : assignment
+	anAssignment : assignment phrase
 |
 	Primitive 370;
 ] : expression yielding any;
@@ -2727,10 +2727,10 @@ Primitive "_'s⁇value" is
  */
 Primitive "_'s⁇referent" is
 [
-	aReference : variable reference
+	aReference : variable reference phrase
 |
 	Primitive 371;
-] : variable use;
+] : variable use phrase;
 
 /**
  * Construct and answer an argument declaration.
@@ -2747,7 +2747,7 @@ Primitive "arg`«_:_`»" is
 	declaredType : any meta
 |
 	Primitive 372;
-] : argument;
+] : argument phrase;
 
 /**
  * Construct and answer a label declaration.
@@ -2764,7 +2764,7 @@ Primitive "`«$_:_`»" is
 	declaredType : continuation
 |
 	Primitive 373;
-] : label;
+] : label phrase;
 
 /**
  * Construct and answer a local constant declaration.
@@ -2781,7 +2781,7 @@ Primitive "`«_::=_`»" is
 	declaredType : expression yielding any
 |
 	Primitive 374;
-] : local constant;
+] : local constant phrase;
 
 /**
  * Construct and answer a primitive failure local constant declaration.
@@ -2798,7 +2798,7 @@ Primitive "primfail`«_:_`»" is
 	declaredType : any meta
 |
 	Primitive 375;
-] : primitive failure reason;
+] : primitive failure reason phrase;
 
 /**
  * Construct and answer a local variable declaration.
@@ -2815,7 +2815,7 @@ Primitive "`«_:_`»" is
 	declaredType : any meta
 |
 	Primitive 376;
-] : local variable;
+] : local variable phrase;
 
 /**
  * Construct and answer an initialized local variable declaration.
@@ -2834,7 +2834,7 @@ Primitive "`«_:_:=_`»" is
 	initializer : expression yielding any
 |
 	Primitive 377;
-] : local variable;
+] : local variable phrase;
 
 /**
  * Answer the token that names the entity introduced by the specified
@@ -2847,7 +2847,7 @@ Primitive "`«_:_:=_`»" is
  */
 Primitive "_'s⁇token" is
 [
-	aDeclaration : declaration
+	aDeclaration : declaration phrase
 |
 	Primitive 378;
 ] : token;
@@ -2863,7 +2863,7 @@ Primitive "_'s⁇token" is
  */
 Primitive "_'s⁇declared type" is
 [
-	aDeclaration : declaration
+	aDeclaration : declaration phrase
 |
 	Primitive 379;
 ] : any meta;
@@ -2882,7 +2882,7 @@ Primitive "_'s⁇declared type" is
 Primitive "↓_`?=_'s⁇initialization" is
 [
 	var : write-only expression variable,
-	aDeclaration : declaration
+	aDeclaration : declaration phrase
 |
 	Primitive 380;
 ] : boolean;
@@ -2900,7 +2900,7 @@ Primitive "‘_’" is
 	aLiteralToken : literal token
 |
 	Primitive 381;
-] : literal;
+] : literal phrase;
 
 /**
  * Answer the specified literal expression's defining token.
@@ -2912,7 +2912,7 @@ Primitive "‘_’" is
  */
 Primitive "_'s⁇token" is
 [
-	aLiteral : literal
+	aLiteral : literal phrase
 |
 	Primitive 382;
 ] : literal token;
@@ -2927,7 +2927,7 @@ Primitive "_'s⁇token" is
  */
 Primitive "_'s⁇method" is
 [
-	aSend : send
+	aSend : send phrase
 |
 	Primitive 384;
 ] : method;
@@ -2942,10 +2942,10 @@ Primitive "_'s⁇method" is
  */
 Primitive "_'s⁇arguments" is
 [
-	aSend : send
+	aSend : send phrase
 |
 	Primitive 385;
-] : list;
+] : list phrase;
 
 /**
  * Answer the specified message send's expected return type.
@@ -2957,7 +2957,7 @@ Primitive "_'s⁇arguments" is
  */
 Primitive "_'s⁇return type" is
 [
-	aSend : send
+	aSend : send phrase
 |
 	Primitive 386;
 ] : type;
@@ -2972,7 +2972,7 @@ Primitive "_'s⁇return type" is
  */
 Primitive "_'s⁇statements" is
 [
-	aSequence : sequence
+	aSequence : sequence phrase
 |
 	Primitive 388;
 ] : phrase tuple;
@@ -2985,12 +2985,12 @@ Primitive "_'s⁇statements" is
  * Returns:
  *    The requested list.
  */
-Primitive "_→list" is
+Primitive "_→list phrase" is
 [
 	aTuple : tuple of expressions yielding any
 |
 	Primitive 392;
-] : list;
+] : list phrase;
 
 /**
  * Answer the tuple of expressions that constitute the specified list.
@@ -3002,7 +3002,7 @@ Primitive "_→list" is
  */
 Primitive "_'s⁇expressions" is
 [
-	aList : list
+	aList : list phrase
 |
 	Primitive 393;
 ] : tuple of expressions yielding any;
@@ -3018,11 +3018,11 @@ Primitive "_'s⁇expressions" is
  */
 Primitive "`«↓_`»(_)" is
 [
-	aDeclaration : declaration,
+	aDeclaration : declaration phrase,
 	aToken : token
 |
 	Primitive 394;
-] : variable use;
+] : variable use phrase;
 
 /**
  * Answer the specified variable use expression's token.
@@ -3034,7 +3034,7 @@ Primitive "`«↓_`»(_)" is
  */
 Primitive "_'s⁇token" is
 [
-	use : variable use
+	use : variable use phrase
 |
 	Primitive 395;
 ] : token;
@@ -3050,10 +3050,10 @@ Primitive "_'s⁇token" is
  */
 Primitive "_'s⁇declaration" is
 [
-	use : variable use
+	use : variable use phrase
 |
 	Primitive 396;
-] : declaration;
+] : declaration phrase;
 
 /**
  * Construct a suitably parameterized literal token type.

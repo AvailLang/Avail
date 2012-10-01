@@ -596,4 +596,4 @@ Public method "Parse the Avail document_" is
 	];
 ]:⊤;
 
-Print: format "5's type ⊆ integer=‘①’\n" with (5's type ⊆ integer);
+Print: format "5's type ⊆ integer=“①”\n" with (5's type ⊆ integer);

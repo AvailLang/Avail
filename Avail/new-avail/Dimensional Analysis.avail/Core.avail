@@ -790,7 +790,7 @@ Method "Require:_and_are compatible" is
 		metricY ::= if |y| = 1 then [y's instance] else [y];
 		Reject parse, expected:
 			format
-				"units to be compatible (but ‘①’ and ‘②’ are not compatible)"
+				"units to be compatible (but “①” and “②” are not compatible)"
 			with metricX, metricY
 	];
 ];
@@ -1629,7 +1629,7 @@ Semantic restriction "«_‡=»" is
 			Reject parse, expected:
 				format
 					"all dimensioned quantities to have compatible units \
-					\|(but ‘①’ and ‘②’ are not compatible)"
+					\|(but “①” and “②” are not compatible)"
 				with
 					refMetric, argMetric
 		];
@@ -1857,7 +1857,7 @@ Public stable method "_converted to_" is
 				source unit := key[1],
 				target unit := key[2]
 		];
-	invoke converter with <quantity, targetUnit>
+	converter(quantity, targetUnit)
 ] : dimensioned quantity;
 
 /**
@@ -1880,7 +1880,7 @@ Semantic restriction "_converted to_" is
 		[
 			Reject parse, expected:
 				format
-					"conversion function for ‘①’ → ‘②’ to have been previously\
+					"conversion function for “①” → “②” to have been previously\
 					\| defined"
 				with key[1], key[2]
 		];
@@ -1973,7 +1973,7 @@ Semantic restriction "Conversion method is_,⁇inverse is_" is
 		Reject parse, expected:
 			format
 				"first function to accept a dimensioned quantity and a unit \
-				\|(but it accepts ‘①’ and ‘②’)"
+				\|(but it accepts “①” and “②”)"
 			with functionType[1], functionType[2]
 	];
 	strong1 ::= cast functionType[1] into [t : dimensioned quantity's type | t];
@@ -1988,7 +1988,7 @@ Semantic restriction "Conversion method is_,⁇inverse is_" is
 		Reject parse, expected:
 			format
 				"first function's parameter's metrics not to be equal \
-				\|(but both are ‘①’)"
+				\|(but both are “①”)"
 			with strong2's instance
 	];
 	Unless functionType's return type's metric = strong2 then
@@ -1996,7 +1996,7 @@ Semantic restriction "Conversion method is_,⁇inverse is_" is
 		Reject parse, expected:
 			format
 				"first function to return a dimensioned quantity with the same \
-				\|metric as its second parameter (‘①’) (but it returns ‘②’)"
+				\|metric as its second parameter (“①”) (but it returns “②”)"
 			with
 				strong2's instance,
 				functionType's return type's metric's instance
@@ -2007,8 +2007,8 @@ Semantic restriction "Conversion method is_,⁇inverse is_" is
 	[
 		Reject parse, expected:
 			format
-				"second function's parameter types to be ‘①’ \
-				\|(not ‘②’)"
+				"second function's parameter types to be “①” \
+				\|(not “②”)"
 			with
 				<
 					extend dimensioned quantity with metric : strong2,
@@ -2024,7 +2024,7 @@ Semantic restriction "Conversion method is_,⁇inverse is_" is
 		Reject parse, expected:
 			format
 				"second function to return a dimensioned quantity with the same\
-				\| metric as its second parameter (‘①’) (but it returns ‘②’)"
+				\| metric as its second parameter (“①”) (but it returns “②”)"
 			with
 				inverseType[2]'s instance,
 				inverseType's return type's metric's instance
