@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.descriptor.MethodDescriptor.ObjectSlots.*;
+import static com.avail.interpreter.Primitive.Flag.*;
 import static java.lang.Math.max;
 import java.util.*;
 import com.avail.AvailRuntime;
@@ -82,14 +83,14 @@ extends Descriptor
 	}
 
 	/**
-	 * An {@linkplain MethodDescriptor method} containing a {@linkplain
+	 * A {@linkplain MethodDescriptor method} containing a {@linkplain
 	 * MethodImplementationDescriptor function} that invokes {@linkplain
 	 * P_256_EmergencyExit}. Needed by some hand-built bootstrap functions.
 	 */
 	private static AvailObject vmCrashMethod;
 
 	/**
-	 * Answer an {@linkplain MethodDescriptor method}
+	 * Answer a {@linkplain MethodDescriptor method}
 	 * containing a {@linkplain MethodImplementationDescriptor function} that
 	 * invokes {@linkplain P_256_EmergencyExit}. Needed by some hand-built
 	 * bootstrap functions.
@@ -109,21 +110,9 @@ extends Descriptor
 	 */
 	private static AvailObject newVMCrashMethod ()
 	{
-		// Generate a function with linkage to primitive 256.
-		final L1InstructionWriter writer = new L1InstructionWriter(
-			NullDescriptor.nullObject(),
-			0);
-		writer.primitiveNumber(P_256_EmergencyExit.instance.primitiveNumber);
-		writer.argumentTypes(ANY.o());
-		writer.returnType(BottomTypeDescriptor.bottom());
-		writer.write(
-			new L1Instruction(
-				L1Operation.L1_doPushLiteral,
-				writer.addLiteral(NullDescriptor.nullObject())));
-		final AvailObject newFunction = FunctionDescriptor.create(
-			writer.compiledCode(),
-			TupleDescriptor.empty());
-		newFunction.makeImmutable();
+		assert P_256_EmergencyExit.instance.hasFlag(CannotFail);
+		final AvailObject newFunction =
+			newPrimitiveFunction(P_256_EmergencyExit.instance);
 
 		// Create the new method. Note that the underscore is
 		// essential here, as certain parts of the virtual machine (like the
@@ -177,6 +166,75 @@ extends Descriptor
 	}
 
 	/**
+	 * Construct a bootstrapped {@linkplain FunctionDescriptor function} that
+	 * uses the specified primitive.  The primitive failure code should invoke
+	 * the {@link #vmCrashMethod} with a tuple of passed arguments followed by
+	 * the primitive failure value.
+	 *
+	 * @param primitive The {@link Primitive} to use.
+	 * @return A function.
+	 */
+	public static AvailObject newPrimitiveFunction (
+		final Primitive primitive)
+	{
+		final L1InstructionWriter writer = new L1InstructionWriter(
+			NullDescriptor.nullObject(),
+			0);
+		writer.primitiveNumber(primitive.primitiveNumber);
+		final AvailObject functionType = primitive.blockTypeRestriction();
+		final AvailObject argsTupleType = functionType.argsTupleType();
+		final int numArgs = argsTupleType.sizeRange().upperBound().extractInt();
+		final AvailObject [] argTypes = new AvailObject[numArgs];
+		for (int i = 0; i < argTypes.length; i++)
+		{
+			argTypes[i] = argsTupleType.typeAtIndex(i + 1);
+		}
+		writer.argumentTypes(argTypes);
+		writer.returnType(functionType.returnType());
+		if (!primitive.hasFlag(CannotFail))
+		{
+			// Produce failure code.  First declare the local that holds
+			// primitive failure information.
+			final int failureLocal = writer.createLocal(
+				VariableTypeDescriptor.wrapInnerType(
+					IntegerRangeTypeDescriptor.naturalNumbers()));
+			for (int i = 1; i <= argTypes.length; i++)
+			{
+				writer.write(
+					new L1Instruction(L1Operation.L1_doPushLastLocal, i));
+			}
+			// Get the failure code.
+			writer.write(
+				new L1Instruction(
+					L1Operation.L1_doGetLocal,
+					failureLocal));
+			// Put the arguments and failure code into a tuple.
+			writer.write(
+				new L1Instruction(
+					L1Operation.L1_doMakeTuple,
+					argTypes.length + 1));
+			writer.write(
+				new L1Instruction(
+					L1Operation.L1_doCall,
+					writer.addLiteral(vmCrashMethod()),
+					writer.addLiteral(BottomTypeDescriptor.bottom())));
+		}
+		else
+		{
+			// Primitive cannot fail, but be nice to the decompiler.
+			writer.write(
+				new L1Instruction(
+					L1Operation.L1_doPushLiteral,
+					writer.addLiteral(NullDescriptor.nullObject())));
+		}
+		final AvailObject function = FunctionDescriptor.create(
+			writer.compiledCode(),
+			TupleDescriptor.empty());
+		function.makeImmutable();
+		return function;
+	}
+
+	/**
 	 * Construct the {@linkplain FunctionDescriptor function} that implements
 	 * string-based method definition.
 	 *
@@ -184,33 +242,7 @@ extends Descriptor
 	 */
 	public static AvailObject newVMStringDefinerFunction ()
 	{
-		final L1InstructionWriter writer = new L1InstructionWriter(
-			NullDescriptor.nullObject(),
-			0);
-		writer.primitiveNumber(
-			P_253_SimpleMethodDeclaration.instance.primitiveNumber);
-		writer.argumentTypes(
-			TupleTypeDescriptor.stringTupleType(),
-			FunctionTypeDescriptor.mostGeneralType());
-		writer.returnType(TOP.o());
-		// Declare the local that holds primitive failure information.
-		final int failureLocal = writer.createLocal(
-			VariableTypeDescriptor.wrapInnerType(
-				IntegerRangeTypeDescriptor.naturalNumbers()));
-		writer.write(
-			new L1Instruction(
-				L1Operation.L1_doGetLocal,
-				failureLocal));
-		writer.write(
-			new L1Instruction(
-				L1Operation.L1_doCall,
-				writer.addLiteral(vmCrashMethod()),
-				writer.addLiteral(BottomTypeDescriptor.bottom())));
-		final AvailObject fromStringFunction = FunctionDescriptor.create(
-			writer.compiledCode(),
-			TupleDescriptor.empty());
-		fromStringFunction.makeImmutable();
-		return fromStringFunction;
+		return newPrimitiveFunction(P_253_SimpleMethodDeclaration.instance);
 	}
 
 	/**
@@ -221,33 +253,7 @@ extends Descriptor
 	 */
 	public static AvailObject newVMAtomDefinerFunction ()
 	{
-		final L1InstructionWriter writer = new L1InstructionWriter(
-			NullDescriptor.nullObject(),
-			0);
-		writer.primitiveNumber(
-			P_228_MethodDeclarationFromAtom.instance.primitiveNumber);
-		writer.argumentTypes(
-			ATOM.o(),
-			FunctionTypeDescriptor.mostGeneralType());
-		writer.returnType(TOP.o());
-		// Declare the local that holds primitive failure information.
-		final int failureLocal = writer.createLocal(
-			VariableTypeDescriptor.wrapInnerType(
-				IntegerRangeTypeDescriptor.naturalNumbers()));
-		writer.write(
-			new L1Instruction(
-				L1Operation.L1_doGetLocal,
-				failureLocal));
-		writer.write(
-			new L1Instruction(
-				L1Operation.L1_doCall,
-				writer.addLiteral(vmCrashMethod()),
-				writer.addLiteral(BottomTypeDescriptor.bottom())));
-		final AvailObject fromAtomFunction = FunctionDescriptor.create(
-			writer.compiledCode(),
-			TupleDescriptor.empty());
-		fromAtomFunction.makeImmutable();
-		return fromAtomFunction;
+		return newPrimitiveFunction(P_228_MethodDeclarationFromAtom.instance);
 	}
 
 	/**
@@ -294,18 +300,18 @@ extends Descriptor
 	}
 
 	/**
-	 * An {@linkplain MethodDescriptor method} containing
-	 * a {@linkplain MethodImplementationDescriptor function} that invokes
-	 * {@link P_040_InvokeWithTuple} (function application). Needed by some
-	 * hand-built functions.
+	 * A {@linkplain MethodDescriptor method} containing an {@linkplain
+	 * MethodImplementationDescriptor implementation} that invokes {@link
+	 * P_040_InvokeWithTuple} (function application). Needed by some hand-built
+	 * functions.
 	 */
 	private static AvailObject vmFunctionApplyMethod;
 
 	/**
-	 * An {@linkplain MethodDescriptor method} containing
-	 * a {@linkplain MethodImplementationDescriptor function} that invokes
-	 * {@link P_040_InvokeWithTuple} (function application). Needed by some
-	 * hand-built functions.
+	 * A {@linkplain MethodDescriptor method} containing an {@linkplain
+	 * MethodImplementationDescriptor implementation} that invokes {@link
+	 * P_040_InvokeWithTuple} (function application). Needed by some hand-built
+	 * functions.
 	 *
 	 * @return A method.
 	 */
@@ -322,33 +328,8 @@ extends Descriptor
 	 */
 	private static AvailObject newVMFunctionApplyMethod ()
 	{
-		// Generate a function with linkage to primitive 40.
-		final L1InstructionWriter writer = new L1InstructionWriter(
-			NullDescriptor.nullObject(),
-			0);
-		writer.primitiveNumber(
-			P_040_InvokeWithTuple.instance.primitiveNumber);
-		writer.argumentTypes(
-			FunctionTypeDescriptor.mostGeneralType(),
-			TupleTypeDescriptor.mostGeneralType());
-		writer.returnType(TOP.o());
-		// Create the local for the primitive failure code.
-		final int failureLocal = writer.createLocal(
-			VariableTypeDescriptor.wrapInnerType(
-				IntegerRangeTypeDescriptor.naturalNumbers()));
-		writer.write(
-			new L1Instruction(
-				L1Operation.L1_doGetLocal,
-				failureLocal));
-		writer.write(
-			new L1Instruction(
-				L1Operation.L1_doCall,
-				writer.addLiteral(vmCrashMethod),
-				writer.addLiteral(BottomTypeDescriptor.bottom())));
-		final AvailObject newFunction = FunctionDescriptor.create(
-			writer.compiledCode(),
-			TupleDescriptor.empty());
-		newFunction.makeImmutable();
+		final AvailObject newFunction =
+			newPrimitiveFunction(P_040_InvokeWithTuple.instance);
 
 		// Create the new method.
 		final AvailObject method = newMethodWithName(vmFunctionApplyAtom);
@@ -383,18 +364,18 @@ extends Descriptor
 	}
 
 	/**
-	 * An {@linkplain MethodDescriptor method} containing
-	 * a {@linkplain MethodImplementationDescriptor function} that invokes
-	 * {@link P_263_DeclareAllExportedAtoms} (atom-set publication). Needed by
-	 * the module compilation system.
+	 * A {@linkplain MethodDescriptor method} containing an {@linkplain
+	 * MethodImplementationDescriptor implementation} that invokes {@link
+	 * P_263_DeclareAllExportedAtoms} (atom-set publication). Needed by the
+	 * module compilation system.
 	 */
 	private static AvailObject vmPublishAtomsMethod;
 
 	/**
-	 * An {@linkplain MethodDescriptor method} containing
-	 * a {@linkplain MethodImplementationDescriptor function} that invokes
-	 * {@link P_263_DeclareAllExportedAtoms} (atom-set publication). Needed by
-	 * the module compilation system.
+	 * A {@linkplain MethodDescriptor method} containing an {@linkplain
+	 * MethodImplementationDescriptor implementation} that invokes {@link
+	 * P_263_DeclareAllExportedAtoms} (atom-set publication). Needed by the
+	 * module compilation system.
 	 *
 	 * @return A method.
 	 */
@@ -411,26 +392,8 @@ extends Descriptor
 	 */
 	private static AvailObject newVMPublishAtomsMethod ()
 	{
-		// Generate a function with linkage to primitive 263.
-		final L1InstructionWriter writer = new L1InstructionWriter(
-			NullDescriptor.nullObject(),
-			0);
-		writer.primitiveNumber(
-			P_263_DeclareAllExportedAtoms.instance.primitiveNumber);
-		writer.argumentTypes(
-			SetTypeDescriptor.setTypeForSizesContentType(
-				IntegerRangeTypeDescriptor.wholeNumbers(),
-				ATOM.o()),
-			EnumerationTypeDescriptor.booleanObject());
-		writer.returnType(TOP.o());
-		writer.write(
-			new L1Instruction(
-				L1Operation.L1_doPushLiteral,
-				writer.addLiteral(NullDescriptor.nullObject())));
-		final AvailObject newFunction = FunctionDescriptor.create(
-			writer.compiledCode(),
-			TupleDescriptor.empty());
-		newFunction.makeImmutable();
+		final AvailObject newFunction =
+			newPrimitiveFunction(P_263_DeclareAllExportedAtoms.instance);
 
 		// Create the new method.
 		final AvailObject method = newMethodWithName(vmPublishAtomsAtom);
@@ -1430,10 +1393,10 @@ extends Descriptor
 	}
 
 	/**
-	 * Answer a new {@linkplain MethodDescriptor method}.
-	 * Use the passed {@linkplain AtomDescriptor atom} as its name. An
-	 * method is always immutable, but its implementationsTuple,
-	 * privateTestingTree, and dependentsChunks can all be assigned to.
+	 * Answer a new {@linkplain MethodDescriptor method}.  Use the passed
+	 * {@linkplain AtomDescriptor atom} as its name.  A method is always
+	 * immutable, but its implementationsTuple, privateTestingTree, and
+	 * dependentsChunks can all be assigned to.
 	 *
 	 * @param messageName
 	 *            The atom acting as the message name.

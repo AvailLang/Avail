@@ -46,7 +46,7 @@ import com.avail.builder.*;
 import com.avail.compiler.scanning.*;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TokenDescriptor.TokenType;
-import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.*;
 import com.avail.interpreter.levelOne.*;
 import com.avail.interpreter.levelTwo.L2Interpreter;
 import com.avail.interpreter.primitive.P_240_SpecialObject;
@@ -3102,38 +3102,58 @@ public abstract class AbstractAvailCompiler
 		final Con<AvailObject> continuation);
 
 	/**
+	 * Create a bootstrap primitive method. Use the primitive's type declaration
+	 * as the argument types.  If the primitive is fallible then generate
+	 * suitable primitive failure code (to invoke the {@link MethodDescriptor
+	 * #vmCrashMethod}).
+	 *
+	 * @param methodName
+	 *        The name of the primitive method being defined.
+	 * @param primitiveNumber
+	 *        The {@linkplain Primitive#primitiveNumber primitive number} of the
+	 *        {@linkplain MethodDescriptor method} being defined.
+	 */
+	void bootstrapMethod (
+		final String methodName,
+		final int primitiveNumber)
+	{
+		final AvailObject availName = StringDescriptor.from(methodName);
+		final AvailObject nameLiteral =
+			LiteralNodeDescriptor.syntheticFrom(availName);
+		final AvailObject function =
+			MethodDescriptor.newVMStringDefinerFunction();
+		final AvailObject targetMethod = MethodDescriptor.vmDefinerMethod();
+		final AvailObject send = SendNodeDescriptor.from(
+			targetMethod,
+			ListNodeDescriptor.newExpressions(TupleDescriptor.from(
+				nameLiteral,
+				LiteralNodeDescriptor.syntheticFrom(function))),
+			TOP.o());
+		evaluateModuleStatement(send);
+	}
+
+	/**
 	 * Create the two-argument defining method. The first parameter of the
-	 * method is the name, the second parameter is the {@linkplain
-	 * FunctionDescriptor function}.
+	 * method is the name (a {@linkplain StringDescriptor string}), and the
+	 * second parameter is the {@linkplain FunctionDescriptor function}.
 	 *
 	 * @param defineMethodName
 	 *        The name of the defining method.
 	 */
 	void bootstrapDefiningMethod (final String defineMethodName)
 	{
-		// Add the string-based definer.
+		// Add a method definer.
 		final AvailObject availName = StringDescriptor.from(defineMethodName);
 		final AvailObject nameLiteral =
 			LiteralNodeDescriptor.syntheticFrom(availName);
-		final AvailObject fromStringFunction =
+		final AvailObject function =
 			MethodDescriptor.newVMStringDefinerFunction();
 		final AvailObject targetMethod = MethodDescriptor.vmDefinerMethod();
-		AvailObject send = SendNodeDescriptor.from(
+		final AvailObject send = SendNodeDescriptor.from(
 			targetMethod,
 			ListNodeDescriptor.newExpressions(TupleDescriptor.from(
 				nameLiteral,
-				LiteralNodeDescriptor.syntheticFrom(fromStringFunction))),
-			TOP.o());
-		evaluateModuleStatement(send);
-
-		// Add the atom-based definer.
-		final AvailObject fromAtomFunction =
-			MethodDescriptor.newVMAtomDefinerFunction();
-		send = SendNodeDescriptor.from(
-			targetMethod,
-			ListNodeDescriptor.newExpressions(TupleDescriptor.from(
-				nameLiteral,
-				LiteralNodeDescriptor.syntheticFrom(fromAtomFunction))),
+				LiteralNodeDescriptor.syntheticFrom(function))),
 			TOP.o());
 		evaluateModuleStatement(send);
 	}

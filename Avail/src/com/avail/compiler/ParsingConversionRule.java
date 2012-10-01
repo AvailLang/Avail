@@ -58,7 +58,7 @@ public enum ParsingConversionRule
 
 	/**
 	 * {@code 2} - Convert a {@linkplain ListNodeDescriptor list} into a
-	 * {@linkplain LiteralNodeDescriptor literal node} that yields an
+	 * {@linkplain LiteralNodeDescriptor literal node} that yields a
 	 * {@linkplain EnumerationTypeDescriptor#booleanObject() boolean}: {@link
 	 * AtomDescriptor#trueObject() true} if the list was nonempty, {@link
 	 * AtomDescriptor#falseObject() false} otherwise.

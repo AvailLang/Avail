@@ -38,8 +38,8 @@ import java.io.ByteArrayOutputStream;
 
 /**
  * This is a multi-method call instruction.  The opcode is followed by the index
- * of the message (an {@linkplain MethodDescriptor method}),
- * then the index of the literal that holds the return type for this call site.
+ * of the message (a {@linkplain MethodDescriptor method}), then the index of
+ * the literal that holds the return type for this call site.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -55,11 +55,11 @@ public class AvailCall extends AvailInstructionWithIndex
 	/**
 	 * Construct a new {@link AvailCall}.
 	 *
-	 * @param messageIndex The index of the literal that holds the message (an
+	 * @param messageIndex The index of the literal that holds the message (a
 	 *                     {@linkplain MethodDescriptor method}.
 	 * @param verifyIndex The index of the literal that holds the return type.
 	 */
-	public AvailCall (int messageIndex, int verifyIndex)
+	public AvailCall (final int messageIndex, final int verifyIndex)
 	{
 		super(messageIndex);
 		this.verifyIndex = verifyIndex;

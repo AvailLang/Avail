@@ -40,8 +40,12 @@ import static javax.swing.SwingUtilities.*;
 import static javax.swing.JScrollPane.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.ImageObserver;
 import java.io.*;
+import java.net.URL;
 import java.util.*;
+import java.util.List;
+import java.util.prefs.Preferences;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.text.*;
@@ -90,6 +94,9 @@ extends JFrame
 		@Override
 		public void actionPerformed (final @Nullable ActionEvent event)
 		{
+			final String selectedModule = selectedModule();
+			assert selectedModule != null;
+
 			// Update the UI.
 			setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 			setEnabled(false);
@@ -114,14 +121,10 @@ extends JFrame
 			inputStream.clear();
 
 			// Build the target module in a Swing worker thread.
-			final String selectedModule = selectedModule();
-			if (selectedModule != null)
-			{
-				buildTask = new BuildTask(selectedModule);
-				buildTask.execute();
-				cancelAction.setEnabled(true);
-				cleanAction.setEnabled(false);
-			}
+			buildTask = new BuildTask(selectedModule);
+			buildTask.execute();
+			cancelAction.setEnabled(true);
+			cleanAction.setEnabled(false);
 		}
 
 		/**
@@ -504,7 +507,7 @@ extends JFrame
 			buildProgress.setEnabled(false);
 			inputField.setEnabled(false);
 			cancelAction.setEnabled(false);
-			buildAction.setEnabled(true);
+			buildAction.setEnabled(targetModuleName != null);
 			cleanAction.setEnabled(true);
 			if (terminator == null)
 			{
@@ -1040,6 +1043,106 @@ extends JFrame
 			percent));
 	}
 
+	@InnerAccess final Preferences basePreferences =
+		Preferences.userNodeForPackage(getClass());
+
+	final String placementByMonitorLayoutString = "placementByMonitorLayout";
+
+	final String placementLeafKeyString = "placement";
+
+	/**
+	 * Answer a {@link List} of {@link Rectangle}s corresponding with the
+	 * physical monitors into which {@link Frame}s may be positioned.
+	 *
+	 * @return The list of rectangles to which physical screens are mapped.
+	 */
+	@InnerAccess
+	List<Rectangle> allMonitorRectangles ()
+	{
+		final GraphicsEnvironment graphicsEnvironment =
+			GraphicsEnvironment.getLocalGraphicsEnvironment();
+		final GraphicsDevice[] screens = graphicsEnvironment.getScreenDevices();
+		final List<Rectangle> allRectangles = new ArrayList<Rectangle>();
+		for (final GraphicsDevice screen : screens)
+		{
+			for (final GraphicsConfiguration gc : screen.getConfigurations())
+			{
+				allRectangles.add(gc.getBounds());
+			}
+		}
+		return allRectangles;
+	}
+
+	/**
+	 * Answer the {@link Preferences} node responsible for holding the default
+	 * window position and size for the current monitor configuration.
+	 *
+	 * @param monitorRectangles
+	 *            The relative locations of all physical screens.
+	 *
+	 * @return The {@code Preferences} node in which placement information for
+	 *         the current monitor configuration can be stored and retrieved.
+	 */
+	@InnerAccess
+	Preferences placementPreferencesNodeForRectangles (
+		final List<Rectangle> monitorRectangles)
+	{
+		final StringBuilder allBoundsString = new StringBuilder();
+		for (final Rectangle rectangle : monitorRectangles)
+		{
+			allBoundsString.append(
+				String.format(
+					"%d,%d,%d,%d;",
+					rectangle.x,
+					rectangle.y,
+					rectangle.width,
+					rectangle.height));
+		}
+		return basePreferences.node(
+			placementByMonitorLayoutString + "/" + allBoundsString);
+	}
+
+	/**
+	 * Figure out where to initially place the frame.  Use the current screen
+	 * resolutions/positions to preserve placement information.  Place it on the
+	 * primary screen if this configuration has not yet been encountered.
+	 *
+	 * @return The rectangle into which to position this {@link
+	 *         AvailBuilderFrame}, or null if
+	 */
+	@InnerAccess
+	@Nullable Rectangle getInitialRectangle ()
+	{
+		final List<Rectangle> rectangles = allMonitorRectangles();
+		final Preferences preferences =
+			placementPreferencesNodeForRectangles(rectangles);
+
+		final String locationString = preferences.get(
+			placementLeafKeyString,
+			null);
+		if (locationString == null)
+		{
+			return null;
+		}
+		final String[] substrings = locationString.split(",");
+		if (substrings.length != 4)
+		{
+			return null;
+		}
+		try
+		{
+			final int x = Integer.valueOf(substrings[0]);
+			final int y = Integer.valueOf(substrings[1]);
+			final int w = Integer.valueOf(substrings[2]);
+			final int h = Integer.valueOf(substrings[3]);
+			return new Rectangle(x, y, w, h);
+		}
+		catch (final NumberFormatException e)
+		{
+			return null;
+		}
+	}
+
 	/**
 	 * Construct a new {@link AvailBuilderFrame}.
 	 *
@@ -1059,10 +1162,10 @@ extends JFrame
 		// Set module components.
 		this.resolver = resolver;
 
-		// Set properties of the frame.
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setTitle("Avail Builder");
 		setResizable(true);
+//		setIconImage(new ImageIcon("images/AvailHammer.png").getImage());
 
 		// Create the menu bar and menus.
 		final JMenuBar menuBar = new JMenuBar();
@@ -1154,10 +1257,10 @@ extends JFrame
 			@Override
  			public void valueChanged (final @Nullable TreeSelectionEvent event)
 			{
-				if (buildAction.isEnabled()
-					&& moduleTree.getLastSelectedPathComponent() == null)
+				final boolean newEnablement = selectedModule() != null;
+				if (buildAction.isEnabled() != newEnablement)
 				{
-					buildAction.setEnabled(false);
+					buildAction.setEnabled(newEnablement);
 				}
 			}
 		});
@@ -1186,12 +1289,14 @@ extends JFrame
 		{
 			moduleTree.expandRow(i);
 		}
+		buildAction.setEnabled(false);
 		if (!initialTarget.isEmpty())
 		{
 			final TreePath path = modulePath(initialTarget);
 			if (path != null)
 			{
 				moduleTree.setSelectionPath(path);
+				buildAction.setEnabled(true);
 			}
 		}
 		moduleTreeScrollArea.setViewportView(moduleTree);
@@ -1286,6 +1391,18 @@ extends JFrame
 
 		// Set up styles for the transcript.
 		final StyledDocument doc = transcript.getStyledDocument();
+		final SimpleAttributeSet attributes = new SimpleAttributeSet();
+		final TabStop[] tabStops = new TabStop[500];
+		for (int i = 0; i < tabStops.length; i++)
+		{
+			tabStops[i] = new TabStop(
+				32.0f * (i + 1),
+				TabStop.ALIGN_LEFT,
+				TabStop.LEAD_DOTS);
+		}
+		final TabSet tabSet = new TabSet(tabStops);
+		StyleConstants.setTabSet(attributes, tabSet);
+		doc.setParagraphAttributes(0, doc.getLength(), attributes, false);
 		final Style defaultStyle =
 			StyleContext.getDefaultStyleContext().getStyle(
 				StyleContext.DEFAULT_STYLE);
@@ -1301,6 +1418,28 @@ extends JFrame
 
 		// Redirect the standard streams.
 		redirectStandardStreams();
+
+		// Save placement when closing.
+		addWindowListener(new WindowAdapter()
+		{
+			@Override
+			public void windowClosing (final @Nullable WindowEvent e)
+			{
+				final List<Rectangle> monitorRectangles =
+					allMonitorRectangles();
+				final Preferences preferences =
+					placementPreferencesNodeForRectangles(monitorRectangles);
+				final Rectangle rectangle = getBounds();
+				final String locationString = String.format(
+					"%d,%d,%d,%d",
+					rectangle.x,
+					rectangle.y,
+					rectangle.width,
+					rectangle.height);
+				preferences.put(placementLeafKeyString, locationString);
+				super.windowClosing(e);
+			}
+		});
 	}
 
 	/**
@@ -1314,6 +1453,10 @@ extends JFrame
 	 */
 	public static void main (final String[] args) throws Exception
 	{
+		System.setProperty("apple.laf.useScreenMenuBar", "true");
+		// TODO[MvG]: I can't get this to work right.
+//		System.setProperty("apple.eawt.quitStrategy", "CLOSE_ALL_WINDOWS");
+
 		final ModuleRoots roots = new ModuleRoots(
 			System.getProperty("availRoots", ""));
 		final String renames = System.getProperty("availRenames");
@@ -1349,6 +1492,12 @@ extends JFrame
 				final AvailBuilderFrame frame = new AvailBuilderFrame(
 					resolver, initial);
 				frame.pack();
+				final @Nullable Rectangle preferredRectangle =
+					frame.getInitialRectangle();
+				if (preferredRectangle != null)
+				{
+					frame.setBounds(preferredRectangle);
+				}
 				frame.setVisible(true);
 			}
 		});

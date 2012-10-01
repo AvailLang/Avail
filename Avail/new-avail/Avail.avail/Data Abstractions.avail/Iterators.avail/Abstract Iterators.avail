@@ -568,7 +568,7 @@ filtered iterator's advance method is
 ] : ⊤;
 
 /**
- * Construct and answer an iterator that applies {@param "predicate"} to an
+ * Construct and answer an iterator that applies {@param "predicate"} to
  * {@param "anIterator"}. The result is lazy, so {@param "anIterator"} may be
  * infinite. The result contains only those elements of {@param "anIterator"}
  * that pass the specified filter.
