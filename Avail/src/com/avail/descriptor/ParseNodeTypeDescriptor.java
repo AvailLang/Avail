@@ -563,8 +563,17 @@ public class ParseNodeTypeDescriptor extends TypeDescriptor
 	{
 		final int kindOrdinal = object.slot(KIND);
 		final ParseNodeKind kind = ParseNodeKind.values()[kindOrdinal];
-		final String name = kind.name().toLowerCase().replace('_', ' ');
-		builder.append(name);
+		if (kind == PARSE_NODE)
+		{
+			builder.append("phrase");
+		}
+		else
+		{
+			final String name = kind.name().toLowerCase()
+				.replace("node", "phrase")
+				.replace('_', ' ');
+			builder.append(name);
+		}
 		builder.append("→");
 		object.expressionType().printOnAvoidingIndent(
 			builder,

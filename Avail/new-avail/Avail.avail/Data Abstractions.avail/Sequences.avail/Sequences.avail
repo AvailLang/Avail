@@ -1,5 +1,5 @@
 /*
- * Data Abstractions.avail
+ * Sequences.avail
  * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
  * All rights reserved.
  *
@@ -30,18 +30,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-System Module "Data Abstractions"
+System Module "Sequences"
 Versions
 	"dev"
-Extends
-	"Common" =
-	(
-		"Data|data abstractions test suite"
-	),
-	"Graphs",
-	"Iterators",
-	"Optional",
-	"Pseudorandom Number Generation",
-	"Sequences",
-	"Streams"
+Uses
+	"Abstract Sequences"
 Body

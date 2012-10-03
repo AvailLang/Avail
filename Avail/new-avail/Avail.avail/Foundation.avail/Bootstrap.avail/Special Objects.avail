@@ -51,24 +51,24 @@ Names
 	/*  42 */ "abstract site",
 	/*   1 */ "any",
 	/*  69 */ "any meta",
-	/*  62 */ "argument",
+	/*  62 */ "argument phrase",
 	/* 122 */ "argument tuple",
-	/*  53 */ "assignment",
+	/*  53 */ "assignment phrase",
 	/*  11 */ "atom",
-	/*  54 */ "block",
+	/*  54 */ "block phrase",
 	/*   2 */ "boolean",
 	/*   3 */ "character",
 	/*  38 */ "code point",
 	/*   9 */ "continuation",
 	/*  10 */ "continuation meta",
 	/*  92 */ "continuation variable",
-	/*  61 */ "declaration",
+	/*  61 */ "declaration phrase",
 	/* 123 */ "declaration tuple",
 	/*  12 */ "double",
 	/*  96 */ "empty map",
 	/* 104 */ "empty tuple",
 	/*  24 */ "exception",
-	/*  52 */ "expression",
+	/*  52 */ "expression phrase",
 	/* 126 */ "expression yielding any",
 	/*  13 */ "extended integer",
 	/*  18 */ "extended integer meta",
@@ -86,13 +86,13 @@ Names
 	/*  44 */ "implementation site",
 	/*  17 */ "integer",
 	/*  95 */ "key-value tuple",
-	/*  63 */ "label",
-	/*  59 */ "list",
-	/*  55 */ "literal",
+	/*  63 */ "label phrase",
+	/*  59 */ "list phrase",
+	/*  55 */ "literal phrase",
 	/* 116 */ "literal token",
 	/*  58 */ "literal token meta",
-	/*  65 */ "local constant",
-	/*  64 */ "local variable",
+	/*  65 */ "local constant phrase",
+	/*  64 */ "local variable phrase",
 	/* 109 */ "macro function",
 	/*  39 */ "map",
 	/*  19 */ "map meta",
@@ -101,8 +101,8 @@ Names
 	/*  46 */ "method",
 	/*  41 */ "method site",
 	/*  20 */ "module",
-	/*  67 */ "module constant",
-	/*  66 */ "module variable",
+	/*  67 */ "module constant phrase",
+	/*  66 */ "module variable phrase",
 	/*  37 */ "natural number",
 	/*  97 */ "non-empty map",
 	/*  99 */ "non-empty set",
@@ -129,10 +129,10 @@ Names
 	/*  82 */ "pojo⊥",
 	/*  91 */ "predicate function",
 	/*  76 */ "primitive failure function",
-	/*  68 */ "primitive failure reason",
+	/*  68 */ "primitive failure reason phrase",
 	/* 107 */ "semantic restriction function",
-	/*  57 */ "send",
-	/*  51 */ "sequence",
+	/*  57 */ "send phrase",
+	/*  51 */ "sequence phrase",
 	/*  26 */ "set",
 	/*  27 */ "set meta",
 	/* 114 */ "set of atom",
@@ -160,8 +160,8 @@ Names
 	/* 103 */ "unsigned short",
 	/*   7 */ "variable",
 	/*   8 */ "variable meta",
-	/*  56 */ "variable reference",
-	/*  60 */ "variable use",
+	/*  56 */ "variable reference phrase",
+	/*  60 */ "variable use phrase",
 	/*  36 */ "whole number",
 	/*  98 */ "whole number meta",
 	/* 124 */ "write-only expression variable",
@@ -219,24 +219,24 @@ _implementation_site                    ::= special object 44;
 _message_bundle_tree                    ::= special object 45;
 _method                                 ::= special object 46;
 _phrase                                 ::= special object 50;
-_sequence                               ::= special object 51;
-_expression                             ::= special object 52;
-_assignment                             ::= special object 53;
-_block                                  ::= special object 54;
-_literal                                ::= special object 55;
-_variable_reference                     ::= special object 56;
-_send                                   ::= special object 57;
+_sequence_phrase                        ::= special object 51;
+_expression_phrase                      ::= special object 52;
+_assignment_phrase                      ::= special object 53;
+_block_phrase                           ::= special object 54;
+_literal_phrase                         ::= special object 55;
+_variable_reference_phrase              ::= special object 56;
+_send_phrase                            ::= special object 57;
 _literal_token_meta                     ::= special object 58;
-_list                                   ::= special object 59;
-_variable_use                           ::= special object 60;
-_declaration                            ::= special object 61;
-_argument                               ::= special object 62;
-_label                                  ::= special object 63;
-_local_variable                         ::= special object 64;
-_local_constant                         ::= special object 65;
-_module_variable                        ::= special object 66;
-_module_constant                        ::= special object 67;
-_primitive_failure_reason               ::= special object 68;
+_list_phrase                            ::= special object 59;
+_variable_use_phrase                    ::= special object 60;
+_declaration_phrase                     ::= special object 61;
+_argument_phrase                        ::= special object 62;
+_label_phrase                           ::= special object 63;
+_local_variable_phrase                  ::= special object 64;
+_local_constant_phrase                  ::= special object 65;
+_module_variable_phrase                 ::= special object 66;
+_module_constant_phrase                 ::= special object 67;
+_primitive_failure_reason_phrase        ::= special object 68;
 _any_meta                               ::= special object 69;
 _true                                   ::= special object 70;
 _false                                  ::= special object 71;
@@ -646,39 +646,39 @@ Primitive "phrase" is
 	_phrase
 ];
 
-Primitive "sequence" is
+Primitive "sequence phrase" is
 [
-	_sequence
+	_sequence_phrase
 ];
 
-Primitive "expression" is
+Primitive "expression phrase" is
 [
-	_expression
+	_expression_phrase
 ];
 
-Primitive "assignment" is
+Primitive "assignment phrase" is
 [
-	_assignment
+	_assignment_phrase
 ];
 
-Primitive "block" is
+Primitive "block phrase" is
 [
-	_block
+	_block_phrase
 ];
 
-Primitive "literal" is
+Primitive "literal phrase" is
 [
-	_literal
+	_literal_phrase
 ];
 
-Primitive "variable reference" is
+Primitive "variable reference phrase" is
 [
-	_variable_reference
+	_variable_reference_phrase
 ];
 
-Primitive "send" is
+Primitive "send phrase" is
 [
-	_send
+	_send_phrase
 ];
 
 /**
@@ -689,54 +689,54 @@ Primitive "literal token meta" is
 	_literal_token_meta
 ];
 
-Primitive "list" is
+Primitive "list phrase" is
 [
-	_list
+	_list_phrase
 ];
 
-Primitive "variable use" is
+Primitive "variable use phrase" is
 [
-	_variable_use
+	_variable_use_phrase
 ];
 
-Primitive "declaration" is
+Primitive "declaration phrase" is
 [
-	_declaration
+	_declaration_phrase
 ];
 
-Primitive "argument" is
+Primitive "argument phrase" is
 [
-	_argument
+	_argument_phrase
 ];
 
-Primitive "label" is
+Primitive "label phrase" is
 [
-	_label
+	_label_phrase
 ];
 
-Primitive "local variable" is
+Primitive "local variable phrase" is
 [
-	_local_variable
+	_local_variable_phrase
 ];
 
-Primitive "local constant" is
+Primitive "local constant phrase" is
 [
-	_local_constant
+	_local_constant_phrase
 ];
 
-Primitive "module variable" is
+Primitive "module variable phrase" is
 [
-	_module_variable
+	_module_variable_phrase
 ];
 
-Primitive "module constant" is
+Primitive "module constant phrase" is
 [
-	_module_constant
+	_module_constant_phrase
 ];
 
-Primitive "primitive failure reason" is
+Primitive "primitive failure reason phrase" is
 [
-	_primitive_failure_reason
+	_primitive_failure_reason_phrase
 ];
 
 Primitive "any meta" is

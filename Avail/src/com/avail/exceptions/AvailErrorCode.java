@@ -267,9 +267,10 @@ public enum AvailErrorCode
 	E_DECLARATION_KIND_DOES_NOT_SUPPORT_REFERENCE (37),
 
 	/**
-	 * TODO: Recycle!
+	 * An exclamation mark (!) may only occur after a guillemet group containing
+	 * an alternation.
 	 */
-//	E_??? (38),
+	E_EXCLAMATION_MARK_MUST_FOLLOW_AN_ALTERNATION_GROUP (38),
 
 	/**
 	 * An attempt was made to add a signature with the same argument types as an
@@ -329,7 +330,7 @@ public enum AvailErrorCode
 	E_INCORRECT_TYPE_FOR_BOOLEAN_GROUP (47),
 
 	/**
-	 * An argument type for a boolean group («...»?) must be a subtype of
+	 * An argument type for a counting group («...»#) must be a subtype of
 	 * boolean.
 	 */
 	E_INCORRECT_TYPE_FOR_COUNTING_GROUP (48),
@@ -382,6 +383,13 @@ public enum AvailErrorCode
 	 * integer (neither truncation, floor, nor ceiling).
 	 */
 	E_CANNOT_CONVERT_NOT_A_NUMBER_TO_INTEGER (56),
+
+	/**
+	 * A {@linkplain MessageSplitter numbered choice expression} should have its
+	 * corresponding argument typed as a subtype of [1..N] where N is the number
+	 * of listed choices.
+	 */
+	E_INCORRECT_TYPE_FOR_NUMBERED_CHOICE (57),
 
 	/**
 	 * Compilation is over. The interpreter is now operating in runtime mode.

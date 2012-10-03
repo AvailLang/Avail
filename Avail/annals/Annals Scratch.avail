@@ -147,7 +147,7 @@ For each methodTexts do
  	temp : <string…|> := <>;
  	parts ::= stream over str delimited by any of 
  	<"Method: ", "Description:","Parameters:", "Returns:", "Category:","*/">;
- 	Print: format "parts=‘①’\n" with parts;
+ 	Print: format "parts=“①”\n" with parts;
  	 For each parts do
  	[ value : string | temp := temp ++ <value>;];
 	parsed1MethodTexts := parsed1MethodTexts ++ <temp>;

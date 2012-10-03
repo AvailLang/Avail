@@ -85,9 +85,9 @@ Private method "_partially evaluate with_" is
 	Assert: ⎣argumentTypes⎦ = |pairs|;
 	weakOriginalFunctionConstant ::= ‘`originalFunction`("originalFunction")’;
 	originalFunctionConstant ::= cast weakOriginalFunctionConstant
-		into [lit : literal ⇒ function | lit];
-	callArguments : <expression⇒any…|> := <>;
-	argumentDeclarations : <argument⇒⊤…|> := <>;
+		into [lit : literal phrase ⇒ function | lit];
+	callArguments : <expression phrase⇒any…|> := <>;
+	argumentDeclarations : <argument phrase⇒⊤…|> := <>;
 	For each pairs do [
 			pair : <<any…|>, boolean…|>,
 			n : natural number
@@ -115,7 +115,7 @@ Private method "_partially evaluate with_" is
 				send invokeMethod with
 				«<
 					originalFunctionConstant,
-					(callArguments → list)
+					(callArguments → list phrase)
 				>» : (originalType's return type)
 			>
 		] : originalType's return type»;

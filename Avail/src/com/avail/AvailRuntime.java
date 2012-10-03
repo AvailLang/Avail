@@ -892,8 +892,8 @@ implements ThreadFactory
 	 * {@linkplain AtomDescriptor method name}. If necessary, then create a new
 	 * method and bind it.
 	 *
-	 * @param methodName A {@linkplain AtomDescriptor method name}.
-	 * @return An {@linkplain MethodDescriptor method}.
+	 * @param methodName An {@linkplain AtomDescriptor atom} naming the method.
+	 * @return The corresponding {@linkplain MethodDescriptor method}.
 	 */
 	@ThreadSafe
 	public AvailObject methodFor (

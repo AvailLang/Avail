@@ -109,7 +109,7 @@ counting integer stream's tail method is
 		next := nextValue
 ] : counting integer stream;
 
-Semantic restriction "For each_do_" is
+Semantic restriction "For each of⁇_do_" is
 [
 	streamType : counting integer stream's type,
 	actionType : [⊥]→⊤'s type

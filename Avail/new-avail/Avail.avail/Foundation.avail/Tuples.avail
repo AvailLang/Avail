@@ -107,7 +107,7 @@ Stable method "_is empty" is
  *    aTuple - A tuple.
  *    action - A function that accepts the elements of the tuple.
  */
-Method "For each_do_" is
+Method "For each of⁇_do_" is
 [
 	aTuple : tuple,
 	action : [⊥]→⊤
@@ -118,7 +118,7 @@ Method "For each_do_" is
 		$loop;
 		If index ≤ end then
 		[
-			Invoke action with <aTuple[index]>;
+			action(aTuple[index]);
 			↑index++;
 			Restart loop
 		];
@@ -133,7 +133,7 @@ Method "For each_do_" is
  *    action - A function that accepts 1) an element of the tuple and 2) the
  *       index of that element.
  */
-Method "For each_do_" is
+Method "For each of⁇_do_" is
 [
 	aTuple : tuple,
 	action : [⊥, ⊥]→⊤
@@ -144,7 +144,7 @@ Method "For each_do_" is
 		$loop;
 		If index ≤ end then
 		[
-			Invoke action with <aTuple[index], index>;
+			action(aTuple[index], index);
 			↑index++;
 			Restart loop
 		];
@@ -201,7 +201,7 @@ Method "Require:_accepts_" is
  * If the tuple is certainly nonempty and the function certainly does not
  * complete if applied, then answer ⊥.
  */
-Semantic restriction "For each_do_" is
+Semantic restriction "For each of⁇_do_" is
 [
 	tupleType : tuple meta,
 	action : function meta
@@ -241,8 +241,7 @@ Method "map_through_" is
 		$loop;
 		If index ≤ end then
 		[
-			result :=
-				eject ↑result ++ <invoke transformer with <aTuple[index]>>;
+			result := eject ↑result ++ <transformer(aTuple[index])>;
 			↑index++;
 			Restart loop
 		];
@@ -275,8 +274,7 @@ Method "map_through_" is
 		$loop;
 		If index ≤ end then
 		[
-			result := eject ↑result
-				++ <invoke transformer with <aTuple[index], index>>;
+			result := eject ↑result ++ <transformer(aTuple[index], index)>;
 			↑index++;
 			Restart loop
 		];
@@ -332,7 +330,7 @@ Method "filter_by_" is
 		If index ≤ end then
 		[
 			element ::= aTuple[index];
-			If invoke predicate with <element> then
+			If predicate(element) then
 			[
 				result := eject ↑result ++ <element>;
 			];
@@ -370,7 +368,7 @@ Method "filter_by_" is
 		If index ≤ end then
 		[
 			element ::= aTuple[index];
-			If invoke predicate with <element, index> then
+			If predicate(element, index) then
 			[
 				result := eject ↑result ++ <element>;
 			];
@@ -434,8 +432,8 @@ Method "map and filter_by_" is
 		If index ≤ end then
 		[
 			hasAlreadyKept : boolean := false;
-			Invoke accumulator with
-			<
+			accumulator
+			(
 				aTuple[index],
 				[
 					transformed : any
@@ -446,7 +444,7 @@ Method "map and filter_by_" is
 						hasAlreadyKept := true;
 					];
 				]
-			>;
+			);
 			↑index++;
 			Restart loop
 		];
@@ -484,8 +482,8 @@ Method "map and filter_by_" is
 		If index ≤ end then
 		[
 			hasAlreadyKept : boolean := false;
-			Invoke accumulator with
-			<
+			accumulator
+			(
 				aTuple[index],
 				index,
 				[
@@ -497,7 +495,7 @@ Method "map and filter_by_" is
 						hasAlreadyKept := true;
 					];
 				]
-			>;
+			);
 			↑index++;
 			Restart loop
 		];
@@ -602,7 +600,7 @@ Method "any of_satisfies_" is
 	[
 		element : any
 	|
-		If invoke predicate with <element> then
+		If predicate(element) then
 		[
 			Exit body with true
 		];
@@ -633,7 +631,7 @@ Method "any of_satisfies_" is
 		element : any,
 		index : natural number
 	|
-		If invoke predicate with <element, index> then
+		If predicate(element, index) then
 		[
 			Exit body with true
 		];
@@ -675,7 +673,7 @@ Method "each of_satisfies_" is
 	[
 		element : any
 	|
-		Unless invoke predicate with <element> then
+		Unless predicate(element) then
 		[
 			Exit body with false
 		];
@@ -706,7 +704,7 @@ Method "each of_satisfies_" is
 		element : any,
 		index : natural number
 	|
-		Unless invoke predicate with <element, index> then
+		Unless predicate(element, index) then
 		[
 			Exit body with false
 		];
@@ -979,7 +977,7 @@ Public method "left fold_through_" is
 	[
 		index : natural number
 	|
-		result := invoke transformer with <aTuple[index], eject ↑result>;
+		result := transformer(aTuple[index], eject ↑result);
 	];
 	result
 ] : any;
@@ -1058,7 +1056,7 @@ Public method "right fold_through_" is
 	[
 		index : natural number
 	|
-		result := invoke transformer with <aTuple[index], eject ↑result>;
+		result := transformer(aTuple[index], eject ↑result);
 	];
 	result
 ] : any;
@@ -1136,7 +1134,7 @@ Public method "first index of_where_" is
 	[
 		index : natural number
 	|
-		If invoke predicate with <aTuple[index]> then
+		If predicate(aTuple[index]) then
 		[
 			Exit body with index
 		];
@@ -1177,7 +1175,7 @@ Public method "last index of_where_" is
 	[
 		index : natural number
 	|
-		If invoke predicate with <aTuple[index]> then
+		If predicate(aTuple[index]) then
 		[
 			Exit body with index
 		];
@@ -1218,7 +1216,7 @@ Public method "all indices of_where_" is
 	[
 		index : natural number
 	|
-		If invoke predicate with <aTuple[index]> then
+		If predicate(aTuple[index]) then
 		[
 			indices := indices ++ <index>;
 		];
@@ -1906,7 +1904,7 @@ Public method "take from_while_" is
 	predicate : [⊥]→boolean
 |
 	firstIndex ::= first index of aTuple where
-		[value : any | ¬invoke predicate with <value>];
+		[value : any | ¬predicate(value)];
 	splitIndex ::=
 		if firstIndex = 0
 		then [ |aTuple| ]
@@ -1979,7 +1977,7 @@ Public method "drop from_while_" is
 	predicate : [⊥]→boolean
 |
 	firstIndex ::= first index of aTuple where
-		[value : any | ¬invoke predicate with <value>];
+		[value : any | ¬predicate(value)];
 	splitIndex ::=
 		if firstIndex = 0
 		then [ |aTuple| + 1 ]
@@ -2691,19 +2689,19 @@ Method "quicksort_with_" is
 	size ::= |aTuple|;
 	halfSize ::= |aTuple| ÷ 2;
 	pivotIndex : natural number :=
-		if invoke comparator with <aTuple[1], aTuple[size]>
+		if comparator(aTuple[1], aTuple[size])
 		then [1]
 		else [size];
 	pivotIndex :=
-		if ¬invoke comparator with <aTuple[pivotIndex], aTuple[halfSize]>
+		if ¬comparator(aTuple[pivotIndex], aTuple[halfSize])
 		then [pivotIndex]
 		else [halfSize];
 	pivot ::= aTuple[pivotIndex];
 	withoutPivot ::= aTuple[..pivotIndex-1] ++ aTuple[pivotIndex+1..];
 	lesser ::= filter withoutPivot by
-		[a : any | invoke comparator with <a, pivot>];
+		[a : any | comparator(a, pivot)];
 	greater ::= filter withoutPivot by
-		[a : any | ¬invoke comparator with <a, pivot>];
+		[a : any | ¬comparator(a, pivot)];
 	quicksort lesser with comparator
 		++ <pivot>
 		++ quicksort greater with comparator

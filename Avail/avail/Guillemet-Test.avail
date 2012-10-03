@@ -57,7 +57,7 @@ Assert Spam Spam Spam Spam = 4;
 
 
 /* Test argument to the right of the double-dagger. */
-Method "«!‡_»" is [x : tuple of (tuple [0..1] like <> default integer) |
+Method "«`!‡_»" is [x : tuple of (tuple [0..1] like <> default integer) |
 	x
 ];
 

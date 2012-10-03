@@ -65,7 +65,7 @@ Method "Play Twenty Questions with input_and output_" is
         else if [response ∈ {"y", "yes"}]
             then [curNode := (cast ↓curNode into [q : question | q])'s yes;];
     ];
-    output(format "Is it “①”? " with ↓curNode's str);
+    output(format "Is it ‘①’? " with ↓curNode's str);
     response := input();
     answer : string;
     If response ∈ {"y", "yes"} then [output("Yay!\n");]
@@ -74,7 +74,7 @@ Method "Play Twenty Questions with input_and output_" is
     [
         output("I give up. What was it? ");
         answer := input();
-        output(format "Okay. What is a question to distinguish it from “①”? "
+        output(format "Okay. What is a question to distinguish it from ‘①’? "
             with ↓curNode's str);
         response := input();
         tempNo : node := ↓curNode;

@@ -642,12 +642,12 @@ Method "<«_‡,»`…`|_.._>" is
 	aTupleOfTypes : tuple [1..∞) like <> default type,
 	cardinalityLower : whole number,
 	cardinalityUpper : [0..∞]
- |
- 	tuple [cardinalityLower..cardinalityUpper+1)
- 		like cast aTupleOfTypes[1..||aTupleOfTypes||-1]
- 			into [ t : tuple of any type | t ]
- 		default cast aTupleOfTypes[||aTupleOfTypes||]
- 			into [ t : any type | t ]
+|
+	tuple [cardinalityLower..cardinalityUpper+1)
+		like cast aTupleOfTypes[1..||aTupleOfTypes||-1]
+			into [ t : tuple of any type | t ]
+		default cast aTupleOfTypes[||aTupleOfTypes||]
+			into [ t : any type | t ]
 ] : tupleType;
 
 Method "first index of_where_" is
@@ -657,7 +657,7 @@ Method "first index of_where_" is
 |
 	$method : whole number;
 	i : whole number := 1;
-	
+
 	t do
 	[
 		tupleElement : any
@@ -665,7 +665,7 @@ Method "first index of_where_" is
 		if predicate(tupleElement) then [Exit method with i];
 		i := i+1;
 	];
-	
+
 	0
 ] : whole number;
 

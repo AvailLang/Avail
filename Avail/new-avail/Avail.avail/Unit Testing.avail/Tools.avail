@@ -123,7 +123,7 @@ Public method "Require:_=_" is
 	[
 		Raise a failed-requirement exception ∩ descriptive exception
 			with error message :=
-				format "expected=‘①’, actual=‘②’" with expected, actual
+				format "expected=“①”, actual=“②”" with expected, actual
 	];
 ] : ⊤;
 
@@ -170,7 +170,7 @@ Public method "Require:_=_(_)" is
 	[
 		Raise a failed-requirement exception ∩ descriptive exception
 			with error message :=
-				format "‘①’: expected=‘②’, actual=‘③’"
+				format "“①”: expected=“②”, actual=“③”"
 				with message, expected, actual
 	];
 ] : ⊤;
@@ -219,7 +219,7 @@ Public method "Require:_raises_" is
 		aFunction();
 		Raise a failed-requirement exception ∩ descriptive exception
 			with error message :=
-				format "expected ∈ ‘①’ (no exception)"
+				format "expected ∈ “①” (no exception)"
 				with exceptionType
 	]
 	intercept
@@ -232,7 +232,7 @@ Public method "Require:_raises_" is
 				with
 					causal exception := e,
 					error message :=
-						format "expected ∈ ‘①’, actual=‘②’"
+						format "expected ∈ “①”, actual=“②”"
 						with exceptionType, e
 		];
 	];
@@ -265,7 +265,7 @@ Public method "Require:_raises_(_)" is
 		aFunction();
 		Raise a failed-requirement exception ∩ descriptive exception
 			with error message :=
-				format "‘①’: expected ∈ ‘②’ (no exception)"
+				format "“①”: expected ∈ “②” (no exception)"
 				with message, exceptionType
 	]
 	intercept
@@ -278,7 +278,7 @@ Public method "Require:_raises_(_)" is
 				with
 					causal exception := e,
 					error message :=
-						format "‘①’: expected ∈ ‘②’, actual=‘③’"
+						format "“①”: expected ∈ “②”, actual=“③”"
 						with message, exceptionType, e
 		];
 	];
@@ -288,7 +288,7 @@ Public method "Require:_raises_(_)" is
 	comparisons ::=
 		{
 			"_≤_", "_<_", "_≥_", "_>_",
-			"_=_", "«_‡=»", "«_‡«=»?«≤»?«<»?»", "«_‡«=»?«≥»?«>»?»"
+			"_=_", "«_‡=»", "«_‡«=|≤|<»!»", "«_‡«=|≥|>»!»"
 		};
 	Grammatical restriction "Require:_" is <{"_=_"}>;
 	Grammatical restriction "Require:_(_)" is <{"_=_"}, ∅>;

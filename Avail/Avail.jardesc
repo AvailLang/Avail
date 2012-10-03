@@ -1,17 +1,21 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <jardesc>
-    <jar path="/Users/todd/Desktop/Avail.jar"/>
-    <options buildIfNeeded="true" compress="true" descriptionLocation="/Avail/Avail.jardesc" exportErrors="true" exportWarnings="true" includeDirectoryEntries="true" overwrite="false" saveDescription="true" storeRefactorings="false" useSourceFolders="true"/>
+    <jar path="/Users/markvangulik/Desktop/Avail.jar"/>
+    <options buildIfNeeded="true" compress="true" descriptionLocation="/Avail/Avail.jardesc" exportErrors="true" exportWarnings="true" includeDirectoryEntries="true" overwrite="true" saveDescription="true" storeRefactorings="false" useSourceFolders="true"/>
     <storedRefactorings deprecationInfo="true" structuralOnly="false"/>
     <selectedProjects/>
-    <manifest generateManifest="false" manifestLocation="/Avail/MANIFEST.MF" manifestVersion="1.0" reuseManifest="true" saveManifest="true" usesManifest="true">
+    <manifest generateManifest="false" mainClassHandleIdentifier="=Avail/src&lt;com.avail.environment{AvailBuilderFrame.java[AvailBuilderFrame" manifestLocation="/Avail/MANIFEST.MF" manifestVersion="1.0" reuseManifest="true" saveManifest="true" usesManifest="true">
         <sealing sealJar="true">
             <packagesToSeal/>
             <packagesToUnSeal/>
         </sealing>
     </manifest>
-    <selectedElements exportClassFiles="true" exportJavaFiles="false" exportOutputFolder="false">
+    <selectedElements exportClassFiles="false" exportJavaFiles="false" exportOutputFolder="true">
         <javaElement handleIdentifier="=Avail/.apt_generated"/>
+        <folder path="/Avail/even-newer-avail"/>
+        <folder path="/Avail/new-avail"/>
+        <folder path="/Avail/avail"/>
+        <file path="/Avail/MANIFEST.MF"/>
         <javaElement handleIdentifier="=Avail/src"/>
     </selectedElements>
 </jardesc>

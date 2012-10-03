@@ -36,7 +36,7 @@ Versions
 Extends
 	"Abstract Streams" =
 	(
-		"For each_do_",
+		"For each of⁇_do_",
 		"an empty stream",
 		"concatenate_",
 		"drop from_until_",

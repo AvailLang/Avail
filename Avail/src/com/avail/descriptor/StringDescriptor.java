@@ -209,6 +209,22 @@ extends TupleDescriptor
 	}
 
 	/**
+	 * A tuple containing just the exclamation mark character.
+	 */
+	static AvailObject exclamationMark;
+
+	/**
+	 * Return an Avail {@linkplain StringDescriptor string} of size one,
+	 * consisting of just the exclamation mark character ("!").
+	 *
+	 * @return A tuple containing just the exclamation mark character.
+	 */
+	public static AvailObject exclamationMark ()
+	{
+		return exclamationMark;
+	}
+
+	/**
 	 * A tuple containing just the tilde character.
 	 */
 	static AvailObject tilde;
@@ -255,6 +271,7 @@ extends TupleDescriptor
 		octothorp = from("#").makeImmutable();
 		questionMark = from("?").makeImmutable();
 		doubleQuestionMark = from("⁇").makeImmutable();
+		exclamationMark = from("!").makeImmutable();
 		tilde = from("~").makeImmutable();
 		verticalBar = from("|").makeImmutable();
 	}
@@ -274,6 +291,7 @@ extends TupleDescriptor
 		octothorp = null;
 		questionMark = null;
 		doubleQuestionMark = null;
+		exclamationMark = null;
 		tilde = null;
 		verticalBar = null;
 	}

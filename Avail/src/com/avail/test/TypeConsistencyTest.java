@@ -111,6 +111,9 @@ import com.avail.interpreter.Primitive;
  * </tr><tr>
  *     <td>Type intersect metainvariance</td>
  *     <td>&forall;<sub>x,y&isin;T</sub>&thinsp;(T(x)&cap;T(y) = T(x&cap;y))</td>
+ * </tr><tr>
+ *     <td>Instantiation metainvariance</td>
+ *     <td>&forall;<sub>b&isin;T,a</sub>&thinsp;(a&isin;b = T(a)&isin;T(b))</td>
  * </tr>
  * </table>
  * </p>

@@ -79,7 +79,7 @@ Method "_is empty" is
  *    action - A function that accepts the bindings of the map. The first
  *       argument is a key from the map, the second is a value from the map.
  */
-Method "For each_do_" is
+Method "For each of⁇_do_" is
 [
 	aMap : map,
 	action : [⊥, ⊥]→⊤
@@ -92,7 +92,7 @@ Method "For each_do_" is
 		If index ≤ end then
 		[
 			binding ::= bindings[index];
-			Invoke action with <binding[1], binding[2]>;
+			action(binding[1], binding[2]);
 			↑index++;
 			Restart loop
 		];
@@ -149,7 +149,7 @@ Private method "Require:_accepts_" is
  * Returns:
  *    Either ⊤ or ⊥.
  */
-Semantic restriction "For each_do_" is
+Semantic restriction "For each of⁇_do_" is
 [
 	mapType : map meta,
 	action : [⊥, ⊥]→⊤'s type
@@ -195,7 +195,7 @@ Method "map_through_" is
 			binding ::= bindings[index];
 			key ::= binding[1];
 			value ::= binding[2];
-			result := eject ↑result + key→invoke transformer with <key, value>;
+			result := eject ↑result + key→transformer(key, value);
 			↑index++;
 			Restart loop
 		];
@@ -262,7 +262,7 @@ Method "filter_by_" is
 			binding ::= bindings[index];
 			key ::= binding[1];
 			value ::= binding[2];
-			If invoke predicate with <key, value> then
+			If predicate(key, value) then
 			[
 				result := eject ↑result + key→value;
 			];
@@ -331,8 +331,7 @@ Method "map and filter_by_" is
 			binding ::= bindings[index];
 			key ::= binding[1];
 			value ::= binding[2];
-			Invoke accumulator with
-			<
+			accumulator(
 				key,
 				value,
 				[
@@ -344,7 +343,7 @@ Method "map and filter_by_" is
 						hasAlreadyKept := true;
 					];
 				]
-			>;
+			);
 			↑index++;
 			Restart loop
 		];
@@ -406,7 +405,7 @@ Method "any of_satisfies_" is
 		key : any,
 		value : any
 	|
-		If invoke predicate with <key, value> then
+		If predicate(key, value) then
 		[
 			Exit body with true
 		];
@@ -455,7 +454,7 @@ Method "each of_satisfies_" is
 		key : any,
 		value : any
 	|
-		Unless invoke predicate with <key, value> then
+		Unless predicate(key, value) then
 		[
 			Exit body with false
 		];
@@ -569,7 +568,7 @@ Method "group_by_" is
 	[
 		element : any
 	|
-		key ::= invoke discriminator with <element>;
+		key ::= discriminator(element);
 		group ::= groups[key] else [ <> ] ++ <element>;
 		groups := eject ↑groups + key→group;
 	];
@@ -616,7 +615,7 @@ Method "group_by_" is
 	[
 		element : any
 	|
-		key ::= invoke discriminator with <element>;
+		key ::= discriminator(element);
 		group ::= groups[key] else [ ∅ ] + element;
 		groups := eject ↑groups + key→group;
 	];
@@ -711,7 +710,7 @@ Public method "integrate_and_with_" is
 		newMap :=
 			if baseMapkeys ∋ supplementKey then
 			[
-				invoke action with <newMap, supplementKey, supplementValue>
+				action(newMap, supplementKey, supplementValue)
 			]
 			else
 			[

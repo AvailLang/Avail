@@ -241,7 +241,7 @@ Public method "short“_”" is
 		]
 		else [""];
 	format
-		"a “name”“description”“cause”"
+		"a ‘name’‘description’‘cause’"
 	with
 		name := name,
 		description := description,
@@ -363,14 +363,14 @@ Method "“_”" is
 [
 	result : unit test success
 |
-	format "PASSED: ‘①’" with result's test ID
+	format "PASSED: “①”" with result's test ID
 ] : string;
 
 Method "“_”" is
 [
 	result : unit test failure
 |
-	format "FAILED: ‘①’ (raised: ‘②’)"
+	format "FAILED: “①” (raised: “②”)"
 		with result's test ID, result's causal exception
 ] : string;
 
@@ -434,10 +434,10 @@ Method "“_”" is
 			else [ _failed ]
 		];
 	format
-		"“results”\nSUMMARY:\n\
-		\|\tTOTAL:  ‘total’\n\
-		\|\tPASSED: ‘passed’\n\
-		\|\tFAILED: ‘failed’\n"
+		"‘results’\nSUMMARY:\n\
+		\|\tTOTAL:  “total”\n\
+		\|\tPASSED: “passed”\n\
+		\|\tFAILED: “failed”\n"
 	with
 		results := description,
 		total := |results|,

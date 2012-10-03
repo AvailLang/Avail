@@ -281,6 +281,26 @@ public enum ParsingOperation
 		{
 			return operand(instruction);
 		}
+	},
+
+	/**
+	 * {@code 8*N+6} - Push a {@link LiteralNodeDescriptor literal node}
+	 * containing an {@linkplain IntegerDescriptor Avail integer} based on the
+	 * operand.
+	 */
+	pushIntegerLiteral(6)
+	{
+		@Override
+		public int encoding ()
+		{
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public int integerToPush (final int instruction)
+		{
+			return operand(instruction);
+		}
 	};
 
 	/** The number of distinct instructions supported by the coding scheme. */
@@ -343,6 +363,19 @@ public enum ParsingOperation
 	 * @return The message part index, or {@code 0} if the assumption was false.
 	 */
 	public int keywordIndex (final int instruction)
+	{
+		return 0;
+	}
+
+	/**
+	 * Assume that the instruction encodes an operand which is to be treated as
+	 * an integer to be passed as an argument at an Avail call site.  Answer
+	 * the operand.
+	 *
+	 * @param instruction
+	 * @return
+	 */
+	public int integerToPush (final int instruction)
 	{
 		return 0;
 	}
@@ -411,6 +444,7 @@ public enum ParsingOperation
 				case 3: return checkArgument;
 				case 4: return convert;
 				case 5: return parsePartCaseInsensitive;
+				case 6: return pushIntegerLiteral;
 			}
 		}
 		else
