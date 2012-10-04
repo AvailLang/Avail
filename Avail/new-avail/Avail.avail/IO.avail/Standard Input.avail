@@ -37,9 +37,9 @@ Uses
 	"Exceptions",
 	"Foundation"
 Names
-	"next line",
-	"next_",
-	"next_character|characters"
+	"next line«from console»⁇",
+	"next_«from console»⁇",
+	"next_character|characters«from console»⁇"
 Body
 
 /**
@@ -50,7 +50,7 @@ Body
  * Returns:
  *    A string containing `count` characters.
  */
-Public method "next_character|characters" is
+Public method "next_character|characters«from console»⁇" is
 [
 	count : whole number
 |
@@ -62,7 +62,7 @@ Public method "next_character|characters" is
 	result
 ] : string;
 
-Semantic restriction "next_character|characters" is
+Semantic restriction "next_character|characters«from console»⁇" is
 [
 	count : whole number's type
 |
@@ -76,7 +76,7 @@ Semantic restriction "next_character|characters" is
  * Returns:
  *    A line of text (not including any line feeds).
  */
-Public method "next line" is
+Public method "next line«from console»⁇" is
 [
 	result : string := "";
 	Until
@@ -100,7 +100,7 @@ integerChars ::= "-∞0123456789"→set;
  * Returns:
  *    An extended integer within the requested range.
  */
-Public method "next_" is
+Public method "next_«from console»⁇" is
 [
 	range : extended integer's type
 |
@@ -122,7 +122,7 @@ Public method "next_" is
 	value
 ] : extended integer;
 
-Semantic restriction "next_" is
+Semantic restriction "next_«from console»⁇" is
 [
 	range : extended integer's type's type
 |
