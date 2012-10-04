@@ -314,9 +314,7 @@ Private method "buffer comment from_" is
 Private method "identify comment from_" is
 [
  	iter : iterator
- |
- 	keyBuffer : <character…|> := <>;
- 	
+ | 	
  	While
  	[
  	 	iter is not exhausted
@@ -325,42 +323,69 @@ Private method "identify comment from_" is
  	[
 	 	While
 	 	[
-	 	 	iter is not exhausted ∧ [iter's current element ∉ {¢/}]
+	 	 	/* Run loop until a key character is loacated */
+	 	 	iter is not exhausted ∧ [iter's current element ∉ {¢/, ¢*}]
 	 	]
 	 	do
 	 	[
+	 	 	/* Track new line counts and advance the iterator through  *
+	 	 	 * non-important comments and code                         */
 	 	 	If iter's current element ∈ {¢"\n"} then 
 	 	 		[Increment the new line count;];
 	 	 	Advance iter;
 	 	];
-	 	While 
-		[
-		 	iter is not exhausted ∧ [iter's current element ∉ {¢" ",¢"\n"}]
-		]
-		do
+	 	
+	 	If iter is not exhausted then
 	 	[
-	 	 	keyBuffer:= keyBuffer ++ 
-	 	 		<cast (iter's current element) into [c : character | c]>;
+	 	 	/* Store key character that stopped loop, advance the iterator */
+	 	 	keyBuffer ::= iter's current element;
 	 	 	Advance iter;
+	 	 	If iter is not exhausted then
+	 	 	[
+	 	 	 	/* Check follow-on characters to determine importance or   *
+	 	 	 	 * lack of importance of potential comment (open or close) */
+		 	 	if keyBuffer = ¢* then
+		 	 	[
+		 	 	 	/* Log closing of comment */
+		 	 	 	If iter's current element ∈ {¢/} ∧ [openCommentCount > 0]
+		 	 	 		then [Decrement the open comment count;];
+		 	 	]
+		 	 	else if [keyBuffer = ¢/] then
+		 	 	[
+		 	 	 	If iter's current element ∈ {¢*} then
+		 	 	 	[
+		 	 	 	 	/* Start of new comment.  Determine comment type. */
+		 	 	 	 	Increment the open comment count;
+		 	 	 	 	Advance iter;
+		 	 	 	 	If iter is not exhausted ∧ [openCommentCount = 1] then
+		 	 	 	 	[
+		 	 	 	 	 	If iter's current element ∈ {¢*} then
+		 	 	 	 	 	[
+								Advance iter;
+								If iter is not exhausted then
+								[
+								 	/* At this depth, either a Stacks * 
+								 	 * comment or a comment with many *
+								 	 * astericks                      */
+									If iter's current element ∉ {¢*} then
+									[
+									 	/* Process Stacks Comment */
+									 	buffer comment from iter;
+									 	/* Still need to create 2nd pass parser 
+									 	 * then Clear Buffer.*/
+									 	Assert: openCommentCount = 0;
+									];
+								];
+		 	 	 	 	 	];
+		 	 	 	 	];
+		 	 	 	];
+		 	 	];
+	 	 	];
 	 	];
-		if keyBuffer = "/**" ∧ [openCommentCount = 0] then 
-		[
-		 	/* Process Stacks Comment */
-		 	Increment the open comment count; 
-		 	buffer comment from iter;
-		 	keyBuffer := <>;
-		 	/* Still need to create 2nd pass parser */
-		 ]
-		else if [keyBuffer = "/*"] then 
-		[
-		 	/* Entering basic comment.  Increment open comment count. */
-		 	Increment the open comment count;
-		 	keyBuffer := <>;
-		 ]
-		else [keyBuffer := <>;];
 	];
+	Assert: openCommentCount = 0;
 ]:⊤;
-
+/*** Test Code ***/
 test ::=
 " Sucker /**
  * Given an iterator at the start of a comment, collect all the characters until 
@@ -369,7 +394,15 @@ test ::=
  * @categories \"Stacks\"
  * @param \"iter\" iterator 
  * @returnType \"string\"  The entire comment less the opening * on a new line. 
- */ yo";
+ **/ yo
+ Shucker /**
+ * Giver an iterator at the start of a comment, collect all the characters until 
+ * the open comment count is 0. 
+ * @method \"buffer comment from_\"
+ * @categories \"Stacks\"
+ * @param \"iter\" iterator 
+ * @returnType \"string\"  The entire comment less the opening * on a new line. 
+ */ smo";
  Print: test; Print: "\n";
  it : iterator := an iterator over test;
 identify comment from it;
