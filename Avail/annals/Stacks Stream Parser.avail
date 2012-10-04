@@ -303,18 +303,74 @@ Private method "buffer comment from_" is
 	];
 ]:⊤;
 
-/* Stuck in a loop - debug*/
-test ::= 
-"
+/**
+ * Locate Stacks comment from iterator
+ * @method "identify comment from_"
+ * @categories "Stacks"
+ * @param "iter" iterator
+ * @returnType ⊤
+ * @raises
+ */
+Private method "identify comment from_" is
+[
+ 	iter : iterator
+ |
+ 	keyBuffer : <character…|> := <>;
+ 	
+ 	While
+ 	[
+ 	 	iter is not exhausted
+ 	]
+ 	do
+ 	[
+	 	While
+	 	[
+	 	 	iter is not exhausted ∧ [iter's current element ∉ {¢/}]
+	 	]
+	 	do
+	 	[
+	 	 	If iter's current element ∈ {¢"\n"} then 
+	 	 		[Increment the new line count;];
+	 	 	Advance iter;
+	 	];
+	 	While 
+		[
+		 	iter is not exhausted ∧ [iter's current element ∉ {¢" ",¢"\n"}]
+		]
+		do
+	 	[
+	 	 	keyBuffer:= keyBuffer ++ 
+	 	 		<cast (iter's current element) into [c : character | c]>;
+	 	 	Advance iter;
+	 	];
+		if keyBuffer = "/**" ∧ [openCommentCount = 0] then 
+		[
+		 	/* Process Stacks Comment */
+		 	Increment the open comment count; 
+		 	buffer comment from iter;
+		 	keyBuffer := <>;
+		 	/* Still need to create 2nd pass parser */
+		 ]
+		else if [keyBuffer = "/*"] then 
+		[
+		 	/* Entering basic comment.  Increment open comment count. */
+		 	Increment the open comment count;
+		 	keyBuffer := <>;
+		 ]
+		else [keyBuffer := <>;];
+	];
+]:⊤;
+
+test ::=
+" Sucker /**
  * Given an iterator at the start of a comment, collect all the characters until 
  * the open comment count is 0. 
  * @method \"buffer comment from_\"
  * @categories \"Stacks\"
  * @param \"iter\" iterator 
  * @returnType \"string\"  The entire comment less the opening * on a new line. 
- */";
+ */ yo";
  Print: test; Print: "\n";
  it : iterator := an iterator over test;
- openCommentCount :=1;
-buffer comment from it;
+identify comment from it;
 Print: buffer;
