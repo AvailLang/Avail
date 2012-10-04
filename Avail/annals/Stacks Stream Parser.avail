@@ -43,12 +43,16 @@ Names
 
 Body
 
-keyCharacters ::= {¢/, ¢@, ¢*, ¢"\n"}; /* Special parse characters */
+/* Special parse characters */
+keyCharacters ::= {¢/, ¢@, ¢*, ¢"\n"};
+
 /* Special keywords using @ symbols */
 keywords ::= 
 	{"@type","@supertype","@field","@category","@param","@raises","@restricts",
 	"@returns","@forbids","@pubilc","@method","@see","@author",
 	"@link","@code"};
+
+/* Global Variables */
 openCommentCount : whole number := 0;
 newLineCount : whole number := 0;
 buffer : <character…|> := <>;
