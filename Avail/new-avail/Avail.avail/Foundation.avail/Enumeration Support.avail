@@ -44,6 +44,7 @@ Uses
 	"Early Logic",
 	"Early Math"
 Names
+	"{_}ᵀ",
 	"{«_‡,»}ᵀ"
 Body
 
@@ -195,3 +196,27 @@ Semantic restriction "{«_‡,»}ᵀ" is
 		union's type
 	]
 ];
+
+/**
+ * Answer the precise instance type of the supplied type. This is the most
+ * specific possible type that describes the argument.
+ *
+ * @method "{_}ᵀ"
+ * @param "aType" "type"
+ *        An arbitrary type.
+ * @returns "type"
+ *        The precise instance type of the supplied type.
+ */
+Public method "{_}ᵀ" is
+[
+	aType : type
+|
+	Primitive 30;
+] : type;
+
+Semantic restriction "{_}ᵀ" is
+[
+	meta : type's type
+|
+	Primitive 30;
+] : type;
