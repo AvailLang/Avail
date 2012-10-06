@@ -266,7 +266,7 @@ Method "generate html for modules section from_" is
 Method "generate html for joined pages from_" is
 [
 	mDocsMap : {string→<method document…|1..>|1..}
-|
+ |
 	standardTopHTML : string := "<!DOCTYPE html>\n" ++ 
 			"<html lang=\"en\">\n" ++ 
 			"	<head>\n" ++ 
