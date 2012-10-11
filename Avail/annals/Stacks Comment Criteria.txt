@@ -1,3 +1,53 @@
+"/**
+ * Reject the current parse if the {@type \"unit\" metrics} are well-known but no
+ * conversion function has been defined prior to this send.
+ *
+ * @method \"_converted to_\"
+ * @restricts \"dimensioned quantity's type\"
+ * @restricts \"unit's type\"
+ */
+Semantic restriction \"_converted to_\" is
+[
+	quantityType : dimensioned quantity's type,
+	unitType : unit's type
+|
+	If {|quantityType's metric|, |unitType|} = {1} then
+	[
+		key ::= <quantityType's metric's instance, unitType's instance>;
+		Unless key ∈ converters then
+		[
+			Reject parse, expected:
+				format
+					\"conversion function for “①” → “②” to have been previously\
+					\| defined\"
+				with key[1], key[2]
+		];
+	];
+	extend dimensioned quantity with metric : unitType
+];
+
+/**
+ * Define {@method \"_converted to_\" methods} for converting {@type
+ * \"dimensioned quantity\" dimensioned quantities} between two compatible {@type
+ * \"unit\" metrics}.
+ *
+ * @method \"Conversion method is_,⁇inverse is_\"
+ * @param \"aFunction\" \"[⊥, ⊥]→dimensioned quantity\"
+ *        A function whose first parameter type is a subtypes of {@type
+ *        \"dimensioned quantity\"} and whose second parameter type is a subtype
+ *        of {@type \"unit\"}. This function must return a {@type \"dimensioned
+ *        quantity\"} whose metric equals the second parameter type.
+ * @param \"inverseFunction\" \"[⊥, ⊥]→dimensioned quantity\"
+ *        A function whose first parameter type is a subtype of {@type
+ *        \"dimensioned quantity\"} having a metric that equals the second
+ *        parameter type of {@param \"aFunction\"} and whose second parameter type
+ *        equals the metric of the first parameter type of same. This function
+ *        must return a {@type \"dimensioned quantity\"} whose metric equals the
+ *        second parameter type.
+ * @see \"_converted to_\"
+ */";
+
+
 
 
 ALL TAGS WILL BE LINKS!  Either specifically called out:
@@ -26,6 +76,8 @@ Method:
 	@author
 	@link - link off site used in {@param "a"} syntax: {@link "www.google.com"}
 	@code - {@code "from 1 to 10"}
+Module variable
+	@global
 
 If @category is the first tag, create the super type for methodDoc and typeDoc.
 
