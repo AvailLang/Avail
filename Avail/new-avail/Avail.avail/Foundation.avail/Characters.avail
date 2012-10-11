@@ -899,7 +899,7 @@ Public stable method "_is a letter" is
 [
  	c : character 
 |
-	cp ::= c→code point;
+	cp ::= c's code point;
 	
 	if cp < 128 then 
 	[
@@ -944,7 +944,7 @@ Public stable method "_is uppercase" is
 [
 	c : character 
 |
-	(c→code point) ∈ uppercaseCharacter
+	(c's code point) ∈ uppercaseCharacter
 
 ] : boolean;
 
@@ -960,7 +960,7 @@ Public stable method "_is lowercase" is
 [
 	c : character 
 |
-	(c→code point) ∈ lowercaseCharacter
+	(c's code point) ∈ lowercaseCharacter
 
 ] : boolean;
 
@@ -980,7 +980,7 @@ Public stable method "_is titlecase" is
 [
 	c : character 
 |
-	(c→code point) ∈ titlecaseCharacter
+	(c's code point) ∈ titlecaseCharacter
 
 ] : boolean;
 
@@ -996,7 +996,7 @@ Public stable method "uppercase_" is
 [
 	c : character
 |
-	toUpperCase[c→code point] else [c]
+	toUpperCase[c's code point] else [c]
 ];
 
 /**
@@ -1011,7 +1011,7 @@ Public stable method "lowercase_" is
 [
 	c : character
 |
-	toLowerCase[c→code point] else [c]
+	toLowerCase[c's code point] else [c]
 ];
 
 
@@ -1031,5 +1031,5 @@ Public stable method "titlecase_" is
 [
 	c : character
 |
-	toTitleCase[c→code point] else [c]
+	toTitleCase[c's code point] else [c]
 ];

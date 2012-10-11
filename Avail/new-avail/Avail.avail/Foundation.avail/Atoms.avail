@@ -39,6 +39,7 @@ Uses
 	"Early Definers",
 	"Early Literals"
 Names
+	"_is a|an new⁇atom",
 	"_[_]else_"
 Body
 
@@ -95,3 +96,25 @@ Method "_[_]else_" is
 	then [aFiber[key]]
 	else else
 ] : any;
+
+/**
+ * Define a method named {@param "atomName"} that answers the eponymously
+ * referenced atom in the module currently undergoing compilation. If this name
+ * already refers to an atom in scope, i.e., either one 1) imported through the
+ * "Uses" or "Extends" sections of the current module's header, 2) introduced by
+ * the "Names" section of the current module's header, or 3) introduced by
+ * dynamic publication, then answer this atom. Otherwise, privately introduce a
+ * new atom.
+ *
+ * @method "_is a|an new⁇atom"
+ * @param "atomName" "string"
+ *        The name by which this atom is known locally.
+ */
+Public method "_is a|an new⁇atom" is
+[
+	atomName : string
+|
+	theAtom ::= atom for atomName;
+	Method atomName is [theAtom];
+	Semantic restriction atomName is [theAtom's type];
+] : ⊤;

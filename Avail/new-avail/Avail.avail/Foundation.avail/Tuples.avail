@@ -1302,9 +1302,9 @@ Public stable method "_to_" is
 /**
  * Construct and answer a string that contains the consecutive characters from
  * `start` (inclusive) to `end` (inclusive). If
- * `start→code point ≤ end→code point`, then
- * `result[i]→code point < result[i+1]→code point`; otherwise,
- * `result[i]→code point > result[i+1]→code point`.
+ * `start's code point ≤ end's code point`, then
+ * `result[i]'s code point < result[i+1]'s code point`; otherwise,
+ * `result[i]'s code point > result[i+1]'s code point`.
  * 
  * Parameters:
  *    start - The first value of the resulting tuple.
@@ -1318,8 +1318,8 @@ Public stable method "_to_" is
 	end : character
 |
 	accumulator : string := <>;
-	startCodePoint ::= start→code point;
-	endCodePoint ::= end→code point;
+	startCodePoint ::= start's code point;
+	endCodePoint ::= end's code point;
 	From startCodePoint to endCodePoint do
 	[
 		value : code point

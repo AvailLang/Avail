@@ -64,6 +64,7 @@ Uses
 		"_'s⁇atom",
 		"_'s⁇bindings",
 		"_'s⁇caller",
+		"_'s⁇code point",
 		"_'s⁇declaration",
 		"_'s⁇declared exceptions",
 		"_'s⁇declared type",
@@ -126,7 +127,6 @@ Uses
 		"_is a primitive",
 		"_is unassigned",
 		"_→character",
-		"_→code point",
 		"_→double",
 		"_→extended integer",
 		"_→float",
@@ -2404,14 +2404,14 @@ Primitive "⎡_⎤" is
 ] : double;
 
 /**
- * Answer the argument as a Unicode code point.
+ * Answer the argument's Unicode code point.
  *
  * Parameters:
  *    aCharacter - A character.
  * Returns:
  *    The Unicode code point that encodes the argument.
  */
-Primitive "_→code point" is
+Primitive "_'s⁇code point" is
 [
 	aCharacter : character
 |

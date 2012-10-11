@@ -57,7 +57,8 @@ Names
 	"partially format_with_",
 	"partially format_with«…:=_‡,»",
 	"_(base_)",
-	"_→integer"
+	"_→integer",
+	"“_”«else_»(as simple comma-separated list)"
 Body
 
 /* These are the circled numbers. */
@@ -848,12 +849,12 @@ baseAlphabet ::=
 	"0123456789\
 	\|ABCDEFGHIJKLMNOPQRSTUVWXYZ\
 	\|abcdefghijklmnopqrstuvwxyz"→set;
-cp_0 ::= ¢0→code point;
-cp_9 ::= ¢9→code point;
-cp_a ::= ¢a→code point;
-cp_z ::= ¢z→code point;
-cp_A ::= ¢A→code point;
-cp_Z ::= ¢Z→code point;
+cp_0 ::= ¢0's code point;
+cp_9 ::= ¢9's code point;
+cp_a ::= ¢a's code point;
+cp_z ::= ¢z's code point;
+cp_A ::= ¢A's code point;
+cp_Z ::= ¢Z's code point;
 
 /**
  * Convert the specified string to an extended integer.
@@ -892,7 +893,7 @@ Public stable method "_(base_)" is
 				digit : character
 			|
 				If ¬digit ∈ baseAlphabet then fail;
-				cp ::= cast digit→code point into [ t : [cp_0..cp_z] | t ];
+				cp ::= cast digit's code point into [ t : [cp_0..cp_z] | t ];
 				value ::=
 					if cp_0 ≤ cp ≤ cp_9 then [ cp - cp_0 ]
 					else if [ cp_a ≤ cp ≤ cp_z ] then [ cp - cp_a + 10 ]
@@ -954,11 +955,93 @@ Method "quicksort_" is
 		[
 			index : natural number
 		|
-			cp1 ::= s1[index]→code point;
-			cp2 ::= s2[index]→code point;
+			cp1 ::= s1[index]'s code point;
+			cp2 ::= s2[index]'s code point;
 			If cp1 < cp2 then [Exit body with true]
 			else if [cp1 > cp2] then [Exit body with false];
 		];
 		|s1| ≤ |s2|
 	]
 ] : <string…|>;
+
+Method "“_”" is
+[
+	aTuple : tuple
+|
+	if aTuple ∈ string
+	then
+	[
+		cast primitive description of aTuple into [t : <character…|2..> | t]
+	]
+	else
+	[
+		Assert: ¬aTuple is empty;
+		s : string := "<";
+		index : natural number := 1;
+		Do
+		[
+			s := eject ↑s ++ “aTuple[index]”;
+			↑index++;
+		]
+		while [index ≤ |aTuple|]
+		alternate with [s := eject ↑s ++ ", ";];
+		s := eject ↑s ++ ">";
+		cast s into [t : <character…|2..> | t]
+	]
+] : <character…|2..>;
+
+/**
+ * Answer a textual rendition of {@param "aTuple"} as a comma-separated list
+ * without enclosing angle brackets.
+ *
+ * @method "“_”(as simple comma-separated list)"
+ * @param "aTuple" "tuple"
+ *        An arbitrary tuple.
+ * @param "optionalEmptyText" "<string…|0..1>"
+ *        If specified, then the text to answer if the tuple is empty. If not
+ *        specified, then {@code "(empty)"} will be used.
+ * @returns "string"
+ *          The requested textual rendition.
+ */
+Public method "“_”«else_»(as simple comma-separated list)" is
+[
+	aTuple : tuple,
+	optionalEmptyText : <string…|0..1>
+|
+	if aTuple is empty then [optionalEmptyText[1] else ["(empty)"]]
+	else
+	[
+		desc ::= “aTuple”;
+		desc[2..|desc|-1]
+	]
+] : string;
+
+Method "“_”" is
+[
+	aSet : set
+|
+	if aSet is empty then ["∅"]
+	else ["{" ++ “aSet→tuple” (as simple comma-separated list) ++ "}"]
+] : <character…|1..>;
+
+/**
+ * Answer a textual rendition of {@param "aSet"} as a comma-separated list
+ * without enclosing curly brackets.
+ *
+ * @method "“_”(as simple comma-separated list)"
+ * @param "aSet" "set"
+ *        An arbitrary set.
+ * @param "optionalEmptyText" "<string…|0..1>"
+ *        If specified, then the text to answer if the set is empty. If not
+ *        specified, then {@code "(empty)"} will be used.
+ * @returns "string"
+ *          The requested textual rendition.
+ */
+Public method "“_”«else_»(as simple comma-separated list)" is
+[
+	aSet : set,
+	optionalEmptyText : <string…|0..1>
+|
+	emptyText ::= optionalEmptyText[1] else ["(empty)"];
+	“aSet→tuple” else emptyText (as simple comma-separated list)
+] : string;

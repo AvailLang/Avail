@@ -217,6 +217,9 @@ Semantic restriction "_\\_" is
 	{minuendType's element type | lower..⎡minuendType⎤}
 ];
 
+/* Make asymmetric set difference left-associate. */
+Grammatical restriction "_\\_" is <∅, {"_\\_"}>;
+
 /**
  * Disambiguate `_→_` and `_→set`.
  * 

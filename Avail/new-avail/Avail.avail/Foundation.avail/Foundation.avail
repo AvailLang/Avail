@@ -43,7 +43,20 @@ Extends
 	),
 	"Atoms" =
 	(
+		"_is a|an new⁇atom",
 		"_[_]else_"
+	),
+	"Backtrack" =
+	(
+		"Backtracking fence_",
+		"Try again",
+		"all values of_",
+		"first try",
+		"first«_»value|values of_",
+		"no-backtracking-fence exception",
+		"no-checkpoint exception",
+		"trial element of_",
+		"trial`#of_"
 	),
 	"Bootstrap" =
 	(
@@ -218,6 +231,7 @@ Extends
 		"_'s⁇atom",
 		"_'s⁇bindings",
 		"_'s⁇caller",
+		"_'s⁇code point",
 		"_'s⁇declaration",
 		"_'s⁇declared exceptions",
 		"_'s⁇declared type",
@@ -284,7 +298,6 @@ Extends
 		"_×_",
 		"_÷_",
 		"_→character",
-		"_→code point",
 		"_→double",
 		"_→extended integer",
 		"_→float",
@@ -543,6 +556,8 @@ Extends
 		"log_of_",
 		"max_",
 		"min_",
+		"negative integer",
+		"nonpositive integer",
 		"type promotion function for_",
 		"-_",
 		"[_.._]",
@@ -606,7 +621,8 @@ Extends
 		"partially format_with_",
 		"partially format_with«…:=_‡,»",
 		"_(base_)",
-		"_→integer"
+		"_→integer",
+		"“_”«else_»(as simple comma-separated list)"
 	),
 	"Tuples" =
 	(

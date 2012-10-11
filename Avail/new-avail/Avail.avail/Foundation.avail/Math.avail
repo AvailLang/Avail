@@ -51,6 +51,8 @@ Uses
 	"Variables"
 Names
 	"log_of_",
+	"negative integer",
+	"nonpositive integer",
 	"_is odd",
 	"_is even",
 	"-_",
@@ -1517,3 +1519,6 @@ Semantic restriction "_<<_keeping_bits" is
 	low := low bit∧ mask;
 	[low..high+1)
 ] : whole number's type;
+
+Public method "negative integer" is [(-∞..-1]];
+Public method "nonpositive integer" is [(-∞..0]];

@@ -1,0 +1,471 @@
+/*
+ * Backtrack.avail
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Backtrack"
+Versions
+	"dev"
+Uses
+	"Assertions",
+	"Atoms",
+	"Bootstrap",
+	"Control Structures",
+	"Definers",
+	"Exceptions",
+	"Functions",
+	"Literals",
+	"Math",
+	"Objects",
+	"Tuples",
+	"Types",
+	"Variables"
+Names
+	/* Backtracking. */
+	"Backtracking fence_",
+	"Try again",
+	"all values of_",
+	"first try",
+	"first«_»value|values of_",
+	"trial element of_",
+	"trial`#of_",
+
+	/* Exceptions. */
+	"no-backtracking-fence exception",
+	"no-checkpoint exception"
+Body
+
+/* This atom is the fiber-local key for the most recent continuation to retry
+ * during a backtrack.
+ */
+"checkpoint" is an atom;
+
+/* The anchor continuation, set by "Setup backtracking subsystem". An exit from
+ * the outermost "Backtracking fence_" resets the checkpoint to the anchor
+ * (so that subsequent uses of "Try again" do not jump back to the checkpoint).
+ */
+anchor : $[]→⊤;
+
+/**
+ * A no-backtracking-fence exception indicates that a checkpoint establishment
+ * method was invoked outside of any function governed by {@method
+ * "Backtracking fence_"}.
+ *
+ * @type "no-backtracking-fence exception"
+ * @supertype "exception"
+ */
+Public explicit class "no-backtracking-fence exception" extends exception;
+
+/**
+ * Ensure that a backtracking fence is active.
+ *
+ * @method "Require:inside fence"
+ * @raises "no-backtracking-fence exception"
+ *         If the method was invoked outside of a {@method
+ *         "Backtracking fence_" backtracking fence}.
+ */
+Private method "Require:inside fence" is
+[
+	If current fiber[checkpoint] = anchor then
+	[
+		Raise a no-backtracking-fence exception
+	];
+] : ⊤;
+
+/**
+ * A no-checkpoint exception indicates that a request was made to {@method
+ * "Try again"}, but no checkpoint has been established.
+ *
+ * @type "no-checkpoint exception"
+ * @supertype "exception"
+ */
+Public explicit class "no-checkpoint exception" extends exception;
+
+/**
+ * Prepare the backtracking subsystem. This sets a fiber-local variable,
+ * {@code "checkpoint"}, with a continuation that, if resumed, raises a
+ * {@type "no-checkpoint exception"}. This happens only when {@method
+ * "Try again" backtracking} is requested before a checkpoint has been set.
+ *
+ * @method "Setup backtracking subsystem"
+ * @raises "no-checkpoint exception"
+ *         If no checkpoint has been set.
+ */
+Private method "Setup backtracking subsystem" is
+[
+	firstInitialization : boolean := true;
+	[
+		$initialized : ⊤;
+		If firstInitialization then
+		[
+			firstInitialization := false;
+			current fiber[checkpoint] := initialized;
+			anchor := initialized;
+		]
+		else
+		[
+			Raise a no-checkpoint exception
+		];
+	]();
+] : ⊤;
+
+Setup backtracking subsystem;
+
+Forward method "Try again" is []→⊥;
+
+/**
+ * Establish a dynamic perimeter within which backtracking is permitted. Within
+ * the dynamic scope of {@param "action"}, checkpoints and {@method "Try again"}
+ * are permitted.
+ *
+ * @method "Backtracking fence_"
+ * @param "action" "[]→⊤"
+ *        A function within which checkpoints and {@method "Try again"} are
+ *        permitted.
+ */
+Public method "Backtracking fence_" is
+[
+	action : []→⊤
+|
+	previousCheckpoint ::= current fiber[checkpoint];
+	firstTime : boolean := true;
+	/* TODO: [TLS] Rewrite this once the "ensure" mechanism is available. */
+	Guard
+	[
+		$fence : ⊤;
+		If firstTime then
+		[
+			current fiber[checkpoint] := fence;
+			action();
+			current fiber[checkpoint] := previousCheckpoint;
+		]
+		else
+		[
+			Raise a no-checkpoint exception
+		];
+	]
+	intercept
+	[
+		e : exception
+	|
+		current fiber[checkpoint] := previousCheckpoint;
+		Raise e
+	];
+	/*
+	ensure
+	[
+		current fiber[checkpoint] := previousCheckpoint;
+	];
+	 */
+] : ⊤;
+
+/**
+ * Establish a checkpoint for subsequent backtracking. Must be invoked within
+ * the dynamic scope of {@method "Backtracking fence_"}. Answer {@method
+ * "true"}. On a subsequent invocation of {@method "Try again"} occurring within
+ * the same dynamic scope, restart the checkpoint but answer {@method "false"}.
+ *
+ * @method "first try"
+ * @returns "boolean"
+ *          {@method "true"} on the first invocation, {@method "false"} when
+ *          retried.
+ * @raises "no-backtracking-fence exception"
+ *         If {@method "first try"} is not invoked from within a function
+ *         governed by {@method "Backtracking fence_"}.
+ */
+Public method "first try" is
+[
+	Require: inside fence;
+	/* Retain the previous checkpoint before overwriting it. */
+	previousCheckpoint ::= current fiber[checkpoint];
+	firstTry : boolean := true;
+	answer : boolean;
+	[
+		$newCheckpoint : ⊤;
+		answer :=
+			/* On the first try, overwrite the checkpoint with "newCheckpoint".
+			 * Answer true.
+			 */
+			if firstTry then
+			[
+				firstTry := false;
+				current fiber[checkpoint] := newCheckpoint;
+				true
+			]
+			/* On the next try, restore the previous checkpoint. Answer
+			 * false.
+			 */
+			else
+			[
+				current fiber[checkpoint] := previousCheckpoint;
+				false
+			];
+	]();
+	answer
+] : boolean;
+
+/**
+ * Establish a checkpoint for subsequent backtracking. Must be invoked within
+ * the dynamic scope of {@method "Backtracking fence_"}. Answer {@code 1}.
+ * On the next {@param "maxTrials"}-1 invocations of {@method "Try again"}
+ * occurring within the same dynamic scope, restart the checkpoint but answer
+ * the trial number.
+ *
+ * @method "trial`#of_"
+ * @param "maxTrials" "natural number"
+ *        The number of trials permitted through backtracking.
+ * @returns "natural number"
+ *          The trial number.
+ * @raises "no-backtracking-fence exception"
+ *         If {@method "trial`#of_"} is not invoked from within a function
+ *         governed by {@method "Backtracking fence_"}.
+ */
+Public method "trial`#of_" is
+[
+	maxTrials : natural number
+|
+	Require: inside fence;
+	/* Retain the previous checkpoint before overwriting it. */
+	previousCheckpoint ::= current fiber[checkpoint];
+	trialNumber : natural number := 1;
+	answer : natural number;
+	[
+		$newCheckpoint : ⊤;
+		If trialNumber = maxTrials then
+		[
+			current fiber[checkpoint] := previousCheckpoint;
+		]
+		else if [trialNumber = 1] then
+		[
+			current fiber[checkpoint] := newCheckpoint;
+		];
+		answer := trialNumber;
+		↑trialNumber++;
+	]();
+	answer
+] : natural number;
+
+Semantic restriction "trial`#of_" is
+[
+	maxTrials : natural number's type
+|
+	[1..⎡maxTrials⎤+1)
+];
+
+/**
+ * Establish a checkpoint for subsequent backtracking. Must be invoked within
+ * the dynamic scope of {@method "Backtracking fence_"}. Answer the first
+ * element of {@param "aTuple"}. On the next {@code |aTuple|-1} invocations
+ * of {@method "Try again"} occurring within the same dynamic scope, restart the
+ * checkpoint but answer the appropriate subsequent element.
+ *
+ * @method "trial element of_"
+ * @param "aTuple" "tuple"
+ *        A tuple.
+ * @raises "no-backtracking-fence exception"
+ *         If {@method "trial element of_"} is not invoked from within a
+ *         function governed by {@method "Backtracking fence_"}.
+ */
+Public method "trial element of_" is
+[
+	aTuple : tuple
+|
+	$body : any;
+	For each of aTuple do
+	[
+		element : any
+	|
+		If first try then [Exit body with element];
+	];
+	Try again
+] : any;
+
+Semantic restriction "trial element of_" is
+[
+	tupleType : tuple's type
+|
+	∪ tupleType[1..⎡tupleType⎤ min (|tupleType's leading types| + 1)]
+];
+
+/**
+ * Establish a checkpoint for subsequent backtracking. Must be invoked within
+ * the dynamic scope of {@method "Backtracking fence_"}. Answer an element of
+ * {@param "aSet"}. On the next {@code |aSet|-1} invocations of {@method
+ * "Try again"} occurring within the same dynamic scope, restart the
+ * checkpoint but uniquely answer a different element.
+ *
+ * @method "trial element of_"
+ * @param "aSet" "set"
+ *        A set.
+ * @raises "no-backtracking-fence exception"
+ *         If {@method "trial element of_"} is not invoked from within a
+ *         function governed by {@method "Backtracking fence_"}.
+ */
+Public method "trial element of_" is
+[
+	aSet : set
+|
+	$body : any;
+	For each of aSet→tuple do
+	[
+		element : any
+	|
+		If first try then [Exit body with element];
+	];
+	Try again
+] : any;
+
+Semantic restriction "trial element of_" is
+[
+	setType : set's type
+|
+	setType's element type
+];
+
+/**
+ * Restart the previous checkpoint, but answer something different from last
+ * time.
+ *
+ * @raises "no-backtracking-fence exception"
+ *         If {@method "Try again"} is not invoked from within a function
+ *         governed by {@method "Backtracking fence_"}.
+ * @raises "no-checkpoint exception"
+ *         If no checkpoint has been set.
+ */
+Public method "Try again" is
+[
+	Require: inside fence;
+	Cast current fiber[checkpoint] into [retry : $[]→⊤ | Restart retry]
+] : ⊥;
+
+/**
+ * Accumulate and answer all values of {@param "aFunction"} reachable via
+ * code paths that diverge exclusively because of checkpoints and backtracking.
+ * For example:
+ *
+ *    Assert: (all values of [if first try then [1] else [2]]) = <1, 2>;
+ *
+ * This method internally uses {@method "Backtracking fence_"}, so the
+ * sender need not explicitly establish a fence.
+ *
+ * @method "all values of_"
+ * @param "aFunction" "[]→any"
+ *        A value-producing function that is expected, but not required, to
+ *        establish checkpoints and use backtracking.
+ * @returns "tuple"
+ *          A tuple comprising all values of {@param "aFunction"} producible
+ *          through backtracking.
+ */
+Public method "all values of_" is
+[
+	aFunction : []→any
+|
+	accumulator : tuple := <>;
+	Backtracking fence
+	[
+		If first try then
+		[
+			value ::= aFunction();
+			accumulator := eject ↑accumulator ++ <value>;
+			Try again
+		];
+	];
+	accumulator
+] : tuple;
+
+Semantic restriction "all values of_" is
+[
+	functionType : []→any's type
+|
+	<functionType's return type…|>
+];
+
+/**
+ * Accumulate and answer the first {@param "optionalMaxValues"} values of
+ * {@param "aFunction"} reachable via code paths that diverge exclusively
+ * because of checkpoints and backtracking. For example:
+ *
+ *    Assert: (first 3 values of [trial# of 10]) = <1, 2, 3>;
+ *
+ * This method internally uses {@method "Backtracking fence_"}, so the
+ * sender need not explicitly establish a fence.
+ *
+ * @method "first«_»value|values of_"
+ * @param "optionalMaxValues" "<whole number…|0..1>"
+ *        If specified, then the requested number of values; otherwise, {@code
+ *        1}. If fewer than the requested number of values are available, then
+ *        answer all available values.
+ * @param "aFunction" "[]→any"
+ *        A value-producing function that is expected, but not required, to
+ *        establish checkpoints and use backtracking.
+ * @returns "tuple"
+ *          A tuple comprising some of the values of {@param "aFunction"}
+ *          producible through backtracking.
+ */
+Public method "first«_»value|values of_" is
+[
+	optionalMaxValues : <[0..∞]…|0..1>,
+	aFunction : []→any
+|
+	maxValues ::= optionalMaxValues[1] else [1];
+	if maxValues = 0 then [<>]
+	else
+	[
+		accumulator : tuple := <>;
+		Backtracking fence
+		[
+			previousCheckpoint ::= current fiber[checkpoint];
+			firstTry : boolean := true;
+			[
+				$newCheckpoint : ⊤;
+				If firstTry then
+				[
+					firstTry := false;
+					current fiber[checkpoint] := newCheckpoint;
+					answer ::= aFunction();
+					accumulator := eject ↑accumulator ++ <answer>;
+					If |accumulator| < maxValues then [Try again];
+				];
+			]();
+			current fiber[checkpoint] := previousCheckpoint;
+		];
+		accumulator
+	]
+] : tuple;
+
+Semantic restriction "first«_»value|values of_" is
+[
+	optionalMaxValues : <[0..∞]…|0..1>'s type,
+	functionType : []→any's type
+|
+	maxValues ::=
+		if ⎣optionalMaxValues⎦ = 1 then [optionalMaxValues[1]] else [1's type];
+	<functionType's return type…|0..⎡maxValues⎤>
+];
