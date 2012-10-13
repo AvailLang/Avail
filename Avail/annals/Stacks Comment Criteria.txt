@@ -6,7 +6,14 @@
  * @restricts \"dimensioned quantity's type\"
  * @restricts \"unit's type\"
  */
-Semantic restriction \"_converted to_\" is
+ 
+ 
+ 
+ s
+ 
+ 
+ 
+ Semantic restriction \"_converted to_\" is
 [
 	quantityType : dimensioned quantity's type,
 	unitType : unit's type

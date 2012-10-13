@@ -809,11 +809,11 @@ test ::=
 
 
 
- Print: test; Print: "\n";
+/* Print: test; Print: "\n";
  it : iterator := an iterator over test;
 identify comment from it;
 
-/*Print: buffer;
+Print: buffer;
 Print: "\n";
 Print: format "lineCount=“①”\n\n" with lineCount;
 Print: “buffer”;
