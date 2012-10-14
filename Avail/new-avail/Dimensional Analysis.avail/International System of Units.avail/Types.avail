@@ -81,7 +81,9 @@ Method "__" is
 	magnitudeType : number's type,
 	theUnit : SI unit
 |
-	extend SI dimensioned quantity with metric : theUnit's type
+	extend SI dimensioned quantity with
+		extent : magnitudeType,
+		metric : theUnit's type
 ] : SI dimensioned quantity's type;
 
 Semantic restriction "__" is
@@ -91,11 +93,11 @@ Semantic restriction "__" is
 |
 	(if |unitType| = 1 then
 	[
-		number unitType's instance
+		magnitudeType's instance unitType's instance
 	]
 	else
 	[
-		SI dimensioned quantity
+		extend SI dimensioned quantity with extent : magnitudeType's instance
 	])'s type
 ];
 
@@ -122,10 +124,12 @@ Semantic restriction "__" is
 |
 	if |unitType| = 1 then
 	[
-		number (unitType's instance)
+		magnitudeType (unitType's instance)
 	]
 	else
 	[
-		extend SI dimensioned quantity with metric : unitType
+		extend SI dimensioned quantity with
+			extent : magnitudeType,
+			metric : unitType
 	]
 ];

@@ -58,7 +58,12 @@ Names
 	"partially format_with«…:=_‡,»",
 	"_(base_)",
 	"_→integer",
-	"“_”«else_»(as simple comma-separated list)"
+
+	/* Formatting lists. */
+	"“_”«else_»(as simple list)",
+	"“_”«else_»(as«conjunctive|disjunctive»!list)",
+	"“_”«else_»\
+	\|(as«conjunctive|disjunctive»!list with serial|Oxford|Harvard comma)"
 Body
 
 /* These are the circled numbers. */
@@ -980,7 +985,8 @@ Method "“_”" is
 		index : natural number := 1;
 		Do
 		[
-			s := eject ↑s ++ “aTuple[index]”;
+			elem ::= aTuple[index];
+			s := eject ↑s ++ cast elem into [t : string | t] else [“elem”];
 			↑index++;
 		]
 		while [index ≤ |aTuple|]
@@ -994,21 +1000,21 @@ Method "“_”" is
  * Answer a textual rendition of {@param "aTuple"} as a comma-separated list
  * without enclosing angle brackets.
  *
- * @method "“_”(as simple comma-separated list)"
+ * @method "“_”«else_»(as simple list)"
  * @param "aTuple" "tuple"
  *        An arbitrary tuple.
- * @param "optionalEmptyText" "<string…|0..1>"
- *        If specified, then the text to answer if the tuple is empty. If not
- *        specified, then {@code "(empty)"} will be used.
+ * @param "optionalEmptyText" "<[]→string…|0..1>"
+ *        If specified, then the function to apply if the tuple is empty. If not
+ *        specified, then {@code ["(empty)"]} will be used.
  * @returns "string"
  *          The requested textual rendition.
  */
-Public method "“_”«else_»(as simple comma-separated list)" is
+Public method "“_”«else_»(as simple list)" is
 [
 	aTuple : tuple,
-	optionalEmptyText : <string…|0..1>
+	optionalEmptyText : <[]→string…|0..1>
 |
-	if aTuple is empty then [optionalEmptyText[1] else ["(empty)"]]
+	if aTuple is empty then [optionalEmptyText[1] else [["(empty)"]]()]
 	else
 	[
 		desc ::= “aTuple”;
@@ -1021,27 +1027,360 @@ Method "“_”" is
 	aSet : set
 |
 	if aSet is empty then ["∅"]
-	else ["{" ++ “aSet→tuple” (as simple comma-separated list) ++ "}"]
+	else ["{" ++ “aSet→tuple” (as simple list) ++ "}"]
 ] : <character…|1..>;
 
 /**
  * Answer a textual rendition of {@param "aSet"} as a comma-separated list
  * without enclosing curly brackets.
  *
- * @method "“_”(as simple comma-separated list)"
+ * @method "“_”(as simple list)"
  * @param "aSet" "set"
  *        An arbitrary set.
- * @param "optionalEmptyText" "<string…|0..1>"
- *        If specified, then the text to answer if the set is empty. If not
- *        specified, then {@code "(empty)"} will be used.
+ * @param "optionalEmptyText" "<[]→string…|0..1>"
+ *        If specified, then the function to apply if the set is empty. If not
+ *        specified, then {@code ["(empty)"]} will be used.
  * @returns "string"
  *          The requested textual rendition.
  */
-Public method "“_”«else_»(as simple comma-separated list)" is
+Public method "“_”«else_»(as simple list)" is
 [
 	aSet : set,
-	optionalEmptyText : <string…|0..1>
+	optionalEmptyText : <[]→string…|0..1>
 |
-	emptyText ::= optionalEmptyText[1] else ["(empty)"];
-	“aSet→tuple” else emptyText (as simple comma-separated list)
+	emptyText ::= optionalEmptyText[1] else [["(empty)"]]();
+	“aSet→tuple” else [emptyText] (as simple list)
+] : string;
+
+/**
+ * Answer a textual rendition of {@param "aTuple"} as a list. Use the serial
+ * comma, i.e., when {@param "aTuple"} contains three or more elements, then
+ * precede each element except for the first with a comma, but output either
+ * {@code "and"} or {@code "or"} before the final element.
+ *
+ * @method "“_”«else_»(as«conjunctive|disjunctive»!list with serial|Oxford|Harvard comma)"
+ * @param "aTuple" "tuple"
+ *        An arbitrary tuple.
+ * @param "optionalEmptyText" "<[]→string…|0..1>"
+ *        If specified, then the function to apply if the tuple is empty. If not
+ *        specified, then {@code ["(empty)"]} will be used.
+ * @param "mode" "[1..2]"
+ *        If the mode is {@code 1}, then output the word {@code "and"} before
+ *        the final element of a multi-element tuple. If the mode is {@code 2},
+ *        then output the word {@code "or"} before the final element of a
+ *        multi-element tuple.
+ * @returns "string"
+ *          The requested textual rendition.
+ */
+Public abstract method
+	"“_”«else_»\
+	\|(as«conjunctive|disjunctive»!list with serial|Oxford|Harvard comma)"
+is [tuple, <[]→string…|0..1>, [1..2]]→string;
+
+Method
+	"“_”«else_»\
+	\|(as«conjunctive|disjunctive»!list with serial|Oxford|Harvard comma)"
+is
+[
+	aTuple : <⊥…|0>,
+	optionalEmptyText : <[]→string…|0..1>,
+	mode : [1..2]
+|
+	optionalEmptyText[1] else [["(empty)"]]()
+] : string;
+
+Method
+	"“_”«else_»\
+	\|(as«conjunctive|disjunctive»!list with serial|Oxford|Harvard comma)"
+is
+[
+	aTuple : <any…|1>,
+	optionalEmptyText : <[]→string…|0..1>,
+	mode : [1..2]
+|
+	elem ::= aTuple[1];
+	cast elem into [t : string | t] else [“elem”]
+] : string;
+
+Method
+	"“_”«else_»\
+	\|(as«conjunctive|disjunctive»!list with serial|Oxford|Harvard comma)"
+is
+[
+	aTuple : <any…|2>,
+	optionalEmptyText : <[]→string…|0..1>,
+	mode : [1..2]
+|
+	s1 ::= cast aTuple[1] into [t : string | t] else [“aTuple[1]”];
+	s2 ::= cast aTuple[2] into [t : string | t] else [“aTuple[2]”];
+	s1 ++ <" and ", " or ">[mode] ++ s2
+] : string;
+
+Method
+	"“_”«else_»\
+	\|(as«conjunctive|disjunctive»!list with serial|Oxford|Harvard comma)"
+is
+[
+	aTuple : <any…|3..>,
+	optionalEmptyText : <[]→string…|0..1>,
+	mode : [1..2]
+|
+	s : string := "";
+	From 1 to |aTuple| - 1 do
+	[
+		index : natural number
+	|
+		tx ::= cast aTuple[index] into [t : string | t] else [“aTuple[index]”];
+		s := eject ↑s ++ tx ++ ", ";
+	];
+	last ::= aTuple[|aTuple|];
+	tx ::= cast last into [t : string | t] else [“last”];
+	s := eject ↑s ++ <"and ", "or ">[mode] ++ tx;
+	s
+] : string;
+
+/**
+ * Answer a textual rendition of {@param "aTuple"} as a list. Use the serial
+ * comma, i.e., when {@param "aTuple"} contains three or more elements, then
+ * precede each element except for the first with a comma, but output either
+ * {@code "and"} or {@code "or"} before the final element.
+ *
+ * @method "“_”«else_»(as«conjunctive|disjunctive»!list with serial|Oxford|Harvard comma)"
+ * @param "aTuple" "tuple"
+ *        An arbitrary tuple.
+ * @param "optionalEmptyText" "<[]→string…|0..1>"
+ *        If specified, then the function to apply if the tuple is empty. If not
+ *        specified, then {@code ["(empty)"]} will be used.
+ * @param "mode" "[1..2]"
+ *        If the mode is {@code 1}, then output the word {@code "and"} before
+ *        the final element of a multi-element tuple. If the mode is {@code 2},
+ *        then output the word {@code "or"} before the final element of a
+ *        multi-element tuple.
+ * @returns "string"
+ *          The requested textual rendition.
+ */
+Abstract method
+	"“_”«else_»\
+	\|(as«conjunctive|disjunctive»!list with serial|Oxford|Harvard comma)"
+is
+[set, <[]→string…|0..1>, [1..2]]→string;
+
+Method
+	"“_”«else_»\
+	\|(as«conjunctive|disjunctive»!list with serial|Oxford|Harvard comma)"
+is
+[
+	aSet : {⊥|0},
+	optionalEmptyText : <[]→string…|0..1>,
+	mode : [1..2]
+|
+	optionalEmptyText[1] else [["(empty)"]]()
+] : string;
+
+Method
+	"“_”«else_»\
+	\|(as«conjunctive|disjunctive»!list with serial|Oxford|Harvard comma)"
+is
+[
+	aSet : {any|1},
+	optionalEmptyText : <[]→string…|0..1>,
+	mode : [1..2]
+|
+	aTuple ::= aSet→tuple;
+	elem ::= aTuple[1];
+	cast elem into [t : string | t] else [“elem”]
+] : string;
+
+Method
+	"“_”«else_»\
+	\|(as«conjunctive|disjunctive»!list with serial|Oxford|Harvard comma)"
+is
+[
+	aSet : {any|2},
+	optionalEmptyText : <[]→string…|0..1>,
+	mode : [1..2]
+|
+	aTuple ::= aSet→tuple;
+	s1 ::= cast aTuple[1] into [t : string | t] else [“aTuple[1]”];
+	s2 ::= cast aTuple[2] into [t : string | t] else [“aTuple[2]”];
+	s1 ++ <" and ", " or ">[mode] ++ s2
+] : string;
+
+Method
+	"“_”«else_»\
+	\|(as«conjunctive|disjunctive»!list with serial|Oxford|Harvard comma)"
+is
+[
+	aSet : {any|3..},
+	optionalEmptyText : <[]→string…|0..1>,
+	mode : [1..2]
+|
+	aTuple ::= aSet→tuple;
+	s : string := "";
+	From 1 to |aTuple| - 1 do
+	[
+		index : natural number
+	|
+		tx ::= cast aTuple[index] into [t : string | t] else [“aTuple[index]”];
+		s := eject ↑s ++ tx ++ ", ";
+	];
+	last ::= aTuple[|aTuple|];
+	tx ::= cast last into [t : string | t] else [“last”];
+	s := eject ↑s ++ <"and ", "or ">[mode] ++ tx;
+	s
+] : string;
+
+/**
+ * Answer a textual rendition of {@param "aTuple"} as a list. Elements are
+ * separated by commas, except that the last two elements are separated by
+ * the appropriate connective conjunction. No comma will occur before the
+ * connective conjunction, i.e., do not use the serial comma.
+ *
+ * @method "“_”«else_»(as«conjunctive|disjunctive»!list)"
+ * @param "aTuple" "tuple"
+ *        An arbitrary tuple.
+ * @param "optionalEmptyText" "<[]→string…|0..1>"
+ *        If specified, then the function to apply if the tuple is empty. If not
+ *        specified, then {@code ["(empty)"]} will be used.
+ * @param "mode" "[1..2]"
+ *        If the mode is {@code 1}, then output the word {@code "and"} before
+ *        the final element of a multi-element tuple. If the mode is {@code 2},
+ *        then output the word {@code "or"} before the final element of a
+ *        multi-element tuple.
+ * @returns "string"
+ *          The requested textual rendition.
+ */
+Public abstract method "“_”«else_»(as«conjunctive|disjunctive»!list)"
+	is [tuple, <[]→string…|0..1>, [1..2]]→string;
+
+Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
+[
+	aTuple : <⊥…|0>,
+	optionalEmptyText : <[]→string…|0..1>,
+	mode : [1..2]
+|
+	optionalEmptyText[1] else [["(empty)"]]()
+] : string;
+
+Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
+[
+	aTuple : <any…|1>,
+	optionalEmptyText : <[]→string…|0..1>,
+	mode : [1..2]
+|
+	elem ::= aTuple[1];
+	cast elem into [t : string | t] else [“elem”]
+] : string;
+
+Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
+[
+	aTuple : <any…|2>,
+	optionalEmptyText : <[]→string…|0..1>,
+	mode : [1..2]
+|
+	s1 ::= cast aTuple[1] into [t : string | t] else [“aTuple[1]”];
+	s2 ::= cast aTuple[2] into [t : string | t] else [“aTuple[2]”];
+	s1 ++ <" and ", " or ">[mode] ++ s2
+] : string;
+
+Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
+[
+	aTuple : <any…|3..>,
+	optionalEmptyText : <[]→string…|0..1>,
+	mode : [1..2]
+|
+	s : string := "";
+	From 1 to |aTuple| - 2 do
+	[
+		index : natural number
+	|
+		tx ::= cast aTuple[index] into [t : string | t] else [“aTuple[index]”];
+		s := eject ↑s ++ tx ++ ", ";
+	];
+	nextLast ::= aTuple[|aTuple| - 1];
+	tx : string := cast nextLast into [t : string | t] else [“nextLast”];
+	s := eject ↑s ++ tx;
+	last ::= aTuple[|aTuple|];
+	tx := cast last into [t : string | t] else [“last”];
+	s := eject ↑s ++ <" and ", " or ">[mode] ++ tx;
+	s
+] : string;
+
+/**
+ * Answer a textual rendition of {@param "aSet"} as a list. Elements are
+ * separated by commas, except that the last two elements are separated by
+ * the appropriate connective conjunction. No comma will occur before the
+ * connective conjunction, i.e., do not use the serial comma.
+ *
+ * @method "“_”«else_»(as«conjunctive|disjunctive»!list)"
+ * @param "aSet" "set"
+ *        An arbitrary set.
+ * @param "optionalEmptyText" "<[]→string…|0..1>"
+ *        If specified, then the function to apply if the tuple is empty. If not
+ *        specified, then {@code ["(empty)"]} will be used.
+ * @param "mode" "[1..2]"
+ *        If the mode is {@code 1}, then output the word {@code "and"} before
+ *        the final element of a multi-element tuple. If the mode is {@code 2},
+ *        then output the word {@code "or"} before the final element of a
+ *        multi-element tuple.
+ * @returns "string"
+ *          The requested textual rendition.
+ */
+Abstract method "“_”«else_»(as«conjunctive|disjunctive»!list)"
+	is [set, <[]→string…|0..1>, [1..2]]→string;
+
+Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
+[
+	aSet : {⊥|0},
+	optionalEmptyText : <[]→string…|0..1>,
+	mode : [1..2]
+|
+	optionalEmptyText[1] else [["(empty)"]]()
+] : string;
+
+Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
+[
+	aSet : {any|1},
+	optionalEmptyText : <[]→string…|0..1>,
+	mode : [1..2]
+|
+	aTuple ::= aSet→tuple;
+	elem ::= aTuple[1];
+	cast elem into [t : string | t] else [“elem”]
+] : string;
+
+Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
+[
+	aSet : {any|2},
+	optionalEmptyText : <[]→string…|0..1>,
+	mode : [1..2]
+|
+	aTuple ::= aSet→tuple;
+	s1 ::= cast aTuple[1] into [t : string | t] else [“aTuple[1]”];
+	s2 ::= cast aTuple[2] into [t : string | t] else [“aTuple[2]”];
+	s1 ++ <" and ", " or ">[mode] ++ s2
+] : string;
+
+Method "“_”«else_»(as«conjunctive|disjunctive»!list)" is
+[
+	aSet : {any|3..},
+	optionalEmptyText : <[]→string…|0..1>,
+	mode : [1..2]
+|
+	aTuple ::= aSet→tuple;
+	s : string := "";
+	From 1 to |aTuple| - 2 do
+	[
+		index : natural number
+	|
+		tx ::= cast aTuple[index] into [t : string | t] else [“aTuple[index]”];
+		s := eject ↑s ++ tx ++ ", ";
+	];
+	nextLast ::= aTuple[|aTuple| - 1];
+	tx : string := cast nextLast into [t : string | t] else [“nextLast”];
+	s := eject ↑s ++ tx;
+	last ::= aTuple[|aTuple|];
+	tx := cast last into [t : string | t] else [“last”];
+	s := eject ↑s ++ <" and ", " or ">[mode] ++ tx;
+	s
 ] : string;

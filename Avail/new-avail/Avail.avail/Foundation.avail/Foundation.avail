@@ -578,6 +578,7 @@ Extends
 		"«_‡«=|≤|<»!»",
 		"«_‡«=|≥|>»!»"
 	),
+	"Methods",
 	"Objects" =
 	(
 		"a|an_«with«_:=_‡,»»",
@@ -622,7 +623,10 @@ Extends
 		"partially format_with«…:=_‡,»",
 		"_(base_)",
 		"_→integer",
-		"“_”«else_»(as simple comma-separated list)"
+		"“_”«else_»(as simple list)",
+		"“_”«else_»(as«conjunctive|disjunctive»!list)",
+		"“_”«else_»\
+		\|(as«conjunctive|disjunctive»!list with serial|Oxford|Harvard comma)"
 	),
 	"Tuples" =
 	(
@@ -692,7 +696,8 @@ Extends
 		"--_",
 		"(_--)",
 		"(--_)",
-		"_is assigned"
+		"_is assigned",
+		"↓_else_"
 	)
 Body
 

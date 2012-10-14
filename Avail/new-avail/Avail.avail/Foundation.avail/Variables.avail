@@ -53,7 +53,8 @@ Names
 	"--_",
 	"(_--)",
 	"(--_)",
-	"_is assigned"
+	"_is assigned",
+	"↓_else_"
 Body
 
 Semantic restriction "↓_" is
@@ -451,3 +452,32 @@ Invoke
 	Grammatical restriction parens is <forbid>;
 ]
 with <>;
+
+/**
+ * If {@param "var"} is assigned, then answer its contents. Otherwise, apply
+ * {@param "else"} and answer its result.
+ *
+ * @method "↓_else_"
+ * @param "var" "variable"
+ *        A {@type "variable"}.
+ * @param "else" "[]→any"
+ *        A function that is applied only if {@param "var"} is unassigned.
+ * @returns "any"
+ *          Either the content of {@param "var"} or the result of applying
+ *          {@param "else"}.
+ */
+Public method "↓_else_" is
+[
+	var : variable,
+	else : function accepting <> and returning any
+|
+	if var is assigned then [↓var] else else
+] : any;
+
+Semantic restriction "↓_else_" is
+[
+	varType : variable meta,
+	else : (function accepting <> and returning any)'s type
+|
+	varType's read type ∪ else's return type
+];

@@ -293,8 +293,8 @@ Semantic restriction "__" is
 	]
 	else
 	[
-		extend dimensioned quantity
-			with extent : magnitudeType,
+		extend dimensioned quantity with
+			extent : magnitudeType,
 			metric : unitType
 	]
 ];
