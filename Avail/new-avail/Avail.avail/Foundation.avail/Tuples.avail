@@ -80,6 +80,9 @@ Names
 	"_'s⁇head",
 	"_'s⁇last",
 	"_'s⁇tail",
+	"_[_.._]else_",
+	"_[_..]else_",
+	"_[.._]else_",
 	"_[_.._]→_",
 	"_[_↔_]",
 	"«_‡zip»"
@@ -2779,7 +2782,7 @@ Semantic restriction "_-_" is
  *          {@param "aTuple"}, or the result of applying {@param "else"} 
  *          (if {@param "index"} is invalid).
  */
-Method "_[_.._]else_" is
+Public method "_[_.._]else_" is
 [
 	aTuple : tuple,
 	start : integer,
@@ -2844,7 +2847,7 @@ Semantic restriction "_[_.._]else_" is
  *          {@param "aTuple"}, or the result of applying {@param "else"} 
  *          (if {@param "index"} is invalid).
  */
-Method "_[.._]else_" is
+Public method "_[.._]else_" is
 [
 	aTuple : tuple,
 	end : integer,
@@ -2901,7 +2904,7 @@ Semantic restriction "_[.._]else_" is
  *          {@param "aTuple"}, or the result of applying {@param "else"} 
  *          (if {@param "start"} is invalid).
  */
-Method "_[_..]else_" is
+Public method "_[_..]else_" is
 [
 	aTuple : tuple,
 	start : integer,
