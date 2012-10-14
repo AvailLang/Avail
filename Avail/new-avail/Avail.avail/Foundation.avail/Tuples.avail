@@ -80,6 +80,9 @@ Names
 	"_'s⁇head",
 	"_'s⁇last",
 	"_'s⁇tail",
+	"_[_.._]else_",
+	"_[_..]else_",
+	"_[.._]else_",
 	"_[_.._]→_",
 	"_[_↔_]",
 	"«_‡zip»"
@@ -2756,5 +2759,188 @@ Semantic restriction "_-_" is
 	[
 		union ::= ∪ tupleType[1..|tupleType's leading types|+1];
 		<union… | 0 max (⎣tupleType⎦-1).. ⎡tupleType⎤>
+	]
+];
+
+/**
+ * If {@param "start"} and {@param "end"} are valid subscripts representing a 
+ * valid range for {@param "aTuple"}, then answer the corresponding element. 
+ * Otherwise, answer the result obtained by applying {@param "else"}.
+ *
+ * @method "_[_.._]else_"
+ * @param "aTuple" "tuple"
+ *        A {@type "tuple"}.
+ * @param "start" "integer"
+ *        An {@type "integer"}.
+ * @param "end" "integer"
+ *        An {@type "integer"}.
+ * @param "else" "[]→any"
+ *        The function to apply if {@param "start"} through {@param "end} is not
+ *        a valid range of {@param "aTuple"}.
+ * @returns "any"
+ *          The {@param "start"}-th throught the {@param "end"}-th elements of 
+ *          {@param "aTuple"}, or the result of applying {@param "else"} 
+ *          (if {@param "index"} is invalid).
+ */
+Public method "_[_.._]else_" is
+[
+	aTuple : tuple,
+	start : integer,
+	end : integer,
+	else : function accepting <> and returning any
+|
+	if start ∈ [1..|aTuple| + 1] ∧ [end  ∈ [0..|aTuple|] ∧ [start - 1 ≤ end]]
+	then [aTuple[cast start into [t : natural number | t]..
+		cast end into [t : whole number | t]]]
+	else else
+] : any;
+
+Semantic restriction "_[_.._]else_" is
+[
+	tupleType : tuple meta,
+	start : integer's type,
+	end : integer's type,
+	else : (function accepting <> and returning any)'s type
+|
+	if ⎣start⎦- 1 > ⎡tupleType⎤ ∨ [⎡start⎤ < 1 ∨ [⎣end⎦ > ⎡tupleType⎤ ∨ 
+		[⎡end⎤ < 0 ∨ [⎣start⎦- 1 > ⎡end⎤]]]] then
+	[
+		else's return type
+	]
+	else
+	[
+		min ::= cast ⎣start⎦ max 1
+			into [t : natural number | t];
+		max ::= cast ⎡end⎤ min (|tupleType's leading types| + 1)
+			into [t : whole number | t];
+		if min - 1 = max then [ <>'s type]
+		else 
+		[
+			union ::= tuple type of tupleType[min's type..max's type];
+			if [min..max] ⊆ [1..⎣tupleType⎦] then
+			[
+				union
+			]
+			else
+			[
+				union ∪ else's return type
+			]
+		]
+	]
+];
+
+/**
+ * If {@param "end"} is a valid subscript representing the end of a  
+ * valid range for {@param "aTuple"}, then answer the corresponding element. 
+ * Otherwise, answer the result obtained by applying {@param "else"}.
+ *
+ * @method "_[.._]else_"
+ * @param "aTuple" "tuple"
+ *        A {@type "tuple"}.
+ * @param "end" "integer"
+ *        An {@type "integer"}.
+ * @param "else" "[]→any"
+ *        The function to apply if 1 through {@param "end} is not
+ *        a valid range of {@param "aTuple"}.
+ * @returns "any"
+ *          The first through the {@param "end"}-th element of 
+ *          {@param "aTuple"}, or the result of applying {@param "else"} 
+ *          (if {@param "index"} is invalid).
+ */
+Public method "_[.._]else_" is
+[
+	aTuple : tuple,
+	end : integer,
+	else : function accepting <> and returning any
+|
+	aTuple[1..end] else else
+] : any;
+
+Semantic restriction "_[.._]else_" is
+[
+	tupleType : tuple meta,
+	end : integer's type,
+	else : (function accepting <> and returning any)'s type
+|
+	if ⎣end⎦ > ⎡tupleType⎤ ∨ [⎡end⎤ < 0 ] then
+	[
+		else's return type
+	]
+	else
+	[
+		max ::= cast ⎡end⎤ min (|tupleType's leading types| + 1)
+			into [t : whole number | t];
+		if max = 0 then [ <>'s type]
+		else 
+		[
+			union ::= tuple type of tupleType[1's type..max's type];
+			if [1..max] ⊆ [1..⎣tupleType⎦] then
+			[
+				union
+			]
+			else
+			[
+				union ∪ else's return type
+			]
+		]
+	]
+];
+
+/**
+ * If {@param "start"} is a valid subscript representing the start of a  
+ * valid range for {@param "aTuple"}, then answer the corresponding element. 
+ * Otherwise, answer the result obtained by applying {@param "else"}.
+ *
+ * @method "_[_..]else_"
+ * @param "aTuple" "tuple"
+ *        A {@type "tuple"}.
+ * @param "start" "integer"
+ *        An {@type "integer"}.
+ * @param "else" "[]→any"
+ *        The function to apply if {@param "start"} through the end of aTuple 
+ *        is not a valid range of {@param "aTuple"}.
+ * @returns "any"
+ *          The {@param "start"}-th through the last element of 
+ *          {@param "aTuple"}, or the result of applying {@param "else"} 
+ *          (if {@param "start"} is invalid).
+ */
+Public method "_[_..]else_" is
+[
+	aTuple : tuple,
+	start : integer,
+	else : function accepting <> and returning any
+|
+	aTuple[start..|aTuple|] else else
+] : any;
+
+Semantic restriction "_[_..]else_" is
+[
+	tupleType : tuple meta,
+	start : integer's type,
+	else : (function accepting <> and returning any)'s type
+|
+	if ⎣start⎦ - 1 > ⎡tupleType⎤ ∨ [⎡start⎤ < 1 ] then
+	[
+		else's return type
+	]
+	else
+	[
+		min ::= cast ⎣start⎦ max 1
+			into [t : natural number | t];
+		max ::= cast ⎡tupleType⎤
+			into [t : whole number | t];
+		if min - 1 = max then [ <>'s type]
+		else 
+		[
+			union ::= tuple type of tupleType[min's type..max's type];
+			if [min..max] ⊆ [1..⎣tupleType⎦] then
+			[
+				union
+			]
+			else
+			[
+				union ∪ else's return type
+			]
+		]
 	]
 ];

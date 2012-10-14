@@ -1,0 +1,161 @@
+"/**
+ * Reject the current parse if the {@type \"unit\" metrics} are well-known but no
+ * conversion function has been defined prior to this send.
+ *
+ * @method \"_converted to_\"
+ * @restricts \"dimensioned quantity's type\"
+ * @restricts \"unit's type\"
+ */
+ 
+ 
+ 
+ s
+ 
+ 
+ 
+ Semantic restriction \"_converted to_\" is
+[
+	quantityType : dimensioned quantity's type,
+	unitType : unit's type
+|
+	If {|quantityType's metric|, |unitType|} = {1} then
+	[
+		key ::= <quantityType's metric's instance, unitType's instance>;
+		Unless key ∈ converters then
+		[
+			Reject parse, expected:
+				format
+					\"conversion function for “①” → “②” to have been previously\
+					\| defined\"
+				with key[1], key[2]
+		];
+	];
+	extend dimensioned quantity with metric : unitType
+];
+
+/**
+ * Define {@method \"_converted to_\" methods} for converting {@type
+ * \"dimensioned quantity\" dimensioned quantities} between two compatible {@type
+ * \"unit\" metrics}.
+ *
+ * @method \"Conversion method is_,⁇inverse is_\"
+ * @param \"aFunction\" \"[⊥, ⊥]→dimensioned quantity\"
+ *        A function whose first parameter type is a subtypes of {@type
+ *        \"dimensioned quantity\"} and whose second parameter type is a subtype
+ *        of {@type \"unit\"}. This function must return a {@type \"dimensioned
+ *        quantity\"} whose metric equals the second parameter type.
+ * @param \"inverseFunction\" \"[⊥, ⊥]→dimensioned quantity\"
+ *        A function whose first parameter type is a subtype of {@type
+ *        \"dimensioned quantity\"} having a metric that equals the second
+ *        parameter type of {@param \"aFunction\"} and whose second parameter type
+ *        equals the metric of the first parameter type of same. This function
+ *        must return a {@type \"dimensioned quantity\"} whose metric equals the
+ *        second parameter type.
+ * @see \"_converted to_\"
+ */";
+
+
+
+
+ALL TAGS WILL BE LINKS!  Either specifically called out:
+	{@type "tuple" <number…|>}  First element is the token, the second is the thing to link to, the third is the text that is displayed
+  or:
+	"string"  this is an implied link.  string is a link directly to string.
+
+You will be either talking about a "type" (includes class) or a "method".  These are mutually exclusive, except for @category:
+
+Type:
+	@type
+	@supertype
+	@field
+	@category
+
+Method:
+	@param
+	@raises
+	@restricts
+	@returns
+	@forbids
+	@category
+	@pubilc
+	@method
+	@see - can be used anywhere
+	@author
+	@link - link off site used in {@param "a"} syntax: {@link "www.google.com"}
+	@code - {@code "from 1 to 10"}
+Module variable
+	@global
+
+If @category is the first tag, create the super type for methodDoc and typeDoc.
+
+Methods:
+A method is default private, but is specified public IF @public.  There is a difference for "regionally public" and "globally public".
+/**
+ * Compute the sum of {@param "a"} and {@param "b"}.
+ *
+ * @method "_+_"
+ * @public
+ * @category "…" "…" … 
+ * @param "a" "number"
+ *	A number.
+ * @param "b" "number"
+ *	A number.
+ * @returns "number"
+ *	The sum.
+ * @raises "cannot-add-unlike-infinities exception"
+ *	If the arguments are {@code ±∞}
+ * @see Everything Google {@link "www.google.com"}
+ * @see Green Eggs and Ham by Dr. Suess
+ */
+
+
+Semantic Restrictions:
+    The only general description that is provided is what the semantic restriction specifically rejects.  The only components are @method and @restrict.  You may have a description of the @restriction, however this is dis-recommended. You will never name the input of the @restriction.
+/**
+ * Reject addition of unlike infinities
+ *
+ * @method "_+_"
+ * @restricts "number's type"
+ *
+ * @restricts "number's type"
+ *
+ */
+
+
+Grammatical Restrictions:
+	The numeral after the forbid is the argument that is being restricted.
+/**
+ * Addition is left associative
+ * @method "_+_"
+ * @forbids 2 "_+_" "_-_"
+ */
+
+
+Class Definitions:
+
+/**
+ * A counting iterator...
+ *
+ * @type "counting iterator"
+ * @supertype {@type "iterator" iterator of number}
+ */
+
+
+All tags:
+ @param
+ @supertype
+ @field
+ @type
+ @raises
+ @restricts
+ @returns
+ @forbids
+ @category
+ @pubilc
+ @method
+ @link - link off site used in {@param "a"} syntax: {@link "www.google.com"}
+ @code - {@code "from 1 to 10"}
+
+	{@type,@supertype,@field,@category,@param,@raises,@restricts,@returns,@forbids,@pubilc,@method,@see,@author,@link,@code}
+
+
