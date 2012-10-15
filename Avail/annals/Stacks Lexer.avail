@@ -1,0 +1,295 @@
+/*
+ * Stacks Stream Parser.avail
+ * Copyright © 1993-2012, Mark van Gulik and Todd L Smith.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+System Module "Stacks Lexer"
+Versions
+	"Dev"
+Extends
+
+Uses
+	"Avail"
+
+Names
+	"@author",
+	"@category",
+	"@code",
+	"@field",
+	"@forbids",
+	"@global",
+	"@link",
+	"@method",
+	"@param",
+	"@public",
+	"@raises",
+	"@restricts",
+	"@returns",
+	"@see",
+	"@supertype",
+	"@type",
+	"stacks token"
+
+Body
+
+lexeme ::= $lexeme;		/*string representation of token*/
+line ::= $line;			/*line in which token appears*/
+position ::= $position; /*column position token begins*/
+
+/**
+ * A class that defines a token for the stacks lexor.  
+ * 
+ * @type "@public"
+ * @supertype {@type "element" element}
+ * @category Stacks
+ * @field "lexeme" "string"
+ * 	string representation of token
+ * @field "line" "natural number"
+ * 	line number on which token appears 
+ * @field "position" "natural number"
+ * 	column position where token begins
+ * @author Richard Arriaga
+ */
+Public explicit class "stacks token" extends object
+	with fields
+		lexeme : string,
+		line : natural number,
+		position : natural number;
+
+/**
+ * A method that constructs a subtype of stacks token class.
+ *
+ * @method "_ is a stacks token"
+ * @categories "Stacks"
+ * @param "name" "string" 
+ *		name of new token type
+ * @returnType "⊤"
+ *		none
+ * @author "Richard Arriaga"
+ */
+Private method "_is a stacks token" is
+[
+ 	name : <character…|1..>
+ |
+ 	 Class name extends stacks token
+ 		with fields
+ 			lexeme : name's type;
+ ]:⊤;
+
+/* All keywords that will ultimately be special stacks tokens */
+
+stacksTokenTypeNames::= <"@type","@supertype","@field","@category","@param",
+	"@raises","@restricts","@returns","@forbids","@public","@method","@see",
+	"@author","@link","@code","@global">;
+	
+For each stacksTokenTypeNames do
+[
+	tokenName : <character…|1..>
+ |
+ 	tokenName is a stacks token;
+];
+
+/**
+ * A method that creates a single stacks token object
+ *
+ * @method "token_"
+ * @categories "Stacks"
+ * @param "tokenComponents" "<string,natural number…|3>" 
+ *		a tuple <token lexeme,token line number,token column position>
+ * @returnType "stacks token"
+ *		a stacks token of the input string
+ * @author "Richard Arriaga"
+ */
+Private method "token_" is
+[
+ 	tokenComponents : <string,natural number…|3>
+ |
+ 	 a stacks token with
+		lexeme := tokenComponents[1],
+		line := tokenComponents[2],
+		position := tokenComponents[3]
+ ]:stacks token;
+
+/**
+ * Tokenize all elements of a string.
+ *
+ * @method "tokenize_"
+ * @categories "Stacks"
+ * @param "comment" "string" 
+ *		a qualifying stacks comment
+ * @returnType "<stacks token…|>"
+ *		a tuple of stacks tokens.  Excludes astericks.
+ * @author "Richard Arriaga"
+ */
+Private method "tokenize_" is
+[
+ 	comment : string
+ |
+ 	lineCount : natural number := 1;
+ 	openComment : whole number := 0;
+	openQuote : whole number := 0;
+	stacksTokens : <stacks token…|> := <>;
+	
+	/* delimiting characters for tokenization */
+	keyCharacters ::= {¢@,¢" ",¢"\"",¢{,¢},¢`,¢/,¢*};
+ 
+	doNotTokenize ::= {"/*","/**","*/"};
+	
+	newLinePositions ::= all indices of comment where 
+		[c : character | c = ¢"\n"];
+	
+	priorNewLine : natural number := 1;
+	bufferMap : {natural number→string|} := {};
+	
+	/* Break up comment by new lines.  Map key is line count, value is line *
+	 * less the new line character at the end of the line                   */
+	For each newLinePositions do
+	[
+	 	i : natural number
+	 |
+	 	if priorNewLine = 1 then
+	 	[
+	 	 	bufferMap := bufferMap + lineCount→comment[priorNewLine..i-1];
+	 	] else
+	 	[
+	 	 	bufferMap := bufferMap + lineCount→comment[priorNewLine + 1..i-1];
+	 	];
+	 
+	 	priorNewLine := i;
+		↑lineCount++;
+	];
+	
+	/* Tokenize comment lines */
+	For each bufferMap do
+	[
+	 	lineNumber : natural number,
+	 	commentLine : string
+	 |
+	 	columnPosition : natural number := 1;
+		charCounter : whole number := 0;
+		While
+		[
+		 	charCounter < |commentLine|
+		]
+		do
+		[
+		 	wordStart : natural number := charCounter + 1;
+			word : <character…|> := take from commentLine[charCounter+1..] until 
+			[
+			 	c : character 
+			 |
+			 	↑charCounter++;
+			 	c ∈ keyCharacters
+			];
+			j : natural number := cast charCounter into 
+				[n : natural number | n];
+			Cast commentLine[j] into
+			[
+			 	c : enumeration of {¢@,¢" ",¢"\"",¢{,¢},¢`,¢/,¢*}
+			 | /*TODO take appropriate acction to create tokens*/
+				Choose c from enumeration of keyCharacters
+				where
+				¢@ is
+				[
+				 	stacksTokens := stacksTokens ++ 
+	 					<token <word,lineNumber,wordStart>>;
+	 					wordStart := j;
+	 				word := take from commentLine[j..] until 
+	 				[
+	 					ch : character 
+	 				 |
+	 					↑charCounter++;
+	 					ch = ¢" "
+	 				];
+		 			stacksTokens := stacksTokens ++ 
+		 				<token <word,lineNumber,wordStart>>;
+				],
+				¢" " is
+				[
+				 	stacksTokens := stacksTokens ++ 
+				 		<token <word,lineNumber,wordStart>>;
+				],
+				¢"\"" is
+				[
+				 	stacksTokens := stacksTokens ++ 
+		 				<token <word,lineNumber,wordStart>>;
+		 			wordStart := j;
+	 				word := take from commentLine[j..] until 
+	 				[
+	 					ch : character 
+	 				 |
+	 					↑charCounter++;
+	 					ch = ¢"\""
+	 				];
+		 			word := word ++ <¢"\"">;
+		 			stacksTokens := stacksTokens ++ 
+		 				<token <word,lineNumber,wordStart>>;
+				],
+				¢{ is
+				[
+				 	stacksTokens := stacksTokens ++ 
+			 			<token <word,lineNumber,wordStart>>;
+					stacksTokens := stacksTokens ++ 
+						<token <"{",lineNumber,j>>;
+				],
+				¢} is
+				[
+				 	stacksTokens := stacksTokens ++ 
+		 				<token <word,lineNumber,wordStart>>;
+		 			stacksTokens := stacksTokens ++ 
+		 				<token <"}",lineNumber,j>>;
+				],
+				¢` is
+				[/*TODO check for following escaped special characters */],
+				¢/ is
+				[/*TODO check to see if open comment, might need a recursive call*/],
+				¢* is
+				[/*TODO check to see if closing comment*/],
+				else
+				[/*Check to see if at end of comment line*/];
+			];
+		];
+	];
+	
+	stacksTokens
+]:<stacks token…|>;
+
+keyCharacters ::= {¢@,¢" ",¢"\"",¢{,¢},¢`,¢/,¢*};
+charCounter : whole number := 0;
+t ::="Pupdog";
+word : <character…|> := take from t[charCounter+1..] until 
+[
+ 	c : character 
+ |
+ 	↑charCounter++;
+ 	c ∈ keyCharacters
+];
+Print: format "charCounter=“①”\n" with charCounter;
+Print: word;
